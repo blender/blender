@@ -317,23 +317,34 @@ int RE_rayobject_raycast(RayObject *r, Isect *isec)
 
 	
 	/* Last hit heuristic */
-	if(isec->mode==RE_RAY_SHADOW && isec->last_hit && RE_rayobject_intersect(isec->last_hit, isec))
+	if(isec->mode==RE_RAY_SHADOW && isec->last_hit)
 	{
-		RE_RC_COUNT(isec->raycounter->raycast.hit);
-		RE_RC_COUNT(isec->raycounter->rayshadow_last_hit_optimization );
-		return 1;
+		RE_RC_COUNT(isec->raycounter->rayshadow_last_hit.test);
+		
+		if(RE_rayobject_intersect(isec->last_hit, isec))
+		{
+			RE_RC_COUNT(isec->raycounter->raycast.hit);
+			RE_RC_COUNT(isec->raycounter->rayshadow_last_hit.hit);
+			return 1;
+		}
 	}
 
-#ifdef RE_RAYCOUNTER
+#ifdef RT_USE_HINT
+	isec->hit_hint = 0;
+#endif
+
 	if(RE_rayobject_intersect(r, isec))
 	{
+#ifdef RE_RAYCOUNTER
 		RE_RC_COUNT(isec->raycounter->raycast.hit);
+#endif
+
+#ifdef RT_USE_HINT
+		isec->hint = isec->hit_hint;
+#endif
 		return 1;
 	}
 	return 0;
-#else
-	return RE_rayobject_intersect(r, isec);
-#endif
 }
 
 int RE_rayobject_intersect(RayObject *r, Isect *i)
@@ -398,15 +409,19 @@ void RE_RC_INFO(RayCounter *info)
 	printf("\n");	
 	printf("Primitives tests: %llu\n", info->faces.test );
 	printf("Primitives hits: %llu\n", info->faces.hit );
+	printf("------------------------------------\n");
+	printf("Shadow last-hit tests per ray: %f\n", info->rayshadow_last_hit.test / ((float)info->raycast.test) );
+	printf("Shadow last-hit hits per ray: %f\n",  info->rayshadow_last_hit.hit  / ((float)info->raycast.test) );
 	printf("\n");
-	printf("Shadow Last hit reuse: %llu\n", info->rayshadow_last_hit_optimization);
-	printf("\n");
-	printf("Primitives tests per ray: %f\n", info->faces.test / ((float)info->raycast.test) );
-	printf("Primitives hits per ray: %f\n", info->faces.hit / ((float)info->raycast.test) );
+	printf("Hint tests per ray: %f\n", info->raytrace_hint.test / ((float)info->raycast.test) );
+	printf("Hint hits per ray: %f\n",  info->raytrace_hint.hit  / ((float)info->raycast.test) );
 	printf("\n");
 	printf("BB tests per ray: %f\n", info->bb.test / ((float)info->raycast.test) );
 	printf("BB hits per ray: %f\n", info->bb.hit / ((float)info->raycast.test) );
 	printf("\n");
+	printf("Primitives tests per ray: %f\n", info->faces.test / ((float)info->raycast.test) );
+	printf("Primitives hits per ray: %f\n", info->faces.hit / ((float)info->raycast.test) );
+	printf("------------------------------------\n");
 }
 
 void RE_RC_MERGE(RayCounter *dest, RayCounter *tmp)
@@ -420,7 +435,11 @@ void RE_RC_MERGE(RayCounter *dest, RayCounter *tmp)
 	dest->raycast.test += tmp->raycast.test;
 	dest->raycast.hit  += tmp->raycast.hit;
 	
-	dest->rayshadow_last_hit_optimization += tmp->rayshadow_last_hit_optimization;
+	dest->rayshadow_last_hit.test += tmp->rayshadow_last_hit.test;
+	dest->rayshadow_last_hit.hit  += tmp->rayshadow_last_hit.hit;
+
+	dest->raytrace_hint.test += tmp->raytrace_hint.test;
+	dest->raytrace_hint.hit  += tmp->raytrace_hint.hit;
 }
 
 #endif

@@ -160,6 +160,9 @@ static int dfs_raycast_stack(BVHNode *root, Isect *isec)
 {
 	BVHNode *stack[DFS_STACK_SIZE];
 	int hit = 0, stack_pos = 0;
+#ifdef RT_USE_HINT
+	BVHNode *last_processed_node = 0;
+#endif
 	
 	stack[stack_pos++] = root;
 	
@@ -170,19 +173,29 @@ static int dfs_raycast_stack(BVHNode *root, Isect *isec)
 		{
 			if(RE_rayobject_bb_intersect(isec, (const float*)node->bb) != FLT_MAX)
 			{
+				last_processed_node = node;
 				//push nodes in reverse visit order
 				if(isec->idot_axis[node->split_axis] < 0.0f)
 				{
 					int i;
 					for(i=0; i<BVH_NCHILDS; i++)
 						if(node->child[i] == 0) break;
-						else stack[stack_pos++] = node->child[i];
+						else
+#ifdef RT_USE_HINT
+							if(node->child[i] != (BVHNode*)isec->hint)
+#endif
+							stack[stack_pos++] = node->child[i];
 				}
 				else
 				{
 					int i;	
 					for(i=0; i<BVH_NCHILDS; i++)
-						if(node->child[i] != 0) stack[stack_pos++] = node->child[i];
+						if(node->child[i] != 0
+#ifdef RT_USE_HINT
+						&& node->child[i] != (BVHNode*)isec->hint
+#endif
+						)
+							stack[stack_pos++] = node->child[i];
 						else break;
 				}
 				assert(stack_pos <= DFS_STACK_SIZE);
@@ -190,7 +203,19 @@ static int dfs_raycast_stack(BVHNode *root, Isect *isec)
 		}
 		else
 		{
-			hit |= RE_rayobject_intersect( (RayObject*)node, isec);
+			int ghit;
+#ifdef RT_USE_HINT
+			RayTraceHint *b_hint = isec->hint;
+			isec->hint = 0;
+#endif
+			ghit = RE_rayobject_intersect( (RayObject*)node, isec);
+
+#ifdef RT_USE_HINT
+			isec->hint = b_hint;
+			if(ghit)
+				isec->hit_hint = (RayTraceHint*)last_processed_node;
+#endif
+			hit |= ghit;
 			if(hit && isec->mode == RE_RAY_SHADOW) return hit;
 		}
 	}
@@ -200,7 +225,26 @@ static int dfs_raycast_stack(BVHNode *root, Isect *isec)
 static int bvh_intersect_stack(BVHTree *obj, Isect *isec)
 {
 	if(RayObject_isAligned(obj->root))
+	{
+#ifdef RT_USE_HINT
+		if(isec->hint)
+		{
+			int hit;
+			RE_RC_COUNT(isec->raycounter->raytrace_hint.test);			
+			hit = dfs_raycast_stack((BVHNode*) isec->hint, isec);
+			if(hit)
+			{
+				RE_RC_COUNT(isec->raycounter->raytrace_hint.hit);
+
+				if(isec->mode == RE_RAY_SHADOW) return hit;
+			}
+			else isec->hint = 0; //Clear HINT on non-hit?, that sounds good, but no tests where made
+				
+			return hit | dfs_raycast_stack(obj->root, isec);
+		}
+#endif
 		return dfs_raycast_stack(obj->root, isec);
+	}
 	else
 		return RE_rayobject_intersect( (RayObject*)obj->root, isec);
 }

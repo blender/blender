@@ -31,7 +31,10 @@
 #ifndef RE_RAYTRACE_H
 #define RE_RAYTRACE_H
 
+#define RT_USE_HINT	/* 1 level hint */
 #define RE_RAYCOUNTER
+
+
 #ifdef RE_RAYCOUNTER
 
 typedef struct RayCounter RayCounter;
@@ -42,9 +45,7 @@ struct RayCounter
 	{
 		unsigned long long test, hit;
 		
-	} faces, bb, raycast;
-	
-	unsigned long long rayshadow_last_hit_optimization;
+	} faces, bb, raycast, raytrace_hint, rayshadow_last_hit;
 };
 
 /* #define RE_RC_INIT(isec, shi) (isec).count = re_rc_counter+(shi).thread */
@@ -68,6 +69,9 @@ extern RayCounter re_rc_counter[];
 /* Internals about raycasting structures can be found on intern/raytree.h */
 typedef struct RayObject RayObject;
 typedef struct Isect Isect;
+
+typedef struct RayTraceHint RayTraceHint;
+
 struct DerivedMesh;
 struct Mesh;
 
@@ -97,7 +101,6 @@ struct Isect
 	int   bv_index[6];
 	float idot_axis[3];
 	float dist;
-	
 
 /*	float end[3];			 - not used */
 
@@ -107,11 +110,14 @@ struct Isect
 	{
 		void *ob;
 		void *face;
-/*		RayObject *obj; */
 	}
 	hit, orig;
 	
 	RayObject *last_hit;	/* last hit optimization */
+
+#ifdef RT_USE_HINT
+	RayTraceHint *hint, *hit_hint;
+#endif
 	
 	short isect;			/* which half of quad */
 	short mode;				/* RE_RAY_SHADOW, RE_RAY_MIRROR, RE_RAY_SHADOW_TRA */
