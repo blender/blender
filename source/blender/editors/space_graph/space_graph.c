@@ -72,19 +72,19 @@ ARegion *graph_has_buttons_region(ScrArea *sa)
 		if(ar->regiontype==RGN_TYPE_UI)
 			return ar;
 	
-	/* add subdiv level; after channel */
+	/* add subdiv level; after main window */
 	for(ar= sa->regionbase.first; ar; ar= ar->next)
-		if(ar->regiontype==RGN_TYPE_CHANNELS)
+		if(ar->regiontype==RGN_TYPE_WINDOW)
 			break;
 	
 	/* is error! */
 	if(ar==NULL) return NULL;
 	
-	arnew= MEM_callocN(sizeof(ARegion), "buttons for view3d");
+	arnew= MEM_callocN(sizeof(ARegion), "buttons for nla");
 	
 	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
 	arnew->regiontype= RGN_TYPE_UI;
-	arnew->alignment= RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
+	arnew->alignment= RGN_ALIGN_RIGHT;
 	
 	arnew->flag = RGN_FLAG_HIDDEN;
 	
@@ -117,7 +117,7 @@ static SpaceLink *graph_new(const bContext *C)
 	ar->alignment= RGN_ALIGN_BOTTOM;
 	
 	/* channels */
-	ar= MEM_callocN(sizeof(ARegion), "main area for graphedit");
+	ar= MEM_callocN(sizeof(ARegion), "channels area for graphedit");
 	
 	BLI_addtail(&sipo->regionbase, ar);
 	ar->regiontype= RGN_TYPE_CHANNELS;
@@ -126,11 +126,11 @@ static SpaceLink *graph_new(const bContext *C)
 	ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
 	
 	/* ui buttons */
-	ar= MEM_callocN(sizeof(ARegion), "main area for graphedit");
+	ar= MEM_callocN(sizeof(ARegion), "buttons area for graphedit");
 	
 	BLI_addtail(&sipo->regionbase, ar);
 	ar->regiontype= RGN_TYPE_UI;
-	ar->alignment= RGN_ALIGN_TOP|RGN_SPLIT_PREV;
+	ar->alignment= RGN_ALIGN_RIGHT;
 	ar->flag = RGN_FLAG_HIDDEN;
 	
 	/* main area */
@@ -566,7 +566,7 @@ void ED_spacetype_ipo(void)
 	/* regions: UI buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizey= 200;
+	art->minsizex= 200;
 	art->keymapflag= ED_KEYMAP_UI;
 	art->listener= graph_region_listener;
 	art->init= graph_buttons_area_init;

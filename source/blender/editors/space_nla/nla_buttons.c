@@ -236,14 +236,17 @@ static void nla_panel_properties(const bContext *C, Panel *pa)
 	 *	- blend in/out can only be set when autoblending is off
 	 */
 	column= uiLayoutColumn(layout, 1);
+		uiLayoutSetActive(column, RNA_boolean_get(&strip_ptr, "animated_influence")==0); 
 		uiItemR(column, NULL, 0, &strip_ptr, "auto_blending", 0, 0, 0); // XXX as toggle?
-	subcol= uiLayoutColumn(column, 1);
-		uiLayoutSetActive(subcol, RNA_boolean_get(&strip_ptr, "auto_blending")==0); 
-		uiItemR(subcol, NULL, 0, &strip_ptr, "blend_in", 0, 0, 0);
-		uiItemR(subcol, NULL, 0, &strip_ptr, "blend_out", 0, 0, 0);
+		
+		subcol= uiLayoutColumn(column, 1);
+			uiLayoutSetActive(subcol, RNA_boolean_get(&strip_ptr, "auto_blending")==0); 
+			uiItemR(subcol, NULL, 0, &strip_ptr, "blend_in", 0, 0, 0);
+			uiItemR(subcol, NULL, 0, &strip_ptr, "blend_out", 0, 0, 0);
 		
 	/* settings */
 	column= uiLayoutColumn(layout, 1);
+		uiLayoutSetActive(column, !(RNA_boolean_get(&strip_ptr, "animated_influence") || RNA_boolean_get(&strip_ptr, "animated_time"))); 
 		uiItemL(column, "Playback Settings:", 0);
 		uiItemR(column, NULL, 0, &strip_ptr, "muted", 0, 0, 0);
 		uiItemR(column, NULL, 0, &strip_ptr, "reversed", 0, 0, 0);
@@ -279,6 +282,7 @@ static void nla_panel_actclip(const bContext *C, Panel *pa)
 		
 	/* action usage */
 	column= uiLayoutColumn(layout, 1);
+		uiLayoutSetActive(column, RNA_boolean_get(&strip_ptr, "animated_time")==0); 
 		uiItemL(column, "Playback Settings:", 0);
 		uiItemR(column, NULL, 0, &strip_ptr, "scale", 0, 0, 0);
 		uiItemR(column, NULL, 0, &strip_ptr, "repeat", 0, 0, 0);
