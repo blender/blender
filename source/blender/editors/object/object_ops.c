@@ -84,7 +84,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_slowparent_clear);
 	WM_operatortype_append(OBJECT_OT_center_set);
 	WM_operatortype_append(OBJECT_OT_dupli_set_real);
-	WM_operatortype_append(OBJECT_OT_duplicate_add);
+	WM_operatortype_append(OBJECT_OT_duplicate);
 	WM_operatortype_append(GROUP_OT_group_create);
 	WM_operatortype_append(GROUP_OT_objects_remove);
 	WM_operatortype_append(GROUP_OT_objects_add_active);
@@ -160,7 +160,7 @@ void ED_keymap_object(wmWindowManager *wm)
 	
 	WM_keymap_verify_item(keymap, "OBJECT_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_primitive_add", AKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_verify_item(keymap, "OBJECT_OT_duplicate_add", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
 	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe_menu", IKEY, KM_PRESS, 0, 0);

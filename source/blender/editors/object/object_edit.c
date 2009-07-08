@@ -5959,7 +5959,7 @@ Base *ED_object_add_duplicate(Scene *scene, Base *base, int usedupflag)
 }
 
 /* contextual operator dupli */
-static int duplicate_add_exec(bContext *C, wmOperator *op)
+static int duplicate_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
@@ -5991,9 +5991,9 @@ static int duplicate_add_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int duplicate_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	duplicate_add_exec(C, op);
+	duplicate_exec(C, op);
 	
 	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
 	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
@@ -6001,17 +6001,17 @@ static int duplicate_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_duplicate_add(wmOperatorType *ot)
+void OBJECT_OT_duplicate(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Duplicate Objects";
 	ot->description = "Duplicate the objects.";
-	ot->idname= "OBJECT_OT_duplicate_add";
+	ot->idname= "OBJECT_OT_duplicate";
 	
 	/* api callbacks */
-	ot->invoke= duplicate_add_invoke;
-	ot->exec= duplicate_add_exec;
+	ot->invoke= duplicate_invoke;
+	ot->exec= duplicate_exec;
 	
 	ot->poll= ED_operator_scene_editable;
 	

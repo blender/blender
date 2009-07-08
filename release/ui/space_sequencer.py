@@ -202,7 +202,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 		layout.itemO("SEQUENCER_OT_images_separate")
 		layout.itemS()
 		
-		layout.itemO("SEQUENCER_OT_duplicate_add")
+		layout.itemO("SEQUENCER_OT_duplicate")
 		layout.itemO("SEQUENCER_OT_delete")
 		
 		strip = act_strip(context)

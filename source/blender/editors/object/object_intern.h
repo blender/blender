@@ -61,7 +61,7 @@ void OBJECT_OT_slowparent_clear(struct wmOperatorType *ot);
 void OBJECT_OT_center_set(struct wmOperatorType *ot);
 void OBJECT_OT_dupli_set_real(struct wmOperatorType *ot);
 void OBJECT_OT_object_add(struct wmOperatorType *ot);
-void OBJECT_OT_duplicate_add(struct wmOperatorType *ot);
+void OBJECT_OT_duplicate(struct wmOperatorType *ot);
 void OBJECT_OT_delete(struct wmOperatorType *ot);
 
 void OBJECT_OT_mesh_add(struct wmOperatorType *ot);

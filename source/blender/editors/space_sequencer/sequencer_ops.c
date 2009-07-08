@@ -70,7 +70,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_unlock);
 	WM_operatortype_append(SEQUENCER_OT_reload);
 	WM_operatortype_append(SEQUENCER_OT_refresh_all);
-	WM_operatortype_append(SEQUENCER_OT_duplicate_add);
+	WM_operatortype_append(SEQUENCER_OT_duplicate);
 	WM_operatortype_append(SEQUENCER_OT_delete);
 	WM_operatortype_append(SEQUENCER_OT_images_separate);
 	WM_operatortype_append(SEQUENCER_OT_meta_toggle);
@@ -127,7 +127,7 @@ void sequencer_keymap(wmWindowManager *wm)
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_reload", RKEY, KM_PRESS, KM_ALT, 0);
 
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_duplicate_add", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_delete", DELKEY, KM_PRESS, 0, 0);

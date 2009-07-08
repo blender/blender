@@ -1854,12 +1854,12 @@ static int sequencer_add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *
 	return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_duplicate_add(wmOperatorType *ot)
+void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Add Duplicate";
-	ot->idname= "SEQUENCER_OT_duplicate_add";
+	ot->name= "Duplicate";
+	ot->idname= "SEQUENCER_OT_duplicate";
 
 	/* api callbacks */
 	ot->invoke= sequencer_add_duplicate_invoke;

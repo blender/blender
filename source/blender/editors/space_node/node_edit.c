@@ -1689,7 +1689,7 @@ void node_mute(SpaceNode *snode)
 
 #endif
 
-int node_duplicate_add_exec(bContext *C, wmOperator *op)
+int node_duplicate_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	
@@ -1702,9 +1702,9 @@ int node_duplicate_add_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int node_duplicate_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int node_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	node_duplicate_add_exec(C, op);
+	node_duplicate_exec(C, op);
 	
 	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
 	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
@@ -1712,17 +1712,17 @@ static int node_duplicate_add_invoke(bContext *C, wmOperator *op, wmEvent *event
 	return OPERATOR_FINISHED;
 }
 
-void NODE_OT_duplicate_add(wmOperatorType *ot)
+void NODE_OT_duplicate(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "Duplicate Nodes";
 	ot->description = "Duplicate the nodes.";
-	ot->idname= "NODE_OT_duplicate_add";
+	ot->idname= "NODE_OT_duplicate";
 	
 	/* api callbacks */
-	ot->invoke= node_duplicate_add_invoke;
-	ot->exec= node_duplicate_add_exec;
+	ot->invoke= node_duplicate_invoke;
+	ot->exec= node_duplicate_exec;
 	
 	ot->poll= ED_operator_node_active;
 	
