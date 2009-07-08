@@ -2558,6 +2558,8 @@ static void numbuts_action ()
 			else gpl->flag &= ~GP_LAYER_LOCKED;
 		}
 		
+		BIF_undo_push("Channel Properties");
+
         allqueue(REDRAWACTION, 0);
 		allspace(REMAKEIPO, 0);
 		allqueue(REDRAWIPO, 0);
