@@ -280,7 +280,7 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 	{
 		float bcost = FLT_MAX;
 		float childrens_cost = 0;
-		int i, axis, baxis, boffset, k, try_axis[3];
+		int i, axis, baxis = -1, boffset = size/2, k, try_axis[3];
 		CostObject *cost   = MEM_mallocN( sizeof(CostObject)*size, "RTBuilder.HeuristicObjectSplitter" );
 		float      *acc_bb = MEM_mallocN( sizeof(float)*6*size, "RTBuilder.HeuristicObjectSplitterBB" );
 
@@ -346,8 +346,8 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 				//Worst case heuristic (cost of each child is linear)
 				float hcost, left_side, right_side;
 				
-				left_side = bb_area(other_bb, other_bb+3)*left_cost;		//(i+logf(i));
-				right_side= bb_area(acc_bb+i*6, acc_bb+i*6+3)*right_cost;	//(size-i+logf(size-i));
+				left_side = bb_area(other_bb, other_bb+3)*(left_cost+logf(i));
+				right_side= bb_area(acc_bb+i*6, acc_bb+i*6+3)*(right_cost+logf(i));
 				
 				if(left_side > bcost) break;	//No way we can find a better heuristic in this axis
 
@@ -373,6 +373,8 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 					b->begin[i] = cost[i].obj;
 				b->child_sorted_axis = axis;
 			}
+			
+			assert(baxis >= 0 && baxis < 3);
 		}
 			
 		b->child_offset[0] = 0;

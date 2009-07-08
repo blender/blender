@@ -28,6 +28,7 @@
  */
 #include <assert.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "MEM_guardedalloc.h"
 #include "BKE_utildefines.h"
@@ -37,6 +38,7 @@
 #include "rayobject_rtbuild.h"
 #include "rayobject.h"
 
+#define RAY_BB_TEST_COST (0.2f)
 #define DFS_STACK_SIZE	64
 #define DYNAMIC_ALLOC
 
@@ -371,7 +373,7 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid, float 
 			for(; i<BVH_NCHILDS; i++)
 				parent->child[i] = 0;
 
-			*cost = bb_area(parent->bb, parent->bb+3)*RE_rayobject_cost(child);
+			*cost = RE_rayobject_cost(child)+RAY_BB_TEST_COST;
 			return parent;
 		}
 		else
@@ -414,7 +416,8 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid, float 
 		for(; i<BVH_NCHILDS; i++)
 			parent->child[i] = 0;
 
-		*cost *= bb_area(parent->bb, parent->bb+3);
+		*cost /= nc*bb_area(parent->bb, parent->bb+3);
+		*cost += RAY_BB_TEST_COST;
 		return parent;
 	}
 }
@@ -454,6 +457,8 @@ static void bvh_done(BVHTree *obj)
 #endif
 	
 	obj->root = bvh_rearrange( obj, obj->builder, 1, &obj->cost );
+//	obj->cost = 1.0;
+	obj->cost = logf( rtbuild_size( obj->builder ) );
 	
 #ifndef DYNAMIC_ALLOC
 	assert(obj->node_alloc+needed_nodes >= obj->node_next);
