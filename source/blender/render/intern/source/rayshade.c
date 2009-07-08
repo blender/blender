@@ -606,7 +606,9 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 	isec.labda = dist_mir > 0 ? dist_mir : RE_RAYTRACE_MAXDIST;
 	isec.mode= RE_RAY_MIRROR;
 	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
+#ifdef RT_USE_HINT
 	isec.hint = 0;
+#endif
 
 	isec.orig.ob   = obi;
 	isec.orig.face = vlr;
@@ -1512,7 +1514,9 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 	isec.mode= RE_RAY_MIRROR;
 	isec.orig.ob   = ship->obi;
 	isec.orig.face = ship->vlr;
+#ifdef RT_USE_HINT
 	isec.hint = 0;
+#endif
 	RE_RC_INIT(isec, shi);
 	
 	for(a=0; a<8*8; a++) {
@@ -1722,7 +1726,9 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 	isec.orig.ob   = shi->obi;
 	isec.orig.face = shi->vlr;
 	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
+#ifdef RT_USE_HINT
 	isec.hint = 0;
+#endif
 
 	isec.hit.ob   = 0;
 	isec.hit.face = 0;
@@ -1857,7 +1863,9 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 	isec.orig.ob   = shi->obi;
 	isec.orig.face = shi->vlr;
 	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
+#ifdef RT_USE_HINT
 	isec.hint = 0;
+#endif
 
 	isec.hit.ob   = 0;
 	isec.hit.face = 0;
@@ -2294,7 +2302,9 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 	RE_RC_INIT(isec, *shi);
 	if(shi->mat->mode & MA_SHADOW_TRA) isec.mode= RE_RAY_SHADOW_TRA;
 	else isec.mode= RE_RAY_SHADOW;
+#ifdef RT_USE_HINT
 	isec.hint = 0;
+#endif
 	
 	if(lar->mode & (LA_LAYER|LA_LAYER_SHADOW))
 		isec.lay= lar->lay;
@@ -2380,7 +2390,9 @@ static void ray_translucent(ShadeInput *shi, LampRen *lar, float *distfac, float
 	/* setup isec */
 	RE_RC_INIT(isec, *shi);
 	isec.mode= RE_RAY_SHADOW_TRA;
+#ifdef RT_USE_HINT
 	isec.hint = 0;
+#endif
 	
 	if(lar->mode & LA_LAYER) isec.lay= lar->lay; else isec.lay= -1;
 	

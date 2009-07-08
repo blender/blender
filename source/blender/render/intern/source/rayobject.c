@@ -288,7 +288,9 @@ static int intersect_rayface(RayFace *face, Isect *is)
 
 		is->hit.ob   = face->ob;
 		is->hit.face = face->face;
+#ifdef RT_USE_LAST_HIT
 		is->last_hit = (RayObject*) RayObject_unalignRayFace(face);
+#endif
 		return 1;
 	}
 
@@ -315,7 +317,7 @@ int RE_rayobject_raycast(RayObject *r, Isect *isec)
 		isec->bv_index[2*i+1]	= i+3*isec->bv_index[2*i+1];
 	}
 
-	
+#ifdef RT_USE_LAST_HIT	
 	/* Last hit heuristic */
 	if(isec->mode==RE_RAY_SHADOW && isec->last_hit)
 	{
@@ -328,6 +330,7 @@ int RE_rayobject_raycast(RayObject *r, Isect *isec)
 			return 1;
 		}
 	}
+#endif
 
 #ifdef RT_USE_HINT
 	isec->hit_hint = 0;

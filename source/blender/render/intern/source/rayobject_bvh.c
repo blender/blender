@@ -173,7 +173,9 @@ static int dfs_raycast_stack(BVHNode *root, Isect *isec)
 		{
 			if(RE_rayobject_bb_intersect(isec, (const float*)node->bb) != FLT_MAX)
 			{
+#ifdef RT_USE_HINT
 				last_processed_node = node;
+#endif
 				//push nodes in reverse visit order
 				if(isec->idot_axis[node->split_axis] < 0.0f)
 				{

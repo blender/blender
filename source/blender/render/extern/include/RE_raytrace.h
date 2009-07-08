@@ -31,7 +31,9 @@
 #ifndef RE_RAYTRACE_H
 #define RE_RAYTRACE_H
 
-#define RT_USE_HINT	/* 1 level hint */
+#define RT_USE_LAST_HIT	/* last shadow hit is reused before raycasting on whole tree */
+//#define RT_USE_HINT			/* last hit object is reused before raycasting on whole tree */
+
 #define RE_RAYCOUNTER
 
 
