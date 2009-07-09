@@ -378,9 +378,12 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 			else
 				WM_operator_free(op);
 		}
-		else if(!(retval & OPERATOR_RUNNING_MODAL)) {
-			WM_operator_free(op);
+		else if(retval & OPERATOR_RUNNING_MODAL) {
+			/* automatically grab cursor during modal ops (X11) */
+			WM_cursor_grab(CTX_wm_window(C), 1);
 		}
+		else
+			WM_operator_free(op);
 	}
 
 	return retval;
@@ -548,6 +551,7 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 			}
 
 			WM_operator_free(handler->op);
+			WM_cursor_grab(CTX_wm_window(C), 0);
 		}
 		else if(handler->ui_remove) {
 			ScrArea *area= CTX_wm_area(C);
@@ -704,6 +708,8 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			
 			/* remove modal handler, operator itself should have been cancelled and freed */
 			if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
+				WM_cursor_grab(CTX_wm_window(C), 0);
+
 				BLI_remlink(handlers, handler);
 				wm_event_free_handler(handler);
 				

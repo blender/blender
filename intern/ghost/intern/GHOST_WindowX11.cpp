@@ -1271,6 +1271,21 @@ setWindowCursorVisibility(
 
 	GHOST_TSuccess
 GHOST_WindowX11::
+setWindowCursorGrab(
+	bool grab
+){
+	if(grab)
+		XGrabPointer(m_display, m_window, True, ButtonPressMask| ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+	else
+		XUngrabPointer(m_display, CurrentTime);
+
+	XFlush(m_display);
+	
+	return GHOST_kSuccess;
+}
+
+	GHOST_TSuccess
+GHOST_WindowX11::
 setWindowCursorShape(
 	GHOST_TStandardCursor shape
 ){
