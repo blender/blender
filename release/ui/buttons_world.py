@@ -21,7 +21,7 @@ class WORLD_PT_preview(WorldButtonsPanel):
 		
 		layout.template_preview(world)
 	
-class WORLD_PT_context(WorldButtonsPanel):
+class WORLD_PT_context_world(WorldButtonsPanel):
 	__label__ = " "
 
 	def poll(self, context):
@@ -186,7 +186,7 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 		col.row().itemR(ao, "color", expand=True)
 		col.itemR(ao, "energy")
 
-bpy.types.register(WORLD_PT_context)	
+bpy.types.register(WORLD_PT_context_world)	
 bpy.types.register(WORLD_PT_preview)
 bpy.types.register(WORLD_PT_world)
 bpy.types.register(WORLD_PT_ambient_occlusion)

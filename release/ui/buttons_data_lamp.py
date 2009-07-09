@@ -19,8 +19,8 @@ class DATA_PT_preview(DataButtonsPanel):
 		lamp = context.lamp
 		layout.template_preview(lamp)
 	
-class DATA_PT_context(DataButtonsPanel):
-	__idname__ = "DATA_PT_context"
+class DATA_PT_context_lamp(DataButtonsPanel):
+	__idname__ = "DATA_PT_context_lamp"
 	__label__ = " "
 	
 	def poll(self, context):
@@ -257,7 +257,7 @@ class DATA_PT_falloff_curve(DataButtonsPanel):
 
 		layout.template_curve_mapping(lamp.falloff_curve)
 
-bpy.types.register(DATA_PT_context)
+bpy.types.register(DATA_PT_context_lamp)
 bpy.types.register(DATA_PT_preview)
 bpy.types.register(DATA_PT_lamp)
 bpy.types.register(DATA_PT_shadow)

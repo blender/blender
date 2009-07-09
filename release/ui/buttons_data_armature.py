@@ -9,8 +9,8 @@ class DataButtonsPanel(bpy.types.Panel):
 	def poll(self, context):
 		return (context.armature != None)
 
-class DATA_PT_contextarm(DataButtonsPanel):
-	__idname__ = "DATA_PT_contextarm"
+class DATA_PT_context_arm(DataButtonsPanel):
+	__idname__ = "DATA_PT_context_arm"
 	__label__ = " "
 	
 	def poll(self, context):
@@ -138,7 +138,7 @@ class DATA_PT_ghost(DataButtonsPanel):
 		sub = split.column()
 		sub.itemR(arm, "ghost_only_selected", text="Selected Only")
 
-bpy.types.register(DATA_PT_contextarm)
+bpy.types.register(DATA_PT_context_arm)
 bpy.types.register(DATA_PT_skeleton)
 bpy.types.register(DATA_PT_display)
 bpy.types.register(DATA_PT_paths)

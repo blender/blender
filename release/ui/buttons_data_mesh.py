@@ -10,8 +10,8 @@ class DataButtonsPanel(bpy.types.Panel):
 		return (context.mesh != None)
 
 
-class DATA_PT_context2(DataButtonsPanel):
-	__idname__ = "DATA_PT_context2"
+class DATA_PT_context_mesh(DataButtonsPanel):
+	__idname__ = "DATA_PT_context_mesh"
 	__label__ = " "
 	
 	def poll(self, context):
@@ -222,7 +222,7 @@ class DATA_PT_vertex_colors(DataButtonsPanel):
 		col.itemO("MESH_OT_vertex_color_add", icon="ICON_ZOOMIN", text="")
 		col.itemO("MESH_OT_vertex_color_remove", icon="ICON_ZOOMOUT", text="")
 
-bpy.types.register(DATA_PT_context2)
+bpy.types.register(DATA_PT_context_mesh)
 bpy.types.register(DATA_PT_mesh)
 bpy.types.register(DATA_PT_materials)
 bpy.types.register(DATA_PT_vertex_groups)

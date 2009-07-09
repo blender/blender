@@ -9,8 +9,8 @@ class DataButtonsPanel(bpy.types.Panel):
 	def poll(self, context):
 		return (context.object and context.object.type == 'TEXT' and context.curve)
 		
-class DATA_PT_context(DataButtonsPanel):
-	__idname__ = "DATA_PT_context"
+class DATA_PT_context_text(DataButtonsPanel):
+	__idname__ = "DATA_PT_context_text"
 	__label__ = " "
 	
 	def poll(self, context):
@@ -73,8 +73,8 @@ class DATA_PT_shape_text(DataButtonsPanel):
 			sub.itemL(text="Display:")
 			sub.itemR(curve, "fast")
 
-class DATA_PT_geometry(DataButtonsPanel):
-	__idname__ = "DATA_PT_geometry"
+class DATA_PT_geometry_text(DataButtonsPanel):
+	__idname__ = "DATA_PT_geometry_text"
 	__label__ = "Geometry"
 
 	def draw(self, context):
@@ -161,9 +161,9 @@ class DATA_PT_textboxes(DataButtonsPanel):
 			text = context.curve
 """
 
-bpy.types.register(DATA_PT_context)	
+bpy.types.register(DATA_PT_context_text)	
 bpy.types.register(DATA_PT_shape_text)	
-bpy.types.register(DATA_PT_geometry)
+bpy.types.register(DATA_PT_geometry_text)
 bpy.types.register(DATA_PT_font)
 bpy.types.register(DATA_PT_paragraph)
 #bpy.types.register(DATA_PT_textboxes)

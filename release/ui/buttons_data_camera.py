@@ -9,8 +9,8 @@ class DataButtonsPanel(bpy.types.Panel):
 	def poll(self, context):
 		return (context.camera != None)
 		
-class DATA_PT_context(DataButtonsPanel):
-	__idname__ = "DATA_PT_context"
+class DATA_PT_context_camera(DataButtonsPanel):
+	__idname__ = "DATA_PT_context_camera"
 	__label__ = " "
 	
 	def poll(self, context):
@@ -101,6 +101,6 @@ class DATA_PT_camera_display(DataButtonsPanel):
 		colsub.itemR(cam, "passepartout_alpha", text="Alpha", slider=True)
 		col.itemR(cam, "draw_size", text="Size")
 		
-bpy.types.register(DATA_PT_context)
+bpy.types.register(DATA_PT_context_camera)
 bpy.types.register(DATA_PT_camera)
 bpy.types.register(DATA_PT_camera_display)

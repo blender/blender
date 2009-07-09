@@ -22,8 +22,8 @@ class MATERIAL_PT_preview(MaterialButtonsPanel):
 		
 		layout.template_preview(mat)
 		
-class MATERIAL_PT_context(MaterialButtonsPanel):
-	__idname__= "MATERIAL_PT_context"
+class MATERIAL_PT_context_material(MaterialButtonsPanel):
+	__idname__= "MATERIAL_PT_context_material"
 	__label__ = " "
 
 	def poll(self, context):
@@ -436,7 +436,7 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
 		colsub.itemR(halo, "flares_sub", text="Sub")
 
 
-bpy.types.register(MATERIAL_PT_context)
+bpy.types.register(MATERIAL_PT_context_material)
 bpy.types.register(MATERIAL_PT_preview)
 bpy.types.register(MATERIAL_PT_material)
 bpy.types.register(MATERIAL_PT_diffuse)

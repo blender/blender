@@ -9,8 +9,8 @@ class BoneButtonsPanel(bpy.types.Panel):
 	def poll(self, context):
 		return (context.bone or context.edit_bone)
 
-class BONE_PT_context(BoneButtonsPanel):
-	__idname__ = "BONE_PT_context"
+class BONE_PT_context_bone(BoneButtonsPanel):
+	__idname__ = "BONE_PT_context_bone"
 	__label__ = " "
 
 	def draw(self, context):
@@ -92,6 +92,6 @@ class BONE_PT_deform(BoneButtonsPanel):
 		sub.itemR(bone, "cyclic_offset")
 
 
-bpy.types.register(BONE_PT_context)
+bpy.types.register(BONE_PT_context_bone)
 bpy.types.register(BONE_PT_bone)
 bpy.types.register(BONE_PT_deform)

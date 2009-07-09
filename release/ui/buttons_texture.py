@@ -22,8 +22,8 @@ class TEXTURE_PT_preview(TextureButtonsPanel):
 		
 		layout.template_preview(tex)
 
-class TEXTURE_PT_context(TextureButtonsPanel):
-	__idname__= "TEXTURE_PT_context"
+class TEXTURE_PT_context_texture(TextureButtonsPanel):
+	__idname__= "TEXTURE_PT_context_texture"
 	__label__ = " "
 
 	def poll(self, context):
@@ -539,7 +539,7 @@ class TEXTURE_PT_distortednoise(TextureButtonsPanel):
 		sub = split.column()
 		sub.itemR(tex, "nabla")	
 
-bpy.types.register(TEXTURE_PT_context)
+bpy.types.register(TEXTURE_PT_context_texture)
 bpy.types.register(TEXTURE_PT_preview)
 bpy.types.register(TEXTURE_PT_texture)
 bpy.types.register(TEXTURE_PT_clouds)

@@ -9,8 +9,8 @@ class DataButtonsPanel(bpy.types.Panel):
 	def poll(self, context):
 		return (context.lattice != None)
 	
-class DATA_PT_context(DataButtonsPanel):
-	__idname__ = "DATA_PT_context"
+class DATA_PT_context_lattice(DataButtonsPanel):
+	__idname__ = "DATA_PT_context_lattice"
 	__label__ = " "
 	
 	def poll(self, context):
@@ -64,5 +64,5 @@ class DATA_PT_lattice(DataButtonsPanel):
 			row.itemO("LATTICE_OT_make_regular")
 			row.itemR(lat, "outside")
 
-bpy.types.register(DATA_PT_context)
+bpy.types.register(DATA_PT_context_lattice)
 bpy.types.register(DATA_PT_lattice)
