@@ -517,7 +517,7 @@ static void do_view3d_view_alignviewmenu(bContext *C, void *arg, int event)
 // XXX		mainqenter(PADASTERKEY, 1);
 		break;
 	case 6: /* Center View and Cursor to Origin */
-		WM_operator_name_call(C, "VIEW3D_OT_viewcenter", WM_OP_EXEC_REGION_WIN, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_view_center", WM_OP_EXEC_REGION_WIN, NULL);
 		curs= give_cursor(scene, v3d);
 		curs[0]=curs[1]=curs[2]= 0.0;
 		break;
@@ -583,10 +583,10 @@ static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 	case 8: /* Global View */
 		break;
 	case 9: /* View All (Home) */
-		WM_operator_name_call(C, "VIEW3D_OT_viewhome", WM_OP_EXEC_REGION_WIN, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_view_all", WM_OP_EXEC_REGION_WIN, NULL);
 		break;
 	case 11: /* View Selected */
-		WM_operator_name_call(C, "VIEW3D_OT_viewcenter", WM_OP_EXEC_REGION_WIN, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_view_center", WM_OP_EXEC_REGION_WIN, NULL);
 		break;
 	case 13: /* Play Back Animation */
 		break;
@@ -597,7 +597,7 @@ static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 //		add_blockhandler(sa, VIEW3D_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
 		break;
 	case 17: /* Set Clipping Border */
-		WM_operator_name_call(C, "VIEW3D_OT_clipping", WM_OP_INVOKE_REGION_WIN, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_clip_border", WM_OP_INVOKE_REGION_WIN, NULL);
 		break;
 	case 18: /* render preview */
 //		toggle_blockhandler(sa, VIEW3D_HANDLER_PREVIEW, 0);
@@ -685,13 +685,13 @@ static void view3d_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);	
 
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_clipping");
+	uiItemO(layout, NULL, 0, "VIEW3D_OT_clip_border");
 	uiItemO(layout, NULL, 0, "VIEW3D_OT_zoom_border");
 	
 	uiItemS(layout);
 	
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_viewcenter");
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_viewhome");
+	uiItemO(layout, NULL, 0, "VIEW3D_OT_view_center");
+	uiItemO(layout, NULL, 0, "VIEW3D_OT_view_all");
 	
 	uiItemS(layout);
 	
@@ -4250,7 +4250,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 
 	switch(event) {
 	case B_HOME:
-		WM_operator_name_call(C, "VIEW3D_OT_viewhome", WM_OP_EXEC_REGION_WIN, NULL);
+		WM_operator_name_call(C, "VIEW3D_OT_view_all", WM_OP_EXEC_REGION_WIN, NULL);
 		break;
 	case B_REDR:
 		ED_area_tag_redraw(sa);

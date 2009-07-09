@@ -910,12 +910,12 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 	return OPERATOR_FINISHED;
 }
 
-void VIEW3D_OT_viewhome(wmOperatorType *ot)
+void VIEW3D_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "View home";
 	ot->description = "View all objects in scene.";
-	ot->idname= "VIEW3D_OT_viewhome";
+	ot->idname= "VIEW3D_OT_view_all";
 
 	/* api callbacks */
 	ot->exec= viewhome_exec;
@@ -1048,13 +1048,13 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 	return OPERATOR_FINISHED;
 }
 
-void VIEW3D_OT_viewcenter(wmOperatorType *ot)
+void VIEW3D_OT_view_center(wmOperatorType *ot)
 {
 
 	/* identifiers */
 	ot->name= "View center";
 	ot->description = "Move the view to the selection center.";
-	ot->idname= "VIEW3D_OT_viewcenter";
+	ot->idname= "VIEW3D_OT_view_center";
 
 	/* api callbacks */
 	ot->exec= viewcenter_exec;
@@ -1711,13 +1711,13 @@ static int view3d_clipping_invoke(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* toggles */
-void VIEW3D_OT_clipping(wmOperatorType *ot)
+void VIEW3D_OT_clip_border(wmOperatorType *ot)
 {
 
 	/* identifiers */
 	ot->name= "Clipping Border";
 	ot->description = "Set the view clipping border.";
-	ot->idname= "VIEW3D_OT_clipping";
+	ot->idname= "VIEW3D_OT_clip_border";
 
 	/* api callbacks */
 	ot->invoke= view3d_clipping_invoke;
