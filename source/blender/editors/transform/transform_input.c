@@ -35,7 +35,7 @@
 #include "transform.h"
 
 
-  
+
 /* ************************** INPUT FROM MOUSE *************************** */
 
 void InputVector(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
@@ -53,7 +53,7 @@ void InputVector(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
 	{
 		convertViewVec(t, output, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
 	}
-	
+
 }
 
 void InputSpring(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
@@ -65,11 +65,11 @@ void InputSpring(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
 		dx = (float)(mi->center[0] - mi->precision_mval[0]);
 		dy = (float)(mi->center[1] - mi->precision_mval[1]);
 		ratio = (float)sqrt( dx*dx + dy*dy);
-		
+
 		dx= (float)(mi->center[0] - mval[0]);
 		dy= (float)(mi->center[1] - mval[1]);
 		precise_ratio = (float)sqrt( dx*dx + dy*dy);
-		
+
 		ratio = (ratio + (precise_ratio - ratio) / 10.0f) / mi->factor;
 	}
 	else
@@ -78,16 +78,16 @@ void InputSpring(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
 		dy = (float)(mi->center[1] - mval[1]);
 		ratio = (float)sqrt( dx*dx + dy*dy) / mi->factor;
 	}
-	
+
 	output[0] = ratio;
 }
 
 void InputSpringFlip(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
 {
 	InputSpring(t, mi, mval, output);
-	
+
 	/* flip scale */
-	if	((mi->center[0] - mval[0]) * (mi->center[0] - mi->imval[0]) + 
+	if	((mi->center[0] - mval[0]) * (mi->center[0] - mi->imval[0]) +
 		 (mi->center[1] - mval[1]) * (mi->center[1] - mi->imval[1]) < 0)
 	 {
 		output[0] *= -1.0f;
@@ -96,7 +96,7 @@ void InputSpringFlip(TransInfo *t, MouseInput *mi, short mval[2], float output[3
 
 void InputTrackBall(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
 {
-	
+
 	if(mi->precision)
 	{
 		output[0] = ( mi->imval[1] - mi->precision_mval[1] ) + ( mi->precision_mval[1] - mval[1] ) * 0.1f;
@@ -107,7 +107,7 @@ void InputTrackBall(TransInfo *t, MouseInput *mi, short mval[2], float output[3]
 		output[0] = (float)( mi->imval[1] - mval[1] );
 		output[1] = (float)( mval[0] - mi->imval[0] );
 	}
-	
+
 	output[0] *= mi->factor;
 	output[1] *= mi->factor;
 }
@@ -125,7 +125,7 @@ void InputHorizontalRatio(TransInfo *t, MouseInput *mi, short mval[2], float out
 	else {
 		x = mval[0];
 	}
-	
+
 	output[0] = (x - pad) / (t->ar->winx - 2 * pad);
 }
 
@@ -134,7 +134,7 @@ void InputHorizontalAbsolute(TransInfo *t, MouseInput *mi, short mval[2], float 
 
 	InputVector(t, mi, mval, vec);
 	Projf(vec, vec, t->viewinv[0]);
-	
+
 	output[0] = Inpf(t->viewinv[0], vec) * 2.0f;
 }
 
@@ -150,7 +150,7 @@ void InputVerticalRatio(TransInfo *t, MouseInput *mi, short mval[2], float outpu
 	else {
 		y = mval[0];
 	}
-	
+
 	output[0] = (y - pad) / (t->ar->winy - 2 * pad);
 }
 
@@ -159,7 +159,7 @@ void InputVerticalAbsolute(TransInfo *t, MouseInput *mi, short mval[2], float ou
 
 	InputVector(t, mi, mval, vec);
 	Projf(vec, vec, t->viewinv[1]);
-	
+
 	output[0] = Inpf(t->viewinv[1], vec) * 2.0f;
 }
 
@@ -182,7 +182,7 @@ void InputAngle(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
 	/* (A*B?A*B:1.0f) this takes care of potential divide by zero errors */
 
 	float dphi;
-	
+
 	dphi = saacos((float)deler);
 	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
 
@@ -190,33 +190,33 @@ void InputAngle(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
 	 * approximate the angle with the oposite side of the normalized triangle
 	 * This is a good approximation here since the smallest acos value seems to be around
 	 * 0.02 degree and lower values don't even have a 0.01% error compared to the approximation
-	 * */	
+	 * */
 	if (dphi == 0)
 	{
 		double dx, dy;
-		
+
 		dx2 /= A;
 		dy2 /= A;
-		
+
 		dx1 /= B;
 		dy1 /= B;
-		
+
 		dx = dx1 - dx2;
 		dy = dy1 - dy2;
-		
+
 		dphi = sqrt(dx*dx + dy*dy);
 		if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
 	}
-	
+
 	if(mi->precision) dphi = dphi/30.0f;
-	
+
 	/* if no delta angle, don't update initial position */
 	if (dphi != 0)
 	{
 		mi->imval[0] = mval[0];
 		mi->imval[1] = mval[1];
 	}
-	
+
 	output[0] += dphi;
 }
 
@@ -227,7 +227,7 @@ void initMouseInput(TransInfo *t, MouseInput *mi, int center[2], short mval[2])
 
 	mi->center[0] = center[0];
 	mi->center[1] = center[1];
-	
+
 	mi->imval[0] = mval[0];
 	mi->imval[1] = mval[1];
 }
@@ -247,7 +247,7 @@ static void calcSpringFactor(MouseInput *mi)
 
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 {
-	
+
 	switch(mode)
 	{
 	case INPUT_VECTOR:
@@ -270,7 +270,7 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 		break;
 	case INPUT_TRACKBALL:
 		/* factor has to become setting or so */
-		mi->factor = 0.1f;
+		mi->factor = 0.02f;
 		mi->apply = InputTrackBall;
 		t->helpline = HLP_TRACKBALL;
 		break;
@@ -296,8 +296,8 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 		mi->apply = NULL;
 		break;
 	}
-	
-	/* bootstrap mouse input with initial values */		
+
+	/* bootstrap mouse input with initial values */
 	applyMouseInput(t, mi, mi->imval, t->values);
 }
 
@@ -312,7 +312,7 @@ void applyMouseInput(TransInfo *t, MouseInput *mi, short mval[2], float output[3
 int handleMouseInput(TransInfo *t, MouseInput *mi, wmEvent *event)
 {
 	int redraw = 0;
-	
+
 	switch (event->type)
 	{
 	case LEFTSHIFTKEY:
@@ -334,6 +334,6 @@ int handleMouseInput(TransInfo *t, MouseInput *mi, wmEvent *event)
 		redraw = 1;
 		break;
 	}
-	
+
 	return redraw;
 }
