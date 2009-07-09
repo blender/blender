@@ -37,10 +37,6 @@ class DATA_PT_context_text(DataButtonsPanel):
 class DATA_PT_shape_text(DataButtonsPanel):
 	__idname__ = "DATA_PT_shape_text"
 	__label__ = "Shape Text"
-	
-	def poll(self, context):
-		ob = context.object
-		return (context.object and context.object.type == 'TEXT')
 
 	def draw(self, context):
 		layout = self.layout
@@ -149,7 +145,7 @@ class DATA_PT_paragraph(DataButtonsPanel):
 		sub.itemL(text="Offset:")
 		sub.itemR(text, "x_offset", text="X")
 		sub.itemR(text, "y_offset", text="Y")
-		sub.itemR(text, "wrap")
+		#sub.itemR(text, "wrap")
 
 """		
 class DATA_PT_textboxes(DataButtonsPanel):

@@ -17,9 +17,7 @@ class OBJECT_PT_context_object(ObjectButtonsPanel):
 		split = layout.split(percentage=0.06)
 		split.itemL(text="", icon="ICON_OBJECT_DATA")
 		split.itemR(ob, "name", text="")
-		
-			
-			
+
 class OBJECT_PT_transform(ObjectButtonsPanel):
 	__idname__ = "OBJECT_PT_transform"
 	__label__ = "Transform"

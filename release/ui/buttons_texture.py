@@ -13,9 +13,6 @@ class TEXTURE_PT_preview(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_preview"
 	__label__ = "Preview"
 
-	def poll(self, context):
-		return (context.material or context.world or context.lamp or context.texture)
-
 	def draw(self, context):
 		layout = self.layout
 		tex = context.texture
@@ -27,7 +24,7 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 	__label__ = " "
 
 	def poll(self, context):
-		return (context.material or context.world or context.lamp or context.texture)
+		return (context.material or context.world or context.lamp)
 
 	def draw(self, context):
 		layout = self.layout
@@ -42,20 +39,15 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 		row = layout.row()
 		if ma:
 			row.template_list(ma, "textures", ma, "active_texture_index")
-			col = row.column(align=True)
-			col.itemO("TEXTURE_OT_new", icon="ICON_ZOOMIN", text="")
-			#col.itemO("OBJECT_OT_material_slot_remove", icon="ICON_ZOOMOUT", text="")
 		elif la:
 			row.template_list(la, "textures", la, "active_texture_index")
-			col = row.column(align=True)
-			col.itemO("TEXTURE_OT_new", icon="ICON_ZOOMIN", text="")
-			#col.itemO("OBJECT_OT_material_slot_remove", icon="ICON_ZOOMOUT", text="")
 		elif wo:
 			row.template_list(wo, "textures", wo, "active_texture_index")
+		"""if ma or la or wo: 
 			col = row.column(align=True)
 			col.itemO("TEXTURE_OT_new", icon="ICON_ZOOMIN", text="")
 			#col.itemO("OBJECT_OT_material_slot_remove", icon="ICON_ZOOMOUT", text="")
-
+		"""
 
 		split = layout.split(percentage=0.65)
 
@@ -64,7 +56,6 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 				split.template_ID(slot, "texture", new="TEXTURE_OT_new")
 			else:
 				split.itemS()
-
 
 		elif tex:
 			split.template_ID(space, "pin_id")
@@ -79,21 +70,6 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 			col.itemL(text="Type:")
 			col = split.column()
 			col.itemR(tex, "type", text="")
-		
-
-class TEXTURE_PT_texture(TextureButtonsPanel):
-	__idname__= "TEXTURE_PT_texture"
-	__label__ = "Texture"
-
-	def poll(self, context):
-		return (context.material or context.world or context.lamp or context.texture)
-
-	def draw(self, context):
-		layout = self.layout
-		
-		tex = context.texture
-
-
 
 class TEXTURE_PT_mapping(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_mapping"
@@ -541,7 +517,6 @@ class TEXTURE_PT_distortednoise(TextureButtonsPanel):
 
 bpy.types.register(TEXTURE_PT_context_texture)
 bpy.types.register(TEXTURE_PT_preview)
-bpy.types.register(TEXTURE_PT_texture)
 bpy.types.register(TEXTURE_PT_clouds)
 bpy.types.register(TEXTURE_PT_wood)
 bpy.types.register(TEXTURE_PT_marble)

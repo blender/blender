@@ -24,8 +24,8 @@ class DATA_PT_context_lamp(DataButtonsPanel):
 	__label__ = " "
 	
 	def poll(self, context):
-		return ((context.object and context.object.type == 'LAMP') or context.lamp)
-
+		return (context.object.type == 'LAMP')
+		
 	def draw(self, context):
 		layout = self.layout
 		
@@ -42,20 +42,14 @@ class DATA_PT_context_lamp(DataButtonsPanel):
 			split.template_ID(space, "pin_id")
 			split.itemS()
 
-
 class DATA_PT_lamp(DataButtonsPanel):
 	__idname__ = "DATA_PT_lamp"
 	__label__ = "Lamp"
-	
-	def poll(self, context):
-		return ((context.object and context.object.type == 'LAMP') or context.lamp)
 
 	def draw(self, context):
 		layout = self.layout
 		
-		ob = context.object
 		lamp = context.lamp
-		space = context.space_data
 
 		layout.itemR(lamp, "type", expand=True)
 		

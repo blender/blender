@@ -12,9 +12,6 @@ class WorldButtonsPanel(bpy.types.Panel):
 class WORLD_PT_preview(WorldButtonsPanel):
 	__label__ = "Preview"
 
-	def poll(self, context):
-		return (context.scene or context.world)
-
 	def draw(self, context):
 		layout = self.layout
 		world = context.world
@@ -44,17 +41,10 @@ class WORLD_PT_context_world(WorldButtonsPanel):
 class WORLD_PT_world(WorldButtonsPanel):
 	__label__ = "World"
 
-	def poll(self, context):
-		return (context.scene != None)
-
 	def draw(self, context):
 		layout = self.layout
-		
-		scene = context.scene
+
 		world = context.world
-		space = context.space_data
-
-
 
 		if world:
 		

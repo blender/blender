@@ -36,33 +36,27 @@ class DATA_PT_context_lattice(DataButtonsPanel):
 class DATA_PT_lattice(DataButtonsPanel):
 	__idname__ = "DATA_PT_lattice"
 	__label__ = "Lattice"
-	
-	def poll(self, context):
-		return (context.object and context.object.type == 'LATTICE')
 
 	def draw(self, context):
 		layout = self.layout
 		
-		ob = context.object
 		lat = context.lattice
-		space = context.space_data
 
-		if lat:
-			row = layout.row()
-			row.itemR(lat, "points_u")
-			row.itemR(lat, "interpolation_type_u", expand=True)
+		row = layout.row()
+		row.itemR(lat, "points_u")
+		row.itemR(lat, "interpolation_type_u", expand=True)
 			
-			row = layout.row()
-			row.itemR(lat, "points_v")
-			row.itemR(lat, "interpolation_type_v", expand=True)
+		row = layout.row()
+		row.itemR(lat, "points_v")
+		row.itemR(lat, "interpolation_type_v", expand=True)
 			
-			row = layout.row()
-			row.itemR(lat, "points_w")
-			row.itemR(lat, "interpolation_type_w", expand=True)
+		row = layout.row()
+		row.itemR(lat, "points_w")
+		row.itemR(lat, "interpolation_type_w", expand=True)
 			
-			row = layout.row()
-			row.itemO("LATTICE_OT_make_regular")
-			row.itemR(lat, "outside")
+		row = layout.row()
+		row.itemO("LATTICE_OT_make_regular")
+		row.itemR(lat, "outside")
 
 bpy.types.register(DATA_PT_context_lattice)
 bpy.types.register(DATA_PT_lattice)

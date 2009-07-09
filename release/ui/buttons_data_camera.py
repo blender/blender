@@ -14,7 +14,7 @@ class DATA_PT_context_camera(DataButtonsPanel):
 	__label__ = " "
 	
 	def poll(self, context):
-		return (context.object and context.object.type == 'CAMERA')
+		return (context.object.type == 'CAMERA')
 
 	def draw(self, context):
 		layout = self.layout
@@ -32,51 +32,44 @@ class DATA_PT_context_camera(DataButtonsPanel):
 			split.template_ID(space, "pin_id")
 			split.itemS()
 
-
 class DATA_PT_camera(DataButtonsPanel):
 	__idname__ = "DATA_PT_camera"
 	__label__ = "Lens"
-	
-	def poll(self, context):
-		return (context.object and context.object.type == 'CAMERA')
 
 	def draw(self, context):
 		layout = self.layout
 		
-		ob = context.object
 		cam = context.camera
-		space = context.space_data
 
-		if cam:
-			layout.itemS()
-			layout.itemR(cam, "type", expand=True)
+		layout.itemS()
+		layout.itemR(cam, "type", expand=True)
 			
-			row = layout.row(align=True)
-			if cam.type == 'PERSP':
-				row.itemR(cam, "lens_unit", text="")
-				if cam.lens_unit == 'MILLIMETERS':
-					row.itemR(cam, "lens", text="Angle")
-				elif cam.lens_unit == 'DEGREES':
-					row.itemR(cam, "angle")
+		row = layout.row(align=True)
+		if cam.type == 'PERSP':
+			row.itemR(cam, "lens_unit", text="")
+			if cam.lens_unit == 'MILLIMETERS':
+				row.itemR(cam, "lens", text="Angle")
+			elif cam.lens_unit == 'DEGREES':
+				row.itemR(cam, "angle")
 
-			elif cam.type == 'ORTHO':
-				row.itemR(cam, "ortho_scale")
+		elif cam.type == 'ORTHO':
+			row.itemR(cam, "ortho_scale")
 				
-			split = layout.split()
+		split = layout.split()
 			
-			sub = split.column(align=True)
-			sub.itemL(text="Shift:")
-			sub.itemR(cam, "shift_x", text="X")
-			sub.itemR(cam, "shift_y", text="Y")
+		sub = split.column(align=True)
+		sub.itemL(text="Shift:")
+		sub.itemR(cam, "shift_x", text="X")
+		sub.itemR(cam, "shift_y", text="Y")
 			
-			sub = split.column(align=True)
-			sub.itemL(text="Clipping:")
-			sub.itemR(cam, "clip_start", text="Start")
-			sub.itemR(cam, "clip_end", text="End")
+		sub = split.column(align=True)
+		sub.itemL(text="Clipping:")
+		sub.itemR(cam, "clip_start", text="Start")
+		sub.itemR(cam, "clip_end", text="End")
 			
-			row = layout.row()
-			row.itemR(cam, "dof_object")
-			row.itemR(cam, "dof_distance")
+		row = layout.row()
+		row.itemR(cam, "dof_object")
+		row.itemR(cam, "dof_distance")
 		
 class DATA_PT_camera_display(DataButtonsPanel):
 	__idname__ = "DATA_PT_camera_display"
