@@ -58,6 +58,7 @@
 #include "BLI_rand.h"
 
 #include "BKE_animsys.h"
+#include "BKE_fcurve.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -224,6 +225,70 @@ static void nla_strip_get_color_inside (AnimData *adt, NlaStrip *strip, float co
 	}
 }
 
+/* helper call for drawing influence/time control curves for a given NLA-strip */
+static void nla_draw_strip_curves (NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
+{
+	const float yheight = ymaxc - yminc;
+	
+	/* drawing color is simply a light-grey */
+	// TODO: is this color suitable?
+	// XXX nasty hacked color for now... which looks quite bad too...
+	glColor3f(0.7f, 0.7f, 0.7f);
+	
+	/* draw with AA'd line, 2 units thick (it's either 1 or 2 px) */
+	glEnable(GL_LINE_SMOOTH);
+	glEnable(GL_BLEND);
+	glLineWidth(2.0f);
+	
+	/* influence -------------------------- */
+	if (strip->flag & NLASTRIP_FLAG_USR_INFLUENCE) {
+		FCurve *fcu= list_find_fcurve(&strip->fcurves, "influence", 0);
+		float cfra;
+		
+		/* plot the curve (over the strip's main region) */
+		glBegin(GL_LINE_STRIP);
+			/* sample at 1 frame intervals, and draw 
+			 *	- min y-val is yminc, max is y-maxc, so clamp in those regions
+			 */
+			for (cfra= strip->start; cfra <= strip->end; cfra += 1.0f) {
+				float y= evaluate_fcurve(fcu, cfra); // assume this to be in 0-1 range
+				glVertex2f(cfra, ((y*yheight)+yminc));
+			}
+		glEnd(); // GL_LINE_STRIP
+	}
+	else {
+		/* use blend in/out values only if both aren't zero */
+		if ((IS_EQ(strip->blendin, 0.0f) && IS_EQ(strip->blendout, 0.0f))==0) {
+			glBegin(GL_LINE_STRIP);
+				/* start of strip - if no blendin, start straight at 1, otherwise from 0 to 1 over blendin frames */
+				if (IS_EQ(strip->blendin, 0.0f) == 0) {
+					glVertex2f(strip->start, 					yminc);
+					glVertex2f(strip->start + strip->blendin, 	ymaxc);
+				}
+				else
+					glVertex2f(strip->start, ymaxc);
+					
+				/* end of strip */
+				if (IS_EQ(strip->blendout, 0.0f) == 0) {
+					glVertex2f(strip->end - strip->blendout,	ymaxc);
+					glVertex2f(strip->end, 						yminc);
+				}
+				else
+					glVertex2f(strip->end, ymaxc);
+			glEnd(); // GL_LINE_STRIP
+		}
+	}
+	
+	/* time -------------------------- */
+	// XXX do we want to draw this curve? in a different colour too?
+	
+	/* turn off AA'd lines */
+	glDisable(GL_LINE_SMOOTH);
+	glDisable(GL_BLEND);
+	glLineWidth(1.0f);
+}
+
+/* main call for drawing a single NLA-strip */
 static void nla_draw_strip (AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
 {
 	float color[3];
@@ -291,8 +356,8 @@ static void nla_draw_strip (AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2
 	gl_round_box_shade(GL_POLYGON, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1);
 	
 	
-	/* draw influence 'curve' */
-	// TODO:
+	/* draw strip's control 'curves' */
+	nla_draw_strip_curves(strip, v2d, yminc, ymaxc);
 	
 	/* draw strip outline 
 	 *	- color used here is to indicate active vs non-active
