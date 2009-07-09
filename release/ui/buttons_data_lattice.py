@@ -9,9 +9,9 @@ class DataButtonsPanel(bpy.types.Panel):
 	def poll(self, context):
 		return (context.lattice != None)
 	
-class DATA_PT_lattice(DataButtonsPanel):
-	__idname__ = "DATA_PT_lattice"
-	__label__ = "Lattice"
+class DATA_PT_context(DataButtonsPanel):
+	__idname__ = "DATA_PT_context"
+	__label__ = " "
 	
 	def poll(self, context):
 		return (context.object and context.object.type == 'LATTICE')
@@ -32,9 +32,22 @@ class DATA_PT_lattice(DataButtonsPanel):
 			split.template_ID(space, "pin_id")
 			split.itemS()
 
-		if lat:
-			layout.itemS()
 
+class DATA_PT_lattice(DataButtonsPanel):
+	__idname__ = "DATA_PT_lattice"
+	__label__ = "Lattice"
+	
+	def poll(self, context):
+		return (context.object and context.object.type == 'LATTICE')
+
+	def draw(self, context):
+		layout = self.layout
+		
+		ob = context.object
+		lat = context.lattice
+		space = context.space_data
+
+		if lat:
 			row = layout.row()
 			row.itemR(lat, "points_u")
 			row.itemR(lat, "interpolation_type_u", expand=True)
@@ -51,4 +64,5 @@ class DATA_PT_lattice(DataButtonsPanel):
 			row.itemO("LATTICE_OT_make_regular")
 			row.itemR(lat, "outside")
 
+bpy.types.register(DATA_PT_context)
 bpy.types.register(DATA_PT_lattice)

@@ -21,6 +21,39 @@ class MATERIAL_PT_preview(MaterialButtonsPanel):
 		mat = context.material
 		
 		layout.template_preview(mat)
+		
+class MATERIAL_PT_context(MaterialButtonsPanel):
+	__idname__= "MATERIAL_PT_context"
+	__label__ = " "
+
+	def poll(self, context):
+		return (context.material or context.material_slot)
+
+	def draw(self, context):
+		layout = self.layout
+		
+		mat = context.material
+		ob = context.object
+		slot = context.material_slot
+		space = context.space_data
+
+		row = layout.row()
+
+		row.template_list(ob, "materials", ob, "active_material_index")
+
+		col = row.column(align=True)
+		col.itemO("OBJECT_OT_material_slot_add", icon="ICON_ZOOMIN", text="")
+		col.itemO("OBJECT_OT_material_slot_remove", icon="ICON_ZOOMOUT", text="")
+
+		split = layout.split(percentage=0.65)
+
+		if ob and slot:
+			split.template_ID(slot, "material", new="MATERIAL_OT_new")
+			#split.itemR(ob, "active_material_index", text="Active")
+		elif mat:
+			split.template_ID(space, "pin_id")
+			split.itemS()
+
 	
 class MATERIAL_PT_material(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_material"
@@ -37,18 +70,7 @@ class MATERIAL_PT_material(MaterialButtonsPanel):
 		slot = context.material_slot
 		space = context.space_data
 
-		split = layout.split(percentage=0.65)
-
-		if ob and slot:
-			split.template_ID(slot, "material", new="MATERIAL_OT_new")
-			split.itemR(ob, "active_material_index", text="Active")
-		elif mat:
-			split.template_ID(space, "pin_id")
-			split.itemS()
-
 		if mat:
-			layout.itemS()
-		
 			layout.itemR(mat, "type", expand=True)
 			
 			layout.itemR(mat, "alpha", slider=True)
@@ -413,6 +435,8 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
 		colsub.itemR(halo, "flare_seed", text="Seed")
 		colsub.itemR(halo, "flares_sub", text="Sub")
 
+
+bpy.types.register(MATERIAL_PT_context)
 bpy.types.register(MATERIAL_PT_preview)
 bpy.types.register(MATERIAL_PT_material)
 bpy.types.register(MATERIAL_PT_diffuse)

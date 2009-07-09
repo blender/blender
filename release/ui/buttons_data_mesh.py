@@ -9,9 +9,10 @@ class DataButtonsPanel(bpy.types.Panel):
 	def poll(self, context):
 		return (context.mesh != None)
 
-class DATA_PT_mesh(DataButtonsPanel):
-	__idname__ = "DATA_PT_mesh"
-	__label__ = "Mesh"
+
+class DATA_PT_context2(DataButtonsPanel):
+	__idname__ = "DATA_PT_context2"
+	__label__ = " "
 	
 	def poll(self, context):
 		return (context.object and context.object.type == 'MESH')
@@ -32,9 +33,24 @@ class DATA_PT_mesh(DataButtonsPanel):
 			split.template_ID(space, "pin_id")
 			split.itemS()
 
-		if mesh:
-			layout.itemS()
 
+
+
+class DATA_PT_mesh(DataButtonsPanel):
+	__idname__ = "DATA_PT_mesh"
+	__label__ = "Mesh"
+	
+	def poll(self, context):
+		return (context.object and context.object.type == 'MESH')
+
+	def draw(self, context):
+		layout = self.layout
+		
+		ob = context.object
+		mesh = context.mesh
+		space = context.space_data
+
+		if mesh:
 			split = layout.split()
 		
 			col = split.column()
@@ -46,6 +62,7 @@ class DATA_PT_mesh(DataButtonsPanel):
 			sub.itemR(mesh, "vertex_normal_flip")
 			sub.itemR(mesh, "double_sided")
 			
+			layout.itemS()
 			layout.itemR(mesh, "texco_mesh")
 
 
@@ -205,6 +222,7 @@ class DATA_PT_vertex_colors(DataButtonsPanel):
 		col.itemO("MESH_OT_vertex_color_add", icon="ICON_ZOOMIN", text="")
 		col.itemO("MESH_OT_vertex_color_remove", icon="ICON_ZOOMOUT", text="")
 
+bpy.types.register(DATA_PT_context2)
 bpy.types.register(DATA_PT_mesh)
 bpy.types.register(DATA_PT_materials)
 bpy.types.register(DATA_PT_vertex_groups)

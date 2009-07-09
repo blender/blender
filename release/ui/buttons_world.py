@@ -21,8 +21,8 @@ class WORLD_PT_preview(WorldButtonsPanel):
 		
 		layout.template_preview(world)
 	
-class WORLD_PT_world(WorldButtonsPanel):
-	__label__ = "World"
+class WORLD_PT_context(WorldButtonsPanel):
+	__label__ = " "
 
 	def poll(self, context):
 		return (context.scene != None)
@@ -41,11 +41,23 @@ class WORLD_PT_world(WorldButtonsPanel):
 		elif world:
 			split.template_ID(space, "pin_id")
 
-		split.itemS()
+class WORLD_PT_world(WorldButtonsPanel):
+	__label__ = "World"
+
+	def poll(self, context):
+		return (context.scene != None)
+
+	def draw(self, context):
+		layout = self.layout
+		
+		scene = context.scene
+		world = context.world
+		space = context.space_data
+
+
 
 		if world:
-			layout.itemS()
-			
+		
 			row = layout.row()
 			row.itemR(world, "blend_sky")
 			row.itemR(world, "paper_sky")
@@ -173,7 +185,8 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 		col.row().itemR(ao, "blend_mode", expand=True)
 		col.row().itemR(ao, "color", expand=True)
 		col.itemR(ao, "energy")
-	
+
+bpy.types.register(WORLD_PT_context)	
 bpy.types.register(WORLD_PT_preview)
 bpy.types.register(WORLD_PT_world)
 bpy.types.register(WORLD_PT_ambient_occlusion)

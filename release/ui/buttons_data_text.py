@@ -9,9 +9,9 @@ class DataButtonsPanel(bpy.types.Panel):
 	def poll(self, context):
 		return (context.object and context.object.type == 'TEXT' and context.curve)
 		
-class DATA_PT_shape_text(DataButtonsPanel):
-	__idname__ = "DATA_PT_shape_text"
-	__label__ = "Shape Text"
+class DATA_PT_context(DataButtonsPanel):
+	__idname__ = "DATA_PT_context"
+	__label__ = " "
 	
 	def poll(self, context):
 		ob = context.object
@@ -33,8 +33,23 @@ class DATA_PT_shape_text(DataButtonsPanel):
 			split.template_ID(space, "pin_id")
 			split.itemS()
 
+
+class DATA_PT_shape_text(DataButtonsPanel):
+	__idname__ = "DATA_PT_shape_text"
+	__label__ = "Shape Text"
+	
+	def poll(self, context):
+		ob = context.object
+		return (context.object and context.object.type == 'TEXT')
+
+	def draw(self, context):
+		layout = self.layout
+		
+		ob = context.object
+		curve = context.curve
+		space = context.space_data
+
 		if curve:
-			layout.itemS()
 			layout.itemR(curve, "curve_2d")			
 							
 			split = layout.split()
@@ -57,7 +72,29 @@ class DATA_PT_shape_text(DataButtonsPanel):
 
 			sub.itemL(text="Display:")
 			sub.itemR(curve, "fast")
-			
+
+class DATA_PT_geometry(DataButtonsPanel):
+	__idname__ = "DATA_PT_geometry"
+	__label__ = "Geometry"
+
+	def draw(self, context):
+		layout = self.layout
+		curve = context.curve
+
+		split = layout.split()
+	
+		sub = split.column()
+		sub.itemL(text="Modification:")
+		sub.itemR(curve, "width")
+		sub.itemR(curve, "extrude")
+		sub.itemR(curve, "taper_object")
+		
+		sub = split.column()
+		sub.itemL(text="Bevel:")
+		sub.itemR(curve, "bevel_depth", text="Depth")
+		sub.itemR(curve, "bevel_resolution", text="Resolution")
+		sub.itemR(curve, "bevel_object")
+
 class DATA_PT_font(DataButtonsPanel):
 	__idname__ = "DATA_PT_font"
 	__label__ = "Font"
@@ -124,7 +161,9 @@ class DATA_PT_textboxes(DataButtonsPanel):
 			text = context.curve
 """
 
+bpy.types.register(DATA_PT_context)	
 bpy.types.register(DATA_PT_shape_text)	
+bpy.types.register(DATA_PT_geometry)
 bpy.types.register(DATA_PT_font)
 bpy.types.register(DATA_PT_paragraph)
 #bpy.types.register(DATA_PT_textboxes)

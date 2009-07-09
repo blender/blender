@@ -20,7 +20,7 @@ class ParticleButtonsPanel(bpy.types.Panel):
 
 class PARTICLE_PT_particles(ParticleButtonsPanel):
 	__idname__= "PARTICLE_PT_particles"
-	__label__ = "Particle System"
+	__label__ = " "
 
 	def poll(self, context):
 		return (context.particle_system or context.object)

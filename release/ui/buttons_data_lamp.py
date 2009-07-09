@@ -19,9 +19,9 @@ class DATA_PT_preview(DataButtonsPanel):
 		lamp = context.lamp
 		layout.template_preview(lamp)
 	
-class DATA_PT_lamp(DataButtonsPanel):
-	__idname__ = "DATA_PT_lamp"
-	__label__ = "Lamp"
+class DATA_PT_context(DataButtonsPanel):
+	__idname__ = "DATA_PT_context"
+	__label__ = " "
 	
 	def poll(self, context):
 		return ((context.object and context.object.type == 'LAMP') or context.lamp)
@@ -42,7 +42,20 @@ class DATA_PT_lamp(DataButtonsPanel):
 			split.template_ID(space, "pin_id")
 			split.itemS()
 
-		layout.itemS()
+
+class DATA_PT_lamp(DataButtonsPanel):
+	__idname__ = "DATA_PT_lamp"
+	__label__ = "Lamp"
+	
+	def poll(self, context):
+		return ((context.object and context.object.type == 'LAMP') or context.lamp)
+
+	def draw(self, context):
+		layout = self.layout
+		
+		ob = context.object
+		lamp = context.lamp
+		space = context.space_data
 
 		layout.itemR(lamp, "type", expand=True)
 		
@@ -244,6 +257,7 @@ class DATA_PT_falloff_curve(DataButtonsPanel):
 
 		layout.template_curve_mapping(lamp.falloff_curve)
 
+bpy.types.register(DATA_PT_context)
 bpy.types.register(DATA_PT_preview)
 bpy.types.register(DATA_PT_lamp)
 bpy.types.register(DATA_PT_shadow)

@@ -9,9 +9,9 @@ class DataButtonsPanel(bpy.types.Panel):
 	def poll(self, context):
 		return (context.armature != None)
 
-class DATA_PT_skeleton(DataButtonsPanel):
-	__idname__ = "DATA_PT_skeleton"
-	__label__ = "Skeleton"
+class DATA_PT_contextarm(DataButtonsPanel):
+	__idname__ = "DATA_PT_contextarm"
+	__label__ = " "
 	
 	def poll(self, context):
 		return ((context.object and context.object.type == 'ARMATURE') or context.armature)
@@ -32,8 +32,22 @@ class DATA_PT_skeleton(DataButtonsPanel):
 			split.template_ID(space, "pin_id")
 			split.itemS()
 
+class DATA_PT_skeleton(DataButtonsPanel):
+	__idname__ = "DATA_PT_skeleton"
+	__label__ = "Skeleton"
+	
+	def poll(self, context):
+		return ((context.object and context.object.type == 'ARMATURE') or context.armature)
+
+	def draw(self, context):
+		layout = self.layout
+		
+		ob = context.object
+		arm = context.armature
+		space = context.space_data
+
+
 		if arm:
-			layout.itemS()
 			layout.itemR(arm, "rest_position")
 
 			split = layout.split()
@@ -124,6 +138,7 @@ class DATA_PT_ghost(DataButtonsPanel):
 		sub = split.column()
 		sub.itemR(arm, "ghost_only_selected", text="Selected Only")
 
+bpy.types.register(DATA_PT_contextarm)
 bpy.types.register(DATA_PT_skeleton)
 bpy.types.register(DATA_PT_display)
 bpy.types.register(DATA_PT_paths)

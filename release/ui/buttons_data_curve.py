@@ -9,9 +9,10 @@ class DataButtonsPanel(bpy.types.Panel):
 	def poll(self, context):
 		return (context.object and context.object.type == 'CURVE' and context.curve)
 
-class DATA_PT_shape_curve(DataButtonsPanel):
-	__idname__ = "DATA_PT_shape_curve"
-	__label__ = "Shape"
+
+class DATA_PT_context(DataButtonsPanel):
+	__idname__ = "DATA_PT_context"
+	__label__ = " "
 	
 	def poll(self, context):
 		return (context.object and context.object.type == 'CURVE')
@@ -32,8 +33,24 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 			split.template_ID(space, "pin_id")
 			split.itemS()
 
+
+class DATA_PT_shape_curve(DataButtonsPanel):
+	__idname__ = "DATA_PT_shape_curve"
+	__label__ = "Shape"
+	
+	def poll(self, context):
+		return (context.object and context.object.type == 'CURVE')
+
+	def draw(self, context):
+		layout = self.layout
+		
+		ob = context.object
+		curve = context.curve
+		space = context.space_data
+
+
+
 		if curve:
-			layout.itemS()
 			layout.itemR(curve, "curve_2d")			
 							
 			split = layout.split()
@@ -46,7 +63,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 			colsub.itemR(curve, "back")
 			
 			col.itemL(text="Textures:")
-			col.itemR(curve, "uv_orco")
+#			col.itemR(curve, "uv_orco")
 			col.itemR(curve, "auto_texspace")
 			
 			sub = split.column()	
@@ -56,10 +73,10 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 			sub.itemR(curve, "render_resolution_u", text="Render U")
 			sub.itemR(curve, "render_resolution_v", text="Render V")
 
-			sub.itemL(text="Display:")
-			sub.itemL(text="HANDLES")
-			sub.itemL(text="NORMALS")
-			sub.itemR(curve, "vertex_normal_flip")
+#			sub.itemL(text="Display:")
+#			sub.itemL(text="HANDLES")
+#			sub.itemL(text="NORMALS")
+#			sub.itemR(curve, "vertex_normal_flip")
 
 class DATA_PT_geometry(DataButtonsPanel):
 	__idname__ = "DATA_PT_geometry"
@@ -141,6 +158,7 @@ class DATA_PT_current_curve(DataButtonsPanel):
 		sub.itemR(currentcurve, "radius_interpolation", text="Tilt")
 		sub.itemR(currentcurve, "smooth")
 		
+bpy.types.register(DATA_PT_context)
 bpy.types.register(DATA_PT_shape_curve)
 bpy.types.register(DATA_PT_geometry)
 bpy.types.register(DATA_PT_pathanim)
