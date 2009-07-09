@@ -87,7 +87,7 @@ enum {
 
 /* Standalone call to get the transformation center corresponding to the current situation
  * returns 1 if successful, 0 otherwise (usually means there's no selection)
- * (if 0 is returns, *vec is unmodified) 
+ * (if 0 is returns, *vec is unmodified)
  * */
 int calculateTransformCenter(struct bContext *C, struct wmEvent *event, int centerMode, float *vec);
 
@@ -128,7 +128,7 @@ void BIF_selectOrientation(void);
 void initManipulator(int mode);
 void ManipulatorTransform();
 
-int BIF_do_manipulator(struct bContext *C, short mval[2]);
+int BIF_do_manipulator(struct bContext *C, struct wmEvent *event, struct wmOperator *op);
 void BIF_draw_manipulator(const struct bContext *C);
 
 /* Snapping */
@@ -137,7 +137,7 @@ void BIF_draw_manipulator(const struct bContext *C);
 typedef struct DepthPeel
 {
 	struct DepthPeel *next, *prev;
-	
+
 	float depth;
 	float p[3];
 	float no[3];
