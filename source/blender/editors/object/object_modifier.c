@@ -83,33 +83,38 @@ int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int ty
 		}
 	}
 
-	if(mti->flags&eModifierTypeFlag_RequiresOriginalData) {
-		md = ob->modifiers.first;
-
-		while(md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform)
-			md = md->next;
-
-		BLI_insertlinkbefore(&ob->modifiers, md, modifier_new(type));
+	if(type == eModifierType_ParticleSystem) {
+		object_add_particle_system(scene, ob);
 	}
-	else
-		BLI_addtail(&ob->modifiers, modifier_new(type));
-	
-	/* special cases */
-	if(type == eModifierType_Softbody) {
-		if(!ob->soft) {
-			ob->soft= sbNew(scene);
-			ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
+	else {
+		if(mti->flags&eModifierTypeFlag_RequiresOriginalData) {
+			md = ob->modifiers.first;
+
+			while(md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform)
+				md = md->next;
+
+			BLI_insertlinkbefore(&ob->modifiers, md, modifier_new(type));
 		}
-	}
-	else if(type == eModifierType_Collision) {
-		if(!ob->pd)
-			ob->pd= object_add_collision_fields();
+		else
+			BLI_addtail(&ob->modifiers, modifier_new(type));
+		
+		/* special cases */
+		if(type == eModifierType_Softbody) {
+			if(!ob->soft) {
+				ob->soft= sbNew(scene);
+				ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
+			}
+		}
+		else if(type == eModifierType_Collision) {
+			if(!ob->pd)
+				ob->pd= object_add_collision_fields();
 
-		ob->pd->deflect= 1;
-        DAG_scene_sort(scene);
+			ob->pd->deflect= 1;
+			DAG_scene_sort(scene);
+		}
+		else if(type == eModifierType_Surface)
+			DAG_scene_sort(scene);
 	}
-	else if(type == eModifierType_Surface)
-        DAG_scene_sort(scene);
 
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 

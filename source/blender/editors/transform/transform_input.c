@@ -270,7 +270,7 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 		break;
 	case INPUT_TRACKBALL:
 		/* factor has to become setting or so */
-		mi->factor = 0.02f;
+		mi->factor = 0.01f;
 		mi->apply = InputTrackBall;
 		t->helpline = HLP_TRACKBALL;
 		break;

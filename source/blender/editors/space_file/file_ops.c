@@ -771,3 +771,4 @@ void FILE_OT_filenum(struct wmOperatorType *ot)
 	/* props */
 	RNA_def_int(ot->srna, "increment", 1, 0, 100, "Increment", "", 0,100);
 }
+

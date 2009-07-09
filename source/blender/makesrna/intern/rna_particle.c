@@ -1249,7 +1249,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "acc");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, -200.0f, 200.0f);
-	RNA_def_property_ui_text(prop, "Accelaration", "Constant acceleration");
+	RNA_def_property_ui_text(prop, "Acceleration", "Constant acceleration");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "drag_factor", PROP_FLOAT, PROP_NONE);
