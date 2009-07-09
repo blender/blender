@@ -2173,7 +2173,7 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 					if (adt) {
 						bActionGroup *agrp= action_groups_find_named(adt->action, pchan->name);
 						if (agrp)
-							agroup_to_keylist(agrp, &keys, NULL, NULL);
+							agroup_to_keylist(adt, agrp, &keys, NULL);
 					}
 					
 					/* Draw slightly-larger yellow dots at each keyframe */
@@ -2320,18 +2320,17 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	bArmature *arm= ob->data;
 	bPose *posen, *poseo;
 	ListBase keys= {NULL, NULL};
-	ActKeysInc aki = {0, 0, 0};
 	ActKeyColumn *ak, *akn;
 	float start, end, range, colfac, i;
 	int cfrao, flago;
 	
-	aki.start= start = (float)arm->ghostsf;
-	aki.end= end = (float)arm->ghostef;
+	start = (float)arm->ghostsf;
+	end = (float)arm->ghostef;
 	if (end <= start)
 		return;
 	
 	/* get keyframes - then clip to only within range */
-	action_to_keylist(act, &keys, NULL, &aki);
+	action_to_keylist(adt, act, &keys, NULL);
 	range= 0;
 	for (ak= keys.first; ak; ak= akn) {
 		akn= ak->next;

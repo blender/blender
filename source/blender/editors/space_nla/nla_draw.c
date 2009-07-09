@@ -143,7 +143,7 @@ static void nla_action_draw_keyframes (AnimData *adt, View2D *v2d, float y)
 	glColor3f(0.0f, 0.0f, 0.0f);
 	
 	/* get a list of the keyframes with NLA-scaling applied */
-	action_nlascaled_to_keylist(adt, adt->action, &keys, NULL, NULL);
+	action_to_keylist(adt, adt->action, &keys, NULL);
 	
 	/* get View2D scaling factor */
 	UI_view2d_getscale(v2d, &xscale, NULL);

@@ -223,7 +223,8 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 	BeztEditFunc ok_cb, select_cb;
 	View2D *v2d= &ac->ar->v2d;
 	rctf rectf;
-	float ymin=0, ymax=(float)(-ACHANNEL_HEIGHT);
+	//float ymin=0, ymax=(float)(-ACHANNEL_HEIGHT);
+	float ymin=0, ymax=(float)(-ACHANNEL_HEIGHT_HALF);
 	
 	/* convert mouse coordinates to frame ranges and channel coordinates corrected for view pan/zoom */
 	UI_view2d_region_to_view(v2d, rect.xmin, rect.ymin+2, &rectf.xmin, &rectf.ymin);
@@ -743,12 +744,16 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 	int filter;
 	
 	View2D *v2d= &ac->ar->v2d;
+	bDopeSheet *ads = NULL;
 	int channel_index;
 	short found = 0;
 	float selx = 0.0f;
 	float x, y;
 	rctf rectf;
 	
+	/* get dopesheet info */
+	if (ac->datatype == ANIMCONT_DOPESHEET)
+		ads= ac->data;
 	
 	/* use View2D to determine the index of the channel (i.e a row in the list) where keyframe was */
 	UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
@@ -773,46 +778,35 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 	else {
 		/* found match - must return here... */
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
-		ActKeysInc *aki= init_aki_data(ac, ale);
 		ActKeyColumn *ak;
-		float xmin, xmax;
-		
-		/* apply NLA-scaling correction? */
-		if (adt) {
-			xmin= BKE_nla_tweakedit_remap(adt, rectf.xmin, NLATIME_CONVERT_UNMAP);
-			xmax= BKE_nla_tweakedit_remap(adt, rectf.xmax, NLATIME_CONVERT_UNMAP);
-		}
-		else {
-			xmin= rectf.xmin;
-			xmax= rectf.xmax;
-		}
 		
 		/* make list of keyframes */
+		// TODO: it would be great if we didn't have to apply this to all the keyframes to do this...
 		if (ale->key_data) {
 			switch (ale->datatype) {
 				case ALE_OB:
 				{
 					Object *ob= (Object *)ale->key_data;
-					ob_to_keylist(ob, &anim_keys, NULL, aki);
+					ob_to_keylist(ads, ob, &anim_keys, NULL);
 				}
 					break;
 				case ALE_ACT:
 				{
 					bAction *act= (bAction *)ale->key_data;
-					action_to_keylist(act, &anim_keys, NULL, aki);
+					action_to_keylist(adt, act, &anim_keys, NULL);
 				}
 					break;
 				case ALE_FCURVE:
 				{
 					FCurve *fcu= (FCurve *)ale->key_data;
-					fcurve_to_keylist(fcu, &anim_keys, NULL, aki);
+					fcurve_to_keylist(adt, fcu, &anim_keys, NULL);
 				}
 					break;
 			}
 		}
 		else if (ale->type == ANIMTYPE_GROUP) {
 			bActionGroup *agrp= (bActionGroup *)ale->data;
-			agroup_to_keylist(agrp, &anim_keys, NULL, aki);
+			agroup_to_keylist(adt, agrp, &anim_keys, NULL);
 		}
 		else if (ale->type == ANIMTYPE_GPDATABLOCK) {
 			/* cleanup */
@@ -822,13 +816,17 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 		}
 		else if (ale->type == ANIMTYPE_GPLAYER) {
 			bGPDlayer *gpl= (bGPDlayer *)ale->data;
-			gpl_to_keylist(gpl, &anim_keys, NULL, aki);
+			gpl_to_keylist(ads, gpl, &anim_keys, NULL);
 		}
 		
 		/* loop through keyframes, finding one that was clicked on */
 		for (ak= anim_keys.first; ak; ak= ak->next) {
-			if (IN_RANGE(ak->cfra, xmin, xmax)) {
-				selx= ak->cfra;
+			if (IN_RANGE(ak->cfra, rectf.xmin, rectf.xmax)) {
+				/* set the frame to use, and apply inverse-correction for NLA-mapping 
+				 * so that the frame will get selected by the selection functiosn without
+				 * requiring to map each frame once again...
+				 */
+				selx= BKE_nla_tweakedit_remap(adt, ak->cfra, NLATIME_CONVERT_UNMAP);
 				found= 1;
 				break;
 			}
@@ -884,19 +882,21 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 	}
 	
 	/* only select keyframes if we clicked on a valid channel and hit something */
-	if (ale && found) {
-		/* apply selection to keyframes */
-		if (/*gpl*/0) {
-			/* grease pencil */
-			//select_gpencil_frame(gpl, (int)selx, selectmode);
-		}
-		else if (column) {
-			/* select all keyframes in the same frame as the one we hit on the active channel */
-			actkeys_mselect_column(ac, select_mode, selx);
-		}
-		else {
-			/* select the nominated keyframe on the given frame */
-			actkeys_mselect_single(ac, ale, select_mode, selx);
+	if (ale) {
+		if (found) {
+			/* apply selection to keyframes */
+			if (/*gpl*/0) {
+				/* grease pencil */
+				//select_gpencil_frame(gpl, (int)selx, selectmode);
+			}
+			else if (column) {
+				/* select all keyframes in the same frame as the one we hit on the active channel */
+				actkeys_mselect_column(ac, select_mode, selx);
+			}
+			else {
+				/* select the nominated keyframe on the given frame */
+				actkeys_mselect_single(ac, ale, select_mode, selx);
+			}
 		}
 		
 		/* free this channel */

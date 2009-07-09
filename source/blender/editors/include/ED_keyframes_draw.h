@@ -33,13 +33,14 @@
 struct AnimData;
 struct BezTriple;
 struct FCurve;
-struct gla2DDrawInfo;
+struct bDopeSheet;
 struct bAction;
 struct bActionGroup;
 struct Object;
 struct ListBase;
 struct bGPDlayer;
 struct Scene;
+struct View2D;
 
 /* ****************************** Base Structs ****************************** */
 
@@ -66,34 +67,23 @@ typedef struct ActKeyBlock {
 	short totcurve; 
 } ActKeyBlock;
 
-
-/* Inclusion-Range Limiting Struct (optional) */
-typedef struct ActKeysInc {
-	struct bDopeSheet *ads;			/* dopesheet data (for dopesheet mode) */
-	struct AnimData *adt;			/* owner for NLA-mapping info */
-	short actmode;					/* mode of the Action Editor (-1 is for NLA) */
-	
-	float start, end;				/* frames (global-time) to only consider keys between */  // XXX not used anymore!
-} ActKeysInc;
-
 /* ******************************* Methods ****************************** */
 
 /* Channel Drawing */
-void draw_fcurve_channel(struct gla2DDrawInfo *di, ActKeysInc *aki, struct FCurve *fcu, float ypos);
-void draw_agroup_channel(struct gla2DDrawInfo *di, ActKeysInc *aki, struct bActionGroup *agrp, float ypos);
-void draw_action_channel(struct gla2DDrawInfo *di, ActKeysInc *aki, struct bAction *act, float ypos);
-void draw_object_channel(struct gla2DDrawInfo *di, ActKeysInc *aki, struct Object *ob, float ypos);
-void draw_scene_channel(struct gla2DDrawInfo *di, ActKeysInc *aki, struct Scene *sce, float ypos);
-void draw_gpl_channel(struct gla2DDrawInfo *di, ActKeysInc *aki, struct bGPDlayer *gpl, float ypos);
+void draw_fcurve_channel(struct View2D *v2d, struct AnimData *adt, struct FCurve *fcu, float ypos);
+void draw_agroup_channel(struct View2D *v2d, struct AnimData *adt, struct bActionGroup *agrp, float ypos);
+void draw_action_channel(struct View2D *v2d, struct AnimData *adt, struct bAction *act, float ypos);
+void draw_object_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Object *ob, float ypos);
+void draw_scene_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Scene *sce, float ypos);
+void draw_gpl_channel(struct View2D *v2d, struct bDopeSheet *ads, struct bGPDlayer *gpl, float ypos);
 
 /* Keydata Generation */
-void fcurve_to_keylist(struct FCurve *fcu, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
-void agroup_to_keylist(struct bActionGroup *agrp, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
-void action_to_keylist(struct bAction *act, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
-void action_nlascaled_to_keylist(struct AnimData *adt, struct bAction *act, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
-void ob_to_keylist(struct Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
-void scene_to_keylist(struct Scene *sce, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
-void gpl_to_keylist(struct bGPDlayer *gpl, ListBase *keys, ListBase *blocks, ActKeysInc *aki);
+void fcurve_to_keylist(struct AnimData *adt, struct FCurve *fcu, ListBase *keys, ListBase *blocks);
+void agroup_to_keylist(struct AnimData *adt, struct bActionGroup *agrp, ListBase *keys, ListBase *blocks);
+void action_to_keylist(struct AnimData *adt, struct bAction *act, ListBase *keys, ListBase *blocks);
+void ob_to_keylist(struct bDopeSheet *ads, struct Object *ob, ListBase *keys, ListBase *blocks);
+void scene_to_keylist(struct bDopeSheet *ads, struct Scene *sce, ListBase *keys, ListBase *blocks);
+void gpl_to_keylist(struct bDopeSheet *ads, struct bGPDlayer *gpl, ListBase *keys, ListBase *blocks);
 
 #endif  /*  ED_KEYFRAMES_DRAW_H */
 
