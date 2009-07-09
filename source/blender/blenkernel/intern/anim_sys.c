@@ -392,10 +392,10 @@ void BKE_keyingsets_free (ListBase *list)
 short animsys_remap_path (AnimMapper *remap, char *path, char **dst)
 {
 	/* is there a valid remapping table to use? */
-	if (remap) {
+	//if (remap) {
 		/* find a matching entry... to use to remap */
 		// ...TODO...
-	}
+	//}
 	
 	/* nothing suitable found, so just set dst to look at path (i.e. no alloc/free needed) */
 	*dst= path;
@@ -521,7 +521,6 @@ static void animsys_evaluate_drivers (PointerRNA *ptr, AnimData *adt, float ctim
 		short ok= 0;
 		
 		/* check if this driver's curve should be skipped */
-		// FIXME: maybe we shouldn't check for muted, though that would make things more confusing, as there's already too many ways to disable?
 		if ((fcu->flag & (FCURVE_MUTED|FCURVE_DISABLED)) == 0) 
 		{
 			/* check if driver itself is tagged for recalculation */
@@ -1184,6 +1183,9 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 	ListBase estrips= {NULL, NULL};
 	ListBase echannels= {NULL, NULL};
 	NlaEvalStrip *nes;
+	
+	// TODO: need to zero out all channels used, otherwise we have problems with threadsafety
+	// and also when the user jumps between different times instead of moving sequentially...
 	
 	/* 1. get the stack of strips to evaluate at current time (influence calculated here) */
 	for (nlt=adt->nla_tracks.first; nlt; nlt=nlt->next, track_index++) { 

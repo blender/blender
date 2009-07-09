@@ -30,12 +30,15 @@
 void ui_but_anim_flag(uiBut *but, float cfra)
 {
 	but->flag &= ~(UI_BUT_ANIMATED|UI_BUT_ANIMATED_KEY|UI_BUT_DRIVEN);
-
-	if(but->rnaprop && but->rnapoin.id.data) {
+	
+	/* there must be some RNA-pointer + property combo for this button */
+	if (but->rnaprop && but->rnapoin.id.data && 
+		RNA_property_animateable(&but->rnapoin, but->rnaprop)) 
+	{
 		AnimData *adt= BKE_animdata_from_id(but->rnapoin.id.data);
 		FCurve *fcu;
 		char *path;
-
+		
 		if (adt) {
 			if ((adt->action && adt->action->curves.first) || (adt->drivers.first)) {
 				/* XXX this function call can become a performance bottleneck */
@@ -113,7 +116,6 @@ void ui_but_anim_remove_driver(bContext *C)
 	WM_operator_name_call(C, "ANIM_OT_remove_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
-// TODO: refine the logic for adding/removing drivers...
 void ui_but_anim_menu(bContext *C, uiBut *but)
 {
 	uiPopupMenu *pup;

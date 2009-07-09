@@ -741,6 +741,8 @@ enum {
 	ADT_NLA_EDIT_ON			= (1<<2),
 		/* active Action for 'tweaking' does not have mapping applied for editing */
 	ADT_NLA_EDIT_NOMAP		= (1<<3),
+		/* NLA-Strip F-Curves are expanded in UI */
+	ADT_NLA_SKEYS_COLLAPSED	= (1<<4),
 	
 		/* drivers expanded in UI */
 	ADT_DRIVERS_COLLAPSED	= (1<<10),

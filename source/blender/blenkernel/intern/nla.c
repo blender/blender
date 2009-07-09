@@ -926,7 +926,6 @@ void BKE_nlatrack_set_active (ListBase *tracks, NlaTrack *nlt_a)
 		nlt_a->flag |= NLATRACK_ACTIVE;
 }
 
-
 /* Check if there is any space in the given track to add a strip of the given length */
 short BKE_nlatrack_has_space (NlaTrack *nlt, float start, float end)
 {
@@ -1048,6 +1047,46 @@ short nlastrip_is_first (AnimData *adt, NlaStrip *strip)
 	
 	/* should be first now */
 	return 1;
+}
+
+/* Animated Strips ------------------------------------------- */
+
+/* Check if the given NLA-Track has any strips with own F-Curves */
+short BKE_nlatrack_has_animated_strips (NlaTrack *nlt)
+{
+	NlaStrip *strip;
+	
+	/* sanity checks */
+	if ELEM(NULL, nlt, nlt->strips.first)
+		return 0;
+		
+	/* check each strip for F-Curves only (don't care about whether the flags are set) */
+	for (strip= nlt->strips.first; strip; strip= strip->next) {
+		if (strip->fcurves.first)
+			return 1;
+	}
+	
+	/* none found */
+	return 0;
+}
+
+/* Check if given NLA-Tracks have any strips with own F-Curves */
+short BKE_nlatracks_have_animated_strips (ListBase *tracks)
+{
+	NlaTrack *nlt;
+	
+	/* sanity checks */
+	if ELEM(NULL, tracks, tracks->first)
+		return 0;
+		
+	/* check each track, stopping on the first hit */
+	for (nlt= tracks->first; nlt; nlt= nlt->next) {
+		if (BKE_nlatrack_has_animated_strips(nlt))
+			return 1;
+	}
+	
+	/* none found */
+	return 0;
 }
 
 /* Validate the NLA-Strips 'control' F-Curves based on the flags set*/
