@@ -1261,7 +1261,7 @@ static void ui_litem_estimate_row(uiLayout *litem)
 
 static int ui_litem_min_width(int itemw)
 {
-	return MIN2(UI_UNIT_X, itemw);
+	return MIN2(2*UI_UNIT_X, itemw);
 }
 
 static void ui_litem_layout_row(uiLayout *litem)

@@ -21,7 +21,7 @@ class MATERIAL_PT_preview(MaterialButtonsPanel):
 		
 class MATERIAL_PT_context_material(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_context_material"
-	__label__ = " "
+	__no_header__ = True
 
 	def poll(self, context):
 		return (context.object)
@@ -34,13 +34,14 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
 		slot = context.material_slot
 		space = context.space_data
 
-		row = layout.row()
+		if ob:
+			row = layout.row()
 
-		row.template_list(ob, "materials", ob, "active_material_index")
+			row.template_list(ob, "materials", ob, "active_material_index")
 
-		col = row.column(align=True)
-		col.itemO("OBJECT_OT_material_slot_add", icon="ICON_ZOOMIN", text="")
-		col.itemO("OBJECT_OT_material_slot_remove", icon="ICON_ZOOMOUT", text="")
+			col = row.column(align=True)
+			col.itemO("OBJECT_OT_material_slot_add", icon="ICON_ZOOMIN", text="")
+			col.itemO("OBJECT_OT_material_slot_remove", icon="ICON_ZOOMOUT", text="")
 
 		split = layout.split(percentage=0.65)
 
@@ -188,11 +189,9 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 		split.active = mat.shadeless== False
 		sub = split.column()
 		if mat.diffuse_shader == 'OREN_NAYAR':
-				sub.itemR(mat, "roughness")
-				sub = split.column()
+			sub.itemR(mat, "roughness")
 		if mat.diffuse_shader == 'MINNAERT':
 			sub.itemR(mat, "darkness")
-			sub = split.column()
 		if mat.diffuse_shader == 'TOON':
 			sub.itemR(mat, "diffuse_toon_size", text="Size")
 			sub = split.column()
@@ -232,13 +231,13 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
 		sub = split.column()
 		if mat.spec_shader in ('COOKTORR', 'PHONG'):
 			sub.itemR(mat, "specular_hardness", text="Hardness")
-			sub = split.column()
 		if mat.spec_shader == 'BLINN':
 			sub.itemR(mat, "specular_hardness", text="Hardness")
 			sub = split.column()
 			sub.itemR(mat, "specular_ior", text="IOR")
 		if mat.spec_shader == 'WARDISO':
 			sub.itemR(mat, "specular_slope", text="Slope")
+			sub = split.column()
 			sub.itemR(mat, "specular_hardness", text="Hardness")
 		if mat.spec_shader == 'TOON':
 			sub.itemR(mat, "specular_toon_size", text="Size")

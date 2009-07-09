@@ -9,14 +9,10 @@ class DataButtonsPanel(bpy.types.Panel):
 	def poll(self, context):
 		return (context.object and context.object.type == 'CURVE' and context.curve)
 
-
 class DATA_PT_context_curve(DataButtonsPanel):
 	__idname__ = "DATA_PT_context_curve"
-	__label__ = " "
+	__no_header__ = True
 	
-	def poll(self, context):
-		return (context.object and context.object.type == 'CURVE')
-
 	def draw(self, context):
 		layout = self.layout
 		
@@ -38,17 +34,12 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 	__idname__ = "DATA_PT_shape_curve"
 	__label__ = "Shape"
 	
-	def poll(self, context):
-		return (context.object and context.object.type == 'CURVE')
-
 	def draw(self, context):
 		layout = self.layout
 		
 		ob = context.object
 		curve = context.curve
 		space = context.space_data
-
-
 
 		if curve:
 			layout.itemR(curve, "curve_2d")			
@@ -163,3 +154,4 @@ bpy.types.register(DATA_PT_shape_curve)
 bpy.types.register(DATA_PT_geometry_curve)
 bpy.types.register(DATA_PT_pathanim)
 bpy.types.register(DATA_PT_current_curve)
+

@@ -11,11 +11,8 @@ class DataButtonsPanel(bpy.types.Panel):
 
 class DATA_PT_context_arm(DataButtonsPanel):
 	__idname__ = "DATA_PT_context_arm"
-	__label__ = " "
+	__no_header__ = True
 	
-	def poll(self, context):
-		return ((context.object and context.object.type == 'ARMATURE') or context.armature)
-
 	def draw(self, context):
 		layout = self.layout
 		
@@ -36,9 +33,6 @@ class DATA_PT_skeleton(DataButtonsPanel):
 	__idname__ = "DATA_PT_skeleton"
 	__label__ = "Skeleton"
 	
-	def poll(self, context):
-		return ((context.object and context.object.type == 'ARMATURE') or context.armature)
-
 	def draw(self, context):
 		layout = self.layout
 		

@@ -11,7 +11,7 @@ class BoneButtonsPanel(bpy.types.Panel):
 
 class BONE_PT_context_bone(BoneButtonsPanel):
 	__idname__ = "BONE_PT_context_bone"
-	__label__ = " "
+	__no_header__ = True
 
 	def draw(self, context):
 		layout = self.layout

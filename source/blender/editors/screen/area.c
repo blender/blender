@@ -1187,7 +1187,10 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 			uiEndBlock(C, block);
 
 			if(vertical) {
-				y += yco-style->panelouter;
+				if(pt->flag & PNL_NO_HEADER)
+					y += yco;
+				else
+					y += yco-style->panelouter;
 			}
 			else {
 				x += w;
@@ -1216,13 +1219,20 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	if(vertical) {
 		v2d->keepofs |= V2D_LOCKOFS_X;
 		v2d->keepofs &= ~V2D_LOCKOFS_Y;
+		
+		// don't jump back when panels close or hide
+		y= MAX2(-y, -v2d->cur.ymin);
 	}
 	else {
 		v2d->keepofs &= ~V2D_LOCKOFS_X;
 		v2d->keepofs |= V2D_LOCKOFS_Y;
+
+		// don't jump back when panels close or hide
+		x= MAX2(x, v2d->cur.xmax);
+		y= -y;
 	}
 
-	UI_view2d_totRect_set(v2d, x, -y);
+	UI_view2d_totRect_set(v2d, x, y);
 
 	/* set the view */
 	UI_view2d_view_ortho(C, v2d);

@@ -11,11 +11,8 @@ class DataButtonsPanel(bpy.types.Panel):
 
 class DATA_PT_context_mesh(DataButtonsPanel):
 	__idname__ = "DATA_PT_context_mesh"
-	__label__ = " "
+	__no_header__ = True
 	
-	def poll(self, context):
-		return (context.object and context.object.type == 'MESH')
-
 	def draw(self, context):
 		layout = self.layout
 		
@@ -218,3 +215,4 @@ bpy.types.register(DATA_PT_vertex_groups)
 bpy.types.register(DATA_PT_shape_keys)
 bpy.types.register(DATA_PT_uv_texture)
 bpy.types.register(DATA_PT_vertex_colors)
+

@@ -653,6 +653,14 @@ static int get_panel_header(Panel *pa)
 	return PNL_HEADER;
 }
 
+static int get_panel_size_y(uiStyle *style, Panel *pa)
+{
+	if(pa->type && (pa->type->flag & PNL_NO_HEADER))
+		return pa->sizey;
+
+	return PNL_HEADER + pa->sizey + style->panelouter;
+}
+
 /* this function is needed because uiBlock and Panel itself dont
 change sizey or location when closed */
 static int get_panel_real_ofsy(Panel *pa)
@@ -771,18 +779,18 @@ int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
 	/* no smart other default start loc! this keeps switching f5/f6/etc compatible */
 	ps= panelsort;
 	ps->pa->ofsx= 0;
-	ps->pa->ofsy= -ps->pa->sizey-get_panel_header(ps->pa)-style->panelouter;
+	ps->pa->ofsy= -get_panel_size_y(style, ps->pa);
 
 	for(a=0; a<tot-1; a++, ps++) {
 		psnext= ps+1;
 	
 		if(align==BUT_VERTICAL) {
 			psnext->pa->ofsx= ps->pa->ofsx;
-			psnext->pa->ofsy= get_panel_real_ofsy(ps->pa) - psnext->pa->sizey-get_panel_header(psnext->pa)-style->panelouter;
+			psnext->pa->ofsy= get_panel_real_ofsy(ps->pa) - get_panel_size_y(style, psnext->pa);
 		}
 		else {
 			psnext->pa->ofsx= get_panel_real_ofsx(ps->pa);
-			psnext->pa->ofsy= ps->pa->ofsy + ps->pa->sizey + get_panel_header(ps->pa) - psnext->pa->sizey - get_panel_header(psnext->pa);
+			psnext->pa->ofsy= ps->pa->ofsy + get_panel_size_y(style, ps->pa) - get_panel_size_y(style, psnext->pa);
 		}
 	}
 	

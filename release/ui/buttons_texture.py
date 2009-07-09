@@ -21,7 +21,7 @@ class TEXTURE_PT_preview(TextureButtonsPanel):
 
 class TEXTURE_PT_context_texture(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_context_texture"
-	__label__ = " "
+	__no_header__ = True
 
 	def poll(self, context):
 		return (context.material or context.world or context.lamp)
@@ -36,18 +36,19 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 		space = context.space_data
 		slot = context.texture_slot
 
-		row = layout.row()
-		if ma:
-			row.template_list(ma, "textures", ma, "active_texture_index")
-		elif la:
-			row.template_list(la, "textures", la, "active_texture_index")
-		elif wo:
-			row.template_list(wo, "textures", wo, "active_texture_index")
-		"""if ma or la or wo: 
-			col = row.column(align=True)
-			col.itemO("TEXTURE_OT_new", icon="ICON_ZOOMIN", text="")
-			#col.itemO("OBJECT_OT_material_slot_remove", icon="ICON_ZOOMOUT", text="")
-		"""
+		if ma or la or wo:
+			row = layout.row()
+			if ma:
+				row.template_list(ma, "textures", ma, "active_texture_index")
+			elif la:
+				row.template_list(la, "textures", la, "active_texture_index")
+			elif wo:
+				row.template_list(wo, "textures", wo, "active_texture_index")
+			"""if ma or la or wo: 
+				col = row.column(align=True)
+				col.itemO("TEXTURE_OT_new", icon="ICON_ZOOMIN", text="")
+				#col.itemO("OBJECT_OT_material_slot_remove", icon="ICON_ZOOMOUT", text="")
+			"""
 
 		split = layout.split(percentage=0.65)
 

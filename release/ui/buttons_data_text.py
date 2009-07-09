@@ -8,14 +8,10 @@ class DataButtonsPanel(bpy.types.Panel):
 	
 	def poll(self, context):
 		return (context.object and context.object.type == 'TEXT' and context.curve)
-		
+
 class DATA_PT_context_text(DataButtonsPanel):
 	__idname__ = "DATA_PT_context_text"
-	__label__ = " "
-	
-	def poll(self, context):
-		ob = context.object
-		return (context.object and context.object.type == 'TEXT')
+	__no_header__ = True
 
 	def draw(self, context):
 		layout = self.layout
@@ -32,7 +28,6 @@ class DATA_PT_context_text(DataButtonsPanel):
 		elif curve:
 			split.template_ID(space, "pin_id")
 			split.itemS()
-
 
 class DATA_PT_shape_text(DataButtonsPanel):
 	__idname__ = "DATA_PT_shape_text"
@@ -163,3 +158,4 @@ bpy.types.register(DATA_PT_geometry_text)
 bpy.types.register(DATA_PT_font)
 bpy.types.register(DATA_PT_paragraph)
 #bpy.types.register(DATA_PT_textboxes)
+

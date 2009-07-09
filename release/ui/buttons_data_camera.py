@@ -11,11 +11,8 @@ class DataButtonsPanel(bpy.types.Panel):
 		
 class DATA_PT_context_camera(DataButtonsPanel):
 	__idname__ = "DATA_PT_context_camera"
-	__label__ = " "
+	__no_header__ = True
 	
-	def poll(self, context):
-		return (context.object.type == 'CAMERA')
-
 	def draw(self, context):
 		layout = self.layout
 		
@@ -28,7 +25,7 @@ class DATA_PT_context_camera(DataButtonsPanel):
 		if ob:
 			split.template_ID(ob, "data")
 			split.itemS()
-		elif arm:
+		elif cam:
 			split.template_ID(space, "pin_id")
 			split.itemS()
 
@@ -97,3 +94,4 @@ class DATA_PT_camera_display(DataButtonsPanel):
 bpy.types.register(DATA_PT_context_camera)
 bpy.types.register(DATA_PT_camera)
 bpy.types.register(DATA_PT_camera_display)
+

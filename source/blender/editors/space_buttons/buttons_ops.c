@@ -516,3 +516,4 @@ void PARTICLE_OT_new(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+

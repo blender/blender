@@ -19,7 +19,7 @@ class WORLD_PT_preview(WorldButtonsPanel):
 		layout.template_preview(world)
 	
 class WORLD_PT_context_world(WorldButtonsPanel):
-	__label__ = " "
+	__no_header__ = True
 
 	def poll(self, context):
 		return (context.scene != None)

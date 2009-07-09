@@ -21,11 +21,8 @@ class DATA_PT_preview(DataButtonsPanel):
 	
 class DATA_PT_context_lamp(DataButtonsPanel):
 	__idname__ = "DATA_PT_context_lamp"
-	__label__ = " "
+	__no_header__ = True
 	
-	def poll(self, context):
-		return (context.object.type == 'LAMP')
-		
 	def draw(self, context):
 		layout = self.layout
 		
@@ -258,3 +255,4 @@ bpy.types.register(DATA_PT_shadow)
 bpy.types.register(DATA_PT_sunsky)
 bpy.types.register(DATA_PT_spot)
 bpy.types.register(DATA_PT_falloff_curve)
+
