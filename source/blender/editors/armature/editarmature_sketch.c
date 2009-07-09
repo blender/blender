@@ -242,7 +242,7 @@ int    TEMPLATES_CURRENT = 0;
 GHash *TEMPLATES_HASH = NULL;
 RigGraph *TEMPLATE_RIGG = NULL;
 
-void BIF_makeListTemplates(bContext *C)
+void BIF_makeListTemplates(const bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
@@ -275,7 +275,7 @@ void BIF_makeListTemplates(bContext *C)
 	}
 }
 
-char *BIF_listTemplates(bContext *C)
+char *BIF_listTemplates(const bContext *C)
 {
 	GHashIterator ghi;
 	char menu_header[] = "Template%t|None%x0|";
@@ -307,7 +307,7 @@ char *BIF_listTemplates(bContext *C)
 	return TEMPLATES_MENU;
 }
 
-int   BIF_currentTemplate(bContext *C)
+int   BIF_currentTemplate(const bContext *C)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 
@@ -334,7 +334,7 @@ int   BIF_currentTemplate(bContext *C)
 	return TEMPLATES_CURRENT;
 }
 
-RigGraph* sk_makeTemplateGraph(bContext *C, Object *ob)
+RigGraph* sk_makeTemplateGraph(const bContext *C, Object *ob)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	if (ob == obedit)
@@ -363,7 +363,7 @@ RigGraph* sk_makeTemplateGraph(bContext *C, Object *ob)
 	return TEMPLATE_RIGG;
 }
 
-int BIF_nbJointsTemplate(bContext *C)
+int BIF_nbJointsTemplate(const bContext *C)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	RigGraph *rg = sk_makeTemplateGraph(C, ts->skgen_template);
@@ -378,7 +378,7 @@ int BIF_nbJointsTemplate(bContext *C)
 	}
 }
 
-char * BIF_nameBoneTemplate(bContext *C)
+char * BIF_nameBoneTemplate(const bContext *C)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	SK_Sketch *stk = GLOBAL_sketch;
@@ -3033,7 +3033,7 @@ int BDR_drawSketchNames(ViewContext *vc)
 	return 0;
 }
 
-void BDR_drawSketch(bContext *C)
+void BDR_drawSketch(const bContext *C)
 {
 	if (ED_operator_sketch_mode(C))
 	{
@@ -3351,7 +3351,7 @@ int ED_operator_sketch_full_mode(bContext *C)
 	}
 }
 
-int ED_operator_sketch_mode(bContext *C)
+int ED_operator_sketch_mode(const bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
@@ -3458,7 +3458,7 @@ void SKETCH_OT_draw_stroke(wmOperatorType *ot)
 	ot->modal  = sketch_draw_stroke_modal;
 	ot->cancel = sketch_draw_stroke_cancel;
 
-	ot->poll= ED_operator_sketch_mode;
+	ot->poll= (int (*)(bContext *))ED_operator_sketch_mode;
 
 	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
 

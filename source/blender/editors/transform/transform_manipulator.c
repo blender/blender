@@ -1603,7 +1603,6 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	ARegion *ar= CTX_wm_region(C);
-	RegionView3D *rv3d= ar->regiondata;
 	int constraint_axis[3] = {0, 0, 0};
 	int val;
 	int shift = event->shift;

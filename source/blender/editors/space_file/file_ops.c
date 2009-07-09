@@ -358,9 +358,9 @@ void FILE_OT_add_bookmark(wmOperatorType *ot)
 static int bookmark_delete_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ScrArea *sa= CTX_wm_area(C);
-	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	struct FSMenu* fsmenu = fsmenu_get();
 	int nentries = fsmenu_get_nentries(fsmenu, FS_CATEGORY_BOOKMARKS);
+	
 	if(RNA_struct_find_property(op->ptr, "index")) {
 		int index = RNA_int_get(op->ptr, "index");
 		if ( (index >-1) && (index < nentries)) {

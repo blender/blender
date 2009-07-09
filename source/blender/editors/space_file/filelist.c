@@ -367,7 +367,7 @@ struct ListBase* folderlist_new()
 	return p;
 }
 
-void folderlist_popdir(struct ListBase* folderlist, const char *dir)
+void folderlist_popdir(struct ListBase* folderlist, char *dir)
 {
 	const char *prev_dir;
 	struct FolderList *folder;

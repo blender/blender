@@ -3581,9 +3581,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 // XXX	static short numcuts= 2;
 	Object *ob= OBACT;
 	Object *obedit= NULL; // XXX
-	float fac;
 	int nr,ret=0;
-	short randfac;
 	
 	if(ob==NULL) return;
 	

@@ -351,9 +351,9 @@ static int bpy_run_script_init(bContext *C, SpaceScript * sc)
 	return 1;
 }
 
-int BPY_run_script_space_draw(struct bContext *C, SpaceScript * sc)
+int BPY_run_script_space_draw(const struct bContext *C, SpaceScript * sc)
 {
-	if (bpy_run_script_init(C, sc)) {
+	if (bpy_run_script_init( (bContext *)C, sc)) {
 		PyGILState_STATE gilstate = PyGILState_Ensure();
 		PyObject *result = PyObject_CallObject( sc->script->py_draw, NULL );
 		

@@ -37,7 +37,9 @@
 
 #include "transform.h"
 
+#if 0
 static int updateNDofMotion(NDofInput *n); // return 0 when motion is null
+#endif
 static void resetNDofInput(NDofInput *n);
 
 void initNDofInput(NDofInput *n)
@@ -121,6 +123,8 @@ void applyNDofInput(NDofInput *n, float *vec)
 	}
 }
 
+// TRANSFORM_FIX_ME
+#if 0
 
 static int updateNDofMotion(NDofInput *n)
 {
@@ -128,14 +132,11 @@ static int updateNDofMotion(NDofInput *n)
     int i;
     int retval = 0;
 
-// TRANSFORM_FIX_ME
-#if 0
 	getndof(fval);
 
 	if (G.vd->ndoffilter)
 		filterNDOFvalues(fval);
-#endif
-		
+
 	for(i = 0; i < 6; i++)
 	{
 		if (!retval && fval[i] != 0.0f)
@@ -150,6 +151,7 @@ static int updateNDofMotion(NDofInput *n)
 	
 	return retval;
 }
+#endif
 
 
 
