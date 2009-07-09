@@ -258,7 +258,7 @@ public:
 	 * @param	grab The new grab state of the cursor.
 	 * @return	Indication of success.
 	 */
-	virtual GHOST_TSuccess setCursorGrab(bool grab) { printf("?! grab\n"); return GHOST_kSuccess; };
+	virtual GHOST_TSuccess setCursorGrab(bool grab) { return GHOST_kSuccess; };
 
 };
 

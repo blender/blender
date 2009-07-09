@@ -230,7 +230,7 @@ protected:
 	 * Sets the cursor grab on the window using
 	 * native window system calls.
 	 */
-	virtual GHOST_TSuccess setWindowCursorGrab(bool grab) = 0;
+	virtual GHOST_TSuccess setWindowCursorGrab(bool grab) { return GHOST_kSuccess; };
 	
 	/**
 	 * Sets the cursor shape on the window using
