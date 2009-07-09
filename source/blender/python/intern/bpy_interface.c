@@ -453,7 +453,7 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	char *dirname;
 	char path[FILE_MAX];
 	char *dirs[] = {"io", "ui", NULL};
-	int a, filelen; /* filename length */
+	int a;
 	
 	PyGILState_STATE gilstate;
 	PyObject *mod;
@@ -490,15 +490,10 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 			/* We could stat the file but easier just to let python
 			 * import it and complain if theres a problem */
 
-			if(strstr(de->d_name, ".pyc"))
-				continue;
-
 			file_extension = strstr(de->d_name, ".py");
 			
-			if(file_extension && *(file_extension + 3) == '\0') {
-				filelen = strlen(de->d_name);
-				BLI_strncpy(path, de->d_name, filelen-2); /* cut off the .py on copy */
-				
+			if(file_extension && file_extension[3] == '\0') {
+				BLI_strncpy(path, de->d_name, (file_extension - de->d_name) + 1); /* cut off the .py on copy */
 				mod= PyImport_ImportModuleLevel(path, NULL, NULL, NULL, 0);
 				if (mod) {
 					if (reload) {
@@ -511,7 +506,7 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 				if(mod) {
 					Py_DECREF(mod); /* could be NULL from reloading */
 				} else {
-					BPy_errors_to_report(NULL); // TODO - reports
+					BPy_errors_to_report(NULL);
 					fprintf(stderr, "unable to import \"%s\"  %s/%s\n", path, dirname, de->d_name);
 				}
 
