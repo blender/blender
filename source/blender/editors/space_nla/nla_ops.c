@@ -153,6 +153,8 @@ void nla_operatortypes(void)
 	WM_operatortype_append(NLA_OT_delete);
 	WM_operatortype_append(NLA_OT_split);
 	
+	WM_operatortype_append(NLA_OT_mute_toggle);
+	
 	WM_operatortype_append(NLA_OT_move_up);
 	WM_operatortype_append(NLA_OT_move_down);
 	
@@ -255,6 +257,9 @@ static void nla_keymap_main (wmWindowManager *wm, ListBase *keymap)
 	
 		/* split */
 	WM_keymap_add_item(keymap, "NLA_OT_split", YKEY, KM_PRESS, 0, 0);
+	
+		/* toggles */
+	WM_keymap_add_item(keymap, "NLA_OT_mute_toggle", HKEY, KM_PRESS, 0, 0);
 	
 		/* move up */
 	WM_keymap_add_item(keymap, "NLA_OT_move_up", PAGEUPKEY, KM_PRESS, 0, 0);

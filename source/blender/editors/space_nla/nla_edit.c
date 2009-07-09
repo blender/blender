@@ -857,6 +857,66 @@ void NLA_OT_split (wmOperatorType *ot)
 /* *********************************************** */
 /* NLA Editing Operations (Modifying) */
 
+/* ******************** Toggle Muting Operator ************************** */
+/* Toggles whether strips are muted or not */
+
+static int nlaedit_toggle_mute_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get a list of the editable tracks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* go over all selected strips */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		NlaStrip *strip;
+		
+		/* for every selected strip, toggle muting  */
+		for (strip= nlt->strips.first; strip; strip= strip->next) {
+			if (strip->flag & NLASTRIP_FLAG_SELECT) {
+				/* just flip the mute flag for now */
+				// TODO: have a pre-pass to check if mute all or unmute all?
+				strip->flag ^= NLASTRIP_FLAG_MUTED;
+			}
+		}
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* set notifier that things have changed */
+	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+	WM_event_add_notifier(C, NC_SCENE, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void NLA_OT_mute_toggle (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toggle Muting";
+	ot->idname= "NLA_OT_mute_toggle";
+	ot->description= "Mute or un-muted selected strips.";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_toggle_mute_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /* ******************** Move Strips Up Operator ************************** */
 /* Tries to move the selected strips into the track above if possible. */
 

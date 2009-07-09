@@ -168,6 +168,10 @@ static void nla_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemS(layout);
 	
+	uiItemO(layout, NULL, 0, "NLA_OT_mute_toggle");
+	
+	uiItemS(layout);
+	
 	uiItemO(layout, NULL, 0, "NLA_OT_apply_scale");
 	uiItemO(layout, NULL, 0, "NLA_OT_clear_scale");
 	
