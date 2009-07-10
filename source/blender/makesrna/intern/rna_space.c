@@ -893,6 +893,21 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "FileSelectParams", NULL);
 	RNA_def_struct_ui_text(srna, "File Select Parameters", "File Select Parameters.");
 
+	prop= RNA_def_property(srna, "title", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "title");
+	RNA_def_property_ui_text(prop, "Title", "Title for the file browser.");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "dir");
+	RNA_def_property_ui_text(prop, "Directory", "Directory displayed in the file browser.");
+	RNA_def_property_update(prop, NC_FILE | ND_PARAMS, NULL);
+
+	prop= RNA_def_property(srna, "file", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "file");
+	RNA_def_property_ui_text(prop, "File Name", "Active file in the file browser.");
+	RNA_def_property_update(prop, NC_FILE | ND_PARAMS, NULL);
+
 	prop= RNA_def_property(srna, "display", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "display");
 	RNA_def_property_enum_items(prop, file_display_items);

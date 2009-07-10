@@ -80,6 +80,17 @@
 #include "file_intern.h"
 #include "filelist.h"
 
+#if defined __BeOS
+static int fnmatch(const char *pattern, const char *string, int flags)
+{
+	return 0;
+}
+#elif defined WIN32 && !defined _LIBC
+	/* use fnmatch included in blenlib */
+	#include "BLI_fnmatch.h"
+#else
+	#include <fnmatch.h>
+#endif
 
 FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile)
 {
@@ -298,4 +309,23 @@ void file_change_dir(struct SpaceFile *sfile)
 		filelist_free(sfile->files);
 		sfile->params->active_file = -1;
 	}
+}
+
+int file_select_match(struct SpaceFile *sfile, const char *pattern)
+{
+	int match = 0;
+	if (strchr(pattern, '*') || strchr(pattern, '?') || strchr(pattern, '[')) {
+		int i;
+		struct direntry *file;
+		int n = filelist_numfiles(sfile->files);
+
+		for (i = 0; i < n; i++) {
+			file = filelist_file(sfile->files, i);
+			if (fnmatch(pattern, file->relname, 0) == 0) {
+				file->flags |= ACTIVE;
+				match = 1;
+			}
+		}
+	}
+	return match;
 }

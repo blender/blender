@@ -90,6 +90,8 @@ enum {
 	B_FS_EXEC,
 	B_FS_CANCEL,
 	B_FS_PARENT,
+	B_FS_DIRNAME,
+	B_FS_FILENAME
 } eFile_ButEvents;
 
 
@@ -104,6 +106,12 @@ static void do_file_buttons(bContext *C, void *arg, int event)
 			break;
 		case B_FS_PARENT:
 			file_parent_exec(C, NULL); /* file_ops.c */
+			break;
+		case B_FS_FILENAME:
+			file_filename_exec(C, NULL);
+			break;
+		case B_FS_DIRNAME:
+			file_directory_exec(C, NULL);
 			break;
 	}
 }
@@ -130,10 +138,6 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	block = uiBeginBlock(C, ar, name, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_file_buttons, NULL);
 
-	/* XXXX
-	uiSetButLock( filelist_gettype(simasel->files)==FILE_MAIN && simasel->returnfunc, NULL); 
-	*/
-
 	/* space available for load/save buttons? */
 	slen = UI_GetStringWidth(sfile->params->title);
 	loadbutton= slen > 60 ? slen + 20 : MAX2(80, 20+UI_GetStringWidth(params->title));
@@ -146,8 +150,8 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		loadbutton= 0;
 	}
 
-	uiDefBut(block, TEX, 0 /* XXX B_FS_FILENAME */,"",	xmin+2, filebuty1, xmax-xmin-loadbutton-4, 21, params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
-	uiDefBut(block, TEX, 0 /* XXX B_FS_DIRNAME */,"",	xmin+2, filebuty2, xmax-xmin-loadbutton-4, 21, params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+	uiDefBut(block, TEX, B_FS_FILENAME ,"",	xmin+2, filebuty1, xmax-xmin-loadbutton-4, 21, params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+	uiDefBut(block, TEX, B_FS_DIRNAME,"",	xmin+2, filebuty2, xmax-xmin-loadbutton-4, 21, params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 	
 	if(loadbutton) {
 		uiDefBut(block, BUT, B_FS_EXEC, params->title,	xmax-loadbutton, filebuty2, loadbutton, 21, params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
@@ -160,13 +164,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 
 
 static void draw_tile(short sx, short sy, short width, short height, int colorid, int shade)
-{
-	/* TODO: BIF_ThemeColor seems to need this to show the color, not sure why? - elubie */
-	//glEnable(GL_BLEND);
-	//glColor4ub(0, 0, 0, 100);
-	//glDisable(GL_BLEND);
-	/* I think it was a missing glDisable() - ton */
-	
+{	
 	UI_ThemeColorShade(colorid, shade);
 	uiSetRoundBox(15);	
 	uiRoundBox(sx, sy - height, sx + width, sy, 6);

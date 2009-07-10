@@ -747,10 +747,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\space_file\file_header.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\editors\space_file\file_intern.h"
 				>
 			</File>
