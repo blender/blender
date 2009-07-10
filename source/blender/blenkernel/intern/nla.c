@@ -30,12 +30,14 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <string.h>
 #include <math.h>
 #include <float.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
@@ -326,6 +328,9 @@ NlaStrip *add_nlastrip_to_stack (AnimData *adt, bAction *act)
 		BKE_nlatrack_add_strip(nlt, strip);
 	}
 	
+	/* automatically name it too */
+	BKE_nlastrip_validate_name(adt, strip);
+	
 	/* returns the strip added */
 	return strip;
 }
@@ -503,7 +508,7 @@ float BKE_nla_tweakedit_remap (AnimData *adt, float cframe, short mode)
 }
 
 /* *************************************************** */
-/* Basic Utilities */
+/* NLA API */
 
 /* List of Strips ------------------------------------ */
 /* (these functions are used for NLA-Tracks and also for nested/meta-strips) */
@@ -1140,8 +1145,90 @@ void BKE_nlastrip_validate_fcurves (NlaStrip *strip)
 		}
 	}
 }
- 
-/* Tools ------------------------------------------- */
+
+/* Sanity Validation ------------------------------------ */
+
+/* Find (and set) a unique name for a strip from the whole AnimData block 
+ * Uses a similar method to the BLI method, but is implemented differently
+ * as we need to ensure that the name is unique over several lists of tracks,
+ * not just a single track.
+ */
+void BKE_nlastrip_validate_name (AnimData *adt, NlaStrip *strip)
+{
+	GHash *gh;
+	NlaStrip *tstrip;
+	NlaTrack *nlt;
+	
+	/* sanity checks */
+	if ELEM(NULL, adt, strip)
+		return;
+		
+	/* give strip a default name if none already */
+	if (strip->name[0]==0) {
+		switch (strip->type) {
+			case NLASTRIP_TYPE_CLIP: /* act-clip */
+				sprintf(strip->name, "Act: %s", (strip->act)?(strip->act->id.name+2):("<None>"));
+				break;
+			case NLASTRIP_TYPE_TRANSITION: /* transition */
+				sprintf(strip->name, "Transition");
+				break;
+			case NLASTRIP_TYPE_META: /* meta */
+				sprintf(strip->name, "Meta");
+				break;
+			default:
+				sprintf(strip->name, "NLA Strip");
+				break;
+		}
+	}
+	
+	/* build a hash-table of all the strips in the tracks 
+	 *	- this is easier than iterating over all the tracks+strips hierarchy everytime
+	 *	  (and probably faster)
+	 */
+	gh= BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp);
+	
+	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
+		for (tstrip= nlt->strips.first; tstrip; tstrip= tstrip->next) {
+			/* don't add the strip of interest */
+			if (tstrip == strip) 
+				continue;
+			
+			/* use the name of the strip as the key, and the strip as the value, since we're mostly interested in the keys */
+			BLI_ghash_insert(gh, tstrip->name, tstrip);
+		}
+	}
+	
+	/* if the hash-table has a match for this name, try other names... 
+	 *	- in an extreme case, it might not be able to find a name, but then everything else in Blender would fail too :)
+	 */
+	if (BLI_ghash_haskey(gh, strip->name)) {
+		char tempname[128];
+		int	number = 1;
+		char *dot;
+		
+		/* Strip off the suffix */
+		dot = strchr(strip->name, '.');
+		if (dot) *dot=0;
+		
+		/* Try different possibilities */
+		for (number = 1; number <= 999; number++) {
+			/* assemble alternative name */
+			BLI_snprintf(tempname, 128, "%s%c%03d", strip->name, ".", number);
+			
+			/* if hash doesn't have this, set it */
+			if (BLI_ghash_haskey(gh, tempname) == 0) {
+				BLI_strncpy(strip->name, tempname, sizeof(strip->name));
+				break;
+			}
+		}
+	}
+	
+	/* free the hash... */
+	BLI_ghash_free(gh, NULL, NULL);
+}
+
+
+/* Core Tools ------------------------------------------- */
 
 /* For the given AnimData block, add the active action to the NLA
  * stack (i.e. 'push-down' action). The UI should only allow this 

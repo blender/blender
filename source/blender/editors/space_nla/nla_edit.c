@@ -307,6 +307,9 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 			nlt= add_nlatrack(adt, NULL);
 			BKE_nlatrack_add_strip(nlt, strip);
 		}
+		
+		/* auto-name it */
+		BKE_nlastrip_validate_name(adt, strip);
 	}
 	
 	/* free temp data */
@@ -363,6 +366,7 @@ static int nlaedit_add_transition_exec (bContext *C, wmOperator *op)
 	/* for each track, find pairs of strips to add transitions to */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		NlaTrack *nlt= (NlaTrack *)ale->data;
+		AnimData *adt= BKE_animdata_from_id(ale->id);
 		NlaStrip *s1, *s2;
 		
 		/* get initial pair of strips */
@@ -409,6 +413,9 @@ static int nlaedit_add_transition_exec (bContext *C, wmOperator *op)
 			/* scale and repeat aren't of any use, but shouldn't ever be 0 */
 			strip->scale= 1.0f;
 			strip->repeat = 1.0f;
+			
+			/* auto-name it */
+			BKE_nlastrip_validate_name(adt, strip);
 			
 			/* make note of this */
 			done++;
@@ -470,9 +477,18 @@ static int nlaedit_add_meta_exec (bContext *C, wmOperator *op)
 	/* for each track, find pairs of strips to add transitions to */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		NlaTrack *nlt= (NlaTrack *)ale->data;
+		AnimData *adt= BKE_animdata_from_id(ale->id);
+		NlaStrip *strip;
 		
 		/* create meta-strips from the continuous chains of selected strips */
 		BKE_nlastrips_make_metas(&nlt->strips, 0);
+		
+		/* name the metas */
+		for (strip= nlt->strips.first; strip; strip= strip->next) {
+			/* auto-name this strip if selected (that means it is a meta) */
+			if (strip->flag & NLASTRIP_FLAG_SELECT)
+				BKE_nlastrip_validate_name(adt, strip);
+		}
 	}
 	
 	/* free temp data */
@@ -605,6 +621,9 @@ static int nlaedit_duplicate_exec (bContext *C, wmOperator *op)
 				/* deselect the original and the active flag */
 				strip->flag &= ~(NLASTRIP_FLAG_SELECT|NLASTRIP_FLAG_ACTIVE);
 				
+				/* auto-name it */
+				BKE_nlastrip_validate_name(adt, strip);
+				
 				done++;
 			}
 		}
@@ -728,7 +747,7 @@ void NLA_OT_delete (wmOperatorType *ot)
 //	- variable-length splits?
 
 /* split a given Action-Clip strip */
-static void nlaedit_split_strip_actclip (NlaTrack *nlt, NlaStrip *strip)
+static void nlaedit_split_strip_actclip (AnimData *adt, NlaTrack *nlt, NlaStrip *strip)
 {
 	NlaStrip *nstrip;
 	float midframe, midaframe, len;
@@ -765,10 +784,13 @@ static void nlaedit_split_strip_actclip (NlaTrack *nlt, NlaStrip *strip)
 	
 	/* clear the active flag from the copy */
 	nstrip->flag &= ~NLASTRIP_FLAG_ACTIVE;
+	
+	/* auto-name the new strip */
+	BKE_nlastrip_validate_name(adt, nstrip);
 }
 
 /* split a given Meta strip */
-static void nlaedit_split_strip_meta (NlaTrack *nlt, NlaStrip *strip)
+static void nlaedit_split_strip_meta (AnimData *adt, NlaTrack *nlt, NlaStrip *strip)
 {
 	/* simply ungroup it for now...  */
 	BKE_nlastrips_clear_metastrip(&nlt->strips, strip);
@@ -795,6 +817,7 @@ static int nlaedit_split_exec (bContext *C, wmOperator *op)
 	/* for each NLA-Track, split all selected strips into two strips */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		NlaTrack *nlt= (NlaTrack *)ale->data;
+		AnimData *adt= BKE_animdata_from_id(ale->id);
 		NlaStrip *strip, *next;
 		
 		for (strip= nlt->strips.first; strip; strip= next) {
@@ -805,11 +828,11 @@ static int nlaedit_split_exec (bContext *C, wmOperator *op)
 				/* splitting method depends on the type of strip */
 				switch (strip->type) {
 					case NLASTRIP_TYPE_CLIP: /* action-clip */
-						nlaedit_split_strip_actclip(nlt, strip);
+						nlaedit_split_strip_actclip(adt, nlt, strip);
 						break;
 						
 					case NLASTRIP_TYPE_META: /* meta-strips need special handling */
-						nlaedit_split_strip_meta(nlt, strip);
+						nlaedit_split_strip_meta(adt, nlt, strip);
 						break;
 					
 					default: /* for things like Transitions, do not split! */

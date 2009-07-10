@@ -215,7 +215,8 @@ static void nla_panel_properties(const bContext *C, Panel *pa)
 	
 	/* Strip Properties ------------------------------------- */
 	/* strip type */
-	row= uiLayoutRow(layout, 1);
+	row= uiLayoutColumn(layout, 1);
+		uiItemR(row, NULL, ICON_NLA, &strip_ptr, "name", 0, 0, 0); // XXX icon?
 		uiItemR(row, NULL, 0, &strip_ptr, "type", 0, 0, 0);
 	
 	/* strip extents */

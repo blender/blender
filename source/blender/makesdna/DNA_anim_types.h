@@ -445,6 +445,8 @@ typedef struct NlaStrip {
 	ListBase fcurves;			/* F-Curves for controlling this strip's influence and timing */	// TODO: move out?
 	ListBase modifiers;			/* F-Curve modifiers to be applied to the entire strip's referenced F-Curves */
 	
+	char name[64];				/* User-Visible Identifier for Strip */
+	
 	float influence;			/* Influence of strip */
 	float strip_time;			/* Current 'time' within action being used (automatically evaluated, but can be overridden) */
 	

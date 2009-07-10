@@ -445,26 +445,11 @@ static void nla_draw_strip_text (NlaTrack *nlt, NlaStrip *strip, int index, View
 	else
 		sprintf(dir, "->");
 	
-	/* for now, just init the string with fixed-formats */
-	switch (strip->type) {
-		case NLASTRIP_TYPE_TRANSITION: /* Transition */
-			sprintf(str, "%d | Transition | %.2f %s %.2f", 
-				index, strip->start, dir, strip->end);
-			break;
-			
-		case NLASTRIP_TYPE_META: /* Meta */
-			sprintf(str, "%d | %sMeta | %.2f %s %.2f", 
-				index, ((strip->flag & NLASTRIP_FLAG_TEMP_META)?"Temp-":""), 
-				strip->start, dir, strip->end);
-			break;
-		
-		case NLASTRIP_TYPE_CLIP:	/* Action-Clip (default) */
-		default:
-			sprintf(str, "%d | Act: %s | %.2f %s %.2f", 
-				index, ((strip->act)?strip->act->id.name+2:"<NONE>"), 
-				strip->start, dir, strip->end);
-			break;
-	}
+	/* just print the name and the range */
+	if (strip->flag & NLASTRIP_FLAG_TEMP_META)
+		sprintf(str, "Temp-Meta | %.2f %s %.2f", strip->start, dir, strip->end);
+	else
+		sprintf(str, "%s | %.2f %s %.2f", strip->name, strip->start, dir, strip->end);
 	
 	/* set text colour - if colours (see above) are light, draw black text, otherwise draw white */
 	if (strip->flag & (NLASTRIP_FLAG_ACTIVE|NLASTRIP_FLAG_SELECT|NLASTRIP_FLAG_TWEAKUSER))

@@ -41,10 +41,26 @@
 #include <math.h>
 
 /* needed for some of the validation stuff... */
+#include "BKE_animsys.h"
 #include "BKE_nla.h"
 
 /* temp constant defined for these funcs only... */
 #define NLASTRIP_MIN_LEN_THRESH 	0.1f
+
+void rna_NlaStrip_name_set(PointerRNA *ptr, const char *value)
+{
+	NlaStrip *data= (NlaStrip *)ptr->data;
+	
+	/* copy the name first */
+	BLI_strncpy(data->name, value, sizeof(data->name));
+	
+	/* validate if there's enough info to do so */
+	if (ptr->id.data) {
+		AnimData *adt= BKE_animdata_from_id(ptr->id.data);
+		BKE_nlastrip_validate_name(adt, data);
+	}
+}
+
 
 static void rna_NlaStrip_start_frame_set(PointerRNA *ptr, float value)
 {
@@ -254,6 +270,12 @@ void rna_def_nlastrip(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "NlaStrip", NULL);
 	RNA_def_struct_ui_text(srna, "NLA Strip", "A container referencing an existing Action.");
 	RNA_def_struct_ui_icon(srna, ICON_NLA); // XXX
+	
+	/* name property */
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Name", "");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_NlaStrip_name_set");
+	RNA_def_struct_name_property(srna, prop);
 	
 	/* Enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
