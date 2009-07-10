@@ -160,6 +160,13 @@ void RNA_def_function_return(FunctionRNA *func, PropertyRNA *ret);
 void RNA_def_function_flag(FunctionRNA *func, int flag);
 void RNA_def_function_ui_description(FunctionRNA *func, const char *description);
 
+/* Dynamic Enums
+ * strings are not freed, assumed pointing to static location. */
+
+void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item);
+void RNA_enum_items_add(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item);
+void RNA_enum_item_end(EnumPropertyItem **items, int *totitem);
+
 #ifdef __cplusplus
 }
 #endif

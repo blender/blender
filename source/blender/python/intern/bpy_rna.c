@@ -223,10 +223,16 @@ static void pyrna_struct_dealloc( BPy_StructRNA * self )
 
 static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 {
-	const EnumPropertyItem *item;
+	EnumPropertyItem *item;
+	char *result;
+	int free;
 	
-	RNA_property_enum_items(ptr, prop, &item, NULL);
-	return (char*)BPy_enum_as_string((EnumPropertyItem*)item);
+	RNA_property_enum_items(BPy_GetContext(), ptr, prop, &item, NULL, &free);
+	result= (char*)BPy_enum_as_string(item);
+	if(free)
+		MEM_freeN(item);
+	
+	return result;
 }
 
 PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
@@ -309,14 +315,15 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 		const char *identifier;
 		int val = RNA_property_enum_get(ptr, prop);
 		
-		if (RNA_property_enum_identifier(ptr, prop, val, &identifier)) {
+		if (RNA_property_enum_identifier(BPy_GetContext(), ptr, prop, val, &identifier)) {
 			ret = PyUnicode_FromString( identifier );
 		} else {
-			const EnumPropertyItem *item;
+			EnumPropertyItem *item;
+			int free;
 
 			/* don't throw error here, can't trust blender 100% to give the
 			 * right values, python code should not generate error for that */
-			RNA_property_enum_items(ptr, prop, &item, NULL);
+			RNA_property_enum_items(BPy_GetContext(), ptr, prop, &item, NULL, &free);
 			if(item->identifier) {
 				ret = PyUnicode_FromString( item->identifier );
 			}
@@ -328,6 +335,9 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 
 				ret = PyUnicode_FromString( "" );
 			}
+
+			if(free)
+				MEM_freeN(item);
 
 			/*PyErr_Format(PyExc_AttributeError, "RNA Error: Current value \"%d\" matches no enum", val);
 			ret = NULL;*/
@@ -626,7 +636,7 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 				return -1;
 			} else {
 				int val;
-				if (RNA_property_enum_value(ptr, prop, param, &val)) {
+				if (RNA_property_enum_value(BPy_GetContext(), ptr, prop, param, &val)) {
 					if(data)	*((int*)data)= val;
 					else		RNA_property_enum_set(ptr, prop, val);
 				} else {
@@ -1818,18 +1828,22 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 			const char *identifier;
 			int val = *(int*)data;
 			
-			if (RNA_property_enum_identifier(ptr, prop, val, &identifier)) {
+			if (RNA_property_enum_identifier(BPy_GetContext(), ptr, prop, val, &identifier)) {
 				ret = PyUnicode_FromString( identifier );
 			} else {
-				const EnumPropertyItem *item;
+				EnumPropertyItem *item;
+				int free;
 
 				/* don't throw error here, can't trust blender 100% to give the
 				 * right values, python code should not generate error for that */
-				RNA_property_enum_items(ptr, prop, &item, NULL);
+				RNA_property_enum_items(BPy_GetContext(), ptr, prop, &item, NULL, &free);
 				if(item[0].identifier)
 					ret = PyUnicode_FromString( item[0].identifier );
 				else
 					ret = PyUnicode_FromString( "" );
+
+				if(free)
+					MEM_freeN(item);
 
 				/*PyErr_Format(PyExc_AttributeError, "RNA Error: Current value \"%d\" matches no enum", val);
 				ret = NULL;*/

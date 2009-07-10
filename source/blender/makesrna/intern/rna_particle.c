@@ -40,6 +40,57 @@
 #include "WM_types.h"
 #include "WM_api.h"
 
+EnumPropertyItem part_from_items[] = {
+	{PART_FROM_VERT, "VERT", 0, "Verts", ""},
+	{PART_FROM_FACE, "FACE", 0, "Faces", ""},
+	{PART_FROM_VOLUME, "VOLUME", 0, "Volume", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem part_reactor_from_items[] = {
+	{PART_FROM_VERT, "VERT", 0, "Verts", ""},
+	{PART_FROM_FACE, "FACE", 0, "Faces", ""},
+	{PART_FROM_VOLUME, "VOLUME", 0, "Volume", ""},
+	{PART_FROM_PARTICLE, "PARTICLE", 0, "Particle", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem part_draw_as_items[] = {
+	{PART_DRAW_NOT, "NONE", 0, "None", ""},
+	{PART_DRAW_REND, "RENDER", 0, "Rendered", ""},
+	{PART_DRAW_DOT, "DOT", 0, "Point", ""},
+	{PART_DRAW_CIRC, "CIRC", 0, "Circle", ""},
+	{PART_DRAW_CROSS, "CROSS", 0, "Cross", ""},
+	{PART_DRAW_AXIS, "AXIS", 0, "Axis", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem part_hair_draw_as_items[] = {
+	{PART_DRAW_NOT, "NONE", 0, "None", ""},
+	{PART_DRAW_REND, "RENDER", 0, "Rendered", ""},
+	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem part_ren_as_items[] = {
+	{PART_DRAW_NOT, "NONE", 0, "None", ""},
+	{PART_DRAW_HALO, "HALO", 0, "Halo", ""},
+	{PART_DRAW_LINE, "LINE", 0, "Line", ""},
+	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
+	{PART_DRAW_OB, "OBJECT", 0, "Object", ""},
+	{PART_DRAW_GR, "GROUP", 0, "Group", ""},
+	{PART_DRAW_BB, "BILLBOARD", 0, "Billboard", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem part_hair_ren_as_items[] = {
+	{PART_DRAW_NOT, "NONE", 0, "None", ""},
+	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
+	{PART_DRAW_OB, "OBJECT", 0, "Object", ""},
+	{PART_DRAW_GR, "GROUP", 0, "Group", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_context.h"
@@ -248,85 +299,34 @@ static void rna_ParticleSystem_name_get(PointerRNA *ptr, char *str)
 		strcpy(str, "");
 }
 
-static EnumPropertyItem from_items[] = {
-	{PART_FROM_VERT, "VERT", 0, "Vertexes", ""},
-	{PART_FROM_FACE, "FACE", 0, "Faces", ""},
-	{PART_FROM_VOLUME, "VOLUME", 0, "Volume", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static EnumPropertyItem reactor_from_items[] = {
-	{PART_FROM_VERT, "VERT", 0, "Vertexes", ""},
-	{PART_FROM_FACE, "FACE", 0, "Faces", ""},
-	{PART_FROM_VOLUME, "VOLUME", 0, "Volume", ""},
-	{PART_FROM_PARTICLE, "PARTICLE", 0, "Particle", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static EnumPropertyItem *rna_Particle_from_itemf(PointerRNA *ptr)
+static EnumPropertyItem *rna_Particle_from_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	ParticleSettings *part = ptr->id.data;
 
 	if(part->type==PART_REACTOR)
-		return reactor_from_items;
+		return part_reactor_from_items;
 	else
-		return from_items;
+		return part_from_items;
 }
 
-static EnumPropertyItem draw_as_items[] = {
-	{PART_DRAW_NOT, "NONE", 0, "None", ""},
-	{PART_DRAW_REND, "RENDER", 0, "Rendered", ""},
-	{PART_DRAW_DOT, "DOT", 0, "Point", ""},
-	{PART_DRAW_CIRC, "CIRC", 0, "Circle", ""},
-	{PART_DRAW_CROSS, "CROSS", 0, "Cross", ""},
-	{PART_DRAW_AXIS, "AXIS", 0, "Axis", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static EnumPropertyItem hair_draw_as_items[] = {
-	{PART_DRAW_NOT, "NONE", 0, "None", ""},
-	{PART_DRAW_REND, "RENDER", 0, "Rendered", ""},
-	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static EnumPropertyItem ren_as_items[] = {
-	{PART_DRAW_NOT, "NONE", 0, "None", ""},
-	{PART_DRAW_HALO, "HALO", 0, "Halo", ""},
-	{PART_DRAW_LINE, "LINE", 0, "Line", ""},
-	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
-	{PART_DRAW_OB, "OBJECT", 0, "Object", ""},
-	{PART_DRAW_GR, "GROUP", 0, "Group", ""},
-	{PART_DRAW_BB, "BILLBOARD", 0, "Billboard", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static EnumPropertyItem hair_ren_as_items[] = {
-	{PART_DRAW_NOT, "NONE", 0, "None", ""},
-	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
-	{PART_DRAW_OB, "OBJECT", 0, "Object", ""},
-	{PART_DRAW_GR, "GROUP", 0, "Group", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static EnumPropertyItem *rna_Particle_draw_as_itemf(PointerRNA *ptr)
+static EnumPropertyItem *rna_Particle_draw_as_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	ParticleSettings *part = ptr->id.data;
 
 	if(part->type==PART_HAIR)
-		return hair_draw_as_items;
+		return part_hair_draw_as_items;
 	else
-		return draw_as_items;
+		return part_draw_as_items;
 }
 
-static EnumPropertyItem *rna_Particle_ren_as_itemf(PointerRNA *ptr)
+static EnumPropertyItem *rna_Particle_ren_as_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	ParticleSettings *part = ptr->id.data;
 
 	if(part->type==PART_HAIR)
-		return hair_ren_as_items;
+		return part_hair_ren_as_items;
 	else
-		return ren_as_items;
+		return part_ren_as_items;
 }
 
 
@@ -801,6 +801,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "emit_from", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "from");
+	RNA_def_property_enum_items(prop, part_reactor_from_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Particle_from_itemf");
 	RNA_def_property_ui_text(prop, "Emit From", "Where to emit particles from");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
@@ -914,12 +915,14 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "draw_as", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "draw_as");
+	RNA_def_property_enum_items(prop, part_draw_as_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Particle_draw_as_itemf");
 	RNA_def_property_ui_text(prop, "Particle Drawing", "How particles are drawn in viewport");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
 
 	prop= RNA_def_property(srna, "ren_as", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ren_as");
+	RNA_def_property_enum_items(prop, part_ren_as_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Particle_ren_as_itemf");
 	RNA_def_property_ui_text(prop, "Particle Rendering", "How particles are rendered");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");

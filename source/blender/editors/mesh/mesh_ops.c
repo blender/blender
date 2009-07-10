@@ -75,7 +75,7 @@ static int vertex_specials_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
 
 	uiItemO(layout, "Remove Doubles", 0, "MESH_OT_remove_doubles");
-	uiItemO(layout, "Merge...", 0, "MESH_OT_merge"); // mergmenu(em)
+	uiItemO(layout, "Merge...", 0, "MESH_OT_merge");
 	uiItemO(layout, "Smooth", 0, "MESH_OT_vertices_smooth");
 	uiItemO(layout, "Select Vertex Path", 0, "MESH_OT_select_vertex_path"); 
 	//uiItemO(layout, "Blend From Shape", 0, "MESH_OT_blend_from_shape");
@@ -387,6 +387,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_colors_mirror",EIGHTKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "MESH_OT_rip",VKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_merge", MKEY, KM_PRESS, KM_ALT, 0);
 
 	/* add/remove */
 	WM_keymap_add_item(keymap, "MESH_OT_edge_face_add", FKEY, KM_PRESS, 0, 0);

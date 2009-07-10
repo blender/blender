@@ -1379,20 +1379,21 @@ static EnumPropertyItem prop_clear_parent_types[] = {
 /* note, poll should check for editable scene */
 static int parent_clear_exec(bContext *C, wmOperator *op)
 {
+	int type= RNA_enum_get(op->ptr, "type");
 	
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 
-		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR")) {
+		if(type == 0) {
 			ob->parent= NULL;
 		}			
-		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_KEEP_TRANSFORM")) {
+		else if(type == 1) {
 			ob->parent= NULL;
 			ob->track= NULL;
 			ED_object_apply_obmat(ob);
 		}
-		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_INVERSE")) {
+		else if(type == 2)
 			Mat4One(ob->parentinv);
-		}
+
 		ob->recalc |= OB_RECALC;
 	}
 	CTX_DATA_END;
@@ -1435,6 +1436,8 @@ static EnumPropertyItem prop_clear_track_types[] = {
 /* note, poll should check for editable scene */
 static int object_track_clear_exec(bContext *C, wmOperator *op)
 {
+	int type= RNA_enum_get(op->ptr, "type");
+
 	if(CTX_data_edit_object(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed in EditMode");
 		return OPERATOR_CANCELLED;
@@ -1443,9 +1446,8 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 		ob->track= NULL;
 		ob->recalc |= OB_RECALC;
 		
-		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_KEEP_TRANSFORM")) {
+		if(type == 1)
 			ED_object_apply_obmat(ob);
-		}			
 	}
 	CTX_DATA_END;
 
@@ -2663,8 +2665,9 @@ static EnumPropertyItem prop_make_track_types[] = {
 static int track_set_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
+	int type= RNA_enum_get(op->ptr, "type");
 		
-	if(RNA_enum_is_equal(op->ptr, "type", "TRACKTO")){
+	if(type == 1) {
 		bConstraint *con;
 		bTrackToConstraint *data;
 
@@ -2688,7 +2691,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-	else if(RNA_enum_is_equal(op->ptr, "type", "LOCKTRACK")){
+	else if(type == 2) {
 		bConstraint *con;
 		bLockTrackConstraint *data;
 
@@ -2712,7 +2715,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-	else if(RNA_enum_is_equal(op->ptr, "type", "OLDTRACK")){
+	else {
 		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 			if(base!=BASACT) {
 				base->object->track= BASACT->object;

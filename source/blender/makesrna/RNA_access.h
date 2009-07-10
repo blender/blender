@@ -548,12 +548,12 @@ void RNA_property_int_ui_range(PointerRNA *ptr, PropertyRNA *prop, int *softmin,
 void RNA_property_float_range(PointerRNA *ptr, PropertyRNA *prop, float *hardmin, float *hardmax);
 void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *softmin, float *softmax, float *step, float *precision);
 
-int RNA_enum_identifier(const EnumPropertyItem *item, const int value, const char **identifier);
-int RNA_enum_name(const EnumPropertyItem *item, const int value, const char **name);
+int RNA_enum_identifier(EnumPropertyItem *item, const int value, const char **identifier);
+int RNA_enum_name(EnumPropertyItem *item, const int value, const char **name);
 
-void RNA_property_enum_items(PointerRNA *ptr, PropertyRNA *prop, const EnumPropertyItem **item, int *totitem);
-int RNA_property_enum_value(PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value);
-int RNA_property_enum_identifier(PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier);
+void RNA_property_enum_items(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **item, int *totitem, int *free);
+int RNA_property_enum_value(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value);
+int RNA_property_enum_identifier(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier);
 
 StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop);
 
@@ -677,11 +677,11 @@ void RNA_float_set_array(PointerRNA *ptr, const char *name, const float *values)
 
 int RNA_enum_get(PointerRNA *ptr, const char *name);
 void RNA_enum_set(PointerRNA *ptr, const char *name, int value);
-int RNA_enum_is_equal(PointerRNA *ptr, const char *name, const char *enumname);
+int RNA_enum_is_equal(struct bContext *C, PointerRNA *ptr, const char *name, const char *enumname);
 
 /* lower level functions that donr use a PointerRNA */
-int	RNA_enum_value_from_id(const EnumPropertyItem *item, const char *identifier, int *value);
-int	RNA_enum_id_from_value(const EnumPropertyItem *item, int value, const char **identifier);
+int	RNA_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *value);
+int	RNA_enum_id_from_value(EnumPropertyItem *item, int value, const char **identifier);
 
 void RNA_string_get(PointerRNA *ptr, const char *name, char *value);
 char *RNA_string_get_alloc(PointerRNA *ptr, const char *name, char *fixedbuf, int fixedlen);

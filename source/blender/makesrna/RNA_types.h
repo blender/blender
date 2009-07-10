@@ -157,7 +157,7 @@ typedef struct EnumPropertyItem {
 	const char *description;
 } EnumPropertyItem;
 
-typedef EnumPropertyItem *(*EnumPropertyItemFunc)(PointerRNA *ptr);
+typedef EnumPropertyItem *(*EnumPropertyItemFunc)(struct bContext *C, PointerRNA *ptr, int *free);
 
 typedef struct PropertyRNA PropertyRNA;
 

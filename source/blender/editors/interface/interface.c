@@ -1615,6 +1615,7 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 	block= MEM_callocN(sizeof(uiBlock), "uiBlock");
 	block->active= 1;
 	block->dt= dt;
+	block->evil_C= C; // XXX
 	BLI_strncpy(block->name, name, sizeof(block->name));
 
 	if(region)
@@ -2113,11 +2114,11 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 		/* use rna values if parameters are not specified */
 		if(!str) {
 			if(type == MENU && proptype == PROP_ENUM) {
-				const EnumPropertyItem *item;
+				EnumPropertyItem *item;
 				DynStr *dynstr;
-				int i, totitem, value;
+				int i, totitem, value, free;
 
-				RNA_property_enum_items(ptr, prop, &item, &totitem);
+				RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
 				value= RNA_property_enum_get(ptr, prop);
 
 				dynstr= BLI_dynstr_new();
@@ -2136,13 +2137,16 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 				str= BLI_dynstr_get_cstring(dynstr);
 				BLI_dynstr_free(dynstr);
 
+				if(free)
+					MEM_freeN(item);
+
 				freestr= 1;
 			}
 			else if(type == ROW && proptype == PROP_ENUM) {
-				const EnumPropertyItem *item;
-				int i, totitem;
+				EnumPropertyItem *item;
+				int i, totitem, free;
 
-				RNA_property_enum_items(ptr, prop, &item, &totitem);
+				RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
 				for(i=0; i<totitem; i++) {
 					if(item[i].identifier[0] && item[i].value == (int)max) {
 						str= (char*)item[i].name;
@@ -2152,6 +2156,8 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 
 				if(!str)
 					str= (char*)RNA_property_ui_name(prop);
+				if(free)
+					MEM_freeN(item);
 			}
 			else {
 				str= (char*)RNA_property_ui_name(prop);
@@ -2161,10 +2167,10 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 
 		if(!tip) {
 			if(type == ROW && proptype == PROP_ENUM) {
-				const EnumPropertyItem *item;
-				int i, totitem;
+				EnumPropertyItem *item;
+				int i, totitem, free;
 
-				RNA_property_enum_items(ptr, prop, &item, &totitem);
+				RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
 
 				for(i=0; i<totitem; i++) {
 					if(item[i].identifier[0] && item[i].value == (int)max) {
@@ -2173,6 +2179,9 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 						break;
 					}
 				}
+
+				if(free)
+					MEM_freeN(item);
 			}
 		}
 		

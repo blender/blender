@@ -109,10 +109,6 @@ TransformModeItem transform_modes[] =
 static int select_orientation_exec(bContext *C, wmOperator *op)
 {
 	int orientation = RNA_enum_get(op->ptr, "orientation");
-	int custom_index= RNA_int_get(op->ptr, "custom_index");;
-
-	if(orientation == V3D_MANIP_CUSTOM)
-		orientation += custom_index;
 
 	BIF_selectTransformOrientationValue(C, orientation);
 
@@ -126,20 +122,26 @@ static int select_orientation_invoke(bContext *C, wmOperator *op, wmEvent *event
 
 	pup= uiPupMenuBegin(C, "Orientation", 0);
 	layout= uiPupMenuLayout(pup);
-	BIF_menuTransformOrientation(C, layout, NULL);
+	uiItemsEnumO(layout, "TFM_OT_select_orientation", "orientation");
 	uiPupMenuEnd(C, pup);
 
 	return OPERATOR_CANCELLED;
 }
 
+static EnumPropertyItem *select_orientation_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	*free= 1;
+	return BIF_enumTransformOrientation(C);
+}
+
 void TFM_OT_select_orientation(struct wmOperatorType *ot)
 {
+	PropertyRNA *prop;
 	static EnumPropertyItem orientation_items[]= {
 		{V3D_MANIP_GLOBAL, "GLOBAL", 0, "Global", ""},
 		{V3D_MANIP_NORMAL, "NORMAL", 0, "Normal", ""},
 		{V3D_MANIP_LOCAL, "LOCAL", 0, "Local", ""},
 		{V3D_MANIP_VIEW, "VIEW", 0, "View", ""},
-		{V3D_MANIP_CUSTOM, "CUSTOM", 0, "Custom", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
@@ -151,8 +153,8 @@ void TFM_OT_select_orientation(struct wmOperatorType *ot)
 	ot->exec   = select_orientation_exec;
 	ot->poll   = ED_operator_areaactive;
 
-	RNA_def_enum(ot->srna, "orientation", orientation_items, V3D_MANIP_CUSTOM, "Orientation", "DOC_BROKEN");
-	RNA_def_int(ot->srna, "custom_index", 0, 0, INT_MAX, "Custom Index", "", 0, INT_MAX);
+	prop= RNA_def_enum(ot->srna, "orientation", orientation_items, V3D_MANIP_GLOBAL, "Orientation", "DOC_BROKEN");
+	RNA_def_enum_funcs(prop, select_orientation_itemf);
 }
 
 static void transformops_exit(bContext *C, wmOperator *op)

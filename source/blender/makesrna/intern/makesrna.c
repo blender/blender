@@ -1597,7 +1597,6 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 						DefRNA.error= 1;
 					}
 				}
-				else if(eprop->itemf);
 				else {
 					fprintf(stderr, "rna_generate_structs: %s%s.%s, enum must have items defined.\n", srna->identifier, errnest, prop->identifier);
 					DefRNA.error= 1;

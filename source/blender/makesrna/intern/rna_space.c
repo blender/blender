@@ -173,7 +173,7 @@ static EnumPropertyItem dc_rgb_items[] = {DC_RGB, DC_LCMS, DC_ZERO};
 static EnumPropertyItem dc_alpha_items[] = {DC_RGB, DC_RGBA, DC_ALPHA, DC_LCMS, DC_ZERO};
 static EnumPropertyItem dc_z_items[] = {DC_RGB, DC_Z, DC_LCMS, DC_ZERO};
 
-static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(PointerRNA *ptr)
+static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	SpaceImage *sima= (SpaceImage*)ptr->data;
 	ImBuf *ibuf= ED_space_image_buffer(sima);

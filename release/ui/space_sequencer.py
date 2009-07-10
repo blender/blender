@@ -242,7 +242,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 		layout.itemO("SEQUENCER_OT_mute")
 		layout.itemO("SEQUENCER_OT_unmute")
 		
-		layout.item_enumO("SEQUENCER_OT_mute", property="type", value='UNSELECTED', text="Mute Deselected Strips")
+		layout.item_booleanO("SEQUENCER_OT_mute", "unselected", 1, text="Mute Deselected Strips")
 
 		layout.itemO("SEQUENCER_OT_snap")
 
