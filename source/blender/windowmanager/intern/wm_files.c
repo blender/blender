@@ -334,8 +334,8 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 	
 	WM_event_add_notifier(C, NC_WM|ND_FILEREAD, NULL);
 	CTX_wm_window_set(C, NULL); /* exits queues */
-				   
-	return success;
+
+	return OPERATOR_FINISHED;
 }
 
 
