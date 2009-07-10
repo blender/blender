@@ -137,6 +137,7 @@ void BLF_dir_free(char **dirs, int count);
 #define BLF_ROTATION (1<<0)
 #define BLF_CLIPPING (1<<1)
 #define BLF_SHADOW (1<<2)
+#define BLF_KERNING_DEFAULT (1<<3)
 
 /* font->mode. */
 #define BLF_MODE_TEXTURE 0

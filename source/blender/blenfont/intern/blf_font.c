@@ -102,7 +102,7 @@ void blf_font_draw(FontBLF *font, char *str)
 	FT_Vector delta;
 	FT_UInt glyph_index, g_prev_index;
 	int pen_x, pen_y;
-	int i, has_kerning;
+	int i, has_kerning, st;
 
 	if (!font->glyph_cache)
 		return;
@@ -143,9 +143,13 @@ void blf_font_draw(FontBLF *font, char *str)
 			delta.x= 0;
 			delta.y= 0;
 
-			if (FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta) == 0) {
+			if (font->flags & BLF_KERNING_DEFAULT)
+				st= FT_Get_Kerning(font->face, g_prev_index, glyph_index, ft_kerning_default, &delta);
+			else
+				st= FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta);
+
+			if (st == 0)
 				pen_x += delta.x >> 6;
-			}
 		}
 
 		/* do not return this loop if clipped, we want every character tested */
@@ -165,7 +169,7 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 	FT_UInt glyph_index, g_prev_index;
 	rctf gbox;
 	int pen_x, pen_y;
-	int i, has_kerning;
+	int i, has_kerning, st;
 
 	if (!font->glyph_cache)
 		return;
@@ -211,9 +215,13 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 			delta.x= 0;
 			delta.y= 0;
 
-			if (FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta) == 0) {
+			if (font->flags & BLF_KERNING_DEFAULT)
+				st= FT_Get_Kerning(font->face, g_prev_index, glyph_index, ft_kerning_default, &delta);
+			else
+				st= FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta);
+
+			if (st == 0)
 				pen_x += delta.x >> 6;
-			}
 		}
 
 		gbox.xmin= g->box.xmin + pen_x;
