@@ -91,66 +91,78 @@ extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, flo
 /* *********************************************** */
 /* Strips */
 
-/* Keyframe Ghosts ---------------------- */
+/* Action-Line ---------------------- */
 
-/* helper func - draw keyframe as a frame only */
-static void draw_nla_keyframe_ghost (float x, float y, float xscale, float hsize)
+/* get colors for drawing Action-Line 
+ * NOTE: color returned includes fine-tuned alpha!
+ */
+static void nla_action_get_color (AnimData *adt, bAction *act, float color[4])
 {
-	static GLuint displist=0;
-	
-	/* initialise empty diamond shape */
-	if (displist == 0) {
-		const float dist= 1.0f;
-		
-		displist= glGenLists(1);
-		glNewList(displist, GL_COMPILE);
-		
-		glBegin(GL_LINE_LOOP);
-			glVertex2f(0.0f,  dist);
-			glVertex2f(dist,  0.0f);
-			glVertex2f(0.0f, -dist);
-			glVertex2f(-dist, 0.0f);
-		glEnd();
-		
-		glEndList();
+	// TODO: if tweaking some action, use the same color as for the tweaked track (quick hack done for now)
+	if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {
+		// greenish color (same as tweaking strip) - hardcoded for now
+		color[0]= 0.30f;
+		color[1]= 0.95f;
+		color[2]= 0.10f;
+		color[3]= 0.30f;
 	}
-	
-	/* adjust view transform before starting */
-	glTranslatef(x, y, 0.0f);
-	glScalef(1.0f/xscale*hsize, hsize, 1.0f);
-	
-	/* anti-aliased lines for more consistent appearance */
-	glEnable(GL_LINE_SMOOTH);
-	
-	/* draw! */
-	glCallList(displist);
-	
-	glDisable(GL_LINE_SMOOTH);
-	
-	/* restore view transform */
-	glScalef(xscale/hsize, 1.0f/hsize, 1.0);
-	glTranslatef(-x, -y, 0.0f);
+	else {
+		if (act) {
+			// reddish color - hardcoded for now 	
+			color[0]= 0.8f;
+			color[1]= 0.2f;
+			color[2]= 0.0f;
+			color[3]= 0.4f;
+		}
+		else {
+			// greyish-red color - hardcoded for now
+			color[0]= 0.6f;
+			color[1]= 0.5f;
+			color[2]= 0.5f;
+			color[3]= 0.3f;
+		}
+	}
 }
 
 /* draw the keyframes in the specified Action */
-static void nla_action_draw_keyframes (AnimData *adt, View2D *v2d, float y)
+static void nla_action_draw_keyframes (AnimData *adt, bAction *act, View2D *v2d, float y, float ymin, float ymax)
 {
 	ListBase keys = {NULL, NULL};
 	ActKeyColumn *ak;
-	float xscale;
-	
-	/* for now, color is hardcoded to be black */
-	glColor3f(0.0f, 0.0f, 0.0f);
+	float xscale, f1, f2;
+	float color[4];
 	
 	/* get a list of the keyframes with NLA-scaling applied */
-	action_to_keylist(adt, adt->action, &keys, NULL);
+	action_to_keylist(adt, act, &keys, NULL);
+	
+	if ELEM(NULL, act, keys.first)
+		return;
+	
+	/* draw a darkened region behind the strips 
+	 *	- get and reset the background color, this time without the alpha to stand out better 
+	 */
+	nla_action_get_color(adt, act, color);
+	glColor3fv(color);
+	/* 	- draw a rect from the first to the last frame (no extra overlaps for now) 
+	 *	  that is slightly stumpier than the track background (hardcoded 2-units here)
+	 */
+	f1= ((ActKeyColumn *)keys.first)->cfra;
+	f2= ((ActKeyColumn *)keys.last)->cfra;
+	
+	glRectf(f1, ymin+2, f2, ymax-2);
+	
 	
 	/* get View2D scaling factor */
 	UI_view2d_getscale(v2d, &xscale, NULL);
 	
-	/* just draw each keyframe as a simple dot (regardless of the selection status) */
+	/* for now, color is hardcoded to be black */
+	glColor3f(0.0f, 0.0f, 0.0f);
+	
+	/* just draw each keyframe as a simple dot (regardless of the selection status) 
+	 *	- size is 3.0f which is smaller than the editable keyframes, so that there is a distinction
+	 */
 	for (ak= keys.first; ak; ak= ak->next)
-		draw_nla_keyframe_ghost(ak->cfra, y, xscale, 3.0f);
+		draw_keyframe_shape(ak->cfra, y, xscale, 3.0f, 0, KEYFRAME_SHAPE_FRAME);
 	
 	/* free icons */
 	BLI_freelistN(&keys);
@@ -158,6 +170,7 @@ static void nla_action_draw_keyframes (AnimData *adt, View2D *v2d, float y)
 
 /* Strips (Proper) ---------------------- */
 
+/* get colors for drawing NLA-Strips */
 static void nla_strip_get_color_inside (AnimData *adt, NlaStrip *strip, float color[3])
 {
 	if (strip->type == NLASTRIP_TYPE_TRANSITION) {
@@ -179,6 +192,7 @@ static void nla_strip_get_color_inside (AnimData *adt, NlaStrip *strip, float co
 	}	
 	else if (strip->type == NLASTRIP_TYPE_META) {
 		/* Meta Clip */
+		// TODO: should temporary metas get different colours too?
 		if (strip->flag & NLASTRIP_FLAG_SELECT) {
 			/* selected - use a bold purple color */
 			// FIXME: hardcoded temp-hack colors
@@ -535,6 +549,7 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				case ANIMTYPE_NLAACTION:
 				{
 					AnimData *adt= BKE_animdata_from_id(ale->id);
+					float color[4];
 					
 					/* just draw a semi-shaded rect spanning the width of the viewable area if there's data,
 					 * and a second darker rect within which we draw keyframe indicator dots if there's data
@@ -542,30 +557,17 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 					glEnable(GL_BLEND);
 						
-					// TODO: if tweaking some action, use the same color as for the tweaked track (quick hack done for now)
-					if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {
-						// greenish color (same as tweaking strip) - hardcoded for now
-						glColor4f(0.3f, 0.95f, 0.1f, 0.3f);
-					}
-					else {
-						if (ale->data)
-							glColor4f(0.8f, 0.2f, 0.0f, 0.4f);	// reddish color - hardcoded for now 
-						else
-							glColor4f(0.6f, 0.5f, 0.5f, 0.3f); 	// greyish-red color - hardcoded for now
-					}
-						
+					/* get colors for drawing */
+					nla_action_get_color(adt, ale->data, color);
+					glColor4fv(color);
+					
 					/* draw slightly shifted up for greater separation from standard channels,
 					 * but also slightly shorter for some more contrast when viewing the strips
 					 */
-					glBegin(GL_QUADS);
-						glVertex2f(v2d->cur.xmin, yminc+NLACHANNEL_SKIP);
-						glVertex2f(v2d->cur.xmin, ymaxc-NLACHANNEL_SKIP);
-						glVertex2f(v2d->cur.xmax, ymaxc-NLACHANNEL_SKIP);
-						glVertex2f(v2d->cur.xmax, yminc+NLACHANNEL_SKIP);
-					glEnd();
+					glRectf(v2d->cur.xmin, yminc+NLACHANNEL_SKIP, v2d->cur.xmax, ymaxc-NLACHANNEL_SKIP);
 					
 					/* draw keyframes in the action */
-					nla_action_draw_keyframes(adt, v2d, y);
+					nla_action_draw_keyframes(adt, ale->data, v2d, y, yminc+NLACHANNEL_SKIP, ymaxc-NLACHANNEL_SKIP);
 					
 					/* draw 'embossed' lines above and below the strip for effect */
 						/* white base-lines */

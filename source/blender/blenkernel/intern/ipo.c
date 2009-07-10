@@ -1518,7 +1518,7 @@ static void nlastrips_to_animdata (ID *id, ListBase *strips)
 					/* blending */
 				strip->blendin= as->blendin;
 				strip->blendout= as->blendout;
-				strip->blendmode= (as->mode==ACTSTRIPMODE_ADD) ? NLASTRIP_MODE_ADD : NLASTRIP_MODE_BLEND;
+				strip->blendmode= (as->mode==ACTSTRIPMODE_ADD) ? NLASTRIP_MODE_ADD : NLASTRIP_MODE_REPLACE;
 				if (as->flag & ACTSTRIP_AUTO_BLENDS)	strip->flag |= NLASTRIP_FLAG_AUTO_BLENDS;
 					
 					/* assorted setting flags */

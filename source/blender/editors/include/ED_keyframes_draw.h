@@ -67,6 +67,22 @@ typedef struct ActKeyBlock {
 	short totcurve; 
 } ActKeyBlock;
 
+
+/* *********************** Keyframe Drawing ****************************** */
+
+/* options for keyframe shape drawing */
+typedef enum eKeyframeShapeDrawOpts {
+		/* only the border */
+	KEYFRAME_SHAPE_FRAME	= 0,
+		/* only the inside filling */
+	KEYFRAME_SHAPE_INSIDE,
+		/* the whole thing */
+	KEYFRAME_SHAPE_BOTH
+} eKeyframeShapeDrawOpts;
+
+/* draw simple diamond-shape keyframe (with OpenGL) */
+void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel, short mode);
+
 /* ******************************* Methods ****************************** */
 
 /* Channel Drawing */

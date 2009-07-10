@@ -243,7 +243,7 @@ static const float _unit_diamond_shape[4][2] = {
 }; 
 
 /* draw a simple diamond shape with OpenGL */
-static void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel)
+void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel, short mode)
 {
 	static GLuint displist1=0;
 	static GLuint displist2=0;
@@ -281,16 +281,21 @@ static void draw_keyframe_shape (float x, float y, float xscale, float hsize, sh
 	/* anti-aliased lines for more consistent appearance */
 	glEnable(GL_LINE_SMOOTH);
 	
-	/* draw! ---------------------------- */
+	/* draw! */
+	if ELEM(mode, KEYFRAME_SHAPE_INSIDE, KEYFRAME_SHAPE_BOTH) {
+		/* interior - hardcoded colors (for selected and unselected only) */
+		if (sel) UI_ThemeColorShade(TH_STRIP_SELECT, 50);
+		else glColor3ub(0xE9, 0xE9, 0xE9);
+		
+		glCallList(displist2);
+	}
 	
-	/* interior - hardcoded colors (for selected and unselected only) */
-	if (sel) UI_ThemeColorShade(TH_STRIP_SELECT, 50);//glColor3ub(0xF1, 0xCA, 0x13);
-	else glColor3ub(0xE9, 0xE9, 0xE9);
-	glCallList(displist2);
-	
-	/* exterior - black frame */
-	glColor3ub(0, 0, 0);
-	glCallList(displist1);
+	if ELEM(mode, KEYFRAME_SHAPE_FRAME, KEYFRAME_SHAPE_BOTH) {
+		/* exterior - black frame */
+		glColor3ub(0, 0, 0);
+		
+		glCallList(displist1);
+	}
 	
 	glDisable(GL_LINE_SMOOTH);
 	
@@ -345,7 +350,7 @@ static void draw_keylist(View2D *v2d, ListBase *keys, ListBase *blocks, float yp
 		for (ak= keys->first; ak; ak= ak->next) {
 			/* draw using OpenGL - uglier but faster */
 			// NOTE: a previous version of this didn't work nice for some intel cards
-			draw_keyframe_shape(ak->cfra, ypos, xscale, 5.0f, (ak->sel & SELECT));
+			draw_keyframe_shape(ak->cfra, ypos, xscale, 5.0f, (ak->sel & SELECT), KEYFRAME_SHAPE_BOTH);
 			
 #if 0 // OLD CODE
 			//int sc_x, sc_y;

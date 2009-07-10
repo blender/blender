@@ -859,7 +859,7 @@ static void nlaevalchan_accumulate (NlaEvalChannel *nec, NlaEvalStrip *nes, shor
 			nec->value *= value;
 			break;
 		
-		case NLASTRIP_MODE_BLEND:
+		case NLASTRIP_MODE_REPLACE:
 		default: // TODO: do we really want to blend by default? it seems more uses might prefer add...
 			/* do linear interpolation 
 			 *	- the influence of the accumulated data (elsewhere, that is called dstweight) 

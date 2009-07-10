@@ -239,7 +239,7 @@ void rna_def_nlastrip(BlenderRNA *brna)
 		{NLASTRIP_TYPE_META, "META", 0, "Meta", "NLA Strip acts as a container for adjacent strips."},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_mode_blend_items[] = {
-		{NLASTRIP_MODE_BLEND, "BLEND", 0, "Blend", "Results of strip and accumulated results are combined in ratio governed by influence."},
+		{NLASTRIP_MODE_REPLACE, "REPLACE", 0, "Replace", "Result strip replaces the accumulated results by amount specified by influence."},
 		{NLASTRIP_MODE_ADD, "ADD", 0, "Add", "Weighted result of strip is added to the accumlated results."},
 		{NLASTRIP_MODE_SUBTRACT, "SUBTRACT", 0, "Subtract", "Weighted result of strip is removed from the accumlated results."},
 		{NLASTRIP_MODE_MULTIPLY, "MULITPLY", 0, "Multiply", "Weighted result of strip is multiplied with the accumlated results."},
