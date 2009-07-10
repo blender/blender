@@ -516,6 +516,13 @@ static int rna_StringProperty_max_length_get(PointerRNA *ptr)
 	return ((StringPropertyRNA*)prop)->maxlength;
 }
 
+static int rna_enum_check_separator(CollectionPropertyIterator *iter, void *data)
+{
+	EnumPropertyItem *item= (EnumPropertyItem*)data;
+
+	return (item->identifier[0] != 0);
+}
+
 static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
@@ -524,7 +531,7 @@ static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, Point
 	rna_idproperty_check(&prop, ptr);
 	eprop= (EnumPropertyRNA*)prop;
 
-	rna_iterator_array_begin(iter, (void*)eprop->item, sizeof(eprop->item[0]), eprop->totitem, NULL);
+	rna_iterator_array_begin(iter, (void*)eprop->item, sizeof(eprop->item[0]), eprop->totitem, rna_enum_check_separator);
 }
 
 static void rna_EnumPropertyItem_identifier_get(PointerRNA *ptr, char *value)

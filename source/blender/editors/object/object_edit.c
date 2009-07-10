@@ -243,16 +243,18 @@ void ED_object_base_init_from_view(bContext *C, Base *base)
 /* ******************* add object operator ****************** */
 
 static EnumPropertyItem prop_object_types[] = {
-	{OB_EMPTY, "EMPTY", 0, "Empty", ""},
 	{OB_MESH, "MESH", 0, "Mesh", ""},
 	{OB_CURVE, "CURVE", 0, "Curve", ""},
 	{OB_SURF, "SURFACE", 0, "Surface", ""},
-	{OB_FONT, "TEXT", 0, "Text", ""},
 	{OB_MBALL, "META", 0, "Meta", ""},
-	{OB_LAMP, "LAMP", 0, "Lamp", ""},
-	{OB_CAMERA, "CAMERA", 0, "Camera", ""},
+	{OB_FONT, "TEXT", 0, "Text", ""},
+	{0, "", 0, NULL, NULL},
 	{OB_ARMATURE, "ARMATURE", 0, "Armature", ""},
 	{OB_LATTICE, "LATTICE", 0, "Lattice", ""},
+	{OB_EMPTY, "EMPTY", 0, "Empty", ""},
+	{0, "", 0, NULL, NULL},
+	{OB_CAMERA, "CAMERA", 0, "Camera", ""},
+	{OB_LAMP, "LAMP", 0, "Lamp", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -327,6 +329,7 @@ static EnumPropertyItem prop_mesh_types[] = {
 	{4, "ICOSPHERE", 0, "Icosphere", ""},
 	{5, "CYLINDER", 0, "Cylinder", ""},
 	{6, "CONE", 0, "Cone", ""},
+	{0, "", 0, NULL, NULL},
 	{7, "GRID", 0, "Grid", ""},
 	{8, "MONKEY", 0, "Monkey", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -619,16 +622,18 @@ static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	uiPopupMenu *pup= uiPupMenuBegin(C, "Add Object", 0);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
-	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_MESH, "OBJECT_OT_mesh_add", "type");
-	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_CURVE, "OBJECT_OT_curve_add", "type");
-	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_SURFACE, "OBJECT_OT_surface_add", "type");
-	uiItemO(layout, NULL, ICON_OUTLINER_OB_FONT, "OBJECT_OT_text_add");
+	uiItemMenuEnumO(layout, "Mesh", ICON_OUTLINER_OB_MESH, "OBJECT_OT_mesh_add", "type");
+	uiItemMenuEnumO(layout, "Curve", ICON_OUTLINER_OB_CURVE, "OBJECT_OT_curve_add", "type");
+	uiItemMenuEnumO(layout, "Surface", ICON_OUTLINER_OB_SURFACE, "OBJECT_OT_surface_add", "type");
 	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_META, "OBJECT_OT_object_add", "type", OB_MBALL);
+	uiItemO(layout, "Text", ICON_OUTLINER_OB_FONT, "OBJECT_OT_text_add");
+	uiItemS(layout);
+	uiItemO(layout, "Armature", ICON_OUTLINER_OB_ARMATURE, "OBJECT_OT_armature_add");
+	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LATTICE, "OBJECT_OT_object_add", "type", OB_LATTICE);
+	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_EMPTY, "OBJECT_OT_object_add", "type", OB_EMPTY);
+	uiItemS(layout);
 	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_CAMERA, "OBJECT_OT_object_add", "type", OB_CAMERA);
 	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LAMP, "OBJECT_OT_object_add", "type", OB_LAMP);
-	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_EMPTY, "OBJECT_OT_object_add", "type", OB_EMPTY);
-	uiItemO(layout, NULL, ICON_OUTLINER_OB_ARMATURE, "OBJECT_OT_armature_add");
-	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LATTICE, "OBJECT_OT_object_add", "type", OB_LATTICE);
 	
 	uiPupMenuEnd(C, pup);
 	

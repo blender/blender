@@ -2123,7 +2123,9 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 				dynstr= BLI_dynstr_new();
 				BLI_dynstr_appendf(dynstr, "%s%%t", RNA_property_ui_name(prop));
 				for(i=0; i<totitem; i++) {
-					if(item[i].icon)
+					if(!item[i].identifier[0])
+						BLI_dynstr_appendf(dynstr, "|%l");
+					else if(item[i].icon)
 						BLI_dynstr_appendf(dynstr, "|%s %%i%d %%x%d", item[i].name, item[i].icon, item[i].value);
 					else
 						BLI_dynstr_appendf(dynstr, "|%s %%x%d", item[i].name, item[i].value);
@@ -2142,7 +2144,7 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 
 				RNA_property_enum_items(ptr, prop, &item, &totitem);
 				for(i=0; i<totitem; i++) {
-					if(item[i].value == (int)max) {
+					if(item[i].identifier[0] && item[i].value == (int)max) {
 						str= (char*)item[i].name;
 						icon= item[i].icon;
 					}
@@ -2165,7 +2167,7 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 				RNA_property_enum_items(ptr, prop, &item, &totitem);
 
 				for(i=0; i<totitem; i++) {
-					if(item[i].value == (int)max) {
+					if(item[i].identifier[0] && item[i].value == (int)max) {
 						if(item[i].description[0])
 							tip= (char*)item[i].description;
 						break;

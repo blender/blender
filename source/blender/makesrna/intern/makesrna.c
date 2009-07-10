@@ -119,6 +119,11 @@ static void rna_print_c_string(FILE *f, const char *str)
 	static char *escape[] = {"\''", "\"\"", "\??", "\\\\","\aa", "\bb", "\ff", "\nn", "\rr", "\tt", "\vv", NULL};
 	int i, j;
 
+	if(!str) {
+		fprintf(f, "NULL");
+		return;
+	}
+
 	fprintf(f, "\"");
 	for(i=0; str[i]; i++) {
 		for(j=0; escape[j]; j++)
@@ -262,7 +267,8 @@ static int rna_enum_bitmask(PropertyRNA *prop)
 
 	if(eprop->item) {
 		for(a=0; a<eprop->totitem; a++)
-			mask |= eprop->item[a].value;
+			if(eprop->item[a].identifier[0])
+				mask |= eprop->item[a].value;
 	}
 	
 	return mask;
@@ -971,7 +977,8 @@ static void rna_def_property_funcs_header(FILE *f, StructRNA *srna, PropertyDefR
 				fprintf(f, "enum {\n");
 
 				for(i=0; i<eprop->totitem; i++)
-					fprintf(f, "\t%s_%s_%s = %d,\n", srna->identifier, prop->identifier, eprop->item[i].identifier, eprop->item[i].value);
+					if(eprop->item[i].identifier[0])
+						fprintf(f, "\t%s_%s_%s = %d,\n", srna->identifier, prop->identifier, eprop->item[i].identifier, eprop->item[i].value);
 
 				fprintf(f, "};\n\n");
 			}
@@ -1059,7 +1066,8 @@ static void rna_def_property_funcs_header_cpp(FILE *f, StructRNA *srna, Property
 				fprintf(f, "\tenum %s_enum {\n", prop->identifier);
 
 				for(i=0; i<eprop->totitem; i++)
-					fprintf(f, "\t\t%s_%s = %d,\n", prop->identifier, eprop->item[i].identifier, eprop->item[i].value);
+					if(eprop->item[i].identifier[0])
+						fprintf(f, "\t\t%s_%s = %d,\n", prop->identifier, eprop->item[i].identifier, eprop->item[i].value);
 
 				fprintf(f, "\t};\n");
 			}
@@ -1577,8 +1585,9 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 						rna_print_c_string(f, eprop->item[i].name); fprintf(f, ", ");
 						rna_print_c_string(f, eprop->item[i].description); fprintf(f, "}, ");
 
-						if(eprop->defaultvalue == eprop->item[i].value)
-							defaultfound= 1;
+						if(eprop->item[i].identifier[0])
+							if(eprop->defaultvalue == eprop->item[i].value)
+								defaultfound= 1;
 					}
 
 					fprintf(f, "{0, NULL, 0, NULL, NULL}};\n\n");

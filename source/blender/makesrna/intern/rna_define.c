@@ -1117,7 +1117,7 @@ void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item
 			for(i=0; item[i].identifier; i++) {
 				eprop->totitem++;
 
-				if(item[i].value == eprop->defaultvalue)
+				if(item[i].identifier[0] && item[i].value == eprop->defaultvalue)
 					defaultfound= 1;
 			}
 
@@ -1280,7 +1280,7 @@ void RNA_def_property_enum_default(PropertyRNA *prop, int value)
 			eprop->defaultvalue= value;
 
 			for(i=0; i<eprop->totitem; i++) {
-				if(eprop->item[i].value == eprop->defaultvalue)
+				if(eprop->item[i].identifier[0] && eprop->item[i].value == eprop->defaultvalue)
 					defaultfound= 1;
 			}
 

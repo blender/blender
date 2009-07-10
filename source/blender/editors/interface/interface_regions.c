@@ -2438,40 +2438,6 @@ typedef struct uiMenuInfo {
 
 /************************ Menu Definitions to uiBlocks ***********************/
 
-const char *ui_menu_enumpropname(char *opname, const char *propname, int retval)
-{
-	wmOperatorType *ot= WM_operatortype_find(opname);
-	PointerRNA ptr;
-	PropertyRNA *prop;
-
-	if(!ot || !ot->srna)
-		return "";
-	
-	RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
-	prop= RNA_struct_find_property(&ptr, propname);
-	
-	if(prop) {
-		const EnumPropertyItem *item;
-		int totitem, i;
-		
-		RNA_property_enum_items(&ptr, prop, &item, &totitem);
-		
-		for (i=0; i<totitem; i++) {
-			if(item[i].value==retval)
-				return item[i].name;
-		}
-	}
-
-	return "";
-}
-
-typedef struct MenuItemLevel {
-	int opcontext;
-	char *opname;
-	char *propname;
-	PointerRNA rnapoin;
-} MenuItemLevel;
-
 static uiBlock *ui_block_func_MENU_ITEM(bContext *C, uiPopupBlockHandle *handle, void *arg_info)
 {
 	uiBlock *block;

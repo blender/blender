@@ -439,6 +439,9 @@ static void ui_item_enum_row(uiLayout *layout, uiBlock *block, PointerRNA *ptr, 
 
 	uiBlockSetCurLayout(block, ui_item_local_sublayout(layout, layout, 1));
 	for(a=0; a<totitem; a++) {
+		if(!item[a].identifier[0])
+			continue;
+
 		name= (!uiname || uiname[0])? (char*)item[a].name: "";
 		icon= item[a].icon;
 		value= item[a].value;
@@ -557,13 +560,11 @@ static char *ui_menu_enumpropname(char *opname, char *propname, int retval)
 	if(prop) {
 		const EnumPropertyItem *item;
 		int totitem, i;
+		char *name;
 
 		RNA_property_enum_items(&ptr, prop, &item, &totitem);
-
-		for (i=0; i<totitem; i++) {
-			if(item[i].value==retval)
-				return (char*)item[i].name;
-		}
+		if(RNA_enum_name(item, retval, &name))
+			return name;
 	}
 
 	return "";
@@ -603,7 +604,10 @@ void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
 		RNA_property_enum_items(&ptr, prop, &item, &totitem);
 
 		for(i=0; i<totitem; i++)
-			uiItemEnumO(layout, (char*)item[i].name, item[i].icon, opname, propname, item[i].value);
+			if(item[i].identifier[0])
+				uiItemEnumO(layout, (char*)item[i].name, item[i].icon, opname, propname, item[i].value);
+			else
+				uiItemS(layout);
 	}
 }
 
@@ -889,7 +893,10 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname)
 		RNA_property_enum_items(ptr, prop, &item, &totitem);
 
 		for(i=0; i<totitem; i++)
-			uiItemEnumR(layout, (char*)item[i].name, 0, ptr, propname, item[i].value);
+			if(item[i].identifier[0])
+				uiItemEnumR(layout, (char*)item[i].name, 0, ptr, propname, item[i].value);
+			else
+				uiItemS(layout);
 	}
 }
 
