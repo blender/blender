@@ -91,8 +91,6 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	
 	style->paneltitle.uifont_id= UIFONT_DEFAULT;
 	style->paneltitle.points= 13;
-	style->paneltitle.kerning= 0.0;
-	style->paneltitle.overlap= 0;
 	style->paneltitle.shadow= 5;
 	style->paneltitle.shadx= 2;
 	style->paneltitle.shady= -2;
@@ -101,8 +99,6 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	
 	style->grouplabel.uifont_id= UIFONT_DEFAULT;
 	style->grouplabel.points= 12;
-	style->grouplabel.kerning= 0.0;
-	style->grouplabel.overlap= 0;
 	style->grouplabel.shadow= 3;
 	style->grouplabel.shadx= 1;
 	style->grouplabel.shady= -1;
@@ -110,8 +106,6 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	
 	style->widgetlabel.uifont_id= UIFONT_DEFAULT;
 	style->widgetlabel.points= 11;
-	style->widgetlabel.kerning= 0.0;
-	style->widgetlabel.overlap= 0;
 	style->widgetlabel.shadow= 3;
 	style->widgetlabel.shadx= 1;
 	style->widgetlabel.shady= -1;
@@ -120,7 +114,6 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	
 	style->widget.uifont_id= UIFONT_DEFAULT;
 	style->widget.points= 11;
-	style->widget.kerning= 0.0;
 	style->widget.shadowalpha= 0.25f;
 
 	style->columnspace= 5;
@@ -174,15 +167,10 @@ void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, char *str)
 		BLF_shadow_offset(fs->shadx, fs->shady);
 	}
 
-	if (fs->overlap)
-		BLF_enable(BLF_OVERLAP_CHAR);
-
 	BLF_draw(str);
 	BLF_disable(BLF_CLIPPING);
 	if (fs->shadow)
 		BLF_disable(BLF_SHADOW);
-	if (fs->overlap)
-		BLF_disable(BLF_OVERLAP_CHAR);
 }
 
 /* ************** helpers ************************ */
@@ -263,6 +251,5 @@ void uiStyleFontSet(uiFontStyle *fs)
 	
 	BLF_set(font->blf_id);
 	BLF_size(fs->points, U.dpi);
-	BLF_kerning(fs->kerning);
 }
 
