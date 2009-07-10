@@ -144,7 +144,8 @@ private:
 		{
 			//int uv_coords_index = mVData->getInputInfosArray()[uv_set_index]->getCount() * uv_set_index + uv_index * 2;
 			int uv_coords_index = uv_index * 2;
-// 			int uv_coords_index = mVData->getLength(uv_set_index) * uv_set_index + uv_index * 2;
+ 			//int uv_coords_index = mVData->getLength(uv_set_index) * uv_set_index + uv_index * 2;
+			
 			switch(mVData->getType()) {
 			case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
 				{
@@ -164,8 +165,6 @@ private:
 					break;
 				}
 			}
-			//uv[0] = mVData;
-			//uv[1] = ...;
 		}
 	};
 
@@ -429,13 +428,16 @@ public:
 			0
 		};
 
-		if (quad) uv_indices[3] = index_list.getIndex(index + 3);
+		//if (quad) uv_indices[3] = index_list.getIndex(index + 3);
 
 		uvs.getUV(uv_set_index, uv_indices[0], mtface->uv[0]);
 		uvs.getUV(uv_set_index, uv_indices[1], mtface->uv[1]);
 		uvs.getUV(uv_set_index, uv_indices[2], mtface->uv[2]);
 
-		if (quad) uvs.getUV(uv_set_index, uv_indices[3], mtface->uv[3]);
+		if (quad) {
+			uv_indices[3] = index_list.getIndex(index + 3);
+			uvs.getUV(uv_set_index, uv_indices[3], mtface->uv[3]);
+		}
 	}
 
 	/** When this method is called, the writer must write the geometry.

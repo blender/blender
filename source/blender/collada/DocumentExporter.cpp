@@ -7,6 +7,9 @@
 #include "DNA_texture_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_anim_types.h"
+#include "DNA_action_types.h"
+#include "DNA_curve_types.h"
 
 extern "C" 
 {
@@ -30,6 +33,7 @@ extern "C"
 #include <COLLADASWInputList.h>
 #include <COLLADASWPrimitves.h>
 #include <COLLADASWVertices.h>
+#include <COLLADASWLibraryAnimations.h>
 #include <COLLADASWLibraryImages.h>
 #include <COLLADASWLibraryEffects.h>
 #include <COLLADASWImage.h>
@@ -59,6 +63,8 @@ extern "C"
 // This function assumes that quat is normalized.
 // The following document was used as reference:
 // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
+
+
 void QuatToAxisAngle(float *q, float *axis, float *angle)
 {
 	// quat to axis angle
@@ -110,11 +116,27 @@ std::string id_name(void *id)
 template<class Functor>
 void forEachMeshObjectInScene(Scene *sce, Functor &f)
 {
+	
+	Base *base= (Base*) sce->base.first;
+	while(base) {
+		Object *ob = base->object;
+		
+		if (ob->type == OB_MESH && ob->data) {
+			f(ob);
+		}
+		base= base->next;
+		
+	}
+}
+
+template<class Functor>
+void forEachObjectWithAnimationInScene(Scene *sce, Functor &f)
+{
 	Base *base= (Base*) sce->base.first;
 	while(base) {
 		Object *ob = base->object;
 			
-		if (ob->type == OB_MESH && ob->data) {
+		if (ob->adt && ob->data) {
 			f(ob);
 		}
 		base= base->next;
@@ -531,10 +553,11 @@ public:
 		openVisualScene(id_name(sce), "");
 
 		// write <node>s
-		forEachMeshObjectInScene(sce, *this);
-		forEachCameraObjectInScene(sce, *this);
-		forEachLampObjectInScene(sce, *this);
-		
+		//forEachMeshObjectInScene(sce, *this);
+		//forEachCameraObjectInScene(sce, *this);
+		//forEachLampObjectInScene(sce, *this);
+		exportHierarchy(sce);
+
 		// </visual_scene> </library_visual_scenes>
 		closeVisualScene();
 
@@ -542,7 +565,9 @@ public:
 	}
 
 	// called for each object
-	void operator()(Object *ob) {
+	//void operator()(Object *ob) {
+	void writeNodes(Object *ob, Scene *sce) {
+		
 		COLLADASW::Node node(mSW);
 		std::string ob_name(id_name(ob));
 		node.start();
@@ -603,7 +628,35 @@ public:
 			instLa.add();
 		}
 		
+		// write node for child object
+		Base *b = (Base*) sce->base.first;
+		while(b) {
+			
+			Object *cob = b->object;
+			
+			if ((cob->type == OB_MESH || cob->type == OB_CAMERA || cob->type == OB_LAMP) && cob->parent == ob) {
+				// write node...
+				writeNodes(cob, sce);
+			}
+			b = b->next;
+		}
+		
 		node.end();
+	}
+
+	void exportHierarchy(Scene *sce)
+	{
+		Base *base= (Base*) sce->base.first;
+		while(base) {
+			Object *ob = base->object;
+			
+			if ((ob->type == OB_MESH || ob->type == OB_CAMERA || ob->type == OB_LAMP) && !ob->parent) {
+				// write nodes....
+				writeNodes(ob, sce);
+				
+			}
+			base= base->next;
+		}
 	}
 
 };
@@ -956,6 +1009,46 @@ public:
 			// XXX write error
 			return;
 		}
+	}
+};
+
+class AnimationsExporter: COLLADASW::LibraryAnimations
+{
+public:
+	AnimationsExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryAnimations(sw) {}
+	void exportAnimation(Scene *sce)
+	{
+		openLibrary();
+		
+		forEachObjectWithAnimationInScene(sce, *this);
+		
+		closeLibrary();
+	}
+	void operator() (Object *ob) 
+	{
+		
+		AnimData *adt = ob->adt;
+		NlaTrack *nlt;
+		NlaStrip *strip;
+		FCurve *fcu;		
+		
+		// iterate over all nla tracks
+		for (nlt = (NlaTrack*)adt->nla_tracks.first; nlt; nlt = nlt->next) {
+			
+			// iterate over all nla strips of current nla track
+			for (strip = (NlaStrip*)nlt->strips.first; strip; strip = strip->next) {
+				bAction *act = strip->act;
+				// iterate over all fcurves of current nla strip's action
+				for (fcu = (FCurve*)act->curves.first; fcu; fcu = fcu->next) {
+					// write <animation> for each fcurve
+					// each fcurve represents one axis of loc/rot/scale
+					// through fcurve I can take intangents and outtangents
+					// but how do I get objects loc/rot/scale data at specific time
+					
+				}
+			}
+		}
+		
 	}
 };
 
