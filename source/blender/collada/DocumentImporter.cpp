@@ -51,6 +51,10 @@ extern "C"
 #include <string>
 #include <map>
 
+
+// #define COLLADA_DEBUG
+
+
 const char *primTypeToStr(COLLADAFW::MeshPrimitive::PrimitiveType type)
 {
 	using namespace COLLADAFW;
@@ -141,18 +145,30 @@ private:
 		UVDataWrapper(COLLADAFW::MeshVertexData& vdata) : mVData(&vdata)
 		{}
 
-		void getUV(int uv_set_index, int uv_index, float *uv)
+#ifdef COLLADA_DEBUG
+		void print()
+		{
+			fprintf(stderr, "UVs:\n");
+			COLLADAFW::ArrayPrimitiveType<float>* values = mVData->getFloatValues();
+			for (int i = 0; i < values->getCount(); i += 2) {
+				fprintf(stderr, "%.1f, %.1f\n", (*values)[i], (*values)[i+1]);
+			}
+			fprintf(stderr, "\n");
+		}
+#endif
+
+		void getUV(int uv_set_index, int uv_index[2], float *uv)
 		{
 			//int uv_coords_index = mVData->getInputInfosArray()[uv_set_index]->getCount() * uv_set_index + uv_index * 2;
-			int uv_coords_index = uv_index * 2;
+			// int uv_coords_index = uv_index * 2;
  			//int uv_coords_index = mVData->getLength(uv_set_index) * uv_set_index + uv_index * 2;
 			
 			switch(mVData->getType()) {
 			case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
 				{
-					COLLADAFW::ArrayPrimitiveType<float>* values = mVData->getFloatValues();					
-					uv[0] = (*values)[uv_coords_index];
-					uv[1] = (*values)[uv_coords_index + 1];
+					COLLADAFW::ArrayPrimitiveType<float>* values = mVData->getFloatValues();
+					uv[0] = (*values)[uv_index[0]];
+					uv[1] = (*values)[uv_index[1]];
 					
 					break;
 				}
@@ -160,8 +176,8 @@ private:
 				{
 					COLLADAFW::ArrayPrimitiveType<double>* values = mVData->getDoubleValues();
 					
-					uv[0] = (float)(*values)[uv_coords_index];
-					uv[1] = (float)(*values)[uv_coords_index + 1];
+					uv[0] = (float)(*values)[uv_index[0]];
+					uv[1] = (float)(*values)[uv_index[1]];
 					
 					break;
 				}
@@ -420,27 +436,85 @@ public:
 
 	// utility functions
 
-	void set_tri_or_quad_uv(MTFace *mtface, UVDataWrapper &uvs, int uv_set_index,
+	void set_face_indices(MFace *mface, unsigned int *indices, bool quad)
+	{
+		mface->v1 = indices[0];
+		mface->v2 = indices[1];
+		mface->v3 = indices[2];
+		if (quad) mface->v4 = indices[3];
+	}
+
+	// change face indices order so that v4 is not 0
+	void rotate_face_indices(MFace *mface) {
+		mface->v4 = mface->v1;
+		mface->v1 = mface->v2;
+		mface->v2 = mface->v3;
+		mface->v3 = 0;
+	}
+
+	void set_face_uv(MTFace *mtface, UVDataWrapper &uvs, int uv_set_index,
 					COLLADAFW::IndexList& index_list, int index, bool quad)
 	{
-		int uv_indices[4] = {
-			index_list.getIndex(index),
-			index_list.getIndex(index + 1),
-			index_list.getIndex(index + 2),
-			0
-		};
+		int uv_indices[4][2];
 
-		//if (quad) uv_indices[3] = index_list.getIndex(index + 3);
+		// per face vertex indices, this means for quad we have 4 indices, not 8
+		COLLADAFW::UIntValuesArray& indices = index_list.getIndices();
+
+		// make indices into FloatOrDoubleArray
+		for (int i = 0; i < (quad ? 4 : 3); i++) {
+			int uv_index = indices[index + i];
+			uv_indices[i][0] = uv_index * 2;
+			uv_indices[i][1] = uv_index * 2 + 1;
+		}
 
 		uvs.getUV(uv_set_index, uv_indices[0], mtface->uv[0]);
 		uvs.getUV(uv_set_index, uv_indices[1], mtface->uv[1]);
 		uvs.getUV(uv_set_index, uv_indices[2], mtface->uv[2]);
 
+		if (quad) uvs.getUV(uv_set_index, uv_indices[3], mtface->uv[3]);
+
+#ifdef COLLADA_DEBUG
 		if (quad) {
-			uv_indices[3] = index_list.getIndex(index + 3);
-			uvs.getUV(uv_set_index, uv_indices[3], mtface->uv[3]);
+			fprintf(stderr, "face uv:\n"
+					"((%d, %d), (%d, %d), (%d, %d), (%d, %d))\n"
+					"((%.1f, %.1f), (%.1f, %.1f), (%.1f, %.1f), (%.1f, %.1f))\n",
+
+					uv_indices[0][0], uv_indices[0][1],
+					uv_indices[1][0], uv_indices[1][1],
+					uv_indices[2][0], uv_indices[2][1],
+					uv_indices[3][0], uv_indices[3][1],
+
+					mtface->uv[0][0], mtface->uv[0][1],
+					mtface->uv[1][0], mtface->uv[1][1],
+					mtface->uv[2][0], mtface->uv[2][1],
+					mtface->uv[3][0], mtface->uv[3][1]);
 		}
+		else {
+			fprintf(stderr, "face uv:\n"
+					"((%d, %d), (%d, %d), (%d, %d))\n"
+					"((%.1f, %.1f), (%.1f, %.1f), (%.1f, %.1f))\n",
+
+					uv_indices[0][0], uv_indices[0][1],
+					uv_indices[1][0], uv_indices[1][1],
+					uv_indices[2][0], uv_indices[2][1],
+
+					mtface->uv[0][0], mtface->uv[0][1],
+					mtface->uv[1][0], mtface->uv[1][1],
+					mtface->uv[2][0], mtface->uv[2][1]);
+		}
+#endif
 	}
+
+#ifdef COLLADA_DEBUG
+	void print_index_list(COLLADAFW::IndexList& index_list)
+	{
+		fprintf(stderr, "Index list for \"%s\":\n", index_list.getName().c_str());
+		for (int i = 0; i < index_list.getIndicesCount(); i += 2) {
+			fprintf(stderr, "%u, %u\n", index_list.getIndex(i), index_list.getIndex(i + 1));
+		}
+		fprintf(stderr, "\n");
+	}
+#endif
 
 	/** When this method is called, the writer must write the geometry.
 		@return The writer should return true, if writing succeeded, false otherwise.*/
@@ -481,7 +555,6 @@ public:
 				COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons*)mp;
 				COLLADAFW::Polygons::VertexCountArray& vca = mpvc->getGroupedVerticesVertexCountArray();
 				
-				bool ok = true;
 				for(int j = 0; j < vca.getCount(); j++){
 					int count = vca[j];
 					if (count != 3 && count != 4) {
@@ -561,13 +634,18 @@ public:
 		if (totuvset) me->mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, 0);
 
 		UVDataWrapper uvs(cmesh->getUVCoords());
-		
+
+#ifdef COLLADA_DEBUG
+		uvs.print();
+#endif
+
 		// read faces
 		MFace *mface = me->mface;
 
 		MaterialIdPrimitiveArrayMap mat_prim_map;
 
 		// TODO: import uv set names
+		int face_index = 0;
 
 		for (i = 0; i < prim_arr.getCount(); i++) {
 			
@@ -583,72 +661,60 @@ public:
 			// since we cannot set mface->mat_nr here, we store part of me->mface in Primitive
 			Primitive prim = {mface, 0};
 			COLLADAFW::IndexListArray& index_list_array = mp->getUVCoordIndicesArray();
+
+#ifdef COLLADA_DEBUG
+			fprintf(stderr, "Primitive %d:\n", i);
+			for (int j = 0; j < totuvset; j++) {
+				print_index_list(*index_list_array[j]);
+			}
+#endif
 			
 			if (type == COLLADAFW::MeshPrimitive::TRIANGLES) {
 				for (k = 0; k < prim_totface; k++){
-					mface->v1 = indices[0];
-					mface->v2 = indices[1];
-					mface->v3 = indices[2];
 					
+					set_face_indices(mface, indices, false);
 					indices += 3;
 
 					for (int j = 0; j < totuvset; j++) {
-						// k - face index, j - uv set index
-
-						// get mtface by face index (k) and uv set index
+						// get mtface by face index and uv set index
 						MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, j);
-						set_tri_or_quad_uv(&mtface[k], uvs, j, *index_list_array[j], index, false);
+						set_face_uv(&mtface[face_index], uvs, j, *index_list_array[j], index, false);
 					}
+					
 					index += 3;
 					mface++;
+					face_index++;
 					prim.totface++;
 				}
 			}
 			else if (type == COLLADAFW::MeshPrimitive::POLYLIST || type == COLLADAFW::MeshPrimitive::POLYGONS) {
 				COLLADAFW::Polygons *mpvc =	(COLLADAFW::Polygons*)mp;
-				COLLADAFW::Polygons::VertexCountArray& vca =
-					mpvc->getGroupedVerticesVertexCountArray();
+				COLLADAFW::Polygons::VertexCountArray& vcounta = mpvc->getGroupedVerticesVertexCountArray();
+
 				for (k = 0; k < prim_totface; k++) {
 
 					// face
-					if (vca[k] == 3){
-						mface->v1 = indices[0];
-						mface->v2 = indices[1];
-						mface->v3 = indices[2];
-						indices += 3;
-						
-					}
-					else {
-						mface->v1 = indices[0];
-						mface->v2 = indices[1];
-						mface->v3 = indices[2];
-						mface->v4 = indices[3];
+					int vcount = vcounta[k];
 
-						// trick
-						if (mface->v4 == 0) {
-							mface->v4 = mface->v1;
-							mface->v1 = mface->v2;
-							mface->v2 = mface->v3;
-							mface->v3 = 0;
-						}
-
-						indices +=4;
-						
-					}
+					set_face_indices(mface, indices, vcount == 4);
+					indices += vcount;
+					
+					// do the trick if needed
+					if (vcount == 4 && mface->v4 == 0)
+						rotate_face_indices(mface);
 
 					// set mtface for each uv set
 					// it is assumed that all primitives have equal number of UV sets
 
 					for (int j = 0; j < totuvset; j++) {
-						// k - face index, j - uv set index
-
-						// get mtface by face index (k) and uv set index
+						// get mtface by face index and uv set index
 						MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, j);
-
-						set_tri_or_quad_uv(&mtface[k], uvs, j, *index_list_array[j], index, mface->v4 != 0);
+						set_face_uv(&mtface[face_index], uvs, j, *index_list_array[j], index, mface->v4 != 0);
 					}
+
 					index += mface->v4 ? 4 : 3;
 					mface++;
+					face_index++;
 					prim.totface++;
 				}
 			}
