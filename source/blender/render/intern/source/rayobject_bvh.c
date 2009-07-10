@@ -407,17 +407,22 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid, float 
 		parent->split_axis = builder->split_axis;
 		for(i=0; i<nc; i++)
 		{
+			float cbb[6];
 			float tcost;
 			parent->child[i] = bvh_rearrange( tree, rtbuild_get_child(builder, i, &tmp), child_id(nid,i), &tcost );
-			bvh_merge_bb(parent->child[i], parent->bb, parent->bb+3);
 			
-			*cost += tcost;
+			INIT_MINMAX(cbb, cbb+3);
+			bvh_merge_bb(parent->child[i], cbb, cbb+3);
+			DO_MIN(cbb,   parent->bb);
+			DO_MAX(cbb+3, parent->bb+3);
+			
+			*cost += tcost*bb_area(cbb, cbb+3);
 		}
 		for(; i<BVH_NCHILDS; i++)
 			parent->child[i] = 0;
 
-		*cost /= nc*bb_area(parent->bb, parent->bb+3);
-		*cost += RAY_BB_TEST_COST;
+		*cost /= bb_area(parent->bb, parent->bb+3);
+		*cost += nc*RAY_BB_TEST_COST;
 		return parent;
 	}
 }
@@ -458,7 +463,7 @@ static void bvh_done(BVHTree *obj)
 	
 	obj->root = bvh_rearrange( obj, obj->builder, 1, &obj->cost );
 //	obj->cost = 1.0;
-	obj->cost = logf( rtbuild_size( obj->builder ) );
+//	obj->cost = logf( rtbuild_size( obj->builder ) );
 	
 #ifndef DYNAMIC_ALLOC
 	assert(obj->node_alloc+needed_nodes >= obj->node_next);
