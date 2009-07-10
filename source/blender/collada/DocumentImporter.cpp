@@ -29,14 +29,15 @@
 extern "C" 
 {
 #include "BKE_main.h"
-#include "BKE_mesh.h"
 #include "BKE_customdata.h"
+#include "BKE_library.h"
+}
+#include "BKE_mesh.h"
+#include "BKE_global.h"
 #include "BKE_context.h"
 #include "BKE_object.h"
 #include "BKE_image.h"
 #include "BKE_material.h"
-#include "BKE_library.h"
-}
 
 #include "BLI_arithb.h"
 
@@ -277,16 +278,7 @@ public:
 				continue;
 			}
 			
-			Object *ob = add_object(sce, OB_MESH);
-
-			const std::string& id = node->getOriginalId();
-			if (id.length())
-				rename_id(&ob->id, (char*)id.c_str());
-
-
-			// XXX
-			// linking object with the first <instance_geometry>
-			// though a node may have more of them...
+			// XXX linking object with the first <instance_geometry>, though a node may have more of them...
 
 			// TODO: join multiple <instance_geometry> meshes into 1, and link object with it
 			
@@ -295,7 +287,14 @@ public:
 				fprintf(stderr, "Node hasn't got any geometry.\n");
 				continue;
 			}
-			
+
+			Object *ob = add_object(sce, OB_MESH);
+
+			const std::string& id = node->getOriginalId();
+			if (id.length())
+				rename_id(&ob->id, (char*)id.c_str());
+
+
 			const COLLADAFW::UniqueId& geom_uid = geom[0]->getInstanciatedObjectId();
 			if (uid_mesh_map.find(geom_uid) == uid_mesh_map.end()) {
 				// XXX report to user
@@ -304,8 +303,11 @@ public:
 				fprintf(stderr, "Couldn't find a mesh by UID.\n");
 				continue;
 			}
-			
+
+			// replace ob->data freeing the old one
+			Mesh *old_mesh = (Mesh*)ob->data;
 			set_mesh(ob, uid_mesh_map[geom_uid]);
+			if (old_mesh->id.us == 0) free_libblock(&G.main->mesh, old_mesh);
 			
 			float rot[3][3];
 			Mat3One(rot);
@@ -657,8 +659,9 @@ public:
 		
 		geom_uid_mat_mapping_map[cgeom->getUniqueId()] = mat_prim_map;
 		
-		// normals
 		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+		make_edges(me, 0);
+
 		return true;
 	}
 
