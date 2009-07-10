@@ -210,10 +210,14 @@ def derived_paths(fname_orig, basepath, FORCE_CWD=False):
 	FORCE_CWD - dont use the basepath, just add a ./ to the filename.
 		use when we know the file will be in the basepath.
 	'''
-	fname = Blender.sys.expandpath(fname_orig)
+	fname = bpy.sys.expandpath(fname_orig)
+# 	fname = Blender.sys.expandpath(fname_orig)
 	fname_strip = strip_path(fname)
-	if FORCE_CWD:	fname_rel = '.' + os.sep + fname_strip
-	else:				fname_rel = Blender.sys.relpath(fname, basepath)
+	if FORCE_CWD:
+		fname_rel = '.' + os.sep + fname_strip
+	else:
+		fname_rel = bpy.sys.relpath(fname, basepath)
+# 		fname_rel = Blender.sys.relpath(fname, basepath)
 	if fname_rel.startswith('//'): fname_rel = '.' + os.sep + fname_rel[2:]
 	return fname, fname_strip, fname_rel
 
@@ -414,7 +418,7 @@ def write(filename, batch_objects = None, \
 			self.blenMeshes =		{}					# fbxMeshObName : mesh
 			self.fbxArm =			fbxArm
 			self.restMatrix =		blenBone.armature_matrix
-			# self.restMatrix =		blenBone.matrix['ARMATURESPACE']
+# 			self.restMatrix =		blenBone.matrix['ARMATURESPACE']
 			
 			# not used yet
 			# self.restMatrixInv =	self.restMatrix.copy().invert()
@@ -532,13 +536,15 @@ def write(filename, batch_objects = None, \
 	
 	
 	print '\nFBX export starting...', filename
-	start_time = Blender.sys.time()
+	start_time = bpy.sys.time()
+# 	start_time = Blender.sys.time()
 	try:
 		file = open(filename, 'w')
 	except:
 		return False
-	
-	sce = bpy.data.scenes.active
+
+	sce = context.scene
+# 	sce = bpy.data.scenes.active
 	world = sce.world
 	
 	
@@ -570,7 +576,8 @@ def write(filename, batch_objects = None, \
 }''' % (curtime))
 	
 	file.write('\nCreationTime: "%.4i-%.2i-%.2i %.2i:%.2i:%.2i:000"' % curtime)
-	file.write('\nCreator: "Blender3D version %.2f"' % Blender.Get('version'))
+	file.write('\nCreator: "Blender3D version 2.5"')
+# 	file.write('\nCreator: "Blender3D version %.2f"' % Blender.Get('version'))
 	
 	pose_items = [] # list of (fbxName, matrix) to write pose data for, easier to collect allong the way
 	
@@ -579,16 +586,19 @@ def write(filename, batch_objects = None, \
 		'''
 		Matrix mod is so armature objects can modify their bone matricies
 		'''
-		if isinstance(ob, Blender.Types.BoneType):
+		if isinstance(ob, bpy.types.Bone):
+# 		if isinstance(ob, Blender.Types.BoneType):
 			
 			# we know we have a matrix
 			# matrix = mtx4_z90 * (ob.matrix['ARMATURESPACE'] * matrix_mod)
-			matrix = mtx4_z90 * ob.matrix['ARMATURESPACE'] # dont apply armature matrix anymore
+			matrix = mtx4_z90 * ob.armature_matrix # dont apply armature matrix anymore
+# 			matrix = mtx4_z90 * ob.matrix['ARMATURESPACE'] # dont apply armature matrix anymore
 			
 			parent = ob.parent
 			if parent:
 				#par_matrix = mtx4_z90 * (parent.matrix['ARMATURESPACE'] * matrix_mod)
-				par_matrix = mtx4_z90 * parent.matrix['ARMATURESPACE'] # dont apply armature matrix anymore
+				par_matrix = mtx4_z90 * parent.armature_matrix # dont apply armature matrix anymore
+# 				par_matrix = mtx4_z90 * parent.matrix['ARMATURESPACE'] # dont apply armature matrix anymore
 				matrix = matrix * par_matrix.copy().invert()
 				
 			matrix_rot =	matrix.rotationPart()
@@ -755,8 +765,9 @@ def write(filename, batch_objects = None, \
 			((my_bone.blenBone.head['ARMATURESPACE'] - my_bone.blenBone.tail['ARMATURESPACE']) * my_bone.fbxArm.parRelMatrix()).length)
 		"""
 		
-		file.write('\n\t\t\tProperty: "LimbLength", "double", "",%.6f' %\
-			(my_bone.blenBone.head['ARMATURESPACE'] - my_bone.blenBone.tail['ARMATURESPACE']).length)
+		file.write('\n\t\t\tProperty: "LimbLength", "double", "",%.6f' %
+				   (my_bone.blenBone.armature_head - my_bone.blenBone.armature_tail).length)
+# 			(my_bone.blenBone.head['ARMATURESPACE'] - my_bone.blenBone.tail['ARMATURESPACE']).length)
 		
 		#file.write('\n\t\t\tProperty: "LimbLength", "double", "",1')
 		file.write('\n\t\t\tProperty: "Color", "ColorRGB", "",0.8,0.8,0.8')
@@ -895,9 +906,12 @@ def write(filename, batch_objects = None, \
 		'''
 		Write a blender camera
 		'''
-		render = sce.render
-		width	= render.sizeX
-		height	= render.sizeY
+		render = sce.render_data
+		width	= render.resolution_x
+		height	= render.resolution_y
+# 		render = sce.render
+# 		width	= render.sizeX
+# 		height	= render.sizeY
 		aspect	= float(width)/height
 		
 		data = my_cam.blenObject.data
@@ -911,8 +925,10 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\t\tProperty: "FieldOfViewX", "FieldOfView", "A+",1')
 		file.write('\n\t\t\tProperty: "FieldOfViewY", "FieldOfView", "A+",1')
 		file.write('\n\t\t\tProperty: "FocalLength", "Real", "A+",14.0323972702026')
-		file.write('\n\t\t\tProperty: "OpticalCenterX", "Real", "A+",%.6f' % data.shiftX) # not sure if this is in the correct units?
-		file.write('\n\t\t\tProperty: "OpticalCenterY", "Real", "A+",%.6f' % data.shiftY) # ditto 
+		file.write('\n\t\t\tProperty: "OpticalCenterX", "Real", "A+",%.6f' % data.shift_x) # not sure if this is in the correct units?
+# 		file.write('\n\t\t\tProperty: "OpticalCenterX", "Real", "A+",%.6f' % data.shiftX) # not sure if this is in the correct units?
+		file.write('\n\t\t\tProperty: "OpticalCenterY", "Real", "A+",%.6f' % data.shift_y) # ditto 
+# 		file.write('\n\t\t\tProperty: "OpticalCenterY", "Real", "A+",%.6f' % data.shiftY) # ditto 
 		file.write('\n\t\t\tProperty: "BackgroundColor", "Color", "A+",0,0,0')
 		file.write('\n\t\t\tProperty: "TurnTable", "Real", "A+",0')
 		file.write('\n\t\t\tProperty: "DisplayTurnTableIcon", "bool", "",1')
@@ -944,8 +960,10 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\t\tProperty: "ShowOpticalCenter", "bool", "",0')
 		file.write('\n\t\t\tProperty: "ShowAzimut", "bool", "",1')
 		file.write('\n\t\t\tProperty: "ShowTimeCode", "bool", "",0')
-		file.write('\n\t\t\tProperty: "NearPlane", "double", "",%.6f' % data.clipStart)
-		file.write('\n\t\t\tProperty: "FarPlane", "double", "",%.6f' % data.clipStart)
+		file.write('\n\t\t\tProperty: "NearPlane", "double", "",%.6f' % data.clip_start)
+# 		file.write('\n\t\t\tProperty: "NearPlane", "double", "",%.6f' % data.clipStart)
+		file.write('\n\t\t\tProperty: "FarPlane", "double", "",%.6f' % data.clip_end)
+# 		file.write('\n\t\t\tProperty: "FarPlane", "double", "",%.6f' % data.clipStart)
 		file.write('\n\t\t\tProperty: "FilmWidth", "double", "",1.0')
 		file.write('\n\t\t\tProperty: "FilmHeight", "double", "",1.0')
 		file.write('\n\t\t\tProperty: "FilmAspectRatio", "double", "",%.6f' % aspect)
@@ -1018,16 +1036,20 @@ def write(filename, batch_objects = None, \
 		#ePOINT, 
 		#eDIRECTIONAL
 		#eSPOT
-		light_type = light.type
+		light_type_items = {'POINT': 0, 'SUN': 1, 'SPOT': 2, 'HEMI': 3, 'AREA': 4}
+		light_type = light_type_items[light.type]
+# 		light_type = light.type
 		if light_type > 2: light_type = 1 # hemi and area lights become directional
-		
-		mode = light.mode
-		if mode & Blender.Lamp.Modes.RayShadow or mode & Blender.Lamp.Modes.Shadows:
+
+# 		mode = light.mode
+		if light.shadow_method == 'RAY_SHADOW' or light.shadow_method == 'BUFFER_SHADOW':
+# 		if mode & Blender.Lamp.Modes.RayShadow or mode & Blender.Lamp.Modes.Shadows:
 			do_shadow = 1
 		else:
 			do_shadow = 0
-		
-		if mode & Blender.Lamp.Modes.OnlyShadow or (mode & Blender.Lamp.Modes.NoDiffuse and mode & Blender.Lamp.Modes.NoSpecular):
+
+		if light.only_shadow or (not light.diffuse and not light.specular):
+# 		if mode & Blender.Lamp.Modes.OnlyShadow or (mode & Blender.Lamp.Modes.NoDiffuse and mode & Blender.Lamp.Modes.NoSpecular):
 			do_light = 0
 		else:
 			do_light = 1
@@ -1042,11 +1064,16 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\t\tProperty: "GoboProperty", "object", ""')
 		file.write('\n\t\t\tProperty: "Color", "Color", "A+",1,1,1')
 		file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (min(light.energy*100, 200))) # clamp below 200
-		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % (light.spotSize * scale))
+		if light.type == 'SPOT':
+			file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % (light.spot_size * scale))
+# 		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % (light.spotSize * scale))
 		file.write('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
-		file.write('\n\t\t\tProperty: "Color", "Color", "A",%.2f,%.2f,%.2f' % tuple(light.col))
+		file.write('\n\t\t\tProperty: "Color", "Color", "A",%.2f,%.2f,%.2f' % tuple(light.color))
+# 		file.write('\n\t\t\tProperty: "Color", "Color", "A",%.2f,%.2f,%.2f' % tuple(light.col))
 		file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (min(light.energy*100, 200))) # clamp below 200
-		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % (light.spotSize * scale))
+# 
+		# duplication? see ^ (Arystan)
+# 		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % (light.spotSize * scale))
 		file.write('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
 		file.write('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
 		file.write('\n\t\t\tProperty: "CastLightOnObject", "bool", "",%i' % do_light)
@@ -1055,7 +1082,8 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\t\tProperty: "DrawVolumetricLight", "bool", "",1')
 		file.write('\n\t\t\tProperty: "GoboProperty", "object", ""')
 		file.write('\n\t\t\tProperty: "DecayType", "enum", "",0')
-		file.write('\n\t\t\tProperty: "DecayStart", "double", "",%.2f' % light.dist)
+		file.write('\n\t\t\tProperty: "DecayStart", "double", "",%.2f' % light.distance)
+# 		file.write('\n\t\t\tProperty: "DecayStart", "double", "",%.2f' % light.dist)
 		file.write('\n\t\t\tProperty: "EnableNearAttenuation", "bool", "",0')
 		file.write('\n\t\t\tProperty: "NearAttenuationStart", "double", "",0')
 		file.write('\n\t\t\tProperty: "NearAttenuationEnd", "double", "",0')
@@ -1101,7 +1129,8 @@ def write(filename, batch_objects = None, \
 	}''')
 	
 	# Material Settings
-	if world:	world_amb = world.getAmb()
+	if world:	world_amb = tuple(world.ambient_color)
+# 	if world:	world_amb = world.getAmb()
 	else:		world_amb = (0,0,0) # Default value
 	
 	def write_material(matname, mat):
@@ -1109,22 +1138,31 @@ def write(filename, batch_objects = None, \
 		
 		# Todo, add more material Properties.
 		if mat:
-			mat_cold = tuple(mat.rgbCol)
-			mat_cols = tuple(mat.specCol)
+			mat_cold = tuple(mat.diffuse_color)
+# 			mat_cold = tuple(mat.rgbCol)
+			mat_cols = tuple(mat.specular_color)
+# 			mat_cols = tuple(mat.specCol)
 			#mat_colm = tuple(mat.mirCol) # we wont use the mirror color
-			mat_colamb = tuple([c for c in world_amb])
-			
-			mat_dif = mat.ref
-			mat_amb = mat.amb
-			mat_hard = (float(mat.hard)-1)/5.10
-			mat_spec = mat.spec/2.0
+			mat_colamb = world_amb
+# 			mat_colamb = tuple([c for c in world_amb])
+
+			mat_dif = mat.diffuse_reflection
+# 			mat_dif = mat.ref
+			mat_amb = mat.ambient
+# 			mat_amb = mat.amb
+			mat_hard = (float(mat.specular_hardness)-1)/5.10
+# 			mat_hard = (float(mat.hard)-1)/5.10
+			mat_spec = mat.specular_reflection/2.0
+# 			mat_spec = mat.spec/2.0
 			mat_alpha = mat.alpha
 			mat_emit = mat.emit
-			mat_shadeless = mat.mode & Blender.Material.Modes.SHADELESS
+			mat_shadeless = mat.shadeless
+# 			mat_shadeless = mat.mode & Blender.Material.Modes.SHADELESS
 			if mat_shadeless:
 				mat_shader = 'Lambert'
 			else:
-				if mat.diffuseShader == Blender.Material.Shaders.DIFFUSE_LAMBERT:
+				if mat.diffuse_shader == 'LAMBERT':
+# 				if mat.diffuseShader == Blender.Material.Shaders.DIFFUSE_LAMBERT:
 					mat_shader = 'Lambert'
 				else:
 					mat_shader = 'Phong'
@@ -3102,11 +3140,16 @@ if __name__ == '__main__':
 		write_ui()
 
 # NOTES (all line numbers correspond to original export_fbx.py (under release/scripts)
-#
 # - Draw.PupMenu alternative in 2.5?, temporarily replaced PupMenu with print
 # - get rid of cleanName somehow
-# - new scene creation, activation: lines 327-342, 368
+# - isinstance(inst, bpy.types.*) doesn't work on RNA objects: line 565
 
 # TODO
 
-# bpy.data.remove_scene: line 366
+# - bpy.data.remove_scene: line 366
+# - bpy.sys.time move to bpy.sys.util?
+# - new scene creation, activation: lines 327-342, 368
+# - uses bpy.sys.expandpath, *.relpath - replace at least relpath
+
+# SMALL or COSMETICAL
+# - find a way to get blender version, and put it in bpy.util?, old was Blender.Get('version')

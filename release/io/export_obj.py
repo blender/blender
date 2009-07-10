@@ -389,15 +389,12 @@ def write(filename, objects, scene,
 		if ob_main.dupli_type != 'NONE':
 			obs = [(dob.object, dob.matrix) for dob in ob_main.dupli_list]
 
-			# XXX
+			# XXX debug print
 			print(ob_main.name, 'has', len(obs), 'dupli children')
 		else:
 			obs = [(ob_main, ob_main.matrix)]
 
 		for ob, ob_mat in obs:
-
-			if EXPORT_ROTX90:
-				ob_mat = ob_mat * mat_xrot90
 
 			# XXX postponed
 #			# Nurbs curve support
@@ -418,7 +415,10 @@ def write(filename, objects, scene,
 			else:
 				me = ob.data.create_copy()
 
-			me.transform(ob_mat)
+			if EXPORT_ROTX90:
+				me.transform(ob_mat * mat_xrot90)
+			else:
+				me.transform(ob_mat)
 
 #			# Will work for non meshes now! :)
 #			me= BPyMesh.getMeshFromObject(ob, containerMesh, EXPORT_APPLY_MODIFIERS, EXPORT_POLYGROUPS, scn)
@@ -961,5 +961,5 @@ if __name__ == "__main__":
 # - duplis - only tested dupliverts
 # - NURBS - needs API additions
 # - all scenes export
-# - normals calculation
+# + normals calculation
 # - get rid of cleanName somehow

@@ -610,6 +610,7 @@ static void rna_def_bone(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_SELECTED);
 	RNA_def_property_ui_text(prop, "Selected", "");
 
+	/* XXX better matrix descriptions possible (Arystan) */
 	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "bone_mat");
 	RNA_def_property_array(prop, 9);
@@ -618,7 +619,27 @@ static void rna_def_bone(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "armature_matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "arm_mat");
 	RNA_def_property_array(prop, 16);
-	RNA_def_property_ui_text(prop, "Bone Armature Matrix", "4x4 bone matrix relative to armature.");
+	RNA_def_property_ui_text(prop, "Bone Armature-Relative Matrix", "4x4 bone matrix relative to armature.");
+
+	prop= RNA_def_property(srna, "tail", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "tail");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Tail", "Location of tail end of the bone.");
+
+	prop= RNA_def_property(srna, "armature_tail", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "arm_tail");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Armature-Relative Tail", "Location of tail end of the bone relative to armature.");
+
+	prop= RNA_def_property(srna, "head", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "head");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Head", "Location of head end of the bone.");
+
+	prop= RNA_def_property(srna, "armature_head", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "arm_head");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Armature-Relative Head", "Location of head end of the bone relative to armature.");
 }
 
 static void rna_def_edit_bone(BlenderRNA *brna)
