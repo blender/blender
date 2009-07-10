@@ -84,12 +84,12 @@
 FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile)
 {
 	if (!sfile->params) {
-		ED_fileselect_set_params(sfile, "", "/", 0, FILE_SHORTDISPLAY, 0, FILE_SORT_ALPHA);
+		ED_fileselect_set_params(sfile, "", NULL, "/", 0, FILE_SHORTDISPLAY, 0, FILE_SORT_ALPHA);
 	}
 	return sfile->params;
 }
 
-short ED_fileselect_set_params(SpaceFile *sfile, const char *title, const char *path,
+short ED_fileselect_set_params(SpaceFile *sfile, const char *title, const char *last_dir, const char *path,
 							   short flag, short display, short filter, short sort)
 {
 	char name[FILE_MAX], dir[FILE_MAX], file[FILE_MAX];
@@ -107,14 +107,19 @@ short ED_fileselect_set_params(SpaceFile *sfile, const char *title, const char *
 	params->sort = sort;
 
 	BLI_strncpy(params->title, title, sizeof(params->title));
-	
-	BLI_strncpy(name, path, sizeof(name));
-	BLI_convertstringcode(name, G.sce);
 
-	BLI_split_dirfile(name, dir, file);
-	BLI_strncpy(params->file, file, sizeof(params->file));
-	BLI_strncpy(params->dir, dir, sizeof(params->dir));
-	BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */			
+	if(last_dir){
+		BLI_strncpy(params->dir, last_dir, sizeof(params->dir));
+	}
+	else {
+		BLI_strncpy(name, path, sizeof(name));
+		BLI_convertstringcode(name, G.sce);
+
+		BLI_split_dirfile(name, dir, file);
+		BLI_strncpy(params->file, file, sizeof(params->file));
+		BLI_strncpy(params->dir, dir, sizeof(params->dir));
+		BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */			
+	}
 
 	return 1;
 }
@@ -281,4 +286,19 @@ FileLayout* ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar
 		ED_fileselect_init_layout(sfile, ar);
 	}
 	return sfile->layout;
+}
+
+void file_change_dir(struct SpaceFile *sfile)
+{
+	if (sfile->params) {
+		filelist_setdir(sfile->files, sfile->params->dir);
+
+		if(folderlist_clear_next(sfile))
+			folderlist_free(sfile->folders_next);
+
+		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
+
+		filelist_free(sfile->files);
+		sfile->params->active_file = -1;
+	}
 }

@@ -211,11 +211,15 @@ static void template_ID(bContext *C, uiBlock *block, TemplateID *template, Struc
 
 	if(idptr.type)
 		type= idptr.type;
-	if(type)
-		uiDefIconBut(block, LABEL, 0, RNA_struct_ui_icon(type), 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
-	if(flag & UI_ID_BROWSE)
-		uiDefBlockButN(block, search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X, UI_UNIT_Y, "Browse ID data");
+	if(flag & UI_ID_BROWSE) {
+		but= uiDefBlockButN(block, search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X*1.6, UI_UNIT_Y, "Browse ID data");
+		if(type) {
+			but->icon= RNA_struct_ui_icon(type);
+			but->flag|= UI_HAS_ICON;
+			but->flag|= UI_ICON_LEFT;
+		}
+	}
 
 	/* text button with name */
 	if(idptr.data) {
@@ -487,7 +491,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 		    	ParticleSystem *psys= ((ParticleSystemModifierData *)md)->psys;
 
 	    		if(!(G.f & G_PARTICLEEDIT))
-					if(ELEM3(psys->part->draw_as, PART_DRAW_PATH, PART_DRAW_GR, PART_DRAW_OB) && psys->pathcache)
+					if(ELEM3(psys->part->ren_as, PART_DRAW_PATH, PART_DRAW_GR, PART_DRAW_OB) && psys->pathcache)
 						uiItemO(row, "Convert", 0, "OBJECT_OT_modifier_convert");
 			}
 			else

@@ -341,24 +341,27 @@ void bvhselftree_update_from_cloth(ClothModifierData *clmd, int moving)
 }
 
 int modifiers_indexInObject(Object *ob, ModifierData *md_seek);
-static void cloth_write_state(int index, Cloth *cloth, float *data)
+static void cloth_write_state(int index, void *cloth_v, float *data)
 {
+	Cloth *cloth= cloth_v;
 	ClothVertex *vert = cloth->verts + index;
 
 	memcpy(data, vert->x, 3 * sizeof(float));
 	memcpy(data + 3, vert->xconst, 3 * sizeof(float));
 	memcpy(data + 6, vert->v, 3 * sizeof(float));
 }
-static void cloth_read_state(int index, Cloth *cloth, float *data)
+static void cloth_read_state(int index, void *cloth_v, float *data)
 {
+	Cloth *cloth= cloth_v;
 	ClothVertex *vert = cloth->verts + index;
 	
 	memcpy(vert->x, data, 3 * sizeof(float));
 	memcpy(vert->xconst, data + 3, 3 * sizeof(float));
 	memcpy(vert->v, data + 6, 3 * sizeof(float));
 }
-static void cloth_cache_interpolate(int index, Cloth *cloth, float frs_sec, float cfra, float cfra1, float cfra2, float *data1, float *data2)
+static void cloth_cache_interpolate(int index, void *cloth_v, float frs_sec, float cfra, float cfra1, float cfra2, float *data1, float *data2)
 {
+	Cloth *cloth= cloth_v;
 	ClothVertex *vert = cloth->verts + index;
 	ParticleKey keys[4];
 	float dfra;

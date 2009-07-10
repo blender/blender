@@ -1010,15 +1010,7 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
 	
 	
 	if (in_view == 0) {
-		/* handles are only activated if the mouse is within the relative quater lengths of the scroller */
-		int qLen = (sc_max + sc_min) / 4;
-		
-		if (mouse >= (sc_max - qLen))
-			return SCROLLHANDLE_MAX;
-		else if (mouse <= qLen)
-			return SCROLLHANDLE_MIN;
-		else
-			return SCROLLHANDLE_BAR;
+		return SCROLLHANDLE_BAR;
 	}
 	
 	/* check if mouse is in or past either handle */
@@ -1128,14 +1120,14 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
 	/* type of movement */
 	switch (vsm->zone) {
 		case SCROLLHANDLE_MIN:
+		case SCROLLHANDLE_MAX:
+			
 			/* only expand view on axis if zoom is allowed */
 			if ((vsm->scroller == 'h') && !(v2d->keepzoom & V2D_LOCKZOOM_X))
 				v2d->cur.xmin -= temp;
 			if ((vsm->scroller == 'v') && !(v2d->keepzoom & V2D_LOCKZOOM_Y))
 				v2d->cur.ymin -= temp;
-			break;
 		
-		case SCROLLHANDLE_MAX:
 			/* only expand view on axis if zoom is allowed */
 			if ((vsm->scroller == 'h') && !(v2d->keepzoom & V2D_LOCKZOOM_X))
 				v2d->cur.xmax += temp;

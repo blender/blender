@@ -285,6 +285,8 @@ EditBone * subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *
 	EditBone *lastBone = NULL;
 	EditBone *child = NULL;
 	EditBone *parent = NULL;
+	float *normal = NULL;
+	float size_buffer = 1.2;
 	int bone_start = 0;
 	int end = iter->length;
 	int index;
@@ -293,6 +295,13 @@ EditBone * subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *
 	
 	parent = addEditBone(arm, "Bone");
 	VECCOPY(parent->head, iter->p);
+	
+	if (iter->size > 0)
+	{
+		parent->rad_head = iter->size * size_buffer;
+	}
+	
+	normal = iter->no;
 	
 	index = next_subdividion(toolsettings, iter, bone_start, end, parent->head, parent->tail);
 	while (index != -1)
@@ -304,13 +313,21 @@ EditBone * subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *
 		child->parent = parent;
 		child->flag |= BONE_CONNECTED;
 		
+		if (iter->size > 0)
+		{
+			child->rad_head = iter->size * size_buffer;
+			parent->rad_tail = iter->size * size_buffer;
+		}
+
 		/* going to next bone, fix parent */
 		Mat4MulVecfl(invmat, parent->tail);
 		Mat4MulVecfl(invmat, parent->head);
-		setBoneRollFromNormal(parent, iter->no, invmat, tmat);
+		setBoneRollFromNormal(parent, normal, invmat, tmat);
 
 		parent = child; // new child is next parent
 		bone_start = index; // start next bone from current index
+
+		normal = iter->no; /* use normal at head, not tail */
 
 		index = next_subdividion(toolsettings, iter, bone_start, end, parent->head, parent->tail);
 	}
@@ -318,7 +335,11 @@ EditBone * subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *
 	iter->tail(iter);
 
 	VECCOPY(parent->tail, iter->p);
-
+	if (iter->size > 0)
+	{
+		parent->rad_tail = iter->size * size_buffer;
+	}
+		
 	/* fix last bone */
 	Mat4MulVecfl(invmat, parent->tail);
 	Mat4MulVecfl(invmat, parent->head);

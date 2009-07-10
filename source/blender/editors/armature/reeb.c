@@ -3179,6 +3179,7 @@ static void setIteratorValues(ReebArcIterator *iter, EmbedBucket *bucket)
 		iter->p = NULL;
 		iter->no = NULL;
 	}
+	iter->size = 0;
 }
 
 void initArcIterator(BArcIterator *arg, ReebArc *arc, ReebNode *head)
@@ -3276,6 +3277,7 @@ static void* headNode(void *arg)
 	
 	iter->p = node->p;
 	iter->no = node->no;
+	iter->size = 0;
 	
 	return node;
 }
@@ -3296,6 +3298,7 @@ static void* tailNode(void *arg)
 	
 	iter->p = node->p;
 	iter->no = node->no;
+	iter->size = 0;
 	
 	return node;
 }

@@ -378,9 +378,12 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 			else
 				WM_operator_free(op);
 		}
-		else if(!(retval & OPERATOR_RUNNING_MODAL)) {
-			WM_operator_free(op);
+		else if(retval & OPERATOR_RUNNING_MODAL) {
+			/* automatically grab cursor during modal ops (X11) */
+			WM_cursor_grab(CTX_wm_window(C), 1);
 		}
+		else
+			WM_operator_free(op);
 	}
 
 	return retval;
@@ -548,6 +551,7 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 			}
 
 			WM_operator_free(handler->op);
+			WM_cursor_grab(CTX_wm_window(C), 0);
 		}
 		else if(handler->ui_remove) {
 			ScrArea *area= CTX_wm_area(C);
@@ -704,6 +708,8 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			
 			/* remove modal handler, operator itself should have been cancelled and freed */
 			if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
+				WM_cursor_grab(CTX_wm_window(C), 0);
+
 				BLI_remlink(handlers, handler);
 				wm_event_free_handler(handler);
 				
@@ -780,7 +786,7 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 		case EVT_FILESELECT_FULL_OPEN: 
 			{
 				short flag =0; short display =FILE_SHORTDISPLAY; short filter =0; short sort =FILE_SORT_ALPHA;
-				char *path= RNA_string_get_alloc(handler->op->ptr, "filename", NULL, 0);
+				char *dir= NULL; char *path= RNA_string_get_alloc(handler->op->ptr, "filename", NULL, 0);
 					
 				if(event->val==EVT_FILESELECT_OPEN)
 					ED_area_newspace(C, handler->op_area, SPACE_FILE);
@@ -798,9 +804,11 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 					filter = sfile->params->filter;
 					display = sfile->params->display;
 					sort = sfile->params->sort;
+					dir = sfile->params->dir;
 				}
 
-				ED_fileselect_set_params(sfile, handler->op->type->name, path, flag, display, filter, sort);
+				ED_fileselect_set_params(sfile, handler->op->type->name, dir, path, flag, display, filter, sort);
+				dir = NULL;
 				MEM_freeN(path);
 				
 				action= WM_HANDLER_BREAK;
@@ -1501,4 +1509,3 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			break;
 	}
 }
-

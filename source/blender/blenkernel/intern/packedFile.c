@@ -377,8 +377,6 @@ there was an error or when the user desides to cancel the operation.
 
 char *unpackFile(ReportList *reports, char *abs_name, char *local_name, PackedFile *pf, int how)
 {
-	char menu[6 *(FILE_MAXDIR + FILE_MAXFILE + 100)];
-	char line[FILE_MAXDIR + FILE_MAXFILE + 100];
 	char *newname = NULL, *temp = NULL;
 	
 	// char newabs[FILE_MAXDIR + FILE_MAXFILE];

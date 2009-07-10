@@ -1224,14 +1224,14 @@ void UI_view2d_grid_free(View2DGrid *grid)
  * 		   For now, we don't need to have a separate (internal) header for structs like this...
  */
 struct View2DScrollers {
-	rcti hor, vert;			/* exact size of slider backdrop */
-	int horfull, vertfull;	/* set if sliders are full, we don't draw them */
-	
 		/* focus bubbles */
 	int vert_min, vert_max;	/* vertical scrollbar */
 	int hor_min, hor_max;	/* horizontal scrollbar */
 	
-		/* scales */
+	rcti hor, vert;			/* exact size of slider backdrop */
+	int horfull, vertfull;	/* set if sliders are full, we don't draw them */
+	
+	/* scales */
 	View2DGrid *grid;		/* grid for coordinate drawing */
 	short xunits, xclamp;	/* units and clamping options for x-axis */
 	short yunits, yclamp;	/* units and clamping options for y-axis */
@@ -1296,8 +1296,10 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		if (scrollers->hor_min > scrollers->hor_max) 
 			scrollers->hor_min= scrollers->hor_max;
 		
-		if(fac1 <= 0.0f && fac2 >= 1.0f) 
-			scrollers->horfull= 1;
+		/* check whether sliders can disappear */
+		if(v2d->keeptot)
+			if(fac1 <= 0.0f && fac2 >= 1.0f) 
+				scrollers->horfull= 1;
 	}
 	
 	/* vertical scrollers */
@@ -1321,8 +1323,10 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		if (scrollers->vert_min > scrollers->vert_max) 
 			scrollers->vert_min= scrollers->vert_max;
 		
-		if(fac1 <= 0.0f && fac2 >= 1.0f) 
-			scrollers->vertfull= 1;
+		/* check whether sliders can disappear */
+		if(v2d->keeptot)
+			if(fac1 <= 0.0f && fac2 >= 1.0f) 
+				scrollers->vertfull= 1;
 	}
 	
 	/* grid markings on scrollbars */
@@ -1472,13 +1476,17 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			bTheme *btheme= U.themes.first;
 			uiWidgetColors wcol= btheme->tui.wcol_scroll;
 			rcti slider;
+			int state;
 			
 			slider.xmin= vs->hor_min;
 			slider.xmax= vs->hor_max;
 			slider.ymin= hor.ymin;
 			slider.ymax= hor.ymax;
 			
-			widget_scroll_draw(&wcol, &hor, &slider, (v2d->scroll_ui & V2D_SCROLL_H_ACTIVE)?UI_SELECT:0);
+			state= (v2d->scroll_ui & V2D_SCROLL_H_ACTIVE)?UI_SCROLL_PRESSED:0;
+			if (!(v2d->keepzoom & V2D_LOCKZOOM_X))
+				state |= UI_SCROLL_ARROWS;
+			uiWidgetScrollDraw(&wcol, &hor, &slider, state);
 		}
 		
 		/* scale indicators */
@@ -1564,13 +1572,17 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			bTheme *btheme= U.themes.first;
 			uiWidgetColors wcol= btheme->tui.wcol_scroll;
 			rcti slider;
+			int state;
 			
 			slider.xmin= vert.xmin;
 			slider.xmax= vert.xmax;
 			slider.ymin= vs->vert_min;
 			slider.ymax= vs->vert_max;
 			
-			widget_scroll_draw(&wcol, &vert, &slider, (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE)?UI_SELECT:0);
+			state= (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE)?UI_SCROLL_PRESSED:0;
+			if (!(v2d->keepzoom & V2D_LOCKZOOM_Y))
+				state |= UI_SCROLL_ARROWS;
+			uiWidgetScrollDraw(&wcol, &vert, &slider, state);
 		}
 		
 		

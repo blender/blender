@@ -37,8 +37,7 @@
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
-
-#include "BIF_transform.h"
+#include "ED_transform.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -59,6 +58,8 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_link);
 	WM_operatortype_append(NODE_OT_resize);
 	WM_operatortype_append(NODE_OT_links_cut);
+	WM_operatortype_append(NODE_OT_duplicate);
+	
 }
 
 void node_keymap(struct wmWindowManager *wm)
@@ -70,6 +71,8 @@ void node_keymap(struct wmWindowManager *wm)
 	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_select", SELECTMOUSE, KM_PRESS, 0, 0)->ptr, "select_type", NODE_SELECT_MOUSE);
 	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_select_extend", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select_type", NODE_SELECT_MOUSE);
 	RNA_enum_set(WM_keymap_add_item(keymap, "NODE_OT_select_extend", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "select_type", NODE_SELECT_MOUSE);
+	
+	WM_keymap_add_item(keymap, "NODE_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_resize", LEFTMOUSE, KM_PRESS, 0, 0);

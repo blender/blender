@@ -4551,13 +4551,10 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					
 					SpaceFile *sfile= (SpaceFile *)sl;
 					sfile->files= NULL;
+					sfile->folders_prev= NULL;
+					sfile->folders_next= NULL;
 					sfile->params= NULL;
 					sfile->op= NULL;
-					/* XXX needs checking - best solve in filesel itself 
-					if(sfile->libfiledata)	
-						BLO_blendhandle_close(sfile->libfiledata);
-					sfile->libfiledata= 0;
-					*/
 				}
 				else if(sl->spacetype==SPACE_IMASEL) {
                     SpaceImaSel *simasel= (SpaceImaSel *)sl;
@@ -9096,14 +9093,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		//do_versions_ipos_to_animato(main);
 		
 		/* toolsettings */
-		for(scene= main->scene.first; scene; scene= scene->id.next) {
+		for(scene= main->scene.first; scene; scene= scene->id.next)
 			scene->r.audio = scene->audio;
-			
-			if(!scene->toolsettings->uv_selectmode) {
-				scene->toolsettings->uv_selectmode= UV_SELECT_VERTEX;
-				scene->toolsettings->vgroup_weight= 1.0f;
-			}
-		}
 		
 		/* shader, composit and texture node trees have id.name empty, put something in
 		 * to have them show in RNA viewer and accessible otherwise.
@@ -9143,6 +9134,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					part->draw_as = PART_DRAW_REND;
 				}
 			}
+			part->path_end = 1.0f;
 		}
 		/* set old pointcaches to have disk cache flag */
 		for(ob = main->object.first; ob; ob= ob->id.next) {
@@ -9172,7 +9164,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				void *olddata = ob->data;
 				ob->data = me;
 
-				if(me && me->mr) {
+				if(me && me->id.lib==NULL && me->mr) { /* XXX - library meshes crash on loading most yoFrankie levels, the multires pointer gets invalid -  Campbell */
 					MultiresLevel *lvl;
 					ModifierData *md;
 					MultiresModifierData *mmd;
@@ -9238,7 +9230,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
 			ts= sce->toolsettings;
-			if(ts->normalsize == 0.0) {
+			if(ts->normalsize == 0.0 || !ts->uv_selectmode || ts->vgroup_weight == 0.0) {
 				ts->normalsize= 0.1f;
 				ts->selectmode= SCE_SELECT_VERTEX;
 				
@@ -9249,6 +9241,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ts->autokey_mode= U.autokey_mode;
 				if (ts->autokey_mode == 0) 
 					ts->autokey_mode= 2; /* 'add/replace' but not on */
+				ts->uv_selectmode= UV_SELECT_VERTEX;
+				ts->vgroup_weight= 1.0f;
 			}
 		}
 	}

@@ -3775,8 +3775,7 @@ static void ui_handle_button_return_submenu(bContext *C, wmEvent *event, uiBut *
 			button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 		}
 		else {
-			but= ui_but_find_activated(data->region);
-			if(but) {
+			if(event->type != MOUSEMOVE) {
 				but->active->used_mouse= 0;
 				button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 			}

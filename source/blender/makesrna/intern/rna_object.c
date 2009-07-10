@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
 
@@ -445,6 +446,21 @@ static void rna_Object_active_shape_key_index_set(PointerRNA *ptr, int value)
 
 	ob->shapenr= value+1;
 	ob->shapeflag |= OB_SHAPE_TEMPLOCK;
+}
+
+static PointerRNA rna_Object_active_shape_key_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	Key *key= ob_get_key(ob);
+	KeyBlock *kb;
+	PointerRNA keyptr;
+
+	if(key==NULL)
+		return PointerRNA_NULL;
+	
+	kb= BLI_findlink(&key->block, ob->shapenr-1);
+	RNA_pointer_create(&key->id, &RNA_ShapeKey, kb, &keyptr);
+	return keyptr;
 }
 
 static void rna_Object_shape_key_lock_set(PointerRNA *ptr, int value)
@@ -1254,7 +1270,13 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "shapeflag", OB_SHAPE_LOCK);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Object_shape_key_lock_set");
 	RNA_def_property_ui_text(prop, "Shape Key Lock", "Always show the current Shape for this Object.");
+	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
+
+	prop= RNA_def_property(srna, "active_shape_key", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ShapeKey");
+	RNA_def_property_pointer_funcs(prop, "rna_Object_active_shape_key_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Shape Key", "Current shape key.");
 
 	prop= RNA_def_property(srna, "active_shape_key_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "shapenr");

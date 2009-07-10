@@ -85,6 +85,12 @@ typedef Py_ssize_t (*lenfunc)(PyObject *);
 #ifndef Py_RETURN_TRUE
 #define Py_RETURN_TRUE  return PyBool_FromLong(1)
 #endif
+
+#define PyInt_FromSsize_t PyInt_FromLong
+#define PyNumber_AsSsize_t(ob, exc) PyInt_AsLong(ob)
+#define PyIndex_Check(ob) PyInt_Check(ob)
+
+
 #endif
 
 

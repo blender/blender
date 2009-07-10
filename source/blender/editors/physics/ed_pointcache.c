@@ -82,6 +82,7 @@ static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 	baker.pid = NULL;
 	baker.bake = RNA_boolean_get(op->ptr, "bake");
 	baker.render = 0;
+	baker.anim_init = 0;
 	baker.quick_step = 1;
 	baker.break_test = cache_break_test;
 	baker.break_data = NULL;
@@ -172,10 +173,11 @@ static int ptcache_bake_cloth_exec(bContext *C, wmOperator *op)
 	baker.pid = &pid;
 	baker.bake = RNA_boolean_get(op->ptr, "bake");
 	baker.render = 0;
+	baker.anim_init = 0;
 	baker.quick_step = 1;
 	baker.break_test = cache_break_test;
 	baker.break_data = NULL;
-	baker.progressbar = WM_timecursor;
+	baker.progressbar = (void (*)(void *, int))WM_timecursor;
 	baker.progresscontext = CTX_wm_window(C);
 
 	BKE_ptcache_make_cache(&baker);
@@ -277,6 +279,7 @@ static int ptcache_bake_particle_system_exec(bContext *C, wmOperator *op)
 	baker.pid = &pid;
 	baker.bake = RNA_boolean_get(op->ptr, "bake");
 	baker.render = 0;
+	baker.anim_init = 0;
 	baker.quick_step = 1;
 	baker.break_test = cache_break_test;
 	baker.break_data = NULL;

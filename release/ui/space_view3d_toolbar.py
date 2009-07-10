@@ -15,7 +15,7 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 	def draw(self, context):
 		layout = self.layout
 
-		layout.row().itemO("OBJECT_OT_duplicate_add")
+		layout.row().itemO("OBJECT_OT_duplicate")
 		layout.row().itemO("OBJECT_OT_delete")
 		layout.row().itemO("OBJECT_OT_mesh_add")
 		layout.row().itemO("OBJECT_OT_curve_add")
@@ -36,7 +36,7 @@ class VIEW3D_PT_tools_editmode_mesh(View3DPanel):
 	def draw(self, context):
 		layout = self.layout
 
-		layout.row().itemO("MESH_OT_duplicate_add")
+		layout.row().itemO("MESH_OT_duplicate")
 		layout.row().itemO("MESH_OT_delete")
 		layout.row().itemO("MESH_OT_spin")
 		layout.row().itemO("MESH_OT_screw")

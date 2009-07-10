@@ -199,6 +199,10 @@ void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_enum_items(prop, prop_mode_items);
 	RNA_def_property_ui_text(prop, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
 
+	prop= RNA_def_property(srna, "automerge_editing", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "automerge", 0);
+	RNA_def_property_ui_text(prop, "AutoMerge Editing", "Automatically merge vertices moved to the same location.");
+
 	prop= RNA_def_property(srna, "snap", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP);
 	RNA_def_property_ui_text(prop, "Snap", "Snap while Ctrl is held during transform.");

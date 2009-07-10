@@ -86,6 +86,7 @@ typedef struct SpaceInfo {
 } SpaceInfo;
 
 /* 'Graph' Editor (formerly known as the IPO Editor) */
+/* XXX for now, we keep all old data... */
 typedef struct SpaceIpo {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
@@ -186,21 +187,6 @@ typedef struct FileSelectParams {
 	/* XXX --- end unused -- */
 } FileSelectParams;
 
-/* FileSelectParams.display */
-enum FileDisplayTypeE {
-	FILE_SHORTDISPLAY = 1,
-	FILE_LONGDISPLAY,
-	FILE_IMGDISPLAY
-};
-
-/* FileSelectParams.sort */
-enum FileSortTypeE {
-	FILE_SORT_NONE = 0,
-	FILE_SORT_ALPHA = 1,
-	FILE_SORT_EXTENSION,
-	FILE_SORT_TIME,
-	FILE_SORT_SIZE
-};
 
 typedef struct SpaceFile {
 	SpaceLink *next, *prev;
@@ -211,6 +197,9 @@ typedef struct SpaceFile {
 	struct FileSelectParams *params; /* config and input for file select */
 	
 	struct FileList *files; /* holds the list of files to show */
+
+	ListBase *folders_prev; /* holds the list of previous directories to show */
+	ListBase *folders_next; /* holds the list of next directories (pushed from previous) to show */
 
 	/* operator that is invoking fileselect 
 	   op->exec() will be called on the 'Load' button.
@@ -564,6 +553,22 @@ typedef struct SpaceImaSel {
 #define BUTS_ACT_LINK		256
 #define BUTS_SENS_STATE		512
 #define BUTS_ACT_STATE		1024
+
+/* FileSelectParams.display */
+enum FileDisplayTypeE {
+	FILE_SHORTDISPLAY = 1,
+	FILE_LONGDISPLAY,
+	FILE_IMGDISPLAY
+};
+
+/* FileSelectParams.sort */
+enum FileSortTypeE {
+	FILE_SORT_NONE = 0,
+	FILE_SORT_ALPHA = 1,
+	FILE_SORT_EXTENSION,
+	FILE_SORT_TIME,
+	FILE_SORT_SIZE
+};
 
 /* these values need to be hardcoded in structs, dna does not recognize defines */
 /* also defined in BKE */

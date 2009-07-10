@@ -83,33 +83,38 @@ int ED_object_modifier_add(ReportList *reports, Scene *scene, Object *ob, int ty
 		}
 	}
 
-	if(mti->flags&eModifierTypeFlag_RequiresOriginalData) {
-		md = ob->modifiers.first;
-
-		while(md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform)
-			md = md->next;
-
-		BLI_insertlinkbefore(&ob->modifiers, md, modifier_new(type));
+	if(type == eModifierType_ParticleSystem) {
+		object_add_particle_system(scene, ob);
 	}
-	else
-		BLI_addtail(&ob->modifiers, modifier_new(type));
-	
-	/* special cases */
-	if(type == eModifierType_Softbody) {
-		if(!ob->soft) {
-			ob->soft= sbNew(scene);
-			ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
+	else {
+		if(mti->flags&eModifierTypeFlag_RequiresOriginalData) {
+			md = ob->modifiers.first;
+
+			while(md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform)
+				md = md->next;
+
+			BLI_insertlinkbefore(&ob->modifiers, md, modifier_new(type));
 		}
-	}
-	else if(type == eModifierType_Collision) {
-		if(!ob->pd)
-			ob->pd= object_add_collision_fields();
+		else
+			BLI_addtail(&ob->modifiers, modifier_new(type));
+		
+		/* special cases */
+		if(type == eModifierType_Softbody) {
+			if(!ob->soft) {
+				ob->soft= sbNew(scene);
+				ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
+			}
+		}
+		else if(type == eModifierType_Collision) {
+			if(!ob->pd)
+				ob->pd= object_add_collision_fields();
 
-		ob->pd->deflect= 1;
-        DAG_scene_sort(scene);
+			ob->pd->deflect= 1;
+			DAG_scene_sort(scene);
+		}
+		else if(type == eModifierType_Surface)
+			DAG_scene_sort(scene);
 	}
-	else if(type == eModifierType_Surface)
-        DAG_scene_sort(scene);
 
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 
@@ -226,11 +231,11 @@ int ED_object_modifier_convert(ReportList *reports, Scene *scene, Object *ob, Mo
 	psys=((ParticleSystemModifierData *)md)->psys;
 	part= psys->part;
 
-	if(part->draw_as == PART_DRAW_GR || part->draw_as == PART_DRAW_OB) {
+	if(part->ren_as == PART_DRAW_GR || part->ren_as == PART_DRAW_OB) {
 		; // XXX make_object_duplilist_real(NULL);
 	}
 	else {
-		if(part->draw_as != PART_DRAW_PATH || psys->pathcache == 0)
+		if(part->ren_as != PART_DRAW_PATH || psys->pathcache == 0)
 			return 0;
 
 		totpart= psys->totcached;
@@ -331,6 +336,10 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 		}
 	
 		mesh_pmv_off(ob, me);
+
+               /* Multires: ensure that recent sculpting is applied */
+               if(md->type == eModifierType_Multires)
+                       multires_force_update(ob);
 	
 		dm = mesh_create_derived_for_modifier(scene, ob, md);
 		if (!dm) {
@@ -763,9 +772,7 @@ static uiBlock *modifiers_add_menu(void *ob_v)
 		ModifierTypeInfo *mti = modifierType_getInfo(i);
 
 		/* Only allow adding through appropriate other interfaces */
-		if(ELEM3(i, eModifierType_Softbody, eModifierType_Hook, eModifierType_ParticleSystem)) continue;
-		
-		if(ELEM4(i, eModifierType_Cloth, eModifierType_Collision, eModifierType_Surface, eModifierType_Fluidsim)) continue;
+		if(ELEM(i, eModifierType_ParticleSystem, eModifierType_Surface)) continue;
 
 		if((mti->flags&eModifierTypeFlag_AcceptsCVs) ||
 		   (ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {

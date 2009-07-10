@@ -27,8 +27,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BIF_RETOPO_H
-#define BIF_RETOPO_H
+#ifndef ED_RETOPO_H
+#define ED_RETOPO_H
 
 #include "DNA_vec_types.h"
 
@@ -108,3 +108,4 @@ void retopo_matrix_update(struct View3D *v3d);
 void retopo_free_view_data(struct View3D *v3d);
 
 #endif
+

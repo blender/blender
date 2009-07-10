@@ -218,7 +218,7 @@ void BLI_builddir(char *dirname, char *relname)
 {
 	struct dirent *fname;
 	struct dirlink *dlink;
-	int rellen, newnum = 0, ignore;
+	int rellen, newnum = 0;
 	char buf[256];
 	DIR *dir;
 

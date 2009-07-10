@@ -65,6 +65,7 @@ void		WM_cursor_set		(struct wmWindow *win, int curs);
 void		WM_cursor_modal		(struct wmWindow *win, int curs);
 void		WM_cursor_restore	(struct wmWindow *win);
 void		WM_cursor_wait		(int val);
+void		WM_cursor_grab		(struct wmWindow *win, int val);
 void		WM_timecursor		(struct wmWindow *win, int nr);
 
 void		*WM_paint_cursor_activate(struct wmWindowManager *wm, int (*poll)(struct bContext *C), void (*draw)(struct bContext *C, int, int, void *customdata), void *customdata);
@@ -124,7 +125,7 @@ int			WM_operator_filesel		(struct bContext *C, struct wmOperator *op, struct wm
 			/* poll callback, context checks */
 int			WM_operator_winactive	(struct bContext *C);
 			/* invoke callback, exec + redo popup */
-int			WM_operator_redo		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_operator_props_popup	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_operator_redo_popup	(struct bContext *C, struct wmOperator *op);
 
 		/* operator api */
@@ -132,6 +133,7 @@ void		WM_operator_free		(struct wmOperator *op);
 void		WM_operator_stack_clear(struct bContext *C);
 
 wmOperatorType *WM_operatortype_find(const char *idname);
+wmOperatorType *WM_operatortype_exists(const char *idname);
 wmOperatorType *WM_operatortype_first(void);
 void		WM_operatortype_append	(void (*opfunc)(wmOperatorType*));
 void		WM_operatortype_append_ptr	(void (*opfunc)(wmOperatorType*, void *), void *userdata);

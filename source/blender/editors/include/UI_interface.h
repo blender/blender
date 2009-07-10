@@ -51,10 +51,12 @@ struct rcti;
 struct rctf;
 struct uiStyle;
 struct uiFontStyle;
+struct uiWidgetColors;
 struct ColorBand;
 struct CurveMapping;
 struct Image;
 struct ImageUser;
+struct uiWidgetColors;
 
 typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
@@ -213,6 +215,11 @@ int uiGetRoundBox(void);
 void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad);
 void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag, short direction);
 void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
+
+/* state for scrolldrawing */
+#define UI_SCROLL_PRESSED	1
+#define UI_SCROLL_ARROWS	2
+void uiWidgetScrollDraw(struct uiWidgetColors *wcol, struct rcti *rect, struct rcti *slider, int state);
 
 /* Menu Callbacks */
 
@@ -536,11 +543,6 @@ void colorband_buttons(uiBlock *block, struct ColorBand *coba, struct rctf *rect
 void UI_init(void);
 void UI_init_userdef(void);
 void UI_exit(void);
-
-/* XXX hide this */
-
-uiBut *uiDefMenuButO(uiBlock *block, char *opname, char *name);
-uiBut *uiDefMenuSep(uiBlock *block);
 
 /* Layout
  *

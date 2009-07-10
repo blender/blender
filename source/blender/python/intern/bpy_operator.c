@@ -130,11 +130,11 @@ static PyObject *pyop_base_getattro( BPy_OperatorBase * self, PyObject *pyname )
 	PyObject *ret;
 	wmOperatorType *ot;
 	
-	if ((ot= WM_operatortype_find(name))) {
-		ret = PyCFunction_New( pyop_base_call_meth, pyname); /* set the name string as self, PyCFunction_New incref's self */
-	}
-	else if ((ret = PyObject_GenericGetAttr((PyObject *)self, pyname))) {
+	if ((ret = PyObject_GenericGetAttr((PyObject *)self, pyname))) {
 		/* do nothing, this accounts for methoddef's add and remove */
+	}
+	else if ((ot= WM_operatortype_find(name))) {
+		ret = PyCFunction_New( pyop_base_call_meth, pyname); /* set the name string as self, PyCFunction_New incref's self */
 	}
 	else {
 		PyErr_Format( PyExc_AttributeError, "Operator \"%s\" not found", name);

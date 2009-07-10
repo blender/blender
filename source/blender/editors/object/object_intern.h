@@ -45,7 +45,7 @@ void OBJECT_OT_parent_clear(struct wmOperatorType *ot);
 void OBJECT_OT_track_set(struct wmOperatorType *ot);
 void OBJECT_OT_track_clear(struct wmOperatorType *ot);
 void OBJECT_OT_select_all_toggle(struct wmOperatorType *ot);
-void OBJECT_OT_select_invert(struct wmOperatorType *ot);
+void OBJECT_OT_select_inverse(struct wmOperatorType *ot);
 void OBJECT_OT_select_random(struct wmOperatorType *ot);
 void OBJECT_OT_select_by_type(struct wmOperatorType *ot);
 void OBJECT_OT_select_by_layer(struct wmOperatorType *ot);
@@ -61,7 +61,7 @@ void OBJECT_OT_slowparent_clear(struct wmOperatorType *ot);
 void OBJECT_OT_center_set(struct wmOperatorType *ot);
 void OBJECT_OT_dupli_set_real(struct wmOperatorType *ot);
 void OBJECT_OT_object_add(struct wmOperatorType *ot);
-void OBJECT_OT_duplicate_add(struct wmOperatorType *ot);
+void OBJECT_OT_duplicate(struct wmOperatorType *ot);
 void OBJECT_OT_delete(struct wmOperatorType *ot);
 
 void OBJECT_OT_mesh_add(struct wmOperatorType *ot);
@@ -77,6 +77,9 @@ void free_editLatt(Object *ob);
 void make_editLatt(Object *obedit);
 void load_editLatt(Object *obedit);
 void remake_editLatt(Object *obedit);
+
+void LATTICE_OT_select_all_toggle(struct wmOperatorType *ot);
+void LATTICE_OT_make_regular(struct wmOperatorType *ot);
 
 /* editgroup.c */
 void GROUP_OT_group_create(struct wmOperatorType *ot);

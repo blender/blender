@@ -17,11 +17,13 @@ class FILEBROWSER_HT_header(bpy.types.Header):
 			row = layout.row()
 			row.itemM("FILEBROWSER_MT_directory")
 			row.itemM("FILEBROWSER_MT_bookmarks")
-			
+
 		row = layout.row(align=True)
 		row.itemO("FILE_OT_parent", text="", icon='ICON_FILE_PARENT')
 		row.itemO("FILE_OT_refresh", text="", icon='ICON_FILE_REFRESH')
-
+		row.itemO("FILE_OT_previous", text="", icon='ICON_PREV_KEYFRAME')
+		row.itemO("FILE_OT_next", text="", icon='ICON_NEXT_KEYFRAME')
+		
 		layout.itemR(params, "display", expand=True, text="")
 		layout.itemR(params, "sort", expand=True, text="")
 		

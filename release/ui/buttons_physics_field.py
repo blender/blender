@@ -30,6 +30,11 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 class PHYSICS_PT_collision(PhysicButtonsPanel):
 	__idname__ = "PHYSICS_PT_collision"
 	__label__ = "Collision"
+	__default_closed__ = True
+	
+	def poll(self, context):
+		ob = context.object
+		return (ob and ob.type == 'MESH')
 
 	def draw_header(self, context):
 		settings = context.object.collision
@@ -40,9 +45,22 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
 		md = context.collision
 		settings = context.object.collision
 
-		if settings.enabled:
-			pass
+		layout.active = settings.enabled
+		
+		split = layout.split()
+		
+		col = split.column()
+		col.itemL(text="Damping:")
+		col.itemR(settings, "damping_factor", text="Factor");
+		col.itemR(settings, "random_damping", text="Random");
+		
+		col = split.column()
+		col.itemL(text="Friction:")
+		col.itemR(settings, "friction_factor", text="Factor");
+		col.itemR(settings, "random_friction", text="Random");
+		
+		layout.itemR(settings, "permeability");
+		layout.itemR(settings, "kill_particles");
 
 bpy.types.register(PHYSICS_PT_field)
 bpy.types.register(PHYSICS_PT_collision)
-

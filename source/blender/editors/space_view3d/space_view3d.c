@@ -304,6 +304,12 @@ static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 	else
 		WM_event_remove_keymap_handler(&ar->handlers, keymap);
 
+	keymap= WM_keymap_listbase(wm, "Lattice", 0, 0);
+	if(stype==NS_EDITMODE_LATTICE)
+		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+
 	/* armature sketching needs to take over mouse */
 	keymap= WM_keymap_listbase(wm, "Armature_Sketch", 0, 0);
 	if(stype==NS_EDITMODE_TEXT)
@@ -323,7 +329,6 @@ static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 		WM_event_add_keymap_handler_priority(&ar->handlers, keymap, 10);
 	else
 		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-	
 }
 
 /* add handlers, stuff you only do once or on area/region changes */

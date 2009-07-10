@@ -1960,6 +1960,12 @@ PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont_, const char *identifier, co
 	return prop;
 }
 
+void RNA_def_enum_funcs(PropertyRNA *prop, EnumPropertyItemFunc itemfunc)
+{
+	EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
+	eprop->itemf= itemfunc;
+}
+
 PropertyRNA *RNA_def_float(StructOrFunctionRNA *cont_, const char *identifier, float default_value, 
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax)
 {

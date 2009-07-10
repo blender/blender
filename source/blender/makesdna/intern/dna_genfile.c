@@ -616,8 +616,8 @@ static void cast_elem(char *ctype, char *otype, char *name, char *curdata, char 
 	arrlen= DNA_elem_array_size(name, strlen(name));
 	
 	/* define otypenr */
-	if(strcmp(otype, "char")==0) otypenr= 0; 
-	else if((strcmp(otype, "uchar")==0)||(strcmp(otype, "unsigned char")==0)) otypenr= 1;
+	if(strcmp(otype, "char")==0 || (strcmp(otype, "const char")==0)) otypenr= 0; 
+	else if((strcmp(otype, "uchar")==0) || (strcmp(otype, "unsigned char")==0)) otypenr= 1;
 	else if(strcmp(otype, "short")==0) otypenr= 2; 
 	else if((strcmp(otype, "ushort")==0)||(strcmp(otype, "unsigned short")==0)) otypenr= 3;
 	else if(strcmp(otype, "int")==0) otypenr= 4;
@@ -629,6 +629,7 @@ static void cast_elem(char *ctype, char *otype, char *name, char *curdata, char 
 	
 	/* define ctypenr */
 	if(strcmp(ctype, "char")==0) ctypenr= 0; 
+	else if(strcmp(ctype, "const char")==0) ctypenr= 0; 
 	else if((strcmp(ctype, "uchar")==0)||(strcmp(ctype, "unsigned char")==0)) ctypenr= 1;
 	else if(strcmp(ctype, "short")==0) ctypenr= 2; 
 	else if((strcmp(ctype, "ushort")==0)||(strcmp(ctype, "unsigned short")==0)) ctypenr= 3;

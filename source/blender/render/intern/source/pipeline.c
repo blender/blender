@@ -2413,7 +2413,7 @@ static int is_rendering_allowed(Render *re)
 	return 1;
 }
 
-static void update_physics_cache(Render *re, Scene *scene)
+static void update_physics_cache(Render *re, Scene *scene, int anim_init)
 {
 	PTCacheBaker baker;
 
@@ -2421,6 +2421,7 @@ static void update_physics_cache(Render *re, Scene *scene)
 	baker.pid = NULL;
 	baker.bake = 0;
 	baker.render = 1;
+	baker.anim_init = 1;
 	baker.quick_step = 1;
 	baker.break_test = re->test_break;
 	baker.break_data = re->tbh;
@@ -2429,7 +2430,7 @@ static void update_physics_cache(Render *re, Scene *scene)
 	BKE_ptcache_make_cache(&baker);
 }
 /* evaluating scene options for general Blender render */
-static int render_initialize_from_scene(Render *re, Scene *scene, int anim)
+static int render_initialize_from_scene(Render *re, Scene *scene, int anim, int anim_init)
 {
 	int winx, winy;
 	rcti disprect;
@@ -2467,7 +2468,7 @@ static int render_initialize_from_scene(Render *re, Scene *scene, int anim)
 	tag_scenes_for_render(re);
 
 	/* make sure dynamics are up to date */
-	update_physics_cache(re, scene);
+	update_physics_cache(re, scene, anim_init);
 	
 	if(scene->r.scemode & R_SINGLE_LAYER)
 		push_render_result(re);
@@ -2497,7 +2498,7 @@ void RE_BlenderFrame(Render *re, Scene *scene, int frame)
 	
 	scene->r.cfra= frame;
 	
-	if(render_initialize_from_scene(re, scene, 0)) {
+	if(render_initialize_from_scene(re, scene, 0, 0)) {
 		do_render_all_options(re);
 	}
 	
@@ -2586,7 +2587,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 	int nfra;
 	
 	/* do not fully call for each frame, it initializes & pops output window */
-	if(!render_initialize_from_scene(re, scene, 0))
+	if(!render_initialize_from_scene(re, scene, 0, 1))
 		return;
 	
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
@@ -2617,7 +2618,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 			char name[FILE_MAX];
 			
 			/* only border now, todo: camera lens. (ton) */
-			render_initialize_from_scene(re, scene, 1);
+			render_initialize_from_scene(re, scene, 1, 0);
 
 			if(nfra!=scene->r.cfra) {
 				/*

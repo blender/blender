@@ -2619,26 +2619,6 @@ uiBut *uiDefIconTextButO(uiBlock *block, int type, char *opname, int opcontext, 
 	return but;
 }
 
-static int ui_menu_y(uiBlock *block)
-{
-	uiBut *but= block->buttons.last;
-
-	if(but) return but->y1;
-	else return 0;
-}
-
-uiBut *uiDefMenuButO(uiBlock *block, char *opname, char *name)
-{
-	int y= ui_menu_y(block) - MENU_ITEM_HEIGHT;
-	return uiDefIconTextButO(block, BUT, opname, WM_OP_INVOKE_REGION_WIN, ICON_BLANK1, name, 0, y, MENU_WIDTH, MENU_ITEM_HEIGHT-1, NULL);
-}
-
-uiBut *uiDefMenuSep(uiBlock *block)
-{
-	int y= ui_menu_y(block) - MENU_SEP_HEIGHT;
-	return uiDefBut(block, SEPR, 0, "", 0, y, MENU_WIDTH, MENU_SEP_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
-}
-
 /* END Button containing both string label and icon */
 
 void uiSetButLink(uiBut *but, void **poin, void ***ppoin, short *tot, int from, int to)

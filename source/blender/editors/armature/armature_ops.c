@@ -121,7 +121,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_parent_clear);
 	
 	WM_operatortype_append(ARMATURE_OT_select_all_toggle);
-	WM_operatortype_append(ARMATURE_OT_select_invert);
+	WM_operatortype_append(ARMATURE_OT_select_inverse);
 	WM_operatortype_append(ARMATURE_OT_select_hierarchy);
 	WM_operatortype_append(ARMATURE_OT_select_linked);
 
@@ -148,11 +148,12 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_scale_clear);
 	
 	WM_operatortype_append(POSE_OT_select_all_toggle);
-	WM_operatortype_append(POSE_OT_select_invert);
+	WM_operatortype_append(POSE_OT_select_inverse);
 
 	WM_operatortype_append(POSE_OT_select_parent);
 	WM_operatortype_append(POSE_OT_select_hierarchy);
 	WM_operatortype_append(POSE_OT_select_linked);
+	WM_operatortype_append(POSE_OT_select_constraint_target);
 	
 	/* POSELIB */
 	WM_operatortype_append(POSELIB_OT_browse_interactive);
@@ -188,20 +189,18 @@ void ED_keymap_armature(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "ARMATURE_OT_parent_clear", PKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_test", TKEY, KM_PRESS, 0, 0);  // XXX temp test for context iterators... to be removed
 
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, 0, 0);
 		RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
-		RNA_boolean_set(kmi->ptr, "extend", 0);
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 		RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
 		RNA_boolean_set(kmi->ptr, "extend", 1);
 	
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
 		RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
-		RNA_boolean_set(kmi->ptr, "extend", 0);
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 		RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
 		RNA_boolean_set(kmi->ptr, "extend", 1);
@@ -234,20 +233,18 @@ void ED_keymap_armature(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "POSE_OT_scale_clear", SKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "POSE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "POSE_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "POSE_OT_select_parent", PKEY, KM_PRESS, KM_SHIFT, 0);
 
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, 0, 0);
 		RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
-		RNA_boolean_set(kmi->ptr, "extend", 0);
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 		RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_PARENT);
 		RNA_boolean_set(kmi->ptr, "extend", 1);
 	
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
 		RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
-		RNA_boolean_set(kmi->ptr, "extend", 0);
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 		RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
 		RNA_boolean_set(kmi->ptr, "extend", 1);

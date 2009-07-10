@@ -342,6 +342,28 @@ static void vicon_disclosure_tri_right_draw(int x, int y, int w, int h, float al
 	viconutil_draw_lineloop_smooth(pts, 3);
 }
 
+static void vicon_small_tri_right_draw(int x, int y, int w, int h, float alpha)
+{
+	GLint pts[3][2];
+	int cx = x+w/2-4;
+	int cy = y+w/2;
+	int d = w/5, d2 = w/7;
+
+	viconutil_set_point(pts[0], cx-d2, cy+d);
+	viconutil_set_point(pts[1], cx-d2, cy-d);
+	viconutil_set_point(pts[2], cx+d2, cy);
+
+	glColor4f(0.2f, 0.2f, 0.2f, alpha);
+
+	glShadeModel(GL_SMOOTH);
+	glBegin(GL_TRIANGLES);
+	glVertex2iv(pts[0]);
+	glVertex2iv(pts[1]);
+	glVertex2iv(pts[2]);
+	glEnd();
+	glShadeModel(GL_FLAT);
+}
+
 static void vicon_disclosure_tri_down_draw(int x, int y, int w, int h, float alpha)
 {
 	GLint pts[3][2];
@@ -450,6 +472,7 @@ static void init_internal_icons()
 	def_internal_vicon(VICON_MOVE_UP, vicon_move_up_draw);
 	def_internal_vicon(VICON_MOVE_DOWN, vicon_move_down_draw);
 	def_internal_vicon(VICON_X, vicon_x_draw);
+	def_internal_vicon(VICON_SMALL_TRI_RIGHT, vicon_small_tri_right_draw);
 
 	IMB_freeImBuf(bbuf);
 }

@@ -250,6 +250,15 @@ protected:
 	);
 	
 	/**
+	 * Sets the cursor grab on the window using
+	 * native window system calls.
+	 */
+		GHOST_TSuccess 
+	setWindowCursorGrab(
+		bool grab
+	);
+
+	/**
 	 * Sets the cursor shape on the window using
 	 * native window system calls.
 	 */

@@ -46,7 +46,7 @@
 #include "UI_interface.h"
 #include "UI_view2d.h"
 
-#include "BIF_transform.h"
+#include "ED_transform.h"
 
 #include "action_intern.h"
 

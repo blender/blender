@@ -84,7 +84,7 @@ void CURVE_OT_smooth_radius(struct wmOperatorType *ot);
 void CURVE_OT_de_select_first(struct wmOperatorType *ot);
 void CURVE_OT_de_select_last(struct wmOperatorType *ot);
 void CURVE_OT_select_all_toggle(struct wmOperatorType *ot);
-void CURVE_OT_select_invert(struct wmOperatorType *ot);
+void CURVE_OT_select_inverse(struct wmOperatorType *ot);
 void CURVE_OT_select_linked(struct wmOperatorType *ot);
 void CURVE_OT_select_row(struct wmOperatorType *ot);
 void CURVE_OT_select_next(struct wmOperatorType *ot);

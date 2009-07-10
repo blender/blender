@@ -299,10 +299,21 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		col = layout.column_flow()
 		col.itemR(md, "normal")
 		col.itemR(md, "children")
+		col.itemR(md, "size")
 		col.itemR(md, "path")
+		if md.path:
+			col.itemR(md, "keep_shape")
 		col.itemR(md, "unborn")
 		col.itemR(md, "alive")
 		col.itemR(md, "dead")
+		col.itemL(md, "")
+		if md.path:
+			col.itemR(md, "axis", text="")
+		
+		if md.path:
+			row = layout.row()
+			row.itemR(md, "position", slider=True)
+			row.itemR(md, "random_position", text = "Random", slider=True)
 		
 	def particlesystem(self, layout, ob, md):
 		layout.itemL(text="See Particle panel.")

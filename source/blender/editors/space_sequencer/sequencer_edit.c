@@ -66,8 +66,6 @@
 #include "BKE_utildefines.h"
 #include "BKE_report.h"
 
-#include "BIF_transform.h"
-
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -82,6 +80,7 @@
 #include "ED_space_api.h"
 #include "ED_types.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 #include "ED_util.h"
 
 #include "UI_interface.h"
@@ -1855,12 +1854,12 @@ static int sequencer_add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *
 	return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_duplicate_add(wmOperatorType *ot)
+void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Add Duplicate";
-	ot->idname= "SEQUENCER_OT_duplicate_add";
+	ot->name= "Duplicate";
+	ot->idname= "SEQUENCER_OT_duplicate";
 
 	/* api callbacks */
 	ot->invoke= sequencer_add_duplicate_invoke;

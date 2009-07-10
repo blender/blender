@@ -9,13 +9,10 @@ class DataButtonsPanel(bpy.types.Panel):
 	def poll(self, context):
 		return (context.mesh != None)
 
-class DATA_PT_mesh(DataButtonsPanel):
-	__idname__ = "DATA_PT_mesh"
-	__label__ = "Mesh"
+class DATA_PT_context_mesh(DataButtonsPanel):
+	__idname__ = "DATA_PT_context_mesh"
+	__no_header__ = True
 	
-	def poll(self, context):
-		return (context.object and context.object.type == 'MESH')
-
 	def draw(self, context):
 		layout = self.layout
 		
@@ -32,22 +29,28 @@ class DATA_PT_mesh(DataButtonsPanel):
 			split.template_ID(space, "pin_id")
 			split.itemS()
 
-		if mesh:
-			layout.itemS()
+class DATA_PT_mesh(DataButtonsPanel):
+	__idname__ = "DATA_PT_mesh"
+	__label__ = "Mesh"
 
-			split = layout.split()
+	def draw(self, context):
+		layout = self.layout
 		
-			col = split.column()
-			col.itemR(mesh, "autosmooth")
-			colsub = col.column()
-			colsub.active = mesh.autosmooth
-			colsub.itemR(mesh, "autosmooth_angle", text="Angle")
-			sub = split.column()
-			sub.itemR(mesh, "vertex_normal_flip")
-			sub.itemR(mesh, "double_sided")
+		mesh = context.mesh
+		
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(mesh, "autosmooth")
+		colsub = col.column()
+		colsub.active = mesh.autosmooth
+		colsub.itemR(mesh, "autosmooth_angle", text="Angle")
+		sub = split.column()
+		sub.itemR(mesh, "vertex_normal_flip")
+		sub.itemR(mesh, "double_sided")
 			
-			layout.itemR(mesh, "texco_mesh")
-
+		layout.itemS()
+		layout.itemR(mesh, "texco_mesh")
 
 class DATA_PT_materials(DataButtonsPanel):
 	__idname__ = "DATA_PT_materials"
@@ -131,16 +134,44 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		ob = context.object
+		key = ob.data.shape_keys
+		kb = ob.active_shape_key
 
 		row = layout.row()
-
-		key = ob.data.shape_keys
-
 		row.template_list(key, "keys", ob, "active_shape_key_index")
 
-		col = row.column(align=True)
-		col.itemO("OBJECT_OT_shape_key_add", icon="ICON_ZOOMIN", text="")
-		col.itemO("OBJECT_OT_shape_key_remove", icon="ICON_ZOOMOUT", text="")
+		col = row.column()
+
+		subcol = col.column(align=True)
+		subcol.itemO("OBJECT_OT_shape_key_add", icon="ICON_ZOOMIN", text="")
+		subcol.itemO("OBJECT_OT_shape_key_remove", icon="ICON_ZOOMOUT", text="")
+
+		if kb:
+			col.itemS()
+
+			subcol = col.column(align=True)
+			subcol.itemR(ob, "shape_key_lock", icon="ICON_PINNED", text="")
+			subcol.itemR(kb, "mute", icon="ICON_MUTE_IPO_ON", text="")
+
+			if key.relative:
+				row = layout.row()
+				row.itemR(key, "relative")
+				row.itemL()
+
+				if ob.active_shape_key_index != 0:
+					if not ob.shape_key_lock:
+						row = layout.row(align=True)
+						row.itemR(kb, "value", text="")
+						row.itemR(kb, "slider_min", text="Min")
+						row.itemR(kb, "slider_max", text="Max")
+
+					row = layout.row()
+					row.item_pointerR(kb, "vertex_group", ob, "vertex_groups", text="")
+					row.item_pointerR(kb, "relative_key", key, "keys", text="")
+			else:
+				row = layout.row()
+				row.itemR(key, "relative")
+				row.itemR(key, "slurph")
 
 		if context.edit_object:
 			layout.enabled = False
@@ -177,6 +208,7 @@ class DATA_PT_vertex_colors(DataButtonsPanel):
 		col.itemO("MESH_OT_vertex_color_add", icon="ICON_ZOOMIN", text="")
 		col.itemO("MESH_OT_vertex_color_remove", icon="ICON_ZOOMOUT", text="")
 
+bpy.types.register(DATA_PT_context_mesh)
 bpy.types.register(DATA_PT_mesh)
 bpy.types.register(DATA_PT_materials)
 bpy.types.register(DATA_PT_vertex_groups)

@@ -52,6 +52,7 @@
 #include "BKE_utildefines.h"
 
 #include "ED_object.h"
+#include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_util.h"
 
@@ -60,16 +61,15 @@
 
 #include "object_intern.h"
 
-/* ***************************** */
-
-static int okee() {return 0;}
+/********************** Load/Make/Free ********************/
 
 void free_editLatt(Object *ob)
 {
 	Lattice *lt= ob->data;
 	
 	if(lt->editlatt) {
-		if(lt->editlatt->def) MEM_freeN(lt->editlatt->def);
+		if(lt->editlatt->def)
+			MEM_freeN(lt->editlatt->def);
 		if(lt->editlatt->dvert) 
 			free_dverts(lt->editlatt->dvert, lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw);
 		
@@ -77,27 +77,6 @@ void free_editLatt(Object *ob)
 		lt->editlatt= NULL;
 	}
 }
-
-
-static void setflagsLatt(Object *obedit, int flag)
-{
-	Lattice *lt= obedit->data;
-	BPoint *bp;
-	int a;
-	
-	bp= lt->editlatt->def;
-	
-	a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
-	
-	while(a--) {
-		if(bp->hide==0) {
-			bp->f1= flag;
-		}
-		bp++;
-	}
-}
-
-
 
 void make_editLatt(Object *obedit)
 {
@@ -108,10 +87,9 @@ void make_editLatt(Object *obedit)
 	
 	lt= obedit->data;
 
-	actkey = ob_get_keyblock(obedit);
-	if(actkey) {
+	actkey= ob_get_keyblock(obedit);
+	if(actkey)
 		key_to_latt(actkey, lt);
-	}
 
 	lt->editlatt= MEM_dupallocN(lt);
 	lt->editlatt->def= MEM_dupallocN(lt->def);
@@ -121,10 +99,7 @@ void make_editLatt(Object *obedit)
 		lt->editlatt->dvert = MEM_mallocN (sizeof (MDeformVert)*tot, "Lattice MDeformVert");
 		copy_dverts(lt->editlatt->dvert, lt->dvert, tot);
 	}
-	
-	//BIF_undo_push("Original");
 }
-
 
 void load_editLatt(Object *obedit)
 {
@@ -136,7 +111,8 @@ void load_editLatt(Object *obedit)
 	
 	lt= obedit->data;
 	
-	actkey = ob_get_keyblock(obedit);
+	actkey= ob_get_keyblock(obedit);
+
 	if(actkey) {
 		/* active key: vertices */
 		tot= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
@@ -154,7 +130,6 @@ void load_editLatt(Object *obedit)
 		}
 	}
 	else {
-
 		MEM_freeN(lt->def);
 	
 		lt->def= MEM_dupallocN(lt->editlatt->def);
@@ -181,20 +156,11 @@ void load_editLatt(Object *obedit)
 		lt->dvert = MEM_mallocN (sizeof (MDeformVert)*tot, "Lattice MDeformVert");
 		copy_dverts(lt->dvert, lt->editlatt->dvert, tot);
 	}
-	
 }
 
-void remake_editLatt(Object *obedit)
-{
-	if(okee("Reload original data")==0) return;
-	
-	make_editLatt(obedit);
+/************************** Operators *************************/
 
-	//BIF_undo_push("Reload original");
-}
-
-
-void deselectall_Latt(Object *obedit)
+static void setflagsLatt(Object *obedit, int flag)
 {
 	Lattice *lt= obedit->data;
 	BPoint *bp;
@@ -206,30 +172,119 @@ void deselectall_Latt(Object *obedit)
 	
 	while(a--) {
 		if(bp->hide==0) {
+			bp->f1= flag;
+		}
+		bp++;
+	}
+}
+
+int de_select_all_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	Lattice *lt= obedit->data;
+	BPoint *bp;
+	int a, deselect= 0;
+	
+	bp= lt->editlatt->def;
+	a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+	
+	while(a--) {
+		if(bp->hide==0) {
 			if(bp->f1) {
-				setflagsLatt(obedit, 0);
-				//BIF_undo_push("(De)select all");
-				return;
+				deselect= 1;
+				break;
 			}
 		}
 		bp++;
 	}
-	setflagsLatt(obedit, 1);
-	//BIF_undo_push("(De)select all");
+
+	if(deselect)
+		setflagsLatt(obedit, 0);
+	else
+		setflagsLatt(obedit, 1);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
 }
+
+void LATTICE_OT_select_all_toggle(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select or Deselect All";
+	ot->idname= "LATTICE_OT_select_all_toggle";
+	
+	/* api callbacks */
+	ot->exec= de_select_all_exec;
+	ot->poll= ED_operator_editlattice;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+int make_regular_poll(bContext *C)
+{
+	Object *ob;
+
+	if(ED_operator_editlattice(C)) return 1;
+
+	ob= CTX_data_active_object(C);
+	return (ob && ob->type==OB_LATTICE);
+}
+
+int make_regular_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_edit_object(C);
+	Lattice *lt;
+	
+	if(ob) {
+		lt= ob->data;
+		resizelattice(lt->editlatt, lt->pntsu, lt->pntsv, lt->pntsw, NULL);
+	}
+	else {
+		ob= CTX_data_active_object(C);
+		lt= ob->data;
+		resizelattice(lt, lt->pntsu, lt->pntsv, lt->pntsw, NULL);
+	}
+	
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void LATTICE_OT_make_regular(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Make Regular";
+	ot->idname= "LATTICE_OT_make_regular";
+	
+	/* api callbacks */
+	ot->exec= make_regular_exec;
+	ot->poll= make_regular_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/****************************** Mouse Selection *************************/
 
 static void findnearestLattvert__doClosest(void *userData, BPoint *bp, int x, int y)
 {
 	struct { BPoint *bp; short dist, select, mval[2]; } *data = userData;
 	float temp = abs(data->mval[0]-x) + abs(data->mval[1]-y);
 	
-	if ((bp->f1 & SELECT)==data->select) temp += 5;
-	if (temp<data->dist) {
+	if((bp->f1 & SELECT)==data->select)
+		temp += 5;
+
+	if(temp<data->dist) {
 		data->dist = temp;
 
 		data->bp = bp;
 	}
 }
+
 static BPoint *findnearestLattvert(ViewContext *vc, short mval[2], int sel)
 {
 		/* sel==1: selected gets a disadvantage */
@@ -247,34 +302,27 @@ static BPoint *findnearestLattvert(ViewContext *vc, short mval[2], int sel)
 	return data.bp;
 }
 
-
 void mouse_lattice(bContext *C, short mval[2], int extend)
 {
 	ViewContext vc;
-	BPoint *bp=0;
+	BPoint *bp= NULL;
 
 	view3d_set_viewcontext(C, &vc);
-	
 	bp= findnearestLattvert(&vc, mval, 1);
 
 	if(bp) {
 		if(extend==0) {
-		
 			setflagsLatt(vc.obedit, 0);
 			bp->f1 |= SELECT;
-
 		}
-		else {
+		else
 			bp->f1 ^= SELECT; /* swap */
-		}
 
 		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit);
-		//BIF_undo_push("Select");
 	}
 }
 
-
-/* **************** undo for lattice object ************** */
+/******************************** Undo *************************/
 
 typedef struct UndoLattice {
 	BPoint *def;
@@ -324,13 +372,14 @@ static int validate_undoLatt(void *data, void *edata)
 static void *get_editlatt(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);
+
 	if(obedit && obedit->type==OB_LATTICE) {
 		Lattice *lt= obedit->data;
 		return lt->editlatt;
 	}
+
 	return NULL;
 }
-
 
 /* and this is all the undo system needs to know */
 void undo_push_lattice(bContext *C, char *name)
@@ -338,6 +387,3 @@ void undo_push_lattice(bContext *C, char *name)
 	undo_editmode_push(C, name, get_editlatt, free_undoLatt, undoLatt_to_editLatt, editLatt_to_undoLatt, validate_undoLatt);
 }
 
-
-
-/***/

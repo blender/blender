@@ -2269,36 +2269,6 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 	}
 }
 
-typedef struct {
-	float *vert;
-	float hoco[4];
-	int clip;
-} VertBucket;
-
-/* warning, not threaded! */
-static int hashlist_projectvert(float *v1, float winmat[][4], float *hoco)
-{
-	static VertBucket bucket[256], *buck;
-	
-	/* init static bucket */
-	if(v1==NULL) {
-		memset(bucket, 0, 256*sizeof(VertBucket));
-		return 0;
-	}
-	
-	buck= &bucket[ (((intptr_t)v1)/16) & 255 ];
-	if(buck->vert==v1) {
-		QUATCOPY(hoco, buck->hoco);
-		return buck->clip;
-	}
-	
-	projectvert(v1, winmat, hoco);
-	buck->clip = testclip(hoco);
-	buck->vert= v1;
-	QUATCOPY(buck->hoco, hoco);
-	return buck->clip;
-}
-
 void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int size, float jitx, float jity)
 {
 	ZbufProjectCache cache[ZBUF_PROJECT_CACHE_SIZE];

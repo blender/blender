@@ -457,6 +457,7 @@ static void view_editmove(unsigned short event)
 #endif
 }
 
+#if 0
 static char *transform_to_undostr(TransInfo *t)
 {
 	switch (t->mode) {
@@ -503,6 +504,7 @@ static char *transform_to_undostr(TransInfo *t)
 	}
 	return "Transform";
 }
+#endif
 
 /* ************************************************* */
 
@@ -1463,6 +1465,8 @@ int transformEnd(bContext *C, TransInfo *t)
 
 void initManipulator(int mode)
 {
+	printf("init manipulator mode %d\n", mode);
+	
 #if 0 // TRANSFORM_FIX_ME
 	Trans.state = TRANS_RUNNING;
 

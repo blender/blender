@@ -41,8 +41,6 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
-#include "BIF_transform.h" /* transform keymap */
-
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
@@ -54,6 +52,7 @@
 #include "WM_types.h"
 
 #include "ED_screen.h"
+#include "ED_transform.h" /* transform keymap */
 
 #include "sequencer_intern.h"
 
@@ -71,7 +70,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_unlock);
 	WM_operatortype_append(SEQUENCER_OT_reload);
 	WM_operatortype_append(SEQUENCER_OT_refresh_all);
-	WM_operatortype_append(SEQUENCER_OT_duplicate_add);
+	WM_operatortype_append(SEQUENCER_OT_duplicate);
 	WM_operatortype_append(SEQUENCER_OT_delete);
 	WM_operatortype_append(SEQUENCER_OT_images_separate);
 	WM_operatortype_append(SEQUENCER_OT_meta_toggle);
@@ -84,7 +83,7 @@ void sequencer_operatortypes(void)
 	
 	/* sequencer_select.c */
 	WM_operatortype_append(SEQUENCER_OT_select_all_toggle);
-	WM_operatortype_append(SEQUENCER_OT_select_invert);
+	WM_operatortype_append(SEQUENCER_OT_select_inverse);
 	WM_operatortype_append(SEQUENCER_OT_select);
 	WM_operatortype_append(SEQUENCER_OT_select_more);
 	WM_operatortype_append(SEQUENCER_OT_select_less);
@@ -112,7 +111,7 @@ void sequencer_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_properties", NKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_cut", KKEY, KM_PRESS, 0, 0)->ptr, "type", SEQ_CUT_SOFT);
 	RNA_enum_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_cut", KKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", SEQ_CUT_HARD);
@@ -128,7 +127,7 @@ void sequencer_keymap(wmWindowManager *wm)
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_reload", RKEY, KM_PRESS, KM_ALT, 0);
 
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_duplicate_add", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_delete", DELKEY, KM_PRESS, 0, 0);

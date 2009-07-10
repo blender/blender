@@ -68,7 +68,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_parent_clear);
 	WM_operatortype_append(OBJECT_OT_track_set);
 	WM_operatortype_append(OBJECT_OT_track_clear);
-	WM_operatortype_append(OBJECT_OT_select_invert);
+	WM_operatortype_append(OBJECT_OT_select_inverse);
 	WM_operatortype_append(OBJECT_OT_select_random);
 	WM_operatortype_append(OBJECT_OT_select_all_toggle);
 	WM_operatortype_append(OBJECT_OT_select_by_type);
@@ -84,7 +84,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_slowparent_clear);
 	WM_operatortype_append(OBJECT_OT_center_set);
 	WM_operatortype_append(OBJECT_OT_dupli_set_real);
-	WM_operatortype_append(OBJECT_OT_duplicate_add);
+	WM_operatortype_append(OBJECT_OT_duplicate);
 	WM_operatortype_append(GROUP_OT_group_create);
 	WM_operatortype_append(GROUP_OT_objects_remove);
 	WM_operatortype_append(GROUP_OT_objects_add_active);
@@ -122,6 +122,9 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(OBJECT_OT_shape_key_add);
 	WM_operatortype_append(OBJECT_OT_shape_key_remove);
+
+	WM_operatortype_append(LATTICE_OT_select_all_toggle);
+	WM_operatortype_append(LATTICE_OT_make_regular);
 }
 
 void ED_keymap_object(wmWindowManager *wm)
@@ -136,7 +139,7 @@ void ED_keymap_object(wmWindowManager *wm)
 	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_random", PADASTERKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_by_type", PADASTERKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_by_layer", PADASTERKEY, KM_PRESS, KM_ALT, 0);
@@ -157,7 +160,7 @@ void ED_keymap_object(wmWindowManager *wm)
 	
 	WM_keymap_verify_item(keymap, "OBJECT_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_primitive_add", AKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_verify_item(keymap, "OBJECT_OT_duplicate_add", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
 	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe_menu", IKEY, KM_PRESS, 0, 0);
@@ -168,5 +171,9 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_add_active", GKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove_active", GKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 
+	/* Lattice */
+	keymap= WM_keymap_listbase(wm, "Lattice", 0, 0);
+
+	WM_keymap_add_item(keymap, "LATTICE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 }
 

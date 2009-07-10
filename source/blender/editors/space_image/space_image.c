@@ -294,6 +294,13 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_IMAGE:	
 			ED_area_tag_redraw(sa);
 			break;
+		case NC_OBJECT:
+			switch(wmn->data) {
+				case ND_GEOM_SELECT:
+				case ND_GEOM_DATA:
+					ED_area_tag_redraw(sa);
+					break;
+			}
 	}
 }
 
@@ -362,7 +369,6 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar, Scene *sce
 	ar->v2d.mask.ymax= winy;
 
 	/* which part of the image space do we see? */
-	/* same calculation as in lrectwrite: area left and down*/
 	x1= ar->winrct.xmin+(winx-sima->zoom*w)/2;
 	y1= ar->winrct.ymin+(winy-sima->zoom*h)/2;
 
@@ -395,6 +401,10 @@ static void image_main_area_init(wmWindowManager *wm, ARegion *ar)
 	/* image paint polls for mode */
 	keymap= WM_keymap_listbase(wm, "ImagePaint", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+
+	/* XXX need context here?
+	keymap= WM_keymap_listbase(wm, "UVEdit", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);*/
 	
 	/* own keymaps */
 	keymap= WM_keymap_listbase(wm, "Image Generic", SPACE_IMAGE, 0);
@@ -459,13 +469,6 @@ static void image_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
-		case NC_OBJECT:
-			switch(wmn->data) {
-				case ND_GEOM_SELECT:
-				case ND_GEOM_DATA:
-					ED_region_tag_redraw(ar);
-					break;
-			}
 	}
 }
 
@@ -584,7 +587,6 @@ void ED_spacetype_image(void)
 	art->draw= image_header_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
-	
 	
 	BKE_spacetype_register(st);
 }

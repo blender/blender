@@ -66,7 +66,6 @@
 #include "RE_pipeline.h"	// make_stars
 
 #include "BIF_gl.h"
-#include "BIF_retopo.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -79,6 +78,7 @@
 #include "ED_particle.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
+#include "ED_retopo.h"
 #include "ED_screen.h"
 #include "ED_types.h"
 #include "ED_util.h"
@@ -1442,6 +1442,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 				}
 			}
 			
+			ED_armature_sync_selection(arm->edbo);
 		}
 		else if(obedit->type==OB_LATTICE) {
 			do_lattice_box_select(&vc, &rect, val==LEFTMOUSE);

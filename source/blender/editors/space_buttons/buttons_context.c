@@ -685,29 +685,29 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 	if(!path)
 		return;
 
-	row= uiLayoutRow(layout, 0);
+	row= uiLayoutRow(layout, 1);
 	uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
 
 	block= uiLayoutGetBlock(row);
 	uiBlockSetEmboss(block, UI_EMBOSSN);
-	but= uiDefIconButBitC(block, ICONTOG, SB_PIN_CONTEXT, 0, (sbuts->flag & SB_PIN_CONTEXT)? ICON_PINNED: ICON_UNPINNED, 0, 0, UI_UNIT_X, UI_UNIT_Y, &sbuts->flag, 0, 0, 0, 0, "Follow context or keep fixed datablock displayed.");
+	but= uiDefIconButBitC(block, ICONTOG, SB_PIN_CONTEXT, 0, ICON_UNPINNED, 0, 0, UI_UNIT_X, UI_UNIT_Y, &sbuts->flag, 0, 0, 0, 0, "Follow context or keep fixed datablock displayed.");
 	uiButSetFunc(but, pin_cb, NULL, NULL);
 
 	for(a=0; a<path->len; a++) {
 		ptr= &path->ptr[a];
 
+		if(a != 0)
+			uiDefIconBut(block, LABEL, 0, VICON_SMALL_TRI_RIGHT, 0, 0, 10, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+
 		if(ptr->data) {
 			icon= RNA_struct_ui_icon(ptr->type);
 			name= RNA_struct_name_get_alloc(ptr, namebuf, sizeof(namebuf));
 
-#if 0
-			if(sbuts->mainb != BCONTEXT_SCENE && ptr->type == &RNA_Scene) {
-				uiItemL(row, "", icon); /* save some space */
-			}
-			else
-#endif
 			if(name) {
-				uiItemL(row, name, icon);
+				if(sbuts->mainb != BCONTEXT_SCENE && ptr->type == &RNA_Scene)
+					uiItemL(row, "", icon); /* save some space */
+				else
+					uiItemL(row, name, icon);
 
 				if(name != namebuf)
 					MEM_freeN(name);
@@ -731,6 +731,7 @@ void buttons_context_register(ARegionType *art)
 	strcpy(pt->idname, "BUTTONS_PT_context");
 	strcpy(pt->label, "Context");
 	pt->draw= buttons_panel_context;
+	pt->flag= PNL_NO_HEADER;
 	BLI_addtail(&art->paneltypes, pt);
 }
 

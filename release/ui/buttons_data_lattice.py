@@ -9,13 +9,10 @@ class DataButtonsPanel(bpy.types.Panel):
 	def poll(self, context):
 		return (context.lattice != None)
 	
-class DATA_PT_lattice(DataButtonsPanel):
-	__idname__ = "DATA_PT_lattice"
-	__label__ = "Lattice"
+class DATA_PT_context_lattice(DataButtonsPanel):
+	__idname__ = "DATA_PT_context_lattice"
+	__no_header__ = True
 	
-	def poll(self, context):
-		return (context.object and context.object.type == 'LATTICE')
-
 	def draw(self, context):
 		layout = self.layout
 		
@@ -32,23 +29,32 @@ class DATA_PT_lattice(DataButtonsPanel):
 			split.template_ID(space, "pin_id")
 			split.itemS()
 
-		if lat:
-			layout.itemS()
 
-			row = layout.row()
-			row.itemR(lat, "points_u")
-			row.itemR(lat, "interpolation_type_u", expand=True)
-			
-			row = layout.row()
-			row.itemR(lat, "points_v")
-			row.itemR(lat, "interpolation_type_v", expand=True)
-			
-			row = layout.row()
-			row.itemR(lat, "points_w")
-			row.itemR(lat, "interpolation_type_w", expand=True)
-			
-			row = layout.row()
-			row.itemR(lat, "outside")
-			row.itemR(lat, "shape_keys")
+class DATA_PT_lattice(DataButtonsPanel):
+	__idname__ = "DATA_PT_lattice"
+	__label__ = "Lattice"
 
+	def draw(self, context):
+		layout = self.layout
+		
+		lat = context.lattice
+
+		row = layout.row()
+		row.itemR(lat, "points_u")
+		row.itemR(lat, "interpolation_type_u", expand=True)
+			
+		row = layout.row()
+		row.itemR(lat, "points_v")
+		row.itemR(lat, "interpolation_type_v", expand=True)
+			
+		row = layout.row()
+		row.itemR(lat, "points_w")
+		row.itemR(lat, "interpolation_type_w", expand=True)
+			
+		row = layout.row()
+		row.itemO("LATTICE_OT_make_regular")
+		row.itemR(lat, "outside")
+
+bpy.types.register(DATA_PT_context_lattice)
 bpy.types.register(DATA_PT_lattice)
+

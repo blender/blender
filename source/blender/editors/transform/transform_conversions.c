@@ -112,7 +112,6 @@
 //#include "BIF_meshtools.h"
 //#include "BIF_mywindow.h"
 //#include "BIF_resources.h"
-#include "BIF_retopo.h"
 //#include "BIF_screen.h"
 //#include "BIF_space.h"
 //#include "BIF_toolbox.h"
@@ -126,6 +125,7 @@
 #include "ED_object.h"
 #include "ED_markers.h"
 #include "ED_mesh.h"
+#include "ED_retopo.h"
 #include "ED_types.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
@@ -2768,6 +2768,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
  * It also makes sure gp-frames are still stored in chronological order after
  * transform.
  */
+#if 0
 static void posttrans_gpd_clean (bGPdata *gpd)
 {
 	bGPDlayer *gpl;
@@ -2852,6 +2853,7 @@ static void posttrans_gpd_clean (bGPdata *gpd)
 		}
 	}
 }
+#endif
 
 /* Called during special_aftertrans_update to make sure selected keyframes replace
  * any other keyframes which may reside on that frame (that is not selected).
@@ -2909,6 +2911,7 @@ static void posttrans_fcurve_clean (FCurve *fcu)
 	/* free cache */
 	MEM_freeN(selcache);
 }
+
 
 
 /* Called by special_aftertrans_update to make sure selected keyframes replace
@@ -2972,6 +2975,7 @@ static int count_fcurve_keys(FCurve *fcu, char side, float cfra)
 }
 
 /* fully select selected beztriples, but only include if it's on the right side of cfra */
+#if 0
 static int count_gplayer_frames(bGPDlayer *gpl, char side, float cfra)
 {
 	bGPDframe *gpf;
@@ -2990,6 +2994,7 @@ static int count_gplayer_frames(bGPDlayer *gpl, char side, float cfra)
 	
 	return count;
 }
+#endif
 
 /* This function assigns the information to transdata */
 static void TimeToTransData(TransData *td, float *time, AnimData *adt)
@@ -3071,6 +3076,7 @@ void flushTransGPactionData (TransInfo *t)
  * The 'side' argument is needed for the extend mode. 'B' = both sides, 'R'/'L' mean only data
  * on the named side are used. 
  */
+#if 0
 static int GPLayerToTransData (TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl, char side, float cfra)
 {
 	bGPDframe *gpf;
@@ -3097,6 +3103,7 @@ static int GPLayerToTransData (TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl
 	
 	return count;
 }
+#endif
 
 static void createTransActionData(bContext *C, TransInfo *t)
 {

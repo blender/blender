@@ -47,8 +47,7 @@
 #include "UI_view2d.h"
 
 #include "ED_screen.h"
-
-#include "BIF_transform.h"
+#include "ED_transform.h"
 
 #include "graph_intern.h"
 

@@ -65,17 +65,23 @@ void FILE_OT_loadimages(struct wmOperatorType *ot);
 void FILE_OT_exec(struct wmOperatorType *ot);
 void FILE_OT_cancel(struct wmOperatorType *ot);
 void FILE_OT_parent(struct wmOperatorType *ot);
+void FILE_OT_previous(struct wmOperatorType *ot);
+void FILE_OT_next(struct wmOperatorType *ot);
 void FILE_OT_refresh(struct wmOperatorType *ot);
 void FILE_OT_bookmark_toggle(struct wmOperatorType *ot);
+void FILE_OT_filenum(struct wmOperatorType *ot);
 
 int file_exec(bContext *C, struct wmOperator *unused);
 int file_cancel_exec(bContext *C, struct wmOperator *unused);
 int file_parent_exec(bContext *C, struct wmOperator *unused);
+int file_previous_exec(bContext *C, struct wmOperator *unused);
+int file_next_exec(bContext *C, struct wmOperator *unused);
 int file_hilight_set(struct SpaceFile *sfile, struct ARegion *ar, int mx, int my);
 
 /* filesel.c */
 float file_string_width(const char* str);
 float file_font_pointsize();
+void file_change_dir(struct SpaceFile *sfile);
 
 /* file_panels.c */
 void file_panels_register(struct ARegionType *art);

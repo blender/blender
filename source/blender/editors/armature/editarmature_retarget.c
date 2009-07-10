@@ -1538,7 +1538,7 @@ void RIG_printGraph(RigGraph *rg)
 
 /*******************************************************************************************************/
 
-RigGraph *RIG_graphFromArmature(bContext *C, Object *ob, bArmature *arm)
+RigGraph *RIG_graphFromArmature(const bContext *C, Object *ob, bArmature *arm)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);

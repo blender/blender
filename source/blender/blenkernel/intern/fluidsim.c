@@ -114,7 +114,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		// no bounding box needed
 		
 		// todo - reuse default init from elbeem!
-		fss->typeFlags = 0;
+		fss->typeFlags = OB_FSBND_NOSLIP;
 		fss->domainNovecgen = 0;
 		fss->volumeInitType = 1; // volume
 		fss->partSlipValue = 0.0;
