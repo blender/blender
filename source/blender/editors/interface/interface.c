@@ -1615,7 +1615,7 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 	block= MEM_callocN(sizeof(uiBlock), "uiBlock");
 	block->active= 1;
 	block->dt= dt;
-	block->evil_C= C; // XXX
+	block->evil_C= (void*)C; // XXX
 	BLI_strncpy(block->name, name, sizeof(block->name));
 
 	if(region)

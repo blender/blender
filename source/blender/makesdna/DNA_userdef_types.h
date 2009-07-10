@@ -92,6 +92,8 @@ typedef struct uiStyle {
 	uiFontStyle widgetlabel;
 	uiFontStyle widget;
 	
+	float panelzoom;
+	
 	short minlabelchars;	/* in characters */
 	short minwidgetchars;	/* in characters */
 
@@ -103,7 +105,7 @@ typedef struct uiStyle {
 	short panelspace;
 	short panelouter;
 
-	short pad[3];
+	short pad[1];
 } uiStyle;
 
 typedef struct uiWidgetColors {
