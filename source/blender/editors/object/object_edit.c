@@ -704,8 +704,8 @@ void OBJECT_OT_delete(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Delete Objects";
-	ot->description = "Delete the object.";
+	ot->name= "Delete";
+	ot->description = "Delete selected objects.";
 	ot->idname= "OBJECT_OT_delete";
 	
 	/* api callbacks */
@@ -1407,7 +1407,7 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_parent_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear parent";
+	ot->name= "Clear Parent";
 	ot->description = "Clear the object's parenting.";
 	ot->idname= "OBJECT_OT_parent_clear";
 	
@@ -1895,7 +1895,7 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Clear Object Location";
+	ot->name= "Clear Location";
 	ot->description = "Clear the object's location.";
 	ot->idname= "OBJECT_OT_location_clear";
 	
@@ -1939,7 +1939,7 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Clear Object Rotation";
+	ot->name= "Clear Rotation";
 	ot->description = "Clear the object's rotation.";
 	ot->idname= "OBJECT_OT_rotation_clear";
 	
@@ -1987,7 +1987,7 @@ void OBJECT_OT_scale_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Clear Object Scale";
+	ot->name= "Clear Scale";
 	ot->description = "Clear the object's scale.";
 	ot->idname= "OBJECT_OT_scale_clear";
 	
@@ -2033,7 +2033,7 @@ void OBJECT_OT_origin_clear(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Clear Object Origin";
+	ot->name= "Clear Origin";
 	ot->description = "Clear the object's origin.";
 	ot->idname= "OBJECT_OT_origin_clear";
 	
@@ -2076,12 +2076,11 @@ void OBJECT_OT_restrictview_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Clear restrict view";
+	ot->name= "Clear Restrict View";
 	ot->description = "Reveal the object by setting the restrictview flag.";
 	ot->idname= "OBJECT_OT_restrictview_clear";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
 	ot->exec= object_restrictview_clear_exec;
 	ot->poll= ED_operator_view3d_active;
 	
@@ -2089,19 +2088,14 @@ void OBJECT_OT_restrictview_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static EnumPropertyItem prop_set_restrictview_types[] = {
-	{0, "SELECTED", 0, "Selected", ""},
-	{1, "UNSELECTED", 0, "Unselected ", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
 static int object_restrictview_set_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	short changed = 0;
+	int unselected= RNA_boolean_get(op->ptr, "unselected");
 	
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if(RNA_enum_is_equal(op->ptr, "type", "SELECTED")){
+		if(!unselected) {
 			if (base->flag & SELECT){
 				base->flag &= ~SELECT;
 				base->object->flag = base->flag;
@@ -2112,7 +2106,7 @@ static int object_restrictview_set_exec(bContext *C, wmOperator *op)
 				}
 			}
 		}
-		else if (RNA_enum_is_equal(op->ptr, "type", "UNSELECTED")){
+		else {
 			if (!(base->flag & SELECT)){
 				base->object->restrictflag |= OB_RESTRICT_VIEW;
 				changed = 1;
@@ -2134,19 +2128,18 @@ static int object_restrictview_set_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_restrictview_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set restrict view";
+	ot->name= "Set Restrict View";
 	ot->description = "Hide the object by setting the restrictview flag.";
 	ot->idname= "OBJECT_OT_restrictview_set";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
 	ot->exec= object_restrictview_set_exec;
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_set_restrictview_types, 0, "Type", "");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects.");
 	
 }
 /* ************* Slow Parent ******************* */
@@ -2643,7 +2636,7 @@ static int parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void OBJECT_OT_parent_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make parent";
+	ot->name= "Make Parent";
 	ot->description = "Set the object's parenting.";
 	ot->idname= "OBJECT_OT_parent_set";
 	
@@ -2797,7 +2790,7 @@ static void make_object_duplilist_real(Scene *scene, View3D *v3d, Base *base)
 }
 
 
-static int object_dupli_set_real_exec(bContext *C, wmOperator *op)
+static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
@@ -2817,17 +2810,17 @@ static int object_dupli_set_real_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_dupli_set_real(wmOperatorType *ot)
+void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Make Dupli Real";
+	ot->name= "Make Duplicates Real";
 	ot->description = "Make dupli objects attached to this object real.";
-	ot->idname= "OBJECT_OT_dupli_set_real";
+	ot->idname= "OBJECT_OT_duplicates_make_real";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
-	ot->exec= object_dupli_set_real_exec;
+	ot->exec= object_duplicates_make_real_exec;
 	
 	ot->poll= ED_operator_scene_editable;
 	
@@ -5966,7 +5959,8 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
-	int dupflag= U.dupflag;
+	int linked= RNA_boolean_get(op->ptr, "linked");
+	int dupflag= (linked)? 0: U.dupflag;
 	
 	clear_id_newpoins();
 	clear_sca_new_poins();	/* sensor/contr/act */
@@ -6008,8 +6002,8 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Duplicate Objects";
-	ot->description = "Duplicate the objects.";
+	ot->name= "Duplicate";
+	ot->description = "Duplicate selected objects.";
 	ot->idname= "OBJECT_OT_duplicate";
 	
 	/* api callbacks */
@@ -6022,6 +6016,7 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* to give to transform */
+	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data.");
 	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
 

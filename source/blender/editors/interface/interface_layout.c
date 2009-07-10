@@ -559,12 +559,12 @@ static char *ui_menu_enumpropname(char *opname, char *propname, int retval)
 
 	if(prop) {
 		const EnumPropertyItem *item;
-		int totitem, i;
-		char *name;
+		int totitem;
+		const char *name;
 
 		RNA_property_enum_items(&ptr, prop, &item, &totitem);
 		if(RNA_enum_name(item, retval, &name))
-			return name;
+			return (char*)name;
 	}
 
 	return "";

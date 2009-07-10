@@ -38,33 +38,33 @@
 EnumPropertyItem constraint_type_items[] ={
 	{CONSTRAINT_TYPE_CHILDOF, "CHILD_OF", 0, "Child Of", ""},
 	{CONSTRAINT_TYPE_TRANSFORM, "TRANSFORM", 0, "Transformation", ""},
-	
+	{0, "", 0, NULL, NULL},
 	{CONSTRAINT_TYPE_LOCLIKE, "COPY_LOCATION", 0, "Copy Location", ""},
 	{CONSTRAINT_TYPE_ROTLIKE, "COPY_ROTATION", 0, "Copy Rotation", ""},
 	{CONSTRAINT_TYPE_SIZELIKE, "COPY_SCALE", 0, "Copy Scale", ""},
-	
+	{0, "", 0, NULL, NULL},
 	{CONSTRAINT_TYPE_LOCLIMIT, "LIMIT_LOCATION", 0, "Limit Location", ""},
 	{CONSTRAINT_TYPE_ROTLIMIT, "LIMIT_ROTATION", 0, "Limit Rotation", ""},
 	{CONSTRAINT_TYPE_SIZELIMIT, "LIMIT_SCALE", 0, "Limit Scale", ""},
 	{CONSTRAINT_TYPE_DISTLIMIT, "LIMIT_DISTANCE", 0, "Limit Distance", ""},
-	
+	{0, "", 0, NULL, NULL},
 	{CONSTRAINT_TYPE_TRACKTO, "TRACK_TO", 0, "Track To", ""},
 	{CONSTRAINT_TYPE_LOCKTRACK, "LOCKED_TRACK", 0, "Locked Track", ""},
-	
+	{0, "", 0, NULL, NULL},
 	{CONSTRAINT_TYPE_MINMAX, "FLOOR", 0, "Floor", ""},
 	{CONSTRAINT_TYPE_SHRINKWRAP, "SHRINKWRAP", 0, "Shrinkwrap", ""},
 	{CONSTRAINT_TYPE_FOLLOWPATH, "FOLLOW_PATH", 0, "Follow Path", ""},
-	
+	{0, "", 0, NULL, NULL},
 	{CONSTRAINT_TYPE_CLAMPTO, "CLAMP_TO", 0, "Clamp To", ""},
 	{CONSTRAINT_TYPE_STRETCHTO, "STRETCH_TO", 0, "Stretch To", ""},
-	
+	{0, "", 0, NULL, NULL},
 	{CONSTRAINT_TYPE_KINEMATIC, "IK", 0, "IK", ""},
 	{CONSTRAINT_TYPE_RIGIDBODYJOINT, "RIGID_BODY_JOINT", 0, "Rigid Body Joint", ""},
-	
+	{0, "", 0, NULL, NULL},
 	{CONSTRAINT_TYPE_ACTION, "ACTION", 0, "Action", ""},
-	
+	{0, "", 0, NULL, NULL},
 	{CONSTRAINT_TYPE_PYTHON, "SCRIPT", 0, "Script", ""},
-	
+	{0, "", 0, NULL, NULL},
 	{CONSTRAINT_TYPE_NULL, "NULL", 0, "Null", ""},
 	{0, NULL, 0, NULL, NULL}};
 

@@ -1707,6 +1707,7 @@ static uiBlock *view3d_transformmenu(bContext *C, ARegion *ar, void *arg_unused)
 	return block;
 }
 
+#if 0
 void do_view3d_object_mirrormenu(bContext *C, void *arg, int event)
 {
 #if 0
@@ -1752,64 +1753,29 @@ static uiBlock *view3d_object_mirrormenu(bContext *C, ARegion *ar, void *arg_unu
 	uiTextBoundsBlock(block, 60);
 	return block;
 }
+#endif
 
-static void do_view3d_edit_object_transformmenu(bContext *C, void *arg, int event)
+static void view3d_edit_object_transformmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 #if 0
-	switch(event) {
-	case 0: /*	clear origin */
-		clear_object('o');
-		break;
-	case 1: /* clear scale */
-		clear_object('s');
-		break;
-	case 2: /* clear rotation */
-		clear_object('r');
-		break;
-	case 3: /* clear location */
-		clear_object('g');
-		break;
-	case 4:
-		if(OBACT) object_apply_deform(OBACT);
-		break;
-	case 5: /* make duplis real */
-		make_duplilist_real();
-		break;
-	case 6: /* apply scale/rotation or deformation */
-		apply_objects_locrot();
-		break;	
-	case 7: /* apply visual matrix to objects loc/size/rot */
-		apply_objects_visual_tx();
-		break;	
-	}
-#endif
-}
-
-static uiBlock *view3d_edit_object_transformmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	short yco = 20, menuwidth = 120;
-
-	block= uiBeginBlock(C, ar, "view3d_edit_object_transformmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_edit_object_transformmenu, NULL);
-	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Scale/Rotation to ObData|Ctrl A, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	apply_objects_locrot();
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Visual Transform|Ctrl A, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	apply_objects_visual_tx();
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Deformation|Ctrl Shift A",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Duplicates Real|Ctrl Shift A",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	
-	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Location|Alt G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Rotation|Alt R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Scale|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Origin|Alt O",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	return block;
+	if(OBACT) object_apply_deform(OBACT);
+#endif
+	uiItemO(layout, NULL, 0, "OBJECT_OT_duplicates_make_real");
+
+	uiItemS(layout);
+
+	uiItemO(layout, NULL, 0, "OBJECT_OT_location_clear");
+	uiItemO(layout, NULL, 0, "OBJECT_OT_rotation_clear");
+	uiItemO(layout, NULL, 0, "OBJECT_OT_scale_clear");
+	uiItemO(layout, NULL, 0, "OBJECT_OT_origin_clear");
 }
 
+#if 0
 static void do_view3d_edit_object_makelocalmenu(bContext *C, void *arg, int event)
 {
 #if 0
@@ -2046,164 +2012,49 @@ static uiBlock *view3d_edit_object_copyattrmenu(bContext *C, ARegion *ar, void *
 	uiTextBoundsBlock(block, 60);
 	return block;
 }
+#endif
 
+static void view3d_edit_object_parentmenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	uiItemO(layout, "Make Parent...", 0, "OBJECT_OT_parent_set");
+	uiItemO(layout, "Clear Parent...", 0, "OBJECT_OT_parent_clear");
+}
 
-static void do_view3d_edit_object_parentmenu(bContext *C, void *arg, int event)
+static void view3d_edit_object_groupmenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	uiItemO(layout, NULL, 0, "GROUP_OT_group_create");
+	uiItemO(layout, NULL, 0, "GROUP_OT_objects_remove");
+
+	uiItemS(layout);
+
+	uiItemO(layout, NULL, 0, "GROUP_OT_objects_add_active");
+	uiItemO(layout, NULL, 0, "GROUP_OT_objects_remove_active");
+}
+
+static void view3d_edit_object_trackmenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	uiItemO(layout, "Make Track...", 0, "OBJECT_OT_track_set");
+	uiItemO(layout, "Clear Track...", 0, "OBJECT_OT_track_clear");
+}
+
+static void view3d_edit_object_constraintsmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 #if 0
-	switch(event) {
-	case 0: /* clear parent */
-		clear_parent();
-		break;
-	case 1: /* make parent */
-		make_parent();
-		break;
-		}
-#endif
-}
-
-static uiBlock *view3d_edit_object_parentmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	short yco = 20, menuwidth = 120;
-
-	block= uiBeginBlock(C, ar, "view3d_edit_object_parentmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_edit_object_parentmenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Parent...|Ctrl P",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Parent...|Alt P",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	return block;
-}
-
-static void do_view3d_edit_object_groupmenu(bContext *C, void *arg, int event)
-{
-#if 0
-	switch(event) {
-		case 1:
-		case 2:
-		case 3:
-			group_operation(event);
-			break;
-	}
-#endif
-}
-
-static uiBlock *view3d_edit_object_groupmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	short yco = 20, menuwidth = 120;
-	
-	block= uiBeginBlock(C, ar, "view3d_edit_object_groupmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_edit_object_groupmenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add to Existing Group|Ctrl G, 1",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add to New Group|Ctrl G, 2",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Remove from All Groups|Ctrl G, 3",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	return block;
-}
-
-static void do_view3d_edit_object_trackmenu(bContext *C, void *arg, int event)
-{
-#if 0
-	switch(event) {
-	case 0: /* clear track */
-		clear_track();
-		break;
-	case 1: /* make track */
-		make_track();
-		break;
-		}
-#endif
-}
-
-static uiBlock *view3d_edit_object_trackmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	short yco = 20, menuwidth = 120;
-
-	block= uiBeginBlock(C, ar, "view3d_edit_object_trackmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_edit_object_trackmenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Track...|Ctrl T",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Track...|Alt T",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	return block;
-}
-
-static void do_view3d_edit_object_constraintsmenu(bContext *C, void *arg, int event)
-{
-#if 0
-	switch(event) {
-	case 1: /* add constraint */
-		add_constraint(0);
-		break;
-	case 2: /* clear constraint */
-		ob_clear_constraints();
-		break;
-		}
-#endif
-}
-
-static uiBlock *view3d_edit_object_constraintsmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	short yco = 20, menuwidth = 120;
-
-	block= uiBeginBlock(C, ar, "view3d_edit_object_constraintsmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_edit_object_constraintsmenu, NULL);
-	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Constraint...|Ctrl Alt C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	add_constraint(0);
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Constraints",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	return block;
-}
-
-static void do_view3d_edit_object_showhidemenu(bContext *C, void *arg, int event)
-{
-#if 0
-	
-	switch(event) {
-		 
-	case 0: /* show objects */
-		show_objects();
-		break;
-	case 1: /* hide selected objects */
-		hide_objects(1);
-		break;
-	case 2: /* hide deselected objects */
-		hide_objects(0);
-		break;
-	}
+	ob_clear_constraints();
 #endif
 }
 
-static uiBlock *view3d_edit_object_showhidemenu(bContext *C, ARegion *ar, void *arg_unused)
+static void view3d_edit_object_showhidemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiBlock *block;
-	short yco = 20, menuwidth = 120;
-
-	block= uiBeginBlock(C, ar, "view3d_edit_object_showhidemenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_edit_object_showhidemenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Hidden|Alt H",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Selected|H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide Unselected|Shift H",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	return block;
+	uiItemO(layout, "Show Hidden", 0, "OBJECT_OT_restrictview_clear");
+	uiItemO(layout, "Hide Selected", 0, "OBJECT_OT_restrictview_set");
+	uiItemBooleanO(layout, "Hide Unselected", 0, "OBJECT_OT_restrictview_set", "unselected", 1);
 }
 
+#if 0
 #ifndef DISABLE_PYTHON
 static void do_view3d_edit_object_scriptsmenu(bContext *C, void *arg, int event)
 {
@@ -2233,11 +2084,12 @@ static uiBlock *view3d_edit_object_scriptsmenu(bContext *C, ARegion *ar, void *a
 	return block;
 }
 #endif /* DISABLE_PYTHON */
+#endif
 
 
+#if 0
 static void do_view3d_edit_objectmenu(bContext *C, void *arg, int event)
 {
-#if 0
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
@@ -2246,15 +2098,6 @@ static void do_view3d_edit_objectmenu(bContext *C, void *arg, int event)
 	 
 	case 0: /* transform	properties*/
 // XXX		mainqenter(NKEY, 1);
-		break;
-	case 1: /* delete */
-		delete_context_selected();
-		break;
-	case 2: /* duplicate */
-		duplicate_context_selected();
-		break;
-	case 3: /* duplicate linked */
-		adduplicate(0, 0);
 		break;
 	case 5: /* make single user */
 		single_user();
@@ -2274,9 +2117,6 @@ static void do_view3d_edit_objectmenu(bContext *C, void *arg, int event)
 	case 11: /* insert keyframe */
 		common_insertkey();
 		break;
-	case 15: /* Object Panel */
-		add_blockhandler(sa, VIEW3D_HANDLER_OBJECT, UI_PNL_UNSTOW);
-		break;
 	case 16: /* make proxy object*/
 		make_proxy();
 		break;
@@ -2284,81 +2124,74 @@ static void do_view3d_edit_objectmenu(bContext *C, void *arg, int event)
 		common_deletekey();
 		break; 
 	}
-#endif
 }
+#endif
 
-static uiBlock *view3d_edit_objectmenu(bContext *C, ARegion *ar, void *arg_unused)
+static void view3d_edit_objectmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	Scene *scene= CTX_data_scene(C);
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-	
-	block= uiBeginBlock(C, ar, "view3d_edit_objectmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_edit_objectmenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
+#if 0
+	Object *ob= CTX_data_active_object(C);
+
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_object_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");
+#endif
 
-	uiDefIconTextBlockBut(block, view3d_edit_object_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Clear/Apply", 0, yco-=20, 120, 19, "");
-	// XXX uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
+	uiItemMenuF(layout, "Clear/Apply", 0, view3d_edit_object_transformmenu);
+	uiItemMenuF(layout, "Snap", 0, view3d_edit_snapmenu);
+
+	uiItemS(layout);
+
+#if 0
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Keyframe|Alt I",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");	
 	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiItemS(layout);
+#endif
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate Linked|Alt D",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete|X",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
+	uiItemO(layout, NULL, 0, "OBJECT_OT_duplicate");
+	uiItemBooleanO(layout, "Duplicate Linked", 0, "OBJECT_OT_duplicate", "linked", 1);
+	uiItemO(layout, NULL, 0, "OBJECT_OT_delete");
+
+#if 0
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Proxy|Ctrl Alt P",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
 	uiDefIconTextBlockBut(block, view3d_edit_object_makelinksmenu, NULL, ICON_RIGHTARROW_THIN, "Make Links", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_object_singleusermenu, NULL, ICON_RIGHTARROW_THIN, "Make Single User", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_object_makelocalmenu, NULL, ICON_RIGHTARROW_THIN, "Make Local", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_object_copyattrmenu, NULL, ICON_RIGHTARROW_THIN, "Copy Attributes", 0, yco-=20, 120, 19, "");
+#endif
 	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiItemS(layout);
 	
-	uiDefIconTextBlockBut(block, view3d_edit_object_parentmenu, NULL, ICON_RIGHTARROW_THIN, "Parent", 0, yco-=20, 120, 19, "");
-	uiDefIconTextBlockBut(block, view3d_edit_object_groupmenu, NULL, ICON_RIGHTARROW_THIN, "Group", 0, yco-=20, 120, 19, "");
-	uiDefIconTextBlockBut(block, view3d_edit_object_trackmenu, NULL, ICON_RIGHTARROW_THIN, "Track", 0, yco-=20, 120, 19, "");
-	uiDefIconTextBlockBut(block, view3d_edit_object_constraintsmenu, NULL, ICON_RIGHTARROW_THIN, "Constraints", 0, yco-=20, 120, 19, "");
-	
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	if (OBACT && OBACT->type == OB_MESH) {
+	uiItemMenuF(layout, "Parent", 0, view3d_edit_object_parentmenu);
+	uiItemMenuF(layout, "Track", 0, view3d_edit_object_trackmenu);
+	uiItemMenuF(layout, "Group", 0, view3d_edit_object_groupmenu);
+	uiItemMenuF(layout, "Constraints", 0, view3d_edit_object_constraintsmenu);
+
+#if 0
+	uiItemS(layout);
+
+	if(ob && ob->type == OB_MESH) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Boolean Operation...|W",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	}
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Join Objects|Ctrl J",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Convert Object Type...|Alt C",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+#endif
+
+	uiItemS(layout);
 	
-	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
+#if 0
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move to Layer...|M",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
-	uiDefIconTextBlockBut(block, view3d_edit_object_showhidemenu, NULL, ICON_RIGHTARROW_THIN, "Show/Hide Objects", 0, yco-=20, 120, 19, "");
+#endif
+
+	uiItemMenuF(layout, "Show/Hide", 0, view3d_edit_object_showhidemenu);
 	
+#if 0
 #ifndef DISABLE_PYTHON
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBlockBut(block, view3d_edit_object_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Scripts", 0, yco-=20, 120, 19, "");
 #endif
-		
-	if(ar->alignment==RGN_ALIGN_TOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-
-	uiTextBoundsBlock(block, 50);
-	return block;
+#endif
 }
-
 
 static void view3d_edit_mesh_verticesmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
@@ -4612,7 +4445,7 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 		}
 		else {
 			xmax= GetButStringLength("Object");
-			uiDefPulldownBut(block, view3d_edit_objectmenu, NULL, "Object",	xco,yco, xmax-3, 20, "");
+			uiDefMenuBut(block, view3d_edit_objectmenu, NULL, "Object",	xco,yco, xmax-3, 20, "");
 			xco+= xmax;
 		}
 	}

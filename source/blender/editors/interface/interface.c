@@ -2124,7 +2124,7 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 				BLI_dynstr_appendf(dynstr, "%s%%t", RNA_property_ui_name(prop));
 				for(i=0; i<totitem; i++) {
 					if(!item[i].identifier[0])
-						BLI_dynstr_appendf(dynstr, "|%l");
+						BLI_dynstr_append(dynstr, "|%l");
 					else if(item[i].icon)
 						BLI_dynstr_appendf(dynstr, "|%s %%i%d %%x%d", item[i].name, item[i].icon, item[i].value);
 					else
