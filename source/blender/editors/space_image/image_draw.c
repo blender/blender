@@ -127,14 +127,13 @@ static void image_verify_buffer_float(SpaceImage *sima, ImBuf *ibuf)
 	}
 }
 
-static void draw_render_info(SpaceImage *sima, ARegion *ar)
+static void draw_render_info(Image *ima, ARegion *ar)
 {
 	rcti rect;
 	float colf[3];
 	int showspare= 0; // XXX BIF_show_render_spare();
-	char *str= "render text"; // XXX BIF_render_text();
 	
-	if(str==NULL)
+	if(ima->render_text==NULL)
 		return;
 	
 	rect= ar->winrct;
@@ -152,10 +151,10 @@ static void draw_render_info(SpaceImage *sima, ARegion *ar)
 
 	if(showspare) {
 		UI_DrawString(12, rect.ymin + 5, "(Previous)");
-		UI_DrawString(72, rect.ymin + 5, str);
+		UI_DrawString(72, rect.ymin + 5, ima->render_text);
 	}
 	else
-		UI_DrawString(12, rect.ymin + 5, str);
+		UI_DrawString(12, rect.ymin + 5, ima->render_text);
 }
 
 void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *fp, int *zp, float *zpf)
@@ -685,8 +684,8 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	draw_image_paint_helpers(sima, ar, scene, zoomx, zoomy);
 
 	/* render info */
-	if(ibuf && show_render)
-		draw_render_info(sima, ar);
+	if(ibuf && ima && show_render)
+		draw_render_info(ima, ar);
 
 	/* XXX integrate this code */
 #if 0

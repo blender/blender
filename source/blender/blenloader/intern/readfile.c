@@ -2641,6 +2641,7 @@ static void direct_link_image(FileData *fd, Image *ima)
 	ima->anim= NULL;
 	ima->rr= NULL;
 	ima->repbind= NULL;
+	ima->render_text= newdataadr(fd, ima->render_text);
 	
 	ima->packedfile = direct_link_packedfile(fd, ima->packedfile);
 	ima->preview = direct_link_preview_image(fd, ima->preview);

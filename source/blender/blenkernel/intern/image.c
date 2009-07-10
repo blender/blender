@@ -253,6 +253,10 @@ void free_image(Image *ima)
 	if (ima->preview) {
 		BKE_previewimg_free(&ima->preview);
 	}
+	if (ima->render_text) {
+		MEM_freeN(ima->render_text);
+		ima->render_text= NULL;
+	}
 }
 
 /* only image block itself */
