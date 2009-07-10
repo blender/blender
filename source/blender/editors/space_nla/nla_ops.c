@@ -53,8 +53,7 @@
 #include "ED_anim_api.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
-
-#include "BIF_transform.h"
+#include "ED_transform.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

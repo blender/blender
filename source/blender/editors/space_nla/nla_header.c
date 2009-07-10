@@ -53,11 +53,12 @@
 #include "ED_util.h"
 
 #include "ED_anim_api.h"
+#include "ED_markers.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 
 #include "BIF_gl.h"
-#include "BIF_transform.h"
 
 #include "RNA_access.h"
 
@@ -67,8 +68,6 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
-
-#include "ED_markers.h"
 
 #include "nla_intern.h"
 

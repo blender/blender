@@ -61,8 +61,7 @@
 #include "ED_markers.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
-
-#include "BIF_transform.h"
+#include "ED_transform.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

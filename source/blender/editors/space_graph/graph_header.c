@@ -43,6 +43,7 @@
 #include "BKE_screen.h"
 
 #include "ED_anim_api.h"
+#include "ED_transform.h"
 #include "ED_screen.h"
 #include "ED_types.h"
 #include "ED_util.h"
@@ -54,7 +55,6 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
-#include "BIF_transform.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
