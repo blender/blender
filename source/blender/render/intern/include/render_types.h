@@ -172,6 +172,7 @@ struct Render
 	/* octree tables and variables for raytrace */
 	struct RayObject *raytree;
 	struct RayFace *rayfaces;
+	float maxdist; /* needed for keeping an incorrect behaviour of SUN and HEMI lights (avoid breaking old scenes) */
 
 	/* occlusion tree */
 	void *occlusiontree;
