@@ -496,6 +496,7 @@ int RNA_struct_ui_icon(StructRNA *type);
 
 PropertyRNA *RNA_struct_name_property(StructRNA *type);
 PropertyRNA *RNA_struct_iterator_property(StructRNA *type);
+StructRNA *RNA_struct_base(StructRNA *type);
 
 int RNA_struct_is_ID(StructRNA *type);
 int RNA_struct_is_a(StructRNA *type, StructRNA *srna);

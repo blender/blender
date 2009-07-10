@@ -392,6 +392,11 @@ PropertyRNA *RNA_struct_iterator_property(StructRNA *type)
 	return type->iteratorproperty;
 }
 
+StructRNA *RNA_struct_base(StructRNA *type)
+{
+	return type->base;
+}
+
 int RNA_struct_is_ID(StructRNA *type)
 {
 	return (type->flag & STRUCT_ID) != 0;
