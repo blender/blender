@@ -202,14 +202,13 @@ static int dfs_raycast_stack(BVHNode *root, Isect *isec)
 				else
 				{
 					int i;	
-					for(i=0; i<BVH_NCHILDS; i++)
+					for(i=BVH_NCHILDS-1; i>=0; i--)
 						if(node->child[i] != 0
 #ifdef RT_USE_HINT
 						&& node->child[i] != (BVHNode*)isec->hint
 #endif
 						)
 							stack[stack_pos++] = node->child[i];
-						else break;
 				}
 				assert(stack_pos <= DFS_STACK_SIZE);
 			}
