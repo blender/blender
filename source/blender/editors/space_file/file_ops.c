@@ -142,10 +142,10 @@ static void file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short v
 			{
 				// XXX error("Path too long, cannot enter this directory");
 			} else {
-				strcat(params->dir, file->relname);
-				strcat(params->dir,"/");
-				params->file[0] = '\0';
 				BLI_cleanup_dir(G.sce, params->dir);
+				strcat(params->dir, file->relname);
+				BLI_add_slash(params->dir);
+				params->file[0] = '\0';
 				file_change_dir(sfile);
 			}
 		}
@@ -557,11 +557,13 @@ int file_parent_exec(bContext *C, wmOperator *unused)
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	
 	if(sfile->params) {
-		BLI_parent_dir(sfile->params->dir);
-		file_change_dir(sfile);
+		if (BLI_has_parent(sfile->params->dir)) {
+			BLI_parent_dir(sfile->params->dir);
+			file_change_dir(sfile);
+			WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+		}
 	}		
-	WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
-
+	
 	return OPERATOR_FINISHED;
 
 }
@@ -718,10 +720,11 @@ int file_directory_exec(bContext *C, wmOperator *unused)
 				BLI_strncpy(sfile->params->dir, tmpstr, sizeof(sfile->params->dir));
 			}
 		}
-
+		BLI_add_slash(sfile->params->dir);
 		file_change_dir(sfile);
+		WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
 	}		
-	WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+	
 
 	return OPERATOR_FINISHED;
 }

@@ -72,6 +72,9 @@ void BLI_cleanup_dir(const char *relabase, char *dir); /* same as above but adds
 /* go back one directory */
 int BLI_parent_dir(char *path);
 
+/* return whether directory is root and thus has no parent dir */
+int BLI_has_parent(char *path);
+
 	/**
 	 * Blender's path code replacement function.
 	 * Bases @a path strings leading with "//" by the
