@@ -63,9 +63,10 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
-#include "BKE_ipo.h"
+#include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
@@ -133,7 +134,7 @@ void ANIM_set_active_channel (bAnimContext *ac, void *data, short datatype, int 
 	}
 	
 	/* set active flag */
-	if (channel_data) {
+	if (channel_data != NULL) {
 		switch (channel_type) {
 			case ANIMTYPE_GROUP:
 			{
@@ -691,6 +692,121 @@ void ANIM_OT_channels_move_bottom (wmOperatorType *ot)
 
 #endif // XXX old animation system - needs to be updated for new system...
 
+/* ******************** Delete Channel Operator *********************** */
+
+static int animchannels_delete_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* cannot delete in shapekey */
+	if (ac.datatype == ANIMCONT_SHAPEKEY) 
+		return OPERATOR_CANCELLED;
+		
+		
+	/* do groups only first (unless in Drivers mode, where there are none) */
+	if (ac.datatype != ANIMCONT_DRIVERS) {
+		/* filter data */
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_CHANNELS | ANIMFILTER_FOREDIT);
+		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+		
+		/* delete selected groups and their associated channels */
+		for (ale= anim_data.first; ale; ale= ale->next) {
+			/* only groups - don't check other types yet, since they may no-longer exist */
+			if (ale->type == ANIMTYPE_GROUP) {
+				bActionGroup *agrp= (bActionGroup *)ale->data;
+				AnimData *adt= BKE_animdata_from_id(ale->id);
+				FCurve *fcu, *fcn;
+				
+				/* skip this group if no AnimData available, as we can't safely remove the F-Curves */
+				if (adt == NULL)
+					continue;
+				
+				/* delete all of the Group's F-Curves, but no others */
+				for (fcu= agrp->channels.first; fcu && fcu->grp==agrp; fcu= fcn) {
+					fcn= fcu->next;
+					
+					/* remove from group and action, then free */
+					action_groups_remove_channel(adt->action, fcu);
+					free_fcurve(fcu);
+				}
+				
+				/* free the group itself */
+				if (adt->action)
+					BLI_freelinkN(&adt->action->groups, agrp);
+				else
+					MEM_freeN(agrp);
+			}
+		}
+		
+		/* cleanup */
+		BLI_freelistN(&anim_data);
+	}
+	
+	/* now do F-Curves */
+	if (ac.datatype != ANIMCONT_GPENCIL) {
+		/* filter data */
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT);
+		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+		
+		/* delete selected F-Curves */
+		for (ale= anim_data.first; ale; ale= ale->next) {
+			/* only F-Curves, and only if we can identify its parent */
+			if (ale->type == ANIMTYPE_FCURVE) {
+				AnimData *adt= BKE_animdata_from_id(ale->id);
+				FCurve *fcu= (FCurve *)ale->data;
+				
+				/* if no AnimData, we've got nowhere to remove the F-Curve from */
+				if (adt == NULL)
+					continue;
+					
+				/* remove from whatever list it came from
+				 *	- Action Group
+				 *	- Action
+				 *	- Drivers
+				 *	- TODO... some others?
+				 */
+				if (fcu->grp)
+					action_groups_remove_channel(adt->action, fcu);
+				else if (adt->action)
+					BLI_remlink(&adt->action->curves, fcu);
+				else if (ac.datatype == ANIMCONT_DRIVERS)
+					BLI_remlink(&adt->drivers, fcu);
+					
+				/* free the F-Curve itself */
+				free_fcurve(fcu);
+			}
+		}
+		
+		/* cleanup */
+		BLI_freelistN(&anim_data);
+	}
+	
+	/* send notifier that things have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void ANIM_OT_channels_delete (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete Channels";
+	ot->idname= "ANIM_OT_channels_delete";
+	
+	/* api callbacks */
+	ot->exec= animchannels_delete_exec;
+	ot->poll= animedit_poll_channels_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 /* ******************** Toggle Channel Visibility Operator *********************** */
 
@@ -707,7 +823,7 @@ static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 		
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* See if we should be making showing all selected or hiding */
@@ -715,14 +831,28 @@ static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *op)
 		if (vis == ACHANNEL_SETFLAG_CLEAR) 
 			break;
 		
-		if (ale->flag & FCURVE_VISIBLE)
+		if ((ale->type == ANIMTYPE_FCURVE) && (ale->flag & FCURVE_VISIBLE))
+			vis= ACHANNEL_SETFLAG_CLEAR;
+		else if ((ale->type == ANIMTYPE_GROUP) && !(ale->flag & AGRP_NOTVISIBLE))
 			vis= ACHANNEL_SETFLAG_CLEAR;
 	}
 		
 	/* Now set the flags */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		FCurve *fcu= (FCurve *)ale->data;
-		ACHANNEL_SET_FLAG(fcu, vis, FCURVE_VISIBLE);
+		switch (ale->type) {
+			case ANIMTYPE_FCURVE: /* F-Curve */
+			{
+				FCurve *fcu= (FCurve *)ale->data;
+				ACHANNEL_SET_FLAG(fcu, vis, FCURVE_VISIBLE);
+			}
+				break;
+			case ANIMTYPE_GROUP: /* Group */
+			{
+				bActionGroup *agrp= (bActionGroup *)ale->data;
+				ACHANNEL_SET_FLAG_NEG(agrp, vis, AGRP_NOTVISIBLE);
+			}
+				break;
+		}
 	}
 	
 	/* cleanup */
@@ -1753,6 +1883,8 @@ void ED_operatortypes_animchannels(void)
 	WM_operatortype_append(ANIM_OT_channels_setting_disable);
 	WM_operatortype_append(ANIM_OT_channels_setting_toggle);
 	
+	WM_operatortype_append(ANIM_OT_channels_delete);
+	
 		// XXX does this need to be a separate operator?
 	WM_operatortype_append(ANIM_OT_channels_editable_toggle);
 	
@@ -1785,6 +1917,10 @@ void ED_keymap_animchannels(wmWindowManager *wm)
 	
 		/* borderselect */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_select_border", BKEY, KM_PRESS, 0, 0);
+	
+	/* delete */
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_delete", DELKEY, KM_PRESS, 0, 0);
 	
 	/* settings */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_setting_toggle", WKEY, KM_PRESS, KM_SHIFT, 0);
