@@ -11,7 +11,6 @@ static int partition_nth_element(RTBuilder *b, int _begin, int _end, int n);
 static void split_leafs(RTBuilder *b, int *nth, int partitions, int split_axis);
 static int split_leafs_by_plane(RTBuilder *b, int begin, int end, float plane);
 
-
 static void rtbuild_init(RTBuilder *b, RayObject **begin, RayObject **end)
 {
 	int i;
@@ -23,6 +22,8 @@ static void rtbuild_init(RTBuilder *b, RayObject **begin, RayObject **end)
 	
 	for(i=0; i<RTBUILD_MAX_CHILDS; i++)
 		b->child_offset[i] = 0;
+		
+	INIT_MINMAX(b->bb, b->bb+3);
 }
 
 RTBuilder* rtbuild_create(int size)
@@ -44,6 +45,36 @@ void rtbuild_add(RTBuilder *b, RayObject *o)
 	*(b->end++) = o;
 }
 
+void rtbuild_calc_bb(RTBuilder *b)
+{
+	if(b->bb[0] == 1.0e30f)
+	{
+		RayObject **index = b->begin;
+		for(; index != b->end; index++)
+			RE_rayobject_merge_bb(*index, b->bb, b->bb+3);
+	}
+}
+
+void rtbuild_merge_bb(RTBuilder *b, float *min, float *max)
+{
+	rtbuild_calc_bb(b);
+	DO_MIN(b->bb, min);
+	DO_MAX(b->bb+3, max);
+}
+
+int rtbuild_get_largest_axis(RTBuilder *b)
+{
+	rtbuild_calc_bb(b);
+	return bb_largest_axis(b->bb, b->bb+3);
+}
+
+
+int rtbuild_size(RTBuilder *b)
+{
+	return b->end - b->begin;
+}
+
+
 RTBuilder* rtbuild_get_child(RTBuilder *b, int child, RTBuilder *tmp)
 {
 	rtbuild_init( tmp, b->begin + b->child_offset[child], b->begin + b->child_offset[child+1] );
@@ -51,59 +82,8 @@ RTBuilder* rtbuild_get_child(RTBuilder *b, int child, RTBuilder *tmp)
 	return tmp;
 }
 
-int rtbuild_size(RTBuilder *b)
-{
-	return b->end - b->begin;
-}
-
-/* Split methods */
-static void merge_bb(RTBuilder *b, float *min, float *max)
-{
-	RayObject **index = b->begin;
-
-	for(; index != b->end; index++)
-		RE_rayobject_merge_bb(*index, min, max);
-}
-
-static int largest_axis(float *min, float *max)
-{
-	float sub[3];
-	
-	sub[0] = max[0]-min[0];
-	sub[1] = max[1]-min[1];
-	sub[2] = max[2]-min[2];
-	if(sub[0] > sub[1])
-	{
-		if(sub[0] > sub[2])
-			return 0;
-		else
-			return 2;
-	}
-	else
-	{
-		if(sub[1] > sub[2])
-			return 1;
-		else
-			return 2;
-	}	
-}
-
-int rtbuild_get_largest_axis(RTBuilder *b)
-{
-	float min[3], max[3];
-
-	INIT_MINMAX(min, max);
-	merge_bb( b, min, max);
-
-	return largest_axis(min,max);
-}
 
 
-/*
-int rtbuild_median_split(RTBuilder *b, int nchilds, int axis)
-{
-}
-*/
 //Left balanced tree
 int rtbuild_mean_split(RTBuilder *b, int nchilds, int axis)
 {
@@ -199,14 +179,12 @@ int rtbuild_median_split_largest_axis(RTBuilder *b, int nchilds)
 {
 	int la, i;
 	float separators[RTBUILD_MAX_CHILDS];
-	float min[3], max[3];
+	
+	rtbuild_calc_bb(b);
 
-	INIT_MINMAX(min, max);
-	merge_bb( b, min, max);
-
-	la = largest_axis(min,max);
+	la = bb_largest_axis(b->bb,b->bb+3);
 	for(i=1; i<nchilds; i++)
-		separators[i-1] = (max[la]-min[la])*i / nchilds;
+		separators[i-1] = (b->bb[la+3]-b->bb[la])*i / nchilds;
 		
 	return rtbuild_median_split(b, separators, nchilds, la);
 }
@@ -250,23 +228,9 @@ void costobject_sort(CostObject *begin, CostObject *end, int axis)
 	else if(axis == 5) qsort(begin, end-begin, sizeof(*begin), (int(*)(const void *, const void *)) costobject_cmp(5));
 }
 
-float bb_volume(float *min, float *max)
-{
-	return (max[0]-min[0])*(max[1]-min[1])*(max[2]-min[2]);
-}
 
-float bb_area(float *min, float *max)
-{
-	float sub[3], a;
-	sub[0] = max[0]-min[0];
-	sub[1] = max[1]-min[1];
-	sub[2] = max[2]-min[2];
 
-	a = (sub[0]*sub[1] + sub[0]*sub[2] + sub[1]*sub[2])*2;
-	assert(a >= 0.0);
-	return a;
-}
-
+/* Object Surface Area Heuristic splitter */
 int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 {
 	int size = rtbuild_size(b);		
@@ -386,77 +350,6 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 		return nchilds;		
 	}
 }
-
-//Heuristic Area Splitter
-typedef struct CostEvent CostEvent;
-
-struct CostEvent
-{
-	float key;
-	float value;
-};
-
-int costevent_cmp(const CostEvent *a, const CostEvent *b)
-{
-	if(a->key < b->key) return -1;
-	if(a->key > b->key) return  1;
-	if(a->value < b->value) return -1;
-	if(a->value > b->value) return  1;
-	return 0;
-}
-
-void costevent_sort(CostEvent *begin, CostEvent *end)
-{
-	//TODO introsort
-	qsort(begin, sizeof(*begin), end-begin, (int(*)(const void *, const void *)) costevent_cmp);
-}
-/*
-int rtbuild_heuristic_split(RTBuilder *b, int nchilds)
-{
-	int size = rtbuild_size(b);		
-	
-	assert(nchilds == 2);
-	
-	if(size <= nchilds)
-	{
-		return rtbuild_mean_split_largest_axis(b, nchilds);
-	}
-	else
-	{
-		CostEvent *events, *ev;
-		RayObject *index;
-		int a = 0;
-
-		events = MEM_malloc( sizeof(CostEvent)*2*size, "RTBuilder.SweepSplitCostEvent" );
-		for(a = 0; a<3; a++)
-		
-
-		for(index = b->begin; b != b->end; b++)
-		{
-			float min[3], max[3];
-			INIT_MINMAX(min, max);
-			RE_rayobject_merge_bb(index, min, max);
-			for(a = 0; a<3; a++)
-			{
-				ev[a]->key = min[a];
-				ev[a]->value = 1;
-				ev[a]++;
-		
-				ev[a]->key = max[a];
-				ev[a]->value = -1;
-				ev[a]++;
-			}
-		}
-		for(a = 0; a<3; a++)
-			costevent_sort(events[a], ev[a]);
-			
-		
-		
-		for(a = 0; a<3; a++)
-			MEM_freeN(ev[a]);
-	}
-}
-*/
 
 /*
  * Helper code
@@ -592,4 +485,47 @@ static int split_leafs_by_plane(RTBuilder *b, int begin, int end, float plane)
 		}
 	}
 	return begin;
+}
+
+/*
+ * Bounding Box utils
+ */
+float bb_volume(float *min, float *max)
+{
+	return (max[0]-min[0])*(max[1]-min[1])*(max[2]-min[2]);
+}
+
+float bb_area(float *min, float *max)
+{
+	float sub[3], a;
+	sub[0] = max[0]-min[0];
+	sub[1] = max[1]-min[1];
+	sub[2] = max[2]-min[2];
+
+	a = (sub[0]*sub[1] + sub[0]*sub[2] + sub[1]*sub[2])*2;
+	assert(a >= 0.0);
+	return a;
+}
+
+int bb_largest_axis(float *min, float *max)
+{
+	float sub[3];
+	
+	sub[0] = max[0]-min[0];
+	sub[1] = max[1]-min[1];
+	sub[2] = max[2]-min[2];
+	if(sub[0] > sub[1])
+	{
+		if(sub[0] > sub[2])
+			return 0;
+		else
+			return 2;
+	}
+	else
+	{
+		if(sub[1] > sub[2])
+			return 1;
+		else
+			return 2;
+	}	
 }

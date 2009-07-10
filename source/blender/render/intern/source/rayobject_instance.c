@@ -34,9 +34,12 @@
 #include "RE_raytrace.h"
 #include "rayobject.h"
 
+#define RE_COST_INSTANCE (1.0f)
+
 static int  RayObject_instance_intersect(RayObject *o, Isect *isec);
 static void RayObject_instance_free(RayObject *o);
 static void RayObject_instance_bb(RayObject *o, float *min, float *max);
+static float RayObject_instance_cost(RayObject *o);
 
 static RayObjectAPI instance_api =
 {
@@ -44,7 +47,8 @@ static RayObjectAPI instance_api =
 	NULL, //static void RayObject_instance_add(RayObject *o, RayObject *ob);
 	NULL, //static void RayObject_instance_done(RayObject *o);
 	RayObject_instance_free,
-	RayObject_instance_bb
+	RayObject_instance_bb,
+	RayObject_instance_cost
 };
 
 typedef struct InstanceRayObject
@@ -85,7 +89,7 @@ static int  RayObject_instance_intersect(RayObject *o, Isect *isec)
 	InstanceRayObject *obj = (InstanceRayObject*)o;
 	int res;
 	float start[3], vec[3], labda, dist;
-	int changed = 0;
+	int changed = 0, i;
 	
 	//TODO - this is disabling self intersection on instances
 	if(isec->orig.ob == obj->ob && obj->ob)
@@ -111,6 +115,18 @@ static int  RayObject_instance_intersect(RayObject *o, Isect *isec)
 	
 	isec->labda *= isec->dist / dist;
 	
+	//Update idot_axis and bv_index
+	for(i=0; i<3; i++)
+	{
+		isec->idot_axis[i]		= 1.0f / isec->vec[i];
+		
+		isec->bv_index[2*i]		= isec->idot_axis[i] < 0.0 ? 1 : 0;
+		isec->bv_index[2*i+1]	= 1 - isec->bv_index[2*i];
+		
+		isec->bv_index[2*i]		= i+3*isec->bv_index[2*i];
+		isec->bv_index[2*i+1]	= i+3*isec->bv_index[2*i+1];
+	}
+
 	//Raycast
 	res = RE_rayobject_intersect(obj->target, isec);
 
@@ -118,7 +134,6 @@ static int  RayObject_instance_intersect(RayObject *o, Isect *isec)
 	if(res == 0)
 	{
 		isec->labda = labda;
-		
 	}
 	else
 	{
@@ -131,6 +146,18 @@ static int  RayObject_instance_intersect(RayObject *o, Isect *isec)
 	
 	if(changed)
 		isec->orig.ob = obj->ob;
+
+	//Update idot_axis and bv_index
+	for(i=0; i<3; i++)
+	{
+		isec->idot_axis[i]		= 1.0f / isec->vec[i];
+		
+		isec->bv_index[2*i]		= isec->idot_axis[i] < 0.0 ? 1 : 0;
+		isec->bv_index[2*i+1]	= 1 - isec->bv_index[2*i];
+		
+		isec->bv_index[2*i]		= i+3*isec->bv_index[2*i];
+		isec->bv_index[2*i+1]	= i+3*isec->bv_index[2*i+1];
+	}
 		
 	return res;
 }
@@ -139,6 +166,12 @@ static void RayObject_instance_free(RayObject *o)
 {
 	InstanceRayObject *obj = (InstanceRayObject*)o;
 	MEM_freeN(obj);
+}
+
+static float RayObject_instance_cost(RayObject *o)
+{
+	InstanceRayObject *obj = (InstanceRayObject*)o;
+	return RE_rayobject_cost(obj->target) + RE_COST_INSTANCE;
 }
 
 static void RayObject_instance_bb(RayObject *o, float *min, float *max)

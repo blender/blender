@@ -54,6 +54,8 @@ typedef struct RTBuilder
 	int child_offset[RTBUILD_MAX_CHILDS+1];
 	
 	int child_sorted_axis; /* -1 if not sorted */
+	
+	float bb[6];
 
 } RTBuilder;
 
@@ -61,6 +63,7 @@ typedef struct RTBuilder
 RTBuilder* rtbuild_create(int size);
 void rtbuild_free(RTBuilder *b);
 void rtbuild_add(RTBuilder *b, RayObject *o);
+void rtbuild_merge_bb(RTBuilder *b, float *min, float *max);
 int rtbuild_size(RTBuilder *b);
 
 /* used during tree reorganization */
@@ -82,5 +85,7 @@ int rtbuild_median_split_largest_axis(RTBuilder *b, int nchilds);
 
 /* bb utils */
 float bb_area(float *min, float *max);
+float bb_volume(float *min, float *max);
+int bb_largest_axis(float *min, float *max);
 
 #endif
