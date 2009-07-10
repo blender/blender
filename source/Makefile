@@ -83,7 +83,6 @@ GRPLIB += $(NAN_SOUNDSYSTEM)/lib/$(DEBUG_DIR)libSoundSystem.a
 GRPLIB += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
 GRPLIB += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
 GRPLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
-GRPLIB += $(OCGDIR)/blender/radiosity/$(DEBUG_DIR)libradiosity.a
 
 # nlin: the reason that some libraries appear more than once below is
 # to handle circular dependencies in linking among libraries... some
@@ -221,8 +220,8 @@ PULIB += $(OCGDIR)/blender/ed_sequencer/$(DEBUG_DIR)libed_sequencer.a
 PULIB += $(OCGDIR)/blender/ed_file/$(DEBUG_DIR)libed_file.a
 PULIB += $(OCGDIR)/blender/ed_info/$(DEBUG_DIR)libed_info.a
 PULIB += $(OCGDIR)/blender/ed_buttons/$(DEBUG_DIR)libed_buttons.a
-PULIB += $(OCGDIR)/blender/ed_node/$(DEBUG_DIR)libed_node.a
 PULIB += $(OCGDIR)/blender/ed_graph/$(DEBUG_DIR)libed_graph.a
+PULIB += $(OCGDIR)/blender/ed_node/$(DEBUG_DIR)libed_node.a
 PULIB += $(OCGDIR)/blender/ed_outliner/$(DEBUG_DIR)libed_outliner.a
 PULIB += $(OCGDIR)/blender/ed_time/$(DEBUG_DIR)libed_time.a
 PULIB += $(OCGDIR)/blender/ed_preview/$(DEBUG_DIR)libed_preview.a

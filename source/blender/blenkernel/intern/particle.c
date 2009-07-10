@@ -2008,10 +2008,10 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 	ParticleTexture ptex;
 	float *cpa_fuv=0, *par_rot=0;
 	float co[3], orco[3], ornor[3], t, cpa_1st[3], dvec[3];
-	float branch_begin, branch_end, branch_prob, branchfac, rough_rand;
+	float branch_begin, branch_end, branch_prob, rough_rand;
 	float length, max_length = 1.0f, cur_length = 0.0f;
 	float eff_length, eff_vec[3];
-	int k, cpa_num, guided = 0;
+	int k, cpa_num;
 	short cpa_from;
 
 	if(part->flag & PART_BRANCHING) {
@@ -2417,7 +2417,7 @@ void psys_cache_paths(Scene *scene, Object *ob, ParticleSystem *psys, float cfra
 	float nosel_col[3];
 	float length, vec[3];
 	float *vg_effector= NULL, effector=0.0f;
-	float *vg_length= NULL, pa_length=1.0f, max_length=1.0f, cur_length=0.0f;
+	float *vg_length= NULL, pa_length=1.0f;
 	int keyed, baked;
 
 	/* we don't have anything valid to create paths from so let's quit here */
@@ -3553,7 +3553,6 @@ void psys_get_particle_on_path(Scene *scene, Object *ob, ParticleSystem *psys, i
 	float t, real_t, dfra, keytime, frs_sec = scene->r.frs_sec;
 	float co[3], orco[3];
 	float hairmat[4][4];
-	float pa_clump = 0.0, pa_kink = 0.0;
 	int totparent = 0;
 	int totpart = psys->totpart;
 	int totchild = psys->totchild;
@@ -3800,7 +3799,6 @@ void psys_get_particle_on_path(Scene *scene, Object *ob, ParticleSystem *psys, i
 				Normalize(state->vel);
 			}
 			else{
-				float length = VecLength(state->vel);
 				tstate.time=t+0.001f;
 				psys_get_particle_on_path(scene, ob,psys,p,&tstate,0);
 				VECSUB(state->vel,tstate.co,state->co);

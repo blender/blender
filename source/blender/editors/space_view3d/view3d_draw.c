@@ -80,6 +80,7 @@
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_util.h"
+#include "ED_transform.h"
 #include "ED_types.h"
 
 #include "UI_interface.h"
@@ -2019,7 +2020,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	if(rv3d->rflag & RV3D_CLIPPING)
 		view3d_clr_clipping();
 	
-//	BIF_draw_manipulator(ar);
+	BIF_draw_manipulator(C);
 	
 	if(v3d->zbuf) {
 		v3d->zbuf= FALSE;

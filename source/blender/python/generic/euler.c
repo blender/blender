@@ -134,18 +134,21 @@ static PyObject *Euler_ToQuat(EulerObject * self)
 //return a matrix representation of the euler
 static PyObject *Euler_ToMatrix(EulerObject * self)
 {
-	float eul[3];
 	float mat[9] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-	int x;
 
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
 #ifdef USE_MATHUTILS_DEG
-	for(x = 0; x < 3; x++) {
-		eul[x] = self->eul[x] * ((float)Py_PI / 180);
+	{
+		float eul[3];
+		int x;
+		
+		for(x = 0; x < 3; x++) {
+			eul[x] = self->eul[x] * ((float)Py_PI / 180);
+		}
+		EulToMat3(eul, (float (*)[3]) mat);
 	}
-	EulToMat3(eul, (float (*)[3]) mat);
 #else
 	EulToMat3(self->eul, (float (*)[3]) mat);
 #endif
@@ -234,7 +237,6 @@ static PyObject *Euler_Rotate(EulerObject * self, PyObject *args)
 {
 	float angle = 0.0f;
 	char *axis;
-	int x;
 
 	if(!PyArg_ParseTuple(args, "fs", &angle, &axis)){
 		PyErr_SetString(PyExc_TypeError, "euler.rotate():expected angle (float) and axis (x,y,z)");
@@ -249,18 +251,25 @@ static PyObject *Euler_Rotate(EulerObject * self, PyObject *args)
 		return NULL;
 
 #ifdef USE_MATHUTILS_DEG
-	//covert to radians
-	angle *= ((float)Py_PI / 180);
-	for(x = 0; x < 3; x++) {
-		self->eul[x] *= ((float)Py_PI / 180);
+	{
+		int x;
+
+		//covert to radians
+		angle *= ((float)Py_PI / 180);
+		for(x = 0; x < 3; x++) {
+			self->eul[x] *= ((float)Py_PI / 180);
+		}
 	}
 #endif
 	euler_rot(self->eul, angle, *axis);
 
 #ifdef USE_MATHUTILS_DEG
-	//convert back from radians
-	for(x = 0; x < 3; x++) {
-		self->eul[x] *= (180 / (float)Py_PI);
+	{
+		int x;
+		//convert back from radians
+		for(x = 0; x < 3; x++) {
+			self->eul[x] *= (180 / (float)Py_PI);
+		}
 	}
 #endif
 
@@ -602,7 +611,7 @@ PyObject *newEulerObject(float *eul, int type, PyTypeObject *base_type)
 	EulerObject *self;
 	int x;
 
-	if(base_type)	self = base_type->tp_alloc(base_type, 0);
+	if(base_type)	self = (EulerObject *)base_type->tp_alloc(base_type, 0);
 	else			self = PyObject_NEW(EulerObject, &euler_Type);
 
 	/* init callbacks as NULL */

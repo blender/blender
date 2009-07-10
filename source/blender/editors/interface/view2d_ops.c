@@ -1273,6 +1273,7 @@ void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 
 static int reset_exec(bContext *C, wmOperator *op)
 {
+	uiStyle *style= U.uistyles.first;
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= &ar->v2d;
 	int winx, winy;
@@ -1283,26 +1284,26 @@ static int reset_exec(bContext *C, wmOperator *op)
 
 	v2d->cur.xmax= v2d->cur.xmin + winx;
 	v2d->cur.ymax= v2d->cur.ymin + winy;
-
+	
 	/* align */
 	if(v2d->align) {
 		/* posx and negx flags are mutually exclusive, so watch out */
 		if ((v2d->align & V2D_ALIGN_NO_POS_X) && !(v2d->align & V2D_ALIGN_NO_NEG_X)) {
 			v2d->cur.xmax= 0.0f;
-			v2d->cur.xmin= v2d->winx;
+			v2d->cur.xmin= v2d->winx*style->panelzoom;
 		}
 		else if ((v2d->align & V2D_ALIGN_NO_NEG_X) && !(v2d->align & V2D_ALIGN_NO_POS_X)) {
-			v2d->cur.xmax= v2d->cur.xmax - v2d->cur.xmin;
+			v2d->cur.xmax= (v2d->cur.xmax - v2d->cur.xmin)*style->panelzoom;
 			v2d->cur.xmin= 0.0f;
 		}
 
 		/* - posx and negx flags are mutually exclusive, so watch out */
 		if ((v2d->align & V2D_ALIGN_NO_POS_Y) && !(v2d->align & V2D_ALIGN_NO_NEG_Y)) {
 			v2d->cur.ymax= 0.0f;
-			v2d->cur.ymin= -v2d->winy;
+			v2d->cur.ymin= -v2d->winy*style->panelzoom;
 		}
 		else if ((v2d->align & V2D_ALIGN_NO_NEG_Y) && !(v2d->align & V2D_ALIGN_NO_POS_Y)) {
-			v2d->cur.ymax= v2d->cur.ymax - v2d->cur.ymin;
+			v2d->cur.ymax= (v2d->cur.ymax - v2d->cur.ymin)*style->panelzoom;
 			v2d->cur.ymin= 0.0f;
 		}
 	}

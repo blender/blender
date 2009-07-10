@@ -3434,7 +3434,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 	data= MEM_callocN(sizeof(uiHandleButtonData), "uiHandleButtonData");
 	data->window= CTX_wm_window(C);
 	data->region= ar;
-	if( ELEM(but->type, BUT_CURVE, SEARCH_MENU) );  // XXX curve is temp
+	if( ELEM3(but->type, BUT_CURVE, SEARCH_MENU, TEX) );  // XXX curve is temp
 	else data->interactive= 1;
 	
 	data->state = BUTTON_STATE_INIT;
@@ -3775,8 +3775,7 @@ static void ui_handle_button_return_submenu(bContext *C, wmEvent *event, uiBut *
 			button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 		}
 		else {
-			but= ui_but_find_activated(data->region);
-			if(but) {
+			if(event->type != MOUSEMOVE) {
 				but->active->used_mouse= 0;
 				button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 			}

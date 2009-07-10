@@ -167,7 +167,6 @@ static PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 {
 	float eul[3];
 	EulerObject *eul_compat = NULL;
-	int x;
 	
 	if(!PyArg_ParseTuple(args, "|O!:toEuler", &euler_Type, &eul_compat))
 		return NULL;
@@ -176,7 +175,7 @@ static PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 		return NULL;
 
 	if(eul_compat) {
-		float mat[3][3], eul_compatf[3];
+		float mat[3][3];
 		
 		if(!BaseMath_ReadCallback(eul_compat))
 			return NULL;
@@ -184,10 +183,15 @@ static PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 		QuatToMat3(self->quat, mat);
 
 #ifdef USE_MATHUTILS_DEG
-		for(x = 0; x < 3; x++) {
-			eul_compatf[x] = eul_compat->eul[x] * ((float)Py_PI / 180);
+		{
+			float  eul_compatf[3];
+			int x;
+
+			for(x = 0; x < 3; x++) {
+				eul_compatf[x] = eul_compat->eul[x] * ((float)Py_PI / 180);
+			}
+			Mat3ToCompatibleEul(mat, eul, eul_compatf);
 		}
-		Mat3ToCompatibleEul(mat, eul, eul_compatf);
 #else
 		Mat3ToCompatibleEul(mat, eul, eul_compat->eul);
 #endif
@@ -197,8 +201,12 @@ static PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 	}
 	
 #ifdef USE_MATHUTILS_DEG
-	for(x = 0; x < 3; x++) {
-		eul[x] *= (180 / (float)Py_PI);
+	{
+		int x;
+
+		for(x = 0; x < 3; x++) {
+			eul[x] *= (180 / (float)Py_PI);
+		}
 	}
 #endif
 	return newEulerObject(eul, Py_NEW, NULL);
@@ -833,7 +841,7 @@ PyObject *newQuaternionObject(float *quat, int type, PyTypeObject *base_type)
 {
 	QuaternionObject *self;
 	
-	if(base_type)	self = base_type->tp_alloc(base_type, 0);
+	if(base_type)	self = (QuaternionObject *)base_type->tp_alloc(base_type, 0);
 	else			self = PyObject_NEW(QuaternionObject, &quaternion_Type);
 
 	/* init callbacks as NULL */

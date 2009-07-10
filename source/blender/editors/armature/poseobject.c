@@ -64,7 +64,6 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_transform.h" /* for autokey TFM_TRANSLATION, etc */
 #include "BIF_gl.h"
 
 #include "RNA_access.h"
@@ -79,6 +78,7 @@
 #include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
+#include "ED_transform.h" /* for autokey TFM_TRANSLATION, etc */
 #include "ED_view3d.h"
 
 #include "armature_intern.h"
@@ -443,6 +443,65 @@ void pose_select_constraint_target(Scene *scene)
 
 }
 
+static int pose_select_constraint_target_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	bArmature *arm= ob->data;
+	bPoseChannel *pchan;
+	bConstraint *con;
+	int found= 0;
+	
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (arm->layer & pchan->bone->layer) {
+			if (pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+				for (con= pchan->constraints.first; con; con= con->next) {
+					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+					ListBase targets = {NULL, NULL};
+					bConstraintTarget *ct;
+					
+					if (cti && cti->get_constraint_targets) {
+						cti->get_constraint_targets(con, &targets);
+						
+						for (ct= targets.first; ct; ct= ct->next) {
+							if ((ct->tar == ob) && (ct->subtarget[0])) {
+								bPoseChannel *pchanc= get_pose_channel(ob->pose, ct->subtarget);
+								if(pchanc) {
+									pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+									found= 1;
+								}
+							}
+						}
+						
+						if (cti->flush_constraint_targets)
+							cti->flush_constraint_targets(con, &targets, 1);
+					}
+				}
+			}
+		}
+	}
+
+	if(!found)
+		return OPERATOR_CANCELLED;
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_select_constraint_target(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Constraint Target";
+	ot->idname= "POSE_OT_select_constraint_target";
+	
+	/* api callbacks */
+	ot->exec= pose_select_constraint_target_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /* ******************* select hierarchy operator ************* */
 
 static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
@@ -453,6 +512,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 	Bone *curbone, *pabone, *chbone;
 	int direction = RNA_enum_get(op->ptr, "direction");
 	int add_to_sel = RNA_boolean_get(op->ptr, "extend");
+	int found= 0;
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		curbone= pchan->bone;
@@ -469,8 +529,8 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						curbone->flag &= ~BONE_ACTIVE;
 						pabone->flag |= (BONE_ACTIVE|BONE_SELECTED);
-						
-						// XXX notifiers need to be sent to other editors to update
+
+						found= 1;
 						break;
 					}
 				} else { // BONE_SELECT_CHILD
@@ -483,14 +543,17 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						curbone->flag &= ~BONE_ACTIVE;
 						chbone->flag |= (BONE_ACTIVE|BONE_SELECTED);
-						
-						// XXX notifiers need to be sent to other editors to update
+
+						found= 1;
 						break;
 					}
 				}
 			}
 		}
 	}
+
+	if(!found)
+		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
 

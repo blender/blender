@@ -72,7 +72,6 @@
 #include "PIL_time.h"
 
 #include "BIF_gl.h"
-#include "BIF_transform.h"
 #include "BIF_generate.h"
 
 #include "RNA_access.h"
@@ -85,6 +84,7 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 #include "ED_util.h"
 #include "ED_view3d.h"
 
@@ -110,7 +110,7 @@ static void adduplicate() {}
 /* **************** tools on Editmode Armature **************** */
 
 /* Sync selection to parent for connected children */
-static void armature_sync_selection(ListBase *edbo)
+void ED_armature_sync_selection(ListBase *edbo)
 {
 	EditBone *ebo;
 	
@@ -1435,7 +1435,7 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, wmEvent *e
 
 	}
 
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 
 	/* BIF_undo_push("Select connected"); */
 
@@ -1668,7 +1668,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *op)
 	}
 	
 	
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 
 	WM_event_add_notifier(C, NC_OBJECT, obedit);
 
@@ -1742,7 +1742,7 @@ void deselectall_armature(Object *obedit, int toggle, int doundo)
 		}
 	}
 	
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 	if (doundo) {
 		if (sel==1) BIF_undo_push("Select All");
 		else BIF_undo_push("Deselect All");
@@ -1814,7 +1814,7 @@ void mouse_armature(bContext *C, short mval[2], int extend)
 				nearBone->flag |= selmask;
 		}
 		
-		armature_sync_selection(arm->edbo);
+		ED_armature_sync_selection(arm->edbo);
 		
 		if(nearBone) {
 			/* then now check for active status */
@@ -2246,7 +2246,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *op)
 		
 	}
 	
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, obedit);
 	
@@ -2508,7 +2508,7 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 	if (CTX_DATA_COUNT(C, selected_bones) == 0)
 	  return OPERATOR_CANCELLED;
 	
-	armature_sync_selection(arm->edbo); // XXX why is this needed?
+	ED_armature_sync_selection(arm->edbo); // XXX why is this needed?
 
 	preEditBoneDuplicate(arm->edbo);
 
@@ -3058,7 +3058,7 @@ void merge_armature(Scene *scene)
 	}
 	
 	/* undo + updates */
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 	BIF_undo_push("Merge Bones");
 }
 
@@ -3080,7 +3080,7 @@ void hide_selected_armature_bones(Scene *scene)
 			}
 		}
 	}
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 	BIF_undo_push("Hide Bones");
 }
 
@@ -3100,7 +3100,7 @@ void hide_unselected_armature_bones(Scene *scene)
 			}
 		}
 	}
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 	BIF_undo_push("Hide Unselected Bones");
 }
 
@@ -3118,7 +3118,7 @@ void show_all_armature_bones(Scene *scene)
 			}
 		}
 	}
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 	BIF_undo_push("Reveal Bones");
 }
 
@@ -3251,7 +3251,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 	if (totbone==0) return OPERATOR_CANCELLED;
 	
 	/* Transform the endpoints */
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 
 	return OPERATOR_FINISHED;
 }
@@ -3812,7 +3812,7 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT, ob);
@@ -3839,7 +3839,7 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 
 /* ****************  Selections  ******************/
 
-static int armature_select_invert_exec(bContext *C, wmOperator *op)
+static int armature_select_inverse_exec(bContext *C, wmOperator *op)
 {
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, EditBone *, ebone, visible_bones) {
@@ -3854,15 +3854,15 @@ static int armature_select_invert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_select_invert(wmOperatorType *ot)
+void ARMATURE_OT_select_inverse(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Invert Selection";
-	ot->idname= "ARMATURE_OT_select_invert";
+	ot->name= "Select Inverse";
+	ot->idname= "ARMATURE_OT_select_inverse";
 	
 	/* api callbacks */
-	ot->exec= armature_select_invert_exec;
+	ot->exec= armature_select_inverse_exec;
 	ot->poll= ED_operator_editarmature;
 	
 	/* flags */
@@ -3963,7 +3963,7 @@ static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
 	
@@ -4823,7 +4823,7 @@ void POSE_OT_rot_clear(wmOperatorType *ot)
 
 /* ***************** selections ********************** */
 
-static int pose_select_invert_exec(bContext *C, wmOperator *op)
+static int pose_select_inverse_exec(bContext *C, wmOperator *op)
 {
 	
 	/*	Set the flags */
@@ -4838,15 +4838,15 @@ static int pose_select_invert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_select_invert(wmOperatorType *ot)
+void POSE_OT_select_inverse(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Invert Selection";
-	ot->idname= "POSE_OT_select_invert";
+	ot->name= "Select Inverse";
+	ot->idname= "POSE_OT_select_inverse";
 	
 	/* api callbacks */
-	ot->exec= pose_select_invert_exec;
+	ot->exec= pose_select_inverse_exec;
 	ot->poll= ED_operator_posemode;
 	
 	/* flags */

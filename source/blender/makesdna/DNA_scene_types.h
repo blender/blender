@@ -220,7 +220,12 @@ typedef struct RenderData {
 	short bufflag;
  	short quality;
 	
-	short rpad, rpad1, rpad2;
+	/**
+	 * Render to image editor, fullscreen or to new window.
+	 */
+	short displaymode;
+	
+	short rpad1, rpad2;
 
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
@@ -657,6 +662,12 @@ typedef struct Scene {
 #define R_TOUCH			0x800000 /* touch files before rendering */
 #define R_SIMPLIFY		0x1000000
 
+/* displaymode */
+
+#define R_OUTPUT_SCREEN	0
+#define R_OUTPUT_AREA	1
+#define R_OUTPUT_WINDOW	2
+#define R_OUTPUT_FORKED	3
 
 /* filtertype */
 #define R_FILTER_BOX	0

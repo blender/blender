@@ -60,6 +60,7 @@
 #include "BLI_edgehash.h"
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "GPU_draw.h"
 #include "GPU_extensions.h"

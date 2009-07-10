@@ -9,13 +9,10 @@ class DataButtonsPanel(bpy.types.Panel):
 	def poll(self, context):
 		return (context.mesh != None)
 
-class DATA_PT_mesh(DataButtonsPanel):
-	__idname__ = "DATA_PT_mesh"
-	__label__ = "Mesh"
+class DATA_PT_context_mesh(DataButtonsPanel):
+	__idname__ = "DATA_PT_context_mesh"
+	__no_header__ = True
 	
-	def poll(self, context):
-		return (context.object and context.object.type == 'MESH')
-
 	def draw(self, context):
 		layout = self.layout
 		
@@ -32,22 +29,28 @@ class DATA_PT_mesh(DataButtonsPanel):
 			split.template_ID(space, "pin_id")
 			split.itemS()
 
-		if mesh:
-			layout.itemS()
+class DATA_PT_mesh(DataButtonsPanel):
+	__idname__ = "DATA_PT_mesh"
+	__label__ = "Mesh"
 
-			split = layout.split()
+	def draw(self, context):
+		layout = self.layout
 		
-			col = split.column()
-			col.itemR(mesh, "autosmooth")
-			colsub = col.column()
-			colsub.active = mesh.autosmooth
-			colsub.itemR(mesh, "autosmooth_angle", text="Angle")
-			sub = split.column()
-			sub.itemR(mesh, "vertex_normal_flip")
-			sub.itemR(mesh, "double_sided")
+		mesh = context.mesh
+		
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(mesh, "autosmooth")
+		colsub = col.column()
+		colsub.active = mesh.autosmooth
+		colsub.itemR(mesh, "autosmooth_angle", text="Angle")
+		sub = split.column()
+		sub.itemR(mesh, "vertex_normal_flip")
+		sub.itemR(mesh, "double_sided")
 			
-			layout.itemR(mesh, "texco_mesh")
-
+		layout.itemS()
+		layout.itemR(mesh, "texco_mesh")
 
 class DATA_PT_materials(DataButtonsPanel):
 	__idname__ = "DATA_PT_materials"
@@ -205,6 +208,7 @@ class DATA_PT_vertex_colors(DataButtonsPanel):
 		col.itemO("MESH_OT_vertex_color_add", icon="ICON_ZOOMIN", text="")
 		col.itemO("MESH_OT_vertex_color_remove", icon="ICON_ZOOMOUT", text="")
 
+bpy.types.register(DATA_PT_context_mesh)
 bpy.types.register(DATA_PT_mesh)
 bpy.types.register(DATA_PT_materials)
 bpy.types.register(DATA_PT_vertex_groups)

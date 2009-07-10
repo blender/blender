@@ -1112,12 +1112,12 @@ void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item
 	switch(prop->type) {
 		case PROP_ENUM: {
 			EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
-			eprop->item= item;
+			eprop->item= (EnumPropertyItem*)item;
 			eprop->totitem= 0;
 			for(i=0; item[i].identifier; i++) {
 				eprop->totitem++;
 
-				if(item[i].value == eprop->defaultvalue)
+				if(item[i].identifier[0] && item[i].value == eprop->defaultvalue)
 					defaultfound= 1;
 			}
 
@@ -1280,7 +1280,7 @@ void RNA_def_property_enum_default(PropertyRNA *prop, int value)
 			eprop->defaultvalue= value;
 
 			for(i=0; i<eprop->totitem; i++) {
-				if(eprop->item[i].value == eprop->defaultvalue)
+				if(eprop->item[i].identifier[0] && eprop->item[i].value == eprop->defaultvalue)
 					defaultfound= 1;
 			}
 
@@ -1960,6 +1960,12 @@ PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont_, const char *identifier, co
 	return prop;
 }
 
+void RNA_def_enum_funcs(PropertyRNA *prop, EnumPropertyItemFunc itemfunc)
+{
+	EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
+	eprop->itemf= itemfunc;
+}
+
 PropertyRNA *RNA_def_float(StructOrFunctionRNA *cont_, const char *identifier, float default_value, 
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax)
 {
@@ -2254,5 +2260,39 @@ int rna_parameter_size(PropertyRNA *parm)
 	}
 
 	return sizeof(void *);
+}
+
+/* Dynamic Enums */
+
+void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item)
+{
+	EnumPropertyItem *newitems;
+	int tot= *totitem;
+
+	if(tot == 0) {
+		*items= MEM_callocN(sizeof(EnumPropertyItem)*8, "RNA_enum_items_add");
+	}
+	else if(tot >= 8 && (tot&(tot-1)) == 0){
+		/* power of two > 8 */
+		newitems= MEM_callocN(sizeof(EnumPropertyItem)*tot*2, "RNA_enum_items_add");
+		memcpy(newitems, *items, sizeof(EnumPropertyItem)*tot);
+		MEM_freeN(*items);
+		*items= newitems;
+	}
+
+	(*items)[tot]= *item;
+	*totitem= tot+1;
+}
+
+void RNA_enum_items_add(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item)
+{
+	for(; item->identifier; item++)
+		RNA_enum_item_add(items, totitem, item);
+}
+
+void RNA_enum_item_end(EnumPropertyItem **items, int *totitem)
+{
+	static EnumPropertyItem empty = {0, NULL, 0, NULL, NULL};
+	RNA_enum_item_add(items, totitem, &empty);
 }
 

@@ -65,7 +65,6 @@
 //#include "BIF_editsima.h"
 //#include "BIF_editparticle.h"
 //#include "BIF_meshtools.h"
-#include "BIF_retopo.h"
 
 #include "BKE_action.h"
 #include "BKE_anim.h"
@@ -91,6 +90,7 @@
 #include "ED_image.h"
 #include "ED_keyframing.h"
 #include "ED_mesh.h"
+#include "ED_retopo.h"
 #include "ED_space_api.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
@@ -113,8 +113,6 @@
 #include "transform.h"
 
 extern ListBase editelems;
-
-extern TransInfo Trans;	/* From transform.c */
 
 /* ************************** Functions *************************** */
 
@@ -1275,9 +1273,12 @@ void calculatePropRatio(TransInfo *t)
 	}
 }
 
+/* XXX only to make manipulators run now */
 TransInfo *BIF_GetTransInfo()
 {
-	return NULL;
+	static struct TransInfo trans;
+	memset(&trans, 0, sizeof(struct TransInfo));
+	return &trans;
 }
 
 float get_drawsize(ARegion *ar, float *co)

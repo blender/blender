@@ -69,7 +69,7 @@ typedef struct FileLayout
 
 struct FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile);
 
-short ED_fileselect_set_params(struct SpaceFile *sfile, const char *title, const char *path, 
+short ED_fileselect_set_params(struct SpaceFile *sfile, const char *title, const char *dir, const char *path, 
 						   short flag, short display, short filter, short sort);
 
 void ED_fileselect_reset_params(struct SpaceFile *sfile);

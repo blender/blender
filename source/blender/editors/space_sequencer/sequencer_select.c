@@ -244,7 +244,7 @@ void SEQUENCER_OT_select_all_toggle(struct wmOperatorType *ot)
 
 
 /* (de)select operator */
-static int sequencer_select_invert_exec(bContext *C, wmOperator *op)
+static int sequencer_select_inverse_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -267,14 +267,14 @@ static int sequencer_select_invert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_select_invert(struct wmOperatorType *ot)
+void SEQUENCER_OT_select_inverse(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Invert";
-	ot->idname= "SEQUENCER_OT_select_invert";
+	ot->name= "Select Inverse";
+	ot->idname= "SEQUENCER_OT_select_inverse";
 
 	/* api callbacks */
-	ot->exec= sequencer_select_invert_exec;
+	ot->exec= sequencer_select_inverse_exec;
 
 	ot->poll= ED_operator_sequencer_active;
 	

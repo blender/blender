@@ -74,12 +74,12 @@
 
 #include "LBM_fluidsim.h"
 
-#include "BIF_retopo.h"
 
 #include "ED_mesh.h"
 #include "ED_object.h"
-#include "ED_util.h"
+#include "ED_retopo.h"
 #include "ED_screen.h"
+#include "ED_util.h"
 #include "ED_view3d.h"
 
 #include "RNA_access.h"
@@ -1606,13 +1606,13 @@ static int mesh_separate_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Base *base= CTX_data_active_base(C);
-	int retval= 0;
+	int retval= 0, type= RNA_enum_get(op->ptr, "type");
 	
-	if(RNA_enum_is_equal(op->ptr, "type", "SELECTED"))
+	if(type == 0)
 		retval= mesh_separate_selected(scene, base);
-	else if(RNA_enum_is_equal(op->ptr, "type", "MATERIAL"))
+	else if(type == 1)
 		retval= mesh_separate_material (scene, base);
-	else if(RNA_enum_is_equal(op->ptr, "type", "LOOSE"))
+	else if(type == 2)
 		retval= mesh_separate_loose(scene, base);
 	   
 	if(retval) {
@@ -1625,7 +1625,7 @@ static int mesh_separate_exec(bContext *C, wmOperator *op)
 void MESH_OT_separate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mesh Separate";
+	ot->name= "Separate";
 	ot->idname= "MESH_OT_separate";
 	
 	/* api callbacks */
@@ -1947,26 +1947,35 @@ void EM_init_index_arrays(EditMesh *em, int forVert, int forEdge, int forFace)
 
 	if (forVert) {
 		em->totvert= BLI_countlist(&em->verts);
-		g_em_vert_array = MEM_mallocN(sizeof(*g_em_vert_array)*em->totvert, "em_v_arr");
 
-		for (i=0,eve=em->verts.first; eve; i++,eve=eve->next)
-			g_em_vert_array[i] = eve;
+		if(em->totvert) {
+			g_em_vert_array = MEM_mallocN(sizeof(*g_em_vert_array)*em->totvert, "em_v_arr");
+
+			for (i=0,eve=em->verts.first; eve; i++,eve=eve->next)
+				g_em_vert_array[i] = eve;
+		}
 	}
 
 	if (forEdge) {
 		em->totedge= BLI_countlist(&em->edges);
-		g_em_edge_array = MEM_mallocN(sizeof(*g_em_edge_array)*em->totedge, "em_e_arr");
 
-		for (i=0,eed=em->edges.first; eed; i++,eed=eed->next)
-			g_em_edge_array[i] = eed;
+		if(em->totedge) {
+			g_em_edge_array = MEM_mallocN(sizeof(*g_em_edge_array)*em->totedge, "em_e_arr");
+
+			for (i=0,eed=em->edges.first; eed; i++,eed=eed->next)
+				g_em_edge_array[i] = eed;
+		}
 	}
 
 	if (forFace) {
 		em->totface= BLI_countlist(&em->faces);
-		g_em_face_array = MEM_mallocN(sizeof(*g_em_face_array)*em->totface, "em_f_arr");
 
-		for (i=0,efa=em->faces.first; efa; i++,efa=efa->next)
-			g_em_face_array[i] = efa;
+		if(em->totface) {
+			g_em_face_array = MEM_mallocN(sizeof(*g_em_face_array)*em->totface, "em_f_arr");
+
+			for (i=0,efa=em->faces.first; efa; i++,efa=efa->next)
+				g_em_face_array[i] = efa;
+		}
 	}
 }
 

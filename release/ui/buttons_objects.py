@@ -6,6 +6,18 @@ class ObjectButtonsPanel(bpy.types.Panel):
 	__region_type__ = "WINDOW"
 	__context__ = "object"
 
+class OBJECT_PT_context_object(ObjectButtonsPanel):
+	__idname__ = "OBJECT_PT_context_object"
+	__no_header__ = True
+
+	def draw(self, context):
+		layout = self.layout
+		ob = context.object
+		
+		split = layout.split(percentage=0.06)
+		split.itemL(text="", icon="ICON_OBJECT_DATA")
+		split.itemR(ob, "name", text="")
+
 class OBJECT_PT_transform(ObjectButtonsPanel):
 	__idname__ = "OBJECT_PT_transform"
 	__label__ = "Transform"
@@ -124,6 +136,7 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
 		sub.itemR(ob, "up_axis", text="Up Axis")
 		sub.itemR(ob, "track_rotation", text="Rotation")
 
+bpy.types.register(OBJECT_PT_context_object)
 bpy.types.register(OBJECT_PT_transform)
 bpy.types.register(OBJECT_PT_groups)
 bpy.types.register(OBJECT_PT_display)

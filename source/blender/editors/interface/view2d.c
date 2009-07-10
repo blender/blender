@@ -155,7 +155,8 @@ static void view2d_masks(View2D *v2d)
 void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 {
 	short tot_changed= 0;
-	
+	uiStyle *style= U.uistyles.first;
+
 	/* initialise data if there is a need for such */
 	if ((v2d->flag & V2D_IS_INITIALISED) == 0) {
 		/* set initialised flag so that View2D doesn't get reinitialised next time again */
@@ -250,7 +251,11 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 				v2d->tot.ymax= 0.0f;
 				v2d->tot.ymin= -winy;
 
-				v2d->cur= v2d->tot;
+				v2d->cur.xmin= 0.0f;
+				v2d->cur.xmax= winx*style->panelzoom;
+
+				v2d->cur.ymax= 0.0f;
+				v2d->cur.ymin= -winy*style->panelzoom;
 			}
 				break;
 
@@ -1279,8 +1284,10 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		if (scrollers->hor_min > scrollers->hor_max) 
 			scrollers->hor_min= scrollers->hor_max;
 		
-		if(fac1 <= 0.0f && fac2 >= 1.0f) 
-			scrollers->horfull= 1;
+		/* check whether sliders can disappear */
+		if(v2d->keeptot)
+			if(fac1 <= 0.0f && fac2 >= 1.0f) 
+				scrollers->horfull= 1;
 	}
 	
 	/* vertical scrollers */
@@ -1304,8 +1311,10 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		if (scrollers->vert_min > scrollers->vert_max) 
 			scrollers->vert_min= scrollers->vert_max;
 		
-		if(fac1 <= 0.0f && fac2 >= 1.0f) 
-			scrollers->vertfull= 1;
+		/* check whether sliders can disappear */
+		if(v2d->keeptot)
+			if(fac1 <= 0.0f && fac2 >= 1.0f) 
+				scrollers->vertfull= 1;
 	}
 	
 	/* grid markings on scrollbars */

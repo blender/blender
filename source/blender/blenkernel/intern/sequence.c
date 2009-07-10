@@ -184,11 +184,11 @@ void seq_free_sequence(Editing *ed, Sequence *seq)
 	if(seq->anim) IMB_free_anim(seq->anim);
 	//XXX if(seq->hdaudio) sound_close_hdaudio(seq->hdaudio);
 
-	/* XXX if (seq->type & SEQ_EFFECT) {
+	if (seq->type & SEQ_EFFECT) {
 		struct SeqEffectHandle sh = get_sequence_effect(seq);
 
 		sh.free(seq);
-	}*/
+	}
 
 	if (ed->act_seq==seq)
 		ed->act_seq= NULL;

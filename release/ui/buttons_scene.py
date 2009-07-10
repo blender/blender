@@ -37,6 +37,8 @@ class RENDER_PT_output(RenderButtonsPanel):
 		layout = self.layout
 		rd = context.scene.render_data
 		
+		layout.itemR(rd, "display_mode", text="Display")
+		
 		layout.itemR(rd, "output_path")
 		
 		split = layout.split()
@@ -55,7 +57,6 @@ class RENDER_PT_output(RenderButtonsPanel):
 		col.itemL(text="Distributed Rendering:")
 		col.itemR(rd, "placeholders")
 		col.itemR(rd, "no_overwrite")
-		
 		
 		layout.itemR(rd, "file_format", text="Format")
 		

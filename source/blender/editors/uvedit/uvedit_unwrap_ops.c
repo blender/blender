@@ -1337,7 +1337,7 @@ static int mapping_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void UV_OT_mapping_menu(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mapping Menu";
+	ot->name= "UV Mapping";
 	ot->idname= "UV_OT_mapping_menu";
 	
 	/* api callbacks */

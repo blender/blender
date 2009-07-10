@@ -57,11 +57,9 @@ static void do_file_panel_events(bContext *C, void *arg, int event)
 static void file_panel_category(const bContext *C, Panel *pa, FSMenuCategory category, int icon, int allow_delete)
 {
 	uiBlock *block;
-	uiStyle *style= U.uistyles.first;
-	int i;
-	int fontsize = file_font_pointsize();
 	struct FSMenu* fsmenu = fsmenu_get();
 	int nentries = fsmenu_get_nentries(fsmenu, category);
+	int i;
 
 	uiLayoutSetAlignment(pa->layout, UI_LAYOUT_ALIGN_LEFT);
 	block= uiLayoutFreeBlock(pa->layout);
@@ -163,3 +161,4 @@ void file_panels_register(ARegionType *art)
 	pt->draw= file_panel_operator;
 	BLI_addtail(&art->paneltypes, pt);
 }
+

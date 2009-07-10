@@ -643,8 +643,8 @@ int BKE_ptcache_write_cache(PTCacheWriter *writer)
 				return 0;
 
 			for(i=0; i<writer->totelem; i++) {
-				writer->set_elem(i, writer->calldata, &temp);
-				BKE_ptcache_file_write_floats(pf, &temp, incr);
+				writer->set_elem(i, writer->calldata, temp);
+				BKE_ptcache_file_write_floats(pf, temp, incr);
 			}
 		}
 	}
@@ -677,8 +677,8 @@ int BKE_ptcache_write_cache(PTCacheWriter *writer)
 			pmdata = pm->data;
 
 			for(i=0; i<writer->totelem; i++, pmdata+=incr) {
-				writer->set_elem(i, writer->calldata, &temp);
-				memcpy(pmdata, &temp, elemsize);
+				writer->set_elem(i, writer->calldata, temp);
+				memcpy(pmdata, temp, elemsize);
 			}
 
 			pm->frame = writer->cfra;
@@ -689,8 +689,8 @@ int BKE_ptcache_write_cache(PTCacheWriter *writer)
 			pmdata = pm->data;
 
 			for(i=0; i<writer->totelem; i++, pmdata+=incr) {
-				writer->set_elem(i, writer->calldata, &temp);
-				memcpy(pmdata, &temp, elemsize);
+				writer->set_elem(i, writer->calldata, temp);
+				memcpy(pmdata, temp, elemsize);
 			}
 
 			pm->frame = writer->cfra;

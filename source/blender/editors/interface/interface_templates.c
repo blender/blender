@@ -211,11 +211,15 @@ static void template_ID(bContext *C, uiBlock *block, TemplateID *template, Struc
 
 	if(idptr.type)
 		type= idptr.type;
-	if(type)
-		uiDefIconBut(block, LABEL, 0, RNA_struct_ui_icon(type), 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
-	if(flag & UI_ID_BROWSE)
-		uiDefBlockButN(block, search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X, UI_UNIT_Y, "Browse ID data");
+	if(flag & UI_ID_BROWSE) {
+		but= uiDefBlockButN(block, search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X*1.6, UI_UNIT_Y, "Browse ID data");
+		if(type) {
+			but->icon= RNA_struct_ui_icon(type);
+			but->flag|= UI_HAS_ICON;
+			but->flag|= UI_ICON_LEFT;
+		}
+	}
 
 	/* text button with name */
 	if(idptr.data) {
@@ -753,7 +757,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	box= uiLayoutBox(col);
 	row= uiLayoutRow(box, 0);
 
-	block= uiLayoutFreeBlock(box);
+	block= uiLayoutGetBlock(box);
 
 	subrow= uiLayoutRow(row, 0);
 	uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_LEFT);
@@ -768,27 +772,19 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	uiDefIconButBitS(block, ICONTOG, CONSTRAINT_EXPAND, B_CONSTRAINT_TEST, ICON_TRIA_RIGHT, xco-10, yco, 20, 20, &con->flag, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Constraint");
 	
 	/* name */	
-	if ((con->flag & CONSTRAINT_EXPAND) && (proxy_protected==0)) {
-		/* XXX if (con->flag & CONSTRAINT_DISABLE)
-			uiBlockSetCol(block, TH_REDALERT);*/
-		
-		uiBlockSetEmboss(block, UI_EMBOSS);
-		
-		uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, xco+10, yco, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-		
+	uiBlockSetEmboss(block, UI_EMBOSS);
+	
+	/* XXX if (con->flag & CONSTRAINT_DISABLE)
+		uiBlockSetCol(block, TH_REDALERT);*/
+	
+	uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, xco+10, yco, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+	
+	if(proxy_protected == 0) {
 		but = uiDefBut(block, TEX, B_CONSTRAINT_TEST, "", xco+120, yco, 85, 18, con->name, 0.0, 29.0, 0.0, 0.0, "Constraint name"); 
 		uiButSetFunc(but, verify_constraint_name_func, con, NULL);
-	}	
-	else {
-		uiBlockSetEmboss(block, UI_EMBOSSN);
-		
-		/* XXX if (con->flag & CONSTRAINT_DISABLE)
-			uiBlockSetCol(block, TH_REDALERT);*/
-		
-		uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, xco+10, yco, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-		
-		uiDefBut(block, LABEL, B_CONSTRAINT_TEST, con->name, xco+120, yco-1, 135, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 	}
+	else
+		uiDefBut(block, LABEL, B_CONSTRAINT_TEST, con->name, xco+120, yco-1, 135, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
 	// XXX uiBlockSetCol(block, TH_AUTO);	
 

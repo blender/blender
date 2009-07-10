@@ -1615,6 +1615,7 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 	block= MEM_callocN(sizeof(uiBlock), "uiBlock");
 	block->active= 1;
 	block->dt= dt;
+	block->evil_C= (void*)C; // XXX
 	BLI_strncpy(block->name, name, sizeof(block->name));
 
 	if(region)
@@ -2113,17 +2114,19 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 		/* use rna values if parameters are not specified */
 		if(!str) {
 			if(type == MENU && proptype == PROP_ENUM) {
-				const EnumPropertyItem *item;
+				EnumPropertyItem *item;
 				DynStr *dynstr;
-				int i, totitem, value;
+				int i, totitem, value, free;
 
-				RNA_property_enum_items(ptr, prop, &item, &totitem);
+				RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
 				value= RNA_property_enum_get(ptr, prop);
 
 				dynstr= BLI_dynstr_new();
 				BLI_dynstr_appendf(dynstr, "%s%%t", RNA_property_ui_name(prop));
 				for(i=0; i<totitem; i++) {
-					if(item[i].icon)
+					if(!item[i].identifier[0])
+						BLI_dynstr_append(dynstr, "|%l");
+					else if(item[i].icon)
 						BLI_dynstr_appendf(dynstr, "|%s %%i%d %%x%d", item[i].name, item[i].icon, item[i].value);
 					else
 						BLI_dynstr_appendf(dynstr, "|%s %%x%d", item[i].name, item[i].value);
@@ -2134,15 +2137,18 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 				str= BLI_dynstr_get_cstring(dynstr);
 				BLI_dynstr_free(dynstr);
 
+				if(free)
+					MEM_freeN(item);
+
 				freestr= 1;
 			}
 			else if(type == ROW && proptype == PROP_ENUM) {
-				const EnumPropertyItem *item;
-				int i, totitem;
+				EnumPropertyItem *item;
+				int i, totitem, free;
 
-				RNA_property_enum_items(ptr, prop, &item, &totitem);
+				RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
 				for(i=0; i<totitem; i++) {
-					if(item[i].value == (int)max) {
+					if(item[i].identifier[0] && item[i].value == (int)max) {
 						str= (char*)item[i].name;
 						icon= item[i].icon;
 					}
@@ -2150,6 +2156,8 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 
 				if(!str)
 					str= (char*)RNA_property_ui_name(prop);
+				if(free)
+					MEM_freeN(item);
 			}
 			else {
 				str= (char*)RNA_property_ui_name(prop);
@@ -2159,18 +2167,21 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 
 		if(!tip) {
 			if(type == ROW && proptype == PROP_ENUM) {
-				const EnumPropertyItem *item;
-				int i, totitem;
+				EnumPropertyItem *item;
+				int i, totitem, free;
 
-				RNA_property_enum_items(ptr, prop, &item, &totitem);
+				RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
 
 				for(i=0; i<totitem; i++) {
-					if(item[i].value == (int)max) {
+					if(item[i].identifier[0] && item[i].value == (int)max) {
 						if(item[i].description[0])
 							tip= (char*)item[i].description;
 						break;
 					}
 				}
+
+				if(free)
+					MEM_freeN(item);
 			}
 		}
 		
@@ -2617,26 +2628,6 @@ uiBut *uiDefIconTextButO(uiBlock *block, int type, char *opname, int opcontext, 
 	}
 
 	return but;
-}
-
-static int ui_menu_y(uiBlock *block)
-{
-	uiBut *but= block->buttons.last;
-
-	if(but) return but->y1;
-	else return 0;
-}
-
-uiBut *uiDefMenuButO(uiBlock *block, char *opname, char *name)
-{
-	int y= ui_menu_y(block) - MENU_ITEM_HEIGHT;
-	return uiDefIconTextButO(block, BUT, opname, WM_OP_INVOKE_REGION_WIN, ICON_BLANK1, name, 0, y, MENU_WIDTH, MENU_ITEM_HEIGHT-1, NULL);
-}
-
-uiBut *uiDefMenuSep(uiBlock *block)
-{
-	int y= ui_menu_y(block) - MENU_SEP_HEIGHT;
-	return uiDefBut(block, SEPR, 0, "", 0, y, MENU_WIDTH, MENU_SEP_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
 }
 
 /* END Button containing both string label and icon */

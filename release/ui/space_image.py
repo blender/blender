@@ -13,7 +13,7 @@ class IMAGE_MT_view(bpy.types.Menu):
 
 		show_uvedit = sima.show_uvedit
 
-		layout.itemO("IMAGE_OT_properties") # icon
+		layout.itemO("IMAGE_OT_properties", icon="ICON_MENU_PANEL")
 
 		layout.itemS()
 
@@ -55,7 +55,7 @@ class IMAGE_MT_select(bpy.types.Menu):
 		layout.itemS()
 		
 		layout.itemO("UV_OT_select_all_toggle")
-		layout.itemO("UV_OT_select_invert")
+		layout.itemO("UV_OT_select_inverse")
 		layout.itemO("UV_OT_unlink_selection")
 		
 		layout.itemS()
@@ -256,8 +256,6 @@ class IMAGE_HT_header(bpy.types.Header):
 		# uv editing
 		if show_uvedit:
 			uvedit = sima.uv_editor
-
-			layout.itemS()
 
 			layout.itemR(uvedit, "pivot", text="")
 			layout.itemR(settings, "uv_sync_selection", text="")

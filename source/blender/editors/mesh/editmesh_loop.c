@@ -369,9 +369,9 @@ void CutEdgeloop(Object *obedit, wmOperator *op, EditMesh *em, int numcuts)
 		fac= 1.0f;
 // XXX		if(fbutton(&fac, 0.0f, 5.0f, 10, 10, "Smooth:")==0) return;
 		fac= 0.292f*fac;			
-		esubdivideflag(obedit, em, SELECT,fac,B_SMOOTH,numcuts,SUBDIV_SELECT_LOOPCUT);
+		esubdivideflag(obedit, em, SELECT,fac,0,B_SMOOTH,numcuts,SUBDIV_SELECT_LOOPCUT);
 	} else {
-		esubdivideflag(obedit, em, SELECT,0,0,numcuts,SUBDIV_SELECT_LOOPCUT);
+		esubdivideflag(obedit, em, SELECT,0,0,0,numcuts,SUBDIV_SELECT_LOOPCUT);
 	}
 	/* if this was a single cut, enter edgeslide mode */
 	if(numcuts == 1 && hasHidden == 0){
@@ -624,6 +624,7 @@ static float seg_intersect(EditEdge *e, CutCurve *c, int len, char mode, struct 
 
 static int knife_cut_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	ARegion *ar= CTX_wm_region(C);
@@ -689,9 +690,9 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 		eed= eed->next;
 	}
 	
-	if (mode==KNIFE_MIDPOINT) esubdivideflag(obedit, em, SELECT, 0, B_KNIFE, 1, SUBDIV_SELECT_ORIG);
-	else if (mode==KNIFE_MULTICUT) esubdivideflag(obedit, em, SELECT, 0, B_KNIFE, numcuts, SUBDIV_SELECT_ORIG);
-	else esubdivideflag(obedit, em, SELECT, 0, B_KNIFE|B_PERCENTSUBD, 1, SUBDIV_SELECT_ORIG);
+	if (mode==KNIFE_MIDPOINT) esubdivideflag(obedit, em, SELECT, 0, 0, B_KNIFE, 1, SUBDIV_SELECT_ORIG);
+	else if (mode==KNIFE_MULTICUT) esubdivideflag(obedit, em, SELECT, 0, 0, B_KNIFE, numcuts, SUBDIV_SELECT_ORIG);
+	else esubdivideflag(obedit, em, SELECT, 0, 0, B_KNIFE|B_PERCENTSUBD, 1, SUBDIV_SELECT_ORIG);
 
 	eed=em->edges.first;
 	while(eed){
@@ -703,6 +704,10 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);
 	
 	BKE_mesh_end_editmesh(obedit->data, em);
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
 	return OPERATOR_FINISHED;
 }
 

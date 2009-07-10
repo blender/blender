@@ -177,7 +177,7 @@ static int ptcache_bake_cloth_exec(bContext *C, wmOperator *op)
 	baker.quick_step = 1;
 	baker.break_test = cache_break_test;
 	baker.break_data = NULL;
-	baker.progressbar = WM_timecursor;
+	baker.progressbar = (void (*)(void *, int))WM_timecursor;
 	baker.progresscontext = CTX_wm_window(C);
 
 	BKE_ptcache_make_cache(&baker);

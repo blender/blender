@@ -565,58 +565,6 @@ static void view3d_object_text_draw(View3D *v3d, ARegion *ar)
 		BLI_freelistN(&strings);
 }
 
-void drawsolidcube(float size)
-{
-	float n[3];
-
-	glPushMatrix();
-	glScalef(size, size, size);
-	
-	n[0]=0; n[1]=0; n[2]=0;
-	glBegin(GL_QUADS);
-		n[0]= -1.0;
-		glNormal3fv(n); 
-		glVertex3fv(cube[0]); glVertex3fv(cube[1]); glVertex3fv(cube[2]); glVertex3fv(cube[3]);
-		n[0]=0;
-	glEnd();
-
-	glBegin(GL_QUADS);
-		n[1]= -1.0;
-		glNormal3fv(n); 
-		glVertex3fv(cube[0]); glVertex3fv(cube[4]); glVertex3fv(cube[5]); glVertex3fv(cube[1]);
-		n[1]=0;
-	glEnd();
-
-	glBegin(GL_QUADS);
-		n[0]= 1.0;
-		glNormal3fv(n); 
-		glVertex3fv(cube[4]); glVertex3fv(cube[7]); glVertex3fv(cube[6]); glVertex3fv(cube[5]);
-		n[0]=0;
-	glEnd();
-
-	glBegin(GL_QUADS);
-		n[1]= 1.0;
-		glNormal3fv(n); 
-		glVertex3fv(cube[7]); glVertex3fv(cube[3]); glVertex3fv(cube[2]); glVertex3fv(cube[6]);
-		n[1]=0;
-	glEnd();
-
-	glBegin(GL_QUADS);
-		n[2]= 1.0;
-		glNormal3fv(n); 
-		glVertex3fv(cube[1]); glVertex3fv(cube[5]); glVertex3fv(cube[6]); glVertex3fv(cube[2]);
-		n[2]=0;
-	glEnd();
-
-	glBegin(GL_QUADS);
-		n[2]= -1.0;
-		glNormal3fv(n); 
-		glVertex3fv(cube[7]); glVertex3fv(cube[4]); glVertex3fv(cube[0]); glVertex3fv(cube[3]);
-	glEnd();
-	
-	glPopMatrix();
-}
-
 static void drawcube(void)
 {
 
@@ -3021,7 +2969,6 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 {
 	float vec[3], vec2[3];
 	float *vd = pdd->vd;
-	float *nd = pdd->nd;
 	float *cd = pdd->cd;
 	float ma_r;
 	float ma_g;

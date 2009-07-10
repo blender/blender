@@ -107,7 +107,7 @@ static void rna_Cache_idname_change(bContext *C, PointerRNA *ptr)
 {
 	Object *ob = CTX_data_active_object(C);
 	PointCache *cache = (PointCache*)ptr->data;
-	PTCacheID *pid = NULL, *pid2;
+	PTCacheID *pid = NULL, *pid2= NULL;
 	ListBase pidlist;
 	int new_name = 1;
 	char name[80];

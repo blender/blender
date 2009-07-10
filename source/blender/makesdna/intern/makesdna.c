@@ -559,10 +559,11 @@ int convert_include(char *filename)
 					while( *md1 != '}' ) {
 						if(md1>mainend) break;
 						
-						/* skip when it says 'struct' or 'unsigned' */
+						/* skip when it says 'struct' or 'unsigned' or 'const' */
 						if(*md1) {
 							if( strncmp(md1, "struct", 6)==0 ) md1+= 7;
-							if( strncmp(md1, "unsigned", 6)==0 ) md1+= 9;
+							if( strncmp(md1, "unsigned", 8)==0 ) md1+= 9;
+							if( strncmp(md1, "const", 5)==0 ) md1+= 6;
 							
 							/* we've got a type! */
 							type= add_type(md1, 0);

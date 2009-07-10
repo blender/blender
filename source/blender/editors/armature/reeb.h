@@ -126,6 +126,7 @@ typedef struct ReebArcIterator {
 	StoppedFct	stopped;
 	
 	float *p, *no;
+	float size;
 	
 	int length;
 	int index;

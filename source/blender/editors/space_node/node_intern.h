@@ -82,6 +82,7 @@ void snode_composite_job(const struct bContext *C, ScrArea *sa);
 bNode *snode_get_editgroup(SpaceNode *snode);
 void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag);
 
+void NODE_OT_duplicate(struct wmOperatorType *ot);
 void NODE_OT_link(struct wmOperatorType *ot);
 void NODE_OT_delete(struct wmOperatorType *ot);
 void NODE_OT_resize(struct wmOperatorType *ot);

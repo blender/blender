@@ -74,14 +74,13 @@
 
 #include "UI_view2d.h"
 
-#include "BIF_transform.h"
-
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
 #include "ED_keyframes_draw.h"
 #include "ED_keyframes_edit.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_transform.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

@@ -2205,8 +2205,10 @@ void psys_get_pointcache_start_end(Scene *scene, ParticleSystem *psys, int *sfra
 	*sfra = MAX2(1, (int)part->sta);
 	*efra = MIN2((int)(part->end + part->lifetime + 1.0), scene->r.efra);
 }
-static void particle_write_state(int index, ParticleSystem *psys, float *data)
+static void particle_write_state(int index, void *psys_ptr, float *data)
 {
+	ParticleSystem *psys= psys_ptr;
+	
 	memcpy(data, (float *)(&(psys->particles+index)->state), sizeof(ParticleKey));
 }
 static void particle_read_state(int index, void *psys_ptr, float *data)
@@ -2225,7 +2227,7 @@ static void particle_cache_interpolate(int index, void *psys_ptr, float frs_sec,
 	ParticleSystem *psys= psys_ptr;
 	ParticleData *pa = psys->particles + index;
 	ParticleKey keys[4];
-	float dfra, cfra1f = (float)cfra1, cfra2f(float);
+	float dfra;
 
 	cfra = MIN2(cfra, pa->dietime);
 	cfra1 = MIN2(cfra1, pa->dietime);

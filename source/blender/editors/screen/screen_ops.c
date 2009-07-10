@@ -2286,46 +2286,54 @@ static ScrArea *find_area_showing_r_result(bContext *C)
 
 static void screen_set_image_output(bContext *C)
 {
+	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa;
 	SpaceImage *sima;
 	
-	sa= find_area_showing_r_result(C);
+	if(scene->r.displaymode==R_OUTPUT_SCREEN) {
+		/* this function returns with changed context */
+		ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_IMAGE);
+		sa= CTX_wm_area(C);
+	}
+	else {
 	
-	if(sa==NULL) {
-		/* find largest open non-image area */
-		sa= biggest_non_image_area(C);
-		if(sa) {
-			ED_area_newspace(C, sa, SPACE_IMAGE);
-			sima= sa->spacedata.first;
-			
-			/* makes ESC go back to prev space */
-			sima->flag |= SI_PREVSPACE;
-		}
-		else {
-			/* use any area of decent size */
-			sa= biggest_area(C);
-			if(sa->spacetype!=SPACE_IMAGE) {
-				// XXX newspace(sa, SPACE_IMAGE);
+		sa= find_area_showing_r_result(C);
+		
+		if(sa==NULL) {
+			/* find largest open non-image area */
+			sa= biggest_non_image_area(C);
+			if(sa) {
+				ED_area_newspace(C, sa, SPACE_IMAGE);
 				sima= sa->spacedata.first;
 				
 				/* makes ESC go back to prev space */
 				sima->flag |= SI_PREVSPACE;
 			}
+			else {
+				/* use any area of decent size */
+				sa= biggest_area(C);
+				if(sa->spacetype!=SPACE_IMAGE) {
+					// XXX newspace(sa, SPACE_IMAGE);
+					sima= sa->spacedata.first;
+					
+					/* makes ESC go back to prev space */
+					sima->flag |= SI_PREVSPACE;
+				}
+			}
 		}
-	}
-	
+	}	
 	sima= sa->spacedata.first;
 	
 	/* get the correct image, and scale it */
 	sima->image= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
 	
-	if(G.displaymode==2) { // XXX
-		if(sa->full==0) {
-			sima->flag |= SI_FULLWINDOW;
+//	if(G.displaymode==2) { // XXX
+		if(sa->full) {
+			sima->flag |= SI_FULLWINDOW|SI_PREVSPACE;
 			
-			ed_screen_fullarea(C, sa);
+//			ed_screen_fullarea(C, sa);
 		}
-	}
+//	}
 	
 }
 
@@ -2369,6 +2377,62 @@ static void render_freejob(void *rjv)
 	RenderJob *rj= rjv;
 	
 	MEM_freeN(rj);
+}
+
+/* str is IMA_RW_MAXTEXT in size */
+static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
+{
+	char info_time_str[32];	// used to be extern to header_info.c
+	uintptr_t mem_in_use, mmap_in_use;
+	float megs_used_memory, mmap_used_memory;
+	char *spos= str;
+	
+	mem_in_use= MEM_get_memory_in_use();
+	mmap_in_use= MEM_get_mapped_memory_in_use();
+	
+	megs_used_memory= (mem_in_use-mmap_in_use)/(1024.0*1024.0);
+	mmap_used_memory= (mmap_in_use)/(1024.0*1024.0);
+	
+	if(scene->lay & 0xFF000000)
+		spos+= sprintf(spos, "Localview | ");
+	else if(scene->r.scemode & R_SINGLE_LAYER)
+		spos+= sprintf(spos, "Single Layer | ");
+	
+	spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d ", (scene->r.cfra), rs->totvert, rs->totface);
+	if(rs->tothalo) spos+= sprintf(spos, "Ha:%d ", rs->tothalo);
+	if(rs->totstrand) spos+= sprintf(spos, "St:%d ", rs->totstrand);
+	spos+= sprintf(spos, "La:%d Mem:%.2fM (%.2fM) ", rs->totlamp, megs_used_memory, mmap_used_memory);
+	
+	if(rs->curfield)
+		spos+= sprintf(spos, "Field %d ", rs->curfield);
+	if(rs->curblur)
+		spos+= sprintf(spos, "Blur %d ", rs->curblur);
+	
+	BLI_timestr(rs->lastframetime, info_time_str);
+	spos+= sprintf(spos, "Time:%s ", info_time_str);
+	
+	if(rs->infostr)
+		spos+= sprintf(spos, "| %s ", rs->infostr);
+	
+	/* very weak... but 512 characters is quite safe */
+	if(spos >= str+IMA_RW_MAXTEXT)
+		printf("WARNING! renderwin text beyond limit \n");
+	
+}
+
+static void image_renderinfo_cb(void *rjv, RenderStats *rs)
+{
+	RenderJob *rj= rjv;
+	
+	/* malloc OK here, stats_draw is not in tile threads */
+	if(rj->image->render_text==NULL)
+		rj->image->render_text= MEM_callocN(IMA_RW_MAXTEXT, "rendertext");
+	
+	make_renderinfo_string(rs, rj->scene, rj->image->render_text);
+	
+	/* make jobs timer to send notifier */
+	*(rj->do_update)= 1;
+
 }
 
 /* called inside thread! */
@@ -2552,6 +2616,8 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	re= RE_NewRender(scene->id.name);
 	RE_test_break_cb(re, rj, render_breakjob);
 	RE_display_draw_cb(re, rj, image_rect_update);
+	RE_stats_draw_cb(re, rj, image_renderinfo_cb);
+	
 	rj->re= re;
 	G.afbreek= 0;
 	
@@ -2626,6 +2692,48 @@ void SCREEN_OT_render_view_cancel(struct wmOperatorType *ot)
 	ot->poll= ED_operator_image_active;
 }
 
+/* *********************** show render viewer *************** */
+
+static int render_view_show_exec(bContext *C, wmOperator *unused)
+{
+	ScrArea *sa= find_area_showing_r_result(C);
+	
+	/* determine if render already shows */
+	if(sa) {
+		SpaceImage *sima= sa->spacedata.first;
+		
+		if(sima->flag & SI_PREVSPACE) {
+			sima->flag &= ~SI_PREVSPACE;
+			
+			if(sima->flag & SI_FULLWINDOW) {
+				sima->flag &= ~SI_FULLWINDOW;
+				ED_screen_full_prevspace(C);
+			}
+			else if(sima->next) {
+				ED_area_newspace(C, sa, sima->next->spacetype);
+				ED_area_tag_redraw(sa);
+			}
+		}
+	}
+	else {
+		screen_set_image_output(C);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void SCREEN_OT_render_view_show(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Show/Hide Render View";
+	ot->idname= "SCREEN_OT_render_view_show";
+	
+	/* api callbacks */
+	ot->exec= render_view_show_exec;
+	ot->poll= ED_operator_screenactive;
+}
+
+
 
 /* ****************  Assigning operatortypes to global list, adding handlers **************** */
 
@@ -2661,7 +2769,8 @@ void ED_operatortypes_screen(void)
 	/* render */
 	WM_operatortype_append(SCREEN_OT_render);
 	WM_operatortype_append(SCREEN_OT_render_view_cancel);
-	
+	WM_operatortype_append(SCREEN_OT_render_view_show);
+
 	/* tools shared by more space types */
 	WM_operatortype_append(ED_OT_undo);
 	WM_operatortype_append(ED_OT_redo);	
@@ -2722,6 +2831,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	/* render */
 	WM_keymap_add_item(keymap, "SCREEN_OT_render", F12KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_cancel", ESCKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_show", F11KEY, KM_PRESS, 0, 0);
 	
 	/* frame offsets & play */
 	keymap= WM_keymap_listbase(wm, "Frames", 0, 0);

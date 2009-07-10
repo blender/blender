@@ -1973,7 +1973,7 @@ PyObject *newVectorObject(float *vec, int size, int type, PyTypeObject *base_typ
 	int i;
 	VectorObject *self;
 
-	if(base_type)	self = base_type->tp_alloc(base_type, 0);
+	if(base_type)	self = (VectorObject *)base_type->tp_alloc(base_type, 0);
 	else			self = PyObject_NEW(VectorObject, &vector_Type);
 	
 	if(size > 4 || size < 2)

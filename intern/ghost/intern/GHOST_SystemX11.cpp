@@ -550,11 +550,26 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		// We're not interested in the following things.(yet...)
 		case NoExpose : 
 		case GraphicsExpose :
+			break;
 		
 		case EnterNotify:
 		case LeaveNotify:
+		{
 			// XCrossingEvents pointer leave enter window.
+			// also do cursor move here, MotionNotify only
+			// happens when motion starts & ends inside window
+			XCrossingEvent &xce = xe->xcrossing;
+			
+			g_event = new 
+			GHOST_EventCursor(
+				getMilliSeconds(),
+				GHOST_kEventCursorMove,
+				window,
+				xce.x_root,
+				xce.y_root
+			);
 			break;
+		}
 		case MapNotify:
 			/*
 			 * From ICCCM:

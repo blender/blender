@@ -49,26 +49,25 @@ struct UvVertMap;
 struct UvMapVert;
 struct CustomData;
 
-// edge and face flag both
-#define EM_FGON		2
-// face flag
-#define EM_FGON_DRAW	1
+#define EM_FGON_DRAW	1 // face flag
+#define EM_FGON			2 // edge and face flag both
 
 /* editbutflag */
-#define B_CLOCKWISE		1
-#define B_KEEPORIG		2
-#define B_BEAUTY		4
-#define B_SMOOTH		8
-#define B_BEAUTY_SHORT  	16
-#define B_AUTOFGON		32
-#define B_KNIFE			0x80
+#define B_CLOCKWISE			1
+#define B_KEEPORIG			2
+#define B_BEAUTY			4
+#define B_SMOOTH			8
+#define B_BEAUTY_SHORT  	0x10
+#define B_AUTOFGON			0x20
+#define B_KNIFE				0x80
 #define B_PERCENTSUBD		0x40
 #define B_MESH_X_MIRROR		0x100
 #define B_JOINTRIA_UV		0x200
 #define B_JOINTRIA_VCOL		0X400
 #define B_JOINTRIA_SHARP	0X800
 #define B_JOINTRIA_MAT		0X1000
-
+#define B_FRACTAL			0x2000
+#define B_SPHERE			0x4000
 
 /* meshtools.c */
 

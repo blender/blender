@@ -1128,8 +1128,6 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 		em= (ar->type->minsizex)? 10: 20;
 	}
 
-	header= 20; // XXX
-	triangle= 22;
 	x= 0;
 	y= -style->panelouter;
 
@@ -1150,10 +1148,14 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 			block= uiBeginBlock(C, ar, pt->idname, UI_EMBOSS);
 			panel= uiBeginPanel(sa, ar, block, pt, &open);
 
+			/* bad fixed values */
+			header= (pt->flag & PNL_NO_HEADER)? 0: 20;
+			triangle= 22;
+
 			if(vertical)
 				y -= header;
 
-			if(pt->draw_header && (open || vertical)) {
+			if(pt->draw_header && header && (open || vertical)) {
 				/* for enabled buttons */
 				panel->layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
 					triangle, header+style->panelspace, header, 1, style);
@@ -1185,7 +1187,10 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 			uiEndBlock(C, block);
 
 			if(vertical) {
-				y += yco-style->panelouter;
+				if(pt->flag & PNL_NO_HEADER)
+					y += yco;
+				else
+					y += yco-style->panelouter;
 			}
 			else {
 				x += w;
@@ -1214,13 +1219,20 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	if(vertical) {
 		v2d->keepofs |= V2D_LOCKOFS_X;
 		v2d->keepofs &= ~V2D_LOCKOFS_Y;
+		
+		// don't jump back when panels close or hide
+		y= MAX2(-y, -v2d->cur.ymin);
 	}
 	else {
 		v2d->keepofs &= ~V2D_LOCKOFS_X;
 		v2d->keepofs |= V2D_LOCKOFS_Y;
+
+		// don't jump back when panels close or hide
+		x= MAX2(x, v2d->cur.xmax);
+		y= -y;
 	}
 
-	UI_view2d_totRect_set(v2d, x, -y);
+	UI_view2d_totRect_set(v2d, x, y);
 
 	/* set the view */
 	UI_view2d_view_ortho(C, v2d);

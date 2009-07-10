@@ -424,8 +424,9 @@ void clear_vpaint_selectedfaces(Scene *scene)
 /* fills in the selected faces with the current weight and vertex group */
 void clear_wpaint_selectedfaces(Scene *scene)
 {
-	VPaint *wp= scene->toolsettings->wpaint;
-	float paintweight= wp->brush->alpha;
+	ToolSettings *ts= scene->toolsettings;
+	VPaint *wp= ts->wpaint;
+	float paintweight= ts->vgroup_weight;
 	Mesh *me;
 	MFace *mface;
 	Object *ob;
@@ -909,7 +910,7 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 {
 	ViewContext vc;
-	VPaint *wp= scene->toolsettings->wpaint;
+	ToolSettings *ts= scene->toolsettings;
 	Object *ob= OBACT;
 	Mesh *me= get_mesh(ob);
 	int index;
@@ -1019,20 +1020,20 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 				fac= MIN4(w1, w2, w3, w4);
 				if(w1==fac) {
 					dw= get_defweight(me->dvert+mface->v1, ob->actdef-1);
-					if(dw) wp->brush->alpha= dw->weight; else wp->brush->alpha= 0.0f;
+					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 				}
 				else if(w2==fac) {
 					dw= get_defweight(me->dvert+mface->v2, ob->actdef-1);
-					if(dw) wp->brush->alpha= dw->weight; else wp->brush->alpha= 0.0f;
+					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 				}
 				else if(w3==fac) {
 					dw= get_defweight(me->dvert+mface->v3, ob->actdef-1);
-					if(dw) wp->brush->alpha= dw->weight; else wp->brush->alpha= 0.0f;
+					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 				}
 				else if(w4==fac) {
 					if(mface->v4) {
 						dw= get_defweight(me->dvert+mface->v4, ob->actdef-1);
-						if(dw) wp->brush->alpha= dw->weight; else wp->brush->alpha= 0.0f;
+						if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 					}
 				}
 			}
@@ -1308,7 +1309,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			Object *ob= vc->obact;
 			Mesh *me= ob->data;
 			float mat[4][4];
-			float paintweight= wp->brush->alpha;
+			float paintweight= ts->vgroup_weight;
 			int *indexar= wpd->indexar;
 			int totindex, index, alpha, totw;
 			short mval[2];
@@ -1365,7 +1366,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if(wp->mode==VP_BLUR) 
 				paintweight= 0.0f;
 			else
-				paintweight= wp->brush->alpha;
+				paintweight= ts->vgroup_weight;
 			
 			for(index=0; index<totindex; index++) {
 				if(indexar[index] && indexar[index]<=me->totface) {
