@@ -1460,11 +1460,10 @@ static void update_picker_hex(uiBlock *block, float *rgb)
 	// this updates button strings, is hackish... but button pointers are on stack of caller function
 
 	for(bt= block->buttons.first; bt; bt= bt->next) {
-		if(strcmp(bt->str, "Hex: ")==0) {
+		if(strcmp(bt->str, "Hex: ")==0)
 			strcpy(bt->poin, col);
-			ui_check_but(bt);
-			break;
-		}
+
+		ui_check_but(bt);
 	}
 }
 
@@ -1506,6 +1505,8 @@ void ui_update_block_buts_hsv(uiBlock *block, float *hsv)
 				ui_set_but_val(bt, hsv[2]);
 			}
 		}		
+
+		ui_check_but(bt);
 	}
 }
 
@@ -1547,6 +1548,8 @@ static void ui_update_block_buts_hex(uiBlock *block, char *hexcol)
 				ui_set_but_val(bt, v);
 			}
 		}
+
+		ui_check_but(bt);
 	}
 }
 

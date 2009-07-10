@@ -800,8 +800,8 @@ static void rna_def_space_text(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem font_size_items[] = {
-		{12, "SCREEN_12", 0, "Screen 12", ""},
-		{15, "SCREEN_15", 0, "Screen 15", ""},
+		{12, "12", 0, "12", ""},
+		{15, "15", 0, "15", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SpaceTextEditor", "Space");
@@ -813,7 +813,7 @@ static void rna_def_space_text(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Text", "Text displayed and edited in this space.");
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceTextEditor_text_set", NULL);
-	RNA_def_property_update(prop, NC_TEXT|NA_EDITED, NULL);
+	RNA_def_property_update(prop, NC_TEXT|ND_DISPLAY, NULL);
 
 	/* display */
 	prop= RNA_def_property(srna, "syntax_highlight", PROP_BOOLEAN, PROP_NONE);

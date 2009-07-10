@@ -101,7 +101,7 @@ static int text_font_draw_character(SpaceText *st, int x, int y, char c)
 int text_font_width_character(SpaceText *st)
 {
 	// XXX need quick BLF function, or cache it somewhere
-	return (st->lheight == 12)? 7: 8;
+	return (st->lheight == 12)? 7: 9;
 }
 
 int text_font_width(SpaceText *st, char *str)
