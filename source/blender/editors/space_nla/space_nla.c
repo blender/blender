@@ -371,6 +371,9 @@ static void nla_region_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_ANIMATION:
+			ED_region_tag_redraw(ar);
+			break;
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_OB_ACTIVE:
@@ -392,7 +395,7 @@ static void nla_region_listener(ARegion *ar, wmNotifier *wmn)
 		default:
 			if(wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);
-				
+			break;
 	}
 }
 
@@ -401,6 +404,9 @@ static void nla_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_ANIMATION:
+			ED_region_tag_redraw(ar);
+			break;
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_OB_ACTIVE:
@@ -430,6 +436,9 @@ static void nla_channel_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_ANIMATION:
+			ED_region_tag_redraw(ar);
+			break;
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_OB_ACTIVE:
@@ -457,6 +466,10 @@ static void nla_listener(ScrArea *sa, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
+		case NC_ANIMATION:
+			// TODO: filter specific types of changes?
+			ED_area_tag_refresh(sa);
+			break;
 		case NC_SCENE:
 			/*switch (wmn->data) {
 				case ND_OB_ACTIVE:

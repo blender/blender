@@ -89,11 +89,12 @@
  * NOTE: eventually, this should probably be phased out when many of these things are replaced with buttons
  */
 
-static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, short selectmode)
+static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, short selectmode)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
+	int notifierFlags = 0;
 	
 	/* get the channel that was clicked on */
 		/* filter channels */
@@ -107,7 +108,7 @@ static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sh
 		printf("Error: animation channel (index = %d) not found in mouse_anim_channels() \n", channel_index);
 		
 		BLI_freelistN(&anim_data);
-		return;
+		return 0;
 	}
 	
 	/* action to take depends on what channel we've got */
@@ -119,6 +120,8 @@ static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sh
 			if (x < 16) {
 				/* toggle expand */
 				sce->flag ^= SCE_DS_COLLAPSED;
+				
+				notifierFlags |= ND_ANIMCHAN_EDIT;
 			}
 			else {
 				/* set selection status */
@@ -129,6 +132,8 @@ static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sh
 				else {
 					sce->flag |= SCE_DS_SELECTED;
 				}
+				
+				notifierFlags |= ND_ANIMCHAN_SELECT;
 			}
 		}
 			break;
@@ -141,7 +146,8 @@ static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sh
 			
 			if (x < 16) {
 				/* toggle expand */
-				ob->nlaflag ^= OB_ADS_COLLAPSED; // XXX 
+				ob->nlaflag ^= OB_ADS_COLLAPSED; // XXX
+				notifierFlags |= ND_ANIMCHAN_EDIT;				
 			}
 			else if (nlaedit_is_tweakmode_on(ac) == 0) {
 				/* set selection status */
@@ -166,6 +172,9 @@ static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sh
 				
 				/* xxx should be ED_base_object_activate(), but we need context pointer for that... */
 				//set_active_base(base);
+				
+				/* notifiers - channel was selected */
+				notifierFlags |= ND_ANIMCHAN_SELECT;
 			}
 		}
 			break;
@@ -173,6 +182,7 @@ static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sh
 		{
 			Object *ob= (Object *)ale->data;
 			ob->nlaflag ^= OB_ADS_SHOWMATS;	// XXX 
+			notifierFlags |= ND_ANIMCHAN_EDIT;
 		}
 			break;
 				
@@ -180,36 +190,42 @@ static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sh
 		{
 			Material *ma= (Material *)ale->data;
 			ma->flag ^= MA_DS_EXPAND;
+			notifierFlags |= ND_ANIMCHAN_EDIT;
 		}
 			break;
 		case ANIMTYPE_DSLAM:
 		{
 			Lamp *la= (Lamp *)ale->data;
 			la->flag ^= LA_DS_EXPAND;
+			notifierFlags |= ND_ANIMCHAN_EDIT;
 		}
 			break;
 		case ANIMTYPE_DSCAM:
 		{
 			Camera *ca= (Camera *)ale->data;
 			ca->flag ^= CAM_DS_EXPAND;
+			notifierFlags |= ND_ANIMCHAN_EDIT;
 		}
 			break;
 		case ANIMTYPE_DSCUR:
 		{
 			Curve *cu= (Curve *)ale->data;
 			cu->flag ^= CU_DS_EXPAND;
+			notifierFlags |= ND_ANIMCHAN_EDIT;
 		}
 			break;
 		case ANIMTYPE_DSSKEY:
 		{
 			Key *key= (Key *)ale->data;
 			key->flag ^= KEYBLOCK_DS_EXPAND;
+			notifierFlags |= ND_ANIMCHAN_EDIT;
 		}
 			break;
 		case ANIMTYPE_DSWOR:
 		{
 			World *wo= (World *)ale->data;
 			wo->flag ^= WO_DS_EXPAND;
+			notifierFlags |= ND_ANIMCHAN_EDIT;
 		}
 			break;
 			
@@ -233,14 +249,23 @@ static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sh
 			if (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) {
 				/* toggle protection (only if there's a toggle there) */
 				nlt->flag ^= NLATRACK_PROTECTED;
+				
+				/* notifier flags - channel was edited */
+				notifierFlags |= ND_ANIMCHAN_EDIT;
 			}
 			else if (x >= (NLACHANNEL_NAMEWIDTH-2*NLACHANNEL_BUTTON_WIDTH)) {
 				/* toggle mute */
 				nlt->flag ^= NLATRACK_MUTED;
+				
+				/* notifier flags - channel was edited */
+				notifierFlags |= ND_ANIMCHAN_EDIT;
 			}
 			else if (x <= ((NLACHANNEL_BUTTON_WIDTH*2)+offset)) {
 				/* toggle 'solo' */
 				BKE_nlatrack_solo_toggle(adt, nlt);
+				
+				/* notifier flags - channel was edited */
+				notifierFlags |= ND_ANIMCHAN_EDIT;
 			}
 			else if (nlaedit_is_tweakmode_on(ac) == 0) {
 				/* set selection */
@@ -257,6 +282,9 @@ static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sh
 				/* if NLA-Track is selected now, make NLA-Track the 'active' one in the visible list */
 				if (nlt->flag & NLATRACK_SELECTED)
 					ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, nlt, ANIMTYPE_NLATRACK);
+					
+				/* notifier flags - channel was selected */
+				notifierFlags |= ND_ANIMCHAN_SELECT;
 			}
 		}
 			break;
@@ -275,6 +303,9 @@ static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sh
 					/* when in tweakmode, this button becomes the toggle for mapped editing */
 					adt->flag ^= ADT_NLA_EDIT_NOMAP;
 				}
+				
+				/* changes to NLA-Action occurred */
+				notifierFlags |= ND_NLA_ACTCHANGE;
 			}
 		}
 			break;
@@ -285,6 +316,9 @@ static void mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sh
 	
 	/* free channels */
 	BLI_freelistN(&anim_data);
+	
+	/* return the notifier-flags set */
+	return notifierFlags;
 }
 
 /* ------------------- */
@@ -297,6 +331,7 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *e
 	ARegion *ar;
 	View2D *v2d;
 	int mval[2], channel_index;
+	int notifierFlags = 0;
 	short selectmode;
 	float x, y;
 	
@@ -328,10 +363,10 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *e
 	UI_view2d_listview_view_to_cell(v2d, NLACHANNEL_NAMEWIDTH, NLACHANNEL_STEP, 0, (float)NLACHANNEL_HEIGHT_HALF, x, y, NULL, &channel_index);
 	
 	/* handle mouse-click in the relevant channel then */
-	mouse_nla_channels(&ac, x, channel_index, selectmode);
+	notifierFlags= mouse_nla_channels(&ac, x, channel_index, selectmode);
 	
-	/* set notifier tha things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_CHANNELS);
+	/* set notifier that things have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|notifierFlags, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -401,8 +436,7 @@ static int nlaedit_add_tracks_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
-	WM_event_add_notifier(C, NC_SCENE, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -458,8 +492,7 @@ static int nlaedit_delete_tracks_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
-	WM_event_add_notifier(C, NC_SCENE, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;

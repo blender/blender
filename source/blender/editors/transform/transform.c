@@ -300,27 +300,15 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	}
 	else if (t->spacetype == SPACE_ACTION) {
-		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
-		
-		// TRANSFORM_FIX_ME
-		if (saction->lock) {
-			// whole window...
-		}
-		else 
-			ED_area_tag_redraw(t->sa);
+		//SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	}
 	else if (t->spacetype == SPACE_IPO) {
-		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
-		
-		// TRANSFORM_FIX_ME
-		if (sipo->lock) {
-			// whole window...
-		}
-		else 
-			ED_area_tag_redraw(t->sa);
+		//SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	}
 	else if (t->spacetype == SPACE_NLA) {
-		ED_area_tag_redraw(t->sa); // XXX this should use a notifier instead!
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	}
 	else if(t->spacetype == SPACE_NODE)
 	{

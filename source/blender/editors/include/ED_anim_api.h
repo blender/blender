@@ -315,7 +315,6 @@ void ANIM_draw_previewrange(const struct bContext *C, struct View2D *v2d);
 struct uiLayout;
 
 /* draw a given F-Modifier for some layout/UI-Block */
-// XXX not quite complete yet
 void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, struct ID *id, ListBase *modifiers, struct FModifier *fcm);
 
 /* ************************************************* */
@@ -384,18 +383,6 @@ void ED_anim_object_flush_update(const struct bContext *C, struct Object *ob);
 /* pose <-> action syncing */
 void ANIM_action_to_pose_sync(struct Object *ob);
 void ANIM_pose_to_action_sync(struct Object *ob, struct ScrArea *sa);
-
-
-/* what types of animation data was changed (for sending notifiers from animation tools) */
-enum {
-	ANIM_CHANGED_BOTH= 0,
-	ANIM_CHANGED_KEYFRAMES_VALUES,
-	ANIM_CHANGED_KEYFRAMES_SELECT,
-	ANIM_CHANGED_CHANNELS
-} eAnimData_Changed;
-
-/* Send notifiers on behalf of animation editing tools, based on various context info */
-void ANIM_animdata_send_notifiers(struct bContext *C, bAnimContext *ac, short data_changed);
 
 /* ************************************************* */
 /* OPERATORS */

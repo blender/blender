@@ -1085,6 +1085,9 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 					case ID_MA: /* Material Keyframes */
 						WM_event_add_notifier(C, NC_MATERIAL|ND_KEYS, ksp->id);
 						break;
+					default: /* Any keyframes */
+						WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+						break;
 				}
 			}
 		}
@@ -1190,6 +1193,9 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 						break;
 					case ID_MA: /* Material Keyframes */
 						WM_event_add_notifier(C, NC_MATERIAL|ND_KEYS, cks->id);
+						break;
+					default: /* Any keyframes */
+						WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 						break;
 				}
 			}

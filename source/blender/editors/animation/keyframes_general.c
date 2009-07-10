@@ -52,6 +52,8 @@
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
 
+#include "RNA_access.h"
+
 /* This file contains code for various keyframe-editing tools which are 'destructive'
  * (i.e. they will modify the order of the keyframes, and change the size of the array).
  * While some of these tools may eventually be moved out into blenkernel, for now, it is

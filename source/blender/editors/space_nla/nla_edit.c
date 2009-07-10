@@ -127,8 +127,7 @@ static int nlaedit_enable_tweakmode_exec (bContext *C, wmOperator *op)
 		ac.scene->flag |= SCE_NLA_EDIT_ON;
 		
 		/* set notifier that things have changed */
-		ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
-		WM_event_add_notifier(C, NC_SCENE, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_ACTCHANGE, NULL);
 	}
 	else {
 		BKE_report(op->reports, RPT_ERROR, "No active strip(s) to enter tweakmode on.");
@@ -197,8 +196,7 @@ static int nlaedit_disable_tweakmode_exec (bContext *C, wmOperator *op)
 		ac.scene->flag &= ~SCE_NLA_EDIT_ON;
 		
 		/* set notifier that things have changed */
-		ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
-		WM_event_add_notifier(C, NC_SCENE, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_ACTCHANGE, NULL);
 	}
 	
 	/* done */
@@ -315,8 +313,7 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
-	WM_event_add_notifier(C, NC_SCENE, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -424,8 +421,7 @@ static int nlaedit_add_transition_exec (bContext *C, wmOperator *op)
 	/* was anything added? */
 	if (done) {
 		/* set notifier that things have changed */
-		ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
-		WM_event_add_notifier(C, NC_SCENE, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 		
 		/* done */
 		return OPERATOR_FINISHED;
@@ -483,8 +479,7 @@ static int nlaedit_add_meta_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
-	WM_event_add_notifier(C, NC_SCENE, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -536,8 +531,7 @@ static int nlaedit_remove_meta_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
-	WM_event_add_notifier(C, NC_SCENE, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -621,8 +615,7 @@ static int nlaedit_duplicate_exec (bContext *C, wmOperator *op)
 	
 	if (done) {
 		/* set notifier that things have changed */
-		ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
-		WM_event_add_notifier(C, NC_SCENE, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 		
 		/* done */
 		return OPERATOR_FINISHED;
@@ -707,8 +700,7 @@ static int nlaedit_delete_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
-	WM_event_add_notifier(C, NC_SCENE, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -831,8 +823,7 @@ static int nlaedit_split_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
-	WM_event_add_notifier(C, NC_SCENE, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -894,8 +885,7 @@ static int nlaedit_toggle_mute_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
-	WM_event_add_notifier(C, NC_SCENE, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -966,8 +956,7 @@ static int nlaedit_move_up_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
-	WM_event_add_notifier(C, NC_SCENE, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1038,8 +1027,7 @@ static int nlaedit_move_down_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
-	WM_event_add_notifier(C, NC_SCENE, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1137,8 +1125,7 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
-	WM_event_add_notifier(C, NC_SCENE, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1198,8 +1185,7 @@ static int nlaedit_clear_scale_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
-	WM_event_add_notifier(C, NC_SCENE, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1337,8 +1323,7 @@ static int nlaedit_snap_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
-	WM_event_add_notifier(C, NC_SCENE, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1447,8 +1432,8 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
-	WM_event_add_notifier(C, NC_SCENE, NULL);
+	// FIXME: this doesn't really do it justice...
+	WM_event_add_notifier(C, NC_ANIMATION, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;

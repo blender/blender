@@ -174,8 +174,8 @@ static int actkeys_deselectall_exec(bContext *C, wmOperator *op)
 	else
 		deselect_action_keys(&ac, 1, SELECT_ADD);
 	
-	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+	/* set notifier that keyframe selection have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -336,6 +336,9 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 	
 	/* apply borderselect action */
 	borderselect_action(&ac, rect, mode, selectmode);
+	
+	/* set notifier that keyframe selection have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
 	
 	return OPERATOR_FINISHED;
 } 
@@ -551,8 +554,8 @@ static int actkeys_columnselect_exec(bContext *C, wmOperator *op)
 	else
 		columnselect_action_keys(&ac, mode);
 	
-	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_SELECT);
+	/* set notifier that keyframe selection have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -954,8 +957,8 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 		mouse_action_keys(&ac, mval, selectmode, column);
 	}
 	
-	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+	/* set notifier that keyframe selection (and channels too) have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT|ND_ANIMCHAN_SELECT, NULL);
 	
 	/* for tweak grab to work */
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;

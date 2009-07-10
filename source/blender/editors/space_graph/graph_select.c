@@ -169,7 +169,7 @@ static int graphkeys_deselectall_exec(bContext *C, wmOperator *op)
 		deselect_graph_keys(&ac, 1, SELECT_ADD);
 	
 	/* set notifier that things have changed */
-	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -301,6 +301,9 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 	
 	/* apply borderselect action */
 	borderselect_graphkeys(&ac, rect, mode, selectmode);
+	
+	/* send notifier that keyframe selection has changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
 	
 	return OPERATOR_FINISHED;
 } 
@@ -492,8 +495,8 @@ static int graphkeys_columnselect_exec(bContext *C, wmOperator *op)
 	else
 		columnselect_graph_keys(&ac, mode);
 	
-	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_SELECT);
+	/* set notifier that keyframe selection has changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -911,8 +914,8 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
 		mouse_graph_keys(&ac, mval, selectmode, 0);
 	}
 	
-	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+	/* set notifier that keyframe selection (and also channel selection in some cases) has changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT|ND_ANIMCHAN_SELECT, NULL);
 	
 	/* for tweak grab to work */
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
