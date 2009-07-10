@@ -170,6 +170,8 @@ static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, voi
 		if(strcmp(pt->idname, dummypt.idname) == 0) {
 			if(pt->py_srna)
 				rna_Panel_unregister(C, pt->py_srna);
+			else
+				BLI_freelinkN(&art->paneltypes, pt);
 			break;
 		}
 	}
