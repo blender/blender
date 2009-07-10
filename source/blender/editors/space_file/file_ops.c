@@ -720,6 +720,10 @@ int file_directory_exec(bContext *C, wmOperator *unused)
 				BLI_strncpy(sfile->params->dir, tmpstr, sizeof(sfile->params->dir));
 			}
 		}
+#ifdef WIN32
+		if (sfile->params->dir[0] == '\0')
+			get_default_root(sfile->params->dir);
+#endif
 		BLI_add_slash(sfile->params->dir);
 		file_change_dir(sfile);
 		WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
