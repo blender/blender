@@ -422,6 +422,8 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 		 */
 		v2d->tot.ymin= (float)(-height);
 	}
+	/* need to do a view-sync here, so that the keys area doesn't jump around */
+	UI_view2d_sync(NULL, ac->sa, v2d, V2D_VIEWSYNC_AREA_VERTICAL);
 	
 	/* loop through channels, and set up drawing depending on their type  */	
 	y= (float)ACHANNEL_FIRST;
