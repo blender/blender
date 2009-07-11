@@ -494,6 +494,22 @@ void BLI_makestringcode(const char *relfile, char *file)
 	}
 }
 
+int BLI_has_parent(char *path)
+{
+	int len;
+	int slashes = 0;
+	BLI_clean(path);
+	BLI_add_slash(path);
+
+	len = strlen(path)-1;
+	while (len) {
+		if ((path[len] == '\\') || (path[len] == '/'))
+			slashes++;
+		len--;
+	}
+	return slashes > 1;
+}
+
 int BLI_parent_dir(char *path)
 {
 #ifdef WIN32

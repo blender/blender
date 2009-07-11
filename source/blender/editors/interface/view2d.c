@@ -155,7 +155,8 @@ static void view2d_masks(View2D *v2d)
 void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 {
 	short tot_changed= 0;
-	
+	uiStyle *style= U.uistyles.first;
+
 	/* initialise data if there is a need for such */
 	if ((v2d->flag & V2D_IS_INITIALISED) == 0) {
 		/* set initialised flag so that View2D doesn't get reinitialised next time again */
@@ -267,7 +268,11 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 				v2d->tot.ymax= 0.0f;
 				v2d->tot.ymin= -winy;
 				
-				v2d->cur= v2d->tot;
+				v2d->cur.xmin= 0.0f;
+				v2d->cur.xmax= winx*style->panelzoom;
+
+				v2d->cur.ymax= 0.0f;
+				v2d->cur.ymin= -winy*style->panelzoom;
 			}
 				break;
 				

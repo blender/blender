@@ -38,36 +38,47 @@
 EnumPropertyItem constraint_type_items[] ={
 	{CONSTRAINT_TYPE_CHILDOF, "CHILD_OF", 0, "Child Of", ""},
 	{CONSTRAINT_TYPE_TRANSFORM, "TRANSFORM", 0, "Transformation", ""},
-	
+	{0, "", 0, NULL, NULL},
 	{CONSTRAINT_TYPE_LOCLIKE, "COPY_LOCATION", 0, "Copy Location", ""},
 	{CONSTRAINT_TYPE_ROTLIKE, "COPY_ROTATION", 0, "Copy Rotation", ""},
 	{CONSTRAINT_TYPE_SIZELIKE, "COPY_SCALE", 0, "Copy Scale", ""},
-	
+	{0, "", 0, NULL, NULL},
 	{CONSTRAINT_TYPE_LOCLIMIT, "LIMIT_LOCATION", 0, "Limit Location", ""},
 	{CONSTRAINT_TYPE_ROTLIMIT, "LIMIT_ROTATION", 0, "Limit Rotation", ""},
 	{CONSTRAINT_TYPE_SIZELIMIT, "LIMIT_SCALE", 0, "Limit Scale", ""},
 	{CONSTRAINT_TYPE_DISTLIMIT, "LIMIT_DISTANCE", 0, "Limit Distance", ""},
-	
+	{0, "", 0, NULL, NULL},
 	{CONSTRAINT_TYPE_TRACKTO, "TRACK_TO", 0, "Track To", ""},
 	{CONSTRAINT_TYPE_LOCKTRACK, "LOCKED_TRACK", 0, "Locked Track", ""},
-	
+	{0, "", 0, NULL, NULL},
 	{CONSTRAINT_TYPE_MINMAX, "FLOOR", 0, "Floor", ""},
 	{CONSTRAINT_TYPE_SHRINKWRAP, "SHRINKWRAP", 0, "Shrinkwrap", ""},
 	{CONSTRAINT_TYPE_FOLLOWPATH, "FOLLOW_PATH", 0, "Follow Path", ""},
-	
+	{0, "", 0, NULL, NULL},
 	{CONSTRAINT_TYPE_CLAMPTO, "CLAMP_TO", 0, "Clamp To", ""},
 	{CONSTRAINT_TYPE_STRETCHTO, "STRETCH_TO", 0, "Stretch To", ""},
-	
+	{0, "", 0, NULL, NULL},
 	{CONSTRAINT_TYPE_KINEMATIC, "IK", 0, "IK", ""},
 	{CONSTRAINT_TYPE_RIGIDBODYJOINT, "RIGID_BODY_JOINT", 0, "Rigid Body Joint", ""},
-	
+	{0, "", 0, NULL, NULL},
 	{CONSTRAINT_TYPE_ACTION, "ACTION", 0, "Action", ""},
-	
+	{0, "", 0, NULL, NULL},
 	{CONSTRAINT_TYPE_PYTHON, "SCRIPT", 0, "Script", ""},
-	
+	{0, "", 0, NULL, NULL},
 	{CONSTRAINT_TYPE_NULL, "NULL", 0, "Null", ""},
 	{0, NULL, 0, NULL, NULL}};
 
+EnumPropertyItem space_pchan_items[] = {
+	{0, "WORLD", 0, "World Space", ""},
+	{2, "POSE", 0, "Pose Space", ""},
+	{3, "LOCAL_WITH_PARENT", 0, "Local With Parent", ""},
+	{1, "LOCAL", 0, "Local Space", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem space_object_items[] = {
+	{0, "WORLD", 0, "World Space", ""},
+	{1, "LOCAL", 0, "Local (Without Parent) Space", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
@@ -166,19 +177,7 @@ static void rna_Constraint_influence_update(bContext *C, PointerRNA *ptr)
 	rna_Constraint_update(C, ptr);
 }
 
-static EnumPropertyItem space_pchan_items[] = {
-	{0, "WORLD", 0, "World Space", ""},
-	{2, "POSE", 0, "Pose Space", ""},
-	{3, "LOCAL_WITH_PARENT", 0, "Local With Parent", ""},
-	{1, "LOCAL", 0, "Local Space", ""},
-	{0, NULL, 0, NULL, NULL}};
-
-static EnumPropertyItem space_object_items[] = {
-	{0, "WORLD", 0, "World Space", ""},
-	{1, "LOCAL", 0, "Local (Without Parent) Space", ""},
-	{0, NULL, 0, NULL, NULL}};
-
-static EnumPropertyItem *rna_Constraint_owner_space_itemf(PointerRNA *ptr)
+static EnumPropertyItem *rna_Constraint_owner_space_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	Object *ob= (Object*)ptr->id.data;
 	bConstraint *con= (bConstraint*)ptr->data;
@@ -189,7 +188,7 @@ static EnumPropertyItem *rna_Constraint_owner_space_itemf(PointerRNA *ptr)
 		return space_object_items;
 }
 
-static EnumPropertyItem *rna_Constraint_target_space_itemf(PointerRNA *ptr)
+static EnumPropertyItem *rna_Constraint_target_space_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	bConstraint *con= (bConstraint*)ptr->data;
 	bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
@@ -1505,11 +1504,13 @@ void RNA_def_constraint(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "owner_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ownspace");
+	RNA_def_property_enum_items(prop, space_pchan_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Constraint_owner_space_itemf");
 	RNA_def_property_ui_text(prop, "Owner Space", "Space that owner is evaluated in.");
 
 	prop= RNA_def_property(srna, "target_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "tarspace");
+	RNA_def_property_enum_items(prop, space_pchan_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Constraint_target_space_itemf");
 	RNA_def_property_ui_text(prop, "Target Space", "Space that target is evaluated in.");
 

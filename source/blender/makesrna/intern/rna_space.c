@@ -173,7 +173,7 @@ static EnumPropertyItem dc_rgb_items[] = {DC_RGB, DC_LCMS, DC_ZERO};
 static EnumPropertyItem dc_alpha_items[] = {DC_RGB, DC_RGBA, DC_ALPHA, DC_LCMS, DC_ZERO};
 static EnumPropertyItem dc_z_items[] = {DC_RGB, DC_Z, DC_LCMS, DC_ZERO};
 
-static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(PointerRNA *ptr)
+static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	SpaceImage *sima= (SpaceImage*)ptr->data;
 	ImBuf *ibuf= ED_space_image_buffer(sima);
@@ -800,8 +800,8 @@ static void rna_def_space_text(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem font_size_items[] = {
-		{12, "SCREEN_12", 0, "Screen 12", ""},
-		{15, "SCREEN_15", 0, "Screen 15", ""},
+		{12, "12", 0, "12", ""},
+		{15, "15", 0, "15", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SpaceTextEditor", "Space");
@@ -813,7 +813,7 @@ static void rna_def_space_text(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Text", "Text displayed and edited in this space.");
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceTextEditor_text_set", NULL);
-	RNA_def_property_update(prop, NC_TEXT|NA_EDITED, NULL);
+	RNA_def_property_update(prop, NC_TEXT|ND_DISPLAY, NULL);
 
 	/* display */
 	prop= RNA_def_property(srna, "syntax_highlight", PROP_BOOLEAN, PROP_NONE);
@@ -1003,6 +1003,21 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "FileSelectParams", NULL);
 	RNA_def_struct_ui_text(srna, "File Select Parameters", "File Select Parameters.");
+
+	prop= RNA_def_property(srna, "title", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "title");
+	RNA_def_property_ui_text(prop, "Title", "Title for the file browser.");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "directory", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "dir");
+	RNA_def_property_ui_text(prop, "Directory", "Directory displayed in the file browser.");
+	RNA_def_property_update(prop, NC_FILE | ND_PARAMS, NULL);
+
+	prop= RNA_def_property(srna, "file", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "file");
+	RNA_def_property_ui_text(prop, "File Name", "Active file in the file browser.");
+	RNA_def_property_update(prop, NC_FILE | ND_PARAMS, NULL);
 
 	prop= RNA_def_property(srna, "display", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "display");

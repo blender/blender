@@ -128,6 +128,11 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
+	static EnumPropertyItem font_kerning_style[] = {
+		{0, "UNFITTED", 0, "Unfitted", "Use scaled but un-grid-fitted kerning distances."},
+		{1, "DEFAULT", 0, "Default", "Use scaled and grid-fitted kerning distances."},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "ThemeFontStyle", NULL);
 	RNA_def_struct_sdna(srna, "uiFontStyle");
 	RNA_def_struct_ui_text(srna, "Font Style", "Theme settings for Font.");
@@ -137,14 +142,10 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Points", "");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
-	prop= RNA_def_property(srna, "kerning", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, -5.0, 5.0);
-	RNA_def_property_ui_text(prop, "Kerning", "User kerning value in pixels");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
-
-	prop= RNA_def_property(srna, "overlap", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "overlap", 1);
-	RNA_def_property_ui_text(prop, "Overlap", "Check for overlap characters");
+	prop= RNA_def_property(srna, "font_kerning_style", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "kerning");
+	RNA_def_property_enum_items(prop, font_kerning_style);
+	RNA_def_property_ui_text(prop, "Kerning Style", "Which style to use for font kerning.");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "shadow", PROP_INT, PROP_NONE);
@@ -183,6 +184,10 @@ static void rna_def_userdef_theme_ui_style(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ThemeStyle", NULL);
 	RNA_def_struct_sdna(srna, "uiStyle");
 	RNA_def_struct_ui_text(srna, "Style", "Theme settings for style sets.");
+	
+	prop= RNA_def_property(srna, "panelzoom", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.5, 2.0);
+	RNA_def_property_ui_text(prop, "Panel Zoom", "Default zoom level for panel areas.");
 	
 	prop= RNA_def_property(srna, "paneltitle", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "paneltitle");

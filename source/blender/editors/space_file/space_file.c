@@ -321,6 +321,8 @@ void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_delete_bookmark);
 	WM_operatortype_append(FILE_OT_hidedot);
 	WM_operatortype_append(FILE_OT_filenum);
+	WM_operatortype_append(FILE_OT_directory_new);
+	WM_operatortype_append(FILE_OT_delete);
 }
 
 /* NOTE: do not add .blend file reading on this level */
@@ -335,6 +337,8 @@ void file_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "FILE_OT_hidedot", HKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_previous", BACKSPACEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_next", BACKSPACEKEY, KM_PRESS, KM_SHIFT, 0);
+	/* WM_keymap_add_item(keymap, "FILE_OT_directory_new", IKEY, KM_PRESS, 0, 0); */ /* XXX needs button */
+	WM_keymap_add_item(keymap, "FILE_OT_delete", XKEY, KM_PRESS, 0, 0);
 
 	/* keys for main area */
 	keymap= WM_keymap_listbase(wm, "FileMain", SPACE_FILE, 0);

@@ -243,16 +243,18 @@ void ED_object_base_init_from_view(bContext *C, Base *base)
 /* ******************* add object operator ****************** */
 
 static EnumPropertyItem prop_object_types[] = {
-	{OB_EMPTY, "EMPTY", 0, "Empty", ""},
 	{OB_MESH, "MESH", 0, "Mesh", ""},
 	{OB_CURVE, "CURVE", 0, "Curve", ""},
 	{OB_SURF, "SURFACE", 0, "Surface", ""},
-	{OB_FONT, "TEXT", 0, "Text", ""},
 	{OB_MBALL, "META", 0, "Meta", ""},
-	{OB_LAMP, "LAMP", 0, "Lamp", ""},
-	{OB_CAMERA, "CAMERA", 0, "Camera", ""},
+	{OB_FONT, "TEXT", 0, "Text", ""},
+	{0, "", 0, NULL, NULL},
 	{OB_ARMATURE, "ARMATURE", 0, "Armature", ""},
 	{OB_LATTICE, "LATTICE", 0, "Lattice", ""},
+	{OB_EMPTY, "EMPTY", 0, "Empty", ""},
+	{0, "", 0, NULL, NULL},
+	{OB_CAMERA, "CAMERA", 0, "Camera", ""},
+	{OB_LAMP, "LAMP", 0, "Lamp", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -327,6 +329,7 @@ static EnumPropertyItem prop_mesh_types[] = {
 	{4, "ICOSPHERE", 0, "Icosphere", ""},
 	{5, "CYLINDER", 0, "Cylinder", ""},
 	{6, "CONE", 0, "Cone", ""},
+	{0, "", 0, NULL, NULL},
 	{7, "GRID", 0, "Grid", ""},
 	{8, "MONKEY", 0, "Monkey", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -619,16 +622,18 @@ static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	uiPopupMenu *pup= uiPupMenuBegin(C, "Add Object", 0);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
-	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_MESH, "OBJECT_OT_mesh_add", "type");
-	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_CURVE, "OBJECT_OT_curve_add", "type");
-	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_SURFACE, "OBJECT_OT_surface_add", "type");
-	uiItemO(layout, NULL, ICON_OUTLINER_OB_FONT, "OBJECT_OT_text_add");
+	uiItemMenuEnumO(layout, "Mesh", ICON_OUTLINER_OB_MESH, "OBJECT_OT_mesh_add", "type");
+	uiItemMenuEnumO(layout, "Curve", ICON_OUTLINER_OB_CURVE, "OBJECT_OT_curve_add", "type");
+	uiItemMenuEnumO(layout, "Surface", ICON_OUTLINER_OB_SURFACE, "OBJECT_OT_surface_add", "type");
 	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_META, "OBJECT_OT_object_add", "type", OB_MBALL);
+	uiItemO(layout, "Text", ICON_OUTLINER_OB_FONT, "OBJECT_OT_text_add");
+	uiItemS(layout);
+	uiItemO(layout, "Armature", ICON_OUTLINER_OB_ARMATURE, "OBJECT_OT_armature_add");
+	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LATTICE, "OBJECT_OT_object_add", "type", OB_LATTICE);
+	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_EMPTY, "OBJECT_OT_object_add", "type", OB_EMPTY);
+	uiItemS(layout);
 	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_CAMERA, "OBJECT_OT_object_add", "type", OB_CAMERA);
 	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LAMP, "OBJECT_OT_object_add", "type", OB_LAMP);
-	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_EMPTY, "OBJECT_OT_object_add", "type", OB_EMPTY);
-	uiItemO(layout, NULL, ICON_OUTLINER_OB_ARMATURE, "OBJECT_OT_armature_add");
-	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LATTICE, "OBJECT_OT_object_add", "type", OB_LATTICE);
 	
 	uiPupMenuEnd(C, pup);
 	
@@ -699,8 +704,8 @@ void OBJECT_OT_delete(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Delete Objects";
-	ot->description = "Delete the object.";
+	ot->name= "Delete";
+	ot->description = "Delete selected objects.";
 	ot->idname= "OBJECT_OT_delete";
 	
 	/* api callbacks */
@@ -1374,20 +1379,21 @@ static EnumPropertyItem prop_clear_parent_types[] = {
 /* note, poll should check for editable scene */
 static int parent_clear_exec(bContext *C, wmOperator *op)
 {
+	int type= RNA_enum_get(op->ptr, "type");
 	
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 
-		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR")) {
+		if(type == 0) {
 			ob->parent= NULL;
 		}			
-		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_KEEP_TRANSFORM")) {
+		else if(type == 1) {
 			ob->parent= NULL;
 			ob->track= NULL;
 			ED_object_apply_obmat(ob);
 		}
-		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_INVERSE")) {
+		else if(type == 2)
 			Mat4One(ob->parentinv);
-		}
+
 		ob->recalc |= OB_RECALC;
 	}
 	CTX_DATA_END;
@@ -1402,7 +1408,7 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_parent_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear parent";
+	ot->name= "Clear Parent";
 	ot->description = "Clear the object's parenting.";
 	ot->idname= "OBJECT_OT_parent_clear";
 	
@@ -1430,6 +1436,8 @@ static EnumPropertyItem prop_clear_track_types[] = {
 /* note, poll should check for editable scene */
 static int object_track_clear_exec(bContext *C, wmOperator *op)
 {
+	int type= RNA_enum_get(op->ptr, "type");
+
 	if(CTX_data_edit_object(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed in EditMode");
 		return OPERATOR_CANCELLED;
@@ -1438,9 +1446,8 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 		ob->track= NULL;
 		ob->recalc |= OB_RECALC;
 		
-		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_KEEP_TRANSFORM")) {
+		if(type == 1)
 			ED_object_apply_obmat(ob);
-		}			
 	}
 	CTX_DATA_END;
 
@@ -1890,7 +1897,7 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Clear Object Location";
+	ot->name= "Clear Location";
 	ot->description = "Clear the object's location.";
 	ot->idname= "OBJECT_OT_location_clear";
 	
@@ -1934,7 +1941,7 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Clear Object Rotation";
+	ot->name= "Clear Rotation";
 	ot->description = "Clear the object's rotation.";
 	ot->idname= "OBJECT_OT_rotation_clear";
 	
@@ -1982,7 +1989,7 @@ void OBJECT_OT_scale_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Clear Object Scale";
+	ot->name= "Clear Scale";
 	ot->description = "Clear the object's scale.";
 	ot->idname= "OBJECT_OT_scale_clear";
 	
@@ -2028,7 +2035,7 @@ void OBJECT_OT_origin_clear(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Clear Object Origin";
+	ot->name= "Clear Origin";
 	ot->description = "Clear the object's origin.";
 	ot->idname= "OBJECT_OT_origin_clear";
 	
@@ -2071,12 +2078,11 @@ void OBJECT_OT_restrictview_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Clear restrict view";
+	ot->name= "Clear Restrict View";
 	ot->description = "Reveal the object by setting the restrictview flag.";
 	ot->idname= "OBJECT_OT_restrictview_clear";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
 	ot->exec= object_restrictview_clear_exec;
 	ot->poll= ED_operator_view3d_active;
 	
@@ -2084,19 +2090,14 @@ void OBJECT_OT_restrictview_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static EnumPropertyItem prop_set_restrictview_types[] = {
-	{0, "SELECTED", 0, "Selected", ""},
-	{1, "UNSELECTED", 0, "Unselected ", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
 static int object_restrictview_set_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	short changed = 0;
+	int unselected= RNA_boolean_get(op->ptr, "unselected");
 	
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if(RNA_enum_is_equal(op->ptr, "type", "SELECTED")){
+		if(!unselected) {
 			if (base->flag & SELECT){
 				base->flag &= ~SELECT;
 				base->object->flag = base->flag;
@@ -2107,7 +2108,7 @@ static int object_restrictview_set_exec(bContext *C, wmOperator *op)
 				}
 			}
 		}
-		else if (RNA_enum_is_equal(op->ptr, "type", "UNSELECTED")){
+		else {
 			if (!(base->flag & SELECT)){
 				base->object->restrictflag |= OB_RESTRICT_VIEW;
 				changed = 1;
@@ -2129,19 +2130,18 @@ static int object_restrictview_set_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_restrictview_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set restrict view";
+	ot->name= "Set Restrict View";
 	ot->description = "Hide the object by setting the restrictview flag.";
 	ot->idname= "OBJECT_OT_restrictview_set";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
 	ot->exec= object_restrictview_set_exec;
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_set_restrictview_types, 0, "Type", "");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects.");
 	
 }
 /* ************* Slow Parent ******************* */
@@ -2638,7 +2638,7 @@ static int parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void OBJECT_OT_parent_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make parent";
+	ot->name= "Make Parent";
 	ot->description = "Set the object's parenting.";
 	ot->idname= "OBJECT_OT_parent_set";
 	
@@ -2665,8 +2665,9 @@ static EnumPropertyItem prop_make_track_types[] = {
 static int track_set_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
+	int type= RNA_enum_get(op->ptr, "type");
 		
-	if(RNA_enum_is_equal(op->ptr, "type", "TRACKTO")){
+	if(type == 1) {
 		bConstraint *con;
 		bTrackToConstraint *data;
 
@@ -2690,7 +2691,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-	else if(RNA_enum_is_equal(op->ptr, "type", "LOCKTRACK")){
+	else if(type == 2) {
 		bConstraint *con;
 		bLockTrackConstraint *data;
 
@@ -2714,7 +2715,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-	else if(RNA_enum_is_equal(op->ptr, "type", "OLDTRACK")){
+	else {
 		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 			if(base!=BASACT) {
 				base->object->track= BASACT->object;
@@ -2792,7 +2793,7 @@ static void make_object_duplilist_real(Scene *scene, View3D *v3d, Base *base)
 }
 
 
-static int object_dupli_set_real_exec(bContext *C, wmOperator *op)
+static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
@@ -2812,17 +2813,17 @@ static int object_dupli_set_real_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_dupli_set_real(wmOperatorType *ot)
+void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Make Dupli Real";
+	ot->name= "Make Duplicates Real";
 	ot->description = "Make dupli objects attached to this object real.";
-	ot->idname= "OBJECT_OT_dupli_set_real";
+	ot->idname= "OBJECT_OT_duplicates_make_real";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
-	ot->exec= object_dupli_set_real_exec;
+	ot->exec= object_duplicates_make_real_exec;
 	
 	ot->poll= ED_operator_scene_editable;
 	
@@ -5961,7 +5962,8 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
-	int dupflag= U.dupflag;
+	int linked= RNA_boolean_get(op->ptr, "linked");
+	int dupflag= (linked)? 0: U.dupflag;
 	
 	clear_id_newpoins();
 	clear_sca_new_poins();	/* sensor/contr/act */
@@ -6003,8 +6005,8 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Duplicate Objects";
-	ot->description = "Duplicate the objects.";
+	ot->name= "Duplicate";
+	ot->description = "Duplicate selected objects.";
 	ot->idname= "OBJECT_OT_duplicate";
 	
 	/* api callbacks */
@@ -6017,6 +6019,7 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* to give to transform */
+	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data.");
 	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
 

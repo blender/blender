@@ -1227,12 +1227,29 @@ static int select_similar_exec(bContext *C, wmOperator *op)
 		return similar_face_select_exec(C, op);
 }
 
-static EnumPropertyItem *select_similar_type_itemf(PointerRNA *ptr)
+static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	/* XXX need context! */
-	return prop_simface_types;
-	return prop_simvertex_types;
-	return prop_simedge_types;
+	Object *obedit= CTX_data_edit_object(C);
+
+	if(obedit && obedit->type == OB_MESH) {
+		EditMesh *em= BKE_mesh_get_editmesh(obedit->data); 
+		EnumPropertyItem *item= NULL;
+		int totitem= 0;
+
+		if(em->selectmode & SCE_SELECT_VERTEX)
+			RNA_enum_items_add(&item, &totitem, prop_simvertex_types);
+		else if(em->selectmode & SCE_SELECT_EDGE)
+			RNA_enum_items_add(&item, &totitem, prop_simedge_types);
+		else if(em->selectmode & SCE_SELECT_FACE)
+			RNA_enum_items_add(&item, &totitem, prop_simface_types);
+		RNA_enum_item_end(&item, &totitem);
+
+		*free= 1;
+
+		return item;
+	}
+
+	return NULL;
 }
 
 void MESH_OT_select_similar(wmOperatorType *ot)

@@ -283,7 +283,13 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 		{R_PLANES24, "RGB", 0, "RGB", "Images are saved with RGB (color) data"},
 		{R_PLANES32, "RGBA", 0, "RGBA", "Images are saved with RGB and Alpha data (if supported)"},
 		{0, NULL, 0, NULL, NULL}};
-		
+	
+	static EnumPropertyItem display_mode_items[] ={
+		{R_OUTPUT_SCREEN, "SCREEN", 0, "Full Screen", "Images are rendered in full Screen"},
+		{R_OUTPUT_AREA, "AREA", 0, "Image Editor", "Images are rendered in Image Editor"},
+		{R_OUTPUT_WINDOW, "WINDOW", 0, "New Window", "Images are rendered in new Window"},
+		{0, NULL, 0, NULL, NULL}};
+	
 	static EnumPropertyItem octree_resolution_items[] = {
 		{64, "OCTREE_RES_64", 0, "64", ""},
 		{128, "OCTREE_RES_128", 0, "128", ""},
@@ -841,6 +847,11 @@ void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Back Buffer", "Render backbuffer image");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
+	prop= RNA_def_property(srna, "display_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "displaymode");
+	RNA_def_property_enum_items(prop, display_mode_items);
+	RNA_def_property_ui_text(prop, "Display", "Select where rendered images will be displayed");
+	
 	prop= RNA_def_property(srna, "output_path", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "pic");
 	RNA_def_property_ui_text(prop, "Output Path", "Directory/name to save animations, # characters defines the position and length of frame numbers.");

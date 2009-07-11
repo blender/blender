@@ -80,6 +80,17 @@
 #include "file_intern.h"
 #include "filelist.h"
 
+#if defined __BeOS
+static int fnmatch(const char *pattern, const char *string, int flags)
+{
+	return 0;
+}
+#elif defined WIN32 && !defined _LIBC
+	/* use fnmatch included in blenlib */
+	#include "BLI_fnmatch.h"
+#else
+	#include <fnmatch.h>
+#endif
 
 FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile)
 {
@@ -290,7 +301,7 @@ FileLayout* ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar
 
 void file_change_dir(struct SpaceFile *sfile)
 {
-	if (sfile->params) {
+	if (sfile->params && BLI_exists(sfile->params->dir)) {
 		filelist_setdir(sfile->files, sfile->params->dir);
 
 		if(folderlist_clear_next(sfile))
@@ -300,5 +311,48 @@ void file_change_dir(struct SpaceFile *sfile)
 
 		filelist_free(sfile->files);
 		sfile->params->active_file = -1;
+	}
+}
+
+int file_select_match(struct SpaceFile *sfile, const char *pattern)
+{
+	int match = 0;
+	if (strchr(pattern, '*') || strchr(pattern, '?') || strchr(pattern, '[')) {
+		int i;
+		struct direntry *file;
+		int n = filelist_numfiles(sfile->files);
+
+		for (i = 0; i < n; i++) {
+			file = filelist_file(sfile->files, i);
+			if (fnmatch(pattern, file->relname, 0) == 0) {
+				file->flags |= ACTIVE;
+				match = 1;
+			}
+		}
+	}
+	return match;
+}
+
+
+void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
+{
+	char tmp[FILE_MAX];
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+
+	/* search if str matches the beginning of name */
+	if(str[0] && sfile->files) {
+		AutoComplete *autocpl= autocomplete_begin(str, FILE_MAX);
+		int nentries = filelist_numfiles(sfile->files);
+		int i;
+
+		for(i= 0; i<nentries; ++i) {
+			struct direntry* file = filelist_file(sfile->files, i);
+			char* dir = filelist_dir(sfile->files);
+			if (file && S_ISDIR(file->type))	{
+				BLI_make_file_string(G.sce, tmp, dir, file->relname);
+				autocomplete_do_name(autocpl,tmp);
+			}
+		}
+		autocomplete_end(autocpl, str);
 	}
 }

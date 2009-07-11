@@ -90,6 +90,8 @@ enum {
 	B_FS_EXEC,
 	B_FS_CANCEL,
 	B_FS_PARENT,
+	B_FS_DIRNAME,
+	B_FS_FILENAME
 } eFile_ButEvents;
 
 
@@ -105,68 +107,130 @@ static void do_file_buttons(bContext *C, void *arg, int event)
 		case B_FS_PARENT:
 			file_parent_exec(C, NULL); /* file_ops.c */
 			break;
+		case B_FS_FILENAME:
+			file_filename_exec(C, NULL);
+			break;
+		case B_FS_DIRNAME:
+			file_directory_exec(C, NULL);
+			break;
 	}
 }
 
-/* note; this function uses pixelspace (0, 0, winx, winy), not view2d */
+/* Note: This function uses pixelspace (0, 0, winx, winy), not view2d. 
+ * The controls are laid out as follows:
+ *
+ * -------------------------------------------
+ * | Directory input               | execute |
+ * -------------------------------------------
+ * | Filename input        | + | - | cancel  |
+ * -------------------------------------------
+ *
+ * The input widgets will stretch to fill any excess space.
+ * When there isn't enough space for all controls to be shown, they are
+ * hidden in this order: x/-, execute/cancel, input widgets.
+ */
 void file_draw_buttons(const bContext *C, ARegion *ar)
 {
-	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	/* Button layout. */
+	const short min_x      = 10;
+	const short max_x      = ar->winx - 10;
+	const short line2_y    = ar->winy - IMASEL_BUTTONS_HEIGHT - 12;
+	const short line1_y    = line2_y  + IMASEL_BUTTONS_HEIGHT/2 + 4;
+	const short input_minw = 20;
+	const short btn_h      = 21;
+	const short btn_fn_w   = 14;
+	const short btn_minw   = 80;
+	const short btn_margin = 20;
+	const short separator  = 4;
+
+	/* Additional locals. */
+	char  name[20];
+	short loadbutton;
+	short fnumbuttons;
+	short available_w = max_x - min_x;
+	short line1_w     = available_w;
+	short line2_w     = available_w;
+	
+	uiBut*            but;
+	uiBlock*          block;
+	SpaceFile*        sfile  = (SpaceFile*) CTX_wm_space_data(C);
 	FileSelectParams* params = ED_fileselect_get_params(sfile);
-	uiBlock *block;
-	int loadbutton;
-	char name[20];
-	float slen;
-	int filebuty1, filebuty2;
-
-	float xmin = 8;
-	float xmax = ar->winx - 10;
-
-	filebuty1= ar->winy - IMASEL_BUTTONS_HEIGHT - 12;
-	filebuty2= filebuty1 + IMASEL_BUTTONS_HEIGHT/2 + 4;
-
-	/* HEADER */
+	
+	/* Initialize UI block. */
 	sprintf(name, "win %p", ar);
 	block = uiBeginBlock(C, ar, name, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_file_buttons, NULL);
-
-	/* XXXX
-	uiSetButLock( filelist_gettype(simasel->files)==FILE_MAIN && simasel->returnfunc, NULL); 
-	*/
-
-	/* space available for load/save buttons? */
-	slen = UI_GetStringWidth(sfile->params->title);
-	loadbutton= slen > 60 ? slen + 20 : MAX2(80, 20+UI_GetStringWidth(params->title));
-	if(ar->winx > loadbutton+20) {
-		if(params->title[0]==0) {
-			loadbutton= 0;
-		}
-	}
-	else {
-		loadbutton= 0;
-	}
-
-	uiDefBut(block, TEX, 0 /* XXX B_FS_FILENAME */,"",	xmin+2, filebuty1, xmax-xmin-loadbutton-4, 21, params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
-	uiDefBut(block, TEX, 0 /* XXX B_FS_DIRNAME */,"",	xmin+2, filebuty2, xmax-xmin-loadbutton-4, 21, params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
 	
-	if(loadbutton) {
-		uiDefBut(block, BUT, B_FS_EXEC, params->title,	xmax-loadbutton, filebuty2, loadbutton, 21, params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
-		uiDefBut(block, BUT, B_FS_CANCEL, "Cancel",		xmax-loadbutton, filebuty1, loadbutton, 21, params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+	/* Is there enough space for the execute / cancel buttons? */
+	loadbutton = UI_GetStringWidth(sfile->params->title) + btn_margin;
+	if (loadbutton < btn_minw) {
+		loadbutton = MAX2(btn_minw, 
+		                  btn_margin + UI_GetStringWidth(params->title));
+	}
+	
+	if (available_w <= loadbutton + separator + input_minw 
+	 || params->title[0] == 0) {
+		loadbutton = 0;
+	} else {
+		line1_w -= (loadbutton + separator);
+		line2_w  = line1_w;
 	}
 
+	/* Is there enough space for file number increment/decrement buttons? */
+	fnumbuttons = 2 * btn_fn_w;
+	if (!loadbutton || line2_w <= fnumbuttons + separator + input_minw) {
+		fnumbuttons = 0;
+	} else {
+		line2_w -= (fnumbuttons + separator);
+	}
+	
+	/* Text input fields for directory and file. */
+	if (available_w > 0) {
+		but = uiDefBut(block, TEX, B_FS_DIRNAME, "",
+		         min_x, line1_y, line1_w, btn_h, 
+		         params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, 
+		         "File path.");
+		uiButSetCompleteFunc(but, autocomplete_directory, NULL);
+		uiDefBut(block, TEX, B_FS_FILENAME, "",
+		         min_x, line2_y, line2_w, btn_h,
+		         params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, 
+		         "File name.");
+	}
+	
+	/* Filename number increment / decrement buttons. */
+	if (fnumbuttons) {
+		uiBlockBeginAlign(block);
+		but = uiDefButO(block, BUT, "FILE_OT_filenum", 0, "-",
+		        min_x + line2_w + separator, line2_y, 
+		        btn_fn_w, btn_h, 
+		        "Decrement the filename number.");    
+		RNA_int_set(uiButGetOperatorPtrRNA(but), "increment", -1); 
+	
+		but = uiDefButO(block, BUT, "FILE_OT_filenum", 0, "+", 
+		        min_x + line2_w + separator + btn_fn_w, line2_y, 
+		        btn_fn_w, btn_h, 
+		        "Increment the filename number.");    
+		RNA_int_set(uiButGetOperatorPtrRNA(but), "increment", 1); 
+		uiBlockEndAlign(block);
+	}
+	
+	/* Execute / cancel buttons. */
+	if(loadbutton) {
+		uiDefBut(block, BUT, B_FS_EXEC, params->title, 
+		  max_x - loadbutton, line1_y, loadbutton, btn_h, 
+		  params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, params->title);
+		uiDefBut(block, BUT, B_FS_CANCEL, "Cancel", 
+		  max_x - loadbutton, line2_y, loadbutton, btn_h, 
+		  params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "Cancel.");
+	}
+	
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);
 }
 
 
 static void draw_tile(short sx, short sy, short width, short height, int colorid, int shade)
-{
-	/* TODO: BIF_ThemeColor seems to need this to show the color, not sure why? - elubie */
-	//glEnable(GL_BLEND);
-	//glColor4ub(0, 0, 0, 100);
-	//glDisable(GL_BLEND);
-	/* I think it was a missing glDisable() - ton */
-	
+{	
 	UI_ThemeColorShade(colorid, shade);
 	uiSetRoundBox(15);	
 	uiRoundBox(sx, sy - height, sx + width, sy, 6);

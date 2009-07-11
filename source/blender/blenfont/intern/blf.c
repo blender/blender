@@ -505,15 +505,6 @@ void BLF_mode(int mode)
 		font->mode= mode;
 }
 
-void BLF_kerning(float space)
-{
-	FontBLF *font;
-
-	font= global_font[global_font_cur];
-	if (font)
-		font->kerning= space;
-}
-
 void BLF_shadow(int level, float r, float g, float b, float a)
 {
 	FontBLF *font;

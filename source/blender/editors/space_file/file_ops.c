@@ -142,10 +142,10 @@ static void file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short v
 			{
 				// XXX error("Path too long, cannot enter this directory");
 			} else {
-				strcat(params->dir, file->relname);
-				strcat(params->dir,"/");
-				params->file[0] = '\0';
 				BLI_cleanup_dir(G.sce, params->dir);
+				strcat(params->dir, file->relname);
+				BLI_add_slash(params->dir);
+				params->file[0] = '\0';
 				file_change_dir(sfile);
 			}
 		}
@@ -557,11 +557,13 @@ int file_parent_exec(bContext *C, wmOperator *unused)
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	
 	if(sfile->params) {
-		BLI_parent_dir(sfile->params->dir);
-		file_change_dir(sfile);
+		if (BLI_has_parent(sfile->params->dir)) {
+			BLI_parent_dir(sfile->params->dir);
+			file_change_dir(sfile);
+			WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+		}
 	}		
-	WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
-
+	
 	return OPERATOR_FINISHED;
 
 }
@@ -651,6 +653,101 @@ int file_next_exec(bContext *C, wmOperator *unused)
 
 	return OPERATOR_FINISHED;
 }
+
+int file_directory_new_exec(bContext *C, wmOperator *unused)
+{
+	char tmpstr[FILE_MAX];
+	char tmpdir[FILE_MAXFILE];
+	int i = 1;
+
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	
+	if(sfile->params) {
+		 
+		BLI_strncpy(tmpstr, sfile->params->dir, FILE_MAX);
+		BLI_join_dirfile(tmpstr, tmpstr, "New Folder");
+		while (BLI_exists(tmpstr)) {
+			BLI_snprintf(tmpdir, FILE_MAXFILE, "New Folder(%d)", i++);
+			BLI_strncpy(tmpstr, sfile->params->dir, FILE_MAX);
+			BLI_join_dirfile(tmpstr, tmpstr, tmpdir);
+		}
+		BLI_recurdir_fileops(tmpstr);
+		if (!BLI_exists(tmpstr)) {
+			filelist_free(sfile->files);
+			filelist_parent(sfile->files);
+			BLI_strncpy(sfile->params->dir, filelist_dir(sfile->files), FILE_MAX);
+		} 
+	}		
+	WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+
+void FILE_OT_directory_new(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Create New Directory";
+	ot->idname= "FILE_OT_directory_new";
+	
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= file_directory_new_exec;
+	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+}
+
+int file_directory_exec(bContext *C, wmOperator *unused)
+{
+	char tmpstr[FILE_MAX];
+
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	
+	if(sfile->params) {
+
+		if ( sfile->params->dir[0] == '~' ) {
+			if (sfile->params->dir[1] == '\0') {
+				BLI_strncpy(sfile->params->dir, BLI_gethome(), sizeof(sfile->params->dir) );
+			} else {
+				/* replace ~ with home */
+				char homestr[FILE_MAX];
+				char *d = &sfile->params->dir[1];
+
+				while ( (*d == '\\') || (*d == '/') )
+					d++;
+				BLI_strncpy(homestr,  BLI_gethome(), FILE_MAX);
+				BLI_add_slash(homestr);
+				BLI_join_dirfile(tmpstr, homestr, d);
+				BLI_strncpy(sfile->params->dir, tmpstr, sizeof(sfile->params->dir));
+			}
+		}
+#ifdef WIN32
+		if (sfile->params->dir[0] == '\0')
+			get_default_root(sfile->params->dir);
+#endif
+		BLI_add_slash(sfile->params->dir);
+		file_change_dir(sfile);
+		WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+	}		
+	
+
+	return OPERATOR_FINISHED;
+}
+
+int file_filename_exec(bContext *C, wmOperator *unused)
+{
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	
+	if(sfile->params) {
+		if (file_select_match(sfile, sfile->params->file))
+		{
+			sfile->params->file[0] = '\0';
+			WM_event_add_notifier(C, NC_FILE|ND_PARAMS, NULL);
+		}
+	}		
+
+	return OPERATOR_FINISHED;
+}
+
 
 void FILE_OT_refresh(struct wmOperatorType *ot)
 {
@@ -770,5 +867,50 @@ void FILE_OT_filenum(struct wmOperatorType *ot)
 
 	/* props */
 	RNA_def_int(ot->srna, "increment", 1, 0, 100, "Increment", "", 0,100);
+}
+
+int file_delete_poll(bContext *C)
+{
+	int poll = ED_operator_file_active(C);
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	struct direntry* file;
+
+	if(!sfile->params ) poll= 0;
+
+	if (sfile->params->active_file < 0) { 
+		poll= 0;
+	} else {
+		file = filelist_file(sfile->files, sfile->params->active_file);
+		if (file && S_ISDIR(file->type)) poll= 0;
+	}
+	return poll;
+}
+
+int file_delete_exec(bContext *C, wmOperator *op)
+{
+	char str[FILE_MAX];
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	struct direntry* file;
+	
+	
+	file = filelist_file(sfile->files, sfile->params->active_file);
+	BLI_make_file_string(G.sce, str, sfile->params->dir, file->relname);
+	BLI_delete(str, 0, 0);	
+	WM_event_add_notifier(C, NC_FILE | ND_FILELIST, NULL);
+	
+	return OPERATOR_FINISHED;
+
+}
+
+void FILE_OT_delete(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete File";
+	ot->idname= "FILE_OT_delete";
+	
+	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
+	ot->exec= file_delete_exec;
+	ot->poll= file_delete_poll; /* <- important, handler is on window level */
 }
 

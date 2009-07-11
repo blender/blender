@@ -158,7 +158,8 @@ void WM_cursor_wait(int val)
 
 void WM_cursor_grab(wmWindow *win, int val)
 {
-	GHOST_SetCursorGrab(win->ghostwin, val);
+	if(win)
+		GHOST_SetCursorGrab(win->ghostwin, val);
 }
 
 /* afer this you can call restore too */

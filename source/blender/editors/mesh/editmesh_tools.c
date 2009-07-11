@@ -5799,29 +5799,38 @@ static EnumPropertyItem merge_type_items[]= {
 	{5, "COLLAPSE", 0, "Collapse", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-static EnumPropertyItem *merge_type_itemf(PointerRNA *ptr)
+static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	/* XXX need context here */
-#if 0
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
-	if(em->selectmode & SCE_SELECT_VERTEX)
-		if(em->selected.first && em->selected.last && 
-			((EditSelection*)em->selected.first)->type == EDITVERT && ((EditSelection*)em->selected.last)->type == EDITVERT) 
-				event = pupmenu("Merge %t|At First %x6|At Last%x1|At Center%x3|At Cursor%x4|Collapse%x2");
-		else if (em->selected.first && ((EditSelection*)em->selected.first)->type == EDITVERT) 
-			event = pupmenu("Merge %t|At First %x6|At Center%x3|At Cursor%x4|Collapse%x2");
-		else if (em->selected.last && ((EditSelection*)em->selected.last)->type == EDITVERT) 
-			event = pupmenu("Merge %t|At Last %x1|At Center%x3|At Cursor%x4|Collapse%x2");
-		else event = pupmenu("Merge %t|At Center%x3|At Cursor%x4|Collapse%x2");
-	else event = pupmenu("Merge %t|At Center%x3|At Cursor%x4|Collapse%x2");
+	if(obedit && obedit->type == OB_MESH) {
+		EditMesh *em= BKE_mesh_get_editmesh(obedit->data); 
+		EnumPropertyItem *item= NULL;
+		int totitem= 0;
 
-	BKE_mesh_end_editmesh(obedit->data, em);
-#endif
+		if(em->selectmode & SCE_SELECT_VERTEX) {
+			if(em->selected.first && em->selected.last && 
+				((EditSelection*)em->selected.first)->type == EDITVERT && ((EditSelection*)em->selected.last)->type == EDITVERT) {
+				RNA_enum_item_add(&item, &totitem, &merge_type_items[0]);
+				RNA_enum_item_add(&item, &totitem, &merge_type_items[1]);
+			}
+			else if(em->selected.first && ((EditSelection*)em->selected.first)->type == EDITVERT) 
+				RNA_enum_item_add(&item, &totitem, &merge_type_items[1]);
+			else if(em->selected.last && ((EditSelection*)em->selected.last)->type == EDITVERT) 
+				RNA_enum_item_add(&item, &totitem, &merge_type_items[0]);
+		}
 
-	return merge_type_items;
+		RNA_enum_item_add(&item, &totitem, &merge_type_items[2]);
+		RNA_enum_item_add(&item, &totitem, &merge_type_items[3]);
+		RNA_enum_item_add(&item, &totitem, &merge_type_items[4]);
+		RNA_enum_item_end(&item, &totitem);
+
+		*free= 1;
+
+		return item;
+	}
+
+	return NULL;
 }
 
 void MESH_OT_merge(wmOperatorType *ot)
@@ -5841,7 +5850,7 @@ void MESH_OT_merge(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", merge_type_items, 6, "Type", "Merge method to use.");
+	prop= RNA_def_enum(ot->srna, "type", merge_type_items, 3, "Type", "Merge method to use.");
 	RNA_def_enum_funcs(prop, merge_type_itemf);
 	RNA_def_boolean(ot->srna, "uvs", 0, "UVs", "Move UVs according to merge.");
 }

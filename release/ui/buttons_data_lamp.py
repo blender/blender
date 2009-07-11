@@ -48,7 +48,7 @@ class DATA_PT_lamp(DataButtonsPanel):
 		
 		lamp = context.lamp
 
-		layout.itemR(lamp, "type", expand=True)
+		layout.itemR(lamp, "type")
 		
 		split = layout.split()
 		

@@ -34,9 +34,6 @@ struct ARegion;
 struct ARegionType;
 struct SpaceFile;
 
-/* file_header.c */
-void file_header_buttons(const bContext *C, ARegion *ar);
-
 /* file_ops.c */
 struct ARegion *file_buttons_region(struct ScrArea *sa);
 
@@ -65,23 +62,34 @@ void FILE_OT_loadimages(struct wmOperatorType *ot);
 void FILE_OT_exec(struct wmOperatorType *ot);
 void FILE_OT_cancel(struct wmOperatorType *ot);
 void FILE_OT_parent(struct wmOperatorType *ot);
+void FILE_OT_directory_new(struct wmOperatorType *ot);
+void FILE_OT_filename(struct wmOperatorType *ot);
 void FILE_OT_previous(struct wmOperatorType *ot);
 void FILE_OT_next(struct wmOperatorType *ot);
 void FILE_OT_refresh(struct wmOperatorType *ot);
 void FILE_OT_bookmark_toggle(struct wmOperatorType *ot);
 void FILE_OT_filenum(struct wmOperatorType *ot);
+void FILE_OT_delete(struct wmOperatorType *ot);
 
 int file_exec(bContext *C, struct wmOperator *unused);
 int file_cancel_exec(bContext *C, struct wmOperator *unused);
 int file_parent_exec(bContext *C, struct wmOperator *unused);
 int file_previous_exec(bContext *C, struct wmOperator *unused);
 int file_next_exec(bContext *C, struct wmOperator *unused);
+int file_filename_exec(bContext *C, struct wmOperator *unused);
+int file_directory_exec(bContext *C, struct wmOperator *unused);
+int file_directory_new_exec(bContext *C,struct wmOperator *unused);
+int file_delete_exec(bContext *C, struct wmOperator *unused);
+
 int file_hilight_set(struct SpaceFile *sfile, struct ARegion *ar, int mx, int my);
+
 
 /* filesel.c */
 float file_string_width(const char* str);
 float file_font_pointsize();
 void file_change_dir(struct SpaceFile *sfile);
+int file_select_match(struct SpaceFile *sfile, const char *pattern);
+void autocomplete_directory(struct bContext *C, char *str, void *arg_v);
 
 /* file_panels.c */
 void file_panels_register(struct ARegionType *art);

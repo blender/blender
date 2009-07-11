@@ -94,12 +94,13 @@ static int mathutils_rna_vector_set_index(BPy_PropertyRNA *self, int subtype, fl
 }
 
 Mathutils_Callback mathutils_rna_array_cb = {
-	mathutils_rna_generic_check,
-	mathutils_rna_vector_get,
-	mathutils_rna_vector_set,
-	mathutils_rna_vector_get_index,
-	mathutils_rna_vector_set_index
+	(BaseMathCheckFunc)		mathutils_rna_generic_check,
+	(BaseMathGetFunc)		mathutils_rna_vector_get,
+	(BaseMathSetFunc)		mathutils_rna_vector_set,
+	(BaseMathGetIndexFunc)	mathutils_rna_vector_get_index,
+	(BaseMathSetIndexFunc)	mathutils_rna_vector_set_index
 };
+
 
 /* bpyrna matrix callbacks */
 static int mathutils_rna_matrix_cb_index= -1; /* index for our callbacks */
@@ -123,11 +124,11 @@ static int mathutils_rna_matrix_set(BPy_PropertyRNA *self, int subtype, float *m
 }
 
 Mathutils_Callback mathutils_rna_matrix_cb = {
-	mathutils_rna_generic_check,
-	mathutils_rna_matrix_get,
-	mathutils_rna_matrix_set,
-	NULL,
-	NULL
+	(BaseMathCheckFunc)		mathutils_rna_generic_check,
+	(BaseMathGetFunc)		mathutils_rna_matrix_get,
+	(BaseMathSetFunc)		mathutils_rna_matrix_set,
+	(BaseMathGetIndexFunc)	NULL,
+	(BaseMathSetIndexFunc)	NULL
 };
 
 #endif
@@ -222,10 +223,16 @@ static void pyrna_struct_dealloc( BPy_StructRNA * self )
 
 static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 {
-	const EnumPropertyItem *item;
+	EnumPropertyItem *item;
+	char *result;
+	int free;
 	
-	RNA_property_enum_items(ptr, prop, &item, NULL);
-	return (char*)BPy_enum_as_string((EnumPropertyItem*)item);
+	RNA_property_enum_items(BPy_GetContext(), ptr, prop, &item, NULL, &free);
+	result= (char*)BPy_enum_as_string(item);
+	if(free)
+		MEM_freeN(item);
+	
+	return result;
 }
 
 PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
@@ -308,14 +315,15 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 		const char *identifier;
 		int val = RNA_property_enum_get(ptr, prop);
 		
-		if (RNA_property_enum_identifier(ptr, prop, val, &identifier)) {
+		if (RNA_property_enum_identifier(BPy_GetContext(), ptr, prop, val, &identifier)) {
 			ret = PyUnicode_FromString( identifier );
 		} else {
-			const EnumPropertyItem *item;
+			EnumPropertyItem *item;
+			int free;
 
 			/* don't throw error here, can't trust blender 100% to give the
 			 * right values, python code should not generate error for that */
-			RNA_property_enum_items(ptr, prop, &item, NULL);
+			RNA_property_enum_items(BPy_GetContext(), ptr, prop, &item, NULL, &free);
 			if(item->identifier) {
 				ret = PyUnicode_FromString( item->identifier );
 			}
@@ -327,6 +335,9 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 
 				ret = PyUnicode_FromString( "" );
 			}
+
+			if(free)
+				MEM_freeN(item);
 
 			/*PyErr_Format(PyExc_AttributeError, "RNA Error: Current value \"%d\" matches no enum", val);
 			ret = NULL;*/
@@ -625,7 +636,7 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 				return -1;
 			} else {
 				int val;
-				if (RNA_property_enum_value(ptr, prop, param, &val)) {
+				if (RNA_property_enum_value(BPy_GetContext(), ptr, prop, param, &val)) {
 					if(data)	*((int*)data)= val;
 					else		RNA_property_enum_set(ptr, prop, val);
 				} else {
@@ -1817,18 +1828,22 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 			const char *identifier;
 			int val = *(int*)data;
 			
-			if (RNA_property_enum_identifier(ptr, prop, val, &identifier)) {
+			if (RNA_property_enum_identifier(BPy_GetContext(), ptr, prop, val, &identifier)) {
 				ret = PyUnicode_FromString( identifier );
 			} else {
-				const EnumPropertyItem *item;
+				EnumPropertyItem *item;
+				int free;
 
 				/* don't throw error here, can't trust blender 100% to give the
 				 * right values, python code should not generate error for that */
-				RNA_property_enum_items(ptr, prop, &item, NULL);
+				RNA_property_enum_items(BPy_GetContext(), ptr, prop, &item, NULL, &free);
 				if(item[0].identifier)
 					ret = PyUnicode_FromString( item[0].identifier );
 				else
 					ret = PyUnicode_FromString( "" );
+
+				if(free)
+					MEM_freeN(item);
 
 				/*PyErr_Format(PyExc_AttributeError, "RNA Error: Current value \"%d\" matches no enum", val);
 				ret = NULL;*/
@@ -2172,43 +2187,52 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 	/* done with rna instance */
 }
 
-PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
+PyObject* pyrna_srna_Subtype(StructRNA *srna)
 {
 	PyObject *newclass = NULL;
-	PropertyRNA *nameprop;
 
-	if (ptr->type==NULL) {
+	if (srna == NULL) {
 		newclass= NULL; /* Nothing to do */
-	} else if ((newclass= RNA_struct_py_type_get(ptr->data))) {
+	} else if ((newclass= RNA_struct_py_type_get(srna))) {
 		Py_INCREF(newclass);
-	} else if ((nameprop = RNA_struct_name_property(ptr->type))) {
+	} else {
+		StructRNA *base;
+		
 		/* for now, return the base RNA type rather then a real module */
 		
-		/* Assume RNA_struct_py_type_get(ptr->data) was alredy checked */
+		/* Assume RNA_struct_py_type_get(srna) was alredy checked */
 		
 		/* subclass equivelents
 		- class myClass(myBase):
 			some='value' # or ...
-		- myClass = type(name='myClass', bases=(myBase,), dict={'some':'value'})
+		- myClass = type(name='myClass', bases=(myBase,), dict={'__module__':'bpy.types'})
 		*/
-		char name[256], *nameptr;
-		const char *descr= RNA_struct_ui_description(ptr->type);
+		const char *descr= RNA_struct_ui_description(srna);
 
 		PyObject *args = PyTuple_New(3);
 		PyObject *bases = PyTuple_New(1);
+		PyObject *py_base= NULL;
 		PyObject *dict = PyDict_New();
 		PyObject *item;
-		
-		
-		nameptr= RNA_property_string_get_alloc(ptr, nameprop, name, sizeof(name));
+	
 		
 		// arg 1
 		//PyTuple_SET_ITEM(args, 0, PyUnicode_FromString(tp_name));
-		PyTuple_SET_ITEM(args, 0, PyUnicode_FromString(nameptr));
+		PyTuple_SET_ITEM(args, 0, PyUnicode_FromString(RNA_struct_identifier(srna)));
 		
 		// arg 2
-		PyTuple_SET_ITEM(bases, 0, (PyObject *)&pyrna_struct_Type);
-		Py_INCREF(&pyrna_struct_Type);
+		base= RNA_struct_base(srna);
+		if(base && base != srna) {
+			/*/printf("debug subtype %s %p\n", RNA_struct_identifier(srna), srna); */
+			py_base= pyrna_srna_Subtype(base);
+		}
+		
+		if(py_base==NULL) {
+			py_base= (PyObject *)&pyrna_struct_Type;
+			Py_INCREF(py_base);
+		}
+		
+		PyTuple_SET_ITEM(bases, 0, py_base);
 
 		PyTuple_SET_ITEM(args, 1, bases);
 		
@@ -2218,6 +2242,13 @@ PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 			PyDict_SetItemString(dict, "__doc__", item);
 			Py_DECREF(item);
 		}
+		
+		/* this isnt needed however its confusing if we get python script names in blender types,
+		 * because the __module__ is used when printing the class */
+		item= PyUnicode_FromString("bpy.types"); /* just to know its an internal type */
+		PyDict_SetItemString(dict, "__module__", item);
+		Py_DECREF(item);
+		
 		
 		PyTuple_SET_ITEM(args, 2, dict); // fill with useful subclass things!
 		
@@ -2229,14 +2260,23 @@ PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 		newclass = PyObject_CallObject((PyObject *)&PyType_Type, args);
 		Py_DECREF(args);
 
-		if (newclass)
-			pyrna_subtype_set_rna(newclass, ptr->data);
-		
-		if (name != nameptr)
-			MEM_freeN(nameptr);
+		if (newclass) {
+			pyrna_subtype_set_rna(newclass, srna);
+			// PyObSpit("NewStructRNA Type: ", (PyObject *)newclass);
+		}
+		else {
+			/* this should not happen */
+			PyErr_Print();
+			PyErr_Clear();
+		}
 	}
 	
 	return newclass;
+}
+
+PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
+{
+	return pyrna_srna_Subtype((ptr->type == &RNA_Struct) ? ptr->data : ptr->type);
 }
 
 /*-----------------------CreatePyObject---------------------------------*/
@@ -2247,8 +2287,7 @@ PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 	if (ptr->data==NULL && ptr->type==NULL) { /* Operator RNA has NULL data */
 		Py_RETURN_NONE;
 	}
-	
-	if (ptr->type == &RNA_Struct) { /* always return a python subtype from rna struct types */
+	else {
 		PyTypeObject *tp = (PyTypeObject *)pyrna_struct_Subtype(ptr);
 		
 		if (tp) {
@@ -2259,10 +2298,7 @@ PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 			pyrna = ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
 		}
 	}
-	else {
-		pyrna = ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
-	}
-	
+
 	if( !pyrna ) {
 		PyErr_SetString( PyExc_MemoryError, "couldn't create BPy_StructRNA object" );
 		return NULL;
@@ -2270,6 +2306,9 @@ PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 	
 	pyrna->ptr= *ptr;
 	pyrna->freeptr= 0;
+	
+	// PyObSpit("NewStructRNA: ", (PyObject *)pyrna);
+	
 	return ( PyObject * ) pyrna;
 }
 

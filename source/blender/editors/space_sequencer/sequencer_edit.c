@@ -122,11 +122,6 @@ EnumPropertyItem sequencer_prop_effect_types[] = {
 };
 
 /* mute operator */
-EnumPropertyItem sequencer_prop_operate_types[] = { /* better name? */
-	{SEQ_SELECTED, "SELECTED", 0, "Selected", ""},
-	{SEQ_UNSELECTED, "UNSELECTED", 0, "Unselected ", ""},
-	{0, NULL, 0, NULL, NULL}
-};
 
  EnumPropertyItem prop_side_types[] = {
 	{SEQ_SIDE_LEFT, "LEFT", 0, "Left", ""},
@@ -1491,8 +1486,7 @@ static int sequencer_mute_exec(bContext *C, wmOperator *op)
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;
 
-	selected=  RNA_enum_is_equal(op->ptr, "type", "SELECTED");
-	
+	selected= !RNA_boolean_get(op->ptr, "unselected");
 	
 	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
 		if ((seq->flag & SEQ_LOCK)==0) {
@@ -1528,7 +1522,7 @@ void SEQUENCER_OT_mute(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", sequencer_prop_operate_types, SEQ_SELECTED, "Type", "");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Mute unselected rather than selected strips.");
 }
 
 
@@ -1543,8 +1537,7 @@ static int sequencer_unmute_exec(bContext *C, wmOperator *op)
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;
 
-	selected=  RNA_enum_is_equal(op->ptr, "type", "SELECTED");
-	
+	selected= !RNA_boolean_get(op->ptr, "unselected");
 	
 	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
 		if ((seq->flag & SEQ_LOCK)==0) {
@@ -1580,7 +1573,7 @@ void SEQUENCER_OT_unmute(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", sequencer_prop_operate_types, SEQ_SELECTED, "Type", "");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "UnMute unselected rather than selected strips.");
 }
 
 

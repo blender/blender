@@ -1606,13 +1606,13 @@ static int mesh_separate_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Base *base= CTX_data_active_base(C);
-	int retval= 0;
+	int retval= 0, type= RNA_enum_get(op->ptr, "type");
 	
-	if(RNA_enum_is_equal(op->ptr, "type", "SELECTED"))
+	if(type == 0)
 		retval= mesh_separate_selected(scene, base);
-	else if(RNA_enum_is_equal(op->ptr, "type", "MATERIAL"))
+	else if(type == 1)
 		retval= mesh_separate_material (scene, base);
-	else if(RNA_enum_is_equal(op->ptr, "type", "LOOSE"))
+	else if(type == 2)
 		retval= mesh_separate_loose(scene, base);
 	   
 	if(retval) {

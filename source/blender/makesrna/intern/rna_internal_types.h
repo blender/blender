@@ -68,7 +68,7 @@ typedef int (*PropStringLengthFunc)(struct PointerRNA *ptr);
 typedef void (*PropStringSetFunc)(struct PointerRNA *ptr, const char *value);
 typedef int (*PropEnumGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropEnumSetFunc)(struct PointerRNA *ptr, int value);
-typedef EnumPropertyItem *(*PropEnumItemFunc)(struct PointerRNA *ptr);
+typedef EnumPropertyItem *(*PropEnumItemFunc)(struct bContext *C, struct PointerRNA *ptr, int *free);
 typedef PointerRNA (*PropPointerGetFunc)(struct PointerRNA *ptr);
 typedef StructRNA* (*PropPointerTypeFunc)(struct PointerRNA *ptr);
 typedef void (*PropPointerSetFunc)(struct PointerRNA *ptr, const PointerRNA value);
@@ -225,7 +225,7 @@ typedef struct EnumPropertyRNA {
 	PropEnumSetFunc set;
 	PropEnumItemFunc itemf;
 
-	const EnumPropertyItem *item;
+	EnumPropertyItem *item;
 	int totitem;
 
 	int defaultvalue;
