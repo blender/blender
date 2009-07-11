@@ -675,6 +675,22 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 		
 		return 1;
 	}
+	else if(CTX_data_equals(member, "selectable_objects") || CTX_data_equals(member, "selectable_bases")) {
+		int selectable_objects= CTX_data_equals(member, "selectable_objects");
+
+		for(base=scene->base.first; base; base=base->next) {
+			if(base->lay & v3d->lay) {
+				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0 && (base->object->restrictflag & OB_RESTRICT_SELECT)==0) {
+					if(selectable_objects)
+						CTX_data_id_list_add(result, &base->object->id);
+					else
+						CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+				}
+			}
+		}
+		
+		return 1;
+	}
 	else if(CTX_data_equals(member, "active_base")) {
 		if(scene->basact && (scene->basact->lay & v3d->lay))
 			if((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)

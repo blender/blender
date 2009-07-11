@@ -1039,6 +1039,7 @@ static void view3d_select_objectmenu(bContext *C, uiLayout *layout, void *arg_un
 	uiItemO(layout, "Random", 0, "OBJECT_OT_select_random");
 	uiItemO(layout, "Select All by Layer", 0, "OBJECT_OT_select_by_layer");
 	uiItemMenuEnumO(layout, "Select All by Type", 0, "OBJECT_OT_select_by_type", "type");
+	uiItemMenuEnumO(layout, "Select Grouped", 0, "OBJECT_OT_select_grouped", "type");
 
 #if 0
 	uiDefIconTextBlockBut(block, view3d_select_object_layermenu, NULL, ICON_RIGHTARROW_THIN, "Select All by Layer", 0, yco-=20, 120, 19, "");

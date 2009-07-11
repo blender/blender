@@ -606,6 +606,16 @@ int CTX_data_visible_bases(const bContext *C, ListBase *list)
 	return ctx_data_collection_get(C, "visible_bases", list);
 }
 
+int CTX_data_selectable_objects(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, "selectable_objects", list);
+}
+
+int CTX_data_selectable_bases(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, "selectable_bases", list);
+}
+
 struct Object *CTX_data_active_object(const bContext *C)
 {
 	return ctx_data_pointer_get(C, "active_object");

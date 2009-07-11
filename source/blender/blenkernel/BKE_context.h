@@ -186,6 +186,9 @@ int CTX_data_selected_bases(const bContext *C, ListBase *list);
 int CTX_data_visible_objects(const bContext *C, ListBase *list);
 int CTX_data_visible_bases(const bContext *C, ListBase *list);
 
+int CTX_data_selectable_objects(const bContext *C, ListBase *list);
+int CTX_data_selectable_bases(const bContext *C, ListBase *list);
+
 struct Object *CTX_data_active_object(const bContext *C);
 struct Base *CTX_data_active_base(const bContext *C);
 struct Object *CTX_data_edit_object(const bContext *C);

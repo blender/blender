@@ -1690,6 +1690,309 @@ void OBJECT_OT_select_linked(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "seltype", prop_select_types, 1, "Selection", "Extend selection or clear selection then select");
 
 }
+
+/* ****** selection grouped *******/
+
+static EnumPropertyItem prop_select_grouped_types[] = {
+	{1, "CHILDREN_RECURSIVE", 0, "Children", ""}, // XXX depreceated animation system stuff...
+	{2, "CHILDREN", 0, "Immediate Children", ""},
+	{3, "PARENT", 0, "Parent", ""},
+	{4, "SIBLINGS", 0, "Siblings", "Shared Parent"},
+	{5, "TYPE", 0, "Type", "Shared object type"},
+	{6, "LAYER", 0, "Layer", "Shared layers"},
+	{7, "GROUP", 0, "Group", "Shared group"},
+	{8, "HOOK", 0, "Hook", ""},
+	{9, "PASS", 0, "Pass", "Render pass Index"},
+	{10, "COLOR", 0, "Color", "Object Color"},
+	{11, "PROPERTIES", 0, "Properties", "Game Properties"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+
+static short select_grouped_children(bContext *C, Object *ob, int recursive)
+{
+	short changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if (ob == base->object->parent) {
+			if (!(base->flag & SELECT)) {
+				ED_base_object_select(base, BA_SELECT);
+				changed = 1;
+			}
+
+			if (recursive)
+				changed |= select_grouped_children(C, base->object, 1);
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static short select_grouped_parent(bContext *C)	/* Makes parent active and de-selected OBACT */
+{
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d= CTX_wm_view3d(C);
+
+	short changed = 0;
+	Base *baspar, *basact= CTX_data_active_base(C);
+
+	if (!basact || !(basact->object->parent)) return 0; /* we know OBACT is valid */
+
+	baspar= object_in_scene(basact->object->parent, scene);
+
+	/* can be NULL if parent in other scene */
+	if(baspar && BASE_SELECTABLE(v3d, baspar)) {
+		ED_base_object_select(basact, BA_DESELECT);
+		ED_base_object_select(baspar, BA_SELECT);
+		ED_base_object_activate(C, baspar);
+		changed = 1;
+	}
+	return changed;
+}
+
+
+#define GROUP_MENU_MAX	24
+static short select_grouped_group(bContext *C, Object *ob)	/* Select objects in the same group as the active */
+{
+	short changed = 0;
+	Base *base;
+	Group *group, *ob_groups[GROUP_MENU_MAX];
+	char str[10 + (24*GROUP_MENU_MAX)];
+	char *p = str;
+	int group_count=0, menu, i;
+
+	for (	group=G.main->group.first;
+			group && group_count < GROUP_MENU_MAX;
+			group=group->id.next
+		) {
+		if (object_in_group (ob, group)) {
+			ob_groups[group_count] = group;
+			group_count++;
+		}
+	}
+
+	if (!group_count)
+		return 0;
+
+	else if (group_count == 1) {
+		group = ob_groups[0];
+		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+			if (!(base->flag & SELECT) && object_in_group(base->object, group)) {
+				ED_base_object_select(base, BA_SELECT);
+				changed = 1;
+			}
+		}
+		CTX_DATA_END;
+		return changed;
+	}
+#if 0 // XXX hows this work in 2.5?
+	/* build the menu. */
+	p += sprintf(str, "Groups%%t");
+	for (i=0; i<group_count; i++) {
+		group = ob_groups[i];
+		p += sprintf (p, "|%s%%x%i", group->id.name+2, i);
+	}
+
+	menu = pupmenu (str);
+	if (menu == -1)
+		return 0;
+
+	group = ob_groups[menu];
+	for (base= FIRSTBASE; base; base= base->next) {
+		if (!(base->flag & SELECT) && object_in_group(base->object, group)) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+#endif
+	return changed;
+}
+
+static short select_grouped_object_hooks(bContext *C, Object *ob)
+{
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d= CTX_wm_view3d(C);
+
+	short changed = 0;
+	Base *base;
+	ModifierData *md;
+	HookModifierData *hmd;
+
+	for (md = ob->modifiers.first; md; md=md->next) {
+		if (md->type==eModifierType_Hook) {
+			hmd= (HookModifierData*) md;
+			if (hmd->object && !(hmd->object->flag & SELECT)) {
+				base= object_in_scene(hmd->object, scene);
+				if (base && (BASE_SELECTABLE(v3d, base))) {
+					ED_base_object_select(base, BA_SELECT);
+					changed = 1;
+				}
+			}
+		}
+	}
+	return changed;
+}
+
+/* Select objects woth the same parent as the active (siblings),
+ * parent can be NULL also */
+static short select_grouped_siblings(bContext *C, Object *ob)
+{
+	short changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if ((base->object->parent==ob->parent)  && !(base->flag & SELECT)) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static short select_grouped_type(bContext *C, Object *ob)
+{
+	short changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if ((base->object->type == ob->type) && !(base->flag & SELECT)) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static short select_grouped_layer(bContext *C, Object *ob)
+{
+	char changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if ((base->lay & ob->lay) && !(base->flag & SELECT)) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static short select_grouped_index_object(bContext *C, Object *ob)
+{
+	char changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if ((base->object->index == ob->index) && !(base->flag & SELECT)) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static short select_grouped_color(bContext *C, Object *ob)
+{
+	char changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if (!(base->flag & SELECT) && (FloatCompare(base->object->col, ob->col, 0.005f))) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static short objects_share_gameprop(Object *a, Object *b)
+{
+	bProperty *prop;
+	/*make a copy of all its properties*/
+
+	for( prop= a->prop.first; prop; prop = prop->next ) {
+		if ( get_ob_property(b, prop->name) )
+			return 1;
+	}
+	return 0;
+}
+
+static short select_grouped_gameprops(bContext *C, Object *ob)
+{
+	char changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if (!(base->flag & SELECT) && (objects_share_gameprop(base->object, ob))) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static int object_select_grouped_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob;
+	int nr = RNA_enum_get(op->ptr, "type");
+	short changed = 0, seltype;
+
+	seltype = RNA_enum_get(op->ptr, "seltype");
+	
+	if (seltype == 0) {
+		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+			ED_base_object_select(base, BA_DESELECT);
+		}
+		CTX_DATA_END;
+	}
+	
+	ob= OBACT;
+	if(ob==0){ 
+		BKE_report(op->reports, RPT_ERROR, "No Active Object");
+		return OPERATOR_CANCELLED;
+	}
+	
+	if(nr==1)		changed = select_grouped_children(C, ob, 1);
+	else if(nr==2)	changed = select_grouped_children(C, ob, 0);
+	else if(nr==3)	changed = select_grouped_parent(C);
+	else if(nr==4)	changed = select_grouped_siblings(C, ob);
+	else if(nr==5)	changed = select_grouped_type(C, ob);
+	else if(nr==6)	changed = select_grouped_layer(C, ob);
+	else if(nr==7)	changed = select_grouped_group(C, ob);
+	else if(nr==8)	changed = select_grouped_object_hooks(C, ob);
+	else if(nr==9)	changed = select_grouped_index_object(C, ob);
+	else if(nr==10)	changed = select_grouped_color(C, ob);
+	else if(nr==11)	changed = select_grouped_gameprops(C, ob);
+	
+	if (changed) {
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
+		return OPERATOR_FINISHED;
+	}
+	
+	return OPERATOR_CANCELLED;
+}
+
+void OBJECT_OT_select_grouped(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Grouped";
+	ot->description = "Select all visible objects grouped by various properties.";
+	ot->idname= "OBJECT_OT_select_grouped";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= object_select_grouped_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
+	RNA_def_enum(ot->srna, "seltype", prop_select_types, 1, "Selection", "Extend selection or clear selection then select");
+
+}
+
 /* ****** selection by layer *******/
 
 static int object_select_by_layer_exec(bContext *C, wmOperator *op)
