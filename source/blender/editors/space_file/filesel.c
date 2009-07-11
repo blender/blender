@@ -147,6 +147,9 @@ int ED_fileselect_layout_offset(FileLayout* layout, int x, int y)
 	int offsetx, offsety;
 	int active_file;
 
+	if (layout == NULL)
+		return NULL;
+	
 	offsetx = (x)/(layout->tile_w + 2*layout->tile_border_x);
 	offsety = (y)/(layout->tile_h + 2*layout->tile_border_y);
 	

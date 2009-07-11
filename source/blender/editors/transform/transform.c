@@ -45,6 +45,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"  /* for some special action-editor settings */
 #include "DNA_constraint_types.h"
@@ -76,9 +77,9 @@
 //#include "BIF_editmesh.h"
 //#include "BIF_editsima.h"
 //#include "BIF_editparticle.h"
-//#include "BIF_editaction.h" 
 
-#include "BKE_action.h" /* get_action_frame */
+#include "BKE_action.h"
+#include "BKE_nla.h"
 //#include "BKE_bad_level_calls.h"/* popmenu and error	*/
 #include "BKE_bmesh.h"
 #include "BKE_context.h"
@@ -89,7 +90,6 @@
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
 
-//#include "BSE_editaction_types.h"
 //#include "BSE_view.h"
 
 #include "ED_image.h"
@@ -162,7 +162,7 @@ void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
 		vec[1]= aspy*(v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
 		vec[2]= 0.0f;
 	}
-	else if(t->spacetype==SPACE_IPO) {
+	else if(ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)) {
 		View2D *v2d = t->view;
 		float divx, divy;
 		
@@ -212,7 +212,7 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 		
 		UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr+1);
 	}
-	else if(t->spacetype==SPACE_IPO) {
+	else if(ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)) {
 		int out[2] = {0, 0};
 		
 		UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], out, out+1); 
@@ -241,7 +241,7 @@ void projectFloatView(TransInfo *t, float *vec, float *adr)
 		adr[0]= a[0];
 		adr[1]= a[1];
 	}
-	else if(t->spacetype==SPACE_IPO) {
+	else if(ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)) {
 		int a[2];
 		
 		projectIntView(t, vec, a);
@@ -300,24 +300,15 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	}
 	else if (t->spacetype == SPACE_ACTION) {
-		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
-		
-		// TRANSFORM_FIX_ME
-		if (saction->lock) {
-			// whole window...
-		}
-		else 
-			ED_area_tag_redraw(t->sa);
+		//SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	}
 	else if (t->spacetype == SPACE_IPO) {
-		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
-		
-		// TRANSFORM_FIX_ME
-		if (sipo->lock) {
-			// whole window...
-		}
-		else 
-			ED_area_tag_redraw(t->sa);
+		//SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+	}
+	else if (t->spacetype == SPACE_NLA) {
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	}
 	else if(t->spacetype == SPACE_NODE)
 	{
@@ -1323,10 +1314,10 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	case TFM_TIME_EXTEND: 
 		/* now that transdata has been made, do like for TFM_TIME_TRANSLATE (for most Animation
 		 * Editors because they have only 1D transforms for time values) or TFM_TRANSLATION
-		 * (for Graph Editor only since it uses 'standard' transforms to get 2D movement)
+		 * (for Graph/NLA Editors only since they uses 'standard' transforms to get 2D movement)
 		 * depending on which editor this was called from 
 		 */
-		if (t->spacetype == SPACE_IPO)
+		if ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)
 			initTranslation(t);
 		else
 			initTimeTranslate(t);
@@ -4355,7 +4346,7 @@ static short getAnimEdit_DrawTime(TransInfo *t)
 /* This function is used by Animation Editor specific transform functions to do 
  * the Snap Keyframe to Nearest Frame/Marker
  */
-static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, Object *ob, short autosnap)
+static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, AnimData *adt, short autosnap)
 {
 	/* snap key to nearest frame? */
 	if (autosnap == SACTSNAP_FRAME) {
@@ -4365,8 +4356,8 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, Object *ob, short 
 		double val;
 		
 		/* convert frame to nla-action time (if needed) */
-		if (ob) 
-			val= get_action_frame_inv(ob, *(td->val));
+		if (adt) 
+			val= BKE_nla_tweakedit_remap(adt, *(td->val), NLATIME_CONVERT_MAP);
 		else
 			val= *(td->val);
 		
@@ -4377,8 +4368,8 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, Object *ob, short 
 			val= (float)( floor(val+0.5f) );
 			
 		/* convert frame out of nla-action time */
-		if (ob)
-			*(td->val)= get_action_frame(ob, val);
+		if (adt)
+			*(td->val)= BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
 		else
 			*(td->val)= val;
 	}
@@ -4387,8 +4378,8 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, Object *ob, short 
 		float val;
 		
 		/* convert frame to nla-action time (if needed) */
-		if (ob) 
-			val= get_action_frame_inv(ob, *(td->val));
+		if (adt) 
+			val= BKE_nla_tweakedit_remap(adt, *(td->val), NLATIME_CONVERT_MAP);
 		else
 			val= *(td->val);
 		
@@ -4397,8 +4388,8 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, Object *ob, short 
 		val= (float)ED_markers_find_nearest_marker_time(&t->scene->markers, val);
 		
 		/* convert frame out of nla-action time */
-		if (ob)
-			*(td->val)= get_action_frame(ob, val);
+		if (adt)
+			*(td->val)= BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
 		else
 			*(td->val)= val;
 	}
@@ -4471,13 +4462,14 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 	
 	/* it doesn't matter whether we apply to t->data or t->data2d, but t->data2d is more convenient */
 	for (i = 0 ; i < t->total; i++, td++) {
-		/* it is assumed that td->ob is a pointer to the object,
+		/* it is assumed that td->extra is a pointer to the AnimData,
 		 * whose active action is where this keyframe comes from 
+		 * (this is only valid when not in NLA)
 		 */
-		Object *ob= td->ob;
+		AnimData *adt= (t->spacetype != SPACE_NLA) ? td->extra : NULL;
 		
-		/* check if any need to apply nla-scaling */
-		if (ob) {
+		/* check if any need to apply nla-mapping */
+		if (adt) {
 			deltax = t->values[0];
 			
 			if (autosnap == SACTSNAP_STEP) {
@@ -4487,9 +4479,9 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 					deltax= (float)( floor(deltax + 0.5f) );
 			}
 			
-			val = get_action_frame_inv(ob, td->ival);
+			val = BKE_nla_tweakedit_remap(adt, td->ival, NLATIME_CONVERT_MAP);
 			val += deltax;
-			*(td->val) = get_action_frame(ob, val);
+			*(td->val) = BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
 		}
 		else {
 			deltax = val = t->values[0];
@@ -4505,7 +4497,7 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 		}
 		
 		/* apply nearest snapping */
-		doAnimEdit_SnapFrame(t, td, ob, autosnap);
+		doAnimEdit_SnapFrame(t, td, adt, autosnap);
 	}
 }
 
@@ -4605,15 +4597,16 @@ static void applyTimeSlide(TransInfo *t, float sval)
 	
 	/* it doesn't matter whether we apply to t->data or t->data2d, but t->data2d is more convenient */
 	for (i = 0 ; i < t->total; i++, td++) {
-		/* it is assumed that td->ob is a pointer to the object,
+		/* it is assumed that td->extra is a pointer to the AnimData,
 		 * whose active action is where this keyframe comes from 
+		 * (this is only valid when not in NLA)
 		 */
-		Object *ob= td->ob;
+		AnimData *adt= (t->spacetype != SPACE_NLA) ? td->extra : NULL;
 		float cval = t->values[0];
 		
-		/* apply scaling to necessary values */
-		if (ob)
-			cval= get_action_frame(ob, cval);
+		/* apply NLA-mapping to necessary values */
+		if (adt)
+			cval= BKE_nla_tweakedit_remap(adt, cval, NLATIME_CONVERT_UNMAP);
 		
 		/* only apply to data if in range */
 		if ((sval > minx) && (sval < maxx)) {
@@ -4708,10 +4701,11 @@ static void applyTimeScale(TransInfo *t) {
 	
 	
 	for (i = 0 ; i < t->total; i++, td++) {
-		/* it is assumed that td->ob is a pointer to the object,
+		/* it is assumed that td->extra is a pointer to the AnimData,
 		 * whose active action is where this keyframe comes from 
+		 * (this is only valid when not in NLA)
 		 */
-		Object *ob= td->ob;
+		AnimData *adt= (t->spacetype != SPACE_NLA) ? td->extra : NULL;
 		float startx= CFRA;
 		float fac= t->values[0];
 		
@@ -4722,9 +4716,9 @@ static void applyTimeScale(TransInfo *t) {
 				fac= (float)( floor(fac + 0.5f) );
 		}
 		
-		/* check if any need to apply nla-scaling */
-		if (ob)
-			startx= get_action_frame(ob, startx);
+		/* check if any need to apply nla-mapping */
+		if (adt)
+			startx= BKE_nla_tweakedit_remap(adt, startx, NLATIME_CONVERT_UNMAP);
 			
 		/* now, calculate the new value */
 		*(td->val) = td->ival - startx;
@@ -4732,7 +4726,7 @@ static void applyTimeScale(TransInfo *t) {
 		*(td->val) += startx;
 		
 		/* apply nearest snapping */
-		doAnimEdit_SnapFrame(t, td, ob, autosnap);
+		doAnimEdit_SnapFrame(t, td, adt, autosnap);
 	}
 }
 
@@ -4745,18 +4739,6 @@ int TimeScale(TransInfo *t, short mval[2])
 	
 	sval= t->imval[0];
 	cval= mval[0];
-	
-	// XXX ewww... we need a better factor!
-#if 0 // TRANSFORM_FIX_ME		
-	switch (t->spacetype) {
-		case SPACE_ACTION:
-			width= ACTWIDTH;
-			break;
-		case SPACE_NLA:
-			width= NLAWIDTH;
-			break;
-	}
-#endif
 	
 	/* calculate scaling factor */
 	startx= sval-(width/2+(t->ar->winx)/2);

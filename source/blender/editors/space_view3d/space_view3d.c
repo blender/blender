@@ -409,6 +409,15 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_ANIMATION:
+			switch(wmn->data) {
+				case ND_KEYFRAME_EDIT:
+				case ND_KEYFRAME_PROP:
+				case ND_NLA_ACTCHANGE:
+				case ND_ANIMCHAN_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_TRANSFORM:

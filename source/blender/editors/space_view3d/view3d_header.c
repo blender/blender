@@ -117,8 +117,7 @@
 #define TEST_EDITMESH	if(obedit==0) return; \
 						if( (v3d->lay & obedit->lay)==0 ) return;
 
-/* XXX port over */
-static void handle_view3d_lock(void) {}
+/* XXX port over */	
 static void countall(void) {}
 extern void borderselect();
 static int retopo_mesh_paint_check() {return 0;}
@@ -201,6 +200,25 @@ static RegionView3D *wm_region_view3d(const bContext *C)
 	return NULL;
 }
 
+// XXX quickly ported across
+static void handle_view3d_lock(bContext *C) 
+{
+	Scene *scene= CTX_data_scene(C);
+	ScrArea *sa= CTX_wm_area(C);
+	View3D *v3d= (View3D *)CTX_wm_space_data(C);
+	
+	if (v3d != NULL && sa != NULL) {
+		if(v3d->localview==0 && v3d->scenelock && sa->spacetype==SPACE_VIEW3D) {
+			
+			/* copy to scene */
+			scene->lay= v3d->lay;
+			scene->camera= v3d->camera;
+			
+			//copy_view3d_lock(REDRAW);
+		}
+	}
+}
+
 /* XXX; all this context stuff...  should become operator */
 void do_layer_buttons(bContext *C, short event)
 {
@@ -230,7 +248,7 @@ void do_layer_buttons(bContext *C, short event)
 			v3d->lay= (1<<20)-1;
 		}
 		
-		if(v3d->scenelock) handle_view3d_lock();
+		if(v3d->scenelock) handle_view3d_lock(C);
 		
 		/* new layers might need unflushed events events */
 		DAG_scene_update_flags(scene, v3d->lay);	/* tags all that moves and flushes */
@@ -266,7 +284,7 @@ static int layers_exec(bContext *C, wmOperator *op)
 	else 
 		v3d->lay = (1<<nr);
 	
-	if(v3d->scenelock) handle_view3d_lock();
+	if(v3d->scenelock) handle_view3d_lock(C);
 	
 	/* new layers might need unflushed events events */
 	DAG_scene_update_flags(scene, v3d->lay);	/* tags all that moves and flushes */
@@ -4303,7 +4321,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 				v3d->layact= v3d->lay;
 			}
 			
-			if(v3d->scenelock) handle_view3d_lock();
+			if(v3d->scenelock) handle_view3d_lock(C);
 			
 			ED_area_tag_redraw(sa);
 			countall();

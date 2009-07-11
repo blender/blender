@@ -783,6 +783,10 @@ typedef struct Scene {
 #define MINFRAME	1
 #define MINFRAMEF	1.0f
 
+/* (minimum frame number for current-frame) */
+#define MINAFRAME	-300000
+#define MINAFRAMEF	-300000.0f
+
 /* depricate this! */
 #define TESTBASE(v3d, base)	( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0) )
 #define TESTBASELIB(v3d, base)	( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
@@ -851,6 +855,7 @@ typedef struct Scene {
 /* sce->flag */
 #define SCE_DS_SELECTED			(1<<0)
 #define SCE_DS_COLLAPSED		(1<<1)
+#define SCE_NLA_EDIT_ON			(1<<2)
 
 
 	/* return flag next_object function */

@@ -31,6 +31,7 @@
 
 #include "DNA_curve_types.h"
 #include "DNA_material_types.h"
+#include "DNA_scene_types.h"
 
 EnumPropertyItem beztriple_handle_type_items[] = {
 		{HD_FREE, "FREE", 0, "Free", ""},
@@ -557,6 +558,11 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "resolv_ren");
 	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Resolution V", "Surface resolution in V direction used while rendering. Zero skips this property.");
+	
+	
+	prop= RNA_def_property(srna, "eval_time", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ctime");
+	RNA_def_property_ui_text(prop, "Evaluation Time", "Parametric position along the length of the curve that Objects 'following' it should be at.");
 	
 	/* pointers */
 	prop= RNA_def_property(srna, "bevel_object", PROP_POINTER, PROP_NONE);

@@ -835,12 +835,12 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 	 */
 	for (ale=anim_data.first; ale; ale=ale->next) {
 		FCurve *fcu= (FCurve *)ale->key_data;
-		FModifier *fcm= fcurve_find_active_modifier(fcu);
-		//Object *nob= ANIM_nla_mapping_get(ac, ale);
+		FModifier *fcm= find_active_fmodifier(&fcu->modifiers);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		/* map keyframes for drawing if scaled F-Curve */
-		//if (nob)
-		//	ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 0); 
+		if (adt)
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 0); 
 		
 		/* draw curve:
 		 *	- curve line may be result of one or more destructive modifiers or just the raw data,
@@ -918,8 +918,8 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 		}
 		
 		/* undo mapping of keyframes for drawing if scaled F-Curve */
-		//if (nob)
-		//	ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 0); 
+		if (adt)
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0); 
 	}
 	
 	/* free list of curves */
@@ -1205,6 +1205,17 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 						else
 							expand = ICON_TRIA_RIGHT;
 					}
+					
+					/* for now, 'special' (i.e. in front of name) is used to show visibility status */
+					if (agrp->flag & AGRP_NOTVISIBLE)
+						special= ICON_CHECKBOX_DEHLT;
+					else
+						special= ICON_CHECKBOX_HLT;
+					
+					if (agrp->flag & AGRP_MUTED)
+						mute = ICON_MUTE_IPO_ON;
+					else	
+						mute = ICON_MUTE_IPO_OFF;
 					
 					if (EDITABLE_AGRP(agrp))
 						protect = ICON_UNLOCKED;

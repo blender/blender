@@ -43,10 +43,12 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_fcurve.h"
+#include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
@@ -232,37 +234,16 @@ void ANIM_draw_previewrange (const bContext *C, View2D *v2d)
 /* *************************************************** */
 /* NLA-MAPPING UTILITIES (required for drawing and also editing keyframes)  */
 
-/* Obtain the Object providing NLA-scaling for the given channel (if applicable) */
-Object *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
+/* Obtain the AnimData block providing NLA-mapping for the given channel (if applicable) */
+AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 {
 	/* sanity checks */
 	if (ac == NULL)
 		return NULL;
 	
 	/* handling depends on the type of animation-context we've got */
-	if (ac->datatype == ANIMCONT_ACTION) {
-		/* Action Editor (action mode) or Graph Editor (ipo mode):
-		 * Only use if editor is not pinned, and active object has action
-		 */
-		if (ac->obact && ac->obact->action) {
-			SpaceAction *saction= (SpaceAction *)ac->sa->spacedata.first;
-			
-			if (saction->pin == 0)
-				return ac->obact;
-		}
-	}
-	else if ((ac->datatype == ANIMCONT_DOPESHEET) && (ale)) {
-		/* Dopesheet:
-		 *	Only if channel is available, and is owned by an Object with an Action
-		 */
-		if ((ale->id) && (GS(ale->id->name) == ID_OB)) {
-			Object *ob= (Object *)ale->id;
-			
-			if (ob->action)
-				return ob;
-		}
-	}
-	// XXX todo: add F-Curves mode (Graph Editor) ...
+	if (ale && ale->id)
+		return BKE_animdata_from_id(ale->id);
 	
 	/* no appropriate object found */
 	return NULL;
@@ -273,7 +254,8 @@ Object *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
  *	  (where this is called) is single-threaded anyway
  */
 // XXX was called: map_active_strip()
-void ANIM_nla_mapping_draw(gla2DDrawInfo *di, Object *ob, short restore)
+// TODO: should this be depreceated?
+void ANIM_nla_mapping_draw(gla2DDrawInfo *di, AnimData *adt, short restore)
 {
 	static rctf stored;
 	
@@ -288,8 +270,8 @@ void ANIM_nla_mapping_draw(gla2DDrawInfo *di, Object *ob, short restore)
 		gla2DGetMap(di, &stored);
 		map= stored;
 		
-		map.xmin= get_action_frame(ob, map.xmin);
-		map.xmax= get_action_frame(ob, map.xmax);
+		map.xmin= BKE_nla_tweakedit_remap(adt, map.xmin, NLATIME_CONVERT_MAP);
+		map.xmax= BKE_nla_tweakedit_remap(adt, map.xmax, NLATIME_CONVERT_MAP);
 		
 		if (map.xmin == map.xmax) map.xmax += 1.0f;
 		gla2DSetMap(di, &map);
@@ -298,36 +280,38 @@ void ANIM_nla_mapping_draw(gla2DDrawInfo *di, Object *ob, short restore)
 
 /* ------------------- */
 
-/* helper function for ANIM_nla_mapping_apply_ipocurve() -> "restore", i.e. mapping points back to IPO-time */
+/* helper function for ANIM_nla_mapping_apply_fcurve() -> "restore", i.e. mapping points back to action-time */
 static short bezt_nlamapping_restore(BeztEditData *bed, BezTriple *bezt)
 {
-	/* object providing scaling is stored in 'data', only_keys option is stored in i1 */
-	Object *ob= (Object *)bed->data;
+	/* AnimData block providing scaling is stored in 'data', only_keys option is stored in i1 */
+	AnimData *adt= (AnimData *)bed->data;
 	short only_keys= (short)bed->i1;
 	
 	/* adjust BezTriple handles only if allowed to */
 	if (only_keys == 0) {
-		bezt->vec[0][0]= get_action_frame(ob, bezt->vec[0][0]);
-		bezt->vec[2][0]= get_action_frame(ob, bezt->vec[2][0]);
-	}					
-	bezt->vec[1][0]= get_action_frame(ob, bezt->vec[1][0]);
+		bezt->vec[0][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[0][0], NLATIME_CONVERT_UNMAP);
+		bezt->vec[2][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[2][0], NLATIME_CONVERT_UNMAP);
+	}
+	
+	bezt->vec[1][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[1][0], NLATIME_CONVERT_UNMAP);
 	
 	return 0;
 }
 
-/* helper function for ANIM_nla_mapping_apply_ipocurve() -> "apply", i.e. mapping points to NLA-mapped global time */
+/* helper function for ANIM_nla_mapping_apply_fcurve() -> "apply", i.e. mapping points to NLA-mapped global time */
 static short bezt_nlamapping_apply(BeztEditData *bed, BezTriple *bezt)
 {
-	/* object providing scaling is stored in 'data', only_keys option is stored in i1 */
-	Object *ob= (Object *)bed->data;
+	/* AnimData block providing scaling is stored in 'data', only_keys option is stored in i1 */
+	AnimData *adt= (AnimData *)bed->data;
 	short only_keys= (short)bed->i1;
 	
 	/* adjust BezTriple handles only if allowed to */
 	if (only_keys == 0) {
-		bezt->vec[0][0]= get_action_frame_inv(ob, bezt->vec[0][0]);
-		bezt->vec[2][0]= get_action_frame_inv(ob, bezt->vec[2][0]);
+		bezt->vec[0][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[0][0], NLATIME_CONVERT_MAP);
+		bezt->vec[2][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[2][0], NLATIME_CONVERT_MAP);
 	}
-	bezt->vec[1][0]= get_action_frame_inv(ob, bezt->vec[1][0]);
+	
+	bezt->vec[1][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[1][0], NLATIME_CONVERT_MAP);
 	
 	return 0;
 }
@@ -338,17 +322,17 @@ static short bezt_nlamapping_apply(BeztEditData *bed, BezTriple *bezt)
  *	- restore = whether to map points back to non-mapped time 
  * 	- only_keys = whether to only adjust the location of the center point of beztriples
  */
-void ANIM_nla_mapping_apply_fcurve(Object *ob, FCurve *fcu, short restore, short only_keys)
+void ANIM_nla_mapping_apply_fcurve (AnimData *adt, FCurve *fcu, short restore, short only_keys)
 {
 	BeztEditData bed;
 	BeztEditFunc map_cb;
 	
 	/* init edit data 
-	 *	- ob is stored in 'data'
+	 *	- AnimData is stored in 'data'
 	 *	- only_keys is stored in 'i1'
 	 */
 	memset(&bed, 0, sizeof(BeztEditData));
-	bed.data= (void *)ob;
+	bed.data= (void *)adt;
 	bed.i1= (int)only_keys;
 	
 	/* get editing callback */

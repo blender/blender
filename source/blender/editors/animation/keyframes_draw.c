@@ -51,7 +51,6 @@
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
@@ -64,6 +63,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
+#include "DNA_view2d_types.h"
 
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
@@ -234,44 +234,86 @@ static ActKeyColumn *cfra_find_actkeycolumn (ListBase *keys, float cframe)
 	return NULL;
 }
 
-#if 0  // disabled, as some intel cards have problems with this
-/* Draw a simple diamond shape with a filled in center (in screen space) */
-static void draw_key_but(int x, int y, short w, short h, int sel)
-{
-	int xmin= x, ymin= y;
-	int xmax= x+w-1, ymax= y+h-1;
-	int xc= (xmin+xmax)/2, yc= (ymin+ymax)/2;
-	
-	/* interior - hardcoded colors (for selected and unselected only) */
-	if (sel) glColor3ub(0xF1, 0xCA, 0x13);
-	else glColor3ub(0xE9, 0xE9, 0xE9);
-	
-	glBegin(GL_QUADS);
-	glVertex2i(xc, ymin);
-	glVertex2i(xmax, yc);
-	glVertex2i(xc, ymax);
-	glVertex2i(xmin, yc);
-	glEnd();
-	
-	
-	/* outline */
-	glColor3ub(0, 0, 0);
-	
-	glBegin(GL_LINE_LOOP);
-	glVertex2i(xc, ymin);
-	glVertex2i(xmax, yc);
-	glVertex2i(xc, ymax);
-	glVertex2i(xmin, yc);
-	glEnd();
-}
-#endif
+/* coordinates for diamond shape */
+static const float _unit_diamond_shape[4][2] = {
+	{0.0f, 1.0f},	/* top vert */
+	{1.0f, 0.0f},	/* mid-right */
+	{0.0f, -1.0f},	/* bottom vert */
+	{-1.0f, 0.0f}	/* mid-left */
+}; 
 
-static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, float ypos)
+/* draw a simple diamond shape with OpenGL */
+void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel, short mode)
+{
+	static GLuint displist1=0;
+	static GLuint displist2=0;
+	
+	/* initialise 2 display lists for diamond shape - one empty, one filled */
+	if (displist1 == 0) {
+		displist1= glGenLists(1);
+			glNewList(displist1, GL_COMPILE);
+			
+			glBegin(GL_LINE_LOOP);
+				glVertex2fv(_unit_diamond_shape[0]);
+				glVertex2fv(_unit_diamond_shape[1]);
+				glVertex2fv(_unit_diamond_shape[2]);
+				glVertex2fv(_unit_diamond_shape[3]);
+			glEnd();
+		glEndList();
+	}
+	if (displist2 == 0) {
+		displist2= glGenLists(1);
+			glNewList(displist2, GL_COMPILE);
+			
+			glBegin(GL_QUADS);
+				glVertex2fv(_unit_diamond_shape[0]);
+				glVertex2fv(_unit_diamond_shape[1]);
+				glVertex2fv(_unit_diamond_shape[2]);
+				glVertex2fv(_unit_diamond_shape[3]);
+			glEnd();
+		glEndList();
+	}
+	
+	/* adjust view transform before starting */
+	glTranslatef(x, y, 0.0f);
+	glScalef(1.0f/xscale*hsize, hsize, 1.0f);
+	
+	/* anti-aliased lines for more consistent appearance */
+	glEnable(GL_LINE_SMOOTH);
+	
+	/* draw! */
+	if ELEM(mode, KEYFRAME_SHAPE_INSIDE, KEYFRAME_SHAPE_BOTH) {
+		/* interior - hardcoded colors (for selected and unselected only) */
+		if (sel) UI_ThemeColorShade(TH_STRIP_SELECT, 50);
+		else glColor3ub(0xE9, 0xE9, 0xE9);
+		
+		glCallList(displist2);
+	}
+	
+	if ELEM(mode, KEYFRAME_SHAPE_FRAME, KEYFRAME_SHAPE_BOTH) {
+		/* exterior - black frame */
+		glColor3ub(0, 0, 0);
+		
+		glCallList(displist1);
+	}
+	
+	glDisable(GL_LINE_SMOOTH);
+	
+	/* restore view transform */
+	glScalef(xscale/hsize, 1.0f/hsize, 1.0);
+	glTranslatef(-x, -y, 0.0f);
+}
+
+static void draw_keylist(View2D *v2d, ListBase *keys, ListBase *blocks, float ypos)
 {
 	ActKeyColumn *ak;
 	ActKeyBlock *ab;
+	float xscale;
 	
 	glEnable(GL_BLEND);
+	
+	/* get View2D scaling factor */
+	UI_view2d_getscale(v2d, &xscale, NULL);
 	
 	/* draw keyblocks */
 	if (blocks) {
@@ -292,18 +334,13 @@ static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, fl
 				totCurves = (startCurves>endCurves)? endCurves: startCurves;
 				
 			if (ab->totcurve >= totCurves) {
-				int sc_xa, sc_xb, sc_ya, sc_yb;
-				
-				/* get co-ordinates of block */
-				gla2DDrawTranslatePt(di, ab->start, ypos, &sc_xa, &sc_ya);
-				gla2DDrawTranslatePt(di, ab->end, ypos, &sc_xb, &sc_yb);
-				
 				/* draw block */
 				if (ab->sel)
 					UI_ThemeColor4(TH_STRIP_SELECT);
 				else
 					UI_ThemeColor4(TH_STRIP);
-				glRectf((float)sc_xa, (float)sc_ya-3, (float)sc_xb, (float)sc_yb+5);
+				
+				glRectf(ab->start, ypos-5, ab->end, ypos+5);
 			}
 		}
 	}
@@ -311,18 +348,28 @@ static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, fl
 	/* draw keys */
 	if (keys) {
 		for (ak= keys->first; ak; ak= ak->next) {
-			int sc_x, sc_y;
+			/* draw using OpenGL - uglier but faster */
+			// NOTE: a previous version of this didn't work nice for some intel cards
+			draw_keyframe_shape(ak->cfra, ypos, xscale, 5.0f, (ak->sel & SELECT), KEYFRAME_SHAPE_BOTH);
+			
+#if 0 // OLD CODE
+			//int sc_x, sc_y;
 			
 			/* get co-ordinate to draw at */
-			gla2DDrawTranslatePt(di, ak->cfra, ypos, &sc_x, &sc_y);
+			//gla2DDrawTranslatePt(di, ak->cfra, ypos, &sc_x, &sc_y);
 			
 			/* draw using icons - old way which is slower but more proven */
-			if (ak->sel & SELECT) UI_icon_draw_aspect((float)sc_x-7, (float)sc_y-6, ICON_SPACE2, 1.0f);
-			else UI_icon_draw_aspect((float)sc_x-7, (float)sc_y-6, ICON_SPACE3, 1.0f);
+			//if (ak->sel & SELECT) UI_icon_draw_aspect((float)sc_x-7, (float)sc_y-6, ICON_SPACE2, 1.0f);
+			//else UI_icon_draw_aspect((float)sc_x-7, (float)sc_y-6, ICON_SPACE3, 1.0f);
+#endif // OLD CODE
+#if 0 // NEW NON-WORKING CODE 
+			/* draw icon */
+			// FIXME: this draws slightly wrong, as we need to apply some offset for icon, but that depends on scaling
+			// so for now disabled
+			//int icon = (ak->sel & SELECT) ? ICON_SPACE2 : ICON_SPACE3;
+			//UI_icon_draw_aspect(ak->cfra, ypos-6, icon, 1.0f);
+#endif // NEW NON-WORKING CODE
 			
-			/* draw using OpenGL - slightly uglier but faster */
-			// 	NOTE: disabled for now, as some intel cards seem to have problems with this
-			//draw_key_but(sc_x-5, sc_y-4, 11, 11, (ak->sel & SELECT));
 		}	
 	}
 	
@@ -331,89 +378,86 @@ static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, fl
 
 /* *************************** Channel Drawing Funcs *************************** */
 
-void draw_scene_channel(gla2DDrawInfo *di, ActKeysInc *aki, Scene *sce, float ypos)
+void draw_scene_channel(View2D *v2d, bDopeSheet *ads, Scene *sce, float ypos)
 {
 	ListBase keys = {0, 0};
 	ListBase blocks = {0, 0};
 
-	scene_to_keylist(sce, &keys, &blocks, aki);
-	draw_keylist(di, &keys, &blocks, ypos);
+	scene_to_keylist(ads, sce, &keys, &blocks);
+	draw_keylist(v2d, &keys, &blocks, ypos);
 	
 	BLI_freelistN(&keys);
 	BLI_freelistN(&blocks);
 }
 
-void draw_object_channel(gla2DDrawInfo *di, ActKeysInc *aki, Object *ob, float ypos)
+void draw_object_channel(View2D *v2d, bDopeSheet *ads, Object *ob, float ypos)
 {
 	ListBase keys = {0, 0};
 	ListBase blocks = {0, 0};
 
-	ob_to_keylist(ob, &keys, &blocks, aki);
-	draw_keylist(di, &keys, &blocks, ypos);
+	ob_to_keylist(ads, ob, &keys, &blocks);
+	draw_keylist(v2d, &keys, &blocks, ypos);
 	
 	BLI_freelistN(&keys);
 	BLI_freelistN(&blocks);
 }
 
-void draw_fcurve_channel(gla2DDrawInfo *di, ActKeysInc *aki, FCurve *fcu, float ypos)
+void draw_fcurve_channel(View2D *v2d, AnimData *adt, FCurve *fcu, float ypos)
 {
 	ListBase keys = {0, 0};
 	ListBase blocks = {0, 0};
 
-	fcurve_to_keylist(fcu, &keys, &blocks, aki);
-	draw_keylist(di, &keys, &blocks, ypos);
+	fcurve_to_keylist(adt, fcu, &keys, &blocks);
+	draw_keylist(v2d, &keys, &blocks, ypos);
 	
 	BLI_freelistN(&keys);
 	BLI_freelistN(&blocks);
 }
 
-void draw_agroup_channel(gla2DDrawInfo *di, ActKeysInc *aki, bActionGroup *agrp, float ypos)
+void draw_agroup_channel(View2D *v2d, AnimData *adt, bActionGroup *agrp, float ypos)
 {
 	ListBase keys = {0, 0};
 	ListBase blocks = {0, 0};
 
-	agroup_to_keylist(agrp, &keys, &blocks, aki);
-	draw_keylist(di, &keys, &blocks, ypos);
+	agroup_to_keylist(adt, agrp, &keys, &blocks);
+	draw_keylist(v2d, &keys, &blocks, ypos);
 	
 	BLI_freelistN(&keys);
 	BLI_freelistN(&blocks);
 }
 
-void draw_action_channel(gla2DDrawInfo *di, ActKeysInc *aki, bAction *act, float ypos)
+void draw_action_channel(View2D *v2d, AnimData *adt, bAction *act, float ypos)
 {
 	ListBase keys = {0, 0};
 	ListBase blocks = {0, 0};
 
-	action_to_keylist(act, &keys, &blocks, aki);
-	draw_keylist(di, &keys, &blocks, ypos);
+	action_to_keylist(adt, act, &keys, &blocks);
+	draw_keylist(v2d, &keys, &blocks, ypos);
 	
 	BLI_freelistN(&keys);
 	BLI_freelistN(&blocks);
 }
 
-void draw_gpl_channel(gla2DDrawInfo *di, ActKeysInc *aki, bGPDlayer *gpl, float ypos)
+void draw_gpl_channel(View2D *v2d, bDopeSheet *ads, bGPDlayer *gpl, float ypos)
 {
 	ListBase keys = {0, 0};
 	
-	gpl_to_keylist(gpl, &keys, NULL, aki);
-	draw_keylist(di, &keys, NULL, ypos);
+	gpl_to_keylist(ads, gpl, &keys, NULL);
+	draw_keylist(v2d, &keys, NULL, ypos);
 	BLI_freelistN(&keys);
 }
 
 /* *************************** Keyframe List Conversions *************************** */
 
-void scene_to_keylist(Scene *sce, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
+void scene_to_keylist(bDopeSheet *ads, Scene *sce, ListBase *keys, ListBase *blocks)
 {
 	if (sce) {
-		bDopeSheet *ads= (aki)? (aki->ads) : NULL;
 		AnimData *adt;
 		int filterflag;
 		
 		/* get filterflag */
 		if (ads)
 			filterflag= ads->filterflag;
-		else if ((aki) && (aki->actmode == -1)) /* only set like this by NLA */
-			filterflag= ADS_FILTER_NLADUMMY;
 		else
 			filterflag= 0;
 			
@@ -423,7 +467,7 @@ void scene_to_keylist(Scene *sce, ListBase *keys, ListBase *blocks, ActKeysInc *
 			
 			// TODO: when we adapt NLA system, this needs to be the NLA-scaled version
 			if (adt->action) 
-				action_to_keylist(adt->action, keys, blocks, aki);
+				action_to_keylist(adt, adt->action, keys, blocks);
 		}
 		
 		/* world animdata */
@@ -432,17 +476,16 @@ void scene_to_keylist(Scene *sce, ListBase *keys, ListBase *blocks, ActKeysInc *
 			
 			// TODO: when we adapt NLA system, this needs to be the NLA-scaled version
 			if (adt->action) 
-				action_to_keylist(adt->action, keys, blocks, aki);
+				action_to_keylist(adt, adt->action, keys, blocks);
 		}
 	}
 }
 
-void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
+void ob_to_keylist(bDopeSheet *ads, Object *ob, ListBase *keys, ListBase *blocks)
 {
 	Key *key= ob_get_key(ob);
 
 	if (ob) {
-		bDopeSheet *ads= (aki)? (aki->ads) : NULL;
 		int filterflag;
 		
 		/* get filterflag */
@@ -453,79 +496,18 @@ void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks, ActKeysInc *aki
 		
 		/* Add action keyframes */
 		if (ob->adt && ob->adt->action)
-			action_nlascaled_to_keylist(ob, ob->adt->action, keys, blocks, aki);
+			action_to_keylist(ob->adt, ob->adt->action, keys, blocks);
 		
 		/* Add shapekey keyframes (only if dopesheet allows, if it is available) */
-		// TODO: when we adapt NLA system, this needs to be the NLA-scaled version
 		if ((key && key->adt && key->adt->action) && !(filterflag & ADS_FILTER_NOSHAPEKEYS))
-			action_to_keylist(key->adt->action, keys, blocks, aki);
+			action_to_keylist(key->adt, key->adt->action, keys, blocks);
 			
-#if 0 // XXX old animation system
-		/* Add material keyframes (only if dopesheet allows, if it is available) */
-		if ((ob->totcol) && !(filterflag & ADS_FILTER_NOMAT)) {
-			short a;
-			
-			for (a=0; a<ob->totcol; a++) {
-				Material *ma= give_current_material(ob, a);
-				
-				if (ELEM(NULL, ma, ma->ipo) == 0)
-					ipo_to_keylist(ma->ipo, keys, blocks, aki);
-			}
-		}
-			
-		/* Add object data keyframes */
-		switch (ob->type) {
-			case OB_CAMERA: /* ------- Camera ------------ */
-			{
-				Camera *ca= (Camera *)ob->data;
-				if ((ca->ipo) && !(filterflag & ADS_FILTER_NOCAM))
-					ipo_to_keylist(ca->ipo, keys, blocks, aki);
-			}
-				break;
-			case OB_LAMP: /* ---------- Lamp ----------- */
-			{
-				Lamp *la= (Lamp *)ob->data;
-				if ((la->ipo) && !(filterflag & ADS_FILTER_NOLAM))
-					ipo_to_keylist(la->ipo, keys, blocks, aki);
-			}
-				break;
-			case OB_CURVE: /* ------- Curve ---------- */
-			{
-				Curve *cu= (Curve *)ob->data;
-				if ((cu->ipo) && !(filterflag & ADS_FILTER_NOCUR))
-					ipo_to_keylist(cu->ipo, keys, blocks, aki);
-			}
-				break;
-		}
-#endif // XXX old animation system
+		// TODO: restore materials, and object data, etc.
 	}
 }
 
-static short bezt_in_aki_range (ActKeysInc *aki, BezTriple *bezt)
-{
-	/* when aki == NULL, we don't care about range */
-	if (aki == NULL) 
-		return 1;
-		
-	/* if start and end are both 0, then don't care about range */
-	if (IS_EQ(aki->start, 0) && IS_EQ(aki->end, 0))
-		return 1;
-		
-	/* if nla-scaling is in effect, apply appropriate scaling adjustments */
-#if 0 // XXX this was from some buggy code... do not port for now
-	if (aki->ob) {
-		float frame= get_action_frame_inv(aki->ob, bezt->vec[1][0]);
-		return IN_RANGE(frame, aki->start, aki->end);
-	}
-	else {
-		/* check if in range */
-		return IN_RANGE(bezt->vec[1][0], aki->start, aki->end);
-	}
-#endif // XXX this was from some buggy code... do not port for now
-	return 1;
-}
 
-void fcurve_to_keylist(FCurve *fcu, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
+void fcurve_to_keylist(AnimData *adt, FCurve *fcu, ListBase *keys, ListBase *blocks)
 {
 	BezTriple *bezt;
 	ActKeyColumn *ak, *ak2;
@@ -533,15 +515,17 @@ void fcurve_to_keylist(FCurve *fcu, ListBase *keys, ListBase *blocks, ActKeysInc
 	int v;
 	
 	if (fcu && fcu->totvert && fcu->bezt) {
+		/* apply NLA-mapping (if applicable) */
+		if (adt)	
+			ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1);
+		
 		/* loop through beztriples, making ActKeys and ActKeyBlocks */
 		bezt= fcu->bezt;
 		
 		for (v=0; v < fcu->totvert; v++, bezt++) {
 			/* only if keyframe is in range (optimisation) */
-			if (bezt_in_aki_range(aki, bezt)) {
-				add_bezt_to_keycolumnslist(keys, bezt);
-				if (blocks) add_bezt_to_keyblockslist(blocks, fcu, v);
-			}
+			add_bezt_to_keycolumnslist(keys, bezt);
+			if (blocks) add_bezt_to_keyblockslist(blocks, fcu, v);
 		}
 		
 		/* update the number of curves that elements have appeared in  */
@@ -577,65 +561,38 @@ void fcurve_to_keylist(FCurve *fcu, ListBase *keys, ListBase *blocks, ActKeysInc
 				}
 			}
 		}
+		
+		/* unapply NLA-mapping if applicable */
+		ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 1);
 	}
 }
 
-void agroup_to_keylist(bActionGroup *agrp, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
+void agroup_to_keylist(AnimData *adt, bActionGroup *agrp, ListBase *keys, ListBase *blocks)
 {
 	FCurve *fcu;
 
 	if (agrp) {
 		/* loop through F-Curves */
 		for (fcu= agrp->channels.first; fcu && fcu->grp==agrp; fcu= fcu->next) {
-			fcurve_to_keylist(fcu, keys, blocks, aki);
+			fcurve_to_keylist(adt, fcu, keys, blocks);
 		}
 	}
 }
 
-void action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
+void action_to_keylist(AnimData *adt, bAction *act, ListBase *keys, ListBase *blocks)
 {
 	FCurve *fcu;
 
 	if (act) {
 		/* loop through F-Curves */
 		for (fcu= act->curves.first; fcu; fcu= fcu->next) {
-			fcurve_to_keylist(fcu, keys, blocks, aki);
+			fcurve_to_keylist(adt, fcu, keys, blocks);
 		}
 	}
 }
 
-void action_nlascaled_to_keylist(Object *ob, bAction *act, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
-{
-	FCurve *fcu;
-	Object *oldob= NULL;
-	
-	/* although apply and clearing NLA-scaling pre-post creating keylist does impact on performance,
-	 * the effects should be fairly minimal, as we're already going through the keyframes multiple times 
-	 * already for blocks too...
-	 */
-	if (act) {	
-		/* if 'aki' is provided, store it's current ob to restore later as it might not be the same */
-		if (aki) {
-			oldob= aki->ob;
-			aki->ob= ob;
-		}
-		
-		/* loop through F-Curves 
-		 *	- scaling correction only does times for center-points, so should be faster
-		 */
-		for (fcu= act->curves.first; fcu; fcu= fcu->next) {	
-			ANIM_nla_mapping_apply_fcurve(ob, fcu, 0, 1);
-			fcurve_to_keylist(fcu, keys, blocks, aki);
-			ANIM_nla_mapping_apply_fcurve(ob, fcu, 1, 1);
-		}
-		
-		/* if 'aki' is provided, restore ob */
-		if (aki)
-			aki->ob= oldob;
-	}
-}
 
-void gpl_to_keylist(bGPDlayer *gpl, ListBase *keys, ListBase *blocks, ActKeysInc *aki)
+void gpl_to_keylist(bDopeSheet *ads, bGPDlayer *gpl, ListBase *keys, ListBase *blocks)
 {
 	bGPDframe *gpf;
 	ActKeyColumn *ak;

@@ -161,6 +161,21 @@ typedef struct TransDataSeq {
 	
 } TransDataSeq;
 
+/* for NLA transform (stored in td->extra pointer) */
+typedef struct TransDataNla {
+	struct NlaTrack *oldTrack;	/* Original NLA-Track that the strip belongs to */
+	struct NlaTrack *nlt;		/* Current NLA-Track that the strip belongs to */
+	
+	struct NlaStrip *strip;		/* NLA-strip this data represents */
+	
+	/* dummy values for transform to write in - must have 3 elements... */
+	float h1[3];				/* start handle */
+	float h2[3];				/* end handle */
+	
+	int trackIndex;				/* index of track that strip is currently in */
+	int handle;					/* handle-index: 0 for dummy entry, -1 for start, 1 for end, 2 for both ends */
+} TransDataNla;
+
 typedef struct TransData {
 	float  dist;         /* Distance needed to affect element (for Proportionnal Editing)                  */
 	float  rdist;        /* Distance to the nearest element (for Proportionnal Editing)                    */

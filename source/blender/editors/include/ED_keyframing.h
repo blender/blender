@@ -43,6 +43,9 @@ struct bConstraint;
 struct bContext;
 struct wmOperatorType;
 
+struct PointerRNA;
+struct PropertyRNA;
+
 /* ************ Keyframing Management **************** */
 
 /* Get (or add relevant data to be able to do so) the Active Action for the given 
@@ -68,6 +71,16 @@ int insert_bezt_fcurve(struct FCurve *fcu, struct BezTriple *bezt);
  *	already exists. It will insert a keyframe using the current value being keyframed.
  */
 void insert_vert_fcurve(struct FCurve *fcu, float x, float y, short flag);
+
+/* -------- */
+
+/* Secondary Keyframing API calls: 
+ *	Use this to insert a keyframe using the current value being keyframed, in the 
+ *	nominated F-Curve (no creation of animation data performed). Returns success.
+ */
+short insert_keyframe_direct(struct PointerRNA ptr, struct PropertyRNA *prop, struct FCurve *fcu, float cfra, short flag);
+
+
 
 /* -------- */
 
@@ -185,6 +198,11 @@ void ANIM_OT_remove_driver_button(struct wmOperatorType *ot);
 #define IS_AUTOKEY_FLAG(flag)	(U.autokey_flag & AUTOKEY_FLAG_##flag)
 
 /* ************ Keyframe Checking ******************** */
+
+/* Lesser Keyframe Checking API call:
+ *	- Used for the buttons to check for keyframes...
+ */
+short fcurve_frame_has_keyframe(struct FCurve *fcu, float frame, short filter);
 
 /* Main Keyframe Checking API call:
  * Checks whether a keyframe exists for the given ID-block one the given frame.

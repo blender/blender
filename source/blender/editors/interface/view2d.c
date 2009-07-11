@@ -209,6 +209,23 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			}
 				break;
 				
+			/* 'stack view' - practically the same as list/channel view, except is located in the pos y half instead. 
+			 * 	zoom, aspect ratio, and alignment restrictions are set here */
+			case V2D_COMMONVIEW_STACK:
+			{
+				/* zoom + aspect ratio are locked */
+				v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
+				v2d->minzoom= v2d->maxzoom= 1.0f;
+				
+				/* tot rect has strictly regulated placement, and must only occur in +/+ quadrant */
+				v2d->align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y);
+				v2d->keeptot = V2D_KEEPTOT_STRICT;
+				tot_changed= 1;
+				
+				/* scroller settings are currently not set here... that is left for regions... */
+			}
+				break;
+				
 			/* 'header' regions - zoom, aspect ratio, alignment, and panning restrictions are set here */
 			case V2D_COMMONVIEW_HEADER:
 			{
@@ -247,18 +264,21 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 				
 				v2d->tot.xmin= 0.0f;
 				v2d->tot.xmax= winx;
-
+				
 				v2d->tot.ymax= 0.0f;
 				v2d->tot.ymin= -winy;
-
+				
 				v2d->cur.xmin= 0.0f;
 				v2d->cur.xmax= winx*style->panelzoom;
 
 				v2d->cur.ymax= 0.0f;
 				v2d->cur.ymin= -winy*style->panelzoom;
+
+				v2d->cur.ymax= 0.0f;
+				v2d->cur.ymin= -winy*style->panelzoom;
 			}
 				break;
-
+				
 				/* other view types are completely defined using their own settings already */
 			default:
 				/* we don't do anything here, as settings should be fine, but just make sure that rect */

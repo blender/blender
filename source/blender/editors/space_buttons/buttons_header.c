@@ -193,7 +193,7 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockEndAlign(block);
 	
 	xco+=XIC;
-	uiDefButI(block, NUM, B_NEWFRAME, "",	(xco+20),yco,60,YIC, &(CTX_data_scene(C)->r.cfra), 1.0, MAXFRAMEF, 0, 0, "Displays Current Frame of animation. Click to change.");
+	uiDefButI(block, NUM, B_NEWFRAME, "",	(xco+20),yco,60,YIC, &(CTX_data_scene(C)->r.cfra), MINAFRAMEF, MAXFRAMEF, 0, 0, "Displays Current Frame of animation. Click to change.");
 	xco+= 80;
 	
 	/* always as last  */

@@ -96,10 +96,6 @@ typedef struct SpaceIpo {
 	short blockhandler[8];
 	View2D v2d; /* depricated, copied to region */
 	
-		// 'IPO keys' - vertical lines for editing multiple keyframes at once - use Dopesheet instead for this?
-	//ListBase ipokey;		// XXX it's not clear how these will come back yet
-	//short showkey;			// XXX this doesn't need to be restored until ipokeys come back
-	
 	struct bDopeSheet *ads;	/* settings for filtering animation data (NOTE: we use a pointer due to code-linking issues) */
 	
 	ListBase ghostCurves;	/* sampled snapshots of F-Curves used as in-session guides */
@@ -107,7 +103,7 @@ typedef struct SpaceIpo {
 	short mode;				/* mode for the Graph editor (eGraphEdit_Mode) */
 	short flag;				/* settings for Graph editor */
 	short autosnap;			/* time-transform autosnapping settings for Graph editor (eAnimEdit_AutoSnap in DNA_action_types.h) */
-	char pin, lock;
+	char pin, lock;			// XXX old, unused vars that are probably going to be depreceated soon...
 } SpaceIpo;
 
 typedef struct SpaceButs {
@@ -276,10 +272,11 @@ typedef struct SpaceNla {
 
 	short blockhandler[8];
 
-	short menunr, lock;
 	short autosnap;			/* this uses the same settings as autosnap for Action Editor */
 	short flag;
+	int pad;
 	
+	struct bDopeSheet *ads;
 	View2D v2d;	 /* depricated, copied to region */
 } SpaceNla;
 
@@ -751,8 +748,11 @@ enum {
 #define IMS_INFILESLI		4
 
 /* nla->flag */
+	// depreceated
 #define SNLA_ALLKEYED		(1<<0)
+	// depreceated
 #define SNLA_ACTIVELAYERS	(1<<1)
+
 #define SNLA_DRAWTIME		(1<<2)
 #define SNLA_NOTRANSKEYCULL	(1<<3)
 #define SNLA_NODRAWCFRANUM	(1<<4)

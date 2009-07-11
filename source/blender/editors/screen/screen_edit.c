@@ -1460,7 +1460,9 @@ void ED_screen_full_prevspace(bContext *C)
 		ed_screen_fullarea(C, sa);
 }
 
-/* redraws: uses defines from stime->redraws */
+/* redraws: uses defines from stime->redraws 
+ * enable: 1 - forward on, -1 - backwards on, 0 - off
+ */
 void ED_screen_animation_timer(bContext *C, int redraws, int enable)
 {
 	bScreen *screen= CTX_wm_screen(C);
@@ -1477,6 +1479,7 @@ void ED_screen_animation_timer(bContext *C, int redraws, int enable)
 		screen->animtimer= WM_event_add_window_timer(win, TIMER0, (1.0/FPS));
 		sad->ar= CTX_wm_region(C);
 		sad->redraws= redraws;
+		sad->reverse= (enable < 0);
 		screen->animtimer->customdata= sad;
 		
 	}

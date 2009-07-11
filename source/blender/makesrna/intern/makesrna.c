@@ -1921,6 +1921,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_mesh.c", "rna_mesh_api.c", RNA_def_mesh},
 	{"rna_meta.c", NULL, RNA_def_meta},
 	{"rna_modifier.c", NULL, RNA_def_modifier},
+	{"rna_nla.c", NULL, RNA_def_nla},
 	{"rna_nodetree.c", NULL, RNA_def_nodetree},
 	{"rna_object.c", "rna_object_api.c", RNA_def_object},
 	{"rna_object_force.c", NULL, RNA_def_object_force},
