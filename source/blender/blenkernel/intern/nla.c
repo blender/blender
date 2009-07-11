@@ -1227,6 +1227,62 @@ void BKE_nlastrip_validate_name (AnimData *adt, NlaStrip *strip)
 	BLI_ghash_free(gh, NULL, NULL);
 }
 
+/* ---- */
+
+/* Determine auto-blending for the given strip */
+void BKE_nlastrip_validate_autoblends (NlaTrack *nlt, NlaStrip *nls)
+{
+	NlaTrack *track;
+	NlaStrip *strip;
+	//float *ps=NULL, *pe=NULL;
+	//float *ns=NULL, *ne=NULL;
+	
+	/* sanity checks */
+	if ELEM(NULL, nls, nlt)
+		return;
+	if ((nlt->prev == NULL) && (nlt->next == NULL))
+		return;
+	if ((nls->flag & NLASTRIP_FLAG_AUTO_BLENDS)==0)
+		return;
+	
+	/* get test ranges */
+	if (nlt->prev) {
+		/* find strips that overlap over the start/end of the given strip,
+		 * but which don't cover the entire length 
+		 */
+		track= nlt->prev;
+		for (strip= track->strips.first; strip; strip= strip->next) {
+			
+		}
+	}
+	if (nlt->next) {
+		/* find strips that overlap over the start/end of the given strip,
+		 * but which don't cover the entire length 
+		 */
+		track= nlt->next;
+		for (strip= track->strips.first; strip; strip= strip->next) {
+			
+		}
+	}
+}
+
+/* Ensure that auto-blending and other settings are set correctly */
+void BKE_nla_validate_state (AnimData *adt)
+{
+	NlaStrip *strip;
+	NlaTrack *nlt;
+	
+	/* sanity checks */
+	if ELEM(NULL, adt, adt->nla_tracks.first)
+		return;
+		
+	/* adjust blending values for auto-blending */
+	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
+		for (strip= nlt->strips.first; strip; strip= strip->next) {
+			BKE_nlastrip_validate_autoblends(nlt, strip);
+		}
+	}
+}
 
 /* Core Tools ------------------------------------------- */
 
