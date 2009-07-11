@@ -1311,6 +1311,7 @@ static int pyrna_struct_setattro( BPy_StructRNA * self, PyObject *pyname, PyObje
 {
 	char *name = _PyUnicode_AsString(pyname);
 	PropertyRNA *prop = RNA_struct_find_property(&self->ptr, name);
+	int ret;
 	
 	if (prop==NULL) {
 		if (!BPy_StructRNA_CheckExact(self) && PyObject_GenericSetAttr((PyObject *)self, pyname, value) >= 0) {
@@ -1328,7 +1329,11 @@ static int pyrna_struct_setattro( BPy_StructRNA * self, PyObject *pyname, PyObje
 	}
 		
 	/* pyrna_py_to_prop sets its own exceptions */
-	return pyrna_py_to_prop(&self->ptr, prop, NULL, value);
+	ret= pyrna_py_to_prop(&self->ptr, prop, NULL, value);
+	
+	RNA_property_update(BPy_GetContext(), &self->ptr, prop);
+
+	return ret;
 }
 
 static PyObject *pyrna_prop_keys(BPy_PropertyRNA *self)

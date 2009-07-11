@@ -1897,7 +1897,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_rna.c", NULL, RNA_def_rna},
 	{"rna_ID.c", NULL, RNA_def_ID},
 	{"rna_texture.c", NULL, RNA_def_texture},
-	{"rna_action.c", NULL, RNA_def_action},
+	{"rna_action.c", "rna_action_api.c", RNA_def_action},
 	{"rna_animation.c", NULL, RNA_def_animation},
 	{"rna_actuator.c", NULL, RNA_def_actuator},
 	{"rna_armature.c", NULL, RNA_def_armature},

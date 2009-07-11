@@ -33,6 +33,7 @@
 #include "RNA_types.h"
 
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #ifdef RNA_RUNTIME
 
@@ -67,6 +68,15 @@ static void rna_Scene_remove_object(Scene *sce, ReportList *reports, Object *ob)
 	ED_base_object_free_and_unlink(sce, base);
 }
 
+static void rna_Scene_set_frame(Scene *sce, bContext *C, int frame)
+{
+	sce->r.cfra= frame;
+	CLAMP(sce->r.cfra, MINAFRAME, MAXFRAME);
+	scene_update_for_newframe(sce, (1<<20) - 1);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, sce);
+}
+
 #else
 
 void RNA_api_scene(StructRNA *srna)
@@ -84,6 +94,12 @@ void RNA_api_scene(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Remove object from scene.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "object", "Object", "", "Object to remove from scene.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "set_frame", "rna_Scene_set_frame");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Set scene frame updating all objects immediately.");
+	parm= RNA_def_int(func, "frame", 0, MINAFRAME, MAXFRAME, "", "Frame number to set.", MINAFRAME, MAXFRAME);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 

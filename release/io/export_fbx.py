@@ -2500,7 +2500,8 @@ Connections:  {''')
 	
 	if ANIM_ENABLE and [tmp for tmp in ob_anim_lists if tmp]:
 		
-		frame_orig = Blender.Get('curframe')
+		frame_orig = sce.current_frame
+# 		frame_orig = Blender.Get('curframe')
 		
 		if ANIM_OPTIMIZE:
 			ANIM_OPTIMIZE_PRECISSION_FLOAT = 0.1 ** ANIM_OPTIMIZE_PRECISSION
@@ -2613,7 +2614,8 @@ Takes:  {''')
 			'''
 			i = act_start
 			while i <= act_end:
-				Blender.Set('curframe', i)
+				sce.set_frame(i)
+# 				Blender.Set('curframe', i)
 				for ob_generic in ob_anim_lists:
 					for my_ob in ob_generic:
 						#Blender.Window.RedrawAll()

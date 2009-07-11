@@ -32,18 +32,13 @@
 #include "RNA_define.h"
 #include "RNA_types.h"
 
-#include "DNA_object_types.h"
-
-/* #include "BLO_sys_types.h" */
+#include "DNA_action_types.h"
 
 #ifdef RNA_RUNTIME
 
-/* #include "DNA_anim_types.h" */
-#include "DNA_action_types.h" /* bPose */
-
 #else
 
-void RNA_api_pose(StructRNA *srna)
+void RNA_api_action(StructRNA *srna)
 {
 	FunctionRNA *func;
 	PropertyRNA *parm;
@@ -51,4 +46,3 @@ void RNA_api_pose(StructRNA *srna)
 }
 
 #endif
-
