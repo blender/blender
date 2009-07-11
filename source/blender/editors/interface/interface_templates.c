@@ -616,12 +616,6 @@ static void constraint_active_func(bContext *C, void *ob_v, void *con_v)
 	ED_object_constraint_set_active(ob_v, con_v);
 }
 
-static void del_constraint_func (bContext *C, void *ob_v, void *con_v)
-{
-	if(ED_object_constraint_delete(NULL, ob_v, con_v))
-		ED_undo_push(C, "Delete Constraint");
-}
-
 static void verify_constraint_name_func (bContext *C, void *con_v, void *name_v)
 {
 	Object *ob= CTX_data_active_object(C);
@@ -637,18 +631,6 @@ static void verify_constraint_name_func (bContext *C, void *con_v, void *name_v)
 	ED_object_constraint_rename(ob, con, oldname);
 	ED_object_constraint_set_active(ob, con);
 	// XXX allqueue(REDRAWACTION, 0); 
-}
-
-static void constraint_moveUp(bContext *C, void *ob_v, void *con_v)
-{
-	if(ED_object_constraint_move_up(NULL, ob_v, con_v))
-		ED_undo_push(C, "Move Constraint");
-}
-
-static void constraint_moveDown(bContext *C, void *ob_v, void *con_v)
-{
-	if(ED_object_constraint_move_down(NULL, ob_v, con_v))
-		ED_undo_push(C, "Move Constraint");
 }
 
 /* some commonly used macros in the constraints drawing code */
@@ -828,25 +810,18 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 			uiBlockBeginAlign(block);
 				uiBlockSetEmboss(block, UI_EMBOSS);
 				
-				if (show_upbut) {
-					but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_UP, xco+width-50, yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint up in constraint stack");
-					uiButSetFunc(but, constraint_moveUp, ob, con);
-				}
+				if (show_upbut)
+					uiDefIconButO(block, BUT, "CONSTRAINT_OT_move_up", WM_OP_INVOKE_DEFAULT, VICON_MOVE_UP, xco+width-50, yco, 16, 18, "Move constraint up in constraint stack");
 				
-				if (show_downbut) {
-					but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_DOWN, xco+width-50+18, yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint down in constraint stack");
-					uiButSetFunc(but, constraint_moveDown, ob, con);
-				}
+				if (show_downbut)
+					uiDefIconButO(block, BUT, "CONSTRAINT_OT_move_down", WM_OP_INVOKE_DEFAULT, VICON_MOVE_DOWN, xco+width-50+18, yco, 16, 18, "Move constraint down in constraint stack");
 			uiBlockEndAlign(block);
 		}
 		
 		
 		/* Close 'button' - emboss calls here disable drawing of 'button' behind X */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-		
-		but = uiDefIconBut(block, BUT, B_CONSTRAINT_CHANGETARGET, ICON_X, xco+262, yco, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Delete constraint");
-		uiButSetFunc(but, del_constraint_func, ob, con);
-		
+			uiDefIconButO(block, BUT, "CONSTRAINT_OT_delete", WM_OP_INVOKE_DEFAULT, ICON_X, xco+262, yco, 19, 19, "Delete constraint");
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	
@@ -944,19 +919,6 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 			}
 			break;
 #endif /* DISABLE_PYTHON */
-		/*case CONSTRAINT_TYPE_CHILDOF:
-			{
-				// Inverse options 
-				uiBlockBeginAlign(block);
-					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Set Offset", xco, yco-151, (width/2),18, NULL, 0, 24, 0, 0, "Calculate current Parent-Inverse Matrix (i.e. restore offset from parent)");
-					// XXX uiButSetFunc(but, childof_const_setinv, con, NULL);
-					
-					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Clear Offset", xco+((width/2)+10), yco-151, (width/2),18, NULL, 0, 24, 0, 0, "Clear Parent-Inverse Matrix (i.e. clear offset from parent)");
-					// XXX uiButSetFunc(but, childof_const_clearinv, con, NULL);
-				uiBlockEndAlign(block);
-			}
-			break; 
-		*/
 		
 		/*case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 			{

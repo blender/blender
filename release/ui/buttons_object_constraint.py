@@ -109,7 +109,6 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		sub.itemR(con, "sizey", text="Y")
 		sub.itemR(con, "sizez", text="Z")
 		
-		# Missing
 		row = layout.row()
 		row.itemO("CONSTRAINT_OT_childof_set_inverse")
 		row.itemO("CONSTRAINT_OT_childof_clear_inverse")
@@ -122,6 +121,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		row.itemR(con, "track", expand=True)
 		
 		row = layout.row()
+		#row.itemR(con, "up", text="Up", expand=True) # XXX: up and expand don't play nice together
 		row.itemR(con, "up", text="Up")
 		row.itemR(con, "target_z")
 		

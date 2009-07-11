@@ -82,9 +82,6 @@ void object_test_constraints(struct Object *ob);
 
 void ED_object_constraint_rename(struct Object *ob, struct bConstraint *con, char *oldname);
 void ED_object_constraint_set_active(struct Object *ob, struct bConstraint *con);
-int ED_object_constraint_delete(struct ReportList *reports, struct Object *ob, struct bConstraint *con);
-int ED_object_constraint_move_down(struct ReportList *reports, struct Object *ob, struct bConstraint *con);
-int ED_object_constraint_move_up(struct ReportList *reports, struct Object *ob, struct bConstraint *con);
 
 /* editlattice.c */
 void mouse_lattice(struct bContext *C, short mval[2], int extend);

@@ -81,7 +81,6 @@ static int pupmenu() {return 0;}
 
 /* -------------- Get Active Constraint Data ---------------------- */
 
-
 /* if object in posemode, active bone constraints, else object constraints */
 ListBase *get_active_constraints (Object *ob)
 {
@@ -841,7 +840,6 @@ void ED_object_constraint_rename(Object *ob, bConstraint *con, char *oldname)
 	bConstraint *tcon;
 	ListBase *conlist= NULL;
 	int from_object= 0;
-	char *channame="";
 	
 	/* get context by searching for con (primitive...) */
 	for (tcon= ob->constraints.first; tcon; tcon= tcon->next) {
@@ -851,7 +849,6 @@ void ED_object_constraint_rename(Object *ob, bConstraint *con, char *oldname)
 	
 	if (tcon) {
 		conlist= &ob->constraints;
-		channame= "Object";
 		from_object= 1;
 	}
 	else if (ob->pose) {
@@ -868,7 +865,6 @@ void ED_object_constraint_rename(Object *ob, bConstraint *con, char *oldname)
 		
 		if (tcon) {
 			conlist= &pchan->constraints;
-			channame= pchan->name;
 		}
 	}
 	
@@ -878,7 +874,7 @@ void ED_object_constraint_rename(Object *ob, bConstraint *con, char *oldname)
 	}
 	
 	/* first make sure it's a unique name within context */
-	unique_constraint_name (con, conlist);
+	unique_constraint_name(con, conlist);
 }
 
 
@@ -901,77 +897,111 @@ void ED_object_constraint_set_active(Object *ob, bConstraint *con)
 		if(con==origcon) con->flag |= CONSTRAINT_ACTIVE;
 		else con->flag &= ~CONSTRAINT_ACTIVE;
 	}
-
-	/* make sure ipowin and buttons shows it */
-	if(ob->ipowin==ID_CO) {
-		// XXX allqueue(REDRAWIPO, ID_CO);
-		// XXX allspace(REMAKEIPO, 0);
-		// XXX allqueue(REDRAWNLA, 0);
-	}
-	// XXX allqueue(REDRAWBUTSOBJECT, 0);
 }
 
-int ED_object_constraint_delete(ReportList *reports, Object *ob, bConstraint *con)
+static int constraint_delete_exec (bContext *C, wmOperator *op)
 {
-	bConstraintChannel *chan;
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
+	Object *ob= ptr.id.data;
+	bConstraint *con= ptr.data;
 	ListBase *lb;
 	
-	/* remove ipo channel */
-	lb= NULL; // XXX get_active_constraint_channels(ob, 0);
-	if(lb) {
-		chan = NULL; // XXX get_constraint_channel(lb, con->name);
-		if(chan) {
-			if(chan->ipo) chan->ipo->id.us--;
-			BLI_freelinkN(lb, chan);
-		}
-	}
-
 	/* remove constraint itself */
 	lb= get_active_constraints(ob);
 	free_constraint_data(con);
 	BLI_freelinkN(lb, con);
 	
 	ED_object_constraint_set_active(ob, NULL);
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
 
-	return 1;
+	return OPERATOR_FINISHED;
 }
 
-int ED_object_constraint_move_down(ReportList *reports, Object *ob, bConstraint *constr)
+void CONSTRAINT_OT_delete (wmOperatorType *ot)
 {
-	bConstraint *con;
-	ListBase *conlist;
+	/* identifiers */
+	ot->name= "Delete Constraint";
+	ot->idname= "CONSTRAINT_OT_delete";
+	ot->description= "Remove constraitn from constraint stack.";
 	
-	if(constr->next) {
-		conlist = get_active_constraints(ob);
-		for(con= conlist->first; con; con= con->next) {
-			if(con==constr) {
-				BLI_remlink(conlist, con);
-				BLI_insertlink(conlist, con->next, con);
-				return 1;
-			}
-		}
-	}
-
-	return 0;
+	/* callbacks */
+	ot->exec= constraint_delete_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO; 
 }
 
-int ED_object_constraint_move_up(ReportList *reports, Object *ob, bConstraint *constr)
+static int constraint_move_down_exec (bContext *C, wmOperator *op)
 {
-	bConstraint *con;
-	ListBase *conlist;
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
+	Object *ob= ptr.id.data;
+	bConstraint *con= ptr.data;
 	
-	if(constr->prev) {
-		conlist = get_active_constraints(ob);
-		for(con= conlist->first; con; con= con->next) {
-			if(con==constr) {
-				BLI_remlink(conlist, con);
-				BLI_insertlink(conlist, con->prev->prev, con);
-				return 1;
-			}
-		}
+	if (con->next) {
+		ListBase *conlist= get_active_constraints(ob);
+		bConstraint *nextCon= con->next;
+		
+		/* insert the nominated constraint after the one that used to be after it */
+		BLI_remlink(conlist, con);
+		BLI_insertlinkafter(conlist, nextCon, con);
+		
+		WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
+		
+		return OPERATOR_FINISHED;
 	}
+	
+	return OPERATOR_CANCELLED;
+}
 
-	return 0;
+void CONSTRAINT_OT_move_down (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Move Constraint Down";
+	ot->idname= "CONSTRAINT_OT_move_down";
+	ot->description= "Move constraint down constraint stack.";
+	
+	/* callbacks */
+	ot->exec= constraint_move_down_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO; 
+}
+
+
+static int constraint_move_up_exec (bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
+	Object *ob= ptr.id.data;
+	bConstraint *con= ptr.data;
+	
+	if (con->prev) {
+		ListBase *conlist= get_active_constraints(ob);
+		bConstraint *prevCon= con->prev;
+		
+		/* insert the nominated constraint before the one that used to be before it */
+		BLI_remlink(conlist, con);
+		BLI_insertlinkbefore(conlist, prevCon, con);
+		
+		WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
+		
+		return OPERATOR_FINISHED;
+	}
+	
+	return OPERATOR_CANCELLED;
+}
+
+void CONSTRAINT_OT_move_up (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Move Constraint Up";
+	ot->idname= "CONSTRAINT_OT_move_up";
+	ot->description= "Move constraint up constraint stack.";
+	
+	/* callbacks */
+	ot->exec= constraint_move_up_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO; 
 }
 
 /***************************** OPERATORS ****************************/
@@ -1015,10 +1045,10 @@ static int constraint_add_exec(bContext *C, wmOperator *op)
 		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 			{
 				bRigidBodyJointConstraint *data;
-
+				
 				/* set selected first object as target - moved from new_constraint_data */
 				data = (bRigidBodyJointConstraint*)con->data;
-
+				
 				CTX_DATA_BEGIN(C, Object*, selob, selected_objects) {
 					if(selob != ob) {
 						data->tar= selob;
