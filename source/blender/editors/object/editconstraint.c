@@ -117,63 +117,6 @@ bConstraint *get_active_constraint (Object *ob)
 	
 	return NULL;
 }
-
-/* single channel, for ipo */
-bConstraintChannel *get_active_constraint_channel (Scene *scene, Object *ob)
-{
-	bConstraint *con;
-	
-	if (ob->flag & OB_POSEMODE) {
-		//if (ob->action) { // XXX old animation system
-			bPoseChannel *pchan;
-			
-			pchan = get_active_posechannel(ob);
-			if (pchan) {
-				for (con= pchan->constraints.first; con; con= con->next) {
-					if (con->flag & CONSTRAINT_ACTIVE)
-						break;
-				}
-				
-				if (con) {
-#if 0 // XXX old animation system
-					bActionChannel *achan = get_action_channel(ob->action, pchan->name);
-					if (achan) {
-						for (chan= achan->constraintChannels.first; chan; chan= chan->next) {
-							if (!strcmp(chan->name, con->name))
-								break;
-						}
-						return chan;
-					}
-#endif // XXX old animation system
-				}
-			}
-		//} // xxx old animation system
-	}
-	else {
-		for (con= ob->constraints.first; con; con= con->next) {
-			if (con->flag & CONSTRAINT_ACTIVE)
-				break;
-		}
-		
-		if (con) {
-#if 0 // XXX old animation system
-			ListBase *lb= get_active_constraint_channels(scene, ob, 0);
-			
-			if (lb) {
-				for (chan= lb->first; chan; chan= chan->next) {
-					if (!strcmp(chan->name, con->name))
-						break;
-				}
-				
-				return chan;
-			}
-#endif // XXX old animation system
-		}
-	}
-	
-	return NULL;
-}
-
 /* -------------- Constraint Management (Add New, Remove, Rename) -------------------- */
 /* ------------- PyConstraints ------------------ */
 
@@ -790,15 +733,17 @@ void object_test_constraints (Object *owner)
 /* ------------- Child-Of Constraint ------------------ */
 
 /* ChildOf Constraint - set inverse callback */
-void childof_const_setinv (void *conv, void *scenev)
+static int childof_set_inverse_exec (bContext *C, wmOperator *op)
 {
-	bConstraint *con= (bConstraint *)conv;
-	Scene *scene= (Scene *)scenev;
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "constraint", &RNA_ChildOfConstraint);
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= ptr.id.data;
+	bConstraint *con= ptr.data;
 	bChildOfConstraint *data= (bChildOfConstraint *)con->data;
-	Object *ob= OBACT;
 	bPoseChannel *pchan= NULL;
 
 	/* try to find a pose channel */
+	// TODO: get from context instead?
 	if (ob && ob->pose)
 		pchan= get_active_posechannel(ob);
 	
@@ -839,16 +784,53 @@ void childof_const_setinv (void *conv, void *scenev)
 	}
 	else
 		Mat4One(data->invmat);
+		
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
+		
+	return OPERATOR_FINISHED;
 }
 
-/* ChildOf Constraint - clear inverse callback */
-void childof_const_clearinv (void *conv, void *unused)
+void CONSTRAINT_OT_childof_set_inverse (wmOperatorType *ot)
 {
-	bConstraint *con= (bConstraint *)conv;
+	/* identifiers */
+	ot->name= "Set Inverse";
+	ot->idname= "CONSTRAINT_OT_childof_set_inverse";
+	ot->description= "Set inverse correction for ChildOf constraint.";
+	
+	ot->exec= childof_set_inverse_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
+/* ChildOf Constraint - clear inverse callback */
+static int childof_clear_inverse_exec (bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "constraint", &RNA_ChildOfConstraint);
+	Object *ob= ptr.id.data;
+	bConstraint *con= ptr.data;
 	bChildOfConstraint *data= (bChildOfConstraint *)con->data;
 	
 	/* simply clear the matrix */
 	Mat4One(data->invmat);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void CONSTRAINT_OT_childof_clear_inverse (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Clear Inverse";
+	ot->idname= "CONSTRAINT_OT_childof_clear_inverse";
+	ot->description= "Clear inverse correction for ChildOf constraint.";
+	
+	ot->exec= childof_clear_inverse_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /***************************** BUTTONS ****************************/

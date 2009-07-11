@@ -111,8 +111,8 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		
 		# Missing
 		row = layout.row()
-		row.itemL(text="SET OFFSET")
-		row.itemL(text="CLEAR OFFSET")
+		row.itemO("CONSTRAINT_OT_childof_set_inverse")
+		row.itemO("CONSTRAINT_OT_childof_clear_inverse")
 		
 	def track_to(self, layout, con):
 		self.target_template(layout, con)

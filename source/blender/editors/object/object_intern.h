@@ -102,6 +102,9 @@ void OBJECT_OT_modifier_mdef_bind(struct wmOperatorType *ot);
 /* editconstraint.c */
 void OBJECT_OT_constraint_add(struct wmOperatorType *ot);
 
+void CONSTRAINT_OT_childof_set_inverse(struct wmOperatorType *ot);
+void CONSTRAINT_OT_childof_clear_inverse(struct wmOperatorType *ot);
+
 /* object_vgroup.c */
 void OBJECT_OT_vertex_group_add(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_remove(struct wmOperatorType *ot);

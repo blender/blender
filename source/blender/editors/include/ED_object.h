@@ -35,7 +35,6 @@ struct bContext;
 struct Base;
 struct View3D;
 struct bConstraint;
-struct bConstraintChannel;
 struct KeyBlock;
 struct Lattice;
 struct Mesh;
@@ -78,7 +77,6 @@ void add_constraint_to_object(struct bConstraint *con, struct Object *ob);
 
 struct ListBase *get_active_constraints(struct Object *ob);
 struct bConstraint *get_active_constraint(struct Object *ob);
-struct bConstraintChannel *get_active_constraint_channel(struct Scene *scene, struct Object *ob);
 
 void object_test_constraints(struct Object *ob);
 
