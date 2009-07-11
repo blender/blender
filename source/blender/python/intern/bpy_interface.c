@@ -457,14 +457,17 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	
 	PyGILState_STATE gilstate;
 	PyObject *mod;
-	PyObject *sys_path_orig;
-	PyObject *sys_path_new;
+	PyObject *sys_path;
 
 	gilstate = PyGILState_Ensure();
 	
 	// XXX - evil, need to access context
 	BPy_SetContext(C);
 	bpy_import_main_set(CTX_data_main(C));
+
+
+	sys_path= PySys_GetObject("path"); /* borrow */
+	PyList_Insert(sys_path, 0, Py_None); /* place holder, resizes the list */
 
 	for(a=0; dirs[a]; a++) {
 		dirname= BLI_gethome_folder(dirs[a]);
@@ -476,15 +479,9 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 
 		if(!dir)
 			continue;
-
-		/* backup sys.path */
-		sys_path_orig= PySys_GetObject("path");
-		Py_INCREF(sys_path_orig); /* dont free it */
 		
-		sys_path_new= PyList_New(1);
-		PyList_SET_ITEM(sys_path_new, 0, PyUnicode_FromString(dirname));
-		PySys_SetObject("path", sys_path_new);
-		Py_DECREF(sys_path_new);
+		/* set the first dir in the sys.path for fast importing of modules */
+		PyList_SetItem(sys_path, 0, PyUnicode_FromString(dirname)); /* steals the ref */
 			
 		while((de = readdir(dir)) != NULL) {
 			/* We could stat the file but easier just to let python
@@ -514,11 +511,10 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 		}
 
 		closedir(dir);
-
-		PySys_SetObject("path", sys_path_orig);
-		Py_DECREF(sys_path_orig);
 	}
 	
+	PyList_SetSlice(sys_path, 0, 1, NULL); /* remove the first item */
+
 	bpy_import_main_set(NULL);
 	
 	PyGILState_Release(gilstate);
