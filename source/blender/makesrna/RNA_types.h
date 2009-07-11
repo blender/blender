@@ -106,6 +106,9 @@ typedef enum PropertyFlag {
 	/* pointers */
 	PROP_ID_REFCOUNT = 64,
 
+	/* arrays */
+	PROP_DYNAMIC_ARRAY = 32768,
+
 	/* internal flags */
 	PROP_BUILTIN = 128,
 	PROP_EXPORT = 256,

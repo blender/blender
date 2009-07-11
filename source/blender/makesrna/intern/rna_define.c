@@ -2220,6 +2220,8 @@ int rna_parameter_size(PropertyRNA *parm)
 	PropertyType ptype= parm->type;
 	int len= parm->arraylength;
 
+	if (parm->flag & PROP_DYNAMIC_ARRAY) return sizeof(void*);
+
 	if(len > 0) {
 		switch (ptype) {
 			case PROP_BOOLEAN:

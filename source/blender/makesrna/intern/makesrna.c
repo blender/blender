@@ -1200,6 +1200,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 	fprintf(f, "\tchar *_data");
 	if(func->ret) fprintf(f, ", *_retdata");
 	fprintf(f, ";\n");
+	if(func->ret && (func->ret->flag & PROP_DYNAMIC_ARRAY)) fprintf(f, "\tint _ret_array_length;\n");
 	fprintf(f, "\t\n");
 
 	/* assign self */
@@ -1254,6 +1255,12 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 			fprintf(f, "reports");
 		}
 
+		if(func->ret && (func->ret->flag & PROP_DYNAMIC_ARRAY)) {
+			if(!first) fprintf(f, ", ");
+			first= 0;
+			fprintf(f, "&_ret_array_length");
+		}
+
 		dparm= dfunc->cont.properties.first;
 		for(; dparm; dparm= dparm->next) {
 			if(dparm->prop==func->ret)
@@ -1271,6 +1278,10 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 			dparm= rna_find_parameter_def(func->ret);
 			ptrstr= dparm->prop->type == PROP_POINTER || dparm->prop->arraylength > 0 ? "*" : "";
 			fprintf(f, "\t*((%s%s%s*)_retdata)= %s;\n", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), ptrstr, func->ret->identifier);
+
+			if(func->ret && (func->ret->flag & PROP_DYNAMIC_ARRAY)) {
+				fprintf(f, "\t_parms->func->ret->arraylength= _ret_array_length;\n");
+			}
 		}
 	}
 
@@ -1476,9 +1487,9 @@ static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA
 	/* return type */
 	for(dparm= dfunc->cont.properties.first; dparm; dparm= dparm->next) {
 		if(dparm->prop==func->ret) {
-			if(dparm->prop->arraylength)
-				fprintf(f, "XXX no array return types yet"); /* XXX not supported */
-			else if(dparm->prop->type == PROP_POINTER)
+			if(dparm->prop->arraylength && !(dparm->prop->flag & PROP_DYNAMIC_ARRAY))
+				fprintf(f, "\"XXX array return types only allowed with PROP_DYNAMIC_ARRAY flag.\""); /* XXX not supported */
+			else if(dparm->prop->type == PROP_POINTER || (dparm->prop->flag & PROP_DYNAMIC_ARRAY))
 				fprintf(f, "%s%s *", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
 			else
 				fprintf(f, "%s%s ", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
@@ -1513,6 +1524,13 @@ static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA
 		if(!first) fprintf(f, ", ");
 		first= 0;
 		fprintf(f, "ReportList *reports");
+	}
+
+	/* dynamic array length paramter */
+	if(func->ret && (func->ret->flag & PROP_DYNAMIC_ARRAY)) {
+		if(!first) fprintf(f, ", ");
+		first= 0;
+		fprintf(f, "int *array_length");
 	}
 
 	/* defined parameters */

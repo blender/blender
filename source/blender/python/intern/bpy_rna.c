@@ -44,6 +44,8 @@
 #include "DNA_scene_types.h"
 #include "ED_keyframing.h"
 
+#include "rna_internal_types.h"	/* PropertyRNA */
+
 #define USE_MATHUTILS
 
 #ifdef USE_MATHUTILS
@@ -1791,6 +1793,10 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 	if(len > 0) {
 		/* resolve the array from a new pytype */
 		ret = PyTuple_New(len);
+
+		/* for return values, data is a pointer to an array, not first element pointer */
+		if (prop->flag & PROP_DYNAMIC_ARRAY)
+			data = *((char**)data);
 
 		switch (type) {
 		case PROP_BOOLEAN:

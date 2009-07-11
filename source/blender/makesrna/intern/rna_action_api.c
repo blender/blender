@@ -36,6 +36,16 @@
 
 #ifdef RNA_RUNTIME
 
+int *rna_Action_get_frames(bAction *act, int *ret_length)
+{
+	*ret_length= 3;
+	int *ret= MEM_callocN(*ret_length * sizeof(int), "action frames");
+	ret[0] = 1;
+	ret[1] = 2;
+	ret[2] = 3;
+	return ret;
+}
+
 #else
 
 void RNA_api_action(StructRNA *srna)
@@ -43,6 +53,11 @@ void RNA_api_action(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
+	func= RNA_def_function(srna, "get_frames", "rna_Action_get_frames");
+	RNA_def_function_ui_description(func, "Get action frames."); /* XXX describe better */
+	parm= RNA_def_int_array(func, "frames", 1, NULL, 0, 0, "", "", 0, 0);
+	RNA_def_property_flag(parm, PROP_DYNAMIC_ARRAY);
+	RNA_def_function_return(func, parm);
 }
 
 #endif

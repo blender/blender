@@ -2799,8 +2799,13 @@ void RNA_parameter_list_free(ParameterList *parms)
 
 	parm= parms->func->cont.properties.first;
 	for(tot= 0; parm; parm= parm->next) {
-		if(parm->type == PROP_COLLECTION)
+		if(parm->type == PROP_COLLECTION) {
 			BLI_freelistN((ListBase*)((char*)parms->data+tot));
+		}
+		else if(parm->flag & PROP_DYNAMIC_ARRAY) {
+			/* for dynamic arrays, data is a pointer to an array */
+			MEM_freeN(*(char**)parms->data+tot);
+		}
 
 		tot+= rna_parameter_size(parm);
 	}
