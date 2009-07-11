@@ -636,86 +636,6 @@ static void do_view3d_viewmenu(bContext *C, void *arg, int event)
 }
 #endif
 
-static void view3d_view_viewnavmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-//	uiItemO(layout, NULL, 0, "VIEW3D_OT_view_fly_mode");
-	
-//	uiItemS(layout);
-	
-	uiItemsEnumO(layout, "VIEW3D_OT_view_orbit", "type");
-	
-	uiItemS(layout);
-	
-	uiItemsEnumO(layout, "VIEW3D_OT_view_pan", "type");
-	
-	uiItemS(layout);
-	
-	uiItemFloatO(layout, "Zoom in", 0, "VIEW3D_OT_zoom", "delta", 1.0f);
-	uiItemFloatO(layout, "Zoom out", 0, "VIEW3D_OT_zoom", "delta", -1.0f);
-	
-}
-static void view3d_view_alignviewmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	
-}
-
-static void view3d_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	ScrArea *sa= CTX_wm_area(C);
-
-	uiItemO(layout, NULL, ICON_MENU_PANEL, "VIEW3D_OT_properties");
-	uiItemO(layout, NULL, ICON_MENU_PANEL, "VIEW3D_OT_toolbar");
-	
-//	uiItemO(layout, ICON_MENU_PANEL, "VIEW3D_OT_toggle_transform_orientations_panel"); // Transform Orientations...
-//	uiItemO(layout, ICON_MENU_PANEL, "VIEW3D_OT_toggle_render_preview_panel"); // render preview...
-//	uiItemO(layout, ICON_MENU_PANEL, "VIEW3D_OT_toggle_view_properties_panel"); // View Properties....
-//	uiItemO(layout, ICON_MENU_PANEL, "VIEW3D_OT_toggle_background_image_panel"); // Background Image....
-//	uiItemO(layout, ICON_MENU_PANEL, "VIEW3D_OT_toggle_grease_pencil_panel"); // Grease Pencil....
-	
-	uiItemS(layout);
-	
-	uiItemEnumO(layout, NULL, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_CAMERA);
-	uiItemEnumO(layout, NULL, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_TOP);
-	uiItemEnumO(layout, NULL, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_FRONT);
-	uiItemEnumO(layout, NULL, 0, "VIEW3D_OT_viewnumpad", "type", V3D_VIEW_RIGHT);
-	
-	//uiItemMenuF(layout, "Cameras", view3d_view_camerasmenu);
-	
-	uiItemS(layout);
-
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_view_persportho");
-	
-	uiItemS(layout);
-	
-//	uiItemO(layout, NULL, 0, "VIEW3D_OT_view_show_all_layers");	
-	
-//	uiItemS(layout);
-	
-//	uiItemO(layout, NULL, 0, "VIEW3D_OT_view_local_view");
-//	uiItemO(layout, NULL, 0, "VIEW3D_OT_view_global_view");
-	
-//	uiItemS(layout);
-	
-	uiItemMenuF(layout, "View Navigation", 0, view3d_view_viewnavmenu);
-	uiItemMenuF(layout, "Align View", 0, view3d_view_alignviewmenu);
-	
-	uiItemS(layout);
-
-	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);	
-
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_clip_border");
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_zoom_border");
-	
-	uiItemS(layout);
-	
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_view_center");
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_view_all");
-	
-	uiItemS(layout);
-	
-	if(sa->full) uiItemO(layout, NULL, 0, "SCREEN_OT_screen_full_area"); // "Tile Window", Ctrl UpArrow
-	else uiItemO(layout, NULL, 0, "SCREEN_OT_screen_full_area"); // "Maximize Window", Ctr DownArrow
-}
 #if 0
 static uiBlock *view3d_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
@@ -4344,7 +4264,6 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 	RegionView3D *rv3d= wm_region_view3d(C);
 	short xmax, xco= *xcoord;
 	
-	
 	/* compensate for local mode when setting up the viewing menu/iconrow values */
 	if(rv3d->view==7) rv3d->viewbut= 1;
 	else if(rv3d->view==1) rv3d->viewbut= 2;
@@ -4354,11 +4273,6 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 	/* the 'xmax - 3' rather than xmax is to prevent some weird flickering where the highlighted
 	 * menu is drawn wider than it should be. The ypos of -2 is to make it properly fill the
 	 * height of the header */
-	
-	xmax= GetButStringLength("View");
-	uiDefMenuBut(block, view3d_viewmenu, NULL, "View", xco, yco, xmax-3, 20, "");
-	//uiDefPulldownBut(block, view3d_viewmenu, NULL, "View", xco, yco, xmax-3, 20, "");
-	xco+= xmax;
 	
 	xmax= GetButStringLength("Select");
 	if (obedit) {
@@ -4495,8 +4409,9 @@ static void header_xco_step(ARegion *ar, int *xco, int *yco, int *maxco, int ste
 	}
 }
 
-void view3d_header_buttons(const bContext *C, ARegion *ar)
+void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 {
+	ARegion *ar= CTX_wm_region(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	Scene *scene= CTX_data_scene(C);
@@ -4506,11 +4421,9 @@ void view3d_header_buttons(const bContext *C, ARegion *ar)
 	uiBlock *block;
 	int a, xco, maxco=0, yco= 3;
 	
-	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
+	block= uiLayoutFreeBlock(layout);
 	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
 	
-	xco= ED_area_header_standardbuttons(C, block, yco);
-
 	if((sa->flag & HEADER_NO_PULLDOWN)==0) 
 		view3d_header_pulldowns(C, block, ob, &xco, yco);
 

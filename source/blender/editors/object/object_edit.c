@@ -1757,9 +1757,9 @@ static short select_grouped_group(bContext *C, Object *ob)	/* Select objects in 
 	short changed = 0;
 	Base *base;
 	Group *group, *ob_groups[GROUP_MENU_MAX];
-	char str[10 + (24*GROUP_MENU_MAX)];
-	char *p = str;
-	int group_count=0, menu, i;
+	//char str[10 + (24*GROUP_MENU_MAX)];
+	//char *p = str;
+	int group_count=0; //, menu, i;
 
 	for (	group=G.main->group.first;
 			group && group_count < GROUP_MENU_MAX;

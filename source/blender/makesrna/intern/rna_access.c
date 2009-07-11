@@ -650,9 +650,10 @@ void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, En
 	if(C && eprop->itemf) {
 		*item= eprop->itemf(C, ptr, free);
 
-		if(totitem)
+		if(totitem) {
 			for(tot=0; (*item)[tot].identifier; tot++);
-				*totitem= tot;
+			*totitem= tot;
+		}
 	}
 	else {
 		*item= eprop->item;
