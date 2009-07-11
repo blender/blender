@@ -101,7 +101,7 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max)
 	int filter;
 	
 	/* get data to filter, from Action or Dopesheet */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* set large values to try to override */
@@ -178,6 +178,7 @@ void ACT_OT_previewrange_set (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Auto-Set Preview Range";
 	ot->idname= "ACT_OT_previewrange_set";
+	ot->description= "Set Preview Range based on extents of selected Keyframes.";
 	
 	/* api callbacks */
 	ot->exec= actkeys_previewrange_exec;
@@ -225,6 +226,7 @@ void ACT_OT_view_all (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "View All";
 	ot->idname= "ACT_OT_view_all";
+	ot->description= "Reset viewable area to show full keyframe range.";
 	
 	/* api callbacks */
 	ot->exec= actkeys_viewall_exec;
@@ -309,6 +311,7 @@ void ACT_OT_copy (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy Keyframes";
 	ot->idname= "ACT_OT_copy";
+	ot->description= "Copy selected keyframes to the copy/paste buffer.";
 	
 	/* api callbacks */
 	ot->exec= actkeys_copy_exec;
@@ -353,6 +356,7 @@ void ACT_OT_paste (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Paste Keyframes";
 	ot->idname= "ACT_OT_paste";
+	ot->description= "Paste keyframes from copy/paste buffer for the selected channels, starting on the current frame.";
 	
 	/* api callbacks */
 	ot->exec= actkeys_paste_exec;
@@ -449,6 +453,7 @@ void ACT_OT_insert_keyframe (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Insert Keyframes";
 	ot->idname= "ACT_OT_insert_keyframe";
+	ot->description= "Insert keyframes for the specified channels.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -526,6 +531,7 @@ void ACT_OT_duplicate (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Duplicate Keyframes";
 	ot->idname= "ACT_OT_duplicate";
+	ot->description= "Make a copy of all selected keyframes.";
 	
 	/* api callbacks */
 	ot->invoke= actkeys_duplicate_invoke;
@@ -593,6 +599,7 @@ void ACT_OT_delete (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Delete Keyframes";
 	ot->idname= "ACT_OT_delete";
+	ot->description= "Remove all selected keyframes.";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -656,6 +663,7 @@ void ACT_OT_clean (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Clean Keyframes";
 	ot->idname= "ACT_OT_clean";
+	ot->description= "Simplify F-Curves by removing closely spaced keyframes.";
 	
 	/* api callbacks */
 	//ot->invoke=  // XXX we need that number popup for this! 
@@ -780,6 +788,7 @@ void ACT_OT_sample (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Sample Keyframes";
 	ot->idname= "ACT_OT_sample";
+	ot->description= "Add keyframes on every frame between the selected keyframes.";
 	
 	/* api callbacks */
 	ot->exec= actkeys_sample_exec;
@@ -855,6 +864,7 @@ void ACT_OT_extrapolation_type (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Keyframe Extrapolation";
 	ot->idname= "ACT_OT_extrapolation_type";
+	ot->description= "Set extrapolation mode for selected F-Curves.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -925,6 +935,7 @@ void ACT_OT_interpolation_type (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Keyframe Interpolation";
 	ot->idname= "ACT_OT_interpolation_type";
+	ot->description= "Set interpolation mode for the F-Curve segments starting from the selected keyframes.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1013,6 +1024,7 @@ void ACT_OT_handle_type (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Keyframe Handle Type";
 	ot->idname= "ACT_OT_handle_type";
+	ot->description= "Set type of handle for selected keyframes.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1082,6 +1094,7 @@ void ACT_OT_frame_jump (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Jump to Frame";
 	ot->idname= "ACT_OT_frame_jump";
+	ot->description= "Set the current frame to the average frame of the selected keyframes.";
 	
 	/* api callbacks */
 	ot->exec= actkeys_framejump_exec;
@@ -1177,6 +1190,7 @@ void ACT_OT_snap (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Snap Keys";
 	ot->idname= "ACT_OT_snap";
+	ot->description= "Snap selected keyframes to the times specified.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1293,6 +1307,7 @@ void ACT_OT_mirror (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Mirror Keys";
 	ot->idname= "ACT_OT_mirror";
+	ot->description= "Flip selected keyframes over the selected mirror line.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;

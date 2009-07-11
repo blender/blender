@@ -105,6 +105,11 @@ static int pupmenu() {return 0;}
 
 /* join selected meshes into the active mesh, context sensitive
 return 0 if no join is made (error) and 1 of the join is done */
+
+// XXX NOTE to whoever ports this:
+//	Check the version of this code in the animsys2 branch, which has been nicely commented,
+//	but more importantly has proper support for handling meshes with shapekeys (instead of lamely bailing out)!
+// -- Aligorith, July 2009
 int join_mesh(Scene *scene, View3D *v3d, wmOperator *op)
 {
 	Base *base, *nextb;

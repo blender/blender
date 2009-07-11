@@ -103,7 +103,7 @@ void get_graph_keyframe_extents (bAnimContext *ac, float *xmin, float *xmax, flo
 	int filter;
 	
 	/* get data to filter, from Dopesheet */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* set large values to try to override */
@@ -234,6 +234,7 @@ void GRAPH_OT_view_all (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "View All";
 	ot->idname= "GRAPH_OT_view_all";
+	ot->description= "Reset viewable area to show full keyframe range.";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_viewall_exec;
@@ -485,6 +486,7 @@ void GRAPH_OT_insert_keyframe (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Insert Keyframes";
 	ot->idname= "GRAPH_OT_insert_keyframe";
+	ot->description= "Insert keyframes for the specified channels.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -572,6 +574,7 @@ void GRAPH_OT_click_insert (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Click-Insert Keyframes";
 	ot->idname= "GRAPH_OT_click_insert";
+	ot->description= "Insert new keyframe at the cursor position for the active F-Curve.";
 	
 	/* api callbacks */
 	ot->invoke= graphkeys_click_insert_invoke;
@@ -653,6 +656,7 @@ void GRAPH_OT_copy (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy Keyframes";
 	ot->idname= "GRAPH_OT_copy";
+	ot->description= "Copy selected keyframes to the copy/paste buffer.";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_copy_exec;
@@ -692,6 +696,7 @@ void GRAPH_OT_paste (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Paste Keyframes";
 	ot->idname= "GRAPH_OT_paste";
+	ot->description= "Paste keyframes from copy/paste buffer for the selected channels, starting on the current frame.";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_paste_exec;
@@ -759,6 +764,7 @@ void GRAPH_OT_duplicate (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Duplicate Keyframes";
 	ot->idname= "GRAPH_OT_duplicate";
+	ot->description= "Make a copy of all selected keyframes.";
 	
 	/* api callbacks */
 	ot->invoke= graphkeys_duplicate_invoke;
@@ -820,6 +826,7 @@ void GRAPH_OT_delete (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Delete Keyframes";
 	ot->idname= "GRAPH_OT_delete";
+	ot->description= "Remove all selected keyframes.";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -881,6 +888,7 @@ void GRAPH_OT_clean (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Clean Keyframes";
 	ot->idname= "GRAPH_OT_clean";
+	ot->description= "Simplify F-Curves by removing closely spaced keyframes.";
 	
 	/* api callbacks */
 	//ot->invoke=  // XXX we need that number popup for this! 
@@ -963,6 +971,7 @@ void GRAPH_OT_bake (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Bake Curve";
 	ot->idname= "GRAPH_OT_bake";
+	ot->description= "Bake selected F-Curves to a set of sampled points defining a similar curve.";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm; // FIXME...
@@ -1089,6 +1098,7 @@ void GRAPH_OT_sample (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Sample Keyframes";
 	ot->idname= "GRAPH_OT_sample";
+	ot->description= "Add keyframes on every frame between the selected keyframes.";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_sample_exec;
@@ -1163,6 +1173,7 @@ void GRAPH_OT_extrapolation_type (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Keyframe Extrapolation";
 	ot->idname= "GRAPH_OT_extrapolation_type";
+	ot->description= "Set extrapolation mode for selected F-Curves.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1231,6 +1242,7 @@ void GRAPH_OT_interpolation_type (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Keyframe Interpolation";
 	ot->idname= "GRAPH_OT_interpolation_type";
+	ot->description= "Set interpolation mode for the F-Curve segments starting from the selected keyframes.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1318,6 +1330,7 @@ void GRAPH_OT_handletype (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Keyframe Handle Type";
 	ot->idname= "GRAPH_OT_handletype";
+	ot->description= "Set type of handle for selected keyframes.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1473,6 +1486,7 @@ void GRAPH_OT_frame_jump (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Jump to Frame";
 	ot->idname= "GRAPH_OT_frame_jump";
+	ot->description= "Set the current frame to the average frame of the selected keyframes.";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_framejump_exec;
@@ -1564,6 +1578,7 @@ void GRAPH_OT_snap (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Snap Keys";
 	ot->idname= "GRAPH_OT_snap";
+	ot->description= "Snap selected keyframes to the times specified.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1675,6 +1690,7 @@ void GRAPH_OT_mirror (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Mirror Keys";
 	ot->idname= "GRAPH_OT_mirror";
+	ot->description= "Flip selected keyframes over the selected mirror line.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1729,6 +1745,7 @@ void GRAPH_OT_smooth (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Smooth Keys";
 	ot->idname= "GRAPH_OT_smooth";
+	ot->description= "Apply weighted moving means to make selected F-Curves less bumpy.";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_smooth_exec;
@@ -1820,6 +1837,7 @@ void GRAPH_OT_fmodifier_add (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add F-Curve Modifier";
 	ot->idname= "GRAPH_OT_fmodifier_add";
+	ot->description= "Add F-Modifiers to the selected F-Curves.";
 	
 	/* api callbacks */
 	ot->invoke= graph_fmodifier_add_invoke;

@@ -219,6 +219,7 @@ static void graph_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemO(layout, NULL, 0, "GRAPH_OT_clean");
 	uiItemO(layout, NULL, 0, "GRAPH_OT_sample");
+	uiItemO(layout, NULL, 0, "GRAPH_OT_bake");
 	
 	uiItemS(layout);
 	

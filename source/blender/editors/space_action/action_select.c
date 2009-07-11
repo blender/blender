@@ -185,6 +185,7 @@ void ACT_OT_select_all_toggle (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select All";
 	ot->idname= "ACT_OT_select_all_toggle";
+	ot->description= "Toggle selection of all keyframes.";
 	
 	/* api callbacks */
 	ot->exec= actkeys_deselectall_exec;
@@ -348,6 +349,7 @@ void ACT_OT_select_border(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Border Select";
 	ot->idname= "ACT_OT_select_border";
+	ot->description= "Select all keyframes within the specified region.";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -565,6 +567,7 @@ void ACT_OT_select_column (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select All";
 	ot->idname= "ACT_OT_select_column";
+	ot->description= "Select all keyframes on the specified frame(s).";
 	
 	/* api callbacks */
 	ot->exec= actkeys_columnselect_exec;
@@ -969,6 +972,7 @@ void ACT_OT_clickselect (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Mouse Select Keys";
 	ot->idname= "ACT_OT_clickselect";
+	ot->description= "Select keyframes by clicking on them.";
 	
 	/* api callbacks - absolutely no exec() this yet... */
 	ot->invoke= actkeys_clickselect_invoke;
