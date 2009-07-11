@@ -1325,11 +1325,11 @@ static int graphkeys_handletype_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void GRAPH_OT_handletype (wmOperatorType *ot)
+void GRAPH_OT_handle_type (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Handle Type";
-	ot->idname= "GRAPH_OT_handletype";
+	ot->idname= "GRAPH_OT_handle_type";
 	ot->description= "Set type of handle for selected keyframes.";
 	
 	/* api callbacks */
