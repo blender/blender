@@ -322,16 +322,16 @@ void OBJECT_OT_object_add(wmOperatorType *ot)
 /* ******  work both in and outside editmode ****** */
 
 static EnumPropertyItem prop_mesh_types[] = {
-	{0, "PLANE", 0, "Plane", ""},
-	{1, "CUBE", 0, "Cube", ""},
-	{2, "CIRCLE", 0, "Circle", ""},
-	{3, "UVSPHERE", 0, "UVsphere", ""},
-	{4, "ICOSPHERE", 0, "Icosphere", ""},
-	{5, "CYLINDER", 0, "Cylinder", ""},
-	{6, "CONE", 0, "Cone", ""},
+	{0, "PLANE", ICON_MESH_PLANE, "Plane", ""},
+	{1, "CUBE", ICON_MESH_CUBE, "Cube", ""},
+	{2, "CIRCLE", ICON_MESH_CIRCLE, "Circle", ""},
+	{3, "UVSPHERE", ICON_MESH_UVSPHERE, "UVsphere", ""},
+	{4, "ICOSPHERE", ICON_MESH_ICOSPHERE, "Icosphere", ""},
+	{5, "CYLINDER", ICON_MESH_TUBE, "Cylinder", ""},
+	{6, "CONE", ICON_MESH_CONE, "Cone", ""},
 	{0, "", 0, NULL, NULL},
-	{7, "GRID", 0, "Grid", ""},
-	{8, "MONKEY", 0, "Monkey", ""},
+	{7, "GRID", ICON_MESH_GRID, "Grid", ""},
+	{8, "MONKEY", ICON_MESH_MONKEY, "Monkey", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -407,11 +407,11 @@ void OBJECT_OT_mesh_add(wmOperatorType *ot)
 }
 
 static EnumPropertyItem prop_curve_types[] = {
-	{CU_BEZIER|CU_2D|CU_PRIM_CURVE, "BEZIER_CURVE", 0, "Bezier Curve", ""},
-	{CU_BEZIER|CU_2D|CU_PRIM_CIRCLE, "BEZIER_CIRCLE", 0, "Bezier Circle", ""},
-	{CU_NURBS|CU_2D|CU_PRIM_CURVE, "NURBS_CURVE", 0, "NURBS Curve", ""},
-	{CU_NURBS|CU_2D|CU_PRIM_CIRCLE, "NURBS_CIRCLE", 0, "NURBS Circle", ""},
-	{CU_NURBS|CU_2D|CU_PRIM_PATH, "PATH", 0, "Path", ""},
+	{CU_BEZIER|CU_2D|CU_PRIM_CURVE, "BEZIER_CURVE", ICON_CURVE_BEZCURVE, "Bezier Curve", ""},
+	{CU_BEZIER|CU_2D|CU_PRIM_CIRCLE, "BEZIER_CIRCLE", ICON_CURVE_BEZCIRCLE, "Bezier Circle", ""},
+	{CU_NURBS|CU_2D|CU_PRIM_CURVE, "NURBS_CURVE", ICON_CURVE_NCURVE, "NURBS Curve", ""},
+	{CU_NURBS|CU_2D|CU_PRIM_CIRCLE, "NURBS_CIRCLE", ICON_CURVE_NCIRCLE, "NURBS Circle", ""},
+	{CU_NURBS|CU_2D|CU_PRIM_PATH, "PATH", ICON_CURVE_PATH, "Path", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -481,12 +481,12 @@ void OBJECT_OT_curve_add(wmOperatorType *ot)
 }
 
 static EnumPropertyItem prop_surface_types[]= {
-	{CU_PRIM_CURVE|CU_NURBS, "NURBS_CURVE", 0, "NURBS Curve", ""},
-	{CU_PRIM_CIRCLE|CU_NURBS, "NURBS_CIRCLE", 0, "NURBS Circle", ""},
-	{CU_PRIM_PATCH|CU_NURBS, "NURBS_SURFACE", 0, "NURBS Surface", ""},
-	{CU_PRIM_TUBE|CU_NURBS, "NURBS_TUBE", 0, "NURBS Tube", ""},
-	{CU_PRIM_SPHERE|CU_NURBS, "NURBS_SPHERE", 0, "NURBS Sphere", ""},
-	{CU_PRIM_DONUT|CU_NURBS, "NURBS_DONUT", 0, "NURBS Donut", ""},
+	{CU_PRIM_CURVE|CU_NURBS, "NURBS_CURVE", ICON_SURFACE_NCURVE, "NURBS Curve", ""},
+	{CU_PRIM_CIRCLE|CU_NURBS, "NURBS_CIRCLE", ICON_SURFACE_NCIRCLE, "NURBS Circle", ""},
+	{CU_PRIM_PATCH|CU_NURBS, "NURBS_SURFACE", ICON_SURFACE_NSURFACE, "NURBS Surface", ""},
+	{CU_PRIM_TUBE|CU_NURBS, "NURBS_TUBE", ICON_SURFACE_NTUBE, "NURBS Tube", ""},
+	{CU_PRIM_SPHERE|CU_NURBS, "NURBS_SPHERE", ICON_SURFACE_NSPHERE, "NURBS Sphere", ""},
+	{CU_PRIM_DONUT|CU_NURBS, "NURBS_DONUT", ICON_SURFACE_NDONUT, "NURBS Donut", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
