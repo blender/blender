@@ -105,6 +105,9 @@ typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	int sortorder;			/* panels are aligned according to increasing sortorder */
 	struct Panel *paneltab;		/* this panel is tabbed in *paneltab */
 	void *activedata;			/* runtime for panel manipulation */
+
+	int list_scroll, list_size;
+	char list_search[64];
 } Panel;
 
 typedef struct Header {
@@ -208,6 +211,7 @@ typedef struct ARegion {
 
 /* paneltype flag */
 #define PNL_DEFAULT_CLOSED		1
+#define PNL_NO_HEADER			2
 
 /* screen handlers */
 #define SCREEN_MAXHANDLER		8
@@ -223,6 +227,7 @@ typedef struct ARegion {
 #define RGN_TYPE_TEMPORARY	3
 #define RGN_TYPE_UI			4
 #define RGN_TYPE_TOOLS		5
+#define RGN_TYPE_TOOL_PROPS	6
 
 /* region alignment */
 #define RGN_ALIGN_NONE		0

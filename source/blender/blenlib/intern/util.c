@@ -494,6 +494,22 @@ void BLI_makestringcode(const char *relfile, char *file)
 	}
 }
 
+int BLI_has_parent(char *path)
+{
+	int len;
+	int slashes = 0;
+	BLI_clean(path);
+	BLI_add_slash(path);
+
+	len = strlen(path)-1;
+	while (len) {
+		if ((path[len] == '\\') || (path[len] == '/'))
+			slashes++;
+		len--;
+	}
+	return slashes > 1;
+}
+
 int BLI_parent_dir(char *path)
 {
 #ifdef WIN32
@@ -738,9 +754,9 @@ void BLI_splitdirstring(char *di, char *fi)
 
 void BLI_getlastdir(const char* dir, char *last, int maxlen)
 {
-	char *s = dir;
-	char *lslash = NULL;
-	char *prevslash = NULL;
+	const char *s = dir;
+	const char *lslash = NULL;
+	const char *prevslash = NULL;
 	while (*s) {
 		if ((*s == '\\') || (*s == '/')) {
 			prevslash = lslash;

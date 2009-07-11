@@ -97,29 +97,45 @@ ARegion *view3d_has_buttons_region(ScrArea *sa)
 
 ARegion *view3d_has_tools_region(ScrArea *sa)
 {
-	ARegion *ar, *arnew;
+	ARegion *ar, *artool=NULL, *arprops=NULL, *arhead;
 	
-	for(ar= sa->regionbase.first; ar; ar= ar->next)
+	for(ar= sa->regionbase.first; ar; ar= ar->next) {
 		if(ar->regiontype==RGN_TYPE_TOOLS)
-			return ar;
+			artool= ar;
+		if(ar->regiontype==RGN_TYPE_TOOL_PROPS)
+			arprops= ar;
+	}
 	
-	/* add subdiv level; after header */
-	for(ar= sa->regionbase.first; ar; ar= ar->next)
-		if(ar->regiontype==RGN_TYPE_HEADER)
-			break;
+	/* tool region hide/unhide also hides props */
+	if(arprops && artool) return artool;
 	
-	/* is error! */
-	if(ar==NULL) return NULL;
+	if(artool==NULL) {
+		/* add subdiv level; after header */
+		for(arhead= sa->regionbase.first; arhead; arhead= arhead->next)
+			if(arhead->regiontype==RGN_TYPE_HEADER)
+				break;
+		
+		/* is error! */
+		if(arhead==NULL) return NULL;
+		
+		artool= MEM_callocN(sizeof(ARegion), "tools for view3d");
+		
+		BLI_insertlinkafter(&sa->regionbase, arhead, artool);
+		artool->regiontype= RGN_TYPE_TOOLS;
+		artool->alignment= RGN_OVERLAP_LEFT;
+		artool->flag = RGN_FLAG_HIDDEN;
+	}
+
+	if(arprops==NULL) {
+		/* add extra subdivided region for tool properties */
+		arprops= MEM_callocN(sizeof(ARegion), "tool props for view3d");
+		
+		BLI_insertlinkafter(&sa->regionbase, artool, arprops);
+		arprops->regiontype= RGN_TYPE_TOOL_PROPS;
+		arprops->alignment= RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
+	}
 	
-	arnew= MEM_callocN(sizeof(ARegion), "tools for view3d");
-	
-	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
-	arnew->regiontype= RGN_TYPE_TOOLS;
-	arnew->alignment= RGN_OVERLAP_LEFT;
-	
-	arnew->flag = RGN_FLAG_HIDDEN;
-	
-	return arnew;
+	return artool;
 }
 
 /* ****************************************************** */
@@ -288,6 +304,12 @@ static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 	else
 		WM_event_remove_keymap_handler(&ar->handlers, keymap);
 
+	keymap= WM_keymap_listbase(wm, "Lattice", 0, 0);
+	if(stype==NS_EDITMODE_LATTICE)
+		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+
 	/* armature sketching needs to take over mouse */
 	keymap= WM_keymap_listbase(wm, "Armature_Sketch", 0, 0);
 	if(stype==NS_EDITMODE_TEXT)
@@ -307,7 +329,6 @@ static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 		WM_event_add_keymap_handler_priority(&ar->handlers, keymap, 10);
 	else
 		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-	
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -388,6 +409,15 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_ANIMATION:
+			switch(wmn->data) {
+				case ND_KEYFRAME_EDIT:
+				case ND_KEYFRAME_PROP:
+				case ND_NLA_ACTCHANGE:
+				case ND_ANIMCHAN_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_TRANSFORM:
@@ -559,9 +589,11 @@ static void view3d_tools_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
+
+
 static void view3d_tools_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, NULL);
+	ED_region_panels(C, ar, 1, view3d_context_string(C));
 }
 
 /*
@@ -860,6 +892,20 @@ void ED_spacetype_view3d(void)
 	BLI_addhead(&st->regiontypes, art);
 	
 	view3d_toolbar_register(art);
+
+	/* regions: tool properties */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
+	art->regionid = RGN_TYPE_TOOL_PROPS;
+	art->minsizex= 0;
+	art->minsizey= 120;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
+	art->listener= view3d_buttons_area_listener;
+	art->init= view3d_tools_area_init;
+	art->draw= view3d_tools_area_draw;
+	BLI_addhead(&st->regiontypes, art);
+	
+	view3d_tool_props_register(art);
+	
 	
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");

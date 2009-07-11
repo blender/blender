@@ -87,6 +87,9 @@ typedef struct Image {
 	struct PackedFile * packedfile;
 	struct PreviewImage * preview;
 
+	/* not saved in file, statistics for render result */
+	char *render_text;
+	
 	float lastupdate;
 	int lastused;
 	short animspeed;
@@ -119,6 +122,10 @@ typedef struct Image {
 #define IMA_CLAMP_V		32
 
 /* ima->type and ima->source moved to BKE_image.h, for API */
+
+/* render_text maxlen */
+#define IMA_RW_MAXTEXT           512
+
 
 #endif
 

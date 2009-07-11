@@ -218,7 +218,12 @@ typedef struct RenderData {
 	short bufflag;
  	short quality;
 	
-	short rpad, rpad1, rpad2;
+	/**
+	 * Render to image editor, fullscreen or to new window.
+	 */
+	short displaymode;
+	
+	short rpad1, rpad2;
 
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
@@ -439,6 +444,9 @@ typedef struct ToolSettings {
 	VPaint *wpaint;		/* weight paint */
 	Sculpt *sculpt;
 	
+	/* Vertex groups */
+	float vgroup_weight;
+
 	/* Subdivide Settings */
 	short cornertype;
 	short editbutflag;
@@ -470,7 +478,6 @@ typedef struct ToolSettings {
 	float uvcalc_radius;
 	float uvcalc_cubesize;
 	float uvcalc_margin;
-	float pad;
 	short uvcalc_mapdir;
 	short uvcalc_mapalign;
 	short uvcalc_flag;
@@ -537,7 +544,7 @@ typedef struct ToolSettings {
 	/* Alt+RMB option */
 	char edge_mode;
 
-	/* transform */
+	/* Transform */
 	short snap_mode, snap_flag, snap_target;
 	short proportional, prop_mode;
 } ToolSettings;
@@ -650,6 +657,12 @@ typedef struct Scene {
 #define R_TOUCH			0x800000 /* touch files before rendering */
 #define R_SIMPLIFY		0x1000000
 
+/* displaymode */
+
+#define R_OUTPUT_SCREEN	0
+#define R_OUTPUT_AREA	1
+#define R_OUTPUT_WINDOW	2
+#define R_OUTPUT_FORKED	3
 
 /* filtertype */
 #define R_FILTER_BOX	0
@@ -770,6 +783,10 @@ typedef struct Scene {
 #define MINFRAME	1
 #define MINFRAMEF	1.0f
 
+/* (minimum frame number for current-frame) */
+#define MINAFRAME	-300000
+#define MINAFRAMEF	-300000.0f
+
 /* depricate this! */
 #define TESTBASE(v3d, base)	( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0) )
 #define TESTBASELIB(v3d, base)	( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
@@ -838,6 +855,7 @@ typedef struct Scene {
 /* sce->flag */
 #define SCE_DS_SELECTED			(1<<0)
 #define SCE_DS_COLLAPSED		(1<<1)
+#define SCE_NLA_EDIT_ON			(1<<2)
 
 
 	/* return flag next_object function */

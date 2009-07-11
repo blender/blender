@@ -31,7 +31,9 @@
 #define ED_PHYSICS_H
 
 /* operators */
+
 void ED_operatortypes_pointcache(void);
+void ED_operatortypes_fluid(void);
 //void ED_keymap_pointcache(struct wmWindowManager *wm);
 
 #endif /* ED_PHYSICS_H */

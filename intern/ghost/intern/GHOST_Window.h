@@ -167,6 +167,13 @@ public:
 	virtual GHOST_TSuccess setCursorVisibility(bool visible);
 
 	/**
+	 * Sets the cursor grab.
+	 * @param	grab The new grab state of the cursor.
+	 * @return	Indication of success.
+	 */
+	virtual GHOST_TSuccess setCursorGrab(bool grab);
+
+	/**
 	 * Returns the type of drawing context used in this window.
 	 * @return The current type of drawing context.
 	 */
@@ -218,6 +225,12 @@ protected:
 	 * native window system calls.
 	 */
 	virtual GHOST_TSuccess setWindowCursorVisibility(bool visible) = 0;
+
+	/**
+	 * Sets the cursor grab on the window using
+	 * native window system calls.
+	 */
+	virtual GHOST_TSuccess setWindowCursorGrab(bool grab) { return GHOST_kSuccess; };
 	
 	/**
 	 * Sets the cursor shape on the window using
@@ -242,6 +255,9 @@ protected:
 
 	/** The current visibility of the cursor */
 	bool m_cursorVisible;
+
+	/** The current grabbed state of the cursor */
+	bool m_cursorGrabbed;
 	
 	/** The current shape of the cursor */
 	GHOST_TStandardCursor m_cursorShape;

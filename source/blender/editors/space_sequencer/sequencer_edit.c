@@ -66,8 +66,6 @@
 #include "BKE_utildefines.h"
 #include "BKE_report.h"
 
-#include "BIF_transform.h"
-
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -82,6 +80,7 @@
 #include "ED_space_api.h"
 #include "ED_types.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 #include "ED_util.h"
 
 #include "UI_interface.h"
@@ -123,11 +122,6 @@ EnumPropertyItem sequencer_prop_effect_types[] = {
 };
 
 /* mute operator */
-EnumPropertyItem sequencer_prop_operate_types[] = { /* better name? */
-	{SEQ_SELECTED, "SELECTED", 0, "Selected", ""},
-	{SEQ_UNSELECTED, "UNSELECTED", 0, "Unselected ", ""},
-	{0, NULL, 0, NULL, NULL}
-};
 
  EnumPropertyItem prop_side_types[] = {
 	{SEQ_SIDE_LEFT, "LEFT", 0, "Left", ""},
@@ -1492,8 +1486,7 @@ static int sequencer_mute_exec(bContext *C, wmOperator *op)
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;
 
-	selected=  RNA_enum_is_equal(op->ptr, "type", "SELECTED");
-	
+	selected= !RNA_boolean_get(op->ptr, "unselected");
 	
 	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
 		if ((seq->flag & SEQ_LOCK)==0) {
@@ -1529,7 +1522,7 @@ void SEQUENCER_OT_mute(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", sequencer_prop_operate_types, SEQ_SELECTED, "Type", "");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Mute unselected rather than selected strips.");
 }
 
 
@@ -1544,8 +1537,7 @@ static int sequencer_unmute_exec(bContext *C, wmOperator *op)
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;
 
-	selected=  RNA_enum_is_equal(op->ptr, "type", "SELECTED");
-	
+	selected= !RNA_boolean_get(op->ptr, "unselected");
 	
 	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
 		if ((seq->flag & SEQ_LOCK)==0) {
@@ -1581,7 +1573,7 @@ void SEQUENCER_OT_unmute(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", sequencer_prop_operate_types, SEQ_SELECTED, "Type", "");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "UnMute unselected rather than selected strips.");
 }
 
 
@@ -1855,12 +1847,12 @@ static int sequencer_add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *
 	return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_duplicate_add(wmOperatorType *ot)
+void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Add Duplicate";
-	ot->idname= "SEQUENCER_OT_duplicate_add";
+	ot->name= "Duplicate";
+	ot->idname= "SEQUENCER_OT_duplicate";
 
 	/* api callbacks */
 	ot->invoke= sequencer_add_duplicate_invoke;

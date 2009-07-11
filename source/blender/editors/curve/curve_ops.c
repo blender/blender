@@ -53,10 +53,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_screen.h"
 #include "ED_object.h"
-
-#include "BIF_transform.h"
+#include "ED_screen.h"
+#include "ED_transform.h"
 
 #include "UI_interface.h"
 
@@ -140,7 +139,7 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_de_select_first);
 	WM_operatortype_append(CURVE_OT_de_select_last);
 	WM_operatortype_append(CURVE_OT_select_all_toggle);
-	WM_operatortype_append(CURVE_OT_select_invert);
+	WM_operatortype_append(CURVE_OT_select_inverse);
 	WM_operatortype_append(CURVE_OT_select_linked);
 	WM_operatortype_append(CURVE_OT_select_row);
 	WM_operatortype_append(CURVE_OT_select_next);

@@ -71,7 +71,6 @@
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
-#include "BIF_transform.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -87,6 +86,7 @@
 #include "ED_object.h"
 #include "ED_particle.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 #include "ED_types.h"
 #include "ED_util.h"
 
@@ -1107,6 +1107,7 @@ static int view3d_panel_brush_poll(const bContext *C, PanelType *pt)
 static void view3d_panel_brush(const bContext *C, Panel *pa)
 {
 	uiBlock *block;
+	ToolSettings *ts= CTX_data_tool_settings(C);
 	Brush **brp = current_brush_source(CTX_data_scene(C)), *br;
 	short w = 268, h = 400, cx = 10, cy = h;
 	rctf rect;
@@ -1143,6 +1144,10 @@ static void view3d_panel_brush(const bContext *C, Panel *pa)
 	uiBlockBeginAlign(block);
 	uiDefButI(block,NUMSLI,B_NOP,"Size: ",cx,cy,w,19,&br->size,1.0,200.0,0,0,"Set brush radius in pixels");
 	cy-= 20;
+	if(G.f & G_WEIGHTPAINT) {
+		uiDefButF(block,NUMSLI,B_NOP,"Weight: ",cx,cy,w,19,&ts->vgroup_weight,0,1.0,0,0,"Set vertex weight");
+		cy-= 20;
+	}
 	uiDefButF(block,NUMSLI,B_NOP,"Strength: ",cx,cy,w,19,&br->alpha,0,1.0,0,0,"Set brush strength");
 	cy-= 25;
 	uiBlockEndAlign(block);

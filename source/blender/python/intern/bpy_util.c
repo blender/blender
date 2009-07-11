@@ -417,7 +417,8 @@ char *BPy_enum_as_string(EnumPropertyItem *item)
 	char *cstring;
 
 	for (e= item; item->identifier; item++) {
-		BLI_dynstr_appendf(dynstr, (e==item)?"'%s'":", '%s'", item->identifier);
+		if(item->identifier[0])
+			BLI_dynstr_appendf(dynstr, (e==item)?"'%s'":", '%s'", item->identifier);
 	}
 
 	cstring = BLI_dynstr_get_cstring(dynstr);

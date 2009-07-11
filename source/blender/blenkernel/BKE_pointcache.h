@@ -114,6 +114,7 @@ typedef struct PTCacheBaker {
 	struct Scene *scene;
 	int bake;
 	int render;
+	int anim_init;
 	int quick_step;
 	struct PTCacheID *pid;
 	int (*break_test)(void *data);

@@ -83,10 +83,12 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	int cfra;
 	
-	/* get frame, and clamp to MINFRAME */
+	/* get frame, and clamp to MINAFRAME 
+	 *	- not MINFRAME, since it's useful to be able to key a few-frames back
+	 */
 	cfra= RNA_int_get(op->ptr, "frame");
 	
-	if (cfra < MINFRAME) cfra= MINFRAME;
+	if (cfra < MINAFRAME) cfra= MINAFRAME;
 	CFRA= cfra;
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
@@ -209,7 +211,7 @@ void ANIM_OT_change_frame(wmOperatorType *ot)
 	ot->modal= change_frame_modal;
 
 	/* rna */
-	RNA_def_int(ot->srna, "frame", 0, 1, MAXFRAME, "Frame", "", 1, MAXFRAME);
+	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
 }
 
 /* ****************** set preview range operator ****************************/

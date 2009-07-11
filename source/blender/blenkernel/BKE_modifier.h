@@ -62,7 +62,7 @@ typedef enum {
 	 * used for particles modifier that doesn't actually modify the object
 	 * unless it's a mesh and can be exploded -> curve can also emit particles
 	 */
-	eModifierTypeType_DeformOrConstruct
+	eModifierTypeType_DeformOrConstruct,
 } ModifierTypeType;
 
 typedef enum {
@@ -87,6 +87,9 @@ typedef enum {
 	/* For modifiers that support pointcache, so we can check to see if it has files we need to deal with
 	*/
 	eModifierTypeFlag_UsesPointCache = (1<<6),
+
+	/* For physics modifiers, max one per type */
+	eModifierTypeFlag_Single = (1<<7)
 } ModifierTypeFlag;
 
 typedef void (*ObjectWalkFunc)(void *userData, struct Object *ob, struct Object **obpoin);

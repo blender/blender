@@ -149,8 +149,6 @@ typedef struct RawArray {
 	int stride;
 } RawArray;
 
-/* Iterator Utility */
-
 typedef struct EnumPropertyItem {
 	int value;
 	const char *identifier;
@@ -158,6 +156,8 @@ typedef struct EnumPropertyItem {
 	const char *name;
 	const char *description;
 } EnumPropertyItem;
+
+typedef EnumPropertyItem *(*EnumPropertyItemFunc)(struct bContext *C, PointerRNA *ptr, int *free);
 
 typedef struct PropertyRNA PropertyRNA;
 

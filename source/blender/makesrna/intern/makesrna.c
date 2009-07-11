@@ -119,6 +119,11 @@ static void rna_print_c_string(FILE *f, const char *str)
 	static char *escape[] = {"\''", "\"\"", "\??", "\\\\","\aa", "\bb", "\ff", "\nn", "\rr", "\tt", "\vv", NULL};
 	int i, j;
 
+	if(!str) {
+		fprintf(f, "NULL");
+		return;
+	}
+
 	fprintf(f, "\"");
 	for(i=0; str[i]; i++) {
 		for(j=0; escape[j]; j++)
@@ -262,7 +267,8 @@ static int rna_enum_bitmask(PropertyRNA *prop)
 
 	if(eprop->item) {
 		for(a=0; a<eprop->totitem; a++)
-			mask |= eprop->item[a].value;
+			if(eprop->item[a].identifier[0])
+				mask |= eprop->item[a].value;
 	}
 	
 	return mask;
@@ -971,7 +977,8 @@ static void rna_def_property_funcs_header(FILE *f, StructRNA *srna, PropertyDefR
 				fprintf(f, "enum {\n");
 
 				for(i=0; i<eprop->totitem; i++)
-					fprintf(f, "\t%s_%s_%s = %d,\n", srna->identifier, prop->identifier, eprop->item[i].identifier, eprop->item[i].value);
+					if(eprop->item[i].identifier[0])
+						fprintf(f, "\t%s_%s_%s = %d,\n", srna->identifier, prop->identifier, eprop->item[i].identifier, eprop->item[i].value);
 
 				fprintf(f, "};\n\n");
 			}
@@ -1059,7 +1066,8 @@ static void rna_def_property_funcs_header_cpp(FILE *f, StructRNA *srna, Property
 				fprintf(f, "\tenum %s_enum {\n", prop->identifier);
 
 				for(i=0; i<eprop->totitem; i++)
-					fprintf(f, "\t\t%s_%s = %d,\n", prop->identifier, eprop->item[i].identifier, eprop->item[i].value);
+					if(eprop->item[i].identifier[0])
+						fprintf(f, "\t\t%s_%s = %d,\n", prop->identifier, eprop->item[i].identifier, eprop->item[i].value);
 
 				fprintf(f, "\t};\n");
 			}
@@ -1568,29 +1576,27 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 				int i, defaultfound= 0;
 
 				if(eprop->item) {
-					fprintf(f, "static EnumPropertyItem rna_%s%s_%s_items[%d] = {", srna->identifier, strnest, prop->identifier, eprop->totitem);
+					fprintf(f, "static EnumPropertyItem rna_%s%s_%s_items[%d] = {", srna->identifier, strnest, prop->identifier, eprop->totitem+1);
 
 					for(i=0; i<eprop->totitem; i++) {
 						fprintf(f, "{%d, ", eprop->item[i].value);
 						rna_print_c_string(f, eprop->item[i].identifier); fprintf(f, ", ");
 						fprintf(f, "%d, ", eprop->item[i].icon);
 						rna_print_c_string(f, eprop->item[i].name); fprintf(f, ", ");
-						rna_print_c_string(f, eprop->item[i].description); fprintf(f, "}");
-						if(i != eprop->totitem-1)
-							fprintf(f, ", ");
+						rna_print_c_string(f, eprop->item[i].description); fprintf(f, "}, ");
 
-						if(eprop->defaultvalue == eprop->item[i].value)
-							defaultfound= 1;
+						if(eprop->item[i].identifier[0])
+							if(eprop->defaultvalue == eprop->item[i].value)
+								defaultfound= 1;
 					}
 
-					fprintf(f, "};\n\n");
+					fprintf(f, "{0, NULL, 0, NULL, NULL}};\n\n");
 
 					if(!defaultfound) {
 						fprintf(stderr, "rna_generate_structs: %s%s.%s, enum default is not in items.\n", srna->identifier, errnest, prop->identifier);
 						DefRNA.error= 1;
 					}
 				}
-				else if(eprop->itemf);
 				else {
 					fprintf(stderr, "rna_generate_structs: %s%s.%s, enum must have items defined.\n", srna->identifier, errnest, prop->identifier);
 					DefRNA.error= 1;
@@ -1915,6 +1921,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_mesh.c", "rna_mesh_api.c", RNA_def_mesh},
 	{"rna_meta.c", NULL, RNA_def_meta},
 	{"rna_modifier.c", NULL, RNA_def_modifier},
+	{"rna_nla.c", NULL, RNA_def_nla},
 	{"rna_nodetree.c", NULL, RNA_def_nodetree},
 	{"rna_object.c", "rna_object_api.c", RNA_def_object},
 	{"rna_object_force.c", NULL, RNA_def_object_force},

@@ -85,6 +85,13 @@ int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
 #endif
 
 typedef struct Mathutils_Callback Mathutils_Callback;
+
+typedef int (*BaseMathCheckFunc)(PyObject *);
+typedef int (*BaseMathGetFunc)(PyObject *, int, float *);
+typedef int (*BaseMathSetFunc)(PyObject *, int, float *);
+typedef int (*BaseMathGetIndexFunc)(PyObject *, int, float *, int);
+typedef int (*BaseMathSetIndexFunc)(PyObject *, int, float *, int);
+
 struct Mathutils_Callback {
 	int		(*check)(PyObject *user);					/* checks the user is still valid */
 	int		(*get)(PyObject *user, int subtype, float *from);	/* gets the vector from the user */

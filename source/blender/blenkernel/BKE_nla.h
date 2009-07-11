@@ -17,12 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Joshua Leung (full recode)
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -30,15 +30,90 @@
 #ifndef BKE_NLA_H
 #define BKE_NLA_H
 
-struct bActionStrip;
-struct ListBase;
-struct Object;
+struct AnimData;
+struct NlaStrip;
+struct NlaTrack;
+struct bAction;
 
-void free_actionstrip (struct bActionStrip* strip);
-void free_nlastrips (struct ListBase *nlalist);
-void copy_nlastrips (struct ListBase *dst, struct ListBase *src);
-void copy_actionstrip (struct bActionStrip **dst, struct bActionStrip **src);
-void find_stridechannel(struct Object *ob, struct bActionStrip *strip);
-struct bActionStrip *convert_action_to_strip (struct Object *ob);
+/* ----------------------------- */
+/* Data Management */
+
+void free_nlastrip(ListBase *strips, struct NlaStrip *strip);
+void free_nlatrack(ListBase *tracks, struct NlaTrack *nlt);
+void free_nladata(ListBase *tracks);
+
+struct NlaStrip *copy_nlastrip(struct NlaStrip *strip);
+struct NlaTrack *copy_nlatrack(struct NlaTrack *nlt);
+void copy_nladata(ListBase *dst, ListBase *src);
+
+struct NlaTrack *add_nlatrack(struct AnimData *adt, struct NlaTrack *prev);
+struct NlaStrip *add_nlastrip(struct bAction *act);
+struct NlaStrip *add_nlastrip_to_stack(struct AnimData *adt, struct bAction *act);
+
+/* ----------------------------- */
+/* API */
+
+short BKE_nlastrips_has_space(ListBase *strips, float start, float end);
+void BKE_nlastrips_sort_strips(ListBase *strips);
+
+short BKE_nlastrips_add_strip(ListBase *strips, struct NlaStrip *strip);
+
+
+void BKE_nlastrips_make_metas(ListBase *strips, short temp);
+void BKE_nlastrips_clear_metas(ListBase *strips, short onlySel, short onlyTemp);
+void BKE_nlastrips_clear_metastrip(ListBase *strips, struct NlaStrip *strip);
+short BKE_nlameta_add_strip(struct NlaStrip *mstrip, struct NlaStrip *strip);
+void BKE_nlameta_flush_transforms(struct NlaStrip *mstrip);
+
+/* ............ */
+
+struct NlaTrack *BKE_nlatrack_find_active(ListBase *tracks);
+void BKE_nlatrack_set_active(ListBase *tracks, struct NlaTrack *nlt);
+
+void BKE_nlatrack_solo_toggle(struct AnimData *adt, struct NlaTrack *nlt);
+
+short BKE_nlatrack_has_space(struct NlaTrack *nlt, float start, float end);
+void BKE_nlatrack_sort_strips(struct NlaTrack *nlt);
+
+short BKE_nlatrack_add_strip(struct NlaTrack *nlt, struct NlaStrip *strip);
+
+/* ............ */
+
+struct NlaStrip *BKE_nlastrip_find_active(struct NlaTrack *nlt);
+
+short BKE_nlastrip_within_bounds(struct NlaStrip *strip, float min, float max);
+
+void BKE_nlastrip_validate_name(struct AnimData *adt, struct NlaStrip *strip);
+
+/* ............ */
+
+short BKE_nlatrack_has_animated_strips(struct NlaTrack *nlt);
+short BKE_nlatracks_have_animated_strips(ListBase *tracks);
+void BKE_nlastrip_validate_fcurves(struct NlaStrip *strip);
+
+/* ............ */
+
+void BKE_nla_action_pushdown(struct AnimData *adt);
+
+short BKE_nla_tweakmode_enter(struct AnimData *adt);
+void BKE_nla_tweakmode_exit(struct AnimData *adt);
+
+/* ----------------------------- */
+/* Time Mapping */
+
+/* time mapping conversion modes */
+enum {
+		/* convert from global time to strip time - for evaluation */
+	NLATIME_CONVERT_EVAL = 0,
+		/* convert from global time to strip time - for editing corrections */
+		// XXX old 0 invert
+	NLATIME_CONVERT_UNMAP,
+		/* convert from strip time to global time */
+		// xxx old 1 invert
+	NLATIME_CONVERT_MAP,
+} eNlaTime_ConvertModes;
+
+float BKE_nla_tweakedit_remap(struct AnimData *adt, float cframe, short mode);
+
 #endif
 

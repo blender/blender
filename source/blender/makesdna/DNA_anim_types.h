@@ -1,5 +1,28 @@
-/* Testing code for new animation system in 2.5 
- * Copyright 2009, Joshua Leung
+/**
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
+ * All rights reserved.
+ *
+ * Contributor(s): Joshua Leung (full recode)
+ *
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef DNA_ANIM_TYPES_H
@@ -43,9 +66,10 @@ typedef struct FModifier {
 enum {
 	FMODIFIER_TYPE_NULL = 0,
 	FMODIFIER_TYPE_GENERATOR,
+	FMODIFIER_TYPE_FN_GENERATOR,
 	FMODIFIER_TYPE_ENVELOPE,
 	FMODIFIER_TYPE_CYCLES,
-	FMODIFIER_TYPE_NOISE,		/* unimplemented - generate variations using some basic noise generator... */
+	FMODIFIER_TYPE_NOISE,
 	FMODIFIER_TYPE_FILTER,		/* unimplemented - for applying: fft, high/low pass filters, etc. */
 	FMODIFIER_TYPE_PYTHON,	
 	FMODIFIER_TYPE_LIMITS,
@@ -68,38 +92,54 @@ enum {
 
 /* --- */
 
-/* generator modifier data */
+/* Generator modifier data */
 typedef struct FMod_Generator {
-		/* generator based on PyExpression */
-	char expression[256];		/* python expression to use as generator */
-	
 		/* general generator information */
 	float *coefficients;		/* coefficients array */
 	unsigned int arraysize;		/* size of the coefficients array */
 	
-	short poly_order;			/* order of polynomial generated (i.e. 1 for linear, 2 for quadratic) */
-	short func_type;			/* builtin math function eFMod_Generator_Functions */
-	
-	int pad;
+	int poly_order;				/* order of polynomial generated (i.e. 1 for linear, 2 for quadratic) */
+	int mode;					/* which 'generator' to use eFMod_Generator_Modes */
 	
 		/* settings */
-	short flag;					/* settings */
-	short mode;					/* which 'generator' to use eFMod_Generator_Modes */
+	int flag;					/* settings */
 } FMod_Generator;
 
 /* generator modes */
 enum {
 	FCM_GENERATOR_POLYNOMIAL	= 0,
 	FCM_GENERATOR_POLYNOMIAL_FACTORISED,
-	FCM_GENERATOR_FUNCTION,
-	FCM_GENERATOR_EXPRESSION,
 } eFMod_Generator_Modes;
 
-/* generator flags */
+
+/* generator flags 
+ *	- shared by Generator and Function Generator
+ */
 enum {
 		/* generator works in conjunction with other modifiers (i.e. doesn't replace those before it) */
 	FCM_GENERATOR_ADDITIVE	= (1<<0),
 } eFMod_Generator_Flags;
+
+
+/* 'Built-In Function' Generator modifier data
+ * 
+ * This uses the general equation for equations:
+ * 		y = amplitude * fn(phase_multiplier*x + phase_offset) + y_offset
+ *
+ * where amplitude, phase_multiplier/offset, y_offset are user-defined coefficients,
+ * x is the evaluation 'time', and 'y' is the resultant value
+ */
+typedef struct FMod_FunctionGenerator {
+		/* coefficients for general equation (as above) */
+	float amplitude;
+	float phase_multiplier;
+	float phase_offset;
+	float value_offset;
+	
+		/* flags */
+	int type;				/* eFMod_Generator_Functions */
+	int flag;				/* eFMod_Generator_flags */
+} FMod_FunctionGenerator;
 
 /* 'function' generator types */
 enum {
@@ -108,6 +148,7 @@ enum {
 	FCM_GENERATOR_FN_TAN,
 	FCM_GENERATOR_FN_SQRT,
 	FCM_GENERATOR_FN_LN,
+	FCM_GENERATOR_FN_SINC,
 } eFMod_Generator_Functions;
 
 
@@ -386,85 +427,104 @@ typedef struct AnimMapper {
 
 /* ************************************************ */
 /* NLA - Non-Linear Animation */
-// TODO: the concepts here still need to be refined to solve any unresolved items
-
-/* NLA Modifiers ---------------------------------- */
-
-/* These differ from F-Curve modifiers, as although F-Curve modifiers also operate on a 
- * per-channel basis too (in general), they are part of the animation data itself, which
- * means that their effects are inherited by all of their users. In order to counteract this,
- * the modifiers here should be used to provide variation to pre-created motions only. 
- */
 
 /* NLA Strips ------------------------------------- */
 
 /* NLA Strip (strip)
  *
  * A NLA Strip is a container for the reuse of Action data, defining parameters
- * to control the remapping of the Action data to some destination. Actions being
- * referenced by NLA-Strips SHOULD-NOT be editable, unless they were created in such
- * a way that results in very little mapping distortion (i.e. for layered animation only,
- * opposed to prebuilt 'blocks' which are quickly dumped into the NLA for crappymatic machima-type
- * stuff)
+ * to control the remapping of the Action data to some destination. 
  */
 typedef struct NlaStrip {
 	struct NlaStrip *next, *prev;
 	
-	bAction *act;				/* Action that is referenced by this strip */
+	ListBase strips;			/* 'Child' strips (used for 'meta' strips) */
+	bAction *act;				/* Action that is referenced by this strip (strip is 'user' of the action) */
 	AnimMapper *remap;			/* Remapping info this strip (for tweaking correspondance of action with context) */
 	
-	ListBase modifiers;			/* NLA Modifiers */	
+	ListBase fcurves;			/* F-Curves for controlling this strip's influence and timing */	// TODO: move out?
+	ListBase modifiers;			/* F-Curve modifiers to be applied to the entire strip's referenced F-Curves */
 	
-	ListBase fcurves;			/* F-Curves for controlling this strip's influence and timing */
+	char name[64];				/* User-Visible Identifier for Strip */
+	
 	float influence;			/* Influence of strip */
-	float act_time;				/* Current 'time' within action being used */
+	float strip_time;			/* Current 'time' within action being used (automatically evaluated, but can be overridden) */
 	
 	float start, end;			/* extents of the strip */
 	float actstart, actend;		/* range of the action to use */
 	
-	float	repeat;				/* The number of times to repeat the action range (only when no F-Curves) */
-	float	scale;				/* The amount the action range is scaled by (only when no F-Curves) */
+	float repeat;				/* The number of times to repeat the action range (only when no F-Curves) */
+	float scale;				/* The amount the action range is scaled by (only when no F-Curves) */
 	
 	float blendin, blendout;	/* strip blending length (only used when there are no F-Curves) */	
-	int blendmode;				/* strip blending mode */	
+	short blendmode;			/* strip blending mode (layer-based mixing) */
+	short extendmode;			/* strip extrapolation mode (time-based mixing) */
 	
-	int flag;					/* settings */
-	
-		// umm... old unused cruft? 
-	int stride_axis;			/* axis for stridebone stuff - 0=x, 1=y, 2=z */
-	int pad;
-	
-	float	actoffs;			/* Offset within action, for cycles and striding (only set for ACT_USESTRIDE) */
-	float	stridelen;			/* The stridelength (considered when flag & ACT_USESTRIDE) */
-	
-	char	stridechannel[32];	/* Instead of stridelen, it uses an action channel */
-	char	offs_bone[32];		/* if repeat, use this bone/channel for defining offset */
+	short flag;					/* settings */
+	short type;					/* type of NLA strip */
 } NlaStrip;
 
 /* NLA Strip Blending Mode */
 enum {
-	NLASTRIPMODE_BLEND = 0,
-	NLASTRIPMODE_ADD,
-	NLASTRIPMODE_SUBTRACT,
-} eActStrip_Mode;
+	NLASTRIP_MODE_REPLACE = 0,
+	NLASTRIP_MODE_ADD,
+	NLASTRIP_MODE_SUBTRACT,
+	NLASTRIP_MODE_MULTIPLY,
+} eNlaStrip_Blend_Mode;
+
+/* NLA Strip Extrpolation Mode */
+enum {
+		/* extend before first frame if no previous strips in track, and always hold+extend last frame */
+	NLASTRIP_EXTEND_HOLD	= 0,		
+		/* only hold+extend last frame */
+	NLASTRIP_EXTEND_HOLD_FORWARD,	
+		/* don't contribute at all */
+	NLASTRIP_EXTEND_NOTHING,
+} eNlaStrip_Extrapolate_Mode;
 
 /* NLA Strip Settings */
-// TODO: check on which of these are still useful...
 enum {
-	NLASTRIP_SELECT			= (1<<0),
-	NLASTRIP_USESTRIDE		= (1<<1),
-	NLASTRIP_BLENDTONEXT	= (1<<2),	/* Not implemented. Is not used anywhere */
-	NLASTRIP_HOLDLASTFRAME	= (1<<3),
-	NLASTRIP_ACTIVE			= (1<<4),
-	NLASTRIP_LOCK_ACTION	= (1<<5),
-	NLASTRIP_MUTE			= (1<<6),
-	NLASTRIP_REVERSE		= (1<<7),	/* This has yet to be implemented. To indicate that a strip should be played backwards */
-	NLASTRIP_CYCLIC_USEX	= (1<<8),
-	NLASTRIP_CYCLIC_USEY	= (1<<9),
-	NLASTRIP_CYCLIC_USEZ	= (1<<10),
-	NLASTRIP_AUTO_BLENDS	= (1<<11),
-	NLASTRIP_TWEAK			= (1<<12),	/* This strip is a tweaking strip (only set if owner track is a tweak track) */
-} eActionStrip_Flag;
+	/* UI selection flags */
+		/* NLA strip is the active one in the track (also indicates if strip is being tweaked) */
+	NLASTRIP_FLAG_ACTIVE		= (1<<0),	
+		/* NLA strip is selected for editing */
+	NLASTRIP_FLAG_SELECT		= (1<<1),
+//	NLASTRIP_FLAG_SELECT_L		= (1<<2),	// left handle selected
+//	NLASTRIP_FLAG_SELECT_R		= (1<<3),	// right handle selected
+		/* NLA strip uses the same action that the action being tweaked uses (not set for the twaking one though) */
+	NLASTRIP_FLAG_TWEAKUSER		= (1<<4),
+	
+	/* controls driven by local F-Curves */
+		/* strip influence is controlled by local F-Curve */
+	NLASTRIP_FLAG_USR_INFLUENCE	= (1<<5),
+	NLASTRIP_FLAG_USR_TIME		= (1<<6),
+	
+	/* playback flags (may be overriden by F-Curves) */
+		/* NLA strip blendin/out values are set automatically based on overlaps */
+	NLASTRIP_FLAG_AUTO_BLENDS	= (1<<10),
+		/* NLA strip is played back in reverse order */
+	NLASTRIP_FLAG_REVERSE		= (1<<11),
+		/* NLA strip is muted (i.e. doesn't contribute in any way) */
+		// TODO: this overlaps a lot with the functionality in track
+	NLASTRIP_FLAG_MUTED			= (1<<12),
+		/* NLA strip length is synced to the length of the referenced action */
+	NLASTRIP_FLAG_SYNC_LENGTH	= (1<<13),
+	
+	/* temporary editing flags */
+		/* NLA-Strip is really just a temporary meta used to facilitate easier transform code */
+	NLASTRIP_FLAG_TEMP_META		= (1<<14),
+	NLASTRIP_FLAG_EDIT_TOUCHED	= (1<<15),
+} eNlaStrip_Flag;
+
+/* NLA Strip Type */
+enum {	
+		/* 'clip' - references an Action */
+	NLASTRIP_TYPE_CLIP	= 0,
+		/* 'transition' - blends between the adjacent strips */
+	NLASTRIP_TYPE_TRANSITION,
+		/* 'meta' - a strip which acts as a container for a few others */
+	NLASTRIP_TYPE_META,
+} eNlaStrip_Type;
 
 /* NLA Tracks ------------------------------------- */
 
@@ -483,14 +543,12 @@ typedef struct NlaTrack {
 	int flag;				/* settings for this track */
 	int index;				/* index of the track in the stack (NOTE: not really useful, but we need a pad var anyways!) */
 	
-	char info[64];			/* short user-description of this track */
+	char name[64];			/* short user-description of this track */
 } NlaTrack;
 
 /* settings for track */
 enum {
-		/* track is the one that settings can be modified on (doesn't indicate 
-		 * that it's for 'tweaking' though) 
-		 */
+		/* track is the one that settings can be modified on, also indicates if track is being 'tweaked' */
 	NLATRACK_ACTIVE		= (1<<0),
 		/* track is selected in UI for relevant editing operations */
 	NLATRACK_SELECTED	= (1<<1),
@@ -500,10 +558,9 @@ enum {
 	NLATRACK_SOLO		= (1<<3),
 		/* track's settings (and strips) cannot be edited (to guard against unwanted changes) */
 	NLATRACK_PROTECTED	= (1<<4),
-		/* strip is the 'last' one that should be evaluated, as the active action 
-		 * is being used to tweak the animation of the strips up to here 
-		 */
-	NLATRACK_TWEAK		= (1<<5),
+	
+		/* track is not allowed to execute, usually as result of tweaking being enabled (internal flag) */
+	NLATRACK_DISABLED	= (1<<10),
 } eNlaTrack_Flag;
 
 
@@ -646,11 +703,15 @@ typedef struct AnimOverride {
  * blocks may override local settings.
  *
  * This datablock should be placed immediately after the ID block where it is used, so that
- * the code which retrieves this data can do so in an easier manner. See blenkernel/internal/anim_sys.c for details.
+ * the code which retrieves this data can do so in an easier manner. See blenkernel/intern/anim_sys.c for details.
  */
 typedef struct AnimData {	
 		/* active action - acts as the 'tweaking track' for the NLA */
-	bAction 	*action;		
+	bAction 	*action;	
+		/* temp-storage for the 'real' active action (i.e. the one used before the tweaking-action 
+		 * took over to be edited in the Animation Editors) 
+		 */
+	bAction 	*tmpact;
 		/* remapping-info for active action - should only be used if needed 
 		 * (for 'foreign' actions that aren't working correctly) 
 		 */
@@ -658,6 +719,8 @@ typedef struct AnimData {
 	
 		/* nla-tracks */
 	ListBase 	nla_tracks;
+		/* active NLA-strip (only set/used during tweaking, so no need to worry about dangling pointers) */
+	NlaStrip	*actstrip;
 	
 	/* 'drivers' for this ID-block's settings - FCurves, but are completely 
 	 * separate from those for animation data 
@@ -676,11 +739,20 @@ enum {
 	ADT_NLA_SOLO_TRACK		= (1<<0),
 		/* don't use NLA */
 	ADT_NLA_EVAL_OFF		= (1<<1),
-		/* don't execute drivers */
-	ADT_DRIVERS_DISABLED	= (1<<2),
+		/* NLA is being 'tweaked' (i.e. in EditMode) */
+	ADT_NLA_EDIT_ON			= (1<<2),
+		/* active Action for 'tweaking' does not have mapping applied for editing */
+	ADT_NLA_EDIT_NOMAP		= (1<<3),
+		/* NLA-Strip F-Curves are expanded in UI */
+	ADT_NLA_SKEYS_COLLAPSED	= (1<<4),
 	
 		/* drivers expanded in UI */
 	ADT_DRIVERS_COLLAPSED	= (1<<10),
+		/* don't execute drivers */
+	ADT_DRIVERS_DISABLED	= (1<<11),
+	
+		/* F-Curves from this AnimData block are not visible in the Graph Editor */
+	ADT_CURVES_NOT_VISIBLE	= (1<<16),
 } eAnimData_Flag;
 
 /* Animation Data recalculation settings (to be set by depsgraph) */

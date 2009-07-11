@@ -161,7 +161,7 @@ void GROUP_OT_objects_remove_active(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Remove Selected From active group";
+	ot->name= "Remove Selected From Active Group";
 	ot->description = "Remove the object from an object group that contains the active object.";
 	ot->idname= "GROUP_OT_objects_remove_active";
 	

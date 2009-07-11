@@ -41,6 +41,8 @@ struct Particle;
 struct Group;
 struct RNG;
 
+struct PartDeflect *object_add_collision_fields(void);
+
 typedef struct pEffectorCache {
 	struct pEffectorCache *next, *prev;
 	Object *ob;

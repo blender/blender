@@ -232,8 +232,8 @@ void free_lattice(Lattice *lt)
 	if(lt->def) MEM_freeN(lt->def);
 	if(lt->dvert) free_dverts(lt->dvert, lt->pntsu*lt->pntsv*lt->pntsw);
 	if(lt->editlatt) {
-		if(lt->def) MEM_freeN(lt->def);
-		if(lt->dvert) free_dverts(lt->dvert, lt->pntsu*lt->pntsv*lt->pntsw);
+		if(lt->editlatt->def) MEM_freeN(lt->editlatt->def);
+		if(lt->editlatt->dvert) free_dverts(lt->editlatt->dvert, lt->pntsu*lt->pntsv*lt->pntsw);
 		MEM_freeN(lt->editlatt);
 	}
 }
@@ -817,59 +817,68 @@ void outside_lattice(Lattice *lt)
 	int u, v, w;
 	float fac1, du=0.0, dv=0.0, dw=0.0;
 
-	bp= lt->def;
+	if(lt->flag & LT_OUTSIDE) {
+		bp= lt->def;
 
-	if(lt->pntsu>1) du= 1.0f/((float)lt->pntsu-1);
-	if(lt->pntsv>1) dv= 1.0f/((float)lt->pntsv-1);
-	if(lt->pntsw>1) dw= 1.0f/((float)lt->pntsw-1);
-		
-	for(w=0; w<lt->pntsw; w++) {
-		
-		for(v=0; v<lt->pntsv; v++) {
-		
-			for(u=0; u<lt->pntsu; u++, bp++) {
-				if(u==0 || v==0 || w==0 || u==lt->pntsu-1 || v==lt->pntsv-1 || w==lt->pntsw-1);
-				else {
-				
-					bp->hide= 1;
-					bp->f1 &= ~SELECT;
+		if(lt->pntsu>1) du= 1.0f/((float)lt->pntsu-1);
+		if(lt->pntsv>1) dv= 1.0f/((float)lt->pntsv-1);
+		if(lt->pntsw>1) dw= 1.0f/((float)lt->pntsw-1);
+			
+		for(w=0; w<lt->pntsw; w++) {
+			
+			for(v=0; v<lt->pntsv; v++) {
+			
+				for(u=0; u<lt->pntsu; u++, bp++) {
+					if(u==0 || v==0 || w==0 || u==lt->pntsu-1 || v==lt->pntsv-1 || w==lt->pntsw-1);
+					else {
 					
-					/* u extrema */
-					bp1= latt_bp(lt, 0, v, w);
-					bp2= latt_bp(lt, lt->pntsu-1, v, w);
-					
-					fac1= du*u;
-					bp->vec[0]= (1.0f-fac1)*bp1->vec[0] + fac1*bp2->vec[0];
-					bp->vec[1]= (1.0f-fac1)*bp1->vec[1] + fac1*bp2->vec[1];
-					bp->vec[2]= (1.0f-fac1)*bp1->vec[2] + fac1*bp2->vec[2];
-					
-					/* v extrema */
-					bp1= latt_bp(lt, u, 0, w);
-					bp2= latt_bp(lt, u, lt->pntsv-1, w);
-					
-					fac1= dv*v;
-					bp->vec[0]+= (1.0f-fac1)*bp1->vec[0] + fac1*bp2->vec[0];
-					bp->vec[1]+= (1.0f-fac1)*bp1->vec[1] + fac1*bp2->vec[1];
-					bp->vec[2]+= (1.0f-fac1)*bp1->vec[2] + fac1*bp2->vec[2];
-					
-					/* w extrema */
-					bp1= latt_bp(lt, u, v, 0);
-					bp2= latt_bp(lt, u, v, lt->pntsw-1);
-					
-					fac1= dw*w;
-					bp->vec[0]+= (1.0f-fac1)*bp1->vec[0] + fac1*bp2->vec[0];
-					bp->vec[1]+= (1.0f-fac1)*bp1->vec[1] + fac1*bp2->vec[1];
-					bp->vec[2]+= (1.0f-fac1)*bp1->vec[2] + fac1*bp2->vec[2];
-					
-					VecMulf(bp->vec, 0.3333333f);
-					
+						bp->hide= 1;
+						bp->f1 &= ~SELECT;
+						
+						/* u extrema */
+						bp1= latt_bp(lt, 0, v, w);
+						bp2= latt_bp(lt, lt->pntsu-1, v, w);
+						
+						fac1= du*u;
+						bp->vec[0]= (1.0f-fac1)*bp1->vec[0] + fac1*bp2->vec[0];
+						bp->vec[1]= (1.0f-fac1)*bp1->vec[1] + fac1*bp2->vec[1];
+						bp->vec[2]= (1.0f-fac1)*bp1->vec[2] + fac1*bp2->vec[2];
+						
+						/* v extrema */
+						bp1= latt_bp(lt, u, 0, w);
+						bp2= latt_bp(lt, u, lt->pntsv-1, w);
+						
+						fac1= dv*v;
+						bp->vec[0]+= (1.0f-fac1)*bp1->vec[0] + fac1*bp2->vec[0];
+						bp->vec[1]+= (1.0f-fac1)*bp1->vec[1] + fac1*bp2->vec[1];
+						bp->vec[2]+= (1.0f-fac1)*bp1->vec[2] + fac1*bp2->vec[2];
+						
+						/* w extrema */
+						bp1= latt_bp(lt, u, v, 0);
+						bp2= latt_bp(lt, u, v, lt->pntsw-1);
+						
+						fac1= dw*w;
+						bp->vec[0]+= (1.0f-fac1)*bp1->vec[0] + fac1*bp2->vec[0];
+						bp->vec[1]+= (1.0f-fac1)*bp1->vec[1] + fac1*bp2->vec[1];
+						bp->vec[2]+= (1.0f-fac1)*bp1->vec[2] + fac1*bp2->vec[2];
+						
+						VecMulf(bp->vec, 0.3333333f);
+						
+					}
 				}
+				
 			}
 			
 		}
-		
 	}
-	
+	else {
+		bp= lt->def;
+
+		for(w=0; w<lt->pntsw; w++)
+			for(v=0; v<lt->pntsv; v++)
+				for(u=0; u<lt->pntsu; u++, bp++)
+					bp->hide= 0;
+	}
 }
 
 float (*lattice_getVertexCos(struct Object *ob, int *numVerts_r))[3]

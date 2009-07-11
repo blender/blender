@@ -19,22 +19,36 @@ class TEXTURE_PT_preview(TextureButtonsPanel):
 		
 		layout.template_preview(tex)
 
-class TEXTURE_PT_texture(TextureButtonsPanel):
-	__idname__= "TEXTURE_PT_texture"
-	__label__ = "Texture"
+class TEXTURE_PT_context_texture(TextureButtonsPanel):
+	__idname__= "TEXTURE_PT_context_texture"
+	__no_header__ = True
 
 	def poll(self, context):
 		return (context.material or context.world or context.lamp)
 
 	def draw(self, context):
 		layout = self.layout
-		
+
 		tex = context.texture
 		ma = context.material
 		la = context.lamp
 		wo = context.world
 		space = context.space_data
 		slot = context.texture_slot
+
+		if ma or la or wo:
+			row = layout.row()
+			if ma:
+				row.template_list(ma, "textures", ma, "active_texture_index")
+			elif la:
+				row.template_list(la, "textures", la, "active_texture_index")
+			elif wo:
+				row.template_list(wo, "textures", wo, "active_texture_index")
+			"""if ma or la or wo: 
+				col = row.column(align=True)
+				col.itemO("TEXTURE_OT_new", icon="ICON_ZOOMIN", text="")
+				#col.itemO("OBJECT_OT_material_slot_remove", icon="ICON_ZOOMOUT", text="")
+			"""
 
 		split = layout.split(percentage=0.65)
 
@@ -44,17 +58,11 @@ class TEXTURE_PT_texture(TextureButtonsPanel):
 			else:
 				split.itemS()
 
-			if ma:
-				split.itemR(ma, "active_texture_index", text="Active")
-			elif la:
-				split.itemR(la, "active_texture_index", text="Active")
-			elif wo:
-				split.itemR(wo, "active_texture_index", text="Active")
 		elif tex:
 			split.template_ID(space, "pin_id")
 			split.itemS()
-
-		layout.itemS()
+			
+			layout.itemS()
 		
 		if tex:
 			split = layout.split(percentage=0.2)
@@ -508,8 +516,8 @@ class TEXTURE_PT_distortednoise(TextureButtonsPanel):
 		sub = split.column()
 		sub.itemR(tex, "nabla")	
 
+bpy.types.register(TEXTURE_PT_context_texture)
 bpy.types.register(TEXTURE_PT_preview)
-bpy.types.register(TEXTURE_PT_texture)
 bpy.types.register(TEXTURE_PT_clouds)
 bpy.types.register(TEXTURE_PT_wood)
 bpy.types.register(TEXTURE_PT_marble)

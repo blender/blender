@@ -83,7 +83,7 @@ void SEQUENCER_OT_lock(struct wmOperatorType *ot);
 void SEQUENCER_OT_unlock(struct wmOperatorType *ot);
 void SEQUENCER_OT_reload(struct wmOperatorType *ot);
 void SEQUENCER_OT_refresh_all(struct wmOperatorType *ot);
-void SEQUENCER_OT_duplicate_add(struct wmOperatorType *ot);
+void SEQUENCER_OT_duplicate(struct wmOperatorType *ot);
 void SEQUENCER_OT_delete(struct wmOperatorType *ot);
 void SEQUENCER_OT_images_separate(struct wmOperatorType *ot);
 void SEQUENCER_OT_meta_toggle(struct wmOperatorType *ot);
@@ -104,7 +104,7 @@ void SEQUENCER_OT_select_linked_pick(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_handles(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_active_side(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_border(struct wmOperatorType *ot);
-void SEQUENCER_OT_select_invert(struct wmOperatorType *ot);
+void SEQUENCER_OT_select_inverse(struct wmOperatorType *ot);
 
 
 /* sequencer_select.c */

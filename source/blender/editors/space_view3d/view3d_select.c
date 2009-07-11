@@ -66,7 +66,6 @@
 #include "RE_pipeline.h"	// make_stars
 
 #include "BIF_gl.h"
-#include "BIF_retopo.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -79,6 +78,7 @@
 #include "ED_particle.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
+#include "ED_retopo.h"
 #include "ED_screen.h"
 #include "ED_types.h"
 #include "ED_util.h"
@@ -715,12 +715,6 @@ void view3d_lasso_select(bContext *C, ViewContext *vc, short mcords[][2], short 
 	
 }
 
-static EnumPropertyItem lasso_select_types[] = {
-	{0, "SELECT", 0, "Select", ""},
-	{1, "DESELECT", 0, "Deselect", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
 
 /* lasso operator gives properties, but since old code works
    with short array we convert */
@@ -747,7 +741,7 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 		/* setup view context for argument to callbacks */
 		view3d_set_viewcontext(C, &vc);
 		
-		select= RNA_enum_is_equal(op->ptr, "type", "SELECT");
+		select= !RNA_boolean_get(op->ptr, "deselect");
 		view3d_lasso_select(C, &vc, mcords, i, select);
 		
 		return OPERATOR_FINISHED;
@@ -769,7 +763,7 @@ void VIEW3D_OT_select_lasso(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 	
 	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
-	RNA_def_enum(ot->srna, "type", lasso_select_types, 0, "Type", "");
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect rather than select items.");
 }
 
 
@@ -1442,6 +1436,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 				}
 			}
 			
+			ED_armature_sync_selection(arm->edbo);
 		}
 		else if(obedit->type==OB_LATTICE) {
 			do_lattice_box_select(&vc, &rect, val==LEFTMOUSE);
@@ -1527,11 +1522,6 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 
 
 /* *****************Selection Operators******************* */
-static EnumPropertyItem prop_select_types[] = {
-	{0, "EXCLUSIVE", 0, "Exclusive", ""},
-	{1, "EXTEND", 0, "Extend", ""},
-	{0, NULL, 0, NULL, NULL}
-};
 
 /* ****** Border Select ****** */
 void VIEW3D_OT_select_border(wmOperatorType *ot)
@@ -1557,7 +1547,7 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 
-	RNA_def_enum(ot->srna, "type", prop_select_types, 0, "Type", "");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everyting first.");
 }
 
 /* ****** Mouse Select ****** */
@@ -1566,7 +1556,7 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	short extend= RNA_enum_is_equal(op->ptr, "type", "EXTEND");
+	short extend= RNA_boolean_get(op->ptr, "extend");
 
 	view3d_operator_needs_opengl(C);
 	
@@ -1604,7 +1594,7 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "type", prop_select_types, 0, "Type", "");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everyting first.");
 }
 
 

@@ -1667,10 +1667,26 @@ static void lib_link_constraint_channels(FileData *fd, ID *id, ListBase *chanbas
 
 /* Data Linking ----------------------------- */
 
+static void lib_link_fmodifiers(FileData *fd, ID *id, ListBase *list)
+{
+	FModifier *fcm;
+	
+	for (fcm= list->first; fcm; fcm= fcm->next) {
+		/* data for specific modifiers */
+		switch (fcm->type) {
+			case FMODIFIER_TYPE_PYTHON:
+			{
+				FMod_Python *data= (FMod_Python *)fcm->data;
+				data->script = newlibadr(fd, id->lib, data->script);
+			}
+				break;
+		}
+	}
+}
+
 static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list) 
 {
 	FCurve *fcu;
-	FModifier *fcm;
 	
 	/* relink ID-block references... */
 	for (fcu= list->first; fcu; fcu= fcu->next) {
@@ -1684,16 +1700,45 @@ static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list)
 		}
 		
 		/* modifiers */
-		for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
-			/* data for specific modifiers */
-			switch (fcm->type) {
-				case FMODIFIER_TYPE_PYTHON:
-				{
-					FMod_Python *data= (FMod_Python *)fcm->data;
-					data->script = newlibadr(fd, id->lib, data->script);
-				}
-					break;
+		lib_link_fmodifiers(fd, id, &fcu->modifiers);
+	}
+}
+
+
+/* NOTE: this assumes that link_list has already been called on the list */
+static void direct_link_fmodifiers(FileData *fd, ListBase *list)
+{
+	FModifier *fcm;
+	
+	for (fcm= list->first; fcm; fcm= fcm->next) {
+		/* relink general data */
+		fcm->data = newdataadr(fd, fcm->data);
+		fcm->edata= NULL;
+		
+		/* do relinking of data for specific types */
+		switch (fcm->type) {
+			case FMODIFIER_TYPE_GENERATOR:
+			{
+				FMod_Generator *data= (FMod_Generator *)fcm->data;
+				
+				data->coefficients= newdataadr(fd, data->coefficients);
 			}
+				break;
+			case FMODIFIER_TYPE_ENVELOPE:
+			{
+				FMod_Envelope *data= (FMod_Envelope *)fcm->data;
+				
+				data->data= newdataadr(fd, data->data);
+			}
+				break;
+			case FMODIFIER_TYPE_PYTHON:
+			{
+				FMod_Python *data= (FMod_Python *)fcm->data;
+				
+				data->prop = newdataadr(fd, data->prop);
+				IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			}
+				break;
 		}
 	}
 }
@@ -1702,7 +1747,6 @@ static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list)
 static void direct_link_fcurves(FileData *fd, ListBase *list)
 {
 	FCurve *fcu;
-	FModifier *fcm;
 	
 	/* link F-Curve data to F-Curve again (non ID-libs) */
 	for (fcu= list->first; fcu; fcu= fcu->next) {
@@ -1730,37 +1774,7 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 		
 		/* modifiers */
 		link_list(fd, &fcu->modifiers);
-		for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
-			/* relink general data */
-			fcm->data = newdataadr(fd, fcm->data);
-			fcm->edata= NULL;
-			
-			/* do relinking of data for specific types */
-			switch (fcm->type) {
-				case FMODIFIER_TYPE_GENERATOR:
-				{
-					FMod_Generator *data= (FMod_Generator *)fcm->data;
-					
-					data->coefficients= newdataadr(fd, data->coefficients);
-				}
-					break;
-				case FMODIFIER_TYPE_ENVELOPE:
-				{
-					FMod_Envelope *data= (FMod_Envelope *)fcm->data;
-					
-					data->data= newdataadr(fd, data->data);
-				}
-					break;
-				case FMODIFIER_TYPE_PYTHON:
-				{
-					FMod_Python *data= (FMod_Python *)fcm->data;
-					
-					data->prop = newdataadr(fd, data->prop);
-					IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-				}
-					break;
-			}
-		}
+		direct_link_fmodifiers(fd, &fcu->modifiers);
 	}
 }
 
@@ -1812,6 +1826,65 @@ static void direct_link_action(FileData *fd, bAction *act)
 	}
 }
 
+static void lib_link_nladata_strips(FileData *fd, ID *id, ListBase *list)
+{
+	NlaStrip *strip;
+	
+	for (strip= list->first; strip; strip= strip->next) {
+		/* check strip's children */
+		lib_link_nladata_strips(fd, id, &strip->strips);
+		
+		/* reassign the counted-reference to action */
+		strip->act = newlibadr_us(fd, id->lib, strip->act);
+	}
+}
+
+static void lib_link_nladata(FileData *fd, ID *id, ListBase *list)
+{
+	NlaTrack *nlt;
+	
+	/* we only care about the NLA strips inside the tracks */
+	for (nlt= list->first; nlt; nlt= nlt->next) {
+		lib_link_nladata_strips(fd, id, &nlt->strips);
+	}
+}
+
+/* This handles Animato NLA-Strips linking 
+ * NOTE: this assumes that link_list has already been called on the list 
+ */
+static void direct_link_nladata_strips(FileData *fd, ListBase *list)
+{
+	NlaStrip *strip;
+	
+	for (strip= list->first; strip; strip= strip->next) {
+		/* strip's child strips */
+		link_list(fd, &strip->strips);
+		direct_link_nladata_strips(fd, &strip->strips);
+		
+		/* strip's F-Curves */
+		link_list(fd, &strip->fcurves);
+		direct_link_fcurves(fd, &strip->fcurves);
+		
+		/* strip's F-Modifiers */
+		link_list(fd, &strip->modifiers);
+		direct_link_fcurves(fd, &strip->modifiers);
+	}
+}
+
+/* NOTE: this assumes that link_list has already been called on the list */
+static void direct_link_nladata(FileData *fd, ListBase *list)
+{
+	NlaTrack *nlt;
+	
+	for (nlt= list->first; nlt; nlt= nlt->next) {
+		/* relink list of strips */
+		link_list(fd, &nlt->strips);
+		
+		/* relink strip data */
+		direct_link_nladata_strips(fd, &nlt->strips);
+	}
+}
+
 /* ------- */
 
 static void lib_link_keyingsets(FileData *fd, ID *id, ListBase *list)
@@ -1854,6 +1927,7 @@ static void lib_link_animdata(FileData *fd, ID *id, AnimData *adt)
 	
 	/* link action data */
 	adt->action= newlibadr_us(fd, id->lib, adt->action);
+	adt->tmpact= newlibadr_us(fd, id->lib, adt->tmpact);
 	
 	/* link drivers */
 	lib_link_fcurves(fd, id, &adt->drivers);
@@ -1861,7 +1935,7 @@ static void lib_link_animdata(FileData *fd, ID *id, AnimData *adt)
 	/* overrides don't have lib-link for now, so no need to do anything */
 	
 	/* link NLA-data */
-	// TODO... 
+	lib_link_nladata(fd, id, &adt->nla_tracks);
 }
 
 static void direct_link_animdata(FileData *fd, AnimData *adt)
@@ -1878,7 +1952,12 @@ static void direct_link_animdata(FileData *fd, AnimData *adt)
 	// TODO...
 	
 	/* link NLA-data */
-	// TODO...
+	link_list(fd, &adt->nla_tracks);
+	direct_link_nladata(fd, &adt->nla_tracks);
+	
+	/* clear temp pointers that may have been set... */
+	// TODO: it's probably only a small cost to reload this anyway...
+	adt->actstrip= NULL;
 }	
 
 /* ************ READ NODE TREE *************** */
@@ -2641,6 +2720,7 @@ static void direct_link_image(FileData *fd, Image *ima)
 	ima->anim= NULL;
 	ima->rr= NULL;
 	ima->repbind= NULL;
+	ima->render_text= newdataadr(fd, ima->render_text);
 	
 	ima->packedfile = direct_link_packedfile(fd, ima->packedfile);
 	ima->preview = direct_link_preview_image(fd, ima->preview);
@@ -4472,13 +4552,10 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					
 					SpaceFile *sfile= (SpaceFile *)sl;
 					sfile->files= NULL;
+					sfile->folders_prev= NULL;
+					sfile->folders_next= NULL;
 					sfile->params= NULL;
 					sfile->op= NULL;
-					/* XXX needs checking - best solve in filesel itself 
-					if(sfile->libfiledata)	
-						BLO_blendhandle_close(sfile->libfiledata);
-					sfile->libfiledata= 0;
-					*/
 				}
 				else if(sl->spacetype==SPACE_IMASEL) {
                     SpaceImaSel *simasel= (SpaceImaSel *)sl;
@@ -4709,6 +4786,11 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				
 				sipo->ads= newdataadr(fd, sipo->ads);
 				sipo->ghostCurves.first= sipo->ghostCurves.last= NULL;
+			}
+			else if (sl->spacetype==SPACE_NLA) {
+				SpaceNla *snla= (SpaceNla*)sl;
+				
+				snla->ads= newdataadr(fd, snla->ads);
 			}
 			else if (sl->spacetype==SPACE_OUTLINER) {
 				SpaceOops *soops= (SpaceOops*) sl;
@@ -9011,13 +9093,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		 */
 		//do_versions_ipos_to_animato(main);
 		
-		/* struct audio data moved to renderdata */
-		for(scene= main->scene.first; scene; scene= scene->id.next) {
+		/* toolsettings */
+		for(scene= main->scene.first; scene; scene= scene->id.next)
 			scene->r.audio = scene->audio;
-			
-			if(!scene->toolsettings->uv_selectmode)
-				scene->toolsettings->uv_selectmode= UV_SELECT_VERTEX;
-		}
 		
 		/* shader, composit and texture node trees have id.name empty, put something in
 		 * to have them show in RNA viewer and accessible otherwise.
@@ -9057,6 +9135,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					part->draw_as = PART_DRAW_REND;
 				}
 			}
+			part->path_end = 1.0f;
 		}
 		/* set old pointcaches to have disk cache flag */
 		for(ob = main->object.first; ob; ob= ob->id.next) {
@@ -9086,7 +9165,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				void *olddata = ob->data;
 				ob->data = me;
 
-				if(me && me->mr) {
+				if(me && me->id.lib==NULL && me->mr) { /* XXX - library meshes crash on loading most yoFrankie levels, the multires pointer gets invalid -  Campbell */
 					MultiresLevel *lvl;
 					ModifierData *md;
 					MultiresModifierData *mmd;
@@ -9152,10 +9231,19 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
 			ts= sce->toolsettings;
-			if(ts->normalsize == 0.0) {
+			if(ts->normalsize == 0.0 || !ts->uv_selectmode || ts->vgroup_weight == 0.0) {
 				ts->normalsize= 0.1f;
 				ts->selectmode= SCE_SELECT_VERTEX;
+				
+				/* autokeying - setting should be taken from the user-prefs
+				 * but the userprefs version may not have correct flags set 
+				 * (i.e. will result in blank box when enabled)
+				 */
 				ts->autokey_mode= U.autokey_mode;
+				if (ts->autokey_mode == 0) 
+					ts->autokey_mode= 2; /* 'add/replace' but not on */
+				ts->uv_selectmode= UV_SELECT_VERTEX;
+				ts->vgroup_weight= 1.0f;
 			}
 		}
 	}
@@ -9488,12 +9576,27 @@ static void expand_keyingsets(FileData *fd, Main *mainvar, ListBase *list)
 	}
 }
 
+static void expand_animdata_nlastrips(FileData *fd, Main *mainvar, ListBase *list)
+{
+	NlaStrip *strip;
+	
+	for (strip= list->first; strip; strip= strip->next) {
+		/* check child strips */
+		expand_animdata_nlastrips(fd, mainvar, &strip->strips);
+		
+		/* relink referenced action */
+		expand_doit(fd, mainvar, strip->act);
+	}
+}
+
 static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
 {
 	FCurve *fcd;
+	NlaTrack *nlt;
 	
 	/* own action */
 	expand_doit(fd, mainvar, adt->action);
+	expand_doit(fd, mainvar, adt->tmpact);
 	
 	/* drivers - assume that these F-Curves have driver data to be in this list... */
 	for (fcd= adt->drivers.first; fcd; fcd= fcd->next) {
@@ -9503,6 +9606,10 @@ static void expand_animdata(FileData *fd, Main *mainvar, AnimData *adt)
 		for (dtar= driver->targets.first; dtar; dtar= dtar->next)
 			expand_doit(fd, mainvar, dtar->id);
 	}
+	
+	/* nla-data - referenced actions */
+	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) 
+		expand_animdata_nlastrips(fd, mainvar, &nlt->strips);
 }	
 
 static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSettings *part)

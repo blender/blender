@@ -33,6 +33,7 @@
 typedef struct ScreenAnimData {
 	ARegion *ar;	/* do not read from this, only for comparing if region exists */
 	int redraws;
+	int reverse;
 } ScreenAnimData;
 
 

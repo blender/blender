@@ -643,8 +643,8 @@ int BKE_ptcache_write_cache(PTCacheWriter *writer)
 				return 0;
 
 			for(i=0; i<writer->totelem; i++) {
-				writer->set_elem(i, writer->calldata, &temp);
-				BKE_ptcache_file_write_floats(pf, &temp, incr);
+				writer->set_elem(i, writer->calldata, temp);
+				BKE_ptcache_file_write_floats(pf, temp, incr);
 			}
 		}
 	}
@@ -677,8 +677,8 @@ int BKE_ptcache_write_cache(PTCacheWriter *writer)
 			pmdata = pm->data;
 
 			for(i=0; i<writer->totelem; i++, pmdata+=incr) {
-				writer->set_elem(i, writer->calldata, &temp);
-				memcpy(pmdata, &temp, elemsize);
+				writer->set_elem(i, writer->calldata, temp);
+				memcpy(pmdata, temp, elemsize);
 			}
 
 			pm->frame = writer->cfra;
@@ -689,8 +689,8 @@ int BKE_ptcache_write_cache(PTCacheWriter *writer)
 			pmdata = pm->data;
 
 			for(i=0; i<writer->totelem; i++, pmdata+=incr) {
-				writer->set_elem(i, writer->calldata, &temp);
-				memcpy(pmdata, &temp, elemsize);
+				writer->set_elem(i, writer->calldata, temp);
+				memcpy(pmdata, temp, elemsize);
 			}
 
 			pm->frame = writer->cfra;
@@ -1154,6 +1154,7 @@ void BKE_ptcache_quick_cache_all(Scene *scene)
 	baker.progressbar=NULL;
 	baker.progresscontext=NULL;
 	baker.render=0;
+	baker.anim_init = 0;
 	baker.scene=scene;
 
 	if(count_quick_cache(scene, &baker.quick_step))
@@ -1171,7 +1172,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 	float frameleno = scene->r.framelen;
 	int cfrao = CFRA;
 	int startframe = MAXFRAME;
-	int endframe = CFRA;
+	int endframe = baker->anim_init ? scene->r.sfra : CFRA;
 	int bake = baker->bake;
 	int render = baker->render;
 	int step = baker->quick_step;
@@ -1209,8 +1210,13 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 		for(pid=pidlist.first; pid; pid=pid->next) {
 			cache = pid->cache;
 			if((cache->flag & PTCACHE_BAKED)==0) {
-				if(pid->type==PTCACHE_TYPE_PARTICLES)
+				if(pid->type==PTCACHE_TYPE_PARTICLES) {
+					/* skip hair particles */
+					if(((ParticleSystem*)pid->data)->part->type == PART_HAIR)
+						continue;
+
 					psys_get_pointcache_start_end(scene, pid->data, &cache->startframe, &cache->endframe);
+				}
 
 				if((cache->flag & PTCACHE_REDO_NEEDED || (cache->flag & PTCACHE_SIMULATION_VALID)==0)
 					&& ((cache->flag & PTCACHE_QUICK_CACHE)==0 || render || bake))
@@ -1265,6 +1271,10 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 		BKE_ptcache_ids_from_object(&pidlist, base->object);
 
 		for(pid=pidlist.first; pid; pid=pid->next) {
+			/* skip hair particles */
+			if(pid->type==PTCACHE_TYPE_PARTICLES && ((ParticleSystem*)pid->data)->part->type == PART_HAIR)
+				continue;
+		
 			cache = pid->cache;
 
 			if(step > 1)
@@ -1282,7 +1292,9 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 
 	scene->r.framelen = frameleno;
 	CFRA = cfrao;
-	scene_update_for_newframe(scene, scene->lay);
+
+	if(bake) /* already on cfra unless baking */
+		scene_update_for_newframe(scene, scene->lay);
 
 	/* TODO: call redraw all windows somehow */
 }

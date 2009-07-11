@@ -96,6 +96,12 @@ static PointerRNA rna_Context_scene_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_Scene, CTX_data_scene(C));
 }
 
+static PointerRNA rna_Context_tool_settings_get(PointerRNA *ptr)
+{
+	bContext *C= (bContext*)ptr->data;
+	return rna_pointer_inherit_refine(ptr, &RNA_ToolSettings, CTX_data_tool_settings(C));
+}
+
 #else
 
 void RNA_def_context(BlenderRNA *brna)
@@ -153,6 +159,12 @@ void RNA_def_context(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Scene");
 	RNA_def_property_pointer_funcs(prop, "rna_Context_scene_get", NULL, NULL);
+
+	prop= RNA_def_property(srna, "tool_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_struct_type(prop, "ToolSettings");
+	RNA_def_property_pointer_funcs(prop, "rna_Context_tool_settings_get", NULL, NULL);
+
 }
 
 #endif

@@ -48,19 +48,26 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 
+#include "BKE_context.h"
 #include "BKE_customdata.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_depsgraph.h"
 #include "BKE_deform.h"
+#include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
 #include "BKE_utildefines.h"
 
+#include "RNA_access.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
+
 #include "ED_mesh.h"
 #include "ED_view3d.h"
-#include "mesh_intern.h"
+
+#include "object_intern.h"
 
 /* XXX */
 static void BIF_undo_push() {}
@@ -719,18 +726,13 @@ void add_vert_to_defgroup (Object *ob, bDeformGroup *dg, int vertnum,
 }
 
 /* Only available in editmode */
-void assign_verts_defgroup (Object *obedit, float weight)
+void assign_verts_defgroup (Object *ob, float weight)
 {
-	Object *ob;
 	EditVert *eve;
 	bDeformGroup *dg, *eg;
 	MDeformWeight *newdw;
 	MDeformVert *dvert;
 	int	i, done;
-	
-// XXX	if(multires_level1_test()) return;
-
-	ob= obedit;
 
 	if (!ob)
 		return;
@@ -883,18 +885,13 @@ float get_vert_defgroup (Object *ob, bDeformGroup *dg, int vertnum)
 
 /* Only available in editmode */
 /* removes from active defgroup, if allverts==0 only selected vertices */
-void remove_verts_defgroup (Object *obedit, int allverts)
+void remove_verts_defgroup (Object *ob, int allverts)
 {
-	Object *ob;
 	EditVert *eve;
 	MDeformVert *dvert;
 	MDeformWeight *newdw;
 	bDeformGroup *dg, *eg;
 	int	i;
-	
-// XXX	if(multires_level1_test()) return;
-
-	ob= obedit;
 
 	if (!ob)
 		return;
@@ -966,14 +963,10 @@ void remove_verts_defgroup (Object *obedit, int allverts)
 
 /* Only available in editmode */
 /* removes from all defgroup, if allverts==0 only selected vertices */
-void remove_verts_defgroups(Object *obedit, int allverts)
+void remove_verts_defgroups(Object *ob, int allverts)
 {
-	Object *ob;
 	int actdef, defCount;
-	
-//  XXX	if (multires_level1_test()) return;
 
-	ob= obedit;
 	if (ob == NULL) return;
 	
 	actdef= ob->actdef;
@@ -1107,4 +1100,245 @@ void vgroup_operation_with_menu(Object *ob)
 	}
 }
 
+/********************** vertex group operators *********************/
+
+static int vertex_group_add_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Scene *scene= CTX_data_scene(C);
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	add_defgroup(ob);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_group_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Vertex Group";
+	ot->idname= "OBJECT_OT_vertex_group_add";
+	
+	/* api callbacks */
+	ot->exec= vertex_group_add_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int vertex_group_remove_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Scene *scene= CTX_data_scene(C);
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	if(scene->obedit == ob) {
+		del_defgroup(ob);
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	}
+	else {
+		del_defgroup_in_object_mode(ob);
+		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_group_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Vertex Group";
+	ot->idname= "OBJECT_OT_vertex_group_remove";
+	
+	/* api callbacks */
+	ot->exec= vertex_group_remove_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int vertex_group_assign_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	ToolSettings *ts= CTX_data_tool_settings(C);
+	Object *ob= CTX_data_edit_object(C);
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	assign_verts_defgroup(ob, ts->vgroup_weight);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Assign Vertex Group";
+	ot->idname= "OBJECT_OT_vertex_group_assign";
+	
+	/* api callbacks */
+	ot->exec= vertex_group_assign_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int vertex_group_remove_from_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_edit_object(C);
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	remove_verts_defgroup(ob, 0);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove from Vertex Group";
+	ot->idname= "OBJECT_OT_vertex_group_remove_from";
+	
+	/* api callbacks */
+	ot->exec= vertex_group_remove_from_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int vertex_group_select_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_edit_object(C);
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	sel_verts_defgroup(ob, 1); /* runs countall() */
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_group_select(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Vertex Group";
+	ot->idname= "OBJECT_OT_vertex_group_select";
+	
+	/* api callbacks */
+	ot->exec= vertex_group_select_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int vertex_group_deselect_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_edit_object(C);
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	sel_verts_defgroup(ob, 0); /* runs countall() */
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_group_deselect(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Deselect Vertex Group";
+	ot->idname= "OBJECT_OT_vertex_group_deselect";
+	
+	/* api callbacks */
+	ot->exec= vertex_group_deselect_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int vertex_group_copy_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	duplicate_defgroup(ob);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_group_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy Vertex Group";
+	ot->idname= "OBJECT_OT_vertex_group_copy";
+	
+	/* api callbacks */
+	ot->exec= vertex_group_copy_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int vertex_group_copy_to_linked_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+    Base *base;
+	int retval= OPERATOR_CANCELLED;
+
+	if(!ob)
+		return retval;
+
+    for(base=scene->base.first; base; base= base->next) {
+        if(base->object->type==ob->type) {
+            if(base->object!=ob && base->object->data==ob->data) {
+                BLI_freelistN(&base->object->defbase);
+                BLI_duplicatelist(&base->object->defbase, &ob->defbase);
+                base->object->actdef= ob->actdef;
+
+                DAG_object_flush_update(scene, base->object, OB_RECALC_DATA);
+				WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, base->object);
+
+				retval = OPERATOR_FINISHED;
+            }
+        }
+    }
+	
+	return retval;
+}
+
+void OBJECT_OT_vertex_group_copy_to_linked(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy Vertex Group to Linked";
+	ot->idname= "OBJECT_OT_vertex_group_copy_to_linked";
+	
+	/* api callbacks */
+	ot->exec= vertex_group_copy_to_linked_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 

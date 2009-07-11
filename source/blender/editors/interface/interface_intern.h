@@ -290,6 +290,8 @@ struct uiBlock {
 	int tooltipdisabled;		// to avoid tooltip after click
 
 	int active;					// to keep blocks while drawing and free them afterwards
+
+	void *evil_C;				// XXX hack for dynamic operator enums
 };
 
 typedef struct uiSafetyRct {

@@ -63,8 +63,6 @@
 //#include "BIF_drawimage.h"
 //#include "BIF_editmesh.h"
 
-#include "BIF_transform.h"
-
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
@@ -75,6 +73,7 @@
 #include "ED_armature.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
+#include "ED_transform.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
 

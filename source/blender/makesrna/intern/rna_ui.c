@@ -170,6 +170,8 @@ static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, voi
 		if(strcmp(pt->idname, dummypt.idname) == 0) {
 			if(pt->py_srna)
 				rna_Panel_unregister(C, pt->py_srna);
+			else
+				BLI_freelinkN(&art->paneltypes, pt);
 			break;
 		}
 	}
@@ -606,6 +608,10 @@ static void rna_def_panel(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "default_closed", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", PNL_DEFAULT_CLOSED);
+	RNA_def_property_flag(prop, PROP_REGISTER);
+
+	prop= RNA_def_property(srna, "no_header", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", PNL_NO_HEADER);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 }
 

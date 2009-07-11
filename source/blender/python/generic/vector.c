@@ -1051,16 +1051,100 @@ static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 		Py_RETURN_FALSE;
 	}
 }
+
 /*-----------------PROTCOL DECLARATIONS--------------------------*/
 static PySequenceMethods Vector_SeqMethods = {
 	(inquiry) Vector_len,						/* sq_length */
 	(binaryfunc) 0,								/* sq_concat */
-	(ssizeargfunc) 0,								/* sq_repeat */
+	(ssizeargfunc) 0,							/* sq_repeat */
 	(ssizeargfunc) Vector_item,					/* sq_item */
-	(ssizessizeargfunc) Vector_slice,				/* sq_slice */
+#if (PY_VERSION_HEX < 0x03000000)
+	(ssizessizeargfunc) Vector_slice,			/* sq_slice */ /* PY2 ONLY */
+#else
+	NULL,
+#endif
 	(ssizeobjargproc) Vector_ass_item,			/* sq_ass_item */
-	(ssizessizeobjargproc) Vector_ass_slice,		/* sq_ass_slice */
+#if (PY_VERSION_HEX < 0x03000000)
+	(ssizessizeobjargproc) Vector_ass_slice,	/* sq_ass_slice */ /* PY2 ONLY */
+#else
+	NULL,
+#endif
 };
+
+
+#if (PY_VERSION_HEX >= 0x03000000)
+static PyObject *Vector_subscript(VectorObject* self, PyObject* item)
+{
+	if (PyIndex_Check(item)) {
+		Py_ssize_t i;
+		i = PyNumber_AsSsize_t(item, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred())
+			return NULL;
+		if (i < 0)
+			i += self->size;
+		return Vector_item(self, i);
+	} else if (PySlice_Check(item)) {
+		Py_ssize_t start, stop, step, slicelength;
+
+		if (PySlice_GetIndicesEx((PySliceObject*)item, self->size, &start, &stop, &step, &slicelength) < 0)
+			return NULL;
+
+		if (slicelength <= 0) {
+			return PyList_New(0);
+		}
+		else if (step == 1) {
+			return Vector_slice(self, start, stop);
+		}
+		else {
+			PyErr_SetString(PyExc_TypeError, "slice steps not supported with vectors");
+			return NULL;
+		}
+	}
+	else {
+		PyErr_Format(PyExc_TypeError,
+			     "vector indices must be integers, not %.200s",
+			     item->ob_type->tp_name);
+		return NULL;
+	}
+}
+
+static int Vector_ass_subscript(VectorObject* self, PyObject* item, PyObject* value)
+{
+	if (PyIndex_Check(item)) {
+		Py_ssize_t i = PyNumber_AsSsize_t(item, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred())
+			return -1;
+		if (i < 0)
+			i += self->size;
+		return Vector_ass_item(self, i, value);
+	}
+	else if (PySlice_Check(item)) {
+		Py_ssize_t start, stop, step, slicelength;
+
+		if (PySlice_GetIndicesEx((PySliceObject*)item, self->size, &start, &stop, &step, &slicelength) < 0)
+			return -1;
+
+		if (step == 1)
+			return Vector_ass_slice(self, start, stop, value);
+		else {
+			PyErr_SetString(PyExc_TypeError, "slice steps not supported with vectors");
+			return -1;
+		}
+	}
+	else {
+		PyErr_Format(PyExc_TypeError,
+			     "vector indices must be integers, not %.200s",
+			     item->ob_type->tp_name);
+		return -1;
+	}
+}
+
+static PyMappingMethods Vector_AsMapping = {
+	(lenfunc)Vector_len,
+	(binaryfunc)Vector_subscript,
+	(objobjargproc)Vector_ass_subscript
+};
+#endif /*  (PY_VERSION_HEX >= 0x03000000) */
  
 #if (PY_VERSION_HEX >= 0x03000000)
 static PyNumberMethods Vector_NumMethods = {
@@ -1813,7 +1897,11 @@ PyTypeObject vector_Type = {
 
 	&Vector_NumMethods,                       /* PyNumberMethods *tp_as_number; */
 	&Vector_SeqMethods,                       /* PySequenceMethods *tp_as_sequence; */
-	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+#if (PY_VERSION_HEX >= 0x03000000)
+	&Vector_AsMapping,                       /* PyMappingMethods *tp_as_mapping; */
+#else
+	NULL,
+#endif
 
 	/* More standard operations (here for binary compatibility) */
 
@@ -1885,7 +1973,7 @@ PyObject *newVectorObject(float *vec, int size, int type, PyTypeObject *base_typ
 	int i;
 	VectorObject *self;
 
-	if(base_type)	self = base_type->tp_alloc(base_type, 0);
+	if(base_type)	self = (VectorObject *)base_type->tp_alloc(base_type, 0);
 	else			self = PyObject_NEW(VectorObject, &vector_Type);
 	
 	if(size > 4 || size < 2)

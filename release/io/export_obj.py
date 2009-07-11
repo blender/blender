@@ -45,10 +45,13 @@ will be exported as mesh data.
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
+# import math and other in functions that use them for the sake of fast Blender startup
+# import math
+import os # os.sep
 
 import bpy
-import os # os.sep
 import Mathutils
+
 
 # Returns a tuple - path,extension.
 # 'hello.obj' >	 ('hello', '.obj')
@@ -299,6 +302,9 @@ def write(filename, objects, scene,
 	eg.
 	write( 'c:\\test\\foobar.obj', Blender.Object.GetSelected() ) # Using default options.
 	'''
+
+	# XXX
+	import math
 	
 	def veckey3d(v):
 		return round(v.x, 6), round(v.y, 6), round(v.z, 6)
@@ -362,7 +368,7 @@ def write(filename, objects, scene,
 		file.write('mtllib %s\n' % ( mtlfilename.split('\\')[-1].split('/')[-1] ))
 	
 	if EXPORT_ROTX90:
-		mat_xrot90= Mathutils.RotationMatrix(-90, 4, 'x')
+		mat_xrot90= Mathutils.RotationMatrix(-math.pi/2, 4, 'x')
 		
 	# Initialize totals, these are updated each object
 	totverts = totuvco = totno = 1
@@ -416,8 +422,10 @@ def write(filename, objects, scene,
 				me = ob.data.create_copy()
 
 			if EXPORT_ROTX90:
+				print(ob_mat * mat_xrot90)
 				me.transform(ob_mat * mat_xrot90)
 			else:
+				print(ob_mat)
 				me.transform(ob_mat)
 
 #			# Will work for non meshes now! :)

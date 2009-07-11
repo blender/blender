@@ -94,6 +94,17 @@ wmOperatorType *WM_operatortype_find(const char *idname)
 	return NULL;
 }
 
+wmOperatorType *WM_operatortype_exists(const char *idname)
+{
+	wmOperatorType *ot;
+	
+	for(ot= global_ops.first; ot; ot= ot->next) {
+		if(strncmp(ot->idname, idname, OP_MAX_TYPENAME)==0)
+		   return ot;
+	}
+	return NULL;
+}
+
 wmOperatorType *WM_operatortype_first(void)
 {
 	return global_ops.first;
@@ -296,7 +307,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	return block;
 }
 
-int WM_operator_redo(bContext *C, wmOperator *op, wmEvent *event)
+int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *event)
 {
 	int retval= OPERATOR_CANCELLED;
 	
@@ -1543,7 +1554,7 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_save_mainfile", WKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_save_as_mainfile", F2KEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* debug/testing */

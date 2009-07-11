@@ -30,7 +30,7 @@
 #ifndef TRANSFORM_H
 #define TRANSFORM_H
 
-#include "BIF_transform.h"
+#include "ED_transform.h"
 
 /* ************************** Types ***************************** */
 
@@ -160,6 +160,21 @@ typedef struct TransDataSeq {
 	short sel_flag; /* one of SELECT, SEQ_LEFTSEL and SEQ_RIGHTSEL */
 	
 } TransDataSeq;
+
+/* for NLA transform (stored in td->extra pointer) */
+typedef struct TransDataNla {
+	struct NlaTrack *oldTrack;	/* Original NLA-Track that the strip belongs to */
+	struct NlaTrack *nlt;		/* Current NLA-Track that the strip belongs to */
+	
+	struct NlaStrip *strip;		/* NLA-strip this data represents */
+	
+	/* dummy values for transform to write in - must have 3 elements... */
+	float h1[3];				/* start handle */
+	float h2[3];				/* end handle */
+	
+	int trackIndex;				/* index of track that strip is currently in */
+	int handle;					/* handle-index: 0 for dummy entry, -1 for start, 1 for end, 2 for both ends */
+} TransDataNla;
 
 typedef struct TransData {
 	float  dist;         /* Distance needed to affect element (for Proportionnal Editing)                  */
@@ -481,8 +496,7 @@ void flushTransNodes(TransInfo *t);
 void flushTransSeq(TransInfo *t);
 
 /*********************** exported from transform_manipulator.c ********** */
-void draw_manipulator_ext(struct ScrArea *sa, int type, char axis, int col, float vec[3], float mat[][3]);
-int calc_manipulator_stats(struct ScrArea *sa);
+int calc_manipulator_stats(const struct bContext *C);
 float get_drawsize(struct ARegion *ar, float *co);
 
 /*********************** TransData Creation and General Handling *********** */
@@ -631,7 +645,7 @@ int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3])
 
 int addMatrixSpace(struct bContext *C, float mat[3][3], char name[]);
 int addObjectSpace(struct bContext *C, struct Object *ob);
-void applyTransformOrientation(struct bContext *C, TransInfo *t);
+void applyTransformOrientation(const struct bContext *C, TransInfo *t);
 
 
 #define ORIENTATION_NONE	0
@@ -640,7 +654,7 @@ void applyTransformOrientation(struct bContext *C, TransInfo *t);
 #define ORIENTATION_EDGE	3
 #define ORIENTATION_FACE	4
 
-int getTransformOrientation(struct bContext *C, float normal[3], float plane[3], int activeOnly);
+int getTransformOrientation(const struct bContext *C, float normal[3], float plane[3], int activeOnly);
 int createSpaceNormal(float mat[3][3], float normal[3]);
 int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3]);
 

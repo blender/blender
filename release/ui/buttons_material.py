@@ -18,13 +18,13 @@ class MATERIAL_PT_preview(MaterialButtonsPanel):
 		mat = context.material
 		
 		layout.template_preview(mat)
-	
-class MATERIAL_PT_material(MaterialButtonsPanel):
-	__idname__= "MATERIAL_PT_material"
-	__label__ = "Material"
+		
+class MATERIAL_PT_context_material(MaterialButtonsPanel):
+	__idname__= "MATERIAL_PT_context_material"
+	__no_header__ = True
 
 	def poll(self, context):
-		return (context.object != None)
+		return (context.object)
 
 	def draw(self, context):
 		layout = self.layout
@@ -34,18 +34,38 @@ class MATERIAL_PT_material(MaterialButtonsPanel):
 		slot = context.material_slot
 		space = context.space_data
 
+		if ob:
+			row = layout.row()
+
+			row.template_list(ob, "materials", ob, "active_material_index")
+
+			col = row.column(align=True)
+			col.itemO("OBJECT_OT_material_slot_add", icon="ICON_ZOOMIN", text="")
+			col.itemO("OBJECT_OT_material_slot_remove", icon="ICON_ZOOMOUT", text="")
+
 		split = layout.split(percentage=0.65)
 
 		if ob and slot:
 			split.template_ID(slot, "material", new="MATERIAL_OT_new")
-			split.itemR(ob, "active_material_index", text="Active")
+			#split.itemR(ob, "active_material_index", text="Active")
 		elif mat:
 			split.template_ID(space, "pin_id")
 			split.itemS()
 
-		if mat:
-			layout.itemS()
+	
+class MATERIAL_PT_material(MaterialButtonsPanel):
+	__idname__= "MATERIAL_PT_material"
+	__label__ = "Material"
+
+	def draw(self, context):
+		layout = self.layout
 		
+		mat = context.material
+		ob = context.object
+		slot = context.material_slot
+		space = context.space_data
+
+		if mat:
 			layout.itemR(mat, "type", expand=True)
 			
 			layout.itemR(mat, "alpha", slider=True)
@@ -169,11 +189,9 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 		split.active = mat.shadeless== False
 		sub = split.column()
 		if mat.diffuse_shader == 'OREN_NAYAR':
-				sub.itemR(mat, "roughness")
-				sub = split.column()
+			sub.itemR(mat, "roughness")
 		if mat.diffuse_shader == 'MINNAERT':
 			sub.itemR(mat, "darkness")
-			sub = split.column()
 		if mat.diffuse_shader == 'TOON':
 			sub.itemR(mat, "diffuse_toon_size", text="Size")
 			sub = split.column()
@@ -213,13 +231,13 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
 		sub = split.column()
 		if mat.spec_shader in ('COOKTORR', 'PHONG'):
 			sub.itemR(mat, "specular_hardness", text="Hardness")
-			sub = split.column()
 		if mat.spec_shader == 'BLINN':
 			sub.itemR(mat, "specular_hardness", text="Hardness")
 			sub = split.column()
 			sub.itemR(mat, "specular_ior", text="IOR")
 		if mat.spec_shader == 'WARDISO':
 			sub.itemR(mat, "specular_slope", text="Slope")
+			sub = split.column()
 			sub.itemR(mat, "specular_hardness", text="Hardness")
 		if mat.spec_shader == 'TOON':
 			sub.itemR(mat, "specular_toon_size", text="Size")
@@ -410,6 +428,8 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
 		colsub.itemR(halo, "flare_seed", text="Seed")
 		colsub.itemR(halo, "flares_sub", text="Sub")
 
+
+bpy.types.register(MATERIAL_PT_context_material)
 bpy.types.register(MATERIAL_PT_preview)
 bpy.types.register(MATERIAL_PT_material)
 bpy.types.register(MATERIAL_PT_diffuse)

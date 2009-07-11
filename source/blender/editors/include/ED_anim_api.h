@@ -41,7 +41,7 @@ struct gla2DDrawInfo;
 struct Object;
 struct bActionGroup;
 struct FCurve;
-struct IpoCurve; // xxx
+struct FModifier;
 
 /* ************************************************ */
 /* ANIMATION CHANNEL FILTERING */
@@ -75,8 +75,9 @@ typedef enum eAnimCont_Types {
 	ANIMCONT_SHAPEKEY,		/* shapekey (Key) */
 	ANIMCONT_GPENCIL,		/* grease pencil (screen) */
 	ANIMCONT_DOPESHEET,		/* dopesheet (bDopesheet) */
-	ANIMCONT_FCURVES,		/* animation F-Curves (bDopesheet) */		// XXX 
+	ANIMCONT_FCURVES,		/* animation F-Curves (bDopesheet) */
 	ANIMCONT_DRIVERS,		/* drivers (bDopesheet) */
+	ANIMCONT_NLA,			/* nla (bDopesheet) */
 } eAnimCont_Types;
 
 /* --------------- Channels -------------------- */
@@ -92,10 +93,10 @@ typedef struct bAnimListElem {
 	int		flag;		/* copy of elem's flags for quick access */
 	int 	index;		/* copy of adrcode where applicable */
 	
-	void	*key_data;	/* motion data - ipo or ipo-curve */
+	void	*key_data;	/* motion data - mostly F-Curves, but can be other types too */
 	short	datatype;	/* type of motion data to expect */
 	
-	struct ID *id;				/* ID block that channel is attached to (may be used  */
+	struct ID *id;		/* ID block that channel is attached to (may be used  */
 	
 	void 	*owner;		/* group or channel which acts as this channel's owner */
 	short	ownertype;	/* type of owner */
@@ -106,6 +107,7 @@ typedef struct bAnimListElem {
 // XXX was ACTTYPE_*
 typedef enum eAnim_ChannelType {
 	ANIMTYPE_NONE= 0,
+	ANIMTYPE_ANIMDATA,
 	ANIMTYPE_SPECIALDATA,
 	
 	ANIMTYPE_SCENE,
@@ -128,6 +130,9 @@ typedef enum eAnim_ChannelType {
 	
 	ANIMTYPE_GPDATABLOCK,
 	ANIMTYPE_GPLAYER,
+	
+	ANIMTYPE_NLATRACK,
+	ANIMTYPE_NLAACTION,
 } eAnim_ChannelType;
 
 /* types of keyframe data in bAnimListElem */
@@ -135,8 +140,8 @@ typedef enum eAnim_KeyType {
 	ALE_NONE = 0,		/* no keyframe data */
 	ALE_FCURVE,			/* F-Curve */
 	ALE_GPFRAME,		/* Grease Pencil Frames */
+	ALE_NLASTRIP,		/* NLA Strips */
 	
-	// XXX the following are for summaries... should these be kept?
 	ALE_SCE,			/* Scene summary */
 	ALE_OB,				/* Object summary */
 	ALE_ACT,			/* Action summary */
@@ -156,7 +161,9 @@ typedef enum eAnimFilter_Flags {
 	ANIMFILTER_CHANNELS		= (1<<5),	/* make list for interface drawing */
 	ANIMFILTER_ACTGROUPED	= (1<<6),	/* belongs to the active actiongroup */
 	ANIMFILTER_CURVEVISIBLE	= (1<<7),	/* F-Curve is visible for editing/viewing in Graph Editor */
-	ANIMFILTER_ACTIVE		= (1<<8),	/* channel should be 'active' */  // FIXME: this is only relevant for F-Curves for now
+	ANIMFILTER_ACTIVE		= (1<<8),	/* channel should be 'active' */
+	ANIMFILTER_ANIMDATA		= (1<<9),	/* only return the underlying AnimData blocks (not the tracks, etc.) data comes from */
+	ANIMFILTER_NLATRACKS	= (1<<10),	/* only include NLA-tracks */
 } eAnimFilter_Flags;
 
 
@@ -202,6 +209,10 @@ typedef enum eAnimFilter_Flags {
 #define EDITABLE_GPL(gpl) ((gpl->flag & GP_LAYER_LOCKED)==0)
 #define SEL_GPL(gpl) ((gpl->flag & GP_LAYER_ACTIVE) || (gpl->flag & GP_LAYER_SELECT))
 
+/* NLA only */
+#define SEL_NLT(nlt) (nlt->flag & NLATRACK_SELECTED)
+#define EDITABLE_NLT(nlt) ((nlt->flag & NLATRACK_PROTECTED)==0)
+
 /* -------------- Channel Defines -------------- */
 
 /* channel heights */
@@ -216,6 +227,22 @@ typedef enum eAnimFilter_Flags {
 
 /* channel toggle-buttons */
 #define ACHANNEL_BUTTON_WIDTH	16
+
+
+/* -------------- NLA Channel Defines -------------- */
+
+/* NLA channel heights */
+#define NLACHANNEL_FIRST			-16
+#define	NLACHANNEL_HEIGHT			24
+#define NLACHANNEL_HEIGHT_HALF	12
+#define	NLACHANNEL_SKIP			2
+#define NLACHANNEL_STEP			(NLACHANNEL_HEIGHT + NLACHANNEL_SKIP)
+
+/* channel widths */
+#define NLACHANNEL_NAMEWIDTH		200
+
+/* channel toggle-buttons */
+#define NLACHANNEL_BUTTON_WIDTH	16
 
 /* ---------------- API  -------------------- */
 
@@ -245,7 +272,7 @@ short ANIM_animdata_context_getdata(bAnimContext *ac);
 void ANIM_deselect_anim_channels(void *data, short datatype, short test, short sel);
 
 /* Set the 'active' channel of type channel_type, in the given action */
-void ANIM_set_active_channel(void *data, short datatype, int filter, void *channel_data, short channel_type);
+void ANIM_set_active_channel(bAnimContext *ac, void *data, short datatype, int filter, void *channel_data, short channel_type);
 
 /* --------------- Settings and/or Defines -------------- */
 
@@ -283,6 +310,14 @@ void ANIM_draw_cfra(const struct bContext *C, struct View2D *v2d, short flag);
 void ANIM_draw_previewrange(const struct bContext *C, struct View2D *v2d);
 
 /* ************************************************* */
+/* F-MODIFIER TOOLS */
+
+struct uiLayout;
+
+/* draw a given F-Modifier for some layout/UI-Block */
+void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, struct ID *id, ListBase *modifiers, struct FModifier *fcm);
+
+/* ************************************************* */
 /* ASSORTED TOOLS */
 
 /* ------------ Animation F-Curves <-> Icons/Names Mapping ------------ */
@@ -299,18 +334,43 @@ void ipo_rainbow(int cur, int tot, float *out);
 /* ------------- NLA-Mapping ----------------------- */
 /* anim_draw.c */
 
-/* Obtain the Object providing NLA-scaling for the given channel if applicable */
-struct Object *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale);
+/* Obtain the AnimData block providing NLA-scaling for the given channel if applicable */
+struct AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale);
 
-/* Set/clear temporary mapping of coordinates from 'local-action' time to 'global-nla-scaled' time */
-void ANIM_nla_mapping_draw(struct gla2DDrawInfo *di, struct Object *ob, short restore);
+/* Set/clear temporary mapping of coordinates from 'local-action' time to 'global-nla-mapped' time */
+void ANIM_nla_mapping_draw(struct gla2DDrawInfo *di, struct AnimData *adt, short restore);
 
-/* Apply/Unapply NLA mapping to all keyframes in the nominated IPO block */
-void ANIM_nla_mapping_apply_fcurve(struct Object *ob, struct FCurve *fcu, short restore, short only_keys);
+/* Apply/Unapply NLA mapping to all keyframes in the nominated F-Curve */
+void ANIM_nla_mapping_apply_fcurve(struct AnimData *adt, struct FCurve *fcu, short restore, short only_keys);
 
-/* ------------- xxx macros ----------------------- */
+/* ------------- Utility macros ----------------------- */
 
+/* checks if the given BezTriple is selected */
 #define BEZSELECTED(bezt) ((bezt->f2 & SELECT) || (bezt->f1 & SELECT) || (bezt->f3 & SELECT))
+
+/* set/clear/toggle macro 
+ *	- channel - channel with a 'flag' member that we're setting
+ *	- smode - 0=clear, 1=set, 2=toggle
+ *	- sflag - bitflag to set
+ */
+#define ACHANNEL_SET_FLAG(channel, smode, sflag) \
+	{ \
+		if (smode == ACHANNEL_SETFLAG_TOGGLE) 	(channel)->flag ^= (sflag); \
+		else if (smode == ACHANNEL_SETFLAG_ADD) (channel)->flag |= (sflag); \
+		else 									(channel)->flag &= ~(sflag); \
+	}
+	
+/* set/clear/toggle macro, where the flag is negative 
+ *	- channel - channel with a 'flag' member that we're setting
+ *	- smode - 0=clear, 1=set, 2=toggle
+ *	- sflag - bitflag to set
+ */
+#define ACHANNEL_SET_FLAG_NEG(channel, smode, sflag) \
+	{ \
+		if (smode == ACHANNEL_SETFLAG_TOGGLE) 	(channel)->flag ^= (sflag); \
+		else if (smode == ACHANNEL_SETFLAG_ADD) (channel)->flag &= ~(sflag); \
+		else 									(channel)->flag |= (sflag); \
+	}
 
 
 /* --------- anim_deps.c, animation updates -------- */
@@ -323,18 +383,6 @@ void ED_anim_object_flush_update(const struct bContext *C, struct Object *ob);
 /* pose <-> action syncing */
 void ANIM_action_to_pose_sync(struct Object *ob);
 void ANIM_pose_to_action_sync(struct Object *ob, struct ScrArea *sa);
-
-
-/* what types of animation data was changed (for sending notifiers from animation tools) */
-enum {
-	ANIM_CHANGED_BOTH= 0,
-	ANIM_CHANGED_KEYFRAMES_VALUES,
-	ANIM_CHANGED_KEYFRAMES_SELECT,
-	ANIM_CHANGED_CHANNELS
-} eAnimData_Changed;
-
-/* Send notifiers on behalf of animation editing tools, based on various context info */
-void ANIM_animdata_send_notifiers(struct bContext *C, bAnimContext *ac, short data_changed);
 
 /* ************************************************* */
 /* OPERATORS */

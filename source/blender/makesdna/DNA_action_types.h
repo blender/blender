@@ -225,10 +225,18 @@ typedef struct bActionGroup {
 
 /* Action Group flags */
 typedef enum eActionGroup_Flag {
+		/* group is selected */
 	AGRP_SELECTED 	= (1<<0),
+		/* group is 'active' / last selected one */
 	AGRP_ACTIVE 	= (1<<1),
+		/* keyframes/channels belonging to it cannot be edited */
 	AGRP_PROTECTED 	= (1<<2),
+		/* for UI, sub-channels are shown */
 	AGRP_EXPANDED 	= (1<<3),
+		/* sub-channels are not evaluated */
+	AGRP_MUTED		= (1<<4),
+		/* sub-channels are not visible in Graph Editor */
+	AGRP_NOTVISIBLE	= (1<<5),
 	
 	AGRP_TEMP		= (1<<30),
 	AGRP_MOVED 		= (1<<31)
@@ -269,6 +277,7 @@ typedef enum eAction_Flags {
 		/* flags for evaluation/editing */
 	ACT_MUTED		= (1<<9),
 	ACT_PROTECTED	= (1<<10),
+	ACT_DISABLED	= (1<<11),
 } eAction_Flags;
 
 
@@ -288,8 +297,10 @@ typedef struct bDopeSheet {
 /* DopeSheet filter-flag */
 typedef enum DOPESHEET_FILTERFLAG {
 		/* general filtering */
-	ADS_FILTER_ONLYSEL			= (1<<0),
-	ADS_FILTER_ONLYDRIVERS		= (1<<1),
+	ADS_FILTER_ONLYSEL			= (1<<0),	/* only include channels relating to selected data */
+	
+	ADS_FILTER_ONLYDRIVERS		= (1<<1),	/* for 'Drivers' editor - only include Driver data from AnimData */
+	ADS_FILTER_ONLYNLA			= (1<<2),	/* for 'NLA' editor - only include NLA data from AnimData */
 	
 		/* datatype-based filtering */
 	ADS_FILTER_NOSHAPEKEYS 		= (1<<6),
@@ -300,9 +311,11 @@ typedef enum DOPESHEET_FILTERFLAG {
 	ADS_FILTER_NOWOR			= (1<<14),
 	ADS_FILTER_NOSCE			= (1<<15),
 	
+		/* NLA-specific filters */
+	ADS_FILTER_NLA_NOACT		= (1<<20),	/* if the AnimData block has no NLA data, don't include to just show Action-line */
+	
 		/* combination filters (some only used at runtime) */
 	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM|ADS_FILTER_NOMAT|ADS_FILTER_NOLAM|ADS_FILTER_NOCUR),
-	ADS_FILTER_NLADUMMY = (ADS_FILTER_NOSHAPEKEYS|ADS_FILTER_NOOBDATA),
 } DOPESHEET_FILTERFLAG;	
 
 /* DopeSheet general flags */

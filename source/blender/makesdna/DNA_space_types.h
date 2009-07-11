@@ -86,7 +86,7 @@ typedef struct SpaceInfo {
 } SpaceInfo;
 
 /* 'Graph' Editor (formerly known as the IPO Editor) */
-// XXX for now, we keep all old data...
+/* XXX for now, we keep all old data... */
 typedef struct SpaceIpo {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
@@ -96,10 +96,6 @@ typedef struct SpaceIpo {
 	short blockhandler[8];
 	View2D v2d; /* depricated, copied to region */
 	
-		// 'IPO keys' - vertical lines for editing multiple keyframes at once - use Dopesheet instead for this?
-	//ListBase ipokey;		// XXX it's not clear how these will come back yet
-	//short showkey;			// XXX this doesn't need to be restored until ipokeys come back
-	
 	struct bDopeSheet *ads;	/* settings for filtering animation data (NOTE: we use a pointer due to code-linking issues) */
 	
 	ListBase ghostCurves;	/* sampled snapshots of F-Curves used as in-session guides */
@@ -107,7 +103,7 @@ typedef struct SpaceIpo {
 	short mode;				/* mode for the Graph editor (eGraphEdit_Mode) */
 	short flag;				/* settings for Graph editor */
 	short autosnap;			/* time-transform autosnapping settings for Graph editor (eAnimEdit_AutoSnap in DNA_action_types.h) */
-	char pin, lock;
+	char pin, lock;			// XXX old, unused vars that are probably going to be depreceated soon...
 } SpaceIpo;
 
 typedef struct SpaceButs {
@@ -191,21 +187,6 @@ typedef struct FileSelectParams {
 	/* XXX --- end unused -- */
 } FileSelectParams;
 
-/* FileSelectParams.display */
-enum FileDisplayTypeE {
-	FILE_SHORTDISPLAY = 1,
-	FILE_LONGDISPLAY,
-	FILE_IMGDISPLAY
-};
-
-/* FileSelectParams.sort */
-enum FileSortTypeE {
-	FILE_SORT_NONE = 0,
-	FILE_SORT_ALPHA = 1,
-	FILE_SORT_EXTENSION,
-	FILE_SORT_TIME,
-	FILE_SORT_SIZE
-};
 
 typedef struct SpaceFile {
 	SpaceLink *next, *prev;
@@ -216,6 +197,9 @@ typedef struct SpaceFile {
 	struct FileSelectParams *params; /* config and input for file select */
 	
 	struct FileList *files; /* holds the list of files to show */
+
+	ListBase *folders_prev; /* holds the list of previous directories to show */
+	ListBase *folders_next; /* holds the list of next directories (pushed from previous) to show */
 
 	/* operator that is invoking fileselect 
 	   op->exec() will be called on the 'Load' button.
@@ -288,10 +272,11 @@ typedef struct SpaceNla {
 
 	short blockhandler[8];
 
-	short menunr, lock;
 	short autosnap;			/* this uses the same settings as autosnap for Action Editor */
 	short flag;
+	int pad;
 	
+	struct bDopeSheet *ads;
 	View2D v2d;	 /* depricated, copied to region */
 } SpaceNla;
 
@@ -569,6 +554,22 @@ typedef struct SpaceImaSel {
 #define BUTS_SENS_STATE		512
 #define BUTS_ACT_STATE		1024
 
+/* FileSelectParams.display */
+enum FileDisplayTypeE {
+	FILE_SHORTDISPLAY = 1,
+	FILE_LONGDISPLAY,
+	FILE_IMGDISPLAY
+};
+
+/* FileSelectParams.sort */
+enum FileSortTypeE {
+	FILE_SORT_NONE = 0,
+	FILE_SORT_ALPHA = 1,
+	FILE_SORT_EXTENSION,
+	FILE_SORT_TIME,
+	FILE_SORT_SIZE
+};
+
 /* these values need to be hardcoded in structs, dna does not recognize defines */
 /* also defined in BKE */
 #define FILE_MAXDIR			160
@@ -747,8 +748,11 @@ enum {
 #define IMS_INFILESLI		4
 
 /* nla->flag */
+	// depreceated
 #define SNLA_ALLKEYED		(1<<0)
+	// depreceated
 #define SNLA_ACTIVELAYERS	(1<<1)
+
 #define SNLA_DRAWTIME		(1<<2)
 #define SNLA_NOTRANSKEYCULL	(1<<3)
 #define SNLA_NODRAWCFRANUM	(1<<4)

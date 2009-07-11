@@ -760,8 +760,7 @@ static PyObject *Matrix_slice(MatrixObject * self, int begin, int end)
 }
 /*----------------------------object[z:y]------------------------
   sequence slice (set)*/
-static int Matrix_ass_slice(MatrixObject * self, int begin, int end,
-			     PyObject * seq)
+static int Matrix_ass_slice(MatrixObject * self, int begin, int end, PyObject * seq)
 {
 	int i, x, y, size, sub_size = 0;
 	float mat[16], f;
@@ -999,6 +998,83 @@ static PySequenceMethods Matrix_SeqMethods = {
 };
 
 
+
+#if (PY_VERSION_HEX >= 0x03000000)
+static PyObject *Matrix_subscript(MatrixObject* self, PyObject* item)
+{
+	if (PyIndex_Check(item)) {
+		Py_ssize_t i;
+		i = PyNumber_AsSsize_t(item, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred())
+			return NULL;
+		if (i < 0)
+			i += self->rowSize;
+		return Matrix_item(self, i);
+	} else if (PySlice_Check(item)) {
+		Py_ssize_t start, stop, step, slicelength;
+
+		if (PySlice_GetIndicesEx((PySliceObject*)item, self->rowSize, &start, &stop, &step, &slicelength) < 0)
+			return NULL;
+
+		if (slicelength <= 0) {
+			return PyList_New(0);
+		}
+		else if (step == 1) {
+			return Matrix_slice(self, start, stop);
+		}
+		else {
+			PyErr_SetString(PyExc_TypeError, "slice steps not supported with matricies");
+			return NULL;
+		}
+	}
+	else {
+		PyErr_Format(PyExc_TypeError,
+			     "vector indices must be integers, not %.200s",
+			     item->ob_type->tp_name);
+		return NULL;
+	}
+}
+
+static int Matrix_ass_subscript(MatrixObject* self, PyObject* item, PyObject* value)
+{
+	if (PyIndex_Check(item)) {
+		Py_ssize_t i = PyNumber_AsSsize_t(item, PyExc_IndexError);
+		if (i == -1 && PyErr_Occurred())
+			return -1;
+		if (i < 0)
+			i += self->rowSize;
+		return Matrix_ass_item(self, i, value);
+	}
+	else if (PySlice_Check(item)) {
+		Py_ssize_t start, stop, step, slicelength;
+
+		if (PySlice_GetIndicesEx((PySliceObject*)item, self->rowSize, &start, &stop, &step, &slicelength) < 0)
+			return -1;
+
+		if (step == 1)
+			return Matrix_ass_slice(self, start, stop, value);
+		else {
+			PyErr_SetString(PyExc_TypeError, "slice steps not supported with matricies");
+			return -1;
+		}
+	}
+	else {
+		PyErr_Format(PyExc_TypeError,
+			     "matrix indices must be integers, not %.200s",
+			     item->ob_type->tp_name);
+		return -1;
+	}
+}
+
+static PyMappingMethods Matrix_AsMapping = {
+	(lenfunc)Matrix_len,
+	(binaryfunc)Matrix_subscript,
+	(objobjargproc)Matrix_ass_subscript
+};
+#endif /*  (PY_VERSION_HEX >= 0x03000000) */
+
+
+
 #if (PY_VERSION_HEX >= 0x03000000)
 static PyNumberMethods Matrix_NumMethods = {
 		(binaryfunc)	Matrix_add,	/*nb_add*/
@@ -1106,7 +1182,11 @@ PyTypeObject matrix_Type = {
 	(reprfunc) Matrix_repr,			/*tp_repr*/
 	&Matrix_NumMethods,				/*tp_as_number*/
 	&Matrix_SeqMethods,				/*tp_as_sequence*/
-	0,								/*tp_as_mapping*/
+#if (PY_VERSION_HEX >= 0x03000000)
+	&Matrix_AsMapping,				/*tp_as_mapping*/
+#else
+	0,
+#endif
 	0,								/*tp_hash*/
 	0,								/*tp_call*/
 	0,								/*tp_str*/

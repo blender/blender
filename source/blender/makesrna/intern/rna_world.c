@@ -377,7 +377,7 @@ void RNA_def_world(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "range", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "range");
 	RNA_def_property_range(prop, 0.2, 5.0);
-	RNA_def_property_ui_text(prop, "Range", "The color rage that will be mapped to 0-1");
+	RNA_def_property_ui_text(prop, "Range", "The color range that will be mapped to 0-1.");
 
 	/* sky type */
 	prop= RNA_def_property(srna, "blend_sky", PROP_BOOLEAN, PROP_NONE);

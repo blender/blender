@@ -116,11 +116,10 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 #include "ED_types.h"
 #include "ED_util.h"
 #include "ED_view3d.h"
-
-#include "BIF_transform.h"
 
 #include "UI_interface.h"
 
@@ -244,16 +243,18 @@ void ED_object_base_init_from_view(bContext *C, Base *base)
 /* ******************* add object operator ****************** */
 
 static EnumPropertyItem prop_object_types[] = {
-	{OB_EMPTY, "EMPTY", 0, "Empty", ""},
 	{OB_MESH, "MESH", 0, "Mesh", ""},
 	{OB_CURVE, "CURVE", 0, "Curve", ""},
 	{OB_SURF, "SURFACE", 0, "Surface", ""},
-	{OB_FONT, "TEXT", 0, "Text", ""},
 	{OB_MBALL, "META", 0, "Meta", ""},
-	{OB_LAMP, "LAMP", 0, "Lamp", ""},
-	{OB_CAMERA, "CAMERA", 0, "Camera", ""},
+	{OB_FONT, "TEXT", 0, "Text", ""},
+	{0, "", 0, NULL, NULL},
 	{OB_ARMATURE, "ARMATURE", 0, "Armature", ""},
 	{OB_LATTICE, "LATTICE", 0, "Lattice", ""},
+	{OB_EMPTY, "EMPTY", 0, "Empty", ""},
+	{0, "", 0, NULL, NULL},
+	{OB_CAMERA, "CAMERA", 0, "Camera", ""},
+	{OB_LAMP, "LAMP", 0, "Lamp", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -328,6 +329,7 @@ static EnumPropertyItem prop_mesh_types[] = {
 	{4, "ICOSPHERE", 0, "Icosphere", ""},
 	{5, "CYLINDER", 0, "Cylinder", ""},
 	{6, "CONE", 0, "Cone", ""},
+	{0, "", 0, NULL, NULL},
 	{7, "GRID", 0, "Grid", ""},
 	{8, "MONKEY", 0, "Monkey", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -620,16 +622,18 @@ static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	uiPopupMenu *pup= uiPupMenuBegin(C, "Add Object", 0);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
-	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_MESH, "OBJECT_OT_mesh_add", "type");
-	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_CURVE, "OBJECT_OT_curve_add", "type");
-	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_SURFACE, "OBJECT_OT_surface_add", "type");
-	uiItemO(layout, NULL, ICON_OUTLINER_OB_FONT, "OBJECT_OT_text_add");
+	uiItemMenuEnumO(layout, "Mesh", ICON_OUTLINER_OB_MESH, "OBJECT_OT_mesh_add", "type");
+	uiItemMenuEnumO(layout, "Curve", ICON_OUTLINER_OB_CURVE, "OBJECT_OT_curve_add", "type");
+	uiItemMenuEnumO(layout, "Surface", ICON_OUTLINER_OB_SURFACE, "OBJECT_OT_surface_add", "type");
 	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_META, "OBJECT_OT_object_add", "type", OB_MBALL);
+	uiItemO(layout, "Text", ICON_OUTLINER_OB_FONT, "OBJECT_OT_text_add");
+	uiItemS(layout);
+	uiItemO(layout, "Armature", ICON_OUTLINER_OB_ARMATURE, "OBJECT_OT_armature_add");
+	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LATTICE, "OBJECT_OT_object_add", "type", OB_LATTICE);
+	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_EMPTY, "OBJECT_OT_object_add", "type", OB_EMPTY);
+	uiItemS(layout);
 	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_CAMERA, "OBJECT_OT_object_add", "type", OB_CAMERA);
 	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LAMP, "OBJECT_OT_object_add", "type", OB_LAMP);
-	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_EMPTY, "OBJECT_OT_object_add", "type", OB_EMPTY);
-	uiItemO(layout, NULL, ICON_OUTLINER_OB_ARMATURE, "OBJECT_OT_armature_add");
-	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LATTICE, "OBJECT_OT_object_add", "type", OB_LATTICE);
 	
 	uiPupMenuEnd(C, pup);
 	
@@ -700,8 +704,8 @@ void OBJECT_OT_delete(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Delete Objects";
-	ot->description = "Delete the object.";
+	ot->name= "Delete";
+	ot->description = "Delete selected objects.";
 	ot->idname= "OBJECT_OT_delete";
 	
 	/* api callbacks */
@@ -1375,20 +1379,21 @@ static EnumPropertyItem prop_clear_parent_types[] = {
 /* note, poll should check for editable scene */
 static int parent_clear_exec(bContext *C, wmOperator *op)
 {
+	int type= RNA_enum_get(op->ptr, "type");
 	
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 
-		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR")) {
+		if(type == 0) {
 			ob->parent= NULL;
 		}			
-		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_KEEP_TRANSFORM")) {
+		else if(type == 1) {
 			ob->parent= NULL;
 			ob->track= NULL;
 			ED_object_apply_obmat(ob);
 		}
-		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_INVERSE")) {
+		else if(type == 2)
 			Mat4One(ob->parentinv);
-		}
+
 		ob->recalc |= OB_RECALC;
 	}
 	CTX_DATA_END;
@@ -1403,7 +1408,7 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_parent_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear parent";
+	ot->name= "Clear Parent";
 	ot->description = "Clear the object's parenting.";
 	ot->idname= "OBJECT_OT_parent_clear";
 	
@@ -1431,6 +1436,8 @@ static EnumPropertyItem prop_clear_track_types[] = {
 /* note, poll should check for editable scene */
 static int object_track_clear_exec(bContext *C, wmOperator *op)
 {
+	int type= RNA_enum_get(op->ptr, "type");
+
 	if(CTX_data_edit_object(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed in EditMode");
 		return OPERATOR_CANCELLED;
@@ -1439,9 +1446,8 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 		ob->track= NULL;
 		ob->recalc |= OB_RECALC;
 		
-		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_KEEP_TRANSFORM")) {
+		if(type == 1)
 			ED_object_apply_obmat(ob);
-		}			
 	}
 	CTX_DATA_END;
 
@@ -1733,7 +1739,7 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 }
 
 /* ****** invert selection *******/
-static int object_select_invert_exec(bContext *C, wmOperator *op)
+static int object_select_inverse_exec(bContext *C, wmOperator *op)
 {
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if (base->flag & SELECT)
@@ -1749,16 +1755,16 @@ static int object_select_invert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_select_invert(wmOperatorType *ot)
+void OBJECT_OT_select_inverse(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Invert selection";
-	ot->description = "Invert th select of all visible objects.";
-	ot->idname= "OBJECT_OT_select_invert";
+	ot->name= "Select Inverse";
+	ot->description = "Invert selection of all visible objects.";
+	ot->idname= "OBJECT_OT_select_inverse";
 	
 	/* api callbacks */
-	ot->exec= object_select_invert_exec;
+	ot->exec= object_select_inverse_exec;
 	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
@@ -1891,7 +1897,7 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Clear Object Location";
+	ot->name= "Clear Location";
 	ot->description = "Clear the object's location.";
 	ot->idname= "OBJECT_OT_location_clear";
 	
@@ -1935,7 +1941,7 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Clear Object Rotation";
+	ot->name= "Clear Rotation";
 	ot->description = "Clear the object's rotation.";
 	ot->idname= "OBJECT_OT_rotation_clear";
 	
@@ -1983,7 +1989,7 @@ void OBJECT_OT_scale_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Clear Object Scale";
+	ot->name= "Clear Scale";
 	ot->description = "Clear the object's scale.";
 	ot->idname= "OBJECT_OT_scale_clear";
 	
@@ -2029,7 +2035,7 @@ void OBJECT_OT_origin_clear(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Clear Object Origin";
+	ot->name= "Clear Origin";
 	ot->description = "Clear the object's origin.";
 	ot->idname= "OBJECT_OT_origin_clear";
 	
@@ -2072,12 +2078,11 @@ void OBJECT_OT_restrictview_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Clear restrict view";
+	ot->name= "Clear Restrict View";
 	ot->description = "Reveal the object by setting the restrictview flag.";
 	ot->idname= "OBJECT_OT_restrictview_clear";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
 	ot->exec= object_restrictview_clear_exec;
 	ot->poll= ED_operator_view3d_active;
 	
@@ -2085,19 +2090,14 @@ void OBJECT_OT_restrictview_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static EnumPropertyItem prop_set_restrictview_types[] = {
-	{0, "SELECTED", 0, "Selected", ""},
-	{1, "UNSELECTED", 0, "Unselected ", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
 static int object_restrictview_set_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	short changed = 0;
+	int unselected= RNA_boolean_get(op->ptr, "unselected");
 	
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if(RNA_enum_is_equal(op->ptr, "type", "SELECTED")){
+		if(!unselected) {
 			if (base->flag & SELECT){
 				base->flag &= ~SELECT;
 				base->object->flag = base->flag;
@@ -2108,7 +2108,7 @@ static int object_restrictview_set_exec(bContext *C, wmOperator *op)
 				}
 			}
 		}
-		else if (RNA_enum_is_equal(op->ptr, "type", "UNSELECTED")){
+		else {
 			if (!(base->flag & SELECT)){
 				base->object->restrictflag |= OB_RESTRICT_VIEW;
 				changed = 1;
@@ -2130,19 +2130,18 @@ static int object_restrictview_set_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_restrictview_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set restrict view";
+	ot->name= "Set Restrict View";
 	ot->description = "Hide the object by setting the restrictview flag.";
 	ot->idname= "OBJECT_OT_restrictview_set";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
 	ot->exec= object_restrictview_set_exec;
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_set_restrictview_types, 0, "Type", "");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects.");
 	
 }
 /* ************* Slow Parent ******************* */
@@ -2639,7 +2638,7 @@ static int parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void OBJECT_OT_parent_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make parent";
+	ot->name= "Make Parent";
 	ot->description = "Set the object's parenting.";
 	ot->idname= "OBJECT_OT_parent_set";
 	
@@ -2666,8 +2665,9 @@ static EnumPropertyItem prop_make_track_types[] = {
 static int track_set_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
+	int type= RNA_enum_get(op->ptr, "type");
 		
-	if(RNA_enum_is_equal(op->ptr, "type", "TRACKTO")){
+	if(type == 1) {
 		bConstraint *con;
 		bTrackToConstraint *data;
 
@@ -2691,7 +2691,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-	else if(RNA_enum_is_equal(op->ptr, "type", "LOCKTRACK")){
+	else if(type == 2) {
 		bConstraint *con;
 		bLockTrackConstraint *data;
 
@@ -2715,7 +2715,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-	else if(RNA_enum_is_equal(op->ptr, "type", "OLDTRACK")){
+	else {
 		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 			if(base!=BASACT) {
 				base->object->track= BASACT->object;
@@ -2793,7 +2793,7 @@ static void make_object_duplilist_real(Scene *scene, View3D *v3d, Base *base)
 }
 
 
-static int object_dupli_set_real_exec(bContext *C, wmOperator *op)
+static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
@@ -2813,17 +2813,17 @@ static int object_dupli_set_real_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_dupli_set_real(wmOperatorType *ot)
+void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Make Dupli Real";
+	ot->name= "Make Duplicates Real";
 	ot->description = "Make dupli objects attached to this object real.";
-	ot->idname= "OBJECT_OT_dupli_set_real";
+	ot->idname= "OBJECT_OT_duplicates_make_real";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
-	ot->exec= object_dupli_set_real_exec;
+	ot->exec= object_duplicates_make_real_exec;
 	
 	ot->poll= ED_operator_scene_editable;
 	
@@ -3208,7 +3208,11 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		}
 		load_editMesh(scene, obedit);
 		
-		if(freedata) free_editMesh(me->edit_mesh);
+		if(freedata) {
+			free_editMesh(me->edit_mesh);
+			MEM_freeN(me->edit_mesh);
+			me->edit_mesh= NULL;
+		}
 		
 		if(G.f & G_WEIGHTPAINT)
 			mesh_octree_table(obedit, NULL, NULL, 'e');
@@ -3257,7 +3261,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 {
 	Scene *scene= CTX_data_scene(C);
 	Base *base= CTX_data_active_base(C);
-	Object *ob= base->object;
+	Object *ob;
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= NULL;
 	int ok= 0;
@@ -3269,7 +3273,10 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		v3d= sa->spacedata.first;
 	
 	if((v3d==NULL || (base->lay & v3d->lay))==0) return;
-	
+
+	ob = base->object;
+
+	if(ob==NULL) return;
 	if(ob->data==NULL) return;
 	
 	if (object_data_is_libdata(ob)) {
@@ -3575,9 +3582,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 // XXX	static short numcuts= 2;
 	Object *ob= OBACT;
 	Object *obedit= NULL; // XXX
-	float fac;
 	int nr,ret=0;
-	short randfac;
 	
 	if(ob==NULL) return;
 	
@@ -3766,144 +3771,8 @@ void special_editmenu(Scene *scene, View3D *v3d)
 		}
 	}
 	else if(obedit->type==OB_MESH) {
-		/* This is all that is needed, since all other functionality is in Ctrl+ V/E/F but some users didnt like, so for now have the old/big menu */
-		/*
-		nr= pupmenu("Subdivide Mesh%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Smooth%x4");
-		switch(nr) {
-		case 1:
-			waitcursor(1);
-			esubdivideflag(1, 0.0, scene->toolsettings->editbutflag, 1, 0);
-			
-			break;
-		case 2:
-			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
-			waitcursor(1);
-			esubdivideflag(1, 0.0, scene->toolsettings->editbutflag, numcuts, 0);
-			break;
-		case 3:
-			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
-			randfac= 10;
-			if(button(&randfac, 1, 100, "Rand fac:")==0) return;
-			waitcursor(1);			
-			fac= -( (float)randfac )/100;
-			esubdivideflag(1, fac, scene->toolsettings->editbutflag, numcuts, 0);
-			break;
-			
-		case 4:
-			fac= 1.0f;
-			if(fbutton(&fac, 0.0f, 5.0f, 10, 10, "Smooth:")==0) return;
-				fac= 0.292f*fac;
-			
-			waitcursor(1);
-			esubdivideflag(1, fac, scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
-			break;		
-		}
-		*/
-		
-		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Smooth%x12|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select Swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11|Set Smooth %x14|Set Solid %x15|Blend From Shape%x16|Propagate To All Shapes%x17|Select Vertex Path%x18");
-		
-		switch(nr) {
-		case 1:
-			waitcursor(1);
-// XXX			esubdivideflag(1, 0.0, scene->toolsettings->editbutflag, 1, 0);
-			
-			break;
-		case 2:
-// XXX			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
-			waitcursor(1);
-// XXX			esubdivideflag(1, 0.0, scene->toolsettings->editbutflag, numcuts, 0);
-			break;
-		case 3:
-// XXX			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
-			randfac= 10;
-// XXX			if(button(&randfac, 1, 100, "Rand fac:")==0) return;
-			waitcursor(1);			
-			fac= -( (float)randfac )/100;
-// XXX			esubdivideflag(1, fac, scene->toolsettings->editbutflag, numcuts, 0);
-			break;
-			
-		case 12:	/* smooth */
-			/* if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return; */
-			fac= 1.0f;
-// XXX			if(fbutton(&fac, 0.0f, 5.0f, 10, 10, "Smooth:")==0) return;
-// XXX				fac= 0.292f*fac;
-			
-			waitcursor(1);
-// XXX			esubdivideflag(1, fac, scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
-			break;		
-
-		case 4:
-// XXX			mergemenu();
-			break;
-		case 5:
-// XXX			notice("Removed %d Vertices", removedoublesflag(1, 0, scene->toolsettings->doublimit));
-			break;
-		case 6:
-// XXX			hide_mesh(0);
-			break;
-		case 7:
-// XXX			reveal_mesh();
-			break;
-		case 8:
-// XXX			selectswap_mesh();
-			break;
-		case 9:
-// XXX			flip_editnormals();
-			break;
-		case 10:
-// XXX			vertexsmooth();
-			break;
-		case 11:
-// XXX			bevel_menu();
-			break;
-		case 14:
-// XXX			mesh_set_smooth_faces(1);
-			break;
-		case 15: 
-// XXX			mesh_set_smooth_faces(0);
-			break;
-		case 16: 
-// XXX			shape_copy_select_from();
-			break;
-		case 17: 
-// XXX			shape_propagate();
-			break;
-		case 18:
-// XXX			pathselect();
-			break;
-		}
-		
-		
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		
-		if(nr>0) waitcursor(0);
-		
 	}
 	else if(ELEM(obedit->type, OB_CURVE, OB_SURF)) {
-
-		nr= pupmenu("Specials%t|Subdivide%x1|Switch Direction%x2|Set Goal Weight%x3|Set Radius%x4|Smooth%x5|Smooth Radius%x6");
-		
-		switch(nr) {
-		case 1:
-// XXX			subdivideNurb();
-			break;
-		case 2:
-// XXX			switchdirectionNurb2();
-			break;
-		case 3:
-// XXX			setweightNurb();
-			break;
-		case 4:
-// XXX			setradiusNurb();
-			break;
-		case 5:
-// XXX			smoothNurb();
-			break;
-		case 6:
-// XXX			smoothradiusNurb();
-			break;
-		}
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	}
 	else if(obedit->type==OB_ARMATURE) {
 		nr= pupmenu("Specials%t|Subdivide %x1|Subdivide Multi%x2|Switch Direction%x7|Flip Left-Right Names%x3|%l|AutoName Left-Right%x4|AutoName Front-Back%x5|AutoName Top-Bottom%x6");
@@ -6089,11 +5958,12 @@ Base *ED_object_add_duplicate(Scene *scene, Base *base, int usedupflag)
 }
 
 /* contextual operator dupli */
-static int duplicate_add_exec(bContext *C, wmOperator *op)
+static int duplicate_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
-	int dupflag= U.dupflag;
+	int linked= RNA_boolean_get(op->ptr, "linked");
+	int dupflag= (linked)? 0: U.dupflag;
 	
 	clear_id_newpoins();
 	clear_sca_new_poins();	/* sensor/contr/act */
@@ -6121,9 +5991,9 @@ static int duplicate_add_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int duplicate_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	duplicate_add_exec(C, op);
+	duplicate_exec(C, op);
 	
 	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
 	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
@@ -6131,17 +6001,17 @@ static int duplicate_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_duplicate_add(wmOperatorType *ot)
+void OBJECT_OT_duplicate(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Add Duplicate";
-	ot->description = "Duplicate the object.";
-	ot->idname= "OBJECT_OT_duplicate_add";
+	ot->name= "Duplicate";
+	ot->description = "Duplicate selected objects.";
+	ot->idname= "OBJECT_OT_duplicate";
 	
 	/* api callbacks */
-	ot->invoke= duplicate_add_invoke;
-	ot->exec= duplicate_add_exec;
+	ot->invoke= duplicate_invoke;
+	ot->exec= duplicate_exec;
 	
 	ot->poll= ED_operator_scene_editable;
 	
@@ -6149,6 +6019,7 @@ void OBJECT_OT_duplicate_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* to give to transform */
+	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data.");
 	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
 

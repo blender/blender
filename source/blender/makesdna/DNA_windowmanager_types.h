@@ -217,11 +217,6 @@ typedef struct wmOperator {
 /* add this flag if the event should pass through */
 #define OPERATOR_PASS_THROUGH	8
 
-typedef enum wmRadialControlMode {
-	WM_RADIALCONTROL_SIZE,
-	WM_RADIALCONTROL_STRENGTH,
-	WM_RADIALCONTROL_ANGLE
-} wmRadialControlMode;
 
 /* ************** wmEvent ************************ */
 /* for read-only rna access, dont save this */
@@ -244,15 +239,25 @@ typedef struct wmEvent {
 	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */
 	short keymodifier;				/* rawkey modifier */
 	
+	short pad1;
+	
 	/* keymap item, set by handler (weak?) */
 	const char *keymap_idname;
 	
 	/* custom data */
-	short custom;	/* custom data type, stylus, 6dof, see wm_event_types.h */
-	void *customdata;	/* ascii, unicode, mouse coords, angles, vectors, dragdrop info */
+	short custom;		/* custom data type, stylus, 6dof, see wm_event_types.h */
 	short customdatafree;
+	int pad2;
+	void *customdata;	/* ascii, unicode, mouse coords, angles, vectors, dragdrop info */
 	
 } wmEvent;
+
+typedef enum wmRadialControlMode {
+	WM_RADIALCONTROL_SIZE,
+	WM_RADIALCONTROL_STRENGTH,
+	WM_RADIALCONTROL_ANGLE
+} wmRadialControlMode;
+
 
 #endif /* DNA_WINDOWMANAGER_TYPES_H */
 

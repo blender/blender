@@ -40,6 +40,57 @@
 #include "WM_types.h"
 #include "WM_api.h"
 
+EnumPropertyItem part_from_items[] = {
+	{PART_FROM_VERT, "VERT", 0, "Verts", ""},
+	{PART_FROM_FACE, "FACE", 0, "Faces", ""},
+	{PART_FROM_VOLUME, "VOLUME", 0, "Volume", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem part_reactor_from_items[] = {
+	{PART_FROM_VERT, "VERT", 0, "Verts", ""},
+	{PART_FROM_FACE, "FACE", 0, "Faces", ""},
+	{PART_FROM_VOLUME, "VOLUME", 0, "Volume", ""},
+	{PART_FROM_PARTICLE, "PARTICLE", 0, "Particle", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem part_draw_as_items[] = {
+	{PART_DRAW_NOT, "NONE", 0, "None", ""},
+	{PART_DRAW_REND, "RENDER", 0, "Rendered", ""},
+	{PART_DRAW_DOT, "DOT", 0, "Point", ""},
+	{PART_DRAW_CIRC, "CIRC", 0, "Circle", ""},
+	{PART_DRAW_CROSS, "CROSS", 0, "Cross", ""},
+	{PART_DRAW_AXIS, "AXIS", 0, "Axis", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem part_hair_draw_as_items[] = {
+	{PART_DRAW_NOT, "NONE", 0, "None", ""},
+	{PART_DRAW_REND, "RENDER", 0, "Rendered", ""},
+	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem part_ren_as_items[] = {
+	{PART_DRAW_NOT, "NONE", 0, "None", ""},
+	{PART_DRAW_HALO, "HALO", 0, "Halo", ""},
+	{PART_DRAW_LINE, "LINE", 0, "Line", ""},
+	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
+	{PART_DRAW_OB, "OBJECT", 0, "Object", ""},
+	{PART_DRAW_GR, "GROUP", 0, "Group", ""},
+	{PART_DRAW_BB, "BILLBOARD", 0, "Billboard", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem part_hair_ren_as_items[] = {
+	{PART_DRAW_NOT, "NONE", 0, "None", ""},
+	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
+	{PART_DRAW_OB, "OBJECT", 0, "Object", ""},
+	{PART_DRAW_GR, "GROUP", 0, "Group", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_context.h"
@@ -151,6 +202,20 @@ static void rna_particle_settings_set(PointerRNA *ptr, PointerRNA value)
 	if(psys->part)
 		psys->part->id.us++;
 }
+static void rna_Particle_abspathtime_update(bContext *C, PointerRNA *ptr)
+{
+	ParticleSettings *settings = (ParticleSettings*)ptr->data;
+	float delta = settings->end + settings->lifetime - settings->sta;
+	if(settings->draw & PART_ABS_PATH_TIME) {
+		settings->path_start = settings->sta + settings->path_start * delta;
+		settings->path_end = settings->sta + settings->path_end * delta;
+	}
+	else {
+		settings->path_start = (settings->path_start - settings->sta)/delta;
+		settings->path_end = (settings->path_end - settings->sta)/delta;
+	}
+	rna_Particle_redo(C, ptr);
+}
 static void rna_PartSettings_start_set(struct PointerRNA *ptr, float value)
 {
 	ParticleSettings *settings = (ParticleSettings*)ptr->data;
@@ -161,8 +226,8 @@ static void rna_PartSettings_start_set(struct PointerRNA *ptr, float value)
 
 	if(settings->type==PART_REACTOR && value < 1.0)
 		value = 1.0;
-	else if (value < -30000.0f) //TODO: replace 30000 with MAXFRAMEF when available in 2.5
-		value = -30000.0f;
+	else if (value < MINAFRAMEF)
+		value = MINAFRAMEF;
 
 	settings->sta = value;
 }
@@ -189,7 +254,19 @@ static float rna_PartSetting_linelentail_get(struct PointerRNA *ptr)
 	ParticleSettings *settings = (ParticleSettings*)ptr->data;
 	return settings->draw_line[0];
 }
+static void rna_PartSetting_pathstartend_range(PointerRNA *ptr, float *min, float *max)
+{
+	ParticleSettings *settings = (ParticleSettings*)ptr->data;
 
+	if(settings->type==PART_HAIR) {
+		*min = 0.0f;
+		*max = (settings->draw & PART_ABS_PATH_TIME) ? 100.0f : 1.0;
+	}
+	else {
+		*min = (settings->draw & PART_ABS_PATH_TIME) ? settings->sta : 0.0f;
+		*max= (settings->draw & PART_ABS_PATH_TIME) ? MAXFRAMEF : 1.0f;
+	}
+}
 static void rna_PartSetting_linelenhead_set(struct PointerRNA *ptr, float value)
 {
 	ParticleSettings *settings = (ParticleSettings*)ptr->data;
@@ -222,85 +299,34 @@ static void rna_ParticleSystem_name_get(PointerRNA *ptr, char *str)
 		strcpy(str, "");
 }
 
-static EnumPropertyItem from_items[] = {
-	{PART_FROM_VERT, "VERT", 0, "Vertexes", ""},
-	{PART_FROM_FACE, "FACE", 0, "Faces", ""},
-	{PART_FROM_VOLUME, "VOLUME", 0, "Volume", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static EnumPropertyItem reactor_from_items[] = {
-	{PART_FROM_VERT, "VERT", 0, "Vertexes", ""},
-	{PART_FROM_FACE, "FACE", 0, "Faces", ""},
-	{PART_FROM_VOLUME, "VOLUME", 0, "Volume", ""},
-	{PART_FROM_PARTICLE, "PARTICLE", 0, "Particle", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static EnumPropertyItem *rna_Particle_from_itemf(PointerRNA *ptr)
+static EnumPropertyItem *rna_Particle_from_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	ParticleSettings *part = ptr->id.data;
 
 	if(part->type==PART_REACTOR)
-		return reactor_from_items;
+		return part_reactor_from_items;
 	else
-		return from_items;
+		return part_from_items;
 }
 
-static EnumPropertyItem draw_as_items[] = {
-	{PART_DRAW_NOT, "NONE", 0, "None", ""},
-	{PART_DRAW_REND, "RENDER", 0, "Rendered", ""},
-	{PART_DRAW_DOT, "DOT", 0, "Point", ""},
-	{PART_DRAW_CIRC, "CIRC", 0, "Circle", ""},
-	{PART_DRAW_CROSS, "CROSS", 0, "Cross", ""},
-	{PART_DRAW_AXIS, "AXIS", 0, "Axis", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static EnumPropertyItem hair_draw_as_items[] = {
-	{PART_DRAW_NOT, "NONE", 0, "None", ""},
-	{PART_DRAW_REND, "RENDER", 0, "Rendered", ""},
-	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static EnumPropertyItem ren_as_items[] = {
-	{PART_DRAW_NOT, "NONE", 0, "None", ""},
-	{PART_DRAW_HALO, "HALO", 0, "Halo", ""},
-	{PART_DRAW_LINE, "LINE", 0, "Line", ""},
-	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
-	{PART_DRAW_OB, "OBJECT", 0, "Object", ""},
-	{PART_DRAW_GR, "GROUP", 0, "Group", ""},
-	{PART_DRAW_BB, "BILLBOARD", 0, "Billboard", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static EnumPropertyItem hair_ren_as_items[] = {
-	{PART_DRAW_NOT, "NONE", 0, "None", ""},
-	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
-	{PART_DRAW_OB, "OBJECT", 0, "Object", ""},
-	{PART_DRAW_GR, "GROUP", 0, "Group", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static EnumPropertyItem *rna_Particle_draw_as_itemf(PointerRNA *ptr)
+static EnumPropertyItem *rna_Particle_draw_as_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	ParticleSettings *part = ptr->id.data;
 
 	if(part->type==PART_HAIR)
-		return hair_draw_as_items;
+		return part_hair_draw_as_items;
 	else
-		return draw_as_items;
+		return part_draw_as_items;
 }
 
-static EnumPropertyItem *rna_Particle_ren_as_itemf(PointerRNA *ptr)
+static EnumPropertyItem *rna_Particle_ren_as_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	ParticleSettings *part = ptr->id.data;
 
 	if(part->type==PART_HAIR)
-		return hair_ren_as_items;
+		return part_hair_ren_as_items;
 	else
-		return ren_as_items;
+		return part_ren_as_items;
 }
 
 
@@ -702,15 +728,15 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Abs Length", "Use maximum length for children");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "absolute_time", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_ABS_TIME);
-	RNA_def_property_ui_text(prop, "Absolute Time", "Set all ipos that work on particles to be calculated in absolute/relative time.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
+	//prop= RNA_def_property(srna, "absolute_time", PROP_BOOLEAN, PROP_NONE);
+	//RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_ABS_TIME);
+	//RNA_def_property_ui_text(prop, "Absolute Time", "Set all ipos that work on particles to be calculated in absolute/relative time.");
+	//RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "global_time", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_GLOB_TIME);
-	RNA_def_property_ui_text(prop, "Global Time", "Set all ipos that work on particles to be calculated in global/object time.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
+	//prop= RNA_def_property(srna, "global_time", PROP_BOOLEAN, PROP_NONE);
+	//RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_GLOB_TIME);
+	//RNA_def_property_ui_text(prop, "Global Time", "Set all ipos that work on particles to be calculated in global/object time.");
+	//RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "boids_2d", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_BOIDS_2D);
@@ -775,6 +801,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "emit_from", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "from");
+	RNA_def_property_enum_items(prop, part_reactor_from_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Particle_from_itemf");
 	RNA_def_property_ui_text(prop, "Emit From", "Where to emit particles from");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
@@ -836,15 +863,10 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	//RNA_def_property_ui_text(prop, "Health", "Draw boid health");
 	//RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
 
-	//prop= RNA_def_property(srna, "timed_path", PROP_BOOLEAN, PROP_NONE);
-	//RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_TIMED_PATH);
-	//RNA_def_property_ui_text(prop, "Clip with time", "Clip path based on time");
-	//RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
-
-	//prop= RNA_def_property(srna, "draw_cached_path", PROP_BOOLEAN, PROP_NONE);
-	//RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_CACHED_PATH);
-	//RNA_def_property_ui_text(prop, "Path", "Draw particle path if the path is baked");
-	//RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
+	prop= RNA_def_property(srna, "abs_path_time", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_ABS_PATH_TIME);
+	RNA_def_property_ui_text(prop, "Absolute Path Time", "Path timing is in absolute frames");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_abspathtime_update");
 
 	prop= RNA_def_property(srna, "billboard_lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_BB_LOCK);
@@ -893,12 +915,14 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "draw_as", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "draw_as");
+	RNA_def_property_enum_items(prop, part_draw_as_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Particle_draw_as_itemf");
 	RNA_def_property_ui_text(prop, "Particle Drawing", "How particles are drawn in viewport");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
 
 	prop= RNA_def_property(srna, "ren_as", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ren_as");
+	RNA_def_property_enum_items(prop, part_ren_as_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Particle_ren_as_itemf");
 	RNA_def_property_ui_text(prop, "Particle Rendering", "How particles are rendered");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
@@ -1066,19 +1090,19 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	/* general values */
 	prop= RNA_def_property(srna, "start", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sta");//optional if prop names are the same
-	RNA_def_property_range(prop, -30000.0f, 30000.0f); //TODO: replace 30000 with MAXFRAMEF when available in 2.5
+	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_float_funcs(prop, NULL, "rna_PartSettings_start_set", NULL);
 	RNA_def_property_ui_text(prop, "Start", "Frame # to start emitting particles.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "end", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, -30000.0f, 30000.0f); //TODO: replace 30000 with MAXFRAMEF when available in 2.5
+	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_float_funcs(prop, NULL, "rna_PartSettings_end_set", NULL);
 	RNA_def_property_ui_text(prop, "End", "Frame # to stop emitting particles.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "lifetime", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 1.0f, 30000.0f);
+	RNA_def_property_range(prop, 1.0f, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Lifetime", "Specify the life span of the particles");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
@@ -1228,7 +1252,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "acc");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, -200.0f, 200.0f);
-	RNA_def_property_ui_text(prop, "Accelaration", "Constant acceleration");
+	RNA_def_property_ui_text(prop, "Acceleration", "Constant acceleration");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "drag_factor", PROP_FLOAT, PROP_NONE);
@@ -1410,6 +1434,24 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Head", "Length of the line's head");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
 
+	prop= RNA_def_property(srna, "path_start", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "path_start");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_PartSetting_pathstartend_range");
+	RNA_def_property_ui_text(prop, "Path Start", "Starting time of drawn path.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
+
+	prop= RNA_def_property(srna, "path_end", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "path_end");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_PartSetting_pathstartend_range");
+	RNA_def_property_ui_text(prop, "Path End", "End time of drawn path.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
+
+	prop= RNA_def_property(srna, "trail_count", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "trail_count");
+	RNA_def_property_range(prop, 1.0f, 100.0f);
+	RNA_def_property_ui_text(prop, "Trail Count", "Number of trail particles.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
+	
 	/* boids */
 	prop= RNA_def_property(srna, "max_velocity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "max_vel");

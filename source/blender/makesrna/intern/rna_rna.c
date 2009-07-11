@@ -516,6 +516,13 @@ static int rna_StringProperty_max_length_get(PointerRNA *ptr)
 	return ((StringPropertyRNA*)prop)->maxlength;
 }
 
+static int rna_enum_check_separator(CollectionPropertyIterator *iter, void *data)
+{
+	EnumPropertyItem *item= (EnumPropertyItem*)data;
+
+	return (item->identifier[0] != 0);
+}
+
 static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
@@ -524,7 +531,7 @@ static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, Point
 	rna_idproperty_check(&prop, ptr);
 	eprop= (EnumPropertyRNA*)prop;
 
-	rna_iterator_array_begin(iter, (void*)eprop->item, sizeof(eprop->item[0]), eprop->totitem, NULL);
+	rna_iterator_array_begin(iter, (void*)eprop->item, sizeof(eprop->item[0]), eprop->totitem, rna_enum_check_separator);
 }
 
 static void rna_EnumPropertyItem_identifier_get(PointerRNA *ptr, char *value)
@@ -545,6 +552,26 @@ static void rna_EnumPropertyItem_name_get(PointerRNA *ptr, char *value)
 static int rna_EnumPropertyItem_name_length(PointerRNA *ptr)
 {
 	return strlen(((EnumPropertyItem*)ptr->data)->name);
+}
+
+static void rna_EnumPropertyItem_description_get(PointerRNA *ptr, char *value)
+{
+	EnumPropertyItem *eprop= (EnumPropertyItem*)ptr->data;
+
+	if(eprop->description)
+		strcpy(value, eprop->description);
+	else
+		value[0]= '\0';
+}
+
+static int rna_EnumPropertyItem_description_length(PointerRNA *ptr)
+{
+	EnumPropertyItem *eprop= (EnumPropertyItem*)ptr->data;
+
+	if(eprop->description)
+		return strlen(eprop->description);
+	else
+		return 0;
 }
 
 static int rna_EnumPropertyItem_value_get(PointerRNA *ptr)
@@ -860,6 +887,11 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_EnumPropertyItem_name_get", "rna_EnumPropertyItem_name_length", NULL);
 	RNA_def_property_ui_text(prop, "Name", "Human readable name.");
+
+	prop= RNA_def_property(srna, "description", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_string_funcs(prop, "rna_EnumPropertyItem_description_get", "rna_EnumPropertyItem_description_length", NULL);
+	RNA_def_property_ui_text(prop, "Description", "Description of the item's purpose.");
 
 	prop= RNA_def_property(srna, "identifier", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

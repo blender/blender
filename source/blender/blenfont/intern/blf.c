@@ -321,6 +321,19 @@ void BLF_draw_default(float x, float y, float z, char *str)
 	}
 }
 
+void BLF_default_rotation(float angle)
+{
+	
+	if (global_font_default>=0) {
+		global_font[global_font_default]->angle= angle;
+		if(angle)
+			global_font[global_font_default]->flags |= BLF_ROTATION;
+		else
+			global_font[global_font_default]->flags &= ~BLF_ROTATION;
+	}
+}
+
+
 void BLF_draw(char *str)
 {
 	FontBLF *font;
@@ -490,15 +503,6 @@ void BLF_mode(int mode)
 	font= global_font[global_font_cur];
 	if (font)
 		font->mode= mode;
-}
-
-void BLF_kerning(float space)
-{
-	FontBLF *font;
-
-	font= global_font[global_font_cur];
-	if (font)
-		font->kerning= space;
 }
 
 void BLF_shadow(int level, float r, float g, float b, float a)

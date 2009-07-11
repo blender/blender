@@ -1,11 +1,32 @@
-/* Testing code for new animation system in 2.5 
- * Copyright 2009, Joshua Leung
+/**
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
+ * All rights reserved.
+ *
+ * Contributor(s): Joshua Leung (full recode)
+ *
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef BKE_FCURVE_H
 #define BKE_FCURVE_H
-
-//struct ListBase;
 
 struct FCurve;
 struct FModifier;
@@ -54,8 +75,8 @@ typedef struct FModifierTypeInfo {
 	short size;				/* size in bytes of the struct */
 	short acttype;			/* eFMI_Action_Types */
 	short requires;			/* eFMI_Requirement_Flags */
-	char name[32]; 			/* name of modifier in interface */
-	char structName[32];	/* name of struct for SDNA */
+	char name[64]; 			/* name of modifier in interface */
+	char structName[64];	/* name of struct for SDNA */
 	
 	/* data management function pointers - special handling */
 		/* free any data that is allocated separately (optional) */
@@ -104,14 +125,20 @@ FModifierTypeInfo *get_fmodifier_typeinfo(int type);
 
 /* ---------------------- */
 
-struct FModifier *fcurve_add_modifier(struct FCurve *fcu, int type);
-void fcurve_copy_modifiers(ListBase *dst, ListBase *src);
-void fcurve_remove_modifier(struct FCurve *fcu, struct FModifier *fcm);
-void fcurve_free_modifiers(struct FCurve *fcu);
-void fcurve_bake_modifiers(struct FCurve *fcu, int start, int end);
+struct FModifier *add_fmodifier(ListBase *modifiers, int type);
+void copy_fmodifiers(ListBase *dst, ListBase *src);
+void remove_fmodifier(ListBase *modifiers, struct FModifier *fcm);
+void free_fmodifiers(ListBase *modifiers);
 
-struct FModifier *fcurve_find_active_modifier(struct FCurve *fcu);
-void fcurve_set_active_modifier(struct FCurve *fcu, struct FModifier *fcm);
+struct FModifier *find_active_fmodifier(ListBase *modifiers);
+void set_active_fmodifier(ListBase *modifiers, struct FModifier *fcm);
+
+short list_has_suitable_fmodifier(ListBase *modifiers, int mtype, short acttype);
+
+float evaluate_time_fmodifiers(ListBase *modifiers, struct FCurve *fcu, float cvalue, float evaltime);
+void evaluate_value_fmodifiers(ListBase *modifiers, struct FCurve *fcu, float *cvalue, float evaltime);
+
+void fcurve_bake_modifiers(struct FCurve *fcu, int start, int end);
 
 /* ************** F-Curves API ******************** */
 
@@ -125,9 +152,6 @@ void copy_fcurves(ListBase *dst, ListBase *src);
 
 /* find matching F-Curve in the given list of F-Curves */
 struct FCurve *list_find_fcurve(ListBase *list, const char rna_path[], const int array_index);
-
-/* test if there is a keyframe at cfra */
-short on_keyframe_fcurve(struct FCurve *fcu, float cfra);
 
 /* get the time extents for F-Curve */
 void calc_fcurve_range(struct FCurve *fcu, float *min, float *max);

@@ -32,6 +32,8 @@ struct bContext;
 struct wmWindowManager;
 struct bAnimContext;
 struct bAnimListElem;
+struct FCurve;
+struct FModifier;
 struct SpaceIpo;
 struct ScrArea;
 struct ARegion;
@@ -58,10 +60,10 @@ void graph_header_buttons(const bContext *C, struct ARegion *ar);
 /* ***************************************** */
 /* graph_select.c */
 
-void GRAPHEDIT_OT_keyframes_select_all_toggle(struct wmOperatorType *ot);
-void GRAPHEDIT_OT_keyframes_select_border(struct wmOperatorType *ot);
-void GRAPHEDIT_OT_keyframes_columnselect(struct wmOperatorType *ot);
-void GRAPHEDIT_OT_keyframes_clickselect(struct wmOperatorType *ot);
+void GRAPH_OT_select_all_toggle(struct wmOperatorType *ot);
+void GRAPH_OT_select_border(struct wmOperatorType *ot);
+void GRAPH_OT_select_column(struct wmOperatorType *ot);
+void GRAPH_OT_clickselect(struct wmOperatorType *ot);
 
 /* defines for left-right select tool */
 enum {
@@ -82,28 +84,31 @@ enum {
 /* ***************************************** */
 /* graph_edit.c */
 
-void GRAPHEDIT_OT_previewrange_set(struct wmOperatorType *ot);
-void GRAPHEDIT_OT_view_all(struct wmOperatorType *ot);
+void get_graph_keyframe_extents (struct bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax);
 
-void GRAPHEDIT_OT_keyframes_click_insert(struct wmOperatorType *ot);
+void GRAPH_OT_previewrange_set(struct wmOperatorType *ot);
+void GRAPH_OT_view_all(struct wmOperatorType *ot);
 
-void GRAPHEDIT_OT_keyframes_copy(struct wmOperatorType *ot);
-void GRAPHEDIT_OT_keyframes_paste(struct wmOperatorType *ot);
+void GRAPH_OT_click_insert(struct wmOperatorType *ot);
+void GRAPH_OT_insert_keyframe(struct wmOperatorType *ot);
 
-void GRAPHEDIT_OT_keyframes_duplicate(struct wmOperatorType *ot);
-void GRAPHEDIT_OT_keyframes_delete(struct wmOperatorType *ot);
-void GRAPHEDIT_OT_keyframes_clean(struct wmOperatorType *ot);
-void GRAPHEDIT_OT_keyframes_sample(struct wmOperatorType *ot);
-void GRAPHEDIT_OT_keyframes_bake(struct wmOperatorType *ot);
-void GRAPHEDIT_OT_keyframes_smooth(struct wmOperatorType *ot);
+void GRAPH_OT_copy(struct wmOperatorType *ot);
+void GRAPH_OT_paste(struct wmOperatorType *ot);
 
-void GRAPHEDIT_OT_keyframes_handletype(struct wmOperatorType *ot);
-void GRAPHEDIT_OT_keyframes_interpolation_type(struct wmOperatorType *ot);
-void GRAPHEDIT_OT_keyframes_extrapolation_type(struct wmOperatorType *ot);
+void GRAPH_OT_duplicate(struct wmOperatorType *ot);
+void GRAPH_OT_delete(struct wmOperatorType *ot);
+void GRAPH_OT_clean(struct wmOperatorType *ot);
+void GRAPH_OT_sample(struct wmOperatorType *ot);
+void GRAPH_OT_bake(struct wmOperatorType *ot);
+void GRAPH_OT_smooth(struct wmOperatorType *ot);
 
-void GRAPHEDIT_OT_keyframes_cfrasnap(struct wmOperatorType *ot);
-void GRAPHEDIT_OT_keyframes_snap(struct wmOperatorType *ot);
-void GRAPHEDIT_OT_keyframes_mirror(struct wmOperatorType *ot);
+void GRAPH_OT_handletype(struct wmOperatorType *ot);
+void GRAPH_OT_interpolation_type(struct wmOperatorType *ot);
+void GRAPH_OT_extrapolation_type(struct wmOperatorType *ot);
+
+void GRAPH_OT_frame_jump(struct wmOperatorType *ot);
+void GRAPH_OT_snap(struct wmOperatorType *ot);
+void GRAPH_OT_mirror(struct wmOperatorType *ot);
 
 /* defines for snap keyframes 
  * NOTE: keep in sync with eEditKeyframes_Snap (in ED_keyframes_edit.h)
@@ -128,19 +133,28 @@ enum {
 
 /* ----------- */
 
-void GRAPHEDIT_OT_fmodifier_add(struct wmOperatorType *ot);
+void GRAPH_OT_fmodifier_add(struct wmOperatorType *ot);
 
 /* ----------- */
 
-void GRAPHEDIT_OT_ghost_curves_create(struct wmOperatorType *ot);
-void GRAPHEDIT_OT_ghost_curves_clear(struct wmOperatorType *ot);
+void GRAPH_OT_ghost_curves_create(struct wmOperatorType *ot);
+void GRAPH_OT_ghost_curves_clear(struct wmOperatorType *ot);
 
 /* ***************************************** */
 /* graph_buttons.c */
-void GRAPHEDIT_OT_properties(struct wmOperatorType *ot);
+void GRAPH_OT_properties(struct wmOperatorType *ot);
 void graph_buttons_register(struct ARegionType *art);
 
+/* ***************************************** */
+/* graph_utils.c */
+
 struct bAnimListElem *get_active_fcurve_channel(struct bAnimContext *ac);
+
+short fcurve_needs_draw_fmodifier_controls(struct FCurve *fcu, struct FModifier *fcm);
+
+int graphop_visible_keyframes_poll(struct bContext *C);
+int graphop_editable_keyframes_poll(struct bContext *C);
+int graphop_active_fcurve_poll(struct bContext *C);
 
 /* ***************************************** */
 /* graph_ops.c */

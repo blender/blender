@@ -38,7 +38,7 @@
 #include "BPY_extern.h"
 
 #include "../generic/bpy_internal_import.h" // our own imports
-/* external util modukes */
+/* external util modules */
 
 #include "../generic/Mathutils.h"
 #include "../generic/Geometry.h"
@@ -137,13 +137,81 @@ static PyObject *CreateGlobalDictionary( bContext *C )
 	return dict;
 }
 
+/* Use this so we can include our own python bundle */
+#if 0
+wchar_t* Py_GetPath(void)
+{
+	int i;
+	static wchar_t py_path[FILE_MAXDIR] = L"";
+	char *dirname= BLI_gethome_folder("python");
+	if(dirname) {
+		i= mbstowcs(py_path, dirname, FILE_MAXDIR);
+		printf("py path %s, %d\n", dirname, i);
+	}
+	return py_path;
+}
+#endif
+
+
+/* must be called before Py_Initialize */
+void BPY_start_python_path(void)
+{
+	char *py_path_bundle= BLI_gethome_folder("python");
+
+	if(py_path_bundle==NULL)
+		return;
+
+	/* set the environment path */
+	printf("found bundled python: %s\n", py_path_bundle);
+
+#if (defined(WIN32) || defined(WIN64))
+#if defined(FREE_WINDOWS)
+	{
+		char py_path[FILE_MAXDIR + 11] = "";
+		sprintf(py_path, "PYTHONPATH=%s", py_path_bundle);
+		putenv(py_path);
+	}
+#else
+	_putenv_s("PYTHONPATH", py_path_bundle);
+#endif
+#else
+#ifdef __sgi
+	{
+		char py_path[FILE_MAXDIR + 11] = "";
+		sprintf(py_path, "PYTHONPATH=%s", py_path_bundle);
+		putenv(py_path);
+	}
+#else
+	setenv("PYTHONPATH", py_path_bundle, 1);
+#endif
+#endif
+
+}
+
+
 void BPY_start_python( int argc, char **argv )
 {
 	PyThreadState *py_tstate = NULL;
 	
+	BPY_start_python_path(); /* allow to use our own included python */
+
 	Py_Initialize(  );
 	
-	//PySys_SetArgv( argc_copy, argv_copy );
+#if (PY_VERSION_HEX < 0x03000000)
+	PySys_SetArgv( argc, argv);
+#else
+	/* sigh, why do python guys not have a char** version anymore? :( */
+	{
+		int i;
+		PyObject *py_argv= PyList_New(argc);
+
+		for (i=0; i<argc; i++)
+			PyList_SET_ITEM(py_argv, i, PyUnicode_FromString(argv[i]));
+
+		PySys_SetObject("argv", py_argv);
+		Py_DECREF(py_argv);
+	}
+#endif
 	
 	/* Initialize thread support (also acquires lock) */
 	PyEval_InitThreads();
@@ -288,9 +356,9 @@ static int bpy_run_script_init(bContext *C, SpaceScript * sc)
 	return 1;
 }
 
-int BPY_run_script_space_draw(struct bContext *C, SpaceScript * sc)
+int BPY_run_script_space_draw(const struct bContext *C, SpaceScript * sc)
 {
-	if (bpy_run_script_init(C, sc)) {
+	if (bpy_run_script_init( (bContext *)C, sc)) {
 		PyGILState_STATE gilstate = PyGILState_Ensure();
 		PyObject *result = PyObject_CallObject( sc->script->py_draw, NULL );
 		
@@ -390,7 +458,7 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	char *dirname;
 	char path[FILE_MAX];
 	char *dirs[] = {"io", "ui", NULL};
-	int a, filelen; /* filename length */
+	int a;
 	
 	PyGILState_STATE gilstate;
 	PyObject *mod;
@@ -426,13 +494,11 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 		while((de = readdir(dir)) != NULL) {
 			/* We could stat the file but easier just to let python
 			 * import it and complain if theres a problem */
-			
+
 			file_extension = strstr(de->d_name, ".py");
 			
-			if(file_extension && *(file_extension + 3) == '\0') {
-				filelen = strlen(de->d_name);
-				BLI_strncpy(path, de->d_name, filelen-2); /* cut off the .py on copy */
-				
+			if(file_extension && file_extension[3] == '\0') {
+				BLI_strncpy(path, de->d_name, (file_extension - de->d_name) + 1); /* cut off the .py on copy */
 				mod= PyImport_ImportModuleLevel(path, NULL, NULL, NULL, 0);
 				if (mod) {
 					if (reload) {
@@ -445,7 +511,7 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 				if(mod) {
 					Py_DECREF(mod); /* could be NULL from reloading */
 				} else {
-					BPy_errors_to_report(NULL); // TODO - reports
+					BPy_errors_to_report(NULL);
 					fprintf(stderr, "unable to import \"%s\"  %s/%s\n", path, dirname, de->d_name);
 				}
 

@@ -354,6 +354,14 @@ GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
 }
 
 
+GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
+								   int grab)
+{
+	GHOST_IWindow* window = (GHOST_IWindow*) windowhandle;
+	
+	return window->setCursorGrab(grab?true:false);
+}
+
 
 GHOST_TSuccess GHOST_GetModifierKeyState(GHOST_SystemHandle systemhandle,
 										 GHOST_TModifierKeyMask mask,

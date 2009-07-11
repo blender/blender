@@ -41,6 +41,7 @@
 #include "DNA_text_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -100,7 +101,7 @@ static int text_font_draw_character(SpaceText *st, int x, int y, char c)
 int text_font_width_character(SpaceText *st)
 {
 	// XXX need quick BLF function, or cache it somewhere
-	return (st->lheight == 12)? 7: 8;
+	return (st->lheight == 12)? 7: 9;
 }
 
 int text_font_width(SpaceText *st, char *str)
@@ -701,7 +702,7 @@ static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int dra
 
 /************************ draw scrollbar *****************************/
 
-static void calc_text_rcts(SpaceText *st, ARegion *ar)
+static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll)
 {
 	int lhlstart, lhlend, ltexth;
 	short barheight, barstart, hlstart, hlend, blank_lines;
@@ -712,6 +713,12 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar)
 	pix_available = ar->winy - pix_top_margin - pix_bottom_margin;
 	ltexth= txt_get_span(st->text->lines.first, st->text->lines.last);
 	blank_lines = st->viewlines / 2;
+	
+	/* nicer code: use scroll rect for entire bar */
+	scroll->xmin= 5;
+	scroll->xmax= 17;
+	scroll->ymin= 4;
+	scroll->ymax= 4+pix_available;
 	
 	/* when resizing a vieport with the bar at the bottom to a greater height more blank lines will be added */
 	if(ltexth + blank_lines < st->top + st->viewlines) {
@@ -728,9 +735,8 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar)
 	}
 	barstart = (ltexth > 0)? ((pix_available - pix_bardiff) * st->top)/ltexth: 0;
 
-	st->txtbar.xmin = 5;
-	st->txtbar.xmax = 17;
-	st->txtbar.ymax = ar->winy - pix_top_margin - barstart;
+	st->txtbar= *scroll;
+	st->txtbar.ymax -= barstart;
 	st->txtbar.ymin = st->txtbar.ymax - barheight;
 
 	CLAMP(st->txtbar.ymin, pix_bottom_margin, ar->winy - pix_top_margin);
@@ -796,8 +802,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar)
 		hlend = hlstart + 2;
 	}
 	
-	st->txtscroll.xmin= 5;
-	st->txtscroll.xmax= 17;
+	st->txtscroll= *scroll;
 	st->txtscroll.ymax= ar->winy - pix_top_margin - hlstart;
 	st->txtscroll.ymin= ar->winy - pix_top_margin - hlend;
 
@@ -805,19 +810,31 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar)
 	CLAMP(st->txtscroll.ymax, pix_bottom_margin, ar->winy - pix_top_margin);
 }
 
-static void draw_textscroll(SpaceText *st, ARegion *ar)
+static void draw_textscroll(SpaceText *st, ARegion *ar, rcti *scroll)
 {
-	UI_ThemeColorShade(TH_SHADE1, -20);
-	glRecti(2, 2, 20, ar->winy-6);
-	uiEmboss(2, 2, 20, ar->winy-6, 1);
+	bTheme *btheme= U.themes.first;
+	uiWidgetColors wcol= btheme->tui.wcol_scroll;
+	char col[3];
+	float rad;
+	
+//	UI_ThemeColorShade(TH_SHADE1, -20);
+//	glRecti(2, 2, 20, ar->winy-6);
+//	uiEmboss(2, 2, 20, ar->winy-6, 1);
 
-	UI_ThemeColor(TH_SHADE1);
-	glRecti(st->txtbar.xmin, st->txtbar.ymin, st->txtbar.xmax, st->txtbar.ymax);
+//	UI_ThemeColor(TH_SHADE1);
+//	glRecti(st->txtbar.xmin, st->txtbar.ymin, st->txtbar.xmax, st->txtbar.ymax);
 
-	UI_ThemeColor(TH_SHADE2);
-	glRecti(st->txtscroll.xmin, st->txtscroll.ymin, st->txtscroll.xmax, st->txtscroll.ymax);
+//	uiEmboss(st->txtbar.xmin, st->txtbar.ymin, st->txtbar.xmax, st->txtbar.ymax, st->flags & ST_SCROLL_SELECT);
+	
+	uiWidgetScrollDraw(&wcol, scroll, &st->txtbar, (st->flags & ST_SCROLL_SELECT)?UI_SCROLL_PRESSED:0);
 
-	uiEmboss(st->txtbar.xmin, st->txtbar.ymin, st->txtbar.xmax, st->txtbar.ymax, st->flags & ST_SCROLL_SELECT);
+	uiSetRoundBox(15);
+	rad= 0.4f*MIN2(st->txtscroll.xmax - st->txtscroll.xmin, st->txtscroll.ymax - st->txtscroll.ymin);
+	UI_GetThemeColor3ubv(TH_HILITE, col);
+	glColor4ub(col[0], col[1], col[2], 48);
+	glEnable(GL_BLEND);
+	uiRoundBox(st->txtscroll.xmin+1, st->txtscroll.ymin, st->txtscroll.xmax-1, st->txtscroll.ymax, rad);
+	glDisable(GL_BLEND);
 }
 
 /************************** draw markers **************************/
@@ -1261,6 +1278,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 {
 	Text *text= st->text;
 	TextLine *tmp;
+	rcti scroll;
 	char linenr[12];
 	int i, x, y, linecount= 0;
 
@@ -1276,7 +1294,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	else st->viewlines= 0;
 	
 	/* update rects for scroll */
-	calc_text_rcts(st, ar);
+	calc_text_rcts(st, ar, &scroll);	/* scroll will hold the entire bar size */
 
 	/* update syntax formatting if needed */
 	tmp= text->lines.first;
@@ -1343,7 +1361,8 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	/* draw other stuff */
 	draw_brackets(st, ar);
 	draw_markers(st, ar);
-	draw_textscroll(st, ar);
+	glTranslatef(0.375f, 0.375f, 0.0f); /* XXX scroll requires exact pixel space */
+	draw_textscroll(st, ar, &scroll);
 	draw_documentation(st, ar);
 	draw_suggestion_list(st, ar);
 	

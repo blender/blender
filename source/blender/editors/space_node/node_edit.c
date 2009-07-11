@@ -74,6 +74,7 @@
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 #include "ED_types.h"
 
 #include "RNA_access.h"
@@ -1686,17 +1687,53 @@ void node_mute(SpaceNode *snode)
 
 }
 
-void node_adduplicate(SpaceNode *snode)
+#endif
+
+int node_duplicate_exec(bContext *C, wmOperator *op)
 {
+	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	
 	ntreeCopyTree(snode->edittree, 1);	/* 1 == internally selected nodes */
 	
 	ntreeSolveOrder(snode->edittree);
 	snode_verify_groups(snode);
-	// XXX			snode_handle_recalc(snode);
+	snode_handle_recalc(C, snode);
 
-// XXX	transform_nodes(snode->edittree, 'g', "Duplicate");
+	return OPERATOR_FINISHED;
 }
+
+static int node_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	node_duplicate_exec(C, op);
+	
+	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
+	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+	
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_duplicate(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Duplicate Nodes";
+	ot->description = "Duplicate the nodes.";
+	ot->idname= "NODE_OT_duplicate";
+	
+	/* api callbacks */
+	ot->invoke= node_duplicate_invoke;
+	ot->exec= node_duplicate_exec;
+	
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* to give to transform */
+	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+}
+
+#if 0
 
 static void node_insert_convertor(SpaceNode *snode, bNodeLink *link)
 {
