@@ -302,7 +302,7 @@ void TFM_OT_translation(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Translation";
 	ot->idname = OP_TRANSLATION;
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
@@ -327,7 +327,7 @@ void TFM_OT_resize(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Resize";
 	ot->idname = OP_RESIZE;
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
@@ -353,7 +353,7 @@ void TFM_OT_trackball(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Trackball";
 	ot->idname = OP_TRACKBALL;
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
@@ -374,7 +374,7 @@ void TFM_OT_rotation(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Rotation";
 	ot->idname = OP_ROTATION;
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
@@ -399,7 +399,7 @@ void TFM_OT_tilt(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Tilt";
 	ot->idname = OP_TILT;
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
@@ -422,7 +422,7 @@ void TFM_OT_warp(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Warp";
 	ot->idname = OP_WARP;
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
@@ -446,7 +446,7 @@ void TFM_OT_shear(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Shear";
 	ot->idname = OP_SHEAR;
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
@@ -470,7 +470,7 @@ void TFM_OT_shrink_fatten(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Shrink/Fatten";
 	ot->idname = OP_SHRINK_FATTEN;
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
@@ -491,7 +491,7 @@ void TFM_OT_tosphere(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "To Sphere";
 	ot->idname = OP_TOSPHERE;
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
@@ -542,7 +542,7 @@ void TFM_OT_transform(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Transform";
 	ot->idname = "TFM_OT_transform";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;

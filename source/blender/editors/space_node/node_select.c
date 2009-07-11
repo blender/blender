@@ -213,7 +213,7 @@ void NODE_OT_select(wmOperatorType *ot)
 	ot->modal= node_select_modal;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	RNA_def_enum(ot->srna, "select_type", prop_select_items, 0, "Select Type", "");
 	

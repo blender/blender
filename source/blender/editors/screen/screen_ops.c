@@ -503,8 +503,10 @@ void SCREEN_OT_actionzone(wmOperatorType *ot)
 	
 	ot->invoke= actionzone_invoke;
 	ot->modal= actionzone_modal;
-	
 	ot->poll= actionzone_area_poll;
+
+	ot->flag= OPTYPE_BLOCKING;
+	
 	RNA_def_int(ot->srna, "modifier", 0, 0, 2, "modifier", "modifier state", 0, 2);
 }
 
@@ -618,6 +620,8 @@ static void SCREEN_OT_area_swap(wmOperatorType *ot)
 	ot->invoke= area_swap_invoke;
 	ot->modal= area_swap_modal;
 	ot->poll= ED_operator_areaactive;
+
+	ot->flag= OPTYPE_BLOCKING;
 }
 
 /* *********** Duplicate area as new window operator ****************** */
@@ -912,8 +916,9 @@ void SCREEN_OT_area_move(wmOperatorType *ot)
 	ot->invoke= area_move_invoke;
 	ot->cancel= area_move_cancel;
 	ot->modal= area_move_modal;
-
 	ot->poll= ED_operator_screen_mainwinactive; /* when mouse is over area-edge */
+
+	ot->flag= OPTYPE_BLOCKING;
 
 	/* rna */
 	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
@@ -1227,7 +1232,7 @@ void SCREEN_OT_area_split(wmOperatorType *ot)
 	ot->modal= area_split_modal;
 	
 	ot->poll= ED_operator_areaactive;
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_BLOCKING;
 	
 	/* rna */
 	RNA_def_enum(ot->srna, "direction", prop_direction_items, 'h', "Direction", "");
@@ -1344,6 +1349,8 @@ static void SCREEN_OT_region_scale(wmOperatorType *ot)
 	ot->modal= region_scale_modal;
 	
 	ot->poll= ED_operator_areaactive;
+	
+	ot->flag= OPTYPE_BLOCKING;
 }
 
 
@@ -1725,8 +1732,9 @@ void SCREEN_OT_area_join(wmOperatorType *ot)
 	ot->exec= area_join_exec;
 	ot->invoke= area_join_invoke;
 	ot->modal= area_join_modal;
-
 	ot->poll= ED_operator_areaactive;
+
+	ot->flag= OPTYPE_BLOCKING;
 
 	/* rna */
 	RNA_def_int(ot->srna, "x1", -100, INT_MIN, INT_MAX, "X 1", "", INT_MIN, INT_MAX);

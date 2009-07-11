@@ -251,6 +251,9 @@ void IMAGE_OT_view_pan(wmOperatorType *ot)
 	ot->modal= view_pan_modal;
 	ot->cancel= view_pan_cancel;
 	ot->poll= space_image_main_area_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
 	
 	/* properties */
 	RNA_def_float_vector(ot->srna, "offset", 2, NULL, -FLT_MAX, FLT_MAX,
@@ -363,6 +366,9 @@ void IMAGE_OT_view_zoom(wmOperatorType *ot)
 	ot->modal= view_zoom_modal;
 	ot->cancel= view_zoom_cancel;
 	ot->poll= space_image_main_area_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
 	
 	/* properties */
 	RNA_def_float(ot->srna, "factor", 0.0f, 0.0f, FLT_MAX,
@@ -1487,6 +1493,9 @@ void IMAGE_OT_sample(wmOperatorType *ot)
 	ot->modal= sample_modal;
 	ot->cancel= sample_cancel;
 	ot->poll= space_image_main_area_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
 }
 
 /******************** set curve point operator ********************/

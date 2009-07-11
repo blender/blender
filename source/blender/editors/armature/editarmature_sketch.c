@@ -3463,7 +3463,7 @@ void SKETCH_OT_draw_stroke(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
 
 	/* flags */
-//	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_BLOCKING; // OPTYPE_REGISTER|OPTYPE_UNDO
 }
 
 void SKETCH_OT_gesture(wmOperatorType *ot)
@@ -3482,5 +3482,6 @@ void SKETCH_OT_gesture(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
 
 	/* flags */
-//	ot->flag= OPTYPE_UNDO;
+	ot->flag= OPTYPE_BLOCKING; // OPTYPE_UNDO
 }
+

@@ -379,8 +379,9 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 				WM_operator_free(op);
 		}
 		else if(retval & OPERATOR_RUNNING_MODAL) {
-			/* automatically grab cursor during modal ops (X11) */
-			WM_cursor_grab(CTX_wm_window(C), 1);
+			/* grab cursor during blocking modal ops (X11) */
+			if(ot->flag & OPTYPE_BLOCKING)
+				WM_cursor_grab(CTX_wm_window(C), 1);
 		}
 		else
 			WM_operator_free(op);

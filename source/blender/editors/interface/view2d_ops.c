@@ -257,7 +257,7 @@ void VIEW2D_OT_pan(wmOperatorType *ot)
 	ot->modal= view_pan_modal;
 	
 	/* operator is repeatable */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_BLOCKING;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
@@ -832,7 +832,7 @@ void VIEW2D_OT_zoom(wmOperatorType *ot)
 	ot->modal= view_zoomdrag_modal;
 	
 	/* operator is repeatable */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_BLOCKING;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_float(ot->srna, "deltax", 0, -FLT_MAX, FLT_MAX, "Delta X", "", -FLT_MAX, FLT_MAX);
@@ -1261,6 +1261,9 @@ void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Scroller Activate";
 	ot->idname= "VIEW2D_OT_scroller_activate";
+
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
 	
 	/* api callbacks */
 	ot->invoke= scroller_activate_invoke;

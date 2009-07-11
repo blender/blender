@@ -2344,7 +2344,7 @@ void PARTICLE_OT_brush_radial_control(wmOperatorType *ot)
 	ot->poll= PE_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 }
 
 /*************************** delete operator **************************/
@@ -3358,7 +3358,7 @@ void PARTICLE_OT_brush_edit(wmOperatorType *ot)
 	ot->poll= PE_poll_3dview;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* properties */
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");

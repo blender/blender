@@ -1836,6 +1836,9 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 	ot->cancel= scroll_cancel;
 	ot->poll= text_space_edit_poll;
 
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
+
 	/* properties */
 	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll.", -100, 100);
 }
@@ -1879,6 +1882,9 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
 	ot->modal= scroll_modal;
 	ot->cancel= scroll_cancel;
 	ot->poll= text_region_edit_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
 
 	/* properties */
 	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll.", -100, 100);
@@ -2151,7 +2157,7 @@ void TEXT_OT_cursor_set(wmOperatorType *ot)
 	ot->poll= text_region_edit_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_BLOCKING;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "select", 0, "Select", "Set selection end rather than cursor.");

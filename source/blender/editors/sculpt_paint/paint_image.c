@@ -4804,7 +4804,7 @@ void PAINT_OT_image_paint(wmOperatorType *ot)
 	ot->poll= image_paint_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* properties */
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
@@ -4911,7 +4911,7 @@ void PAINT_OT_image_paint_radial_control(wmOperatorType *ot)
 	ot->poll= image_paint_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 }
 
 /************************ grab clone operator ************************/
@@ -5010,7 +5010,7 @@ void PAINT_OT_grab_clone(wmOperatorType *ot)
 	ot->poll= image_paint_2d_clone_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "delta", 2, NULL, -FLT_MAX, FLT_MAX, "Delta", "Delta offset of clone image in 0.0..1.0 coordinates.", -1.0f, 1.0f);

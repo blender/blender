@@ -1225,7 +1225,7 @@ void PAINT_OT_weight_paint_radial_control(wmOperatorType *ot)
 	ot->poll= wp_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 }
 
 void PAINT_OT_vertex_paint_radial_control(wmOperatorType *ot)
@@ -1241,7 +1241,7 @@ void PAINT_OT_vertex_paint_radial_control(wmOperatorType *ot)
 	ot->poll= vp_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 }
 
 /* ************ weight paint operator ********** */
@@ -1567,7 +1567,7 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 	ot->poll= wp_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 }
 
@@ -1864,6 +1864,6 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 	ot->poll= vp_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 }
 
