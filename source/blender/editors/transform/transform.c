@@ -308,7 +308,7 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	}
 	else if (t->spacetype == SPACE_NLA) {
-		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 	}
 	else if(t->spacetype == SPACE_NODE)
 	{

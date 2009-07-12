@@ -2578,28 +2578,28 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 	Scene *scene= CTX_data_scene(C);
 	TransData *td = NULL;
 	TransDataNla *tdn = NULL;
-
+	
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-
+	
 	int count=0;
 	char side;
-
+	
 	/* determine what type of data we are operating on */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return;
-
+	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-
+	
 	/* which side of the current frame should be allowed */
 	if (t->mode == TFM_TIME_EXTEND) {
 		/* only side on which mouse is gets transformed */
 		float xmouse, ymouse;
-
+		
 		UI_view2d_region_to_view(&ac.ar->v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
 		side = (xmouse > CFRA) ? 'R' : 'L'; // XXX use t->frame_side
 	}
@@ -2607,15 +2607,15 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 		/* normal transform - both sides of current frame are considered */
 		side = 'B';
 	}
-
+	
 	/* loop 1: count how many strips are selected (consider each strip as 2 points) */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		NlaTrack *nlt= (NlaTrack *)ale->data;
 		NlaStrip *strip;
-
+		
 		/* make some meta-strips for chains of selected strips */
 		BKE_nlastrips_make_metas(&nlt->strips, 1);
-
+		
 		/* only consider selected strips */
 		for (strip= nlt->strips.first; strip; strip= strip->next) {
 			// TODO: we can make strips have handles later on...
@@ -2628,29 +2628,29 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 			}
 		}
 	}
-
+	
 	/* stop if trying to build list if nothing selected */
 	if (count == 0) {
 		/* cleanup temp list */
 		BLI_freelistN(&anim_data);
 		return;
 	}
-
+	
 	/* allocate memory for data */
 	t->total= count;
-
+	
 	t->data= MEM_callocN(t->total*sizeof(TransData), "TransData(NLA Editor)");
 	td= t->data;
 	t->customData= MEM_callocN(t->total*sizeof(TransDataNla), "TransDataNla (NLA Editor)");
 	tdn= t->customData;
-
+	
 	/* loop 2: build transdata array */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		/* only if a real NLA-track */
 		if (ale->type == ANIMTYPE_NLATRACK) {
 			NlaTrack *nlt= (NlaTrack *)ale->data;
 			NlaStrip *strip;
-
+			
 			/* only consider selected strips */
 			for (strip= nlt->strips.first; strip; strip= strip->next) {
 				// TODO: we can make strips have handles later on...
@@ -2667,44 +2667,45 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 						 *	  cases, there will need to be 1 of these tdn elements in the array skipped...
 						 */
 						float center[3], yval;
-
+						
 						/* firstly, init tdn settings */
+						tdn->id= ale->id;
 						tdn->oldTrack= tdn->nlt= nlt;
 						tdn->strip= strip;
 						tdn->trackIndex= BLI_findindex(&nlt->strips, strip);
-
+						
 						yval= (float)(tdn->trackIndex * NLACHANNEL_STEP);
-
+						
 						tdn->h1[0]= strip->start;
 						tdn->h1[1]= yval;
 						tdn->h2[0]= strip->end;
 						tdn->h2[1]= yval;
-
+						
 						center[0]= (float)CFRA;
 						center[1]= yval;
 						center[2]= 0.0f;
-
+						
 						/* set td's based on which handles are applicable */
 						if (FrameOnMouseSide(side, strip->start, (float)CFRA))
 						{
 							/* just set tdn to assume that it only has one handle for now */
 							tdn->handle= -1;
-
+							
 							/* now, link the transform data up to this data */
 							if (t->mode == TFM_TRANSLATION) {
 								td->loc= tdn->h1;
 								VECCOPY(td->iloc, tdn->h1);
-
+								
 								/* store all the other gunk that is required by transform */
 								VECCOPY(td->center, center);
 								memset(td->axismtx, 0, sizeof(td->axismtx));
 								td->axismtx[2][2] = 1.0f;
-
+								
 								td->ext= NULL; td->tdi= NULL; td->val= NULL;
-
+								
 								td->flag |= TD_SELECTED;
 								td->dist= 0.0f;
-
+								
 								Mat3One(td->mtx);
 								Mat3One(td->smtx);
 							}
@@ -2712,7 +2713,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 								td->val= &tdn->h1[0];
 								td->ival= tdn->h1[0];
 							}
-
+							
 							td->extra= tdn;
 							td++;
 						}
@@ -2720,22 +2721,22 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 						{
 							/* if tdn is already holding the start handle, then we're doing both, otherwise, only end */
 							tdn->handle= (tdn->handle) ? 2 : 1;
-
+							
 							/* now, link the transform data up to this data */
 							if (t->mode == TFM_TRANSLATION) {
 								td->loc= tdn->h2;
 								VECCOPY(td->iloc, tdn->h2);
-
+								
 								/* store all the other gunk that is required by transform */
 								VECCOPY(td->center, center);
 								memset(td->axismtx, 0, sizeof(td->axismtx));
 								td->axismtx[2][2] = 1.0f;
-
+								
 								td->ext= NULL; td->tdi= NULL; td->val= NULL;
-
+								
 								td->flag |= TD_SELECTED;
 								td->dist= 0.0f;
-
+								
 								Mat3One(td->mtx);
 								Mat3One(td->smtx);
 							}
@@ -2743,11 +2744,11 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 								td->val= &tdn->h2[0];
 								td->ival= tdn->h2[0];
 							}
-
+							
 							td->extra= tdn;
 							td++;
 						}
-
+						
 						/* if both handles were used, skip the next tdn (i.e. leave it blank) since the counting code is dumb...
 						 * otherwise, just advance to the next one...
 						 */
@@ -3114,32 +3115,32 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	Scene *scene= CTX_data_scene(C);
 	TransData *td = NULL;
 	tGPFtransdata *tfd = NULL;
-
+	
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-
+	
 	int count=0;
 	float cfra;
 	char side;
-
+	
 	/* determine what type of data we are operating on */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return;
-
+	
 	/* filter data */
 	if (ac.datatype == ANIMCONT_GPENCIL)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
 	else
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-
+	
 	/* which side of the current frame should be allowed */
 	if (t->mode == TFM_TIME_EXTEND) {
 		/* only side on which mouse is gets transformed */
 		float xmouse, ymouse;
-
+		
 		UI_view2d_region_to_view(&ac.ar->v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
 		side = (xmouse > CFRA) ? 'R' : 'L'; // XXX use t->frame_side
 	}
@@ -3147,11 +3148,11 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		/* normal transform - both sides of current frame are considered */
 		side = 'B';
 	}
-
+	
 	/* loop 1: fully select ipo-keys and count how many BezTriples are selected */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
-
+		
 		/* convert current-frame to action-time (slightly less accurate, espcially under
 		 * higher scaling ratios, but is faster than converting all points)
 		 */
@@ -3159,26 +3160,26 @@ static void createTransActionData(bContext *C, TransInfo *t)
 			cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
 		else
 			cfra = (float)CFRA;
-
+		
 		//if (ale->type == ANIMTYPE_GPLAYER)
 		//	count += count_gplayer_frames(ale->data, side, cfra);
 		//else
 			count += count_fcurve_keys(ale->key_data, side, cfra);
 	}
-
+	
 	/* stop if trying to build list if nothing selected */
 	if (count == 0) {
 		/* cleanup temp list */
 		BLI_freelistN(&anim_data);
 		return;
 	}
-
+	
 	/* allocate memory for data */
 	t->total= count;
-
+	
 	t->data= MEM_callocN(t->total*sizeof(TransData), "TransData(Action Editor)");
 	td= t->data;
-
+	
 	if (ac.datatype == ANIMCONT_GPENCIL) {
 		if (t->mode == TFM_TIME_SLIDE) {
 			t->customData= MEM_callocN((sizeof(float)*2)+(sizeof(tGPFtransdata)*count), "TimeSlide + tGPFtransdata");
@@ -3191,7 +3192,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	}
 	else if (t->mode == TFM_TIME_SLIDE)
 		t->customData= MEM_callocN(sizeof(float)*2, "TimeSlide Min/Max");
-
+	
 	/* loop 2: build transdata array */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		//if (ale->type == ANIMTYPE_GPLAYER) {
@@ -3205,7 +3206,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		//else {
 			AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 			FCurve *fcu= (FCurve *)ale->key_data;
-
+			
 			/* convert current-frame to action-time (slightly less accurate, espcially under
 			 * higher scaling ratios, but is faster than converting all points)
 			 */
@@ -3213,22 +3214,22 @@ static void createTransActionData(bContext *C, TransInfo *t)
 				cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
 			else
 				cfra = (float)CFRA;
-
+			
 			td= FCurveToTransData(td, fcu, adt, side, cfra);
 		//}
 	}
-
+	
 	/* check if we're supposed to be setting minx/maxx for TimeSlide */
 	if (t->mode == TFM_TIME_SLIDE) {
 		float min=999999999.0f, max=-999999999.0f;
 		int i;
-
+		
 		td= (t->data + 1);
 		for (i=1; i < count; i+=3, td+=3) {
 			if (min > *(td->val)) min= *(td->val);
 			if (max < *(td->val)) max= *(td->val);
 		}
-
+		
 		/* minx/maxx values used by TimeSlide are stored as a
 		 * calloced 2-float array in t->customData. This gets freed
 		 * in postTrans (T_FREE_CUSTOMDATA).
@@ -3254,18 +3255,18 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, 
 	 * Due to NLA mapping, we apply NLA mapping to some of the verts here,
 	 * and then that mapping will be undone after transform is done.
 	 */
-
+	
 	if (adt) {
 		td2d->loc[0] = BKE_nla_tweakedit_remap(adt, loc[0], NLATIME_CONVERT_UNMAP);
 		td2d->loc[1] = loc[1];
 		td2d->loc[2] = 0.0f;
 		td2d->loc2d = loc;
-
+		
 		td->loc = td2d->loc;
 		td->center[0] = BKE_nla_tweakedit_remap(adt, cent[0], NLATIME_CONVERT_UNMAP);
 		td->center[1] = cent[1];
 		td->center[2] = 0.0f;
-
+		
 		VECCOPY(td->iloc, td->loc);
 	}
 	else {
@@ -3273,32 +3274,32 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, 
 		td2d->loc[1] = loc[1];
 		td2d->loc[2] = 0.0f;
 		td2d->loc2d = loc;
-
+		
 		td->loc = td2d->loc;
 		VECCOPY(td->center, cent);
 		VECCOPY(td->iloc, td->loc);
 	}
-
+	
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
-
+	
 	td->ext= NULL; td->tdi= NULL; td->val= NULL;
-
+	
 	/* store AnimData info in td->extra, for applying mapping when flushing */
 	td->extra= adt;
-
+	
 	if (selected) {
 		td->flag |= TD_SELECTED;
 		td->dist= 0.0f;
 	}
 	else
 		td->dist= MAXFLOAT;
-
+	
 	if (ishandle)
 		td->flag |= TD_NOTIMESNAP;
 	if (intvals)
 		td->flag |= TD_INTVALUES;
-
+	
 	Mat3One(td->mtx);
 	Mat3One(td->smtx);
 }
@@ -3308,34 +3309,34 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= &ar->v2d;
-
+	
 	TransData *td = NULL;
 	TransData2D *td2d = NULL;
-
+	
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-
+	
 	BezTriple *bezt, *prevbezt;
 	int count=0, i;
 	float cfra;
 	char side;
-
+	
 	/* determine what type of data we are operating on */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return;
-
+	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY | ANIMFILTER_CURVEVISIBLE);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-
+	
 	/* which side of the current frame should be allowed */
 		// XXX we still want this mode, but how to get this using standard transform too?
 	if (t->mode == TFM_TIME_EXTEND) {
 		/* only side on which mouse is gets transformed */
 		float xmouse, ymouse;
-
+		
 		UI_view2d_region_to_view(&ac.ar->v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
 		side = (xmouse > CFRA) ? 'R' : 'L'; // XXX use t->frame_side
 	}
@@ -3343,12 +3344,12 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		/* normal transform - both sides of current frame are considered */
 		side = 'B';
 	}
-
+	
 	/* loop 1: count how many BezTriples (specifically their verts) are selected (or should be edited) */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 		FCurve *fcu= (FCurve *)ale->key_data;
-
+		
 		/* convert current-frame to action-time (slightly less accurate, espcially under
 		 * higher scaling ratios, but is faster than converting all points)
 		 */
@@ -3356,7 +3357,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 			cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
 		else
 			cfra = (float)CFRA;
-
+		
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse */
 		if (fcu->bezt) {
 			for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
@@ -3384,30 +3385,30 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 			}
 		}
 	}
-
+	
 	/* stop if trying to build list if nothing selected */
 	if (count == 0) {
 		/* cleanup temp list */
 		BLI_freelistN(&anim_data);
 		return;
 	}
-
+	
 	/* allocate memory for data */
 	t->total= count;
-
+	
 	t->data= MEM_callocN(t->total*sizeof(TransData), "TransData (Graph Editor)");
 		/* for each 2d vert a 3d vector is allocated, so that they can be treated just as if they were 3d verts */
 	t->data2d= MEM_callocN(t->total*sizeof(TransData2D), "TransData2D (Graph Editor)");
-
+	
 	td= t->data;
 	td2d= t->data2d;
-
+	
 	/* loop 2: build transdata arrays */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 		FCurve *fcu= (FCurve *)ale->key_data;
 		short intvals= (fcu->flag & FCURVE_INT_VALUES);
-
+		
 		/* convert current-frame to action-time (slightly less accurate, espcially under
 		 * higher scaling ratios, but is faster than converting all points)
 		 */
@@ -3415,16 +3416,16 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 			cfra = BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
 		else
 			cfra = (float)CFRA;
-
+		
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse (if applicable) */
 		bezt= fcu->bezt;
 		prevbezt= NULL;
-
+		
 		for (i=0; i < fcu->totvert; i++, prevbezt=bezt, bezt++) {
 			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
 				TransDataCurveHandleFlags *hdata = NULL;
 				short h1=1, h2=1;
-
+				
 				/* only include handles if selected, and interpolaton mode uses beztriples */
 				if ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) {
 					if (bezt->f1 & SELECT) {
@@ -3443,7 +3444,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 					else
 						h2= 0;
 				}
-
+				
 				/* only include main vert if selected */
 				if (bezt->f2 & SELECT) {
 					/* if scaling around individuals centers, do no include keyframes */
@@ -3453,10 +3454,10 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 							if (hdata == NULL)
 								hdata = initTransDataCurveHandes(td, bezt);
 						}
-
+						
 						bezt_to_transdata(td++, td2d++, adt, bezt->vec[1], bezt->vec[1], 1, 0, intvals);
 					}
-
+					
 					/* special hack (must be done after initTransDataCurveHandes(), as that stores handle settings to restore...):
 					 *	- Check if we've got entire BezTriple selected and we're scaling/rotating that point,
 					 *	  then check if we're using auto-handles.
@@ -3471,11 +3472,11 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				}
 			}
 		}
-
+		
 		/* Sets handles based on the selection */
 		testhandles_fcurve(fcu);
 	}
-
+	
 	/* cleanup temp list */
 	BLI_freelistN(&anim_data);
 }
@@ -3502,19 +3503,19 @@ static BeztMap *bezt_to_beztmaps (BezTriple *bezts, int totvert)
 	BezTriple *prevbezt= NULL;
 	BeztMap *bezm, *bezms;
 	int i;
-
+	
 	/* allocate memory for this array */
 	if (totvert==0 || bezts==NULL)
 		return NULL;
 	bezm= bezms= MEM_callocN(sizeof(BeztMap)*totvert, "BeztMaps");
-
+	
 	/* assign beztriples to beztmaps */
 	for (i=0; i < totvert; i++, bezm++, prevbezt=bezt, bezt++) {
 		bezm->bezt= bezt;
-
+		
 		bezm->oldIndex= i;
 		bezm->newIndex= i;
-
+		
 		bezm->pipo= (prevbezt) ? prevbezt->ipo : bezt->ipo;
 		bezm->cipo= bezt->ipo;
 	}
@@ -3527,11 +3528,11 @@ static void sort_time_beztmaps (BeztMap *bezms, int totvert)
 {
 	BeztMap *bezm;
 	int i, ok= 1;
-
+	
 	/* keep repeating the process until nothing is out of place anymore */
 	while (ok) {
 		ok= 0;
-
+		
 		bezm= bezms;
 		i= totvert;
 		while (i--) {
@@ -3540,13 +3541,13 @@ static void sort_time_beztmaps (BeztMap *bezms, int totvert)
 				if (bezm->bezt->vec[1][0] > (bezm+1)->bezt->vec[1][0]) {
 					bezm->newIndex++;
 					(bezm+1)->newIndex--;
-
+					
 					SWAP(BeztMap, *bezm, *(bezm+1));
-
+					
 					ok= 1;
 				}
 			}
-
+			
 			/* do we need to check if the handles need to be swapped?
 			 * optimisation: this only needs to be performed in the first loop
 			 */
@@ -3562,7 +3563,7 @@ static void sort_time_beztmaps (BeztMap *bezms, int totvert)
 					bezm->swapHs = -1;
 				}
 			}
-
+			
 			bezm++;
 		}
 	}
@@ -3576,13 +3577,13 @@ static void beztmap_to_data (TransInfo *t, FCurve *fcu, BeztMap *bezms, int totv
 	TransData2D *td;
 	int i, j;
 	char *adjusted;
-
+	
 	/* dynamically allocate an array of chars to mark whether an TransData's
 	 * pointers have been fixed already, so that we don't override ones that are
 	 * already done
  	 */
 	adjusted= MEM_callocN(t->total, "beztmap_adjusted_map");
-
+	
 	/* for each beztmap item, find if it is used anywhere */
 	bezm= bezms;
 	for (i= 0; i < totvert; i++, bezm++) {
@@ -3593,7 +3594,7 @@ static void beztmap_to_data (TransInfo *t, FCurve *fcu, BeztMap *bezms, int totv
 		for (j= 0; j < t->total; j++, td++) {
 			/* skip item if already marked */
 			if (adjusted[j] != 0) continue;
-
+			
 			/* only selected verts */
 			if (bezm->pipo == BEZT_IPO_BEZ) {
 				if (bezm->bezt->f1 & SELECT) {
@@ -3624,9 +3625,9 @@ static void beztmap_to_data (TransInfo *t, FCurve *fcu, BeztMap *bezms, int totv
 				}
 			}
 		}
-
+		
 	}
-
+	
 	/* free temp memory used for 'adjusted' array */
 	MEM_freeN(adjusted);
 }
@@ -3641,25 +3642,25 @@ static void beztmap_to_data (TransInfo *t, FCurve *fcu, BeztMap *bezms, int totv
 void remake_graph_transdata (TransInfo *t, ListBase *anim_data)
 {
 	bAnimListElem *ale;
-
+	
 	/* sort and reassign verts */
 	for (ale= anim_data->first; ale; ale= ale->next) {
 		FCurve *fcu= (FCurve *)ale->key_data;
-
+		
 		if (fcu->bezt) {
 			BeztMap *bezm;
-
+			
 			/* adjust transform-data pointers */
 			bezm= bezt_to_beztmaps(fcu->bezt, fcu->totvert);
 			sort_time_beztmaps(bezm, fcu->totvert);
 			beztmap_to_data(t, fcu, bezm, fcu->totvert);
-
+			
 			/* free mapping stuff */
 			MEM_freeN(bezm);
-
+			
 			/* re-sort actual beztriples (perhaps this could be done using the beztmaps to save time?) */
 			sort_time_fcurve(fcu);
-
+			
 			/* make sure handles are all set correctly */
 			testhandles_fcurve(fcu);
 		}
@@ -3677,11 +3678,11 @@ void flushTransGraphData(TransInfo *t)
 	Scene *scene= t->scene;
 	double secf= FPS;
 	int a;
-
+	
 	/* flush to 2d vector from internally used 3d vector */
 	for (a=0, td= t->data, td2d=t->data2d; a<t->total; a++, td++, td2d++) {
 		AnimData *adt= (AnimData *)td->extra; /* pointers to relevant AnimData blocks are stored in the td->extra pointers */
-
+		
 		/* handle snapping for time values
 		 *	- we should still be in NLA-mapping timespace
 		 *	- only apply to keyframes (but never to handles)
@@ -3694,19 +3695,19 @@ void flushTransGraphData(TransInfo *t)
 					else
 						td2d->loc[0]= (float)( floor(td2d->loc[0]+0.5f) );
 					break;
-
+				
 				case SACTSNAP_MARKER: /* snap to nearest marker */
 					td2d->loc[0]= (float)ED_markers_find_nearest_marker_time(&t->scene->markers, td2d->loc[0]);
 					break;
 			}
 		}
-
-		/* we need to unapply the nla-scaling from the time in some situations */
+		
+		/* we need to unapply the nla-mapping from the time in some situations */
 		if (adt)
 			td2d->loc2d[0]= BKE_nla_tweakedit_remap(adt, td2d->loc[0], NLATIME_CONVERT_UNMAP);
 		else
 			td2d->loc2d[0]= td2d->loc[0];
-
+		
 		/* if int-values only, truncate to integers */
 		if (td->flag & TD_INTVALUES)
 			td2d->loc2d[1]= (float)((int)td2d->loc[1]);

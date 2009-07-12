@@ -264,6 +264,29 @@ static void editmesh_apply_to_mirror(TransInfo *t)
 	}
 }
 
+/* tags the given ID block for refreshes (if applicable) due to 
+ * Animation Editor editing
+ */
+static void animedit_refresh_id_tags (ID *id)
+{
+	AnimData *adt= BKE_animdata_from_id(id);
+	
+	/* tag AnimData for refresh so that other views will update in realtime with these changes */
+	if (adt)
+		adt->recalc |= ADT_RECALC_ANIM;
+		
+	/* if ID-block is Object, set recalc flags */
+	// TODO: this should probably go through the depsgraph instead... but for now, let's be lazy
+	switch (GS(id->name)) {
+		case ID_OB:
+		{
+			Object *ob= (Object *)id;
+			ob->recalc |= OB_RECALC;
+		}
+			break;
+	}
+}
+
 /* called for updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
@@ -281,60 +304,93 @@ void recalcData(TransInfo *t)
 	else if (t->spacetype==SPACE_SEQ) {
 		flushTransSeq(t);
 	}
-	else if (t->spacetype == SPACE_IPO) {
-		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
+	else if (t->spacetype == SPACE_ACTION) {
+		SpaceAction *sact= (SpaceAction *)t->sa->spacedata.first;
 		Scene *scene;
-
-		ListBase anim_data = {NULL, NULL};
+		
 		bAnimContext ac;
-		int filter;
-
+		ListBase anim_data = {NULL, NULL};
 		bAnimListElem *ale;
-		int dosort = 0;
-
-
+		int filter;
+		
 		/* initialise relevant anim-context 'context' data from TransInfo data */
 			/* NOTE: sync this with the code in ANIM_animdata_get_context() */
 		memset(&ac, 0, sizeof(bAnimContext));
-
+		
 		scene= ac.scene= t->scene;
 		ac.obact= OBACT;
 		ac.sa= t->sa;
 		ac.ar= t->ar;
 		ac.spacetype= (t->sa)? t->sa->spacetype : 0;
 		ac.regiontype= (t->ar)? t->ar->regiontype : 0;
-
+		
 		ANIM_animdata_context_getdata(&ac);
-
+		
+		/* get animdata blocks visible in editor, assuming that these will be the ones where things changed */
+		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ANIMDATA);
+		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+		
+		/* just tag these animdata-blocks to recalc, assuming that some data there changed */
+		for (ale= anim_data.first; ale; ale= ale->next) {
+			/* set refresh tags for objects using this animation */
+			animedit_refresh_id_tags(ale->id);
+		}
+		
+		/* now free temp channels */
+		BLI_freelistN(&anim_data);
+	}
+	else if (t->spacetype == SPACE_IPO) {
+		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
+		Scene *scene;
+		
+		ListBase anim_data = {NULL, NULL};
+		bAnimContext ac;
+		int filter;
+		
+		bAnimListElem *ale;
+		int dosort = 0;
+		
+		
+		/* initialise relevant anim-context 'context' data from TransInfo data */
+			/* NOTE: sync this with the code in ANIM_animdata_get_context() */
+		memset(&ac, 0, sizeof(bAnimContext));
+		
+		scene= ac.scene= t->scene;
+		ac.obact= OBACT;
+		ac.sa= t->sa;
+		ac.ar= t->ar;
+		ac.spacetype= (t->sa)? t->sa->spacetype : 0;
+		ac.regiontype= (t->ar)? t->ar->regiontype : 0;
+		
+		ANIM_animdata_context_getdata(&ac);
+		
 		/* do the flush first */
 		flushTransGraphData(t);
-
+		
 		/* get curves to check if a re-sort is needed */
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY | ANIMFILTER_CURVEVISIBLE);
 		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-
+		
 		/* now test if there is a need to re-sort */
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			FCurve *fcu= (FCurve *)ale->key_data;
-
+			AnimData *adt= BKE_animdata_from_id(ale->id);
+			
 			/* watch it: if the time is wrong: do not correct handles yet */
 			if (test_time_fcurve(fcu))
 				dosort++;
 			else
 				calchandles_fcurve(fcu);
+				
+			/* set refresh tags for objects using this animation */
+			animedit_refresh_id_tags(ale->id);
 		}
-
+		
 		/* do resort and other updates? */
 		if (dosort) remake_graph_transdata(t, &anim_data);
-		//if (sipo->showkey) update_ipokey_val();
-
+		
 		/* now free temp channels */
 		BLI_freelistN(&anim_data);
-
-		/* update realtime - not working? */
-		if (sipo->lock) {
-
-		}
 	}
 	else if (t->spacetype == SPACE_NLA) {
 		TransDataNla *tdn= (TransDataNla *)t->customData;
@@ -342,7 +398,7 @@ void recalcData(TransInfo *t)
 		Scene *scene= t->scene;
 		double secf= FPS;
 		int i;
-
+		
 		/* for each strip we've got, perform some additional validation of the values that got set before
 		 * using RNA to set the value (which does some special operations when setting these values to make
 		 * sure that everything works ok)
@@ -352,42 +408,45 @@ void recalcData(TransInfo *t)
 			PointerRNA strip_ptr;
 			short pExceeded, nExceeded, iter;
 			int delta_y1, delta_y2;
-
+			
 			/* if this tdn has no handles, that means it is just a dummy that should be skipped */
 			if (tdn->handle == 0)
 				continue;
-
+			
+			/* set refresh tags for objects using this animation */
+			animedit_refresh_id_tags(tdn->id);
+			
 			/* if cancelling transform, just write the values without validating, then move on */
 			if (t->state == TRANS_CANCEL) {
 				/* clear the values by directly overwriting the originals, but also need to restore
 				 * endpoints of neighboring transition-strips
 				 */
-
+				
 				/* start */
 				strip->start= tdn->h1[0];
-
+				
 				if ((strip->prev) && (strip->prev->type == NLASTRIP_TYPE_TRANSITION))
 					strip->prev->end= tdn->h1[0];
-
+				
 				/* end */
 				strip->end= tdn->h2[0];
-
+				
 				if ((strip->next) && (strip->next->type == NLASTRIP_TYPE_TRANSITION))
 					strip->next->start= tdn->h2[0];
-
+				
 				/* flush transforms to child strips (since this should be a meta) */
 				BKE_nlameta_flush_transforms(strip);
-
+				
 				/* restore to original track (if needed) */
 				if (tdn->oldTrack != tdn->nlt) {
 					/* just append to end of list for now, since strips get sorted in special_aftertrans_update() */
 					BLI_remlink(&tdn->nlt->strips, strip);
 					BLI_addtail(&tdn->oldTrack->strips, strip);
 				}
-
+				
 				continue;
 			}
-
+			
 			/* firstly, check if the proposed transform locations would overlap with any neighbouring strips
 			 * (barring transitions) which are absolute barriers since they are not being moved
 			 *
@@ -396,7 +455,7 @@ void recalcData(TransInfo *t)
 			for (iter=0; iter < 5; iter++) {
 				pExceeded= ((strip->prev) && (strip->prev->type != NLASTRIP_TYPE_TRANSITION) && (tdn->h1[0] < strip->prev->end));
 				nExceeded= ((strip->next) && (strip->next->type != NLASTRIP_TYPE_TRANSITION) && (tdn->h2[0] > strip->next->start));
-
+				
 				if ((pExceeded && nExceeded) || (iter == 4) ) {
 					/* both endpoints exceeded (or iteration ping-pong'd meaning that we need a compromise)
 					 *	- simply crop strip to fit within the bounds of the strips bounding it
@@ -414,21 +473,21 @@ void recalcData(TransInfo *t)
 				else if (nExceeded) {
 					/* move backwards */
 					float offset= tdn->h2[0] - strip->next->start;
-
+					
 					tdn->h1[0] -= offset;
 					tdn->h2[0] -= offset;
 				}
 				else if (pExceeded) {
 					/* more forwards */
 					float offset= strip->prev->end - tdn->h1[0];
-
+					
 					tdn->h1[0] += offset;
 					tdn->h2[0] += offset;
 				}
 				else /* all is fine and well */
 					break;
 			}
-
+			
 			/* handle auto-snapping */
 			switch (snla->autosnap) {
 				case SACTSNAP_FRAME: /* snap to nearest frame/time  */
@@ -441,35 +500,35 @@ void recalcData(TransInfo *t)
 						tdn->h2[0]= (float)( floor(tdn->h2[0]+0.5f) );
 					}
 					break;
-
+				
 				case SACTSNAP_MARKER: /* snap to nearest marker */
 					tdn->h1[0]= (float)ED_markers_find_nearest_marker_time(&t->scene->markers, tdn->h1[0]);
 					tdn->h2[0]= (float)ED_markers_find_nearest_marker_time(&t->scene->markers, tdn->h2[0]);
 					break;
 			}
-
+			
 			/* use RNA to write the values... */
 			// TODO: do we need to write in 2 passes to make sure that no truncation goes on?
 			RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &strip_ptr);
-
+			
 			RNA_float_set(&strip_ptr, "start_frame", tdn->h1[0]);
 			RNA_float_set(&strip_ptr, "end_frame", tdn->h2[0]);
-
+			
 			/* flush transforms to child strips (since this should be a meta) */
 			BKE_nlameta_flush_transforms(strip);
-
-
+			
+			
 			/* now, check if we need to try and move track
 			 *	- we need to calculate both, as only one may have been altered by transform if only 1 handle moved
 			 */
 			delta_y1= ((int)tdn->h1[1] / NLACHANNEL_STEP - tdn->trackIndex);
 			delta_y2= ((int)tdn->h2[1] / NLACHANNEL_STEP - tdn->trackIndex);
-
+			
 			if (delta_y1 || delta_y2) {
 				NlaTrack *track;
 				int delta = (delta_y2) ? delta_y2 : delta_y1;
 				int n;
-
+				
 				/* move in the requested direction, checking at each layer if there's space for strip to pass through,
 				 * stopping on the last track available or that we're able to fit in
 				 */
@@ -480,7 +539,7 @@ void recalcData(TransInfo *t)
 							/* move strip to this track */
 							BLI_remlink(&tdn->nlt->strips, strip);
 							BKE_nlatrack_add_strip(track, strip);
-
+							
 							tdn->nlt= track;
 							tdn->trackIndex += (n + 1); /* + 1, since n==0 would mean that we didn't change track */
 						}
@@ -491,14 +550,14 @@ void recalcData(TransInfo *t)
 				else {
 					/* make delta 'positive' before using it, since we now know to go backwards */
 					delta= -delta;
-
+					
 					for (track=tdn->nlt->prev, n=0; (track) && (n < delta); track=track->prev, n++) {
 						/* check if space in this track for the strip */
 						if (BKE_nlatrack_has_space(track, strip->start, strip->end)) {
 							/* move strip to this track */
 							BLI_remlink(&tdn->nlt->strips, strip);
 							BKE_nlatrack_add_strip(track, strip);
-
+							
 							tdn->nlt= track;
 							tdn->trackIndex -= (n - 1); /* - 1, since n==0 would mean that we didn't change track */
 						}

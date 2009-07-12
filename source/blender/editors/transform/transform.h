@@ -163,6 +163,8 @@ typedef struct TransDataSeq {
 
 /* for NLA transform (stored in td->extra pointer) */
 typedef struct TransDataNla {
+	ID *id;						/* ID-block NLA-data is attached to */
+	
 	struct NlaTrack *oldTrack;	/* Original NLA-Track that the strip belongs to */
 	struct NlaTrack *nlt;		/* Current NLA-Track that the strip belongs to */
 	
