@@ -137,8 +137,8 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	const short line2_y    = ar->winy - IMASEL_BUTTONS_HEIGHT - 12;
 	const short line1_y    = line2_y  + IMASEL_BUTTONS_HEIGHT/2 + 4;
 	const short input_minw = 20;
-	const short btn_h      = 21;
-	const short btn_fn_w   = 14;
+	const short btn_h      = UI_UNIT_Y;
+	const short btn_fn_w   = UI_UNIT_X;
 	const short btn_minw   = 80;
 	const short btn_margin = 20;
 	const short separator  = 4;
@@ -200,13 +200,13 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	/* Filename number increment / decrement buttons. */
 	if (fnumbuttons) {
 		uiBlockBeginAlign(block);
-		but = uiDefButO(block, BUT, "FILE_OT_filenum", 0, "-",
+		but = uiDefIconButO(block, BUT, "FILE_OT_filenum", 0, ICON_ZOOMOUT,
 		        min_x + line2_w + separator, line2_y, 
 		        btn_fn_w, btn_h, 
 		        "Decrement the filename number.");    
 		RNA_int_set(uiButGetOperatorPtrRNA(but), "increment", -1); 
 	
-		but = uiDefButO(block, BUT, "FILE_OT_filenum", 0, "+", 
+		but = uiDefIconButO(block, BUT, "FILE_OT_filenum", 0, ICON_ZOOMIN, 
 		        min_x + line2_w + separator + btn_fn_w, line2_y, 
 		        btn_fn_w, btn_h, 
 		        "Increment the filename number.");    
