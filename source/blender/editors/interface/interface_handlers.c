@@ -32,6 +32,7 @@
 
 #include "DNA_color_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
@@ -49,6 +50,7 @@
 #include "BKE_utildefines.h"
 
 #include "ED_screen.h"
+#include "ED_util.h"
 
 #include "UI_interface.h"
 
@@ -166,6 +168,10 @@ typedef struct uiAfterFunc {
 	PropertyRNA *rnaprop;
 
 	bContextStore *context;
+
+	char undostr[512];
+
+	int autokey;
 } uiAfterFunc;
 
 static int ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y);
@@ -174,6 +180,7 @@ static int ui_handler_region_menu(bContext *C, wmEvent *event, void *userdata);
 static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata);
 static void ui_handler_remove_popup(bContext *C, void *userdata);
 static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiButtonActivateType type);
+static void button_timers_tooltip_remove(bContext *C, uiBut *but);
 
 /* ******************** menu navigation helpers ************** */
 
@@ -271,6 +278,32 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 	}
 }
 
+static void ui_apply_autokey_undo(bContext *C, uiBut *but)
+{
+	Scene *scene= CTX_data_scene(C);
+	uiAfterFunc *after;
+	char *str= NULL;
+
+	if ELEM5(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX);
+	else {
+		/* define which string to use for undo */
+		if ELEM(but->type, LINK, INLINK) str= "Add button link";
+		else if ELEM(but->type, MENU, ICONTEXTROW) str= but->drawstr;
+		else if(but->drawstr[0]) str= but->drawstr;
+		else str= but->tip;
+	}
+
+	/* delayed, after all other funcs run, popups are closed, etc */
+	if(str) {
+		after= MEM_callocN(sizeof(uiAfterFunc), "uiAfterFunc");
+		BLI_strncpy(after->undostr, str, sizeof(after->undostr));
+		BLI_addtail(&UIAfterFuncs, after);
+	}
+
+	/* try autokey */
+	ui_but_anim_autokey(but, scene, scene->r.cfra);
+}
+
 static void ui_apply_but_funcs_after(bContext *C)
 {
 	uiAfterFunc *afterf, after;
@@ -311,6 +344,9 @@ static void ui_apply_but_funcs_after(bContext *C)
 			after.handle_func(C, after.handle_func_arg, after.retval);
 		if(after.butm_func)
 			after.butm_func(C, after.butm_func_arg, after.a2);
+
+		if(after.undostr[0])
+			ED_undo_push(C, after.undostr);
 	}
 }
 
@@ -1324,7 +1360,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 	but->editstr= data->str;
 	but->pos= strlen(data->str);
 	but->selsta= 0;
-	but->selend= strlen(but->drawstr) - strlen(but->str);
+	but->selend= strlen(data->str);
 
 	/* optional searchbox */
 	if(but->type==SEARCH_MENU) {
@@ -1539,7 +1575,8 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 	}
 
 	if(changed) {
-		if(data->interactive) ui_apply_button(C, block, but, data, 1);
+		/* never update while typing for now */
+		if(0/*data->interactive*/) ui_apply_button(C, block, but, data, 1);
 		else ui_check_but(but);
 		
 		if(data->searchbox)
@@ -3090,6 +3127,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 		}
 		/* handle menu */
 		else if(event->type == RIGHTMOUSE && event->val == KM_PRESS) {
+			button_timers_tooltip_remove(C, but);
 			ui_but_anim_menu(C, but);
 			return WM_UI_HANDLER_BREAK;
 		}
@@ -3315,6 +3353,27 @@ static int button_modal_state(uiHandleButtonState state)
 		BUTTON_STATE_TEXT_SELECTING, BUTTON_STATE_MENU_OPEN);
 }
 
+static void button_timers_tooltip_remove(bContext *C, uiBut *but)
+{
+	uiHandleButtonData *data;
+
+	data= but->active;
+
+	if(data->tooltiptimer) {
+		WM_event_remove_window_timer(data->window, data->tooltiptimer);
+		data->tooltiptimer= NULL;
+	}
+	if(data->tooltip) {
+		ui_tooltip_free(C, data->tooltip);
+		data->tooltip= NULL;
+	}
+
+	if(data->autoopentimer) {
+		WM_event_remove_window_timer(data->window, data->autoopentimer);
+		data->autoopentimer= NULL;
+	}
+}
+
 static void button_tooltip_timer_reset(uiBut *but)
 {
 	uiHandleButtonData *data;
@@ -3362,20 +3421,7 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 	}
 	else {
 		but->flag |= UI_SELECT;
-
-		if(data->tooltiptimer) {
-			WM_event_remove_window_timer(data->window, data->tooltiptimer);
-			data->tooltiptimer= NULL;
-		}
-		if(data->tooltip) {
-			ui_tooltip_free(C, data->tooltip);
-			data->tooltip= NULL;
-		}
-
-		if(data->autoopentimer) {
-			WM_event_remove_window_timer(data->window, data->autoopentimer);
-			data->autoopentimer= NULL;
-		}
+		button_timers_tooltip_remove(C, but);
 	}
 
 	/* text editing */
@@ -3501,6 +3547,10 @@ static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *b
 			menu->menuretval= (data->cancel)? UI_RETURN_CANCEL: UI_RETURN_OK;
 		}
 	}
+
+	/* autokey & undo push */
+	if(!data->cancel)
+		ui_apply_autokey_undo(C, but);
 
 	/* disable tooltips until mousemove */
 	ui_blocks_set_tooltips(data->region, 0);

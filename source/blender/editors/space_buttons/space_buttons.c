@@ -377,6 +377,9 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			ED_area_tag_redraw(sa);
 			sbuts->preview= 1;
 	}
+
+	if(wmn->data == ND_KEYS)
+		ED_area_tag_redraw(sa);
 }
 
 /* only called once, from space/spacetypes.c */

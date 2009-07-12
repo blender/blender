@@ -510,7 +510,6 @@ void transform_autoik_update(TransInfo *t, short mode);
 int count_set_pose_transflags(int *out_mode, short around, struct Object *ob);
 
 /* auto-keying stuff used by special_aftertrans_update */
-short autokeyframe_cfra_can_key(struct Scene *scene, struct Object *ob);
 void autokeyframe_ob_cb_func(struct Scene *scene, struct View3D *v3d, struct Object *ob, int tmode);
 void autokeyframe_pose_cb_func(struct Scene *scene, struct View3D *v3d, struct Object *ob, int tmode, short targetless_ik);
 

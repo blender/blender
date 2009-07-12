@@ -1289,6 +1289,8 @@ static void wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 	Text *text= st->text;
 	int offl, offc, lin;
 
+	text_update_character_width(st);
+
 	lin= txt_get_span(text->lines.first, text->sell);
 	wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
 
@@ -1306,6 +1308,8 @@ static void wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 {
 	Text *text= st->text;
 	int offl, offc, lin, startl, c;
+
+	text_update_character_width(st);
 
 	lin= txt_get_span(text->lines.first, text->sell);
 	wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
@@ -1330,6 +1334,8 @@ static void wrap_move_up(SpaceText *st, ARegion *ar, short sel)
 {
 	Text *text= st->text;
 	int offl, offl_1, offc, fromline, toline, c, target;
+
+	text_update_character_width(st);
 
 	wrap_offset(st, ar, text->sell, 0, &offl_1, &offc);
 	wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
@@ -1375,6 +1381,8 @@ static void wrap_move_down(SpaceText *st, ARegion *ar, short sel)
 {
 	Text *text= st->text;
 	int offl, startoff, offc, fromline, toline, c, target;
+
+	text_update_character_width(st);
 
 	wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
 	fromline= toline= txt_get_span(text->lines.first, text->sell);
@@ -1754,6 +1762,8 @@ static void scroll_apply(bContext *C, wmOperator *op, wmEvent *event)
 	TextScroll *tsc= op->customdata;
 	short *mval= event->mval;
 
+	text_update_character_width(st);
+
 	if(tsc->first) {
 		tsc->old[0]= mval[0];
 		tsc->old[1]= mval[1];
@@ -1763,7 +1773,7 @@ static void scroll_apply(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if(!tsc->scrollbar) {
-		tsc->delta[0]= (tsc->hold[0]-mval[0])/text_font_width_character(st);
+		tsc->delta[0]= (tsc->hold[0]-mval[0])/st->cwidth;
 		tsc->delta[1]= (mval[1]-tsc->hold[1])/st->lheight;
 	}
 	else
@@ -1906,6 +1916,8 @@ static void set_cursor_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 	int *charp;
 	int w;
 
+	text_update_character_width(st);
+
 	if(sel) { linep= &text->sell; charp= &text->selc; } 
 	else { linep= &text->curl; charp= &text->curc; }
 	
@@ -1917,7 +1929,7 @@ static void set_cursor_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 		x-= TXT_OFFSET;
 
 	if(x<0) x= 0;
-	x = (x/text_font_width_character(st)) + st->left;
+	x = (x/st->cwidth) + st->left;
 	
 	if(st->wordwrap) {
 		int i, j, endj, curs, max, chop, start, end, chars, loop;

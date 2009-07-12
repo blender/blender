@@ -70,6 +70,13 @@ void BLF_boundbox(char *str, struct rctf *box);
 float BLF_width(char *str);
 float BLF_height(char *str);
 
+
+/*
+ * For fixed width fonts only, returns the width of a
+ * character.
+ */
+float BLF_fixed_width(void);
+
 /*
  * and this two function return the width and height
  * of the string, using the default font and both value

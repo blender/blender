@@ -1312,8 +1312,10 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 		BLI_strncpy(str, but->poin, maxlen);
 		return;
 	}
+	else if(ui_but_anim_expression_get(but, str, maxlen))
+		; /* driver expression */
 	else {
-		/* number */
+		/* number editing */
 		double value;
 
 		value= ui_get_but_val(but);
@@ -1384,7 +1386,12 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		BLI_strncpy(but->poin, str, but->hardmax);
 		return 1;
 	}
+	else if(ui_but_anim_expression_set(but, str)) {
+		/* driver expression */
+		return 1;
+	}
 	else {
+		/* number editing */
 		double value;
 
 		/* XXX 2.50 missing python api */

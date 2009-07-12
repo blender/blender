@@ -66,16 +66,18 @@ int text_do_suggest_select(SpaceText *st, ARegion *ar)
 	/* Count the visible lines to the cursor */
 	for(tmp=st->text->curl, l=-st->top; tmp; tmp=tmp->prev, l++);
 	if(l<0) return 0;
+
+	text_update_character_width(st);
 	
 	if(st->showlinenrs) {
-		x = text_font_width_character(st)*(st->text->curc-st->left) + TXT_OFFSET + TEXTXLOC - 4;
+		x = st->cwidth*(st->text->curc-st->left) + TXT_OFFSET + TEXTXLOC - 4;
 	}
 	else {
-		x = text_font_width_character(st)*(st->text->curc-st->left) + TXT_OFFSET - 4;
+		x = st->cwidth*(st->text->curc-st->left) + TXT_OFFSET - 4;
 	}
 	y = ar->winy - st->lheight*l - 2;
 
-	w = SUGG_LIST_WIDTH*text_font_width_character(st) + 20;
+	w = SUGG_LIST_WIDTH*st->cwidth + 20;
 	h = SUGG_LIST_SIZE*st->lheight + 8;
 
 	// XXX getmouseco_areawin(mval);

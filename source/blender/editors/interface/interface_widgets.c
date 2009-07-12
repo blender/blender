@@ -85,15 +85,6 @@ typedef struct uiWidgetTrias {
 	
 } uiWidgetTrias;
 
-typedef struct uiWidgetStateColors {
-	char inner_anim[4];
-	char inner_anim_sel[4];
-	char inner_key[4];
-	char inner_key_sel[4];
-	char inner_driven[4];
-	char inner_driven_sel[4];
-} uiWidgetStateColors;
-
 typedef struct uiWidgetBase {
 	
 	int totvert, halfwayvert;
@@ -116,6 +107,7 @@ typedef struct uiWidgetType {
 	
 	/* pointer to theme color definition */
 	uiWidgetColors *wcol_theme;
+	uiWidgetStateColors *wcol_state;
 	
 	/* converted colors for state */
 	uiWidgetColors wcol;
@@ -918,6 +910,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
  char inner_key_sel[4];
  char inner_driven[4];
  char inner_driven_sel[4];
+ float blend;
  
 */
 
@@ -925,9 +918,10 @@ static struct uiWidgetStateColors wcol_state= {
 	{115, 190, 76, 255},
 	{90, 166, 51, 255},
 	{240, 235, 100, 255},
-	{148, 204, 76, 255},
+	{215, 211, 75, 255},
 	{180, 0, 255, 255},
-	{153, 0, 230, 255}
+	{153, 0, 230, 255},
+	0.5f, 0.0f
 };
 
 /*  uiWidgetColors
@@ -1147,7 +1141,6 @@ static struct uiWidgetColors wcol_tmp= {
 /* called for theme init (new theme) and versions */
 void ui_widget_color_init(ThemeUI *tui)
 {
-
 	tui->wcol_regular= wcol_regular;
 	tui->wcol_tool= wcol_tool;
 	tui->wcol_text= wcol_text;
@@ -1162,24 +1155,37 @@ void ui_widget_color_init(ThemeUI *tui)
 	tui->wcol_menu_item= wcol_menu_item;
 	tui->wcol_box= wcol_box;
 	tui->wcol_scroll= wcol_scroll;
+
+	tui->wcol_state= wcol_state;
 }
 
 /* ************ button callbacks, state ***************** */
 
+static void widget_state_blend(char *cp, char *cpstate, float fac)
+{
+	if(fac != 0.0f) {
+		cp[0]= (int)((1.0f-fac)*cp[0] + fac*cpstate[0]);
+		cp[1]= (int)((1.0f-fac)*cp[1] + fac*cpstate[1]);
+		cp[2]= (int)((1.0f-fac)*cp[2] + fac*cpstate[2]);
+	}
+}
+
 /* copy colors from theme, and set changes in it based on state */
 static void widget_state(uiWidgetType *wt, int state)
 {
+	uiWidgetStateColors *wcol_state= wt->wcol_state;
+
 	wt->wcol= *(wt->wcol_theme);
 	
 	if(state & UI_SELECT) {
+		QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel)
+
 		if(state & UI_BUT_ANIMATED_KEY)
-			QUATCOPY(wt->wcol.inner, wcol_state.inner_key_sel)
+			widget_state_blend(wt->wcol.inner, wcol_state->inner_key_sel, wcol_state->blend);
 		else if(state & UI_BUT_ANIMATED)
-			QUATCOPY(wt->wcol.inner, wcol_state.inner_anim_sel)
+			widget_state_blend(wt->wcol.inner, wcol_state->inner_anim_sel, wcol_state->blend);
 		else if(state & UI_BUT_DRIVEN)
-			QUATCOPY(wt->wcol.inner, wcol_state.inner_driven_sel)
-		else
-			QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel)
+			widget_state_blend(wt->wcol.inner, wcol_state->inner_driven_sel, wcol_state->blend);
 
 		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
 		
@@ -1190,11 +1196,11 @@ static void widget_state(uiWidgetType *wt, int state)
 	}
 	else {
 		if(state & UI_BUT_ANIMATED_KEY)
-			QUATCOPY(wt->wcol.inner, wcol_state.inner_key)
+			widget_state_blend(wt->wcol.inner, wcol_state->inner_key, wcol_state->blend);
 		else if(state & UI_BUT_ANIMATED)
-			QUATCOPY(wt->wcol.inner, wcol_state.inner_anim)
+			widget_state_blend(wt->wcol.inner, wcol_state->inner_anim, wcol_state->blend);
 		else if(state & UI_BUT_DRIVEN)
-			QUATCOPY(wt->wcol.inner, wcol_state.inner_driven)
+			widget_state_blend(wt->wcol.inner, wcol_state->inner_driven, wcol_state->blend);
 
 		if(state & UI_ACTIVE) { /* mouse over? */
 			wt->wcol.inner[0]= wt->wcol.inner[0]>=240? 255 : wt->wcol.inner[0]+15;
@@ -2039,6 +2045,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 	
 	/* defaults */
 	wt.wcol_theme= &btheme->tui.wcol_regular;
+	wt.wcol_state= &btheme->tui.wcol_state;
 	wt.state= widget_state;
 	wt.draw= widget_but;
 	wt.custom= NULL;

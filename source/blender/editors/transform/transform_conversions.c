@@ -4312,21 +4312,6 @@ static void clear_trans_object_base_flags(TransInfo *t)
 	}
 }
 
-/* auto-keyframing feature - checks for whether anything should be done for the current frame */
-// TODO: this should probably be done per channel instead...
-short autokeyframe_cfra_can_key(Scene *scene, Object *ob)
-{
-	float cfra= (float)CFRA; // XXX for now, this will do
-
-	/* only filter if auto-key mode requires this */
-	if (IS_AUTOKEY_ON(scene) == 0)
-		return 0;
-	else if (IS_AUTOKEY_MODE(scene, NORMAL))
-		return 1;
-	else
-		return id_frame_has_keyframe(&ob->id, cfra, ANIMFILTER_KEYS_LOCAL);
-}
-
 /* auto-keyframing feature - for objects
  * 	tmode: should be a transform mode
  */
@@ -4335,7 +4320,8 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 	ID *id= &ob->id;
 	FCurve *fcu;
 
-	if (autokeyframe_cfra_can_key(scene, ob)) {
+	// TODO: this should probably be done per channel instead...
+	if (autokeyframe_cfra_can_key(scene, id)) {
 		AnimData *adt= ob->adt;
 		float cfra= (float)CFRA; // xxx this will do for now
 		short flag = 0;
@@ -4436,7 +4422,8 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 	bPoseChannel *pchan;
 	FCurve *fcu;
 
-	if (autokeyframe_cfra_can_key(scene, ob)) {
+	// TODO: this should probably be done per channel instead...
+	if (autokeyframe_cfra_can_key(scene, id)) {
 		float cfra= (float)CFRA;
 		short flag= 0;
 		char buf[512];

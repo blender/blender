@@ -799,11 +799,6 @@ static void rna_def_space_text(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem font_size_items[] = {
-		{12, "12", 0, "12", ""},
-		{15, "15", 0, "15", ""},
-		{0, NULL, 0, NULL, NULL}};
-
 	srna= RNA_def_struct(brna, "SpaceTextEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceText");
 	RNA_def_struct_ui_text(srna, "Space Text Editor", "Text editor space data.");
@@ -848,9 +843,9 @@ static void rna_def_space_text(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Tab Width", "Number of spaces to display tabs with.");
 	RNA_def_property_update(prop, NC_TEXT|ND_DISPLAY, NULL);
 
-	prop= RNA_def_property(srna, "font_size", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "lheight");
-	RNA_def_property_enum_items(prop, font_size_items);
+	prop= RNA_def_property(srna, "font_size", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "lheight");
+	RNA_def_property_range(prop, 8, 32);
 	RNA_def_property_ui_text(prop, "Font Size", "Font size to use for displaying the text.");
 	RNA_def_property_update(prop, NC_TEXT|ND_DISPLAY, NULL);
 

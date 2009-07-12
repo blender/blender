@@ -3239,7 +3239,7 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, short m
 					case DRIVERS_EDITMODE_ADD:
 					{
 						/* add a new driver with the information obtained (only if valid) */
-						ANIM_add_driver(id, path, array_index, flag);
+						ANIM_add_driver(id, path, array_index, flag, DRIVER_TYPE_AVERAGE);
 					}
 						break;
 					case DRIVERS_EDITMODE_REMOVE:

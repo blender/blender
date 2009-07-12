@@ -293,7 +293,8 @@ typedef struct SpaceText {
 	int top, viewlines;
 	short flags, menunr;	
 
-	int lheight;
+	short lheight;		/* user preference */
+	short cwidth;		/* runtime computed */
 	int left;
 	int showlinenrs;
 	int tabnumber;
