@@ -83,7 +83,6 @@ static void nla_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *sa= CTX_wm_area(C);
-	Scene *scene= CTX_data_scene(C);
 	SpaceNla *snla= (SpaceNla*)CTX_wm_space_data(C);
 	PointerRNA spaceptr;
 	
@@ -103,11 +102,6 @@ static void nla_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 		uiItemO(layout, "Show Seconds", 0, "ANIM_OT_time_toggle");
 
 	uiItemS(layout);
-	
-	if (scene->flag & SCE_NLA_EDIT_ON) 
-		uiItemO(layout, NULL, 0, "NLA_OT_tweakmode_exit");
-	else
-		uiItemO(layout, NULL, 0, "NLA_OT_tweakmode_enter");
 	
 	uiItemS(layout);
 	
@@ -153,6 +147,8 @@ static void nla_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void nla_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
+	Scene *scene= CTX_data_scene(C);
+	
 	uiItemMenuF(layout, "Transform", 0, nla_edit_transformmenu);
 	uiItemMenuF(layout, "Snap", 0, nla_edit_snapmenu);
 	
@@ -160,9 +156,6 @@ static void nla_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemO(layout, NULL, 0, "NLA_OT_duplicate");
 	uiItemO(layout, NULL, 0, "NLA_OT_split");
-	
-	uiItemS(layout);
-	
 	uiItemO(layout, NULL, 0, "NLA_OT_delete");
 	
 	uiItemS(layout);
@@ -178,6 +171,14 @@ static void nla_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemO(layout, NULL, 0, "NLA_OT_move_up");
 	uiItemO(layout, NULL, 0, "NLA_OT_move_down");
+	
+	uiItemS(layout);
+	
+	// TODO: names of these tools for 'tweakmode' need changing?
+	if (scene->flag & SCE_NLA_EDIT_ON) 
+		uiItemO(layout, "Stop Tweaking Strip Actions", 0, "NLA_OT_tweakmode_exit");
+	else
+		uiItemO(layout, "Start Tweaking Strip Actions", 0, "NLA_OT_tweakmode_enter");
 }
 
 static void nla_addmenu(bContext *C, uiLayout *layout, void *arg_unused)

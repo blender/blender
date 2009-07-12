@@ -1049,12 +1049,12 @@ static void nlastrip_evaluate_transition (PointerRNA *ptr, ListBase *channels, L
 		/* first strip */
 	tmp_nes.strip_mode= NES_TIME_TRANSITION_START;
 	tmp_nes.strip= s1;
-	nlastrip_evaluate_actionclip(ptr, &tmp_channels, &tmp_modifiers, &tmp_nes);
+	nlastrip_evaluate(ptr, &tmp_channels, &tmp_modifiers, &tmp_nes);
 	
 		/* second strip */
 	tmp_nes.strip_mode= NES_TIME_TRANSITION_END;
 	tmp_nes.strip= s2;
-	nlastrip_evaluate_actionclip(ptr, &tmp_channels, &tmp_modifiers, &tmp_nes);
+	nlastrip_evaluate(ptr, &tmp_channels, &tmp_modifiers, &tmp_nes);
 	
 	
 	/* assumulate temp-buffer and full-buffer, using the 'real' strip */
@@ -1108,8 +1108,18 @@ static void nlastrip_evaluate_meta (PointerRNA *ptr, ListBase *channels, ListBas
 /* evaluates the given evaluation strip */
 void nlastrip_evaluate (PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes)
 {
+	NlaStrip *strip= nes->strip;
+	
+	/* to prevent potential infinite recursion problems (i.e. transition strip, beside meta strip containing a transition
+	 * several levels deep inside it), we tag the current strip as being evaluated, and clear this when we leave
+	 */
+	// TODO: be careful with this flag, since some edit tools may be running and have set this while animplayback was running
+	if (strip->flag & NLASTRIP_FLAG_EDIT_TOUCHED)
+		return;
+	strip->flag |= NLASTRIP_FLAG_EDIT_TOUCHED;
+	
 	/* actions to take depend on the type of strip */
-	switch (nes->strip->type) {
+	switch (strip->type) {
 		case NLASTRIP_TYPE_CLIP: /* action-clip */
 			nlastrip_evaluate_actionclip(ptr, channels, modifiers, nes);
 			break;
@@ -1120,6 +1130,9 @@ void nlastrip_evaluate (PointerRNA *ptr, ListBase *channels, ListBase *modifiers
 			nlastrip_evaluate_meta(ptr, channels, modifiers, nes);
 			break;
 	}
+	
+	/* clear temp recursion safe-check */
+	strip->flag &= ~NLASTRIP_FLAG_EDIT_TOUCHED;
 }
 
 /* write the accumulated settings to */
