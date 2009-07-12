@@ -747,25 +747,37 @@ void NLA_OT_delete (wmOperatorType *ot)
 //	- variable-length splits?
 
 /* split a given Action-Clip strip */
-static void nlaedit_split_strip_actclip (AnimData *adt, NlaTrack *nlt, NlaStrip *strip)
+static void nlaedit_split_strip_actclip (AnimData *adt, NlaTrack *nlt, NlaStrip *strip, float cfra)
 {
 	NlaStrip *nstrip;
-	float midframe, midaframe, len;
+	float splitframe, splitaframe;
 	
-	/* calculate the frames to do the splitting at */
-		/* strip extents */
-	len= strip->end - strip->start;
-	if (IS_EQ(len, 0.0f)) 
-		return;
-	else
-		midframe= strip->start + (len / 2.0f);
-		
-		/* action range */
-	len= strip->actend - strip->actstart;
-	if (IS_EQ(len, 0.0f))
-		midaframe= strip->actend;
-	else
-		midaframe= strip->actstart + (len / 2.0f);
+	/* calculate the frames to do the splitting at 
+	 *	- use current frame if within extents of strip 
+	 */
+	if ((cfra > strip->start) && (cfra < strip->end)) {
+		/* use the current frame */
+		splitframe= cfra;
+		splitaframe= nlastrip_get_frame(strip, cfra, NLATIME_CONVERT_UNMAP);
+	}
+	else {
+		/* split in the middle */
+		float len;
+			
+			/* strip extents */
+		len= strip->end - strip->start;
+		if (IS_EQ(len, 0.0f)) 
+			return;
+		else
+			splitframe= strip->start + (len / 2.0f);
+			
+			/* action range */
+		len= strip->actend - strip->actstart;
+		if (IS_EQ(len, 0.0f))
+			splitaframe= strip->actend;
+		else
+			splitaframe= strip->actstart + (len / 2.0f);
+	}
 	
 	/* make a copy (assume that this is possible) and append
 	 * it immediately after the current strip
@@ -774,13 +786,16 @@ static void nlaedit_split_strip_actclip (AnimData *adt, NlaTrack *nlt, NlaStrip 
 	BLI_insertlinkafter(&nlt->strips, strip, nstrip);
 	
 	/* set the endpoint of the first strip and the start of the new strip 
-	 * to the midframe values calculated above
+	 * to the splitframe values calculated above
 	 */
-	strip->end= midframe;
-	nstrip->start= midframe;
+	strip->end= splitframe;
+	nstrip->start= splitframe;
 	
-	strip->actend= midaframe;
-	nstrip->actstart= midaframe;
+	if ((splitaframe > strip->actstart) && (splitaframe < strip->actend)) {
+		/* only do this if we're splitting down the middle...  */
+		strip->actend= splitaframe;
+		nstrip->actstart= splitaframe;
+	}
 	
 	/* clear the active flag from the copy */
 	nstrip->flag &= ~NLASTRIP_FLAG_ACTIVE;
@@ -828,7 +843,7 @@ static int nlaedit_split_exec (bContext *C, wmOperator *op)
 				/* splitting method depends on the type of strip */
 				switch (strip->type) {
 					case NLASTRIP_TYPE_CLIP: /* action-clip */
-						nlaedit_split_strip_actclip(adt, nlt, strip);
+						nlaedit_split_strip_actclip(adt, nlt, strip, (float)ac.scene->r.cfra);
 						break;
 						
 					case NLASTRIP_TYPE_META: /* meta-strips need special handling */
