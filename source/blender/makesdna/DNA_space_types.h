@@ -294,7 +294,7 @@ typedef struct SpaceText {
 	short flags, menunr;	
 
 	short lheight;		/* user preference */
-	short cwidth;		/* runtime computed */
+	char cwidth, linenrs_tot;		/* runtime computed, character width and the number of chars to use when showing line numbers */
 	int left;
 	int showlinenrs;
 	int tabnumber;

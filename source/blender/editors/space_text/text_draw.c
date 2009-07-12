@@ -1300,24 +1300,29 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 		linecount++;
 	}
 
-	/* draw line numbers background */
-	if(st->showlinenrs) {
-		UI_ThemeColor(TH_GRID);
-		glRecti(23, 0, (st->lheight==15)? 63: 59, ar->winy - 2);
-	}
-
 	text_font_begin(st);
 	st->cwidth= BLF_fixed_width();
 	st->cwidth= MAX2(st->cwidth, 1);
+
+	/* draw line numbers background */
+	if(st->showlinenrs) {
+		st->linenrs_tot = (int)floor(log10((float)(linecount + st->viewlines))) + 1;
+		x= TXT_OFFSET + TEXTXLOC;
+
+		UI_ThemeColor(TH_GRID);
+		glRecti((TXT_OFFSET-12), 0, (TXT_OFFSET-5) + TEXTXLOC, ar->winy - 2);
+	}
+	else {
+		st->linenrs_tot= 0; /* not used */
+		x= TXT_OFFSET;
+	}
+	y= ar->winy-st->lheight;
 
 	/* draw cursor */
 	draw_cursor(st, ar);
 
 	/* draw the text */
 	UI_ThemeColor(TH_TEXT);
-
-	y= ar->winy-st->lheight;
-	x= (st->showlinenrs)? TXT_OFFSET + TEXTXLOC: TXT_OFFSET;
 
 	for(i=0; y>0 && i<st->viewlines && tmp; i++, tmp= tmp->next) {
 		if(st->showsyntax && !tmp->format)
@@ -1330,14 +1335,8 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 			else
 				UI_ThemeColor(TH_TEXT);
 
-			if(((float)(i + linecount + 1)/10000.0) < 1.0) {
-				sprintf(linenr, "%4d", i + linecount + 1);
-				text_font_draw(st, TXT_OFFSET - 7, y, linenr);
-			}
-			else {
-				sprintf(linenr, "%5d", i + linecount + 1);
-				text_font_draw(st, TXT_OFFSET - 11, y, linenr);
-			}
+			sprintf(linenr, "%d", i + linecount + 1);
+			text_font_draw(st, TXT_OFFSET - 7, y, linenr);
 
 			UI_ThemeColor(TH_TEXT);
 		}

@@ -58,7 +58,7 @@ void text_update_edited(struct Text *text);
 void text_update_character_width(struct SpaceText *st);
 void text_update_cursor_moved(struct SpaceText *st, struct ARegion *ar);
 
-#define TEXTXLOC		38
+#define TEXTXLOC		(st->cwidth * st->linenrs_tot)
 
 #define SUGG_LIST_SIZE	7
 #define SUGG_LIST_WIDTH	20
