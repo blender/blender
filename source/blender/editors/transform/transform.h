@@ -71,7 +71,7 @@ typedef struct NumInput {
 /*
 	The ctrl value has different meaning:
 		0			: No value has been typed
-		
+
 		otherwise, |value| - 1 is where the cursor is located after the period
 		Positive	: number is positive
 		Negative	: number is negative
@@ -100,7 +100,7 @@ typedef struct TransCon {
     float mtx[3][3];     /* Matrix of the Constraint space                                            */
     float imtx[3][3];    /* Inverse Matrix of the Constraint space                                    */
     float pmtx[3][3];    /* Projection Constraint Matrix (same as imtx with some axis == 0)           */
-    float center[3];     /* transformation center to define where to draw the view widget             
+    float center[3];     /* transformation center to define where to draw the view widget
                             ALWAYS in global space. Unlike the transformation center                  */
 	short imval[2];	     /* initial mouse value for visual calculation                                */
 	                     /* the one in TransInfo is not garanty to stay the same (Rotates change it)  */
@@ -138,7 +138,7 @@ typedef struct TransDataExtension {
     float  iquat[4];	 /* Initial rotation quaternion                                                    */
     float *size;         /* Size of the data to transform (Faculative)                                     */
     float  isize[3];	 /* Initial size                                                                   */
-	float  obmat[4][4];	 /* Object matrix */  
+	float  obmat[4][4];	 /* Object matrix */
 } TransDataExtension;
 
 typedef struct TransData2D {
@@ -158,7 +158,7 @@ typedef struct TransDataSeq {
 	int flag;		/* a copy of seq->flag that may be modified for nested strips */
 	short start_offset; /* use this so we can have transform data at the strips start, but apply correctly to the start frame  */
 	short sel_flag; /* one of SELECT, SEQ_LEFTSEL and SEQ_RIGHTSEL */
-	
+
 } TransDataSeq;
 
 /* for NLA transform (stored in td->extra pointer) */
@@ -200,9 +200,9 @@ typedef struct TransData {
 
 typedef struct MouseInput {
 	void	(*apply)(struct TransInfo *, struct MouseInput *, short [2], float [3]);
-	
+
     short   imval[2];       	/* initial mouse position                */
-	char	precision;	
+	char	precision;
 	short	precision_mval[2];	/* mouse position when precision key was pressed */
 	int		center[2];
 	float	factor;
@@ -239,7 +239,7 @@ typedef struct TransInfo {
 	short       idx_max;		/* maximum index on the input vector	*/
 	float		snap[3];		/* Snapping Gears						*/
 	char		frame_side;		/* Mouse side of the cfra, 'L', 'R' or 'B' */
-	
+
 	float		viewmat[4][4];	/* copy from G.vd, prevents feedback,   */
 	float		viewinv[4][4];  /* and to make sure we don't have to    */
 	float		persmat[4][4];  /* access G.vd from other space types   */
@@ -248,16 +248,16 @@ typedef struct TransInfo {
 	short		around;
 	char		spacetype;		/* spacetype where transforming is      */
 	char		helpline;		/* helpline modes (not to be confused with hotline) */
-	
+
 	float		vec[3];			/* translation, to show for widget   	*/
 	float		mat[3][3];		/* rot/rescale, to show for widget   	*/
-	
+
 	char		*undostr;		/* if set, uses this string for undo		*/
 	float		spacemtx[3][3];	/* orientation matrix of the current space	*/
 	char		spacename[32];	/* name of the current space				*/
-	
+
 	struct Object *poseobj;		/* if t->flag & T_POSE, this denotes pose object */
-	
+
 	void       *customData;		/* Per Transform custom data */
 
 	/*************** NEW STUFF *********************/
@@ -303,7 +303,7 @@ typedef struct TransInfo {
 #define T_POSE			(1 << 2)
 #define T_TEXTURE		(1 << 3)
 #define T_CAMERA		(1 << 4)
-	 	// trans on points, having no rotation/scale 
+	 	// trans on points, having no rotation/scale
 #define T_POINTS		(1 << 6)
 		// for manipulator exceptions, like scaling using center point, drawing help lines
 #define T_USES_MANIPULATOR	(1 << 7)
@@ -319,7 +319,7 @@ typedef struct TransInfo {
 
 #define T_V3D_ALIGN			(1 << 14)
 	/* for 2d views like uv or ipo */
-#define T_2D_EDIT			(1 << 15) 
+#define T_2D_EDIT			(1 << 15)
 #define T_CLIP_UV			(1 << 16)
 
 #define T_FREE_CUSTOMDATA	(1 << 17)
@@ -507,6 +507,8 @@ void special_aftertrans_update(TransInfo *t);
 
 void transform_autoik_update(TransInfo *t, short mode);
 
+int count_set_pose_transflags(int *out_mode, short around, struct Object *ob);
+
 /* auto-keying stuff used by special_aftertrans_update */
 short autokeyframe_cfra_can_key(struct Scene *scene, struct Object *ob);
 void autokeyframe_ob_cb_func(struct Scene *scene, struct View3D *v3d, struct Object *ob, int tmode);
@@ -606,8 +608,6 @@ void calculateCenterCursor2D(TransInfo *t);
 void calculatePropRatio(TransInfo *t);
 
 void getViewVector(TransInfo *t, float coord[3], float vec[3]);
-
-TransInfo * BIF_GetTransInfo(void);
 
 /*********************** NumInput ********************************/
 

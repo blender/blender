@@ -1,5 +1,5 @@
 /**
- * $Id: ED_transform.h 21450 2009-07-09 02:45:48Z theeth $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -119,11 +119,15 @@ struct EnumPropertyItem *BIF_enumTransformOrientation(struct bContext *C);
 char * BIF_menustringTransformOrientation(const struct bContext *C, char *title); /* the returned value was allocated and needs to be freed after use */
 int BIF_countTransformOrientation(const struct bContext *C);
 
-void BIF_getPropCenter(float *center);
-
 void BIF_TransformSetUndo(char *str);
 
 void BIF_selectOrientation(void);
+
+/* to be able to add operator properties to other operators */
+
+void Properties_Proportional(struct wmOperatorType *ot);
+void Properties_Snapping(struct wmOperatorType *ot, short align);
+void Properties_Constraints(struct wmOperatorType *ot);
 
 /* view3d manipulators */
 void initManipulator(int mode);

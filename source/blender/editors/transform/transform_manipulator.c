@@ -174,37 +174,10 @@ static void stats_editbone(View3D *v3d, EditBone *ebo)
 		protectflag_to_drawflags(OB_LOCK_LOC|OB_LOCK_ROT|OB_LOCK_SCALE, &v3d->twdrawflag);
 }
 
-/* only counts the parent selection, and tags transform flag */
-/* bad call... should re-use method from transform_conversion once */
-static void count_bone_select(TransInfo *t, bArmature *arm, ListBase *lb, int do_it)
-{
-	Bone *bone;
-	int do_next;
-
-	for(bone= lb->first; bone; bone= bone->next) {
-		bone->flag &= ~BONE_TRANSFORM;
-		do_next= do_it;
-		if(do_it) {
-			if(bone->layer & arm->layer) {
-				if (bone->flag & BONE_SELECTED) {
-					/* We don't let connected children get "grabbed" */
-					if ( (t->mode!=TFM_TRANSLATION) || (bone->flag & BONE_CONNECTED)==0 ) {
-						bone->flag |= BONE_TRANSFORM;
-						t->total++;
-						do_next= 0;	// no transform on children if one parent bone is selected
-					}
-				}
-			}
-		}
-		count_bone_select(t, arm, &bone->childbase, do_next);
-	}
-}
-
 /* centroid, boundbox, of selection */
 /* returns total items selected */
 int calc_manipulator_stats(const bContext *C)
 {
-	TransInfo *t= BIF_GetTransInfo(); // XXX
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
 	Scene *scene= CTX_data_scene(C);
@@ -369,17 +342,12 @@ int calc_manipulator_stats(const bContext *C)
 	else if(ob && (ob->flag & OB_POSEMODE)) {
 		bArmature *arm = ob->data;
 		bPoseChannel *pchan;
-		int mode;
+		int mode = TFM_ROTATION; // mislead counting bones... bah. We don't know the manipulator mode, could be mixed
 
 		if((ob->lay & v3d->lay)==0) return 0;
 
-		mode = t->mode;
-		t->mode = TFM_ROTATION;	// mislead counting bones... bah
+		totsel = count_set_pose_transflags(&mode, 0, ob);
 
-		/* count total, we use same method as transform will do */
-		t->total= 0;
-		count_bone_select(t, arm, &arm->bonebase, 1);
-		totsel = t->total;
 		if(totsel) {
 			/* use channels to get stats */
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
@@ -391,8 +359,6 @@ int calc_manipulator_stats(const bContext *C)
 			Mat4MulVecfl(ob->obmat, scene->twmin);
 			Mat4MulVecfl(ob->obmat, scene->twmax);
 		}
-		/* restore, mode can be TFM_INIT */
-		t->mode = mode;
 	}
 	else if(G.f & (G_VERTEXPAINT + G_TEXTUREPAINT + G_WEIGHTPAINT + G_SCULPTMODE)) {
 		;
@@ -446,16 +412,11 @@ int calc_manipulator_stats(const bContext *C)
 	if(ob && totsel) {
 
 		switch(v3d->twmode) {
-		case V3D_MANIP_GLOBAL:
-			strcpy(t->spacename, "global");
-			break;
 
 		case V3D_MANIP_NORMAL:
 			if(obedit || ob->flag & OB_POSEMODE) {
 				float mat[3][3];
 				int type;
-
-				strcpy(t->spacename, "normal");
 
 				type = getTransformOrientation(C, normal, plane, (v3d->around == V3D_ACTIVE));
 
@@ -499,7 +460,6 @@ int calc_manipulator_stats(const bContext *C)
 			}
 			/* no break we define 'normal' as 'local' in Object mode */
 		case V3D_MANIP_LOCAL:
-			strcpy(t->spacename, "local");
 			Mat4CpyMat4(rv3d->twmat, ob->obmat);
 			Mat4Ortho(rv3d->twmat);
 			break;
@@ -507,14 +467,13 @@ int calc_manipulator_stats(const bContext *C)
 		case V3D_MANIP_VIEW:
 			{
 				float mat[3][3];
-				strcpy(t->spacename, "view");
 				Mat3CpyMat4(mat, rv3d->viewinv);
 				Mat3Ortho(mat);
 				Mat4CpyMat3(rv3d->twmat, mat);
 			}
 			break;
 		default: /* V3D_MANIP_CUSTOM */
-			applyTransformOrientation(C, t);
+			// XXX 			applyTransformOrientation(C, t);
 			break;
 		}
 
@@ -710,7 +669,6 @@ static void draw_manipulator_axes(View3D *v3d, int colcode, int flagx, int flagy
 /* only called while G.moving */
 static void draw_manipulator_rotate_ghost(View3D *v3d, RegionView3D *rv3d, int drawflags)
 {
-	TransInfo *t= BIF_GetTransInfo(); // XXX
 	GLUquadricObj *qobj;
 	float size, phi, startphi, vec[3], svec[3], matt[4][4], cross[3], tmat[3][3];
 	int arcs= (G.rt!=2);
@@ -726,7 +684,7 @@ static void draw_manipulator_rotate_ghost(View3D *v3d, RegionView3D *rv3d, int d
 
 	/* we need both [4][4] transforms, t->mat seems to be premul, not post for mat[][4] */
 	Mat4CpyMat4(matt, rv3d->twmat); // to copy the parts outside of [3][3]
-	Mat4MulMat34(matt, t->mat, rv3d->twmat);
+// XXX	Mat4MulMat34(matt, t->mat, rv3d->twmat);
 
 	/* Screen aligned view rot circle */
 	if(drawflags & MAN_ROT_V) {
@@ -735,15 +693,15 @@ static void draw_manipulator_rotate_ghost(View3D *v3d, RegionView3D *rv3d, int d
 		glPushMatrix();
 		size= screen_aligned(rv3d, rv3d->twmat);
 
-		vec[0]= (float)(t->con.imval[0] - t->center2d[0]);
-		vec[1]= (float)(t->con.imval[1] - t->center2d[1]);
+		vec[0]= 0; // XXX (float)(t->con.imval[0] - t->center2d[0]);
+		vec[1]= 0; // XXX (float)(t->con.imval[1] - t->center2d[1]);
 		vec[2]= 0.0f;
 		Normalize(vec);
 
 		startphi= saacos( vec[1] );
 		if(vec[0]<0.0) startphi= -startphi;
 
-		phi= (float)fmod(180.0*t->val/M_PI, 360.0);
+		phi= 0; // XXX (float)fmod(180.0*t->val/M_PI, 360.0);
 		if(phi > 180.0) phi-= 360.0;
 		else if(phi<-180.0) phi+= 360.0;
 
@@ -755,8 +713,8 @@ static void draw_manipulator_rotate_ghost(View3D *v3d, RegionView3D *rv3d, int d
 		float imat[3][3], ivmat[3][3];
 		/* try to get the start rotation */
 
-		svec[0]= (float)(t->con.imval[0] - t->center2d[0]);
-		svec[1]= (float)(t->con.imval[1] - t->center2d[1]);
+		svec[0]= 0; // XXX (float)(t->con.imval[0] - t->center2d[0]);
+		svec[1]= 0; // XXX (float)(t->con.imval[1] - t->center2d[1]);
 		svec[2]= 0.0f;
 
 		/* screen aligned vec transform back to manipulator space */
@@ -848,7 +806,6 @@ static void draw_manipulator_rotate_ghost(View3D *v3d, RegionView3D *rv3d, int d
 
 static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving, int drawflags, int combo)
 {
-	TransInfo *t= BIF_GetTransInfo(); // XXX
 	GLUquadricObj *qobj;
 	double plane[4];
 	float size, vec[3], unitmat[4][4];
@@ -900,8 +857,8 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 
 		if(moving) {
 			float vec[3];
-			vec[0]= (float)(t->imval[0] - t->center2d[0]);
-			vec[1]= (float)(t->imval[1] - t->center2d[1]);
+			vec[0]= 0; // XXX (float)(t->imval[0] - t->center2d[0]);
+			vec[1]= 0; // XXX (float)(t->imval[1] - t->center2d[1]);
 			vec[2]= 0.0f;
 			Normalize(vec);
 			VecMulf(vec, 1.2f*size);
@@ -917,7 +874,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 	if(moving) {
 		float matt[4][4];
 		Mat4CpyMat4(matt, rv3d->twmat); // to copy the parts outside of [3][3]
-		Mat4MulMat34(matt, t->mat, rv3d->twmat);
+		// XXX Mat4MulMat34(matt, t->mat, rv3d->twmat);
 		wmMultMatrix(matt);
 		glFrontFace( is_mat4_flipped(matt)?GL_CW:GL_CCW);
 	}
@@ -1121,7 +1078,6 @@ static void drawsolidcube(float size)
 
 static void draw_manipulator_scale(View3D *v3d, RegionView3D *rv3d, int moving, int drawflags, int combo, int colcode)
 {
-	TransInfo *t= BIF_GetTransInfo(); // XXX
 	float cywid= 0.25f*0.01f*(float)U.tw_handlesize;
 	float cusize= cywid*0.75f, dz;
 
@@ -1153,7 +1109,7 @@ static void draw_manipulator_scale(View3D *v3d, RegionView3D *rv3d, int moving, 
 		float matt[4][4];
 
 		Mat4CpyMat4(matt, rv3d->twmat); // to copy the parts outside of [3][3]
-		Mat4MulMat34(matt, t->mat, rv3d->twmat);
+		// XXX Mat4MulMat34(matt, t->mat, rv3d->twmat);
 		wmMultMatrix(matt);
 		glFrontFace( is_mat4_flipped(matt)?GL_CW:GL_CCW);
 	}
@@ -1238,7 +1194,6 @@ static void draw_cylinder(GLUquadricObj *qobj, float len, float width)
 
 static void draw_manipulator_translate(View3D *v3d, RegionView3D *rv3d, int moving, int drawflags, int combo, int colcode)
 {
-	TransInfo *t= BIF_GetTransInfo(); // XXX
 	GLUquadricObj *qobj;
 	float cylen= 0.01f*(float)U.tw_handlesize;
 	float cywid= 0.25f*cylen, dz, size;
@@ -1248,7 +1203,7 @@ static void draw_manipulator_translate(View3D *v3d, RegionView3D *rv3d, int movi
 	/* when called while moving in mixed mode, do not draw when... */
 	if((drawflags & MAN_TRANS_C)==0) return;
 
-	if(moving) glTranslatef(t->vec[0], t->vec[1], t->vec[2]);
+	// XXX if(moving) glTranslatef(t->vec[0], t->vec[1], t->vec[2]);
 	glDisable(GL_DEPTH_TEST);
 
 	qobj= gluNewQuadric();
@@ -1314,7 +1269,6 @@ static void draw_manipulator_translate(View3D *v3d, RegionView3D *rv3d, int movi
 
 static void draw_manipulator_rotate_cyl(View3D *v3d, RegionView3D *rv3d, int moving, int drawflags, int combo, int colcode)
 {
-	TransInfo *t= BIF_GetTransInfo(); // XXX
 	GLUquadricObj *qobj;
 	float size;
 	float cylen= 0.01f*(float)U.tw_handlesize;
@@ -1342,8 +1296,8 @@ static void draw_manipulator_rotate_cyl(View3D *v3d, RegionView3D *rv3d, int mov
 
 		if(moving) {
 			float vec[3];
-			vec[0]= (float)(t->imval[0] - t->center2d[0]);
-			vec[1]= (float)(t->imval[1] - t->center2d[1]);
+			vec[0]= 0; // XXX (float)(t->imval[0] - t->center2d[0]);
+			vec[1]= 0; // XXX (float)(t->imval[1] - t->center2d[1]);
 			vec[2]= 0.0f;
 			Normalize(vec);
 			VecMulf(vec, 1.2f*size);
@@ -1359,9 +1313,9 @@ static void draw_manipulator_rotate_cyl(View3D *v3d, RegionView3D *rv3d, int mov
 	if(moving) {
 		float matt[4][4];
 		Mat4CpyMat4(matt, rv3d->twmat); // to copy the parts outside of [3][3]
-		if (t->flag & T_USES_MANIPULATOR) {
-			Mat4MulMat34(matt, t->mat, rv3d->twmat);
-		}
+		// XXX 		if (t->flag & T_USES_MANIPULATOR) {
+		// XXX 			Mat4MulMat34(matt, t->mat, rv3d->twmat);
+		// XXX }
 		wmMultMatrix(matt);
 	}
 	else {
