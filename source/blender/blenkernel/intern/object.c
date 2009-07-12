@@ -427,17 +427,14 @@ void unlink_object(Scene *scene, Object *ob)
 		if(obt->particlesystem.first) {
 			ParticleSystem *tpsys= obt->particlesystem.first;
 			for(; tpsys; tpsys=tpsys->next) {
-				if(tpsys->keyed_ob==ob) {
-					ParticleSystem *psys= BLI_findlink(&ob->particlesystem,tpsys->keyed_psys-1);
-
-					if(psys && psys->keyed_ob) {
-						tpsys->keyed_ob= psys->keyed_ob;
-						tpsys->keyed_psys= psys->keyed_psys;
+				KeyedParticleTarget *kpt = tpsys->keyed_targets.first;
+				for(; kpt; kpt=kpt->next) {
+					if(kpt->ob==ob) {
+						BLI_remlink(&tpsys->keyed_targets, kpt);
+						MEM_freeN(kpt);
+						obt->recalc |= OB_RECALC_DATA;
+						break;
 					}
-					else
-						tpsys->keyed_ob= NULL;
-
-					obt->recalc |= OB_RECALC_DATA;
 				}
 
 				if(tpsys->target_ob==ob) {
@@ -1050,18 +1047,23 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn= MEM_dupallocN(psys);
 	psysn->particles= MEM_dupallocN(psys->particles);
 	psysn->child= MEM_dupallocN(psys->child);
+	if(psysn->particles->keys)
+		psysn->particles->keys = MEM_dupallocN(psys->particles->keys);
 
 	for(a=0, pa=psysn->particles; a<psysn->totpart; a++, pa++) {
 		if(pa->hair)
 			pa->hair= MEM_dupallocN(pa->hair);
-		if(pa->keys)
-			pa->keys= MEM_dupallocN(pa->keys);
+		if(a)
+			pa->keys= (pa-1)->keys + (pa-1)->totkey;
 	}
 
 	if(psys->soft) {
 		psysn->soft= copy_softbody(psys->soft);
 		psysn->soft->particles = psysn;
 	}
+
+	if(psys->keyed_targets.first)
+		BLI_duplicatelist(&psysn->keyed_targets, &psys->keyed_targets);
 	
 	psysn->pathcache= NULL;
 	psysn->childcache= NULL;

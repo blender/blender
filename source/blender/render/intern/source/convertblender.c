@@ -1513,12 +1513,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		return 1;
 
 /* 2. start initialising things */
-	if(part->phystype==PART_PHYS_KEYED){
-		if(psys->flag & PSYS_FIRST_KEYED)
-			psys_count_keyed_targets(ob,psys);
-		else
-			return 1;
-	}
+	if(part->phystype==PART_PHYS_KEYED)
+		psys_count_keyed_targets(ob,psys);
 
 	/* last possibility to bail out! */
 	psmd= psys_get_modifier(ob,psys);
@@ -1606,10 +1602,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		calc_ipo(part->ipo, cfra);
 		execute_ipo((ID *)part, part->ipo);
 	}
-#endif // XXX old animation system
 
 	if(part->flag & PART_GLOB_TIME)
-		cfra = bsystem_time(re->scene, 0, (float)re->scene->r.cfra, 0.0);
+#endif // XXX old animation system
+	cfra = bsystem_time(re->scene, 0, (float)re->scene->r.cfra, 0.0);
 
 /* 2.4 setup reactors */
 	if(part->type == PART_REACTOR){
@@ -1707,8 +1703,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			pa_time=(cfra-pa->time)/pa->lifetime;
 			pa_birthtime = pa->time;
 			pa_dietime = pa->dietime;
-			if((part->flag&PART_ABS_TIME) == 0){
 #if 0 // XXX old animation system
+			if((part->flag&PART_ABS_TIME) == 0){
 				if(ma->ipo) {
 					/* correction for lifetime */
 					calc_ipo(ma->ipo, 100.0f * pa_time);
@@ -1719,8 +1715,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					calc_ipo(part->ipo, 100.0f*pa_time);
 					execute_ipo((ID *)part, part->ipo);
 				}
-#endif // XXX old animation system
 			}
+#endif // XXX old animation system
 
 			hasize = ma->hasize;
 
@@ -1767,8 +1763,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			
 			pa_time = psys_get_child_time(psys, cpa, cfra, &pa_birthtime, &pa_dietime);
 
-			if((part->flag & PART_ABS_TIME) == 0) {
 #if 0 // XXX old animation system
+			if((part->flag & PART_ABS_TIME) == 0) {
 				if(ma->ipo){
 					/* correction for lifetime */
 					calc_ipo(ma->ipo, 100.0f * pa_time);
@@ -1779,8 +1775,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					calc_ipo(part->ipo, 100.0f * pa_time);
 					execute_ipo((ID *)part, part->ipo);
 				}
-#endif // XXX old animation system
 			}
+#endif // XXX old animation system
 
 			pa_size = psys_get_child_size(psys, cpa, cfra, &pa_time);
 

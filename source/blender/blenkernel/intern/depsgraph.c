@@ -562,10 +562,17 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 			if(!psys_check_enabled(ob, psys))
 				continue;
 
-			if(part->phystype==PART_PHYS_KEYED && psys->keyed_ob &&
-			   BLI_findlink(&psys->keyed_ob->particlesystem,psys->keyed_psys-1)) {
-				node2 = dag_get_node(dag, psys->keyed_ob);
-				dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA, "Particle Keyed Physics");
+			if(part->phystype==PART_PHYS_KEYED) {
+				KeyedParticleTarget *kpt = psys->keyed_targets.first;
+
+				for(; kpt; kpt=kpt->next) {
+					if(kpt->ob && BLI_findlink(&kpt->ob->particlesystem, kpt->psys-1)) {
+						node2 = dag_get_node(dag, kpt->ob);
+						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Keyed Physics");
+					}
+					else
+						break;
+			   }
 			}
 
 			if(part->ren_as == PART_DRAW_OB && part->dup_ob) {

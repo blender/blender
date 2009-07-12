@@ -61,6 +61,14 @@ typedef struct ChildParticle {
 	float rand[3];
 } ChildParticle;
 
+typedef struct KeyedParticleTarget {
+	struct KeyedParticleTarget *next, *prev;
+	struct Object *ob;
+	int psys;
+	short flag, rt;
+	float time, duration;
+} KeyedParticleTarget;
+
 /* Everything that's non dynamic for a particle:			*/
 typedef struct ParticleData {
 	struct Object *stick_ob;/* object that particle sticks to when dead */
@@ -131,7 +139,7 @@ typedef struct ParticleSettings {
 
 	/* general values */
 	float sta, end, lifetime, randlife;
-	float timetweak, jitfac, keyed_time, eff_hair;
+	float timetweak, jitfac, eff_hair;
 	int totpart, userjit, grid_res;
 
 	/* initial velocity factors */
@@ -142,11 +150,11 @@ typedef struct ParticleSettings {
 	/* global physical properties */
 	float acc[3], dragfac, brownfac, dampfac;
 	/* length */
-	float length, abslength, randlength;
+	float randlength;
 	/* children */
 	int child_nbr, ren_child_nbr;
 	float parents, childsize, childrandsize;
-	float childrad, childflat, childspread;
+	float childrad, childflat, rt;
 	/* clumping */
 	float clumpfac, clumppow;
 	/* kink */
@@ -155,12 +163,16 @@ typedef struct ParticleSettings {
 	float rough1, rough1_size;
 	float rough2, rough2_size, rough2_thres;
 	float rough_end, rough_end_shape;
+	/* length */
+	float clength, clength_thres;
 	/* branching */
 	float branch_thres;
 	/* drawing stuff */
 	float draw_line[2];
 	float path_start, path_end;
 	int trail_count;
+	/* keyed particles */
+	int keyed_loops;
 
 	/* boids */
 	float max_vel, max_lat_acc, max_tan_acc;
@@ -195,17 +207,18 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	struct SoftBody *soft;					/* hair softbody */
 
 	struct Object *target_ob;
-	struct Object *keyed_ob;
 	struct Object *lattice;
 	struct Object *parent;					/* particles from global space -> parent space */
 
 	struct ListBase effectors, reactevents;	/* runtime */
+
+	struct ListBase keyed_targets;
 	
 	float imat[4][4];	/* used for duplicators */
 	float cfra;
 	int seed;
 	int flag, totpart, totchild, totcached, totchildcache, rt;
-	short recalc, target_psys, keyed_psys, totkeyed, softflag, bakespace;
+	short recalc, target_psys, totkeyed, softflag, bakespace, rt2;
 
 	char bb_uvname[3][32];					/* billboard uv name */
 
@@ -255,10 +268,10 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_ROT_DYN		(1<<14)	/* dynamic rotation */
 #define PART_SIZEMASS		(1<<16)
 
-#define PART_ABS_LENGTH		(1<<15)
+//#define PART_KEYED_TIMING	(1<<15)
 
-#define PART_ABS_TIME		(1<<17)
-#define PART_GLOB_TIME		(1<<18)
+//#define PART_ABS_TIME		(1<<17)
+//#define PART_GLOB_TIME		(1<<18)
 
 #define PART_BOIDS_2D		(1<<19)
 
@@ -396,14 +409,15 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PSYS_RECALC_RESET	2	/* reset everything including pointcache */
 #define PSYS_RECALC_TYPE	4	/* handle system type change */
 #define PSYS_RECALC_CHILD	16	/* only child settings changed */
+#define PSYS_RECALC_PHYS	32	/* physics type changed */
 
 /* psys->flag */
 #define PSYS_CURRENT		1
 //#define PSYS_BAKING			2
 //#define PSYS_BAKE_UI		4
-#define	PSYS_KEYED_TIME		8
+#define	PSYS_KEYED_TIMING	8
 #define PSYS_ENABLED		16	/* deprecated */
-#define PSYS_FIRST_KEYED	32
+//#define PSYS_FIRST_KEYED	32
 #define PSYS_DRAWING		64
 //#define PSYS_SOFT_BAKE		128
 #define PSYS_DELETE			256	/* remove particlesystem as soon as possible */
@@ -457,6 +471,10 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define BOID_VEL_MATCH		5
 #define BOID_GOAL			6
 #define BOID_LEVEL			7
+
+/* psys->keyed_targets->flag */
+#define KEYED_TARGET_CURRENT	1
+#define KEYED_TARGET_VALID		2
 
 
 //#define PSYS_INTER_CUBIC	0

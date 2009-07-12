@@ -589,6 +589,7 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 static void write_particlesystems(WriteData *wd, ListBase *particles)
 {
 	ParticleSystem *psys= particles->first;
+	KeyedParticleTarget *kpt;
 	int a;
 
 	for(; psys; psys=psys->next) {
@@ -604,6 +605,10 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 					writestruct(wd, DATA, "HairKey", pa->totkey, pa->hair);
 			}
 		}
+		kpt = psys->keyed_targets.first;
+		for(; kpt; kpt=kpt->next)
+			writestruct(wd, DATA, "KeyedParticleTarget", 1, kpt);
+
 		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
 		writestruct(wd, DATA, "SoftBody", 1, psys->soft);
 		if(psys->soft) write_pointcaches(wd, psys->soft->pointcache, PTCACHE_WRITE_PSYS);

@@ -75,6 +75,10 @@ void OBJECT_OT_particle_system_add(struct wmOperatorType *ot);
 void OBJECT_OT_particle_system_remove(struct wmOperatorType *ot);
 
 void PARTICLE_OT_new(struct wmOperatorType *ot);
+void PARTICLE_OT_new_keyed_target(struct wmOperatorType *ot);
+void PARTICLE_OT_remove_keyed_target(struct wmOperatorType *ot);
+void PARTICLE_OT_keyed_target_move_up(struct wmOperatorType *ot);
+void PARTICLE_OT_keyed_target_move_down(struct wmOperatorType *ot);
 
 #endif /* ED_BUTTONS_INTERN_H */
 

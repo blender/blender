@@ -2968,6 +2968,9 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 		for(; pm; pm=pm->next)
 			pm->data = newdataadr(fd, pm->data);
 	}
+	else
+		cache->mem_cache.first = cache->mem_cache.last = NULL;
+
 	cache->flag &= ~(PTCACHE_SIMULATION_VALID|PTCACHE_BAKE_EDIT_ACTIVE);
 	cache->simframe= 0;
 }
@@ -3011,12 +3014,18 @@ static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase 
 		
 		psys->part = newlibadr_us(fd, id->lib, psys->part);
 		if(psys->part) {
+			KeyedParticleTarget *kpt = psys->keyed_targets.first;
+
+			for(; kpt; kpt=kpt->next)
+				kpt->ob=newlibadr(fd, id->lib, kpt->ob);
+
 			psys->target_ob = newlibadr(fd, id->lib, psys->target_ob);
-			psys->keyed_ob = newlibadr(fd, id->lib, psys->keyed_ob);
 
 			for(a=0,pa=psys->particles; a<psys->totpart; a++,pa++){
 				pa->stick_ob=newlibadr(fd, id->lib, pa->stick_ob);
 			}
+
+
 		}
 		else {
 			/* particle modifier must be removed before particle system */
@@ -3065,6 +3074,8 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 			if(sb->pointcache)
 				direct_link_pointcache(fd, sb->pointcache);
 		}
+
+		link_list(fd, &psys->keyed_targets);
 
 		psys->edit = 0;
 		psys->free_edit = NULL;

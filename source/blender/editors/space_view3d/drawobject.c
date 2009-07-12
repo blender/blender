@@ -3161,15 +3161,11 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 /* 2. */
 	if(part->phystype==PART_PHYS_KEYED){
-		if(psys->flag & PSYS_FIRST_KEYED){
-			if(psys->flag&PSYS_KEYED){
-				select=psys_count_keyed_targets(ob,psys);
-				if(psys->totkeyed==0)
-					return;
-			}
+		if(psys->flag&PSYS_KEYED){
+			psys_count_keyed_targets(ob,psys);
+			if(psys->totkeyed==0)
+				return;
 		}
-		else
-			return;
 	}
 
 	if(select){
@@ -3226,8 +3222,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	else
 		draw_as = part->draw_as;
 
-	if(part->flag&PART_GLOB_TIME)
-		cfra=bsystem_time(scene, 0, (float)CFRA, 0.0f);
+	//if(part->flag&PART_GLOB_TIME)
+	cfra=bsystem_time(scene, 0, (float)CFRA, 0.0f);
 
 	if(draw_as==PART_DRAW_PATH && psys->pathcache==NULL)
 		draw_as=PART_DRAW_DOT;
@@ -3306,8 +3302,10 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	if(draw_as && draw_as!=PART_DRAW_PATH) {
 		int tot_vec_size = (totpart + totchild) * 3 * sizeof(float);
 		
-		if(part->draw_as == PART_DRAW_REND && part->trail_count > 1)
+		if(part->draw_as == PART_DRAW_REND && part->trail_count > 1) {
 			tot_vec_size *= part->trail_count;
+			psys_make_temp_pointcache(ob, psys);
+		}
 
 		if(draw_as!=PART_DRAW_CIRC) {
 			switch(draw_as) {
@@ -3361,8 +3359,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				pa_dietime = pa->dietime;
 				pa_size=pa->size;
 
-				if((part->flag&PART_ABS_TIME)==0){	
-#if 0 // XXX old animation system			
+#if 0 // XXX old animation system	
+				if((part->flag&PART_ABS_TIME)==0){			
 					if(ma && ma->ipo){
 						IpoCurve *icu;
 
@@ -3389,8 +3387,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 								pa_size = icu->curval;
 						}
 					}
-#endif // XXX old animation system
 				}
+#endif // XXX old animation system
 
 				r_tilt = 1.0f + pa->r_ave[0];
 				r_length = 0.5f * (1.0f + pa->r_ave[1]);
@@ -3400,9 +3398,9 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 				pa_time=psys_get_child_time(psys,cpa,cfra,&pa_birthtime,&pa_dietime);
 
+#if 0 // XXX old animation system
 				if((part->flag&PART_ABS_TIME)==0) {
 					if(ma && ma->ipo){
-#if 0 // XXX old animation system
 						IpoCurve *icu;
 
 						/* correction for lifetime */
@@ -3416,9 +3414,9 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 							else if(icu->adrcode == MA_COL_B)
 								ma_b = icu->curval;
 						}
-#endif // XXX old animation system
 					}
 				}
+#endif // XXX old animation system
 
 				pa_size=psys_get_child_size(psys,cpa,cfra,0);
 
@@ -3444,7 +3442,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 						else if(ct < 0.0f || ct > 1.0f)
 							continue;
 
-						state.time = (part->draw & PART_ABS_PATH_TIME) ? -ct : ct;
+						state.time = (part->draw & PART_ABS_PATH_TIME) ? -ct : -(pa_birthtime + ct * (pa_dietime - pa_birthtime));
 						psys_get_particle_on_path(scene,ob,psys,a,&state,need_v);
 						
 						if(psys->parent)

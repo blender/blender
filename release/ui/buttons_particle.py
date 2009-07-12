@@ -131,6 +131,9 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 		psys = context.particle_system
 		if psys==None:	return False
 		if psys.settings==None:  return False
+		phystype = psys.settings.physics_type
+		if phystype == 'NO' or phystype == 'KEYED':
+			return False
 		return psys.settings.type in ('EMITTER', 'REACTOR')
 
 	def draw(self, context):
@@ -277,16 +280,40 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
 			sub.itemR(part, "acceleration")
 			
 		elif part.physics_type == 'KEYED':
-			sub.itemR(psys, "keyed_first")
-			if psys.keyed_first==True:
-				sub.itemR(psys, "timed_keys", text="Key timing")
-			else:
-				sub.itemR(part, "keyed_time")
-			sub = split.column()
-			sub.itemL(text="Next key from object:")
-			sub.itemR(psys, "keyed_object", text="")
-			sub.itemR(psys, "keyed_particle_system")
-		
+			row = layout.row()
+			col = row.column()
+			col.active = not psys.keyed_timing
+			col.itemR(part, "keyed_loops", text="Loops")
+			row.itemR(psys, "keyed_timing", text="Use Timing")
+			
+			layout.itemL(text="Keys:")
+			row = layout.row()
+			
+			row.template_list(psys, "keyed_targets", psys, "active_keyed_target_index")
+			
+			col = row.column()
+			subrow = col.row()
+			subcol = subrow.column(align=True)
+			subcol.itemO("PARTICLE_OT_new_keyed_target", icon="ICON_ZOOMIN", text="")
+			subcol.itemO("PARTICLE_OT_remove_keyed_target", icon="ICON_ZOOMOUT", text="")
+			subrow = col.row()
+			subcol = subrow.column(align=True)
+			subcol.itemO("PARTICLE_OT_keyed_target_move_up", icon="VICON_MOVE_UP", text="")
+			subcol.itemO("PARTICLE_OT_keyed_target_move_down", icon="VICON_MOVE_DOWN", text="")
+			
+			key = psys.active_keyed_target
+			if key:
+				row = layout.row()
+				col = row.column()
+				#doesn't work yet
+				#col.red_alert = key.valid
+				col.itemR(key, "object", text="")
+				col.itemR(key, "system", text="System")
+				col = row.column();
+				col.active = psys.keyed_timing
+				col.itemR(key, "time")
+				col.itemR(key, "duration")
+			
 		if part.physics_type=='NEWTON' or part.physics_type=='BOIDS':
 
 			sub.itemR(part, "size_deflect")
@@ -308,7 +335,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
 
 		psys = context.particle_system
 		part = psys.settings
-		
+
 		row = layout.row()
 		row.itemR(part, "material")
 		row.itemR(psys, "parent");
@@ -336,7 +363,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
 			sub.itemR(part, "velocity_length")
 		elif part.ren_as == 'PATH':
 		
-			if (part.type!='HAIR' and psys.point_cache.baked==False):
+			if (part.type!='HAIR' and part.physics_type!='KEYED' and psys.point_cache.baked==False):
 				box = layout.box()
 				box.itemL(text="Baked or keyed particles needed for correct rendering.")
 				return
@@ -460,7 +487,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel):
 			
 		path = (part.ren_as=='PATH' and part.draw_as=='RENDER') or part.draw_as=='PATH'
 			
-		if path and part.type!='HAIR' and psys.point_cache.baked==False:
+		if path and part.type!='HAIR' and part.physics_type!='KEYED' and psys.point_cache.baked==False:
 			box = layout.box()
 			box.itemL(text="Baked or keyed particles needed for correct drawing.")
 			return
@@ -548,6 +575,15 @@ class PARTICLE_PT_children(ParticleButtonsPanel):
 		col.itemR(part, "rough2")
 		col.itemR(part, "rough2_size")
 		col.itemR(part, "rough2_thres", slider=True)
+		
+		row = layout.row()
+		col = row.column(align=True)
+		col.itemR(part, "child_length", slider=True)
+		col.itemR(part, "child_length_thres", slider=True)
+		
+		col = row.column(align=True)
+		col.itemL(text="Space reserved for")
+		col.itemL(text="hair parting controls")
 		
 		layout.row().itemL(text="Kink:")
 		layout.row().itemR(part, "kink", expand=True)
