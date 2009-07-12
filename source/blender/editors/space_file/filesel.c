@@ -354,5 +354,8 @@ void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
 			}
 		}
 		autocomplete_end(autocpl, str);
+		if (BLI_exists(str)) {
+			BLI_add_slash(str);
+		}
 	}
 }

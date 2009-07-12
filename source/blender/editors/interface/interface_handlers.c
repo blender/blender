@@ -1438,7 +1438,7 @@ static void ui_textedit_prev_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 
 static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
-	int mx, my, changed= 0, inbox=0, retval= WM_UI_HANDLER_CONTINUE;
+	int mx, my, changed= 0, inbox=0, update= 0, retval= WM_UI_HANDLER_CONTINUE;
 
 	switch(event->type) {
 		case WHEELUPMOUSE:
@@ -1553,6 +1553,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				/* there is a key conflict here, we can't tab with autocomplete */
 				if(but->autocomplete_func || data->searchbox) {
 					changed= ui_textedit_autocomplete(C, but, data);
+					update= 1; /* do live update for tab key */
 					retval= WM_UI_HANDLER_BREAK;
 				}
 				/* the hotkey here is not well defined, was G.qual so we check all */
@@ -1576,7 +1577,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 
 	if(changed) {
 		/* never update while typing for now */
-		if(0/*data->interactive*/) ui_apply_button(C, block, but, data, 1);
+		if(update && data->interactive) ui_apply_button(C, block, but, data, 1);
 		else ui_check_but(but);
 		
 		if(data->searchbox)
