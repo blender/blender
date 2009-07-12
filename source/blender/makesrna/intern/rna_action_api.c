@@ -36,13 +36,40 @@
 
 #ifdef RNA_RUNTIME
 
-int *rna_Action_get_frames(bAction *act, int *ret_length)
+#include "DNA_anim_types.h"
+#include "DNA_curve_types.h"
+
+/* return frame range of all curves (min, max) or (0, 0) if there are no keys */
+int *rna_Action_get_frame_range(bAction *act, int *ret_length)
 {
-	*ret_length= 3;
-	int *ret= MEM_callocN(*ret_length * sizeof(int), "action frames");
-	ret[0] = 1;
-	ret[1] = 2;
-	ret[2] = 3;
+	FCurve *cu;
+	int *ret;
+
+	*ret_length= 2;
+	ret= MEM_callocN(*ret_length * sizeof(int), "rna_Action_get_frame_range");
+
+	ret[0]= 0;
+	ret[1]= 0;
+
+	for (cu= act->curves.first; cu; cu= cu->next) {
+		int verts= cu->totvert;
+		BezTriple *bezt= cu->bezt;
+		while (verts) {
+			int frame= (int)bezt->vec[1][0];
+
+			if (cu == act->curves.first && verts == cu->totvert)
+				ret[0]= ret[1]= frame;
+
+			if (frame < ret[0])
+				ret[0]= frame;
+			if (frame > ret[1])
+				ret[1]= frame;
+
+			bezt++;
+			verts--;
+		}
+	}
+	
 	return ret;
 }
 
@@ -53,9 +80,9 @@ void RNA_api_action(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	func= RNA_def_function(srna, "get_frames", "rna_Action_get_frames");
-	RNA_def_function_ui_description(func, "Get action frames."); /* XXX describe better */
-	parm= RNA_def_int_array(func, "frames", 1, NULL, 0, 0, "", "", 0, 0);
+	func= RNA_def_function(srna, "get_frame_range", "rna_Action_get_frame_range");
+	RNA_def_function_ui_description(func, "Get action frame range as a (min, max) tuple.");
+	parm= RNA_def_int_array(func, "frame_range", 1, NULL, 0, 0, "", "Action frame range.", 0, 0);
 	RNA_def_property_flag(parm, PROP_DYNAMIC_ARRAY);
 	RNA_def_function_return(func, parm);
 }

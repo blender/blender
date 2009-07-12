@@ -2577,17 +2577,18 @@ Takes:  {''')
 					file.write('\n\tTake: "%s" {' % sane_name_mapping_take[blenAction.name])
 				else:
 					file.write('\n\tTake: "%s" {' % sane_takename(blenAction))
-					
-				tmp = blenAction.getFrameNumbers()
-				if tmp:
-					act_start =	min(tmp)
-					act_end =	max(tmp)
-					del tmp
-				else:
-					# Fallback on this, theres not much else we can do? :/
-					# when an action has no length
-					act_start =	start
-					act_end =	end
+
+				act_start, act_end = blenAction.get_frame_range()
+# 				tmp = blenAction.getFrameNumbers()
+# 				if tmp:
+# 					act_start =	min(tmp)
+# 					act_end =	max(tmp)
+# 					del tmp
+# 				else:
+# 					# Fallback on this, theres not much else we can do? :/
+# 					# when an action has no length
+# 					act_start =	start
+# 					act_end =	end
 				
 				# Set the action active
 				for my_bone in ob_arms:
