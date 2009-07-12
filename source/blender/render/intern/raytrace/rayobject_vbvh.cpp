@@ -26,20 +26,26 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+extern "C"
+{
 #include <assert.h>
-
-#include "RE_raytrace.h"
-#include "rayobject_rtbuild.h"
-#include "rayobject.h"
 #include "MEM_guardedalloc.h"
 #include "BKE_utildefines.h"
 #include "BLI_arithb.h"
 #include "BLI_memarena.h"
-#include "bvh.h"
+#include "RE_raytrace.h"
+#include "rayobject_rtbuild.h"
+#include "rayobject.h"
+};
 
-#define BVH_NCHILDS 2
+#include "bvh.h"
+#include <queue>
+
+#define BVHNode VBVHNode
+#define BVHTree VBVHTree
+
 #define RAY_BB_TEST_COST (0.2f)
-#define DFS_STACK_SIZE	64
+#define DFS_STACK_SIZE	128
 #define DYNAMIC_ALLOC
 
 //#define rtbuild_split	rtbuild_mean_split_largest_axis		/* objects mean split on the longest axis, childs BB are allowed to overlap */
@@ -48,9 +54,10 @@
 
 struct BVHNode
 {
-	BVHNode *child[BVH_NCHILDS];
+	BVHNode *child;
+	BVHNode *sibling;
+
 	float	bb[6];
-	int split_axis;
 };
 
 struct BVHTree
@@ -72,109 +79,119 @@ struct BVHTree
 template<class Node>
 inline static void bvh_node_push_childs(Node *node, Isect *isec, Node **stack, int &stack_pos)
 {
-	//push nodes in reverse visit order
-	if(isec->idot_axis[node->split_axis] < 0.0f)
+	Node *child = node->child;
+	while(child)
 	{
-		int i;
-		for(i=0; i<BVH_NCHILDS; i++)
-			if(node->child[i] == 0)
-				break;
-			else
-				stack[stack_pos++] = node->child[i];
-	}
-	else
-	{
-		int i;	
-		for(i=BVH_NCHILDS-1; i>=0; i--)
-			if(node->child[i] != 0)
-				stack[stack_pos++] = node->child[i];
+		stack[stack_pos++] = child;
+		if(RayObject_isAligned(child))
+			child = child->sibling;
+		else break;
 	}
 }
 
 /*
  * BVH done
  */
-static BVHNode *bvh_new_node(BVHTree *tree, int nid)
+static BVHNode *bvh_new_node(BVHTree *tree)
 {
 	BVHNode *node = (BVHNode*)BLI_memarena_alloc(tree->node_arena, sizeof(BVHNode));
+	node->sibling = NULL;
+	node->child   = NULL;
+
+	assert(RayObject_isAligned(node));
 	return node;
 }
 
-static int child_id(int pid, int nchild)
+template<class Builder>
+float rtbuild_area(Builder *builder)
 {
-	//N child of node A = A * K + (2 - K) + N, (0 <= N < K)
-    return pid*BVH_NCHILDS+(2-BVH_NCHILDS)+nchild;
+	float min[3], max[3];
+	INIT_MINMAX(min, max);
+	rtbuild_merge_bb(builder, min, max);
+	return bb_area(min, max);	
 }
-        
 
-static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid, float *cost)
+template<class Node>
+void bvh_update_bb(Node *node)
 {
-	*cost = 0;
-	if(rtbuild_size(builder) == 0)
-		return 0;
-
-	if(rtbuild_size(builder) == 1)
+	INIT_MINMAX(node->bb, node->bb+3);
+	Node *child = node->child;
+	
+	while(child)
 	{
-		RayObject *child = builder->begin[0];
-
-		if(RayObject_isRayFace(child))
-		{
-			int i;
-			BVHNode *parent = bvh_new_node(tree, nid);
-			parent->split_axis = 0;
-
-			INIT_MINMAX(parent->bb, parent->bb+3);
-
-			for(i=0; i<1; i++)
-			{
-				parent->child[i] = (BVHNode*)builder->begin[i];
-				bvh_node_merge_bb(parent->child[i], parent->bb, parent->bb+3);
-			}
-			for(; i<BVH_NCHILDS; i++)
-				parent->child[i] = 0;
-
-			*cost = RE_rayobject_cost(child)+RAY_BB_TEST_COST;
-			return parent;
-		}
+		bvh_node_merge_bb(child, node->bb, node->bb+3);
+		if(RayObject_isAligned(child))
+			child = child->sibling;
 		else
-		{
-			assert(!RayObject_isAligned(child));
-			//Its a sub-raytrace structure, assume it has it own raycast
-			//methods and adding a Bounding Box arround is unnecessary
+			child = 0;
+	}
+}
 
-			*cost = RE_rayobject_cost(child);
-			return (BVHNode*)child;
-		}
+
+template<class Tree, class Node, class Builder>
+Node *bvh_rearrange(Tree *tree, Builder *builder, float *cost)
+{
+	
+	int size = rtbuild_size(builder);
+	if(size == 1)
+	{
+		Node *node = bvh_new_node(tree);
+		INIT_MINMAX(node->bb, node->bb+3);
+		rtbuild_merge_bb(builder, node->bb, node->bb+3);
+		
+		node->child = (BVHNode*)builder->begin[0];
+
+		*cost = RE_rayobject_cost((RayObject*)node->child)+RAY_BB_TEST_COST;
+		return node;
 	}
 	else
 	{
-		int i;
-		RTBuilder tmp;
-		BVHNode *parent = bvh_new_node(tree, nid);
-		int nc = rtbuild_split(builder, BVH_NCHILDS); 
-
-
-		INIT_MINMAX(parent->bb, parent->bb+3);
-		parent->split_axis = builder->split_axis;
-		for(i=0; i<nc; i++)
+		Node *node = bvh_new_node(tree);
+		float parent_area;
+		
+		INIT_MINMAX(node->bb, node->bb+3);
+		rtbuild_merge_bb(builder, node->bb, node->bb+3);
+		
+		parent_area = bb_area( node->bb, node->bb+3 );
+		Node **child = &node->child;
+		
+		std::queue<Builder> childs;
+		childs.push(*builder);
+		
+		*cost = 0;
+		
+		while(!childs.empty())
 		{
-			float cbb[6];
-			float tcost;
-			parent->child[i] = bvh_rearrange( tree, rtbuild_get_child(builder, i, &tmp), child_id(nid,i), &tcost );
+			Builder b = childs.front();
+						childs.pop();
 			
-			INIT_MINMAX(cbb, cbb+3);
-			bvh_node_merge_bb(parent->child[i], cbb, cbb+3);
-			DO_MIN(cbb,   parent->bb);
-			DO_MAX(cbb+3, parent->bb+3);
-			
-			*cost += tcost*bb_area(cbb, cbb+3);
+			float hit_prob = rtbuild_area(&b) / parent_area;
+			if(hit_prob > 1.0f / 2.0f && rtbuild_size(&b) > 1)
+			{
+				//The expected number of BB test is smaller if we directly add the 2 childs of this node
+				int nc = rtbuild_split(&b, 2);
+				assert(nc == 2);
+				for(int i=0; i<nc; i++)
+				{
+					Builder tmp;
+					rtbuild_get_child(&b, i, &tmp);
+					childs.push(tmp);
+				}
+				
+			}
+			else
+			{
+				float tcost;
+				*child = bvh_rearrange<Tree,Node,Builder>(tree, &b, &tcost);
+				child = &((*child)->sibling);
+				
+				*cost += tcost*hit_prob + RAY_BB_TEST_COST;
+			}
 		}
-		for(; i<BVH_NCHILDS; i++)
-			parent->child[i] = 0;
+		assert(child != &node->child);
+		*child = 0;
 
-		*cost /= bb_area(parent->bb, parent->bb+3);
-		*cost += nc*RAY_BB_TEST_COST;
-		return parent;
+		return node;
 	}
 }
 
@@ -189,7 +206,8 @@ void bvh_done<BVHTree>(BVHTree *obj)
 	BLI_memarena_use_malloc(obj->node_arena);
 
 	
-	obj->root = bvh_rearrange( obj, obj->builder, 1, &obj->cost );
+	obj->root = bvh_rearrange<BVHTree,BVHNode,RTBuilder>( obj, obj->builder, &obj->cost );
+	obj->cost = 1.0;
 	
 	rtbuild_free( obj->builder );
 	obj->builder = NULL;
@@ -199,11 +217,10 @@ template<>
 int bvh_intersect<BVHTree>(BVHTree *obj, Isect* isec)
 {
 	if(RayObject_isAligned(obj->root))
-		return bvh_node_stack_raycast<BVHNode,64>(obj->root, isec);
+		return bvh_node_stack_raycast<BVHNode,DFS_STACK_SIZE>(obj->root, isec);
 	else
 		return RE_rayobject_intersect( (RayObject*) obj->root, isec );
 }
-
 
 /* the cast to pointer function is needed to workarround gcc bug: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=11407 */
 static RayObjectAPI bvh_api =
@@ -216,8 +233,7 @@ static RayObjectAPI bvh_api =
 	(RE_rayobject_cost_callback)	((float(*)(BVHTree*))      &bvh_cost<BVHTree>)
 };
 
-
-RayObject *RE_rayobject_bvh_create(int size)
+RayObject *RE_rayobject_vbvh_create(int size)
 {
 	BVHTree *obj= (BVHTree*)MEM_callocN(sizeof(BVHTree), "BVHTree");
 	assert( RayObject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	

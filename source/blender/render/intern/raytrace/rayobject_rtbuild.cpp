@@ -245,8 +245,8 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 		float bcost = FLT_MAX;
 		float childrens_cost = 0;
 		int i, axis, baxis = -1, boffset = size/2, k, try_axis[3];
-		CostObject *cost   = MEM_mallocN( sizeof(CostObject)*size, "RTBuilder.HeuristicObjectSplitter" );
-		float      *acc_bb = MEM_mallocN( sizeof(float)*6*size, "RTBuilder.HeuristicObjectSplitterBB" );
+		CostObject *cost   = (CostObject*)MEM_mallocN( sizeof(CostObject)*size, "RTBuilder.HeuristicObjectSplitter" );
+		float      *acc_bb = (float*)MEM_mallocN( sizeof(float)*6*size, "RTBuilder.HeuristicObjectSplitterBB" );
 
 		for(i=0; i<size; i++)
 		{

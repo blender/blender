@@ -29,7 +29,12 @@
 #ifndef RE_RAYOBJECT_RTBUILD_H
 #define RE_RAYOBJECT_RTBUILD_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "rayobject.h"
+
 
 /*
  * Ray Tree Builder
@@ -87,5 +92,9 @@ int rtbuild_median_split_largest_axis(RTBuilder *b, int nchilds);
 float bb_area(float *min, float *max);
 float bb_volume(float *min, float *max);
 int bb_largest_axis(float *min, float *max);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

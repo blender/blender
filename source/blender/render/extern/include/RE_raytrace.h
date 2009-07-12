@@ -31,6 +31,11 @@
 #ifndef RE_RAYTRACE_H
 #define RE_RAYTRACE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #define RT_USE_LAST_HIT	/* last shadow hit is reused before raycasting on whole tree */
 //#define RT_USE_HINT			/* last hit object is reused before raycasting on whole tree */
 
@@ -88,7 +93,8 @@ RayObject* RE_rayobject_octree_create(int ocres, int size);
 RayObject* RE_rayobject_instance_create(RayObject *target, float transform[][4], void *ob, void *target_ob);
 
 RayObject* RE_rayobject_blibvh_create(int size);	/* BLI_kdopbvh.c   */
-RayObject* RE_rayobject_bvh_create(int size);		/* rayobject_bvh.c */
+RayObject* RE_rayobject_bvh_create(int size);		/* raytrace/rayobject_bvh.c */
+RayObject* RE_rayobject_vbvh_create(int size);		/* raytrace/rayobject_vbvh.c */
 RayObject* RE_rayobject_bih_create(int size);		/* rayobject_bih.c */
 
 
@@ -150,6 +156,10 @@ struct Isect
 
 /* TODO use: FLT_MAX? */
 #define RE_RAYTRACE_MAXDIST	1e33
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /*__RE_RAYTRACE_H__*/

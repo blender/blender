@@ -29,8 +29,13 @@
 #ifndef RE_RAYOBJECT_H
 #define RE_RAYOBJECT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "RE_raytrace.h"
 #include <float.h>
+
 
 /* RayObject
 	
@@ -163,6 +168,12 @@ float RE_rayobject_cost(RayObject *r);
 
 #define BENCH(a)	(a)
 
+#endif
+
+
+
+#ifdef __cplusplus
+}
 #endif
 
 

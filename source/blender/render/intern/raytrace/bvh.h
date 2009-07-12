@@ -99,7 +99,12 @@ static int bvh_node_stack_raycast(Node *root, Isect *isec)
 	Node *stack[MAX_STACK_SIZE];
 	int hit = 0, stack_pos = 0;
 		
-	stack[stack_pos++] = root;
+	//Assume the BB of root always succeed
+	if(1)
+		bvh_node_push_childs(root, isec, stack, stack_pos);
+	else
+		stack[stack_pos++] = root;
+
 	while(stack_pos)
 	{
 		Node *node = stack[--stack_pos];

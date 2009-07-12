@@ -70,8 +70,13 @@
 extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-RayObject *RE_rayobject_tree_create(int type, int size)
+RayObject *  RE_rayobject_tree_create(int type, int size) __attribute__((noinline));
+
+RayObject *  RE_rayobject_tree_create(int type, int size)
 {
+//	if(type == R_RAYTRACE_TREE_BIH)
+	return RE_rayobject_vbvh_create(size);
+
 	if(type == R_RAYTRACE_TREE_BVH)
 		return RE_rayobject_bvh_create(size);
 	if(type == R_RAYTRACE_TREE_BIH)
@@ -79,7 +84,6 @@ RayObject *RE_rayobject_tree_create(int type, int size)
 	if(type == R_RAYTRACE_TREE_BLIBVH)
 		return RE_rayobject_blibvh_create(size);
 
-	return RE_rayobject_bvh_create(size);	
 }
 
 #ifdef RE_RAYCOUNTER

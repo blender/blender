@@ -37,6 +37,10 @@
 #ifndef BLI_MEMARENA_H
 #define BLI_MEMARENA_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 	/* A reasonable standard buffer size, big
 	 * enough to not cause much internal fragmentation, 
 	 * small enough not to waste resources
@@ -54,6 +58,11 @@ void				BLI_memarena_use_malloc (struct MemArena *ma);
 void				BLI_memarena_use_calloc (struct MemArena *ma);
 
 void*				BLI_memarena_alloc	(struct MemArena *ma, int size);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif
 
