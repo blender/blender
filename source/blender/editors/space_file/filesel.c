@@ -301,16 +301,20 @@ FileLayout* ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar
 
 void file_change_dir(struct SpaceFile *sfile)
 {
-	if (sfile->params && BLI_exists(sfile->params->dir)) {
-		filelist_setdir(sfile->files, sfile->params->dir);
+	if (sfile->params) { 
+		if (BLI_exists(sfile->params->dir)) {
+			filelist_setdir(sfile->files, sfile->params->dir);
 
-		if(folderlist_clear_next(sfile))
-			folderlist_free(sfile->folders_next);
+			if(folderlist_clear_next(sfile))
+				folderlist_free(sfile->folders_next);
 
-		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
+			folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
-		filelist_free(sfile->files);
-		sfile->params->active_file = -1;
+			filelist_free(sfile->files);
+			sfile->params->active_file = -1;
+		} else {
+			BLI_strncpy(sfile->params->dir, filelist_dir(sfile->files), FILE_MAX);
+		}
 	}
 }
 
