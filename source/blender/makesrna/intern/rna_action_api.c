@@ -39,36 +39,19 @@
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 
-/* return frame range of all curves (min, max) or (0, 0) if there are no keys */
+/* return frame range of all curves (min, max) or (0, 1) if there are no keys */
 int *rna_Action_get_frame_range(bAction *act, int *ret_length)
 {
-	FCurve *cu;
 	int *ret;
+	float start, end;
+
+	calc_action_range(act, &start, &end, 1);
 
 	*ret_length= 2;
 	ret= MEM_callocN(*ret_length * sizeof(int), "rna_Action_get_frame_range");
 
-	ret[0]= 0;
-	ret[1]= 0;
-
-	for (cu= act->curves.first; cu; cu= cu->next) {
-		int verts= cu->totvert;
-		BezTriple *bezt= cu->bezt;
-		while (verts) {
-			int frame= (int)bezt->vec[1][0];
-
-			if (cu == act->curves.first && verts == cu->totvert)
-				ret[0]= ret[1]= frame;
-
-			if (frame < ret[0])
-				ret[0]= frame;
-			if (frame > ret[1])
-				ret[1]= frame;
-
-			bezt++;
-			verts--;
-		}
-	}
+	ret[0]= (int)start;
+	ret[1]= (int)end;
 	
 	return ret;
 }
