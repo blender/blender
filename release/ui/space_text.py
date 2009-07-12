@@ -226,6 +226,101 @@ class TEXT_MT_edit(bpy.types.Menu):
 
 		layout.itemM("TEXT_MT_edit_to3d")
 
+
+class TEXT_OT_line_console(bpy.types.Operator):
+	'''
+	Operator documentatuon text, will be used for the operator tooltip and python docs.
+	'''
+	__label__ = "Console Execute"
+	
+	# Each text block gets its own console info.
+	console = {}
+	
+	# Both prompts must be the same length
+	PROMPT = '>>> ' 
+	PROMPT_MULTI = '... '
+	
+	def execute(self, context):
+		import sys
+		
+		# clear all dead consoles, use text names as IDs
+		for id in list(self.__class__.console.keys()):
+			if id not in bpy.data.texts:
+				del self.__class__.console[id]
+		
+		# print("Selected: " + context.active_object.name)
+		st = context.space_data
+		text = st.text
+		
+		if not text:
+			return ('CANCELLED',)
+		
+		line = st.text.current_line.line
+		id = text.name
+		
+		try:
+			namespace, console, stdout = self.__class__.console[id]
+		except:
+			import code, io
+			
+			namespace = locals().update({'bpy':bpy})
+			console = code.InteractiveConsole(namespace)
+			
+			if sys.version.startswith('2'): # Py2.x support
+				stdout = io.BytesIO()
+			else:
+				stdout = io.StringIO()
+			
+			
+			
+			self.__class__.console[id]= namespace, console, stdout
+			del code, io
+		
+		# redirect output
+		sys.stdout = stdout
+		sys.stderr = stdout
+		
+		# run the console
+		if not line.strip():
+			line = '\n' # executes a multiline statement
+		
+		if line.startswith(self.__class__.PROMPT_MULTI) or line.startswith(self.__class__.PROMPT):
+			line = line[len(self.__class__.PROMPT):]
+			was_prefix = True
+		else:
+			was_prefix = False
+		
+		
+		is_multiline = console.push(line)
+		
+		stdout.seek(0)
+		output = stdout.read()
+	
+		# cleanup
+		sys.stdout = sys.__stdout__
+		sys.stderr = sys.__stderr__
+		sys.last_traceback = None
+		
+		# So we can reuse, clear all data
+		stdout.truncate(0)
+		
+		if is_multiline:
+			prefix = self.__class__.PROMPT_MULTI
+		else:
+			prefix = self.__class__.PROMPT
+		
+		# Kindof odd, add the prefix if we didnt have one. makes it easier to re-read.
+		if not was_prefix:
+			bpy.ops.TEXT_OT_move(type='LINE_BEGIN')
+			bpy.ops.TEXT_OT_insert(text = prefix)
+		
+		bpy.ops.TEXT_OT_move(type='LINE_END')
+		
+		# Insert the output into the editor
+		bpy.ops.TEXT_OT_insert(text= '\n' + output + prefix)
+		
+		return ('FINISHED',)
+	
 bpy.types.register(TEXT_HT_header)
 bpy.types.register(TEXT_PT_properties)
 bpy.types.register(TEXT_PT_find)
@@ -236,4 +331,6 @@ bpy.types.register(TEXT_MT_edit_view)
 bpy.types.register(TEXT_MT_edit_select)
 bpy.types.register(TEXT_MT_edit_markers)
 bpy.types.register(TEXT_MT_edit_to3d)
+
+bpy.ops.add(TEXT_OT_line_console)
 

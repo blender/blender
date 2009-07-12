@@ -248,8 +248,6 @@ static int reload_exec(bContext *C, wmOperator *op)
 #ifndef DISABLE_PYTHON
 	if(text->compiled)
 		BPY_free_compiled_text(text);
-
-	text->compiled = NULL;
 #endif
 
 	text_update_edited(text);
@@ -2229,19 +2227,21 @@ static int insert_exec(bContext *C, wmOperator *op)
 	SpaceText *st= CTX_wm_space_text(C);
 	Text *text= CTX_data_edit_text(C);
 	char *str;
-	int done, ascii;
+	int done = 0, i;
 
 	str= RNA_string_get_alloc(op->ptr, "text", NULL, 0);
-	ascii= str[0];
+
+	if(st && st->overwrite) {
+		for(i=0; str[i]; i++) {
+			done |= txt_replace_char(text, str[i]);
+		}
+	} else {
+		for(i=0; str[i]; i++) {
+			done |= txt_add_char(text, str[i]);
+		}
+	}
+
 	MEM_freeN(str);
-
-	if(!ascii)
-		return OPERATOR_CANCELLED;
-
-	if(st && st->overwrite)
-		done= txt_replace_char(text, ascii);
-	else
-		done= txt_add_char(text, ascii);
 	
 	if(!done)
 		return OPERATOR_CANCELLED;
@@ -2273,7 +2273,7 @@ static int insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* run the script while editing, evil but useful */
 	if(ret==OPERATOR_FINISHED && CTX_wm_space_text(C)->live_edit)
 		run_script_exec(C, op);
-	
+
 	return ret;
 }
 

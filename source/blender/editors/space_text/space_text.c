@@ -285,6 +285,10 @@ static void text_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "TEXT_OT_to_3d_object", MKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "TEXT_OT_line_break", RETKEY, KM_PRESS, 0, 0);
+#ifndef DISABLE_PYTHON
+	WM_keymap_add_item(keymap, "TEXT_OT_line_console", RETKEY, KM_PRESS, KM_SHIFT, 0); /* python operator - space_text.py */
+#endif
+
 	WM_keymap_add_item(keymap, "TEXT_OT_line_number", KM_TEXTINPUT, KM_ANY, KM_ANY, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_insert", KM_TEXTINPUT, KM_ANY, KM_ANY, 0); // last!
 }
