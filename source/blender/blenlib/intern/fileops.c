@@ -153,10 +153,24 @@ int BLI_is_writable(char *filename)
 {
 	int file;
 	
+	/* first try to open without creating */
 	file = open(filename, O_BINARY | O_RDWR, 0666);
 	
-	if (file < 0)
-		return 0;
+	if (file < 0) {
+		/* now try to open and create. a test without actually
+		 * creating a file would be nice, but how? */
+		file = open(filename, O_BINARY | O_RDWR | O_CREAT, 0666);
+		
+		if(file < 0) {
+			return 0;
+		}
+		else {
+			/* success, delete the file we create */
+			close(file);
+			BLI_delete(filename, 0, 0);
+			return 1;
+		}
+	}
 	else {
 		close(file);
 		return 1;
