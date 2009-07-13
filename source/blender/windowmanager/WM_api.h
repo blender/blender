@@ -132,7 +132,7 @@ int			WM_operator_redo_popup	(struct bContext *C, struct wmOperator *op);
 void		WM_operator_free		(struct wmOperator *op);
 void		WM_operator_stack_clear(struct bContext *C);
 
-wmOperatorType *WM_operatortype_find(const char *idname);
+wmOperatorType *WM_operatortype_find(const char *idnamem, int quiet);
 wmOperatorType *WM_operatortype_exists(const char *idname);
 wmOperatorType *WM_operatortype_first(void);
 void		WM_operatortype_append	(void (*opfunc)(wmOperatorType*));

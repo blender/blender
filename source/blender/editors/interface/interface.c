@@ -2273,7 +2273,7 @@ uiBut *ui_def_but_operator(uiBlock *block, int type, char *opname, int opcontext
 	uiBut *but;
 	wmOperatorType *ot;
 	
-	ot= WM_operatortype_find(opname);
+	ot= WM_operatortype_find(opname, 0);
 
 	if(!str) {
 		if(ot) str= ot->name;

@@ -393,7 +393,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 /* invokes operator in context */
 int WM_operator_name_call(bContext *C, const char *opstring, int context, PointerRNA *properties)
 {
-	wmOperatorType *ot= WM_operatortype_find(opstring);
+	wmOperatorType *ot= WM_operatortype_find(opstring, 0);
 	wmWindow *window= CTX_wm_window(C);
 	wmEvent *event;
 	
@@ -723,7 +723,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			printf("wm_handler_operator_call error\n");
 	}
 	else {
-		wmOperatorType *ot= WM_operatortype_find(event->keymap_idname);
+		wmOperatorType *ot= WM_operatortype_find(event->keymap_idname, 0);
 
 		if(ot)
 			retval= wm_operator_invoke(C, ot, event, properties);

@@ -2812,7 +2812,7 @@ void uiPupBlockO(bContext *C, uiBlockCreateFunc func, void *arg, char *opname, i
 	
 	handle= ui_popup_block_create(C, NULL, NULL, func, NULL, arg);
 	handle->popup= 1;
-	handle->optype= (opname)? WM_operatortype_find(opname): NULL;
+	handle->optype= (opname)? WM_operatortype_find(opname, 0): NULL;
 	handle->opcontext= opcontext;
 	
 	UI_add_popup_handlers(C, &window->handlers, handle);

@@ -515,7 +515,7 @@ static void ui_item_disabled(uiLayout *layout, char *name)
 void uiItemFullO(uiLayout *layout, char *name, int icon, char *idname, IDProperty *properties, int context)
 {
 	uiBlock *block= layout->root->block;
-	wmOperatorType *ot= WM_operatortype_find(idname);
+	wmOperatorType *ot= WM_operatortype_find(idname, 0);
 	uiBut *but;
 	int w;
 
@@ -550,7 +550,7 @@ void uiItemFullO(uiLayout *layout, char *name, int icon, char *idname, IDPropert
 
 static char *ui_menu_enumpropname(uiLayout *layout, char *opname, char *propname, int retval)
 {
-	wmOperatorType *ot= WM_operatortype_find(opname);
+	wmOperatorType *ot= WM_operatortype_find(opname, 0);
 	PointerRNA ptr;
 	PropertyRNA *prop;
 
@@ -593,7 +593,7 @@ void uiItemEnumO(uiLayout *layout, char *name, int icon, char *opname, char *pro
 
 void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
 {
-	wmOperatorType *ot= WM_operatortype_find(opname);
+	wmOperatorType *ot= WM_operatortype_find(opname, 0);
 	PointerRNA ptr;
 	PropertyRNA *prop;
 
@@ -1213,7 +1213,7 @@ static void menu_item_enum_opname_menu(bContext *C, uiLayout *layout, void *arg)
 
 void uiItemMenuEnumO(uiLayout *layout, char *name, int icon, char *opname, char *propname)
 {
-	wmOperatorType *ot= WM_operatortype_find(opname);
+	wmOperatorType *ot= WM_operatortype_find(opname, 0);
 	MenuItemLevel *lvl;
 
 	if(!ot || !ot->srna) {

@@ -82,7 +82,7 @@ static ListBase global_ops= {NULL, NULL};
 
 /* ************ operator API, exported ********** */
 
-wmOperatorType *WM_operatortype_find(const char *idname)
+wmOperatorType *WM_operatortype_find(const char *idname, int quiet)
 {
 	wmOperatorType *ot;
 	
@@ -90,7 +90,10 @@ wmOperatorType *WM_operatortype_find(const char *idname)
 		if(strncmp(ot->idname, idname, OP_MAX_TYPENAME)==0)
 		   return ot;
 	}
-	printf("search for unknown operator %s\n", idname);
+	
+	if(!quiet)
+		printf("search for unknown operator %s\n", idname);
+	
 	return NULL;
 }
 
@@ -137,7 +140,7 @@ void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType*, void*), void *us
 
 int WM_operatortype_remove(const char *idname)
 {
-	wmOperatorType *ot = WM_operatortype_find(idname);
+	wmOperatorType *ot = WM_operatortype_find(idname, 0);
 
 	if (ot==NULL)
 		return 0;
@@ -190,7 +193,7 @@ char *WM_operator_pystring(wmOperator *op)
 
 void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
 {
-	wmOperatorType *ot= WM_operatortype_find(opstring);
+	wmOperatorType *ot= WM_operatortype_find(opstring, 0);
 
 	if(ot)
 		RNA_pointer_create(NULL, ot->srna, NULL, ptr);
