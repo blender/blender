@@ -166,6 +166,11 @@ static void rna_Object_add_vertex_to_group(Object *ob, int vertex_index, bDeform
 	add_vert_to_defgroup(ob, def, vertex_index, weight, assignmode);
 }
 
+static void rna_Object_dag_update(Object *ob, bContext *C)
+{
+	DAG_object_flush_update(CTX_data_scene(C), ob, OB_RECALC_DATA);
+}
+
 /*
 static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int *indices, int totindex, float weight, int assignmode)
 {
@@ -222,6 +227,7 @@ void RNA_api_object(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	/* mesh */
 	func= RNA_def_function(srna, "create_mesh", "rna_Object_create_mesh");
 	RNA_def_function_ui_description(func, "Create a Mesh datablock with all modifiers applied.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
@@ -230,6 +236,13 @@ void RNA_api_object(StructRNA *srna)
 	parm= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh created from object, remove it if it is only used for export.");
 	RNA_def_function_return(func, parm);
 
+	func= RNA_def_function(srna, "convert_to_triface", "rna_Object_convert_to_triface");
+	RNA_def_function_ui_description(func, "Convert all mesh faces to triangles.");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	parm= RNA_def_pointer(func, "scene", "Scene", "", "Scene where the object belongs.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	/* duplis */
 	func= RNA_def_function(srna, "create_dupli_list", "rna_Object_create_duplilist");
 	RNA_def_function_ui_description(func, "Create a list of dupli objects for this object, needs to be freed manually with free_dupli_list.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
@@ -238,12 +251,7 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Free the list of dupli objects.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
-	func= RNA_def_function(srna, "convert_to_triface", "rna_Object_convert_to_triface");
-	RNA_def_function_ui_description(func, "Convert all mesh faces to triangles.");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
-	parm= RNA_def_pointer(func, "scene", "Scene", "", "Scene where the object belongs.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-
+	/* vertex groups */
 	func= RNA_def_function(srna, "add_vertex_group", "rna_Object_add_vertex_group");
 	RNA_def_function_ui_description(func, "Add vertex group to object.");
 	parm= RNA_def_string(func, "name", "Group", 0, "", "Vertex group name."); /* optional */
@@ -260,6 +268,11 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_enum(func, "type", assign_mode_items, 0, "", "Vertex assign mode.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	/* DAG */
+	func= RNA_def_function(srna, "dag_update", "rna_Object_dag_update");
+	RNA_def_function_ui_description(func, "DAG update."); /* XXX describe better */
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 }
 
 #endif

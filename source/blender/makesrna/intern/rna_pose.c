@@ -181,15 +181,18 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Channel Matrix", "4x4 matrix, before constraints.");*/
 
 	/* kaito says this should be not user-editable; I disagree; power users should be able to force this in python; he's the boss. */
-/*	prop= RNA_def_property(srna, "pose_matrix", PROP_FLOAT, PROP_MATRIX);
-	RNA_def_property_struct_type(prop, "pose_mat");
+	prop= RNA_def_property(srna, "pose_matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, "pose_mat");
+	RNA_def_property_array(prop, 16);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); 
 	RNA_def_property_ui_text(prop, "Pose Matrix", "Final 4x4 matrix for this channel.");
 
+	/*
 	prop= RNA_def_property(srna, "constraint_inverse_matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_struct_type(prop, "constinv");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Constraint Inverse Matrix", "4x4 matrix, defines transform from final position to unconstrained position."); */
+	RNA_def_property_ui_text(prop, "Constraint Inverse Matrix", "4x4 matrix, defines transform from final position to unconstrained position.");
+	*/
 	
 	prop= RNA_def_property(srna, "pose_head", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

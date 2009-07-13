@@ -37,12 +37,13 @@ http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_fbx
 # --------------------------------------------------------------------------
 
 import os
+import time
 
-try:
-	import time
-	# import os # only needed for batch export, nbot used yet
-except:
-	time = None # use this to check if they have python modules installed
+# try:
+# 	import time
+# 	# import os # only needed for batch export, nbot used yet
+# except:
+# 	time = None # use this to check if they have python modules installed
 
 # for python 2.3 support
 try:
@@ -114,10 +115,41 @@ def copy_images(dest_dir, textures):
 	
 	print '\tCopied %d images' % copyCount
 
-mtx4_identity = Matrix()
+def BPyObject_getObjectArmature(ob):
+	'''
+	This returns the first armature the mesh uses.
+	remember there can be more then 1 armature but most people dont do that.
+	'''
+	if ob.type != 'MESH':
+		return None
+	
+	arm = ob.parent
+	if arm and arm.type == 'ARMATURE' and ob.parent_type == 'ARMATURE':
+		return arm
+	
+	for m in ob.modifiers:
+		if m.type== 'ARMATURE':
+			arm = m.object
+			if arm:
+				return arm
+	
+	return None
+
+# I guess FBX uses degrees instead of radians (Arystan).
+# Call this function just before writing to FBX.
+def eulerRadToDeg(eul):
+	ret = Mathutils.Euler()
+
+	ret.x = 180 / math.pi * eul.x
+	ret.y = 180 / math.pi * eul.y
+	ret.z = 180 / math.pi * eul.z
+
+	return ret
+
+mtx4_identity = Mathutils.Matrix()
 
 # testing
-mtx_x90		= RotationMatrix( 90, 3, 'x') # used
+mtx_x90		= Mathutils.RotationMatrix( math.pi/2, 3, 'x') # used
 #mtx_x90n	= RotationMatrix(-90, 3, 'x')
 #mtx_y90	= RotationMatrix( 90, 3, 'y')
 #mtx_y90n	= RotationMatrix(-90, 3, 'y')
@@ -125,14 +157,14 @@ mtx_x90		= RotationMatrix( 90, 3, 'x') # used
 #mtx_z90n	= RotationMatrix(-90, 3, 'z')
 
 #mtx4_x90	= RotationMatrix( 90, 4, 'x')
-mtx4_x90n	= RotationMatrix(-90, 4, 'x') # used
+mtx4_x90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'x') # used
 #mtx4_y90	= RotationMatrix( 90, 4, 'y')
-mtx4_y90n	= RotationMatrix(-90, 4, 'y') # used
-mtx4_z90	= RotationMatrix( 90, 4, 'z') # used
-mtx4_z90n	= RotationMatrix(-90, 4, 'z') # used
+mtx4_y90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'y') # used
+mtx4_z90	= Mathutils.RotationMatrix( math.pi/2, 4, 'z') # used
+mtx4_z90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'z') # used
 
-def strip_path(p):
-	return p.split('\\')[-1].split('/')[-1]
+# def strip_path(p):
+# 	return p.split('\\')[-1].split('/')[-1]
 
 # Used to add the scene name into the filename without using odd chars	
 sane_name_mapping_ob = {}
@@ -212,7 +244,8 @@ def derived_paths(fname_orig, basepath, FORCE_CWD=False):
 	'''
 	fname = bpy.sys.expandpath(fname_orig)
 # 	fname = Blender.sys.expandpath(fname_orig)
-	fname_strip = strip_path(fname)
+	fname_strip = os.path.basename(fname)
+# 	fname_strip = strip_path(fname)
 	if FORCE_CWD:
 		fname_rel = '.' + os.sep + fname_strip
 	else:
@@ -265,7 +298,7 @@ def write(filename, batch_objects = None, \
 		EXP_CAMERA =				True,
 		EXP_EMPTY =					True,
 		EXP_IMAGE_COPY =			False,
-		GLOBAL_MATRIX =				Matrix(),
+		GLOBAL_MATRIX =				Mathutils.Matrix(),
 		ANIM_ENABLE =				True,
 		ANIM_OPTIMIZE =				True,
 		ANIM_OPTIMIZE_PRECISSION =	6,
@@ -288,9 +321,11 @@ def write(filename, batch_objects = None, \
 # 		tmp_exists = Blender.sys.exists(fbxpath)
 		
 		if tmp_exists != 2: # a file, we want a path
-			while fbxpath and fbxpath[-1] not in ('/', '\\'):
-				fbxpath = fbxpath[:-1]
-			if not filename:
+			fbxpath = os.path.dirname(fbxpath)
+# 			while fbxpath and fbxpath[-1] not in ('/', '\\'):
+# 				fbxpath = fbxpath[:-1]
+			if not fbxpath:
+# 			if not filename:
 				# XXX
 				print('Error%t|Directory does not exist!')
 # 				Draw.PupMenu('Error%t|Directory does not exist!')
@@ -391,7 +426,9 @@ def write(filename, batch_objects = None, \
 	# end batch support
 	
 	# Use this for working out paths relative to the export location
-	basepath = Blender.sys.dirname(filename)
+	basepath = os.path.dirname(filename) or '.'
+	basepath += os.sep
+# 	basepath = Blender.sys.dirname(filename)
 	
 	# ----------------------------------------------
 	# storage classes
@@ -429,7 +466,8 @@ def write(filename, batch_objects = None, \
 			# not public
 			pose = fbxArm.blenObject.pose
 # 			pose = fbxArm.blenObject.getPose()
-			self.__pose_bone =		pose.bones[self.blenName]
+			self.__pose_bone =		pose.pose_channels[self.blenName]
+# 			self.__pose_bone =		pose.bones[self.blenName]
 			
 			# store a list if matricies here, (poseMatrix, head, tail)
 			# {frame:posematrix, frame:posematrix, ...}
@@ -452,8 +490,9 @@ def write(filename, batch_objects = None, \
 				self.__pose_bone.head.copy(),\
 				self.__pose_bone.tail.copy() )
 			'''
-			
-			self.__anim_poselist[f] = self.__pose_bone.poseMatrix.copy()
+
+			self.__anim_poselist[f] = self.__pose_bone.pose_matrix.copy()
+# 			self.__anim_poselist[f] = self.__pose_bone.poseMatrix.copy()
 		
 		# get pose from frame.
 		def getPoseMatrix(self, f):# ----------------------------------------------
@@ -521,11 +560,12 @@ def write(filename, batch_objects = None, \
 				matrix_rot = (self.__anim_poselist[frame] * GLOBAL_MATRIX).rotationPart()
 			
 			# Lamps need to be rotated
-			if type =='Lamp':
+			if type =='LAMP':
 				matrix_rot = mtx_x90 * matrix_rot
-			elif ob and type =='Camera':
+			elif type =='CAMERA':
+# 			elif ob and type =='Camera':
 				y = Vector(0,1,0) * matrix_rot
-				matrix_rot = matrix_rot * RotationMatrix(90, 3, 'r', y)
+				matrix_rot = matrix_rot * Mathutils.RotationMatrix(math.pi/2, 3, 'r', y)
 			
 			return matrix_rot
 			
@@ -627,7 +667,7 @@ def write(filename, batch_objects = None, \
 					rot = tuple(matrix_rot.toEuler())
 				elif ob and ob.type =='Camera':
 					y = Vector(0,1,0) * matrix_rot
-					matrix_rot = matrix_rot * RotationMatrix(90, 3, 'r', y)
+					matrix_rot = matrix_rot * Mathutils.RotationMatrix(math.pi/2, 3, 'r', y)
 					rot = tuple(matrix_rot.toEuler())
 				else:
 					rot = tuple(matrix_rot.toEuler())
@@ -648,7 +688,8 @@ def write(filename, batch_objects = None, \
 		loc, rot, scale, matrix, matrix_rot = object_tx(ob, loc, matrix, matrix_mod)
 		
 		file.write('\n\t\t\tProperty: "Lcl Translation", "Lcl Translation", "A+",%.15f,%.15f,%.15f' % loc)
-		file.write('\n\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",%.15f,%.15f,%.15f' % rot)
+		file.write('\n\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",%.15f,%.15f,%.15f' % eulerRadToDeg(rot))
+# 		file.write('\n\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",%.15f,%.15f,%.15f' % rot)
 		file.write('\n\t\t\tProperty: "Lcl Scaling", "Lcl Scaling", "A+",%.15f,%.15f,%.15f' % scale)
 		return loc, rot, scale, matrix, matrix_rot
 	
@@ -735,7 +776,8 @@ def write(filename, batch_objects = None, \
 			Property: "Show", "bool", "",1
 			Property: "NegativePercentShapeSupport", "bool", "",1
 			Property: "DefaultAttributeIndex", "int", "",0''')
-		if ob and type(ob) != Blender.Types.BoneType:
+		if ob and not isinstance(ob, bpy.types.Bone):
+# 		if ob and type(ob) != Blender.Types.BoneType:
 			# Only mesh objects have color 
 			file.write('\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8')
 			file.write('\n\t\t\tProperty: "Size", "double", "",100')
@@ -1214,7 +1256,8 @@ def write(filename, batch_objects = None, \
 
 		file.write('\n\t\t}')
 		file.write('\n\t}')
-	
+
+	# tex is an Image (Arystan)
 	def write_video(texname, tex):
 		# Same as texture really!
 		file.write('\n\tVideo: "Video::%s", "Clip" {' % texname)
@@ -1276,9 +1319,11 @@ def write(filename, batch_objects = None, \
 			Property: "UseMipMap", "bool", "",0
 			Property: "CurrentMappingType", "enum", "",0
 			Property: "UVSwap", "bool", "",0''')
-		
-		file.write('\n\t\t\tProperty: "WrapModeU", "enum", "",%i' % tex.clampX)
-		file.write('\n\t\t\tProperty: "WrapModeV", "enum", "",%i' % tex.clampY)
+
+		file.write('\n\t\t\tProperty: "WrapModeU", "enum", "",%i' % tex.clamp_x)
+# 		file.write('\n\t\t\tProperty: "WrapModeU", "enum", "",%i' % tex.clampX)
+		file.write('\n\t\t\tProperty: "WrapModeV", "enum", "",%i' % tex.clamp_y)
+# 		file.write('\n\t\t\tProperty: "WrapModeV", "enum", "",%i' % tex.clampY)
 		
 		file.write('''
 			Property: "TextureRotationPivot", "Vector3D", "",0,0,0
@@ -1915,13 +1960,16 @@ def write(filename, batch_objects = None, \
 				else:
 					# Mesh Type!
 					if EXP_MESH_APPLY_MOD:
-						me = bpy.data.meshes.new()
-						me.getFromObject(ob)
+# 						me = bpy.data.meshes.new()
+						me = ob.create_mesh('PREVIEW')
+# 						me.getFromObject(ob)
 						
 						# so we keep the vert groups
 						if EXP_ARMATURE:
-							orig_mesh = ob.getData(mesh=1)
-							if orig_mesh.getVertGroupNames():
+							orig_mesh = ob.data
+# 							orig_mesh = ob.getData(mesh=1)
+							if len(ob.vertex_groups):
+# 							if orig_mesh.getVertGroupNames():
 								ob.copy().link(me)
 								# If new mesh has no vgroups we can try add if verts are teh same
 								if not me.getVertGroupNames(): # vgroups were not kept by the modifier
@@ -1980,7 +2028,7 @@ def write(filename, batch_objects = None, \
 							materials[None, None] = None
 					
 					if EXP_ARMATURE:
-						armob = BPyObject.getObjectArmature(ob)
+						armob = BPyObject_getObjectArmature(ob)
 						blenParentBoneName = None
 						
 						# parent bone - special case
@@ -2014,14 +2062,17 @@ def write(filename, batch_objects = None, \
 	if EXP_ARMATURE:
 		# now we have the meshes, restore the rest arm position
 		for i, arm in enumerate(bpy.data.armatures):
-			arm.restPosition = ob_arms_orig_rest[i]
+			arm.rest_position = ob_arms_orig_rest[i]
+# 			arm.restPosition = ob_arms_orig_rest[i]
 			
 		if ob_arms_orig_rest:
 			for ob_base in bpy.data.objects:
 				if ob_base.type == 'Armature':
-					ob_base.makeDisplayList()
+					ob_base.dag_update()
+# 					ob_base.makeDisplayList()
 			# This causes the makeDisplayList command to effect the mesh
-			Blender.Set('curframe', Blender.Get('curframe'))
+			sce.set_frame(sce.current_frame)
+# 			Blender.Set('curframe', Blender.Get('curframe'))
 	
 	del tmp_ob_type, tmp_objects
 	
@@ -2032,7 +2083,11 @@ def write(filename, batch_objects = None, \
 		
 		my_arm.fbxBones =		[]
 		my_arm.blenData =		ob.data
-		my_arm.blenAction =		ob.action
+		if ob.animation_data:
+			my_arm.blenAction =	ob.animation_data.action
+		else:
+			my_arm.blenAction = None
+# 		my_arm.blenAction =		ob.action
 		my_arm.blenActionList =	[]
 		
 		# fbxName, blenderObject, my_bones, blenderActions
@@ -2087,7 +2142,8 @@ def write(filename, batch_objects = None, \
 	
 	# Build blenObject -> fbxObject mapping
 	# this is needed for groups as well as fbxParenting
-	bpy.data.objects.tag = False
+	for ob in bpy.data.objects:	ob.tag = False
+# 	bpy.data.objects.tag = False
 	tmp_obmapping = {}
 	for ob_generic in ob_all_typegroups:
 		for ob_base in ob_generic:
@@ -2512,7 +2568,8 @@ Connections:  {''')
 		action_lastcompat = None
 		
 		if ANIM_ACTION_ALL:
-			bpy.data.actions.tag = False
+			for a in bpy.data.actions: a.tag = False
+# 			bpy.data.actions.tag = False
 			tmp_actions = list(bpy.data.actions)
 			
 			
@@ -2528,8 +2585,9 @@ Connections:  {''')
 				arm_bone_names = set([my_bone.blenName for my_bone in my_arm.fbxBones])
 				
 				for action in tmp_actions:
-					
-					action_chan_names = arm_bone_names.intersection( set(action.getChannelNames()) )
+
+					action_chan_names = arm_bone_names.intersection( set([g.name for g in action.groups]) )
+# 					action_chan_names = arm_bone_names.intersection( set(action.getChannelNames()) )
 					
 					if action_chan_names: # at least one channel matches.
 						my_arm.blenActionList.append(action)
@@ -2661,7 +2719,8 @@ Takes:  {''')
 								for mtx in context_bone_anim_mats:
 									if prev_eul:	prev_eul = mtx[1].toEuler(prev_eul)
 									else:			prev_eul = mtx[1].toEuler()
-									context_bone_anim_vecs.append(prev_eul)
+									context_bone_anim_vecs.append(eulerRadToDeg(prev_eul))
+# 									context_bone_anim_vecs.append(prev_eul)
 							
 							file.write('\n\t\t\t\tChannel: "%s" {' % TX_CHAN) # translation
 							
@@ -2752,8 +2811,9 @@ Takes:  {''')
 				my_bone.blenObject.action = my_bone.blenAction
 		
 		file.write('\n}')
-		
-		Blender.Set('curframe', frame_orig)
+
+		sce.set_frame(frame_orig)
+# 		Blender.Set('curframe', frame_orig)
 		
 	else:
 		# no animation
@@ -2771,15 +2831,23 @@ Takes:  {''')
 	
 	# Clear mesh data Only when writing with modifiers applied
 	for me in meshes_to_clear:
-		me.verts = None
+		bpy.data.remove_mesh(me)
+# 		me.verts = None
 	
 	
 	
 	# --------------------------- Footer
 	if world:
-		has_mist = world.mode & 1
-		mist_intense, mist_start, mist_end, mist_height = world.mist
-		world_hor = world.hor
+		m = world.mist
+		has_mist = m.enabled
+# 		has_mist = world.mode & 1
+		mist_intense = m.intensity
+		mist_start = m.start
+		mist_end = m.depth
+		mist_height = m.height
+# 		mist_intense, mist_start, mist_end, mist_height = world.mist
+		world_hor = world.horizon_color
+# 		world_hor = world.hor
 	else:
 		has_mist = mist_intense = mist_start = mist_end = mist_height = 0
 		world_hor = 0,0,0
@@ -3146,6 +3214,8 @@ if __name__ == '__main__':
 # - Draw.PupMenu alternative in 2.5?, temporarily replaced PupMenu with print
 # - get rid of cleanName somehow
 # - isinstance(inst, bpy.types.*) doesn't work on RNA objects: line 565
+# - get rid of BPyObject_getObjectArmature, move it in RNA?
+# - BATCH_ENABLE and BATCH_GROUP options: line 327
 
 # TODO
 
