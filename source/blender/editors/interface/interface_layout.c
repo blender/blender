@@ -466,13 +466,18 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, i
 	uiLayout *sub;
 	uiBut *but;
 	PropertySubType subtype;
+	int labelw;
 
 	sub= uiLayoutRow(layout, 0);
 	uiBlockSetCurLayout(block, sub);
 
 	if(strcmp(name, "") != 0) {
-		w= w/2;
-		uiDefBut(block, LABEL, 0, name, x, y, w, h, NULL, 0.0, 0.0, 0, 0, "");
+		/* XXX UI_GetStringWidth is not accurate
+		labelw= UI_GetStringWidth(name);
+		CLAMP(labelw, w/4, 3*w/4);*/
+		labelw= w/2;
+		uiDefBut(block, LABEL, 0, name, x, y, labelw, h, NULL, 0.0, 0.0, 0, 0, "");
+		w= w-labelw;
 	}
 
 	subtype= RNA_property_subtype(prop);

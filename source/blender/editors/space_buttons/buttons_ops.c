@@ -33,6 +33,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
+#include "DNA_node_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
@@ -43,7 +44,9 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_node.h"
 #include "BKE_particle.h"
+#include "BKE_scene.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_world.h"
@@ -689,3 +692,74 @@ void PARTICLE_OT_keyed_target_move_down(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/********************** render layer operators *********************/
+
+static int render_layer_add_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+
+	scene_add_render_layer(scene);
+	scene->r.actlay= BLI_countlist(&scene->r.layers) - 1;
+
+	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
+	
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_render_layer_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Render Layer";
+	ot->idname= "SCENE_OT_render_layer_add";
+	
+	/* api callbacks */
+	ot->exec= render_layer_add_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int render_layer_remove_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	SceneRenderLayer *rl;
+	int act= scene->r.actlay;
+
+	if(BLI_countlist(&scene->r.layers) <= 1)
+		return OPERATOR_CANCELLED;
+	
+	rl= BLI_findlink(&scene->r.layers, scene->r.actlay);
+	BLI_remlink(&scene->r.layers, rl);
+	MEM_freeN(rl);
+
+	scene->r.actlay= 0;
+	
+	if(scene->nodetree) {
+		bNode *node;
+		for(node= scene->nodetree->nodes.first; node; node= node->next) {
+			if(node->type==CMP_NODE_R_LAYERS && node->id==NULL) {
+				if(node->custom1==act)
+					node->custom1= 0;
+				else if(node->custom1>act)
+					node->custom1--;
+			}
+		}
+	}
+
+	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
+	
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_render_layer_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Render Layer";
+	ot->idname= "SCENE_OT_render_layer_remove";
+	
+	/* api callbacks */
+	ot->exec= render_layer_remove_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}

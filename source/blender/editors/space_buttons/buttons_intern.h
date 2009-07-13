@@ -80,5 +80,8 @@ void PARTICLE_OT_remove_keyed_target(struct wmOperatorType *ot);
 void PARTICLE_OT_keyed_target_move_up(struct wmOperatorType *ot);
 void PARTICLE_OT_keyed_target_move_down(struct wmOperatorType *ot);
 
+void SCENE_OT_render_layer_add(struct wmOperatorType *ot);
+void SCENE_OT_render_layer_remove(struct wmOperatorType *ot);
+
 #endif /* ED_BUTTONS_INTERN_H */
 

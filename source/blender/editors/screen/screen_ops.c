@@ -2320,6 +2320,40 @@ static ScrArea *find_area_showing_r_result(bContext *C)
 	return sa;
 }
 
+static ScrArea *find_area_image_empty(bContext *C)
+{
+	bScreen *sc= CTX_wm_screen(C);
+	ScrArea *sa;
+	SpaceImage *sima;
+	
+	/* find an imagewindow showing render result */
+	for(sa=sc->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype==SPACE_IMAGE) {
+			sima= sa->spacedata.first;
+			if(!sima->image)
+				break;
+		}
+	}
+	return sa;
+}
+
+static ScrArea *find_empty_image_area(bContext *C)
+{
+	bScreen *sc= CTX_wm_screen(C);
+	ScrArea *sa;
+	SpaceImage *sima;
+	
+	/* find an imagewindow showing render result */
+	for(sa=sc->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype==SPACE_IMAGE) {
+			sima= sa->spacedata.first;
+			if(!sima->image)
+				break;
+		}
+	}
+	return sa;
+}
+
 static void screen_set_image_output(bContext *C)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -2334,6 +2368,8 @@ static void screen_set_image_output(bContext *C)
 	else {
 	
 		sa= find_area_showing_r_result(C);
+		if(sa==NULL)
+			sa= find_area_image_empty(C);
 		
 		if(sa==NULL) {
 			/* find largest open non-image area */

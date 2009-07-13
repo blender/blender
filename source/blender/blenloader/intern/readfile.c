@@ -9098,7 +9098,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile < 250) {
 		bScreen *screen;
 		Scene *scene;
+		Base *base;
 		Material *ma;
+		Camera *cam;
 		Mesh *me;
 		Scene *sce;
 		Tex *tx;
@@ -9132,6 +9134,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if(sce->nodetree && strlen(sce->nodetree->id.name)==0)
 				strcpy(sce->nodetree->id.name, "NTComposit Nodetree");
+
+			/* move to cameras */
+			if(sce->r.scemode & R_PANORAMA) {
+				for(base=scene->base.first; base; base=base->next) {
+					ob= newlibadr(fd, lib, base->object);
+
+					if(ob->type == OB_CAMERA && !ob->id.lib) {
+						cam= newlibadr(fd, lib, ob->data);
+						cam->flag |= CAM_PANORAMA;
+					}
+				}
+
+				sce->r.scemode &= ~R_PANORAMA;
+			}
 		}
 		/* and texture trees */
 		for(tx= main->tex.first; tx; tx= tx->id.next) {

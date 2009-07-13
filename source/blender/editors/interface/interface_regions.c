@@ -374,8 +374,10 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	if(ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
 		/* full string */
 		ui_get_but_string(but, buf, sizeof(buf));
-		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Value: %s", buf);
-		data->totline++;
+		if(buf[0]) {
+			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Value: %s", buf);
+			data->totline++;
+		}
 	}
 
 	if(but->rnaprop) {
