@@ -264,6 +264,171 @@ public:
 		return true;
 	}
 
+	void writeNode (COLLADAFW::Node *node, Scene *sce, Object *parent_ob = NULL)
+	{
+		// XXX linking object with the first <instance_geometry>, though a node may have more of them...
+		// TODO: join multiple <instance_...> meshes into 1, and link object with it
+		COLLADAFW::InstanceGeometryPointerArray &geom = node->getInstanceGeometries();
+		COLLADAFW::InstanceCameraPointerArray &camera = node->getInstanceCameras();
+		COLLADAFW::InstanceLightPointerArray &lamp = node->getInstanceLights();
+		COLLADAFW::InstanceControllerPointerArray &controller = node->getInstanceControllers();
+		COLLADAFW::InstanceNodePointerArray &inst_node = node->getInstanceNodes();
+		Object *ob;
+		int k;
+		
+		// if node has <instance_geometries> - connect mesh with object
+		// XXX currently only one <instance_geometry> in a node is supported
+		if (geom.getCount() != 0) {
+			
+			ob = add_object(sce, OB_MESH);
+			
+			const std::string& id = node->getOriginalId();
+			if (id.length())
+				rename_id(&ob->id, (char*)id.c_str());
+			
+			const COLLADAFW::UniqueId& geom_uid = geom[0]->getInstanciatedObjectId();
+			if (uid_mesh_map.find(geom_uid) == uid_mesh_map.end()) {
+				// XXX report to user
+				// this could happen if a mesh was not created
+				// (e.g. if it contains unsupported geometry)
+				fprintf(stderr, "Couldn't find a mesh by UID.\n");
+				// delete created object
+				free_object(ob);
+				return;
+			}
+			// replace ob->data freeing the old one
+			Mesh *old_mesh = (Mesh*)ob->data;
+			set_mesh(ob, uid_mesh_map[geom_uid]);
+			if (old_mesh->id.us == 0) free_libblock(&G.main->mesh, old_mesh);
+			
+			// assign materials to object
+			// assign material indices to mesh faces
+			for (k = 0; k < geom[0]->getMaterialBindings().getCount(); k++) {
+				
+				const COLLADAFW::UniqueId& mat_uid =
+					geom[0]->getMaterialBindings()[k].getReferencedMaterial();
+				
+				if (uid_material_map.find(mat_uid) == uid_material_map.end()) {
+					
+					fprintf(stderr, "Cannot find material by UID.\n");
+					continue;
+				}
+				
+				assign_material(ob, uid_material_map[mat_uid], ob->totcol + 1);
+				
+				MaterialIdPrimitiveArrayMap& mat_prim_map = geom_uid_mat_mapping_map[geom_uid];
+				COLLADAFW::MaterialId mat_id = geom[0]->getMaterialBindings()[k].getMaterialId();
+				
+				// if there's geometry that uses this material,
+				// set mface->mat_nr=k for each face in that geometry
+				if (mat_prim_map.find(mat_id) != mat_prim_map.end()) {
+					
+					std::vector<Primitive>& prims = mat_prim_map[mat_id];
+					
+					std::vector<Primitive>::iterator it;
+					
+					for (it = prims.begin(); it != prims.end(); it++) {
+						Primitive& prim = *it;
+						
+						int l = 0;
+						while (l++ < prim.totface) {
+							prim.mface->mat_nr = k;
+							prim.mface++;
+						}
+					}
+				}
+			}
+		}
+		// checking of all other possible instances
+		else if (camera.getCount() != 0) {
+			// XXX currently only one <instance_camera> in a node is supported
+			return;
+		}
+		else if (lamp.getCount() != 0) {
+			// XXX currently only one <instance_light> in a node is supported
+			return;
+		}
+		else if (controller.getCount() != 0) {
+			// XXX currently only one <instance_controller> in a node is supported
+			return;
+		}
+		else if (inst_node.getCount() != 0) {
+			// XXX this is not supported
+			return;
+		}
+		// if node has no instances - create empty object
+		else {
+			ob = add_object(sce, OB_EMPTY);
+		}
+		
+		float rot[3][3];
+		Mat3One(rot);
+		
+		// transform Object
+		for (k = 0; k < node->getTransformations().getCount(); k ++) {
+			COLLADAFW::Transformation *transform = node->getTransformations()[k];
+			COLLADAFW::Transformation::TransformationType type = transform->getTransformationType();
+			switch(type) {
+			case COLLADAFW::Transformation::TRANSLATE:
+				{
+					COLLADAFW::Translate *tra = (COLLADAFW::Translate*)transform;
+					COLLADABU::Math::Vector3& t = tra->getTranslation();
+					// X
+					ob->loc[0] = (float)t[0];
+					// Y
+					ob->loc[1] = (float)t[1];
+					// Z
+					ob->loc[2] = (float)t[2];
+				}
+				break;
+			case COLLADAFW::Transformation::ROTATE:
+				{
+					COLLADAFW::Rotate *ro = (COLLADAFW::Rotate*)transform;
+					COLLADABU::Math::Vector3& raxis = ro->getRotationAxis();
+					float angle = (float)(ro->getRotationAngle() * M_PI / 180.0f);
+					float axis[] = {raxis[0], raxis[1], raxis[2]};
+					float quat[4];
+					float rot_copy[3][3];
+					float mat[3][3];
+					AxisAngleToQuat(quat, axis, angle);
+					
+					QuatToMat3(quat, mat);
+					Mat3CpyMat3(rot_copy, rot);
+					Mat3MulMat3(rot, rot_copy, mat);
+				}
+				break;
+			case COLLADAFW::Transformation::SCALE:
+				{
+					COLLADABU::Math::Vector3& s = ((COLLADAFW::Scale*)transform)->getScale();
+					// X
+					ob->size[0] = (float)s[0];
+					// Y
+					ob->size[1] = (float)s[1];
+					// Z
+					ob->size[2] = (float)s[2];
+				}
+				break;
+			case COLLADAFW::Transformation::MATRIX:
+				break;
+			case COLLADAFW::Transformation::LOOKAT:
+				break;
+			case COLLADAFW::Transformation::SKEW:
+				break;
+			}
+		}
+		Mat3ToEul(rot, ob->rot);
+		// if parent_ob != NULL set parent 
+		if (parent_ob != NULL) ob->parent = parent_ob;
+		
+		// if node has child nodes write them
+		COLLADAFW::NodePointerArray &child_nodes = node->getChildNodes();
+		
+		for (k = 0; k < child_nodes.getCount(); k++) {	
+			COLLADAFW::Node *child_node = child_nodes[k];
+			writeNode(child_node, sce, ob);
+		}
+	}
+
 	/** When this method is called, the writer must write the entire visual scene.
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeVisualScene ( const COLLADAFW::VisualScene* visualScene ) 
@@ -283,7 +448,7 @@ public:
 		// TODO: create a new scene except the selected <visual_scene> - use current blender
 		// scene for it
 		Scene *sce = CTX_data_scene(mContext);
-// 		Scene *sce = add_scene(visualScene->getName());
+		//Scene *sce = add_scene(visualScene->getName());
 		int i = 0;
 
 		for (i = 0; i < visualScene->getRootNodes().getCount(); i++) {
@@ -294,131 +459,7 @@ public:
 				continue;
 			}
 			
-			// XXX linking object with the first <instance_geometry>, though a node may have more of them...
-
-			// TODO: join multiple <instance_geometry> meshes into 1, and link object with it
-			
-			COLLADAFW::InstanceGeometryPointerArray &geom = node->getInstanceGeometries();
-			if (geom.getCount() < 1) {
-				fprintf(stderr, "Node hasn't got any geometry.\n");
-				continue;
-			}
-
-			Object *ob = add_object(sce, OB_MESH);
-
-			const std::string& id = node->getOriginalId();
-			if (id.length())
-				rename_id(&ob->id, (char*)id.c_str());
-
-
-			const COLLADAFW::UniqueId& geom_uid = geom[0]->getInstanciatedObjectId();
-			if (uid_mesh_map.find(geom_uid) == uid_mesh_map.end()) {
-				// XXX report to user
-				// this could happen if a mesh was not created
-				// (e.g. if it contains unsupported geometry)
-				fprintf(stderr, "Couldn't find a mesh by UID.\n");
-				continue;
-			}
-
-			// replace ob->data freeing the old one
-			Mesh *old_mesh = (Mesh*)ob->data;
-			set_mesh(ob, uid_mesh_map[geom_uid]);
-			if (old_mesh->id.us == 0) free_libblock(&G.main->mesh, old_mesh);
-			
-			float rot[3][3];
-			Mat3One(rot);
-			int k;
-			// transform Object
-			for (k = 0; k < node->getTransformations().getCount(); k ++) {
-				COLLADAFW::Transformation *transform = node->getTransformations()[k];
-				COLLADAFW::Transformation::TransformationType type = transform->getTransformationType();
-				switch(type) {
-				case COLLADAFW::Transformation::TRANSLATE:
-					{
-						COLLADAFW::Translate *tra = (COLLADAFW::Translate*)transform;
-						COLLADABU::Math::Vector3& t = tra->getTranslation();
-						// X
-						ob->loc[0] = (float)t[0];
-						// Y
-						ob->loc[1] = (float)t[1];
-						// Z
-						ob->loc[2] = (float)t[2];
-					}
-					break;
-				case COLLADAFW::Transformation::ROTATE:
-					{
-						COLLADAFW::Rotate *ro = (COLLADAFW::Rotate*)transform;
-						COLLADABU::Math::Vector3& raxis = ro->getRotationAxis();
-						float angle = (float)(ro->getRotationAngle() * M_PI / 180.0f);
-						float axis[] = {raxis[0], raxis[1], raxis[2]};
-						float quat[4];
-						float rot_copy[3][3];
-						float mat[3][3];
-						AxisAngleToQuat(quat, axis, angle);
-						
-						QuatToMat3(quat, mat);
-						Mat3CpyMat3(rot_copy, rot);
-						Mat3MulMat3(rot, rot_copy, mat);
-					}
-					break;
-				case COLLADAFW::Transformation::SCALE:
-					{
-						COLLADABU::Math::Vector3& s = ((COLLADAFW::Scale*)transform)->getScale();
-						// X
-						ob->size[0] = (float)s[0];
-						// Y
-						ob->size[1] = (float)s[1];
-						// Z
-						ob->size[2] = (float)s[2];
-					}
-					break;
-				case COLLADAFW::Transformation::MATRIX:
-					break;
-				case COLLADAFW::Transformation::LOOKAT:
-					break;
-				case COLLADAFW::Transformation::SKEW:
-					break;
-				}
-			}
-			Mat3ToEul(rot, ob->rot);
-
-			// assign materials to object
-			// assign material indices to mesh faces
-			for (k = 0; k < geom[0]->getMaterialBindings().getCount(); k++) {
-				
-				const COLLADAFW::UniqueId& mat_uid =
-					geom[0]->getMaterialBindings()[k].getReferencedMaterial();
-
-				if (uid_material_map.find(mat_uid) == uid_material_map.end()) {
-					// This should not happen
-					fprintf(stderr, "Cannot find material by UID.\n");
-					continue;
-				}
-
-				assign_material(ob, uid_material_map[mat_uid], ob->totcol + 1);
-
-				MaterialIdPrimitiveArrayMap& mat_prim_map = geom_uid_mat_mapping_map[geom_uid];
-				COLLADAFW::MaterialId mat_id = geom[0]->getMaterialBindings()[k].getMaterialId();
-				
-				// if there's geometry that uses this material,
-				// set mface->mat_nr=k for each face in that geometry
-				if (mat_prim_map.find(mat_id) != mat_prim_map.end()) {
-
-					std::vector<Primitive>& prims = mat_prim_map[mat_id];
-
-					std::vector<Primitive>::iterator it;
-
-					for (it = prims.begin(); it != prims.end(); it++) {
-						Primitive& prim = *it;
-
-						int l = 0;
-						while (l++ < prim.totface) {
-							prim.mface->mat_nr = k;
-							prim.mface++;
-						}
-					}
-				}
-			}
+			writeNode(node, sce);
 		}
 		
 		mVisualScenes.push_back(*visualScene);
