@@ -63,8 +63,10 @@ void GPU_state_init(void);
  *   GPU_enable_material returns 0 if drawing should be skipped
  * - after drawing, the material must be disabled again */
 
-void GPU_set_object_materials(struct View3D *v3d, struct RegionView3D *rv3d, 
+void GPU_begin_object_materials(struct View3D *v3d, struct RegionView3D *rv3d, 
 	struct Scene *scene, struct Object *ob, int glsl, int *do_alpha_pass);
+void GPU_end_object_materials(void);
+
 int GPU_enable_material(int nr, void *attribs);
 void GPU_disable_material(void);
 

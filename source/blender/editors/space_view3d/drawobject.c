@@ -2463,10 +2463,12 @@ static int draw_mesh_object(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 		if(dt>OB_WIRE) {
 			// no transp in editmode, the fancy draw over goes bad then
 			glsl = draw_glsl_material(scene, ob, v3d, dt);
-			GPU_set_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
+			GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
 		}
 
 		draw_em_fancy(scene, v3d, rv3d, ob, em, cageDM, finalDM, dt);
+
+		GPU_end_object_materials();
 
 		if (obedit!=ob && finalDM)
 			finalDM->release(finalDM);
@@ -2482,17 +2484,19 @@ static int draw_mesh_object(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 			check_alpha = check_material_alpha(base, me, glsl);
 
 			if(dt==OB_SOLID || glsl) {
-				GPU_set_object_materials(v3d, rv3d, scene, ob, glsl,
+				GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl,
 					(check_alpha)? &do_alpha_pass: NULL);
 			}
 
 			draw_mesh_fancy(scene, v3d, rv3d, base, dt, flag);
+
+			GPU_end_object_materials();
 			
 			if(me->totvert==0) retval= 1;
 		}
 	}
 	
-	/* GPU_set_object_materials checked if this is needed */
+	/* GPU_begin_object_materials checked if this is needed */
 	if(do_alpha_pass) add_view3d_after(v3d, base, V3D_TRANSP, flag);
 	
 	return retval;
@@ -2670,7 +2674,6 @@ static void drawDispListsolid(ListBase *lb, Object *ob, int glsl)
 				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
 				glNormalPointer(GL_FLOAT, 0, dl->nors);
 				glDrawElements(GL_QUADS, 4*dl->totindex, GL_UNSIGNED_INT, dl->index);
-				GPU_disable_material();
 			}			
 			break;
 
@@ -2688,7 +2691,6 @@ static void drawDispListsolid(ListBase *lb, Object *ob, int glsl)
 				glNormalPointer(GL_FLOAT, 0, dl->nors);
 			
 			glDrawElements(GL_TRIANGLES, 3*dl->parts, GL_UNSIGNED_INT, dl->index);
-			GPU_disable_material();
 			
 			if(index3_nors_incr==0)
 				glEnableClientState(GL_NORMAL_ARRAY);
@@ -2702,8 +2704,6 @@ static void drawDispListsolid(ListBase *lb, Object *ob, int glsl)
 			glNormalPointer(GL_FLOAT, 0, dl->nors);
 			glDrawElements(GL_QUADS, 4*dl->parts, GL_UNSIGNED_INT, dl->index);
 
-			GPU_disable_material();
-			
 			break;
 		}
 		dl= dl->next;
@@ -2797,17 +2797,19 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 			}
 			else {
 				if(draw_glsl_material(scene, ob, v3d, dt)) {
-					GPU_set_object_materials(v3d, rv3d, scene, ob, 1, NULL);
+					GPU_begin_object_materials(v3d, rv3d, scene, ob, 1, NULL);
 					drawDispListsolid(lb, ob, 1);
+					GPU_end_object_materials();
 				}
 				else if(dt == OB_SHADED) {
 					if(ob->disp.first==0) shadeDispList(scene, base);
 					drawDispListshaded(lb, ob);
 				}
 				else {
-					GPU_set_object_materials(v3d, rv3d, scene, ob, 0, NULL);
+					GPU_begin_object_materials(v3d, rv3d, scene, ob, 0, NULL);
 					glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 					drawDispListsolid(lb, ob, 0);
+					GPU_end_object_materials();
 				}
 				if(cu->editnurb && cu->bevobj==NULL && cu->taperobj==NULL && cu->ext1 == 0.0 && cu->ext2 == 0.0) {
 					cpack(0);
@@ -2835,18 +2837,19 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 			if(dl->nors==NULL) addnormalsDispList(ob, lb);
 			
 			if(draw_glsl_material(scene, ob, v3d, dt)) {
-				GPU_set_object_materials(v3d, rv3d, scene, ob, 1, NULL);
+				GPU_begin_object_materials(v3d, rv3d, scene, ob, 1, NULL);
 				drawDispListsolid(lb, ob, 1);
+				GPU_end_object_materials();
 			}
 			else if(dt==OB_SHADED) {
 				if(ob->disp.first==NULL) shadeDispList(scene, base);
 				drawDispListshaded(lb, ob);
 			}
 			else {
-				GPU_set_object_materials(v3d, rv3d, scene, ob, 0, NULL);
+				GPU_begin_object_materials(v3d, rv3d, scene, ob, 0, NULL);
 				glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
-			
 				drawDispListsolid(lb, ob, 0);
+				GPU_end_object_materials();
 			}
 		}
 		else {
@@ -2863,8 +2866,9 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 			if(solid) {
 				
 				if(draw_glsl_material(scene, ob, v3d, dt)) {
-					GPU_set_object_materials(v3d, rv3d, scene, ob, 1, NULL);
+					GPU_begin_object_materials(v3d, rv3d, scene, ob, 1, NULL);
 					drawDispListsolid(lb, ob, 1);
+					GPU_end_object_materials();
 				}
 				else if(dt == OB_SHADED) {
 					dl= lb->first;
@@ -2872,10 +2876,10 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 					drawDispListshaded(lb, ob);
 				}
 				else {
-					GPU_set_object_materials(v3d, rv3d, scene, ob, 0, NULL);
+					GPU_begin_object_materials(v3d, rv3d, scene, ob, 0, NULL);
 					glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
-				
 					drawDispListsolid(lb, ob, 0);
+					GPU_end_object_materials();
 				}
 			}
 			else{
@@ -5615,7 +5619,7 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 
 		if(dm) {
 			glsl = draw_glsl_material(scene, ob, v3d, dt);
-			GPU_set_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
+			GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
 		}
 		else {
 			glEnable(GL_COLOR_MATERIAL);
@@ -5629,7 +5633,7 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 		
 		if(dm) {
 			dm->drawFacesSolid(dm, GPU_enable_material);
-			GPU_disable_material();
+			GPU_end_object_materials();
 		}
 		else if(edm)
 			edm->drawMappedFaces(edm, NULL, NULL, 0);

@@ -243,7 +243,9 @@ void free_object(Object *ob)
 		if(ob->mat[a]) ob->mat[a]->id.us--;
 	}
 	if(ob->mat) MEM_freeN(ob->mat);
+	if(ob->matbits) MEM_freeN(ob->matbits);
 	ob->mat= 0;
+	ob->matbits= 0;
 	if(ob->bb) MEM_freeN(ob->bb); 
 	ob->bb= 0;
 	if(ob->path) free_path(ob->path); 
@@ -942,7 +944,6 @@ Object *add_only_object(int type, char *name)
 	Mat4One(ob->parentinv);
 	Mat4One(ob->obmat);
 	ob->dt= OB_SHADED;
-	if(U.flag & USER_MAT_ON_OB) ob->colbits= -1;
 	ob->empty_drawtype= OB_ARROWS;
 	ob->empty_drawsize= 1.0;
 
@@ -1170,6 +1171,7 @@ Object *copy_object(Object *ob)
 	
 	if(ob->totcol) {
 		obn->mat= MEM_dupallocN(ob->mat);
+		obn->matbits= MEM_dupallocN(ob->matbits);
 	}
 	
 	if(ob->bb) obn->bb= MEM_dupallocN(ob->bb);
@@ -1397,7 +1399,9 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	/* copy material and index information */
 	ob->actcol= ob->totcol= 0;
 	if(ob->mat) MEM_freeN(ob->mat);
+	if(ob->matbits) MEM_freeN(ob->matbits);
 	ob->mat = NULL;
+	ob->matbits= NULL;
 	if ((target->totcol) && (target->mat) && ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) { //XXX OB_SUPPORT_MATERIAL
 		int i;
 		ob->colbits = target->colbits;
@@ -1406,6 +1410,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 		ob->totcol= target->totcol;
 		
 		ob->mat = MEM_dupallocN(target->mat);
+		ob->matbits = MEM_dupallocN(target->matbits);
 		for(i=0; i<target->totcol; i++) {
 			/* dont need to run test_object_materials since we know this object is new and not used elsewhere */
 			id_us_plus((ID *)ob->mat[i]); 

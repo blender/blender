@@ -669,24 +669,21 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 	}	
 }
 
-int join_armature(Scene *scene, View3D *v3d)
+int join_armature_exec(bContext *C, wmOperator *op)
 {
-	Object	*ob= scene->basact->object; // XXX context
-	bArmature *arm= ob->data;
-	Base	*base, *nextbase;
+	Scene *scene= CTX_data_scene(C);
+	Object	*ob= CTX_data_active_object(C);
+	bArmature *arm= (ob)? ob->data: NULL;
 	bPose *pose, *opose;
 	bPoseChannel *pchan, *pchann;
 	EditBone *curbone;
 	float	mat[4][4], oimat[4][4];
 	
 	/*	Ensure we're not in editmode and that the active object is an armature*/
-	if (ob->type!=OB_ARMATURE) return 0;
-	if (arm->edbo) return 0;
-	
-	if (object_data_is_libdata(ob)) {
-		error_libdata();
-		return 0;
-	}
+	if (!ob || ob->type!=OB_ARMATURE)
+		return OPERATOR_CANCELLED;
+	if (!arm || arm->edbo)
+		return OPERATOR_CANCELLED;
 	
 	/* Get editbones of active armature to add editbones to */
 	ED_armature_to_edit(ob);
@@ -694,89 +691,89 @@ int join_armature(Scene *scene, View3D *v3d)
 	/* get pose of active object and move it out of posemode */
 	pose= ob->pose;
 	ob->flag &= ~OB_POSEMODE;
-	
-	for (base=FIRSTBASE; base; base=nextbase) {
-		nextbase = base->next;
-		if (TESTBASE(v3d, base)){
-			if ((base->object->type==OB_ARMATURE) && (base->object!=ob)) {
-				bArmature *curarm= base->object->data;
+
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+		if ((base->object->type==OB_ARMATURE) && (base->object!=ob)) {
+			bArmature *curarm= base->object->data;
+			
+			/* Make a list of editbones in current armature */
+			ED_armature_to_edit(base->object);
+			
+			/* Get Pose of current armature */
+			opose= base->object->pose;
+			base->object->flag &= ~OB_POSEMODE;
+			BASACT->flag &= ~OB_POSEMODE;
+			
+			/* Find the difference matrix */
+			Mat4Invert(oimat, ob->obmat);
+			Mat4MulMat4(mat, base->object->obmat, oimat);
+			
+			/* Copy bones and posechannels from the object to the edit armature */
+			for (pchan=opose->chanbase.first; pchan; pchan=pchann) {
+				pchann= pchan->next;
+				curbone= editbone_name_exists(curarm->edbo, pchan->name);
 				
-				/* Make a list of editbones in current armature */
-				ED_armature_to_edit(base->object);
+				/* Get new name */
+				unique_editbone_name(arm->edbo, curbone->name, NULL);
 				
-				/* Get Pose of current armature */
-				opose= base->object->pose;
-				base->object->flag &= ~OB_POSEMODE;
-				BASACT->flag &= ~OB_POSEMODE;
-				
-				/* Find the difference matrix */
-				Mat4Invert(oimat, ob->obmat);
-				Mat4MulMat4(mat, base->object->obmat, oimat);
-				
-				/* Copy bones and posechannels from the object to the edit armature */
-				for (pchan=opose->chanbase.first; pchan; pchan=pchann) {
-					pchann= pchan->next;
-					curbone= editbone_name_exists(curarm->edbo, pchan->name);
+				/* Transform the bone */
+				{
+					float premat[4][4];
+					float postmat[4][4];
+					float difmat[4][4];
+					float imat[4][4];
+					float temp[3][3];
+					float delta[3];
 					
-					/* Get new name */
-					unique_editbone_name(arm->edbo, curbone->name, NULL);
+					/* Get the premat */
+					VecSubf(delta, curbone->tail, curbone->head);
+					vec_roll_to_mat3(delta, curbone->roll, temp);
 					
-					/* Transform the bone */
-					{
-						float premat[4][4];
-						float postmat[4][4];
-						float difmat[4][4];
-						float imat[4][4];
-						float temp[3][3];
-						float delta[3];
-						
-						/* Get the premat */
-						VecSubf(delta, curbone->tail, curbone->head);
-						vec_roll_to_mat3(delta, curbone->roll, temp);
-						
-						Mat4One(premat); /* Mat4MulMat34 only sets 3x3 part */
-						Mat4MulMat34(premat, temp, mat);
-						
-						Mat4MulVecfl(mat, curbone->head);
-						Mat4MulVecfl(mat, curbone->tail);
-						
-						/* Get the postmat */
-						VecSubf(delta, curbone->tail, curbone->head);
-						vec_roll_to_mat3(delta, curbone->roll, temp);
-						Mat4CpyMat3(postmat, temp);
-						
-						/* Find the roll */
-						Mat4Invert(imat, premat);
-						Mat4MulMat4(difmat, postmat, imat);
-						
-						curbone->roll -= (float)atan2(difmat[2][0], difmat[2][2]);
-					}
+					Mat4One(premat); /* Mat4MulMat34 only sets 3x3 part */
+					Mat4MulMat34(premat, temp, mat);
 					
-					/* Fix Constraints and Other Links to this Bone and Armature */
-					joined_armature_fix_links(ob, base->object, pchan, curbone);
+					Mat4MulVecfl(mat, curbone->head);
+					Mat4MulVecfl(mat, curbone->tail);
 					
-					/* Rename pchan */
-					BLI_strncpy(pchan->name, curbone->name, sizeof(pchan->name));
+					/* Get the postmat */
+					VecSubf(delta, curbone->tail, curbone->head);
+					vec_roll_to_mat3(delta, curbone->roll, temp);
+					Mat4CpyMat3(postmat, temp);
 					
-					/* Jump Ship! */
-					BLI_remlink(curarm->edbo, curbone);
-					BLI_addtail(arm->edbo, curbone);
+					/* Find the roll */
+					Mat4Invert(imat, premat);
+					Mat4MulMat4(difmat, postmat, imat);
 					
-					BLI_remlink(&opose->chanbase, pchan);
-					BLI_addtail(&pose->chanbase, pchan);
+					curbone->roll -= (float)atan2(difmat[2][0], difmat[2][2]);
 				}
 				
-				ED_base_object_free_and_unlink(scene, base);
+				/* Fix Constraints and Other Links to this Bone and Armature */
+				joined_armature_fix_links(ob, base->object, pchan, curbone);
+				
+				/* Rename pchan */
+				BLI_strncpy(pchan->name, curbone->name, sizeof(pchan->name));
+				
+				/* Jump Ship! */
+				BLI_remlink(curarm->edbo, curbone);
+				BLI_addtail(arm->edbo, curbone);
+				
+				BLI_remlink(&opose->chanbase, pchan);
+				BLI_addtail(&pose->chanbase, pchan);
 			}
+			
+			ED_base_object_free_and_unlink(scene, base);
 		}
 	}
+	CTX_DATA_END;
 	
 	DAG_scene_sort(scene);	// because we removed object(s)
 
 	ED_armature_from_edit(scene, ob);
 	ED_armature_edit_free(ob);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 	
-	return 1;
+	return OPERATOR_FINISHED;
 }
 
 /* Helper function for armature separating - link fixing */

@@ -47,11 +47,11 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
 
 		if ob and slot:
 			split.template_ID(slot, "material", new="MATERIAL_OT_new")
-			#split.itemR(ob, "active_material_index", text="Active")
+			row = split.row()
+			row.itemR(slot, "link", expand=True)
 		elif mat:
 			split.template_ID(space, "pin_id")
 			split.itemS()
-
 	
 class MATERIAL_PT_material(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_material"

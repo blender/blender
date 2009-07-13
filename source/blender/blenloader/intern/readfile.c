@@ -3732,6 +3732,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 
 	ob->mat= newdataadr(fd, ob->mat);
 	test_pointer_array(fd, (void **)&ob->mat);
+	ob->matbits= newdataadr(fd, ob->matbits);
 	
 	/* do it here, below old data gets converted */
 	direct_link_modifiers(fd, &ob->modifiers);
@@ -4221,6 +4222,7 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	wm->paintcursors.first= wm->paintcursors.last= NULL;
 	wm->queue.first= wm->queue.last= NULL;
 	wm->reports.first= wm->reports.last= NULL;
+	wm->jobs.first= wm->jobs.last= NULL;
 	
 	wm->windrawable= NULL;
 	wm->initialized= 0;
@@ -9241,6 +9243,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 
 				ob->data = olddata;
+			}
+
+			if(ob->totcol && ob->matbits == NULL) {
+				int a;
+
+				ob->matbits= MEM_callocN(sizeof(char)*ob->totcol, "ob->matbits");
+				for(a=0; a<ob->totcol; a++)
+					ob->matbits[a]= ob->colbits & (1<<a);
 			}
 		}
 

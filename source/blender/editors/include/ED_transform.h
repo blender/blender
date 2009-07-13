@@ -33,6 +33,7 @@
 /* ******************* Registration Function ********************** */
 
 struct wmWindowManager;
+struct wmOperatorType;
 struct ListBase;
 struct wmEvent;
 struct bContext;

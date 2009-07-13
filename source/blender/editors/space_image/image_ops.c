@@ -387,7 +387,6 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	ARegion *ar;
 	Scene *scene;
 	Object *obedit;
-	Image *ima;
 	ImBuf *ibuf;
 	float aspx, aspy, zoomx, zoomy, w, h;
 	int width, height;
@@ -398,7 +397,6 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	scene= (Scene*)CTX_data_scene(C);
 	obedit= CTX_data_edit_object(C);
 
-	ima= ED_space_image(sima);
 	ibuf= ED_space_image_buffer(sima);
 	ED_space_image_size(sima, &width, &height);
 	ED_space_image_aspect(sima, &aspx, &aspy);

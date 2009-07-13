@@ -1700,22 +1700,24 @@ static int tree_element_active_material(Scene *scene, SpaceOops *soops, TreeElem
 	if(tes->idcode==ID_OB) {
 		if(set) {
 			ob->actcol= te->index+1;
-			ob->colbits |= (1<<te->index);	// make ob material active too
+			ob->matbits[te->index]= 1;	// make ob material active too
+			ob->colbits |= (1<<te->index);
 		}
 		else {
 			if(ob->actcol == te->index+1) 
-				if(ob->colbits & (1<<te->index)) return 1;
+				if(ob->matbits[te->index]) return 1;
 		}
 	}
 	/* or we search for obdata material */
 	else {
 		if(set) {
 			ob->actcol= te->index+1;
-			ob->colbits &= ~(1<<te->index);	// make obdata material active too
+			ob->matbits[te->index]= 0;	// make obdata material active too
+			ob->colbits &= ~(1<<te->index);
 		}
 		else {
 			if(ob->actcol == te->index+1)
-				if( (ob->colbits & (1<<te->index))==0 ) return 1;
+				if(ob->matbits[te->index]==0) return 1;
 		}
 	}
 	if(set) {

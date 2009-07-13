@@ -701,7 +701,6 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "mat_nr");
 	RNA_def_property_ui_text(prop, "Material Index", "");
-	RNA_def_property_range(prop, 0, MAXMAT-1);
 	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_Curve_material_index_range");
 	
 	prop= RNA_def_property(srna, "character_index", PROP_INT, PROP_UNSIGNED);

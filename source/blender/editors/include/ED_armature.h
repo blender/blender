@@ -34,6 +34,7 @@ struct Base;
 struct Bone;
 struct bArmature;
 struct bPoseChannel;
+struct wmOperator;
 struct wmWindowManager;
 struct ListBase;
 struct View3D;
@@ -100,6 +101,7 @@ void ED_armature_edit_remake(struct Object *obedit);
 int ED_do_pose_selectbuffer(struct Scene *scene, struct Base *base, unsigned int *buffer, 
 							short hits, short extend);
 void mouse_armature(struct bContext *C, short mval[2], int extend);
+int join_armature_exec(struct bContext *C, struct wmOperator *op);
 struct Bone *get_indexed_bone (struct Object *ob, int index);
 float ED_rollBoneToVector(EditBone *bone, float new_up_axis[3]);
 EditBone *ED_armature_bone_get_mirrored(struct ListBase *edbo, EditBone *ebo); // XXX this is needed for populating the context iterators

@@ -36,6 +36,7 @@ struct EditVert;
 struct EditEdge;
 struct EditFace;
 struct bContext;
+struct wmOperator;
 struct wmWindowManager;
 struct EditSelection;
 struct ViewContext;
@@ -75,6 +76,8 @@ intptr_t	mesh_octree_table(struct Object *ob, struct EditMesh *em, float *co, ch
 struct EditVert   *editmesh_get_x_mirror_vert(struct Object *ob, struct EditMesh *em, float *co);
 int			mesh_get_x_mirror_vert(struct Object *ob, int index);
 int			*mesh_get_x_mirror_faces(struct Object *ob, struct EditMesh *em);
+
+int			join_mesh_exec(struct bContext *C, struct wmOperator *op);
 
 /* mesh_ops.c */
 void		ED_operatortypes_mesh(void);

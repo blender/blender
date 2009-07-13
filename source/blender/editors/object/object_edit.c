@@ -1755,7 +1755,6 @@ static short select_grouped_parent(bContext *C)	/* Makes parent active and de-se
 static short select_grouped_group(bContext *C, Object *ob)	/* Select objects in the same group as the active */
 {
 	short changed = 0;
-	Base *base;
 	Group *group, *ob_groups[GROUP_MENU_MAX];
 	//char str[10 + (24*GROUP_MENU_MAX)];
 	//char *p = str;
@@ -6324,6 +6323,53 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 	/* to give to transform */
 	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data.");
 	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+}
+
+/* ************************** JOIN *********************** */
+
+static int join_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+
+	if(scene->obedit) {
+		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in editmode.");
+		return OPERATOR_CANCELLED;
+	}
+	else if(!ob) {
+		BKE_report(op->reports, RPT_ERROR, "Can't join unless there is an active object.");
+		return OPERATOR_CANCELLED;
+	}
+	else if(object_data_is_libdata(ob)) {
+		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata.");
+		return OPERATOR_CANCELLED;
+	}
+
+	if(ob->type == OB_MESH)
+		return join_mesh_exec(C, op);
+	else if(ELEM(ob->type, OB_CURVE, OB_SURF))
+		return join_curve_exec(C, op);
+	else if(ob->type == OB_ARMATURE)
+		return join_armature_exec(C, op);
+
+	BKE_report(op->reports, RPT_ERROR, "This object type doesn't support joining.");
+
+	return OPERATOR_CANCELLED;
+}
+
+void OBJECT_OT_join(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Join";
+	ot->description = "Join selected objects into active object.";
+	ot->idname= "OBJECT_OT_join";
+	
+	/* api callbacks */
+	ot->exec= join_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ********************** */

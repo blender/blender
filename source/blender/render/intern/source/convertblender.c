@@ -2582,9 +2582,9 @@ static void init_render_surf(Render *re, ObjectRen *obr)
 	Curve *cu;
 	ListBase displist;
 	DispList *dl;
-	Material *matar[32];
+	Material **matar;
 	float *orco=NULL, *orcobase=NULL, mat[4][4];
-	int a, need_orco=0;
+	int a, totmat, need_orco=0;
 
 	cu= ob->data;
 	nu= cu->nurb.first;
@@ -2594,13 +2594,14 @@ static void init_render_surf(Render *re, ObjectRen *obr)
 	MTC_Mat4Invert(ob->imat, mat);
 
 	/* material array */
-	memset(matar, 0, 4*32);
-	matar[0]= give_render_material(re, ob, 0);
-	for(a=0; a<ob->totcol; a++) {
+	totmat= ob->totcol+1;
+	matar= MEM_callocN(sizeof(Material*)*totmat, "init_render_surf matar");
+
+	for(a=0; a<totmat; a++) {
 		matar[a]= give_render_material(re, ob, a+1);
-		if(matar[a] && matar[a]->texco & TEXCO_ORCO) {
+
+		if(matar[a] && matar[a]->texco & TEXCO_ORCO)
 			need_orco= 1;
-		}
 	}
 
 	if(ob->parent && (ob->parent->type==OB_LATTICE)) need_orco= 1;
@@ -2610,17 +2611,15 @@ static void init_render_surf(Render *re, ObjectRen *obr)
 	displist.first= displist.last= 0;
 	makeDispListSurf(re->scene, ob, &displist, 1, 0);
 
-	dl= displist.first;
 	/* walk along displaylist and create rendervertices/-faces */
-	while(dl) {
-			/* watch out: u ^= y, v ^= x !! */
-		if(dl->type==DL_SURF) {
+	for(dl=displist.first; dl; dl=dl->next) {
+		/* watch out: u ^= y, v ^= x !! */
+		if(dl->type==DL_SURF)
 			orco+= 3*dl_surf_to_renderdata(obr, dl, matar, orco, mat);
-		}
-
-		dl= dl->next;
 	}
+
 	freedisplist(&displist);
+	MEM_freeN(matar);
 }
 
 static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
@@ -2631,11 +2630,11 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	VlakRen *vlr;
 	DispList *dl;
 	ListBase olddl={NULL, NULL};
-	Material *matar[32];
+	Material **matar;
 	float len, *data, *fp, *orco=NULL, *orcobase= NULL;
 	float n[3], mat[4][4];
 	int nr, startvert, startvlak, a, b;
-	int frontside, need_orco=0;
+	int frontside, need_orco=0, totmat;
 
 	cu= ob->data;
 	if(ob->type==OB_FONT && cu->str==NULL) return;
@@ -2656,13 +2655,14 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	MTC_Mat4Invert(ob->imat, mat);
 
 	/* material array */
-	memset(matar, 0, 4*32);
-	matar[0]= give_render_material(re, ob, 0);
-	for(a=0; a<ob->totcol; a++) {
+	totmat= ob->totcol+1;
+	matar= MEM_callocN(sizeof(Material*)*totmat, "init_render_surf matar");
+
+	for(a=0; a<totmat; a++) {
 		matar[a]= give_render_material(re, ob, a+1);
-		if(matar[a]->texco & TEXCO_ORCO) {
+
+		if(matar[a] && matar[a]->texco & TEXCO_ORCO)
 			need_orco= 1;
-		}
 	}
 
 	if(need_orco) orcobase=orco= get_object_orco(re, ob);
@@ -2840,6 +2840,8 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 		freedisplist(&cu->disp);
 		SWAP(ListBase, olddl, cu->disp);
 	}
+
+	MEM_freeN(matar);
 }
 
 /* ------------------------------------------------------------------------- */

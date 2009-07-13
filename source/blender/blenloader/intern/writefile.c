@@ -1131,6 +1131,7 @@ static void write_objects(WriteData *wd, ListBase *idbase, int write_undo)
 			
 			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*ob->totcol, ob->mat);
+			writedata(wd, DATA, sizeof(char)*ob->totcol, ob->matbits);
 			/* write_effects(wd, &ob->effect); */ /* not used anymore */
 			write_properties(wd, &ob->prop);
 			write_sensors(wd, &ob->sensors);

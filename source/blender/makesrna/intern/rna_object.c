@@ -331,7 +331,7 @@ static int rna_MaterialSlot_link_get(PointerRNA *ptr)
 	Object *ob= (Object*)ptr->id.data;
 	int index= (Material**)ptr->data - ob->mat;
 
-	return (ob->colbits & (1<<index)) != 0;
+	return ob->matbits[index] != 0;
 }
 
 static void rna_MaterialSlot_link_set(PointerRNA *ptr, int value)
@@ -339,10 +339,14 @@ static void rna_MaterialSlot_link_set(PointerRNA *ptr, int value)
 	Object *ob= (Object*)ptr->id.data;
 	int index= (Material**)ptr->data - ob->mat;
 	
-	if(value)
+	if(value) {
+		ob->matbits[index]= 1;
 		ob->colbits |= (1<<index);
-	else
+	}
+	else {
+		ob->matbits[index]= 0;
 		ob->colbits &= ~(1<<index);
+	}
 }
 
 static int rna_MaterialSlot_name_length(PointerRNA *ptr)
@@ -523,8 +527,8 @@ static void rna_def_material_slot(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem link_items[] = {
-		{0, "DATA", 0, "Data", ""},
 		{1, "OBJECT", 0, "Object", ""},
+		{0, "DATA", 0, "Data", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
 	/* NOTE: there is no MaterialSlot equivalent in DNA, so the internal
