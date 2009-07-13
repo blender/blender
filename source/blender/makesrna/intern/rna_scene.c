@@ -137,7 +137,9 @@ static void rna_SceneRenderData_file_format_set(PointerRNA *ptr, int value)
 	RenderData *rd= (RenderData*)ptr->data;
 
 	rd->imtype= value;
+#ifdef WITH_FFMPEG
 	ffmpeg_verify_image_type(rd);
+#endif
 }
 
 static int rna_SceneRenderData_active_layer_index_get(PointerRNA *ptr)
