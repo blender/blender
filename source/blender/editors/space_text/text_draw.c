@@ -109,22 +109,18 @@ static void flatten_string_append(FlattenString *fs, char c, int accum)
 {
 	if(fs->pos>=fs->len && fs->pos>=sizeof(fs->fixedbuf)-1) {
 		char *nbuf; int *naccum;
-		int olen= fs->len;
-		
-		if(olen) fs->len*= 2;
-		else fs->len= 256;
-		
+		if(fs->len) fs->len*= 2;
+		else fs->len= sizeof(fs->fixedbuf) * 2;
+
 		nbuf= MEM_callocN(sizeof(*fs->buf)*fs->len, "fs->buf");
 		naccum= MEM_callocN(sizeof(*fs->accum)*fs->len, "fs->accum");
+
+		memcpy(nbuf, fs->buf, fs->pos);
+		memcpy(naccum, fs->accum, fs->pos);
 		
-		if(olen) {
-			memcpy(nbuf, fs->buf, olen);
-			memcpy(naccum, fs->accum, olen);
-			
-			if(fs->buf != fs->fixedbuf) {
-				MEM_freeN(fs->buf);
-				MEM_freeN(fs->accum);
-			}
+		if(fs->buf != fs->fixedbuf) {
+			MEM_freeN(fs->buf);
+			MEM_freeN(fs->accum);
 		}
 		
 		fs->buf= nbuf;
@@ -134,8 +130,7 @@ static void flatten_string_append(FlattenString *fs, char c, int accum)
 	fs->buf[fs->pos]= c;	
 	fs->accum[fs->pos]= accum;
 	
-	if(c==0) fs->pos= 0;
-	else fs->pos++;
+	fs->pos++;
 }
 
 int flatten_string(SpaceText *st, FlattenString *fs, char *in)
@@ -1336,6 +1331,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 				UI_ThemeColor(TH_TEXT);
 
 			sprintf(linenr, "%d", i + linecount + 1);
+			/* itoa(i + linecount + 1, linenr, 10); */ /* not ansi-c :/ */
 			text_font_draw(st, TXT_OFFSET - 7, y, linenr);
 
 			UI_ThemeColor(TH_TEXT);
