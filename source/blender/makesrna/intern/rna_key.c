@@ -198,7 +198,7 @@ static void rna_ShapeKey_data_begin(CollectionPropertyIterator *iter, PointerRNA
 		}
 	}
 
-	rna_iterator_array_begin(iter, (void*)kb->data, size, tot, NULL);
+	rna_iterator_array_begin(iter, (void*)kb->data, size, tot, 0, NULL);
 }
 
 static int rna_ShapeKey_data_length(PointerRNA *ptr)

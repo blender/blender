@@ -56,7 +56,7 @@ static PointerRNA rna_World_mist_get(PointerRNA *ptr)
 static void rna_World_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	World *wo= (World*)ptr->data;
-	rna_iterator_array_begin(iter, (void*)wo->mtex, sizeof(MTex*), MAX_MTEX, NULL);
+	rna_iterator_array_begin(iter, (void*)wo->mtex, sizeof(MTex*), MAX_MTEX, 0, NULL);
 }
 
 static PointerRNA rna_World_active_texture_get(PointerRNA *ptr)

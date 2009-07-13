@@ -225,10 +225,16 @@ static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 {
 	EnumPropertyItem *item;
 	char *result;
-	int free;
+	int free= 0;
 	
 	RNA_property_enum_items(BPy_GetContext(), ptr, prop, &item, NULL, &free);
-	result= (char*)BPy_enum_as_string(item);
+	if(item) {
+		result= (char*)BPy_enum_as_string(item);
+	}
+	else {
+		result= "";
+	}
+	
 	if(free)
 		MEM_freeN(item);
 	
@@ -319,12 +325,12 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 			ret = PyUnicode_FromString( identifier );
 		} else {
 			EnumPropertyItem *item;
-			int free;
+			int free= 0;
 
 			/* don't throw error here, can't trust blender 100% to give the
 			 * right values, python code should not generate error for that */
 			RNA_property_enum_items(BPy_GetContext(), ptr, prop, &item, NULL, &free);
-			if(item->identifier) {
+			if(item && item->identifier) {
 				ret = PyUnicode_FromString( item->identifier );
 			}
 			else {
@@ -1831,20 +1837,12 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 			if (RNA_property_enum_identifier(BPy_GetContext(), ptr, prop, val, &identifier)) {
 				ret = PyUnicode_FromString( identifier );
 			} else {
-				EnumPropertyItem *item;
-				int free;
-
-				/* don't throw error here, can't trust blender 100% to give the
-				 * right values, python code should not generate error for that */
-				RNA_property_enum_items(BPy_GetContext(), ptr, prop, &item, NULL, &free);
-				if(item[0].identifier)
-					ret = PyUnicode_FromString( item[0].identifier );
-				else
-					ret = PyUnicode_FromString( "" );
-
-				if(free)
-					MEM_freeN(item);
-
+				/* prefer not fail silently incase of api errors, maybe disable it later */
+				char error_str[128];
+				sprintf(error_str, "RNA Warning: Current value \"%d\" matches no enum", val);
+				PyErr_Warn(PyExc_RuntimeWarning, error_str);
+				
+				ret = PyUnicode_FromString( "" );
 				/*PyErr_Format(PyExc_AttributeError, "RNA Error: Current value \"%d\" matches no enum", val);
 				ret = NULL;*/
 			}

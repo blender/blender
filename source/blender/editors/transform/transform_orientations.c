@@ -358,8 +358,10 @@ void BIF_selectTransformOrientationValue(bContext *C, int orientation) {
 
 EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)
 {
-	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
-	TransformOrientation *ts = transform_spaces->first;
+	Scene *scene;
+	ListBase *transform_spaces;
+	TransformOrientation *ts= NULL;
+
 	EnumPropertyItem global	= {V3D_MANIP_GLOBAL, "GLOBAL", 0, "Global", ""};
 	EnumPropertyItem normal = {V3D_MANIP_NORMAL, "NORMAL", 0, "Normal", ""};
 	EnumPropertyItem local = {V3D_MANIP_LOCAL, "LOCAL", 0, "Local", ""};
@@ -374,6 +376,15 @@ EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)
 	RNA_enum_item_add(&item, &totitem, &local);
 	RNA_enum_item_add(&item, &totitem, &view);
 
+	if(C) {
+		scene= CTX_data_scene(C);
+
+		if(scene) {
+			transform_spaces = &scene->transform_spaces;
+			ts = transform_spaces->first;
+		}
+	}
+		
 	if(ts)
 		RNA_enum_item_add(&item, &totitem, &sepr);
 

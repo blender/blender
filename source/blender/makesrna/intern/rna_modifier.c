@@ -83,7 +83,7 @@ EnumPropertyItem modifier_type_items[] ={
 static void rna_UVProject_projectors_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	UVProjectModifierData *uvp= (UVProjectModifierData*)ptr->data;
-	rna_iterator_array_begin(iter, (void*)uvp->projectors, sizeof(Object*), 10, NULL);
+	rna_iterator_array_begin(iter, (void*)uvp->projectors, sizeof(Object*), 10, 0, NULL);
 }
 
 static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)

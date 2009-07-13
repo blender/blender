@@ -75,7 +75,7 @@ static void rna_Material_type_set(PointerRNA *ptr, int value)
 static void rna_Material_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Material *ma= (Material*)ptr->data;
-	rna_iterator_array_begin(iter, (void*)ma->mtex, sizeof(MTex*), MAX_MTEX, NULL);
+	rna_iterator_array_begin(iter, (void*)ma->mtex, sizeof(MTex*), MAX_MTEX, 0, NULL);
 }
 
 static PointerRNA rna_Material_active_texture_get(PointerRNA *ptr)

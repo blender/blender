@@ -37,7 +37,7 @@
 static void rna_Brush_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Brush *brush= (Brush*)ptr->data;
-	rna_iterator_array_begin(iter, (void*)brush->mtex, sizeof(MTex*), MAX_MTEX, NULL);
+	rna_iterator_array_begin(iter, (void*)brush->mtex, sizeof(MTex*), MAX_MTEX, 0, NULL);
 }
 
 static PointerRNA rna_Brush_active_texture_get(PointerRNA *ptr)

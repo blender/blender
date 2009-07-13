@@ -643,15 +643,18 @@ StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop)
 void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **item, int *totitem, int *free)
 {
 	EnumPropertyRNA *eprop= (EnumPropertyRNA*)rna_ensure_property(prop);
-	int tot;
 
 	*free= 0;
 
-	if(C && eprop->itemf) {
+	if(eprop->itemf) {
+		int tot= 0;
 		*item= eprop->itemf(C, ptr, free);
 
 		if(totitem) {
-			for(tot=0; (*item)[tot].identifier; tot++);
+			if(*item) {
+				for( ; (*item)[tot].identifier; tot++);
+			}
+
 			*totitem= tot;
 		}
 	}
@@ -710,11 +713,14 @@ int RNA_property_enum_identifier(bContext *C, PointerRNA *ptr, PropertyRNA *prop
 	int result, free;
 	
 	RNA_property_enum_items(C, ptr, prop, &item, NULL, &free);
-	result= RNA_enum_identifier(item, value, identifier);
-	if(free)
-		MEM_freeN(item);
+	if(item) {
+		result= RNA_enum_identifier(item, value, identifier);
+		if(free)
+			MEM_freeN(item);
 
-	return result;
+		return result;
+	}
+	return 0;
 }
 
 const char *RNA_property_ui_name(PropertyRNA *prop)
@@ -1303,9 +1309,9 @@ void RNA_property_collection_begin(PointerRNA *ptr, PropertyRNA *prop, Collectio
 		iter->prop= prop;
 
 		if(idprop)
-			rna_iterator_array_begin(iter, IDP_IDPArray(idprop), sizeof(IDProperty), idprop->len, NULL);
+			rna_iterator_array_begin(iter, IDP_IDPArray(idprop), sizeof(IDProperty), idprop->len, 0, NULL);
 		else
-			rna_iterator_array_begin(iter, NULL, sizeof(IDProperty), 0, NULL);
+			rna_iterator_array_begin(iter, NULL, sizeof(IDProperty), 0, 0, NULL);
 
 		if(iter->valid)
 			rna_property_collection_get_idp(iter);
@@ -1902,7 +1908,7 @@ void rna_iterator_listbase_end(CollectionPropertyIterator *iter)
 	iter->internal= NULL;
 }
 
-void rna_iterator_array_begin(CollectionPropertyIterator *iter, void *ptr, int itemsize, int length, IteratorSkipFunc skip)
+void rna_iterator_array_begin(CollectionPropertyIterator *iter, void *ptr, int itemsize, int length, int free_ptr, IteratorSkipFunc skip)
 {
 	ArrayIterator *internal;
 
@@ -1911,6 +1917,7 @@ void rna_iterator_array_begin(CollectionPropertyIterator *iter, void *ptr, int i
 
 	internal= MEM_callocN(sizeof(ArrayIterator), "ArrayIterator");
 	internal->ptr= ptr;
+	internal->free_ptr= free_ptr ? ptr:NULL;
 	internal->endptr= ((char*)ptr)+length*itemsize;
 	internal->itemsize= itemsize;
 	internal->skip= skip;
@@ -1955,6 +1962,11 @@ void *rna_iterator_array_dereference_get(CollectionPropertyIterator *iter)
 
 void rna_iterator_array_end(CollectionPropertyIterator *iter)
 {
+	ArrayIterator *internal= iter->internal;
+	
+	if(internal->free_ptr)
+		MEM_freeN(internal->free_ptr);
+
 	MEM_freeN(iter->internal);
 	iter->internal= NULL;
 }

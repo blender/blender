@@ -5795,13 +5795,24 @@ static EnumPropertyItem merge_type_items[]= {
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *ptr, int *free)
-{
-	Object *obedit= CTX_data_edit_object(C);
-
+{	
+	EnumPropertyItem *item= NULL;
+	int totitem= 0;
+	
+	Object *obedit;
+	
+	if(C==NULL) {
+		/* needed for doc generation */
+		RNA_enum_items_add(&item, &totitem, merge_type_items);
+		RNA_enum_item_end(&item, &totitem);
+		
+		*free= 1;
+		return item;
+	}
+	
+	obedit= CTX_data_edit_object(C);
 	if(obedit && obedit->type == OB_MESH) {
 		EditMesh *em= BKE_mesh_get_editmesh(obedit->data);
-		EnumPropertyItem *item= NULL;
-		int totitem= 0;
 
 		if(em->selectmode & SCE_SELECT_VERTEX) {
 			if(em->selected.first && em->selected.last &&
@@ -5824,7 +5835,7 @@ static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *ptr, int *fre
 
 		return item;
 	}
-
+	
 	return NULL;
 }
 

@@ -54,7 +54,7 @@ static PointerRNA rna_Lamp_sky_settings_get(PointerRNA *ptr)
 static void rna_Lamp_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Lamp *la= (Lamp*)ptr->data;
-	rna_iterator_array_begin(iter, (void*)la->mtex, sizeof(MTex*), MAX_MTEX, NULL);
+	rna_iterator_array_begin(iter, (void*)la->mtex, sizeof(MTex*), MAX_MTEX, 0, NULL);
 }
 
 static PointerRNA rna_Lamp_active_texture_get(PointerRNA *ptr)

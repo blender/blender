@@ -68,10 +68,10 @@ static void rna_LatticePoint_groups_begin(CollectionPropertyIterator *iter, Poin
 		BPoint *bp= (BPoint*)ptr->data;
 		MDeformVert *dvert= lt->dvert + (bp-lt->def);
 
-		rna_iterator_array_begin(iter, (void*)dvert->dw, sizeof(MDeformWeight), dvert->totweight, NULL);
+		rna_iterator_array_begin(iter, (void*)dvert->dw, sizeof(MDeformWeight), dvert->totweight, 0, NULL);
 	}
 	else
-		rna_iterator_array_begin(iter, NULL, 0, 0, NULL);
+		rna_iterator_array_begin(iter, NULL, 0, 0, 0, NULL);
 }
 
 static void rna_Lattice_points_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -80,11 +80,11 @@ static void rna_Lattice_points_begin(CollectionPropertyIterator *iter, PointerRN
 	int tot= lt->pntsu*lt->pntsv*lt->pntsw;
 
 	if(lt->editlatt && lt->editlatt->def)
-		rna_iterator_array_begin(iter, (void*)lt->editlatt->def, sizeof(BPoint), tot, NULL);
+		rna_iterator_array_begin(iter, (void*)lt->editlatt->def, sizeof(BPoint), tot, 0, NULL);
 	else if(lt->def)
-		rna_iterator_array_begin(iter, (void*)lt->def, sizeof(BPoint), tot, NULL);
+		rna_iterator_array_begin(iter, (void*)lt->def, sizeof(BPoint), tot, 0, NULL);
 	else
-		rna_iterator_array_begin(iter, NULL, 0, 0, NULL);
+		rna_iterator_array_begin(iter, NULL, 0, 0, 0, NULL);
 }
 
 static void rna_Lattice_update_data(bContext *C, PointerRNA *ptr)

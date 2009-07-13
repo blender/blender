@@ -179,6 +179,11 @@ static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *C, P
 	ImBuf *ibuf= ED_space_image_buffer(sima);
 	int zbuf, alpha;
 
+	if(C==NULL) {
+		/* needed for doc generation */
+		return dc_all_items;
+	}
+	
 	alpha= ibuf && (ibuf->channels == 4);
 	zbuf= ibuf && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels==1));
 
