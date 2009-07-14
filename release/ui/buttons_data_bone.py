@@ -23,6 +23,23 @@ class BONE_PT_context_bone(BoneButtonsPanel):
 		split.itemL(text="", icon="ICON_BONE_DATA")
 		split.itemR(bone, "name", text="")
 
+class BONE_PT_transform_bone(BoneButtonsPanel):
+	__idname__ = "BONE_PT_transform_bone"
+	__label__ = "Transform"
+
+	def draw(self, context):
+		layout = self.layout
+		bone = context.bone
+		if not bone:
+			bone = context.edit_bone
+
+#Seems to be missing from RNA?
+		row = layout.row()
+		row.column().itemR(bone, "location")
+		row.column().itemR(bone, "rotation")
+		row.column().itemR(bone, "scale")
+
+
 class BONE_PT_bone(BoneButtonsPanel):
 	__idname__ = "BONE_PT_bone"
 	__label__ = "Bone"
@@ -93,5 +110,6 @@ class BONE_PT_deform(BoneButtonsPanel):
 
 
 bpy.types.register(BONE_PT_context_bone)
+bpy.types.register(BONE_PT_transform_bone)
 bpy.types.register(BONE_PT_bone)
 bpy.types.register(BONE_PT_deform)

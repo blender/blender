@@ -90,17 +90,92 @@ class VIEW3D_HT_header(bpy.types.Header):
 
 		layout.template_header_3D()
 
-class VIEW3D_PT_random_panel(bpy.types.Panel):
+class VIEW3D_PT_3dview_properties(bpy.types.Panel):
 	__space_type__ = "VIEW_3D"
 	__region_type__ = "UI"
-	__label__ = "Random Panel"
+	__label__ = "View"
+
+	def poll(self, context):
+		view = context.space_data
+		return (view)
 
 	def draw(self, context):
+		view = context.space_data
 		layout = self.layout
-		layout.itemL(text="panel contents")
+		
+		split = layout.split()
+		col = split.column()
+		col.itemR(view, "camera")
+		col.itemR(view, "lens")
+		col.itemL(text="Clip:")
+		col.itemR(view, "clip_start", text="Start")
+		col.itemR(view, "clip_end", text="End")
+		col.itemL(text="Grid:")
+		col.itemR(view, "grid_spacing", text="Spacing")
+		col.itemR(view, "grid_subdivisions", text="Subdivisions")
+		
+class VIEW3D_PT_3dview_display(bpy.types.Panel):
+	__space_type__ = "VIEW_3D"
+	__region_type__ = "UI"
+	__label__ = "Display"
+
+	def poll(self, context):
+		view = context.space_data
+		return (view)
+
+	def draw(self, context):
+		view = context.space_data
+		layout = self.layout
+		
+		split = layout.split()
+		col = split.column()
+		col.itemR(view, "display_floor", text="Grid Floor")
+		col.itemR(view, "display_x_axis", text="X Axis")
+		col.itemR(view, "display_y_axis", text="Y Axis")
+		col.itemR(view, "display_z_axis", text="Z Axis")
+		col.itemR(view, "outline_selected")
+		col.itemR(view, "all_object_centers")
+		col.itemR(view, "relationship_lines")
+		col.itemR(view, "textured_solid")
+			
+class VIEW3D_PT_background_image(bpy.types.Panel):
+	__space_type__ = "VIEW_3D"
+	__region_type__ = "UI"
+	__label__ = "Background Image"
+
+	def poll(self, context):
+		view = context.space_data
+		bg = context.space_data.background_image
+		return (view)
+
+	def draw_header(self, context):
+		layout = self.layout
+		view = context.space_data
+
+		layout.itemR(view, "display_background_image", text="")
+
+	def draw(self, context):
+		view = context.space_data
+		bg = context.space_data.background_image
+		layout = self.layout
+		
+		layout.active = view.display_background_image
+		split = layout.split()
+		col = split.column()
+		col.itemR(bg, "image")
+#		col.itemR(bg, "image_user")
+		col.itemR(bg, "size")
+		col.itemR(bg, "transparency", slider=True)
+		col.itemL(text="Offset:")
+		col.itemR(bg, "x_offset", text="X")
+		col.itemR(bg, "y_offset", text="Y")
+
 
 bpy.types.register(VIEW3D_MT_view_navigation)
 bpy.types.register(VIEW3D_MT_view)
 bpy.types.register(VIEW3D_HT_header)
-bpy.types.register(VIEW3D_PT_random_panel)
+bpy.types.register(VIEW3D_PT_3dview_properties)
+bpy.types.register(VIEW3D_PT_3dview_display)
+bpy.types.register(VIEW3D_PT_background_image)
+
 
