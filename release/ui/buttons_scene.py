@@ -371,6 +371,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
 
 class RENDER_PT_stamp(RenderButtonsPanel):
 	__label__ = "Stamp"
+	__default_closed__ = True
 
 	def draw_header(self, context):
 		rd = context.scene.render_data

@@ -456,7 +456,7 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "fresnel_fac", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fresnel_mir_i");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_range(prop, 0.0f, 5.0f);
 	RNA_def_property_ui_text(prop, "Fresnel Factor", "Blending factor for Fresnel.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	

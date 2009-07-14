@@ -140,15 +140,11 @@ class TEXTURE_PT_influence(TextureButtonsPanel):
 		colsub.active = tex.map_color
 		colsub.itemR(tex, "color_factor", text="Opacity", slider=True)
 		colsub.itemR(tex, "blend_type")
-		if textype.type == 'IMAGE':
-			col.itemR(tex, "no_rgb")
-			
-			colsub = col.column()
-			colsub.active = tex.no_rgb
-			colsub.itemR(tex, "color")
-		else:
-			col.itemR(tex, "color")
-			
+		col.itemR(tex, "rgb_to_intensity")
+		colsub = col.column()
+		colsub.active = tex.rgb_to_intensity
+		colsub.itemR(tex, "color")
+	
 		col.itemR(tex, "map_colorspec")
 		col.itemR(tex, "map_normal")
 		colsub = col.column()
