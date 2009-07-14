@@ -106,9 +106,80 @@ class BONE_PT_bone(BoneButtonsPanel):
 		sub.itemR(bone, "draw_wire", text="Wireframe")
 		sub.itemR(bone, "hidden", text="Hide")
 
+class BONE_PT_inverse_kinematics(BoneButtonsPanel):
+	__idname__ = "BONE_PT_inverse_kinematics"
+	__label__ = "Inverse Kinematics"
+	__default_closed__ = True
+	
+	def poll(self, context):
+		ob = context.object
+		bone = context.bone
+
+		if ob and context.bone:
+			pchan = ob.pose.pose_channels[context.bone.name]
+			return pchan.has_ik
+		
+		return False
+
+	def draw(self, context):
+		layout = self.layout
+		ob = context.object
+		bone = context.bone
+		pchan = ob.pose.pose_channels[context.bone.name]
+
+		split = layout.split(percentage=0.25)
+		split.itemR(pchan, "ik_dof_x", text="X")
+		row = split.row()
+		row.itemR(pchan, "ik_stiffness_x", text="Stiffness")
+		row.active = pchan.ik_dof_x
+
+		split = layout.split(percentage=0.25)
+		row = split.row()
+		row.itemR(pchan, "ik_limit_x", text="Limit")
+		row.active = pchan.ik_dof_x
+		row = split.row(align=True)
+		row.itemR(pchan, "ik_min_x", text="")
+		row.itemR(pchan, "ik_max_x", text="")
+		row.active = pchan.ik_dof_x and pchan.ik_limit_x
+
+		split = layout.split(percentage=0.25)
+		split.itemR(pchan, "ik_dof_y", text="Y")
+		row = split.row()
+		row.itemR(pchan, "ik_stiffness_y", text="Stiffness")
+		row.active = pchan.ik_dof_y
+
+		split = layout.split(percentage=0.25)
+		row = split.row()
+		row.itemR(pchan, "ik_limit_y", text="Limit")
+		row.active = pchan.ik_dof_y
+		row = split.row(align=True)
+		row.itemR(pchan, "ik_min_y", text="")
+		row.itemR(pchan, "ik_max_y", text="")
+		row.active = pchan.ik_dof_y and pchan.ik_limit_y
+
+		split = layout.split(percentage=0.25)
+		split.itemR(pchan, "ik_dof_z", text="Z")
+		row = split.row()
+		row.itemR(pchan, "ik_stiffness_z", text="Stiffness")
+		row.active = pchan.ik_dof_z
+
+		split = layout.split(percentage=0.25)
+		row = split.row()
+		row.itemR(pchan, "ik_limit_z", text="Limit")
+		row.active = pchan.ik_dof_z
+		row = split.row(align=True)
+		row.itemR(pchan, "ik_min_z", text="")
+		row.itemR(pchan, "ik_max_z", text="")
+		row.active = pchan.ik_dof_z and pchan.ik_limit_z
+
+		split = layout.split()
+		split.itemR(pchan, "ik_stretch", text="Stretch")
+		split.itemL()
+
 class BONE_PT_deform(BoneButtonsPanel):
 	__idname__ = "BONE_PT_deform"
 	__label__ = "Deform"
+	__default_closed__ = True
 
 	def draw_header(self, context):
 		layout = self.layout
@@ -154,4 +225,5 @@ bpy.types.register(BONE_PT_context_bone)
 bpy.types.register(BONE_PT_transform)
 bpy.types.register(BONE_PT_bone)
 bpy.types.register(BONE_PT_deform)
+bpy.types.register(BONE_PT_inverse_kinematics)
 

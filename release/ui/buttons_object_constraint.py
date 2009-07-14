@@ -131,7 +131,8 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		self.target_template(layout, con)
 		
 		layout.itemR(con, "pole_target")
-		layout.itemR(con, "pole_subtarget")
+		if con.pole_target and con.pole_target.type == "ARMATURE":
+			layout.item_pointerR(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
 		
 		col = layout.column_flow()
 		col.itemR(con, "iterations")

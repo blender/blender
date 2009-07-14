@@ -99,6 +99,14 @@ static void rna_PoseChannel_name_set(PointerRNA *ptr, const char *value)
 	ED_armature_bone_rename(ob->data, oldname, newname);
 }
 
+static int rna_PoseChannel_has_ik_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
+
+	return ED_pose_channel_in_IK_chain(ob, pchan);
+}
+
 #else
 
 /* users shouldn't be editing pose channel data directly -- better to set ipos and let blender calc pose_channel stuff */
@@ -129,29 +137,41 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
 
+	prop= RNA_def_property(srna, "has_ik", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop,  "rna_PoseChannel_has_ik_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Has IK", "Is part of an IK chain.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
+
 	prop= RNA_def_property(srna, "ik_dof_x", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "ikflag", BONE_IK_NO_XDOF);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "ikflag", BONE_IK_NO_XDOF);
 	RNA_def_property_ui_text(prop, "IK X DoF", "Allow movement around the X axis.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 
 	prop= RNA_def_property(srna, "ik_dof_y", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "ikflag", BONE_IK_NO_YDOF);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "ikflag", BONE_IK_NO_YDOF);
 	RNA_def_property_ui_text(prop, "IK Y DoF", "Allow movement around the Y axis.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 
 	prop= RNA_def_property(srna, "ik_dof_z", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "ikflag", BONE_IK_NO_ZDOF);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "ikflag", BONE_IK_NO_ZDOF);
 	RNA_def_property_ui_text(prop, "IK Z DoF", "Allow movement around the Z axis.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 
 	prop= RNA_def_property(srna, "ik_limit_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ikflag", BONE_IK_XLIMIT);
 	RNA_def_property_ui_text(prop, "IK X Limit", "Limit movement around the X axis.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 
 	prop= RNA_def_property(srna, "ik_limit_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ikflag", BONE_IK_YLIMIT);
 	RNA_def_property_ui_text(prop, "IK Y Limit", "Limit movement around the Y axis.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 
 	prop= RNA_def_property(srna, "ik_limit_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ikflag", BONE_IK_ZLIMIT);
 	RNA_def_property_ui_text(prop, "IK Z Limit", "Limit movement around the Z axis.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 	
 	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "selectflag", BONE_SELECTED);
@@ -166,11 +186,13 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "pathsf");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bone Paths Calculation Start Frame", "Starting frame of range of frames to use for Bone Path calculations.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 
 	prop= RNA_def_property(srna, "path_end_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "pathef");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bone Paths Calculation End Frame", "End frame of range of frames to use for Bone Path calculations.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 
 	prop= RNA_def_property(srna, "bone", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "Bone");
@@ -239,28 +261,69 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Pose Tail Position", "Location of tail of the channel's bone.");
 
-	prop= RNA_def_property(srna, "ik_min_limits", PROP_FLOAT, PROP_VECTOR);
-	RNA_def_property_float_sdna(prop, NULL, "limitmin");
+	prop= RNA_def_property(srna, "ik_min_x", PROP_FLOAT, PROP_ROTATION);
+	RNA_def_property_float_sdna(prop, NULL, "limitmin[0]");
 	RNA_def_property_range(prop, -180.0f, 0.0f);
-	RNA_def_property_ui_text(prop, "IK Minimum Limits", "Minimum angles for IK Limit");
+	RNA_def_property_ui_text(prop, "IK X Minimum", "Minimum angles for IK Limit");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 
-	prop= RNA_def_property(srna, "ik_max_limits", PROP_FLOAT, PROP_VECTOR);
-	RNA_def_property_float_sdna(prop, NULL, "limitmax");
+	prop= RNA_def_property(srna, "ik_max_x", PROP_FLOAT, PROP_ROTATION);
+	RNA_def_property_float_sdna(prop, NULL, "limitmax[0]");
 	RNA_def_property_range(prop, 0.0f, 180.0f);
-	RNA_def_property_ui_text(prop, "IK Maximum Limits", "Maximum angles for IK Limit");
+	RNA_def_property_ui_text(prop, "IK X Maximum", "Maximum angles for IK Limit");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 
-	prop= RNA_def_property(srna, "ik_stiffness", PROP_FLOAT, PROP_VECTOR);
-	RNA_def_property_float_sdna(prop, NULL, "stiffness");
-	RNA_def_property_range(prop, 0.0f,0.99f);
-	RNA_def_property_ui_text(prop, "IK Stiffness", "Stiffness around the different axes.");
+	prop= RNA_def_property(srna, "ik_min_y", PROP_FLOAT, PROP_ROTATION);
+	RNA_def_property_float_sdna(prop, NULL, "limitmin[1]");
+	RNA_def_property_range(prop, -180.0f, 0.0f);
+	RNA_def_property_ui_text(prop, "IK Y Minimum", "Minimum angles for IK Limit");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
+
+	prop= RNA_def_property(srna, "ik_max_y", PROP_FLOAT, PROP_ROTATION);
+	RNA_def_property_float_sdna(prop, NULL, "limitmax[1]");
+	RNA_def_property_range(prop, 0.0f, 180.0f);
+	RNA_def_property_ui_text(prop, "IK Y Maximum", "Maximum angles for IK Limit");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
+
+	prop= RNA_def_property(srna, "ik_min_z", PROP_FLOAT, PROP_ROTATION);
+	RNA_def_property_float_sdna(prop, NULL, "limitmin[2]");
+	RNA_def_property_range(prop, -180.0f, 0.0f);
+	RNA_def_property_ui_text(prop, "IK Z Minimum", "Minimum angles for IK Limit");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
+
+	prop= RNA_def_property(srna, "ik_max_z", PROP_FLOAT, PROP_ROTATION);
+	RNA_def_property_float_sdna(prop, NULL, "limitmax[2]");
+	RNA_def_property_range(prop, 0.0f, 180.0f);
+	RNA_def_property_ui_text(prop, "IK Z Maximum", "Maximum angles for IK Limit");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
+
+	prop= RNA_def_property(srna, "ik_stiffness_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "stiffness[0]");
+	RNA_def_property_range(prop, 0.0f, 0.99f);
+	RNA_def_property_ui_text(prop, "IK X Stiffness", "IK stiffness around the X axis.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
+
+	prop= RNA_def_property(srna, "ik_stiffness_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "stiffness[1]");
+	RNA_def_property_range(prop, 0.0f, 0.99f);
+	RNA_def_property_ui_text(prop, "IK Y Stiffness", "IK stiffness around the Y axis.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
+
+	prop= RNA_def_property(srna, "ik_stiffness_z", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "stiffness[2]");
+	RNA_def_property_range(prop, 0.0f, 0.99f);
+	RNA_def_property_ui_text(prop, "IK Z Stiffness", "IK stiffness around the Z axis.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 
 	prop= RNA_def_property(srna, "ik_stretch", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ikstretch");
 	RNA_def_property_range(prop, 0.0f,1.0f);
 	RNA_def_property_ui_text(prop, "IK Stretch", "Allow scaling of the bone for IK.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 
 	prop= RNA_def_property(srna, "custom", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Custom Object", "Object that defines custom draw type for this bone.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 
 	prop= RNA_def_property(srna, "lock_location", PROP_BOOLEAN, PROP_VECTOR);
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_LOCX);
