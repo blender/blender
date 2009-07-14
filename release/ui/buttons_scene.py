@@ -117,9 +117,6 @@ class RENDER_PT_shading(RenderButtonsPanel):
 		
 		col = split.column()
 		col.itemR(rd, "render_raytracing", text="Ray Tracing")
-		row = col.row()
-		row.active = rd.render_raytracing
-		row.itemR(rd, "octree_resolution", text="Octree")
 		col.itemR(rd, "alpha_mode", text="Alpha")
 
 class RENDER_PT_performance(RenderButtonsPanel):
@@ -158,6 +155,11 @@ class RENDER_PT_performance(RenderButtonsPanel):
 		col.itemL()
 		col.itemR(rd, "free_image_textures")
 		col.active = rd.use_compositing
+
+		row = layout.row()
+		row.active = rd.render_raytracing
+		row.itemR(rd, "octree_resolution", text="Ray Tracing Octree")
+
 
 class RENDER_PT_post_processing(RenderButtonsPanel):
 	__label__ = "Post Processing"

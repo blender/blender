@@ -149,11 +149,17 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
 		sub = split.column()
 		sub.itemL(text="Time Offset:")
 		sub.itemR(ob, "time_offset_edit", text="Edit")
-		sub.itemR(ob, "time_offset_particle", text="Particle")
-		sub.itemR(ob, "time_offset_parent", text="Parent")
-		sub.itemR(ob, "slow_parent")
+		row = sub.row()
+		row.itemR(ob, "time_offset_particle", text="Particle")
+		row.active = len(ob.particle_systems) != 0
+		row = sub.row()
+		row.itemR(ob, "time_offset_parent", text="Parent")
+		row.active = ob.parent != None
+		row = sub.row()
+		row.itemR(ob, "slow_parent")
+		row.active = ob.parent != None
 		sub.itemR(ob, "time_offset", text="Offset")
-		
+
 		sub = split.column()
 		sub.itemL(text="Tracking:")
 		sub.itemR(ob, "track", text="")
