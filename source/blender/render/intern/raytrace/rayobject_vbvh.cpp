@@ -128,6 +128,41 @@ void bvh_update_bb(Node *node)
 }
 
 
+static int tot_pushup   = 0;
+static int tot_pushdown = 0;
+
+template<class Node>
+void pushdown(Node *parent)
+{
+	Node **s_child = &parent->child;
+	Node * child = parent->child;
+	
+	while(child && RayObject_isAligned(child))
+	{
+		Node *next = child->sibling;
+		
+		assert(bb_fits_inside(parent->bb, parent->bb+3, child->bb, child->bb+3));
+		
+		for(Node *i = parent->child; RayObject_isAligned(i) && i; i = i->sibling)
+		if(child != i && bb_fits_inside(i->bb, i->bb+3, child->bb, child->bb+3))
+		{
+//			todo optimize (hsould the one with the smallest area
+//			float ia = bb_area(i->bb, i->bb+3)
+//			if(child->i)
+			*s_child = child->sibling;
+			child->sibling = i->child;
+			i->child = child;
+			
+			tot_pushdown++;
+			break;
+		}
+		child = next;
+	}
+	
+	for(Node *i = parent->child; RayObject_isAligned(i) && i; i = i->sibling)
+		pushdown( i );	
+}
+
 template<class Tree, class Node, class Builder>
 Node *bvh_rearrange(Tree *tree, Builder *builder, float *cost)
 {
@@ -177,6 +212,7 @@ Node *bvh_rearrange(Tree *tree, Builder *builder, float *cost)
 					rtbuild_get_child(&b, i, &tmp);
 					childs.push(tmp);
 				}
+				tot_pushup++;
 				
 			}
 			else
@@ -207,38 +243,76 @@ void bvh_done<BVHTree>(BVHTree *obj)
 
 	
 	obj->root = bvh_rearrange<BVHTree,BVHNode,RTBuilder>( obj, obj->builder, &obj->cost );
+	pushdown(obj->root);
 	obj->cost = 1.0;
 	
 	rtbuild_free( obj->builder );
 	obj->builder = NULL;
 }
 
-template<>
-int bvh_intersect<BVHTree>(BVHTree *obj, Isect* isec)
+template<int StackSize>
+int intersect(BVHTree *obj, Isect* isec)
 {
 	if(RayObject_isAligned(obj->root))
-		return bvh_node_stack_raycast<BVHNode,DFS_STACK_SIZE>(obj->root, isec);
+		return bvh_node_stack_raycast<BVHNode,StackSize>(obj->root, isec);
 	else
 		return RE_rayobject_intersect( (RayObject*) obj->root, isec );
 }
 
-/* the cast to pointer function is needed to workarround gcc bug: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=11407 */
-static RayObjectAPI bvh_api =
+
+void bfree(BVHTree *tree)
 {
-	(RE_rayobject_raycast_callback) ((int(*)(BVHTree*,Isect*)) &bvh_intersect<BVHTree>),
-	(RE_rayobject_add_callback)     ((void(*)(BVHTree*,RayObject*)) &bvh_add<BVHTree>),
-	(RE_rayobject_done_callback)    ((void(*)(BVHTree*))       &bvh_done<BVHTree>),
-	(RE_rayobject_free_callback)    ((void(*)(BVHTree*))       &bvh_free<BVHTree>),
-	(RE_rayobject_merge_bb_callback)((void(*)(BVHTree*,float*,float*)) &bvh_bb<BVHTree>),
-	(RE_rayobject_cost_callback)	((float(*)(BVHTree*))      &bvh_cost<BVHTree>)
-};
+	if(tot_pushup + tot_pushdown)
+	{
+		printf("tot pushups: %d\n", tot_pushup);
+		printf("tot pushdowns: %d\n", tot_pushdown);
+		tot_pushup = 0;
+		tot_pushdown = 0;
+	}
+	bvh_free(tree);
+}
+
+/* the cast to pointer function is needed to workarround gcc bug: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=11407 */
+template<int STACK_SIZE>
+static RayObjectAPI make_api()
+{
+	static RayObjectAPI api = 
+	{
+		(RE_rayobject_raycast_callback) ((int(*)(BVHTree*,Isect*)) &intersect<STACK_SIZE>),
+		(RE_rayobject_add_callback)     ((void(*)(BVHTree*,RayObject*)) &bvh_add<BVHTree>),
+		(RE_rayobject_done_callback)    ((void(*)(BVHTree*))       &bvh_done<BVHTree>),
+//		(RE_rayobject_free_callback)    ((void(*)(BVHTree*))       &bvh_free<BVHTree>),
+		(RE_rayobject_free_callback)    ((void(*)(BVHTree*))       &bfree),
+		(RE_rayobject_merge_bb_callback)((void(*)(BVHTree*,float*,float*)) &bvh_bb<BVHTree>),
+		(RE_rayobject_cost_callback)	((float(*)(BVHTree*))      &bvh_cost<BVHTree>)
+	};
+	
+	return api;
+}
+
+static RayObjectAPI* get_api(int maxstacksize)
+{
+//	static RayObjectAPI bvh_api16  = make_api<16>();
+//	static RayObjectAPI bvh_api32  = make_api<32>();
+//	static RayObjectAPI bvh_api64  = make_api<64>();
+	static RayObjectAPI bvh_api128 = make_api<128>();
+	static RayObjectAPI bvh_api256 = make_api<256>();
+	
+//	if(maxstacksize <= 16 ) return &bvh_api16;
+//	if(maxstacksize <= 32 ) return &bvh_api32;
+//	if(maxstacksize <= 64 ) return &bvh_api64;
+	if(maxstacksize <= 128) return &bvh_api128;
+	if(maxstacksize <= 256) return &bvh_api256;
+	assert(maxstacksize <= 256);
+	return 0;
+}
 
 RayObject *RE_rayobject_vbvh_create(int size)
 {
 	BVHTree *obj= (BVHTree*)MEM_callocN(sizeof(BVHTree), "BVHTree");
 	assert( RayObject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	
 	
-	obj->rayobj.api = &bvh_api;
+	obj->rayobj.api = get_api(DFS_STACK_SIZE);
 	obj->root = NULL;
 	
 	obj->node_arena = NULL;

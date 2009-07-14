@@ -92,6 +92,7 @@ int rtbuild_median_split_largest_axis(RTBuilder *b, int nchilds);
 float bb_area(float *min, float *max);
 float bb_volume(float *min, float *max);
 int bb_largest_axis(float *min, float *max);
+int bb_fits_inside(float *outer_min, float *outer_max, float *inner_min, float *inner_max); /* only returns 0 if merging inner and outerbox would create a box larger than outer box */
 
 #ifdef __cplusplus
 }

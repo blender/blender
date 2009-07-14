@@ -529,3 +529,15 @@ int bb_largest_axis(float *min, float *max)
 			return 2;
 	}	
 }
+
+int bb_fits_inside(float *outer_min, float *outer_max, float *inner_min, float *inner_max)
+{
+	int i;
+	for(i=0; i<3; i++)
+		if(outer_min[i] > inner_min[i]) return 0;
+
+	for(i=0; i<3; i++)
+		if(outer_max[i] < inner_max[i]) return 0;
+
+	return 1;	
+}
