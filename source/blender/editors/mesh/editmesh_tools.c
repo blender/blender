@@ -5796,19 +5796,12 @@ static EnumPropertyItem merge_type_items[]= {
 
 static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 {	
+	Object *obedit;
 	EnumPropertyItem *item= NULL;
 	int totitem= 0;
 	
-	Object *obedit;
-	
-	if(C==NULL) {
-		/* needed for doc generation */
-		RNA_enum_items_add(&item, &totitem, merge_type_items);
-		RNA_enum_item_end(&item, &totitem);
-		
-		*free= 1;
-		return item;
-	}
+	if(!C) /* needed for docs */
+		return merge_type_items;
 	
 	obedit= CTX_data_edit_object(C);
 	if(obedit && obedit->type == OB_MESH) {
@@ -5817,18 +5810,18 @@ static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *ptr, int *fre
 		if(em->selectmode & SCE_SELECT_VERTEX) {
 			if(em->selected.first && em->selected.last &&
 				((EditSelection*)em->selected.first)->type == EDITVERT && ((EditSelection*)em->selected.last)->type == EDITVERT) {
-				RNA_enum_item_add(&item, &totitem, &merge_type_items[0]);
-				RNA_enum_item_add(&item, &totitem, &merge_type_items[1]);
+				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 6);
+				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 1);
 			}
 			else if(em->selected.first && ((EditSelection*)em->selected.first)->type == EDITVERT)
-				RNA_enum_item_add(&item, &totitem, &merge_type_items[1]);
+				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 1);
 			else if(em->selected.last && ((EditSelection*)em->selected.last)->type == EDITVERT)
-				RNA_enum_item_add(&item, &totitem, &merge_type_items[0]);
+				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 6);
 		}
 
-		RNA_enum_item_add(&item, &totitem, &merge_type_items[2]);
-		RNA_enum_item_add(&item, &totitem, &merge_type_items[3]);
-		RNA_enum_item_add(&item, &totitem, &merge_type_items[4]);
+		RNA_enum_items_add_value(&item, &totitem, merge_type_items, 3);
+		RNA_enum_items_add_value(&item, &totitem, merge_type_items, 4);
+		RNA_enum_items_add_value(&item, &totitem, merge_type_items, 5);
 		RNA_enum_item_end(&item, &totitem);
 
 		*free= 1;

@@ -2284,10 +2284,23 @@ void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, EnumPropertyItem 
 	*totitem= tot+1;
 }
 
+void RNA_enum_item_add_separator(EnumPropertyItem **items, int *totitem)
+{
+	static EnumPropertyItem sepr = {0, "", 0, NULL, NULL};
+	RNA_enum_item_add(items, totitem, &sepr);
+}
+
 void RNA_enum_items_add(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item)
 {
 	for(; item->identifier; item++)
 		RNA_enum_item_add(items, totitem, item);
+}
+
+void RNA_enum_items_add_value(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item, int value)
+{
+	for(; item->identifier; item++)
+		if(item->value == value)
+			RNA_enum_item_add(items, totitem, item);
 }
 
 void RNA_enum_item_end(EnumPropertyItem **items, int *totitem)
