@@ -275,7 +275,7 @@ void BMF_BitmapFont::DrawStringBuf(char *str, int posx, int posy, float *col, un
 								pixel[1] = colch[1];
 								pixel[2] = colch[2];
 								if (channels==4) {
-									pixel[4] = 1; /*colch[3];*/
+									pixel[3] = 1; /*colch[3];*/
 								}
 								
 							}
