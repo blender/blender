@@ -140,6 +140,7 @@ void pushdown(Node *parent)
 	while(child && RayObject_isAligned(child))
 	{
 		Node *next = child->sibling;
+		Node **next_s_child = &child->sibling;
 		
 		assert(bb_fits_inside(parent->bb, parent->bb+3, child->bb, child->bb+3));
 		
@@ -152,11 +153,13 @@ void pushdown(Node *parent)
 			*s_child = child->sibling;
 			child->sibling = i->child;
 			i->child = child;
+			next_s_child = s_child;
 			
 			tot_pushdown++;
 			break;
 		}
 		child = next;
+		s_child = next_s_child;
 	}
 	
 	for(Node *i = parent->child; RayObject_isAligned(i) && i; i = i->sibling)
