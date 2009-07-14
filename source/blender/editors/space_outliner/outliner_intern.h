@@ -120,9 +120,17 @@ void outliner_select(struct SpaceOops *soops, struct ListBase *lb, int *index, s
 void draw_outliner(const struct bContext *C);
 
 void OUTLINER_OT_activate_click(struct wmOperatorType *ot);
+
 void OUTLINER_OT_show_one_level(struct wmOperatorType *ot);
 void OUTLINER_OT_show_active(struct wmOperatorType *ot);
 void OUTLINER_OT_show_hierarchy(struct wmOperatorType *ot);
+
+void OUTLINER_OT_selected_toggle(struct wmOperatorType *ot);
+void OUTLINER_OT_expanded_toggle(struct wmOperatorType *ot);
+
+void OUTLINER_OT_renderability_toggle(struct wmOperatorType *ot);
+void OUTLINER_OT_selectability_toggle(struct wmOperatorType *ot);
+void OUTLINER_OT_visibility_toggle(struct wmOperatorType *ot);
 
 void OUTLINER_OT_keyingset_add_selected(struct wmOperatorType *ot);
 void OUTLINER_OT_keyingset_remove_selected(struct wmOperatorType *ot);

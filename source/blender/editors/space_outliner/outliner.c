@@ -98,6 +98,7 @@
 #include "UI_view2d.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "ED_armature.h"
 #include "ED_keyframing.h"
@@ -1445,6 +1446,8 @@ static void outliner_set_flag(SpaceOops *soops, ListBase *lb, short flag, short 
 	}
 }
 
+/* --- */
+
 void object_toggle_visibility_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	Scene *scene= NULL;		// XXX
@@ -1456,14 +1459,35 @@ void object_toggle_visibility_cb(TreeElement *te, TreeStoreElem *tsep, TreeStore
 	}
 }
 
-void outliner_toggle_visibility(Scene *scene, SpaceOops *soops)
+static int outliner_toggle_visibility_exec(bContext *C, wmOperator *op)
 {
-
+	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
+	ARegion *ar= CTX_wm_region(C);
+	
 	outliner_do_object_operation(scene, soops, &soops->tree, object_toggle_visibility_cb);
 	
-	BIF_undo_push("Outliner toggle selectability");
-
+	// XXX need proper notifiers here instead
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
 }
+
+void OUTLINER_OT_visibility_toggle(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toggle Visability";
+	ot->idname= "OUTLINER_OT_visibility_toggle";
+	ot->description= "Toggle the visibility of selected items.";
+	
+	/* callbacks */
+	ot->exec= outliner_toggle_visibility_exec;
+	ot->poll= ED_operator_outliner_active;
+	
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* --- */
 
 static void object_toggle_selectability_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
@@ -1476,14 +1500,35 @@ static void object_toggle_selectability_cb(TreeElement *te, TreeStoreElem *tsep,
 	}
 }
 
-void outliner_toggle_selectability(Scene *scene, SpaceOops *soops)
+static int outliner_toggle_selectability_exec(bContext *C, wmOperator *op)
 {
+	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
+	ARegion *ar= CTX_wm_region(C);
 	
 	outliner_do_object_operation(scene, soops, &soops->tree, object_toggle_selectability_cb);
 	
-	BIF_undo_push("Outliner toggle selectability");
-
+	// XXX need proper notifiers here instead
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
 }
+
+void OUTLINER_OT_selectability_toggle(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toggle Selectability";
+	ot->idname= "OUTLINER_OT_selectability_toggle";
+	ot->description= "Toggle the selectability";
+	
+	/* callbacks */
+	ot->exec= outliner_toggle_selectability_exec;
+	ot->poll= ED_operator_outliner_active;
+	
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* --- */
 
 void object_toggle_renderability_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
@@ -1496,37 +1541,101 @@ void object_toggle_renderability_cb(TreeElement *te, TreeStoreElem *tsep, TreeSt
 	}
 }
 
-void outliner_toggle_renderability(Scene *scene, SpaceOops *soops)
+static int outliner_toggle_renderability_exec(bContext *C, wmOperator *op)
 {
-
+	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
+	ARegion *ar= CTX_wm_region(C);
+	
 	outliner_do_object_operation(scene, soops, &soops->tree, object_toggle_renderability_cb);
 	
-	BIF_undo_push("Outliner toggle renderability");
-
+	// XXX need proper notifiers here instead
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
 }
 
-void outliner_toggle_visible(SpaceOops *soops)
+void OUTLINER_OT_renderability_toggle(wmOperatorType *ot)
 {
+	/* identifiers */
+	ot->name= "Toggle Renderability";
+	ot->idname= "OUTLINER_OT_renederability_toggle";
+	ot->description= "Toggle the renderbility of selected items.";
 	
-	if( outliner_has_one_flag(soops, &soops->tree, TSE_CLOSED, 1))
+	/* callbacks */
+	ot->exec= outliner_toggle_renderability_exec;
+	ot->poll= ED_operator_outliner_active;
+	
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* --- */
+
+static int outliner_toggle_expanded_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
+	
+	if (outliner_has_one_flag(soops, &soops->tree, TSE_CLOSED, 1))
 		outliner_set_flag(soops, &soops->tree, TSE_CLOSED, 0);
 	else 
 		outliner_set_flag(soops, &soops->tree, TSE_CLOSED, 1);
-
-	BIF_undo_push("Outliner toggle visible");
+	
+	// XXX need proper notifiers here instead
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
 }
 
-void outliner_toggle_selected(ARegion *ar, SpaceOops *soops)
+void OUTLINER_OT_expanded_toggle(wmOperatorType *ot)
 {
+	/* identifiers */
+	ot->name= "Expand/Collapse All";
+	ot->idname= "OUTLINER_OT_expanded_toggle";
+	ot->description= "Expand/Collapse all items.";
 	
-	if( outliner_has_one_flag(soops, &soops->tree, TSE_SELECTED, 1))
+	/* callbacks */
+	ot->exec= outliner_toggle_expanded_exec;
+	ot->poll= ED_operator_outliner_active;
+	
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* --- */
+
+static int outliner_toggle_selected_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
+	
+	if (outliner_has_one_flag(soops, &soops->tree, TSE_SELECTED, 1))
 		outliner_set_flag(soops, &soops->tree, TSE_SELECTED, 0);
 	else 
 		outliner_set_flag(soops, &soops->tree, TSE_SELECTED, 1);
 	
-	BIF_undo_push("Outliner toggle selected");
 	soops->storeflag |= SO_TREESTORE_REDRAW;
+	
+	// XXX need proper notifiers here instead
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
 }
+
+void OUTLINER_OT_selected_toggle(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toggle Selected";
+	ot->idname= "OUTLINER_OT_selected_toggle";
+	ot->description= "Toggle the Outliner selection of items.";
+	
+	/* callbacks */
+	ot->exec= outliner_toggle_selected_exec;
+	ot->poll= ED_operator_outliner_active;
+	
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* --- */
 
 /* helper function for Show/Hide one level operator */
 static void outliner_openclose_level(SpaceOops *soops, ListBase *lb, int curlevel, int level, int open)
