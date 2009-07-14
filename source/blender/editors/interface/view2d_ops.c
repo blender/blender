@@ -1404,5 +1404,6 @@ void UI_view2d_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_out", PADMINUS, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_in", PADPLUSKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_reset", HOMEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_scroller_activate", LEFTMOUSE, KM_PRESS, 0, 0);
 }
 

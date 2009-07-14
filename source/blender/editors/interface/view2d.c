@@ -262,6 +262,8 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 				v2d->align= (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
 				v2d->keeptot= V2D_KEEPTOT_BOUNDS;
 				
+				v2d->scroll |= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
+				
 				v2d->tot.xmin= 0.0f;
 				v2d->tot.xmax= winx;
 				
@@ -270,10 +272,10 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 				
 				v2d->cur.xmin= 0.0f;
 				v2d->cur.xmax= winx*style->panelzoom;
-
+				
 				v2d->cur.ymax= 0.0f;
 				v2d->cur.ymin= -winy*style->panelzoom;
-
+				
 				v2d->cur.ymax= 0.0f;
 				v2d->cur.ymin= -winy*style->panelzoom;
 			}

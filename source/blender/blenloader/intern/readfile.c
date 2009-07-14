@@ -5839,6 +5839,8 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 			{
 				SpaceButs *sbuts= (SpaceButs *)sl;
 				memcpy(&ar->v2d, &sbuts->v2d, sizeof(View2D));
+				
+				ar->v2d.scroll |= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM); 
 				break;
 			}
 			case SPACE_FILE:
