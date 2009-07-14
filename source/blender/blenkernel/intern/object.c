@@ -864,7 +864,7 @@ void free_lamp(Lamp *la)
 	
 	BKE_free_animdata((ID *)la);
 
-	curvemapping_free(la->curfalloff);
+	curvemapping_free(la->curfalloff); 
 	
 	BKE_previewimg_free(&la->preview);
 	BKE_icon_delete(&la->id);

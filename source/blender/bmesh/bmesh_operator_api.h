@@ -272,7 +272,6 @@ void BMO_Insert_MapPointer(BMesh *bm, BMOperator *op, char *slotname,
 void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, char *slotname,
 		       void *key);
 
-
 /*this part of the API is used to iterate over element buffer or
   mapping slots.
   
@@ -325,6 +324,12 @@ void *BMO_IterStep(BMOIter *iter);
 /*returns a pointer to the key value when iterating over mappings.
   remember for pointer maps this will be a pointer to a pointer.*/
 void *BMO_IterMapVal(BMOIter *iter);
+
+/*use this for pointer mappings*/
+void *BMO_IterMapValp(BMOIter *iter);
+
+/*use this for float mappings*/
+float BMO_IterMapValf(BMOIter *iter);
 
 #define BMO_ITER(ele, iter, bm, op, slotname, restrict) \
 	ele = BMO_IterNew(iter, bm, op, slotname, restrict); \

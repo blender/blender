@@ -34,7 +34,7 @@ void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op)
 		}
 	}
 
-	if (split) {
+	if (split && doub != v2) {
 		BMLoop *nl;
 		BMFace *f2 = BM_Split_Face(bm, f, doub, v2, &nl, NULL);
 
@@ -79,7 +79,8 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 	BMVert *v, *v2;
 	BMEdge *e, *e2, **edges = NULL;
 	V_DECLARE(edges);
-	BMLoop *l;
+	BMLoop *l, *l2, **loops = NULL;
+	V_DECLARE(loops);
 	BMFace *f, *f2;
 	int a;
 
@@ -119,12 +120,13 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		if (!BMO_TestFlag(bm, f, FACE_MARK)) continue;
-		if (f->len - BMINDEX_GET(f) + 1 < 3) {
+		if (f->len - BMINDEX_GET(f) < 3) {
 			BMO_SetFlag(bm, f, ELE_DEL);
 			continue;
 		}
 
 		V_RESET(edges);
+		V_RESET(loops);
 		a = 0;
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			v = l->v;
@@ -134,17 +136,39 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 			if (BMO_TestFlag(bm, v2, ELE_DEL)) 
 					v2 = BMO_Get_MapPointer(bm, op, "targetmap", v2);
 			
-			e2 = BM_Edge_Exist(v, v2);
+			e2 = v != v2 ? BM_Edge_Exist(v, v2) : NULL;
 			if (e2) {
 				V_GROW(edges);
-				edges[a++] = e2;
+				V_GROW(loops);
+
+				edges[a] = e2;
+				loops[a] = l;
+
+				a++;
 			}
 		}
 		
+		v = loops[0]->v;
+		v2 = loops[1]->v;
+
+		if (BMO_TestFlag(bm, v, ELE_DEL)) 
+			v = BMO_Get_MapPointer(bm, op, "targetmap", v);
+		if (BMO_TestFlag(bm, v2, ELE_DEL)) 
+			v2 = BMO_Get_MapPointer(bm, op, "targetmap", v2);
+		
+
 		f2 = BM_Make_Ngon(bm, v, v2, edges, a, 0);
 		if (f2) {
 			BM_Copy_Attributes(bm, bm, f, f2);
 			BMO_SetFlag(bm, f, ELE_DEL);
+
+			a = 0;
+			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f2) {
+				l2 = loops[a];
+				BM_Copy_Attributes(bm, bm, l2, l);
+
+				a++;
+			}
 		}
 
 		/*need to still copy customdata stuff here, will do later*/
@@ -169,6 +193,7 @@ static int vergaverco(const void *e1, const void *e2)
 #define VERT_TESTED	1
 #define VERT_DOUBLE	2
 #define VERT_TARGET	4
+#define VERT_KEEP	8
 
 void bmesh_removedoubles_exec(BMesh *bm, BMOperator *op)
 {
@@ -225,4 +250,60 @@ void bmesh_removedoubles_exec(BMesh *bm, BMOperator *op)
 
 	BMO_Exec_Op(bm, &weldop);
 	BMO_Finish_Op(bm, &weldop);
+}
+
+
+void bmesh_finddoubles_exec(BMesh *bm, BMOperator *op)
+{
+	BMOIter oiter;
+	BMVert *v, *v2;
+	BMVert **verts=NULL;
+	V_DECLARE(verts);
+	float dist, distsqr;
+	int i, j, len;
+
+	dist = BMO_Get_Float(op, "dist");
+	distsqr = dist*dist;
+
+	i = 0;
+	BMO_ITER(v, &oiter, bm, op, "verts", BM_VERT) {
+		V_GROW(verts);
+		verts[i++] = v;
+	}
+
+	/*sort by vertex coordinates added together*/
+	//qsort(verts, V_COUNT(verts), sizeof(void*), vergaverco);
+	
+	BMO_Flag_Buffer(bm, op, "keepverts", VERT_KEEP);
+
+	len = V_COUNT(verts);
+	for (i=0; i<len; i++) {
+		v = verts[i];
+		if (BMO_TestFlag(bm, v, VERT_DOUBLE)) continue;
+		
+		//BMO_SetFlag(bm, v, VERT_TESTED);
+		for (j=0; j<len; j++) {
+			if (j == i) continue;
+
+			//float vec[3];
+			if (BMO_TestFlag(bm, v, VERT_KEEP)) continue;
+
+			v2 = verts[j];
+			//if ((v2->co[0]+v2->co[1]+v2->co[2]) - (v->co[0]+v->co[1]+v->co[2])
+			//     > distsqr) break;
+
+			//vec[0] = v->co[0] - v2->co[0];
+			//vec[1] = v->co[1] - v2->co[1];
+			//vec[2] = v->co[2] - v2->co[2];
+			
+			if (VecLenCompare(v->co, v2->co, dist)) {
+				BMO_SetFlag(bm, v2, VERT_DOUBLE);
+				BMO_SetFlag(bm, v, VERT_TARGET);
+			
+				BMO_Insert_MapPointer(bm, op, "targetmapout", v2, v);
+			}
+		}
+	}
+
+	V_FREE(verts);
 }

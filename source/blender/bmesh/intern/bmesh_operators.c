@@ -927,13 +927,17 @@ void *BMO_IterNew(BMOIter *iter, BMesh *bm, BMOperator *op,
 {
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
 
+	memset(iter, 0, sizeof(BMOIter));
+
 	iter->slot = slot;
 	iter->cur = 0;
 	iter->restrict = restrict;
 
-	if (iter->slot->slottype == BMOP_OPSLOT_MAPPING)
+	if (iter->slot->slottype == BMOP_OPSLOT_MAPPING) {
 		if (iter->slot->data.ghash)
 			BLI_ghashIterator_init(&iter->giter, slot->data.ghash);
+		else return NULL;
+	}
 
 	return BMO_IterStep(iter);
 }
@@ -973,6 +977,15 @@ void *BMO_IterMapVal(BMOIter *iter)
 	return iter->val;
 }
 
+void *BMO_IterMapValp(BMOIter *iter)
+{
+	return *((void**)iter->val);
+}
+
+float BMO_IterMapValf(BMOIter *iter)
+{
+	return *((float*)iter->val);
+}
 
 /*error system*/
 typedef struct bmop_error {

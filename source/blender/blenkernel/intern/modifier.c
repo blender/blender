@@ -1826,6 +1826,7 @@ void vertgroup_flip_name (char *name, int strip_number)
 	sprintf (name, "%s%s%s%s", prefix, replace, suffix, number);
 }
 
+#if 0
 static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		Object *ob,
 		DerivedMesh *dm,
@@ -2047,6 +2048,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 
 	return result;
 }
+#endif
 
 static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
 					    Object *ob, DerivedMesh *dm,

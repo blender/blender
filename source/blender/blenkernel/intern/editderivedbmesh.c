@@ -310,9 +310,17 @@ static void bmdm_recalc_lookups(EditDerivedBMesh *bmdm)
 	if (bmdm->etable) MEM_freeN(bmdm->etable);
 	if (bmdm->ftable) MEM_freeN(bmdm->ftable);
 	
-	bmdm->vtable = MEM_mallocN(sizeof(void**)*bmdm->tc->bm->totvert, "bmdm->vtable");
-	bmdm->etable = MEM_mallocN(sizeof(void**)*bmdm->tc->bm->totedge, "bmdm->etable");
-	bmdm->ftable = MEM_mallocN(sizeof(void**)*bmdm->tc->bm->totface, "bmdm->ftable");
+	if (bmdm->tc->bm->totvert)
+		bmdm->vtable = MEM_mallocN(sizeof(void**)*bmdm->tc->bm->totvert, "bmdm->vtable");
+	else bmdm->vtable = NULL;
+
+	if (bmdm->tc->bm->totedge)
+		bmdm->etable = MEM_mallocN(sizeof(void**)*bmdm->tc->bm->totedge, "bmdm->etable");
+	else bmdm->etable = NULL;
+	
+	if (bmdm->tc->bm->totface)
+		bmdm->ftable = MEM_mallocN(sizeof(void**)*bmdm->tc->bm->totface, "bmdm->ftable");
+	else bmdm->ftable = NULL;
 	
 	for (a=0; a<3; a++) {
 		h = BMIter_New(&iter, bmdm->tc->bm, iters[a], NULL);
@@ -340,7 +348,6 @@ static void bmDM_recalcTesselation(DerivedMesh *dm)
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 
-	BMEdit_RecalcTesselation_intern(bmdm->tc);
 	bmdm_recalc_lookups(bmdm);
 }
 
@@ -1402,6 +1409,14 @@ static void bmDM_release(void *dm)
 			MEM_freeN(bmdm->vertexNos);
 			MEM_freeN(bmdm->faceNos);
 		}
+		
+		BLI_ghash_free(bmdm->fhash, NULL, NULL);
+		BLI_ghash_free(bmdm->ehash, NULL, NULL);
+		BLI_ghash_free(bmdm->vhash, NULL, NULL);
+
+		if (bmdm->vtable) MEM_freeN(bmdm->vtable);
+		if (bmdm->etable) MEM_freeN(bmdm->etable);
+		if (bmdm->ftable) MEM_freeN(bmdm->ftable);
 		
 		MEM_freeN(bmdm);
 	}

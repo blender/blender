@@ -268,7 +268,7 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 	CustomData_copy(&em->fdata, &bm->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
 
 	/*copy face corner data*/
-	CustomData_to_bmeshpoly(&em->fdata, &bm->pdata, &bm->ldata);
+	CustomData_to_bmeshpoly(&em->fdata, &bm->pdata, &bm->ldata, 0, 0);
 	/*initialize memory pools*/
 	CustomData_bmesh_init_pool(&bm->vdata, allocsize[0]);
 	CustomData_bmesh_init_pool(&bm->edata, allocsize[1]);
@@ -463,7 +463,7 @@ BME_Mesh *BME_derivedmesh_to_bmesh(DerivedMesh *dm)
 	CustomData_copy(&dm->faceData, &bm->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
 
 	/*copy face corner data*/
-	CustomData_to_bmeshpoly(&dm->faceData, &bm->pdata, &bm->ldata);
+	CustomData_to_bmeshpoly(&dm->faceData, &bm->pdata, &bm->ldata, 0, 0);
 	/*initialize memory pools*/
 	CustomData_bmesh_init_pool(&bm->vdata, allocsize[0]);
 	CustomData_bmesh_init_pool(&bm->edata, allocsize[1]);

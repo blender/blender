@@ -6,6 +6,19 @@
 /*do not rename any operator or slot names! otherwise you must go 
   through the code and find all references to them!*/
 
+BMOpDefine def_finddoubles = {
+	"finddoubles",
+	/*maps welded vertices to verts they should weld to.*/
+	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
+	 //list of verts to keep
+	 {BMOP_OPSLOT_ELEMENT_BUF, "keepverts"},
+	 {BMOP_OPSLOT_FLT,         "dist"},
+	 {BMOP_OPSLOT_MAPPING, "targetmapout"},
+	 {0, /*null-terminating sentinel*/}},
+	bmesh_finddoubles_exec,
+	0,
+};
+
 BMOpDefine def_removedoubles = {
 	"removedoubles",
 	/*maps welded vertices to verts they should weld to.*/
@@ -304,6 +317,7 @@ BMOpDefine *opdefines[] = {
 	&def_makevert,
 	&def_weldverts,
 	&def_removedoubles,
+	&def_finddoubles,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

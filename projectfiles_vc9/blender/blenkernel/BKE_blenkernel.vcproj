@@ -674,6 +674,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\modifiers_bmesh.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\multires.c"
 				>
 			</File>

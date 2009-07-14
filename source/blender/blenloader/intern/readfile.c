@@ -3116,6 +3116,124 @@ static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 	}
 }
 
+
+void bmesh_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex, int numCol) 
+{
+	MTFace *texface;
+	MTexPoly *texpoly;
+	MCol *mcol;
+	MLoopCol *mloopcol;
+	MLoopUV *mloopuv;
+	MFace *mf;
+	int i;
+
+	for(i=0; i < numTex; i++){
+		texface = CustomData_get_n(&me->fdata, CD_MTFACE, findex, i);
+		texpoly = CustomData_get_n(&me->pdata, CD_MTEXPOLY, findex, i); 
+		mf = me->mface + findex;
+		
+		texpoly->tpage = texface->tpage;
+		texpoly->flag = texface->flag;
+		texpoly->transp = texface->transp;
+		texpoly->mode = texface->mode;
+		texpoly->tile = texface->tile;
+		texpoly->unwrap = texface->unwrap;
+	
+		mloopuv = CustomData_get_n(&me->ldata, CD_MLOOPUV, loopstart, i);
+		mloopuv->uv[0] = texface->uv[0][0]; mloopuv->uv[1] = texface->uv[0][1]; mloopuv++;
+		mloopuv->uv[0] = texface->uv[1][0]; mloopuv->uv[1] = texface->uv[1][1]; mloopuv++;
+		mloopuv->uv[0] = texface->uv[2][0]; mloopuv->uv[1] = texface->uv[2][1]; mloopuv++;
+
+		if (mf->v4) {
+			mloopuv->uv[0] = texface->uv[3][0]; mloopuv->uv[1] = texface->uv[3][1]; mloopuv++;
+		}
+	}
+
+	for(i=0; i < numCol; i++){
+		mf = me->mface + findex;
+		mloopcol = CustomData_get_n(&me->ldata, CD_MLOOPCOL, loopstart, i);
+		mcol = CustomData_get_n(&me->fdata, CD_MCOL, findex, i);
+
+		mloopcol->r = mcol[0].r; mloopcol->g = mcol[0].g; mloopcol->b = mcol[0].b; mloopcol->a = mcol[0].a; mloopcol++;
+		mloopcol->r = mcol[1].r; mloopcol->g = mcol[1].g; mloopcol->b = mcol[1].b; mloopcol->a = mcol[1].a; mloopcol++;
+		mloopcol->r = mcol[2].r; mloopcol->g = mcol[2].g; mloopcol->b = mcol[2].b; mloopcol->a = mcol[2].a; mloopcol++;
+		if (mf->v4) {
+			mloopcol->r = mcol[3].r; mloopcol->g = mcol[3].g; mloopcol->b = mcol[3].b; mloopcol->a = mcol[3].a; mloopcol++;
+		}
+	}
+}
+
+static void convert_mfaces_to_mpolys(Mesh *mesh)
+{
+	MFace *mf;
+	MLoop *ml;
+	MPoly *mp;
+	MEdge *me;
+	EdgeHash *eh;
+	int numTex, numCol;
+	int i, j, totloop;
+
+	mesh->totpoly = mesh->totface;
+	mesh->mpoly = MEM_callocN(sizeof(MPoly)*mesh->totpoly, "mpoly converted");
+	CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_ASSIGN, mesh->mpoly, mesh->totpoly);
+
+	numTex = CustomData_number_of_layers(&mesh->fdata, CD_MTFACE);
+	numCol = CustomData_number_of_layers(&mesh->fdata, CD_MCOL);
+	
+	totloop = 0;
+	mf = mesh->mface;
+	for (i=0; i<mesh->totface; i++, mf++) {
+		totloop += mf->v4 ? 4 : 3;
+	}
+	
+	mesh->totloop = totloop;
+	mesh->mloop = MEM_callocN(sizeof(MLoop)*mesh->totloop, "mloop converted");
+
+	CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_ASSIGN, mesh->mloop, totloop);
+	CustomData_to_bmeshpoly(&mesh->fdata, &mesh->pdata, &mesh->ldata,
+		mesh->totloop, mesh->totpoly);
+
+	eh = BLI_edgehash_new();
+
+	/*build edge hash*/
+	me = mesh->medge;
+	for (i=0; i<mesh->totedge; i++, me++) {
+		BLI_edgehash_insert(eh, me->v1, me->v2, SET_INT_IN_POINTER(i));
+	}
+
+	j = 0; /*current loop index*/
+	ml = mesh->mloop;
+	mf = mesh->mface;
+	mp = mesh->mpoly;
+	for (i=0; i<mesh->totface; i++, mf++, mp++) {
+		mp->loopstart = j;
+		
+		mp->totloop = mf->v4 ? 4 : 3;
+
+		mp->mat_nr = mf->mat_nr;
+		mp->flag = mf->flag;
+		
+		#define ML(v1, v2) {ml->v = mf->##v1; ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->##v1, mf->##v2)); ml++; j++;}
+		
+		ML(v1, v2);
+		ML(v2, v3);
+		if (mf->v4) {
+			ML(v3, v4);
+			ML(v4, v1);
+		} else {
+			ML(v3, v1);
+		}
+		
+		#undef ML
+
+		bmesh_corners_to_loops(mesh, i, mp->loopstart, numTex, numCol);
+	}
+
+	/*BMESH_TODO now to deal with fgons*/
+
+	BLI_edgehash_free(eh, NULL);
+}
+
 static void direct_link_mesh(FileData *fd, Mesh *mesh)
 {
 	mesh->mat= newdataadr(fd, mesh->mat);
@@ -3153,7 +3271,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	direct_link_customdata(fd, &mesh->fdata, mesh->pv ? mesh->pv->totface : mesh->totface);
 	direct_link_customdata(fd, &mesh->ldata, mesh->totloop);
 	direct_link_customdata(fd, &mesh->pdata, mesh->totpoly);
-
+	
 	mesh->bb= NULL;
 	mesh->mselect = NULL;
 	mesh->edit_btmesh= NULL;
@@ -3207,6 +3325,11 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 			SWITCH_INT(tf->col[2]);
 			SWITCH_INT(tf->col[3]);
 		}
+	}
+
+	/*check if we need to convert mfaces to mpolys*/
+	if (mesh->totface && !mesh->totpoly) {
+		convert_mfaces_to_mpolys(mesh);
 	}
 }
 

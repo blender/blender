@@ -200,11 +200,11 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
 	BMVert *curvert, *tv, **vlist;
 	int i, j, done, cont, edok;
 	
-	if(len < 2) goto error;
+	if(len < 2) return NULL;
 	
 	/*make sure that v1 and v2 are in elist[0]*/
 	if(bmesh_verts_in_edge(v1,v2,elist[0]) == 0) 
-		goto error;
+		return NULL;
 	
 	/*clear euler flags*/
 	for(i=0;i<len;i++) elist[i]->head.eflag1=elist[i]->head.eflag2 = 0;
@@ -222,9 +222,9 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
 	*/
 	for(i=0; i<len; i++){
 		edok = bmesh_disk_count_edgeflag(elist[i]->v1, MF_CANDIDATE, 0);
-		if(edok != 2) goto error;
+		if(edok != 2) return NULL;
 		edok = bmesh_disk_count_edgeflag(elist[i]->v2, MF_CANDIDATE, 0);
-		if(edok != 2) goto error;
+		if(edok != 2) return NULL;
 	}
 	
 	/*set start edge, start vert and target vert for our loop traversal*/
@@ -238,6 +238,7 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
 		bm->vtarlen = len;
 	}
 	/*insert tv into vlist since its the first vertex in face*/
+	
 	i=0;
 	vlist=bm->vtar;
 	vlist[i] = tv;
@@ -321,10 +322,6 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
 
 	for(i=0;i<len;i++) elist[i]->head.eflag1=elist[i]->head.eflag2 = 0;
 	return f;
-error:
-	for(i=0;i<len;i++) elist[i]->head.eflag1=elist[i]->head.eflag2 = 0;
-	return NULL;
-
 }
 
 /* KILL Eulers */

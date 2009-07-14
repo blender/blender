@@ -220,14 +220,53 @@ BMEditMesh *CDDM_To_BMesh(DerivedMesh *dm, BMEditMesh *existing)
 
 float vertarray_size(MVert *mvert, int numVerts, int axis);
 
+
+typedef struct IndexMapEntry {
+	/* the new vert index that this old vert index maps to */
+	int new;
+	/* -1 if this vert isn't merged, otherwise the old vert index it
+	* should be replaced with
+	*/
+	int merge;
+	/* 1 if this vert's first copy is merged with the last copy of its
+	* merge target, otherwise 0
+	*/
+	short merge_final;
+} IndexMapEntry;
+
+/* indexMap - an array of IndexMap entries
+ * oldIndex - the old index to map
+ * copyNum - the copy number to map to (original = 0, first copy = 1, etc.)
+ */
+static int calc_mapping(IndexMapEntry *indexMap, int oldIndex, int copyNum)
+{
+	if(indexMap[oldIndex].merge < 0) {
+		/* vert wasn't merged, so use copy of this vert */
+		return indexMap[oldIndex].new + copyNum;
+	} else if(indexMap[oldIndex].merge == oldIndex) {
+		/* vert was merged with itself */
+		return indexMap[oldIndex].new;
+	} else {
+		/* vert was merged with another vert */
+		/* follow the chain of merges to the end, or until we've passed
+		* a number of vertices equal to the copy number
+		*/
+		if(copyNum <= 0)
+			return indexMap[oldIndex].new;
+		else
+			return calc_mapping(indexMap, indexMap[oldIndex].merge,
+					    copyNum - 1);
+	}
+}
+
 static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  Scene *scene, Object *ob, DerivedMesh *dm,
                                           int initFlags)
 {
 	DerivedMesh *cddm = CDDM_copy(dm);
 	BMEditMesh *em = CDDM_To_BMesh(cddm, NULL);
-	BMOperator op, oldop;
-	int i, j;
+	BMOperator op, oldop, weldop;
+	int i, j, indexLen;
 	/* offset matrix */
 	float offset[4][4];
 	float final_offset[4][4];
@@ -237,6 +276,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	int numVerts, numEdges, numFaces;
 	int maxVerts, maxEdges, maxFaces;
 	int finalVerts, finalEdges, finalFaces;
+	int *indexMap;
 	DerivedMesh *result, *start_cap = NULL, *end_cap = NULL;
 	MVert *src_mvert;
 
@@ -316,16 +356,16 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	*/
 	finalVerts = dm->getNumVerts(dm) * count;
 	finalEdges = dm->getNumEdges(dm) * count;
-	finalFaces = dm->getNumTessFaces(dm) * count;
+	finalFaces = dm->getNumFaces(dm) * count;
 	if(start_cap) {
 		finalVerts += start_cap->getNumVerts(start_cap);
 		finalEdges += start_cap->getNumEdges(start_cap);
-		finalFaces += start_cap->getNumTessFaces(start_cap);
+		finalFaces += start_cap->getNumFaces(start_cap);
 	}
 	if(end_cap) {
 		finalVerts += end_cap->getNumVerts(end_cap);
 		finalEdges += end_cap->getNumEdges(end_cap);
-		finalFaces += end_cap->getNumTessFaces(end_cap);
+		finalFaces += end_cap->getNumFaces(end_cap);
 	}
 
 	/* calculate the offset matrix of the final copy (for merging) */ 
@@ -336,31 +376,103 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		MTC_Mat4CpyMat4(final_offset, tmp_mat);
 	}
 
-
 	cddm->needsFree = 1;
 	cddm->release(cddm);
 	
+	BMO_Init_Op(&weldop, "weldverts");
 	BMO_InitOpf(em->bm, &op, "dupe geom=%avef");
 	oldop = op;
 	for (j=0; j < count; j++) {
+		BMVert *v, *v2;
+		BMOpSlot *s1;
+		BMOpSlot *s2;
+
 		BMO_InitOpf(em->bm, &op, "dupe geom=%s", &oldop, j==0 ? "geom" : "newout");
 		BMO_Exec_Op(em->bm, &op);
 
-		BMO_Finish_Op(em->bm, &oldop);
-		oldop = op;
+		s1 = BMO_GetSlot(&op, "geom");
+		s2 = BMO_GetSlot(&op, "newout");
 
 		BMO_CallOpf(em->bm, "transform mat=%m4 verts=%s", offset, &op, "newout");
 
+		#define _E(s, i) ((BMVert**)(s)->data.buf)[i]
+
+		/*calculate merge mapping*/
+		if (j == 0) {
+			BMOperator findop;
+			BMOIter oiter;
+			BMIter iter;
+			BMVert *v, *v2;
+			BMHeader *h;
+
+			BMO_InitOpf(em->bm, &findop, 
+				"finddoubles verts=%av dist=%f keepverts=%s", 
+				amd->merge_dist, &op, "geom");
+
+			i = 0;
+			BMO_ITER(h, &oiter, em->bm, &op, "geom", BM_ALL) {
+				BMINDEX_SET(h, i);
+				i++;
+			}
+
+			BMO_ITER(h, &oiter, em->bm, &op, "newout", BM_ALL) {
+				BMINDEX_SET(h, i);
+				i++;
+			}
+
+			BMO_Exec_Op(em->bm, &findop);
+
+			indexLen = i;
+			indexMap = MEM_callocN(sizeof(int)*indexLen, "indexMap");
+
+			/*element type argument doesn't do anything here*/
+			BMO_ITER(v, &oiter, em->bm, &findop, "targetmapout", 0) {
+				v2 = BMO_IterMapValp(&oiter);
+
+				/*make sure merge pairs are duplicate-to-duplicate*/
+				/*if (BMINDEX_GET(v) >= s1->len && BMINDEX_GET(v2) >= s1->len) 
+					continue;
+				else if (BMINDEX_GET(v) < s1->len && BMINDEX_GET(v2) < s1->len) 
+					continue;*/
+
+				indexMap[BMINDEX_GET(v)] = BMINDEX_GET(v2)+1;
+			}
+
+			BMO_Finish_Op(em->bm, &findop);
+		} 
+
+		/*generate merge mappping using index map.  we do this by using the
+		  operator slots as lookup arrays.*/
+		#define E(i) (i) < s1->len ? _E(s1, i) : _E(s2, (i)-s1->len)
+
+		for (i=0; i<indexLen; i++) {
+			if (!indexMap[i]) continue;
+
+			v = E(i);
+			v2 = E(indexMap[i]-1);
+
+			BMO_Insert_MapPointer(em->bm, &weldop, "targetmap", v, v2);
+		}
+
+		#undef E
+		#undef _E
+
+		BMO_Finish_Op(em->bm, &oldop);
+		oldop = op;
 	}
 
 	if (j > 0) BMO_Finish_Op(em->bm, &op);
 
-	BMO_CallOpf(em->bm, "removedoubles verts=%av dist=%f", amd->merge_dist);
+	BMO_Exec_Op(em->bm, &weldop);
+	BMO_Finish_Op(em->bm, &weldop);
+
+	//BMO_CallOpf(em->bm, "removedoubles verts=%av dist=%f", amd->merge_dist);
 
 	BMEdit_RecalcTesselation(em);
 	cddm = CDDM_from_BMEditMesh(em, NULL);
 
 	BMEdit_Free(em);
+	MEM_freeN(indexMap);
 
 	return cddm;
 }
@@ -385,4 +497,72 @@ DerivedMesh *arrayModifier_applyModifierEM(ModifierData *md, Object *ob,
                                            DerivedMesh *derivedData)
 {
 	return arrayModifier_applyModifier(md, ob, derivedData, 0, 1);
+}
+
+/* Mirror */
+
+DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
+		Object *ob,
+		DerivedMesh *dm,
+		int initFlags,
+		int axis)
+{
+	int i;
+	float tolerance = mmd->tolerance;
+	DerivedMesh *result, *cddm;
+	BMEditMesh *em;
+	BMesh *bm;
+	int numVerts, numEdges, numFaces;
+	int maxVerts = dm->getNumVerts(dm);
+	int maxEdges = dm->getNumEdges(dm);
+	int maxFaces = dm->getNumTessFaces(dm);
+	int vector_size=0, j, a, b;
+	bDeformGroup *def, *defb;
+	bDeformGroup **vector_def = NULL;
+	int (*indexMap)[2];
+	float mtx[4][4], imtx[4][4];
+
+	cddm = CDDM_copy(dm);
+	em = CDDM_To_BMesh(dm, NULL);
+
+	cddm->needsFree = 1;
+	cddm->release(cddm);
+	
+	/*convienence variable*/
+	bm = em->bm;
+
+	numVerts = numEdges = numFaces = 0;
+	indexMap = MEM_mallocN(sizeof(*indexMap) * maxVerts, "indexmap");
+	result = CDDM_from_template(dm, maxVerts * 2, maxEdges * 2, maxFaces * 2, 0, 0);
+
+	if (mmd->flag & MOD_MIR_VGROUP) {
+		/* calculate the number of deformedGroups */
+		for(vector_size = 0, def = ob->defbase.first; def;
+		    def = def->next, vector_size++);
+
+		/* load the deformedGroups for fast access */
+		vector_def =
+		    (bDeformGroup **)MEM_mallocN(sizeof(bDeformGroup*) * vector_size,
+		                                 "group_index");
+		for(a = 0, def = ob->defbase.first; def; def = def->next, a++) {
+			vector_def[a] = def;
+		}
+	}
+
+	if (mmd->mirror_ob) {
+		float obinv[4][4];
+		
+		Mat4Invert(obinv, mmd->mirror_ob->obmat);
+		Mat4MulMat4(mtx, ob->obmat, obinv);
+		Mat4Invert(imtx, mtx);
+	}
+
+
+
+	BMEdit_RecalcTesselation(em);
+	result = CDDM_from_BMEditMesh(em, NULL);
+
+	BMEdit_Free(em);
+
+	return result;
 }

@@ -45,13 +45,23 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	BMEdge *e, **fedges=NULL, **et;
 	V_DECLARE(fedges);
 	BMFace *f;
-	int i, j;
+	int i, j, allocsize[4] = {512, 512, 2048, 512};
 
 	if (!me || !me->totvert) return; /*sanity check*/
 	
 	mvert = me->mvert;
 
 	vt = MEM_mallocN(sizeof(void**)*me->totvert, "mesh to bmesh vtable");
+
+	CustomData_copy(&bm->vdata, &me->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bm->edata, &me->edata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bm->ldata, &me->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&bm->pdata, &me->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
+
+	CustomData_bmesh_init_pool(&bm->vdata, allocsize[0]);
+	CustomData_bmesh_init_pool(&bm->edata, allocsize[1]);
+	CustomData_bmesh_init_pool(&bm->ldata, allocsize[2]);
+	CustomData_bmesh_init_pool(&bm->pdata, allocsize[3]);
 
 	for (i=0; i<me->totvert; i++, mvert++) {
 		v = BM_Make_Vert(bm, mvert->co, NULL);

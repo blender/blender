@@ -177,6 +177,54 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 	}
 	edar = MEM_callocN(sizeof(BMEdge*) * maxlength, "BM copy mesh edge pointer array");
 	
+	for(v = BMIter_New(&verts, source, BM_VERTS_OF_MESH, source); v; v = BMIter_Step(&verts)){
+		if(BMO_TestFlag(source, (BMHeader*)v, DUPE_INPUT) && (!BMO_TestFlag(source, (BMHeader*)v, DUPE_DONE))){
+			BMIter iter;
+			int iso = 1;
+
+			v2 = copy_vertex(source, v, target, vhash);
+
+			BM_ITER(f, &iter, source, BM_FACES_OF_VERT, v) {
+				if (BMO_TestFlag(source, f, DUPE_INPUT)) {
+					iso = 0;
+					break;
+				}
+			}
+
+			if (iso) {
+				BM_ITER(e, &iter, source, BM_EDGES_OF_VERT, v) {
+					if (BMO_TestFlag(source, e, DUPE_INPUT)) {
+						iso = 0;
+						break;
+					}
+				}
+			}
+			
+			if (iso) 
+				BMO_Insert_MapPointer(source, op, "isovertmap", v, v2);
+
+			BMO_SetFlag(source, (BMHeader*)v, DUPE_DONE);
+		}
+	}
+
+	/*now we dupe all the edges*/
+	for(e = BMIter_New(&edges, source, BM_EDGES_OF_MESH, source); e; e = BMIter_Step(&edges)){
+		if(BMO_TestFlag(source, (BMHeader*)e, DUPE_INPUT) && (!BMO_TestFlag(source, (BMHeader*)e, DUPE_DONE))){
+			/*make sure that verts are copied*/
+			if(!BMO_TestFlag(source, (BMHeader*)e->v1, DUPE_DONE)) {
+				copy_vertex(source, e->v1, target, vhash);
+				BMO_SetFlag(source, (BMHeader*)e->v1, DUPE_DONE);
+			}
+			if(!BMO_TestFlag(source, (BMHeader*)e->v2, DUPE_DONE)) {
+				copy_vertex(source, e->v2, target, vhash);
+				BMO_SetFlag(source, (BMHeader*)e->v2, DUPE_DONE);
+			}
+			/*now copy the actual edge*/
+			copy_edge(op, source, e, target,  vhash,  ehash);			
+			BMO_SetFlag(source, (BMHeader*)e, DUPE_DONE); 
+		}
+	}
+
 	/*first we dupe all flagged faces and their elements from source*/
 	for(f = BMIter_New(&faces, source, BM_FACES_OF_MESH, source); f; f= BMIter_Step(&faces)){
 		if(BMO_TestFlag(source, (BMHeader*)f, DUPE_INPUT)){
@@ -200,34 +248,6 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 		}
 	}
 	
-	/*now we dupe all the edges*/
-	for(e = BMIter_New(&edges, source, BM_EDGES_OF_MESH, source); e; e = BMIter_Step(&edges)){
-		if(BMO_TestFlag(source, (BMHeader*)e, DUPE_INPUT) && (!BMO_TestFlag(source, (BMHeader*)e, DUPE_DONE))){
-			/*make sure that verts are copied*/
-			if(!BMO_TestFlag(source, (BMHeader*)e->v1, DUPE_DONE)) {
-				copy_vertex(source, e->v1, target, vhash);
-				BMO_SetFlag(source, (BMHeader*)e->v1, DUPE_DONE);
-			}
-			if(!BMO_TestFlag(source, (BMHeader*)e->v2, DUPE_DONE)) {
-				copy_vertex(source, e->v2, target, vhash);
-				BMO_SetFlag(source, (BMHeader*)e->v2, DUPE_DONE);
-			}
-			/*now copy the actual edge*/
-			copy_edge(op, source, e, target,  vhash,  ehash);			
-			BMO_SetFlag(source, (BMHeader*)e, DUPE_DONE); 
-		}
-	}
-	
-	/*finally dupe all loose vertices*/
-	for(v = BMIter_New(&verts, source, BM_VERTS_OF_MESH, source); v; v = BMIter_Step(&verts)){
-		if(BMO_TestFlag(source, (BMHeader*)v, DUPE_INPUT) && (!BMO_TestFlag(source, (BMHeader*)v, DUPE_DONE))){
-			v2 = copy_vertex(source, v, target, vhash);
-			BMO_Insert_MapPointer(source, op, 
-				         "isovertmap", v, v2);
-			BMO_SetFlag(source, (BMHeader*)v, DUPE_DONE);
-		}
-	}
-
 	/*free pointer hashes*/
 	BLI_ghash_free(vhash, NULL, NULL);
 	BLI_ghash_free(ehash, NULL, NULL);	

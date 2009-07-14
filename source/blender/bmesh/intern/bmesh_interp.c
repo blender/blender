@@ -112,7 +112,6 @@ void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, B
 void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
                          BMFace *f, int numTex, int numCol) 
 {
-	int i, j;
 	BMLoop *l;
 	BMIter iter;
 	MTFace *texface;
@@ -120,6 +119,7 @@ void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
 	MCol *mcol;
 	MLoopCol *mloopcol;
 	MLoopUV *mloopuv;
+	int i, j;
 
 	for(i=0; i < numTex; i++){
 		texface = CustomData_get_n(&me->fdata, CD_MTFACE, findex, i);

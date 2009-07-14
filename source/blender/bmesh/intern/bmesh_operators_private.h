@@ -4,12 +4,12 @@
 struct BMesh;
 struct BMOperator;
 
-void BMO_push(struct BMesh *bm, struct BMOperator *op);
-void BMO_pop(struct BMesh *bm);
+void BMO_push(BMesh *bm, BMOperator *op);
+void BMO_pop(BMesh *bm);
 
-void splitop_exec(struct BMesh *bm, struct BMOperator *op);
-void dupeop_exec(struct BMesh *bm, struct BMOperator *op);
-void delop_exec(struct BMesh *bm, struct BMOperator *op);
+void splitop_exec(BMesh *bm, BMOperator *op);
+void dupeop_exec(BMesh *bm, BMOperator *op);
+void delop_exec(BMesh *bm, BMOperator *op);
 void esubdivide_exec(BMesh *bmesh, BMOperator *op);
 void edit2bmesh_exec(BMesh *bmesh, BMOperator *op);
 void bmesh2edit_exec(BMesh *bmesh, BMOperator *op);
@@ -33,5 +33,6 @@ void dissolveedges_exec(BMesh *bm, BMOperator *op);
 void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op);
 void bmesh_weldverts_exec(BMesh *bm, BMOperator *op);
 void bmesh_removedoubles_exec(BMesh *bm, BMOperator *op);
+void bmesh_finddoubles_exec(BMesh *bm, BMOperator *op);
 
 #endif
