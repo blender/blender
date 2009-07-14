@@ -481,7 +481,7 @@ static void validate_bonebutton_cb(bContext *C, void *bonev, void *namev)
 		/* restore */
 		BLI_strncpy(bone->name, oldname, 32);
 		
-		armature_bone_rename(ob, oldname, newname); // editarmature.c
+		ED_armature_bone_rename(ob->data, oldname, newname); // editarmature.c
 	}
 }
 
@@ -553,7 +553,7 @@ void validate_editbonebutton_cb(bContext *C, void *bonev, void *namev)
 	/* restore */
 	BLI_strncpy(eBone->name, oldname, 32);
 	
-	armature_bone_rename(CTX_data_edit_object(C), oldname, newname); // editarmature.c
+	ED_armature_bone_rename(CTX_data_edit_object(C)->data, oldname, newname); // editarmature.c
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, CTX_data_edit_object(C)); // XXX fix
 }
 
@@ -1215,7 +1215,7 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	View3D *v3d= CTX_wm_view3d(C);
-	uiBut *bt;
+	//uiBut *bt;
 	Object *ob= OBACT;
 	TransformProperties *tfp;
 	float lim;
@@ -1764,7 +1764,7 @@ void view3d_buttons_register(ARegionType *art)
 	pt->draw= view3d_panel_transform_spaces;
 	BLI_addtail(&art->paneltypes, pt);
 
-	/*pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel gpencil");
+	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel gpencil");
 	strcpy(pt->idname, "VIEW3D_PT_gpencil");
 	strcpy(pt->label, "Greas Pencil");
 	pt->draw= view3d_panel_gpencil;

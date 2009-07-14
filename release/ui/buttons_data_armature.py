@@ -42,11 +42,12 @@ class DATA_PT_skeleton(DataButtonsPanel):
 
 
 		if arm:
-			layout.itemR(arm, "rest_position")
-
 			split = layout.split()
 
-			sub = split.column()
+			col = split.column()
+			col.itemR(arm, "rest_position")
+
+			sub = col.column()
 			sub.itemL(text="Deform:")
 			sub.itemR(arm, "deform_vertexgroups", text="Vertes Groups")
 			sub.itemR(arm, "deform_envelope", text="Envelopes")
@@ -69,17 +70,14 @@ class DATA_PT_display(DataButtonsPanel):
 		layout = self.layout
 		arm = context.armature
 
-		split = layout.split()
+		layout.row().itemR(arm, "drawtype", expand=True)
 
-		sub = split.column()
-		sub.itemR(arm, "drawtype", text="Style")
-		sub.itemR(arm, "delay_deform", text="Delay Refresh")
-
-		sub = split.column()
+		sub = layout.column_flow()
 		sub.itemR(arm, "draw_names", text="Names")
 		sub.itemR(arm, "draw_axes", text="Axes")
 		sub.itemR(arm, "draw_custom_bone_shapes", text="Shapes")
 		sub.itemR(arm, "draw_group_colors", text="Colors")
+		sub.itemR(arm, "delay_deform", text="Delay Refresh")
 
 class DATA_PT_paths(DataButtonsPanel):
 	__idname__ = "DATA_PT_paths"
@@ -93,14 +91,15 @@ class DATA_PT_paths(DataButtonsPanel):
 		
 		sub = split.column()
 		sub.itemR(arm, "paths_show_around_current_frame", text="Around Frame")
+		col = sub.column(align=True)
 		if (arm.paths_show_around_current_frame):
-			sub.itemR(arm, "path_before_current", text="Before")
-			sub.itemR(arm, "path_after_current", text="After")
+			col.itemR(arm, "path_before_current", text="Before")
+			col.itemR(arm, "path_after_current", text="After")
 		else:
-			sub.itemR(arm, "path_start_frame", text="Start")
-			sub.itemR(arm, "path_end_frame", text="End")
+			col.itemR(arm, "path_start_frame", text="Start")
+			col.itemR(arm, "path_end_frame", text="End")
 
-		sub.itemR(arm, "path_size", text="Step")	
+		col.itemR(arm, "path_size", text="Step")	
 		sub.itemR(arm, "paths_calculate_head_positions", text="Head")
 		
 		sub = split.column()
@@ -121,13 +120,15 @@ class DATA_PT_ghost(DataButtonsPanel):
 
 		sub = split.column()
 		sub.itemR(arm, "ghost_type", text="Scope")
+
+		col = sub.column(align=True)
 		if arm.ghost_type == 'RANGE':
-			sub.itemR(arm, "ghost_start_frame", text="Start")
-			sub.itemR(arm, "ghost_end_frame", text="End")
-			sub.itemR(arm, "ghost_size", text="Step")
+			col.itemR(arm, "ghost_start_frame", text="Start")
+			col.itemR(arm, "ghost_end_frame", text="End")
+			col.itemR(arm, "ghost_size", text="Step")
 		elif arm.ghost_type == 'CURRENT_FRAME':
-			sub.itemR(arm, "ghost_step", text="Range")
-			sub.itemR(arm, "ghost_size", text="Step")
+			col.itemR(arm, "ghost_step", text="Range")
+			col.itemR(arm, "ghost_size", text="Step")
 
 		sub = split.column()
 		sub.itemR(arm, "ghost_only_selected", text="Selected Only")

@@ -116,7 +116,7 @@ void docenter_armature (struct Scene *scene, struct View3D *v3d, struct Object *
 
 void auto_align_armature(struct Scene *scene, struct View3D *v3d, short mode);
 void unique_editbone_name(struct ListBase *ebones, char *name, EditBone *bone); /* if bone is already in list, pass it as param to ignore it */
-void armature_bone_rename(struct Object *ob, char *oldnamep, char *newnamep);
+void ED_armature_bone_rename(struct bArmature *arm, char *oldnamep, char *newnamep);
 
 void undo_push_armature(struct bContext *C, char *name);
 

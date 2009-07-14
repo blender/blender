@@ -39,12 +39,18 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BLI_arithb.h"
+
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
 
+#include "ED_armature.h"
+
 static void rna_Pose_update(bContext *C, PointerRNA *ptr)
 {
+	// XXX when to use this? ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
+
 	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_DATA);
 }
 
@@ -58,6 +64,39 @@ IDProperty *rna_PoseChannel_idproperties(PointerRNA *ptr, int create)
 	}
 
 	return pchan->prop;
+}
+
+static void rna_PoseChannel_euler_rotation_get(PointerRNA *ptr, float *value)
+{
+	bPoseChannel *pchan= ptr->data;
+
+	if(pchan->rotmode == PCHAN_ROT_QUAT)
+		QuatToEul(pchan->quat, value);
+	else
+		VECCOPY(value, pchan->eul);
+}
+
+static void rna_PoseChannel_euler_rotation_set(PointerRNA *ptr, const float *value)
+{
+	bPoseChannel *pchan= ptr->data;
+
+	if(pchan->rotmode == PCHAN_ROT_QUAT)
+		EulToQuat((float*)value, pchan->quat);
+	else
+		VECCOPY(pchan->eul, value);
+}
+
+static void rna_PoseChannel_name_set(PointerRNA *ptr, const char *value)
+{
+	Object *ob= (Object*)ptr->id.data;
+	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
+	char oldname[32], newname[32];
+	
+	/* need to be on the stack */
+	BLI_strncpy(newname, value, 32);
+	BLI_strncpy(oldname, pchan->name, 32);
+	
+	ED_armature_bone_rename(ob->data, oldname, newname);
 }
 
 #else
@@ -86,7 +125,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Constraints", "Constraints that act on this PoseChannel."); 
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_PoseChannel_name_set");
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
 
@@ -165,6 +204,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "euler_rotation", PROP_FLOAT, PROP_ROTATION);
 	RNA_def_property_float_sdna(prop, NULL, "eul");
+	RNA_def_property_float_funcs(prop, "rna_PoseChannel_euler_rotation_get", "rna_PoseChannel_euler_rotation_set", NULL);
 	RNA_def_property_ui_text(prop, "Rotation (Euler)", "Rotation in Eulers.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 	

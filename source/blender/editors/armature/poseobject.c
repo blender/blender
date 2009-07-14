@@ -1346,7 +1346,7 @@ void pose_flip_names(Scene *scene)
 			if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
 				BLI_strncpy(newname, pchan->name, sizeof(newname));
 				bone_flip_name(newname, 1);	// 1 = do strip off number extensions
-				armature_bone_rename(ob, pchan->name, newname);
+				ED_armature_bone_rename(arm, pchan->name, newname);
 			}
 		}
 	}
@@ -1375,7 +1375,7 @@ void pose_autoside_names(Scene *scene, short axis)
 			if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
 				BLI_strncpy(newname, pchan->name, sizeof(newname));
 				bone_autoside_name(newname, 1, axis, pchan->bone->head[axis], pchan->bone->tail[axis]);
-				armature_bone_rename(ob, pchan->name, newname);
+				ED_armature_bone_rename(arm, pchan->name, newname);
 			}
 		}
 	}
