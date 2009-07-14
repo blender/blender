@@ -61,6 +61,9 @@ void buttons_context_draw(const struct bContext *C, struct uiLayout *layout);
 void buttons_context_register(struct ARegionType *art);
 
 /* buttons_ops.c */
+void OBJECT_OT_group_add(struct wmOperatorType *ot);
+void OBJECT_OT_group_remove(struct wmOperatorType *ot);
+
 void OBJECT_OT_material_slot_add(struct wmOperatorType *ot);
 void OBJECT_OT_material_slot_remove(struct wmOperatorType *ot);
 void OBJECT_OT_material_slot_assign(struct wmOperatorType *ot);

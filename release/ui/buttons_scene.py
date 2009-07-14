@@ -28,10 +28,6 @@ class RENDER_PT_layers(RenderButtonsPanel):
 		scene = context.scene
 		rd = scene.render_data
 
-		split = layout.split()
-		split.itemL(text="Scene:")
-		split.column().itemR(scene, "visible_layers", text="")
-
 		row = layout.row()
 		row.template_list(rd, "layers", rd, "active_layer_index", rows=2)
 
@@ -42,8 +38,10 @@ class RENDER_PT_layers(RenderButtonsPanel):
 		rl = rd.layers[rd.active_layer_index]
 
 		split = layout.split()
-		split.itemL(text="Layers:")
-		split.column().itemR(rl, "visible_layers", text="")
+		col = split.column()
+		col.itemR(scene, "visible_layers", text="Scene")
+		col = split.column()
+		col.itemR(rl, "visible_layers", text="Layer")
 
 		layout.itemR(rl, "light_override", text="Light")
 		layout.itemR(rl, "material_override", text="Material")

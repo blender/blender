@@ -2786,6 +2786,22 @@ static int test_parent_loop(Object *par, Object *ob)
 	return test_parent_loop(par->parent, ob);
 }
 
+void ED_object_parent(Object *ob, Object *par, int type, const char *substr)
+{
+	if(!par || test_parent_loop(par, ob)) {
+		ob->parent= NULL;
+		ob->partype= PAROBJECT;
+		ob->parsubstr[0]= 0;
+		return;
+	}
+
+	/* this could use some more checks */
+
+	ob->parent= par;
+	ob->partype &= ~PARTYPE;
+	ob->partype |= type;
+	BLI_strncpy(ob->parsubstr, substr, sizeof(ob->parsubstr));
+}
 
 static int parent_set_exec(bContext *C, wmOperator *op)
 {

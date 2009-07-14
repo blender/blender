@@ -31,6 +31,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_curve_types.h"
+#include "DNA_group_types.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -40,6 +41,7 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_group.h"
 #include "BKE_font.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -62,7 +64,138 @@
 #include "ED_curve.h"
 #include "ED_mesh.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
 #include "buttons_intern.h"	// own include
+
+
+/********************** group operators *********************/
+
+static int group_add_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Base *base;
+	Group *group;
+	int value= RNA_enum_get(op->ptr, "group");
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+	
+	base= object_in_scene(ob, scene);
+	if(!base)
+		return OPERATOR_CANCELLED;
+	
+	if(value == -1)
+		group= add_group( "Group" );
+	else
+		group= BLI_findlink(&bmain->group, value);
+
+	if(group) {
+		add_to_group(group, ob);
+		ob->flag |= OB_FROMGROUP;
+		base->flag |= OB_FROMGROUP;
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+static EnumPropertyItem group_items[]= {
+	{-1, "ADD_NEW", 0, "Add New Group", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+static EnumPropertyItem *group_itemf(bContext *C, PointerRNA *ptr, int *free)
+{	
+	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	EnumPropertyItem *item= NULL;
+	Main *bmain;
+	Group *group;
+	int a, totitem= 0;
+	
+	if(!C) /* needed for docs */
+		return group_items;
+	
+	RNA_enum_items_add_value(&item, &totitem, group_items, -1);
+
+	bmain= CTX_data_main(C);
+	if(bmain->group.first)
+		RNA_enum_item_add_separator(&item, &totitem);
+
+	for(a=0, group=bmain->group.first; group; group=group->id.next, a++) {
+		tmp.value= a;
+		tmp.identifier= group->id.name+2;
+		tmp.name= group->id.name+2;
+		RNA_enum_item_add(&item, &totitem, &tmp);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+
+	*free= 1;
+
+	return item;
+}
+
+void OBJECT_OT_group_add(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name= "Add Group";
+	ot->idname= "OBJECT_OT_group_add";
+	
+	/* api callbacks */
+	ot->exec= group_add_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "group", group_items, -1, "Group", "Group to add object to.");
+	RNA_def_enum_funcs(prop, group_itemf);
+}
+
+static int group_remove_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Group *group= CTX_data_pointer_get_type(C, "group", &RNA_Group).data;
+	Base *base;
+
+	if(!ob || !group)
+		return OPERATOR_CANCELLED;
+
+	base= object_in_scene(ob, scene);
+	if(!base)
+		return OPERATOR_CANCELLED;
+
+	rem_from_group(group, ob);
+
+	if(find_group(ob, NULL) == NULL) {
+		ob->flag &= ~OB_FROMGROUP;
+		base->flag &= ~OB_FROMGROUP;
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_group_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Group";
+	ot->idname= "OBJECT_OT_group_remove";
+	
+	/* api callbacks */
+	ot->exec= group_remove_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 /********************** material slot operators *********************/
 

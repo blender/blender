@@ -528,7 +528,7 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
 
 class BONE_PT_constraints(ConstraintButtonsPanel):
 	__idname__ = "BONE_PT_constraints"
-	__label__ = "Bone Constraints"
+	__label__ = "Constraints"
 	__context__ = "bone"
 
 	def poll(self, context):
@@ -541,7 +541,7 @@ class BONE_PT_constraints(ConstraintButtonsPanel):
 		layout = self.layout
 
 		row = layout.row()
-		row.item_menu_enumO("OBJECT_OT_constraint_add", "type")
+		row.item_menu_enumO("POSE_OT_constraint_add", "type")
 		row.itemL();
 
 		for con in pchan.constraints:

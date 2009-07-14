@@ -1008,12 +1008,11 @@ void CONSTRAINT_OT_move_up (wmOperatorType *ot)
 
 /************************ add constraint operator *********************/
 
-static int constraint_add_exec(bContext *C, wmOperator *op)
+static int constraint_add_exec(bContext *C, wmOperator *op, ListBase *list)
 {
 	Scene *scene= CTX_data_scene(C);
     Object *ob = CTX_data_active_object(C);
 	bConstraint *con, *coniter;
-	ListBase *list= get_active_constraints(ob);
 	bPoseChannel *pchan= get_active_posechannel(ob);
 	int type= RNA_enum_get(op->ptr, "type");
 
@@ -1077,6 +1076,26 @@ static int constraint_add_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int object_constraint_add_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	return constraint_add_exec(C, op, &ob->constraints);
+}
+
+static int pose_constraint_add_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+
+	if(!ob)
+		return OPERATOR_CANCELLED;;
+	
+	return constraint_add_exec(C, op, get_active_constraints(ob));
+}
+
 void OBJECT_OT_constraint_add(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1086,13 +1105,32 @@ void OBJECT_OT_constraint_add(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
-	ot->exec= constraint_add_exec;
-	
+	ot->exec= object_constraint_add_exec;
 	ot->poll= ED_operator_object_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
+	/* properties */
+	RNA_def_enum(ot->srna, "type", constraint_type_items, 0, "Type", "");
+}
+
+void POSE_OT_constraint_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Constraint";
+	ot->description = "Add a constraint to the active bone.";
+	ot->idname= "POSE_OT_constraint_add";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= pose_constraint_add_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
 	RNA_def_enum(ot->srna, "type", constraint_type_items, 0, "Type", "");
 }
 

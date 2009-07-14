@@ -102,6 +102,7 @@ void OBJECT_OT_modifier_mdef_bind(struct wmOperatorType *ot);
 
 /* editconstraint.c */
 void OBJECT_OT_constraint_add(struct wmOperatorType *ot);
+void POSE_OT_constraint_add(struct wmOperatorType *ot);
 void CONSTRAINT_OT_delete(struct wmOperatorType *ot);
 
 void CONSTRAINT_OT_move_up(struct wmOperatorType *ot);
