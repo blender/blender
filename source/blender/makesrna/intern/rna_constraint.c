@@ -716,15 +716,15 @@ static void rna_def_constraint_action(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem transform_channel_items[] = {
-		{00, "ROTATION_X", 0, "Rotation X", ""},
-		{01, "ROTATION_Y", 0, "Rotation Y", ""},
-		{02, "ROTATION_Z", 0, "Rotation Z", ""},
-		{10, "SIZE_X", 0, "Scale X", ""},
-		{11, "SIZE_Y", 0, "Scale Y", ""},
-		{12, "SIZE_Z", 0, "Scale Z", ""},
 		{20, "LOCATION_X", 0, "Location X", ""},
 		{21, "LOCATION_Y", 0, "Location Y", ""},
 		{22, "LOCATION_Z", 0, "Location Z", ""},
+		{00, "ROTATION_X", 0, "Rotation X", ""},
+		{01, "ROTATION_Y", 0, "Rotation Y", ""},
+		{02, "ROTATION_Z", 0, "Rotation Z", ""},
+		{10, "SCALE_X", 0, "Scale X", ""},
+		{11, "SCALE_Y", 0, "Scale Y", ""},
+		{12, "SCALE_Z", 0, "Scale Z", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ActionConstraint", "Constraint");
