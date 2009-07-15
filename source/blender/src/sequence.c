@@ -1960,7 +1960,9 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra,
 		RenderResult rres;
 		int doseq, rendering= G.rendering;
 		char scenename[64];
-		int sce_valid =sce&& (sce->camera || sce->r.scemode & R_DOSEQ);
+		int sce_valid =sce&& (sce->camera 
+				      || (sce->r.scemode & R_DOSEQ)
+				      || (sce->r.scemode & R_DOCOMP));
 			
 		if (se->ibuf == NULL && sce_valid && !build_proxy_run) {
 			se->ibuf = seq_proxy_fetch(seq, cfra, render_size,
