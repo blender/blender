@@ -169,7 +169,7 @@ void RNA_def_world(struct BlenderRNA *brna);
 void rna_def_animdata_common(struct StructRNA *srna);
 
 void rna_def_texmat_common(struct StructRNA *srna, const char *texspace_editable);
-void rna_def_mtex_common(struct StructRNA *srna, const char *begin, const char *activeget, const char *structname);
+void rna_def_mtex_common(struct StructRNA *srna, const char *begin, const char *activeget, const char *activeset, const char *structname);
 
 void rna_ID_name_get(struct PointerRNA *ptr, char *value);
 int rna_ID_name_length(struct PointerRNA *ptr);

@@ -37,6 +37,10 @@
 
 #ifdef RNA_RUNTIME
 
+#include "MEM_guardedalloc.h"
+
+#include "BKE_texture.h"
+
 static PointerRNA rna_Material_mirror_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_MaterialRaytraceMirror, ptr->id.data);
@@ -82,6 +86,27 @@ static PointerRNA rna_Material_active_texture_get(PointerRNA *ptr)
 {
 	Material *ma= (Material*)ptr->data;
 	return rna_pointer_inherit_refine(ptr, &RNA_TextureSlot, ma->mtex[(int)ma->texact]);
+}
+
+static void rna_Material_active_texture_index_set(PointerRNA *ptr, int value)
+{
+	Material *ma= (Material*)ptr->data;
+	int act= ma->texact;
+
+	if(value == act || value < 0 || value >= MAX_MTEX)
+		return;
+
+	/* auto create/free mtex on activate/deactive, so we can edit
+	 * the texture pointer in the buttons UI. */
+	if(ma->mtex[act] && !ma->mtex[act]->tex) {
+		MEM_freeN(ma->mtex[act]);
+		ma->mtex[act]= NULL;
+	}
+
+	ma->texact= value;
+
+	if(!ma->mtex[value])
+		ma->mtex[value]= add_mtex();
 }
 
 static void rna_MaterialStrand_start_size_range(PointerRNA *ptr, float *min, float *max)
@@ -220,6 +245,10 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "from_dupli", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_DUPLI_MAPTO);
 	RNA_def_property_ui_text(prop, "From Dupli", "Dupli's instanced from verts, faces or particles, inherit texture coordinate from their parent (only for UV and Orco texture coordinates).");
+
+	prop= RNA_def_property(srna, "from_original", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_OB_DUPLI_ORIG);
+	RNA_def_property_ui_text(prop, "From Original", "Dupli's derive their object coordinates from the original objects transformation.");
 
 	prop= RNA_def_property(srna, "map_color", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_COL);
@@ -1116,7 +1145,7 @@ void RNA_def_material(BlenderRNA *brna)
 
 	/* common */
 	rna_def_animdata_common(srna);
-	rna_def_mtex_common(srna, "rna_Material_mtex_begin", "rna_Material_active_texture_get", "MaterialTextureSlot");
+	rna_def_mtex_common(srna, "rna_Material_mtex_begin", "rna_Material_active_texture_get", "rna_Material_active_texture_index_set", "MaterialTextureSlot");
 
 	prop= RNA_def_property(srna, "script_link", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "scriptlink");
@@ -1136,7 +1165,7 @@ void RNA_def_material(BlenderRNA *brna)
 	rna_def_material_strand(brna);
 }
 
-void rna_def_mtex_common(StructRNA *srna, const char *begin, const char *activeget, const char *structname)
+void rna_def_mtex_common(StructRNA *srna, const char *begin, const char *activeget, const char *activeset, const char *structname)
 {
 	PropertyRNA *prop;
 
@@ -1154,6 +1183,7 @@ void rna_def_mtex_common(StructRNA *srna, const char *begin, const char *activeg
 
 	prop= RNA_def_property(srna, "active_texture_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "texact");
+	RNA_def_property_int_funcs(prop, NULL, activeset, NULL);
 	RNA_def_property_range(prop, 0, MAX_MTEX-1);
 	RNA_def_property_ui_text(prop, "Active Texture Index", "Index of active texture slot.");
 }

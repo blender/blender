@@ -161,7 +161,7 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
 		sub.itemR(ob, "time_offset", text="Offset")
 
 		sub = split.column()
-		sub.itemL(text="Tracking:")
+		sub.itemL(text="Track:")
 		sub.itemR(ob, "track", text="")
 		sub.itemR(ob, "track_axis", text="Axis")
 		sub.itemR(ob, "up_axis", text="Up Axis")

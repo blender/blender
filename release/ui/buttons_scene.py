@@ -111,11 +111,12 @@ class RENDER_PT_shading(RenderButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
+		col.itemR(rd, "render_textures", text="Textures")
 		col.itemR(rd, "render_shadows", text="Shadows")
 		col.itemR(rd, "render_sss", text="Subsurface Scattering")
-		col.itemR(rd, "render_envmaps", text="Environment Map")
 		
 		col = split.column()
+		col.itemR(rd, "render_envmaps", text="Environment Map")
 		col.itemR(rd, "render_raytracing", text="Ray Tracing")
 		col.itemR(rd, "alpha_mode", text="Alpha")
 

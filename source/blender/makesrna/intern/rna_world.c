@@ -38,6 +38,10 @@
 
 #ifdef RNA_RUNTIME
 
+#include "MEM_guardedalloc.h"
+
+#include "BKE_texture.h"
+
 static PointerRNA rna_World_ambient_occlusion_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_WorldAmbientOcclusion, ptr->id.data);
@@ -66,6 +70,29 @@ static PointerRNA rna_World_active_texture_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_TextureSlot, wo->mtex[(int)wo->texact]);
 }
 
+static void rna_World_active_texture_index_set(PointerRNA *ptr, int value)
+{
+	World *wo= (World*)ptr->data;
+	int act= wo->texact;
+
+	if(value == act || value < 0 || value >= MAX_MTEX)
+		return;
+
+	/* auto create/free mtex on activate/deactive, so we can edit
+	 * the texture pointer in the buttons UI. */
+	if(wo->mtex[act] && !wo->mtex[act]->tex) {
+		MEM_freeN(wo->mtex[act]);
+		wo->mtex[act]= NULL;
+	}
+
+	wo->texact= value;
+
+	if(!wo->mtex[value]) {
+		wo->mtex[value]= add_mtex();
+		wo->mtex[value]->texco= TEXCO_VIEW;
+	}
+}
+
 #else
 
 static void rna_def_world_mtex(BlenderRNA *brna)
@@ -87,26 +114,26 @@ static void rna_def_world_mtex(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "World Texture Slot", "Texture slot for textures in a World datablock.");
 
 	/* map to */
-	prop= RNA_def_property(srna, "map_to_blend", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "map_blend", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_BLEND);
-	RNA_def_property_ui_text(prop, "Map To Blend", "Affect the color progression of the background.");
+	RNA_def_property_ui_text(prop, "Blend", "Affect the color progression of the background.");
 
-	prop= RNA_def_property(srna, "map_to_horizon", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "map_horizon", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_HORIZ);
-	RNA_def_property_ui_text(prop, "Map To Horizon", "Affect the color of the horizon.");
+	RNA_def_property_ui_text(prop, "Horizon", "Affect the color of the horizon.");
 
-	prop= RNA_def_property(srna, "map_to_zenith_up", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "map_zenith_up", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_ZENUP);
-	RNA_def_property_ui_text(prop, "Map To Zenith Up", "Affect the color of the zenith above.");
+	RNA_def_property_ui_text(prop, "Zenith Up", "Affect the color of the zenith above.");
 
-	prop= RNA_def_property(srna, "map_to_zenith_down", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "map_zenith_down", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_ZENDOWN);
-	RNA_def_property_ui_text(prop, "Map To Zenith Down", "Affect the color of the zenith below.");
+	RNA_def_property_ui_text(prop, "Zenith Down", "Affect the color of the zenith below.");
 
 	/* unused
-	prop= RNA_def_property(srna, "map_to_mist", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "map_mist", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_MIST);
-	RNA_def_property_ui_text(prop, "Map To Mist", "Causes the texture to affect the intensity of the mist.");*/
+	RNA_def_property_ui_text(prop, "Mist", "Causes the texture to affect the intensity of the mist.");*/
 
 	prop= RNA_def_property(srna, "texture_coordinates", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "texco");
@@ -348,7 +375,7 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_WORLD_DATA);
 
 	rna_def_animdata_common(srna);
-	rna_def_mtex_common(srna, "rna_World_mtex_begin", "rna_World_active_texture_get", "WorldTextureSlot");
+	rna_def_mtex_common(srna, "rna_World_mtex_begin", "rna_World_active_texture_get", "rna_World_active_texture_index_set", "WorldTextureSlot");
 
 	/* colors */
 	prop= RNA_def_property(srna, "horizon_color", PROP_FLOAT, PROP_COLOR);

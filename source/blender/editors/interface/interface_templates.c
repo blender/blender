@@ -1301,13 +1301,14 @@ ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, Point
 	CollectionPointerLink *link;
 	PropertyRNA *prop= NULL, *activeprop;
 	PropertyType type, activetype;
+	StructRNA *ptype;
 	uiLayout *box, *row, *col;
 	uiBlock *block;
 	uiBut *but;
 	Panel *pa;
 	ListBase lb;
 	char *name, str[32];
-	int i= 0, activei= 0, len, items, found, min, max;
+	int icon=0, i= 0, activei= 0, len, items, found, min, max;
 
 	lb.first= lb.last= NULL;
 	
@@ -1351,6 +1352,12 @@ ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, Point
 		return lb;
 	}
 
+	/* get icon */
+	if(ptr->data && prop) {
+		ptype= RNA_property_pointer_type(ptr, prop);
+		icon= RNA_struct_ui_icon(ptype);
+	}
+
 	/* get active data */
 	activei= RNA_property_int_get(activeptr, activeprop);
 
@@ -1368,10 +1375,10 @@ ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, Point
 				if(found) {
 					/* create button */
 					name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
-					if(name) {
-						uiItemL(row, name, RNA_struct_ui_icon(itemptr.type));
+					uiItemL(row, (name)? name: "", icon);
+
+					if(name)
 						MEM_freeN(name);
-					}
 
 					/* add to list to return */
 					link= MEM_callocN(sizeof(CollectionPointerLink), "uiTemplateList return");
@@ -1423,13 +1430,12 @@ ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, Point
 				if(i >= pa->list_scroll && i<pa->list_scroll+items) {
 					name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
 
-					if(name) {
-						/* create button */
-						but= uiDefIconTextButR(block, ROW, 0, RNA_struct_ui_icon(itemptr.type), name, 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
-						uiButSetFlag(but, UI_ICON_LEFT|UI_TEXT_LEFT);
+					/* create button */
+					but= uiDefIconTextButR(block, ROW, 0, icon, (name)? name: "", 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
+					uiButSetFlag(but, UI_ICON_LEFT|UI_TEXT_LEFT);
 
+					if(name)
 						MEM_freeN(name);
-					}
 
 					/* add to list to return */
 					link= MEM_callocN(sizeof(CollectionPointerLink), "uiTemplateList return");

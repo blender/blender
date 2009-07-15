@@ -613,7 +613,8 @@ void assign_material(Object *ob, Material *ma, int act)
 		(*matarar)[act-1]= ma;
 	}
 
-	id_us_plus((ID *)ma);
+	if(ma)
+		id_us_plus((ID *)ma);
 	test_object_materials(ob->data);
 }
 
@@ -645,13 +646,7 @@ void object_add_material_slot(Object *ob)
 	if(ob->totcol>=MAXMAT) return;
 	
 	ma= give_current_material(ob, ob->actcol);
-	if(ma==NULL)
-		ma= add_material("Material");
-	else
-		ma= copy_material(ma);
-	
-	ma->id.us= 0; /* eeh... */
-	
+
 	assign_material(ob, ma, ob->totcol+1);
 	ob->actcol= ob->totcol;
 }
