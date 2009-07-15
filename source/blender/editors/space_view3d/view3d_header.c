@@ -4419,7 +4419,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	Object *ob= OBACT;
 	Object *obedit = CTX_data_edit_object(C);
 	uiBlock *block;
-	int a, xco, maxco=0, yco= 3;
+	int a, xco=0, maxco=0, yco= 0;
 	
 	block= uiLayoutFreeBlock(layout);
 	uiBlockSetHandleFunc(block, do_view3d_header_buttons, NULL);
