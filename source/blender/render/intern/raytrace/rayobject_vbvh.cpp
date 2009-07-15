@@ -130,6 +130,7 @@ void bvh_update_bb(Node *node)
 
 static int tot_pushup   = 0;
 static int tot_pushdown = 0;
+static int tot_hints    = 0;
 
 template<class Node>
 void pushdown(Node *parent)
@@ -142,7 +143,7 @@ void pushdown(Node *parent)
 		Node *next = child->sibling;
 		Node **next_s_child = &child->sibling;
 		
-		assert(bb_fits_inside(parent->bb, parent->bb+3, child->bb, child->bb+3));
+		//assert(bb_fits_inside(parent->bb, parent->bb+3, child->bb, child->bb+3));
 		
 		for(Node *i = parent->child; RayObject_isAligned(i) && i; i = i->sibling)
 		if(child != i && bb_fits_inside(i->bb, i->bb+3, child->bb, child->bb+3))
@@ -256,21 +257,93 @@ void bvh_done<BVHTree>(BVHTree *obj)
 template<int StackSize>
 int intersect(BVHTree *obj, Isect* isec)
 {
-	if(RayObject_isAligned(obj->root))
-		return bvh_node_stack_raycast<BVHNode,StackSize>(obj->root, isec);
+	if(isec->hint)
+	{
+		LCTSHint *lcts = (LCTSHint*)isec->hint;
+		isec->hint = 0;
+		
+		int hit = 0;
+		for(int i=0; i<lcts->size; i++)
+		{
+			BVHNode *node = (BVHNode*)lcts->stack[i];
+			if(RayObject_isAligned(node))
+				hit |= bvh_node_stack_raycast<BVHNode,StackSize,true>(node, isec);
+			else
+				hit |= RE_rayobject_intersect( (RayObject*)node, isec );
+			
+			if(hit && isec->mode == RE_RAY_SHADOW)
+				break;
+		}
+		isec->hint = (RayHint*)lcts;
+		return hit;
+	}
 	else
-		return RE_rayobject_intersect( (RayObject*) obj->root, isec );
+	{
+		if(RayObject_isAligned(obj->root))
+			return bvh_node_stack_raycast<BVHNode,StackSize,false>(obj->root, isec);
+		else
+			return RE_rayobject_intersect( (RayObject*) obj->root, isec );
+	}
 }
 
+template<class Node>
+void bvh_dfs_make_hint(Node *node, LCTSHint *hint, int reserve_space, float *min, float *max);
+
+template<class Node>
+void bvh_dfs_make_hint_push_siblings(Node *node, LCTSHint *hint, int reserve_space, float *min, float *max)
+{
+	if(!RayObject_isAligned(node))
+		hint->stack[hint->size++] = (RayObject*)node;
+	else
+	{
+		if(node->sibling)
+			bvh_dfs_make_hint_push_siblings(node->sibling, hint, reserve_space+1, min, max);
+
+		bvh_dfs_make_hint(node, hint, reserve_space, min, max);
+	}
+		
+	
+}
+
+template<class Node>
+void bvh_dfs_make_hint(Node *node, LCTSHint *hint, int reserve_space, float *min, float *max)
+{
+	assert( hint->size - reserve_space + 1 <= RE_RAY_LCTS_MAX_SIZE );
+	
+	if(hint->size - reserve_space + 1 == RE_RAY_LCTS_MAX_SIZE || !RayObject_isAligned(node))
+		hint->stack[hint->size++] = (RayObject*)node;
+	else
+	{
+		/* We are 100% sure the ray will be pass inside this node */
+		if(bb_fits_inside(node->bb, node->bb+3, min, max) )
+		{
+			bvh_dfs_make_hint_push_siblings(node->child, hint, reserve_space, min, max);
+		}
+		else
+		{
+			hint->stack[hint->size++] = (RayObject*)node;
+		}
+	}
+}
+
+template<class Tree>
+void bvh_hint_bb(Tree *tree, LCTSHint *hint, float *min, float *max)
+{
+	hint->size = 0;
+	bvh_dfs_make_hint( tree->root, hint, 0, min, max );
+	tot_hints++;
+}
 
 void bfree(BVHTree *tree)
 {
-	if(tot_pushup + tot_pushdown)
+	if(tot_pushup + tot_pushdown + tot_hints)
 	{
 		printf("tot pushups: %d\n", tot_pushup);
 		printf("tot pushdowns: %d\n", tot_pushdown);
+		printf("tot hints created: %d\n", tot_hints);
 		tot_pushup = 0;
 		tot_pushdown = 0;
+		tot_hints = 0;
 	}
 	bvh_free(tree);
 }
@@ -287,7 +360,8 @@ static RayObjectAPI make_api()
 //		(RE_rayobject_free_callback)    ((void(*)(BVHTree*))       &bvh_free<BVHTree>),
 		(RE_rayobject_free_callback)    ((void(*)(BVHTree*))       &bfree),
 		(RE_rayobject_merge_bb_callback)((void(*)(BVHTree*,float*,float*)) &bvh_bb<BVHTree>),
-		(RE_rayobject_cost_callback)	((float(*)(BVHTree*))      &bvh_cost<BVHTree>)
+		(RE_rayobject_cost_callback)	((float(*)(BVHTree*))      &bvh_cost<BVHTree>),
+		(RE_rayobject_hint_bb_callback)	((void(*)(BVHTree*,LCTSHint*,float*,float*)) &bvh_hint_bb<BVHTree>)
 	};
 	
 	return api;

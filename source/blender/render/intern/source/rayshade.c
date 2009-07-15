@@ -624,9 +624,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 	isec.labda = dist_mir > 0 ? dist_mir : RE_RAYTRACE_MAXDIST;
 	isec.mode= RE_RAY_MIRROR;
 	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
-#ifdef RT_USE_HINT
 	isec.hint = 0;
-#endif
 
 	isec.orig.ob   = obi;
 	isec.orig.face = vlr;
@@ -1532,9 +1530,10 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 	isec.mode= RE_RAY_MIRROR;
 	isec.orig.ob   = ship->obi;
 	isec.orig.face = ship->vlr;
-#ifdef RT_USE_HINT
 	isec.hint = 0;
-#endif
+
+	VECCOPY(isec.start, ship->co);
+	
 	RE_RC_INIT(isec, shi);
 	
 	for(a=0; a<8*8; a++) {
@@ -1548,7 +1547,6 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 			vec[2]-= vec[2];
 		}
 
-		VECCOPY(isec.start, ship->co);
 		VECCOPY(isec.vec, vec );
 		isec.labda = RE_RAYTRACE_MAXDIST;
 
@@ -1725,6 +1723,7 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys)
 static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 {
 	Isect isec;
+	RayHint point_hint;
 	QMCSampler *qsa=NULL;
 	float samp3d[3];
 	float up[3], side[3], dir[3], nrm[3];
@@ -1744,9 +1743,7 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 	isec.orig.ob   = shi->obi;
 	isec.orig.face = shi->vlr;
 	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
-#ifdef RT_USE_HINT
 	isec.hint = 0;
-#endif
 
 	isec.hit.ob   = 0;
 	isec.hit.face = 0;
@@ -1755,6 +1752,11 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 	
 	isec.mode= (R.wrld.aomode & WO_AODIST)?RE_RAY_SHADOW_TRA:RE_RAY_SHADOW;
 	isec.lay= -1;
+	
+	VECCOPY(isec.start, shi->co);		
+	RE_rayobject_hint_bb( R.raytree, &point_hint, isec.start, isec.start );
+	isec.hint = &point_hint;
+
 	
 	shadfac[0]= shadfac[1]= shadfac[2]= 0.0f;
 	
@@ -1793,6 +1795,7 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 
 	QMC_initPixel(qsa, shi->thread);
 	
+	
 	while (samples < max_samples) {
 
 		/* sampling, returns quasi-random vector in unit hemisphere */
@@ -1804,7 +1807,6 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 		
 		Normalize(dir);
 			
-		VECCOPY(isec.start, shi->co);
 		isec.vec[0] = -dir[0];
 		isec.vec[1] = -dir[1];
 		isec.vec[2] = -dir[2];
@@ -1872,6 +1874,7 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 {
 	Isect isec;
+	RayHint point_hint;
 	float *vec, *nrm, div, bias, sh=0.0f;
 	float maxdist = R.wrld.aodist;
 	float dxyview[3];
@@ -1881,9 +1884,7 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 	isec.orig.ob   = shi->obi;
 	isec.orig.face = shi->vlr;
 	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
-#ifdef RT_USE_HINT
 	isec.hint = 0;
-#endif
 
 	isec.hit.ob   = 0;
 	isec.hit.face = 0;
@@ -1893,6 +1894,9 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 	isec.mode= (R.wrld.aomode & WO_AODIST)?RE_RAY_SHADOW_TRA:RE_RAY_SHADOW;
 	isec.lay= -1;
 
+	VECCOPY(isec.start, shi->co);		
+	RE_rayobject_hint_bb( R.raytree, &point_hint, isec.start, isec.start );
+	isec.hint = &point_hint;
 
 	shadfac[0]= shadfac[1]= shadfac[2]= 0.0f;
 
@@ -1940,7 +1944,6 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 			actual++;
 			
 			/* always set start/vec/labda */
-			VECCOPY(isec.start, shi->co);
 			isec.vec[0] = -vec[0];
 			isec.vec[1] = -vec[1];
 			isec.vec[2] = -vec[2];
@@ -2058,7 +2061,10 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 	float adapt_thresh = lar->adapt_thresh;
 	int min_adapt_samples=4, max_samples = lar->ray_totsamp;
 	float *co;
-	int do_soft=1, full_osa=0;
+	int do_soft=1, full_osa=0, i;
+
+	float min[3], max[3];
+	RayHint bb_hint;
 
 	float jitco[RE_MAX_OSA][3];
 	int totjitco;
@@ -2089,10 +2095,18 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		qsa = get_thread_qmcsampler(&R, shi->thread, SAMP_TYPE_HAMMERSLEY, max_samples);
 	
 	QMC_initPixel(qsa, shi->thread);
+
+	INIT_MINMAX(min, max);
+	for(i=0; i<totjitco; i++)
+	{
+		DO_MINMAX(jitco[i], min, max);
+	}
+	RE_rayobject_hint_bb( R.raytree, &bb_hint, min, max);
 	
+	isec->hint = &bb_hint;
+	isec->skip = RE_SKIP_VLR_NEIGHBOUR;
 	VECCOPY(vec, lampco);
 	
-	isec->skip = RE_SKIP_VLR_NEIGHBOUR;
 	while (samples < max_samples) {
 
 		isec->orig.ob   = shi->obi;
@@ -2215,6 +2229,7 @@ static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, float *lampco, floa
 	float *jitlamp;
 	float fac=0.0f, div=0.0f, vec[3];
 	int a, j= -1, mask;
+	RayHint point_hint;
 	
 	if(isec->mode==RE_RAY_SHADOW_TRA) {
 		shadfac[0]= shadfac[1]= shadfac[2]= shadfac[3]= 0.0f;
@@ -2231,6 +2246,12 @@ static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, float *lampco, floa
 	if(a==4) mask |= (mask>>4)|(mask>>8);
 	else if(a==9) mask |= (mask>>9);
 	
+	VECCOPY(isec->start, shi->co);		
+	isec->orig.ob   = shi->obi;
+	isec->orig.face = shi->vlr;
+	RE_rayobject_hint_bb( R.raytree, &point_hint, isec->start, isec->start );
+	isec->hint = &point_hint;
+	
 	while(a--) {
 		
 		if(R.r.mode & R_OSA) {
@@ -2242,19 +2263,15 @@ static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, float *lampco, floa
 			}
 		}
 		
-		isec->orig.ob   = shi->obi;
-		isec->orig.face = shi->vlr;
-		
 		vec[0]= jitlamp[0];
 		vec[1]= jitlamp[1];
 		vec[2]= 0.0f;
 		Mat3MulVecfl(lar->mat, vec);
 		
 		/* set start and vec */
-		VECCOPY(isec->start, shi->co);		
-		isec->vec[0] = vec[0]+lampco[0]-shi->co[0];
-		isec->vec[1] = vec[1]+lampco[1]-shi->co[1];
-		isec->vec[2] = vec[2]+lampco[2]-shi->co[2];
+		isec->vec[0] = vec[0]+lampco[0]-isec->start[0];
+		isec->vec[1] = vec[1]+lampco[1]-isec->start[1];
+		isec->vec[2] = vec[2]+lampco[2]-isec->start[2];
 		isec->labda = 1.0f;
 		isec->skip = RE_SKIP_VLR_NEIGHBOUR;
 		
@@ -2299,9 +2316,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 	RE_RC_INIT(isec, *shi);
 	if(shi->mat->mode & MA_SHADOW_TRA) isec.mode= RE_RAY_SHADOW_TRA;
 	else isec.mode= RE_RAY_SHADOW;
-#ifdef RT_USE_HINT
 	isec.hint = 0;
-#endif
 	
 	if(lar->mode & (LA_LAYER|LA_LAYER_SHADOW))
 		isec.lay= lar->lay;
@@ -2390,9 +2405,7 @@ static void ray_translucent(ShadeInput *shi, LampRen *lar, float *distfac, float
 	/* setup isec */
 	RE_RC_INIT(isec, *shi);
 	isec.mode= RE_RAY_SHADOW_TRA;
-#ifdef RT_USE_HINT
 	isec.hint = 0;
-#endif
 	
 	if(lar->mode & LA_LAYER) isec.lay= lar->lay; else isec.lay= -1;
 	

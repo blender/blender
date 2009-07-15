@@ -98,6 +98,7 @@ typedef void (*RE_rayobject_done_callback)(RayObject *);
 typedef void (*RE_rayobject_free_callback)(RayObject *);
 typedef void (*RE_rayobject_merge_bb_callback)(RayObject *, float *min, float *max);
 typedef float (*RE_rayobject_cost_callback)(RayObject *);
+typedef void (*RE_rayobject_hint_bb_callback)(RayObject *, RayHint *, float *, float *);
 
 typedef struct RayObjectAPI
 {
@@ -107,6 +108,7 @@ typedef struct RayObjectAPI
 	RE_rayobject_free_callback		free;
 	RE_rayobject_merge_bb_callback	bb;
 	RE_rayobject_cost_callback		cost;
+	RE_rayobject_hint_bb_callback	hint_bb;
 	
 } RayObjectAPI;
 

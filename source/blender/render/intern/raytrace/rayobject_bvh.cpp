@@ -199,7 +199,7 @@ template<>
 int bvh_intersect<BVHTree>(BVHTree *obj, Isect* isec)
 {
 	if(RayObject_isAligned(obj->root))
-		return bvh_node_stack_raycast<BVHNode,64>(obj->root, isec);
+		return bvh_node_stack_raycast<BVHNode,64,true>(obj->root, isec);
 	else
 		return RE_rayobject_intersect( (RayObject*) obj->root, isec );
 }

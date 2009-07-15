@@ -414,6 +414,20 @@ float RE_rayobject_cost(RayObject *r)
 	else assert(0);
 }
 
+void RE_rayobject_hint_bb(RayObject *r, RayHint *hint, float *min, float *max)
+{
+	if(RayObject_isRayFace(r))
+	{
+		return;
+	}
+	else if(RayObject_isRayAPI(r))
+	{
+		r = RayObject_align( r );
+		return r->api->hint_bb( r, hint, min, max );
+	}
+	else assert(0);
+}
+
 #ifdef RE_RAYCOUNTER
 void RE_RC_INFO(RayCounter *info)
 {

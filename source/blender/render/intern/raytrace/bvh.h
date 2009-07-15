@@ -93,14 +93,13 @@ static void bvh_node_merge_bb(Node *node, float *min, float *max)
  */
 template<class Node> static inline void bvh_node_push_childs(Node *node, Isect *isec, Node **stack, int &stack_pos);
 
-template<class Node,int MAX_STACK_SIZE>
+template<class Node,int MAX_STACK_SIZE,bool TEST_ROOT>
 static int bvh_node_stack_raycast(Node *root, Isect *isec)
 {
 	Node *stack[MAX_STACK_SIZE];
 	int hit = 0, stack_pos = 0;
 		
-	//Assume the BB of root always succeed
-	if(1)
+	if(!TEST_ROOT && RayObject_isAligned(root))
 		bvh_node_push_childs(root, isec, stack, stack_pos);
 	else
 		stack[stack_pos++] = root;

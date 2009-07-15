@@ -36,6 +36,7 @@ extern "C" {
 #endif
 
 
+#define RE_RAY_LCTS_MAX_SIZE	256
 #define RT_USE_LAST_HIT	/* last shadow hit is reused before raycasting on whole tree */
 //#define RT_USE_HINT			/* last hit object is reused before raycasting on whole tree */
 
@@ -76,7 +77,7 @@ extern RayCounter re_rc_counter[];
 /* Internals about raycasting structures can be found on intern/raytree.h */
 typedef struct RayObject RayObject;
 typedef struct Isect Isect;
-
+typedef struct RayHint RayHint;
 typedef struct RayTraceHint RayTraceHint;
 
 struct DerivedMesh;
@@ -87,6 +88,12 @@ void RE_rayobject_add    (RayObject *r, RayObject *);
 void RE_rayobject_done(RayObject *r);
 void RE_rayobject_free(RayObject *r);
 
+/* initializes an hint for optiming raycast where it is know that a ray will pass by the given BB often the origin point */
+void RE_rayobject_hint_bb(RayObject *r, RayHint *hint, float *min, float *max);
+
+/* initializes an hint for optiming raycast where it is know that a ray will be contained inside the given cone*/
+/* void RE_rayobject_hint_cone(RayObject *r, RayHint *hint, float *); */
+
 /* RayObject constructors */
 
 RayObject* RE_rayobject_octree_create(int ocres, int size);
@@ -96,6 +103,21 @@ RayObject* RE_rayobject_blibvh_create(int size);	/* BLI_kdopbvh.c   */
 RayObject* RE_rayobject_bvh_create(int size);		/* raytrace/rayobject_bvh.c */
 RayObject* RE_rayobject_vbvh_create(int size);		/* raytrace/rayobject_vbvh.c */
 RayObject* RE_rayobject_bih_create(int size);		/* rayobject_bih.c */
+
+typedef struct LCTSHint LCTSHint;
+struct LCTSHint
+{
+	int size;
+	RayObject *stack[RE_RAY_LCTS_MAX_SIZE];
+};
+
+struct RayHint
+{
+	union
+	{
+		LCTSHint lcts;
+	} data;
+};
 
 
 /* Ray Intersection */
@@ -136,6 +158,8 @@ struct Isect
 	float col[4];			/* RGBA for shadow_tra */
 
 	void *userdata;
+	
+	RayHint *hint;
 	
 #ifdef RE_RAYCOUNTER
 	RayCounter *raycounter;
