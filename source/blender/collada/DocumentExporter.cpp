@@ -186,6 +186,8 @@ public:
 
 			Material *ma = give_current_material(ob, a+1);
 
+			if (!ma) continue;
+
 			if (find(mMat.begin(), mMat.end(), id_name(ma)) == mMat.end()) {
 				(*this->f)(ma, ob);
 
@@ -269,7 +271,9 @@ public:
 		// XXX slow		
 		if (ob->totcol) {
 			for(int a = 0; a < ob->totcol; a++)	{
-				createPolylist(true, a, has_uvs, ob, dm, geom_name);
+				// account for NULL materials, this should not normally happen?
+				Material *ma = give_current_material(ob, a + 1);
+				createPolylist(ma != NULL, a, has_uvs, ob, dm, geom_name);
 			}
 		}
 		else {
@@ -596,21 +600,22 @@ public:
 				
 				COLLADASW::BindMaterial& bm = instGeom.getBindMaterial();
 				COLLADASW::InstanceMaterialList& iml = bm.getInstanceMaterialList();
-				std::string matid(id_name(ma));
-				COLLADASW::InstanceMaterial im(matid, COLLADASW::URI
-											   (COLLADABU::Utils::EMPTY_STRING,
-												matid));
+
+				if (ma) {
+					std::string matid(id_name(ma));
+					COLLADASW::InstanceMaterial im(matid, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
 				
-				// create <bind_vertex_input> for each uv layer
-				Mesh *me = (Mesh*)ob->data;
-				int totlayer = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
+					// create <bind_vertex_input> for each uv layer
+					Mesh *me = (Mesh*)ob->data;
+					int totlayer = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
 				
-				for (int b = 0; b < totlayer; b++) {
-					char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, b);
-					im.push_back(COLLADASW::BindVertexInput(name, "TEXCOORD", b));
+					for (int b = 0; b < totlayer; b++) {
+						char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, b);
+						im.push_back(COLLADASW::BindVertexInput(name, "TEXCOORD", b));
+					}
+				
+					iml.push_back(im);
 				}
-				
-				iml.push_back(im);
 			}
 			
 			instGeom.add();

@@ -9,19 +9,21 @@
 #include "COLLADAFWLight.h"
 #include "COLLADAFWImage.h"
 #include "COLLADAFWMaterial.h"
+#include "COLLADAFWEffect.h"
 #include "COLLADAFWGeometry.h"
 #include "COLLADAFWMesh.h"
 #include "COLLADAFWMeshVertexData.h"
 #include "COLLADAFWFloatOrDoubleArray.h"
 #include "COLLADAFWArrayPrimitiveType.h"
+#include "COLLADAFWIndexList.h"
 #include "COLLADAFWMeshPrimitiveWithFaceVertexCount.h"
 #include "COLLADAFWPolygons.h"
 #include "COLLADAFWTransformation.h"
 #include "COLLADAFWTranslate.h"
 #include "COLLADAFWScale.h"
 #include "COLLADAFWRotate.h"
-#include "COLLADAFWEffect.h"
-#include "COLLADAFWIndexList.h"
+#include "COLLADAFWAnimationCurve.h"
+#include "COLLADAFWAnimationList.h"
 
 #include "COLLADASaxFWLLoader.h"
 
@@ -118,6 +120,14 @@ private:
 	typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive> > MaterialIdPrimitiveArrayMap;
 	// amazing name!
 	std::map<COLLADAFW::UniqueId, MaterialIdPrimitiveArrayMap> geom_uid_mat_mapping_map;
+
+	struct AnimatedTransform {
+		Object *ob;
+		// COLLADAFW::Node *node;
+		COLLADAFW::Transformation *tm; // which transform is animated by an AnimationList->id
+	};
+	// Nodes don't share AnimationLists (Arystan)
+	std::map<COLLADAFW::UniqueId, AnimatedTransform> uid_animated_map; // AnimationList->uniqueId to AnimatedObject map
 
 	class UnitConverter
 	{
@@ -364,26 +374,25 @@ public:
 		float rot[3][3];
 		Mat3One(rot);
 		
-		// transform Object
+		// transform Object and store animation linking info
 		for (k = 0; k < node->getTransformations().getCount(); k ++) {
-			COLLADAFW::Transformation *transform = node->getTransformations()[k];
-			COLLADAFW::Transformation::TransformationType type = transform->getTransformationType();
+			
+			COLLADAFW::Transformation *tm = node->getTransformations()[k];
+			COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
+
 			switch(type) {
 			case COLLADAFW::Transformation::TRANSLATE:
 				{
-					COLLADAFW::Translate *tra = (COLLADAFW::Translate*)transform;
+					COLLADAFW::Translate *tra = (COLLADAFW::Translate*)tm;
 					COLLADABU::Math::Vector3& t = tra->getTranslation();
-					// X
 					ob->loc[0] = (float)t[0];
-					// Y
 					ob->loc[1] = (float)t[1];
-					// Z
 					ob->loc[2] = (float)t[2];
 				}
 				break;
 			case COLLADAFW::Transformation::ROTATE:
 				{
-					COLLADAFW::Rotate *ro = (COLLADAFW::Rotate*)transform;
+					COLLADAFW::Rotate *ro = (COLLADAFW::Rotate*)tm;
 					COLLADABU::Math::Vector3& raxis = ro->getRotationAxis();
 					float angle = (float)(ro->getRotationAngle() * M_PI / 180.0f);
 					float axis[] = {raxis[0], raxis[1], raxis[2]};
@@ -399,22 +408,25 @@ public:
 				break;
 			case COLLADAFW::Transformation::SCALE:
 				{
-					COLLADABU::Math::Vector3& s = ((COLLADAFW::Scale*)transform)->getScale();
-					// X
+					COLLADABU::Math::Vector3& s = ((COLLADAFW::Scale*)tm)->getScale();
 					ob->size[0] = (float)s[0];
-					// Y
 					ob->size[1] = (float)s[1];
-					// Z
 					ob->size[2] = (float)s[2];
 				}
 				break;
 			case COLLADAFW::Transformation::MATRIX:
-				break;
 			case COLLADAFW::Transformation::LOOKAT:
-				break;
 			case COLLADAFW::Transformation::SKEW:
+				fprintf(stderr, "MATRIX, LOOKAT and SKEW transformations are not supported yet.\n");
 				break;
 			}
+
+			// AnimationList that drives this Transformation
+			const COLLADAFW::UniqueId& anim_list_id = tm->getAnimationList();
+
+			// store this so later we can link animation data with ob
+			AnimatedTransform anim = {ob, tm};
+			this->uid_animated_map[anim_list_id] = anim;
 		}
 		Mat3ToEul(rot, ob->rot);
 		// if parent_ob != NULL set parent 
@@ -889,17 +901,124 @@ public:
 		return true;
 	}
 
-	/** When this method is called, the writer must write the Animation.
-		@return The writer should return true, if writing succeeded, false otherwise.*/
-	virtual bool writeAnimation( const COLLADAFW::Animation* animation ) 
+	// this function is called only for animations that pass COLLADAFW::validate
+	virtual bool writeAnimation( const COLLADAFW::Animation* anim ) 
 	{
+		if (anim->getAnimationType() == COLLADAFW::Animation::ANIMATION_CURVE) {
+			COLLADAFW::AnimationCurve *curve = (COLLADAFW::AnimationCurve*)anim;
+
+			// I wonder how do we use this (Arystan)
+			size_t dim = curve->getOutDimension();
+
+			// a curve can have mixed interpolation type,
+			// in this case curve->getInterpolationTypes returns a list of interpolation types per key
+			COLLADAFW::AnimationCurve::InterpolationType interp = curve->getInterpolationType();
+
+			if (interp != COLLADAFW::AnimationCurve::INTERPOLATION_MIXED) {
+				switch (interp) {
+				case COLLADAFW::AnimationCurve::INTERPOLATION_LINEAR:
+					// support this
+					break;
+				case COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER:
+					// and this
+					break;
+				case COLLADAFW::AnimationCurve::INTERPOLATION_CARDINAL:
+				case COLLADAFW::AnimationCurve::INTERPOLATION_HERMITE:
+				case COLLADAFW::AnimationCurve::INTERPOLATION_BSPLINE:
+				case COLLADAFW::AnimationCurve::INTERPOLATION_STEP:
+					fprintf(stderr, "CARDINAL, HERMITE, BSPLINE and STEP anim interpolation types not supported yet.\n");
+					break;
+				}
+			}
+			else {
+				// not supported yet
+				fprintf(stderr, "MIXED anim interpolation type is not supported yet.\n");
+			}
+		}
+		else {
+			fprintf(stderr, "FORMULA animation type is not supported yet.\n");
+		}
+		
 		return true;
 	}
 
-	/** When this method is called, the writer must write the AnimationList.
-		@return The writer should return true, if writing succeeded, false otherwise.*/
-	virtual bool writeAnimationList( const COLLADAFW::AnimationList* animationList ) 
+	// called on post-process stage after writeVisualScenes
+	virtual bool writeAnimationList( const COLLADAFW::AnimationList* anim ) 
 	{
+		const COLLADAFW::UniqueId& anim_id = anim->getUniqueId();
+
+		// possible in case we cannot interpret some transform
+		if (uid_animated_map.find(anim_id) == uid_animated_map.end()) {
+			return true;
+		}
+
+		// what does this AnimationList animate?
+		AnimatedTransform& animated = uid_animated_map[anim_id];
+
+		const COLLADAFW::AnimationList::AnimationBindings& bindings = anim->getAnimationBindings();
+
+		switch (animated.tm->getTransformationType()) {
+		case COLLADAFW::Transformation::TRANSLATE:
+			{
+				for (int i = 0; i < bindings.getCount(); i++) {
+					const COLLADAFW::AnimationList::AnimationBinding& binding = bindings[i];
+
+					switch (binding.animationClass) {
+					case COLLADAFW::AnimationList::POSITION_X:
+						break;
+					case COLLADAFW::AnimationList::POSITION_Y:
+						break;
+					case COLLADAFW::AnimationList::POSITION_Z:
+						break;
+					case COLLADAFW::AnimationList::POSITION_XYZ:
+						break;
+					default:
+						fprintf(stderr, "AnimationClass %d is not supported for TRANSLATE transformation.\n",
+								binding.animationClass);
+					}
+				}
+			}
+			break;
+		case COLLADAFW::Transformation::ROTATE:
+			{
+				COLLADAFW::Rotate* rot = (COLLADAFW::Rotate*)animated.tm;
+				COLLADABU::Math::Vector3& axis = rot->getRotationAxis();
+
+				for (int i = 0; i < bindings.getCount(); i++) {
+					const COLLADAFW::AnimationList::AnimationBinding& binding = bindings[i];
+
+					switch (binding.animationClass) {
+					case COLLADAFW::AnimationList::ANGLE:
+						if (COLLADABU::Math::Vector3::UNIT_X == axis) {
+							
+						}
+						else if (COLLADABU::Math::Vector3::UNIT_Y == axis) {
+							
+						}
+						else if (COLLADABU::Math::Vector3::UNIT_Z == axis) {
+							
+						}
+						break;
+					case COLLADAFW::AnimationList::AXISANGLE:
+						// convert axis-angle to quat? or XYZ?
+						break;
+					default:
+						fprintf(stderr, "AnimationClass %d is not supported for ROTATE transformation.\n",
+								binding.animationClass);
+					}
+				}
+			}
+			break;
+		case COLLADAFW::Transformation::SCALE:
+			// same as for TRANSLATE
+			break;
+		case COLLADAFW::Transformation::MATRIX:
+		case COLLADAFW::Transformation::SKEW:
+		case COLLADAFW::Transformation::LOOKAT:
+			fprintf(stderr, "Animation of MATRIX, SKEW and LOOKAT transformations is not supported yet.\n");
+			break;
+		}
+
 		return true;
 	}
 
@@ -907,6 +1026,7 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeSkinControllerData( const COLLADAFW::SkinControllerData* skinControllerData ) 
 	{
+		// see COLLADAFW::validate for an example of how to use SkinControllerData
 		return true;
 	}
 
