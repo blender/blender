@@ -45,7 +45,7 @@ extern "C"
 #define BVHTree VBVHTree
 
 #define RAY_BB_TEST_COST (0.2f)
-#define DFS_STACK_SIZE	128
+#define DFS_STACK_SIZE	256
 #define DYNAMIC_ALLOC
 
 //#define rtbuild_split	rtbuild_mean_split_largest_axis		/* objects mean split on the longest axis, childs BB are allowed to overlap */
@@ -248,7 +248,7 @@ void bvh_done<BVHTree>(BVHTree *obj)
 	
 	obj->root = bvh_rearrange<BVHTree,BVHNode,RTBuilder>( obj, obj->builder, &obj->cost );
 	pushdown(obj->root);
-	obj->cost = 1.0;
+//	obj->cost = 1.0;
 	
 	rtbuild_free( obj->builder );
 	obj->builder = NULL;
