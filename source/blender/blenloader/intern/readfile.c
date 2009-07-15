@@ -9191,6 +9191,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 1)) {
+	}
+
 	/* TODO: should be moved into one of the version blocks once this branch moves to trunk and we can
 	   bump the version (or sub-version.) */
 	{

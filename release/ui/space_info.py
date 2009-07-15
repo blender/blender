@@ -108,6 +108,31 @@ class INFO_MT_help(bpy.types.Menu):
 		layout = self.layout
 		layout.itemL(text="Nothing yet")
 
+class INFO_PT_tabs(bpy.types.Panel):
+	__space_type__ = "USER_PREFERENCES"
+	__no_header__ = True
+
+	def draw(self, context):
+		layout = self.layout
+		userpref = context.user_preferences
+
+		layout.itemR(userpref, "active_section")
+
+class INFO_PT_view(bpy.types.Panel):
+	__space_type__ = "USER_PREFERENCES"
+	__label__ = "View"
+
+	def poll(self, context):
+		userpref = context.user_preferences
+		return (userpref.active_section == 'VIEW_CONTROLS')
+
+	def draw(self, context):
+		layout = self.layout
+		userpref = context.user_preferences
+		view = userpref.view
+
+		layout.itemR(view, "show_view_name")
+
 bpy.types.register(INFO_HT_header)
 bpy.types.register(INFO_MT_file)
 bpy.types.register(INFO_MT_file_external_data)
@@ -116,4 +141,6 @@ bpy.types.register(INFO_MT_timeline)
 bpy.types.register(INFO_MT_game)
 bpy.types.register(INFO_MT_render)
 bpy.types.register(INFO_MT_help)
+bpy.types.register(INFO_PT_tabs)
+bpy.types.register(INFO_PT_view)
 

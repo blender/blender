@@ -1254,8 +1254,10 @@ void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
 	
-	// XXX quick hack for files saved with 2.5 already (i.e. the builtin defaults file)
+	// XXX quick hacks for files saved with 2.5 already (i.e. the builtin defaults file)
 	ar->v2d.scroll |= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM); 
+	if(!(ar->v2d.align & V2D_ALIGN_NO_POS_Y))
+		ar->v2d.flag &= ~V2D_IS_INITIALISED;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
 
