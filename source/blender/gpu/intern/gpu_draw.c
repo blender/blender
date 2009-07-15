@@ -854,14 +854,14 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 
 	/* no materials assigned? */
 	if(ob->totcol==0) {
-		GMS.matbuf[0][0][0]= defmaterial.r;
-		GMS.matbuf[0][0][1]= defmaterial.g;
-		GMS.matbuf[0][0][2]= defmaterial.b;
+		GMS.matbuf[0][0][0]= (defmaterial.ref+defmaterial.emit)*defmaterial.r;
+		GMS.matbuf[0][0][1]= (defmaterial.ref+defmaterial.emit)*defmaterial.g;
+		GMS.matbuf[0][0][2]= (defmaterial.ref+defmaterial.emit)*defmaterial.b;
 		GMS.matbuf[0][0][3]= 1.0;
 
-		GMS.matbuf[0][1][0]= defmaterial.specr;
-		GMS.matbuf[0][1][1]= defmaterial.specg;
-		GMS.matbuf[0][1][2]= defmaterial.specb;
+		GMS.matbuf[0][1][0]= defmaterial.spec*defmaterial.specr;
+		GMS.matbuf[0][1][1]= defmaterial.spec*defmaterial.specg;
+		GMS.matbuf[0][1][2]= defmaterial.spec*defmaterial.specb;
 		GMS.matbuf[0][1][3]= 1.0;
 		
 		/* do material 1 too, for displists! */

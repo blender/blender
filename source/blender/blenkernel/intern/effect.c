@@ -105,6 +105,7 @@ PartDeflect *object_add_collision_fields(void)
 	pd->pdef_sbift  = 0.2f;
 	pd->pdef_sboft  = 0.02f;
 	pd->seed = ((unsigned int)(ceil(PIL_check_seconds_timer()))+1) % 128;
+	pd->f_strength = 1.0f;
 
 	return pd;
 }

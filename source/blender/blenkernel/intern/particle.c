@@ -3077,7 +3077,7 @@ static void default_particle_settings(ParticleSettings *part)
 	part->bb_uv_split=1;
 	part->bb_align=PART_BB_VIEW;
 	part->bb_split_offset=PART_BB_OFF_LINEAR;
-	part->flag=PART_REACT_MULTIPLE|PART_HAIR_GEOMETRY;
+	part->flag=PART_REACT_MULTIPLE|PART_HAIR_GEOMETRY|PART_EDISTR|PART_TRAND;
 
 	part->sta= 1.0;
 	part->end= 100.0;
@@ -3102,6 +3102,7 @@ static void default_particle_settings(ParticleSettings *part)
 	part->nbetween= 4;
 	part->boidneighbours= 5;
 
+	part->normfac= 1.0f;
 	part->max_vel = 10.0f;
 	part->average_vel = 0.3f;
 	part->max_tan_acc = 0.2f;
@@ -3110,7 +3111,7 @@ static void default_particle_settings(ParticleSettings *part)
 	part->reactshape=1.0f;
 
 	part->mass=1.0;
-	part->size=1.0;
+	part->size=0.05;
 	part->childsize=1.0;
 
 	part->child_nbr=10;
@@ -3128,6 +3129,7 @@ static void default_particle_settings(ParticleSettings *part)
 	part->clength=1.0f;
 	part->clength_thres=0.0f;
 
+	part->draw= PART_DRAW_EMITTER|PART_DRAW_MAT_COL;
 	part->draw_line[0]=0.5;
 	part->path_start = 0.0f;
 	part->path_end = 1.0f;
