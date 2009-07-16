@@ -575,7 +575,7 @@ public:
 		COLLADASW::Node node(mSW);
 		std::string ob_name(id_name(ob));
 		node.start();
-
+		
 		node.addTranslate(ob->loc[0], ob->loc[1], ob->loc[2]);
 		
 		// when animation time comes, replace a single <rotate> with 3, one for each axis
@@ -632,6 +632,9 @@ public:
 			COLLADASW::InstanceLight instLa(mSW, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, ob_name));
 			instLa.add();
 		}
+		// empty object
+		else if (ob->type == OB_EMPTY) {
+		}
 		
 		// write node for child object
 		Base *b = (Base*) sce->base.first;
@@ -639,7 +642,7 @@ public:
 			
 			Object *cob = b->object;
 			
-			if ((cob->type == OB_MESH || cob->type == OB_CAMERA || cob->type == OB_LAMP) && cob->parent == ob) {
+			if ((cob->type == OB_MESH || cob->type == OB_CAMERA || cob->type == OB_LAMP || cob->type == OB_EMPTY) && cob->parent == ob) {
 				// write node...
 				writeNodes(cob, sce);
 			}
@@ -655,7 +658,7 @@ public:
 		while(base) {
 			Object *ob = base->object;
 			
-			if ((ob->type == OB_MESH || ob->type == OB_CAMERA || ob->type == OB_LAMP) && !ob->parent) {
+			if ((ob->type == OB_MESH || ob->type == OB_CAMERA || ob->type == OB_LAMP || ob->type == OB_EMPTY) && !ob->parent) {
 				// write nodes....
 				writeNodes(ob, sce);
 				
