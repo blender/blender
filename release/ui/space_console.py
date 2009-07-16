@@ -71,14 +71,19 @@ def get_console(console_id):
 		
 		console = code.InteractiveConsole(namespace)
 		
-		if sys.version.startswith('2'):
-			import cStringIO
-			stdout = cStringIO.BytesIO()  # Py2x support
-			stderr = cStringIO.BytesIO()
-		else:
+		if sys.version.startswith('3'):
 			import io
 			stdout = io.StringIO()
 			stderr = io.StringIO()
+		elif sys.version.startswith('2.6'):
+			import io
+			stdout = io.BytesIO()  # Py2x support
+			stderr = io.BytesIO()
+		else:
+			import cStringIO
+			stdout = cStringIO.StringIO()
+			stderr = cStringIO.StringIO()
+
 	
 		consoles[console_id]= namespace, console, stdout, stderr
 		
