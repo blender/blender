@@ -2337,6 +2337,7 @@ static ScrArea *find_area_image_empty(bContext *C)
 	return sa;
 }
 
+#if 0 // XXX not used
 static ScrArea *find_empty_image_area(bContext *C)
 {
 	bScreen *sc= CTX_wm_screen(C);
@@ -2353,6 +2354,7 @@ static ScrArea *find_empty_image_area(bContext *C)
 	}
 	return sa;
 }
+#endif // XXX not used
 
 static void screen_set_image_output(bContext *C)
 {

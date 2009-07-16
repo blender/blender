@@ -170,6 +170,8 @@ void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr, int 
 			uiItemL(uiLayoutColumn(split, 0), name, 0);
 			col= uiLayoutColumn(split, 0);
 		}
+		else
+			col= NULL;
 
 		/* temp hack to show normal button for spin/screw */
 		if(strcmp(name, "Axis")==0) {

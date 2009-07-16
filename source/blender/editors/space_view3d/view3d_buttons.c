@@ -949,6 +949,7 @@ void selectTransformOrientation_func(bContext *C, void *target, void *unused)
 	BIF_selectTransformOrientation(C, (TransformOrientation *) target);
 }
 
+#if 0 // XXX not used
 static void view3d_panel_transform_spaces(const bContext *C, Panel *pa)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -999,6 +1000,7 @@ static void view3d_panel_transform_spaces(const bContext *C, Panel *pa)
 	}
 	uiBlockEndAlign(block);
 }
+#endif // XXX not used
 
 static void weight_paint_buttons(Scene *scene, uiBlock *block)
 {
@@ -1369,6 +1371,7 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	}
 }
 
+#if 0 // XXX not used anymore
 static void view3d_panel_background(const bContext *C, Panel *pa)
 {
 	View3D *v3d= CTX_wm_view3d(C);
@@ -1493,6 +1496,7 @@ static void view3d_panel_properties(const bContext *C, Panel *pa)
 //	}
 	uiBlockEndAlign(block);	
 }
+#endif // XXX not used anymore
 
 #if 0
 static void view3d_panel_preview(bContext *C, ARegion *ar, short cntrl)	// VIEW3D_HANDLER_PREVIEW
@@ -1547,6 +1551,7 @@ static void view3d_panel_gpencil(const bContext *C, Panel *pa)
 }
 #endif
 
+#if 0 // XXX not used
 static void delete_sketch_armature(bContext *C, void *arg1, void *arg2)
 {
 	BIF_deleteSketch(C);
@@ -1727,6 +1732,7 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 	uiDefAutoButsRNA(C, pa->layout, &ptr, 2);
 }
+#endif // XXX not used
 
 void view3d_buttons_register(ARegionType *art)
 {

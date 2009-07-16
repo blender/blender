@@ -453,7 +453,7 @@ void view3d_previewrender_progress(RenderResult *rr, volatile rcti *renrect)
 //	ScrArea *sa= NULL; // XXX
 //	View3D *v3d= NULL; // XXX
 	RenderLayer *rl;
-	int ofsx, ofsy;
+	int ofsx=0, ofsy=0;
 	
 	if(renrect) return;
 	
@@ -576,7 +576,7 @@ void BIF_view3d_previewrender(Scene *scene, ScrArea *sa)
 	View3D *v3d= sa->spacedata.first;
 	RegionView3D *rv3d= NULL; // XXX
 	Render *re;
-	RenderInfo *ri;	/* preview struct! */
+	RenderInfo *ri=NULL;	/* preview struct! */
 	RenderStats *rstats;
 	RenderData rdata;
 	rctf viewplane;

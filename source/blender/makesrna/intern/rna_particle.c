@@ -411,14 +411,14 @@ static void rna_KeyedParticleTarget_name_get(PointerRNA *ptr, char *str)
 		strcpy(str, "Invalid target!");
 }
 
-static EnumPropertyItem from_items[] = {
+EnumPropertyItem from_items[] = {
 	{PART_FROM_VERT, "VERT", 0, "Vertexes", ""},
 	{PART_FROM_FACE, "FACE", 0, "Faces", ""},
 	{PART_FROM_VOLUME, "VOLUME", 0, "Volume", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem reactor_from_items[] = {
+EnumPropertyItem reactor_from_items[] = {
 	{PART_FROM_VERT, "VERT", 0, "Vertexes", ""},
 	{PART_FROM_FACE, "FACE", 0, "Faces", ""},
 	{PART_FROM_VOLUME, "VOLUME", 0, "Volume", ""},

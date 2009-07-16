@@ -2763,7 +2763,7 @@ static void project_bucket_bounds(const ProjPaintState *ps, const int bucket_x, 
 static void project_bucket_init(const ProjPaintState *ps, const int thread_index, const int bucket_index, rctf *bucket_bounds)
 {
 	LinkNode *node;
-	int face_index, image_index;
+	int face_index, image_index=0;
 	ImBuf *ibuf = NULL;
 	MTFace *tf;
 	
@@ -2820,7 +2820,7 @@ static int project_bucket_face_isect(ProjPaintState *ps, float min[2], float max
 	/* TODO - replace this with a tricker method that uses sideofline for all screenCoords's edges against the closest bucket corner */
 	rctf bucket_bounds;
 	float p1[2], p2[2], p3[2], p4[2];
-	float *v, *v1,*v2,*v3,*v4;
+	float *v, *v1,*v2,*v3,*v4=NULL;
 	int fidx;
 	
 	project_bucket_bounds(ps, bucket_x, bucket_y, &bucket_bounds);
@@ -3194,7 +3194,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		
 		if (tf->tpage && ((G.f & G_FACESELECT)==0 || mf->flag & ME_FACE_SEL)) {
 			
-			float *v1coSS, *v2coSS, *v3coSS, *v4coSS;
+			float *v1coSS, *v2coSS, *v3coSS, *v4coSS=NULL;
 			
 			v1coSS = ps->screenCoords[mf->v1]; 
 			v2coSS = ps->screenCoords[mf->v2]; 
@@ -3339,7 +3339,7 @@ static void project_paint_end(ProjPaintState *ps)
 		/* context */
 		ProjPaintImage *last_projIma;
 		int last_image_index = -1;
-		int last_tile_width;
+		int last_tile_width=0;
 		
 		for(a=0, last_projIma=ps->projImages; a < ps->image_tot; a++, last_projIma++) {
 			int size = sizeof(UndoTile **) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->x) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->y);
@@ -3703,7 +3703,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	ProjPixel *projPixel;
 	
 	int last_index = -1;
-	ProjPaintImage *last_projIma;
+	ProjPaintImage *last_projIma= NULL;
 	ImagePaintPartialRedraw *last_partial_redraw_cell;
 	
 	float rgba[4], alpha, dist_nosqrt;

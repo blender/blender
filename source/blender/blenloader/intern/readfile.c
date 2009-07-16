@@ -4858,7 +4858,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			}
 			else if(sl->spacetype==SPACE_CONSOLE) {
 				SpaceConsole *sconsole= (SpaceConsole *)sl;
-				ConsoleLine *cl;
+				//ConsoleLine *cl;
 				
 				link_list(fd, &sconsole->scrollback);
 				link_list(fd, &sconsole->history);

@@ -340,7 +340,6 @@ int calc_manipulator_stats(const bContext *C)
 		}
 	}
 	else if(ob && (ob->flag & OB_POSEMODE)) {
-		bArmature *arm = ob->data;
 		bPoseChannel *pchan;
 		int mode = TFM_ROTATION; // mislead counting bones... bah. We don't know the manipulator mode, could be mixed
 

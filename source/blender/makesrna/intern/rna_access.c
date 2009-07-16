@@ -1620,7 +1620,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 	StructRNA *ptype;
 	PointerRNA itemptr;
 	PropertyRNA *itemprop, *iprop;
-	PropertyType itemtype;
+	PropertyType itemtype=0;
 	RawArray in;
 	int itemlen= 0;
 

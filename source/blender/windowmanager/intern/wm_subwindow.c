@@ -523,6 +523,7 @@ int WM_framebuffer_to_index(unsigned int col)
 
 /* ********** END MY WINDOW ************** */
 
+#if 0 // XXX not used...
 #ifdef WIN32
 static int is_a_really_crappy_nvidia_card(void) {
 	static int well_is_it= -1;
@@ -534,4 +535,5 @@ static int is_a_really_crappy_nvidia_card(void) {
 	return well_is_it;
 }
 #endif
+#endif // XXX not used...
 

@@ -2974,9 +2974,9 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 	float vec[3], vec2[3];
 	float *vd = pdd->vd;
 	float *cd = pdd->cd;
-	float ma_r;
-	float ma_g;
-	float ma_b;
+	float ma_r=0.0f;
+	float ma_g=0.0f;
+	float ma_b=0.0f;
 
 	if(pdd->ma_r) {
 		ma_r = *pdd->ma_r;

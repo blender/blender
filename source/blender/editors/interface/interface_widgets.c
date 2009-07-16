@@ -1438,7 +1438,7 @@ static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 {
 	int a;
 	float h,s,v;
-	float dx, dy, sx1, sx2, sy, x, y;
+	float dx, dy, sx1, sx2, sy, x=0.0f, y=0.0f;
 	float col0[4][3];	// left half, rect bottom to top
 	float col1[4][3];	// right half, rect bottom to top
 	
