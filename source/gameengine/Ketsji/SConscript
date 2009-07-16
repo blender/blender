@@ -4,7 +4,7 @@ import sys
 Import ('env')
 
 sources = env.Glob('*.cpp')
-defs = ''
+defs = []
 
 incs = '. #source/blender/python/generic' # Only for Mathutils! and bpy_internal_import.h, be very careful
 
@@ -28,11 +28,14 @@ incs += ' ' + env['BF_OPENGL_INC']
 if  env['WITH_BF_SDL']:
     incs += ' ' + env['BF_SDL_INC']
 else:
-	defs += ' DISABLE_SDL'
+	defs.append('DISABLE_SDL')
 	
 cxxflags = []
-if env['OURPLATFORM']=='win32-vc':
+if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
 	cxxflags.append ('/GR')
 	cxxflags.append ('/O2')
+	cxxflags.append ('/EHsc')
+	if env['BF_DEBUG']:
+		defs.append('_DEBUG') # for Python
 
-env.BlenderLib ( 'bf_ketsji', sources, Split(incs), Split(defs), libtype=['core','player'], priority=[320, 60], cxx_compileflags = cxxflags )
+env.BlenderLib ( 'bf_ketsji', sources, Split(incs), defs, libtype=['core','player'], priority=[320, 60], cxx_compileflags = cxxflags )
