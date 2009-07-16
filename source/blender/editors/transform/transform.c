@@ -1170,7 +1170,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 
 	if (RNA_struct_find_property(op->ptr, "constraint_axis"))
 	{
-		RNA_int_set(op->ptr, "constraint_orientation", t->current_orientation);
+		RNA_enum_set(op->ptr, "constraint_orientation", t->current_orientation);
 
 		if (t->con.mode & CON_APPLY)
 		{

@@ -40,6 +40,7 @@ struct bContext;
 struct Object;
 struct uiLayout;
 struct EnumPropertyItem;
+struct wmOperatorType;
 
 void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *keymap, int spaceid);
 void transform_operatortypes(void);
