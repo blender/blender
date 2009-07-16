@@ -182,7 +182,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 
 	/* kaito says this should be not user-editable; I disagree; power users should be able to force this in python; he's the boss. */
 	prop= RNA_def_property(srna, "pose_matrix", PROP_FLOAT, PROP_MATRIX);
-	RNA_def_property_float_sdna(prop, "pose_mat");
+	RNA_def_property_float_sdna(prop, NULL, "pose_mat");
 	RNA_def_property_array(prop, 16);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); 
 	RNA_def_property_ui_text(prop, "Pose Matrix", "Final 4x4 matrix for this channel.");

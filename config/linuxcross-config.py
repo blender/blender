@@ -2,13 +2,13 @@ LCGDIR = '#../lib/windows'
 LIBDIR = '${LCGDIR}'
 
 BF_PYTHON = LIBDIR + '/python'
-BF_PYTHON_VERSION = '2.5'
+BF_PYTHON_VERSION = '2.6'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = 'python'
-BF_PYTHON_LIB = 'python25'
+BF_PYTHON_LIB = 'python26'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 
-WITH_BF_OPENAL = True
+WITH_BF_OPENAL = False # XXX (Arystan)
 WITH_BF_STATICOPENAL = False
 BF_OPENAL = LIBDIR + '/openal'
 BF_OPENAL_INC = '${BF_OPENAL}/include'
@@ -16,6 +16,12 @@ BF_OPENAL_LIB = 'openal_static'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 # Warning, this static lib configuration is untested! users of this OS please confirm.
 BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
+
+# copied from win32-mingw-config.py (Arystan)
+WITH_BF_FFMPEG = False
+BF_FFMPEG_LIB = 'avformat swscale avcodec avutil avdevice xvidcore x264'
+BF_FFMPEG_LIBPATH = LIBDIR + '/gcc/ffmpeg/lib'
+BF_FFMPEG_INC =  LIBDIR + '/gcc/ffmpeg/include'
 
 # Warning, this static lib configuration is untested! users of this OS please confirm.
 BF_CXX = '/usr'
@@ -33,7 +39,7 @@ BF_PTHREADS_INC = '${BF_PTHREADS}/include'
 BF_PTHREADS_LIB = 'pthreadGC2'
 BF_PTHREADS_LIBPATH = '${BF_PTHREADS}/lib'
 
-WITH_BF_OPENEXR = True
+WITH_BF_OPENEXR = False
 WITH_BF_STATICOPENEXR = False
 BF_OPENEXR = LIBDIR + '/gcc/openexr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/OpenEXR'
@@ -58,6 +64,8 @@ BF_PNG_LIBPATH = '${BF_PNG}/lib'
 
 BF_TIFF = LIBDIR + '/tiff'
 BF_TIFF_INC = '${BF_TIFF}/include'
+BF_TIFF_LIB = 'libtiff'
+BF_TIFF_LIBPATH = '${BF_TIFF}/lib'
 
 WITH_BF_ZLIB = True
 BF_ZLIB = LIBDIR + '/zlib'
@@ -69,15 +77,25 @@ WITH_BF_INTERNATIONAL = True
 
 BF_GETTEXT = LIBDIR + '/gettext'
 BF_GETTEXT_INC = '${BF_GETTEXT}/include'
-BF_GETTEXT_LIB = 'gnu_gettext'
+BF_GETTEXT_LIB = 'gettextlib'
+# BF_GETTEXT_LIB = 'gnu_gettext'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
 WITH_BF_GAMEENGINE = False
+
+WITH_BF_ODE = True
+BF_ODE = LIBDIR + '/ode'
+BF_ODE_INC = BF_ODE + '/include'
+BF_ODE_LIB = BF_ODE + '/lib/libode.a'
 
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
+
+BF_SOLID = '#extern/solid'
+BF_SOLID_INC = '${BF_SOLID}'
+BF_SOLID_LIB = 'extern_solid'
 
 BF_WINTAB = LIBDIR + '/wintab'
 BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
@@ -100,9 +118,12 @@ BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
 
 # Mesa Libs should go here if your using them as well....
 WITH_BF_STATICOPENGL = False
-BF_OPENGL = 'C:\\MingW'
-BF_OPENGL_INC = '${BF_OPENGL}/include'
-BF_OPENGL_LIBINC = '${BF_OPENGL}/lib'
+BF_OPENGL = ''
+# BF_OPENGL = 'C:\\MingW'
+BF_OPENGL_INC = ''
+# BF_OPENGL_INC = '${BF_OPENGL}/include'
+BF_OPENGL_LIBINC = ''
+# BF_OPENGL_LIBINC = '${BF_OPENGL}/lib'
 BF_OPENGL_LIB = 'opengl32 glu32'
 BF_OPENGL_LIB_STATIC = [ '${BF_OPENGL}/lib/libGL.a', '${BF_OPENGL}/lib/libGLU.a',
              '${BF_OPENGL}/lib/libXmu.a', '${BF_OPENGL}/lib/libXext.a',
@@ -111,9 +132,13 @@ BF_OPENGL_LIB_STATIC = [ '${BF_OPENGL}/lib/libGL.a', '${BF_OPENGL}/lib/libGLU.a'
 CC = 'i586-mingw32msvc-gcc'
 CXX = 'i586-mingw32msvc-g++'
 
+# Custom built MinGW (Arystan)
+# CC = 'i586-pc-mingw32-gcc'
+# CXX = 'i586-pc-mingw32-g++'
+
 CCFLAGS = [ '-pipe', '-funsigned-char', '-fno-strict-aliasing' ]
 
-CPPFLAGS = [ '-DXP_UNIX', '-DWIN32', '-DFREE_WINDOWS' ]
+CPPFLAGS = [ '-DXP_UNIX', '-DWIN32', '-DFREE_WINDOWS', '-DLINUX_CROSS' ]
 CXXFLAGS = ['-pipe', '-mwindows', '-funsigned-char', '-fno-strict-aliasing' ]
 REL_CFLAGS = [ '-O2' ]
 REL_CCFLAGS = [ '-O2' ]
@@ -122,7 +147,7 @@ C_WARN = [ '-Wall' , '-Wno-char-subscripts', '-Wdeclaration-after-statement' ]
 CC_WARN = [ '-Wall' ]
 
 
-LLIBS = [ '-ldxguid', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz'] #'-lutil', '-lc', '-lm', '-ldl', '-lpthread' ]
+LLIBS = [ '-ldxguid', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++'] #'-lutil', '-lc', '-lm', '-ldl', '-lpthread' ]
 
 BF_DEBUG = False
 BF_DEBUG_CCFLAGS= []
@@ -134,3 +159,5 @@ BF_PROFILE_LINKFLAGS = ['-pg']
 BF_BUILDDIR = '../build/linuxcross'
 BF_INSTALLDIR='../install/linuxcross'
 BF_DOCDIR='../install/doc'
+
+# LINKFLAGS = ['-Wl,--start-group']

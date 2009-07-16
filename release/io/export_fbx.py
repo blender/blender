@@ -60,9 +60,10 @@ except:
 # except:
 # 	os = None
 
-import Blender
+# import Blender
 import bpy
-from Blender.Mathutils import Matrix, Vector, RotationMatrix
+import Mathutils
+# from Blender.Mathutils import Matrix, Vector, RotationMatrix
 
 import BPyObject
 import BPyMesh
@@ -258,9 +259,48 @@ def derived_paths(fname_orig, basepath, FORCE_CWD=False):
 def mat4x4str(mat):
 	return '%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f' % tuple([ f for v in mat for f in v ])
 
+# XXX not used
+# duplicated in OBJ exporter
+def getVertsFromGroup(me, group_index):
+	ret = []
+
+	for i, v in enumerate(me.verts):
+		for g in v.groups:
+			if g.group == group_index:
+				ret.append((i, g.weight))
+
+		return ret
+
+# ob must be OB_MESH
+def BPyMesh_meshWeight2List(ob):
+	''' Takes a mesh and return its group names and a list of lists, one list per vertex.
+	aligning the each vert list with the group names, each list contains float value for the weight.
+	These 2 lists can be modified and then used with list2MeshWeight to apply the changes.
+	'''
+
+	me = ob.data
+
+	# Clear the vert group.
+	groupNames= [g.name for g in ob.vertex_groups]
+	len_groupNames= len(groupNames)
+	
+	if not len_groupNames:
+		# no verts? return a vert aligned empty list
+		return [[] for i in xrange(len(me.verts))], []
+	else:
+		vWeightList= [[0.0]*len_groupNames for i in xrange(len(me.verts))]
+
+	for i, v in enumerate(me.verts):
+		for g in v.groups:
+			vWeightList[i][g.group] = g.weight
+
+	return groupNames, vWeightList
+
+
 def meshNormalizedWeights(me):
 	try: # account for old bad BPyMesh
-		groupNames, vWeightList = BPyMesh.meshWeight2List(me)
+		groupNames, vWeightList = BPyMesh_meshWeight2List(me)
+# 		groupNames, vWeightList = BPyMesh.meshWeight2List(me)
 	except:
 		return [],[]
 	
@@ -564,7 +604,7 @@ def write(filename, batch_objects = None, \
 				matrix_rot = mtx_x90 * matrix_rot
 			elif type =='CAMERA':
 # 			elif ob and type =='Camera':
-				y = Vector(0,1,0) * matrix_rot
+				y = Mathutils.Vector(0,1,0) * matrix_rot
 				matrix_rot = matrix_rot * Mathutils.RotationMatrix(math.pi/2, 3, 'r', y)
 			
 			return matrix_rot
@@ -666,7 +706,7 @@ def write(filename, batch_objects = None, \
 					matrix_rot = mtx_x90 * matrix_rot
 					rot = tuple(matrix_rot.toEuler())
 				elif ob and ob.type =='Camera':
-					y = Vector(0,1,0) * matrix_rot
+					y = Mathutils.Vector(0,1,0) * matrix_rot
 					matrix_rot = matrix_rot * Mathutils.RotationMatrix(math.pi/2, 3, 'r', y)
 					rot = tuple(matrix_rot.toEuler())
 				else:
@@ -1052,8 +1092,8 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\tTypeFlags: "Camera"')
 		file.write('\n\t\tGeometryVersion: 124')
 		file.write('\n\t\tPosition: %.6f,%.6f,%.6f' % loc)
-		file.write('\n\t\tUp: %.6f,%.6f,%.6f' % tuple(Vector(0,1,0) * matrix_rot) )
-		file.write('\n\t\tLookAt: %.6f,%.6f,%.6f' % tuple(Vector(0,0,-1)*matrix_rot) )
+		file.write('\n\t\tUp: %.6f,%.6f,%.6f' % tuple(Mathutils.Vector(0,1,0) * matrix_rot) )
+		file.write('\n\t\tLookAt: %.6f,%.6f,%.6f' % tuple(Mathutils.Vector(0,0,-1)*matrix_rot) )
 		
 		#file.write('\n\t\tUp: 0,0,0' )
 		#file.write('\n\t\tLookAt: 0,0,0' )
@@ -1458,7 +1498,8 @@ def write(filename, batch_objects = None, \
 		if my_mesh.blenTextures:	do_textures = True
 		else:						do_textures = False	
 		
-		do_uvs = me.faceUV
+		do_uvs = len(me.uv_layers) > 0
+# 		do_uvs = me.faceUV
 		
 		
 		file.write('\n\tModel: "Model::%s", "Mesh" {' % my_mesh.fbxName)
@@ -1490,20 +1531,24 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\tPolygonVertexIndex: ')
 		i=-1
 		for f in me.faces:
-			fi = [v.index for v in f]
+			fi = [v_index for j, v_index in enumerate(f.verts) if v_index != 0 or j != 3]
+# 			fi = [v.index for v in f]
+
 			# flip the last index, odd but it looks like
 			# this is how fbx tells one face from another
 			fi[-1] = -(fi[-1]+1)
 			fi = tuple(fi)
 			if i==-1:
-				if len(f) == 3:		file.write('%i,%i,%i' % fi )
+				if len(fi) == 3:	file.write('%i,%i,%i' % fi )
+# 				if len(f) == 3:		file.write('%i,%i,%i' % fi )
 				else:				file.write('%i,%i,%i,%i' % fi )
 				i=0
 			else:
 				if i==13:
 					file.write('\n\t\t')
 					i=0
-				if len(f) == 3:		file.write(',%i,%i,%i' % fi )
+				if len(fi) == 3:	file.write(',%i,%i,%i' % fi )
+# 				if len(f) == 3:		file.write(',%i,%i,%i' % fi )
 				else:				file.write(',%i,%i,%i,%i' % fi )
 			i+=1
 		
@@ -1511,13 +1556,15 @@ def write(filename, batch_objects = None, \
 		i=-1
 		for ed in me.edges:
 				if i==-1:
-					file.write('%i,%i' % (ed.v1.index, ed.v2.index))
+					file.write('%i,%i' % (ed.verts[0], ed.verts[1]))
+# 					file.write('%i,%i' % (ed.v1.index, ed.v2.index))
 					i=0
 				else:
 					if i==13:
 						file.write('\n\t\t')
 						i=0
-					file.write(',%i,%i' % (ed.v1.index, ed.v2.index))
+					file.write(',%i,%i' % (ed.verts[0], ed.verts[1]))
+# 					file.write(',%i,%i' % (ed.v1.index, ed.v2.index))
 				i+=1
 		
 		file.write('\n\t\tGeometryVersion: 124')
@@ -1533,11 +1580,13 @@ def write(filename, batch_objects = None, \
 		i=-1
 		for v in me.verts:
 			if i==-1:
-				file.write('%.15f,%.15f,%.15f' % tuple(v.no));	i=0
+				file.write('%.15f,%.15f,%.15f' % tuple(v.normal));	i=0
+# 				file.write('%.15f,%.15f,%.15f' % tuple(v.no));	i=0
 			else:
 				if i==2:
 					file.write('\n			 ');	i=0
-				file.write(',%.15f,%.15f,%.15f' % tuple(v.no))
+				file.write(',%.15f,%.15f,%.15f' % tuple(v.normal))
+# 				file.write(',%.15f,%.15f,%.15f' % tuple(v.no))
 			i+=1
 		file.write('\n\t\t}')
 		
@@ -1571,32 +1620,49 @@ def write(filename, batch_objects = None, \
 			ReferenceInformationType: "Direct"
 			Smoothing: ''')
 		
-		SHARP = Blender.Mesh.EdgeFlags.SHARP
+# 		SHARP = Blender.Mesh.EdgeFlags.SHARP
 		i=-1
 		for ed in me.edges:
 			if i==-1:
-				file.write('%i' % ((ed.flag&SHARP)!=0));	i=0
+				file.write('%i' % (ed.sharp));	i=0
+# 				file.write('%i' % ((ed.flag&SHARP)!=0));	i=0
 			else:
 				if i==54:
 					file.write('\n			 ');	i=0
-				file.write(',%i' % ((ed.flag&SHARP)!=0))
+				file.write(',%i' % (ed.sharp))
+# 				file.write(',%i' % ((ed.flag&SHARP)!=0))
 			i+=1
 		
 		file.write('\n\t\t}')
-		del SHARP
-		
+# 		del SHARP
+
+		# small utility function
+		# returns a slice of data depending on number of face verts
+		# data is either a MeshTextureFace or MeshColor
+		def face_data(data, face):
+			if f.verts[3] == 0:
+				totvert = 3
+			else:
+				totvert = 4
+						
+			return data[:totvert]
+
 		
 		# Write VertexColor Layers
 		# note, no programs seem to use this info :/
 		collayers = []
-		if me.vertexColors:
-			collayers = me.getColorLayerNames()
-			collayer_orig = me.activeColorLayer
+		if len(me.vertex_colors):
+# 		if me.vertexColors:
+			collayers = me.vertex_colors
+# 			collayers = me.getColorLayerNames()
+			collayer_orig = me.active_vertex_color
+# 			collayer_orig = me.activeColorLayer
 			for colindex, collayer in enumerate(collayers):
-				me.activeColorLayer = collayer
+# 				me.activeColorLayer = collayer
 				file.write('\n\t\tLayerElementColor: %i {' % colindex)
 				file.write('\n\t\t\tVersion: 101')
-				file.write('\n\t\t\tName: "%s"' % collayer)
+				file.write('\n\t\t\tName: "%s"' % collayer.name)
+# 				file.write('\n\t\t\tName: "%s"' % collayer)
 				
 				file.write('''
 			MappingInformationType: "ByPolygonVertex"
@@ -1605,19 +1671,37 @@ def write(filename, batch_objects = None, \
 			
 				i = -1
 				ii = 0 # Count how many Colors we write
-				
-				for f in me.faces:
-					for col in f.col:
+
+				for f, cf in zip(me.faces, collayer.data):
+					colors = [cf.color1, cf.color2, cf.color3, cf.color4]
+
+					# determine number of verts
+					colors = face_data(colors, f)
+
+					for col in colors:
 						if i==-1:
-							file.write('%.4f,%.4f,%.4f,1' % (col[0]/255.0, col[1]/255.0, col[2]/255.0))
+							file.write('%.4f,%.4f,%.4f,1' % tuple(col))
 							i=0
 						else:
 							if i==7:
 								file.write('\n\t\t\t\t')
 								i=0
-							file.write(',%.4f,%.4f,%.4f,1' % (col[0]/255.0, col[1]/255.0, col[2]/255.0))
+							file.write(',%.4f,%.4f,%.4f,1' % tuple(col))
 						i+=1
 						ii+=1 # One more Color
+
+# 				for f in me.faces:
+# 					for col in f.col:
+# 						if i==-1:
+# 							file.write('%.4f,%.4f,%.4f,1' % (col[0]/255.0, col[1]/255.0, col[2]/255.0))
+# 							i=0
+# 						else:
+# 							if i==7:
+# 								file.write('\n\t\t\t\t')
+# 								i=0
+# 							file.write(',%.4f,%.4f,%.4f,1' % (col[0]/255.0, col[1]/255.0, col[2]/255.0))
+# 						i+=1
+# 						ii+=1 # One more Color
 				
 				file.write('\n\t\t\tColorIndex: ')
 				i = -1
@@ -1639,13 +1723,17 @@ def write(filename, batch_objects = None, \
 		# Write UV and texture layers.
 		uvlayers = []
 		if do_uvs:
-			uvlayers = me.getUVLayerNames()
-			uvlayer_orig = me.activeUVLayer
-			for uvindex, uvlayer in enumerate(uvlayers):
-				me.activeUVLayer = uvlayer
+			uvlayers = me.uv_textures
+# 			uvlayers = me.getUVLayerNames()
+			uvlayer_orig = me.active_uv_texture
+# 			uvlayer_orig = me.activeUVLayer
+			for uvindex, uvlayer in enumerate(me.uv_textures):
+# 			for uvindex, uvlayer in enumerate(uvlayers):
+# 				me.activeUVLayer = uvlayer
 				file.write('\n\t\tLayerElementUV: %i {' % uvindex)
 				file.write('\n\t\t\tVersion: 101')
-				file.write('\n\t\t\tName: "%s"' % uvlayer)
+				file.write('\n\t\t\tName: "%s"' % uvlayer.name)
+# 				file.write('\n\t\t\tName: "%s"' % uvlayer)
 				
 				file.write('''
 			MappingInformationType: "ByPolygonVertex"
@@ -1655,8 +1743,13 @@ def write(filename, batch_objects = None, \
 				i = -1
 				ii = 0 # Count how many UVs we write
 				
-				for f in me.faces:
-					for uv in f.uv:
+				for f, uf in zip(me.faces, uvlayer.data):
+# 				for f in me.faces:
+					uvs = [uf.uv1, uf.uv2, uf.uv3, uf.uv4]
+					uvs = face_data(uvs, f)
+					
+					for uv in uvs:
+# 					for uv in f.uv:
 						if i==-1:
 							file.write('%.6f,%.6f' % tuple(uv))
 							i=0
@@ -1686,7 +1779,8 @@ def write(filename, batch_objects = None, \
 				if do_textures:
 					file.write('\n\t\tLayerElementTexture: %i {' % uvindex)
 					file.write('\n\t\t\tVersion: 101')
-					file.write('\n\t\t\tName: "%s"' % uvlayer)
+					file.write('\n\t\t\tName: "%s"' % uvlayer.name)
+# 					file.write('\n\t\t\tName: "%s"' % uvlayer)
 					
 					if len(my_mesh.blenTextures) == 1:
 						file.write('\n\t\t\tMappingInformationType: "AllSame"')
@@ -1710,7 +1804,8 @@ def write(filename, batch_objects = None, \
 								i+=1
 						
 						i=-1
-						for f in me.faces:
+						for f in uvlayer.data:
+# 						for f in me.faces:
 							img_key = f.image
 							
 							if i==-1:
@@ -1736,7 +1831,7 @@ def write(filename, batch_objects = None, \
 			TextureId: ''')
 				file.write('\n\t\t}')
 			
-			me.activeUVLayer = uvlayer_orig
+# 			me.activeUVLayer = uvlayer_orig
 			
 		# Done with UV/textures.
 		
@@ -1765,13 +1860,21 @@ def write(filename, batch_objects = None, \
 				len_material_mapping_local = len(material_mapping_local)
 				
 				mats = my_mesh.blenMaterialList
+
+				if me.active_uv_texture:
+					uv_faces = me.active_uv_texture.data
+				else:
+					uv_faces = [None] * len(me.faces)
 				
 				i=-1
-				for f in me.faces:
-					try:	mat = mats[f.mat]
+				for f, uf in zip(me.faces, uv_faces)
+# 				for f in me.faces:
+					try:	mat = mats[f.material_index]
+# 					try:	mat = mats[f.mat]
 					except:mat = None
 					
-					if do_uvs: tex = f.image # WARNING - MULTI UV LAYER IMAGES NOT SUPPORTED :/
+					if do_uvs: tex = uf.image # WARNING - MULTI UV LAYER IMAGES NOT SUPPORTED :/
+# 					if do_uvs: tex = f.image # WARNING - MULTI UV LAYER IMAGES NOT SUPPORTED :/
 					else: tex = None
 					
 					if i==-1:
@@ -1810,7 +1913,8 @@ def write(filename, batch_objects = None, \
 				TypedIndex: 0
 			}''')
 		
-		if me.vertexColors:
+		if me.vertex_colors:
+# 		if me.vertexColors:
 			file.write('''
 			LayerElement:  {
 				Type: "LayerElementColor"
@@ -2331,7 +2435,8 @@ Objects:  {''')
 			if my_mesh.fbxBoneParent:
 				weights = None
 			else:
-				weights = meshNormalizedWeights(my_mesh.blenData)
+				weights = meshNormalizedWeights(my_mesh.blenObject)
+# 				weights = meshNormalizedWeights(my_mesh.blenData)
 			
 			#for bonename, bone, obname, bone_mesh, armob in ob_bones:
 			for my_bone in ob_bones:
@@ -3216,6 +3321,7 @@ if __name__ == '__main__':
 # - isinstance(inst, bpy.types.*) doesn't work on RNA objects: line 565
 # - get rid of BPyObject_getObjectArmature, move it in RNA?
 # - BATCH_ENABLE and BATCH_GROUP options: line 327
+# - implement all BPyMesh_* used here with RNA
 
 # TODO
 

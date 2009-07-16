@@ -434,7 +434,7 @@ def write(filename, objects, scene,
 #				continue
 
 			if EXPORT_UV:
-				faceuv = len(me.uv_layers) > 0
+				faceuv = len(me.uv_textures) > 0
 			else:
 				faceuv = False
 
@@ -508,7 +508,7 @@ def write(filename, objects, scene,
 				pass
 			elif faceuv:
 				# XXX update
-				tface = me.active_uv_layer.data
+				tface = me.active_uv_texture.data
 
 				# exception only raised if Python 2.3 or lower...
 				try:
@@ -570,7 +570,7 @@ def write(filename, objects, scene,
 				uv_face_mapping = [[0,0,0,0] for f in faces] # a bit of a waste for tri's :/
 
 				uv_dict = {} # could use a set() here
-				uv_layer = me.active_uv_layer
+				uv_layer = me.active_uv_texture
 				for f, f_index in face_index_pairs:
 
 					tface = uv_layer.data[f_index]
@@ -652,7 +652,7 @@ def write(filename, objects, scene,
 #				f_mat = min(f.mat, len(materialNames)-1)
 				if faceuv:
 
-					tface = me.active_uv_layer.data[face_index_pairs[f_index][1]]
+					tface = me.active_uv_texture.data[face_index_pairs[f_index][1]]
 
 					f_image = tface.image
 					f_uv= [tface.uv1, tface.uv2, tface.uv3]

@@ -112,13 +112,15 @@ def setup_staticlibs(lenv):
 		#here libs for static linking
 	]
 	libincs = [
-		'/usr/lib',
 		lenv['BF_OPENGL_LIBPATH'],
 		lenv['BF_JPEG_LIBPATH'],
 		lenv['BF_PNG_LIBPATH'],
 		lenv['BF_ZLIB_LIBPATH'],
 		lenv['BF_ICONV_LIBPATH']
 		]
+
+	if lenv['OURPLATFORM'] != 'linuxcross':
+		libincs = ['/usr/lib'] + libincs
 
 	libincs += Split(lenv['BF_FREETYPE_LIBPATH'])
 	if lenv['WITH_BF_PYTHON']:
@@ -223,7 +225,7 @@ def buildinfo(lenv, build_type):
 
 	obj = []
 	if lenv['BF_BUILDINFO']:
-		if sys.platform=='win32':
+		if sys.platform=='win32' or lenv['OURPLATFORM']=='linuxcross':
 			build_info_file = open("source/creator/winbuildinfo.h", 'w')
 			build_info_file.write("char *build_date=\"%s\";\n"%build_date)
 			build_info_file.write("char *build_time=\"%s\";\n"%build_time)
