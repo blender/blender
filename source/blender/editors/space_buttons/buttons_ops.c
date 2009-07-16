@@ -31,24 +31,30 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_curve_types.h"
+#include "DNA_group_types.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
+#include "DNA_node_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_group.h"
 #include "BKE_font.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_node.h"
 #include "BKE_particle.h"
+#include "BKE_scene.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_world.h"
 
 #include "BLI_editVert.h"
+#include "BLI_listbase.h"
 
 #include "RNA_access.h"
 
@@ -58,7 +64,138 @@
 #include "ED_curve.h"
 #include "ED_mesh.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
 #include "buttons_intern.h"	// own include
+
+
+/********************** group operators *********************/
+
+static int group_add_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Base *base;
+	Group *group;
+	int value= RNA_enum_get(op->ptr, "group");
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+	
+	base= object_in_scene(ob, scene);
+	if(!base)
+		return OPERATOR_CANCELLED;
+	
+	if(value == -1)
+		group= add_group( "Group" );
+	else
+		group= BLI_findlink(&bmain->group, value);
+
+	if(group) {
+		add_to_group(group, ob);
+		ob->flag |= OB_FROMGROUP;
+		base->flag |= OB_FROMGROUP;
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+static EnumPropertyItem group_items[]= {
+	{-1, "ADD_NEW", 0, "Add New Group", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+static EnumPropertyItem *group_itemf(bContext *C, PointerRNA *ptr, int *free)
+{	
+	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	EnumPropertyItem *item= NULL;
+	Main *bmain;
+	Group *group;
+	int a, totitem= 0;
+	
+	if(!C) /* needed for docs */
+		return group_items;
+	
+	RNA_enum_items_add_value(&item, &totitem, group_items, -1);
+
+	bmain= CTX_data_main(C);
+	if(bmain->group.first)
+		RNA_enum_item_add_separator(&item, &totitem);
+
+	for(a=0, group=bmain->group.first; group; group=group->id.next, a++) {
+		tmp.value= a;
+		tmp.identifier= group->id.name+2;
+		tmp.name= group->id.name+2;
+		RNA_enum_item_add(&item, &totitem, &tmp);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+
+	*free= 1;
+
+	return item;
+}
+
+void OBJECT_OT_group_add(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name= "Add Group";
+	ot->idname= "OBJECT_OT_group_add";
+	
+	/* api callbacks */
+	ot->exec= group_add_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "group", group_items, -1, "Group", "Group to add object to.");
+	RNA_def_enum_funcs(prop, group_itemf);
+}
+
+static int group_remove_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Group *group= CTX_data_pointer_get_type(C, "group", &RNA_Group).data;
+	Base *base;
+
+	if(!ob || !group)
+		return OPERATOR_CANCELLED;
+
+	base= object_in_scene(ob, scene);
+	if(!base)
+		return OPERATOR_CANCELLED;
+
+	rem_from_group(group, ob);
+
+	if(find_group(ob, NULL) == NULL) {
+		ob->flag &= ~OB_FROMGROUP;
+		base->flag &= ~OB_FROMGROUP;
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_group_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Group";
+	ot->idname= "OBJECT_OT_group_remove";
+	
+	/* api callbacks */
+	ot->exec= group_remove_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 /********************** material slot operators *********************/
 
@@ -473,33 +610,32 @@ static int new_particle_settings_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Main *bmain= CTX_data_main(C);
-	ParticleSettings *part= CTX_data_pointer_get_type(C, "particle_settings", &RNA_ParticleSettings).data;
+	ParticleSystem *psys;
+	ParticleSettings *part = NULL;
 	Object *ob;
 	PointerRNA ptr;
 
+	ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+
+	psys = ptr.data;
+
 	/* add or copy particle setting */
-	if(part)
-		part= psys_copy_settings(part);
+	if(psys->part)
+		part= psys_copy_settings(psys->part);
 	else
 		part= psys_new_settings("PSys", bmain);
 
-	/* attempt to assign to material slot */
-	ptr= CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+	ob= ptr.id.data;
 
-	if(ptr.data) {
-		ParticleSystem *psys = (ParticleSystem*)ptr.data;
-		ob= ptr.id.data;
+	if(psys->part)
+		psys->part->id.us--;
 
-		if(psys->part)
-			psys->part->id.us--;
+	psys->part = part;
 
-		psys->part = part;
+	DAG_scene_sort(scene);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 
-		DAG_scene_sort(scene);
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-
-		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
-	}
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -517,3 +653,246 @@ void PARTICLE_OT_new(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/********************** keyed particle target operators *********************/
+
+static int new_keyed_particle_target_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+	ParticleSystem *psys= ptr.data;
+	Object *ob = ptr.id.data;
+
+	KeyedParticleTarget *kpt;
+
+	if(!psys)
+		return OPERATOR_CANCELLED;
+
+	kpt = psys->keyed_targets.first;
+	for(; kpt; kpt=kpt->next)
+		kpt->flag &= ~KEYED_TARGET_CURRENT;
+
+	kpt = MEM_callocN(sizeof(KeyedParticleTarget), "keyed particle target");
+
+	kpt->flag |= KEYED_TARGET_CURRENT;
+	kpt->psys = 1;
+
+	BLI_addtail(&psys->keyed_targets, kpt);
+
+	DAG_scene_sort(scene);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_new_keyed_target(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "New Keyed Particle Target";
+	ot->idname= "PARTICLE_OT_new_keyed_target";
+	
+	/* api callbacks */
+	ot->exec= new_keyed_particle_target_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int remove_keyed_particle_target_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+	ParticleSystem *psys= ptr.data;
+	Object *ob = ptr.id.data;
+
+	KeyedParticleTarget *kpt;
+
+	if(!psys)
+		return OPERATOR_CANCELLED;
+
+	kpt = psys->keyed_targets.first;
+	for(; kpt; kpt=kpt->next) {
+		if(kpt->flag & KEYED_TARGET_CURRENT) {
+			BLI_remlink(&psys->keyed_targets, kpt);
+			MEM_freeN(kpt);
+			break;
+		}
+
+	}
+	kpt = psys->keyed_targets.last;
+
+	if(kpt)
+		kpt->flag |= KEYED_TARGET_CURRENT;
+
+	DAG_scene_sort(scene);
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_remove_keyed_target(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Keyed Particle Target";
+	ot->idname= "PARTICLE_OT_remove_keyed_target";
+	
+	/* api callbacks */
+	ot->exec= remove_keyed_particle_target_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/************************ move up modifier operator *********************/
+
+static int keyed_target_move_up_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+	ParticleSystem *psys= ptr.data;
+	Object *ob = ptr.id.data;
+	KeyedParticleTarget *kpt;
+
+	if(!psys)
+		return OPERATOR_CANCELLED;
+	
+	kpt = psys->keyed_targets.first;
+	for(; kpt; kpt=kpt->next) {
+		if(kpt->flag & KEYED_TARGET_CURRENT && kpt->prev) {
+			BLI_remlink(&psys->keyed_targets, kpt);
+			BLI_insertlink(&psys->keyed_targets, kpt->prev->prev, kpt);
+
+			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+			break;
+		}
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_keyed_target_move_up(wmOperatorType *ot)
+{
+	ot->name= "Move Up Keyed Target";
+	ot->description= "Move keyed particle target up in the list.";
+	ot->idname= "PARTICLE_OT_keyed_target_move_up";
+
+	ot->exec= keyed_target_move_up_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/************************ move down modifier operator *********************/
+
+static int keyed_target_move_down_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+	ParticleSystem *psys= ptr.data;
+	Object *ob = ptr.id.data;
+	KeyedParticleTarget *kpt;
+
+	if(!psys)
+		return OPERATOR_CANCELLED;
+	kpt = psys->keyed_targets.first;
+	for(; kpt; kpt=kpt->next) {
+		if(kpt->flag & KEYED_TARGET_CURRENT && kpt->next) {
+			BLI_remlink(&psys->keyed_targets, kpt);
+			BLI_insertlink(&psys->keyed_targets, kpt->next, kpt);
+
+			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+			break;
+		}
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_keyed_target_move_down(wmOperatorType *ot)
+{
+	ot->name= "Move Down Keyed Target";
+	ot->description= "Move keyed particle target down in the list.";
+	ot->idname= "PARTICLE_OT_keyed_target_move_down";
+
+	ot->exec= keyed_target_move_down_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** render layer operators *********************/
+
+static int render_layer_add_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+
+	scene_add_render_layer(scene);
+	scene->r.actlay= BLI_countlist(&scene->r.layers) - 1;
+
+	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
+	
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_render_layer_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Render Layer";
+	ot->idname= "SCENE_OT_render_layer_add";
+	
+	/* api callbacks */
+	ot->exec= render_layer_add_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int render_layer_remove_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	SceneRenderLayer *rl;
+	int act= scene->r.actlay;
+
+	if(BLI_countlist(&scene->r.layers) <= 1)
+		return OPERATOR_CANCELLED;
+	
+	rl= BLI_findlink(&scene->r.layers, scene->r.actlay);
+	BLI_remlink(&scene->r.layers, rl);
+	MEM_freeN(rl);
+
+	scene->r.actlay= 0;
+	
+	if(scene->nodetree) {
+		bNode *node;
+		for(node= scene->nodetree->nodes.first; node; node= node->next) {
+			if(node->type==CMP_NODE_R_LAYERS && node->id==NULL) {
+				if(node->custom1==act)
+					node->custom1= 0;
+				else if(node->custom1>act)
+					node->custom1--;
+			}
+		}
+	}
+
+	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
+	
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_render_layer_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Render Layer";
+	ot->idname= "SCENE_OT_render_layer_remove";
+	
+	/* api callbacks */
+	ot->exec= render_layer_remove_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}

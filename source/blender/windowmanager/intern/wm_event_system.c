@@ -268,7 +268,7 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 		
 		if(repeat==0) {
 			if(op->type->flag & OPTYPE_REGISTER)
-				wm_operator_register(CTX_wm_manager(C), op);
+				wm_operator_register(C, op);
 			else
 				WM_operator_free(op);
 		}
@@ -374,13 +374,14 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 				ED_undo_push_op(C, op);
 			
 			if(ot->flag & OPTYPE_REGISTER)
-				wm_operator_register(wm, op);
+				wm_operator_register(C, op);
 			else
 				WM_operator_free(op);
 		}
 		else if(retval & OPERATOR_RUNNING_MODAL) {
-			/* automatically grab cursor during modal ops (X11) */
-			WM_cursor_grab(CTX_wm_window(C), 1);
+			/* grab cursor during blocking modal ops (X11) */
+			if(ot->flag & OPTYPE_BLOCKING)
+				WM_cursor_grab(CTX_wm_window(C), 1);
 		}
 		else
 			WM_operator_free(op);
@@ -392,7 +393,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 /* invokes operator in context */
 int WM_operator_name_call(bContext *C, const char *opstring, int context, PointerRNA *properties)
 {
-	wmOperatorType *ot= WM_operatortype_find(opstring);
+	wmOperatorType *ot= WM_operatortype_find(opstring, 0);
 	wmWindow *window= CTX_wm_window(C);
 	wmEvent *event;
 	
@@ -696,7 +697,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 					ED_undo_push_op(C, op);
 				
 				if(ot->flag & OPTYPE_REGISTER)
-					wm_operator_register(CTX_wm_manager(C), op);
+					wm_operator_register(C, op);
 				else
 					WM_operator_free(op);
 				handler->op= NULL;
@@ -722,7 +723,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			printf("wm_handler_operator_call error\n");
 	}
 	else {
-		wmOperatorType *ot= WM_operatortype_find(event->keymap_idname);
+		wmOperatorType *ot= WM_operatortype_find(event->keymap_idname, 0);
 
 		if(ot)
 			retval= wm_operator_invoke(C, ot, event, properties);

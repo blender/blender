@@ -398,6 +398,16 @@ float BLF_width(char *str)
 	return(0.0f);
 }
 
+float BLF_fixed_width(void)
+{
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font)
+		return(blf_font_fixed_width(font));
+	return(0.0f);
+}
+
 float BLF_width_default(char *str)
 {
 	FontBLF *font;

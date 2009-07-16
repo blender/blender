@@ -610,6 +610,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\fmodifier.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\font.c"
 				>
 			</File>
@@ -1096,6 +1100,14 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\depsgraph_private.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\Makefile"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\nla_private.h"
 				>
 			</File>
 		</Filter>

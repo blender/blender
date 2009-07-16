@@ -209,6 +209,9 @@ void ANIM_OT_change_frame(wmOperatorType *ot)
 	ot->invoke= change_frame_invoke;
 	ot->cancel= change_frame_cancel;
 	ot->modal= change_frame_modal;
+	
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
 
 	/* rna */
 	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);

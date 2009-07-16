@@ -860,6 +860,9 @@ int BKE_imtype_is_movie(int imtype)
 	case R_AVICODEC:
 	case R_QUICKTIME:
 	case R_FFMPEG:
+	case R_H264:
+	case R_THEORA:
+	case R_XVID:
 	case R_FRAMESERVER:
 			return 1;
 	}
@@ -870,7 +873,7 @@ void BKE_add_image_extension(Scene *scene, char *string, int imtype)
 {
 	char *extension="";
 	
-	if(scene->r.imtype== R_IRIS) {
+	if(imtype== R_IRIS) {
 		if(!BLI_testextensie(string, ".rgb"))
 			extension= ".rgb";
 	}
@@ -882,7 +885,7 @@ void BKE_add_image_extension(Scene *scene, char *string, int imtype)
 		if(!BLI_testextensie(string, ".hdr"))
 			extension= ".hdr";
 	}
-	else if(imtype==R_PNG || imtype==R_FFMPEG) {
+	else if (ELEM5(imtype, R_PNG, R_FFMPEG, R_H264, R_THEORA, R_XVID)) {
 		if(!BLI_testextensie(string, ".png"))
 			extension= ".png";
 	}
@@ -1230,7 +1233,7 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 	else if ((imtype==R_RADHDR)) {
 		ibuf->ftype= RADHDR;
 	}
-	else if (imtype==R_PNG || imtype==R_FFMPEG) {
+	else if (ELEM5(imtype, R_PNG, R_FFMPEG, R_H264, R_THEORA, R_XVID)) {
 		ibuf->ftype= PNG;
 	}
 #ifdef WITH_DDS
@@ -1305,7 +1308,7 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 	
 	BLI_make_existing_file(name);
 
-	if(scene->r.scemode & R_STAMP_INFO)
+	if(scene->r.stamp & R_STAMP_ALL)
 		BKE_stamp_info(scene, ibuf);
 	
 	ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);

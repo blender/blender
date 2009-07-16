@@ -1415,11 +1415,6 @@ static void displist_to_mesh(Scene *scene, DispList *dlfirst)
 		return;
 	}
 	
-	if(totcol>16) {
-		//XXX error("Found more than 16 different colors");
-		totcol= 16;
-	}
-
 	vec[0]= (min[0]+max[0])/2;
 	vec[1]= (min[1]+max[1])/2;
 	vec[2]= (min[2]+max[2])/2;
@@ -1433,6 +1428,7 @@ static void displist_to_mesh(Scene *scene, DispList *dlfirst)
 	/* colors */
 	if(totcol) {
 		ob->mat= MEM_callocN(sizeof(void *)*totcol, "ob->mat");
+		ob->matbits= MEM_callocN(sizeof(char)*totcol, "ob->matbits");
 		me->mat= MEM_callocN(sizeof(void *)*totcol, "me->mat");
 		me->totcol= totcol;
 		ob->totcol= (unsigned char) me->totcol;
@@ -1482,7 +1478,7 @@ static void displist_to_mesh(Scene *scene, DispList *dlfirst)
 	dl= dlfirst;
 	while(dl) {
 		
-		colnr= (dl->col>15 ? 15: dl->col);
+		colnr= dl->col;
 		if(colnr) colnr--;
 		
 		if(dl->type==DL_SURF) {
@@ -2804,8 +2800,11 @@ static void dxf_add_mat (Object *ob, Mesh *me, float color[3], char *layer)
 	
 	if (!me) return;
 	
-	if(ob) ob->mat= MEM_callocN(sizeof(void *)*1, "ob->mat");
-	if(ob) ob->actcol= 1;
+	if(ob) {
+		ob->mat= MEM_callocN(sizeof(void *)*1, "ob->mat");
+		ob->matbits= MEM_callocN(sizeof(char)*1, "ob->matbits");
+		ob->actcol= 1;
+	}
 
 	me->totcol= 1;
 	me->mat= MEM_callocN(sizeof(void *)*1, "me->mat");
@@ -4053,7 +4052,6 @@ static void dxf_read(Scene *scene, char *filename)
 						ob->type= OB_MESH;
 	
 						ob->dt= OB_SHADED;
-						if(U.flag & USER_MAT_ON_OB) ob->colbits= -1;
 
 						ob->trackflag= OB_POSY;
 						ob->upflag= OB_POSZ;
@@ -4072,9 +4070,10 @@ static void dxf_read(Scene *scene, char *filename)
 						VECCOPY(ob->rot, obrot);
 						
 						ob->mat= MEM_callocN(sizeof(void *)*1, "ob->mat");
+						ob->matbits= MEM_callocN(sizeof(char)*1, "ob->matbits");
 						ob->totcol= (unsigned char) ((Mesh*)ob->data)->totcol;
 						ob->actcol= 1;
-						
+
 						/* note: materials are either linked to mesh or object, if both then 
 							you have to increase user counts. below line is not needed.
 							I leave it commented out here as warning (ton) */

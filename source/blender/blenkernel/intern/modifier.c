@@ -5069,7 +5069,7 @@ static void waveModifier_initData(ModifierData *md)
 	wmd->map_object = NULL;
 	wmd->height= 0.5f;
 	wmd->width= 1.5f;
-	wmd->speed= 0.5f;
+	wmd->speed= 0.25f;
 	wmd->narrow= 1.5f;
 	wmd->lifetime= 0.0f;
 	wmd->damp= 10.0f;

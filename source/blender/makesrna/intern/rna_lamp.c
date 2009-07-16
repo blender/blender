@@ -37,6 +37,10 @@
 
 #ifdef RNA_RUNTIME
 
+#include "MEM_guardedalloc.h"
+
+#include "BKE_texture.h"
+
 static void rna_Lamp_buffer_size_set(PointerRNA *ptr, int value)
 {
 	Lamp *la= (Lamp*)ptr->data;
@@ -54,13 +58,36 @@ static PointerRNA rna_Lamp_sky_settings_get(PointerRNA *ptr)
 static void rna_Lamp_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Lamp *la= (Lamp*)ptr->data;
-	rna_iterator_array_begin(iter, (void*)la->mtex, sizeof(MTex*), MAX_MTEX, NULL);
+	rna_iterator_array_begin(iter, (void*)la->mtex, sizeof(MTex*), MAX_MTEX, 0, NULL);
 }
 
 static PointerRNA rna_Lamp_active_texture_get(PointerRNA *ptr)
 {
 	Lamp *la= (Lamp*)ptr->data;
 	return rna_pointer_inherit_refine(ptr, &RNA_TextureSlot, la->mtex[(int)la->texact]);
+}
+
+static void rna_Lamp_active_texture_index_set(PointerRNA *ptr, int value)
+{
+	Lamp *la= (Lamp*)ptr->data;
+	int act= la->texact;
+
+	if(value == act || value < 0 || value >= MAX_MTEX)
+		return;
+
+	/* auto create/free mtex on activate/deactive, so we can edit
+	 * the texture pointer in the buttons UI. */
+	if(la->mtex[act] && !la->mtex[act]->tex) {
+		MEM_freeN(la->mtex[act]);
+		la->mtex[act]= NULL;
+	}
+
+	la->texact= value;
+
+	if(!la->mtex[value]) {
+		la->mtex[value]= add_mtex();
+		la->mtex[value]->texco= TEXCO_GLOB;
+	}
 }
 
 static StructRNA* rna_Lamp_refine(struct PointerRNA *ptr)
@@ -111,13 +138,13 @@ static void rna_def_lamp_mtex(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Object", "Object to use for mapping with Object texture coordinates.");
 
-	prop= RNA_def_property(srna, "map_to_color", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "map_color", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", LAMAP_COL);
-	RNA_def_property_ui_text(prop, "Map To Color", "Lets the texture affect the basic color of the lamp.");
+	RNA_def_property_ui_text(prop, "Color", "Lets the texture affect the basic color of the lamp.");
 
-	prop= RNA_def_property(srna, "map_to_shadow", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "map_shadow", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", LAMAP_SHAD);
-	RNA_def_property_ui_text(prop, "Map To Shadow", "Lets the texture affect the shadow color of the lamp.");
+	RNA_def_property_ui_text(prop, "Shadow", "Lets the texture affect the shadow color of the lamp.");
 }
 
 static void rna_def_lamp_sky_settings(BlenderRNA *brna)
@@ -308,7 +335,7 @@ static void rna_def_lamp(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING, NULL);
 
 	/* textures */
-	rna_def_mtex_common(srna, "rna_Lamp_mtex_begin", "rna_Lamp_active_texture_get", "LampTextureSlot");
+	rna_def_mtex_common(srna, "rna_Lamp_mtex_begin", "rna_Lamp_active_texture_get", "rna_Lamp_active_texture_index_set", "LampTextureSlot");
 
 	/* script link */
 	prop= RNA_def_property(srna, "script_link", PROP_POINTER, PROP_NEVER_NULL);

@@ -1178,7 +1178,7 @@ void NODE_OT_resize(wmOperatorType *ot)
 	ot->poll= ED_operator_node_active;
 	
 	/* flags */
-	ot->flag= 0;
+	ot->flag= OPTYPE_BLOCKING;
 }
 
 
@@ -2012,7 +2012,7 @@ void NODE_OT_link(wmOperatorType *ot)
 	ot->poll= ED_operator_node_active;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 }
 
 

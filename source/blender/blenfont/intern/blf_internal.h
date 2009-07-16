@@ -48,6 +48,7 @@ void blf_font_draw(FontBLF *font, char *str);
 void blf_font_boundbox(FontBLF *font, char *str, rctf *box);
 float blf_font_width(FontBLF *font, char *str);
 float blf_font_height(FontBLF *font, char *str);
+float blf_font_fixed_width(FontBLF *font);
 void blf_font_free(FontBLF *font);
 
 GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi);

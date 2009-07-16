@@ -415,6 +415,8 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			break;
 		case BCONTEXT_BONE:
 			found= buttons_context_path_bone(path);
+			if(!found)
+				found= buttons_context_path_data(path, OB_ARMATURE);
 			break;
 		default:
 			found= 0;

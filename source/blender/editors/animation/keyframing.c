@@ -1426,6 +1426,22 @@ void ANIM_OT_delete_keyframe_button (wmOperatorType *ot)
 }
 
 /* ******************************************* */
+/* AUTO KEYFRAME */
+
+int autokeyframe_cfra_can_key(Scene *scene, ID *id)
+{
+	float cfra= (float)CFRA; // XXX for now, this will do
+	
+	/* only filter if auto-key mode requires this */
+	if (IS_AUTOKEY_ON(scene) == 0)
+		return 0;
+	else if (IS_AUTOKEY_MODE(scene, NORMAL)) 
+		return 1;
+	else 
+		return id_frame_has_keyframe(id, cfra, ANIMFILTER_KEYS_LOCAL);
+}
+
+/* ******************************************* */
 /* KEYFRAME DETECTION */
 
 /* --------------- API/Per-Datablock Handling ------------------- */

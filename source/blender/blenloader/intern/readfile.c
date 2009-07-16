@@ -2968,6 +2968,9 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 		for(; pm; pm=pm->next)
 			pm->data = newdataadr(fd, pm->data);
 	}
+	else
+		cache->mem_cache.first = cache->mem_cache.last = NULL;
+
 	cache->flag &= ~(PTCACHE_SIMULATION_VALID|PTCACHE_BAKE_EDIT_ACTIVE);
 	cache->simframe= 0;
 }
@@ -3011,12 +3014,18 @@ static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase 
 		
 		psys->part = newlibadr_us(fd, id->lib, psys->part);
 		if(psys->part) {
+			KeyedParticleTarget *kpt = psys->keyed_targets.first;
+
+			for(; kpt; kpt=kpt->next)
+				kpt->ob=newlibadr(fd, id->lib, kpt->ob);
+
 			psys->target_ob = newlibadr(fd, id->lib, psys->target_ob);
-			psys->keyed_ob = newlibadr(fd, id->lib, psys->keyed_ob);
 
 			for(a=0,pa=psys->particles; a<psys->totpart; a++,pa++){
 				pa->stick_ob=newlibadr(fd, id->lib, pa->stick_ob);
 			}
+
+
 		}
 		else {
 			/* particle modifier must be removed before particle system */
@@ -3065,6 +3074,8 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 			if(sb->pointcache)
 				direct_link_pointcache(fd, sb->pointcache);
 		}
+
+		link_list(fd, &psys->keyed_targets);
 
 		psys->edit = 0;
 		psys->free_edit = NULL;
@@ -3721,6 +3732,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 
 	ob->mat= newdataadr(fd, ob->mat);
 	test_pointer_array(fd, (void **)&ob->mat);
+	ob->matbits= newdataadr(fd, ob->matbits);
 	
 	/* do it here, below old data gets converted */
 	direct_link_modifiers(fd, &ob->modifiers);
@@ -4209,7 +4221,8 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	wm->keymaps.first= wm->keymaps.last= NULL;
 	wm->paintcursors.first= wm->paintcursors.last= NULL;
 	wm->queue.first= wm->queue.last= NULL;
-	wm->reports.first= wm->reports.last= NULL;
+	wm->reports= NULL;
+	wm->jobs.first= wm->jobs.last= NULL;
 	
 	wm->windrawable= NULL;
 	wm->initialized= 0;
@@ -4842,6 +4855,20 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			else if(sl->spacetype==SPACE_BUTS) {
 				SpaceButs *sbuts= (SpaceButs *)sl;
 				sbuts->path= NULL;
+			}
+			else if(sl->spacetype==SPACE_CONSOLE) {
+				SpaceConsole *sconsole= (SpaceConsole *)sl;
+				//ConsoleLine *cl;
+				
+				link_list(fd, &sconsole->scrollback);
+				link_list(fd, &sconsole->history);
+				
+				//for(cl= sconsole->scrollback.first; cl; cl= cl->next)
+				//	cl->line= newdataadr(fd, cl->line);
+				
+				//for(cl= sconsole->history.first; cl; cl= cl->next)
+				//	cl->line= newdataadr(fd, cl->line);
+				
 			}
 		}
 		
@@ -5677,6 +5704,17 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				/* temporarily hide it */
 				ar->flag = RGN_FLAG_HIDDEN;
 				break;
+			case SPACE_FILE:
+				ar= MEM_callocN(sizeof(ARegion), "nodetree area for node");
+				BLI_addtail(lb, ar);
+				ar->regiontype= RGN_TYPE_CHANNELS;
+				ar->alignment= RGN_ALIGN_LEFT;
+
+				ar= MEM_callocN(sizeof(ARegion), "ui area for file");
+				BLI_addtail(lb, ar);
+				ar->regiontype= RGN_TYPE_UI;
+				ar->alignment= RGN_ALIGN_TOP;
+				break;
 #if 0
 			case SPACE_BUTS:
 				/* context UI region */
@@ -5815,6 +5853,8 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 			{
 				SpaceButs *sbuts= (SpaceButs *)sl;
 				memcpy(&ar->v2d, &sbuts->v2d, sizeof(View2D));
+				
+				ar->v2d.scroll |= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM); 
 				break;
 			}
 			case SPACE_FILE:
@@ -9074,7 +9114,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile < 250) {
 		bScreen *screen;
 		Scene *scene;
+		Base *base;
 		Material *ma;
+		Camera *cam;
 		Mesh *me;
 		Scene *sce;
 		Tex *tx;
@@ -9108,6 +9150,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if(sce->nodetree && strlen(sce->nodetree->id.name)==0)
 				strcpy(sce->nodetree->id.name, "NTComposit Nodetree");
+
+			/* move to cameras */
+			if(sce->r.scemode & R_PANORAMA) {
+				for(base=scene->base.first; base; base=base->next) {
+					ob= newlibadr(fd, lib, base->object);
+
+					if(ob->type == OB_CAMERA && !ob->id.lib) {
+						cam= newlibadr(fd, lib, ob->data);
+						cam->flag |= CAM_PANORAMA;
+					}
+				}
+
+				sce->r.scemode &= ~R_PANORAMA;
+			}
 		}
 		/* and texture trees */
 		for(tx= main->tex.first; tx; tx= tx->id.next) {
@@ -9147,6 +9203,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			BLI_freelistN(&pidlist);
 		}
+	}
+
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 1)) {
 	}
 
 	/* TODO: should be moved into one of the version blocks once this branch moves to trunk and we can
@@ -9219,6 +9278,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 
 				ob->data = olddata;
+			}
+
+			if(ob->totcol && ob->matbits == NULL) {
+				int a;
+
+				ob->matbits= MEM_callocN(sizeof(char)*ob->totcol, "ob->matbits");
+				for(a=0; a<ob->totcol; a++)
+					ob->matbits[a]= ob->colbits & (1<<a);
 			}
 		}
 

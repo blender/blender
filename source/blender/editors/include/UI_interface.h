@@ -622,6 +622,7 @@ void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *i
 ListBase uiTemplateList(uiLayout *layout, struct PointerRNA *ptr, char *propname, struct PointerRNA *activeptr, char *activeprop, int rows, int columns, int compact);
 void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);
 void uiTemplateOperatorSearch(uiLayout *layout);
+void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);
 
 /* items */
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname);

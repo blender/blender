@@ -581,7 +581,7 @@ void ui_theme_init_userdef(void)
 	
 	/* space info */
 	btheme->tinfo= btheme->tv3d;
-	SETCOL(btheme->tinfo.back, 	153, 153, 153, 255);
+	SETCOLF(btheme->tinfo.back, 	0.45, 0.45, 0.45, 1.0);
 
 	/* space sound */
 	btheme->tsnd= btheme->tv3d;
@@ -1231,6 +1231,8 @@ void init_userdef_do_versions(void)
 				btheme->tlogic= btheme->tv3d;
 				SETCOL(btheme->tlogic.back, 100, 100, 100, 255);
 			}
+
+			SETCOLF(btheme->tinfo.back, 0.45, 0.45, 0.45, 1.0);
 		}
 	}
 	

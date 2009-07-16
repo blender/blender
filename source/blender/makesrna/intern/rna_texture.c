@@ -270,9 +270,9 @@ static void rna_def_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Negate", "Inverts the values of the texture to reverse its effect.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
-	prop= RNA_def_property(srna, "no_rgb", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "rgb_to_intensity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_RGBTOINT);
-	RNA_def_property_ui_text(prop, "No RGB", "Converts texture RGB values to intensity (gray) values.");
+	RNA_def_property_ui_text(prop, "RGB to Intensity", "Converts texture RGB values to intensity (gray) values.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	prop= RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_VECTOR);

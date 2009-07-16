@@ -1132,7 +1132,7 @@ void load_editMesh(Scene *scene, Object *ob)
 		else
 			VECCOPY(mvert->co, eve->co);
 
-		mvert->mat_nr= 255;  /* what was this for, halos? */
+		mvert->mat_nr= 32767;  /* what was this for, halos? */
 		
 		/* vertex normal */
 		VECCOPY(nor, eve->no);
@@ -1218,14 +1218,14 @@ void load_editMesh(Scene *scene, Object *ob)
 		/* mat_nr in vertex */
 		if(me->totcol>1) {
 			mvert= me->mvert+mface->v1;
-			if(mvert->mat_nr == (char)255) mvert->mat_nr= mface->mat_nr;
+			if(mvert->mat_nr == (char)32767) mvert->mat_nr= mface->mat_nr;
 			mvert= me->mvert+mface->v2;
-			if(mvert->mat_nr == (char)255) mvert->mat_nr= mface->mat_nr;
+			if(mvert->mat_nr == (char)32767) mvert->mat_nr= mface->mat_nr;
 			mvert= me->mvert+mface->v3;
-			if(mvert->mat_nr == (char)255) mvert->mat_nr= mface->mat_nr;
+			if(mvert->mat_nr == (char)32767) mvert->mat_nr= mface->mat_nr;
 			if(mface->v4) {
 				mvert= me->mvert+mface->v4;
-				if(mvert->mat_nr == (char)255) mvert->mat_nr= mface->mat_nr;
+				if(mvert->mat_nr == (char)32767) mvert->mat_nr= mface->mat_nr;
 			}
 		}
 			
@@ -1669,8 +1669,8 @@ typedef struct EditEdgeC
 typedef struct EditFaceC
 {
 	int v1, v2, v3, v4;
-	unsigned char mat_nr, flag, f, h, fgonf;
-	short pad1;
+	unsigned char flag, f, h, fgonf, pad1;
+	short mat_nr;
 } EditFaceC;
 
 typedef struct EditSelectionC{

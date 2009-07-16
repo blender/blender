@@ -2282,7 +2282,7 @@ static int brush_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	ParticleEditSettings *pset= PE_settings(CTX_data_scene(C));
 	ParticleBrushData *brush;
 	int mode = RNA_enum_get(op->ptr, "mode");
-	float original_value;
+	float original_value=1.0f;
 
 	if(pset->brushtype < 0)
 		return OPERATOR_CANCELLED;
@@ -2344,7 +2344,7 @@ void PARTICLE_OT_brush_radial_control(wmOperatorType *ot)
 	ot->poll= PE_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 }
 
 /*************************** delete operator **************************/
@@ -3358,7 +3358,7 @@ void PARTICLE_OT_brush_edit(wmOperatorType *ot)
 	ot->poll= PE_poll_3dview;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* properties */
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
@@ -3570,7 +3570,7 @@ void PE_undo_menu(Scene *scene, Object *ob)
 	ParticleEdit *edit= 0;
 	ParticleUndo *undo;
 	DynStr *ds;
-	short event;
+	short event=0;
 	char *menu;
 
 	if(!PE_can_edit(psys)) return;

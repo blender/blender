@@ -81,6 +81,13 @@ EnumPropertyItem proportional_falloff_types[] = {
 		{0, NULL, 0, NULL, NULL}
 };
 
+EnumPropertyItem orientation_items[]= {
+	{V3D_MANIP_GLOBAL, "GLOBAL", 0, "Global", ""},
+	{V3D_MANIP_NORMAL, "NORMAL", 0, "Normal", ""},
+	{V3D_MANIP_LOCAL, "LOCAL", 0, "Local", ""},
+	{V3D_MANIP_VIEW, "VIEW", 0, "View", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 char OP_TRANSLATION[] = "TFM_OT_translation";
 char OP_ROTATION[] = "TFM_OT_rotation";
 char OP_TOSPHERE[] = "TFM_OT_tosphere";
@@ -137,12 +144,6 @@ static EnumPropertyItem *select_orientation_itemf(bContext *C, PointerRNA *ptr, 
 void TFM_OT_select_orientation(struct wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-	static EnumPropertyItem orientation_items[]= {
-		{V3D_MANIP_GLOBAL, "GLOBAL", 0, "Global", ""},
-		{V3D_MANIP_NORMAL, "NORMAL", 0, "Normal", ""},
-		{V3D_MANIP_LOCAL, "LOCAL", 0, "Local", ""},
-		{V3D_MANIP_VIEW, "VIEW", 0, "View", ""},
-		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name   = "Select Orientation";
@@ -293,8 +294,11 @@ void Properties_Snapping(struct wmOperatorType *ot, short align)
 
 void Properties_Constraints(struct wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	RNA_def_boolean_vector(ot->srna, "constraint_axis", 3, NULL, "Constraint Axis", "");
-	RNA_def_int(ot->srna, "constraint_orientation", 0, 0, INT_MAX, "Constraint Orientation", "", 0, INT_MAX);
+	prop= RNA_def_enum(ot->srna, "constraint_orientation", orientation_items, V3D_MANIP_GLOBAL, "Orientation", "DOC_BROKEN");
+	RNA_def_enum_funcs(prop, select_orientation_itemf);
 }
 
 void TFM_OT_translation(struct wmOperatorType *ot)
@@ -302,7 +306,7 @@ void TFM_OT_translation(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Translation";
 	ot->idname = OP_TRANSLATION;
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
@@ -327,7 +331,7 @@ void TFM_OT_resize(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Resize";
 	ot->idname = OP_RESIZE;
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
@@ -353,7 +357,7 @@ void TFM_OT_trackball(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Trackball";
 	ot->idname = OP_TRACKBALL;
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
@@ -374,7 +378,7 @@ void TFM_OT_rotation(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Rotation";
 	ot->idname = OP_ROTATION;
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
@@ -399,7 +403,7 @@ void TFM_OT_tilt(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Tilt";
 	ot->idname = OP_TILT;
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
@@ -422,7 +426,7 @@ void TFM_OT_warp(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Warp";
 	ot->idname = OP_WARP;
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
@@ -446,7 +450,7 @@ void TFM_OT_shear(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Shear";
 	ot->idname = OP_SHEAR;
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
@@ -470,7 +474,7 @@ void TFM_OT_shrink_fatten(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Shrink/Fatten";
 	ot->idname = OP_SHRINK_FATTEN;
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
@@ -491,7 +495,7 @@ void TFM_OT_tosphere(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "To Sphere";
 	ot->idname = OP_TOSPHERE;
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
@@ -542,7 +546,7 @@ void TFM_OT_transform(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Transform";
 	ot->idname = "TFM_OT_transform";
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* api callbacks */
 	ot->invoke = transform_invoke;
@@ -558,8 +562,7 @@ void TFM_OT_transform(struct wmOperatorType *ot)
 	Properties_Proportional(ot);
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 
-	RNA_def_boolean_vector(ot->srna, "constraint_axis", 3, NULL, "Constraint Axis", "");
-	RNA_def_int(ot->srna, "constraint_orientation", 0, 0, INT_MAX, "Constraint Orientation", "", 0, INT_MAX);
+	Properties_Constraints(ot);
 }
 
 void transform_operatortypes(void)

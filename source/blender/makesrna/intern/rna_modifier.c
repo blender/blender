@@ -83,7 +83,7 @@ EnumPropertyItem modifier_type_items[] ={
 static void rna_UVProject_projectors_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	UVProjectModifierData *uvp= (UVProjectModifierData*)ptr->data;
-	rna_iterator_array_begin(iter, (void*)uvp->projectors, sizeof(Object*), 10, NULL);
+	rna_iterator_array_begin(iter, (void*)uvp->projectors, sizeof(Object*), 10, 0, NULL);
 }
 
 static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
@@ -733,7 +733,7 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "speed", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
-	RNA_def_property_ui_range(prop, -2, 2, 10, 2);
+	RNA_def_property_ui_range(prop, -1, 1, 10, 2);
 	RNA_def_property_ui_text(prop, "Speed", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 

@@ -122,6 +122,16 @@ typedef struct uiWidgetColors {
 	short pad;
 } uiWidgetColors;
 
+typedef struct uiWidgetStateColors {
+	char inner_anim[4];
+	char inner_anim_sel[4];
+	char inner_key[4];
+	char inner_key_sel[4];
+	char inner_driven[4];
+	char inner_driven_sel[4];
+	float blend, pad;
+} uiWidgetStateColors;
+
 typedef struct ThemeUI {
 	
 	/* Interface Elements (buttons, menus, icons) */
@@ -130,6 +140,8 @@ typedef struct ThemeUI {
 	uiWidgetColors wcol_num, wcol_numslider;
 	uiWidgetColors wcol_menu, wcol_pulldown, wcol_menu_back, wcol_menu_item;
 	uiWidgetColors wcol_box, wcol_scroll;
+
+	uiWidgetStateColors wcol_state;
 	
 	char iconfile[80];	// FILE_MAXFILE length
 	

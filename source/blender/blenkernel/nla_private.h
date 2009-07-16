@@ -1,5 +1,5 @@
 /**
- * $Id: BKE_nla.h 20999 2009-06-19 04:45:56Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

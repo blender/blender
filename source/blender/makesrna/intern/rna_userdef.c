@@ -268,7 +268,50 @@ static void rna_def_userdef_theme_ui_wcol(BlenderRNA *brna)
 	RNA_def_property_range(prop, -100, 100);
 	RNA_def_property_ui_text(prop, "Shade Down", "");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
+}
+
+static void rna_def_userdef_theme_ui_wcol_state(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
 	
+	srna= RNA_def_struct(brna, "ThemeWidgetStateColors", NULL);
+	RNA_def_struct_sdna(srna, "uiWidgetStateColors");
+	RNA_def_struct_ui_text(srna, "Theme Widget State Color", "Theme settings for widget state colors.");
+		
+	prop= RNA_def_property(srna, "inner_anim", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Animated", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "inner_anim_sel", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Animated Selected", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+	
+	prop= RNA_def_property(srna, "inner_key", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Keyframe", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "inner_key_sel", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Keyframe Selected", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "inner_driven", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Driven", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "inner_driven_sel", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Driven Selected", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "blend", PROP_FLOAT, PROP_PERCENTAGE);
+	RNA_def_property_ui_text(prop, "Blend", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 }
 
 static void rna_def_userdef_theme_ui(BlenderRNA *brna)
@@ -277,6 +320,7 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	rna_def_userdef_theme_ui_wcol(brna);
+	rna_def_userdef_theme_ui_wcol_state(brna);
 	
 	srna= RNA_def_struct(brna, "ThemeUserInterface", NULL);
 	RNA_def_struct_sdna(srna, "ThemeUI");
@@ -364,6 +408,12 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "wcol_scroll");
 	RNA_def_property_struct_type(prop, "ThemeWidgetColors");
 	RNA_def_property_ui_text(prop, "Scroll Widget Colors", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "wcol_state", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "wcol_state");
+	RNA_def_property_struct_type(prop, "ThemeWidgetStateColors");
+	RNA_def_property_ui_text(prop, "State Colors", "");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "icon_file", PROP_STRING, PROP_FILEPATH);

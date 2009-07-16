@@ -68,14 +68,16 @@ ARegion *graph_has_buttons_region(ScrArea *sa)
 {
 	ARegion *ar, *arnew;
 	
-	for(ar= sa->regionbase.first; ar; ar= ar->next)
+	for (ar= sa->regionbase.first; ar; ar= ar->next) {
 		if(ar->regiontype==RGN_TYPE_UI)
 			return ar;
+	}
 	
 	/* add subdiv level; after main window */
-	for(ar= sa->regionbase.first; ar; ar= ar->next)
+	for (ar= sa->regionbase.first; ar; ar= ar->next) {
 		if(ar->regiontype==RGN_TYPE_WINDOW)
 			break;
+	}
 	
 	/* is error! */
 	if(ar==NULL) return NULL;
@@ -246,7 +248,9 @@ static void graph_main_area_draw(const bContext *C, ARegion *ar)
 		
 		/* XXX the slow way to set tot rect... but for nice sliders needed (ton) */
 		get_graph_keyframe_extents(&ac, &v2d->tot.xmin, &v2d->tot.xmax, &v2d->tot.ymin, &v2d->tot.ymax);
-
+		/* extra offset so that these items are visible */
+		v2d->tot.xmin -= 10.0f;
+		v2d->tot.xmax += 10.0f;
 	}
 	
 	/* only free grid after drawing data, as we need to use it to determine sampling rate */

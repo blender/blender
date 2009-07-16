@@ -784,7 +784,7 @@ Tex *give_current_texture(Object *ob, int act)
 		if(act>ob->totcol) act= ob->totcol;
 		else if(act==0) act= 1;
 		
-		if( BTST(ob->colbits, act-1) ) {	/* in object */
+		if(ob->matbits[act-1]) {	/* in object */
 			ma= ob->mat[act-1];
 		}
 		else {								/* in data */

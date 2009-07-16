@@ -204,17 +204,17 @@ Scene *add_scene(char *name)
 	sce= alloc_libblock(&G.main->scene, ID_SCE, name);
 	sce->lay= 1;
 	
-	sce->r.mode= R_GAMMA;
+	sce->r.mode= R_GAMMA|R_OSA|R_SHADOW|R_SSS|R_ENVMAP|R_RAYTRACE;
 	sce->r.cfra= 1;
 	sce->r.sfra= 1;
 	sce->r.efra= 250;
-	sce->r.xsch= 320;
-	sce->r.ysch= 256;
+	sce->r.xsch= 1920;
+	sce->r.ysch= 1080;
 	sce->r.xasp= 1;
 	sce->r.yasp= 1;
-	sce->r.xparts= 4;
-	sce->r.yparts= 4;
-	sce->r.size= 100;
+	sce->r.xparts= 8;
+	sce->r.yparts= 8;
+	sce->r.size= 25;
 	sce->r.planes= 24;
 	sce->r.quality= 90;
 	sce->r.framapto= 100;
@@ -225,7 +225,7 @@ Scene *add_scene(char *name)
 	sce->r.ocres = 128;
 	
 	sce->r.bake_mode= 1;	/* prevent to include render stuff here */
-	sce->r.bake_filter= 2;
+	sce->r.bake_filter= 8;
 	sce->r.bake_osa= 5;
 	sce->r.bake_flag= R_BAKE_CLEAR;
 	sce->r.bake_normal_space= R_BAKE_SPACE_TANGENT;
@@ -234,6 +234,9 @@ Scene *add_scene(char *name)
 	sce->r.yplay= 480;
 	sce->r.freqplay= 60;
 	sce->r.depth= 32;
+
+	sce->r.scemode= R_DOCOMP|R_DOSEQ|R_EXTENSION;
+	sce->r.stamp= R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_SCENE|R_STAMP_CAMERA;
 	
 	sce->r.threads= 1;
 	

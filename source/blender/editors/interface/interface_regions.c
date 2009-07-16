@@ -294,19 +294,33 @@ void ui_remove_temporary_region(bContext *C, bScreen *sc, ARegion *ar)
 typedef struct uiTooltipData {
 	rcti bbox;
 	uiFontStyle fstyle;
-	char *tip;
+	char lines[5][512];
+	int totline;
+	int toth, spaceh, lineh;
 } uiTooltipData;
 
 static void ui_tooltip_region_draw(const bContext *C, ARegion *ar)
 {
 	uiTooltipData *data= ar->regiondata;
+	rcti bbox= data->bbox;
+	int a;
 	
 	ui_draw_menu_back(U.uistyles.first, NULL, &data->bbox);
 	
 	/* draw text */
-	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 	uiStyleFontSet(&data->fstyle);
-	uiStyleFontDraw(&data->fstyle, &data->bbox, data->tip);
+
+	bbox.ymax= bbox.ymax - 0.5f*((bbox.ymax - bbox.ymin) - data->toth);
+	bbox.ymin= bbox.ymax - data->lineh;
+
+	for(a=0; a<data->totline; a++) {
+		if(a == 0) glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		else glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
+
+		uiStyleFontDraw(&data->fstyle, &bbox, data->lines[a]);
+		bbox.ymin -= data->lineh + data->spaceh;
+		bbox.ymax -= data->lineh + data->spaceh;
+	}
 }
 
 static void ui_tooltip_region_free(ARegion *ar)
@@ -314,7 +328,6 @@ static void ui_tooltip_region_free(ARegion *ar)
 	uiTooltipData *data;
 
 	data= ar->regiondata;
-	MEM_freeN(data->tip);
 	MEM_freeN(data);
 	ar->regiondata= NULL;
 }
@@ -325,9 +338,11 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	static ARegionType type;
 	ARegion *ar;
 	uiTooltipData *data;
+	IDProperty *prop;
+	char buf[512];
 	float fonth, fontw, aspect= but->block->aspect;
 	float x1f, x2f, y1f, y2f;
-	int x1, x2, y1, y2, winx, winy, ofsx, ofsy;
+	int x1, x2, y1, y2, winx, winy, ofsx, ofsy, w, h, a;
 
 	if(!but->tip || strlen(but->tip)==0)
 		return NULL;
@@ -342,17 +357,65 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 	/* create tooltip data */
 	data= MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
-	data->tip= BLI_strdup(but->tip);
+
+	BLI_strncpy(data->lines[0], but->tip, sizeof(data->lines[0]));
+	data->totline= 1;
+
+	if(but->optype && !(but->block->flag & UI_BLOCK_LOOP)) {
+		/* operator keymap (not menus, they already have it) */
+		prop= (but->opptr)? but->opptr->data: NULL;
+
+		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, buf, sizeof(buf))) {
+			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Shortcut: %s", buf);
+			data->totline++;
+		}
+	}
+
+	if(ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
+		/* full string */
+		ui_get_but_string(but, buf, sizeof(buf));
+		if(buf[0]) {
+			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Value: %s", buf);
+			data->totline++;
+		}
+	}
+
+	if(but->rnaprop) {
+		if(but->flag & UI_BUT_DRIVEN) {
+			if(ui_but_anim_expression_get(but, buf, sizeof(buf))) {
+				/* expression */
+				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Expression: %s", buf);
+				data->totline++;
+			}
+		}
+
+		/* rna info */
+		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Python: %s.%s", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
+		data->totline++;
+	}
 	
 	/* set font, get bb */
 	data->fstyle= style->widget; /* copy struct */
 	data->fstyle.align= UI_STYLE_TEXT_CENTER;
 	ui_fontscale(&data->fstyle.points, aspect);
 	uiStyleFontSet(&data->fstyle);
-	fontw= aspect * BLF_width(data->tip);
-	fonth= aspect * BLF_height(data->tip);
+
+	h= BLF_height(data->lines[0]);
+
+	for(a=0, fontw=0, fonth=0; a<data->totline; a++) {
+		w= BLF_width(data->lines[a]);
+		fontw= MAX2(fontw, w);
+		fonth += (a == 0)? h: h+5;
+	}
+
+	fontw *= aspect;
+	fonth *= aspect;
 
 	ar->regiondata= data;
+
+	data->toth= fonth;
+	data->lineh= h*aspect;
+	data->spaceh= 5*aspect;
 
 	/* compute position */
 	ofsx= (but->block->panel)? but->block->panel->ofsx: 0;
@@ -2751,7 +2814,7 @@ void uiPupBlockO(bContext *C, uiBlockCreateFunc func, void *arg, char *opname, i
 	
 	handle= ui_popup_block_create(C, NULL, NULL, func, NULL, arg);
 	handle->popup= 1;
-	handle->optype= (opname)? WM_operatortype_find(opname): NULL;
+	handle->optype= (opname)? WM_operatortype_find(opname, 0): NULL;
 	handle->opcontext= opcontext;
 	
 	UI_add_popup_handlers(C, &window->handlers, handle);

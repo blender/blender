@@ -111,10 +111,7 @@ static int get_current_display_percentage(ParticleSystem *psys)
 		return 100;
 
 	if(part->phystype==PART_PHYS_KEYED){
-		if(psys->flag & PSYS_FIRST_KEYED)
-			return psys->part->disp;
-		else
-			return 100;
+		return psys->part->disp;
 	}
 	else
 		return psys->part->disp;
@@ -199,7 +196,7 @@ static void realloc_particles(Object *ob, ParticleSystem *psys, int new_totpart)
 		if(psys->particles->keys)
 			MEM_freeN(psys->particles->keys);
 
-		for(i=0, pa=psys->particles; i<psys->totpart; i++, pa++)
+		for(i=0, pa=newpars; i<totsaved; i++, pa++)
 			if(pa->keys) {
 				pa->keys= NULL;
 				pa->totkey= 0;
@@ -1976,64 +1973,59 @@ static void reset_all_particles(Scene *scene, Object *ob, ParticleSystem *psys, 
 /************************************************/
 /*			Keyed particles						*/
 /************************************************/
-/* a bit of an unintuitive function :) counts objects in a keyed chain and returns 1 if some of them were selected (used in drawing) */
-int psys_count_keyed_targets(Object *ob, ParticleSystem *psys)
+/* Counts valid keyed targets */
+void psys_count_keyed_targets(Object *ob, ParticleSystem *psys)
 {
-	ParticleSystem *kpsys=psys,*tpsys;
-	ParticleSettings *tpart;
-	Object *kob=ob,*tob;
-	int select=ob->flag&SELECT;
-	short totkeyed=0;
-	Base *base;
+	ParticleSystem *kpsys;
+	KeyedParticleTarget *kpt = psys->keyed_targets.first;
+	int psys_num = BLI_findindex(&ob->particlesystem, psys);
+	int keys_valid = 1;
+	psys->totkeyed = 0;
 
-	ListBase lb;
-	lb.first=lb.last=0;
+	for(; kpt; kpt=kpt->next) {
+		kpsys = NULL;
+		if(kpt->ob==ob || kpt->ob==NULL) {
+			if(kpt->psys >= psys_num)
+				kpsys = BLI_findlink(&ob->particlesystem, kpt->psys-1);
 
-	tob=psys->keyed_ob;
-	while(tob){
-		if((tpsys=BLI_findlink(&tob->particlesystem,kpsys->keyed_psys-1))){
-			tpart=tpsys->part;
-
-			if(tpart->phystype==PART_PHYS_KEYED){
-				if(lb.first){
-					for(base=lb.first;base;base=base->next){
-						if(tob==base->object){
-							fprintf(stderr,"Error: loop in keyed chain!\n");
-							BLI_freelistN(&lb);
-							return select;
-						}
-					}
-				}
-				base=MEM_callocN(sizeof(Base), "keyed base");
-				base->object=tob;
-				BLI_addtail(&lb,base);
-
-				if(tob->flag&SELECT)
-					select++;
-				kob=tob;
-				kpsys=tpsys;
-				tob=tpsys->keyed_ob;
-				totkeyed++;
+			if(kpsys && kpsys->totpart) {
+				kpt->flag |= KEYED_TARGET_VALID;
+				psys->totkeyed += keys_valid;
+				if(psys->flag & PSYS_KEYED_TIMING && kpt->duration != 0.0f)
+					psys->totkeyed += 1;
 			}
-			else{
-				tob=0;
-				totkeyed++;
+			else {
+				kpt->flag &= ~KEYED_TARGET_VALID;
+				keys_valid = 0;
 			}
 		}
-		else
-			tob=0;
+		else {
+			if(kpt->ob)
+				kpsys = BLI_findlink(&kpt->ob->particlesystem, kpt->psys-1);
+
+			if(kpsys && kpsys->totpart) {
+				kpt->flag |= KEYED_TARGET_VALID;
+				psys->totkeyed += keys_valid;
+				if(psys->flag & PSYS_KEYED_TIMING && kpt->duration != 0.0f)
+					psys->totkeyed += 1;
+			}
+			else {
+				kpt->flag &= ~KEYED_TARGET_VALID;
+				keys_valid = 0;
+			}
+		}
 	}
-	psys->totkeyed=totkeyed;
-	BLI_freelistN(&lb);
-	return select;
+
+	psys->totkeyed *= psys->flag & PSYS_KEYED_TIMING ? 1 : psys->part->keyed_loops;
 }
 
 static void set_keyed_keys(Scene *scene, Object *ob, ParticleSystem *psys)
 {
 	Object *kob = ob;
 	ParticleSystem *kpsys = psys;
+	KeyedParticleTarget *kpt;
 	ParticleData *pa;
-	int totpart = psys->totpart, i, k, totkeys = psys->totkeyed + 1;
+	int totpart = psys->totpart, i, k, totkeys = psys->totkeyed;
 	float prevtime, nexttime, keyedtime;
 
 	/* no proper targets so let's clear and bail out */
@@ -2046,7 +2038,7 @@ static void set_keyed_keys(Scene *scene, Object *ob, ParticleSystem *psys)
 	if(totpart && psys->particles->totkey != totkeys) {
 		free_keyed_keys(psys);
 		
-		psys->particles->keys = MEM_callocN(psys->totpart*totkeys*sizeof(ParticleKey), "Keyed keys");
+		psys->particles->keys = MEM_callocN(totpart*totkeys*sizeof(ParticleKey), "Keyed keys");
 		psys->particles->totkey = totkeys;
 		
 		for(i=1, pa=psys->particles+1; i<totpart; i++,pa++){
@@ -2057,32 +2049,36 @@ static void set_keyed_keys(Scene *scene, Object *ob, ParticleSystem *psys)
 	
 	psys->flag &= ~PSYS_KEYED;
 
+
+	kpt = psys->keyed_targets.first;
 	for(k=0; k<totkeys; k++) {
+		if(kpt->ob)
+			kpsys = BLI_findlink(&kpt->ob->particlesystem, kpt->psys - 1);
+		else
+			kpsys = BLI_findlink(&ob->particlesystem, kpt->psys - 1);
+
 		for(i=0,pa=psys->particles; i<totpart; i++, pa++) {
 			(pa->keys + k)->time = -1.0; /* use current time */
 
-			if(kpsys->totpart > 0)
-				psys_get_particle_state(scene, kob, kpsys, i%kpsys->totpart, pa->keys + k, 1);
+			psys_get_particle_state(scene, kpt->ob, kpsys, i%kpsys->totpart, pa->keys + k, 1);
 
-			if(k==0)
-				pa->keys->time = pa->time;
-			else if(k==totkeys-1)
-				(pa->keys + k)->time = pa->time + pa->lifetime;
-			else{
-				if(psys->flag & PSYS_KEYED_TIME){
-					prevtime = (pa->keys + k - 1)->time;
-					nexttime = pa->time + pa->lifetime;
-					keyedtime = kpsys->part->keyed_time;
-					(pa->keys + k)->time = (1.0f - keyedtime) * prevtime + keyedtime * nexttime;
+			if(psys->flag & PSYS_KEYED_TIMING){
+				(pa->keys+k)->time = pa->time + kpt->time;
+				if(kpt->duration != 0.0f && k+1 < totkeys) {
+					copy_particle_key(pa->keys+k+1, pa->keys+k, 1);
+					(pa->keys+k+1)->time = pa->time + kpt->time + kpt->duration;
 				}
-				else
-					(pa->keys+k)->time = pa->time + (float)k / (float)(totkeys - 1) * pa->lifetime;
 			}
+			else if(totkeys > 1)
+				(pa->keys+k)->time = pa->time + (float)k / (float)(totkeys - 1) * pa->lifetime;
+			else
+				pa->keys->time = pa->time;
 		}
-		if(kpsys->keyed_ob){
-			kob = kpsys->keyed_ob;
-			kpsys = BLI_findlink(&kob->particlesystem, kpsys->keyed_psys - 1);
-		}
+
+		if(psys->flag & PSYS_KEYED_TIMING && kpt->duration!=0.0f)
+			k++;
+
+		kpt = (kpt->next && kpt->next->flag & KEYED_TARGET_VALID) ? kpt = kpt->next : psys->keyed_targets.first;
 	}
 
 	psys->flag |= PSYS_KEYED;
@@ -2198,6 +2194,60 @@ void psys_get_reactor_target(Object *ob, ParticleSystem *psys, Object **target_o
 /************************************************/
 /*			Point Cache							*/
 /************************************************/
+void psys_make_temp_pointcache(Object *ob, ParticleSystem *psys)
+{
+	PointCache *cache = psys->pointcache;
+	PTCacheFile *pf = NULL;
+	PTCacheMem *pm = NULL;
+	PTCacheID pid;
+	int cfra, sfra = cache->startframe, efra = cache->endframe;
+	int totelem = psys->totpart;
+	int float_count = sizeof(ParticleKey) / sizeof(float);
+	int tot = totelem * float_count;
+
+	if((cache->flag & PTCACHE_DISK_CACHE)==0 || cache->mem_cache.first)
+		return;
+
+	BKE_ptcache_id_from_particles(&pid, ob, psys);
+
+	for(cfra=sfra; cfra <= efra; cfra++) {
+		pf = BKE_ptcache_file_open(&pid, PTCACHE_FILE_READ, cfra);
+
+		if(pf) {
+			pm = MEM_callocN(sizeof(PTCacheMem), "Pointcache temp mem");
+			pm->data = MEM_callocN(sizeof(float)*tot, "Pointcache temp mem data");
+
+			if(fread(pm->data, sizeof(float), tot, pf->fp)!= tot) {
+				printf("Error reading from disk cache\n");
+
+				MEM_freeN(pm->data);
+				MEM_freeN(pm);
+				BKE_ptcache_file_close(pf);
+				return;
+			}
+
+			pm->frame = cfra;
+			pm->totpoint = totelem;
+
+			BLI_addtail(&cache->mem_cache, pm);
+
+			BKE_ptcache_file_close(pf);
+		}
+	}
+}
+void psys_clear_temp_pointcache(ParticleSystem *psys)
+{
+	PTCacheMem *pm = psys->pointcache->mem_cache.first;
+
+	if((psys->pointcache->flag & PTCACHE_DISK_CACHE)==0)
+		return;
+
+	for(; pm; pm=pm->next) {
+		MEM_freeN(pm->data);
+	}
+
+	BLI_freelistN(&psys->pointcache->mem_cache);
+}
 void psys_get_pointcache_start_end(Scene *scene, ParticleSystem *psys, int *sfra, int *efra)
 {
 	ParticleSettings *part = psys->part;
@@ -3912,61 +3962,6 @@ static void boid_body(Scene *scene, BoidVecFunc *bvf, ParticleData *pa, Particle
 	if(part->flag & PART_BOIDS_2D){
 		pa->state.vel[2]=0.0;
 		pa->state.co[2]=part->groundz;
-
-		if(psys->keyed_ob && (psys->keyed_ob->type == OB_MESH)){
-			Object *zob=psys->keyed_ob;
-			int min_face;
-			float co1[3],co2[3],min_d=2.0,min_w[4],imat[4][4];
-			VECCOPY(co1,pa->state.co);
-			VECCOPY(co2,pa->state.co);
-
-			co1[2]=1000.0f;
-			co2[2]=-1000.0f;
-
-			Mat4Invert(imat,zob->obmat);
-			Mat4MulVecfl(imat,co1);
-			Mat4MulVecfl(imat,co2);
-
-			if(psys_intersect_dm(scene,zob,0,0,co1,co2,&min_d,&min_face,min_w,0,0,0,0)){
-				DerivedMesh *dm;
-				MFace *mface;
-				MVert *mvert;
-				float loc[3],nor[3],q1[4];
-
-				psys_disable_all(zob);
-				dm=mesh_get_derived_final(scene, zob, 0);
-				psys_enable_all(zob);
-
-				mface=dm->getFaceDataArray(dm,CD_MFACE);
-				mface+=min_face;
-				mvert=dm->getVertDataArray(dm,CD_MVERT);
-
-				/* get deflection point & normal */
-				psys_interpolate_face(mvert,mface,0,0,min_w,loc,nor,0,0,0,0);
-
-				Mat4MulVecfl(zob->obmat,loc);
-				Mat4Mul3Vecfl(zob->obmat,nor);
-
-				Normalize(nor);
-
-				VECCOPY(pa->state.co,loc);
-
-				zvec[2]=1.0;
-
-				Crossf(loc,zvec,nor);
-
-				bank=VecLength(loc);
-				if(bank>0.0){
-					bank=saasin(bank);
-
-					VecRotToQuat(loc,bank,q);
-
-					QUATCOPY(q1,pa->state.rot);
-
-					QuatMul(pa->state.rot,q,q1);
-				}
-			}
-		}
 	}
 
 	length=bvf->Length(pa->state.vel);
@@ -4238,7 +4233,7 @@ static void psys_update_path_cache(Scene *scene, Object *ob, ParticleSystemModif
 	if((psys->part->childtype && psys->totchild != get_psys_tot_child(scene, psys)) || psys->recalc&PSYS_RECALC_RESET)
 		alloc=1;
 
-	if(alloc || psys->recalc&PSYS_RECALC_RESET || (psys->vgroup[PSYS_VG_DENSITY] && (G.f & G_WEIGHTPAINT)))
+	if(alloc || psys->recalc&PSYS_RECALC_CHILD || (psys->vgroup[PSYS_VG_DENSITY] && (G.f & G_WEIGHTPAINT)))
 		distr=1;
 
 	if(distr){
@@ -4416,11 +4411,14 @@ static void cached_step(Scene *scene, Object *ob, ParticleSystemModifierData *ps
 		MEM_freeN(vg_size);
 }
 
-void psys_changed_type(ParticleSystem *psys)
+static void psys_changed_type(Object *ob, ParticleSystem *psys)
 {
 	ParticleSettings *part;
+	PTCacheID pid;
 
 	part= psys->part;
+
+	BKE_ptcache_id_from_particles(&pid, ob, psys);
 
 	/* system type has changed so set sensible defaults and clear non applicable flags */
 	if(part->from == PART_FROM_PARTICLE) {
@@ -4430,7 +4428,7 @@ void psys_changed_type(ParticleSystem *psys)
 			part->distr = PART_DISTR_JIT;
 	}
 
-	if(psys->part->phystype != PART_PHYS_KEYED)
+	if(part->phystype != PART_PHYS_KEYED)
 		psys->flag &= ~PSYS_KEYED;
 
 	if(part->type == PART_HAIR) {
@@ -4442,6 +4440,8 @@ void psys_changed_type(ParticleSystem *psys)
 
 		CLAMP(part->path_start, 0.0f, 100.0f);
 		CLAMP(part->path_end, 0.0f, 100.0f);
+
+		BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_ALL, 0);
 	}
 	else {
 		free_hair(psys, 1);
@@ -4454,7 +4454,18 @@ void psys_changed_type(ParticleSystem *psys)
 
 	psys_reset(psys, PSYS_RESET_ALL);
 }
-
+void psys_changed_physics(Object *ob, ParticleSystem *psys)
+{
+	if(ELEM(psys->part->phystype, PART_PHYS_NO, PART_PHYS_KEYED)) {
+		PTCacheID pid;
+		BKE_ptcache_id_from_particles(&pid, ob, psys);
+		BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_ALL, 0);
+	}
+	else {
+		free_keyed_keys(psys);
+		psys->flag &= ~PSYS_KEYED;
+	}
+}
 static void particles_fluid_step(Scene *scene, Object *ob, ParticleSystem *psys, int cfra)
 {	
 	if(psys->particles){
@@ -4587,6 +4598,8 @@ static void system_step(Scene *scene, Object *ob, ParticleSystem *psys, Particle
 
 	BKE_ptcache_id_from_particles(&pid, ob, psys);
 	BKE_ptcache_id_time(&pid, scene, 0.0f, &startframe, &endframe, NULL);
+
+	psys_clear_temp_pointcache(psys);
 
 	/* update ipo's */
 #if 0 // XXX old animation system
@@ -4736,7 +4749,7 @@ static void system_step(Scene *scene, Object *ob, ParticleSystem *psys, Particle
 	if(usecache && psys->cfra == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0))
 		write_particles_to_cache(ob, psys, startframe);
 
-	if(part->phystype==PART_PHYS_KEYED && psys->flag&PSYS_FIRST_KEYED)
+	if(part->phystype==PART_PHYS_KEYED)
 		psys_count_keyed_targets(ob,psys);
 
 	/* initialize vertex groups */
@@ -4783,7 +4796,7 @@ static void system_step(Scene *scene, Object *ob, ParticleSystem *psys, Particle
 		write_particles_to_cache(ob, psys, framenr);
 
 	/* for keyed particles the path is allways known so it can be drawn */
-	if(part->phystype==PART_PHYS_KEYED && psys->flag&PSYS_FIRST_KEYED){
+	if(part->phystype==PART_PHYS_KEYED) {
 		set_keyed_keys(scene, ob, psys);
 		psys_update_path_cache(scene, ob, psmd, psys,(int)cfra);
 	}
@@ -4866,7 +4879,9 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 		return;
 
 	if(psys->recalc & PSYS_RECALC_TYPE)
-		psys_changed_type(psys);
+		psys_changed_type(ob, psys);
+	else if(psys->recalc & PSYS_RECALC_PHYS)
+		psys_changed_physics(ob, psys);
 
 	/* (re-)create hair */
 	if(psys->part->type==PART_HAIR && hair_needs_recalc(psys)) {

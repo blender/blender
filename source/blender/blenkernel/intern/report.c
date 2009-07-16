@@ -49,6 +49,7 @@ static char *report_type_str(int type)
 	switch(type) {
 		case RPT_DEBUG: return "Debug";
 		case RPT_INFO: return "Info";
+		case RPT_OPERATOR: return "Operator";
 		case RPT_WARNING: return "Warning";
 		case RPT_ERROR: return "Error";
 		case RPT_ERROR_INVALID_INPUT: return "Invalid Input Error";

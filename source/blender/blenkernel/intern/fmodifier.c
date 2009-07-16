@@ -1,5 +1,5 @@
 /**
- * $Id: fcurve.c 21299 2009-07-02 02:12:37Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

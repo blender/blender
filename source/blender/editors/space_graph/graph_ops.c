@@ -118,7 +118,7 @@ void graphedit_operatortypes(void)
 	WM_operatortype_append(GRAPH_OT_snap);
 	WM_operatortype_append(GRAPH_OT_mirror);
 	WM_operatortype_append(GRAPH_OT_frame_jump);
-	WM_operatortype_append(GRAPH_OT_handletype);
+	WM_operatortype_append(GRAPH_OT_handle_type);
 	WM_operatortype_append(GRAPH_OT_interpolation_type);
 	WM_operatortype_append(GRAPH_OT_extrapolation_type);
 	WM_operatortype_append(GRAPH_OT_sample);
@@ -191,7 +191,7 @@ static void graphedit_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	WM_keymap_add_item(keymap, "GRAPH_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "GRAPH_OT_mirror", MKEY, KM_PRESS, KM_SHIFT, 0);
 	
-	WM_keymap_add_item(keymap, "GRAPH_OT_handletype", HKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "GRAPH_OT_handle_type", HKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "GRAPH_OT_interpolation_type", TKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "GRAPH_OT_extrapolation_type", EKEY, KM_PRESS, KM_SHIFT, 0);
 	

@@ -92,7 +92,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	style->panelzoom= 1.0;
 
 	style->paneltitle.uifont_id= UIFONT_DEFAULT;
-	style->paneltitle.points= 13;
+	style->paneltitle.points= 12;
 	style->paneltitle.kerning= 0;
 	style->paneltitle.shadow= 5;
 	style->paneltitle.shadx= 2;

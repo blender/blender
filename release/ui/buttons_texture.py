@@ -81,6 +81,9 @@ class TEXTURE_PT_mapping(TextureButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		ma = context.material
+		la = context.lamp
+		wo = context.world
 		tex = context.texture_slot
 		textype = context.texture
 
@@ -104,16 +107,22 @@ class TEXTURE_PT_mapping(TextureButtonsPanel):
 			col = split.column()
 			col.itemR(tex, "mapping", text="")
 
-		split = layout.split()
-		
-		col = split.column()
-		col.itemR(tex, "from_dupli")
-		
-		col = split.column()
-		row = col.row()
-		row.itemR(tex, "x_mapping", text="")
-		row.itemR(tex, "y_mapping", text="")
-		row.itemR(tex, "z_mapping", text="")
+		if ma:
+			split = layout.split()
+			
+			col = split.column()
+			if tex.texture_coordinates in ('ORCO', 'UV'):
+				col.itemR(tex, "from_dupli")
+			elif tex.texture_coordinates == 'OBJECT':
+				col.itemR(tex, "from_original")
+			else:
+				col.itemL()
+			
+			col = split.column()
+			row = col.row()
+			row.itemR(tex, "x_mapping", text="")
+			row.itemR(tex, "y_mapping", text="")
+			row.itemR(tex, "z_mapping", text="")
 
 		row = layout.row()
 		row.column().itemR(tex, "offset")
@@ -129,55 +138,90 @@ class TEXTURE_PT_influence(TextureButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		
+		ma = context.material
+		la = context.lamp
+		wo = context.world
 		textype = context.texture
 		tex = context.texture_slot
 		
-		split = layout.split()
-		
-		col = split.column()
-		col.itemR(tex, "map_color", text="Diffuse Color")
-		colsub = col.column()
-		colsub.active = tex.map_color
-		colsub.itemR(tex, "color_factor", text="Opacity", slider=True)
-		colsub.itemR(tex, "blend_type")
-		if textype.type == 'IMAGE':
-			col.itemR(tex, "no_rgb")
+		if ma:
+			split = layout.split()
 			
+			col = split.column()
+			col.itemR(tex, "map_color", text="Diffuse Color")
 			colsub = col.column()
-			colsub.active = tex.no_rgb
+			colsub.active = tex.map_color
+			colsub.itemR(tex, "color_factor", text="Opacity", slider=True)
+			colsub.itemR(tex, "blend_type")
+			col.itemR(tex, "rgb_to_intensity")
+			colsub = col.column()
+			colsub.active = tex.rgb_to_intensity
 			colsub.itemR(tex, "color")
-		else:
-			col.itemR(tex, "color")
-			
-		col.itemR(tex, "map_colorspec")
-		col.itemR(tex, "map_normal")
-		colsub = col.column()
-		colsub.active = tex.map_normal
-		colsub.itemR(tex, "normal_factor", text="Amount", slider=True)
-		col.itemR(tex, "normal_map_space")
-		col.itemR(tex, "map_warp")
-		colsub = col.column()
-		colsub.active = tex.map_warp
-		colsub.itemR(tex, "warp_factor", text="Amount", slider=True)	
-		col.itemR(tex, "map_displacement")
-		colsub = col.column()
-		colsub.active = tex.map_displacement
-		colsub.itemR(tex, "displacement_factor", text="Amount", slider=True)
-		col = split.column()
-		col.itemR(tex, "map_mirror")
-		col.itemR(tex, "map_reflection")
-		col.itemR(tex, "map_specularity")
-		col.itemR(tex, "map_ambient")
-		col.itemR(tex, "map_hardness")
-		col.itemR(tex, "map_raymir")
-		col.itemR(tex, "map_alpha")
-		col.itemR(tex, "map_emit")
-		col.itemR(tex, "map_translucency")
-
-		colsub = col.column()
-		colsub.active = tex.map_translucency or tex.map_emit or tex.map_alpha or tex.map_raymir or tex.map_hardness or tex.map_ambient or tex.map_specularity or tex.map_reflection or tex.map_mirror
-		colsub.itemR(tex, "default_value", text="Amount", slider=True)
 		
+			col.itemR(tex, "map_colorspec")
+			col.itemR(tex, "map_normal")
+			colsub = col.column()
+			colsub.active = tex.map_normal
+			colsub.itemR(tex, "normal_factor", text="Amount", slider=True)
+			col.itemR(tex, "normal_map_space")
+			col.itemR(tex, "map_warp")
+			colsub = col.column()
+			colsub.active = tex.map_warp
+			colsub.itemR(tex, "warp_factor", text="Amount", slider=True)	
+			col.itemR(tex, "map_displacement")
+			colsub = col.column()
+			colsub.active = tex.map_displacement
+			colsub.itemR(tex, "displacement_factor", text="Amount", slider=True)
+			col = split.column()
+			col.itemR(tex, "map_mirror")
+			col.itemR(tex, "map_reflection")
+			col.itemR(tex, "map_specularity")
+			col.itemR(tex, "map_ambient")
+			col.itemR(tex, "map_hardness")
+			col.itemR(tex, "map_raymir")
+			col.itemR(tex, "map_alpha")
+			col.itemR(tex, "map_emit")
+			col.itemR(tex, "map_translucency")
+
+			colsub = col.column()
+			colsub.active = tex.map_translucency or tex.map_emit or tex.map_alpha or tex.map_raymir or tex.map_hardness or tex.map_ambient or tex.map_specularity or tex.map_reflection or tex.map_mirror
+			colsub.itemR(tex, "default_value", text="Amount", slider=True)
+			
+		elif la:
+			row = layout.row()
+			row.itemR(tex, "map_color")
+			row.itemR(tex, "map_shadow")
+
+			split = layout.split()
+
+			col = split.column()
+			col.itemR(tex, "color_factor", text="Opacity", slider=True)
+			col.itemR(tex, "blend_type")
+			col.itemR(tex, "rgb_to_intensity")
+			col.itemR(tex, "color")
+
+			col = split.column()
+			col.itemR(tex, "default_value", text="DVar", slider=True)
+		elif wo:
+			row = layout.row()
+			row.itemR(tex, "map_blend")
+			row.itemR(tex, "map_horizon")
+			row.itemR(tex, "map_zenith_up")
+			row.itemR(tex, "map_zenith_down")
+
+			split = layout.split()
+
+			col = split.column()
+			col.itemR(tex, "color_factor", text="Opacity", slider=True)
+			col.itemR(tex, "blend_type")
+			col.itemR(tex, "rgb_to_intensity")
+			col.itemR(tex, "color")
+
+			col = split.column()
+			col.itemR(tex, "normal_factor", text="Nor", slider=True)
+			col.itemR(tex, "variable_factor", text="Var", slider=True)
+			col.itemR(tex, "default_value", text="DVar", slider=True)
+
 		row = layout.row()
 		row.itemR(tex, "stencil")
 		row.itemR(tex, "negate", text="Negative")

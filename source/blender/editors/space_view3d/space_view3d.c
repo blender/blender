@@ -413,11 +413,13 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_KEYFRAME_EDIT:
 				case ND_KEYFRAME_PROP:
+				case ND_NLA_EDIT:
 				case ND_NLA_ACTCHANGE:
 				case ND_ANIMCHAN_SELECT:
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			break;
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_TRANSFORM:
@@ -490,30 +492,13 @@ static void view3d_header_area_init(wmWindowManager *wm, ARegion *ar)
 	ListBase *keymap= WM_keymap_listbase(wm, "View3D Generic", SPACE_VIEW3D, 0);
 	
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
-	
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+
+	ED_region_header_init(ar);
 }
 
 static void view3d_header_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
-	/* clear */
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
-	view3d_header_buttons(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	ED_region_header(C, ar);
 }
 
 static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
@@ -553,6 +538,16 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_ANIMATION:
+			switch(wmn->data) {
+				case ND_KEYFRAME_EDIT:
+				case ND_KEYFRAME_PROP:
+				case ND_NLA_EDIT:
+				case ND_NLA_ACTCHANGE:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_FRAME:
@@ -618,7 +613,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 	if(CTX_data_dir(member)) {
 		static const char *dir[] = {
 			"selected_objects", "selected_bases" "selected_editable_objects",
-			"selected_editable_bases" "visible_objects", "visible_bases",
+			"selected_editable_bases" "visible_objects", "visible_bases", "selectable_objects", "selectable_bases",
 			"active_base", "active_object", "visible_bones", "editable_bones",
 			"selected_bones", "selected_editable_bones" "visible_pchans",
 			"selected_pchans", "active_bone", "active_pchan", NULL};
@@ -666,6 +661,22 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 			if(base->lay & v3d->lay) {
 				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
 					if(visible_objects)
+						CTX_data_id_list_add(result, &base->object->id);
+					else
+						CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+				}
+			}
+		}
+		
+		return 1;
+	}
+	else if(CTX_data_equals(member, "selectable_objects") || CTX_data_equals(member, "selectable_bases")) {
+		int selectable_objects= CTX_data_equals(member, "selectable_objects");
+
+		for(base=scene->base.first; base; base=base->next) {
+			if(base->lay & v3d->lay) {
+				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0 && (base->object->restrictflag & OB_RESTRICT_SELECT)==0) {
+					if(selectable_objects)
 						CTX_data_id_list_add(result, &base->object->id);
 					else
 						CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);

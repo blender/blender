@@ -68,7 +68,7 @@ typedef struct wmWindowManager {
 	
 	ListBase queue;			/* refresh/redraw wmNotifier structs */
 	
-	ListBase reports;		/* information and error reports */
+	struct ReportList *reports;	/* information and error reports */
 	
 	ListBase jobs;			/* threaded jobs manager */
 	

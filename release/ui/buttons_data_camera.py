@@ -38,7 +38,6 @@ class DATA_PT_camera(DataButtonsPanel):
 		
 		cam = context.camera
 
-		layout.itemS()
 		layout.itemR(cam, "type", expand=True)
 			
 		row = layout.row(align=True)
@@ -51,6 +50,10 @@ class DATA_PT_camera(DataButtonsPanel):
 
 		elif cam.type == 'ORTHO':
 			row.itemR(cam, "ortho_scale")
+
+		split = layout.split()
+		split.itemR(cam, "panorama");
+		split.itemL()
 				
 		split = layout.split()
 			
@@ -64,9 +67,13 @@ class DATA_PT_camera(DataButtonsPanel):
 		sub.itemR(cam, "clip_start", text="Start")
 		sub.itemR(cam, "clip_end", text="End")
 			
-		row = layout.row()
-		row.itemR(cam, "dof_object")
-		row.itemR(cam, "dof_distance")
+		split = layout.split()
+		col = split.column()
+		col.itemL(text="Depth of Field:")
+		col.itemR(cam, "dof_object", text="")
+		col = split.column()
+		col.itemL()
+		col.itemR(cam, "dof_distance", text="Distance")
 		
 class DATA_PT_camera_display(DataButtonsPanel):
 	__idname__ = "DATA_PT_camera_display"

@@ -35,7 +35,6 @@ struct bContext;
 struct Base;
 struct View3D;
 struct bConstraint;
-struct bConstraintChannel;
 struct KeyBlock;
 struct Lattice;
 struct Mesh;
@@ -58,6 +57,7 @@ void ED_object_apply_obmat(struct Object *ob);
 	/* single object duplicate, if dupflag==0, fully linked, else it uses U.dupflag */
 struct Base *ED_object_add_duplicate(struct Scene *scene, struct Base *base, int usedupflag);
 
+void ED_object_parent(struct Object *ob, struct Object *parent, int type, const char *substr);
 
 /* bitflags for enter/exit editmode */
 #define EM_FREEDATA		1
@@ -78,15 +78,11 @@ void add_constraint_to_object(struct bConstraint *con, struct Object *ob);
 
 struct ListBase *get_active_constraints(struct Object *ob);
 struct bConstraint *get_active_constraint(struct Object *ob);
-struct bConstraintChannel *get_active_constraint_channel(struct Scene *scene, struct Object *ob);
 
 void object_test_constraints(struct Object *ob);
 
 void ED_object_constraint_rename(struct Object *ob, struct bConstraint *con, char *oldname);
 void ED_object_constraint_set_active(struct Object *ob, struct bConstraint *con);
-int ED_object_constraint_delete(struct ReportList *reports, struct Object *ob, struct bConstraint *con);
-int ED_object_constraint_move_down(struct ReportList *reports, struct Object *ob, struct bConstraint *con);
-int ED_object_constraint_move_up(struct ReportList *reports, struct Object *ob, struct bConstraint *con);
 
 /* editlattice.c */
 void mouse_lattice(struct bContext *C, short mval[2], int extend);

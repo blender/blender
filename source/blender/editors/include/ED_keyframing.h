@@ -30,6 +30,7 @@
 
 struct ListBase;
 struct ID;
+struct Scene;
 
 struct KeyingSet;
 
@@ -168,7 +169,7 @@ void ANIM_OT_keyingset_add_destination(struct wmOperatorType *ot);
 /* Main Driver Management API calls:
  * 	Add a new driver for the specified property on the given ID block
  */
-short ANIM_add_driver (struct ID *id, const char rna_path[], int array_index, short flag);
+short ANIM_add_driver (struct ID *id, const char rna_path[], int array_index, short flag, int type);
 
 /* Main Driver Management API calls:
  * 	Remove the driver for the specified property on the given ID block (if available)
@@ -196,6 +197,9 @@ void ANIM_OT_remove_driver_button(struct wmOperatorType *ot);
 #define IS_AUTOKEY_MODE(scene, mode) 	((scene) ? (scene->toolsettings->autokey_mode == AUTOKEY_MODE_##mode) : (U.autokey_mode == AUTOKEY_MODE_##mode))
 	/* check if a flag is set for auto-keyframing (as userprefs only!) */
 #define IS_AUTOKEY_FLAG(flag)	(U.autokey_flag & AUTOKEY_FLAG_##flag)
+
+/* auto-keyframing feature - checks for whether anything should be done for the current frame */
+int autokeyframe_cfra_can_key(struct Scene *scene, struct ID *id);
 
 /* ************ Keyframe Checking ******************** */
 

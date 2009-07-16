@@ -43,6 +43,8 @@
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 
+#include "RNA_access.h"
+
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
 #include "BKE_key.h"
@@ -51,8 +53,6 @@
 #include "ED_anim_api.h"
 #include "ED_keyframing.h"
 #include "ED_keyframes_edit.h"
-
-#include "RNA_access.h"
 
 /* This file contains code for various keyframe-editing tools which are 'destructive'
  * (i.e. they will modify the order of the keyframes, and change the size of the array).

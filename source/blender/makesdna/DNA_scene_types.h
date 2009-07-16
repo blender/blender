@@ -635,7 +635,7 @@ typedef struct Scene {
 #define R_FIELDSTILL	0x0080
 #define R_RADIO			0x0100
 #define R_BORDER		0x0200
-#define R_PANORAMA		0x0400
+#define R_PANORAMA		0x0400	/* deprecated as scene option, still used in renderer */
 #define R_CROP			0x0800
 #define R_COSMO			0x1000
 #define R_ODDFIELD		0x2000
@@ -694,7 +694,7 @@ typedef struct Scene {
 #define R_COMP_FREE			0x0800
 #define R_NO_IMAGE_LOAD		0x1000
 #define R_NO_TEX			0x2000
-#define R_STAMP_INFO		0x4000
+#define R_STAMP_INFO		0x4000	/* deprecated */
 #define R_FULL_SAMPLE		0x8000
 #define R_COMP_RERENDER		0x10000
 #define R_RECURS_PROTECTION     0x20000
@@ -710,6 +710,7 @@ typedef struct Scene {
 #define R_STAMP_MARKER	0x0080
 #define R_STAMP_FILENAME	0x0100
 #define R_STAMP_SEQSTRIP	0x0200
+#define R_STAMP_ALL		(R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_CAMERA|R_STAMP_SCENE|R_STAMP_NOTE|R_STAMP_MARKER|R_STAMP_FILENAME|R_STAMP_SEQSTRIP)
 
 /* alphamode */
 #define R_ADDSKY		0
@@ -746,6 +747,9 @@ typedef struct Scene {
 #define R_MULTILAYER	28
 #define R_DDS			29
 #define R_JP2			30
+#define R_H264        	31
+#define R_XVID        	32
+#define R_THEORA       	33
 
 /* subimtype, flag options for imtype */
 #define R_OPENEXR_HALF	1

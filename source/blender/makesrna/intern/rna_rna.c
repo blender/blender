@@ -520,18 +520,21 @@ static int rna_enum_check_separator(CollectionPropertyIterator *iter, void *data
 {
 	EnumPropertyItem *item= (EnumPropertyItem*)data;
 
-	return (item->identifier[0] != 0);
+	return (item->identifier[0] == 0);
 }
 
 static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	EnumPropertyRNA *eprop;
-
+	EnumPropertyItem *item= NULL;
+	int totitem, free= 0;
+	
 	rna_idproperty_check(&prop, ptr);
 	eprop= (EnumPropertyRNA*)prop;
-
-	rna_iterator_array_begin(iter, (void*)eprop->item, sizeof(eprop->item[0]), eprop->totitem, rna_enum_check_separator);
+	
+	RNA_property_enum_items(NULL, ptr, prop, &item, &totitem, &free);
+	rna_iterator_array_begin(iter, (void*)item, sizeof(EnumPropertyItem), totitem, free, rna_enum_check_separator);
 }
 
 static void rna_EnumPropertyItem_identifier_get(PointerRNA *ptr, char *value)

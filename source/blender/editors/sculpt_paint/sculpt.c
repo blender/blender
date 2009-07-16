@@ -1151,7 +1151,7 @@ static void SCULPT_OT_radial_control(wmOperatorType *ot)
 	ot->exec= sculpt_radial_control_exec;
 	ot->poll= sculpt_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 }
 
 /**** Operator for applying a stroke (various attributes including mouse path)
@@ -1589,7 +1589,7 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	ot->poll= sculpt_poll;
 	
 	/* flags (sculpt does own undo? (ton) */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_BLOCKING;
 
 	/* properties */
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");

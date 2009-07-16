@@ -50,7 +50,7 @@ static void rna_CurveMapping_curves_begin(CollectionPropertyIterator *iter, Poin
 {
 	CurveMapping *cumap= (CurveMapping*)ptr->data;
 
-	rna_iterator_array_begin(iter, cumap->cm, sizeof(CurveMap), rna_CurveMapping_curves_length(ptr), NULL);
+	rna_iterator_array_begin(iter, cumap->cm, sizeof(CurveMap), rna_CurveMapping_curves_length(ptr), 0, NULL);
 }
 
 static void rna_CurveMapping_clip_set(PointerRNA *ptr, int value)

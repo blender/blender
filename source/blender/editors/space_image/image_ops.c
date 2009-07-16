@@ -251,6 +251,9 @@ void IMAGE_OT_view_pan(wmOperatorType *ot)
 	ot->modal= view_pan_modal;
 	ot->cancel= view_pan_cancel;
 	ot->poll= space_image_main_area_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
 	
 	/* properties */
 	RNA_def_float_vector(ot->srna, "offset", 2, NULL, -FLT_MAX, FLT_MAX,
@@ -363,6 +366,9 @@ void IMAGE_OT_view_zoom(wmOperatorType *ot)
 	ot->modal= view_zoom_modal;
 	ot->cancel= view_zoom_cancel;
 	ot->poll= space_image_main_area_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
 	
 	/* properties */
 	RNA_def_float(ot->srna, "factor", 0.0f, 0.0f, FLT_MAX,
@@ -381,7 +387,6 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	ARegion *ar;
 	Scene *scene;
 	Object *obedit;
-	Image *ima;
 	ImBuf *ibuf;
 	float aspx, aspy, zoomx, zoomy, w, h;
 	int width, height;
@@ -392,7 +397,6 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	scene= (Scene*)CTX_data_scene(C);
 	obedit= CTX_data_edit_object(C);
 
-	ima= ED_space_image(sima);
 	ibuf= ED_space_image_buffer(sima);
 	ED_space_image_size(sima, &width, &height);
 	ED_space_image_aspect(sima, &aspx, &aspy);
@@ -1487,6 +1491,9 @@ void IMAGE_OT_sample(wmOperatorType *ot)
 	ot->modal= sample_modal;
 	ot->cancel= sample_cancel;
 	ot->poll= space_image_main_area_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
 }
 
 /******************** set curve point operator ********************/

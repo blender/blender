@@ -274,6 +274,27 @@ float blf_font_height(FontBLF *font, char *str)
 	return((box.ymax - box.ymin) * font->aspect);
 }
 
+float blf_font_fixed_width(FontBLF *font)
+{
+	GlyphBLF *g;
+	FT_UInt glyph_index;
+	unsigned int c = ' ';
+
+	if (!font->glyph_cache)
+		return 0.0f;
+
+	glyph_index= FT_Get_Char_Index(font->face, c);
+	g= blf_glyph_search(font->glyph_cache, c);
+	if (!g)
+		g= blf_glyph_add(font, glyph_index, c);
+
+	/* if we don't find the glyph. */
+	if (!g)
+		return 0.0f;
+	
+	return g->advance;
+}
+
 void blf_font_free(FontBLF *font)
 {
 	GlyphCacheBLF *gc;

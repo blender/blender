@@ -560,7 +560,7 @@ void VIEW3D_OT_viewrotate(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_BLOCKING;
 }
 
 /* ************************ viewmove ******************************** */
@@ -644,7 +644,7 @@ void VIEW3D_OT_viewmove(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_BLOCKING;
 }
 
 /* ************************ viewzoom ******************************** */
@@ -844,7 +844,7 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_BLOCKING;
 
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 }

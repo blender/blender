@@ -109,10 +109,9 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		sub.itemR(con, "sizey", text="Y")
 		sub.itemR(con, "sizez", text="Z")
 		
-		# Missing
 		row = layout.row()
-		row.itemL(text="SET OFFSET")
-		row.itemL(text="CLEAR OFFSET")
+		row.itemO("CONSTRAINT_OT_childof_set_inverse")
+		row.itemO("CONSTRAINT_OT_childof_clear_inverse")
 		
 	def track_to(self, layout, con):
 		self.target_template(layout, con)
@@ -122,6 +121,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		row.itemR(con, "track", expand=True)
 		
 		row = layout.row()
+		#row.itemR(con, "up", text="Up", expand=True) # XXX: up and expand don't play nice together
 		row.itemR(con, "up", text="Up")
 		row.itemR(con, "target_z")
 		
@@ -131,7 +131,8 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		self.target_template(layout, con)
 		
 		layout.itemR(con, "pole_target")
-		layout.itemR(con, "pole_subtarget")
+		if con.pole_target and con.pole_target.type == "ARMATURE":
+			layout.item_pointerR(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
 		
 		col = layout.column_flow()
 		col.itemR(con, "iterations")
@@ -528,7 +529,7 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
 
 class BONE_PT_constraints(ConstraintButtonsPanel):
 	__idname__ = "BONE_PT_constraints"
-	__label__ = "Bone Constraints"
+	__label__ = "Constraints"
 	__context__ = "bone"
 
 	def poll(self, context):
@@ -541,7 +542,7 @@ class BONE_PT_constraints(ConstraintButtonsPanel):
 		layout = self.layout
 
 		row = layout.row()
-		row.item_menu_enumO("OBJECT_OT_constraint_add", "type")
+		row.item_menu_enumO("POSE_OT_constraint_add", "type")
 		row.itemL();
 
 		for con in pchan.constraints:

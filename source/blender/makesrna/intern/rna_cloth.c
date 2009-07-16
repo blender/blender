@@ -215,7 +215,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "mass_vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_ClothSettings_mass_vgroup_get", "rna_ClothSettings_mass_vgroup_length", "rna_ClothSettings_mass_vgroup_set");
-	RNA_def_property_ui_text(prop, "Mass Vertex Group", "Vertex group for fine control over mass distribution.");
+	RNA_def_property_ui_text(prop, "Mass Vertex Group", "Vertex Group for pinning of vertices.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_cloth_update");
 	
 	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_VECTOR);
@@ -235,7 +235,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "pin_cloth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", CLOTH_SIMSETTINGS_FLAG_GOAL);
-	RNA_def_property_ui_text(prop, "Pin Cloth", "Define forces for vertices to stick to animated position.");
+	RNA_def_property_ui_text(prop, "Pin Cloth", "Enable pinning of cloth vertices to other objects/positions.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_cloth_update");
 
 	prop= RNA_def_property(srna, "pin_stiffness", PROP_FLOAT, PROP_NONE);
@@ -363,18 +363,18 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "min_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "epsilon");
 	RNA_def_property_range(prop, 0.001f, 1.0f);
-	RNA_def_property_ui_text(prop, "Minimum Distance", "Minimum distance between collision objects before collision response takes in, can be changed for each frame.");
+	RNA_def_property_ui_text(prop, "Minimum Distance", "Minimum distance between collision objects before collision response takes in");
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_cloth_update");
 
 	prop= RNA_def_property(srna, "friction", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 80.0f);
-	RNA_def_property_ui_text(prop, "Friction", "Friction force if a collision happened (0=movement not changed, 100=no movement left)");
+	RNA_def_property_ui_text(prop, "Friction", "Friction force if a collision happened (higher = less movement).");
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_cloth_update");
 
 	prop= RNA_def_property(srna, "collision_quality", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "loop_count");
 	RNA_def_property_range(prop, 1, 20);
-	RNA_def_property_ui_text(prop, "Collision Quality", "How many collision iterations should be done. (higher is better quality but slower)");
+	RNA_def_property_ui_text(prop, "Collision Quality", "How many collision iterations should be done (higher is better quality but slower).");
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_cloth_update");
 
 	/* self collision */

@@ -204,6 +204,11 @@ struct ARegion *CTX_wm_menu(const bContext *C)
 	return C->wm.menu;
 }
 
+struct ReportList *CTX_wm_reports(const bContext *C)
+{
+	return C->wm.manager->reports;
+}
+
 View3D *CTX_wm_view3d(const bContext *C)
 {
 	if(C->wm.area && C->wm.area->spacetype==SPACE_VIEW3D)
@@ -222,6 +227,13 @@ RegionView3D *CTX_wm_region_view3d(const bContext *C)
 struct SpaceText *CTX_wm_space_text(const bContext *C)
 {
 	if(C->wm.area && C->wm.area->spacetype==SPACE_TEXT)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceConsole *CTX_wm_space_console(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_CONSOLE)
 		return C->wm.area->spacedata.first;
 	return NULL;
 }
@@ -604,6 +616,16 @@ int CTX_data_visible_objects(const bContext *C, ListBase *list)
 int CTX_data_visible_bases(const bContext *C, ListBase *list)
 {
 	return ctx_data_collection_get(C, "visible_bases", list);
+}
+
+int CTX_data_selectable_objects(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, "selectable_objects", list);
+}
+
+int CTX_data_selectable_bases(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, "selectable_bases", list);
 }
 
 struct Object *CTX_data_active_object(const bContext *C)

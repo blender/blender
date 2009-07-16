@@ -260,7 +260,6 @@ void psys_flush_particle_settings(struct Scene *scene, struct ParticleSettings *
 void make_local_particlesettings(struct ParticleSettings *part);
 
 struct LinkNode *psys_using_settings(struct Scene *scene, struct ParticleSettings *part, int flush_update);
-void psys_changed_type(struct ParticleSystem *psys);
 void psys_reset(struct ParticleSystem *psys, int mode);
 
 void psys_find_parents(struct Object *ob, struct ParticleSystemModifierData *psmd, struct ParticleSystem *psys);
@@ -289,12 +288,14 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3], float zvec[3], float center[3]);
 
 /* particle_system.c */
-int psys_count_keyed_targets(struct Object *ob, struct ParticleSystem *psys);
+void psys_count_keyed_targets(struct Object *ob, struct ParticleSystem *psys);
 void psys_get_reactor_target(struct Object *ob, struct ParticleSystem *psys, struct Object **target_ob, struct ParticleSystem **target_psys);
 
 void psys_init_effectors(struct Scene *scene, struct Object *obsrc, struct Group *group, struct ParticleSystem *psys);
 void psys_end_effectors(struct ParticleSystem *psys);
 
+void psys_make_temp_pointcache(struct Object *ob, struct ParticleSystem *psys);
+void psys_end_temp_pointcache(struct ParticleSystem *psys);
 void psys_get_pointcache_start_end(struct Scene *scene, struct ParticleSystem *psys, int *sfra, int *efra);
 
 void particle_system_update(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys);

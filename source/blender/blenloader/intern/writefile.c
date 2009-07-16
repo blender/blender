@@ -589,6 +589,7 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 static void write_particlesystems(WriteData *wd, ListBase *particles)
 {
 	ParticleSystem *psys= particles->first;
+	KeyedParticleTarget *kpt;
 	int a;
 
 	for(; psys; psys=psys->next) {
@@ -604,6 +605,10 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 					writestruct(wd, DATA, "HairKey", pa->totkey, pa->hair);
 			}
 		}
+		kpt = psys->keyed_targets.first;
+		for(; kpt; kpt=kpt->next)
+			writestruct(wd, DATA, "KeyedParticleTarget", 1, kpt);
+
 		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
 		writestruct(wd, DATA, "SoftBody", 1, psys->soft);
 		if(psys->soft) write_pointcaches(wd, psys->soft->pointcache, PTCACHE_WRITE_PSYS);
@@ -1126,6 +1131,7 @@ static void write_objects(WriteData *wd, ListBase *idbase, int write_undo)
 			
 			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*ob->totcol, ob->mat);
+			writedata(wd, DATA, sizeof(char)*ob->totcol, ob->matbits);
 			/* write_effects(wd, &ob->effect); */ /* not used anymore */
 			write_properties(wd, &ob->prop);
 			write_sensors(wd, &ob->sensors);
@@ -1953,6 +1959,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				}
 				else if(sl->spacetype==SPACE_LOGIC){
 					writestruct(wd, DATA, "SpaceLogic", 1, sl);
+				}
+				else if(sl->spacetype==SPACE_CONSOLE) {
+					writestruct(wd, DATA, "SpaceConsole", 1, sl);
 				}
 				sl= sl->next;
 			}

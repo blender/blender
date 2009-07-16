@@ -1059,6 +1059,7 @@ static char *windowtype_pup(void)
 		   "|%l" //293
 		   
 		   "|Scripts Window %x14"//313
+		   "|Console %x18"
 		   );
 }
 
@@ -1116,6 +1117,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	PanelType *pt;
 	Panel *panel;
 	View2D *v2d= &ar->v2d;
+	View2DScrollers *scrollers;
 	float col[3];
 	int xco, yco, x, y, miny=0, w, em, header, triangle, open;
 
@@ -1242,12 +1244,22 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	
 	/* restore view matrix */
 	UI_view2d_view_restore(C);
+	
+	/* scrollers */
+	scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	UI_view2d_scrollers_draw(C, v2d, scrollers);
+	UI_view2d_scrollers_free(scrollers);
 }
 
 void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
-
+	
+	// XXX quick hacks for files saved with 2.5 already (i.e. the builtin defaults file)
+	ar->v2d.scroll |= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM); 
+	//if(!(ar->v2d.align & V2D_ALIGN_NO_POS_Y))
+	//	ar->v2d.flag &= ~V2D_IS_INITIALISED;
+	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
 
 	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);

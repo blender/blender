@@ -455,6 +455,9 @@ void ui_but_anim_delete_keyframe(struct bContext *C);
 void ui_but_anim_add_driver(struct bContext *C);
 void ui_but_anim_remove_driver(struct bContext *C);
 void ui_but_anim_menu(struct bContext *C, uiBut *but);
+int ui_but_anim_expression_get(uiBut *but, char *str, int maxlen);
+int ui_but_anim_expression_set(uiBut *but, const char *str);
+void ui_but_anim_autokey(uiBut *but, struct Scene *scene, float cfra);
 
 #endif
 

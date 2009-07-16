@@ -559,6 +559,7 @@ int file_parent_exec(bContext *C, wmOperator *unused)
 	if(sfile->params) {
 		if (BLI_has_parent(sfile->params->dir)) {
 			BLI_parent_dir(sfile->params->dir);
+			BLI_cleanup_dir(G.sce, sfile->params->dir);
 			file_change_dir(sfile);
 			WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
 		}
@@ -724,6 +725,7 @@ int file_directory_exec(bContext *C, wmOperator *unused)
 		if (sfile->params->dir[0] == '\0')
 			get_default_root(sfile->params->dir);
 #endif
+		BLI_cleanup_dir(G.sce, sfile->params->dir);
 		BLI_add_slash(sfile->params->dir);
 		file_change_dir(sfile);
 		WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);

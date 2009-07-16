@@ -502,7 +502,7 @@ int BLI_has_parent(char *path)
 	BLI_add_slash(path);
 
 	len = strlen(path)-1;
-	while (len) {
+	while (len>=0) {
 		if ((path[len] == '\\') || (path[len] == '/'))
 			slashes++;
 		len--;

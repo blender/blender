@@ -200,7 +200,7 @@ void GROUP_OT_objects_remove(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Remove from group";
+	ot->name= "Remove From Groups";
 	ot->description = "Remove selected objects from all groups.";
 	ot->idname= "GROUP_OT_objects_remove";
 	

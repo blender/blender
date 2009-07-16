@@ -616,12 +616,6 @@ static void constraint_active_func(bContext *C, void *ob_v, void *con_v)
 	ED_object_constraint_set_active(ob_v, con_v);
 }
 
-static void del_constraint_func (bContext *C, void *ob_v, void *con_v)
-{
-	if(ED_object_constraint_delete(NULL, ob_v, con_v))
-		ED_undo_push(C, "Delete Constraint");
-}
-
 static void verify_constraint_name_func (bContext *C, void *con_v, void *name_v)
 {
 	Object *ob= CTX_data_active_object(C);
@@ -637,18 +631,6 @@ static void verify_constraint_name_func (bContext *C, void *con_v, void *name_v)
 	ED_object_constraint_rename(ob, con, oldname);
 	ED_object_constraint_set_active(ob, con);
 	// XXX allqueue(REDRAWACTION, 0); 
-}
-
-static void constraint_moveUp(bContext *C, void *ob_v, void *con_v)
-{
-	if(ED_object_constraint_move_up(NULL, ob_v, con_v))
-		ED_undo_push(C, "Move Constraint");
-}
-
-static void constraint_moveDown(bContext *C, void *ob_v, void *con_v)
-{
-	if(ED_object_constraint_move_down(NULL, ob_v, con_v))
-		ED_undo_push(C, "Move Constraint");
 }
 
 /* some commonly used macros in the constraints drawing code */
@@ -828,25 +810,18 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 			uiBlockBeginAlign(block);
 				uiBlockSetEmboss(block, UI_EMBOSS);
 				
-				if (show_upbut) {
-					but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_UP, xco+width-50, yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint up in constraint stack");
-					uiButSetFunc(but, constraint_moveUp, ob, con);
-				}
+				if (show_upbut)
+					uiDefIconButO(block, BUT, "CONSTRAINT_OT_move_up", WM_OP_INVOKE_DEFAULT, VICON_MOVE_UP, xco+width-50, yco, 16, 18, "Move constraint up in constraint stack");
 				
-				if (show_downbut) {
-					but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_DOWN, xco+width-50+18, yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint down in constraint stack");
-					uiButSetFunc(but, constraint_moveDown, ob, con);
-				}
+				if (show_downbut)
+					uiDefIconButO(block, BUT, "CONSTRAINT_OT_move_down", WM_OP_INVOKE_DEFAULT, VICON_MOVE_DOWN, xco+width-50+18, yco, 16, 18, "Move constraint down in constraint stack");
 			uiBlockEndAlign(block);
 		}
 		
 		
 		/* Close 'button' - emboss calls here disable drawing of 'button' behind X */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-		
-		but = uiDefIconBut(block, BUT, B_CONSTRAINT_CHANGETARGET, ICON_X, xco+262, yco, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Delete constraint");
-		uiButSetFunc(but, del_constraint_func, ob, con);
-		
+			uiDefIconButO(block, BUT, "CONSTRAINT_OT_delete", WM_OP_INVOKE_DEFAULT, ICON_X, xco+262, yco, 19, 19, "Delete constraint");
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	
@@ -944,19 +919,6 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 			}
 			break;
 #endif /* DISABLE_PYTHON */
-		/*case CONSTRAINT_TYPE_CHILDOF:
-			{
-				// Inverse options 
-				uiBlockBeginAlign(block);
-					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Set Offset", xco, yco-151, (width/2),18, NULL, 0, 24, 0, 0, "Calculate current Parent-Inverse Matrix (i.e. restore offset from parent)");
-					// XXX uiButSetFunc(but, childof_const_setinv, con, NULL);
-					
-					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Clear Offset", xco+((width/2)+10), yco-151, (width/2),18, NULL, 0, 24, 0, 0, "Clear Parent-Inverse Matrix (i.e. clear offset from parent)");
-					// XXX uiButSetFunc(but, childof_const_clearinv, con, NULL);
-				uiBlockEndAlign(block);
-			}
-			break; 
-		*/
 		
 		/*case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 			{
@@ -1339,13 +1301,14 @@ ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, Point
 	CollectionPointerLink *link;
 	PropertyRNA *prop= NULL, *activeprop;
 	PropertyType type, activetype;
+	StructRNA *ptype;
 	uiLayout *box, *row, *col;
 	uiBlock *block;
 	uiBut *but;
 	Panel *pa;
 	ListBase lb;
 	char *name, str[32];
-	int i= 0, activei= 0, len, items, found, min, max;
+	int icon=0, i= 0, activei= 0, len, items, found, min, max;
 
 	lb.first= lb.last= NULL;
 	
@@ -1389,6 +1352,12 @@ ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, Point
 		return lb;
 	}
 
+	/* get icon */
+	if(ptr->data && prop) {
+		ptype= RNA_property_pointer_type(ptr, prop);
+		icon= RNA_struct_ui_icon(ptype);
+	}
+
 	/* get active data */
 	activei= RNA_property_int_get(activeptr, activeprop);
 
@@ -1406,10 +1375,10 @@ ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, Point
 				if(found) {
 					/* create button */
 					name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
-					if(name) {
-						uiItemL(row, name, RNA_struct_ui_icon(itemptr.type));
+					uiItemL(row, (name)? name: "", icon);
+
+					if(name)
 						MEM_freeN(name);
-					}
 
 					/* add to list to return */
 					link= MEM_callocN(sizeof(CollectionPointerLink), "uiTemplateList return");
@@ -1461,13 +1430,12 @@ ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, Point
 				if(i >= pa->list_scroll && i<pa->list_scroll+items) {
 					name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
 
-					if(name) {
-						/* create button */
-						but= uiDefIconTextButR(block, ROW, 0, RNA_struct_ui_icon(itemptr.type), name, 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
-						uiButSetFlag(but, UI_ICON_LEFT|UI_TEXT_LEFT);
+					/* create button */
+					but= uiDefIconTextButR(block, ROW, 0, icon, (name)? name: "", 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
+					uiButSetFlag(but, UI_ICON_LEFT|UI_TEXT_LEFT);
 
+					if(name)
 						MEM_freeN(name);
-					}
 
 					/* add to list to return */
 					link= MEM_callocN(sizeof(CollectionPointerLink), "uiTemplateList return");

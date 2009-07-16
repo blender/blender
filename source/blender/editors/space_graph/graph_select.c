@@ -179,6 +179,7 @@ void GRAPH_OT_select_all_toggle (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select All";
 	ot->idname= "GRAPH_OT_select_all_toggle";
+	ot->description= "Toggle selection of all keyframes.";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_deselectall_exec;
@@ -313,6 +314,7 @@ void GRAPH_OT_select_border(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Border Select";
 	ot->idname= "GRAPH_OT_select_border";
+	ot->description= "Select all keyframes within the specified region.";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -506,6 +508,7 @@ void GRAPH_OT_select_column (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select All";
 	ot->idname= "GRAPH_OT_select_column";
+	ot->description= "Select all keyframes on the specified frame(s).";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_columnselect_exec;
@@ -926,6 +929,7 @@ void GRAPH_OT_clickselect (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Mouse Select Keys";
 	ot->idname= "GRAPH_OT_clickselect";
+	ot->description= "Select keyframes by clicking on them.";
 	
 	/* api callbacks */
 	ot->invoke= graphkeys_clickselect_invoke;
