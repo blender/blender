@@ -4221,7 +4221,8 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	wm->keymaps.first= wm->keymaps.last= NULL;
 	wm->paintcursors.first= wm->paintcursors.last= NULL;
 	wm->queue.first= wm->queue.last= NULL;
-	wm->reports= NULL;
+	BKE_reports_init(&wm->reports, RPT_STORE);
+
 	wm->jobs.first= wm->jobs.last= NULL;
 	
 	wm->windrawable= NULL;

@@ -60,6 +60,13 @@
 
 #include "console_intern.h"	// own include
 
+static void console_update_rect(bContext *C, ARegion *ar)
+{
+	SpaceConsole *sc= CTX_wm_space_console(C);
+	View2D *v2d= &ar->v2d;
+
+	UI_view2d_totRect_set(v2d, ar->winx-1, console_text_height(sc, ar, CTX_wm_reports(C)));
+}
 
 /* ******************** default callbacks for console space ***************** */
 
@@ -89,12 +96,17 @@ static SpaceLink *console_new(const bContext *C)
 	BLI_addtail(&sconsole->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	ar->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM_O);
-	ar->v2d.align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
-	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
-	ar->v2d.keeptot= V2D_KEEPTOT_STRICT;
-	ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
 	
+	ar->v2d.scroll |= (V2D_SCROLL_LEFT);
+	ar->v2d.align |= V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y; /* align bottom left */
+	ar->v2d.keepofs |= V2D_LOCKOFS_X;
+	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
+	ar->v2d.keeptot= V2D_KEEPTOT_BOUNDS;
+	ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
+
+	/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
+	//ar->v2d.keepzoom= (V2D_KEEPASPECT|V2D_KEEPZOOM);
+
 	return (SpaceLink *)sconsole;
 }
 
@@ -136,9 +148,9 @@ static SpaceLink *console_duplicate(SpaceLink *sl)
 static void console_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
-	
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
-	
+
+	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
+
 	/* own keymap */
 	keymap= WM_keymap_listbase(wm, "Console", SPACE_CONSOLE, 0);	/* XXX weak? */
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
@@ -148,20 +160,9 @@ static void console_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceConsole *sc= CTX_wm_space_console(C);
-	//View2D *v2d= &ar->v2d;
+	View2D *v2d= &ar->v2d;
+	View2DScrollers *scrollers;
 	//float col[3];
-	
-	/* clear and setup matrix */
-	//UI_GetThemeColor3fv(TH_BACK, col);
-	//glClearColor(col[0], col[1], col[2], 0.0);
-	glClearColor(0, 0, 0, 1.0);
-	
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* worlks best with no view2d matrix set */
-	/*UI_view2d_view_ortho(C, v2d);*/
-		
-	/* data... */
 	
 	/* add helper text, why not? */
 	if(sc->scrollback.first==NULL) {
@@ -170,23 +171,34 @@ static void console_main_area_draw(const bContext *C, ARegion *ar)
 		console_scrollback_add_str(C, "Cursor:           Left/Right Home/End", 0);
 		console_scrollback_add_str(C, "Remove:           Backspace/Delete", 0);
 		console_scrollback_add_str(C, "Execute:          Enter", 0);
-		console_scrollback_add_str(C, "Autocomplete:     Tab", 0);
+		console_scrollback_add_str(C, "Autocomplete:     Ctrl+Enter", 0);
 		console_scrollback_add_str(C, "Ctrl +/-  Wheel:  Zoom", 0);
 		console_scrollback_add_str(C, "Builtin Modules: bpy, bpy.data, bpy.ops, bpy.props, bpy.types, bpy.ui", 0);
 	}
 	
+	/* clear and setup matrix */
+	//UI_GetThemeColor3fv(TH_BACK, col);
+	//glClearColor(col[0], col[1], col[2], 0.0);
+	glClearColor(0, 0, 0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	console_update_rect(C, ar);
+
+	/* worlks best with no view2d matrix set */
+	UI_view2d_view_ortho(C, v2d);
+
+	/* data... */
+
 	console_history_verify(C); /* make sure we have some command line */
 	console_text_main(sc, ar, CTX_wm_reports(C));
 	
 	/* reset view matrix */
-	/* UI_view2d_view_restore(C); */
+	UI_view2d_view_restore(C);
 	
 	/* scrollers */
-	/*
-	scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_GRID_CLAMP);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
-	*/
 }
 
 void console_operatortypes(void)
@@ -255,8 +267,11 @@ void console_keymap(struct wmWindowManager *wm)
 
 #ifndef DISABLE_PYTHON
 	WM_keymap_add_item(keymap, "CONSOLE_OT_exec", RETKEY, KM_PRESS, 0, 0); /* python operator - space_text.py */
-	WM_keymap_add_item(keymap, "CONSOLE_OT_autocomplete", TABKEY, KM_PRESS, 0, 0); /* python operator - space_text.py */
+	//WM_keymap_add_item(keymap, "CONSOLE_OT_autocomplete", TABKEY, KM_PRESS, 0, 0); /* python operator - space_text.py */
+	WM_keymap_add_item(keymap, "CONSOLE_OT_autocomplete", RETKEY, KM_PRESS, KM_CTRL, 0); /* python operator - space_text.py */
 #endif
+
+	RNA_string_set(WM_keymap_add_item(keymap, "CONSOLE_OT_insert", TABKEY, KM_PRESS, 0, 0)->ptr, "text", "    "); /* fake tabs */
 	WM_keymap_add_item(keymap, "CONSOLE_OT_insert", KM_TEXTINPUT, KM_PRESS, KM_ANY, 0); // last!
 }
 
@@ -310,11 +325,14 @@ void ED_spacetype_console(void)
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype console region");
 	art->regionid = RGN_TYPE_WINDOW;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+
 	art->init= console_main_area_init;
 	art->draw= console_main_area_draw;
 	
 	
 	
+
 	BLI_addhead(&sc->regiontypes, art);
 	
 	/* regions: header */

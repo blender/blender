@@ -287,8 +287,10 @@ static int insert_exec(const bContext *C, wmOperator *op)
 
 static int insert_invoke(const bContext *C, wmOperator *op, wmEvent *event)
 {
-	char str[2] = {event->ascii, '\0'};
-	RNA_string_set(op->ptr, "text", str);
+	if(!RNA_property_is_set(op->ptr, "text")) {
+		char str[2] = {event->ascii, '\0'};
+		RNA_string_set(op->ptr, "text", str);
+	}
 	return insert_exec(C, op);
 }
 

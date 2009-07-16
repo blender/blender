@@ -98,7 +98,7 @@ void wm_operator_register(bContext *C, wmOperator *op)
 	
 	/* Report the string representation of the operator */
 	buf = WM_operator_pystring(op);
-	BKE_report(wm->reports, RPT_OPERATOR, buf);
+	BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
 	MEM_freeN(buf);
 	
 	/* so the console is redrawn */

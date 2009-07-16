@@ -257,7 +257,7 @@ void VIEW2D_OT_pan(wmOperatorType *ot)
 	ot->modal= view_pan_modal;
 	
 	/* operator is repeatable */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_BLOCKING;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
@@ -303,7 +303,7 @@ void VIEW2D_OT_scroll_right(wmOperatorType *ot)
 	ot->exec= view_scrollright_exec;
 	
 	/* operator is repeatable */
-	ot->flag= OPTYPE_REGISTER;
+	// ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
@@ -349,7 +349,7 @@ void VIEW2D_OT_scroll_left(wmOperatorType *ot)
 	ot->exec= view_scrollleft_exec;
 	
 	/* operator is repeatable */
-	ot->flag= OPTYPE_REGISTER;
+	// ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
@@ -394,7 +394,7 @@ void VIEW2D_OT_scroll_down(wmOperatorType *ot)
 	ot->exec= view_scrolldown_exec;
 	
 	/* operator is repeatable */
-	ot->flag= OPTYPE_REGISTER;
+	// ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
@@ -440,7 +440,7 @@ void VIEW2D_OT_scroll_up(wmOperatorType *ot)
 	ot->exec= view_scrollup_exec;
 	
 	/* operator is repeatable */
-	ot->flag= OPTYPE_REGISTER;
+	// ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
@@ -550,7 +550,7 @@ void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 	ot->exec= view_zoomin_exec;
 	
 	/* operator is repeatable */
-	ot->flag= OPTYPE_REGISTER;
+	// ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_float(ot->srna, "zoomfacx", 0, -FLT_MAX, FLT_MAX, "Zoom Factor X", "", -FLT_MAX, FLT_MAX);
@@ -586,7 +586,7 @@ void VIEW2D_OT_zoom_out(wmOperatorType *ot)
 	ot->exec= view_zoomout_exec;
 	
 	/* operator is repeatable */
-	ot->flag= OPTYPE_REGISTER;
+	// ot->flag= OPTYPE_REGISTER;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_float(ot->srna, "zoomfacx", 0, -FLT_MAX, FLT_MAX, "Zoom Factor X", "", -FLT_MAX, FLT_MAX);
@@ -832,7 +832,7 @@ void VIEW2D_OT_zoom(wmOperatorType *ot)
 	ot->modal= view_zoomdrag_modal;
 	
 	/* operator is repeatable */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_BLOCKING;
+	// ot->flag= OPTYPE_REGISTER|OPTYPE_BLOCKING;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_float(ot->srna, "deltax", 0, -FLT_MAX, FLT_MAX, "Delta X", "", -FLT_MAX, FLT_MAX);

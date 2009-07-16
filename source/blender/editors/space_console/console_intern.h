@@ -39,6 +39,7 @@ struct ReportList;
 
 /* console_draw.c */
 void console_text_main(struct SpaceConsole *sc, struct ARegion *ar, struct ReportList *reports);
+int console_text_height(struct SpaceConsole *sc, struct ARegion *ar, struct ReportList *reports); /* needed to calculate the scrollbar */
 
 /* console_ops.c */
 void console_history_free(SpaceConsole *sc, ConsoleLine *cl);

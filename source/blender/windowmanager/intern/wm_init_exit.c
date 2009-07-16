@@ -104,15 +104,11 @@ static void sound_init_listener(void)
 
 static void wm_init_reports(bContext *C)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
-	wm->reports= MEM_callocN(sizeof(ReportList), "wmReportList");
-	BKE_reports_init(wm->reports, RPT_STORE);
+	BKE_reports_init(CTX_wm_reports(C), RPT_STORE);
 }
 static void wm_free_reports(bContext *C)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
-	BKE_reports_clear(wm->reports);
-	MEM_freeN(wm->reports);
+	BKE_reports_clear(CTX_wm_reports(C));
 }
 
 

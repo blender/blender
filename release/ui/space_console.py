@@ -50,7 +50,7 @@ def get_console(console_id):
 	
 	console_id can be any hashable type
 	'''
-	import sys, code, io
+	import sys, code
 	
 	try:	consoles = get_console.consoles
 	except:consoles = get_console.consoles = {}
@@ -72,9 +72,11 @@ def get_console(console_id):
 		console = code.InteractiveConsole(namespace)
 		
 		if sys.version.startswith('2'):
-			stdout = io.BytesIO()  # Py2x support
-			stderr = io.BytesIO()
+			import cStringIO
+			stdout = cStringIO.BytesIO()  # Py2x support
+			stderr = cStringIO.BytesIO()
 		else:
+			import io
 			stdout = io.StringIO()
 			stderr = io.StringIO()
 	
