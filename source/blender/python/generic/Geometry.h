@@ -1,6 +1,5 @@
-
-/**
- * $Id: bpy_operator.h 21094 2009-06-23 00:09:26Z gsrb3d $
+/* 
+ * $Id: Geometry.h 21094 2009-06-23 00:09:26Z gsrb3d $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -16,30 +15,25 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
- * Contributor(s): Campbell Barton
+ * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * All rights reserved.
+ *
+ * This is a new part of Blender.
+ *
+ * Contributor(s): Joseph Gilbert
  *
  * ***** END GPL LICENSE BLOCK *****
- */
-#ifndef BPY_OPERATOR_H
-#define BPY_OPERATOR_H
+*/
+/*Include this file for access to vector, quat, matrix, euler, etc...*/
+
+#ifndef EXPP_Geometry_H
+#define EXPP_Geometry_H
 
 #include <Python.h>
+#include "Mathutils.h"
 
-#include "RNA_access.h"
-#include "RNA_types.h"
-#include "DNA_windowmanager_types.h"
-#include "BKE_context.h"
+PyObject *Geometry_Init( const char *from );
 
-extern PyTypeObject pyop_base_Type;
-
-#define BPy_OperatorBase_Check(v)	(PyObject_TypeCheck(v, &pyop_base_Type))
-
-typedef struct {
-	PyObject_HEAD /* required python macro   */
-} BPy_OperatorBase;
-
-PyObject *BPY_operator_module(void);
-
-#endif
+#endif				/* EXPP_Geometry_H */

@@ -1,5 +1,5 @@
 #
-# $Id: Makefile 14444 2008-04-16 22:40:48Z hos $
+# $Id: Makefile 21094 2009-06-23 00:09:26Z gsrb3d $
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -29,6 +29,6 @@
 # Bounces make to subdirectories.
 
 SOURCEDIR = source/blender/python
-DIRS = intern
+DIRS = intern generic
 
 include nan_subdirs.mk

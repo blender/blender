@@ -1,6 +1,6 @@
 
 /**
- * $Id$
+ * $Id: bpy_operator_wrap.h 21094 2009-06-23 00:09:26Z gsrb3d $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

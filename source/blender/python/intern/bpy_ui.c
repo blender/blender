@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: bpy_ui.c 21611 2009-07-16 00:50:27Z campbellbarton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -373,7 +373,7 @@ static struct PyMethodDef ui_methods[] = {
 #if PY_VERSION_HEX >= 0x03000000
 static struct PyModuleDef ui_module = {
 	PyModuleDef_HEAD_INIT,
-	"bpyui",
+	"bpy.ui",
 	"",
 	-1,/* multiple "initialization" just copies the module dict. */
 	ui_methods,
@@ -557,6 +557,7 @@ PyObject *BPY_ui_module( void )
 	PyModule_AddObject( mod, "SCRIPT", PyLong_FromSsize_t(SPACE_SCRIPT) );
 	PyModule_AddObject( mod, "TIME", PyLong_FromSsize_t(SPACE_TIME) );
 	PyModule_AddObject( mod, "NODE", PyLong_FromSsize_t(SPACE_NODE) );
+	//PyModule_AddObject( mod, "CONSOLE", PyLong_FromSsize_t(SPACE_CONSOLE) );
 	
 	/* INCREF since its its assumed that all these functions return the
 	 * module with a new ref like PyDict_New, since they are passed to

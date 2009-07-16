@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: bpy_compat.h 21427 2009-07-08 14:26:43Z ton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -85,7 +85,33 @@ typedef Py_ssize_t (*lenfunc)(PyObject *);
 #ifndef Py_RETURN_TRUE
 #define Py_RETURN_TRUE  return PyBool_FromLong(1)
 #endif
+
+#define PyInt_FromSsize_t PyInt_FromLong
+#define PyNumber_AsSsize_t(ob, exc) PyInt_AsLong(ob)
+#define PyIndex_Check(ob) PyInt_Check(ob)
+
+
 #endif
+
+
+#if PY_VERSION_HEX < 0x03000000
+#ifndef ssizeargfunc
+#define ssizeargfunc intargfunc
+#endif
+
+#ifndef ssizessizeargfunc
+#define ssizessizeargfunc intintargfunc
+#endif
+
+#ifndef ssizeobjargproc
+#define ssizeobjargproc intobjargproc
+#endif
+
+#ifndef ssizessizeobjargproc
+#define ssizessizeobjargproc intintobjargproc
+#endif
+#endif
+
 
 
 /* defined in bpy_util.c */

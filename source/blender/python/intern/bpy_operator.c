@@ -1,6 +1,6 @@
 
 /**
- * $Id$
+ * $Id: bpy_operator.c 21554 2009-07-13 08:33:51Z campbellbarton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -68,7 +68,7 @@ static PyObject *pyop_base_call( PyObject * self, PyObject * args,  PyObject * k
 		return NULL;
 	}
 
-	ot= WM_operatortype_find(opname);
+	ot= WM_operatortype_find(opname, 1);
 	if (ot == NULL) {
 		PyErr_Format( PyExc_SystemError, "Operator \"%s\"could not be found", opname);
 		return NULL;
@@ -130,11 +130,18 @@ static PyObject *pyop_base_getattro( BPy_OperatorBase * self, PyObject *pyname )
 	PyObject *ret;
 	wmOperatorType *ot;
 	
-	if ((ot= WM_operatortype_find(name))) {
+	/* First look for the operator, then our own methods if that fails.
+	 * when methods are searched first, PyObject_GenericGetAttr will raise an error
+	 * each time we want to call an operator, we could clear the error but I prefer
+	 * not to since calling operators is a lot more common then adding and removing. - Campbell */
+	
+	if ((ot= WM_operatortype_find(name, 1))) {
 		ret = PyCFunction_New( pyop_base_call_meth, pyname); /* set the name string as self, PyCFunction_New incref's self */
 	}
 	else if ((ret = PyObject_GenericGetAttr((PyObject *)self, pyname))) {
-		/* do nothing, this accounts for methoddef's add and remove */
+		/* do nothing, this accounts for methoddef's add and remove
+		 * An exception is raised when PyObject_GenericGetAttr fails
+		 * but its ok because its overwritten below */
 	}
 	else {
 		PyErr_Format( PyExc_AttributeError, "Operator \"%s\" not found", name);
@@ -170,7 +177,7 @@ static PyObject *pyop_base_rna(PyObject *self, PyObject *pyname)
 	char *name = _PyUnicode_AsString(pyname);
 	wmOperatorType *ot;
 	
-	if ((ot= WM_operatortype_find(name))) {
+	if ((ot= WM_operatortype_find(name, 1))) {
 		BPy_StructRNA *pyrna;
 		PointerRNA ptr;
 		
@@ -191,6 +198,8 @@ PyTypeObject pyop_base_Type = {NULL};
 
 PyObject *BPY_operator_module( void )
 {
+	PyObject *ob;
+
 	pyop_base_Type.tp_name = "OperatorBase";
 	pyop_base_Type.tp_basicsize = sizeof( BPy_OperatorBase );
 	pyop_base_Type.tp_getattro = ( getattrofunc )pyop_base_getattro;
@@ -201,6 +210,9 @@ PyObject *BPY_operator_module( void )
 		return NULL;
 
 	//submodule = Py_InitModule3( "operator", M_rna_methods, "rna module" );
-	return (PyObject *)PyObject_NEW( BPy_OperatorBase, &pyop_base_Type );
+	ob = PyObject_NEW( BPy_OperatorBase, &pyop_base_Type );
+	Py_INCREF(ob);
+
+	return ob;
 }
 

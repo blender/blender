@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: bpy_rna.h 21094 2009-06-23 00:09:26Z gsrb3d $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -63,6 +63,7 @@ typedef struct {
 PyObject *BPY_rna_module( void );
 /*PyObject *BPY_rna_doc( void );*/
 PyObject *BPY_rna_types( void );
+PyObject *BPY_rna_props( void );
 
 PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr );
 PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop );
@@ -76,6 +77,7 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
 PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw);
 PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw);
 PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw);
+PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw);
 
 /* function for registering types */
 PyObject *pyrna_basetype_register(PyObject *self, PyObject *args);

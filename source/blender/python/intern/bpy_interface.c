@@ -36,6 +36,14 @@
 
 #include "BPY_extern.h"
 
+#include "../generic/bpy_internal_import.h" // our own imports
+/* external util modules */
+
+#include "../generic/Mathutils.h"
+#include "../generic/Geometry.h"
+#include "../generic/BGL.h"
+
+
 void BPY_free_compiled_text( struct Text *text )
 {
 	if( text->compiled ) {
@@ -56,12 +64,19 @@ static void bpy_init_modules( void )
 	PyModule_AddObject( mod, "data", BPY_rna_module() );
 	/* PyModule_AddObject( mod, "doc", BPY_rna_doc() ); */
 	PyModule_AddObject( mod, "types", BPY_rna_types() );
+	PyModule_AddObject( mod, "props", BPY_rna_props() );
 	PyModule_AddObject( mod, "ops", BPY_operator_module() );
-	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experemental, consider this a test, especially PyCObject is not meant to be perminant
+	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experimental, consider this a test, especially PyCObject is not meant to be permanent
 	
 	/* add the module so we can import it */
 	PyDict_SetItemString(PySys_GetObject("modules"), "bpy", mod);
 	Py_DECREF(mod);
+
+
+	/* stand alone utility modules not related to blender directly */
+	Geometry_Init("Geometry");
+	Mathutils_Init("Mathutils");
+	BGL_Init("BGL");
 }
 
 #if (PY_VERSION_HEX < 0x02050000)
@@ -100,6 +115,7 @@ static PyObject *CreateGlobalDictionary( bContext *C )
 			{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, ""},
 			{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, ""},
 			{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, ""},
+			{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, ""},
 			{NULL, NULL, 0, NULL}
 		};
 		
@@ -116,13 +132,81 @@ static PyObject *CreateGlobalDictionary( bContext *C )
 	return dict;
 }
 
+/* Use this so we can include our own python bundle */
+#if 0
+wchar_t* Py_GetPath(void)
+{
+	int i;
+	static wchar_t py_path[FILE_MAXDIR] = L"";
+	char *dirname= BLI_gethome_folder("python");
+	if(dirname) {
+		i= mbstowcs(py_path, dirname, FILE_MAXDIR);
+		printf("py path %s, %d\n", dirname, i);
+	}
+	return py_path;
+}
+#endif
+
+
+/* must be called before Py_Initialize */
+void BPY_start_python_path(void)
+{
+	char *py_path_bundle= BLI_gethome_folder("python");
+
+	if(py_path_bundle==NULL)
+		return;
+
+	/* set the environment path */
+	printf("found bundled python: %s\n", py_path_bundle);
+
+#if (defined(WIN32) || defined(WIN64))
+#if defined(FREE_WINDOWS)
+	{
+		char py_path[FILE_MAXDIR + 11] = "";
+		sprintf(py_path, "PYTHONPATH=%s", py_path_bundle);
+		putenv(py_path);
+	}
+#else
+	_putenv_s("PYTHONPATH", py_path_bundle);
+#endif
+#else
+#ifdef __sgi
+	{
+		char py_path[FILE_MAXDIR + 11] = "";
+		sprintf(py_path, "PYTHONPATH=%s", py_path_bundle);
+		putenv(py_path);
+	}
+#else
+	setenv("PYTHONPATH", py_path_bundle, 1);
+#endif
+#endif
+
+}
+
+
 void BPY_start_python( int argc, char **argv )
 {
 	PyThreadState *py_tstate = NULL;
 	
+	BPY_start_python_path(); /* allow to use our own included python */
+
 	Py_Initialize(  );
 	
-	//PySys_SetArgv( argc_copy, argv_copy );
+#if (PY_VERSION_HEX < 0x03000000)
+	PySys_SetArgv( argc, argv);
+#else
+	/* sigh, why do python guys not have a char** version anymore? :( */
+	{
+		int i;
+		PyObject *py_argv= PyList_New(argc);
+
+		for (i=0; i<argc; i++)
+			PyList_SET_ITEM(py_argv, i, PyUnicode_FromString(argv[i]));
+
+		PySys_SetObject("argv", py_argv);
+		Py_DECREF(py_argv);
+	}
+#endif
 	
 	/* Initialize thread support (also acquires lock) */
 	PyEval_InitThreads();
@@ -131,10 +215,17 @@ void BPY_start_python( int argc, char **argv )
 	/* bpy.* and lets us import it */
 	bpy_init_modules(); 
 
+	{ /* our own import and reload functions */
+		PyObject *item;
+		//PyObject *m = PyImport_AddModule("__builtin__");
+		//PyObject *d = PyModule_GetDict(m);
+		PyObject *d = PyEval_GetBuiltins(  );
+		PyDict_SetItemString(d, "reload",		item=PyCFunction_New(bpy_reload_meth, NULL));	Py_DECREF(item);
+		PyDict_SetItemString(d, "__import__",	item=PyCFunction_New(bpy_import_meth, NULL));	Py_DECREF(item);
+	}
 	
 	py_tstate = PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(py_tstate);
-	
 }
 
 void BPY_end_python( void )
@@ -150,7 +241,7 @@ void BPY_end_python( void )
 }
 
 /* Can run a file or text block */
-int BPY_run_python_script( bContext *C, const char *fn, struct Text *text )
+int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struct ReportList *reports)
 {
 	PyObject *py_dict, *py_result;
 	PyGILState_STATE gilstate;
@@ -164,6 +255,7 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text )
 	gilstate = PyGILState_Ensure();
 
 	BPY_update_modules(); /* can give really bad results if this isnt here */
+	bpy_import_main_set(CTX_data_main(C));
 	
 	py_dict = CreateGlobalDictionary(C);
 
@@ -178,7 +270,7 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text )
 			MEM_freeN( buf );
 
 			if( PyErr_Occurred(  ) ) {
-				PyErr_Print(); PyErr_Clear();
+				BPy_errors_to_report(reports);
 				BPY_free_compiled_text( text );
 				PyGILState_Release(gilstate);
 				return 0;
@@ -194,13 +286,14 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text )
 	}
 	
 	if (!py_result) {
-		PyErr_Print(); PyErr_Clear();
+		BPy_errors_to_report(reports);
 	} else {
 		Py_DECREF( py_result );
 	}
 	
 	Py_DECREF(py_dict);
 	PyGILState_Release(gilstate);
+	bpy_import_main_set(NULL);
 	
 	//BPY_end_python();
 	return py_result ? 1:0;
@@ -221,7 +314,7 @@ static void exit_pydraw( SpaceScript * sc, short err )
 	script = sc->script;
 
 	if( err ) {
-		PyErr_Print(); PyErr_Clear();
+		BPy_errors_to_report(NULL); // TODO, reports
 		script->flags = 0;	/* mark script struct for deletion */
 		SCRIPT_SET_NULL(script);
 		script->scriptname[0] = '\0';
@@ -250,7 +343,7 @@ static int bpy_run_script_init(bContext *C, SpaceScript * sc)
 		return 0;
 	
 	if (sc->script->py_draw==NULL && sc->script->scriptname[0] != '\0')
-		BPY_run_python_script(C, sc->script->scriptname, NULL);
+		BPY_run_python_script(C, sc->script->scriptname, NULL, NULL);
 		
 	if (sc->script->py_draw==NULL)
 		return 0;
@@ -258,9 +351,9 @@ static int bpy_run_script_init(bContext *C, SpaceScript * sc)
 	return 1;
 }
 
-int BPY_run_script_space_draw(struct bContext *C, SpaceScript * sc)
+int BPY_run_script_space_draw(const struct bContext *C, SpaceScript * sc)
 {
-	if (bpy_run_script_init(C, sc)) {
+	if (bpy_run_script_init( (bContext *)C, sc)) {
 		PyGILState_STATE gilstate = PyGILState_Ensure();
 		PyObject *result = PyObject_CallObject( sc->script->py_draw, NULL );
 		
@@ -329,7 +422,7 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 	}
 	
 	if (!py_result) {
-		PyErr_Print(); PyErr_Clear();
+		BPy_errors_to_report(NULL); // TODO - reports
 	} else
 		Py_DECREF( py_result );
 	
@@ -357,69 +450,72 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	DIR *dir; 
 	struct dirent *de;
 	char *file_extension;
+	char *dirname;
 	char path[FILE_MAX];
-	char *dirname= BLI_gethome_folder("ui");
-	int filelen; /* filename length */
+	char *dirs[] = {"io", "ui", NULL};
+	int a;
 	
 	PyGILState_STATE gilstate;
 	PyObject *mod;
-	PyObject *sys_path_orig;
-	PyObject *sys_path_new;
-	
-	if(!dirname)
-		return;
-	
-	dir = opendir(dirname);
+	PyObject *sys_path;
 
-	if(!dir)
-		return;
-	
 	gilstate = PyGILState_Ensure();
-	
-	/* backup sys.path */
-	sys_path_orig= PySys_GetObject("path");
-	Py_INCREF(sys_path_orig); /* dont free it */
-	
-	sys_path_new= PyList_New(1);
-	PyList_SET_ITEM(sys_path_new, 0, PyUnicode_FromString(dirname));
-	PySys_SetObject("path", sys_path_new);
-	Py_DECREF(sys_path_new);
 	
 	// XXX - evil, need to access context
 	BPy_SetContext(C);
-	
-	while((de = readdir(dir)) != NULL) {
-		/* We could stat the file but easier just to let python
-		 * import it and complain if theres a problem */
+	bpy_import_main_set(CTX_data_main(C));
+
+
+	sys_path= PySys_GetObject("path"); /* borrow */
+	PyList_Insert(sys_path, 0, Py_None); /* place holder, resizes the list */
+
+	for(a=0; dirs[a]; a++) {
+		dirname= BLI_gethome_folder(dirs[a]);
+
+		if(!dirname)
+			continue;
+
+		dir = opendir(dirname);
+
+		if(!dir)
+			continue;
 		
-		file_extension = strstr(de->d_name, ".py");
-		
-		if(file_extension && *(file_extension + 3) == '\0') {
-			filelen = strlen(de->d_name);
-			BLI_strncpy(path, de->d_name, filelen-2); /* cut off the .py on copy */
+		/* set the first dir in the sys.path for fast importing of modules */
+		PyList_SetItem(sys_path, 0, PyUnicode_FromString(dirname)); /* steals the ref */
 			
-			mod= PyImport_ImportModuleLevel(path, NULL, NULL, NULL, 0);
-			if (mod) {
-				if (reload) {
-					PyObject *mod_orig= mod;
-					mod= PyImport_ReloadModule(mod);
-					Py_DECREF(mod_orig);
+		while((de = readdir(dir)) != NULL) {
+			/* We could stat the file but easier just to let python
+			 * import it and complain if theres a problem */
+
+			file_extension = strstr(de->d_name, ".py");
+			
+			if(file_extension && file_extension[3] == '\0') {
+				BLI_strncpy(path, de->d_name, (file_extension - de->d_name) + 1); /* cut off the .py on copy */
+				mod= PyImport_ImportModuleLevel(path, NULL, NULL, NULL, 0);
+				if (mod) {
+					if (reload) {
+						PyObject *mod_orig= mod;
+						mod= PyImport_ReloadModule(mod);
+						Py_DECREF(mod_orig);
+					}
 				}
-			}
-			
-			if(mod) {
-				Py_DECREF(mod); /* could be NULL from reloading */
-			} else {
-				PyErr_Print(); PyErr_Clear();
-				fprintf(stderr, "unable to import \"%s\"  %s/%s\n", path, dirname, de->d_name);
+				
+				if(mod) {
+					Py_DECREF(mod); /* could be NULL from reloading */
+				} else {
+					BPy_errors_to_report(NULL);
+					fprintf(stderr, "unable to import \"%s\"  %s/%s\n", path, dirname, de->d_name);
+				}
+
 			}
 		}
-	}
 
-	closedir(dir);
+		closedir(dir);
+	}
 	
-	PySys_SetObject("path", sys_path_orig);
-	Py_DECREF(sys_path_orig);
+	PyList_SetSlice(sys_path, 0, 1, NULL); /* remove the first item */
+
+	bpy_import_main_set(NULL);
 	
 	PyGILState_Release(gilstate);
 #ifdef TIME_REGISTRATION
@@ -530,7 +626,7 @@ static float pydriver_error(ChannelDriver *driver)
 	driver->flag |= DRIVER_FLAG_INVALID; /* py expression failed */
 	fprintf(stderr, "\nError in Driver: The following Python expression failed:\n\t'%s'\n\n", driver->expression);
 	
-	PyErr_Print(); PyErr_Clear();
+	BPy_errors_to_report(NULL); // TODO - reports
 
 	return 0.0f;
 }
@@ -589,7 +685,7 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 			}
 			
 			fprintf(stderr, "\tBPY_pydriver_eval() - couldn't add variable '%s' to namespace \n", dtar->name);
-			PyErr_Print(); PyErr_Clear();
+			BPy_errors_to_report(NULL); // TODO - reports
 		}
 	}
 	
