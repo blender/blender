@@ -1,5 +1,5 @@
 #
-# $Id: Makefile 13161 2008-01-07 19:13:47Z hos $
+# $Id$
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -28,10 +28,11 @@ DIR = $(OCGDIR)/blender/makesrna
 ALLRNA = $(wildcard rna_*.c)
 DEFRNA = $(filter-out %rna_define.c, $(filter-out %rna_access.c, $(ALLRNA)))
 
-GENSRCS = $(patsubst rna_%.c, rna_%_gen.c, $(DEFRNA))
+GENRNA = $(filter-out %_api.c, $(DEFRNA))
+GENSRCS = $(patsubst rna_%.c, rna_%_gen.c, $(GENRNA))
 GENTARGET = $(patsubst %.c, $(DIR)/$(DEBUG_DIR)%.c, $(GENSRCS))
 
-MAKESRCS = $(DEFRNA) makesrna.c rna_define.c $(wildcard ../../editors/*/*_api.c)
+MAKESRCS = $(DEFRNA) makesrna.c rna_define.c
 MAKEOBJS = $(patsubst %.c, $(DIR)/$(DEBUG_DIR)%.o, $(notdir $(MAKESRCS)))
 
 CSRCS = $(GENSRCS) rna_access.c
@@ -47,14 +48,17 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../blenkernel
+CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../windowmanager
 CPPFLAGS += -I../../editors/include
+CPPFLAGS += -I../../bmesh
 CPPFLAGS += -I..
 CPPFLAGS += -I.
 
 ifeq ($(WITH_FFMPEG),true)
     CPPFLAGS += -DWITH_FFMPEG
+    CPPFLAGS += $(NAN_FFMPEGCFLAGS)
 endif
 
 ifeq ($(WITH_OPENEXR), true)
@@ -92,24 +96,6 @@ clean::
 	@$(RM) $(DIR)/debug/makesrna* $(DIR)/debug/rna*
 
 # TODO include right .mk for ldflags
-
-# XXX this is an ugly hack, copying code from nan_compile.mk
-# we want the .o's to be in the makesrna/ directory, but the
-# .c's are in the editors/*/ directories
-
-$(DIR)/$(DEBUG_DIR)%_api.o: ../../editors/interface/%_api.c
-    ifdef NAN_DEPEND
-	@set -e; $(CC) -M $(CPPFLAGS) $< 2>/dev/null \
-		| sed 's@\($*\)\.o[ :]*@$(DIR)/$(DEBUG_DIR)\1.o : @g' \
-		> $(DIR)/$(DEBUG_DIR)$*.d; \
-		[ -s $(DIR)/$(DEBUG_DIR)$*.d ] || $(RM) $(DIR)/$*.d
-    endif
-    ifdef NAN_QUIET
-	@echo " -- $< -- "
-	@$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
-    else
-	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
-    endif
 
 # A small note: we do not use the debug version of the alloc lib. That
 # is done quite intentionally. If there is a bug in that lib, it needs

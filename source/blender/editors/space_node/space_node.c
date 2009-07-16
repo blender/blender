@@ -283,7 +283,12 @@ static int node_context(const bContext *C, const char *member, bContextDataResul
 {
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	
-	if(CTX_data_equals(member, "selected_nodes")) {
+	if(CTX_data_dir(member)) {
+		static const char *dir[] = {"selected_nodes", NULL};
+		CTX_data_dir_set(result, dir);
+		return 1;
+	}
+	else if(CTX_data_equals(member, "selected_nodes")) {
 		bNode *node;
 		
 		for(next_node(snode->edittree); (node=next_node(NULL));) {

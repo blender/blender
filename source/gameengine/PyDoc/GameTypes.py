@@ -336,15 +336,23 @@ class BL_ActionActuator(SCA_IActuator):
 	@ivar framePropName: The name of the property that is set to the current frame number.
 	@type framePropName: string
 	"""
-	def setChannel(channel, matrix, mode = False):
+	def setChannel(channel, matrix):
 		"""
-		@param channel: A string specifying the name of the bone channel.
+		Alternative to the 2 arguments, 4 arguments (channel, matrix, loc, size, quat) are also supported.
+		
+		@param channel: A string specifying the name of the bone channel, created if missing.
 		@type channel: string
 		@param matrix: A 4x4 matrix specifying the overriding transformation
 		               as an offset from the bone's rest position.
 		@type matrix: list [[float]]
-		@param mode: True for armature/world space, False for bone space
-		@type mode: boolean
+		"""
+
+	def getChannel(channel):
+		"""
+		@param channel: A string specifying the name of the bone channel. error raised if missing.
+		@type channel: string
+		@rtype: tuple
+		@return: (loc, size, quat)
 		"""
 
 #{ Deprecated

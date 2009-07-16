@@ -38,6 +38,8 @@
 #include "RNA_define.h"
 #include "RNA_types.h"
 
+#include "BLI_ghash.h"
+
 #include "rna_internal.h"
 
 /* Global used during defining */
@@ -110,7 +112,7 @@ StructDefRNA *rna_find_struct_def(StructRNA *srna)
 	return NULL;
 }
 
-PropertyDefRNA *rna_find_struct_property_def(PropertyRNA *prop)
+PropertyDefRNA *rna_find_struct_property_def(StructRNA *srna, PropertyRNA *prop)
 {
 	StructDefRNA *dsrna;
 	PropertyDefRNA *dprop;
@@ -121,7 +123,7 @@ PropertyDefRNA *rna_find_struct_property_def(PropertyRNA *prop)
 		return NULL;
 	}
 
-	dsrna= rna_find_struct_def(DefRNA.laststruct);
+	dsrna= rna_find_struct_def(srna);
 	dprop= dsrna->cont.properties.last;
 	for (; dprop; dprop= dprop->prev)
 		if (dprop->prop==prop)
@@ -148,7 +150,7 @@ PropertyDefRNA *rna_find_property_def(PropertyRNA *prop)
 		return NULL;
 	}
 
-	dprop= rna_find_struct_property_def(prop);
+	dprop= rna_find_struct_property_def(DefRNA.laststruct, prop);
 	if (dprop)
 		return dprop;
 
@@ -557,6 +559,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		/* copy from struct to derive stuff, a bit clumsy since we can't
 		 * use MEM_dupallocN, data structs may not be alloced but builtin */
 		memcpy(srna, srnafrom, sizeof(StructRNA));
+		srna->cont.prophash= NULL;
 		srna->cont.properties.first= srna->cont.properties.last= NULL;
 		srna->functions.first= srna->functions.last= NULL;
 		srna->py_type= NULL;
@@ -604,7 +607,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 
 		if(DefRNA.preprocess) {
 			RNA_def_property_struct_type(prop, "Property");
-			RNA_def_property_collection_funcs(prop, "rna_builtin_properties_begin", "rna_builtin_properties_next", "rna_iterator_listbase_end", "rna_builtin_properties_get", 0, 0, 0);
+			RNA_def_property_collection_funcs(prop, "rna_builtin_properties_begin", "rna_builtin_properties_next", "rna_iterator_listbase_end", "rna_builtin_properties_get", 0, 0, "rna_builtin_properties_lookup_string", 0, 0);
 		}
 		else {
 #ifdef RNA_RUNTIME
@@ -923,8 +926,13 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 				break;
 		}
 	}
-	else
+	else {
 		prop->flag |= PROP_IDPROPERTY|PROP_RUNTIME;
+#ifdef RNA_RUNTIME
+		if(cont->prophash)
+			BLI_ghash_insert(cont->prophash, (void*)prop->identifier, prop);
+#endif
+	}
 
 	rna_addtail(&cont->properties, prop);
 
@@ -974,6 +982,13 @@ void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *d
 {
 	prop->name= name;
 	prop->description= description;
+}
+
+void RNA_def_property_ui_icon(PropertyRNA *prop, int icon, int consecutive)
+{
+	prop->icon= icon;
+	if(consecutive)
+		prop->flag |= PROP_ICONS_CONSECUTIVE;
 }
 
 void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double step, int precision)
@@ -1097,12 +1112,12 @@ void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item
 	switch(prop->type) {
 		case PROP_ENUM: {
 			EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
-			eprop->item= item;
+			eprop->item= (EnumPropertyItem*)item;
 			eprop->totitem= 0;
 			for(i=0; item[i].identifier; i++) {
 				eprop->totitem++;
 
-				if(item[i].value == eprop->defaultvalue)
+				if(item[i].identifier[0] && item[i].value == eprop->defaultvalue)
 					defaultfound= 1;
 			}
 
@@ -1265,7 +1280,7 @@ void RNA_def_property_enum_default(PropertyRNA *prop, int value)
 			eprop->defaultvalue= value;
 
 			for(i=0; i<eprop->totitem; i++) {
-				if(eprop->item[i].value == eprop->defaultvalue)
+				if(eprop->item[i].identifier[0] && eprop->item[i].value == eprop->defaultvalue)
 					defaultfound= 1;
 			}
 
@@ -1296,7 +1311,7 @@ static PropertyDefRNA *rna_def_property_sdna(PropertyRNA *prop, const char *stru
 	StructDefRNA *ds;
 	PropertyDefRNA *dp;
 
-	dp= rna_find_struct_property_def(prop);
+	dp= rna_find_struct_property_def(DefRNA.laststruct, prop);
 	if (dp==NULL) return NULL;
 
 	ds= rna_find_struct_def((StructRNA*)dp->cont);
@@ -1356,7 +1371,7 @@ void RNA_def_property_boolean_negative_sdna(PropertyRNA *prop, const char *struc
 
 	RNA_def_property_boolean_sdna(prop, structname, propname, booleanbit);
 
-	dp= rna_find_struct_property_def(prop);
+	dp= rna_find_struct_property_def(DefRNA.laststruct, prop);
 
 	if(dp)
 		dp->booleannegative= 1;
@@ -1453,7 +1468,7 @@ void RNA_def_property_enum_bitflag_sdna(PropertyRNA *prop, const char *structnam
 
 	RNA_def_property_enum_sdna(prop, structname, propname);
 
-	dp= rna_find_struct_property_def(prop);
+	dp= rna_find_struct_property_def(DefRNA.laststruct, prop);
 
 	if(dp)
 		dp->enumbitflags= 1;
@@ -1769,7 +1784,7 @@ void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const ch
 	}
 }
 
-void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *length, const char *lookupint, const char *lookupstring)
+void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *length, const char *lookupint, const char *lookupstring, const char *add, const char *remove)
 {
 	StructRNA *srna= DefRNA.laststruct;
 
@@ -1789,6 +1804,8 @@ void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, con
 			if(length) cprop->length= (PropCollectionLengthFunc)length;
 			if(lookupint) cprop->lookupint= (PropCollectionLookupIntFunc)lookupint;
 			if(lookupstring) cprop->lookupstring= (PropCollectionLookupStringFunc)lookupstring;
+			if(add) cprop->add= (FunctionRNA*)add;
+			if(remove) cprop->remove= (FunctionRNA*)remove;
 			break;
 		}
 		default:
@@ -1929,7 +1946,7 @@ PropertyRNA *RNA_def_string_dir_path(StructOrFunctionRNA *cont_, const char *ide
 	return prop;
 }
 
-PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont_, const char *identifier, EnumPropertyItem *items, int default_value, 
+PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont_, const char *identifier, const EnumPropertyItem *items, int default_value, 
 	const char *ui_name, const char *ui_description)
 {
 	ContainerRNA *cont= cont_;
@@ -1941,6 +1958,12 @@ PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont_, const char *identifier, En
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
 
 	return prop;
+}
+
+void RNA_def_enum_funcs(PropertyRNA *prop, EnumPropertyItemFunc itemfunc)
+{
+	EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
+	eprop->itemf= itemfunc;
 }
 
 PropertyRNA *RNA_def_float(StructOrFunctionRNA *cont_, const char *identifier, float default_value, 
@@ -2219,26 +2242,57 @@ int rna_parameter_size(PropertyRNA *parm)
 			case PROP_STRING:
 				return sizeof(char *);
 			case PROP_POINTER: {
-				PointerPropertyRNA *pprop= (PointerPropertyRNA*)parm;
-
 #ifdef RNA_RUNTIME
-				if(pprop->type == &RNA_AnyType)
+				if(parm->flag & PROP_RNAPTR)
 					return sizeof(PointerRNA);
 				else
 					return sizeof(void *);
 #else
-				if(strcmp((char*)pprop->type, "AnyType") == 0)
+				if(parm->flag & PROP_RNAPTR)
 					return sizeof(PointerRNA);
 				else
 					return sizeof(void *);
 #endif
 			}
 			case PROP_COLLECTION:
-				/* XXX does not work yet */
 				return sizeof(ListBase);
 		}
 	}
 
 	return sizeof(void *);
+}
+
+/* Dynamic Enums */
+
+void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item)
+{
+	EnumPropertyItem *newitems;
+	int tot= *totitem;
+
+	if(tot == 0) {
+		*items= MEM_callocN(sizeof(EnumPropertyItem)*8, "RNA_enum_items_add");
+	}
+	else if(tot >= 8 && (tot&(tot-1)) == 0){
+		/* power of two > 8 */
+		newitems= MEM_callocN(sizeof(EnumPropertyItem)*tot*2, "RNA_enum_items_add");
+		memcpy(newitems, *items, sizeof(EnumPropertyItem)*tot);
+		MEM_freeN(*items);
+		*items= newitems;
+	}
+
+	(*items)[tot]= *item;
+	*totitem= tot+1;
+}
+
+void RNA_enum_items_add(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item)
+{
+	for(; item->identifier; item++)
+		RNA_enum_item_add(items, totitem, item);
+}
+
+void RNA_enum_item_end(EnumPropertyItem **items, int *totitem)
+{
+	static EnumPropertyItem empty = {0, NULL, 0, NULL, NULL};
+	RNA_enum_item_add(items, totitem, &empty);
 }
 

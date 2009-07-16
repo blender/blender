@@ -20,6 +20,8 @@
 #include <algorithm>
 #include "BoolValue.h"
 
+#include "BLO_sys_types.h" /* for intptr_t support */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -74,9 +76,9 @@ PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
 		return NULL;
 	}
 	
-	if (PyString_Check(pyindex))
+	if (PyUnicode_Check(pyindex))
 	{
-		CValue *item = ((CListValue*) list)->FindValue(PyString_AsString(pyindex));
+		CValue *item = ((CListValue*) list)->FindValue(_PyUnicode_AsString(pyindex));
 		if (item) {
 			PyObject* pyobj = item->ConvertValueToPython();
 			if(pyobj)
@@ -85,14 +87,14 @@ PyObject* listvalue_mapping_subscript(PyObject* self, PyObject* pyindex)
 				return item->GetProxy();
 		}
 	}
-	else if (PyInt_Check(pyindex))
+	else if (PyLong_Check(pyindex))
 	{
-		int index = PyInt_AsLong(pyindex);
+		int index = PyLong_AsSsize_t(pyindex);
 		return listvalue_buffer_item(self, index); /* wont add a ref */
 	}
 	
 	PyObject *pyindex_str = PyObject_Repr(pyindex); /* new ref */
-	PyErr_Format(PyExc_KeyError, "CList[key]: '%s' key not in list", PyString_AsString(pyindex_str));
+	PyErr_Format(PyExc_KeyError, "CList[key]: '%s' key not in list", _PyUnicode_AsString(pyindex_str));
 	Py_DECREF(pyindex_str);
 	return NULL;
 }
@@ -209,6 +211,30 @@ static PyObject *listvalue_buffer_concat(PyObject * self, PyObject * other)
 	return listval_new->NewProxy(true); /* python owns this list */
 }
 
+static int listvalue_buffer_contains(PyObject *self_v, PyObject *value)
+{
+	CListValue *self= static_cast<CListValue *>(BGE_PROXY_REF(self_v));
+	
+	if (self==NULL) {
+		PyErr_SetString(PyExc_SystemError, "val in CList, "BGE_PROXY_ERROR_MSG);
+		return -1;
+	}
+	
+	if (PyUnicode_Check(value)) {
+		if (self->FindValue((const char *)_PyUnicode_AsString(value))) {
+			return 1;
+		}
+	}
+	else if (PyObject_TypeCheck(value, &CValue::Type)) { /* not dict like at all but this worked before __contains__ was used */
+		CValue *item= static_cast<CValue *>(BGE_PROXY_REF(value));
+		for (int i=0; i < self->GetCount(); i++)
+			if (self->GetValue(i) == item) // Com
+				return 1;
+		
+	} // not using CheckEqual
+	
+	return 0;
+}
 
 
 static  PySequenceMethods listvalue_as_sequence = {
@@ -225,6 +251,7 @@ static  PySequenceMethods listvalue_as_sequence = {
  	NULL, /*sq_ass_item*/
  	NULL, /*sq_ass_slice*/
 #endif
+	(objobjproc)listvalue_buffer_contains,	/* sq_contains */
 };
 
 
@@ -262,22 +289,18 @@ PyTypeObject CListValue::Type = {
 	0,			        /*tp_hash*/
 	0,				/*tp_call */
 	0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-
-
-PyParentObject CListValue::Parents[] = {
-	&CListValue::Type,
+	NULL,
+	NULL,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
 	&CValue::Type,
-		NULL
+	0,0,0,0,0,0,
+	py_base_new
 };
-
-
-
 
 PyMethodDef CListValue::Methods[] = {
 	/* List style access */
@@ -300,21 +323,12 @@ PyAttributeDef CListValue::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* CListValue::py_getattro(PyObject* attr) {
-	py_getattro_up(CValue);
-}
-
-PyObject* CListValue::py_getattro_dict() {
-	py_getattro_dict_up(CValue);
-}
-
-
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CListValue::CListValue(PyTypeObject *T ) 
-: CPropValue(T)
+CListValue::CListValue()
+: CPropValue()
 {
 	m_bReleaseContents=true;	
 }
@@ -499,7 +513,7 @@ PyObject* CListValue::Pyreverse()
 bool CListValue::CheckEqual(CValue* first,CValue* second)
 {
 	bool result = false;
-
+	
 	CValue* eqval =  ((CValue*)first)->Calc(VALUE_EQL_OPERATOR,(CValue*)second);
 	
 	if (eqval==NULL)
@@ -528,9 +542,9 @@ PyObject* CListValue::Pyindex(PyObject *value)
 	for (int i=0;i<numelem;i++)
 	{
 		CValue* elem = 			GetValue(i);
-		if (CheckEqual(checkobj,elem))
+		if (checkobj==elem || CheckEqual(checkobj,elem))
 		{
-			result = PyInt_FromLong(i);
+			result = PyLong_FromSsize_t(i);
 			break;
 		}
 	}
@@ -553,21 +567,21 @@ PyObject* CListValue::Pycount(PyObject* value)
 	
 	if (checkobj==NULL) { /* in this case just return that there are no items in the list */
 		PyErr_Clear();
-		return PyInt_FromLong(0);
+		return PyLong_FromSsize_t(0);
 	}
 
 	int numelem = GetCount();
 	for (int i=0;i<numelem;i++)
 	{
 		CValue* elem = 			GetValue(i);
-		if (CheckEqual(checkobj,elem))
+		if (checkobj==elem || CheckEqual(checkobj,elem))
 		{
 			numfound ++;
 		}
 	}
 	checkobj->Release();
 
-	return PyInt_FromLong(numfound);
+	return PyLong_FromSsize_t(numfound);
 }
 
 /* Matches python dict.get(key, [default]) */
@@ -594,7 +608,7 @@ PyObject* CListValue::Pyget(PyObject *args)
 /* Matches python dict.has_key() */
 PyObject* CListValue::Pyhas_key(PyObject* value)
 {
-	if (PyString_Check(value) && FindValue((const char *)PyString_AsString(value)))
+	if (PyUnicode_Check(value) && FindValue((const char *)_PyUnicode_AsString(value)))
 		Py_RETURN_TRUE;
 	
 	Py_RETURN_FALSE;

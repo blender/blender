@@ -81,6 +81,7 @@ EditMesh *BKE_mesh_get_editmesh(Mesh *me)
 
 void BKE_mesh_end_editmesh(Mesh *me, EditMesh *em)
 {
+	BM_Free_Mesh(me->edit_btmesh->bm);
 	me->edit_btmesh->bm = editmesh_to_bmesh(em);
 	BMEdit_RecalcTesselation(me->edit_btmesh);
 }
@@ -97,12 +98,11 @@ void mesh_update_customdata_pointers(Mesh *me)
 	me->mface = CustomData_get_layer(&me->fdata, CD_MFACE);
 	me->mcol = CustomData_get_layer(&me->fdata, CD_MCOL);
 	me->mtface = CustomData_get_layer(&me->fdata, CD_MTFACE);
-
+	
 	me->mpoly = CustomData_get_layer(&me->pdata, CD_MPOLY);
 	me->mloop = CustomData_get_layer(&me->ldata, CD_MLOOP);
 
 	me->mtpoly = CustomData_get_layer(&me->pdata, CD_MTEXPOLY);
-
 	me->mloopcol = CustomData_get_layer(&me->ldata, CD_MLOOPCOL);
 	me->mloopuv = CustomData_get_layer(&me->ldata, CD_MLOOPUV);
 }

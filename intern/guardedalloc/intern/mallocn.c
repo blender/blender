@@ -38,8 +38,7 @@
 #include <stdarg.h>
 
 /* mmap exception */
-#if defined(AMIGA) || defined(__BeOS)
-#elif defined(WIN32)
+#if defined(WIN32)
 #include <sys/types.h>
 #include "mmap_win.h"
 #else
@@ -262,9 +261,6 @@ void *MEM_callocN(unsigned int len, const char *str)
 /* note; mmap returns zero'd memory */
 void *MEM_mapallocN(unsigned int len, const char *str)
 {
-#if defined(AMIGA) || defined(__BeOS)
-	return MEM_callocN(len, str);
-#else
 	MemHead *memh;
 
 	mem_lock_thread();
@@ -299,7 +295,6 @@ void *MEM_mapallocN(unsigned int len, const char *str)
 		print_error("Mapalloc returns nill, fallback to regular malloc: len=%d in %s, total %u\n",len, str, mmap_in_use);
 		return MEM_callocN(len, str);
 	}
-#endif
 }
 
 /* Memory statistics print */
@@ -583,10 +578,6 @@ static void rem_memblock(MemHead *memh)
     totblock--;
     mem_in_use -= memh->len;
    
-#if defined(AMIGA) || defined(__BeOS)
-    free(memh);
-#else   
-   
     if(memh->mmap) {
         mmap_in_use -= memh->len;
         if (munmap(memh, memh->len + sizeof(MemHead) + sizeof(MemTail)))
@@ -597,7 +588,6 @@ static void rem_memblock(MemHead *memh)
 			memset(memh+1, 255, memh->len);
         free(memh);
 	}
-#endif
 }
 
 static void MemorY_ErroR(const char *block, const char *error)

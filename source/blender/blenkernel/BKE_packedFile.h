@@ -31,31 +31,43 @@
 #ifndef BKE_PACKEDFILE_H
 #define BKE_PACKEDFILE_H
 
-#define RET_OK 0
-#define RET_ERROR 1
+#define RET_OK		0
+#define RET_ERROR	1
 
-struct PackedFile;
-struct VFont;
 struct bSample;
 struct bSound;
 struct Image;
+struct Main;
+struct PackedFile;
+struct ReportList;
+struct VFont;
 
-struct PackedFile * newPackedFile(char * filename);
-struct PackedFile * newPackedFileMemory(void *mem, int memlen);
+/* pack */
+struct PackedFile *newPackedFile(struct ReportList *reports, char *filename);
+struct PackedFile *newPackedFileMemory(void *mem, int memlen);
 
-int seekPackedFile(struct PackedFile * pf, int offset, int whence);
-void rewindPackedFile(struct PackedFile * pf);
-int readPackedFile(struct PackedFile * pf, void * data, int size);
-int countPackedFiles(void);
-void freePackedFile(struct PackedFile * pf);
-void packAll(void);
-int writePackedFile(char * filename, struct PackedFile *pf, int guimode);
-int checkPackedFile(char * filename, struct PackedFile * pf);
-char * unpackFile(char * abs_name, char * local_name, struct PackedFile * pf, int how);
-int unpackVFont(struct VFont * vfont, int how);
-int unpackSample(struct bSample *sample, int how);
-int unpackImage(struct Image * ima, int how);
-void unpackAll(int how);
-	
+void packAll(struct Main *bmain, struct ReportList *reports);
+
+/* unpack */
+char *unpackFile(struct ReportList *reports, char *abs_name, char *local_name, struct PackedFile *pf, int how);
+int unpackVFont(struct ReportList *reports, struct VFont *vfont, int how);
+int unpackSample(struct ReportList *reports, struct bSample *sample, int how);
+int unpackImage(struct ReportList *reports, struct Image *ima, int how);
+void unpackAll(struct Main *bmain, struct ReportList *reports, int how);
+
+int writePackedFile(struct ReportList *reports, char *filename, struct PackedFile *pf, int guimode);
+
+/* free */
+void freePackedFile(struct PackedFile *pf);
+
+/* info */
+int countPackedFiles(struct Main *bmain);
+int checkPackedFile(char *filename, struct PackedFile *pf);
+
+/* read */
+int seekPackedFile(struct PackedFile *pf, int offset, int whence);
+void rewindPackedFile(struct PackedFile *pf);
+int readPackedFile(struct PackedFile *pf, void *data, int size);
+
 #endif
 

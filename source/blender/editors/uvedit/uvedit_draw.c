@@ -103,24 +103,26 @@ static void drawcursor_sima(SpaceImage *sima, ARegion *ar)
 
 static int draw_uvs_face_check(Scene *scene)
 {
+	ToolSettings *ts= scene->toolsettings;
+
 	/* checks if we are selecting only faces */
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
-		if(scene->selectmode == SCE_SELECT_FACE)
+	if(ts->uv_flag & UV_SYNC_SELECTION) {
+		if(ts->selectmode == SCE_SELECT_FACE)
 			return 2;
-		else if(scene->selectmode & SCE_SELECT_FACE)
+		else if(ts->selectmode & SCE_SELECT_FACE)
 			return 1;
 		else
 			return 0;
 	}
 	else
-		return (scene->toolsettings->uv_selectmode == UV_SELECT_FACE);
+		return (ts->uv_selectmode == UV_SELECT_FACE);
 }
 
 static void draw_uvs_shadow(SpaceImage *sima, Object *obedit)
 {
 	EditMesh *em;
 	EditFace *efa;
-	TFace *tf;
+	MTFace *tf;
 	
 	em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 
@@ -419,7 +421,7 @@ static void draw_uvs_other(SpaceImage *sima, Scene *scene, Object *obedit, MTFac
 /* draws uv's in the image space */
 static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 {
-	ToolSettings *settings;
+	ToolSettings *ts;
 	Mesh *me= obedit->data;
 	EditMesh *em;
 	EditFace *efa, *efa_act;
@@ -433,13 +435,13 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	em= BKE_mesh_get_editmesh(me);
 	activetf= EM_get_active_mtface(em, &efa_act, NULL, 0); /* will be set to NULL if hidden */
 
-	settings= scene->toolsettings;
+	ts= scene->toolsettings;
 
 	drawfaces= draw_uvs_face_check(scene);
-	if(settings->uv_flag & UV_SYNC_SELECTION)
-		interpedges= (scene->selectmode & SCE_SELECT_VERTEX);
+	if(ts->uv_flag & UV_SYNC_SELECTION)
+		interpedges= (ts->selectmode & SCE_SELECT_VERTEX);
 	else
-		interpedges= (settings->uv_selectmode == UV_SELECT_VERTEX);
+		interpedges= (ts->uv_selectmode == UV_SELECT_VERTEX);
 	
 	/* draw other uvs */
 	if(sima->flag & SI_DRAW_OTHER)
@@ -455,7 +457,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 			/* when sync selection is enabled, all faces are drawn (except for hidden)
 			 * so if cage is the same as the final, theres no point in drawing this */
-			if(!((settings->uv_flag & UV_SYNC_SELECTION) && (cagedm == finaldm)))
+			if(!((ts->uv_flag & UV_SYNC_SELECTION) && (cagedm == finaldm)))
 				draw_uvs_dm_shadow(finaldm);
 			
 			/* release derivedmesh again */
@@ -590,7 +592,8 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			break;
 		case SI_UVDT_BLACK: /* black/white */
 		case SI_UVDT_WHITE: 
-			cpack((sima->dt_uv==SI_UVDT_WHITE) ? 0xFFFFFF : 0x0);
+			if(sima->dt_uv==SI_UVDT_WHITE) glColor3f(1.0f, 1.0f, 1.0f);
+			else glColor3f(0.0f, 0.0f, 0.0f);
 
 			for(efa= em->faces.first; efa; efa= efa->next) {
 				tf= (MTFace *)efa->tmp.p; /* visible faces cached */

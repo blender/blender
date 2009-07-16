@@ -42,13 +42,13 @@ void RNA_def_camera(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem prop_type_items[] = {
-		{CAM_PERSP, "PERSP", "Perspective", ""},
-		{CAM_ORTHO, "ORTHO", "Orthographic", ""},
-		{0, NULL, NULL, NULL}};
+		{CAM_PERSP, "PERSP", 0, "Perspective", ""},
+		{CAM_ORTHO, "ORTHO", 0, "Orthographic", ""},
+		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_lens_unit_items[] = {
-		{0, "MILLIMETERS", "Millimeters", ""},
-		{CAM_ANGLETOGGLE, "DEGREES", "Degrees", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "MILLIMETERS", 0, "Millimeters", ""},
+		{CAM_ANGLETOGGLE, "DEGREES", 0, "Degrees", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Camera", "ID");
 	RNA_def_struct_ui_text(srna, "Camera", "Camera datablock for storing camera settings.");
@@ -62,7 +62,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	
 	/* Number values */
 
-	prop= RNA_def_property(srna, "passepartout_alpha", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "passepartout_alpha", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "passepartalpha");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Passepartout Alpha", "Opacity (alpha) of the darkened overlay in Camera view.");
@@ -152,6 +152,11 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_lens_unit_items);
 	RNA_def_property_ui_text(prop, "Lens Unit", "Unit to edit lens in for the user interface.");
+
+	prop= RNA_def_property(srna, "panorama", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_PANORAMA);
+	RNA_def_property_ui_text(prop, "Panorama", "Render the scene with a cylindrical camera for pseudo-fisheye lens effects.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	/* pointers */
 	rna_def_animdata_common(srna);

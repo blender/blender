@@ -226,8 +226,9 @@ BMOpDefine def_subdop = {
 	"esubd",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"},
 	{BMOP_OPSLOT_INT, "numcuts"},
-	{BMOP_OPSLOT_INT, "flag"},
-	{BMOP_OPSLOT_FLT, "radius"},
+	{BMOP_OPSLOT_FLT, "smooth"},
+	{BMOP_OPSLOT_FLT, "fractal"},
+	{BMOP_OPSLOT_INT, "beauty"},
 	{BMOP_OPSLOT_MAPPING, "custompatterns"},
 	{BMOP_OPSLOT_MAPPING, "edgepercents"},
 	

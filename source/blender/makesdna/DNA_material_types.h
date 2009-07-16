@@ -142,10 +142,10 @@ typedef struct Material {
 
 /* **************** MATERIAL ********************* */
 
-	/* maximum number of materials per material array
-	 * (on object, mesh, lamp, etc.)
-	 */
-#define MAXMAT			16
+/* maximum number of materials per material array.
+ * (on object, mesh, lamp, etc.). limited by
+ * short mat_nr in verts, faces. */
+#define MAXMAT			32767
 
 /* material_type */
 #define MA_TYPE_SURFACE	0

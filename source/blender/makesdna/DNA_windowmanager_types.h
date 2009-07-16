@@ -88,7 +88,8 @@ typedef struct wmWindow {
 	
 	int winid, pad;		/* winid also in screens, is for retrieving this window after read */
 	
-	struct bScreen *screen;	/* active screen */
+	struct bScreen *screen;		/* active screen */
+	struct bScreen *newscreen;	/* temporary when switching */
 	char screenname[32];	/* MAX_ID_NAME for matching window with active screen after file read */
 	
 	short posx, posy, sizex, sizey;	/* window coords */
@@ -216,11 +217,47 @@ typedef struct wmOperator {
 /* add this flag if the event should pass through */
 #define OPERATOR_PASS_THROUGH	8
 
+
+/* ************** wmEvent ************************ */
+/* for read-only rna access, dont save this */
+
+/* each event should have full modifier state */
+/* event comes from eventmanager and from keymap */
+typedef struct wmEvent {
+	struct wmEvent *next, *prev;
+	
+	short type;			/* event code itself (short, is also in keymap) */
+	short val;			/* press, release, scrollvalue */
+	short x, y;			/* mouse pointer position, screen coord */
+	short mval[2];		/* region mouse position, name convention pre 2.5 :) */
+	short prevx, prevy;	/* previous mouse pointer position */
+	short unicode;		/* future, ghost? */
+	char ascii;			/* from ghost */
+	char pad;
+	
+	/* modifier states */
+	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */
+	short keymodifier;				/* rawkey modifier */
+	
+	short pad1;
+	
+	/* keymap item, set by handler (weak?) */
+	const char *keymap_idname;
+	
+	/* custom data */
+	short custom;		/* custom data type, stylus, 6dof, see wm_event_types.h */
+	short customdatafree;
+	int pad2;
+	void *customdata;	/* ascii, unicode, mouse coords, angles, vectors, dragdrop info */
+	
+} wmEvent;
+
 typedef enum wmRadialControlMode {
 	WM_RADIALCONTROL_SIZE,
 	WM_RADIALCONTROL_STRENGTH,
 	WM_RADIALCONTROL_ANGLE
 } wmRadialControlMode;
+
 
 #endif /* DNA_WINDOWMANAGER_TYPES_H */
 

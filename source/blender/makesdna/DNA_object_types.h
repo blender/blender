@@ -113,8 +113,12 @@ typedef struct Object {
 	ListBase disp;
 	ListBase defbase;
 	ListBase modifiers; /* list of ModifierData structures */
-	
-	struct Material **mat;
+
+	/* materials */
+	struct Material **mat;	/* material slots */
+	char *matbits;	/* a bitfield, with each bit 1 if corrusponding material linked to object */
+	int totcol;				/* copy of mesh or curve or meta */
+	int actcol;				/* currently selected material in the UI */
 	
 	/* rot en drot have to be together! (transform('r' en 's')) */
 	float loc[3], dloc[3], orig[3];
@@ -129,7 +133,7 @@ typedef struct Object {
 	unsigned int lay;				/* copy of Base */
 	
 	short flag;			/* copy of Base */
-	short colbits;		/* when zero, from obdata */
+	short colbits;		/* deprecated */
 	
 	short transflag, protectflag;	/* transformation settings and transform locks  */
 	short trackflag, upflag;
@@ -164,9 +168,7 @@ typedef struct Object {
 	float m_contactProcessingThreshold;
 
 	char dt, dtx;
-	char totcol;	/* copy of mesh or curve or meta */
-	char actcol;	/* currently selected material in the user interface */
-	char empty_drawtype, pad1[3];
+	char empty_drawtype, pad1[5];
 	float empty_drawsize;
 	float dupfacesca;	/* dupliface scale */
 	

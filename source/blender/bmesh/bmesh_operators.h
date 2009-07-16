@@ -27,11 +27,8 @@ struct Object;
 struct EditMesh;
 
 void BMOP_DupeFromFlag(struct BMesh *bm, int etypeflag, int flag);
-void BM_esubdivideflag(struct Object *obedit, struct BMesh *bm, int selflag, float rad, 
-	       int flag, int numcuts, int seltype);
-void BM_esubdivideflag_conv(struct Object *obedit, struct EditMesh *em, 
-                            int selflag, float rad, int flag, int numcuts, 
-                            int seltype);
+void BM_esubdivideflag(struct Object *obedit, BMesh *bm, int flag, float smooth, 
+		       float fractal, int beauty, int numcuts, int seltype);
 void BM_extrudefaceflag(BMesh *bm, int flag);
 
 /*this next one return 1 if they did anything, or zero otherwise.

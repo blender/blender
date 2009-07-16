@@ -56,6 +56,7 @@
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 #include "ED_types.h"
 #include "ED_util.h"
 
@@ -64,7 +65,6 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
-#include "BIF_transform.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -87,95 +87,6 @@
 #define B_SIMA_RECORD		8
 #define B_SIMA_PLAY			9
 
-static void image_view_viewnavmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	int a;
-	
-	uiItemO(layout, NULL, 0, "IMAGE_OT_view_zoom_in");
-	uiItemO(layout, NULL, 0, "IMAGE_OT_view_zoom_out");
-
-	uiItemS(layout);
-
-	for(a=0; a<7; a++) {
-		const int ratios[7][2] = {{1, 8}, {1, 4}, {1, 2}, {1, 1}, {2, 1}, {4, 1}, {8, 1}};
-		char namestr[128];
-
-		sprintf(namestr, "Zoom %d:%d", ratios[a][0], ratios[a][1]);
-		uiItemFloatO(layout, namestr, 0, "IMAGE_OT_view_zoom_ratio", "ratio", (float)ratios[a][0]/(float)ratios[a][1]);
-	}
-}
-
-#if 0
-static void do_viewmenu(bContext *C, void *arg, int event)
-{
-	add_blockhandler(curarea, IMAGE_HANDLER_VIEW_PROPERTIES, UI_PNL_UNSTOW);
-	add_blockhandler(curarea, IMAGE_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
-	add_blockhandler(curarea, IMAGE_HANDLER_PAINT, UI_PNL_UNSTOW);
-	add_blockhandler(curarea, IMAGE_HANDLER_CURVES, UI_PNL_UNSTOW);
-
-	toggle_blockhandler(curarea, IMAGE_HANDLER_PREVIEW, 0);
-	scrarea_queue_winredraw(curarea);
-
-	add_blockhandler(curarea, IMAGE_HANDLER_GAME_PROPERTIES, UI_PNL_UNSTOW);
-	add_blockhandler(curarea, IMAGE_HANDLER_GREASEPENCIL, UI_PNL_UNSTOW);
-
-	allqueue(REDRAWIMAGE, 0);
-	allqueue(REDRAWVIEW3D, 0);
-}
-#endif
-
-static void image_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	bScreen *sc= CTX_wm_screen(C);
-	ScrArea *sa= CTX_wm_area(C);
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
-	PointerRNA spaceptr, uvptr;
-	int show_paint, show_render, show_uvedit;
-
-	/* retrieve state */
-	RNA_pointer_create(&sc->id, &RNA_SpaceImageEditor, sima, &spaceptr);
-	RNA_pointer_create(&sc->id, &RNA_SpaceUVEditor, sima, &uvptr);
-
-	show_render= ED_space_image_show_render(sima);
-	show_paint= ED_space_image_show_paint(sima);
-	show_uvedit= ED_space_image_show_uvedit(sima, CTX_data_edit_object(C));
-	
-	/* create menu */
-	uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_properties");
-	//if(show_render) uiItemO(layout, NULL, ICON_MENU_PANEL, "IMAGE_OT_toggle_compositing_preview_panel"); // Compositing Preview...|Shift P
-
-	uiItemS(layout);
-
-	uiItemR(layout, NULL, 0, &spaceptr, "update_automatically", 0, 0, 0);
-	// XXX if(show_uvedit) uiItemR(layout, NULL, 0, &uvptr, "local_view", 0, 0, 0); // "UV Local View", Numpad /
-
-	uiItemS(layout);
-
-	uiItemMenuF(layout, "View Navigation", 0, image_view_viewnavmenu);
-	if(show_uvedit) uiItemO(layout, NULL, 0, "IMAGE_OT_view_selected");
-	uiItemO(layout, NULL, 0, "IMAGE_OT_view_all");
-
-	if(sa->full) uiItemO(layout, NULL, 0, "SCREEN_OT_screen_full_area"); // "Tile Window", Ctrl UpArrow
-	else uiItemO(layout, NULL, 0, "SCREEN_OT_screen_full_area"); // "Maximize Window", Ctr DownArrow
-}
-
-static void image_selectmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "UV_OT_select_border");
-	uiItemBooleanO(layout, "Border Select Pinned", 0, "UV_OT_select_border", "pinned", 1); // Border Select Pinned|Shift B
-
-	uiItemS(layout);
-	
-	uiItemO(layout, NULL, 0, "UV_OT_select_all_toggle");
-	uiItemO(layout, NULL, 0, "UV_OT_select_invert");
-	uiItemO(layout, NULL, 0, "UV_OT_unlink_selection");
-	
-	uiItemS(layout);
-
-	uiItemO(layout, NULL, 0, "UV_OT_select_pinned");
-	uiItemO(layout, NULL, 0, "UV_OT_select_linked");
-}
-
 #if 0
 static void do_image_imagemenu(void *arg, int event)
 {
@@ -184,61 +95,7 @@ static void do_image_imagemenu(void *arg, int event)
 	if (event >= 20) BPY_menu_do_python(PYMENU_IMAGE, event - 20);
 #endif	
 }
-#endif
 
-static void image_imagemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	bScreen *sc= CTX_wm_screen(C);
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
-	PointerRNA spaceptr, imaptr;
-	Image *ima;
-	ImBuf *ibuf;
-	int show_render;
-	
-	/* retrieve state */
-	ima= ED_space_image(sima);
-	ibuf= ED_space_image_buffer(sima);
-
-	show_render= ED_space_image_show_render(sima);
-
-	RNA_pointer_create(&sc->id, &RNA_SpaceImageEditor, sima, &spaceptr);
-
-	/* create menu */
-	uiItemO(layout, NULL, 0, "IMAGE_OT_new"); // New...
-	uiItemO(layout, NULL, 0, "IMAGE_OT_open"); // Open...
-
-	if(ima) {
-		if(!show_render) {
-			uiItemO(layout, NULL, 0, "IMAGE_OT_replace"); // Replace...
-			uiItemO(layout, NULL, 0, "IMAGE_OT_reload"); // Reload...
-		}
-		uiItemO(layout, NULL, 0, "IMAGE_OT_save"); // Save
-		uiItemO(layout, NULL, 0, "IMAGE_OT_save_as"); // Save As...
-		if(ima->source == IMA_SRC_SEQUENCE)
-			uiItemO(layout, NULL, 0, "IMAGE_OT_save_sequence"); // Save Changed Sequence Images
-
-		if(!show_render) {
-			uiItemS(layout);
-
-			if(ima->packedfile) uiItemO(layout, NULL, 0, "IMAGE_OT_unpack"); // Unpack Image...
-			else uiItemO(layout, NULL, 0, "IMAGE_OT_pack"); // Pack Image
-
-			/* only for dirty && specific image types : XXX poll? */
-			if(ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
-				if(ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_GENERATED) && ima->type != IMA_TYPE_MULTILAYER)
-					uiItemBooleanO(layout, "Pack As PNG", 0, "IMAGE_OT_pack", "as_png", 1); // Pack Image As PNG
-
-			uiItemS(layout);
-
-			uiItemR(layout, NULL, 0, &spaceptr, "image_painting", 0, 0, 0);
-			
-			/* move to realtime properties panel */
-			RNA_id_pointer_create(&ima->id, &imaptr);
-			uiItemMenuEnumR(layout, NULL, 0, &imaptr, "mapping");
-		}
-	}
-
-#if 0
 #ifndef DISABLE_PYTHON
 	{
 		BPyMenu *pym;
@@ -254,33 +111,6 @@ static void image_imagemenu(bContext *C, uiLayout *layout, void *arg_unused)
 	}
 #endif
 #endif
-}
-
-static void image_uvs_showhidemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "UV_OT_reveal");
-	uiItemO(layout, NULL, 0, "UV_OT_hide");
-	uiItemBooleanO(layout, "Hide Unselected", 0, "UV_OT_hide", "unselected", 1);
-}
-
-static void image_uvs_transformmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemEnumO(layout, NULL, 0, "TFM_OT_transform", "mode", TFM_TRANSLATION);
-	uiItemEnumO(layout, NULL, 0, "TFM_OT_transform", "mode", TFM_ROTATION);
-	uiItemEnumO(layout, NULL, 0, "TFM_OT_transform", "mode", TFM_RESIZE);
-}
-
-static void image_uvs_mirrormenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemEnumO(layout, NULL, 0, "UV_OT_mirror", "axis", 'x'); // "X Axis", M, 1
-	uiItemEnumO(layout, NULL, 0, "UV_OT_mirror", "axis", 'y'); // "Y Axis", M, 2
-}
-
-static void image_uvs_weldalignmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "UV_OT_weld"); // W, 1
-	uiItemsEnumO(layout, "UV_OT_align", "axis"); // W, 2/3/4
-}
 
 #if 0
 #ifndef DISABLE_PYTHON
@@ -317,87 +147,7 @@ static void image_uvs_scriptsmenu (void *args_unused)
 #endif /* DISABLE_PYTHON */
 #endif
 
-static void image_uvsmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	bScreen *sc= CTX_wm_screen(C);
-	Scene *scene= CTX_data_scene(C);
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
-	PointerRNA uvptr, sceneptr;
-	Image *ima;
-	ImBuf *ibuf;
-	
-	/* retrieve state */
-	ima= ED_space_image(sima);
-	ibuf= ED_space_image_buffer(sima);
-
-	RNA_pointer_create(&sc->id, &RNA_SpaceUVEditor, sima, &uvptr);
-	RNA_id_pointer_create(&scene->id, &sceneptr);
-
-	/* create menu */
-	uiItemR(layout, NULL, 0, &uvptr, "snap_to_pixels", 0, 0, 0);
-	uiItemR(layout, NULL, 0, &uvptr, "constrain_to_image_bounds", 0, 0, 0);
-
-	uiItemS(layout);
-
-	uiItemR(layout, NULL, 0, &uvptr, "live_unwrap", 0, 0, 0);
-	uiItemO(layout, NULL, 0, "UV_OT_unwrap");
-	uiItemBooleanO(layout, "Unpin", 0, "UV_OT_pin", "clear", 1);
-	uiItemO(layout, NULL, 0, "UV_OT_pin");
-
-	uiItemS(layout);
-
-	uiItemO(layout, NULL, 0, "UV_OT_pack_islands");
-	uiItemO(layout, NULL, 0, "UV_OT_average_islands_scale");
-	uiItemO(layout, NULL, 0, "UV_OT_minimize_stretch");
-	uiItemO(layout, NULL, 0, "UV_OT_stitch");
-
-	uiItemS(layout);
-
-	uiItemMenuF(layout, "Transform", 0, image_uvs_transformmenu);
-	uiItemMenuF(layout, "Mirror", 0, image_uvs_mirrormenu);
-	uiItemMenuF(layout, "Weld/Align", 0, image_uvs_weldalignmenu);
-
-	uiItemS(layout);
-
-	uiItemR(layout, NULL, 0, &sceneptr, "proportional_editing", 0, 0, 0);
-	uiItemMenuEnumR(layout, NULL, 0, &sceneptr, "proportional_editing_falloff");
-
-	uiItemS(layout);
-
-	uiItemMenuF(layout, "Show/Hide Faces", 0, image_uvs_showhidemenu);
-
 #if 0
-#ifndef DISABLE_PYTHON
-	uiItemS(layout);
-
-	uiItemMenuF(layout, "Scripts", image_uvs_scriptsmenu);
-#endif
-#endif
-}
-
-static void image_menu_uvlayers(Object *obedit, char *menustr, int *active)
-{
-	Mesh *me= (Mesh*)obedit->data;
-	EditMesh *em= BKE_mesh_get_editmesh(me);
-	CustomDataLayer *layer;
-	int i, count = 0;
-
-	menustr[0]= '\0';
-
-	for(i=0; i<em->fdata.totlayer; i++) {
-		layer = &em->fdata.layers[i];
-
-		if(layer->type == CD_MTFACE) {
-			menustr += sprintf(menustr, "%s%%x%d|", layer->name, count);
-			count++;
-		}
-	}
-
-	*active= CustomData_get_active_layer(&em->fdata, CD_MTFACE);
-
-	BKE_mesh_end_editmesh(me, em);
-}
-
 static void do_image_buttons(bContext *C, void *arg, int event)
 {
 	switch(event) {
@@ -406,7 +156,6 @@ static void do_image_buttons(bContext *C, void *arg, int event)
 			break;
 	}
 
-#if 0
 	ToolSettings *settings= G.scene->toolsettings;
 	ID *id, *idtest;
 	int nr;
@@ -661,278 +410,8 @@ static void do_image_buttons(bContext *C, void *arg, int event)
 		imagespace_composite_flipbook(curarea);
 		break;
 	}
-#endif
-}
-
-#if 0
-static void do_image_buttons_set_uvlayer_callback(void *act, void *data)
-{
-	CustomData_set_layer_active(&G.editMesh->fdata, CD_MTFACE, *((int *)act));
-	
-	BIF_undo_push("Set Active UV Texture");
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWIMAGE, 0);
 }
 #endif
-
-static void sima_idpoin_handle(bContext *C, ID *id, int event)
-{
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
-	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-
-	switch(event) {
-		case UI_ID_BROWSE:
-		case UI_ID_DELETE:
-			ED_space_image_set(C, sima, scene, obedit, (Image*)id);
-			ED_undo_push(C, "Assign Image UV");
-			break;
-		case UI_ID_RENAME:
-			break;
-		case UI_ID_ADD_NEW:
-			WM_operator_name_call(C, "IMAGE_OT_new", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case UI_ID_OPEN:
-			WM_operator_name_call(C, "IMAGE_OT_open", WM_OP_INVOKE_REGION_WIN, NULL);
-			break;
-		case UI_ID_PIN:
-			ED_area_tag_refresh(CTX_wm_area(C));
-			break;
-	}
-}
-
-void image_header_buttons(const bContext *C, ARegion *ar)
-{
-	bScreen *sc= CTX_wm_screen(C);
-	ScrArea *sa= CTX_wm_area(C);
-	Scene *scene= CTX_data_scene(C);
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
-	Image *ima;
-	ImBuf *ibuf;
-	uiBlock *block;
-	uiBut *but;
-	PointerRNA spaceptr, uvptr, sceneptr;
-	int xco, yco= 3, show_uvedit, show_render, show_paint, pinflag;
-
-	/* retrieve state */
-	ima= ED_space_image(sima);
-	ibuf= ED_space_image_buffer(sima);
-
-	show_render= ED_space_image_show_render(sima);
-	show_paint= ED_space_image_show_paint(sima);
-	show_uvedit= ED_space_image_show_uvedit(sima, CTX_data_edit_object(C));
-
-	RNA_pointer_create(&sc->id, &RNA_SpaceImageEditor, sima, &spaceptr);
-	RNA_pointer_create(&sc->id, &RNA_SpaceUVEditor, sima, &uvptr);
-	RNA_id_pointer_create(&scene->id, &sceneptr);
-	
-	/* create block */
-	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
-	uiBlockSetHandleFunc(block, do_image_buttons, NULL);
-	
-	xco= ED_area_header_standardbuttons(C, block, yco);
-	
-	/* create pulldown menus */
-	if((sa->flag & HEADER_NO_PULLDOWN)==0) {
-		char *menuname;
-		int xmax;
-		
-		xmax= GetButStringLength("View");
-		uiDefMenuBut(block, image_viewmenu, NULL, "View", xco, yco, xmax-3, 20, "");
-		xco+= xmax;
-		
-		if(show_uvedit) {
-			xmax= GetButStringLength("Select");
-			uiDefMenuBut(block, image_selectmenu, NULL, "Select", xco, yco, xmax-3, 20, "");
-			xco+= xmax;
-		}
-		
-		menuname= (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))? "Image*": "Image";
-		xmax= GetButStringLength(menuname);
-		uiDefMenuBut(block, image_imagemenu, NULL, menuname, xco, yco, xmax-3, 20, "");
-		xco+= xmax;
-
-		if(show_uvedit) {
-			xmax= GetButStringLength("UVs");
-			uiDefMenuBut(block, image_uvsmenu, NULL, "UVs", xco, yco, xmax-3, 20, "");
-			xco+= xmax;
-		}
-	}
-
-	uiBlockSetEmboss(block, UI_EMBOSS);
-
-	/* image select */
-
-	pinflag= (show_render)? 0: UI_ID_PIN;
-	xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID*)sima->image, ID_IM, &sima->pin, xco, yco,
-		sima_idpoin_handle, UI_ID_BROWSE|UI_ID_BROWSE_RENDER|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_OPEN|UI_ID_DELETE|pinflag);
-	xco += 8;
-
-	if(ima && !ELEM3(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE, IMA_SRC_VIEWER) && ima->ok) {
-		/* XXX this should not be a static var */
-		static int headerbuttons_packdummy;
-		
-		headerbuttons_packdummy = 0;
-
-		if (ima->packedfile) {
-			headerbuttons_packdummy = 1;
-		}
-		if (ima->packedfile && ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
-			uiDefIconButBitI(block, TOG, 1, 0 /* XXX B_SIMA_REPACK */, ICON_UGLYPACKAGE,	xco,yco,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Re-Pack this image as PNG");
-		else
-			uiDefIconButBitI(block, TOG, 1, 0 /* XXX B_SIMAPACKIMA */, ICON_PACKAGE,	xco,yco,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Pack/Unpack this image");
-			
-		xco+= XIC+8;
-	}
-	
-	/* uv editing */
-	if(show_uvedit) {
-		/* pivot */
-		uiDefIconTextButS(block, ICONTEXTROW, B_NOP, ICON_ROTATE,
-				"Pivot: %t|Bounding Box Center %x0|Median Point %x3|2D Cursor %x1",
-				xco,yco,XIC+10,YIC, &ar->v2d.around, 0, 3.0, 0, 0,
-				"Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period)");
-		xco+= XIC + 18;
-		
-		/* selection modes */
-		uiDefIconButBitS(block, TOG, UV_SYNC_SELECTION, B_REDR, ICON_EDIT, xco,yco,XIC,YIC, &scene->toolsettings->uv_flag, 0, 0, 0, 0, "Sync UV and Mesh Selection");
-		xco+= XIC+8;
-
-		if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
-			uiBlockBeginAlign(block);
-			
-			uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_REDR, ICON_VERTEXSEL,
-				xco,yco,XIC,YIC, &scene->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode");
-			uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_REDR, ICON_EDGESEL,
-				xco+=XIC,yco,XIC,YIC, &scene->selectmode, 1.0, 0.0, 0, 0, "Edge select mode");
-			uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_REDR, ICON_FACESEL,
-				xco+=XIC,yco,XIC,YIC, &scene->selectmode, 1.0, 0.0, 0, 0, "Face select mode");
-
-			uiBlockEndAlign(block);
-		}
-		else {
-			uiBlockBeginAlign(block);
-
-			uiDefIconButS(block, ROW, B_REDR, ICON_VERTEXSEL,
-				xco,yco,XIC,YIC, &scene->toolsettings->uv_selectmode, 1.0, UV_SELECT_VERTEX, 0, 0, "Vertex select mode");
-			uiDefIconButS(block, ROW, B_REDR, ICON_EDGESEL,
-				xco+=XIC,yco,XIC,YIC, &scene->toolsettings->uv_selectmode, 1.0, UV_SELECT_EDGE, 0, 0, "Edge select mode");
-			uiDefIconButS(block, ROW, B_REDR, ICON_FACESEL,
-				xco+=XIC,yco,XIC,YIC, &scene->toolsettings->uv_selectmode, 1.0, UV_SELECT_FACE, 0, 0, "Face select mode");
-			uiDefIconButS(block, ROW, B_REDR, ICON_LINKEDSEL,
-				xco+=XIC,yco,XIC,YIC, &scene->toolsettings->uv_selectmode, 1.0, UV_SELECT_ISLAND, 0, 0, "Island select mode");
-
-			uiBlockEndAlign(block);
-
-			/* would use these if const's could go in strings 
-			 * SI_STICKY_LOC SI_STICKY_DISABLE SI_STICKY_VERTEX */
-			but = uiDefIconTextButC(block, ICONTEXTROW, B_REDR, ICON_STICKY_UVS_LOC,
-					"Sticky UV Selection: %t|Disable%x1|Shared Location%x0|Shared Vertex%x2",
-					xco+=XIC+10,yco,XIC+10,YIC, &(sima->sticky), 0, 3.0, 0, 0,
-					"Sticky UV Selection (Hotkeys: Shift C, Alt C, Ctrl C)");
-		}
-
-		xco+= XIC + 16;
-		
-		/* snap options, identical to options in 3d view header */
-		uiBlockBeginAlign(block);
-
-		if (scene->snap_flag & SCE_SNAP) {
-			uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEO,xco,yco,XIC,YIC, &scene->snap_flag, 0, 0, 0, 0, "Use Snap or Grid (Shift Tab).");
-			xco+= XIC;
-			uiDefButS(block, MENU, B_NOP, "Mode%t|Closest%x0|Center%x1|Median%x2",xco,yco,70,YIC, &scene->snap_target, 0, 0, 0, 0, "Snap Target Mode.");
-			xco+= 70;
-		}
-		else {
-			uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEAR,xco,yco,XIC,YIC, &scene->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab).");	
-			xco+= XIC;
-		}
-
-		uiBlockEndAlign(block);
-		xco+= 8;
-
-		/* uv layers */
-		{
-			Object *obedit= CTX_data_edit_object(C);
-			char menustr[34*MAX_MTFACE];
-			static int act;
-			
-			image_menu_uvlayers(obedit, menustr, &act);
-
-			but = uiDefButI(block, MENU, B_NOP, menustr ,xco,yco,85,YIC, &act, 0, 0, 0, 0, "Active UV Layer for editing.");
-			// uiButSetFunc(but, do_image_buttons_set_uvlayer_callback, &act, NULL);
-			
-			xco+= 85;
-		}
-
-		xco+= 8;
-	}
-	
-	if(ima) {
-		RenderResult *rr;
-	
-		/* render layers and passes */
-		rr= BKE_image_get_renderresult(scene, ima);
-		if(rr) {
-			uiBlockBeginAlign(block);
-#if 0
-			uiblock_layer_pass_buttons(block, rr, &sima->iuser, B_REDR, xco, 0, 160);
-#endif
-			uiBlockEndAlign(block);
-			xco+= 166;
-		}
-
-		/* painting */
-		uiDefIconButR(block, TOG, B_REDR, ICON_TPAINT_HLT, xco,yco,XIC,YIC, &spaceptr, "image_painting", 0, 0, 0, 0, 0, NULL);
-		xco+= XIC+8;
-
-		/* image draw options */
-		uiBlockBeginAlign(block);
-		uiDefIconButR(block, ROW, B_REDR, ICON_IMAGE_RGB, xco,yco,XIC,YIC, &spaceptr, "draw_channels", 0, 0, 0, 0, 0, NULL);
-		xco+= XIC;
-		if(ibuf==NULL || ibuf->channels==4) {
-			uiDefIconButR(block, ROW, B_REDR, ICON_IMAGE_RGB_ALPHA, xco,yco,XIC,YIC, &spaceptr, "draw_channels", 0, 0, SI_USE_ALPHA, 0, 0, NULL);
-			xco+= XIC;
-			uiDefIconButR(block, ROW, B_REDR, ICON_IMAGE_ALPHA, xco,yco,XIC,YIC, &spaceptr, "draw_channels", 0, 0, SI_SHOW_ALPHA, 0, 0, NULL);
-			xco+= XIC;
-		}
-		if(ibuf) {
-			if(ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels==1)) {
-				uiDefIconButR(block, ROW, B_REDR, ICON_IMAGE_ZDEPTH, xco,yco,XIC,YIC, &spaceptr, "draw_channels", 0, 0, SI_SHOW_ZBUF, 0, 0, NULL);
-				xco+= XIC;
-			}
-		}		
-#ifdef WITH_LCMS
-		uiDefIconButR(block, ROW, B_REDR, ICON_IMAGE_ALPHA, xco,yco,XIC,YIC, &spaceptr, "draw_channels", 0, 0, SI_COLOR_CORRECTION, 0, 0, NULL);
-		xco+= XIC;
-#endif
-		xco+= 8;
-
-		/* record & play */
-		uiBlockBeginAlign(block);
-		if(ima->type==IMA_TYPE_COMPOSITE) {
-			uiDefIconButO(block, BUT, "IMAGE_OT_record_composite", WM_OP_INVOKE_REGION_WIN, ICON_REC, xco, yco, XIC, YIC, NULL); // Record Composite
-			xco+= XIC;
-		}
-		if((ima->type==IMA_TYPE_COMPOSITE) || ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-//XXX			uiDefIconButO(block, BUT, "IMAGE_OT_play_composite", WM_OP_INVOKE_REGION_WIN, ICON_PLAY, xco, yco, XIC, YIC, NULL); // PLAY
-			xco+= XIC;
-		}
-		uiBlockEndAlign(block);
-		xco+= 8;
-
-	}
-	
-	/* draw lock */
-	uiDefIconButR(block, ICONTOG, 0, ICON_UNLOCKED,	xco,yco,XIC,YIC, &spaceptr, "update_automatically", 0, 0, 0, 0, 0, NULL);
-
-	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
-	
-	uiEndBlock(C, block);
-	uiDrawBlock(C, block);
-}
 
 /********************** toolbox operator *********************/
 
@@ -949,10 +428,10 @@ static int toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	pup= uiPupMenuBegin(C, "Toolbox", 0);
 	layout= uiPupMenuLayout(pup);
 
-	uiItemMenuF(layout, "View", 0, image_viewmenu);
-	if(show_uvedit) uiItemMenuF(layout, "Select", 0, image_selectmenu);
-	uiItemMenuF(layout, "Image", 0, image_imagemenu);
-	if(show_uvedit) uiItemMenuF(layout, "UVs", 0, image_uvsmenu);
+	uiItemM(layout, C, NULL, 0, "IMAGE_MT_view");
+	if(show_uvedit) uiItemM(layout, C, NULL, 0, "IMAGE_MT_select");
+	uiItemM(layout, C, NULL, 0, "IMAGE_MT_image");
+	if(show_uvedit) uiItemM(layout, C, NULL, 0, "IMAGE_MT_uvs");
 
 	uiPupMenuEnd(C, pup);
 

@@ -44,7 +44,6 @@ class BL_InterpolatorList;
 class BL_Material;
 struct IpoCurve;
 struct Main;
-struct SpaceIpo;
 struct Scene;
 
 class KX_BlenderSceneConverter : public KX_ISceneConverter
@@ -66,10 +65,9 @@ class KX_BlenderSceneConverter : public KX_ISceneConverter
 	GEN_Map<CHashedPtr,SCA_IActuator*> m_map_blender_to_gameactuator;
 	GEN_Map<CHashedPtr,SCA_IController*> m_map_blender_to_gamecontroller;
 	
-	GEN_Map<CHashedPtr,BL_InterpolatorList*> m_map_blender_to_gameipolist;
+	GEN_Map<CHashedPtr,BL_InterpolatorList*> m_map_blender_to_gameAdtList;
 	
 	Main*					m_maggie;
-	SpaceIpo*				m_sipo;
 
 	STR_String				m_newfilename;
 	class KX_KetsjiEngine*	m_ketsjiEngine;
@@ -78,13 +76,12 @@ class KX_BlenderSceneConverter : public KX_ISceneConverter
 	bool					m_usemat;
 	bool					m_useglslmat;
 
-	void localDel_ipoCurve ( IpoCurve * icu ,struct SpaceIpo*	sipo);
+	void localDel_ipoCurve ( IpoCurve * icu );
 //	struct Ipo* findIpoForName(char* objName);
 
 public:
 	KX_BlenderSceneConverter(
 		Main* maggie,
-		SpaceIpo *sipo,
 		class KX_KetsjiEngine* engine
 	);
 
@@ -124,8 +121,8 @@ public:
 
 	void RegisterBlenderMaterial(BL_Material *mat);
 	
-	void RegisterInterpolatorList(BL_InterpolatorList *ipoList, struct Ipo *for_ipo);
-	BL_InterpolatorList *FindInterpolatorList(struct Ipo *for_ipo);
+	void RegisterInterpolatorList(BL_InterpolatorList *adtList, struct AnimData *for_adt);
+	BL_InterpolatorList *FindInterpolatorList(struct AnimData *for_adt);
 
 	void RegisterGameActuator(SCA_IActuator *act, struct bActuator *for_actuator);
 	SCA_IActuator *FindGameActuator(struct bActuator *for_actuator);

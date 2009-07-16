@@ -253,6 +253,10 @@ void free_image(Image *ima)
 	if (ima->preview) {
 		BKE_previewimg_free(&ima->preview);
 	}
+	if (ima->render_text) {
+		MEM_freeN(ima->render_text);
+		ima->render_text= NULL;
+	}
 }
 
 /* only image block itself */
@@ -856,6 +860,9 @@ int BKE_imtype_is_movie(int imtype)
 	case R_AVICODEC:
 	case R_QUICKTIME:
 	case R_FFMPEG:
+	case R_H264:
+	case R_THEORA:
+	case R_XVID:
 	case R_FRAMESERVER:
 			return 1;
 	}
@@ -866,7 +873,7 @@ void BKE_add_image_extension(Scene *scene, char *string, int imtype)
 {
 	char *extension="";
 	
-	if(scene->r.imtype== R_IRIS) {
+	if(imtype== R_IRIS) {
 		if(!BLI_testextensie(string, ".rgb"))
 			extension= ".rgb";
 	}
@@ -878,7 +885,7 @@ void BKE_add_image_extension(Scene *scene, char *string, int imtype)
 		if(!BLI_testextensie(string, ".hdr"))
 			extension= ".hdr";
 	}
-	else if(imtype==R_PNG || imtype==R_FFMPEG) {
+	else if (ELEM5(imtype, R_PNG, R_FFMPEG, R_H264, R_THEORA, R_XVID)) {
 		if(!BLI_testextensie(string, ".png"))
 			extension= ".png";
 	}
@@ -1226,7 +1233,7 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 	else if ((imtype==R_RADHDR)) {
 		ibuf->ftype= RADHDR;
 	}
-	else if (imtype==R_PNG || imtype==R_FFMPEG) {
+	else if (ELEM5(imtype, R_PNG, R_FFMPEG, R_H264, R_THEORA, R_XVID)) {
 		ibuf->ftype= PNG;
 	}
 #ifdef WITH_DDS
@@ -1301,7 +1308,7 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 	
 	BLI_make_existing_file(name);
 
-	if(scene->r.scemode & R_STAMP_INFO)
+	if(scene->r.stamp & R_STAMP_ALL)
 		BKE_stamp_info(scene, ibuf);
 	
 	ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);
@@ -1431,7 +1438,7 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 		/* try to repack file */
 		if(ima->packedfile) {
 			PackedFile *pf;
-			pf = newPackedFile(ima->name);
+			pf = newPackedFile(NULL, ima->name);
 			if (pf) {
 				freePackedFile(ima->packedfile);
 				ima->packedfile = pf;
@@ -1750,7 +1757,7 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 			
 			/* make packed file for autopack */
 			if ((ima->packedfile == NULL) && (G.fileflags & G_AUTOPACK))
-				ima->packedfile = newPackedFile(str);
+				ima->packedfile = newPackedFile(NULL, str);
 		}
 		
 		if(ima->flag & IMA_DO_PREMUL)
@@ -1812,7 +1819,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
 	Render *re= NULL;
 	RenderResult *rr= NULL;
 	
-	if(iuser->scene) {
+	if(iuser && iuser->scene) {
 		re= RE_GetRender(iuser->scene->id.name);
 		rr= RE_GetResult(re);
 	}

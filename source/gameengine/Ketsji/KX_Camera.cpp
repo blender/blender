@@ -42,10 +42,9 @@ KX_Camera::KX_Camera(void* sgReplicationInfo,
 					 SG_Callbacks callbacks,
 					 const RAS_CameraData& camdata,
 					 bool frustum_culling,
-					 bool delete_node,
-					 PyTypeObject *T)
+					 bool delete_node)
 					:
-					KX_GameObject(sgReplicationInfo,callbacks,T),
+					KX_GameObject(sgReplicationInfo,callbacks),
 					m_camdata(camdata),
 					m_dirty(true),
 					m_normalized(false),
@@ -547,41 +546,22 @@ PyTypeObject KX_Camera::Type = {
 		0,
 		0,
 		py_base_repr,
-		0,0,
+		0,
+		&KX_GameObject::Sequence,
 		&KX_GameObject::Mapping,
 		0,0,0,
-		py_base_getattro,
-		py_base_setattro,
-		0,0,0,0,0,0,0,0,0,
-		Methods
+		NULL,
+		NULL,
+		0,
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+		0,0,0,0,0,0,0,
+		Methods,
+		0,
+		0,
+		&KX_GameObject::Type,
+		0,0,0,0,0,0,
+		py_base_new
 };
-
-
-
-
-
-
-PyParentObject KX_Camera::Parents[] = {
-	&KX_Camera::Type,
-	&KX_GameObject::Type,
-		&SCA_IObject::Type,
-		&CValue::Type,
-		NULL
-};
-
-PyObject* KX_Camera::py_getattro(PyObject *attr)
-{
-	py_getattro_up(KX_GameObject);
-}
-
-PyObject* KX_Camera::py_getattro_dict() {
-	py_getattro_dict_up(KX_GameObject);
-}
-
-int KX_Camera::py_setattro(PyObject *attr, PyObject *value)
-{	
-	py_setattro_up(KX_GameObject);
-}
 
 KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, sphereInsideFrustum,
 "sphereInsideFrustum(center, radius) -> Integer\n"
@@ -608,7 +588,7 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, sphereInsideFrustum,
 		MT_Point3 center;
 		if (PyVecTo(pycenter, center))
 		{
-			return PyInt_FromLong(SphereInsideFrustum(center, radius)); /* new ref */
+			return PyLong_FromSsize_t(SphereInsideFrustum(center, radius)); /* new ref */
 		}
 	}
 
@@ -659,7 +639,7 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, boxInsideFrustum,
 			return NULL;
 	}
 	
-	return PyInt_FromLong(BoxInsideFrustum(box)); /* new ref */
+	return PyLong_FromSsize_t(BoxInsideFrustum(box)); /* new ref */
 }
 
 KX_PYMETHODDEF_DOC_O(KX_Camera, pointInsideFrustum,
@@ -681,7 +661,7 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, pointInsideFrustum,
 	MT_Point3 point;
 	if (PyVecTo(value, point))
 	{
-		return PyInt_FromLong(PointInsideFrustum(point)); /* new ref */
+		return PyLong_FromSsize_t(PointInsideFrustum(point)); /* new ref */
 	}
 	
 	PyErr_SetString(PyExc_TypeError, "camera.pointInsideFrustum(point): KX_Camera, expected point argument.");
@@ -949,11 +929,11 @@ PyObject* KX_Camera::pyattr_get_world_to_camera(void *self_v, const KX_PYATTRIBU
 
 
 PyObject* KX_Camera::pyattr_get_INSIDE(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
-{	return PyInt_FromLong(INSIDE); }
+{	return PyLong_FromSsize_t(INSIDE); }
 PyObject* KX_Camera::pyattr_get_OUTSIDE(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
-{	return PyInt_FromLong(OUTSIDE); }
+{	return PyLong_FromSsize_t(OUTSIDE); }
 PyObject* KX_Camera::pyattr_get_INTERSECT(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
-{	return PyInt_FromLong(INTERSECT); }
+{	return PyLong_FromSsize_t(INTERSECT); }
 
 
 bool ConvertPythonToCamera(PyObject * value, KX_Camera **object, bool py_none_ok, const char *error_prefix)
@@ -975,14 +955,14 @@ bool ConvertPythonToCamera(PyObject * value, KX_Camera **object, bool py_none_ok
 		}
 	}
 	
-	if (PyString_Check(value)) {
-		STR_String value_str = PyString_AsString(value);
+	if (PyUnicode_Check(value)) {
+		STR_String value_str = _PyUnicode_AsString(value);
 		*object = KX_GetActiveScene()->FindCamera(value_str);
 		
 		if (*object) {
 			return true;
 		} else {
-			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_Camera in this scene", error_prefix, PyString_AsString(value));
+			PyErr_Format(PyExc_ValueError, "%s, requested name \"%s\" did not match any KX_Camera in this scene", error_prefix, _PyUnicode_AsString(value));
 			return false;
 		}
 	}
@@ -1139,7 +1119,7 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenRay,
 		PyTuple_SET_ITEM(argValue, 0, PyObjectFrom(vect));
 		PyTuple_SET_ITEM(argValue, 1, PyFloat_FromDouble(dist));
 		if (propName)
-			PyTuple_SET_ITEM(argValue, 2, PyString_FromString(propName));
+			PyTuple_SET_ITEM(argValue, 2, PyUnicode_FromString(propName));
 
 		PyObject* ret= this->PyrayCastTo(argValue,NULL);
 		Py_DECREF(argValue);

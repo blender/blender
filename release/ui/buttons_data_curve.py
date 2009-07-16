@@ -7,30 +7,41 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		ob = context.object
-		return (ob and ob.type == 'CURVE' and context.curve)
+		return (context.object and context.object.type == 'CURVE' and context.curve)
 
-class DATA_PT_shape_curve(DataButtonsPanel):
-	__idname__ = "DATA_PT_shape_curve"
-	__label__ = "Shape"
-
+class DATA_PT_context_curve(DataButtonsPanel):
+	__idname__ = "DATA_PT_context_curve"
+	__no_header__ = True
+	
 	def draw(self, context):
+		layout = self.layout
+		
 		ob = context.object
 		curve = context.curve
 		space = context.space_data
-		layout = self.layout
 
 		split = layout.split(percentage=0.65)
 
 		if ob:
-			split.template_ID(context, ob, "data")
+			split.template_ID(ob, "data")
 			split.itemS()
 		elif curve:
-			split.template_ID(context, space, "pin_id")
+			split.template_ID(space, "pin_id")
 			split.itemS()
 
+
+class DATA_PT_shape_curve(DataButtonsPanel):
+	__idname__ = "DATA_PT_shape_curve"
+	__label__ = "Shape"
+	
+	def draw(self, context):
+		layout = self.layout
+		
+		ob = context.object
+		curve = context.curve
+		space = context.space_data
+
 		if curve:
-			layout.itemS()
 			layout.itemR(curve, "curve_2d")			
 							
 			split = layout.split()
@@ -43,7 +54,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 			colsub.itemR(curve, "back")
 			
 			col.itemL(text="Textures:")
-			col.itemR(curve, "uv_orco")
+#			col.itemR(curve, "uv_orco")
 			col.itemR(curve, "auto_texspace")
 			
 			sub = split.column()	
@@ -53,18 +64,18 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 			sub.itemR(curve, "render_resolution_u", text="Render U")
 			sub.itemR(curve, "render_resolution_v", text="Render V")
 
-			sub.itemL(text="Display:")
-			sub.itemL(text="HANDLES")
-			sub.itemL(text="NORMALS")
-			sub.itemR(curve, "vertex_normal_flip")
+#			sub.itemL(text="Display:")
+#			sub.itemL(text="HANDLES")
+#			sub.itemL(text="NORMALS")
+#			sub.itemR(curve, "vertex_normal_flip")
 
-class DATA_PT_geometry(DataButtonsPanel):
-	__idname__ = "DATA_PT_geometry"
-	__label__ = "Geometry"
+class DATA_PT_geometry_curve(DataButtonsPanel):
+	__idname__ = "DATA_PT_geometry_curve"
+	__label__ = "Geometry "
 
 	def draw(self, context):
-		curve = context.curve
 		layout = self.layout
+		curve = context.curve
 
 		split = layout.split()
 	
@@ -72,22 +83,22 @@ class DATA_PT_geometry(DataButtonsPanel):
 		sub.itemL(text="Modification:")
 		sub.itemR(curve, "width")
 		sub.itemR(curve, "extrude")
-		sub.itemR(curve, "taper_object")
+		sub.itemR(curve, "taper_object", icon="ICON_OUTLINER_OB_CURVE")
 		
 		sub = split.column()
 		sub.itemL(text="Bevel:")
 		sub.itemR(curve, "bevel_depth", text="Depth")
 		sub.itemR(curve, "bevel_resolution", text="Resolution")
-		sub.itemR(curve, "bevel_object")
+		sub.itemR(curve, "bevel_object", icon="ICON_OUTLINER_OB_CURVE")
 	
 class DATA_PT_pathanim(DataButtonsPanel):
 	__idname__ = "DATA_PT_pathanim"
 	__label__ = "Path Animation"
 	
 	def draw_header(self, context):
+		layout = self.layout
 		curve = context.curve
 
-		layout = self.layout
 		layout.itemR(curve, "path", text="")
 
 	def draw(self, context):
@@ -110,8 +121,8 @@ class DATA_PT_current_curve(DataButtonsPanel):
 	__label__ = "Current Curve"
 
 	def draw(self, context):
-		currentcurve = context.curve.curves[0] # XXX
 		layout = self.layout
+		currentcurve = context.curve.curves[0] # XXX
 
 		split = layout.split()
 	
@@ -138,7 +149,9 @@ class DATA_PT_current_curve(DataButtonsPanel):
 		sub.itemR(currentcurve, "radius_interpolation", text="Tilt")
 		sub.itemR(currentcurve, "smooth")
 		
+bpy.types.register(DATA_PT_context_curve)
 bpy.types.register(DATA_PT_shape_curve)
-bpy.types.register(DATA_PT_geometry)
+bpy.types.register(DATA_PT_geometry_curve)
 bpy.types.register(DATA_PT_pathanim)
 bpy.types.register(DATA_PT_current_curve)
+

@@ -86,54 +86,55 @@ static void alter_co(float *co, BMEdge *edge, subdparams *params, float perc,
 		     BMVert *vsta, BMVert *vend)
 {
 	float vec1[3], fac;
-	
-	if(params->flag & B_SMOOTH) {
+
+	if(params->beauty & B_SMOOTH) {
 		/* we calculate an offset vector vec1[], to be added to *co */
-		float len, fac, nor[3], nor1[3], nor2[3];
-		
+		float len, fac, nor[3], nor1[3], nor2[3], smooth=params->smooth;
+
 		VecSubf(nor, vsta->co, vend->co);
 		len= 0.5f*Normalize(nor);
-	
+
 		VECCOPY(nor1, vsta->no);
 		VECCOPY(nor2, vend->no);
-	
+
 		/* cosine angle */
 		fac= nor[0]*nor1[0] + nor[1]*nor1[1] + nor[2]*nor1[2] ;
-		
+
 		vec1[0]= fac*nor1[0];
 		vec1[1]= fac*nor1[1];
 		vec1[2]= fac*nor1[2];
-	
+
 		/* cosine angle */
 		fac= -nor[0]*nor2[0] - nor[1]*nor2[1] - nor[2]*nor2[2] ;
-		
+
 		vec1[0]+= fac*nor2[0];
 		vec1[1]+= fac*nor2[1];
 		vec1[2]+= fac*nor2[2];
-		
-		vec1[0]*= params->rad*len;
-		vec1[1]*= params->rad*len;
-		vec1[2]*= params->rad*len;
-		
+
+		/* falloff for multi subdivide */
+		smooth *= sqrt(fabs(1.0f - 2.0f*fabs(perc)));
+
+		vec1[0]*= smooth*len;
+		vec1[1]*= smooth*len;
+		vec1[2]*= smooth*len;
+
 		co[0] += vec1[0];
 		co[1] += vec1[1];
 		co[2] += vec1[2];
 	}
-	else {
-		if(params->rad > 0.0) {   /* subdivide sphere */
-			Normalize(co);
-			co[0]*= params->rad;
-			co[1]*= params->rad;
-			co[2]*= params->rad;
-		}
-		else if(params->rad< 0.0) {  /* fractal subdivide */
-			fac= params->rad* VecLenf(vsta->co, vend->co);
-			vec1[0]= fac*(float)(0.5-BLI_drand());
-			vec1[1]= fac*(float)(0.5-BLI_drand());
-			vec1[2]= fac*(float)(0.5-BLI_drand());
-			VecAddf(co, co, vec1);
-		}
+	else if(params->beauty & B_SPHERE) { /* subdivide sphere */
+		Normalize(co);
+		co[0]*= params->smooth;
+		co[1]*= params->smooth;
+		co[2]*= params->smooth;
+	}
 
+	if(params->beauty & B_FRACTAL) {
+		fac= params->fractal*VecLenf(vsta->co, vend->co);
+		vec1[0]= fac*(float)(0.5-BLI_drand());
+		vec1[1]= fac*(float)(0.5-BLI_drand());
+		vec1[2]= fac*(float)(0.5-BLI_drand());
+		VecAddf(co, co, vec1);
 	}
 }
 
@@ -622,14 +623,16 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	subdparams params;
 	subd_facedata *facedata = NULL;
 	V_DECLARE(facedata);
-	float rad;
-	int i, j, matched, a, b, numcuts, flag;
+	float smooth, fractal;
+	int beauty;
+	int i, j, matched, a, b, numcuts;
 	
 	BMO_Flag_Buffer(bmesh, op, "edges", SUBD_SPLIT);
 	
 	numcuts = BMO_GetSlot(op, "numcuts")->data.i;
-	flag = BMO_GetSlot(op, "flag")->data.i;
-	rad = BMO_GetSlot(op, "radius")->data.f;
+	smooth = BMO_GetSlot(op, "smooth")->data.f;
+	fractal = BMO_GetSlot(op, "fractal")->data.f;
+	beauty = BMO_GetSlot(op, "beauty")->data.i;
 
 	einput = BMO_GetSlot(op, "edges");
 	
@@ -637,10 +640,11 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	BMO_Flag_To_Slot(bmesh, op, "edges",
 	         SUBD_SPLIT, BM_EDGE);
 
-	params.flag = flag;
 	params.numcuts = numcuts;
 	params.op = op;
-	params.rad = rad;
+	params.smooth = smooth;
+	params.fractal = fractal;
+	params.beauty = beauty;
 
 	BMO_Mapping_To_Flag(bmesh, op, "custompatterns",
 	                    FACE_CUSTOMFILL);
@@ -781,15 +785,16 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 }
 
 /*editmesh-emulating function*/
-void BM_esubdivideflag(Object *obedit, BMesh *bm, int selflag, float rad, 
-		       int flag, int numcuts, int seltype) {
+void BM_esubdivideflag(Object *obedit, BMesh *bm, int flag, float smooth, 
+		       float fractal, int beauty, int numcuts, int seltype) {
 	BMOperator op;
 	
-	BMO_InitOpf(bm, &op, "esubd edges=%he flag=%d radius=%f numcuts=%d",
-	            selflag, flag, rad, numcuts);
-
+	BMO_InitOpf(bm, &op, "esubd edges=%he smooth=%f fractal=%f "
+		             "beauty=%d numcuts=%d", flag, smooth, fractal,
+			     beauty, numcuts);
+	
 	BMO_Exec_Op(bm, &op);
-
+	
 	if (seltype == SUBDIV_SELECT_INNER) {
 		BMOIter iter;
 		BMHeader *ele;
@@ -803,6 +808,7 @@ void BM_esubdivideflag(Object *obedit, BMesh *bm, int selflag, float rad,
 	BMO_Finish_Op(bm, &op);
 }
 
+#if 0
 void BM_esubdivideflag_conv(Object *obedit,EditMesh *em,int selflag, float rad, 
 		       int flag, int numcuts, int seltype) {
 	BMesh *bm = editmesh_to_bmesh(em);
@@ -816,3 +822,4 @@ void BM_esubdivideflag_conv(Object *obedit,EditMesh *em,int selflag, float rad,
 	MEM_freeN(em2);
 	BM_Free_Mesh(bm);
 }
+#endif

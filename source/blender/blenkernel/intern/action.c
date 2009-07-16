@@ -581,6 +581,77 @@ void game_copy_pose(bPose **dst, bPose *src)
 	*dst=out;
 }
 
+
+/* Only allowed for Poses with identical channels */
+void game_blend_poses(bPose *dst, bPose *src, float srcweight/*, short mode*/)
+{
+	short mode= ACTSTRIPMODE_BLEND;
+	
+	bPoseChannel *dchan;
+	const bPoseChannel *schan;
+	bConstraint *dcon, *scon;
+	float dstweight;
+	int i;
+
+	switch (mode){
+	case ACTSTRIPMODE_BLEND:
+		dstweight = 1.0F - srcweight;
+		break;
+	case ACTSTRIPMODE_ADD:
+		dstweight = 1.0F;
+		break;
+	default :
+		dstweight = 1.0F;
+	}
+	
+	schan= src->chanbase.first;
+	for (dchan = dst->chanbase.first; dchan; dchan=dchan->next, schan= schan->next){
+		if (schan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE)) {
+			/* replaced quat->matrix->quat conversion with decent quaternion interpol (ton) */
+			
+			/* Do the transformation blend */
+			if (schan->flag & POSE_ROT) {
+				/* quat interpolation done separate */
+				if (schan->rotmode == PCHAN_ROT_QUAT) {
+					float dquat[4], squat[4];
+					
+					QUATCOPY(dquat, dchan->quat);
+					QUATCOPY(squat, schan->quat);
+					if (mode==ACTSTRIPMODE_BLEND)
+						QuatInterpol(dchan->quat, dquat, squat, srcweight);
+					else {
+						QuatMulFac(squat, srcweight);
+						QuatMul(dchan->quat, dquat, squat);
+					}
+					
+					NormalQuat(dchan->quat);
+				}
+			}
+
+			for (i=0; i<3; i++) {
+				/* blending for loc and scale are pretty self-explanatory... */
+				if (schan->flag & POSE_LOC)
+					dchan->loc[i] = (dchan->loc[i]*dstweight) + (schan->loc[i]*srcweight);
+				if (schan->flag & POSE_SIZE)
+					dchan->size[i] = 1.0f + ((dchan->size[i]-1.0f)*dstweight) + ((schan->size[i]-1.0f)*srcweight);
+				
+				/* euler-rotation interpolation done here instead... */
+				// FIXME: are these results decent?
+				if ((schan->flag & POSE_ROT) && (schan->rotmode))
+					dchan->eul[i] = (dchan->eul[i]*dstweight) + (schan->eul[i]*srcweight);
+			}
+			dchan->flag |= schan->flag;
+		}
+		for(dcon= dchan->constraints.first, scon= schan->constraints.first; dcon && scon; dcon= dcon->next, scon= scon->next) {
+			/* no 'add' option for constraint blending */
+			dcon->enforce= dcon->enforce*(1.0f-srcweight) + scon->enforce*srcweight;
+		}
+	}
+	
+	/* this pose is now in src time */
+	dst->ctime= src->ctime;
+}
+
 void game_free_pose(bPose *pose)
 {
 	if (pose) {
@@ -698,69 +769,22 @@ void framechange_poses_clear_unkeyed(void)
 
 /* ************** time ****************** */
 
-static bActionStrip *get_active_strip(Object *ob)
+/* Check if the given action has any keyframes */
+short action_has_motion(const bAction *act)
 {
-#if 0	// XXX old animation system
-	bActionStrip *strip;
+	FCurve *fcu;
 	
-	if(ob->action==NULL)
-		return NULL;
-		
-	for (strip=ob->nlastrips.first; strip; strip=strip->next)
-		if(strip->flag & ACTSTRIP_ACTIVE)
-			break;
+	/* return on the first F-Curve that has some keyframes/samples defined */
+	if (act) {
+		for (fcu= act->curves.first; fcu; fcu= fcu->next) {
+			if (fcu->totvert)
+				return 1;
+		}
+	}
 	
-	if(strip && strip->act==ob->action)
-		return strip;
-#endif // XXX old animation system
-		
-	return NULL;
+	/* nothing found */
+	return 0;
 }
-
-/* non clipped mapping of strip */
-static float get_actionstrip_frame(bActionStrip *strip, float cframe, int invert)
-{
-	float length, actlength, repeat, scale;
-	
-	if (strip->repeat == 0.0f) strip->repeat = 1.0f;
-	repeat = (strip->flag & ACTSTRIP_USESTRIDE) ? (1.0f) : (strip->repeat);
-	
-	if (strip->scale == 0.0f) strip->scale= 1.0f;
-	scale = (float)fabs(strip->scale); /* scale must be positive (for now) */
-	
-	actlength = strip->actend-strip->actstart;
-	if (actlength == 0.0f) actlength = 1.0f;
-	length = repeat * scale * actlength;
-	
-	/* invert = convert action-strip time to global time */
-	if (invert)
-		return length*(cframe - strip->actstart)/(repeat*actlength) + strip->start;
-	else
-		return repeat*actlength*(cframe - strip->start)/length + strip->actstart;
-}
-
-/* if the conditions match, it converts current time to strip time */
-float get_action_frame(Object *ob, float cframe)
-{
-	bActionStrip *strip= get_active_strip(ob);
-	
-	if(strip)
-		return get_actionstrip_frame(strip, cframe, 0);
-	return cframe;
-}
-
-/* inverted, strip time to current time */
-float get_action_frame_inv(Object *ob, float cframe)
-{
-	bActionStrip *strip= get_active_strip(ob);
-	
-	if(strip)
-		return get_actionstrip_frame(strip, cframe, 1);
-	return cframe;
-}
-
-
-
 
 /* Calculate the extents of given action */
 void calc_action_range(const bAction *act, float *start, float *end, int incl_hidden)
@@ -800,6 +824,7 @@ void calc_action_range(const bAction *act, float *start, float *end, int incl_hi
 /* Copy the data from the action-pose (src) into the pose */
 /* both args are assumed to be valid */
 /* exported to game engine */
+/* Note! this assumes both poses are aligned, this isnt always true when dealing with user poses */
 void extract_pose_from_pose(bPose *pose, const bPose *src)
 {
 	const bPoseChannel *schan;
@@ -810,7 +835,7 @@ void extract_pose_from_pose(bPose *pose, const bPose *src)
 		return;
 	}
 
-	for (schan=src->chanbase.first; schan; schan=schan->next, pchan= pchan->next) {
+	for (schan=src->chanbase.first; (schan && pchan); schan=schan->next, pchan= pchan->next) {
 		copy_pose_channel_data(pchan, schan);
 	}
 }
@@ -1036,75 +1061,6 @@ static void blend_pose_offset_bone(bActionStrip *strip, bPose *dst, bPose *src, 
 	}
 	
 	VecAddf(dst->cyclic_offset, dst->cyclic_offset, src->cyclic_offset);
-}
-
-
-/* Only allowed for Poses with identical channels */
-void blend_poses(bPose *dst, bPose *src, float srcweight, short mode)
-{
-	bPoseChannel *dchan;
-	const bPoseChannel *schan;
-	bConstraint *dcon, *scon;
-	float dstweight;
-	int i;
-	
-	switch (mode){
-	case ACTSTRIPMODE_BLEND:
-		dstweight = 1.0F - srcweight;
-		break;
-	case ACTSTRIPMODE_ADD:
-		dstweight = 1.0F;
-		break;
-	default :
-		dstweight = 1.0F;
-	}
-	
-	schan= src->chanbase.first;
-	for (dchan = dst->chanbase.first; dchan; dchan=dchan->next, schan= schan->next){
-		if (schan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE)) {
-			/* replaced quat->matrix->quat conversion with decent quaternion interpol (ton) */
-			
-			/* Do the transformation blend */
-			if (schan->flag & POSE_ROT) {
-				/* quat interpolation done separate */
-				if (schan->rotmode == PCHAN_ROT_QUAT) {
-					float dquat[4], squat[4];
-					
-					QUATCOPY(dquat, dchan->quat);
-					QUATCOPY(squat, schan->quat);
-					if (mode==ACTSTRIPMODE_BLEND)
-						QuatInterpol(dchan->quat, dquat, squat, srcweight);
-					else {
-						QuatMulFac(squat, srcweight);
-						QuatMul(dchan->quat, dquat, squat);
-					}
-					
-					NormalQuat(dchan->quat);
-				}
-			}
-
-			for (i=0; i<3; i++) {
-				/* blending for loc and scale are pretty self-explanatory... */
-				if (schan->flag & POSE_LOC)
-					dchan->loc[i] = (dchan->loc[i]*dstweight) + (schan->loc[i]*srcweight);
-				if (schan->flag & POSE_SIZE)
-					dchan->size[i] = 1.0f + ((dchan->size[i]-1.0f)*dstweight) + ((schan->size[i]-1.0f)*srcweight);
-				
-				/* euler-rotation interpolation done here instead... */
-				// FIXME: are these results decent?
-				if ((schan->flag & POSE_ROT) && (schan->rotmode))
-					dchan->eul[i] = (dchan->eul[i]*dstweight) + (schan->eul[i]*srcweight);
-			}
-			dchan->flag |= schan->flag;
-		}
-		for(dcon= dchan->constraints.first, scon= schan->constraints.first; dcon && scon; dcon= dcon->next, scon= scon->next) {
-			/* no 'add' option for constraint blending */
-			dcon->enforce= dcon->enforce*(1.0f-srcweight) + scon->enforce*srcweight;
-		}
-	}
-	
-	/* this pose is now in src time */
-	dst->ctime= src->ctime;
 }
 
 typedef struct NlaIpoChannel {

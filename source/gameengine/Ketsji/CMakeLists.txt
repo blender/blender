@@ -53,7 +53,8 @@ SET(INC
   ../../../source/gameengine/Ketsji 
   ../../../source/blender/blenlib
   ../../../source/blender/blenkernel
-  ../../../source/blender/python/api2_2x
+  ../../../source/blender/python
+  ../../../source/blender/python/generic
   ../../../source/blender 
   ../../../source/blender/include
   ../../../source/blender/makesdna 

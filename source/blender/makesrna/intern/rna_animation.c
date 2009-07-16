@@ -79,11 +79,11 @@ void rna_def_keyingset_path(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_mode_grouping_items[] = {
-		{KSP_GROUP_NAMED, "NAMED", "Named Group", ""},
-		{KSP_GROUP_NONE, "NONE", "None", ""},
-		{KSP_GROUP_KSNAME, "KEYINGSET", "Keying Set Name", ""},
-		{KSP_GROUP_TEMPLATE_ITEM, "TEMPLATE", "Innermost Context-Item Name", ""},
-		{0, NULL, NULL, NULL}};
+		{KSP_GROUP_NAMED, "NAMED", 0, "Named Group", ""},
+		{KSP_GROUP_NONE, "NONE", 0, "None", ""},
+		{KSP_GROUP_KSNAME, "KEYINGSET", 0, "Keying Set Name", ""},
+		{KSP_GROUP_TEMPLATE_ITEM, "TEMPLATE", 0, "Innermost Context-Item Name", ""},
+		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "KeyingSetPath", NULL);
 	RNA_def_struct_sdna(srna, "KS_Path");
@@ -184,7 +184,7 @@ void rna_def_animdata(BlenderRNA *brna)
 	/* NLA */
 	prop= RNA_def_property(srna, "nla_tracks", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "nla_tracks", NULL);
-	RNA_def_property_struct_type(prop, "UnknownType"); // XXX!
+	RNA_def_property_struct_type(prop, "NlaTrack");
 	RNA_def_property_ui_text(prop, "NLA Tracks", "NLA Tracks (i.e. Animation Layers).");
 	
 	/* Action */

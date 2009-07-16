@@ -26,15 +26,18 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-//XXX #include "BIF_scrarea.h"
 #include "KX_BlenderCanvas.h"
+#include "DNA_screen_types.h"
+#include "stdio.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
-KX_BlenderCanvas::KX_BlenderCanvas(struct ScrArea *area) :
-m_area(area)
+
+KX_BlenderCanvas::KX_BlenderCanvas(struct wmWindow *win, ARegion *ar) :
+m_win(win),
+m_ar(ar)
 {
 }
 
@@ -50,7 +53,7 @@ void KX_BlenderCanvas::Init()
 
 void KX_BlenderCanvas::SwapBuffers()
 {
-	BL_SwapBuffers();
+	BL_SwapBuffers(m_win);
 }
 
 void KX_BlenderCanvas::BeginFrame()
@@ -93,12 +96,12 @@ void KX_BlenderCanvas::ClearBuffer(int type)
 
 int KX_BlenderCanvas::GetWidth(
 ) const {
-	return 0; //XXX scrarea_get_win_width(m_area);
+	return m_ar->winx;
 }
 
 int KX_BlenderCanvas::GetHeight(
 ) const {
-	return 0; //XXX scrarea_get_win_height(m_area);
+	return m_ar->winy;
 }
 
 RAS_Rect &
@@ -116,8 +119,8 @@ SetViewPort(
 ){
 	int vp_width = (x2 - x1) + 1;
 	int vp_height = (y2 - y1) + 1;
-	int minx = 0;//XXX scrarea_get_win_x(m_area);
-	int miny = 0;//XXX scrarea_get_win_y(m_area);
+	int minx = m_ar->winrct.xmin;
+	int miny = m_ar->winrct.ymin;
 
 	m_area_rect.SetLeft(minx + x1);
 	m_area_rect.SetBottom(miny + y1);
@@ -159,9 +162,9 @@ void KX_BlenderCanvas::SetMouseState(RAS_MouseState mousestate)
 //	(0,0) is top left, (width,height) is bottom right
 void KX_BlenderCanvas::SetMousePosition(int x,int y)
 {
-	int winX = 0;//XXX scrarea_get_win_x(m_area);
-	int winY = 0;//XXX scrarea_get_win_y(m_area);
-	int winH = 0;//XXX scrarea_get_win_height(m_area);
+	int winX = m_ar->winrct.xmin;
+	int winY = m_ar->winrct.ymin;
+	int winH = m_ar->winy;
 	
 	BL_warp_pointer(winX + x, winY + (winH-y-1));
 }
@@ -170,5 +173,5 @@ void KX_BlenderCanvas::SetMousePosition(int x,int y)
 
 void KX_BlenderCanvas::MakeScreenShot(const char* filename)
 {
-	BL_MakeScreenShot(m_area, filename);
+	BL_MakeScreenShot(m_ar, filename);
 }

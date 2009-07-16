@@ -151,7 +151,12 @@ static void info_main_area_draw(const bContext *C, ARegion *ar)
 
 void info_operatortypes(void)
 {
-	
+	WM_operatortype_append(FILE_OT_pack_all);
+	WM_operatortype_append(FILE_OT_unpack_all);
+	WM_operatortype_append(FILE_OT_make_paths_relative);
+	WM_operatortype_append(FILE_OT_make_paths_absolute);
+	WM_operatortype_append(FILE_OT_report_missing_files);
+	WM_operatortype_append(FILE_OT_find_missing_files);
 }
 
 void info_keymap(struct wmWindowManager *wm)
@@ -162,29 +167,12 @@ void info_keymap(struct wmWindowManager *wm)
 /* add handlers, stuff you only do once or on area/region changes */
 static void info_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+	ED_region_header_init(ar);
 }
 
 static void info_header_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
-	/* clear */
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
-	info_header_buttons(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	ED_region_header(C, ar);
 }
 
 static void info_main_area_listener(ARegion *ar, wmNotifier *wmn)

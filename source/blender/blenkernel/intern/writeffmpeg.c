@@ -937,5 +937,322 @@ void end_ffmpeg(void)
 		img_convert_ctx = 0;
 	}
 }
+
+/* properties */
+
+void ffmpeg_property_del(RenderData *rd, void *type, void *prop_)
+{
+	struct IDProperty *prop = (struct IDProperty *) prop_;
+	IDProperty * group;
+	
+	if (!rd->ffcodecdata.properties) {
+		return;
+	}
+
+	group = IDP_GetPropertyFromGroup(
+		rd->ffcodecdata.properties, (char*) type);
+	if (group && prop) {
+		IDP_RemFromGroup(group, prop);
+		IDP_FreeProperty(prop);
+		MEM_freeN(prop);
+	}
+}
+
+IDProperty *ffmpeg_property_add(RenderData *rd, char * type, int opt_index, int parent_index)
+{
+	AVCodecContext c;
+	const AVOption * o;
+	const AVOption * parent;
+	IDProperty * group;
+	IDProperty * prop;
+	IDPropertyTemplate val;
+	int idp_type;
+	char name[256];
+
+	avcodec_get_context_defaults(&c);
+
+	o = c.av_class->option + opt_index;
+	parent = c.av_class->option + parent_index;
+
+	if (!rd->ffcodecdata.properties) {
+		IDPropertyTemplate val;
+
+		rd->ffcodecdata.properties 
+			= IDP_New(IDP_GROUP, val, "ffmpeg"); 
+	}
+
+	group = IDP_GetPropertyFromGroup(
+		rd->ffcodecdata.properties, (char*) type);
+	
+	if (!group) {
+		IDPropertyTemplate val;
+		
+		group = IDP_New(IDP_GROUP, val, (char*) type); 
+		IDP_AddToGroup(rd->ffcodecdata.properties, group);
+	}
+
+	if (parent_index) {
+		sprintf(name, "%s:%s", parent->name, o->name);
+	} else {
+		strcpy(name, o->name);
+	}
+
+	fprintf(stderr, "ffmpeg_property_add: %s %d %d %s\n",
+		type, parent_index, opt_index, name);
+
+	prop = IDP_GetPropertyFromGroup(group, name);
+	if (prop) {
+		return prop;
+	}
+
+	switch (o->type) {
+	case FF_OPT_TYPE_INT:
+	case FF_OPT_TYPE_INT64:
+		val.i = o->default_val;
+		idp_type = IDP_INT;
+		break;
+	case FF_OPT_TYPE_DOUBLE:
+	case FF_OPT_TYPE_FLOAT:
+		val.f = o->default_val;
+		idp_type = IDP_FLOAT;
+		break;
+	case FF_OPT_TYPE_STRING:
+		val.str = "                                                                               ";
+		idp_type = IDP_STRING;
+		break;
+	case FF_OPT_TYPE_CONST:
+		val.i = 1;
+		idp_type = IDP_INT;
+		break;
+	default:
+		return NULL;
+	}
+	prop = IDP_New(idp_type, val, name);
+	IDP_AddToGroup(group, prop);
+	return prop;
+}
+
+/* not all versions of ffmpeg include that, so here we go ... */
+
+static const AVOption *my_av_find_opt(void *v, const char *name, 
+				      const char *unit, int mask, int flags){
+	AVClass *c= *(AVClass**)v; 
+	const AVOption *o= c->option;
+
+	for(;o && o->name; o++){
+		if(!strcmp(o->name, name) && 
+		   (!unit || (o->unit && !strcmp(o->unit, unit))) && 
+		   (o->flags & mask) == flags )
+			return o;
+	}
+	return NULL;
+}
+
+int ffmpeg_property_add_string(RenderData *rd, const char * type, const char * str)
+{
+	AVCodecContext c;
+	const AVOption * o = 0;
+	const AVOption * p = 0;
+	char name_[128];
+	char * name;
+	char * param;
+	IDProperty * prop;
+	
+	avcodec_get_context_defaults(&c);
+
+	strncpy(name_, str, 128);
+
+	name = name_;
+	while (*name == ' ') name++;
+
+	param = strchr(name, ':');
+
+	if (!param) {
+		param = strchr(name, ' ');
+	}
+	if (param) {
+		*param++ = 0;
+		while (*param == ' ') param++;
+	}
+	
+	o = my_av_find_opt(&c, name, NULL, 0, 0);	
+	if (!o) {
+		return 0;
+	}
+	if (param && o->type == FF_OPT_TYPE_CONST) {
+		return 0;
+	}
+	if (param && o->type != FF_OPT_TYPE_CONST && o->unit) {
+		p = my_av_find_opt(&c, param, o->unit, 0, 0);	
+		prop = ffmpeg_property_add(rd,
+			(char*) type, p - c.av_class->option, 
+			o - c.av_class->option);
+	} else {
+		prop = ffmpeg_property_add(rd,
+			(char*) type, o - c.av_class->option, 0);
+	}
+		
+
+	if (!prop) {
+		return 0;
+	}
+
+	if (param && !p) {
+		switch (prop->type) {
+		case IDP_INT:
+			IDP_Int(prop) = atoi(param);
+			break;
+		case IDP_FLOAT:
+			IDP_Float(prop) = atof(param);
+			break;
+		case IDP_STRING:
+			strncpy(IDP_String(prop), param, prop->len);
+			break;
+		}
+	}
+	return 1;
+}
+
+void ffmpeg_set_preset(RenderData *rd, int preset)
+{
+	int isntsc = (rd->frs_sec != 25);
+
+	switch (preset) {
+	case FFMPEG_PRESET_VCD:
+		rd->ffcodecdata.type = FFMPEG_MPEG1;
+		rd->ffcodecdata.video_bitrate = 1150;
+		rd->xsch = 352;
+		rd->ysch = isntsc ? 240 : 288;
+		rd->ffcodecdata.gop_size = isntsc ? 18 : 15;
+		rd->ffcodecdata.rc_max_rate = 1150;
+		rd->ffcodecdata.rc_min_rate = 1150;
+		rd->ffcodecdata.rc_buffer_size = 40*8;
+		rd->ffcodecdata.mux_packet_size = 2324;
+		rd->ffcodecdata.mux_rate = 2352 * 75 * 8;
+		break;
+
+	case FFMPEG_PRESET_SVCD:
+		rd->ffcodecdata.type = FFMPEG_MPEG2;
+		rd->ffcodecdata.video_bitrate = 2040;
+		rd->xsch = 480;
+		rd->ysch = isntsc ? 480 : 576;
+		rd->ffcodecdata.gop_size = isntsc ? 18 : 15;
+		rd->ffcodecdata.rc_max_rate = 2516;
+		rd->ffcodecdata.rc_min_rate = 0;
+		rd->ffcodecdata.rc_buffer_size = 224*8;
+		rd->ffcodecdata.mux_packet_size = 2324;
+		rd->ffcodecdata.mux_rate = 0;
+		break;
+
+	case FFMPEG_PRESET_DVD:
+		rd->ffcodecdata.type = FFMPEG_MPEG2;
+		rd->ffcodecdata.video_bitrate = 6000;
+		rd->xsch = 720;
+		rd->ysch = isntsc ? 480 : 576;
+		rd->ffcodecdata.gop_size = isntsc ? 18 : 15;
+		rd->ffcodecdata.rc_max_rate = 9000;
+		rd->ffcodecdata.rc_min_rate = 0;
+		rd->ffcodecdata.rc_buffer_size = 224*8;
+		rd->ffcodecdata.mux_packet_size = 2048;
+		rd->ffcodecdata.mux_rate = 10080000;
+		break;
+
+	case FFMPEG_PRESET_DV:
+		rd->ffcodecdata.type = FFMPEG_DV;
+		rd->xsch = 720;
+		rd->ysch = isntsc ? 480 : 576;
+		break;
+
+	case FFMPEG_PRESET_H264:
+		rd->ffcodecdata.type = FFMPEG_AVI;
+		rd->ffcodecdata.codec = CODEC_ID_H264;
+		rd->ffcodecdata.video_bitrate = 6000;
+		rd->ffcodecdata.gop_size = isntsc ? 18 : 15;
+		rd->ffcodecdata.rc_max_rate = 9000;
+		rd->ffcodecdata.rc_min_rate = 0;
+		rd->ffcodecdata.rc_buffer_size = 224*8;
+		rd->ffcodecdata.mux_packet_size = 2048;
+		rd->ffcodecdata.mux_rate = 10080000;
+
+		ffmpeg_property_add_string(rd, "video", "coder:vlc");
+		ffmpeg_property_add_string(rd, "video", "flags:loop");
+		ffmpeg_property_add_string(rd, "video", "cmp:chroma");
+		ffmpeg_property_add_string(rd, "video", "partitions:parti4x4");
+		ffmpeg_property_add_string(rd, "video", "partitions:partp8x8");
+		ffmpeg_property_add_string(rd, "video", "partitions:partb8x8");
+		ffmpeg_property_add_string(rd, "video", "me:hex");
+		ffmpeg_property_add_string(rd, "video", "subq:5");
+		ffmpeg_property_add_string(rd, "video", "me_range:16");
+		ffmpeg_property_add_string(rd, "video", "keyint_min:25");
+		ffmpeg_property_add_string(rd, "video", "sc_threshold:40");
+		ffmpeg_property_add_string(rd, "video", "i_qfactor:0.71");
+		ffmpeg_property_add_string(rd, "video", "b_strategy:1");
+
+		break;
+
+	case FFMPEG_PRESET_THEORA:
+	case FFMPEG_PRESET_XVID:
+		if(preset == FFMPEG_PRESET_XVID) {
+			rd->ffcodecdata.type = FFMPEG_AVI;
+			rd->ffcodecdata.codec = CODEC_ID_XVID;
+		}
+		else if(preset == FFMPEG_PRESET_THEORA) {
+			rd->ffcodecdata.type = FFMPEG_OGG; // XXX broken
+			rd->ffcodecdata.codec = CODEC_ID_THEORA;
+		}
+
+		rd->ffcodecdata.video_bitrate = 6000;
+		rd->ffcodecdata.gop_size = isntsc ? 18 : 15;
+		rd->ffcodecdata.rc_max_rate = 9000;
+		rd->ffcodecdata.rc_min_rate = 0;
+		rd->ffcodecdata.rc_buffer_size = 224*8;
+		rd->ffcodecdata.mux_packet_size = 2048;
+		rd->ffcodecdata.mux_rate = 10080000;
+		break;
+
+	}
+}
+
+void ffmpeg_verify_image_type(RenderData *rd)
+{
+	int audio= 0;
+
+	if(rd->imtype == R_FFMPEG) {
+		if(rd->ffcodecdata.type <= 0 ||
+		   rd->ffcodecdata.codec <= 0 ||
+		   rd->ffcodecdata.audio_codec <= 0 ||
+		   rd->ffcodecdata.video_bitrate <= 1) {
+
+			rd->ffcodecdata.codec = CODEC_ID_MPEG2VIDEO;
+			ffmpeg_set_preset(rd, FFMPEG_PRESET_DVD);
+		}
+
+		audio= 1;
+	}
+	else if(rd->imtype == R_H264) {
+		if(rd->ffcodecdata.codec != CODEC_ID_H264) {
+			ffmpeg_set_preset(rd, FFMPEG_PRESET_H264);
+			audio= 1;
+		}
+	}
+	else if(rd->imtype == R_XVID) {
+		if(rd->ffcodecdata.codec != CODEC_ID_XVID) {
+			ffmpeg_set_preset(rd, FFMPEG_PRESET_XVID);
+			audio= 1;
+		}
+	}
+	else if(rd->imtype == R_THEORA) {
+		if(rd->ffcodecdata.codec != CODEC_ID_THEORA) {
+			ffmpeg_set_preset(rd, FFMPEG_PRESET_THEORA);
+			audio= 1;
+		}
+	}
+
+	if(audio && rd->ffcodecdata.audio_codec <= 0) {
+		rd->ffcodecdata.audio_codec = CODEC_ID_MP2;
+		rd->ffcodecdata.audio_bitrate = 128;
+	}
+}
+
 #endif
 

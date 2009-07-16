@@ -383,41 +383,7 @@ static void image_editcursor_buts(const bContext *C, View2D *v2d, uiBlock *block
 	}
 }
 
-static void image_panel_game_properties(const bContext *C, Panel *pa)
-{
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
-	ImBuf *ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
-	uiBlock *block;
-
-	block= uiLayoutFreeBlock(pa->layout);
-	uiBlockSetHandleFunc(block, do_image_panel_events, NULL);
-
-	if (ibuf) {
-		char str[128];
-		
-		image_info(sima->image, ibuf, str);
-		uiDefBut(block, LABEL, B_NOP, str,		10,180,300,19, 0, 0, 0, 0, 0, "");
-
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, IMA_TWINANIM, B_TWINANIM, "Anim", 10,150,140,19, &sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of animated texture");
-		uiDefButS(block, NUM, B_TWINANIM, "Start:",		10,130,140,19, &sima->image->twsta, 0.0, 128.0, 0, 0, "Displays the start frame of an animated texture");
-		uiDefButS(block, NUM, B_TWINANIM, "End:",		10,110,140,19, &sima->image->twend, 0.0, 128.0, 0, 0, "Displays the end frame of an animated texture");
-		uiDefButS(block, NUM, B_NOP, "Speed", 				10,90,140,19, &sima->image->animspeed, 1.0, 100.0, 0, 0, "Displays Speed of the animation in frames per second");
-		uiBlockEndAlign(block);
-
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, IMA_TILES, B_SIMAGETILE, "Tiles",	160,150,140,19, &sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of tilemode for faces (Shift LMB to pick the tile for selected faces)");
-		uiDefButS(block, NUM, B_REDR, "X:",		160,130,70,19, &sima->image->xrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the X direction");
-		uiDefButS(block, NUM, B_REDR, "Y:",		230,130,70,19, &sima->image->yrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the Y direction");
-		uiBlockBeginAlign(block);
-
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, IMA_CLAMP_U, B_REDR, "ClampX",	160,100,70,19, &sima->image->tpageflag, 0, 0, 0, 0, "Disable texture repeating horizontaly");
-		uiDefButBitS(block, TOG, IMA_CLAMP_V, B_REDR, "ClampY",	230,100,70,19, &sima->image->tpageflag, 0, 0, 0, 0, "Disable texture repeating vertically");
-		uiBlockEndAlign(block);
-	}
-}
-
+#if 0
 static void image_panel_view_properties(const bContext *C, Panel *pa)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
@@ -474,6 +440,7 @@ static void image_panel_view_properties(const bContext *C, Panel *pa)
 	}
 	image_editcursor_buts(C, &ar->v2d, block);
 }
+#endif
 
 void brush_buttons(const bContext *C, uiBlock *block, short fromsima,
 				   int evt_nop, int evt_change,
@@ -1058,42 +1025,53 @@ static void image_load_fs_cb(bContext *C, void *ima_pp_v, void *iuser_v)
 static void image_multi_cb(bContext *C, void *rr_v, void *iuser_v) 
 {
 	BKE_image_multilayer_index(rr_v, iuser_v); 
+	WM_event_add_notifier(C, NC_IMAGE|ND_DRAW, NULL);
 }
 static void image_multi_inclay_cb(bContext *C, void *rr_v, void *iuser_v) 
 {
 	RenderResult *rr= rr_v;
 	ImageUser *iuser= iuser_v;
 	int tot= BLI_countlist(&rr->layers) + (rr->rectf?1:0);  /* fake compo result layer */
-	if(iuser->layer<tot-1)
+
+	if(iuser->layer<tot-1) {
 		iuser->layer++;
-	BKE_image_multilayer_index(rr, iuser); 
+		BKE_image_multilayer_index(rr, iuser); 
+		WM_event_add_notifier(C, NC_IMAGE|ND_DRAW, NULL);
+	}
 }
 static void image_multi_declay_cb(bContext *C, void *rr_v, void *iuser_v) 
 {
 	ImageUser *iuser= iuser_v;
-	if(iuser->layer>0)
+
+	if(iuser->layer>0) {
 		iuser->layer--;
-	BKE_image_multilayer_index(rr_v, iuser); 
+		BKE_image_multilayer_index(rr_v, iuser); 
+		WM_event_add_notifier(C, NC_IMAGE|ND_DRAW, NULL);
+	}
 }
 static void image_multi_incpass_cb(bContext *C, void *rr_v, void *iuser_v) 
 {
 	RenderResult *rr= rr_v;
 	ImageUser *iuser= iuser_v;
 	RenderLayer *rl= BLI_findlink(&rr->layers, iuser->layer);
+
 	if(rl) {
 		int tot= BLI_countlist(&rl->passes) + (rl->rectf?1:0);	/* builtin render result has no combined pass in list */
 		if(iuser->pass<tot-1) {
 			iuser->pass++;
 			BKE_image_multilayer_index(rr, iuser); 
+			WM_event_add_notifier(C, NC_IMAGE|ND_DRAW, NULL);
 		}
 	}
 }
 static void image_multi_decpass_cb(bContext *C, void *rr_v, void *iuser_v) 
 {
 	ImageUser *iuser= iuser_v;
+
 	if(iuser->pass>0) {
 		iuser->pass--;
 		BKE_image_multilayer_index(rr_v, iuser); 
+		WM_event_add_notifier(C, NC_IMAGE|ND_DRAW, NULL);
 	}
 }
 
@@ -1110,7 +1088,7 @@ static void image_pack_cb(bContext *C, void *ima_v, void *iuser_v)
 				}
 				
 				if ((G.fileflags & G_AUTOPACK) == 0) {
-					unpackImage(ima, PF_ASK);
+					unpackImage(NULL, ima, PF_ASK); /* XXX report errors */
 					ED_undo_push(C, "Unpack image");
 				}
 			} 
@@ -1119,7 +1097,7 @@ static void image_pack_cb(bContext *C, void *ima_v, void *iuser_v)
 				if (ibuf && (ibuf->userflags & IB_BITMAPDIRTY)) {
 					// XXX error("Can't pack painted image. Save image or use Repack as PNG.");
 				} else {
-					ima->packedfile = newPackedFile(ima->name);
+					ima->packedfile = newPackedFile(NULL, ima->name); /* XXX report errors */
 					ED_undo_push(C, "Pack image");
 				}
 			}
@@ -1388,6 +1366,23 @@ void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, I
 	 uiBlockEndAlign(block);
 }	
 
+void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser *iuser)
+{
+	uiBlock *block= uiLayoutFreeBlock(layout);
+	Scene *scene= CTX_data_scene(C);
+	RenderResult *rr;
+
+	/* render layers and passes */
+	if(ima && iuser) {
+		rr= BKE_image_get_renderresult(scene, ima);
+
+		if(rr) {
+			uiBlockBeginAlign(block);
+			uiblock_layer_pass_buttons(block, rr, iuser, 0, 0, 0, 160);
+			uiBlockEndAlign(block);
+		}
+	}
+}
 
 static void image_panel_properties(const bContext *C, Panel *pa)
 {
@@ -1410,18 +1405,6 @@ void image_buttons_register(ARegionType *art)
 	strcpy(pt->idname, "IMAGE_PT_properties");
 	strcpy(pt->label, "Image Properties");
 	pt->draw= image_panel_properties;
-	BLI_addtail(&art->paneltypes, pt);
-
-	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel game properties");
-	strcpy(pt->idname, "IMAGE_PT_game_properties");
-	strcpy(pt->label, "Game Properties");
-	pt->draw= image_panel_game_properties;
-	BLI_addtail(&art->paneltypes, pt);
-
-	pt= MEM_callocN(sizeof(PanelType), "spacetype image view properties");
-	strcpy(pt->idname, "IMAGE_PT_view_properties");
-	strcpy(pt->label, "View Properties");
-	pt->draw= image_panel_view_properties;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel paint");

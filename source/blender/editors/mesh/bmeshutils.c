@@ -81,7 +81,6 @@
 #include "ED_view3d.h"
 #include "ED_util.h"
 #include "ED_screen.h"
-#include "BIF_transform.h"
 
 #include "UI_interface.h"
 
@@ -249,7 +248,7 @@ void EDBM_MakeEditBMesh(Scene *scene, Object *ob)
 	}
 
 	me->edit_btmesh = BMEdit_Create(bm);
-	me->edit_btmesh->selectmode = scene->selectmode;
+	me->edit_btmesh->selectmode = scene->toolsettings->selectmode;
 }
 
 void EDBM_LoadEditBMesh(Scene *scene, Object *ob)

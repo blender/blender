@@ -949,7 +949,6 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		
 		/* NLA Data */
 		if (adt->nla_tracks.first) {
-#if 0
 			TreeElement *tenla= outliner_add_element(soops, &te->subtree, adt, te, TSE_NLA, 0);
 			NlaTrack *nlt;
 			int a= 0;
@@ -957,17 +956,18 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			tenla->name= "NLA Tracks";
 			
 			for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
-				TreeElement *tenlt= outliner_add_element(soops, &te->subtree, nlt, te, TSE_NLA_TRACK, a);
-				bActionStrip *strip;
+				TreeElement *tenlt= outliner_add_element(soops, &tenla->subtree, nlt, tenla, TSE_NLA_TRACK, a);
+				NlaStrip *strip;
 				TreeElement *ten;
 				int b= 0;
 				
-				for (strip=nlt->strips.first; strip; strip=strip->next, a++) {
-					ten= outliner_add_element(soops, &tenla->subtree, strip->act, tenla, TSE_NLA_ACTION, a);
+				tenlt->name= nlt->name;
+				
+				for (strip=nlt->strips.first; strip; strip=strip->next, b++) {
+					ten= outliner_add_element(soops, &tenlt->subtree, strip->act, tenlt, TSE_NLA_ACTION, b);
 					if(ten) ten->directdata= strip;
 				}
 			}
-#endif
 		}
 	}
 	else if(type==TSE_SEQUENCE) {
@@ -1031,7 +1031,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	}
 	else if(ELEM3(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
 		PointerRNA pptr, propptr, *ptr= (PointerRNA*)idv;
-		PropertyRNA *prop, *iterprop, *nameprop;
+		PropertyRNA *prop, *iterprop;
 		PropertyType proptype;
 		PropertySubType propsubtype;
 		int a, tot;
@@ -1043,12 +1043,10 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		}
 		else if(type == TSE_RNA_STRUCT) {
 			/* struct */
-			nameprop= RNA_struct_name_property(ptr->type);
+			te->name= RNA_struct_name_get_alloc(ptr, NULL, 0);
 
-			if(nameprop) {
-				te->name= RNA_property_string_get_alloc(ptr, nameprop, NULL, 0);
+			if(te->name)
 				te->flag |= TE_FREE_NAME;
-			}
 			else
 				te->name= (char*)RNA_struct_ui_name(ptr->type);
 
@@ -1702,22 +1700,24 @@ static int tree_element_active_material(Scene *scene, SpaceOops *soops, TreeElem
 	if(tes->idcode==ID_OB) {
 		if(set) {
 			ob->actcol= te->index+1;
-			ob->colbits |= (1<<te->index);	// make ob material active too
+			ob->matbits[te->index]= 1;	// make ob material active too
+			ob->colbits |= (1<<te->index);
 		}
 		else {
 			if(ob->actcol == te->index+1) 
-				if(ob->colbits & (1<<te->index)) return 1;
+				if(ob->matbits[te->index]) return 1;
 		}
 	}
 	/* or we search for obdata material */
 	else {
 		if(set) {
 			ob->actcol= te->index+1;
-			ob->colbits &= ~(1<<te->index);	// make obdata material active too
+			ob->matbits[te->index]= 0;	// make obdata material active too
+			ob->colbits &= ~(1<<te->index);
 		}
 		else {
 			if(ob->actcol == te->index+1)
-				if( (ob->colbits & (1<<te->index))==0 ) return 1;
+				if(ob->matbits[te->index]==0) return 1;
 		}
 	}
 	if(set) {
@@ -3075,7 +3075,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 	TreeElement *tem, *temnext, *temsub;
 	TreeStoreElem *tse, *tsenext;
 	PointerRNA *ptr, *nextptr;
-	PropertyRNA *prop, *nameprop;
+	PropertyRNA *prop;
 	char *newpath=NULL;
 	
 	/* optimise tricks:
@@ -3119,17 +3119,16 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 					newpath= RNA_path_append(*path, ptr, prop, 0, NULL);
 				}
 				else if(RNA_property_type(prop) == PROP_COLLECTION) {
+					char buf[128], *name;
+
 					temnext= (TreeElement*)(ld->next->data);
 					tsenext= TREESTORE(temnext);
 					
 					nextptr= &temnext->rnaptr;
-					nameprop= RNA_struct_name_property(nextptr->type);
+					name= RNA_struct_name_get_alloc(nextptr, buf, sizeof(buf));
 					
-					if(nameprop) {
+					if(name) {
 						/* if possible, use name as a key in the path */
-						char buf[128], *name;
-						name= RNA_property_string_get_alloc(nextptr, nameprop, buf, sizeof(buf));
-						
 						newpath= RNA_path_append(*path, NULL, prop, 0, name);
 						
 						if(name != buf)
@@ -3242,7 +3241,7 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, short m
 					case DRIVERS_EDITMODE_ADD:
 					{
 						/* add a new driver with the information obtained (only if valid) */
-						ANIM_add_driver(id, path, array_index, flag);
+						ANIM_add_driver(id, path, array_index, flag, DRIVER_TYPE_AVERAGE);
 					}
 						break;
 					case DRIVERS_EDITMODE_REMOVE:
@@ -3521,6 +3520,8 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				UI_icon_draw(x, y, ICON_ANIM_DATA); break; // xxx
 			case TSE_NLA:
 				UI_icon_draw(x, y, ICON_NLA); break;
+			case TSE_NLA_TRACK:
+				UI_icon_draw(x, y, ICON_NLA); break; // XXX
 			case TSE_NLA_ACTION:
 				UI_icon_draw(x, y, ICON_ACTION); break;
 			case TSE_DEFGROUP_BASE:

@@ -248,8 +248,6 @@ static int reload_exec(bContext *C, wmOperator *op)
 #ifndef DISABLE_PYTHON
 	if(text->compiled)
 		BPY_free_compiled_text(text);
-
-	text->compiled = NULL;
 #endif
 
 	text_update_edited(text);
@@ -521,10 +519,13 @@ static int run_script_exec(bContext *C, wmOperator *op)
 #else
 	Text *text= CTX_data_edit_text(C);
 
-	if (BPY_run_python_script( C, NULL, text ))
+	if (BPY_run_python_script(C, NULL, text, op->reports))
 		return OPERATOR_FINISHED;
 	
-	BKE_report(op->reports, RPT_ERROR, "Python script fail, look in the console for now...");
+	/* Dont report error messages while live editing */
+	if(!CTX_wm_space_text(C)->live_edit)
+		BKE_report(op->reports, RPT_ERROR, "Python script fail, look in the console for now...");
+	
 	return OPERATOR_CANCELLED;
 #endif
 }
@@ -699,6 +700,10 @@ static int paste_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
+	/* run the script while editing, evil but useful */
+	if(CTX_wm_space_text(C)->live_edit)
+		run_script_exec(C, op);
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -765,6 +770,10 @@ static int cut_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
+	/* run the script while editing, evil but useful */
+	if(CTX_wm_space_text(C)->live_edit)
+		run_script_exec(C, op);
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -961,9 +970,9 @@ void TEXT_OT_uncomment(wmOperatorType *ot)
 
 enum { TO_SPACES, TO_TABS };
 static EnumPropertyItem whitespace_type_items[]= {
-	{TO_SPACES, "SPACES", "To Spaces", NULL},
-	{TO_TABS, "TABS", "To Tabs", NULL},
-	{0, NULL, NULL, NULL}};
+	{TO_SPACES, "SPACES", 0, "To Spaces", NULL},
+	{TO_TABS, "TABS", 0, "To Tabs", NULL},
+	{0, NULL, 0, NULL, NULL}};
 
 static int convert_whitespace_exec(bContext *C, wmOperator *op)
 {
@@ -1259,24 +1268,26 @@ void TEXT_OT_markers_clear(wmOperatorType *ot)
 /************************ move operator ************************/
 
 static EnumPropertyItem move_type_items[]= {
-	{LINE_BEGIN, "LINE_BEGIN", "Line Begin", ""},
-	{LINE_END, "LINE_END", "Line End", ""},
-	{FILE_TOP, "FILE_TOP", "File Top", ""},
-	{FILE_BOTTOM, "FILE_BOTTOM", "File Bottom", ""},
-	{PREV_CHAR, "PREVIOUS_CHARACTER", "Previous Character", ""},
-	{NEXT_CHAR, "NEXT_CHARACTER", "Next Character", ""},
-	{PREV_WORD, "PREVIOUS_WORD", "Previous Word", ""},
-	{NEXT_WORD, "NEXT_WORD", "Next Word", ""},
-	{PREV_LINE, "PREVIOUS_LINE", "Previous Line", ""},
-	{NEXT_LINE, "NEXT_LINE", "Next Line", ""},
-	{PREV_PAGE, "PREVIOUS_PAGE", "Previous Page", ""},
-	{NEXT_PAGE, "NEXT_PAGE", "Next Page", ""},
-	{0, NULL, NULL, NULL}};
+	{LINE_BEGIN, "LINE_BEGIN", 0, "Line Begin", ""},
+	{LINE_END, "LINE_END", 0, "Line End", ""},
+	{FILE_TOP, "FILE_TOP", 0, "File Top", ""},
+	{FILE_BOTTOM, "FILE_BOTTOM", 0, "File Bottom", ""},
+	{PREV_CHAR, "PREVIOUS_CHARACTER", 0, "Previous Character", ""},
+	{NEXT_CHAR, "NEXT_CHARACTER", 0, "Next Character", ""},
+	{PREV_WORD, "PREVIOUS_WORD", 0, "Previous Word", ""},
+	{NEXT_WORD, "NEXT_WORD", 0, "Next Word", ""},
+	{PREV_LINE, "PREVIOUS_LINE", 0, "Previous Line", ""},
+	{NEXT_LINE, "NEXT_LINE", 0, "Next Line", ""},
+	{PREV_PAGE, "PREVIOUS_PAGE", 0, "Previous Page", ""},
+	{NEXT_PAGE, "NEXT_PAGE", 0, "Next Page", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 static void wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 {
 	Text *text= st->text;
 	int offl, offc, lin;
+
+	text_update_character_width(st);
 
 	lin= txt_get_span(text->lines.first, text->sell);
 	wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
@@ -1295,6 +1306,8 @@ static void wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 {
 	Text *text= st->text;
 	int offl, offc, lin, startl, c;
+
+	text_update_character_width(st);
 
 	lin= txt_get_span(text->lines.first, text->sell);
 	wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
@@ -1319,6 +1332,8 @@ static void wrap_move_up(SpaceText *st, ARegion *ar, short sel)
 {
 	Text *text= st->text;
 	int offl, offl_1, offc, fromline, toline, c, target;
+
+	text_update_character_width(st);
 
 	wrap_offset(st, ar, text->sell, 0, &offl_1, &offc);
 	wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
@@ -1364,6 +1379,8 @@ static void wrap_move_down(SpaceText *st, ARegion *ar, short sel)
 {
 	Text *text= st->text;
 	int offl, startoff, offc, fromline, toline, c, target;
+
+	text_update_character_width(st);
 
 	wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
 	fromline= toline= txt_get_span(text->lines.first, text->sell);
@@ -1602,11 +1619,11 @@ void TEXT_OT_jump(wmOperatorType *ot)
 /******************* delete operator **********************/
 
 static EnumPropertyItem delete_type_items[]= {
-	{DEL_NEXT_CHAR, "NEXT_CHARACTER", "Next Character", ""},
-	{DEL_PREV_CHAR, "PREVIOUS_CHARACTER", "Previous Character", ""},
-	{DEL_NEXT_WORD, "NEXT_WORD", "Next Word", ""},
-	{DEL_PREV_WORD, "PREVIOUS_WORD", "Previous Word", ""},
-	{0, NULL, NULL, NULL}};
+	{DEL_NEXT_CHAR, "NEXT_CHARACTER", 0, "Next Character", ""},
+	{DEL_PREV_CHAR, "PREVIOUS_CHARACTER", 0, "Previous Character", ""},
+	{DEL_NEXT_WORD, "NEXT_WORD", 0, "Next Word", ""},
+	{DEL_PREV_WORD, "PREVIOUS_WORD", 0, "Previous Word", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 static int delete_exec(bContext *C, wmOperator *op)
 {
@@ -1627,6 +1644,10 @@ static int delete_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
+	/* run the script while editing, evil but useful */
+	if(CTX_wm_space_text(C)->live_edit)
+		run_script_exec(C, op);
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -1739,6 +1760,8 @@ static void scroll_apply(bContext *C, wmOperator *op, wmEvent *event)
 	TextScroll *tsc= op->customdata;
 	short *mval= event->mval;
 
+	text_update_character_width(st);
+
 	if(tsc->first) {
 		tsc->old[0]= mval[0];
 		tsc->old[1]= mval[1];
@@ -1748,7 +1771,7 @@ static void scroll_apply(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if(!tsc->scrollbar) {
-		tsc->delta[0]= (tsc->hold[0]-mval[0])/text_font_width_character(st);
+		tsc->delta[0]= (tsc->hold[0]-mval[0])/st->cwidth;
 		tsc->delta[1]= (mval[1]-tsc->hold[1])/st->lheight;
 	}
 	else
@@ -1821,6 +1844,9 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 	ot->cancel= scroll_cancel;
 	ot->poll= text_space_edit_poll;
 
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
+
 	/* properties */
 	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll.", -100, 100);
 }
@@ -1865,6 +1891,9 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
 	ot->cancel= scroll_cancel;
 	ot->poll= text_region_edit_poll;
 
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
+
 	/* properties */
 	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll.", -100, 100);
 }
@@ -1885,6 +1914,8 @@ static void set_cursor_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 	int *charp;
 	int w;
 
+	text_update_character_width(st);
+
 	if(sel) { linep= &text->sell; charp= &text->selc; } 
 	else { linep= &text->curl; charp= &text->curc; }
 	
@@ -1896,7 +1927,7 @@ static void set_cursor_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 		x-= TXT_OFFSET;
 
 	if(x<0) x= 0;
-	x = (x/text_font_width_character(st)) + st->left;
+	x = (x/st->cwidth) + st->left;
 	
 	if(st->wordwrap) {
 		int i, j, endj, curs, max, chop, start, end, chars, loop;
@@ -2136,7 +2167,7 @@ void TEXT_OT_cursor_set(wmOperatorType *ot)
 	ot->poll= text_region_edit_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_BLOCKING;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "select", 0, "Select", "Set selection end rather than cursor.");
@@ -2196,19 +2227,21 @@ static int insert_exec(bContext *C, wmOperator *op)
 	SpaceText *st= CTX_wm_space_text(C);
 	Text *text= CTX_data_edit_text(C);
 	char *str;
-	int done, ascii;
+	int done = 0, i;
 
 	str= RNA_string_get_alloc(op->ptr, "text", NULL, 0);
-	ascii= str[0];
+
+	if(st && st->overwrite) {
+		for(i=0; str[i]; i++) {
+			done |= txt_replace_char(text, str[i]);
+		}
+	} else {
+		for(i=0; str[i]; i++) {
+			done |= txt_add_char(text, str[i]);
+		}
+	}
+
 	MEM_freeN(str);
-
-	if(!ascii)
-		return OPERATOR_CANCELLED;
-
-	if(st && st->overwrite)
-		done= txt_replace_char(text, ascii);
-	else
-		done= txt_add_char(text, ascii);
 	
 	if(!done)
 		return OPERATOR_CANCELLED;
@@ -2224,7 +2257,7 @@ static int insert_exec(bContext *C, wmOperator *op)
 static int insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	char str[2];
-
+	int ret;
 	/* XXX old code from winqreadtextspace, is it still needed somewhere? */
 	/* smartass code to prevent the CTRL/ALT events below from not working! */
 	/*if(qual & (LR_ALTKEY|LR_CTRLKEY))
@@ -2235,8 +2268,13 @@ static int insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	str[1]= '\0';
 
 	RNA_string_set(op->ptr, "text", str);
+	ret = insert_exec(C, op);
+	
+	/* run the script while editing, evil but useful */
+	if(ret==OPERATOR_FINISHED && CTX_wm_space_text(C)->live_edit)
+		run_script_exec(C, op);
 
-	return insert_exec(C, op);
+	return ret;
 }
 
 void TEXT_OT_insert(wmOperatorType *ot)
@@ -2449,11 +2487,11 @@ void TEXT_OT_replace_set_selected(wmOperatorType *ot)
 
 enum { RESOLVE_IGNORE, RESOLVE_RELOAD, RESOLVE_SAVE, RESOLVE_MAKE_INTERNAL };
 static EnumPropertyItem resolution_items[]= {
-	{RESOLVE_IGNORE, "IGNORE", "Ignore", ""},
-	{RESOLVE_RELOAD, "RELOAD", "Reload", ""},
-	{RESOLVE_SAVE, "SAVE", "Save", ""},
-	{RESOLVE_MAKE_INTERNAL, "MAKE_INTERNAL", "Make Internal", ""},
-	{0, NULL, NULL, NULL}};
+	{RESOLVE_IGNORE, "IGNORE", 0, "Ignore", ""},
+	{RESOLVE_RELOAD, "RELOAD", 0, "Reload", ""},
+	{RESOLVE_SAVE, "SAVE", 0, "Save", ""},
+	{RESOLVE_MAKE_INTERNAL, "MAKE_INTERNAL", 0, "Make Internal", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 /* returns 0 if file on disk is the same or Text is in memory only
    returns 1 if file has been modified on disk since last local edit

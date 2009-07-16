@@ -252,6 +252,14 @@ public:
 	 * @return	Indication of success.
 	 */
 	virtual GHOST_TSuccess setCursorVisibility(bool visible) = 0;
+
+	/**
+	 * Grabs the cursor for a modal operation.
+	 * @param	grab The new grab state of the cursor.
+	 * @return	Indication of success.
+	 */
+	virtual GHOST_TSuccess setCursorGrab(bool grab) { return GHOST_kSuccess; };
+
 };
 
 #endif // _GHOST_IWINDOW_H_

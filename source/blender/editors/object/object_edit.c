@@ -96,6 +96,7 @@
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
+#include "BKE_tessmesh.h"
 #include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -108,7 +109,6 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_modifier.h"
-#include "BKE_tessmesh.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
@@ -117,11 +117,10 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 #include "ED_types.h"
 #include "ED_util.h"
 #include "ED_view3d.h"
-
-#include "BIF_transform.h"
 
 #include "UI_interface.h"
 
@@ -245,17 +244,19 @@ void ED_object_base_init_from_view(bContext *C, Base *base)
 /* ******************* add object operator ****************** */
 
 static EnumPropertyItem prop_object_types[] = {
-	{OB_EMPTY, "EMPTY", "Empty", ""},
-	{OB_MESH, "MESH", "Mesh", ""},
-	{OB_CURVE, "CURVE", "Curve", ""},
-	{OB_SURF, "SURFACE", "Surface", ""},
-	{OB_FONT, "TEXT", "Text", ""},
-	{OB_MBALL, "META", "Meta", ""},
-	{OB_LAMP, "LAMP", "Lamp", ""},
-	{OB_CAMERA, "CAMERA", "Camera", ""},
-	{OB_ARMATURE, "ARMATURE", "Armature", ""},
-	{OB_LATTICE, "LATTICE", "Lattice", ""},
-	{0, NULL, NULL, NULL}
+	{OB_MESH, "MESH", 0, "Mesh", ""},
+	{OB_CURVE, "CURVE", 0, "Curve", ""},
+	{OB_SURF, "SURFACE", 0, "Surface", ""},
+	{OB_MBALL, "META", 0, "Meta", ""},
+	{OB_FONT, "TEXT", 0, "Text", ""},
+	{0, "", 0, NULL, NULL},
+	{OB_ARMATURE, "ARMATURE", 0, "Armature", ""},
+	{OB_LATTICE, "LATTICE", 0, "Lattice", ""},
+	{OB_EMPTY, "EMPTY", 0, "Empty", ""},
+	{0, "", 0, NULL, NULL},
+	{OB_CAMERA, "CAMERA", 0, "Camera", ""},
+	{OB_LAMP, "LAMP", 0, "Lamp", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 
@@ -322,16 +323,17 @@ void OBJECT_OT_object_add(wmOperatorType *ot)
 /* ******  work both in and outside editmode ****** */
 
 static EnumPropertyItem prop_mesh_types[] = {
-	{0, "PLANE", "Plane", ""},
-	{1, "CUBE", "Cube", ""},
-	{2, "CIRCLE", "Circle", ""},
-	{3, "UVSPHERE", "UVsphere", ""},
-	{4, "ICOSPHERE", "Icosphere", ""},
-	{5, "CYLINDER", "Cylinder", ""},
-	{6, "CONE", "Cone", ""},
-	{7, "GRID", "Grid", ""},
-	{8, "MONKEY", "Monkey", ""},
-	{0, NULL, NULL, NULL}
+	{0, "PLANE", ICON_MESH_PLANE, "Plane", ""},
+	{1, "CUBE", ICON_MESH_CUBE, "Cube", ""},
+	{2, "CIRCLE", ICON_MESH_CIRCLE, "Circle", ""},
+	{3, "UVSPHERE", ICON_MESH_UVSPHERE, "UVsphere", ""},
+	{4, "ICOSPHERE", ICON_MESH_ICOSPHERE, "Icosphere", ""},
+	{5, "CYLINDER", ICON_MESH_TUBE, "Cylinder", ""},
+	{6, "CONE", ICON_MESH_CONE, "Cone", ""},
+	{0, "", 0, NULL, NULL},
+	{7, "GRID", ICON_MESH_GRID, "Grid", ""},
+	{8, "MONKEY", ICON_MESH_MONKEY, "Monkey", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int object_add_mesh_exec(bContext *C, wmOperator *op)
@@ -341,7 +343,7 @@ static int object_add_mesh_exec(bContext *C, wmOperator *op)
 	
 	if(obedit==NULL || obedit->type!=OB_MESH) {
 		object_add_type(C, OB_MESH);
-		ED_object_enter_editmode(C, 0);
+		ED_object_enter_editmode(C, EM_DO_UNDO);
 		newob = 1;
 	}
 	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
@@ -389,7 +391,7 @@ static int object_add_mesh_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_mesh_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Mesh";
+	ot->name= "Add Mesh";
 	ot->description = "Add a mesh object to the scene.";
 	ot->idname= "OBJECT_OT_mesh_add";
 	
@@ -399,19 +401,19 @@ void OBJECT_OT_mesh_add(wmOperatorType *ot)
 	
 	ot->poll= ED_operator_scene_editable;
 	
-	/* flags */
-	ot->flag= 0;
+	/* flags: no register or undo, this operator calls operators */
+	ot->flag= 0; //OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_mesh_types, 0, "Primitive", "");
 }
 
 static EnumPropertyItem prop_curve_types[] = {
-	{CU_BEZIER|CU_2D|CU_PRIM_CURVE, "BEZIER_CURVE", "Bezier Curve", ""},
-	{CU_BEZIER|CU_2D|CU_PRIM_CIRCLE, "BEZIER_CIRCLE", "Bezier Circle", ""},
-	{CU_NURBS|CU_2D|CU_PRIM_CURVE, "NURBS_CURVE", "NURBS Curve", ""},
-	{CU_NURBS|CU_2D|CU_PRIM_CIRCLE, "NURBS_CIRCLE", "NURBS Circle", ""},
-	{CU_NURBS|CU_2D|CU_PRIM_PATH, "PATH", "Path", ""},
-	{0, NULL, NULL, NULL}
+	{CU_BEZIER|CU_2D|CU_PRIM_CURVE, "BEZIER_CURVE", ICON_CURVE_BEZCURVE, "Bezier Curve", ""},
+	{CU_BEZIER|CU_2D|CU_PRIM_CIRCLE, "BEZIER_CIRCLE", ICON_CURVE_BEZCIRCLE, "Bezier Circle", ""},
+	{CU_NURBS|CU_2D|CU_PRIM_CURVE, "NURBS_CURVE", ICON_CURVE_NCURVE, "NURBS Curve", ""},
+	{CU_NURBS|CU_2D|CU_PRIM_CIRCLE, "NURBS_CIRCLE", ICON_CURVE_NCIRCLE, "NURBS Circle", ""},
+	{CU_NURBS|CU_2D|CU_PRIM_PATH, "PATH", ICON_CURVE_PATH, "Path", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int object_add_curve_exec(bContext *C, wmOperator *op)
@@ -463,7 +465,7 @@ static int object_add_curve_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void OBJECT_OT_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Curve";
+	ot->name= "Add Curve";
 	ot->description = "Add a curve object to the scene.";
 	ot->idname= "OBJECT_OT_curve_add";
 	
@@ -480,13 +482,13 @@ void OBJECT_OT_curve_add(wmOperatorType *ot)
 }
 
 static EnumPropertyItem prop_surface_types[]= {
-	{CU_PRIM_CURVE|CU_NURBS, "NURBS_CURVE", "NURBS Curve", ""},
-	{CU_PRIM_CIRCLE|CU_NURBS, "NURBS_CIRCLE", "NURBS Circle", ""},
-	{CU_PRIM_PATCH|CU_NURBS, "NURBS_SURFACE", "NURBS Surface", ""},
-	{CU_PRIM_TUBE|CU_NURBS, "NURBS_TUBE", "NURBS Tube", ""},
-	{CU_PRIM_SPHERE|CU_NURBS, "NURBS_SPHERE", "NURBS Sphere", ""},
-	{CU_PRIM_DONUT|CU_NURBS, "NURBS_DONUT", "NURBS Donut", ""},
-	{0, NULL, NULL, NULL}
+	{CU_PRIM_CURVE|CU_NURBS, "NURBS_CURVE", ICON_SURFACE_NCURVE, "NURBS Curve", ""},
+	{CU_PRIM_CIRCLE|CU_NURBS, "NURBS_CIRCLE", ICON_SURFACE_NCIRCLE, "NURBS Circle", ""},
+	{CU_PRIM_PATCH|CU_NURBS, "NURBS_SURFACE", ICON_SURFACE_NSURFACE, "NURBS Surface", ""},
+	{CU_PRIM_TUBE|CU_NURBS, "NURBS_TUBE", ICON_SURFACE_NTUBE, "NURBS Tube", ""},
+	{CU_PRIM_SPHERE|CU_NURBS, "NURBS_SPHERE", ICON_SURFACE_NSPHERE, "NURBS Sphere", ""},
+	{CU_PRIM_DONUT|CU_NURBS, "NURBS_DONUT", ICON_SURFACE_NDONUT, "NURBS Donut", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int object_add_surface_exec(bContext *C, wmOperator *op)
@@ -521,7 +523,7 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_surface_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Surface";
+	ot->name= "Add Surface";
 	ot->description = "Add a surface object to the scene.";
 	ot->idname= "OBJECT_OT_surface_add";
 	
@@ -558,7 +560,7 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_text_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Text";
+	ot->name= "Add Text";
 	ot->description = "Add a text object to the scene";
 	ot->idname= "OBJECT_OT_text_add";
 	
@@ -603,7 +605,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_armature_add(wmOperatorType *ot)
 {	
 	/* identifiers */
-	ot->name= "Armature";
+	ot->name= "Add Armature";
 	ot->description = "Add an armature object to the scene.";
 	ot->idname= "OBJECT_OT_armature_add";
 	
@@ -621,16 +623,18 @@ static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	uiPopupMenu *pup= uiPupMenuBegin(C, "Add Object", 0);
 	uiLayout *layout= uiPupMenuLayout(pup);
 	
-	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_MESH, "OBJECT_OT_mesh_add", "type");
-	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_CURVE, "OBJECT_OT_curve_add", "type");
-	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_SURFACE, "OBJECT_OT_surface_add", "type");
-	uiItemO(layout, NULL, ICON_OUTLINER_OB_FONT, "OBJECT_OT_text_add");
+	uiItemMenuEnumO(layout, "Mesh", ICON_OUTLINER_OB_MESH, "OBJECT_OT_mesh_add", "type");
+	uiItemMenuEnumO(layout, "Curve", ICON_OUTLINER_OB_CURVE, "OBJECT_OT_curve_add", "type");
+	uiItemMenuEnumO(layout, "Surface", ICON_OUTLINER_OB_SURFACE, "OBJECT_OT_surface_add", "type");
 	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_META, "OBJECT_OT_object_add", "type", OB_MBALL);
+	uiItemO(layout, "Text", ICON_OUTLINER_OB_FONT, "OBJECT_OT_text_add");
+	uiItemS(layout);
+	uiItemO(layout, "Armature", ICON_OUTLINER_OB_ARMATURE, "OBJECT_OT_armature_add");
+	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LATTICE, "OBJECT_OT_object_add", "type", OB_LATTICE);
+	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_EMPTY, "OBJECT_OT_object_add", "type", OB_EMPTY);
+	uiItemS(layout);
 	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_CAMERA, "OBJECT_OT_object_add", "type", OB_CAMERA);
 	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LAMP, "OBJECT_OT_object_add", "type", OB_LAMP);
-	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_EMPTY, "OBJECT_OT_object_add", "type", OB_EMPTY);
-	uiItemO(layout, NULL, ICON_OUTLINER_OB_ARMATURE, "OBJECT_OT_armature_add");
-	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_LATTICE, "OBJECT_OT_object_add", "type", OB_LATTICE);
 	
 	uiPupMenuEnd(C, pup);
 	
@@ -701,8 +705,8 @@ void OBJECT_OT_delete(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Delete Objects";
-	ot->description = "Delete the object.";
+	ot->name= "Delete";
+	ot->description = "Delete selected objects.";
 	ot->idname= "OBJECT_OT_delete";
 	
 	/* api callbacks */
@@ -842,13 +846,14 @@ static void copy_object_set_idnew(Scene *scene, View3D *v3d, int dupflag)
 	
 }
 
-static int return_editmesh_indexar(EditMesh *em, int *tot, int **indexar, float *cent)
+static int return_editmesh_indexar(BMEditMesh *em, int *tot, int **indexar, float *cent)
 {
-	EditVert *eve;
+	BMVert *eve;
+	BMIter iter;
 	int *index, nr, totvert=0;
 	
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->f & SELECT) totvert++;
+	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if(BM_TestHFlag(eve, BM_SELECT)) totvert++;
 	}
 	if(totvert==0) return 0;
 	
@@ -857,8 +862,8 @@ static int return_editmesh_indexar(EditMesh *em, int *tot, int **indexar, float 
 	nr= 0;
 	cent[0]= cent[1]= cent[2]= 0.0;
 	
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->f & SELECT) {
+	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if(BM_TestHFlag(eve, BM_SELECT)) {
 			*index= nr; index++;
 			VecAddf(cent, cent, eve->co);
 		}
@@ -870,19 +875,19 @@ static int return_editmesh_indexar(EditMesh *em, int *tot, int **indexar, float 
 	return totvert;
 }
 
-static int return_editmesh_vgroup(Object *obedit, EditMesh *em, char *name, float *cent)
+static int return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *name, float *cent)
 {
 	MDeformVert *dvert;
-	EditVert *eve;
+	BMVert *eve;
+	BMIter iter;
 	int i, totvert=0;
 	
 	cent[0]= cent[1]= cent[2]= 0.0;
 	
 	if(obedit->actdef) {
-		
 		/* find the vertices */
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
+		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			dvert= CustomData_em_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 
 			if(dvert) {
 				for(i=0; i<dvert->totweight; i++){
@@ -907,19 +912,18 @@ static int return_editmesh_vgroup(Object *obedit, EditMesh *em, char *name, floa
 static void select_editmesh_hook(Object *ob, HookModifierData *hmd)
 {
 	Mesh *me= ob->data;
-	EditMesh *em= BKE_mesh_get_editmesh(me);
-	EditVert *eve;
+	BMEditMesh *em= me->edit_btmesh;
+	BMVert *eve;
+	BMIter iter;
 	int index=0, nr=0;
 	
-	for(eve= em->verts.first; eve; eve= eve->next, nr++) {
+	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if(nr==hmd->indexar[index]) {
-			eve->f |= SELECT;
+			BM_Select(em->bm, eve, 1);
 			if(index < hmd->totindex-1) index++;
 		}
+		nr++;
 	}
-	EM_select_flush(em);
-
-	BKE_mesh_end_editmesh(me, em);
 }
 
 static int return_editlattice_indexar(Lattice *editlatt, int *tot, int **indexar, float *cent)
@@ -1092,16 +1096,13 @@ int hook_getIndexArray(Object *obedit, int *tot, int **indexar, char *name, floa
 		case OB_MESH:
 		{
 			Mesh *me= obedit->data;
-			EditMesh *em = BKE_mesh_get_editmesh(me);
+			BMEditMesh *em = me->edit_btmesh;
 
 			/* check selected vertices first */
 			if( return_editmesh_indexar(em, tot, indexar, cent_r)) {
-				BKE_mesh_end_editmesh(me, em);
 				return 1;
 			} else {
-				int ret = return_editmesh_vgroup(obedit, em, name, cent_r);
-				BKE_mesh_end_editmesh(me, em);
-				return ret;
+				return return_editmesh_vgroup(obedit, em, name, cent_r);
 			}
 		}
 		case OB_CURVE:
@@ -1367,43 +1368,45 @@ void add_hook_menu(Scene *scene, View3D *v3d)
 /* ******************** clear parent operator ******************* */
 
 static EnumPropertyItem prop_clear_parent_types[] = {
-	{0, "CLEAR", "Clear Parent", ""},
-	{1, "CLEAR_KEEP_TRANSFORM", "Clear and Keep Transformation (Clear Track)", ""},
-	{2, "CLEAR_INVERSE", "Clear Parent Inverse", ""},
-	{0, NULL, NULL, NULL}
+	{0, "CLEAR", 0, "Clear Parent", ""},
+	{1, "CLEAR_KEEP_TRANSFORM", 0, "Clear and Keep Transformation (Clear Track)", ""},
+	{2, "CLEAR_INVERSE", 0, "Clear Parent Inverse", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* note, poll should check for editable scene */
 static int parent_clear_exec(bContext *C, wmOperator *op)
 {
+	int type= RNA_enum_get(op->ptr, "type");
 	
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 
-		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR")) {
+		if(type == 0) {
 			ob->parent= NULL;
 		}			
-		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_KEEP_TRANSFORM")) {
+		else if(type == 1) {
 			ob->parent= NULL;
 			ob->track= NULL;
 			ED_object_apply_obmat(ob);
 		}
-		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_INVERSE")) {
+		else if(type == 2)
 			Mat4One(ob->parentinv);
-		}
+
 		ob->recalc |= OB_RECALC;
 	}
 	CTX_DATA_END;
 	
 	DAG_scene_sort(CTX_data_scene(C));
 	ED_anim_dag_flush_update(C);
-	
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+
 	return OPERATOR_FINISHED;
 }
 
 void OBJECT_OT_parent_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear parent";
+	ot->name= "Clear Parent";
 	ot->description = "Clear the object's parenting.";
 	ot->idname= "OBJECT_OT_parent_clear";
 	
@@ -1423,14 +1426,16 @@ void OBJECT_OT_parent_clear(wmOperatorType *ot)
 
 
 static EnumPropertyItem prop_clear_track_types[] = {
-	{0, "CLEAR", "Clear Track", ""},
-	{1, "CLEAR_KEEP_TRANSFORM", "Clear and Keep Transformation (Clear Track)", ""},
-	{0, NULL, NULL, NULL}
+	{0, "CLEAR", 0, "Clear Track", ""},
+	{1, "CLEAR_KEEP_TRANSFORM", 0, "Clear and Keep Transformation (Clear Track)", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* note, poll should check for editable scene */
 static int object_track_clear_exec(bContext *C, wmOperator *op)
 {
+	int type= RNA_enum_get(op->ptr, "type");
+
 	if(CTX_data_edit_object(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Operation cannot be performed in EditMode");
 		return OPERATOR_CANCELLED;
@@ -1439,9 +1444,8 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 		ob->track= NULL;
 		ob->recalc |= OB_RECALC;
 		
-		if(RNA_enum_is_equal(op->ptr, "type", "CLEAR_KEEP_TRANSFORM")) {
+		if(type == 1)
 			ED_object_apply_obmat(ob);
-		}			
 	}
 	CTX_DATA_END;
 
@@ -1472,9 +1476,9 @@ void OBJECT_OT_track_clear(wmOperatorType *ot)
 
 /* *****************Selection Operators******************* */
 static EnumPropertyItem prop_select_types[] = {
-	{0, "EXCLUSIVE", "Exclusive", ""},
-	{1, "EXTEND", "Extend", ""},
-	{0, NULL, NULL, NULL}
+	{0, "EXCLUSIVE", 0, "Exclusive", ""},
+	{1, "EXTEND", 0, "Extend", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* ****** Select by Type ****** */
@@ -1527,13 +1531,13 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 /* ****** selection by links *******/
 
 static EnumPropertyItem prop_select_linked_types[] = {
-	{1, "IPO", "Object IPO", ""}, // XXX depreceated animation system stuff...
-	{2, "OBDATA", "Ob Data", ""},
-	{3, "MATERIAL", "Material", ""},
-	{4, "TEXTURE", "Texture", ""},
-	{5, "DUPGROUP", "Dupligroup", ""},
-	{6, "PARTICLE", "Particle System", ""},
-	{0, NULL, NULL, NULL}
+	{1, "IPO", 0, "Object IPO", ""}, // XXX depreceated animation system stuff...
+	{2, "OBDATA", 0, "Ob Data", ""},
+	{3, "MATERIAL", 0, "Material", ""},
+	{4, "TEXTURE", 0, "Texture", ""},
+	{5, "DUPGROUP", 0, "Dupligroup", ""},
+	{6, "PARTICLE", 0, "Particle System", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int object_select_linked_exec(bContext *C, wmOperator *op)
@@ -1684,6 +1688,308 @@ void OBJECT_OT_select_linked(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "seltype", prop_select_types, 1, "Selection", "Extend selection or clear selection then select");
 
 }
+
+/* ****** selection grouped *******/
+
+static EnumPropertyItem prop_select_grouped_types[] = {
+	{1, "CHILDREN_RECURSIVE", 0, "Children", ""}, // XXX depreceated animation system stuff...
+	{2, "CHILDREN", 0, "Immediate Children", ""},
+	{3, "PARENT", 0, "Parent", ""},
+	{4, "SIBLINGS", 0, "Siblings", "Shared Parent"},
+	{5, "TYPE", 0, "Type", "Shared object type"},
+	{6, "LAYER", 0, "Layer", "Shared layers"},
+	{7, "GROUP", 0, "Group", "Shared group"},
+	{8, "HOOK", 0, "Hook", ""},
+	{9, "PASS", 0, "Pass", "Render pass Index"},
+	{10, "COLOR", 0, "Color", "Object Color"},
+	{11, "PROPERTIES", 0, "Properties", "Game Properties"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+
+static short select_grouped_children(bContext *C, Object *ob, int recursive)
+{
+	short changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if (ob == base->object->parent) {
+			if (!(base->flag & SELECT)) {
+				ED_base_object_select(base, BA_SELECT);
+				changed = 1;
+			}
+
+			if (recursive)
+				changed |= select_grouped_children(C, base->object, 1);
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static short select_grouped_parent(bContext *C)	/* Makes parent active and de-selected OBACT */
+{
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d= CTX_wm_view3d(C);
+
+	short changed = 0;
+	Base *baspar, *basact= CTX_data_active_base(C);
+
+	if (!basact || !(basact->object->parent)) return 0; /* we know OBACT is valid */
+
+	baspar= object_in_scene(basact->object->parent, scene);
+
+	/* can be NULL if parent in other scene */
+	if(baspar && BASE_SELECTABLE(v3d, baspar)) {
+		ED_base_object_select(basact, BA_DESELECT);
+		ED_base_object_select(baspar, BA_SELECT);
+		ED_base_object_activate(C, baspar);
+		changed = 1;
+	}
+	return changed;
+}
+
+
+#define GROUP_MENU_MAX	24
+static short select_grouped_group(bContext *C, Object *ob)	/* Select objects in the same group as the active */
+{
+	short changed = 0;
+	Group *group, *ob_groups[GROUP_MENU_MAX];
+	//char str[10 + (24*GROUP_MENU_MAX)];
+	//char *p = str;
+	int group_count=0; //, menu, i;
+
+	for (	group=G.main->group.first;
+			group && group_count < GROUP_MENU_MAX;
+			group=group->id.next
+		) {
+		if (object_in_group (ob, group)) {
+			ob_groups[group_count] = group;
+			group_count++;
+		}
+	}
+
+	if (!group_count)
+		return 0;
+
+	else if (group_count == 1) {
+		group = ob_groups[0];
+		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+			if (!(base->flag & SELECT) && object_in_group(base->object, group)) {
+				ED_base_object_select(base, BA_SELECT);
+				changed = 1;
+			}
+		}
+		CTX_DATA_END;
+		return changed;
+	}
+#if 0 // XXX hows this work in 2.5?
+	/* build the menu. */
+	p += sprintf(str, "Groups%%t");
+	for (i=0; i<group_count; i++) {
+		group = ob_groups[i];
+		p += sprintf (p, "|%s%%x%i", group->id.name+2, i);
+	}
+
+	menu = pupmenu (str);
+	if (menu == -1)
+		return 0;
+
+	group = ob_groups[menu];
+	for (base= FIRSTBASE; base; base= base->next) {
+		if (!(base->flag & SELECT) && object_in_group(base->object, group)) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+#endif
+	return changed;
+}
+
+static short select_grouped_object_hooks(bContext *C, Object *ob)
+{
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d= CTX_wm_view3d(C);
+
+	short changed = 0;
+	Base *base;
+	ModifierData *md;
+	HookModifierData *hmd;
+
+	for (md = ob->modifiers.first; md; md=md->next) {
+		if (md->type==eModifierType_Hook) {
+			hmd= (HookModifierData*) md;
+			if (hmd->object && !(hmd->object->flag & SELECT)) {
+				base= object_in_scene(hmd->object, scene);
+				if (base && (BASE_SELECTABLE(v3d, base))) {
+					ED_base_object_select(base, BA_SELECT);
+					changed = 1;
+				}
+			}
+		}
+	}
+	return changed;
+}
+
+/* Select objects woth the same parent as the active (siblings),
+ * parent can be NULL also */
+static short select_grouped_siblings(bContext *C, Object *ob)
+{
+	short changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if ((base->object->parent==ob->parent)  && !(base->flag & SELECT)) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static short select_grouped_type(bContext *C, Object *ob)
+{
+	short changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if ((base->object->type == ob->type) && !(base->flag & SELECT)) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static short select_grouped_layer(bContext *C, Object *ob)
+{
+	char changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if ((base->lay & ob->lay) && !(base->flag & SELECT)) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static short select_grouped_index_object(bContext *C, Object *ob)
+{
+	char changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if ((base->object->index == ob->index) && !(base->flag & SELECT)) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static short select_grouped_color(bContext *C, Object *ob)
+{
+	char changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if (!(base->flag & SELECT) && (FloatCompare(base->object->col, ob->col, 0.005f))) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static short objects_share_gameprop(Object *a, Object *b)
+{
+	bProperty *prop;
+	/*make a copy of all its properties*/
+
+	for( prop= a->prop.first; prop; prop = prop->next ) {
+		if ( get_ob_property(b, prop->name) )
+			return 1;
+	}
+	return 0;
+}
+
+static short select_grouped_gameprops(bContext *C, Object *ob)
+{
+	char changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if (!(base->flag & SELECT) && (objects_share_gameprop(base->object, ob))) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static int object_select_grouped_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob;
+	int nr = RNA_enum_get(op->ptr, "type");
+	short changed = 0, seltype;
+
+	seltype = RNA_enum_get(op->ptr, "seltype");
+	
+	if (seltype == 0) {
+		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+			ED_base_object_select(base, BA_DESELECT);
+		}
+		CTX_DATA_END;
+	}
+	
+	ob= OBACT;
+	if(ob==0){ 
+		BKE_report(op->reports, RPT_ERROR, "No Active Object");
+		return OPERATOR_CANCELLED;
+	}
+	
+	if(nr==1)		changed = select_grouped_children(C, ob, 1);
+	else if(nr==2)	changed = select_grouped_children(C, ob, 0);
+	else if(nr==3)	changed = select_grouped_parent(C);
+	else if(nr==4)	changed = select_grouped_siblings(C, ob);
+	else if(nr==5)	changed = select_grouped_type(C, ob);
+	else if(nr==6)	changed = select_grouped_layer(C, ob);
+	else if(nr==7)	changed = select_grouped_group(C, ob);
+	else if(nr==8)	changed = select_grouped_object_hooks(C, ob);
+	else if(nr==9)	changed = select_grouped_index_object(C, ob);
+	else if(nr==10)	changed = select_grouped_color(C, ob);
+	else if(nr==11)	changed = select_grouped_gameprops(C, ob);
+	
+	if (changed) {
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
+		return OPERATOR_FINISHED;
+	}
+	
+	return OPERATOR_CANCELLED;
+}
+
+void OBJECT_OT_select_grouped(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Grouped";
+	ot->description = "Select all visible objects grouped by various properties.";
+	ot->idname= "OBJECT_OT_select_grouped";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= object_select_grouped_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
+	RNA_def_enum(ot->srna, "seltype", prop_select_types, 1, "Selection", "Extend selection or clear selection then select");
+
+}
+
 /* ****** selection by layer *******/
 
 static int object_select_by_layer_exec(bContext *C, wmOperator *op)
@@ -1733,7 +2039,7 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 }
 
 /* ****** invert selection *******/
-static int object_select_invert_exec(bContext *C, wmOperator *op)
+static int object_select_inverse_exec(bContext *C, wmOperator *op)
 {
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if (base->flag & SELECT)
@@ -1749,16 +2055,16 @@ static int object_select_invert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_select_invert(wmOperatorType *ot)
+void OBJECT_OT_select_inverse(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Invert selection";
-	ot->description = "Invert th select of all visible objects.";
-	ot->idname= "OBJECT_OT_select_invert";
+	ot->name= "Select Inverse";
+	ot->description = "Invert selection of all visible objects.";
+	ot->idname= "OBJECT_OT_select_inverse";
 	
 	/* api callbacks */
-	ot->exec= object_select_invert_exec;
+	ot->exec= object_select_inverse_exec;
 	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
@@ -1891,7 +2197,7 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Clear Object Location";
+	ot->name= "Clear Location";
 	ot->description = "Clear the object's location.";
 	ot->idname= "OBJECT_OT_location_clear";
 	
@@ -1935,7 +2241,7 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Clear Object Rotation";
+	ot->name= "Clear Rotation";
 	ot->description = "Clear the object's rotation.";
 	ot->idname= "OBJECT_OT_rotation_clear";
 	
@@ -1983,7 +2289,7 @@ void OBJECT_OT_scale_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Clear Object Scale";
+	ot->name= "Clear Scale";
 	ot->description = "Clear the object's scale.";
 	ot->idname= "OBJECT_OT_scale_clear";
 	
@@ -2029,7 +2335,7 @@ void OBJECT_OT_origin_clear(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= "Clear Object Origin";
+	ot->name= "Clear Origin";
 	ot->description = "Clear the object's origin.";
 	ot->idname= "OBJECT_OT_origin_clear";
 	
@@ -2072,12 +2378,11 @@ void OBJECT_OT_restrictview_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Clear restrict view";
+	ot->name= "Clear Restrict View";
 	ot->description = "Reveal the object by setting the restrictview flag.";
 	ot->idname= "OBJECT_OT_restrictview_clear";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
 	ot->exec= object_restrictview_clear_exec;
 	ot->poll= ED_operator_view3d_active;
 	
@@ -2085,19 +2390,14 @@ void OBJECT_OT_restrictview_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static EnumPropertyItem prop_set_restrictview_types[] = {
-	{0, "SELECTED", "Selected", ""},
-	{1, "UNSELECTED", "Unselected ", ""},
-	{0, NULL, NULL, NULL}
-};
-
 static int object_restrictview_set_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	short changed = 0;
+	int unselected= RNA_boolean_get(op->ptr, "unselected");
 	
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if(RNA_enum_is_equal(op->ptr, "type", "SELECTED")){
+		if(!unselected) {
 			if (base->flag & SELECT){
 				base->flag &= ~SELECT;
 				base->object->flag = base->flag;
@@ -2108,7 +2408,7 @@ static int object_restrictview_set_exec(bContext *C, wmOperator *op)
 				}
 			}
 		}
-		else if (RNA_enum_is_equal(op->ptr, "type", "UNSELECTED")){
+		else {
 			if (!(base->flag & SELECT)){
 				base->object->restrictflag |= OB_RESTRICT_VIEW;
 				changed = 1;
@@ -2130,19 +2430,18 @@ static int object_restrictview_set_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_restrictview_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set restrict view";
+	ot->name= "Set Restrict View";
 	ot->description = "Hide the object by setting the restrictview flag.";
 	ot->idname= "OBJECT_OT_restrictview_set";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
 	ot->exec= object_restrictview_set_exec;
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_set_restrictview_types, 0, "Type", "");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects.");
 	
 }
 /* ************* Slow Parent ******************* */
@@ -2240,10 +2539,10 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 	
 	if(obedit->type==OB_MESH) {
 		Mesh *me= obedit->data;
-		EditMesh *em = BKE_mesh_get_editmesh(me);
+		BMEditMesh *em = me->edit_btmesh;
+		BMIter iter;
 
-		eve= em->verts.first;
-		while(eve) {
+		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			if(eve->f & 1) {
 				if(v1==0) v1= nr;
 				else if(v2==0) v2= nr;
@@ -2252,10 +2551,7 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 				else break;
 			}
 			nr++;
-			eve= eve->next;
 		}
-
-		BKE_mesh_end_editmesh(me, em);
 	}
 	else if(ELEM(obedit->type, OB_SURF, OB_CURVE)) {
 		ListBase *editnurb= curve_get_editcurve(obedit);
@@ -2463,16 +2759,16 @@ void make_proxy(Scene *scene)
 #define PAR_TRIA		8
 
 static EnumPropertyItem prop_make_parent_types[] = {
-	{PAR_OBJECT, "OBJECT", "Object", ""},
-	{PAR_ARMATURE, "ARMATURE", "Armature Deform", ""},
-	{PAR_BONE, "BONE", "Bone", ""},
-	{PAR_CURVE, "CURVE", "Curve Deform", ""},
-	{PAR_FOLLOW, "FOLLOW", "Follow Path", ""},
-	{PAR_PATH_CONST, "PATH_CONST", "Path Constraint", ""},
-	{PAR_LATTICE, "LATTICE", "Lattice Deform", ""},
-	{PAR_VERTEX, "VERTEX", "Vertex", ""},
-	{PAR_TRIA, "TRIA", "Triangle", ""},
-	{0, NULL, NULL, NULL}
+	{PAR_OBJECT, "OBJECT", 0, "Object", ""},
+	{PAR_ARMATURE, "ARMATURE", 0, "Armature Deform", ""},
+	{PAR_BONE, "BONE", 0, "Bone", ""},
+	{PAR_CURVE, "CURVE", 0, "Curve Deform", ""},
+	{PAR_FOLLOW, "FOLLOW", 0, "Follow Path", ""},
+	{PAR_PATH_CONST, "PATH_CONST", 0, "Path Constraint", ""},
+	{PAR_LATTICE, "LATTICE", 0, "Lattice Deform", ""},
+	{PAR_VERTEX, "VERTEX", 0, "Vertex", ""},
+	{PAR_TRIA, "TRIA", 0, "Triangle", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int test_parent_loop(Object *par, Object *ob)
@@ -2601,7 +2897,8 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	DAG_scene_sort(CTX_data_scene(C));
-	ED_anim_dag_flush_update(C);	
+	ED_anim_dag_flush_update(C);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2638,7 +2935,7 @@ static int parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void OBJECT_OT_parent_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Make parent";
+	ot->name= "Make Parent";
 	ot->description = "Set the object's parenting.";
 	ot->idname= "OBJECT_OT_parent_set";
 	
@@ -2649,24 +2946,25 @@ void OBJECT_OT_parent_set(wmOperatorType *ot)
 	ot->poll= ED_operator_object_active;
 	
 	/* flags */
-	ot->flag= 0;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
 }
 
 /* *** make track ***** */
 static EnumPropertyItem prop_make_track_types[] = {
-	{1, "TRACKTO", "TrackTo Constraint", ""},
-	{2, "LOCKTRACK", "LockTrack Constraint", ""},
-	{3, "OLDTRACK", "Old Track", ""},
-	{0, NULL, NULL, NULL}
+	{1, "TRACKTO", 0, "TrackTo Constraint", ""},
+	{2, "LOCKTRACK", 0, "LockTrack Constraint", ""},
+	{3, "OLDTRACK", 0, "Old Track", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int track_set_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
+	int type= RNA_enum_get(op->ptr, "type");
 		
-	if(RNA_enum_is_equal(op->ptr, "type", "TRACKTO")){
+	if(type == 1) {
 		bConstraint *con;
 		bTrackToConstraint *data;
 
@@ -2690,7 +2988,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-	else if(RNA_enum_is_equal(op->ptr, "type", "LOCKTRACK")){
+	else if(type == 2) {
 		bConstraint *con;
 		bLockTrackConstraint *data;
 
@@ -2714,7 +3012,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-	else if(RNA_enum_is_equal(op->ptr, "type", "OLDTRACK")){
+	else {
 		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 			if(base!=BASACT) {
 				base->object->track= BASACT->object;
@@ -2792,7 +3090,7 @@ static void make_object_duplilist_real(Scene *scene, View3D *v3d, Base *base)
 }
 
 
-static int object_dupli_set_real_exec(bContext *C, wmOperator *op)
+static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
@@ -2812,17 +3110,17 @@ static int object_dupli_set_real_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_dupli_set_real(wmOperatorType *ot)
+void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Make Dupli Real";
+	ot->name= "Make Duplicates Real";
 	ot->description = "Make dupli objects attached to this object real.";
-	ot->idname= "OBJECT_OT_dupli_set_real";
+	ot->idname= "OBJECT_OT_duplicates_make_real";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
-	ot->exec= object_dupli_set_real_exec;
+	ot->exec= object_duplicates_make_real_exec;
 	
 	ot->poll= ED_operator_scene_editable;
 	
@@ -2832,10 +3130,10 @@ void OBJECT_OT_dupli_set_real(wmOperatorType *ot)
 /* ******************* Set Object Center ********************** */
 
 static EnumPropertyItem prop_set_center_types[] = {
-	{0, "CENTER", "ObData to Center", "Move object data around Object center"},
-	{1, "CENTERNEW", "Center New", "Move Object center to center of object data"},
-	{2, "CENTERCURSOR", "Center Cursor", "Move Object Center to position of the 3d cursor"},
-	{0, NULL, NULL, NULL}
+	{0, "CENTER", 0, "ObData to Center", "Move object data around Object center"},
+	{1, "CENTERNEW", 0, "Center New", "Move Object center to center of object data"},
+	{2, "CENTERCURSOR", 0, "Center Cursor", "Move Object Center to position of the 3d cursor"},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* 0 == do center, 1 == center new, 2 == center cursor */
@@ -2876,9 +3174,10 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 	
 		if(obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;
-			EditMesh *em = BKE_mesh_get_editmesh(me);
+			BMEditMesh *em = me->edit_btmesh;
+			BMIter iter;
 
-			for(eve= em->verts.first; eve; eve= eve->next) {
+			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 				if(v3d->around==V3D_CENTROID) {
 					total++;
 					VECADD(cent, cent, eve->co);
@@ -2897,14 +3196,13 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 				cent[2]= (min[2]+max[2])/2.0f;
 			}
 			
-			for(eve= em->verts.first; eve; eve= eve->next) {
+			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 				VecSubf(eve->co, eve->co, cent);			
 			}
 			
-			recalc_editnormals(em);
+			EDBM_RecalcNormals(em);
 			tot_change++;
 			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-			BKE_mesh_end_editmesh(me, em);
 		}
 	}
 	
@@ -3208,7 +3506,11 @@ void ED_object_exit_editmode(bContext *C, int flag)
 
 		EDBM_LoadEditBMesh(scene, obedit);
 		
-		if(freedata) EDBM_FreeEditBMesh(me->edit_btmesh);
+		if(freedata) {
+			EDBM_FreeEditBMesh(me->edit_btmesh);
+			MEM_freeN(me->edit_btmesh);
+			me->edit_btmesh= NULL;
+		}
 		
 		if(G.f & G_WEIGHTPAINT)
 			mesh_octree_table(obedit, NULL, NULL, 'e');
@@ -3257,7 +3559,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 {
 	Scene *scene= CTX_data_scene(C);
 	Base *base= CTX_data_active_base(C);
-	Object *ob= base->object;
+	Object *ob;
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= NULL;
 	int ok= 0;
@@ -3269,7 +3571,10 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		v3d= sa->spacedata.first;
 	
 	if((v3d==NULL || (base->lay & v3d->lay))==0) return;
-	
+
+	ob = base->object;
+
+	if(ob==NULL) return;
 	if(ob->data==NULL) return;
 	
 	if (object_data_is_libdata(ob)) {
@@ -3351,6 +3656,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, scene);
 	}
 	
+	if(flag & EM_DO_UNDO) ED_undo_push(C, "Enter Editmode");
 	if(flag & EM_WAITCURSOR) waitcursor(0);
 }
 
@@ -3574,9 +3880,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 // XXX	static short numcuts= 2;
 	Object *ob= OBACT;
 	Object *obedit= NULL; // XXX
-	float fac;
 	int nr,ret=0;
-	short randfac;
 	
 	if(ob==NULL) return;
 	
@@ -3663,7 +3967,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 			if(!psys)
 				return;
 
-			if(scene->selectmode & SCE_SELECT_POINT)
+			if(pset->selectmode & SCE_SELECT_POINT)
 				nr= pupmenu("Specials%t|Rekey%x1|Subdivide%x2|Select First%x3|Select Last%x4|Remove Doubles%x5");
 			else
 				nr= pupmenu("Specials%t|Rekey%x1|Remove Doubles%x5");
@@ -3765,144 +4069,8 @@ void special_editmenu(Scene *scene, View3D *v3d)
 		}
 	}
 	else if(obedit->type==OB_MESH) {
-		/* This is all that is needed, since all other functionality is in Ctrl+ V/E/F but some users didnt like, so for now have the old/big menu */
-		/*
-		nr= pupmenu("Subdivide Mesh%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Smooth%x4");
-		switch(nr) {
-		case 1:
-			waitcursor(1);
-			esubdivideflag(1, 0.0, scene->toolsettings->editbutflag, 1, 0);
-			
-			break;
-		case 2:
-			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
-			waitcursor(1);
-			esubdivideflag(1, 0.0, scene->toolsettings->editbutflag, numcuts, 0);
-			break;
-		case 3:
-			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
-			randfac= 10;
-			if(button(&randfac, 1, 100, "Rand fac:")==0) return;
-			waitcursor(1);			
-			fac= -( (float)randfac )/100;
-			esubdivideflag(1, fac, scene->toolsettings->editbutflag, numcuts, 0);
-			break;
-			
-		case 4:
-			fac= 1.0f;
-			if(fbutton(&fac, 0.0f, 5.0f, 10, 10, "Smooth:")==0) return;
-				fac= 0.292f*fac;
-			
-			waitcursor(1);
-			esubdivideflag(1, fac, scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
-			break;		
-		}
-		*/
-		
-		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Smooth%x12|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select Swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11|Set Smooth %x14|Set Solid %x15|Blend From Shape%x16|Propagate To All Shapes%x17|Select Vertex Path%x18");
-		
-		switch(nr) {
-		case 1:
-			waitcursor(1);
-// XXX			esubdivideflag(1, 0.0, scene->toolsettings->editbutflag, 1, 0);
-			
-			break;
-		case 2:
-// XXX			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
-			waitcursor(1);
-// XXX			esubdivideflag(1, 0.0, scene->toolsettings->editbutflag, numcuts, 0);
-			break;
-		case 3:
-// XXX			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
-			randfac= 10;
-// XXX			if(button(&randfac, 1, 100, "Rand fac:")==0) return;
-			waitcursor(1);			
-			fac= -( (float)randfac )/100;
-// XXX			esubdivideflag(1, fac, scene->toolsettings->editbutflag, numcuts, 0);
-			break;
-			
-		case 12:	/* smooth */
-			/* if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return; */
-			fac= 1.0f;
-// XXX			if(fbutton(&fac, 0.0f, 5.0f, 10, 10, "Smooth:")==0) return;
-// XXX				fac= 0.292f*fac;
-			
-			waitcursor(1);
-// XXX			esubdivideflag(1, fac, scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
-			break;		
-
-		case 4:
-// XXX			mergemenu();
-			break;
-		case 5:
-// XXX			notice("Removed %d Vertices", removedoublesflag(1, 0, scene->toolsettings->doublimit));
-			break;
-		case 6:
-// XXX			hide_mesh(0);
-			break;
-		case 7:
-// XXX			reveal_mesh();
-			break;
-		case 8:
-// XXX			selectswap_mesh();
-			break;
-		case 9:
-// XXX			flip_editnormals();
-			break;
-		case 10:
-// XXX			vertexsmooth();
-			break;
-		case 11:
-// XXX			bevel_menu();
-			break;
-		case 14:
-// XXX			mesh_set_smooth_faces(1);
-			break;
-		case 15: 
-// XXX			mesh_set_smooth_faces(0);
-			break;
-		case 16: 
-// XXX			shape_copy_select_from();
-			break;
-		case 17: 
-// XXX			shape_propagate();
-			break;
-		case 18:
-// XXX			pathselect();
-			break;
-		}
-		
-		
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		
-		if(nr>0) waitcursor(0);
-		
 	}
 	else if(ELEM(obedit->type, OB_CURVE, OB_SURF)) {
-
-		nr= pupmenu("Specials%t|Subdivide%x1|Switch Direction%x2|Set Goal Weight%x3|Set Radius%x4|Smooth%x5|Smooth Radius%x6");
-		
-		switch(nr) {
-		case 1:
-// XXX			subdivideNurb();
-			break;
-		case 2:
-// XXX			switchdirectionNurb2();
-			break;
-		case 3:
-// XXX			setweightNurb();
-			break;
-		case 4:
-// XXX			setradiusNurb();
-			break;
-		case 5:
-// XXX			smoothNurb();
-			break;
-		case 6:
-// XXX			smoothradiusNurb();
-			break;
-		}
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	}
 	else if(obedit->type==OB_ARMATURE) {
 		nr= pupmenu("Specials%t|Subdivide %x1|Subdivide Multi%x2|Switch Direction%x7|Flip Left-Right Names%x3|%l|AutoName Left-Right%x4|AutoName Front-Back%x5|AutoName Top-Bottom%x6");
@@ -6088,11 +6256,12 @@ Base *ED_object_add_duplicate(Scene *scene, Base *base, int usedupflag)
 }
 
 /* contextual operator dupli */
-static int duplicate_add_exec(bContext *C, wmOperator *op)
+static int duplicate_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
-	int dupflag= U.dupflag;
+	int linked= RNA_boolean_get(op->ptr, "linked");
+	int dupflag= (linked)? 0: U.dupflag;
 	
 	clear_id_newpoins();
 	clear_sca_new_poins();	/* sensor/contr/act */
@@ -6120,9 +6289,9 @@ static int duplicate_add_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int duplicate_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	duplicate_add_exec(C, op);
+	duplicate_exec(C, op);
 	
 	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
 	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
@@ -6130,17 +6299,17 @@ static int duplicate_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_duplicate_add(wmOperatorType *ot)
+void OBJECT_OT_duplicate(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Add Duplicate";
-	ot->description = "Duplicate the object.";
-	ot->idname= "OBJECT_OT_duplicate_add";
+	ot->name= "Duplicate";
+	ot->description = "Duplicate selected objects.";
+	ot->idname= "OBJECT_OT_duplicate";
 	
 	/* api callbacks */
-	ot->invoke= duplicate_add_invoke;
-	ot->exec= duplicate_add_exec;
+	ot->invoke= duplicate_invoke;
+	ot->exec= duplicate_exec;
 	
 	ot->poll= ED_operator_scene_editable;
 	
@@ -6148,7 +6317,55 @@ void OBJECT_OT_duplicate_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* to give to transform */
+	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data.");
 	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+}
+
+/* ************************** JOIN *********************** */
+
+static int join_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+
+	if(scene->obedit) {
+		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in editmode.");
+		return OPERATOR_CANCELLED;
+	}
+	else if(!ob) {
+		BKE_report(op->reports, RPT_ERROR, "Can't join unless there is an active object.");
+		return OPERATOR_CANCELLED;
+	}
+	else if(object_data_is_libdata(ob)) {
+		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata.");
+		return OPERATOR_CANCELLED;
+	}
+
+	if(ob->type == OB_MESH)
+		return join_mesh_exec(C, op);
+	else if(ELEM(ob->type, OB_CURVE, OB_SURF))
+		return join_curve_exec(C, op);
+	else if(ob->type == OB_ARMATURE)
+		return join_armature_exec(C, op);
+
+	BKE_report(op->reports, RPT_ERROR, "This object type doesn't support joining.");
+
+	return OPERATOR_CANCELLED;
+}
+
+void OBJECT_OT_join(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Join";
+	ot->description = "Join selected objects into active object.";
+	ot->idname= "OBJECT_OT_join";
+	
+	/* api callbacks */
+	ot->exec= join_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ********************** */

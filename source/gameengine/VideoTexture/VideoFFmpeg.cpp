@@ -1095,13 +1095,13 @@ PyObject * VideoFFmpeg_getPreseek (PyImage *self, void * closure)
 int VideoFFmpeg_setPreseek (PyImage * self, PyObject * value, void * closure)
 {
 	// check validity of parameter
-	if (value == NULL || !PyInt_Check(value))
+	if (value == NULL || !PyLong_Check(value))
 	{
 		PyErr_SetString(PyExc_TypeError, "The value must be an integer");
 		return -1;
 	}
 	// set preseek
-	getFFmpeg(self)->setPreseek(PyInt_AsLong(value));
+	getFFmpeg(self)->setPreseek(PyLong_AsSsize_t(value));
 	// success
 	return 0;
 }

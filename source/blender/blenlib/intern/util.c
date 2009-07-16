@@ -494,6 +494,22 @@ void BLI_makestringcode(const char *relfile, char *file)
 	}
 }
 
+int BLI_has_parent(char *path)
+{
+	int len;
+	int slashes = 0;
+	BLI_clean(path);
+	BLI_add_slash(path);
+
+	len = strlen(path)-1;
+	while (len>=0) {
+		if ((path[len] == '\\') || (path[len] == '/'))
+			slashes++;
+		len--;
+	}
+	return slashes > 1;
+}
+
 int BLI_parent_dir(char *path)
 {
 #ifdef WIN32
@@ -736,11 +752,27 @@ void BLI_splitdirstring(char *di, char *fi)
 	}
 }
 
-char *BLI_gethome(void) {
-	#ifdef __BeOS
-		return "/boot/home/";		/* BeOS 4.5: doubleclick at icon doesnt give home env */
+void BLI_getlastdir(const char* dir, char *last, int maxlen)
+{
+	const char *s = dir;
+	const char *lslash = NULL;
+	const char *prevslash = NULL;
+	while (*s) {
+		if ((*s == '\\') || (*s == '/')) {
+			prevslash = lslash;
+			lslash = s;
+		}
+		s++;
+	}
+	if (prevslash) {
+		BLI_strncpy(last, prevslash+1, maxlen);
+	} else {
+		BLI_strncpy(last, dir, maxlen);
+	}
+}
 
-	#elif !defined(WIN32)
+char *BLI_gethome(void) {
+	#if !defined(WIN32)
 		return getenv("HOME");
 
 	#else /* Windows */

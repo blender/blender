@@ -41,9 +41,6 @@ struct TextLine;
 struct wmOperatorType;
 struct wmWindowManager;
 
-/* text_header.c */
-void text_header_register(struct ARegionType *art);
-
 /* text_draw.c */
 void draw_text_main(struct SpaceText *st, struct ARegion *ar);
 
@@ -58,9 +55,10 @@ int text_font_width(struct SpaceText *st, char *str);
 
 void text_update_line_edited(struct Text *text, struct TextLine *line);
 void text_update_edited(struct Text *text);
+void text_update_character_width(struct SpaceText *st);
 void text_update_cursor_moved(struct SpaceText *st, struct ARegion *ar);
 
-#define TEXTXLOC		38
+#define TEXTXLOC		(st->cwidth * st->linenrs_tot)
 
 #define SUGG_LIST_SIZE	7
 #define SUGG_LIST_WIDTH	20

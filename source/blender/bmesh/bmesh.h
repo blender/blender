@@ -306,6 +306,9 @@ int BM_Dissolve_Vert(BMesh *bm, BMVert *v);
 void BM_Data_Interp_From_Verts(struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMVert *v, float fac);
 void BM_Data_Facevert_Edgeinterp(struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMVert *v, struct BMEdge *e1, float fac);
 //void bmesh_data_interp_from_face(struct BMesh *bm, struct BMFace *source, struct BMFace *target);
+void BM_add_data_layer(BMesh *em, CustomData *data, int type);
+void BM_free_data_layer(BMesh *em, CustomData *data, int type);
+
 
 /*computes the centroid of a face, using the center of the bounding box*/
 int BM_Compute_Face_Center(BMesh *bm, BMFace *f, float center[3]);

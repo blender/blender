@@ -227,7 +227,7 @@ void poselib_validate_act (bAction *act)
 	}
 	
 	/* determine which frames have keys */
-	action_to_keylist(act, &keys, NULL, NULL);
+	action_to_keylist(NULL, act, &keys, NULL);
 	
 	/* for each key, make sure there is a correspnding pose */
 	for (ak= keys.first; ak; ak= ak->next) {
@@ -1489,7 +1489,7 @@ void POSELIB_OT_browse_interactive (wmOperatorType *ot)
 	ot->poll= ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* properties */	
 	RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, "Pose", "Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)", 0, INT_MAX);

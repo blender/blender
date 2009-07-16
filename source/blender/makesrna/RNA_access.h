@@ -37,6 +37,7 @@ extern "C" {
 struct bContext;
 struct ID;
 struct Main;
+struct ReportList;
 
 /* Types */
 
@@ -163,6 +164,7 @@ extern StructRNA RNA_DomainFluidSettings;
 extern StructRNA RNA_Driver;
 extern StructRNA RNA_DriverTarget;
 extern StructRNA RNA_EdgeSplitModifier;
+extern StructRNA RNA_EditBone;
 extern StructRNA RNA_EffectSequence;
 extern StructRNA RNA_EnumProperty;
 extern StructRNA RNA_EnumPropertyItem;
@@ -170,12 +172,16 @@ extern StructRNA RNA_EnvironmentMap;
 extern StructRNA RNA_EnvironmentMapTexture;
 extern StructRNA RNA_ExplodeModifier;
 extern StructRNA RNA_ExpressionController;
+extern StructRNA RNA_Event;
 extern StructRNA RNA_FCurve;
+extern StructRNA RNA_FCurveSample;
+extern StructRNA RNA_FileSelectParams;
 extern StructRNA RNA_FModifier;
 extern StructRNA RNA_FModifierCycles;
 extern StructRNA RNA_FModifierEnvelope;
+extern StructRNA RNA_FModifierEnvelopeControlPoint;
+extern StructRNA RNA_FModifierFunctionGenerator;
 extern StructRNA RNA_FModifierGenerator;
-extern StructRNA RNA_FModifierGenerator_Function;
 extern StructRNA RNA_FModifierGenerator_PolyExpanded;
 extern StructRNA RNA_FModifierLimits;
 extern StructRNA RNA_FModifierNoise;
@@ -215,6 +221,7 @@ extern StructRNA RNA_Key;
 extern StructRNA RNA_KeyboardSensor;
 extern StructRNA RNA_KeyingSet;
 extern StructRNA RNA_KeyingSetPath;
+extern StructRNA RNA_KeyedParticleTarget;
 extern StructRNA RNA_KinematicConstraint;
 extern StructRNA RNA_Lamp;
 extern StructRNA RNA_LampSkySettings;
@@ -270,6 +277,8 @@ extern StructRNA RNA_MultiresModifier;
 extern StructRNA RNA_MusgraveTexture;
 extern StructRNA RNA_NandController;
 extern StructRNA RNA_NearSensor;
+extern StructRNA RNA_NlaTrack;
+extern StructRNA RNA_NlaStrip;
 extern StructRNA RNA_Node;
 extern StructRNA RNA_NodeTree;
 extern StructRNA RNA_NoiseTexture;
@@ -356,16 +365,20 @@ extern StructRNA RNA_ShrinkwrapModifier;
 extern StructRNA RNA_SimpleDeformModifier;
 extern StructRNA RNA_SmoothModifier;
 extern StructRNA RNA_SoftBodySettings;
-extern StructRNA RNA_SoftbodyModifier;
+extern StructRNA RNA_SoftBodyModifier;
 extern StructRNA RNA_Sound;
 extern StructRNA RNA_SoundSequence;
 extern StructRNA RNA_Space;
 extern StructRNA RNA_Space3DView;
 extern StructRNA RNA_SpaceButtonsWindow;
+extern StructRNA RNA_SpaceDopeSheetEditor;
+extern StructRNA RNA_SpaceGraphEditor;
 extern StructRNA RNA_SpaceImageEditor;
+extern StructRNA RNA_SpaceNLA;
 extern StructRNA RNA_SpaceOutliner;
 extern StructRNA RNA_SpaceSequenceEditor;
 extern StructRNA RNA_SpaceTextEditor;
+extern StructRNA RNA_SpaceFileBrowser;
 extern StructRNA RNA_SpaceUVEditor;
 extern StructRNA RNA_SpeedControlSequence;
 extern StructRNA RNA_SpotLamp;
@@ -376,6 +389,7 @@ extern StructRNA RNA_StucciTexture;
 extern StructRNA RNA_SubsurfModifier;
 extern StructRNA RNA_SunLamp;
 extern StructRNA RNA_SurfaceCurve;
+extern StructRNA RNA_SurfaceModifier;
 extern StructRNA RNA_TexMapping;
 extern StructRNA RNA_Text;
 extern StructRNA RNA_TextBox;
@@ -479,6 +493,8 @@ void RNA_pointer_create(struct ID *id, StructRNA *type, void *data, PointerRNA *
 
 void RNA_blender_rna_pointer_create(PointerRNA *r_ptr);
 
+extern PointerRNA PointerRNA_NULL;
+
 /* Structs */
 
 const char *RNA_struct_identifier(StructRNA *type);
@@ -488,6 +504,7 @@ int RNA_struct_ui_icon(StructRNA *type);
 
 PropertyRNA *RNA_struct_name_property(StructRNA *type);
 PropertyRNA *RNA_struct_iterator_property(StructRNA *type);
+StructRNA *RNA_struct_base(StructRNA *type);
 
 int RNA_struct_is_ID(StructRNA *type);
 int RNA_struct_is_a(StructRNA *type, StructRNA *srna);
@@ -509,6 +526,8 @@ const struct ListBase *RNA_struct_defined_properties(StructRNA *srna);
 FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier);
 const struct ListBase *RNA_struct_defined_functions(StructRNA *srna);
 
+char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen);
+
 /* Properties
  *
  * Access to struct properties. All this works with RNA pointers rather than
@@ -527,6 +546,7 @@ int RNA_property_string_maxlength(PropertyRNA *prop);
 
 const char *RNA_property_ui_name(PropertyRNA *prop);
 const char *RNA_property_ui_description(PropertyRNA *prop);
+int RNA_property_ui_icon(PropertyRNA *prop);
 
 /* Dynamic Property Information */
 
@@ -536,9 +556,12 @@ void RNA_property_int_ui_range(PointerRNA *ptr, PropertyRNA *prop, int *softmin,
 void RNA_property_float_range(PointerRNA *ptr, PropertyRNA *prop, float *hardmin, float *hardmax);
 void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *softmin, float *softmax, float *step, float *precision);
 
-void RNA_property_enum_items(PointerRNA *ptr, PropertyRNA *prop, const EnumPropertyItem **item, int *totitem);
-int RNA_property_enum_value(PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value);
-int RNA_property_enum_identifier(PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier);
+int RNA_enum_identifier(EnumPropertyItem *item, const int value, const char **identifier);
+int RNA_enum_name(EnumPropertyItem *item, const int value, const char **name);
+
+void RNA_property_enum_items(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **item, int *totitem, int *free);
+int RNA_property_enum_value(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value);
+int RNA_property_enum_identifier(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier);
 
 StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop);
 
@@ -588,6 +611,14 @@ void RNA_property_collection_end(CollectionPropertyIterator *iter);
 int RNA_property_collection_length(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_collection_lookup_int(PointerRNA *ptr, PropertyRNA *prop, int key, PointerRNA *r_ptr);
 int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, const char *key, PointerRNA *r_ptr);
+
+/* efficient functions to set properties for arrays */
+int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, PropertyRNA *itemprop, RawArray *array);
+int RNA_property_collection_raw_get(struct ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *array, RawPropertyType type, int len);
+int RNA_property_collection_raw_set(struct ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *array, RawPropertyType type, int len);
+int RNA_raw_type_sizeof(RawPropertyType type);
+RawPropertyType RNA_property_raw_type(PropertyRNA *prop);
+
 
 /* to create ID property groups */
 void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop);
@@ -654,11 +685,11 @@ void RNA_float_set_array(PointerRNA *ptr, const char *name, const float *values)
 
 int RNA_enum_get(PointerRNA *ptr, const char *name);
 void RNA_enum_set(PointerRNA *ptr, const char *name, int value);
-int RNA_enum_is_equal(PointerRNA *ptr, const char *name, const char *enumname);
+int RNA_enum_is_equal(struct bContext *C, PointerRNA *ptr, const char *name, const char *enumname);
 
 /* lower level functions that donr use a PointerRNA */
-int	RNA_enum_value_from_id(const EnumPropertyItem *item, const char *identifier, int *value);
-int	RNA_enum_id_from_value(const EnumPropertyItem *item, int value, const char **identifier);
+int	RNA_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *value);
+int	RNA_enum_id_from_value(EnumPropertyItem *item, int value, const char **identifier);
 
 void RNA_string_get(PointerRNA *ptr, const char *name, char *value);
 char *RNA_string_get_alloc(PointerRNA *ptr, const char *name, char *fixedbuf, int fixedlen);
@@ -680,6 +711,28 @@ void RNA_collection_clear(PointerRNA *ptr, const char *name);
 			PointerRNA itemptr= rna_macro_iter.ptr;
 
 #define RNA_END \
+		} \
+		RNA_property_collection_end(&rna_macro_iter); \
+	}
+
+#define RNA_PROP_BEGIN(sptr, itemptr, prop) \
+	{ \
+		CollectionPropertyIterator rna_macro_iter; \
+		for(RNA_property_collection_begin(sptr, prop, &rna_macro_iter); rna_macro_iter.valid; RNA_property_collection_next(&rna_macro_iter)) { \
+			PointerRNA itemptr= rna_macro_iter.ptr;
+
+#define RNA_PROP_END \
+		} \
+		RNA_property_collection_end(&rna_macro_iter); \
+	}
+
+#define RNA_STRUCT_BEGIN(sptr, prop) \
+	{ \
+		CollectionPropertyIterator rna_macro_iter; \
+		for(RNA_property_collection_begin(sptr, RNA_struct_iterator_property(sptr->type), &rna_macro_iter); rna_macro_iter.valid; RNA_property_collection_next(&rna_macro_iter)) { \
+			PropertyRNA *prop= rna_macro_iter.ptr.data;
+
+#define RNA_STRUCT_END \
 		} \
 		RNA_property_collection_end(&rna_macro_iter); \
 	}
@@ -716,13 +769,13 @@ void RNA_parameter_get_lookup(ParameterList *parms, const char *identifier, void
 void RNA_parameter_set(ParameterList *parms, PropertyRNA *parm, void *value);
 void RNA_parameter_set_lookup(ParameterList *parms, const char *identifier, void *value);
 
-int RNA_function_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *parms);
-int RNA_function_call_lookup(PointerRNA *ptr, const char *identifier, ParameterList *parms);
+int RNA_function_call(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, FunctionRNA *func, ParameterList *parms);
+int RNA_function_call_lookup(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, const char *identifier, ParameterList *parms);
 
-int RNA_function_call_direct(PointerRNA *ptr, FunctionRNA *func, const char *format, ...);
-int RNA_function_call_direct_lookup(PointerRNA *ptr, const char *identifier, const char *format, ...);
-int RNA_function_call_direct_va(PointerRNA *ptr, FunctionRNA *func, const char *format, va_list args);
-int RNA_function_call_direct_va_lookup(PointerRNA *ptr, const char *identifier, const char *format, va_list args);
+int RNA_function_call_direct(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, FunctionRNA *func, const char *format, ...);
+int RNA_function_call_direct_lookup(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, const char *identifier, const char *format, ...);
+int RNA_function_call_direct_va(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, FunctionRNA *func, const char *format, va_list args);
+int RNA_function_call_direct_va_lookup(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, const char *identifier, const char *format, va_list args);
 
 /* ID */
 

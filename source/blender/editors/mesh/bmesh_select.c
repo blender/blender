@@ -659,13 +659,13 @@ FACES GROUP
 */
 
 static EnumPropertyItem prop_simface_types[] = {
-	{1, "MATERIAL", "Material", ""},
-	{2, "IMAGE", "Image", ""},
-	{3, "AREA", "Area", ""},
-	{4, "PERIMETER", "Perimeter", ""},
-	{5, "NORMAL", "Normal", ""},
-	{6, "COPLANAR", "Co-planar", ""},
-	{0, NULL, NULL, NULL}
+	{1, "MATERIAL", 0, "Material", ""},
+	{2, "IMAGE", 0, "Image", ""},
+	{3, "AREA", 0, "Area", ""},
+	{4, "PERIMETER", 0, "Perimeter", ""},
+	{5, "NORMAL", 0, "Normal", ""},
+	{6, "COPLANAR", 0, "Co-planar", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 

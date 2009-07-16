@@ -29,6 +29,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "BLI_storage.h" /* _LARGEFILE_SOURCE */
+
 #include <math.h>
 #include <stdlib.h>
 
@@ -53,6 +55,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_jitter.h"
 #include "BLI_rand.h"
+
+#include "PIL_time.h"
 
 #include "BKE_action.h"
 #include "BKE_anim.h"		/* needed for where_on_path */
@@ -90,6 +94,20 @@
 #endif // DISABLE_ELBEEM
 
 //XXX #include "BIF_screen.h"
+
+PartDeflect *object_add_collision_fields(void)
+{
+	PartDeflect *pd;
+
+	pd= MEM_callocN(sizeof(PartDeflect), "PartDeflect");
+
+	pd->pdef_sbdamp = 0.1f;
+	pd->pdef_sbift  = 0.2f;
+	pd->pdef_sboft  = 0.02f;
+	pd->seed = ((unsigned int)(ceil(PIL_check_seconds_timer()))+1) % 128;
+
+	return pd;
+}
 
 /* temporal struct, used for reading return of mesh_get_mapped_verts_nors() */
 

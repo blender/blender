@@ -9,27 +9,39 @@ class DataButtonsPanel(bpy.types.Panel):
 	def poll(self, context):
 		return (context.armature != None)
 
-class DATA_PT_skeleton(DataButtonsPanel):
-	__idname__ = "DATA_PT_skeleton"
-	__label__ = "Skeleton"
-
+class DATA_PT_context_arm(DataButtonsPanel):
+	__idname__ = "DATA_PT_context_arm"
+	__no_header__ = True
+	
 	def draw(self, context):
+		layout = self.layout
+		
 		ob = context.object
 		arm = context.armature
 		space = context.space_data
-		layout = self.layout
 
 		split = layout.split(percentage=0.65)
 
 		if ob:
-			split.template_ID(context, ob, "data")
+			split.template_ID(ob, "data")
 			split.itemS()
 		elif arm:
-			split.template_ID(context, space, "pin_id")
+			split.template_ID(space, "pin_id")
 			split.itemS()
 
+class DATA_PT_skeleton(DataButtonsPanel):
+	__idname__ = "DATA_PT_skeleton"
+	__label__ = "Skeleton"
+	
+	def draw(self, context):
+		layout = self.layout
+		
+		ob = context.object
+		arm = context.armature
+		space = context.space_data
+
+
 		if arm:
-			layout.itemS()
 			layout.itemR(arm, "rest_position")
 
 			split = layout.split()
@@ -45,17 +57,17 @@ class DATA_PT_skeleton(DataButtonsPanel):
 			
 			sub = split.column()
 			sub.itemL(text="Layers:")
-			sub.itemL(text="LAYERS")
-			#sub.itemR(arm, "layer")
-			#sub.itemR(arm, "layer_protection")
+			sub.template_layers(arm, "layer")
+			sub.itemL(text="Protected Layers:")
+			sub.template_layers(arm, "layer_protection")
 
 class DATA_PT_display(DataButtonsPanel):
 	__idname__ = "DATA_PT_display"
 	__label__ = "Display"
 	
 	def draw(self, context):
-		arm = context.armature
 		layout = self.layout
+		arm = context.armature
 
 		split = layout.split()
 
@@ -74,8 +86,8 @@ class DATA_PT_paths(DataButtonsPanel):
 	__label__ = "Paths"
 
 	def draw(self, context):
-		arm = context.armature
 		layout = self.layout
+		arm = context.armature
 
 		split = layout.split()
 		
@@ -102,8 +114,8 @@ class DATA_PT_ghost(DataButtonsPanel):
 	__label__ = "Ghost"
 
 	def draw(self, context):
-		arm = context.armature
 		layout = self.layout
+		arm = context.armature
 
 		split = layout.split()
 
@@ -120,6 +132,7 @@ class DATA_PT_ghost(DataButtonsPanel):
 		sub = split.column()
 		sub.itemR(arm, "ghost_only_selected", text="Selected Only")
 
+bpy.types.register(DATA_PT_context_arm)
 bpy.types.register(DATA_PT_skeleton)
 bpy.types.register(DATA_PT_display)
 bpy.types.register(DATA_PT_paths)

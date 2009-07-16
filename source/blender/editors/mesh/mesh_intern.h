@@ -132,8 +132,10 @@ void MESH_OT_primitive_grid_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_monkey_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_uv_sphere_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_ico_sphere_add(struct wmOperatorType *ot);
-void MESH_OT_dupli_extrude_cursor(struct wmOperatorType *ot);
+
 void MESH_OT_edge_face_add(struct wmOperatorType *ot);
+void MESH_OT_dupli_extrude_cursor(struct wmOperatorType *ot);
+void MESH_OT_duplicate(struct wmOperatorType *ot);
 
 void MESH_OT_fgon_make(struct wmOperatorType *ot);
 void MESH_OT_fgon_clear(struct wmOperatorType *ot);
@@ -185,6 +187,7 @@ extern int convex(float *v1, float *v2, float *v3, float *v4);
 extern struct EditFace *EM_face_from_faces(EditMesh *em, struct EditFace *efa1,
 										   struct EditFace *efa2, int i1, int i2, int i3, int i4);
 
+extern int EM_view3d_poll(struct bContext *C);
 
 /* ******************* editmesh_loop.c */
 
@@ -199,19 +202,18 @@ void MESH_OT_select_all_toggle(struct wmOperatorType *ot);
 void MESH_OT_bmesh_test(struct wmOperatorType *ot);
 void MESH_OT_select_more(struct wmOperatorType *ot);
 void MESH_OT_select_less(struct wmOperatorType *ot);
-void MESH_OT_select_invert(struct wmOperatorType *ot);
+void MESH_OT_select_inverse(struct wmOperatorType *ot);
 void MESH_OT_select_non_manifold(struct wmOperatorType *ot);
 void MESH_OT_select_linked(struct wmOperatorType *ot);
 void MESH_OT_select_linked_pick(struct wmOperatorType *ot);
 void MESH_OT_hide(struct wmOperatorType *ot);
 void MESH_OT_reveal(struct wmOperatorType *ot);
+void MESH_OT_select_by_number_vertices(struct wmOperatorType *ot);
 void MESH_OT_normals_make_consistent(struct wmOperatorType *ot);
 void MESH_OT_faces_select_linked_flat(struct wmOperatorType *ot);
 void MESH_OT_edges_select_sharp(struct wmOperatorType *ot);
 void MESH_OT_select_shortest_path(struct wmOperatorType *ot);
-void MESH_OT_vertices_select_similar(struct wmOperatorType *ot);
-void MESH_OT_edges_select_similar(struct wmOperatorType *ot);
-void MESH_OT_faces_select_similar(struct wmOperatorType *ot);
+void MESH_OT_select_similar(struct wmOperatorType *ot);
 void MESH_OT_select_random(struct wmOperatorType *ot);
 void MESH_OT_vertices_transform_to_sphere(struct wmOperatorType *ot);
 void MESH_OT_selection_type(struct wmOperatorType *ot);
@@ -219,7 +221,7 @@ void MESH_OT_loop_multi_select(struct wmOperatorType *ot);
 void MESH_OT_mark_seam(struct wmOperatorType *ot);
 void MESH_OT_mark_sharp(struct wmOperatorType *ot);
 void MESH_OT_vertices_smooth(struct wmOperatorType *ot);
-void MESH_OT_flip_editnormals(struct wmOperatorType *ot);
+void MESH_OT_flip_normals(struct wmOperatorType *ot);
 
 extern EditEdge *findnearestedge(struct ViewContext *vc, int *dist);
 extern void EM_automerge(int update);
@@ -250,14 +252,11 @@ extern EditVert *findnearestvert(struct ViewContext *vc, int *dist, short sel, s
 
 void join_triangles(EditMesh *em);
 int removedoublesflag(EditMesh *em, short flag, short automerge, float limit);		/* return amount */
-void esubdivideflag(Object *obedit, EditMesh *em, int flag, float rad, int beauty, int numcuts, int seltype);
+void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float fractal, int beauty, int numcuts, int seltype);
 int EdgeSlide(EditMesh *em, struct wmOperator *op, short immediate, float imperc);
 
+void MESH_OT_merge(struct wmOperatorType *ot);
 void MESH_OT_subdivide(struct wmOperatorType *ot);
-void MESH_OT_subdivs(struct wmOperatorType *ot);
-void MESH_OT_subdivide_multi(struct wmOperatorType *ot);
-void MESH_OT_subdivide_multi_fractal(struct wmOperatorType *ot);
-void MESH_OT_subdivide_smooth(struct wmOperatorType *ot);
 void MESH_OT_remove_doubles(struct wmOperatorType *ot);
 void MESH_OT_extrude(struct wmOperatorType *ot);
 void MESH_OT_spin(struct wmOperatorType *ot);
@@ -273,6 +272,7 @@ void MESH_OT_faces_shade_solid(struct wmOperatorType *ot);
 void MESH_OT_split(struct wmOperatorType *ot);
 void MESH_OT_extrude_repeat(struct wmOperatorType *ot);
 void MESH_OT_edge_rotate(struct wmOperatorType *ot);
+void MESH_OT_select_vertex_path(struct wmOperatorType *ot);
 void MESH_OT_loop_to_region(struct wmOperatorType *ot);
 void MESH_OT_region_to_loop(struct wmOperatorType *ot);
 
@@ -283,6 +283,15 @@ void MESH_OT_colors_mirror(struct wmOperatorType *ot);
 
 void MESH_OT_delete(struct wmOperatorType *ot);
 void MESH_OT_rip(struct wmOperatorType *ot);
+
+/* ******************* mesh_layers.c */
+
+void MESH_OT_uv_texture_add(struct wmOperatorType *ot);
+void MESH_OT_uv_texture_remove(struct wmOperatorType *ot);
+void MESH_OT_vertex_color_add(struct wmOperatorType *ot);
+void MESH_OT_vertex_color_remove(struct wmOperatorType *ot);
+void MESH_OT_sticky_add(struct wmOperatorType *ot);
+void MESH_OT_sticky_remove(struct wmOperatorType *ot);
 
 #endif // MESH_INTERN_H
 

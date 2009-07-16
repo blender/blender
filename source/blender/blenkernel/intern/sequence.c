@@ -1,5 +1,5 @@
 /**
-* $Id: sequence.c 17508 2008-11-20 00:34:24Z campbellbarton $
+* $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -184,11 +184,11 @@ void seq_free_sequence(Editing *ed, Sequence *seq)
 	if(seq->anim) IMB_free_anim(seq->anim);
 	//XXX if(seq->hdaudio) sound_close_hdaudio(seq->hdaudio);
 
-	/* XXX if (seq->type & SEQ_EFFECT) {
+	if (seq->type & SEQ_EFFECT) {
 		struct SeqEffectHandle sh = get_sequence_effect(seq);
 
 		sh.free(seq);
-	}*/
+	}
 
 	if (ed->act_seq==seq)
 		ed->act_seq= NULL;
@@ -1288,7 +1288,7 @@ static void seq_proxy_build_frame(Scene *scene, Sequence * seq, int cfra, int re
 
 	   depth = 32 is intentionally left in, otherwise ALPHA channels
 	   won't work... */
-	quality = 90;
+	quality = seq->strip->proxy->quality;
 	ibuf->ftype= JPG | quality;
 
 	BLI_make_existing_file(name);
@@ -1305,6 +1305,7 @@ static void seq_proxy_build_frame(Scene *scene, Sequence * seq, int cfra, int re
 void seq_proxy_rebuild(Scene *scene, Sequence * seq)
 {
 	int cfra;
+	float rsize = seq->strip->proxy->size;
 
 	waitcursor(1);
 
@@ -1322,6 +1323,8 @@ void seq_proxy_rebuild(Scene *scene, Sequence * seq)
 		tse->flag &= ~STRIPELEM_PREVIEW_DONE;
 	}
 
+	
+
 	/* a _lot_ faster for movie files, if we read frames in
 	   sequential order */
 	if (seq->flag & SEQ_REVERSE_FRAMES) {
@@ -1330,7 +1333,8 @@ void seq_proxy_rebuild(Scene *scene, Sequence * seq)
 			TStripElem * tse = give_tstripelem(seq, cfra);
 
 			if (!(tse->flag & STRIPELEM_PREVIEW_DONE)) {
-				seq_proxy_build_frame(scene, seq, cfra, scene->r.size);
+//XXX				set_timecursor(cfra);
+				seq_proxy_build_frame(scene, seq, cfra, rsize);
 				tse->flag |= STRIPELEM_PREVIEW_DONE;
 			}
 			if (blender_test_break()) {
@@ -1343,7 +1347,8 @@ void seq_proxy_rebuild(Scene *scene, Sequence * seq)
 			TStripElem * tse = give_tstripelem(seq, cfra);
 
 			if (!(tse->flag & STRIPELEM_PREVIEW_DONE)) {
-				seq_proxy_build_frame(scene, seq, cfra, scene->r.size);
+//XXX				set_timecursor(cfra);
+				seq_proxy_build_frame(scene, seq, cfra, rsize);
 				tse->flag |= STRIPELEM_PREVIEW_DONE;
 			}
 			if (blender_test_break()) {
@@ -1552,7 +1557,8 @@ static int input_have_to_preprocess(Scene *scene, Sequence * seq, TStripElem* se
 
 	mul = seq->mul;
 
-	if(seq->blend_mode == SEQ_BLEND_REPLACE) {
+	if(seq->blend_mode == SEQ_BLEND_REPLACE &&
+	   !(seq->type & SEQ_EFFECT)) {
 #if 0 // XXX old animation system
 		if (seq->ipo && seq->ipo->curve.first) {
 			do_seq_ipo(scene, seq, cfra);
@@ -1897,10 +1903,14 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			input_preprocess(scene, seq, se, cfra);
 		}
 	} else if(seq->type & SEQ_EFFECT) {
+		int use_preprocess = FALSE;
 		/* should the effect be recalculated? */
 		
 		if (!build_proxy_run && se->ibuf == 0) {
 			se->ibuf = seq_proxy_fetch(scene, seq, cfra, render_size);
+			if (se->ibuf) {
+				use_preprocess = TRUE;
+			}
 		}
 
 		if(se->ibuf == 0) {
@@ -1913,6 +1923,22 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 				se->ibuf= IMB_allocImBuf((short)seqrectx, (short)seqrecty, 32, IB_rect, 0);
 			
 			do_effect(scene, cfra, seq, se);
+			if (input_have_to_preprocess(scene, seq, se, cfra) &&
+			    !build_proxy_run) {
+				if ((se->se1 && (se->ibuf == se->se1->ibuf)) ||
+				    (se->se2 && (se->ibuf == se->se2->ibuf))) {
+					struct ImBuf * i
+						= IMB_dupImBuf(se->ibuf);
+
+					IMB_freeImBuf(se->ibuf);
+
+					se->ibuf = i;
+				}
+				use_preprocess = TRUE;
+			}
+		}
+		if (use_preprocess) {
+			input_preprocess(scene, seq, se, cfra);
 		}
 	} else if(seq->type == SEQ_IMAGE) {
 		if(se->ok == STRIPELEM_OK && se->ibuf == 0) {
@@ -1991,7 +2017,8 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 		RenderResult rres;
 		int doseq, rendering= G.rendering;
 		char scenename[64];
-		int sce_valid =sce&& (sce->camera || sce->r.scemode & R_DOSEQ);
+		int have_seq= (sce->r.scemode & R_DOSEQ) && sce->ed && sce->ed->seqbase.first;
+		int sce_valid =sce && (sce->camera || have_seq);
 			
 		if (se->ibuf == NULL && sce_valid && !build_proxy_run) {
 			se->ibuf = seq_proxy_fetch(scene, seq, cfra, render_size);
@@ -2012,7 +2039,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 		} else if (se->ibuf==NULL && sce_valid) {
 			/* no need to display a waitcursor on sequencer
 			   scene strips */
-			if (!(sce->r.scemode & R_DOSEQ)) 
+			if (!have_seq)
 				waitcursor(1);
 			
 			/* Hack! This function can be called from do_render_seq(), in that case
@@ -2067,8 +2094,8 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			// XXX
 #if 0
 			if((G.f & G_PLAYANIM)==0 /* bad, is set on do_render_seq */
-				&& !(sce->r.scemode & R_DOSEQ)) 
-				waitcursor(0);
+			   && !have_seq
+			   && !build_proxy_run) 
 #endif
 			
 			CFRA = oldcfra;
@@ -3116,6 +3143,17 @@ void update_changed_seq_and_deps(Scene *scene, Sequence *changed_seq, int len_ch
 		update_changed_seq_recurs(scene, seq, changed_seq, len_change, ibuf_change);
 }
 
+#if 0 // XXX from 2.4x, needs updating
+void free_imbuf_seq()
+{
+	Scene * sce = G.main->scene.first;
+	while(sce) {
+		free_imbuf_seq_editing(sce->ed);
+		sce= sce->id.next;
+	}
+}
+#endif 
+
 void free_imbuf_seq_with_ipo(Scene *scene, struct Ipo *ipo)
 {
 	/* force update of all sequences with this ipo, on ipo changes */
@@ -3140,9 +3178,14 @@ void free_imbuf_seq_with_ipo(Scene *scene, struct Ipo *ipo)
 /* bad levell call... */
 void do_render_seq(RenderResult *rr, int cfra)
 {
+	static int recurs_depth = 0
 	ImBuf *ibuf;
 
-	ibuf= give_ibuf_seq(scene, rr->rectx, rr->recty, cfra, 0, scene->r.size);
+	recurs_depth++;
+
+	ibuf= give_ibuf_seq(rr->rectx, rr->recty, cfra, 0, 100.0);
+
+	recurs_depth--;
 	
 	if(ibuf) {
 		if(ibuf->rect_float) {
@@ -3179,7 +3222,7 @@ void do_render_seq(RenderResult *rr, int cfra)
 		   on freeing _all_ buffers every time on long timelines...)
 		   (schlaile)
 		*/
-		{
+		if (recurs_depth == 0) { /* with nested scenes, only free on toplevel... */
 			uintptr_t mem_in_use;
 			uintptr_t mmap_in_use;
 			uintptr_t max;

@@ -68,6 +68,9 @@ void make_local_action(struct bAction *act);
 /* Some kind of bounding box operation on the action */
 void calc_action_range(const struct bAction *act, float *start, float *end, int incl_hidden);
 
+/* Does action have any motion data at all? */
+short action_has_motion(const struct bAction *act);
+
 /* Action Groups API ----------------- */
 
 /* Make the given Action Group the active one */
@@ -137,19 +140,13 @@ void framechange_poses_clear_unkeyed(void);
 void what_does_obaction(struct Scene *scene, struct Object *ob, struct Object *workob, struct bPose *pose, struct bAction *act, char groupname[], float cframe);
 
 /* exported for game engine */
-void blend_poses(struct bPose *dst, struct bPose *src, float srcweight, short mode);
+void game_blend_poses(struct bPose *dst, struct bPose *src, float srcweight/*, short mode*/); /* was blend_poses */
 void extract_pose_from_pose(struct bPose *pose, const struct bPose *src);
 
 /* for proxy */
 void copy_pose_result(struct bPose *to, struct bPose *from);
 /* clear all transforms */
 void rest_pose(struct bPose *pose);
-
-/* map global time (frame nr) to strip converted time, doesn't clip */
-float get_action_frame(struct Object *ob, float cframe);
-/* map strip time to global time (frame nr)  */
-float get_action_frame_inv(struct Object *ob, float cframe);
-
 
 /* functions used by the game engine */
 void game_copy_pose(struct bPose **dst, struct bPose *src);

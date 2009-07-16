@@ -4517,6 +4517,9 @@ static int paint_init(bContext *C, wmOperator *op)
 	pop->ps.ar= CTX_wm_region(C);
 
 	/* intialize brush */
+	if(!settings->imapaint.brush)
+		return 0;
+
 	pop->s.brush = settings->imapaint.brush;
 	pop->s.tool = settings->imapaint.tool;
 	if(pop->mode == PAINT_MODE_3D && (pop->s.tool == PAINT_TOOL_CLONE))
@@ -4536,6 +4539,10 @@ static int paint_init(bContext *C, wmOperator *op)
 		if (!pop->s.ob || !(pop->s.ob->lay & pop->ps.v3d->lay)) return 0;
 		pop->s.me = get_mesh(pop->s.ob);
 		if (!pop->s.me) return 0;
+
+		/* Dont allow brush size below 2 */
+		if (pop->ps.brush && pop->ps.brush->size<=1)
+			pop->ps.brush->size = 2;
 	}
 	else {
 		pop->s.image = pop->s.sima->image;
@@ -4548,10 +4555,6 @@ static int paint_init(bContext *C, wmOperator *op)
 
 			return 0;
 		}
-		
-		/* Dont allow brush size below 2 */
-		if (pop->ps.brush->size<=1)
-			pop->ps.brush->size = 2;
 	}
 	
 	/* note, if we have no UVs on the derived mesh, then we must return here */
@@ -4801,7 +4804,7 @@ void PAINT_OT_image_paint(wmOperatorType *ot)
 	ot->poll= image_paint_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* properties */
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
@@ -4908,7 +4911,7 @@ void PAINT_OT_image_paint_radial_control(wmOperatorType *ot)
 	ot->poll= image_paint_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 }
 
 /************************ grab clone operator ************************/
@@ -5007,7 +5010,7 @@ void PAINT_OT_grab_clone(wmOperatorType *ot)
 	ot->poll= image_paint_2d_clone_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "delta", 2, NULL, -FLT_MAX, FLT_MAX, "Delta", "Delta offset of clone image in 0.0..1.0 coordinates.", -1.0f, 1.0f);

@@ -1270,8 +1270,10 @@ void multires_free(Multires *mr)
 		if(lvl) {
 			CustomData_free(&mr->vdata, lvl->totvert);
 			CustomData_free(&mr->fdata, lvl->totface);
-			MEM_freeN(mr->edge_flags);
-			MEM_freeN(mr->edge_creases);
+			if(mr->edge_flags)
+				MEM_freeN(mr->edge_flags);
+			if(mr->edge_creases)
+				MEM_freeN(mr->edge_creases);
 		}
 
 		while(lvl) {

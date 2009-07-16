@@ -125,7 +125,18 @@ static int ed_undo_step(bContext *C, int step)
 {	
 	Object *obedit= CTX_data_edit_object(C);
 	ScrArea *sa= CTX_wm_area(C);
-	
+
+	if(sa && sa->spacetype==SPACE_IMAGE) {
+		SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
+		
+		if(G.f & G_TEXTUREPAINT || sima->flag & SI_DRAWTOOL) {
+			undo_imagepaint_step(step);
+
+			WM_event_add_notifier(C, NC_WINDOW, NULL);
+			return OPERATOR_FINISHED;
+		}
+	}
+
 	if(sa && sa->spacetype==SPACE_TEXT) {
 		ED_text_undo_step(C, step);
 	}
@@ -138,13 +149,6 @@ static int ed_undo_step(bContext *C, int step)
 		
 		if(G.f & G_TEXTUREPAINT)
 			undo_imagepaint_step(step);
-		else if(sa && sa->spacetype==SPACE_IMAGE) {
-			SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
-			if(sima->flag & SI_DRAWTOOL)
-				undo_imagepaint_step(step);
-			else
-				do_glob_undo= 1;
-		}
 		else if(G.f & G_PARTICLEEDIT) {
 			if(step==1)
 				PE_undo(CTX_data_scene(C));
@@ -183,6 +187,8 @@ void ED_undo_redo(bContext *C)
 
 static int ed_undo_exec(bContext *C, wmOperator *op)
 {
+	/* "last operator" should disappear, later we can tie ths with undo stack nicer */
+	WM_operator_stack_clear(C);
 	return ed_undo_step(C, 1);
 }
 static int ed_redo_exec(bContext *C, wmOperator *op)

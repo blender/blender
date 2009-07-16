@@ -285,6 +285,11 @@ static void text_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "TEXT_OT_to_3d_object", MKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "TEXT_OT_line_break", RETKEY, KM_PRESS, 0, 0);
+#ifndef DISABLE_PYTHON
+	WM_keymap_add_item(keymap, "TEXT_OT_console_exec", RETKEY, KM_PRESS, KM_SHIFT, 0); /* python operator - space_text.py */
+	WM_keymap_add_item(keymap, "TEXT_OT_console_autocomplete", RETKEY, KM_PRESS, KM_ALT, 0); /* python operator - space_text.py */
+#endif
+
 	WM_keymap_add_item(keymap, "TEXT_OT_line_number", KM_TEXTINPUT, KM_ANY, KM_ANY, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_insert", KM_TEXTINPUT, KM_ANY, KM_ANY, 0); // last!
 }
@@ -293,7 +298,12 @@ static int text_context(const bContext *C, const char *member, bContextDataResul
 {
 	SpaceText *st= CTX_wm_space_text(C);
 
-	if(CTX_data_equals(member, "edit_text")) {
+	if(CTX_data_dir(member)) {
+		static const char *dir[] = {"edit_text", NULL};
+		CTX_data_dir_set(result, dir);
+		return 1;
+	}
+	else if(CTX_data_equals(member, "edit_text")) {
 		CTX_data_id_pointer_set(result, &st->text->id);
 		return 1;
 	}
@@ -415,8 +425,6 @@ void ED_spacetype_text(void)
 	
 	art->init= text_header_area_init;
 	art->draw= text_header_area_draw;
-	
-	text_header_register(art);
 
 	BLI_addhead(&st->regiontypes, art);
 

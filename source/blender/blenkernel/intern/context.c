@@ -280,6 +280,7 @@ void CTX_wm_menu_set(bContext *C, ARegion *menu)
 struct bContextDataResult {
 	PointerRNA ptr;
 	ListBase list;
+	const char **dir;
 };
 
 static int ctx_data_get(bContext *C, const char *member, bContextDataResult *result)
@@ -357,25 +358,33 @@ static int ctx_data_collection_get(const bContext *C, const char *member, ListBa
 		return 1;
 	}
 
+	list->first= NULL;
+	list->last= NULL;
+
 	return 0;
 }
 
-PointerRNA CTX_data_pointer_get(bContext *C, const char *member)
+PointerRNA CTX_data_pointer_get(const bContext *C, const char *member)
 {
 	bContextDataResult result;
 
-	if(ctx_data_get((bContext*)C, member, &result)) {
+	if(ctx_data_get((bContext*)C, member, &result))
 		return result.ptr;
-	}
-	else {
-		PointerRNA ptr;
-		memset(&ptr, 0, sizeof(ptr));
-		return ptr;
-	}
-
+	else
+		return PointerRNA_NULL;
 }
 
-ListBase CTX_data_collection_get(bContext *C, const char *member)
+PointerRNA CTX_data_pointer_get_type(const bContext *C, const char *member, StructRNA *type)
+{
+	PointerRNA ptr = CTX_data_pointer_get(C, member);
+
+	if(ptr.data && RNA_struct_is_a(ptr.type, type))
+		return ptr;
+	
+	return PointerRNA_NULL;
+}
+
+ListBase CTX_data_collection_get(const bContext *C, const char *member)
 {
 	bContextDataResult result;
 
@@ -389,7 +398,7 @@ ListBase CTX_data_collection_get(bContext *C, const char *member)
 	}
 }
 
-void CTX_data_get(bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb)
+void CTX_data_get(const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb)
 {
 	bContextDataResult result;
 
@@ -403,9 +412,73 @@ void CTX_data_get(bContext *C, const char *member, PointerRNA *r_ptr, ListBase *
 	}
 }
 
+static void data_dir_add(ListBase *lb, const char *member)
+{
+	LinkData *link;
+
+	if(strcmp(member, "scene") == 0) /* exception */
+		return;
+
+	for(link=lb->first; link; link=link->next)
+		if(strcmp(link->data, member) == 0)
+			return;
+	
+	link= MEM_callocN(sizeof(LinkData), "LinkData");
+	link->data= (void*)member;
+	BLI_addtail(lb, link);
+}
+
+ListBase CTX_data_dir_get(const bContext *C)
+{
+	bContextDataResult result;
+	ListBase lb;
+	int a;
+
+	memset(&lb, 0, sizeof(lb));
+
+	if(C->wm.store) {
+		bContextStoreEntry *entry;
+
+		for(entry=C->wm.store->entries.first; entry; entry=entry->next)
+			data_dir_add(&lb, entry->name);
+	}
+	if(C->wm.region && C->wm.region->type && C->wm.region->type->context) {
+		memset(&result, 0, sizeof(result));
+		C->wm.region->type->context(C, "", &result);
+
+		if(result.dir)
+			for(a=0; result.dir[a]; a++)
+				data_dir_add(&lb, result.dir[a]);
+	}
+	if(C->wm.area && C->wm.area->type && C->wm.area->type->context) {
+		memset(&result, 0, sizeof(result));
+		C->wm.area->type->context(C, "", &result);
+
+		if(result.dir)
+			for(a=0; result.dir[a]; a++)
+				data_dir_add(&lb, result.dir[a]);
+	}
+	if(C->wm.screen && C->wm.screen->context) {
+		bContextDataCallback cb= C->wm.screen->context;
+		memset(&result, 0, sizeof(result));
+		cb(C, "", &result);
+
+		if(result.dir)
+			for(a=0; result.dir[a]; a++)
+				data_dir_add(&lb, result.dir[a]);
+	}
+
+	return lb;
+}
+
 int CTX_data_equals(const char *member, const char *str)
 {
 	return (strcmp(member, str) == 0);
+}
+
+int CTX_data_dir(const char *member)
+{
+	return (strcmp(member, "") == 0);
 }
 
 void CTX_data_id_pointer_set(bContextDataResult *result, ID *id)
@@ -449,6 +522,11 @@ int ctx_data_list_count(const bContext *C, int (*func)(const bContext*, ListBase
 	}
 	else
 		return 0;
+}
+
+void CTX_data_dir_set(bContextDataResult *result, const char **dir)
+{
+	result->dir= dir;
 }
 
 /* data context */
@@ -526,6 +604,16 @@ int CTX_data_visible_objects(const bContext *C, ListBase *list)
 int CTX_data_visible_bases(const bContext *C, ListBase *list)
 {
 	return ctx_data_collection_get(C, "visible_bases", list);
+}
+
+int CTX_data_selectable_objects(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, "selectable_objects", list);
+}
+
+int CTX_data_selectable_bases(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, "selectable_bases", list);
 }
 
 struct Object *CTX_data_active_object(const bContext *C)

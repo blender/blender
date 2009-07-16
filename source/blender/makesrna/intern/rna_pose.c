@@ -69,9 +69,9 @@ IDProperty *rna_PoseChannel_idproperties(PointerRNA *ptr, int create)
 static void rna_def_pose_channel(BlenderRNA *brna)
 {
 	static EnumPropertyItem prop_rotmode_items[] = {
-		{PCHAN_ROT_QUAT, "QUATERNION", "Quaternion (WXYZ)", "No Gimbal Lock (default)"},
-		{PCHAN_ROT_EUL, "EULER", "Euler (XYZ)", "Prone to Gimbal Lock"},
-		{0, NULL, NULL, NULL}};
+		{PCHAN_ROT_QUAT, "QUATERNION", 0, "Quaternion (WXYZ)", "No Gimbal Lock (default)"},
+		{PCHAN_ROT_EUL, "EULER", 0, "Euler (XYZ)", "Prone to Gimbal Lock"},
+		{0, NULL, 0, NULL, NULL}};
 	
 	StructRNA *srna;
 	PropertyRNA *prop;

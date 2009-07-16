@@ -58,6 +58,7 @@
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_particle_types.h"
@@ -85,6 +86,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_nla.h"
 #include "BKE_object.h"
 
 
@@ -235,17 +237,15 @@ static char *ob_adrcodes_to_paths (int adrcode, int *array_index)
 			*array_index= 1; return "delta_scale";
 		case OB_DSIZE_Z:
 			*array_index= 2; return "delta_scale";
-	
-#if 0	
-		case OB_COL_R:	
-			poin= &(ob->col[0]); break;
+		case OB_COL_R:
+			*array_index= 0; return "color";
 		case OB_COL_G:
-			poin= &(ob->col[1]); break;
+			*array_index= 1; return "color";
 		case OB_COL_B:
-			poin= &(ob->col[2]); break;
+			*array_index= 2; return "color";
 		case OB_COL_A:
-			poin= &(ob->col[3]); break;
-			
+			*array_index= 3; return "color";
+#if 0
 		case OB_PD_FSTR:
 			if (ob->pd) poin= &(ob->pd->f_strength);
 			break;
@@ -545,7 +545,7 @@ static char *material_adrcodes_to_paths (int adrcode, int *array_index)
 			return "ambient";
 		
 		case MA_SPEC:
-			return "specularity";
+			return "specular_reflection";
 		
 		case MA_HARD:
 			return "specular_hardness";
@@ -827,6 +827,10 @@ char *get_rna_access (int blocktype, int adrcode, char actname[], char constname
 	char buf[512];
 	int dummy_index= 0;
 	
+	/* hack: if constname is set, we can only be dealing with an Constraint curve */
+	if (constname)
+		blocktype= ID_CO;
+	
 	/* get property name based on blocktype */
 	switch (blocktype) {
 		case ID_OB: /* object */
@@ -842,7 +846,7 @@ char *get_rna_access (int blocktype, int adrcode, char actname[], char constname
 			break;
 			
 		case ID_CO: /* constraint */
-			propname= constraint_adrcodes_to_paths(adrcode, &dummy_index);
+			propname= constraint_adrcodes_to_paths(adrcode, &dummy_index);	
 			break;
 			
 		case ID_TE: /* texture */
@@ -872,7 +876,10 @@ char *get_rna_access (int blocktype, int adrcode, char actname[], char constname
 			
 		/* XXX problematic blocktypes */
 		case ID_CU: /* curve */
-			propname= "speed"; // XXX this was a 'dummy curve' that didn't really correspond to any real var...
+			/* this used to be a 'dummy' curve which got evaluated on the fly... 
+			 * now we've got real var for this!
+			 */
+			propname= "eval_time";
 			break;
 			
 		case ID_SEQ: /* sequencer strip */
@@ -1146,7 +1153,7 @@ static void icu_to_fcurves (ListBase *groups, ListBase *list, IpoCurve *icu, cha
 			/* Add a new FModifier (Cyclic) instead of setting extend value 
 			 * as that's the new equivilant of that option. 
 			 */
-			FModifier *fcm= fcurve_add_modifier(fcu, FMODIFIER_TYPE_CYCLES);
+			FModifier *fcm= add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_CYCLES);
 			FMod_Cycles *data= (FMod_Cycles *)fcm->data;
 			
 			/* if 'offset' one is in use, set appropriate settings */
@@ -1465,6 +1472,87 @@ static void action_to_animdata (ID *id, bAction *act)
 	action_to_animato(act, &adt->action->groups, &adt->action->curves, &adt->drivers);
 }
 
+/* ------------------------- */
+
+// TODO:
+//	- NLA group duplicators info
+//	- NLA curve/stride modifiers...
+
+/* Convert NLA-Strip to new system */
+static void nlastrips_to_animdata (ID *id, ListBase *strips)
+{
+	AnimData *adt= BKE_animdata_from_id(id);
+	NlaTrack *nlt = NULL;
+	NlaStrip *strip;
+	bActionStrip *as, *asn;
+	
+	/* for each one of the original strips, convert to a new strip and free the old... */
+	for (as= strips->first; as; as= asn) {
+		asn= as->next;
+		
+		/* this old strip is only worth something if it had an action... */
+		if (as->act) {
+			/* convert Action data (if not yet converted), storing the results in the same Action */
+			action_to_animato(as->act, &as->act->groups, &as->act->curves, &adt->drivers);
+			
+			/* create a new-style NLA-strip which references this Action, then copy over relevant settings */
+			{
+				/* init a new strip, and assign the action to it 
+				 *	- no need to muck around with the user-counts, since this is just 
+				 *	  passing over the ref to the new owner, not creating an additional ref
+				 */
+				strip= MEM_callocN(sizeof(NlaStrip), "NlaStrip");
+				strip->act= as->act;
+				
+					/* endpoints */
+				strip->start= as->start;
+				strip->end= as->end;
+				strip->actstart= as->actstart;
+				strip->actend= as->actend;
+				
+					/* action reuse */
+				strip->repeat= as->repeat;
+				strip->scale= as->scale;
+				if (as->flag & ACTSTRIP_LOCK_ACTION)	strip->flag |= NLASTRIP_FLAG_SYNC_LENGTH;
+				
+					/* blending */
+				strip->blendin= as->blendin;
+				strip->blendout= as->blendout;
+				strip->blendmode= (as->mode==ACTSTRIPMODE_ADD) ? NLASTRIP_MODE_ADD : NLASTRIP_MODE_REPLACE;
+				if (as->flag & ACTSTRIP_AUTO_BLENDS)	strip->flag |= NLASTRIP_FLAG_AUTO_BLENDS;
+					
+					/* assorted setting flags */
+				if (as->flag & ACTSTRIP_SELECT) 		strip->flag |= NLASTRIP_FLAG_SELECT;
+				if (as->flag & ACTSTRIP_ACTIVE) 		strip->flag |= NLASTRIP_FLAG_ACTIVE;
+				
+				if (as->flag & ACTSTRIP_MUTE)			strip->flag |= NLASTRIP_FLAG_MUTED;
+				if (as->flag & ACTSTRIP_REVERSE)		strip->flag |= NLASTRIP_FLAG_REVERSE;
+				
+					/* by default, we now always extrapolate, while in the past this was optional */
+				if ((as->flag & ACTSTRIP_HOLDLASTFRAME)==0) 
+					strip->extendmode= NLASTRIP_EXTEND_NOTHING;
+			}	
+			
+			/* try to add this strip to the current NLA-Track (i.e. the 'last' one on the stack atm) */
+			if (BKE_nlatrack_add_strip(nlt, strip) == 0) {
+				/* trying to add to the current failed (no space), 
+				 * so add a new track to the stack, and add to that...
+				 */
+				nlt= add_nlatrack(adt, NULL);
+				BKE_nlatrack_add_strip(nlt, strip);
+			}
+		}
+		
+		/* modifiers */
+		// FIXME: for now, we just free them...
+		if (as->modifiers.first)
+			BLI_freelistN(&as->modifiers);
+		
+		/* free the old strip */
+		BLI_freelinkN(strips, as);
+	}
+}
+
 /* *************************************************** */
 /* External API - Only Called from do_versions() */
 
@@ -1511,18 +1599,34 @@ void do_versions_ipos_to_animato(Main *main)
 		if (G.f & G_DEBUG) printf("\tconverting ob %s \n", id->name+2);
 		
 		/* check if object has any animation data */
-		if ((ob->ipo) || (ob->action) || (ob->nlastrips.first)) {
+		if (ob->nlastrips.first) {
 			/* Add AnimData block */
 			adt= BKE_id_add_animdata(id);
 			
-			/* IPO first */
+			/* IPO first to take into any non-NLA'd Object Animation */
 			if (ob->ipo) {
 				ipo_to_animdata(id, ob->ipo, NULL, NULL);
+				
 				ob->ipo->id.us--;
 				ob->ipo= NULL;
 			}
 			
-			/* now Action */
+			/* Action is skipped since it'll be used by some strip in the NLA anyway, 
+			 * causing errors with evaluation in the new evaluation pipeline
+			 */
+			if (ob->action) {
+				ob->action->id.us--;
+				ob->action= NULL;
+			}
+			
+			/* finally NLA */
+			nlastrips_to_animdata(id, &ob->nlastrips);
+		}
+		else if ((ob->ipo) || (ob->action)) {
+			/* Add AnimData block */
+			adt= BKE_id_add_animdata(id);
+			
+			/* Action first - so that Action name get conserved */
 			if (ob->action) {
 				action_to_animdata(id, ob->action);
 				
@@ -1533,8 +1637,12 @@ void do_versions_ipos_to_animato(Main *main)
 				}
 			}
 			
-			/* finally NLA */
-			// XXX todo... for now, new NLA code not hooked up yet, so keep old stuff (but not for too long!)
+			/* IPO second... */
+			if (ob->ipo) {
+				ipo_to_animdata(id, ob->ipo, NULL, NULL);
+				ob->ipo->id.us--;
+				ob->ipo= NULL;
+			}
 		}
 		
 		/* check PoseChannels for constraints with local data */

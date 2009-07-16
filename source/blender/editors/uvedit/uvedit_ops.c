@@ -54,11 +54,10 @@
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_transform.h"
-
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -126,9 +125,6 @@ void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *pre
 				tf->tpage= ima;
 				tf->mode |= TF_TEX;
 				
-				if(ima->tpageflag & IMA_TILES) tf->mode |= TF_TILES;
-				else tf->mode &= ~TF_TILES;
-				
 				if(ima->id.us==0) id_us_plus(&ima->id);
 				else id_lib_extern(&ima->id);
 			}
@@ -150,7 +146,7 @@ void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *pre
 
 /* dotile -	1, set the tile flag (from the space image)
  * 			2, set the tile index for the faces. */
-void ED_uvedit_set_tile(bContext *C, Scene *scene, Object *obedit, Image *ima, int curtile, int dotile)
+void ED_uvedit_set_tile(bContext *C, Scene *scene, Object *obedit, Image *ima, int curtile)
 {
 	EditMesh *em;
 	EditFace *efa;
@@ -169,17 +165,8 @@ void ED_uvedit_set_tile(bContext *C, Scene *scene, Object *obedit, Image *ima, i
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
-		if(efa->h==0 && efa->f & SELECT) {
-			if(dotile==1) {
-				/* set tile flag */
-				if(ima->tpageflag & IMA_TILES)
-					tf->mode |= TF_TILES;
-				else
-					tf->mode &= ~TF_TILES;
-			}
-			else if(dotile==2)
-				tf->tile= curtile; /* set tile index */
-		}
+		if(efa->h==0 && efa->f & SELECT)
+			tf->tile= curtile; /* set tile index */
 	}
 
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
@@ -203,7 +190,9 @@ static void uvedit_pixel_to_float(SpaceImage *sima, float *dist, float pixeldist
 
 int uvedit_face_visible_nolocal(Scene *scene, EditFace *efa)
 {
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION)
+	ToolSettings *ts= scene->toolsettings;
+
+	if(ts->uv_flag & UV_SYNC_SELECTION)
 		return (efa->h==0);
 	else
 		return (efa->h==0 && (efa->f & SELECT));
@@ -211,7 +200,9 @@ int uvedit_face_visible_nolocal(Scene *scene, EditFace *efa)
 
 int uvedit_face_visible(Scene *scene, Image *ima, EditFace *efa, MTFace *tf)
 {
-	if(scene->toolsettings->uv_flag & UV_SHOW_SAME_IMAGE)
+	ToolSettings *ts= scene->toolsettings;
+
+	if(ts->uv_flag & UV_SHOW_SAME_IMAGE)
 		return (tf->tpage==ima)? uvedit_face_visible_nolocal(scene, efa): 0;
 	else
 		return uvedit_face_visible_nolocal(scene, efa);
@@ -219,7 +210,9 @@ int uvedit_face_visible(Scene *scene, Image *ima, EditFace *efa, MTFace *tf)
 
 int uvedit_face_selected(Scene *scene, EditFace *efa, MTFace *tf)
 {
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION)
+	ToolSettings *ts= scene->toolsettings;
+
+	if(ts->uv_flag & UV_SYNC_SELECTION)
 		return (efa->f & SELECT);
 	else
 		return (!(~tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) &&(!efa->v4 || tf->flag & TF_SEL4));
@@ -227,7 +220,9 @@ int uvedit_face_selected(Scene *scene, EditFace *efa, MTFace *tf)
 
 void uvedit_face_select(Scene *scene, EditFace *efa, MTFace *tf)
 {
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION)
+	ToolSettings *ts= scene->toolsettings;
+
+	if(ts->uv_flag & UV_SYNC_SELECTION)
 		EM_select_face(efa, 1);
 	else
 		tf->flag |= (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
@@ -235,7 +230,9 @@ void uvedit_face_select(Scene *scene, EditFace *efa, MTFace *tf)
 
 void uvedit_face_deselect(Scene *scene, EditFace *efa, MTFace *tf)
 {
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION)
+	ToolSettings *ts= scene->toolsettings;
+
+	if(ts->uv_flag & UV_SYNC_SELECTION)
 		EM_select_face(efa, 0);
 	else
 		tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
@@ -243,12 +240,13 @@ void uvedit_face_deselect(Scene *scene, EditFace *efa, MTFace *tf)
 
 int uvedit_edge_selected(Scene *scene, EditFace *efa, MTFace *tf, int i)
 {
+	ToolSettings *ts= scene->toolsettings;
 	int nvert= (efa->v4)? 4: 3;
 
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
-		if(scene->selectmode == SCE_SELECT_FACE)
+	if(ts->uv_flag & UV_SYNC_SELECTION) {
+		if(ts->selectmode == SCE_SELECT_FACE)
 			return (efa->f & SELECT);
-		else if(scene->selectmode == SCE_SELECT_EDGE)
+		else if(ts->selectmode == SCE_SELECT_EDGE)
 			return (*(&efa->e1 + i))->f & SELECT;
 		else
 			return (((efa->v1 + i)->f & SELECT) && ((efa->v1 + (i+1)%nvert)->f & SELECT));
@@ -259,12 +257,13 @@ int uvedit_edge_selected(Scene *scene, EditFace *efa, MTFace *tf, int i)
 
 void uvedit_edge_select(Scene *scene, EditFace *efa, MTFace *tf, int i)
 {
+	ToolSettings *ts= scene->toolsettings;
 	int nvert= (efa->v4)? 4: 3;
 
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
-		if(scene->selectmode == SCE_SELECT_FACE)
+	if(ts->uv_flag & UV_SYNC_SELECTION) {
+		if(ts->selectmode == SCE_SELECT_FACE)
 			EM_select_face(efa, 1);
-		else if(scene->selectmode == SCE_SELECT_EDGE)
+		else if(ts->selectmode == SCE_SELECT_EDGE)
 			EM_select_edge((*(&efa->e1 + i)), 1);
 		else {
 			(efa->v1 + i)->f |= SELECT;
@@ -277,12 +276,13 @@ void uvedit_edge_select(Scene *scene, EditFace *efa, MTFace *tf, int i)
 
 void uvedit_edge_deselect(Scene *scene, EditFace *efa, MTFace *tf, int i)
 {
+	ToolSettings *ts= scene->toolsettings;
 	int nvert= (efa->v4)? 4: 3;
 
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
-		if(scene->selectmode == SCE_SELECT_FACE)
+	if(ts->uv_flag & UV_SYNC_SELECTION) {
+		if(ts->selectmode == SCE_SELECT_FACE)
 			EM_select_face(efa, 0);
-		else if(scene->selectmode == SCE_SELECT_EDGE)
+		else if(ts->selectmode == SCE_SELECT_EDGE)
 			EM_select_edge((*(&efa->e1 + i)), 0);
 		else {
 			(efa->v1 + i)->f &= ~SELECT;
@@ -295,8 +295,10 @@ void uvedit_edge_deselect(Scene *scene, EditFace *efa, MTFace *tf, int i)
 
 int uvedit_uv_selected(Scene *scene, EditFace *efa, MTFace *tf, int i)
 {
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
-		if(scene->selectmode == SCE_SELECT_FACE)
+	ToolSettings *ts= scene->toolsettings;
+
+	if(ts->uv_flag & UV_SYNC_SELECTION) {
+		if(ts->selectmode == SCE_SELECT_FACE)
 			return (efa->f & SELECT);
 		else
 			return (*(&efa->v1 + i))->f & SELECT;
@@ -307,8 +309,10 @@ int uvedit_uv_selected(Scene *scene, EditFace *efa, MTFace *tf, int i)
 
 void uvedit_uv_select(Scene *scene, EditFace *efa, MTFace *tf, int i)
 {
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
-		if(scene->selectmode == SCE_SELECT_FACE)
+	ToolSettings *ts= scene->toolsettings;
+
+	if(ts->uv_flag & UV_SYNC_SELECTION) {
+		if(ts->selectmode == SCE_SELECT_FACE)
 			EM_select_face(efa, 1);
 		else
 			(*(&efa->v1 + i))->f |= SELECT;
@@ -319,8 +323,10 @@ void uvedit_uv_select(Scene *scene, EditFace *efa, MTFace *tf, int i)
 
 void uvedit_uv_deselect(Scene *scene, EditFace *efa, MTFace *tf, int i)
 {
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
-		if(scene->selectmode == SCE_SELECT_FACE)
+	ToolSettings *ts= scene->toolsettings;
+
+	if(ts->uv_flag & UV_SYNC_SELECTION) {
+		if(ts->selectmode == SCE_SELECT_FACE)
 			EM_select_face(efa, 0);
 		else
 			(*(&efa->v1 + i))->f &= ~SELECT;
@@ -963,9 +969,9 @@ static int mirror_exec(bContext *C, wmOperator *op)
 void UV_OT_mirror(wmOperatorType *ot)
 {
 	static EnumPropertyItem axis_items[] = {
-		{'x', "MIRROR_X", "Mirror X", "Mirror UVs over X axis."},
-		{'y', "MIRROR_Y", "Mirror Y", "Mirror UVs over Y axis."},
-		{0, NULL, NULL, NULL}};
+		{'x', "MIRROR_X", 0, "Mirror X", "Mirror UVs over X axis."},
+		{'y', "MIRROR_Y", 0, "Mirror Y", "Mirror UVs over Y axis."},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "Mirror";
@@ -1068,10 +1074,10 @@ static int align_exec(bContext *C, wmOperator *op)
 void UV_OT_align(wmOperatorType *ot)
 {
 	static EnumPropertyItem axis_items[] = {
-		{'a', "ALIGN_AUTO", "Align Auto", "Automatically choose the axis on which there is most alignment already."},
-		{'x', "ALIGN_X", "Align X", "Align UVs on X axis."},
-		{'y', "ALIGN_Y", "Align Y", "Align UVs on Y axis."},
-		{0, NULL, NULL, NULL}};
+		{'a', "ALIGN_AUTO", 0, "Align Auto", "Automatically choose the axis on which there is most alignment already."},
+		{'x', "ALIGN_X", 0, "Align X", "Align UVs on X axis."},
+		{'y', "ALIGN_Y", 0, "Align Y", "Align UVs on Y axis."},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "Align";
@@ -1301,6 +1307,7 @@ void UV_OT_stitch(wmOperatorType *ot)
 static int select_inverse_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene;
+	ToolSettings *ts;
 	Object *obedit;
 	EditMesh *em;
 	EditFace *efa;
@@ -1308,11 +1315,12 @@ static int select_inverse_exec(bContext *C, wmOperator *op)
 	MTFace *tf;
 	
 	scene= CTX_data_scene(C);
+	ts= CTX_data_tool_settings(C);
 	obedit= CTX_data_edit_object(C);
 	em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	ima= CTX_data_edit_image(C);
 
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+	if(ts->uv_flag & UV_SYNC_SELECTION) {
 		EM_select_swap(em);
 	}
 	else {
@@ -1334,11 +1342,11 @@ static int select_inverse_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void UV_OT_select_invert(wmOperatorType *ot)
+void UV_OT_select_inverse(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Invert";
-	ot->idname= "UV_OT_select_invert";
+	ot->name= "Select Inverse";
+	ot->idname= "UV_OT_select_inverse";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
@@ -1351,6 +1359,7 @@ void UV_OT_select_invert(wmOperatorType *ot)
 static int de_select_all_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene;
+	ToolSettings *ts;
 	Object *obedit;
 	EditMesh *em;
 	EditFace *efa;
@@ -1359,11 +1368,12 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 	int sel;
 	
 	scene= CTX_data_scene(C);
+	ts= CTX_data_tool_settings(C);
 	obedit= CTX_data_edit_object(C);
 	em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	ima= CTX_data_edit_image(C);
 	
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+	if(ts->uv_flag & UV_SYNC_SELECTION) {
 		EDBM_toggle_select_all(((Mesh*)obedit->data)->edit_btmesh);
 	}
 	else {
@@ -1443,6 +1453,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	Scene *scene= CTX_data_scene(C);
+	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima= CTX_data_edit_image(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
@@ -1457,12 +1468,12 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	uvedit_pixel_to_float(sima, penalty, 5.0f);
 
 	/* retrieve operation mode */
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+	if(ts->uv_flag & UV_SYNC_SELECTION) {
 		sync= 1;
 
-		if(scene->selectmode & SCE_SELECT_FACE)
+		if(ts->selectmode & SCE_SELECT_FACE)
 			selectmode= UV_SELECT_FACE;
-		else if(scene->selectmode & SCE_SELECT_EDGE)
+		else if(ts->selectmode & SCE_SELECT_EDGE)
 			selectmode= UV_SELECT_EDGE;
 		else
 			selectmode= UV_SELECT_VERTEX;
@@ -1471,7 +1482,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	}
 	else {
 		sync= 0;
-		selectmode= scene->toolsettings->uv_selectmode;
+		selectmode= ts->uv_selectmode;
 		sticky= sima->sticky;
 	}
 
@@ -1693,7 +1704,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 	
 	if(sync) {
 		/* flush for mesh selection */
-		if(scene->selectmode != SCE_SELECT_FACE) {
+		if(ts->selectmode != SCE_SELECT_FACE) {
 			if(flush==1)		EM_select_flush(em);
 			else if(flush==-1)	EM_deselect_flush(em);
 		}
@@ -1806,13 +1817,14 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	Scene *scene= CTX_data_scene(C);
+	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima= CTX_data_edit_image(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	float limit[2];
 	int extend;
 
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+	if(ts->uv_flag & UV_SYNC_SELECTION) {
 		BKE_report(op->reports, RPT_ERROR, "Can't select linked when sync selection is enabled.");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
@@ -1850,13 +1862,14 @@ void UV_OT_select_linked(wmOperatorType *ot)
 static int unlink_selection_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
+	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima= CTX_data_edit_image(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
 
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+	if(ts->uv_flag & UV_SYNC_SELECTION) {
 		BKE_report(op->reports, RPT_ERROR, "Can't unlink selection when sync selection is enabled.");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
@@ -1913,12 +1926,13 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 	 * This only needs to be done when the Mesh is not used for
 	 * selection (so for sticky modes, vertex or location based). */
 	
+	ToolSettings *ts= CTX_data_tool_settings(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
 	int nverts, i;
 	
-	if((scene->toolsettings->uv_flag & UV_SYNC_SELECTION)==0 && sima->sticky == SI_STICKY_VERTEX) {
+	if((ts->uv_flag & UV_SYNC_SELECTION)==0 && sima->sticky == SI_STICKY_VERTEX) {
 		/* Tag all verts as untouched, then touch the ones that have a face center
 		 * in the loop and select all MTFace UV's that use a touched vert. */
 		EditVert *eve;
@@ -1949,7 +1963,7 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 			}
 		}
 	}
-	else if((scene->toolsettings->uv_flag & UV_SYNC_SELECTION)==0 && sima->sticky == SI_STICKY_LOC) {
+	else if((ts->uv_flag & UV_SYNC_SELECTION)==0 && sima->sticky == SI_STICKY_LOC) {
 		EditFace *efa_vlist;
 		MTFace *tf_vlist;
 		UvMapVert *start_vlist=NULL, *vlist_iter;
@@ -2020,7 +2034,7 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 		EM_free_uv_vert_map(vmap);
 		
 	}
-	else { /* SI_STICKY_DISABLE or scene->toolsettings->uv_flag & UV_SYNC_SELECTION */
+	else { /* SI_STICKY_DISABLE or ts->uv_flag & UV_SYNC_SELECTION */
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			if(efa->tmp.l) {
 				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
@@ -2038,6 +2052,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 	Scene *scene= CTX_data_scene(C);
+	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima= CTX_data_edit_image(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -2061,10 +2076,10 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	select= (RNA_int_get(op->ptr, "event_type") == LEFTMOUSE); // XXX hardcoded
 	pinned= RNA_boolean_get(op->ptr, "pinned");
 	
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION)
-		faces= (scene->selectmode == SCE_SELECT_FACE);
+	if(ts->uv_flag & UV_SYNC_SELECTION)
+		faces= (ts->selectmode == SCE_SELECT_FACE);
 	else
-		faces= (scene->toolsettings->uv_selectmode == UV_SELECT_FACE);
+		faces= (ts->uv_selectmode == UV_SELECT_FACE);
 
 	/* do actual selection */
 	if(faces && !pinned) {
@@ -2096,7 +2111,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			if(uvedit_face_visible(scene, ima, efa, tface)) {
-				if(!pinned || (scene->toolsettings->uv_flag & UV_SYNC_SELECTION) ) {
+				if(!pinned || (ts->uv_flag & UV_SYNC_SELECTION) ) {
 					/* UV_SYNC_SELECTION - can't do pinned selection */
 					if(BLI_in_rctf(&rectf, tface->uv[0][0], tface->uv[0][1])) {
 						if(select)	uvedit_uv_select(scene, efa, tface, 0);
@@ -2145,8 +2160,8 @@ static int border_select_exec(bContext *C, wmOperator *op)
 
 	if(change) {
 		/* make sure newly selected vert selection is updated*/
-		if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
-			if(scene->selectmode != SCE_SELECT_FACE) {
+		if(ts->uv_flag & UV_SYNC_SELECTION) {
+			if(ts->selectmode != SCE_SELECT_FACE) {
 				if(select)	EM_select_flush(em);
 				else		EM_deselect_flush(em);
 			}
@@ -2326,9 +2341,9 @@ static int snap_cursor_exec(bContext *C, wmOperator *op)
 void UV_OT_snap_cursor(wmOperatorType *ot)
 {
 	static EnumPropertyItem target_items[] = {
-		{0, "PIXELS", "Pixels", ""},
-		{1, "SELECTION", "Selection", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "PIXELS", 0, "Pixels", ""},
+		{1, "SELECTION", 0, "Selection", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "Snap Cursor";
@@ -2561,10 +2576,10 @@ static int snap_selection_exec(bContext *C, wmOperator *op)
 void UV_OT_snap_selection(wmOperatorType *ot)
 {
 	static EnumPropertyItem target_items[] = {
-		{0, "PIXELS", "Pixels", ""},
-		{1, "CURSOR", "Cursor", ""},
-		{2, "ADJACENT_UNSELECTED", "Adjacent Unselected", ""},
-		{0, NULL, NULL, NULL}};
+		{0, "PIXELS", 0, "Pixels", ""},
+		{1, "CURSOR", 0, "Cursor", ""},
+		{2, "ADJACENT_UNSELECTED", 0, "Adjacent Unselected", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "Snap Selection";
@@ -2680,14 +2695,14 @@ void UV_OT_select_pinned(wmOperatorType *ot)
 static int hide_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
-	Scene *scene= CTX_data_scene(C);
+	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
 	int swap= RNA_boolean_get(op->ptr, "unselected");
 
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+	if(ts->uv_flag & UV_SYNC_SELECTION) {
 		EM_hide_mesh(em, swap);
 		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
@@ -2824,14 +2839,14 @@ void UV_OT_hide(wmOperatorType *ot)
 static int reveal_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
-	Scene *scene= CTX_data_scene(C);
+	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	EditFace *efa;
 	MTFace *tf;
 	
 	/* call the mesh function if we are in mesh sync sel */
-	if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
+	if(ts->uv_flag & UV_SYNC_SELECTION) {
 		EM_reveal_mesh(em);
 		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
@@ -3006,7 +3021,7 @@ static int set_tile_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	RNA_int_get_array(op->ptr, "tile", tile);
-	ED_uvedit_set_tile(C, CTX_data_scene(C), CTX_data_edit_object(C), ima, tile[0] + ima->xrep*tile[1], 1);
+	ED_uvedit_set_tile(C, CTX_data_scene(C), CTX_data_edit_object(C), ima, tile[0] + ima->xrep*tile[1]);
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 
@@ -3065,7 +3080,7 @@ void UV_OT_tile_set(wmOperatorType *ot)
 void ED_operatortypes_uvedit(void)
 {
 	WM_operatortype_append(UV_OT_select_all_toggle);
-	WM_operatortype_append(UV_OT_select_invert);
+	WM_operatortype_append(UV_OT_select_inverse);
 	WM_operatortype_append(UV_OT_select);
 	WM_operatortype_append(UV_OT_select_loop);
 	WM_operatortype_append(UV_OT_select_linked);
@@ -3120,7 +3135,7 @@ void ED_keymap_uvedit(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "UV_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_unlink_selection", LKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "UV_OT_select_invert", IKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "UV_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_pinned", PKEY, KM_PRESS, KM_SHIFT, 0);
 
 	/* uv operations */

@@ -44,9 +44,8 @@ def validate_arguments(args, bc):
 			'WITH_BF_INTERNATIONAL',
 			'BF_GETTEXT', 'BF_GETTEXT_INC', 'BF_GETTEXT_LIB', 'BF_GETTEXT_LIBPATH',
 			'WITH_BF_ICONV', 'BF_ICONV', 'BF_ICONV_INC', 'BF_ICONV_LIB', 'BF_ICONV_LIBPATH',
-			'WITH_BF_ODE', 'BF_ODE', 'BF_ODE_INC', 'BF_ODE_LIB',
-			'WITH_BF_GAMEENGINE', 'WITH_BF_SOLID', 'WITH_BF_BULLET', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
-			'BF_SOLID', 'BF_SOLID_INC', 'BF_WINTAB', 'BF_WINTAB_INC',
+			'WITH_BF_GAMEENGINE', 'WITH_BF_BULLET', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
+			'BF_WINTAB', 'BF_WINTAB_INC',
 			'WITH_BF_FREETYPE', 'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH',
 			'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
 			'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC',
@@ -65,6 +64,7 @@ def validate_arguments(args, bc):
 			'WITH_BF_LCMS', 'BF_LCMS_LIB',
 			'WITH_BF_DOCS',
 			'BF_NUMJOBS',
+			'BF_MSVS',
 			]
 	
 	# Have options here that scons expects to be lists
@@ -158,7 +158,7 @@ def read_opts(cfg, args):
 		(BoolVariable('WITH_BF_STATICPYTHON', 'Staticly link to python', False)),
 
 		(BoolVariable('BF_NO_ELBEEM', 'Disable Fluid Sim', False)),
-
+		('BF_PROFILE_FLAGS', 'Profiling compiler flags', ''),
 		(BoolVariable('WITH_BF_OPENAL', 'Use OpenAL if true', False)),
 		('BF_OPENAL', 'base path for OpenAL', ''),
 		('BF_OPENAL_INC', 'include path for python headers', ''),
@@ -249,21 +249,13 @@ def read_opts(cfg, args):
 		('BF_ICONV_LIB', 'iconv library', ''),
 		('BF_ICONV_LIBPATH', 'iconv library path', ''),
 		
-		(BoolVariable('WITH_BF_GAMEENGINE', 'Build with gameengine' , True)),
-
-		(BoolVariable('WITH_BF_ODE', 'Use ODE if true', True)),
-		('BF_ODE', 'ODE base path', ''),
-		('BF_ODE_INC', 'ODE include path' , ''),
-		('BF_ODE_LIB', 'ODE library', ''),
+		(BoolVariable('WITH_BF_GAMEENGINE', 'Build with gameengine' , False)),
 
 		(BoolVariable('WITH_BF_BULLET', 'Use Bullet if true', True)),
 		('BF_BULLET', 'Bullet base dir', ''),
 		('BF_BULLET_INC', 'Bullet include path', ''),
 		('BF_BULLET_LIB', 'Bullet library', ''),
 		
-		(BoolVariable('WITH_BF_SOLID', 'Use Sumo/Solid deprecated physics system if true', True)),
-		('BF_SOLID', 'Solid base dir', '#/extern/solid'),
-		('BF_SOLID_INC', 'Solid include path', ''),
 		('BF_WINTAB', 'WinTab base dir', ''),
 		('BF_WINTAB_INC', 'WinTab include dir', ''),
 		('BF_CXX', 'c++ base path for libstdc++, only used when static linking', ''),
@@ -364,7 +356,8 @@ def read_opts(cfg, args):
 		(BoolVariable('WITH_BF_DOCS', 'Generate API documentation', False)),
 		
 		('BF_CONFIG', 'SCons python config file used to set default options', 'user_config.py'),
-		('BF_NUMJOBS', 'Number of build processes to spawn', '1')
+		('BF_NUMJOBS', 'Number of build processes to spawn', '1'),
+		('BF_MSVS', 'Generate MSVS project files and solution', False)
 
 	) # end of opts.AddOptions()
 
@@ -404,8 +397,12 @@ def NSIS_Installer(target=None, source=None, env=None):
 
 	ns = open("00.sconsblender.nsi","r")
 
+
 	ns_cnt = str(ns.read())
 	ns.close()
+
+	# set Python version we compile against
+	ns_cnt = string.replace(ns_cnt, "[PYTHON_VERSION]", env['BF_PYTHON_VERSION'])
 
 	# do root
 	rootlist = []

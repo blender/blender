@@ -118,6 +118,8 @@ int		ED_operator_node_active(struct bContext *C);
 int		ED_operator_ipo_active(struct bContext *C);
 int		ED_operator_sequencer_active(struct bContext *C);
 int		ED_operator_image_active(struct bContext *C);
+int		ED_operator_nla_active(struct bContext *C);
+int		ED_operator_logic_active(struct bContext *C);
 
 int		ED_operator_object_active(struct bContext *C);
 int		ED_operator_editmesh(struct bContext *C);
@@ -126,6 +128,7 @@ int		ED_operator_editcurve(struct bContext *C);
 int		ED_operator_editsurf(struct bContext *C);
 int		ED_operator_editsurfcurve(struct bContext *C);
 int		ED_operator_editfont(struct bContext *C);
+int		ED_operator_editlattice(struct bContext *C);
 int		ED_operator_uvedit(struct bContext *C);
 int		ED_operator_uvmap(struct bContext *C);
 int		ED_operator_posemode(struct bContext *C);

@@ -29,7 +29,6 @@
 const STR_String CBoolValue::sTrueString  = "TRUE";
 const STR_String CBoolValue::sFalseString = "FALSE";
 
-
 CBoolValue::CBoolValue()
 /*
 pre: false
@@ -210,5 +209,5 @@ CValue* CBoolValue::GetReplica()
 
 PyObject* CBoolValue::ConvertValueToPython()
 {
-	return PyInt_FromLong(m_bool != 0);
+	return PyBool_FromLong(m_bool != 0);
 }

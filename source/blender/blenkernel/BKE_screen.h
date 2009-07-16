@@ -91,6 +91,9 @@ typedef struct SpaceType {
 	/* region type definitions */
 	ListBase	regiontypes;
 	
+	/* tool shelf definitions */
+	ListBase toolshelf;
+	
 	/* read and write... */
 	
 	/* default keymaps to add */
@@ -139,7 +142,7 @@ typedef struct ARegionType {
 
 	/* menu type definitions */
 	ListBase menutypes;
-
+	
 	/* hardcoded constraints, smaller than these values region is not visible */
 	int			minsizex, minsizey;
 	/* default keymaps to add */
@@ -156,6 +159,8 @@ typedef struct PanelType {
 	char		context[BKE_ST_MAXNAME];	/* for buttons window */
 	int			space_type;
 	int			region_type;
+
+	int 		flag;
 
 	/* verify if the panel should draw or not */
 	int			(*poll)(const struct bContext *, struct PanelType *);

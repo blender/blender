@@ -91,9 +91,13 @@ typedef enum PropertyFlag {
 	 * and collections */
 	PROP_ANIMATEABLE = 2,
 
+	/* icon */
+	PROP_ICONS_CONSECUTIVE = 4096,
+
 	/* function paramater flags */
 	PROP_REQUIRED = 4,
 	PROP_RETURN = 8,
+	PROP_RNAPTR = 2048,
 
 	/* registering */
 	PROP_REGISTER = 16,
@@ -106,7 +110,9 @@ typedef enum PropertyFlag {
 	PROP_BUILTIN = 128,
 	PROP_EXPORT = 256,
 	PROP_RUNTIME = 512,
-	PROP_IDPROPERTY = 1024
+	PROP_IDPROPERTY = 1024,
+	PROP_RAW_ACCESS = 8192,
+	PROP_RAW_ARRAY = 16384,
 } PropertyFlag;
 
 typedef struct CollectionPropertyIterator {
@@ -128,14 +134,30 @@ typedef struct CollectionPointerLink {
 	PointerRNA ptr;
 } CollectionPointerLink;
 
-/* Iterator Utility */
+typedef enum RawPropertyType {
+	PROP_RAW_CHAR,
+	PROP_RAW_SHORT,
+	PROP_RAW_INT,
+	PROP_RAW_FLOAT,
+	PROP_RAW_DOUBLE
+} RawPropertyType;
+
+typedef struct RawArray {
+	void *array;
+	RawPropertyType type;
+	int len;
+	int stride;
+} RawArray;
 
 typedef struct EnumPropertyItem {
 	int value;
 	const char *identifier;
+	int icon;
 	const char *name;
 	const char *description;
 } EnumPropertyItem;
+
+typedef EnumPropertyItem *(*EnumPropertyItemFunc)(struct bContext *C, PointerRNA *ptr, int *free);
 
 typedef struct PropertyRNA PropertyRNA;
 
@@ -156,11 +178,13 @@ typedef struct ParameterIterator {
 /* Function */
 
 typedef enum FunctionFlag {
-	FUNC_TYPESTATIC = 1, /* for static functions, FUNC_ STATIC is taken by some windows header it seems */
+	FUNC_NO_SELF = 1, /* for static functions */
+	FUNC_USE_CONTEXT = 2,
+	FUNC_USE_REPORTS = 4,
 
 	/* registering */
-	FUNC_REGISTER = 2,
-	FUNC_REGISTER_OPTIONAL = 2|4,
+	FUNC_REGISTER = 8,
+	FUNC_REGISTER_OPTIONAL = 8|16,
 
 	/* internal flags */
 	FUNC_BUILTIN = 128,
@@ -168,7 +192,7 @@ typedef enum FunctionFlag {
 	FUNC_RUNTIME = 512
 } FunctionFlag;
 
-typedef void (*CallFunc)(PointerRNA *ptr, ParameterList *parms);
+typedef void (*CallFunc)(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, ParameterList *parms);
 
 typedef struct FunctionRNA FunctionRNA;
 

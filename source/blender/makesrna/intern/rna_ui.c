@@ -24,6 +24,8 @@
 
 #include <stdlib.h>
 
+#include "DNA_screen_types.h"
+
 #include "RNA_define.h"
 #include "RNA_types.h"
 
@@ -39,8 +41,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
-
-#include "DNA_screen_types.h"
 
 #include "BLI_dynstr.h"
 
@@ -170,6 +170,8 @@ static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, voi
 		if(strcmp(pt->idname, dummypt.idname) == 0) {
 			if(pt->py_srna)
 				rna_Panel_unregister(C, pt->py_srna);
+			else
+				BLI_freelinkN(&art->paneltypes, pt);
 			break;
 		}
 	}
@@ -416,12 +418,12 @@ static int rna_UILayout_active_get(struct PointerRNA *ptr)
 
 static void rna_UILayout_active_set(struct PointerRNA *ptr, int value)
 {
-	return uiLayoutSetActive(ptr->data, value);
+	uiLayoutSetActive(ptr->data, value);
 }
 
 static void rna_UILayout_op_context_set(struct PointerRNA *ptr, int value)
 {
-	return uiLayoutSetOperatorContext(ptr->data, value);
+	uiLayoutSetOperatorContext(ptr->data, value);
 }
 
 static int rna_UILayout_op_context_get(struct PointerRNA *ptr)
@@ -436,7 +438,7 @@ static int rna_UILayout_enabled_get(struct PointerRNA *ptr)
 
 static void rna_UILayout_enabled_set(struct PointerRNA *ptr, int value)
 {
-	return uiLayoutSetEnabled(ptr->data, value);
+	uiLayoutSetEnabled(ptr->data, value);
 }
 
 static int rna_UILayout_red_alert_get(struct PointerRNA *ptr)
@@ -446,7 +448,7 @@ static int rna_UILayout_red_alert_get(struct PointerRNA *ptr)
 
 static void rna_UILayout_red_alert_set(struct PointerRNA *ptr, int value)
 {
-	return uiLayoutSetRedAlert(ptr->data, value);
+	uiLayoutSetRedAlert(ptr->data, value);
 }
 
 static int rna_UILayout_keep_aspect_get(struct PointerRNA *ptr)
@@ -456,7 +458,7 @@ static int rna_UILayout_keep_aspect_get(struct PointerRNA *ptr)
 
 static void rna_UILayout_keep_aspect_set(struct PointerRNA *ptr, int value)
 {
-	return uiLayoutSetKeepAspect(ptr->data, value);
+	uiLayoutSetKeepAspect(ptr->data, value);
 }
 
 static int rna_UILayout_alignment_get(struct PointerRNA *ptr)
@@ -466,7 +468,7 @@ static int rna_UILayout_alignment_get(struct PointerRNA *ptr)
 
 static void rna_UILayout_alignment_set(struct PointerRNA *ptr, int value)
 {
-	return uiLayoutSetAlignment(ptr->data, value);
+	uiLayoutSetAlignment(ptr->data, value);
 }
 
 static float rna_UILayout_scale_x_get(struct PointerRNA *ptr)
@@ -476,7 +478,7 @@ static float rna_UILayout_scale_x_get(struct PointerRNA *ptr)
 
 static void rna_UILayout_scale_x_set(struct PointerRNA *ptr, float value)
 {
-	return uiLayoutSetScaleX(ptr->data, value);
+	uiLayoutSetScaleX(ptr->data, value);
 }
 
 static float rna_UILayout_scale_y_get(struct PointerRNA *ptr)
@@ -486,7 +488,7 @@ static float rna_UILayout_scale_y_get(struct PointerRNA *ptr)
 
 static void rna_UILayout_scale_y_set(struct PointerRNA *ptr, float value)
 {
-	return uiLayoutSetScaleY(ptr->data, value);
+	uiLayoutSetScaleY(ptr->data, value);
 }
 
 #else // RNA_RUNTIME
@@ -497,23 +499,23 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem alignment_items[] = {
-		{UI_LAYOUT_ALIGN_EXPAND, "EXPAND", "Expand", ""},
-		{UI_LAYOUT_ALIGN_LEFT, "LEFT", "Left", ""},
-		{UI_LAYOUT_ALIGN_CENTER, "CENTER", "Center", ""},
-		{UI_LAYOUT_ALIGN_RIGHT, "RIGHT", "RIght", ""},
-		{0, NULL, NULL, NULL}};
+		{UI_LAYOUT_ALIGN_EXPAND, "EXPAND", 0, "Expand", ""},
+		{UI_LAYOUT_ALIGN_LEFT, "LEFT", 0, "Left", ""},
+		{UI_LAYOUT_ALIGN_CENTER, "CENTER", 0, "Center", ""},
+		{UI_LAYOUT_ALIGN_RIGHT, "RIGHT", 0, "RIght", ""},
+		{0, NULL, 0, NULL, NULL}};
 		
 	/* see WM_types.h */
 	static EnumPropertyItem operator_context_items[] = {
-		{WM_OP_INVOKE_DEFAULT, "INVOKE_DEFAULT", "Invoke Default", ""},
-		{WM_OP_INVOKE_REGION_WIN, "INVOKE_REGION_WIN", "Invoke Region Window", ""},
-		{WM_OP_INVOKE_AREA, "INVOKE_AREA", "Invoke Area", ""},
-		{WM_OP_INVOKE_SCREEN, "INVOKE_SCREEN", "Invoke Screen", ""},
-		{WM_OP_EXEC_DEFAULT, "EXEC_DEFAULT", "Exec Default", ""},
-		{WM_OP_EXEC_REGION_WIN, "EXEC_REGION_WIN", "Exec Region Window", ""},
-		{WM_OP_EXEC_AREA, "EXEC_AREA", "Exec Area", ""},
-		{WM_OP_EXEC_SCREEN, "EXEC_SCREEN", "Exec Screen", ""},
-		{0, NULL, NULL, NULL}};
+		{WM_OP_INVOKE_DEFAULT, "INVOKE_DEFAULT", 0, "Invoke Default", ""},
+		{WM_OP_INVOKE_REGION_WIN, "INVOKE_REGION_WIN", 0, "Invoke Region Window", ""},
+		{WM_OP_INVOKE_AREA, "INVOKE_AREA", 0, "Invoke Area", ""},
+		{WM_OP_INVOKE_SCREEN, "INVOKE_SCREEN", 0, "Invoke Screen", ""},
+		{WM_OP_EXEC_DEFAULT, "EXEC_DEFAULT", 0, "Exec Default", ""},
+		{WM_OP_EXEC_REGION_WIN, "EXEC_REGION_WIN", 0, "Exec Region Window", ""},
+		{WM_OP_EXEC_AREA, "EXEC_AREA", 0, "Exec Area", ""},
+		{WM_OP_EXEC_SCREEN, "EXEC_SCREEN", 0, "Exec Screen", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "UILayout", NULL);
 	RNA_def_struct_sdna(srna, "uiLayout");
@@ -602,6 +604,14 @@ static void rna_def_panel(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "context", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->context");
+	RNA_def_property_flag(prop, PROP_REGISTER);
+
+	prop= RNA_def_property(srna, "default_closed", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", PNL_DEFAULT_CLOSED);
+	RNA_def_property_flag(prop, PROP_REGISTER);
+
+	prop= RNA_def_property(srna, "no_header", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", PNL_NO_HEADER);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 }
 

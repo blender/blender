@@ -68,18 +68,18 @@ void view3d_keymap(struct wmWindowManager *wm);
 void VIEW3D_OT_zoom(struct wmOperatorType *ot);
 void VIEW3D_OT_viewmove(struct wmOperatorType *ot);
 void VIEW3D_OT_viewrotate(struct wmOperatorType *ot);
-void VIEW3D_OT_viewhome(struct wmOperatorType *ot);
+void VIEW3D_OT_view_all(struct wmOperatorType *ot);
 void VIEW3D_OT_viewnumpad(struct wmOperatorType *ot);
-void VIEW3D_OT_viewcenter(struct wmOperatorType *ot);
+void VIEW3D_OT_view_center(struct wmOperatorType *ot);
 void VIEW3D_OT_view_pan(struct wmOperatorType *ot);
 void VIEW3D_OT_view_persportho(struct wmOperatorType *ot);
 void VIEW3D_OT_view_orbit(struct wmOperatorType *ot);
-void VIEW3D_OT_clipping(struct wmOperatorType *ot);
+void VIEW3D_OT_clip_border(struct wmOperatorType *ot);
 void VIEW3D_OT_cursor3d(struct wmOperatorType *ot);
+void VIEW3D_OT_manipulator(struct wmOperatorType *ot);
 void VIEW3D_OT_render_border(struct wmOperatorType *ot);
 void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
 void VIEW3D_OT_drawtype(struct wmOperatorType *ot);
-void VIEW3D_OT_editmesh_face_toolbox(struct wmOperatorType *ot);
 
 void view3d_boxview_copy(ScrArea *sa, ARegion *ar);
 
@@ -120,6 +120,8 @@ void VIEW3D_OT_select_lasso(struct wmOperatorType *ot);
 void VIEW3D_OT_smoothview(struct wmOperatorType *ot);
 void VIEW3D_OT_setcameratoview(struct wmOperatorType *ot);
 void VIEW3D_OT_localview(struct wmOperatorType *ot);
+void VIEW3D_OT_game_start(struct wmOperatorType *ot);
+
 
 int boundbox_clip(RegionView3D *rv3d, float obmat[][4], struct BoundBox *bb);
 
@@ -134,9 +136,11 @@ void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d);
 void VIEW3D_OT_properties(struct wmOperatorType *ot);
 void view3d_buttons_register(struct ARegionType *art);
 
-/* view3d_buttons.c */
+/* view3d_toolbar.c */
 void VIEW3D_OT_toolbar(struct wmOperatorType *ot);
 void view3d_toolbar_register(struct ARegionType *art);
+void view3d_tool_props_register(struct ARegionType *art);
+char *view3d_context_string(const struct bContext *C);
 
 /* view3d_snap.c */
 int minmax_verts(Object *obedit, float *min, float *max);

@@ -1,5 +1,5 @@
 /*
- * $Id: BDR_sculptmode.h 13396 2008-01-25 04:17:38Z nicholasbishop $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

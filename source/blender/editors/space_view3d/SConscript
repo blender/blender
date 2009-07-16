@@ -2,10 +2,14 @@
 Import ('env')
 
 sources = env.Glob('*.c')
+defs = []
 
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../render/extern/include #/intern/guardedalloc'
 incs += ' ../../gpu ../../makesrna ../../blenfont ../../bmesh '
 
-env.BlenderLib ( 'bf_editors_space_view3d', sources, Split(incs), [], libtype=['core'], priority=[40] )
+if env['WITH_BF_GAMEENGINE']:
+	defs.append('GAMEBLENDER=1')
+
+env.BlenderLib ( 'bf_editors_space_view3d', sources, Split(incs), defines = defs, libtype=['core'], priority=[40] )

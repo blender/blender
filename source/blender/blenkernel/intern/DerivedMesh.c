@@ -1770,17 +1770,17 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 	modifiers_clearErrors(ob);
 
+	if(useRenderParams) required_mode = eModifierMode_Render;
+	else required_mode = eModifierMode_Realtime;
+
 	/* we always want to keep original indices */
 	dataMask |= CD_MASK_ORIGINDEX;
 
-	datamasks = modifiers_calcDataMasks(md, dataMask);
+	datamasks = modifiers_calcDataMasks(ob, md, dataMask, required_mode);
 	curr = datamasks;
 
 	if(deform_r) *deform_r = NULL;
 	*final_r = NULL;
-
-	if(useRenderParams) required_mode = eModifierMode_Render;
-	else required_mode = eModifierMode_Realtime;
 
 	if(useDeform) {
 		if(useDeform > 0 && do_ob_key(scene, ob)) /* shape key makes deform verts */
@@ -1794,8 +1794,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 			md->scene= scene;
 			
-			if((md->mode & required_mode) != required_mode) continue;
-			if(mti->isDisabled && mti->isDisabled(md)) continue;
+			if(!modifier_isEnabled(md, required_mode)) continue;
 			if(useDeform < 0 && mti->dependsOnTime && mti->dependsOnTime(md)) continue;
 
 			if(mti->type == eModifierTypeType_OnlyDeform) {
@@ -1844,19 +1843,18 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 		md->scene= scene;
 		
-		if((md->mode & required_mode) != required_mode) continue;
+		if(!modifier_isEnabled(md, required_mode)) continue;
 		if(mti->type == eModifierTypeType_OnlyDeform && !useDeform) continue;
 		if((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
 			modifier_setError(md, "Modifier requires original data, bad stack position.");
 			continue;
 		}
-		if(mti->isDisabled && mti->isDisabled(md)) continue;
 		if(needMapping && !modifier_supportsMapping(md)) continue;
 		if(useDeform < 0 && mti->dependsOnTime && mti->dependsOnTime(md)) continue;
 
 		/* add an orco layer if needed by this modifier */
 		if(dm && mti->requiredDataMask) {
-			mask = mti->requiredDataMask(md);
+			mask = mti->requiredDataMask(ob, md);
 			if(mask & CD_MASK_ORCO)
 				add_orco_dm(ob, NULL, dm, orcodm);
 		}
@@ -2029,14 +2027,11 @@ static int editbmesh_modifier_is_enabled(ModifierData *md, DerivedMesh *dm)
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
 
-	if((md->mode & required_mode) != required_mode) return 0;
+	if(!modifier_isEnabled(md, required_mode)) return 0;
 	if((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
 		modifier_setError(md, "Modifier requires original data, bad stack position.");
 		return 0;
 	}
-	if(mti->isDisabled && mti->isDisabled(md)) return 0;
-	if(!(mti->flags & eModifierTypeFlag_SupportsEditmode)) return 0;
-	if(md->mode & eModifierMode_DisableTemporary) return 0;
 	
 	return 1;
 }
@@ -2051,6 +2046,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	DerivedMesh *dm, *orcodm = NULL;
 	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(ob, NULL);
 	LinkNode *datamasks, *curr;
+	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
 
 	modifiers_clearErrors(ob);
 
@@ -2064,7 +2060,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	/* we always want to keep original indices */
 	dataMask |= CD_MASK_ORIGINDEX;
 
-	datamasks = modifiers_calcDataMasks(md, dataMask);
+	datamasks = modifiers_calcDataMasks(ob, md, dataMask, required_mode);
 
 	curr = datamasks;
 	for(i = 0; md; i++, md = md->next, curr = curr->next) {
@@ -2077,7 +2073,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 
 		/* add an orco layer if needed by this modifier */
 		if(dm && mti->requiredDataMask) {
-			mask = mti->requiredDataMask(md);
+			mask = mti->requiredDataMask(ob, md);
 			if(mask & CD_MASK_ORCO)
 				add_orco_dm(ob, em, dm, orcodm);
 		}

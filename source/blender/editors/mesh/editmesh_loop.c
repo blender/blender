@@ -372,9 +372,9 @@ void CutEdgeloop(Object *obedit, wmOperator *op, EditMesh *em, int numcuts)
 		fac= 1.0f;
 // XXX		if(fbutton(&fac, 0.0f, 5.0f, 10, 10, "Smooth:")==0) return;
 		fac= 0.292f*fac;			
-		esubdivideflag(obedit, em, SELECT,fac,B_SMOOTH,numcuts,SUBDIV_SELECT_LOOPCUT);
+		esubdivideflag(obedit, em, SELECT,fac,0,B_SMOOTH,numcuts,SUBDIV_SELECT_LOOPCUT);
 	} else {
-		esubdivideflag(obedit, em, SELECT,0,0,numcuts,SUBDIV_SELECT_LOOPCUT);
+		esubdivideflag(obedit, em, SELECT,0,0,0,numcuts,SUBDIV_SELECT_LOOPCUT);
 	}
 	/* if this was a single cut, enter edgeslide mode */
 	if(numcuts == 1 && hasHidden == 0){
@@ -462,10 +462,10 @@ typedef struct CutCurve {
 #define KNIFE_MULTICUT	3
 
 static EnumPropertyItem knife_items[]= {
-	{KNIFE_EXACT, "EXACT", "Exact", ""},
-	{KNIFE_MIDPOINT, "MIDPOINTS", "Midpoints", ""},
-	{KNIFE_MULTICUT, "MULTICUT", "Multicut", ""},
-	{0, NULL, NULL}
+	{KNIFE_EXACT, "EXACT", 0, "Exact", ""},
+	{KNIFE_MIDPOINT, "MIDPOINTS", 0, "Midpoints", ""},
+	{KNIFE_MULTICUT, "MULTICUT", 0, "Multicut", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* seg_intersect() Determines if and where a mouse trail intersects an EditEdge */
@@ -784,6 +784,7 @@ static float bm_seg_intersect(BMEdge *e, CutCurve *c, int len, char mode,
 
 static int knife_cut_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
 	BMesh *bm = em->bm;
@@ -837,7 +838,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 			isect= bm_seg_intersect(be, curve, len, mode, gh, &isected);
 			
 			if (isect != 0.0f) {
-				if (mode != KNIFE_MULTICUT) {
+				if (mode != KNIFE_MULTICUT && mode != KNIFE_MIDPOINT) {
 					BMO_Insert_MapFloat(bm, &bmop, 
 				               "edgepercents",
 				               be, isect);
@@ -867,6 +868,10 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	//else esubdivideflag(obedit, em, SELECT, 0, B_KNIFE|B_PERCENTSUBD, 1, SUBDIV_SELECT_ORIG);
 	
 	BLI_ghash_free(gh, NULL, (GHashValFreeFP)WMEM_freeN);
+
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
 	return OPERATOR_FINISHED;
 }

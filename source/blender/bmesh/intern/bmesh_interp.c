@@ -164,3 +164,83 @@ void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
 //
 //}
 /*insert BM_data_interp_from_face here for mean value coordinates...*/
+
+
+static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
+{
+	BMIter iter;
+	void *block;
+
+	if (data == &bm->vdata) {
+		BMVert *eve;
+
+		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			block = NULL;
+			CustomData_bmesh_set_default(data, &block);
+			CustomData_bmesh_copy_data(olddata, data, eve->head.data, &block);
+			CustomData_bmesh_free_block(olddata, &eve->head.data);
+			eve->head.data= block;
+		}
+	}
+	else if (data == &bm->edata) {
+		BMEdge *eed;
+
+		BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+			block = NULL;
+			CustomData_bmesh_set_default(data, &block);
+			CustomData_bmesh_copy_data(olddata, data, eed->head.data, &block);
+			CustomData_bmesh_free_block(olddata, &eed->head.data);
+			eed->head.data= block;
+		}
+	}
+	else if (data == &bm->pdata || data == &bm->ldata) {
+		BMIter liter;
+		BMFace *efa;
+		BMLoop *l;
+
+		BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
+			if (data == &bm->pdata) {
+				block = NULL;
+				CustomData_bmesh_set_default(data, &block);
+				CustomData_bmesh_copy_data(olddata, data, efa->head.data, &block);
+				CustomData_bmesh_free_block(olddata, &efa->head.data);
+				efa->head.data= block;
+			}
+
+			if (data == &bm->ldata) {
+				BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
+					block = NULL;
+					CustomData_bmesh_set_default(data, &block);
+					CustomData_bmesh_copy_data(olddata, data, l->head.data, &block);
+					CustomData_bmesh_free_block(olddata, &l->head.data);
+					l->head.data= block;
+				}
+			}
+		}
+	}
+}
+
+
+void BM_add_data_layer(BMesh *bm, CustomData *data, int type)
+{
+	CustomData olddata;
+
+	olddata= *data;
+	olddata.layers= (olddata.layers)? MEM_dupallocN(olddata.layers): NULL;
+	CustomData_add_layer(data, type, CD_CALLOC, NULL, 0);
+
+	update_data_blocks(bm, &olddata, data);
+	if (olddata.layers) MEM_freeN(olddata.layers);
+}
+
+void BM_free_data_layer(BMesh *bm, CustomData *data, int type)
+{
+	CustomData olddata;
+
+	olddata= *data;
+	olddata.layers= (olddata.layers)? MEM_dupallocN(olddata.layers): NULL;
+	CustomData_free_layer_active(data, type, 0);
+
+	update_data_blocks(bm, &olddata, data);
+	if (olddata.layers) MEM_freeN(olddata.layers);
+}

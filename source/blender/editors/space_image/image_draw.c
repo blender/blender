@@ -127,14 +127,13 @@ static void image_verify_buffer_float(SpaceImage *sima, ImBuf *ibuf)
 	}
 }
 
-static void draw_render_info(SpaceImage *sima, ARegion *ar)
+static void draw_render_info(Image *ima, ARegion *ar)
 {
 	rcti rect;
 	float colf[3];
 	int showspare= 0; // XXX BIF_show_render_spare();
-	char *str= "render text"; // XXX BIF_render_text();
 	
-	if(str==NULL)
+	if(ima->render_text==NULL)
 		return;
 	
 	rect= ar->winrct;
@@ -152,10 +151,10 @@ static void draw_render_info(SpaceImage *sima, ARegion *ar)
 
 	if(showspare) {
 		UI_DrawString(12, rect.ymin + 5, "(Previous)");
-		UI_DrawString(72, rect.ymin + 5, str);
+		UI_DrawString(72, rect.ymin + 5, ima->render_text);
 	}
 	else
-		UI_DrawString(12, rect.ymin + 5, str);
+		UI_DrawString(12, rect.ymin + 5, ima->render_text);
 }
 
 void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *fp, int *zp, float *zpf)
@@ -311,12 +310,14 @@ static void sima_draw_alpha_pixelsf(float x1, float y1, int rectx, int recty, fl
 //	glColorMask(1, 1, 1, 1);
 }
 
+#ifdef WITH_LCMS
 static void sima_draw_colorcorrected_pixels(float x1, float y1, ImBuf *ibuf)
 {
 	colorcorrection_do_ibuf(ibuf, "MONOSCNR.ICM"); /* path is hardcoded here, find some place better */
 	
 	glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->crect);
 }
+#endif
 
 static void sima_draw_zbuf_pixels(float x1, float y1, int rectx, int recty, int *recti)
 {
@@ -450,7 +451,7 @@ static unsigned int *get_part_from_ibuf(ImBuf *ibuf, short startx, short starty,
 	return rectmain;
 }
 
-static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Image *ima, ImBuf *ibuf, float zoomx, float zoomy)
+static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Image *ima, ImBuf *ibuf, float fx, float fy, float zoomx, float zoomy)
 {
 	unsigned int *rect;
 	int dx, dy, sx, sy, x, y;
@@ -477,7 +478,7 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Image *ima, I
 	/* draw repeated */
 	for(sy=0; sy+dy<=ibuf->y; sy+= dy) {
 		for(sx=0; sx+dx<=ibuf->x; sx+= dx) {
-			UI_view2d_view_to_region(&ar->v2d, (float)sx/(float)ibuf->x, (float)sy/(float)ibuf->y, &x, &y);
+			UI_view2d_to_region_no_clip(&ar->v2d, fx + (float)sx/(float)ibuf->x, fy + (float)sy/(float)ibuf->y, &x, &y);
 
 			glaDrawPixelsSafe(x, y, dx, dy, dx, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 		}
@@ -488,16 +489,19 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Image *ima, I
 	MEM_freeN(rect);
 }
 
-static void draw_image_buffer_repeated(SpaceImage *sima, ARegion *ar, Scene *scene, ImBuf *ibuf, float zoomx, float zoomy)
+static void draw_image_buffer_repeated(SpaceImage *sima, ARegion *ar, Scene *scene, Image *ima, ImBuf *ibuf, float zoomx, float zoomy)
 {
 	float x, y;
 	double time_current;
 	
 	time_current = PIL_check_seconds_timer();
 
-	for(x=ar->v2d.cur.xmin; x<ar->v2d.cur.xmax; x += zoomx) { 
-		for(y=ar->v2d.cur.ymin; y<ar->v2d.cur.ymax; y += zoomy) { 
-			draw_image_buffer(sima, ar, scene, ibuf, x, y, zoomx, zoomy);
+	for(x=floor(ar->v2d.cur.xmin); x<ar->v2d.cur.xmax; x += 1.0f) { 
+		for(y=floor(ar->v2d.cur.ymin); y<ar->v2d.cur.ymax; y += 1.0f) { 
+			if(ima && (ima->tpageflag & IMA_TILES))
+				draw_image_buffer_tiled(sima, ar, ima, ibuf, x, y, zoomx, zoomy);
+			else
+				draw_image_buffer(sima, ar, scene, ibuf, x, y, zoomx, zoomy);
 
 			/* only draw until running out of time */
 			if((PIL_check_seconds_timer() - time_current) > 0.25)
@@ -667,9 +671,9 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	if(ibuf==NULL)
 		draw_image_grid(ar, zoomx, zoomy);
 	else if(sima->flag & SI_DRAW_TILE)
-		draw_image_buffer_repeated(sima, ar, scene, ibuf, zoomx, zoomy);
+		draw_image_buffer_repeated(sima, ar, scene, ima, ibuf, zoomx, zoomy);
 	else if(ima && (ima->tpageflag & IMA_TILES))
-		draw_image_buffer_tiled(sima, ar, ima, ibuf, zoomx, zoomy);
+		draw_image_buffer_tiled(sima, ar, ima, ibuf, 0.0f, 0.0, zoomx, zoomy);
 	else
 		draw_image_buffer(sima, ar, scene, ibuf, 0.0f, 0.0f, zoomx, zoomy);
 
@@ -680,8 +684,8 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	draw_image_paint_helpers(sima, ar, scene, zoomx, zoomy);
 
 	/* render info */
-	if(ibuf && show_render)
-		draw_render_info(sima, ar);
+	if(ibuf && ima && show_render)
+		draw_render_info(ima, ar);
 
 	/* XXX integrate this code */
 #if 0
@@ -698,13 +702,6 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 			glLoadIdentity();
 		}
 	}
-#endif
-
-#if 0
-	/* it is important to end a view in a transform compatible with buttons */
-	bwin_scalematrix(sa->win, sima->blockscale, sima->blockscale, sima->blockscale);
-	if(!(G.rendering && show_render))
-		image_blockhandlers(sa);
 #endif
 }
 

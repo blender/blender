@@ -315,13 +315,19 @@ static void init_fastshade_shadeinput(Render *re)
 
 static Render *fastshade_get_render(Scene *scene)
 {
-	Render *re= RE_GetRender("_Shade View_");
-	if(re==NULL) {
-		re= RE_NewRender("_Shade View_");
-	
-		RE_Database_Baking(re, scene, 0, 0);	/* 0= no faces */
+	/* XXX ugly global still, but we can't do preview while rendering */
+	if(G.rendering==0) {
+		
+		Render *re= RE_GetRender("_Shade View_");
+		if(re==NULL) {
+			re= RE_NewRender("_Shade View_");
+		
+			RE_Database_Baking(re, scene, 0, 0);	/* 0= no faces */
+		}
+		return re;
 	}
-	return re;
+	
+	return NULL;
 }
 
 /* called on file reading */
@@ -611,18 +617,20 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 
 void shadeMeshMCol(Scene *scene, Object *ob, Mesh *me)
 {
+	Render *re= fastshade_get_render(scene);
 	int a;
 	char *cp;
 	unsigned int *mcol= (unsigned int*)me->mcol;
 	
-	Render *re= fastshade_get_render(scene);
-	mesh_create_shadedColors(re, ob, 1, &mcol, NULL);
-	me->mcol= (MCol*)mcol;
+	if(re) {
+		mesh_create_shadedColors(re, ob, 1, &mcol, NULL);
+		me->mcol= (MCol*)mcol;
 
-	/* swap bytes */
-	for(cp= (char *)me->mcol, a= 4*me->totface; a>0; a--, cp+=4) {
-		SWAP(char, cp[0], cp[3]);
-		SWAP(char, cp[1], cp[2]);
+		/* swap bytes */
+		for(cp= (char *)me->mcol, a= 4*me->totface; a>0; a--, cp+=4) {
+			SWAP(char, cp[0], cp[3]);
+			SWAP(char, cp[1], cp[2]);
+		}
 	}
 }
 
@@ -641,6 +649,8 @@ void shadeDispList(Scene *scene, Base *base)
 	int a, need_orco;
 	
 	re= fastshade_get_render(scene);
+	if(re==NULL)
+		return;
 	
 	dl = find_displist(&ob->disp, DL_VERTCOL);
 	if (dl) {
@@ -1371,7 +1381,7 @@ static void displist_surf_indices(DispList *dl)
 	
 }
 
-void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase, int forRender)
+void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase, int forRender, int forOrco)
 {
 	ListBase *nubase;
 	Nurb *nu;
@@ -1388,7 +1398,8 @@ void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase, int forRende
 	else
 		nubase= &cu->nurb;
 
-	curve_calc_modifiers_pre(scene, ob, forRender, &originalVerts, &deformedVerts, &numVerts);
+	if(!forOrco)
+		curve_calc_modifiers_pre(scene, ob, forRender, &originalVerts, &deformedVerts, &numVerts);
 
 	for (nu=nubase->first; nu; nu=nu->next) {
 		if(forRender || nu->hide==0) {
@@ -1442,7 +1453,8 @@ void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase, int forRende
 		tex_space_curve(cu);
 	}
 
-	curve_calc_modifiers_post(scene, ob, dispbase, forRender, originalVerts, deformedVerts);
+	if(!forOrco)
+		curve_calc_modifiers_post(scene, ob, dispbase, forRender, originalVerts, deformedVerts);
 }
 
 void makeDispListCurveTypes(Scene *scene, Object *ob, int forOrco)
@@ -1458,7 +1470,7 @@ void makeDispListCurveTypes(Scene *scene, Object *ob, int forOrco)
 	freedisplist(dispbase);
 	
 	if(ob->type==OB_SURF) {
-		makeDispListSurf(scene, ob, dispbase, 0);
+		makeDispListSurf(scene, ob, dispbase, 0, forOrco);
 	}
 	else if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
 		ListBase dlbev;

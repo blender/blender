@@ -49,22 +49,21 @@ protected:
 	Scene*				m_blenderscene;
 
 public:
-	KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,class RAS_IRenderTools* rendertools,const struct RAS_LightObject&	lightobj, bool glsl, PyTypeObject *T = &Type);
+	KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,class RAS_IRenderTools* rendertools,const struct RAS_LightObject&	lightobj, bool glsl);
 	virtual ~KX_LightObject();
 	virtual CValue*		GetReplica();
 	RAS_LightObject*	GetLightData() { return &m_lightobj;}
 
-	/* GLSL shadow */
+	/* OpenGL Light */
+	bool ApplyLight(KX_Scene *kxscene, int oblayer, int slot);
+
+	/* GLSL Light */
 	struct GPULamp *GetGPULamp();
 	bool HasShadowBuffer();
 	int GetShadowLayer();
 	void BindShadowBuffer(class RAS_IRasterizer *ras, class KX_Camera *cam, class MT_Transform& camtrans);
 	void UnbindShadowBuffer(class RAS_IRasterizer *ras);
 	void Update();
-	
-	virtual PyObject* py_getattro(PyObject *attr); /* lens, near, far, projection_matrix */
-	virtual PyObject* py_getattro_dict();
-	virtual int       py_setattro(PyObject *attr, PyObject *pyvalue);
 
 	/* attributes */
 	static PyObject*	pyattr_get_color(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);

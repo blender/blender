@@ -42,6 +42,8 @@ extern "C" {
 BlenderRNA *RNA_create(void);
 void RNA_define_free(BlenderRNA *brna);
 void RNA_free(BlenderRNA *brna);
+
+void RNA_init(void);
 void RNA_exit(void);
 
 /* Struct */
@@ -78,7 +80,8 @@ PropertyRNA *RNA_def_string(StructOrFunctionRNA *cont, const char *identifier, c
 PropertyRNA *RNA_def_string_file_path(StructOrFunctionRNA *cont, const char *identifier, const char *default_value, int maxlen, const char *ui_name, const char *ui_description);
 PropertyRNA *RNA_def_string_dir_path(StructOrFunctionRNA *cont, const char *identifier, const char *default_value, int maxlen, const char *ui_name, const char *ui_description);
 
-PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont, const char *identifier, EnumPropertyItem *items, int default_value, const char *ui_name, const char *ui_description);
+PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont, const char *identifier, const EnumPropertyItem *items, int default_value, const char *ui_name, const char *ui_description);
+void RNA_def_enum_funcs(PropertyRNA *prop, EnumPropertyItemFunc itemfunc);
 
 PropertyRNA *RNA_def_float(StructOrFunctionRNA *cont, const char *identifier, float default_value, float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
 PropertyRNA *RNA_def_float_vector(StructOrFunctionRNA *cont, const char *identifier, int len, const float *default_value, float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
@@ -136,6 +139,7 @@ void RNA_def_property_string_default(PropertyRNA *prop, const char *value);
 
 void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *description);
 void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double step, int precision);
+void RNA_def_property_ui_icon(PropertyRNA *prop, int icon, int consecutive);
 
 void RNA_def_property_update(PropertyRNA *prop, int noteflag, const char *updatefunc);
 void RNA_def_property_editable_func(PropertyRNA *prop, const char *editable);
@@ -146,7 +150,7 @@ void RNA_def_property_float_funcs(PropertyRNA *prop, const char *get, const char
 void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char *set, const char *item);
 void RNA_def_property_string_funcs(PropertyRNA *prop, const char *get, const char *length, const char *set);
 void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const char *set, const char *typef);
-void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *length, const char *lookupint, const char *lookupstring);
+void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *length, const char *lookupint, const char *lookupstring, const char *add, const char *remove);
 
 /* Function */
 
@@ -155,6 +159,13 @@ FunctionRNA *RNA_def_function_runtime(StructRNA *srna, const char *identifier, C
 void RNA_def_function_return(FunctionRNA *func, PropertyRNA *ret);
 void RNA_def_function_flag(FunctionRNA *func, int flag);
 void RNA_def_function_ui_description(FunctionRNA *func, const char *description);
+
+/* Dynamic Enums
+ * strings are not freed, assumed pointing to static location. */
+
+void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item);
+void RNA_enum_items_add(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item);
+void RNA_enum_item_end(EnumPropertyItem **items, int *totitem);
 
 #ifdef __cplusplus
 }

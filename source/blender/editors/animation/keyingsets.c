@@ -1,5 +1,30 @@
-/* Testing code for 2.5 animation system 
- * Copyright 2009, Joshua Leung
+/**
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): Joshua Leung (full recode)
+ *
+ * ***** END GPL LICENSE BLOCK *****
  */
  
 #include <stdio.h>
@@ -106,10 +131,10 @@ void ANIM_OT_keyingset_add_destination (wmOperatorType *ot)
 {
 	// XXX: this is also defined in rna_animation.c
 	static EnumPropertyItem prop_mode_grouping_items[] = {
-		{KSP_GROUP_NAMED, "NAMED", "Named Group", ""},
-		{KSP_GROUP_NONE, "NONE", "None", ""},
-		{KSP_GROUP_KSNAME, "KEYINGSET", "Keying Set Name", ""},
-		{0, NULL, NULL, NULL}};
+		{KSP_GROUP_NAMED, "NAMED", 0, "Named Group", ""},
+		{KSP_GROUP_NONE, "NONE", 0, "None", ""},
+		{KSP_GROUP_KSNAME, "KEYINGSET", 0, "Keying Set Name", ""},
+		{0, NULL, 0, NULL, NULL}};
 	
 	/* identifiers */
 	ot->name= "Add Keying Set Destination";
@@ -1060,6 +1085,9 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 					case ID_MA: /* Material Keyframes */
 						WM_event_add_notifier(C, NC_MATERIAL|ND_KEYS, ksp->id);
 						break;
+					default: /* Any keyframes */
+						WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+						break;
 				}
 			}
 		}
@@ -1165,6 +1193,9 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 						break;
 					case ID_MA: /* Material Keyframes */
 						WM_event_add_notifier(C, NC_MATERIAL|ND_KEYS, cks->id);
+						break;
+					default: /* Any keyframes */
+						WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 						break;
 				}
 			}

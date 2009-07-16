@@ -135,12 +135,12 @@ typedef struct FluidsimSettings {
 /* ob->fluidsimSettings defines */
 #define OB_FLUIDSIM_ENABLE			1
 #define OB_FLUIDSIM_DOMAIN			2
-#define OB_FLUIDSIM_FLUID				4
+#define OB_FLUIDSIM_FLUID			4
 #define OB_FLUIDSIM_OBSTACLE		8
-#define OB_FLUIDSIM_INFLOW      16
-#define OB_FLUIDSIM_OUTFLOW     32
-#define OB_FLUIDSIM_PARTICLE    64
-#define OB_FLUIDSIM_CONTROL 	128
+#define OB_FLUIDSIM_INFLOW			16
+#define OB_FLUIDSIM_OUTFLOW			32
+#define OB_FLUIDSIM_PARTICLE		64
+#define OB_FLUIDSIM_CONTROL			128
 
 #define OB_TYPEFLAG_START       7
 #define OB_FSGEO_THIN           (1<<(OB_TYPEFLAG_START+1))

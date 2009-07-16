@@ -31,20 +31,21 @@
 
 #include "DNA_curve_types.h"
 #include "DNA_material_types.h"
+#include "DNA_scene_types.h"
 
 EnumPropertyItem beztriple_handle_type_items[] = {
-		{HD_FREE, "FREE", "Free", ""},
-		{HD_AUTO, "AUTO", "Auto", ""},
-		{HD_VECT, "VECTOR", "Vector", ""},
-		{HD_ALIGN, "ALIGNED", "Aligned", ""},
-		{HD_AUTO_ANIM, "AUTO_CLAMPED", "Auto Clamped", ""},
-		{0, NULL, NULL, NULL}};
+		{HD_FREE, "FREE", 0, "Free", ""},
+		{HD_AUTO, "AUTO", 0, "Auto", ""},
+		{HD_VECT, "VECTOR", 0, "Vector", ""},
+		{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
+		{HD_AUTO_ANIM, "AUTO_CLAMPED", 0, "Auto Clamped", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem beztriple_interpolation_mode_items[] = {
-		{BEZT_IPO_CONST, "CONSTANT", "Constant", ""},
-		{BEZT_IPO_LIN, "LINEAR", "Linear", ""},
-		{BEZT_IPO_BEZ, "BEZIER", "Bezier", ""},
-		{0, NULL, NULL, NULL}};
+		{BEZT_IPO_CONST, "CONSTANT", 0, "Constant", ""},
+		{BEZT_IPO_LIN, "LINEAR", 0, "Linear", ""},
+		{BEZT_IPO_BEZ, "BEZIER", 0, "Bezier", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
@@ -138,7 +139,7 @@ static int rna_Nurb_length(PointerRNA *ptr)
 static void rna_BPoint_array_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Nurb *nu= (Nurb*)ptr->data;
-	rna_iterator_array_begin(iter, (void*)nu->bp, sizeof(BPoint*), nu->pntsv>0 ? nu->pntsu*nu->pntsv : nu->pntsu, NULL);
+	rna_iterator_array_begin(iter, (void*)nu->bp, sizeof(BPoint*), nu->pntsv>0 ? nu->pntsu*nu->pntsv : nu->pntsu, 0, NULL);
 }
 
 #else
@@ -307,12 +308,12 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_align_items[] = {
-		{CU_LEFT, "LEFT", "Left", "Align text to the left"},
-		{CU_MIDDLE, "CENTRAL", "Center", "Center text"},
-		{CU_RIGHT, "RIGHT", "Right", "Align text to the right"},
-		{CU_JUSTIFY, "JUSTIFY", "Justify", "Align to the left and the right"},
-		{CU_FLUSH, "FLUSH", "Flush", "Align to the left and the right, with equal character spacing"},
-		{0, NULL, NULL, NULL}};
+		{CU_LEFT, "LEFT", 0, "Left", "Align text to the left"},
+		{CU_MIDDLE, "CENTRAL", 0, "Center", "Center text"},
+		{CU_RIGHT, "RIGHT", 0, "Right", "Align text to the right"},
+		{CU_JUSTIFY, "JUSTIFY", 0, "Justify", "Align to the left and the right"},
+		{CU_FLUSH, "FLUSH", 0, "Flush", "Align to the left and the right, with equal character spacing"},
+		{0, NULL, 0, NULL, NULL}};
 		
 	/* Enums */
 	prop= RNA_def_property(srna, "spacemode", PROP_ENUM, PROP_NONE);
@@ -558,6 +559,11 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Resolution V", "Surface resolution in V direction used while rendering. Zero skips this property.");
 	
+	
+	prop= RNA_def_property(srna, "eval_time", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ctime");
+	RNA_def_property_ui_text(prop, "Evaluation Time", "Parametric position along the length of the curve that Objects 'following' it should be at.");
+	
 	/* pointers */
 	prop= RNA_def_property(srna, "bevel_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "bevobj");
@@ -590,11 +596,11 @@ static void rna_def_curve(BlenderRNA *brna)
 static void rna_def_curve_nurb(BlenderRNA *brna)
 {
 	static EnumPropertyItem spline_interpolation_items[] = {
-		{BEZT_IPO_CONST, "LINEAR", "Linear", ""},
-		{BEZT_IPO_LIN, "CARDINAL", "Cardinal", ""},
-		{BEZT_IPO_BEZ, "BSPLINE", "BSpline", ""},
-		{BEZT_IPO_BEZ, "EASE", "Ease", ""},
-		{0, NULL, NULL, NULL}};
+		{BEZT_IPO_CONST, "LINEAR", 0, "Linear", ""},
+		{BEZT_IPO_LIN, "CARDINAL", 0, "Cardinal", ""},
+		{BEZT_IPO_BEZ, "BSPLINE", 0, "BSpline", ""},
+		{BEZT_IPO_BEZ, "EASE", 0, "Ease", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -605,7 +611,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "bp", NULL);
 	RNA_def_property_struct_type(prop, "CurvePoint");
-	RNA_def_property_collection_funcs(prop, "rna_BPoint_array_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_Nurb_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_BPoint_array_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_Nurb_length", 0, 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Points", "Collection of points for Poly and Nurbs curves.");
 
 	prop= RNA_def_property(srna, "bezier_points", PROP_COLLECTION, PROP_NONE);
@@ -695,7 +701,6 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "mat_nr");
 	RNA_def_property_ui_text(prop, "Material Index", "");
-	RNA_def_property_range(prop, 0, MAXMAT-1);
 	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_Curve_material_index_range");
 	
 	prop= RNA_def_property(srna, "character_index", PROP_INT, PROP_UNSIGNED);

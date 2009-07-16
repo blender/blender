@@ -1,5 +1,30 @@
-/* Testing code for 2.5 animation system 
- * Copyright 2009, Joshua Leung
+/**
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): Joshua Leung (full recode)
+ *
+ * ***** END GPL LICENSE BLOCK *****
  */
  
 #include <stdio.h>
@@ -94,7 +119,7 @@ FCurve *verify_driver_fcurve (ID *id, const char rna_path[], const int array_ind
 		fcu->driver= MEM_callocN(sizeof(ChannelDriver), "ChannelDriver");
 		
 		/* add simple generator modifier for driver so that there is some visible representation */
-		fcurve_add_modifier(fcu, FMODIFIER_TYPE_GENERATOR);
+		add_fmodifier(&fcu->modifiers, FMODIFIER_TYPE_GENERATOR);
 		
 		/* just add F-Curve to end of driver list */
 		BLI_addtail(&adt->drivers, fcu);
@@ -110,7 +135,7 @@ FCurve *verify_driver_fcurve (ID *id, const char rna_path[], const int array_ind
 /* Main Driver Management API calls:
  * 	Add a new driver for the specified property on the given ID block
  */
-short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short flag)
+short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short flag, int type)
 {	
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
@@ -125,6 +150,39 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 	
 	/* create F-Curve with Driver */
 	fcu= verify_driver_fcurve(id, rna_path, array_index, 1);
+
+	if(fcu && fcu->driver) {
+		fcu->driver->type= type;
+
+		/* fill in current value for python */
+		if(type == DRIVER_TYPE_PYTHON) {
+			PropertyType proptype= RNA_property_type(prop);
+			int array= RNA_property_array_length(prop);
+			char *expression= fcu->driver->expression;
+			int val, maxlen= sizeof(fcu->driver->expression);
+			float fval;
+
+			if(proptype == PROP_BOOLEAN) {
+				if(!array) val= RNA_property_boolean_get(&ptr, prop);
+				else val= RNA_property_boolean_get_index(&ptr, prop, array_index);
+
+				BLI_strncpy(expression, (val)? "True": "False", maxlen);
+			}
+			else if(proptype == PROP_INT) {
+				if(!array) val= RNA_property_int_get(&ptr, prop);
+				else val= RNA_property_int_get_index(&ptr, prop, array_index);
+
+				BLI_snprintf(expression, maxlen, "%d", val);
+			}
+			else if(proptype == PROP_FLOAT) {
+				if(!array) fval= RNA_property_float_get(&ptr, prop);
+				else fval= RNA_property_float_get_index(&ptr, prop, array_index);
+
+				BLI_snprintf(expression, maxlen, "%.3f", fval);
+			}
+
+		}
+	}
 	
 	/* done */
 	return (fcu != NULL);
@@ -192,7 +250,7 @@ static int add_driver_button_exec (bContext *C, wmOperator *op)
 				length= 1;
 			
 			for (a=0; a<length; a++)
-				success+= ANIM_add_driver(ptr.id.data, path, index+a, 0);
+				success+= ANIM_add_driver(ptr.id.data, path, index+a, 0, DRIVER_TYPE_PYTHON);
 			
 			MEM_freeN(path);
 		}

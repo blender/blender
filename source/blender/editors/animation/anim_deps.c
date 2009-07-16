@@ -77,72 +77,6 @@ void ED_anim_object_flush_update(const bContext *C, Object *ob)
 }
 
 
-/* **************************** animation tool notifiers ******************************** */
-
-/* Send notifiers on behalf of animation editing tools, based on various context info 
- *	- data_changed: eAnimData_Changed
- */
-void ANIM_animdata_send_notifiers (bContext *C, bAnimContext *ac, short data_changed)
-{
-	/* types of notifiers to send, depends on the editor context */
-	switch (ac->datatype) {
-		case ANIMCONT_DOPESHEET: /* dopesheet */
-		case ANIMCONT_FCURVES: /* fcurve editor */
-		case ANIMCONT_DRIVERS: /* drivers editor */	// XXX probably this will need separate handling, since these are part of dependency system 
-		{
-			/* what action was taken */
-			switch (data_changed) {
-				case ANIM_CHANGED_KEYFRAMES_VALUES:
-					/* keyframe values changed, so transform may have changed */
-					// XXX what about other cases? maybe we need general ND_KEYFRAMES or ND_ANIMATION?
-					WM_event_add_notifier(C, NC_OBJECT|ND_KEYS|ND_TRANSFORM, NULL);
-					break;
-				case ANIM_CHANGED_KEYFRAMES_SELECT:
-					WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, NULL);
-					break;
-				case ANIM_CHANGED_CHANNELS:
-					// XXX err... check available datatypes in dopesheet first?
-					// FIXME: this currently doesn't work (to update own view)
-					WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE|ND_OB_SELECT, ac->scene);
-					WM_event_add_notifier(C, NC_OBJECT|ND_BONE_ACTIVE|ND_BONE_SELECT, NULL);
-					break;
-			}
-			
-			// XXX for now, at least update own editor!
-			ED_area_tag_redraw(CTX_wm_area(C));
-		}
-			break;
-		
-		case ANIMCONT_ACTION: /* action editor */
-		{
-			Object *obact= CTX_data_active_object(C);
-			
-			switch (data_changed) {
-				case ANIM_CHANGED_KEYFRAMES_VALUES:
-					/* keyframe values changed, so transform may have changed */
-					// XXX what about other cases? maybe we need general ND_KEYFRAMES or ND_ANIMATION?
-					WM_event_add_notifier(C, NC_OBJECT|ND_KEYS|ND_TRANSFORM, obact);
-					break;
-				case ANIM_CHANGED_KEYFRAMES_SELECT:
-					WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, obact);
-					break;
-				case ANIM_CHANGED_CHANNELS:
-					// XXX err... check available datatypes in dopesheet first?
-					// FIXME: this currently doesn't work (to update own view)
-					WM_event_add_notifier(C, NC_OBJECT|ND_BONE_ACTIVE|ND_BONE_SELECT, obact);
-					break;
-			}
-			
-			// XXX for now, at least update own editor!
-			ED_area_tag_redraw(CTX_wm_area(C));
-		}
-			break;
-			
-		default: /* some other data... just update area for now */
-			ED_area_tag_redraw(CTX_wm_area(C)); 
-	}
-}
-
 /* **************************** pose <-> action syncing ******************************** */
 /* Summary of what needs to be synced between poses and actions:
  *	1) Flags
@@ -152,6 +86,10 @@ void ANIM_animdata_send_notifiers (bContext *C, bAnimContext *ac, short data_cha
  *	3) Grouping (only for pose to action for now)
  */
 
+/* XXX OBSOLETE CODE WARNING:
+ * With the Animato system, the code below is somewhat obsolete now...
+ */
+ 
 /* Notifier from Action/Dopesheet (this may be extended to include other things such as Python...)
  * Channels in action changed, so update pose channels/groups to reflect changes.
  *

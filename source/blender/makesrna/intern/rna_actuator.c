@@ -41,25 +41,25 @@ void RNA_def_actuator(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem actuator_type_items[] ={
-		{ACT_OBJECT, "OBJECT", "Object", ""},
-		{ACT_IPO, "IPO", "IPO", ""},
-		{ACT_CAMERA, "CAMERA", "Camera", ""},
-		{ACT_SOUND, "SOUND", "Sound", ""},
-		{ACT_PROPERTY, "PROPERTY", "Property", ""},
-		{ACT_CONSTRAINT, "CONSTRAINT", "Constraint", ""},
-		{ACT_EDIT_OBJECT, "EDIT_OBJECT", "Edit Object", ""},
-		{ACT_SCENE, "SCENE", "Scene", ""},
-		{ACT_RANDOM, "RANDOM", "Random", ""},
-		{ACT_MESSAGE, "MESSAGE", "Message", ""},
-		{ACT_ACTION, "ACTION", "Action", ""},
-		{ACT_CD, "CD", "CD", ""},
-		{ACT_GAME, "GAME", "Game", ""},
-		{ACT_VISIBILITY, "VISIBILITY", "Visibility", ""},
-		{ACT_2DFILTER, "FILTER_2D", "2D Filter", ""},
-		{ACT_PARENT, "PARENT", "Parent", ""},
-		{ACT_SHAPEACTION, "SHAPE_ACTION", "Shape Action", ""},
-		{ACT_STATE, "STATE", "State", ""},
-		{0, NULL, NULL, NULL}};
+		{ACT_OBJECT, "OBJECT", 0, "Object", ""},
+		{ACT_IPO, "IPO", 0, "IPO", ""},
+		{ACT_CAMERA, "CAMERA", 0, "Camera", ""},
+		{ACT_SOUND, "SOUND", 0, "Sound", ""},
+		{ACT_PROPERTY, "PROPERTY", 0, "Property", ""},
+		{ACT_CONSTRAINT, "CONSTRAINT", 0, "Constraint", ""},
+		{ACT_EDIT_OBJECT, "EDIT_OBJECT", 0, "Edit Object", ""},
+		{ACT_SCENE, "SCENE", 0, "Scene", ""},
+		{ACT_RANDOM, "RANDOM", 0, "Random", ""},
+		{ACT_MESSAGE, "MESSAGE", 0, "Message", ""},
+		{ACT_ACTION, "ACTION", 0, "Action", ""},
+		{ACT_CD, "CD", 0, "CD", ""},
+		{ACT_GAME, "GAME", 0, "Game", ""},
+		{ACT_VISIBILITY, "VISIBILITY", 0, "Visibility", ""},
+		{ACT_2DFILTER, "FILTER_2D", 0, "2D Filter", ""},
+		{ACT_PARENT, "PARENT", 0, "Parent", ""},
+		{ACT_SHAPEACTION, "SHAPE_ACTION", 0, "Shape Action", ""},
+		{ACT_STATE, "STATE", 0, "State", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Actuator", NULL);
 	RNA_def_struct_ui_text(srna, "Actuator", "Game engine logic brick to apply actions in the game engine.");

@@ -837,7 +837,7 @@ static int decodetype1(PackedFile * pf, char *outname)
 		while(newfgets(oneline, LINELEN, pf)) {
 			hptr = (char *)oneline;
 			while(*hptr) {
-				if(hextab[*hptr] != NOTHEX)
+				if(hextab[(int)*hptr] != NOTHEX)
 					hexdat[hexbytes++] = *hptr;
 				hptr++;
 			}
@@ -853,7 +853,7 @@ static int decodetype1(PackedFile * pf, char *outname)
 		bptr = bindat;
 		c = datbytes;
 		while(c--) {
-			*bptr++  = (hextab[hptr[0]]<<4)+hextab[hptr[1]];
+			*bptr++  = (hextab[(int)hptr[0]]<<4)+hextab[(int)hptr[1]];
 			hptr += 2;
 		}
 

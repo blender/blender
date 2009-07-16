@@ -3029,7 +3029,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 	if (VALID_CONS_TARGET(ct)) {
 		float loc[3], eul[3], size[3];
 		float dvec[3], sval[3];
-		short i;
+		int i;
 		
 		/* obtain target effect */
 		switch (data->from) {
@@ -3076,7 +3076,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		switch (data->to) {
 			case 2: /* scaling */
 				for (i=0; i<3; i++)
-					size[i]= data->to_min[i] + (sval[data->map[i]] * (data->to_max[i] - data->to_min[i])); 
+					size[i]= data->to_min[i] + (sval[(int)data->map[i]] * (data->to_max[i] - data->to_min[i])); 
 				break;
 			case 1: /* rotation */
 				for (i=0; i<3; i++) {
@@ -3086,7 +3086,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 					tmax= data->to_max[i];
 					
 					/* all values here should be in degrees */
-					eul[i]= tmin + (sval[data->map[i]] * (tmax - tmin)); 
+					eul[i]= tmin + (sval[(int)data->map[i]] * (tmax - tmin)); 
 					
 					/* now convert final value back to radians */
 					eul[i] = (float)(eul[i] / 180 * M_PI);
@@ -3095,7 +3095,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 			default: /* location */
 				/* get new location */
 				for (i=0; i<3; i++)
-					loc[i]= (data->to_min[i] + (sval[data->map[i]] * (data->to_max[i] - data->to_min[i])));
+					loc[i]= (data->to_min[i] + (sval[(int)data->map[i]] * (data->to_max[i] - data->to_min[i])));
 				
 				/* add original location back on (so that it can still be moved) */
 				VecAddf(loc, cob->matrix[3], loc);

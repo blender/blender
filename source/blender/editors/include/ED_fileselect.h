@@ -29,34 +29,8 @@
 #define ED_FILES_H
 
 struct SpaceFile;
-
-#define FILE_SHORTDISPLAY	1
-#define FILE_LONGDISPLAY	2
-#define FILE_IMGDISPLAY		3
-
-typedef struct FileSelectParams {
-	char title[24]; /* title, also used for the text of the execute button */
-	char dir[240]; /* directory */
-	char file[80]; /* file */
-
-	short flag; /* settings for filter, hiding files and display mode */
-	short sort; /* sort order */
-	short display; /* display mode flag */
-	short filter; /* filter when (flags & FILE_FILTER) is true */
-
-	/* XXX - temporary, better move to filelist */
-	short active_bookmark;
-	int	active_file;
-	int selstate;
-
-	/* XXX --- still unused -- */
-	short f_fp; /* show font preview */
-	char fp_str[8]; /* string to use for font preview */
-	
-	char *pupmenu; /* allows menu for save options - result stored in menup */
-	short menu; /* currently selected option in pupmenu */
-	/* XXX --- end unused -- */
-} FileSelectParams;
+struct ARegion;
+struct FileSelectParams;
 
 #define FILE_LAYOUT_HOR 1
 #define FILE_LAYOUT_VER 2
@@ -93,9 +67,9 @@ typedef struct FileLayout
 	float column_widths[MAX_FILE_COLUMN];
 } FileLayout;
 
-FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile);
+struct FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile);
 
-short ED_fileselect_set_params(struct SpaceFile *sfile, const char *title, const char *path, 
+short ED_fileselect_set_params(struct SpaceFile *sfile, const char *title, const char *dir, const char *path, 
 						   short flag, short display, short filter, short sort);
 
 void ED_fileselect_reset_params(struct SpaceFile *sfile);

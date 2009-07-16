@@ -87,9 +87,9 @@ INCLUDE(CMake/macros.cmake)
 #-----------------------------------------------------------------------------
 #Platform specifics
 
-IF(UNIX)
+IF(UNIX AND NOT APPLE)
   IF(WITH_OPENAL)
-    INCLUDE(${CMAKE_ROOT}/Modules/FindOpenAL.cmake)
+    FIND_PACKAGE(OpenAL)
     IF(OPENAL_FOUND)
       SET(WITH_OPENAL ON)
       SET(OPENAL_LIB ${OPENAL_LIBRARY})
@@ -102,22 +102,12 @@ IF(UNIX)
   FIND_LIBRARY(INTL_LIBRARY
     NAMES intl
     PATHS
-    /usr/local/lib
-    /usr/lib
     /sw/lib
-    /opt/local/lib
-    /opt/csw/lib
-    /opt/lib
   )
   FIND_LIBRARY(ICONV_LIBRARY
     NAMES iconv
     PATHS
-    /usr/local/lib
-    /usr/lib
     /sw/lib
-    /opt/local/lib
-    /opt/csw/lib
-    /opt/lib
   )
   IF(INTL_LIBRARY AND ICONV_LIBRARY)
     SET(GETTEXT_LIB ${INTL_LIBRARY} ${ICONV_LIBRARY})
@@ -136,14 +126,14 @@ IF(UNIX)
   )
   SET(FREETYPE_LIB freetype)
 
-  INCLUDE(${CMAKE_ROOT}/Modules/FindPythonLibs.cmake)
+  FIND_PACKAGE(PythonLibs)
   SET(PYTHON_INC "${PYTHON_INCLUDE_PATH}" CACHE STRING "")
   SET(PYTHON_LIB "${PYTHON_LIBRARIES}" CACHE STRING "")
-  INCLUDE(${CMAKE_ROOT}/Modules/FindPythonInterp.cmake)
+  FIND_PACKAGE(PythonInterp)
   SET(PYTHON_BINARY ${PYTHON_EXECUTABLE} CACHE STRING "")
   SET(PYTHON_LINKFLAGS "-Xlinker -export-dynamic")
 
-  INCLUDE(${CMAKE_ROOT}/Modules/FindSDL.cmake)
+  FIND_PACKAGE(SDL)
   SET(SDL_INC ${SDL_INCLUDE_DIR})
   SET(SDL_LIB ${SDL_LIBRARY})
 
@@ -164,11 +154,11 @@ IF(UNIX)
   SET(FFMPEG_LIB avformat avcodec avutil avdevice swscale)
   SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
 
-  SET(JPEG_LIB jpeg)
+  FIND_PACKAGE(JPEG REQUIRED)
 
-  SET(PNG_LIB png)
+  FIND_PACKAGE(PNG REQUIRED)
 
-  SET(ZLIB_LIB z)
+  FIND_PACKAGE(ZLIB REQUIRED)
 
   SET(LLIBS "-lXi -lutil -lc -lm -lpthread -lstdc++ -lX11 -ldl")
 
@@ -186,12 +176,13 @@ IF(UNIX)
   # Better warnings
   SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wnested-externs -Wdeclaration-after-statement")
 
-  INCLUDE_DIRECTORIES(/usr/include /usr/local/include)
-ENDIF(UNIX)
+  INCLUDE_DIRECTORIES(${JPEG_INCLUDE_DIR} ${PNG_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} )
+ENDIF(UNIX AND NOT APPLE)
 
 IF(WIN32)
 
-  INCLUDE(${CMAKE_ROOT}/Modules/Platform/Windows-cl.cmake)
+  # this file is included anyway when building under Windows with cl.exe
+  #  INCLUDE(${CMAKE_ROOT}/Modules/Platform/Windows-cl.cmake)
   
   SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows)
 
@@ -202,10 +193,10 @@ IF(WIN32)
   ENDIF(CMAKE_CL_64)
 
   SET(PYTHON ${LIBDIR}/python)
-  SET(PYTHON_VERSION 2.5)
+  SET(PYTHON_VERSION 2.6)
   SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}")
   SET(PYTHON_BINARY python)
-  SET(PYTHON_LIB python25)
+  SET(PYTHON_LIB python26)
   SET(PYTHON_LIBPATH ${PYTHON}/lib)
 
   IF(CMAKE_CL_64)
@@ -219,15 +210,15 @@ IF(WIN32)
   ENDIF(CMAKE_CL_64)
 
   IF(CMAKE_CL_64)
-  	SET(PNG_LIB libpng)
+	SET(PNG_LIBRARIES libpng)
   ELSE(CMAKE_CL_64)
-  	SET(PNG_LIB libpng_st)
+    SET(PNG_LIBRARIES libpng_st)
   ENDIF(CMAKE_CL_64)
-  SET(JPEG_LIB libjpeg)
+  SET(JPEG_LIBRARY libjpeg)
 
   SET(ZLIB ${LIBDIR}/zlib)
   SET(ZLIB_INC ${ZLIB}/include)
-  SET(ZLIB_LIB libz)
+  SET(ZLIB_LIBRARIES zlib)
   SET(ZLIB_LIBPATH ${ZLIB}/lib)
   
   SET(PTHREADS ${LIBDIR}/pthreads)
@@ -335,7 +326,7 @@ IF(APPLE)
   ENDIF(CMAKE_OSX_ARCHITECTURES MATCHES i386)
 
   IF(WITH_OPENAL)
-    INCLUDE(${CMAKE_ROOT}/Modules/FindOpenAL.cmake)
+    FIND_PACKAGE(OpenAL)
     IF(OPENAL_FOUND)
       SET(WITH_OPENAL ON)
       SET(OPENAL_LIB ${OPENAL_LIBRARY})
@@ -362,12 +353,12 @@ IF(APPLE)
   SET(GETTEXT_LIB intl iconv)
   SET(GETTEXT_LIBPATH ${GETTEXT}/lib)
 
-  SET(PNG_LIB png)
-  SET(JPEG_LIB jpeg)
+  SET(PNG_LIBRARIES png)
+  SET(JPEG_LIBRARY jpeg)
 
   SET(ZLIB /usr)
   SET(ZLIB_INC "${ZLIB}/include")
-  SET(ZLIB_LIB z)
+  SET(ZLIB_LIBRARIES z)
 
   SET(FREETYPE ${LIBDIR}/freetype)
   SET(FREETYPE_INC ${FREETYPE}/include ${FREETYPE}/include/freetype2)
@@ -438,7 +429,7 @@ ENDIF(WITH_WEBPLUGIN)
 
 #-----------------------------------------------------------------------------
 # Configure OpenGL.
-INCLUDE(${CMAKE_ROOT}/Modules/FindOpenGL.cmake)
+FIND_PACKAGE(OpenGL)
 INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
 #-----------------------------------------------------------------------------
 # Extra compile flags

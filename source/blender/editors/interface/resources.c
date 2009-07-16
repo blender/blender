@@ -1,5 +1,5 @@
 /**
- * $Id: resources.c 12755 2007-12-02 05:50:38Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -75,7 +75,7 @@ static int theme_regionid= RGN_TYPE_WINDOW;
 
 void ui_resources_init(void)
 {
-	UI_icons_init(BIFICONID_LAST+1);
+	UI_icons_init(BIFICONID_LAST);
 }
 
 void ui_resources_free(void)
@@ -155,6 +155,9 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				break;
 			case SPACE_NODE:
 				ts= &btheme->tnode;
+				break;
+			case SPACE_LOGIC:
+				ts= &btheme->tlogic;
 				break;
 			default:
 				ts= &btheme->tv3d;
@@ -398,6 +401,7 @@ static void ui_theme_init_new(bTheme *btheme)
 	ui_theme_init_new_do(&btheme->toops);
 	ui_theme_init_new_do(&btheme->ttime);
 	ui_theme_init_new_do(&btheme->tnode);
+	ui_theme_init_new_do(&btheme->tlogic);
 	
 }
 
@@ -501,7 +505,10 @@ void ui_theme_init_userdef(void)
 	btheme->tact= btheme->tipo;
 	SETCOL(btheme->tact.strip, 			12, 10, 10, 128); 
 	SETCOL(btheme->tact.strip_select, 	255, 140, 0, 255); 
-
+	
+	/* space nla */
+	btheme->tnla= btheme->tact;
+	
 	/* space file */
 	/* to have something initialized */
 	btheme->tfile= btheme->tv3d;
@@ -517,20 +524,6 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tfile.movie,	250, 250, 250, 255);
 	SETCOL(btheme->tfile.scene,	250, 250, 250, 255);
 
-	
-	
-
-	/* space nla */
-	btheme->tnla= btheme->tv3d;
-	SETCOL(btheme->tnla.back, 	116, 116, 116, 255);
-	SETCOL(btheme->tnla.text, 	0, 0, 0, 255);
-	SETCOL(btheme->tnla.text_hi, 255, 255, 255, 255);
-	SETCOL(btheme->tnla.grid,  94, 94, 94, 255);	
-	SETCOL(btheme->tnla.shade1,  172, 172, 172, 255);		// sliders
-	SETCOL(btheme->tnla.shade2,  84, 44, 31, 100);	// bar
-	SETCOL(btheme->tnla.hilite,  17, 27, 60, 100);	// bar
-	SETCOL(btheme->tnla.strip_select, 	0xff, 0xff, 0xaa, 255);
-	SETCOL(btheme->tnla.strip, 0xe4, 0x9c, 0xc6, 255);
 	
 	/* space seq */
 	btheme->tseq= btheme->tv3d;
@@ -608,6 +601,10 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tnode.syntaxv, 142, 138, 145, 255);	/* generator */
 	SETCOL(btheme->tnode.syntaxc, 120, 145, 120, 255);	/* group */
 
+	/* space logic */
+	btheme->tlogic= btheme->tv3d;
+	SETCOL(btheme->tlogic.back, 100, 100, 100, 255);
+	
 }
 
 
@@ -1078,19 +1075,6 @@ void init_userdef_do_versions(void)
 			SETCOL(btheme->ttime.cframe, 0x60, 0xc0, 0x40, 255);
 		}
 	}
-	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 11)) {
-		bTheme *btheme;
-		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* these should all use the same color */
-			SETCOL(btheme->tv3d.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tipo.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tact.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tnla.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tseq.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tsnd.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->ttime.cframe, 0x60, 0xc0, 0x40, 255);
-		}
-	}
 	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 13)) {
 		bTheme *btheme;
 		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
@@ -1213,6 +1197,13 @@ void init_userdef_do_versions(void)
 			/* Graph Editor - Group Channel color */
 			SETCOL(btheme->tipo.group, 79, 101, 73, 255);
 			SETCOL(btheme->tipo.group_active, 135, 177, 125, 255);
+			
+			/* Nla Editor - (Object) Channel color */
+			SETCOL(btheme->tnla.ds_channel, 	82, 96, 110, 255);
+			SETCOL(btheme->tnla.ds_subchannel,	124, 137, 150, 255);
+			/* NLA Editor - New Strip colors */
+			SETCOL(btheme->tnla.strip, 			12, 10, 10, 128); 
+			SETCOL(btheme->tnla.strip_select, 	255, 140, 0, 255);
 		}
 		
 		/* adjust grease-pencil distances */
@@ -1233,6 +1224,13 @@ void init_userdef_do_versions(void)
 
 			if(btheme->tui.wcol_num.outline[3]==0)
 				ui_widget_color_init(&btheme->tui);
+			
+			/* Logic editor theme, check for alpha==0 is safe, then color was never set */
+			if(btheme->tlogic.syntaxn[3]==0) {
+				/* re-uses syntax color storage */
+				btheme->tlogic= btheme->tv3d;
+				SETCOL(btheme->tlogic.back, 100, 100, 100, 255);
+			}
 		}
 	}
 	

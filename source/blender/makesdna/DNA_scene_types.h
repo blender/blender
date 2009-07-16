@@ -39,7 +39,6 @@ extern "C" {
 #include "DNA_scriptlink_types.h"
 #include "DNA_ID.h"
 
-struct Radio;
 struct Object;
 struct World;
 struct Scene;
@@ -48,6 +47,7 @@ struct Group;
 struct Text;
 struct bNodeTree;
 struct AnimData;
+struct Editing;
 
 typedef struct Base {
 	struct Base *next, *prev;
@@ -158,7 +158,7 @@ typedef struct SceneRenderLayer {
 #define SCE_PASS_REFRACT	1024
 #define SCE_PASS_INDEXOB	2048
 #define SCE_PASS_UV			4096
-#define SCE_PASS_RADIO		8192
+#define SCE_PASS_RADIO		8192 /* Radio removed, can use for new GI? */
 #define SCE_PASS_MIST		16384
 
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
@@ -218,7 +218,12 @@ typedef struct RenderData {
 	short bufflag;
  	short quality;
 	
-	short rpad, rpad1, rpad2;
+	/**
+	 * Render to image editor, fullscreen or to new window.
+	 */
+	short displaymode;
+	
+	short rpad1, rpad2;
 
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
@@ -383,6 +388,8 @@ typedef struct ParticleEditSettings {
 
 	float emitterdist;
 	int draw_timed;
+
+	int selectmode, pad;
 } ParticleEditSettings;
 
 typedef struct TransformOrientation {
@@ -437,19 +444,27 @@ typedef struct ToolSettings {
 	VPaint *wpaint;		/* weight paint */
 	Sculpt *sculpt;
 	
+	/* Vertex groups */
+	float vgroup_weight;
+
 	/* Subdivide Settings */
 	short cornertype;
 	short editbutflag;
 	/*Triangle to Quad conversion threshold*/
 	float jointrilimit;
-	/* Extrude Tools */
+	/* Editmode Tools */
 	float degr; 
 	short step;
 	short turn; 
 	
-	float extr_offs; 
-	float doublimit;
-	
+	float extr_offs; 	/* extrude offset */
+	float doublimit;	/* remove doubles limit */
+	float normalsize;	/* size of normals */
+	short automerge;
+
+	/* Selection Mode for Mesh */
+	short selectmode;
+
 	/* Primitive Settings */
 	/* UV Sphere */
 	short segments;
@@ -463,7 +478,6 @@ typedef struct ToolSettings {
 	float uvcalc_radius;
 	float uvcalc_cubesize;
 	float uvcalc_margin;
-	float pad;
 	short uvcalc_mapdir;
 	short uvcalc_mapalign;
 	short uvcalc_flag;
@@ -485,8 +499,11 @@ typedef struct ToolSettings {
 	/* Select Group Threshold */
 	float select_thresh;
 	
-	/* IPO-Editor */
+	/* Graph Editor */
 	float clean_thresh;
+
+	/* Auto-Keying Mode */
+	short autokey_mode, pad2;	/* defines in DNA_userdef_types.h */
 	
 	/* Retopo */
 	char retopo_mode;
@@ -513,7 +530,6 @@ typedef struct ToolSettings {
 	char  skgen_postpro_passes;
 	char  skgen_subdivisions[3];
 	char  skgen_multi_level;
-	int   skgen_pad;
 	
 	/* Skeleton Sketching */
 	struct Object *skgen_template;
@@ -527,7 +543,10 @@ typedef struct ToolSettings {
 	
 	/* Alt+RMB option */
 	char edge_mode;
-	char pad3[2];
+
+	/* Transform */
+	short snap_mode, snap_flag, snap_target;
+	short proportional, prop_mode;
 } ToolSettings;
 
 typedef struct bStats {
@@ -548,29 +567,22 @@ typedef struct Scene {
 	struct Image *ima;
 	
 	ListBase base;
-	struct Base *basact;
+	struct Base *basact;		/* active base */
 	struct Object *obedit;		/* name replaces old G.obedit */
 	
-	float cursor[3];
+	float cursor[3];			/* 3d cursor location */
 	float twcent[3];			/* center for transform widget */
 	float twmin[3], twmax[3];	/* boundbox of selection for transform widget */
 	unsigned int lay;
 	
-	/* editmode stuff */
-	float editbutsize;                      /* size of normals */
-	short selectmode;						/* for mesh only! */
-	short proportional, prop_mode;
-	short automerge, pad5;
 	
 	short flag;								/* various settings */
-	short autokey_mode; 					/* mode for autokeying (defines in DNA_userdef_types.h) */
 	
 	short use_nodes;
 	
 	struct bNodeTree *nodetree;	
 	
-	void *ed;								/* sequence editor data is allocated here */
-	struct Radio *radio;
+	struct Editing *ed;								/* sequence editor data is allocated here */
 	
 	struct GameFraming framing;
 
@@ -580,20 +592,20 @@ typedef struct Scene {
 	/* migrate or replace? depends on some internal things... */
 	/* no, is on the right place (ton) */
 	struct RenderData r;
-	struct AudioData audio;		/* DEPRICATED 2.5 */
+	struct AudioData audio;		/* DEPRECATED 2.5 */
 	
 	ScriptLink scriptlink;
 	
 	ListBase markers;
 	ListBase transform_spaces;
 	
-	short jumpframe;
-	short snap_mode, snap_flag, snap_target;
 	
 	/* none of the dependancy graph  vars is mean to be saved */
 	struct  DagForest *theDag;
 	short dagisvalid, dagflags;
-	short pad4, recalc;				/* recalc = counterpart of ob->recalc */
+	short recalc;				/* recalc = counterpart of ob->recalc */
+
+	short jumpframe;
 
 	/* frame step. */
 	int frame_step;
@@ -623,7 +635,7 @@ typedef struct Scene {
 #define R_FIELDSTILL	0x0080
 #define R_RADIO			0x0100
 #define R_BORDER		0x0200
-#define R_PANORAMA		0x0400
+#define R_PANORAMA		0x0400	/* deprecated as scene option, still used in renderer */
 #define R_CROP			0x0800
 #define R_COSMO			0x1000
 #define R_ODDFIELD		0x2000
@@ -645,6 +657,12 @@ typedef struct Scene {
 #define R_TOUCH			0x800000 /* touch files before rendering */
 #define R_SIMPLIFY		0x1000000
 
+/* displaymode */
+
+#define R_OUTPUT_SCREEN	0
+#define R_OUTPUT_AREA	1
+#define R_OUTPUT_WINDOW	2
+#define R_OUTPUT_FORKED	3
 
 /* filtertype */
 #define R_FILTER_BOX	0
@@ -676,7 +694,7 @@ typedef struct Scene {
 #define R_COMP_FREE			0x0800
 #define R_NO_IMAGE_LOAD		0x1000
 #define R_NO_TEX			0x2000
-#define R_STAMP_INFO		0x4000
+#define R_STAMP_INFO		0x4000	/* deprecated */
 #define R_FULL_SAMPLE		0x8000
 #define R_COMP_RERENDER		0x10000
 #define R_RECURS_PROTECTION     0x20000
@@ -692,6 +710,7 @@ typedef struct Scene {
 #define R_STAMP_MARKER	0x0080
 #define R_STAMP_FILENAME	0x0100
 #define R_STAMP_SEQSTRIP	0x0200
+#define R_STAMP_ALL		(R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_CAMERA|R_STAMP_SCENE|R_STAMP_NOTE|R_STAMP_MARKER|R_STAMP_FILENAME|R_STAMP_SEQSTRIP)
 
 /* alphamode */
 #define R_ADDSKY		0
@@ -728,6 +747,9 @@ typedef struct Scene {
 #define R_MULTILAYER	28
 #define R_DDS			29
 #define R_JP2			30
+#define R_H264        	31
+#define R_XVID        	32
+#define R_THEORA       	33
 
 /* subimtype, flag options for imtype */
 #define R_OPENEXR_HALF	1
@@ -765,6 +787,10 @@ typedef struct Scene {
 #define MINFRAME	1
 #define MINFRAMEF	1.0f
 
+/* (minimum frame number for current-frame) */
+#define MINAFRAME	-300000
+#define MINAFRAMEF	-300000.0f
+
 /* depricate this! */
 #define TESTBASE(v3d, base)	( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0) )
 #define TESTBASELIB(v3d, base)	( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
@@ -793,27 +819,27 @@ typedef struct Scene {
 
 /* base->flag is in DNA_object_types.h */
 
-/* scene->snap_flag */
+/* toolsettings->snap_flag */
 #define SCE_SNAP				1
 #define SCE_SNAP_ROTATE			2
 #define SCE_SNAP_PEEL_OBJECT	4
-/* scene->snap_target */
+/* toolsettings->snap_target */
 #define SCE_SNAP_TARGET_CLOSEST	0
 #define SCE_SNAP_TARGET_CENTER	1
 #define SCE_SNAP_TARGET_MEDIAN	2
 #define SCE_SNAP_TARGET_ACTIVE	3
-/* scene->snap_mode */
+/* toolsettings->snap_mode */
 #define SCE_SNAP_MODE_VERTEX	0
 #define SCE_SNAP_MODE_EDGE		1
 #define SCE_SNAP_MODE_FACE		2
 #define SCE_SNAP_MODE_VOLUME	3
 
-/* sce->selectmode */
+/* toolsettings->selectmode */
 #define SCE_SELECT_VERTEX	1 /* for mesh */
 #define SCE_SELECT_EDGE		2
 #define SCE_SELECT_FACE		4
 
-/* sce->selectmode for particles */
+/* toolsettings->particle.selectmode for particles */
 #define SCE_SELECT_PATH		1
 #define SCE_SELECT_POINT	2
 #define SCE_SELECT_END		4
@@ -821,7 +847,7 @@ typedef struct Scene {
 /* sce->recalc (now in use by previewrender) */
 #define SCE_PRV_CHANGED		1
 
-/* sce->prop_mode (proportional falloff) */
+/* toolsettings->prop_mode (proportional falloff) */
 #define PROP_SMOOTH            0
 #define PROP_SPHERE            1
 #define PROP_ROOT              2
@@ -833,6 +859,7 @@ typedef struct Scene {
 /* sce->flag */
 #define SCE_DS_SELECTED			(1<<0)
 #define SCE_DS_COLLAPSED		(1<<1)
+#define SCE_NLA_EDIT_ON			(1<<2)
 
 
 	/* return flag next_object function */
@@ -888,7 +915,7 @@ typedef enum SculptFlags {
 
 /* toolsettings->uv_selectmode */
 #define UV_SELECT_VERTEX	1
-#define UV_SELECT_EDGE		2 /* not implemented */
+#define UV_SELECT_EDGE		2
 #define UV_SELECT_FACE		4
 #define UV_SELECT_ISLAND	8
 

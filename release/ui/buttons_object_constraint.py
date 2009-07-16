@@ -4,7 +4,7 @@ import bpy
 class ConstraintButtonsPanel(bpy.types.Panel):
 	__space_type__ = "BUTTONS_WINDOW"
 	__region_type__ = "WINDOW"
-	__context__ = "object"
+	__context__ = "constraint"
 
 	def draw_constraint(self, con):
 		layout = self.layout
@@ -15,8 +15,8 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 				self.child_of(box, con)
 			elif con.type == "TRACK_TO":
 				self.track_to(box, con)
-			#elif con.type == "IK":
-			#	self.ik(box, con)
+			elif con.type == "IK":
+				self.ik(box, con)
 			elif con.type == "FOLLOW_PATH":
 				self.follow_path(box, con)
 			elif con.type == "LIMIT_ROTATION":
@@ -43,8 +43,8 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 				self.stretch_to(box, con)
 			elif con.type == "FLOOR":
 				self.floor(box, con)
-			#elif con.type == "RIGID_BODY_JOINT"
-			#	self.rigid_body(box, con)
+			elif con.type == "RIGID_BODY_JOINT":
+				self.rigid_body(box, con)
 			elif con.type == "CLAMP_TO":
 				self.clamp_to(box, con)
 			elif con.type == "TRANSFORM":
@@ -67,7 +67,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 				row.itemR(con, "target_space", text="")
 
 			if target and owner:
-				row.itemL(icon=8) # XXX
+				row.itemL(icon="ICON_ARROW_LEFTRIGHT")
 
 			if owner:
 				row.itemR(con, "owner_space", text="")
@@ -77,13 +77,14 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		
 		if con.target and subtargets:
 			if con.target.type == "ARMATURE":
-				layout.itemR(con, "subtarget", text="Bone") # XXX autocomplete
+				layout.item_pointerR(con, "subtarget", con.target.data, "bones", text="Bone")
 				
-				row = layout.row()
-				row.itemL(text="Head/Tail:")
-				row.itemR(con, "head_tail", text="")
+				if con.type == 'COPY_LOCATION':
+					row = layout.row()
+					row.itemL(text="Head/Tail:")
+					row.itemR(con, "head_tail", text="")
 			elif con.target.type in ("MESH", "LATTICE"):
-				layout.itemR(con, "subtarget", text="Vertex Group") # XXX autocomplete
+				layout.item_pointerR(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
 	
 	def child_of(self, layout, con):
 		self.target_template(layout, con)
@@ -108,10 +109,9 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		sub.itemR(con, "sizey", text="Y")
 		sub.itemR(con, "sizez", text="Z")
 		
-		# Missing
 		row = layout.row()
-		row.itemL(text="SET OFFSET")
-		row.itemL(text="CLEAR OFFSET")
+		row.itemO("CONSTRAINT_OT_childof_set_inverse")
+		row.itemO("CONSTRAINT_OT_childof_clear_inverse")
 		
 	def track_to(self, layout, con):
 		self.target_template(layout, con)
@@ -121,18 +121,36 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		row.itemR(con, "track", expand=True)
 		
 		row = layout.row()
+		#row.itemR(con, "up", text="Up", expand=True) # XXX: up and expand don't play nice together
 		row.itemR(con, "up", text="Up")
 		row.itemR(con, "target_z")
 		
 		self.space_template(layout, con)
 		
-	#def ik(self, layout, con):
-	
+	def ik(self, layout, con):
+		self.target_template(layout, con)
+		
+		layout.itemR(con, "pole_target")
+		layout.itemR(con, "pole_subtarget")
+		
+		col = layout.column_flow()
+		col.itemR(con, "iterations")
+		col.itemR(con, "pole_angle")
+		col.itemR(con, "weight")
+		col.itemR(con, "orient_weight")
+		col.itemR(con, "chain_length")
+		
+		col = layout.column_flow()
+		col.itemR(con, "tail")
+		col.itemR(con, "rotation")
+		col.itemR(con, "targetless")
+		col.itemR(con, "stretch")
+		
 	def follow_path(self, layout, con):
 		self.target_template(layout, con)
 		
 		row = layout.row()
-		row.itemR(con, "curve_follow", toggle=True)
+		row.itemR(con, "curve_follow")
 		row.itemR(con, "offset")
 		
 		row = layout.row()
@@ -394,7 +412,29 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		row.itemL(text="Min/Max:")
 		row.itemR(con, "floor_location", expand=True)
 		
-	#def rigid_body(self, layout, con):
+	def rigid_body(self, layout, con):
+		self.target_template(layout, con)
+		
+		layout.itemR(con, "pivot_type")
+		layout.itemR(con, "child")
+		
+		row = layout.row()
+		row.itemR(con, "disable_linked_collision", text="No Collision")
+		row.itemR(con, "draw_pivot")
+		
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(con, "pivot_x")
+		col.itemR(con, "pivot_y")
+		col.itemR(con, "pivot_z")
+		
+		col = split.column()
+		col.itemR(con, "axis_x")
+		col.itemR(con, "axis_y")
+		col.itemR(con, "axis_z")
+		
+		#Missing: Limit arrays (not wrapped in RNA yet) 
 	
 	def clamp_to(self, layout, con):
 		self.target_template(layout, con)
@@ -470,14 +510,13 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 class OBJECT_PT_constraints(ConstraintButtonsPanel):
 	__idname__ = "OBJECT_PT_constraints"
 	__label__ = "Constraints"
-	__context__ = "object"
+	__context__ = "constraint"
 
 	def poll(self, context):
-		ob = context.active_object
-		return (ob != None)
+		return (context.object != None)
 		
 	def draw(self, context):
-		ob = context.active_object
+		ob = context.object
 		layout = self.layout
 
 		row = layout.row()
@@ -489,21 +528,21 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
 
 class BONE_PT_constraints(ConstraintButtonsPanel):
 	__idname__ = "BONE_PT_constraints"
-	__label__ = "Constraints"
+	__label__ = "Bone Constraints"
 	__context__ = "bone"
 
 	def poll(self, context):
-		ob = context.active_object
-		return (ob and ob.type == "ARMATURE")
+		ob = context.object
+		return (ob and ob.type == "ARMATURE" and context.bone)
 		
 	def draw(self, context):
-		ob = context.active_object
-		pchan = ob.pose.pose_channels[0]
+		ob = context.object
+		pchan = ob.pose.pose_channels[context.bone.name]
 		layout = self.layout
 
-		#row = layout.row()
-		#row.item_menu_enumO("BONE_OT_constraint_add", "type")
-		#row.itemL();
+		row = layout.row()
+		row.item_menu_enumO("OBJECT_OT_constraint_add", "type")
+		row.itemL();
 
 		for con in pchan.constraints:
 			self.draw_constraint(con)

@@ -97,31 +97,65 @@ ARegion *view3d_has_buttons_region(ScrArea *sa)
 
 ARegion *view3d_has_tools_region(ScrArea *sa)
 {
-	ARegion *ar, *arnew;
+	ARegion *ar, *artool=NULL, *arprops=NULL, *arhead;
 	
-	for(ar= sa->regionbase.first; ar; ar= ar->next)
+	for(ar= sa->regionbase.first; ar; ar= ar->next) {
 		if(ar->regiontype==RGN_TYPE_TOOLS)
-			return ar;
+			artool= ar;
+		if(ar->regiontype==RGN_TYPE_TOOL_PROPS)
+			arprops= ar;
+	}
 	
-	/* add subdiv level; after header */
-	for(ar= sa->regionbase.first; ar; ar= ar->next)
-		if(ar->regiontype==RGN_TYPE_HEADER)
-			break;
+	/* tool region hide/unhide also hides props */
+	if(arprops && artool) return artool;
 	
-	/* is error! */
-	if(ar==NULL) return NULL;
+	if(artool==NULL) {
+		/* add subdiv level; after header */
+		for(arhead= sa->regionbase.first; arhead; arhead= arhead->next)
+			if(arhead->regiontype==RGN_TYPE_HEADER)
+				break;
+		
+		/* is error! */
+		if(arhead==NULL) return NULL;
+		
+		artool= MEM_callocN(sizeof(ARegion), "tools for view3d");
+		
+		BLI_insertlinkafter(&sa->regionbase, arhead, artool);
+		artool->regiontype= RGN_TYPE_TOOLS;
+		artool->alignment= RGN_OVERLAP_LEFT;
+		artool->flag = RGN_FLAG_HIDDEN;
+	}
+
+	if(arprops==NULL) {
+		/* add extra subdivided region for tool properties */
+		arprops= MEM_callocN(sizeof(ARegion), "tool props for view3d");
+		
+		BLI_insertlinkafter(&sa->regionbase, artool, arprops);
+		arprops->regiontype= RGN_TYPE_TOOL_PROPS;
+		arprops->alignment= RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
+	}
 	
-	arnew= MEM_callocN(sizeof(ARegion), "tools for view3d");
-	
-	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
-	arnew->regiontype= RGN_TYPE_TOOLS;
-	arnew->alignment= RGN_OVERLAP_LEFT;
-	
-	arnew->flag = RGN_FLAG_HIDDEN;
-	
-	return arnew;
+	return artool;
 }
 
+/* ****************************************************** */
+
+/* function to always find a regionview3d context inside 3D window */
+RegionView3D *ED_view3d_context_rv3d(bContext *C)
+{
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	
+	if(rv3d==NULL) {
+		ScrArea *sa =CTX_wm_area(C);
+		if(sa->spacetype==SPACE_VIEW3D) {
+			ARegion *ar;
+			for(ar= sa->regionbase.first; ar; ar= ar->next)
+				if(ar->regiontype==RGN_TYPE_WINDOW)
+					return ar->regiondata;
+		}
+	}
+	return rv3d;
+}
 
 
 /* ******************** default callbacks for view3d space ***************** */
@@ -270,6 +304,12 @@ static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 	else
 		WM_event_remove_keymap_handler(&ar->handlers, keymap);
 
+	keymap= WM_keymap_listbase(wm, "Lattice", 0, 0);
+	if(stype==NS_EDITMODE_LATTICE)
+		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+
 	/* armature sketching needs to take over mouse */
 	keymap= WM_keymap_listbase(wm, "Armature_Sketch", 0, 0);
 	if(stype==NS_EDITMODE_TEXT)
@@ -289,7 +329,6 @@ static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 		WM_event_add_keymap_handler_priority(&ar->handlers, keymap, 10);
 	else
 		WM_event_remove_keymap_handler(&ar->handlers, keymap);
-	
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -370,6 +409,17 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_ANIMATION:
+			switch(wmn->data) {
+				case ND_KEYFRAME_EDIT:
+				case ND_KEYFRAME_PROP:
+				case ND_NLA_EDIT:
+				case ND_NLA_ACTCHANGE:
+				case ND_ANIMCHAN_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_TRANSFORM:
@@ -442,30 +492,13 @@ static void view3d_header_area_init(wmWindowManager *wm, ARegion *ar)
 	ListBase *keymap= WM_keymap_listbase(wm, "View3D Generic", SPACE_VIEW3D, 0);
 	
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
-	
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+
+	ED_region_header_init(ar);
 }
 
 static void view3d_header_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
-	/* clear */
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
-	view3d_header_buttons(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	ED_region_header(C, ar);
 }
 
 static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
@@ -505,6 +538,16 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_ANIMATION:
+			switch(wmn->data) {
+				case ND_KEYFRAME_EDIT:
+				case ND_KEYFRAME_PROP:
+				case ND_NLA_EDIT:
+				case ND_NLA_ACTCHANGE:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_FRAME:
@@ -541,9 +584,11 @@ static void view3d_tools_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
+
+
 static void view3d_tools_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, NULL);
+	ED_region_panels(C, ar, 1, view3d_context_string(C));
 }
 
 /*
@@ -565,7 +610,17 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 
 	if(v3d==NULL) return 0;
 
-	if(CTX_data_equals(member, "selected_objects") || CTX_data_equals(member, "selected_bases")) {
+	if(CTX_data_dir(member)) {
+		static const char *dir[] = {
+			"selected_objects", "selected_bases" "selected_editable_objects",
+			"selected_editable_bases" "visible_objects", "visible_bases", "selectable_objects", "selectable_bases",
+			"active_base", "active_object", "visible_bones", "editable_bones",
+			"selected_bones", "selected_editable_bones" "visible_pchans",
+			"selected_pchans", "active_bone", "active_pchan", NULL};
+
+		CTX_data_dir_set(result, dir);
+	}
+	else if(CTX_data_equals(member, "selected_objects") || CTX_data_equals(member, "selected_bases")) {
 		int selected_objects= CTX_data_equals(member, "selected_objects");
 
 		for(base=scene->base.first; base; base=base->next) {
@@ -606,6 +661,22 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 			if(base->lay & v3d->lay) {
 				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
 					if(visible_objects)
+						CTX_data_id_list_add(result, &base->object->id);
+					else
+						CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+				}
+			}
+		}
+		
+		return 1;
+	}
+	else if(CTX_data_equals(member, "selectable_objects") || CTX_data_equals(member, "selectable_bases")) {
+		int selectable_objects= CTX_data_equals(member, "selectable_objects");
+
+		for(base=scene->base.first; base; base=base->next) {
+			if(base->lay & v3d->lay) {
+				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0 && (base->object->restrictflag & OB_RESTRICT_SELECT)==0) {
+					if(selectable_objects)
 						CTX_data_id_list_add(result, &base->object->id);
 					else
 						CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
@@ -832,6 +903,20 @@ void ED_spacetype_view3d(void)
 	BLI_addhead(&st->regiontypes, art);
 	
 	view3d_toolbar_register(art);
+
+	/* regions: tool properties */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
+	art->regionid = RGN_TYPE_TOOL_PROPS;
+	art->minsizex= 0;
+	art->minsizey= 120;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
+	art->listener= view3d_buttons_area_listener;
+	art->init= view3d_tools_area_init;
+	art->draw= view3d_tools_area_draw;
+	BLI_addhead(&st->regiontypes, art);
+	
+	view3d_tool_props_register(art);
+	
 	
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");

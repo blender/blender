@@ -37,7 +37,7 @@ struct Image;
 
 typedef struct MFace {
 	unsigned int v1, v2, v3, v4;
-	char pad, mat_nr;
+	short mat_nr;
 	char edcode, flag;	/* we keep edcode, for conversion to edges draw flags in old files */
 } MFace;
 
@@ -61,7 +61,8 @@ typedef struct MDeformVert {
 typedef struct MVert {
 	float	co[3];
 	short	no[3];
-	char flag, mat_nr, bweight, pad[3];
+	short	mat_nr;
+	char flag, bweight, pad[2];
 } MVert;
 
 /* at the moment alpha is abused for vertex painting
@@ -75,7 +76,7 @@ typedef struct MCol {
 typedef struct MPoly {
 	/*offset into loop array and number of loops in the face*/
 	int loopstart, totloop;
-	char pad, mat_nr;
+	short mat_nr;
 	short flag;
 } MPoly;
 
@@ -149,7 +150,7 @@ typedef struct MultiresColFace {
 } MultiresColFace;
 typedef struct MultiresFace {
 	unsigned int v[4];
-       	unsigned int mid;
+	unsigned int mid;
 	char flag, mat_nr, pad[2];
 } MultiresFace;
 typedef struct MultiresEdge {
@@ -256,7 +257,7 @@ typedef struct PartialVisibility {
 #define TF_LIGHT		16
 
 #define TF_SHAREDCOL	64
-#define TF_TILES		128
+#define TF_TILES		128		/* deprecated */
 #define TF_BILLBOARD	256
 #define TF_TWOSIDE		512
 #define TF_INVISIBLE	1024

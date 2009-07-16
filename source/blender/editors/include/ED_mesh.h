@@ -73,6 +73,8 @@ struct BMFace;
 #define B_JOINTRIA_VCOL		0X400
 #define B_JOINTRIA_SHARP	0X800
 #define B_JOINTRIA_MAT		0X1000
+#define B_FRACTAL		0x2000
+#define B_SPHERE		0x4000
 
 /* bmeshutils.c */
 
@@ -92,6 +94,7 @@ void EDBM_selectmode_flush(struct BMEditMesh *em);
 int EDBM_get_actSelection(struct BMEditMesh *em, struct BMEditSelection *ese);
 void EDBM_editselection_center(struct BMEditMesh *em, float *center, struct BMEditSelection *ese);
 void EDBM_editselection_plane(struct BMEditMesh *em, float *plane, struct BMEditSelection *ese);
+void EDBM_editselection_normal(float *normal, struct BMEditSelection *ese);
 void EDBM_selectmode_set(struct BMEditMesh *em);
 void EDBM_convertsel(struct BMEditMesh *em, short oldmode, short selectmode);
 

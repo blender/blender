@@ -746,7 +746,9 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, /*GPU
 	glGetObjectParameterivARB(shader->object, GL_OBJECT_LINK_STATUS_ARB, &status);
 	if (!status) {
 		glGetInfoLogARB(shader->object, sizeof(log), &length, log);
-		shader_print_errors("linking", log, fragcode);
+		if (fragcode) shader_print_errors("linking", log, fragcode);
+		else if (vertexcode) shader_print_errors("linking", log, vertexcode);
+		else if (libcode) shader_print_errors("linking", log, libcode);
 
 		GPU_shader_free(shader);
 		return NULL;

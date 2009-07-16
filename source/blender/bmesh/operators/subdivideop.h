@@ -3,8 +3,9 @@
 
 typedef struct subdparams {
 	int numcuts;
-	int flag;
-	float rad;
+	float smooth;
+	float fractal;
+	int beauty;
 	BMOperator *op;
 } subdparams;
 

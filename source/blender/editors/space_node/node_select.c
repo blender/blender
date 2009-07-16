@@ -177,8 +177,8 @@ static int node_extend_select_invoke(bContext *C, wmOperator *op, wmEvent *event
 /* operators */
 
 static EnumPropertyItem prop_select_items[] = {
-	{NODE_SELECT_MOUSE, "NORMAL", "Normal Select", "Select using the mouse"},
-	{0, NULL, NULL, NULL}};
+	{NODE_SELECT_MOUSE, "NORMAL", 0, "Normal Select", "Select using the mouse"},
+	{0, NULL, 0, NULL, NULL}};
 
 void NODE_OT_select_extend(wmOperatorType *ot)
 {
@@ -213,7 +213,7 @@ void NODE_OT_select(wmOperatorType *ot)
 	ot->modal= node_select_modal;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	RNA_def_enum(ot->srna, "select_type", prop_select_items, 0, "Select Type", "");
 	
@@ -225,9 +225,9 @@ void NODE_OT_select(wmOperatorType *ot)
 /* ****** Border Select ****** */
 
 static EnumPropertyItem prop_select_types[] = {
-	{NODE_EXCLUSIVE, "EXCLUSIVE", "Exclusive", ""}, /* right mouse */
-	{NODE_EXTEND, "EXTEND", "Extend", ""}, /* left mouse */
-	{0, NULL, NULL, NULL}
+	{NODE_EXCLUSIVE, "EXCLUSIVE", 0, "Exclusive", ""}, /* right mouse */
+	{NODE_EXTEND, "EXTEND", 0, "Extend", ""}, /* left mouse */
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int node_borderselect_exec(bContext *C, wmOperator *op)

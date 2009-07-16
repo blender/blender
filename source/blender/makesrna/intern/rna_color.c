@@ -50,7 +50,7 @@ static void rna_CurveMapping_curves_begin(CollectionPropertyIterator *iter, Poin
 {
 	CurveMapping *cumap= (CurveMapping*)ptr->data;
 
-	rna_iterator_array_begin(iter, cumap->cm, sizeof(CurveMap), rna_CurveMapping_curves_length(ptr), NULL);
+	rna_iterator_array_begin(iter, cumap->cm, sizeof(CurveMap), rna_CurveMapping_curves_length(ptr), 0, NULL);
 }
 
 static void rna_CurveMapping_clip_set(PointerRNA *ptr, int value)
@@ -120,9 +120,9 @@ static void rna_def_curvemappoint(BlenderRNA *brna)
 	StructRNA *srna;
     PropertyRNA *prop;
 	static EnumPropertyItem prop_handle_type_items[] = {
-        {0, "AUTO", "Auto Handle", ""},
-        {CUMA_VECTOR, "VECTOR", "Vector Handle", ""},
-		{0, NULL, NULL, NULL}
+        {0, "AUTO", 0, "Auto Handle", ""},
+        {CUMA_VECTOR, "VECTOR", 0, "Vector Handle", ""},
+		{0, NULL, 0, NULL, NULL}
     };
 
 	srna= RNA_def_struct(brna, "CurveMapPoint", NULL);
@@ -152,9 +152,9 @@ static void rna_def_curvemap(BlenderRNA *brna)
 	StructRNA *srna;
     PropertyRNA *prop;
 	static EnumPropertyItem prop_extend_items[] = {
-        {0, "HORIZONTAL", "Horizontal", ""},
-        {CUMA_EXTEND_EXTRAPOLATE, "EXTRAPOLATED", "Extrapolated", ""},
-		{0, NULL, NULL, NULL}
+        {0, "HORIZONTAL", 0, "Horizontal", ""},
+        {CUMA_EXTEND_EXTRAPOLATE, "EXTRAPOLATED", 0, "Extrapolated", ""},
+		{0, NULL, 0, NULL, NULL}
     };
 
 	srna= RNA_def_struct(brna, "CurveMap", NULL);
@@ -212,7 +212,7 @@ static void rna_def_curvemapping(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_CurveMapping_clipmaxy_range");
 
 	prop= RNA_def_property(srna, "curves", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_funcs(prop, "rna_CurveMapping_curves_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_CurveMapping_curves_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_CurveMapping_curves_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_CurveMapping_curves_length", 0, 0, 0, 0);
 	RNA_def_property_struct_type(prop, "CurveMap");
 	RNA_def_property_ui_text(prop, "Curves", "");
 

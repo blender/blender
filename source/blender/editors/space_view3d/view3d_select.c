@@ -67,7 +67,6 @@
 #include "RE_pipeline.h"	// make_stars
 
 #include "BIF_gl.h"
-#include "BIF_retopo.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -83,6 +82,7 @@
 #include "ED_screen.h"
 #include "ED_types.h"
 #include "ED_util.h"
+#include "ED_retopo.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -463,14 +463,14 @@ static void do_lasso_select_mesh(ViewContext *vc, short mcords[][2], short moves
 
 	bbsel= EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	
-	if(vc->scene->selectmode & SCE_SELECT_VERTEX) {
+	if(vc->scene->toolsettings->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
 			EM_backbuf_checkAndSelectVerts(vc->em, select);
 		} else {
 			mesh_foreachScreenVert(vc, do_lasso_select_mesh__doSelectVert, &data, 1);
 		}
 	}
-	if(vc->scene->selectmode & SCE_SELECT_EDGE) {
+	if(vc->scene->toolsettings->selectmode & SCE_SELECT_EDGE) {
 			/* Does both bbsel and non-bbsel versions (need screen cos for both) */
 
 		data.pass = 0;
@@ -482,7 +482,7 @@ static void do_lasso_select_mesh(ViewContext *vc, short mcords[][2], short moves
 		}
 	}
 	
-	if(vc->scene->selectmode & SCE_SELECT_FACE) {
+	if(vc->scene->toolsettings->selectmode & SCE_SELECT_FACE) {
 		if (bbsel) {
 			EM_backbuf_checkAndSelectFaces(vc->em, select);
 		} else {
@@ -722,9 +722,9 @@ void view3d_lasso_select(bContext *C, ViewContext *vc, short mcords[][2], short 
 }
 
 static EnumPropertyItem lasso_select_types[] = {
-	{0, "SELECT", "Select", ""},
-	{1, "DESELECT", "Deselect", ""},
-	{0, NULL, NULL, NULL}
+	{0, "SELECT", 0, "Select", ""},
+	{1, "DESELECT", 0, "Deselect", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 
@@ -753,7 +753,7 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 		/* setup view context for argument to callbacks */
 		view3d_set_viewcontext(C, &vc);
 		
-		select= RNA_enum_is_equal(op->ptr, "type", "SELECT");
+		select= RNA_enum_is_equal(C, op->ptr, "type", "SELECT");
 		view3d_lasso_select(C, &vc, mcords, i, select);
 		
 		return OPERATOR_FINISHED;
@@ -1299,14 +1299,14 @@ static void do_mesh_box_select(ViewContext *vc, rcti *rect, int select)
 
 	bbsel= EDBM_init_backbuf_border(vc, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
-	if(vc->scene->selectmode & SCE_SELECT_VERTEX) {
+	if(vc->scene->toolsettings->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
 			EM_backbuf_checkAndSelectVerts(vc->em, select);
 		} else {
 			mesh_foreachScreenVert(vc, do_mesh_box_select__doSelectVert, &data, 1);
 		}
 	}
-	if(vc->scene->selectmode & SCE_SELECT_EDGE) {
+	if(vc->scene->toolsettings->selectmode & SCE_SELECT_EDGE) {
 			/* Does both bbsel and non-bbsel versions (need screen cos for both) */
 
 		data.pass = 0;
@@ -1318,7 +1318,7 @@ static void do_mesh_box_select(ViewContext *vc, rcti *rect, int select)
 		}
 	}
 	
-	if(vc->scene->selectmode & SCE_SELECT_FACE) {
+	if(vc->scene->toolsettings->selectmode & SCE_SELECT_FACE) {
 		if(bbsel) {
 			EM_backbuf_checkAndSelectFaces(vc->em, select);
 		} else {
@@ -1538,9 +1538,9 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 
 /* *****************Selection Operators******************* */
 static EnumPropertyItem prop_select_types[] = {
-	{0, "EXCLUSIVE", "Exclusive", ""},
-	{1, "EXTEND", "Extend", ""},
-	{0, NULL, NULL, NULL}
+	{0, "EXCLUSIVE", 0, "Exclusive", ""},
+	{1, "EXTEND", 0, "Extend", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 /* ****** Border Select ****** */
@@ -1576,7 +1576,7 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	short extend= RNA_enum_is_equal(op->ptr, "type", "EXTEND");
+	short extend= RNA_enum_is_equal(C, op->ptr, "type", "EXTEND");
 
 	view3d_operator_needs_opengl(C);
 	
@@ -1678,7 +1678,7 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 		data.mval[1] = mval[1];
 		data.radius = rad;
 
-		if(vc->scene->selectmode & SCE_SELECT_VERTEX) {
+		if(vc->scene->toolsettings->selectmode & SCE_SELECT_VERTEX) {
 			if(bbsel) {
 				EM_backbuf_checkAndSelectVerts(vc->em, selecting==LEFTMOUSE);
 			} else {
@@ -1686,7 +1686,7 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 			}
 		}
 
-		if(vc->scene->selectmode & SCE_SELECT_EDGE) {
+		if(vc->scene->toolsettings->selectmode & SCE_SELECT_EDGE) {
 			if (bbsel) {
 				EM_backbuf_checkAndSelectEdges(vc->em, selecting==LEFTMOUSE);
 			} else {
@@ -1694,7 +1694,7 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 			}
 		}
 		
-		if(vc->scene->selectmode & SCE_SELECT_FACE) {
+		if(vc->scene->toolsettings->selectmode & SCE_SELECT_FACE) {
 			if(bbsel) {
 				EM_backbuf_checkAndSelectFaces(vc->em, selecting==LEFTMOUSE);
 			} else {

@@ -40,6 +40,7 @@
 #include "BLI_rect.h"
 
 #include "BKE_context.h"
+#include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
@@ -84,15 +85,6 @@ typedef struct uiWidgetTrias {
 	
 } uiWidgetTrias;
 
-typedef struct uiWidgetStateColors {
-	char inner_anim[4];
-	char inner_anim_sel[4];
-	char inner_key[4];
-	char inner_key_sel[4];
-	char inner_driven[4];
-	char inner_driven_sel[4];
-} uiWidgetStateColors;
-
 typedef struct uiWidgetBase {
 	
 	int totvert, halfwayvert;
@@ -101,6 +93,7 @@ typedef struct uiWidgetBase {
 	float inner_uv[64][2];
 	
 	short inner, outline, emboss; /* set on/off */
+	short shadedir;
 	
 	uiWidgetTrias tria1;
 	uiWidgetTrias tria2;
@@ -114,6 +107,7 @@ typedef struct uiWidgetType {
 	
 	/* pointer to theme color definition */
 	uiWidgetColors *wcol_theme;
+	uiWidgetStateColors *wcol_state;
 	
 	/* converted colors for state */
 	uiWidgetColors wcol;
@@ -198,6 +192,7 @@ static void widget_init(uiWidgetBase *wtb)
 	wtb->inner= 1;
 	wtb->outline= 1;
 	wtb->emboss= 1;
+	wtb->shadedir= 1;
 }
 
 /* helper call, makes shadow rect, with 'sun' above menu, so only shadow to left/right/bottom */
@@ -290,13 +285,15 @@ static void round_box__edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, fl
 	float maxyi= maxy - 1.0f;
 	float facxi= 1.0f/(maxxi-minxi); /* for uv */
 	float facyi= 1.0f/(maxyi-minyi);
-	int a, tot= 0;
+	int a, tot= 0, minsize;
 	
-	if(2.0f*rad > rect->ymax-rect->ymin)
-		rad= 0.5f*(rect->ymax-rect->ymin);
+	minsize= MIN2(rect->xmax-rect->xmin, rect->ymax-rect->ymin);
+	
+	if(2.0f*rad > minsize)
+		rad= 0.5f*minsize;
 
-	if(2.0f*(radi+1.0f) > rect->ymax-rect->ymin)
-		radi= 0.5f*(rect->ymax-rect->ymin) - 1.0f;
+	if(2.0f*(radi+1.0f) > minsize)
+		radi= 0.5f*minsize - 1.0f;
 	
 	/* mult */
 	for(a=0; a<9; a++) {
@@ -430,22 +427,33 @@ static void round_box_edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, flo
 /* based on button rect, return scaled array of triangles */
 static void widget_num_tria(uiWidgetTrias *tria, rcti *rect, float triasize, char where)
 {
-	float centx, centy, size;
-	int a;
+	float centx, centy, sizex, sizey, minsize;
+	int a, i1=0, i2=1;
+	
+	minsize= MIN2(rect->xmax-rect->xmin, rect->ymax-rect->ymin);
 	
 	/* center position and size */
-	centx= (float)rect->xmin + 0.5f*(rect->ymax-rect->ymin);
-	centy= (float)rect->ymin + 0.5f*(rect->ymax-rect->ymin);
-	size= -0.5f*triasize*(rect->ymax-rect->ymin);
+	centx= (float)rect->xmin + 0.5f*minsize;
+	centy= (float)rect->ymin + 0.5f*minsize;
+	sizex= sizey= -0.5f*triasize*minsize;
 
 	if(where=='r') {
-		centx= (float)rect->xmax - 0.5f*(rect->ymax-rect->ymin);
-		size= -size;
+		centx= (float)rect->xmax - 0.5f*minsize;
+		sizex= -sizex;
+	}	
+	else if(where=='t') {
+		centy= (float)rect->ymax - 0.5f*minsize;
+		sizey= -sizey;
+		i2=0; i1= 1;
+	}	
+	else if(where=='b') {
+		sizex= -sizex;
+		i2=0; i1= 1;
 	}	
 	
 	for(a=0; a<19; a++) {
-		tria->vec[a][0]= size*num_tria_vert[a][0] + centx;
-		tria->vec[a][1]= size*num_tria_vert[a][1] + centy;
+		tria->vec[a][0]= sizex*num_tria_vert[a][i1] + centx;
+		tria->vec[a][1]= sizey*num_tria_vert[a][i2] + centy;
 	}
 	
 	tria->tot= 19;
@@ -522,7 +530,7 @@ static void shadecolors4(char *coltop, char *coldown, char *color, short shadeto
 	coldown[0]= CLAMPIS(color[0]+shadedown, 0, 255);
 	coldown[1]= CLAMPIS(color[1]+shadedown, 0, 255);
 	coldown[2]= CLAMPIS(color[2]+shadedown, 0, 255);
-	coldown[3]= color[3];
+	coldown[3]= color[3];	
 }
 
 static void round_box_shade_col4(char *col1, char *col2, float fac)
@@ -582,7 +590,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 			glShadeModel(GL_SMOOTH);
 			glBegin(GL_POLYGON);
 			for(a=0; a<wtb->totvert; a++) {
-				round_box_shade_col4(col1, col2, wtb->inner_uv[a][1]);
+				round_box_shade_col4(col1, col2, wtb->inner_uv[a][wtb->shadedir]);
 				glVertex2fv(wtb->inner_v[a]);
 			}
 			glEnd();
@@ -874,9 +882,9 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		and offset the text label to accomodate it */
 		
 		if (but->flag & UI_HAS_ICON) {
-			widget_draw_icon(but, but->icon, 0, rect);
+			widget_draw_icon(but, but->icon+but->iconadd, 0, rect);
 			
-			rect->xmin += UI_icon_get_width(but->icon);
+			rect->xmin += UI_icon_get_width(but->icon+but->iconadd);
 			
 			if(but->editstr || (but->flag & UI_TEXT_LEFT)) 
 				rect->xmin += 5;
@@ -902,6 +910,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
  char inner_key_sel[4];
  char inner_driven[4];
  char inner_driven_sel[4];
+ float blend;
  
 */
 
@@ -909,9 +918,10 @@ static struct uiWidgetStateColors wcol_state= {
 	{115, 190, 76, 255},
 	{90, 166, 51, 255},
 	{240, 235, 100, 255},
-	{148, 204, 76, 255},
+	{215, 211, 75, 255},
 	{180, 0, 255, 255},
-	{153, 0, 230, 255}
+	{153, 0, 230, 255},
+	0.5f, 0.0f
 };
 
 /*  uiWidgetColors
@@ -1025,7 +1035,7 @@ static struct uiWidgetColors wcol_menu_back= {
 	{0, 0, 0, 255},
 	{25, 25, 25, 230},
 	{45, 45, 45, 230},
-	{255, 255, 255, 255},
+	{100, 100, 100, 255},
 	
 	{255, 255, 255, 255},
 	{255, 255, 255, 255},
@@ -1087,16 +1097,56 @@ static struct uiWidgetColors wcol_box= {
 	0, 0
 };
 
+static struct uiWidgetColors wcol_toggle= {
+	{25, 25, 25, 255},
+	{153, 153, 153, 255},
+	{100, 100, 100, 255},
+	{25, 25, 25, 255},
+	
+	{0, 0, 0, 255},
+	{255, 255, 255, 255},
+	
+	0,
+	0, 0
+};
+
+static struct uiWidgetColors wcol_scroll= {
+	{50, 50, 50, 180},
+	{80, 80, 80, 180},
+	{100, 100, 100, 180},
+	{180, 180, 180, 255},
+	
+	{0, 0, 0, 255},
+	{255, 255, 255, 255},
+	
+	1,
+	10, -20
+};
+
+/* free wcol struct to play with */
+static struct uiWidgetColors wcol_tmp= {
+	{0, 0, 0, 255},
+	{128, 128, 128, 255},
+	{100, 100, 100, 255},
+	{25, 25, 25, 255},
+	
+	{0, 0, 0, 255},
+	{255, 255, 255, 255},
+	
+	0,
+	0, 0
+};
+
 
 /* called for theme init (new theme) and versions */
 void ui_widget_color_init(ThemeUI *tui)
 {
-
 	tui->wcol_regular= wcol_regular;
 	tui->wcol_tool= wcol_tool;
-	tui->wcol_radio= wcol_radio;
 	tui->wcol_text= wcol_text;
+	tui->wcol_radio= wcol_radio;
 	tui->wcol_option= wcol_option;
+	tui->wcol_toggle= wcol_toggle;
 	tui->wcol_num= wcol_num;
 	tui->wcol_numslider= wcol_numslider;
 	tui->wcol_menu= wcol_menu;
@@ -1104,26 +1154,38 @@ void ui_widget_color_init(ThemeUI *tui)
 	tui->wcol_menu_back= wcol_menu_back;
 	tui->wcol_menu_item= wcol_menu_item;
 	tui->wcol_box= wcol_box;
-	
-	tui->iconfile[0]= 0;
+	tui->wcol_scroll= wcol_scroll;
+
+	tui->wcol_state= wcol_state;
 }
 
 /* ************ button callbacks, state ***************** */
 
+static void widget_state_blend(char *cp, char *cpstate, float fac)
+{
+	if(fac != 0.0f) {
+		cp[0]= (int)((1.0f-fac)*cp[0] + fac*cpstate[0]);
+		cp[1]= (int)((1.0f-fac)*cp[1] + fac*cpstate[1]);
+		cp[2]= (int)((1.0f-fac)*cp[2] + fac*cpstate[2]);
+	}
+}
+
 /* copy colors from theme, and set changes in it based on state */
 static void widget_state(uiWidgetType *wt, int state)
 {
+	uiWidgetStateColors *wcol_state= wt->wcol_state;
+
 	wt->wcol= *(wt->wcol_theme);
 	
 	if(state & UI_SELECT) {
+		QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel)
+
 		if(state & UI_BUT_ANIMATED_KEY)
-			QUATCOPY(wt->wcol.inner, wcol_state.inner_key_sel)
+			widget_state_blend(wt->wcol.inner, wcol_state->inner_key_sel, wcol_state->blend);
 		else if(state & UI_BUT_ANIMATED)
-			QUATCOPY(wt->wcol.inner, wcol_state.inner_anim_sel)
+			widget_state_blend(wt->wcol.inner, wcol_state->inner_anim_sel, wcol_state->blend);
 		else if(state & UI_BUT_DRIVEN)
-			QUATCOPY(wt->wcol.inner, wcol_state.inner_driven_sel)
-		else
-			QUATCOPY(wt->wcol.inner, wt->wcol.inner_sel)
+			widget_state_blend(wt->wcol.inner, wcol_state->inner_driven_sel, wcol_state->blend);
 
 		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
 		
@@ -1134,11 +1196,11 @@ static void widget_state(uiWidgetType *wt, int state)
 	}
 	else {
 		if(state & UI_BUT_ANIMATED_KEY)
-			QUATCOPY(wt->wcol.inner, wcol_state.inner_key)
+			widget_state_blend(wt->wcol.inner, wcol_state->inner_key, wcol_state->blend);
 		else if(state & UI_BUT_ANIMATED)
-			QUATCOPY(wt->wcol.inner, wcol_state.inner_anim)
+			widget_state_blend(wt->wcol.inner, wcol_state->inner_anim, wcol_state->blend);
 		else if(state & UI_BUT_DRIVEN)
-			QUATCOPY(wt->wcol.inner, wcol_state.inner_driven)
+			widget_state_blend(wt->wcol.inner, wcol_state->inner_driven, wcol_state->blend);
 
 		if(state & UI_ACTIVE) { /* mouse over? */
 			wt->wcol.inner[0]= wt->wcol.inner[0]>=240? 255 : wt->wcol.inner[0]+15;
@@ -1161,6 +1223,10 @@ static void widget_state_label(uiWidgetType *wt, int state)
 	
 }
 
+static void widget_state_nothing(uiWidgetType *wt, int state)
+{
+	wt->wcol= *(wt->wcol_theme);
+}	
 
 /* special case, button that calls pulldown */
 static void widget_state_pulldown(uiWidgetType *wt, int state)
@@ -1262,9 +1328,28 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
 	glDisable(GL_BLEND);
 }
 
-/* ************ custom buttons, old stuff ************** */
 
-static void ui_hsvcircle_to_val(float *valrad, float *valdist, rcti *rect, float mx, float my)
+static void ui_hsv_cursor(float x, float y)
+{
+	
+	glPushMatrix();
+	glTranslatef(x, y, 0.0f);
+	
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glutil_draw_filled_arc(0.0f, M_PI*2.0, 3.0f, 8);
+	
+	glEnable(GL_BLEND);
+	glEnable(GL_LINE_SMOOTH );
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glutil_draw_lined_arc(0.0f, M_PI*2.0, 3.0f, 12);
+	glDisable(GL_BLEND);
+	glDisable(GL_LINE_SMOOTH );
+	
+	glPopMatrix();
+	
+}
+
+void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect, float mx, float my)
 {
 	/* duplication of code... well, simple is better now */
 	float centx= (float)(rect->xmin + rect->xmax)/2;
@@ -1319,7 +1404,7 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, rcti *rect)
 		float si= sin(ang);
 		float co= cos(ang);
 		
-		ui_hsvcircle_to_val(hsv, hsv+1, rect, centx + co*radius, centy + si*radius);
+		ui_hsvcircle_vals_from_pos(hsv, hsv+1, rect, centx + co*radius, centy + si*radius);
 		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col+1, col+2);
 		glColor3fv(col);
 		glVertex2f( centx + co*radius, centy + si*radius);
@@ -1327,7 +1412,26 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, rcti *rect)
 	glEnd();
 	
 	glShadeModel(GL_FLAT);
+	
+	/* fully rounded outline */
+	glPushMatrix();
+	glTranslatef(centx, centy, 0.0f);
+	glEnable(GL_BLEND);
+	glEnable(GL_LINE_SMOOTH );
+	glColor3f(0.0f, 0.0f, 0.0f);
+	glutil_draw_lined_arc(0.0f, M_PI*2.0, radius, tot);
+	glDisable(GL_BLEND);
+	glDisable(GL_LINE_SMOOTH );
+	glPopMatrix();
+
+	/* cursor */
+	ang= 2.0f*M_PI*but->hsv[0] + 0.5f*M_PI;
+	radius= but->hsv[1]*radius;
+	ui_hsv_cursor(centx + cos(-ang)*radius, centy + sin(-ang)*radius);
+	
 }
+
+/* ************ custom buttons, old stuff ************** */
 
 /* draws in resolution of 20x4 colors */
 static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
@@ -1366,7 +1470,7 @@ static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 		hsv_to_rgb(h, 1.0, 0.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
 		x= v; y= s;
 	}
-	else {		// only hue slider
+	else if(but->a1==3) {		// only hue slider
 		hsv_to_rgb(0.0, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
 		VECCOPY(col1[1], col1[0]);
 		VECCOPY(col1[2], col1[0]);
@@ -1400,7 +1504,7 @@ static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 			hsv_to_rgb(h, 0.666, dx, &col1[2][0], &col1[2][1], &col1[2][2]);
 			hsv_to_rgb(h, 1.0, dx,   &col1[3][0], &col1[3][1], &col1[3][2]);
 		}
-		else {	// only H
+		else if(but->a1==3) {	// only H
 			hsv_to_rgb(dx, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
 			VECCOPY(col1[1], col1[0]);
 			VECCOPY(col1[2], col1[0]);
@@ -1438,13 +1542,42 @@ static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 	CLAMP(x, rect->xmin+3.0, rect->xmax-3.0);
 	CLAMP(y, rect->ymin+3.0, rect->ymax-3.0);
 	
-	fdrawXORcirc(x, y, 3.1);
+	ui_hsv_cursor(x, y);
 	
 	/* outline */
 	glColor3ub(0,  0,  0);
 	fdrawbox((rect->xmin), (rect->ymin), (rect->xmax), (rect->ymax));
 }
 
+/* vertical 'value' slider, using new widget code */
+static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
+{
+	uiWidgetBase wtb;
+	float rad= 0.5f*(rect->xmax - rect->xmin);
+	float x, y;
+	
+	widget_init(&wtb);
+	
+	/* fully rounded */
+	round_box_edges(&wtb, 15, rect, rad);
+	
+	/* setup temp colors */
+	wcol_tmp.outline[0]= wcol_tmp.outline[1]= wcol_tmp.outline[2]= 0;
+	wcol_tmp.inner[0]= wcol_tmp.inner[1]= wcol_tmp.inner[2]= 128;
+	wcol_tmp.shadetop= 127;
+	wcol_tmp.shadedown= -128;
+	wcol_tmp.shaded= 1;
+	
+	widgetbase_draw(&wtb, &wcol_tmp);
+
+	/* cursor */
+	x= rect->xmin + 0.5f*(rect->xmax-rect->xmin);
+	y= rect->ymin + but->hsv[2]*(rect->ymax-rect->ymin);
+	CLAMP(y, rect->ymin+3.0, rect->ymax-3.0);
+	
+	ui_hsv_cursor(x, y);
+	
+}
 
 /* ************ button callbacks, draw ***************** */
 
@@ -1460,7 +1593,7 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 	
 	/* decoration */
 	if(!(state & UI_TEXTINPUT)) {
-		widget_num_tria(&wtb.tria1, rect, 0.6f, 0);
+		widget_num_tria(&wtb.tria1, rect, 0.6f, 'l');
 		widget_num_tria(&wtb.tria2, rect, 0.6f, 'r');
 	}	
 	widgetbase_draw(&wtb, wcol);
@@ -1470,6 +1603,178 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 	rect->xmax -= (rect->ymax-rect->ymin);
 
 }
+
+
+static int ui_link_bezier_points(rcti *rect, float coord_array[][2], int resol)
+{
+	float dist, vec[4][2];
+
+	vec[0][0]= rect->xmin;
+	vec[0][1]= rect->ymin;
+	vec[3][0]= rect->xmax;
+	vec[3][1]= rect->ymax;
+	
+	dist= 0.5f*ABS(vec[0][0] - vec[3][0]);
+	
+	vec[1][0]= vec[0][0]+dist;
+	vec[1][1]= vec[0][1];
+	
+	vec[2][0]= vec[3][0]-dist;
+	vec[2][1]= vec[3][1];
+	
+	forward_diff_bezier(vec[0][0], vec[1][0], vec[2][0], vec[3][0], coord_array[0], resol, 2);
+	forward_diff_bezier(vec[0][1], vec[1][1], vec[2][1], vec[3][1], coord_array[0]+1, resol, 2);
+	
+	return 1;
+}
+
+#define LINK_RESOL	24
+void ui_draw_link_bezier(rcti *rect)
+{
+	float coord_array[LINK_RESOL+1][2];
+	
+	if(ui_link_bezier_points(rect, coord_array, LINK_RESOL)) {
+		float dist;
+		int i;
+		
+		/* we can reuse the dist variable here to increment the GL curve eval amount*/
+		dist = 1.0f/(float)LINK_RESOL;
+		
+		glEnable(GL_BLEND);
+		glEnable(GL_LINE_SMOOTH);
+		
+		glBegin(GL_LINE_STRIP);
+		for(i=0; i<=LINK_RESOL; i++) {
+			glVertex2fv(coord_array[i]);
+		}
+		glEnd();
+		
+		glDisable(GL_BLEND);
+		glDisable(GL_LINE_SMOOTH);
+
+	}
+}
+
+/* function in use for buttons and for view2d sliders */
+void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int state)
+{
+	uiWidgetBase wtb;
+	float rad;
+	int horizontal;
+
+	widget_init(&wtb);
+
+	/* determine horizontal/vertical */
+	horizontal= (rect->xmax - rect->xmin > rect->ymax - rect->ymin);
+	
+	if(horizontal)
+		rad= 0.5f*(rect->ymax - rect->ymin);
+	else
+		rad= 0.5f*(rect->xmax - rect->xmin);
+	
+	wtb.shadedir= (horizontal)? 1: 0;
+	
+	/* draw back part, colors swapped and shading inverted */
+	if(horizontal)
+		SWAP(short, wcol->shadetop, wcol->shadedown);
+	
+	round_box_edges(&wtb, 15, rect, rad); 
+	widgetbase_draw(&wtb, wcol);
+	
+	/* slider */
+	if(slider->xmax-slider->xmin<2 || slider->ymax-slider->ymin<2);
+	else {
+		
+		SWAP(short, wcol->shadetop, wcol->shadedown);
+		
+		QUATCOPY(wcol->inner, wcol->item);
+		
+		if(wcol->shadetop>wcol->shadedown)
+			wcol->shadetop+= 20;	/* XXX violates themes... */
+		else wcol->shadedown+= 20;
+		
+		if(state & UI_SCROLL_PRESSED)
+			SWAP(short, wcol->shadetop, wcol->shadedown);
+
+		/* draw */
+		wtb.emboss= 0; /* only emboss once */
+		
+		round_box_edges(&wtb, 15, slider, rad); 
+		
+		if(state & UI_SCROLL_ARROWS) {
+			if(wcol->item[0] > 48) wcol->item[0]-= 48;
+			if(wcol->item[1] > 48) wcol->item[1]-= 48;
+			if(wcol->item[2] > 48) wcol->item[2]-= 48;
+			wcol->item[3]= 255;
+			
+			if(horizontal) {
+				widget_num_tria(&wtb.tria1, slider, 0.6f, 'l');
+				widget_num_tria(&wtb.tria2, slider, 0.6f, 'r');
+			}
+			else {
+				widget_num_tria(&wtb.tria1, slider, 0.6f, 'b');
+				widget_num_tria(&wtb.tria2, slider, 0.6f, 't');
+			}
+		}
+		widgetbase_draw(&wtb, wcol);
+	}	
+}
+
+static void widget_scroll(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+	rcti rect1;
+	double value;
+	float fac, size;
+	int horizontal;
+
+	/* calculate slider part */
+	value= ui_get_but_val(but);
+
+	size= (but->softmax + but->a1 - but->softmin);
+	size= MAX2(size, 2);
+	
+	/* position */
+	rect1= *rect;
+
+	/* determine horizontal/vertical */
+	horizontal= (rect->xmax - rect->xmin > rect->ymax - rect->ymin);
+	
+	if(horizontal) {
+		fac= (rect->xmax - rect->xmin)/(size);
+		rect1.xmin= rect1.xmin + ceil(fac*(value - but->softmin));
+		rect1.xmax= rect1.xmin + ceil(fac*(but->a1 - but->softmin));
+	}
+	else {
+		fac= (rect->ymax - rect->ymin)/(size);
+		rect1.ymax= rect1.ymax - ceil(fac*(value - but->softmin));
+		rect1.ymin= rect1.ymax - ceil(fac*(but->a1 - but->softmin));
+	}
+
+	if(state & UI_SELECT)
+		state= UI_SCROLL_PRESSED;
+	else
+		state= 0;
+	uiWidgetScrollDraw(wcol, rect, &rect1, state);
+
+}
+
+static void widget_link(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
+{
+
+	if(but->flag & UI_SELECT) {
+		rcti rectlink;
+		
+		UI_ThemeColor(TH_TEXT_HI);
+		
+		rectlink.xmin= (rect->xmin+rect->xmax)/2;
+		rectlink.ymin= (rect->ymin+rect->ymax)/2;
+		rectlink.xmax= but->linkto[0];
+		rectlink.ymax= but->linkto[1];
+		
+		ui_draw_link_bezier(&rectlink);
+	}
+}
+
 
 static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
@@ -1726,7 +2031,9 @@ static void widget_disabled(rcti *rect)
 	/* can't use theme TH_BACK or TH_PANEL... undefined */
 	glGetFloatv(GL_COLOR_CLEAR_VALUE, col);
 	glColor4f(col[0], col[1], col[2], 0.5f);
-	glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+	/* need -1 and +1 to make it work right for aligned buttons,
+	 * but problem may be somewhere else? */
+	glRectf(rect->xmin-1, rect->ymin, rect->xmax, rect->ymax+1);
 
 	glDisable(GL_BLEND);
 }
@@ -1738,18 +2045,23 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 	
 	/* defaults */
 	wt.wcol_theme= &btheme->tui.wcol_regular;
+	wt.wcol_state= &btheme->tui.wcol_state;
 	wt.state= widget_state;
 	wt.draw= widget_but;
 	wt.custom= NULL;
 	wt.text= widget_draw_text_icon;
 	
 	switch(type) {
+		case UI_WTYPE_REGULAR:
+			break;
+
 		case UI_WTYPE_LABEL:
 			wt.draw= NULL;
 			wt.state= widget_state_label;
 			break;
 			
 		case UI_WTYPE_TOGGLE:
+			wt.wcol_theme= &btheme->tui.wcol_toggle;
 			break;
 			
 		case UI_WTYPE_OPTION:
@@ -1762,7 +2074,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			wt.wcol_theme= &btheme->tui.wcol_radio;
 			wt.draw= widget_radiobut;
 			break;
-			
+
 		case UI_WTYPE_NUMBER:
 			wt.wcol_theme= &btheme->tui.wcol_num;
 			wt.draw= widget_numbut;
@@ -1842,6 +2154,12 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			break;
 			
 		case UI_WTYPE_NORMAL:
+			break;
+
+		case UI_WTYPE_SCROLL:
+			wt.wcol_theme= &btheme->tui.wcol_scroll;
+			wt.state= widget_state_nothing;
+			wt.custom= widget_scroll;
 			break;
 	}
 	
@@ -1930,35 +2248,44 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 					fstyle= &style->widgetlabel;
 				}
 				break;
+				
 			case SEPR:
 				break;
+				
 			case BUT:
 				wt= widget_type(UI_WTYPE_EXEC);
 				break;
+
 			case NUM:
 				wt= widget_type(UI_WTYPE_NUMBER);
 				break;
+				
 			case NUMSLI:
 			case HSVSLI:
 				wt= widget_type(UI_WTYPE_SLIDER);
 				break;
+				
 			case ROW:
 				wt= widget_type(UI_WTYPE_RADIO);
 				break;
+				
 			case TEX:
 				wt= widget_type(UI_WTYPE_NAME);
 				break;
+				
 			case SEARCH_MENU:
 				wt= widget_type(UI_WTYPE_NAME);
 				if(but->block->flag & UI_BLOCK_LOOP)
 					wt->wcol_theme= &btheme->tui.wcol_menu_back;
 				break;
+				
 			case TOGBUT:
 			case TOG:
 			case TOGN:
 			case TOG3:
 				wt= widget_type(UI_WTYPE_TOGGLE);
 				break;
+				
 			case OPTION:
 			case OPTIONN:
 				if (!(but->flag & UI_HAS_ICON)) {
@@ -1968,6 +2295,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				else
 					wt= widget_type(UI_WTYPE_TOGGLE);
 				break;
+				
 			case MENU:
 			case BLOCK:
 			case ICONTEXTROW:
@@ -1989,27 +2317,47 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 			case ROUNDBOX:
 				wt= widget_type(UI_WTYPE_BOX);
 				break;
+				
+			case LINK:
+			case INLINK:
+				wt= widget_type(UI_WTYPE_ICON);
+				wt->custom= widget_link;
+				
+				break;
 			
 			case BUT_EXTRA:
 				widget_draw_extra_mask(C, but, widget_type(UI_WTYPE_BOX), rect);
 				break;
 				
-				 // XXX four old button types
 			case HSVCUBE:
-				ui_draw_but_HSVCUBE(but, rect);
+				if(but->a1==4) // vertical V slider, uses new widget draw now
+					ui_draw_but_HSV_v(but, rect);
+				else  // other HSV pickers...
+					ui_draw_but_HSVCUBE(but, rect);
 				break;
+				
+			case HSVCIRCLE:
+				ui_draw_but_HSVCIRCLE(but, rect);
+				break;
+				
 			case BUT_COLORBAND:
 				ui_draw_but_COLORBAND(but, &tui->wcol_regular, rect);
 				break;
+				
 			case BUT_NORMAL:
 				ui_draw_but_NORMAL(but, &tui->wcol_regular, rect);
 				break;
+				
 			case BUT_CURVE:
 				ui_draw_but_CURVE(ar, but, &tui->wcol_regular, rect);
 				break;
-				
+
+			case SCROLL:
+				wt= widget_type(UI_WTYPE_SCROLL);
+				break;
+
 			default:
-				wt= widget_type(UI_WTYPE_TOGGLE);
+				wt= widget_type(UI_WTYPE_REGULAR);
 		}
 	}
 	
@@ -2018,6 +2366,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 		int roundboxalign, state;
 		
 		roundboxalign= widget_roundbox_set(but, rect);
+
 		state= but->flag;
 		if(but->editstr) state |= UI_TEXTINPUT;
 		
@@ -2065,7 +2414,7 @@ void ui_draw_search_back(uiStyle *style, uiBlock *block, rcti *rect)
 
 /* helper call to draw a menu item without button */
 /* state: UI_ACTIVE or 0 */
-void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int state)
+void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int iconid, int state)
 {
 	uiWidgetType *wt= widget_type(UI_WTYPE_MENU_ITEM);
 	rcti _rect= *rect;
@@ -2079,6 +2428,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int state)
 	
 	/* text location offset */
 	rect->xmin+=5;
+	if(iconid) rect->xmin+= ICON_HEIGHT;
 
 	/* cut string in 2 parts? */
 	cpoin= strchr(name, '|');
@@ -2101,5 +2451,12 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int state)
 	/* restore rect, was messed with */
 	*rect= _rect;
 
+	if(iconid) {
+		int xs= rect->xmin+4;
+		int ys= 1 + (rect->ymin+rect->ymax- ICON_HEIGHT)/2;
+		glEnable(GL_BLEND);
+		UI_icon_draw_aspect_blended(xs, ys, iconid, 1.2f, 0); /* XXX scale weak get from fstyle? */
+		glDisable(GL_BLEND);
+	}
 }
 

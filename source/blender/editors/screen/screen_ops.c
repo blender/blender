@@ -34,6 +34,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_image_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_curve_types.h"
@@ -52,7 +53,6 @@
 #include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
-#include "BKE_mesh.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -60,6 +60,7 @@
 #include "ED_util.h"
 #include "ED_screen.h"
 #include "ED_mesh.h"
+#include "ED_object.h"
 #include "ED_screen_types.h"
 
 #include "RE_pipeline.h"
@@ -165,6 +166,7 @@ int ED_operator_node_active(bContext *C)
 	return 0;
 }
 
+// XXX rename
 int ED_operator_ipo_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_IPO);
@@ -178,6 +180,16 @@ int ED_operator_sequencer_active(bContext *C)
 int ED_operator_image_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_IMAGE);
+}
+
+int ED_operator_nla_active(bContext *C)
+{
+	return ed_spacetype_test(C, SPACE_NLA);
+}
+
+int ED_operator_logic_active(bContext *C)
+{
+	return ed_spacetype_test(C, SPACE_LOGIC);
 }
 
 int ED_operator_object_active(bContext *C)
@@ -279,6 +291,14 @@ int ED_operator_editfont(bContext *C)
 	Object *obedit= CTX_data_edit_object(C);
 	if(obedit && obedit->type==OB_FONT)
 		return NULL != ((Curve *)obedit->data)->editfont;
+	return 0;
+}
+
+int ED_operator_editlattice(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	if(obedit && obedit->type==OB_LATTICE)
+		return NULL != ((Lattice *)obedit->data)->editlatt;
 	return 0;
 }
 
@@ -483,8 +503,10 @@ void SCREEN_OT_actionzone(wmOperatorType *ot)
 	
 	ot->invoke= actionzone_invoke;
 	ot->modal= actionzone_modal;
-	
 	ot->poll= actionzone_area_poll;
+
+	ot->flag= OPTYPE_BLOCKING;
+	
 	RNA_def_int(ot->srna, "modifier", 0, 0, 2, "modifier", "modifier state", 0, 2);
 }
 
@@ -598,6 +620,8 @@ static void SCREEN_OT_area_swap(wmOperatorType *ot)
 	ot->invoke= area_swap_invoke;
 	ot->modal= area_swap_modal;
 	ot->poll= ED_operator_areaactive;
+
+	ot->flag= OPTYPE_BLOCKING;
 }
 
 /* *********** Duplicate area as new window operator ****************** */
@@ -892,8 +916,9 @@ void SCREEN_OT_area_move(wmOperatorType *ot)
 	ot->invoke= area_move_invoke;
 	ot->cancel= area_move_cancel;
 	ot->modal= area_move_modal;
-
 	ot->poll= ED_operator_screen_mainwinactive; /* when mouse is over area-edge */
+
+	ot->flag= OPTYPE_BLOCKING;
 
 	/* rna */
 	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
@@ -1193,9 +1218,9 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 static EnumPropertyItem prop_direction_items[] = {
-	{'h', "HORIZONTAL", "Horizontal", ""},
-	{'v', "VERTICAL", "Vertical", ""},
-	{0, NULL, NULL, NULL}};
+	{'h', "HORIZONTAL", 0, "Horizontal", ""},
+	{'v', "VERTICAL", 0, "Vertical", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 void SCREEN_OT_area_split(wmOperatorType *ot)
 {
@@ -1207,7 +1232,7 @@ void SCREEN_OT_area_split(wmOperatorType *ot)
 	ot->modal= area_split_modal;
 	
 	ot->poll= ED_operator_areaactive;
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_BLOCKING;
 	
 	/* rna */
 	RNA_def_enum(ot->srna, "direction", prop_direction_items, 'h', "Direction", "");
@@ -1324,6 +1349,8 @@ static void SCREEN_OT_region_scale(wmOperatorType *ot)
 	ot->modal= region_scale_modal;
 	
 	ot->poll= ED_operator_areaactive;
+	
+	ot->flag= OPTYPE_BLOCKING;
 }
 
 
@@ -1705,8 +1732,9 @@ void SCREEN_OT_area_join(wmOperatorType *ot)
 	ot->exec= area_join_exec;
 	ot->invoke= area_join_invoke;
 	ot->modal= area_join_modal;
-
 	ot->poll= ED_operator_areaactive;
+
+	ot->flag= OPTYPE_BLOCKING;
 
 	/* rna */
 	RNA_def_int(ot->srna, "x1", -100, INT_MIN, INT_MAX, "X 1", "", INT_MIN, INT_MAX);
@@ -2056,19 +2084,40 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		
 		if(scene->audio.flag & AUDIO_SYNC) {
 			int step = floor(wt->duration * FPS);
-			scene->r.cfra += step;
+			if (sad->reverse) // XXX does this option work with audio?
+				scene->r.cfra -= step;
+			else
+				scene->r.cfra += step;
 			wt->duration -= ((float)step)/FPS;
 		}
-		else
-			scene->r.cfra++;
+		else {
+			if (sad->reverse)
+				scene->r.cfra--;
+			else
+				scene->r.cfra++;
+		}
 		
-		if (scene->r.psfra) {
-			if(scene->r.cfra > scene->r.pefra)
-				scene->r.cfra= scene->r.psfra;
+		if (sad->reverse) {
+			/* jump back to end */
+			if (scene->r.psfra) {
+				if(scene->r.cfra < scene->r.psfra)
+					scene->r.cfra= scene->r.pefra;
+			}
+			else {
+				if(scene->r.cfra < scene->r.sfra)
+					scene->r.cfra= scene->r.efra;
+			}
 		}
 		else {
-			if(scene->r.cfra > scene->r.efra)
-				scene->r.cfra= scene->r.sfra;
+			/* jump back to start */
+			if (scene->r.psfra) {
+				if(scene->r.cfra > scene->r.pefra)
+					scene->r.cfra= scene->r.psfra;
+			}
+			else {
+				if(scene->r.cfra > scene->r.efra)
+					scene->r.cfra= scene->r.sfra;
+			}
 		}
 
 		/* since we follow drawflags, we can't send notifier but tag regions ourselves */
@@ -2116,8 +2165,9 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 		ED_screen_animation_timer(C, 0, 0);
 	}
 	else {
-		/* todo: RNA properties to define play types */
-		ED_screen_animation_timer(C, TIME_REGION|TIME_ALL_3D_WIN, 1);
+		int mode= (RNA_boolean_get(op->ptr, "reverse")) ? -1 : 1;
+		
+		ED_screen_animation_timer(C, TIME_REGION|TIME_ALL_3D_WIN, mode);
 		
 		if(screen->animtimer) {
 			wmTimer *wt= screen->animtimer;
@@ -2141,7 +2191,7 @@ void SCREEN_OT_animation_play(wmOperatorType *ot)
 	
 	ot->poll= ED_operator_screenactive;
 	
-	
+	RNA_def_boolean(ot->srna, "reverse", 0, "Play in Reverse", "Animation is played backwards");
 }
 
 /* ************** border select operator (template) ***************************** */
@@ -2270,48 +2320,92 @@ static ScrArea *find_area_showing_r_result(bContext *C)
 	return sa;
 }
 
-static void screen_set_image_output(bContext *C)
+static ScrArea *find_area_image_empty(bContext *C)
 {
+	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *sa;
 	SpaceImage *sima;
 	
-	sa= find_area_showing_r_result(C);
-	
-	if(sa==NULL) {
-		/* find largest open non-image area */
-		sa= biggest_non_image_area(C);
-		if(sa) {
-			ED_area_newspace(C, sa, SPACE_IMAGE);
+	/* find an imagewindow showing render result */
+	for(sa=sc->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype==SPACE_IMAGE) {
 			sima= sa->spacedata.first;
-			
-			/* makes ESC go back to prev space */
-			sima->flag |= SI_PREVSPACE;
+			if(!sima->image)
+				break;
 		}
-		else {
-			/* use any area of decent size */
-			sa= biggest_area(C);
-			if(sa->spacetype!=SPACE_IMAGE) {
-				// XXX newspace(sa, SPACE_IMAGE);
+	}
+	return sa;
+}
+
+static ScrArea *find_empty_image_area(bContext *C)
+{
+	bScreen *sc= CTX_wm_screen(C);
+	ScrArea *sa;
+	SpaceImage *sima;
+	
+	/* find an imagewindow showing render result */
+	for(sa=sc->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype==SPACE_IMAGE) {
+			sima= sa->spacedata.first;
+			if(!sima->image)
+				break;
+		}
+	}
+	return sa;
+}
+
+static void screen_set_image_output(bContext *C)
+{
+	Scene *scene= CTX_data_scene(C);
+	ScrArea *sa;
+	SpaceImage *sima;
+	
+	if(scene->r.displaymode==R_OUTPUT_SCREEN) {
+		/* this function returns with changed context */
+		ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_IMAGE);
+		sa= CTX_wm_area(C);
+	}
+	else {
+	
+		sa= find_area_showing_r_result(C);
+		if(sa==NULL)
+			sa= find_area_image_empty(C);
+		
+		if(sa==NULL) {
+			/* find largest open non-image area */
+			sa= biggest_non_image_area(C);
+			if(sa) {
+				ED_area_newspace(C, sa, SPACE_IMAGE);
 				sima= sa->spacedata.first;
 				
 				/* makes ESC go back to prev space */
 				sima->flag |= SI_PREVSPACE;
 			}
+			else {
+				/* use any area of decent size */
+				sa= biggest_area(C);
+				if(sa->spacetype!=SPACE_IMAGE) {
+					// XXX newspace(sa, SPACE_IMAGE);
+					sima= sa->spacedata.first;
+					
+					/* makes ESC go back to prev space */
+					sima->flag |= SI_PREVSPACE;
+				}
+			}
 		}
-	}
-	
+	}	
 	sima= sa->spacedata.first;
 	
 	/* get the correct image, and scale it */
 	sima->image= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
 	
-	if(G.displaymode==2) { // XXX
-		if(sa->full==0) {
-			sima->flag |= SI_FULLWINDOW;
+//	if(G.displaymode==2) { // XXX
+		if(sa->full) {
+			sima->flag |= SI_FULLWINDOW|SI_PREVSPACE;
 			
-			ed_screen_fullarea(C, sa);
+//			ed_screen_fullarea(C, sa);
 		}
-	}
+//	}
 	
 }
 
@@ -2355,6 +2449,62 @@ static void render_freejob(void *rjv)
 	RenderJob *rj= rjv;
 	
 	MEM_freeN(rj);
+}
+
+/* str is IMA_RW_MAXTEXT in size */
+static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
+{
+	char info_time_str[32];	// used to be extern to header_info.c
+	uintptr_t mem_in_use, mmap_in_use;
+	float megs_used_memory, mmap_used_memory;
+	char *spos= str;
+	
+	mem_in_use= MEM_get_memory_in_use();
+	mmap_in_use= MEM_get_mapped_memory_in_use();
+	
+	megs_used_memory= (mem_in_use-mmap_in_use)/(1024.0*1024.0);
+	mmap_used_memory= (mmap_in_use)/(1024.0*1024.0);
+	
+	if(scene->lay & 0xFF000000)
+		spos+= sprintf(spos, "Localview | ");
+	else if(scene->r.scemode & R_SINGLE_LAYER)
+		spos+= sprintf(spos, "Single Layer | ");
+	
+	spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d ", (scene->r.cfra), rs->totvert, rs->totface);
+	if(rs->tothalo) spos+= sprintf(spos, "Ha:%d ", rs->tothalo);
+	if(rs->totstrand) spos+= sprintf(spos, "St:%d ", rs->totstrand);
+	spos+= sprintf(spos, "La:%d Mem:%.2fM (%.2fM) ", rs->totlamp, megs_used_memory, mmap_used_memory);
+	
+	if(rs->curfield)
+		spos+= sprintf(spos, "Field %d ", rs->curfield);
+	if(rs->curblur)
+		spos+= sprintf(spos, "Blur %d ", rs->curblur);
+	
+	BLI_timestr(rs->lastframetime, info_time_str);
+	spos+= sprintf(spos, "Time:%s ", info_time_str);
+	
+	if(rs->infostr)
+		spos+= sprintf(spos, "| %s ", rs->infostr);
+	
+	/* very weak... but 512 characters is quite safe */
+	if(spos >= str+IMA_RW_MAXTEXT)
+		printf("WARNING! renderwin text beyond limit \n");
+	
+}
+
+static void image_renderinfo_cb(void *rjv, RenderStats *rs)
+{
+	RenderJob *rj= rjv;
+	
+	/* malloc OK here, stats_draw is not in tile threads */
+	if(rj->image->render_text==NULL)
+		rj->image->render_text= MEM_callocN(IMA_RW_MAXTEXT, "rendertext");
+	
+	make_renderinfo_string(rs, rj->scene, rj->image->render_text);
+	
+	/* make jobs timer to send notifier */
+	*(rj->do_update)= 1;
+
 }
 
 /* called inside thread! */
@@ -2505,7 +2655,9 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* flush multires changes (for sculpt) */
 	multires_force_update(CTX_data_active_object(C));
 	
-	// get editmode results
+	/* get editmode results */
+	ED_object_exit_editmode(C, 0);	/* 0 = does not exit editmode */
+	
 	// store spare
 	// get view3d layer, local layer, make this nice api call to render
 	// store spare
@@ -2536,6 +2688,8 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	re= RE_NewRender(scene->id.name);
 	RE_test_break_cb(re, rj, render_breakjob);
 	RE_display_draw_cb(re, rj, image_rect_update);
+	RE_stats_draw_cb(re, rj, image_renderinfo_cb);
+	
 	rj->re= re;
 	G.afbreek= 0;
 	
@@ -2610,6 +2764,48 @@ void SCREEN_OT_render_view_cancel(struct wmOperatorType *ot)
 	ot->poll= ED_operator_image_active;
 }
 
+/* *********************** show render viewer *************** */
+
+static int render_view_show_exec(bContext *C, wmOperator *unused)
+{
+	ScrArea *sa= find_area_showing_r_result(C);
+	
+	/* determine if render already shows */
+	if(sa) {
+		SpaceImage *sima= sa->spacedata.first;
+		
+		if(sima->flag & SI_PREVSPACE) {
+			sima->flag &= ~SI_PREVSPACE;
+			
+			if(sima->flag & SI_FULLWINDOW) {
+				sima->flag &= ~SI_FULLWINDOW;
+				ED_screen_full_prevspace(C);
+			}
+			else if(sima->next) {
+				ED_area_newspace(C, sa, sima->next->spacetype);
+				ED_area_tag_redraw(sa);
+			}
+		}
+	}
+	else {
+		screen_set_image_output(C);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void SCREEN_OT_render_view_show(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Show/Hide Render View";
+	ot->idname= "SCREEN_OT_render_view_show";
+	
+	/* api callbacks */
+	ot->exec= render_view_show_exec;
+	ot->poll= ED_operator_screenactive;
+}
+
+
 
 /* ****************  Assigning operatortypes to global list, adding handlers **************** */
 
@@ -2645,7 +2841,8 @@ void ED_operatortypes_screen(void)
 	/* render */
 	WM_operatortype_append(SCREEN_OT_render);
 	WM_operatortype_append(SCREEN_OT_render_view_cancel);
-	
+	WM_operatortype_append(SCREEN_OT_render_view_show);
+
 	/* tools shared by more space types */
 	WM_operatortype_append(ED_OT_undo);
 	WM_operatortype_append(ED_OT_redo);	
@@ -2706,6 +2903,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	/* render */
 	WM_keymap_add_item(keymap, "SCREEN_OT_render", F12KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_cancel", ESCKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_show", F11KEY, KM_PRESS, 0, 0);
 	
 	/* frame offsets & play */
 	keymap= WM_keymap_listbase(wm, "Frames", 0, 0);

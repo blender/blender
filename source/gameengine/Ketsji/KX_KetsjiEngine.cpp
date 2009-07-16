@@ -61,10 +61,6 @@
 #include "KX_PyConstraintBinding.h"
 #include "PHY_IPhysicsEnvironment.h"
 
-#ifdef USE_SUMO_SOLID
-#include "SumoPhysicsEnvironment.h"
-#endif
-
 #include "SND_Scene.h"
 #include "SND_IAudioDevice.h"
 
@@ -400,9 +396,9 @@ void KX_KetsjiEngine::StartEngine(bool clearIpo)
 	World* world = m_scenes[0]->GetBlenderScene()->world;
 	if (world)
 	{
-		m_ticrate = world->ticrate;
-		m_maxLogicFrame = world->maxlogicstep;
-		m_maxPhysicsFrame = world->maxphystep;
+		m_ticrate = world->ticrate ? world->ticrate : DEFAULT_LOGIC_TIC_RATE;
+		m_maxLogicFrame = world->maxlogicstep ? world->maxlogicstep : 5;
+		m_maxPhysicsFrame = world->maxphystep ? world->maxlogicstep : 5;
 	}
 	else
 	{
@@ -1078,6 +1074,11 @@ void KX_KetsjiEngine::SetCameraOverrideClipping(float near, float far)
 	m_overrideCamFar = far;
 }
 
+void KX_KetsjiEngine::SetCameraOverrideLens(float lens)
+{
+	m_overrideCamLens = lens;
+}
+
 void KX_KetsjiEngine::GetSceneViewport(KX_Scene *scene, KX_Camera* cam, RAS_Rect& area, RAS_Rect& viewport)
 {
 	// In this function we make sure the rasterizer settings are upto
@@ -1351,6 +1352,8 @@ void KX_KetsjiEngine::PostProcessScene(KX_Scene* scene)
 		KX_Camera* activecam = NULL;
 
 		RAS_CameraData camdata = RAS_CameraData();
+		if (override_camera) camdata.m_lens = m_overrideCamLens;
+
 		activecam = new KX_Camera(scene,KX_Scene::m_callbacks,camdata);
 		activecam->SetName("__default__cam__");
 	

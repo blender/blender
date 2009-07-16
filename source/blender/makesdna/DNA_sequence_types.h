@@ -80,6 +80,9 @@ typedef struct StripProxy {
 	char dir[160];
 	char file[80];
 	struct anim *anim;
+	short size;
+	short quality;
+	int pad;
 } StripProxy;
 
 typedef struct Strip {
@@ -159,7 +162,7 @@ typedef struct Sequence {
 	struct bSound *sound;	/* the linked "bSound" object */
         struct hdaudio *hdaudio; /* external hdaudio object */
 	float level, pan;	/* level in dB (0=full), pan -1..1 */
-	int curpos;		/* last sample position in audio_fill() */
+	int scenenr;          /* for scene selection */
 	float strobe;
 
 	void *effectdata;	/* Struct pointer for effect settings */
@@ -170,8 +173,6 @@ typedef struct Sequence {
 	int blend_mode;
 	float blend_opacity;
 
-	int scenenr;          /* for scene selection */
-	int pad;
 } Sequence;
 
 typedef struct MetaStack {

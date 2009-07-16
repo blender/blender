@@ -40,6 +40,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_global.h"
+#include "BKE_utildefines.h"
 #include "BKE_writeavi.h"
 #include "AVI_avi.h"
 
@@ -87,7 +88,7 @@ bMovieHandle *BKE_get_movie_handle(int imtype)
 	}
 #endif
 #ifdef WITH_FFMPEG
-	if (imtype == R_FFMPEG) {
+	if (ELEM4(imtype, R_FFMPEG, R_H264, R_XVID, R_THEORA)) {
 		mh.start_movie = start_ffmpeg;
 		mh.append_movie = append_ffmpeg;
 		mh.end_movie = end_ffmpeg;

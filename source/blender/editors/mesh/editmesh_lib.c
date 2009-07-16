@@ -51,11 +51,13 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 #include "BLI_editVert.h"
 
 #include "BKE_customdata.h"
+#include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_utildefines.h"
 
 #include "ED_mesh.h"
+#include "ED_screen.h"
 #include "ED_view3d.h"
 
 #include "mesh_intern.h"
@@ -2413,3 +2415,10 @@ void EM_free_uv_vert_map(UvVertMap *vmap)
 	}
 }
 
+/* poll call for mesh operators requiring a view3d context */
+int EM_view3d_poll(bContext *C)
+{
+	if(ED_operator_editmesh(C) && ED_operator_view3d_active(C))
+		return 1;
+	return 0;
+}

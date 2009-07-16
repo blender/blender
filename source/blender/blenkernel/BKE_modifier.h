@@ -63,7 +63,7 @@ typedef enum {
 	 * used for particles modifier that doesn't actually modify the object
 	 * unless it's a mesh and can be exploded -> curve can also emit particles
 	 */
-	eModifierTypeType_DeformOrConstruct
+	eModifierTypeType_DeformOrConstruct,
 } ModifierTypeType;
 
 typedef enum {
@@ -88,6 +88,9 @@ typedef enum {
 	/* For modifiers that support pointcache, so we can check to see if it has files we need to deal with
 	*/
 	eModifierTypeFlag_UsesPointCache = (1<<6),
+
+	/* For physics modifiers, max one per type */
+	eModifierTypeFlag_Single = (1<<7)
 } ModifierTypeFlag;
 
 typedef void (*ObjectWalkFunc)(void *userData, struct Object *ob, struct Object **obpoin);
@@ -205,7 +208,7 @@ typedef struct ModifierTypeInfo {
 	 *
 	 * This function is optional.
 	 */
-	CustomDataMask (*requiredDataMask)(struct ModifierData *md);
+	CustomDataMask (*requiredDataMask)(struct Object *ob, struct ModifierData *md);
 
 	/* Free internal modifier data variables, this function should
 	 * not free the md variable itself.
@@ -273,6 +276,7 @@ int           modifier_dependsOnTime(struct ModifierData *md);
 int           modifier_supportsMapping(struct ModifierData *md);
 int           modifier_couldBeCage(struct ModifierData *md);
 int           modifier_isDeformer(struct ModifierData *md);
+int           modifier_isEnabled(struct ModifierData *md, int required_mode);
 void          modifier_setError(struct ModifierData *md, char *format, ...);
 
 void          modifiers_foreachObjectLink(struct Object *ob,
@@ -303,8 +307,10 @@ int           modifiers_indexInObject(struct Object *ob, struct ModifierData *md
  * evaluation, assuming the data indicated by dataMask is required at the
  * end of the stack.
  */
-struct LinkNode *modifiers_calcDataMasks(struct ModifierData *md,
-                                         CustomDataMask dataMask);
+struct LinkNode *modifiers_calcDataMasks(struct Object *ob,
+                                         struct ModifierData *md,
+                                         CustomDataMask dataMask,
+                                         int required_mode);
 struct ModifierData  *modifiers_getVirtualModifierList(struct Object *ob);
 
 #endif

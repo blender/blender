@@ -1,5 +1,5 @@
 /**
- * $Id: rna_key.c 19382 2009-03-23 13:24:48Z blendix $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -37,6 +37,16 @@
 
 #ifdef RNA_RUNTIME
 
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+
+#include "BKE_depsgraph.h"
+#include "BKE_key.h"
+#include "BKE_main.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
+
 static Key *rna_ShapeKey_find_key(ID *id)
 {
 	switch(GS(id->name)) {
@@ -60,6 +70,18 @@ static PointerRNA rna_ShapeKey_relative_key_get(PointerRNA *ptr)
 				return rna_pointer_inherit_refine(ptr, &RNA_ShapeKey, kbrel);
 
 	return rna_pointer_inherit_refine(ptr, NULL, NULL);
+}
+
+static void rna_ShapeKey_relative_key_set(PointerRNA *ptr, PointerRNA value)
+{
+	Key *key= rna_ShapeKey_find_key(ptr->id.data);
+	KeyBlock *kb= (KeyBlock*)ptr->data, *kbrel;
+	int a;
+
+	if(key)
+		for(a=0, kbrel=key->block.first; kbrel; kbrel=kbrel->next, a++)
+			if(kbrel == value.data)
+				kb->relative= a;
 }
 
 static void rna_ShapeKeyPoint_co_get(PointerRNA *ptr, float *values)
@@ -176,7 +198,7 @@ static void rna_ShapeKey_data_begin(CollectionPropertyIterator *iter, PointerRNA
 		}
 	}
 
-	rna_iterator_array_begin(iter, (void*)kb->data, size, tot, NULL);
+	rna_iterator_array_begin(iter, (void*)kb->data, size, tot, 0, NULL);
 }
 
 static int rna_ShapeKey_data_length(PointerRNA *ptr)
@@ -220,6 +242,21 @@ static PointerRNA rna_ShapeKey_data_get(CollectionPropertyIterator *iter)
 	return rna_pointer_inherit_refine(&iter->parent, type, rna_iterator_array_get(iter));
 }
 
+static void rna_Key_update_data(bContext *C, PointerRNA *ptr)
+{
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
+	Key *key= ptr->id.data;
+	Object *ob;
+
+	for(ob=bmain->object.first; ob; ob= ob->id.next) {
+		if(ob_get_key(ob) == key) {
+			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+		}
+	}
+}
+
 #else
 
 static void rna_def_keydata(BlenderRNA *brna)
@@ -234,6 +271,7 @@ static void rna_def_keydata(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_ShapeKeyPoint_co_get", "rna_ShapeKeyPoint_co_set", NULL);
 	RNA_def_property_ui_text(prop, "Location", "");
+	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
 	srna= RNA_def_struct(brna, "ShapeKeyCurvePoint", NULL);
 	RNA_def_struct_ui_text(srna, "Shape Key Curve Point", "Point in a shape key for curves.");
@@ -242,10 +280,12 @@ static void rna_def_keydata(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_ShapeKeyPoint_co_get", "rna_ShapeKeyPoint_co_set", NULL);
 	RNA_def_property_ui_text(prop, "Location", "");
+	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
 	prop= RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_funcs(prop, "rna_ShapeKeyCurvePoint_tilt_get", "rna_ShapeKeyCurvePoint_tilt_set", NULL);
 	RNA_def_property_ui_text(prop, "Tilt", "");
+	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
 	srna= RNA_def_struct(brna, "ShapeKeyBezierPoint", NULL);
 	RNA_def_struct_ui_text(srna, "Shape Key Bezier Point", "Point in a shape key for bezier curves.");
@@ -254,21 +294,25 @@ static void rna_def_keydata(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_ShapeKeyBezierPoint_co_get", "rna_ShapeKeyBezierPoint_co_set", NULL);
 	RNA_def_property_ui_text(prop, "Location", "");
+	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
 	prop= RNA_def_property(srna, "handle_1_co", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_ShapeKeyBezierPoint_handle_1_co_get", "rna_ShapeKeyBezierPoint_handle_1_co_set", NULL);
 	RNA_def_property_ui_text(prop, "Handle 1 Location", "");
+	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
 	prop= RNA_def_property(srna, "handle_2_co", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_ShapeKeyBezierPoint_handle_2_co_get", "rna_ShapeKeyBezierPoint_handle_2_co_set", NULL);
 	RNA_def_property_ui_text(prop, "Handle 2 Location", "");
+	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
 	/* appears to be unused currently
 	prop= RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_funcs(prop, "rna_ShapeKeyBezierPoint_tilt_get", "rna_ShapeKeyBezierPoint_tilt_set", NULL);
-	RNA_def_property_ui_text(prop, "Tilt", "");*/
+	RNA_def_property_ui_text(prop, "Tilt", "");
+	RNA_def_property_update(prop, 0, "rna_Key_update_data"); */
 }
 
 static void rna_def_keyblock(BlenderRNA *brna)
@@ -277,10 +321,10 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_keyblock_type_items[] = {
-		{KEY_LINEAR, "KEY_LINEAR", "Linear", ""},
-		{KEY_CARDINAL, "KEY_CARDINAL", "Cardinal", ""},
-		{KEY_BSPLINE, "KEY_BSPLINE", "BSpline", ""},
-		{0, NULL, NULL, NULL}};
+		{KEY_LINEAR, "KEY_LINEAR", 0, "Linear", ""},
+		{KEY_CARDINAL, "KEY_CARDINAL", 0, "Cardinal", ""},
+		{KEY_BSPLINE, "KEY_BSPLINE", 0, "BSpline", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ShapeKey", NULL);
 	RNA_def_struct_ui_text(srna, "Shape Key", "Shape key in a shape keys datablock.");
@@ -296,30 +340,37 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_float_sdna(prop, NULL, "pos");
 	RNA_def_property_ui_text(prop, "Frame", "Frame for absolute keys.");
+	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 	
 	/* for now, this is editable directly, as users can set this even if they're not animating them (to test results) */
 	prop= RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "curval");
 	RNA_def_property_ui_text(prop, "Value", "Value of shape key at the current frame.");
+	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
 	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_keyblock_type_items);
 	RNA_def_property_ui_text(prop, "Interpolation", "Interpolation type.");
+	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
 	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "vgroup");
 	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex weight group, to blend with basis shape.");
+	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
 	prop= RNA_def_property(srna, "relative_key", PROP_POINTER, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "ShapeKey");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, "rna_ShapeKey_relative_key_get", "rna_ShapeKey_relative_key_set", NULL);
 	RNA_def_property_ui_text(prop, "Relative Key", "Shape used as a relative key.");
-	RNA_def_property_pointer_funcs(prop, "rna_ShapeKey_relative_key_get", NULL, NULL);
+	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
 	prop= RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYBLOCK_MUTE);
 	RNA_def_property_ui_text(prop, "Mute", "Mute this shape key.");
+	RNA_def_property_ui_icon(prop, ICON_MUTE_IPO_OFF, 1);
+	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
 	prop= RNA_def_property(srna, "slider_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "slidermin");
@@ -335,7 +386,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "data", "totelem");
 	RNA_def_property_struct_type(prop, "UnknownType");
 	RNA_def_property_ui_text(prop, "Data", "");
-	RNA_def_property_collection_funcs(prop, "rna_ShapeKey_data_begin", 0, 0, "rna_ShapeKey_data_get", "rna_ShapeKey_data_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_ShapeKey_data_begin", 0, 0, "rna_ShapeKey_data_get", "rna_ShapeKey_data_length", 0, 0, 0, 0);
 }
 
 static void rna_def_key(BlenderRNA *brna)
@@ -366,11 +417,13 @@ static void rna_def_key(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "relative", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "type", KEY_RELATIVE);
 	RNA_def_property_ui_text(prop, "Relative", "Makes shape keys relative.");
+	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
 	prop= RNA_def_property(srna, "slurph", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "slurph");
 	RNA_def_property_range(prop, -500, 500);
 	RNA_def_property_ui_text(prop, "Slurph", "Creates a delay in amount of frames in applying keypositions, first vertex goes first.");
+	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 }
 
 void RNA_def_key(BlenderRNA *brna)

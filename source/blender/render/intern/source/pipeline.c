@@ -36,6 +36,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_utildefines.h"
@@ -46,6 +47,7 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_writeavi.h"	/* <------ should be replaced once with generic movie module */
+#include "BKE_pointcache.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -61,7 +63,6 @@
 #include "intern/openexr/openexr_multi.h"
 
 #include "RE_pipeline.h"
-#include "radio.h"
 
 /* internal */
 #include "render_types.h"
@@ -1092,13 +1093,13 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, int winx, int winy
 		re->ok= 0;
 	}
 	else {
-#ifndef WITH_OPENEXR
+#ifdef WITH_OPENEXR
+		if(re->r.scemode & R_FULL_SAMPLE)
+			re->r.scemode |= R_EXR_TILE_FILE;	/* enable automatic */
+#else
 		/* can't do this without openexr support */
-		re->r.scemode &= ~R_EXR_TILE_FILE;
+		re->r.scemode &= ~(R_EXR_TILE_FILE|R_FULL_SAMPLE);
 #endif
-		
-		if(!(re->r.scemode & R_EXR_TILE_FILE))
-			re->r.scemode &= ~R_FULL_SAMPLE;	/* clear, so we can use this flag for test both */
 		
 		/* fullsample wants uniform osa levels */
 		if(source && (re->r.scemode & R_FULL_SAMPLE)) {
@@ -1499,7 +1500,7 @@ static void threaded_tile_processor(Render *re)
 		else if(re->r.scemode & R_FULL_SAMPLE)
 			re->result= new_full_sample_buffers_exr(re);
 		else
-			re->result= new_render_result(re, &re->disprect, 0, re->r.scemode & R_EXR_TILE_FILE);
+			re->result= new_render_result(re, &re->disprect, 0, re->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE));
 	}
 	
 	if(re->result==NULL)
@@ -2278,7 +2279,7 @@ static void do_render_all_options(Render *re)
 	/* ensure no images are in memory from previous animated sequences */
 	BKE_image_all_free_anim_ibufs(re->r.cfra);
 	
-	if(re->r.scemode & R_DOSEQ) {
+	if((re->r.scemode & R_DOSEQ) && re->scene->ed && re->scene->ed->seqbase.first) {
 		/* note: do_render_seq() frees rect32 when sequencer returns float images */
 		if(!re->test_break(re->tbh)) 
 			; //XXX do_render_seq(re->result, re->r.cfra);
@@ -2299,7 +2300,7 @@ static void do_render_all_options(Render *re)
 	re->stats_draw(re->sdh, &re->i);
 	
 	/* stamp image info here */
-	if((re->r.scemode & R_STAMP_INFO) && (re->r.stamp & R_STAMP_DRAW)) {
+	if((re->r.stamp & R_STAMP_ALL) && (re->r.stamp & R_STAMP_DRAW)) {
 		renderresult_stampinfo(re->scene);
 		re->display_draw(re->ddh, re->result, NULL);
 	}
@@ -2327,13 +2328,13 @@ static int is_rendering_allowed(Render *re)
 			re->error(re->erh, "No border area selected.");
 			return 0;
 		}
-		if(re->r.scemode & R_EXR_TILE_FILE) {
+		if(re->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE)) {
 			re->error(re->erh, "Border render and Buffer-save not supported yet");
 			return 0;
 		}
 	}
 	
-	if(re->r.scemode & R_EXR_TILE_FILE) {
+	if(re->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE)) {
 		char str[FILE_MAX];
 		
 		render_unique_exr_name(re, str, 0);
@@ -2413,8 +2414,24 @@ static int is_rendering_allowed(Render *re)
 	return 1;
 }
 
+static void update_physics_cache(Render *re, Scene *scene, int anim_init)
+{
+	PTCacheBaker baker;
+
+	baker.scene = scene;
+	baker.pid = NULL;
+	baker.bake = 0;
+	baker.render = 1;
+	baker.anim_init = 1;
+	baker.quick_step = 1;
+	baker.break_test = re->test_break;
+	baker.break_data = re->tbh;
+	baker.progressbar = NULL;
+
+	BKE_ptcache_make_cache(&baker);
+}
 /* evaluating scene options for general Blender render */
-static int render_initialize_from_scene(Render *re, Scene *scene, int anim)
+static int render_initialize_from_scene(Render *re, Scene *scene, int anim, int anim_init)
 {
 	int winx, winy;
 	rcti disprect;
@@ -2450,6 +2467,9 @@ static int render_initialize_from_scene(Render *re, Scene *scene, int anim)
 	
 	/* check all scenes involved */
 	tag_scenes_for_render(re);
+
+	/* make sure dynamics are up to date */
+	update_physics_cache(re, scene, anim_init);
 	
 	if(scene->r.scemode & R_SINGLE_LAYER)
 		push_render_result(re);
@@ -2479,7 +2499,7 @@ void RE_BlenderFrame(Render *re, Scene *scene, int frame)
 	
 	scene->r.cfra= frame;
 	
-	if(render_initialize_from_scene(re, scene, 0)) {
+	if(render_initialize_from_scene(re, scene, 0, 0)) {
 		do_render_all_options(re);
 	}
 	
@@ -2568,7 +2588,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 	int nfra;
 	
 	/* do not fully call for each frame, it initializes & pops output window */
-	if(!render_initialize_from_scene(re, scene, 0))
+	if(!render_initialize_from_scene(re, scene, 0, 1))
 		return;
 	
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
@@ -2599,7 +2619,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 			char name[FILE_MAX];
 			
 			/* only border now, todo: camera lens. (ton) */
-			render_initialize_from_scene(re, scene, 1);
+			render_initialize_from_scene(re, scene, 1, 0);
 
 			if(nfra!=scene->r.cfra) {
 				/*

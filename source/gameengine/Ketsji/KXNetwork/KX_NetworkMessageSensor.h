@@ -57,8 +57,7 @@ public:
 		KX_NetworkEventManager* eventmgr,	// our eventmanager
 		NG_NetworkScene *NetworkScene,		// our scene
 		SCA_IObject* gameobj,				// the sensor controlling object
-		const STR_String &subject,
-		PyTypeObject* T=&Type
+		const STR_String &subject
 	);
 	virtual ~KX_NetworkMessageSensor();
 
@@ -71,10 +70,6 @@ public:
 	/* ------------------------------------------------------------- */
 	/* Python interface -------------------------------------------- */
 	/* ------------------------------------------------------------- */
-
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	// Deprecated ----->
 	KX_PYMETHOD_DOC_O(KX_NetworkMessageSensor, SetSubjectFilterText);

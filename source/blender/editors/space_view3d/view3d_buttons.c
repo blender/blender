@@ -64,16 +64,14 @@
 #include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
 #include "BKE_mesh.h"
-#include "BKE_tessmesh.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
-#include "BKE_mesh.h"
+#include "BKE_tessmesh.h"
 
 #include "BIF_gl.h"
-#include "BIF_transform.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -89,6 +87,7 @@
 #include "ED_object.h"
 #include "ED_particle.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 #include "ED_types.h"
 #include "ED_util.h"
 
@@ -167,12 +166,12 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;
 		BMEditMesh *em = me->edit_btmesh;
+		BMesh *bm = em->bm;
 		BMVert *eve, *evedef=NULL;
 		BMEdge *eed;
 		BMIter iter;
 		
-		eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-		for ( ; eve; eve=BMIter_Step(&iter)) {
+		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 			if(BM_TestHFlag(eve, BM_SELECT)) {
 				evedef= eve;
 				tot++;
@@ -180,8 +179,7 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 			}
 		}
 
-		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-		for ( ; eed; eed=BMIter_Step(&iter)) {
+		BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			if(BM_TestHFlag(eed, BM_SELECT)) {
 				totedge++;
 				median[3]+= eed->crease;
@@ -1107,6 +1105,7 @@ static int view3d_panel_brush_poll(const bContext *C, PanelType *pt)
 static void view3d_panel_brush(const bContext *C, Panel *pa)
 {
 	uiBlock *block;
+	ToolSettings *ts= CTX_data_tool_settings(C);
 	Brush **brp = current_brush_source(CTX_data_scene(C)), *br;
 	short w = 268, h = 400, cx = 10, cy = h;
 	rctf rect;
@@ -1132,9 +1131,10 @@ static void view3d_panel_brush(const bContext *C, Panel *pa)
 		uiDefButC(block,ROW,B_REDR,"Pinch",cx+134,cy,67,19,&br->sculpt_tool,14.0,SCULPT_TOOL_PINCH,0,0,"Interactively pinch areas of the model");
 		uiDefButC(block,ROW,B_REDR,"Inflate",cx+201,cy,67,19,&br->sculpt_tool,14,SCULPT_TOOL_INFLATE,0,0,"Push vertices along the direction of their normals");
 		cy-= 20;
-		uiDefButC(block,ROW,B_REDR,"Grab", cx,cy,89,19,&br->sculpt_tool,14,SCULPT_TOOL_GRAB,0,0,"Grabs a group of vertices and moves them with the mouse");
-		uiDefButC(block,ROW,B_REDR,"Layer", cx+89,cy,89,19,&br->sculpt_tool,14, SCULPT_TOOL_LAYER,0,0,"Adds a layer of depth");
-		uiDefButC(block,ROW,B_REDR,"Flatten", cx+178,cy,90,19,&br->sculpt_tool,14, SCULPT_TOOL_FLATTEN,0,0,"Interactively flatten areas of the model");
+		uiDefButC(block,ROW,B_REDR,"Grab", cx,cy,67,19,&br->sculpt_tool,14,SCULPT_TOOL_GRAB,0,0,"Grabs a group of vertices and moves them with the mouse");
+		uiDefButC(block,ROW,B_REDR,"Layer", cx+67,cy,67,19,&br->sculpt_tool,14, SCULPT_TOOL_LAYER,0,0,"Adds a layer of depth");
+		uiDefButC(block,ROW,B_REDR,"Flatten", cx+134,cy,67,19,&br->sculpt_tool,14, SCULPT_TOOL_FLATTEN,0,0,"Interactively flatten areas of the model");
+		uiDefButC(block,ROW,B_REDR,"Clay", cx+201,cy,67,19,&br->sculpt_tool,14, SCULPT_TOOL_CLAY,0,0,"Build up depth quickly");
 		cy-= 25;
 		uiBlockEndAlign(block);
 	}
@@ -1142,6 +1142,10 @@ static void view3d_panel_brush(const bContext *C, Panel *pa)
 	uiBlockBeginAlign(block);
 	uiDefButI(block,NUMSLI,B_NOP,"Size: ",cx,cy,w,19,&br->size,1.0,200.0,0,0,"Set brush radius in pixels");
 	cy-= 20;
+	if(G.f & G_WEIGHTPAINT) {
+		uiDefButF(block,NUMSLI,B_NOP,"Weight: ",cx,cy,w,19,&ts->vgroup_weight,0,1.0,0,0,"Set vertex weight");
+		cy-= 20;
+	}
 	uiDefButF(block,NUMSLI,B_NOP,"Strength: ",cx,cy,w,19,&br->alpha,0,1.0,0,0,"Set brush strength");
 	cy-= 25;
 	uiBlockEndAlign(block);
@@ -1157,11 +1161,13 @@ static void view3d_panel_brush(const bContext *C, Panel *pa)
 	cy-= 20;
 	uiBlockEndAlign(block);
 
-	rect.xmin= cx; rect.xmax= cx + w;
-	rect.ymin= cy - 200; rect.ymax= cy;
-	uiBlockBeginAlign(block);
-	curvemap_buttons(block, br->curve, (char)0, B_NOP, 0, &rect);
-	uiBlockEndAlign(block);
+	if(br->curve) {
+		rect.xmin= cx; rect.xmax= cx + w;
+		rect.ymin= cy - 200; rect.ymax= cy;
+		uiBlockBeginAlign(block);
+		curvemap_buttons(block, br->curve, (char)0, B_NOP, 0, &rect);
+		uiBlockEndAlign(block);
+	}
 }
 
 static void sculptmode_draw_interface_tools(Scene *scene, uiBlock *block, unsigned short cx, unsigned short cy)
@@ -1660,7 +1666,7 @@ static void view3d_panel_bonesketch_spaces(const bContext *C, Panel *pa)
 
 	uiBlockEndAlign(block);
 	
-	uiDefButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_NOP, "Peel Objects", 10, yco, 200, 20, &scene->snap_flag, 0, 0, 0, 0, "Peel whole objects as one");
+	uiDefButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_NOP, "Peel Objects", 10, yco, 200, 20, &scene->toolsettings->snap_flag, 0, 0, 0, 0, "Peel whole objects as one");
 }
 
 
@@ -1707,7 +1713,7 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 	}
 	
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	uiDefAutoButsRNA(C, pa->layout, &ptr);
+	uiDefAutoButsRNA(C, pa->layout, &ptr, 2);
 }
 
 void view3d_buttons_register(ARegionType *art)

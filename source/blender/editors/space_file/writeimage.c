@@ -153,6 +153,9 @@ void save_image_filesel_str(Scene *scene, char *str)
 			strcpy(str, "Save Radiance HDR");
 			break;
 		case R_FFMPEG:
+		case R_H264:
+		case R_XVID:
+		case R_THEORA:
 		case R_PNG:
 			strcpy(str, "Save PNG");
 			break;

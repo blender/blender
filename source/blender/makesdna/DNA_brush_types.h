@@ -84,6 +84,7 @@ typedef struct Brush {
 #define BRUSH_ANCHORED		256
 #define BRUSH_DIR_IN		512
 #define BRUSH_SPACE		1024
+#define BRUSH_SMOOTH_STROKE	2048
 
 /* Brush.blend */
 #define BRUSH_BLEND_MIX 		0
@@ -108,6 +109,7 @@ typedef struct Brush {
 #define SCULPT_TOOL_GRAB    5
 #define SCULPT_TOOL_LAYER   6
 #define SCULPT_TOOL_FLATTEN 7
+#define SCULPT_TOOL_CLAY    8
 
 #define PAINT_TOOL_DRAW		0
 #define PAINT_TOOL_SOFTEN	1

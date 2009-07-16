@@ -1,5 +1,5 @@
 /**
- * $Id: BIF_gl.h 10455 2007-04-04 13:18:41Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -31,30 +31,11 @@
 #ifndef BIF_GL_H
 #define BIF_GL_H
 
-	/* Although not really a great idea to copy these defines
-	 * from Windows' winnt.h, this lets us use GL without including
-	 * windows.h everywhere (or BLI_winstuff.h) which is a good thing.
-	 */
-#ifdef WIN32
-#ifndef APIENTRY
-#define APIENTRY	__stdcall
-#endif
-
-#ifndef CALLBACK
-#define CALLBACK	__stdcall
-#endif
-
-#ifndef WINGDIAPI
-#define WINGDIAPI	__declspec(dllimport)
-#endif
-#endif
-
 #include "GL/glew.h"
 
 	/*
 	 * these should be phased out. cpack should be replaced in
-	 * code with calls to glColor3ub, lrectwrite probably should
-	 * change to a function. - zr
+	 * code with calls to glColor3ub. - zr
 	 */
 /* 
  *
@@ -66,12 +47,6 @@
 
 #define glMultMatrixf(x)		glMultMatrixf( (float *)(x))
 #define glLoadMatrixf(x)		glLoadMatrixf( (float *)(x))
-
-#define lrectwrite(a, b, c, d, rect)	{glRasterPos2i(a,  b);glDrawPixels((c)-(a)+1, (d)-(b)+1, GL_RGBA, GL_UNSIGNED_BYTE,  rect);}
-
-/* glStippleDefines, defined in glutil.c */
-extern GLubyte stipple_halftone[128];
-extern GLubyte stipple_quarttone[128];
 
 #endif /* #ifdef BIF_GL_H */
 

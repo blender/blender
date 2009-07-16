@@ -54,15 +54,17 @@ PyTypeObject CValue::Type = {
 	py_base_repr,
 	0,
 	0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
-	0,0,0,0,0,0,0,0,0,
-	Methods
-};
-
-PyParentObject CValue::Parents[] = {
-	&CValue::Type,
-		NULL
+	NULL,
+	NULL,
+	0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&PyObjectPlus::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef CValue::Methods[] = {
@@ -74,7 +76,7 @@ PyObject* CValue::PyGetName()
 {
 	ShowDeprecationWarning("getName()", "the name property");
 	
-	return PyString_FromString(this->GetName());
+	return PyUnicode_FromString(this->GetName());
 }
 
 /*#define CVALUE_DEBUG*/
@@ -100,8 +102,8 @@ std::vector<SmartCValueRef> gRefList;
 //int gRefCountValue;
 #endif
 
-CValue::CValue(PyTypeObject *T)
-		: PyObjectPlus(T),
+CValue::CValue()
+		: PyObjectPlus(),
 #else
 CValue::CValue()
 : 
@@ -553,33 +555,9 @@ PyAttributeDef CValue::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-
-PyObject*	CValue::py_getattro(PyObject *attr)
-{	
-	char *attr_str= PyString_AsString(attr);
-	CValue* resultattr = GetProperty(attr_str);
-	if (resultattr)
-	{
-		/* only show the wanting here because python inspects for __class__ and KX_MeshProxy uses CValues name attr */
-		ShowDeprecationWarning("val = ob.attr", "val = ob['attr']");
-		
-		PyObject* pyconvert = resultattr->ConvertValueToPython();
-		
-		if (pyconvert)
-			return pyconvert;
-		else
-			return resultattr->GetProxy();
-	}
-	py_getattro_up(PyObjectPlus);
-}
-
-PyObject* CValue::py_getattro_dict() {
-	py_getattro_dict_up(PyObjectPlus);
-}
-
 PyObject * CValue::pyattr_get_name(void * self_v, const KX_PYATTRIBUTE_DEF * attrdef) {
 	CValue * self = static_cast<CValue *> (self_v);
-	return PyString_FromString(self->GetName());
+	return PyUnicode_FromString(self->GetName());
 }
 
 CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
@@ -623,30 +601,23 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
 	{
 		vallie = new CFloatValue( (float)PyFloat_AsDouble(pyobj) );
 	} else
+#if PY_VERSION_HEX < 0x03000000
 	if (PyInt_Check(pyobj))
 	{
 		vallie = new CIntValue( (cInt)PyInt_AS_LONG(pyobj) );
 	} else
+#endif
 	if (PyLong_Check(pyobj))
 	{
 		vallie = new CIntValue( (cInt)PyLong_AsLongLong(pyobj) );
 	} else
-	if (PyString_Check(pyobj))
+	if (PyUnicode_Check(pyobj))
 	{
-		vallie = new CStringValue(PyString_AsString(pyobj),"");
+		vallie = new CStringValue(_PyUnicode_AsString(pyobj),"");
 	} else
-	if (BGE_PROXY_CHECK_TYPE(pyobj)) /* Note, dont let these get assigned to GameObject props, must check elsewhere */
+	if (PyObject_TypeCheck(pyobj, &CValue::Type)) /* Note, dont let these get assigned to GameObject props, must check elsewhere */
 	{
-		if (BGE_PROXY_REF(pyobj) && (BGE_PROXY_REF(pyobj))->isA(&CValue::Type))
-		{
-			vallie = (static_cast<CValue *>(BGE_PROXY_REF(pyobj)))->AddRef();
-		} else {
-			
-			if(BGE_PROXY_REF(pyobj))	/* this is not a CValue */
-				PyErr_Format(PyExc_TypeError, "%sgame engine python type cannot be used as a property", error_prefix);
-			else						/* PyObjectPlus_Proxy has been removed, cant use */
-				PyErr_Format(PyExc_SystemError, "%s"BGE_PROXY_ERROR_MSG, error_prefix);
-		}
+		vallie = (static_cast<CValue *>(BGE_PROXY_REF(pyobj)))->AddRef();
 	} else
 	{
 		/* return an error value from the caller */
@@ -655,57 +626,6 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
 	return vallie;
 
 }
-
-int	CValue::py_delattro(PyObject *attr)
-{
-	ShowDeprecationWarning("del ob.attr", "del ob['attr']");
-	
-	char *attr_str= PyString_AsString(attr);
-	if (RemoveProperty(attr_str))
-		return 0;
-	
-	PyErr_Format(PyExc_AttributeError, "attribute \"%s\" dosnt exist", attr_str);
-	return PY_SET_ATTR_MISSING;
-}
-
-int	CValue::py_setattro(PyObject *attr, PyObject* pyobj)
-{
-	ShowDeprecationWarning("ob.attr = val", "ob['attr'] = val");
-	
-	char *attr_str= PyString_AsString(attr);
-	CValue* oldprop = GetProperty(attr_str);	
-	CValue* vallie;
-
-	/* Dissallow python to assign GameObjects, Scenes etc as values */
-	if ((BGE_PROXY_CHECK_TYPE(pyobj)==0) && (vallie = ConvertPythonToValue(pyobj, "cvalue.attr = value: ")))
-	{
-		if (oldprop)
-			oldprop->SetValue(vallie);
-		else
-			SetProperty(attr_str, vallie);
-		
-		vallie->Release();
-	}
-	else {
-		// ConvertPythonToValue sets the error message
-		// must return missing so KX_GameObect knows this
-		// attribute was not a function or bult in attribute,
-		//
-		// CValue attributes override internal attributes
-		// so if it exists as a CValue attribute already,
-		// assume your trying to set it to a differnt CValue attribute
-		// otherwise return PY_SET_ATTR_MISSING so children
-		// classes know they can set it without conflict 
-		
-		if (GetProperty(attr_str))
-			return PY_SET_ATTR_COERCE_FAIL; /* failed to set an existing attribute */
-		else
-			return PY_SET_ATTR_MISSING; /* allow the KX_GameObject dict to set */
-	}
-	
-	//PyObjectPlus::py_setattro(attr,value);
-	return PY_SET_ATTR_SUCCESS;
-};
 
 PyObject*	CValue::ConvertKeysToPython( void )
 {
@@ -717,61 +637,13 @@ PyObject*	CValue::ConvertKeysToPython( void )
 		std::map<STR_String,CValue*>::iterator it;
 		for (it= m_pNamedPropertyArray->begin(); (it != m_pNamedPropertyArray->end()); it++)
 		{
-			pystr = PyString_FromString( (*it).first );
+			pystr = PyUnicode_FromString( (*it).first );
 			PyList_Append(pylist, pystr);
 			Py_DECREF( pystr );
 		}
 	}
 	return pylist;
 }
-
-/*
-PyObject*	CValue::PyMake(PyObject* ignored,PyObject* args)
-{
-
-	//if (!PyArg_ParseTuple(args,"s:make",&name)) return NULL;
-	Py_RETURN_NONE;//new CValue();
-}
-*/
-
-#if (PY_VERSION_HEX >= 0x03000000)
-static struct PyModuleDef CValue_module_def = {
-	{}, /* m_base */
-	"CValue",  /* m_name */
-	0,  /* m_doc */
-	0,  /* m_size */
-	CValueMethods,  /* m_methods */
-	0,  /* m_reload */
-	0,  /* m_traverse */
-	0,  /* m_clear */
-	0,  /* m_free */
-};
-#endif
-
-extern "C" {
-	void initCValue(void)
-	{
-		PyObject *m;
-		/* Use existing module where possible
-		 * be careful not to init any runtime vars after this */
-		m = PyImport_ImportModule( "CValue" );
-		if(m) {
-			Py_DECREF(m);
-			//return m;
-		}
-		else {
-			PyErr_Clear();
-		
-#if (PY_VERSION_HEX >= 0x03000000)
-			PyModule_Create(&CValue_module_def);
-#else
-			Py_InitModule("CValue",CValueMethods);
-#endif
-		}
-	}
-}
-
-
 
 #endif //NO_EXP_PYTHON_EMBEDDING
 

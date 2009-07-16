@@ -39,8 +39,7 @@ CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include    
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
-CPPFLAGS += -I$(NAN_FUZZICS)/include -I$(NAN_SUMO) -I$(NAN_MOTO)/include
-CPPFLAGS += -I$(NAN_SOLID)/include
+CPPFLAGS += -I$(NAN_FUZZICS)/include -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_BULLET2)/include
 
 CPPFLAGS += -I../../blender
@@ -48,6 +47,7 @@ CPPFLAGS += -I../../blender
 CPPFLAGS += -I../../blender/windowmanager
 CPPFLAGS += -I../../blender/imbuf
 CPPFLAGS += -I../../blender/makesdna
+CPPFLAGS += -I../../blender/makesrna
 CPPFLAGS += -I../../blender/editors/include
 CPPFLAGS += -I../../blender/blenlib
 CPPFLAGS += -I../../blender/blenkernel

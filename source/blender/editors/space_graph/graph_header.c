@@ -43,9 +43,12 @@
 #include "BKE_screen.h"
 
 #include "ED_anim_api.h"
+#include "ED_transform.h"
 #include "ED_screen.h"
 #include "ED_types.h"
 #include "ED_util.h"
+
+#include "RNA_access.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -62,76 +65,174 @@
 /* ********************************************************* */
 /* Menu Defines... */
 
-/* button events */
+static void graph_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	bScreen *sc= CTX_wm_screen(C);
+	ScrArea *sa= CTX_wm_area(C);
+	SpaceIpo *sipo= (SpaceIpo*)CTX_wm_space_data(C);
+	PointerRNA spaceptr;
+	
+	/* retrieve state */
+	RNA_pointer_create(&sc->id, &RNA_SpaceGraphEditor, sipo, &spaceptr);
+	
+	/* create menu */
+	uiItemO(layout, NULL, ICON_MENU_PANEL, "GRAPH_OT_properties");
+	
+	uiItemS(layout);
+	
+	uiItemR(layout, NULL, 0, &spaceptr, "show_cframe_indicator", 0, 0, 0);
+	
+	if (sipo->flag & SIPO_NOHANDLES)
+		uiItemO(layout, "Show Handles", ICON_CHECKBOX_DEHLT, "GRAPH_OT_handles_view_toggle");
+	else
+		uiItemO(layout, "Show Handles", ICON_CHECKBOX_HLT, "GRAPH_OT_handles_view_toggle");
+	
+	uiItemR(layout, NULL, 0, &spaceptr, "automerge_keyframes", 0, 0, 0);
+	
+	if (sipo->flag & SIPO_DRAWTIME)
+		uiItemO(layout, "Show Frames", 0, "ANIM_OT_time_toggle");
+	else
+		uiItemO(layout, "Show Seconds", 0, "ANIM_OT_time_toggle");
+	
+	uiItemS(layout);
+	
+	uiItemO(layout, NULL, 0, "ANIM_OT_previewrange_set");
+	uiItemO(layout, NULL, 0, "ANIM_OT_previewrange_clear");
+	
+	uiItemO(layout, NULL, 0, "GRAPH_OT_previewrange_set");
+	
+	uiItemS(layout);
+	
+	uiItemO(layout, NULL, 0, "GRAPH_OT_frame_jump");
+	
+	uiItemO(layout, NULL, 0, "GRAPH_OT_view_all");
+	
+	if (sa->full) 
+		uiItemO(layout, NULL, 0, "SCREEN_OT_screen_full_area"); // "Tile Window", Ctrl UpArrow
+	else 
+		uiItemO(layout, NULL, 0, "SCREEN_OT_screen_full_area"); // "Maximize Window", Ctrl DownArrow
+}
+
+static void graph_selectmenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	uiItemO(layout, NULL, 0, "GRAPH_OT_select_all_toggle");
+	uiItemBooleanO(layout, "Invert All", 0, "GRAPH_OT_select_all_toggle", "invert", 1);
+	
+	uiItemS(layout);
+	
+	uiItemO(layout, NULL, 0, "GRAPH_OT_select_border");
+	uiItemBooleanO(layout, "Border Axis Range", 0, "GRAPH_OT_select_border", "axis_range", 1);
+	
+	uiItemS(layout);
+	
+	uiItemEnumO(layout, "Columns on Selected Keys", 0, "GRAPH_OT_select_column", "mode", GRAPHKEYS_COLUMNSEL_KEYS);
+	uiItemEnumO(layout, "Column on Current Frame", 0, "GRAPH_OT_select_column", "mode", GRAPHKEYS_COLUMNSEL_CFRA);
+	
+	uiItemEnumO(layout, "Columns on Selected Markers", 0, "GRAPH_OT_select_column", "mode", GRAPHKEYS_COLUMNSEL_MARKERS_COLUMN);
+	uiItemEnumO(layout, "Between Selected Markers", 0, "GRAPH_OT_select_column", "mode", GRAPHKEYS_COLUMNSEL_MARKERS_BETWEEN);
+}
+
+static void graph_channelmenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	uiItemO(layout, NULL, 0, "ANIM_OT_channels_setting_toggle");
+	uiItemO(layout, NULL, 0, "ANIM_OT_channels_setting_enable");
+	uiItemO(layout, NULL, 0, "ANIM_OT_channels_setting_disable");
+	
+	uiItemS(layout);
+	
+	uiItemO(layout, NULL, 0, "ANIM_OT_channels_editable_toggle");
+	
+	uiItemS(layout);
+	
+	uiItemO(layout, NULL, 0, "ANIM_OT_channels_expand");
+	uiItemO(layout, NULL, 0, "ANIM_OT_channels_collapse");
+}
+
+static void graph_edit_transformmenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	uiItemEnumO(layout, "Grab/Move", 0, "TFM_OT_transform", "mode", TFM_TIME_TRANSLATE);
+	uiItemEnumO(layout, "Extend", 0, "TFM_OT_transform", "mode", TFM_TIME_EXTEND);
+	uiItemEnumO(layout, "Scale", 0, "TFM_OT_transform", "mode", TFM_TIME_SCALE);
+}
+
+static void graph_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_CFRA);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_NEAREST_FRAME);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_NEAREST_SECOND);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_NEAREST_MARKER);
+}
+
+static void graph_edit_mirrormenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_mirror", "type", GRAPHKEYS_MIRROR_CFRA);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_mirror", "type", GRAPHKEYS_MIRROR_YAXIS);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_mirror", "type", GRAPHKEYS_MIRROR_XAXIS);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_mirror", "type", GRAPHKEYS_MIRROR_MARKER);
+}
+
+static void graph_edit_handlesmenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_handle_type", "type", HD_FREE);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_handle_type", "type", HD_AUTO);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_handle_type", "type", HD_VECT);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_handle_type", "type", HD_ALIGN);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_handle_type", "type", HD_AUTO_ANIM); // xxx?
+}
+
+static void graph_edit_ipomenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_interpolation_type", "type", BEZT_IPO_CONST);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_interpolation_type", "type", BEZT_IPO_LIN);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_interpolation_type", "type", BEZT_IPO_BEZ);
+}
+
+static void graph_edit_expomenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_extrapolation_type", "type", FCURVE_EXTRAPOLATE_CONSTANT);
+	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_extrapolation_type", "type", FCURVE_EXTRAPOLATE_LINEAR);
+}
+
+static void graph_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	uiItemMenuF(layout, "Transform", 0, graph_edit_transformmenu);
+	uiItemMenuF(layout, "Snap", 0, graph_edit_snapmenu);
+	uiItemMenuF(layout, "Mirror", 0, graph_edit_mirrormenu);
+	
+	uiItemS(layout);
+	
+	uiItemO(layout, NULL, 0, "GRAPH_OT_insert_keyframe");
+	uiItemO(layout, NULL, 0, "GRAPH_OT_fmodifier_add");
+	
+	uiItemS(layout);
+	
+	uiItemO(layout, NULL, 0, "GRAPH_OT_duplicate");
+	uiItemO(layout, NULL, 0, "GRAPH_OT_delete");
+	
+	uiItemS(layout);
+	
+	uiItemMenuF(layout, "Handle Type", 0, graph_edit_handlesmenu);
+	uiItemMenuF(layout, "Interpolation Mode", 0, graph_edit_ipomenu);
+	uiItemMenuF(layout, "Extrapolation Mode", 0, graph_edit_expomenu);
+	
+	uiItemS(layout);
+	
+	uiItemO(layout, NULL, 0, "GRAPH_OT_clean");
+	uiItemO(layout, NULL, 0, "GRAPH_OT_sample");
+	uiItemO(layout, NULL, 0, "GRAPH_OT_bake");
+	
+	uiItemS(layout);
+	
+	uiItemO(layout, NULL, 0, "GRAPH_OT_copy");
+	uiItemO(layout, NULL, 0, "GRAPH_OT_paste");
+}
+
+/* ********************************************************* */
+
 enum {
-	B_REDR 	= 0,
+	B_REDR = 0,
 	B_MODECHANGE,
-} eActHeader_ButEvents;
-
-/* ************************ header area region *********************** */
-
-static void do_viewmenu(bContext *C, void *arg, int event)
-{
-	SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
-	
-	switch (event) {
-		case 1: /* Show time/frames */
-			sipo->flag ^= SIPO_DRAWTIME;
-			break;
-		case 2: /* AutoMerge Keyframes */
-			sipo->flag ^= SIPO_NOTRANSKEYCULL;
-			break;
-		case 3: /* Show/Hide handles */
-			sipo->flag ^= SIPO_NOHANDLES;
-			break;
-		case 4: /* Show current frame number beside indicator */
-			sipo->flag ^= SIPO_NODRAWCFRANUM;
-			break;
-	}
-}
-
-static uiBlock *graph_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	ScrArea *curarea= CTX_wm_area(C);
-	SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-	
-	block= uiBeginBlock(C, ar, "graph_viewmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_viewmenu, NULL);
-	
-		// XXX these options should use new menu-options
-	
-	if (sipo->flag & SIPO_DRAWTIME) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Show Frames|Ctrl T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	}
-	else {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Show Seconds|Ctrl T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	}
-	
-	
-	uiDefIconTextBut(block, BUTM, 1, (sipo->flag & SIPO_NOTRANSKEYCULL)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
-					 "AutoMerge Keyframes|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, (sipo->flag & SIPO_NOHANDLES)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
-					 "Show Handles|Ctrl H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, (sipo->flag & SIPO_NODRAWCFRANUM)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
-					 "Show Current Frame Number|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-	
-	if (curarea->headertype==HEADERTOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-	
-	uiTextBoundsBlock(block, 50);
-	uiEndBlock(C, block);
-	
-	return block;
-}
+} eGraphEdit_Events;
 
 static void do_graph_buttons(bContext *C, void *arg, int event)
 {
@@ -163,8 +264,19 @@ void graph_header_buttons(const bContext *C, ARegion *ar)
 		int xmax;
 		
 		xmax= GetButStringLength("View");
-		uiDefPulldownBut(block, graph_viewmenu, CTX_wm_area(C), 
-						 "View", xco, yco-2, xmax-3, 24, "");
+		uiDefMenuBut(block, graph_viewmenu, NULL, "View", xco, yco, xmax-3, 20, "");
+		xco+= xmax;
+		
+		xmax= GetButStringLength("Select");
+		uiDefMenuBut(block, graph_selectmenu, NULL, "Select", xco, yco, xmax-3, 20, "");
+		xco+= xmax;
+		
+		xmax= GetButStringLength("Channel");
+		uiDefMenuBut(block, graph_channelmenu, NULL, "Channel", xco, yco, xmax-3, 20, "");
+		xco+= xmax;
+		
+		xmax= GetButStringLength("Key");
+		uiDefMenuBut(block, graph_editmenu, NULL, "Key", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 	}
 	
@@ -202,8 +314,8 @@ void graph_header_buttons(const bContext *C, ARegion *ar)
 	
 	/* copy + paste */
 	uiBlockBeginAlign(block);
-		uiDefIconButO(block, BUT, "GRAPHEDIT_OT_keyframes_copy", WM_OP_INVOKE_REGION_WIN, ICON_COPYDOWN, xco+=XIC,yco,XIC,YIC, "Copies the selected keyframes from the selected channel(s) to the buffer");
-		uiDefIconButO(block, BUT, "GRAPHEDIT_OT_keyframes_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEDOWN, xco+=XIC,yco,XIC,YIC, "Pastes the keyframes from the buffer");
+		uiDefIconButO(block, BUT, "GRAPH_OT_copy", WM_OP_INVOKE_REGION_WIN, ICON_COPYDOWN, xco+=XIC,yco,XIC,YIC, "Copies the selected keyframes from the selected channel(s) to the buffer");
+		uiDefIconButO(block, BUT, "GRAPH_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEDOWN, xco+=XIC,yco,XIC,YIC, "Pastes the keyframes from the buffer");
 	uiBlockEndAlign(block);
 	xco += (XIC + 8);
 	
@@ -225,9 +337,9 @@ void graph_header_buttons(const bContext *C, ARegion *ar)
 	/* ghost curves */
 	// XXX these icons need to be changed
 	if (sipo->ghostCurves.first)
-		uiDefIconButO(block, BUT, "GRAPHEDIT_OT_ghost_curves_clear", WM_OP_INVOKE_REGION_WIN, ICON_OUTLINER_DATA_CURVE, xco,yco,XIC,YIC, "Clear F-Curve snapshots (Ghosts) for this Graph Editor instance");
+		uiDefIconButO(block, BUT, "GRAPH_OT_ghost_curves_clear", WM_OP_INVOKE_REGION_WIN, ICON_OUTLINER_DATA_CURVE, xco,yco,XIC,YIC, "Clear F-Curve snapshots (Ghosts) for this Graph Editor instance");
 	else 
-		uiDefIconButO(block, BUT, "GRAPHEDIT_OT_ghost_curves_create", WM_OP_INVOKE_REGION_WIN, ICON_OUTLINER_OB_CURVE, xco,yco,XIC,YIC, "Create snapshot (Ghosts) of selected F-Curves as background aid for this Graph Editor instance");
+		uiDefIconButO(block, BUT, "GRAPH_OT_ghost_curves_create", WM_OP_INVOKE_REGION_WIN, ICON_OUTLINER_OB_CURVE, xco,yco,XIC,YIC, "Create snapshot (Ghosts) of selected F-Curves as background aid for this Graph Editor instance");
 	xco+= XIC;
 	
 	

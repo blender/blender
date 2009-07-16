@@ -83,7 +83,6 @@ GRPLIB += $(NAN_SOUNDSYSTEM)/lib/$(DEBUG_DIR)libSoundSystem.a
 GRPLIB += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
 GRPLIB += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
 GRPLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
-GRPLIB += $(OCGDIR)/blender/radiosity/$(DEBUG_DIR)libradiosity.a
 
 # nlin: the reason that some libraries appear more than once below is
 # to handle circular dependencies in linking among libraries... some
@@ -115,25 +114,16 @@ ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/ketsji/$(DEBUG_DIR)libketsji.a
     COMLIB += $(OCGDIR)/gameengine/blconverter/$(DEBUG_DIR)libblconverter.a
     COMLIB += $(OCGDIR)/gameengine/blconverter/$(DEBUG_DIR)libblconverter.a
-    COMLIB += $(NAN_SOLID)/lib/libsolid.a
-    COMLIB += $(NAN_SOLID)/lib/libsolid_broad.a
-    COMLIB += $(NAN_SOLID)/lib/libsolid_complex.a
-    COMLIB += $(NAN_SOLID)/lib/libsolid_convex.a
-    COMLIB += $(OCGDIR)/gameengine/blphys/sumo/$(DEBUG_DIR)libsumo.a
     COMLIB += $(OCGDIR)/gameengine/blphys/fuzzics/$(DEBUG_DIR)libfuzzics.a
     COMLIB += $(NAN_QHULL)/lib/libqhull.a
     COMLIB += $(OCGDIR)/gameengine/blphys/dummy/$(DEBUG_DIR)libdummy.a
     COMLIB += $(OCGDIR)/gameengine/blphys/common/$(DEBUG_DIR)libcommon.a
-#    COMLIB += $(OCGDIR)/gameengine/blphys/sumo/$(DEBUG_DIR)libsumo.a
     COMLIB += $(OCGDIR)/gameengine/blphys/dummy/$(DEBUG_DIR)libdummy.a
     COMLIB += $(OCGDIR)/gameengine/ketsji/$(DEBUG_DIR)libketsji.a
     COMLIB += $(OCGDIR)/gameengine/blphys/common/$(DEBUG_DIR)libcommon.a
-#    COMLIB += $(OCGDIR)/gameengine/blphys/blode/$(DEBUG_DIR)libblode.a
-#    COMLIB += $(OCGDIR)/gameengine/blphys/sumo/$(DEBUG_DIR)libsumo.a
     COMLIB += $(OCGDIR)/gameengine/blphys/dummy/$(DEBUG_DIR)libdummy.a
     COMLIB += $(OCGDIR)/gameengine/blphys/blbullet/$(DEBUG_DIR)libblbullet.a
     COMLIB += $(OCGDIR)/gameengine/blphys/common/$(DEBUG_DIR)libcommon.a
-#    COMLIB += $(OCGDIR)/gameengine/blphys/sumo/$(DEBUG_DIR)libsumo.a
     COMLIB += $(OCGDIR)/gameengine/blphys/dummy/$(DEBUG_DIR)libdummy.a
     COMLIB += $(OCGDIR)/gameengine/ketsji/$(DEBUG_DIR)libketsji.a
     COMLIB += $(OCGDIR)/gameengine/logic/$(DEBUG_DIR)liblogic.a
@@ -143,8 +133,6 @@ ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/expression/$(DEBUG_DIR)libexpression.a
     COMLIB += $(OCGDIR)/gameengine/scenegraph/$(DEBUG_DIR)libscenegraph.a
     COMLIB += $(OCGDIR)/gameengine/videotex/$(DEBUG_DIR)libvideotex.a
-#    COMLIB += $(OCGDIR)/sumo/$(DEBUG_DIR)libfuzzics.a
-#    COMLIB += $(OCGDIR)/sumo/$(DEBUG_DIR)libsolid.a
     COMLIB += $(NAN_MOTO)/lib/libmoto.a
     COMLIB += $(NAN_SND_LIBS)
     COMLIB += $(OCGDIR)/kernel/gen_system/$(DEBUG_DIR)libgen_system.a
@@ -162,6 +150,7 @@ COMLIB += $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)libdna.a
 COMLIB += $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
 COMLIB += $(NAN_MEMUTIL)/lib/libmemutil.a
 COMLIB += $(NAN_PNG)/lib/libpng.a
+COMLIB += $(OCGDIR)/blender/gen_python/$(DEBUG_DIR)libgen_python.a
 
 ifeq ($(WITH_QUICKTIME), true)
     COMLIB += $(OCGDIR)/blender/blenderqt/$(DEBUG_DIR)libblenderqt.a
@@ -226,12 +215,13 @@ PULIB += $(OCGDIR)/blender/ed_action/$(DEBUG_DIR)libed_action.a
 PULIB += $(OCGDIR)/blender/ed_nla/$(DEBUG_DIR)libed_nla.a
 PULIB += $(OCGDIR)/blender/ed_script/$(DEBUG_DIR)libed_script.a
 PULIB += $(OCGDIR)/blender/ed_text/$(DEBUG_DIR)libed_text.a
+PULIB += $(OCGDIR)/blender/ed_logic/$(DEBUG_DIR)libed_logic.a
 PULIB += $(OCGDIR)/blender/ed_sequencer/$(DEBUG_DIR)libed_sequencer.a
 PULIB += $(OCGDIR)/blender/ed_file/$(DEBUG_DIR)libed_file.a
 PULIB += $(OCGDIR)/blender/ed_info/$(DEBUG_DIR)libed_info.a
 PULIB += $(OCGDIR)/blender/ed_buttons/$(DEBUG_DIR)libed_buttons.a
-PULIB += $(OCGDIR)/blender/ed_node/$(DEBUG_DIR)libed_node.a
 PULIB += $(OCGDIR)/blender/ed_graph/$(DEBUG_DIR)libed_graph.a
+PULIB += $(OCGDIR)/blender/ed_node/$(DEBUG_DIR)libed_node.a
 PULIB += $(OCGDIR)/blender/ed_outliner/$(DEBUG_DIR)libed_outliner.a
 PULIB += $(OCGDIR)/blender/ed_time/$(DEBUG_DIR)libed_time.a
 PULIB += $(OCGDIR)/blender/ed_preview/$(DEBUG_DIR)libed_preview.a

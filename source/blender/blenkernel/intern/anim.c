@@ -783,8 +783,9 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	BLI_srandom(31415926 + psys->seed);
 	
 	lay= scene->lay;
-	if((part->draw_as == PART_DRAW_OB && part->dup_ob) ||
-		(part->draw_as == PART_DRAW_GR && part->dup_group && part->dup_group->gobject.first)) {
+	if((psys->renderdata || part->draw_as==PART_DRAW_REND) &&
+		((part->ren_as == PART_DRAW_OB && part->dup_ob) ||
+		(part->ren_as == PART_DRAW_GR && part->dup_group && part->dup_group->gobject.first))) {
 
 		/* if we have a hair particle system, use the path cache */
 		if(part->type == PART_HAIR) {
@@ -801,7 +802,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 		psys->lattice = psys_get_lattice(scene, par, psys);
 
 		/* gather list of objects or single object */
-		if(part->draw_as==PART_DRAW_GR) {
+		if(part->ren_as==PART_DRAW_GR) {
 			group_handle_recalc_and_update(scene, par, part->dup_group);
 
 			for(go=part->dup_group->gobject.first; go; go=go->next)
@@ -847,7 +848,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 				size = psys_get_child_size(psys, cpa, ctime, 0);
 			}
 
-			if(part->draw_as==PART_DRAW_GR) {
+			if(part->ren_as==PART_DRAW_GR) {
 				/* for groups, pick the object based on settings */
 				if(part->draw&PART_DRAW_RAND_GR)
 					b= BLI_rand() % totgroup;
@@ -891,7 +892,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 				pamat[3][3]= 1.0f;
 			}
 
-			if(part->draw_as==PART_DRAW_GR && psys->part->draw & PART_DRAW_WHOLE_GR) {
+			if(part->ren_as==PART_DRAW_GR && psys->part->draw & PART_DRAW_WHOLE_GR) {
 				for(go= part->dup_group->gobject.first, b=0; go; go= go->next, b++) {
 					Mat4MulMat4(tmat, oblist[b]->obmat, pamat);
 					Mat4MulFloat3((float *)tmat, size*scale);
@@ -927,7 +928,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 		}
 
 		/* restore objects since they were changed in where_is_object_time */
-		if(part->draw_as==PART_DRAW_GR) {
+		if(part->ren_as==PART_DRAW_GR) {
 			for(a=0; a<totgroup; a++)
 				*(oblist[a])= obcopylist[a];
 		}

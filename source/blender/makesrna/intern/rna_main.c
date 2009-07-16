@@ -33,6 +33,7 @@
 #ifdef RNA_RUNTIME
 
 #include "BKE_main.h"
+#include "BKE_mesh.h"
 
 /* all the list begin functions are added manually here, Main is not in SDNA */
 
@@ -218,6 +219,7 @@ void RNA_def_main(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+
 	const char *lists[][5]= {
 		{"cameras", "Camera", "rna_Main_camera_begin", "Cameras", "Camera datablocks."},
 		{"scenes", "Scene", "rna_Main_scene_begin", "Scenes", "Scene datablocks."},
@@ -262,9 +264,11 @@ void RNA_def_main(BlenderRNA *brna)
 	{
 		prop= RNA_def_property(srna, lists[i][0], PROP_COLLECTION, PROP_NONE);
 		RNA_def_property_struct_type(prop, lists[i][1]);
-		RNA_def_property_collection_funcs(prop, lists[i][2], "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
+		RNA_def_property_collection_funcs(prop, lists[i][2], "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0, 0);
 		RNA_def_property_ui_text(prop, lists[i][3], lists[i][4]);
 	}
+
+	RNA_api_main(srna);
 }
 
 #endif

@@ -19,11 +19,7 @@ incs += ' #source/gameengine/Physics/Dummy'
 incs += ' #source/gameengine/Network/LoopBackNetwork'
 incs += ' #source/blender/misc #source/blender/blenloader #source/blender/gpu'
 incs += ' #source/blender/windowmanager'
-
-if env['WITH_BF_SOLID']:
-	incs += ' #source/gameengine/Physics/Sumo #source/gameengine/Physics/Sumo/Fuzzics/include'
-	incs += ' ' + env['BF_SOLID_INC']
-	defs.append('USE_SUMO_SOLID')
+incs += ' #source/blender/makesrna'
 
 incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_BULLET_INC']

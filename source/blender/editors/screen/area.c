@@ -259,14 +259,17 @@ static void region_scissor_winrct(ARegion *ar, rcti *winrct)
 	while(ar->prev) {
 		ar= ar->prev;
 		
-		if(ar->flag & RGN_FLAG_HIDDEN);
-		else if(ar->alignment==RGN_OVERLAP_LEFT) {
-			winrct->xmin= ar->winrct.xmax + 1;
+		if(BLI_isect_rcti(winrct, &ar->winrct, NULL)) {
+			if(ar->flag & RGN_FLAG_HIDDEN);
+			else if(ar->alignment & RGN_SPLIT_PREV);
+			else if(ar->alignment==RGN_OVERLAP_LEFT) {
+				winrct->xmin= ar->winrct.xmax + 1;
+			}
+			else if(ar->alignment==RGN_OVERLAP_RIGHT) {
+				winrct->xmax= ar->winrct.xmin - 1;
+			}
+			else break;
 		}
-		else if(ar->alignment==RGN_OVERLAP_RIGHT) {
-			winrct->xmax= ar->winrct.xmin - 1;
-		}
-		else break;
 	}
 }
 
@@ -1048,6 +1051,7 @@ static char *windowtype_pup(void)
 		   "|Outliner %x3" //232
 		   "|Buttons Window %x4" //251
 		   "|Node Editor %x16"
+		   "|Logic Editor %x17"
 		   "|%l" //254
 		   
 		   "|File Browser %x5" //290
@@ -1106,6 +1110,7 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 
 void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *context)
 {
+	ScrArea *sa= CTX_wm_area(C);
 	uiStyle *style= U.uistyles.first;
 	uiBlock *block;
 	PanelType *pt;
@@ -1123,8 +1128,6 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 		em= (ar->type->minsizex)? 10: 20;
 	}
 
-	header= 20; // XXX
-	triangle= 22;
 	x= 0;
 	y= -style->panelouter;
 
@@ -1143,12 +1146,16 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 		/* draw panel */
 		if(pt->draw && (!pt->poll || pt->poll(C, pt))) {
 			block= uiBeginBlock(C, ar, pt->idname, UI_EMBOSS);
-			panel= uiBeginPanel(ar, block, pt, &open);
+			panel= uiBeginPanel(sa, ar, block, pt, &open);
+
+			/* bad fixed values */
+			header= (pt->flag & PNL_NO_HEADER)? 0: 20;
+			triangle= 22;
 
 			if(vertical)
 				y -= header;
 
-			if(pt->draw_header && (open || vertical)) {
+			if(pt->draw_header && header && (open || vertical)) {
 				/* for enabled buttons */
 				panel->layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
 					triangle, header+style->panelspace, header, 1, style);
@@ -1161,7 +1168,6 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 			}
 
 			if(open) {
-				panel->type= pt;
 				panel->layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
 					style->panelspace, 0, w-2*style->panelspace, em, style);
 
@@ -1173,13 +1179,18 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 				yco -= 2*style->panelspace;
 				uiEndPanel(block, w, -yco);
 			}
-			else
+			else {
 				yco= 0;
+				uiEndPanel(block, w, 0);
+			}
 
 			uiEndBlock(C, block);
 
 			if(vertical) {
-				y += yco-style->panelouter;
+				if(pt->flag & PNL_NO_HEADER)
+					y += yco;
+				else
+					y += yco-style->panelouter;
 			}
 			else {
 				x += w;
@@ -1208,13 +1219,20 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	if(vertical) {
 		v2d->keepofs |= V2D_LOCKOFS_X;
 		v2d->keepofs &= ~V2D_LOCKOFS_Y;
+		
+		// don't jump back when panels close or hide
+		y= MAX2(-y, -v2d->cur.ymin);
 	}
 	else {
 		v2d->keepofs &= ~V2D_LOCKOFS_X;
 		v2d->keepofs |= V2D_LOCKOFS_Y;
+
+		// don't jump back when panels close or hide
+		x= MAX2(x, v2d->cur.xmax);
+		y= -y;
 	}
 
-	UI_view2d_totRect_set(v2d, x, -y);
+	UI_view2d_totRect_set(v2d, x, y);
 
 	/* set the view */
 	UI_view2d_view_ortho(C, v2d);

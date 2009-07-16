@@ -25,8 +25,9 @@
 # ***** END GPL LICENSE BLOCK *****
 
 FILE(GLOB DEFSRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*.c")
+FILE(GLOB APISRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} "*_api.c")
 LIST(REMOVE_ITEM DEFSRC rna_access.c rna_define.c makesrna.c)
-FILE(GLOB_RECURSE APISRC "../../editors/*/*_api.c")
+LIST(REMOVE_ITEM DEFSRC ${APISRC})
  
 STRING(REGEX REPLACE "rna_([a-zA-Z0-9_-]*).c" "${CMAKE_CURRENT_BINARY_DIR}/rna_\\1_gen.c" GENSRC "${DEFSRC}")
 
@@ -38,7 +39,7 @@ SET(SRC
      ../../../../intern/guardedalloc/intern/mallocn.c
      ../../../../intern/guardedalloc/intern/mmap_win.c)
 
-INCLUDE_DIRECTORIES(../../../../intern/guardedalloc .. ../../makesdna ../../blenkernel ../../blenlib ../../windowmanager ../../editors/include .)
+INCLUDE_DIRECTORIES(../../../../intern/guardedalloc .. ../../makesdna ../../blenkernel ../../blenlib ../../windowmanager ../../editors/include ../../imbuf .)
 FILE(GLOB INC_FILES ../*.h ../../makesdna/*.h)
 
 IF(WITH_OPENEXR)
@@ -58,8 +59,13 @@ IF(WITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
 IF(WITH_FFMPEG)
+  SET(INC ${INC} ${FFMPEG_INC})
   ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
+
+IF(NOT WITH_ELBEEM)
+  ADD_DEFINITIONS(-DDISABLE_ELBEEM)
+ENDIF(NOT WITH_ELBEEM)
 
 # Build makesrna executable
 ADD_EXECUTABLE(makesrna ${SRC} ${INC_FILES})

@@ -52,6 +52,8 @@ enum {
 	V2D_COMMONVIEW_STANDARD,
 		/* listview (i.e. Outliner) */
 	V2D_COMMONVIEW_LIST,
+		/* stackview (this is basically a list where new items are added at the top) */
+	V2D_COMMONVIEW_STACK,
 		/* headers (this is basically the same as listview, but no y-panning) */
 	V2D_COMMONVIEW_HEADER,
 		/* ui region containing panels */
@@ -97,12 +99,12 @@ enum {
 
 /* ------ Defines for Scrollers ----- */
 
-/* scroller thickness */
-#define V2D_SCROLL_HEIGHT	16
-#define V2D_SCROLL_WIDTH	16
+/* scroller area */
+#define V2D_SCROLL_HEIGHT	17
+#define V2D_SCROLL_WIDTH	17
 
-/* half the size (in pixels) of scroller 'handles' */
-#define V2D_SCROLLER_HANDLE_SIZE	5
+/* scroller 'handles' hotspot radius for mouse */
+#define V2D_SCROLLER_HANDLE_SIZE	12
 
 /* ------ Define for UI_view2d_sync ----- */
 

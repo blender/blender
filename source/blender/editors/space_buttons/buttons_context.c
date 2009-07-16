@@ -54,6 +54,7 @@
 
 #include "RNA_access.h"
 
+#include "ED_armature.h"
 #include "ED_screen.h"
 
 #include "UI_interface.h"
@@ -249,16 +250,29 @@ static int buttons_context_path_bone(ButsContextPath *path)
 {
 	bArmature *arm;
 	Bone *bone;
+	EditBone *edbo;
 
 	/* if we have an armature, get the active bone */
 	if(buttons_context_path_data(path, OB_ARMATURE)) {
 		arm= path->ptr[path->len-1].data;
-		bone= find_active_bone(arm->bonebase.first);
 
-		if(bone) {
-			RNA_pointer_create(&arm->id, &RNA_Bone, bone, &path->ptr[path->len]);
-			path->len++;
-			return 1;
+		if(arm->edbo) {
+			for(edbo=arm->edbo->first; edbo; edbo=edbo->next) {
+				if(edbo->flag & BONE_ACTIVE) {
+					RNA_pointer_create(&arm->id, &RNA_EditBone, edbo, &path->ptr[path->len]);
+					path->len++;
+					return 1;
+				}
+			}
+		}
+		else {
+			bone= find_active_bone(arm->bonebase.first);
+
+			if(bone) {
+				RNA_pointer_create(&arm->id, &RNA_Bone, bone, &path->ptr[path->len]);
+				path->len++;
+				return 1;
+			}
 		}
 	}
 
@@ -478,8 +492,17 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		return 0;
 
 	/* here we handle context, getting data from precomputed path */
+	if(CTX_data_dir(member)) {
+		static const char *dir[] = {
+			"world", "object", "meshe", "armature", "lattice", "curve",
+			"meta_ball", "lamp", "camera", "material", "material_slot",
+			"texture", "texture_slot", "bone", "edit_bone", "particle_system",
+			"cloth", "soft_body", "fluid", "collision", NULL};
 
-	if(CTX_data_equals(member, "world")) {
+		CTX_data_dir_set(result, dir);
+		return 1;
+	}
+	else if(CTX_data_equals(member, "world")) {
 		set_pointer_type(path, result, &RNA_World);
 		return 1;
 	}
@@ -529,7 +552,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		if(ptr) {
 			Object *ob= ptr->data;
 
-			if(ob && ob->type && (ob->type<OB_LAMP))
+			if(ob && ob->type && (ob->type<OB_LAMP) && ob->totcol)
 				CTX_data_pointer_set(result, &ob->id, &RNA_MaterialSlot, ob->mat+ob->actcol-1);
 		}
 
@@ -569,20 +592,31 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		set_pointer_type(path, result, &RNA_Bone);
 		return 1;
 	}
+	else if(CTX_data_equals(member, "edit_bone")) {
+		set_pointer_type(path, result, &RNA_EditBone);
+		return 1;
+	}
 	else if(CTX_data_equals(member, "particle_system")) {
 		set_pointer_type(path, result, &RNA_ParticleSystem);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "cloth")) {
-		set_pointer_type(path, result, &RNA_ClothModifier);
-		return 1;
+		PointerRNA *ptr= get_pointer_type(path, &RNA_Object);
+
+		if(ptr && ptr->data) {
+			Object *ob= ptr->data;
+			ModifierData *md= modifiers_findByType(ob, eModifierType_Cloth);
+			CTX_data_pointer_set(result, &ob->id, &RNA_ClothModifier, md);
+			return 1;
+		}
 	}
 	else if(CTX_data_equals(member, "soft_body")) {
 		PointerRNA *ptr= get_pointer_type(path, &RNA_Object);
 
 		if(ptr && ptr->data) {
 			Object *ob= ptr->data;
-			CTX_data_pointer_set(result, &ob->id, &RNA_SoftBodySettings, ob->soft);
+			ModifierData *md= modifiers_findByType(ob, eModifierType_Softbody);
+			CTX_data_pointer_set(result, &ob->id, &RNA_SoftBodyModifier, md);
 			return 1;
 		}
 	}
@@ -593,6 +627,16 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			Object *ob= ptr->data;
 			ModifierData *md= modifiers_findByType(ob, eModifierType_Fluidsim);
 			CTX_data_pointer_set(result, &ob->id, &RNA_FluidSimulationModifier, md);
+			return 1;
+		}
+	}
+	else if(CTX_data_equals(member, "collision")) {
+		PointerRNA *ptr= get_pointer_type(path, &RNA_Object);
+
+		if(ptr && ptr->data) {
+			Object *ob= ptr->data;
+			ModifierData *md= modifiers_findByType(ob, eModifierType_Collision);
+			CTX_data_pointer_set(result, &ob->id, &RNA_CollisionModifier, md);
 			return 1;
 		}
 	}
@@ -635,38 +679,35 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 	uiBlock *block;
 	uiBut *but;
 	PointerRNA *ptr;
-	PropertyRNA *nameprop;
 	char namebuf[128], *name;
 	int a, icon;
 
 	if(!path)
 		return;
 
-	row= uiLayoutRow(layout, 0);
+	row= uiLayoutRow(layout, 1);
 	uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
 
 	block= uiLayoutGetBlock(row);
 	uiBlockSetEmboss(block, UI_EMBOSSN);
-	but= uiDefIconButBitC(block, ICONTOG, SB_PIN_CONTEXT, 0, (sbuts->flag & SB_PIN_CONTEXT)? ICON_PINNED: ICON_UNPINNED, 0, 0, UI_UNIT_X, UI_UNIT_Y, &sbuts->flag, 0, 0, 0, 0, "Follow context or keep fixed datablock displayed.");
+	but= uiDefIconButBitC(block, ICONTOG, SB_PIN_CONTEXT, 0, ICON_UNPINNED, 0, 0, UI_UNIT_X, UI_UNIT_Y, &sbuts->flag, 0, 0, 0, 0, "Follow context or keep fixed datablock displayed.");
 	uiButSetFunc(but, pin_cb, NULL, NULL);
 
 	for(a=0; a<path->len; a++) {
 		ptr= &path->ptr[a];
 
+		if(a != 0)
+			uiDefIconBut(block, LABEL, 0, VICON_SMALL_TRI_RIGHT, 0, 0, 10, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+
 		if(ptr->data) {
 			icon= RNA_struct_ui_icon(ptr->type);
-			nameprop= RNA_struct_name_property(ptr->type);
+			name= RNA_struct_name_get_alloc(ptr, namebuf, sizeof(namebuf));
 
-#if 0
-			if(sbuts->mainb != BCONTEXT_SCENE && ptr->type == &RNA_Scene) {
-				uiItemL(row, "", icon); /* save some space */
-			}
-			else
-#endif
-			if(nameprop) {
-				name= RNA_property_string_get_alloc(ptr, nameprop, namebuf, sizeof(namebuf));
-
-				uiItemL(row, name, icon);
+			if(name) {
+				if(sbuts->mainb != BCONTEXT_SCENE && ptr->type == &RNA_Scene)
+					uiItemL(row, "", icon); /* save some space */
+				else
+					uiItemL(row, name, icon);
 
 				if(name != namebuf)
 					MEM_freeN(name);
@@ -690,6 +731,7 @@ void buttons_context_register(ARegionType *art)
 	strcpy(pt->idname, "BUTTONS_PT_context");
 	strcpy(pt->label, "Context");
 	pt->draw= buttons_panel_context;
+	pt->flag= PNL_NO_HEADER;
 	BLI_addtail(&art->paneltypes, pt);
 }
 

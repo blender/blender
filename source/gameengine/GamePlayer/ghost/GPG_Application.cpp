@@ -663,7 +663,7 @@ bool GPG_Application::startEngine(void)
 	*/
 	
 	// create a scene converter, create and convert the stratingscene
-	m_sceneconverter = new KX_BlenderSceneConverter(m_maggie,0, m_ketsjiengine);
+	m_sceneconverter = new KX_BlenderSceneConverter(m_maggie, m_ketsjiengine);
 	if (m_sceneconverter)
 	{
 		STR_String startscenename = m_startSceneName.Ptr();

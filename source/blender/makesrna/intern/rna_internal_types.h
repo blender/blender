@@ -37,6 +37,7 @@ struct ReportList;
 struct CollectionPropertyIterator;
 struct bContext;
 struct IDProperty;
+struct GHash;
 
 #define RNA_MAX_ARRAY 32
 
@@ -67,7 +68,7 @@ typedef int (*PropStringLengthFunc)(struct PointerRNA *ptr);
 typedef void (*PropStringSetFunc)(struct PointerRNA *ptr, const char *value);
 typedef int (*PropEnumGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropEnumSetFunc)(struct PointerRNA *ptr, int value);
-typedef EnumPropertyItem *(*PropEnumItemFunc)(struct PointerRNA *ptr);
+typedef EnumPropertyItem *(*PropEnumItemFunc)(struct bContext *C, struct PointerRNA *ptr, int *free);
 typedef PointerRNA (*PropPointerGetFunc)(struct PointerRNA *ptr);
 typedef StructRNA* (*PropPointerTypeFunc)(struct PointerRNA *ptr);
 typedef void (*PropPointerSetFunc)(struct PointerRNA *ptr, const PointerRNA value);
@@ -83,6 +84,7 @@ typedef PointerRNA (*PropCollectionLookupStringFunc)(struct PointerRNA *ptr, con
 typedef struct ContainerRNA {
 	void *next, *prev;
 
+	struct GHash *prophash;
 	ListBase properties;
 } ContainerRNA;
 
@@ -128,6 +130,8 @@ struct PropertyRNA {
 	const char *name;
 	/* single line description, displayed in the tooltip for example */
 	const char *description;
+	/* icon ID */
+	int icon;
 
 	/* property type as it appears to the outside */
 	PropertyType type;
@@ -142,6 +146,10 @@ struct PropertyRNA {
 
 	/* callback for testing if editable/evaluated */
 	EditableFunc editable;
+
+	/* raw access */
+	int rawoffset;
+	RawPropertyType rawtype;
 };
 
 /* Property Types */
@@ -217,7 +225,7 @@ typedef struct EnumPropertyRNA {
 	PropEnumSetFunc set;
 	PropEnumItemFunc itemf;
 
-	const EnumPropertyItem *item;
+	EnumPropertyItem *item;
 	int totitem;
 
 	int defaultvalue;
@@ -243,6 +251,7 @@ typedef struct CollectionPropertyRNA {
 	PropCollectionLengthFunc length;				/* optional */
 	PropCollectionLookupIntFunc lookupint;			/* optional */
 	PropCollectionLookupStringFunc lookupstring;	/* optional */
+	FunctionRNA *add, *remove;
 
 	struct StructRNA *type;
 } CollectionPropertyRNA;

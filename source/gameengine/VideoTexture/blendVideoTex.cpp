@@ -67,7 +67,7 @@ static PyObject * getMaterialID (PyObject *self, PyObject *args)
 // get last error description
 static PyObject * getLastError (PyObject *self, PyObject *args)
 {
-	return PyString_FromString(Exception::m_lastError.c_str());
+	return PyUnicode_FromString(Exception::m_lastError.c_str());
 }
 
 // set log file
@@ -204,6 +204,7 @@ PyObject* initVideoTexture(void)
 	
 #if (PY_VERSION_HEX >= 0x03000000)
 		m = PyModule_Create(&VideoTexture_module_def);
+		PyDict_SetItemString(PySys_GetObject("modules"), VideoTexture_module_def.m_name, m);
 #else
 		m = Py_InitModule4("VideoTexture", moduleMethods,
 			"Module that allows to play video files on textures in GameBlender.",

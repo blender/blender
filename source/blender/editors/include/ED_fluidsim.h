@@ -1,7 +1,7 @@
 /**
  * BKE_fluidsim.h 
  *	
- * $Id: LBM_fluidsim.h 17433 2008-11-12 21:16:53Z blendix $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -46,6 +46,8 @@ void fluidsimSettingsFree(struct FluidsimSettings* sb);
 /* duplicate internal data */
 struct FluidsimSettings* fluidsimSettingsCopy(struct FluidsimSettings* sb);
 
+/* memory estimate */
+void fluidsimEstimateMemory(struct Object *ob, struct FluidsimSettings *fs, char *value);
 
 #endif /* ED_FLUIDSIM_H */
 

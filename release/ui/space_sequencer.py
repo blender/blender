@@ -15,21 +15,21 @@ class SEQUENCER_HT_header(bpy.types.Header):
 		st = context.space_data
 		layout = self.layout
 
-		layout.template_header(context)
+		layout.template_header()
 		
 		if context.area.show_menus:
-			row = layout.row(align=True)
-			row.itemM(context, "SEQUENCER_MT_view")
+			row = layout.row()
+			row.itemM("SEQUENCER_MT_view")
 			
 			row.itemR(st, "display_mode")
 			
 			layout.itemS()
 			
 			if st.display_mode == 'SEQUENCER':
-				row.itemM(context, "SEQUENCER_MT_select")
-				row.itemM(context, "SEQUENCER_MT_marker")
-				row.itemM(context, "SEQUENCER_MT_add")
-				row.itemM(context, "SEQUENCER_MT_strip")
+				row.itemM("SEQUENCER_MT_select")
+				row.itemM("SEQUENCER_MT_marker")
+				row.itemM("SEQUENCER_MT_add")
+				row.itemM("SEQUENCER_MT_strip")
 				layout.itemS()
 				row.itemO("SEQUENCER_OT_reload")
 			else:
@@ -90,6 +90,10 @@ class SEQUENCER_MT_view(bpy.types.Menu):
 		"""
 		
 		layout.itemR(st, "draw_frames")
+		if st.display_mode == 'IMAGE':
+			layout.itemR(st, "draw_safe_margin")
+		if st.display_mode == 'WAVEFORM':
+			layout.itemR(st, "seperate_color_preview")
 		
 		"""
 	if(!sa->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,0, "");
@@ -115,7 +119,7 @@ class SEQUENCER_MT_select(bpy.types.Menu):
 		layout.itemS()
 		layout.itemO("SEQUENCER_OT_select_linked")
 		layout.itemO("SEQUENCER_OT_select_all_toggle")
-		layout.itemO("SEQUENCER_OT_select_invert")
+		layout.itemO("SEQUENCER_OT_select_inverse")
 
 class SEQUENCER_MT_marker(bpy.types.Menu):
 	__space_type__ = "SEQUENCE_EDITOR"
@@ -144,13 +148,14 @@ class SEQUENCER_MT_add(bpy.types.Menu):
 		st = context.space_data
 		
 		layout.column()
+		layout.itemO("SEQUENCER_OT_scene_strip_add", text="Scene")
 		layout.itemO("SEQUENCER_OT_movie_strip_add", text="Movie")
 		layout.item_booleanO("SEQUENCER_OT_movie_strip_add", "sound", True, text="Movie & Sound") # FFMPEG ONLY
 		layout.itemO("SEQUENCER_OT_image_strip_add", text="Image")
 		layout.itemO("SEQUENCER_OT_sound_strip_add", text="Sound (Ram)")
 		layout.item_booleanO("SEQUENCER_OT_sound_strip_add", "hd", True, text="Sound (Streaming)") # FFMPEG ONLY
 		
-		layout.itemM(context, "SEQUENCER_MT_add_effect")
+		layout.itemM("SEQUENCER_MT_add_effect")
 
 
 class SEQUENCER_MT_add_effect(bpy.types.Menu):
@@ -197,7 +202,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 		layout.itemO("SEQUENCER_OT_images_separate")
 		layout.itemS()
 		
-		layout.itemO("SEQUENCER_OT_duplicate_add")
+		layout.itemO("SEQUENCER_OT_duplicate")
 		layout.itemO("SEQUENCER_OT_delete")
 		
 		strip = act_strip(context)
@@ -237,7 +242,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 		layout.itemO("SEQUENCER_OT_mute")
 		layout.itemO("SEQUENCER_OT_unmute")
 		
-		layout.item_enumO("SEQUENCER_OT_mute", property="type", value='UNSELECTED', text="Mute Deselected Strips")
+		layout.item_booleanO("SEQUENCER_OT_mute", "unselected", 1, text="Mute Deselected Strips")
 
 		layout.itemO("SEQUENCER_OT_snap")
 
@@ -285,6 +290,15 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 		col.itemR(strip, "start_frame")
 		col.itemR(strip, "length")
 		
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(strip, "start_offset")
+		col.itemR(strip, "start_still")
+		
+		col = split.column()
+		col.itemR(strip, "end_offset")
+		col.itemR(strip, "end_still")
 		
 class SEQUENCER_PT_effect(SequencerButtonsPanel):
 	__label__ = "Effect Strip"
@@ -414,16 +428,26 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 		if elem:
 			sub.itemR(elem, "filename", text="") # strip.elements[0] could be a fallback
 		
-		"""
+		layout.itemR(strip, "use_translation")
+		if strip.transform:
+			flow = layout.column_flow()
+			flow.active = strip.use_translation
+			flow.itemR(strip.transform, "offset_x")
+			flow.itemR(strip.transform, "offset_y")
+			
+			
 		layout.itemR(strip, "use_crop")
+		if strip.crop:
+			flow = layout.column_flow()
+			flow.active = strip.use_crop
+			flow.itemR(strip.crop, "top")
+			flow.itemR(strip.crop, "left")
+			flow.itemR(strip.crop, "bottom")
+			flow.itemR(strip.crop, "right")
+			
+		layout.itemR(strip, "animation_start_offset")
+		layout.itemR(strip, "animation_end_offset")
 		
-		flow = layout.column_flow()
-		flow.active = strip.use_crop
-		flow.itemR(strip, "top")
-		flow.itemR(strip, "left")
-		flow.itemR(strip, "bottom")
-		flow.itemR(strip, "right")
-		"""
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel):
 	__label__ = "Filter"
@@ -460,6 +484,19 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
 		col.itemR(strip, "reverse_frames", text="Backwards")
 		
 		layout.itemR(strip, "use_color_balance")
+		if strip.color_balance: # TODO - need to add this somehow
+			row = layout.row()
+			row.active = strip.use_color_balance
+			col = row.column()
+			col.itemR(strip.color_balance, "lift")
+			col.itemR(strip.color_balance, "inverse_lift")
+			col = row.column()
+			col.itemR(strip.color_balance, "gamma")
+			col.itemR(strip.color_balance, "inverse_gamma")
+			col = row.column()
+			col.itemR(strip.color_balance, "gain")
+			col.itemR(strip.color_balance, "inverse_gain")
+			
 
 class SEQUENCER_PT_proxy(SequencerButtonsPanel):
 	__label__ = "Proxy"
@@ -487,11 +524,11 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel):
 		
 		layout = self.layout
 		
-		row = layout.row()
-		row.itemR(strip, "proxy_custom_directory")
+		flow = layout.column_flow()
+		flow.itemR(strip, "proxy_custom_directory")
 		if strip.proxy: # TODO - need to add this somehow
-			row.itemR(strip.proxy, "dir")
-			row.itemR(strip.proxy, "file")
+			flow.itemR(strip.proxy, "directory")
+			flow.itemR(strip.proxy, "file")
 
 
 class SEQUENCER_PT_view(SequencerButtonsPanel_Output):

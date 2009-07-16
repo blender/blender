@@ -35,6 +35,8 @@
 #pragma warning (disable : 4786)
 #endif
 
+#include "GL/glew.h"
+
 #include "KX_Light.h"
 #include "KX_Camera.h"
 #include "RAS_IRasterizer.h"
@@ -43,21 +45,19 @@
 #include "KX_PyMath.h"
 
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "GPU_material.h"
  
 KX_LightObject::KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,
 							   class RAS_IRenderTools* rendertools,
 							   const RAS_LightObject&	lightobj,
-							   bool glsl,
-							   PyTypeObject* T
-							   )
- :
-	KX_GameObject(sgReplicationInfo,callbacks,T),
-		m_rendertools(rendertools)
+							   bool glsl)
+	: KX_GameObject(sgReplicationInfo,callbacks),
+	  m_rendertools(rendertools)
 {
 	m_lightobj = lightobj;
-	m_lightobj.m_worldmatrix = GetOpenGLMatrixPtr();
 	m_lightobj.m_scene = sgReplicationInfo;
+	m_lightobj.m_light = this;
 	m_rendertools->AddLight(&m_lightobj);
 	m_glsl = glsl;
 	m_blenderscene = ((KX_Scene*)sgReplicationInfo)->GetBlenderScene();
@@ -84,10 +84,100 @@ CValue*		KX_LightObject::GetReplica()
 
 	replica->ProcessReplica();
 	
-	replica->m_lightobj.m_worldmatrix = replica->GetOpenGLMatrixPtr();
+	replica->m_lightobj.m_light = replica;
 	m_rendertools->AddLight(&replica->m_lightobj);
 
 	return replica;
+}
+
+bool KX_LightObject::ApplyLight(KX_Scene *kxscene, int oblayer, int slot)
+{
+	KX_Scene* lightscene = (KX_Scene*)m_lightobj.m_scene;
+	float vec[4];
+	int scenelayer = ~0;
+
+	if(kxscene && kxscene->GetBlenderScene())
+		scenelayer = kxscene->GetBlenderScene()->lay;
+	
+	/* only use lights in the same layer as the object */
+	if(!(m_lightobj.m_layer & oblayer))
+		return false;
+	/* only use lights in the same scene, and in a visible layer */
+	if(kxscene != lightscene || !(m_lightobj.m_layer & scenelayer))
+		return false;
+
+	// lights don't get their openGL matrix updated, do it now
+	if(GetSGNode()->IsDirty())
+		GetOpenGLMatrix();
+
+	MT_CmMatrix4x4& worldmatrix= *GetOpenGLMatrixPtr();
+
+	vec[0] = worldmatrix(0,3);
+	vec[1] = worldmatrix(1,3);
+	vec[2] = worldmatrix(2,3);
+	vec[3] = 1.0f;
+
+	if(m_lightobj.m_type==RAS_LightObject::LIGHT_SUN) {
+		
+		vec[0] = worldmatrix(0,2);
+		vec[1] = worldmatrix(1,2);
+		vec[2] = worldmatrix(2,2);
+		//vec[0]= base->object->obmat[2][0];
+		//vec[1]= base->object->obmat[2][1];
+		//vec[2]= base->object->obmat[2][2];
+		vec[3]= 0.0;
+		glLightfv((GLenum)(GL_LIGHT0+slot), GL_POSITION, vec); 
+	}
+	else {
+		//vec[3]= 1.0;
+		glLightfv((GLenum)(GL_LIGHT0+slot), GL_POSITION, vec); 
+		glLightf((GLenum)(GL_LIGHT0+slot), GL_CONSTANT_ATTENUATION, 1.0);
+		glLightf((GLenum)(GL_LIGHT0+slot), GL_LINEAR_ATTENUATION, m_lightobj.m_att1/m_lightobj.m_distance);
+		// without this next line it looks backward compatible.
+		//attennuation still is acceptable 
+		glLightf((GLenum)(GL_LIGHT0+slot), GL_QUADRATIC_ATTENUATION, m_lightobj.m_att2/(m_lightobj.m_distance*m_lightobj.m_distance)); 
+		
+		if(m_lightobj.m_type==RAS_LightObject::LIGHT_SPOT) {
+			vec[0] = -worldmatrix(0,2);
+			vec[1] = -worldmatrix(1,2);
+			vec[2] = -worldmatrix(2,2);
+			//vec[0]= -base->object->obmat[2][0];
+			//vec[1]= -base->object->obmat[2][1];
+			//vec[2]= -base->object->obmat[2][2];
+			glLightfv((GLenum)(GL_LIGHT0+slot), GL_SPOT_DIRECTION, vec);
+			glLightf((GLenum)(GL_LIGHT0+slot), GL_SPOT_CUTOFF, m_lightobj.m_spotsize/2.0);
+			glLightf((GLenum)(GL_LIGHT0+slot), GL_SPOT_EXPONENT, 128.0*m_lightobj.m_spotblend);
+		}
+		else
+			glLightf((GLenum)(GL_LIGHT0+slot), GL_SPOT_CUTOFF, 180.0);
+	}
+	
+	if (m_lightobj.m_nodiffuse) {
+		vec[0] = vec[1] = vec[2] = vec[3] = 0.0;
+	}
+	else {
+		vec[0]= m_lightobj.m_energy*m_lightobj.m_red;
+		vec[1]= m_lightobj.m_energy*m_lightobj.m_green;
+		vec[2]= m_lightobj.m_energy*m_lightobj.m_blue;
+		vec[3]= 1.0;
+	}
+
+	glLightfv((GLenum)(GL_LIGHT0+slot), GL_DIFFUSE, vec);
+	if(m_lightobj.m_nospecular)
+	{
+		vec[0] = vec[1] = vec[2] = vec[3] = 0.0;
+	}
+	else if (m_lightobj.m_nodiffuse) {
+		vec[0]= m_lightobj.m_energy*m_lightobj.m_red;
+		vec[1]= m_lightobj.m_energy*m_lightobj.m_green;
+		vec[2]= m_lightobj.m_energy*m_lightobj.m_blue;
+		vec[3]= 1.0;
+	}
+
+	glLightfv((GLenum)(GL_LIGHT0+slot), GL_SPECULAR, vec);
+	glEnable((GLenum)(GL_LIGHT0+slot));
+
+	return true;
 }
 
 GPULamp *KX_LightObject::GetGPULamp()
@@ -178,11 +268,6 @@ void KX_LightObject::UnbindShadowBuffer(RAS_IRasterizer *ras)
 /* Python Integration Hooks					                                 */
 /* ------------------------------------------------------------------------- */
 
-PyObject* KX_LightObject::py_getattro_dict() {
-	py_getattro_dict_up(KX_GameObject);
-}
-
-
 PyTypeObject KX_LightObject::Type = {
 #if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
@@ -200,21 +285,21 @@ PyTypeObject KX_LightObject::Type = {
 		0,
 		0,
 		py_base_repr,
-		0,0,
+		0,
+		&KX_GameObject::Sequence,
 		&KX_GameObject::Mapping,
 		0,0,0,
-		py_base_getattro,
-		py_base_setattro,
-		0,0,0,0,0,0,0,0,0,
-		Methods
-};
-
-PyParentObject KX_LightObject::Parents[] = {
-	&KX_LightObject::Type,
-	&KX_GameObject::Type,
-		&SCA_IObject::Type,
-		&CValue::Type,
-		NULL
+		NULL,
+		NULL,
+		0,
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+		0,0,0,0,0,0,0,
+		Methods,
+		0,
+		0,
+		&KX_GameObject::Type,
+		0,0,0,0,0,0,
+		py_base_new
 };
 
 PyMethodDef KX_LightObject::Methods[] = {
@@ -266,11 +351,11 @@ PyObject* KX_LightObject::pyattr_get_typeconst(void *self_v, const KX_PYATTRIBUT
 	const char* type = attrdef->m_name;
 
 	if(strcmp(type, "SPOT")) {
-		retvalue = PyInt_FromLong(RAS_LightObject::LIGHT_SPOT);
+		retvalue = PyLong_FromSsize_t(RAS_LightObject::LIGHT_SPOT);
 	} else if (strcmp(type, "SUN")) {
-		retvalue = PyInt_FromLong(RAS_LightObject::LIGHT_SUN);
+		retvalue = PyLong_FromSsize_t(RAS_LightObject::LIGHT_SUN);
 	} else if (strcmp(type, "NORMAL")) {
-		retvalue = PyInt_FromLong(RAS_LightObject::LIGHT_NORMAL);
+		retvalue = PyLong_FromSsize_t(RAS_LightObject::LIGHT_NORMAL);
 	}
 
 	return retvalue;
@@ -279,13 +364,13 @@ PyObject* KX_LightObject::pyattr_get_typeconst(void *self_v, const KX_PYATTRIBUT
 PyObject* KX_LightObject::pyattr_get_type(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_LightObject* self = static_cast<KX_LightObject*>(self_v);
-	return PyInt_FromLong(self->m_lightobj.m_type);
+	return PyLong_FromSsize_t(self->m_lightobj.m_type);
 }
 
 int KX_LightObject::pyattr_set_type(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject* value)
 {
 	KX_LightObject* self = static_cast<KX_LightObject*>(self_v);
-	int val = PyInt_AsLong(value);
+	int val = PyLong_AsSsize_t(value);
 	if((val==-1 && PyErr_Occurred()) || val<0 || val>2) {
 		PyErr_SetString(PyExc_ValueError, "light.type= val: KX_LightObject, expected an int between 0 and 2");
 		return PY_SET_ATTR_FAIL;
@@ -304,15 +389,4 @@ int KX_LightObject::pyattr_set_type(void* self_v, const KX_PYATTRIBUTE_DEF *attr
 	}
 
 	return PY_SET_ATTR_SUCCESS;
-}
-
-
-PyObject* KX_LightObject::py_getattro(PyObject *attr)
-{
-	py_getattro_up(KX_GameObject);
-}
-
-int KX_LightObject::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(KX_GameObject);
 }

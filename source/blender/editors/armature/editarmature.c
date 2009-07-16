@@ -72,7 +72,6 @@
 #include "PIL_time.h"
 
 #include "BIF_gl.h"
-#include "BIF_transform.h"
 #include "BIF_generate.h"
 
 #include "RNA_access.h"
@@ -85,6 +84,7 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 #include "ED_util.h"
 #include "ED_view3d.h"
 
@@ -110,7 +110,7 @@ static void adduplicate() {}
 /* **************** tools on Editmode Armature **************** */
 
 /* Sync selection to parent for connected children */
-static void armature_sync_selection(ListBase *edbo)
+void ED_armature_sync_selection(ListBase *edbo)
 {
 	EditBone *ebo;
 	
@@ -669,24 +669,21 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 	}	
 }
 
-int join_armature(Scene *scene, View3D *v3d)
+int join_armature_exec(bContext *C, wmOperator *op)
 {
-	Object	*ob= scene->basact->object; // XXX context
-	bArmature *arm= ob->data;
-	Base	*base, *nextbase;
+	Scene *scene= CTX_data_scene(C);
+	Object	*ob= CTX_data_active_object(C);
+	bArmature *arm= (ob)? ob->data: NULL;
 	bPose *pose, *opose;
 	bPoseChannel *pchan, *pchann;
 	EditBone *curbone;
 	float	mat[4][4], oimat[4][4];
 	
 	/*	Ensure we're not in editmode and that the active object is an armature*/
-	if (ob->type!=OB_ARMATURE) return 0;
-	if (arm->edbo) return 0;
-	
-	if (object_data_is_libdata(ob)) {
-		error_libdata();
-		return 0;
-	}
+	if (!ob || ob->type!=OB_ARMATURE)
+		return OPERATOR_CANCELLED;
+	if (!arm || arm->edbo)
+		return OPERATOR_CANCELLED;
 	
 	/* Get editbones of active armature to add editbones to */
 	ED_armature_to_edit(ob);
@@ -694,89 +691,89 @@ int join_armature(Scene *scene, View3D *v3d)
 	/* get pose of active object and move it out of posemode */
 	pose= ob->pose;
 	ob->flag &= ~OB_POSEMODE;
-	
-	for (base=FIRSTBASE; base; base=nextbase) {
-		nextbase = base->next;
-		if (TESTBASE(v3d, base)){
-			if ((base->object->type==OB_ARMATURE) && (base->object!=ob)) {
-				bArmature *curarm= base->object->data;
+
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+		if ((base->object->type==OB_ARMATURE) && (base->object!=ob)) {
+			bArmature *curarm= base->object->data;
+			
+			/* Make a list of editbones in current armature */
+			ED_armature_to_edit(base->object);
+			
+			/* Get Pose of current armature */
+			opose= base->object->pose;
+			base->object->flag &= ~OB_POSEMODE;
+			BASACT->flag &= ~OB_POSEMODE;
+			
+			/* Find the difference matrix */
+			Mat4Invert(oimat, ob->obmat);
+			Mat4MulMat4(mat, base->object->obmat, oimat);
+			
+			/* Copy bones and posechannels from the object to the edit armature */
+			for (pchan=opose->chanbase.first; pchan; pchan=pchann) {
+				pchann= pchan->next;
+				curbone= editbone_name_exists(curarm->edbo, pchan->name);
 				
-				/* Make a list of editbones in current armature */
-				ED_armature_to_edit(base->object);
+				/* Get new name */
+				unique_editbone_name(arm->edbo, curbone->name, NULL);
 				
-				/* Get Pose of current armature */
-				opose= base->object->pose;
-				base->object->flag &= ~OB_POSEMODE;
-				BASACT->flag &= ~OB_POSEMODE;
-				
-				/* Find the difference matrix */
-				Mat4Invert(oimat, ob->obmat);
-				Mat4MulMat4(mat, base->object->obmat, oimat);
-				
-				/* Copy bones and posechannels from the object to the edit armature */
-				for (pchan=opose->chanbase.first; pchan; pchan=pchann) {
-					pchann= pchan->next;
-					curbone= editbone_name_exists(curarm->edbo, pchan->name);
+				/* Transform the bone */
+				{
+					float premat[4][4];
+					float postmat[4][4];
+					float difmat[4][4];
+					float imat[4][4];
+					float temp[3][3];
+					float delta[3];
 					
-					/* Get new name */
-					unique_editbone_name(arm->edbo, curbone->name, NULL);
+					/* Get the premat */
+					VecSubf(delta, curbone->tail, curbone->head);
+					vec_roll_to_mat3(delta, curbone->roll, temp);
 					
-					/* Transform the bone */
-					{
-						float premat[4][4];
-						float postmat[4][4];
-						float difmat[4][4];
-						float imat[4][4];
-						float temp[3][3];
-						float delta[3];
-						
-						/* Get the premat */
-						VecSubf(delta, curbone->tail, curbone->head);
-						vec_roll_to_mat3(delta, curbone->roll, temp);
-						
-						Mat4One(premat); /* Mat4MulMat34 only sets 3x3 part */
-						Mat4MulMat34(premat, temp, mat);
-						
-						Mat4MulVecfl(mat, curbone->head);
-						Mat4MulVecfl(mat, curbone->tail);
-						
-						/* Get the postmat */
-						VecSubf(delta, curbone->tail, curbone->head);
-						vec_roll_to_mat3(delta, curbone->roll, temp);
-						Mat4CpyMat3(postmat, temp);
-						
-						/* Find the roll */
-						Mat4Invert(imat, premat);
-						Mat4MulMat4(difmat, postmat, imat);
-						
-						curbone->roll -= (float)atan2(difmat[2][0], difmat[2][2]);
-					}
+					Mat4One(premat); /* Mat4MulMat34 only sets 3x3 part */
+					Mat4MulMat34(premat, temp, mat);
 					
-					/* Fix Constraints and Other Links to this Bone and Armature */
-					joined_armature_fix_links(ob, base->object, pchan, curbone);
+					Mat4MulVecfl(mat, curbone->head);
+					Mat4MulVecfl(mat, curbone->tail);
 					
-					/* Rename pchan */
-					BLI_strncpy(pchan->name, curbone->name, sizeof(pchan->name));
+					/* Get the postmat */
+					VecSubf(delta, curbone->tail, curbone->head);
+					vec_roll_to_mat3(delta, curbone->roll, temp);
+					Mat4CpyMat3(postmat, temp);
 					
-					/* Jump Ship! */
-					BLI_remlink(curarm->edbo, curbone);
-					BLI_addtail(arm->edbo, curbone);
+					/* Find the roll */
+					Mat4Invert(imat, premat);
+					Mat4MulMat4(difmat, postmat, imat);
 					
-					BLI_remlink(&opose->chanbase, pchan);
-					BLI_addtail(&pose->chanbase, pchan);
+					curbone->roll -= (float)atan2(difmat[2][0], difmat[2][2]);
 				}
 				
-				ED_base_object_free_and_unlink(scene, base);
+				/* Fix Constraints and Other Links to this Bone and Armature */
+				joined_armature_fix_links(ob, base->object, pchan, curbone);
+				
+				/* Rename pchan */
+				BLI_strncpy(pchan->name, curbone->name, sizeof(pchan->name));
+				
+				/* Jump Ship! */
+				BLI_remlink(curarm->edbo, curbone);
+				BLI_addtail(arm->edbo, curbone);
+				
+				BLI_remlink(&opose->chanbase, pchan);
+				BLI_addtail(&pose->chanbase, pchan);
 			}
+			
+			ED_base_object_free_and_unlink(scene, base);
 		}
 	}
+	CTX_DATA_END;
 	
 	DAG_scene_sort(scene);	// because we removed object(s)
 
 	ED_armature_from_edit(scene, ob);
 	ED_armature_edit_free(ob);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 	
-	return 1;
+	return OPERATOR_FINISHED;
 }
 
 /* Helper function for armature separating - link fixing */
@@ -1435,7 +1432,7 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, wmEvent *e
 
 	}
 
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 
 	/* BIF_undo_push("Select connected"); */
 
@@ -1668,7 +1665,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *op)
 	}
 	
 	
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 
 	WM_event_add_notifier(C, NC_OBJECT, obedit);
 
@@ -1742,7 +1739,7 @@ void deselectall_armature(Object *obedit, int toggle, int doundo)
 		}
 	}
 	
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 	if (doundo) {
 		if (sel==1) BIF_undo_push("Select All");
 		else BIF_undo_push("Deselect All");
@@ -1814,7 +1811,7 @@ void mouse_armature(bContext *C, short mval[2], int extend)
 				nearBone->flag |= selmask;
 		}
 		
-		armature_sync_selection(arm->edbo);
+		ED_armature_sync_selection(arm->edbo);
 		
 		if(nearBone) {
 			/* then now check for active status */
@@ -1957,9 +1954,9 @@ void auto_align_ebone_tocursor(Scene *scene, View3D *v3d, EditBone *ebone)
 
 
 static EnumPropertyItem prop_calc_roll_types[] = {
-	{0, "GLOBALUP", "Z-Axis Up", ""},
-	{1, "CURSOR", "Z-Axis to Cursor", ""},
-	{0, NULL, NULL, NULL}
+	{0, "GLOBALUP", 0, "Z-Axis Up", ""},
+	{1, "CURSOR", 0, "Z-Axis to Cursor", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int armature_calc_roll_exec(bContext *C, wmOperator *op) 
@@ -2246,7 +2243,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *op)
 		
 	}
 	
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, obedit);
 	
@@ -2508,7 +2505,7 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 	if (CTX_DATA_COUNT(C, selected_bones) == 0)
 	  return OPERATOR_CANCELLED;
 	
-	armature_sync_selection(arm->edbo); // XXX why is this needed?
+	ED_armature_sync_selection(arm->edbo); // XXX why is this needed?
 
 	preEditBoneDuplicate(arm->edbo);
 
@@ -3058,7 +3055,7 @@ void merge_armature(Scene *scene)
 	}
 	
 	/* undo + updates */
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 	BIF_undo_push("Merge Bones");
 }
 
@@ -3080,7 +3077,7 @@ void hide_selected_armature_bones(Scene *scene)
 			}
 		}
 	}
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 	BIF_undo_push("Hide Bones");
 }
 
@@ -3100,7 +3097,7 @@ void hide_unselected_armature_bones(Scene *scene)
 			}
 		}
 	}
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 	BIF_undo_push("Hide Unselected Bones");
 }
 
@@ -3118,7 +3115,7 @@ void show_all_armature_bones(Scene *scene)
 			}
 		}
 	}
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 	BIF_undo_push("Reveal Bones");
 }
 
@@ -3251,7 +3248,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 	if (totbone==0) return OPERATOR_CANCELLED;
 	
 	/* Transform the endpoints */
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 
 	return OPERATOR_FINISHED;
 }
@@ -3489,9 +3486,9 @@ static int armature_subdivs_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_subdivs(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
-		{0, "SIMPLE", "Simple", ""},
-		{1, "MULTI", "Multi", ""},
-		{0, NULL, NULL}};
+ 		{0, "SIMPLE", 0, "Simple", ""},
+		{1, "MULTI", 0, "Multi", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "subdivs";
@@ -3669,9 +3666,9 @@ static void bone_connect_to_new_parent(ListBase *edbo, EditBone *selbone, EditBo
 }
 
 static EnumPropertyItem prop_editarm_make_parent_types[] = {
-	{ARM_PAR_CONNECT, "CONNECTED", "Connected", ""},
-	{ARM_PAR_OFFSET, "OFFSET", "Keep Offset", ""},
-	{0, NULL, NULL, NULL}
+	{ARM_PAR_CONNECT, "CONNECTED", 0, "Connected", ""},
+	{ARM_PAR_OFFSET, "OFFSET", 0, "Keep Offset", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static int armature_parent_set_exec(bContext *C, wmOperator *op) 
@@ -3785,9 +3782,9 @@ void ARMATURE_OT_parent_set(wmOperatorType *ot)
 }
 
 static EnumPropertyItem prop_editarm_clear_parent_types[] = {
-	{1, "CLEAR", "Clear Parent", ""},
-	{2, "DISCONNECT", "Disconnect Bone", ""},
-	{0, NULL, NULL, NULL}
+	{1, "CLEAR", 0, "Clear Parent", ""},
+	{2, "DISCONNECT", 0, "Disconnect Bone", ""},
+	{0, NULL, 0, NULL, NULL}
 };
 
 static void editbone_clear_parent(EditBone *ebone, int mode)
@@ -3812,7 +3809,7 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT, ob);
@@ -3839,7 +3836,7 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 
 /* ****************  Selections  ******************/
 
-static int armature_select_invert_exec(bContext *C, wmOperator *op)
+static int armature_select_inverse_exec(bContext *C, wmOperator *op)
 {
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, EditBone *, ebone, visible_bones) {
@@ -3854,15 +3851,15 @@ static int armature_select_invert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_select_invert(wmOperatorType *ot)
+void ARMATURE_OT_select_inverse(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Invert Selection";
-	ot->idname= "ARMATURE_OT_select_invert";
+	ot->name= "Select Inverse";
+	ot->idname= "ARMATURE_OT_select_inverse";
 	
 	/* api callbacks */
-	ot->exec= armature_select_invert_exec;
+	ot->exec= armature_select_inverse_exec;
 	ot->poll= ED_operator_editarmature;
 	
 	/* flags */
@@ -3963,7 +3960,7 @@ static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	armature_sync_selection(arm->edbo);
+	ED_armature_sync_selection(arm->edbo);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
 	
@@ -3973,9 +3970,9 @@ static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
 {
 	static EnumPropertyItem direction_items[]= {
-	{BONE_SELECT_PARENT, "PARENT", "Select Parent", ""},
-	{BONE_SELECT_CHILD, "CHILD", "Select Child", ""},
-	{0, NULL, NULL, NULL}
+	{BONE_SELECT_PARENT, "PARENT", 0, "Select Parent", ""},
+	{BONE_SELECT_CHILD, "CHILD", 0, "Select Child", ""},
+	{0, NULL, 0, NULL, NULL}
 	};
 	
 	/* identifiers */
@@ -4823,7 +4820,7 @@ void POSE_OT_rot_clear(wmOperatorType *ot)
 
 /* ***************** selections ********************** */
 
-static int pose_select_invert_exec(bContext *C, wmOperator *op)
+static int pose_select_inverse_exec(bContext *C, wmOperator *op)
 {
 	
 	/*	Set the flags */
@@ -4838,15 +4835,15 @@ static int pose_select_invert_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_select_invert(wmOperatorType *ot)
+void POSE_OT_select_inverse(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= "Invert Selection";
-	ot->idname= "POSE_OT_select_invert";
+	ot->name= "Select Inverse";
+	ot->idname= "POSE_OT_select_inverse";
 	
 	/* api callbacks */
-	ot->exec= pose_select_invert_exec;
+	ot->exec= pose_select_inverse_exec;
 	ot->poll= ED_operator_posemode;
 	
 	/* flags */

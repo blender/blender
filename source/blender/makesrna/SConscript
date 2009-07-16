@@ -7,6 +7,30 @@ o = SConscript('intern/SConscript')
 objs += o
 
 incs = '#/intern/guardedalloc ../blenkernel ../blenlib ../makesdna intern .'
-incs += ' ../windowmanager ../editors/include'
+incs += ' ../windowmanager ../editors/include ../imbuf ../bmesh'
 
-env.BlenderLib ( 'bf_rna', objs, Split(incs), [], libtype=['core'], priority = [195] )
+defs = []
+
+if env['WITH_BF_OPENEXR']:
+	defs.append('WITH_OPENEXR')
+
+if env['WITH_BF_OPENJPEG']:
+	defs.append('WITH_OPENJPEG')
+
+if env['WITH_BF_DDS']:
+	defs.append('WITH_DDS')
+
+if env['WITH_BF_FFMPEG']:
+	defs.append('WITH_FFMPEG')
+	incs += ' ' + env['BF_FFMPEG_INC']
+
+if env['WITH_BF_OGG']:
+	defs.append('WITH_OGG')
+
+if env['WITH_BF_QUICKTIME']:
+	defs.append('WITH_QUICKTIME')
+
+if env['WITH_BF_LCMS']:
+	defs.append('WITH_LCMS')
+
+env.BlenderLib ( 'bf_rna', objs, Split(incs), defines=defs, libtype=['core'], priority = [195] )
