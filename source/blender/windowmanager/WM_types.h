@@ -131,6 +131,7 @@ typedef struct wmNotifier {
 #define NC_WORLD			(13<<24)
 #define NC_FILE				(14<<24)
 #define NC_ANIMATION		(15<<24)
+#define NC_CONSOLE			(16<<24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000
@@ -199,6 +200,10 @@ typedef struct wmNotifier {
 #define ND_NLA_SELECT		(75<<16)
 #define ND_NLA_EDIT			(76<<16)
 #define ND_NLA_ACTCHANGE	(77<<16)
+
+	/* console */
+#define ND_CONSOLE			(78<<16) /* general redraw */
+#define ND_CONSOLE_REPORT	(79<<16) /* update for reports, could spesify type */
 
 /* subtype, 256 entries too */
 #define NOTE_SUBTYPE		0x0000FF00

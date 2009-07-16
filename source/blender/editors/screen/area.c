@@ -1059,6 +1059,7 @@ static char *windowtype_pup(void)
 		   "|%l" //293
 		   
 		   "|Scripts Window %x14"//313
+		   "|Console %x18"
 		   );
 }
 

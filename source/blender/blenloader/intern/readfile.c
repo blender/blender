@@ -4221,7 +4221,7 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	wm->keymaps.first= wm->keymaps.last= NULL;
 	wm->paintcursors.first= wm->paintcursors.last= NULL;
 	wm->queue.first= wm->queue.last= NULL;
-	wm->reports.first= wm->reports.last= NULL;
+	wm->reports= NULL;
 	wm->jobs.first= wm->jobs.last= NULL;
 	
 	wm->windrawable= NULL;
@@ -4855,6 +4855,20 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			else if(sl->spacetype==SPACE_BUTS) {
 				SpaceButs *sbuts= (SpaceButs *)sl;
 				sbuts->path= NULL;
+			}
+			else if(sl->spacetype==SPACE_CONSOLE) {
+				SpaceConsole *sconsole= (SpaceConsole *)sl;
+				ConsoleLine *cl;
+				
+				link_list(fd, &sconsole->scrollback);
+				link_list(fd, &sconsole->history);
+				
+				//for(cl= sconsole->scrollback.first; cl; cl= cl->next)
+				//	cl->line= newdataadr(fd, cl->line);
+				
+				//for(cl= sconsole->history.first; cl; cl= cl->next)
+				//	cl->line= newdataadr(fd, cl->line);
+				
 			}
 		}
 		

@@ -165,7 +165,7 @@ char *WM_operator_pystring(wmOperator *op)
 	char *cstring, *buf;
 	int first_iter=1;
 
-	BLI_dynstr_appendf(dynstr, "%s(", op->idname);
+	BLI_dynstr_appendf(dynstr, "bpy.ops.%s(", op->idname);
 
 	iterprop= RNA_struct_iterator_property(op->ptr->type);
 

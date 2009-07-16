@@ -79,9 +79,11 @@ void WM_operator_free(wmOperator *op)
 
 /* all operations get registered in the windowmanager here */
 /* called on event handling by event_system.c */
-void wm_operator_register(wmWindowManager *wm, wmOperator *op)
+void wm_operator_register(bContext *C, wmOperator *op)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	int tot;
+	char *buf;
 
 	BLI_addtail(&wm->operators, op);
 	tot= BLI_countlist(&wm->operators);
@@ -92,6 +94,15 @@ void wm_operator_register(wmWindowManager *wm, wmOperator *op)
 		WM_operator_free(opt);
 		tot--;
 	}
+	
+	
+	/* Report the string representation of the operator */
+	buf = WM_operator_pystring(op);
+	BKE_report(wm->reports, RPT_OPERATOR, buf);
+	MEM_freeN(buf);
+	
+	/* so the console is redrawn */
+	WM_event_add_notifier(C, NC_CONSOLE|ND_CONSOLE_REPORT, NULL);
 }
 
 

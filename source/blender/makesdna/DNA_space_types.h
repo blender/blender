@@ -464,6 +464,61 @@ typedef struct SpaceImaSel {
 } SpaceImaSel;
 
 
+typedef struct ConsoleLine {
+	struct ConsoleLine *next, *prev;
+	
+	/* keep these 3 vars so as to share free, realloc funcs */
+	int len_alloc;	/* allocated length */
+	int len;	/* real len - strlen() */
+	char *line; 
+	
+	int cursor;
+	int type; /* only for use when in the 'scrollback' listbase */
+} ConsoleLine;
+
+/* ConsoleLine.type */
+enum {
+	CONSOLE_LINE_OUTPUT=0,
+	CONSOLE_LINE_INPUT,
+	CONSOLE_LINE_INFO, /* autocomp feedback */
+	CONSOLE_LINE_ERROR
+};
+
+/* SpaceConsole.rpt_mask */
+enum {
+	CONSOLE_TYPE_PYTHON=0,
+	CONSOLE_TYPE_REPORT,
+};
+
+/* SpaceConsole.type see BKE_report.h */
+enum {
+	CONSOLE_RPT_DEBUG	= 1<<0,
+	CONSOLE_RPT_INFO	= 1<<1,
+	CONSOLE_RPT_OP		= 1<<2,
+	CONSOLE_RPT_WARN	= 1<<3,
+	CONSOLE_RPT_ERR		= 1<<4,
+};
+
+typedef struct SpaceConsole {
+	SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
+	int spacetype;
+	float blockscale;			// XXX are these needed?
+	
+	short blockhandler[8];		// XXX are these needed?
+	
+	/* space vars */
+	int type; /* console/report/..? */
+	int rpt_mask; /* which reports to display */
+	int flag, lheight;
+	
+	ListBase scrollback; /* ConsoleLine; output */
+	ListBase history; /* ConsoleLine; command history, current edited line is the first */
+	char prompt[8];
+	
+} SpaceConsole;
+
+
 /* view3d  Now in DNA_view3d_types.h */
 
 
@@ -810,7 +865,8 @@ enum {
 	SPACE_TIME,
 	SPACE_NODE,
 	SPACE_LOGIC,
-	SPACEICONMAX = SPACE_LOGIC
+	SPACE_CONSOLE,
+	SPACEICONMAX = SPACE_CONSOLE
 };
 
 #endif

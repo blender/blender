@@ -268,7 +268,7 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 		
 		if(repeat==0) {
 			if(op->type->flag & OPTYPE_REGISTER)
-				wm_operator_register(CTX_wm_manager(C), op);
+				wm_operator_register(C, op);
 			else
 				WM_operator_free(op);
 		}
@@ -374,7 +374,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 				ED_undo_push_op(C, op);
 			
 			if(ot->flag & OPTYPE_REGISTER)
-				wm_operator_register(wm, op);
+				wm_operator_register(C, op);
 			else
 				WM_operator_free(op);
 		}
@@ -697,7 +697,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 					ED_undo_push_op(C, op);
 				
 				if(ot->flag & OPTYPE_REGISTER)
-					wm_operator_register(CTX_wm_manager(C), op);
+					wm_operator_register(C, op);
 				else
 					WM_operator_free(op);
 				handler->op= NULL;

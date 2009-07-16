@@ -51,6 +51,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_mball.h"
+#include "BKE_report.h"
 #include "BKE_utildefines.h"
 #include "BKE_packedFile.h"
 
@@ -100,6 +101,22 @@ static void sound_init_listener(void)
 	G.listener->dopplervelocity = 340.29f;
 }
 
+
+static void wm_init_reports(bContext *C)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wm->reports= MEM_callocN(sizeof(ReportList), "wmReportList");
+	BKE_reports_init(wm->reports, RPT_STORE);
+}
+static void wm_free_reports(bContext *C)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	BKE_reports_clear(wm->reports);
+	MEM_freeN(wm->reports);
+}
+
+
+
 /* only called once, for startup */
 void WM_init(bContext *C)
 {
@@ -123,6 +140,8 @@ void WM_init(bContext *C)
 	
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, NULL);
+	
+	wm_init_reports(C); /* reports cant be initialized before the wm */
 	
 	UI_init();
 	
@@ -255,6 +274,8 @@ void WM_exit(bContext *C)
 	BKE_userdef_free();
 
 	RNA_exit();
+	
+	wm_free_reports(C);
 	
 	CTX_free(C);
 	
