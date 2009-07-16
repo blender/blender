@@ -297,8 +297,8 @@ static int vertex_color_add_exec(bContext *C, wmOperator *op)
 		CustomData_set_layer_active(&me->ldata, CD_MLOOPCOL, layernum);
 		mesh_update_customdata_pointers(me);
 
-		if(!mcol)
-			shadeMeshMCol(scene, ob, me);
+		//if(!mcol)
+		//	shadeMeshMCol(scene, ob, me);
 	}
 
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);

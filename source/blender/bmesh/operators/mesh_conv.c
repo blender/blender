@@ -45,7 +45,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	BMEdge *e, **fedges=NULL, **et;
 	V_DECLARE(fedges);
 	BMFace *f;
-	int i, j, allocsize[4] = {512, 512, 2048, 512};
+	int i, j, li, allocsize[4] = {512, 512, 2048, 512};
 
 	if (!me || !me->totvert) return; /*sanity check*/
 	
@@ -53,10 +53,10 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 
 	vt = MEM_mallocN(sizeof(void**)*me->totvert, "mesh to bmesh vtable");
 
-	CustomData_copy(&bm->vdata, &me->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bm->edata, &me->edata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bm->ldata, &me->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bm->pdata, &me->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&me->vdata, &bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&me->edata, &bm->edata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&me->ldata, &bm->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
+	CustomData_copy(&me->pdata, &bm->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
 
 	CustomData_bmesh_init_pool(&bm->vdata, allocsize[0]);
 	CustomData_bmesh_init_pool(&bm->edata, allocsize[1]);
@@ -102,8 +102,11 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	if (!me->totpoly) return;
 
 	mpoly = me->mpoly;
+	li = 0;
 	for (i=0; i<me->totpoly; i++, mpoly++) {
 		BMVert *v1, *v2;
+		BMIter iter;
+		BMLoop *l;
 
 		V_RESET(fedges);
 		for (j=0; j<mpoly->totloop; j++) {
@@ -130,8 +133,14 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		f->head.flag = MEFlags_To_BMFlags(mpoly->flag, BM_FACE);
 		if (i == me->act_face) bm->act_face = f;
 
+		/*Copy over loop customdata*/
+		BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
+			CustomData_to_bmesh_block(&me->ldata, &bm->ldata, li, &l->head.data);
+			li++;
+		}
+
 		/*Copy Custom Data*/
-		CustomData_to_bmesh_block(&me->fdata, &bm->pdata, i, &f->head.data);
+		CustomData_to_bmesh_block(&me->pdata, &bm->pdata, i, &f->head.data);
 	}
 }
 

@@ -467,6 +467,14 @@
 		</Configuration>
 	</Configurations>
 	<References>
+		<ProjectReference
+			ReferencedProjectIdentifier="{31628053-825D-4C06-8A21-D13883489718}"
+			RelativePathToProject=".\blenlib\BLI_blenlib.vcproj"
+		/>
+		<ProjectReference
+			ReferencedProjectIdentifier="{E013786A-9575-4F34-81B2-33290357EE87}"
+			RelativePathToProject=".\makesdna\DNA_makesdna.vcproj"
+		/>
 	</References>
 	<Files>
 		<Filter

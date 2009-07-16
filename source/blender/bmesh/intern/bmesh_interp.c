@@ -169,11 +169,14 @@ void BM_loops_to_corners(BMesh *bm, Mesh *me, int findex,
 static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)
 {
 	BMIter iter;
+	BLI_mempool *oldpool = olddata->pool;
 	void *block;
+
+	CustomData_bmesh_init_pool(data, data==&bm->ldata ? 2048 : 512);
 
 	if (data == &bm->vdata) {
 		BMVert *eve;
-
+		
 		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 			block = NULL;
 			CustomData_bmesh_set_default(data, &block);
