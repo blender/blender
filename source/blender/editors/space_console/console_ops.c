@@ -1,5 +1,5 @@
 /**
- * $Id: text_ops.c 21549 2009-07-12 12:47:34Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

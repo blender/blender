@@ -1,5 +1,5 @@
 /**
- * $Id: text_draw.c 21558 2009-07-13 11:41:24Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
