@@ -380,11 +380,6 @@ def write(filename, objects, scene,
 	# Get all meshes
 	for ob_main in objects:
 
-		if ob_main.dupli_type != 'NONE':
-			# XXX
-			print('creating dupli_list on', ob_main.name)
-			ob_main.create_dupli_list()
-
 		# ignore dupli children
 		if ob_main.parent and ob_main.parent.dupli_type != 'NONE':
 			# XXX
@@ -393,6 +388,10 @@ def write(filename, objects, scene,
 
 		obs = []
 		if ob_main.dupli_type != 'NONE':
+			# XXX
+			print('creating dupli_list on', ob_main.name)
+			ob_main.create_dupli_list()
+			
 			obs = [(dob.object, dob.matrix) for dob in ob_main.dupli_list]
 
 			# XXX debug print

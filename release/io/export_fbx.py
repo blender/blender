@@ -2019,41 +2019,60 @@ def write(filename, batch_objects = None, \
 		# This is needed so applying modifiers dosnt apply the armature deformation, its also needed
 		# ...so mesh objects return their rest worldspace matrix when bone-parents are exported as weighted meshes.
 		# set every armature to its rest, backup the original values so we done mess up the scene
-		ob_arms_orig_rest = [arm.restPosition for arm in bpy.data.armatures]
+		ob_arms_orig_rest = [arm.rest_position for arm in bpy.data.armatures]
+# 		ob_arms_orig_rest = [arm.restPosition for arm in bpy.data.armatures]
 		
 		for arm in bpy.data.armatures:
-			arm.restPosition = True
+			arm.rest_position = True
+# 			arm.restPosition = True
 		
 		if ob_arms_orig_rest:
 			for ob_base in bpy.data.objects:
 				#if ob_base.type == 'Armature':
-				ob_base.makeDisplayList()
+				ob_base.make_display_list()
+# 				ob_base.makeDisplayList()
 					
 			# This causes the makeDisplayList command to effect the mesh
-			Blender.Set('curframe', Blender.Get('curframe'))
+			sce.set_frame(sce.current_frame)
+# 			Blender.Set('curframe', Blender.Get('curframe'))
 			
 	
 	for ob_base in tmp_objects:
-		for ob, mtx in BPyObject.getDerivedObjects(ob_base):
-			#for ob in [ob_base,]:
+
+		# ignore dupli children
+		if ob_base.parent and ob_base.parent.dupli_type != 'NONE':
+			continue
+
+		obs = [(ob_base, ob_base.matrix)]
+		if ob_base.dupli_type != 'NONE':
+			ob_base.create_dupli_list()
+			obs = [(dob.object, dob.matrix) for dob in ob_base.dupli_list]
+
+		for ob, mtx in obs:
+# 		for ob, mtx in BPyObject.getDerivedObjects(ob_base):
 			tmp_ob_type = ob.type
-			if tmp_ob_type == 'Camera':
+			if tmp_ob_type == 'CAMERA':
+# 			if tmp_ob_type == 'Camera':
 				if EXP_CAMERA:
 					ob_cameras.append(my_object_generic(ob, mtx))
-			elif tmp_ob_type == 'Lamp':
+			elif tmp_ob_type == 'LAMP':
+# 			elif tmp_ob_type == 'Lamp':
 				if EXP_LAMP:
 					ob_lights.append(my_object_generic(ob, mtx))
-			elif tmp_ob_type == 'Armature':
+			elif tmp_ob_type == 'ARMATURE':
+# 			elif tmp_ob_type == 'Armature':
 				if EXP_ARMATURE:
 					# TODO - armatures dont work in dupligroups!
 					if ob not in ob_arms: ob_arms.append(ob)
 					# ob_arms.append(ob) # replace later. was "ob_arms.append(sane_obname(ob), ob)"
-			elif tmp_ob_type == 'Empty':
+			elif tmp_ob_type == 'EMPTY':
+# 			elif tmp_ob_type == 'Empty':
 				if EXP_EMPTY:
 					ob_null.append(my_object_generic(ob, mtx))
 			elif EXP_MESH:
 				origData = True
-				if tmp_ob_type != 'Mesh':
+				if tmp_ob_type != 'MESH':
+# 				if tmp_ob_type != 'Mesh':
 					me = bpy.data.meshes.new()
 					try:	me.getFromObject(ob)
 					except:	me = None
@@ -2171,8 +2190,9 @@ def write(filename, batch_objects = None, \
 			
 		if ob_arms_orig_rest:
 			for ob_base in bpy.data.objects:
-				if ob_base.type == 'Armature':
-					ob_base.dag_update()
+				if ob_base.type == 'ARMATURE':
+# 				if ob_base.type == 'Armature':
+					ob_base.make_display_list()
 # 					ob_base.makeDisplayList()
 			# This causes the makeDisplayList command to effect the mesh
 			sce.set_frame(sce.current_frame)
@@ -3322,6 +3342,7 @@ if __name__ == '__main__':
 # - get rid of BPyObject_getObjectArmature, move it in RNA?
 # - BATCH_ENABLE and BATCH_GROUP options: line 327
 # - implement all BPyMesh_* used here with RNA
+# - getDerivedObjects is not fully replicated with .dupli* funcs
 
 # TODO
 
