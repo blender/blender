@@ -19,7 +19,7 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) Blender Foundation.
+# The Original Code is Copyright (C) 2009 Blender Foundation
 # All rights reserved.
 #
 # The Original Code is: all of this file.
@@ -27,42 +27,29 @@
 # Contributor(s): none yet.
 #
 # ***** END GPL LICENSE BLOCK *****
-#
-# Bounces make to subdirectories.
 
-SOURCEDIR = source/blender/editors
-DIRS = armature \
-  mesh \
-  animation \
-  object \
-  sculpt_paint \
-  datafiles \
-  transform \
-  screen \
-  curve \
-  gpencil \
-  physics \
-  preview \
-  uvedit \
-  space_outliner \
-  space_time \
-  space_view3d \
-  interface \
-  util \
-  space_api \
-  space_console \
-  space_graph \
-  space_image \
-  space_node \
-  space_buttons \
-  space_info \
-  space_file \
-  space_sound \
-  space_action \
-  space_nla \
-  space_script \
-  space_text \
-  space_sequencer \
-  space_logic \
+LIBNAME = ed_console
+DIR = $(OCGDIR)/blender/$(LIBNAME)
 
-include nan_subdirs.mk
+include nan_compile.mk
+
+CFLAGS += $(LEVEL_1_C_WARNINGS)
+
+CPPFLAGS += -I$(NAN_GLEW)/include
+CPPFLAGS += -I$(OPENGL_HEADERS)
+
+# not very neat....
+CPPFLAGS += -I../../windowmanager
+CPPFLAGS += -I../../blenfont
+CPPFLAGS += -I../../blenkernel
+CPPFLAGS += -I../../blenlib
+CPPFLAGS += -I../../makesdna
+CPPFLAGS += -I../../makesrna
+CPPFLAGS += -I../../imbuf
+CPPFLAGS += -I../../python
+CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I../../render/extern/include
+
+# own include 
+
+CPPFLAGS += -I../include 
