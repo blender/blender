@@ -562,7 +562,7 @@ void CONSOLE_OT_zoom(wmOperatorType *ot)
 	ot->exec= zoom_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	/* ot->flag= OPTYPE_REGISTER; */ /* super annoying */
 	
 	/* properties */
 	RNA_def_int(ot->srna, "delta", 0, 0, INT_MAX, "Delta", "Scale the view font.", 0, 1000);

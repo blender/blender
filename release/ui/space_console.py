@@ -87,6 +87,7 @@ class CONSOLE_OT_exec(bpy.types.Operator):
 	Operator documentatuon text, will be used for the operator tooltip and python docs.
 	'''
 	__label__ = "Console Execute"
+	__register__ = True
 	
 	# Both prompts must be the same length
 	PROMPT = '>>> ' 
@@ -362,6 +363,7 @@ class CONSOLE_OT_autocomplete(bpy.types.Operator):
 	Operator documentatuon text, will be used for the operator tooltip and python docs.
 	'''
 	__label__ = "Console Autocomplete"
+	__register__ = True
 	
 	def poll(self, context):
 		return context.space_data.type == 'PYTHON'
