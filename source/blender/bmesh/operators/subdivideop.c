@@ -311,7 +311,7 @@ static void q_2edge_split(BMesh *bm, BMFace *face, BMVert **verts,
 		connect_smallest_face(bm, verts[i], verts[numcuts+(numcuts-i)],
 			           &nf);
 	}
-	connect_smallest_face(bm, verts[numcuts*2+3], verts[numcuts*2+1], &nf);
+	//experimentally disabled -> connect_smallest_face(bm, verts[numcuts*2+3], verts[numcuts*2+1], &nf);
 }
 
 subdpattern q_2edge = {
