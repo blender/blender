@@ -607,6 +607,7 @@ subdpattern *patterns[] = {
 
 typedef struct subd_facedata {
 	BMVert *start; subdpattern *pat;
+	int totedgesel; //only used if pat was NULL, e.g. no pattern was found
 } subd_facedata;
 
 void esubdivide_exec(BMesh *bmesh, BMOperator *op)
@@ -623,9 +624,12 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	subdparams params;
 	subd_facedata *facedata = NULL;
 	V_DECLARE(facedata);
+	BMLoop *l, **splits = NULL, **loops = NULL;
+	V_DECLARE(splits);
+	V_DECLARE(loops);
 	float smooth, fractal;
 	int beauty;
-	int i, j, matched, a, b, numcuts;
+	int i, j, matched, a, b, numcuts, totesel;
 	
 	BMO_Flag_Buffer(bmesh, op, "edges", SUBD_SPLIT);
 	
@@ -658,13 +662,20 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 
 		V_RESET(edges);
 		V_RESET(verts);
+		matched = 0;
+
 		i = 0;
+		totesel = 0;
 		for (nl=BMIter_New(&liter, bmesh, BM_LOOPS_OF_FACE, face);
 		     nl; nl=BMIter_Step(&liter)) {
 			V_GROW(edges);
 			V_GROW(verts);
 			edges[i] = nl->e;
 			verts[i] = nl->v;
+
+			if (BMO_TestFlag(bmesh, edges[i], SUBD_SPLIT))
+				totesel++;
+
 			i++;
 		}
 
@@ -703,26 +714,37 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 			pat = patterns[i];
  			if (pat->len == face->len) {
 				for (a=0; a<pat->len; a++) {
-				matched = 1;
-				for (b=0; b<pat->len; b++) {
-					j = (b + a) % pat->len;
-					if ((!!BMO_TestFlag(bmesh, edges[j], SUBD_SPLIT))
-						!= (!!pat->seledges[b])) {
-							matched = 0;
-							break;
+					matched = 1;
+					for (b=0; b<pat->len; b++) {
+						j = (b + a) % pat->len;
+						if ((!!BMO_TestFlag(bmesh, edges[j], SUBD_SPLIT))
+							!= (!!pat->seledges[b])) {
+								matched = 0;
+								break;
+						}
 					}
-				}
-				if (matched) break;
+					if (matched) break;
 				}
 				if (matched) {
 					V_GROW(facedata);
-					BMO_SetFlag(bmesh, face, SUBD_SPLIT);
 					j = V_COUNT(facedata) - 1;
+
+					BMO_SetFlag(bmesh, face, SUBD_SPLIT);
+
 					facedata[j].pat = pat;
 					facedata[j].start = verts[a];
 					break;
 				}
 			}
+		
+		}
+		
+		if (!matched && totesel) {
+			V_GROW(facedata);
+			j = V_COUNT(facedata) - 1;
+			
+			BMO_SetFlag(bmesh, face, SUBD_SPLIT);
+			facedata[j].totedgesel = totesel;
 		}
 	}
 
@@ -743,10 +765,73 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	     face; face=BMIter_Step(&fiter)) {
 		/*figure out which pattern to use*/
 		V_RESET(verts);
-		if (BMO_TestFlag(bmesh, face, SUBD_SPLIT) == 0) continue;
+		if (BMO_TestFlag(bmesh, face, SUBD_SPLIT) == 0)
+			continue;
 
 		pat = facedata[i].pat;
-		if (!pat) continue;
+		if (!pat && facedata[i].totedgesel == 2) { /*ok, no pattern.  we still may be able to do something.*/
+			BMFace *nf;
+			int vlen;
+			
+			V_RESET(loops);
+			V_RESET(splits);
+
+			/*for case of two edges, connecting them shouldn't be too hard*/
+			BM_ITER(l, &liter, bmesh, BM_LOOPS_OF_FACE, face) {
+				V_GROW(loops);
+				loops[V_COUNT(loops)-1] = l;
+			}
+			
+			vlen = V_COUNT(loops);
+
+			/*find the boundary of one of the split edges*/
+			for (a=1; a<vlen; a++) {
+				if (!BMO_TestFlag(bmesh, loops[a-1]->v, ELE_INNER) 
+				    && BMO_TestFlag(bmesh, loops[a]->v, ELE_INNER))
+					break;
+			}
+			
+			if (BMO_TestFlag(bmesh, loops[(a+numcuts+1)%vlen]->v, ELE_INNER)) {
+				b = (a+numcuts+1)%vlen;
+			} else {
+				/*find the boundary of the other edge.*/
+				for (j=0; j<vlen; j++) {
+					b = (j + a + numcuts + 1) % vlen;
+					if (!BMO_TestFlag(bmesh, loops[b==0 ? vlen-1 : b-1]->v, ELE_INNER)
+					    && BMO_TestFlag(bmesh, loops[b]->v, ELE_INNER))
+						break;
+				}
+			}
+			
+			b += numcuts - 1;
+
+			for (j=0; j<numcuts; j++) {
+				V_GROW(splits);
+				splits[V_COUNT(splits)-1] = loops[a];
+				
+				V_GROW(splits);
+				splits[V_COUNT(splits)-1] = loops[b];
+
+				b = (b-1) % vlen;
+				a = (a+1) % vlen;
+			}
+			
+			BM_LegalSplits(bmesh, face, splits, V_COUNT(splits)/2);
+
+			for (j=0; j<V_COUNT(splits)/2; j++) {
+				if (splits[j*2]) {
+					BMFace *nf;
+
+					nf = BM_Split_Face(bmesh, face, splits[j*a]->v, splits[j*2+1]->v, &nl, NULL);
+				}
+			}
+
+			i++;
+			continue;
+		} else if (!pat) {
+			i++;
+			continue;
+		}
 
 		j = a = 0;
 		for (nl=BMIter_New(&liter, bmesh, BM_LOOPS_OF_FACE, face);
@@ -777,6 +862,8 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	if (facedata) V_FREE(facedata);
 	if (edges) V_FREE(edges);
 	if (verts) V_FREE(verts);
+	V_FREE(splits);
+	V_FREE(loops);
 
 	BMO_Flag_To_Slot(bmesh, op, "outinner",
 		         ELE_INNER, BM_ALL);

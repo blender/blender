@@ -195,12 +195,16 @@ BMFace *bmesh_addpolylist(BMesh *bm, BMFace *example){
 */
 void bmesh_free_vert(BMesh *bm, BMVert *v){
 	bm->totvert--;
+	BM_remove_selection(bm, v);
+
 	CustomData_bmesh_free_block(&bm->vdata, &v->head.data);
 	BLI_mempool_free(bm->flagpool, v->head.flags);
 	BLI_mempool_free(bm->vpool, v);
 }
 void bmesh_free_edge(BMesh *bm, BMEdge *e){
 	bm->totedge--;
+	BM_remove_selection(bm, e);
+
 	CustomData_bmesh_free_block(&bm->edata, &e->head.data);
 	BLI_mempool_free(bm->flagpool, e->head.flags);
 	BLI_mempool_free(bm->epool, e);
@@ -208,6 +212,7 @@ void bmesh_free_edge(BMesh *bm, BMEdge *e){
 void bmesh_free_poly(BMesh *bm, BMFace *f){
 	if (f == bm->act_face)
 		bm->act_face = NULL;
+	BM_remove_selection(bm, f);
 
 	bm->totface--;
 	CustomData_bmesh_free_block(&bm->pdata, &f->head.data);

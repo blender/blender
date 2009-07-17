@@ -170,6 +170,9 @@ typedef struct BMesh {
 	int totflags, walkers;							/*total number of tool flag layers*/
 	ListBase errorstack;
 
+	/*selection order list*/
+	ListBase selected;
+
 	/*active face pointer*/
 	struct BMFace *act_face;
 } BMesh;

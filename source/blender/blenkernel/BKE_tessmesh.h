@@ -11,13 +11,6 @@ ok: the EDBM module is for editmode bmesh stuff.  in contrast, the
     the BMEditMesh structure.
 */
 
-typedef struct BMEditSelection
-{
-	struct BMEditSelection *next, *prev;
-	short type;
-	void *data;
-} BMEditSelection;
-
 /*this structure replaces EditMesh.
  
   through this, you get access to both the edit bmesh,
@@ -25,7 +18,7 @@ typedef struct BMEditSelection
   struct itself.
   
   the entire derivedmesh and modifier system works with this structure,
-  and not BMesh.  Mesh->editbmesh will store a pointer to this structure.*/
+  and not BMesh.  Mesh->edit_bmesh stores a pointer to this structure.*/
 typedef struct BMEditMesh {
 	struct BMesh *bm;
 
@@ -50,9 +43,6 @@ typedef struct BMEditMesh {
 	struct BMVert **vert_index;
 	struct BMEdge **edge_index;
 	struct BMFace **face_index;
-	
-	/*selection order list*/
-	ListBase selected;
 
 	/*selection mode*/
 	int selectmode;

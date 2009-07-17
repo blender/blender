@@ -363,7 +363,7 @@ BMFace *EDBM_get_actFace(BMEditMesh *em, int sloppy)
 		BMFace *efa= NULL;
 		BMEditSelection *ese;
 		
-		ese = em->selected.last;
+		ese = em->bm->selected.last;
 		for (; ese; ese=ese->prev){
 			if(ese->type == BM_FACE) {
 				efa = (BMFace *)ese->data;
@@ -395,7 +395,7 @@ void EDBM_selectmode_flush(BMEditMesh *em)
 
 int EDBM_get_actSelection(BMEditMesh *em, BMEditSelection *ese)
 {
-	BMEditSelection *ese_last = em->selected.last;
+	BMEditSelection *ese_last = em->bm->selected.last;
 	BMFace *efa = EDBM_get_actFace(em, 0);
 
 	ese->next = ese->prev = NULL;

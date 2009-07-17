@@ -83,12 +83,14 @@ static int point_in_triangle(double *v1, double *v2, double *v3, double *pt)
  * computing newell normal.
  *
 */
+#define FEQ(f1, f2) (ABS((double)(f1)-(double)(f2)) < 0.1)
+
 static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 {
 
-	float *u,  *v;/*, *w, v1[3], v2[3];*/
-	double n[3] = {0.0, 0.0, 0.0}, l;
-	int i;
+	double u[3],  v[3], w[3];/*, *w, v1[3], v2[3];*/
+	double n[3] = {0.0, 0.0, 0.0}, l, v1[3], v2[3];
+	int i, s=0;
 
 	/*this fixes some weird numerical error*/
 	verts[0][0] += 0.0001f;
@@ -96,9 +98,19 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 	verts[0][2] += 0.0001f;
 
 	for(i = 0; i < nverts; i++){
-		u = verts[i];
-		v = verts[(i+1) % nverts];
+		VECCOPY(u, verts[i]);
+		VECCOPY(v, verts[(i+1) % nverts]);
+		VECCOPY(w, verts[(i+2) % nverts]);
 		
+		VECSUB(v1, w, v);
+		VECSUB(v2, v, u);
+		Normalize_d(v1);
+		Normalize_d(v2);
+
+		l = INPR(v1, v2);
+		if (l < 0.01 && l > -0.01)
+			continue;
+
 		/* newell's method
 		
 		so thats?:
@@ -472,7 +484,7 @@ int linecrosses(double *v1, double *v2, double *v3, double *v4)
    note, there could be more winding cases then there needs to be. */
 int linecrossesf(float *v1, float *v2, float *v3, float *v4)
 {
-	int w1, w2, w3, w4, w5;
+	int w1, w2, w3, w4, w5, ret;
 	
 /*	   int test1_a, test1_a, test2_a, test2_a;
 
@@ -504,12 +516,38 @@ int linecrossesf(float *v1, float *v2, float *v3, float *v4)
 	
 	return (w1 == w2) && (w2 == w3) && (w3 == w4);*/
 
+	/*do an interval test on the x and y axes*/
+	/*first do x axis*/
+	#define T 0.01
+	if (ABS(v1[1]-v2[1]) < T && ABS(v3[1]-v4[1]) < T &&
+	    ABS(v1[1]-v3[1]) < T) {
+		if (v3[0] >= v1[0] && v3[0] <= v2[0])
+			return 1;
+		if (v4[0] >= v1[0] && v4[0] <= v2[0])
+			return 1;
+		if (v3[0] <= v1[0] && v4[0] >= v2[0])
+			return 1;
+	}
+
+	/*now do y axis*/
+	if (ABS(v1[0]-v2[0]) < T && ABS(v3[0]-v4[0]) < T &&
+	    ABS(v1[0]-v3[0]) < T) {
+		if (v3[1] >= v1[1] && v3[1] <= v2[1])
+			return 1;
+		if (v4[1] >= v1[1] && v4[1] <= v2[1])
+			return 1;
+		if (v3[1] <= v1[1] && v4[1] >= v2[1])
+			return 1;
+	}
+
+	/*now test winding*/
 	w1 = testedgesidef(v1, v3, v2);
 	w2 = testedgesidef(v2, v4, v1);
 	w3 = !testedgesidef(v1, v2, v3);
 	w4 = testedgesidef(v3, v2, v4);
 	w5 = !testedgesidef(v3, v1, v4);
-	return w1 == w2 && w2 == w3 && w3 == w4 && w4==w5;
+
+	return w1 == w2 && w2 == w3 && w3 == w4 && w4==w5; 
 }
 
 int goodline(float (*projectverts)[3], BMFace *f, int v1i,

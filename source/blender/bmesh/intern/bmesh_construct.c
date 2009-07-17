@@ -418,11 +418,12 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 	V_DECLARE(etable);
 	BMLoop *l, *l2, **loops = NULL;
 	V_DECLARE(loops);
-	BMFace *f, *f2;
-
+	BMFace *f, *f2, **ftable = NULL;
+	V_DECLARE(ftable);
+	BMEditSelection *ese;
 	BMIter iter, liter;
 	int allocsize[4] = {512,512,2048,512}, numTex, numCol;
-	int i;
+	int i, j;
 
 	/*allocate a bmesh*/
 	bm = BM_Make_Mesh(allocsize);
@@ -468,15 +469,15 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 	}
 	
 	f = BMIter_New(&iter, bmold, BM_FACES_OF_MESH, NULL);
-	for (; f; f=BMIter_Step(&iter)) {
+	for (i=0; f; f=BMIter_Step(&iter), i++) {
 		V_RESET(loops);
 		V_RESET(edges);
 		l = BMIter_New(&liter, bmold, BM_LOOPS_OF_FACE, f);
-		for (i=0; i<f->len; i++, l = BMIter_Step(&liter)) {
+		for (j=0; j<f->len; j++, l = BMIter_Step(&liter)) {
 			V_GROW(loops);
 			V_GROW(edges);
-			loops[i] = l;
-			edges[i] = etable[BMINDEX_GET(l->e)];
+			loops[j] = l;
+			edges[j] = etable[BMINDEX_GET(l->e)];
 		}
 
 		v = vtable[BMINDEX_GET(loops[0]->v)];
@@ -488,19 +489,41 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 		}
 
 		f2 = BM_Make_Ngon(bm, v, v2, edges, f->len, 0);
+		
+		BMINDEX_SET(f, i);
+		V_GROW(ftable);
+		ftable[i] = f2;
+
 		BM_Copy_Attributes(bmold, bm, f, f2);
 		VECCOPY(f2->no, f->no);
 
 		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f2);
-		for (i=0; i<f->len; i++, l = BMIter_Step(&liter)) {
-			BM_Copy_Attributes(bmold, bm, loops[i], l);
+		for (j=0; j<f->len; j++, l = BMIter_Step(&liter)) {
+			BM_Copy_Attributes(bmold, bm, loops[j], l);
 		}
 
 		if (f == bmold->act_face) bm->act_face = f2;
 	}
-	
+
+	/*copy over edit selection history*/
+	for (ese=bmold->selected.first; ese; ese=ese->next) {
+		void *ele;
+
+		if (ese->type == BM_VERT)
+			ele = vtable[BMINDEX_GET(ese->data)];
+		else if (ese->type == BM_EDGE)
+			ele = etable[BMINDEX_GET(ese->data)];
+		else if (ese->type == BM_FACE) {
+			ele = ftable[BMINDEX_GET(ese->data)];
+		}
+
+		BM_store_selection(bm, ele);
+	}
+
 	V_FREE(etable);
 	V_FREE(vtable);
+	V_FREE(ftable);
+
 	V_FREE(loops);
 	V_FREE(edges);
 

@@ -2074,8 +2074,8 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 	BMEdge *eed_act = NULL;
 	BMVert *eve_act = NULL;
 	
-	if (em->selected.last) {
-		BMEditSelection *ese = em->selected.last;
+	if (em->bm->selected.last) {
+		BMEditSelection *ese = em->bm->selected.last;
 		/* face is handeled above */
 		/*if (ese->type == EDITFACE ) {
 			efa_act = (EditFace *)ese->data;

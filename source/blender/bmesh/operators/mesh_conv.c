@@ -131,6 +131,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		f = BM_Make_Ngon(bm, v1, v2, fedges, mpoly->totloop, 0);
 		
 		f->head.flag = MEFlags_To_BMFlags(mpoly->flag, BM_FACE);
+		f->mat_nr = mpoly->mat_nr;
 		if (i == me->act_face) bm->act_face = f;
 
 		/*Copy over loop customdata*/

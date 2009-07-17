@@ -2182,8 +2182,8 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	if (countsel==0) return;
 
 	/* check active */
-	if (em->selected.last) {
-		BMEditSelection *ese = em->selected.last;
+	if (em->bm->selected.last) {
+		BMEditSelection *ese = em->bm->selected.last;
 		if ( ese->type == EDITVERT ) {
 			eve_act = (BMVert *)ese->data;
 		}

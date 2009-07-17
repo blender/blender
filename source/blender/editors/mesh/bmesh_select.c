@@ -1140,8 +1140,8 @@ static void mouse_mesh_shortest_path(bContext *C, short mval[2])
 		Mesh *me= vc.obedit->data;
 		int path = 0;
 		
-		if (em->selected.last) {
-			EditSelection *ese = em->selected.last;
+		if (em->bm->selected.last) {
+			EditSelection *ese = em->bm->selected.last;
 			
 			if(ese && ese->type == BMEdge) {
 				BMEdge *eed_act;
@@ -1292,26 +1292,26 @@ static void EDBM_strip_selections(BMEditMesh *em)
 	BMEditSelection *ese, *nextese;
 
 	if(!(em->selectmode & SCE_SELECT_VERTEX)){
-		ese = em->selected.first;
+		ese = em->bm->selected.first;
 		while(ese){
 			nextese = ese->next; 
-			if(ese->type == BM_VERT) BLI_freelinkN(&(em->selected),ese);
+			if(ese->type == BM_VERT) BLI_freelinkN(&(em->bm->selected),ese);
 			ese = nextese;
 		}
 	}
 	if(!(em->selectmode & SCE_SELECT_EDGE)){
-		ese=em->selected.first;
+		ese=em->bm->selected.first;
 		while(ese){
 			nextese = ese->next;
-			if(ese->type == BM_EDGE) BLI_freelinkN(&(em->selected), ese);
+			if(ese->type == BM_EDGE) BLI_freelinkN(&(em->bm->selected), ese);
 			ese = nextese;
 		}
 	}
 	if(!(em->selectmode & SCE_SELECT_FACE)){
-		ese=em->selected.first;
+		ese=em->bm->selected.first;
 		while(ese){
 			nextese = ese->next;
-			if(ese->type == BM_FACE) BLI_freelinkN(&(em->selected), ese);
+			if(ese->type == BM_FACE) BLI_freelinkN(&(em->bm->selected), ese);
 			ese = nextese;
 		}
 	}
