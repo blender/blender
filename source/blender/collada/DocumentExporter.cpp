@@ -696,7 +696,7 @@ public:
 				std::string name(id_name(image));
 
 				if (find(mImages.begin(), mImages.end(), name) == mImages.end()) {
-					COLLADASW::Image img(COLLADABU::URI(image->name), name, "");
+					COLLADASW::Image img(COLLADABU::URI(COLLADABU::URI::nativePathToUri(image->name)), name, "");
 					img.add(mSW);
 
 					mImages.push_back(name);

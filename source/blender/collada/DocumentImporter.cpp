@@ -326,25 +326,32 @@ public:
 		
 		// assign materials to object
 		// assign material indices to mesh faces
+		Mesh *me = (Mesh*)ob->data;
+		MTex *mtex = NULL;
+		MTFace *tface = NULL;
+		char *layername = CustomData_get_layer_name(&me->fdata, CD_MTFACE, 0);
+		
 		for (int k = 0; k < geom->getMaterialBindings().getCount(); k++) {
 			
-			const COLLADAFW::UniqueId& mat_uid = geom->getMaterialBindings()[k].getReferencedMaterial();
+			const COLLADAFW::UniqueId& ma_uid = geom->getMaterialBindings()[k].getReferencedMaterial();
 			// check if material was properly written to map
-			if (uid_material_map.find(mat_uid) == uid_material_map.end()) {
+			if (uid_material_map.find(ma_uid) == uid_material_map.end()) {
 				fprintf(stderr, "Cannot find material by UID.\n");
 				continue;
 			}
+			Material *ma = uid_material_map[ma_uid];
+			int l;
 			
 			// assign textures to uv layers
 			// bvi_array "bind_vertex_input array"
 			COLLADAFW::InstanceGeometry::TextureCoordinateBindingArray& bvi_array = 
 				geom->getMaterialBindings()[k].getTextureCoordinateBindingArray();
 			
-			for (int l = 0; l < bvi_array.getCount(); l++) {
+			for (l = 0; l < bvi_array.getCount(); l++) {
 				
 				COLLADAFW::TextureMapId tex_index = bvi_array[l].textureMapId;
 				size_t set_index = bvi_array[l].setIndex;
-				char *layername = set_layername_map[set_index];
+				char *uvname = set_layername_map[set_index];
 				
 				// check if mtexes were properly added to vector
 				if (index_mtex_map.find(tex_index) == index_mtex_map.end()) {
@@ -354,20 +361,33 @@ public:
 				std::vector<MTex*> mtexes = index_mtex_map[tex_index];
 				std::vector<MTex*>::iterator it;
 				for (it = mtexes.begin(); it != mtexes.end(); it++) {
-					MTex *mtex = *it;
-					strcpy(mtex->uvname, layername);
+					mtex = *it;
+					strcpy(mtex->uvname, uvname);
 					
 				}	
 			}
+			mtex = NULL;
+			// find and save texture mapped to diffuse
+			for (l = 0; l < 18; l++) {
+				if (ma->mtex[l] != NULL && ma->mtex[l]->mapto == MAP_COL)
+					mtex = ma->mtex[l];
+			}
+			// get mtface for first uv layer
+			if (tface == NULL && mtex != NULL)
+				tface = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE, mtex->uvname);
+			// get mtface for next uv layer
+			else if(layername != NULL && mtex != NULL && strcmp(layername, mtex->uvname) != 0) {
+				tface = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE, mtex->uvname);
+				layername = mtex->uvname;
+			}
 			
-			assign_material(ob, uid_material_map[mat_uid], ob->totcol + 1);
+			assign_material(ob, ma, ob->totcol + 1);
 			
 			MaterialIdPrimitiveArrayMap& mat_prim_map = geom_uid_mat_mapping_map[geom_uid];
 			COLLADAFW::MaterialId mat_id = geom->getMaterialBindings()[k].getMaterialId();
 			
 			// if there's geometry that uses this material,
 			// set mface->mat_nr=k for each face in that geometry
-			
 			if (mat_prim_map.find(mat_id) != mat_prim_map.end()) {
 				
 				std::vector<Primitive>& prims = mat_prim_map[mat_id];
@@ -376,11 +396,15 @@ public:
 				
 				for (it = prims.begin(); it != prims.end(); it++) {
 					Primitive& prim = *it;
-					
-					int l = 0;
+					l = 0;
 					while (l++ < prim.totface) {
 						prim.mface->mat_nr = k;
 						prim.mface++;
+						if (mtex != NULL && tface != NULL) {
+							tface->tpage = (Image*)mtex->tex->ima;
+							tface->mode = TF_TEX;
+							tface++;
+						}
 					}
 				}
 			}
@@ -501,7 +525,6 @@ public:
 				fprintf(stderr, "MATRIX, LOOKAT and SKEW transformations are not supported yet.\n");
 				break;
 			}
-			//if (ob->type == OB_CAMERA) continue;
 			
 			// AnimationList that drives this Transformation
 			const COLLADAFW::UniqueId& anim_list_id = tm->getAnimationList();
