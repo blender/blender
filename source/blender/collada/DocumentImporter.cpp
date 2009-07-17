@@ -29,6 +29,8 @@
 #include "COLLADAFWColorOrTexture.h"
 #include "COLLADAFWSampler.h"
 #include "COLLADAFWTypes.h"
+#include "COLLADAFWCamera.h"
+#include "COLLADAFWLight.h"
 
 #include "COLLADASaxFWLLoader.h"
 
@@ -39,8 +41,8 @@ extern "C"
 #include "BKE_customdata.h"
 #include "BKE_library.h"
 #include "BKE_texture.h"
-#include "DNA_texture_types.h"
 }
+#include "DNA_lamp_types.h"
 #include "BKE_mesh.h"
 #include "BKE_global.h"
 #include "BKE_context.h"
@@ -50,10 +52,13 @@ extern "C"
 
 #include "BLI_arithb.h"
 
+#include "DNA_texture_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
+
 //#include "DNA_texture_types.h"
 
 #include "DocumentImporter.h"
@@ -127,6 +132,8 @@ private:
 	std::map<COLLADAFW::UniqueId, Image*> uid_image_map;
 	std::map<COLLADAFW::UniqueId, Material*> uid_material_map;
 	std::map<COLLADAFW::UniqueId, Material*> uid_effect_map;
+	std::map<COLLADAFW::UniqueId, Camera*> uid_camera_map;
+	std::map<COLLADAFW::UniqueId, Lamp*> uid_lamp_map;
 	// maps for assigning textures to uv layers
 	std::map<COLLADAFW::TextureMapId, char*> set_layername_map;
 	std::map<COLLADAFW::TextureMapId, std::vector<MTex*> > index_mtex_map;
@@ -310,8 +317,6 @@ public:
 			// this could happen if a mesh was not created
 			// (e.g. if it contains unsupported geometry)
 			fprintf(stderr, "Couldn't find a mesh by UID.\n");
-			// delete created object
-			free_object(ob);
 			return NULL;
 		}
 		// replace ob->data freeing the old one
@@ -343,7 +348,7 @@ public:
 				
 				// check if mtexes were properly added to vector
 				if (index_mtex_map.find(tex_index) == index_mtex_map.end()) {
-					fprintf(stderr, "Cannot find vector of mtexes by texture map id.\n");
+					fprintf(stderr, "Cannot find mtexes by texmap id.\n");
 					continue;
 				}
 				std::vector<MTex*> mtexes = index_mtex_map[tex_index];
@@ -351,6 +356,7 @@ public:
 				for (it = mtexes.begin(); it != mtexes.end(); it++) {
 					MTex *mtex = *it;
 					strcpy(mtex->uvname, layername);
+					
 				}	
 			}
 			
@@ -361,6 +367,7 @@ public:
 			
 			// if there's geometry that uses this material,
 			// set mface->mat_nr=k for each face in that geometry
+			
 			if (mat_prim_map.find(mat_id) != mat_prim_map.end()) {
 				
 				std::vector<Primitive>& prims = mat_prim_map[mat_id];
@@ -401,11 +408,33 @@ public:
 			ob = create_mesh_object(ob, sce, node, geom[0]);
 		}
 		// checking all other possible instances
+		// <instance_camera>
 		else if (camera.getCount() != 0) {
-			return;
+			const COLLADAFW::UniqueId& cam_uid = camera[0]->getInstanciatedObjectId();
+			if (uid_camera_map.find(cam_uid) == uid_camera_map.end()) {	
+				fprintf(stderr, "Couldn't find camera by UID. \n");
+				return;
+			}
+			ob = add_object(sce, OB_CAMERA);
+			Camera *cam = uid_camera_map[cam_uid];
+			Camera *old_cam = (Camera*)ob->data;
+			old_cam->id.us--;
+			ob->data = cam;
+			if (old_cam->id.us == 0) free_libblock(&G.main->camera, old_cam);
 		}
+		// <instance_light>
 		else if (lamp.getCount() != 0) {
-			return;
+			const COLLADAFW::UniqueId& lamp_uid = lamp[0]->getInstanciatedObjectId();
+			if (uid_lamp_map.find(lamp_uid) == uid_lamp_map.end()) {	
+				fprintf(stderr, "Couldn't find lamp by UID. \n");
+				return;
+			}
+			ob = add_object(sce, OB_LAMP);
+			Lamp *la = uid_lamp_map[lamp_uid];
+			Lamp *old_lamp = (Lamp*)ob->data;
+			old_lamp->id.us--;
+			ob->data = la;
+			if (old_lamp->id.us == 0) free_libblock(&G.main->lamp, old_lamp);
 		}
 		else if (controller.getCount() != 0) {
 			//ob = create_mesh_object(ob, sce, node, controller[0]);
@@ -472,10 +501,11 @@ public:
 				fprintf(stderr, "MATRIX, LOOKAT and SKEW transformations are not supported yet.\n");
 				break;
 			}
-
+			//if (ob->type == OB_CAMERA) continue;
+			
 			// AnimationList that drives this Transformation
 			const COLLADAFW::UniqueId& anim_list_id = tm->getAnimationList();
-
+			
 			// store this so later we can link animation data with ob
 			AnimatedTransform anim = {ob, tm};
 			this->uid_animated_map[anim_list_id] = anim;
@@ -900,7 +930,7 @@ public:
 		// index of refraction
 		ma->ang = ef->getIndexOfRefraction().getFloatValue();
 		
-		int i = 1;
+		int i = 0;
 		COLLADAFW::Color col;
 		COLLADAFW::Texture ctex;
 		MTex *mtex = NULL;
@@ -919,6 +949,7 @@ public:
 			mtex = create_texture(ef, ctex, ma, i);
 			if (mtex != NULL) {
 				mtex->mapto = MAP_COL;
+				ma->texact = (int)i;
 				i++;
 			}
 		}
@@ -995,6 +1026,12 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeCamera( const COLLADAFW::Camera* camera ) 
 	{
+		//std::string name = camera->getOriginalId();
+		Camera *cam = (Camera*)add_camera("my_camera");
+		if (cam != NULL)
+			this->uid_camera_map[camera->getUniqueId()] = cam;
+		else fprintf(stderr, "Cannot create camera. \n");
+		// XXX import camera options
 		return true;
 	}
 
@@ -1002,8 +1039,6 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeImage( const COLLADAFW::Image* image ) 
 	{
-		/*std::string name = image->getOriginalId();
-		  BKE_add_image_file(name);*/
 	    const std::string& filepath = image->getImageURI().toNativePath();
 		Image *ima = BKE_add_image_file((char*)filepath.c_str(), 0);
 		if (ima == NULL)
@@ -1018,6 +1053,42 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeLight( const COLLADAFW::Light* light ) 
 	{
+		//std::string name = light->getOriginalId();
+		Lamp *lamp = (Lamp*)add_lamp("my_lamp");
+		COLLADAFW::Light::LightType type = light->getLightType();
+		switch(type) {
+		case COLLADAFW::Light::AMBIENT_LIGHT:
+			{
+				lamp->type = LA_HEMI;
+			}
+			break;
+		case COLLADAFW::Light::SPOT_LIGHT:
+			{
+				lamp->type = LA_SPOT;
+			}
+			break;
+		case COLLADAFW::Light::DIRECTIONAL_LIGHT:
+			{
+				lamp->type = LA_SUN;
+			}
+			break;
+		case COLLADAFW::Light::POINT_LIGHT:
+			{
+				lamp->type = LA_AREA;
+			}
+			break;
+		case COLLADAFW::Light::UNDEFINED:
+			{
+				fprintf(stderr, "Current lamp type is not supported. \n");
+				lamp->type = LA_LOCAL;
+			}
+			break;
+		}
+			
+		if (lamp != NULL)
+			this->uid_lamp_map[light->getUniqueId()] = lamp;
+		else fprintf(stderr, "Cannot create lamp. \n");
+		// XXX import light options*/
 		return true;
 	}
 
@@ -1029,7 +1100,14 @@ public:
 
 			// I wonder how do we use this (Arystan)
 			size_t dim = curve->getOutDimension();
-
+			
+			// XXX Don't know if it's necessary
+			// Should we check outPhysicalDimension?
+			if (curve->getInPhysicalDimension() != COLLADAFW::PHYSICAL_DIMENSION_TIME) {
+				fprintf(stderr, "Inputs physical dimension is not time. \n");
+				return true;
+			}
+			
 			// a curve can have mixed interpolation type,
 			// in this case curve->getInterpolationTypes returns a list of interpolation types per key
 			COLLADAFW::AnimationCurve::InterpolationType interp = curve->getInterpolationType();
@@ -1154,11 +1232,11 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeController( const COLLADAFW::Controller* controller ) 
 	{
-		// for skin controller
+		// if skin controller
 		if (controller->getControllerType() == COLLADAFW::Controller::CONTROLLER_TYPE_SKIN) {
 			return true;
 		}
-		// for morph controller
+		// if morph controller
 		else {
 			return true;
 		}
