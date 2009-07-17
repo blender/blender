@@ -136,8 +136,8 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
 			
 			col.itemR(softbody, "new_aero", text="Aero")
 			subcol = col.column()
-			subcol.active = softbody.new_aero
-			subcol.itemR(softbody, "aero", text="Factor", enabled=softbody.new_aero)
+			subcol.enabled = softbody.new_aero
+			subcol.itemR(softbody, "aero", text="Factor")
 
 			col.itemL(text="Collision:")
 			col.itemR(softbody, "edge_collision", text="Edge")

@@ -1404,9 +1404,10 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 #if 0
 	else if(cprop->add){
 		if(!(cprop->add->flag & FUNC_USE_CONTEXT)) { /* XXX check for this somewhere else */
-			ParameterList *params= RNA_parameter_list_create(ptr, cprop->add);
-			RNA_function_call(NULL, NULL, ptr, cprop->add, params);
-			RNA_parameter_list_free(params);
+			ParameterList params;
+			RNA_parameter_list_create(&params, ptr, cprop->add);
+			RNA_function_call(NULL, NULL, ptr, cprop->add, &params);
+			RNA_parameter_list_free(&params);
 		}
 	}
 #endif
@@ -1453,9 +1454,10 @@ void RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
 #if 0
 	else if(cprop->remove){
 		if(!(cprop->remove->flag & FUNC_USE_CONTEXT)) { /* XXX check for this somewhere else */
-			ParameterList *params= RNA_parameter_list_create(ptr, cprop->remove);
-			RNA_function_call(NULL, NULL, ptr, cprop->remove, params);
-			RNA_parameter_list_free(params);
+			ParameterList params;
+			RNA_parameter_list_create(&ptr, cprop->remove);
+			RNA_function_call(NULL, NULL, ptr, cprop->remove, &params);
+			RNA_parameter_list_free(&params);
 		}
 	}
 #endif
@@ -2787,20 +2789,17 @@ const struct ListBase *RNA_function_defined_parameters(FunctionRNA *func)
 
 /* Utility */
 
-ParameterList *RNA_parameter_list_create(PointerRNA *ptr, FunctionRNA *func)
+ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *ptr, FunctionRNA *func)
 {
-	ParameterList *parms;
 	PropertyRNA *parm;
-	int tot;
+	int tot= 0;
 
-	parms= MEM_callocN(sizeof(ParameterList), "ParameterList");
-
-	parm= func->cont.properties.first;
-	for(tot= 0; parm; parm= parm->next)
+	for(parm= func->cont.properties.first; parm; parm= parm->next)
 		tot+= rna_parameter_size(parm);
 
 	parms->data= MEM_callocN(tot, "RNA_parameter_list_create");
 	parms->func= func;
+	parms->tot= tot;
 
 	return parms;
 }
@@ -2822,8 +2821,11 @@ void RNA_parameter_list_free(ParameterList *parms)
 	parms->data= NULL;
 
 	parms->func= NULL;
+}
 
-	MEM_freeN(parms);
+int  RNA_parameter_list_size(ParameterList *parms)
+{
+	return parms->tot;
 }
 
 void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
@@ -3141,7 +3143,7 @@ static int rna_function_parameter_parse(PointerRNA *ptr, PropertyRNA *prop, Prop
 int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *ptr, FunctionRNA *func, const char *format, va_list args)
 {
 	PointerRNA funcptr;
-	ParameterList *parms;
+	ParameterList parms;
 	ParameterIterator iter;
 	PropertyRNA *pret, *parm;
 	PropertyType type;
@@ -3157,8 +3159,8 @@ int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *pt
 	pret= RNA_function_return(func);
 	flen= strlen(format);
 
-	parms= RNA_parameter_list_create(ptr, func);
-	RNA_parameter_list_begin(parms, &iter);
+	RNA_parameter_list_create(&parms, ptr, func);
+	RNA_parameter_list_begin(&parms, &iter);
 
 	for(i= 0, ofs= 0; iter.valid; RNA_parameter_list_next(&iter), i++) {
 		parm= iter.parm;
@@ -3240,7 +3242,7 @@ int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *pt
 	}
 
 	if (err==0)
-		err= RNA_function_call(C, reports, ptr, func, parms);
+		err= RNA_function_call(C, reports, ptr, func, &parms);
 
 	/* XXX throw error when more parameters than those needed are passed or leave silent? */
 	if (err==0 && pret && ofs<flen && format[ofs++]=='R') {
@@ -3302,7 +3304,7 @@ int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *pt
 	}
 
 	RNA_parameter_list_end(&iter);
-	RNA_parameter_list_free(parms);
+	RNA_parameter_list_free(&parms);
 
 	return err;
 }

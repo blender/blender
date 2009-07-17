@@ -76,7 +76,7 @@ static ARegionType *region_type_find(ReportList *reports, int space_type, int re
 static int panel_poll(const bContext *C, PanelType *pt)
 {
 	PointerRNA ptr;
-	ParameterList *list;
+	ParameterList list;
 	FunctionRNA *func;
 	void *ret;
 	int visible;
@@ -84,14 +84,14 @@ static int panel_poll(const bContext *C, PanelType *pt)
 	RNA_pointer_create(NULL, pt->py_srna, NULL, &ptr); /* dummy */
 	func= RNA_struct_find_function(&ptr, "poll");
 
-	list= RNA_parameter_list_create(&ptr, func);
-	RNA_parameter_set_lookup(list, "context", &C);
-	pt->py_call(&ptr, func, list);
+	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	pt->py_call(&ptr, func, &list);
 
-	RNA_parameter_get_lookup(list, "visible", &ret);
+	RNA_parameter_get_lookup(&list, "visible", &ret);
 	visible= *(int*)ret;
 
-	RNA_parameter_list_free(list);
+	RNA_parameter_list_free(&list);
 
 	return visible;
 }
@@ -99,33 +99,33 @@ static int panel_poll(const bContext *C, PanelType *pt)
 static void panel_draw(const bContext *C, Panel *pnl)
 {
 	PointerRNA ptr;
-	ParameterList *list;
+	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(&CTX_wm_screen(C)->id, pnl->type->py_srna, pnl, &ptr);
 	func= RNA_struct_find_function(&ptr, "draw");
 
-	list= RNA_parameter_list_create(&ptr, func);
-	RNA_parameter_set_lookup(list, "context", &C);
-	pnl->type->py_call(&ptr, func, list);
+	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	pnl->type->py_call(&ptr, func, &list);
 
-	RNA_parameter_list_free(list);
+	RNA_parameter_list_free(&list);
 }
 
 static void panel_draw_header(const bContext *C, Panel *pnl)
 {
 	PointerRNA ptr;
-	ParameterList *list;
+	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(&CTX_wm_screen(C)->id, pnl->type->py_srna, pnl, &ptr);
 	func= RNA_struct_find_function(&ptr, "draw_header");
 
-	list= RNA_parameter_list_create(&ptr, func);
-	RNA_parameter_set_lookup(list, "context", &C);
-	pnl->type->py_call(&ptr, func, list);
+	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	pnl->type->py_call(&ptr, func, &list);
 
-	RNA_parameter_list_free(list);
+	RNA_parameter_list_free(&list);
 }
 
 static void rna_Panel_unregister(const bContext *C, StructRNA *type)
@@ -210,17 +210,17 @@ static StructRNA* rna_Panel_refine(struct PointerRNA *ptr)
 static void header_draw(const bContext *C, Header *hdr)
 {
 	PointerRNA htr;
-	ParameterList *list;
+	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(&CTX_wm_screen(C)->id, hdr->type->py_srna, hdr, &htr);
 	func= RNA_struct_find_function(&htr, "draw");
 
-	list= RNA_parameter_list_create(&htr, func);
-	RNA_parameter_set_lookup(list, "context", &C);
-	hdr->type->py_call(&htr, func, list);
+	RNA_parameter_list_create(&list, &htr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	hdr->type->py_call(&htr, func, &list);
 
-	RNA_parameter_list_free(list);
+	RNA_parameter_list_free(&list);
 }
 
 static void rna_Header_unregister(const bContext *C, StructRNA *type)
@@ -301,7 +301,7 @@ static StructRNA* rna_Header_refine(struct PointerRNA *htr)
 static int menu_poll(const bContext *C, MenuType *pt)
 {
 	PointerRNA ptr;
-	ParameterList *list;
+	ParameterList list;
 	FunctionRNA *func;
 	void *ret;
 	int visible;
@@ -309,14 +309,14 @@ static int menu_poll(const bContext *C, MenuType *pt)
 	RNA_pointer_create(NULL, pt->py_srna, NULL, &ptr); /* dummy */
 	func= RNA_struct_find_function(&ptr, "poll");
 
-	list= RNA_parameter_list_create(&ptr, func);
-	RNA_parameter_set_lookup(list, "context", &C);
-	pt->py_call(&ptr, func, list);
+	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	pt->py_call(&ptr, func, &list);
 
-	RNA_parameter_get_lookup(list, "visible", &ret);
+	RNA_parameter_get_lookup(&list, "visible", &ret);
 	visible= *(int*)ret;
 
-	RNA_parameter_list_free(list);
+	RNA_parameter_list_free(&list);
 
 	return visible;
 }
@@ -324,17 +324,17 @@ static int menu_poll(const bContext *C, MenuType *pt)
 static void menu_draw(const bContext *C, Menu *hdr)
 {
 	PointerRNA mtr;
-	ParameterList *list;
+	ParameterList list;
 	FunctionRNA *func;
 
 	RNA_pointer_create(&CTX_wm_screen(C)->id, hdr->type->py_srna, hdr, &mtr);
 	func= RNA_struct_find_function(&mtr, "draw");
 
-	list= RNA_parameter_list_create(&mtr, func);
-	RNA_parameter_set_lookup(list, "context", &C);
-	hdr->type->py_call(&mtr, func, list);
+	RNA_parameter_list_create(&list, &mtr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	hdr->type->py_call(&mtr, func, &list);
 
-	RNA_parameter_list_free(list);
+	RNA_parameter_list_free(&list);
 }
 
 static void rna_Menu_unregister(const bContext *C, StructRNA *type)

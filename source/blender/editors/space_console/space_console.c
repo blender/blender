@@ -60,7 +60,7 @@
 
 #include "console_intern.h"	// own include
 
-static void console_update_rect(bContext *C, ARegion *ar)
+static void console_update_rect(const bContext *C, ARegion *ar)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	View2D *v2d= &ar->v2d;

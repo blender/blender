@@ -163,10 +163,19 @@ typedef struct PropertyRNA PropertyRNA;
 
 /* Parameter List */
 
-typedef struct ParameterList ParameterList;
+typedef struct ParameterList {
+	/* storage for parameters */
+	void *data;
+
+	/* store the parameter count */
+	int tot;
+
+	/* function passed at creation time */
+	struct FunctionRNA *func;
+} ParameterList;
 
 typedef struct ParameterIterator {
-	ParameterList *parms;
+	struct ParameterList *parms;
 	PointerRNA funcptr;
 	void *data;
 	int size, offset;
@@ -209,7 +218,7 @@ typedef enum StructFlag {
 } StructFlag;
 
 typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_function);
-typedef int (*StructCallbackFunc)(struct PointerRNA *ptr, struct FunctionRNA *func, struct ParameterList *list);
+typedef int (*StructCallbackFunc)(struct PointerRNA *ptr, struct FunctionRNA *func, ParameterList *list);
 typedef void (*StructFreeFunc)(void *data);
 typedef struct StructRNA *(*StructRegisterFunc)(const struct bContext *C, struct ReportList *reports, void *data,
 	StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);

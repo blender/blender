@@ -30,13 +30,19 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 			row = split.row(align=True)
 			row.itemR(md, "render", text="")
 			row.itemR(md, "realtime", text="")
+			
+			fluid = md.settings
+			
 		else:
 			# add modifier
 			split.item_enumO("OBJECT_OT_modifier_add", "type", "FLUID_SIMULATION", text="Add")
 			split.itemL()
-
-		if md:
-			fluid = md.settings
+			
+			fluid = None
+		
+		
+		if fluid:
+			
 
 			col = layout.column(align=True)
 			row = col.row()
@@ -177,7 +183,11 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel):
 	def poll(self, context):
 		md = context.fluid
 		if md:
-			return (md.settings.type == 'DOMAIN')
+			settings = md.settings
+			if settings:
+				return (settings.type == 'DOMAIN')
+		
+		return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -217,7 +227,11 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel):
 	def poll(self, context):
 		md = context.fluid
 		if md:
-			return (md.settings.type == 'DOMAIN')
+			settings = md.settings
+			if settings:
+				return (settings.type == 'DOMAIN')
+		
+		return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -244,7 +258,11 @@ class PHYSICS_PT_domain_particles(PhysicButtonsPanel):
 	def poll(self, context):
 		md = context.fluid
 		if md:
-			return (md.settings.type == 'DOMAIN')
+			settings = md.settings
+			if settings:
+				return (settings.type == 'DOMAIN')
+		
+		return False
 
 	def draw(self, context):
 		layout = self.layout

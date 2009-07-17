@@ -758,8 +758,9 @@ const struct ListBase *RNA_function_defined_parameters(FunctionRNA *func);
 
 /* Utility */
 
-ParameterList *RNA_parameter_list_create(PointerRNA *ptr, FunctionRNA *func);
+ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *ptr, FunctionRNA *func);
 void RNA_parameter_list_free(ParameterList *parms);
+int  RNA_parameter_list_size(ParameterList *parms);
 
 void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter);
 void RNA_parameter_list_next(ParameterIterator *iter);
