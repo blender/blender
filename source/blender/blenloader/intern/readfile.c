@@ -3317,7 +3317,7 @@ static void convert_mfaces_to_mpolys(Mesh *mesh)
 		mp->mat_nr = mf->mat_nr;
 		mp->flag = mf->flag;
 		
-		#define ML(v1, v2) {ml->v = mf->##v1; ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->##v1, mf->##v2)); ml++; j++;}
+		#define ML(v1, v2) {ml->v = mf->v1; ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v1, mf->v2)); ml++; j++;}
 		
 		ML(v1, v2);
 		ML(v2, v3);
