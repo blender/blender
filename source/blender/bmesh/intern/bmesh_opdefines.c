@@ -6,6 +6,17 @@
   through the code and find all references to them!*/
 
 
+BMOpDefine def_edgesplit = {
+	"edgesplit",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"},
+	{BMOP_OPSLOT_INT, "numcuts"},
+	{BMOP_OPSLOT_ELEMENT_BUF, "outsplit"},
+	{0} /*null-terminating sentinel*/,
+	},
+	esplit_exec,
+	0
+};
+
 BMOpDefine def_mirror = {
 	"mirror",
 	/*maps welded vertices to verts they should weld to.*/
@@ -336,6 +347,7 @@ BMOpDefine *opdefines[] = {
 	&def_removedoubles,
 	&def_finddoubles,
 	&def_mirror,
+	&def_edgesplit,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

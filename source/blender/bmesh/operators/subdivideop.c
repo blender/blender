@@ -593,12 +593,12 @@ subdpattern q_4edge = {
 };
 
 subdpattern *patterns[] = {
-	&q_1edge,
+	//&q_1edge,
 	&q_2edge_op,
 	&q_4edge,
 	&q_3edge,
 	&q_2edge,
-	&t_1edge,
+	//&t_1edge,
 	&t_2edge,
 	&t_3edge,
 };
@@ -823,3 +823,22 @@ void BM_esubdivideflag_conv(Object *obedit,EditMesh *em,int selflag, float rad,
 	BM_Free_Mesh(bm);
 }
 #endif
+
+void esplit_exec(BMesh *bm, BMOperator *op)
+{
+	BMOIter siter;
+	BMEdge *e;
+	subdparams params;
+
+	params.numcuts = BMO_GetSlot(op, "numcuts")->data.i;
+	params.op = op;
+	
+	/*go through and split edges*/
+	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
+		bm_subdivide_multicut(bm, e, &params, e->v1, e->v2);
+	}
+
+	BMO_Flag_To_Slot(bm, op, "outsplit",
+		         ELE_SPLIT, BM_ALL);
+}
+

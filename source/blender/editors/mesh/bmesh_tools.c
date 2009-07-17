@@ -1355,3 +1355,40 @@ void MESH_OT_vert_connect(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+
+static int editbmesh_edge_split(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	Mesh *me= ((Mesh *)obedit->data);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	BMesh *bm = em->bm;
+	BMOperator bmop;
+	int len = 0;
+	
+	BMO_InitOpf(bm, &bmop, "edgesplit edges=%he numcuts=%d", BM_SELECT, RNA_int_get(op->ptr,"number_cuts"));
+	BMO_Exec_Op(bm, &bmop);
+	len = BMO_GetSlot(&bmop, "outsplit")->len;
+	BMO_Finish_Op(bm, &bmop);
+	
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return len ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+}
+
+void MESH_OT_edge_split(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Edge Split";
+	ot->idname= "MESH_OT_edge_split";
+	
+	/* api callbacks */
+	ot->exec= editbmesh_edge_split;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_int(ot->srna, "number_cuts", 1, 1, 10, "Number of Cuts", "", 1, INT_MAX);
+}

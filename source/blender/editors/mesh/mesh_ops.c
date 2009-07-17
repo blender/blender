@@ -315,6 +315,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_specials);
 
 	WM_operatortype_append(MESH_OT_vert_connect);
+	WM_operatortype_append(MESH_OT_edge_split);
 }
 
 /* note mesh keymap also for other space? */
@@ -350,8 +351,9 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	RNA_float_set(WM_keymap_add_item(keymap, "MESH_OT_edges_select_sharp", SKEY, KM_PRESS, (KM_CTRL|KM_SHIFT|KM_ALT), 0)->ptr,"sharpness",135.0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_vertices_transform_to_sphere", SKEY, KM_PRESS, KM_CTRL|KM_SHIFT , 0);
-
 	WM_keymap_add_item(keymap, "MESH_OT_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
+
+	WM_keymap_add_item(keymap, "MESH_OT_edge_split", MKEY, KM_PRESS, 0, 0);
 	
 	/* selection mode */
 	WM_keymap_add_item(keymap, "MESH_OT_selection_type", TABKEY, KM_PRESS, KM_CTRL, 0);

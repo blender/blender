@@ -35,5 +35,6 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op);
 void bmesh_removedoubles_exec(BMesh *bm, BMOperator *op);
 void bmesh_finddoubles_exec(BMesh *bm, BMOperator *op);
 void bmesh_mirror_exec(BMesh *bm, BMOperator *op);
+void esplit_exec(BMesh *bm, BMOperator *op);
 
 #endif
