@@ -55,7 +55,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
 	
 class MATERIAL_PT_material(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_material"
-	__label__ = "Material"
+	__label__ = "Shading"
 
 	def draw(self, context):
 		layout = self.layout
@@ -68,15 +68,41 @@ class MATERIAL_PT_material(MaterialButtonsPanel):
 		if mat:
 			layout.itemR(mat, "type", expand=True)
 			
-			layout.itemR(mat, "alpha", slider=True)
 
-			row = layout.row()
-			row.active = mat.type in ('SURFACE', 'VOLUME')
-			row.itemR(mat, "shadeless")	
-			row.itemR(mat, "wireframe")
-			rowsub = row.row()
-			rowsub.active = mat.shadeless== False
-			rowsub.itemR(mat, "tangent_shading")
+
+#			row = layout.row()
+
+			if mat.type == 'SURFACE':
+				split = layout.split()
+	
+				sub = split.column()
+				sub.itemR(mat, "alpha", slider=True)
+				sub.itemR(mat, "ambient", slider=True)
+				sub.itemR(mat, "emit")
+				sub.itemR(mat, "translucency", slider=True)
+				
+				sub = split.column()
+				sub.itemR(mat, "shadeless")	
+				sub.itemR(mat, "wireframe")
+				sub.itemR(mat, "tangent_shading")
+				sub.itemR(mat, "cubic", slider=True)
+			elif mat.type == 'VOLUME':
+				split = layout.split()
+	
+				sub = split.column()
+				sub.itemR(mat, "alpha", slider=True)
+				sub.itemR(mat, "ambient", slider=True)
+				sub.itemR(mat, "emit")
+				sub.itemR(mat, "translucency", slider=True)
+				
+				sub = split.column()
+				sub.itemR(mat, "shadeless")	
+				sub.itemR(mat, "wireframe")
+				sub.itemR(mat, "tangent_shading")
+				sub.itemR(mat, "cubic", slider=True)
+			elif mat.type == 'HALO':
+				layout.itemR(mat, "alpha", slider=True)
+
 			
 class MATERIAL_PT_strand(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_strand"
@@ -126,6 +152,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
 		sub.itemR(mat, "full_oversampling")
 		sub.itemR(mat, "sky")
 		sub.itemR(mat, "exclude_mist")
+		sub = split.column()
 		sub.itemR(mat, "face_texture")
 		colsub = sub.column()
 		colsub.active = mat.face_texture
@@ -134,20 +161,33 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
 		sub.itemR(mat, "light_group")
 		sub.itemR(mat, "light_group_exclusive")
 		
+		
+
+
+class MATERIAL_PT_shadows(MaterialButtonsPanel):
+	__idname__= "MATERIAL_PT_shadows"
+	__label__ = "Shadows"
+
+	def draw(self, context):
+		layout = self.layout
+		mat = context.material
+		
+		split = layout.split()
+		
 		sub = split.column()
-		sub.itemL(text="Shadows:")
 		sub.itemR(mat, "shadows", text="Recieve")
 		sub.itemR(mat, "transparent_shadows", text="Recieve Transparent")
 		sub.itemR(mat, "only_shadow", text="Shadows Only")
 		sub.itemR(mat, "cast_shadows_only", text="Cast Only")
 		sub.itemR(mat, "shadow_casting_alpha", text="Casting Alpha", slider=True)
-		
+		sub = split.column()
 		sub.itemR(mat, "ray_shadow_bias", text="Auto Ray Bias")
 		colsub = sub.column()
 		colsub.active = not mat.ray_shadow_bias
 		colsub.itemR(mat, "shadow_ray_bias", text="Ray Shadow Bias")
 		sub.itemR(mat, "cast_buffer_shadows")
 		sub.itemR(mat, "shadow_buffer_bias", text="Buffer Bias")
+
 
 class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_diffuse"
@@ -165,19 +205,15 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 		
 		sub = split.column()
 		sub.itemR(mat, "diffuse_color", text="")
-		sub.itemR(mat, "object_color")
-		colsub = sub.column()
-		colsub.active = mat.shadeless== False
-		colsub.itemR(mat, "ambient", slider=True)
-		colsub.itemR(mat, "emit")
-		sub.itemR(mat, "translucency", slider=True)
+		sub.itemR(mat, "vertex_color_paint")
+		sub.itemR(mat, "vertex_color_light")
 		
 		sub = split.column()
 		sub.active = mat.shadeless== False
 		sub.itemR(mat, "diffuse_reflection", text="Intensity", slider=True)
-		sub.itemR(mat, "vertex_color_light")
-		sub.itemR(mat, "vertex_color_paint")
-		sub.itemR(mat, "cubic")
+		sub.itemR(mat, "object_color")
+		
+
 		
 		row = layout.row()
 		row.active = mat.shadeless== False
@@ -235,8 +271,6 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
 			sub.itemR(mat, "specular_ior", text="IOR")
 		if mat.spec_shader == 'WARDISO':
 			sub.itemR(mat, "specular_slope", text="Slope")
-			sub = split.column()
-			sub.itemR(mat, "specular_hardness", text="Hardness")
 		if mat.spec_shader == 'TOON':
 			sub.itemR(mat, "specular_toon_size", text="Size")
 			sub = split.column()
@@ -438,3 +472,4 @@ bpy.types.register(MATERIAL_PT_sss)
 bpy.types.register(MATERIAL_PT_halo)
 bpy.types.register(MATERIAL_PT_strand)
 bpy.types.register(MATERIAL_PT_options)
+bpy.types.register(MATERIAL_PT_shadows)

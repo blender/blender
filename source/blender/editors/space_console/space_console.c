@@ -97,7 +97,7 @@ static SpaceLink *console_new(const bContext *C)
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
 	
-	ar->v2d.scroll |= (V2D_SCROLL_LEFT);
+	ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
 	ar->v2d.align |= V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y; /* align bottom left */
 	ar->v2d.keepofs |= V2D_LOCKOFS_X;
 	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
