@@ -658,6 +658,9 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 
 	for (face=BMIter_New(&fiter, bmesh, BM_FACES_OF_MESH, NULL);
 	     face; face=BMIter_Step(&fiter)) {
+		BMEdge *e1 = NULL, *e2 = NULL;
+		float vec1[3], vec2[3];
+
 		/*figure out which pattern to use*/
 
 		V_RESET(edges);
@@ -673,10 +676,29 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 			edges[i] = nl->e;
 			verts[i] = nl->v;
 
-			if (BMO_TestFlag(bmesh, edges[i], SUBD_SPLIT))
+			if (BMO_TestFlag(bmesh, edges[i], SUBD_SPLIT)) {
+				if (!e1) e1 = edges[i];
+				else e2 = edges[i];
+
 				totesel++;
+			}
 
 			i++;
+		}
+
+		/*make sure the two edges have a valid angle to each other*/
+		if (totesel == 2) {
+			float angle;
+
+			VecSubf(vec1, e1->v2->co, e1->v1->co);
+			VecSubf(vec2, e2->v2->co, e2->v1->co);
+			Normalize(vec1);
+			Normalize(vec2);
+
+			angle = INPR(vec1, vec2);
+			angle = ABS(angle);
+			if (ABS(angle-1.0) < 0.01)
+				totesel = 0;
 		}
 
 		if (BMO_TestFlag(bmesh, face, FACE_CUSTOMFILL)) {
@@ -816,7 +838,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 				a = (a+1) % vlen;
 			}
 			
-			BM_LegalSplits(bmesh, face, splits, V_COUNT(splits)/2);
+			//BM_LegalSplits(bmesh, face, splits, V_COUNT(splits)/2);
 
 			for (j=0; j<V_COUNT(splits)/2; j++) {
 				if (splits[j*2]) {
