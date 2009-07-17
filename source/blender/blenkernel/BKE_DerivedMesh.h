@@ -30,6 +30,45 @@
 #ifndef BKE_DERIVEDMESH_H
 #define BKE_DERIVEDMESH_H
 
+/*
+  Basic design of the DerivedMesh system:
+
+  DerivedMesh is a common set of interfaces for mesh systems.
+
+  There are three main mesh data structures in Blender: Mesh, CDDM, and BMesh.
+  These, and a few others, all implement DerivedMesh interfaces, 
+  which contains unified drawing interfaces, a few utility interfaces, 
+  and a bunch of read-only interfaces intended mostly for conversion from 
+  one format to another.
+
+  All Mesh structures in blender make use of CustomData, which is used to store
+  per-element attributes and interpolate them (e.g. uvs, vcols, vgroups, etc).
+  
+  Mesh is the "serialized" structure, used for storing object-mode mesh data
+  and also for saving stuff to disk.  It's interfaces are also what DerivedMesh
+  uses to communicate with.
+  
+  CDDM is a little mesh library, that uses Mesh data structures in the backend.
+  It's mostly used for modifiers, and has the advantages of not taking much
+  resources.
+
+  BMesh is a full-on brep, used for editmode, some modifiers, etc.  It's much
+  more capable (if memory-intensive) then CDDM.
+
+  DerivedMesh is somewhat hackish.  Many places assumes that a DerivedMesh is
+  a CDDM (most of the time by simply copying it and converting it to one).
+  CDDM is the original structure for modifiers, but has since been superseded
+  by BMesh, at least for the foreseeable future.
+*/
+
+/* 
+ * Note: This sturcture is read-only, for all practical purposes.
+ *       At some point in the future, we may want to consider
+ *       creating a replacement structure that implements a proper
+ *       abstract mesh kernel interface.  Or, we can leave this
+ *       as it is and stick with using BMesh and CDDM.
+ */
+
 /* TODO (Probably)
  *
  *  o Make drawMapped* functions take a predicate function that

@@ -32,6 +32,7 @@
 #ifndef BKE_CUSTOMDATA_H
 #define BKE_CUSTOMDATA_H
 
+struct BMesh
 struct CustomData;
 struct CustomDataLayer;
 typedef unsigned int CustomDataMask;
