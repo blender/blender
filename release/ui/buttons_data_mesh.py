@@ -68,15 +68,15 @@ class DATA_PT_materials(DataButtonsPanel):
 		row.template_list(ob, "materials", ob, "active_material_index")
 
 		col = row.column(align=True)
-		col.itemO("OBJECT_OT_material_slot_add", icon="ICON_ZOOMIN", text="")
-		col.itemO("OBJECT_OT_material_slot_remove", icon="ICON_ZOOMOUT", text="")
+		col.itemO("object.material_slot_add", icon="ICON_ZOOMIN", text="")
+		col.itemO("object.material_slot_remove", icon="ICON_ZOOMOUT", text="")
 
 		if context.edit_object:
 			row = layout.row(align=True)
 
-			row.itemO("OBJECT_OT_material_slot_assign", text="Assign")
-			row.itemO("OBJECT_OT_material_slot_select", text="Select")
-			row.itemO("OBJECT_OT_material_slot_deselect", text="Deselect")
+			row.itemO("object.material_slot_assign", text="Assign")
+			row.itemO("object.material_slot_select", text="Select")
+			row.itemO("object.material_slot_deselect", text="Deselect")
 
 		"""
 		layout.itemS()
@@ -87,8 +87,8 @@ class DATA_PT_materials(DataButtonsPanel):
 		row.template_list(ob, "materials", ob, "active_material_index", compact=True)
 
 		subrow = row.row(align=True)
-		subrow.itemO("OBJECT_OT_material_slot_add", icon="ICON_ZOOMIN", text="")
-		subrow.itemO("OBJECT_OT_material_slot_remove", icon="ICON_ZOOMOUT", text="")
+		subrow.itemO("object.material_slot_add", icon="ICON_ZOOMIN", text="")
+		subrow.itemO("object.material_slot_remove", icon="ICON_ZOOMOUT", text="")
 		"""
 
 class DATA_PT_vertex_groups(DataButtonsPanel):
@@ -107,20 +107,20 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
 		row.template_list(ob, "vertex_groups", ob, "active_vertex_group_index")
 
 		col = row.column(align=True)
-		col.itemO("OBJECT_OT_vertex_group_add", icon="ICON_ZOOMIN", text="")
-		col.itemO("OBJECT_OT_vertex_group_remove", icon="ICON_ZOOMOUT", text="")
+		col.itemO("object.vertex_group_add", icon="ICON_ZOOMIN", text="")
+		col.itemO("object.vertex_group_remove", icon="ICON_ZOOMOUT", text="")
 
-		col.itemO("OBJECT_OT_vertex_group_copy", icon="ICON_BLANK1", text="")
+		col.itemO("object.vertex_group_copy", icon="ICON_BLANK1", text="")
 		if ob.data.users > 1:
-			col.itemO("OBJECT_OT_vertex_group_copy_to_linked", icon="ICON_BLANK1", text="")
+			col.itemO("object.vertex_group_copy_to_linked", icon="ICON_BLANK1", text="")
 
 		if context.edit_object:
 			row = layout.row(align=True)
 
-			row.itemO("OBJECT_OT_vertex_group_assign", text="Assign")
-			row.itemO("OBJECT_OT_vertex_group_remove_from", text="Remove")
-			row.itemO("OBJECT_OT_vertex_group_select", text="Select")
-			row.itemO("OBJECT_OT_vertex_group_deselect", text="Deselect")
+			row.itemO("object.vertex_group_assign", text="Assign")
+			row.itemO("object.vertex_group_remove_from", text="Remove")
+			row.itemO("object.vertex_group_select", text="Select")
+			row.itemO("object.vertex_group_deselect", text="Deselect")
 
 			layout.itemR(context.tool_settings, "vertex_group_weight", text="Weight")
 
@@ -143,8 +143,8 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 		col = row.column()
 
 		subcol = col.column(align=True)
-		subcol.itemO("OBJECT_OT_shape_key_add", icon="ICON_ZOOMIN", text="")
-		subcol.itemO("OBJECT_OT_shape_key_remove", icon="ICON_ZOOMOUT", text="")
+		subcol.itemO("object.shape_key_add", icon="ICON_ZOOMIN", text="")
+		subcol.itemO("object.shape_key_remove", icon="ICON_ZOOMOUT", text="")
 
 		if kb:
 			col.itemS()
@@ -189,8 +189,8 @@ class DATA_PT_uv_texture(DataButtonsPanel):
 		row.template_list(me, "uv_textures", me, "active_uv_texture_index")
 
 		col = row.column(align=True)
-		col.itemO("MESH_OT_uv_texture_add", icon="ICON_ZOOMIN", text="")
-		col.itemO("MESH_OT_uv_texture_remove", icon="ICON_ZOOMOUT", text="")
+		col.itemO("mesh.uv_texture_add", icon="ICON_ZOOMIN", text="")
+		col.itemO("mesh.uv_texture_remove", icon="ICON_ZOOMOUT", text="")
 
 class DATA_PT_vertex_colors(DataButtonsPanel):
 	__idname__ = "DATA_PT_vertex_colors"
@@ -205,8 +205,8 @@ class DATA_PT_vertex_colors(DataButtonsPanel):
 		row.template_list(me, "vertex_colors", me, "active_vertex_color_index")
 
 		col = row.column(align=True)
-		col.itemO("MESH_OT_vertex_color_add", icon="ICON_ZOOMIN", text="")
-		col.itemO("MESH_OT_vertex_color_remove", icon="ICON_ZOOMOUT", text="")
+		col.itemO("mesh.vertex_color_add", icon="ICON_ZOOMIN", text="")
+		col.itemO("mesh.vertex_color_remove", icon="ICON_ZOOMOUT", text="")
 
 bpy.types.register(DATA_PT_context_mesh)
 bpy.types.register(DATA_PT_mesh)

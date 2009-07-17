@@ -40,13 +40,13 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
 			row.template_list(ob, "materials", ob, "active_material_index")
 
 			col = row.column(align=True)
-			col.itemO("OBJECT_OT_material_slot_add", icon="ICON_ZOOMIN", text="")
-			col.itemO("OBJECT_OT_material_slot_remove", icon="ICON_ZOOMOUT", text="")
+			col.itemO("object.material_slot_add", icon="ICON_ZOOMIN", text="")
+			col.itemO("object.material_slot_remove", icon="ICON_ZOOMOUT", text="")
 
 		split = layout.split(percentage=0.65)
 
 		if ob and slot:
-			split.template_ID(slot, "material", new="MATERIAL_OT_new")
+			split.template_ID(slot, "material", new="material.new")
 			row = split.row()
 			row.itemR(slot, "link", expand=True)
 		elif mat:

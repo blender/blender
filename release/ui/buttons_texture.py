@@ -46,15 +46,15 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 				row.template_list(wo, "textures", wo, "active_texture_index")
 			"""if ma or la or wo: 
 				col = row.column(align=True)
-				col.itemO("TEXTURE_OT_new", icon="ICON_ZOOMIN", text="")
-				#col.itemO("OBJECT_OT_material_slot_remove", icon="ICON_ZOOMOUT", text="")
+				col.itemO("texture.new", icon="ICON_ZOOMIN", text="")
+				#col.itemO("object.material_slot_remove", icon="ICON_ZOOMOUT", text="")
 			"""
 
 		split = layout.split(percentage=0.65)
 
 		if ma or la or wo:
 			if slot:
-				split.template_ID(slot, "texture", new="TEXTURE_OT_new")
+				split.template_ID(slot, "texture", new="texture.new")
 			else:
 				split.itemS()
 

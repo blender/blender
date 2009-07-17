@@ -436,9 +436,16 @@ static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw)
 PyObject *pyrna_func_to_py(BPy_StructRNA *pyrna, FunctionRNA *func)
 {
 	static PyMethodDef func_meth = {"<generic rna function>", (PyCFunction)pyrna_func_call, METH_VARARGS|METH_KEYWORDS, "python rna function"};
-	PyObject *self= PyTuple_New(2);
+	PyObject *self;
 	PyObject *ret;
+	
+	if(func==NULL) {
+		PyErr_Format( PyExc_RuntimeError, "%.200s: type attempted to get NULL function", RNA_struct_identifier(pyrna->ptr.type));
+		return NULL;
+	}
 
+	self= PyTuple_New(2);
+	
 	PyTuple_SET_ITEM(self, 0, (PyObject *)pyrna);
 	Py_INCREF(pyrna);
 
@@ -1912,6 +1919,17 @@ static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw)
 	const char *parm_id;
 	void *retdata= NULL;
 
+	/* Should never happen but it does in rare cases */
+	if(self_ptr==NULL) {
+		PyErr_SetString(PyExc_RuntimeError, "rna functions internal rna pointer is NULL, this is a bug. aborting");
+		return NULL;
+	}
+	
+	if(self_func==NULL) {
+		PyErr_Format(PyExc_RuntimeError, "%.200s.???(): rna function internal function is NULL, this is a bug. aborting", RNA_struct_identifier(self_ptr->type));
+		return NULL;
+	}
+	
 	/* setup */
 	RNA_pointer_create(NULL, &RNA_Function, self_func, &funcptr);
 

@@ -34,7 +34,7 @@ class WORLD_PT_context_world(WorldButtonsPanel):
 		split = layout.split(percentage=0.65)
 
 		if scene:
-			split.template_ID(scene, "world", new="WORLD_OT_new")
+			split.template_ID(scene, "world", new="world.new")
 		elif world:
 			split.template_ID(space, "pin_id")
 

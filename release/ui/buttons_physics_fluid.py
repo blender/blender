@@ -25,7 +25,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 		if md:
 			# remove modifier + settings
 			split.set_context_pointer("modifier", md)
-			split.itemO("OBJECT_OT_modifier_remove", text="Remove")
+			split.itemO("object.modifier_remove", text="Remove")
 
 			row = split.row(align=True)
 			row.itemR(md, "render", text="")
@@ -35,7 +35,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 			
 		else:
 			# add modifier
-			split.item_enumO("OBJECT_OT_modifier_add", "type", "FLUID_SIMULATION", text="Add")
+			split.item_enumO("object.modifier_add", "type", "FLUID_SIMULATION", text="Add")
 			split.itemL()
 			
 			fluid = None
@@ -56,7 +56,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 			row.item_enumR(fluid, "type", "CONTROL")
 
 			if fluid.type == 'DOMAIN':
-				layout.itemO("FLUID_OT_bake", text="BAKE")
+				layout.itemO("fluid.bake", text="BAKE")
 				split = layout.split()
 				
 				col = split.column()

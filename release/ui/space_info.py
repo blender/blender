@@ -20,8 +20,8 @@ class INFO_HT_header(bpy.types.Header):
 			row.itemM("INFO_MT_render")
 			row.itemM("INFO_MT_help")
 
-		layout.template_ID(context.window, "screen") #, new="SCREEN_OT_new", open="SCREEN_OT_unlink")
-		layout.template_ID(context.screen, "scene") #, new="SCENE_OT_new", unlink="SCENE_OT_unlink")
+		layout.template_ID(context.window, "screen") #, new="screen.new", open="scene.unlink")
+		layout.template_ID(context.screen, "scene") #, new="screen.new", unlink="scene.unlink")
 
 		layout.itemS()
 
@@ -36,16 +36,16 @@ class INFO_MT_file(bpy.types.Menu):
 		layout = self.layout
 
 		layout.operator_context = "EXEC_AREA"
-		layout.itemO("WM_OT_read_homefile")
+		layout.itemO("wm.read_homefile")
 		layout.operator_context = "INVOKE_AREA"
-		layout.itemO("WM_OT_open_mainfile")
+		layout.itemO("wm.open_mainfile")
 
 		layout.itemS()
 
 		layout.operator_context = "EXEC_AREA"
-		layout.itemO("WM_OT_save_mainfile")
+		layout.itemO("wm.save_mainfile")
 		layout.operator_context = "INVOKE_AREA"
-		layout.itemO("WM_OT_save_as_mainfile")
+		layout.itemO("wm.save_as_mainfile")
 
 		layout.itemS()
 
@@ -58,15 +58,15 @@ class INFO_MT_file_external_data(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 
-		layout.itemO("FILE_OT_pack_all", text="Pack into .blend file")
-		layout.itemO("FILE_OT_unpack_all", text="Unpack into Files...")
+		layout.itemO("file.pack_all", text="Pack into .blend file")
+		layout.itemO("file.unpack_all", text="Unpack into Files...")
 
 		layout.itemS()
 
-		layout.itemO("FILE_OT_make_paths_relative")
-		layout.itemO("FILE_OT_make_paths_absolute")
-		layout.itemO("FILE_OT_report_missing_files")
-		layout.itemO("FILE_OT_find_missing_files")
+		layout.itemO("file.make_paths_relative")
+		layout.itemO("file.make_paths_absolute")
+		layout.itemO("file.report_missing_files")
+		layout.itemO("file.find_missing_files")
 
 class INFO_MT_add(bpy.types.Menu):
 	__space_type__ = "USER_PREFERENCES"
@@ -444,7 +444,7 @@ class INFO_PT_bottombar(bpy.types.Panel):
 	
 		split = layout.split(percentage=0.8)
 		split.itemL(text="")
-		split.itemO("WM_OT_save_homefile", text="Save As Default")
+		split.itemO("wm.save_homefile", text="Save As Default")
 
 
 bpy.types.register(INFO_HT_header)

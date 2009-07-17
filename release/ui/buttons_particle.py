@@ -36,13 +36,13 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 			row.template_list(ob, "particle_systems", ob, "active_particle_system_index")
 
 			col = row.column(align=True)
-			col.itemO("OBJECT_OT_particle_system_add", icon="ICON_ZOOMIN", text="")
-			col.itemO("OBJECT_OT_particle_system_remove", icon="ICON_ZOOMOUT", text="")
+			col.itemO("object.particle_system_add", icon="ICON_ZOOMIN", text="")
+			col.itemO("object.particle_system_remove", icon="ICON_ZOOMOUT", text="")
 
 		if psys:
 			split = layout.split(percentage=0.65)
 			
-			split.template_ID(psys, "settings", new="PARTICLE_OT_new")
+			split.template_ID(psys, "settings", new="particle.new")
 			
 			#row = layout.row()
 			#row.itemL(text="Viewport")
@@ -65,9 +65,9 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 				split = layout.split(percentage=0.65)
 				if part.type=='HAIR':
 					if psys.editable==True:
-						split.itemO("PARTICLE_OT_editable_set", text="Free Edit")
+						split.itemO("particle.editable_set", text="Free Edit")
 					else:
-						split.itemO("PARTICLE_OT_editable_set", text="Make Editable")
+						split.itemO("particle.editable_set", text="Make Editable")
 					row = split.row()
 					row.enabled = particle_panel_enabled(psys)
 					row.itemR(part, "hair_step")
@@ -149,17 +149,17 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 		row = layout.row()
 		
 		if cache.baked == True:
-			row.itemO("PTCACHE_OT_free_bake_particle_system", text="Free Bake")
+			row.itemO("ptcache.free_bake_particle_system", text="Free Bake")
 		else:
-			row.item_booleanO("PTCACHE_OT_cache_particle_system", "bake", True, text="Bake")
+			row.item_booleanO("ptcache.cache_particle_system", "bake", True, text="Bake")
 		
 		subrow = row.row()
 		subrow.enabled = (cache.frames_skipped or cache.outdated) and particle_panel_enabled(psys)
-		subrow.itemO("PTCACHE_OT_cache_particle_system", text="Calculate to Current Frame")
+		subrow.itemO("ptcache.cache_particle_system", text="Calculate to Current Frame")
 		
 		row = layout.row()
 		row.enabled = particle_panel_enabled(psys)
-		row.itemO("PTCACHE_OT_bake_from_particles_cache", text="Current Cache to Bake")
+		row.itemO("ptcache.bake_from_particles_cache", text="Current Cache to Bake")
 		row.itemR(cache, "step");
 	
 		row = layout.row()
@@ -172,9 +172,9 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 		layout.itemS()
 		
 		row = layout.row()
-		row.item_booleanO("PTCACHE_OT_bake_all", "bake", True, text="Bake All Dynamics")
-		row.itemO("PTCACHE_OT_free_bake_all", text="Free All Bakes")
-		layout.itemO("PTCACHE_OT_bake_all", text="Update All Dynamics to current frame")
+		row.item_booleanO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
+		row.itemO("ptcache.free_bake_all", text="Free All Bakes")
+		layout.itemO("ptcache.bake_all", text="Update All Dynamics to current frame")
 		
 		# for particles these are figured out automatically
 		#row.itemR(cache, "start_frame")
@@ -294,12 +294,12 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
 			col = row.column()
 			subrow = col.row()
 			subcol = subrow.column(align=True)
-			subcol.itemO("PARTICLE_OT_new_keyed_target", icon="ICON_ZOOMIN", text="")
-			subcol.itemO("PARTICLE_OT_remove_keyed_target", icon="ICON_ZOOMOUT", text="")
+			subcol.itemO("particle.new_keyed_target", icon="ICON_ZOOMIN", text="")
+			subcol.itemO("particle.remove_keyed_target", icon="ICON_ZOOMOUT", text="")
 			subrow = col.row()
 			subcol = subrow.column(align=True)
-			subcol.itemO("PARTICLE_OT_keyed_target_move_up", icon="VICON_MOVE_UP", text="")
-			subcol.itemO("PARTICLE_OT_keyed_target_move_down", icon="VICON_MOVE_DOWN", text="")
+			subcol.itemO("particle.keyed_target_move_up", icon="VICON_MOVE_UP", text="")
+			subcol.itemO("particle.keyed_target_move_down", icon="VICON_MOVE_DOWN", text="")
 			
 			key = psys.active_keyed_target
 			if key:

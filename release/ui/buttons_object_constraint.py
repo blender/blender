@@ -110,8 +110,8 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		sub.itemR(con, "sizez", text="Z")
 		
 		row = layout.row()
-		row.itemO("CONSTRAINT_OT_childof_set_inverse")
-		row.itemO("CONSTRAINT_OT_childof_clear_inverse")
+		row.itemO("constraint.childof_set_inverse")
+		row.itemO("constraint.childof_clear_inverse")
 		
 	def track_to(self, layout, con):
 		self.target_template(layout, con)
@@ -521,7 +521,7 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
 		layout = self.layout
 
 		row = layout.row()
-		row.item_menu_enumO("OBJECT_OT_constraint_add", "type")
+		row.item_menu_enumO("objects.constraint_add", "type")
 		row.itemL();
 
 		for con in ob.constraints:
@@ -542,7 +542,7 @@ class BONE_PT_constraints(ConstraintButtonsPanel):
 		layout = self.layout
 
 		row = layout.row()
-		row.item_menu_enumO("POSE_OT_constraint_add", "type")
+		row.item_menu_enumO("pose.constraint_add", "type")
 		row.itemL();
 
 		for con in pchan.constraints:

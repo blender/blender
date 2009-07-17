@@ -21,18 +21,18 @@ class OUTLINER_HT_header(bpy.types.Header):
 		
 		if so.display_mode == 'DATABLOCKS':
 			row = layout.row(align=True)
-			row.itemO("ANIM_OT_keyingset_add_new", text="", icon=31)
+			row.itemO("anim.keyingset_add_new", text="", icon=31)
 			# row.itemR(sce, "active_keyingset", text="KS: ")
 			# ks = sce.keyingsets[sce.active_keyingset - 1]
 			# row.itemR(ks, "name", text="")
 			## row.itemR(sce, "keyingsets")
 			
 			row = layout.row()
-			row.itemO("OUTLINER_OT_keyingset_add_selected", text="", icon=31)
-			row.itemO("OUTLINER_OT_keyingset_remove_selected", text="", icon=32)
+			row.itemO("outliner.keyingset_add_selected", text="", icon=31)
+			row.itemO("outliner.keyingset_remove_selected", text="", icon=32)
 			
-			row.itemO("ANIM_OT_insert_keyframe", text="", icon=514)
-			row.itemO("ANIM_OT_delete_keyframe", text="", icon=513)
+			row.itemO("anim.insert_keyframe", text="", icon=514)
+			row.itemO("anim.delete_keyframe", text="", icon=513)
 		
 
 class OUTLINER_MT_view(bpy.types.Menu):
@@ -45,7 +45,7 @@ class OUTLINER_MT_view(bpy.types.Menu):
 
 		col = layout.column()
 		col.itemR(so, "show_restriction_columns")
-		#layout.itemO("TEXT_OT_new")
+		#layout.itemO("text.new")
 
 bpy.types.register(OUTLINER_HT_header)
 bpy.types.register(OUTLINER_MT_view)

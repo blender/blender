@@ -25,14 +25,14 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
 		if md:
 			# remove modifier + settings
 			split.set_context_pointer("modifier", md)
-			split.itemO("OBJECT_OT_modifier_remove", text="Remove")
+			split.itemO("object.modifier_remove", text="Remove")
 
 			row = split.row(align=True)
 			row.itemR(md, "render", text="")
 			row.itemR(md, "realtime", text="")
 		else:
 			# add modifier
-			split.item_enumO("OBJECT_OT_modifier_add", "type", "CLOTH", text="Add")
+			split.item_enumO("object.modifier_add", "type", "CLOTH", text="Add")
 			split.itemL()
 
 		if md:
@@ -97,17 +97,17 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
 		row = layout.row()
 		
 		if cache.baked == True:
-			row.itemO("PTCACHE_OT_free_bake_cloth", text="Free Bake")
+			row.itemO("ptcache.free_bake_cloth", text="Free Bake")
 		else:
-			row.item_booleanO("PTCACHE_OT_cache_cloth", "bake", True, text="Bake")
+			row.item_booleanO("ptcache.cache_cloth", "bake", True, text="Bake")
 		
 		subrow = row.row()
 		subrow.enabled = cache.frames_skipped or cache.outdated
-		subrow.itemO("PTCACHE_OT_cache_cloth", text="Calculate to Current Frame")
+		subrow.itemO("ptcache.cache_cloth", text="Calculate to Current Frame")
 			
 		row = layout.row()
 		#row.enabled = particle_panel_enabled(psys)
-		row.itemO("PTCACHE_OT_bake_from_cloth_cache", text="Current Cache to Bake")
+		row.itemO("ptcache.bake_from_cloth_cache", text="Current Cache to Bake")
 		row.itemR(cache, "step");
 	
 		row = layout.row()
@@ -120,9 +120,9 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
 		layout.itemS()
 		
 		row = layout.row()
-		row.itemO("PTCACHE_OT_bake_all", "bake", True, text="Bake All Dynamics")
-		row.itemO("PTCACHE_OT_free_bake_all", text="Free All Bakes")
-		layout.itemO("PTCACHE_OT_bake_all", text="Update All Dynamics to current frame")
+		row.itemO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
+		row.itemO("ptcache.free_bake_all", text="Free All Bakes")
+		layout.itemO("ptcache.bake_all", text="Update All Dynamics to current frame")
 		
 class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
 	__idname__ = "PHYSICS_PT_clothcollision"

@@ -30,6 +30,8 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <string.h>
+#include <ctype.h>
+#include <stdio.h>
 
 #include "DNA_ID.h"
 #include "DNA_screen_types.h"
@@ -82,17 +84,21 @@ static ListBase global_ops= {NULL, NULL};
 
 /* ************ operator API, exported ********** */
 
+
 wmOperatorType *WM_operatortype_find(const char *idname, int quiet)
 {
 	wmOperatorType *ot;
 	
+	char idname_bl[OP_MAX_TYPENAME]; // XXX, needed to support python style names without the _OT_ syntax
+	WM_operator_bl_idname(idname_bl, idname);
+
 	for(ot= global_ops.first; ot; ot= ot->next) {
-		if(strncmp(ot->idname, idname, OP_MAX_TYPENAME)==0)
+		if(strncmp(ot->idname, idname_bl, OP_MAX_TYPENAME)==0)
 		   return ot;
 	}
 	
 	if(!quiet)
-		printf("search for unknown operator %s\n", idname);
+		printf("search for unknown operator %s, %s\n", idname_bl, idname);
 	
 	return NULL;
 }
@@ -101,8 +107,11 @@ wmOperatorType *WM_operatortype_exists(const char *idname)
 {
 	wmOperatorType *ot;
 	
+	char idname_bl[OP_MAX_TYPENAME]; // XXX, needed to support python style names without the _OT_ syntax
+	WM_operator_bl_idname(idname_bl, idname);
+
 	for(ot= global_ops.first; ot; ot= ot->next) {
-		if(strncmp(ot->idname, idname, OP_MAX_TYPENAME)==0)
+		if(strncmp(ot->idname, idname_bl, OP_MAX_TYPENAME)==0)
 		   return ot;
 	}
 	return NULL;
@@ -152,11 +161,51 @@ int WM_operatortype_remove(const char *idname)
 	return 1;
 }
 
+/* SOME_OT_op -> some.op */
+void WM_operator_py_idname(char *to, char *from)
+{
+	char *sep= strstr(from, "_OT_");
+	if(sep) {
+		int i, ofs= (sep-from);
+
+		for(i=0; i<ofs; i++)
+			to[i]= tolower(from[i]);
+
+		to[ofs] = '.';
+		BLI_strncpy(to+(ofs+1), sep+4, OP_MAX_TYPENAME);
+	}
+	else {
+		/* should not happen but support just incase */
+		BLI_strncpy(to, from, OP_MAX_TYPENAME);
+	}
+}
+
+/* some.op -> SOME_OT_op */
+void WM_operator_bl_idname(char *to, char *from)
+{
+	char *sep= strstr(from, ".");
+
+	if(sep) {
+		int i, ofs= (sep-from);
+
+		for(i=0; i<ofs; i++)
+			to[i]= toupper(from[i]);
+
+		BLI_strncpy(to+ofs, "_OT_", OP_MAX_TYPENAME);
+		BLI_strncpy(to+(ofs+4), sep+1, OP_MAX_TYPENAME);
+	}
+	else {
+		/* should not happen but support just incase */
+		BLI_strncpy(to, from, OP_MAX_TYPENAME);
+	}
+}
+
 /* print a string representation of the operator, with the args that it runs 
  * so python can run it again */
 char *WM_operator_pystring(wmOperator *op)
 {
 	const char *arg_name= NULL;
+	char idname_py[OP_MAX_TYPENAME];
 
 	PropertyRNA *prop, *iterprop;
 
@@ -165,7 +214,8 @@ char *WM_operator_pystring(wmOperator *op)
 	char *cstring, *buf;
 	int first_iter=1;
 
-	BLI_dynstr_appendf(dynstr, "bpy.ops.%s(", op->idname);
+	WM_operator_py_idname(idname_py, op->idname);
+	BLI_dynstr_appendf(dynstr, "bpy.ops.%s(", idname_py);
 
 	iterprop= RNA_struct_iterator_property(op->ptr->type);
 

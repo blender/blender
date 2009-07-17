@@ -1,6 +1,9 @@
 
 import bpy
 
+import bpy_ops # XXX - should not need to do this
+del bpy_ops
+
 class CONSOLE_HT_header(bpy.types.Header):
 	__space_type__ = "CONSOLE"
 	__idname__ = "CONSOLE_HT_header"
@@ -36,11 +39,11 @@ class CONSOLE_MT_console(bpy.types.Menu):
 		sc = context.space_data
 
 		layout.column()
-		layout.itemO("CONSOLE_OT_clear")
+		layout.itemO("console.clear")
 
 def add_scrollback(text, text_type):
 	for l in text.split('\n'):
-		bpy.ops.CONSOLE_OT_scrollback_append(text=l.replace('\t', '    '), type=text_type)
+		bpy.ops.console.scrollback_append(text=l.replace('\t', '    '), type=text_type)
 
 def get_console(console_id):
 	'''
@@ -148,13 +151,13 @@ class CONSOLE_OT_exec(bpy.types.Operator):
 		stdout.truncate(0)
 		stderr.truncate(0)
 		
-		bpy.ops.CONSOLE_OT_scrollback_append(text = sc.prompt+line, type='INPUT')
+		bpy.ops.console.scrollback_append(text = sc.prompt+line, type='INPUT')
 		
 		if is_multiline:	sc.prompt = self.PROMPT_MULTI
 		else:				sc.prompt = self.PROMPT
 		
 		# insert a new blank line
-		bpy.ops.CONSOLE_OT_history_append(text="", current_character=0)
+		bpy.ops.console.history_append(text="", current_character=0)
 		
 		# Insert the output into the editor
 		# not quite correct because the order might have changed, but ok 99% of the time.

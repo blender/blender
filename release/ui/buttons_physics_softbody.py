@@ -25,14 +25,14 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
 		if md:
 			# remove modifier + settings
 			split.set_context_pointer("modifier", md)
-			split.itemO("OBJECT_OT_modifier_remove", text="Remove")
+			split.itemO("object.modifier_remove", text="Remove")
 
 			row = split.row(align=True)
 			row.itemR(md, "render", text="")
 			row.itemR(md, "realtime", text="")
 		else:
 			# add modifier
-			split.item_enumO("OBJECT_OT_modifier_add", "type", "SOFTBODY", text="Add")
+			split.item_enumO("object.modifier_add", "type", "SOFTBODY", text="Add")
 			split.itemL("")
 			
 		if md:

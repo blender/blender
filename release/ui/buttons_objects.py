@@ -65,7 +65,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 		ob = context.object
 
 		split = layout.split()
-		split.item_menu_enumO("OBJECT_OT_group_add", "group", text="Add to Group")
+		split.item_menu_enumO("object.group_add", "group", text="Add to Group")
 		split.itemL()
 
 		for group in bpy.data.groups:
@@ -76,7 +76,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 
 				row = col.box().row()
 				row.itemR(group, "name", text="")
-				row.itemO("OBJECT_OT_group_remove", text="", icon="VICON_X")
+				row.itemO("object.group_remove", text="", icon="VICON_X")
 
 				split = col.box().split()
 				split.column().itemR(group, "layer", text="Dupli")

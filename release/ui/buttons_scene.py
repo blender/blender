@@ -14,8 +14,8 @@ class RENDER_PT_render(RenderButtonsPanel):
 		rd = context.scene.render_data
 
 		row = layout.row()
-		row.itemO("SCREEN_OT_render", text="Image", icon='ICON_IMAGE_COL')
-		row.item_booleanO("SCREEN_OT_render", "anim", True, text="Animation", icon='ICON_SEQUENCE')
+		row.itemO("screen.render", text="Image", icon='ICON_IMAGE_COL')
+		row.item_booleanO("screen.render", "anim", True, text="Animation", icon='ICON_SEQUENCE')
 
 		layout.itemR(rd, "display_mode", text="Display")
 
@@ -32,8 +32,8 @@ class RENDER_PT_layers(RenderButtonsPanel):
 		row.template_list(rd, "layers", rd, "active_layer_index", rows=2)
 
 		col = row.column(align=True)
-		col.itemO("SCENE_OT_render_layer_add", icon="ICON_ZOOMIN", text="")
-		col.itemO("SCENE_OT_render_layer_remove", icon="ICON_ZOOMOUT", text="")
+		col.itemO("scene.render_layer_add", icon="ICON_ZOOMIN", text="")
+		col.itemO("scene.render_layer_remove", icon="ICON_ZOOMOUT", text="")
 
 		rl = rd.layers[rd.active_layer_index]
 
