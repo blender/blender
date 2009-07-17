@@ -91,14 +91,14 @@
 #include "ED_screen.h"
 #include "ED_space_api.h"
 
-/* *************************** Keyframe Drawing *************************** */
+/* *************************** Keyframe Processing *************************** */
 
+/* The equivalent of add_to_cfra_elem except this version 
+ * makes ActKeyColumns - one of the two datatypes required
+ * for DopeSheet drawing.
+ */
 static void add_bezt_to_keycolumnslist(ListBase *keys, BezTriple *bezt)
 {
-	/* The equivalent of add_to_cfra_elem except this version 
-	 * makes ActKeyColumns - one of the two datatypes required
-	 * for action editor drawing.
-	 */
 	ActKeyColumn *ak, *akn;
 	
 	if (ELEM(NULL, keys, bezt)) return;
@@ -133,12 +133,12 @@ static void add_bezt_to_keycolumnslist(ListBase *keys, BezTriple *bezt)
 		akn->sel = 0;
 }
 
+/* The equivalent of add_to_cfra_elem except this version 
+ * makes ActKeyBlocks - one of the two datatypes required
+ * for DopeSheet drawing.
+ */
 static void add_bezt_to_keyblockslist(ListBase *blocks, FCurve *fcu, int index)
 {
-	/* The equivalent of add_to_cfra_elem except this version 
-	 * makes ActKeyBlocks - one of the two datatypes required
-	 * for action editor drawing.
-	 */
 	ActKeyBlock *ab, *abn;
 	BezTriple *beztn=NULL, *prev=NULL;
 	BezTriple *bezt;
@@ -209,6 +209,8 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, FCurve *fcu, int index)
 		abn->sel = 0;
 	abn->modified = 1;
 }
+
+/* *************************** Keyframe Drawing *************************** */
 
 /* helper function - find actkeycolumn that occurs on cframe */
 static ActKeyColumn *cfra_find_actkeycolumn (ListBase *keys, float cframe)
