@@ -1,4 +1,3 @@
-
 #include "MEM_guardedalloc.h"
 #include "BKE_customdata.h" 
 #include "DNA_listBase.h"

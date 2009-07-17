@@ -177,6 +177,7 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 	BMO_CallOpf(bm, "del geom=%fvef context=%i", ELE_DEL, DEL_ONLYTAGGED);
 
 	V_FREE(edges);
+	V_FREE(loops);
 }
 
 static int vergaverco(const void *e1, const void *e2)

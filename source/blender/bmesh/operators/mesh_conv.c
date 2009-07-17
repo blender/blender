@@ -142,6 +142,8 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		/*Copy Custom Data*/
 		CustomData_to_bmesh_block(&me->pdata, &bm->pdata, i, &f->head.data);
 	}
+
+	V_FREE(fedges);
 }
 
 void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {

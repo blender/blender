@@ -113,8 +113,8 @@ BMEditMesh *CDDM_To_BMesh(DerivedMesh *dm, BMEditMesh *existing)
 	int allocsize[4] = {512, 512, 2048, 512};
 	BMesh *bm, bmold; /*bmold is for storing old customdata layout*/
 	BMEditMesh *em = existing;
-	MVert *mv;
-	MEdge *me;
+	MVert *mv, *mvert;
+	MEdge *me, *medge;
 	DMFaceIter *dfiter;
 	DMLoopIter *dliter;
 	BMVert *v, **vtable, **verts=NULL;
@@ -150,7 +150,7 @@ BMEditMesh *CDDM_To_BMesh(DerivedMesh *dm, BMEditMesh *existing)
 	etable = MEM_callocN(sizeof(void**)*totedge, "edge table in BMDM_Copy");
 
 	/*do verts*/
-	mv = dm->dupVertArray(dm);
+	mv = mvert = dm->dupVertArray(dm);
 	for (i=0; i<totvert; i++, mv++) {
 		v = BM_Make_Vert(bm, mv->co, NULL);
 		
@@ -161,9 +161,10 @@ BMEditMesh *CDDM_To_BMesh(DerivedMesh *dm, BMEditMesh *existing)
 		CustomData_to_bmesh_block(&dm->vertData, &bm->vdata, i, &v->head.data);
 		vtable[i] = v;
 	}
+	MEM_freeN(mvert);
 
 	/*do edges*/
-	me = dm->dupEdgeArray(dm);
+	me = medge = dm->dupEdgeArray(dm);
 	for (i=0; i<totedge; i++, me++) {
 		e = BM_Make_Edge(bm, vtable[me->v1], vtable[me->v2], NULL, 0);
 
@@ -174,6 +175,7 @@ BMEditMesh *CDDM_To_BMesh(DerivedMesh *dm, BMEditMesh *existing)
 		CustomData_to_bmesh_block(&dm->edgeData, &bm->edata, i, &e->head.data);
 		etable[i] = e;
 	}
+	MEM_freeN(medge);
 	
 	k = 0;
 	dfiter = dm->newFaceIter(dm);
@@ -208,10 +210,15 @@ BMEditMesh *CDDM_To_BMesh(DerivedMesh *dm, BMEditMesh *existing)
 		CustomData_to_bmesh_block(&dm->polyData, &bm->pdata, 
 			dfiter->index, &f->head.data);
 	}
+	
+	dfiter->free(dfiter);
 
 	MEM_freeN(vtable);
 	MEM_freeN(etable);
 	
+	V_FREE(verts);
+	V_FREE(edges);
+
 	if (!em) em = BMEdit_Create(bm);
 	else BMEdit_RecalcTesselation(em);
 
@@ -500,6 +507,7 @@ DerivedMesh *arrayModifier_applyModifierEM(ModifierData *md, Object *ob,
 }
 
 /* Mirror */
+#define VERT_NEW	1
 
 DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		Object *ob,
@@ -507,20 +515,18 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		int initFlags,
 		int axis)
 {
-	int i;
 	float tolerance = mmd->tolerance;
 	DerivedMesh *result, *cddm;
 	BMEditMesh *em;
 	BMesh *bm;
-	int numVerts, numEdges, numFaces;
-	int maxVerts = dm->getNumVerts(dm);
-	int maxEdges = dm->getNumEdges(dm);
-	int maxFaces = dm->getNumTessFaces(dm);
-	int vector_size=0, j, a, b;
+	BMOIter siter1, siter2;
+	BMOperator op;
+	BMVert *v1, *v2;
+	int vector_size=0, a, b;
 	bDeformGroup *def, *defb;
 	bDeformGroup **vector_def = NULL;
-	int (*indexMap)[2];
 	float mtx[4][4], imtx[4][4];
+	int i, j;
 
 	cddm = CDDM_copy(dm);
 	em = CDDM_To_BMesh(dm, NULL);
@@ -530,10 +536,6 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	
 	/*convienence variable*/
 	bm = em->bm;
-
-	numVerts = numEdges = numFaces = 0;
-	indexMap = MEM_mallocN(sizeof(*indexMap) * maxVerts, "indexmap");
-	result = CDDM_from_template(dm, maxVerts * 2, maxEdges * 2, maxFaces * 2, 0, 0);
 
 	if (mmd->flag & MOD_MIR_VGROUP) {
 		/* calculate the number of deformedGroups */
@@ -555,14 +557,57 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		Mat4Invert(obinv, mmd->mirror_ob->obmat);
 		Mat4MulMat4(mtx, ob->obmat, obinv);
 		Mat4Invert(imtx, mtx);
+	} else {
+		Mat4One(mtx);
+		mtx[axis][axis] = -1;
+		Mat4Invert(imtx, mtx);
 	}
 
-
+	BMO_InitOpf(bm, &op, "mirror geom=%avef mat=%m4 mergedist=%f axis=%d", 
+	            mtx, mmd->tolerance, axis);
+	
+	BMO_Exec_Op(bm, &op);
+	
+	/*handle vgroup stuff*/
+	if (mmd->flag & MOD_MIR_VGROUP) {
+		BMO_ITER(v1, &siter1, bm, &op, "newout", BM_VERT) {
+			MDeformVert *dvert = CustomData_bmesh_get(&bm->vdata, v1->head.data, CD_MDEFORMVERT);
+			
+			if (dvert) {
+				for(j = 0; j < dvert[0].totweight; ++j) {
+					char tmpname[32];
+					
+					if(dvert->dw[j].def_nr < 0 ||
+					   dvert->dw[j].def_nr >= vector_size)
+						continue;
+					
+					def = vector_def[dvert->dw[j].def_nr];
+					strcpy(tmpname, def->name);
+					vertgroup_flip_name(tmpname,0);
+					
+					for(b = 0, defb = ob->defbase.first; defb;
+					    defb = defb->next, b++)
+					{
+						if(!strcmp(defb->name, tmpname))
+						{
+							dvert->dw[j].def_nr = b;
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	BMO_Finish_Op(bm, &op);
 
 	BMEdit_RecalcTesselation(em);
 	result = CDDM_from_BMEditMesh(em, NULL);
 
 	BMEdit_Free(em);
+	MEM_freeN(em);
+
+	if (vector_def) MEM_freeN(vector_def);
 
 	return result;
 }

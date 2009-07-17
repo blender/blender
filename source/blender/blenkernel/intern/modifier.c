@@ -2629,18 +2629,17 @@ static void linklist_copy(LinkNode **target, LinkNode *source)
 	for(; source; source = source->next) {
 		if(node) {
 			node->next = MEM_mallocN(sizeof(*node->next), "nlink_copy");
-										node = node->next;
-} else {
-										node = *target = MEM_mallocN(sizeof(**target), "nlink_copy");
-}
-										node->link = source->link;
-										node->next = NULL;
-}
+			node = node->next;
+		} else {
+			node = *target = MEM_mallocN(sizeof(**target), "nlink_copy");
+		}	node->link = source->link;
+			node->next = NULL;
+	}
 }
 #endif
 
-										/* appends source to target if it's not already in target */
-										static void linklist_append_unique(LinkNode **target, void *source) 
+/* appends source to target if it's not already in target */
+static void linklist_append_unique(LinkNode **target, void *source) 
 {
 	LinkNode *node;
 	LinkNode *prev = NULL;

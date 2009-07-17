@@ -1,10 +1,26 @@
 #include "bmesh.h"
 #include "bmesh_private.h"
-
 #include <stdio.h>
 
 /*do not rename any operator or slot names! otherwise you must go 
   through the code and find all references to them!*/
+
+
+BMOpDefine def_mirror = {
+	"mirror",
+	/*maps welded vertices to verts they should weld to.*/
+	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"},
+	 //list of verts to keep
+	 {BMOP_OPSLOT_MAT, "mat"}, //matrix defining the mirror transformation
+	 {BMOP_OPSLOT_FLT, "mergedist"}, //does no merging if mergedist is 0
+	 {BMOP_OPSLOT_ELEMENT_BUF, "newout"},
+	 {BMOP_OPSLOT_INT,         "axis"},
+	 {BMOP_OPSLOT_INT,         "mirror_u"},
+	 {BMOP_OPSLOT_INT,         "mirror_v"},
+	 {0, /*null-terminating sentinel*/}},
+	bmesh_mirror_exec,
+	0,
+};
 
 BMOpDefine def_finddoubles = {
 	"finddoubles",
@@ -319,6 +335,7 @@ BMOpDefine *opdefines[] = {
 	&def_weldverts,
 	&def_removedoubles,
 	&def_finddoubles,
+	&def_mirror,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

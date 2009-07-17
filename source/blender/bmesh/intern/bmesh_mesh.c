@@ -160,6 +160,10 @@ void BM_Free_Mesh_Data(BMesh *bm)
 	/*destroy flag pool*/
 	BLI_mempool_destroy(bm->flagpool);
 	
+	if (bm->edar) MEM_freeN(bm->edar);
+	if (bm->vtar) MEM_freeN(bm->vtar);
+	if (bm->plar) MEM_freeN(bm->plar);
+
 	BMO_ClearStack(bm);
 }
 
