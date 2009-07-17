@@ -293,5 +293,8 @@ void MESH_OT_vertex_color_remove(struct wmOperatorType *ot);
 void MESH_OT_sticky_add(struct wmOperatorType *ot);
 void MESH_OT_sticky_remove(struct wmOperatorType *ot);
 
+/* ************* bmesh_tools.c ***********/
+void MESH_OT_vert_connect(struct wmOperatorType *ot);
+
 #endif // MESH_INTERN_H
 

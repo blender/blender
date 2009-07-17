@@ -313,6 +313,8 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_edge_specials);
 	WM_operatortype_append(MESH_OT_face_specials);
 	WM_operatortype_append(MESH_OT_specials);
+
+	WM_operatortype_append(MESH_OT_vert_connect);
 }
 
 /* note mesh keymap also for other space? */
@@ -364,6 +366,8 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_normals_make_consistent", NKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "inside", 1);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_extrude", EKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "MESH_OT_vert_connect", YKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_spin", RKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_screw", NINEKEY, KM_PRESS, KM_CTRL, 0);
