@@ -38,10 +38,8 @@
 #define BMESH_H
 
 #include "DNA_listBase.h"
-#include "DNA_customdata_types.h"
 #include "DNA_scene_types.h"
 #include "BLI_mempool.h"
-#include "BKE_customdata.h"
 
 /*
 short introduction:
@@ -75,6 +73,9 @@ struct BMOperator;
 struct Mesh;
 struct EditMesh;
 
+#include "BKE_customdata.h"
+#include "DNA_customdata_types.h"
+
 /*
  * BMHeader
  *
@@ -82,7 +83,8 @@ struct EditMesh;
  * hold several types of data
  *
  * 1: The type of the element (vert, edge, loop or face)
- * 2: Persistant flags/markings (sharp, seam, select, hidden, ect)
+ * 2: Persistant "header" flags/markings (sharp, seam, select, hidden, ect)
+      note that this is different from the "tool" flags.
  * 3: Unique ID in the bmesh.
  * 4: some elements for internal record keeping.
  *
