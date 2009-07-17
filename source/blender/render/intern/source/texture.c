@@ -48,6 +48,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
+#include "BKE_colortools.h"
 #include "BKE_image.h"
 #include "BKE_node.h"
 #include "BKE_plugin_types.h"
@@ -1808,6 +1809,11 @@ void do_material_tex(ShadeInput *shi)
 				}
 				else texres.tin= texres.ta;
 				
+				/* inverse gamma correction */
+				if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+					color_manage_linearize(tcol, tcol);
+				}
+				
 				if(mtex->mapto & MAP_COL) {
 					texture_rgb_blend(&shi->r, tcol, &shi->r, texres.tin, colfac, mtex->blendtype);
 				}
@@ -2127,6 +2133,11 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 		}
 		else texres.tin= texres.ta;
 
+		/* inverse gamma correction */
+		if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+			color_manage_linearize(&texres.tr, &texres.tr);
+		}
+
 		fact= texres.tin*mtex->colfac;
 		facm= 1.0-fact;
 		
@@ -2314,6 +2325,11 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 				
 				tcol[0]= texres.tr; tcol[1]= texres.tg; tcol[2]= texres.tb;
 
+				/* inverse gamma correction */
+				if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+					color_manage_linearize(tcol, tcol);
+				}
+
 				if(mtex->mapto & WOMAP_HORIZ) {
 					texture_rgb_blend(hor, tcol, hor, texres.tin, mtex->colfac, mtex->blendtype);
 				}
@@ -2495,6 +2511,11 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 					texres.tin= stencilTin;
 				}
 				else texres.tin= texres.ta;
+
+				/* inverse gamma correction */
+				if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+					color_manage_linearize(&texres.tr, &texres.tr);
+				}
 
 				/* lamp colors were premultiplied with this */
 				col[0]= texres.tr*la->energy;

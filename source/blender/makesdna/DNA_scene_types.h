@@ -274,8 +274,12 @@ typedef struct RenderData {
 	 * Value used to define filter size for all filter options  */
 	float gauss;
 	
+	
+	/* color management settings - color profiles, gamma correction, etc */
+	int color_mgt_flag;
+	
 	/** post-production settings. Depricated, but here for upwards compat (initialized to 1) */	 
-	float postmul, postgamma, posthue, postsat;	 
+	float postgamma, posthue, postsat;	 
 	
  	/* Dither noise intensity */
 	float dither_intensity;
@@ -721,6 +725,9 @@ typedef struct Scene {
 #define R_PLANES24		24
 #define R_PLANES32		32
 #define R_PLANESBW		8
+
+/* color_mgt_flag */
+#define R_COLOR_MANAGEMENT	1
 
 /* imtype */
 #define R_TARGA		0

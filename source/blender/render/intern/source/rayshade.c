@@ -225,8 +225,7 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	shi->obr= obi->obr;
 	shi->vlr= vlr;
 	shi->mat= vlr->mat;
-	memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));	// note, keep this synced with render_types.h
-	shi->har= shi->mat->har;
+	shade_input_init_material(shi);
 	
 	// Osa structs we leave unchanged now
 	SWAP(int, osatex, shi->osatex);

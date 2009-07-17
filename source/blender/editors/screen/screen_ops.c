@@ -41,6 +41,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_blender.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
@@ -2575,21 +2576,46 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 	rectf+= 4*(rr->rectx*ymin + xmin);
 	rectc= (char *)(ibuf->rect + ibuf->x*rymin + rxmin);
 
-	for(y1= 0; y1<ymax; y1++) {
-		float *rf= rectf;
-		char *rc= rectc;
-		
-		/* XXX temp. because crop offset */
-		if( rectc >= (char *)(ibuf->rect)) {
-			for(x1= 0; x1<xmax; x1++, rf += 4, rc+=4) {
-				rc[0]= FTOCHAR(rf[0]);
-				rc[1]= FTOCHAR(rf[1]);
-				rc[2]= FTOCHAR(rf[2]);
-				rc[3]= FTOCHAR(rf[3]);
+	/* XXX make nice consistent functions for this */
+	if (rj->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+		for(y1= 0; y1<ymax; y1++) {
+			float *rf= rectf;
+			float srgb[3];
+			char *rc= rectc;
+			
+			/* XXX temp. because crop offset */
+			if( rectc >= (char *)(ibuf->rect)) {
+				for(x1= 0; x1<xmax; x1++, rf += 4, rc+=4) {
+					srgb[0]= linearrgb_to_srgb(rf[0]);
+					srgb[1]= linearrgb_to_srgb(rf[1]);
+					srgb[2]= linearrgb_to_srgb(rf[2]);
+
+					rc[0]= FTOCHAR(srgb[0]);
+					rc[1]= FTOCHAR(srgb[1]);
+					rc[2]= FTOCHAR(srgb[2]);
+					rc[3]= FTOCHAR(rf[3]);
+				}
 			}
+			rectf += 4*rr->rectx;
+			rectc += 4*ibuf->x;
 		}
-		rectf += 4*rr->rectx;
-		rectc += 4*ibuf->x;
+	} else {
+		for(y1= 0; y1<ymax; y1++) {
+			float *rf= rectf;
+			char *rc= rectc;
+			
+			/* XXX temp. because crop offset */
+			if( rectc >= (char *)(ibuf->rect)) {
+				for(x1= 0; x1<xmax; x1++, rf += 4, rc+=4) {
+					rc[0]= FTOCHAR(rf[0]);
+					rc[1]= FTOCHAR(rf[1]);
+					rc[2]= FTOCHAR(rf[2]);
+					rc[3]= FTOCHAR(rf[3]);
+				}
+			}
+			rectf += 4*rr->rectx;
+			rectc += 4*ibuf->x;
+		}
 	}
 	
 	/* make jobs timer to send notifier */

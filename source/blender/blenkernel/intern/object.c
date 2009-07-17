@@ -715,7 +715,7 @@ void *add_lamp(char *name)
 	
 	la->r= la->g= la->b= la->k= 1.0f;
 	la->haint= la->energy= 1.0f;
-	la->dist= 20.0f;
+	la->dist= 25.0f;
 	la->spotsize= 45.0f;
 	la->spotblend= 0.15f;
 	la->att2= 1.0f;
@@ -734,7 +734,7 @@ void *add_lamp(char *name)
 	la->ray_samp_method = LA_SAMP_HALTON;
 	la->adapt_thresh = 0.001f;
 	la->preview=NULL;
-	la->falloff_type = LA_FALLOFF_INVLINEAR;
+	la->falloff_type = LA_FALLOFF_INVSQUARE;
 	la->curfalloff = curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
 	la->sun_effect_type = 0;
 	la->horizon_brightness = 1.0;

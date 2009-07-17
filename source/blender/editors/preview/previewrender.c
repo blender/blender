@@ -293,6 +293,7 @@ static Scene *preview_prepare_scene(Scene *scene, int id_type, ShaderPreview *sp
 			sce->world->range= scene->world->range;
 		}
 		
+		sce->r.color_mgt_flag = scene->r.color_mgt_flag;
 		sce->r.cfra= scene->r.cfra;
 		
 		if(id_type==ID_MA) {
@@ -353,6 +354,9 @@ static Scene *preview_prepare_scene(Scene *scene, int id_type, ShaderPreview *sp
 			
 			sce->lay= 1<<MA_TEXTURE;
 			
+			/* exception: don't color manage texture previews */
+			sce->r.color_mgt_flag &= ~R_COLOR_MANAGEMENT;
+			
 			for(base= sce->base.first; base; base= base->next) {
 				if(base->object->id.name[2]=='t') {
 					Material *mat= give_current_material(base->object, base->object->actcol);
@@ -404,21 +408,27 @@ static Scene *preview_prepare_scene(Scene *scene, int id_type, ShaderPreview *sp
 	return NULL;
 }
 
-
 /* new UI convention: draw is in pixel space already. */
 /* uses ROUNDBOX button in block to get the rect */
 void ED_preview_draw(const bContext *C, void *idp, rcti *rect)
 {
 	if(idp) {
 		ScrArea *sa= CTX_wm_area(C);
+		Scene *sce = CTX_data_scene(C);
+		ID *id = (ID *)idp;
 		SpaceButs *sbuts= sa->spacedata.first;
 		RenderResult rres;
 		int newx= rect->xmax-rect->xmin, newy= rect->ymax-rect->ymin;
 		int ok= 0;
 		char name[32];
+		int gamma_correct=0;
+ 	
+		if (id && GS(id->name) != ID_TE) {
+			/* exception: don't color manage texture previews - show the raw values */
+			if (sce) gamma_correct = sce->r.color_mgt_flag & R_COLOR_MANAGEMENT;
+		}
 		
 		sprintf(name, "Preview %p", sa);
-		BLI_lock_malloc_thread();
 		RE_GetResultImage(RE_GetRender(name), &rres);
 
 		if(rres.rectf) {
@@ -428,11 +438,10 @@ void ED_preview_draw(const bContext *C, void *idp, rcti *rect)
 				rect->xmax= rect->xmin + rres.rectx;
 				rect->ymax= rect->ymin + rres.recty;
 			
-				glaDrawPixelsSafe(rect->xmin, rect->ymin, rres.rectx, rres.recty, rres.rectx, GL_RGBA, GL_FLOAT, rres.rectf);
+				glaDrawPixelsSafe_to32(rect->xmin, rect->ymin, rres.rectx, rres.recty, rres.rectx, rres.rectf, gamma_correct);
 				ok= 1;
 			}
 		}
-		BLI_unlock_malloc_thread();
 
 		/* check for spacetype... */
 		if(sbuts->spacetype==SPACE_BUTS && sbuts->preview) {
@@ -468,7 +477,7 @@ void view3d_previewrender_progress(RenderResult *rr, volatile rcti *renrect)
 	
 	glDrawBuffer(GL_FRONT);
 //	glaDefine2DArea(&sa->winrct);
-	glaDrawPixelsSafe_to32(ofsx, ofsy, rr->rectx, rr->recty, rr->rectx, rl->rectf);
+	glaDrawPixelsSafe_to32(ofsx, ofsy, rr->rectx, rr->recty, rr->rectx, rl->rectf, 0);
 	bglFlush();
 	glDrawBuffer(GL_BACK);
 

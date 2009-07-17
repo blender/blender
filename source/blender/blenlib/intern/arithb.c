@@ -3542,33 +3542,10 @@ int constrain_rgb(float *r, float *g, float *b)
     
     if (w > 0) {
         *r += w;  *g += w; *b += w;
-        return 1;                     /* Colour modified to fit RGB gamut */
+        return 1;                     /* Color modified to fit RGB gamut */
     }
 
-    return 0;                         /* Colour within RGB gamut */
-}
-
-/*Transform linear RGB values to nonlinear RGB values. Rec.
-  709 is ITU-R Recommendation BT. 709 (1990) ``Basic
-  Parameter Values for the HDTV Standard for the Studio and
-  for International Programme Exchange'', formerly CCIR Rec.
-  709.*/
-static void gamma_correct(float *c)
-{
-	/* Rec. 709 gamma correction. */
-	float cc = 0.018f;
-	
-	if (*c < cc)
-	    *c *= ((1.099f * (float)pow(cc, 0.45)) - 0.099f) / cc;
-	else 
-	    *c = (1.099f * (float)pow(*c, 0.45)) - 0.099f;
-}
-
-void gamma_correct_rgb(float *r, float *g, float *b)
-{
-    gamma_correct(r);
-    gamma_correct(g);
-    gamma_correct(b);
+    return 0;                         /* Color within RGB gamut */
 }
 
 

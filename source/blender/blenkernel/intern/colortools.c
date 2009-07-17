@@ -58,6 +58,91 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+/* ********************************* color transforms ********************************* */
+
+/*Transform linear RGB values to nonlinear RGB values. Rec.
+  709 is ITU-R Recommendation BT. 709 (1990) ``Basic
+  Parameter Values for the HDTV Standard for the Studio and
+  for International Programme Exchange'', formerly CCIR Rec.
+  709.*/
+void gamma_correct_rec709(float *c, float gamma)
+{
+	/* Rec. 709 gamma correction. */
+	float cc = 0.018f;
+	
+	if (*c < cc)
+	    *c *= ((1.099f * (float)pow(cc, gamma)) - 0.099f) / cc;
+	else 
+	    *c = (1.099f * (float)pow(*c, gamma)) - 0.099f;
+}
+
+void gamma_correct(float *c, float gamma)
+{
+	*c = pow((*c), gamma);
+}
+
+float srgb_to_linearrgb(float c)
+{
+	if (c < 0.04045f)
+		return (c < 0.f)?0.f:c / 12.92;
+	else
+		return pow((c + 0.055)/1.055, 2.4);
+}
+
+float linearrgb_to_srgb(float c)
+{
+	if (c < 0.0031308)
+		return (c < 0.f)?0.f:c * 12.92;
+	else
+		return  1.055 * pow(c, 1.0/2.4) - 0.055;
+}
+
+/* utility function convert an RGB triplet from sRGB to linear RGB color space */
+void color_manage_linearize(float *col_to, float *col_from)
+{
+	col_to[0] = srgb_to_linearrgb(col_from[0]);
+	col_to[1] = srgb_to_linearrgb(col_from[1]);
+	col_to[2] = srgb_to_linearrgb(col_from[2]);
+}
+
+void floatbuf_to_srgb_byte(float *rectf, unsigned char *rectc, int x1, int x2, int y1, int y2, int w)
+{
+	int x, y;
+	float *rf= rectf;
+	float srgb[3];
+	unsigned char *rc= rectc;
+	
+	for(y=y1; y<y2; y++) {
+		for(x=x1; x<x2; x++, rf+=4, rc+=4) {
+			srgb[0]= linearrgb_to_srgb(rf[0]);
+			srgb[1]= linearrgb_to_srgb(rf[1]);
+			srgb[2]= linearrgb_to_srgb(rf[2]);
+
+			rc[0]= FTOCHAR(srgb[0]);
+			rc[1]= FTOCHAR(srgb[1]);
+			rc[2]= FTOCHAR(srgb[2]);
+			rc[3]= FTOCHAR(rf[3]);
+		}
+	}
+}
+
+void floatbuf_to_byte(float *rectf, unsigned char *rectc, int x1, int x2, int y1, int y2, int w)
+{
+	int x, y;
+	float *rf= rectf;
+	unsigned char *rc= rectc;
+	
+	for(y=y1; y<y2; y++) {
+		for(x=x1; x<x2; x++, rf+=4, rc+=4) {
+			rc[0]= FTOCHAR(rf[0]);
+			rc[1]= FTOCHAR(rf[1]);
+			rc[2]= FTOCHAR(rf[2]);
+			rc[3]= FTOCHAR(rf[3]);
+		}
+	}
+}
+
+
 /* ********************************* color curve ********************* */
 
 /* ***************** operations on full struct ************* */

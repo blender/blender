@@ -118,6 +118,7 @@ class RENDER_PT_shading(RenderButtonsPanel):
 		col = split.column()
 		col.itemR(rd, "render_envmaps", text="Environment Map")
 		col.itemR(rd, "render_raytracing", text="Ray Tracing")
+		col.itemR(rd, "color_management")
 		col.itemR(rd, "alpha_mode", text="Alpha")
 
 class RENDER_PT_performance(RenderButtonsPanel):

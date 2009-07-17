@@ -223,6 +223,7 @@ Scene *add_scene(char *name)
 	sce->r.frs_sec= 25;
 	sce->r.frs_sec_base= 1;
 	sce->r.ocres = 128;
+	sce->r.color_mgt_flag |= R_COLOR_MANAGEMENT;
 	
 	sce->r.bake_mode= 1;	/* prevent to include render stuff here */
 	sce->r.bake_filter= 8;
