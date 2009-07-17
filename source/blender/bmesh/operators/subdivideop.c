@@ -687,7 +687,8 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 		}
 
 		/*make sure the two edges have a valid angle to each other*/
-		if (totesel == 2) {
+		if (totesel == 2 && (e1->v1 == e2->v1 || e1->v1 == e2->v2 
+			             || e1->v2 == e2->v1 || e1->v2 == e2->v1)) {
 			float angle;
 
 			VecSubf(vec1, e1->v2->co, e1->v1->co);
