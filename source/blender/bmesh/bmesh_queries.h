@@ -14,8 +14,7 @@ int BM_Verts_In_Face(struct BMesh *bm, struct BMFace *f, struct BMVert **varr, i
 
 int BM_Edge_In_Face(struct BMFace *f, struct BMEdge *e);
 
-int BM_Vert_In_Edge(struct BMVert *v1, struct BMVert *v2, BMEdge *e);
-
+int BM_Vert_In_Edge(struct BMEdge *e, struct BMVert *v);
 
 /*get opposing vert from v in edge e.*/
 struct BMVert *BM_OtherEdgeVert(struct BMEdge *e, struct BMVert *v);

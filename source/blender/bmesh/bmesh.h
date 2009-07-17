@@ -39,6 +39,10 @@
 
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"
+#include "DNA_customdata_types.h"
+
+#include "BKE_customdata.h"
+
 #include "BLI_mempool.h"
 
 /*
@@ -65,6 +69,7 @@ header flags: stores persistent flags, such as selection state, hide state,
 */
 
 /*forward declarations*/
+struct BMesh;
 struct BMVert;
 struct BMEdge;
 struct BMFace;
@@ -72,9 +77,6 @@ struct BMLoop;
 struct BMOperator;
 struct Mesh;
 struct EditMesh;
-
-#include "BKE_customdata.h"
-#include "DNA_customdata_types.h"
 
 /*
  * BMHeader
