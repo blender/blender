@@ -2120,6 +2120,7 @@ void BKE_image_user_calc_imanr(ImageUser *iuser, int cfra, int fieldnr)
   Copy list of images to dest_dir.
 
   paths is optional, if given, image paths for each image will be written in it.
+  It will also contain NULLs for images that cannot be copied.
   If an image file doesn't exist, NULL is added in paths.
 
   Logic:
@@ -2161,6 +2162,13 @@ void BKE_copy_images(ListBase *images, char *dest_dir, ListBase *paths)
 	while (link) {
 		im= link->data;
 
+		LinkData *ld = MEM_callocN(sizeof(LinkData), "PathLinkData");
+		ld->data= NULL;
+		BLI_addtail(paths, ld);
+
+		if (!strcmp(im->name, "") || im->type != IMA_TYPE_IMAGE)
+			goto next;
+
 		BLI_strncpy(path, im->name, sizeof(path));
 
 		/* expand "//" in filename and get absolute path */
@@ -2169,16 +2177,8 @@ void BKE_copy_images(ListBase *images, char *dest_dir, ListBase *paths)
 		/* in unit tests, we don't want to modify the filesystem */
 #ifndef WITH_UNIT_TEST
 		/* proceed only if image file exists */
-		if (!BLI_exists(path)) {
-
-			if (paths) {
-				LinkData *ld = MEM_callocN(sizeof(LinkData), "PathLinkData");
-				ld->data= NULL;
-				BLI_addtail(paths, ld);
-			}
-
-			continue;
-		}
+		if (!BLI_exists(path))
+			goto next;
 #endif
 
 		/* get the directory part */
@@ -2219,17 +2219,17 @@ void BKE_copy_images(ListBase *images, char *dest_dir, ListBase *paths)
 		}
 
 #ifndef WITH_UNIT_TEST
-		BLI_copy_fileops(path, dest_path);
+		if (BLI_copy_fileops(path, dest_path) != 0)
+			goto next;
 #endif
 
 		if (paths) {
-			LinkData *ld = MEM_callocN(sizeof(LinkData), "PathLinkData");
 			len= strlen(dest_path) + 1;
 			ld->data= MEM_callocN(len, "PathLinkData");
 			BLI_strncpy(ld->data, dest_path, len);
-			BLI_addtail(paths, ld);
 		}
 
+	next:
 		link= link->next;
 	}
 }

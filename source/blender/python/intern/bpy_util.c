@@ -583,9 +583,8 @@ static PyObject *bpy_util_copy_images(PyObject *self, PyObject *args)
 
 	/* convert filenames */
 	ret= PyList_New(0);
-	len= BLI_countlist(paths);
 
-	for(link= paths->first, i= 0; link; link++, i++) {
+	for(link= paths->first; link; link= link->next) {
 		if (link->data) {
 			item= PyUnicode_FromString(link->data);
 			PyList_Append(ret, item);

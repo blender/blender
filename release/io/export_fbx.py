@@ -297,6 +297,29 @@ def BPyMesh_meshWeight2List(ob):
 	return groupNames, vWeightList
 
 
+def BPyMesh_meshWeight2Dict(me, ob):
+	''' Takes a mesh and return its group names and a list of dicts, one dict per vertex.
+	using the group as a key and a float value for the weight.
+	These 2 lists can be modified and then used with dict2MeshWeight to apply the changes.
+	'''
+	
+	vWeightDict= [dict() for i in xrange(len(me.verts))] # Sync with vertlist.
+	
+	# Clear the vert group.
+	groupNames= [g.name for g in ob.vertex_groups]
+# 	groupNames= me.getVertGroupNames()
+	
+	for group in groupNames:
+		for vert_index, weight in me.getVertsFromGroup(group, 1): # (i,w)  tuples.
+			vWeightDict[vert_index][group]= weight
+	
+	# removed this because me may be copying teh vertex groups.
+	#for group in groupNames:
+	#	me.removeVertGroup(group)
+	
+	return groupNames, vWeightDict
+
+
 def meshNormalizedWeights(me):
 	try: # account for old bad BPyMesh
 		groupNames, vWeightList = BPyMesh_meshWeight2List(me)
@@ -1498,7 +1521,7 @@ def write(filename, batch_objects = None, \
 		if my_mesh.blenTextures:	do_textures = True
 		else:						do_textures = False	
 		
-		do_uvs = len(me.uv_layers) > 0
+		do_uvs = len(me.uv_textures) > 0
 # 		do_uvs = me.faceUV
 		
 		
@@ -2073,8 +2096,9 @@ def write(filename, batch_objects = None, \
 				origData = True
 				if tmp_ob_type != 'MESH':
 # 				if tmp_ob_type != 'Mesh':
-					me = bpy.data.meshes.new()
-					try:	me.getFromObject(ob)
+# 					me = bpy.data.meshes.new()
+					try:	me = ob.create_mesh(True, 'PREVIEW')
+# 					try:	me.getFromObject(ob)
 					except:	me = None
 					if me:
 						meshes_to_clear.append( me )
@@ -2084,65 +2108,70 @@ def write(filename, batch_objects = None, \
 					# Mesh Type!
 					if EXP_MESH_APPLY_MOD:
 # 						me = bpy.data.meshes.new()
-						me = ob.create_mesh('PREVIEW')
+						me = ob.create_mesh(True, 'PREVIEW')
 # 						me.getFromObject(ob)
 						
 						# so we keep the vert groups
-						if EXP_ARMATURE:
-							orig_mesh = ob.data
+# 						if EXP_ARMATURE:
 # 							orig_mesh = ob.getData(mesh=1)
-							if len(ob.vertex_groups):
 # 							if orig_mesh.getVertGroupNames():
-								ob.copy().link(me)
-								# If new mesh has no vgroups we can try add if verts are teh same
-								if not me.getVertGroupNames(): # vgroups were not kept by the modifier
-									if len(me.verts) == len(orig_mesh.verts):
-										groupNames, vWeightDict = BPyMesh.meshWeight2Dict(orig_mesh)
-										BPyMesh.dict2MeshWeight(me, groupNames, vWeightDict)
+# 								ob.copy().link(me)
+# 								# If new mesh has no vgroups we can try add if verts are teh same
+# 								if not me.getVertGroupNames(): # vgroups were not kept by the modifier
+# 									if len(me.verts) == len(orig_mesh.verts):
+# 										groupNames, vWeightDict = BPyMesh.meshWeight2Dict(orig_mesh)
+# 										BPyMesh.dict2MeshWeight(me, groupNames, vWeightDict)
 						
 						# print ob, me, me.getVertGroupNames()
 						meshes_to_clear.append( me )
 						origData = False
 						mats = me.materials
 					else:
-						me = ob.getData(mesh=1)
+						me = ob.data
+# 						me = ob.getData(mesh=1)
 						mats = me.materials
 						
-						# Support object colors
-						tmp_colbits = ob.colbits
-						if tmp_colbits:
-							tmp_ob_mats = ob.getMaterials(1) # 1 so we get None's too.
-							for i in xrange(16):
-								if tmp_colbits & (1<<i):
-									mats[i] = tmp_ob_mats[i]
-							del tmp_ob_mats
-						del tmp_colbits
+# 						# Support object colors
+# 						tmp_colbits = ob.colbits
+# 						if tmp_colbits:
+# 							tmp_ob_mats = ob.getMaterials(1) # 1 so we get None's too.
+# 							for i in xrange(16):
+# 								if tmp_colbits & (1<<i):
+# 									mats[i] = tmp_ob_mats[i]
+# 							del tmp_ob_mats
+# 						del tmp_colbits
 							
 					
 				if me:
-					# This WILL modify meshes in blender if EXP_MESH_APPLY_MOD is disabled.
-					# so strictly this is bad. but only in rare cases would it have negative results
-					# say with dupliverts the objects would rotate a bit differently
-					if EXP_MESH_HQ_NORMALS:
-						BPyMesh.meshCalcNormals(me) # high quality normals nice for realtime engines.
+# 					# This WILL modify meshes in blender if EXP_MESH_APPLY_MOD is disabled.
+# 					# so strictly this is bad. but only in rare cases would it have negative results
+# 					# say with dupliverts the objects would rotate a bit differently
+# 					if EXP_MESH_HQ_NORMALS:
+# 						BPyMesh.meshCalcNormals(me) # high quality normals nice for realtime engines.
 					
 					texture_mapping_local = {}
 					material_mapping_local = {}
-					if me.faceUV:
-						uvlayer_orig = me.activeUVLayer
-						for uvlayer in me.getUVLayerNames():
-							me.activeUVLayer = uvlayer
-							for f in me.faces:
-								tex = f.image
+					if len(me.uv_textures) > 0:
+# 					if me.faceUV:
+						uvlayer_orig = me.active_uv_texture
+# 						uvlayer_orig = me.activeUVLayer
+						for uvlayer in me.uv_textures:
+# 						for uvlayer in me.getUVLayerNames():
+# 							me.activeUVLayer = uvlayer
+							for f, uf in zip(me.faces, uvlayer.data):
+# 							for f in me.faces:
+								tex = uf.image
+# 								tex = f.image
 								textures[tex] = texture_mapping_local[tex] = None
 								
-								try: mat = mats[f.mat]
+								try: mat = mats[f.material_index]
+# 								try: mat = mats[f.mat]
 								except: mat = None
 								
 								materials[mat, tex] = material_mapping_local[mat, tex] = None # should use sets, wait for blender 2.5
 									
 							
-							me.activeUVLayer = uvlayer_orig
+# 							me.activeUVLayer = uvlayer_orig
 					else:
 						for mat in mats:
 							# 2.44 use mat.lib too for uniqueness
@@ -2155,9 +2184,12 @@ def write(filename, batch_objects = None, \
 						blenParentBoneName = None
 						
 						# parent bone - special case
-						if (not armob) and ob.parent and ob.parent.type == 'Armature' and ob.parentType == Blender.Object.ParentTypes.BONE:
+						if (not armob) and ob.parent and ob.parent.type == 'ARMATURE' and \
+								ob.parent_type == 'BONE':
+# 						if (not armob) and ob.parent and ob.parent.type == 'Armature' and ob.parentType == Blender.Object.ParentTypes.BONE:
 							armob = ob.parent
-							blenParentBoneName = ob.parentbonename
+							blenParentBoneName = ob.parent_bone
+# 							blenParentBoneName = ob.parentbonename
 						
 							
 						if armob and armob not in ob_arms:
@@ -2181,7 +2213,11 @@ def write(filename, batch_objects = None, \
 					my_mesh.fbxBoneParent = blenParentBoneName	# replace with my_bone instance later
 					
 					ob_meshes.append( my_mesh )
-	
+
+		# not forgetting to free dupli_list
+		if ob_base.dupli_list: ob_base.free_dupli_list()
+
+
 	if EXP_ARMATURE:
 		# now we have the meshes, restore the rest arm position
 		for i, arm in enumerate(bpy.data.armatures):
@@ -2217,7 +2253,8 @@ def write(filename, batch_objects = None, \
 		# fbxName, blenderObject, my_bones, blenderActions
 		#ob_arms[i] = fbxArmObName, ob, arm_my_bones, (ob.action, [])
 		
-		for bone in my_arm.blenData.bones.values():
+		for bone in my_arm.blenData.bones:
+# 		for bone in my_arm.blenData.bones.values():
 			my_bone = my_bone_class(bone, my_arm)
 			my_arm.fbxBones.append( my_bone )
 			ob_bones.append( my_bone )
@@ -2662,7 +2699,8 @@ Connections:  {''')
 	
 	
 	# Needed for scene footer as well as animation
-	render = sce.render
+	render = sce.render_data
+# 	render = sce.render
 	
 	# from the FBX sdk
 	#define KTIME_ONE_SECOND        KTime (K_LONGLONG(46186158000))
@@ -2671,8 +2709,10 @@ Connections:  {''')
 		return int(0.5 + ((t/fps) * 46186158000))
 	
 	fps = float(render.fps)	
-	start =	render.sFrame
-	end =	render.eFrame
+	start =	sce.start_frame
+# 	start =	render.sFrame
+	end =	sce.end_frame
+# 	end =	render.eFrame
 	if end < start: start, end = end, start
 	if start==end: ANIM_ENABLE = False
 	
@@ -2959,8 +2999,6 @@ Takes:  {''')
 		bpy.data.remove_mesh(me)
 # 		me.verts = None
 	
-	
-	
 	# --------------------------- Footer
 	if world:
 		m = world.mist
@@ -3025,7 +3063,8 @@ Takes:  {''')
 	if EXP_IMAGE_COPY:
 		copy_images( basepath,  [ tex[1] for tex in textures if tex[1] != None ])	
 	
-	print 'export finished in %.4f sec.' % (Blender.sys.time() - start_time)
+	print 'export finished in %.4f sec.' % (bpy.sys.time() - start_time)
+# 	print 'export finished in %.4f sec.' % (Blender.sys.time() - start_time)
 	return True
 	
 
@@ -3338,11 +3377,14 @@ if __name__ == '__main__':
 # NOTES (all line numbers correspond to original export_fbx.py (under release/scripts)
 # - Draw.PupMenu alternative in 2.5?, temporarily replaced PupMenu with print
 # - get rid of cleanName somehow
-# - isinstance(inst, bpy.types.*) doesn't work on RNA objects: line 565
+# + fixed: isinstance(inst, bpy.types.*) doesn't work on RNA objects: line 565
 # - get rid of BPyObject_getObjectArmature, move it in RNA?
 # - BATCH_ENABLE and BATCH_GROUP options: line 327
 # - implement all BPyMesh_* used here with RNA
 # - getDerivedObjects is not fully replicated with .dupli* funcs
+# - talk to Campbell, this code won't work? lines 1867-1875
+# - don't know what those colbits are, do we need them? they're said to be deprecated in DNA_object_types.h: 1886-1893
+# - no hq normals: 1900-1901
 
 # TODO
 
