@@ -38,6 +38,7 @@ extern "C"
 #include "rayobject.h"
 };
 
+#include "reorganize.h"
 #include "bvh.h"
 #include <queue>
 
@@ -146,9 +147,9 @@ void pushdown(Node *parent)
 		//assert(bb_fits_inside(parent->bb, parent->bb+3, child->bb, child->bb+3));
 		
 		for(Node *i = parent->child; RayObject_isAligned(i) && i; i = i->sibling)
-		if(child != i && bb_fits_inside(i->bb, i->bb+3, child->bb, child->bb+3))
+		if(child != i && bb_fits_inside(i->bb, i->bb+3, child->bb, child->bb+3) && RayObject_isAligned(i->child))
 		{
-//			todo optimize (hsould the one with the smallest area
+//			todo optimize (should the one with the smallest area?)
 //			float ia = bb_area(i->bb, i->bb+3)
 //			if(child->i)
 			*s_child = child->sibling;
@@ -167,8 +168,65 @@ void pushdown(Node *parent)
 		pushdown( i );	
 }
 
+template<class Node>
+int count_childs(Node *parent)
+{
+	int n = 0;
+	for(Node *i = parent->child; i; i = i->sibling)
+	{
+		n++;
+		if(!RayObject_isAligned(i))
+			break;
+	}
+		
+	return n;
+}
+
+template<class Node>
+void append_sibling(Node *node, Node *sibling)
+{
+	while(node->sibling)
+		node = node->sibling;
+		
+	node->sibling = sibling;
+}
+
+template<class Node>
+void pushup(Node *parent)
+{
+	float p_area = bb_area(parent->bb, parent->bb+3);
+	Node **prev = &parent->child;
+	for(Node *child = parent->child; RayObject_isAligned(child) && child; )
+	{
+		float c_area = bb_area(child->bb, child->bb+3) ;
+		int nchilds = count_childs(child);
+		float original_cost = (c_area / p_area)*nchilds + 1;
+		float flatten_cost = nchilds;
+		if(flatten_cost < original_cost && nchilds >= 2)
+		{
+			append_sibling(child, child->child);
+			child = child->sibling;
+			*prev = child;
+
+//			*prev = child->child;
+//			append_sibling( *prev, child->sibling );
+//			child = *prev;
+			tot_pushup++;
+		}
+		else
+		{
+			*prev = child;
+			prev = &(*prev)->sibling;
+			child = *prev;
+		}		
+	}
+	
+	for(Node *child = parent->child; RayObject_isAligned(child) && child; child = child->sibling)
+		pushup(child);
+}
+
 template<class Tree, class Node, class Builder>
-Node *bvh_rearrange(Tree *tree, Builder *builder, float *cost)
+Node *bvh_rearrange(Tree *tree, Builder *builder)
 {
 	
 	int size = rtbuild_size(builder);
@@ -176,61 +234,31 @@ Node *bvh_rearrange(Tree *tree, Builder *builder, float *cost)
 	{
 		Node *node = bvh_new_node(tree);
 		INIT_MINMAX(node->bb, node->bb+3);
-		rtbuild_merge_bb(builder, node->bb, node->bb+3);
-		
+		rtbuild_merge_bb(builder, node->bb, node->bb+3);		
 		node->child = (BVHNode*)builder->begin[0];
-
-		*cost = RE_rayobject_cost((RayObject*)node->child)+RAY_BB_TEST_COST;
 		return node;
 	}
 	else
 	{
 		Node *node = bvh_new_node(tree);
-		float parent_area;
-		
+
 		INIT_MINMAX(node->bb, node->bb+3);
 		rtbuild_merge_bb(builder, node->bb, node->bb+3);
 		
-		parent_area = bb_area( node->bb, node->bb+3 );
 		Node **child = &node->child;
-		
-		std::queue<Builder> childs;
-		childs.push(*builder);
-		
-		*cost = 0;
-		
-		while(!childs.empty())
-		{
-			Builder b = childs.front();
-						childs.pop();
-			
-			float hit_prob = rtbuild_area(&b) / parent_area;
-			if(hit_prob > 1.0f / 2.0f && rtbuild_size(&b) > 1)
-			{
-				//The expected number of BB test is smaller if we directly add the 2 childs of this node
-				int nc = rtbuild_split(&b, 2);
-				assert(nc == 2);
-				for(int i=0; i<nc; i++)
-				{
-					Builder tmp;
-					rtbuild_get_child(&b, i, &tmp);
-					childs.push(tmp);
-				}
-				tot_pushup++;
-				
-			}
-			else
-			{
-				float tcost;
-				*child = bvh_rearrange<Tree,Node,Builder>(tree, &b, &tcost);
-				child = &((*child)->sibling);
-				
-				*cost += tcost*hit_prob + RAY_BB_TEST_COST;
-			}
-		}
-		assert(child != &node->child);
-		*child = 0;
 
+		int nc = rtbuild_split(builder, 2);
+		assert(nc == 2);
+		for(int i=0; i<nc; i++)
+		{
+			Builder tmp;
+			rtbuild_get_child(builder, i, &tmp);
+			
+			*child = bvh_rearrange<Tree,Node,Builder>(tree, &tmp);
+			child = &((*child)->sibling);
+		}
+
+		*child = 0;
 		return node;
 	}
 }
@@ -246,9 +274,13 @@ void bvh_done<BVHTree>(BVHTree *obj)
 	BLI_memarena_use_malloc(obj->node_arena);
 
 	
-	obj->root = bvh_rearrange<BVHTree,BVHNode,RTBuilder>( obj, obj->builder, &obj->cost );
+	obj->root = bvh_rearrange<BVHTree,BVHNode,RTBuilder>( obj, obj->builder );
+	reorganize(obj->root);
+	remove_useless(obj->root, &obj->root);
+	pushup(obj->root);
 	pushdown(obj->root);
-//	obj->cost = 1.0;
+//	obj->root = memory_rearrange(obj->root);
+	obj->cost = 1.0;
 	
 	rtbuild_free( obj->builder );
 	obj->builder = NULL;
@@ -336,14 +368,16 @@ void bvh_hint_bb(Tree *tree, LCTSHint *hint, float *min, float *max)
 
 void bfree(BVHTree *tree)
 {
-	if(tot_pushup + tot_pushdown + tot_hints)
+	if(tot_pushup + tot_pushdown + tot_hints + tot_moves)
 	{
 		printf("tot pushups: %d\n", tot_pushup);
 		printf("tot pushdowns: %d\n", tot_pushdown);
+		printf("tot moves: %d\n", tot_moves);
 		printf("tot hints created: %d\n", tot_hints);
 		tot_pushup = 0;
 		tot_pushdown = 0;
 		tot_hints = 0;
+		tot_moves = 0;
 	}
 	bvh_free(tree);
 }
