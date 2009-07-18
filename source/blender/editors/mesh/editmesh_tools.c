@@ -719,7 +719,7 @@ static int mesh_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
 	
 	
-	WM_operator_name_call(C, "TFM_OT_translation", WM_OP_INVOKE_REGION_WIN, op->ptr);
+	WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;
 }
@@ -4991,7 +4991,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	RNA_enum_set(op->ptr, "proportional", 0);
 	RNA_boolean_set(op->ptr, "mirror", 0);
-	WM_operator_name_call(C, "TFM_OT_translation", WM_OP_INVOKE_REGION_WIN, op->ptr);
+	WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;
 }
