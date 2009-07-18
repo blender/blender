@@ -128,12 +128,14 @@ static ConsoleLine *console_history_add(const bContext *C, ConsoleLine *from)
 	return console_lb_add__internal(&sc->history, from);
 }
 
+#if 0 /* may use later ? */
 static ConsoleLine *console_scrollback_add(const bContext *C, ConsoleLine *from)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	
 	return console_lb_add__internal(&sc->scrollback, from);
 }
+#endif
 
 static ConsoleLine *console_lb_add_str__internal(ListBase *lb, const bContext *C, char *str, int own)
 {
@@ -198,7 +200,7 @@ static int console_line_insert(ConsoleLine *ci, char *str)
 	return len;
 }
 
-static int console_edit_poll(const bContext *C)
+static int console_edit_poll(bContext *C)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 
@@ -221,7 +223,7 @@ static EnumPropertyItem move_type_items[]= {
 	{NEXT_WORD, "NEXT_WORD", 0, "Next Word", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
-static int move_exec(const bContext *C, wmOperator *op)
+static int move_exec(bContext *C, wmOperator *op)
 {
 	ConsoleLine *ci= console_history_verify(C);
 	
@@ -268,7 +270,7 @@ void CONSOLE_OT_move(wmOperatorType *ot)
 }
 
 
-static int insert_exec(const bContext *C, wmOperator *op)
+static int insert_exec(bContext *C, wmOperator *op)
 {
 	ConsoleLine *ci= console_history_verify(C);
 	char *str= RNA_string_get_alloc(op->ptr, "text", NULL, 0);
@@ -285,7 +287,7 @@ static int insert_exec(const bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int insert_invoke(const bContext *C, wmOperator *op, wmEvent *event)
+static int insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if(!RNA_property_is_set(op->ptr, "text")) {
 		char str[2] = {event->ascii, '\0'};
@@ -320,7 +322,7 @@ static EnumPropertyItem delete_type_items[]= {
 //	{DEL_PREV_WORD, "PREVIOUS_WORD", 0, "Previous Word", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-static int delete_exec(const bContext *C, wmOperator *op)
+static int delete_exec(bContext *C, wmOperator *op)
 {
 	
 	ConsoleLine *ci= console_history_verify(C);
@@ -380,7 +382,7 @@ void CONSOLE_OT_delete(wmOperatorType *ot)
 
 
 /* the python exec operator uses this */
-static int clear_exec(const bContext *C, wmOperator *op)
+static int clear_exec(bContext *C, wmOperator *op)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	
@@ -425,7 +427,7 @@ void CONSOLE_OT_clear(wmOperatorType *ot)
 
 
 /* the python exec operator uses this */
-static int history_cycle_exec(const bContext *C, wmOperator *op)
+static int history_cycle_exec(bContext *C, wmOperator *op)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	ConsoleLine *ci= console_history_verify(C); /* TODO - stupid, just prevernts crashes when no command line */
@@ -467,7 +469,7 @@ void CONSOLE_OT_history_cycle(wmOperatorType *ot)
 
 
 /* the python exec operator uses this */
-static int history_append_exec(const bContext *C, wmOperator *op)
+static int history_append_exec(bContext *C, wmOperator *op)
 {
 	ConsoleLine *ci= console_history_verify(C);
 	
@@ -503,7 +505,7 @@ void CONSOLE_OT_history_append(wmOperatorType *ot)
 
 
 /* the python exec operator uses this */
-static int scrollback_append_exec(const bContext *C, wmOperator *op)
+static int scrollback_append_exec(bContext *C, wmOperator *op)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	ConsoleLine *ci= console_history_verify(C);
@@ -523,6 +525,14 @@ static int scrollback_append_exec(const bContext *C, wmOperator *op)
 
 void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 {
+	/* defined in DNA_space_types.h */
+	static EnumPropertyItem console_line_type_items[] = {
+		{CONSOLE_LINE_OUTPUT,	"OUTPUT", 0, "Output", ""},
+		{CONSOLE_LINE_INPUT,	"INPUT", 0, "Input", ""},
+		{CONSOLE_LINE_INFO,		"INFO", 0, "Information", ""},
+		{CONSOLE_LINE_ERROR,	"ERROR", 0, "Error", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	/* identifiers */
 	ot->name= "Scrollback Append";
 	ot->idname= "CONSOLE_OT_scrollback_append";
@@ -539,7 +549,7 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", console_line_type_items, CONSOLE_LINE_OUTPUT, "Type", "Console output type.");
 }
 
-static int zoom_exec(const bContext *C, wmOperator *op)
+static int zoom_exec(bContext *C, wmOperator *op)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	
@@ -570,3 +580,16 @@ void CONSOLE_OT_zoom(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "delta", 0, 0, INT_MAX, "Delta", "Scale the view font.", 0, 1000);
 }
 
+/* Dummy operators, python will replace these, so blender can start without any errors */
+void CONSOLE_OT_exec(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "CONSOLE_OT_exec dummy";
+	ot->idname= "CONSOLE_OT_exec";
+}
+void CONSOLE_OT_autocomplete(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "CONSOLE_OT_autocomplete dummy";
+	ot->idname= "CONSOLE_OT_autocomplete";
+}

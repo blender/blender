@@ -191,6 +191,8 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 		Py_DECREF(ret);
 	}
 
+#if 0 /* only for testing */
+
 	/* print operator return value */
 	if (mode != PYOP_POLL) {
 		char flag_str[100];
@@ -216,6 +218,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 
 		fprintf(stderr, "%s's %s returned %s\n", class_name, mode == PYOP_EXEC ? "execute" : "invoke", flag_str);
 	}
+#endif
 
 	PyGILState_Release(gilstate);
 	bpy_import_main_set(NULL);

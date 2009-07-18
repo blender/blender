@@ -452,7 +452,7 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	char *file_extension;
 	char *dirname;
 	char path[FILE_MAX];
-	char *dirs[] = {"io", "ui", NULL};
+	char *dirs[] = {"ui", "io", NULL};
 	int a;
 	
 	PyGILState_STATE gilstate;

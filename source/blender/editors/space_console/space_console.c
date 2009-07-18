@@ -215,6 +215,10 @@ void console_operatortypes(void)
 	WM_operatortype_append(CONSOLE_OT_clear); 
 	WM_operatortype_append(CONSOLE_OT_history_cycle);
 	WM_operatortype_append(CONSOLE_OT_zoom);
+
+	/* Dummy, defined in space_console.py */
+	WM_operatortype_append(CONSOLE_OT_exec);
+	WM_operatortype_append(CONSOLE_OT_autocomplete);
 }
 
 void console_keymap(struct wmWindowManager *wm)
@@ -345,10 +349,7 @@ void ED_spacetype_console(void)
 	art->draw= console_header_area_draw;
 	
 	BLI_addhead(&sc->regiontypes, art);
-	
-	
-	
+
+
 	BKE_spacetype_register(sc);
 }
-
-

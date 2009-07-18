@@ -61,16 +61,11 @@ void CONSOLE_OT_clear(wmOperatorType *ot);
 void CONSOLE_OT_history_cycle(wmOperatorType *ot);
 void CONSOLE_OT_zoom(wmOperatorType *ot);
 
+/* DUMMY OPS. python will replace */
+void CONSOLE_OT_exec(wmOperatorType *ot);
+void CONSOLE_OT_autocomplete(wmOperatorType *ot);
+
 enum { LINE_BEGIN, LINE_END, PREV_CHAR, NEXT_CHAR, PREV_WORD, NEXT_WORD };
 enum { DEL_ALL, DEL_NEXT_CHAR, DEL_PREV_CHAR, DEL_SELECTION, DEL_NEXT_SEL, DEL_PREV_SEL };
 
-/* defined in DNA_space_types.h */
-static EnumPropertyItem console_line_type_items[] = {
-	{CONSOLE_LINE_OUTPUT,	"OUTPUT", 0, "Output", ""},
-	{CONSOLE_LINE_INPUT,	"INPUT", 0, "Input", ""},
-	{CONSOLE_LINE_INFO,		"INFO", 0, "Information", ""},
-	{CONSOLE_LINE_ERROR,	"ERROR", 0, "Error", ""},
-	{0, NULL, 0, NULL, NULL}};
-
 #endif /* ED_CONSOLE_INTERN_H */
-

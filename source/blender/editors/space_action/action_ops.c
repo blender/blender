@@ -156,7 +156,7 @@ static void action_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	transform_keymap_for_space(wm, keymap, SPACE_ACTION);
 	
 		/* test */
-	WM_keymap_add_item(keymap, "ACT_OT_test", QKEY, KM_PRESS, 0, 0);
+	/* WM_keymap_add_item(keymap, "ACT_OT_test", QKEY, KM_PRESS, 0, 0); */
 }
 
 /* --------------- */

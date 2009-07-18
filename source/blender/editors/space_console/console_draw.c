@@ -109,23 +109,28 @@ static void console_report_color(unsigned char *fg, int type)
 static int console_draw_string(	char *str, int str_len,
 									int console_width, int lheight,
 									unsigned char *fg, unsigned char *bg,
-									int winx, int winy,
+									int winx,
+									int ymin, int ymax,
 									int *x, int *y, int draw)
 {	
 	int rct_ofs= lheight/4;
-	int tot_lines = (str_len/console_width)+1;							/* total number of lines for wrapping */
+	int tot_lines = (str_len/console_width)+1; /* total number of lines for wrapping */
+	int y_next = (str_len > console_width) ? (*y)+lheight*tot_lines : (*y)+lheight;
 
 	/* just advance the height */
 	if(draw==0) {
-		if(str_len > console_width)	(*y) += tot_lines * lheight;
-		else						(*y) += lheight;
-
+		*y= y_next;
+		return 1;
+	}
+	else if (y_next-lheight < ymin) {
+		/* have not reached the drawable area so don't break */
+		*y= y_next;
 		return 1;
 	}
 
 	if(str_len > console_width) { /* wrap? */
 		char *line_stride= str + ((tot_lines-1) * console_width);	/* advance to the last line and draw it first */
-		char eol;															/* baclup the end of wrapping */
+		char eol;													/* baclup the end of wrapping */
 		
 		if(bg) {
 			glColor3ub(bg[0], bg[1], bg[2]);
@@ -149,7 +154,7 @@ static int console_draw_string(	char *str, int str_len,
 			line_stride[console_width] = eol; /* restore */
 			
 			/* check if were out of view bounds */
-			if(*y > winy)
+			if(*y > ymax)
 				return 0;
 		}
 	}
@@ -165,7 +170,7 @@ static int console_draw_string(	char *str, int str_len,
 		BLF_position(*x, *y, 0); (*y) += lheight;
 		BLF_draw(str);
 		
-		if(*y > winy)
+		if(*y > ymax)
 			return 0;
 	}
 
@@ -230,7 +235,8 @@ static int console_text_main__internal(struct SpaceConsole *sc, struct ARegion *
 			if(!console_draw_string(	cl->line, cl->len,
 										console_width, sc->lheight,
 										fg, NULL,
-										ar->winx-CONSOLE_DRAW_MARGIN, v2d->cur.ymax,
+										ar->winx-CONSOLE_DRAW_MARGIN,
+										v2d->cur.ymin, v2d->cur.ymax,
 										&x, &y, draw))
 			{
 				/* when drawing, if we pass v2d->cur.ymax, then quit */
@@ -268,7 +274,8 @@ static int console_text_main__internal(struct SpaceConsole *sc, struct ARegion *
 				if(!console_draw_string(	report->message, report->len,
 											console_width, sc->lheight,
 											fg, bool?bg:NULL,
-											ar->winx-CONSOLE_DRAW_MARGIN, v2d->cur.ymax,
+											ar->winx-CONSOLE_DRAW_MARGIN,
+											v2d->cur.ymin, v2d->cur.ymax,
 											&x, &y, draw))
 				{
 					/* when drawing, if we pass v2d->cur.ymax, then quit */
@@ -279,7 +286,6 @@ static int console_text_main__internal(struct SpaceConsole *sc, struct ARegion *
 
 				bool = !(bool);
 			}
-			
 		}
 	}
 	y += sc->lheight*2;
