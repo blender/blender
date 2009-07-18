@@ -515,6 +515,9 @@ void transformEvent(TransInfo *t, wmEvent *event)
 
 	if (event->val) {
 		switch (event->type){
+		case RIGHTMOUSE:
+			t->state = TRANS_CANCEL;
+			break;
 		/* enforce redraw of transform when modifiers are used */
 		case LEFTCTRLKEY:
 		case RIGHTCTRLKEY:
@@ -814,9 +817,6 @@ void transformEvent(TransInfo *t, wmEvent *event)
 	}
 	else {
 		switch (event->type){
-		case RIGHTMOUSE:
-			t->state = TRANS_CANCEL;
-			break;
 		case LEFTMOUSE:
 			t->state = TRANS_CONFIRM;
 			break;
