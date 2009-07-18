@@ -3317,9 +3317,6 @@ static void render_panel_freestyle()
 	StyleModuleConf* module_conf;
 	int module_number, last_module_number;
 	
-	// initialization
-	FRS_initialize();
-
 	// block
 	block = uiNewBlock(&curarea->uiblocks, "render_panel_freestyle", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Render", "Render");

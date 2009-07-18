@@ -83,17 +83,22 @@ extern "C" {
 			controller = new Controller;
 			view = new AppView;
 			controller->setView(view);
-			
-			panelConfig = new FreestylePanelConfigurationData;
-			
-			default_module_path = pathconfig->getProjectDir() + Config::DIR_SEP + "style_modules" + Config::DIR_SEP + "contour.py";
-			FRS_select_layer( (SceneRenderLayer*) BLI_findlink(&G.scene->r.layers, G.scene->r.actlay) );
-			
-			freestyle_is_initialized = 1;
+
+		} else {
+
+			delete panelConfig;
+
 		}
+
+		panelConfig = new FreestylePanelConfigurationData;
+			
+		default_module_path = pathconfig->getProjectDir() + Config::DIR_SEP + "style_modules" + Config::DIR_SEP + "contour.py";
+		FRS_select_layer( (SceneRenderLayer*) BLI_findlink(&G.scene->r.layers, G.scene->r.actlay) );
+			
+		freestyle_is_initialized = 1;
 		
 	}
-	
+
 	void FRS_exit() {
 		delete pathconfig;
 		delete controller;
@@ -252,7 +257,6 @@ extern "C" {
 		cout << "#  Freestyle" << endl;
 		cout << "#===============================================================" << endl;
 		
-		FRS_initialize();
 		init_view(re);
 		init_camera(re);
 		

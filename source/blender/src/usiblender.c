@@ -154,6 +154,8 @@
 #include "GPU_extensions.h"
 #include "GPU_draw.h"
 
+#include "FRS_freestyle.h"
+
 /***/
 
 /* define for setting colors in theme below */
@@ -603,6 +605,8 @@ void BIF_read_file(char *name)
 		
 		if (retval!=0) G.relbase_valid = 1;
 
+		FRS_initialize();
+
 		undo_editmode_clear();
 		undo_imagepaint_clear();
 		BKE_reset_undo();
@@ -676,6 +680,8 @@ int BIF_read_homefile(int from_memory)
 	space_set_commmandline_options();
 	
 	init_userdef_file();
+
+	FRS_initialize();
 
 	undo_editmode_clear();
 	undo_imagepaint_clear();
