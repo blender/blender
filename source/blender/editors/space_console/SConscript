@@ -6,6 +6,7 @@ defs = []
 
 incs = [
 	'../include',
+	'#extern/glew/include',
 	'#/intern/guardedalloc',
 	'../../makesdna',
 	'../../makesrna',
