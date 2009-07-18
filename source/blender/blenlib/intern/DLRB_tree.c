@@ -1,5 +1,5 @@
 /**
- * $Id: BLI_dlrbTree.c 21514 2009-07-11 05:41:21Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
