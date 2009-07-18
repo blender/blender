@@ -32,6 +32,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_listBase.h"
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -56,6 +57,70 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+
+/* ------------- */
+
+#include "BLI_dlrbTree.h"
+#include "ED_anim_api.h"
+#include "ED_keyframes_draw.h"
+#include "DNA_object_types.h"
+
+static int act_drawtree_test_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	bDopeSheet *ads;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter, items;
+	
+	ANIM_animdata_get_context(C, &ac);
+	ads= ac.data;
+	
+	/* build list of channels to draw */
+	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
+	items= ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	if (items) {
+		for (ale= anim_data.first; ale; ale= ale->next) {
+			AnimData *adt= BKE_animdata_from_id(ale->id);
+			
+			
+			if (ale->type == ANIMTYPE_GROUP) {
+				DLRBT_Tree keys;
+				ActKeyColumn *ak;
+				
+				BLI_dlrbTree_init(&keys);
+				
+					agroup_to_keylist(adt, ale->data, &keys, NULL);
+				
+				BLI_dlrbTree_linkedlist_sync(&keys);
+				
+					printf("printing sorted list of object keyframes --------------- \n");
+					for (ak= keys.first; ak; ak= ak->next) {
+						printf("\t%p (%f) | L:%p R:%p P:%p \n", ak, ak->cfra, ak->left, ak->right, ak->parent);
+					}	
+
+					printf("printing tree ---------------- \n");
+					for (ak= keys.root; ak; ak= ak->next) {
+						printf("\t%p (%f) | L:%p R:%p P:%p \n", ak, ak->cfra, ak->left, ak->right, ak->parent);
+					}
+				
+				BLI_dlrbTree_free(&keys);
+				
+				break;
+			}
+		}
+		
+		BLI_freelistN(&anim_data);
+	}
+}
+
+void ACT_OT_test (wmOperatorType *ot)
+{
+	ot->idname= "ACT_OT_test";
+	
+	ot->exec= act_drawtree_test_exec;
+}
 
 /* ************************** registration - operator types **********************************/
 
@@ -85,6 +150,9 @@ void action_operatortypes(void)
 	
 	WM_operatortype_append(ACT_OT_previewrange_set);
 	WM_operatortype_append(ACT_OT_view_all);
+	
+	// test
+	WM_operatortype_append(ACT_OT_test);
 }
 
 /* ************************** registration - keymaps **********************************/
@@ -154,6 +222,9 @@ static void action_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	
 	/* transform system */
 	transform_keymap_for_space(wm, keymap, SPACE_ACTION);
+	
+		/* test */
+	WM_keymap_add_item(keymap, "ACT_OT_test", QKEY, KM_PRESS, 0, 0);
 }
 
 /* --------------- */

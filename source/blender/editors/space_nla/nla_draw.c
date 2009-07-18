@@ -56,6 +56,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_rand.h"
+#include "BLI_dlrbTree.h"
 
 #include "BKE_animsys.h"
 #include "BKE_fcurve.h"
@@ -127,13 +128,15 @@ static void nla_action_get_color (AnimData *adt, bAction *act, float color[4])
 /* draw the keyframes in the specified Action */
 static void nla_action_draw_keyframes (AnimData *adt, bAction *act, View2D *v2d, float y, float ymin, float ymax)
 {
-	ListBase keys = {NULL, NULL};
+	DLRBT_Tree keys;
 	ActKeyColumn *ak;
 	float xscale, f1, f2;
 	float color[4];
 	
 	/* get a list of the keyframes with NLA-scaling applied */
+	BLI_dlrbTree_init(&keys);
 	action_to_keylist(adt, act, &keys, NULL);
+	BLI_dlrbTree_linkedlist_sync(&keys);
 	
 	if ELEM(NULL, act, keys.first)
 		return;
@@ -165,7 +168,7 @@ static void nla_action_draw_keyframes (AnimData *adt, bAction *act, View2D *v2d,
 		draw_keyframe_shape(ak->cfra, y, xscale, 3.0f, 0, KEYFRAME_SHAPE_FRAME);
 	
 	/* free icons */
-	BLI_freelistN(&keys);
+	BLI_dlrbTree_free(&keys);
 }
 
 /* Strips (Proper) ---------------------- */

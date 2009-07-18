@@ -37,6 +37,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_dlrbTree.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
@@ -224,7 +225,6 @@ static void borderselect_action (bAnimContext *ac, rcti rect, short mode, short 
 	BeztEditFunc ok_cb, select_cb;
 	View2D *v2d= &ac->ar->v2d;
 	rctf rectf;
-	//float ymin=0, ymax=(float)(-ACHANNEL_HEIGHT);
 	float ymin=0, ymax=(float)(-ACHANNEL_HEIGHT_HALF);
 	
 	/* convert mouse coordinates to frame ranges and channel coordinates corrected for view pan/zoom */
@@ -745,7 +745,7 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode, short column)
 {
 	ListBase anim_data = {NULL, NULL};
-	ListBase anim_keys = {NULL, NULL};
+	DLRBT_Tree anim_keys;
 	bAnimListElem *ale;
 	int filter;
 	
@@ -784,10 +784,12 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 	else {
 		/* found match - must return here... */
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
-		ActKeyColumn *ak;
+		ActKeyColumn *ak, *akn=NULL;
 		
 		/* make list of keyframes */
 		// TODO: it would be great if we didn't have to apply this to all the keyframes to do this...
+		BLI_dlrbTree_init(&anim_keys);
+		
 		if (ale->key_data) {
 			switch (ale->datatype) {
 				case ALE_OB:
@@ -825,8 +827,11 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 			gpl_to_keylist(ads, gpl, &anim_keys, NULL);
 		}
 		
-		/* loop through keyframes, finding one that was clicked on */
-		for (ak= anim_keys.first; ak; ak= ak->next) {
+		// the call below is not strictly necessary, since we have adjacency info anyway
+		//BLI_dlrbTree_linkedlist_sync(&anim_keys);
+		
+		/* loop through keyframes, finding one that was within the range clicked on */
+		for (ak= anim_keys.root; ak; ak= akn) {
 			if (IN_RANGE(ak->cfra, rectf.xmin, rectf.xmax)) {
 				/* set the frame to use, and apply inverse-correction for NLA-mapping 
 				 * so that the frame will get selected by the selection functiosn without
@@ -836,14 +841,17 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 				found= 1;
 				break;
 			}
+			else if (ak->cfra < rectf.xmin)
+				akn= ak->right;
+			else
+				akn= ak->left;
 		}
 		
 		/* remove active channel from list of channels for separate treatment (since it's needed later on) */
 		BLI_remlink(&anim_data, ale);
 		
 		/* cleanup temporary lists */
-		BLI_freelistN(&anim_keys);
-		anim_keys.first = anim_keys.last = NULL;
+		BLI_dlrbTree_free(&anim_keys);
 		
 		/* free list of channels, since it's not used anymore */
 		BLI_freelistN(&anim_data);
