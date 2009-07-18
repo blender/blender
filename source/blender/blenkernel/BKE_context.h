@@ -101,6 +101,10 @@ bContextStore *CTX_store_copy(bContextStore *store);
 void CTX_store_free(bContextStore *store);
 void CTX_store_free_list(ListBase *contexts);
 
+/* need to store if python is initialized or not */
+int CTX_py_init_get(bContext *C);
+int CTX_py_init_set(bContext *C, int value);
+
 /* Window Manager Context */
 
 struct wmWindowManager *CTX_wm_manager(const bContext *C);

@@ -117,6 +117,9 @@ typedef struct wmWindowManager {
 	
 } wmWindowManager;
 
+/* wmWindowManager.initialized */
+#define WM_INIT_WINDOW		1<<0
+#define WM_INIT_KEYMAP		1<<1
 
 /* the savable part, rest of data is local in ghostwinlay */
 typedef struct wmWindow {

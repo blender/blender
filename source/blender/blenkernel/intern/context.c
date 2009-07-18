@@ -68,6 +68,7 @@ struct bContext {
 		struct Scene *scene;
 
 		int recursion;
+		int py_init; /* true if python is initialized */
 	} data;
 	
 	/* data evaluation */
@@ -160,6 +161,16 @@ void CTX_store_free_list(ListBase *contexts)
 		BLI_remlink(contexts, ctx);
 		CTX_store_free(ctx);
 	}
+}
+
+/* is python initialied? */
+int CTX_py_init_get(bContext *C)
+{
+	return C->data.py_init;
+}
+int CTX_py_init_set(bContext *C, int value)
+{
+	C->data.py_init= value;
 }
 
 /* window manager context */
