@@ -35,7 +35,6 @@ include nan_compile.mk
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
-CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 
 # not very neat....
@@ -45,10 +44,7 @@ CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../makesrna
-CPPFLAGS += -I../../imbuf
-CPPFLAGS += -I../../python
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
-CPPFLAGS += -I../../render/extern/include
 
 # own include 
 

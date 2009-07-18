@@ -3,11 +3,19 @@ Import ('env')
 
 sources = env.Glob('*.c')
 defs = []
-incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
-incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
-incs += ' ../../python ../../makesrna ../../blenfont'
+
+incs = [
+	'../include',
+	'#/intern/guardedalloc',
+	'../../makesdna',
+	'../../makesrna',
+	'../../blenkernel',
+	'../../blenlib',
+	'../../windowmanager',
+	'../../blenfont',
+]
 
 if not env['WITH_BF_PYTHON']:
 	defs.append('DISABLE_PYTHON')
 
-env.BlenderLib ( 'bf_editors_space_console', sources, Split(incs), defs, libtype=['core'], priority=[95] )
+env.BlenderLib ( 'bf_editors_space_console', sources, incs, defs, libtype=['core'], priority=[95] )
