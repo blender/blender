@@ -168,7 +168,7 @@ int CTX_py_init_get(bContext *C)
 {
 	return C->data.py_init;
 }
-int CTX_py_init_set(bContext *C, int value)
+void CTX_py_init_set(bContext *C, int value)
 {
 	C->data.py_init= value;
 }

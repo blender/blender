@@ -162,7 +162,7 @@ int WM_operatortype_remove(const char *idname)
 }
 
 /* SOME_OT_op -> some.op */
-void WM_operator_py_idname(char *to, char *from)
+void WM_operator_py_idname(char *to, const char *from)
 {
 	char *sep= strstr(from, "_OT_");
 	if(sep) {
@@ -181,7 +181,7 @@ void WM_operator_py_idname(char *to, char *from)
 }
 
 /* some.op -> SOME_OT_op */
-void WM_operator_bl_idname(char *to, char *from)
+void WM_operator_bl_idname(char *to, const char *from)
 {
 	char *sep= strstr(from, ".");
 
