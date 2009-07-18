@@ -425,27 +425,27 @@ void rna_def_scene_render_layer(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop= RNA_def_property(srna, "halo", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_SOLID);
+	RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_HALO);
 	RNA_def_property_ui_text(prop, "Halo", "Render Halos in this Layer (on top of Solid).");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop= RNA_def_property(srna, "ztransp", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_SOLID);
+	RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_ZTRA);
 	RNA_def_property_ui_text(prop, "ZTransp", "Render Z-Transparent faces in this Layer (On top of Solid and Halos).");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop= RNA_def_property(srna, "sky", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_SOLID);
+	RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_SKY);
 	RNA_def_property_ui_text(prop, "Sky", "Render Sky in this Layer.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop= RNA_def_property(srna, "edge", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_SOLID);
+	RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_EDGE);
 	RNA_def_property_ui_text(prop, "Edge", "Render Edge-enhance in this Layer (only works for Solid faces).");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop= RNA_def_property(srna, "strand", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_SOLID);
+	RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_STRAND);
 	RNA_def_property_ui_text(prop, "Strand", "Render Strands in this Layer.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
