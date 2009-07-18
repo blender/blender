@@ -845,8 +845,8 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 
 				}
 				BMO_SetFlag(bm, be, 1);
-			}
-		}
+			} else BMO_ClearFlag(bm, be, 1);
+		} else BMO_ClearFlag(bm, be, 1);
 	}
 	
 	BMO_Flag_To_Slot(bm, &bmop, "edges", 1, BM_EDGE);

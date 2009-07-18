@@ -111,11 +111,6 @@ void EDBM_editselection_plane(BMEditMesh *em, float *plane, BMEditSelection *ese
 	BM_editselection_plane(em->bm, plane, ese);
 }
 
-static int EDBM_check_selection(BMEditMesh *em, void *data)
-{
-	BM_check_selection(em, data);
-}
-
 void EDBM_remove_selection(BMEditMesh *em, void *data)
 {
 	BM_remove_selection(em->bm, data);
