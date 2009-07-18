@@ -165,6 +165,7 @@ class INFO_PT_view(bpy.types.Panel):
 		colsplitcol.itemR(view, "auto_depth")
 		colsplitcol.itemR(view, "global_pivot")
 		colsplitcol.itemR(view, "zoom_to_mouse")
+		colsplitcol.itemR(view, "rotate_around_selection")
 		colsplitcol.itemL(text="Zoom Style:")
 		row = colsplitcol.row()
 		row.itemR(view, "viewport_zoom_style", expand=True)

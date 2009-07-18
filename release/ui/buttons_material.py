@@ -175,8 +175,8 @@ class MATERIAL_PT_shadows(MaterialButtonsPanel):
 		split = layout.split()
 		
 		sub = split.column()
-		sub.itemR(mat, "shadows", text="Recieve")
-		sub.itemR(mat, "transparent_shadows", text="Recieve Transparent")
+		sub.itemR(mat, "shadows", text="Receive")
+		sub.itemR(mat, "transparent_shadows", text="Receive Transparent")
 		sub.itemR(mat, "only_shadow", text="Shadows Only")
 		sub.itemR(mat, "cast_shadows_only", text="Cast Only")
 		sub.itemR(mat, "shadow_casting_alpha", text="Casting Alpha", slider=True)
