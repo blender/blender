@@ -12,10 +12,12 @@ extern "C" {
 /*---------------  Python API function prototypes for AdjacencyIterator instance  -----------*/
 static int AdjacencyIterator___init__(BPy_AdjacencyIterator *self, PyObject *args);
 
+static PyObject * AdjacencyIterator_isIncoming(BPy_AdjacencyIterator *self);
 static PyObject * AdjacencyIterator_getObject(BPy_AdjacencyIterator *self);
 
 /*----------------------AdjacencyIterator instance definitions ----------------------------*/
 static PyMethodDef BPy_AdjacencyIterator_methods[] = {
+	{"isIncoming", ( PyCFunction ) AdjacencyIterator_isIncoming, METH_NOARGS, "() Returns true if the current ViewEdge is is coming towards the iteration vertex. False otherwise."},
 	{"getObject", ( PyCFunction ) AdjacencyIterator_getObject, METH_NOARGS, "() Get object referenced by the iterator"},
 	{NULL, NULL, 0, NULL}
 };
@@ -138,6 +140,10 @@ int AdjacencyIterator___init__(BPy_AdjacencyIterator *self, PyObject *args )
 	
 	return 0;
 
+}
+
+PyObject * AdjacencyIterator_isIncoming(BPy_AdjacencyIterator *self) {
+	return PyBool_from_bool(self->a_it->isIncoming());
 }
 
 PyObject * AdjacencyIterator_getObject(BPy_AdjacencyIterator *self) {
