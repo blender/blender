@@ -196,15 +196,14 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 		
 		snprintf(filename, MAX_PTCACHE_PATH, "//"PTCACHE_PATH"%s", file); /* add blend file name to pointcache dir */
 		BLI_convertstringcode(filename, blendfilename);
-		BLI_add_slash(filename);
-		return strlen(filename);
+		return BLI_add_slash(filename); /* new strlen() */
 	}
 	
 	/* use the temp path. this is weak but better then not using point cache at all */
 	/* btempdir is assumed to exist and ALWAYS has a trailing slash */
 	snprintf(filename, MAX_PTCACHE_PATH, "%s"PTCACHE_PATH"%d", btempdir, abs(getpid()));
-	BLI_add_slash(filename);
-	return strlen(filename);
+	
+	return BLI_add_slash(filename); /* new strlen() */
 }
 
 static int BKE_ptcache_id_filename(PTCacheID *pid, char *filename, int cfra, short do_path, short do_ext)

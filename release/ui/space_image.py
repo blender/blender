@@ -223,7 +223,7 @@ class IMAGE_HT_header(bpy.types.Header):
 			if show_uvedit:
 				row.itemM("IMAGE_MT_uvs")
 
-		layout.template_ID(sima, "image", new="image.new", open="image.open")
+		layout.template_ID(sima, "image", new="image.new") # open="image.open"
 
 		"""
 		/* image select */

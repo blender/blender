@@ -716,7 +716,6 @@ int file_directory_exec(bContext *C, wmOperator *unused)
 				while ( (*d == '\\') || (*d == '/') )
 					d++;
 				BLI_strncpy(homestr,  BLI_gethome(), FILE_MAX);
-				BLI_add_slash(homestr);
 				BLI_join_dirfile(tmpstr, homestr, d);
 				BLI_strncpy(sfile->params->dir, tmpstr, sizeof(sfile->params->dir));
 			}
