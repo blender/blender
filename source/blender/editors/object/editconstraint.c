@@ -1011,7 +1011,7 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *op)
 void POSE_OT_constraints_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	//ot->name = "Clear Constraints";
+	ot->name = "Clear Constraints";
 	ot->idname= "POSE_OT_constraints_clear";
 	ot->description= "Clear all the constraints for the selected bones.";
 	

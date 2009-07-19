@@ -26,8 +26,12 @@ class bpy_ops(object):
 		
 		submodules = set()
 		
+		# add this classes functions
+		for id_name in dir(self.__class__):
+			if not id_name.startswith('__'):
+				submodules.add(id_name)
+		
 		for id_name in op_dir():
-			
 			id_split = id_name.split('_OT_', 1)
 			
 			if len(id_split) == 2:
@@ -65,10 +69,6 @@ class bpy_ops_submodule(object):
 		module_upper = self.module.upper()
 		
 		for id_name in op_dir():
-			
-			if id_name.startswith('__'):
-				continue
-			
 			id_split = id_name.split('_OT_', 1)
 			if len(id_split) == 2 and module_upper == id_split[0]:
 				functions.add(id_split[1])

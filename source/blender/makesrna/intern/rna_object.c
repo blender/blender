@@ -184,13 +184,18 @@ static void rna_Object_track_set(PointerRNA *ptr, PointerRNA value)
 static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	Object *ob= (Object*)ptr->data;
-	Object *par= ob->parent;
 	EnumPropertyItem *item= NULL;
 	int totitem= 0;
 
+	if(C==NULL) {
+		return parent_type_items;
+	}
+	
 	RNA_enum_items_add_value(&item, &totitem, parent_type_items, PAROBJECT);
 
-	if(par) {
+	if(ob->parent) {
+		Object *par= ob->parent;
+		
 		if(par->type == OB_CURVE)
 			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARCURVE);
 		else if(par->type == OB_LATTICE)

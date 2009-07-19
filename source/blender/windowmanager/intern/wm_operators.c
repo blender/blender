@@ -130,6 +130,13 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType*))
 	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype");
 	ot->srna= RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties");
 	opfunc(ot);
+
+	if(ot->name==NULL) {
+		static char dummy_name[] = "Dummy Name";
+		fprintf(stderr, "ERROR: Operator %s has no name property!\n", ot->idname);
+		ot->name= dummy_name;
+	}
+
 	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:""); // XXX All ops should have a description but for now allow them not to.
 	RNA_def_struct_identifier(ot->srna, ot->idname);
 	BLI_addtail(&global_ops, ot);
