@@ -186,7 +186,6 @@ typedef struct SK_GestureAction {
 	GestureApplyFct		apply;
 } SK_GestureAction;
 
-SK_Sketch *GLOBAL_sketch = NULL;
 SK_Point boneSnap;
 int    LAST_SNAP_POINT_VALID = 0;
 float  LAST_SNAP_POINT[3];
@@ -217,6 +216,8 @@ void sk_applyReverseGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch);
 int sk_detectConvertGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch);
 void sk_applyConvertGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch);
 
+SK_Sketch* contextSketch(const bContext *c, int create);
+SK_Sketch* viewcontextSketch(ViewContext *vc, int create);
 
 void sk_resetOverdraw(SK_Sketch *sketch);
 int sk_hasOverdraw(SK_Sketch *sketch, SK_Stroke *stk);
@@ -381,7 +382,7 @@ int BIF_nbJointsTemplate(const bContext *C)
 char * BIF_nameBoneTemplate(const bContext *C)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
-	SK_Sketch *stk = GLOBAL_sketch;
+	SK_Sketch *stk = contextSketch(C, 1);
 	RigGraph *rg;
 	int index = 0;
 
@@ -1592,6 +1593,7 @@ int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Strok
 		float p[3];
 		float size = 0;
 
+		BLI_freelistN(&sketch->depth_peels);
 		sketch->depth_peels.first = sketch->depth_peels.last = NULL;
 
 		peelObjectsContext(C, &sketch->depth_peels, dd->mval);
@@ -3023,9 +3025,10 @@ int BDR_drawSketchNames(ViewContext *vc)
 {
 	if (ValidSketchViewContext(vc))
 	{
-		if (GLOBAL_sketch != NULL)
+		SK_Sketch *sketch = viewcontextSketch(vc, 0);
+		if (sketch)
 		{
-			sk_drawSketch(vc->scene, vc->v3d, GLOBAL_sketch, 1);
+			sk_drawSketch(vc->scene, vc->v3d, sketch, 1);
 			return 1;
 		}
 	}
@@ -3037,18 +3040,20 @@ void BDR_drawSketch(const bContext *C)
 {
 	if (ED_operator_sketch_mode(C))
 	{
-		if (GLOBAL_sketch != NULL)
+		SK_Sketch *sketch = contextSketch(C, 0);
+		if (sketch)
 		{
-			sk_drawSketch(CTX_data_scene(C), CTX_wm_view3d(C), GLOBAL_sketch, 0);
+			sk_drawSketch(CTX_data_scene(C), CTX_wm_view3d(C), sketch, 0);
 		}
 	}
 }
 
 static int sketch_delete(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if (GLOBAL_sketch != NULL)
+	SK_Sketch *sketch = contextSketch(C, 0);
+	if (sketch)
 	{
-		sk_deleteSelectedStrokes(GLOBAL_sketch);
+		sk_deleteSelectedStrokes(sketch);
 //			allqueue(REDRAWVIEW3D, 0);
 	}
 	return OPERATOR_FINISHED;
@@ -3056,9 +3061,10 @@ static int sketch_delete(bContext *C, wmOperator *op, wmEvent *event)
 
 void BIF_sk_selectStroke(bContext *C, short mval[2], short extend)
 {
-	if (GLOBAL_sketch != NULL)
+	SK_Sketch *sketch = contextSketch(C, 0);
+	if (sketch)
 	{
-		sk_selectStroke(C, GLOBAL_sketch, mval, extend);
+		sk_selectStroke(C, sketch, mval, extend);
 	}
 }
 
@@ -3066,9 +3072,10 @@ void BIF_convertSketch(bContext *C)
 {
 	if (ED_operator_sketch_full_mode(C))
 	{
-		if (GLOBAL_sketch != NULL)
+		SK_Sketch *sketch = contextSketch(C, 0);
+		if (sketch)
 		{
-			sk_convert(C, GLOBAL_sketch);
+			sk_convert(C, sketch);
 //			BIF_undo_push("Convert Sketch");
 //			allqueue(REDRAWVIEW3D, 0);
 //			allqueue(REDRAWBUTSEDIT, 0);
@@ -3080,42 +3087,86 @@ void BIF_deleteSketch(bContext *C)
 {
 	if (ED_operator_sketch_full_mode(C))
 	{
-		if (GLOBAL_sketch != NULL)
+		SK_Sketch *sketch = contextSketch(C, 0);
+		if (sketch)
 		{
-			sk_deleteSelectedStrokes(GLOBAL_sketch);
+			sk_deleteSelectedStrokes(sketch);
 //			BIF_undo_push("Convert Sketch");
 //			allqueue(REDRAWVIEW3D, 0);
 		}
 	}
 }
 
-//void BIF_selectAllSketch(bContext *C, int mode)
-//{
-//	if (BIF_validSketchMode(C))
-//	{
-//		if (GLOBAL_sketch != NULL)
-//		{
-//			sk_selectAllSketch(GLOBAL_sketch, mode);
-////			XXX
-////			allqueue(REDRAWVIEW3D, 0);
-//		}
-//	}
-//}
-
-void BIF_freeSketch(bContext *C)
+#if 0
+void BIF_selectAllSketch(bContext *C, int mode)
 {
-	if (GLOBAL_sketch != NULL)
+	if (BIF_validSketchMode(C))
 	{
-		sk_freeSketch(GLOBAL_sketch);
-		GLOBAL_sketch = NULL;
+		SK_Sketch *sketch = contextSketch(C, 0);
+		if (sketch)
+		{
+			sk_selectAllSketch(sketch, mode);
+//			XXX
+//			allqueue(REDRAWVIEW3D, 0);
+		}
 	}
+}
+#endif
+
+void ED_freeSketch(SK_Sketch *sketch)
+{
+	sk_freeSketch(sketch);
+}
+
+SK_Sketch* ED_createSketch()
+{
+	return sk_createSketch();
+}
+
+SK_Sketch* contextSketch(const bContext *C, int create)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	SK_Sketch *sketch = NULL;
+
+	if (obedit && obedit->type == OB_ARMATURE)
+	{
+		bArmature *arm = obedit->data;
+	
+		if (arm->sketch == NULL && create)
+		{
+			arm->sketch = sk_createSketch();
+		}
+		sketch = arm->sketch;
+	}
+
+	return sketch;
+}
+
+SK_Sketch* viewcontextSketch(ViewContext *vc, int create)
+{
+	Object *obedit = vc->obedit;
+	SK_Sketch *sketch = NULL;
+
+	if (obedit && obedit->type == OB_ARMATURE)
+	{
+		bArmature *arm = obedit->data;
+	
+		if (arm->sketch == NULL && create)
+		{
+			arm->sketch = sk_createSketch();
+		}
+		sketch = arm->sketch;
+	}
+
+	return sketch;
 }
 
 static int sketch_cancel(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if (GLOBAL_sketch != NULL)
+	SK_Sketch *sketch = contextSketch(C, 0);
+	if (sketch != NULL)
 	{
-		sk_cancelStroke(GLOBAL_sketch);
+		sk_cancelStroke(sketch);
 		ED_area_tag_redraw(CTX_wm_area(C));
 		return OPERATOR_FINISHED;
 	}
@@ -3124,9 +3175,10 @@ static int sketch_cancel(bContext *C, wmOperator *op, wmEvent *event)
 
 static int sketch_finish(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if (GLOBAL_sketch != NULL)
+	SK_Sketch *sketch = contextSketch(C, 0);
+	if (sketch != NULL)
 	{
-		if (sk_finish_stroke(C, GLOBAL_sketch))
+		if (sk_finish_stroke(C, sketch))
 		{
 			ED_area_tag_redraw(CTX_wm_area(C));
 			return OPERATOR_FINISHED;
@@ -3137,10 +3189,11 @@ static int sketch_finish(bContext *C, wmOperator *op, wmEvent *event)
 
 static int sketch_select(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if (GLOBAL_sketch != NULL)
+	SK_Sketch *sketch = contextSketch(C, 0);
+	if (sketch)
 	{
 		short extend = 0;
-		sk_selectStroke(C, GLOBAL_sketch, event->mval, extend);
+		sk_selectStroke(C, sketch, event->mval, extend);
 		ED_area_tag_redraw(CTX_wm_area(C));
 	}
 
@@ -3149,7 +3202,8 @@ static int sketch_select(bContext *C, wmOperator *op, wmEvent *event)
 
 static int sketch_draw_stroke_cancel(bContext *C, wmOperator *op)
 {
-	sk_cancelStroke(GLOBAL_sketch);
+	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
+	sk_cancelStroke(sketch);
 	MEM_freeN(op->customdata);
 	return OPERATOR_CANCELLED;
 }
@@ -3158,18 +3212,14 @@ static int sketch_draw_stroke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	short snap = RNA_boolean_get(op->ptr, "snap");
 	SK_DrawData *dd;
-
-	if (GLOBAL_sketch == NULL)
-	{
-		GLOBAL_sketch = sk_createSketch();
-	}
+	SK_Sketch *sketch = contextSketch(C, 1);
 
 	op->customdata = dd = MEM_callocN(sizeof("SK_DrawData"), "SketchDrawData");
 	sk_initDrawData(dd, event->mval);
 
-	sk_start_draw_stroke(GLOBAL_sketch);
+	sk_start_draw_stroke(sketch);
 
-	sk_draw_stroke(C, GLOBAL_sketch, GLOBAL_sketch->active_stroke, dd, snap);
+	sk_draw_stroke(C, sketch, sketch->active_stroke, dd, snap);
 
 	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 
@@ -3178,7 +3228,8 @@ static int sketch_draw_stroke(bContext *C, wmOperator *op, wmEvent *event)
 
 static int sketch_draw_gesture_cancel(bContext *C, wmOperator *op)
 {
-	sk_cancelStroke(GLOBAL_sketch);
+	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
+	sk_cancelStroke(sketch);
 	MEM_freeN(op->customdata);
 	return OPERATOR_CANCELLED;
 }
@@ -3187,17 +3238,14 @@ static int sketch_draw_gesture(bContext *C, wmOperator *op, wmEvent *event)
 {
 	short snap = RNA_boolean_get(op->ptr, "snap");
 	SK_DrawData *dd;
-
-	if (GLOBAL_sketch == NULL)
-	{
-		GLOBAL_sketch = sk_createSketch();
-	}
+	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
+	sk_cancelStroke(sketch);
 
 	op->customdata = dd = MEM_callocN(sizeof("SK_DrawData"), "SketchDrawData");
 	sk_initDrawData(dd, event->mval);
 
-	sk_start_draw_gesture(GLOBAL_sketch);
-	sk_draw_stroke(C, GLOBAL_sketch, GLOBAL_sketch->gesture, dd, snap);
+	sk_start_draw_gesture(sketch);
+	sk_draw_stroke(C, sketch, sketch->gesture, dd, snap);
 
 	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 
@@ -3208,6 +3256,7 @@ static int sketch_draw_modal(bContext *C, wmOperator *op, wmEvent *event, short 
 {
 	short snap = RNA_boolean_get(op->ptr, "snap");
 	SK_DrawData *dd = op->customdata;
+	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
 	int retval = OPERATOR_RUNNING_MODAL;
 
 	switch (event->type)
@@ -3220,7 +3269,7 @@ static int sketch_draw_modal(bContext *C, wmOperator *op, wmEvent *event, short 
 	case MOUSEMOVE:
 		dd->mval[0] = event->mval[0];
 		dd->mval[1] = event->mval[1];
-		sk_draw_stroke(C, GLOBAL_sketch, stk, dd, snap);
+		sk_draw_stroke(C, sketch, stk, dd, snap);
 		ED_area_tag_redraw(CTX_wm_area(C));
 		break;
 	case ESCKEY:
@@ -3235,7 +3284,7 @@ static int sketch_draw_modal(bContext *C, wmOperator *op, wmEvent *event, short 
 			{
 				sk_endContinuousStroke(stk);
 				sk_filterLastContinuousStroke(stk);
-				sk_updateNextPoint(GLOBAL_sketch, stk);
+				sk_updateNextPoint(sketch, stk);
 				ED_area_tag_redraw(CTX_wm_area(C));
 				MEM_freeN(op->customdata);
 				retval = OPERATOR_FINISHED;
@@ -3248,11 +3297,11 @@ static int sketch_draw_modal(bContext *C, wmOperator *op, wmEvent *event, short 
 				if (stk->nb_points > 1)
 				{
 					/* apply gesture here */
-					sk_applyGesture(C, GLOBAL_sketch);
+					sk_applyGesture(C, sketch);
 				}
 
 				sk_freeStroke(stk);
-				GLOBAL_sketch->gesture = NULL;
+				sketch->gesture = NULL;
 
 				ED_area_tag_redraw(CTX_wm_area(C));
 				MEM_freeN(op->customdata);
@@ -3267,21 +3316,23 @@ static int sketch_draw_modal(bContext *C, wmOperator *op, wmEvent *event, short 
 
 static int sketch_draw_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	return sketch_draw_modal(C, op, event, 0, GLOBAL_sketch->active_stroke);
+	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
+	return sketch_draw_modal(C, op, event, 0, sketch->active_stroke);
 }
 
 static int sketch_draw_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	return sketch_draw_modal(C, op, event, 1, GLOBAL_sketch->gesture);
+	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
+	return sketch_draw_modal(C, op, event, 1, sketch->gesture);
 }
 
 static int sketch_draw_preview(bContext *C, wmOperator *op, wmEvent *event)
 {
 	short snap = RNA_boolean_get(op->ptr, "snap");
+	SK_Sketch *sketch = contextSketch(C, 0);
 
-	if (GLOBAL_sketch != NULL)
+	if (sketch)
 	{
-		SK_Sketch *sketch = GLOBAL_sketch;
 		SK_DrawData dd;
 
 		sk_initDrawData(&dd, event->mval);
@@ -3296,14 +3347,12 @@ static int sketch_draw_preview(bContext *C, wmOperator *op, wmEvent *event)
 
 int ED_operator_sketch_mode_active_stroke(bContext *C)
 {
-	Object *obedit = CTX_data_edit_object(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
+	SK_Sketch *sketch = contextSketch(C, 0);
 
-	if (obedit &&
-		obedit->type == OB_ARMATURE &&
-		ts->bone_sketching & BONE_SKETCHING &&
-		GLOBAL_sketch != NULL &&
-		GLOBAL_sketch->active_stroke != NULL)
+	if (ts->bone_sketching & BONE_SKETCHING &&
+		sketch != NULL &&
+		sketch->active_stroke != NULL)
 	{
 		return 1;
 	}
@@ -3315,15 +3364,13 @@ int ED_operator_sketch_mode_active_stroke(bContext *C)
 
 int ED_operator_sketch_mode_gesture(bContext *C)
 {
-	Object *obedit = CTX_data_edit_object(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
+	SK_Sketch *sketch = contextSketch(C, 0);
 
-	if (obedit &&
-		obedit->type == OB_ARMATURE &&
-		ts->bone_sketching & BONE_SKETCHING &&
+	if (ts->bone_sketching & BONE_SKETCHING &&
 		(ts->bone_sketching & BONE_SKETCHING_QUICK) == 0 &&
-		GLOBAL_sketch != NULL &&
-		GLOBAL_sketch->active_stroke == NULL)
+		sketch != NULL &&
+		sketch->active_stroke == NULL)
 	{
 		return 1;
 	}

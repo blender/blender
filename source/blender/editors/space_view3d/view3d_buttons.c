@@ -1512,7 +1512,6 @@ static void view3d_panel_gpencil(const bContext *C, Panel *pa)
 }
 #endif
 
-#if 0 // XXX not used
 static void delete_sketch_armature(bContext *C, void *arg1, void *arg2)
 {
 	BIF_deleteSketch(C);
@@ -1643,10 +1642,9 @@ static void view3d_panel_bonesketch_spaces(const bContext *C, Panel *pa)
 	}
 
 	uiBlockEndAlign(block);
-	
-	uiDefButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_NOP, "Peel Objects", 10, yco, 200, 20, &scene->toolsettings->snap_flag, 0, 0, 0, 0, "Peel whole objects as one");
 }
 
+#if 0 // XXX not used
 
 /* op->invoke */
 static void redo_cb(bContext *C, void *arg_op, void *arg2)
@@ -1736,7 +1734,7 @@ void view3d_buttons_register(ARegionType *art)
 	strcpy(pt->label, "Greas Pencil");
 	pt->draw= view3d_panel_gpencil;
 	BLI_addtail(&art->paneltypes, pt);*/
-/*
+
 	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel bonesketch spaces");
 	strcpy(pt->idname, "VIEW3D_PT_bonesketch_spaces");
 	strcpy(pt->label, "Bone Sketching");
@@ -1744,6 +1742,7 @@ void view3d_buttons_register(ARegionType *art)
 	pt->poll= view3d_panel_bonesketch_spaces_poll;
 	BLI_addtail(&art->paneltypes, pt);
 
+	/*
 	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel redo");
 	strcpy(pt->idname, "VIEW3D_PT_redo");
 	strcpy(pt->label, "Last Operator");

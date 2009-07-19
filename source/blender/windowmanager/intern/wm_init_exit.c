@@ -208,7 +208,6 @@ void WM_exit(bContext *C)
 //	BIF_GlobalReebFree();
 //	BIF_freeRetarget();
 	BIF_freeTemplates(C);
-	BIF_freeSketch(C);
 	
 	free_ttfont(); /* bke_font.h */
 	

@@ -2342,6 +2342,7 @@ static void direct_link_armature(FileData *fd, bArmature *arm)
 
 	link_list(fd, &arm->bonebase);
 	arm->edbo= NULL;
+	arm->sketch = NULL;
 	
 	bone=arm->bonebase.first;
 	while (bone) {
