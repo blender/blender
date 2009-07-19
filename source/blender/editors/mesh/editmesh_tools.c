@@ -627,6 +627,9 @@ void extrude_mesh(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op)
 	float nor[3]= {0.0, 0.0, 0.0};
 	short nr, transmode= 0;
 
+	/* extrude depends on totvertsel etc */
+	EM_stats_update(em);
+	
 	if(em->selectmode & SCE_SELECT_VERTEX) {
 		if(em->totvertsel==0) nr= 0;
 		else if(em->totvertsel==1) nr= 4;
