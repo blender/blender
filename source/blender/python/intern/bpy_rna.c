@@ -499,7 +499,7 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 		{
 			int *param_arr;
 			if(data)	param_arr= (int*)data;
-			else		param_arr= MEM_mallocN(sizeof(char) * len, "pyrna bool array");
+			else		param_arr= MEM_mallocN(sizeof(int) * len, "pyrna bool array");
 
 			
 			/* collect the variables before assigning, incase one of them is incorrect */
