@@ -9,11 +9,15 @@
 #include "Interface0D/CurvePoint/BPy_StrokeVertex.h"
 #include "Interface0D/BPy_SVertex.h"
 #include "Interface0D/BPy_ViewVertex.h"
+#include "Interface0D/ViewVertex/BPy_NonTVertex.h"
+#include "Interface0D/ViewVertex/BPy_TVertex.h"
 #include "BPy_Interface1D.h"
 #include "Interface1D/BPy_FEdge.h"
 #include "Interface1D/BPy_Stroke.h"
 #include "Interface1D/BPy_ViewEdge.h"
 #include "Interface1D/Curve/BPy_Chain.h"
+#include "Interface1D/FEdge/BPy_FEdgeSharp.h"
+#include "Interface1D/FEdge/BPy_FEdgeSmooth.h"
 #include "BPy_Nature.h"
 #include "BPy_MediumType.h"
 #include "BPy_SShape.h"
@@ -102,9 +106,22 @@ PyObject * BPy_SVertex_from_SVertex_ptr( SVertex *sv ) {
 }
 
 PyObject * BPy_FEdge_from_FEdge( FEdge& fe ) {
-	PyObject *py_fe = FEdge_Type.tp_new( &FEdge_Type, 0, 0 );
-	((BPy_FEdge *) py_fe)->fe = new FEdge( fe );
-	((BPy_FEdge *) py_fe)->py_if1D.if1D = ((BPy_FEdge *) py_fe)->fe;
+	PyObject *py_fe;
+	if (typeid(fe) == typeid(FEdgeSharp)) {
+		py_fe = FEdgeSharp_Type.tp_new( &FEdgeSharp_Type, 0, 0 );
+		((BPy_FEdgeSharp *) py_fe)->fes = new FEdgeSharp( dynamic_cast<FEdgeSharp&>(fe) );
+		((BPy_FEdgeSharp *) py_fe)->py_fe.fe = ((BPy_FEdgeSharp *) py_fe)->fes;
+		((BPy_FEdgeSharp *) py_fe)->py_fe.py_if1D.if1D = ((BPy_FEdgeSharp *) py_fe)->fes;
+	} else if (typeid(fe) == typeid(FEdgeSmooth)) {
+		py_fe = FEdgeSmooth_Type.tp_new( &FEdgeSmooth_Type, 0, 0 );
+		((BPy_FEdgeSmooth *) py_fe)->fes = new FEdgeSmooth( dynamic_cast<FEdgeSmooth&>(fe) );
+		((BPy_FEdgeSmooth *) py_fe)->py_fe.fe = ((BPy_FEdgeSmooth *) py_fe)->fes;
+		((BPy_FEdgeSmooth *) py_fe)->py_fe.py_if1D.if1D = ((BPy_FEdgeSmooth *) py_fe)->fes;
+	} else {
+		py_fe = FEdge_Type.tp_new( &FEdge_Type, 0, 0 );
+		((BPy_FEdge *) py_fe)->fe = new FEdge( fe );
+		((BPy_FEdge *) py_fe)->py_if1D.if1D = ((BPy_FEdge *) py_fe)->fe;
+	}
 
 	return py_fe;
 }
@@ -160,6 +177,24 @@ PyObject * BPy_ViewVertex_from_ViewVertex_ptr( ViewVertex *vv ) {
 	((BPy_ViewVertex *) py_vv)->py_if0D.if0D = ((BPy_ViewVertex *) py_vv)->vv;
 
 	return py_vv;
+}
+
+PyObject * BPy_NonTVertex_from_NonTVertex_ptr( NonTVertex *ntv ) {
+	PyObject *py_ntv = NonTVertex_Type.tp_new( &NonTVertex_Type, 0, 0 );
+	((BPy_NonTVertex *) py_ntv)->ntv = ntv;
+	((BPy_NonTVertex *) py_ntv)->py_vv.vv = ((BPy_NonTVertex *) py_ntv)->ntv;
+	((BPy_NonTVertex *) py_ntv)->py_vv.py_if0D.if0D = ((BPy_NonTVertex *) py_ntv)->ntv;
+
+	return py_ntv;
+}
+
+PyObject * BPy_TVertex_from_TVertex_ptr( TVertex *tv ) {
+	PyObject *py_tv = TVertex_Type.tp_new( &TVertex_Type, 0, 0 );
+	((BPy_TVertex *) py_tv)->tv = tv;
+	((BPy_TVertex *) py_tv)->py_vv.vv = ((BPy_TVertex *) py_tv)->tv;
+	((BPy_TVertex *) py_tv)->py_vv.py_if0D.if0D = ((BPy_TVertex *) py_tv)->tv;
+
+	return py_tv;
 }
 
 PyObject * BPy_BBox_from_BBox( BBox< Vec3r > &bb ) {

@@ -136,7 +136,23 @@ PyObject * Interface0DIterator_u( BPy_Interface0DIterator *self ) {
 }
 
 PyObject * Interface0DIterator_getObject(BPy_Interface0DIterator *self) {
-	return BPy_Interface0D_from_Interface0D( self->if0D_it->operator*() );
+	Interface0D &if0D = self->if0D_it->operator*();
+	if (typeid(if0D) == typeid(CurvePoint)) {
+		return BPy_CurvePoint_from_CurvePoint_ptr(dynamic_cast<CurvePoint*>(&if0D));
+	} else if (typeid(if0D) == typeid(StrokeVertex)) {
+		return BPy_StrokeVertex_from_StrokeVertex_ptr(dynamic_cast<StrokeVertex*>(&if0D));
+	} else if (typeid(if0D) == typeid(SVertex)) {
+		return BPy_SVertex_from_SVertex_ptr(dynamic_cast<SVertex*>(&if0D));
+	} else if (typeid(if0D) == typeid(ViewVertex)) {
+		return BPy_ViewVertex_from_ViewVertex_ptr(dynamic_cast<ViewVertex*>(&if0D));
+	} else if (typeid(if0D) == typeid(NonTVertex)) {
+		return BPy_NonTVertex_from_NonTVertex_ptr(dynamic_cast<NonTVertex*>(&if0D));
+	} else if (typeid(if0D) == typeid(TVertex)) {
+		return BPy_TVertex_from_TVertex_ptr(dynamic_cast<TVertex*>(&if0D));
+	} else {
+		cerr << "Warning: cast to " << if0D.getExactTypeName() << " not implemented" << endl;
+		return BPy_Interface0D_from_Interface0D(if0D);
+	}
 }
 
 

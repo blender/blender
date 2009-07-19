@@ -181,7 +181,13 @@ PyObject * SVertex_normalsSize( BPy_SVertex *self ) {
 }
 
 PyObject * SVertex_viewvertex( BPy_SVertex *self ) {
-	return BPy_ViewVertex_from_ViewVertex_ptr( self->sv->viewvertex() );
+	ViewVertex *vv = self->sv->viewvertex();
+	if (!vv)
+		Py_RETURN_NONE;
+	if (typeid(*vv) == typeid(NonTVertex))
+		return BPy_NonTVertex_from_NonTVertex_ptr( dynamic_cast<NonTVertex*>(vv) );
+	else
+		return BPy_TVertex_from_TVertex_ptr( dynamic_cast<TVertex*>(vv) );
 }
 
 PyObject *SVertex_setPoint3D( BPy_SVertex *self , PyObject *args) {

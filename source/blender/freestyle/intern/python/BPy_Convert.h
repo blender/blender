@@ -90,6 +90,8 @@ PyObject * BPy_StrokeAttribute_from_StrokeAttribute_ptr( StrokeAttribute *sa );
 PyObject * BPy_StrokeVertex_from_StrokeVertex_ptr( StrokeVertex *sv );
 PyObject * BPy_SVertex_from_SVertex_ptr( SVertex *sv );
 PyObject * BPy_ViewVertex_from_ViewVertex_ptr( ViewVertex *vv );
+PyObject * BPy_NonTVertex_from_NonTVertex_ptr( NonTVertex *ntv );
+PyObject * BPy_TVertex_from_TVertex_ptr( TVertex *tv );
 PyObject * BPy_ViewEdge_from_ViewEdge_ptr( ViewEdge *ve );
 PyObject * BPy_Chain_from_Chain_ptr( Chain* c );
 PyObject * BPy_ViewShape_from_ViewShape( ViewShape& vs );

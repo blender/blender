@@ -59,8 +59,21 @@ int Director_BPy_BinaryPredicate0D___call__( PyObject *obj, Interface0D& i1, Int
 
 //   BinaryPredicate1D: __call__
 int Director_BPy_BinaryPredicate1D___call__( PyObject *obj, Interface1D& i1, Interface1D& i2) {
-	PyObject *arg1 = BPy_Interface1D_from_Interface1D(i1);
-	PyObject *arg2 = BPy_Interface1D_from_Interface1D(i2);
+	PyObject *arg1, *arg2;
+	if (typeid(i1) == typeid(ViewEdge)) {
+		arg1 = BPy_ViewEdge_from_ViewEdge_ptr(dynamic_cast<ViewEdge*>(&i1));
+		arg2 = BPy_ViewEdge_from_ViewEdge_ptr(dynamic_cast<ViewEdge*>(&i2));
+	} else if (typeid(i1) == typeid(Chain)) {
+		arg1 = BPy_Chain_from_Chain_ptr(dynamic_cast<Chain*>(&i1));
+		arg2 = BPy_Chain_from_Chain_ptr(dynamic_cast<Chain*>(&i2));
+	} else if (typeid(i1) == typeid(Stroke)) {
+		arg1 = BPy_Stroke_from_Stroke_ptr(dynamic_cast<Stroke*>(&i1));
+		arg2 = BPy_Stroke_from_Stroke_ptr(dynamic_cast<Stroke*>(&i2));
+	} else {
+		cerr << "Warning: cast to " + i1.getExactTypeName() + " not implemented" << endl;
+		arg1 = BPy_Interface1D_from_Interface1D(i1);
+		arg2 = BPy_Interface1D_from_Interface1D(i2);
+	}
 	PyObject *result = PyObject_CallMethod( obj, "__call__", "OO", arg1, arg2 );
 	Py_DECREF(arg1);
 	Py_DECREF(arg2);
@@ -87,7 +100,17 @@ int Director_BPy_UnaryPredicate0D___call__( PyObject *obj, Interface0DIterator& 
 
 //   UnaryPredicate1D: __call__
 int Director_BPy_UnaryPredicate1D___call__( PyObject *obj, Interface1D& if1D) {
-	PyObject *arg = BPy_Interface1D_from_Interface1D(if1D);
+	PyObject *arg;
+	if (typeid(if1D) == typeid(ViewEdge)) {
+		arg = BPy_ViewEdge_from_ViewEdge_ptr(dynamic_cast<ViewEdge*>(&if1D));
+	} else if (typeid(if1D) == typeid(Chain)) {
+		arg = BPy_Chain_from_Chain_ptr(dynamic_cast<Chain*>(&if1D));
+	} else if (typeid(if1D) == typeid(Stroke)) {
+		arg = BPy_Stroke_from_Stroke_ptr(dynamic_cast<Stroke*>(&if1D));
+	} else {
+		cerr << "Warning: cast to " + if1D.getExactTypeName() + " not implemented" << endl;
+		arg = BPy_Interface1D_from_Interface1D(if1D);
+	}
 	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", arg );
 	Py_DECREF(arg);
 	if (!result)
