@@ -294,6 +294,10 @@ void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_struct_type(prop, "VPaint");
 	RNA_def_property_ui_text(prop, "Vertex Paint", "");
 
+	prop= RNA_def_property(srna, "wpaint", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "VPaint");
+	RNA_def_property_ui_text(prop, "Weight Paint", "");
+
 	/* Transform */
 	prop= RNA_def_property(srna, "proportional_editing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "proportional", 0);

@@ -37,6 +37,8 @@
 
 #include "RNA_access.h"
 
+#include "ED_object.h"
+
 int ed_screen_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	bScreen *sc= CTX_wm_screen(C);
@@ -47,8 +49,8 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		static const char *dir[] = {
 			"scene", "selected_objects", "selected_bases",
 			"selected_editable_objects", "selected_editable_bases"
-			"active_base",
-			"active_object", "edit_object", "sculpt_object", NULL};
+			"active_base", "active_object", "edit_object",
+			"sculpt_object", "vpaint_object", "wpaint_object", NULL};
 
 		CTX_data_dir_set(result, dir);
 		return 1;
@@ -110,6 +112,18 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	}
 	else if(CTX_data_equals(member, "sculpt_object")) {
 		if(G.f & G_SCULPTMODE && scene->basact)
+			CTX_data_id_pointer_set(result, &scene->basact->object->id);
+
+		return 1;
+	}
+	else if(CTX_data_equals(member, "vpaint_object")) {
+		if(G.f & G_VERTEXPAINT && scene->basact)
+			CTX_data_id_pointer_set(result, &scene->basact->object->id);
+
+		return 1;
+	}
+	else if(CTX_data_equals(member, "wpaint_object")) {
+		if(G.f & G_WEIGHTPAINT && scene->basact)
 			CTX_data_id_pointer_set(result, &scene->basact->object->id);
 
 		return 1;

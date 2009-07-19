@@ -65,6 +65,8 @@ PyObject *bpy_text_import( char *name, int *found )
 	Main *maggie= bpy_import_main;
 	
 	*found= 0;
+
+	if(!maggie) return NULL;
 	
 	if (namelen>21-3) return NULL; /* we know this cant be importable, the name is too long for blender! */
 	
