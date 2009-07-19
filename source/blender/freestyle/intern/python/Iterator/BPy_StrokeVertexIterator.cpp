@@ -167,10 +167,7 @@ PyObject * StrokeVertexIterator_u( BPy_StrokeVertexIterator *self ) {
 }
 
 PyObject * StrokeVertexIterator_castToInterface0DIterator( BPy_StrokeVertexIterator *self ) {
-	PyObject *py_if0D_it =  Interface0DIterator_Type.tp_new( &Interface0DIterator_Type, 0, 0 );
-	((BPy_Interface0DIterator *) py_if0D_it)->if0D_it = new Interface0DIterator( self->sv_it->castToInterface0DIterator() );
-
-	return py_if0D_it;
+	return BPy_Interface0DIterator_from_Interface0DIterator( self->sv_it->castToInterface0DIterator() );
 }
 
 PyObject * StrokeVertexIterator_getObject( BPy_StrokeVertexIterator *self) {
