@@ -73,15 +73,21 @@ void BKE_reports_init(ReportList *reports, int flag)
 
 void BKE_reports_clear(ReportList *reports)
 {
-	Report *report;
+	Report *report, *report_next;
 
 	if(!reports)
 		return;
 
-	for(report=reports->list.first; report; report=report->next)
-		MEM_freeN(report->message);
+	report= reports->list.first;
 
-	BLI_freelistN(&reports->list);
+	while (report) {
+		report_next= report->next;
+		MEM_freeN(report->message);
+		MEM_freeN(report);
+		report= report_next;
+	}
+
+	reports->list.first= reports->list.last= NULL;
 }
 
 void BKE_report(ReportList *reports, ReportType type, const char *message)

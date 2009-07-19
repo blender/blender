@@ -227,6 +227,7 @@ void WM_exit(bContext *C)
 	
 	fastshade_free_render();	/* shaded view */
 	ED_preview_free_dbase();	/* frees a Main dbase, before free_blender! */
+	wm_free_reports(C);			/* before free_blender! - since the ListBases get freed there */
 	free_blender();				/* blender.c, does entire library and spacetypes */
 //	free_matcopybuf();
 	free_anim_copybuf();
@@ -269,8 +270,6 @@ void WM_exit(bContext *C)
 	BKE_userdef_free();
 
 	RNA_exit();
-	
-	wm_free_reports(C);
 	
 	CTX_free(C);
 	

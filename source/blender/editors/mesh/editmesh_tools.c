@@ -622,9 +622,8 @@ void hashvert_flag(EditMesh *em, int flag)
 }
 
 /* generic extern called extruder */
-void extrude_mesh(Object *obedit, EditMesh *em, wmOperator *op)
+void extrude_mesh(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op)
 {
-	Scene *scene= NULL;		// XXX CTX!
 	float nor[3]= {0.0, 0.0, 0.0};
 	short nr, transmode= 0;
 
@@ -704,7 +703,7 @@ static int mesh_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 	int constraint_axis[3] = {0, 0, 1};
 
-	extrude_mesh(obedit,em, op);
+	extrude_mesh(scene, obedit, em, op);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
@@ -731,7 +730,7 @@ static int mesh_extrude_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(obedit->data);
 
-	extrude_mesh(obedit,em, op);
+	extrude_mesh(scene, obedit, em, op);
 
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
