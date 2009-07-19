@@ -304,10 +304,19 @@ int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_c
 						PyErr_Format( PyExc_AttributeError, "expected %s class \"%s\" attribute to be a string", class_type, class_attrs->name);
 						return -1;
 					}
+					if(class_attrs->len != -1 && class_attrs->len < PyUnicode_GetSize(item)) {
+						PyErr_Format( PyExc_AttributeError, "expected %s class \"%s\" attribute string to be shorter then %d", class_type, class_attrs->name, class_attrs->len);
+						return -1;
+					}
+
 					break;
 				case 'l':
 					if (PyList_Check(item)==0) {
 						PyErr_Format( PyExc_AttributeError, "expected %s class \"%s\" attribute to be a list", class_type, class_attrs->name);
+						return -1;
+					}
+					if(class_attrs->len != -1 && class_attrs->len < PyList_GET_SIZE(item)) {
+						PyErr_Format( PyExc_AttributeError, "expected %s class \"%s\" attribute list to be shorter then %d", class_type, class_attrs->name, class_attrs->len);
 						return -1;
 					}
 					break;

@@ -44,7 +44,8 @@
 
 #define PYOP_ATTR_PROP			"__props__"
 #define PYOP_ATTR_UINAME		"__label__"
-#define PYOP_ATTR_IDNAME		"__name__"	/* use pythons class name */
+#define PYOP_ATTR_IDNAME		"__idname__"	/* the name given by python */
+#define PYOP_ATTR_IDNAME_BL		"__idname_bl__"	/* our own name converted into blender syntax, users wont see this */
 #define PYOP_ATTR_DESCRIPTION	"__doc__"	/* use pythons docstring */
 #define PYOP_ATTR_REGISTER		"__register__"	/* True/False. if this python operator should be registered */
 
@@ -249,10 +250,9 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 	PyObject *props, *item;
 
 	/* identifiers */
-	item= PyObject_GetAttrString(py_class, PYOP_ATTR_IDNAME);
+	item= PyObject_GetAttrString(py_class, PYOP_ATTR_IDNAME_BL);
 	ot->idname= _PyUnicode_AsString(item);
 	Py_DECREF(item);
-	
 
 	item= PyObject_GetAttrString(py_class, PYOP_ATTR_UINAME);
 	if (item) {
@@ -338,16 +338,17 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 	
 	
 	char *idname= NULL;
+	char idname_bl[OP_MAX_TYPENAME]; /* converted to blender syntax */
 	int i;
 
 	static struct BPY_class_attr_check pyop_class_attr_values[]= {
-		{PYOP_ATTR_IDNAME,		's', 0,	0},
-		{PYOP_ATTR_UINAME,		's', 0,	BPY_CLASS_ATTR_OPTIONAL},
-		{PYOP_ATTR_PROP,		'l', 0,	BPY_CLASS_ATTR_OPTIONAL},
-		{PYOP_ATTR_DESCRIPTION,	's', 0,	BPY_CLASS_ATTR_NONE_OK},
-		{"execute",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
-		{"invoke",	'f', 3,	BPY_CLASS_ATTR_OPTIONAL},
-		{"poll",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
+		{PYOP_ATTR_IDNAME,		's', -1, OP_MAX_TYPENAME-3,	0}, /* -3 because a.b -> A_OT_b */
+		{PYOP_ATTR_UINAME,		's', -1,-1,	BPY_CLASS_ATTR_OPTIONAL},
+		{PYOP_ATTR_PROP,		'l', -1,-1,	BPY_CLASS_ATTR_OPTIONAL},
+		{PYOP_ATTR_DESCRIPTION,	's', -1,-1,	BPY_CLASS_ATTR_NONE_OK},
+		{"execute",				'f', 2,	-1, BPY_CLASS_ATTR_OPTIONAL},
+		{"invoke",				'f', 3,	-1, BPY_CLASS_ATTR_OPTIONAL},
+		{"poll",				'f', 2,	-1, BPY_CLASS_ATTR_OPTIONAL},
 		{NULL, 0, 0, 0}
 	};
 
@@ -363,7 +364,18 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 	/* class name is used for operator ID - this can be changed later if we want */
 	item= PyObject_GetAttrString(py_class, PYOP_ATTR_IDNAME);
 	idname =  _PyUnicode_AsString(item);
+
+
+	/* annoying conversion! */
+	WM_operator_bl_idname(idname_bl, idname);
 	Py_DECREF(item);
+
+	item= PyUnicode_FromString(idname_bl);
+	PyObject_SetAttrString(py_class, PYOP_ATTR_IDNAME_BL, item);
+	idname =  _PyUnicode_AsString(item);
+	Py_DECREF(item);
+	/* end annoying conversion! */
+
 	
 	/* remove if it already exists */
 	if ((ot=WM_operatortype_exists(idname))) {

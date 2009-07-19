@@ -2550,7 +2550,7 @@ static struct PyMethodDef props_methods[] = {
 #if PY_VERSION_HEX >= 0x03000000
 static struct PyModuleDef props_module = {
 	PyModuleDef_HEAD_INIT,
-	"bpyprops",
+	"bpy.props",
 	"",
 	-1,/* multiple "initialization" just copies the module dict. */
 	props_methods,
@@ -2566,9 +2566,6 @@ PyObject *BPY_rna_props( void )
 #else /* Py2.x */
 	submodule= Py_InitModule3( "bpy.props", props_methods, "" );
 #endif
-	
-	mod = PyModule_New("props");
-	PyModule_AddObject( submodule, "props", mod );
 	
 	/* INCREF since its its assumed that all these functions return the
 	 * module with a new ref like PyDict_New, since they are passed to

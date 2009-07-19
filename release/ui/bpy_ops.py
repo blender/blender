@@ -1,7 +1,8 @@
-import bpy
-
-# This class is used for bpy.ops
-#
+# for slightly faster access
+from bpy.__ops__ import add		as op_add
+from bpy.__ops__ import remove		as op_remove
+from bpy.__ops__ import dir		as op_dir
+from bpy.__ops__ import call		as op_call
 
 class bpy_ops(object):
 	'''
@@ -10,10 +11,10 @@ class bpy_ops(object):
 	 bpy.ops
 	'''
 	def add(self, pyop):
-		bpy.__ops__.add(pyop)
+		op_add(pyop)
 	
 	def remove(self, pyop):
-		bpy.__ops__.remove(pyop)
+		op_remove(pyop)
 	
 	def __getattr__(self, module):
 		'''
@@ -25,11 +26,8 @@ class bpy_ops(object):
 		
 		submodules = set()
 		
-		for id_name in dir(bpy.__ops__):
+		for id_name in op_dir():
 			
-			if id_name.startswith('__'):
-				continue
-				
 			id_split = id_name.split('_OT_', 1)
 			
 			if len(id_split) == 2:
@@ -66,7 +64,7 @@ class bpy_ops_submodule(object):
 		
 		module_upper = self.module.upper()
 		
-		for id_name in dir(bpy.__ops__):
+		for id_name in op_dir():
 			
 			if id_name.startswith('__'):
 				continue
@@ -96,12 +94,10 @@ class bpy_ops_submodule_op(object):
 		id_name = self.module.upper() + '_OT_' + self.func
 		
 		# Get the operator from 
-		internal_op = getattr(bpy.__ops__, id_name)
-		
-		# Call the op
-		return internal_op(**kw)
+		return op_call(id_name, kw)
 		
 	def __repr__(self):
 		return "<function bpy.ops.%s.%s at 0x%x'>" % (self.module, self.func, id(self))
 
+import bpy
 bpy.ops = bpy_ops()
