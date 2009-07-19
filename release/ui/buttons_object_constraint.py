@@ -521,7 +521,7 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
 		layout = self.layout
 
 		row = layout.row()
-		row.item_menu_enumO("objects.constraint_add", "type")
+		row.item_menu_enumO("object.constraint_add", "type")
 		row.itemL();
 
 		for con in ob.constraints:

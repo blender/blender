@@ -1978,7 +1978,7 @@ static void view3d_edit_object_trackmenu(bContext *C, uiLayout *layout, void *ar
 
 static void view3d_edit_object_constraintsmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiItemO(layout, NULL, 0, "OBJECT_OT_constraint_add"); // XXX it'd be better to have the version which sets links...
+	uiItemBooleanO(layout, NULL, 0, "OBJECT_OT_constraint_add", "set_targets", 1); // XXX it'd be better to have the version which sets links...
 	uiItemO(layout, NULL, 0, "OBJECT_OT_constraints_clear");
 }
 
