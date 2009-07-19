@@ -33,6 +33,7 @@
 
 #include "BKE_context.h"
 #include "BKE_utildefines.h"
+#include "BKE_global.h"
 
 #include "RNA_access.h"
 
@@ -47,7 +48,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			"scene", "selected_objects", "selected_bases",
 			"selected_editable_objects", "selected_editable_bases"
 			"active_base",
-			"active_object", "edit_object", NULL};
+			"active_object", "edit_object", "sculpt_object", NULL};
 
 		CTX_data_dir_set(result, dir);
 		return 1;
@@ -105,6 +106,12 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		if(scene->obedit)
 			CTX_data_id_pointer_set(result, &scene->obedit->id);
 		
+		return 1;
+	}
+	else if(CTX_data_equals(member, "sculpt_object")) {
+		if(G.f & G_SCULPTMODE && scene->basact)
+			CTX_data_id_pointer_set(result, &scene->basact->object->id);
+
 		return 1;
 	}
 	

@@ -213,6 +213,10 @@ void rna_def_sculpt(BlenderRNA  *brna)
 	srna= RNA_def_struct(brna, "Sculpt", NULL);
 	RNA_def_struct_nested(brna, srna, "Scene");
 	RNA_def_struct_ui_text(srna, "Sculpt", "");
+	
+	prop= RNA_def_property(srna, "brush", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Brush");
+	RNA_def_property_ui_text(prop, "Brush", "");
 
 	prop= RNA_def_property(srna, "symmetry_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_SYMM_X);

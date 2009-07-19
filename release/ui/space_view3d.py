@@ -170,6 +170,32 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
 		col.itemR(bg, "x_offset", text="X")
 		col.itemR(bg, "y_offset", text="Y")
 
+class VIEW3D_PT_sculpt(bpy.types.Panel):
+	__space_type__ = "VIEW_3D"
+	__region_type__ = "UI"
+	__label__ = "Sculpt"
+
+	def poll(self, context):
+		return context.sculpt_object
+
+	def draw(self, context):
+		sculpt = context.scene.tool_settings.sculpt
+
+		split = self.layout.split()
+		
+		col = split.column()
+		col.itemL(text="Symmetry")
+		row = col.row(align=True)
+		row.itemR(sculpt, "symmetry_x", text="X", toggle=True)
+		row.itemR(sculpt, "symmetry_y", text="Y", toggle=True)
+		row.itemR(sculpt, "symmetry_z", text="Z", toggle=True)
+
+		col = split.column()
+		col.itemL(text="Lock Axis")
+		row = col.row(align=True)
+		row.itemR(sculpt, "lock_x", text="X", toggle=True)
+		row.itemR(sculpt, "lock_y", text="Y", toggle=True)
+		row.itemR(sculpt, "lock_z", text="Z", toggle=True)
 
 bpy.types.register(VIEW3D_MT_view_navigation)
 bpy.types.register(VIEW3D_MT_view)
@@ -177,5 +203,4 @@ bpy.types.register(VIEW3D_HT_header)
 bpy.types.register(VIEW3D_PT_3dview_properties)
 bpy.types.register(VIEW3D_PT_3dview_display)
 bpy.types.register(VIEW3D_PT_background_image)
-
-
+bpy.types.register(VIEW3D_PT_sculpt)

@@ -1176,41 +1176,6 @@ static void view3d_panel_brush(const bContext *C, Panel *pa)
 	}
 }
 
-static void sculptmode_draw_interface_tools(Scene *scene, uiBlock *block, unsigned short cx, unsigned short cy)
-{
-	Sculpt *s = scene->toolsettings->sculpt;
-	
-	//XXX if(sd->brush_type != SMOOTH_BRUSH && sd->brush_type != GRAB_BRUSH && sd->brush_type != FLATTEN_BRUSH) {
-	{
-		/*uiDefButBitS(block,ROW,B_NOP,"Add",cx,cy,89,19,&br->dir,15.0,1.0,0, 0,"Add depth to model [Shift]");
-		uiDefButBitS(block,ROW,B_NOP,"Sub",cx+89,cy,89,19,&br->dir,15.0,2.0,0, 0,"Subtract depth from model [Shift]");
-		*/}
-	//XXX if(sd->brush_type!=GRAB_BRUSH)
-	
-	uiBlockBeginAlign(block);
-	uiDefBut( block,LABEL,B_NOP,"Symmetry",cx,cy,90,19,NULL,0,0,0,0,"");
-	cy-= 20;
-	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, SCULPT_SYMM_X, B_NOP, "X", cx,cy,40,19, &s->flags, 0,0,0,0, "Mirror brush across X axis");
-	uiDefButBitI(block, TOG, SCULPT_SYMM_Y, B_NOP, "Y", cx+40,cy,40,19, &s->flags, 0,0,0,0, "Mirror brush across Y axis");
-	uiDefButBitI(block, TOG, SCULPT_SYMM_Z, B_NOP, "Z", cx+80,cy,40,19, &s->flags, 0,0,0,0, "Mirror brush across Z axis");
-	uiBlockEndAlign(block);
-	
-	
-	cy+= 20;
-	uiBlockBeginAlign(block);
-	uiDefBut( block,LABEL,B_NOP,"LockAxis",cx+140,cy,90,19,NULL,0,0,0,0,"");
-	cy-= 20;
-	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, SCULPT_LOCK_X, B_NOP, "X", cx+140,cy,40,19, &s->flags, 0,0,0,0, "Constrain X axis");
-	uiDefButBitI(block, TOG, SCULPT_LOCK_Y, B_NOP, "Y", cx+180,cy,40,19, &s->flags, 0,0,0,0, "Constrain Y axis");
-	uiDefButBitI(block, TOG, SCULPT_LOCK_Z, B_NOP, "Z", cx+220,cy,40,19, &s->flags, 0,0,0,0, "Constrain Z axis");
-	uiBlockEndAlign(block);
-		
-	cx+= 210;
-}
-
-
 static void view3d_panel_object(const bContext *C, Panel *pa)
 {
 	uiBlock *block;
@@ -1278,10 +1243,6 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 			/* 'f' is for floating panel */
 			uiBlockPickerButtons(block, (*br)->rgb, hsv, old, hexcol, 'f', B_REDR);
 	}
-	else if(G.f & G_SCULPTMODE) {
-		BLI_strncpy(pa->drawname, "Sculpt Properties", sizeof(pa->drawname));
-		sculptmode_draw_interface_tools(scene, block, 10, 150);
-	} 
 	else if(G.f & G_PARTICLEEDIT){
 		BLI_strncpy(pa->drawname, "Particle Edit Properties", sizeof(pa->drawname));
 // XXX		particle_edit_buttons(block);
