@@ -270,7 +270,7 @@ void poselib_validate_act (bAction *act)
 	}
 	
 	/* free temp memory */
-	BLI_freelistN(&keys);
+	BLI_freelistN((ListBase *)&keys);
 	
 	BIF_undo_push("PoseLib Validate Action");
 }

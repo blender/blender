@@ -1091,7 +1091,7 @@ static int pose_constraint_add_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
 	if(!ob)
-		return OPERATOR_CANCELLED;;
+		return OPERATOR_CANCELLED;
 	
 	return constraint_add_exec(C, op, get_active_constraints(ob));
 }
