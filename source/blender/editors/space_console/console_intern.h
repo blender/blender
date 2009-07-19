@@ -40,6 +40,7 @@ struct ReportList;
 /* console_draw.c */
 void console_text_main(struct SpaceConsole *sc, struct ARegion *ar, struct ReportList *reports);
 int console_text_height(struct SpaceConsole *sc, struct ARegion *ar, struct ReportList *reports); /* needed to calculate the scrollbar */
+void *console_text_pick(struct SpaceConsole *sc, struct ARegion *ar, struct ReportList *reports, int mouse_y); /* needed for selection */
 
 /* console_ops.c */
 void console_history_free(SpaceConsole *sc, ConsoleLine *cl);
@@ -48,6 +49,8 @@ ConsoleLine *console_history_add_str(const bContext *C, char *str, int own);
 ConsoleLine *console_scrollback_add_str(const bContext *C, char *str, int own);
 
 ConsoleLine *console_history_verify(const bContext *C);
+
+int console_report_mask(SpaceConsole *sc);
 
 
 void CONSOLE_OT_move(wmOperatorType *ot);
@@ -61,9 +64,16 @@ void CONSOLE_OT_clear(wmOperatorType *ot);
 void CONSOLE_OT_history_cycle(wmOperatorType *ot);
 void CONSOLE_OT_zoom(wmOperatorType *ot);
 
-/* DUMMY OPS. python will replace */
-void CONSOLE_OT_exec(wmOperatorType *ot);
-void CONSOLE_OT_autocomplete(wmOperatorType *ot);
+/* console_report.c */
+void CONSOLE_OT_select_pick(wmOperatorType *ot); /* report selection */
+void CONSOLE_OT_select_all_toggle(wmOperatorType *ot);
+void CONSOLE_OT_select_border(wmOperatorType *ot);
+
+void CONSOLE_OT_report_replay(wmOperatorType *ot);
+void CONSOLE_OT_report_delete(wmOperatorType *ot);
+void CONSOLE_OT_report_copy(wmOperatorType *ot);
+
+
 
 enum { LINE_BEGIN, LINE_END, PREV_CHAR, NEXT_CHAR, PREV_WORD, NEXT_WORD };
 enum { DEL_ALL, DEL_NEXT_CHAR, DEL_PREV_CHAR, DEL_SELECTION, DEL_NEXT_SEL, DEL_PREV_SEL };

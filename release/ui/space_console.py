@@ -15,19 +15,29 @@ class CONSOLE_HT_header(bpy.types.Header):
 
 		layout.template_header()
 
-		if context.area.show_menus:
-			row = layout.row()
-			row.itemM("CONSOLE_MT_console")
-		
 		row = layout.row()
-		row.scale_x = 0.9
 		row.itemR(sc, "type", expand=True)
+
 		if sc.type == 'REPORT':
-			row.itemR(sc, "show_report_debug")
-			row.itemR(sc, "show_report_info")
-			row.itemR(sc, "show_report_operator")
-			row.itemR(sc, "show_report_warn")
-			row.itemR(sc, "show_report_error")
+			
+			if context.area.show_menus:
+				row = layout.row()
+				row.itemM("CONSOLE_MT_report")
+			
+			row.itemR(sc, "show_report_debug", text="Debug")
+			row.itemR(sc, "show_report_info", text="Info")
+			row.itemR(sc, "show_report_operator", text="Operators")
+			row.itemR(sc, "show_report_warn", text="Warnings")
+			row.itemR(sc, "show_report_error", text="Errors")
+			
+			row = layout.row()
+			row.enabled = sc.show_report_operator
+			row.itemO("console.report_replay")
+		
+		else:
+			if context.area.show_menus:
+				row = layout.row()
+				row.itemM("CONSOLE_MT_console")
 
 
 class CONSOLE_MT_console(bpy.types.Menu):
@@ -40,6 +50,20 @@ class CONSOLE_MT_console(bpy.types.Menu):
 
 		layout.column()
 		layout.itemO("console.clear")
+
+class CONSOLE_MT_report(bpy.types.Menu):
+	__space_type__ = "CONSOLE"
+	__label__ = "Report"
+
+	def draw(self, context):
+		layout = self.layout
+		sc = context.space_data
+
+		layout.column()
+		layout.itemO("console.select_all_toggle")
+		layout.itemO("console.select_border")
+		layout.itemO("console.report_delete")
+		layout.itemO("console.report_copy")
 
 def add_scrollback(text, text_type):
 	for l in text.split('\n'):
@@ -97,7 +121,7 @@ class CONSOLE_OT_exec(bpy.types.Operator):
 	Operator documentatuon text, will be used for the operator tooltip and python docs.
 	'''
 	__label__ = "Console Execute"
-	__register__ = True
+	__register__ = False
 	
 	# Both prompts must be the same length
 	PROMPT = '>>> ' 
@@ -373,7 +397,7 @@ class CONSOLE_OT_autocomplete(bpy.types.Operator):
 	Operator documentatuon text, will be used for the operator tooltip and python docs.
 	'''
 	__label__ = "Console Autocomplete"
-	__register__ = True
+	__register__ = False
 	
 	def poll(self, context):
 		return context.space_data.type == 'PYTHON'
@@ -423,6 +447,7 @@ class CONSOLE_OT_autocomplete(bpy.types.Operator):
 
 bpy.types.register(CONSOLE_HT_header)
 bpy.types.register(CONSOLE_MT_console)
+bpy.types.register(CONSOLE_MT_report)
 
 bpy.ops.add(CONSOLE_OT_exec)
 bpy.ops.add(CONSOLE_OT_autocomplete)

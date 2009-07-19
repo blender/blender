@@ -2647,6 +2647,8 @@ char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
 			for(i=0; i<len; i++) {
 				BLI_dynstr_appendf(dynstr, i?", %s":"%s", RNA_property_boolean_get_index(ptr, prop, i) ? "True" : "False");
 			}
+			if(len==1)
+				BLI_dynstr_append(dynstr, ","); /* otherwise python wont see it as a tuple */
 			BLI_dynstr_append(dynstr, ")");
 		}
 		break;
@@ -2659,6 +2661,8 @@ char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
 			for(i=0; i<len; i++) {
 				BLI_dynstr_appendf(dynstr, i?", %d":"%d", RNA_property_int_get_index(ptr, prop, i));
 			}
+			if(len==1)
+				BLI_dynstr_append(dynstr, ","); /* otherwise python wont see it as a tuple */
 			BLI_dynstr_append(dynstr, ")");
 		}
 		break;
@@ -2671,6 +2675,8 @@ char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
 			for(i=0; i<len; i++) {
 				BLI_dynstr_appendf(dynstr, i?", %g":"%g", RNA_property_float_get_index(ptr, prop, i));
 			}
+			if(len==1)
+				BLI_dynstr_append(dynstr, ","); /* otherwise python wont see it as a tuple */
 			BLI_dynstr_append(dynstr, ")");
 		}
 		break;

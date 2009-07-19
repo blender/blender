@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -49,13 +49,12 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
-// #include "BKE_suggestions.h"
-//#include "BKE_text.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_screen.h"
+#include "ED_types.h"
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -210,8 +209,8 @@ static int console_edit_poll(bContext *C)
 	return 1;
 }
 
-/* static funcs for text editing */
 
+/* static funcs for text editing */
 
 /* similar to the text editor, with some not used. keep compatible */
 static EnumPropertyItem move_type_items[]= {
@@ -578,18 +577,4 @@ void CONSOLE_OT_zoom(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_int(ot->srna, "delta", 0, 0, INT_MAX, "Delta", "Scale the view font.", 0, 1000);
-}
-
-/* Dummy operators, python will replace these, so blender can start without any errors */
-void CONSOLE_OT_exec(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "CONSOLE_OT_exec dummy";
-	ot->idname= "CONSOLE_OT_exec";
-}
-void CONSOLE_OT_autocomplete(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "CONSOLE_OT_autocomplete dummy";
-	ot->idname= "CONSOLE_OT_autocomplete";
 }

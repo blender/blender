@@ -1323,7 +1323,18 @@ void make_local_object(Object *ob)
 	expand_local_object(ob);
 }
 
-/* returns true if the Object data is a from an external blend file (libdata) */
+/*
+ * Returns true if the Object is a from an external blend file (libdata)
+ */
+int object_is_libdata(Object *ob)
+{
+	if (!ob) return 0;
+	if (ob->proxy) return 0;
+	if (ob->id.lib) return 1;
+	return 0;
+}
+
+/* Returns true if the Object data is a from an external blend file (libdata) */
 int object_data_is_libdata(Object *ob)
 {
 	if(!ob) return 0;

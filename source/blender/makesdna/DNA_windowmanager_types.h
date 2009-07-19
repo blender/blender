@@ -77,7 +77,8 @@ enum ReportListFlags {
 };
 typedef struct Report {
 	struct Report *next, *prev;
-	int type; /* ReportType */
+	short type; /* ReportType */
+	short flag;
 	int len; /* strlen(message), saves some time calculating the word wrap  */
 	char *typestr;
 	char *message;

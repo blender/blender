@@ -44,7 +44,9 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 
 	if(CTX_data_dir(member)) {
 		static const char *dir[] = {
-			"scene", "selected_objects", "selected_bases", "active_base",
+			"scene", "selected_objects", "selected_bases",
+			"selected_editable_objects", "selected_editable_bases"
+			"active_base",
 			"active_object", "edit_object", NULL};
 
 		CTX_data_dir_set(result, dir);
@@ -63,6 +65,24 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					CTX_data_id_list_add(result, &base->object->id);
 				else
 					CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+			}
+		}
+
+		return 1;
+	}
+	else if(CTX_data_equals(member, "selected_editable_objects") || CTX_data_equals(member, "selected_editable_bases")) {
+		int selected_editable_objects= CTX_data_equals(member, "selected_editable_objects");
+
+		for(base=scene->base.first; base; base=base->next) {
+			if((base->flag & SELECT) && (base->lay & scene->lay)) {
+				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
+					if(0==object_is_libdata(base->object)) {
+						if(selected_editable_objects)
+							CTX_data_id_list_add(result, &base->object->id);
+						else
+							CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+					}
+				}
 			}
 		}
 

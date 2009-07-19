@@ -747,7 +747,7 @@ static void copy_object_set_idnew(Scene *scene, View3D *v3d, int dupflag)
 	
 	/* XXX check object pointers */
 	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
+		if(TESTBASELIB_BGMODE(v3d, base)) {
 			ob= base->object;
 			relink_constraints(&ob->constraints);
 			if (ob->pose){
