@@ -511,9 +511,13 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 			if (de->d_name[0] == '.') {
 				/* do nothing, probably .svn */
 			}
+#ifndef __linux__
+			else if( BLI_join_dirfile(path, dirname, de->d_name), S_ISDIR(BLI_exists(path))) {
+#else
 			else if(de->d_type==DT_DIR) {
-				/* support packages */
 				BLI_join_dirfile(path, dirname, de->d_name);
+#endif
+				/* support packages */
 				BLI_join_dirfile(path, path, "__init__.py");
 
 				if(BLI_exists(path)) {
