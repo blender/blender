@@ -36,6 +36,7 @@
 
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -163,6 +164,7 @@ static void transformops_exit(bContext *C, wmOperator *op)
 	saveTransform(C, op->customdata, op);
 	MEM_freeN(op->customdata);
 	op->customdata = NULL;
+	G.moving = 0;
 }
 
 static int transformops_data(bContext *C, wmOperator *op, wmEvent *event)
@@ -188,6 +190,7 @@ static int transformops_data(bContext *C, wmOperator *op, wmEvent *event)
 		}
 
 		retval = initTransform(C, t, op, event, mode);
+		G.moving = 1;
 
 		/* store data */
 		op->customdata = t;
