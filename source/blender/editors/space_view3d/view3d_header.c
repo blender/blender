@@ -284,6 +284,21 @@ static int layers_exec(bContext *C, wmOperator *op)
 	else 
 		v3d->lay = (1<<nr);
 	
+	/* set active layer, ensure to always have one */
+	if(v3d->lay & (1<<nr))
+	   v3d->layact= 1<<nr;
+	else if((v3d->lay & v3d->layact)==0) {
+		int bit= 0;
+		
+		while(bit<32) {
+			if(v3d->lay & (1<<bit)) {
+				v3d->layact= 1<<bit;
+				break;
+			}
+			bit++;
+		}
+	}
+	
 	if(v3d->scenelock) handle_view3d_lock(C);
 	
 	/* new layers might need unflushed events events */
