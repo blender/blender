@@ -236,7 +236,7 @@ static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
 	glDisable(GL_LINE_STIPPLE);
 }
 
-/* called in wm_event_system.c */
+/* called in wm_draw.c */
 void wm_gesture_draw(wmWindow *win)
 {
 	wmGesture *gt= (wmGesture *)win->gesture.first;

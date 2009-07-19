@@ -574,8 +574,8 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 					CTX_wm_area_set(C, sa);
 					CTX_wm_region_set(C, ar);
 
-					wmSubWindowSet(win, ar->swinid);
-					ED_region_pixelspace(ar);
+					/* make region ready for draw, scissor, pixelspace */
+					ED_region_set(C, ar);
 					wm_paintcursor_draw(C, ar);
 
 					CTX_wm_region_set(C, NULL);

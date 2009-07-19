@@ -274,6 +274,28 @@ static void region_scissor_winrct(ARegion *ar, rcti *winrct)
 }
 
 /* only exported for WM */
+/* makes region ready for drawing, sets pixelspace */
+void ED_region_set(const bContext *C, ARegion *ar)
+{
+	wmWindow *win= CTX_wm_window(C);
+	ScrArea *sa= CTX_wm_area(C);
+	rcti winrct;
+	
+	/* checks other overlapping regions */
+	region_scissor_winrct(ar, &winrct);
+	
+	ar->drawrct= winrct;
+	
+	/* note; this sets state, so we can use wmOrtho and friends */
+	wmSubWindowScissorSet(win, ar->swinid, &ar->drawrct);
+	
+	UI_SetTheme(sa?sa->spacetype:0, ar->type?ar->type->regionid:0);
+	
+	ED_region_pixelspace(ar);
+}
+
+
+/* only exported for WM */
 void ED_region_do_draw(bContext *C, ARegion *ar)
 {
 	wmWindow *win= CTX_wm_window(C);
