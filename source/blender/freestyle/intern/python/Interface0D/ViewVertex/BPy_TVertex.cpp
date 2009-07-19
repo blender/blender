@@ -140,17 +140,11 @@ int TVertex___init__(BPy_TVertex *self, PyObject *args, PyObject *kwds)
 
 
 PyObject * TVertex_castToViewVertex( BPy_TVertex *self ) {
-	PyObject *py_vv =  ViewVertex_Type.tp_new( &ViewVertex_Type, 0, 0 );
-	((BPy_ViewVertex *) py_vv)->vv = self->tv->castToViewVertex();
-
-	return py_vv;
+	return BPy_ViewVertex_from_ViewVertex_ptr( self->tv->castToViewVertex() );
 }
 
 PyObject * TVertex_castToTVertex( BPy_TVertex *self ) {
-	PyObject *py_tv =  TVertex_Type.tp_new( &TVertex_Type, 0, 0 );
-	((BPy_TVertex *) py_tv)->tv = self->tv->castToTVertex();
-
-	return py_tv;
+	return BPy_TVertex_from_TVertex_ptr( self->tv->castToTVertex() );
 }
 
 PyObject * TVertex_frontSVertex( BPy_TVertex *self ) {

@@ -151,17 +151,11 @@ PyObject * NonTVertex_castToSVertex( BPy_NonTVertex *self ) {
 }
 
 PyObject * NonTVertex_castToViewVertex( BPy_NonTVertex *self ) {
-	PyObject *py_vv =  ViewVertex_Type.tp_new( &ViewVertex_Type, 0, 0 );
-	((BPy_ViewVertex *) py_vv)->vv = self->ntv->castToViewVertex();
-
-	return py_vv;
+	return BPy_ViewVertex_from_ViewVertex_ptr( self->ntv->castToViewVertex() );
 }
 
 PyObject * NonTVertex_castToNonTVertex( BPy_NonTVertex *self ) {
-	PyObject *py_ntv =  NonTVertex_Type.tp_new( &NonTVertex_Type, 0, 0 );
-	((BPy_NonTVertex *) py_ntv)->ntv = self->ntv->castToNonTVertex();
-
-	return py_ntv;
+	return BPy_NonTVertex_from_NonTVertex_ptr( self->ntv->castToNonTVertex() );
 }
 
 PyObject * NonTVertex_svertex( BPy_NonTVertex *self ) {
