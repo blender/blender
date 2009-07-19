@@ -519,28 +519,6 @@ void add_constraint (Scene *scene, View3D *v3d, short only_IK)
 
 }
 
-/* Remove all constraints from the active object */
-void ob_clear_constraints (Scene *scene)
-{
-	Object *ob= OBACT;
-	
-	/* paranoia checks */
-	if ((ob==NULL) || (ob==scene->obedit) || (ob->flag & OB_POSEMODE)) 
-		return;
-	
-	/* get user permission */
-	if (okee("Clear Constraints")==0) 
-		return;
-	
-	/* do freeing */
-	free_constraints(&ob->constraints);
-	
-	/* do updates */
-	DAG_object_flush_update(scene, ob, OB_RECALC_OB);
-	
-	BIF_undo_push("Clear Constraint(s)");
-}
-
 /* ------------- Constraint Sanity Testing ------------------- */
 
 /* checks validity of object pointers, and NULLs,
@@ -1006,7 +984,71 @@ void CONSTRAINT_OT_move_up (wmOperatorType *ot)
 
 /***************************** OPERATORS ****************************/
 
-/************************ add constraint operator *********************/
+/************************ remove constraint operators *********************/
+
+static int pose_constraints_clear_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	
+	/* free constraints for all selected bones */
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans)
+	{
+		free_constraints(&pchan->constraints);
+	}
+	CTX_DATA_END;
+	
+	/* do updates */
+	DAG_object_flush_update(scene, ob, OB_RECALC_OB);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE|ND_CONSTRAINT|NA_REMOVED, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_constraints_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	//ot->name = "Clear Constraints";
+	ot->idname= "POSE_OT_constraints_clear";
+	ot->description= "Clear all the constraints for the selected bones.";
+	
+	/* callbacks */
+	//ot->invoke= WM_menu_confirm; // XXX do we want confirmations on these things anymore?
+	ot->exec= pose_constraints_clear_exec;
+	ot->poll= ED_operator_posemode; // XXX - do we want to ensure there are selected bones too?
+}
+
+
+static int object_constraints_clear_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	
+	/* do freeing */
+	// TODO: we should free constraints for all selected objects instead (to be more consistent with bones)
+	free_constraints(&ob->constraints);
+	
+	/* do updates */
+	DAG_object_flush_update(scene, ob, OB_RECALC_OB);
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_REMOVED, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_constraints_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Clear Constraints";
+	ot->idname= "OBJECT_OT_constraints_clear";
+	ot->description= "Clear all the constraints for the active Object only.";
+	
+	/* callbacks */
+	//ot->invoke= WM_menu_confirm; // XXX do we want confirmations on these things anymore?
+	ot->exec= object_constraints_clear_exec;
+	ot->poll= ED_operator_object_active;
+}
+
+/************************ add constraint operators *********************/
 
 static int constraint_add_exec(bContext *C, wmOperator *op, ListBase *list)
 {
@@ -1071,7 +1113,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, ListBase *list)
 	else
 		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_ADDED, ob);
 	
 	return OPERATOR_FINISHED;
 }
