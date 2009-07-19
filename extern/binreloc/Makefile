@@ -27,7 +27,7 @@ DIR = $(OCGDIR)/extern/$(LIBNAME)
 
 include nan_definitions.mk
 
-CPPFLAGS += -I./include
+CPPFLAGS += -DENABLE_BINRELOC -I./include
 
 
 include nan_compile.mk
