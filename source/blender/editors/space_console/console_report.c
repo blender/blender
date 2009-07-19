@@ -1,5 +1,5 @@
 /**
- * $Id: console_ops.c 21679 2009-07-18 16:27:25Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
