@@ -515,7 +515,7 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 				/* normal py files? */
 				if(file_extension && file_extension[3] == '\0') {
 					de->d_name[(file_extension - de->d_name) + 1] = '\0';
-					bpy_import_module(de->d_name, reload);
+					err= bpy_import_module(de->d_name, reload);
 				}
 			}
 #ifndef __linux__
@@ -528,7 +528,7 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 				BLI_join_dirfile(path, path, "__init__.py");
 
 				if(BLI_exists(path)) {
-					bpy_import_module(de->d_name, reload);
+					err= bpy_import_module(de->d_name, reload);
 				}
 			}
 
