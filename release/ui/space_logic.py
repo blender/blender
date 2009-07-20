@@ -138,24 +138,12 @@ class LOGIC_PT_physics(bpy.types.Panel):
 		if gs.physics_engine != "NONE":
 			flow.itemR(gs, "physics_gravity")
  
-			split = layout.split()
-			col = split.column()
-			col.itemR(gs, "use_occlusion_culling", text="Enable Occlusion Culling")
+			row = layout.row()
+			row.itemR(gs, "use_occlusion_culling", text="Enable Occlusion Culling")
 	
-			sub = split.column()
-			sub.active = gs.use_occlusion_culling
-			sub.itemR(gs, "occlusion_culling_resolution", text="resol.")
-
-# Activity Culling is deprecated I think. Let's leave it commented by now
-"""
-			split = layout.split()
-			col = split.column()
-			col.itemR(gs, "activity_culling")
-			
-			sub = split.column()
-			sub.active = gs.activity_culling
-			sub.itemR(gs, "activity_culling_box_radius")
-"""
+			row = layout.row()
+			row.active = gs.use_occlusion_culling
+			row.itemR(gs, "occlusion_culling_resolution", text="resol.")
 
 			split = layout.split()
 			col = split.column(align=True)
