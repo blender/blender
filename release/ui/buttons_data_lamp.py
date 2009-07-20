@@ -113,6 +113,8 @@ class DATA_PT_sky(DataButtonsPanel):
 		col.itemR(lamp, "sky_blend")
 		col.itemR(lamp, "sky_color_space", text="Color Space")
 		col.itemR(lamp, "sky_exposure", text="Exposure")
+		col.itemS()
+		col.itemR(lamp, "atmosphere_turbidity", text="Turbidity")
 		
 		col = split.column()
 		col.itemL(text="Horizon:")
