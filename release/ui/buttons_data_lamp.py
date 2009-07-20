@@ -124,10 +124,7 @@ class DATA_PT_sky(DataButtonsPanel):
 		col.itemR(lamp, "sun_brightness", text="Brightness")
 		col.itemR(lamp, "sun_size", text="Size")
 		col.itemR(lamp, "backscattered_light", text="Back Light")
-				
 
-		
-		
 class DATA_PT_atmosphere(DataButtonsPanel):
 	__idname__ = "DATA_PT_atmosphere"
 	__label__ = "Atmosphere"
@@ -168,10 +165,15 @@ class DATA_PT_shadow(DataButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		lamp = context.lamp
-
-		layout.itemR(lamp, "shadow_method", expand=True)
 		
-		if lamp.shadow_method in ('BUFFER_SHADOW', 'RAY_SHADOW'):
+		row = layout.row(align=True)
+		row.item_enumR(lamp, "shadow_method", 'NOSHADOW')
+		row.item_enumR(lamp, "shadow_method", 'RAY_SHADOW')
+		if lamp.type == 'SPOT':
+			row.item_enumR(lamp, "shadow_method", 'BUFFER_SHADOW')
+			
+		
+		if lamp.shadow_method != 'NOSHADOW':
 		
 			split = layout.split()
 			
@@ -184,9 +186,12 @@ class DATA_PT_shadow(DataButtonsPanel):
 		
 		if lamp.shadow_method == 'RAY_SHADOW':
 		
-			col = layout.column()
-			col.itemL(text="Sampling:")
-			col.row().itemR(lamp, "shadow_ray_sampling_method", expand=True)
+			row = layout.row(align=True)
+			layout.itemL(text="Sampling:")
+			row.item_enumR(lamp, "shadow_ray_sampling_method", 'ADAPTIVE_QMC')
+			row.item_enumR(lamp, "shadow_ray_sampling_method", 'CONSTANT_QMC')
+			if lamp.type == 'AREA':
+				row.item_enumR(lamp, "shadow_ray_sampling_method", 'CONSTANT_JITTERED')
 				
 			if lamp.type in ('POINT', 'SUN', 'SPOT'):
 				flow = layout.column_flow()
@@ -206,10 +211,10 @@ class DATA_PT_shadow(DataButtonsPanel):
 					flow.itemR(lamp, "jitter")	
 	
 		if lamp.shadow_method == 'BUFFER_SHADOW':
-			col = layout.column()
-			col.itemL(text="Buffer Type:")
-			col.row().itemR(lamp, "shadow_buffer_type", expand=True)
-
+			row = layout.row(align=True)
+			row.itemL(text="Buffer Type:")
+			layout.itemR(lamp, "shadow_buffer_type", expand=True)
+			
 			if lamp.shadow_buffer_type in ('REGULAR', 'HALFWAY'):
 				flow = layout.column_flow()
 				flow.itemL(text="Sample Buffers:")
