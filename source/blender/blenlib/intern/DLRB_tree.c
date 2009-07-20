@@ -161,7 +161,6 @@ static DLRBT_Node *get_uncle (DLRBT_Node *node)
 /* *********************************************** */
 /* Tree Rotation Utilities */
 
-/* Left Rotation is only done for Right-Right Case, and Left-Right Case */
 static void rotate_left (DLRBT_Tree *tree, DLRBT_Node *root)
 {
 	DLRBT_Node **root_slot, *pivot;
@@ -235,7 +234,6 @@ static void rotate_right (DLRBT_Tree *tree, DLRBT_Node *root)
 static void insert_check_1(DLRBT_Tree *tree, DLRBT_Node *node);
 static void insert_check_2(DLRBT_Tree *tree, DLRBT_Node *node);
 static void insert_check_3(DLRBT_Tree *tree, DLRBT_Node *node);
-static void insert_check_4(DLRBT_Tree *tree, DLRBT_Node *node);
 
 /* ----- */
 
@@ -286,7 +284,7 @@ static void insert_check_2 (DLRBT_Tree *tree, DLRBT_Node *node)
 	}
 }
 
-/* W. 4) Perform rotation on sub-tree containing the 'new' node */
+/* W. 4+5) Perform rotation on sub-tree containing the 'new' node, then do any  */
 static void insert_check_3 (DLRBT_Tree *tree, DLRBT_Node *node)
 {
 	DLRBT_Node *gp= get_grandparent(node);
@@ -305,32 +303,28 @@ static void insert_check_3 (DLRBT_Tree *tree, DLRBT_Node *node)
 			rotate_right(tree, node); 
 			node= node->right;
 		}
-		// TODO: what about other cases?
 		
-		/* fix old parent's color-tagging */
-		insert_check_4(tree, node);
+		/* fix old parent's color-tagging, and perform rotation on the old parent in the 
+		 * opposite direction if needed for the current situation
+		 * NOTE: in the code above, node pointer is changed to point to the old parent 
+		 */
+		if (node) {
+			/* get 'new' grandparent (i.e. grandparent for old-parent (node)) */
+			gp= get_grandparent(node);
+			
+			/* modify the coloring of the grandparent and parent so that they still satisfy the constraints */
+			node->parent->tree_col= DLRBT_BLACK;
+			gp->tree_col= DLRBT_RED;
+			
+			/* if there are several nodes that all form a left chain, do a right rotation to correct this
+			 * (or a rotation in the opposite direction if they all form a right chain)
+			 */
+			if ((node == node->parent->left) && (node->parent == gp->left))
+				rotate_right(tree, gp);
+			else //if ((node == node->parent->right) && (node->parent == gp->right))
+				rotate_left(tree, gp);
+		}
 	}
-}
-
-/* W. 5) Perform rotation in the opposite direction on the parent of the given node */
-static void insert_check_4 (DLRBT_Tree *tree, DLRBT_Node *node)
-{
-	DLRBT_Node *gp= get_grandparent(node);
-	
-	if (node == NULL)
-		return;
-	
-	/* modify the coloring of the grandparent and parent so that they still satisfy the constraints */
-	node->parent->tree_col= DLRBT_BLACK;
-	gp->tree_col= DLRBT_RED;
-	
-	/* if there are several nodes that all form a left chain, do a right rotation to correct this
-	 * (or a rotation in the opposite direction if they all form a right chain)
-	 */
-	if ((node == node->parent->left) && (node->parent == gp->left))
-		rotate_right(tree, gp);
-	else /* ((node == node->parent->right) && (node->parent == gp->right)) */
-		rotate_left(tree, gp);
 }
 
 /* ----- */

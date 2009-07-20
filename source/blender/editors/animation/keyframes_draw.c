@@ -445,28 +445,16 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 	/* draw keys */
 	if (keys) {
 		for (ak= keys->first; ak; ak= ak->next) {
+			/* optimisation: if keyframe doesn't appear within 5 units (screenspace) in visible area, don't draw 
+			 *	- this might give some improvements, since we current have to flip between view/region matrices
+			 */
+			if (IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax) == 0)
+				continue;
+			
 			/* draw using OpenGL - uglier but faster */
-			// NOTE: a previous version of this didn't work nice for some intel cards
+			// NOTE1: a previous version of this didn't work nice for some intel cards
+			// NOTE2: if we wanted to go back to icons, these are  icon = (ak->sel & SELECT) ? ICON_SPACE2 : ICON_SPACE3;
 			draw_keyframe_shape(ak->cfra, ypos, xscale, 5.0f, (ak->sel & SELECT), KEYFRAME_SHAPE_BOTH);
-			
-#if 0 // OLD CODE
-			//int sc_x, sc_y;
-			
-			/* get co-ordinate to draw at */
-			//gla2DDrawTranslatePt(di, ak->cfra, ypos, &sc_x, &sc_y);
-			
-			/* draw using icons - old way which is slower but more proven */
-			//if (ak->sel & SELECT) UI_icon_draw_aspect((float)sc_x-7, (float)sc_y-6, ICON_SPACE2, 1.0f);
-			//else UI_icon_draw_aspect((float)sc_x-7, (float)sc_y-6, ICON_SPACE3, 1.0f);
-#endif // OLD CODE
-#if 0 // NEW NON-WORKING CODE 
-			/* draw icon */
-			// FIXME: this draws slightly wrong, as we need to apply some offset for icon, but that depends on scaling
-			// so for now disabled
-			//int icon = (ak->sel & SELECT) ? ICON_SPACE2 : ICON_SPACE3;
-			//UI_icon_draw_aspect(ak->cfra, ypos-6, icon, 1.0f);
-#endif // NEW NON-WORKING CODE
-			
 		}	
 	}
 	

@@ -77,9 +77,6 @@
 #include "object_intern.h"
 
 /* XXX */
-static void BIF_undo_push() {}
-static void error() {}
-static int okee() {return 0;}
 static int pupmenu() {return 0;}
 
 /* -------------- Get Active Constraint Data ---------------------- */
@@ -271,255 +268,6 @@ static void set_constraint_nth_target (bConstraint *con, Object *target, char su
 		if (cti->flush_constraint_targets)
 			cti->flush_constraint_targets(con, &targets, 0);
 	}
-}
-
-/* context: active object in posemode, active channel, optional selected channel */
-void add_constraint (Scene *scene, View3D *v3d, short only_IK)
-{
-	Object *ob= OBACT, *obsel=NULL;
-	bPoseChannel *pchanact=NULL, *pchansel=NULL;
-	bConstraint *con=NULL;
-	Base *base;
-	short nr;
-	
-	/* paranoia checks */
-	if ((ob==NULL) || (ob==scene->obedit)) 
-		return;
-
-	if ((ob->pose) && (ob->flag & OB_POSEMODE)) {
-		bArmature *arm= ob->data;
-		
-		/* find active channel */
-		pchanact= get_active_posechannel(ob);
-		if (pchanact==NULL) 
-			return;
-		
-		/* find selected bone */
-		for (pchansel=ob->pose->chanbase.first; pchansel; pchansel=pchansel->next) {
-			if (pchansel != pchanact) {
-				if (pchansel->bone->flag & BONE_SELECTED)  {
-					if (pchansel->bone->layer & arm->layer)
-						break;
-				}
-			}
-		}
-	}
-	
-	/* find selected object */
-	for (base= FIRSTBASE; base; base= base->next) {
-		if ((TESTBASE(v3d, base)) && (base->object!=ob)) 
-			obsel= base->object;
-	}
-	
-	/* the only_IK caller has checked for posemode! */
-	if (only_IK) {
-		for (con= pchanact->constraints.first; con; con= con->next) {
-			if (con->type==CONSTRAINT_TYPE_KINEMATIC) break;
-		}
-		if (con) {
-			error("Pose Channel already has IK");
-			return;
-		}
-		
-		if (pchansel)
-			nr= pupmenu("Add IK Constraint%t|To Active Bone%x10");
-		else if (obsel)
-			nr= pupmenu("Add IK Constraint%t|To Active Object%x10");
-		else 
-			nr= pupmenu("Add IK Constraint%t|To New Empty Object%x10|Without Target%x11");
-	}
-	else {
-		if (pchanact) {
-			if (pchansel)
-				nr= pupmenu("Add Constraint to Active Bone%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Limit Distance%x21|%l|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|%l|Action%x16|Script%x18");
-			else if ((obsel) && (obsel->type==OB_CURVE))
-				nr= pupmenu("Add Constraint to Active Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Limit Distance%x21|%l|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6|Clamp To%x17|Stretch To%x7|%l|Action%x16|Script%x18");
-			else if ((obsel) && (obsel->type==OB_MESH))
-				nr= pupmenu("Add Constraint to Active Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Limit Distance%x21|%l|Track To%x3|Floor%x4|Locked Track%x5|Shrinkwrap%x22|Stretch To%x7|%l|Action%x16|Script%x18");
-			else if (obsel)
-				nr= pupmenu("Add Constraint to Active Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Limit Distance%x21|%l|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|%l|Action%x16|Script%x18");
-			else
-				nr= pupmenu("Add Constraint to New Empty Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Limit Distance%x21|%l|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|%l|Action%x16|Script%x18");
-		}
-		else {
-			if ((obsel) && (obsel->type==OB_CURVE))
-				nr= pupmenu("Add Constraint to Active Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Limit Distance%x21|%l|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6|Clamp To%x17|%l|Action%x16|Script%x18");
-			else if ((obsel) && (obsel->type==OB_MESH))
-				nr= pupmenu("Add Constraint to Active Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Limit Distance%x21|%l|Track To%x3|Floor%x4|Locked Track%x5|Shrinkwrap%x22|%l|Action%x16|Script%x18");
-			else if (obsel)
-				nr= pupmenu("Add Constraint to Active Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Limit Distance%x21|%l|Track To%x3|Floor%x4|Locked Track%x5|%l|Action%x16|Script%x18");
-			else
-				nr= pupmenu("Add Constraint to New Empty Object%t|Child Of%x19|Transformation%x20|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Limit Distance%x21|%l|Track To%x3|Floor%x4|Locked Track%x5|%l|Action%x16|Script%x18");
-		}
-	}
-	
-	if (nr < 1) return;
-	
-	/* handle IK separate */
-	if (nr==10 || nr==11) {
-		/* ik - prevent weird chains... */
-		if (pchansel) {
-			bPoseChannel *pchan= pchanact;
-			while (pchan) {
-				if (pchan==pchansel) break;
-				pchan= pchan->parent;
-			}
-			if (pchan) {
-				error("IK root cannot be linked to IK tip");
-				return;
-			}
-			
-			pchan= pchansel;
-			while (pchan) {
-				if (pchan==pchanact) break;
-				pchan= pchan->parent;
-			}
-			if (pchan) {
-				error("IK tip cannot be linked to IK root");
-				return;
-			}		
-		}
-		
-		con = add_new_constraint(CONSTRAINT_TYPE_KINEMATIC);
-		BLI_addtail(&pchanact->constraints, con);
-		unique_constraint_name(con, &pchanact->constraints);
-		pchanact->constflag |= PCHAN_HAS_IK;	/* for draw, but also for detecting while pose solving */
-		if (nr==11) 
-			pchanact->constflag |= PCHAN_HAS_TARGET;
-		if (proxylocked_constraints_owner(ob, pchanact))
-			con->flag |= CONSTRAINT_PROXY_LOCAL;
-	}
-	else {
-		/* normal constraints - add data */
-		if (nr==1) con = add_new_constraint(CONSTRAINT_TYPE_LOCLIKE);
-		else if (nr==2) con = add_new_constraint(CONSTRAINT_TYPE_ROTLIKE);
-		else if (nr==3) con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
-		else if (nr==4) con = add_new_constraint(CONSTRAINT_TYPE_MINMAX);
-		else if (nr==5) con = add_new_constraint(CONSTRAINT_TYPE_LOCKTRACK);
-		else if (nr==6) {
-			Curve *cu= obsel->data;
-			cu->flag |= CU_PATH;
-			con = add_new_constraint(CONSTRAINT_TYPE_FOLLOWPATH);
-		}
-		else if (nr==7) con = add_new_constraint(CONSTRAINT_TYPE_STRETCHTO);
-		else if (nr==8) con = add_new_constraint(CONSTRAINT_TYPE_SIZELIKE);
-		else if (nr==13) con = add_new_constraint(CONSTRAINT_TYPE_LOCLIMIT);
-		else if (nr==14) con = add_new_constraint(CONSTRAINT_TYPE_ROTLIMIT);
-		else if (nr==15) con = add_new_constraint(CONSTRAINT_TYPE_SIZELIMIT);
-		else if (nr==16) {
-			/* TODO: add a popup-menu to display list of available actions to use (like for pyconstraints) */
-			con = add_new_constraint(CONSTRAINT_TYPE_ACTION);
-		}
-		else if (nr==17) {
-			Curve *cu= obsel->data;
-			cu->flag |= CU_PATH;
-			con = add_new_constraint(CONSTRAINT_TYPE_CLAMPTO);
-		}
-		else if (nr==18) {	
-			char *menustr;
-			int scriptint= 0;
-#ifndef DISABLE_PYTHON
-			/* popup a list of usable scripts */
-			menustr = buildmenu_pyconstraints(NULL, &scriptint);
-			scriptint = pupmenu(menustr);
-			MEM_freeN(menustr);
-			
-			/* only add constraint if a script was chosen */
-			if (scriptint) {
-				/* add constraint */
-				con = add_new_constraint(CONSTRAINT_TYPE_PYTHON);
-				validate_pyconstraint_cb(con->data, &scriptint);
-				
-				/* make sure target allowance is set correctly */
-				BPY_pyconstraint_update(ob, con);
-			}
-#endif
-		}
-		else if (nr==19) {
-			con = add_new_constraint(CONSTRAINT_TYPE_CHILDOF);
-		
-			/* if this constraint is being added to a posechannel, make sure
-			 * the constraint gets evaluated in pose-space
-			 */
-			if (pchanact) {
-				con->ownspace = CONSTRAINT_SPACE_POSE;
-				con->flag |= CONSTRAINT_SPACEONCE;
-			}
-		}
-		else if (nr==20) con = add_new_constraint(CONSTRAINT_TYPE_TRANSFORM);
-		else if (nr==21) con = add_new_constraint(CONSTRAINT_TYPE_DISTLIMIT);
-		else if (nr==22) con = add_new_constraint(CONSTRAINT_TYPE_SHRINKWRAP);
-		
-		if (con==NULL) return;	/* paranoia */
-		
-		if (pchanact) {
-			BLI_addtail(&pchanact->constraints, con);
-			unique_constraint_name(con, &pchanact->constraints);
-			pchanact->constflag |= PCHAN_HAS_CONST;	/* for draw */
-			if (proxylocked_constraints_owner(ob, pchanact))
-				con->flag |= CONSTRAINT_PROXY_LOCAL;
-		}
-		else {
-			BLI_addtail(&ob->constraints, con);
-			unique_constraint_name(con, &ob->constraints);
-			if (proxylocked_constraints_owner(ob, NULL))
-				con->flag |= CONSTRAINT_PROXY_LOCAL;
-		}
-	}
-	
-	/* set the target */
-	if (pchansel) {
-		set_constraint_nth_target(con, ob, pchansel->name, 0);
-	}
-	else if (obsel) {
-		set_constraint_nth_target(con, obsel, "", 0);
-	}
-	else if (ELEM4(nr, 11, 13, 14, 15)==0) {	/* add new empty as target */
-		Base *base= BASACT, *newbase;
-		Object *obt;
-		
-		obt= add_object(scene, OB_EMPTY);
-		/* set layers OK */
-		newbase= BASACT;
-		newbase->lay= base->lay;
-		obt->lay= newbase->lay;
-		
-		/* transform cent to global coords for loc */
-		if (pchanact) {
-			if (only_IK)
-				VecMat4MulVecfl(obt->loc, ob->obmat, pchanact->pose_tail);
-			else
-				VecMat4MulVecfl(obt->loc, ob->obmat, pchanact->pose_head);
-		}
-		else
-			VECCOPY(obt->loc, ob->obmat[3]);
-		
-		set_constraint_nth_target(con, obt, "", 0);
-		
-		/* restore, add_object sets active */
-		BASACT= base;
-		base->flag |= SELECT;
-	}
-	
-	/* active flag */
-	con->flag |= CONSTRAINT_ACTIVE;
-	for (con= con->prev; con; con= con->prev)
-		con->flag &= ~CONSTRAINT_ACTIVE;
-
-	DAG_scene_sort(scene);		// sort order of objects
-	
-	if (pchanact) {
-		ob->pose->flag |= POSE_RECALC;	// sort pose channels
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);	// and all its relations
-	}
-	else
-		DAG_object_flush_update(scene, ob, OB_RECALC_OB);	// and all its relations
-
-	if (only_IK)
-		BIF_undo_push("Add IK Constraint");
-	else
-		BIF_undo_push("Add Constraint");
-
 }
 
 /* ------------- Constraint Sanity Testing ------------------- */
@@ -1177,14 +925,24 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 }
 
 /* used by add constraint operators to add the constraint required */
-static int constraint_add_exec(bContext *C, wmOperator *op, ListBase *list)
+static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase *list, int type, short setTarget)
 {
 	Scene *scene= CTX_data_scene(C);
-    Object *ob = CTX_data_active_object(C);
 	bPoseChannel *pchan= get_active_posechannel(ob);
 	bConstraint *con;
-	int type= RNA_enum_get(op->ptr, "type");
-	int setTarget= RNA_boolean_get(op->ptr, "set_targets");
+	
+	/* check if constraint to be added is valid for the given constraints stack */
+	if (type == CONSTRAINT_TYPE_NULL) {
+		return OPERATOR_CANCELLED;
+	}
+	if ( (type == CONSTRAINT_TYPE_RIGIDBODYJOINT) && (list != &ob->constraints) ) {
+		BKE_report(op->reports, RPT_ERROR, "Rigid Body Joint Constraint can only be added to Objects.");
+		return OPERATOR_CANCELLED;
+	}
+	if ( (type == CONSTRAINT_TYPE_KINEMATIC) && ((!pchan) || (list != &pchan->constraints)) ) {
+		BKE_report(op->reports, RPT_ERROR, "IK Constraint can only be added to Bones.");
+		return OPERATOR_CANCELLED;
+	}
 	
 	/* create a new constraint of the type requried, and add it to the active/given constraints list */
 	con = add_new_constraint(type);
@@ -1295,102 +1053,63 @@ static int constraint_add_exec(bContext *C, wmOperator *op, ListBase *list)
 
 /* ------------------ */
 
-#if 0 // BUGGY
-/* for object cosntraints, don't include NULL or IK for now */
-static int object_constraint_add_invoke(bContext *C, wmOperator *op, wmEvent *evt)
-{
-	EnumPropertyItem *item;
-	uiPopupMenu *pup;
-	uiLayout *layout;
-	int i, totitem;
-	
-	pup= uiPupMenuBegin(C, "Add Constraint", 0);
-	layout= uiPupMenuLayout(pup);
-	
-	/* loop over the constraint-types as defined in the enum 
-	 *	- code below is based on the code used for WM_menu_invoke()
-	 */
-	totitem= sizeof(&constraint_type_items[0]) / sizeof(EnumPropertyItem);
-	item= constraint_type_items;
-	 
-	for (i=0; i < totitem; i++) {
-		if (ELEM(item[i].value, CONSTRAINT_TYPE_NULL, CONSTRAINT_TYPE_KINEMATIC) == 0) {
-			if (item[i].identifier[0])
-				uiItemEnumO(layout, (char*)item[i].name, item[i].icon, "OBJECT_OT_constraint_add", "type", item[i].value);
-			else
-				uiItemS(layout);
-		}
-	}
-	
-	uiPupMenuEnd(C, pup);
-}
-#endif // BUGGY
-
 /* dummy operator callback */
 static int object_constraint_add_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Object *ob;
+	int type= RNA_enum_get(op->ptr, "type");
+	short with_targets= 0;
 	
+	/* get active object from context */
 	if (sa->spacetype == SPACE_BUTS)
 		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	else
 		ob= CTX_data_active_object(C);
 	
-	if (!ob)
+	if (!ob) {
+		BKE_report(op->reports, RPT_ERROR, "No active object to add constraint to.");
 		return OPERATOR_CANCELLED;
-
-	return constraint_add_exec(C, op, &ob->constraints);
-}
-
-#if 0 // BUGGY
-/* for bone constraints, don't include NULL for now */
-static int pose_constraint_add_invoke(bContext *C, wmOperator *op, wmEvent *evt)
-{
-	EnumPropertyItem *item;
-	uiPopupMenu *pup;
-	uiLayout *layout;
-	int i, totitem;
-	
-	pup= uiPupMenuBegin(C, "Add Constraint", 0);
-	layout= uiPupMenuLayout(pup);
-	
-	/* loop over the constraint-types as defined in the enum 
-	 *	- code below is based on the code used for WM_menu_invoke()
-	 */
-	totitem= sizeof(&constraint_type_items[0]) / sizeof(EnumPropertyItem);
-	item= constraint_type_items;
-	 
-	for (i=0; i < totitem; i++) {
-		// TODO: can add some other conditions here...
-		if (item[i].value != CONSTRAINT_TYPE_NULL) {
-			if (item[i].identifier[0])
-				uiItemEnumO(layout, (char*)item[i].name, item[i].icon, "POSE_OT_constraint_add", "type", item[i].value);
-			else
-				uiItemS(layout);
-		}
 	}
-	
-	uiPupMenuEnd(C, pup);
+		
+	/* hack: set constraint targets from selected objects in context is allowed when
+	 *		operator name included 'with_targets', since the menu doesn't allow multiple properties
+	 */
+	if (strstr(op->idname, "with_targets"))
+		with_targets= 1;
+
+	return constraint_add_exec(C, op, ob, &ob->constraints, type, with_targets);
 }
-#endif // BUGGY
 
 /* dummy operator callback */
 static int pose_constraint_add_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Object *ob;
+	int type= RNA_enum_get(op->ptr, "type");
+	short with_targets= 0;
 	
+	/* get active object from context */
 	if (sa->spacetype == SPACE_BUTS)
 		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	else
 		ob= CTX_data_active_object(C);
 	
-	if (!ob)
+	if (!ob) {
+		BKE_report(op->reports, RPT_ERROR, "No active object to add constraint to.");
 		return OPERATOR_CANCELLED;
+	}
+		
+	/* hack: set constraint targets from selected objects in context is allowed when
+	 *		operator name included 'with_targets', since the menu doesn't allow multiple properties
+	 */
+	if (strstr(op->idname, "with_targets"))
+		with_targets= 1;
 	
-	return constraint_add_exec(C, op, get_active_constraints(ob));
+	return constraint_add_exec(C, op, ob, get_active_constraints(ob), type, with_targets);
 }
+
+/* ------------------ */
 
 void OBJECT_OT_constraint_add(wmOperatorType *ot)
 {
@@ -1400,7 +1119,7 @@ void OBJECT_OT_constraint_add(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_constraint_add";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;//object_constraint_add_invoke;
+	ot->invoke= WM_menu_invoke;
 	ot->exec= object_constraint_add_exec;
 	ot->poll= ED_operator_object_active;
 	
@@ -1409,7 +1128,25 @@ void OBJECT_OT_constraint_add(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_enum(ot->srna, "type", constraint_type_items, 0, "Type", "");
-	RNA_def_boolean(ot->srna, "set_targets", 0, "Set Targets", "Set target info for new constraints from context.");
+}
+
+void OBJECT_OT_constraint_add_with_targets(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Constraint (with Targets)";
+	ot->description = "Add a constraint to the active object, with target (where applicable) set to the selected Objects/Bones.";
+	ot->idname= "OBJECT_OT_constraint_add_with_targets";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= object_constraint_add_exec;
+	ot->poll= ED_operator_object_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_enum(ot->srna, "type", constraint_type_items, 0, "Type", "");
 }
 
 void POSE_OT_constraint_add(wmOperatorType *ot)
@@ -1420,7 +1157,7 @@ void POSE_OT_constraint_add(wmOperatorType *ot)
 	ot->idname= "POSE_OT_constraint_add";
 	
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke; //pose_constraint_add_invoke;
+	ot->invoke= WM_menu_invoke;
 	ot->exec= pose_constraint_add_exec;
 	ot->poll= ED_operator_posemode;
 	
@@ -1429,6 +1166,24 @@ void POSE_OT_constraint_add(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_enum(ot->srna, "type", constraint_type_items, 0, "Type", "");
-	RNA_def_boolean(ot->srna, "set_targets", 0, "Set Targets", "Set target info for new constraints from context.");
+}
+
+void POSE_OT_constraint_add_with_targets(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Constraint (with Targets)";
+	ot->description = "Add a constraint to the active bone, with target (where applicable) set to the selected Objects/Bones.";
+	ot->idname= "POSE_OT_constraint_add_with_targets";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= pose_constraint_add_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_enum(ot->srna, "type", constraint_type_items, 0, "Type", "");
 }
 

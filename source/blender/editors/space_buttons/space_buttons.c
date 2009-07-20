@@ -326,6 +326,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_GEOM_SELECT:
+				case ND_CONSTRAINT:
 					ED_area_tag_redraw(sa);
 					break;
 				case ND_SHADING:
