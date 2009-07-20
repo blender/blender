@@ -66,7 +66,10 @@ PyObject *bpy_text_import( char *name, int *found )
 	
 	*found= 0;
 
-	if(!maggie) return NULL;
+	if(!maggie) {
+		printf("ERROR: bpy_import_main_set() was not called before running python. this is a bug.\n");
+		return NULL;
+	}
 	
 	if (namelen>21-3) return NULL; /* we know this cant be importable, the name is too long for blender! */
 	
@@ -113,6 +116,11 @@ PyObject *bpy_text_reimport( PyObject *module, int *found )
 	char *buf = NULL;
 //XXX	Main *maggie= bpy_import_main ? bpy_import_main:G.main;
 	Main *maggie= bpy_import_main;
+	
+	if(!maggie) {
+		printf("ERROR: bpy_import_main_set() was not called before running python. this is a bug.\n");
+		return NULL;
+	}
 	
 	*found= 0;
 	
