@@ -1980,7 +1980,7 @@ void SCREEN_OT_region_foursplit(wmOperatorType *ot)
 	ot->idname= "SCREEN_OT_region_foursplit";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
+//	ot->invoke= WM_operator_confirm;
 	ot->exec= region_foursplit_exec;
 	ot->poll= ED_operator_areaactive;
 	ot->flag= OPTYPE_REGISTER;

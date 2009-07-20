@@ -179,14 +179,94 @@ class View3DPanel(bpy.types.Panel):
 	__region_type__ = "TOOLS"
 	__context__ = "sculptmode"
 
-class VIEW3D_PT_tools_sculptmode(View3DPanel):
-	__idname__ = "VIEW3D_PT_tools_sculptmode"
-	__label__ = "Sculpt Tools"
+#class VIEW3D_PT_tools_sculptmode(View3DPanel):
+#	__idname__ = "VIEW3D_PT_tools_sculptmode"
+#	__label__ = "Sculpt Tools"
+#
+#	def draw(self, context):
+#		layout = self.layout
+#
+#		layout.row().itemO("sculpt.radial_control")
+
+class VIEW3D_PT_tools_brush(bpy.types.Panel):
+	__space_type__ = "VIEW_3D"
+	__region_type__ = "TOOLS"
+	__label__ = "Brush"
+
+	def brush_src(self, context):
+		ts = context.scene.tool_settings
+		if context.sculpt_object:
+			return ts.sculpt
+		elif context.vpaint_object:
+			return ts.vpaint
+		elif context.wpaint_object:
+			return ts.wpaint
+		return False
+
+	def poll(self, context):
+		return self.brush_src(context)
 
 	def draw(self, context):
+		src = self.brush_src(context)
+		brush = src.brush
 		layout = self.layout
 
-		layout.row().itemO("sculpt.radial_control")
+		layout.split().row().template_ID(src, "brush")
+
+		if context.sculpt_object:
+			layout.column().itemR(brush, "sculpt_tool", expand=True)
+
+		split = layout.split()
+		col = split.column()
+		col.itemR(brush, "size", slider=True)
+		if context.wpaint_object:
+			col.itemR(context.scene.tool_settings, "vertex_group_weight", text="Weight", slider=True)
+		col.itemR(brush, "strength", slider=True)
+
+
+
+		split = layout.split()
+		col = split.column()
+		col.itemR(brush, "airbrush")
+		col.itemR(brush, "anchored")
+		col.itemR(brush, "rake")
+		col.itemR(brush, "space", text="Spacing")
+		colsub = col.column()
+		colsub.active = brush.space
+		colsub.itemR(brush, "spacing", text="")
+
+		split = layout.split()
+		split.template_curve_mapping(brush.curve)
+		
+class VIEW3D_PT_sculptoptions(bpy.types.Panel):
+	__space_type__ = "VIEW_3D"
+	__region_type__ = "TOOLS"
+	__label__ = "Options"
+
+	def poll(self, context):
+		return context.sculpt_object
+
+	def draw(self, context):
+		sculpt = context.scene.tool_settings.sculpt
+
+		split = self.layout.split()
+		
+		col = split.column()
+		col.itemL(text="Symmetry:")
+		row = col.row(align=True)
+		row.itemR(sculpt, "symmetry_x", text="X", toggle=True)
+		row.itemR(sculpt, "symmetry_y", text="Y", toggle=True)
+		row.itemR(sculpt, "symmetry_z", text="Z", toggle=True)
+
+		split = self.layout.split()
+		
+		col = split.column()
+		col.itemL(text="Lock Axis:")
+		row = col.row(align=True)
+		row.itemR(sculpt, "lock_x", text="X", toggle=True)
+		row.itemR(sculpt, "lock_y", text="Y", toggle=True)
+		row.itemR(sculpt, "lock_z", text="Z", toggle=True)
+
 
 # ********** default tools for weightpaint ****************
 
@@ -246,7 +326,8 @@ bpy.types.register(VIEW3D_PT_tools_editmode_armature)
 bpy.types.register(VIEW3D_PT_tools_editmode_mball)
 bpy.types.register(VIEW3D_PT_tools_editmode_lattice)
 bpy.types.register(VIEW3D_PT_tools_posemode)
-bpy.types.register(VIEW3D_PT_tools_sculptmode)
+bpy.types.register(VIEW3D_PT_tools_brush)
+bpy.types.register(VIEW3D_PT_sculptoptions)
 bpy.types.register(VIEW3D_PT_tools_weightpaint)
 bpy.types.register(VIEW3D_PT_tools_vertexpaint)
 bpy.types.register(VIEW3D_PT_tools_texturepaint)

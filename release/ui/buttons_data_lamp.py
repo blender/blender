@@ -47,8 +47,10 @@ class DATA_PT_lamp(DataButtonsPanel):
 		layout = self.layout
 		
 		lamp = context.lamp
-
-		layout.itemR(lamp, "type")
+		
+		split = layout.split(percentage=0.2)
+		split.itemL(text="Type:")
+		split.itemR(lamp, "type", text="")
 		
 		split = layout.split()
 		
@@ -64,7 +66,9 @@ class DATA_PT_lamp(DataButtonsPanel):
 		sub.itemR(lamp, "diffuse")
 		
 		if lamp.type in ('POINT', 'SPOT'):
-			sub.itemR(lamp, "falloff_type")
+			split = sub.split(percentage=0.3)
+			split.itemL(text="Falloff:")
+			split.itemR(lamp, "falloff_type", text="")
 			sub.itemR(lamp, "sphere")
 			
 			if (lamp.falloff_type == 'LINEAR_QUADRATIC_WEIGHTED'):
@@ -81,47 +85,75 @@ class DATA_PT_lamp(DataButtonsPanel):
 				sub.itemR(lamp, "size", text="Size X")
 				sub.itemR(lamp, "size_y")
 				
-class DATA_PT_sunsky(DataButtonsPanel):
-	__idname__ = "DATA_PT_sunsky"
-	__label__ = "Sun/Sky"
+class DATA_PT_sky(DataButtonsPanel):
+	__idname__ = "DATA_PT_sky"
+	__label__ = "Sky"
 	
 	def poll(self, context):
 		lamp = context.lamp
 		return (lamp and lamp.type == 'SUN')
+		
+	def draw_header(self, context):
+		layout = self.layout
+		lamp = context.lamp.sky
+
+		layout.itemR(lamp, "sky", text="")
 
 	def draw(self, context):
 		layout = self.layout
 		lamp = context.lamp.sky
 
-		row = layout.row()
-		row.itemR(lamp, "sky")
-		row.itemR(lamp, "atmosphere")
+		layout.active = lamp.sky
 		
-		row = layout.row()
-		row.active = lamp.sky or lamp.atmosphere
-		row.itemR(lamp, "atmosphere_turbidity", text="Turbidity")
-			
 		split = layout.split()
-
 		col = split.column()
-		sub = col.column()
-		sub.active = lamp.sky
-		sub.itemR(lamp, "sky_blend_type", text="Blend Type")
-		sub.itemR(lamp, "sky_blend")
-		sub.itemR(lamp, "sky_color_space", text="Color Space")
-		sub.itemR(lamp, "sky_exposure")
-		sub.itemR(lamp, "horizon_brightness", text="Hor Bright")
-		sub.itemR(lamp, "spread", text="Hor Spread")
-		sub.itemR(lamp, "sun_brightness", text="Sun Bright")
-		sub.itemR(lamp, "sun_size")
-		sub.itemR(lamp, "backscattered_light", text="Back Light")
+
+		col.itemL(text="Colors:")
+		col.itemR(lamp, "sky_blend_type", text="Blend Type")
+		col.itemR(lamp, "sky_blend")
+		col.itemR(lamp, "sky_color_space", text="Color Space")
+		col.itemR(lamp, "sky_exposure", text="Exposure")
+		
+		col = split.column()
+		col.itemL(text="Horizon:")
+		col.itemR(lamp, "horizon_brightness", text="Brightness")
+		col.itemR(lamp, "spread", text="Spread")
+		col.itemL(text="Sun:")
+		col.itemR(lamp, "sun_brightness", text="Brightness")
+		col.itemR(lamp, "sun_size", text="Size")
+		col.itemR(lamp, "backscattered_light", text="Back Light")
 				
+
+		
+		
+class DATA_PT_atmosphere(DataButtonsPanel):
+	__idname__ = "DATA_PT_atmosphere"
+	__label__ = "Atmosphere"
+	
+	def poll(self, context):
+		lamp = context.lamp
+		return (lamp and lamp.type == 'SUN')
+
+	def draw_header(self, context):
+		layout = self.layout
+		lamp = context.lamp.sky
+
+		layout.itemR(lamp, "atmosphere", text="")
+
+	def draw(self, context):
+		layout = self.layout
+		lamp = context.lamp.sky
+	
+		layout.active = lamp.atmosphere
+		
+		split = layout.split()
 		sub = split.column()
-		sub.active = lamp.atmosphere
-		sub.itemR(lamp, "sun_intensity", text="Sun Intens")
-		sub.itemR(lamp, "atmosphere_inscattering", text="Inscattering")
-		sub.itemR(lamp, "atmosphere_extinction", text="Extinction")
-		sub.itemR(lamp, "atmosphere_distance_factor", text="Distance")
+		sub.itemR(lamp, "atmosphere_turbidity", text="Turbidity")
+		sub.itemR(lamp, "sun_intensity", text="Sun Intensity")
+		sub = split.column()
+		sub.itemR(lamp, "atmosphere_inscattering", text="Inscattering", slider=True)
+		sub.itemR(lamp, "atmosphere_extinction", text="Extinction", slider=True)
+		sub.itemR(lamp, "atmosphere_distance_factor", text="Distance")		
 				
 class DATA_PT_shadow(DataButtonsPanel):
 	__idname__ = "DATA_PT_shadow"
@@ -252,7 +284,8 @@ bpy.types.register(DATA_PT_context_lamp)
 bpy.types.register(DATA_PT_preview)
 bpy.types.register(DATA_PT_lamp)
 bpy.types.register(DATA_PT_shadow)
-bpy.types.register(DATA_PT_sunsky)
+bpy.types.register(DATA_PT_sky)
+bpy.types.register(DATA_PT_atmosphere)
 bpy.types.register(DATA_PT_spot)
 bpy.types.register(DATA_PT_falloff_curve)
 

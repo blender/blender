@@ -283,7 +283,7 @@ static void rna_def_lamp(BlenderRNA *brna)
 		{LA_LOCAL, "POINT", ICON_LAMP_POINT, "Point", "Omnidirectional point light source."},
 		{LA_SUN, "SUN", ICON_LAMP_SUN, "Sun", "Constant direction parallel ray light source."},
 		{LA_SPOT, "SPOT", ICON_LAMP_SPOT, "Spot", "Directional cone light source."},
-		{LA_HEMI, "HEMI", ICON_LAMP_HEMI, "Hemi", "180 degree constant light source."},
+		{LA_HEMI, "HEMI", ICON_LAMP_HEMI, "Hemisphere", "180 degree constant light source."},
 		{LA_AREA, "AREA", ICON_LAMP_AREA, "Area", "Directional area light source."},
 		{0, NULL, 0, NULL, NULL}};
 
