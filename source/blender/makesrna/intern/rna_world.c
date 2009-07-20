@@ -422,6 +422,38 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Real Sky", "Render background with a real horizon, relative to the camera angle.");
 	RNA_def_property_update(prop, NC_WORLD, NULL);
 
+	/* game settings */
+	/* should go in a fake substruct however not sure if they move about */
+	prop= RNA_def_property(srna, "game_fps", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "ticrate");
+	RNA_def_property_range(prop, 1, 120);
+	RNA_def_property_ui_text(prop, "Frames Per Second", "The nominal number of game frames per second. Physics fixed timestep = 1/fps, independently of actual frame rate.");
+
+	prop= RNA_def_property(srna, "game_logic_step_max", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "maxlogicstep");
+	RNA_def_property_range(prop, 1, 5);
+	RNA_def_property_ui_text(prop, "Max Logic Steps", "The maxmimum number of logic frame per game frame if graphics slows down the game, higher value allows better synchronization with physics.");
+
+	prop= RNA_def_property(srna, "game_physics_substep", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "physubstep");
+	RNA_def_property_range(prop, 1, 5);
+	RNA_def_property_ui_text(prop, "Physics Sub Steps", "The maximum number of physics step per game frame if graphics slows down the game, higher value allows physics to keep up with realtime.");
+
+	prop= RNA_def_property(srna, "game_physics_step_max", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "maxphystep");
+	RNA_def_property_range(prop, 1, 5);
+	RNA_def_property_ui_text(prop, "Max Physics Steps", "The number of simulation substep per physic timestep, higher value give better physics precision.");
+
+	prop= RNA_def_property(srna, "game_use_occlusion_culling", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_DBVT_CULLING);
+	RNA_def_property_ui_text(prop, "Enabled", "Use optimized Bullet DBVT tree for view frustrum and occlusion culling");
+
+	prop= RNA_def_property(srna, "game_occlusion_culling_resolution", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "occlusionRes");
+	RNA_def_property_range(prop, 128, 1024);
+	RNA_def_property_ui_text(prop, "Occlusion Resolution", "The size of the occlusion buffer in pixel, use higher value for better precsion (slower).");
+
+
 	/* physics */
 	prop= RNA_def_property(srna, "physics_engine", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "physicsEngine");

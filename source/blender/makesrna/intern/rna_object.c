@@ -705,7 +705,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "properties", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "prop", NULL);
-	RNA_def_property_struct_type(prop, "GameProperty");
+	RNA_def_property_struct_type(prop, "GameProperty"); /* rna_property.c */
 	RNA_def_property_ui_text(prop, "Properties", "Game engine properties.");
 
 	prop= RNA_def_property(srna, "show_sensors", PROP_BOOLEAN, PROP_NONE);

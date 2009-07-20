@@ -175,6 +175,26 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 		col.row().itemR(ao, "blend_mode", expand=True)
 		col.row().itemR(ao, "color", expand=True)
 		col.itemR(ao, "energy")
+		
+class WORLD_PT_game(WorldButtonsPanel):
+	__label__ = "Game Settings"
+
+	def draw(self, context):
+		layout = self.layout
+		world = context.world
+		
+		flow = layout.column_flow()
+		flow.itemR(world, "physics_engine")
+		flow.itemR(world, "physics_gravity")
+		
+		flow.itemR(world, "game_fps")
+		flow.itemR(world, "game_logic_step_max")
+		flow.itemR(world, "game_physics_substep")
+		flow.itemR(world, "game_physics_step_max")
+		
+		flow.itemR(world, "game_use_occlusion_culling", text="Enable Occlusion Culling")
+		flow.itemR(world, "game_occlusion_culling_resolution")
+		
 
 bpy.types.register(WORLD_PT_context_world)	
 bpy.types.register(WORLD_PT_preview)
@@ -183,3 +203,4 @@ bpy.types.register(WORLD_PT_ambient_occlusion)
 bpy.types.register(WORLD_PT_mist)
 bpy.types.register(WORLD_PT_stars)
 bpy.types.register(WORLD_PT_color_correction)
+bpy.types.register(WORLD_PT_game)
