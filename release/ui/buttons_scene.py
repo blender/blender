@@ -412,13 +412,13 @@ class RENDER_PT_stamp(RenderButtonsPanel):
 		rowsub.itemR(rd, "stamp_note_text", text="")
 
 bpy.types.register(RENDER_PT_render)
+bpy.types.register(RENDER_PT_layers)
 bpy.types.register(RENDER_PT_dimensions)
 bpy.types.register(RENDER_PT_antialiasing)
-bpy.types.register(RENDER_PT_layers)
 bpy.types.register(RENDER_PT_shading)
-bpy.types.register(RENDER_PT_post_processing)
-bpy.types.register(RENDER_PT_performance)
 bpy.types.register(RENDER_PT_output)
 bpy.types.register(RENDER_PT_encoding)
+bpy.types.register(RENDER_PT_performance)
+bpy.types.register(RENDER_PT_post_processing)
 bpy.types.register(RENDER_PT_stamp)
 

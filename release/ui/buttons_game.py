@@ -42,45 +42,57 @@ class GAME_PT_physics(GameButtonsPanel):
 		
 		game = ob.game
 
-		flow = layout.column_flow()
-		flow.active = True
-		flow.itemR(game, "physics_type")
-		flow.itemR(game, "actor")
-		
-		row = layout.row()
-		row.itemR(game, "ghost")
-		row.itemR(ob, "restrict_render", text="Invisible") # out of place but useful
-		
-		flow = layout.column_flow()
-		flow.itemR(game, "mass")
-		flow.itemR(game, "radius")
-		flow.itemR(game, "no_sleeping")
-		flow.itemR(game, "damping")
-		flow.itemR(game, "rotation_damping")
-		flow.itemR(game, "minimum_velocity")
-		flow.itemR(game, "maximum_velocity")
-		
-		row = layout.row()
-		row.itemR(game, "do_fh")
-		row.itemR(game, "rotation_fh")
-		
-		flow = layout.column_flow()
-		flow.itemR(game, "form_factor")
-		flow.itemR(game, "anisotropic_friction")
-		
-		flow = layout.column_flow()
-		flow.active = game.anisotropic_friction
-		flow.itemR(game, "friction_coefficients")
+		layout.itemR(game, "physics_type")
+		layout.itemS()
 		
 		split = layout.split()
+		col = split.column()
+		
+		col.itemR(game, "actor")
+		
+		col.itemR(game, "ghost")
+		col.itemR(ob, "restrict_render", text="Invisible") # out of place but useful
+		col = split.column()
+		col.itemR(game, "do_fh", text="Use Material Physics")
+		col.itemR(game, "rotation_fh", text="Rotate From Normal")
+		
+		layout.itemS()
+		split = layout.split()
+		col = split.column()
+
+		col.itemR(game, "mass")
+		col.itemR(game, "radius")
+		col.itemR(game, "no_sleeping")
+		col.itemR(game, "form_factor")
+		col.itemS()
+		col.itemL(text="Damping:")
+		col.itemR(game, "damping", text="Translation", slider=True)
+		col.itemR(game, "rotation_damping", text="Rotation", slider=True)
+		
+		col = split.column()
+		
+		col.itemL(text="Velocity:")
+		col.itemR(game, "minimum_velocity", text="Minimum")
+		col.itemR(game, "maximum_velocity", text="Maximum")
+		col.itemS()
+		col.itemR(game, "anisotropic_friction")
+		
+		colsub = col.column()
+		colsub.active = game.anisotropic_friction
+		colsub.itemR(game, "friction_coefficients", text="", slider=True)
+		
+		layout.itemS()
+		split = layout.split()
 		sub = split.column()
-		sub.itemR(game, "lock_x_axis")
-		sub.itemR(game, "lock_y_axis")
-		sub.itemR(game, "lock_z_axis")
+		sub.itemL(text="Lock Translation:")
+		sub.itemR(game, "lock_x_axis", text="X")
+		sub.itemR(game, "lock_y_axis", text="Y")
+		sub.itemR(game, "lock_z_axis", text="Z")
 		sub = split.column()
-		sub.itemR(game, "lock_x_rot_axis")
-		sub.itemR(game, "lock_y_rot_axis")
-		sub.itemR(game, "lock_z_rot_axis")
+		sub.itemL(text="Lock Rotation:")
+		sub.itemR(game, "lock_x_rot_axis", text="X")
+		sub.itemR(game, "lock_y_rot_axis", text="Y")
+		sub.itemR(game, "lock_z_rot_axis", text="Z")
 
 
 class GAME_PT_collision_bounds(GameButtonsPanel):
@@ -109,7 +121,6 @@ class GAME_PT_collision_bounds(GameButtonsPanel):
 		flow.itemR(game, "collision_bounds")
 		flow.itemR(game, "collision_compound")
 		flow.itemR(game, "collision_margin")
-
 
 
 bpy.types.register(GAME_PT_context_game)

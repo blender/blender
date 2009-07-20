@@ -86,6 +86,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 			row.itemR(field, "falloff_power", text="Power")
 			row.itemR(field, "positive_z", text="Positive Z")
 			
+			layout.itemS()	
 			split = layout.split()
 			sub = split.column()
 			
