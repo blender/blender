@@ -147,7 +147,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
 		
 		col = split.column(align=True)
 		col.itemR(cloth, "collision_quality", slider=True, text="Quality")
-		col.itemR(cloth, "min_distance", text="Distance")
+		col.itemR(cloth, "min_distance", slider=True, text="Distance")
 		col.itemR(cloth, "friction")
 		
 		col = split.column(align=True)
@@ -155,7 +155,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
 		col = col.column(align=True)
 		col.active = cloth.enable_self_collision
 		col.itemR(cloth, "self_collision_quality", slider=True, text="Quality")
-		col.itemR(cloth, "self_min_distance", text="Distance")
+		col.itemR(cloth, "self_min_distance", slider=True, text="Distance")
 
 class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
 	__idname__ = "PHYSICS_PT_stiffness"

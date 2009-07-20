@@ -117,7 +117,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		fss->typeFlags = OB_FSBND_PARTSLIP;
 		fss->domainNovecgen = 0;
 		fss->volumeInitType = 1; // volume
-		fss->partSlipValue = 0.5;
+		fss->partSlipValue = 0.2;
 
 		fss->generateTracers = 0;
 		fss->generateParticles = 0.0;
