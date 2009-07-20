@@ -1329,8 +1329,14 @@ static int object_constraint_add_invoke(bContext *C, wmOperator *op, wmEvent *ev
 /* dummy operator callback */
 static int object_constraint_add_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-
+	ScrArea *sa= CTX_wm_area(C);
+	Object *ob;
+	
+	if (sa->spacetype == SPACE_BUTS)
+		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	else
+		ob= CTX_data_active_object(C);
+	
 	if (!ob)
 		return OPERATOR_CANCELLED;
 
@@ -1372,8 +1378,14 @@ static int pose_constraint_add_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 /* dummy operator callback */
 static int pose_constraint_add_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-
+	ScrArea *sa= CTX_wm_area(C);
+	Object *ob;
+	
+	if (sa->spacetype == SPACE_BUTS)
+		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	else
+		ob= CTX_data_active_object(C);
+	
 	if (!ob)
 		return OPERATOR_CANCELLED;
 	
