@@ -53,6 +53,11 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 			sub.itemR(field, "planar")
 			sub.itemR(field, "surface")
 			
+		if field.type == "BOID":
+			sub.itemR(field, "strength")
+			sub = split.column()
+			sub.itemR(field, "surface")
+			
 		if field.type == "MAGNET":
 			sub.itemR(field, "strength")
 			sub = split.column()
@@ -75,7 +80,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 			sub.itemR(field, "root_coordinates")
 			sub.itemR(field, "force_2d")
 			
-		if field.type in ("HARMONIC", "SPHERICAL", "CHARGE", "WIND", "VORTEX", "TEXTURE", "MAGNET"):
+		if field.type in ("HARMONIC", "SPHERICAL", "CHARGE", "WIND", "VORTEX", "TEXTURE", "MAGNET", "BOID"):
 		
 			
 			layout.itemS()			

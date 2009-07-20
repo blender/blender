@@ -30,6 +30,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_boid_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
 #include "DNA_object_types.h"
@@ -57,6 +58,7 @@
 #include "BLI_listbase.h"
 
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -623,7 +625,7 @@ static int new_particle_settings_exec(bContext *C, wmOperator *op)
 	if(psys->part)
 		part= psys_copy_settings(psys->part);
 	else
-		part= psys_new_settings("PSys", bmain);
+		part= psys_new_settings("ParticleSettings", bmain);
 
 	ob= ptr.id.data;
 
@@ -631,6 +633,8 @@ static int new_particle_settings_exec(bContext *C, wmOperator *op)
 		psys->part->id.us--;
 
 	psys->part = part;
+
+	psys_check_boid_data(psys);
 
 	DAG_scene_sort(scene);
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
@@ -655,28 +659,28 @@ void PARTICLE_OT_new(wmOperatorType *ot)
 
 /********************** keyed particle target operators *********************/
 
-static int new_keyed_particle_target_exec(bContext *C, wmOperator *op)
+static int new_particle_target_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
 	Object *ob = ptr.id.data;
 
-	KeyedParticleTarget *kpt;
+	ParticleTarget *pt;
 
 	if(!psys)
 		return OPERATOR_CANCELLED;
 
-	kpt = psys->keyed_targets.first;
-	for(; kpt; kpt=kpt->next)
-		kpt->flag &= ~KEYED_TARGET_CURRENT;
+	pt = psys->targets.first;
+	for(; pt; pt=pt->next)
+		pt->flag &= ~PTARGET_CURRENT;
 
-	kpt = MEM_callocN(sizeof(KeyedParticleTarget), "keyed particle target");
+	pt = MEM_callocN(sizeof(ParticleTarget), "keyed particle target");
 
-	kpt->flag |= KEYED_TARGET_CURRENT;
-	kpt->psys = 1;
+	pt->flag |= PTARGET_CURRENT;
+	pt->psys = 1;
 
-	BLI_addtail(&psys->keyed_targets, kpt);
+	BLI_addtail(&psys->targets, pt);
 
 	DAG_scene_sort(scene);
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
@@ -686,44 +690,44 @@ static int new_keyed_particle_target_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void PARTICLE_OT_new_keyed_target(wmOperatorType *ot)
+void PARTICLE_OT_new_target(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "New Keyed Particle Target";
-	ot->idname= "PARTICLE_OT_new_keyed_target";
+	ot->name= "New Particle Target";
+	ot->idname= "PARTICLE_OT_new_target";
 	
 	/* api callbacks */
-	ot->exec= new_keyed_particle_target_exec;
+	ot->exec= new_particle_target_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int remove_keyed_particle_target_exec(bContext *C, wmOperator *op)
+static int remove_particle_target_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
 	Object *ob = ptr.id.data;
 
-	KeyedParticleTarget *kpt;
+	ParticleTarget *pt;
 
 	if(!psys)
 		return OPERATOR_CANCELLED;
 
-	kpt = psys->keyed_targets.first;
-	for(; kpt; kpt=kpt->next) {
-		if(kpt->flag & KEYED_TARGET_CURRENT) {
-			BLI_remlink(&psys->keyed_targets, kpt);
-			MEM_freeN(kpt);
+	pt = psys->targets.first;
+	for(; pt; pt=pt->next) {
+		if(pt->flag & PTARGET_CURRENT) {
+			BLI_remlink(&psys->targets, pt);
+			MEM_freeN(pt);
 			break;
 		}
 
 	}
-	kpt = psys->keyed_targets.last;
+	pt = psys->targets.last;
 
-	if(kpt)
-		kpt->flag |= KEYED_TARGET_CURRENT;
+	if(pt)
+		pt->flag |= PTARGET_CURRENT;
 
 	DAG_scene_sort(scene);
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
@@ -733,37 +737,37 @@ static int remove_keyed_particle_target_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void PARTICLE_OT_remove_keyed_target(wmOperatorType *ot)
+void PARTICLE_OT_remove_target(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Keyed Particle Target";
-	ot->idname= "PARTICLE_OT_remove_keyed_target";
+	ot->name= "Remove Particle Target";
+	ot->idname= "PARTICLE_OT_remove_target";
 	
 	/* api callbacks */
-	ot->exec= remove_keyed_particle_target_exec;
+	ot->exec= remove_particle_target_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/************************ move up modifier operator *********************/
+/************************ move up particle target operator *********************/
 
-static int keyed_target_move_up_exec(bContext *C, wmOperator *op)
+static int target_move_up_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
 	Object *ob = ptr.id.data;
-	KeyedParticleTarget *kpt;
+	ParticleTarget *pt;
 
 	if(!psys)
 		return OPERATOR_CANCELLED;
 	
-	kpt = psys->keyed_targets.first;
-	for(; kpt; kpt=kpt->next) {
-		if(kpt->flag & KEYED_TARGET_CURRENT && kpt->prev) {
-			BLI_remlink(&psys->keyed_targets, kpt);
-			BLI_insertlink(&psys->keyed_targets, kpt->prev->prev, kpt);
+	pt = psys->targets.first;
+	for(; pt; pt=pt->next) {
+		if(pt->flag & PTARGET_CURRENT && pt->prev) {
+			BLI_remlink(&psys->targets, pt);
+			BLI_insertlink(&psys->targets, pt->prev->prev, pt);
 
 			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
@@ -774,35 +778,35 @@ static int keyed_target_move_up_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void PARTICLE_OT_keyed_target_move_up(wmOperatorType *ot)
+void PARTICLE_OT_target_move_up(wmOperatorType *ot)
 {
-	ot->name= "Move Up Keyed Target";
-	ot->description= "Move keyed particle target up in the list.";
-	ot->idname= "PARTICLE_OT_keyed_target_move_up";
+	ot->name= "Move Up Target";
+	ot->description= "Move particle target up in the list.";
+	ot->idname= "PARTICLE_OT_target_move_up";
 
-	ot->exec= keyed_target_move_up_exec;
+	ot->exec= target_move_up_exec;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/************************ move down modifier operator *********************/
+/************************ move down particle target operator *********************/
 
-static int keyed_target_move_down_exec(bContext *C, wmOperator *op)
+static int target_move_down_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
 	Object *ob = ptr.id.data;
-	KeyedParticleTarget *kpt;
+	ParticleTarget *pt;
 
 	if(!psys)
 		return OPERATOR_CANCELLED;
-	kpt = psys->keyed_targets.first;
-	for(; kpt; kpt=kpt->next) {
-		if(kpt->flag & KEYED_TARGET_CURRENT && kpt->next) {
-			BLI_remlink(&psys->keyed_targets, kpt);
-			BLI_insertlink(&psys->keyed_targets, kpt->next, kpt);
+	pt = psys->targets.first;
+	for(; pt; pt=pt->next) {
+		if(pt->flag & PTARGET_CURRENT && pt->next) {
+			BLI_remlink(&psys->targets, pt);
+			BLI_insertlink(&psys->targets, pt->next, pt);
 
 			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
@@ -813,13 +817,13 @@ static int keyed_target_move_down_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void PARTICLE_OT_keyed_target_move_down(wmOperatorType *ot)
+void PARTICLE_OT_target_move_down(wmOperatorType *ot)
 {
-	ot->name= "Move Down Keyed Target";
-	ot->description= "Move keyed particle target down in the list.";
-	ot->idname= "PARTICLE_OT_keyed_target_move_down";
+	ot->name= "Move Down Target";
+	ot->description= "Move particle target down in the list.";
+	ot->idname= "PARTICLE_OT_target_move_down";
 
-	ot->exec= keyed_target_move_down_exec;
+	ot->exec= target_move_down_exec;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

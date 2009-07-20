@@ -221,7 +221,7 @@ extern StructRNA RNA_Key;
 extern StructRNA RNA_KeyboardSensor;
 extern StructRNA RNA_KeyingSet;
 extern StructRNA RNA_KeyingSetPath;
-extern StructRNA RNA_KeyedParticleTarget;
+extern StructRNA RNA_ParticleTarget;
 extern StructRNA RNA_KinematicConstraint;
 extern StructRNA RNA_Lamp;
 extern StructRNA RNA_LampSkySettings;

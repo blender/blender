@@ -198,10 +198,10 @@ void buttons_operatortypes(void)
 	WM_operatortype_append(OBJECT_OT_particle_system_remove);
 
 	WM_operatortype_append(PARTICLE_OT_new);
-	WM_operatortype_append(PARTICLE_OT_new_keyed_target);
-	WM_operatortype_append(PARTICLE_OT_remove_keyed_target);
-	WM_operatortype_append(PARTICLE_OT_keyed_target_move_up);
-	WM_operatortype_append(PARTICLE_OT_keyed_target_move_down);
+	WM_operatortype_append(PARTICLE_OT_new_target);
+	WM_operatortype_append(PARTICLE_OT_remove_target);
+	WM_operatortype_append(PARTICLE_OT_target_move_up);
+	WM_operatortype_append(PARTICLE_OT_target_move_down);
 
 	WM_operatortype_append(SCENE_OT_render_layer_add);
 	WM_operatortype_append(SCENE_OT_render_layer_remove);

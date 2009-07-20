@@ -130,7 +130,7 @@ void BLI_kdtree_balance(KDTree *tree)
 	tree->root= kdtree_balance(tree->nodes, tree->totnode, 0);
 }
 
-static float squared_distance(float *v1, float *v2, float *n1, float *n2)
+static float squared_distance(float *v2, float *v1, float *n1, float *n2)
 {
 	float d[3], dist;
 
@@ -140,7 +140,8 @@ static float squared_distance(float *v1, float *v2, float *n1, float *n2)
 
 	dist= d[0]*d[0] + d[1]*d[1] + d[2]*d[2];
 
-	if(n1 && n2 && n1[0]*n2[0] + n1[1]*n2[1] + n1[2]*n2[2] < 0.0f)
+	//if(n1 && n2 && n1[0]*n2[0] + n1[1]*n2[1] + n1[2]*n2[2] < 0.0f)
+	if(n2 && d[0]*n2[0] + d[1]*n2[1] + d[2]*n2[2] < 0.0f)
 		dist *= 10.0f;
 
 	return dist;
@@ -336,3 +337,111 @@ int	BLI_kdtree_find_n_nearest(KDTree *tree, int n, float *co, float *nor, KDTree
 	return found;
 }
 
+int range_compare(const void * a, const void * b)
+{
+	const KDTreeNearest *kda = a;
+	const KDTreeNearest *kdb = b;
+
+	if(kda->dist < kdb->dist)
+		return -1;
+	else if(kda->dist > kdb->dist)
+		return 1;
+	else
+		return 0;
+}
+static void add_in_range(KDTreeNearest **ptn, int found, int *totfoundstack, int index, float dist, float *co)
+{
+	KDTreeNearest *to;
+
+	if(found+1 > *totfoundstack) {
+		KDTreeNearest *temp=MEM_callocN((*totfoundstack+50)*sizeof(KDTreeNode), "psys_treefoundstack");
+		memcpy(temp, *ptn, *totfoundstack * sizeof(KDTreeNearest));
+		if(*ptn)
+			MEM_freeN(*ptn);
+		*ptn = temp;
+		*totfoundstack+=50;
+	}
+
+	to = (*ptn) + found;
+
+	to->index = index;
+	to->dist = sqrt(dist);
+	VecCopyf(to->co, co);
+}
+int BLI_kdtree_range_search(KDTree *tree, float range, float *co, float *nor, KDTreeNearest **nearest)
+{
+	KDTreeNode *root, *node=0;
+	KDTreeNode **stack, *defaultstack[100];
+	KDTreeNearest *foundstack=NULL;
+	float range2 = range*range, dist2;
+	int i, totstack, cur=0, found=0, totfoundstack=0;
+
+	if(!tree || !tree->root)
+		return 0;
+
+	stack= defaultstack;
+	totstack= 100;
+
+	root= tree->root;
+
+	if(co[root->d] + range < root->co[root->d]) {
+		if(root->left)
+			stack[cur++]=root->left;
+	}
+	else if(co[root->d] - range > root->co[root->d]) {
+		if(root->right)
+			stack[cur++]=root->right;
+	}
+	else {
+		dist2 = squared_distance(root->co, co, root->nor, nor);
+		if(dist2  <= range2)
+			add_in_range(&foundstack, found++, &totfoundstack, root->index, dist2, root->co);
+
+		if(root->left)
+			stack[cur++]=root->left;
+		if(root->right)
+			stack[cur++]=root->right;
+	}
+
+	while(cur--) {
+		node=stack[cur];
+
+		if(co[node->d] + range < node->co[node->d]) {
+			if(node->left)
+				stack[cur++]=node->left;
+		}
+		else if(co[node->d] - range > node->co[node->d]) {
+			if(node->right)
+				stack[cur++]=node->right;
+		}
+		else {
+			dist2 = squared_distance(node->co, co, node->nor, nor);
+			if(dist2 <= range2)
+				add_in_range(&foundstack, found++, &totfoundstack, node->index, dist2, node->co);
+
+			if(node->left)
+				stack[cur++]=node->left;
+			if(node->right)
+				stack[cur++]=node->right;
+		}
+
+		if(cur+3 > totstack){
+			KDTreeNode **temp=MEM_callocN((totstack+100)*sizeof(KDTreeNode*), "psys_treestack");
+			memcpy(temp,stack,totstack*sizeof(KDTreeNode*));
+			if(stack != defaultstack)
+				MEM_freeN(stack);
+			stack=temp;
+			totstack+=100;
+		}
+	}
+
+	if(stack != defaultstack)
+		MEM_freeN(stack);
+
+	if(found)
+		qsort(foundstack, found, sizeof(KDTreeNearest), range_compare);
+
+	*nearest = foundstack;
+
+	return found;
+}

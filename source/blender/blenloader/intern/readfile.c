@@ -53,6 +53,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_ID.h"
 #include "DNA_actuator_types.h"
+#include "DNA_boid_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
@@ -2990,6 +2991,29 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 			part->dup_group = newlibadr(fd, part->id.lib, part->dup_group);
 			part->eff_group = newlibadr(fd, part->id.lib, part->eff_group);
 			part->bb_ob = newlibadr(fd, part->id.lib, part->bb_ob);
+			if(part->boids) {
+				BoidState *state = part->boids->states.first;
+				BoidRule *rule;
+				for(; state; state=state->next) {
+					rule = state->rules.first;
+				for(; rule; rule=rule->next)
+					switch(rule->type) {
+						case eBoidRuleType_Goal:
+						case eBoidRuleType_Avoid:
+						{
+							BoidRuleGoalAvoid *brga = (BoidRuleGoalAvoid*)rule;
+							brga->ob = newlibadr(fd, part->id.lib, brga->ob);
+							break;
+						}
+						case eBoidRuleType_FollowLeader:
+						{
+							BoidRuleFollowLeader *brfl = (BoidRuleFollowLeader*)rule;
+							brfl->ob = newlibadr(fd, part->id.lib, brfl->ob);
+							break;
+						}
+					}
+				}
+			}
 			part->id.flag -= LIB_NEEDLINK;
 		}
 		part= part->id.next;
@@ -3001,6 +3025,19 @@ static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 	part->adt= newdataadr(fd, part->adt);
 	part->pd= newdataadr(fd, part->pd);
 	part->pd2= newdataadr(fd, part->pd2);
+
+	part->boids= newdataadr(fd, part->boids);
+
+	if(part->boids) {
+		BoidState *state;
+		link_list(fd, &part->boids->states);
+		
+		for(state=part->boids->states.first; state; state=state->next) {
+			link_list(fd, &state->rules);
+			link_list(fd, &state->conditions);
+			link_list(fd, &state->actions);
+		}
+	}
 }
 
 static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase *particles)
@@ -3015,10 +3052,10 @@ static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase 
 		
 		psys->part = newlibadr_us(fd, id->lib, psys->part);
 		if(psys->part) {
-			KeyedParticleTarget *kpt = psys->keyed_targets.first;
+			ParticleTarget *pt = psys->targets.first;
 
-			for(; kpt; kpt=kpt->next)
-				kpt->ob=newlibadr(fd, id->lib, kpt->ob);
+			for(; pt; pt=pt->next)
+				pt->ob=newlibadr(fd, id->lib, pt->ob);
 
 			psys->target_ob = newlibadr(fd, id->lib, psys->target_ob);
 
@@ -3042,24 +3079,38 @@ static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase 
 static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 {
 	ParticleSystem *psys;
+	ParticleData *pa;
 	int a;
 
 	for(psys=particles->first; psys; psys=psys->next) {
 		psys->particles=newdataadr(fd,psys->particles);
+		
 		if(psys->particles && psys->particles->hair){
-			ParticleData *pa = psys->particles;
-			for(a=0; a<psys->totpart; a++, pa++)
+			for(a=0,pa=psys->particles; a<psys->totpart; a++, pa++)
 				pa->hair=newdataadr(fd,pa->hair);
 		}
+		
 		if(psys->particles && psys->particles->keys){
-			ParticleData *pa = psys->particles;
-			for(a=0; a<psys->totpart; a++, pa++) {
+			for(a=0,pa=psys->particles; a<psys->totpart; a++, pa++) {
 				pa->keys= NULL;
 				pa->totkey= 0;
 			}
 
 			psys->flag &= ~PSYS_KEYED;
 		}
+
+		if(psys->particles->boid) {
+			pa = psys->particles;
+			pa->boid = newdataadr(fd, pa->boid);
+			for(a=1,pa++; a<psys->totpart; a++, pa++)
+				pa->boid = (pa-1)->boid + 1;
+		}
+		else {
+			for(a=0,pa=psys->particles; a<psys->totpart; a++, pa++)
+				pa->boid = NULL;
+		}
+
+
 		psys->child=newdataadr(fd,psys->child);
 		psys->effectors.first=psys->effectors.last=0;
 
@@ -3076,7 +3127,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 				direct_link_pointcache(fd, sb->pointcache);
 		}
 
-		link_list(fd, &psys->keyed_targets);
+		link_list(fd, &psys->targets);
 
 		psys->edit = 0;
 		psys->free_edit = NULL;
@@ -3089,6 +3140,8 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		psys->pointcache= newdataadr(fd, psys->pointcache);
 		if(psys->pointcache)
 			direct_link_pointcache(fd, psys->pointcache);
+
+		psys->tree = NULL;
 	}
 	return;
 }
@@ -3649,6 +3702,9 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 
 			surmd->dm = NULL;
 			surmd->bvhtree = NULL;
+			surmd->x = NULL;
+			surmd->v = NULL;
+			surmd->numverts = 0;
 		}
 		else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
@@ -8541,7 +8597,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				psys = MEM_callocN(sizeof(ParticleSystem), "particle_system");
 				psys->pointcache = BKE_ptcache_add();
 
-				part = psys->part = psys_new_settings("PSys", main);
+				part = psys->part = psys_new_settings("ParticleSettings", main);
 				
 				/* needed for proper libdata lookup */
 				oldnewmap_insert(fd->libmap, psys->part, psys->part, 0);

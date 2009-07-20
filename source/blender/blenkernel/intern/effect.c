@@ -505,6 +505,9 @@ void do_physical_effector(Scene *scene, Object *ob, float *opco, short type, flo
 			VecAddf(field,field,mag_vec);
 			break;
 		}
+		case PFIELD_BOID:
+			/* Boid field is handled completely in boids code. */
+			break;
 	}
 }
 

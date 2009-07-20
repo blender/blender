@@ -284,7 +284,7 @@ static void rna_FieldSettings_surface_update(bContext *C, PointerRNA *ptr)
 	/* add/remove modifier as needed */
 	if(!md) {
 		if(pd && (pd->flag & PFIELD_SURFACE))
-			if(ELEM5(pd->forcefield,PFIELD_HARMONIC,PFIELD_FORCE,PFIELD_HARMONIC,PFIELD_CHARGE,PFIELD_LENNARDJ))
+			if(ELEM6(pd->forcefield,PFIELD_HARMONIC,PFIELD_FORCE,PFIELD_HARMONIC,PFIELD_CHARGE,PFIELD_LENNARDJ,PFIELD_BOID))
 				if(ELEM4(ob->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE))
 					ED_object_modifier_add(NULL, scene, ob, eModifierType_Surface);
 	}
@@ -504,6 +504,7 @@ static void rna_def_field(BlenderRNA *brna)
 		{PFIELD_HARMONIC, "HARMONIC", 0, "Harmonic", ""},
 		{PFIELD_CHARGE, "CHARGE", 0, "Charge", ""},
 		{PFIELD_LENNARDJ, "LENNARDJ", 0, "Lennard-Jones", ""},
+		{PFIELD_BOID, "BOID", 0, "Boid", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem falloff_items[] = {

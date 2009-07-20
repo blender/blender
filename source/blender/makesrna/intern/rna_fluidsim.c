@@ -93,7 +93,7 @@ static void rna_FluidSettings_update_type(bContext *C, PointerRNA *ptr)
 
 		if(ob->type == OB_MESH && !psys) {
 			/* add particle system */
-			part= psys_new_settings("PSys", bmain);
+			part= psys_new_settings("ParticleSettings", bmain);
 			psys= MEM_callocN(sizeof(ParticleSystem), "particle_system");
 
 			part->type= PART_FLUID;

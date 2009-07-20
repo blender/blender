@@ -61,13 +61,13 @@ typedef struct ChildParticle {
 	float rand[3];
 } ChildParticle;
 
-typedef struct KeyedParticleTarget {
-	struct KeyedParticleTarget *next, *prev;
+typedef struct ParticleTarget {
+	struct ParticleTarget *next, *prev;
 	struct Object *ob;
 	int psys;
-	short flag, rt;
+	short flag, mode;
 	float time, duration;
-} KeyedParticleTarget;
+} ParticleTarget;
 
 /* Everything that's non dynamic for a particle:			*/
 typedef struct ParticleData {
@@ -82,7 +82,9 @@ typedef struct ParticleData {
 
 	ParticleKey *keys;		/* keyed states */
 
-	float i_rot[4],r_rot[4];/* initial & random values (i_rot should be removed as it's not used anymore)*/
+	struct BoidData *boid;	/* boids data */
+
+	float r_rot[4];			/* random values */
 	float r_ave[3],r_ve[3];
 
 	float fuv[4], foffset;	/* coordinates on face/edge number "num" and depth along*/
@@ -91,13 +93,10 @@ typedef struct ParticleData {
 	float time, lifetime;	/* dietime is not nescessarily time+lifetime as	*/
 	float dietime;			/* particles can die unnaturally (collision)	*/
 
-	float bank;				/* banking angle for boids */
-
 	float size, sizemul;	/* size and multiplier so that we can update size when ever */
 
 	int num;				/* index to vert/edge/face */
 	int num_dmcache;		/* index to derived mesh data (face) to avoid slow lookups */
-	int pad;
 
 	int totkey;
 	int bpi;				/* softbody body point start index */
@@ -112,12 +111,14 @@ typedef struct ParticleSettings {
 	ID id;
 	struct AnimData *adt;
 
+	struct BoidSettings *boids;
+
 	int flag;
 	short type, from, distr;
 	/* physics modes */
 	short phystype, rotmode, avemode, reactevent;
 	short draw, draw_as, draw_size, childtype;
-	short ren_as, rt2[3];
+	short ren_as, rt2;
 	/* number of path segments, power of 2 except */
 	short draw_step, ren_step;
 	short hair_step, keys_step;
@@ -126,7 +127,7 @@ typedef struct ParticleSettings {
 	short adapt_angle, adapt_pix;
 
 	short disp, omat, interpolation, rotfrom, integrator;
-	short kink, kink_axis, nbetween, boidneighbours;
+	short kink, kink_axis;
 
 	/* billboards */
 	short bb_align, bb_uv_split, bb_anim, bb_split_offset;
@@ -154,7 +155,7 @@ typedef struct ParticleSettings {
 	/* children */
 	int child_nbr, ren_child_nbr;
 	float parents, childsize, childrandsize;
-	float childrad, childflat, rt;
+	float childrad, childflat;
 	/* clumping */
 	float clumpfac, clumppow;
 	/* kink */
@@ -174,11 +175,7 @@ typedef struct ParticleSettings {
 	/* keyed particles */
 	int keyed_loops;
 
-	/* boids */
-	float max_vel, max_lat_acc, max_tan_acc;
-	float average_vel, banking, max_bank, groundz;
-	float boidfac[8];
-	char boidrule[8];
+	float effector_weight[10];
 
 	struct Group *dup_group;
 	struct Group *eff_group;
@@ -212,12 +209,14 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 
 	struct ListBase effectors, reactevents;	/* runtime */
 
-	struct ListBase keyed_targets;
+	struct ListBase targets;				/* used for keyed and boid physics */
+
+	char name[32];							/* particle system name */
 	
 	float imat[4][4];	/* used for duplicators */
-	float cfra;
+	float cfra, tree_frame;
 	int seed;
-	int flag, totpart, totchild, totcached, totchildcache, rt;
+	int flag, totpart, totchild, totcached, totchildcache;
 	short recalc, target_psys, totkeyed, softflag, bakespace, rt2;
 
 	char bb_uvname[3][32];					/* billboard uv name */
@@ -230,6 +229,8 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 
 	/* point cache */
 	struct PointCache *pointcache;
+
+	struct KDTree *tree;					/* used for interactions with self and other systems */
 }ParticleSystem;
 
 /* general particle maximums */
@@ -325,7 +326,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 //#define PART_DRAW_PATH_LEN	2
 #define PART_DRAW_SIZE		4
 #define PART_DRAW_EMITTER	8	/* render emitter also */
-//#define PART_DRAW_HEALTH	16
+#define PART_DRAW_HEALTH	16
 #define PART_ABS_PATH_TIME  32
 //#define PART_DRAW_TRAIL		64
 #define PART_DRAW_BB_LOCK	128
@@ -460,26 +461,13 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PSYS_VG_ROT			10
 #define PSYS_VG_EFFECTOR	11
 
-/* part->boidrules */
-#define BOID_TOT_RULES		8
+/* ParticleTarget->flag */
+#define PTARGET_CURRENT		1
+#define PTARGET_VALID		2
 
-#define BOID_COLLIDE		0
-#define BOID_AVOID			1
-#define BOID_CROWD			2
-#define BOID_CENTER			3
-#define BOID_AV_VEL			4
-#define BOID_VEL_MATCH		5
-#define BOID_GOAL			6
-#define BOID_LEVEL			7
-
-/* psys->keyed_targets->flag */
-#define KEYED_TARGET_CURRENT	1
-#define KEYED_TARGET_VALID		2
-
-
-//#define PSYS_INTER_CUBIC	0
-//#define PSYS_INTER_LINEAR	1
-//#define PSYS_INTER_CARDINAL	2
-//#define PSYS_INTER_BSPLINE	3
+/* ParticleTarget->mode */
+#define PTARGET_MODE_NEUTRAL	0
+#define PTARGET_MODE_FRIEND		1
+#define PTARGET_MODE_ENEMY		2
 
 #endif
