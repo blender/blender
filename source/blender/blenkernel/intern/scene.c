@@ -230,23 +230,11 @@ Scene *add_scene(char *name)
 	sce->r.bake_osa= 5;
 	sce->r.bake_flag= R_BAKE_CLEAR;
 	sce->r.bake_normal_space= R_BAKE_SPACE_TANGENT;
-	
-	sce->r.xplay= 640;
-	sce->r.yplay= 480;
-	sce->r.freqplay= 60;
-	sce->r.depth= 32;
 
 	sce->r.scemode= R_DOCOMP|R_DOSEQ|R_EXTENSION;
 	sce->r.stamp= R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_SCENE|R_STAMP_CAMERA;
 	
 	sce->r.threads= 1;
-	
-	sce->r.stereomode = 1;  // no stereo
-	sce->r.domeangle = 180;
-	sce->r.domemode = 1;
-	sce->r.domeres = 4;
-	sce->r.domeresbuf = 1.0f;
-	sce->r.dometilt = 0;
 
 	sce->r.simplify_subsurf= 6;
 	sce->r.simplify_particles= 1.0f;
@@ -322,6 +310,29 @@ Scene *add_scene(char *name)
 	/* note; in header_info.c the scene copy happens..., if you add more to renderdata it has to be checked there */
 	scene_add_render_layer(sce);
 	
+	/* game data */
+	sce->gm.stereoflag = STEREO_NOSTEREO;
+	sce->gm.stereomode = STEREO_ANAGLYPH;
+	sce->gm.dome.angle = 180;
+	sce->gm.dome.mode = DOME_FISHEYE;
+	sce->gm.dome.res = 4;
+	sce->gm.dome.resbuf = 1.0f;
+	sce->gm.dome.tilt = 0;
+
+	sce->gm.xplay= 800;
+	sce->gm.yplay= 600;
+	sce->gm.freqplay= 60;
+	sce->gm.depth= 32;
+
+	sce->gm.gravity= 9.8f;
+	sce->gm.physicsEngine= WOPHY_BULLET;
+	sce->gm.mode = 32; //XXX ugly harcoding, still not sure we should drop mode. 32 == 1 << 5 == use_occlusion_culling 
+	sce->gm.occlusionRes = 128;
+	sce->gm.ticrate = 60;
+	sce->gm.maxlogicstep = 5;
+	sce->gm.physubstep = 1;
+	sce->gm.maxphystep = 5;
+
 	return sce;
 }
 

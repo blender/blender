@@ -3995,7 +3995,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 				srl->light_override= newlibadr_us(fd, sce->id.lib, srl->light_override);
 			}
 			/*Game Settings: Dome Warp Text*/
-			sce->r.dometext= newlibadr_us(fd, sce->id.lib, sce->r.dometext);
+//			sce->r.dometext= newlibadr_us(fd, sce->id.lib, sce->r.dometext); // XXX deprecated since 2.5
+			sce->gm.dome.warptext= newlibadr_us(fd, sce->id.lib, sce->gm.dome.warptext);
 
 			sce->id.flag -= LIB_NEEDLINK;
 		}
@@ -9314,6 +9315,69 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ts->uv_selectmode= UV_SELECT_VERTEX;
 				ts->vgroup_weight= 1.0f;
 			}
+
+			/* Game Settings */
+			//Dome
+			sce->gm.dome.angle = sce->r.domeangle;
+			sce->gm.dome.mode = sce->r.domemode;
+			sce->gm.dome.res = sce->r.domeres;
+			sce->gm.dome.resbuf = sce->r.domeresbuf;
+			sce->gm.dome.tilt = sce->r.dometilt;
+			sce->gm.dome.warptext = sce->r.dometext;
+
+			//Stand Alone
+			sce->gm.fullscreen = sce->r.fullscreen;
+			sce->gm.xplay = sce->r.xplay;
+			sce->gm.yplay = sce->r.yplay;
+			sce->gm.freqplay = sce->r.freqplay;
+			sce->gm.depth = sce->r.depth;
+			sce->gm.attrib = sce->r.attrib;
+
+			//Stereo
+			sce->gm.xsch = sce->r.xsch;
+			sce->gm.ysch = sce->r.ysch;
+			sce->gm.stereomode = sce->r.stereomode;
+			/* reassigning stereomode NO_STEREO and DOME to a separeted flag*/
+			if (sce->gm.stereomode == 1){ //1 = STEREO_NOSTEREO
+				sce->gm.stereoflag = STEREO_NOSTEREO;
+				sce->gm.stereomode = STEREO_ANAGLYPH;
+			}
+			else if(sce->gm.stereomode == 8){ //8 = STEREO_DOME
+				sce->gm.stereoflag = STEREO_DOME;
+				sce->gm.stereomode = STEREO_ANAGLYPH;
+			}
+			else
+				sce->gm.stereoflag = STEREO_ENABLE;
+
+			//Framing
+			sce->gm.framing = sce->framing;
+			sce->gm.xplay = sce->r.xplay;
+			sce->gm.yplay = sce->r.yplay;
+			sce->gm.freqplay= sce->r.freqplay;
+			sce->gm.depth= sce->r.depth;
+
+			//Physic (previously stored in world)
+			if (0){
+//			if (sce->world){ // XXX I think we need to run lib_link_all() before do_version()
+				sce->gm.gravity = sce->world->gravity;
+				sce->gm.physicsEngine= sce->world->physicsEngine;
+				sce->gm.mode = sce->world->mode;
+				sce->gm.occlusionRes = sce->world->occlusionRes;
+				sce->gm.ticrate = sce->world->ticrate;
+				sce->gm.maxlogicstep = sce->world->maxlogicstep;
+				sce->gm.physubstep = sce->world->physubstep;
+				sce->gm.maxphystep = sce->world->maxphystep;
+			}
+			else{
+				sce->gm.gravity =9.8f;
+				sce->gm.physicsEngine= WOPHY_BULLET;// Bullet by default
+				sce->gm.mode = WO_DBVT_CULLING;	// DBVT culling by default
+				sce->gm.occlusionRes = 128;
+				sce->gm.ticrate = 60;
+				sce->gm.maxlogicstep = 5;
+				sce->gm.physubstep = 1;
+				sce->gm.maxphystep = 5;
+			}
 		}
 	}
 
@@ -10225,7 +10289,7 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	}
 
 	if(sce->r.dometext)
-		expand_doit(fd, mainvar, sce->r.dometext);
+		expand_doit(fd, mainvar, sce->gm.dome.warptext);
 }
 
 static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)

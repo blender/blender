@@ -451,10 +451,10 @@ RAS_IRasterizer::StereoMode RAS_OpenGLRasterizer::GetStereoMode()
 
 bool RAS_OpenGLRasterizer::Stereo()
 {
-	if(m_stereomode == RAS_STEREO_NOSTEREO || m_stereomode == RAS_STEREO_DOME)
-		return false;
-	else
+	if(m_stereomode > RAS_STEREO_NOSTEREO) // > 0
 		return true;
+	else
+		return false;
 }
 
 bool RAS_OpenGLRasterizer::InterlacedStereo()

@@ -187,7 +187,8 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PARTICLES,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PARTICLE, 0, 0, "Particles");
 	if(sbuts->pathflag & (1<<BCONTEXT_PHYSICS))
 		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PHYSICS,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PHYSICS, 0, 0, "Physics");
-
+	if(sbuts->pathflag & (1<<BCONTEXT_GAME))
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_GAME,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_GAME, 0, 0, "Game");
 	xco+= XIC;
 	
 	uiBlockEndAlign(block);
