@@ -63,6 +63,7 @@ OPTION(WITH_OPENEXR		"Enable OpenEXR Support (http://www.openexr.com)"	ON)
 OPTION(WITH_DDS			"Enable DDS Support"                                   	ON)
 OPTION(WITH_FFMPEG		"Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu/)"	OFF)
 OPTION(WITH_PYTHON		"Enable Embedded Python API"				ON)
+OPTION(WITH_SDL			"Enable SDL for sound and joystick support"				ON)
 OPTION(WITH_OPENJPEG		"Enable OpenJpeg Support (http://www.openjpeg.org/)"	OFF)
 OPTION(WITH_OPENAL		"Enable OpenAL Support (http://www.openal.org)"		ON)
 OPTION(WITH_OPENMP		"Enable OpenMP (has to be supported by the compiler)"	OFF)
@@ -133,9 +134,11 @@ IF(UNIX AND NOT APPLE)
   SET(PYTHON_BINARY ${PYTHON_EXECUTABLE} CACHE STRING "")
   SET(PYTHON_LINKFLAGS "-Xlinker -export-dynamic")
 
-  FIND_PACKAGE(SDL)
-  SET(SDL_INC ${SDL_INCLUDE_DIR})
-  SET(SDL_LIB ${SDL_LIBRARY})
+  IF(WITH_SDL)
+    FIND_PACKAGE(SDL)
+    SET(SDL_INC ${SDL_INCLUDE_DIR})
+    SET(SDL_LIB ${SDL_LIBRARY})
+  ENDIF(WITH_SDL)
 
   FIND_PATH(OPENEXR_INC
     ImfXdr.h
