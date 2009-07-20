@@ -1,36 +1,32 @@
-#include "COLLADAFWStableHeaders.h"
+#include "COLLADAFWRoot.h"
 #include "COLLADAFWIWriter.h"
-#include "COLLADAFWRoot.h"
-#include "COLLADAFWNode.h"
-#include "COLLADAFWVisualScene.h"
-#include "COLLADAFWInstanceGeometry.h"
-#include "COLLADAFWFileInfo.h"
-#include "COLLADAFWRoot.h"
-#include "COLLADAFWLight.h"
-#include "COLLADAFWImage.h"
-#include "COLLADAFWMaterial.h"
-#include "COLLADAFWEffect.h"
-#include "COLLADAFWGeometry.h"
-#include "COLLADAFWMesh.h"
-#include "COLLADAFWMeshPrimitive.h"
-#include "COLLADAFWMeshVertexData.h"
-#include "COLLADAFWFloatOrDoubleArray.h"
-#include "COLLADAFWArrayPrimitiveType.h"
-#include "COLLADAFWIndexList.h"
-#include "COLLADAFWMeshPrimitiveWithFaceVertexCount.h"
-#include "COLLADAFWPolygons.h"
-#include "COLLADAFWTransformation.h"
-#include "COLLADAFWTranslate.h"
-#include "COLLADAFWScale.h"
-#include "COLLADAFWRotate.h"
+#include "COLLADAFWStableHeaders.h"
 #include "COLLADAFWAnimationCurve.h"
 #include "COLLADAFWAnimationList.h"
-#include "COLLADAFWSkinController.h"
-#include "COLLADAFWColorOrTexture.h"
-#include "COLLADAFWSampler.h"
-#include "COLLADAFWTypes.h"
 #include "COLLADAFWCamera.h"
+#include "COLLADAFWColorOrTexture.h"
+#include "COLLADAFWEffect.h"
+#include "COLLADAFWFloatOrDoubleArray.h"
+#include "COLLADAFWGeometry.h"
+#include "COLLADAFWImage.h"
+#include "COLLADAFWIndexList.h"
+#include "COLLADAFWInstanceGeometry.h"
 #include "COLLADAFWLight.h"
+#include "COLLADAFWMaterial.h"
+#include "COLLADAFWMesh.h"
+#include "COLLADAFWMeshPrimitiveWithFaceVertexCount.h"
+#include "COLLADAFWNode.h"
+#include "COLLADAFWPolygons.h"
+#include "COLLADAFWRotate.h"
+#include "COLLADAFWSampler.h"
+#include "COLLADAFWScale.h"
+#include "COLLADAFWSkinController.h"
+#include "COLLADAFWTransformation.h"
+#include "COLLADAFWTranslate.h"
+#include "COLLADAFWTypes.h"
+#include "COLLADAFWVisualScene.h"
+#include "COLLADAFWFileInfo.h"
+#include "COLLADAFWArrayPrimitiveType.h"
 
 #include "COLLADASaxFWLLoader.h"
 
@@ -41,6 +37,8 @@ extern "C"
 #include "BKE_customdata.h"
 #include "BKE_library.h"
 #include "BKE_texture.h"
+#include "ED_keyframing.h"
+#include "BKE_fcurve.h"
 }
 #include "DNA_lamp_types.h"
 #include "BKE_mesh.h"
@@ -51,15 +49,20 @@ extern "C"
 #include "BKE_material.h"
 
 #include "BLI_arithb.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
 
+#include "DNA_anim_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
+#include "DNA_scene_types.h"
 
-//#include "DNA_texture_types.h"
+#include "MEM_guardedalloc.h"
 
 #include "DocumentImporter.h"
 
@@ -146,7 +149,8 @@ private:
 	typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive> > MaterialIdPrimitiveArrayMap;
 	// amazing name!
 	std::map<COLLADAFW::UniqueId, MaterialIdPrimitiveArrayMap> geom_uid_mat_mapping_map;
-
+	// maps for animation
+	std::map<COLLADAFW::UniqueId, std::vector<FCurve*> > uid_fcurve_map;
 	struct AnimatedTransform {
 		Object *ob;
 		// COLLADAFW::Node *node;
@@ -196,10 +200,6 @@ private:
 
 		void getUV(int uv_set_index, int uv_index[2], float *uv)
 		{
-			//int uv_coords_index = mVData->getInputInfosArray()[uv_set_index]->getCount() * uv_set_index + uv_index * 2;
-			// int uv_coords_index = uv_index * 2;
- 			//int uv_coords_index = mVData->getLength(uv_set_index) * uv_set_index + uv_index * 2;
-			
 			switch(mVData->getType()) {
 			case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
 				{
@@ -1049,8 +1049,8 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeCamera( const COLLADAFW::Camera* camera ) 
 	{
-		//std::string name = camera->getOriginalId();
-		Camera *cam = (Camera*)add_camera("my_camera");
+		std::string name = camera->getOriginalId();
+		Camera *cam = (Camera*)add_camera((char*)name.c_str());
 		if (cam != NULL)
 			this->uid_camera_map[camera->getUniqueId()] = cam;
 		else fprintf(stderr, "Cannot create camera. \n");
@@ -1076,8 +1076,8 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeLight( const COLLADAFW::Light* light ) 
 	{
-		//std::string name = light->getOriginalId();
-		Lamp *lamp = (Lamp*)add_lamp("my_lamp");
+		std::string name = light->getOriginalId();
+		Lamp *lamp = (Lamp*)add_lamp((char*)name.c_str());
 		COLLADAFW::Light::LightType type = light->getLightType();
 		switch(type) {
 		case COLLADAFW::Light::AMBIENT_LIGHT:
@@ -1114,13 +1114,112 @@ public:
 		// XXX import light options*/
 		return true;
 	}
-
+	
+	float get_float(COLLADAFW::FloatOrDoubleArray array, int i)
+	{
+		switch(array.getType()) {
+		case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
+			{
+				COLLADAFW::ArrayPrimitiveType<float> *values = array.getFloatValues();
+				return (*values)[i];
+			}
+		case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE:
+			{
+				COLLADAFW::ArrayPrimitiveType<double> *values = array.getDoubleValues();
+				return (float)(*values)[i];
+			}
+		}
+	}
+	
+	void write_curves(const COLLADAFW::Animation* anim,
+					  COLLADAFW::AnimationCurve *curve,
+					  COLLADAFW::FloatOrDoubleArray input,
+					  COLLADAFW::FloatOrDoubleArray output,
+					  COLLADAFW::FloatOrDoubleArray intan,
+					  COLLADAFW::FloatOrDoubleArray outtan, size_t dim, float fps)
+	{
+		int i;
+		if (dim == 1) {
+			// create fcurve
+			FCurve *fcu = (FCurve*)MEM_callocN(sizeof(FCurve), "FCurve");
+			if (!fcu) {
+				fprintf(stderr, "Cannot create fcurve. \n");
+				return;
+			}
+			char *path = "location";
+			fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
+			fcu->rna_path = BLI_strdupn(path, strlen(path));
+			fcu->array_index = 0;
+			fcu->totvert = curve->getKeyCount();
+			
+			// create beztriple for each key
+			for (i = 0; i < curve->getKeyCount(); i++) {
+				BezTriple bez;
+				memset(&bez, 0, sizeof(BezTriple));
+				// intangent
+				bez.vec[0][0] = get_float(intan, i + i) * fps;
+				bez.vec[0][1] = get_float(intan, i + i + 1);
+				// input, output
+				bez.vec[1][0] = get_float(input, i) * fps;
+				bez.vec[1][1] = get_float(output, i);
+				// outtangent
+				bez.vec[2][0] = get_float(outtan, i + i) * fps;
+				bez.vec[2][1] = get_float(outtan, i + i + 1);
+				bez.ipo = U.ipo_new; /* use default interpolation mode here... */
+				bez.f1 = bez.f2 = bez.f3 = SELECT;
+				bez.h1 = bez.h2 = HD_AUTO;
+				insert_bezt_fcurve(fcu, &bez);
+				calchandles_fcurve(fcu);
+			}
+			// map fcurve to animation's UID
+			this->uid_fcurve_map[anim->getUniqueId()].push_back(fcu);
+		}
+		else if(dim == 3) {
+			for (i = 0; i < dim; i++ ) {
+				// create fcurve
+				FCurve *fcu = (FCurve*)MEM_callocN(sizeof(FCurve), "FCurve");
+				if (!fcu) {
+					fprintf(stderr, "Cannot create fcurve. \n");
+					continue;
+				}
+				fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
+				fcu->rna_path = "location";
+				fcu->array_index = 0;
+				fcu->totvert = curve->getKeyCount();
+				
+				// create beztriple for each key
+				for (int j = 0; j < curve->getKeyCount(); j++) {
+					BezTriple bez;
+					memset(&bez, 0, sizeof(BezTriple));
+					// intangent
+					bez.vec[0][0] = get_float(intan, j * 6 + i + i) * fps;
+					bez.vec[0][1] = get_float(intan, j * 6 + i + i + 1);
+					// input, output
+					bez.vec[1][0] = get_float(input, j) * fps; 
+					bez.vec[1][1] = get_float(output, j * 3 + i);
+					// outtangent
+					bez.vec[2][0] = get_float(outtan, j * 6 + i + i) * fps;
+					bez.vec[2][1] = get_float(outtan, j * 6 + i + i + 1);
+					bez.ipo = U.ipo_new; /* use default interpolation mode here... */
+					bez.f1 = bez.f2 = bez.f3 = SELECT;
+					bez.h1 = bez.h2 = HD_AUTO;
+					insert_bezt_fcurve(fcu, &bez);
+					calchandles_fcurve(fcu);
+				}
+				// map fcurve to animation's UID
+				this->uid_fcurve_map[anim->getUniqueId()].push_back(fcu);
+				
+			}
+		}
+	}
+	
 	// this function is called only for animations that pass COLLADAFW::validate
 	virtual bool writeAnimation( const COLLADAFW::Animation* anim ) 
 	{
 		if (anim->getAnimationType() == COLLADAFW::Animation::ANIMATION_CURVE) {
 			COLLADAFW::AnimationCurve *curve = (COLLADAFW::AnimationCurve*)anim;
-
+			Scene *scene = CTX_data_scene(mContext);
+			float fps = (float)FPS;
 			// I wonder how do we use this (Arystan)
 			size_t dim = curve->getOutDimension();
 			
@@ -1130,18 +1229,23 @@ public:
 				fprintf(stderr, "Inputs physical dimension is not time. \n");
 				return true;
 			}
-			
+			COLLADAFW::FloatOrDoubleArray input = curve->getInputValues();
+			COLLADAFW::FloatOrDoubleArray output = curve->getOutputValues();
+			COLLADAFW::FloatOrDoubleArray intan = curve->getInTangentValues();
+			COLLADAFW::FloatOrDoubleArray outtan = curve->getOutTangentValues();
 			// a curve can have mixed interpolation type,
 			// in this case curve->getInterpolationTypes returns a list of interpolation types per key
 			COLLADAFW::AnimationCurve::InterpolationType interp = curve->getInterpolationType();
-
+			
 			if (interp != COLLADAFW::AnimationCurve::INTERPOLATION_MIXED) {
 				switch (interp) {
 				case COLLADAFW::AnimationCurve::INTERPOLATION_LINEAR:
 					// support this
+					write_curves(anim, curve, input, output, intan, outtan, dim, fps);
 					break;
 				case COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER:
 					// and this
+					write_curves(anim, curve, input, output, intan, outtan, dim, fps);
 					break;
 				case COLLADAFW::AnimationCurve::INTERPOLATION_CARDINAL:
 				case COLLADAFW::AnimationCurve::INTERPOLATION_HERMITE:
@@ -1162,40 +1266,90 @@ public:
 		
 		return true;
 	}
-
-	// called on post-process stage after writeVisualScenes
-	virtual bool writeAnimationList( const COLLADAFW::AnimationList* anim ) 
+	
+	void change_fcurve(Object *ob, const COLLADAFW::UniqueId& anim_id, char *rna_path, int array_index)
 	{
-		const COLLADAFW::UniqueId& anim_id = anim->getUniqueId();
+		if (uid_fcurve_map.find(anim_id) == uid_fcurve_map.end()) {
+			fprintf(stderr, "Cannot find fcurves by UID.\n");
+			return;
+		}
+		ID *id = &ob->id;
+		bAction *act;
+		if (!ob->adt || !ob->adt->action)
+			act = verify_adt_action(id, 1);
+		else 
+			act = verify_adt_action(id, 0);
+		if (!ob->adt || !ob->adt->action) {
+			fprintf(stderr, "Cannot create anim data or action for this object. \n");
+			return;
+		}
+		FCurve *fcu;
+		std::vector<FCurve*> fcurves = uid_fcurve_map[anim_id];
+		std::vector<FCurve*>::iterator it;
+		int i = 0;
+		for (it = fcurves.begin(); it != fcurves.end(); it++) {
+			fcu = *it;
+			strcpy(fcu->rna_path, rna_path);
+			if (array_index == -1)
+				fcu->array_index = i;
+			else
+				fcu->array_index = array_index;
+			// convert degrees to radians for rotation
+			if (strcmp(rna_path, "rotation") == 0) {
+				for(int j = 0; j < fcu->totvert; j++) {
+					float rot_intan = fcu->bezt[j].vec[0][1];
+					float rot_output = fcu->bezt[j].vec[1][1];
+					float rot_outtan = fcu->bezt[j].vec[2][1];
+				    fcu->bezt[j].vec[0][1] = rot_intan * M_PI / 180.0f;
+					fcu->bezt[j].vec[1][1] = rot_output * M_PI / 180.0f;
+					fcu->bezt[j].vec[2][1] = rot_outtan * M_PI / 180.0f;
+				}
+			}
+			i++;
+			BLI_addtail(&act->curves, fcu);
+		}
+	}
+	
+	// called on post-process stage after writeVisualScenes
+	virtual bool writeAnimationList( const COLLADAFW::AnimationList* animationList ) 
+	{
+		const COLLADAFW::UniqueId& anim_list_id = animationList->getUniqueId();
 
 		// possible in case we cannot interpret some transform
-		if (uid_animated_map.find(anim_id) == uid_animated_map.end()) {
+		if (uid_animated_map.find(anim_list_id) == uid_animated_map.end()) {
 			return true;
 		}
-
+		
 		// what does this AnimationList animate?
-		AnimatedTransform& animated = uid_animated_map[anim_id];
-
-		const COLLADAFW::AnimationList::AnimationBindings& bindings = anim->getAnimationBindings();
-
+		AnimatedTransform& animated = uid_animated_map[anim_list_id];
+		char *loc = "location";
+		char *rotate = "rotation";
+		char *scale = "scale";
+		Object *ob = animated.ob;
+		
+		const COLLADAFW::AnimationList::AnimationBindings& bindings = animationList->getAnimationBindings();
 		switch (animated.tm->getTransformationType()) {
 		case COLLADAFW::Transformation::TRANSLATE:
 			{
 				for (int i = 0; i < bindings.getCount(); i++) {
 					const COLLADAFW::AnimationList::AnimationBinding& binding = bindings[i];
-
+					COLLADAFW::UniqueId anim_uid = binding.animation;
+					
 					switch (binding.animationClass) {
 					case COLLADAFW::AnimationList::POSITION_X:
+						change_fcurve(ob, anim_uid, loc, 0);
 						break;
 					case COLLADAFW::AnimationList::POSITION_Y:
+						change_fcurve(ob, anim_uid, loc, 1);
 						break;
 					case COLLADAFW::AnimationList::POSITION_Z:
+						change_fcurve(ob, anim_uid, loc, 2);
 						break;
 					case COLLADAFW::AnimationList::POSITION_XYZ:
+						change_fcurve(ob, anim_uid, loc, -1);
 						break;
 					default:
-						fprintf(stderr, "AnimationClass %d is not supported for TRANSLATE transformation.\n",
-								binding.animationClass);
+						fprintf(stderr, "AnimationClass %d is not supported for TRANSLATE transformation.\n", binding.animationClass);
 					}
 				}
 			}
@@ -1204,20 +1358,21 @@ public:
 			{
 				COLLADAFW::Rotate* rot = (COLLADAFW::Rotate*)animated.tm;
 				COLLADABU::Math::Vector3& axis = rot->getRotationAxis();
-
+				
 				for (int i = 0; i < bindings.getCount(); i++) {
 					const COLLADAFW::AnimationList::AnimationBinding& binding = bindings[i];
-
+					COLLADAFW::UniqueId anim_uid = binding.animation;
+					
 					switch (binding.animationClass) {
 					case COLLADAFW::AnimationList::ANGLE:
 						if (COLLADABU::Math::Vector3::UNIT_X == axis) {
-							
+							change_fcurve(ob, anim_uid, rotate, 0);
 						}
 						else if (COLLADABU::Math::Vector3::UNIT_Y == axis) {
-							
+							change_fcurve(ob, anim_uid, rotate, 1);
 						}
 						else if (COLLADABU::Math::Vector3::UNIT_Z == axis) {
-							
+							change_fcurve(ob, anim_uid, rotate, 2);
 						}
 						break;
 					case COLLADAFW::AnimationList::AXISANGLE:
@@ -1231,7 +1386,30 @@ public:
 			}
 			break;
 		case COLLADAFW::Transformation::SCALE:
-			// same as for TRANSLATE
+			{
+				// same as for TRANSLATE
+				for (int i = 0; i < bindings.getCount(); i++) {
+					const COLLADAFW::AnimationList::AnimationBinding& binding = bindings[i];
+					COLLADAFW::UniqueId anim_uid = binding.animation;
+					
+					switch (binding.animationClass) {
+					case COLLADAFW::AnimationList::POSITION_X:
+						change_fcurve(ob, anim_uid, scale, 0);
+						break;
+					case COLLADAFW::AnimationList::POSITION_Y:
+						change_fcurve(ob, anim_uid, scale, 1);
+						break;
+					case COLLADAFW::AnimationList::POSITION_Z:
+						change_fcurve(ob, anim_uid, scale, 2);
+						break;
+					case COLLADAFW::AnimationList::POSITION_XYZ:
+						change_fcurve(ob, anim_uid, scale, -1);
+						break;
+					default:
+						fprintf(stderr, "AnimationClass %d is not supported for TRANSLATE transformation.\n", binding.animationClass);
+					}
+				}
+			}
 			break;
 		case COLLADAFW::Transformation::MATRIX:
 		case COLLADAFW::Transformation::SKEW:
@@ -1239,10 +1417,10 @@ public:
 			fprintf(stderr, "Animation of MATRIX, SKEW and LOOKAT transformations is not supported yet.\n");
 			break;
 		}
-
+		
 		return true;
 	}
-
+	
 	/** When this method is called, the writer must write the skin controller data.
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeSkinControllerData( const COLLADAFW::SkinControllerData* skinControllerData ) 
