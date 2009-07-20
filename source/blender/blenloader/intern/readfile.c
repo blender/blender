@@ -9214,6 +9214,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* TODO: should be moved into one of the version blocks once this branch moves to trunk and we can
 	   bump the version (or sub-version.) */
 	{
+		World *wo;
 		Object *ob;
 		Material *ma;
 		Scene *sce;
@@ -9347,7 +9348,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->gm.stereomode = STEREO_ANAGLYPH;
 			}
 			else
-				sce->gm.stereoflag = STEREO_ENABLE;
+				sce->gm.stereoflag = STEREO_ENABLED;
 
 			//Framing
 			sce->gm.framing = sce->framing;
@@ -9357,16 +9358,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->gm.depth= sce->r.depth;
 
 			//Physic (previously stored in world)
-			if (0){
-//			if (sce->world){ // XXX I think we need to run lib_link_all() before do_version()
-				sce->gm.gravity = sce->world->gravity;
-				sce->gm.physicsEngine= sce->world->physicsEngine;
-				sce->gm.mode = sce->world->mode;
-				sce->gm.occlusionRes = sce->world->occlusionRes;
-				sce->gm.ticrate = sce->world->ticrate;
-				sce->gm.maxlogicstep = sce->world->maxlogicstep;
-				sce->gm.physubstep = sce->world->physubstep;
-				sce->gm.maxphystep = sce->world->maxphystep;
+			//temporarily getting the correct world address
+			wo = newlibadr(fd, sce->id.lib, sce->world);
+			if (wo){
+				sce->gm.gravity = wo->gravity;
+				sce->gm.physicsEngine= wo->physicsEngine;
+				sce->gm.mode = wo->mode;
+				sce->gm.occlusionRes = wo->occlusionRes;
+				sce->gm.ticrate = wo->ticrate;
+				sce->gm.maxlogicstep = wo->maxlogicstep;
+				sce->gm.physubstep = wo->physubstep;
+				sce->gm.maxphystep = wo->maxphystep;
 			}
 			else{
 				sce->gm.gravity =9.8f;

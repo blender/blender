@@ -403,7 +403,7 @@ typedef struct GameData {
 	float pad12;
 } GameData;
 #define STEREO_NOSTEREO		1
-#define STEREO_ENABLE 		2
+#define STEREO_ENABLED 		2
 #define STEREO_DOME	 		3
 
 //#define STEREO_NOSTEREO		 1

@@ -586,7 +586,7 @@ void rna_def_scene_game_data(BlenderRNA *brna)
 		
  	static EnumPropertyItem stereo_items[] ={
 		{STEREO_NOSTEREO, "NO_STEREO", 0, "No Stereo", ""},
-		{STEREO_ENABLE, "STEREO", 0, "Stereo", ""},
+		{STEREO_ENABLED, "STEREO", 0, "Stereo", ""},
 		{STEREO_DOME, "DOME", 0, "Dome", ""},
 		{0, NULL, 0, NULL, NULL}};
 

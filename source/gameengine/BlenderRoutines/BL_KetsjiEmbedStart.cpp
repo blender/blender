@@ -332,8 +332,10 @@ extern "C" void StartKetsjiShell(struct bContext *C, int always_use_expand_frami
 			ketsjiengine->SetGame2IpoMode(game2ipo,startFrame);
 			
 			// Quad buffered needs a special window.
-			if (blscene->gm.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
-				rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->gm.stereomode);
+			if(blscene->gm.stereoflag == STEREO_ENABLED){
+				if (blscene->gm.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
+					rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->gm.stereomode);
+			}
 		}
 		
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
@@ -672,8 +674,10 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 		}
 
 		// Quad buffered needs a special window.
-		if (blscene->gm.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
-			rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->gm.stereomode);
+		if(blscene->gm.stereoflag == STEREO_ENABLED){
+			if (blscene->gm.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
+				rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->gm.stereomode);
+		}
 
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{

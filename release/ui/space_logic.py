@@ -95,16 +95,16 @@ class LOGIC_PT_stereo(bpy.types.Panel):
 		if stereo_mode == 'STEREO':
 			col = layout.column(align=True)
 			row = col.row()
+			row.item_enumR(gs, "stereo_mode", "ANAGLYPH")
 			row.item_enumR(gs, "stereo_mode", "QUADBUFFERED")
-			row.item_enumR(gs, "stereo_mode", "ABOVEBELOW")
 			
 			row = col.row()
 			row.item_enumR(gs, "stereo_mode", "INTERLACED")
-			row.item_enumR(gs, "stereo_mode", "ANAGLYPH")
+			row.item_enumR(gs, "stereo_mode", "VINTERLACE")
 			
 			row = col.row()
 			row.item_enumR(gs, "stereo_mode", "SIDEBYSIDE")
-			row.item_enumR(gs, "stereo_mode", "VINTERLACE")
+			row.item_enumR(gs, "stereo_mode", "ABOVEBELOW")
 
 #			row = layout.column_flow()
 #			row.itemR(gs, "stereo_mode")
