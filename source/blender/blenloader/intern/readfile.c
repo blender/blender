@@ -4409,6 +4409,8 @@ static void lib_link_screen(FileData *fd, Main *main)
 						sfile->params= NULL;
 						sfile->op= NULL;
 						sfile->layout= NULL;
+						sfile->folders_prev= NULL;
+						sfile->folders_next= NULL;
 					}
 					else if(sl->spacetype==SPACE_IMASEL) {
 						SpaceImaSel *simasel= (SpaceImaSel *)sl;
