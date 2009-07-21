@@ -900,3 +900,4 @@ void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+

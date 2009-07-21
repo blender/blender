@@ -2263,7 +2263,7 @@ static void view3d_edit_mesh_facesmenu(bContext *C, uiLayout *layout, void *arg_
 	uiItemS(layout);
 
 	uiItemO(layout, NULL, 0, "MESH_OT_faces_shade_smooth");
-	uiItemO(layout, NULL, 0, "MESH_OT_faces_shade_solid");
+	uiItemO(layout, NULL, 0, "MESH_OT_faces_shade_flat");
 }
 
 static void view3d_edit_mesh_normalsmenu(bContext *C, uiLayout *layout, void *arg_unused)

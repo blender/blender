@@ -7134,7 +7134,7 @@ void MESH_OT_faces_shade_smooth(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int mesh_faces_shade_solid_exec(bContext *C, wmOperator *op)
+static int mesh_faces_shade_flat_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -7148,14 +7148,14 @@ static int mesh_faces_shade_solid_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_faces_shade_solid(wmOperatorType *ot)
+void MESH_OT_faces_shade_flat(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Shade Flat";
-	ot->idname= "MESH_OT_faces_shade_solid";
+	ot->idname= "MESH_OT_faces_shade_flat";
 
 	/* api callbacks */
-	ot->exec= mesh_faces_shade_solid_exec;
+	ot->exec= mesh_faces_shade_flat_exec;
 	ot->poll= ED_operator_editmesh;
 
 	/* flags */
