@@ -800,7 +800,7 @@ static struct GPUMaterialState {
 
 	int lastmatnr, lastretval;
 	GPUBlendMode lastblendmode;
-} GMS;
+} GMS = {NULL};
 
 Material *gpu_active_node_material(Material *ma)
 {
@@ -930,9 +930,32 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 
 int GPU_enable_material(int nr, void *attribs)
 {
+	extern Material defmaterial; /* from material.c */
 	GPUVertexAttribs *gattribs = attribs;
 	GPUMaterial *gpumat;
 	GPUBlendMode blendmode;
+
+	/* no GPU_begin_object_materials, use default material */
+	if(!GMS.matbuf) {
+		float diff[4], spec[4];
+
+		memset(&GMS, 0, sizeof(GMS));
+
+		diff[0]= (defmaterial.ref+defmaterial.emit)*defmaterial.r;
+		diff[1]= (defmaterial.ref+defmaterial.emit)*defmaterial.g;
+		diff[2]= (defmaterial.ref+defmaterial.emit)*defmaterial.b;
+		diff[3]= 1.0;
+
+		spec[0]= defmaterial.spec*defmaterial.specr;
+		spec[1]= defmaterial.spec*defmaterial.specg;
+		spec[2]= defmaterial.spec*defmaterial.specb;
+		spec[3]= 1.0;
+
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diff);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
+
+		return 0;
+	}
 
 	/* prevent index to use un-initialized array items */
 	if(nr>=GMS.totmat)
@@ -1021,11 +1044,11 @@ void GPU_end_object_materials(void)
 		MEM_freeN(GMS.matbuf);
 		MEM_freeN(GMS.gmatbuf);
 		MEM_freeN(GMS.blendmode);
-
-		GMS.matbuf= NULL;
-		GMS.gmatbuf= NULL;
-		GMS.blendmode= NULL;
 	}
+
+	GMS.matbuf= NULL;
+	GMS.gmatbuf= NULL;
+	GMS.blendmode= NULL;
 }
 
 /* Lights */

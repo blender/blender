@@ -472,9 +472,12 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, rcti *rect)
 		newrect.ymin= rect->ymin;
 		newrect.ymax= rect->ymin;
 
-		ok= ed_preview_draw_rect(sa, sce, id, (parent != NULL), 1, rect, &newrect);
-		if(parent)
-			ok &= ed_preview_draw_rect(sa, sce, parent, 1, 0, rect, &newrect);
+		if(parent) {
+			ok = ed_preview_draw_rect(sa, sce, parent, 1, 1, rect, &newrect);
+			ok &= ed_preview_draw_rect(sa, sce, id, 1, 0, rect, &newrect);
+		}
+		else
+			ok = ed_preview_draw_rect(sa, sce, id, 0, 0, rect, &newrect);
 
 		if(ok)
 			*rect= newrect;

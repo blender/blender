@@ -754,9 +754,9 @@ static int occ_visible_quad(float *p, float *n, float *v0, float *v1, float *v2,
 	sd[1]= INPR(n, v1) - c;
 	sd[2]= INPR(n, v2) - c;
 
-	if(fabs(sd[0]) < epsilon) sd[0] = 0.0f;
-	if(fabs(sd[1]) < epsilon) sd[1] = 0.0f;
-	if(fabs(sd[2]) < epsilon) sd[2] = 0.0f;
+	if(fabsf(sd[0]) < epsilon) sd[0] = 0.0f;
+	if(fabsf(sd[1]) < epsilon) sd[1] = 0.0f;
+	if(fabsf(sd[2]) < epsilon) sd[2] = 0.0f;
 
 	if(sd[0] > 0) {
 		if(sd[1] > 0) {
@@ -1086,13 +1086,6 @@ static float occ_quad_form_factor(float *p, float *n, float *q0, float *q1, floa
 
 #endif
 
-static float saacosf(float fac)
-{
-	if(fac<= -1.0f) return (float)M_PI;
-	else if(fac>=1.0f) return 0.0f;
-	else return acos(fac); /* acosf(fac) */
-}
-
 static void normalizef(float *n)
 {
 	float d;
@@ -1100,7 +1093,7 @@ static void normalizef(float *n)
 	d= INPR(n, n);
 
 	if(d > 1.0e-35F) {
-		d= 1.0f/sqrt(d); /* sqrtf(d) */
+		d= 1.0f/sqrtf(d);
 
 		n[0] *= d; 
 		n[1] *= d; 
@@ -1222,7 +1215,7 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 				fac= 1.0f;
 
 			/* accumulate occlusion from spherical harmonics */
-			invd2 = 1.0f/sqrt(d2);
+			invd2 = 1.0f/sqrtf(d2);
 			weight= occ_solid_angle(node, v, d2, invd2, n);
 			weight *= node->occlusion;
 
@@ -1258,7 +1251,7 @@ static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float 
 						weight *= tree->occlusion[node->child[b].face];
 
 						if(bentn) {
-							invd2= 1.0f/sqrt(d2);
+							invd2= 1.0f/sqrtf(d2);
 							bentn[0] -= weight*invd2*v[0];
 							bentn[1] -= weight*invd2*v[1];
 							bentn[2] -= weight*invd2*v[2];
