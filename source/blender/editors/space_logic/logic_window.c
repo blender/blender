@@ -393,7 +393,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 		BLI_addtail(&ob->prop, prop);
 		ED_undo_push(C, "Add property");
 		break;
-	
+#if 0 // XXX Now done in python
 	case B_CHANGE_PROP:
 		prop= ob->prop.first;
 		while(prop) {
@@ -403,7 +403,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 			prop= prop->next;
 		}
 		break;
-	
+#endif
 	case B_ADD_SENS:
 		for(ob=G.main->object.first; ob; ob=ob->id.next) {
 			if(ob->scaflag & OB_ADDSENS) {

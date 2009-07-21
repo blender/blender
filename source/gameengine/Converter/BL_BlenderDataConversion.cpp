@@ -1931,39 +1931,35 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		aspect_width = canvas->GetWidth();
 		aspect_height = canvas->GetHeight();
 	} else {
-		if (blenderscene->framing.type == SCE_GAMEFRAMING_BARS) {
+		if (blenderscene->gm.framing.type == SCE_GAMEFRAMING_BARS) {
 			frame_type = RAS_FrameSettings::e_frame_bars;
-		} else if (blenderscene->framing.type == SCE_GAMEFRAMING_EXTEND) {
+		} else if (blenderscene->gm.framing.type == SCE_GAMEFRAMING_EXTEND) {
 			frame_type = RAS_FrameSettings::e_frame_extend;
 		} else {
 			frame_type = RAS_FrameSettings::e_frame_scale;
 		}
 		
-		aspect_width = blenderscene->r.xsch;
-		aspect_height = blenderscene->r.ysch;
+		aspect_width = blenderscene->gm.xsch;
+		aspect_height = blenderscene->gm.ysch;
 	}
 	
 	RAS_FrameSettings frame_settings(
 		frame_type,
-		blenderscene->framing.col[0],
-		blenderscene->framing.col[1],
-		blenderscene->framing.col[2],
+		blenderscene->gm.framing.col[0],
+		blenderscene->gm.framing.col[1],
+		blenderscene->gm.framing.col[2],
 		aspect_width,
 		aspect_height
 	);
 	kxscene->SetFramingType(frame_settings);
 
-	kxscene->SetGravity(MT_Vector3(0,0,(blenderscene->world != NULL) ? -blenderscene->world->gravity : -9.8));
+	kxscene->SetGravity(MT_Vector3(0,0, -blenderscene->gm.gravity));
 	
 	/* set activity culling parameters */
-	if (blenderscene->world) {
-		kxscene->SetActivityCulling( (blenderscene->world->mode & WO_ACTIVITY_CULLING) != 0);
-		kxscene->SetActivityCullingRadius(blenderscene->world->activityBoxRadius);
-		kxscene->SetDbvtCulling((blenderscene->world->mode & WO_DBVT_CULLING) != 0);
-	} else {
-		kxscene->SetActivityCulling(false);
-		kxscene->SetDbvtCulling(false);
-	}
+	kxscene->SetActivityCulling( (blenderscene->gm.mode & WO_ACTIVITY_CULLING) != 0);
+	kxscene->SetActivityCullingRadius(blenderscene->gm.activityBoxRadius);
+	kxscene->SetDbvtCulling((blenderscene->gm.mode & WO_DBVT_CULLING) != 0);
+	
 	// no occlusion culling by default
 	kxscene->SetDbvtOcclusionRes(0);
 

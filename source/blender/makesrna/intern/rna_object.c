@@ -184,13 +184,18 @@ static void rna_Object_track_set(PointerRNA *ptr, PointerRNA value)
 static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	Object *ob= (Object*)ptr->data;
-	Object *par= ob->parent;
 	EnumPropertyItem *item= NULL;
 	int totitem= 0;
 
+	if(C==NULL) {
+		return parent_type_items;
+	}
+	
 	RNA_enum_items_add_value(&item, &totitem, parent_type_items, PAROBJECT);
 
-	if(par) {
+	if(ob->parent) {
+		Object *par= ob->parent;
+		
 		if(par->type == OB_CURVE)
 			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARCURVE);
 		else if(par->type == OB_LATTICE)
@@ -229,7 +234,7 @@ static int rna_VertexGroup_index_get(PointerRNA *ptr)
 static PointerRNA rna_Object_active_vertex_group_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
-	return rna_pointer_inherit_refine(ptr, &RNA_VertexGroup, BLI_findlink(&ob->defbase, ob->actdef));
+	return rna_pointer_inherit_refine(ptr, &RNA_VertexGroup, BLI_findlink(&ob->defbase, ob->actdef-1));
 }
 
 static int rna_Object_active_vertex_group_index_get(PointerRNA *ptr)
@@ -710,7 +715,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "properties", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "prop", NULL);
-	RNA_def_property_struct_type(prop, "GameProperty");
+	RNA_def_property_struct_type(prop, "GameProperty"); /* rna_property.c */
 	RNA_def_property_ui_text(prop, "Properties", "Game engine properties.");
 
 	prop= RNA_def_property(srna, "show_sensors", PROP_BOOLEAN, PROP_NONE);

@@ -73,15 +73,21 @@ void BKE_reports_init(ReportList *reports, int flag)
 
 void BKE_reports_clear(ReportList *reports)
 {
-	Report *report;
+	Report *report, *report_next;
 
 	if(!reports)
 		return;
 
-	for(report=reports->list.first; report; report=report->next)
-		MEM_freeN(report->message);
+	report= reports->list.first;
 
-	BLI_freelistN(&reports->list);
+	while (report) {
+		report_next= report->next;
+		MEM_freeN(report->message);
+		MEM_freeN(report);
+		report= report_next;
+	}
+
+	reports->list.first= reports->list.last= NULL;
 }
 
 void BKE_report(ReportList *reports, ReportType type, const char *message)
@@ -102,7 +108,7 @@ void BKE_report(ReportList *reports, ReportType type, const char *message)
 		len= strlen(message);
 		report->message= MEM_callocN(sizeof(char)*(len+1), "ReportMessage");
 		memcpy(report->message, message, sizeof(char)*(len+1));
-		
+		report->len= len;
 		BLI_addtail(&reports->list, report);
 	}
 }
@@ -129,7 +135,7 @@ void BKE_reportf(ReportList *reports, ReportType type, const char *format, ...)
 		va_end(args);
 
 		report->message= BLI_dynstr_get_cstring(ds);
-
+		report->len= BLI_dynstr_get_len(ds);
 		BLI_dynstr_free(ds);
 
 		report->type= type;
@@ -155,6 +161,7 @@ void BKE_reports_prepend(ReportList *reports, const char *prepend)
 		MEM_freeN(report->message);
 
 		report->message= BLI_dynstr_get_cstring(ds);
+		report->len= BLI_dynstr_get_len(ds);
 
 		BLI_dynstr_free(ds);
 	}
@@ -179,6 +186,7 @@ void BKE_reports_prependf(ReportList *reports, const char *prepend, ...)
 		MEM_freeN(report->message);
 
 		report->message= BLI_dynstr_get_cstring(ds);
+		report->len= BLI_dynstr_get_len(ds);
 
 		BLI_dynstr_free(ds);
 	}

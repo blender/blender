@@ -427,9 +427,14 @@ typedef struct CollisionModifierData {
 typedef struct SurfaceModifierData {
 	ModifierData	modifier;
 
+	struct MVert *x; /* old position */
+	struct MVert *v; /* velocity */
+
 	struct DerivedMesh *dm;
 
 	struct BVHTreeFromMesh *bvhtree; /* bounding volume hierarchy of the mesh faces */
+
+	int cfra, numverts;
 } SurfaceModifierData;
 
 typedef enum {

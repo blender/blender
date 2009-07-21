@@ -531,67 +531,82 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "lens");
 	RNA_def_property_ui_text(prop, "Lens", "Lens angle (mm) in perspective view.");
 	RNA_def_property_range(prop, 1.0f, 250.0f);
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "near");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Clip Start", "3D View near clipping distance.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "far");
 	RNA_def_property_range(prop, 1.0f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Clip End", "3D View far clipping distance.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "grid_spacing", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "grid");
 	RNA_def_property_ui_text(prop, "Grid Spacing", "The distance between 3D View grid lines.");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "grid_lines", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gridlines");
 	RNA_def_property_ui_text(prop, "Grid Lines", "The number of grid lines to display in perspective view.");
 	RNA_def_property_range(prop, 0, 1024);
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "grid_subdivisions", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gridsubdiv");
 	RNA_def_property_ui_text(prop, "Grid Subdivisions", "The number of subdivisions between grid lines.");
 	RNA_def_property_range(prop, 1, 1024);
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "display_floor", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_FLOOR);
 	RNA_def_property_ui_text(prop, "Display Grid Floor", "Show the ground plane grid in perspective view.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "display_x_axis", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_X);
 	RNA_def_property_ui_text(prop, "Display X Axis", "Show the X axis line in perspective view.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "display_y_axis", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_Y);
 	RNA_def_property_ui_text(prop, "Display Y Axis", "Show the Y axis line in perspective view.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "display_z_axis", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_Z);
 	RNA_def_property_ui_text(prop, "Display Z Axis", "Show the Z axis line in perspective view.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "outline_selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_SELECT_OUTLINE);
 	RNA_def_property_ui_text(prop, "Outline Selected", "Show an outline highlight around selected objects in non-wireframe views.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "all_object_centers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_DRAW_CENTERS);
 	RNA_def_property_ui_text(prop, "All Object Centers", "Show the object center dot for all (selected and unselected) objects.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "relationship_lines", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", V3D_HIDE_HELPLINES);
 	RNA_def_property_ui_text(prop, "Relationship Lines", "Show dashed lines indicating parent or constraint relationships.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "textured_solid", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SOLID_TEX);
 	RNA_def_property_ui_text(prop, "Textured Solid", "Display face-assigned textures in solid view");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "display_background_image", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_DISPBGPIC);
 	RNA_def_property_ui_text(prop, "Display Background Image", "Display a reference image behind objects in the 3D View");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "pivot_point", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "around");
@@ -643,6 +658,7 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 		{BCONTEXT_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture"},
 		{BCONTEXT_PARTICLE, "PARTICLE", ICON_PARTICLES, "Particle", "Particle"},
 		{BCONTEXT_PHYSICS, "PHYSICS", ICON_PHYSICS, "Physics", "Physics"},
+		{BCONTEXT_GAME, "GAME", ICON_GAME, "Game", "Game"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem panel_alignment_items[] = {
@@ -1071,7 +1087,8 @@ static void rna_def_space_console(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Font Size", "Font size to use for displaying the text.");
 	RNA_def_property_update(prop, NC_CONSOLE | ND_CONSOLE, NULL);
 	
-	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "console_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, console_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Console type.");
 	RNA_def_property_update(prop, NC_CONSOLE | ND_CONSOLE, NULL);

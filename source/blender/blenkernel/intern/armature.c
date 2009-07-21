@@ -140,6 +140,12 @@ void free_armature(bArmature *arm)
 			MEM_freeN(arm->edbo);
 			arm->edbo= NULL;
 		}
+
+		/* free sketch */
+		if (arm->sketch) {
+			ED_freeSketch(arm->sketch);
+			arm->sketch = NULL;
+		}
 	}
 }
 

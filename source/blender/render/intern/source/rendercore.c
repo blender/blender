@@ -1515,9 +1515,7 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 		shi->mat= mat;
 
 	/* init material vars */
-	// note, keep this synced with render_types.h
-	memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
-	shi->har= shi->mat->har;
+	shade_input_init_material(shi);
 	
 	/* render */
 	shade_input_set_shade_texco(shi);
@@ -1950,10 +1948,7 @@ void RE_shade_external(Render *re, ShadeInput *shi, ShadeResult *shr)
 	if(shi->mat->nodetree && shi->mat->use_nodes)
 		ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
 	else {
-		/* copy all relevant material vars, note, keep this synced with render_types.h */
-		memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
-		shi->har= shi->mat->har;
-		
+		shade_input_init_material(shi);
 		shade_material_loop(shi, shr);
 	}
 }
@@ -2104,9 +2099,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 	ShadeResult shr;
 	VlakRen *vlr= shi->vlr;
 	
-	/* init material vars */
-	memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));	// note, keep this synced with render_types.h
-	shi->har= shi->mat->har;
+	shade_input_init_material(shi);
 	
 	if(bs->type==RE_BAKE_AO) {
 		ambient_occlusion(shi);

@@ -33,8 +33,11 @@
 
 #include "BKE_context.h"
 #include "BKE_utildefines.h"
+#include "BKE_global.h"
 
 #include "RNA_access.h"
+
+#include "ED_object.h"
 
 int ed_screen_context(const bContext *C, const char *member, bContextDataResult *result)
 {
@@ -44,8 +47,10 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 
 	if(CTX_data_dir(member)) {
 		static const char *dir[] = {
-			"scene", "selected_objects", "selected_bases", "active_base",
-			"active_object", "edit_object", NULL};
+			"scene", "selected_objects", "selected_bases",
+			"selected_editable_objects", "selected_editable_bases"
+			"active_base", "active_object", "edit_object",
+			"sculpt_object", "vpaint_object", "wpaint_object", NULL};
 
 		CTX_data_dir_set(result, dir);
 		return 1;
@@ -68,6 +73,24 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 
 		return 1;
 	}
+	else if(CTX_data_equals(member, "selected_editable_objects") || CTX_data_equals(member, "selected_editable_bases")) {
+		int selected_editable_objects= CTX_data_equals(member, "selected_editable_objects");
+
+		for(base=scene->base.first; base; base=base->next) {
+			if((base->flag & SELECT) && (base->lay & scene->lay)) {
+				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
+					if(0==object_is_libdata(base->object)) {
+						if(selected_editable_objects)
+							CTX_data_id_list_add(result, &base->object->id);
+						else
+							CTX_data_list_add(result, &scene->id, &RNA_UnknownType, base);
+					}
+				}
+			}
+		}
+
+		return 1;
+	}
 	else if(CTX_data_equals(member, "active_base")) {
 		if(scene->basact)
 			CTX_data_pointer_set(result, &scene->id, &RNA_UnknownType, &scene->basact);
@@ -85,6 +108,24 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		if(scene->obedit)
 			CTX_data_id_pointer_set(result, &scene->obedit->id);
 		
+		return 1;
+	}
+	else if(CTX_data_equals(member, "sculpt_object")) {
+		if(G.f & G_SCULPTMODE && scene->basact)
+			CTX_data_id_pointer_set(result, &scene->basact->object->id);
+
+		return 1;
+	}
+	else if(CTX_data_equals(member, "vpaint_object")) {
+		if(G.f & G_VERTEXPAINT && scene->basact)
+			CTX_data_id_pointer_set(result, &scene->basact->object->id);
+
+		return 1;
+	}
+	else if(CTX_data_equals(member, "wpaint_object")) {
+		if(G.f & G_WEIGHTPAINT && scene->basact)
+			CTX_data_id_pointer_set(result, &scene->basact->object->id);
+
 		return 1;
 	}
 	

@@ -68,6 +68,7 @@ struct bContext {
 		struct Scene *scene;
 
 		int recursion;
+		int py_init; /* true if python is initialized */
 	} data;
 	
 	/* data evaluation */
@@ -162,6 +163,16 @@ void CTX_store_free_list(ListBase *contexts)
 	}
 }
 
+/* is python initialied? */
+int CTX_py_init_get(bContext *C)
+{
+	return C->data.py_init;
+}
+void CTX_py_init_set(bContext *C, int value)
+{
+	C->data.py_init= value;
+}
+
 /* window manager context */
 
 wmWindowManager *CTX_wm_manager(const bContext *C)
@@ -206,7 +217,7 @@ struct ARegion *CTX_wm_menu(const bContext *C)
 
 struct ReportList *CTX_wm_reports(const bContext *C)
 {
-	return C->wm.manager->reports;
+	return &(C->wm.manager->reports);
 }
 
 View3D *CTX_wm_view3d(const bContext *C)

@@ -172,6 +172,8 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 		ED_region_panels(C, ar, vertical, "modifier");
 	else if (sbuts->mainb == BCONTEXT_CONSTRAINT)
 		ED_region_panels(C, ar, vertical, "constraint");
+	else if (sbuts->mainb == BCONTEXT_GAME)
+		ED_region_panels(C, ar, vertical, "game");
 
     sbuts->re_align= 0;
 	sbuts->mainbo= sbuts->mainb;
@@ -196,10 +198,10 @@ void buttons_operatortypes(void)
 	WM_operatortype_append(OBJECT_OT_particle_system_remove);
 
 	WM_operatortype_append(PARTICLE_OT_new);
-	WM_operatortype_append(PARTICLE_OT_new_keyed_target);
-	WM_operatortype_append(PARTICLE_OT_remove_keyed_target);
-	WM_operatortype_append(PARTICLE_OT_keyed_target_move_up);
-	WM_operatortype_append(PARTICLE_OT_keyed_target_move_down);
+	WM_operatortype_append(PARTICLE_OT_new_target);
+	WM_operatortype_append(PARTICLE_OT_remove_target);
+	WM_operatortype_append(PARTICLE_OT_target_move_up);
+	WM_operatortype_append(PARTICLE_OT_target_move_down);
 
 	WM_operatortype_append(SCENE_OT_render_layer_add);
 	WM_operatortype_append(SCENE_OT_render_layer_remove);
@@ -326,6 +328,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_GEOM_SELECT:
+				case ND_CONSTRAINT:
 					ED_area_tag_redraw(sa);
 					break;
 				case ND_SHADING:

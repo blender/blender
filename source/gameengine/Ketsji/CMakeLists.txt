@@ -26,20 +26,6 @@
 
 FILE(GLOB SRC *.cpp)
 
-#XXX disabled for 2.5 because of missing python
-#SET(SRC 
-#  ${SRC}
-#  ../../../source/blender/python/api2_2x/Mathutils.c
-#  ../../../source/blender/python/api2_2x/Geometry.c
-#  ../../../source/blender/python/api2_2x/constant.c
-#  ../../../source/blender/python/api2_2x/euler.c
-#  ../../../source/blender/python/api2_2x/matrix.c
-#  ../../../source/blender/python/api2_2x/quat.c
-#  ../../../source/blender/python/api2_2x/vector.c
-#  ../../../source/blender/python/api2_2x/bpy_internal_import.c
-#  ../../../source/blender/python/api2_2x/BGL.c
-#)
-
 SET(INC
   .
   ../../../source/kernel/gen_system
@@ -77,8 +63,13 @@ SET(INC
   ../../../extern/solid
   ../../../extern/glew/include
   ${PYTHON_INC}
-  ${SDL_INC}
 )
+
+IF(WITH_SDL)
+  SET(INC ${INC} ${SDL_INC})  
+ELSE(WITH_SDL)
+  ADD_DEFINITIONS(-DDISABLE_SDL)
+ENDIF(WITH_SDL)
 
 BLENDERLIB(bf_ketsji "${SRC}" "${INC}")
 #env.BlenderLib ( 'bf_ketsji', sources, Split(incs), [], libtype=['game','player'], priority=[25, 72], compileflags = cflags )

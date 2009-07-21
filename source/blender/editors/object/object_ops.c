@@ -87,6 +87,8 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_duplicates_make_real);
 	WM_operatortype_append(OBJECT_OT_duplicate);
 	WM_operatortype_append(OBJECT_OT_join);
+	WM_operatortype_append(OBJECT_OT_shade_smooth);
+	WM_operatortype_append(OBJECT_OT_shade_flat);
 	WM_operatortype_append(GROUP_OT_group_create);
 	WM_operatortype_append(GROUP_OT_objects_remove);
 	WM_operatortype_append(GROUP_OT_objects_add_active);
@@ -112,7 +114,13 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_modifier_mdef_bind);
 
 	WM_operatortype_append(OBJECT_OT_constraint_add);
+	WM_operatortype_append(OBJECT_OT_constraint_add_with_targets);
 	WM_operatortype_append(POSE_OT_constraint_add);
+	WM_operatortype_append(POSE_OT_constraint_add_with_targets);
+	WM_operatortype_append(OBJECT_OT_constraints_clear);
+	WM_operatortype_append(POSE_OT_constraints_clear);
+	WM_operatortype_append(POSE_OT_ik_add);
+	WM_operatortype_append(POSE_OT_ik_clear);
 	WM_operatortype_append(CONSTRAINT_OT_delete);
 	WM_operatortype_append(CONSTRAINT_OT_move_up);
 	WM_operatortype_append(CONSTRAINT_OT_move_down);
@@ -141,7 +149,7 @@ void ED_keymap_object(wmWindowManager *wm)
 	
 	/* Note: this keymap works disregarding mode */
 	WM_keymap_add_item(keymap, "OBJECT_OT_editmode_toggle", TABKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_center_set", CKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_center_set", CKEY, KM_PRESS, KM_ALT|KM_SHIFT|KM_CTRL, 0);
 
 	/* Note: this keymap gets disabled in non-objectmode,  */
 	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
@@ -155,6 +163,9 @@ void ED_keymap_object(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "OBJECT_OT_parent_clear", PKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_track_set", TKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_track_clear", TKEY, KM_PRESS, KM_ALT, 0);
+	
+	WM_keymap_verify_item(keymap, "OBJECT_OT_constraint_add_with_targets", CKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	WM_keymap_verify_item(keymap, "OBJECT_OT_constraints_clear", CKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	
 	WM_keymap_verify_item(keymap, "OBJECT_OT_location_clear", GKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_rotation_clear", RKEY, KM_PRESS, KM_ALT, 0);

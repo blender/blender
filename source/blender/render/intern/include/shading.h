@@ -66,6 +66,7 @@ void shade_input_set_strand(struct ShadeInput *shi, struct StrandRen *strand, st
 void shade_input_set_strand_texco(struct ShadeInput *shi, struct StrandRen *strand, struct StrandVert *svert, struct StrandPoint *spoint);
 void shade_input_do_shade(struct ShadeInput *shi, struct ShadeResult *shr);
 
+void shade_input_init_material(struct ShadeInput *shi);
 void shade_input_initialize(struct ShadeInput *shi, struct RenderPart *pa, struct RenderLayer *rl, int sample);
 
 void shade_sample_initialize(struct ShadeSample *ssamp, struct RenderPart *pa, struct RenderLayer *rl);

@@ -70,6 +70,7 @@ void ED_object_enter_editmode(struct bContext *C, int flag);
 void ED_object_base_init_from_view(struct bContext *C, struct Base *base);
 
 /* cleanup */
+int object_is_libdata(struct Object *ob);
 int object_data_is_libdata(struct Object *ob);
 
 /* constraints */

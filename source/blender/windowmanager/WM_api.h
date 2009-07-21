@@ -72,6 +72,7 @@ void		*WM_paint_cursor_activate(struct wmWindowManager *wm, int (*poll)(struct b
 void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
 
 			/* keymap */
+void		WM_keymap_init		(struct bContext *C);
 wmKeymapItem *WM_keymap_verify_item(ListBase *lb, char *idname, short type, 
 								 short val, int modifier, short keymodifier);
 wmKeymapItem *WM_keymap_add_item(ListBase *lb, char *idname, short type, 
@@ -149,6 +150,8 @@ void		WM_operator_properties_free(struct PointerRNA *ptr);
 
 		/* operator as a python command (resultuing string must be free'd) */
 char		*WM_operator_pystring(struct wmOperator *op);
+void		WM_operator_bl_idname(char *to, const char *from);
+void		WM_operator_py_idname(char *to, const char *from);
 
 			/* default operator callbacks for border/circle/lasso */
 int			WM_border_select_invoke	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);

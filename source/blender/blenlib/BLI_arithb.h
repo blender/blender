@@ -339,7 +339,6 @@ void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr);
 void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv);
 void xyz_to_rgb(float x, float y, float z, float *r, float *g, float *b, int colorspace);
 int constrain_rgb(float *r, float *g, float *b);
-void gamma_correct_rgb(float *r, float *g, float *b);
 unsigned int hsv_to_cpack(float h, float s, float v);
 unsigned int rgb_to_cpack(float r, float g, float b);
 void cpack_to_rgb(unsigned int col, float *r, float *g, float *b);

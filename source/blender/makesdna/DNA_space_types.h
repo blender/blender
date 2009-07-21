@@ -511,7 +511,7 @@ typedef struct SpaceConsole {
 	int type; /* console/report/..? */
 	int rpt_mask; /* which reports to display */
 	int flag, lheight;
-	
+
 	ListBase scrollback; /* ConsoleLine; output */
 	ListBase history; /* ConsoleLine; command history, current edited line is the first */
 	char prompt[8];

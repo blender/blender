@@ -148,7 +148,7 @@ LLIBS = ['-lshell32', '-lshfolder', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32
 BF_DEBUG = False
 BF_DEBUG_CCFLAGS= ['-g']
 
-BF_PROFILE_CCFLAGS = ['-pg', '-g ']
+BF_PROFILE_CCFLAGS = ['-pg', '-g']
 BF_PROFILE_LINKFLAGS = ['-pg']
 BF_PROFILE_FLAGS = BF_PROFILE_CCFLAGS
 BF_PROFILE = False

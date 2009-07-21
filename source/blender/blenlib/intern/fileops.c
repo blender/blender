@@ -83,19 +83,22 @@ char *BLI_last_slash(const char *string) {
 }
 
 /* adds a slash if there isnt one there alredy */
-void BLI_add_slash(char *string) {
+int BLI_add_slash(char *string) {
 	int len = strlen(string);
 #ifdef WIN32
 	if (len==0 || string[len-1]!='\\') {
 		string[len] = '\\';
 		string[len+1] = '\0';
+		return len+1;
 	}
 #else
 	if (len==0 || string[len-1]!='/') {
 		string[len] = '/';
 		string[len+1] = '\0';
+		return len+1;
 	}
 #endif
+	return len;
 }
 
 /* removes a slash if there is one */

@@ -63,6 +63,7 @@ extern StructRNA RNA_BezierCurvePoint;
 extern StructRNA RNA_BlendTexture;
 extern StructRNA RNA_BlenderRNA;
 extern StructRNA RNA_Bone;
+extern StructRNA RNA_BoneGroup;
 extern StructRNA RNA_BooleanModifier;
 extern StructRNA RNA_BooleanProperty;
 extern StructRNA RNA_Brush;
@@ -221,7 +222,7 @@ extern StructRNA RNA_Key;
 extern StructRNA RNA_KeyboardSensor;
 extern StructRNA RNA_KeyingSet;
 extern StructRNA RNA_KeyingSetPath;
-extern StructRNA RNA_KeyedParticleTarget;
+extern StructRNA RNA_ParticleTarget;
 extern StructRNA RNA_KinematicConstraint;
 extern StructRNA RNA_Lamp;
 extern StructRNA RNA_LampSkySettings;
@@ -320,6 +321,7 @@ extern StructRNA RNA_RaySensor;
 extern StructRNA RNA_Region;
 extern StructRNA RNA_RigidBodyJointConstraint;
 extern StructRNA RNA_Scene;
+extern StructRNA RNA_SceneGameData;
 extern StructRNA RNA_SceneRenderData;
 extern StructRNA RNA_SceneSequence;
 extern StructRNA RNA_Screen;
@@ -758,8 +760,9 @@ const struct ListBase *RNA_function_defined_parameters(FunctionRNA *func);
 
 /* Utility */
 
-ParameterList *RNA_parameter_list_create(PointerRNA *ptr, FunctionRNA *func);
+ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *ptr, FunctionRNA *func);
 void RNA_parameter_list_free(ParameterList *parms);
+int  RNA_parameter_list_size(ParameterList *parms);
 
 void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter);
 void RNA_parameter_list_next(ParameterIterator *iter);

@@ -29,6 +29,7 @@
 
 #include "RNA_define.h"
 #include "RNA_types.h"
+#include "RNA_access.h"
 
 #include "rna_internal.h"
 
@@ -36,6 +37,7 @@
 #include "DNA_object_force.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_boid_types.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
@@ -140,13 +142,33 @@ static void rna_Particle_reset(bContext *C, PointerRNA *ptr)
 	}
 }
 
-static void rna_Particle_keyed_reset(bContext *C, PointerRNA *ptr)
+static void rna_Particle_target_reset(bContext *C, PointerRNA *ptr)
 {
 	Scene *scene = CTX_data_scene(C);
 
-	if(ptr->type==&RNA_KeyedParticleTarget) {
+	if(ptr->type==&RNA_ParticleTarget) {
+		ParticleTarget *pt = (ParticleTarget*)ptr->data;
 		Object *ob = (Object*)ptr->id.data;
-		ParticleSystem *psys = psys_get_current(ob);
+		ParticleSystem *kpsys=NULL, *psys=psys_get_current(ob);
+		int psys_num = BLI_findindex(&ob->particlesystem, psys);
+
+		if(pt->ob==ob || pt->ob==NULL) {
+			kpsys = BLI_findlink(&ob->particlesystem, pt->psys-1);
+
+			if(kpsys)
+				pt->flag |= PTARGET_VALID;
+			else
+				pt->flag &= ~PTARGET_VALID;
+		}
+		else {
+			if(pt->ob)
+				kpsys = BLI_findlink(&pt->ob->particlesystem, pt->psys-1);
+
+			if(kpsys)
+				pt->flag |= PTARGET_VALID;
+			else
+				pt->flag &= ~PTARGET_VALID;
+		}
 		
 		psys->recalc = PSYS_RECALC_RESET;
 
@@ -155,11 +177,11 @@ static void rna_Particle_keyed_reset(bContext *C, PointerRNA *ptr)
 	}
 }
 
-static void rna_Particle_keyed_redo(bContext *C, PointerRNA *ptr)
+static void rna_Particle_target_redo(bContext *C, PointerRNA *ptr)
 {
 	Scene *scene = CTX_data_scene(C);
 
-	if(ptr->type==&RNA_KeyedParticleTarget) {
+	if(ptr->type==&RNA_ParticleTarget) {
 		Object *ob = (Object*)ptr->id.data;
 		ParticleSystem *psys = psys_get_current(ob);
 		
@@ -235,8 +257,10 @@ static void rna_particle_settings_set(PointerRNA *ptr, PointerRNA value)
 
 	psys->part = (ParticleSettings *)value.data;
 
-	if(psys->part)
+	if(psys->part) {
 		psys->part->id.us++;
+		psys_check_boid_data(psys);
+	}
 }
 static void rna_Particle_abspathtime_update(bContext *C, PointerRNA *ptr)
 {
@@ -315,97 +339,100 @@ static float rna_PartSetting_linelenhead_get(struct PointerRNA *ptr)
 	return settings->draw_line[1];
 }
 
-static int rna_ParticleSystem_name_length(PointerRNA *ptr)
-{
-	ParticleSystem *psys= ptr->data;
-
-	if(psys->part)
-		return strlen(psys->part->id.name+2);
-	
-	return 0;
-}
-
-static void rna_ParticleSystem_name_get(PointerRNA *ptr, char *str)
-{
-	ParticleSystem *psys= ptr->data;
-
-	if(psys->part)
-		strcpy(str, psys->part->id.name+2);
-	else
-		strcpy(str, "");
-}
-
-static PointerRNA rna_ParticleSystem_active_keyed_target_get(PointerRNA *ptr)
+static PointerRNA rna_ParticleSystem_active_particle_target_get(PointerRNA *ptr)
 {
 	ParticleSystem *psys= (ParticleSystem*)ptr->data;
-	KeyedParticleTarget *kpt = psys->keyed_targets.first;
+	ParticleTarget *pt = psys->targets.first;
 
-	for(; kpt; kpt=kpt->next) {
-		if(kpt->flag & KEYED_TARGET_CURRENT)
-			return rna_pointer_inherit_refine(ptr, &RNA_KeyedParticleTarget, kpt);
+	for(; pt; pt=pt->next) {
+		if(pt->flag & PTARGET_CURRENT)
+			return rna_pointer_inherit_refine(ptr, &RNA_ParticleTarget, pt);
 	}
-	return rna_pointer_inherit_refine(ptr, &RNA_KeyedParticleTarget, NULL);
+	return rna_pointer_inherit_refine(ptr, &RNA_ParticleTarget, NULL);
 }
-static void rna_ParticleSystem_active_keyed_target_index_range(PointerRNA *ptr, int *min, int *max)
+static void rna_ParticleSystem_active_particle_target_index_range(PointerRNA *ptr, int *min, int *max)
 {
 	ParticleSystem *psys= (ParticleSystem*)ptr->data;
 	*min= 0;
-	*max= BLI_countlist(&psys->keyed_targets)-1;
+	*max= BLI_countlist(&psys->targets)-1;
 	*max= MAX2(0, *max);
 }
 
-static int rna_ParticleSystem_active_keyed_target_index_get(PointerRNA *ptr)
+static int rna_ParticleSystem_active_particle_target_index_get(PointerRNA *ptr)
 {
 	ParticleSystem *psys= (ParticleSystem*)ptr->data;
-	KeyedParticleTarget *kpt = psys->keyed_targets.first;
+	ParticleTarget *pt = psys->targets.first;
 	int i=0;
 
-	for(; kpt; kpt=kpt->next, i++)
-		if(kpt->flag & KEYED_TARGET_CURRENT)
+	for(; pt; pt=pt->next, i++)
+		if(pt->flag & PTARGET_CURRENT)
 			return i;
 
 	return 0;
 }
 
-static void rna_ParticleSystem_active_keyed_target_index_set(struct PointerRNA *ptr, int value)
+static void rna_ParticleSystem_active_particle_target_index_set(struct PointerRNA *ptr, int value)
 {
 	ParticleSystem *psys= (ParticleSystem*)ptr->data;
-	KeyedParticleTarget *kpt = psys->keyed_targets.first;
+	ParticleTarget *pt = psys->targets.first;
 	int i=0;
 
-	for(; kpt; kpt=kpt->next, i++) {
+	for(; pt; pt=pt->next, i++) {
 		if(i==value)
-			kpt->flag |= KEYED_TARGET_CURRENT;
+			pt->flag |= PTARGET_CURRENT;
 		else
-			kpt->flag &= ~KEYED_TARGET_CURRENT;
+			pt->flag &= ~PTARGET_CURRENT;
 	}
 }
-static int rna_KeyedParticleTarget_name_length(PointerRNA *ptr)
+static int rna_ParticleTarget_name_length(PointerRNA *ptr)
 {
-	KeyedParticleTarget *kpt= ptr->data;
+	ParticleTarget *pt= ptr->data;
 
-	if(kpt->flag & KEYED_TARGET_VALID) {
-		if(kpt->ob)
-			return strlen(kpt->ob->id.name+2) + 4;
+	if(pt->flag & PTARGET_VALID) {
+		ParticleSystem *psys = NULL;
+
+		if(pt->ob)
+			psys = BLI_findlink(&pt->ob->particlesystem, pt->psys-1);
+		else {
+			Object *ob = (Object*) ptr->id.data;
+			psys = BLI_findlink(&ob->particlesystem, pt->psys-1);
+		}
+		
+		if(psys) {
+			if(pt->ob)
+				return strlen(pt->ob->id.name+2) + 2 + strlen(psys->name);
+			else
+				return strlen(psys->name);
+		}
 		else
-			return 20;
+			return 15;
 	}
 	else
 		return 15;
-	
-	return 0;
 }
 
-static void rna_KeyedParticleTarget_name_get(PointerRNA *ptr, char *str)
+static void rna_ParticleTarget_name_get(PointerRNA *ptr, char *str)
 {
-	KeyedParticleTarget *kpt= ptr->data;
+	ParticleTarget *pt= ptr->data;
 
-	if(kpt->flag & KEYED_TARGET_VALID) {
-		if(kpt->ob)
-			sprintf(str, "%s: %i", kpt->ob->id.name+2, kpt->psys);
+	if(pt->flag & PTARGET_VALID) {
+		ParticleSystem *psys = NULL;
+
+		if(pt->ob)
+			psys = BLI_findlink(&pt->ob->particlesystem, pt->psys-1);
+		else {
+			Object *ob = (Object*) ptr->id.data;
+			psys = BLI_findlink(&ob->particlesystem, pt->psys-1);
+		}
+		
+		if(psys) {
+			if(pt->ob)
+				sprintf(str, "%s: %s", pt->ob->id.name+2, psys->name);
+			else
+				strcpy(str, psys->name);
+		}
 		else
-			sprintf(str, "Particle System: %i", kpt->psys);
-
+			strcpy(str, "Invalid target!");
 	}
 	else
 		strcpy(str, "Invalid target!");
@@ -636,10 +663,10 @@ static void rna_def_particle(BlenderRNA *brna)
 //	RNA_def_property_range(prop, lowerLimitf, upperLimitf);
 	RNA_def_property_ui_text(prop, "Die Time", "");
 
-	prop= RNA_def_property(srna, "banking_angle", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "bank");
-//	RNA_def_property_range(prop, lowerLimitf, upperLimitf);
-	RNA_def_property_ui_text(prop, "Banking Angle", "");
+//	prop= RNA_def_property(srna, "banking_angle", PROP_FLOAT, PROP_NONE);
+//	RNA_def_property_float_sdna(prop, NULL, "bank");
+////	RNA_def_property_range(prop, lowerLimitf, upperLimitf);
+//	RNA_def_property_ui_text(prop, "Banking Angle", "");
 
 	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
 //	RNA_def_property_range(prop, lowerLimitf, upperLimitf);
@@ -1024,10 +1051,10 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Emitter", "Render emitter Object also.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
 
-	//prop= RNA_def_property(srna, "draw_health", PROP_BOOLEAN, PROP_NONE);
-	//RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_HEALTH);
-	//RNA_def_property_ui_text(prop, "Health", "Draw boid health");
-	//RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
+	prop= RNA_def_property(srna, "draw_health", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_HEALTH);
+	RNA_def_property_ui_text(prop, "Health", "Draw boid health");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
 
 	prop= RNA_def_property(srna, "abs_path_time", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_ABS_PATH_TIME);
@@ -1149,9 +1176,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
 
 
-	//interpolation
-	//TODO: can't find where interpolation is used
-
 	//TODO: is this read only/internal?
 	prop= RNA_def_property(srna, "rotate_from", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rotfrom");
@@ -1172,19 +1196,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, kink_axis_items);
 	RNA_def_property_ui_text(prop, "Axis", "Which axis to use for offset");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo_child");
-
-	/* used?
-	prop= RNA_def_property(srna, "inbetween", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "nbetween");
-	RNA_def_property_range(prop, 0, INT_MAX);
-	RNA_def_property_ui_text(prop, "Inbetween", "");
-	*/
-
-	prop= RNA_def_property(srna, "boid_neighbours", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "boidneighbours");
-	RNA_def_property_range(prop, 1, 10);
-	RNA_def_property_ui_text(prop, "Neighbours", "How many neighbours to consider for each boid");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
 	/* billboards */
 	prop= RNA_def_property(srna, "billboard_align", PROP_ENUM, PROP_NONE);
@@ -1421,6 +1432,12 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Acceleration", "Constant acceleration");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
+	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "acc[2]");
+	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_text(prop, "Gravity", "Constant acceleration in global Z axis direction");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
+
 	prop= RNA_def_property(srna, "drag_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dragfac");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
@@ -1619,46 +1636,12 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
 
 	/* boids */
-	prop= RNA_def_property(srna, "max_velocity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "max_vel");
-	RNA_def_property_range(prop, 0.0f, 200.0f);
-	RNA_def_property_ui_text(prop, "Maximum Velocity", "");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
+	prop= RNA_def_property(srna, "boids", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "BoidSettings");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Boid Settings", "");
 
-	prop= RNA_def_property(srna, "lateral_acceleration_max", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "max_lat_acc");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Lateral Acceleration", "Lateral acceleration % of max velocity");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
-
-	prop= RNA_def_property(srna, "tangential_acceleration_max", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "max_tan_acc");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Tangential acceleration", "Tangential acceleration % of max velocity");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
-
-	prop= RNA_def_property(srna, "average_velocity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "average_vel");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Average Velocity", "The usual speed % of max velocity");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
-
-	prop= RNA_def_property(srna, "banking", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, -10.0f, 10.0f);
-	RNA_def_property_ui_text(prop, "Banking", "Banking of boids on turns (1.0==natural banking)");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
-
-	prop= RNA_def_property(srna, "banking_max", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "max_bank");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Maximum Banking", "How much a boid can bank at a single step");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
-
-	prop= RNA_def_property(srna, "ground_z", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "groundz");
-	RNA_def_property_range(prop, -100.0f, 100.0f);
-	RNA_def_property_ui_text(prop, "Ground Z", "Default Z value");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
+	/* draw objects & groups */
 
 	prop= RNA_def_property(srna, "dupli_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "dup_group");
@@ -1666,13 +1649,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Dupli Group", "Show Objects in this Group in place of particles");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
-
-	prop= RNA_def_property(srna, "effector_group", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "eff_group");
-	RNA_def_property_struct_type(prop, "Group");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Effector Group", "Limit effectors to this Group.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "dupli_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "dup_ob");
@@ -1687,6 +1663,74 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Billboard Object", "Billboards face this object (default is active camera)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
+
+	/* effectors */
+	prop= RNA_def_property(srna, "effector_group", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "eff_group");
+	RNA_def_property_struct_type(prop, "Group");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Effector Group", "Limit effectors to this Group.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
+
+	prop= RNA_def_property(srna, "eweight_all", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "effector_weight[0]");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "All", "All effector's weight.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
+
+	prop= RNA_def_property(srna, "eweight_spherical", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "effector_weight[1]");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Spherical", "Spherical effector weight.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
+
+	prop= RNA_def_property(srna, "eweight_vortex", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "effector_weight[2]");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Vortex", "Vortex effector weight.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
+
+	prop= RNA_def_property(srna, "eweight_magnetic", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "effector_weight[3]");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Magnetic", "Magnetic effector weight.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
+
+	prop= RNA_def_property(srna, "eweight_wind", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "effector_weight[4]");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Wind", "Wind effector weight.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
+
+	prop= RNA_def_property(srna, "eweight_curveguide", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "effector_weight[5]");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Curve Guide", "Curve guide effector weight.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
+
+	prop= RNA_def_property(srna, "eweight_texture", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "effector_weight[6]");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Magnetic", "Texture effector weight.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
+
+	prop= RNA_def_property(srna, "eweight_harmonic", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "effector_weight[7]");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Harmonic", "Harmonic effector weight.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
+
+	prop= RNA_def_property(srna, "eweight_charge", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "effector_weight[8]");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Charge", "Charge effector weight.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
+
+	prop= RNA_def_property(srna, "eweight_lennardjones", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "effector_weight[9]");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Lennard-Jones", "Lennard-Jones effector weight.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 	
 	/* animation here? */
 	rna_def_animdata_common(srna);
@@ -1695,17 +1739,25 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 //	struct PartDeflect *pd2;
 }
 
-static void rna_def_keyed_particle_target(BlenderRNA *brna)
+static void rna_def_particle_target(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna = RNA_def_struct(brna, "KeyedParticleTarget", NULL);
-	RNA_def_struct_ui_text(srna, "Keyed Particle Target", "Target particle system for keyed particles.");
+	static EnumPropertyItem mode_items[] = {
+		{PTARGET_MODE_FRIEND, "FRIEND", 0, "Friend", ""},
+		{PTARGET_MODE_NEUTRAL, "NEUTRAL", 0, "Neutral", ""},
+		{PTARGET_MODE_ENEMY, "ENEMY", 0, "Enemy", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+
+	srna = RNA_def_struct(brna, "ParticleTarget", NULL);
+	RNA_def_struct_ui_text(srna, "Particle Target", "Target particle system.");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_funcs(prop, "rna_KeyedParticleTarget_name_get", "rna_KeyedParticleTarget_name_length", NULL);
-	RNA_def_property_ui_text(prop, "Name", "Keyed particle target name.");
+	RNA_def_property_string_funcs(prop, "rna_ParticleTarget_name_get", "rna_ParticleTarget_name_length", NULL);
+	RNA_def_property_ui_text(prop, "Name", "Particle target name.");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_struct_name_property(srna, prop);
 
@@ -1713,32 +1765,36 @@ static void rna_def_keyed_particle_target(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "ob");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Target Object", "The object that has the target particle system (empty if same object).");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_keyed_reset");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_target_reset");
 
 	prop= RNA_def_property(srna, "system", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "psys");
 	RNA_def_property_range(prop, 1, INT_MAX);
 	RNA_def_property_ui_text(prop, "Target Particle System", "The index of particle system on the target object.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_keyed_reset");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_target_reset");
 
 	prop= RNA_def_property(srna, "time", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "time");
 	RNA_def_property_range(prop, 0.0, 30000.0f); //TODO: replace 30000 with MAXFRAMEF when available in 2.5
 	RNA_def_property_ui_text(prop, "Time", "");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_keyed_redo");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_target_redo");
 
 	prop= RNA_def_property(srna, "duration", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "duration");
 	RNA_def_property_range(prop, 0.0, 30000.0f); //TODO: replace 30000 with MAXFRAMEF when available in 2.5
 	RNA_def_property_ui_text(prop, "Duration", "");
-	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_keyed_redo");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_target_redo");
 
 	prop= RNA_def_property(srna, "valid", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYED_TARGET_VALID);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTARGET_VALID);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
 	RNA_def_property_ui_text(prop, "Valid", "Keyed particles target is valid.");
 
-	
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, mode_items);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_ui_text(prop, "Mode", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_target_reset");
 
 }
 static void rna_def_particle_system(BlenderRNA *brna)
@@ -1751,9 +1807,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_PARTICLE_DATA);
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_funcs(prop, "rna_ParticleSystem_name_get", "rna_ParticleSystem_name_length", NULL);
 	RNA_def_property_ui_text(prop, "Name", "Particle system name.");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_struct_name_property(srna, prop);
 
 	/* access to particle settings is redirected through functions */
@@ -1807,13 +1861,6 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Reactor Target Particle System", "For reactor systems, index of particle system on the target object.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
-	/* boids */
-	//prop= RNA_def_property(srna, "boids_surface_object", PROP_POINTER, PROP_NONE);
-	//RNA_def_property_pointer_sdna(prop, NULL, "keyed_ob");
-	//RNA_def_property_flag(prop, PROP_EDITABLE);
-	//RNA_def_property_ui_text(prop, "Boids Surface Object", "For boids physics systems, constrain boids to this object's surface.");
-	//RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
-
 	/* keyed */
 	prop= RNA_def_property(srna, "keyed_timing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PSYS_KEYED_TIMING);
@@ -1821,19 +1868,18 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Keyed timing", "Use key times");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "keyed_targets", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "keyed_targets", NULL);
-	RNA_def_property_struct_type(prop, "KeyedParticleTarget");
-	RNA_def_property_ui_text(prop, "Keyed Targets", "Target particle systems for keyed particles");
+	prop= RNA_def_property(srna, "targets", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ParticleTarget");
+	RNA_def_property_ui_text(prop, "Targets", "Target particle systems.");
 
-	prop= RNA_def_property(srna, "active_keyed_target", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "KeyedParticleTarget");
-	RNA_def_property_pointer_funcs(prop, "rna_ParticleSystem_active_keyed_target_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Active Particle System", "Active particle system being displayed");
+	prop= RNA_def_property(srna, "active_particle_target", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ParticleTarget");
+	RNA_def_property_pointer_funcs(prop, "rna_ParticleSystem_active_particle_target_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Particle Target", "");
 
-	prop= RNA_def_property(srna, "active_keyed_target_index", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_int_funcs(prop, "rna_ParticleSystem_active_keyed_target_index_get", "rna_ParticleSystem_active_keyed_target_index_set", "rna_ParticleSystem_active_keyed_target_index_range");
-	RNA_def_property_ui_text(prop, "Active Particle System Index", "Index of active particle system slot.");
+	prop= RNA_def_property(srna, "active_particle_target_index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_funcs(prop, "rna_ParticleSystem_active_particle_target_index_get", "rna_ParticleSystem_active_particle_target_index_set", "rna_ParticleSystem_active_particle_target_index_range");
+	RNA_def_property_ui_text(prop, "Active Particle Target Index", "");
 
 
 	/* billboard */
@@ -1989,11 +2035,13 @@ static void rna_def_particle_system(BlenderRNA *brna)
 
 void RNA_def_particle(BlenderRNA *brna)
 {
+	rna_def_particle_target(brna);
+
 	rna_def_particle_hair_key(brna);
 	rna_def_particle_key(brna);
+
 	rna_def_child_particle(brna);
 	rna_def_particle(brna);
-	rna_def_keyed_particle_target(brna);
 	rna_def_particle_system(brna);
 	rna_def_particle_settings(brna);
 }

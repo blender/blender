@@ -2543,13 +2543,16 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 			ImBuf *ibuf= IMB_allocImBuf(rres.rectx, rres.recty, scene->r.planes, 0, 0);
 			int ok;
 			
-					/* if not exists, BKE_write_ibuf makes one */
+			/* if not exists, BKE_write_ibuf makes one */
 			ibuf->rect= (unsigned int *)rres.rect32;    
 			ibuf->rect_float= rres.rectf;
 			ibuf->zbuf_float= rres.rectz;
 			
 			/* float factor for random dither, imbuf takes care of it */
 			ibuf->dither= scene->r.dither_intensity;
+			/* gamma correct to sRGB color space */
+			if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+				ibuf->profile = IB_PROFILE_SRGB;
 
 			ok= BKE_write_ibuf(scene, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
 			

@@ -37,6 +37,7 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
+#include "BLI_dlrbTree.h"
 
 #include "DNA_listBase.h"
 #include "DNA_anim_types.h"
@@ -216,7 +217,7 @@ bAction *poselib_validate (Object *ob)
 // TODO: operatorfy me!
 void poselib_validate_act (bAction *act)
 {
-	ListBase keys = {NULL, NULL};
+	DLRBT_Tree keys = {NULL, NULL};
 	ActKeyColumn *ak;
 	TimeMarker *marker, *markern;
 	
@@ -227,7 +228,9 @@ void poselib_validate_act (bAction *act)
 	}
 	
 	/* determine which frames have keys */
+	BLI_dlrbTree_init(&keys);
 	action_to_keylist(NULL, act, &keys, NULL);
+	BLI_dlrbTree_linkedlist_sync(&keys);
 	
 	/* for each key, make sure there is a correspnding pose */
 	for (ak= keys.first; ak; ak= ak->next) {
@@ -267,7 +270,7 @@ void poselib_validate_act (bAction *act)
 	}
 	
 	/* free temp memory */
-	BLI_freelistN(&keys);
+	BLI_freelistN((ListBase *)&keys);
 	
 	BIF_undo_push("PoseLib Validate Action");
 }

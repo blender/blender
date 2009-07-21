@@ -132,8 +132,6 @@ void Properties_Snapping(struct wmOperatorType *ot, short align);
 void Properties_Constraints(struct wmOperatorType *ot);
 
 /* view3d manipulators */
-void initManipulator(int mode);
-void ManipulatorTransform();
 
 int BIF_do_manipulator(struct bContext *C, struct wmEvent *event, struct wmOperator *op);
 void BIF_draw_manipulator(const struct bContext *C);

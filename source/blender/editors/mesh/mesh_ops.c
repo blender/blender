@@ -147,7 +147,7 @@ static int face_specials_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiItemO(layout, NULL, 0, "MESH_OT_flip_normals");
 	// uiItemO(layout, "Bevel", 0, "MESH_OT_bevel"); // bevelmenu(em)
 	uiItemO(layout, NULL, 0, "MESH_OT_faces_shade_smooth");
-	uiItemO(layout, NULL, 0, "MESH_OT_faces_shade_solid");
+	uiItemO(layout, NULL, 0, "MESH_OT_faces_shade_flat");
 	uiItemO(layout, NULL, 0, "MESH_OT_quads_convert_to_tris");
 	uiItemO(layout, NULL, 0, "MESH_OT_tris_convert_to_quads");
 	uiItemO(layout, NULL, 0, "MESH_OT_edge_flip");
@@ -205,7 +205,7 @@ static int specials_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiItemO(layout, "Smooth", 0, "MESH_OT_vertices_smooth");
 	// uiItemO(layout, "Bevel", 0, "MESH_OT_bevel"); // bevelmenu(em)
 	uiItemO(layout, NULL, 0, "MESH_OT_faces_shade_smooth");
-	uiItemO(layout, NULL, 0, "MESH_OT_faces_shade_solid");
+	uiItemO(layout, NULL, 0, "MESH_OT_faces_shade_flat");
 	//uiItemO(layout, "Blend From Shape", 0, "MESH_OT_blend_from_shape");
 	//uiItemO(layout, "Propagate to All Shapes", 0, "MESH_OT_shape_propagate_to_all");
 	uiItemO(layout, "Select Vertex Path", 0, "MESH_OT_select_vertex_path"); 
@@ -284,7 +284,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_tris_convert_to_quads);
 	WM_operatortype_append(MESH_OT_edge_flip);
 	WM_operatortype_append(MESH_OT_faces_shade_smooth);
-	WM_operatortype_append(MESH_OT_faces_shade_solid);
+	WM_operatortype_append(MESH_OT_faces_shade_flat);
 
 	WM_operatortype_append(MESH_OT_delete);
 

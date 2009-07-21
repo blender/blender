@@ -29,6 +29,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_util.h"
+#include "BLI_fileops.h"
 #include "BLI_string.h"
 
 #include "BKE_context.h"
@@ -66,7 +67,7 @@ static void bpy_init_modules( void )
 	/* PyModule_AddObject( mod, "doc", BPY_rna_doc() ); */
 	PyModule_AddObject( mod, "types", BPY_rna_types() );
 	PyModule_AddObject( mod, "props", BPY_rna_props() );
-	PyModule_AddObject( mod, "ops", BPY_operator_module() );
+	PyModule_AddObject( mod, "__ops__", BPY_operator_module() ); /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
 	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experimental, consider this a test, especially PyCObject is not meant to be permanent
 	
 	/* add the module so we can import it */
@@ -164,28 +165,8 @@ void BPY_start_python_path(void)
 	/* set the environment path */
 	printf("found bundled python: %s\n", py_path_bundle);
 
-#if (defined(WIN32) || defined(WIN64))
-#if defined(FREE_WINDOWS)
-	{
-		char py_path[FILE_MAXDIR + 11] = "";
-		sprintf(py_path, "PYTHONPATH=%s", py_path_bundle);
-		putenv(py_path);
-	}
-#else
-	_putenv_s("PYTHONPATH", py_path_bundle);
-#endif
-#else
-#ifdef __sgi
-	{
-		char py_path[FILE_MAXDIR + 11] = "";
-		sprintf(py_path, "PYTHONPATH=%s", py_path_bundle);
-		putenv(py_path);
-	}
-#else
-	setenv("PYTHONPATH", py_path_bundle, 1);
-#endif
-#endif
-
+	BLI_setenv("PYTHONHOME", py_path_bundle);
+	BLI_setenv("PYTHONPATH", py_path_bundle);
 }
 
 
@@ -446,6 +427,26 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 #include "PIL_time.h"
 #endif
 
+/* for use by BPY_run_ui_scripts only */
+static int bpy_import_module(char *modname, int reload)
+{
+	PyObject *mod= PyImport_ImportModuleLevel(modname, NULL, NULL, NULL, 0);
+	if (mod) {
+		if (reload) {
+			PyObject *mod_orig= mod;
+			mod= PyImport_ReloadModule(mod);
+			Py_DECREF(mod_orig);
+		}
+	}
+
+	if(mod) {
+		Py_DECREF(mod); /* could be NULL from reloading */
+		return 0;
+	} else {
+		return -1;
+	}
+}
+
 /* XXX this is temporary, need a proper script registration system for 2.5 */
 void BPY_run_ui_scripts(bContext *C, int reload)
 {
@@ -457,11 +458,10 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	char *file_extension;
 	char *dirname;
 	char path[FILE_MAX];
-	char *dirs[] = {"io", "ui", NULL};
-	int a;
+	char *dirs[] = {"ui", "io", NULL};
+	int a, err;
 	
 	PyGILState_STATE gilstate;
-	PyObject *mod;
 	PyObject *sys_path;
 
 	gilstate = PyGILState_Ensure();
@@ -491,27 +491,35 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 		while((de = readdir(dir)) != NULL) {
 			/* We could stat the file but easier just to let python
 			 * import it and complain if theres a problem */
+			err = 0;
 
-			file_extension = strstr(de->d_name, ".py");
-			
-			if(file_extension && file_extension[3] == '\0') {
-				BLI_strncpy(path, de->d_name, (file_extension - de->d_name) + 1); /* cut off the .py on copy */
-				mod= PyImport_ImportModuleLevel(path, NULL, NULL, NULL, 0);
-				if (mod) {
-					if (reload) {
-						PyObject *mod_orig= mod;
-						mod= PyImport_ReloadModule(mod);
-						Py_DECREF(mod_orig);
-					}
+			if (de->d_name[0] == '.') {
+				/* do nothing, probably .svn */
+			}
+			else if ((file_extension = strstr(de->d_name, ".py"))) {
+				/* normal py files? */
+				if(file_extension && file_extension[3] == '\0') {
+					de->d_name[(file_extension - de->d_name)] = '\0';
+					err= bpy_import_module(de->d_name, reload);
 				}
-				
-				if(mod) {
-					Py_DECREF(mod); /* could be NULL from reloading */
-				} else {
-					BPy_errors_to_report(NULL);
-					fprintf(stderr, "unable to import \"%s\"  %s/%s\n", path, dirname, de->d_name);
-				}
+			}
+#ifndef __linux__
+			else if( BLI_join_dirfile(path, dirname, de->d_name), S_ISDIR(BLI_exists(path))) {
+#else
+			else if(de->d_type==DT_DIR) {
+				BLI_join_dirfile(path, dirname, de->d_name);
+#endif
+				/* support packages */
+				BLI_join_dirfile(path, path, "__init__.py");
 
+				if(BLI_exists(path)) {
+					err= bpy_import_module(de->d_name, reload);
+				}
+			}
+
+			if(err==-1) {
+				BPy_errors_to_report(NULL);
+				fprintf(stderr, "unable to import %s/%s\n", dirname, de->d_name);
 			}
 		}
 

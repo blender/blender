@@ -622,12 +622,14 @@ void hashvert_flag(EditMesh *em, int flag)
 }
 
 /* generic extern called extruder */
-void extrude_mesh(Object *obedit, EditMesh *em, wmOperator *op)
+void extrude_mesh(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op)
 {
-	Scene *scene= NULL;		// XXX CTX!
 	float nor[3]= {0.0, 0.0, 0.0};
 	short nr, transmode= 0;
 
+	/* extrude depends on totvertsel etc */
+	EM_stats_update(em);
+	
 	if(em->selectmode & SCE_SELECT_VERTEX) {
 		if(em->totvertsel==0) nr= 0;
 		else if(em->totvertsel==1) nr= 4;
@@ -704,7 +706,7 @@ static int mesh_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 	int constraint_axis[3] = {0, 0, 1};
 
-	extrude_mesh(obedit,em, op);
+	extrude_mesh(scene, obedit, em, op);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
@@ -719,7 +721,7 @@ static int mesh_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
 	
 	
-	WM_operator_name_call(C, "TFM_OT_translation", WM_OP_INVOKE_REGION_WIN, op->ptr);
+	WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;
 }
@@ -731,7 +733,7 @@ static int mesh_extrude_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(obedit->data);
 
-	extrude_mesh(obedit,em, op);
+	extrude_mesh(scene, obedit, em, op);
 
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
@@ -4991,7 +4993,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	RNA_enum_set(op->ptr, "proportional", 0);
 	RNA_boolean_set(op->ptr, "mirror", 0);
-	WM_operator_name_call(C, "TFM_OT_translation", WM_OP_INVOKE_REGION_WIN, op->ptr);
+	WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;
 }
@@ -7132,7 +7134,7 @@ void MESH_OT_faces_shade_smooth(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int mesh_faces_shade_solid_exec(bContext *C, wmOperator *op)
+static int mesh_faces_shade_flat_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -7146,14 +7148,14 @@ static int mesh_faces_shade_solid_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_faces_shade_solid(wmOperatorType *ot)
+void MESH_OT_faces_shade_flat(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Shade Flat";
-	ot->idname= "MESH_OT_faces_shade_solid";
+	ot->idname= "MESH_OT_faces_shade_flat";
 
 	/* api callbacks */
-	ot->exec= mesh_faces_shade_solid_exec;
+	ot->exec= mesh_faces_shade_flat_exec;
 	ot->poll= ED_operator_editmesh;
 
 	/* flags */

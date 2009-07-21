@@ -155,6 +155,12 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_select_linked);
 	WM_operatortype_append(POSE_OT_select_constraint_target);
 	
+	WM_operatortype_append(POSE_OT_groups_menu);
+	WM_operatortype_append(POSE_OT_group_add);
+	WM_operatortype_append(POSE_OT_group_remove);
+	WM_operatortype_append(POSE_OT_group_assign);
+	WM_operatortype_append(POSE_OT_group_unassign);
+	
 	/* POSELIB */
 	WM_operatortype_append(POSELIB_OT_browse_interactive);
 	
@@ -225,7 +231,7 @@ void ED_keymap_armature(wmWindowManager *wm)
 	
 	WM_keymap_add_item(keymap, "POSE_OT_hide", HKEY, KM_PRESS, 0, 0);
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "unselected", 1);
+		RNA_boolean_set(kmi->ptr, "unselected", 1);
 	WM_keymap_add_item(keymap, "POSE_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
 	/*clear pose*/
 	WM_keymap_add_item(keymap, "POSE_OT_rot_clear", RKEY, KM_PRESS, KM_ALT, 0);
@@ -250,6 +256,13 @@ void ED_keymap_armature(wmWindowManager *wm)
 		RNA_boolean_set(kmi->ptr, "extend", 1);
 
 	WM_keymap_add_item(keymap, "POSE_OT_select_linked", LKEY, KM_PRESS, 0, 0);
+	
+	WM_keymap_add_item(keymap, "POSE_OT_constraint_add_with_targets", CKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_constraints_clear", CKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_ik_add", IKEY, KM_PRESS, /*KM_CTRL|*/KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_ik_clear", IKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	
+	WM_keymap_add_item(keymap, "POSE_OT_groups_menu", GKEY, KM_PRESS, KM_CTRL, 0);
 	
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
 	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe_menu", IKEY, KM_PRESS, 0, 0);

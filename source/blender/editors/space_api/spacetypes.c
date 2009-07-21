@@ -93,6 +93,7 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_marker();
 	ED_operatortypes_pointcache();
 	ED_operatortypes_fluid();
+	ED_operatortypes_boids();
 	
 	ui_view2d_operatortypes();
 	

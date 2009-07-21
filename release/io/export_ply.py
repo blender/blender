@@ -240,6 +240,7 @@ class EXPORT_OT_ply(bpy.types.Operator):
 	'''
 	Operator documentatuon text, will be used for the operator tooltip and python docs.
 	'''
+	__idname__ = "export.ply"
 	__label__ = "Export PLY"
 	
 	# List of operator properties, the attributes will be assigned

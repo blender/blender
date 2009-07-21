@@ -86,6 +86,12 @@ void RNA_api_ui_layout(StructRNA *srna)
 		{'v', "VECTOR", 0, "Vector", ""},
 		{'c', "COLOR", 0, "Color", ""},
 		{0, NULL, 0, NULL, NULL}};
+	
+	static EnumPropertyItem list_type_items[] = {
+		{0, "DEFAULT", 0, "None", ""},
+		{'c', "COMPACT", 0, "Compact", ""},
+		{'i', "ICONS", 0, "Icons", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* simple layout specifiers */
 	func= RNA_def_function(srna, "row", "uiLayoutRow");
@@ -236,6 +242,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func= RNA_def_function(srna, "template_preview", "uiTemplatePreview");
 	parm= RNA_def_pointer(func, "id", "ID", "", "ID datablock.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "parent", "ID", "", "ID datablock.");
 
 	func= RNA_def_function(srna, "template_curve_mapping", "uiTemplateCurveMapping");
 	parm= RNA_def_pointer(func, "curvemap", "CurveMapping", "", "Curve mapping pointer.");
@@ -258,14 +265,14 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "template_list", "uiTemplateList");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	api_ui_item_rna_common(func);
 	parm= RNA_def_pointer(func, "active_data", "AnyType", "", "Data from which to take property for the active element.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR);
 	parm= RNA_def_string(func, "active_property", "", 0, "", "Identifier of property in data, for the active element.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_int(func, "rows", 5, 0, INT_MAX, "", "Number of rows to display.", 0, INT_MAX);
-	parm= RNA_def_int(func, "columns", 5, 0, INT_MAX, "", "Number of columns to display.", 0, INT_MAX);
-	parm= RNA_def_boolean(func, "compact", 0, "", "Use compact, single row list template.");
+	parm= RNA_def_enum(func, "type", list_type_items, 0, "Type", "Type of list to use.");
 	parm= RNA_def_collection(func, "items", 0, "", "Items visible in the list.");
 	RNA_def_function_return(func, parm);
 

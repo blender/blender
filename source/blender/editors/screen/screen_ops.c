@@ -41,6 +41,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_blender.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
@@ -1979,7 +1980,7 @@ void SCREEN_OT_region_foursplit(wmOperatorType *ot)
 	ot->idname= "SCREEN_OT_region_foursplit";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
+//	ot->invoke= WM_operator_confirm;
 	ot->exec= region_foursplit_exec;
 	ot->poll= ED_operator_areaactive;
 	ot->flag= OPTYPE_REGISTER;
@@ -2575,21 +2576,46 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 	rectf+= 4*(rr->rectx*ymin + xmin);
 	rectc= (char *)(ibuf->rect + ibuf->x*rymin + rxmin);
 
-	for(y1= 0; y1<ymax; y1++) {
-		float *rf= rectf;
-		char *rc= rectc;
-		
-		/* XXX temp. because crop offset */
-		if( rectc >= (char *)(ibuf->rect)) {
-			for(x1= 0; x1<xmax; x1++, rf += 4, rc+=4) {
-				rc[0]= FTOCHAR(rf[0]);
-				rc[1]= FTOCHAR(rf[1]);
-				rc[2]= FTOCHAR(rf[2]);
-				rc[3]= FTOCHAR(rf[3]);
+	/* XXX make nice consistent functions for this */
+	if (rj->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+		for(y1= 0; y1<ymax; y1++) {
+			float *rf= rectf;
+			float srgb[3];
+			char *rc= rectc;
+			
+			/* XXX temp. because crop offset */
+			if( rectc >= (char *)(ibuf->rect)) {
+				for(x1= 0; x1<xmax; x1++, rf += 4, rc+=4) {
+					srgb[0]= linearrgb_to_srgb(rf[0]);
+					srgb[1]= linearrgb_to_srgb(rf[1]);
+					srgb[2]= linearrgb_to_srgb(rf[2]);
+
+					rc[0]= FTOCHAR(srgb[0]);
+					rc[1]= FTOCHAR(srgb[1]);
+					rc[2]= FTOCHAR(srgb[2]);
+					rc[3]= FTOCHAR(rf[3]);
+				}
 			}
+			rectf += 4*rr->rectx;
+			rectc += 4*ibuf->x;
 		}
-		rectf += 4*rr->rectx;
-		rectc += 4*ibuf->x;
+	} else {
+		for(y1= 0; y1<ymax; y1++) {
+			float *rf= rectf;
+			char *rc= rectc;
+			
+			/* XXX temp. because crop offset */
+			if( rectc >= (char *)(ibuf->rect)) {
+				for(x1= 0; x1<xmax; x1++, rf += 4, rc+=4) {
+					rc[0]= FTOCHAR(rf[0]);
+					rc[1]= FTOCHAR(rf[1]);
+					rc[2]= FTOCHAR(rf[2]);
+					rc[3]= FTOCHAR(rf[3]);
+				}
+			}
+			rectf += 4*rr->rectx;
+			rectc += 4*ibuf->x;
+		}
 	}
 	
 	/* make jobs timer to send notifier */
@@ -2854,7 +2880,10 @@ void ED_operatortypes_screen(void)
 /* called in spacetypes.c */
 void ED_keymap_screen(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
+	ListBase *keymap;
+	
+	/* Screen General ------------------------------------------------ */
+	keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
 	
 	/* standard timers */
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_step", TIMER0, KM_ANY, KM_ANY, 0);
@@ -2907,13 +2936,17 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_cancel", ESCKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_show", F11KEY, KM_PRESS, 0, 0);
 	
-	/* frame offsets & play */
+	/* Anim Playback ------------------------------------------------ */
 	keymap= WM_keymap_listbase(wm, "Frames", 0, 0);
+	
+	/* frame offsets */
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", UPARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 10);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -10);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -1);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", RIGHTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
-	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT, 0);
 	
+	/* play (forward and backwards) */
+	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0)->ptr, "reverse", 1);
 }
 

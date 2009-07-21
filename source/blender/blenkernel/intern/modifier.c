@@ -6113,9 +6113,14 @@ static void surfaceModifier_freeData(ModifierData *md)
 			MEM_freeN(surmd->bvhtree);
 		}
 
-		if(surmd->dm)
-			surmd->dm->release(surmd->dm);
+		surmd->dm->release(surmd->dm);
+
+		if(surmd->x)
+			MEM_freeN(surmd->x);
 		
+		if(surmd->v)
+			MEM_freeN(surmd->v);
+
 		surmd->bvhtree = NULL;
 		surmd->dm = NULL;
 	}
@@ -6128,7 +6133,7 @@ static int surfaceModifier_dependsOnTime(ModifierData *md)
 
 static void surfaceModifier_deformVerts(
 					  ModifierData *md, Object *ob, DerivedMesh *derivedData,
-       float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+	    float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	SurfaceModifierData *surmd = (SurfaceModifierData*) md;
 	unsigned int numverts = 0, i = 0;
@@ -6148,14 +6153,47 @@ static void surfaceModifier_deformVerts(
 	
 	if(surmd->dm)
 	{
+		int init = 0;
+		float *vec;
+		MVert *x, *v;
+
 		CDDM_apply_vert_coords(surmd->dm, vertexCos);
 		CDDM_calc_normals(surmd->dm);
 		
 		numverts = surmd->dm->getNumVerts ( surmd->dm );
 
-		/* convert to global coordinates */
-		for(i = 0; i<numverts; i++)
-			Mat4MulVecfl(ob->obmat, CDDM_get_vert(surmd->dm, i)->co);
+		if(numverts != surmd->numverts || surmd->x == NULL || surmd->v == NULL || md->scene->r.cfra != surmd->cfra+1) {
+			if(surmd->x) {
+				MEM_freeN(surmd->x);
+				surmd->x = NULL;
+			}
+			if(surmd->v) {
+				MEM_freeN(surmd->v);
+				surmd->v = NULL;
+			}
+
+			surmd->x = MEM_callocN(numverts * sizeof(MVert), "MVert");
+			surmd->v = MEM_callocN(numverts * sizeof(MVert), "MVert");
+
+			surmd->numverts = numverts;
+
+			init = 1;
+		}
+
+		/* convert to global coordinates and calculate velocity */
+		for(i = 0, x = surmd->x, v = surmd->v; i<numverts; i++, x++, v++) {
+			vec = CDDM_get_vert(surmd->dm, i)->co;
+			Mat4MulVecfl(ob->obmat, vec);
+
+			if(init)
+				v->co[0] = v->co[1] = v->co[2] = 0.0f;
+			else
+				VecSubf(v->co, vec, x->co);
+			
+			VecCopyf(x->co, vec);
+		}
+
+		surmd->cfra = md->scene->r.cfra;
 
 		if(surmd->bvhtree)
 			free_bvhtree_from_mesh(surmd->bvhtree);

@@ -17,12 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Joshua Leung
+ * Contributor(s): Joshua Leung (full recode)
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -42,8 +42,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
-
-/* Types --------------------------------------------------------------- */
+#include "BLI_dlrbTree.h"
 
 #include "DNA_listBase.h"
 #include "DNA_anim_types.h"
@@ -75,8 +74,6 @@
 #include "BKE_context.h"
 #include "BKE_utildefines.h"
 
-/* Everything from source (BIF, BDR, BSE) ------------------------------ */ 
-
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -91,55 +88,101 @@
 #include "ED_screen.h"
 #include "ED_space_api.h"
 
-/* *************************** Keyframe Drawing *************************** */
+/* *************************** Keyframe Processing *************************** */
 
-static void add_bezt_to_keycolumnslist(ListBase *keys, BezTriple *bezt)
+/* Create a ActKeyColumn from a BezTriple */
+static ActKeyColumn *bezt_to_new_actkeycolumn(BezTriple *bezt)
 {
-	/* The equivalent of add_to_cfra_elem except this version 
-	 * makes ActKeyColumns - one of the two datatypes required
-	 * for action editor drawing.
-	 */
-	ActKeyColumn *ak, *akn;
+	ActKeyColumn *ak= MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumn");
 	
-	if (ELEM(NULL, keys, bezt)) return;
-	
-	/* try to any existing key to replace, or where to insert after */
-	for (ak= keys->last; ak; ak= ak->prev) {
-		/* do because of double keys */
-		if (ak->cfra == bezt->vec[1][0]) {			
-			/* set selection status and 'touched' status */
-			if (BEZSELECTED(bezt)) ak->sel = SELECT;
-			ak->modified += 1;
-			
-			return;
-		}
-		else if (ak->cfra < bezt->vec[1][0]) break;
-	}
-	
-	/* add new block */
-	akn= MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumn");
-	if (ak) BLI_insertlinkafter(keys, ak, akn);
-	else BLI_addtail(keys, akn);
-	
-	akn->cfra= bezt->vec[1][0];
-	akn->modified += 1;
+	/* store settings based on state of BezTriple */
+	ak->cfra= bezt->vec[1][0];
+	ak->sel= BEZSELECTED(bezt) ? SELECT : 0;
 	
 	// TODO: handle type = bezt->h1 or bezt->h2
-	akn->handle_type= 0; 
+	ak->handle_type= 0; 
 	
-	if (BEZSELECTED(bezt))
-		akn->sel = SELECT;
-	else
-		akn->sel = 0;
+	/* set 'modified', since this is used to identify long keyframes */
+	ak->modified = 1;
+	
+	return ak;
 }
 
-static void add_bezt_to_keyblockslist(ListBase *blocks, FCurve *fcu, int index)
+/* Add the given BezTriple to the given 'list' of Keyframes */
+static void add_bezt_to_keycolumns_list(DLRBT_Tree *keys, BezTriple *bezt)
 {
-	/* The equivalent of add_to_cfra_elem except this version 
-	 * makes ActKeyBlocks - one of the two datatypes required
-	 * for action editor drawing.
-	 */
-	ActKeyBlock *ab, *abn;
+	ActKeyColumn *new_ak=NULL;
+	
+	if ELEM(NULL, keys, bezt) return;
+	
+	/* if there are no keys already, just add as root */
+	if (keys->root == NULL) {
+		/* just add this as the root, then call the tree-balancing functions to validate */
+		new_ak= bezt_to_new_actkeycolumn(bezt);
+		keys->root= (DLRBT_Node *)new_ak;
+	}
+	else {
+		ActKeyColumn *ak, *akp=NULL, *akn=NULL;
+		
+		/* traverse tree to find an existing entry to update the status of, 
+		 * or a suitable point to add at
+		 */
+		for (ak= keys->root; ak; akp= ak, ak= akn) {
+			/* check if this is a match, or whether we go left or right */
+			if (ak->cfra == bezt->vec[1][0]) {
+				/* set selection status and 'touched' status */
+				if (BEZSELECTED(bezt)) ak->sel = SELECT;
+				ak->modified += 1;
+				
+				/* done... no need to insert */
+				return;
+			}
+			else {
+				ActKeyColumn **aknp= NULL; 
+				
+				/* check if go left or right, but if not available, add new node */
+				if (ak->cfra < bezt->vec[1][0]) 
+					aknp= &ak->right;
+				else
+					aknp= &ak->left;
+					
+				/* if this does not exist, add a new node, otherwise continue... */
+				if (*aknp == NULL) {
+					/* add a new node representing this, and attach it to the relevant place */
+					new_ak= bezt_to_new_actkeycolumn(bezt);
+					new_ak->parent= ak;
+					*aknp= new_ak;
+					break;
+				}
+				else
+					akn= *aknp;
+			}
+		}
+	}
+	
+	/* now, balance the tree taking into account this newly added node */
+	BLI_dlrbTree_insert(keys, (DLRBT_Node *)new_ak);
+}
+
+
+/* Create a ActKeyColumn for a pair of BezTriples */
+static ActKeyBlock *bezts_to_new_actkeyblock(BezTriple *prev, BezTriple *beztn)
+{
+	ActKeyBlock *ab= MEM_callocN(sizeof(ActKeyBlock), "ActKeyBlock");
+	
+	ab->start= prev->vec[1][0];
+	ab->end= beztn->vec[1][0];
+	ab->val= beztn->vec[1][1];
+	
+	ab->sel= (BEZSELECTED(prev) || BEZSELECTED(beztn)) ? SELECT : 0;
+	ab->modified = 1;
+	
+	return ab;
+}
+
+static void add_bezt_to_keyblocks_list(DLRBT_Tree *blocks, FCurve *fcu, int index)
+{
+	ActKeyBlock *new_ab= NULL;
 	BezTriple *beztn=NULL, *prev=NULL;
 	BezTriple *bezt;
 	int v;
@@ -148,6 +191,7 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, FCurve *fcu, int index)
 	beztn= (fcu->bezt + index);
 	
 	/* we need to go through all beztriples, as they may not be in order (i.e. during transform) */
+	// TODO: this seems to be a bit of a bottleneck
 	for (v=0, bezt=fcu->bezt; v < fcu->totvert; v++, bezt++) {
 		/* skip if beztriple is current */
 		if (v != index) {
@@ -174,65 +218,118 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, FCurve *fcu, int index)
 	if (IS_EQ(beztn->vec[1][1], beztn->vec[0][1])==0) return;
 	if (IS_EQ(prev->vec[1][1], prev->vec[2][1])==0) return;
 	
-	/* try to find a keyblock that starts on the previous beztriple 
-	 * Note: we can't search from end to try to optimise this as it causes errors there's
-	 * 		an A ___ B |---| B situation
-	 */
-	// FIXME: here there is a bug where we are trying to get the summary for the following channels
-	//		A|--------------|A ______________ B|--------------|B
-	//		A|------------------------------------------------|A
-	//		A|----|A|---|A|-----------------------------------|A
-	for (ab= blocks->first; ab; ab= ab->next) {
-		/* check if alter existing block or add new block */
-		if (ab->start == prev->vec[1][0]) {			
-			/* set selection status and 'touched' status */
-			if (BEZSELECTED(beztn)) ab->sel = SELECT;
-			ab->modified += 1;
-			
-			return;
+	
+	/* if there are no blocks already, just add as root */
+	if (blocks->root == NULL) {
+		/* just add this as the root, then call the tree-balancing functions to validate */
+		new_ab= bezts_to_new_actkeyblock(prev, beztn);
+		blocks->root= (DLRBT_Node *)new_ab;
+	}
+	else {
+		ActKeyBlock *ab, *abp=NULL, *abn=NULL;
+		
+		/* try to find a keyblock that starts on the previous beztriple, and add a new one if none start there
+		 * Note: we can't search from end to try to optimise this as it causes errors there's
+		 * 		an A ___ B |---| B situation
+		 */
+		// FIXME: here there is a bug where we are trying to get the summary for the following channels
+		//		A|--------------|A ______________ B|--------------|B
+		//		A|------------------------------------------------|A
+		//		A|----|A|---|A|-----------------------------------|A
+		for (ab= blocks->root; ab; abp= ab, ab= abn) {
+			/* check if this is a match, or whether we go left or right */
+			if (ab->start == prev->vec[1][0]) {
+				/* set selection status and 'touched' status */
+				if (BEZSELECTED(beztn)) ab->sel = SELECT;
+				ab->modified += 1;
+				
+				/* done... no need to insert */
+				return;
+			}
+			else {
+				ActKeyBlock **abnp= NULL; 
+				
+				/* check if go left or right, but if not available, add new node */
+				if (ab->start < prev->vec[1][0]) 
+					abnp= &ab->right;
+				else
+					abnp= &ab->left;
+					
+				/* if this does not exist, add a new node, otherwise continue... */
+				if (*abnp == NULL) {
+					/* add a new node representing this, and attach it to the relevant place */
+					new_ab= bezts_to_new_actkeyblock(prev, beztn);
+					new_ab->parent= ab;
+					*abnp= new_ab;
+					break;
+				}
+				else
+					abn= *abnp;
+			}
 		}
-		else if (ab->start < prev->vec[1][0]) break;
 	}
 	
-	/* add new block */
-	abn= MEM_callocN(sizeof(ActKeyBlock), "ActKeyBlock");
-	if (ab) BLI_insertlinkbefore(blocks, ab, abn);
-	else BLI_addtail(blocks, abn);
-	
-	abn->start= prev->vec[1][0];
-	abn->end= beztn->vec[1][0];
-	abn->val= beztn->vec[1][1];
-	
-	if (BEZSELECTED(prev) || BEZSELECTED(beztn))
-		abn->sel = SELECT;
-	else
-		abn->sel = 0;
-	abn->modified = 1;
+	/* now, balance the tree taking into account this newly added node */
+	BLI_dlrbTree_insert(blocks, (DLRBT_Node *)new_ab);
 }
 
-/* helper function - find actkeycolumn that occurs on cframe */
-static ActKeyColumn *cfra_find_actkeycolumn (ListBase *keys, float cframe)
+/* --------- */
+
+/* Handle the 'touched' status of ActKeyColumn tree nodes */
+static void set_touched_actkeycolumn (ActKeyColumn *ak)
 {
-	ActKeyColumn *ak, *ak2;
-	
-	if (keys==NULL) 
-		return NULL;
-	 
-	/* search from both ends at the same time, and stop if we find match or if both ends meet */ 
-	for (ak=keys->first, ak2=keys->last; ak && ak2; ak=ak->next, ak2=ak2->prev) {
-		/* return whichever end encounters the frame */
-		if (ak->cfra == cframe)
-			return ak;
-		if (ak2->cfra == cframe)
-			return ak2;
+	/* sanity check */
+	if (ak == NULL)
+		return;
 		
-		/* no matches on either end, so return NULL */
-		if (ak == ak2)
-			return NULL;
+	/* deal with self first */
+	if (ak->modified) {
+		ak->modified= 0;
+		ak->totcurve++;
 	}
 	
-	return NULL;
+	/* children */
+	set_touched_actkeycolumn(ak->left);
+	set_touched_actkeycolumn(ak->right);
 }
+
+/* Handle the 'touched' status of ActKeyBlock tree nodes */
+static void set_touched_actkeyblock (ActKeyBlock *ab)
+{
+	/* sanity check */
+	if (ab == NULL)
+		return;
+		
+	/* deal with self first */
+	if (ab->modified) {
+		ab->modified= 0;
+		ab->totcurve++;
+	}
+	
+	/* children */
+	set_touched_actkeyblock(ab->left);
+	set_touched_actkeyblock(ab->right);
+}
+
+/* *************************** Keyframe Drawing *************************** */
+
+/* helper function - find actkeycolumn that occurs on cframe */
+static ActKeyColumn *cfra_find_actkeycolumn (ActKeyColumn *ak, float cframe)
+{
+	/* sanity checks */
+	if (ak == NULL)
+		return NULL;
+	
+	/* check if this is a match, or whether it is in some subtree */
+	if (cframe < ak->cfra)
+		return cfra_find_actkeycolumn(ak->left, cframe);
+	else if (cframe > ak->cfra)
+		return cfra_find_actkeycolumn(ak->right, cframe);
+	else
+		return ak; /* match */
+}
+
+/* -------- */
 
 /* coordinates for diamond shape */
 static const float _unit_diamond_shape[4][2] = {
@@ -304,7 +401,7 @@ void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel
 	glTranslatef(-x, -y, 0.0f);
 }
 
-static void draw_keylist(View2D *v2d, ListBase *keys, ListBase *blocks, float ypos)
+static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, float ypos)
 {
 	ActKeyColumn *ak;
 	ActKeyBlock *ab;
@@ -321,10 +418,10 @@ static void draw_keylist(View2D *v2d, ListBase *keys, ListBase *blocks, float yp
 			short startCurves, endCurves, totCurves;
 			
 			/* find out how many curves occur at each keyframe */
-			ak= cfra_find_actkeycolumn(keys, ab->start);
+			ak= cfra_find_actkeycolumn((ActKeyColumn *)keys->root, ab->start);
 			startCurves = (ak)? ak->totcurve: 0;
 			
-			ak= cfra_find_actkeycolumn(keys, ab->end);
+			ak= cfra_find_actkeycolumn((ActKeyColumn *)keys->root, ab->end);
 			endCurves = (ak)? ak->totcurve: 0;
 			
 			/* only draw keyblock if it appears in at all of the keyframes at lowest end */
@@ -348,28 +445,16 @@ static void draw_keylist(View2D *v2d, ListBase *keys, ListBase *blocks, float yp
 	/* draw keys */
 	if (keys) {
 		for (ak= keys->first; ak; ak= ak->next) {
+			/* optimisation: if keyframe doesn't appear within 5 units (screenspace) in visible area, don't draw 
+			 *	- this might give some improvements, since we current have to flip between view/region matrices
+			 */
+			if (IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax) == 0)
+				continue;
+			
 			/* draw using OpenGL - uglier but faster */
-			// NOTE: a previous version of this didn't work nice for some intel cards
+			// NOTE1: a previous version of this didn't work nice for some intel cards
+			// NOTE2: if we wanted to go back to icons, these are  icon = (ak->sel & SELECT) ? ICON_SPACE2 : ICON_SPACE3;
 			draw_keyframe_shape(ak->cfra, ypos, xscale, 5.0f, (ak->sel & SELECT), KEYFRAME_SHAPE_BOTH);
-			
-#if 0 // OLD CODE
-			//int sc_x, sc_y;
-			
-			/* get co-ordinate to draw at */
-			//gla2DDrawTranslatePt(di, ak->cfra, ypos, &sc_x, &sc_y);
-			
-			/* draw using icons - old way which is slower but more proven */
-			//if (ak->sel & SELECT) UI_icon_draw_aspect((float)sc_x-7, (float)sc_y-6, ICON_SPACE2, 1.0f);
-			//else UI_icon_draw_aspect((float)sc_x-7, (float)sc_y-6, ICON_SPACE3, 1.0f);
-#endif // OLD CODE
-#if 0 // NEW NON-WORKING CODE 
-			/* draw icon */
-			// FIXME: this draws slightly wrong, as we need to apply some offset for icon, but that depends on scaling
-			// so for now disabled
-			//int icon = (ak->sel & SELECT) ? ICON_SPACE2 : ICON_SPACE3;
-			//UI_icon_draw_aspect(ak->cfra, ypos-6, icon, 1.0f);
-#endif // NEW NON-WORKING CODE
-			
 		}	
 	}
 	
@@ -380,76 +465,112 @@ static void draw_keylist(View2D *v2d, ListBase *keys, ListBase *blocks, float yp
 
 void draw_scene_channel(View2D *v2d, bDopeSheet *ads, Scene *sce, float ypos)
 {
-	ListBase keys = {0, 0};
-	ListBase blocks = {0, 0};
-
-	scene_to_keylist(ads, sce, &keys, &blocks);
-	draw_keylist(v2d, &keys, &blocks, ypos);
+	DLRBT_Tree keys, blocks;
 	
-	BLI_freelistN(&keys);
-	BLI_freelistN(&blocks);
+	BLI_dlrbTree_init(&keys);
+	BLI_dlrbTree_init(&blocks);
+	
+		scene_to_keylist(ads, sce, &keys, &blocks);
+	
+	BLI_dlrbTree_linkedlist_sync(&keys);
+	BLI_dlrbTree_linkedlist_sync(&blocks);
+	
+		draw_keylist(v2d, &keys, &blocks, ypos);
+	
+	BLI_dlrbTree_free(&keys);
+	BLI_dlrbTree_free(&blocks);
 }
 
 void draw_object_channel(View2D *v2d, bDopeSheet *ads, Object *ob, float ypos)
 {
-	ListBase keys = {0, 0};
-	ListBase blocks = {0, 0};
-
-	ob_to_keylist(ads, ob, &keys, &blocks);
-	draw_keylist(v2d, &keys, &blocks, ypos);
+	DLRBT_Tree keys, blocks;
 	
-	BLI_freelistN(&keys);
-	BLI_freelistN(&blocks);
+	BLI_dlrbTree_init(&keys);
+	BLI_dlrbTree_init(&blocks);
+	
+		ob_to_keylist(ads, ob, &keys, &blocks);
+	
+	BLI_dlrbTree_linkedlist_sync(&keys);
+	BLI_dlrbTree_linkedlist_sync(&blocks);
+	
+		draw_keylist(v2d, &keys, &blocks, ypos);
+	
+	BLI_dlrbTree_free(&keys);
+	BLI_dlrbTree_free(&blocks);
 }
 
 void draw_fcurve_channel(View2D *v2d, AnimData *adt, FCurve *fcu, float ypos)
 {
-	ListBase keys = {0, 0};
-	ListBase blocks = {0, 0};
-
-	fcurve_to_keylist(adt, fcu, &keys, &blocks);
-	draw_keylist(v2d, &keys, &blocks, ypos);
+	DLRBT_Tree keys, blocks;
 	
-	BLI_freelistN(&keys);
-	BLI_freelistN(&blocks);
+	BLI_dlrbTree_init(&keys);
+	BLI_dlrbTree_init(&blocks);
+	
+		fcurve_to_keylist(adt, fcu, &keys, &blocks);
+	
+	BLI_dlrbTree_linkedlist_sync(&keys);
+	BLI_dlrbTree_linkedlist_sync(&blocks);
+	
+		draw_keylist(v2d, &keys, &blocks, ypos);
+	
+	BLI_dlrbTree_free(&keys);
+	BLI_dlrbTree_free(&blocks);
 }
 
 void draw_agroup_channel(View2D *v2d, AnimData *adt, bActionGroup *agrp, float ypos)
 {
-	ListBase keys = {0, 0};
-	ListBase blocks = {0, 0};
-
-	agroup_to_keylist(adt, agrp, &keys, &blocks);
-	draw_keylist(v2d, &keys, &blocks, ypos);
+	DLRBT_Tree keys, blocks;
 	
-	BLI_freelistN(&keys);
-	BLI_freelistN(&blocks);
+	BLI_dlrbTree_init(&keys);
+	BLI_dlrbTree_init(&blocks);
+	
+		agroup_to_keylist(adt, agrp, &keys, &blocks);
+	
+	BLI_dlrbTree_linkedlist_sync(&keys);
+	BLI_dlrbTree_linkedlist_sync(&blocks);
+	
+		draw_keylist(v2d, &keys, &blocks, ypos);
+	
+	BLI_dlrbTree_free(&keys);
+	BLI_dlrbTree_free(&blocks);
 }
 
 void draw_action_channel(View2D *v2d, AnimData *adt, bAction *act, float ypos)
 {
-	ListBase keys = {0, 0};
-	ListBase blocks = {0, 0};
-
-	action_to_keylist(adt, act, &keys, &blocks);
-	draw_keylist(v2d, &keys, &blocks, ypos);
+	DLRBT_Tree keys, blocks;
 	
-	BLI_freelistN(&keys);
-	BLI_freelistN(&blocks);
+	BLI_dlrbTree_init(&keys);
+	BLI_dlrbTree_init(&blocks);
+	
+		action_to_keylist(adt, act, &keys, &blocks);
+	
+	BLI_dlrbTree_linkedlist_sync(&keys);
+	BLI_dlrbTree_linkedlist_sync(&blocks);
+	
+		draw_keylist(v2d, &keys, &blocks, ypos);
+	
+	BLI_dlrbTree_free(&keys);
+	BLI_dlrbTree_free(&blocks);
 }
 
 void draw_gpl_channel(View2D *v2d, bDopeSheet *ads, bGPDlayer *gpl, float ypos)
 {
-	ListBase keys = {0, 0};
+	DLRBT_Tree keys;
 	
-	gpl_to_keylist(ads, gpl, &keys, NULL);
-	draw_keylist(v2d, &keys, NULL, ypos);
-	BLI_freelistN(&keys);
+	BLI_dlrbTree_init(&keys);
+	
+		gpl_to_keylist(ads, gpl, &keys, NULL);
+	
+	BLI_dlrbTree_linkedlist_sync(&keys);
+	
+		draw_keylist(v2d, &keys, NULL, ypos);
+	
+	BLI_dlrbTree_free(&keys);
 }
 
 /* *************************** Keyframe List Conversions *************************** */
 
-void scene_to_keylist(bDopeSheet *ads, Scene *sce, ListBase *keys, ListBase *blocks)
+void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 {
 	if (sce) {
 		AnimData *adt;
@@ -481,7 +602,7 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, ListBase *keys, ListBase *blo
 	}
 }
 
-void ob_to_keylist(bDopeSheet *ads, Object *ob, ListBase *keys, ListBase *blocks)
+void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 {
 	Key *key= ob_get_key(ob);
 
@@ -506,12 +627,9 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, ListBase *keys, ListBase *blocks
 	}
 }
 
-
-void fcurve_to_keylist(AnimData *adt, FCurve *fcu, ListBase *keys, ListBase *blocks)
+void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 {
 	BezTriple *bezt;
-	ActKeyColumn *ak, *ak2;
-	ActKeyBlock *ab, *ab2;
 	int v;
 	
 	if (fcu && fcu->totvert && fcu->bezt) {
@@ -523,51 +641,23 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, ListBase *keys, ListBase *blo
 		bezt= fcu->bezt;
 		
 		for (v=0; v < fcu->totvert; v++, bezt++) {
-			/* only if keyframe is in range (optimisation) */
-			add_bezt_to_keycolumnslist(keys, bezt);
-			if (blocks) add_bezt_to_keyblockslist(blocks, fcu, v);
+			add_bezt_to_keycolumns_list(keys, bezt);
+			if (blocks) add_bezt_to_keyblocks_list(blocks, fcu, v);
 		}
 		
 		/* update the number of curves that elements have appeared in  */
-		if (keys) {
-			for (ak=keys->first, ak2=keys->last; ak && ak2; ak=ak->next, ak2=ak2->prev) {
-				if (ak->modified) {
-					ak->modified = 0;
-					ak->totcurve += 1;
-				}
-				
-				if (ak == ak2)
-					break;
-				
-				if (ak2->modified) {
-					ak2->modified = 0;
-					ak2->totcurve += 1;
-				}
-			}
-		}
-		if (blocks) {
-			for (ab=blocks->first, ab2=blocks->last; ab && ab2; ab=ab->next, ab2=ab2->prev) {
-				if (ab->modified) {
-					ab->modified = 0;
-					ab->totcurve += 1;
-				}
-				
-				if (ab == ab2)
-					break;
-				
-				if (ab2->modified) {
-					ab2->modified = 0;
-					ab2->totcurve += 1;
-				}
-			}
-		}
+		// FIXME: this is broken with the new tree structure for now...
+		if (keys)
+			set_touched_actkeycolumn(keys->root);
+		if (blocks)
+			set_touched_actkeyblock(blocks->root);
 		
 		/* unapply NLA-mapping if applicable */
 		ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 1);
 	}
 }
 
-void agroup_to_keylist(AnimData *adt, bActionGroup *agrp, ListBase *keys, ListBase *blocks)
+void agroup_to_keylist(AnimData *adt, bActionGroup *agrp, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 {
 	FCurve *fcu;
 
@@ -579,7 +669,7 @@ void agroup_to_keylist(AnimData *adt, bActionGroup *agrp, ListBase *keys, ListBa
 	}
 }
 
-void action_to_keylist(AnimData *adt, bAction *act, ListBase *keys, ListBase *blocks)
+void action_to_keylist(AnimData *adt, bAction *act, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 {
 	FCurve *fcu;
 
@@ -592,7 +682,7 @@ void action_to_keylist(AnimData *adt, bAction *act, ListBase *keys, ListBase *bl
 }
 
 
-void gpl_to_keylist(bDopeSheet *ads, bGPDlayer *gpl, ListBase *keys, ListBase *blocks)
+void gpl_to_keylist(bDopeSheet *ads, bGPDlayer *gpl, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 {
 	bGPDframe *gpf;
 	ActKeyColumn *ak;
@@ -601,7 +691,7 @@ void gpl_to_keylist(bDopeSheet *ads, bGPDlayer *gpl, ListBase *keys, ListBase *b
 		/* loop over frames, converting directly to 'keyframes' (should be in order too) */
 		for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
 			ak= MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumn");
-			BLI_addtail(keys, ak);
+			BLI_addtail((ListBase *)keys, ak);
 			
 			ak->cfra= (float)gpf->framenum;
 			ak->modified = 1;

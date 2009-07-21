@@ -23,65 +23,79 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/* Note, this module is not to be used directly by the user.
+ * its accessed from blender with bpy.__ops__
+ * */
+
 #include "bpy_operator.h"
 #include "bpy_operator_wrap.h"
 #include "bpy_rna.h" /* for setting arg props only - pyrna_py_to_prop() */
 #include "bpy_compat.h"
 #include "bpy_util.h"
 
-//#include "blendef.h"
-#include "BLI_dynstr.h"
-
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "MEM_guardedalloc.h"
-//#include "BKE_idprop.h"
 #include "BKE_report.h"
 
-extern ListBase global_ops; /* evil, temp use */
-
-static PyObject *pyop_base_dir(PyObject *self);
-static PyObject *pyop_base_rna(PyObject *self, PyObject *pyname);
-static struct PyMethodDef pyop_base_methods[] = {
-	{"__dir__", (PyCFunction)pyop_base_dir, METH_NOARGS, ""},
-	{"__rna__", (PyCFunction)pyop_base_rna, METH_O, ""},
-	{"add", (PyCFunction)PYOP_wrap_add, METH_O, ""},
-	{"remove", (PyCFunction)PYOP_wrap_remove, METH_O, ""},
-	{NULL, NULL, 0, NULL}
-};
 
 /* 'self' stores the operator string */
-static PyObject *pyop_base_call( PyObject * self, PyObject * args,  PyObject * kw)
+static PyObject *pyop_call( PyObject * self, PyObject * args)
 {
 	wmOperatorType *ot;
 	int error_val = 0;
 	PointerRNA ptr;
 	
+	char *opname;
+	PyObject *kw= NULL;
+
 	// XXX Todo, work out a better solution for passing on context, could make a tuple from self and pack the name and Context into it...
 	bContext *C = BPy_GetContext();
 	
-	char *opname = _PyUnicode_AsString(self);
 
-	if (PyTuple_Size(args)) {
-		PyErr_SetString( PyExc_AttributeError, "All operator args must be keywords");
+	switch(PyTuple_Size(args)) {
+	case 2:
+		kw = PyTuple_GET_ITEM(args, 1);
+
+		if(!PyDict_Check(kw)) {
+			PyErr_SetString( PyExc_AttributeError, "bpy.__ops__.call: expected second arg to be a dict");
+			return NULL;
+		}
+		/* pass through */
+	case 1:
+		opname = _PyUnicode_AsString(PyTuple_GET_ITEM(args, 0));
+
+		if(opname==NULL) {
+			PyErr_SetString( PyExc_AttributeError, "bpy.__ops__.call: expected the first arg to be a string");
+			return NULL;
+		}
+		break;
+	default:
+		PyErr_SetString( PyExc_AttributeError, "bpy.__ops__.call: expected a string and optional dict");
 		return NULL;
 	}
 
+
 	ot= WM_operatortype_find(opname, 1);
+
 	if (ot == NULL) {
-		PyErr_Format( PyExc_SystemError, "Operator \"%s\"could not be found", opname);
+		PyErr_Format( PyExc_SystemError, "bpy.__ops__.call: operator \"%s\"could not be found", opname);
 		return NULL;
 	}
 	
 	if(ot->poll && (ot->poll(C) == 0)) {
-		PyErr_SetString( PyExc_SystemError, "Operator poll() function failed, context is incorrect");
+		PyErr_SetString( PyExc_SystemError, "bpy.__ops__.call: operator poll() function failed, context is incorrect");
 		return NULL;
 	}
 	
-	WM_operator_properties_create(&ptr, opname);
+	/* WM_operator_properties_create(&ptr, opname); */
+	/* Save another lookup */
+	RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
 	
-	error_val= pyrna_pydict_to_props(&ptr, kw, "Converting py args to operator properties: ");
+	if(kw && PyDict_Size(kw))
+		error_val= pyrna_pydict_to_props(&ptr, kw, "Converting py args to operator properties: ");
+
 	
 	if (error_val==0) {
 		ReportList reports;
@@ -118,53 +132,13 @@ static PyObject *pyop_base_call( PyObject * self, PyObject * args,  PyObject * k
 	Py_RETURN_NONE;
 }
 
-static PyMethodDef pyop_base_call_meth[] = {
-	{"__op_call__", (PyCFunction)pyop_base_call, METH_VARARGS|METH_KEYWORDS, "generic operator calling function"}
-};
-
-
-//---------------getattr--------------------------------------------
-static PyObject *pyop_base_getattro( BPy_OperatorBase * self, PyObject *pyname )
-{
-	char *name = _PyUnicode_AsString(pyname);
-	PyObject *ret;
-	wmOperatorType *ot;
-	
-	/* First look for the operator, then our own methods if that fails.
-	 * when methods are searched first, PyObject_GenericGetAttr will raise an error
-	 * each time we want to call an operator, we could clear the error but I prefer
-	 * not to since calling operators is a lot more common then adding and removing. - Campbell */
-	
-	if ((ot= WM_operatortype_find(name, 1))) {
-		ret = PyCFunction_New( pyop_base_call_meth, pyname); /* set the name string as self, PyCFunction_New incref's self */
-	}
-	else if ((ret = PyObject_GenericGetAttr((PyObject *)self, pyname))) {
-		/* do nothing, this accounts for methoddef's add and remove
-		 * An exception is raised when PyObject_GenericGetAttr fails
-		 * but its ok because its overwritten below */
-	}
-	else {
-		PyErr_Format( PyExc_AttributeError, "Operator \"%s\" not found", name);
-		ret= NULL;
-	}
-
-	return ret;
-}
-
-static PyObject *pyop_base_dir(PyObject *self)
+static PyObject *pyop_dir(PyObject *self)
 {
 	PyObject *list = PyList_New(0), *name;
 	wmOperatorType *ot;
-	PyMethodDef *meth;
 	
 	for(ot= WM_operatortype_first(); ot; ot= ot->next) {
 		name = PyUnicode_FromString(ot->idname);
-		PyList_Append(list, name);
-		Py_DECREF(name);
-	}
-
-	for(meth=pyop_base_methods; meth->ml_name; meth++) {
-		name = PyUnicode_FromString(meth->ml_name);
 		PyList_Append(list, name);
 		Py_DECREF(name);
 	}
@@ -172,42 +146,20 @@ static PyObject *pyop_base_dir(PyObject *self)
 	return list;
 }
 
-static PyObject *pyop_base_rna(PyObject *self, PyObject *pyname)
-{
-	char *name = _PyUnicode_AsString(pyname);
-	wmOperatorType *ot;
-	
-	if ((ot= WM_operatortype_find(name, 1))) {
-		BPy_StructRNA *pyrna;
-		PointerRNA ptr;
-		
-		/* XXX POINTER - if this 'ot' is python generated, it could be free'd */
-		RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
-		
-		pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr); /* were not really using &ptr, overwite next */
-		//pyrna->freeptr= 1;
-		return (PyObject *)pyrna;
-	}
-	else {
-		PyErr_Format(PyExc_AttributeError, "Operator \"%s\" not found", name);
-		return NULL;
-	}
-}
-
-PyTypeObject pyop_base_Type = {NULL};
-
 PyObject *BPY_operator_module( void )
 {
-	pyop_base_Type.tp_name = "OperatorBase";
-	pyop_base_Type.tp_basicsize = sizeof( BPy_OperatorBase );
-	pyop_base_Type.tp_getattro = ( getattrofunc )pyop_base_getattro;
-	pyop_base_Type.tp_flags = Py_TPFLAGS_DEFAULT;
-	pyop_base_Type.tp_methods = pyop_base_methods;
-	
-	if( PyType_Ready( &pyop_base_Type ) < 0 )
-		return NULL;
+	static PyMethodDef pyop_call_meth =		{"call", (PyCFunction) pyop_call, METH_VARARGS, NULL};
+	static PyMethodDef pyop_dir_meth =		{"dir", (PyCFunction) pyop_dir, METH_NOARGS, NULL};
+	static PyMethodDef pyop_add_meth =		{"add", (PyCFunction) PYOP_wrap_add, METH_O, NULL};
+	static PyMethodDef pyop_remove_meth =	{"remove", (PyCFunction) PYOP_wrap_remove, METH_O, NULL};
 
-	//submodule = Py_InitModule3( "operator", M_rna_methods, "rna module" );
-	return (PyObject *)PyObject_NEW( BPy_OperatorBase, &pyop_base_Type );
+	PyObject *submodule = PyModule_New("bpy.__ops__");
+	PyDict_SetItemString(PySys_GetObject("modules"), "bpy.__ops__", submodule);
+
+	PyModule_AddObject( submodule, "call",	PyCFunction_New(&pyop_call_meth,	NULL) );
+	PyModule_AddObject( submodule, "dir",		PyCFunction_New(&pyop_dir_meth,		NULL) );
+	PyModule_AddObject( submodule, "add",		PyCFunction_New(&pyop_add_meth,		NULL) );
+	PyModule_AddObject( submodule, "remove",	PyCFunction_New(&pyop_remove_meth,	NULL) );
+
+	return submodule;
 }
-

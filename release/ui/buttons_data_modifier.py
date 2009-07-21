@@ -15,7 +15,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout = self.layout
 
 		row = layout.row()
-		row.item_menu_enumO("OBJECT_OT_modifier_add", "type")
+		row.item_menu_enumO("object.modifier_add", "type")
 		row.itemL();
 
 		for md in ob.modifiers:
@@ -264,7 +264,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemR(md, "invert")
 
 		layout.itemS()
-		layout.itemO("OBJECT_OT_modifier_mdef_bind", text="Bind")
+		layout.itemO("object.modifier_mdef_bind", text="Bind")
 		row = layout.row()
 		row.itemR(md, "precision")
 		row.itemR(md, "dynamic")
@@ -289,7 +289,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		
 	def multires(self, layout, ob, md):
 		layout.itemR(md, "subdivision_type")
-		layout.itemO("OBJECT_OT_multires_subdivide", text="Subdivide")
+		layout.itemO("object.multires_subdivide", text="Subdivide")
 		layout.itemR(md, "level")
 	
 	def particleinstance(self, layout, ob, md):

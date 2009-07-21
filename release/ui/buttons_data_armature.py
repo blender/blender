@@ -79,6 +79,38 @@ class DATA_PT_display(DataButtonsPanel):
 		sub.itemR(arm, "draw_group_colors", text="Colors")
 		sub.itemR(arm, "delay_deform", text="Delay Refresh")
 
+class DATA_PT_bone_groups(DataButtonsPanel):
+	__idname__ = "DATA_PT_bone_groups"
+	__label__ = "Bone Groups"
+	
+	def poll(self, context):
+		return (context.object and context.object.type=='ARMATURE' and context.object.pose)
+
+	def draw(self, context):
+		layout = self.layout
+		ob = context.object
+		pose= ob.pose
+		
+		row = layout.row()
+		
+		row.template_list(pose, "bone_groups", pose, "active_bone_group_index")
+		
+		col = row.column(align=True)
+		col.itemO("pose.group_add", icon="ICON_ZOOMIN", text="")
+		col.itemO("pose.group_remove", icon="ICON_ZOOMOUT", text="")
+		
+		group = pose.active_bone_group
+		if group:
+			row = layout.row()
+			row.itemR(group, "name")
+		
+		row = layout.row(align=True)
+		
+		row.itemO("pose.group_assign", text="Assign")
+		row.itemO("pose.group_remove", text="Remove") #row.itemO("pose.bone_group_remove_from", text="Remove")
+		#row.itemO("object.bone_group_select", text="Select")
+		#row.itemO("object.bone_group_deselect", text="Deselect")
+
 class DATA_PT_paths(DataButtonsPanel):
 	__idname__ = "DATA_PT_paths"
 	__label__ = "Paths"
@@ -136,5 +168,6 @@ class DATA_PT_ghost(DataButtonsPanel):
 bpy.types.register(DATA_PT_context_arm)
 bpy.types.register(DATA_PT_skeleton)
 bpy.types.register(DATA_PT_display)
+bpy.types.register(DATA_PT_bone_groups)
 bpy.types.register(DATA_PT_paths)
 bpy.types.register(DATA_PT_ghost)

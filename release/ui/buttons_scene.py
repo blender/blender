@@ -14,8 +14,8 @@ class RENDER_PT_render(RenderButtonsPanel):
 		rd = context.scene.render_data
 
 		row = layout.row()
-		row.itemO("SCREEN_OT_render", text="Image", icon='ICON_IMAGE_COL')
-		row.item_booleanO("SCREEN_OT_render", "anim", True, text="Animation", icon='ICON_SEQUENCE')
+		row.itemO("screen.render", text="Image", icon='ICON_IMAGE_COL')
+		row.item_booleanO("screen.render", "anim", True, text="Animation", icon='ICON_SEQUENCE')
 
 		layout.itemR(rd, "display_mode", text="Display")
 
@@ -32,8 +32,8 @@ class RENDER_PT_layers(RenderButtonsPanel):
 		row.template_list(rd, "layers", rd, "active_layer_index", rows=2)
 
 		col = row.column(align=True)
-		col.itemO("SCENE_OT_render_layer_add", icon="ICON_ZOOMIN", text="")
-		col.itemO("SCENE_OT_render_layer_remove", icon="ICON_ZOOMOUT", text="")
+		col.itemO("scene.render_layer_add", icon="ICON_ZOOMIN", text="")
+		col.itemO("scene.render_layer_remove", icon="ICON_ZOOMOUT", text="")
 
 		rl = rd.layers[rd.active_layer_index]
 
@@ -114,10 +114,11 @@ class RENDER_PT_shading(RenderButtonsPanel):
 		col.itemR(rd, "render_textures", text="Textures")
 		col.itemR(rd, "render_shadows", text="Shadows")
 		col.itemR(rd, "render_sss", text="Subsurface Scattering")
+		col.itemR(rd, "render_envmaps", text="Environment Map")
 		
 		col = split.column()
-		col.itemR(rd, "render_envmaps", text="Environment Map")
 		col.itemR(rd, "render_raytracing", text="Ray Tracing")
+		col.itemR(rd, "color_management")
 		col.itemR(rd, "alpha_mode", text="Alpha")
 
 class RENDER_PT_performance(RenderButtonsPanel):
@@ -329,7 +330,7 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
 		col.itemR(rd, "full_sample")
 
 		col = split.column()
-		col.itemR(rd, "pixel_filter", text="Filter")
+		col.itemR(rd, "pixel_filter", text="")
 		col.itemR(rd, "filter_size", text="Size", slider=True)
 	
 class RENDER_PT_dimensions(RenderButtonsPanel):
@@ -411,13 +412,13 @@ class RENDER_PT_stamp(RenderButtonsPanel):
 		rowsub.itemR(rd, "stamp_note_text", text="")
 
 bpy.types.register(RENDER_PT_render)
+bpy.types.register(RENDER_PT_layers)
 bpy.types.register(RENDER_PT_dimensions)
 bpy.types.register(RENDER_PT_antialiasing)
-bpy.types.register(RENDER_PT_layers)
 bpy.types.register(RENDER_PT_shading)
-bpy.types.register(RENDER_PT_post_processing)
-bpy.types.register(RENDER_PT_performance)
 bpy.types.register(RENDER_PT_output)
 bpy.types.register(RENDER_PT_encoding)
+bpy.types.register(RENDER_PT_performance)
+bpy.types.register(RENDER_PT_post_processing)
 bpy.types.register(RENDER_PT_stamp)
 

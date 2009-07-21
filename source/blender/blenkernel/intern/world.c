@@ -94,7 +94,6 @@ World *add_world(char *name)
 	wrld->skytype= WO_SKYBLEND;
 	wrld->stardist= 15.0f;
 	wrld->starsize= 2.0f;
-	wrld->gravity= 9.8f;
 	
 	wrld->exp= 0.0f;
 	wrld->exposure=wrld->range= 1.0f;
@@ -106,14 +105,7 @@ World *add_world(char *name)
 	wrld->ao_samp_method = WO_AOSAMP_HAMMERSLEY;	
 	wrld->ao_approx_error= 0.25f;
 	
-	wrld->physicsEngine= WOPHY_BULLET;//WOPHY_SUMO; Bullet by default
-	wrld->mode = WO_DBVT_CULLING;	// DBVT culling by default
-	wrld->occlusionRes = 128;
 	wrld->preview = NULL;
-	wrld->ticrate = 60;
-	wrld->maxlogicstep = 5;
-	wrld->physubstep = 1;
-	wrld->maxphystep = 5;
 
 	return wrld;
 }

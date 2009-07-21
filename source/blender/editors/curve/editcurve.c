@@ -4550,14 +4550,14 @@ void CURVE_OT_delete(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "Which elements to delete.");
 }
 
-/********************** set smooth operator *********************/
+/********************** shade smooth/flat operator *********************/
 
-static int set_smooth_exec(bContext *C, wmOperator *op)
+static int shade_smooth_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
 	Nurb *nu;
-	int clear= RNA_boolean_get(op->ptr, "clear");
+	int clear= (strcmp(op->idname, "CURVE_OT_shade_flat") == 0);
 	
 	if(obedit->type != OB_CURVE)
 		return OPERATOR_CANCELLED;
@@ -4575,21 +4575,32 @@ static int set_smooth_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void CURVE_OT_smooth_set(wmOperatorType *ot)
+void CURVE_OT_shade_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Smooth";
-	ot->idname= "CURVE_OT_smooth_set";
+	ot->name= "Shade Smooth";
+	ot->idname= "CURVE_OT_shade_smooth";
 	
 	/* api callbacks */
-	ot->exec= set_smooth_exec;
+	ot->exec= shade_smooth_exec;
 	ot->poll= ED_operator_editsurfcurve;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
-	/* properties */
-	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "Clear smooth shading to solid for selection instead of enabling it.");
+void CURVE_OT_shade_flat(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Shade Flat";
+	ot->idname= "CURVE_OT_shade_flat";
+	
+	/* api callbacks */
+	ot->exec= shade_smooth_exec;
+	ot->poll= ED_operator_editsurfcurve;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /************** join operator, to be used externally? ****************/

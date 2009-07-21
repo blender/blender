@@ -4701,6 +4701,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	extern int slurph_opt;	/* key.c */
 	Scene *sce;
 	float mat[4][4];
+	float amb[3];
 	unsigned int lay;
 
 	re->scene= scene;
@@ -4747,7 +4748,9 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	
 	/* still bad... doing all */
 	init_render_textures(re);
-	init_render_materials(re->r.mode, &re->wrld.ambr);
+	if (re->r.color_mgt_flag & R_COLOR_MANAGEMENT) color_manage_linearize(amb, &re->wrld.ambr);
+	else VECCOPY(amb, &re->wrld.ambr);
+	init_render_materials(re->r.mode, amb);
 	set_node_shader_lamp_loop(shade_material_loop);
 
 	/* MAKE RENDER DATA */
@@ -5358,6 +5361,7 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 {
 	float mat[4][4];
+	float amb[3];
 	unsigned int lay;
 	int onlyselected, nolamps;
 	
@@ -5419,9 +5423,13 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 	
 	/* still bad... doing all */
 	init_render_textures(re);
-	init_render_materials(re->r.mode, &re->wrld.ambr);
+	
+	if (re->r.color_mgt_flag & R_COLOR_MANAGEMENT) color_manage_linearize(amb, &re->wrld.ambr);
+	else VECCOPY(amb, &re->wrld.ambr);
+	init_render_materials(re->r.mode, amb);
+	
 	set_node_shader_lamp_loop(shade_material_loop);
-
+	
 	/* MAKE RENDER DATA */
 	nolamps= !ELEM3(type, RE_BAKE_LIGHT, RE_BAKE_ALL, RE_BAKE_SHADOW);
 	onlyselected= ELEM3(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_DISPLACEMENT);

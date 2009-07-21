@@ -98,7 +98,7 @@ void wm_operator_register(bContext *C, wmOperator *op)
 	
 	/* Report the string representation of the operator */
 	buf = WM_operator_pystring(op);
-	BKE_report(wm->reports, RPT_OPERATOR, buf);
+	BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
 	MEM_freeN(buf);
 	
 	/* so the console is redrawn */
@@ -120,6 +120,18 @@ void WM_operator_stack_clear(bContext *C)
 
 /* ****************************************** */
 
+void WM_keymap_init(bContext *C)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+
+	if(CTX_py_init_get(C) && (wm->initialized & WM_INIT_KEYMAP) == 0) {
+		wm_window_keymap(wm);
+		ED_spacetypes_keymap(wm);
+
+		wm->initialized |= WM_INIT_KEYMAP;
+	}
+}
+
 void wm_check(bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -136,13 +148,12 @@ void wm_check(bContext *C)
 	wm_window_add_ghostwindows(wm);
 	
 	/* case: fileread */
-	if(wm->initialized==0) {
+	if((wm->initialized & WM_INIT_WINDOW) == 0) {
 		
-		wm_window_keymap(wm);
-		ED_spacetypes_keymap(wm);
+		WM_keymap_init(C);
 		
 		ED_screens_initialize(wm);
-		wm->initialized= 1;
+		wm->initialized |= WM_INIT_WINDOW;
 	}
 }
 

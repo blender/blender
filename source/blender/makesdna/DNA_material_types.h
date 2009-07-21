@@ -93,7 +93,7 @@ typedef struct Material {
 	
 	/* for buttons and render*/
 	char rgbsel, texact, pr_type, use_nodes;
-	short pr_back, pr_lamp, pad4, ml_flag;	/* ml_flag is for disable base material */
+	short pr_back, pr_lamp, pr_texture, ml_flag;	/* ml_flag is for disable base material */
 	
 	/* shaders */
 	short diff_shader, spec_shader;
@@ -325,6 +325,12 @@ typedef struct Material {
 #define MA_SKY			7
 #define MA_HAIR			10
 #define MA_ATMOS		11
+
+/* pr_texture */
+#define MA_PR_TEXTURE	0
+#define MA_PR_MATERIAL	1
+#define MA_PR_BOTH		2
+
 
 /* pr_back */
 #define MA_DARK			1

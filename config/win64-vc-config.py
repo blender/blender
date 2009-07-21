@@ -152,7 +152,8 @@ BF_OPENGL_LIB_STATIC = [ '${BF_OPENGL}/lib/libGL.a', '${BF_OPENGL}/lib/libGLU.a'
 CC = 'cl.exe'
 CXX = 'cl.exe'
 
-CCFLAGS = ['/nologo', '/Ob1', '/J', '/W3', '/Gd', '/MT', '/wd4244', '/wd4305', '/wd4800']
+CFLAGS = []
+CCFLAGS = ['/nologo', '/Ob1', '/J', '/W3', '/Gd', '/wd4244', '/wd4305', '/wd4800', '/wd4065', '/wd4267']
 CXXFLAGS = ['/EHsc']
 
 BF_DEBUG_CCFLAGS = ['/Zi', '/FR${TARGET}.sbr']
@@ -172,16 +173,13 @@ WITH_BF_DOCS=False
 
 BF_DEBUG=False
 BF_BSC=False
-CFLAGS = []
-CCFLAGS = ['/nologo', '/Ob1', '/J', '/W3', '/Gd', '/MT']
-CXXFLAGS = ['/EHsc']
 
 if BF_DEBUG:
 	BF_NUMJOBS=1
 else:
 	BF_NUMJOBS=6
 
-PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:X64','/ENTRY:mainCRTStartup','/INCREMENTAL:NO','/NODEFAULTLIB:"msvcprt.lib"','/NODEFAULTLIB:"glut32.lib"','/NODEFAULTLIB:"libc.lib"','/NODEFAULTLIB:"libcd.lib"','/NODEFAULTLIB:"libcpd.lib"','/NODEFAULTLIB:"libcp.lib"']
+PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:X64','/INCREMENTAL:NO','/NODEFAULTLIB:"msvcprt.lib"','/NODEFAULTLIB:"msvcprtd.lib"','/NODEFAULTLIB:"glut32.lib"','/NODEFAULTLIB:"libc.lib"','/NODEFAULTLIB:"libcd.lib"','/NODEFAULTLIB:"libcpd.lib"','/NODEFAULTLIB:"libcp.lib"','/NODEFAULTLIB:"msvcrt.lib"', '/NODEFAULTLIB:"msvcrtd.lib"', '/NODEFAULTLIB:"msvcmrt.lib"', '/NODEFAULTLIB:"msvcurt.lib"']
 
 BF_BUILDDIR = '..\\build\\blender25-win64-vc'
 BF_INSTALLDIR='..\\install\\blender25-win64-vc'

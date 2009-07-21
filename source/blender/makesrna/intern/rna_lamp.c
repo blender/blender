@@ -280,11 +280,11 @@ static void rna_def_lamp(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_type_items[] = {
-		{LA_LOCAL, "POINT", ICON_LAMP_POINT, "Point", "Omnidirectional point light source."},
-		{LA_SUN, "SUN", ICON_LAMP_SUN, "Sun", "Constant direction parallel ray light source."},
-		{LA_SPOT, "SPOT", ICON_LAMP_SPOT, "Spot", "Directional cone light source."},
-		{LA_HEMI, "HEMI", ICON_LAMP_HEMI, "Hemi", "180 degree constant light source."},
-		{LA_AREA, "AREA", ICON_LAMP_AREA, "Area", "Directional area light source."},
+		{LA_LOCAL, "POINT", 0, "Point", "Omnidirectional point light source."},
+		{LA_SUN, "SUN", 0, "Sun", "Constant direction parallel ray light source."},
+		{LA_SPOT, "SPOT", 0, "Spot", "Directional cone light source."},
+		{LA_HEMI, "HEMI", 0, "Hemi", "180 degree constant light source."},
+		{LA_AREA, "AREA", 0, "Area", "Directional area light source."},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Lamp", "ID");
@@ -409,7 +409,6 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 		{LA_SAMP_HAMMERSLEY, "CONSTANT_QMC", 0, "Constant QMC", ""},
 		{LA_SAMP_CONSTANT, "CONSTANT_JITTERED", 0, "Constant Jittered", ""},
 		{0, NULL, 0, NULL, NULL}};
-
 
 	prop= RNA_def_property(srna, "shadow_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "mode");

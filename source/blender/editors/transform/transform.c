@@ -515,6 +515,9 @@ void transformEvent(TransInfo *t, wmEvent *event)
 
 	if (event->val) {
 		switch (event->type){
+		case RIGHTMOUSE:
+			t->state = TRANS_CANCEL;
+			break;
 		/* enforce redraw of transform when modifiers are used */
 		case LEFTCTRLKEY:
 		case RIGHTCTRLKEY:
@@ -814,9 +817,6 @@ void transformEvent(TransInfo *t, wmEvent *event)
 	}
 	else {
 		switch (event->type){
-		case RIGHTMOUSE:
-			t->state = TRANS_CANCEL;
-			break;
 		case LEFTMOUSE:
 			t->state = TRANS_CONFIRM;
 			break;
@@ -1450,202 +1450,6 @@ int transformEnd(bContext *C, TransInfo *t)
 	}
 
 	return exit_code;
-}
-
-/* ************************** Manipulator init and main **************************** */
-
-void initManipulator(int mode)
-{
-	printf("init manipulator mode %d\n", mode);
-
-#if 0 // TRANSFORM_FIX_ME
-	Trans.state = TRANS_RUNNING;
-
-	Trans.options = CTX_NONE;
-
-	Trans.mode = mode;
-
-	/* automatic switch to scaling bone envelopes */
-	if(mode==TFM_RESIZE && t->obedit && t->obedit->type==OB_ARMATURE) {
-		bArmature *arm= t->obedit->data;
-		if(arm->drawtype==ARM_ENVELOPE)
-			mode= TFM_BONE_ENVELOPE;
-	}
-
-	initTrans(&Trans);					// internal data, mouse, vectors
-
-	G.moving |= G_TRANSFORM_MANIP;		// signal to draw manipuls while transform
-	createTransData(&Trans);			// make TransData structs from selection
-
-	if (Trans.total == 0)
-		return;
-
-	initSnapping(&Trans); // Initialize snapping data AFTER mode flags
-
-	/* EVIL! posemode code can switch translation to rotate when 1 bone is selected. will be removed (ton) */
-	/* EVIL2: we gave as argument also texture space context bit... was cleared */
-	mode = Trans.mode;
-
-	calculatePropRatio(&Trans);
-	calculateCenter(&Trans);
-
-	switch (mode) {
-	case TFM_TRANSLATION:
-		initTranslation(&Trans);
-		break;
-	case TFM_ROTATION:
-		initRotation(&Trans);
-		break;
-	case TFM_RESIZE:
-		initResize(&Trans);
-		break;
-	case TFM_TRACKBALL:
-		initTrackball(&Trans);
-		break;
-	}
-
-	Trans.flag |= T_USES_MANIPULATOR;
-#endif
-}
-
-void ManipulatorTransform()
-{
-#if 0 // TRANSFORM_FIX_ME
-	int mouse_moved = 0;
-	short pmval[2] = {0, 0}, mval[2], val;
-	unsigned short event;
-
-	if (Trans.total == 0)
-		return;
-
-	Trans.redraw = 1; /* initial draw */
-
-	while (Trans.state == TRANS_RUNNING) {
-
-		getmouseco_areawin(mval);
-
-		if (mval[0] != pmval[0] || mval[1] != pmval[1]) {
-			Trans.redraw = 1;
-		}
-		if (Trans.redraw) {
-			pmval[0] = mval[0];
-			pmval[1] = mval[1];
-
-			//selectConstraint(&Trans);  needed?
-			if (Trans.transform) {
-				Trans.transform(&Trans, mval);
-			}
-			Trans.redraw = 0;
-		}
-
-		/* essential for idling subloop */
-		if( qtest()==0) PIL_sleep_ms(2);
-
-		while( qtest() ) {
-			event= extern_qread(&val);
-
-			switch (event){
-			case MOUSEX:
-			case MOUSEY:
-				mouse_moved = 1;
-				break;
-			/* enforce redraw of transform when modifiers are used */
-			case LEFTCTRLKEY:
-			case RIGHTCTRLKEY:
-				if(val) Trans.redraw = 1;
-				break;
-			case LEFTSHIFTKEY:
-			case RIGHTSHIFTKEY:
-				/* shift is modifier for higher resolution transform, works nice to store this mouse position */
-				if(val) {
-					getmouseco_areawin(Trans.shiftmval);
-					Trans.flag |= T_SHIFT_MOD;
-					Trans.redraw = 1;
-				}
-				else Trans.flag &= ~T_SHIFT_MOD;
-				break;
-
-			case ESCKEY:
-			case RIGHTMOUSE:
-				Trans.state = TRANS_CANCEL;
-				break;
-			case LEFTMOUSE:
-				if(mouse_moved==0 && val==0) break;
-				// else we pass on event to next, which cancels
-			case SPACEKEY:
-			case PADENTER:
-			case RETKEY:
-				Trans.state = TRANS_CONFIRM;
-				break;
-   //         case NDOFMOTION:
-     //           viewmoveNDOF(1);
-     //           break;
-			}
-			if(val) {
-				switch(event) {
-				case PADPLUSKEY:
-					if(G.qual & LR_ALTKEY && Trans.flag & T_PROP_EDIT) {
-						Trans.propsize*= 1.1f;
-						calculatePropRatio(&Trans);
-					}
-					Trans.redraw= 1;
-					break;
-				case PAGEUPKEY:
-				case WHEELDOWNMOUSE:
-					if (Trans.flag & T_AUTOIK) {
-						transform_autoik_update(&Trans, 1);
-					}
-					else if(Trans.flag & T_PROP_EDIT) {
-						Trans.propsize*= 1.1f;
-						calculatePropRatio(&Trans);
-					}
-					else view_editmove(event);
-					Trans.redraw= 1;
-					break;
-				case PADMINUS:
-					if(G.qual & LR_ALTKEY && Trans.flag & T_PROP_EDIT) {
-						Trans.propsize*= 0.90909090f;
-						calculatePropRatio(&Trans);
-					}
-					Trans.redraw= 1;
-					break;
-				case PAGEDOWNKEY:
-				case WHEELUPMOUSE:
-					if (Trans.flag & T_AUTOIK) {
-						transform_autoik_update(&Trans, -1);
-					}
-					else if (Trans.flag & T_PROP_EDIT) {
-						Trans.propsize*= 0.90909090f;
-						calculatePropRatio(&Trans);
-					}
-					else view_editmove(event);
-					Trans.redraw= 1;
-					break;
-				}
-
-				// Numerical input events
-				Trans.redraw |= handleNumInput(&(Trans.num), event);
-			}
-		}
-	}
-
-	if(Trans.state == TRANS_CANCEL) {
-		restoreTransObjects(&Trans);
-	}
-
-	/* free data, reset vars */
-	postTrans(&Trans);
-
-	/* aftertrans does insert ipos and action channels, and clears base flags */
-	special_aftertrans_update(&Trans);
-
-	/* send events out for redraws */
-	viewRedrawPost(&Trans);
-
-	if(Trans.state != TRANS_CANCEL) {
-		BIF_undo_push(transform_to_undostr(&Trans));
-	}
-#endif
 }
 
 /* ************************** TRANSFORM LOCKS **************************** */

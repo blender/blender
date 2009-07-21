@@ -25,14 +25,14 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
 		if md:
 			# remove modifier + settings
 			split.set_context_pointer("modifier", md)
-			split.itemO("OBJECT_OT_modifier_remove", text="Remove")
+			split.itemO("object.modifier_remove", text="Remove")
 
 			row = split.row(align=True)
 			row.itemR(md, "render", text="")
 			row.itemR(md, "realtime", text="")
 		else:
 			# add modifier
-			split.item_enumO("OBJECT_OT_modifier_add", "type", "CLOTH", text="Add")
+			split.item_enumO("object.modifier_add", "type", "CLOTH", text="Add")
 			split.itemL()
 
 		if md:
@@ -40,25 +40,28 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
 
 			split = layout.split()
 			
-			col = split.column(align=True)
+			col = split.column()
 			col.itemR(cloth, "quality", slider=True)
-			col.itemR(cloth, "gravity")
+			col.itemL(text="Gravity:")
+			col.itemR(cloth, "gravity", text="")
 
 			col.itemR(cloth, "pin_cloth", text="Pin")
-			col = col.column(align=True)
-			col.active = cloth.pin_cloth
-			col.itemR(cloth, "pin_stiffness", text="Stiffness")
-			col.item_pointerR(cloth, "mass_vertex_group", ob, "vertex_groups", text="")
+			colsub = col.column(align=True)
+			colsub.active = cloth.pin_cloth
+			colsub.itemR(cloth, "pin_stiffness", text="Stiffness")
+			colsub.item_pointerR(cloth, "mass_vertex_group", ob, "vertex_groups", text="")
 			
-			col = split.column(align=True)
+			col = split.column()
 			col.itemL(text="Presets...")
-			col.itemL(text="")
-			col.itemR(cloth, "mass")
-			col.itemR(cloth, "structural_stiffness", text="Structural")
-			col.itemR(cloth, "bending_stiffness", text="Bending")
-			col.itemL(text="Damping")
-			col.itemR(cloth, "spring_damping", text="Spring")
-			col.itemR(cloth, "air_damping", text="Air")
+			col.itemL(text="Material:")
+			colsub = col.column(align=True)
+			colsub.itemR(cloth, "mass")
+			colsub.itemR(cloth, "structural_stiffness", text="Structural")
+			colsub.itemR(cloth, "bending_stiffness", text="Bending")
+			col.itemL(text="Damping:")
+			colsub = col.column(align=True)
+			colsub.itemR(cloth, "spring_damping", text="Spring")
+			colsub.itemR(cloth, "air_damping", text="Air")
 			
 			# Disabled for now
 			"""
@@ -94,17 +97,17 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
 		row = layout.row()
 		
 		if cache.baked == True:
-			row.itemO("PTCACHE_OT_free_bake_cloth", text="Free Bake")
+			row.itemO("ptcache.free_bake_cloth", text="Free Bake")
 		else:
-			row.item_booleanO("PTCACHE_OT_cache_cloth", "bake", True, text="Bake")
+			row.item_booleanO("ptcache.cache_cloth", "bake", True, text="Bake")
 		
 		subrow = row.row()
 		subrow.enabled = cache.frames_skipped or cache.outdated
-		subrow.itemO("PTCACHE_OT_cache_cloth", text="Calculate to Current Frame")
+		subrow.itemO("ptcache.cache_cloth", text="Calculate to Current Frame")
 			
 		row = layout.row()
 		#row.enabled = particle_panel_enabled(psys)
-		row.itemO("PTCACHE_OT_bake_from_cloth_cache", text="Current Cache to Bake")
+		row.itemO("ptcache.bake_from_cloth_cache", text="Current Cache to Bake")
 		row.itemR(cache, "step");
 	
 		row = layout.row()
@@ -117,13 +120,14 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
 		layout.itemS()
 		
 		row = layout.row()
-		row.itemO("PTCACHE_OT_bake_all", "bake", True, text="Bake All Dynamics")
-		row.itemO("PTCACHE_OT_free_bake_all", text="Free All Bakes")
-		layout.itemO("PTCACHE_OT_bake_all", text="Update All Dynamics to current frame")
+		row.itemO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
+		row.itemO("ptcache.free_bake_all", text="Free All Bakes")
+		layout.itemO("ptcache.bake_all", text="Update All Dynamics to current frame")
 		
 class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
 	__idname__ = "PHYSICS_PT_clothcollision"
 	__label__ = "Cloth Collision"
+	__default_closed__ = True
 
 	def poll(self, context):
 		return (context.cloth != None)
@@ -143,19 +147,20 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
 		
 		col = split.column(align=True)
 		col.itemR(cloth, "collision_quality", slider=True, text="Quality")
-		col.itemR(cloth, "min_distance", text="Distance")
+		col.itemR(cloth, "min_distance", slider=True, text="Distance")
 		col.itemR(cloth, "friction")
 		
-		col = split.column(align="True")
+		col = split.column(align=True)
 		col.itemR(cloth, "enable_self_collision", text="Self Collision")
 		col = col.column(align=True)
 		col.active = cloth.enable_self_collision
 		col.itemR(cloth, "self_collision_quality", slider=True, text="Quality")
-		col.itemR(cloth, "self_min_distance", text="Distance")
+		col.itemR(cloth, "self_min_distance", slider=True, text="Distance")
 
 class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
 	__idname__ = "PHYSICS_PT_stiffness"
 	__label__ = "Cloth Stiffness Scaling"
+	__default_closed__ = True
 
 	def poll(self, context):
 		return (context.cloth != None)
@@ -175,17 +180,20 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
 		
 		split = layout.split()
 		
-		sub = split.column(align=True)
-		sub.itemL(text="Structural Stiffness:")
-		sub.itemR(cloth, "structural_stiffness_max", text="Max")
-		sub.item_pointerR(cloth, "structural_stiffness_vertex_group", ob, "vertex_groups", text="")
+		col = split.column()
+		col.itemL(text="Structural Stiffness:")
+		colsub = col.column(align=True)
+		colsub.itemR(cloth, "structural_stiffness_max", text="Max")
+		colsub.item_pointerR(cloth, "structural_stiffness_vertex_group", ob, "vertex_groups", text="")
 		
-		sub = split.column(align=True)
-		sub.itemL(text="Bending Stiffness:")
-		sub.itemR(cloth, "bending_stiffness_max", text="Max")
-		sub.item_pointerR(cloth, "bending_vertex_group", ob, "vertex_groups", text="")
+		col = split.column()
+		col.itemL(text="Bending Stiffness:")
+		colsub = col.column(align=True)
+		colsub.itemR(cloth, "bending_stiffness_max", text="Max")
+		colsub.item_pointerR(cloth, "bending_vertex_group", ob, "vertex_groups", text="")
 		
 bpy.types.register(PHYSICS_PT_cloth)
 bpy.types.register(PHYSICS_PT_cloth_cache)
 bpy.types.register(PHYSICS_PT_cloth_collision)
 bpy.types.register(PHYSICS_PT_cloth_stiffness)
+

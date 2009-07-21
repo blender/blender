@@ -747,7 +747,7 @@ static void copy_object_set_idnew(Scene *scene, View3D *v3d, int dupflag)
 	
 	/* XXX check object pointers */
 	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
+		if(TESTBASELIB_BGMODE(v3d, base)) {
 			ob= base->object;
 			relink_constraints(&ob->constraints);
 			if (ob->pose){
@@ -6387,6 +6387,76 @@ void OBJECT_OT_join(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+
+/********************** Smooth/Flat *********************/
+
+static int shade_smooth_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob;
+	Curve *cu;
+	Nurb *nu;
+	int clear= (strcmp(op->idname, "OBJECT_OT_shade_flat") == 0);
+	int done= 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+		ob= base->object;
+
+		if(ob->type==OB_MESH) {
+			mesh_set_smooth_flag(ob, !clear);
+
+			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+
+			done= 1;
+		}
+		else if ELEM(ob->type, OB_SURF, OB_CURVE) {
+			cu= ob->data;
+
+			for(nu=cu->nurb.first; nu; nu=nu->next) {
+				if(!clear) nu->flag |= ME_SMOOTH;
+				else nu->flag &= ~ME_SMOOTH;
+				nu= nu->next;
+			}
+
+			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+
+			done= 1;
+		}
+	}
+	CTX_DATA_END;
+
+	return (done)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
+}
+
+void OBJECT_OT_shade_flat(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Shade Flat";
+	ot->idname= "OBJECT_OT_shade_flat";
+	
+	/* api callbacks */
+	ot->exec= shade_smooth_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+void OBJECT_OT_shade_smooth(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Shade Smooth";
+	ot->idname= "OBJECT_OT_shade_smooth";
+	
+	/* api callbacks */
+	ot->exec= shade_smooth_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
 
 /* ********************** */
 

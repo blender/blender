@@ -93,6 +93,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
 #include "DNA_actuator_types.h"
+#include "DNA_boid_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
@@ -550,6 +551,39 @@ static void write_userdef(WriteData *wd)
 	}
 }
 
+static void write_boid_state(WriteData *wd, BoidState *state)
+{
+	BoidRule *rule = state->rules.first;
+	//BoidCondition *cond = state->conditions.first;
+
+	writestruct(wd, DATA, "BoidState", 1, state);
+
+	for(; rule; rule=rule->next) {
+		switch(rule->type) {
+			case eBoidRuleType_Goal:
+			case eBoidRuleType_Avoid:
+				writestruct(wd, DATA, "BoidRuleGoalAvoid", 1, rule);
+				break;
+			case eBoidRuleType_AvoidCollision:
+				writestruct(wd, DATA, "BoidRuleAvoidCollision", 1, rule);
+				break;
+			case eBoidRuleType_FollowLeader:
+				writestruct(wd, DATA, "BoidRuleFollowLeader", 1, rule);
+				break;
+			case eBoidRuleType_AverageSpeed:
+				writestruct(wd, DATA, "BoidRuleAverageSpeed", 1, rule);
+				break;
+			case eBoidRuleType_Fight:
+				writestruct(wd, DATA, "BoidRuleFight", 1, rule);
+				break;
+			default:
+				writestruct(wd, DATA, "BoidRule", 1, rule);
+				break;
+		}
+	}
+	//for(; cond; cond=cond->next)
+	//	writestruct(wd, DATA, "BoidCondition", 1, cond);
+}
 /* TODO: replace *cache with *cachelist once it's coded */
 #define PTCACHE_WRITE_PSYS	0
 #define PTCACHE_WRITE_CLOTH	1
@@ -582,6 +616,15 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 			if (part->adt) write_animdata(wd, part->adt);
 			writestruct(wd, DATA, "PartDeflect", 1, part->pd);
 			writestruct(wd, DATA, "PartDeflect", 1, part->pd2);
+
+			if(part->boids && part->phystype == PART_PHYS_BOIDS) {
+				BoidState *state = part->boids->states.first;
+
+				writestruct(wd, DATA, "BoidSettings", 1, part->boids);
+
+				for(; state; state=state->next)
+					write_boid_state(wd, state);
+			}
 		}
 		part= part->id.next;
 	}
@@ -589,7 +632,7 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 static void write_particlesystems(WriteData *wd, ListBase *particles)
 {
 	ParticleSystem *psys= particles->first;
-	KeyedParticleTarget *kpt;
+	ParticleTarget *pt;
 	int a;
 
 	for(; psys; psys=psys->next) {
@@ -604,10 +647,13 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 				for(a=0; a<psys->totpart; a++, pa++)
 					writestruct(wd, DATA, "HairKey", pa->totkey, pa->hair);
 			}
+
+			if(psys->particles->boid && psys->part->phystype == PART_PHYS_BOIDS)
+				writestruct(wd, DATA, "BoidData", psys->totpart, psys->particles->boid);
 		}
-		kpt = psys->keyed_targets.first;
-		for(; kpt; kpt=kpt->next)
-			writestruct(wd, DATA, "KeyedParticleTarget", 1, kpt);
+		pt = psys->targets.first;
+		for(; pt; pt=pt->next)
+			writestruct(wd, DATA, "ParticleTarget", 1, pt);
 
 		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
 		writestruct(wd, DATA, "SoftBody", 1, psys->soft);

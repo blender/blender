@@ -254,6 +254,8 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			/* panels view, with horizontal/vertical align */
 			case V2D_COMMONVIEW_PANELS_UI:
 			{
+				float panelzoom= (style) ? style->panelzoom : 1.0f;
+				
 				/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
 				v2d->keepzoom= (V2D_KEEPASPECT|V2D_KEEPZOOM);
 				v2d->minzoom= 0.5f;
@@ -271,13 +273,10 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 				v2d->tot.ymin= -winy;
 				
 				v2d->cur.xmin= 0.0f;
-				v2d->cur.xmax= winx*style->panelzoom;
+				v2d->cur.xmax= winx*panelzoom;
 				
 				v2d->cur.ymax= 0.0f;
-				v2d->cur.ymin= -winy*style->panelzoom;
-				
-				v2d->cur.ymax= 0.0f;
-				v2d->cur.ymin= -winy*style->panelzoom;
+				v2d->cur.ymin= -winy*panelzoom;
 			}
 				break;
 				

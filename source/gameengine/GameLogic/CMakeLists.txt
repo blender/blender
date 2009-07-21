@@ -35,8 +35,13 @@ SET(INC
   ../../../intern/moto/include
   ../../../source/gameengine/Rasterizer
   ${PYTHON_INC}
-  ${SDL_INC}
 )
+
+IF(WITH_SDL)
+  SET(INC ${INC} ${SDL_INC})  
+ELSE(WITH_SDL)
+  ADD_DEFINITIONS(-DDISABLE_SDL)
+ENDIF(WITH_SDL)
 
 BLENDERLIB(bf_logic "${SRC}" "${INC}")
 #env.BlenderLib ( 'bf_logic', sources, Split(incs), [], libtype=['game','player'], priority=[30, 110] )

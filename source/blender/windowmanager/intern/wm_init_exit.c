@@ -104,15 +104,11 @@ static void sound_init_listener(void)
 
 static void wm_init_reports(bContext *C)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
-	wm->reports= MEM_callocN(sizeof(ReportList), "wmReportList");
-	BKE_reports_init(wm->reports, RPT_STORE);
+	BKE_reports_init(CTX_wm_reports(C), RPT_STORE);
 }
 static void wm_free_reports(bContext *C)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
-	BKE_reports_clear(wm->reports);
-	MEM_freeN(wm->reports);
+	BKE_reports_clear(CTX_wm_reports(C));
 }
 
 
@@ -212,7 +208,6 @@ void WM_exit(bContext *C)
 //	BIF_GlobalReebFree();
 //	BIF_freeRetarget();
 	BIF_freeTemplates(C);
-	BIF_freeSketch(C);
 	
 	free_ttfont(); /* bke_font.h */
 	
@@ -232,6 +227,7 @@ void WM_exit(bContext *C)
 	
 	fastshade_free_render();	/* shaded view */
 	ED_preview_free_dbase();	/* frees a Main dbase, before free_blender! */
+	wm_free_reports(C);			/* before free_blender! - since the ListBases get freed there */
 	free_blender();				/* blender.c, does entire library and spacetypes */
 //	free_matcopybuf();
 	free_anim_copybuf();
@@ -274,8 +270,6 @@ void WM_exit(bContext *C)
 	BKE_userdef_free();
 
 	RNA_exit();
-	
-	wm_free_reports(C);
 	
 	CTX_free(C);
 	

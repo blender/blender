@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <limits.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -53,6 +54,8 @@
 #include "BIF_glutil.h"
 
 #include "ED_datafiles.h"
+#include "ED_types.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -68,7 +71,7 @@ static void console_font_begin(SpaceConsole *sc)
 	BLF_set(mono);
 	BLF_aspect(1.0);
 
-	BLF_size(sc->lheight, 72);
+	BLF_size(sc->lheight-2, 72);
 }
 
 static void console_line_color(unsigned char *fg, int type)
@@ -89,7 +92,7 @@ static void console_line_color(unsigned char *fg, int type)
 	}
 }
 
-static void console_report_color(unsigned char *fg, int type)
+static void console_report_color(unsigned char *fg, unsigned char *bg, Report *report, int bool)
 {
 	/*
 	if		(type & RPT_ERROR_ALL)		{ fg[0]=220; fg[1]=0; fg[2]=0; }
@@ -99,21 +102,60 @@ static void console_report_color(unsigned char *fg, int type)
 	else if	(type & RPT_DEBUG_ALL)		{ fg[0]=196; fg[1]=196; fg[2]=196; }
 	else								{ fg[0]=196; fg[1]=196; fg[2]=196; }
 	*/
+	if(report->flag & SELECT) {
+		fg[0]=255; fg[1]=255; fg[2]=255;
+		if(bool) {
+			bg[0]=96; bg[1]=128; bg[2]=255;
+		}
+		else {
+			bg[0]=90; bg[1]=122; bg[2]=249;
+		}
+	}
 
-	fg[0]=0; fg[1]=0; fg[2]=0;
+	else {
+		fg[0]=0; fg[1]=0; fg[2]=0;
+
+		if(bool) {
+			bg[0]=120; bg[1]=120; bg[2]=120;
+		}
+		else {
+			bg[0]=114; bg[1]=114; bg[2]=114;
+		}
+
+	}
+
+
+
 }
 
 
 /* return 0 if the last line is off the screen
  * should be able to use this for any string type */
-static int console_draw_string(char *str, int str_len, int console_width, int lheight, unsigned char *fg, unsigned char *bg, int winx, int winy, int *x, int *y)
+static int console_draw_string(	char *str, int str_len,
+									int console_width, int lheight,
+									unsigned char *fg, unsigned char *bg,
+									int winx,
+									int ymin, int ymax,
+									int *x, int *y, int draw)
 {	
 	int rct_ofs= lheight/4;
+	int tot_lines = (str_len/console_width)+1; /* total number of lines for wrapping */
+	int y_next = (str_len > console_width) ? (*y)+lheight*tot_lines : (*y)+lheight;
+
+	/* just advance the height */
+	if(draw==0) {
+		*y= y_next;
+		return 1;
+	}
+	else if (y_next-lheight < ymin) {
+		/* have not reached the drawable area so don't break */
+		*y= y_next;
+		return 1;
+	}
 
 	if(str_len > console_width) { /* wrap? */
-		int tot_lines = (str_len/console_width)+1;							/* total number of lines for wrapping */
 		char *line_stride= str + ((tot_lines-1) * console_width);	/* advance to the last line and draw it first */
-		char eol;															/* baclup the end of wrapping */
+		char eol;													/* baclup the end of wrapping */
 		
 		if(bg) {
 			glColor3ub(bg[0], bg[1], bg[2]);
@@ -137,7 +179,7 @@ static int console_draw_string(char *str, int str_len, int console_width, int lh
 			line_stride[console_width] = eol; /* restore */
 			
 			/* check if were out of view bounds */
-			if(*y > winy)
+			if(*y > ymax)
 				return 0;
 		}
 	}
@@ -153,22 +195,24 @@ static int console_draw_string(char *str, int str_len, int console_width, int lh
 		BLF_position(*x, *y, 0); (*y) += lheight;
 		BLF_draw(str);
 		
-		if(*y > winy)
+		if(*y > ymax)
 			return 0;
 	}
 
 	return 1;
 }
 
-#define CONSOLE_DRAW_MARGIN 8
-#define CONSOLE_LINE_MARGIN 6
+#define CONSOLE_DRAW_MARGIN 4
+#define CONSOLE_DRAW_SCROLL 16
 
-void console_text_main(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports)
+static int console_text_main__internal(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports, int draw, int mouse_y, void **mouse_pick)
 {
+	View2D *v2d= &ar->v2d;
+
 	ConsoleLine *cl= sc->history.last;
 	
 	int x_orig=CONSOLE_DRAW_MARGIN, y_orig=CONSOLE_DRAW_MARGIN;
-	int x,y;
+	int x,y, y_prev;
 	int cwidth;
 	int console_width; /* number of characters that fit into the width of the console (fixed width) */
 	unsigned char fg[3];
@@ -176,71 +220,129 @@ void console_text_main(struct SpaceConsole *sc, struct ARegion *ar, ReportList *
 	console_font_begin(sc);
 	cwidth = BLF_fixed_width();
 	
-	console_width= (ar->winx - CONSOLE_DRAW_MARGIN*2)/cwidth;
+	console_width= (ar->winx - (CONSOLE_DRAW_SCROLL + CONSOLE_DRAW_MARGIN*2) )/cwidth;
 	if (console_width < 8) console_width= 8;
 	
 	x= x_orig; y= y_orig;
 	
+	if(mouse_y != INT_MAX)
+		mouse_y += (v2d->cur.ymin+CONSOLE_DRAW_MARGIN);
+
+
 	if(sc->type==CONSOLE_TYPE_PYTHON) {
-		int prompt_len= strlen(sc->prompt);
+		int prompt_len;
 		
 		/* text */
-		console_line_color(fg, CONSOLE_LINE_INPUT);
-		glColor3ub(fg[0], fg[1], fg[2]);
-		
-		/* command line */
-		if(prompt_len) {
-			BLF_position(x, y, 0); x += cwidth * prompt_len;
-			BLF_draw(sc->prompt);	
+		if(draw) {
+			prompt_len= strlen(sc->prompt);
+			console_line_color(fg, CONSOLE_LINE_INPUT);
+			glColor3ub(fg[0], fg[1], fg[2]);
+
+			/* command line */
+			if(prompt_len) {
+				BLF_position(x, y, 0); x += cwidth * prompt_len;
+				BLF_draw(sc->prompt);
+			}
+			BLF_position(x, y, 0);
+			BLF_draw(cl->line);
+
+			/* cursor */
+			console_line_color(fg, CONSOLE_LINE_ERROR); /* lazy */
+			glColor3ub(fg[0], fg[1], fg[2]);
+			glRecti(x+(cwidth*cl->cursor) -1, y-2, x+(cwidth*cl->cursor) +1, y+sc->lheight-2);
+
+			x= x_orig; /* remove prompt offset */
 		}
-		BLF_position(x, y, 0);
-		BLF_draw(cl->line);	
-		
-		/* cursor */
-		console_line_color(fg, CONSOLE_LINE_ERROR); /* lazy */
-		glColor3ub(fg[0], fg[1], fg[2]);
-		glRecti(x+(cwidth*cl->cursor) -1, y-2, x+(cwidth*cl->cursor) +1, y+sc->lheight-2);
-		
-		x= x_orig; /* remove prompt offset */
 		
 		y += sc->lheight;
 		
 		for(cl= sc->scrollback.last; cl; cl= cl->prev) {
-			console_line_color(fg, cl->type);
+			y_prev= y;
 
-			if(!console_draw_string(cl->line, cl->len, console_width, sc->lheight+CONSOLE_LINE_MARGIN, fg, NULL, ar->winx, ar->winy, &x, &y))
-				break; /* past the y limits */
-			
+			if(draw)
+				console_line_color(fg, cl->type);
+
+			if(!console_draw_string(	cl->line, cl->len,
+										console_width, sc->lheight,
+										fg, NULL,
+										ar->winx-(CONSOLE_DRAW_MARGIN+CONSOLE_DRAW_SCROLL),
+										v2d->cur.ymin, v2d->cur.ymax,
+										&x, &y, draw))
+			{
+				/* when drawing, if we pass v2d->cur.ymax, then quit */
+				if(draw) {
+					break; /* past the y limits */
+				}
+			}
+
+			if((mouse_y != INT_MAX) && (mouse_y >= y_prev && mouse_y <= y)) {
+				*mouse_pick= (void *)cl;
+				break;
+			}
 		}
 	}
 	else { 
 		Report *report;
 		int report_mask= 0;
 		int bool= 0;
-		unsigned char bg[3] = {114, 114, 114};
-		
-		glClearColor(120.0/255.0, 120.0/255.0, 120.0/255.0, 1.0);
-		glClear(GL_COLOR_BUFFER_BIT);
+		unsigned char bg[3];
+
+		if(draw) {
+			glClearColor(120.0/255.0, 120.0/255.0, 120.0/255.0, 1.0);
+			glClear(GL_COLOR_BUFFER_BIT);
+		}
 
 		/* convert our display toggles into a flag compatible with BKE_report flags */
-		if(sc->rpt_mask & CONSOLE_RPT_DEBUG)	report_mask |= RPT_DEBUG_ALL;
-		if(sc->rpt_mask & CONSOLE_RPT_INFO)		report_mask |= RPT_INFO_ALL;
-		if(sc->rpt_mask & CONSOLE_RPT_OP)		report_mask |= RPT_OPERATOR_ALL;
-		if(sc->rpt_mask & CONSOLE_RPT_WARN)		report_mask |= RPT_WARNING_ALL;
-		if(sc->rpt_mask & CONSOLE_RPT_ERR)		report_mask |= RPT_ERROR_ALL;
+		report_mask= console_report_mask(sc);
 		
 		for(report=reports->list.last; report; report=report->prev) {
 			
 			if(report->type & report_mask) {
-				console_report_color(fg, report->type);
-				if(!console_draw_string(report->message, strlen(report->message), console_width, sc->lheight+CONSOLE_LINE_MARGIN, fg, bool?bg:NULL, ar->winx, ar->winy, &x, &y))
-					break; /* past the y limits */
+				y_prev= y;
 
-				y+=CONSOLE_LINE_MARGIN;
+				if(draw)
+					console_report_color(fg, bg, report, bool);
+
+				if(!console_draw_string(	report->message, report->len,
+											console_width, sc->lheight,
+											fg, bg,
+											ar->winx-(CONSOLE_DRAW_MARGIN+CONSOLE_DRAW_SCROLL),
+											v2d->cur.ymin, v2d->cur.ymax,
+											&x, &y, draw))
+				{
+					/* when drawing, if we pass v2d->cur.ymax, then quit */
+					if(draw) {
+						break; /* past the y limits */
+					}
+				}
+				if((mouse_y != INT_MAX) && (mouse_y >= y_prev && mouse_y <= y)) {
+					*mouse_pick= (void *)report;
+					break;
+				}
+
 				bool = !(bool);
 			}
-			
 		}
 	}
+	y += sc->lheight*2;
+
 	
+	return y-y_orig;
+}
+
+void console_text_main(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports)
+{
+	console_text_main__internal(sc, ar, reports, 1,  INT_MAX, NULL);
+}
+
+int console_text_height(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports)
+{
+	return console_text_main__internal(sc, ar, reports, 0,  INT_MAX, NULL);
+}
+
+void *console_text_pick(struct SpaceConsole *sc, struct ARegion *ar, ReportList *reports, int mouse_y)
+{
+	void *mouse_pick= NULL;
+	console_text_main__internal(sc, ar, reports, 0, mouse_y, &mouse_pick);
+	return (void *)mouse_pick;
 }

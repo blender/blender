@@ -17,12 +17,12 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * The Original Code is Copyright (C) (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Joshua Leung (full recode)
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -41,13 +41,23 @@ struct ListBase;
 struct bGPDlayer;
 struct Scene;
 struct View2D;
+struct DLRBT_Tree;
 
 /* ****************************** Base Structs ****************************** */
 
 /* Keyframe Column Struct */
 typedef struct ActKeyColumn {
+		/* ListBase linkage */
 	struct ActKeyColumn *next, *prev;
-	short sel, handle_type;
+	
+		/* sorting-tree linkage */
+	struct ActKeyColumn *left, *right;	/* 'children' of this node, less than and greater than it (respectively) */
+	struct ActKeyColumn *parent;		/* parent of this node in the tree */
+	char tree_col;						/* DLRB_BLACK or DLRB_RED */
+	
+		/* keyframe info */
+	char sel;
+	short handle_type;
 	float cfra;
 	
 	/* only while drawing - used to determine if long-keyframe needs to be drawn */
@@ -57,8 +67,17 @@ typedef struct ActKeyColumn {
 
 /* 'Long Keyframe' Struct */
 typedef struct ActKeyBlock {
+		/* ListBase linkage */
 	struct ActKeyBlock *next, *prev;
-	short sel, handle_type;
+	
+		/* sorting-tree linkage */
+	struct ActKeyBlock *left, *right;	/* 'children' of this node, less than and greater than it (respectively) */
+	struct ActKeyBlock *parent;			/* parent of this node in the tree */
+	char tree_col;						/* DLRB_BLACK or DLRB_RED */
+	
+		/* key-block info */
+	char sel;
+	short handle_type;
 	float val;
 	float start, end;
 	
@@ -66,7 +85,6 @@ typedef struct ActKeyBlock {
 	short modified;
 	short totcurve; 
 } ActKeyBlock;
-
 
 /* *********************** Keyframe Drawing ****************************** */
 
@@ -94,12 +112,12 @@ void draw_scene_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Scene
 void draw_gpl_channel(struct View2D *v2d, struct bDopeSheet *ads, struct bGPDlayer *gpl, float ypos);
 
 /* Keydata Generation */
-void fcurve_to_keylist(struct AnimData *adt, struct FCurve *fcu, ListBase *keys, ListBase *blocks);
-void agroup_to_keylist(struct AnimData *adt, struct bActionGroup *agrp, ListBase *keys, ListBase *blocks);
-void action_to_keylist(struct AnimData *adt, struct bAction *act, ListBase *keys, ListBase *blocks);
-void ob_to_keylist(struct bDopeSheet *ads, struct Object *ob, ListBase *keys, ListBase *blocks);
-void scene_to_keylist(struct bDopeSheet *ads, struct Scene *sce, ListBase *keys, ListBase *blocks);
-void gpl_to_keylist(struct bDopeSheet *ads, struct bGPDlayer *gpl, ListBase *keys, ListBase *blocks);
+void fcurve_to_keylist(struct AnimData *adt, struct FCurve *fcu, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+void agroup_to_keylist(struct AnimData *adt, struct bActionGroup *agrp, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+void action_to_keylist(struct AnimData *adt, struct bAction *act, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+void ob_to_keylist(struct bDopeSheet *ads, struct Object *ob, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+void scene_to_keylist(struct bDopeSheet *ads, struct Scene *sce, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+void gpl_to_keylist(struct bDopeSheet *ads, struct bGPDlayer *gpl, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
 
 #endif  /*  ED_KEYFRAMES_DRAW_H */
 

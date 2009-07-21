@@ -53,6 +53,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_ID.h"
 #include "DNA_actuator_types.h"
+#include "DNA_boid_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
@@ -2342,6 +2343,7 @@ static void direct_link_armature(FileData *fd, bArmature *arm)
 
 	link_list(fd, &arm->bonebase);
 	arm->edbo= NULL;
+	arm->sketch = NULL;
 	
 	bone=arm->bonebase.first;
 	while (bone) {
@@ -2989,6 +2991,29 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 			part->dup_group = newlibadr(fd, part->id.lib, part->dup_group);
 			part->eff_group = newlibadr(fd, part->id.lib, part->eff_group);
 			part->bb_ob = newlibadr(fd, part->id.lib, part->bb_ob);
+			if(part->boids) {
+				BoidState *state = part->boids->states.first;
+				BoidRule *rule;
+				for(; state; state=state->next) {
+					rule = state->rules.first;
+				for(; rule; rule=rule->next)
+					switch(rule->type) {
+						case eBoidRuleType_Goal:
+						case eBoidRuleType_Avoid:
+						{
+							BoidRuleGoalAvoid *brga = (BoidRuleGoalAvoid*)rule;
+							brga->ob = newlibadr(fd, part->id.lib, brga->ob);
+							break;
+						}
+						case eBoidRuleType_FollowLeader:
+						{
+							BoidRuleFollowLeader *brfl = (BoidRuleFollowLeader*)rule;
+							brfl->ob = newlibadr(fd, part->id.lib, brfl->ob);
+							break;
+						}
+					}
+				}
+			}
 			part->id.flag -= LIB_NEEDLINK;
 		}
 		part= part->id.next;
@@ -3000,6 +3025,19 @@ static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 	part->adt= newdataadr(fd, part->adt);
 	part->pd= newdataadr(fd, part->pd);
 	part->pd2= newdataadr(fd, part->pd2);
+
+	part->boids= newdataadr(fd, part->boids);
+
+	if(part->boids) {
+		BoidState *state;
+		link_list(fd, &part->boids->states);
+		
+		for(state=part->boids->states.first; state; state=state->next) {
+			link_list(fd, &state->rules);
+			link_list(fd, &state->conditions);
+			link_list(fd, &state->actions);
+		}
+	}
 }
 
 static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase *particles)
@@ -3014,10 +3052,10 @@ static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase 
 		
 		psys->part = newlibadr_us(fd, id->lib, psys->part);
 		if(psys->part) {
-			KeyedParticleTarget *kpt = psys->keyed_targets.first;
+			ParticleTarget *pt = psys->targets.first;
 
-			for(; kpt; kpt=kpt->next)
-				kpt->ob=newlibadr(fd, id->lib, kpt->ob);
+			for(; pt; pt=pt->next)
+				pt->ob=newlibadr(fd, id->lib, pt->ob);
 
 			psys->target_ob = newlibadr(fd, id->lib, psys->target_ob);
 
@@ -3041,24 +3079,38 @@ static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase 
 static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 {
 	ParticleSystem *psys;
+	ParticleData *pa;
 	int a;
 
 	for(psys=particles->first; psys; psys=psys->next) {
 		psys->particles=newdataadr(fd,psys->particles);
+		
 		if(psys->particles && psys->particles->hair){
-			ParticleData *pa = psys->particles;
-			for(a=0; a<psys->totpart; a++, pa++)
+			for(a=0,pa=psys->particles; a<psys->totpart; a++, pa++)
 				pa->hair=newdataadr(fd,pa->hair);
 		}
+		
 		if(psys->particles && psys->particles->keys){
-			ParticleData *pa = psys->particles;
-			for(a=0; a<psys->totpart; a++, pa++) {
+			for(a=0,pa=psys->particles; a<psys->totpart; a++, pa++) {
 				pa->keys= NULL;
 				pa->totkey= 0;
 			}
 
 			psys->flag &= ~PSYS_KEYED;
 		}
+
+		if(psys->particles->boid) {
+			pa = psys->particles;
+			pa->boid = newdataadr(fd, pa->boid);
+			for(a=1,pa++; a<psys->totpart; a++, pa++)
+				pa->boid = (pa-1)->boid + 1;
+		}
+		else {
+			for(a=0,pa=psys->particles; a<psys->totpart; a++, pa++)
+				pa->boid = NULL;
+		}
+
+
 		psys->child=newdataadr(fd,psys->child);
 		psys->effectors.first=psys->effectors.last=0;
 
@@ -3075,7 +3127,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 				direct_link_pointcache(fd, sb->pointcache);
 		}
 
-		link_list(fd, &psys->keyed_targets);
+		link_list(fd, &psys->targets);
 
 		psys->edit = 0;
 		psys->free_edit = NULL;
@@ -3088,6 +3140,8 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		psys->pointcache= newdataadr(fd, psys->pointcache);
 		if(psys->pointcache)
 			direct_link_pointcache(fd, psys->pointcache);
+
+		psys->tree = NULL;
 	}
 	return;
 }
@@ -3648,6 +3702,9 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 
 			surmd->dm = NULL;
 			surmd->bvhtree = NULL;
+			surmd->x = NULL;
+			surmd->v = NULL;
+			surmd->numverts = 0;
 		}
 		else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
@@ -3994,7 +4051,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 				srl->light_override= newlibadr_us(fd, sce->id.lib, srl->light_override);
 			}
 			/*Game Settings: Dome Warp Text*/
-			sce->r.dometext= newlibadr_us(fd, sce->id.lib, sce->r.dometext);
+//			sce->r.dometext= newlibadr_us(fd, sce->id.lib, sce->r.dometext); // XXX deprecated since 2.5
+			sce->gm.dome.warptext= newlibadr_us(fd, sce->id.lib, sce->gm.dome.warptext);
 
 			sce->id.flag -= LIB_NEEDLINK;
 		}
@@ -4221,7 +4279,8 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	wm->keymaps.first= wm->keymaps.last= NULL;
 	wm->paintcursors.first= wm->paintcursors.last= NULL;
 	wm->queue.first= wm->queue.last= NULL;
-	wm->reports= NULL;
+	BKE_reports_init(&wm->reports, RPT_STORE);
+
 	wm->jobs.first= wm->jobs.last= NULL;
 	
 	wm->windrawable= NULL;
@@ -8538,7 +8597,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				psys = MEM_callocN(sizeof(ParticleSystem), "particle_system");
 				psys->pointcache = BKE_ptcache_add();
 
-				part = psys->part = psys_new_settings("PSys", main);
+				part = psys->part = psys_new_settings("ParticleSettings", main);
 				
 				/* needed for proper libdata lookup */
 				oldnewmap_insert(fd->libmap, psys->part, psys->part, 0);
@@ -9211,6 +9270,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* TODO: should be moved into one of the version blocks once this branch moves to trunk and we can
 	   bump the version (or sub-version.) */
 	{
+		World *wo;
 		Object *ob;
 		Material *ma;
 		Scene *sce;
@@ -9311,6 +9371,70 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					ts->autokey_mode= 2; /* 'add/replace' but not on */
 				ts->uv_selectmode= UV_SELECT_VERTEX;
 				ts->vgroup_weight= 1.0f;
+			}
+
+			/* Game Settings */
+			//Dome
+			sce->gm.dome.angle = sce->r.domeangle;
+			sce->gm.dome.mode = sce->r.domemode;
+			sce->gm.dome.res = sce->r.domeres;
+			sce->gm.dome.resbuf = sce->r.domeresbuf;
+			sce->gm.dome.tilt = sce->r.dometilt;
+			sce->gm.dome.warptext = sce->r.dometext;
+
+			//Stand Alone
+			sce->gm.fullscreen = sce->r.fullscreen;
+			sce->gm.xplay = sce->r.xplay;
+			sce->gm.yplay = sce->r.yplay;
+			sce->gm.freqplay = sce->r.freqplay;
+			sce->gm.depth = sce->r.depth;
+			sce->gm.attrib = sce->r.attrib;
+
+			//Stereo
+			sce->gm.xsch = sce->r.xsch;
+			sce->gm.ysch = sce->r.ysch;
+			sce->gm.stereomode = sce->r.stereomode;
+			/* reassigning stereomode NO_STEREO and DOME to a separeted flag*/
+			if (sce->gm.stereomode == 1){ //1 = STEREO_NOSTEREO
+				sce->gm.stereoflag = STEREO_NOSTEREO;
+				sce->gm.stereomode = STEREO_ANAGLYPH;
+			}
+			else if(sce->gm.stereomode == 8){ //8 = STEREO_DOME
+				sce->gm.stereoflag = STEREO_DOME;
+				sce->gm.stereomode = STEREO_ANAGLYPH;
+			}
+			else
+				sce->gm.stereoflag = STEREO_ENABLED;
+
+			//Framing
+			sce->gm.framing = sce->framing;
+			sce->gm.xplay = sce->r.xplay;
+			sce->gm.yplay = sce->r.yplay;
+			sce->gm.freqplay= sce->r.freqplay;
+			sce->gm.depth= sce->r.depth;
+
+			//Physic (previously stored in world)
+			//temporarily getting the correct world address
+			wo = newlibadr(fd, sce->id.lib, sce->world);
+			if (wo){
+				sce->gm.gravity = wo->gravity;
+				sce->gm.physicsEngine= wo->physicsEngine;
+				sce->gm.mode = wo->mode;
+				sce->gm.occlusionRes = wo->occlusionRes;
+				sce->gm.ticrate = wo->ticrate;
+				sce->gm.maxlogicstep = wo->maxlogicstep;
+				sce->gm.physubstep = wo->physubstep;
+				sce->gm.maxphystep = wo->maxphystep;
+			}
+			else{
+				sce->gm.gravity =9.8f;
+				sce->gm.physicsEngine= WOPHY_BULLET;// Bullet by default
+				sce->gm.mode = WO_DBVT_CULLING;	// DBVT culling by default
+				sce->gm.occlusionRes = 128;
+				sce->gm.ticrate = 60;
+				sce->gm.maxlogicstep = 5;
+				sce->gm.physubstep = 1;
+				sce->gm.maxphystep = 5;
 			}
 		}
 	}
@@ -10223,7 +10347,7 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	}
 
 	if(sce->r.dometext)
-		expand_doit(fd, mainvar, sce->r.dometext);
+		expand_doit(fd, mainvar, sce->gm.dome.warptext);
 }
 
 static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)

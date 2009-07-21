@@ -3061,7 +3061,8 @@ Takes:  {''')
 	
 	# copy images if enabled
 	if EXP_IMAGE_COPY:
-		copy_images( basepath,  [ tex[1] for tex in textures if tex[1] != None ])	
+# 		copy_images( basepath,  [ tex[1] for tex in textures if tex[1] != None ])
+		bpy.util.copy_images( basepath,  [ tex[1] for tex in textures if tex[1] != None ])	
 	
 	print 'export finished in %.4f sec.' % (bpy.sys.time() - start_time)
 # 	print 'export finished in %.4f sec.' % (Blender.sys.time() - start_time)
@@ -3088,11 +3089,6 @@ def do_obs_sel(e,v):
 	GLOBALS['EVENT'] = e
 	GLOBALS['EXP_OBS_SCENE'].val = 0
 	GLOBALS['EXP_OBS_SELECTED'].val = 1
-
-def do_obs_sce(e,v):
-	GLOBALS['EVENT'] = e
-	GLOBALS['EXP_OBS_SCENE'].val = 1
-	GLOBALS['EXP_OBS_SELECTED'].val = 0
 
 def do_obs_sce(e,v):
 	GLOBALS['EVENT'] = e

@@ -1601,7 +1601,7 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 				break;
 			}
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
-			WM_operator_name_call(C, "TFM_OT_translation", WM_OP_INVOKE_REGION_WIN, op->ptr);
+			WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
 		}
 		else if (drawflags & MAN_SCALE_C) {
 			switch(drawflags) {
@@ -1649,7 +1649,7 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 				break;
 			}
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
-			WM_operator_name_call(C, "TFM_OT_rotation", WM_OP_INVOKE_REGION_WIN, op->ptr);
+			WM_operator_name_call(C, "TFM_OT_rotate", WM_OP_INVOKE_REGION_WIN, op->ptr);
 		}
 	}
 	/* after transform, restore drawflags */

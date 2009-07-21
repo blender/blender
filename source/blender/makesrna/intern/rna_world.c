@@ -361,6 +361,7 @@ void RNA_def_world(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+/*
 	static EnumPropertyItem physics_engine_items[] = {
 		{WOPHY_NONE, "NONE", 0, "None", ""},
 		//{WOPHY_ENJI, "ENJI", 0, "Enji", ""},
@@ -369,6 +370,7 @@ void RNA_def_world(BlenderRNA *brna)
 		//{WOPHY_ODE, "ODE", 0, "ODE", ""},
 		{WOPHY_BULLET, "BULLET", 0, "Bullet", ""},
 		{0, NULL, 0, NULL, NULL}};
+*/
 
 	srna= RNA_def_struct(brna, "World", "ID");
 	RNA_def_struct_ui_text(srna, "World", "World datablock describing the environment and ambient lighting of a scene.");
@@ -421,17 +423,6 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "skytype", WO_SKYREAL);
 	RNA_def_property_ui_text(prop, "Real Sky", "Render background with a real horizon, relative to the camera angle.");
 	RNA_def_property_update(prop, NC_WORLD, NULL);
-
-	/* physics */
-	prop= RNA_def_property(srna, "physics_engine", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "physicsEngine");
-	RNA_def_property_enum_items(prop, physics_engine_items);
-	RNA_def_property_ui_text(prop, "Physics Engine", "Physics engine used for physics simulation in the game engine.");
-
-	prop= RNA_def_property(srna, "physics_gravity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "gravity");
-	RNA_def_property_range(prop, 0.0, 25.0);
-	RNA_def_property_ui_text(prop, "Physics Gravity", "Gravitational constant used for physics simulation in the game engine.");
 
 	/* nested structs */
 	prop= RNA_def_property(srna, "ambient_occlusion", PROP_POINTER, PROP_NEVER_NULL);

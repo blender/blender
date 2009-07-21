@@ -1,17 +1,9 @@
 LCGDIR = '../lib/linux2'
 LIBDIR = "${LCGDIR}"
 
-def py_version_string():
-	'''
-	returns py version - "2.5", "2.6" etc
-	'''
-	import platform
-	ver = platform.python_version_tuple()
-	return '%d.%d' % (int(ver[0]), int(ver[1])) # py2.5 uses strings, 2.6 ints
-
 BF_PYTHON = '/usr'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
-BF_PYTHON_VERSION = py_version_string()
+BF_PYTHON_VERSION = '3.1'
 WITH_BF_STATICPYTHON = False
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
