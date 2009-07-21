@@ -49,6 +49,14 @@ class DATA_PT_normals(DataButtonsPanel):
 		sub.itemR(mesh, "vertex_normal_flip")
 		sub.itemR(mesh, "double_sided")
 
+		row = layout.row(align=True)
+		if context.edit_object:
+			row.itemO("MESH_OT_faces_shade_smooth")
+			row.itemO("MESH_OT_faces_shade_flat")
+		else:
+			row.itemO("OBJECT_OT_shade_smooth")
+			row.itemO("OBJECT_OT_shade_flat")
+
 class DATA_PT_vertex_groups(DataButtonsPanel):
 	__idname__ = "DATA_PT_vertex_groups"
 	__label__ = "Vertex Groups"

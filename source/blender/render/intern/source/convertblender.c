@@ -2243,6 +2243,7 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 	/* memset above means we dont need this */
 	/*shi.osatex= 0;*/		/* signal not to use dx[] and dy[] texture AA vectors */
 
+	shi.obr= obr;
 	shi.vlr= vlr;		/* current render face */
 	shi.mat= vlr->mat;		/* current input material */
 	shi.thread= 0;

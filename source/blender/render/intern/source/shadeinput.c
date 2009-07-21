@@ -210,7 +210,6 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	/* add mist and premul color */
 	if(shr->alpha!=1.0f || alpha!=1.0f) {
 		float fac= alpha*(shr->alpha);
-		
 		shr->combined[3]= fac;
 		shr->combined[0]*= fac;
 		shr->combined[1]*= fac;
@@ -1016,9 +1015,12 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			MTC_Mat4MulVecfl(R.viewinv, shi->gl);
 			if(shi->osatex) {
 				VECCOPY(shi->dxgl, shi->dxco);
-				MTC_Mat3MulVecfl(R.imat, shi->dxco);
+				// TXF: bug was here, but probably should be in convertblender.c, R.imat only valid if there is a world
+				//MTC_Mat3MulVecfl(R.imat, shi->dxco);
+				MTC_Mat4Mul3Vecfl(R.viewinv, shi->dxco);
 				VECCOPY(shi->dygl, shi->dyco);
-				MTC_Mat3MulVecfl(R.imat, shi->dyco);
+				//MTC_Mat3MulVecfl(R.imat, shi->dyco);
+				MTC_Mat4Mul3Vecfl(R.viewinv, shi->dyco);
 			}
 		}
 		
@@ -1121,6 +1123,8 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 					if(tface && tface->tpage)
 						render_realtime_texture(shi, tface->tpage);
 				}
+
+
 			}
 
 			shi->dupliuv[0]= -1.0f + 2.0f*obi->dupliuv[0];

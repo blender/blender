@@ -534,7 +534,7 @@ void default_mtex(MTex *mtex)
 	mtex->size[1]= 1.0;
 	mtex->size[2]= 1.0;
 	mtex->tex= 0;
-	mtex->texflag= 0;
+	mtex->texflag= MTEX_NEW_BUMP;
 	mtex->colormodel= 0;
 	mtex->r= 1.0;
 	mtex->g= 0.0;
@@ -543,7 +543,7 @@ void default_mtex(MTex *mtex)
 	mtex->def_var= 1.0;
 	mtex->blendtype= MTEX_BLEND;
 	mtex->colfac= 1.0;
-	mtex->norfac= 0.5;
+	mtex->norfac= 1.0;
 	mtex->varfac= 1.0;
 	mtex->dispfac=0.2;
 	mtex->normapspace= MTEX_NSPACE_TANGENT;

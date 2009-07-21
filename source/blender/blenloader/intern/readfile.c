@@ -9276,7 +9276,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Tex *tex;
 		Scene *sce;
 		ToolSettings *ts;
-		int i;
+		int i, a;
 
 		for(ob = main->object.first; ob; ob = ob->id.next) {
 
@@ -9351,14 +9351,25 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 		/* texture filter */
-		for(tex = main->tex.first; tex; tex = tex->id.next)
+		for(tex = main->tex.first; tex; tex = tex->id.next) {
 			if(tex->afmax == 0)
 				tex->afmax= 8;
+		}
 
 		for(ma = main->mat.first; ma; ma = ma->id.next) {
 			if(ma->mode & MA_HALO) {
 				ma->material_type= MA_TYPE_HALO;
 				ma->mode &= ~MA_HALO;
+			}
+
+			/* set new bump for unused slots */
+			for(a=0; a<MAX_MTEX; a++) {
+				if(ma->mtex[a]) {
+					if(!ma->mtex[a]->tex)
+						ma->mtex[a]->texflag |= MTEX_NEW_BUMP;
+					else if(((Tex*)newlibadr(fd, ma->id.lib, ma->mtex[a]->tex))->type == 0)
+						ma->mtex[a]->texflag |= MTEX_NEW_BUMP;
+				}
 			}
 		}
 
