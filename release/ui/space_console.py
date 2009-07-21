@@ -144,7 +144,7 @@ class CONSOLE_OT_exec(bpy.types.Operator):
 		except:
 			return ('CANCELLED',)
 		
-		if sc.type != 'PYTHON':
+		if sc.console_type != 'PYTHON':
 			return ('CANCELLED',)
 		
 		namespace, console, stdout, stderr = get_console(hash(context.region))
