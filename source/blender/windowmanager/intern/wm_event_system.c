@@ -1472,23 +1472,23 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			
 			/* modifiers */
 			if (event.type==LEFTSHIFTKEY || event.type==RIGHTSHIFTKEY) {
-				event.shift= evt->shift= event.val;
-				if(event.val && (evt->ctrl || evt->alt || evt->oskey))
+				event.shift= evt->shift= (event.val==KM_PRESS);
+				if(event.val==KM_PRESS && (evt->ctrl || evt->alt || evt->oskey))
 				   event.shift= evt->shift = 3;		// define?
 			} 
 			else if (event.type==LEFTCTRLKEY || event.type==RIGHTCTRLKEY) {
-				event.ctrl= evt->ctrl= event.val;
-				if(event.val && (evt->shift || evt->alt || evt->oskey))
+				event.ctrl= evt->ctrl= (event.val==KM_PRESS);
+				if(event.val==KM_PRESS && (evt->shift || evt->alt || evt->oskey))
 				   event.ctrl= evt->ctrl = 3;		// define?
 			} 
 			else if (event.type==LEFTALTKEY || event.type==RIGHTALTKEY) {
-				event.alt= evt->alt= event.val;
-				if(event.val && (evt->ctrl || evt->shift || evt->oskey))
+				event.alt= evt->alt= (event.val==KM_PRESS);
+				if(event.val==KM_PRESS && (evt->ctrl || evt->shift || evt->oskey))
 				   event.alt= evt->alt = 3;		// define?
 			} 
 			else if (event.type==COMMANDKEY) {
-				event.oskey= evt->oskey= event.val;
-				if(event.val && (evt->ctrl || evt->alt || evt->shift))
+				event.oskey= evt->oskey= (event.val==KM_PRESS);
+				if(event.val==KM_PRESS && (evt->ctrl || evt->alt || evt->shift))
 				   event.oskey= evt->oskey = 3;		// define?
 			}
 			
