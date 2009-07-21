@@ -47,6 +47,7 @@ struct bConstraint;
 struct BezTriple;
 struct wmOperatorType;
 struct wmOperator;
+struct wmWindowManager;
 struct bContext;
 struct wmEvent;
 struct wmTimer;
@@ -482,8 +483,10 @@ int Mirror(TransInfo *t, short mval[2]);
 void initAlign(TransInfo *t);
 int Align(TransInfo *t, short mval[2]);
 
-
 void drawPropCircle(const struct bContext *C, TransInfo *t);
+
+void transform_modal_keymap(struct wmWindowManager *wm);
+
 
 /*********************** transform_conversions.c ********** */
 struct ListBase;

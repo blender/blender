@@ -76,6 +76,11 @@
 
 #include "screen_intern.h"	/* own module include */
 
+#define KM_MODAL_CANCEL		1
+#define KM_MODAL_APPLY		2
+#define KM_MODAL_STEP10		3
+#define KM_MODAL_STEP10_OFF	4
+
 /* ************** Exported Poll tests ********************** */
 
 int ED_operator_regionactive(bContext *C)
@@ -719,7 +724,7 @@ static void SCREEN_OT_area_dupli(wmOperatorType *ot)
 */
 
 typedef struct sAreaMoveData {
-	int bigger, smaller, origval;
+	int bigger, smaller, origval, step;
 	char dir;
 } sAreaMoveData;
 
@@ -876,32 +881,40 @@ static int area_move_cancel(bContext *C, wmOperator *op)
 /* modal callback for while moving edges */
 static int area_move_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	sAreaMoveData *md;
+	sAreaMoveData *md= op->customdata;
 	int delta, x, y;
-
-	md= op->customdata;
-
-	x= RNA_int_get(op->ptr, "x");
-	y= RNA_int_get(op->ptr, "y");
 
 	/* execute the events */
 	switch(event->type) {
 		case MOUSEMOVE:
+			
+			x= RNA_int_get(op->ptr, "x");
+			y= RNA_int_get(op->ptr, "y");
+			
 			delta= (md->dir == 'v')? event->x - x: event->y - y;
+			if(md->step) delta= delta - (delta % md->step);
 			RNA_int_set(op->ptr, "delta", delta);
 
 			area_move_apply(C, op);
 			break;
 			
-		case LEFTMOUSE:
-			if(event->val==0) {
-				area_move_exit(C, op);
-				return OPERATOR_FINISHED;
-			}
-			break;
+		case EVT_MODAL_MAP:
 			
-		case ESCKEY:
-			return area_move_cancel(C, op);
+			switch (event->val) {
+				case KM_MODAL_APPLY:
+					area_move_exit(C, op);
+					return OPERATOR_FINISHED;
+
+				case KM_MODAL_CANCEL:
+					return area_move_cancel(C, op);
+					
+				case KM_MODAL_STEP10:
+					md->step= 10;
+					break;
+				case KM_MODAL_STEP10_OFF:
+					md->step= 0;
+					break;
+			}
 	}
 	
 	return OPERATOR_RUNNING_MODAL;
@@ -2877,6 +2890,31 @@ void ED_operatortypes_screen(void)
 	
 }
 
+static void keymap_modal_set(wmWindowManager *wm)
+{
+	static EnumPropertyItem modal_items[] = {
+		{KM_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
+		{KM_MODAL_APPLY, "APPLY", 0, "Apply", ""},
+		{KM_MODAL_STEP10, "STEP10", 0, "Steps on", ""},
+		{KM_MODAL_STEP10_OFF, "STEP10_OFF", 0, "Steps off", ""},
+		{0, NULL, 0, NULL, NULL}};
+	wmKeyMap *keymap;
+	
+	/* Standard Modal keymap ------------------------------------------------ */
+	keymap= WM_modalkeymap_add(wm, "Standard Modal Map", modal_items);
+	
+	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, KM_MODAL_CANCEL);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_ANY, KM_ANY, 0, KM_MODAL_APPLY);
+	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, KM_MODAL_APPLY);
+	WM_modalkeymap_add_item(keymap, PADENTER, KM_PRESS, KM_ANY, 0, KM_MODAL_APPLY);
+
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, KM_MODAL_STEP10);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, KM_MODAL_STEP10_OFF);
+	
+	WM_modalkeymap_assign(keymap, "SCREEN_OT_area_move");
+
+}
+
 /* called in spacetypes.c */
 void ED_keymap_screen(wmWindowManager *wm)
 {
@@ -2948,5 +2986,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	/* play (forward and backwards) */
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0)->ptr, "reverse", 1);
+
+	keymap_modal_set(wm);
 }
 

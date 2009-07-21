@@ -41,6 +41,7 @@ struct wmEvent;
 struct wmGesture;
 struct wmOperatorType;
 struct wmOperator;
+struct wmKeyMap;
 
 /* forwards */
 struct bContext;
@@ -53,6 +54,10 @@ struct StructRNA;
 struct PointerRNA;
 struct ReportList;
 struct Report;
+
+#define OP_MAX_TYPENAME	64
+#define KMAP_MAX_NAME	64
+
 
 typedef enum ReportType {
 	RPT_DEBUG					= 1<<0,
@@ -198,14 +203,16 @@ typedef struct wmOperatorType {
 	struct StructRNA *srna;
 	
 	short flag;
-
+	
+	/* pointer to modal keymap, do not free! */
+	struct wmKeyMap *modalkeymap;
+	
 	/* only used for operators defined with python
 	 * use to store pointers to python functions */
 	void *pyop_data;
 
 } wmOperatorType;
 
-#define OP_MAX_TYPENAME	64
 
 /* partial copy of the event, for matching by eventhandler */
 typedef struct wmKeymapItem {
@@ -219,10 +226,9 @@ typedef struct wmKeymapItem {
 	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */
 	short keymodifier;				/* rawkey modifier */
 	
-	short pad;
+	short propvalue;				/* if used, the item is from modal map */
 } wmKeymapItem;
 
-#define KMAP_MAX_NAME	64
 
 /* stored in WM, the actively used keymaps */
 typedef struct wmKeyMap {
@@ -231,8 +237,13 @@ typedef struct wmKeyMap {
 	ListBase keymap;
 	
 	char nameid[64];	/* global editor keymaps, or for more per space/region */
-	int spaceid;	/* same IDs as in DNA_space_types.h */
-	int regionid;   /* see above */
+	short spaceid;		/* same IDs as in DNA_space_types.h */
+	short regionid;		/* see above */
+	
+	short is_modal;		/* modal map, not using operatornames */
+	short pad;
+	
+	void *items;		/* struct EnumPropertyItem for now */
 } wmKeyMap;
 
 
@@ -250,6 +261,7 @@ typedef struct wmOperator {
 	void *customdata;			/* custom storage, only while operator runs */
 	struct PointerRNA *ptr;		/* rna pointer to access properties */
 	struct ReportList *reports;	/* errors and warnings storage */
+	
 } wmOperator;
 
 /* operator type exec(), invoke() modal(), return values */

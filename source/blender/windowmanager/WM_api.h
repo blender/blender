@@ -40,6 +40,7 @@ struct wmJob;
 struct wmNotifier;
 struct rcti;
 struct PointerRNA;
+struct EnumPropertyItem;
 
 typedef struct wmJob wmJob;
 
@@ -79,7 +80,13 @@ wmKeymapItem *WM_keymap_add_item(ListBase *lb, char *idname, short type,
 								 short val, int modifier, short keymodifier);
 void		WM_keymap_tweak	(ListBase *lb, short type, short val, int modifier, short keymodifier);
 ListBase	*WM_keymap_listbase	(struct wmWindowManager *wm, const char *nameid, 
-								 int spaceid, int regionid);
+								 short spaceid, short regionid);
+
+wmKeyMap	*WM_modalkeymap_add(struct wmWindowManager *wm, const char *nameid, struct EnumPropertyItem *items);
+wmKeyMap	*WM_modalkeymap_get(struct wmWindowManager *wm, const char *nameid);
+void		WM_modalkeymap_add_item(wmKeyMap *km, short type, short val, int modifier, short keymodifier, short value);
+void		WM_modalkeymap_assign(wmKeyMap *km, const char *opname);
+
 
 const char	*WM_key_event_string(short type);
 char		*WM_key_event_operator_string(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, char *str, int len);
