@@ -326,12 +326,6 @@ typedef struct Material {
 #define MA_HAIR			10
 #define MA_ATMOS		11
 
-/* pr_texture */
-#define MA_PR_TEXTURE	0
-#define MA_PR_MATERIAL	1
-#define MA_PR_BOTH		2
-
-
 /* pr_back */
 #define MA_DARK			1
 

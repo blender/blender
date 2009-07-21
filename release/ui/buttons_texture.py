@@ -16,10 +16,16 @@ class TEXTURE_PT_preview(TextureButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		tex = context.texture
-		mat = context.material
+		ma = context.material
+		la = context.lamp
+		wo = context.world
 		
-		if mat:
-			layout.template_preview(tex, parent=mat)
+		if ma:
+			layout.template_preview(tex, parent=ma)
+		elif la:
+			layout.template_preview(tex, parent=la)
+		elif wo:
+			layout.template_preview(tex, parent=wo)
 		else:
 			layout.template_preview(tex)
 
@@ -43,16 +49,11 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 		if ma or la or wo:
 			row = layout.row()
 			if ma:
-				row.template_list(ma, "textures", ma, "active_texture_index")
+				row.template_list(ma, "textures", ma, "active_texture_index", type="ICONS")
 			elif la:
-				row.template_list(la, "textures", la, "active_texture_index")
+				row.template_list(la, "textures", la, "active_texture_index", type="ICONS")
 			elif wo:
-				row.template_list(wo, "textures", wo, "active_texture_index")
-			"""if ma or la or wo: 
-				col = row.column(align=True)
-				col.itemO("texture.new", icon="ICON_ZOOMIN", text="")
-				#col.itemO("object.material_slot_remove", icon="ICON_ZOOMOUT", text="")
-			"""
+				row.template_list(wo, "textures", wo, "active_texture_index", type="ICONS")
 
 		split = layout.split(percentage=0.65)
 
@@ -97,21 +98,30 @@ class TEXTURE_PT_mapping(TextureButtonsPanel):
 		col = split.column()
 		col.itemR(tex, "texture_coordinates", text="")
 
-		if tex.texture_coordinates == 'UV':
-			row = layout.row()
-			row.itemR(tex, "uv_layer")
+		if tex.texture_coordinates == 'ORCO':
+			"""
+			ob = context.object
+			if ob and ob.type == 'MESH':
+				split = layout.split(percentage=0.3)
+				split.itemL(text="Mesh:")
+				split.itemR(ob.data, "texco_mesh", text="")
+			"""
+		elif tex.texture_coordinates == 'UV':
+			split = layout.split(percentage=0.3)
+			split.itemL(text="Layer:")
+			split.itemR(tex, "uv_layer", text="")
 		elif tex.texture_coordinates == 'OBJECT':
-			row = layout.row()
-			row.itemR(tex, "object")
+			split = layout.split(percentage=0.3)
+			split.itemL(text="Object:")
+			split.itemR(tex, "object", text="")
 		
-		if textype.type in ('IMAGE', 'ENVIRONMENT_MAP'):
+		if ma:
 			split = layout.split(percentage=0.3)
 			col = split.column()
 			col.itemL(text="Projection:")
 			col = split.column()
 			col.itemR(tex, "mapping", text="")
 
-		if ma:
 			split = layout.split()
 			
 			col = split.column()
@@ -147,88 +157,75 @@ class TEXTURE_PT_influence(TextureButtonsPanel):
 		wo = context.world
 		textype = context.texture
 		tex = context.texture_slot
+
+		def factor_but(layout, active, toggle, factor, name):
+			row = layout.row(align=True)
+			row.itemR(tex, toggle, text="")
+			sub = row.row()
+			sub.active = active
+			sub.itemR(tex, factor, text=name, slider=True)
 		
 		if ma:
 			split = layout.split()
 			
 			col = split.column()
-			col.itemR(tex, "map_color", text="Diffuse Color")
-			colsub = col.column()
-			colsub.active = tex.map_color
-			colsub.itemR(tex, "color_factor", text="Opacity", slider=True)
-			colsub.itemR(tex, "blend_type")
-			col.itemR(tex, "rgb_to_intensity")
-			colsub = col.column()
-			colsub.active = tex.rgb_to_intensity
-			colsub.itemR(tex, "color")
-		
-			col.itemR(tex, "map_colorspec")
-			col.itemR(tex, "map_normal")
-			colsub = col.column()
-			colsub.active = tex.map_normal
-			colsub.itemR(tex, "normal_factor", text="Amount", slider=True)
-			col.itemR(tex, "normal_map_space")
-			col.itemR(tex, "map_warp")
-			colsub = col.column()
-			colsub.active = tex.map_warp
-			colsub.itemR(tex, "warp_factor", text="Amount", slider=True)	
-			col.itemR(tex, "map_displacement")
-			colsub = col.column()
-			colsub.active = tex.map_displacement
-			colsub.itemR(tex, "displacement_factor", text="Amount", slider=True)
-			col = split.column()
-			col.itemR(tex, "map_mirror")
-			col.itemR(tex, "map_reflection")
-			col.itemR(tex, "map_specularity")
-			col.itemR(tex, "map_ambient")
-			col.itemR(tex, "map_hardness")
-			col.itemR(tex, "map_raymir")
-			col.itemR(tex, "map_alpha")
-			col.itemR(tex, "map_emit")
-			col.itemR(tex, "map_translucency")
 
-			colsub = col.column()
-			colsub.active = tex.map_translucency or tex.map_emit or tex.map_alpha or tex.map_raymir or tex.map_hardness or tex.map_ambient or tex.map_specularity or tex.map_reflection or tex.map_mirror
-			colsub.itemR(tex, "default_value", text="Amount", slider=True)
-			
+			col.itemL(text="Diffuse:")
+			factor_but(col, tex.map_diffuse, "map_diffuse", "diffuse_factor", "Intensity")
+			factor_but(col, tex.map_colordiff, "map_colordiff", "colordiff_factor", "Color")
+			factor_but(col, tex.map_alpha, "map_alpha", "alpha_factor", "Alpha")
+			factor_but(col, tex.map_translucency, "map_translucency", "translucency_factor", "Translucency")
+
+			col.itemL(text="Specular:")
+			factor_but(col, tex.map_specular, "map_specular", "specular_factor", "Intensity")
+			factor_but(col, tex.map_colorspec, "map_colorspec", "colorspec_factor", "Color")
+			factor_but(col, tex.map_hardness, "map_hardness", "hardness_factor", "Hardness")
+
+			col = split.column()
+			col.itemL(text="Shading:")
+			factor_but(col, tex.map_ambient, "map_ambient", "ambient_factor", "Ambient")
+			factor_but(col, tex.map_emit, "map_emit", "emit_factor", "Emit")
+			factor_but(col, tex.map_mirror, "map_mirror", "mirror_factor", "Mirror")
+			factor_but(col, tex.map_raymir, "map_raymir", "raymir_factor", "Ray Mirror")
+
+			col.itemL(text="Geometry:")
+			factor_but(col, tex.map_normal, "map_normal", "normal_factor", "Normal")
+			factor_but(col, tex.map_warp, "map_warp", "warp_factor", "Warp")
+			factor_but(col, tex.map_displacement, "map_displacement", "displacement_factor", "Displace")
+
+			#colsub = col.column()
+			#colsub.active = tex.map_translucency or tex.map_emit or tex.map_alpha or tex.map_raymir or tex.map_hardness or tex.map_ambient or tex.map_specularity or tex.map_reflection or tex.map_mirror
+			#colsub.itemR(tex, "default_value", text="Amount", slider=True)
 		elif la:
 			row = layout.row()
-			row.itemR(tex, "map_color")
-			row.itemR(tex, "map_shadow")
-
-			split = layout.split()
-
-			col = split.column()
-			col.itemR(tex, "color_factor", text="Opacity", slider=True)
-			col.itemR(tex, "blend_type")
-			col.itemR(tex, "rgb_to_intensity")
-			col.itemR(tex, "color")
-
-			col = split.column()
-			col.itemR(tex, "default_value", text="DVar", slider=True)
+			factor_but(row, tex.map_color, "map_color", "color_factor", "Color")
+			factor_but(row, tex.map_shadow, "map_shadow", "shadow_factor", "Shadow")
 		elif wo:
-			row = layout.row()
-			row.itemR(tex, "map_blend")
-			row.itemR(tex, "map_horizon")
-			row.itemR(tex, "map_zenith_up")
-			row.itemR(tex, "map_zenith_down")
-
 			split = layout.split()
+			col = split.column()
+			factor_but(col, tex.map_blend, "map_blend", "blend_factor", "Blend")
+			factor_but(col, tex.map_horizon, "map_horizon", "horizon_factor", "Horizon")
 
 			col = split.column()
-			col.itemR(tex, "color_factor", text="Opacity", slider=True)
-			col.itemR(tex, "blend_type")
-			col.itemR(tex, "rgb_to_intensity")
-			col.itemR(tex, "color")
+			factor_but(col, tex.map_zenith_up, "map_zenith_up", "zenith_up_factor", "Zenith Up")
+			factor_but(col, tex.map_zenith_down, "map_zenith_down", "zenith_down_factor", "Zenith Down")
 
-			col = split.column()
-			col.itemR(tex, "normal_factor", text="Nor", slider=True)
-			col.itemR(tex, "variable_factor", text="Var", slider=True)
+		layout.itemS()
+		split = layout.split()
+
+		col = split.column()
+
+		col.itemR(tex, "blend_type", text="Blend")
+		col.itemR(tex, "rgb_to_intensity")
+		colsub = col.column()
+		colsub.active = tex.rgb_to_intensity
+		colsub.itemR(tex, "color", text="")
+
+		col = split.column()
+		col.itemR(tex, "negate", text="Negative")
+		col.itemR(tex, "stencil")
+		if ma or wo:
 			col.itemR(tex, "default_value", text="DVar", slider=True)
-
-		row = layout.row()
-		row.itemR(tex, "stencil")
-		row.itemR(tex, "negate", text="Negative")
 
 class TEXTURE_PT_colors(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_colors"
@@ -239,12 +236,13 @@ class TEXTURE_PT_colors(TextureButtonsPanel):
 		layout = self.layout
 		tex = context.texture
 
-		if tex.color_ramp:
+		layout.itemR(tex, "use_color_ramp", text="Ramp")
+		if tex.use_color_ramp:
 			layout.template_color_ramp(tex.color_ramp, expand=True)
-		else:
-			split = layout.split()
-			col = split.column()
-			col.itemR(tex, "rgb_factor", text="Multiply RGB")
+
+		split = layout.split()
+		col = split.column()
+		col.itemR(tex, "rgb_factor", text="Multiply RGB")
 
 		col = split.column()
 		col.itemL(text="Adjust:")
@@ -378,7 +376,7 @@ class TEXTURE_PT_stucci(TextureButtonsPanel):
 		
 class TEXTURE_PT_image(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_image"
-	__label__ = "Image/Movie"
+	__label__ = "Image"
 	
 	def poll(self, context):
 		tex = context.texture
@@ -387,25 +385,65 @@ class TEXTURE_PT_image(TextureButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		tex = context.texture
+
+		layout.template_texture_image(tex)
+
+class TEXTURE_PT_image_sampling(TextureButtonsPanel):
+	__idname__= "TEXTURE_PT_image_sampling"
+	__label__ = "Image Sampling"
+	__default_closed__ = True
+	
+	def poll(self, context):
+		tex = context.texture
+		return (tex and tex.type == 'IMAGE')
+
+	def draw(self, context):
+		layout = self.layout
+		tex = context.texture
+		slot = context.texture_slot
 		
 		split = layout.split()
 		
+		"""
 		sub = split.column()   		
 		sub.itemR(tex, "flip_axis")
 		sub.itemR(tex, "normal_map")
-		sub.itemL(text="Filter:")
-		sub.itemR(tex, "mipmap")
-		sub.itemR(tex, "mipmap_gauss")
-		sub.itemR(tex, "interpolation")
-		sub = split.column() 
-		sub.itemL(text="Alpha:")
-		sub.itemR(tex, "use_alpha")
-		sub.itemR(tex, "calculate_alpha")
-		sub.itemR(tex, "invert_alpha")
+		if slot:
+			row = sub.row()
+			row.active = tex.normal_map
+			row.itemR(slot, "normal_map_space", text="")
+		"""
 
-class TEXTURE_PT_crop(TextureButtonsPanel):
-	__idname__= "TEXTURE_PT_crop"
-	__label__ = "Crop"
+		sub = split.column()
+
+		sub.itemL(text="Alpha:")
+		sub.itemR(tex, "use_alpha", text="Use")
+		sub.itemR(tex, "calculate_alpha", text="Calculate")
+		sub.itemR(tex, "invert_alpha", text="Invert")
+
+		sub.itemL(text="Flip:")
+		sub.itemR(tex, "flip_axis", text="X/Y Axis")
+
+		sub = split.column() 
+		sub.itemL(text="Filter:")
+		#sub.itemR(tex, "filter", text="")
+		sub.itemR(tex, "mipmap")
+		row = sub.row()
+		row.itemR(tex, "mipmap_gauss", text="Gauss")
+		row.active = tex.mipmap
+		sub.itemR(tex, "interpolation")
+		"""
+		if tex.mipmap and tex.filter != 'DEFAULT':
+			if tex.filter == 'FELINE':
+				sub.itemR(tex, "filter_probes", text="Probes")
+			else:
+				sub.itemR(tex, "filter_eccentricity", text="Eccentricity")
+		"""
+
+class TEXTURE_PT_image_mapping(TextureButtonsPanel):
+	__idname__= "TEXTURE_PT_image_mapping"
+	__label__ = "Image Mapping"
+	__default_closed__ = True
 	
 	def poll(self, context):
 		tex = context.texture
@@ -414,37 +452,41 @@ class TEXTURE_PT_crop(TextureButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		tex = context.texture
-				
-		split = layout.split()
-		
-		sub = split.column()
-		#sub.itemR(tex, "crop_rectangle")
-		sub.itemL(text="Crop Minimum:")
-		sub.itemR(tex, "crop_min_x", text="X")
-		sub.itemR(tex, "crop_min_y", text="Y")
-		sub = split.column()
-		sub.itemL(text="Crop Maximum:")
-		sub.itemR(tex, "crop_max_x", text="X")
-		sub.itemR(tex, "crop_max_y", text="Y")
 		
 		layout.itemR(tex, "extension")
 		
 		split = layout.split()
 		
-		sub = split.column()
 		if tex.extension == 'REPEAT': 
+			sub = split.column(align=True)
 			sub.itemL(text="Repeat:")
 			sub.itemR(tex, "repeat_x", text="X")
 			sub.itemR(tex, "repeat_y", text="Y")
-			sub = split.column()
+			sub = split.column(align=True)
 			sub.itemL(text="Mirror:")
 			sub.itemR(tex, "mirror_x", text="X")
 			sub.itemR(tex, "mirror_y", text="Y")
 		elif tex.extension == 'CHECKER': 
-			sub.itemR(tex, "checker_even", text="Even")
-			sub.itemR(tex, "checker_odd", text="Odd")
+			sub = split.column(align=True)
+			row = sub.row()
+			row.itemR(tex, "checker_even", text="Even")
+			row.itemR(tex, "checker_odd", text="Odd")
 			sub = split.column()
 			sub.itemR(tex, "checker_distance", text="Distance")
+
+		layout.itemS()
+
+		split = layout.split()
+		
+		sub = split.column(align=True)
+		#sub.itemR(tex, "crop_rectangle")
+		sub.itemL(text="Crop Minimum:")
+		sub.itemR(tex, "crop_min_x", text="X")
+		sub.itemR(tex, "crop_min_y", text="Y")
+		sub = split.column(align=True)
+		sub.itemL(text="Crop Maximum:")
+		sub.itemR(tex, "crop_max_x", text="X")
+		sub.itemR(tex, "crop_max_y", text="Y")
 	
 class TEXTURE_PT_plugin(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_plugin"
@@ -573,7 +615,8 @@ bpy.types.register(TEXTURE_PT_magic)
 bpy.types.register(TEXTURE_PT_blend)
 bpy.types.register(TEXTURE_PT_stucci)
 bpy.types.register(TEXTURE_PT_image)
-bpy.types.register(TEXTURE_PT_crop)
+bpy.types.register(TEXTURE_PT_image_sampling)
+bpy.types.register(TEXTURE_PT_image_mapping)
 bpy.types.register(TEXTURE_PT_plugin)
 bpy.types.register(TEXTURE_PT_envmap)
 bpy.types.register(TEXTURE_PT_musgrave)

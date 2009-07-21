@@ -341,6 +341,11 @@ typedef struct TexMapping {
 #define TEX_RGB		1
 #define TEX_NOR		2
 
+/* pr_texture in material, world, lamp, */
+#define TEX_PR_TEXTURE	0
+#define TEX_PR_OTHER	1
+#define TEX_PR_BOTH		2
+
 /* **************** MTEX ********************* */
 
 /* proj */

@@ -59,6 +59,7 @@ struct CurveMapping;
 struct Image;
 struct ImageUser;
 struct uiWidgetColors;
+struct Tex;
 
 typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
@@ -628,6 +629,7 @@ void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *i
 void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);
 void uiTemplateOperatorSearch(uiLayout *layout);
 void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);
+void uiTemplateTextureImage(uiLayout *layout, struct bContext *C, struct Tex *tex);
 
 typedef struct uiListItem {
 	struct uiListItem *next, *prev;

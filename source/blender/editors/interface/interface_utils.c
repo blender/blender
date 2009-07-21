@@ -1011,14 +1011,16 @@ static void colorband_buttons_large(uiBlock *block, ColorBand *coba, int xoffs, 
 	
 	if(coba==NULL) return;
 	
-	bt= uiDefBut(block, BUT, redraw,	"Add",		80+xoffs,95+yoffs,37,20, 0, 0, 0, 0, 0, "Adds a new color position to the colorband");
+	uiBlockBeginAlign(block);
+	bt= uiDefBut(block, BUT, redraw,	"Add",		0+xoffs,100+yoffs,50,20, 0, 0, 0, 0, 0, "Adds a new color position to the colorband");
 	uiButSetFunc(bt, colorband_add_cb, coba, NULL);
-	uiDefButS(block, NUM, redraw,		"Cur:",		117+xoffs,95+yoffs,81,20, &coba->cur, 0.0, (float)(coba->tot-1), 0, 0, "Displays the active color from the colorband");
-	bt= uiDefBut(block, BUT, redraw,		"Del",		199+xoffs,95+yoffs,37,20, 0, 0, 0, 0, 0, "Deletes the active position");
+	uiDefButS(block, NUM, redraw,		"Cur:",		50+xoffs,100+yoffs,100,20, &coba->cur, 0.0, (float)(coba->tot-1), 0, 0, "Displays the active color from the colorband");
+	bt= uiDefBut(block, BUT, redraw,		"Del",		150+xoffs,100+yoffs,50,20, 0, 0, 0, 0, 0, "Deletes the active position");
 	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
 	
 	uiDefButS(block, MENU, redraw,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
-		236+xoffs, 95+yoffs, 64, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Sets interpolation type");
+		200+xoffs, 100+yoffs, 100, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Sets interpolation type");
+	uiBlockEndAlign(block);
 
 	uiDefBut(block, BUT_COLORBAND, redraw, "", 	xoffs,65+yoffs,300,30, coba, 0, 0, 0, 0, "");
 	
@@ -1059,7 +1061,6 @@ static void colorband_buttons_small(uiBlock *block, ColorBand *coba, rctf *butr,
 
 	uiDefBut(block, BUT_COLORBAND, event, "",		xs,butr->ymin,butr->xmax-butr->xmin,20.0f, coba, 0, 0, 0, 0, "");
 	uiBlockEndAlign(block);
-	
 }
 
 void colorband_buttons(uiBlock *block, ColorBand *coba, rctf *butr, int small)

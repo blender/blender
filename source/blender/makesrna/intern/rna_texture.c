@@ -41,6 +41,8 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BKE_texture.h"
+
 StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 {
 	Tex *tex= (Tex*)ptr->data;
@@ -95,6 +97,17 @@ static void rna_TextureSlot_name_get(PointerRNA *ptr, char *str)
 		strcpy(str, mtex->tex->id.name+2);
 	else
 		strcpy(str, "");
+}
+
+static void rna_Texture_use_color_ramp_set(PointerRNA *ptr, int value)
+{
+	Tex *tex= (Tex*)ptr->data;
+
+	if(value) tex->flag |= TEX_COLORBAND;
+	else tex->flag &= ~TEX_COLORBAND;
+
+	if((tex->flag & TEX_COLORBAND) && tex->coba == NULL)
+		tex->coba= add_colorband(0);
 }
 
 #else
@@ -277,25 +290,19 @@ static void rna_def_mtex(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "def_var");
-	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Default Value", "Value to use for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
 	prop= RNA_def_property(srna, "variable_factor", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "varfac");
-	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Variable Factor", "Amount texture affects other values.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
-	prop= RNA_def_property(srna, "color_factor", PROP_FLOAT, PROP_VECTOR);
-	RNA_def_property_float_sdna(prop, NULL, "colfac");
-	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, "Color Factor", "Amount texture affects color values.");
-	RNA_def_property_update(prop, NC_TEXTURE, NULL);
-
 	prop= RNA_def_property(srna, "normal_factor", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "norfac");
-	RNA_def_property_range(prop, 0, 25);
+	RNA_def_property_ui_range(prop, 0, 5, 10, 3);
 	RNA_def_property_ui_text(prop, "Normal Factor", "Amount texture affects normal values.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 }
@@ -744,6 +751,7 @@ static void rna_def_texture_image(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "mipmap", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_MIPMAP);
+	//RNA_def_property_boolean_funcs(prop, NULL, "rna_ImageTexture_mipmap_set");
 	RNA_def_property_ui_text(prop, "MIP Map", "Uses auto-generated MIP maps for the image");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
@@ -1120,7 +1128,7 @@ static void rna_def_texture(BlenderRNA *brna)
 		{TEX_BLEND, "BLEND", 0, "Blend", ""},
 		{TEX_STUCCI, "STUCCI", 0, "Stucci", ""},
 		{TEX_NOISE, "NOISE", 0, "Noise", ""},
-		{TEX_IMAGE, "IMAGE", 0, "Image/Movie", ""},
+		{TEX_IMAGE, "IMAGE", 0, "Image or Movie", ""},
 		{TEX_PLUGIN, "PLUGIN", 0, "Plugin", ""},
 		{TEX_ENVMAP, "ENVIRONMENT_MAP", 0, "Environment Map", ""},
 		{TEX_MUSGRAVE, "MUSGRAVE", 0, "Musgrave", ""},
@@ -1137,6 +1145,12 @@ static void rna_def_texture(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "use_color_ramp", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEX_COLORBAND);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Texture_use_color_ramp_set");
+	RNA_def_property_ui_text(prop, "Use Color Ramp", "Toggle color ramp operations.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	prop= RNA_def_property(srna, "color_ramp", PROP_POINTER, PROP_NEVER_NULL);

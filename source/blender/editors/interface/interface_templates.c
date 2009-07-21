@@ -1155,10 +1155,11 @@ uiLayout *uiTemplateGroup(uiLayout *layout, Object *ob, Group *group)
 
 /************************* Preview Template ***************************/
 
+#include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_world_types.h"
 
 #define B_MATPRV 1
-
 
 static void do_preview_buttons(bContext *C, void *arg, int event)
 {
@@ -1175,6 +1176,7 @@ void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent)
 	uiBlock *block;
 	Material *ma= NULL;
 	ID *pid, *pparent;
+	short *pr_texture= NULL;
 
 	if(id && !ELEM4(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA)) {
 		printf("uiTemplatePreview: expected ID of type material, texture, lamp or world.\n");
@@ -1185,13 +1187,20 @@ void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent)
 	pid= id;
 	pparent= NULL;
 
-	if((id && GS(id->name) == ID_TE) && (parent && GS(parent->name) == ID_MA)) {
-		ma= ((Material*)parent);
+	if(id && (GS(id->name) == ID_TE)) {
+		if(parent && (GS(parent->name) == ID_MA))
+			pr_texture= &((Material*)parent)->pr_texture;
+		else if(parent && (GS(parent->name) == ID_WO))
+			pr_texture= &((World*)parent)->pr_texture;
+		else if(parent && (GS(parent->name) == ID_LA))
+			pr_texture= &((Lamp*)parent)->pr_texture;
 
-		if(ma->pr_texture == MA_PR_MATERIAL)
-			pid= parent;
-		else if(ma->pr_texture == MA_PR_BOTH)
-			pparent= parent;
+		if(pr_texture) {
+			if(*pr_texture == TEX_PR_OTHER)
+				pid= parent;
+			else if(*pr_texture == TEX_PR_BOTH)
+				pparent= parent;
+		}
 	}
 
 	/* layout */
@@ -1221,12 +1230,17 @@ void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent)
 			uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE, 0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE_A, 0, 0, "Preview type: Large sphere with sky");
 		}
 
-		if(GS(id->name) == ID_TE && (parent && GS(parent->name) == ID_MA)) {
+		if(pr_texture) {
 			uiLayoutRow(layout, 1);
 
-			uiDefButS(block, ROW, B_MATPRV, "Texture",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, &(ma->pr_texture), 10, MA_PR_TEXTURE, 0, 0, "");
-			uiDefButS(block, ROW, B_MATPRV, "Material",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, &(ma->pr_texture), 10, MA_PR_MATERIAL, 0, 0, "");
-			uiDefButS(block, ROW, B_MATPRV, "Both",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, &(ma->pr_texture), 10, MA_PR_BOTH, 0, 0, "");
+			uiDefButS(block, ROW, B_MATPRV, "Texture",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_TEXTURE, 0, 0, "");
+			if(GS(parent->name) == ID_MA)
+				uiDefButS(block, ROW, B_MATPRV, "Material",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_OTHER, 0, 0, "");
+			else if(GS(parent->name) == ID_LA)
+				uiDefButS(block, ROW, B_MATPRV, "Lamp",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_OTHER, 0, 0, "");
+			else if(GS(parent->name) == ID_WO)
+				uiDefButS(block, ROW, B_MATPRV, "World",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_OTHER, 0, 0, "");
+			uiDefButS(block, ROW, B_MATPRV, "Both",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_BOTH, 0, 0, "");
 		}
 	}
 }
@@ -1667,5 +1681,19 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_REC, "Capture", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop screencast");
 	if(screen->animtimer)
 		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_REC, "Anim Player", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
+}
+
+/************************* Image Template **************************/
+
+#include "ED_image.h"
+
+void uiTemplateTextureImage(uiLayout *layout, bContext *C, Tex *tex)
+{
+	uiBlock *block;
+
+	if(tex) {
+		block= uiLayoutFreeBlock(layout);
+		ED_image_uiblock_panel(C, block, &tex->ima, &tex->iuser, 0, 0);
+	}
 }
 

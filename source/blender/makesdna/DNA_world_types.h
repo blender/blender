@@ -119,6 +119,7 @@ typedef struct World {
 	
 	struct Ipo *ipo;			// XXX depreceated... old animation system
 	struct MTex *mtex[18];		/* MAX_MTEX */
+	short pr_texture, pad[3];
 
 	/* previews */
 	struct PreviewImage *preview;

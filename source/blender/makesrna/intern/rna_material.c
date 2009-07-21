@@ -244,15 +244,15 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "from_dupli", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_DUPLI_MAPTO);
-	RNA_def_property_ui_text(prop, "From Dupli", "Dupli's instanced from verts, faces or particles, inherit texture coordinate from their parent (only for UV and Orco texture coordinates).");
+	RNA_def_property_ui_text(prop, "From Dupli", "Dupli's instanced from verts, faces or particles, inherit texture coordinate from their parent.");
 
 	prop= RNA_def_property(srna, "from_original", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_OB_DUPLI_ORIG);
 	RNA_def_property_ui_text(prop, "From Original", "Dupli's derive their object coordinates from the original objects transformation.");
 
-	prop= RNA_def_property(srna, "map_color", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "map_colordiff", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_COL);
-	RNA_def_property_ui_text(prop, "Color", "Causes the texture to affect basic color of the material");
+	RNA_def_property_ui_text(prop, "Diffuse Color", "Causes the texture to affect basic color of the material");
 	
 	prop= RNA_def_property(srna, "map_normal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_NORM);
@@ -260,19 +260,19 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "map_colorspec", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_COLSPEC);
-	RNA_def_property_ui_text(prop, "Specularity Color", "Causes the texture to affect the specularity color");
+	RNA_def_property_ui_text(prop, "Specular Color", "Causes the texture to affect the specularity color");
 	
 	prop= RNA_def_property(srna, "map_mirror", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_COLMIR);
 	RNA_def_property_ui_text(prop, "Mirror", "Causes the texture to affect the mirror color");
 	
-	prop= RNA_def_property(srna, "map_reflection", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "map_diffuse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_REF);
-	RNA_def_property_ui_text(prop, "Reflection", "Causes the texture to affect the value of the materials reflectivity");
+	RNA_def_property_ui_text(prop, "Diffuse", "Causes the texture to affect the value of the materials diffuse reflectivity");
 	
-	prop= RNA_def_property(srna, "map_specularity", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "map_specular", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_SPEC);
-	RNA_def_property_ui_text(prop, "Specularity", "Causes the texture to affect the value of specularity");
+	RNA_def_property_ui_text(prop, "Specular", "Causes the texture to affect the value of specular reflectivity");
 	
 	prop= RNA_def_property(srna, "map_ambient", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", MAP_AMB);
@@ -336,21 +336,91 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 
 	/* XXX: MTex.k */
 
-	prop= RNA_def_property(srna, "displacement_factor", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "displacement_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dispfac");
-	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Displacement Factor", "Amount texture displaces the surface.");
 
-	prop= RNA_def_property(srna, "warp_factor", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "warp_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "warpfac");
-	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, "Warp Factor", "Amount texture affects color values.");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Warp Factor", "Amount texture affects texture coordinates of next channels.");
+
+	prop= RNA_def_property(srna, "colorspec_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "colfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Specular Color Factor", "Amount texture affects specular color.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "colordiff_factor", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "colfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Diffuse Color Factor", "Amount texture affects diffuse color.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "mirror_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "colfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Mirror Factor", "Amount texture affects mirror color.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "alpha_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "varfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Alpha Factor", "Amount texture affects alpha.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "diffuse_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "varfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Diffuse Factor", "Amount texture affects diffuse reflectivity.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "specular_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "varfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Specular Factor", "Amount texture affects specular reflectivity.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "emit_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "varfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Emit Factor", "Amount texture affects emission.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "hardness_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "varfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Hardness Factor", "Amount texture affects hardness.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "raymir_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "varfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Ray Mirror Factor", "Amount texture affects ray mirror.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "translucency_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "varfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Translucency Factor", "Amount texture affects translucency.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "ambient_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "varfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Ambient Factor", "Amount texture affects ambient.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_MaterialTextureSlot_enabled_get", "rna_MaterialTextureSlot_enabled_set");
 	RNA_def_property_ui_text(prop, "Enabled", "Enable this material texture slot.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
+	/*prop= RNA_def_property(srna, "new_bump", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_NEW_BUMP);
+	RNA_def_property_ui_text(prop, "New Bump", "Use new, corrected bump mapping code (backwards compatibility option).");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);*/
 }
 
 static void rna_def_material_colors(StructRNA *srna)
@@ -784,13 +854,13 @@ static void rna_def_material_sss(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "color_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sss_colfac");
-	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Color Factor", "Blend factor for SSS colors.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
 	prop= RNA_def_property(srna, "texture_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sss_texfac");
-	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Texture Factor", "Texture scatting blend factor.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
