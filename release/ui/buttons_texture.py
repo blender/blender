@@ -426,19 +426,17 @@ class TEXTURE_PT_image_sampling(TextureButtonsPanel):
 
 		sub = split.column() 
 		sub.itemL(text="Filter:")
-		#sub.itemR(tex, "filter", text="")
+		sub.itemR(tex, "filter", text="")
 		sub.itemR(tex, "mipmap")
 		row = sub.row()
 		row.itemR(tex, "mipmap_gauss", text="Gauss")
 		row.active = tex.mipmap
 		sub.itemR(tex, "interpolation")
-		"""
 		if tex.mipmap and tex.filter != 'DEFAULT':
 			if tex.filter == 'FELINE':
 				sub.itemR(tex, "filter_probes", text="Probes")
 			else:
 				sub.itemR(tex, "filter_eccentricity", text="Eccentricity")
-		"""
 
 class TEXTURE_PT_image_mapping(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_image_mapping"

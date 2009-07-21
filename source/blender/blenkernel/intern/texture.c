@@ -435,12 +435,15 @@ void default_tex(Tex *tex)
 	VarStruct *varstr;
 	int a;
 
+	tex->type= TEX_CLOUDS;
 	tex->stype= 0;
 	tex->flag= TEX_CHECKER_ODD;
-	tex->imaflag= TEX_INTERPOL+TEX_MIPMAP+TEX_USEALPHA;
+	tex->imaflag= TEX_INTERPOL|TEX_MIPMAP|TEX_USEALPHA;
 	tex->extend= TEX_REPEAT;
 	tex->cropxmin= tex->cropymin= 0.0;
 	tex->cropxmax= tex->cropymax= 1.0;
+	tex->texfilter = TXF_DEFAULT;
+	tex->afmax = 8;
 	tex->xrepeat= tex->yrepeat= 1;
 	tex->fie_ima= 2;
 	tex->sfra= 1;

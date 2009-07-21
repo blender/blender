@@ -984,7 +984,7 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *d
 				
 				if(tex->flag & TEX_REPEAT_XMIR) {
 					int orig= (int)floor(origf);
-					if(orig & 1) 
+					if(orig & 1)
 						fx= 1.0-fx;
 				}
 			}
@@ -1077,13 +1077,15 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *d
 				dxt[2]= f1;
 				dyt[2]= f2;
 			}
-			dxt[0]/= 2.0; 
-			dxt[1]/= 2.0;
-			dxt[2]/= 2.0;
-			
-			dyt[0]/= 2.0; 
-			dyt[1]/= 2.0;
-			dyt[2]/= 2.0;
+
+			dxt[0] *= 0.5f;
+			dxt[1] *= 0.5f;
+			dxt[2] *= 0.5f;
+
+			dyt[0] *= 0.5f;
+			dyt[1] *= 0.5f;
+			dyt[2] *= 0.5f;
+
 		}
 		
 		/* if area, then reacalculate dxt[] and dyt[] */
@@ -1102,13 +1104,16 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *d
 			if(tex->xrepeat>1) {
 				float origf= fx *= tex->xrepeat;
 				
-				if(fx>1.0f) fx -= (int)(fx);
-				else if(fx<0.0f) fx+= 1-(int)(fx);
+				// TXF: omit mirror here, see comments in do_material_tex() after do_2d_mapping() call
+				if (tex->texfilter == TXF_DEFAULT) {
+					if(fx>1.0f) fx -= (int)(fx);
+					else if(fx<0.0f) fx+= 1-(int)(fx);
 				
-				if(tex->flag & TEX_REPEAT_XMIR) {
-					int orig= (int)floor(origf);
-					if(orig & 1) 
-						fx= 1.0f-fx;
+					if(tex->flag & TEX_REPEAT_XMIR) {
+						int orig= (int)floor(origf);
+						if(orig & 1) 
+							fx= 1.0f-fx;
+					}
 				}
 				
 				max= tex->xrepeat;
@@ -1119,13 +1124,16 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *d
 			if(tex->yrepeat>1) {
 				float origf= fy *= tex->yrepeat;
 				
-				if(fy>1.0f) fy -= (int)(fy);
-				else if(fy<0.0f) fy+= 1-(int)(fy);
+				// TXF: omit mirror here, see comments in do_material_tex() after do_2d_mapping() call
+				if (tex->texfilter == TXF_DEFAULT) {
+					if(fy>1.0f) fy -= (int)(fy);
+					else if(fy<0.0f) fy+= 1-(int)(fy);
 				
-				if(tex->flag & TEX_REPEAT_YMIR) {
-					int orig= (int)floor(origf);
-					if(orig & 1) 
-						fy= 1.0f-fy;
+					if(tex->flag & TEX_REPEAT_YMIR) {
+						int orig= (int)floor(origf);
+						if(orig & 1) 
+							fy= 1.0f-fy;
+					}
 				}
 				
 				if(max<tex->yrepeat)
@@ -1200,7 +1208,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 		retval= texnoise(tex, texres); 
 		break;
 	case TEX_IMAGE:
-		if(osatex) retval= imagewraposa(tex, tex->ima, NULL, texvec, dxt, dyt, texres); 
+		if(osatex) retval= imagewraposa(tex, tex->ima, NULL, texvec, dxt, dyt, texres);
 		else retval= imagewrap(tex, tex->ima, NULL, texvec, texres); 
 		tag_image_time(tex->ima); /* tag image as having being used */
 		break;

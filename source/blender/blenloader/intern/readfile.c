@@ -9273,6 +9273,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		World *wo;
 		Object *ob;
 		Material *ma;
+		Tex *tex;
 		Scene *sce;
 		ToolSettings *ts;
 		int i;
@@ -9348,6 +9349,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					ob->matbits[a]= ob->colbits & (1<<a);
 			}
 		}
+
+		/* texture filter */
+		for(tex = main->tex.first; tex; tex = tex->id.next)
+			if(tex->afmax == 0)
+				tex->afmax= 8;
 
 		for(ma = main->mat.first; ma; ma = ma->id.next) {
 			if(ma->mode & MA_HALO) {

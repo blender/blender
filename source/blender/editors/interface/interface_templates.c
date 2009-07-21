@@ -1215,10 +1215,10 @@ void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent)
 	uiBlockSetHandleFunc(block, do_preview_buttons, NULL);
 	
 	/* add buttons */
-	if(id) {
-		if(GS(id->name) == ID_MA || (parent && GS(parent->name) == ID_MA)) {
-			if(GS(id->name) == ID_MA) ma= (Material*)id;
-			else ma= (Material*)parent;
+	if(pid) {
+		if(GS(pid->name) == ID_MA || (pparent && GS(pparent->name) == ID_MA)) {
+			if(GS(pid->name) == ID_MA) ma= (Material*)pid;
+			else ma= (Material*)pparent;
 
 			uiLayoutColumn(row, 1);
 

@@ -39,6 +39,14 @@
 
 #include "WM_types.h"
 
+static EnumPropertyItem texture_filter_items[] = {
+	{TXF_DEFAULT, "DEFAULT", 0, "Default", ""},
+	{TXF_EWA, "EWA", 0, "EWA", ""},
+	{TXF_FELINE, "FELINE", 0, "FELINE", ""},
+	{TXF_AREA, "AREA", 0, "Area", ""},
+	{TXF_SAT, "SAT", 0, "SAT (4x mem)", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_texture.h"
@@ -108,6 +116,35 @@ static void rna_Texture_use_color_ramp_set(PointerRNA *ptr, int value)
 
 	if((tex->flag & TEX_COLORBAND) && tex->coba == NULL)
 		tex->coba= add_colorband(0);
+}
+
+static void rna_ImageTexture_mipmap_set(PointerRNA *ptr, int value)
+{
+	Tex *tex= (Tex*)ptr->data;
+
+	if(value) tex->imaflag |= TEX_MIPMAP;
+	else tex->imaflag &= ~TEX_MIPMAP;
+
+	if((tex->imaflag & TEX_MIPMAP) && tex->texfilter == TXF_SAT)
+		tex->texfilter = TXF_DEFAULT;
+}
+
+static EnumPropertyItem *rna_ImageTexture_filter_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	Tex *tex= (Tex*)ptr->data;
+	EnumPropertyItem *item= NULL;
+	int totitem= 0;
+
+	RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_DEFAULT);
+	RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_EWA);
+	RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_FELINE);
+	RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_AREA);
+	if(tex->imaflag & TEX_MIPMAP)
+		RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_SAT);
+	
+	*free= 1;
+
+	return item;
 }
 
 #else
@@ -751,7 +788,7 @@ static void rna_def_texture_image(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "mipmap", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_MIPMAP);
-	//RNA_def_property_boolean_funcs(prop, NULL, "rna_ImageTexture_mipmap_set");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_ImageTexture_mipmap_set");
 	RNA_def_property_ui_text(prop, "MIP Map", "Uses auto-generated MIP maps for the image");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
@@ -888,6 +925,26 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Image");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Image", "");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	/* filtering */
+	prop= RNA_def_property(srna, "filter", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "texfilter");
+	RNA_def_property_enum_items(prop, texture_filter_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_ImageTexture_filter_itemf");
+	RNA_def_property_ui_text(prop, "Filter", "Texture filter to use for sampling image.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "filter_probes", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "afmax");
+	RNA_def_property_range(prop, 1, 256);
+	RNA_def_property_ui_text(prop, "Filter Probes", "Maximum number of samples. Higher gives less blur at distant/oblique angles, but is also slower.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "filter_eccentricity", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "afmax");
+	RNA_def_property_range(prop, 1, 256);
+	RNA_def_property_ui_text(prop, "Filter Eccentricity", "Maximum eccentricity. Higher gives less blur at distant/oblique angles, but is also slower.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 }
 
