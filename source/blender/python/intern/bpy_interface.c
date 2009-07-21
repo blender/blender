@@ -494,7 +494,7 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 			else if ((file_extension = strstr(de->d_name, ".py"))) {
 				/* normal py files? */
 				if(file_extension && file_extension[3] == '\0') {
-					de->d_name[(file_extension - de->d_name) + 1] = '\0';
+					de->d_name[(file_extension - de->d_name)] = '\0';
 					err= bpy_import_module(de->d_name, reload);
 				}
 			}
