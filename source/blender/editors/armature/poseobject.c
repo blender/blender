@@ -85,13 +85,11 @@
 
 /* ************* XXX *************** */
 static int movetolayer_short_buts() {return 1;}
-static int okee() {return 0;}
 static int pupmenu() {return 0;}
 static void waitcursor() {};
 static void error() {};
 static void BIF_undo_push() {}
 static void countall() {}
-static void add_constraint() {}
 static void autokeyframe_pose_cb_func() {}
 /* ************* XXX *************** */
 
@@ -584,60 +582,6 @@ void POSE_OT_select_hierarchy(wmOperatorType *ot)
 				 BONE_SELECT_PARENT, "Direction", "");
 	RNA_def_boolean(ot->srna, "extend", 0, "Add to Selection", "");
 	
-}
-
-
-void pose_add_IK(Scene *scene)
-{
-	Object *obedit= scene->obedit; // XXX context
-	Object *ob= OBACT;
-	
-	/* paranoia checks */
-	if(!ob && !ob->pose) return;
-	if(ob==obedit || (ob->flag & OB_POSEMODE)==0) return;
-	
-	add_constraint(1);	/* 1 means only IK */
-}
-
-/* context: all selected channels */
-void pose_clear_IK(Scene *scene)
-{
-	Object *obedit= scene->obedit; // XXX context
-	Object *ob= OBACT;
-	bArmature *arm= ob->data;
-	bPoseChannel *pchan;
-	bConstraint *con;
-	bConstraint *next;
-	
-	/* paranoia checks */
-	if(!ob && !ob->pose) return;
-	if(ob==obedit || (ob->flag & OB_POSEMODE)==0) return;
-	
-	if(pose_has_protected_selected(ob, 0, 1))
-		return;
-	
-	if(okee("Remove IK constraint(s)")==0) return;
-
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(arm->layer & pchan->bone->layer) {
-			if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
-				
-				for(con= pchan->constraints.first; con; con= next) {
-					next= con->next;
-					if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
-						BLI_remlink(&pchan->constraints, con);
-						free_constraint_data(con);
-						MEM_freeN(con);
-					}
-				}
-				pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_TARGET);
-			}
-		}
-	}
-	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);	// and all its relations
-	
-	BIF_undo_push("Remove IK constraint(s)");
 }
 
 

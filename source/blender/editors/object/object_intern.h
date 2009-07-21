@@ -111,6 +111,9 @@ void POSE_OT_constraint_add_with_targets(struct wmOperatorType *ot);
 void OBJECT_OT_constraints_clear(struct wmOperatorType *ot);
 void POSE_OT_constraints_clear(struct wmOperatorType *ot);
 
+void POSE_OT_ik_add(struct wmOperatorType *ot);
+void POSE_OT_ik_clear(struct wmOperatorType *ot);
+
 void CONSTRAINT_OT_delete(struct wmOperatorType *ot);
 
 void CONSTRAINT_OT_move_up(struct wmOperatorType *ot);

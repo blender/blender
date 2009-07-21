@@ -807,6 +807,7 @@ void OBJECT_OT_constraints_clear(wmOperatorType *ot)
 static short get_new_constraint_target(bContext *C, int con_type, Object **tar_ob, bPoseChannel **tar_pchan, short add)
 {
 	Object *obact= CTX_data_active_object(C);
+	bPoseChannel *pchanact= get_active_posechannel(obact);
 	short only_curve= 0, only_mesh= 0, only_ob= 0;
 	short found= 0;
 	
@@ -830,21 +831,24 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 			return 0;
 			
 		/* restricted target-type constraints -------------- */
+		/* NOTE: for these, we cannot try to add a target object if no valid ones are found, since that doesn't work */
 			/* curve-based constraints - set the only_curve and only_ob flags */
 		case CONSTRAINT_TYPE_TRACKTO:
 		case CONSTRAINT_TYPE_CLAMPTO:
 		case CONSTRAINT_TYPE_FOLLOWPATH:
 			only_curve= 1;
 			only_ob= 1;
+			add= 0;
 			break;
 			
 			/* mesh only? */
 		case CONSTRAINT_TYPE_SHRINKWRAP:
 			only_mesh= 1;
 			only_ob= 1;
+			add= 0;
 			break;
 			
-			/* object only */
+			/* object only - add here is ok? */
 		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 			only_ob= 1;
 			break;
@@ -855,12 +859,14 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 		/* search in list of selected Pose-Channels for target */
 		CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) 
 		{
-			/* just use the first one that we encounter... */
-			*tar_ob= obact;
-			*tar_pchan= pchan;
-			found= 1;
-			
-			break;
+			/* just use the first one that we encounter, as long as it is not the active one */
+			if (pchan != pchanact) {
+				*tar_ob= obact;
+				*tar_pchan= pchan;
+				found= 1;
+				
+				break;
+			}
 		}
 		CTX_DATA_END;
 	}
@@ -896,11 +902,13 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 	
 	/* if still not found, add a new empty to act as a target (if allowed) */
 	if ((found == 0) && (add)) {
-#if 0 // XXX old code to be fixed
-		Base *base= BASACT, *newbase;
+		Scene *scene= CTX_data_scene(C);
+		Base *base= BASACT, *newbase=NULL;
 		Object *obt;
 		
+		/* add new target object */
 		obt= add_object(scene, OB_EMPTY);
+		
 		/* set layers OK */
 		newbase= BASACT;
 		newbase->lay= base->lay;
@@ -908,20 +916,24 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 		
 		/* transform cent to global coords for loc */
 		if (pchanact) {
-			if (only_IK)
-				VecMat4MulVecfl(obt->loc, ob->obmat, pchanact->pose_tail);
+			/* since by default, IK targets the tip of the last bone, use the tip of the active PoseChannel 
+			 * if adding a target for an IK Constraint
+			 */
+			if (con_type == CONSTRAINT_TYPE_KINEMATIC)
+				VecMat4MulVecfl(obt->loc, obact->obmat, pchanact->pose_tail);
 			else
-				VecMat4MulVecfl(obt->loc, ob->obmat, pchanact->pose_head);
+				VecMat4MulVecfl(obt->loc, obact->obmat, pchanact->pose_head);
 		}
 		else
-			VECCOPY(obt->loc, ob->obmat[3]);
-		
-		//set_constraint_nth_target(con, obt, "", 0);
+			VECCOPY(obt->loc, obact->obmat[3]);
 		
 		/* restore, add_object sets active */
 		BASACT= base;
 		base->flag |= SELECT;
-#endif // XXX old code to be ported
+		
+		/* make our new target the new object */
+		*tar_ob= obt;
+		found= 1;
 	}
 	
 	/* return whether there's any target */
@@ -1191,3 +1203,137 @@ void POSE_OT_constraint_add_with_targets(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", constraint_type_items, 0, "Type", "");
 }
 
+/************************ IK Constraint operators *********************/
+/* NOTE: only for Pose-Channels */
+// TODO: should these be here, or back in editors/armature/poseobject.c again?
+
+/* present menu with options + validation for targets to use */
+static int pose_ik_add_invoke(bContext *C, wmOperator *op, wmEvent *evt)
+{
+	Object *ob= CTX_data_active_object(C);
+	bPoseChannel *pchan= get_active_posechannel(ob);
+	bConstraint *con= NULL;
+	
+	uiPopupMenu *pup;
+	uiLayout *layout;
+	Object *tar_ob= NULL;
+	bPoseChannel *tar_pchan= NULL;
+	
+	/* must have active bone */
+	if (ELEM(NULL, ob, pchan)) {
+		BKE_report(op->reports, RPT_ERROR, "Must have active bone to add IK Constraint to.");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* bone must not have any constraints already */
+	for (con= pchan->constraints.first; con; con= con->next) {
+		if (con->type==CONSTRAINT_TYPE_KINEMATIC) break;
+	}
+	if (con) {
+		BKE_report(op->reports, RPT_ERROR, "Bone already has IK Constraint.");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* prepare popup menu to choose targetting options */
+	pup= uiPupMenuBegin(C, "Add IK", 0);
+	layout= uiPupMenuLayout(pup);
+	
+	/* the type of targets we'll set determines the menu entries to show... */
+	if (get_new_constraint_target(C, CONSTRAINT_TYPE_KINEMATIC, &tar_ob, &tar_pchan, 0)) {
+		/* bone target, or object target? 
+		 *	- the only thing that matters is that we want a target...
+		 */
+		if (tar_pchan)
+			uiItemBooleanO(layout, "To Active Bone", 0, "POSE_OT_ik_add", "with_targets", 1);
+		else
+			uiItemBooleanO(layout, "To Active Object", 0, "POSE_OT_ik_add", "with_targets", 1);
+	}
+	else {
+		/* we have a choice of adding to a new empty, or not setting any target (targetless IK) */
+		uiItemBooleanO(layout, "To New Empty Object", 0, "POSE_OT_ik_add", "with_targets", 1);
+		uiItemBooleanO(layout, "Without Targets", 0, "POSE_OT_ik_add", "with_targets", 0);
+	}
+	
+	/* finish building the menu, and process it (should result in calling self again) */
+	uiPupMenuEnd(C, pup);
+	
+	return OPERATOR_CANCELLED;
+}
+
+/* call constraint_add_exec() to add the IK constraint */
+static int pose_ik_add_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	int with_targets= RNA_boolean_get(op->ptr, "with_targets");
+	
+	/* add the constraint - all necessary checks should have been done by the invoke() callback already... */
+	return constraint_add_exec(C, op, ob, get_active_constraints(ob), CONSTRAINT_TYPE_KINEMATIC, with_targets);
+}
+
+void POSE_OT_ik_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add IK to Bone";
+	ot->description= "Add IK Constraint to the active Bone.";
+	ot->idname= "POSE_OT_ik_add";
+	
+	/* api callbacks */
+	ot->invoke= pose_ik_add_invoke;
+	ot->exec= pose_ik_add_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "with_targets", 1, "With Targets", "Assign IK Constraint with targets derived from the select bones/objects");
+}
+
+/* ------------------ */
+
+/* remove IK constraints from selected bones */
+static int pose_ik_clear_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	
+	/* only remove IK Constraints */
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) 
+	{
+		bConstraint *con, *next;
+		
+		// TODO: should we be checking if these contraints were local before we try and remove them?
+		for (con= pchan->constraints.first; con; con= next) {
+			next= con->next;
+			if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
+				free_constraint_data(con);
+				BLI_freelinkN(&pchan->constraints, con);
+			}
+		}
+		pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_TARGET);
+	}
+	CTX_DATA_END;
+	
+	/* */
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_REMOVED, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_ik_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove IK";
+	ot->description= "Remove all IK Constraints from selected bones.";
+	ot->idname= "POSE_OT_ik_clear";
+	
+	/* api callbacks */
+	ot->exec= pose_ik_clear_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
