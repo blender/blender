@@ -244,6 +244,10 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 		mvert->flag = BMFlags_To_MEFlags(v);
 
 		BMINDEX_SET(v, i);
+
+		/*copy over customdata*/
+		CustomData_from_bmesh_block(&bm->vdata, &me->vdata, v->head.data, i);
+
 		i++;
 		mvert++;
 	}
@@ -262,6 +266,10 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 		medge->flag = BMFlags_To_MEFlags(e);
 
 		BMINDEX_SET(e, i);
+
+		/*copy over customdata*/
+		CustomData_from_bmesh_block(&bm->edata, &me->edata, e->head.data, i);
+
 		i++;
 		medge++;
 	}
@@ -308,9 +316,15 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 		for ( ; l; l=BMIter_Step(&liter), j++, mloop++) {
 			mloop->e = BMINDEX_GET(l->e);
 			mloop->v = BMINDEX_GET(l->v);
+
+			/*copy over customdata*/
+			CustomData_from_bmesh_block(&bm->ldata, &me->ldata, l->head.data, j);
 		}
 		
 		if (f == bm->act_face) me->act_face = i;
+
+		/*copy over customdata*/
+		CustomData_from_bmesh_block(&bm->pdata, &me->pdata, f->head.data, i);
 
 		i++;
 		mpoly++;

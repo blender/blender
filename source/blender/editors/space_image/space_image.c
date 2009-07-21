@@ -50,6 +50,7 @@
 #include "BKE_mesh.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
+#include "BKE_tessmesh.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -256,13 +257,13 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 	if(ima && (ima->source==IMA_SRC_VIEWER || sima->pin));
 	else if(obedit && obedit->type == OB_MESH) {
 		Mesh *me= (Mesh*)obedit->data;
-		EditMesh *em= BKE_mesh_get_editmesh(me);
-		MTFace *tf;
+		BMEditMesh *em= me->edit_btmesh;
+		MTexPoly *tf;
 		
-		if(em && EM_texFaceCheck(em)) {
+		if(em && EDBM_texFaceCheck(em)) {
 			sima->image= ima= NULL;
 			
-			tf = EM_get_active_mtface(em, NULL, NULL, 1); /* partially selected face is ok */
+			tf = EDBM_get_active_mtexpoly(em, NULL, 1); /* partially selected face is ok */
 			
 			if(tf && (tf->mode & TF_TEX)) {
 				/* don't need to check for pin here, see above */
@@ -272,8 +273,6 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 				else sima->curtile= tf->tile;
 			}
 		}
-
-		BKE_mesh_end_editmesh(obedit->data, em);
 	}
 }
 
@@ -748,13 +747,9 @@ int ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 		return 0;
 
 	if(obedit && obedit->type == OB_MESH) {
-		EditMesh *em = BKE_mesh_get_editmesh(obedit->data);
-		int ret;
-	
-		ret = EM_texFaceCheck(em);
+		BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;
 
-		BKE_mesh_end_editmesh(obedit->data, em);
-		return ret;
+		return EDBM_texFaceCheck(em);
 	}
 
 	return 0;
@@ -767,13 +762,9 @@ int ED_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
 
 	if(ED_space_image_show_paint(sima))
 		if(obedit && obedit->type == OB_MESH) {
-			EditMesh *em = BKE_mesh_get_editmesh(obedit->data);
-			int ret;
+			BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;
 
-			ret = EM_texFaceCheck(em);
-
-			BKE_mesh_end_editmesh(obedit->data, em);
-			return ret;
+			return EDBM_texFaceCheck(em);
 		}
 
 	return 0;

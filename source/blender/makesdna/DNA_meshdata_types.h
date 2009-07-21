@@ -95,7 +95,13 @@ typedef struct MTexPoly{
 
 typedef struct MLoopUV{
 	float uv[2];
+	int flag;
 }MLoopUV;
+
+/*mloopuv->flag*/
+#define MLOOPUV_EDGESEL	1
+#define MLOOPUV_VERTSEL	2
+#define MLOOPUV_PINNED	4
 
 typedef struct MLoopCol{
 	char a, r, g, b;

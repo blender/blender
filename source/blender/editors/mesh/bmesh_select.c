@@ -1422,3 +1422,62 @@ void EDBM_convertsel(BMEditMesh *em, short oldmode, short selectmode)
 		}
 	}
 }
+
+
+void EDBM_select_swap(BMEditMesh *em) /* exported for UV */
+{
+	BMIter iter;
+	BMVert *eve;
+	BMEdge *eed;
+	BMFace *efa;
+	
+	if(em->bm->selectmode & SCE_SELECT_VERTEX) {
+		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			if (BM_TestHFlag(eve, BM_HIDDEN))
+				continue;
+			BM_Select(em->bm, eve, !BM_TestHFlag(eve, BM_SELECT));
+		}
+	}
+	else if(em->selectmode & SCE_SELECT_EDGE) {
+		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+			if (BM_TestHFlag(eed, BM_HIDDEN))
+				continue;
+			BM_Select(em->bm, eed, !BM_TestHFlag(eed, BM_SELECT));
+		}
+	}
+	else {
+		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+			if (BM_TestHFlag(efa, BM_HIDDEN))
+				continue;
+			BM_Select(em->bm, efa, !BM_TestHFlag(efa, BM_SELECT));
+		}
+
+	}
+//	if (EM_texFaceCheck())
+}
+
+static int select_inverse_mesh_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	
+	EDBM_select_swap(em);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_select_inverse(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Inverse";
+	ot->idname= "MESH_OT_select_inverse";
+	
+	/* api callbacks */
+	ot->exec= select_inverse_mesh_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}

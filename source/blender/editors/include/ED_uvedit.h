@@ -47,10 +47,10 @@ int ED_uvedit_minmax(struct Scene *scene, struct Image *ima, struct Object *obed
 int ED_uvedit_test_silent(struct Object *obedit);
 int ED_uvedit_test(struct Object *obedit);
 
-int uvedit_face_visible(struct Scene *scene, struct Image *ima, struct EditFace *efa, struct MTFace *tf);
-int uvedit_face_selected(struct Scene *scene, struct EditFace *efa, struct MTFace *tf);
-int uvedit_edge_selected(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
-int uvedit_uv_selected(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
+int uvedit_face_visible(struct Scene *scene, struct Image *ima, struct BMFace *efa, struct MTexPoly *tf);
+int uvedit_face_selected(struct Scene *scene, struct BMEditMesh *em, struct BMFace *efa);
+int uvedit_edge_selected(struct BMEditMesh *em, struct Scene *scene, struct BMLoop *l);
+int uvedit_uv_selected(struct BMEditMesh *em, struct Scene *scene, struct BMLoop *l);
 
 int ED_uvedit_nearest_uv(struct Scene *scene, struct Object *obedit, struct Image *ima, float co[2], float uv[2]);
 

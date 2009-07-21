@@ -30,12 +30,16 @@
 #define ED_UVEDIT_INTERN_H
 
 struct SpaceImage;
-struct EditFace;
-struct MTFace;
+struct MTexPoly;
 struct Scene;
 struct Image;
 struct Object;
 struct wmOperatorType;
+struct BMEditMesh;
+struct BMFace;
+struct BMLoop;
+struct BMEdge;
+struct BMVert;
 
 #define UV_SELECT_ALL       1
 #define UV_SELECT_PINNED    2
@@ -45,25 +49,27 @@ struct wmOperatorType;
 #define TF_SEL_MASK(id) (TF_SEL1 << id)
 
 /* visibility and selection */
-int uvedit_face_visible_nolocal(struct Scene *scene, struct EditFace *efa);
-int uvedit_face_visible(struct Scene *scene, struct Image *ima, struct EditFace *efa, struct MTFace *tf);
+int uvedit_face_visible_nolocal(struct Scene *scene, struct BMFace *efa);
 
-int uvedit_face_selected(struct Scene *scene, struct EditFace *efa, struct MTFace *tf);
-void uvedit_face_select(struct Scene *scene, struct EditFace *efa, struct MTFace *tf);
-void uvedit_face_deselect(struct Scene *scene, struct EditFace *efa, struct MTFace *tf);
+/*all the uvedit_xxxx_[de]selected functions are
+   declared in ED_uvedit.h*/
+int uvedit_face_select(struct Scene *scene, struct BMEditMesh *em, struct BMFace *efa);
+int uvedit_face_deselect(struct Scene *scene, struct BMEditMesh *em, struct BMFace *efa);
 
-int uvedit_edge_selected(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
-void uvedit_edge_select(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
-void uvedit_edge_deselect(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
+void uvedit_edge_select(struct BMEditMesh *em, struct Scene *scene, struct BMLoop *l);
+void uvedit_edge_deselect(struct BMEditMesh *em, struct Scene *scene, struct BMLoop *l);
 
-int uvedit_uv_selected(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
-void uvedit_uv_select(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
-void uvedit_uv_deselect(struct Scene *scene, struct EditFace *efa, struct MTFace *tf, int i);
+void uvedit_uv_select(struct BMEditMesh *em, struct Scene *scene, struct BMLoop *l);
+void uvedit_uv_deselect(struct BMEditMesh *em, struct Scene *scene, struct BMLoop *l);
 
 /* geometric utilities */
 void uv_center(float uv[][2], float cent[2], int quad);
 float uv_area(float uv[][2], int quad);
 void uv_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy);
+
+float poly_uv_area(float uv[][2], int len);
+void poly_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy, int len);
+void poly_uv_center(struct BMEditMesh *em, struct BMFace *f, float cent[2]);
 
 /* operators */
 void UV_OT_average_islands_scale(struct wmOperatorType *ot);

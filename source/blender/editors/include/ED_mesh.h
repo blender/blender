@@ -53,6 +53,8 @@ struct BMesh;
 struct BMVert;
 struct BMEdge;
 struct BMFace;
+struct UvVertMap;
+struct UvMapVert;
 
 // edge and face flag both
 #define EM_FGON		2
@@ -78,23 +80,26 @@ struct BMFace;
 
 /* bmeshutils.c */
 
-/*this function is currently defunct, dead*/
-void EDBM_Tesselate(struct EditMesh *em);
 void EDBM_RecalcNormals(struct BMEditMesh *em);
+
 void EDBM_MakeEditBMesh(struct Scene *scene, struct Object *ob);
 void EDBM_FreeEditBMesh(struct BMEditMesh *tm);
 void EDBM_LoadEditBMesh(struct Scene *scene, struct Object *ob);
+
 void EDBM_init_index_arrays(struct BMEditMesh *tm, int forvert, int foredge, int forface);
 void EDBM_free_index_arrays(struct BMEditMesh *tm);
 struct BMVert *EDBM_get_vert_for_index(struct BMEditMesh *tm, int index);
 struct BMEdge *EDBM_get_edge_for_index(struct BMEditMesh *tm, int index);
 struct BMFace *EDBM_get_face_for_index(struct BMEditMesh *tm, int index);
 struct BMFace *EDBM_get_actFace(struct BMEditMesh *em, int sloppy);
+
 void EDBM_selectmode_flush(struct BMEditMesh *em);
 int EDBM_get_actSelection(struct BMEditMesh *em, struct BMEditSelection *ese);
+
 void EDBM_editselection_center(struct BMEditMesh *em, float *center, struct BMEditSelection *ese);
 void EDBM_editselection_plane(struct BMEditMesh *em, float *plane, struct BMEditSelection *ese);
 void EDBM_editselection_normal(float *normal, struct BMEditSelection *ese);
+
 void EDBM_selectmode_set(struct BMEditMesh *em);
 void EDBM_convertsel(struct BMEditMesh *em, short oldmode, short selectmode);
 
@@ -103,6 +108,19 @@ int			EDBM_mask_init_backbuf_border(struct ViewContext *vc, short mcords[][2], s
 void		EDBM_free_backbuf(void);
 int			EDBM_init_backbuf_border(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
 int			EDBM_init_backbuf_circle(struct ViewContext *vc, short xs, short ys, short rads);
+
+void EDBM_select_swap(struct BMEditMesh *em); /* exported for UV */
+void EDBM_set_actFace(struct BMEditMesh *em, struct BMFace *efa);
+
+int EDBM_texFaceCheck(struct BMEditMesh *em);
+struct MTexPoly *EDBM_get_active_mtexpoly(struct BMEditMesh *em, struct BMFace **act_efa, int sloppy);
+
+void EDBM_free_uv_vert_map(struct UvVertMap *vmap);
+struct UvMapVert *EDBM_get_uv_map_vert(struct UvVertMap *vmap, unsigned int v);
+struct UvVertMap *EDBM_make_uv_vert_map(struct BMEditMesh *em, int selected, int do_face_idx_array, float *limit);
+
+void EDBM_toggle_select_all(struct BMEditMesh *em);
+void EDBM_set_flag_all(struct BMEditMesh *em, int flag);
 
 /* meshtools.c */
 

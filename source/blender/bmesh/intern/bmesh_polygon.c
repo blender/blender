@@ -108,7 +108,7 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 		Normalize_d(v2);
 
 		l = INPR(v1, v2);
-		if (l < 0.01 && l > -0.01)
+		if (ABS(l) < 0.1)
 			continue;
 
 		/* newell's method
@@ -189,6 +189,31 @@ static int compute_poly_center(float center[3], float *area, float (*verts)[3], 
 	return 0;
 }
 
+float BM_face_area(BMFace *f)
+{
+	BMLoop *l;
+	BMIter iter;
+	float (*verts)[3], stackv[100][3];
+	float area, center[3];
+	int i;
+
+	if (f->len <= 100) 
+		verts = stackv;
+	else verts = MEM_callocN(sizeof(float)*f->len*3, "bm_face_area tmp");
+
+	i = 0;
+	BM_ITER(l, &iter, NULL, BM_LOOPS_OF_FACE, f) {
+		VECCOPY(verts[i], l->v->co);
+		i++;
+	}
+
+	compute_poly_center(center, &area, verts, f->len);
+
+	if (f->len > 100)
+		MEM_freeN(verts);
+
+	return area;
+}
 /*
 computes center of face in 3d.  uses center of bounding box.
 */

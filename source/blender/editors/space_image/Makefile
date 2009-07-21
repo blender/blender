@@ -47,6 +47,7 @@ CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../python
 CPPFLAGS += -I../../render/extern/include
+CPPFLAGS += -I../../bmesh
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 # own include 

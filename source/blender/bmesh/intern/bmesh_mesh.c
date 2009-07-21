@@ -164,6 +164,8 @@ void BM_Free_Mesh_Data(BMesh *bm)
 	if (bm->vtar) MEM_freeN(bm->vtar);
 	if (bm->plar) MEM_freeN(bm->plar);
 
+	BLI_freelistN(&bm->selected);
+
 	BMO_ClearStack(bm);
 }
 

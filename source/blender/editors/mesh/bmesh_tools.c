@@ -1392,3 +1392,62 @@ void MESH_OT_edge_split(wmOperatorType *ot)
 
 	RNA_def_int(ot->srna, "number_cuts", 1, 1, 10, "Number of Cuts", "", 1, INT_MAX);
 }
+
+/****************** add duplicate operator ***************/
+
+static int mesh_duplicate_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh*)ob->data)->edit_btmesh;
+	BMOperator bmop;
+
+	EDBM_InitOpf(em, &bmop, op, "dupe geom=%hvef", BM_SELECT);
+	
+	BMO_Exec_Op(em->bm, &bmop);
+	EDBM_clear_flag_all(em, BM_SELECT);
+
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "newout", BM_SELECT);
+
+	if (!EDBM_FinishOp(em, &bmop, op, 1))
+		return OPERATOR_CANCELLED;
+
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int mesh_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	int ret;
+
+	WM_cursor_wait(1);
+	ret = mesh_duplicate_exec(C, op);
+	WM_cursor_wait(0);
+
+	if (ret == OPERATOR_CANCELLED)
+		return OPERATOR_CANCELLED;
+	
+	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
+	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+	
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_duplicate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Duplicate";
+	ot->idname= "MESH_OT_duplicate";
+	
+	/* api callbacks */
+	ot->invoke= mesh_duplicate_invoke;
+	ot->exec= mesh_duplicate_exec;
+	
+	ot->poll= ED_operator_editmesh;
+	
+	/* to give to transform */
+	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+}
+

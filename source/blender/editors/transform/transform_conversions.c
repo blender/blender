@@ -2451,36 +2451,38 @@ static void UVsToTransData(SpaceImage *sima, TransData *td, TransData2D *td2d, f
 
 static void createTransUVs(bContext *C, TransInfo *t)
 {
-#if 0
 	SpaceImage *sima = (SpaceImage*)CTX_wm_space_data(C);
 	Image *ima = CTX_data_edit_image(C);
 	Scene *scene = CTX_data_scene(C);
 	TransData *td = NULL;
 	TransData2D *td2d = NULL;
-	MTFace *tf;
+	MTexPoly *tf;
+	MLoopUV *luv;
+	BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
+	BMFace *efa;
+	BMLoop *l;
+	BMIter iter, liter;
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
-
-	EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
-	EditFace *efa;
 
 	if(!ED_uvedit_test(t->obedit)) return;
 
 	/* count */
-	for (efa= em->faces.first; efa; efa= efa->next) {
-		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
-		if(uvedit_face_visible(scene, ima, efa, tf)) {
-			efa->tmp.p = tf;
+		if(!uvedit_face_visible(scene, ima, efa, tf)) {
+			BMINDEX_SET(efa, 0);
+			continue;
+		}
+		
+		BMINDEX_SET(efa, 1);
+		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			if (uvedit_uv_selected(em, scene, l)) 
+				countsel++;
 
-			if (uvedit_uv_selected(scene, efa, tf, 0)) countsel++;
-			if (uvedit_uv_selected(scene, efa, tf, 1)) countsel++;
-			if (uvedit_uv_selected(scene, efa, tf, 2)) countsel++;
-			if (efa->v4 && uvedit_uv_selected(scene, efa, tf, 3)) countsel++;
 			if(propmode)
-				count += (efa->v4)? 4: 3;
-		} else {
-			efa->tmp.p = NULL;
+				count += efa->len;
 		}
 	}
 
@@ -2499,26 +2501,22 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	td= t->data;
 	td2d= t->data2d;
 
-	for (efa= em->faces.first; efa; efa= efa->next) {
-		if ((tf=(MTFace *)efa->tmp.p)) {
-			if (propmode) {
-				UVsToTransData(sima, td++, td2d++, tf->uv[0], uvedit_uv_selected(scene, efa, tf, 0));
-				UVsToTransData(sima, td++, td2d++, tf->uv[1], uvedit_uv_selected(scene, efa, tf, 1));
-				UVsToTransData(sima, td++, td2d++, tf->uv[2], uvedit_uv_selected(scene, efa, tf, 2));
-				if(efa->v4)
-					UVsToTransData(sima, td++, td2d++, tf->uv[3], uvedit_uv_selected(scene, efa, tf, 3));
-			} else {
-				if(uvedit_uv_selected(scene, efa, tf, 0))				UVsToTransData(sima, td++, td2d++, tf->uv[0], 1);
-				if(uvedit_uv_selected(scene, efa, tf, 1))				UVsToTransData(sima, td++, td2d++, tf->uv[1], 1);
-				if(uvedit_uv_selected(scene, efa, tf, 2))				UVsToTransData(sima, td++, td2d++, tf->uv[2], 1);
-				if(efa->v4 && uvedit_uv_selected(scene, efa, tf, 3))	UVsToTransData(sima, td++, td2d++, tf->uv[3], 1);
-			}
+	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		if (!BMINDEX_GET(efa))
+			continue;
+
+		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			if (!propmode && !uvedit_uv_selected(em, scene, l))
+				continue;
+			
+			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+			UVsToTransData(sima, td++, td2d++, luv->uv, uvedit_uv_selected(em, scene, l));
 		}
 	}
 
 	if (sima->flag & SI_LIVE_UNWRAP)
 		ED_uvedit_live_unwrap_begin(t->scene, t->obedit);
-#endif
 }
 
 void flushTransUVs(TransInfo *t)

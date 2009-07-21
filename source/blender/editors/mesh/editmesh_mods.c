@@ -2683,69 +2683,6 @@ void MESH_OT_select_non_manifold(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-void EM_select_swap(EditMesh *em) /* exported for UV */
-{
-	EditVert *eve;
-	EditEdge *eed;
-	EditFace *efa;
-	
-	if(em->selectmode & SCE_SELECT_VERTEX) {
-
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			if(eve->h==0) {
-				if(eve->f & SELECT) eve->f &= ~SELECT;
-				else eve->f|= SELECT;
-			}
-		}
-	}
-	else if(em->selectmode & SCE_SELECT_EDGE) {
-		for(eed= em->edges.first; eed; eed= eed->next) {
-			if(eed->h==0) {
-				EM_select_edge(eed, !(eed->f & SELECT));
-			}
-		}
-	}
-	else {
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->h==0) {
-				EM_select_face(efa, !(efa->f & SELECT));
-			}
-		}
-	}
-
-	EM_selectmode_flush(em);
-	
-//	if (EM_texFaceCheck())
-
-}
-
-static int select_inverse_mesh_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
-	
-	EM_select_swap(em);
-	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-
-	BKE_mesh_end_editmesh(obedit->data, em);
-	return OPERATOR_FINISHED;	
-}
-
-void MESH_OT_select_inverse(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Select Inverse";
-	ot->idname= "MESH_OT_select_inverse";
-	
-	/* api callbacks */
-	ot->exec= select_inverse_mesh_exec;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-	
 static int bmesh_test_exec(bContext *C, wmOperator *op)
 {
 	return OPERATOR_FINISHED;

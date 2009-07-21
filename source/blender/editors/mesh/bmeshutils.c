@@ -521,3 +521,180 @@ void undo_push_mesh(bContext *C, char *name)
 {
 	undo_editmode_push(C, name, getEditMesh, free_undo, undoMesh_to_editbtMesh, editbtMesh_to_undoMesh, NULL);
 }
+
+/*write comment here*/
+UvVertMap *EDBM_make_uv_vert_map(BMEditMesh *em, int selected, int do_face_idx_array, float *limit)
+{
+	BMVert *ev;
+	BMFace *efa;
+	BMLoop *l;
+	BMIter iter, liter;
+	/* vars from original func */
+	UvVertMap *vmap;
+	UvMapVert *buf;
+	MTexPoly *tf;
+	MLoopUV *luv;
+	unsigned int a;
+	int totverts, i, totuv;
+	
+	if (do_face_idx_array)
+		EDBM_init_index_arrays(em, 0, 0, 1);
+	
+	/* we need the vert */
+	totverts=0;
+	BM_ITER(ev, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BMINDEX_SET(ev, totverts);
+		totverts++;
+	}
+	
+	totuv = 0;
+
+	/* generate UvMapVert array */
+	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		if(!selected || ((!BM_TestHFlag(efa, BM_HIDDEN)) && BM_TestHFlag(efa, BM_SELECT)))
+			totuv += efa->len;
+	}
+
+	if(totuv==0) {
+		if (do_face_idx_array)
+			EDBM_free_index_arrays(em);
+		return NULL;
+	}
+	vmap= (UvVertMap*)MEM_callocN(sizeof(*vmap), "UvVertMap");
+	if (!vmap) {
+		if (do_face_idx_array)
+			EDBM_free_index_arrays(em);
+		return NULL;
+	}
+
+	vmap->vert= (UvMapVert**)MEM_callocN(sizeof(*vmap->vert)*totverts, "UvMapVert*");
+	buf= vmap->buf= (UvMapVert*)MEM_callocN(sizeof(*vmap->buf)*totuv, "UvMapVert");
+
+	if (!vmap->vert || !vmap->buf) {
+		free_uv_vert_map(vmap);
+		if (do_face_idx_array)
+			EDBM_free_index_arrays(em);
+		return NULL;
+	}
+	
+	a = 0;
+	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		if(!selected || ((!BM_TestHFlag(efa, BM_HIDDEN)) && BM_TestHFlag(efa, BM_SELECT))) {
+			i = 0;
+			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+				buf->tfindex= i;
+				buf->f= a;
+				buf->separate = 0;
+				
+				buf->next= vmap->vert[BMINDEX_GET(((BMLoop*)l->head.next)->v)];
+				vmap->vert[BMINDEX_GET(l->v)]= buf;
+				
+				buf++;
+				i++;
+			}
+		}
+
+		a++;
+	}
+	
+	/* sort individual uvs for each vert */
+	a = 0;
+	BM_ITER(ev, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		UvMapVert *newvlist= NULL, *vlist=vmap->vert[a];
+		UvMapVert *iterv, *v, *lastv, *next;
+		float *uv, *uv2, uvdiff[2];
+
+		while(vlist) {
+			v= vlist;
+			vlist= vlist->next;
+			v->next= newvlist;
+			newvlist= v;
+
+			efa = EDBM_get_face_for_index(em, v->f);
+			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+			
+			l = BMIter_AtIndex(em->bm, BM_LOOPS_OF_FACE, efa, v->tfindex);
+			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+			uv = luv->uv; 
+			
+			lastv= NULL;
+			iterv= vlist;
+
+			while(iterv) {
+				next= iterv->next;
+				efa = EDBM_get_face_for_index(em, iterv->f);
+				tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+				
+				l = BMIter_AtIndex(em->bm, BM_LOOPS_OF_FACE, efa, iterv->tfindex);
+				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+				uv2 = luv->uv; 
+				
+				Vec2Subf(uvdiff, uv2, uv);
+
+				if(fabs(uv[0]-uv2[0]) < limit[0] && fabs(uv[1]-uv2[1]) < limit[1]) {
+					if(lastv) lastv->next= next;
+					else vlist= next;
+					iterv->next= newvlist;
+					newvlist= iterv;
+				}
+				else
+					lastv=iterv;
+
+				iterv= next;
+			}
+
+			newvlist->separate = 1;
+		}
+
+		vmap->vert[a]= newvlist;
+		a++;
+	}
+	
+	if (do_face_idx_array)
+		EDBM_free_index_arrays(em);
+	
+	return vmap;
+}
+
+
+UvMapVert *EDBM_get_uv_map_vert(UvVertMap *vmap, unsigned int v)
+{
+	return vmap->vert[v];
+}
+
+void EDBM_free_uv_vert_map(UvVertMap *vmap)
+{
+	if (vmap) {
+		if (vmap->vert) MEM_freeN(vmap->vert);
+		if (vmap->buf) MEM_freeN(vmap->buf);
+		MEM_freeN(vmap);
+	}
+}
+
+
+/* last_sel, use em->act_face otherwise get the last selected face in the editselections
+ * at the moment, last_sel is mainly useful for gaking sure the space image dosnt flicker */
+MTexPoly *EDBM_get_active_mtexpoly(BMEditMesh *em, BMFace **act_efa, int sloppy)
+{
+	BMFace *efa = NULL;
+	
+	if(!EDBM_texFaceCheck(em))
+		return NULL;
+	
+	efa = EDBM_get_actFace(em, sloppy);
+	
+	if (efa) {
+		if (act_efa) *act_efa = efa; 
+		return CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+	}
+
+	if (act_efa) *act_efa= NULL;
+	return NULL;
+}
+
+/* can we edit UV's for this mesh?*/
+int EDBM_texFaceCheck(BMEditMesh *em)
+{
+	/* some of these checks could be a touch overkill */
+	return em && em->bm->totface && CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY);
+}

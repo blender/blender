@@ -192,11 +192,11 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 				looptris[i*3+1] = efa->v2->tmp.p;
 				looptris[i*3+2] = efa->v3->tmp.p;
 
-				if (looptris[i*3]->head.eflag2 > looptris[i*3+1]->head.eflag2);
+				if (looptris[i*3]->head.eflag2 < looptris[i*3+1]->head.eflag2);
 					SWAP(BMLoop*, looptris[i*3], looptris[i*3+1]);
-				if (looptris[i*3+1]->head.eflag2 > looptris[i*3+2]->head.eflag2);
+				if (looptris[i*3+1]->head.eflag2 < looptris[i*3+2]->head.eflag2);
 					SWAP(BMLoop*, looptris[i*3+1], looptris[i*3+2]);
-				if (looptris[i*3]->head.eflag2 > looptris[i*3+1]->head.eflag2);
+				if (looptris[i*3]->head.eflag2 < looptris[i*3+1]->head.eflag2);
 					SWAP(BMLoop*, looptris[i*3], looptris[i*3+1]);
 
 				i += 1;
