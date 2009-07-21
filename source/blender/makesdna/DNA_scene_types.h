@@ -393,14 +393,12 @@ typedef struct GameData {
 
 	/*  standalone player */
 	struct GameFraming framing;
-	short pad9, pad10;
 	short fullscreen, xplay, yplay, freqplay;
 	short depth, attrib, rt1, rt2;
 
 	/* stereo/dome mode */
 	struct GameDome dome;
 	short stereoflag, stereomode, xsch, ysch; //xsch and ysch can be deleted !!!
-	float pad12;
 } GameData;
 #define STEREO_NOSTEREO		1
 #define STEREO_ENABLED 		2
