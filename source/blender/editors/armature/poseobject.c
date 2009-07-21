@@ -1035,7 +1035,7 @@ static int pose_groups_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 		ob= CTX_data_active_object(C);
 	
 	/* only continue if there's an object, and a pose there too */
-	if (ELEM(NULL, ob, ob->pose))
+	if (ELEM(NULL, ob, ob->pose)) 
 		return OPERATOR_CANCELLED;
 	pose= ob->pose;
 	
@@ -1065,7 +1065,7 @@ static int pose_groups_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	else {
 		/* just use the active group index, and call the exec callback for the calling operator */
 		RNA_int_set(op->ptr, "type", pose->active_group);
-		return op->type->exec;
+		return op->type->exec(C, op);
 	}
 }
 
@@ -1074,7 +1074,9 @@ static int pose_group_assign_exec (bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Object *ob;
+	bArmature *arm;
 	bPose *pose;
+	bPoseChannel *pchan;
 	short done= 0;
 	
 	/* since this call may also be used from the buttons window, we need to check for where to get the object */
@@ -1086,18 +1088,29 @@ static int pose_group_assign_exec (bContext *C, wmOperator *op)
 	/* only continue if there's an object, and a pose there too */
 	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
+	arm= ob->data;
 	pose= ob->pose;
 	
-	/* set the active group number to the one from operator props */
+	/* set the active group number to the one from operator props 
+	 * 	- if 0 after this, make a new group...
+	 */
 	pose->active_group= RNA_int_get(op->ptr, "type");
+	if (pose->active_group == 0)
+		pose_add_group(ob);
 	
 	/* add selected bones to group then */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) 
-	{
-		pchan->agrp_index= pose->active_group;
-		done= 1;
+	// NOTE: unfortunately, we cannot use the context-iterators here, since they might not be defined...
+	// CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) 
+	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+		/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
+		// NOTE: sync this view3d_context() in space_view3d.c
+		if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
+			if (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) {
+				pchan->agrp_index= pose->active_group;
+				done= 1;
+			}
+		}
 	}
-	CTX_DATA_END;
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1133,7 +1146,9 @@ static int pose_group_unassign_exec (bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Object *ob;
+	bArmature *arm;
 	bPose *pose;
+	bPoseChannel *pchan;
 	short done= 0;
 	
 	/* since this call may also be used from the buttons window, we need to check for where to get the object */
@@ -1146,16 +1161,23 @@ static int pose_group_unassign_exec (bContext *C, wmOperator *op)
 	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
 	pose= ob->pose;
+	arm= ob->data;
 	
 	/* add selected bones to ungroup then */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) 
-	{
-		if (pchan->agrp_index) {
-			pchan->agrp_index= 0;
-			done= 1;
+	// NOTE: unfortunately, we cannot use the context-iterators here, since they might not be defined...
+	// CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) 
+	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+		/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
+		// NOTE: sync this view3d_context() in space_view3d.c
+		if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
+			if (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) {
+				if (pchan->agrp_index) {
+					pchan->agrp_index= 0;
+					done= 1;
+				}
+			}
 		}
 	}
-	CTX_DATA_END;
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1227,55 +1249,6 @@ void POSE_OT_groups_menu (wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER;
 }
-
-#if 0
-/* Ctrl-G in 3D-View while in PoseMode */
-void pgroup_operation_with_menu (Scene *scene)
-{
-	Object *ob= OBACT;
-	bArmature *arm= (ob) ? ob->data : NULL;
-	bPose *pose= (ob) ? ob->pose : NULL;
-	bPoseChannel *pchan= NULL;
-	int mode;
-	
-	/* sanity checks */
-	if (ELEM3(NULL, ob, pose, arm))
-		return;
-	
-	/* check that something is selected */
-	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
-		if ((pchan->bone->flag & BONE_SELECTED) && (pchan->bone->layer & arm->layer)) 
-			break;
-	}
-	if (pchan == NULL)
-		return;
-	
-	/* get mode of action */
-	if (pchan)
-		mode= pupmenu("Bone Groups%t|Add Selected to Active Group%x1|Add Selected to Group%x2|%|Remove Selected From Groups%x3|Remove Active Group%x4");
-	else
-		mode= pupmenu("Bone Groups%t|Add New Group%x5|Remove Active Group%x4");
-		
-	/* handle mode */
-	switch (mode) {
-		case 1:
-			pose_assign_to_posegroup(scene, 1);
-			break;
-		case 2:
-			pose_assign_to_posegroup(scene, 0);
-			break;
-		case 5:
-			pose_add_posegroup(scene);
-			break;
-		case 3:
-			pose_remove_from_posegroups(scene);
-			break;
-		case 4:
-			pose_remove_posegroup(scene);
-			break;
-	}
-}
-#endif
 
 /* ********************************************** */
 

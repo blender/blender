@@ -101,8 +101,13 @@ class DATA_PT_bone_groups(DataButtonsPanel):
 		
 		group = pose.active_bone_group
 		if group:
-			row = layout.row()
-			row.itemR(group, "name")
+			col = layout.column()
+			col.itemR(group, "name")
+			
+			split = layout.split(0.5)
+			split.itemR(group, "color_set")
+			if group.color_set:
+				split.template_triColorSet(group, "colors")
 		
 		row = layout.row(align=True)
 		

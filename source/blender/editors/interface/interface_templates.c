@@ -1173,7 +1173,7 @@ void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent)
 {
 	uiLayout *row, *col;
 	uiBlock *block;
-	Material *ma;
+	Material *ma= NULL;
 	ID *pid, *pparent;
 
 	if(id && !ELEM4(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA)) {
@@ -1265,6 +1265,34 @@ void uiTemplateCurveMapping(uiLayout *layout, CurveMapping *cumap, int type)
 	}
 }
 
+/********************* TriColor (ThemeWireColorSet) Template ************************/
+
+void uiTemplateTriColorSet(uiLayout *layout, PointerRNA *ptr, char *propname)
+{
+	uiLayout *row;
+	PropertyRNA *prop;
+	PointerRNA csPtr;
+	
+	if (!ptr->data)
+		return;
+	
+	prop= RNA_struct_find_property(ptr, propname);
+	if (!prop) {
+		printf("uiTemplateTriColorSet: property not found: %s\n", propname);
+		return;
+	}
+	
+	/* we lay out the data in a row as 3 color swatches */
+	row= uiLayoutRow(layout, 1);
+	
+	/* nselected, selected, active color swatches */
+	csPtr= RNA_property_pointer_get(ptr, prop);
+	
+	uiItemR(row, "", 0, &csPtr, "normal", 0, 0, 0);
+	uiItemR(row, "", 0, &csPtr, "selected", 0, 0, 0);
+	uiItemR(row, "", 0, &csPtr, "active", 0, 0, 0);
+}
+
 /********************* Layer Buttons Template ************************/
 
 // TODO:
@@ -1299,7 +1327,10 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname)
 	groups= ((cols / 2) < 5) ? (1) : (cols / 2);
 	
 	/* layers are laid out going across rows, with the columns being divided into groups */
-	uSplit= uiLayoutSplit(layout, (1.0f/(float)groups));
+	if (groups > 1)
+		uSplit= uiLayoutSplit(layout, (1.0f/(float)groups));
+	else	
+		uSplit= layout;
 	
 	for (group= 0; group < groups; group++) {
 		uCol= uiLayoutColumn(uSplit, 1);
