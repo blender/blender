@@ -633,7 +633,10 @@ static void rna_def_header(BlenderRNA *brna)
 	RNA_def_function_flag(func, FUNC_REGISTER);
 	RNA_def_pointer(func, "context", "Context", "", "");
 
+	RNA_define_verify_sdna(0); // not in sdna
+
 	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "layout");
 	RNA_def_property_struct_type(prop, "UILayout");
 
 	/* registration */
@@ -645,6 +648,8 @@ static void rna_def_header(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "type->space_type");
 	RNA_def_property_enum_items(prop, space_type_items);
 	RNA_def_property_flag(prop, PROP_REGISTER);
+
+	RNA_define_verify_sdna(1);
 }
 
 static void rna_def_menu(BlenderRNA *brna)
@@ -672,7 +677,10 @@ static void rna_def_menu(BlenderRNA *brna)
 	RNA_def_function_flag(func, FUNC_REGISTER);
 	RNA_def_pointer(func, "context", "Context", "", "");
 
+	RNA_define_verify_sdna(0); // not in sdna
+
 	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "layout");
 	RNA_def_property_struct_type(prop, "UILayout");
 
 	/* registration */
@@ -688,6 +696,8 @@ static void rna_def_menu(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "type->space_type");
 	RNA_def_property_enum_items(prop, space_type_items);
 	RNA_def_property_flag(prop, PROP_REGISTER);
+
+	RNA_define_verify_sdna(1);
 }
 
 void RNA_def_ui(BlenderRNA *brna)

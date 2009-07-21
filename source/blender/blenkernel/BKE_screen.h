@@ -194,6 +194,12 @@ typedef struct HeaderType {
 	void				(*py_free)(void *py_data);
 } HeaderType;
 
+typedef struct Header {
+	struct HeaderType *type;	/* runtime */
+	struct uiLayout *layout;	/* runtime for drawing */
+} Header;
+
+
 /* menu types */
 
 typedef struct MenuType {
@@ -214,6 +220,11 @@ typedef struct MenuType {
 	int					(*py_call)(struct PointerRNA *, struct FunctionRNA *, struct ParameterList *);
 	void				(*py_free)(void *py_data);
 } MenuType;
+
+typedef struct Menu {
+	struct MenuType *type;		/* runtime */
+	struct uiLayout *layout;	/* runtime for drawing */
+} Menu;
 
 /* spacetypes */
 struct SpaceType *BKE_spacetype_from_id(int spaceid);

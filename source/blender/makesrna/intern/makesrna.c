@@ -398,8 +398,10 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 							}
 							else if(rna_color_quantize(prop, dp))
 								fprintf(f, "	values[%d]= (%s)(data->%s[%d]*(1.0f/255.0f));\n", i, rna_type_type(prop), dp->dnaname, i);
-							else
+							else if(dp->dnatype)
 								fprintf(f, "	values[%d]= (%s)%s(((%s*)data->%s)[%d]);\n", i, rna_type_type(prop), (dp->booleannegative)? "!": "", dp->dnatype, dp->dnaname, i);
+							else
+								fprintf(f, "	values[%d]= (%s)%s((data->%s)[%d]);\n", i, rna_type_type(prop), (dp->booleannegative)? "!": "", dp->dnaname, i);
 						}
 					}
 				}
@@ -564,7 +566,10 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 								fprintf(f, "	data->%s[%d]= FTOCHAR(values[%d]);\n", dp->dnaname, i, i);
 							}
 							else {
-								fprintf(f, "	((%s*)data->%s)[%d]= %s", dp->dnatype, dp->dnaname, i, (dp->booleannegative)? "!": "");
+								if(dp->dnatype)
+									fprintf(f, "	((%s*)data->%s)[%d]= %s", dp->dnatype, dp->dnaname, i, (dp->booleannegative)? "!": "");
+								else
+									fprintf(f, "	(data->%s)[%d]= %s", dp->dnaname, i, (dp->booleannegative)? "!": "");
 								rna_clamp_value(f, prop, 1, i);
 							}
 						}

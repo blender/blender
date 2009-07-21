@@ -44,7 +44,7 @@
 
 /* Global used during defining */
 
-BlenderDefRNA DefRNA = {0, {0, 0}, {0, 0}, 0, 0, 0};
+BlenderDefRNA DefRNA = {0, {0, 0}, {0, 0}, 0, 0, 0, 0, 1};
 
 /* Duplicated code since we can't link in blenkernel or blenlib */
 
@@ -436,6 +436,11 @@ void RNA_define_free(BlenderRNA *brna)
 	}
 
 	DefRNA.error= 0;
+}
+
+void RNA_define_verify_sdna(int verify)
+{
+	DefRNA.verify= verify;
 }
 
 void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
@@ -1322,11 +1327,24 @@ static PropertyDefRNA *rna_def_property_sdna(PropertyRNA *prop, const char *stru
 		propname= prop->identifier;
 
 	if(!rna_find_sdna_member(DefRNA.sdna, structname, propname, &smember)) {
-		if(!DefRNA.silent) {
+		if(DefRNA.silent) {
+			return NULL;
+		}
+		else if(!DefRNA.verify) {
+			/* some basic values to survive even with sdna info */
+			dp->dnastructname= structname;
+			dp->dnaname= propname;
+			if(prop->type == PROP_BOOLEAN)
+				dp->dnaarraylength= 1;
+			if(prop->type == PROP_POINTER)
+				dp->dnapointerlevel= 1;
+			return dp;
+		}
+		else {
 			fprintf(stderr, "rna_def_property_sdna: %s.%s not found.\n", structname, propname);
 			DefRNA.error= 1;
+			return NULL;
 		}
-		return NULL;
 	}
 
 	if(smember.arraylength > 1)
@@ -1396,15 +1414,15 @@ void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const 
 
 	if((dp= rna_def_property_sdna(prop, structname, propname))) {
 		/* SDNA doesn't pass us unsigned unfortunately .. */
-		if(strcmp(dp->dnatype, "char") == 0) {
+		if(dp->dnatype && strcmp(dp->dnatype, "char") == 0) {
 			iprop->hardmin= iprop->softmin= CHAR_MIN;
 			iprop->hardmax= iprop->softmax= CHAR_MAX;
 		}
-		else if(strcmp(dp->dnatype, "short") == 0) {
+		else if(dp->dnatype && strcmp(dp->dnatype, "short") == 0) {
 			iprop->hardmin= iprop->softmin= SHRT_MIN;
 			iprop->hardmax= iprop->softmax= SHRT_MAX;
 		}
-		else if(strcmp(dp->dnatype, "int") == 0) {
+		else if(dp->dnatype && strcmp(dp->dnatype, "int") == 0) {
 			iprop->hardmin= INT_MIN;
 			iprop->hardmax= INT_MAX;
 
@@ -1553,7 +1571,7 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 			}
 		}
 
-		if(strcmp(dp->dnatype, "ListBase") == 0) {
+		if(dp->dnatype && strcmp(dp->dnatype, "ListBase") == 0) {
 			cprop->next= (PropCollectionNextFunc)"rna_iterator_listbase_next";
 			cprop->get= (PropCollectionGetFunc)"rna_iterator_listbase_get";
 			cprop->end= (PropCollectionEndFunc)"rna_iterator_listbase_end";
