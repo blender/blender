@@ -1087,7 +1087,8 @@ static void rna_def_space_console(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Font Size", "Font size to use for displaying the text.");
 	RNA_def_property_update(prop, NC_CONSOLE | ND_CONSOLE, NULL);
 	
-	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "console_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, console_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Console type.");
 	RNA_def_property_update(prop, NC_CONSOLE | ND_CONSOLE, NULL);

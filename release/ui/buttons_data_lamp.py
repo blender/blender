@@ -48,9 +48,7 @@ class DATA_PT_lamp(DataButtonsPanel):
 		
 		lamp = context.lamp
 		
-		split = layout.split(percentage=0.2)
-		split.itemL(text="Type:")
-		split.itemR(lamp, "type", text="")
+		layout.itemR(lamp, "type", expand=True)
 		
 		split = layout.split()
 		
@@ -165,13 +163,8 @@ class DATA_PT_shadow(DataButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		lamp = context.lamp
-		
-		row = layout.row(align=True)
-		row.item_enumR(lamp, "shadow_method", 'NOSHADOW')
-		row.item_enumR(lamp, "shadow_method", 'RAY_SHADOW')
-		if lamp.type == 'SPOT':
-			row.item_enumR(lamp, "shadow_method", 'BUFFER_SHADOW')
-			
+
+		layout.itemR(lamp, "shadow_method", expand=True)
 		
 		if lamp.shadow_method != 'NOSHADOW':
 		
@@ -186,12 +179,9 @@ class DATA_PT_shadow(DataButtonsPanel):
 		
 		if lamp.shadow_method == 'RAY_SHADOW':
 		
-			row = layout.row(align=True)
-			layout.itemL(text="Sampling:")
-			row.item_enumR(lamp, "shadow_ray_sampling_method", 'ADAPTIVE_QMC')
-			row.item_enumR(lamp, "shadow_ray_sampling_method", 'CONSTANT_QMC')
-			if lamp.type == 'AREA':
-				row.item_enumR(lamp, "shadow_ray_sampling_method", 'CONSTANT_JITTERED')
+			col = layout.column()
+			col.itemL(text="Sampling:")
+			col.row().itemR(lamp, "shadow_ray_sampling_method", expand=True)
 				
 			if lamp.type in ('POINT', 'SUN', 'SPOT'):
 				flow = layout.column_flow()

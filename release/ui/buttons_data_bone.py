@@ -19,9 +19,9 @@ class BONE_PT_context_bone(BoneButtonsPanel):
 		if not bone:
 			bone = context.edit_bone
 		
-		split = layout.split(percentage=0.06)
-		split.itemL(text="", icon="ICON_BONE_DATA")
-		split.itemR(bone, "name", text="")
+		row = layout.row()
+		row.itemL(text="", icon="ICON_BONE_DATA")
+		row.itemR(bone, "name", text="")
 
 class BONE_PT_transform(BoneButtonsPanel):
 	__idname__ = "BONE_PT_transform"

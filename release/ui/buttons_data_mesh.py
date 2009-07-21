@@ -29,9 +29,9 @@ class DATA_PT_context_mesh(DataButtonsPanel):
 			split.template_ID(space, "pin_id")
 			split.itemS()
 
-class DATA_PT_mesh(DataButtonsPanel):
-	__idname__ = "DATA_PT_mesh"
-	__label__ = "Mesh"
+class DATA_PT_normals(DataButtonsPanel):
+	__idname__ = "DATA_PT_normals"
+	__label__ = "Normals"
 
 	def draw(self, context):
 		layout = self.layout
@@ -48,48 +48,14 @@ class DATA_PT_mesh(DataButtonsPanel):
 		sub = split.column()
 		sub.itemR(mesh, "vertex_normal_flip")
 		sub.itemR(mesh, "double_sided")
-			
-		layout.itemS()
-		layout.itemR(mesh, "texco_mesh")
 
-class DATA_PT_materials(DataButtonsPanel):
-	__idname__ = "DATA_PT_materials"
-	__label__ = "Materials"
-	
-	def poll(self, context):
-		return (context.object and context.object.type in ('MESH', 'CURVE', 'FONT', 'SURFACE'))
-
-	def draw(self, context):
-		layout = self.layout
-		ob = context.object
-
-		row = layout.row()
-
-		row.template_list(ob, "materials", ob, "active_material_index")
-
-		col = row.column(align=True)
-		col.itemO("object.material_slot_add", icon="ICON_ZOOMIN", text="")
-		col.itemO("object.material_slot_remove", icon="ICON_ZOOMOUT", text="")
-
+		row = layout.row(align=True)
 		if context.edit_object:
-			row = layout.row(align=True)
-
-			row.itemO("object.material_slot_assign", text="Assign")
-			row.itemO("object.material_slot_select", text="Select")
-			row.itemO("object.material_slot_deselect", text="Deselect")
-
-		"""
-		layout.itemS()
-
-		box= layout.box()
-
-		row = box.row()
-		row.template_list(ob, "materials", ob, "active_material_index", compact=True)
-
-		subrow = row.row(align=True)
-		subrow.itemO("object.material_slot_add", icon="ICON_ZOOMIN", text="")
-		subrow.itemO("object.material_slot_remove", icon="ICON_ZOOMOUT", text="")
-		"""
+			row.itemO("MESH_OT_faces_shade_smooth")
+			row.itemO("MESH_OT_faces_shade_flat")
+		else:
+			row.itemO("OBJECT_OT_shade_smooth")
+			row.itemO("OBJECT_OT_shade_flat")
 
 class DATA_PT_vertex_groups(DataButtonsPanel):
 	__idname__ = "DATA_PT_vertex_groups"
@@ -113,6 +79,11 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
 		col.itemO("object.vertex_group_copy", icon="ICON_BLANK1", text="")
 		if ob.data.users > 1:
 			col.itemO("object.vertex_group_copy_to_linked", icon="ICON_BLANK1", text="")
+
+		group = ob.active_vertex_group
+		if group:
+			row = layout.row()
+			row.itemR(group, "name")
 
 		if context.edit_object:
 			row = layout.row(align=True)
@@ -150,13 +121,16 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 			col.itemS()
 
 			subcol = col.column(align=True)
-			subcol.itemR(ob, "shape_key_lock", icon="ICON_PINNED", text="")
+			subcol.itemR(ob, "shape_key_lock", icon="ICON_UNPINNED", text="")
 			subcol.itemR(kb, "mute", icon="ICON_MUTE_IPO_ON", text="")
 
 			if key.relative:
 				row = layout.row()
 				row.itemR(key, "relative")
 				row.itemL()
+
+				row = layout.row()
+				row.itemR(kb, "name")
 
 				if ob.active_shape_key_index != 0:
 					if not ob.shape_key_lock:
@@ -173,6 +147,9 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 				row.itemR(key, "relative")
 				row.itemR(key, "slurph")
 
+				row = layout.row()
+				row.itemR(kb, "name")
+
 		if context.edit_object:
 			layout.enabled = False
 
@@ -186,11 +163,16 @@ class DATA_PT_uv_texture(DataButtonsPanel):
 
 		row = layout.row()
 
-		row.template_list(me, "uv_textures", me, "active_uv_texture_index")
+		col = row.column()
+		col.template_list(me, "uv_textures", me, "active_uv_texture_index", rows=2)
 
 		col = row.column(align=True)
 		col.itemO("mesh.uv_texture_add", icon="ICON_ZOOMIN", text="")
 		col.itemO("mesh.uv_texture_remove", icon="ICON_ZOOMOUT", text="")
+
+		lay = me.active_uv_texture
+		if lay:
+			layout.itemR(lay, "name")
 
 class DATA_PT_vertex_colors(DataButtonsPanel):
 	__idname__ = "DATA_PT_vertex_colors"
@@ -201,16 +183,20 @@ class DATA_PT_vertex_colors(DataButtonsPanel):
 		me = context.mesh
 
 		row = layout.row()
+		col = row.column()
 
-		row.template_list(me, "vertex_colors", me, "active_vertex_color_index")
+		col.template_list(me, "vertex_colors", me, "active_vertex_color_index", rows=2)
 
 		col = row.column(align=True)
 		col.itemO("mesh.vertex_color_add", icon="ICON_ZOOMIN", text="")
 		col.itemO("mesh.vertex_color_remove", icon="ICON_ZOOMOUT", text="")
 
+		lay = me.active_vertex_color
+		if lay:
+			layout.itemR(lay, "name")
+
 bpy.types.register(DATA_PT_context_mesh)
-bpy.types.register(DATA_PT_mesh)
-bpy.types.register(DATA_PT_materials)
+bpy.types.register(DATA_PT_normals)
 bpy.types.register(DATA_PT_vertex_groups)
 bpy.types.register(DATA_PT_shape_keys)
 bpy.types.register(DATA_PT_uv_texture)

@@ -16,7 +16,7 @@ class CONSOLE_HT_header(bpy.types.Header):
 		layout.template_header()
 
 		row = layout.row()
-		row.itemR(sc, "type", expand=True)
+		row.itemR(sc, "console_type", expand=True)
 
 		if sc.type == 'REPORT':
 			

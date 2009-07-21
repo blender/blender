@@ -170,12 +170,11 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
 		col.itemR(bg, "x_offset", text="X")
 		col.itemR(bg, "y_offset", text="Y")
 
-
-
 bpy.types.register(VIEW3D_MT_view_navigation)
 bpy.types.register(VIEW3D_MT_view)
 bpy.types.register(VIEW3D_HT_header)
 bpy.types.register(VIEW3D_PT_3dview_properties)
 bpy.types.register(VIEW3D_PT_3dview_display)
 bpy.types.register(VIEW3D_PT_background_image)
+
 

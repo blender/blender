@@ -14,9 +14,9 @@ class OBJECT_PT_context_object(ObjectButtonsPanel):
 		layout = self.layout
 		ob = context.object
 		
-		split = layout.split(percentage=0.06)
-		split.itemL(text="", icon="ICON_OBJECT_DATA")
-		split.itemR(ob, "name", text="")
+		row = layout.row()
+		row.itemL(text="", icon="ICON_OBJECT_DATA")
+		row.itemR(ob, "name", text="")
 
 class OBJECT_PT_transform(ObjectButtonsPanel):
 	__idname__ = "OBJECT_PT_transform"
@@ -176,3 +176,4 @@ bpy.types.register(OBJECT_PT_groups)
 bpy.types.register(OBJECT_PT_display)
 bpy.types.register(OBJECT_PT_duplication)
 bpy.types.register(OBJECT_PT_animation)
+

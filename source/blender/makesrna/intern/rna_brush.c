@@ -114,6 +114,7 @@ void rna_def_brush(BlenderRNA *brna)
 		{SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", ""},
 		{SCULPT_TOOL_LAYER, "LAYER", 0, "Layer", ""},
 		{SCULPT_TOOL_FLATTEN, "FLATTEN", 0, "Flatten", ""},
+		{SCULPT_TOOL_CLAY, "CLAY", 0, "Clay", ""},
  		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Brush", "ID");

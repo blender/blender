@@ -37,11 +37,18 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
 		if ob:
 			row = layout.row()
 
-			row.template_list(ob, "materials", ob, "active_material_index")
+			row.template_list(ob, "materials", ob, "active_material_index", rows=2)
 
 			col = row.column(align=True)
 			col.itemO("object.material_slot_add", icon="ICON_ZOOMIN", text="")
 			col.itemO("object.material_slot_remove", icon="ICON_ZOOMOUT", text="")
+
+			if context.edit_object:
+				row = layout.row(align=True)
+
+				row.itemO("object.material_slot_assign", text="Assign")
+				row.itemO("object.material_slot_select", text="Select")
+				row.itemO("object.material_slot_deselect", text="Deselect")
 
 		split = layout.split(percentage=0.65)
 

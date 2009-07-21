@@ -9,7 +9,7 @@ class IMAGE_MT_view(bpy.types.Menu):
 		layout = self.layout
 		sima = context.space_data
 		uv = sima.uv_editor
-		settings = context.scene.tool_settings
+		settings = context.tool_settings
 
 		show_uvedit = sima.show_uvedit
 
@@ -78,7 +78,7 @@ class IMAGE_MT_image(bpy.types.Menu):
 		show_render = sima.show_render
 
 		if ima:
-			if show_render:
+			if not show_render:
 				layout.itemO("image.replace")
 				layout.itemO("image.reload")
 
@@ -157,7 +157,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 		layout = self.layout
 		sima = context.space_data
 		uv = sima.uv_editor
-		settings = context.scene.tool_settings
+		settings = context.tool_settings
 
 		layout.itemR(uv, "snap_to_pixels")
 		layout.itemR(uv, "constrain_to_image_bounds")
@@ -199,7 +199,7 @@ class IMAGE_HT_header(bpy.types.Header):
 		ima = sima.image
 		iuser = sima.image_user
 		layout = self.layout
-		settings = context.scene.tool_settings
+		settings = context.tool_settings
 
 		show_render = sima.show_render
 		show_paint = sima.show_paint
@@ -223,7 +223,7 @@ class IMAGE_HT_header(bpy.types.Header):
 			if show_uvedit:
 				row.itemM("IMAGE_MT_uvs")
 
-		layout.template_ID(sima, "image", new="image.new") # open="image.open"
+		layout.template_ID(sima, "image", new="image.new")
 
 		"""
 		/* image select */

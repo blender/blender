@@ -234,7 +234,7 @@ static int rna_VertexGroup_index_get(PointerRNA *ptr)
 static PointerRNA rna_Object_active_vertex_group_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
-	return rna_pointer_inherit_refine(ptr, &RNA_VertexGroup, BLI_findlink(&ob->defbase, ob->actdef));
+	return rna_pointer_inherit_refine(ptr, &RNA_VertexGroup, BLI_findlink(&ob->defbase, ob->actdef-1));
 }
 
 static int rna_Object_active_vertex_group_index_get(PointerRNA *ptr)

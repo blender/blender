@@ -194,7 +194,7 @@ class VIEW3D_PT_tools_brush(bpy.types.Panel):
 	__label__ = "Brush"
 
 	def brush_src(self, context):
-		ts = context.scene.tool_settings
+		ts = context.tool_settings
 		if context.sculpt_object:
 			return ts.sculpt
 		elif context.vpaint_object:
@@ -220,7 +220,7 @@ class VIEW3D_PT_tools_brush(bpy.types.Panel):
 		col = split.column()
 		col.itemR(brush, "size", slider=True)
 		if context.wpaint_object:
-			col.itemR(context.scene.tool_settings, "vertex_group_weight", text="Weight", slider=True)
+			col.itemR(context.tool_settings, "vertex_group_weight", text="Weight", slider=True)
 		col.itemR(brush, "strength", slider=True)
 
 
@@ -247,7 +247,7 @@ class VIEW3D_PT_sculptoptions(bpy.types.Panel):
 		return context.sculpt_object
 
 	def draw(self, context):
-		sculpt = context.scene.tool_settings.sculpt
+		sculpt = context.tool_settings.sculpt
 
 		split = self.layout.split()
 		

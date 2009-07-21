@@ -196,3 +196,4 @@ bpy.types.register(PHYSICS_PT_cloth)
 bpy.types.register(PHYSICS_PT_cloth_cache)
 bpy.types.register(PHYSICS_PT_cloth_collision)
 bpy.types.register(PHYSICS_PT_cloth_stiffness)
+

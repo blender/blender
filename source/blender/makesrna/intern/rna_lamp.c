@@ -280,11 +280,11 @@ static void rna_def_lamp(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_type_items[] = {
-		{LA_LOCAL, "POINT", ICON_LAMP_POINT, "Point", "Omnidirectional point light source."},
-		{LA_SUN, "SUN", ICON_LAMP_SUN, "Sun", "Constant direction parallel ray light source."},
-		{LA_SPOT, "SPOT", ICON_LAMP_SPOT, "Spot", "Directional cone light source."},
-		{LA_HEMI, "HEMI", ICON_LAMP_HEMI, "Hemisphere", "180 degree constant light source."},
-		{LA_AREA, "AREA", ICON_LAMP_AREA, "Area", "Directional area light source."},
+		{LA_LOCAL, "POINT", 0, "Point", "Omnidirectional point light source."},
+		{LA_SUN, "SUN", 0, "Sun", "Constant direction parallel ray light source."},
+		{LA_SPOT, "SPOT", 0, "Spot", "Directional cone light source."},
+		{LA_HEMI, "HEMI", 0, "Hemi", "180 degree constant light source."},
+		{LA_AREA, "AREA", 0, "Area", "Directional area light source."},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Lamp", "ID");
@@ -390,19 +390,29 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 
 	static EnumPropertyItem prop_shadow_items[] = {
 		{0, "NOSHADOW", 0, "No Shadow", ""},
+		{LA_SHAD_RAY, "RAY_SHADOW", 0, "Ray Shadow", "Use ray tracing for shadow."},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem prop_spot_shadow_items[] = {
+		{0, "NOSHADOW", 0, "No Shadow", ""},
 		{LA_SHAD_BUF, "BUFFER_SHADOW", 0, "Buffer Shadow", "Lets spotlight produce shadows using shadow buffer."},
 		{LA_SHAD_RAY, "RAY_SHADOW", 0, "Ray Shadow", "Use ray tracing for shadow."},
 		{0, NULL, 0, NULL, NULL}};
-	
+
 	static EnumPropertyItem prop_ray_sampling_method_items[] = {
 		{LA_SAMP_HALTON, "ADAPTIVE_QMC", 0, "Adaptive QMC", ""},
 		{LA_SAMP_HAMMERSLEY, "CONSTANT_QMC", 0, "Constant QMC", ""},
-		{LA_SAMP_CONSTANT, "CONSTANT_JITTERED", 0, "Constant Jittered", "For Area lamps only."},
+		{0, NULL, 0, NULL, NULL}};
+	
+	static EnumPropertyItem prop_spot_ray_sampling_method_items[] = {
+		{LA_SAMP_HALTON, "ADAPTIVE_QMC", 0, "Adaptive QMC", ""},
+		{LA_SAMP_HAMMERSLEY, "CONSTANT_QMC", 0, "Constant QMC", ""},
+		{LA_SAMP_CONSTANT, "CONSTANT_JITTERED", 0, "Constant Jittered", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	prop= RNA_def_property(srna, "shadow_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "mode");
-	RNA_def_property_enum_items(prop, prop_shadow_items);
+	RNA_def_property_enum_items(prop, (spot)? prop_spot_shadow_items: prop_shadow_items);
 	RNA_def_property_ui_text(prop, "Shadow Method", "Method to compute lamp shadow with.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING, NULL);
 
@@ -419,7 +429,7 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 
 	prop= RNA_def_property(srna, "shadow_ray_sampling_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ray_samp_method");
-	RNA_def_property_enum_items(prop, prop_ray_sampling_method_items);
+	RNA_def_property_enum_items(prop, (area)? prop_spot_ray_sampling_method_items: prop_ray_sampling_method_items);
 	RNA_def_property_ui_text(prop, "Shadow Ray Sampling Method", "Method for generating shadow samples: Adaptive QMC is fastest, Constant QMC is less noisy but slower.");
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING, NULL);
 
