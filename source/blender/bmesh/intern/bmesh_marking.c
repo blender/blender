@@ -298,6 +298,7 @@ int BM_CountFlag(struct BMesh *bm, int type, int flag)
 	return tot;
 }
 
+/*note: by design, this will not touch the editselection history stuff*/
 void BM_Select(struct BMesh *bm, void *element, int select)
 {
 	BMHeader *head = element;

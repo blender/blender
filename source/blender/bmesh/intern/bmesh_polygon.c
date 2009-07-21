@@ -445,7 +445,7 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 			i += 1;
 		}while(l!=f->loopbase);
 
-		compute_poly_plane(projectverts, f->len);
+		//compute_poly_plane(projectverts, f->len);
 		compute_poly_normal(f->no, projectverts, f->len);	
 	}
 	else if(f->len == 3){

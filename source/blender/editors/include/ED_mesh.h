@@ -103,6 +103,9 @@ void EDBM_editselection_normal(float *normal, struct BMEditSelection *ese);
 void EDBM_selectmode_set(struct BMEditMesh *em);
 void EDBM_convertsel(struct BMEditMesh *em, short oldmode, short selectmode);
 
+void EDBM_hide_mesh(struct BMEditMesh *em, int swap);
+void EDBM_reveal_mesh(struct BMEditMesh *em);
+
 int			EDBM_check_backbuf(unsigned int index);
 int			EDBM_mask_init_backbuf_border(struct ViewContext *vc, short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax);
 void		EDBM_free_backbuf(void);

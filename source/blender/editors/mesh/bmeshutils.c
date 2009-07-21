@@ -698,3 +698,14 @@ int EDBM_texFaceCheck(BMEditMesh *em)
 	/* some of these checks could be a touch overkill */
 	return em && em->bm->totface && CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY);
 }
+
+void EDBM_hide_mesh(BMEditMesh *em, int swap)
+{
+	//BMESH_TODO
+}
+
+
+void EDBM_reveal_mesh(BMEditMesh *em)
+{
+	//BMESH_TODO
+}
