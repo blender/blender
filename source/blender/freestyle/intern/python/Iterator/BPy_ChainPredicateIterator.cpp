@@ -13,6 +13,7 @@ extern "C" {
 
 /*---------------  Python API function prototypes for ChainPredicateIterator instance  -----------*/
 static int ChainPredicateIterator___init__(BPy_ChainPredicateIterator *self, PyObject *args);
+static void ChainPredicateIterator___dealloc__(BPy_ChainPredicateIterator *self);
 
 /*----------------------ChainPredicateIterator instance definitions ----------------------------*/
 static PyMethodDef BPy_ChainPredicateIterator_methods[] = {
@@ -30,7 +31,7 @@ PyTypeObject ChainPredicateIterator_Type = {
 	0,							/* tp_itemsize */
 	
 	/* methods */
-	NULL,	/* tp_dealloc */
+	(destructor)ChainPredicateIterator___dealloc__,	/* tp_dealloc */
 	NULL,                       				/* printfunc tp_print; */
 	NULL,                       				/* getattrfunc tp_getattr; */
 	NULL,                       				/* setattrfunc tp_setattr; */
@@ -116,6 +117,8 @@ int ChainPredicateIterator___init__(BPy_ChainPredicateIterator *self, PyObject *
 
 	if( obj1 && BPy_ChainPredicateIterator_Check(obj1)  ) { 
 		self->cp_it = new ChainPredicateIterator(*( ((BPy_ChainPredicateIterator *) obj1)->cp_it ));
+		self->upred = NULL;
+		self->bpred = NULL;
 	
 	} else if( 	obj1 && BPy_UnaryPredicate1D_Check(obj1) &&
 	  			obj2 && BPy_BinaryPredicate1D_Check(obj2) ) {
@@ -144,6 +147,10 @@ int ChainPredicateIterator___init__(BPy_ChainPredicateIterator *self, PyObject *
 		bool orientation = ( obj6 ) ? bool_from_PyBool(obj6) : true;
 	
 		self->cp_it = new ChainPredicateIterator( *up1D, *bp1D, restrictToSelection, restrictToUnvisited, begin, orientation);
+		self->upred = obj1;
+		self->bpred = obj2;
+		Py_INCREF( self->upred );
+		Py_INCREF( self->bpred );
 	
 	} else {
 		bool restrictToSelection = ( obj1 ) ? bool_from_PyBool(obj1) : true;
@@ -160,6 +167,8 @@ int ChainPredicateIterator___init__(BPy_ChainPredicateIterator *self, PyObject *
 		bool orientation = ( obj4 ) ? bool_from_PyBool(obj4) : true;
 		
 		self->cp_it = new ChainPredicateIterator( restrictToSelection, restrictToUnvisited, begin, orientation);	
+		self->upred = NULL;
+		self->bpred = NULL;
 	}
 	
 	self->py_c_it.c_it = self->cp_it;
@@ -171,6 +180,12 @@ int ChainPredicateIterator___init__(BPy_ChainPredicateIterator *self, PyObject *
 	
 }
 
+void ChainPredicateIterator___dealloc__(BPy_ChainPredicateIterator *self)
+{
+	Py_XDECREF( self->upred );
+	Py_XDECREF( self->bpred );
+	ChainingIterator_Type.tp_dealloc((PyObject *)self);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

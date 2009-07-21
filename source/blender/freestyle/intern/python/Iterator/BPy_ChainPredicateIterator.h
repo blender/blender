@@ -22,6 +22,8 @@ extern PyTypeObject ChainPredicateIterator_Type;
 typedef struct {
 	BPy_ChainingIterator py_c_it;
 	ChainPredicateIterator *cp_it;
+	PyObject *upred;
+	PyObject *bpred;
 } BPy_ChainPredicateIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////
