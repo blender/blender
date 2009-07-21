@@ -1169,32 +1169,47 @@ static void do_preview_buttons(bContext *C, void *arg, int event)
 	}
 }
 
-void uiTemplatePreview(uiLayout *layout, ID *id)
+void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent)
 {
 	uiLayout *row, *col;
 	uiBlock *block;
 	Material *ma;
+	ID *pid, *pparent;
 
 	if(id && !ELEM4(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA)) {
 		printf("uiTemplatePreview: expected ID of type material, texture, lamp or world.\n");
 		return;
 	}
 
+	/* decide what to render */
+	pid= id;
+	pparent= NULL;
+
+	if((id && GS(id->name) == ID_TE) && (parent && GS(parent->name) == ID_MA)) {
+		ma= ((Material*)parent);
+
+		if(ma->pr_texture == MA_PR_MATERIAL)
+			pid= parent;
+		else if(ma->pr_texture == MA_PR_BOTH)
+			pparent= parent;
+	}
+
+	/* layout */
 	block= uiLayoutGetBlock(layout);
-
 	row= uiLayoutRow(layout, 0);
-
 	col= uiLayoutColumn(row, 0);
 	uiLayoutSetKeepAspect(col, 1);
 	
-	uiDefBut(block, BUT_EXTRA, 0, "", 0, 0, UI_UNIT_X*6, UI_UNIT_Y*6, id, 0.0, 0.0, 0, 0, "");
-	uiBlockSetDrawExtraFunc(block, ED_preview_draw);
-	
+	/* add preview */
+	uiDefBut(block, BUT_EXTRA, 0, "", 0, 0, UI_UNIT_X*6, UI_UNIT_Y*6, pid, 0.0, 0.0, 0, 0, "");
+	uiBlockSetDrawExtraFunc(block, ED_preview_draw, pparent);
 	uiBlockSetHandleFunc(block, do_preview_buttons, NULL);
 	
+	/* add buttons */
 	if(id) {
-		if(GS(id->name) == ID_MA) {
-			ma= (Material*)id;
+		if(GS(id->name) == ID_MA || (parent && GS(parent->name) == ID_MA)) {
+			if(GS(id->name) == ID_MA) ma= (Material*)id;
+			else ma= (Material*)parent;
 
 			uiLayoutColumn(row, 1);
 
@@ -1204,6 +1219,14 @@ void uiTemplatePreview(uiLayout *layout, ID *id)
 			uiDefIconButC(block, ROW, B_MATPRV, ICON_MONKEY,    0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_MONKEY, 0, 0, "Preview type: Monkey");
 			uiDefIconButC(block, ROW, B_MATPRV, ICON_HAIR,      0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_HAIR, 0, 0, "Preview type: Hair strands");
 			uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE, 0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE_A, 0, 0, "Preview type: Large sphere with sky");
+		}
+
+		if(GS(id->name) == ID_TE && (parent && GS(parent->name) == ID_MA)) {
+			uiLayoutRow(layout, 1);
+
+			uiDefButS(block, ROW, B_MATPRV, "Texture",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, &(ma->pr_texture), 10, MA_PR_TEXTURE, 0, 0, "");
+			uiDefButS(block, ROW, B_MATPRV, "Material",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, &(ma->pr_texture), 10, MA_PR_MATERIAL, 0, 0, "");
+			uiDefButS(block, ROW, B_MATPRV, "Both",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, &(ma->pr_texture), 10, MA_PR_BOTH, 0, 0, "");
 		}
 	}
 }

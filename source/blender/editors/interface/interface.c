@@ -2772,9 +2772,10 @@ void uiBlockSetRenameFunc(uiBlock *block, uiButHandleRenameFunc func, void *arg1
 	
 }
 
-void uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(const bContext *C, void *idv, rcti *rect))
+void uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(const bContext *C, void *idv, void *argv, rcti *rect), void *arg)
 {
 	block->drawextra= func;
+	block->drawextra_arg= arg;
 }
 
 void uiButSetFunc(uiBut *but, uiButHandleFunc func, void *arg1, void *arg2)

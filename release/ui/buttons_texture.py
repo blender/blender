@@ -16,15 +16,19 @@ class TEXTURE_PT_preview(TextureButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		tex = context.texture
+		mat = context.material
 		
-		layout.template_preview(tex)
+		if mat:
+			layout.template_preview(tex, parent=mat)
+		else:
+			layout.template_preview(tex)
 
 class TEXTURE_PT_context_texture(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_context_texture"
 	__no_header__ = True
 
 	def poll(self, context):
-		return (context.material or context.world or context.lamp)
+		return (context.material or context.world or context.lamp or context.texture)
 
 	def draw(self, context):
 		layout = self.layout
