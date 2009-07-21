@@ -46,7 +46,7 @@ class WORLD_PT_game(WorldButtonsPanel):
 class LOGIC_PT_player(bpy.types.Panel):
 	__space_type__ = "LOGIC_EDITOR"
 	__region_type__ = "UI"
-	__label__ = "Game Player"
+	__label__ = "Player"
 
 	def draw(self, context):
 		layout = self.layout
@@ -55,18 +55,22 @@ class LOGIC_PT_player(bpy.types.Panel):
 		row.itemR(gs, "fullscreen")
 
 		split = layout.split()
-		col = split.column(align=True)
-		col.itemR(gs, "resolution_x", slider=False, text="Res. X")
-		col.itemR(gs, "resolution_y", slider=False, text="Res. Y")
+		col = split.column()
+		col.itemL(text="Resolution:")
+		colsub = col.column(align=True)
+		colsub.itemR(gs, "resolution_x", slider=False, text="X")
+		colsub.itemR(gs, "resolution_y", slider=False, text="Y")
 
-		col = split.column(align=True)
-		col.itemR(gs, "depth", slider=False)
-		col.itemR(gs, "frequency", slider=False)
+		col = split.column()
+		col.itemL(text="Quality:")
+		colsub = col.column(align=True)
+		colsub.itemR(gs, "depth", text="Bit Depth", slider=False)
+		colsub.itemR(gs, "frequency", text="FPS", slider=False)
 		
 
 		# framing:
 		col = layout.column()
-		col.itemL(text="Framing Options:")
+		col.itemL(text="Framing:")
 		col.row().itemR(gs, "framing_type", expand=True)
 
 		colsub = col.column()
@@ -75,7 +79,7 @@ class LOGIC_PT_player(bpy.types.Panel):
 class LOGIC_PT_stereo(bpy.types.Panel):
 	__space_type__ = "LOGIC_EDITOR"
 	__region_type__ = "UI"
-	__label__ = "Stereo and Dome"
+	__label__ = "Stereo"
 
 	def draw(self, context):
 		layout = self.layout
@@ -84,7 +88,6 @@ class LOGIC_PT_stereo(bpy.types.Panel):
 
 		# stereo options:
 		col= layout.column()
-		col.itemL(text="Stereo Options:")
 		row = col.row()
 		row.itemR(gs, "stereo", expand=True)
  
@@ -93,34 +96,22 @@ class LOGIC_PT_stereo(bpy.types.Panel):
 
 		# stereo:
 		if stereo_mode == 'STEREO':
-			col = layout.column(align=True)
-			row = col.row()
-			row.item_enumR(gs, "stereo_mode", "ANAGLYPH")
-			row.item_enumR(gs, "stereo_mode", "QUADBUFFERED")
-			
-			row = col.row()
-			row.item_enumR(gs, "stereo_mode", "INTERLACED")
-			row.item_enumR(gs, "stereo_mode", "VINTERLACE")
-			
-			row = col.row()
-			row.item_enumR(gs, "stereo_mode", "SIDEBYSIDE")
-			row.item_enumR(gs, "stereo_mode", "ABOVEBELOW")
 
-#			row = layout.column_flow()
-#			row.itemR(gs, "stereo_mode")
+			row = layout.row()
+			row.itemR(gs, "stereo_mode")
 
 		# dome:
 		if stereo_mode == 'DOME':
 			row = layout.row()
-			row.itemR(gs, "dome_mode")
+			row.itemR(gs, "dome_mode", text="Dome Type")
 
 			split=layout.split()
-			col=split.column(align=True)
+			col=split.column()
 			col.itemR(gs, "dome_angle", slider=True)
-			col.itemR(gs, "dome_tesselation", text="Tessel.")
-			col=split.column(align=True)
+			col.itemR(gs, "dome_tesselation", text="Tesselation")
+			col=split.column()
 			col.itemR(gs, "dome_tilt")
-			col.itemR(gs, "dome_buffer_resolution", text="Res.", slider=True)
+			col.itemR(gs, "dome_buffer_resolution", text="Resolution", slider=True)
 			col=layout.column()
 			col.itemR(gs, "dome_text")
 
@@ -136,30 +127,34 @@ class LOGIC_PT_physics(bpy.types.Panel):
 		flow = layout.column_flow()
 		flow.itemR(gs, "physics_engine")
 		if gs.physics_engine != "NONE":
-			flow.itemR(gs, "physics_gravity")
+			flow.itemR(gs, "physics_gravity", text="Gravity")
  
-			row = layout.row()
-			row.itemR(gs, "use_occlusion_culling", text="Enable Occlusion Culling")
-	
-			row = layout.row()
-			row.active = gs.use_occlusion_culling
-			row.itemR(gs, "occlusion_culling_resolution", text="resol.")
-
 			split = layout.split()
-			col = split.column(align=True)
-			col.itemR(gs, "physics_step_max", text="phys")
-			col.itemR(gs, "physics_step_sub", text="sub")
+			col = split.column()
+			col.itemL(text="Physics Steps:")
+			colsub = col.column(align=True)
+			colsub.itemR(gs, "physics_step_max", text="Max")
+			colsub.itemR(gs, "physics_step_sub", text="Substeps")
+			col.itemR(gs, "fps", text="FPS")
 			
-			col = split.column(align=True)
-			col.itemR(gs, "fps", text="fps")
-			col.itemR(gs, "logic_step_max", text="log")
+			col = split.column()
+			col.itemL(text="Logic Steps:")
+			col.itemR(gs, "logic_step_max", text="Max")
+			col.itemS()
+			col.itemR(gs, "use_occlusion_culling", text="Occlusion Culling")
+			colsub = col.column()
+			colsub.active = gs.use_occlusion_culling
+			colsub.itemR(gs, "occlusion_culling_resolution", text="Resolution")
+			
 
 		else:
 			split = layout.split()
-			col = split.column(align=True)
-			col.itemR(gs, "fps", text="fps")
-			col = split.column(align=True)
-			col.itemR(gs, "logic_step_max", text="log")
+			col = split.column()
+			col.itemL(text="Physics Steps:")
+			col.itemR(gs, "fps", text="FPS")
+			col = split.column()
+			col.itemL(text="Logic Steps:")
+			col.itemR(gs, "logic_step_max", text="Max")
 
 bpy.types.register(LOGIC_PT_properties)
 bpy.types.register(LOGIC_PT_player)

@@ -44,6 +44,8 @@ class VIEW3D_PT_tools_editmode_mesh(View3DPanel):
 		layout.row().itemO("mesh.primitive_cube_add")
 		layout.row().itemO("mesh.primitive_circle_add")
 		layout.row().itemO("mesh.primitive_cylinder_add")
+		layout.row().itemO("mesh.faces_shade_smooth")
+		layout.row().itemO("mesh.faces_shade_flat")
 
 # ********** default tools for editmode_curve ****************
 
