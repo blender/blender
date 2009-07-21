@@ -61,16 +61,16 @@ static void spacetype_free(SpaceType *st)
 		BLI_freelistN(&art->drawcalls);
 
 		for(pt= art->paneltypes.first; pt; pt= pt->next)
-			if(pt->py_free)
-				pt->py_free(pt->py_data);
+			if(pt->ext.free)
+				pt->ext.free(pt->ext.data);
 
 		for(ht= art->headertypes.first; ht; ht= ht->next)
-			if(ht->py_free)
-				ht->py_free(ht->py_data);
+			if(ht->ext.free)
+				ht->ext.free(ht->ext.data);
 
 		for(mt= art->menutypes.first; mt; mt= mt->next)
-			if(mt->py_free)
-				mt->py_free(mt->py_data);
+			if(mt->ext.free)
+				mt->ext.free(mt->ext.data);
 
 		BLI_freelistN(&art->paneltypes);
 		BLI_freelistN(&art->headertypes);

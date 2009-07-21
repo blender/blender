@@ -2282,6 +2282,15 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 	/* done with rna instance */
 }
 
+static struct PyMethodDef pyrna_struct_subtype_methods[] = {
+	{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{NULL, NULL, 0, NULL}
+};
+
+
 PyObject* pyrna_srna_Subtype(StructRNA *srna)
 {
 	PyObject *newclass = NULL;
@@ -2358,6 +2367,17 @@ PyObject* pyrna_srna_Subtype(StructRNA *srna)
 		if (newclass) {
 			pyrna_subtype_set_rna(newclass, srna);
 			// PyObSpit("NewStructRNA Type: ", (PyObject *)newclass);
+
+			/* attach functions into the class
+			 * so you can do... bpy.types.Scene.SomeFunction()
+			 */
+			{
+				PyMethodDef *ml;
+				for(ml= pyrna_struct_subtype_methods; ml->ml_name; ml++){
+					PyObject_SetAttrString(newclass, ml->ml_name, PyCFunction_New(ml, newclass));
+				}
+			}
+
 		}
 		else {
 			/* this should not happen */
@@ -2560,7 +2580,7 @@ static struct PyModuleDef props_module = {
 
 PyObject *BPY_rna_props( void )
 {
-	PyObject *submodule, *mod;
+	PyObject *submodule;
 #if PY_VERSION_HEX >= 0x03000000
 	submodule= PyModule_Create(&props_module);
 #else /* Py2.x */
@@ -2584,6 +2604,7 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 	static char *kwlist[] = {"attr", "name", "description", "min", "max", "soft_min", "soft_max", "default", NULL};
 	char *id, *name="", *description="";
 	float min=FLT_MIN, max=FLT_MAX, soft_min=FLT_MIN, soft_max=FLT_MAX, def=0.0f;
+	PropertyRNA *prop;
 	
 	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssfffff:FloatProperty", kwlist, &id, &name, &description, &min, &max, &soft_min, &soft_max, &def))
 		return NULL;
@@ -2595,8 +2616,26 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 	
 	if (self && PyCObject_Check(self)) {
 		StructRNA *srna = PyCObject_AsVoidPtr(self);
-		RNA_def_float(srna, id, def, min, max, name, description, soft_min, soft_max);
+		prop= RNA_def_float(srna, id, def, min, max, name, description, soft_min, soft_max);
+		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
+	} else if(self && PyType_Check(self)) {
+		PyObject *pyob= PyObject_GetAttrString(self, "__rna__");
+
+		if(pyob && BPy_StructRNA_Check(pyob)) {
+			BPy_StructRNA *py_srna= (BPy_StructRNA*)pyob;
+
+			if(py_srna->ptr.data && py_srna->ptr.type == &RNA_Struct) {
+				if(RNA_struct_is_ID(py_srna->ptr.data)) {
+					prop= RNA_def_float(py_srna->ptr.data, id, def, min, max, name, description, soft_min, soft_max);
+					RNA_def_property_duplicate_pointers(prop);
+					Py_RETURN_NONE;
+				}
+			}
+		}
+
+	 	PyErr_SetString(PyExc_ValueError, "only works on ID types");
+		return NULL;
 	} else {
 		PyObject *ret = PyTuple_New(2);
 		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_FloatProperty, NULL));
@@ -2611,6 +2650,7 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 	static char *kwlist[] = {"attr", "name", "description", "min", "max", "soft_min", "soft_max", "default", NULL};
 	char *id, *name="", *description="";
 	int min=INT_MIN, max=INT_MAX, soft_min=INT_MIN, soft_max=INT_MAX, def=0;
+	PropertyRNA *prop;
 	
 	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssiiiii:IntProperty", kwlist, &id, &name, &description, &min, &max, &soft_min, &soft_max, &def))
 		return NULL;
@@ -2622,8 +2662,26 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 	
 	if (self && PyCObject_Check(self)) {
 		StructRNA *srna = PyCObject_AsVoidPtr(self);
-		RNA_def_int(srna, id, def, min, max, name, description, soft_min, soft_max);
+		prop= RNA_def_int(srna, id, def, min, max, name, description, soft_min, soft_max);
+		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
+	} else if(self && PyType_Check(self)) {
+		PyObject *pyob= PyObject_GetAttrString(self, "__rna__");
+
+		if(pyob && BPy_StructRNA_Check(pyob)) {
+			BPy_StructRNA *py_srna= (BPy_StructRNA*)pyob;
+
+			if(py_srna->ptr.data && py_srna->ptr.type == &RNA_Struct) {
+				if(RNA_struct_is_ID(py_srna->ptr.data)) {
+					prop= RNA_def_int(py_srna->ptr.data, id, def, min, max, name, description, soft_min, soft_max);
+					RNA_def_property_duplicate_pointers(prop);
+					Py_RETURN_NONE;
+				}
+			}
+		}
+
+	 	PyErr_SetString(PyExc_ValueError, "only works on ID types");
+		return NULL;
 	} else {
 		PyObject *ret = PyTuple_New(2);
 		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_IntProperty, NULL));
@@ -2638,6 +2696,7 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 	static char *kwlist[] = {"attr", "name", "description", "default", NULL};
 	char *id, *name="", *description="";
 	int def=0;
+	PropertyRNA *prop;
 	
 	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssi:BoolProperty", kwlist, &id, &name, &description, &def))
 		return NULL;
@@ -2646,11 +2705,29 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
 		return NULL;
 	}
-	
+
 	if (self && PyCObject_Check(self)) {
 		StructRNA *srna = PyCObject_AsVoidPtr(self);
-		RNA_def_boolean(srna, id, def, name, description);
+		prop= RNA_def_boolean(srna, id, def, name, description);
+		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
+	} else if(self && PyType_Check(self)) {
+		PyObject *pyob= PyObject_GetAttrString(self, "__rna__");
+
+		if(pyob && BPy_StructRNA_Check(pyob)) {
+			BPy_StructRNA *py_srna= (BPy_StructRNA*)pyob;
+
+			if(py_srna->ptr.data && py_srna->ptr.type == &RNA_Struct) {
+				if(RNA_struct_is_ID(py_srna->ptr.data)) {
+					prop= RNA_def_boolean(py_srna->ptr.data, id, def, name, description);
+					RNA_def_property_duplicate_pointers(prop);
+					Py_RETURN_NONE;
+				}
+			}
+		}
+
+	 	PyErr_SetString(PyExc_ValueError, "only works on ID types");
+		return NULL;
 	} else {
 		PyObject *ret = PyTuple_New(2);
 		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_BoolProperty, NULL));
@@ -2665,6 +2742,7 @@ PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 	static char *kwlist[] = {"attr", "name", "description", "maxlen", "default", NULL};
 	char *id, *name="", *description="", *def="";
 	int maxlen=0;
+	PropertyRNA *prop;
 	
 	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssis:StringProperty", kwlist, &id, &name, &description, &maxlen, &def))
 		return NULL;
@@ -2676,8 +2754,26 @@ PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 	
 	if (self && PyCObject_Check(self)) {
 		StructRNA *srna = PyCObject_AsVoidPtr(self);
-		RNA_def_string(srna, id, def, maxlen, name, description);
+		prop= RNA_def_string(srna, id, def, maxlen, name, description);
+		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
+	} else if(self && PyType_Check(self)) {
+		PyObject *pyob= PyObject_GetAttrString(self, "__rna__");
+
+		if(pyob && BPy_StructRNA_Check(pyob)) {
+			BPy_StructRNA *py_srna= (BPy_StructRNA*)pyob;
+
+			if(py_srna->ptr.data && py_srna->ptr.type == &RNA_Struct) {
+				if(RNA_struct_is_ID(py_srna->ptr.data)) {
+					prop= RNA_def_string(py_srna->ptr.data, id, def, maxlen, name, description);
+					RNA_def_property_duplicate_pointers(prop);
+					Py_RETURN_NONE;
+				}
+			}
+		}
+
+	 	PyErr_SetString(PyExc_ValueError, "only works on ID types");
+		return NULL;
 	} else {
 		PyObject *ret = PyTuple_New(2);
 		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_StringProperty, NULL));
