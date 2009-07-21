@@ -764,7 +764,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	
 	if(proxy_protected == 0) {
 		but = uiDefBut(block, TEX, B_CONSTRAINT_TEST, "", xco+120, yco, 85, 18, con->name, 0.0, 29.0, 0.0, 0.0, "Constraint name"); 
-		uiButSetFunc(but, verify_constraint_name_func, con, NULL);
+		uiButSetFunc(but, verify_constraint_name_func, con, con->name);
 	}
 	else
 		uiDefBut(block, LABEL, B_CONSTRAINT_TEST, con->name, xco+120, yco-1, 135, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 

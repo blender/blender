@@ -200,8 +200,7 @@ bConstraint *add_new_constraint (short type)
 	/* Set up a generic constraint datablock */
 	con->type = type;
 	con->flag |= CONSTRAINT_EXPAND;
-	con->enforce = 1.0F;
-	strcpy(con->name, "Const");
+	con->enforce = 1.0f;
 	
 	/* Load the data for it */
 	cti = constraint_get_typeinfo(con);
@@ -211,7 +210,12 @@ bConstraint *add_new_constraint (short type)
 		/* only constraints that change any settings need this */
 		if (cti->new_data)
 			cti->new_data(con->data);
+			
+		/* set the name based on the type of constraint */
+		strcpy(con->name, cti->name); 
 	}
+	else
+		strcpy(con->name, "Const");
 	
 	return con;
 }
