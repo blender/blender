@@ -160,28 +160,8 @@ void BPY_start_python_path(void)
 	/* set the environment path */
 	printf("found bundled python: %s\n", py_path_bundle);
 
-#if (defined(WIN32) || defined(WIN64))
-#if defined(FREE_WINDOWS)
-	{
-		char py_path[FILE_MAXDIR + 11] = "";
-		sprintf(py_path, "PYTHONPATH=%s", py_path_bundle);
-		putenv(py_path);
-	}
-#else
-	_putenv_s("PYTHONPATH", py_path_bundle);
-#endif
-#else
-#ifdef __sgi
-	{
-		char py_path[FILE_MAXDIR + 11] = "";
-		sprintf(py_path, "PYTHONPATH=%s", py_path_bundle);
-		putenv(py_path);
-	}
-#else
-	setenv("PYTHONPATH", py_path_bundle, 1);
-#endif
-#endif
-
+	BLI_setenv("PYTHONHOME", py_path_bundle);
+	BLI_setenv("PYTHONPATH", py_path_bundle);
 }
 
 

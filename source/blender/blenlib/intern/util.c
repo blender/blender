@@ -951,6 +951,24 @@ char *BLI_gethome_folder(char *folder_name)
 	return NULL;
 }
 
+void BLI_setenv(const char *env, const char*val)
+{
+	/* SGI or free windows */
+#if (defined(__sgi) || ((defined(WIN32) || defined(WIN64)) && defined(FREE_WINDOWS)))
+	char *envstr= malloc(sizeof(char) * (strlen(env) + strlen(val) + 2)); /* one for = another for \0 */
+
+	sprintf(envstr, "%s=%s", env, val);
+	putenv(envstr);
+	free(envstr);
+
+	/* non-free windows */
+#elif (defined(WIN32) || defined(WIN64)) /* not free windows */
+	_putenv_s(env, val);
+#else
+	/* linux/osx/bsd */
+	setenv(env, val, 1);
+#endif
+}
 
 void BLI_clean(char *path)
 {
