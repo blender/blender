@@ -1,5 +1,5 @@
 /**
- * $Id: rna_render.c 21648 2009-07-17 02:31:28Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
