@@ -92,6 +92,26 @@ float sasqrt(float fac)
 	return (float)sqrt(fac);
 }
 
+float saacosf(float fac)
+{
+	if(fac<= -1.0f) return (float)M_PI;
+	else if(fac>=1.0f) return 0.0f;
+	else return (float)acosf(fac);
+}
+
+float saasinf(float fac)
+{
+	if(fac<= -1.0f) return (float)-M_PI/2.0f;
+	else if(fac>=1.0f) return (float)M_PI/2.0f;
+	else return (float)asinf(fac);
+}
+
+float sasqrtf(float fac)
+{
+	if(fac<=0.0) return 0.0;
+	return (float)sqrtf(fac);
+}
+
 float Normalize(float *n)
 {
 	float d;
