@@ -21,6 +21,7 @@
  * All rights reserved.
  *
  * Contributor(s): Full recode, Ton Roosendaal, Crete 2005
+ *				 Full recode, Joshua Leung, 2009
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -31,7 +32,8 @@
 
 #include <string.h>
 #include <math.h>
-#include <stdlib.h>	/* for NULL */
+#include <stdlib.h>
+#include <stddef.h>	
 
 #include "MEM_guardedalloc.h"
 
@@ -67,8 +69,6 @@
 
 #include "RNA_access.h"
 #include "RNA_types.h"
-
-//XXX #include "nla.h"
 
 /* *********************** NOTE ON POSE AND ACTION **********************
 
@@ -765,7 +765,57 @@ void framechange_poses_clear_unkeyed(void)
 	}
 }
 
-/* ************************ END Pose channels *************** */
+/* ************************** Bone Groups ************************** */
+
+/* Adds a new bone-group */
+void pose_add_group (Object *ob)
+{
+	bPose *pose= (ob) ? ob->pose : NULL;
+	bActionGroup *grp;
+	
+	if (ELEM(NULL, ob, ob->pose))
+		return;
+	
+	grp= MEM_callocN(sizeof(bActionGroup), "PoseGroup");
+	strcpy(grp->name, "Group");
+	BLI_addtail(&pose->agroups, grp);
+	BLI_uniquename(&pose->agroups, grp, "Group", '.', offsetof(bActionGroup, name), 32);
+	
+	pose->active_group= BLI_countlist(&pose->agroups);
+}
+
+/* Remove the active bone-group */
+void pose_remove_group (Object *ob)
+{
+	bPose *pose= (ob) ? ob->pose : NULL;
+	bActionGroup *grp = NULL;
+	bPoseChannel *pchan;
+	
+	/* sanity checks */
+	if (ELEM(NULL, ob, pose))
+		return;
+	if (pose->active_group <= 0)
+		return;
+	
+	/* get group to remove */
+	grp= BLI_findlink(&pose->agroups, pose->active_group-1);
+	if (grp) {
+		/* adjust group references (the trouble of using indices!):
+		 *	- firstly, make sure nothing references it 
+		 *	- also, make sure that those after this item get corrected
+		 */
+		for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+			if (pchan->agrp_index == pose->active_group)
+				pchan->agrp_index= 0;
+			else if (pchan->agrp_index > pose->active_group)
+				pchan->agrp_index--;
+		}
+		
+		/* now, remove it from the pose */
+		BLI_freelinkN(&pose->agroups, grp);
+		pose->active_group= 0;
+	}
+}
 
 /* ************** time ****************** */
 

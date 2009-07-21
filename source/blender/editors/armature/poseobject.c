@@ -81,6 +81,8 @@
 #include "ED_transform.h" /* for autokey TFM_TRANSLATION, etc */
 #include "ED_view3d.h"
 
+#include "UI_interface.h"
+
 #include "armature_intern.h"
 
 /* ************* XXX *************** */
@@ -397,7 +399,7 @@ void pose_clear_paths(Object *ob)
 }
 
 
-
+// XXX this function is to be removed when the other stuff is recoded
 void pose_select_constraint_target(Scene *scene)
 {
 	Object *obedit= scene->obedit; // XXX context
@@ -932,171 +934,301 @@ void pose_adds_vgroups(Scene *scene, Object *meshobj, int heatweights)
 
 /* ********************************************** */
 
-/* adds a new pose-group */
-void pose_add_posegroup (Scene *scene)
+
+static int pose_group_add_exec (bContext *C, wmOperator *op)
 {
-	Object *ob= OBACT;
-	bPose *pose= (ob) ? ob->pose : NULL;
-	bActionGroup *grp;
+	ScrArea *sa= CTX_wm_area(C);
+	Object *ob;
 	
-	if (ELEM(NULL, ob, ob->pose))
-		return;
+	/* since this call may also be used from the buttons window, we need to check for where to get the object */
+	if (sa->spacetype == SPACE_BUTS) 
+		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	else
+		ob= CTX_data_active_object(C);
+		
+	/* only continue if there's an object */
+	if (ob == NULL)
+		return OPERATOR_CANCELLED;
 	
-	grp= MEM_callocN(sizeof(bActionGroup), "PoseGroup");
-	strcpy(grp->name, "Group");
-	BLI_addtail(&pose->agroups, grp);
-	BLI_uniquename(&pose->agroups, grp, "Group", '.', offsetof(bActionGroup, name), 32);
+	/* for now, just call the API function for this */
+	pose_add_group(ob);
 	
-	pose->active_group= BLI_countlist(&pose->agroups);
+	/* notifiers for updates */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 	
-	BIF_undo_push("Add Bone Group");
-	
+	return OPERATOR_FINISHED;
 }
 
-/* Remove the active bone-group */
-void pose_remove_posegroup (Scene *scene)
+void POSE_OT_group_add (wmOperatorType *ot)
 {
-	Object *ob= OBACT;
-	bPose *pose= (ob) ? ob->pose : NULL;
-	bActionGroup *grp = NULL;
-	bPoseChannel *pchan;
+	/* identifiers */
+	ot->name= "Add Bone Group";
+	ot->idname= "POSE_OT_group_add";
+	ot->description= "Add a new bone group.";
 	
-	/* sanity checks */
-	if (ELEM(NULL, ob, pose))
-		return;
-	if (pose->active_group <= 0)
-		return;
+	/* api callbacks */
+	ot->exec= pose_group_add_exec;
+	ot->poll= ED_operator_posemode;
 	
-	/* get group to remove */
-	grp= BLI_findlink(&pose->agroups, pose->active_group-1);
-	if (grp) {
-		/* adjust group references (the trouble of using indices!):
-		 *	- firstly, make sure nothing references it 
-		 *	- also, make sure that those after this item get corrected
-		 */
-		for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
-			if (pchan->agrp_index == pose->active_group)
-				pchan->agrp_index= 0;
-			else if (pchan->agrp_index > pose->active_group)
-				pchan->agrp_index--;
-		}
-		
-		/* now, remove it from the pose */
-		BLI_freelinkN(&pose->agroups, grp);
-		pose->active_group= 0;
-		
-		BIF_undo_push("Remove Bone Group");
-	}
-	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-char *build_posegroups_menustr (bPose *pose, short for_pupmenu)
+
+static int pose_group_remove_exec (bContext *C, wmOperator *op)
 {
-	DynStr *pupds= BLI_dynstr_new();
+	ScrArea *sa= CTX_wm_area(C);
+	Object *ob;
+	
+	/* since this call may also be used from the buttons window, we need to check for where to get the object */
+	if (sa->spacetype == SPACE_BUTS) 
+		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	else
+		ob= CTX_data_active_object(C);
+	
+	/* only continue if there's an object */
+	if (ob == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* for now, just call the API function for this */
+	pose_remove_group(ob);
+	
+	/* notifiers for updates */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_group_remove (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Bone Group";
+	ot->idname= "POSE_OT_group_remove";
+	ot->description= "Removes the active bone group.";
+	
+	/* api callbacks */
+	ot->exec= pose_group_remove_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ------------ */
+
+/* invoke callback which presents a list of bone-groups for the user to choose from */
+static int pose_groups_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	Object *ob;
+	bPose *pose;
+	
+	uiPopupMenu *pup;
+	uiLayout *layout;
 	bActionGroup *grp;
-	char *str;
-	char buf[16];
 	int i;
 	
-	/* add title first (and the "none" entry) */
-	BLI_dynstr_append(pupds, "Bone Group%t|");
-	if (for_pupmenu)
-		BLI_dynstr_append(pupds, "Add New%x0|");
+	/* since this call may also be used from the buttons window, we need to check for where to get the object */
+	if (sa->spacetype == SPACE_BUTS) 
+		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	else
-		BLI_dynstr_append(pupds, "BG: [None]%x0|");
+		ob= CTX_data_active_object(C);
 	
-	/* loop through groups, adding them */
-	for (grp= pose->agroups.first, i=1; grp; grp=grp->next, i++) {
-		if (for_pupmenu == 0)
-			BLI_dynstr_append(pupds, "BG: ");
-		BLI_dynstr_append(pupds, grp->name);
+	/* only continue if there's an object, and a pose there too */
+	if (ELEM(NULL, ob, ob->pose))
+		return OPERATOR_CANCELLED;
+	pose= ob->pose;
+	
+	/* if there's no active group (or active is invalid), create a new menu to find it */
+	if (pose->active_group <= 0) {
+		/* create a new menu, and start populating it with group names */
+		pup= uiPupMenuBegin(C, op->type->name, 0);
+		layout= uiPupMenuLayout(pup);
 		
-		sprintf(buf, "%%x%d", i);
-		BLI_dynstr_append(pupds, buf);
+		/* special entry - allow to create new group, then use that 
+		 *	(not to be used for removing though)
+		 */
+		if (strstr(op->idname, "assign")) {
+			uiItemIntO(layout, "New Group", 0, op->idname, "type", 0);
+			uiItemS(layout);
+		}
 		
-		if (grp->next)
-			BLI_dynstr_append(pupds, "|");
+		/* add entries for each group */
+		for (grp= pose->agroups.first, i=1; grp; grp=grp->next, i++)
+			uiItemIntO(layout, grp->name, 0, op->idname, "type", i);
+			
+		/* finish building the menu, and process it (should result in calling self again) */
+		uiPupMenuEnd(C, pup);
+		
+		return OPERATOR_CANCELLED;
 	}
-	
-	/* convert to normal MEM_malloc'd string */
-	str= BLI_dynstr_get_cstring(pupds);
-	BLI_dynstr_free(pupds);
-	
-	return str;
+	else {
+		/* just use the active group index, and call the exec callback for the calling operator */
+		RNA_int_set(op->ptr, "type", pose->active_group);
+		return op->type->exec;
+	}
 }
 
 /* Assign selected pchans to the bone group that the user selects */
-void pose_assign_to_posegroup (Scene *scene, short active)
+static int pose_group_assign_exec (bContext *C, wmOperator *op)
 {
-	Object *ob= OBACT;
-	bArmature *arm= (ob) ? ob->data : NULL;
-	bPose *pose= (ob) ? ob->pose : NULL;
-	bPoseChannel *pchan;
-	char *menustr;
-	int nr;
+	ScrArea *sa= CTX_wm_area(C);
+	Object *ob;
+	bPose *pose;
 	short done= 0;
 	
-	/* sanity checks */
-	if (ELEM3(NULL, ob, pose, arm))
-		return;
-
-	/* get group to affect */
-	if ((active==0) || (pose->active_group <= 0)) {
-		menustr= build_posegroups_menustr(pose, 1);
-		nr= 0; // XXX pupmenu_col(menustr, 20);
-		MEM_freeN(menustr);
-		
-		if (nr < 0) 
-			return;
-		else if (nr == 0) {
-			/* add new - note: this does an undo push and sets active group */
-			pose_add_posegroup(scene);
-		}
-		else
-			pose->active_group= nr;
-	}
+	/* since this call may also be used from the buttons window, we need to check for where to get the object */
+	if (sa->spacetype == SPACE_BUTS) 
+		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	else
+		ob= CTX_data_active_object(C);
+	
+	/* only continue if there's an object, and a pose there too */
+	if (ELEM(NULL, ob, ob->pose))
+		return OPERATOR_CANCELLED;
+	pose= ob->pose;
+	
+	/* set the active group number to the one from operator props */
+	pose->active_group= RNA_int_get(op->ptr, "type");
 	
 	/* add selected bones to group then */
-	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
-		if ((pchan->bone->flag & BONE_SELECTED) && (pchan->bone->layer & arm->layer)) {
-			pchan->agrp_index= pose->active_group;
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) 
+	{
+		pchan->agrp_index= pose->active_group;
+		done= 1;
+	}
+	CTX_DATA_END;
+	
+	/* notifiers for updates */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+	
+	/* report done status */
+	if (done)
+		return OPERATOR_FINISHED;
+	else
+		return OPERATOR_CANCELLED;
+}
+
+void POSE_OT_group_assign (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Selected to Bone Group";
+	ot->idname= "POSE_OT_group_assign";
+	ot->description= "Add selected bones to the chosen bone group.";
+	
+	/* api callbacks */
+	ot->invoke= pose_groups_menu_invoke;
+	ot->exec= pose_group_assign_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_int(ot->srna, "type", 0, 0, 10, "Bone Group Index", "", 0, INT_MAX);
+}
+
+
+static int pose_group_unassign_exec (bContext *C, wmOperator *op)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	Object *ob;
+	bPose *pose;
+	short done= 0;
+	
+	/* since this call may also be used from the buttons window, we need to check for where to get the object */
+	if (sa->spacetype == SPACE_BUTS) 
+		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	else
+		ob= CTX_data_active_object(C);
+	
+	/* only continue if there's an object, and a pose there too */
+	if (ELEM(NULL, ob, ob->pose))
+		return OPERATOR_CANCELLED;
+	pose= ob->pose;
+	
+	/* add selected bones to ungroup then */
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans) 
+	{
+		if (pchan->agrp_index) {
+			pchan->agrp_index= 0;
 			done= 1;
 		}
 	}
+	CTX_DATA_END;
 	
+	/* notifiers for updates */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+	
+	/* report done status */
 	if (done)
-		BIF_undo_push("Add Bones To Group");
-		
+		return OPERATOR_FINISHED;
+	else
+		return OPERATOR_CANCELLED;
 }
 
-/* Remove selected pchans from their bone groups */
-void pose_remove_from_posegroups (Scene *scene)
+void POSE_OT_group_unassign (wmOperatorType *ot)
 {
-	Object *ob= OBACT;
-	bArmature *arm= (ob) ? ob->data : NULL;
-	bPose *pose= (ob) ? ob->pose : NULL;
-	bPoseChannel *pchan;
-	short done= 0;
+	/* identifiers */
+	ot->name= "Remove Selected from Bone Groups";
+	ot->idname= "POSE_OT_group_unassign";
+	ot->description= "Add selected bones from all bone groups";
 	
-	/* sanity checks */
-	if (ELEM3(NULL, ob, pose, arm))
-		return;
+	/* api callbacks */
+	ot->exec= pose_group_unassign_exec;
+	ot->poll= ED_operator_posemode;
 	
-	/* remove selected bones from their groups */
-	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
-		if ((pchan->bone->flag & BONE_SELECTED) && (pchan->bone->layer & arm->layer)) {
-			if (pchan->agrp_index) {
-				pchan->agrp_index= 0;
-				done= 1;
-			}
-		}
-	}
-	
-	if (done)
-		BIF_undo_push("Remove Bones From Groups");
-		
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* ----------------- */
+
+static int pose_groupOps_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+{
+	Object *ob= CTX_data_active_object(C);
+	uiPopupMenu *pup= uiPupMenuBegin(C, op->type->name, 0);
+	uiLayout *layout= uiPupMenuLayout(pup);
+	
+	/* sanity check - must have object with pose */
+	if ELEM(NULL, ob, ob->pose)
+		return OPERATOR_CANCELLED;
+	
+	/* get mode of action */
+	if (CTX_DATA_COUNT(C, selected_pchans)) {
+		/* if selected bone(s), include options to add/remove to active group */
+		uiItemO(layout, "Add Selected to Active Group", 0, "POSE_OT_group_assign");
+		
+		uiItemS(layout);
+		
+		uiItemO(layout, "Remove Selected from All Groups", 0, "POSE_OT_group_unassign");
+		uiItemO(layout, "Remove Active Group", 0, "POSE_OT_group_remove");
+	}
+	else {
+		/* no selected bones - so just options for groups management */
+		uiItemO(layout, "Add New Group", 0, "POSE_OT_group_add");
+		uiItemO(layout, "Remove Active Group", 0, "POSE_OT_group_remove");
+	}
+		
+	return OPERATOR_CANCELLED;
+}
+
+void POSE_OT_groups_menu (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Bone Group Tools";
+	ot->idname= "POSE_OT_groups_menu";
+	ot->description= "Menu displaying available tools for Bone Groups.";
+	
+	/* api callbacks (only invoke needed) */
+	ot->invoke= pose_groupOps_menu_invoke;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+}
+
+#if 0
 /* Ctrl-G in 3D-View while in PoseMode */
 void pgroup_operation_with_menu (Scene *scene)
 {
@@ -1143,6 +1275,7 @@ void pgroup_operation_with_menu (Scene *scene)
 			break;
 	}
 }
+#endif
 
 /* ********************************************** */
 

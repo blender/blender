@@ -1598,10 +1598,8 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *op)
 
 	/* cancel if nothing selected */
 	if (CTX_DATA_COUNT(C, selected_bones) == 0)
-	  return OPERATOR_CANCELLED;
-
-	/* if (okee("Erase selected bone(s)")==0) return; */
-
+		return OPERATOR_CANCELLED;
+	
 	/* Select mirrored bones */
 	if (arm->flag & ARM_MIRROR_EDIT) {
 		for (curBone=arm->edbo->first; curBone; curBone=curBone->next) {

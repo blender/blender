@@ -63,6 +63,7 @@ extern StructRNA RNA_BezierCurvePoint;
 extern StructRNA RNA_BlendTexture;
 extern StructRNA RNA_BlenderRNA;
 extern StructRNA RNA_Bone;
+extern StructRNA RNA_BoneGroup;
 extern StructRNA RNA_BooleanModifier;
 extern StructRNA RNA_BooleanProperty;
 extern StructRNA RNA_Brush;

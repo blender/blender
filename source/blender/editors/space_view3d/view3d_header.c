@@ -3040,47 +3040,18 @@ static void view3d_pose_armature_constraintsmenu(bContext *C, uiLayout *layout, 
 	uiItemO(layout, NULL, 0, "POSE_OT_constraints_clear");
 }
 
+static void view3d_pose_armature_groupmenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	uiItemO(layout, "Add Selected to Active Group", 0, "POSE_OT_group_assign");
+	//uiItemO(layout, "Add Selected to Group", 0, "POSE_OT_group_assign");
+	
+	uiItemO(layout, "Add New Group", 0, "POSE_OT_group_add");
+	
+	uiItemO(layout, "Remove from All Groups", 0, "POSE_OT_group_unassign");
+	uiItemO(layout, "Remove Active Group", 0, "POSE_OT_group_remove");
+}
+
 #if 0
-static void do_view3d_pose_armature_groupmenu(bContext *C, void *arg, int event)
-{
-	switch (event) {
-		case 1:
-			pose_assign_to_posegroup(1);
-			break;
-		case 2:
-			pose_assign_to_posegroup(0);
-			break;
-		case 3:
-			pose_add_posegroup();
-			break;
-		case 4:
-			pose_remove_from_posegroups();
-			break;
-		case 5:
-			pose_remove_posegroup();
-			break;
-	}
-}
-
-static uiBlock *view3d_pose_armature_groupmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	short yco = 20, menuwidth = 120;
-	
-	block= uiBeginBlock(C, ar, "view3d_pose_armature_groupmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_pose_armature_groupmenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Selected to Active Group|Ctrl G",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Selected to Group|Ctrl G",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add New Group|Ctrl G",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Remove from All Groups|Ctrl G",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Remove Active Group|Ctrl G",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	return block;
-}
-
 static void do_view3d_pose_armature_motionpathsmenu(bContext *C, void *arg, int event)
 {
 	switch(event) {
@@ -3214,7 +3185,7 @@ static void view3d_pose_armaturemenu(bContext *C, uiLayout *layout, void *arg_un
 
 	uiItemMenuF(layout, "Pose Library", 0, view3d_pose_armature_poselibmenu);
 	//uiItemMenuF(layout, "Motion Paths", 0, view3d_pose_armature_motionpathsmenu);
-	//uiItemMenuF(layout, "Bone Groups", 0, view3d_pose_armature_groupmenu);
+	uiItemMenuF(layout, "Bone Groups", 0, view3d_pose_armature_groupmenu);
 	
 	uiItemS(layout);
 	
