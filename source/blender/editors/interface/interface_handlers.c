@@ -188,7 +188,7 @@ static uiBut *ui_but_prev(uiBut *but)
 {
 	while(but->prev) {
 		but= but->prev;
-		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
+		if(!ELEM4(but->type, LABEL, SEPR, ROUNDBOX, LISTBOX)) return but;
 	}
 	return NULL;
 }
@@ -197,7 +197,7 @@ static uiBut *ui_but_next(uiBut *but)
 {
 	while(but->next) {
 		but= but->next;
-		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
+		if(!ELEM4(but->type, LABEL, SEPR, ROUNDBOX, LISTBOX)) return but;
 	}
 	return NULL;
 }
@@ -208,7 +208,7 @@ static uiBut *ui_but_first(uiBlock *block)
 	
 	but= block->buttons.first;
 	while(but) {
-		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
+		if(!ELEM4(but->type, LABEL, SEPR, ROUNDBOX, LISTBOX)) return but;
 		but= but->next;
 	}
 	return NULL;
@@ -220,7 +220,7 @@ static uiBut *ui_but_last(uiBlock *block)
 	
 	but= block->buttons.last;
 	while(but) {
-		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
+		if(!ELEM4(but->type, LABEL, SEPR, ROUNDBOX, LISTBOX)) return but;
 		but= but->prev;
 	}
 	return NULL;
@@ -284,7 +284,7 @@ static void ui_apply_autokey_undo(bContext *C, uiBut *but)
 	uiAfterFunc *after;
 	char *str= NULL;
 
-	if ELEM5(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX);
+	if ELEM6(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX, LISTBOX);
 	else {
 		/* define which string to use for undo */
 		if ELEM(but->type, LINK, INLINK) str= "Add button link";
@@ -449,7 +449,7 @@ static void ui_apply_but_ROW(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 	
 	/* states of other row buttons */
 	for(bt= block->buttons.first; bt; bt= bt->next)
-		if(bt!=but && bt->poin==but->poin && bt->type==ROW)
+		if(bt!=but && bt->poin==but->poin && ELEM(bt->type, ROW, LISTROW))
 			ui_check_but(bt);
 	
 	ui_apply_but_func(C, but);
@@ -782,6 +782,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			ui_apply_but_TOG(C, block, but, data);
 			break;
 		case ROW:
+		case LISTROW:
 			ui_apply_but_ROW(C, block, but, data);
 			break;
 		case SCROLL:
@@ -1392,7 +1393,7 @@ static void ui_textedit_next_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 	uiBut *but;
 
 	/* label and roundbox can overlap real buttons (backdrops...) */
-	if(actbut->type==LABEL && actbut->type==ROUNDBOX)
+	if(ELEM4(actbut->type, LABEL, SEPR, ROUNDBOX, LISTBOX))
 		return;
 
 	for(but= actbut->next; but; but= but->next) {
@@ -1416,7 +1417,7 @@ static void ui_textedit_prev_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 	uiBut *but;
 
 	/* label and roundbox can overlap real buttons (backdrops...) */
-	if(actbut->type==LABEL && actbut->type==ROUNDBOX)
+	if(ELEM4(actbut->type, LABEL, SEPR, ROUNDBOX, LISTBOX))
 		return;
 
 	for(but= actbut->prev; but; but= but->prev) {
@@ -3183,9 +3184,11 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 		retval= ui_do_but_SLI(C, block, but, data, event);
 		break;
 	case ROUNDBOX:	
+	case LISTBOX:
 	case LABEL:	
 	case TOG3:	
 	case ROW:
+	case LISTROW:
 		retval= ui_do_but_EXIT(C, but, data, event);
 		break;
 	case TEX:
@@ -3331,7 +3334,7 @@ static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 		ui_window_to_block(ar, block, &mx, &my);
 
 		for(but=block->buttons.first; but; but= but->next) {
-			if(ELEM3(but->type, LABEL, ROUNDBOX, SEPR))
+			if(ELEM4(but->type, LABEL, ROUNDBOX, SEPR, LISTBOX))
 				continue;
 			if(but->flag & UI_HIDDEN)
 				continue;

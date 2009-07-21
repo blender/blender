@@ -720,6 +720,7 @@ static void ui_is_but_sel(uiBut *but)
 			if(value==0.0) push= 1;
 			break;
 		case ROW:
+		case LISTROW:
 			if(value == but->hardmax) push= 1;
 			break;
 		case COL:
@@ -2149,7 +2150,7 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 
 				freestr= 1;
 			}
-			else if(type == ROW && proptype == PROP_ENUM) {
+			else if(ELEM(type, ROW, LISTROW) && proptype == PROP_ENUM) {
 				EnumPropertyItem *item;
 				int i, totitem, free;
 
@@ -2202,7 +2203,7 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 				RNA_property_int_range(ptr, prop, &hardmin, &hardmax);
 				RNA_property_int_ui_range(ptr, prop, &softmin, &softmax, &step);
 
-				if(type != ROW && min == max) {
+				if(!ELEM(type, ROW, LISTROW) && min == max) {
 					min= hardmin;
 					max= hardmax;
 				}
@@ -2217,7 +2218,7 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 				RNA_property_float_range(ptr, prop, &hardmin, &hardmax);
 				RNA_property_float_ui_range(ptr, prop, &softmin, &softmax, &step, &precision);
 
-				if(type != ROW && min == max) {
+				if(!ELEM(type, ROW, LISTROW) && min == max) {
 					min= hardmin;
 					max= hardmax;
 				}

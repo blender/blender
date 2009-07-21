@@ -148,6 +148,7 @@ typedef struct uiLayoutItemFlow {
 typedef struct uiLayoutItemBx {
 	uiLayout litem;
 	uiBut *roundbox;
+	ListBase items;
 } uiLayoutItemBx;
 
 typedef struct uiLayoutItemSplt {
@@ -218,7 +219,7 @@ static int ui_text_icon_width(uiLayout *layout, char *name, int icon)
 {
 	int variable = ui_layout_vary_direction(layout) == UI_ITEM_VARY_X;
 
-	if(icon && strcmp(name, "") == 0)
+	if(icon && !name[0])
 		return UI_UNIT_X; /* icon only */
 	else if(icon)
 		return (variable)? UI_GetStringWidth(name) + 4 + UI_UNIT_X: 10*UI_UNIT_X; /* icon + text */
@@ -723,15 +724,17 @@ static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PropertyRNA
 	subtype= RNA_property_subtype(prop);
 	len= RNA_property_array_length(prop);
 
-	if(ELEM(type, PROP_STRING, PROP_POINTER) && strcmp(name, "") == 0)
+	if(ELEM(type, PROP_STRING, PROP_POINTER) && !name[0])
 		name= "non-empty";
+	else if(type == PROP_BOOLEAN && !name[0])
+		icon= ICON_DOT;
 
 	w= ui_text_icon_width(layout, name, icon);
 	h= UI_UNIT_Y;
 
 	/* increase height for arrays */
 	if(index == RNA_NO_INDEX && len > 0) {
-		if(strcmp(name, "") == 0 && icon == 0)
+		if(!name[0] && icon == 0)
 			h= 0;
 
 		if(type == PROP_BOOLEAN && len == 20)
@@ -1808,7 +1811,7 @@ uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, int align)
 	return &flow->litem;
 }
 
-uiLayout *uiLayoutBox(uiLayout *layout)
+static uiLayout *ui_layout_box(uiLayout *layout, int type)
 {
 	uiLayoutItemBx *box;
 
@@ -1823,9 +1826,25 @@ uiLayout *uiLayoutBox(uiLayout *layout)
 
 	uiBlockSetCurLayout(layout->root->block, &box->litem);
 
-	box->roundbox= uiDefBut(layout->root->block, ROUNDBOX, 0, "", 0, 0, 0, 0, NULL, 0.0, 0.0, 0, 0, "");
+	box->roundbox= uiDefBut(layout->root->block, type, 0, "", 0, 0, 0, 0, NULL, 0.0, 0.0, 0, 0, "");
 
 	return &box->litem;
+}
+
+uiLayout *uiLayoutBox(uiLayout *layout)
+{
+	return ui_layout_box(layout, ROUNDBOX);
+}
+
+uiLayout *uiLayoutListBox(uiLayout *layout)
+{
+	return ui_layout_box(layout, LISTBOX);
+}
+
+ListBase *uiLayoutBoxGetList(uiLayout *layout)
+{
+	uiLayoutItemBx *box= (uiLayoutItemBx*)layout;
+	return &box->items;
 }
 
 uiLayout *uiLayoutFree(uiLayout *layout, int align)
@@ -2131,6 +2150,9 @@ static void ui_layout_free(uiLayout *layout)
 		else
 			ui_layout_free((uiLayout*)item);
 	}
+
+	if(layout->item.type == ITEM_LAYOUT_BOX)
+		BLI_freelistN(&((uiLayoutItemBx*)layout)->items);
 
 	MEM_freeN(layout);
 }

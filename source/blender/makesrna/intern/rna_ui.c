@@ -199,7 +199,7 @@ static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, voi
 	return pt->py_srna;
 }
 
-static StructRNA* rna_Panel_refine(struct PointerRNA *ptr)
+static StructRNA* rna_Panel_refine(PointerRNA *ptr)
 {
 	Panel *hdr= (Panel*)ptr->data;
 	return (hdr->type && hdr->type->py_srna)? hdr->type->py_srna: &RNA_Panel;
@@ -290,7 +290,7 @@ static StructRNA *rna_Header_register(const bContext *C, ReportList *reports, vo
 	return ht->py_srna;
 }
 
-static StructRNA* rna_Header_refine(struct PointerRNA *htr)
+static StructRNA* rna_Header_refine(PointerRNA *htr)
 {
 	Header *hdr= (Header*)htr->data;
 	return (hdr->type && hdr->type->py_srna)? hdr->type->py_srna: &RNA_Header;
@@ -405,90 +405,106 @@ static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void
 	return mt->py_srna;
 }
 
-static StructRNA* rna_Menu_refine(struct PointerRNA *mtr)
+static StructRNA* rna_Menu_refine(PointerRNA *mtr)
 {
 	Menu *hdr= (Menu*)mtr->data;
 	return (hdr->type && hdr->type->py_srna)? hdr->type->py_srna: &RNA_Menu;
 }
 
-static int rna_UILayout_active_get(struct PointerRNA *ptr)
+static int rna_UILayout_active_get(PointerRNA *ptr)
 {
 	return uiLayoutGetActive(ptr->data);
 }
 
-static void rna_UILayout_active_set(struct PointerRNA *ptr, int value)
+static void rna_UILayout_active_set(PointerRNA *ptr, int value)
 {
 	uiLayoutSetActive(ptr->data, value);
 }
 
-static void rna_UILayout_op_context_set(struct PointerRNA *ptr, int value)
+static void rna_UILayout_op_context_set(PointerRNA *ptr, int value)
 {
 	uiLayoutSetOperatorContext(ptr->data, value);
 }
 
-static int rna_UILayout_op_context_get(struct PointerRNA *ptr)
+static int rna_UILayout_op_context_get(PointerRNA *ptr)
 {
 	return uiLayoutGetOperatorContext(ptr->data);
 }
 
-static int rna_UILayout_enabled_get(struct PointerRNA *ptr)
+static int rna_UILayout_enabled_get(PointerRNA *ptr)
 {
 	return uiLayoutGetEnabled(ptr->data);
 }
 
-static void rna_UILayout_enabled_set(struct PointerRNA *ptr, int value)
+static void rna_UILayout_enabled_set(PointerRNA *ptr, int value)
 {
 	uiLayoutSetEnabled(ptr->data, value);
 }
 
-static int rna_UILayout_red_alert_get(struct PointerRNA *ptr)
+#if 0
+static int rna_UILayout_red_alert_get(PointerRNA *ptr)
 {
 	return uiLayoutGetRedAlert(ptr->data);
 }
 
-static void rna_UILayout_red_alert_set(struct PointerRNA *ptr, int value)
+static void rna_UILayout_red_alert_set(PointerRNA *ptr, int value)
 {
 	uiLayoutSetRedAlert(ptr->data, value);
 }
 
-static int rna_UILayout_keep_aspect_get(struct PointerRNA *ptr)
+static int rna_UILayout_keep_aspect_get(PointerRNA *ptr)
 {
 	return uiLayoutGetKeepAspect(ptr->data);
 }
 
-static void rna_UILayout_keep_aspect_set(struct PointerRNA *ptr, int value)
+static void rna_UILayout_keep_aspect_set(PointerRNA *ptr, int value)
 {
 	uiLayoutSetKeepAspect(ptr->data, value);
 }
+#endif
 
-static int rna_UILayout_alignment_get(struct PointerRNA *ptr)
+static int rna_UILayout_alignment_get(PointerRNA *ptr)
 {
 	return uiLayoutGetAlignment(ptr->data);
 }
 
-static void rna_UILayout_alignment_set(struct PointerRNA *ptr, int value)
+static void rna_UILayout_alignment_set(PointerRNA *ptr, int value)
 {
 	uiLayoutSetAlignment(ptr->data, value);
 }
 
-static float rna_UILayout_scale_x_get(struct PointerRNA *ptr)
+static float rna_UILayout_scale_x_get(PointerRNA *ptr)
 {
 	return uiLayoutGetScaleX(ptr->data);
 }
 
-static void rna_UILayout_scale_x_set(struct PointerRNA *ptr, float value)
+static void rna_UILayout_scale_x_set(PointerRNA *ptr, float value)
 {
 	uiLayoutSetScaleX(ptr->data, value);
 }
 
-static float rna_UILayout_scale_y_get(struct PointerRNA *ptr)
+static float rna_UILayout_scale_y_get(PointerRNA *ptr)
 {
 	return uiLayoutGetScaleY(ptr->data);
 }
 
-static void rna_UILayout_scale_y_set(struct PointerRNA *ptr, float value)
+static void rna_UILayout_scale_y_set(PointerRNA *ptr, float value)
 {
 	uiLayoutSetScaleY(ptr->data, value);
+}
+
+static PointerRNA rna_UIListItem_layout_get(PointerRNA *ptr)
+{
+	uiListItem *item= (uiListItem*)ptr->data;
+	PointerRNA newptr;
+	RNA_pointer_create(NULL, &RNA_UILayout, item->layout, &newptr);
+	return newptr;
+}
+
+static PointerRNA rna_UIListItem_data_get(PointerRNA *ptr)
+{
+	uiListItem *item= (uiListItem*)ptr->data;
+	return item->data;
 }
 
 #else // RNA_RUNTIME
@@ -516,6 +532,8 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 		{WM_OP_EXEC_AREA, "EXEC_AREA", 0, "Exec Area", ""},
 		{WM_OP_EXEC_SCREEN, "EXEC_SCREEN", 0, "Exec Screen", ""},
 		{0, NULL, 0, NULL, NULL}};
+	
+	/* layout */
 
 	srna= RNA_def_struct(brna, "UILayout", NULL);
 	RNA_def_struct_sdna(srna, "uiLayout");
@@ -531,15 +549,19 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_enabled_get", "rna_UILayout_enabled_set");
 
+#if 0
 	prop= RNA_def_property(srna, "red_alert", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_red_alert_get", "rna_UILayout_red_alert_set");
+#endif
 
 	prop= RNA_def_property(srna, "alignment", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, alignment_items);
 	RNA_def_property_enum_funcs(prop, "rna_UILayout_alignment_get", "rna_UILayout_alignment_set", NULL);
 
+#if 0
 	prop= RNA_def_property(srna, "keep_aspect", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_keep_aspect_get", "rna_UILayout_keep_aspect_set");
+#endif
 
 	prop= RNA_def_property(srna, "scale_x", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_funcs(prop, "rna_UILayout_scale_x_get", "rna_UILayout_scale_x_set", NULL);
@@ -548,6 +570,21 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_UILayout_scale_y_get", "rna_UILayout_scale_y_set", NULL);
 
 	RNA_api_ui_layout(srna);
+
+	/* list item */
+
+	srna= RNA_def_struct(brna, "UIListItem", NULL);
+	RNA_def_struct_ui_text(srna, "UI List Item", "User interface list.");
+
+	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "UILayout");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, "rna_UIListItem_layout_get", NULL, NULL);
+
+	prop= RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "AnyType");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, "rna_UIListItem_data_get", NULL, NULL);
 }
 
 static void rna_def_panel(BlenderRNA *brna)

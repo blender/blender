@@ -99,11 +99,12 @@ static void id_search_cb(const struct bContext *C, void *arg_template, char *str
 
 	/* ID listbase */
 	for(id= lb->first; id; id= id->next) {
-		iconid= ui_id_icon_get(scene, id);
+		if(BLI_strcasestr(id->name+2, str)) {
+			iconid= ui_id_icon_get(scene, id);
 
-		if(BLI_strcasestr(id->name+2, str))
 			if(!uiSearchItemAdd(items, id->name+2, id, iconid))
 				break;
+		}
 	}
 }
 
@@ -1296,17 +1297,36 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname)
 
 /************************* List Template **************************/
 
-ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, PointerRNA *activeptr, char *activepropname, int rows, int columns, int compact)
+#if 0
+static void list_item_add(ListBase *lb, ListBase *itemlb, uiLayout *layout, PointerRNA *data)
 {
 	CollectionPointerLink *link;
+	uiListItem *item;
+
+	/* add to list to store in box */
+	item= MEM_callocN(sizeof(uiListItem), "uiListItem");
+	item->layout= layout;
+	item->data= *data;
+	BLI_addtail(itemlb, item);
+
+	/* add to list to return from function */
+	link= MEM_callocN(sizeof(CollectionPointerLink), "uiTemplateList return");
+	RNA_pointer_create(NULL, &RNA_UIListItem, item, &link->ptr);
+	BLI_addtail(lb, link);
+}
+#endif
+
+ListBase uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, PointerRNA *activeptr, char *activepropname, int rows, int listtype)
+{
+	//Scene *scene= CTX_data_scene(C);
 	PropertyRNA *prop= NULL, *activeprop;
 	PropertyType type, activetype;
 	StructRNA *ptype;
-	uiLayout *box, *row, *col;
+	uiLayout *box, *row, *col, *subrow;
 	uiBlock *block;
 	uiBut *but;
 	Panel *pa;
-	ListBase lb;
+	ListBase lb, *itemlb;
 	char *name, str[32];
 	int icon=0, i= 0, activei= 0, len, items, found, min, max;
 
@@ -1361,7 +1381,39 @@ ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, Point
 	/* get active data */
 	activei= RNA_property_int_get(activeptr, activeprop);
 
-	if(compact) {
+	if(listtype == 'i') {
+		box= uiLayoutListBox(layout);
+		col= uiLayoutColumn(box, 1);
+		row= uiLayoutRow(col, 0);
+
+		itemlb= uiLayoutBoxGetList(box);
+
+		if(ptr->data && prop) {
+			/* create list items */
+			RNA_PROP_BEGIN(ptr, itemptr, prop) {
+				/* create button */
+				if(i == 9)
+					row= uiLayoutRow(col, 0);
+
+				if(RNA_struct_is_a(itemptr.type, &RNA_TextureSlot)) {
+#if 0
+					MTex *mtex= itemptr.data;
+
+					if(mtex && mtex->tex)
+						icon= ui_id_icon_get(scene, &mtex->tex->id);
+#endif
+				}
+
+				uiDefIconButR(block, LISTROW, 0, icon, 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
+
+				//list_item_add(&lb, itemlb, uiLayoutRow(row, 1), &itemptr);
+
+				i++;
+			}
+			RNA_PROP_END;
+		}
+	}
+	else if(listtype == 'c') {
 		/* compact layout */
 		found= 0;
 
@@ -1381,9 +1433,7 @@ ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, Point
 						MEM_freeN(name);
 
 					/* add to list to return */
-					link= MEM_callocN(sizeof(CollectionPointerLink), "uiTemplateList return");
-					link->ptr= itemptr;
-					BLI_addtail(&lb, link);
+					//list_item_add(&lb, itemlb, uiLayoutRow(row, 1), &itemptr);
 				}
 
 				i++;
@@ -1402,27 +1452,25 @@ ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, Point
 			uiButSetFlag(but, UI_BUT_DISABLED);
 	}
 	else {
-		/* default rows/columns */
+		/* default rows */
 		if(rows == 0)
 			rows= 5;
-		if(columns == 0)
-			columns= 1;
 
 		/* layout */
-		box= uiLayoutBox(layout);
+		box= uiLayoutListBox(layout);
 		row= uiLayoutRow(box, 0);
 		col = uiLayoutColumn(row, 1);
-
-		uiBlockSetEmboss(block, UI_EMBOSSN);
 
 		/* init numbers */
 		RNA_property_int_range(activeptr, activeprop, &min, &max);
 
 		len= max - min + 1;
-		items= rows*columns;
+		items= CLAMPIS(len, rows, 5);
 
 		pa->list_scroll= MIN2(pa->list_scroll, len-items);
 		pa->list_scroll= MAX2(pa->list_scroll, 0);
+
+		itemlb= uiLayoutBoxGetList(box);
 
 		if(ptr->data && prop) {
 			/* create list items */
@@ -1430,17 +1478,27 @@ ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, Point
 				if(i >= pa->list_scroll && i<pa->list_scroll+items) {
 					name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
 
+					subrow= uiLayoutRow(col, 0);
+
 					/* create button */
-					but= uiDefIconTextButR(block, ROW, 0, icon, (name)? name: "", 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
+					if(!icon || icon == ICON_DOT)
+						but= uiDefButR(block, LISTROW, 0, (name)? name: "", 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
+					else
+						but= uiDefIconTextButR(block, LISTROW, 0, icon, (name)? name: "", 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
 					uiButSetFlag(but, UI_ICON_LEFT|UI_TEXT_LEFT);
+
+					/* XXX hardcoded */
+					if(itemptr.type == &RNA_MeshTextureFaceLayer || itemptr.type == &RNA_MeshColorLayer) {
+						uiBlockSetEmboss(block, UI_EMBOSSN);
+						uiItemR(subrow, "", ICON_SCENE, &itemptr, "active_render", 0, 0, 0);
+						uiBlockSetEmboss(block, UI_EMBOSS);
+					}
 
 					if(name)
 						MEM_freeN(name);
 
 					/* add to list to return */
-					link= MEM_callocN(sizeof(CollectionPointerLink), "uiTemplateList return");
-					link->ptr= itemptr;
-					BLI_addtail(&lb, link);
+					//list_item_add(&lb, itemlb, subrow, &itemptr);
 				}
 
 				i++;
@@ -1454,8 +1512,6 @@ ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, Point
 				uiItemL(col, "", 0);
 			i++;
 		}
-
-		uiBlockSetEmboss(block, UI_EMBOSS);
 
 		/* add scrollbar */
 		if(len > items) {

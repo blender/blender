@@ -30,6 +30,8 @@
 #ifndef UI_INTERFACE_H
 #define UI_INTERFACE_H
 
+#include "RNA_types.h"
+
 /* Struct Declarations */
 
 struct ID;
@@ -201,7 +203,9 @@ typedef struct uiLayout uiLayout;
 #define SEARCH_MENU	(40<<9)
 #define BUT_EXTRA	(41<<9)
 #define HSVCIRCLE	(42<<9)
-#define BUTTYPE	(63<<9)
+#define LISTBOX		(43<<9)
+#define LISTROW		(44<<9)
+#define BUTTYPE		(63<<9)
 
 /* Drawing
  *
@@ -588,7 +592,6 @@ void uiLayoutSetKeepAspect(uiLayout *layout, int keepaspect);
 void uiLayoutSetScaleX(uiLayout *layout, float scale);
 void uiLayoutSetScaleY(uiLayout *layout, float scale);
 
-
 int uiLayoutGetOperatorContext(uiLayout *layout);
 int uiLayoutGetActive(uiLayout *layout);
 int uiLayoutGetEnabled(uiLayout *layout);
@@ -597,12 +600,14 @@ int uiLayoutGetAlignment(uiLayout *layout);
 int uiLayoutGetKeepAspect(uiLayout *layout);
 float uiLayoutGetScaleX(uiLayout *layout);
 float uiLayoutGetScaleY(uiLayout *layout);
+ListBase *uiLayoutBoxGetList(uiLayout *layout);
 
 /* layout specifiers */
 uiLayout *uiLayoutRow(uiLayout *layout, int align);
 uiLayout *uiLayoutColumn(uiLayout *layout, int align);
 uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, int align);
 uiLayout *uiLayoutBox(uiLayout *layout);
+uiLayout *uiLayoutListBox(uiLayout *layout);
 uiLayout *uiLayoutFree(uiLayout *layout, int align);
 uiLayout *uiLayoutSplit(uiLayout *layout, float percentage);
 
@@ -619,10 +624,18 @@ void uiTemplateColorRamp(uiLayout *layout, struct ColorBand *coba, int expand);
 void uiTemplateCurveMapping(uiLayout *layout, struct CurveMapping *cumap, int type);
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
-ListBase uiTemplateList(uiLayout *layout, struct PointerRNA *ptr, char *propname, struct PointerRNA *activeptr, char *activeprop, int rows, int columns, int compact);
 void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);
 void uiTemplateOperatorSearch(uiLayout *layout);
 void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);
+
+typedef struct uiListItem {
+	struct uiListItem *next, *prev;
+
+	struct PointerRNA data;
+	uiLayout *layout;
+} uiListItem;
+
+ListBase uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *activeptr, char *activeprop, int rows, int type);
 
 /* items */
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname);
