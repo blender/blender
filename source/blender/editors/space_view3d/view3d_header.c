@@ -3175,13 +3175,13 @@ static void view3d_pose_armaturemenu(bContext *C, uiLayout *layout, void *arg_un
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Pose as Restpose|Ctrl A",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy Current Pose",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Paste Pose",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Paste Flipped Pose",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");	
-	
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 #endif
+	
+	uiItemO(layout, "Copy Current Pose", 0, "POSE_OT_copy");
+	uiItemO(layout, "Paste Pose", 0, "POSE_OT_paste");
+	uiItemBooleanO(layout, "Paste X-Flipped Pose", 0, "POSE_OT_paste", "flipped", 1);
+	
+	uiItemS(layout);
 
 	uiItemMenuF(layout, "Pose Library", 0, view3d_pose_armature_poselibmenu);
 	//uiItemMenuF(layout, "Motion Paths", 0, view3d_pose_armature_motionpathsmenu);
@@ -4492,24 +4492,18 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 		uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE, xco,yco,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (Ctrl Click for anim)");
 		
-		
 		if (ob && (ob->flag & OB_POSEMODE)) {
-			xco+= XIC/2;
+			xco+= XIC;
 			uiBlockBeginAlign(block);
 			
-			uiDefIconBut(block, BUT, B_ACTCOPY, ICON_COPYDOWN,
-					 xco,yco,XIC,YIC, 0, 0, 0, 0, 0, 
-					 "Copies the current pose to the buffer");
+			uiDefIconButO(block, BUT, "POSE_OT_copy", WM_OP_INVOKE_REGION_WIN, ICON_COPYDOWN, xco,yco,XIC,YIC, NULL);
 			uiBlockSetButLock(block, object_data_is_libdata(ob), "Can't edit external libdata");
 			xco+= XIC;
-
-			uiDefIconBut(block, BUT, B_ACTPASTE, ICON_PASTEDOWN,
-					 xco,yco,XIC,YIC, 0, 0, 0, 0, 0, 
-					 "Pastes the pose from the buffer");
+			
+			uiDefIconButO(block, BUT, "POSE_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEDOWN, xco,yco,XIC,YIC, NULL);
 			xco+= XIC;
-			uiDefIconBut(block, BUT, B_ACTPASTEFLIP, ICON_PASTEFLIPDOWN, 
-					 xco,yco,XIC,YIC, 0, 0, 0, 0, 0, 
-					 "Pastes the mirrored pose from the buffer");
+				// FIXME: this needs an extra arg...
+			uiDefIconButO(block, BUT, "POSE_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEFLIPDOWN, xco,yco,XIC,YIC, NULL);
 			uiBlockEndAlign(block);
 			header_xco_step(ar, &xco, &yco, &maxco, XIC);
 

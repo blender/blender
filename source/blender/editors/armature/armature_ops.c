@@ -147,6 +147,9 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_loc_clear);
 	WM_operatortype_append(POSE_OT_scale_clear);
 	
+	WM_operatortype_append(POSE_OT_copy);
+	WM_operatortype_append(POSE_OT_paste);
+	
 	WM_operatortype_append(POSE_OT_select_all_toggle);
 	WM_operatortype_append(POSE_OT_select_inverse);
 
@@ -237,6 +240,12 @@ void ED_keymap_armature(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "POSE_OT_rot_clear", RKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_loc_clear", GKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_scale_clear", SKEY, KM_PRESS, KM_ALT, 0);
+	
+		// for now, we include hotkeys for copy/paste
+	WM_keymap_add_item(keymap, "POSE_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
+	kmi= WM_keymap_add_item(keymap, "POSE_OT_paste", VKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+		RNA_boolean_set(kmi->ptr, "flipped", 1);
 	
 	WM_keymap_add_item(keymap, "POSE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);

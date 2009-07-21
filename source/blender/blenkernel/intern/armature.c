@@ -83,6 +83,7 @@ bArmature *add_armature(char *name)
 	
 	arm= alloc_libblock (&G.main->armature, ID_AR, name);
 	arm->deformflag = ARM_DEF_VGROUP|ARM_DEF_ENVELOPE;
+	arm->flag = ARM_COL_CUSTOM; /* custom bone-group colors */
 	arm->layer= 1;
 	return arm;
 }

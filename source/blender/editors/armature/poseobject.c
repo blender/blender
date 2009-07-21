@@ -63,6 +63,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BKE_report.h"
 
 #include "BIF_gl.h"
 
@@ -779,81 +780,132 @@ void pose_copy_menu(Scene *scene)
 
 /* ******************** copy/paste pose ********************** */
 
-static bPose	*g_posebuf=NULL;
+/* Global copy/paste buffer for pose - cleared on start/end session + before every copy operation */
+static bPose *g_posebuf = NULL;
 
 void free_posebuf(void) 
 {
 	if (g_posebuf) {
-		// was copied without constraints
-		BLI_freelistN (&g_posebuf->chanbase);
-		MEM_freeN (g_posebuf);
+		/* was copied without constraints */
+		BLI_freelistN(&g_posebuf->chanbase);
+		MEM_freeN(g_posebuf);
 	}
+	
 	g_posebuf=NULL;
 }
 
-void copy_posebuf (Scene *scene)
-{
-	Object *ob= OBACT;
+/* ---- */
 
-	if (!ob || !ob->pose){
-		error ("No Pose");
-		return;
+static int pose_copy_exec (bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	
+	/* sanity checking */
+	if ELEM(NULL, ob, ob->pose) {
+		BKE_report(op->reports, RPT_ERROR, "No Pose to Copy");
+		return OPERATOR_CANCELLED;
 	}
 
+	/* free existing pose buffer */
 	free_posebuf();
 	
-	set_pose_keys(ob);  // sets chan->flag to POSE_KEY if bone selected
+	/* sets chan->flag to POSE_KEY if bone selected, then copy those bones to the buffer */
+	set_pose_keys(ob);  
 	copy_pose(&g_posebuf, ob->pose, 0);
-
+	
+	
+	return OPERATOR_FINISHED;
 }
 
-void paste_posebuf (Scene *scene, int flip)
+void POSE_OT_copy (wmOperatorType *ot) 
 {
-	Object *ob= OBACT;
-	bPoseChannel *chan, *pchan;
-	float eul[4];
-	char name[32];
+	/* identifiers */
+	ot->name= "Copy Pose";
+	ot->idname= "POSE_OT_copy";
+	ot->description= "Copies the current pose of the selected bones to copy/paste buffer.";
 	
-	if (!ob || !ob->pose)
-		return;
+	/* api callbacks */
+	ot->exec= pose_copy_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flag */
+	ot->flag= OPTYPE_REGISTER;
+}
 
-	if (!g_posebuf){
-		error ("Copy buffer is empty");
-		return;
+/* ---- */
+
+static int pose_paste_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	bPoseChannel *chan, *pchan;
+	char name[32];
+	int flip= RNA_boolean_get(op->ptr, "flipped");
+	
+	/* sanity checks */
+	if ELEM(NULL, ob, ob->pose)
+		return OPERATOR_CANCELLED;
+
+	if (g_posebuf == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Copy buffer is empty");
+		return OPERATOR_CANCELLED;
 	}
 	
-	/*
-	// disabled until protected bones in proxies follow the rules everywhere else!
-	if(pose_has_protected_selected(ob, 1, 1))
-		return;
-	*/
-	
-	/* Safely merge all of the channels in this pose into
-	any existing pose */
-	for (chan=g_posebuf->chanbase.first; chan; chan=chan->next) {
+	/* Safely merge all of the channels in the buffer pose into any existing pose */
+	for (chan= g_posebuf->chanbase.first; chan; chan=chan->next) {
 		if (chan->flag & POSE_KEY) {
+			/* get the name - if flipping, we must flip this first */
 			BLI_strncpy(name, chan->name, sizeof(name));
 			if (flip)
-				bone_flip_name (name, 0);		// 0 = don't strip off number extensions
+				bone_flip_name(name, 0);		/* 0 = don't strip off number extensions */
 				
 			/* only copy when channel exists, poses are not meant to add random channels to anymore */
 			pchan= get_pose_channel(ob->pose, name);
 			
 			if (pchan) {
-				/* only loc rot size */
-				/* only copies transform info for the pose */
+				/* only loc rot size 
+				 *	- only copies transform info for the pose 
+				 */
 				VECCOPY(pchan->loc, chan->loc);
 				VECCOPY(pchan->size, chan->size);
-				QUATCOPY(pchan->quat, chan->quat);
 				pchan->flag= chan->flag;
 				
+				/* check if rotation modes are compatible (i.e. do they need any conversions) */
+				if (pchan->rotmode == chan->rotmode) {
+					/* copy the type of rotation in use */
+					if (pchan->rotmode) {
+						VECCOPY(pchan->eul, chan->eul);
+					}
+					else {
+						QUATCOPY(pchan->quat, chan->quat);
+					}
+				}
+				else if (pchan->rotmode) {
+					/* quat to euler */
+					QuatToEul(chan->quat, pchan->eul);
+				}
+				else {
+					/* euler to quat */
+					EulToQuat(chan->eul, pchan->quat);
+				}
+				
+				/* paste flipped pose? */
 				if (flip) {
 					pchan->loc[0]*= -1;
 					
-					QuatToEul(pchan->quat, eul);
-					eul[1]*= -1;
-					eul[2]*= -1;
-					EulToQuat(eul, pchan->quat);
+					/* has to be done as eulers... */
+					if (pchan->rotmode) {
+						pchan->eul[1] *= -1;
+						pchan->eul[2] *= -1;
+					}
+					else {
+						float eul[3];
+						
+						QuatToEul(pchan->quat, eul);
+						eul[1]*= -1;
+						eul[2]*= -1;
+						EulToQuat(eul, pchan->quat);
+					}
 				}
 				
 #if 0 // XXX old animation system
@@ -861,6 +913,7 @@ void paste_posebuf (Scene *scene, int flip)
 					ID *id= &ob->id;
 					
 					/* Set keys on pose */
+					// TODO: make these use keyingsets....
 					if (chan->flag & POSE_ROT) {
 						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
 						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
@@ -903,8 +956,29 @@ void paste_posebuf (Scene *scene, int flip)
 		where_is_pose(scene, ob);
 		ob->recalc= 0;
 	}
+	
+	/* notifiers for updates */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE|ND_TRANSFORM, ob);
 
-	BIF_undo_push("Paste Action Pose");
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_paste (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Paste Pose";
+	ot->idname= "POSE_OT_paste";
+	ot->description= "Pastes the stored pose on to the current pose.";
+	
+	/* api callbacks */
+	ot->exec= pose_paste_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flag */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "flipped", 0, "Flipped on X-Axis", "");
 }
 
 /* ********************************************** */
