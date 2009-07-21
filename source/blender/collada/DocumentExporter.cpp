@@ -1,3 +1,7 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
@@ -21,6 +25,7 @@ extern "C"
 #include "BKE_material.h"
 
 #include "BLI_arithb.h"
+#include "BLI_string.h"
 
 #include "DocumentExporter.h"
 
@@ -57,7 +62,6 @@ extern "C"
 
 #include <vector>
 #include <algorithm> // std::find
-#include <math.h>
 
 // TODO: this can handy in BLI_arith.b
 // This function assumes that quat is normalized.
@@ -130,15 +134,14 @@ void forEachMeshObjectInScene(Scene *sce, Functor &f)
 }
 
 template<class Functor>
-void forEachObjectWithAnimationInScene(Scene *sce, Functor &f)
+void forEachObjectInScene(Scene *sce, Functor &f)
 {
 	Base *base= (Base*) sce->base.first;
 	while(base) {
 		Object *ob = base->object;
 			
-		if (ob->adt && ob->data) {
-			f(ob);
-		}
+		f(ob);
+
 		base= base->next;
 	}
 }
@@ -573,22 +576,31 @@ public:
 	void writeNodes(Object *ob, Scene *sce) {
 		
 		COLLADASW::Node node(mSW);
+		node.setNodeId(ob->id.name);
+		node.setType(COLLADASW::Node::NODE);
+
 		std::string ob_name(id_name(ob));
+
 		node.start();
+		node.addTranslate("location", ob->loc[0], ob->loc[1], ob->loc[2]);
 		
-		node.addTranslate(ob->loc[0], ob->loc[1], ob->loc[2]);
-		
-		// when animation time comes, replace a single <rotate> with 3, one for each axis
-		float quat[4];
-		float axis[3];
-		float angle;
-		double angle_deg;
-		EulToQuat(ob->rot, quat);
-		NormalQuat(quat);
-		QuatToAxisAngle(quat, axis, &angle);
-		angle_deg = angle * 180.0f / M_PI;
-		node.addRotate(axis[0], axis[1], axis[2], angle_deg);
-		node.addScale(ob->size[0], ob->size[1], ob->size[2]);
+		// this code used to create a single <rotate> representing object rotation
+		// float quat[4];
+		// float axis[3];
+		// float angle;
+		// double angle_deg;
+		// EulToQuat(ob->rot, quat);
+		// NormalQuat(quat);
+		// QuatToAxisAngle(quat, axis, &angle);
+		// angle_deg = angle * 180.0f / M_PI;
+		// node.addRotate(axis[0], axis[1], axis[2], angle_deg);
+
+		float *rot = ob->rot;
+		node.addRotateX("rotationX", COLLADABU::Math::Utils::radToDegF(rot[0]));
+		node.addRotateY("rotationY", COLLADABU::Math::Utils::radToDegF(rot[1]));
+		node.addRotateZ("rotationZ", COLLADABU::Math::Utils::radToDegF(rot[2]));
+
+		node.addScale("scale", ob->size[0], ob->size[1], ob->size[2]);
 		
 		// <instance_geometry>
 		if (ob->type == OB_MESH) {
@@ -1020,43 +1032,226 @@ public:
 	}
 };
 
-class AnimationsExporter: COLLADASW::LibraryAnimations
+// TODO: it would be better to instantiate animations rather than create a new one per object
+// COLLADA allows this through multiple <channel>s in <animation>.
+// For this to work, we need to know objects that use a certain action.
+class AnimationExporter: COLLADASW::LibraryAnimations
 {
+	Scene *scene;
 public:
-	AnimationsExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryAnimations(sw) {}
-	void exportAnimation(Scene *sce)
+	AnimationExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryAnimations(sw) {}
+
+	void exportAnimations(Scene *sce)
 	{
+		this->scene = sce;
+
 		openLibrary();
 		
-		forEachObjectWithAnimationInScene(sce, *this);
+		forEachObjectInScene(sce, *this);
 		
 		closeLibrary();
 	}
+
+	// create <animation> for each transform axis
+
+	float convert_time(float frame) {
+		return FRA2TIME(frame);
+	}
+
+	float convert_angle(float angle) {
+		return COLLADABU::Math::Utils::radToDegF(angle);
+	}
+
+	std::string get_semantic_suffix(Sampler::Semantic semantic) {
+		switch(semantic) {
+		case Sampler::INPUT:
+			return INPUT_SOURCE_ID_SUFFIX;
+		case Sampler::OUTPUT:
+			return OUTPUT_SOURCE_ID_SUFFIX;
+		case Sampler::INTERPOLATION:
+			return INTERPOLATION_SOURCE_ID_SUFFIX;
+		case Sampler::IN_TANGENT:
+			return INTANGENT_SOURCE_ID_SUFFIX;
+		case Sampler::OUT_TANGENT:
+			return OUTTANGENT_SOURCE_ID_SUFFIX;
+		}
+		return "";
+	}
+
+	void add_source_parameters(COLLADASW::SourceBase::ParameterNameList& param,
+							   Sampler::Semantic semantic, bool rotation, char *axis) {
+		switch(semantic) {
+		case Sampler::INPUT:
+			param.push_back("TIME");
+			break;
+		case Sampler::OUTPUT:
+			if (rotation) {
+				param.push_back("ANGLE");
+			}
+			else {
+				param.push_back(axis);
+			}
+			break;
+		case Sampler::IN_TANGENT:
+		case Sampler::OUT_TANGENT:
+			param.push_back("X");
+			param.push_back("Y");
+			break;
+		}
+	}
+
+	void get_source_values(BezTriple *bezt, Sampler::Semantic semantic, bool rotation, float *values, int *length)
+	{
+		switch (semantic) {
+		case Sampler::INPUT:
+			*length = 1;
+			values[0] = convert_time(bezt->vec[1][0]);
+			break;
+		case Sampler::OUTPUT:
+			*length = 1;
+			if (rotation) {
+				values[0] = convert_angle(bezt->vec[1][1]);
+			}
+			else {
+				values[0] = bezt->vec[1][1];
+			}
+			break;
+		case Sampler::IN_TANGENT:
+		case Sampler::OUT_TANGENT:
+			// XXX
+			*length = 2;
+			break;
+		}
+	}
+
+	std::string create_source(Sampler::Semantic semantic, FCurve *fcu, std::string& anim_id, char *axis_name)
+	{
+		std::string source_id = anim_id + get_semantic_suffix(semantic);
+
+		bool is_rotation = !strcmp(fcu->rna_path, "rotation");
+
+		COLLADASW::FloatSourceF source(mSW);
+		source.setId(source_id);
+		source.setArrayId(source_id + ARRAY_ID_SUFFIX);
+		source.setAccessorCount(fcu->totvert);
+		source.setAccessorStride(1);
+		
+		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
+		add_source_parameters(param, semantic, is_rotation, axis_name);
+
+		source.prepareToAppendValues();
+
+		for (int i = 0; i < fcu->totvert; i++) {
+			float values[3]; // be careful!
+			int length;
+
+			get_source_values(&fcu->bezt[i], semantic, is_rotation, values, &length);
+			for (int j = 0; j < length; j++)
+				source.appendValues(values[j]);
+		}
+
+		source.finish();
+
+		return source_id;
+	}
+
+	std::string create_interpolation_source(FCurve *fcu, std::string& anim_id, char *axis_name)
+	{
+		std::string source_id = anim_id + get_semantic_suffix(Sampler::INTERPOLATION);
+
+		bool is_rotation = !strcmp(fcu->rna_path, "rotation");
+
+		COLLADASW::NameSource source(mSW);
+		source.setId(source_id);
+		source.setArrayId(source_id + ARRAY_ID_SUFFIX);
+		source.setAccessorCount(fcu->totvert);
+		source.setAccessorStride(1);
+		
+		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
+		param.push_back("INTERPOLATION");
+
+		source.prepareToAppendValues();
+
+		for (int i = 0; i < fcu->totvert; i++) {
+			// XXX
+			source.appendValues(LINEAR_NAME);
+		}
+
+		source.finish();
+
+		return source_id;
+	}
+
+	std::string get_transform_sid(char *rna_path, char *axis_name)
+	{
+		if (!strcmp(rna_path, "rotation"))
+			return std::string(rna_path) + axis_name;
+
+		return std::string(rna_path) + "." + axis_name;
+	}
+
+	void add_animation(FCurve *fcu, const char *ob_name)
+	{
+		static char *axis_names[] = {"X", "Y", "Z"};
+		char *axis_name = NULL;
+		char c_anim_id[100]; // careful!
+
+		if (fcu->array_index < 3)
+			axis_name = axis_names[fcu->array_index];
+
+		BLI_snprintf(c_anim_id, sizeof(c_anim_id), "%s.%s.%s", ob_name, fcu->rna_path, axis_names[fcu->array_index]);
+		std::string anim_id(c_anim_id);
+
+		// check rna_path is one of: rotation, scale, location
+
+		openAnimation(anim_id);
+
+		// create input source
+		std::string input_id = create_source(Sampler::INPUT, fcu, anim_id, axis_name);
+
+		// create output source
+		std::string output_id = create_source(Sampler::OUTPUT, fcu, anim_id, axis_name);
+
+		// create interpolations source
+		std::string interpolation_id = create_interpolation_source(fcu, anim_id, axis_name);
+
+		std::string sampler_id = anim_id + SAMPLER_ID_SUFFIX;
+		COLLADASW::LibraryAnimations::Sampler sampler(sampler_id);
+		std::string empty;
+		sampler.addInput(Sampler::INPUT, COLLADABU::URI(empty, input_id));
+		sampler.addInput(Sampler::OUTPUT, COLLADABU::URI(empty, output_id));
+
+		// this input is required
+		sampler.addInput(Sampler::INTERPOLATION, COLLADABU::URI(empty, interpolation_id));
+
+		addSampler(sampler);
+
+		std::string target = std::string(ob_name) + "/" + get_transform_sid(fcu->rna_path, axis_name);
+		addChannel(COLLADABU::URI(empty, sampler_id), target);
+
+		closeAnimation();
+	}
+
+	// called for each exported object
 	void operator() (Object *ob) 
 	{
-		
-		AnimData *adt = ob->adt;
-		NlaTrack *nlt;
-		NlaStrip *strip;
-		FCurve *fcu;		
-		
-		// iterate over all nla tracks
-		for (nlt = (NlaTrack*)adt->nla_tracks.first; nlt; nlt = nlt->next) {
-			
-			// iterate over all nla strips of current nla track
-			for (strip = (NlaStrip*)nlt->strips.first; strip; strip = strip->next) {
-				bAction *act = strip->act;
-				// iterate over all fcurves of current nla strip's action
-				for (fcu = (FCurve*)act->curves.first; fcu; fcu = fcu->next) {
-					// write <animation> for each fcurve
-					// each fcurve represents one axis of loc/rot/scale
-					// through fcurve I can take intangents and outtangents
-					// but how do I get objects loc/rot/scale data at specific time
-					
-				}
+		if (!ob->adt || !ob->adt->action) return;
+
+		// XXX this needs to be handled differently?
+		if (ob->type == OB_ARMATURE) return;
+
+		FCurve *fcu = (FCurve*)ob->adt->action->curves.first;
+		while (fcu) {
+
+			if (!strcmp(fcu->rna_path, "location") ||
+				!strcmp(fcu->rna_path, "scale") ||
+				!strcmp(fcu->rna_path, "rotation")) {
+
+				add_animation(fcu, ob->id.name);
 			}
+
+			fcu = fcu->next;
 		}
-		
 	}
 };
 
@@ -1099,6 +1294,10 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	// <library_geometries>
 	GeometryExporter ge(&sw);
 	ge.exportGeom(sce);
+
+	// <library_animations>
+	AnimationExporter ae(&sw);
+	ae.exportAnimations(sce);
 	
 	// <library_visual_scenes>
 	SceneExporter se(&sw);
