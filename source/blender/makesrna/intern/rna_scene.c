@@ -60,6 +60,8 @@ EnumPropertyItem prop_mode_items[] ={
 
 #include "BLI_threads.h"
 
+#include "RE_pipeline.h"
+
 PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal= iter->internal;
@@ -163,6 +165,48 @@ static void rna_SceneRenderData_active_layer_index_range(PointerRNA *ptr, int *m
 	*max= MAX2(0, *max);
 }
 
+static void rna_SceneRenderData_engine_set(PointerRNA *ptr, int value)
+{
+	RenderData *rd= (RenderData*)ptr->data;
+	RenderEngineType *type= BLI_findlink(&R_engines, value);
+
+	if(type)
+		BLI_strncpy(rd->engine, type->idname, sizeof(rd->engine));
+}
+
+static EnumPropertyItem *rna_SceneRenderData_engine_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	RenderEngineType *type;
+	EnumPropertyItem *item= NULL;
+	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	int a=0, totitem= 0;
+
+	for(type=R_engines.first; type; type=type->next, a++) {
+		tmp.value= a;
+		tmp.identifier= type->idname;
+		tmp.name= type->name;
+		RNA_enum_item_add(&item, &totitem, &tmp);
+	}
+	
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
+}
+
+static int rna_SceneRenderData_engine_get(PointerRNA *ptr)
+{
+	RenderData *rd= (RenderData*)ptr->data;
+	RenderEngineType *type;
+	int a= 0;
+
+	for(type=R_engines.first; type; type=type->next, a++)
+		if(strcmp(type->idname, rd->engine) == 0)
+			return a;
+	
+	return 0;
+}
+
 static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	Scene *scene= (Scene*)ptr->id.data;
@@ -181,6 +225,11 @@ static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
 			}
 		}
 	}
+}
+
+static int rna_SceneRenderData_multiple_engines_get(PointerRNA *ptr)
+{
+	return (BLI_countlist(&R_engines) > 1);
 }
 
 static void rna_SceneRenderLayer_layer_set(PointerRNA *ptr, const int *values)
@@ -997,6 +1046,10 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 #endif
 
+	static EnumPropertyItem engine_items[] = {
+		{0, "BLENDER", 0, "Blender", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "SceneRenderData", NULL);
 	RNA_def_struct_sdna(srna, "RenderData");
 	RNA_def_struct_nested(brna, srna, "Scene");
@@ -1520,6 +1573,17 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, "rna_SceneRenderData_active_layer_index_get", "rna_SceneRenderData_active_layer_index_set", "rna_SceneRenderData_active_layer_index_range");
 	RNA_def_property_ui_text(prop, "Active Layer Index", "Active index in render layer array.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	/* engine */
+	prop= RNA_def_property(srna, "engine", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, engine_items);
+	RNA_def_property_enum_funcs(prop, "rna_SceneRenderData_engine_get", "rna_SceneRenderData_engine_set", "rna_SceneRenderData_engine_itemf");
+	RNA_def_property_ui_text(prop, "Engine", "Engine to use for rendering.");
+
+	prop= RNA_def_property(srna, "multiple_engines", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_SceneRenderData_multiple_engines_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Multiple Engine", "More than one rendering engine is available.");
 }
 
 void RNA_def_scene(BlenderRNA *brna)

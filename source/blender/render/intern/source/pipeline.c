@@ -1664,8 +1664,23 @@ void RE_TileProcessor(Render *re, int firsttile, int threaded)
 
 /* ************  This part uses API, for rendering Blender scenes ********** */
 
+static void external_render_3d(Render *re, RenderEngineType *type);
+
 static void do_render_3d(Render *re)
 {
+	RenderEngineType *type;
+
+	/* try external */
+	for(type=R_engines.first; type; type=type->next)
+		if(strcmp(type->idname, re->r.engine) == 0)
+			break;
+
+	if(type && type->render) {
+		external_render_3d(re, type);
+		return;
+	}
+
+	/* internal */
 	
 //	re->cfra= cfra;	/* <- unused! */
 	
@@ -1681,7 +1696,6 @@ static void do_render_3d(Render *re)
 	if(re->flag & R_HALO)
 		if(!re->test_break(re->tbh))
 			add_halo_flare(re);
-
 	
 	/* free all render verts etc */
 	RE_Database_Free(re);
@@ -2766,3 +2780,163 @@ void RE_init_threadcount(Render *re)
 		re->r.threads = BLI_system_thread_count();
 	}
 }
+
+/************************** External Engines ***************************/
+
+static RenderEngineType internal_engine_type = {
+	NULL, NULL, "BlenderRenderEngine", "Blender", NULL,
+	NULL, NULL, NULL, NULL};
+
+ListBase R_engines = {&internal_engine_type, &internal_engine_type};
+
+RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h)
+{
+	Render *re= engine->re;
+	RenderResult *result;
+	rcti disprect;
+
+	/* ensure the coordinates are within the right limits */
+	CLAMP(x, 0, re->result->rectx);
+	CLAMP(y, 0, re->result->recty);
+	CLAMP(w, 0, re->result->rectx);
+	CLAMP(h, 0, re->result->recty);
+
+	if(x + w > re->result->rectx)
+		w= re->result->rectx - x;
+	if(y + h > re->result->recty)
+		h= re->result->recty - y;
+
+	/* allocate a render result */
+	disprect.xmin= x;
+	disprect.xmax= x+w;
+	disprect.ymin= y;
+	disprect.ymax= y+h;
+
+	if(0) { // XXX (re->r.scemode & R_FULL_SAMPLE)) {
+		result= new_full_sample_buffers(re, &engine->fullresult, &disprect, 0);
+	}
+	else {
+		result= new_render_result(re, &disprect, 0, RR_USEMEM);
+		BLI_addtail(&engine->fullresult, result);
+	}
+
+	return result;
+}
+
+void RE_engine_update_result(RenderEngine *engine, RenderResult *result)
+{
+	Render *re= engine->re;
+
+	if(result && render_display_draw_enabled(re)) {
+		result->renlay= result->layers.first; // weak
+		re->display_draw(re->ddh, result, NULL);
+	}
+}
+
+void RE_engine_end_result(RenderEngine *engine, RenderResult *result)
+{
+	Render *re= engine->re;
+
+	if(!result)
+		return;
+
+	/* merge */
+	if(re->result->exrhandle) {
+		RenderResult *rr, *rrpart;
+		
+		// XXX crashes, exr expects very particular part sizes
+		for(rr= re->result, rrpart= result; rr && rrpart; rr= rr->next, rrpart= rrpart->next)
+			save_render_result_tile(rr, rrpart);
+	}
+	else if(render_display_draw_enabled(re)) {
+		/* on break, don't merge in result for preview renders, looks nicer */
+		if(re->test_break(re->tbh) && (re->r.scemode & R_PREVIEWBUTS));
+		else merge_render_result(re->result, result);
+	}
+
+	/* draw */
+	if(!re->test_break(re->tbh) && render_display_draw_enabled(re)) {
+		result->renlay= result->layers.first; // weak
+		re->display_draw(re->ddh, result, NULL);
+	}
+
+	/* free */
+	free_render_result(&engine->fullresult, result);
+}
+
+int RE_engine_test_break(RenderEngine *engine)
+{
+	Render *re= engine->re;
+
+	return re->test_break(re->tbh);
+}
+
+void RE_engine_update_stats(RenderEngine *engine, char *stats, char *info)
+{
+	Render *re= engine->re;
+
+	re->i.statstr= stats;
+	re->i.infostr= info;
+	re->stats_draw(re->sdh, &re->i);
+	re->i.infostr= NULL;
+	re->i.statstr= NULL;
+}
+
+static void external_render_3d(Render *re, RenderEngineType *type)
+{
+	RenderEngine engine;
+
+	if(re->result==NULL || !(re->r.scemode & R_PREVIEWBUTS)) {
+		RE_FreeRenderResult(re->result);
+	
+		if(0) // XXX re->r.scemode & R_FULL_SAMPLE)
+			re->result= new_full_sample_buffers_exr(re);
+		else
+			re->result= new_render_result(re, &re->disprect, 0, 0); // XXX re->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE));
+	}
+	
+	if(re->result==NULL)
+		return;
+
+	/* external */
+	memset(&engine, 0, sizeof(engine));
+	engine.type= type;
+	engine.re= re;
+
+	type->render(&engine, re->scene);
+
+	free_render_result(&engine.fullresult, engine.fullresult.first);
+
+	if(re->result->exrhandle) {
+		RenderResult *rr;
+
+		save_empty_result_tiles(re);
+		
+		for(rr= re->result; rr; rr= rr->next) {
+			IMB_exr_close(rr->exrhandle);
+			rr->exrhandle= NULL;
+		}
+		
+		free_render_result(&re->fullresult, re->result);
+		re->result= NULL;
+		
+		read_render_result(re, 0);
+	}
+}
+
+void RE_engines_free()
+{
+	RenderEngineType *type, *next;
+
+	for(type=R_engines.first; type; type=next) {
+		next= type->next;
+
+		if(type != &internal_engine_type) {
+			if(type->ext.free)
+				type->ext.free(type->ext.data);
+
+			MEM_freeN(type);
+		}
+	}
+}
+

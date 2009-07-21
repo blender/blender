@@ -18,6 +18,8 @@ class RENDER_PT_render(RenderButtonsPanel):
 		row.item_booleanO("screen.render", "anim", True, text="Animation", icon='ICON_SEQUENCE')
 
 		layout.itemR(rd, "display_mode", text="Display")
+		if rd.multiple_engines:
+			layout.itemR(rd, "engine")
 
 class RENDER_PT_layers(RenderButtonsPanel):
 	__label__ = "Layers"

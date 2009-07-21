@@ -239,6 +239,7 @@ void WM_exit(bContext *C)
 	BLF_exit();
 
 	RE_FreeAllRender();
+	RE_engines_free();
 	
 //	free_txt_data();
 	

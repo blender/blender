@@ -2486,20 +2486,25 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 	else if(scene->r.scemode & R_SINGLE_LAYER)
 		spos+= sprintf(spos, "Single Layer | ");
 	
-	spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d ", (scene->r.cfra), rs->totvert, rs->totface);
-	if(rs->tothalo) spos+= sprintf(spos, "Ha:%d ", rs->tothalo);
-	if(rs->totstrand) spos+= sprintf(spos, "St:%d ", rs->totstrand);
-	spos+= sprintf(spos, "La:%d Mem:%.2fM (%.2fM) ", rs->totlamp, megs_used_memory, mmap_used_memory);
-	
-	if(rs->curfield)
-		spos+= sprintf(spos, "Field %d ", rs->curfield);
-	if(rs->curblur)
-		spos+= sprintf(spos, "Blur %d ", rs->curblur);
+	if(rs->statstr) {
+		spos+= sprintf(spos, "%s ", rs->statstr);
+	}
+	else {
+		spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d ", (scene->r.cfra), rs->totvert, rs->totface);
+		if(rs->tothalo) spos+= sprintf(spos, "Ha:%d ", rs->tothalo);
+		if(rs->totstrand) spos+= sprintf(spos, "St:%d ", rs->totstrand);
+		spos+= sprintf(spos, "La:%d Mem:%.2fM (%.2fM) ", rs->totlamp, megs_used_memory, mmap_used_memory);
+		
+		if(rs->curfield)
+			spos+= sprintf(spos, "Field %d ", rs->curfield);
+		if(rs->curblur)
+			spos+= sprintf(spos, "Blur %d ", rs->curblur);
+	}
 	
 	BLI_timestr(rs->lastframetime, info_time_str);
 	spos+= sprintf(spos, "Time:%s ", info_time_str);
 	
-	if(rs->infostr)
+	if(rs->infostr && rs->infostr[0])
 		spos+= sprintf(spos, "| %s ", rs->infostr);
 	
 	/* very weak... but 512 characters is quite safe */

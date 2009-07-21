@@ -235,7 +235,7 @@ typedef struct RenderData {
 	 */
 	int mode;
 
-	/* render engine, octree resolution */
+	/* render engine (deprecated), octree resolution */
 	short renderer, ocres;
 
 	/**
@@ -334,6 +334,8 @@ typedef struct RenderData {
 	float pad2;			//  XXX deprecated since 2.5
 	struct Text *dometext;	//  XXX deprecated since 2.5
 
+	/* render engine */
+	char engine[32];
 } RenderData;
 
 /* control render convert and shading engine */
