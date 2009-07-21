@@ -426,6 +426,8 @@ static void render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int channel
 	BLI_addtail(&rl->passes, rpass);
 	rpass->passtype= passtype;
 	rpass->channels= channels;
+	rpass->rectx= rl->rectx;
+	rpass->recty= rl->recty;
 	
 	if(rr->exrhandle) {
 		int a;
@@ -528,6 +530,8 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 		rl->pass_xor= srl->pass_xor;
 		rl->light_override= srl->light_override;
 		rl->mat_override= srl->mat_override;
+		rl->rectx= rectx;
+		rl->recty= recty;
 		
 		if(rr->exrhandle) {
 			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.R", 0, 0, NULL);
@@ -573,6 +577,9 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 		rl= MEM_callocN(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
 		
+		rl->rectx= rectx;
+		rl->recty= recty;
+
 		/* duplicate code... */
 		if(rr->exrhandle) {
 			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.R", 0, 0, NULL);
@@ -810,7 +817,7 @@ static void ml_addpass_cb(void *base, void *lay, char *str, float *rect, int tot
 	
 	BLI_addtail(&rl->passes, rpass);
 	rpass->channels= totchan;
-	
+
 	rpass->passtype= passtype_from_name(str);
 	if(rpass->passtype==0) printf("unknown pass %s\n", str);
 	rl->passflag |= rpass->passtype;
@@ -827,11 +834,23 @@ static void ml_addpass_cb(void *base, void *lay, char *str, float *rect, int tot
 RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty)
 {
 	RenderResult *rr= MEM_callocN(sizeof(RenderResult), "loaded render result");
+	RenderLayer *rl;
+	RenderPass *rpass;
 	
 	rr->rectx= rectx;
 	rr->recty= recty;
 	
 	IMB_exr_multilayer_convert(exrhandle, rr, ml_addlayer_cb, ml_addpass_cb);
+
+	for(rl=rr->layers.first; rl; rl=rl->next) {
+		rl->rectx= rectx;
+		rl->recty= recty;
+
+		for(rpass=rl->passes.first; rpass; rpass=rpass->next) {
+			rpass->rectx= rectx;
+			rpass->recty= recty;
+		}
+	}
 	
 	return rr;
 }

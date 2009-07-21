@@ -52,6 +52,7 @@ CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../windowmanager
 CPPFLAGS += -I../../editors/include
+CPPFLAGS += -I../../render/extern/include
 CPPFLAGS += -I..
 CPPFLAGS += -I.
 

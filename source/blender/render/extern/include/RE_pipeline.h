@@ -64,6 +64,7 @@ typedef struct RenderPass {
 	char name[16];		/* amount defined in openexr_multi.h */
 	char chan_id[8];	/* amount defined in openexr_multi.h */
 	float *rect;
+	int rectx, recty;
 } RenderPass;
 
 /* a renderlayer is a full image, but with all passes and samples */
@@ -83,6 +84,7 @@ typedef struct RenderLayer {
 	float *rectf;		/* 4 float, standard rgba buffer (read not above!) */
 	float *acolrect;	/* 4 float, optional transparent buffer, needs storage for display updates */
 	float *scolrect;	/* 4 float, optional strand buffer, needs storage for display updates */
+	int rectx, recty;
 	
 	ListBase passes;
 	
