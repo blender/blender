@@ -1098,7 +1098,7 @@ static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
 		texface->tile = texpoly->tile;
 		texface->unwrap = texpoly->unwrap;
 	
-		for (j=0; j<3; i++) {
+		for (j=0; j<3; j++) {
 			l = l3[j];
 			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPUV, i);
 			texface->uv[j][0] = mloopuv->uv[0];
