@@ -291,10 +291,6 @@ void BKE_screen_area_free(ScrArea *sa)
 	BKE_spacedata_freelist(&sa->spacedata);
 	
 	BLI_freelistN(&sa->actionzones);
-	
-#ifndef DISABLE_PYTHON
-	BPY_free_scriptlink(&sa->scriptlink);
-#endif
 }
 
 /* don't free screen itself */

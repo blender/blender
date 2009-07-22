@@ -1938,7 +1938,6 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_render.c", NULL, RNA_def_render},
 	{"rna_scene.c", NULL, RNA_def_scene},
 	{"rna_screen.c", NULL, RNA_def_screen},
-	{"rna_scriptlink.c", NULL, RNA_def_scriptlink},
 	{"rna_sensor.c", NULL, RNA_def_sensor},
 	{"rna_sequence.c", NULL, RNA_def_sequence},
 	{"rna_space.c", NULL, RNA_def_space},

@@ -32,7 +32,6 @@
 #define DNA_MATERIAL_TYPES_H
 
 #include "DNA_ID.h"
-#include "DNA_scriptlink_types.h"
 #include "DNA_listBase.h"
 
 #ifndef MAX_MTEX
@@ -134,8 +133,6 @@ typedef struct Material {
 	/* yafray: absorption color, dispersion parameters and material preset menu */
 	float YF_ar, YF_ag, YF_ab, YF_dscale, YF_dpwr;
 	int YF_dsmp, YF_preset, YF_djit;
-	
-	ScriptLink scriptlink;
 
 	ListBase gpumaterial;		/* runtime */
 } Material;

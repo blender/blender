@@ -54,7 +54,6 @@
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_scriptlink_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 
@@ -142,10 +141,6 @@ void free_scene(Scene *sce)
 
 	BLI_freelistN(&sce->base);
 	seq_free_editing(sce->ed);
-	
-#ifndef DISABLE_PYTHON
-	BPY_free_scriptlink(&sce->scriptlink);
-#endif
 
 	BKE_free_animdata((ID *)sce);
 	BKE_keyingsets_free(&sce->keyingsets);
@@ -398,9 +393,6 @@ void set_scene_bg(Scene *scene)
 		ob->ctime= -1234567.0;	/* force ipo to be calculated later */
 	}
 	/* no full animation update, this to enable render code to work (render code calls own animation updates) */
-	
-	/* do we need FRAMECHANGED in set_scene? */
-//	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED, 0);
 }
 
 /* called from creator.c */
@@ -659,9 +651,6 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 	/* clear animation overrides */
 	// XXX TODO...
 	
-#ifndef DISABLE_PYTHON
-	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED, 0);
-#endif
 	/* sets first, we allow per definition current scene to have dependencies on sets */
 	for(sce= sce->set; sce; sce= sce->set)
 		scene_update(sce, lay);

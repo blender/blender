@@ -554,8 +554,6 @@ void WM_write_file(bContext *C, char *target, ReportList *reports)
 	}
  
 	/* send the OnSave event */
-// XXX	if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript(&CTX_data_scene(C)->id, SCRIPT_ONSAVE);
-
 	for (li= G.main->library.first; li; li= li->id.next) {
 		if (BLI_streq(li->name, target)) {
 			BKE_report(reports, RPT_ERROR, "Cannot overwrite used library");

@@ -1565,33 +1565,6 @@ static PreviewImage *direct_link_preview_image(FileData *fd, PreviewImage *old_p
 	return prv;
 }
 
-/* ************ READ SCRIPTLINK *************** */
-
-static void lib_link_scriptlink(FileData *fd, ID *id, ScriptLink *slink)
-{
-	int i;
-
-	for(i=0; i<slink->totscript; i++) {
-		slink->scripts[i]= newlibadr(fd, id->lib, slink->scripts[i]);
-	}
-}
-
-static void direct_link_scriptlink(FileData *fd, ScriptLink *slink)
-{
-	slink->scripts= newdataadr(fd, slink->scripts);
-	test_pointer_array(fd, (void **)&slink->scripts);
-	
-	slink->flag= newdataadr(fd, slink->flag);
-
-	if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-		int a;
-
-		for(a=0; a<slink->totscript; a++) {
-			SWITCH_SHORT(slink->flag[a]);
-		}
-	}
-}
-
 /* ************ READ ANIMATION STUFF ***************** */
 
 /* Legacy Data Support (for Version Patching) ----------------------------- */
@@ -2367,8 +2340,6 @@ static void lib_link_camera(FileData *fd, Main *main)
 			
 			ca->dof_ob= newlibadr_us(fd, ca->id.lib, ca->dof_ob);
 			
-			lib_link_scriptlink(fd, &ca->id, &ca->scriptlink);
-			
 			ca->id.flag -= LIB_NEEDLINK;
 		}
 		ca= ca->id.next;
@@ -2379,8 +2350,6 @@ static void direct_link_camera(FileData *fd, Camera *ca)
 {
 	ca->adt= newdataadr(fd, ca->adt);
 	direct_link_animdata(fd, ca->adt);
-	
-	direct_link_scriptlink(fd, &ca->scriptlink);
 }
 
 
@@ -2407,8 +2376,6 @@ static void lib_link_lamp(FileData *fd, Main *main)
 			
 			la->ipo= newlibadr_us(fd, la->id.lib, la->ipo); // XXX depreceated - old animation system
 			
-			lib_link_scriptlink(fd, &la->id, &la->scriptlink);
-			
 			la->id.flag -= LIB_NEEDLINK;
 		}
 		la= la->id.next;
@@ -2421,8 +2388,6 @@ static void direct_link_lamp(FileData *fd, Lamp *la)
 	
 	la->adt= newdataadr(fd, la->adt);
 	direct_link_animdata(fd, la->adt);
-	
-	direct_link_scriptlink(fd, &la->scriptlink);
 
 	for(a=0; a<MAX_MTEX; a++) {
 		la->mtex[a]= newdataadr(fd, la->mtex[a]);
@@ -2568,8 +2533,6 @@ static void lib_link_world(FileData *fd, Main *main)
 				}
 			}
 			
-			lib_link_scriptlink(fd, &wrld->id, &wrld->scriptlink);
-			
 			wrld->id.flag -= LIB_NEEDLINK;
 		}
 		wrld= wrld->id.next;
@@ -2582,8 +2545,6 @@ static void direct_link_world(FileData *fd, World *wrld)
 
 	wrld->adt= newdataadr(fd, wrld->adt);
 	direct_link_animdata(fd, wrld->adt);
-	
-	direct_link_scriptlink(fd, &wrld->scriptlink);
 
 	for(a=0; a<MAX_MTEX; a++) {
 		wrld->mtex[a]= newdataadr(fd, wrld->mtex[a]);
@@ -2921,7 +2882,6 @@ static void lib_link_material(FileData *fd, Main *main)
 					mtex->object= newlibadr(fd, ma->id.lib, mtex->object);
 				}
 			}
-			lib_link_scriptlink(fd, &ma->id, &ma->scriptlink);
 			
 			if(ma->nodetree)
 				lib_link_ntree(fd, &ma->id, ma->nodetree);
@@ -2945,8 +2905,6 @@ static void direct_link_material(FileData *fd, Material *ma)
 
 	ma->ramp_col= newdataadr(fd, ma->ramp_col);
 	ma->ramp_spec= newdataadr(fd, ma->ramp_spec);
-	
-	direct_link_scriptlink(fd, &ma->scriptlink);
 	
 	ma->nodetree= newdataadr(fd, ma->nodetree);
 	if(ma->nodetree)
@@ -3585,7 +3543,6 @@ static void lib_link_object(FileData *fd, Main *main)
 				if(ob->pd->tex)
 					ob->pd->tex=newlibadr_us(fd, ob->id.lib, ob->pd->tex);
 
-			lib_link_scriptlink(fd, &ob->id, &ob->scriptlink);
 			lib_link_particlesystems(fd, ob, &ob->id, &ob->particlesystem);
 			lib_link_modifiers(fd, ob);
 		}
@@ -3784,8 +3741,6 @@ static void direct_link_object(FileData *fd, Object *ob)
 	direct_link_nlastrips(fd, &ob->nlastrips);
 	link_list(fd, &ob->constraintChannels);
 // >>> XXX depreceated - old animation system 
-
-	direct_link_scriptlink(fd, &ob->scriptlink);
 
 	ob->mat= newdataadr(fd, ob->mat);
 	test_pointer_array(fd, (void **)&ob->mat);
@@ -4039,8 +3994,6 @@ static void lib_link_scene(FileData *fd, Main *main)
 			}
 			SEQ_END
 			
-			lib_link_scriptlink(fd, &sce->id, &sce->scriptlink);
-			
 			if(sce->nodetree) {
 				lib_link_ntree(fd, &sce->id, sce->nodetree);
 				composite_patch(sce->nodetree, sce);
@@ -4216,8 +4169,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			}
 		}
 	}
-
-	direct_link_scriptlink(fd, &sce->scriptlink);
 	
 	sce->r.avicodecdata = newdataadr(fd, sce->r.avicodecdata);
 	if (sce->r.avicodecdata) {
@@ -4371,9 +4322,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 				SpaceLink *sl;
 				
 				sa->full= newlibadr(fd, sc->id.lib, sa->full);
-				
-				/* space handler scriptlinks */
-				lib_link_scriptlink(fd, &sc->id, &sa->scriptlink);
 				
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if(sl->spacetype==SPACE_VIEW3D) {
@@ -4552,16 +4500,6 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 		sa= sc->areabase.first;
 		while(sa) {
 			SpaceLink *sl;
-
-			if (sa->scriptlink.totscript) {
-				/* restore screen area script links */
-				ScriptLink *slink = &sa->scriptlink;
-				int script_idx;
-				for (script_idx = 0; script_idx < slink->totscript; script_idx++) {
-					slink->scripts[script_idx] = restore_pointer_by_name(newmain,
-						(ID *)slink->scripts[script_idx], 1);
-				}
-			}
 
 			for (sl= sa->spacedata.first; sl; sl= sl->next) {
 				if(sl->spacetype==SPACE_VIEW3D) {
@@ -4939,9 +4877,6 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 		sa->v2= newdataadr(fd, sa->v2);
 		sa->v3= newdataadr(fd, sa->v3);
 		sa->v4= newdataadr(fd, sa->v4);
-
-		/* space handler scriptlinks */
-		direct_link_scriptlink(fd, &sa->scriptlink);
 	}
 }
 
@@ -10200,15 +10135,6 @@ static void expand_modifier(FileData *fd, Main *mainvar, ModifierData *md)
 	}
 }
 
-static void expand_scriptlink(FileData *fd, Main *mainvar, ScriptLink *slink)
-{
-	int i;
-	
-	for(i=0; i<slink->totscript; i++) {
-		expand_doit(fd, mainvar, slink->scripts[i]);
-	}
-}
-
 static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 {
 	ModifierData *md;
@@ -10336,7 +10262,6 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	if(ob->pd && ob->pd->tex)
 		expand_doit(fd, mainvar, ob->pd->tex);
 	
-	expand_scriptlink(fd, mainvar, &ob->scriptlink);
 }
 
 static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)

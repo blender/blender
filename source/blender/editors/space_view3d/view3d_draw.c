@@ -2085,10 +2085,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		//	addafterqueue(ar->win, BACKBUFDRAW, 1);
 		//}
 	}
-	
-#ifndef DISABLE_PYTHON
-	/* XXX here was scriptlink */
-#endif	
 }
 
 

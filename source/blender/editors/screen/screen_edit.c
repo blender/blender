@@ -465,7 +465,6 @@ static void screen_copy(bScreen *to, bScreen *from)
 		sa->spacedata.first= sa->spacedata.last= NULL;
 		sa->regionbase.first= sa->regionbase.last= NULL;
 		sa->actionzones.first= sa->actionzones.last= NULL;
-		sa->scriptlink.totscript= 0;
 		
 		area_copy_data(sa, saf, 0);
 	}

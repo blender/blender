@@ -350,12 +350,6 @@ static void rna_def_lamp(BlenderRNA *brna)
 
 	/* textures */
 	rna_def_mtex_common(srna, "rna_Lamp_mtex_begin", "rna_Lamp_active_texture_get", "rna_Lamp_active_texture_index_set", "LampTextureSlot");
-
-	/* script link */
-	prop= RNA_def_property(srna, "script_link", PROP_POINTER, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "scriptlink");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Script Link", "Scripts linked to this lamp.");
 }
 
 static void rna_def_lamp_falloff(StructRNA *srna)

@@ -1242,11 +1242,6 @@ void RNA_def_material(BlenderRNA *brna)
 	/* common */
 	rna_def_animdata_common(srna);
 	rna_def_mtex_common(srna, "rna_Material_mtex_begin", "rna_Material_active_texture_get", "rna_Material_active_texture_index_set", "MaterialTextureSlot");
-
-	prop= RNA_def_property(srna, "script_link", PROP_POINTER, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "scriptlink");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Script Link", "Scripts linked to this material.");
 	
 	rna_def_material_colors(srna);
 	rna_def_material_diffuse(srna);

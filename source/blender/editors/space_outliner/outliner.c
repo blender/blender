@@ -552,16 +552,6 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 	}
 	
 	outliner_add_element(soops,  lb, sce->world, te, 0, 0);
-	
-	if(sce->scriptlink.scripts) {
-		int a= 0;
-		tenla= outliner_add_element(soops,  lb, sce, te, TSE_SCRIPT_BASE, 0);
-		tenla->name= "Scripts";
-		for (a=0; a<sce->scriptlink.totscript; a++) {
-			outliner_add_element(soops, &tenla->subtree, sce->scriptlink.scripts[a], tenla, 0, 0);
-		}
-	}
-
 }
 
 static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, 
@@ -766,15 +756,6 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 						ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_DEFGROUP, a);
 						ten->name= defgroup->name;
 						ten->directdata= defgroup;
-					}
-				}
-				if(ob->scriptlink.scripts) {
-					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_SCRIPT_BASE, 0);
-					int a= 0;
-					
-					tenla->name= "Scripts";
-					for (a=0; a<ob->scriptlink.totscript; a++) {							/*  ** */
-						outliner_add_element(soops, &tenla->subtree, ob->scriptlink.scripts[a], te, 0, 0);
 					}
 				}
 				

@@ -387,10 +387,6 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	/* now tag update flags, to ensure deformers get calculated on redraw */
 	DAG_scene_update_flags(CTX_data_scene(C), CTX_data_scene(C)->lay);
 	
-	if (G.f & G_DOSCRIPTLINKS) {
-		/* there's an onload scriptlink to execute in screenmain */
-// XXX		mainqenter(ONLOAD_SCRIPT, 1);
-	}
 	if (G.sce != filename) /* these are the same at times, should never copy to the same location */
 		strcpy(G.sce, filename);
 	

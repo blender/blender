@@ -31,7 +31,6 @@
 #include "DNA_view2d_types.h"
 #include "DNA_vec_types.h"
 
-#include "DNA_scriptlink_types.h"
 #include "DNA_ID.h"
 
 struct SpaceType;
@@ -125,8 +124,6 @@ typedef struct ScrArea {
 	short pad;
 	short do_refresh;				/* private, for spacetype refresh callback */
 	short cursor, flag;
-
-	ScriptLink scriptlink;
 	
 	struct SpaceType *type;		/* callbacks for this space type */
 	

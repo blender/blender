@@ -1309,12 +1309,6 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Time Offset Add Parent", "Add the parents time offset value");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 
-	/* script link */
-
-	prop= RNA_def_property(srna, "script_link", PROP_POINTER, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "scriptlink");
-	RNA_def_property_ui_text(prop, "Script Link", "Scripts linked to this object.");
-
 	/* drawing */
 
 	prop= RNA_def_property(srna, "max_draw_type", PROP_ENUM, PROP_NONE);

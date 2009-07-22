@@ -36,7 +36,6 @@ extern "C" {
 #include "DNA_brush_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_listBase.h"
-#include "DNA_scriptlink_types.h"
 #include "DNA_ID.h"
 
 struct Object;
@@ -659,8 +658,6 @@ typedef struct Scene {
 	/* no, is on the right place (ton) */
 	struct RenderData r;
 	struct AudioData audio;		/* DEPRECATED 2.5 */
-	
-	ScriptLink scriptlink;
 	
 	ListBase markers;
 	ListBase transform_spaces;

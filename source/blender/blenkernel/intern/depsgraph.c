@@ -1997,8 +1997,6 @@ static void dag_object_time_update_flags(Object *ob)
 		}
 	}
 	
-	if(ob->scriptlink.totscript) ob->recalc |= OB_RECALC_OB;
-	
 	if(ob->parent) {
 		/* motion path or bone child */
 		if(ob->parent->type==OB_CURVE || ob->parent->type==OB_ARMATURE) ob->recalc |= OB_RECALC_OB;

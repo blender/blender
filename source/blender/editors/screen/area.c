@@ -910,13 +910,6 @@ void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space)
 		ARegion *newar= BKE_area_region_copy(st, ar);
 		BLI_addtail(&sa1->regionbase, newar);
 	}
-		
-#ifndef DISABLE_PYTHON
-	/* scripts */
-	BPY_free_scriptlink(&sa1->scriptlink);
-	sa1->scriptlink= sa2->scriptlink;
-	BPY_copy_scriptlink(&sa1->scriptlink);	/* copies internal pointers */
-#endif
 }
 
 /* *********** Space switching code *********** */

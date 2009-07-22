@@ -280,16 +280,9 @@ static void text_unlink(Main *bmain, Text *text)
 	 * disabled it will leave invalid pointers in files! */
 
 #ifndef DISABLE_PYTHON
-	// XXX BPY_clear_bad_scriptlinks(text);
 	// XXX BPY_free_pyconstraint_links(text);
 	// XXX free_text_controllers(text);
 	// XXX free_dome_warp_text(text);
-
-	/* check if this text was used as script link:
-	 * this check function unsets the pointers and returns how many
-	 * script links used this Text */
-	if(0) // XXX BPY_text_check_all_scriptlinks (text))
-		; // XXX notifier: allqueue(REDRAWBUTSSCRIPT, 0);
 
 	/* equivalently for pynodes: */
 	if(0) // XXX nodeDynamicUnlinkText ((ID*)text))

@@ -470,10 +470,6 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_World_stars_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Stars", "World stars settings.");
 
-	prop= RNA_def_property(srna, "script_link", PROP_POINTER, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "scriptlink");
-	RNA_def_property_ui_text(prop, "Script Link", "Scripts linked to this object.");
-
 	rna_def_ambient_occlusion(brna);
 	rna_def_world_mist(brna);
 	rna_def_world_stars(brna);

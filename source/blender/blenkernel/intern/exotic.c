@@ -1900,16 +1900,10 @@ void write_stl(Scene *scene, char *str)
 	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
 	if(BLI_testextensie(str,".stl")==0) strcat(str, ".stl");
 
-	if (!during_script()) {
-		if (BLI_exists(str))
-			; //XXX if(saveover(str)==0)
-			//XXX	return;
-	}
-
 	fpSTL= fopen(str, "wb");
 	
 	if(fpSTL==NULL) {
-		if (!during_script()) ; //XXX error("Can't write file");
+		//XXX error("Can't write file");
 		return;
 	}
 	strcpy(temp_dir, str);
@@ -2233,11 +2227,11 @@ void write_vrml(Scene *scene, char *str)
 	if(BLI_testextensie(str,".blend")) str[ strlen(str)-6]= 0;
 	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
 	if(BLI_testextensie(str,".wrl")==0) strcat(str, ".wrl");
-	//XXX saveover()       if(!during_script() && saveover(str)==0) return;
+	//XXX saveover()       if(saveover(str)==0) return;
 	
 	fp= fopen(str, "w");
 	
-	if(fp==NULL && !during_script()) {
+	if(fp==NULL) {
 		//XXX error("Can't write file");
 		return;
 	}
@@ -2544,15 +2538,15 @@ void write_dxf(struct Scene *scene, char *str)
 	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
 	if(BLI_testextensie(str,".dxf")==0) strcat(str, ".dxf");
 
-	if (!during_script()) {
-		if (BLI_exists(str))
-			; //XXX if(saveover(str)==0)
-			//	return;
+	
+	if (BLI_exists(str)) {
+		; //XXX if(saveover(str)==0)
+		//	return;
 	}
 
 	fp= fopen(str, "w");
 	
-	if(fp==NULL && !during_script()) {
+	if(fp==NULL) {
 		//XXX error("Can't write file");
 		return;
 	}

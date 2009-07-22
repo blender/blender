@@ -76,7 +76,6 @@ char *includefiles[] = {
 	"DNA_ID.h",
 	"DNA_ipo_types.h",
 	"DNA_key_types.h",
-	"DNA_scriptlink_types.h",
 	"DNA_text_types.h",
 	"DNA_packedFile_types.h",
 	"DNA_camera_types.h",
@@ -1105,7 +1104,6 @@ int main(int argc, char ** argv)
 #include "DNA_ID.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
-#include "DNA_scriptlink_types.h"
 #include "DNA_text_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_camera_types.h"

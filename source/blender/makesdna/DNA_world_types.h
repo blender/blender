@@ -32,7 +32,6 @@
 #define DNA_WORLD_TYPES_H
 
 #include "DNA_ID.h"
-#include "DNA_scriptlink_types.h"
 
 struct AnimData;
 struct Ipo;
@@ -123,8 +122,6 @@ typedef struct World {
 
 	/* previews */
 	struct PreviewImage *preview;
-
-	ScriptLink scriptlink;
 
 } World;
 

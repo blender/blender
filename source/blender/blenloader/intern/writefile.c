@@ -498,12 +498,6 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 		writestruct(wd, DATA, "bNodeLink", 1, link);
 }
 
-static void write_scriptlink(WriteData *wd, ScriptLink *slink)
-{
-	writedata(wd, DATA, sizeof(void *)*slink->totscript, slink->scripts);
-	writedata(wd, DATA, sizeof(short)*slink->totscript, slink->flag);
-}
-
 static void current_screen_compat(Main *mainvar, bScreen **screen)
 {
 	wmWindowManager *wm;
@@ -1183,7 +1177,6 @@ static void write_objects(WriteData *wd, ListBase *idbase, int write_undo)
 			write_sensors(wd, &ob->sensors);
 			write_controllers(wd, &ob->controllers);
 			write_actuators(wd, &ob->actuators);
-			write_scriptlink(wd, &ob->scriptlink);
 			write_pose(wd, ob->pose);
 			write_defgroups(wd, &ob->defbase);
 			write_constraints(wd, &ob->constraints);
@@ -1271,9 +1264,6 @@ static void write_cameras(WriteData *wd, ListBase *idbase)
 			if (cam->id.properties) IDP_WriteProperty(cam->id.properties, wd);
 			
 			if (cam->adt) write_animdata(wd, cam->adt);
-			
-			/* direct data */
-			write_scriptlink(wd, &cam->scriptlink);
 		}
 
 		cam= cam->id.next;
@@ -1601,8 +1591,6 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 			if(ma->ramp_col) writestruct(wd, DATA, "ColorBand", 1, ma->ramp_col);
 			if(ma->ramp_spec) writestruct(wd, DATA, "ColorBand", 1, ma->ramp_spec);
 			
-			write_scriptlink(wd, &ma->scriptlink);
-			
 			/* nodetree is integral part of material, no libdata */
 			if(ma->nodetree) {
 				writestruct(wd, DATA, "bNodeTree", 1, ma->nodetree);
@@ -1633,8 +1621,6 @@ static void write_worlds(WriteData *wd, ListBase *idbase)
 				if(wrld->mtex[a]) writestruct(wd, DATA, "MTex", 1, wrld->mtex[a]);
 			}
 			
-			write_scriptlink(wd, &wrld->scriptlink);
-			
 			write_previews(wd, wrld->preview);
 		}
 		wrld= wrld->id.next;
@@ -1662,8 +1648,6 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 			
 			if(la->curfalloff)
 				write_curvemapping(wd, la->curfalloff);	
-			
-			write_scriptlink(wd, &la->scriptlink);
 			
 			write_previews(wd, la->preview);
 			
@@ -1775,8 +1759,6 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 				writestruct(wd, DATA, "MetaStack", 1, ms);
 			}
 		}
-		
-		write_scriptlink(wd, &sce->scriptlink);
 		
 		if (sce->r.avicodecdata) {
 			writestruct(wd, DATA, "AviCodecData", 1, sce->r.avicodecdata);
@@ -1918,9 +1900,6 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				for(pa= ar->panels.first; pa; pa= pa->next)
 					writestruct(wd, DATA, "Panel", 1, pa);
 			}
-			
-			/* space handler scriptlinks */
-			write_scriptlink(wd, &sa->scriptlink);
 			
 			sl= sa->spacedata.first;
 			while(sl) {

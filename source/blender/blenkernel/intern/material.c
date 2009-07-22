@@ -80,10 +80,6 @@ void free_material(Material *ma)
 {
 	MTex *mtex;
 	int a;
-
-#ifndef DISABLE_PYTHON
-	BPY_free_scriptlink(&ma->scriptlink);
-#endif
 	
 	for(a=0; a<MAX_MTEX; a++) {
 		mtex= ma->mtex[a];
@@ -210,10 +206,6 @@ Material *copy_material(Material *ma)
 			id_us_plus((ID *)man->mtex[a]->tex);
 		}
 	}
-
-#ifndef DISABLE_PYTHON	
-	BPY_copy_scriptlink(&ma->scriptlink);
-#endif
 	
 	if(ma->ramp_col) man->ramp_col= MEM_dupallocN(ma->ramp_col);
 	if(ma->ramp_spec) man->ramp_spec= MEM_dupallocN(ma->ramp_spec);
