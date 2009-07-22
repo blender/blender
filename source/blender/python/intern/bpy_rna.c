@@ -2300,31 +2300,23 @@ PyObject* pyrna_srna_Subtype(StructRNA *srna)
 	} else if ((newclass= RNA_struct_py_type_get(srna))) {
 		Py_INCREF(newclass);
 	} else {
-		StructRNA *base;
-		
-		/* for now, return the base RNA type rather then a real module */
-		
-		/* Assume RNA_struct_py_type_get(srna) was alredy checked */
-		
 		/* subclass equivelents
 		- class myClass(myBase):
 			some='value' # or ...
 		- myClass = type(name='myClass', bases=(myBase,), dict={'__module__':'bpy.types'})
 		*/
+
+		/* Assume RNA_struct_py_type_get(srna) was alredy checked */
+		StructRNA *base;
+
+		PyObject *py_base= NULL;
+
+		const char *idname= RNA_struct_identifier(srna);
 		const char *descr= RNA_struct_ui_description(srna);
 
-		PyObject *args = PyTuple_New(3);
-		PyObject *bases = PyTuple_New(1);
-		PyObject *py_base= NULL;
-		PyObject *dict = PyDict_New();
-		PyObject *item;
-	
+		if(!descr) descr= "(no docs)";
 		
-		// arg 1
-		//PyTuple_SET_ITEM(args, 0, PyUnicode_FromString(tp_name));
-		PyTuple_SET_ITEM(args, 0, PyUnicode_FromString(RNA_struct_identifier(srna)));
-		
-		// arg 2
+		/* get the base type */
 		base= RNA_struct_base(srna);
 		if(base && base != srna) {
 			/*/printf("debug subtype %s %p\n", RNA_struct_identifier(srna), srna); */
@@ -2336,33 +2328,7 @@ PyObject* pyrna_srna_Subtype(StructRNA *srna)
 			Py_INCREF(py_base);
 		}
 		
-		PyTuple_SET_ITEM(bases, 0, py_base);
-
-		PyTuple_SET_ITEM(args, 1, bases);
-		
-		// arg 3 - add an instance of the rna 
-		if(descr) {
-			item= PyUnicode_FromString(descr);
-			PyDict_SetItemString(dict, "__doc__", item);
-			Py_DECREF(item);
-		}
-		
-		/* this isnt needed however its confusing if we get python script names in blender types,
-		 * because the __module__ is used when printing the class */
-		item= PyUnicode_FromString("bpy.types"); /* just to know its an internal type */
-		PyDict_SetItemString(dict, "__module__", item);
-		Py_DECREF(item);
-		
-		
-		PyTuple_SET_ITEM(args, 2, dict); // fill with useful subclass things!
-		
-		if (PyErr_Occurred()) {
-			PyErr_Print();
-			PyErr_Clear();
-		}
-		
-		newclass = PyObject_CallObject((PyObject *)&PyType_Type, args);
-		Py_DECREF(args);
+		newclass = PyObject_CallFunction(	(PyObject*)&PyType_Type, "s(N){ssss}", idname, py_base, "__module__","bpy.types", "__doc__",descr);
 
 		if (newclass) {
 			pyrna_subtype_set_rna(newclass, srna);
