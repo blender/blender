@@ -1926,7 +1926,7 @@ static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw)
 	}
 	
 	if(self_func==NULL) {
-		PyErr_Format(PyExc_RuntimeError, "%.200s.???(): rna function internal function is NULL, this is a bug. aborting", RNA_struct_identifier(self_ptr->type));
+		PyErr_Format(PyExc_RuntimeError, "%.200s.\?\?\?(): rna function internal function is NULL, this is a bug. aborting", RNA_struct_identifier(self_ptr->type));
 		return NULL;
 	}
 	
