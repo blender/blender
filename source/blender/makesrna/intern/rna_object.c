@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
 
@@ -33,28 +34,47 @@
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_object_force.h"
 #include "DNA_object_types.h"
 #include "DNA_property_types.h"
 #include "DNA_scene_types.h"
 
 #include "WM_types.h"
 
+static EnumPropertyItem parent_type_items[] = {
+	{PAROBJECT, "OBJECT", 0, "Object", ""},
+	{PARCURVE, "CURVE", 0, "Curve", ""},
+	//{PARKEY, "KEY", 0, "Key", ""},
+	{PARSKEL, "ARMATURE", 0, "Armature", ""},
+	{PARSKEL, "LATTICE", 0, "Lattice", ""}, // PARSKEL reuse will give issues
+	{PARVERT1, "VERTEX", 0, "Vertex", ""},
+	{PARVERT3, "VERTEX_3", 0, "3 Vertices", ""},
+	{PARBONE, "BONE", 0, "Bone", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
+
+#include "DNA_key_types.h"
 
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
+#include "BKE_effect.h"
+#include "BKE_key.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_particle.h"
+#include "BKE_scene.h"
 
-static void rna_Object_update(bContext *C, PointerRNA *ptr)
+#include "ED_object.h"
+
+void rna_Object_update(bContext *C, PointerRNA *ptr)
 {
 	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_OB);
 }
 
-static void rna_Object_update_data(bContext *C, PointerRNA *ptr)
+void rna_Object_update_data(bContext *C, PointerRNA *ptr)
 {
 	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_DATA);
 }
@@ -63,6 +83,27 @@ static void rna_Object_dependency_update(bContext *C, PointerRNA *ptr)
 {
 	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_OB);
 	DAG_scene_sort(CTX_data_scene(C));
+}
+
+static void rna_Object_layer_update(bContext *C, PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	Scene *scene= CTX_data_scene(C);
+	Base *base;
+
+	base= object_in_scene(ob, scene);
+	if(!base)
+		return;
+
+	/* try to avoid scene sort */
+	if((ob->lay & scene->lay) && (base->lay & scene->lay))
+ 		base->lay= ob->lay;
+	else if((ob->lay & scene->lay)==0 && (base->lay & scene->lay)==0)
+		base->lay= ob->lay;
+	else {
+		base->lay= ob->lay;
+		DAG_scene_sort(scene);
+	}
 }
 
 static int rna_Object_data_editable(PointerRNA *ptr)
@@ -92,7 +133,7 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
 		ob->data= id;
 		test_object_materials(id);
 
-		if(GS(id->name)==ID_CU )
+		if(GS(id->name)==ID_CU)
 			test_curve_type(ob);
 		else if(ob->type==OB_ARMATURE)
 			armature_rebuild_pose(ob, ob->data);
@@ -117,6 +158,72 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
 	}
 }
 
+static void rna_Object_parent_set(PointerRNA *ptr, PointerRNA value)
+{
+	Object *ob= (Object*)ptr->data;
+	Object *par= (Object*)value.data;
+
+	ED_object_parent(ob, par, ob->partype, ob->parsubstr);
+}
+
+static void rna_Object_parent_type_set(PointerRNA *ptr, int value)
+{
+	Object *ob= (Object*)ptr->data;
+
+	ED_object_parent(ob, ob->parent, value, ob->parsubstr);
+}
+
+static void rna_Object_track_set(PointerRNA *ptr, PointerRNA value)
+{
+	Object *ob= (Object*)ptr->data;
+
+	if(ob != value.data)
+		ob->track= value.data;
+}
+
+static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	Object *ob= (Object*)ptr->data;
+	EnumPropertyItem *item= NULL;
+	int totitem= 0;
+
+	if(C==NULL) {
+		return parent_type_items;
+	}
+	
+	RNA_enum_items_add_value(&item, &totitem, parent_type_items, PAROBJECT);
+
+	if(ob->parent) {
+		Object *par= ob->parent;
+		
+		if(par->type == OB_CURVE)
+			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARCURVE);
+		else if(par->type == OB_LATTICE)
+			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARSKEL);
+		else if(par->type == OB_ARMATURE) {
+			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARSKEL);
+			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARBONE);
+		}
+		else if(par->type == OB_MESH) {
+			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARVERT1);
+			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARVERT3);
+		}
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+
+	*free= 1;
+
+	return item;
+}
+
+static void rna_Object_parent_bone_set(PointerRNA *ptr, const char *value)
+{
+	Object *ob= (Object*)ptr->data;
+
+	ED_object_parent(ob, ob->parent, ob->partype, value);
+}
+
 static int rna_VertexGroup_index_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
@@ -127,7 +234,28 @@ static int rna_VertexGroup_index_get(PointerRNA *ptr)
 static PointerRNA rna_Object_active_vertex_group_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
-	return rna_pointer_inherit_refine(ptr, &RNA_VertexGroup, BLI_findlink(&ob->defbase, ob->actdef));
+	return rna_pointer_inherit_refine(ptr, &RNA_VertexGroup, BLI_findlink(&ob->defbase, ob->actdef-1));
+}
+
+static int rna_Object_active_vertex_group_index_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	return MAX2(ob->actdef-1, 0);
+}
+
+static void rna_Object_active_vertex_group_index_set(PointerRNA *ptr, int value)
+{
+	Object *ob= (Object*)ptr->id.data;
+	ob->actdef= value+1;
+}
+
+static void rna_Object_active_vertex_group_index_range(PointerRNA *ptr, int *min, int *max)
+{
+	Object *ob= (Object*)ptr->id.data;
+
+	*min= 0;
+	*max= BLI_countlist(&ob->defbase)-1;
+	*max= MAX2(0, *max);
 }
 
 void rna_object_vgroup_name_index_get(PointerRNA *ptr, char *value, int index)
@@ -227,17 +355,49 @@ void rna_object_vcollayer_name_set(PointerRNA *ptr, const char *value, char *res
 	BLI_strncpy(result, "", maxlen);
 }
 
+static int rna_Object_active_material_index_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	return MAX2(ob->actcol-1, 0);
+}
+
+static void rna_Object_active_material_index_set(PointerRNA *ptr, int value)
+{
+	Object *ob= (Object*)ptr->id.data;
+	ob->actcol= value+1;
+}
+
 static void rna_Object_active_material_index_range(PointerRNA *ptr, int *min, int *max)
 {
 	Object *ob= (Object*)ptr->id.data;
-	*min= 1;
-	*max= ob->totcol;
+	*min= 0;
+	*max= MAX2(ob->totcol-1, 0);
 }
 
 static PointerRNA rna_Object_active_material_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 	return rna_pointer_inherit_refine(ptr, &RNA_MaterialSlot, ob->mat+ob->actcol);
+}
+
+static void rna_Object_active_particle_system_index_range(PointerRNA *ptr, int *min, int *max)
+{
+	Object *ob= (Object*)ptr->id.data;
+	*min= 0;
+	*max= BLI_countlist(&ob->particlesystem)-1;
+	*max= MAX2(0, *max);
+}
+
+static int rna_Object_active_particle_system_index_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	return psys_get_current_num(ob);
+}
+
+static void rna_Object_active_particle_system_index_set(struct PointerRNA *ptr, int value)
+{
+	Object *ob= (Object*)ptr->id.data;
+	psys_set_current_num(ob, value);
 }
 
 #if 0
@@ -272,7 +432,7 @@ static int rna_MaterialSlot_link_get(PointerRNA *ptr)
 	Object *ob= (Object*)ptr->id.data;
 	int index= (Material**)ptr->data - ob->mat;
 
-	return (ob->colbits & (1<<index)) != 0;
+	return ob->matbits[index] != 0;
 }
 
 static void rna_MaterialSlot_link_set(PointerRNA *ptr, int value)
@@ -280,10 +440,14 @@ static void rna_MaterialSlot_link_set(PointerRNA *ptr, int value)
 	Object *ob= (Object*)ptr->id.data;
 	int index= (Material**)ptr->data - ob->mat;
 	
-	if(value)
+	if(value) {
+		ob->matbits[index]= 1;
 		ob->colbits |= (1<<index);
-	else
+	}
+	else {
+		ob->matbits[index]= 0;
 		ob->colbits &= ~(1<<index);
+	}
 }
 
 static int rna_MaterialSlot_name_length(PointerRNA *ptr)
@@ -364,6 +528,78 @@ static void rna_GameObjectSettings_state_set(PointerRNA *ptr, const int *values)
 	}
 }
 
+static void rna_Object_active_shape_key_index_range(PointerRNA *ptr, int *min, int *max)
+{
+	Object *ob= (Object*)ptr->id.data;
+	Key *key= ob_get_key(ob);
+
+	*min= 0;
+	*max= (key)? BLI_countlist(&key->block)-1: 0;
+	*max= MAX2(0, *max);
+}
+
+static int rna_Object_active_shape_key_index_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+
+	return MAX2(ob->shapenr-1, 0);
+}
+
+static void rna_Object_active_shape_key_index_set(PointerRNA *ptr, int value)
+{
+	Object *ob= (Object*)ptr->id.data;
+
+	ob->shapenr= value+1;
+	ob->shapeflag |= OB_SHAPE_TEMPLOCK;
+}
+
+static PointerRNA rna_Object_active_shape_key_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	Key *key= ob_get_key(ob);
+	KeyBlock *kb;
+	PointerRNA keyptr;
+
+	if(key==NULL)
+		return PointerRNA_NULL;
+	
+	kb= BLI_findlink(&key->block, ob->shapenr-1);
+	RNA_pointer_create(&key->id, &RNA_ShapeKey, kb, &keyptr);
+	return keyptr;
+}
+
+static void rna_Object_shape_key_lock_set(PointerRNA *ptr, int value)
+{
+	Object *ob= (Object*)ptr->id.data;
+
+	if(value) ob->shapeflag |= OB_SHAPE_LOCK;
+	else ob->shapeflag &= ~OB_SHAPE_LOCK;
+
+	ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+}
+
+static PointerRNA rna_Object_field_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+
+	/* weak */
+	if(!ob->pd)
+		ob->pd= object_add_collision_fields();
+	
+	return rna_pointer_inherit_refine(ptr, &RNA_FieldSettings, ob->pd);
+}
+
+static PointerRNA rna_Object_collision_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+
+	/* weak */
+	if(!ob->pd)
+		ob->pd= object_add_collision_fields();
+	
+	return rna_pointer_inherit_refine(ptr, &RNA_CollisionSettings, ob->pd);
+}
+
 #else
 
 static void rna_def_vertex_group(BlenderRNA *brna)
@@ -392,8 +628,8 @@ static void rna_def_material_slot(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem link_items[] = {
-		{0, "DATA", 0, "Data", ""},
 		{1, "OBJECT", 0, "Object", ""},
+		{0, "DATA", 0, "Data", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
 	/* NOTE: there is no MaterialSlot equivalent in DNA, so the internal
@@ -409,11 +645,13 @@ static void rna_def_material_slot(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_funcs(prop, "rna_MaterialSlot_material_get", "rna_MaterialSlot_material_set", NULL);
 	RNA_def_property_ui_text(prop, "Material", "Material datablock used by this material slot.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_SHADING, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "link", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, link_items);
 	RNA_def_property_enum_funcs(prop, "rna_MaterialSlot_link_get", "rna_MaterialSlot_link_set", NULL);
 	RNA_def_property_ui_text(prop, "Link", "Link material to object or the object's data.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_SHADING, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_MaterialSlot_name_get", "rna_MaterialSlot_name_length", NULL);
@@ -467,7 +705,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "properties", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "prop", NULL);
-	RNA_def_property_struct_type(prop, "GameProperty");
+	RNA_def_property_struct_type(prop, "GameProperty"); /* rna_property.c */
 	RNA_def_property_ui_text(prop, "Properties", "Game engine properties.");
 
 	prop= RNA_def_property(srna, "show_sensors", PROP_BOOLEAN, PROP_NONE);
@@ -521,6 +759,49 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "rdamping");
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Rotation Damping", "General rotation damping.");
+
+	prop= RNA_def_property(srna, "minimum_velocity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "min_vel");
+	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_ui_text(prop, "Velocity Min", "Clamp velocity to this minimum speed (except when totally still).");
+
+	prop= RNA_def_property(srna, "maximum_velocity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "max_vel");
+	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_ui_text(prop, "Velocity Max", "Clamp velocity to this maximum speed.");
+
+	/* lock position */
+	prop= RNA_def_property(srna, "lock_x_axis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_X_AXIS);
+	RNA_def_property_ui_text(prop, "Lock X Axis", "Disable simulation of linear motion along the X axis.");
+	
+	prop= RNA_def_property(srna, "lock_y_axis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_Y_AXIS);
+	RNA_def_property_ui_text(prop, "Lock Y Axis", "Disable simulation of linear motion along the Y axis.");
+	
+	prop= RNA_def_property(srna, "lock_z_axis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_Z_AXIS);
+	RNA_def_property_ui_text(prop, "Lock Z Axis", "Disable simulation of linear motion along the Z axis.");
+	
+	
+	/* lock rotation */
+	prop= RNA_def_property(srna, "lock_x_rot_axis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_X_ROT_AXIS);
+	RNA_def_property_ui_text(prop, "Lock X Rotation Axis", "Disable simulation of angular  motion along the X axis.");
+	
+	prop= RNA_def_property(srna, "lock_y_rot_axis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_Y_ROT_AXIS);
+	RNA_def_property_ui_text(prop, "Lock Y Rotation Axis", "Disable simulation of angular  motion along the Y axis.");
+	
+	prop= RNA_def_property(srna, "lock_z_rot_axis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_Z_ROT_AXIS);
+	RNA_def_property_ui_text(prop, "Lock Z Rotation Axis", "Disable simulation of angular  motion along the Z axis.");
+	
+	/* is this used anywhere ? */
+	prop= RNA_def_property(srna, "use_activity_culling", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflag2", OB_NEVER_DO_ACTIVITY_CULLING);
+	RNA_def_property_ui_text(prop, "Lock Z Rotation Axis", "Disable simulation of angular  motion along the Z axis.");	
+	
 
 	prop= RNA_def_property(srna, "do_fh", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_DO_FH);
@@ -589,17 +870,6 @@ static void rna_def_object(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem parent_type_items[] = {
-		{PAROBJECT, "OBJECT", 0, "Object", ""},
-		{PARCURVE, "CURVE", 0, "Curve", ""},
-		//{PARKEY, "KEY", 0, "Key", ""},
-		{PARSKEL, "ARMATURE", 0, "Armature", ""},
-		{PARSKEL, "LATTICE", 0, "Lattice", ""}, // PARSKEL reuse will give issues
-		{PARVERT1, "VERTEX", 0, "Vertex", ""},
-		{PARVERT3, "VERTEX_3", 0, "3 Vertices", ""},
-		{PARBONE, "BONE", 0, "Bone", ""},
-		{0, NULL, 0, NULL, NULL}};
-	
 	static EnumPropertyItem object_type_items[] = {
 		{OB_EMPTY, "EMPTY", 0, "Empty", ""},
 		{OB_MESH, "MESH", 0, "Mesh", ""},
@@ -676,56 +946,70 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Data", "Object data.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update_data");
 
-	prop= RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
-	RNA_def_property_array(prop, 20);
-	RNA_def_property_ui_text(prop, "Layers", "Layers the object is on.");
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_Object_layer_set");
-
-	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
-	RNA_def_property_ui_text(prop, "Selected", "Object selection state.");
-
-	/* parent and track */
-
-	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Parent", "Parent Object");
-
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, object_type_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Type", "Type of Object.");
+
+	prop= RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
+	RNA_def_property_array(prop, 20);
+	RNA_def_property_ui_text(prop, "Layers", "Layers the object is on.");
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Object_layer_set");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_layer_update");
+
+	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Selected", "Object selection state.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+
+	/* parent and track */
+
+	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Object_parent_set", NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Parent", "Parent Object");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_dependency_update");
 	
 	prop= RNA_def_property(srna, "parent_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "partype");
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "partype");
 	RNA_def_property_enum_items(prop, parent_type_items);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_Object_parent_type_set", "rna_Object_parent_type_itemf");
 	RNA_def_property_ui_text(prop, "Parent Type", "Type of parent relation.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_dependency_update");
 
 	prop= RNA_def_property(srna, "parent_vertices", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "par1");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Parent Vertices", "Indices of vertices in cases of a vertex parenting relation.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "parent_bone", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "parsubstr");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Object_parent_bone_set");
 	RNA_def_property_ui_text(prop, "Parent Bone", "Name of parent bone in case of a bone parenting relation.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_dependency_update");
 
 	prop= RNA_def_property(srna, "track", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Object_track_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Track", "Object being tracked to define the rotation (Old Track).");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_dependency_update");
 
 	prop= RNA_def_property(srna, "track_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "trackflag");
 	RNA_def_property_enum_items(prop, track_items);
 	RNA_def_property_ui_text(prop, "Track Axis", "Tracking axis pointing to the another object.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "up_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "upflag");
 	RNA_def_property_enum_items(prop, up_items);
 	RNA_def_property_ui_text(prop, "Up Axis", "Specify the axis that points up.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
 	/* proxy */
 
@@ -749,7 +1033,7 @@ static void rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "active_material_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "actcol");
-	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_Object_active_material_index_range");
+	RNA_def_property_int_funcs(prop, "rna_Object_active_material_index_get", "rna_Object_active_material_index_set", "rna_Object_active_material_index_range");
 	RNA_def_property_ui_text(prop, "Active Material Index", "Index of active material slot.");
 
 	/* transform */
@@ -830,8 +1114,15 @@ static void rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "active_vertex_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "VertexGroup");
-	RNA_def_property_pointer_funcs(prop, "rna_Object_active_vertex_group_get", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_Object_active_vertex_group_get", "rna_Object_active_vertex_group_set", NULL);
 	RNA_def_property_ui_text(prop, "Active Vertex Group", "Vertex groups of the object.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
+
+	prop= RNA_def_property(srna, "active_vertex_group_index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "actdef");
+	RNA_def_property_int_funcs(prop, "rna_Object_active_vertex_group_index_get", "rna_Object_active_vertex_group_index_set", "rna_Object_active_vertex_group_index_range");
+	RNA_def_property_ui_text(prop, "Active Vertex Group Index", "Active index in vertex group array.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
 
 	/* empty */
 
@@ -856,17 +1147,20 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "col");
 	RNA_def_property_ui_text(prop, "Color", "Object color and alpha, used when faces have the ObColor mode enabled.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	/* physics */
 
 	prop= RNA_def_property(srna, "field", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "pd");
 	RNA_def_property_struct_type(prop, "FieldSettings");
+	RNA_def_property_pointer_funcs(prop, "rna_Object_field_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Field Settings", "Settings for using the objects as a field in physics simulation.");
 
 	prop= RNA_def_property(srna, "collision", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "pd");
 	RNA_def_property_struct_type(prop, "CollisionSettings");
+	RNA_def_property_pointer_funcs(prop, "rna_Object_collision_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Collision Settings", "Settings for using the objects as a collider in physics simulation.");
 
 	prop= RNA_def_property(srna, "soft_body", PROP_POINTER, PROP_NONE);
@@ -882,6 +1176,12 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ParticleSystem");
 	RNA_def_property_pointer_funcs(prop, "rna_Object_active_particle_system_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Particle System", "Active particle system being displayed");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+
+	prop= RNA_def_property(srna, "active_particle_system_index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_funcs(prop, "rna_Object_active_particle_system_index_get", "rna_Object_active_particle_system_index_set", "rna_Object_active_particle_system_index_range");
+	RNA_def_property_ui_text(prop, "Active Particle System Index", "Index of active particle system slot.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	/* restrict */
 
@@ -893,10 +1193,12 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "restrict_select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_SELECT);
 	RNA_def_property_ui_text(prop, "Restrict Select", "Restrict selection in the viewport.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "restrict_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_RENDER);
 	RNA_def_property_ui_text(prop, "Restrict Render", "Restrict renderability.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	/* anim */
 	
@@ -906,19 +1208,22 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "ipoflag", OB_DRAWKEY);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // update ipo flag indirect
 	RNA_def_property_ui_text(prop, "Draw Keys", "Draw object as key positions.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "draw_keys_selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ipoflag", OB_DRAWKEYSEL);
 	RNA_def_property_ui_text(prop, "Draw Keys Selected", "Limit the drawing of object keys to selected.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "track_rotation", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "track_override_parent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_POWERTRACK);
-	RNA_def_property_ui_text(prop, "Track Rotation", "Switch object rotation of in tracking.");
+	RNA_def_property_ui_text(prop, "Track Override Parent", "Override rotation from parenting.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "slow_parent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "partype", PARSLOW);
 	RNA_def_property_ui_text(prop, "Slow Parent", "Create a delay in the parent relationship.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "dupli_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "transflag");
@@ -981,7 +1286,7 @@ static void rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "time_offset", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sf");
-	RNA_def_property_range(prop, -MAXFRAMEF, MAXFRAMEF);
+	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Time Offset", "Animation offset in frames for IPO's and dupligroup instances.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 
@@ -1075,40 +1380,25 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Pose Mode", "Object with armature data is in pose mode.");
 
-	// XXX this stuff should be moved to AnimData...
-/*
-	prop= RNA_def_property(srna, "nla_disable_path", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "nlaflag", OB_DISABLE_PATH);
-	RNA_def_property_ui_text(prop, "NLA Disable Path", "Disable path temporally, for editing cycles.");
-
-	prop= RNA_def_property(srna, "nla_collapsed", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "nlaflag", OB_NLA_COLLAPSED);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "NLA Collapsed", "");
-
-	prop= RNA_def_property(srna, "nla_override", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "nlaflag", OB_NLA_OVERRIDE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "NLA Override", "");
-
-	prop= RNA_def_property(srna, "nla_strips", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "nlastrips", NULL);
-	RNA_def_property_struct_type(prop, "UnknownType");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "NLA Strips", "NLA strips of the object.");
-*/
-	
 	/* shape keys */
 
 	prop= RNA_def_property(srna, "shape_key_lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "shapeflag", OB_SHAPE_LOCK);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Object_shape_key_lock_set");
 	RNA_def_property_ui_text(prop, "Shape Key Lock", "Always show the current Shape for this Object.");
+	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
+	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
 
-	prop= RNA_def_property(srna, "active_shape_key", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "active_shape_key", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ShapeKey");
+	RNA_def_property_pointer_funcs(prop, "rna_Object_active_shape_key_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Active Shape Key", "Current shape key.");
+
+	prop= RNA_def_property(srna, "active_shape_key_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "shapenr");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Active Shape Key", "Current shape key index.");
+	RNA_def_property_int_funcs(prop, "rna_Object_active_shape_key_index_get", "rna_Object_active_shape_key_index_set", "rna_Object_active_shape_key_index_range");
+	RNA_def_property_ui_text(prop, "Active Shape Key Index", "Current shape key index.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
 
 	RNA_api_object(srna);
 }

@@ -1,5 +1,5 @@
 /**
- * $Id: gpencil.c 19758 2009-04-16 13:10:08Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -322,7 +322,7 @@ static void gp_strokepoint_convertcoords (bGPDstroke *gps, bGPDspoint *pt, float
 	}
 	else {
 		short mval[2];
-		int mx, my;
+		int mx=0, my=0;
 		float *fp= give_cursor(NULL, NULL); // XXX should be scene, v3d
 		float dvec[3];
 		

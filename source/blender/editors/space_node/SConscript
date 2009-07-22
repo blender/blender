@@ -8,7 +8,7 @@ incs += ' ../../nodes ../../render/extern/include'
 incs += ' ../../windowmanager #intern/guardedalloc #extern/glew/include'
 defs = []
 cf = []
-if env['OURPLATFORM'] == 'win32-vc':
+if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
 	#cf.append('/WX')
 	pass
 if env['CC'] == 'gcc':

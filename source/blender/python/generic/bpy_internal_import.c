@@ -1,5 +1,5 @@
 /* 
- * $Id: bpy_internal_import.c 20434 2009-05-26 18:06:09Z campbellbarton $
+ * $Id$
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -65,6 +65,11 @@ PyObject *bpy_text_import( char *name, int *found )
 	Main *maggie= bpy_import_main;
 	
 	*found= 0;
+
+	if(!maggie) {
+		printf("ERROR: bpy_import_main_set() was not called before running python. this is a bug.\n");
+		return NULL;
+	}
 	
 	if (namelen>21-3) return NULL; /* we know this cant be importable, the name is too long for blender! */
 	
@@ -111,6 +116,11 @@ PyObject *bpy_text_reimport( PyObject *module, int *found )
 	char *buf = NULL;
 //XXX	Main *maggie= bpy_import_main ? bpy_import_main:G.main;
 	Main *maggie= bpy_import_main;
+	
+	if(!maggie) {
+		printf("ERROR: bpy_import_main_set() was not called before running python. this is a bug.\n");
+		return NULL;
+	}
 	
 	*found= 0;
 	

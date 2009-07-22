@@ -34,6 +34,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_view2d_types.h"
 
 #include "BLI_blenlib.h"
@@ -154,7 +155,8 @@ static void view2d_masks(View2D *v2d)
 void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 {
 	short tot_changed= 0;
-	
+	uiStyle *style= U.uistyles.first;
+
 	/* initialise data if there is a need for such */
 	if ((v2d->flag & V2D_IS_INITIALISED) == 0) {
 		/* set initialised flag so that View2D doesn't get reinitialised next time again */
@@ -207,6 +209,23 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			}
 				break;
 				
+			/* 'stack view' - practically the same as list/channel view, except is located in the pos y half instead. 
+			 * 	zoom, aspect ratio, and alignment restrictions are set here */
+			case V2D_COMMONVIEW_STACK:
+			{
+				/* zoom + aspect ratio are locked */
+				v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
+				v2d->minzoom= v2d->maxzoom= 1.0f;
+				
+				/* tot rect has strictly regulated placement, and must only occur in +/+ quadrant */
+				v2d->align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y);
+				v2d->keeptot = V2D_KEEPTOT_STRICT;
+				tot_changed= 1;
+				
+				/* scroller settings are currently not set here... that is left for regions... */
+			}
+				break;
+				
 			/* 'header' regions - zoom, aspect ratio, alignment, and panning restrictions are set here */
 			case V2D_COMMONVIEW_HEADER:
 			{
@@ -235,6 +254,8 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			/* panels view, with horizontal/vertical align */
 			case V2D_COMMONVIEW_PANELS_UI:
 			{
+				float panelzoom= (style) ? style->panelzoom : 1.0f;
+				
 				/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
 				v2d->keepzoom= (V2D_KEEPASPECT|V2D_KEEPZOOM);
 				v2d->minzoom= 0.5f;
@@ -243,16 +264,22 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 				v2d->align= (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
 				v2d->keeptot= V2D_KEEPTOT_BOUNDS;
 				
+				v2d->scroll |= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
+				
 				v2d->tot.xmin= 0.0f;
 				v2d->tot.xmax= winx;
-
+				
 				v2d->tot.ymax= 0.0f;
 				v2d->tot.ymin= -winy;
-
-				v2d->cur= v2d->tot;
+				
+				v2d->cur.xmin= 0.0f;
+				v2d->cur.xmax= winx*panelzoom;
+				
+				v2d->cur.ymax= 0.0f;
+				v2d->cur.ymin= -winy*panelzoom;
 			}
 				break;
-
+				
 				/* other view types are completely defined using their own settings already */
 			default:
 				/* we don't do anything here, as settings should be fine, but just make sure that rect */
@@ -316,6 +343,12 @@ void UI_view2d_curRect_validate(View2D *v2d)
 	if (v2d->keepzoom & V2D_LOCKZOOM_Y)
 		height= winy;
 		
+	/* values used to divide, so make it safe */
+	if(width<1) width= 1;
+	if(height<1) height= 1;
+	if(winx<1) winx= 1;
+	if(winy<1) winy= 1;
+	
 	/* keepzoom (V2D_KEEPZOOM set), indicates that zoom level on each axis must not exceed limits 
 	 * NOTE: in general, it is not expected that the lock-zoom will be used in conjunction with this
 	 */
@@ -895,7 +928,14 @@ void UI_view2d_view_orthoSpecial(const bContext *C, View2D *v2d, short xaxis)
 /* Restore view matrices after drawing */
 void UI_view2d_view_restore(const bContext *C)
 {
-	ED_region_pixelspace(CTX_wm_region(C));
+	ARegion *ar= CTX_wm_region(C);
+	int width= ar->winrct.xmax-ar->winrct.xmin+1;
+	int height= ar->winrct.ymax-ar->winrct.ymin+1;
+	
+	wmOrtho2(0.0f, (float)width, 0.0f, (float)height);
+	wmLoadIdentity();
+	
+	//	ED_region_pixelspace(CTX_wm_region(C));
 }
 
 /* *********************************************************************** */
@@ -1192,12 +1232,15 @@ void UI_view2d_grid_free(View2DGrid *grid)
  * WARNING: the start of this struct must not change, as view2d_ops.c uses this too. 
  * 		   For now, we don't need to have a separate (internal) header for structs like this...
  */
-struct View2DScrollers {	
+struct View2DScrollers {
 		/* focus bubbles */
 	int vert_min, vert_max;	/* vertical scrollbar */
 	int hor_min, hor_max;	/* horizontal scrollbar */
 	
-		/* scales */
+	rcti hor, vert;			/* exact size of slider backdrop */
+	int horfull, vertfull;	/* set if sliders are full, we don't draw them */
+	
+	/* scales */
 	View2DGrid *grid;		/* grid for coordinate drawing */
 	short xunits, xclamp;	/* units and clamping options for x-axis */
 	short yunits, yclamp;	/* units and clamping options for y-axis */
@@ -1208,14 +1251,33 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 {
 	View2DScrollers *scrollers;
 	rcti vert, hor;
-	float fac, totsize, scrollsize;
+	float fac1, fac2, totsize, scrollsize;
 	int scroll= view2d_scroll_mapped(v2d->scroll);
+	
+	/* scrollers is allocated here... */
+	scrollers= MEM_callocN(sizeof(View2DScrollers), "View2DScrollers");
 	
 	vert= v2d->vert;
 	hor= v2d->hor;
 	
-	/* scrollers is allocated here... */
-	scrollers= MEM_callocN(sizeof(View2DScrollers), "View2DScrollers");
+	/* slider rects smaller than region */
+	hor.xmin+=4;
+	hor.xmax-=4;
+	if (scroll & V2D_SCROLL_BOTTOM)
+		hor.ymin+=4;
+	else
+		hor.ymax-=4;
+	
+	if (scroll & V2D_SCROLL_LEFT)
+		vert.xmin+=4;
+	else
+		vert.xmax-=4;
+	vert.ymin+=4;
+	vert.ymax-=4;
+	
+	/* store in scrollers, used for drawing */
+	scrollers->vert= vert;
+	scrollers->hor= hor;
 	
 	/* scroller 'buttons':
 	 *	- These should always remain within the visible region of the scrollbar
@@ -1228,14 +1290,25 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		totsize= v2d->tot.xmax - v2d->tot.xmin;
 		scrollsize= (float)(hor.xmax - hor.xmin);
 		
-		fac= (v2d->cur.xmin - v2d->tot.xmin) / totsize;
-		scrollers->hor_min= (int)(hor.xmin + (fac * scrollsize));
+		fac1= (v2d->cur.xmin - v2d->tot.xmin) / totsize;
+		if(fac1<=0.0f)
+			scrollers->hor_min= hor.xmin;
+		else
+			scrollers->hor_min= (int)(hor.xmin + (fac1 * scrollsize));
 		
-		fac= (v2d->cur.xmax - v2d->tot.xmin) / totsize;
-		scrollers->hor_max= (int)(hor.xmin + (fac * scrollsize));
+		fac2= (v2d->cur.xmax - v2d->tot.xmin) / totsize;
+		if(fac2>=1.0f)
+			scrollers->hor_max= hor.xmax;
+		else
+			scrollers->hor_max= (int)(hor.xmin + (fac2 * scrollsize));
 		
 		if (scrollers->hor_min > scrollers->hor_max) 
 			scrollers->hor_min= scrollers->hor_max;
+		
+		/* check whether sliders can disappear */
+		if(v2d->keeptot)
+			if(fac1 <= 0.0f && fac2 >= 1.0f) 
+				scrollers->horfull= 1;
 	}
 	
 	/* vertical scrollers */
@@ -1244,14 +1317,25 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		totsize= v2d->tot.ymax - v2d->tot.ymin;
 		scrollsize= (float)(vert.ymax - vert.ymin);
 		
-		fac= (v2d->cur.ymin- v2d->tot.ymin) / totsize;
-		scrollers->vert_min= (int)(vert.ymin + (fac * scrollsize));
+		fac1= (v2d->cur.ymin- v2d->tot.ymin) / totsize;
+		if(fac1<=0.0f)
+			scrollers->vert_min= vert.ymin;
+		else
+			scrollers->vert_min= (int)(vert.ymin + (fac1 * scrollsize));
 		
-		fac= (v2d->cur.ymax - v2d->tot.ymin) / totsize;
-		scrollers->vert_max= (int)(vert.ymin + (fac * scrollsize));
+		fac2= (v2d->cur.ymax - v2d->tot.ymin) / totsize;
+		if(fac2>=1.0f)
+			scrollers->vert_max= vert.ymax;
+		else
+			scrollers->vert_max= (int)(vert.ymin + (fac2 * scrollsize));
 		
 		if (scrollers->vert_min > scrollers->vert_max) 
 			scrollers->vert_min= scrollers->vert_max;
+		
+		/* check whether sliders can disappear */
+		if(v2d->keeptot)
+			if(fac1 <= 0.0f && fac2 >= 1.0f) 
+				scrollers->vertfull= 1;
 	}
 	
 	/* grid markings on scrollbars */
@@ -1281,7 +1365,7 @@ static void scroll_printstr(View2DScrollers *scrollers, Scene *scene, float x, f
 		 * rotation values (hence 'degrees') are divided by 10 to 
 		 * be able to show the curves at the same time
 		 */
-		if ELEM(unit, V2D_UNIT_DEGREES, V2D_UNIT_TIME) {
+		if (ELEM(unit, V2D_UNIT_DEGREES, V2D_UNIT_TIME)) {
 			power += 1;
 			val *= 10;
 		}
@@ -1387,81 +1471,31 @@ static void scroll_printstr(View2DScrollers *scrollers, Scene *scene, float x, f
 void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *vs)
 {
 	Scene *scene= CTX_data_scene(C);
-	const short darker= -50, dark= -10, light= 20, lighter= 50;
-	rcti vert, hor, corner;
+	rcti vert, hor;
 	int scroll= view2d_scroll_mapped(v2d->scroll);
 	
 	/* make copies of rects for less typing */
-	vert= v2d->vert;
-	hor= v2d->hor;
+	vert= vs->vert;
+	hor= vs->hor;
 	
 	/* horizontal scrollbar */
 	if (scroll & V2D_SCROLL_HORIZONTAL) {
-		/* scroller backdrop */
-		UI_ThemeColorShade(TH_SHADE1, light);
-		glRecti(hor.xmin,  hor.ymin,  hor.xmax,  hor.ymax);
 		
-		/* scroller 'button' 
-		 *	- if view is zoomable in x, draw handles too 
-		 *	- handles are drawn darker
-		 * 	- no slider when view is > total for non-zoomable views
-		 *	  (otherwise, zoomable ones tend to flicker)
-		 */
-		if ( (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) ||
-			 ((v2d->tot.xmax - v2d->tot.xmin) > (v2d->cur.xmax - v2d->cur.xmin)) ) 
-		{ 
-			if (v2d->keepzoom & V2D_LOCKZOOM_X) {
-				/* draw base bar as rounded shape */
-				UI_ThemeColorShade(TH_SHADE1, dark);
-				uiSetRoundBox(15);
-				
-				/* check that box is large enough for round drawing */
-				if ((vs->hor_max - vs->hor_min) < (V2D_SCROLLCAP_RAD * 2)) {
-					/* Rounded box still gets drawn at the minimum size limit
-					 * This doesn't represent extreme scaling well, but looks nicer...
-					 */
-					float mid= 0.5f * (vs->hor_max + vs->hor_min);
-					
-					gl_round_box_shade(GL_POLYGON, 
-						mid-V2D_SCROLLCAP_RAD, (float)hor.ymin+2, 
-						mid+V2D_SCROLLCAP_RAD, (float)hor.ymax-2, 
-						V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
-				}
-				else {
-					/* draw rounded box as per normal */
-					gl_round_box_shade(GL_POLYGON, 
-						(float)vs->hor_min, (float)hor.ymin+2, 
-						(float)vs->hor_max, (float)hor.ymax-2, 
-						V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
-				}
-			}
-			else {
-				/* base bar drawn as shaded rect */
-				UI_ThemeColorShade(TH_SHADE1, dark);
-				uiSetRoundBox(0);
-				gl_round_box_shade(GL_POLYGON, 
-					(float)vs->hor_min, (float)hor.ymin+2, 
-					(float)vs->hor_max, (float)hor.ymax-2, 
-					V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
-				
-				/* 'minimum' handle */
-				uiSetRoundBox(9);
-				UI_ThemeColorShade(TH_SHADE1, darker);
-				
-				gl_round_box_shade(GL_POLYGON, 
-					(float)vs->hor_min-V2D_SCROLLER_HANDLE_SIZE, (float)hor.ymin+2, 
-					(float)vs->hor_min+V2D_SCROLLER_HANDLE_SIZE, (float)hor.ymax-2, 
-					V2D_SCROLLCAP_RAD, V2D_SCROLLCAP_SHADE, -V2D_SCROLLCAP_SHADE);
-				
-				/* maximum handle */
-				uiSetRoundBox(6);
-				UI_ThemeColorShade(TH_SHADE1, darker);
-				
-				gl_round_box_shade(GL_POLYGON, 
-					(float)vs->hor_max-V2D_SCROLLER_HANDLE_SIZE, (float)hor.ymin+2, 
-					(float)vs->hor_max+V2D_SCROLLER_HANDLE_SIZE, (float)hor.ymax-2, 
-					V2D_SCROLLCAP_RAD, V2D_SCROLLCAP_SHADE, -V2D_SCROLLCAP_SHADE);
-			}
+		if(vs->horfull==0) {
+			bTheme *btheme= U.themes.first;
+			uiWidgetColors wcol= btheme->tui.wcol_scroll;
+			rcti slider;
+			int state;
+			
+			slider.xmin= vs->hor_min;
+			slider.xmax= vs->hor_max;
+			slider.ymin= hor.ymin;
+			slider.ymax= hor.ymax;
+			
+			state= (v2d->scroll_ui & V2D_SCROLL_H_ACTIVE)?UI_SCROLL_PRESSED:0;
+			if (!(v2d->keepzoom & V2D_LOCKZOOM_X))
+				state |= UI_SCROLL_ARROWS;
+			uiWidgetScrollDraw(&wcol, &hor, &slider, state);
 		}
 		
 		/* scale indicators */
@@ -1496,19 +1530,26 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			
 			/* draw numbers in the appropriate range */
 			if (dfac > 0.0f) {
-				for (; fac < hor.xmax; fac+=dfac, val+=grid->dx) {
+				float h= 2.0f+(float)(hor.ymin);
+				
+				for (; fac < hor.xmax-10; fac+=dfac, val+=grid->dx) {
+					
+					/* make prints look nicer for scrollers */
+					if(fac < hor.xmin+10)
+						continue;
+					
 					switch (vs->xunits) {							
 						case V2D_UNIT_FRAMES:		/* frames (as whole numbers)*/
-							scroll_printstr(vs, scene, fac, 3.0f+(float)(hor.ymin), val, grid->powerx, V2D_UNIT_FRAMES, 'h');
+							scroll_printstr(vs, scene, fac, h, val, grid->powerx, V2D_UNIT_FRAMES, 'h');
 							break;
 							
 						case V2D_UNIT_FRAMESCALE:	/* frames (not always as whole numbers) */
-							scroll_printstr(vs, scene, fac, 3.0f+(float)(hor.ymin), val, grid->powerx, V2D_UNIT_FRAMESCALE, 'h');
+							scroll_printstr(vs, scene, fac, h, val, grid->powerx, V2D_UNIT_FRAMESCALE, 'h');
 							break;
 						
 						case V2D_UNIT_SECONDS:		/* seconds */
 							fac2= val/(float)FPS;
-							scroll_printstr(vs, scene, fac, 3.0f+(float)(hor.ymin), fac2, grid->powerx, V2D_UNIT_SECONDS, 'h');
+							scroll_printstr(vs, scene, fac, h, fac2, grid->powerx, V2D_UNIT_SECONDS, 'h');
 							break;
 							
 						case V2D_UNIT_SECONDSSEQ:	/* seconds with special calculations (only used for sequencer only) */
@@ -1519,95 +1560,40 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 							time= (float)floor(fac2);
 							fac2= fac2-time;
 							
-							scroll_printstr(vs, scene, fac, 3.0f+(float)(hor.ymin), time+(float)FPS*fac2/100.0f, grid->powerx, V2D_UNIT_SECONDSSEQ, 'h');
+							scroll_printstr(vs, scene, fac, h, time+(float)FPS*fac2/100.0f, grid->powerx, V2D_UNIT_SECONDSSEQ, 'h');
 						}
 							break;
 							
 						case V2D_UNIT_DEGREES:		/* Graph Editor for rotation Drivers */
 							/* HACK: although we're drawing horizontal, we make this draw as 'vertical', just to get degree signs */
-							scroll_printstr(vs, scene, fac, 3.0f+(float)(hor.ymin), val, grid->powerx, V2D_UNIT_DEGREES, 'v');
+							scroll_printstr(vs, scene, fac, h, val, grid->powerx, V2D_UNIT_DEGREES, 'v');
 							break;
 					}
 				}
 			}
 		}
-		
-		/* decoration outer bevel line */
-		UI_ThemeColorShade(TH_SHADE1, lighter);
-		if (scroll & (V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O))
-			sdrawline(hor.xmin, hor.ymax, hor.xmax, hor.ymax);
-		else if (scroll & V2D_SCROLL_TOP)
-			sdrawline(hor.xmin, hor.ymin, hor.xmax, hor.ymin);
 	}
 	
 	/* vertical scrollbar */
 	if (scroll & V2D_SCROLL_VERTICAL) {
-		/* scroller backdrop  */
-		UI_ThemeColorShade(TH_SHADE1, light);
-		glRecti(vert.xmin,  vert.ymin,  vert.xmax,  vert.ymax);
 		
-		/* scroller 'button' 
-		 *	- if view is zoomable in y, draw handles too 
-		 *	- handles are drawn darker
-		 * 	- no slider when view is > total for non-zoomable views
-		 *	  (otherwise, zoomable ones tend to flicker)
-		 */
-		if ( (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) ||
-			 ((v2d->tot.ymax - v2d->tot.ymin) > (v2d->cur.ymax - v2d->cur.ymin)) ) 
-		{ 
-			if (v2d->keepzoom & V2D_LOCKZOOM_Y) {
-				/* draw base bar as rounded shape */
-				UI_ThemeColorShade(TH_SHADE1, dark);
-				uiSetRoundBox(15);
-				
-				/* check that box is large enough for round drawing */
-				if ((vs->vert_max - vs->vert_min) < (V2D_SCROLLCAP_RAD * 2)) {
-					/* Rounded box still gets drawn at the minimum size limit
-					 * This doesn't represent extreme scaling well, but looks nicer...
-					 */
-					float mid= 0.5f * (vs->vert_max + vs->vert_min);
-					
-					gl_round_box_vertical_shade(GL_POLYGON, 
-						(float)vert.xmin+2, mid-V2D_SCROLLCAP_RAD, 
-						(float)vert.xmax-2, mid+V2D_SCROLLCAP_RAD, 
-						V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
-				}
-				else {
-					/* draw rounded box as per normal */
-					gl_round_box_vertical_shade(GL_POLYGON, 
-						(float)vert.xmin+2, (float)vs->vert_min, 
-						(float)vert.xmax-2, (float)vs->vert_max, 
-						V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
-				}
-			}
-			else {
-				/* base bar drawn as shaded rect */
-				UI_ThemeColorShade(TH_SHADE1, dark);
-				uiSetRoundBox(0);
-				gl_round_box_vertical_shade(GL_POLYGON, 
-					(float)vert.xmin+2, (float)vs->vert_min, 
-					(float)vert.xmax-2, (float)vs->vert_max,
-					V2D_SCROLLCAP_RAD, V2D_SCROLLBAR_SHADE, -V2D_SCROLLBAR_SHADE);
-				
-				/* 'minimum' handle */
-				UI_ThemeColorShade(TH_SHADE1, darker);
-				uiSetRoundBox(12);
-				
-				gl_round_box_vertical_shade(GL_POLYGON, 
-					(float)vert.xmin+2, (float)vs->vert_min-V2D_SCROLLER_HANDLE_SIZE, 
-					(float)vert.xmax-2, (float)vs->vert_min+V2D_SCROLLER_HANDLE_SIZE, 
-					V2D_SCROLLCAP_RAD, V2D_SCROLLCAP_SHADE, -V2D_SCROLLCAP_SHADE);
-				
-				/* maximum handle */
-				UI_ThemeColorShade(TH_SHADE1, darker);
-				uiSetRoundBox(3);
-				
-				gl_round_box_vertical_shade(GL_POLYGON, 
-					(float)vert.xmin+2, (float)vs->vert_max-V2D_SCROLLER_HANDLE_SIZE, 
-					(float)vert.xmax-2, (float)vs->vert_max+V2D_SCROLLER_HANDLE_SIZE, 
-					V2D_SCROLLCAP_RAD, V2D_SCROLLCAP_SHADE, -V2D_SCROLLCAP_SHADE);
-			}
+		if(vs->vertfull==0) {
+			bTheme *btheme= U.themes.first;
+			uiWidgetColors wcol= btheme->tui.wcol_scroll;
+			rcti slider;
+			int state;
+			
+			slider.xmin= vert.xmin;
+			slider.xmax= vert.xmax;
+			slider.ymin= vs->vert_min;
+			slider.ymax= vs->vert_max;
+			
+			state= (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE)?UI_SCROLL_PRESSED:0;
+			if (!(v2d->keepzoom & V2D_LOCKZOOM_Y))
+				state |= UI_SCROLL_ARROWS;
+			uiWidgetScrollDraw(&wcol, &vert, &slider, state);
 		}
+		
 		
 		/* scale indiators */
 		// XXX will need to update the font drawing when the new stuff comes in
@@ -1638,42 +1624,23 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 				
 			/* draw vertical steps */
 			if (dfac > 0.0f) {
-				for (; fac < vert.ymax; fac+= dfac, val += grid->dy) {
-					scroll_printstr(vs, scene, (float)(vert.xmax)-14.0f, fac, val, grid->powery, vs->yunits, 'v');
+				
+				BLF_default_rotation(90.0f);
+				
+				for (; fac < vert.ymax-10; fac+= dfac, val += grid->dy) {
+					
+					/* make prints look nicer for scrollers */
+					if(fac < vert.ymin+10)
+						continue;
+					
+					scroll_printstr(vs, scene, (float)(vert.xmax)-2.0f, fac, val, grid->powery, vs->yunits, 'v');
 				}
+				
+				BLF_default_rotation(0.0f);
 			}
 		}	
-		
-		/* decoration outer bevel line */
-		UI_ThemeColorShade(TH_SHADE1, lighter);
-		if (scroll & V2D_SCROLL_RIGHT)
-			sdrawline(vert.xmin, vert.ymin, vert.xmin, vert.ymax);
-		else if (scroll & V2D_SCROLL_LEFT)
-			sdrawline(vert.xmax, vert.ymin, vert.xmax, vert.ymax);
 	}
 	
-	/* draw a 'sunken square' to cover up any overlapping corners resulting from intersection of overflowing scroller data */
-	if ((scroll & V2D_SCROLL_VERTICAL) && (scroll & V2D_SCROLL_HORIZONTAL)) {
-		/* set bounds (these should be right) */
-		corner.xmin= vert.xmin;
-		corner.xmax= vert.xmax;
-		corner.ymin= hor.ymin;
-		corner.ymax= hor.ymax;
-		
-		/* firstly, draw using background color to cover up any overlapping junk */
-		UI_ThemeColor(TH_SHADE1);
-		glRecti(corner.xmin, corner.ymin, corner.xmax, corner.ymax);
-		
-		/* now, draw suggestive highlighting... */
-			/* first, dark lines on top to suggest scrollers overlap box */
-		UI_ThemeColorShade(TH_SHADE1, darker);
-		sdrawline(corner.xmin, corner.ymin, corner.xmin, corner.ymax);
-		sdrawline(corner.xmin, corner.ymax, corner.xmax, corner.ymax);
-			/* now, light lines on bottom to show box is sunken in */
-		UI_ThemeColorShade(TH_SHADE1, lighter);
-		sdrawline(corner.xmax, corner.ymin, corner.xmax, corner.ymax);
-		sdrawline(corner.xmin, corner.ymin, corner.xmax, corner.ymin);
-	}
 }
 
 /* free temporary memory used for drawing scrollers */

@@ -93,7 +93,7 @@ typedef struct Material {
 	
 	/* for buttons and render*/
 	char rgbsel, texact, pr_type, use_nodes;
-	short pr_back, pr_lamp, pad4, ml_flag;	/* ml_flag is for disable base material */
+	short pr_back, pr_lamp, pr_texture, ml_flag;	/* ml_flag is for disable base material */
 	
 	/* shaders */
 	short diff_shader, spec_shader;
@@ -142,10 +142,10 @@ typedef struct Material {
 
 /* **************** MATERIAL ********************* */
 
-	/* maximum number of materials per material array
-	 * (on object, mesh, lamp, etc.)
-	 */
-#define MAXMAT			16
+/* maximum number of materials per material array.
+ * (on object, mesh, lamp, etc.). limited by
+ * short mat_nr in verts, faces. */
+#define MAXMAT			32767
 
 /* material_type */
 #define MA_TYPE_SURFACE	0

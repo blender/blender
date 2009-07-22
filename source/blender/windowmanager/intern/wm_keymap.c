@@ -44,6 +44,7 @@
 
 #include "RNA_access.h"
 #include "RNA_types.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -131,7 +132,7 @@ wmKeymapItem *WM_keymap_add_item(ListBase *lb, char *idname, short type, short v
    space/region ids are same as DNA_space_types.h */
 /* gets free'd in wm.c */
 
-ListBase *WM_keymap_listbase(wmWindowManager *wm, const char *nameid, int spaceid, int regionid)
+static wmKeyMap *wm_keymap_add(wmWindowManager *wm, const char *nameid, short spaceid, short regionid)
 {
 	wmKeyMap *km;
 	
@@ -139,7 +140,7 @@ ListBase *WM_keymap_listbase(wmWindowManager *wm, const char *nameid, int spacei
 		if(km->spaceid==spaceid && km->regionid==regionid)
 			if(0==strncmp(nameid, km->nameid, KMAP_MAX_NAME))
 				break;
-
+	
 	if(km==NULL) {
 		km= MEM_callocN(sizeof(struct wmKeyMap), "keymap list");
 		BLI_strncpy(km->nameid, nameid, KMAP_MAX_NAME);
@@ -148,320 +149,69 @@ ListBase *WM_keymap_listbase(wmWindowManager *wm, const char *nameid, int spacei
 		BLI_addtail(&wm->keymaps, km);
 	}
 	
+	return km;
+}
+
+ListBase *WM_keymap_listbase(wmWindowManager *wm, const char *nameid, short spaceid, short regionid)
+{
+	wmKeyMap *km= wm_keymap_add(wm, nameid, spaceid, regionid);
 	return &km->keymap;
 }
 
+/* ****************** modal keymaps ************ */
+
+/* modal maps get linked to a running operator, and filter the keys before sending to modal() callback */
+
+wmKeyMap *WM_modalkeymap_add(wmWindowManager *wm, const char *nameid, EnumPropertyItem *items)
+{
+	wmKeyMap *km= wm_keymap_add(wm, nameid, 0, 0);
+	km->is_modal= 1;
+	km->items= items;
+	
+	return km;
+}
+
+wmKeyMap *WM_modalkeymap_get(wmWindowManager *wm, const char *nameid)
+{
+	wmKeyMap *km;
+	
+	for(km= wm->keymaps.first; km; km= km->next)
+		if(km->is_modal)
+			if(0==strncmp(nameid, km->nameid, KMAP_MAX_NAME))
+				break;
+	
+	return km;
+}
+
+
+void WM_modalkeymap_add_item(wmKeyMap *km, short type, short val, int modifier, short keymodifier, short value)
+{
+	wmKeymapItem *kmi= MEM_callocN(sizeof(wmKeymapItem), "keymap entry");
+	
+	BLI_addtail(&km->keymap, kmi);
+	kmi->propvalue= value;
+	
+	keymap_event_set(kmi, type, val, modifier, keymodifier);
+}
+
+void WM_modalkeymap_assign(wmKeyMap *km, const char *opname)
+{
+	wmOperatorType *ot= WM_operatortype_find(opname, 0);
+	
+	if(ot)
+		ot->modalkeymap= km;
+	else
+		printf("error: modalkeymap_assign, unknown operator %s\n", opname);
+}
+
+
 /* ***************** get string from key events **************** */
 
-char *WM_key_event_string(short type)
+const char *WM_key_event_string(short type)
 {
-	/* not returned: CAPSLOCKKEY, UNKNOWNKEY, COMMANDKEY, GRLESSKEY */
-
-	switch(type) {
-	case AKEY:
-		return "A";
-		break;
-	case BKEY:
-		return "B";
-		break;
-	case CKEY:
-		return "C";
-		break;
-	case DKEY:
-		return "D";
-		break;
-	case EKEY:
-		return "E";
-		break;
-	case FKEY:
-		return "F";
-		break;
-	case GKEY:
-		return "G";
-		break;
-	case HKEY:
-		return "H";
-		break;
-	case IKEY:
-		return "I";
-		break;
-	case JKEY:
-		return "J";
-		break;
-	case KKEY:
-		return "K";
-		break;
-	case LKEY:
-		return "L";
-		break;
-	case MKEY:
-		return "M";
-		break;
-	case NKEY:
-		return "N";
-		break;
-	case OKEY:
-		return "O";
-		break;
-	case PKEY:
-		return "P";
-		break;
-	case QKEY:
-		return "Q";
-		break;
-	case RKEY:
-		return "R";
-		break;
-	case SKEY:
-		return "S";
-		break;
-	case TKEY:
-		return "T";
-		break;
-	case UKEY:
-		return "U";
-		break;
-	case VKEY:
-		return "V";
-		break;
-	case WKEY:
-		return "W";
-		break;
-	case XKEY:
-		return "X";
-		break;
-	case YKEY:
-		return "Y";
-		break;
-	case ZKEY:
-		return "Z";
-		break;
-
-	case ZEROKEY:
-		return "Zero";
-		break;
-	case ONEKEY:
-		return "One";
-		break;
-	case TWOKEY:
-		return "Two";
-		break;
-	case THREEKEY:
-		return "Three";
-		break;
-	case FOURKEY:
-		return "Four";
-		break;
-	case FIVEKEY:
-		return "Five";
-		break;
-	case SIXKEY:
-		return "Six";
-		break;
-	case SEVENKEY:
-		return "Seven";
-		break;
-	case EIGHTKEY:
-		return "Eight";
-		break;
-	case NINEKEY:
-		return "Nine";
-		break;
-
-	case LEFTCTRLKEY:
-		return "Leftctrl";
-		break;
-	case LEFTALTKEY:
-		return "Leftalt";
-		break;
-	case RIGHTALTKEY:
-		return "Rightalt";
-		break;
-	case RIGHTCTRLKEY:
-		return "Rightctrl";
-		break;
-	case RIGHTSHIFTKEY:
-		return "Rightshift";
-		break;
-	case LEFTSHIFTKEY:
-		return "Leftshift";
-		break;
-
-	case ESCKEY:
-		return "Esc";
-		break;
-	case TABKEY:
-		return "Tab";
-		break;
-	case RETKEY:
-		return "Ret";
-		break;
-	case SPACEKEY:
-		return "Space";
-		break;
-	case LINEFEEDKEY:
-		return "Linefeed";
-		break;
-	case BACKSPACEKEY:
-		return "Backspace";
-		break;
-	case DELKEY:
-		return "Del";
-		break;
-	case SEMICOLONKEY:
-		return "Semicolon";
-		break;
-	case PERIODKEY:
-		return "Period";
-		break;
-	case COMMAKEY:
-		return "Comma";
-		break;
-	case QUOTEKEY:
-		return "Quote";
-		break;
-	case ACCENTGRAVEKEY:
-		return "Accentgrave";
-		break;
-	case MINUSKEY:
-		return "Minus";
-		break;
-	case SLASHKEY:
-		return "Slash";
-		break;
-	case BACKSLASHKEY:
-		return "Backslash";
-		break;
-	case EQUALKEY:
-		return "Equal";
-		break;
-	case LEFTBRACKETKEY:
-		return "Leftbracket";
-		break;
-	case RIGHTBRACKETKEY:
-		return "Rightbracket";
-		break;
-
-	case LEFTARROWKEY:
-		return "Leftarrow";
-		break;
-	case DOWNARROWKEY:
-		return "Downarrow";
-		break;
-	case RIGHTARROWKEY:
-		return "Rightarrow";
-		break;
-	case UPARROWKEY:
-		return "Uparrow";
-		break;
-
-	case PAD2:
-		return "Numpad 2";
-		break;
-	case PAD4:
-		return "Numpad 4";
-		break;
-	case PAD6:
-		return "Numpad 6";
-		break;
-	case PAD8:
-		return "Numpad 8";
-		break;
-	case PAD1:
-		return "Numpad 1";
-		break;
-	case PAD3:
-		return "Numpad 3";
-		break;
-	case PAD5:
-		return "Numpad 5";
-		break;
-	case PAD7:
-		return "Numpad 7";
-		break;
-	case PAD9:
-		return "Numpad 9";
-		break;
-
-	case PADPERIOD:
-		return "Numpad .";
-		break;
-	case PADSLASHKEY:
-		return "Numpad /";
-		break;
-	case PADASTERKEY:
-		return "Numpad *";
-		break;
-
-	case PAD0:
-		return "Numpad 0";
-		break;
-	case PADMINUS:
-		return "Numpad -";
-		break;
-	case PADENTER:
-		return "Numpad Enter";
-		break;
-	case PADPLUSKEY:
-		return "Numpad +";
-		break;
-
-	case F1KEY:
-		return "F1";
-		break;
-	case F2KEY:
-		return "F2";
-		break;
-	case F3KEY:
-		return "F3";
-		break;
-	case F4KEY:
-		return "F4";
-		break;
-	case F5KEY:
-		return "F5";
-		break;
-	case F6KEY:
-		return "F6";
-		break;
-	case F7KEY:
-		return "F7";
-		break;
-	case F8KEY:
-		return "F8";
-		break;
-	case F9KEY:
-		return "F9";
-		break;
-	case F10KEY:
-		return "F10";
-		break;
-	case F11KEY:
-		return "F11";
-		break;
-	case F12KEY:
-		return "F12";
-		break;
-
-	case PAUSEKEY:
-		return "Pause";
-		break;
-	case INSERTKEY:
-		return "Insert";
-		break;
-	case HOMEKEY:
-		return "Home";
-		break;
-	case PAGEUPKEY:
-		return "Pageup";
-		break;
-	case PAGEDOWNKEY:
-		return "Pagedown";
-		break;
-	case ENDKEY:
-		return "End";
-		break;
-	}
+	const char *name= NULL;
+	if(RNA_enum_name(event_type_items, (int)type, &name))
+		return name;
 	
 	return "";
 }

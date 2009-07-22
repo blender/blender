@@ -98,7 +98,6 @@ char *includefiles[] = {
 	"DNA_object_force.h",
 	"DNA_object_fluidsim.h",
 	"DNA_world_types.h",
-	"DNA_radio_types.h",
 	"DNA_scene_types.h",
 	"DNA_view3d_types.h",
 	"DNA_view2d_types.h",	
@@ -133,6 +132,7 @@ char *includefiles[] = {
 	// of makesdna.c (this file) as well
 	"DNA_windowmanager_types.h",
 	"DNA_anim_types.h",
+	"DNA_boid_types.h",
 
 	// empty string to indicate end of includefiles
 	""
@@ -560,10 +560,11 @@ int convert_include(char *filename)
 					while( *md1 != '}' ) {
 						if(md1>mainend) break;
 						
-						/* skip when it says 'struct' or 'unsigned' */
+						/* skip when it says 'struct' or 'unsigned' or 'const' */
 						if(*md1) {
 							if( strncmp(md1, "struct", 6)==0 ) md1+= 7;
-							if( strncmp(md1, "unsigned", 6)==0 ) md1+= 9;
+							if( strncmp(md1, "unsigned", 8)==0 ) md1+= 9;
+							if( strncmp(md1, "const", 5)==0 ) md1+= 6;
 							
 							/* we've got a type! */
 							type= add_type(md1, 0);
@@ -1124,7 +1125,6 @@ int main(int argc, char ** argv)
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h"
 #include "DNA_world_types.h"
-#include "DNA_radio_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_view2d_types.h"	
@@ -1155,4 +1155,5 @@ int main(int argc, char ** argv)
 #include "DNA_gpencil_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_anim_types.h"
+#include "DNA_boid_types.h"
 /* end of list */

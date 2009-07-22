@@ -453,6 +453,7 @@ void RE_SetCamera(Render *re, Object *camera)
 		cam= camera->data;
 		
 		if(cam->type==CAM_ORTHO) re->r.mode |= R_ORTHO;
+		if(cam->flag & CAM_PANORAMA) re->r.mode |= R_PANORAMA;
 		
 		/* solve this too... all time depending stuff is in convertblender.c?
 		 * Need to update the camera early because it's used for projection matrices
@@ -601,7 +602,7 @@ void initparts(Render *re)
 	yparts= re->r.yparts;
 	
 	/* mininum part size, but for exr tile saving it was checked already */
-	if(!(re->r.scemode & R_EXR_TILE_FILE)) {
+	if(!(re->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE))) {
 		if(re->r.mode & R_PANORAMA) {
 			if(ceil(re->rectx/(float)xparts) < 8) 
 				xparts= 1 + re->rectx/8;

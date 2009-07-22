@@ -459,6 +459,12 @@ class BlenderEnvironment(SConsEnvironment):
 			lenv.Append(CFLAGS = lenv['C_WARN'])
 			lenv.Append(CCFLAGS = lenv['CC_WARN'])
 			lenv.Append(CXXFLAGS = lenv['CXX_WARN'])
+
+			if lenv['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+				if lenv['BF_DEBUG']:
+					lenv.Append(CCFLAGS = ['/MTd'])
+				else:
+					lenv.Append(CCFLAGS = ['/MT'])
 			
 			targetdir = root_build_dir+'lib/' + libname
 			if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
@@ -487,6 +493,7 @@ class BlenderEnvironment(SConsEnvironment):
 		lenv = self.Clone()
 		if lenv['OURPLATFORM'] in ('win32-vc', 'cygwin', 'win64-vc'):
 			lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
+			lenv.Append(LINKFLAGS = ['/FORCE:MULTIPLE'])
 			if lenv['BF_DEBUG']:
 				lenv.Prepend(LINKFLAGS = ['/DEBUG','/PDB:'+progname+'.pdb'])
 		if  lenv['OURPLATFORM']=='linux2':

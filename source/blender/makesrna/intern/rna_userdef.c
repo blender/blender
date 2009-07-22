@@ -128,6 +128,11 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
+	static EnumPropertyItem font_kerning_style[] = {
+		{0, "UNFITTED", 0, "Unfitted", "Use scaled but un-grid-fitted kerning distances."},
+		{1, "DEFAULT", 0, "Default", "Use scaled and grid-fitted kerning distances."},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "ThemeFontStyle", NULL);
 	RNA_def_struct_sdna(srna, "uiFontStyle");
 	RNA_def_struct_ui_text(srna, "Font Style", "Theme settings for Font.");
@@ -137,9 +142,10 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Points", "");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
-	prop= RNA_def_property(srna, "kerning", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, -5.0, 5.0);
-	RNA_def_property_ui_text(prop, "Kerning", "");
+	prop= RNA_def_property(srna, "font_kerning_style", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "kerning");
+	RNA_def_property_enum_items(prop, font_kerning_style);
+	RNA_def_property_ui_text(prop, "Kerning Style", "Which style to use for font kerning.");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "shadow", PROP_INT, PROP_NONE);
@@ -178,6 +184,10 @@ static void rna_def_userdef_theme_ui_style(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ThemeStyle", NULL);
 	RNA_def_struct_sdna(srna, "uiStyle");
 	RNA_def_struct_ui_text(srna, "Style", "Theme settings for style sets.");
+	
+	prop= RNA_def_property(srna, "panelzoom", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.5, 2.0);
+	RNA_def_property_ui_text(prop, "Panel Zoom", "Default zoom level for panel areas.");
 	
 	prop= RNA_def_property(srna, "paneltitle", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "paneltitle");
@@ -258,7 +268,50 @@ static void rna_def_userdef_theme_ui_wcol(BlenderRNA *brna)
 	RNA_def_property_range(prop, -100, 100);
 	RNA_def_property_ui_text(prop, "Shade Down", "");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
+}
+
+static void rna_def_userdef_theme_ui_wcol_state(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
 	
+	srna= RNA_def_struct(brna, "ThemeWidgetStateColors", NULL);
+	RNA_def_struct_sdna(srna, "uiWidgetStateColors");
+	RNA_def_struct_ui_text(srna, "Theme Widget State Color", "Theme settings for widget state colors.");
+		
+	prop= RNA_def_property(srna, "inner_anim", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Animated", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "inner_anim_sel", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Animated Selected", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+	
+	prop= RNA_def_property(srna, "inner_key", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Keyframe", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "inner_key_sel", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Keyframe Selected", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "inner_driven", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Driven", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "inner_driven_sel", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Driven Selected", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "blend", PROP_FLOAT, PROP_PERCENTAGE);
+	RNA_def_property_ui_text(prop, "Blend", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 }
 
 static void rna_def_userdef_theme_ui(BlenderRNA *brna)
@@ -267,6 +320,7 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	rna_def_userdef_theme_ui_wcol(brna);
+	rna_def_userdef_theme_ui_wcol_state(brna);
 	
 	srna= RNA_def_struct(brna, "ThemeUserInterface", NULL);
 	RNA_def_struct_sdna(srna, "ThemeUI");
@@ -300,6 +354,12 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "wcol_option");
 	RNA_def_property_struct_type(prop, "ThemeWidgetColors");
 	RNA_def_property_ui_text(prop, "Option Widget Colors", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "wcol_toggle", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "wcol_toggle");
+	RNA_def_property_struct_type(prop, "ThemeWidgetColors");
+	RNA_def_property_ui_text(prop, "Toggle Widget Colors", "");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "wcol_num", PROP_POINTER, PROP_NEVER_NULL);
@@ -343,7 +403,24 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ThemeWidgetColors");
 	RNA_def_property_ui_text(prop, "Menu Item Colors", "");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
-	
+
+	prop= RNA_def_property(srna, "wcol_scroll", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "wcol_scroll");
+	RNA_def_property_struct_type(prop, "ThemeWidgetColors");
+	RNA_def_property_ui_text(prop, "Scroll Widget Colors", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "wcol_list_item", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "wcol_list_item");
+	RNA_def_property_struct_type(prop, "ThemeWidgetColors");
+	RNA_def_property_ui_text(prop, "List Item Colors", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "wcol_state", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "wcol_state");
+	RNA_def_property_struct_type(prop, "ThemeWidgetStateColors");
+	RNA_def_property_ui_text(prop, "State Colors", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "icon_file", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "iconfile");
@@ -1505,29 +1582,16 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Toolbox Column Layout", "Use a column layout for toolbox.");
 
 	prop= RNA_def_property(srna, "directional_menus", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_DIRECTIONALORDER);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "uiflag", USER_MENUFIXEDORDER);
 	RNA_def_property_ui_text(prop, "Contents Follow Opening Direction", "Otherwise menus, etc will always be top to bottom, left to right, no matter opening direction.");
-
-	/* snap to grid */
-	prop= RNA_def_property(srna, "snap_translate", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_AUTOGRABGRID);
-	RNA_def_property_ui_text(prop, "Enable Translation Snap", "Snap objects and sub-objects to grid units when moving.");
-
-	prop= RNA_def_property(srna, "snap_rotate", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_AUTOROTGRID);
-	RNA_def_property_ui_text(prop, "Enable Rotation Snap", "Snap objects and sub-objects to grid units when rotating.");
-
-	prop= RNA_def_property(srna, "snap_scale", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_AUTOSIZEGRID);
-	RNA_def_property_ui_text(prop, "Enable Scaling Snap", "Snap objects and sub-objects to grid units when scaling.");
-
-	prop= RNA_def_property(srna, "auto_depth", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ORBIT_ZBUF);
-	RNA_def_property_ui_text(prop, "Auto Depth", "Use the depth under the mouse to improve view pan/rotate/zoom functionality.");
 
 	prop= RNA_def_property(srna, "global_pivot", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_LOCKAROUND);
 	RNA_def_property_ui_text(prop, "Global Pivot", "Lock the same rotation/scaling pivot in all 3D Views.");
+
+	prop= RNA_def_property(srna, "auto_depth", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ORBIT_ZBUF);
+	RNA_def_property_ui_text(prop, "Auto Depth", "Use the depth under the mouse to improve view pan/rotate/zoom functionality.");
 
 	/* view zoom */
 	prop= RNA_def_property(srna, "viewport_zoom_style", PROP_ENUM, PROP_NONE);
@@ -1706,6 +1770,19 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "global_undo", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_GLOBALUNDO);
 	RNA_def_property_ui_text(prop, "Global Undo", "Global undo works by keeping a full copy of the file itself in memory, so takes extra memory.");
+
+	/* snap to grid */
+	prop= RNA_def_property(srna, "snap_translate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_AUTOGRABGRID);
+	RNA_def_property_ui_text(prop, "Enable Translation Snap", "Snap objects and sub-objects to grid units when moving.");
+
+	prop= RNA_def_property(srna, "snap_rotate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_AUTOROTGRID);
+	RNA_def_property_ui_text(prop, "Enable Rotation Snap", "Snap objects and sub-objects to grid units when rotating.");
+
+	prop= RNA_def_property(srna, "snap_scale", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_AUTOSIZEGRID);
+	RNA_def_property_ui_text(prop, "Enable Scaling Snap", "Snap objects and sub-objects to grid units when scaling.");
 
 	prop= RNA_def_property(srna, "auto_keying_enable", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "autokey_mode", AUTOKEY_ON);
@@ -2105,9 +2182,9 @@ void RNA_def_userdef(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem user_pref_sections[] = {
-		{0, "VIEW_CONTROLS", 0, "View & Controls", ""},
-		{1, "EDIT_METHODS", 0, "Edit Methods", ""},
-		{2, "LANGUAGE_COLORS", 0, "Language & Colors", ""},
+		{0, "VIEW_CONTROLS", 0, "View", ""},
+		{1, "EDIT_METHODS", 0, "Editing", ""},
+		{2, "LANGUAGE_COLORS", 0, "Language", ""},
 		{3, "AUTO_SAVE", 0, "Auto Save", ""},
 		{4, "SYSTEM_OPENGL", 0, "System & OpenGL", ""},
 		{5, "FILE_PATHS", 0, "File Paths", ""},

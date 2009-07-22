@@ -218,7 +218,6 @@ static void rna_def_ID(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	FunctionRNA *func;
 
 	srna= RNA_def_struct(brna, "ID", NULL);
 	RNA_def_struct_ui_text(srna, "ID", "Base type for datablocks, defining a unique name, linking from other libraries and garbage collection.");

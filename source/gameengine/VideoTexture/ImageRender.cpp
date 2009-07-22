@@ -331,19 +331,19 @@ static int setBackground (PyImage * self, PyObject * value, void * closure)
 {
 	// check validity of parameter
 	if (value == NULL || !PySequence_Check(value) || PySequence_Length(value) != 4
-		|| !PyInt_Check(PySequence_Fast_GET_ITEM(value, 0))
-		|| !PyInt_Check(PySequence_Fast_GET_ITEM(value, 1))
-		|| !PyInt_Check(PySequence_Fast_GET_ITEM(value, 2))
-		|| !PyInt_Check(PySequence_Fast_GET_ITEM(value, 3)))
+		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0))
+		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1))
+		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 2))
+		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 3)))
 	{
 		PyErr_SetString(PyExc_TypeError, "The value must be a sequence of 4 integer between 0 and 255");
 		return -1;
 	}
 	// set background color
-	getImageRender(self)->setBackground((unsigned char)(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 0))),
-		(unsigned char)(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 1))),
-		(unsigned char)(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 2))),
-        (unsigned char)(PyInt_AsLong(PySequence_Fast_GET_ITEM(value, 3))));
+	getImageRender(self)->setBackground((unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 0))),
+		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 1))),
+		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 2))),
+        (unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 3))));
 	// success
 	return 0;
 }

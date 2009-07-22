@@ -1,5 +1,5 @@
 /**
- * $Id: interface.c 16882 2008-10-02 12:29:45Z ton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -80,7 +80,6 @@
  */
 
 static void ui_free_but(const bContext *C, uiBut *but);
-static void ui_rna_ID_autocomplete(bContext *C, char *str, void *arg_but);
 
 /* ************* translation ************** */
 
@@ -671,7 +670,8 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	/* widgets */
 	for(but= block->buttons.first; but; but= but->next) {
 		ui_but_to_pixelrect(&rect, ar, block, but);
-		ui_draw_but(C, ar, &style, but, &rect);
+		if(!(but->flag & UI_HIDDEN))
+			ui_draw_but(C, ar, &style, but, &rect);
 	}
 	
 	/* restore matrix */
@@ -720,6 +720,7 @@ static void ui_is_but_sel(uiBut *but)
 			if(value==0.0) push= 1;
 			break;
 		case ROW:
+		case LISTROW:
 			if(value == but->hardmax) push= 1;
 			break;
 		case COL:
@@ -1281,17 +1282,13 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 		else if(type == PROP_POINTER) {
 			/* RNA pointer */
 			PointerRNA ptr= RNA_property_pointer_get(&but->rnapoin, but->rnaprop);
-			PropertyRNA *nameprop;
-
-			if(ptr.data && (nameprop = RNA_struct_name_property(ptr.type)))
-				buf= RNA_property_string_get_alloc(&ptr, nameprop, str, maxlen);
-			else
-				BLI_strncpy(str, "", maxlen);
+			buf= RNA_struct_name_get_alloc(&ptr, str, maxlen);
 		}
-		else
-			BLI_strncpy(str, "", maxlen);
 
-		if(buf && buf != str) {
+		if(!buf) {
+			BLI_strncpy(str, "", maxlen);
+		}
+		else if(buf && buf != str) {
 			/* string was too long, we have to truncate */
 			BLI_strncpy(str, buf, maxlen);
 			MEM_freeN(buf);
@@ -1316,8 +1313,10 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 		BLI_strncpy(str, but->poin, maxlen);
 		return;
 	}
+	else if(ui_but_anim_expression_get(but, str, maxlen))
+		; /* driver expression */
 	else {
-		/* number */
+		/* number editing */
 		double value;
 
 		value= ui_get_but_val(but);
@@ -1335,72 +1334,6 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 		else
 			BLI_snprintf(str, maxlen, "%d", (int)value);
 	}
-}
-
-static void ui_rna_ID_collection(bContext *C, uiBut *but, PointerRNA *ptr, PropertyRNA **prop)
-{
-	CollectionPropertyIterator iter;
-	PropertyRNA *iterprop, *iprop;
-	StructRNA *srna;
-
-	/* look for collection property in Main */
-	RNA_pointer_create(NULL, &RNA_Main, CTX_data_main(C), ptr);
-
-	iterprop= RNA_struct_iterator_property(ptr->type);
-	RNA_property_collection_begin(ptr, iterprop, &iter);
-	*prop= NULL;
-
-	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		iprop= iter.ptr.data;
-
-		/* if it's a collection and has same pointer type, we've got it */
-		if(RNA_property_type(iprop) == PROP_COLLECTION) {
-			srna= RNA_property_pointer_type(ptr, iprop);
-
-			if(RNA_property_pointer_type(ptr, but->rnaprop) == srna) {
-				*prop= iprop;
-				break;
-			}
-		}
-	}
-
-	RNA_property_collection_end(&iter);
-}
-
-/* autocomplete callback for RNA pointers */
-static void ui_rna_ID_autocomplete(bContext *C, char *str, void *arg_but)
-{
-	uiBut *but= arg_but;
-	AutoComplete *autocpl;
-	CollectionPropertyIterator iter;
-	PointerRNA ptr;
-	PropertyRNA *prop, *nameprop;
-	char *name;
-	
-	if(str[0]==0) return;
-
-	/* get the collection */
-	ui_rna_ID_collection(C, but, &ptr, &prop);
-	if(prop==NULL) return;
-
-	autocpl= autocomplete_begin(str, ui_get_but_string_max_length(but));
-	RNA_property_collection_begin(&ptr, prop, &iter);
-
-	/* loop over items in collection */
-	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		if(iter.ptr.data && (nameprop = RNA_struct_name_property(iter.ptr.type))) {
-			name= RNA_property_string_get_alloc(&iter.ptr, nameprop, NULL, 0);
-
-			if(name) {
-				/* test item name */
-				autocomplete_do_name(autocpl, name);
-				MEM_freeN(name);
-			}
-		}
-	}
-
-	RNA_property_collection_end(&iter);
-	autocomplete_end(autocpl, str);
 }
 
 int ui_set_but_string(bContext *C, uiBut *but, const char *str)
@@ -1421,21 +1354,21 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 				PointerRNA ptr, rptr;
 				PropertyRNA *prop;
 
-				/* XXX only ID pointers at the moment, needs to support
-				 * custom collection too for bones, vertex groups, .. */
-				ui_rna_ID_collection(C, but, &ptr, &prop);
-
 				if(str == NULL || str[0] == '\0') {
-					memset(&rptr, 0, sizeof(rptr));
-					RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr);
+					RNA_property_pointer_set(&but->rnapoin, but->rnaprop, PointerRNA_NULL);
 					return 1;
 				}
-				else if(prop && RNA_property_collection_lookup_string(&ptr, prop, str, &rptr)) {
-					RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr);
+				else {
+					ptr= but->rnasearchpoin;
+					prop= but->rnasearchprop;
+					
+					if(prop && RNA_property_collection_lookup_string(&ptr, prop, str, &rptr))
+						RNA_property_pointer_set(&but->rnapoin, but->rnaprop, rptr);
+
 					return 1;
 				}
-				else
-					return 0;
+
+				return 0;
 			}
 		}
 	}
@@ -1454,7 +1387,12 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		BLI_strncpy(but->poin, str, but->hardmax);
 		return 1;
 	}
+	else if(ui_but_anim_expression_set(but, str)) {
+		/* driver expression */
+		return 1;
+	}
 	else {
+		/* number editing */
 		double value;
 
 		/* XXX 2.50 missing python api */
@@ -1685,6 +1623,7 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 	block= MEM_callocN(sizeof(uiBlock), "uiBlock");
 	block->active= 1;
 	block->dt= dt;
+	block->evil_C= (void*)C; // XXX
 	BLI_strncpy(block->name, name, sizeof(block->name));
 
 	if(region)
@@ -2147,13 +2086,10 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 		rgb_to_hsv(rgb[0], rgb[1], rgb[2], but->hsv, but->hsv+1, but->hsv+2);
 	}
 
-	if((block->flag & UI_BLOCK_LOOP) || ELEM6(but->type, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM)) {
-		but->flag |= UI_TEXT_LEFT;
-	}
-	
-	if(but->type==BUT_TOGDUAL) {
+	if((block->flag & UI_BLOCK_LOOP) || ELEM7(but->type, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM, SEARCH_MENU))
+		but->flag |= (UI_TEXT_LEFT|UI_ICON_LEFT);
+	else if(but->type==BUT_TOGDUAL)
 		but->flag |= UI_ICON_LEFT;
-	}
 
 	but->flag |= (block->flag & UI_BUT_ALIGN);
 
@@ -2186,17 +2122,19 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 		/* use rna values if parameters are not specified */
 		if(!str) {
 			if(type == MENU && proptype == PROP_ENUM) {
-				const EnumPropertyItem *item;
+				EnumPropertyItem *item;
 				DynStr *dynstr;
-				int i, totitem, value;
+				int i, totitem, value, free;
 
-				RNA_property_enum_items(ptr, prop, &item, &totitem);
+				RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
 				value= RNA_property_enum_get(ptr, prop);
 
 				dynstr= BLI_dynstr_new();
 				BLI_dynstr_appendf(dynstr, "%s%%t", RNA_property_ui_name(prop));
 				for(i=0; i<totitem; i++) {
-					if(item[i].icon)
+					if(!item[i].identifier[0])
+						BLI_dynstr_append(dynstr, "|%l");
+					else if(item[i].icon)
 						BLI_dynstr_appendf(dynstr, "|%s %%i%d %%x%d", item[i].name, item[i].icon, item[i].value);
 					else
 						BLI_dynstr_appendf(dynstr, "|%s %%x%d", item[i].name, item[i].value);
@@ -2207,15 +2145,18 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 				str= BLI_dynstr_get_cstring(dynstr);
 				BLI_dynstr_free(dynstr);
 
+				if(free)
+					MEM_freeN(item);
+
 				freestr= 1;
 			}
-			else if(type == ROW && proptype == PROP_ENUM) {
-				const EnumPropertyItem *item;
-				int i, totitem;
+			else if(ELEM(type, ROW, LISTROW) && proptype == PROP_ENUM) {
+				EnumPropertyItem *item;
+				int i, totitem, free;
 
-				RNA_property_enum_items(ptr, prop, &item, &totitem);
+				RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
 				for(i=0; i<totitem; i++) {
-					if(item[i].value == (int)max) {
+					if(item[i].identifier[0] && item[i].value == (int)max) {
 						str= (char*)item[i].name;
 						icon= item[i].icon;
 					}
@@ -2223,6 +2164,8 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 
 				if(!str)
 					str= (char*)RNA_property_ui_name(prop);
+				if(free)
+					MEM_freeN(item);
 			}
 			else {
 				str= (char*)RNA_property_ui_name(prop);
@@ -2232,18 +2175,21 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 
 		if(!tip) {
 			if(type == ROW && proptype == PROP_ENUM) {
-				const EnumPropertyItem *item;
-				int i, totitem;
+				EnumPropertyItem *item;
+				int i, totitem, free;
 
-				RNA_property_enum_items(ptr, prop, &item, &totitem);
+				RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
 
 				for(i=0; i<totitem; i++) {
-					if(item[i].value == (int)max) {
+					if(item[i].identifier[0] && item[i].value == (int)max) {
 						if(item[i].description[0])
 							tip= (char*)item[i].description;
 						break;
 					}
 				}
+
+				if(free)
+					MEM_freeN(item);
 			}
 		}
 		
@@ -2257,7 +2203,7 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 				RNA_property_int_range(ptr, prop, &hardmin, &hardmax);
 				RNA_property_int_ui_range(ptr, prop, &softmin, &softmax, &step);
 
-				if(min == max) {
+				if(!ELEM(type, ROW, LISTROW) && min == max) {
 					min= hardmin;
 					max= hardmax;
 				}
@@ -2272,7 +2218,7 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 				RNA_property_float_range(ptr, prop, &hardmin, &hardmax);
 				RNA_property_float_ui_range(ptr, prop, &softmin, &softmax, &step, &precision);
 
-				if(min == max) {
+				if(!ELEM(type, ROW, LISTROW) && min == max) {
 					min= hardmin;
 					max= hardmax;
 				}
@@ -2303,10 +2249,6 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 			but->rnaindex= index;
 		else
 			but->rnaindex= 0;
-
-		if(type == IDPOIN)
-			uiButSetCompleteFunc(but, ui_rna_ID_autocomplete, but);
-
 	}
 
 	if(icon) {
@@ -2332,7 +2274,7 @@ uiBut *ui_def_but_operator(uiBlock *block, int type, char *opname, int opcontext
 	uiBut *but;
 	wmOperatorType *ot;
 	
-	ot= WM_operatortype_find(opname);
+	ot= WM_operatortype_find(opname, 0);
 
 	if(!str) {
 		if(ot) str= ot->name;
@@ -2422,7 +2364,11 @@ void autocomplete_do_name(AutoComplete *autocpl, const char *name)
 		else {
 			/* remove from truncate what is not in bone->name */
 			for(a=0; a<autocpl->maxlen-1; a++) {
-				if(truncate[a]!=name[a])
+				if(name[a] == 0) {
+					truncate[a]= 0;
+					break;
+				}
+				else if(truncate[a]!=name[a])
 					truncate[a]= 0;
 			}
 		}
@@ -2692,26 +2638,6 @@ uiBut *uiDefIconTextButO(uiBlock *block, int type, char *opname, int opcontext, 
 	return but;
 }
 
-static int ui_menu_y(uiBlock *block)
-{
-	uiBut *but= block->buttons.last;
-
-	if(but) return but->y1;
-	else return 0;
-}
-
-uiBut *uiDefMenuButO(uiBlock *block, char *opname, char *name)
-{
-	int y= ui_menu_y(block) - MENU_ITEM_HEIGHT;
-	return uiDefIconTextButO(block, BUT, opname, WM_OP_INVOKE_REGION_WIN, ICON_BLANK1, name, 0, y, MENU_WIDTH, MENU_ITEM_HEIGHT-1, NULL);
-}
-
-uiBut *uiDefMenuSep(uiBlock *block)
-{
-	int y= ui_menu_y(block) - MENU_SEP_HEIGHT;
-	return uiDefBut(block, SEPR, 0, "", 0, y, MENU_WIDTH, MENU_SEP_HEIGHT, NULL, 0.0, 0.0, 0, 0, "");
-}
-
 /* END Button containing both string label and icon */
 
 void uiSetButLink(uiBut *but, void **poin, void ***ppoin, short *tot, int from, int to)
@@ -2753,7 +2679,7 @@ void uiBlockFlipOrder(uiBlock *block)
 	uiBut *but, *next;
 	float centy, miny=10000, maxy= -10000;
 
-	if(!(U.uiflag & USER_DIRECTIONALORDER))
+	if(U.uiflag & USER_MENUFIXEDORDER)
 		return;
 	
 	for(but= block->buttons.first; but; but= but->next) {
@@ -2846,9 +2772,10 @@ void uiBlockSetRenameFunc(uiBlock *block, uiButHandleRenameFunc func, void *arg1
 	
 }
 
-void uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(const bContext *C, void *idv, rcti *rect))
+void uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(const bContext *C, void *idv, void *argv, rcti *rect), void *arg)
 {
 	block->drawextra= func;
+	block->drawextra_arg= arg;
 }
 
 void uiButSetFunc(uiBut *but, uiButHandleFunc func, void *arg1, void *arg2)
@@ -2992,14 +2919,14 @@ uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxle
 }
 
 /* arg is user value, searchfunc and handlefunc both get it as arg */
-void uiButSetSearchFunc(uiBut *but, uiButSearchFunc sfunc, void *arg, uiButHandleFunc bfunc)
+/* if active set, button opens with this item visible and selected */
+void uiButSetSearchFunc(uiBut *but, uiButSearchFunc sfunc, void *arg, uiButHandleFunc bfunc, void *active)
 {
 	but->search_func= sfunc;
 	but->search_arg= arg;
 	
-	uiButSetFunc(but, bfunc, arg, NULL);
+	uiButSetFunc(but, bfunc, arg, active);
 }
-
 
 /* Program Init/Exit */
 

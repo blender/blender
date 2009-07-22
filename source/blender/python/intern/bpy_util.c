@@ -171,7 +171,7 @@ void PyObSpit(char *name, PyObject *var) {
 	else {
 		PyObject_Print(var, stderr, 0);
 		fprintf(stderr, " ref:%d ", var->ob_refcnt);
-		fprintf(stderr, " ptr:%ld", (long)var);
+		fprintf(stderr, " ptr:%p", (void *)var);
 		
 		fprintf(stderr, " type:");
 		if(Py_TYPE(var))
@@ -304,10 +304,19 @@ int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_c
 						PyErr_Format( PyExc_AttributeError, "expected %s class \"%s\" attribute to be a string", class_type, class_attrs->name);
 						return -1;
 					}
+					if(class_attrs->len != -1 && class_attrs->len < PyUnicode_GetSize(item)) {
+						PyErr_Format( PyExc_AttributeError, "expected %s class \"%s\" attribute string to be shorter then %d", class_type, class_attrs->name, class_attrs->len);
+						return -1;
+					}
+
 					break;
 				case 'l':
 					if (PyList_Check(item)==0) {
 						PyErr_Format( PyExc_AttributeError, "expected %s class \"%s\" attribute to be a list", class_type, class_attrs->name);
+						return -1;
+					}
+					if(class_attrs->len != -1 && class_attrs->len < PyList_GET_SIZE(item)) {
+						PyErr_Format( PyExc_AttributeError, "expected %s class \"%s\" attribute list to be shorter then %d", class_type, class_attrs->name, class_attrs->len);
 						return -1;
 					}
 					break;
@@ -348,8 +357,8 @@ PyObject *BPY_exception_buffer(void)
 	PyObject *stderr_backup = PySys_GetObject("stderr"); /* borrowed */
 	PyObject *string_io = NULL;
 	PyObject *string_io_buf = NULL;
-	PyObject *string_io_mod;
-	PyObject *string_io_getvalue;
+	PyObject *string_io_mod= NULL;
+	PyObject *string_io_getvalue= NULL;
 	
 	PyObject *error_type, *error_value, *error_traceback;
 	
@@ -369,14 +378,11 @@ PyObject *BPY_exception_buffer(void)
 #else
 	if(! (string_io_mod= PyImport_ImportModule("io")) ) {
 #endif
-		return NULL;
+		goto error_cleanup;
 	} else if (! (string_io = PyObject_CallMethod(string_io_mod, "StringIO", NULL))) {
-		Py_DECREF(string_io_mod);
-		return NULL;
+		goto error_cleanup;
 	} else if (! (string_io_getvalue= PyObject_GetAttrString(string_io, "getvalue"))) {
-		Py_DECREF(string_io_mod);
-		Py_DECREF(string_io);
-		return NULL;
+		goto error_cleanup;
 	}
 	
 	Py_INCREF(stdout_backup); // since these were borrowed we dont want them freed when replaced.
@@ -403,6 +409,18 @@ PyObject *BPY_exception_buffer(void)
 	
 	PyErr_Clear();
 	return string_io_buf;
+	
+	
+error_cleanup:
+	/* could not import the module so print the error and close */
+	Py_XDECREF(string_io_mod);
+	Py_XDECREF(string_io);
+	
+	PyErr_Restore(error_type, error_value, error_traceback);
+	PyErr_Print(); /* print the error */
+	PyErr_Clear();
+	
+	return NULL;
 }
 
 char *BPy_enum_as_string(EnumPropertyItem *item)
@@ -412,7 +430,8 @@ char *BPy_enum_as_string(EnumPropertyItem *item)
 	char *cstring;
 
 	for (e= item; item->identifier; item++) {
-		BLI_dynstr_appendf(dynstr, (e==item)?"'%s'":", '%s'", item->identifier);
+		if(item->identifier[0])
+			BLI_dynstr_appendf(dynstr, (e==item)?"'%s'":", '%s'", item->identifier);
 	}
 
 	cstring = BLI_dynstr_get_cstring(dynstr);

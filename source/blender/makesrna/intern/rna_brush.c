@@ -34,16 +34,41 @@
 
 #ifdef RNA_RUNTIME
 
+#include "MEM_guardedalloc.h"
+
+#include "BKE_texture.h"
+
 static void rna_Brush_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Brush *brush= (Brush*)ptr->data;
-	rna_iterator_array_begin(iter, (void*)brush->mtex, sizeof(MTex*), MAX_MTEX, NULL);
+	rna_iterator_array_begin(iter, (void*)brush->mtex, sizeof(MTex*), MAX_MTEX, 0, NULL);
 }
 
 static PointerRNA rna_Brush_active_texture_get(PointerRNA *ptr)
 {
 	Brush *brush= (Brush*)ptr->data;
 	return rna_pointer_inherit_refine(ptr, &RNA_TextureSlot, brush->mtex[(int)brush->texact]);
+}
+
+static void rna_Brush_active_texture_index_set(PointerRNA *ptr, int value)
+{
+	Brush *brush= (Brush*)ptr->data;
+	int act= brush->texact;
+
+	if(value == act || value < 0 || value >= MAX_MTEX)
+		return;
+
+	/* auto create/free mtex on activate/deactive, so we can edit
+	 * the texture pointer in the buttons UI. */
+	if(brush->mtex[act] && !brush->mtex[act]->tex) {
+		MEM_freeN(brush->mtex[act]);
+		brush->mtex[act]= NULL;
+	}
+
+	brush->texact= value;
+
+	if(!brush->mtex[value])
+		brush->mtex[value]= add_mtex();
 }
 
 static float rna_Brush_rotation_get(PointerRNA *ptr)
@@ -89,6 +114,7 @@ void rna_def_brush(BlenderRNA *brna)
 		{SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", ""},
 		{SCULPT_TOOL_LAYER, "LAYER", 0, "Layer", ""},
 		{SCULPT_TOOL_FLATTEN, "FLATTEN", 0, "Flatten", ""},
+		{SCULPT_TOOL_CLAY, "CLAY", 0, "Clay", ""},
  		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Brush", "ID");
@@ -184,6 +210,10 @@ void rna_def_brush(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "space", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SPACE);
 	RNA_def_property_ui_text(prop, "Space", "Limit brush application to the distance specified by spacing.");
+
+	prop= RNA_def_property(srna, "smooth_stroke", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SMOOTH_STROKE);
+	RNA_def_property_ui_text(prop, "Smooth Stroke", "Brush lags behind mouse and follows a smoother path.");
 	
 	/* not exposed in the interface yet
 	prop= RNA_def_property(srna, "fixed_tex", PROP_BOOLEAN, PROP_NONE);
@@ -194,7 +224,7 @@ void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Curve", "Editable falloff curve.");
 
 	/* texture */
-	rna_def_mtex_common(srna, "rna_Brush_mtex_begin", "rna_Brush_active_texture_get", "TextureSlot");
+	rna_def_mtex_common(srna, "rna_Brush_mtex_begin", "rna_Brush_active_texture_get", "rna_Brush_active_texture_index_set", "TextureSlot");
 
 	/* clone tool */
 	prop= RNA_def_property(srna, "clone_image", PROP_POINTER, PROP_NONE);

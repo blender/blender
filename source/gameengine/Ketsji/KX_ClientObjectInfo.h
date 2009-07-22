@@ -30,9 +30,6 @@
 #define __KX_CLIENTOBJECT_INFO_H
 
 /* Note, the way this works with/without sumo is a bit odd */
-#ifdef USE_SUMO_SOLID
-#include <SM_Object.h>
-#endif //USE_SUMO_SOLID
 
 #include <list>
 
@@ -42,9 +39,6 @@ class KX_GameObject;
  * Client Type and Additional Info. This structure can be use instead of a bare void* pointer, for safeness, and additional info for callbacks
  */
 struct KX_ClientObjectInfo
-#ifdef USE_SUMO_SOLID
-  : public SM_ClientObject
-#endif
 {
 	enum clienttype {
 		STATIC,
@@ -59,18 +53,12 @@ struct KX_ClientObjectInfo
 	std::list<SCA_ISensor*>	m_sensors;
 public:
 	KX_ClientObjectInfo(KX_GameObject *gameobject, clienttype type = STATIC, void *auxilary_info = NULL) :
-#ifdef USE_SUMO_SOLID
-		SM_ClientObject(),
-#endif
 		m_type(type),
 		m_gameobject(gameobject),
 		m_auxilary_info(auxilary_info)
 	{}
 	
 	KX_ClientObjectInfo(const KX_ClientObjectInfo &copy) :
-#ifdef USE_SUMO_SOLID		
-		  SM_ClientObject(copy),
-#endif
 		  m_type(copy.m_type),
 		  m_gameobject(copy.m_gameobject),
 		  m_auxilary_info(copy.m_auxilary_info)

@@ -56,23 +56,12 @@ public:
 		float float_arg,
 		int int_arg,
 		RAS_IRasterizer* rasterizer,
-		RAS_IRenderTools* rendertools,
-        PyTypeObject* T=&Type
-        );
+		RAS_IRenderTools* rendertools);
 
 	void	SetShaderText(const char *text);
     virtual ~SCA_2DFilterActuator();
     virtual bool Update();
 
     virtual CValue* GetReplica();
-
-	/* --------------------------------------------------------------------- */
-	/* Python interface ---------------------------------------------------- */
-	/* --------------------------------------------------------------------- */
-
-    virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject* value);
-
 };
 #endif

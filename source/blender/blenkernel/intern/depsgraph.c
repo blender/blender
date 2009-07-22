@@ -39,6 +39,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_boid_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_ID.h"
@@ -60,6 +61,8 @@
 #include "DNA_space_types.h"
 #include "DNA_view2d_types.h"
 #include "DNA_view3d_types.h"
+
+#include "BLI_ghash.h"
 
 #include "BKE_action.h"
 #include "BKE_effect.h"
@@ -553,60 +556,81 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 		GroupObject *go;
 
 		for(; psys; psys=psys->next) {
+			BoidRule *rule = NULL;
+			BoidState *state = NULL;
 			ParticleSettings *part= psys->part;
 
 			dag_add_relation(dag, node, node, DAG_RL_OB_DATA, "Particle-Object Relation");
 
-			if(psys->flag & PSYS_DISABLED || psys->flag & PSYS_DELETE)
+			if(!psys_check_enabled(ob, psys))
 				continue;
 
-			if(part->phystype==PART_PHYS_KEYED && psys->keyed_ob &&
-			   BLI_findlink(&psys->keyed_ob->particlesystem,psys->keyed_psys-1)) {
-				node2 = dag_get_node(dag, psys->keyed_ob);
-				dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA, "Particle Keyed Physics");
+			if(ELEM(part->phystype,PART_PHYS_KEYED,PART_PHYS_BOIDS)) {
+				ParticleTarget *pt = psys->targets.first;
+
+				for(; pt; pt=pt->next) {
+					if(pt->ob && BLI_findlink(&pt->ob->particlesystem, pt->psys-1)) {
+						node2 = dag_get_node(dag, pt->ob);
+						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Targets");
+					}
+			   }
 			}
 
-			if(part->draw_as == PART_DRAW_OB && part->dup_ob) {
+			if(part->ren_as == PART_DRAW_OB && part->dup_ob) {
 				node2 = dag_get_node(dag, part->dup_ob);
 				dag_add_relation(dag, node, node2, DAG_RL_OB_OB, "Particle Object Visualisation");
 				if(part->dup_ob->type == OB_MBALL)
 					dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA, "Particle Object Visualisation");
 			}
 
-			if(part->draw_as == PART_DRAW_GR && part->dup_group) {
+			if(part->ren_as == PART_DRAW_GR && part->dup_group) {
 				for(go=part->dup_group->gobject.first; go; go=go->next) {
 					node2 = dag_get_node(dag, go->ob);
 					dag_add_relation(dag, node, node2, DAG_RL_OB_OB, "Particle Group Visualisation");
 				}
 			}
 
-			if(psys->effectors.first)
-				psys_end_effectors(psys);
+			psys_end_effectors(psys);
 			psys_init_effectors(scene, ob, psys->part->eff_group, psys);
 
-			if(psys->effectors.first) {
-				for(nec= psys->effectors.first; nec; nec= nec->next) {
-					Object *ob1= nec->ob;
+			for(nec= psys->effectors.first; nec; nec= nec->next) {
+				Object *ob1= nec->ob;
 
-					if(nec->type & PSYS_EC_EFFECTOR) {
-						node2 = dag_get_node(dag, ob1);
-						if(ob1->pd->forcefield==PFIELD_GUIDE)
-							dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Field");
-						else
-							dag_add_relation(dag, node2, node, DAG_RL_OB_DATA, "Particle Field");
-					}
-					else if(nec->type & PSYS_EC_DEFLECT) {
-						node2 = dag_get_node(dag, ob1);
-						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Collision");
-					}
-					else if(nec->type & PSYS_EC_PARTICLE) {
-						node2 = dag_get_node(dag, ob1);
-						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA, "Particle Field");
-					}
-					
-					if(nec->type & PSYS_EC_REACTOR) {
-						node2 = dag_get_node(dag, ob1);
-						dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA, "Particle Reactor");
+				if(nec->type & PSYS_EC_EFFECTOR) {
+					node2 = dag_get_node(dag, ob1);
+					if(ob1->pd->forcefield==PFIELD_GUIDE)
+						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Field");
+					else
+						dag_add_relation(dag, node2, node, DAG_RL_OB_DATA, "Particle Field");
+				}
+				else if(nec->type & PSYS_EC_DEFLECT) {
+					node2 = dag_get_node(dag, ob1);
+					dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Collision");
+				}
+				else if(nec->type & PSYS_EC_PARTICLE) {
+					node2 = dag_get_node(dag, ob1);
+					dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA, "Particle Field");
+				}
+				
+				if(nec->type & PSYS_EC_REACTOR) {
+					node2 = dag_get_node(dag, ob1);
+					dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA, "Particle Reactor");
+				}
+			}
+
+			if(part->boids) {
+				for(state = part->boids->states.first; state; state=state->next) {
+					for(rule = state->rules.first; rule; rule=rule->next) {
+						Object *ruleob = NULL;
+						if(rule->type==eBoidRuleType_Avoid)
+							ruleob = ((BoidRuleGoalAvoid*)rule)->ob;
+						else if(rule->type==eBoidRuleType_FollowLeader)
+							ruleob = ((BoidRuleFollowLeader*)rule)->ob;
+
+						if(ruleob) {
+							node2 = dag_get_node(dag, ruleob);
+							dag_add_relation(dag, node2, node, DAG_RL_OB_DATA, "Boid Rule");
+						}
 					}
 				}
 			}
@@ -754,6 +778,9 @@ void free_forest(DagForest *Dag)
 		itN = itN->next;
 		MEM_freeN(tempN);
 	}
+
+	BLI_ghash_free(Dag->nodeHash, NULL, NULL);
+	Dag->nodeHash= NULL;
 	Dag->DagNode.first = NULL;
 	Dag->DagNode.last = NULL;
 	Dag->numNodes = 0;
@@ -762,13 +789,9 @@ void free_forest(DagForest *Dag)
 
 DagNode * dag_find_node (DagForest *forest,void * fob)
 {
-	DagNode *node = forest->DagNode.first;
-	
-	while (node) {
-		if (node->ob == fob)
-			return node;
-		node = node->next;
-	}
+	if(forest->nodeHash)
+		return BLI_ghash_lookup(forest->nodeHash, fob);
+
 	return NULL;
 }
 
@@ -794,7 +817,12 @@ DagNode * dag_add_node (DagForest *forest, void * fob)
 			forest->DagNode.first = node;
 			forest->numNodes = 1;
 		}
+
+		if(!forest->nodeHash)
+			forest->nodeHash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+		BLI_ghash_insert(forest->nodeHash, fob, node);
 	}
+
 	return node;
 }
 
@@ -1805,17 +1833,10 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 /* node was checked to have lasttime != curtime , and is of type ID_OB */
 static unsigned int flush_layer_node(Scene *sce, DagNode *node, int curtime)
 {
-	Base *base;
 	DagAdjList *itA;
 	
 	node->lasttime= curtime;
-	node->lay= 0;
-	for(base= sce->base.first; base; base= base->next) {
-		if(node->ob == base->object) {
-			node->lay= ((Object *)node->ob)->lay;
-			break;
-		}
-	}
+	node->lay= node->scelay;
 	
 	for(itA = node->child; itA; itA= itA->next) {
 		if(itA->node->type==ID_OB) {
@@ -1832,7 +1853,7 @@ static unsigned int flush_layer_node(Scene *sce, DagNode *node, int curtime)
 }
 
 /* node was checked to have lasttime != curtime , and is of type ID_OB */
-static void flush_pointcache_reset(DagNode *node, int curtime, int reset)
+static void flush_pointcache_reset(Scene *scene, DagNode *node, int curtime, int reset)
 {
 	DagAdjList *itA;
 	Object *ob;
@@ -1845,13 +1866,13 @@ static void flush_pointcache_reset(DagNode *node, int curtime, int reset)
 				ob= (Object*)(node->ob);
 
 				if(reset || (ob->recalc & OB_RECALC)) {
-					if(BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH))
+					if(BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH))
 						ob->recalc |= OB_RECALC_DATA;
 
-					flush_pointcache_reset(itA->node, curtime, 1);
+					flush_pointcache_reset(scene, itA->node, curtime, 1);
 				}
 				else
-					flush_pointcache_reset(itA->node, curtime, 0);
+					flush_pointcache_reset(scene, itA->node, curtime, 0);
 			}
 		}
 	}
@@ -1860,9 +1881,10 @@ static void flush_pointcache_reset(DagNode *node, int curtime, int reset)
 /* flushes all recalc flags in objects down the dependency tree */
 void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
 {
-	DagNode *firstnode;
+	DagNode *firstnode, *node;
 	DagAdjList *itA;
 	Object *ob;
+	Base *base;
 	int lasttime;
 	
 	if(sce->theDag==NULL) {
@@ -1878,6 +1900,15 @@ void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
 	/* first we flush the layer flags */
 	sce->theDag->time++;	// so we know which nodes were accessed
 	lasttime= sce->theDag->time;
+
+
+	for(base= sce->base.first; base; base= base->next) {
+		node= dag_get_node(sce->theDag, base->object);
+		if(node)
+			node->scelay= base->object->lay;
+		else
+			node->scelay= 0;
+	}
 
 	for(itA = firstnode->child; itA; itA= itA->next)
 		if(itA->node->lasttime!=lasttime && itA->node->type==ID_OB) 
@@ -1899,13 +1930,13 @@ void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
 				ob= (Object*)(itA->node->ob);
 
 				if(ob->recalc & OB_RECALC) {
-					if(BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH))
+					if(BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH))
 						ob->recalc |= OB_RECALC_DATA;
 
-					flush_pointcache_reset(itA->node, lasttime, 1);
+					flush_pointcache_reset(sce, itA->node, lasttime, 1);
 				}
 				else
-					flush_pointcache_reset(itA->node, lasttime, 0);
+					flush_pointcache_reset(sce, itA->node, lasttime, 0);
 			}
 		}
 	}
@@ -2054,7 +2085,6 @@ static void dag_object_time_update_flags(Object *ob)
 		}
 	}		
 }
-
 /* flag all objects that need recalc, for changes in time for example */
 void DAG_scene_update_flags(Scene *scene, unsigned int lay)
 {
@@ -2123,7 +2153,7 @@ void DAG_object_flush_update(Scene *sce, Object *ob, short flag)
 	if(ob==NULL || sce->theDag==NULL) return;
 
 	ob->recalc |= flag;
-	BKE_ptcache_object_reset(ob, PTCACHE_RESET_DEPSGRAPH);
+	BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH);
 	
 	/* all users of this ob->data should be checked */
 	/* BUT! displists for curves are still only on cu */
@@ -2138,7 +2168,7 @@ void DAG_object_flush_update(Scene *sce, Object *ob, short flag)
 					for (obt=G.main->object.first; obt; obt= obt->id.next) {
 						if (obt != ob && obt->data==ob->data) {
 							obt->recalc |= OB_RECALC_DATA;
-							BKE_ptcache_object_reset(obt, PTCACHE_RESET_DEPSGRAPH);
+							BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
 						}
 					}
 				}

@@ -92,6 +92,26 @@ float sasqrt(float fac)
 	return (float)sqrt(fac);
 }
 
+float saacosf(float fac)
+{
+	if(fac<= -1.0f) return (float)M_PI;
+	else if(fac>=1.0f) return 0.0f;
+	else return (float)acosf(fac);
+}
+
+float saasinf(float fac)
+{
+	if(fac<= -1.0f) return (float)-M_PI/2.0f;
+	else if(fac>=1.0f) return (float)M_PI/2.0f;
+	else return (float)asinf(fac);
+}
+
+float sasqrtf(float fac)
+{
+	if(fac<=0.0) return 0.0;
+	return (float)sqrtf(fac);
+}
+
 float Normalize(float *n)
 {
 	float d;
@@ -2197,25 +2217,23 @@ void VecNegf(float *v1)
 
 void VecOrthoBasisf(float *v, float *v1, float *v2)
 {
-	float f = (float)sqrt(v[0]*v[0] + v[1]*v[1]);
+	const float f = (float)sqrt(v[0]*v[0] + v[1]*v[1]);
 
 	if (f < 1e-35f) {
 		// degenerate case
-		v1[0] = 0.0f; v1[1] = 1.0f; v1[2] = 0.0f;
-		if (v[2] > 0.0f) {
-			v2[0] = 1.0f; v2[1] = v2[2] = 0.0f;
-		}
-		else {
-			v2[0] = -1.0f; v2[1] = v2[2] = 0.0f;
-		}
+		v1[0] = (v[2] < 0.0f) ? -1.0f : 1.0f;
+		v1[1] = v1[2] = v2[0] = v2[2] = 0.0f;
+		v2[1] = 1.0f;
 	}
 	else  {
-		f = 1.0f/f;
-		v1[0] = v[1]*f;
-		v1[1] = -v[0]*f;
-		v1[2] = 0.0f;
+		const float d= 1.0f/f;
 
-		Crossf(v2, v, v1);
+		v1[0] =  v[1]*d;
+		v1[1] = -v[0]*d;
+		v1[2] = 0.0f;
+		v2[0] = -v[2]*v1[1];
+		v2[1] = v[2]*v1[0];
+		v2[2] = v[0]*v1[1] - v[1]*v1[0];
 	}
 }
 
@@ -3542,33 +3560,10 @@ int constrain_rgb(float *r, float *g, float *b)
     
     if (w > 0) {
         *r += w;  *g += w; *b += w;
-        return 1;                     /* Colour modified to fit RGB gamut */
+        return 1;                     /* Color modified to fit RGB gamut */
     }
 
-    return 0;                         /* Colour within RGB gamut */
-}
-
-/*Transform linear RGB values to nonlinear RGB values. Rec.
-  709 is ITU-R Recommendation BT. 709 (1990) ``Basic
-  Parameter Values for the HDTV Standard for the Studio and
-  for International Programme Exchange'', formerly CCIR Rec.
-  709.*/
-static void gamma_correct(float *c)
-{
-	/* Rec. 709 gamma correction. */
-	float cc = 0.018f;
-	
-	if (*c < cc)
-	    *c *= ((1.099f * (float)pow(cc, 0.45)) - 0.099f) / cc;
-	else 
-	    *c = (1.099f * (float)pow(*c, 0.45)) - 0.099f;
-}
-
-void gamma_correct_rgb(float *r, float *g, float *b)
-{
-    gamma_correct(r);
-    gamma_correct(g);
-    gamma_correct(b);
+    return 0;                         /* Color within RGB gamut */
 }
 
 

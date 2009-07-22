@@ -294,6 +294,13 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_IMAGE:	
 			ED_area_tag_redraw(sa);
 			break;
+		case NC_OBJECT:
+			switch(wmn->data) {
+				case ND_GEOM_SELECT:
+				case ND_GEOM_DATA:
+					ED_area_tag_redraw(sa);
+					break;
+			}
 	}
 }
 
@@ -301,7 +308,11 @@ static int image_context(const bContext *C, const char *member, bContextDataResu
 {
 	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
 
-	if(CTX_data_equals(member, "edit_image")) {
+	if(CTX_data_dir(member)) {
+		static const char *dir[] = {"edit_image", NULL};
+		CTX_data_dir_set(result, dir);
+	}
+	else if(CTX_data_equals(member, "edit_image")) {
 		CTX_data_id_pointer_set(result, (ID*)ED_space_image(sima));
 		return 1;
 	}
@@ -323,12 +334,10 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar, Scene *sce
 #endif
 	if(sima->image) {
 		ImBuf *ibuf= ED_space_image_buffer(sima);
-		float xuser_asp, yuser_asp;
 		
-		ED_image_aspect(sima->image, &xuser_asp, &yuser_asp);
 		if(ibuf) {
-			width= ibuf->x*xuser_asp;
-			height= ibuf->y*yuser_asp;
+			width= ibuf->x;
+			height= ibuf->y;
 		}
 		else if(sima->image->type==IMA_TYPE_R_RESULT) {
 			/* not very important, just nice */
@@ -360,7 +369,6 @@ static void image_main_area_set_view2d(SpaceImage *sima, ARegion *ar, Scene *sce
 	ar->v2d.mask.ymax= winy;
 
 	/* which part of the image space do we see? */
-	/* same calculation as in lrectwrite: area left and down*/
 	x1= ar->winrct.xmin+(winx-sima->zoom*w)/2;
 	y1= ar->winrct.ymin+(winy-sima->zoom*h)/2;
 
@@ -393,6 +401,10 @@ static void image_main_area_init(wmWindowManager *wm, ARegion *ar)
 	/* image paint polls for mode */
 	keymap= WM_keymap_listbase(wm, "ImagePaint", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+
+	/* XXX need context here?
+	keymap= WM_keymap_listbase(wm, "UVEdit", 0, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);*/
 	
 	/* own keymaps */
 	keymap= WM_keymap_listbase(wm, "Image Generic", SPACE_IMAGE, 0);
@@ -457,13 +469,6 @@ static void image_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
-		case NC_OBJECT:
-			switch(wmn->data) {
-				case ND_GEOM_SELECT:
-				case ND_GEOM_DATA:
-					ED_region_tag_redraw(ar);
-					break;
-			}
 	}
 }
 
@@ -583,7 +588,6 @@ void ED_spacetype_image(void)
 	
 	BLI_addhead(&st->regiontypes, art);
 	
-	
 	BKE_spacetype_register(st);
 }
 
@@ -679,7 +683,7 @@ void ED_image_aspect(Image *ima, float *aspx, float *aspy)
 	*aspx= *aspy= 1.0;
 
 	if((ima == NULL) || (ima->type == IMA_TYPE_R_RESULT) || (ima->type == IMA_TYPE_COMPOSITE) ||
-	   (ima->tpageflag & IMA_TILES) || (ima->aspx==0.0 || ima->aspy==0.0))
+	   (ima->aspx==0.0 || ima->aspy==0.0))
 		return;
 
 	/* x is always 1 */

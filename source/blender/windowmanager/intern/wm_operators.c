@@ -30,6 +30,8 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <string.h>
+#include <ctype.h>
+#include <stdio.h>
 
 #include "DNA_ID.h"
 #include "DNA_screen_types.h"
@@ -82,15 +84,36 @@ static ListBase global_ops= {NULL, NULL};
 
 /* ************ operator API, exported ********** */
 
-wmOperatorType *WM_operatortype_find(const char *idname)
+
+wmOperatorType *WM_operatortype_find(const char *idname, int quiet)
 {
 	wmOperatorType *ot;
 	
+	char idname_bl[OP_MAX_TYPENAME]; // XXX, needed to support python style names without the _OT_ syntax
+	WM_operator_bl_idname(idname_bl, idname);
+
 	for(ot= global_ops.first; ot; ot= ot->next) {
-		if(strncmp(ot->idname, idname, OP_MAX_TYPENAME)==0)
+		if(strncmp(ot->idname, idname_bl, OP_MAX_TYPENAME)==0)
 		   return ot;
 	}
-	printf("search for unknown operator %s\n", idname);
+	
+	if(!quiet)
+		printf("search for unknown operator %s, %s\n", idname_bl, idname);
+	
+	return NULL;
+}
+
+wmOperatorType *WM_operatortype_exists(const char *idname)
+{
+	wmOperatorType *ot;
+	
+	char idname_bl[OP_MAX_TYPENAME]; // XXX, needed to support python style names without the _OT_ syntax
+	WM_operator_bl_idname(idname_bl, idname);
+
+	for(ot= global_ops.first; ot; ot= ot->next) {
+		if(strncmp(ot->idname, idname_bl, OP_MAX_TYPENAME)==0)
+		   return ot;
+	}
 	return NULL;
 }
 
@@ -107,6 +130,13 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType*))
 	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype");
 	ot->srna= RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties");
 	opfunc(ot);
+
+	if(ot->name==NULL) {
+		static char dummy_name[] = "Dummy Name";
+		fprintf(stderr, "ERROR: Operator %s has no name property!\n", ot->idname);
+		ot->name= dummy_name;
+	}
+
 	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:""); // XXX All ops should have a description but for now allow them not to.
 	RNA_def_struct_identifier(ot->srna, ot->idname);
 	BLI_addtail(&global_ops, ot);
@@ -126,7 +156,7 @@ void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType*, void*), void *us
 
 int WM_operatortype_remove(const char *idname)
 {
-	wmOperatorType *ot = WM_operatortype_find(idname);
+	wmOperatorType *ot = WM_operatortype_find(idname, 0);
 
 	if (ot==NULL)
 		return 0;
@@ -138,27 +168,66 @@ int WM_operatortype_remove(const char *idname)
 	return 1;
 }
 
+/* SOME_OT_op -> some.op */
+void WM_operator_py_idname(char *to, const char *from)
+{
+	char *sep= strstr(from, "_OT_");
+	if(sep) {
+		int i, ofs= (sep-from);
+
+		for(i=0; i<ofs; i++)
+			to[i]= tolower(from[i]);
+
+		to[ofs] = '.';
+		BLI_strncpy(to+(ofs+1), sep+4, OP_MAX_TYPENAME);
+	}
+	else {
+		/* should not happen but support just incase */
+		BLI_strncpy(to, from, OP_MAX_TYPENAME);
+	}
+}
+
+/* some.op -> SOME_OT_op */
+void WM_operator_bl_idname(char *to, const char *from)
+{
+	char *sep= strstr(from, ".");
+
+	if(sep) {
+		int i, ofs= (sep-from);
+
+		for(i=0; i<ofs; i++)
+			to[i]= toupper(from[i]);
+
+		BLI_strncpy(to+ofs, "_OT_", OP_MAX_TYPENAME);
+		BLI_strncpy(to+(ofs+4), sep+1, OP_MAX_TYPENAME);
+	}
+	else {
+		/* should not happen but support just incase */
+		BLI_strncpy(to, from, OP_MAX_TYPENAME);
+	}
+}
+
 /* print a string representation of the operator, with the args that it runs 
  * so python can run it again */
 char *WM_operator_pystring(wmOperator *op)
 {
 	const char *arg_name= NULL;
+	char idname_py[OP_MAX_TYPENAME];
 
 	PropertyRNA *prop, *iterprop;
-	CollectionPropertyIterator iter;
 
 	/* for building the string */
 	DynStr *dynstr= BLI_dynstr_new();
 	char *cstring, *buf;
 	int first_iter=1;
 
-	BLI_dynstr_appendf(dynstr, "%s(", op->idname);
+	WM_operator_py_idname(idname_py, op->idname);
+	BLI_dynstr_appendf(dynstr, "bpy.ops.%s(", idname_py);
 
 	iterprop= RNA_struct_iterator_property(op->ptr->type);
-	RNA_property_collection_begin(op->ptr, iterprop, &iter);
 
-	for(; iter.valid; RNA_property_collection_next(&iter)) {
-		prop= iter.ptr.data;
+	RNA_PROP_BEGIN(op->ptr, propptr, iterprop) {
+		prop= propptr.data;
 		arg_name= RNA_property_identifier(prop);
 
 		if (strcmp(arg_name, "rna_type")==0) continue;
@@ -170,8 +239,7 @@ char *WM_operator_pystring(wmOperator *op)
 		MEM_freeN(buf);
 		first_iter = 0;
 	}
-
-	RNA_property_collection_end(&iter);
+	RNA_PROP_END;
 
 	BLI_dynstr_append(dynstr, ")");
 
@@ -182,7 +250,7 @@ char *WM_operator_pystring(wmOperator *op)
 
 void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
 {
-	wmOperatorType *ot= WM_operatortype_find(opstring);
+	wmOperatorType *ot= WM_operatortype_find(opstring, 0);
 
 	if(ot)
 		RNA_pointer_create(NULL, ot->srna, NULL, ptr);
@@ -291,7 +359,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
-	uiDefAutoButsRNA(C, layout, &ptr);
+	uiDefAutoButsRNA(C, layout, &ptr, 2);
 
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);
@@ -299,7 +367,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	return block;
 }
 
-int WM_operator_redo(bContext *C, wmOperator *op, wmEvent *event)
+int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *event)
 {
 	int retval= OPERATOR_CANCELLED;
 	
@@ -334,7 +402,7 @@ static uiBlock *wm_block_create_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
 	
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
-	uiDefAutoButsRNA(C, layout, op->ptr);
+	uiDefAutoButsRNA(C, layout, op->ptr, 2);
 	
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);
@@ -403,7 +471,7 @@ static void operator_search_cb(const struct bContext *C, void *arg, char *str, u
 						name[len]= '|';
 				}
 				
-				if(0==uiSearchItemAdd(items, name, ot))
+				if(0==uiSearchItemAdd(items, name, ot, 0))
 					break;
 			}
 		}
@@ -422,7 +490,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1);
 	
 	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 180, 19, "");
-	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb);
+	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
 	
 	/* fake button, it holds space for search items */
 	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 180, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
@@ -505,7 +573,7 @@ static void WM_OT_read_homefile(wmOperatorType *ot)
 
 static int recentfile_exec(bContext *C, wmOperator *op)
 {
-	int event= RNA_enum_get(op->ptr, "nr");
+	int event= RNA_int_get(op->ptr, "nr");
 
 	// XXX wm in context is not set correctly after WM_read_file -> crash
 	// do it before for now, but is this correct with multiple windows?
@@ -559,7 +627,7 @@ static void WM_OT_open_recentfile(wmOperatorType *ot)
 	ot->exec= recentfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	RNA_def_property(ot->srna, "nr", PROP_ENUM, PROP_NONE);
+	RNA_def_property(ot->srna, "nr", PROP_INT, PROP_UNSIGNED);
 }
 
 /* ********* main file *********** */
@@ -1655,7 +1723,7 @@ void wm_window_keymap(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_save_mainfile", WKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_save_as_mainfile", F2KEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* debug/testing */

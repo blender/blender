@@ -9,10 +9,10 @@ BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 BF_FFMPEG_LIB = 'avformat-52.lib avcodec-52.lib avdevice-52.lib avutil-50.lib swscale-0.lib'
 
 BF_PYTHON = LIBDIR + '/python'
-BF_PYTHON_VERSION = '2.6'
+BF_PYTHON_VERSION = '3.1'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = 'python'
-BF_PYTHON_LIB = 'python26'
+BF_PYTHON_LIB = 'python31'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 
 WITH_BF_OPENAL = True
@@ -90,19 +90,10 @@ BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 WITH_BF_GAMEENGINE = True
 WITH_BF_PLAYER = True
 
-WITH_BF_ODE = True
-BF_ODE = LIBDIR + '/ode'
-BF_ODE_INC = BF_ODE + '/include'
-BF_ODE_LIB = BF_ODE + '/lib/libode.a'
-
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
-
-BF_SOLID = '#extern/solid'
-BF_SOLID_INC = '${BF_SOLID}'
-BF_SOLID_LIB = 'extern_solid'
 
 BF_WINTAB = LIBDIR + '/wintab'
 BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
@@ -158,7 +149,7 @@ BF_OPENGL_LIB_STATIC = [ '${BF_OPENGL}/lib/libGL.a', '${BF_OPENGL}/lib/libGLU.a'
 CC = 'cl.exe'
 CXX = 'cl.exe'
 
-CCFLAGS = ['/nologo', '/Ob1', '/J', '/W3', '/Gd', '/MT']
+CCFLAGS = ['/nologo', '/Ob1', '/J', '/W3', '/Gd', '/wd4244', '/wd4305', '/wd4800', '/wd4065', '/wd4267']
 CXXFLAGS = ['/EHsc']
 
 BF_DEBUG_CCFLAGS = ['/Zi', '/FR${TARGET}.sbr']
@@ -174,7 +165,7 @@ CXX_WARN = []
 
 LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid']
 
-PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:IX86','/ENTRY:mainCRTStartup','/INCREMENTAL:NO','/NODEFAULTLIB:"msvcprt.lib"','/NODEFAULTLIB:"glut32.lib"','/NODEFAULTLIB:"libc.lib"','/NODEFAULTLIB:"libcd.lib"','/NODEFAULTLIB:"libcpd.lib"','/NODEFAULTLIB:"libcp.lib"','/LARGEADDRESSAWARE']
+PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:IX86','/INCREMENTAL:NO','/NODEFAULTLIB:"msvcprt.lib"','/NODEFAULTLIB:"msvcprtd.lib"','/NODEFAULTLIB:"glut32.lib"','/NODEFAULTLIB:"libc.lib"','/NODEFAULTLIB:"libcd.lib"','/NODEFAULTLIB:"libcpd.lib"','/NODEFAULTLIB:"libcp.lib"','/NODEFAULTLIB:"msvcrt.lib"', '/NODEFAULTLIB:"msvcrtd.lib"', '/NODEFAULTLIB:"msvcmrt.lib"', '/NODEFAULTLIB:"msvcurt.lib"', '/LARGEADDRESSAWARE']
 
 # # Todo
 # BF_PROFILE_CCFLAGS = ['-pg', '-g ']

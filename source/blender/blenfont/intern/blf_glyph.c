@@ -213,11 +213,7 @@ GlyphBLF *blf_glyph_texture_add(FontBLF *font, FT_UInt index, unsigned int c)
 	else
 		do_new= 1;
 
-	if (font->flags & BLF_FONT_KERNING)
-		err= FT_Load_Glyph(font->face, index, FT_LOAD_NO_BITMAP);
-	else
-		err= FT_Load_Glyph(font->face, index, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
-
+	err= FT_Load_Glyph(font->face, index, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
 	if (err)
 		return(NULL);
 
@@ -332,11 +328,7 @@ GlyphBLF *blf_glyph_bitmap_add(FontBLF *font, FT_UInt index, unsigned int c)
 	else
 		do_new= 1;
 
-	if (font->flags & BLF_FONT_KERNING)
-		err= FT_Load_Glyph(font->face, index, FT_LOAD_NO_BITMAP);
-	else
-		err= FT_Load_Glyph(font->face, index, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
-
+	err= FT_Load_Glyph(font->face, index, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
 	if (err)
 		return(NULL);
 
@@ -496,8 +488,20 @@ int blf_glyph_texture_render(FontBLF *font, GlyphBLF *g, float x, float y)
 	GLint cur_tex;
 	float dx, dx1;
 	float y1, y2;
+	float xo, yo;
+	float color[4];
 
 	gt= g->tex_data;
+	xo= 0.0f;
+	yo= 0.0f;
+
+	if (font->flags & BLF_SHADOW) {
+		xo= x;
+		yo= y;
+		x += font->shadow_x;
+		y += font->shadow_y;
+	}
+
 	dx= floor(x + gt->pos_x);
 	dx1= dx + gt->width;
 	y1= y + gt->pos_y;
@@ -517,6 +521,27 @@ int blf_glyph_texture_render(FontBLF *font, GlyphBLF *g, float x, float y)
 	glGetIntegerv(GL_TEXTURE_2D_BINDING_EXT, &cur_tex);
 	if (cur_tex != gt->tex)
 		glBindTexture(GL_TEXTURE_2D, gt->tex);
+
+	if (font->flags & BLF_SHADOW) {
+		glGetFloatv(GL_CURRENT_COLOR, color);
+		glColor4fv(font->shadow_col);
+
+		if (font->shadow == 3)
+			blf_texture3_draw(gt->uv, dx, y1, dx1, y2);
+		else if (font->shadow == 5)
+			blf_texture5_draw(gt->uv, dx, y1, dx1, y2);
+		else
+			blf_texture_draw(gt->uv, dx, y1, dx1, y2);
+
+		glColor4fv(color);
+		x= xo;
+		y= yo;
+
+		dx= floor(x + gt->pos_x);
+		dx1= dx + gt->width;
+		y1= y + gt->pos_y;
+		y2= y + gt->pos_y - gt->height;
+	}
 
 	if (font->blur==3)
 		blf_texture3_draw(gt->uv, dx, y1, dx1, y2);

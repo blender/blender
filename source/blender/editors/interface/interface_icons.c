@@ -41,28 +41,30 @@
 #include "BLI_blenlib.h"
 #include "BLI_storage_types.h"
 
+#include "DNA_material_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
-
-#include "BKE_utildefines.h"
 #include "BKE_image.h"
 #include "BKE_icons.h"
+#include "BKE_utildefines.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+
+#include "ED_datafiles.h"
+#include "ED_previewrender.h"
+
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
-
-// XXX #include "BIF_previewrender.h"
-// XXX #include "BIF_screen.h"
-
 #include "UI_resources.h" /* elubie: should be removed once the enum for the ICONS is in BIF_preview_icons.h */
+
 #include "interface_intern.h"
-#include "ED_datafiles.h"
+
 
 #define ICON_IMAGE_W		600
 #define ICON_IMAGE_H		640
@@ -340,6 +342,28 @@ static void vicon_disclosure_tri_right_draw(int x, int y, int w, int h, float al
 	viconutil_draw_lineloop_smooth(pts, 3);
 }
 
+static void vicon_small_tri_right_draw(int x, int y, int w, int h, float alpha)
+{
+	GLint pts[3][2];
+	int cx = x+w/2-4;
+	int cy = y+w/2;
+	int d = w/5, d2 = w/7;
+
+	viconutil_set_point(pts[0], cx-d2, cy+d);
+	viconutil_set_point(pts[1], cx-d2, cy-d);
+	viconutil_set_point(pts[2], cx+d2, cy);
+
+	glColor4f(0.2f, 0.2f, 0.2f, alpha);
+
+	glShadeModel(GL_SMOOTH);
+	glBegin(GL_TRIANGLES);
+	glVertex2iv(pts[0]);
+	glVertex2iv(pts[1]);
+	glVertex2iv(pts[2]);
+	glEnd();
+	glShadeModel(GL_FLAT);
+}
+
 static void vicon_disclosure_tri_down_draw(int x, int y, int w, int h, float alpha)
 {
 	GLint pts[3][2];
@@ -448,6 +472,7 @@ static void init_internal_icons()
 	def_internal_vicon(VICON_MOVE_UP, vicon_move_up_draw);
 	def_internal_vicon(VICON_MOVE_DOWN, vicon_move_down_draw);
 	def_internal_vicon(VICON_X, vicon_x_draw);
+	def_internal_vicon(VICON_SMALL_TRI_RIGHT, vicon_small_tri_right_draw);
 
 	IMB_freeImBuf(bbuf);
 }
@@ -650,7 +675,6 @@ void UI_icons_init(int first_dyn_id)
 	init_internal_icons();
 }
 
-#if 0
 static void icon_copy_rect(ImBuf *ibuf, unsigned int w, unsigned int h, unsigned int *rect)
 {
 	struct ImBuf *ima;
@@ -727,21 +751,28 @@ static void icon_create_mipmap(struct PreviewImage* prv_img, int miplevel)
 }
 
 /* create single icon from jpg, png etc. */
-static void icon_from_image(Image *img, int miplevel)
+static void icon_from_image(Scene *scene, Image *img, int miplevel)
 {
+	ImBuf *ibuf= NULL;
+	ImageUser iuser;
+	PreviewImage *pi;
 	unsigned int pr_size;
 	short image_loaded = 0;
-	struct ImBuf* ibuf=NULL;
-	PreviewImage* pi;
 
 	/* img->ok is zero when Image cannot load */
 	if (img==NULL || img->ok==0)
 		return;
 
+	/* setup dummy image user */
+	memset(&iuser, 0, sizeof(ImageUser));
+	iuser.ok= iuser.framenr= 1;
+	iuser.scene= scene;
+	
 	/* elubie: this needs to be changed: here image is always loaded if not
 	   already there. Very expensive for large images. Need to find a way to 
 	   only get existing ibuf */
-	ibuf = BKE_image_get_ibuf(img, NULL);
+	
+	ibuf = BKE_image_get_ibuf(img, &iuser);
 	if(ibuf==NULL || ibuf->rect==NULL) {
 		return;
 	}
@@ -771,17 +802,13 @@ static void set_alpha(char* cp, int sizex, int sizey, char alpha)
 		}
 	}
 }
-#endif
 
 /* only called when icon has changed */
 /* only call with valid pointer from UI_icon_draw */
-static void icon_set_image(ID *id, DrawInfo *di, PreviewImage* prv_img, int miplevel)
+static void icon_set_image(Scene *scene, ID *id, PreviewImage* prv_img, int miplevel)
 {
-#if 0 // XXX - preview renders have to be redesigned - possibly low level op (elubie)
 	RenderInfo ri;	
 	unsigned int pr_size = 0;
-	
-	if (!di) return;				
 	
 	if (!prv_img) {
 		printf("No preview image for this ID: %s\n", id->name);
@@ -791,20 +818,19 @@ static void icon_set_image(ID *id, DrawInfo *di, PreviewImage* prv_img, int mipl
 	/* no drawing (see last parameter doDraw, just calculate preview image 
 		- hopefully small enough to be fast */
 	if (GS(id->name) == ID_IM)
-		icon_from_image((struct Image*)id, miplevel);
+		icon_from_image(scene, (struct Image*)id, miplevel);
 	else {	
 		/* create the preview rect */
 		icon_create_mipmap(prv_img, miplevel);
 
 		ri.curtile= 0;
 		ri.tottile= 0;
-		ri.rect = NULL;
 		ri.pr_rectx = prv_img->w[miplevel];
 		ri.pr_recty = prv_img->h[miplevel];
-
 		pr_size = ri.pr_rectx*ri.pr_recty*sizeof(unsigned int);
+		ri.rect = MEM_callocN(pr_size, "pr icon rect");
 
-		BIF_previewrender(id, &ri, NULL, PR_ICON_RENDER);
+		ED_preview_iconrender(scene, id, ri.rect, ri.pr_rectx, ri.pr_recty);
 
 		/* world is rendered with alpha=0, so it wasn't displayed 
 		   this could be render option for sky to, for later */
@@ -818,15 +844,11 @@ static void icon_set_image(ID *id, DrawInfo *di, PreviewImage* prv_img, int mipl
 			}
 		}
 
-		if (ri.rect) {
-			memcpy(prv_img->rect[miplevel], ri.rect, pr_size);
+		memcpy(prv_img->rect[miplevel], ri.rect, pr_size);
 
-			/* and clean up */
-			MEM_freeN(ri.rect);
-			ri.rect = 0;
-		}
+		/* and clean up */
+		MEM_freeN(ri.rect);
 	}
-#endif
 }
 
 static void icon_draw_rect(float x, float y, int w, int h, float aspect, int rw, int rh, unsigned int *rect)
@@ -912,20 +934,50 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, int mipl
 		PreviewImage* pi = BKE_previewimg_get((ID*)icon->obj); 
 
 		if (pi) {			
-			if (!nocreate && (pi->changed[miplevel] ||!pi->rect[miplevel])) /* changed only ever set by dynamic icons */
-			{
-				// XXX waitcursor(1);
-				/* create the preview rect if necessary */				
-				icon_set_image((ID*)icon->obj, icon->drawinfo, pi, miplevel);
-				pi->changed[miplevel] = 0;
-				// XXX waitcursor(0);
-			}
+			/* no create icon on this level in code */
 			
 			if (!pi->rect[miplevel]) return; /* something has gone wrong! */
 			
 			icon_draw_rect(x,y,di->w, di->h, di->aspect, pi->w[miplevel], pi->h[miplevel], pi->rect[miplevel]);		
 		}
 	}
+}
+
+void ui_id_icon_render(Scene *scene, ID *id)
+{
+	PreviewImage *pi = BKE_previewimg_get(id); 
+		
+	if (pi) {			
+		if ((pi->changed[0] ||!pi->rect[0])) /* changed only ever set by dynamic icons */
+		{
+			/* create the preview rect if necessary */				
+			icon_set_image(scene, id, pi, 0);
+			pi->changed[0] = 0;
+		}
+	}
+}
+
+int ui_id_icon_get(Scene *scene, ID *id)
+{
+	int iconid= 0;
+	
+	/* icon */
+	switch(GS(id->name))
+	{
+		case ID_MA: /* fall through */
+		case ID_TE: /* fall through */
+		case ID_IM: /* fall through */
+		case ID_WO: /* fall through */
+		case ID_LA: /* fall through */
+			iconid= BKE_icon_getid(id);
+			/* checks if not exists, or changed */
+			ui_id_icon_render(scene, id);
+			break;
+		default:
+			break;
+	}
+
+	return iconid;
 }
 
 static void icon_draw_mipmap(float x, float y, int icon_id, float aspect, int miplevel, int nocreate)

@@ -28,10 +28,12 @@
 
 #include "KX_BlenderCanvas.h"
 #include "DNA_screen_types.h"
+#include "stdio.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
 
 KX_BlenderCanvas::KX_BlenderCanvas(struct wmWindow *win, ARegion *ar) :
 m_win(win),

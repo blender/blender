@@ -321,6 +321,19 @@ void BLF_draw_default(float x, float y, float z, char *str)
 	}
 }
 
+void BLF_default_rotation(float angle)
+{
+	
+	if (global_font_default>=0) {
+		global_font[global_font_default]->angle= angle;
+		if(angle)
+			global_font[global_font_default]->flags |= BLF_ROTATION;
+		else
+			global_font[global_font_default]->flags &= ~BLF_ROTATION;
+	}
+}
+
+
 void BLF_draw(char *str)
 {
 	FontBLF *font;
@@ -382,6 +395,16 @@ float BLF_width(char *str)
 	font= global_font[global_font_cur];
 	if (font)
 		return(blf_font_width(font, str));
+	return(0.0f);
+}
+
+float BLF_fixed_width(void)
+{
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font)
+		return(blf_font_fixed_width(font));
 	return(0.0f);
 }
 
@@ -492,11 +515,27 @@ void BLF_mode(int mode)
 		font->mode= mode;
 }
 
-void BLF_kerning(float space)
+void BLF_shadow(int level, float r, float g, float b, float a)
 {
 	FontBLF *font;
 
 	font= global_font[global_font_cur];
-	if (font)
-		font->kerning= space;
+	if (font) {
+		font->shadow= level;
+		font->shadow_col[0]= r;
+		font->shadow_col[1]= g;
+		font->shadow_col[2]= b;
+		font->shadow_col[3]= a;
+	}
+}
+
+void BLF_shadow_offset(int x, int y)
+{
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font) {
+		font->shadow_x= x;
+		font->shadow_y= y;
+	}
 }

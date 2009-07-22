@@ -34,6 +34,8 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BLI_ghash.h"
+
 /* Struct */
 
 static void rna_Struct_identifier_get(PointerRNA *ptr, char *value)
@@ -277,6 +279,53 @@ PointerRNA rna_builtin_properties_get(CollectionPropertyIterator *iter)
 	return rna_Struct_properties_get(iter);
 }
 
+PointerRNA rna_builtin_properties_lookup_string(PointerRNA *ptr, const char *key)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	IDProperty *group, *idp;
+	PointerRNA propptr;
+
+	memset(&propptr, 0, sizeof(propptr));
+	srna= ptr->type;
+
+	do {
+		if(srna->cont.prophash) {
+			prop= BLI_ghash_lookup(srna->cont.prophash, (void*)key);
+
+			if(prop) {
+				propptr.type= &RNA_Property;
+				propptr.data= prop;
+				return propptr;
+			}
+		}
+
+		for(prop=srna->cont.properties.first; prop; prop=prop->next) {
+			if(!(prop->flag & PROP_BUILTIN) && strcmp(prop->identifier, key)==0) {
+				propptr.type= &RNA_Property;
+				propptr.data= prop;
+				return propptr;
+			}
+		}
+	} while((srna=srna->base));
+
+	if(ptr->data) {
+		group= RNA_struct_idproperties(ptr, 0);
+
+		if(group) {
+			for(idp=group->data.group.first; idp; idp=idp->next) {
+				if(strcmp(idp->name, key) == 0) {
+					propptr.type= &RNA_Property;
+					propptr.data= idp;
+					return propptr;
+				}
+			}
+		}
+	}
+
+	return propptr;
+}
+
 PointerRNA rna_builtin_type_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_Struct, ptr->type);
@@ -467,15 +516,25 @@ static int rna_StringProperty_max_length_get(PointerRNA *ptr)
 	return ((StringPropertyRNA*)prop)->maxlength;
 }
 
+static int rna_enum_check_separator(CollectionPropertyIterator *iter, void *data)
+{
+	EnumPropertyItem *item= (EnumPropertyItem*)data;
+
+	return (item->identifier[0] == 0);
+}
+
 static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	EnumPropertyRNA *eprop;
-
+	EnumPropertyItem *item= NULL;
+	int totitem, free= 0;
+	
 	rna_idproperty_check(&prop, ptr);
 	eprop= (EnumPropertyRNA*)prop;
-
-	rna_iterator_array_begin(iter, (void*)eprop->item, sizeof(eprop->item[0]), eprop->totitem, NULL);
+	
+	RNA_property_enum_items(NULL, ptr, prop, &item, &totitem, &free);
+	rna_iterator_array_begin(iter, (void*)item, sizeof(EnumPropertyItem), totitem, free, rna_enum_check_separator);
 }
 
 static void rna_EnumPropertyItem_identifier_get(PointerRNA *ptr, char *value)
@@ -496,6 +555,26 @@ static void rna_EnumPropertyItem_name_get(PointerRNA *ptr, char *value)
 static int rna_EnumPropertyItem_name_length(PointerRNA *ptr)
 {
 	return strlen(((EnumPropertyItem*)ptr->data)->name);
+}
+
+static void rna_EnumPropertyItem_description_get(PointerRNA *ptr, char *value)
+{
+	EnumPropertyItem *eprop= (EnumPropertyItem*)ptr->data;
+
+	if(eprop->description)
+		strcpy(value, eprop->description);
+	else
+		value[0]= '\0';
+}
+
+static int rna_EnumPropertyItem_description_length(PointerRNA *ptr)
+{
+	EnumPropertyItem *eprop= (EnumPropertyItem*)ptr->data;
+
+	if(eprop->description)
+		return strlen(eprop->description);
+	else
+		return 0;
 }
 
 static int rna_EnumPropertyItem_value_get(PointerRNA *ptr)
@@ -811,6 +890,11 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_EnumPropertyItem_name_get", "rna_EnumPropertyItem_name_length", NULL);
 	RNA_def_property_ui_text(prop, "Name", "Human readable name.");
+
+	prop= RNA_def_property(srna, "description", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_string_funcs(prop, "rna_EnumPropertyItem_description_get", "rna_EnumPropertyItem_description_length", NULL);
+	RNA_def_property_ui_text(prop, "Description", "Description of the item's purpose.");
 
 	prop= RNA_def_property(srna, "identifier", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

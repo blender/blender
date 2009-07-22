@@ -29,6 +29,11 @@ makesrna_tool.Append(CCFLAGS = '-DBASE_HEADER="\\"source/blender/makesrna/\\"" '
 
 defs = []
 
+incs = '#/intern/guardedalloc ../../blenlib ../../blenkernel'
+incs += ' ../../imbuf ../../makesdna ../../makesrna'
+incs += ' ../../windowmanager ../../editors/include'
+incs += ' ../../render/extern/include'
+
 if env['WITH_BF_OPENEXR']:
 	defs.append('WITH_OPENEXR')
 
@@ -40,6 +45,10 @@ if env['WITH_BF_DDS']:
 
 if env['WITH_BF_FFMPEG']:
 	defs.append('WITH_FFMPEG')
+	incs += ' ' + env['BF_FFMPEG_INC']
+
+if env['WITH_BF_OGG']:
+	defs.append('WITH_OGG')
 
 if env['WITH_BF_QUICKTIME']:
 	defs.append('WITH_QUICKTIME')
@@ -49,14 +58,7 @@ if env['WITH_BF_LCMS']:
 
 makesrna_tool.Append(CPPDEFINES=defs)
 
-makesrna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
-								 '../../blenlib',
-								 '../../blenkernel',
-								 '../../imbuf',
-								 '../../makesdna',
-								 '../../makesrna',
-								 '../../windowmanager',
-								 '../../editors/include'])
+makesrna_tool.Append (CPPPATH = Split(incs))
 
 if env['OURPLATFORM'] == 'linuxcross':
 	USE_WINE = True # when cross compiling on linux 64bit this is useful
@@ -85,7 +87,7 @@ if env['BF_PROFILE']:
 if env['BF_DEBUG']:
 	makesrna_tool.Append(CFLAGS = env['BF_DEBUG_CFLAGS'])
 	makesrna_tool.Append(CCFLAGS = env['BF_DEBUG_CCFLAGS'])
-	if env['OURPLATFORM'] == 'win32-vc':
+	if env['OURPLATFORM'] in ('win32-vc','win64-vc'):
 		makesrna_tool.Append(LINKFLAGS = ['/DEBUG','/PDB:makesrna.pdb'])
 
 targetpath = root_build_dir+'/makesrna'

@@ -59,6 +59,8 @@
 
 #include "UI_interface.h"
 
+#include "RNA_define.h"
+
 #include "transform.h"
 
 /* *********************** TransSpace ************************** */
@@ -354,19 +356,47 @@ void BIF_selectTransformOrientationValue(bContext *C, int orientation) {
 	v3d->twmode = orientation;
 }
 
-void BIF_menuTransformOrientation(bContext *C, uiLayout *layout, void *arg)
+EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)
 {
-	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
-	TransformOrientation *ts;
-	int i= V3D_MANIP_CUSTOM;
+	Scene *scene;
+	ListBase *transform_spaces;
+	TransformOrientation *ts= NULL;
 
-	uiItemEnumO(layout, NULL, 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_GLOBAL);
-	uiItemEnumO(layout, NULL, 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_LOCAL);
-	uiItemEnumO(layout, NULL, 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_NORMAL);
-	uiItemEnumO(layout, NULL, 0, "TFM_OT_select_orientation", "orientation", V3D_MANIP_VIEW);
+	EnumPropertyItem global	= {V3D_MANIP_GLOBAL, "GLOBAL", 0, "Global", ""};
+	EnumPropertyItem normal = {V3D_MANIP_NORMAL, "NORMAL", 0, "Normal", ""};
+	EnumPropertyItem local = {V3D_MANIP_LOCAL, "LOCAL", 0, "Local", ""};
+	EnumPropertyItem view = {V3D_MANIP_VIEW, "VIEW", 0, "View", ""};
+	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	EnumPropertyItem *item= NULL;
+	int i = V3D_MANIP_CUSTOM, totitem= 0;
 
-	for(ts = transform_spaces->first; ts; ts = ts->next)
-		uiItemIntO(layout, ts->name, 0, "TFM_OT_select_orientation", "custom_index", i++);
+	RNA_enum_item_add(&item, &totitem, &global);
+	RNA_enum_item_add(&item, &totitem, &normal);
+	RNA_enum_item_add(&item, &totitem, &local);
+	RNA_enum_item_add(&item, &totitem, &view);
+
+	if(C) {
+		scene= CTX_data_scene(C);
+
+		if(scene) {
+			transform_spaces = &scene->transform_spaces;
+			ts = transform_spaces->first;
+		}
+	}
+		
+	if(ts)
+		RNA_enum_item_add_separator(&item, &totitem);
+
+	for(; ts; ts = ts->next) {
+		tmp.identifier = "CUSTOM";
+		tmp.name= ts->name;
+		tmp.value = i++;
+		RNA_enum_item_add(&item, &totitem, &tmp);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+
+	return item;
 }
 
 char * BIF_menustringTransformOrientation(const bContext *C, char *title) {
@@ -402,7 +432,7 @@ int BIF_countTransformOrientation(const bContext *C) {
 	return count;
 }
 
-void applyTransformOrientation(bContext *C, TransInfo *t) {
+void applyTransformOrientation(const bContext *C, TransInfo *t) {
 	TransformOrientation *ts;
 	View3D *v3d = CTX_wm_view3d(C);
 	int selected_index = (v3d->twmode - V3D_MANIP_CUSTOM);
@@ -532,7 +562,7 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 	}
 }
 
-int getTransformOrientation(bContext *C, float normal[3], float plane[3], int activeOnly)
+int getTransformOrientation(const bContext *C, float normal[3], float plane[3], int activeOnly)
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);

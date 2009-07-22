@@ -71,7 +71,6 @@
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
-#include "BIF_transform.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -87,6 +86,7 @@
 #include "ED_object.h"
 #include "ED_particle.h"
 #include "ED_screen.h"
+#include "ED_transform.h"
 #include "ED_types.h"
 #include "ED_util.h"
 
@@ -301,42 +301,44 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 		else											but_y = 150;
 		
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, B_REDR, "Global",		160, but_y, 70, 19, &v3d->flag, 0, 0, 0, 0, "Displays global values");
-		uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, B_REDR, "Local",		230, but_y, 70, 19, &v3d->flag, 0, 0, 0, 0, "Displays local values");
+		uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, B_REDR, "Global",		0, 20, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays global values");
+		uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, B_REDR, "Local",		100, 20, 100, 20, &v3d->flag, 0, 0, 0, 0, "Displays local values");
 		uiBlockEndAlign(block);
 		
 		memcpy(tfp->ve_median, median, sizeof(tfp->ve_median));
 		
 		uiBlockBeginAlign(block);
 		if(tot==1) {
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex X:",	10, 110, 290, 19, &(tfp->ve_median[0]), -lim, lim, 10, 3, "");
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Y:",	10, 90, 290, 19, &(tfp->ve_median[1]), -lim, lim, 10, 3, "");
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Z:",	10, 70, 290, 19, &(tfp->ve_median[2]), -lim, lim, 10, 3, "");
+			uiDefBut(block, LABEL, 0, "Vertex:",					0, 130, 200, 20, 0, 0, 0, 0, 0, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "X:",		0, 110, 200, 20, &(tfp->ve_median[0]), -lim, lim, 10, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Y:",		0, 90, 200, 20, &(tfp->ve_median[1]), -lim, lim, 10, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:",		0, 70, 200, 20, &(tfp->ve_median[2]), -lim, lim, 10, 3, "");
 			if(totw==1)
-				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex W:",	10, 50, 290, 19, &(tfp->ve_median[3]), 0.01, 100.0, 10, 3, "");
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex W:",	0, 50, 200, 19, &(tfp->ve_median[3]), 0.01, 100.0, 10, 3, "");
 			uiBlockEndAlign(block);
 	
 			if(defstr[0]) {
-				uiDefBut(block, LABEL, 1, "Vertex Deform Groups",		10, 40, 290, 20, NULL, 0.0, 0.0, 0, 0, "");
+				uiDefBut(block, LABEL, 1, "Vertex Deform Groups",		0, 40, 200, 20, NULL, 0.0, 0.0, 0, 0, "");
 
 				uiBlockBeginAlign(block);
-				uiDefButF(block, NUM, B_NOP, "Weight:",			10, 20, 150, 19, tfp->defweightp, 0.0f, 1.0f, 10, 3, "Weight value");
-				uiDefButI(block, MENU, B_REDR, defstr,	160, 20, 140, 19, &tfp->curdef, 0.0, 0.0, 0, 0, "Current Vertex Group");
+				uiDefButF(block, NUM, B_NOP, "Weight:",					10, 20, 150, 20, tfp->defweightp, 0.0f, 1.0f, 10, 3, "Weight value");
+				uiDefButI(block, MENU, B_REDR, defstr,					160, 20, 140, 20, &tfp->curdef, 0.0, 0.0, 0, 0, "Current Vertex Group");
 				uiBlockEndAlign(block);
 			}
 			else if(totweight)
-				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	10, 20, 290, 19, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "");
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 20, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "");
 
 		}
 		else {
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median X:",	10, 110, 290, 19, &(tfp->ve_median[0]), -lim, lim, 10, 3, "");
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Y:",	10, 90, 290, 19, &(tfp->ve_median[1]), -lim, lim, 10, 3, "");
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Z:",	10, 70, 290, 19, &(tfp->ve_median[2]), -lim, lim, 10, 3, "");
+			uiDefBut(block, LABEL, 0, "Median:",						0, 130, 200, 20, 0, 0, 0, 0, 0, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "X:",		0, 110, 200, 20, &(tfp->ve_median[0]), -lim, lim, 10, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Y:",		0, 90, 200, 20, &(tfp->ve_median[1]), -lim, lim, 10, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:",		0, 70, 200, 20, &(tfp->ve_median[2]), -lim, lim, 10, 3, "");
 			if(totw==tot)
-				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median W:",	10, 50, 290, 19, &(tfp->ve_median[3]), 0.01, 100.0, 10, 3, "");
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "W:",	0, 50, 200, 20, &(tfp->ve_median[3]), 0.01, 100.0, 10, 3, "");
 			uiBlockEndAlign(block);
 			if(totweight)
-				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	10, 20, 290, 19, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "Weight is used for SoftBody Goal");
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 20, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "Weight is used for SoftBody Goal");
 		}
 		
 		if(ob->type==OB_CURVE && (totw==0)) { /* bez curves have no w */
@@ -349,9 +351,9 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 		}
 		
 		if(totedge==1)
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Crease W:",	10, 30, 290, 19, &(tfp->ve_median[3]), 0.0, 1.0, 10, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Crease W:",	0, 45, 200, 20, &(tfp->ve_median[3]), 0.0, 1.0, 10, 3, "");
 		else if(totedge>1)
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Crease W:",	10, 30, 290, 19, &(tfp->ve_median[3]), 0.0, 1.0, 10, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Crease W:",	0, 45, 200, 20, &(tfp->ve_median[3]), 0.0, 1.0, 10, 3, "");
 		
 	}
 	else {	// apply
@@ -479,7 +481,7 @@ static void validate_bonebutton_cb(bContext *C, void *bonev, void *namev)
 		/* restore */
 		BLI_strncpy(bone->name, oldname, 32);
 		
-		armature_bone_rename(ob, oldname, newname); // editarmature.c
+		ED_armature_bone_rename(ob->data, oldname, newname); // editarmature.c
 	}
 }
 
@@ -551,7 +553,7 @@ void validate_editbonebutton_cb(bContext *C, void *bonev, void *namev)
 	/* restore */
 	BLI_strncpy(eBone->name, oldname, 32);
 	
-	armature_bone_rename(CTX_data_edit_object(C), oldname, newname); // editarmature.c
+	ED_armature_bone_rename(CTX_data_edit_object(C)->data, oldname, newname); // editarmature.c
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, CTX_data_edit_object(C)); // XXX fix
 }
 
@@ -947,6 +949,7 @@ void selectTransformOrientation_func(bContext *C, void *target, void *unused)
 	BIF_selectTransformOrientation(C, (TransformOrientation *) target);
 }
 
+#if 0 // XXX not used
 static void view3d_panel_transform_spaces(const bContext *C, Panel *pa)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -997,6 +1000,7 @@ static void view3d_panel_transform_spaces(const bContext *C, Panel *pa)
 	}
 	uiBlockEndAlign(block);
 }
+#endif // XXX not used
 
 static void weight_paint_buttons(Scene *scene, uiBlock *block)
 {
@@ -1097,117 +1101,13 @@ static void brush_idpoin_handle(bContext *C, ID *id, int event)
 	}
 }
 
-static int view3d_panel_brush_poll(const bContext *C, PanelType *pt)
-{
-	Brush **brp = current_brush_source(CTX_data_scene(C));
-
-	return ((G.f & (G_SCULPTMODE|G_TEXTUREPAINT|G_VERTEXPAINT|G_WEIGHTPAINT)) && brp);
-}
-
-static void view3d_panel_brush(const bContext *C, Panel *pa)
-{
-	uiBlock *block;
-	Brush **brp = current_brush_source(CTX_data_scene(C)), *br;
-	short w = 268, h = 400, cx = 10, cy = h;
-	rctf rect;
-
-	br = *brp;
-
-	block= uiLayoutFreeBlock(pa->layout);
-	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
-
-	uiBlockBeginAlign(block);
-	uiDefIDPoinButs(block, CTX_data_main(C), NULL, &br->id, ID_BR, NULL, cx, cy,
-			brush_idpoin_handle, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_OPEN|UI_ID_DELETE|UI_ID_ALONE);
-	cy-= 25;
-	uiBlockEndAlign(block);
-
-	if(!br)
-		return;
-
-	if(G.f & G_SCULPTMODE) {
-		uiBlockBeginAlign(block);	
-		uiDefButC(block,ROW,B_REDR,"Draw",cx,cy,67,19,&br->sculpt_tool,14.0,SCULPT_TOOL_DRAW,0,0,"Draw lines on the model");
-		uiDefButC(block,ROW,B_REDR,"Smooth",cx+67,cy,67,19,&br->sculpt_tool,14.0,SCULPT_TOOL_SMOOTH,0,0,"Interactively smooth areas of the model");
-		uiDefButC(block,ROW,B_REDR,"Pinch",cx+134,cy,67,19,&br->sculpt_tool,14.0,SCULPT_TOOL_PINCH,0,0,"Interactively pinch areas of the model");
-		uiDefButC(block,ROW,B_REDR,"Inflate",cx+201,cy,67,19,&br->sculpt_tool,14,SCULPT_TOOL_INFLATE,0,0,"Push vertices along the direction of their normals");
-		cy-= 20;
-		uiDefButC(block,ROW,B_REDR,"Grab", cx,cy,89,19,&br->sculpt_tool,14,SCULPT_TOOL_GRAB,0,0,"Grabs a group of vertices and moves them with the mouse");
-		uiDefButC(block,ROW,B_REDR,"Layer", cx+89,cy,89,19,&br->sculpt_tool,14, SCULPT_TOOL_LAYER,0,0,"Adds a layer of depth");
-		uiDefButC(block,ROW,B_REDR,"Flatten", cx+178,cy,90,19,&br->sculpt_tool,14, SCULPT_TOOL_FLATTEN,0,0,"Interactively flatten areas of the model");
-		cy-= 25;
-		uiBlockEndAlign(block);
-	}
-
-	uiBlockBeginAlign(block);
-	uiDefButI(block,NUMSLI,B_NOP,"Size: ",cx,cy,w,19,&br->size,1.0,200.0,0,0,"Set brush radius in pixels");
-	cy-= 20;
-	uiDefButF(block,NUMSLI,B_NOP,"Strength: ",cx,cy,w,19,&br->alpha,0,1.0,0,0,"Set brush strength");
-	cy-= 25;
-	uiBlockEndAlign(block);
-
-	uiBlockBeginAlign(block);
-
-	uiDefButBitS(block, TOG, BRUSH_AIRBRUSH, B_NOP, "Airbrush", cx,cy,w/3,19, &br->flag,0,0,0,0, "Brush makes changes without waiting for the mouse to move");
-	uiDefButBitS(block, TOG, BRUSH_RAKE, B_NOP, "Rake", cx+w/3,cy,w/3,19, &br->flag,0,0,0,0, "");
-	uiDefButBitS(block, TOG, BRUSH_ANCHORED, B_NOP, "Anchored", cx+w*2.0/3,cy,w/3,19, &br->flag,0,0,0,0, "");
-	cy-= 20;
-	uiDefButBitS(block, TOG, BRUSH_SPACE, B_NOP, "Space", cx,cy,w/3,19, &br->flag,0,0,0,0, "");
-	uiDefButF(block,NUMSLI,B_NOP,"Spacing: ",cx+w/3,cy,w*2.0/3,19,&br->spacing,1.0,500,0,0,"");
-	cy-= 20;
-	uiBlockEndAlign(block);
-
-	if(br->curve) {
-		rect.xmin= cx; rect.xmax= cx + w;
-		rect.ymin= cy - 200; rect.ymax= cy;
-		uiBlockBeginAlign(block);
-		curvemap_buttons(block, br->curve, (char)0, B_NOP, 0, &rect);
-		uiBlockEndAlign(block);
-	}
-}
-
-static void sculptmode_draw_interface_tools(Scene *scene, uiBlock *block, unsigned short cx, unsigned short cy)
-{
-	Sculpt *s = scene->toolsettings->sculpt;
-	
-	//XXX if(sd->brush_type != SMOOTH_BRUSH && sd->brush_type != GRAB_BRUSH && sd->brush_type != FLATTEN_BRUSH) {
-	{
-		/*uiDefButBitS(block,ROW,B_NOP,"Add",cx,cy,89,19,&br->dir,15.0,1.0,0, 0,"Add depth to model [Shift]");
-		uiDefButBitS(block,ROW,B_NOP,"Sub",cx+89,cy,89,19,&br->dir,15.0,2.0,0, 0,"Subtract depth from model [Shift]");
-		*/}
-	//XXX if(sd->brush_type!=GRAB_BRUSH)
-	
-	uiBlockBeginAlign(block);
-	uiDefBut( block,LABEL,B_NOP,"Symmetry",cx,cy,90,19,NULL,0,0,0,0,"");
-	cy-= 20;
-	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, SCULPT_SYMM_X, B_NOP, "X", cx,cy,40,19, &s->flags, 0,0,0,0, "Mirror brush across X axis");
-	uiDefButBitI(block, TOG, SCULPT_SYMM_Y, B_NOP, "Y", cx+40,cy,40,19, &s->flags, 0,0,0,0, "Mirror brush across Y axis");
-	uiDefButBitI(block, TOG, SCULPT_SYMM_Z, B_NOP, "Z", cx+80,cy,40,19, &s->flags, 0,0,0,0, "Mirror brush across Z axis");
-	uiBlockEndAlign(block);
-	
-	
-	cy+= 20;
-	uiBlockBeginAlign(block);
-	uiDefBut( block,LABEL,B_NOP,"LockAxis",cx+140,cy,90,19,NULL,0,0,0,0,"");
-	cy-= 20;
-	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, SCULPT_LOCK_X, B_NOP, "X", cx+140,cy,40,19, &s->flags, 0,0,0,0, "Constrain X axis");
-	uiDefButBitI(block, TOG, SCULPT_LOCK_Y, B_NOP, "Y", cx+180,cy,40,19, &s->flags, 0,0,0,0, "Constrain Y axis");
-	uiDefButBitI(block, TOG, SCULPT_LOCK_Z, B_NOP, "Z", cx+220,cy,40,19, &s->flags, 0,0,0,0, "Constrain Z axis");
-	uiBlockEndAlign(block);
-		
-	cx+= 210;
-}
-
-
 static void view3d_panel_object(const bContext *C, Panel *pa)
 {
 	uiBlock *block;
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	View3D *v3d= CTX_wm_view3d(C);
-	uiBut *bt;
+	//uiBut *bt;
 	Object *ob= OBACT;
 	TransformProperties *tfp;
 	float lim;
@@ -1228,15 +1128,15 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
 	}
 	else {
-		bt= uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,140,20, ob->id.name+2, 0.0, 21.0, 0, 0, "");
-		uiButSetFunc(bt, test_idbutton_cb, ob->id.name, NULL);
+		//bt= uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,140,20, ob->id.name+2, 0.0, 21.0, 0, 0, "");
+		//uiButSetFunc(bt, test_idbutton_cb, ob->id.name, NULL);
 
 		if((G.f & G_PARTICLEEDIT)==0) {
-			uiBlockBeginAlign(block);
-			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
+		//	uiBlockBeginAlign(block);
+		//	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
 			if((ob->parent) && (ob->partype == PARBONE)) {
-				bt= uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 160, 160, 140, 20, ob->parsubstr, 0, 30, 0, 0, "");
-				uiButSetCompleteFunc(bt, autocomplete_bone, (void *)ob->parent);
+		//		bt= uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 160, 160, 140, 20, ob->parsubstr, 0, 30, 0, 0, "");
+		//		uiButSetCompleteFunc(bt, autocomplete_bone, (void *)ob->parent);
 			}
 			else {
 				strcpy(ob->parsubstr, "");
@@ -1268,24 +1168,21 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 			/* 'f' is for floating panel */
 			uiBlockPickerButtons(block, (*br)->rgb, hsv, old, hexcol, 'f', B_REDR);
 	}
-	else if(G.f & G_SCULPTMODE) {
-		BLI_strncpy(pa->drawname, "Sculpt Properties", sizeof(pa->drawname));
-		sculptmode_draw_interface_tools(scene, block, 10, 150);
-	} 
 	else if(G.f & G_PARTICLEEDIT){
 		BLI_strncpy(pa->drawname, "Particle Edit Properties", sizeof(pa->drawname));
 // XXX		particle_edit_buttons(block);
 	} 
 	else {
 		BoundBox *bb = NULL;
-
+		
+		uiDefBut(block, LABEL, 0, "Location:",					10, 170, 100, 20, 0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
 		uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCX, B_REDR, ICON_UNLOCKED,	10,150,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-		uiDefButF(block, NUM, B_OBJECTPANEL, "LocX:",		30, 150, 120, 19, &(ob->loc[0]), -lim, lim, 100, 3, "");
+		uiDefButF(block, NUM, B_OBJECTPANEL, "X:",		30, 150, 120, 19, &(ob->loc[0]), -lim, lim, 100, 3, "");
 		uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCY, B_REDR, ICON_UNLOCKED,	10,130,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-		uiDefButF(block, NUM, B_OBJECTPANEL, "LocY:",		30, 130, 120, 19, &(ob->loc[1]), -lim, lim, 100, 3, "");
+		uiDefButF(block, NUM, B_OBJECTPANEL, "Y:",		30, 130, 120, 19, &(ob->loc[1]), -lim, lim, 100, 3, "");
 		uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCZ, B_REDR, ICON_UNLOCKED,	10,110,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-		uiDefButF(block, NUM, B_OBJECTPANEL, "LocZ:",		30, 110, 120, 19, &(ob->loc[2]), -lim, lim, 100, 3, "");
+		uiDefButF(block, NUM, B_OBJECTPANEL, "Z:",		30, 110, 120, 19, &(ob->loc[2]), -lim, lim, 100, 3, "");
 		
 		tfp->ob_eul[0]= 180.0*ob->rot[0]/M_PI;
 		tfp->ob_eul[1]= 180.0*ob->rot[1]/M_PI;
@@ -1293,37 +1190,40 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 		
 		uiBlockBeginAlign(block);
 		if ((ob->parent) && (ob->partype == PARBONE)) {
+			uiDefBut(block, LABEL, 0, "Rotation:",					160, 170, 100, 20, 0, 0, 0, 0, 0, "");
 			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTX, B_REDR, ICON_UNLOCKED,	160,130,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-			uiDefButF(block, NUM, B_OBJECTPANELROT, "RotX:",	180, 130, 120, 19, &(tfp->ob_eul[0]), -lim, lim, 1000, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELROT, "X:",	180, 130, 120, 19, &(tfp->ob_eul[0]), -lim, lim, 1000, 3, "");
 			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTY, B_REDR, ICON_UNLOCKED,	160,110,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-			uiDefButF(block, NUM, B_OBJECTPANELROT, "RotY:",	180, 110, 120, 19, &(tfp->ob_eul[1]), -lim, lim, 1000, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELROT, "Y:",	180, 110, 120, 19, &(tfp->ob_eul[1]), -lim, lim, 1000, 3, "");
 			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTZ, B_REDR, ICON_UNLOCKED,	160,90,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-			uiDefButF(block, NUM, B_OBJECTPANELROT, "RotZ:",	180, 90, 120, 19, &(tfp->ob_eul[2]), -lim, lim, 1000, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELROT, "Z:",	180, 90, 120, 19, &(tfp->ob_eul[2]), -lim, lim, 1000, 3, "");
 
 		}
 		else {
+			uiDefBut(block, LABEL, 0, "Rotation:",					160, 170, 100, 20, 0, 0, 0, 0, 0, "");
 			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTX, B_REDR, ICON_UNLOCKED,	160,150,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-			uiDefButF(block, NUM, B_OBJECTPANELROT, "RotX:",	180, 150, 120, 19, &(tfp->ob_eul[0]), -lim, lim, 1000, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELROT, "X:",	180, 150, 120, 19, &(tfp->ob_eul[0]), -lim, lim, 1000, 3, "");
 			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTY, B_REDR, ICON_UNLOCKED,	160,130,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-			uiDefButF(block, NUM, B_OBJECTPANELROT, "RotY:",	180, 130, 120, 19, &(tfp->ob_eul[1]), -lim, lim, 1000, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELROT, "Y:",	180, 130, 120, 19, &(tfp->ob_eul[1]), -lim, lim, 1000, 3, "");
 			uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTZ, B_REDR, ICON_UNLOCKED,	160,110,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-			uiDefButF(block, NUM, B_OBJECTPANELROT, "RotZ:",	180, 110, 120, 19, &(tfp->ob_eul[2]), -lim, lim, 1000, 3, "");
+			uiDefButF(block, NUM, B_OBJECTPANELROT, "Z:",	180, 110, 120, 19, &(tfp->ob_eul[2]), -lim, lim, 1000, 3, "");
 		}
 
 		tfp->ob_scale[0]= ob->size[0];
 		tfp->ob_scale[1]= ob->size[1];
 		tfp->ob_scale[2]= ob->size[2];
 
+		uiDefBut(block, LABEL, 0, "Scale:",					10, 90, 100, 20, 0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
-		uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEX, B_REDR, ICON_UNLOCKED,	10,80,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-		uiDefButF(block, NUM, B_OBJECTPANELSCALE, "ScaleX:",		30, 80, 120, 19, &(tfp->ob_scale[0]), -lim, lim, 10, 3, "");
-		uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEY, B_REDR, ICON_UNLOCKED,	10,60,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-		uiDefButF(block, NUM, B_OBJECTPANELSCALE, "ScaleY:",		30, 60, 120, 19, &(tfp->ob_scale[1]), -lim, lim, 10, 3, "");
-		uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEZ, B_REDR, ICON_UNLOCKED,	10,40,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
-		uiDefButF(block, NUM, B_OBJECTPANELSCALE, "ScaleZ:",		30, 40, 120, 19, &(tfp->ob_scale[2]), -lim, lim, 10, 3, "");
+		uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEX, B_REDR, ICON_UNLOCKED,	10, 70, 20, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+		uiDefButF(block, NUM, B_OBJECTPANELSCALE, "X:",							30, 70, 120, 19, &(tfp->ob_scale[0]), -lim, lim, 10, 3, "");
+		uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEY, B_REDR, ICON_UNLOCKED,	10, 50, 20, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+		uiDefButF(block, NUM, B_OBJECTPANELSCALE, "Y:",							30, 50, 120, 19, &(tfp->ob_scale[1]), -lim, lim, 10, 3, "");
+		uiDefIconButBitS(block, ICONTOG, OB_LOCK_SCALEZ, B_REDR, ICON_UNLOCKED,	10, 30, 20, 19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+		uiDefButF(block, NUM, B_OBJECTPANELSCALE, "Z:",							30, 30, 120, 19, &(tfp->ob_scale[2]), -lim, lim, 10, 3, "");
 		uiBlockEndAlign(block);
 		
-		uiDefButS(block, TOG, B_REDR, "Link Scale",		10, 10, 140, 19, &(tfp->link_scale), 0, 1, 0, 0, "Scale values vary proportionally in all directions");
+		uiDefButS(block, TOG, B_REDR, "Link Scale",		10, 0, 140, 19, &(tfp->link_scale), 0, 1, 0, 0, "Scale values vary proportionally in all directions");
 
 		bb= object_get_boundbox(ob);
 		if (bb) {
@@ -1335,17 +1235,21 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 			tfp->ob_dims[1] = fabs(scale[1]) * (bb->vec[2][1] - bb->vec[0][1]);
 			tfp->ob_dims[2] = fabs(scale[2]) * (bb->vec[1][2] - bb->vec[0][2]);
 
-			uiBlockBeginAlign(block);
+			
 			if ((ob->parent) && (ob->partype == PARBONE)) {
-				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "DimX:",		160, 60, 140, 19, &(tfp->ob_dims[0]), 0.0, lim, 10, 3, "Manipulate bounding box size");
-				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "DimY:",		160, 40, 140, 19, &(tfp->ob_dims[1]), 0.0, lim, 10, 3, "Manipulate bounding box size");
-				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "DimZ:",		160, 20, 140, 19, &(tfp->ob_dims[2]), 0.0, lim, 10, 3, "Manipulate bounding box size");
+				uiDefBut(block, LABEL, 0, "Dimensions:",			160, 90, 100, 20, 0, 0, 0, 0, 0, "");
+				uiBlockBeginAlign(block);
+				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "X:",		160, 70, 140, 19, &(tfp->ob_dims[0]), 0.0, lim, 10, 3, "Manipulate bounding box size");
+				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "Y:",		160, 50, 140, 19, &(tfp->ob_dims[1]), 0.0, lim, 10, 3, "Manipulate bounding box size");
+				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "Z:",		160, 30, 140, 19, &(tfp->ob_dims[2]), 0.0, lim, 10, 3, "Manipulate bounding box size");
 
 			}
 			else {
-				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "DimX:",		160, 80, 140, 19, &(tfp->ob_dims[0]), 0.0, lim, 10, 3, "Manipulate bounding box size");
-				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "DimY:",		160, 60, 140, 19, &(tfp->ob_dims[1]), 0.0, lim, 10, 3, "Manipulate bounding box size");
-				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "DimZ:",		160, 40, 140, 19, &(tfp->ob_dims[2]), 0.0, lim, 10, 3, "Manipulate bounding box size");
+				uiDefBut(block, LABEL, 0, "Dimensions:",			160, 90, 100, 20, 0, 0, 0, 0, 0, "");
+				uiBlockBeginAlign(block);
+				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "X:",		160, 70, 140, 19, &(tfp->ob_dims[0]), 0.0, lim, 10, 3, "Manipulate bounding box size");
+				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "Y:",		160, 50, 140, 19, &(tfp->ob_dims[1]), 0.0, lim, 10, 3, "Manipulate bounding box size");
+				uiDefButF(block, NUM, B_OBJECTPANELDIMS, "Z:",		160, 30, 140, 19, &(tfp->ob_dims[2]), 0.0, lim, 10, 3, "Manipulate bounding box size");
 			}
 
 			uiBlockEndAlign(block);
@@ -1353,6 +1257,7 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	}
 }
 
+#if 0 // XXX not used anymore
 static void view3d_panel_background(const bContext *C, Panel *pa)
 {
 	View3D *v3d= CTX_wm_view3d(C);
@@ -1477,6 +1382,7 @@ static void view3d_panel_properties(const bContext *C, Panel *pa)
 //	}
 	uiBlockEndAlign(block);	
 }
+#endif // XXX not used anymore
 
 #if 0
 static void view3d_panel_preview(bContext *C, ARegion *ar, short cntrl)	// VIEW3D_HANDLER_PREVIEW
@@ -1661,10 +1567,9 @@ static void view3d_panel_bonesketch_spaces(const bContext *C, Panel *pa)
 	}
 
 	uiBlockEndAlign(block);
-	
-	uiDefButBitS(block, TOG, SCE_SNAP_PEEL_OBJECT, B_NOP, "Peel Objects", 10, yco, 200, 20, &scene->snap_flag, 0, 0, 0, 0, "Peel whole objects as one");
 }
 
+#if 0 // XXX not used
 
 /* op->invoke */
 static void redo_cb(bContext *C, void *arg_op, void *arg2)
@@ -1709,8 +1614,9 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 	}
 	
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	uiDefAutoButsRNA(C, pa->layout, &ptr);
+	uiDefAutoButsRNA(C, pa->layout, &ptr, 2);
 }
+#endif // XXX not used
 
 void view3d_buttons_register(ARegionType *art)
 {
@@ -1718,27 +1624,21 @@ void view3d_buttons_register(ARegionType *art)
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel object");
 	strcpy(pt->idname, "VIEW3D_PT_object");
-	strcpy(pt->label, "Transform Properties");
+	strcpy(pt->label, "Transform");
 	pt->draw= view3d_panel_object;
 	BLI_addtail(&art->paneltypes, pt);
-
+/*
 	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel properties");
 	strcpy(pt->idname, "VIEW3D_PT_properties");
 	strcpy(pt->label, "View Properties");
 	pt->draw= view3d_panel_properties;
 	BLI_addtail(&art->paneltypes, pt);
 
+
 	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel background");
 	strcpy(pt->idname, "VIEW3D_PT_background");
 	strcpy(pt->label, "Background Image");
 	pt->draw= view3d_panel_background;
-	BLI_addtail(&art->paneltypes, pt);
-
-	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel brush");
-	strcpy(pt->idname, "VIEW3D_PT_brush");
-	strcpy(pt->label, "Brush");
-	pt->draw= view3d_panel_brush;
-	pt->poll= view3d_panel_brush_poll;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel transform spaces");
@@ -1747,7 +1647,7 @@ void view3d_buttons_register(ARegionType *art)
 	pt->draw= view3d_panel_transform_spaces;
 	BLI_addtail(&art->paneltypes, pt);
 
-	/*pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel gpencil");
+	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel gpencil");
 	strcpy(pt->idname, "VIEW3D_PT_gpencil");
 	strcpy(pt->label, "Greas Pencil");
 	pt->draw= view3d_panel_gpencil;
@@ -1760,12 +1660,13 @@ void view3d_buttons_register(ARegionType *art)
 	pt->poll= view3d_panel_bonesketch_spaces_poll;
 	BLI_addtail(&art->paneltypes, pt);
 
+	/*
 	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel redo");
 	strcpy(pt->idname, "VIEW3D_PT_redo");
 	strcpy(pt->label, "Last Operator");
 	pt->draw= view3d_panel_operator_redo;
 	BLI_addtail(&art->paneltypes, pt);
-
+*/
 	// XXX view3d_panel_preview(C, ar, 0);
 }
 

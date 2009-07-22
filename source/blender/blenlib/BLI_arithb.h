@@ -38,6 +38,12 @@
 extern "C" {
 #endif
 
+#ifdef WIN32
+#define _USE_MATH_DEFINES
+#endif
+
+#include <math.h>
+
 #ifndef M_PI
 #define M_PI		3.14159265358979323846
 #endif
@@ -52,6 +58,65 @@ extern "C" {
 #endif
 #ifndef M_1_PI
 #define M_1_PI		0.318309886183790671538
+#endif
+
+#ifndef M_E
+#define M_E             2.7182818284590452354
+#endif
+#ifndef M_LOG2E
+#define M_LOG2E         1.4426950408889634074
+#endif
+#ifndef M_LOG10E
+#define M_LOG10E        0.43429448190325182765
+#endif
+#ifndef M_LN2
+#define M_LN2           0.69314718055994530942
+#endif
+#ifndef M_LN10
+#define M_LN10          2.30258509299404568402
+#endif
+
+#ifndef sqrtf
+#define sqrtf(a) ((float)sqrt(a))
+#endif
+#ifndef powf
+#define powf(a, b) ((float)pow(a, b))
+#endif
+#ifndef cosf
+#define cosf(a) ((float)cos(a))
+#endif
+#ifndef sinf
+#define sinf(a) ((float)sin(a))
+#endif
+#ifndef acosf
+#define acosf(a) ((float)acos(a))
+#endif
+#ifndef asinf
+#define asinf(a) ((float)asin(a))
+#endif
+#ifndef atan2f
+#define atan2f(a, b) ((float)atan2(a, b))
+#endif
+#ifndef tanf
+#define tanf(a) ((float)tan(a))
+#endif
+#ifndef atanf
+#define atanf(a) ((float)atan(a))
+#endif
+#ifndef floorf
+#define floorf(a) ((float)floor(a))
+#endif
+#ifndef ceilf
+#define ceilf(a) ((float)ceil(a))
+#endif
+#ifndef fabsf
+#define fabsf(a) ((float)fabs(a))
+#endif
+#ifndef logf
+#define logf(a) ((float)log(a))
+#endif
+#ifndef expf
+#define expf(a) ((float)exp(a))
 #endif
 
 #ifdef WIN32
@@ -89,6 +154,9 @@ double Sqrt3d(double d);
 float saacos(float fac);
 float saasin(float fac);
 float sasqrt(float fac);
+float saacosf(float fac);
+float saasinf(float fac);
+float sasqrtf(float fac);
 
 int FloatCompare(float *v1, float *v2, float limit);
 int FloatCompare4(float *v1, float *v2, float limit);
@@ -339,7 +407,6 @@ void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr);
 void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv);
 void xyz_to_rgb(float x, float y, float z, float *r, float *g, float *b, int colorspace);
 int constrain_rgb(float *r, float *g, float *b);
-void gamma_correct_rgb(float *r, float *g, float *b);
 unsigned int hsv_to_cpack(float h, float s, float v);
 unsigned int rgb_to_cpack(float r, float g, float b);
 void cpack_to_rgb(unsigned int col, float *r, float *g, float *b);

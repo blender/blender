@@ -101,6 +101,10 @@ bContextStore *CTX_store_copy(bContextStore *store);
 void CTX_store_free(bContextStore *store);
 void CTX_store_free_list(ListBase *contexts);
 
+/* need to store if python is initialized or not */
+int CTX_py_init_get(bContext *C);
+void CTX_py_init_set(bContext *C, int value);
+
 /* Window Manager Context */
 
 struct wmWindowManager *CTX_wm_manager(const bContext *C);
@@ -111,11 +115,13 @@ struct SpaceLink *CTX_wm_space_data(const bContext *C);
 struct ARegion *CTX_wm_region(const bContext *C);
 void *CTX_wm_region_data(const bContext *C);
 struct ARegion *CTX_wm_menu(const bContext *C);
+struct ReportList *CTX_wm_reports(const bContext *C);
 
 struct View3D *CTX_wm_view3d(const bContext *C);
 struct RegionView3D *CTX_wm_region_view3d(const bContext *C);
 struct SpaceText *CTX_wm_space_text(const bContext *C);
 struct SpaceImage *CTX_wm_space_image(const bContext *C);
+struct SpaceConsole *CTX_wm_space_console(const bContext *C);
 
 void CTX_wm_manager_set(bContext *C, struct wmWindowManager *wm);
 void CTX_wm_window_set(bContext *C, struct wmWindow *win);
@@ -126,12 +132,15 @@ void CTX_wm_menu_set(bContext *C, struct ARegion *menu);
 
 /* Data Context
 
-   - note: listbases consist of LinkData items and must be
-     freed with BLI_freelistN! */
+   - listbases consist of CollectionPointerLink items and must be
+     freed with BLI_freelistN!
+   - the dir listbase consits of LinkData items */
 
-PointerRNA CTX_data_pointer_get(bContext *C, const char *member);
-ListBase CTX_data_collection_get(bContext *C, const char *member);
-void CTX_data_get(bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb);
+PointerRNA CTX_data_pointer_get(const bContext *C, const char *member);
+PointerRNA CTX_data_pointer_get_type(const bContext *C, const char *member, StructRNA *type);
+ListBase CTX_data_collection_get(const bContext *C, const char *member);
+ListBase CTX_data_dir_get(const bContext *C);
+void CTX_data_get(const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb);
 
 void CTX_data_id_pointer_set(bContextDataResult *result, struct ID *id);
 void CTX_data_pointer_set(bContextDataResult *result, struct ID *id, StructRNA *type, void *data);
@@ -139,7 +148,10 @@ void CTX_data_pointer_set(bContextDataResult *result, struct ID *id, StructRNA *
 void CTX_data_id_list_add(bContextDataResult *result, struct ID *id);
 void CTX_data_list_add(bContextDataResult *result, struct ID *id, StructRNA *type, void *data);
 
+void CTX_data_dir_set(bContextDataResult *result, const char **member);
+
 int CTX_data_equals(const char *member, const char *str);
+int CTX_data_dir(const char *member);
 
 /*void CTX_data_pointer_set(bContextDataResult *result, void *data);
 void CTX_data_list_add(bContextDataResult *result, void *data);*/
@@ -179,6 +191,9 @@ int CTX_data_selected_bases(const bContext *C, ListBase *list);
 
 int CTX_data_visible_objects(const bContext *C, ListBase *list);
 int CTX_data_visible_bases(const bContext *C, ListBase *list);
+
+int CTX_data_selectable_objects(const bContext *C, ListBase *list);
+int CTX_data_selectable_bases(const bContext *C, ListBase *list);
 
 struct Object *CTX_data_active_object(const bContext *C);
 struct Base *CTX_data_active_base(const bContext *C);

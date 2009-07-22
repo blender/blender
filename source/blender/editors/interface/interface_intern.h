@@ -1,5 +1,5 @@
 /**
- * $Id: interface.h 14444 2008-04-16 22:40:48Z hos $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -44,12 +44,17 @@ struct uiStyle;
 struct uiWidgetColors;
 struct uiLayout;
 struct bContextStore;
+struct Scene;
+struct ID;
 
 /* ****************** general defines ************** */
 
 /* visual types for drawing */
 /* for time being separated from functional types */
 typedef enum {
+	/* default */
+	UI_WTYPE_REGULAR,
+
 	/* standard set */
 	UI_WTYPE_LABEL,
 	UI_WTYPE_TOGGLE,
@@ -78,7 +83,9 @@ typedef enum {
 	UI_WTYPE_SWATCH,
 	UI_WTYPE_RGB_PICKER,
 	UI_WTYPE_NORMAL,
-	UI_WTYPE_BOX
+	UI_WTYPE_BOX,
+	UI_WTYPE_SCROLL,
+	UI_WTYPE_LISTITEM
 	
 } uiWidgetTypeEnum;
 
@@ -98,7 +105,7 @@ typedef enum {
 #define UI_ACTIVE		4
 #define UI_HAS_ICON		8
 #define UI_TEXTINPUT	16
-
+#define UI_HIDDEN		32
 /* warn: rest of uiBut->flag in UI_interface.h */
 
 /* internal panel drawing defines */
@@ -205,6 +212,9 @@ struct uiBut {
 	struct PropertyRNA *rnaprop;
 	int rnaindex;
 
+	struct PointerRNA rnasearchpoin;
+	struct PropertyRNA *rnasearchprop;
+
 	/* Operator data */
 	struct wmOperatorType *optype;
 	int opcontext;
@@ -259,7 +269,8 @@ struct uiBlock {
 	int (*block_event_func)(const struct bContext *C, struct uiBlock *, struct wmEvent *);
 	
 	/* extra draw function for custom blocks */
-	void (*drawextra)(const struct bContext *C, void *idv, rcti *rect);
+	void (*drawextra)(const struct bContext *C, void *idv, void *argv, rcti *rect);
+	void *drawextra_arg;
 
 	int afterval, flag;
 	
@@ -281,6 +292,8 @@ struct uiBlock {
 	int tooltipdisabled;		// to avoid tooltip after click
 
 	int active;					// to keep blocks while drawing and free them afterwards
+
+	void *evil_C;				// XXX hack for dynamic operator enums
 };
 
 typedef struct uiSafetyRct {
@@ -365,6 +378,7 @@ void ui_tooltip_free(struct bContext *C, struct ARegion *ar);
 ARegion *ui_searchbox_create(struct bContext *C, struct ARegion *butregion, uiBut *but);
 int ui_searchbox_inside(struct ARegion *ar, int x, int y);
 void ui_searchbox_update(struct bContext *C, struct ARegion *ar, uiBut *but, int reset);
+void ui_searchbox_autocomplete(struct bContext *C, struct ARegion *ar, uiBut *but, char *str);
 void ui_searchbox_event(struct bContext *C, struct ARegion *ar, uiBut *but, struct wmEvent *event);
 void ui_searchbox_apply(uiBut *but, struct ARegion *ar);
 void ui_searchbox_free(struct bContext *C, struct ARegion *ar);
@@ -416,10 +430,14 @@ extern void ui_draw_but(const struct bContext *C, ARegion *ar, struct uiStyle *s
 struct ThemeUI;
 void ui_widget_color_init(struct ThemeUI *tui);
 
-void ui_draw_menu_item(struct uiFontStyle *fstyle, rcti *rect, char *name, int state);
+void ui_draw_menu_item(struct uiFontStyle *fstyle, rcti *rect, char *name, int iconid, int state);
 
 /* interface_style.c */
 void uiStyleInit(void);
+
+/* interface_icons.c */
+void ui_id_icon_render(struct Scene *scene, struct ID *id);
+int ui_id_icon_get(struct Scene *scene, struct ID *id);
 
 /* resources.c */
 void init_userdef_do_versions(void);
@@ -428,8 +446,9 @@ void ui_resources_init(void);
 void ui_resources_free(void);
 
 /* interface_layout.c */
-void ui_layout_add_but(struct uiLayout *layout, uiBut *but);
+void ui_layout_add_but(uiLayout *layout, uiBut *but);
 int ui_but_can_align(uiBut *but);
+void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *searchptr, PropertyRNA *searchprop);
 
 /* interface_anim.c */
 void ui_but_anim_flag(uiBut *but, float cfra);
@@ -438,6 +457,9 @@ void ui_but_anim_delete_keyframe(struct bContext *C);
 void ui_but_anim_add_driver(struct bContext *C);
 void ui_but_anim_remove_driver(struct bContext *C);
 void ui_but_anim_menu(struct bContext *C, uiBut *but);
+int ui_but_anim_expression_get(uiBut *but, char *str, int maxlen);
+int ui_but_anim_expression_set(uiBut *but, const char *str);
+void ui_but_anim_autokey(uiBut *but, struct Scene *scene, float cfra);
 
 #endif
 

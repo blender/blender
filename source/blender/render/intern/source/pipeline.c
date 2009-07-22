@@ -36,6 +36,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_utildefines.h"
@@ -46,6 +47,7 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_writeavi.h"	/* <------ should be replaced once with generic movie module */
+#include "BKE_pointcache.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -61,7 +63,6 @@
 #include "intern/openexr/openexr_multi.h"
 
 #include "RE_pipeline.h"
-#include "radio.h"
 
 /* internal */
 #include "render_types.h"
@@ -425,6 +426,8 @@ static void render_layer_add_pass(RenderResult *rr, RenderLayer *rl, int channel
 	BLI_addtail(&rl->passes, rpass);
 	rpass->passtype= passtype;
 	rpass->channels= channels;
+	rpass->rectx= rl->rectx;
+	rpass->recty= rl->recty;
 	
 	if(rr->exrhandle) {
 		int a;
@@ -527,6 +530,8 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 		rl->pass_xor= srl->pass_xor;
 		rl->light_override= srl->light_override;
 		rl->mat_override= srl->mat_override;
+		rl->rectx= rectx;
+		rl->recty= recty;
 		
 		if(rr->exrhandle) {
 			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.R", 0, 0, NULL);
@@ -572,6 +577,9 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 		rl= MEM_callocN(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
 		
+		rl->rectx= rectx;
+		rl->recty= recty;
+
 		/* duplicate code... */
 		if(rr->exrhandle) {
 			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.R", 0, 0, NULL);
@@ -809,7 +817,7 @@ static void ml_addpass_cb(void *base, void *lay, char *str, float *rect, int tot
 	
 	BLI_addtail(&rl->passes, rpass);
 	rpass->channels= totchan;
-	
+
 	rpass->passtype= passtype_from_name(str);
 	if(rpass->passtype==0) printf("unknown pass %s\n", str);
 	rl->passflag |= rpass->passtype;
@@ -826,11 +834,23 @@ static void ml_addpass_cb(void *base, void *lay, char *str, float *rect, int tot
 RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty)
 {
 	RenderResult *rr= MEM_callocN(sizeof(RenderResult), "loaded render result");
+	RenderLayer *rl;
+	RenderPass *rpass;
 	
 	rr->rectx= rectx;
 	rr->recty= recty;
 	
 	IMB_exr_multilayer_convert(exrhandle, rr, ml_addlayer_cb, ml_addpass_cb);
+
+	for(rl=rr->layers.first; rl; rl=rl->next) {
+		rl->rectx= rectx;
+		rl->recty= recty;
+
+		for(rpass=rl->passes.first; rpass; rpass=rpass->next) {
+			rpass->rectx= rectx;
+			rpass->recty= recty;
+		}
+	}
 	
 	return rr;
 }
@@ -1092,13 +1112,13 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, int winx, int winy
 		re->ok= 0;
 	}
 	else {
-#ifndef WITH_OPENEXR
+#ifdef WITH_OPENEXR
+		if(re->r.scemode & R_FULL_SAMPLE)
+			re->r.scemode |= R_EXR_TILE_FILE;	/* enable automatic */
+#else
 		/* can't do this without openexr support */
-		re->r.scemode &= ~R_EXR_TILE_FILE;
+		re->r.scemode &= ~(R_EXR_TILE_FILE|R_FULL_SAMPLE);
 #endif
-		
-		if(!(re->r.scemode & R_EXR_TILE_FILE))
-			re->r.scemode &= ~R_FULL_SAMPLE;	/* clear, so we can use this flag for test both */
 		
 		/* fullsample wants uniform osa levels */
 		if(source && (re->r.scemode & R_FULL_SAMPLE)) {
@@ -1499,7 +1519,7 @@ static void threaded_tile_processor(Render *re)
 		else if(re->r.scemode & R_FULL_SAMPLE)
 			re->result= new_full_sample_buffers_exr(re);
 		else
-			re->result= new_render_result(re, &re->disprect, 0, re->r.scemode & R_EXR_TILE_FILE);
+			re->result= new_render_result(re, &re->disprect, 0, re->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE));
 	}
 	
 	if(re->result==NULL)
@@ -1644,8 +1664,23 @@ void RE_TileProcessor(Render *re, int firsttile, int threaded)
 
 /* ************  This part uses API, for rendering Blender scenes ********** */
 
+static void external_render_3d(Render *re, RenderEngineType *type);
+
 static void do_render_3d(Render *re)
 {
+	RenderEngineType *type;
+
+	/* try external */
+	for(type=R_engines.first; type; type=type->next)
+		if(strcmp(type->idname, re->r.engine) == 0)
+			break;
+
+	if(type && type->render) {
+		external_render_3d(re, type);
+		return;
+	}
+
+	/* internal */
 	
 //	re->cfra= cfra;	/* <- unused! */
 	
@@ -1661,7 +1696,6 @@ static void do_render_3d(Render *re)
 	if(re->flag & R_HALO)
 		if(!re->test_break(re->tbh))
 			add_halo_flare(re);
-
 	
 	/* free all render verts etc */
 	RE_Database_Free(re);
@@ -2278,7 +2312,7 @@ static void do_render_all_options(Render *re)
 	/* ensure no images are in memory from previous animated sequences */
 	BKE_image_all_free_anim_ibufs(re->r.cfra);
 	
-	if(re->r.scemode & R_DOSEQ) {
+	if((re->r.scemode & R_DOSEQ) && re->scene->ed && re->scene->ed->seqbase.first) {
 		/* note: do_render_seq() frees rect32 when sequencer returns float images */
 		if(!re->test_break(re->tbh)) 
 			; //XXX do_render_seq(re->result, re->r.cfra);
@@ -2299,7 +2333,7 @@ static void do_render_all_options(Render *re)
 	re->stats_draw(re->sdh, &re->i);
 	
 	/* stamp image info here */
-	if((re->r.scemode & R_STAMP_INFO) && (re->r.stamp & R_STAMP_DRAW)) {
+	if((re->r.stamp & R_STAMP_ALL) && (re->r.stamp & R_STAMP_DRAW)) {
 		renderresult_stampinfo(re->scene);
 		re->display_draw(re->ddh, re->result, NULL);
 	}
@@ -2327,13 +2361,13 @@ static int is_rendering_allowed(Render *re)
 			re->error(re->erh, "No border area selected.");
 			return 0;
 		}
-		if(re->r.scemode & R_EXR_TILE_FILE) {
+		if(re->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE)) {
 			re->error(re->erh, "Border render and Buffer-save not supported yet");
 			return 0;
 		}
 	}
 	
-	if(re->r.scemode & R_EXR_TILE_FILE) {
+	if(re->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE)) {
 		char str[FILE_MAX];
 		
 		render_unique_exr_name(re, str, 0);
@@ -2413,8 +2447,24 @@ static int is_rendering_allowed(Render *re)
 	return 1;
 }
 
+static void update_physics_cache(Render *re, Scene *scene, int anim_init)
+{
+	PTCacheBaker baker;
+
+	baker.scene = scene;
+	baker.pid = NULL;
+	baker.bake = 0;
+	baker.render = 1;
+	baker.anim_init = 1;
+	baker.quick_step = 1;
+	baker.break_test = re->test_break;
+	baker.break_data = re->tbh;
+	baker.progressbar = NULL;
+
+	BKE_ptcache_make_cache(&baker);
+}
 /* evaluating scene options for general Blender render */
-static int render_initialize_from_scene(Render *re, Scene *scene, int anim)
+static int render_initialize_from_scene(Render *re, Scene *scene, int anim, int anim_init)
 {
 	int winx, winy;
 	rcti disprect;
@@ -2450,6 +2500,9 @@ static int render_initialize_from_scene(Render *re, Scene *scene, int anim)
 	
 	/* check all scenes involved */
 	tag_scenes_for_render(re);
+
+	/* make sure dynamics are up to date */
+	update_physics_cache(re, scene, anim_init);
 	
 	if(scene->r.scemode & R_SINGLE_LAYER)
 		push_render_result(re);
@@ -2479,7 +2532,7 @@ void RE_BlenderFrame(Render *re, Scene *scene, int frame)
 	
 	scene->r.cfra= frame;
 	
-	if(render_initialize_from_scene(re, scene, 0)) {
+	if(render_initialize_from_scene(re, scene, 0, 0)) {
 		do_render_all_options(re);
 	}
 	
@@ -2523,13 +2576,16 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 			ImBuf *ibuf= IMB_allocImBuf(rres.rectx, rres.recty, scene->r.planes, 0, 0);
 			int ok;
 			
-					/* if not exists, BKE_write_ibuf makes one */
+			/* if not exists, BKE_write_ibuf makes one */
 			ibuf->rect= (unsigned int *)rres.rect32;    
 			ibuf->rect_float= rres.rectf;
 			ibuf->zbuf_float= rres.rectz;
 			
 			/* float factor for random dither, imbuf takes care of it */
 			ibuf->dither= scene->r.dither_intensity;
+			/* gamma correct to sRGB color space */
+			if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+				ibuf->profile = IB_PROFILE_SRGB;
 
 			ok= BKE_write_ibuf(scene, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
 			
@@ -2568,7 +2624,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 	int nfra;
 	
 	/* do not fully call for each frame, it initializes & pops output window */
-	if(!render_initialize_from_scene(re, scene, 0))
+	if(!render_initialize_from_scene(re, scene, 0, 1))
 		return;
 	
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
@@ -2599,7 +2655,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 			char name[FILE_MAX];
 			
 			/* only border now, todo: camera lens. (ton) */
-			render_initialize_from_scene(re, scene, 1);
+			render_initialize_from_scene(re, scene, 1, 0);
 
 			if(nfra!=scene->r.cfra) {
 				/*
@@ -2724,3 +2780,163 @@ void RE_init_threadcount(Render *re)
 		re->r.threads = BLI_system_thread_count();
 	}
 }
+
+/************************** External Engines ***************************/
+
+static RenderEngineType internal_engine_type = {
+	NULL, NULL, "BlenderRenderEngine", "Blender", NULL,
+	NULL, NULL, NULL, NULL};
+
+ListBase R_engines = {&internal_engine_type, &internal_engine_type};
+
+RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h)
+{
+	Render *re= engine->re;
+	RenderResult *result;
+	rcti disprect;
+
+	/* ensure the coordinates are within the right limits */
+	CLAMP(x, 0, re->result->rectx);
+	CLAMP(y, 0, re->result->recty);
+	CLAMP(w, 0, re->result->rectx);
+	CLAMP(h, 0, re->result->recty);
+
+	if(x + w > re->result->rectx)
+		w= re->result->rectx - x;
+	if(y + h > re->result->recty)
+		h= re->result->recty - y;
+
+	/* allocate a render result */
+	disprect.xmin= x;
+	disprect.xmax= x+w;
+	disprect.ymin= y;
+	disprect.ymax= y+h;
+
+	if(0) { // XXX (re->r.scemode & R_FULL_SAMPLE)) {
+		result= new_full_sample_buffers(re, &engine->fullresult, &disprect, 0);
+	}
+	else {
+		result= new_render_result(re, &disprect, 0, RR_USEMEM);
+		BLI_addtail(&engine->fullresult, result);
+	}
+
+	return result;
+}
+
+void RE_engine_update_result(RenderEngine *engine, RenderResult *result)
+{
+	Render *re= engine->re;
+
+	if(result && render_display_draw_enabled(re)) {
+		result->renlay= result->layers.first; // weak
+		re->display_draw(re->ddh, result, NULL);
+	}
+}
+
+void RE_engine_end_result(RenderEngine *engine, RenderResult *result)
+{
+	Render *re= engine->re;
+
+	if(!result)
+		return;
+
+	/* merge */
+	if(re->result->exrhandle) {
+		RenderResult *rr, *rrpart;
+		
+		// XXX crashes, exr expects very particular part sizes
+		for(rr= re->result, rrpart= result; rr && rrpart; rr= rr->next, rrpart= rrpart->next)
+			save_render_result_tile(rr, rrpart);
+	}
+	else if(render_display_draw_enabled(re)) {
+		/* on break, don't merge in result for preview renders, looks nicer */
+		if(re->test_break(re->tbh) && (re->r.scemode & R_PREVIEWBUTS));
+		else merge_render_result(re->result, result);
+	}
+
+	/* draw */
+	if(!re->test_break(re->tbh) && render_display_draw_enabled(re)) {
+		result->renlay= result->layers.first; // weak
+		re->display_draw(re->ddh, result, NULL);
+	}
+
+	/* free */
+	free_render_result(&engine->fullresult, result);
+}
+
+int RE_engine_test_break(RenderEngine *engine)
+{
+	Render *re= engine->re;
+
+	return re->test_break(re->tbh);
+}
+
+void RE_engine_update_stats(RenderEngine *engine, char *stats, char *info)
+{
+	Render *re= engine->re;
+
+	re->i.statstr= stats;
+	re->i.infostr= info;
+	re->stats_draw(re->sdh, &re->i);
+	re->i.infostr= NULL;
+	re->i.statstr= NULL;
+}
+
+static void external_render_3d(Render *re, RenderEngineType *type)
+{
+	RenderEngine engine;
+
+	if(re->result==NULL || !(re->r.scemode & R_PREVIEWBUTS)) {
+		RE_FreeRenderResult(re->result);
+	
+		if(0) // XXX re->r.scemode & R_FULL_SAMPLE)
+			re->result= new_full_sample_buffers_exr(re);
+		else
+			re->result= new_render_result(re, &re->disprect, 0, 0); // XXX re->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE));
+	}
+	
+	if(re->result==NULL)
+		return;
+
+	/* external */
+	memset(&engine, 0, sizeof(engine));
+	engine.type= type;
+	engine.re= re;
+
+	type->render(&engine, re->scene);
+
+	free_render_result(&engine.fullresult, engine.fullresult.first);
+
+	if(re->result->exrhandle) {
+		RenderResult *rr;
+
+		save_empty_result_tiles(re);
+		
+		for(rr= re->result; rr; rr= rr->next) {
+			IMB_exr_close(rr->exrhandle);
+			rr->exrhandle= NULL;
+		}
+		
+		free_render_result(&re->fullresult, re->result);
+		re->result= NULL;
+		
+		read_render_result(re, 0);
+	}
+}
+
+void RE_engines_free()
+{
+	RenderEngineType *type, *next;
+
+	for(type=R_engines.first; type; type=next) {
+		next= type->next;
+
+		if(type != &internal_engine_type) {
+			if(type->ext.free)
+				type->ext.free(type->ext.data);
+
+			MEM_freeN(type);
+		}
+	}
+}
+

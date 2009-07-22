@@ -1,5 +1,5 @@
 /* 
- * $Id: quat.h 20332 2009-05-22 03:22:56Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -35,17 +35,17 @@
 #include "../intern/bpy_compat.h"
 
 extern PyTypeObject quaternion_Type;
+#define QuaternionObject_Check(_v) PyObject_TypeCheck((_v), &quaternion_Type)
 
-#define QuaternionObject_Check(v) (Py_TYPE(v) == &quaternion_Type)
-
-typedef struct {
+typedef struct { /* keep aligned with BaseMathObject in Mathutils.h */
 	PyObject_VAR_HEAD 
-	struct{
-		float *py_data;		//python managed
-		float *blend_data;	//blender managed
-	}data;
-	float *quat;				//1D array of data (alias)
-	int wrapped;			//is wrapped data?
+	float *quat;				/* 1D array of data (alias) */
+	PyObject *cb_user;			/* if this vector references another object, otherwise NULL, *Note* this owns its reference */
+	unsigned char cb_type;		/* which user funcs do we adhere to, RNA, GameObject, etc */
+	unsigned char cb_subtype;	/* subtype: location, rotation... to avoid defining many new functions for every attribute of the same type */
+	unsigned char wrapped;		/* wrapped data type? */
+	/* end BaseMathObject */
+
 } QuaternionObject;
 
 /*struct data contains a pointer to the actual data that the
@@ -54,16 +54,7 @@ be stored in py_data) or be a wrapper for data allocated through
 blender (stored in blend_data). This is an either/or struct not both*/
 
 //prototypes
-PyObject *Quaternion_Identity( QuaternionObject * self );
-PyObject *Quaternion_Negate( QuaternionObject * self );
-PyObject *Quaternion_Conjugate( QuaternionObject * self );
-PyObject *Quaternion_Inverse( QuaternionObject * self );
-PyObject *Quaternion_Normalize( QuaternionObject * self );
-PyObject *Quaternion_ToEuler( QuaternionObject * self, PyObject *args );
-PyObject *Quaternion_ToMatrix( QuaternionObject * self );
-PyObject *Quaternion_Cross( QuaternionObject * self, QuaternionObject * value );
-PyObject *Quaternion_Dot( QuaternionObject * self, QuaternionObject * value );
-PyObject *Quaternion_copy( QuaternionObject * self );
-PyObject *newQuaternionObject( float *quat, int type );
+PyObject *newQuaternionObject( float *quat, int type, PyTypeObject *base_type);
+PyObject *newQuaternionObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
 
 #endif				/* EXPP_quat_h */

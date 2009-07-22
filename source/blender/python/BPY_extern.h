@@ -1,5 +1,5 @@
 /*
- * $Id: BPY_extern.h 12334 2007-10-21 23:00:29Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -50,6 +50,8 @@ struct bConstraintTarget; /* DNA_constraint_types.h*/
 struct Script;				/* DNA_screen_types.h */
 struct BPyMenu;
 struct bContext;
+struct ReportList;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -98,7 +100,7 @@ extern "C" {
 	
 	/* 2.5 UI Scripts */
 	int BPY_run_python_script( struct bContext *C, const char *filename, struct Text *text, struct ReportList *reports ); // 2.5 working
-	int BPY_run_script_space_draw(struct bContext *C, struct SpaceScript * sc); // 2.5 working
+	int BPY_run_script_space_draw(const struct bContext *C, struct SpaceScript * sc); // 2.5 working
 	void BPY_run_ui_scripts(struct bContext *C, int reload);
 //	int BPY_run_script_space_listener(struct bContext *C, struct SpaceScript * sc, struct ARegion *ar, struct wmNotifier *wmn); // 2.5 working
 	void BPY_update_modules( void ); // XXX - annoying, need this for pointers that get out of date

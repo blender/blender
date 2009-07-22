@@ -603,6 +603,21 @@ void select_connected_scredge(bScreen *sc, ScrEdge *edge)
 	}
 }
 
+/* helper call for below, correct buttons view */
+static void screen_test_scale_region(ListBase *regionbase, float facx, float facy)
+{
+	ARegion *ar;
+	
+	for(ar= regionbase->first; ar; ar= ar->next) {
+		if(ar->regiontype==RGN_TYPE_WINDOW) {
+			ar->v2d.cur.xmin *= facx;
+			ar->v2d.cur.xmax *= facx;
+			ar->v2d.cur.ymin *= facy;
+			ar->v2d.cur.ymax *= facy;
+		}
+	}
+}
+
 /* test if screen vertices should be scaled */
 static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 {
@@ -653,6 +668,19 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 			
 			CLAMP(sv->vec.y, 0, winsizey);
 		}
+		
+		/* keep buttons view2d same size */
+		for(sa= sc->areabase.first; sa; sa= sa->next) {
+			SpaceLink *sl;
+			
+			if(sa->spacetype==SPACE_BUTS)
+				screen_test_scale_region(&sa->regionbase, facx, facy);
+			
+			for(sl= sa->spacedata.first; sl; sl= sl->next)
+				if(sl->spacetype==SPACE_BUTS)
+					screen_test_scale_region(&sl->regionbase, facx, facy);
+		}
+		
 	}
 	
 	/* test for collapsed areas. This could happen in some blender version... */
@@ -1460,7 +1488,9 @@ void ED_screen_full_prevspace(bContext *C)
 		ed_screen_fullarea(C, sa);
 }
 
-/* redraws: uses defines from stime->redraws */
+/* redraws: uses defines from stime->redraws 
+ * enable: 1 - forward on, -1 - backwards on, 0 - off
+ */
 void ED_screen_animation_timer(bContext *C, int redraws, int enable)
 {
 	bScreen *screen= CTX_wm_screen(C);
@@ -1477,6 +1507,7 @@ void ED_screen_animation_timer(bContext *C, int redraws, int enable)
 		screen->animtimer= WM_event_add_window_timer(win, TIMER0, (1.0/FPS));
 		sad->ar= CTX_wm_region(C);
 		sad->redraws= redraws;
+		sad->reverse= (enable < 0);
 		screen->animtimer->customdata= sad;
 		
 	}

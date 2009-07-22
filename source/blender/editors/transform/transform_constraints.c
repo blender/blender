@@ -183,7 +183,7 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 		VECCOPY(vec, t->auto_values);
 		constraintAutoValues(t, vec);
 	}
-	
+
 	if (t->con.mode & CON_AXIS0) {
 		pvec[i++] = vec[0];
 	}
@@ -199,10 +199,10 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 
 static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3]) {
 	float norm[3], vec[3], factor;
-	
+
 	if(in[0]==0.0f && in[1]==0.0f && in[2]==0.0f)
 		return;
-	
+
 	/* For when view is parallel to constraint... will cause NaNs otherwise
 	   So we take vertical motion in 3D space and apply it to the
 	   constraint axis. Nice for camera grab + MMB */
@@ -212,30 +212,30 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 		/* since camera distance is quite relative, use quadratic relationship. holding shift can compensate */
 		if(factor<0.0f) factor*= -factor;
 		else factor*= factor;
-		
+
 		VECCOPY(out, axis);
 		Normalize(out);
 		VecMulf(out, -factor);	/* -factor makes move down going backwards */
 	}
 	else {
 		float cb[3], ab[3];
-		
+
 		VECCOPY(out, axis);
-		
+
 		/* Get view vector on axis to define a plane */
 		VecAddf(vec, t->con.center, in);
 		getViewVector(t, vec, norm);
-		
+
 		Crossf(vec, norm, axis);
-		
+
 		/* Project input vector on the plane passing on axis */
 		Projf(vec, in, vec);
 		VecSubf(vec, in, vec);
-		
+
 		/* intersect the two lines: axis and norm */
 		Crossf(cb, vec, norm);
 		Crossf(ab, axis, norm);
-		
+
 		VecMulf(out, Inpf(cb, ab) / Inpf(ab, ab));
 	}
 }
@@ -262,7 +262,7 @@ static void planeProjection(TransInfo *t, float in[3], float out[3]) {
 
 /*
  * Generic callback for constant spacial constraints applied to linear motion
- * 
+ *
  * The IN vector in projected into the constrained space and then further
  * projected along the view vector.
  * (in perspective mode, the view vector is relative to the position on screen)
@@ -274,7 +274,7 @@ static void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], flo
 	VECCOPY(out, in);
 	if (!td && t->con.mode & CON_APPLY) {
 		Mat3MulVecfl(t->con.pmtx, out);
-		
+
 		// With snap, a projection is alright, no need to correct for view alignment
 		if ((t->tsnap.status & SNAP_ON) == 0) {
 			if (getConstraintSpaceDimension(t) == 2) {
@@ -284,7 +284,7 @@ static void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], flo
 			}
 			else if (getConstraintSpaceDimension(t) == 1) {
 				float c[3];
-	
+
 				if (t->con.mode & CON_AXIS0) {
 					VECCOPY(c, t->con.mtx[0]);
 				}
@@ -303,7 +303,7 @@ static void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], flo
 
 /*
  * Generic callback for object based spacial constraints applied to linear motion
- * 
+ *
  * At first, the following is applied to the first data in the array
  * The IN vector in projected into the constrained space and then further
  * projected along the view vector.
@@ -360,7 +360,7 @@ static void applyObjectConstraintVec(TransInfo *t, TransData *td, float in[3], f
 
 /*
  * Generic callback for constant spacial constraints applied to resize motion
- * 
+ *
  *
  */
 
@@ -386,7 +386,7 @@ static void applyAxisConstraintSize(TransInfo *t, TransData *td, float smat[3][3
 
 /*
  * Callback for object based spacial constraints applied to resize motion
- * 
+ *
  *
  */
 
@@ -415,7 +415,7 @@ static void applyObjectConstraintSize(TransInfo *t, TransData *td, float smat[3]
 
 /*
  * Generic callback for constant spacial constraints applied to rotations
- * 
+ *
  * The rotation axis is copied into VEC.
  *
  * In the case of single axis constraints, the rotation axis is directly the one constrained to.
@@ -457,7 +457,7 @@ static void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3], fl
 
 /*
  * Callback for object based spacial constraints applied to rotations
- * 
+ *
  * The rotation axis is copied into VEC.
  *
  * In the case of single axis constraints, the rotation axis is directly the one constrained to.
@@ -473,7 +473,7 @@ static void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3], 
 {
 	if (t->con.mode & CON_APPLY) {
 		int mode = t->con.mode & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
-		
+
 		/* on setup call, use first object */
 		if (td == NULL) {
 			td= t->data;
@@ -585,128 +585,6 @@ void setUserConstraint(TransInfo *t, int mode, const char ftext[]) {
 	t->con.mode |= CON_USER;
 }
 
-/*--------------------- EXTERNAL SETUP CALLS ------------------*/
-
-void BIF_setLocalLockConstraint(char axis, char *text) {
-	TransInfo *t = BIF_GetTransInfo();
-
-	if (t->total == 0) {
-		return;
-	}
-	
-	switch (axis) {
-	case 'x':
-		setLocalConstraint(t, (CON_AXIS1|CON_AXIS2), text);
-		break;
-	case 'y':
-		setLocalConstraint(t, (CON_AXIS0|CON_AXIS2), text);
-		break;
-	case 'z':
-		setLocalConstraint(t, (CON_AXIS0|CON_AXIS1), text);
-		break;
-	}
-}
-
-void BIF_setLocalAxisConstraint(char axis, char *text) {
-	TransInfo *t = BIF_GetTransInfo();
-
-	if (t->total == 0) {
-		return;
-	}
-	
-	switch (axis) {
-	case 'X':
-		setLocalConstraint(t, CON_AXIS0, text);
-		break;
-	case 'Y':
-		setLocalConstraint(t, CON_AXIS1, text);
-		break;
-	case 'Z':
-		setLocalConstraint(t, CON_AXIS2, text);
-		break;
-	}
-}
-
-/* text is optional, for header print */
-void BIF_setSingleAxisConstraint(float vec[3], char *text) {
-	TransInfo *t = BIF_GetTransInfo();
-	float space[3][3], v[3];
-	
-	if (t->total == 0) {
-		return;
-	}
-	
-	VECCOPY(space[0], vec);
-
-	v[0] = vec[2];
-	v[1] = vec[0];
-	v[2] = vec[1];
-
-	Crossf(space[1], vec, v);
-	Crossf(space[2], vec, space[1]);
-	Mat3Ortho(space);
-
-	Mat3CpyMat3(t->con.mtx, space);
-	t->con.mode = CON_AXIS0;
-	
-	getConstraintMatrix(t);
-
-	startConstraint(t);
-	
-	/* start copying with an offset of 1, to reserve a spot for the SPACE char */
-	if(text)
-	{
-		strncpy(t->con.text+1, text, 48);	/* 50 in struct */
-	}
-	else
-	{
-		t->con.text[1] = '\0'; /* No text */
-	}
-	
-	t->con.drawExtra = NULL;
-	t->con.applyVec = applyAxisConstraintVec;
-	t->con.applySize = applyAxisConstraintSize;
-	t->con.applyRot = applyAxisConstraintRot;
-	t->redraw = 1;
-}
-
-void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text) {
-	TransInfo *t = BIF_GetTransInfo();
-	float space[3][3];
-	
-	if (t->total == 0) {
-		return;
-	}
-
-	VECCOPY(space[0], vec1);
-	VECCOPY(space[1], vec2);
-	Crossf(space[2], space[0], space[1]);
-	Mat3Ortho(space);
-	
-	Mat3CpyMat3(t->con.mtx, space);
-	t->con.mode = CON_AXIS0|CON_AXIS1;
-
-	getConstraintMatrix(t);
-
-	startConstraint(t);
-	
-	/* start copying with an offset of 1, to reserve a spot for the SPACE char */
-	if(text)
-	{
-		strncpy(t->con.text+1, text, 48);	/* 50 in struct */
-	}
-	else
-	{
-		t->con.text[1] = '\0'; /* No text */
-	}
-
-	t->con.drawExtra = NULL;
-	t->con.applyVec = applyAxisConstraintVec;
-	t->con.applySize = applyAxisConstraintSize;
-	t->con.applyRot = applyAxisConstraintRot;
-	t->redraw = 1;
-}
-
 /*----------------- DRAWING CONSTRAINTS -------------------*/
 
 void drawConstraint(const struct bContext *C, TransInfo *t)
@@ -721,10 +599,10 @@ void drawConstraint(const struct bContext *C, TransInfo *t)
 		return;
 	if (t->flag & T_NO_CONSTRAINT)
 		return;
-	
+
 	/* nasty exception for Z constraint in camera view */
 	// TRANSFORM_FIX_ME
-//	if((t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp==V3D_CAMOB) 
+//	if((t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp==V3D_CAMOB)
 //		return;
 
 	if (tc->drawExtra) {
@@ -742,17 +620,17 @@ void drawConstraint(const struct bContext *C, TransInfo *t)
 			drawLine(t, tc->center, tc->mtx[2], 'z', 0);
 
 			glColor3ubv((GLubyte *)col2);
-			
+
 			glDisable(GL_DEPTH_TEST);
 			setlinestyle(1);
-			glBegin(GL_LINE_STRIP); 
-				glVertex3fv(tc->center); 
-				glVertex3fv(vec); 
+			glBegin(GL_LINE_STRIP);
+				glVertex3fv(tc->center);
+				glVertex3fv(vec);
 			glEnd();
 			setlinestyle(0);
 			// TRANSFORM_FIX_ME
 			//if(G.vd->zbuf)
-				glEnable(GL_DEPTH_TEST);	
+				glEnable(GL_DEPTH_TEST);
 		}
 
 		if (tc->mode & CON_AXIS0) {
@@ -775,7 +653,7 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 		float tmat[4][4], imat[4][4];
 
 		UI_ThemeColor(TH_GRID);
-		
+
 		if(t->spacetype == SPACE_VIEW3D && rv3d != NULL)
 		{
 			Mat4CpyMat4(tmat, rv3d->viewmat);
@@ -804,20 +682,9 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 		set_inverted_drawing(1);
 		drawcircball(GL_LINE_LOOP, t->center, t->prop_size, imat);
 		set_inverted_drawing(0);
-		
+
 		glPopMatrix();
 	}
-}
-
-void BIF_getPropCenter(float *center)
-{
-	TransInfo *t = BIF_GetTransInfo();
-
-	if (t && t->flag & T_PROP_EDIT) {
-		VECCOPY(center, t->center);
-	}
-	else
-		center[0] = center[1] = center[2] = 0.0f;
 }
 
 static void drawObjectConstraint(TransInfo *t) {
@@ -839,7 +706,7 @@ static void drawObjectConstraint(TransInfo *t) {
 	if (t->con.mode & CON_AXIS2) {
 		drawLine(t, td->ob->obmat[3], td->axismtx[2], 'z', DRAWLIGHT);
 	}
-	
+
 	td++;
 
 	for(i=1;i<t->total;i++,td++) {
@@ -954,12 +821,12 @@ static void setNearestAxis3d(TransInfo *t)
 	float mvec[3], axis[3], proj[3];
 	float len[3];
 	int i, icoord[2];
-	
+
 	/* calculate mouse movement */
 	mvec[0] = (float)(t->mval[0] - t->con.imval[0]);
 	mvec[1] = (float)(t->mval[1] - t->con.imval[1]);
 	mvec[2] = 0.0f;
-	
+
 	/* we need to correct axis length for the current zoomlevel of view,
 	   this to prevent projected values to be clipped behind the camera
 	   and to overflow the short integers.
@@ -972,12 +839,12 @@ static void setNearestAxis3d(TransInfo *t)
 
 	for (i = 0; i<3; i++) {
 		VECCOPY(axis, t->con.mtx[i]);
-		
+
 		VecMulf(axis, zfac);
 		/* now we can project to get window coordinate */
 		VecAddf(axis, axis, t->con.center);
 		projectIntView(t, axis, icoord);
-		
+
 		axis[0] = (float)(icoord[0] - t->center2d[0]);
 		axis[1] = (float)(icoord[1] - t->center2d[1]);
 		axis[2] = 0.0f;
@@ -1034,13 +901,13 @@ void setNearestAxis(TransInfo *t)
 	/* constraint setting - depends on spacetype */
 	if (t->spacetype == SPACE_VIEW3D) {
 		/* 3d-view */
-		setNearestAxis3d(t);	
+		setNearestAxis3d(t);
 	}
 	else {
 		/* assume that this means a 2D-Editor */
 		setNearestAxis2d(t);
 	}
-	
+
 	getConstraintMatrix(t);
 }
 
@@ -1083,7 +950,7 @@ int isLockConstraint(TransInfo *t) {
 
 /*
  * Returns the dimension of the constraint space.
- * 
+ *
  * For that reason, the flags always needs to be set to properly evaluate here,
  * even if they aren't actually used in the callback function. (Which could happen
  * for weird constraints not yet designed. Along a path for example.)
@@ -1107,7 +974,7 @@ int getConstraintSpaceDimension(TransInfo *t)
   Someone willing to do it criptically could do the following instead:
 
   return t->con & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
-	
+
   Based on the assumptions that the axis flags are one after the other and start at 1
 */
 }

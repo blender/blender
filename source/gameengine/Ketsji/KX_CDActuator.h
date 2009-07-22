@@ -68,8 +68,7 @@ public:
 				  KX_CDACT_TYPE type,
 				  int track,
 				  short start,
-				  short end,
-				  PyTypeObject* T=&Type);
+				  short end);
 
 	~KX_CDActuator();
 
@@ -80,10 +79,6 @@ public:
 	/* -------------------------------------------------------------------- */
 	/* Python interface --------------------------------------------------- */
 	/* -------------------------------------------------------------------- */
-
-	virtual PyObject*  py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject *value);
 
 	// Deprecated ----->
 	KX_PYMETHOD_VARARGS(KX_CDActuator,SetGain);

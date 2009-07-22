@@ -1538,7 +1538,7 @@ void RIG_printGraph(RigGraph *rg)
 
 /*******************************************************************************************************/
 
-RigGraph *RIG_graphFromArmature(bContext *C, Object *ob, bArmature *arm)
+RigGraph *RIG_graphFromArmature(const bContext *C, Object *ob, bArmature *arm)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
@@ -2139,15 +2139,15 @@ static MemoNode * solveJoints(MemoNode *table, BArcIterator *iter, float **vec_c
 		MemoNode *min_node = NULL;
 		float *vec0 = vec_cache[previous];
 		float *vec1 = vec_cache[current];
-		float min_weight;
-		int min_next;
+		float min_weight= 0.0f;
+		int min_next= 0;
 		int next;
 		
 		for (next = current + 1; next <= nb_positions - (joints_left - 1); next++)
 		{
 			MemoNode *next_node;
 			float *vec2 = vec_cache[next];
-			float weight = 0;
+			float weight = 0.0f;
 			
 			/* ADD WEIGHT OF PREVIOUS - CURRENT - NEXT triple */
 			weight = calcCostAngleLengthDistance(iter, vec_cache, edge, vec0, vec1, vec2, current, next, angle_weight, length_weight, distance_weight);
@@ -2824,7 +2824,7 @@ void BIF_retargetArmature(bContext *C)
 	ReebGraph *reebg;
 	double start_time, end_time;
 	double gstart_time, gend_time;
-	double reeb_time, rig_time, retarget_time, total_time;
+	double reeb_time, rig_time=0.0, retarget_time=0.0, total_time;
 	
 	gstart_time = start_time = PIL_check_seconds_timer();
 	

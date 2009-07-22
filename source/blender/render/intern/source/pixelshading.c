@@ -43,6 +43,7 @@
 #include "DNA_texture_types.h"
 #include "DNA_lamp_types.h"
 
+#include "BKE_colortools.h"
 #include "BKE_image.h"
 #include "BKE_global.h"
 #include "BKE_material.h"
@@ -58,6 +59,7 @@
 #include "rendercore.h"
 #include "shadbuf.h"
 #include "pixelshading.h"
+#include "shading.h"
 #include "sunsky.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -536,9 +538,15 @@ void shadeSkyView(float *colf, float *rco, float *view, float *dxyview, short th
 		blend= fabs(0.5+ view[1]);
 	}
 	
-	hor[0]= R.wrld.horr; hor[1]= R.wrld.horg; hor[2]= R.wrld.horb;
-	zen[0]= R.wrld.zenr; zen[1]= R.wrld.zeng; zen[2]= R.wrld.zenb;
-	
+	if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+		color_manage_linearize(hor, &R.wrld.horr);
+		color_manage_linearize(zen, &R.wrld.zenr);
+	}
+	else {
+		VECCOPY(hor, &R.wrld.horr);
+		VECCOPY(zen, &R.wrld.zenr);
+	}
+
 	/* Careful: SKYTEX and SKYBLEND are NOT mutually exclusive! If           */
 	/* SKYBLEND is active, the texture and color blend are added.           */
 	if(R.wrld.skytype & WO_SKYTEX) {
@@ -625,9 +633,11 @@ void shadeSkyPixel(float *collector, float fx, float fy, short thread)
 	} 
 	else if((R.wrld.skytype & (WO_SKYBLEND+WO_SKYTEX))==0) {
 		/* 2. solid color */
-		collector[0] = R.wrld.horr;
-		collector[1] = R.wrld.horg;
-		collector[2] = R.wrld.horb;
+		if(R.r.color_mgt_flag & R_COLOR_MANAGEMENT)
+			color_manage_linearize(collector, &R.wrld.horr);
+		else
+			VECCOPY(collector, &R.wrld.horr);
+
 		collector[3] = 0.0f;
 	} 
 	else {

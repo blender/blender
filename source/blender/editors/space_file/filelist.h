@@ -38,6 +38,7 @@ extern "C" {
 #endif
 
 struct FileList;
+struct FolderList;
 struct direntry;
 struct BlendHandle;
 struct Scene;
@@ -49,7 +50,6 @@ void				filelist_free_icons();
 struct FileList *	filelist_copy(struct FileList* filelist);
 int					filelist_find(struct FileList* filelist, char *file);
 void				filelist_free(struct FileList* filelist);
-void				filelist_freelib(struct FileList* filelist);
 void				filelist_sort(struct FileList* filelist, short sort);
 int					filelist_numfiles(struct FileList* filelist);
 const char *		filelist_dir(struct FileList* filelist);
@@ -71,6 +71,11 @@ int					filelist_empty(struct FileList* filelist);
 void				filelist_parent(struct FileList* filelist);
 void				filelist_setfiletypes(struct FileList* filelist, short has_quicktime);
 
+struct ListBase *	folderlist_new();
+void				folderlist_free(struct ListBase* folderlist);
+void				folderlist_popdir(struct ListBase* folderlist, char *dir);
+void				folderlist_pushdir(struct ListBase* folderlist, const char *dir);
+int					folderlist_clear_next(struct SpaceFile* sfile);
 
 #ifdef __cplusplus
 }

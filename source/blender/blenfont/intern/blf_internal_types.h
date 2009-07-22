@@ -154,6 +154,16 @@ typedef struct FontBLF {
 	
 	/* blur: 3 or 5 large kernel */
 	int blur;
+
+	/* shadow level. */
+	int shadow;
+
+	/* and shadow offset. */
+	int shadow_x;
+	int shadow_y;
+
+	/* shadow color. */
+	float shadow_col[4];
 	
 	/* this is the matrix that we load before rotate/scale/translate. */
 	float mat[4][4];
@@ -166,9 +176,6 @@ typedef struct FontBLF {
 
 	/* font size. */
 	int size;
-
-	/* kerning space, user setting. */
-	float kerning;
 
 	/* max texture size. */
 	int max_tex_size;

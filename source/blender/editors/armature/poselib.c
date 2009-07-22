@@ -37,6 +37,7 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
+#include "BLI_dlrbTree.h"
 
 #include "DNA_listBase.h"
 #include "DNA_anim_types.h"
@@ -216,7 +217,7 @@ bAction *poselib_validate (Object *ob)
 // TODO: operatorfy me!
 void poselib_validate_act (bAction *act)
 {
-	ListBase keys = {NULL, NULL};
+	DLRBT_Tree keys = {NULL, NULL};
 	ActKeyColumn *ak;
 	TimeMarker *marker, *markern;
 	
@@ -227,7 +228,9 @@ void poselib_validate_act (bAction *act)
 	}
 	
 	/* determine which frames have keys */
-	action_to_keylist(act, &keys, NULL, NULL);
+	BLI_dlrbTree_init(&keys);
+	action_to_keylist(NULL, act, &keys, NULL);
+	BLI_dlrbTree_linkedlist_sync(&keys);
 	
 	/* for each key, make sure there is a correspnding pose */
 	for (ak= keys.first; ak; ak= ak->next) {
@@ -267,7 +270,7 @@ void poselib_validate_act (bAction *act)
 	}
 	
 	/* free temp memory */
-	BLI_freelistN(&keys);
+	BLI_freelistN((ListBase *)&keys);
 	
 	BIF_undo_push("PoseLib Validate Action");
 }
@@ -1489,7 +1492,7 @@ void POSELIB_OT_browse_interactive (wmOperatorType *ot)
 	ot->poll= ED_operator_posemode;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* properties */	
 	RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, "Pose", "Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)", 0, INT_MAX);

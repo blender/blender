@@ -1,5 +1,5 @@
 /**
- * $Id: interface_draw.c 15733 2008-07-24 09:23:13Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -788,7 +788,7 @@ void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	glGetMaterialfv(GL_FRONT, GL_DIFFUSE, diff);
 		
 	/* backdrop */
-	glColor3ubv(wcol->inner);
+	glColor3ubv((unsigned char*)wcol->inner);
 	uiSetRoundBox(15);
 	gl_round_box(GL_POLYGON, rect->xmin, rect->ymin, rect->xmax, rect->ymax, 5.0f);
 	
@@ -852,7 +852,7 @@ void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	/* AA circle */
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH );
-	glColor3ubv(wcol->inner);
+	glColor3ubv((unsigned char*)wcol->inner);
 	glutil_draw_lined_arc(0.0f, M_PI*2.0, 100.0f, 32);
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH );
@@ -926,14 +926,14 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	if(cumap->flag & CUMA_DO_CLIP) {
 		glColor3ubvShade(wcol->inner, -20);
 		glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
-		glColor3ubv(wcol->inner);
+		glColor3ubv((unsigned char*)wcol->inner);
 		glRectf(rect->xmin + zoomx*(cumap->clipr.xmin-offsx),
 				rect->ymin + zoomy*(cumap->clipr.ymin-offsy),
 				rect->xmin + zoomx*(cumap->clipr.xmax-offsx),
 				rect->ymin + zoomy*(cumap->clipr.ymax-offsy));
 	}
 	else {
-		glColor3ubv(wcol->inner);
+		glColor3ubv((unsigned char*)wcol->inner);
 		glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 	}
 	
@@ -989,7 +989,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	}*/
 	
 	/* the curve */
-	glColor3ubv(wcol->item);
+	glColor3ubv((unsigned char*)wcol->item);
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
 	glBegin(GL_LINE_STRIP);
@@ -1043,7 +1043,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 
 	/* outline */
-	glColor3ubv(wcol->outline);
+	glColor3ubv((unsigned char*)wcol->outline);
 	fdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 }
 

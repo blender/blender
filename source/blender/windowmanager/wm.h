@@ -47,7 +47,7 @@ extern void wm_check(bContext *C);
 extern void wm_clear_default_size(bContext *C);
 			
 			/* register to windowmanager for redo or macro */
-void		wm_operator_register(wmWindowManager *wm, wmOperator *op);
+void		wm_operator_register(bContext *C, wmOperator *op);
 
 extern void wm_report_free(wmReport *report);
 

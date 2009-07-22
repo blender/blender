@@ -27,6 +27,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="DEL ..\..\..\source\blender\makesrna\intern\*_gen.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -121,6 +122,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="DEL ..\..\..\source\blender\makesrna\intern\*_gen.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -138,7 +140,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\editors\include;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\makesdna;..\..\..\source\blender\windowmanager"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -199,7 +201,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Building RNA"
-				CommandLine="CD ..\..\..\source\blender\makesrna\intern&#x0D;&#x0A;RNA_makesrna.exe rna.c&#x0D;&#x0A;"
+				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;RNA_makesrna.exe .\&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -214,6 +216,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="DEL ..\..\..\source\blender\makesrna\intern\*_gen.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -307,6 +310,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="del ..\..\..\source\blender\makesrna\intern\rna_*_gen.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -388,7 +392,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Building RNA"
-				CommandLine="CD ..\..\..\source\blender\makesrna\intern&#x0D;&#x0A;RNA_makesrna.exe rna.c&#x0D;&#x0A;"
+				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;RNA_makesrna.exe .\&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -403,6 +407,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="DEL ..\..\..\source\blender\makesrna\intern\*_gen.c"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -484,7 +489,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Building RNA"
-				CommandLine="CD ..\..\..\source\blender\makesrna\intern&#x0D;&#x0A;RNA_makesrna.exe rna.c&#x0D;&#x0A;"
+				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;RNA_makesrna.exe .\&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
@@ -499,6 +504,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -577,7 +583,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Building RNA"
-				CommandLine="CD ..\..\..\source\blender\makesrna\intern&#x0D;&#x0A;RNA_makesrna.exe rna.c&#x0D;&#x0A;"
+				CommandLine="CD ..\..\..\source\blender\makesrna\intern\&#x0D;&#x0A;RNA_makesrna.exe .\&#x0D;&#x0A;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -588,10 +594,6 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
-			<File
-				RelativePath="..\..\..\source\blender\editors\interface\interface_api.c"
-				>
-			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\makesrna.c"
 				>
@@ -685,11 +687,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_main_api.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_material.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_mesh.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_mesh_api.c"
 				>
 			</File>
 			<File
@@ -701,11 +711,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_nla.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_nodetree.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_object.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_object_api.c"
 				>
 			</File>
 			<File
@@ -726,10 +744,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_property.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_radio.c"
 				>
 			</File>
 			<File
@@ -781,6 +795,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_ui_api.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_userdef.c"
 				>
 			</File>
@@ -794,6 +812,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_wm.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_wm_api.c"
 				>
 			</File>
 			<File

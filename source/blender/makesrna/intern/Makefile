@@ -1,5 +1,5 @@
 #
-# $Id: Makefile 13161 2008-01-07 19:13:47Z hos $
+# $Id$
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -52,11 +52,13 @@ CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../windowmanager
 CPPFLAGS += -I../../editors/include
+CPPFLAGS += -I../../render/extern/include
 CPPFLAGS += -I..
 CPPFLAGS += -I.
 
 ifeq ($(WITH_FFMPEG),true)
     CPPFLAGS += -DWITH_FFMPEG
+    CPPFLAGS += $(NAN_FFMPEGCFLAGS)
 endif
 
 ifeq ($(WITH_OPENEXR), true)

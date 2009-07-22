@@ -45,6 +45,9 @@ void sdrawXORline4(int nr, int x0, int y0, int x1, int y1);
 void fdrawXORellipse(float xofs, float yofs, float hw, float hh);
 void fdrawXORcirc(float xofs, float yofs, float rad);
 
+/* glStipple defines */
+extern unsigned char stipple_halftone[128];
+extern unsigned char stipple_quarttone[128];
 
 	/**
 	 * Draw a lined (non-looping) arc with the given
@@ -129,10 +132,11 @@ void glaDrawPixelsSafe		(float x, float y, int img_w, int img_h, int row_w, int 
 	 * is expected to be in RGBA byte or float format, and the 
 	 * modelview and projection matrices are assumed to define a 
 	 * 1-to-1 mapping to screen space.
+	 * @param gamma_correct Optionally gamma correct float sources to sRGB for display
 	 */
 
 	/* only for float rects, converts to 32 bits and draws */
-void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int row_w, float *rectf);
+void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int row_w, float *rectf, int gamma_correct);
 
 
 void glaDrawPixelsTex		(float x, float y, int img_w, int img_h, int format, void *rect);
@@ -201,7 +205,6 @@ void bglFlush(void);
 int is_a_really_crappy_intel_card(void);
 void set_inverted_drawing(int enable);
 void setlinestyle(int nr);
-
 
 /* own working polygon offset */
 void bglPolygonOffset(float viewdist, float dist);

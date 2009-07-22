@@ -4,10 +4,6 @@ Import('env')
 
 SConscript(['glew/SConscript'])
 
-if env['WITH_BF_GAMEENGINE']:
-	if env['WITH_BF_SOLID']:
-		SConscript(['qhull/SConscript', 'solid/SConscript'])
-
 if env['WITH_BF_BULLET']:
     SConscript(['bullet2/src/SConscript'])
 

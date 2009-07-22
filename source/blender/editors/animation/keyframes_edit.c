@@ -128,6 +128,10 @@ static short agrp_keys_bezier_loop(BeztEditData *bed, bActionGroup *agrp, BeztEd
 {
 	FCurve *fcu;
 	
+	/* sanity check */
+	if (agrp == NULL)
+		return 0;
+	
 	/* only iterate over the F-Curves that are in this group */
 	for (fcu= agrp->channels.first; fcu && fcu->grp==agrp; fcu= fcu->next) {
 		if (ANIM_fcurve_keys_bezier_loop(bed, fcu, bezt_ok, bezt_cb, fcu_cb))
@@ -142,6 +146,10 @@ static short act_keys_bezier_loop(BeztEditData *bed, bAction *act, BeztEditFunc 
 {
 	FCurve *fcu;
 	
+	/* sanity check */
+	if (act == NULL)
+		return 0;
+	
 	/* just loop through all F-Curves */
 	for (fcu= act->curves.first; fcu; fcu= fcu->next) {
 		if (ANIM_fcurve_keys_bezier_loop(bed, fcu, bezt_ok, bezt_cb, fcu_cb))
@@ -154,6 +162,10 @@ static short act_keys_bezier_loop(BeztEditData *bed, bAction *act, BeztEditFunc 
 /* This function is used to loop over the keyframe data of an AnimData block */
 static short adt_keys_bezier_loop(BeztEditData *bed, AnimData *adt, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag)
 {
+	/* sanity check */
+	if (adt == NULL)
+		return 0;
+	
 	/* drivers or actions? */
 	if (filterflag & ADS_FILTER_ONLYDRIVERS) {
 		FCurve *fcu;
@@ -178,6 +190,10 @@ static short ob_keys_bezier_loop(BeztEditData *bed, Object *ob, BeztEditFunc bez
 {
 	Key *key= ob_get_key(ob);
 	
+	/* sanity check */
+	if (ob == NULL)
+		return 0;
+	
 	/* firstly, Object's own AnimData */
 	if (ob->adt) 
 		adt_keys_bezier_loop(bed, ob->adt, bezt_ok, bezt_cb, fcu_cb, filterflag);
@@ -194,7 +210,11 @@ static short ob_keys_bezier_loop(BeztEditData *bed, Object *ob, BeztEditFunc bez
 /* This function is used to loop over the keyframe data in a Scene */
 static short scene_keys_bezier_loop(BeztEditData *bed, Scene *sce, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb, int filterflag)
 {
-	World *wo= sce->world;
+	World *wo= (sce) ? sce->world : NULL;
+	
+	/* sanity check */
+	if (sce == NULL)
+		return 0;
 	
 	/* Scene's own animation */
 	if (sce->adt)
@@ -231,7 +251,7 @@ short ANIM_animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, B
 			return act_keys_bezier_loop(bed, (bAction *)ale->data, bezt_ok, bezt_cb, fcu_cb);
 			
 		case ALE_OB: /* object */
-			return ob_keys_bezier_loop(bed, (Object *)ale->data, bezt_ok, bezt_cb, fcu_cb, filterflag);
+			return ob_keys_bezier_loop(bed, (Object *)ale->key_data, bezt_ok, bezt_cb, fcu_cb, filterflag);
 		case ALE_SCE: /* scene */
 			return scene_keys_bezier_loop(bed, (Scene *)ale->data, bezt_ok, bezt_cb, fcu_cb, filterflag);
 	}

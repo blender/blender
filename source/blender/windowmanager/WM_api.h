@@ -40,6 +40,7 @@ struct wmJob;
 struct wmNotifier;
 struct rcti;
 struct PointerRNA;
+struct EnumPropertyItem;
 
 typedef struct wmJob wmJob;
 
@@ -65,21 +66,29 @@ void		WM_cursor_set		(struct wmWindow *win, int curs);
 void		WM_cursor_modal		(struct wmWindow *win, int curs);
 void		WM_cursor_restore	(struct wmWindow *win);
 void		WM_cursor_wait		(int val);
+void		WM_cursor_grab		(struct wmWindow *win, int val);
 void		WM_timecursor		(struct wmWindow *win, int nr);
 
 void		*WM_paint_cursor_activate(struct wmWindowManager *wm, int (*poll)(struct bContext *C), void (*draw)(struct bContext *C, int, int, void *customdata), void *customdata);
 void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
 
 			/* keymap */
+void		WM_keymap_init		(struct bContext *C);
 wmKeymapItem *WM_keymap_verify_item(ListBase *lb, char *idname, short type, 
 								 short val, int modifier, short keymodifier);
 wmKeymapItem *WM_keymap_add_item(ListBase *lb, char *idname, short type, 
 								 short val, int modifier, short keymodifier);
 void		WM_keymap_tweak	(ListBase *lb, short type, short val, int modifier, short keymodifier);
 ListBase	*WM_keymap_listbase	(struct wmWindowManager *wm, const char *nameid, 
-								 int spaceid, int regionid);
+								 short spaceid, short regionid);
 
-char		*WM_key_event_string(short type);
+wmKeyMap	*WM_modalkeymap_add(struct wmWindowManager *wm, const char *nameid, struct EnumPropertyItem *items);
+wmKeyMap	*WM_modalkeymap_get(struct wmWindowManager *wm, const char *nameid);
+void		WM_modalkeymap_add_item(wmKeyMap *km, short type, short val, int modifier, short keymodifier, short value);
+void		WM_modalkeymap_assign(wmKeyMap *km, const char *opname);
+
+
+const char	*WM_key_event_string(short type);
 char		*WM_key_event_operator_string(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, char *str, int len);
 
 			/* handlers */
@@ -124,12 +133,15 @@ int			WM_operator_filesel		(struct bContext *C, struct wmOperator *op, struct wm
 			/* poll callback, context checks */
 int			WM_operator_winactive	(struct bContext *C);
 			/* invoke callback, exec + redo popup */
-int			WM_operator_redo		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_operator_props_popup	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_operator_redo_popup	(struct bContext *C, struct wmOperator *op);
 
 		/* operator api */
 void		WM_operator_free		(struct wmOperator *op);
-wmOperatorType *WM_operatortype_find(const char *idname);
+void		WM_operator_stack_clear(struct bContext *C);
+
+wmOperatorType *WM_operatortype_find(const char *idnamem, int quiet);
+wmOperatorType *WM_operatortype_exists(const char *idname);
 wmOperatorType *WM_operatortype_first(void);
 void		WM_operatortype_append	(void (*opfunc)(wmOperatorType*));
 void		WM_operatortype_append_ptr	(void (*opfunc)(wmOperatorType*, void *), void *userdata);
@@ -145,6 +157,8 @@ void		WM_operator_properties_free(struct PointerRNA *ptr);
 
 		/* operator as a python command (resultuing string must be free'd) */
 char		*WM_operator_pystring(struct wmOperator *op);
+void		WM_operator_bl_idname(char *to, const char *from);
+void		WM_operator_py_idname(char *to, const char *from);
 
 			/* default operator callbacks for border/circle/lasso */
 int			WM_border_select_invoke	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
@@ -212,8 +226,8 @@ void		WM_jobs_stop(struct wmWindowManager *wm, void *owner);
 void		WM_jobs_stop_all(struct wmWindowManager *wm);
 
 			/* clipboard */
-char *WM_clipboard_text_get(int selection);
-void WM_clipboard_text_set(char *buf, int selection);
+char		*WM_clipboard_text_get(int selection);
+void		WM_clipboard_text_set(char *buf, int selection);
 
 
 #endif /* WM_API_H */

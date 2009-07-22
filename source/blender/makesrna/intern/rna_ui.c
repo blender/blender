@@ -76,22 +76,22 @@ static ARegionType *region_type_find(ReportList *reports, int space_type, int re
 static int panel_poll(const bContext *C, PanelType *pt)
 {
 	PointerRNA ptr;
-	ParameterList *list;
+	ParameterList list;
 	FunctionRNA *func;
 	void *ret;
 	int visible;
 
-	RNA_pointer_create(NULL, pt->py_srna, NULL, &ptr); /* dummy */
+	RNA_pointer_create(NULL, pt->ext.srna, NULL, &ptr); /* dummy */
 	func= RNA_struct_find_function(&ptr, "poll");
 
-	list= RNA_parameter_list_create(&ptr, func);
-	RNA_parameter_set_lookup(list, "context", &C);
-	pt->py_call(&ptr, func, list);
+	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	pt->ext.call(&ptr, func, &list);
 
-	RNA_parameter_get_lookup(list, "visible", &ret);
+	RNA_parameter_get_lookup(&list, "visible", &ret);
 	visible= *(int*)ret;
 
-	RNA_parameter_list_free(list);
+	RNA_parameter_list_free(&list);
 
 	return visible;
 }
@@ -99,33 +99,33 @@ static int panel_poll(const bContext *C, PanelType *pt)
 static void panel_draw(const bContext *C, Panel *pnl)
 {
 	PointerRNA ptr;
-	ParameterList *list;
+	ParameterList list;
 	FunctionRNA *func;
 
-	RNA_pointer_create(&CTX_wm_screen(C)->id, pnl->type->py_srna, pnl, &ptr);
+	RNA_pointer_create(&CTX_wm_screen(C)->id, pnl->type->ext.srna, pnl, &ptr);
 	func= RNA_struct_find_function(&ptr, "draw");
 
-	list= RNA_parameter_list_create(&ptr, func);
-	RNA_parameter_set_lookup(list, "context", &C);
-	pnl->type->py_call(&ptr, func, list);
+	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	pnl->type->ext.call(&ptr, func, &list);
 
-	RNA_parameter_list_free(list);
+	RNA_parameter_list_free(&list);
 }
 
 static void panel_draw_header(const bContext *C, Panel *pnl)
 {
 	PointerRNA ptr;
-	ParameterList *list;
+	ParameterList list;
 	FunctionRNA *func;
 
-	RNA_pointer_create(&CTX_wm_screen(C)->id, pnl->type->py_srna, pnl, &ptr);
+	RNA_pointer_create(&CTX_wm_screen(C)->id, pnl->type->ext.srna, pnl, &ptr);
 	func= RNA_struct_find_function(&ptr, "draw_header");
 
-	list= RNA_parameter_list_create(&ptr, func);
-	RNA_parameter_set_lookup(list, "context", &C);
-	pnl->type->py_call(&ptr, func, list);
+	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	pnl->type->ext.call(&ptr, func, &list);
 
-	RNA_parameter_list_free(list);
+	RNA_parameter_list_free(&list);
 }
 
 static void rna_Panel_unregister(const bContext *C, StructRNA *type)
@@ -168,8 +168,10 @@ static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, voi
 	/* check if we have registered this panel type before, and remove it */
 	for(pt=art->paneltypes.first; pt; pt=pt->next) {
 		if(strcmp(pt->idname, dummypt.idname) == 0) {
-			if(pt->py_srna)
-				rna_Panel_unregister(C, pt->py_srna);
+			if(pt->ext.srna)
+				rna_Panel_unregister(C, pt->ext.srna);
+			else
+				BLI_freelinkN(&art->paneltypes, pt);
 			break;
 		}
 	}
@@ -178,11 +180,11 @@ static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, voi
 	pt= MEM_callocN(sizeof(PanelType), "python buttons panel");
 	memcpy(pt, &dummypt, sizeof(dummypt));
 
-	pt->py_srna= RNA_def_struct(&BLENDER_RNA, pt->idname, "Panel"); 
-	pt->py_data= data;
-	pt->py_call= call;
-	pt->py_free= free;
-	RNA_struct_blender_type_set(pt->py_srna, pt);
+	pt->ext.srna= RNA_def_struct(&BLENDER_RNA, pt->idname, "Panel"); 
+	pt->ext.data= data;
+	pt->ext.call= call;
+	pt->ext.free= free;
+	RNA_struct_blender_type_set(pt->ext.srna, pt);
 
 	pt->poll= (have_function[0])? panel_poll: NULL;
 	pt->draw= (have_function[1])? panel_draw: NULL;
@@ -194,13 +196,13 @@ static StructRNA *rna_Panel_register(const bContext *C, ReportList *reports, voi
 	if(C)
 		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 	
-	return pt->py_srna;
+	return pt->ext.srna;
 }
 
-static StructRNA* rna_Panel_refine(struct PointerRNA *ptr)
+static StructRNA* rna_Panel_refine(PointerRNA *ptr)
 {
 	Panel *hdr= (Panel*)ptr->data;
-	return (hdr->type && hdr->type->py_srna)? hdr->type->py_srna: &RNA_Panel;
+	return (hdr->type && hdr->type->ext.srna)? hdr->type->ext.srna: &RNA_Panel;
 }
 
 /* Header */
@@ -208,17 +210,17 @@ static StructRNA* rna_Panel_refine(struct PointerRNA *ptr)
 static void header_draw(const bContext *C, Header *hdr)
 {
 	PointerRNA htr;
-	ParameterList *list;
+	ParameterList list;
 	FunctionRNA *func;
 
-	RNA_pointer_create(&CTX_wm_screen(C)->id, hdr->type->py_srna, hdr, &htr);
+	RNA_pointer_create(&CTX_wm_screen(C)->id, hdr->type->ext.srna, hdr, &htr);
 	func= RNA_struct_find_function(&htr, "draw");
 
-	list= RNA_parameter_list_create(&htr, func);
-	RNA_parameter_set_lookup(list, "context", &C);
-	hdr->type->py_call(&htr, func, list);
+	RNA_parameter_list_create(&list, &htr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	hdr->type->ext.call(&htr, func, &list);
 
-	RNA_parameter_list_free(list);
+	RNA_parameter_list_free(&list);
 }
 
 static void rna_Header_unregister(const bContext *C, StructRNA *type)
@@ -261,8 +263,8 @@ static StructRNA *rna_Header_register(const bContext *C, ReportList *reports, vo
 	/* check if we have registered this header type before, and remove it */
 	for(ht=art->headertypes.first; ht; ht=ht->next) {
 		if(strcmp(ht->idname, dummyht.idname) == 0) {
-			if(ht->py_srna)
-				rna_Header_unregister(C, ht->py_srna);
+			if(ht->ext.srna)
+				rna_Header_unregister(C, ht->ext.srna);
 			break;
 		}
 	}
@@ -271,11 +273,11 @@ static StructRNA *rna_Header_register(const bContext *C, ReportList *reports, vo
 	ht= MEM_callocN(sizeof(HeaderType), "python buttons header");
 	memcpy(ht, &dummyht, sizeof(dummyht));
 
-	ht->py_srna= RNA_def_struct(&BLENDER_RNA, ht->idname, "Header"); 
-	ht->py_data= data;
-	ht->py_call= call;
-	ht->py_free= free;
-	RNA_struct_blender_type_set(ht->py_srna, ht);
+	ht->ext.srna= RNA_def_struct(&BLENDER_RNA, ht->idname, "Header"); 
+	ht->ext.data= data;
+	ht->ext.call= call;
+	ht->ext.free= free;
+	RNA_struct_blender_type_set(ht->ext.srna, ht);
 
 	ht->draw= (have_function[0])? header_draw: NULL;
 
@@ -285,13 +287,13 @@ static StructRNA *rna_Header_register(const bContext *C, ReportList *reports, vo
 	if(C)
 		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 	
-	return ht->py_srna;
+	return ht->ext.srna;
 }
 
-static StructRNA* rna_Header_refine(struct PointerRNA *htr)
+static StructRNA* rna_Header_refine(PointerRNA *htr)
 {
 	Header *hdr= (Header*)htr->data;
-	return (hdr->type && hdr->type->py_srna)? hdr->type->py_srna: &RNA_Header;
+	return (hdr->type && hdr->type->ext.srna)? hdr->type->ext.srna: &RNA_Header;
 }
 
 /* Menu */
@@ -299,22 +301,22 @@ static StructRNA* rna_Header_refine(struct PointerRNA *htr)
 static int menu_poll(const bContext *C, MenuType *pt)
 {
 	PointerRNA ptr;
-	ParameterList *list;
+	ParameterList list;
 	FunctionRNA *func;
 	void *ret;
 	int visible;
 
-	RNA_pointer_create(NULL, pt->py_srna, NULL, &ptr); /* dummy */
+	RNA_pointer_create(NULL, pt->ext.srna, NULL, &ptr); /* dummy */
 	func= RNA_struct_find_function(&ptr, "poll");
 
-	list= RNA_parameter_list_create(&ptr, func);
-	RNA_parameter_set_lookup(list, "context", &C);
-	pt->py_call(&ptr, func, list);
+	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	pt->ext.call(&ptr, func, &list);
 
-	RNA_parameter_get_lookup(list, "visible", &ret);
+	RNA_parameter_get_lookup(&list, "visible", &ret);
 	visible= *(int*)ret;
 
-	RNA_parameter_list_free(list);
+	RNA_parameter_list_free(&list);
 
 	return visible;
 }
@@ -322,17 +324,17 @@ static int menu_poll(const bContext *C, MenuType *pt)
 static void menu_draw(const bContext *C, Menu *hdr)
 {
 	PointerRNA mtr;
-	ParameterList *list;
+	ParameterList list;
 	FunctionRNA *func;
 
-	RNA_pointer_create(&CTX_wm_screen(C)->id, hdr->type->py_srna, hdr, &mtr);
+	RNA_pointer_create(&CTX_wm_screen(C)->id, hdr->type->ext.srna, hdr, &mtr);
 	func= RNA_struct_find_function(&mtr, "draw");
 
-	list= RNA_parameter_list_create(&mtr, func);
-	RNA_parameter_set_lookup(list, "context", &C);
-	hdr->type->py_call(&mtr, func, list);
+	RNA_parameter_list_create(&list, &mtr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	hdr->type->ext.call(&mtr, func, &list);
 
-	RNA_parameter_list_free(list);
+	RNA_parameter_list_free(&list);
 }
 
 static void rna_Menu_unregister(const bContext *C, StructRNA *type)
@@ -375,8 +377,8 @@ static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void
 	/* check if we have registered this menu type before, and remove it */
 	for(mt=art->menutypes.first; mt; mt=mt->next) {
 		if(strcmp(mt->idname, dummymt.idname) == 0) {
-			if(mt->py_srna)
-				rna_Menu_unregister(C, mt->py_srna);
+			if(mt->ext.srna)
+				rna_Menu_unregister(C, mt->ext.srna);
 			break;
 		}
 	}
@@ -385,11 +387,11 @@ static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void
 	mt= MEM_callocN(sizeof(MenuType), "python buttons menu");
 	memcpy(mt, &dummymt, sizeof(dummymt));
 
-	mt->py_srna= RNA_def_struct(&BLENDER_RNA, mt->idname, "Menu"); 
-	mt->py_data= data;
-	mt->py_call= call;
-	mt->py_free= free;
-	RNA_struct_blender_type_set(mt->py_srna, mt);
+	mt->ext.srna= RNA_def_struct(&BLENDER_RNA, mt->idname, "Menu"); 
+	mt->ext.data= data;
+	mt->ext.call= call;
+	mt->ext.free= free;
+	RNA_struct_blender_type_set(mt->ext.srna, mt);
 
 	mt->poll= (have_function[0])? menu_poll: NULL;
 	mt->draw= (have_function[1])? menu_draw: NULL;
@@ -400,93 +402,109 @@ static StructRNA *rna_Menu_register(const bContext *C, ReportList *reports, void
 	if(C)
 		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 	
-	return mt->py_srna;
+	return mt->ext.srna;
 }
 
-static StructRNA* rna_Menu_refine(struct PointerRNA *mtr)
+static StructRNA* rna_Menu_refine(PointerRNA *mtr)
 {
 	Menu *hdr= (Menu*)mtr->data;
-	return (hdr->type && hdr->type->py_srna)? hdr->type->py_srna: &RNA_Menu;
+	return (hdr->type && hdr->type->ext.srna)? hdr->type->ext.srna: &RNA_Menu;
 }
 
-static int rna_UILayout_active_get(struct PointerRNA *ptr)
+static int rna_UILayout_active_get(PointerRNA *ptr)
 {
 	return uiLayoutGetActive(ptr->data);
 }
 
-static void rna_UILayout_active_set(struct PointerRNA *ptr, int value)
+static void rna_UILayout_active_set(PointerRNA *ptr, int value)
 {
-	return uiLayoutSetActive(ptr->data, value);
+	uiLayoutSetActive(ptr->data, value);
 }
 
-static void rna_UILayout_op_context_set(struct PointerRNA *ptr, int value)
+static void rna_UILayout_op_context_set(PointerRNA *ptr, int value)
 {
-	return uiLayoutSetOperatorContext(ptr->data, value);
+	uiLayoutSetOperatorContext(ptr->data, value);
 }
 
-static int rna_UILayout_op_context_get(struct PointerRNA *ptr)
+static int rna_UILayout_op_context_get(PointerRNA *ptr)
 {
 	return uiLayoutGetOperatorContext(ptr->data);
 }
 
-static int rna_UILayout_enabled_get(struct PointerRNA *ptr)
+static int rna_UILayout_enabled_get(PointerRNA *ptr)
 {
 	return uiLayoutGetEnabled(ptr->data);
 }
 
-static void rna_UILayout_enabled_set(struct PointerRNA *ptr, int value)
+static void rna_UILayout_enabled_set(PointerRNA *ptr, int value)
 {
-	return uiLayoutSetEnabled(ptr->data, value);
+	uiLayoutSetEnabled(ptr->data, value);
 }
 
-static int rna_UILayout_red_alert_get(struct PointerRNA *ptr)
+#if 0
+static int rna_UILayout_red_alert_get(PointerRNA *ptr)
 {
 	return uiLayoutGetRedAlert(ptr->data);
 }
 
-static void rna_UILayout_red_alert_set(struct PointerRNA *ptr, int value)
+static void rna_UILayout_red_alert_set(PointerRNA *ptr, int value)
 {
-	return uiLayoutSetRedAlert(ptr->data, value);
+	uiLayoutSetRedAlert(ptr->data, value);
 }
 
-static int rna_UILayout_keep_aspect_get(struct PointerRNA *ptr)
+static int rna_UILayout_keep_aspect_get(PointerRNA *ptr)
 {
 	return uiLayoutGetKeepAspect(ptr->data);
 }
 
-static void rna_UILayout_keep_aspect_set(struct PointerRNA *ptr, int value)
+static void rna_UILayout_keep_aspect_set(PointerRNA *ptr, int value)
 {
-	return uiLayoutSetKeepAspect(ptr->data, value);
+	uiLayoutSetKeepAspect(ptr->data, value);
 }
+#endif
 
-static int rna_UILayout_alignment_get(struct PointerRNA *ptr)
+static int rna_UILayout_alignment_get(PointerRNA *ptr)
 {
 	return uiLayoutGetAlignment(ptr->data);
 }
 
-static void rna_UILayout_alignment_set(struct PointerRNA *ptr, int value)
+static void rna_UILayout_alignment_set(PointerRNA *ptr, int value)
 {
-	return uiLayoutSetAlignment(ptr->data, value);
+	uiLayoutSetAlignment(ptr->data, value);
 }
 
-static float rna_UILayout_scale_x_get(struct PointerRNA *ptr)
+static float rna_UILayout_scale_x_get(PointerRNA *ptr)
 {
 	return uiLayoutGetScaleX(ptr->data);
 }
 
-static void rna_UILayout_scale_x_set(struct PointerRNA *ptr, float value)
+static void rna_UILayout_scale_x_set(PointerRNA *ptr, float value)
 {
-	return uiLayoutSetScaleX(ptr->data, value);
+	uiLayoutSetScaleX(ptr->data, value);
 }
 
-static float rna_UILayout_scale_y_get(struct PointerRNA *ptr)
+static float rna_UILayout_scale_y_get(PointerRNA *ptr)
 {
 	return uiLayoutGetScaleY(ptr->data);
 }
 
-static void rna_UILayout_scale_y_set(struct PointerRNA *ptr, float value)
+static void rna_UILayout_scale_y_set(PointerRNA *ptr, float value)
 {
-	return uiLayoutSetScaleY(ptr->data, value);
+	uiLayoutSetScaleY(ptr->data, value);
+}
+
+static PointerRNA rna_UIListItem_layout_get(PointerRNA *ptr)
+{
+	uiListItem *item= (uiListItem*)ptr->data;
+	PointerRNA newptr;
+	RNA_pointer_create(NULL, &RNA_UILayout, item->layout, &newptr);
+	return newptr;
+}
+
+static PointerRNA rna_UIListItem_data_get(PointerRNA *ptr)
+{
+	uiListItem *item= (uiListItem*)ptr->data;
+	return item->data;
 }
 
 #else // RNA_RUNTIME
@@ -514,6 +532,8 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 		{WM_OP_EXEC_AREA, "EXEC_AREA", 0, "Exec Area", ""},
 		{WM_OP_EXEC_SCREEN, "EXEC_SCREEN", 0, "Exec Screen", ""},
 		{0, NULL, 0, NULL, NULL}};
+	
+	/* layout */
 
 	srna= RNA_def_struct(brna, "UILayout", NULL);
 	RNA_def_struct_sdna(srna, "uiLayout");
@@ -529,15 +549,19 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_enabled_get", "rna_UILayout_enabled_set");
 
+#if 0
 	prop= RNA_def_property(srna, "red_alert", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_red_alert_get", "rna_UILayout_red_alert_set");
+#endif
 
 	prop= RNA_def_property(srna, "alignment", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, alignment_items);
 	RNA_def_property_enum_funcs(prop, "rna_UILayout_alignment_get", "rna_UILayout_alignment_set", NULL);
 
+#if 0
 	prop= RNA_def_property(srna, "keep_aspect", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_keep_aspect_get", "rna_UILayout_keep_aspect_set");
+#endif
 
 	prop= RNA_def_property(srna, "scale_x", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_funcs(prop, "rna_UILayout_scale_x_get", "rna_UILayout_scale_x_set", NULL);
@@ -546,6 +570,21 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_UILayout_scale_y_get", "rna_UILayout_scale_y_set", NULL);
 
 	RNA_api_ui_layout(srna);
+
+	/* list item */
+
+	srna= RNA_def_struct(brna, "UIListItem", NULL);
+	RNA_def_struct_ui_text(srna, "UI List Item", "User interface list.");
+
+	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "UILayout");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, "rna_UIListItem_layout_get", NULL, NULL);
+
+	prop= RNA_def_property(srna, "data", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "AnyType");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, "rna_UIListItem_data_get", NULL, NULL);
 }
 
 static void rna_def_panel(BlenderRNA *brna)
@@ -607,6 +646,10 @@ static void rna_def_panel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "default_closed", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", PNL_DEFAULT_CLOSED);
 	RNA_def_property_flag(prop, PROP_REGISTER);
+
+	prop= RNA_def_property(srna, "no_header", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", PNL_NO_HEADER);
+	RNA_def_property_flag(prop, PROP_REGISTER);
 }
 
 static void rna_def_header(BlenderRNA *brna)
@@ -627,7 +670,10 @@ static void rna_def_header(BlenderRNA *brna)
 	RNA_def_function_flag(func, FUNC_REGISTER);
 	RNA_def_pointer(func, "context", "Context", "", "");
 
+	RNA_define_verify_sdna(0); // not in sdna
+
 	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "layout");
 	RNA_def_property_struct_type(prop, "UILayout");
 
 	/* registration */
@@ -639,6 +685,8 @@ static void rna_def_header(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "type->space_type");
 	RNA_def_property_enum_items(prop, space_type_items);
 	RNA_def_property_flag(prop, PROP_REGISTER);
+
+	RNA_define_verify_sdna(1);
 }
 
 static void rna_def_menu(BlenderRNA *brna)
@@ -666,7 +714,10 @@ static void rna_def_menu(BlenderRNA *brna)
 	RNA_def_function_flag(func, FUNC_REGISTER);
 	RNA_def_pointer(func, "context", "Context", "", "");
 
+	RNA_define_verify_sdna(0); // not in sdna
+
 	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "layout");
 	RNA_def_property_struct_type(prop, "UILayout");
 
 	/* registration */
@@ -682,6 +733,8 @@ static void rna_def_menu(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "type->space_type");
 	RNA_def_property_enum_items(prop, space_type_items);
 	RNA_def_property_flag(prop, PROP_REGISTER);
+
+	RNA_define_verify_sdna(1);
 }
 
 void RNA_def_ui(BlenderRNA *brna)

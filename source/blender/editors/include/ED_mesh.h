@@ -36,6 +36,7 @@ struct EditVert;
 struct EditEdge;
 struct EditFace;
 struct bContext;
+struct wmOperator;
 struct wmWindowManager;
 struct EditSelection;
 struct ViewContext;
@@ -49,26 +50,25 @@ struct UvVertMap;
 struct UvMapVert;
 struct CustomData;
 
-// edge and face flag both
-#define EM_FGON		2
-// face flag
-#define EM_FGON_DRAW	1
+#define EM_FGON_DRAW	1 // face flag
+#define EM_FGON			2 // edge and face flag both
 
 /* editbutflag */
-#define B_CLOCKWISE		1
-#define B_KEEPORIG		2
-#define B_BEAUTY		4
-#define B_SMOOTH		8
-#define B_BEAUTY_SHORT  	16
-#define B_AUTOFGON		32
-#define B_KNIFE			0x80
+#define B_CLOCKWISE			1
+#define B_KEEPORIG			2
+#define B_BEAUTY			4
+#define B_SMOOTH			8
+#define B_BEAUTY_SHORT  	0x10
+#define B_AUTOFGON			0x20
+#define B_KNIFE				0x80
 #define B_PERCENTSUBD		0x40
 #define B_MESH_X_MIRROR		0x100
 #define B_JOINTRIA_UV		0x200
 #define B_JOINTRIA_VCOL		0X400
 #define B_JOINTRIA_SHARP	0X800
 #define B_JOINTRIA_MAT		0X1000
-
+#define B_FRACTAL			0x2000
+#define B_SPHERE			0x4000
 
 /* meshtools.c */
 
@@ -76,6 +76,8 @@ intptr_t	mesh_octree_table(struct Object *ob, struct EditMesh *em, float *co, ch
 struct EditVert   *editmesh_get_x_mirror_vert(struct Object *ob, struct EditMesh *em, float *co);
 int			mesh_get_x_mirror_vert(struct Object *ob, int index);
 int			*mesh_get_x_mirror_faces(struct Object *ob, struct EditMesh *em);
+
+int			join_mesh_exec(struct bContext *C, struct wmOperator *op);
 
 /* mesh_ops.c */
 void		ED_operatortypes_mesh(void);
@@ -110,7 +112,6 @@ void		undo_push_mesh(struct bContext *C, char *name);
 struct EditFace	*EM_get_actFace(struct EditMesh *em, int sloppy);
 void             EM_set_actFace(struct EditMesh *em, struct EditFace *efa);
 float            EM_face_area(struct EditFace *efa);
-void             EM_add_data_layer(struct EditMesh *em, struct CustomData *data, int type);
 
 void		EM_select_edge(struct EditEdge *eed, int sel);
 void		EM_select_face(struct EditFace *efa, int sel);
@@ -134,6 +135,9 @@ struct UvVertMap *EM_make_uv_vert_map(struct EditMesh *em, int selected, int do_
 struct UvMapVert *EM_get_uv_map_vert(struct UvVertMap *vmap, unsigned int v);
 void              EM_free_uv_vert_map(struct UvVertMap *vmap);
 
+void		EM_add_data_layer(struct EditMesh *em, struct CustomData *data, int type);
+void		EM_free_data_layer(struct EditMesh *em, struct CustomData *data, int type);
+
 /* editmesh_mods.c */
 extern unsigned int em_vertoffs, em_solidoffs, em_wireoffs;
 
@@ -146,6 +150,9 @@ int			EM_init_backbuf_circle(struct ViewContext *vc, short xs, short ys, short r
 
 void		EM_hide_mesh(struct EditMesh *em, int swap);
 void		EM_reveal_mesh(struct EditMesh *em);
+
+void		EM_select_by_material(struct EditMesh *em, int index);
+void		EM_deselect_by_material(struct EditMesh *em, int index); 
 
 /* editface.c */
 struct MTFace	*EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_efa, struct MCol **mcol, int sloppy);

@@ -35,6 +35,10 @@
 #include "SCA_IActuator.h"
 #include "MT_Vector3.h"
 
+#ifdef USE_MATHUTILS
+void KX_ObjectActuator_Mathutils_Callback_Init(void);
+#endif
+
 class KX_GameObject;
 
 //
@@ -131,8 +135,7 @@ public:
 		const MT_Vector3& linV,
 		const MT_Vector3& angV,
 		const short damping,
-		const KX_LocalFlags& flag,
-		PyTypeObject* T=&Type
+		const KX_LocalFlags& flag
 	);
 	~KX_ObjectActuator();
 	CValue* GetReplica();
@@ -159,10 +162,6 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-	
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int	py_setattro(PyObject *attr, PyObject *value);
 
 	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetForce);
 	KX_PYMETHOD_VARARGS(KX_ObjectActuator,SetForce);
@@ -196,6 +195,13 @@ public:
 	static int			pyattr_set_forceLimitZ(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_reference(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_reference(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+
+#ifdef USE_MATHUTILS
+	static PyObject*	pyattr_get_linV(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_linV(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_angV(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_angV(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+#endif
 
 	// This lets the attribute macros use UpdateFuzzyFlags()
 	static int PyUpdateFuzzyFlags(void *self, const PyAttributeDef *attrdef)

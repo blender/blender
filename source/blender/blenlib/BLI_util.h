@@ -43,6 +43,7 @@ struct direntry;
 
 char *BLI_gethome(void);
 char *BLI_gethome_folder(char *folder_name);
+void BLI_setenv(const char *env, const char *val);
 
 void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file);
 void BLI_make_exist(char *dir);
@@ -50,6 +51,7 @@ void BLI_make_existing_file(char *name);
 void BLI_split_dirfile(char *string, char *dir, char *file);
 void BLI_split_dirfile_basic(const char *string, char *dir, char *file);
 void BLI_join_dirfile(char *string, const char *dir, const char *file);
+void BLI_getlastdir(const char* dir, char *last, int maxlen);
 int BLI_testextensie(const char *str, const char *ext);
 void BLI_uniquename(struct ListBase *list, void *vlink, char defname[], char delim, short name_offs, short len);
 void BLI_newname(char * name, int add);
@@ -70,6 +72,9 @@ void BLI_cleanup_dir(const char *relabase, char *dir); /* same as above but adds
 
 /* go back one directory */
 int BLI_parent_dir(char *path);
+
+/* return whether directory is root and thus has no parent dir */
+int BLI_has_parent(char *path);
 
 	/**
 	 * Blender's path code replacement function.

@@ -39,6 +39,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_material_types.h"
 
+#include "BKE_colortools.h"
 #include "BKE_utildefines.h"
 #include "BKE_node.h"
 
@@ -84,11 +85,45 @@ extern struct Render R;
 
 	*/
 
+/* initialise material variables in shadeinput, 
+ * doing inverse gamma correction where applicable */
+void shade_input_init_material(ShadeInput *shi)
+{
+	if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+		color_manage_linearize(&shi->r, &shi->mat->r);
+		color_manage_linearize(&shi->specr, &shi->mat->specr);
+		color_manage_linearize(&shi->mirr, &shi->mat->mirr);
+		
+		/* material ambr / ambg / ambb is overwritten from world
+		color_manage_linearize(shi->ambr, shi->mat->ambr);
+		*/
+		
+		/* note, keep this synced with render_types.h */
+		memcpy(&shi->amb, &shi->mat->amb, 11*sizeof(float));
+		shi->har= shi->mat->har;
+	} else {
+		/* note, keep this synced with render_types.h */
+		memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
+		shi->har= shi->mat->har;
+	}
+
+}
+
+static void shadeinput_colors_linearize(ShadeInput *shi)
+{
+	color_manage_linearize(&shi->r, &shi->r);
+	color_manage_linearize(&shi->specr, &shi->specr);
+	color_manage_linearize(&shi->mirr, &shi->mirr);
+}
 
 /* also used as callback for nodes */
 /* delivers a fully filled in ShadeResult, for all passes */
 void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 {
+	/* because node materials don't have access to rendering context,
+	 * inverse gamma correction must happen here. evil. */
+	if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT && shi->nodes == 1)
+		shadeinput_colors_linearize(shi);
 	
 	shade_lamp_loop(shi, shr);	/* clears shr */
 	
@@ -96,9 +131,7 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 		ShadeResult shr_t;
 		float fac= shi->translucency;
 		
-		/* gotta copy it again */
-		memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
-		shi->har= shi->mat->har;
+		shade_input_init_material(shi);
 
 		VECCOPY(shi->vn, shi->vno);
 		VECMUL(shi->vn, -1.0f);
@@ -148,8 +181,7 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	}
 	else {
 		/* copy all relevant material vars, note, keep this synced with render_types.h */
-		memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
-		shi->har= shi->mat->har;
+		shade_input_init_material(shi);
 		
 		shade_material_loop(shi, shr);
 	}
@@ -178,7 +210,6 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	/* add mist and premul color */
 	if(shr->alpha!=1.0f || alpha!=1.0f) {
 		float fac= alpha*(shr->alpha);
-		
 		shr->combined[3]= fac;
 		shr->combined[0]*= fac;
 		shr->combined[1]*= fac;
@@ -571,6 +602,13 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 			/* not supported */
 		}
 	}
+	
+	if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+		if(mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)) {
+			color_manage_linearize(shi->vcol, shi->vcol);
+		}
+	}
+	
 }
 
 /* from scanline pixel coordinates to 3d coordinates, requires set_triangle */
@@ -977,9 +1015,12 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			MTC_Mat4MulVecfl(R.viewinv, shi->gl);
 			if(shi->osatex) {
 				VECCOPY(shi->dxgl, shi->dxco);
-				MTC_Mat3MulVecfl(R.imat, shi->dxco);
+				// TXF: bug was here, but probably should be in convertblender.c, R.imat only valid if there is a world
+				//MTC_Mat3MulVecfl(R.imat, shi->dxco);
+				MTC_Mat4Mul3Vecfl(R.viewinv, shi->dxco);
 				VECCOPY(shi->dygl, shi->dyco);
-				MTC_Mat3MulVecfl(R.imat, shi->dyco);
+				//MTC_Mat3MulVecfl(R.imat, shi->dyco);
+				MTC_Mat4Mul3Vecfl(R.viewinv, shi->dyco);
 			}
 		}
 		
@@ -1082,6 +1123,8 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 					if(tface && tface->tpage)
 						render_realtime_texture(shi, tface->tpage);
 				}
+
+
 			}
 
 			shi->dupliuv[0]= -1.0f + 2.0f*obi->dupliuv[0];
@@ -1240,6 +1283,12 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 	} /* else {
 	 Note! For raytracing winco is not set, important because thus means all shader input's need to have their variables set to zero else in-initialized values are used
 	*/
+	if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+		if(mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)) {
+			color_manage_linearize(shi->vcol, shi->vcol);
+		}
+	}
+	
 }
 
 /* ****************** ShadeSample ************************************** */

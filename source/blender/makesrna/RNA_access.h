@@ -62,7 +62,17 @@ extern StructRNA RNA_BevelModifier;
 extern StructRNA RNA_BezierCurvePoint;
 extern StructRNA RNA_BlendTexture;
 extern StructRNA RNA_BlenderRNA;
+extern StructRNA RNA_BoidRule;
+extern StructRNA RNA_BoidRuleAverageSpeed;
+extern StructRNA RNA_BoidRuleAvoid;
+extern StructRNA RNA_BoidRuleAvoidCollision;
+extern StructRNA RNA_BoidRuleFight;
+extern StructRNA RNA_BoidRuleFollowLeader;
+extern StructRNA RNA_BoidRuleGoal;
+extern StructRNA RNA_BoidSettings;
+extern StructRNA RNA_BoidState;
 extern StructRNA RNA_Bone;
+extern StructRNA RNA_BoneGroup;
 extern StructRNA RNA_BooleanModifier;
 extern StructRNA RNA_BooleanProperty;
 extern StructRNA RNA_Brush;
@@ -142,6 +152,7 @@ extern StructRNA RNA_CompositorNodeValue;
 extern StructRNA RNA_CompositorNodeVecBlur;
 extern StructRNA RNA_CompositorNodeViewer;
 extern StructRNA RNA_CompositorNodeZcombine;
+extern StructRNA RNA_ConsoleLine;
 extern StructRNA RNA_Constraint;
 extern StructRNA RNA_ConstraintTarget;
 extern StructRNA RNA_Context;
@@ -164,24 +175,28 @@ extern StructRNA RNA_DomainFluidSettings;
 extern StructRNA RNA_Driver;
 extern StructRNA RNA_DriverTarget;
 extern StructRNA RNA_EdgeSplitModifier;
+extern StructRNA RNA_EditBone;
 extern StructRNA RNA_EffectSequence;
 extern StructRNA RNA_EnumProperty;
 extern StructRNA RNA_EnumPropertyItem;
 extern StructRNA RNA_EnvironmentMap;
 extern StructRNA RNA_EnvironmentMapTexture;
+extern StructRNA RNA_Event;
 extern StructRNA RNA_ExplodeModifier;
 extern StructRNA RNA_ExpressionController;
 extern StructRNA RNA_FCurve;
+extern StructRNA RNA_FCurveSample;
 extern StructRNA RNA_FModifier;
 extern StructRNA RNA_FModifierCycles;
 extern StructRNA RNA_FModifierEnvelope;
+extern StructRNA RNA_FModifierEnvelopeControlPoint;
+extern StructRNA RNA_FModifierFunctionGenerator;
 extern StructRNA RNA_FModifierGenerator;
-extern StructRNA RNA_FModifierGenerator_Function;
-extern StructRNA RNA_FModifierGenerator_PolyExpanded;
 extern StructRNA RNA_FModifierLimits;
 extern StructRNA RNA_FModifierNoise;
 extern StructRNA RNA_FModifierPython;
 extern StructRNA RNA_FieldSettings;
+extern StructRNA RNA_FileSelectParams;
 extern StructRNA RNA_FloatProperty;
 extern StructRNA RNA_FloorConstraint;
 extern StructRNA RNA_FluidFluidSettings;
@@ -271,6 +286,8 @@ extern StructRNA RNA_MultiresModifier;
 extern StructRNA RNA_MusgraveTexture;
 extern StructRNA RNA_NandController;
 extern StructRNA RNA_NearSensor;
+extern StructRNA RNA_NlaStrip;
+extern StructRNA RNA_NlaTrack;
 extern StructRNA RNA_Node;
 extern StructRNA RNA_NodeTree;
 extern StructRNA RNA_NoiseTexture;
@@ -295,6 +312,7 @@ extern StructRNA RNA_ParticleKey;
 extern StructRNA RNA_ParticleSettings;
 extern StructRNA RNA_ParticleSystem;
 extern StructRNA RNA_ParticleSystemModifier;
+extern StructRNA RNA_ParticleTarget;
 extern StructRNA RNA_PluginSequence;
 extern StructRNA RNA_PluginTexture;
 extern StructRNA RNA_PointCache;
@@ -306,13 +324,18 @@ extern StructRNA RNA_PropertySensor;
 extern StructRNA RNA_PythonConstraint;
 extern StructRNA RNA_PythonController;
 extern StructRNA RNA_RadarSensor;
-extern StructRNA RNA_Radiosity;
 extern StructRNA RNA_RandomSensor;
 extern StructRNA RNA_RaySensor;
 extern StructRNA RNA_Region;
+extern StructRNA RNA_RenderLayer;
+extern StructRNA RNA_RenderPass;
+extern StructRNA RNA_RenderResult;
+extern StructRNA RNA_RenderValue;
 extern StructRNA RNA_RigidBodyJointConstraint;
 extern StructRNA RNA_Scene;
+extern StructRNA RNA_SceneGameData;
 extern StructRNA RNA_SceneRenderData;
+extern StructRNA RNA_SceneRenderLayer;
 extern StructRNA RNA_SceneSequence;
 extern StructRNA RNA_Screen;
 extern StructRNA RNA_ScriptLink;
@@ -356,14 +379,19 @@ extern StructRNA RNA_ShrinkwrapConstraint;
 extern StructRNA RNA_ShrinkwrapModifier;
 extern StructRNA RNA_SimpleDeformModifier;
 extern StructRNA RNA_SmoothModifier;
+extern StructRNA RNA_SoftBodyModifier;
 extern StructRNA RNA_SoftBodySettings;
-extern StructRNA RNA_SoftbodyModifier;
 extern StructRNA RNA_Sound;
 extern StructRNA RNA_SoundSequence;
 extern StructRNA RNA_Space;
 extern StructRNA RNA_Space3DView;
 extern StructRNA RNA_SpaceButtonsWindow;
+extern StructRNA RNA_SpaceConsole;
+extern StructRNA RNA_SpaceDopeSheetEditor;
+extern StructRNA RNA_SpaceFileBrowser;
+extern StructRNA RNA_SpaceGraphEditor;
 extern StructRNA RNA_SpaceImageEditor;
+extern StructRNA RNA_SpaceNLA;
 extern StructRNA RNA_SpaceOutliner;
 extern StructRNA RNA_SpaceSequenceEditor;
 extern StructRNA RNA_SpaceTextEditor;
@@ -377,6 +405,7 @@ extern StructRNA RNA_StucciTexture;
 extern StructRNA RNA_SubsurfModifier;
 extern StructRNA RNA_SunLamp;
 extern StructRNA RNA_SurfaceCurve;
+extern StructRNA RNA_SurfaceModifier;
 extern StructRNA RNA_TexMapping;
 extern StructRNA RNA_Text;
 extern StructRNA RNA_TextBox;
@@ -418,6 +447,7 @@ extern StructRNA RNA_ThemeFileBrowser;
 extern StructRNA RNA_ThemeFontStyle;
 extern StructRNA RNA_ThemeGraphEditor;
 extern StructRNA RNA_ThemeImageEditor;
+extern StructRNA RNA_ThemeLogicEditor;
 extern StructRNA RNA_ThemeNLAEditor;
 extern StructRNA RNA_ThemeNodeEditor;
 extern StructRNA RNA_ThemeOutliner;
@@ -429,6 +459,7 @@ extern StructRNA RNA_ThemeUserInterface;
 extern StructRNA RNA_ThemeUserPreferences;
 extern StructRNA RNA_ThemeView3D;
 extern StructRNA RNA_ThemeWidgetColors;
+extern StructRNA RNA_ThemeWidgetStateColors;
 extern StructRNA RNA_TimelineMarker;
 extern StructRNA RNA_ToolSettings;
 extern StructRNA RNA_TouchSensor;
@@ -436,6 +467,7 @@ extern StructRNA RNA_TrackToConstraint;
 extern StructRNA RNA_TransformConstraint;
 extern StructRNA RNA_TransformSequence;
 extern StructRNA RNA_UILayout;
+extern StructRNA RNA_UIListItem;
 extern StructRNA RNA_UVProjectModifier;
 extern StructRNA RNA_UnknownType;
 extern StructRNA RNA_UserPreferences;
@@ -452,6 +484,7 @@ extern StructRNA RNA_VertexGroup;
 extern StructRNA RNA_VertexGroupElement;
 extern StructRNA RNA_VoronoiTexture;
 extern StructRNA RNA_WaveModifier;
+extern StructRNA RNA_Window;
 extern StructRNA RNA_WindowManager;
 extern StructRNA RNA_WipeSequence;
 extern StructRNA RNA_WoodTexture;
@@ -491,6 +524,7 @@ int RNA_struct_ui_icon(StructRNA *type);
 
 PropertyRNA *RNA_struct_name_property(StructRNA *type);
 PropertyRNA *RNA_struct_iterator_property(StructRNA *type);
+StructRNA *RNA_struct_base(StructRNA *type);
 
 int RNA_struct_is_ID(StructRNA *type);
 int RNA_struct_is_a(StructRNA *type, StructRNA *srna);
@@ -511,6 +545,8 @@ const struct ListBase *RNA_struct_defined_properties(StructRNA *srna);
 
 FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier);
 const struct ListBase *RNA_struct_defined_functions(StructRNA *srna);
+
+char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen);
 
 /* Properties
  *
@@ -540,9 +576,12 @@ void RNA_property_int_ui_range(PointerRNA *ptr, PropertyRNA *prop, int *softmin,
 void RNA_property_float_range(PointerRNA *ptr, PropertyRNA *prop, float *hardmin, float *hardmax);
 void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *softmin, float *softmax, float *step, float *precision);
 
-void RNA_property_enum_items(PointerRNA *ptr, PropertyRNA *prop, const EnumPropertyItem **item, int *totitem);
-int RNA_property_enum_value(PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value);
-int RNA_property_enum_identifier(PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier);
+int RNA_enum_identifier(EnumPropertyItem *item, const int value, const char **identifier);
+int RNA_enum_name(EnumPropertyItem *item, const int value, const char **name);
+
+void RNA_property_enum_items(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **item, int *totitem, int *free);
+int RNA_property_enum_value(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value);
+int RNA_property_enum_identifier(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier);
 
 StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop);
 
@@ -592,6 +631,14 @@ void RNA_property_collection_end(CollectionPropertyIterator *iter);
 int RNA_property_collection_length(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_collection_lookup_int(PointerRNA *ptr, PropertyRNA *prop, int key, PointerRNA *r_ptr);
 int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, const char *key, PointerRNA *r_ptr);
+
+/* efficient functions to set properties for arrays */
+int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, PropertyRNA *itemprop, RawArray *array);
+int RNA_property_collection_raw_get(struct ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *array, RawPropertyType type, int len);
+int RNA_property_collection_raw_set(struct ReportList *reports, PointerRNA *ptr, PropertyRNA *prop, char *propname, void *array, RawPropertyType type, int len);
+int RNA_raw_type_sizeof(RawPropertyType type);
+RawPropertyType RNA_property_raw_type(PropertyRNA *prop);
+
 
 /* to create ID property groups */
 void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop);
@@ -658,11 +705,11 @@ void RNA_float_set_array(PointerRNA *ptr, const char *name, const float *values)
 
 int RNA_enum_get(PointerRNA *ptr, const char *name);
 void RNA_enum_set(PointerRNA *ptr, const char *name, int value);
-int RNA_enum_is_equal(PointerRNA *ptr, const char *name, const char *enumname);
+int RNA_enum_is_equal(struct bContext *C, PointerRNA *ptr, const char *name, const char *enumname);
 
 /* lower level functions that donr use a PointerRNA */
-int	RNA_enum_value_from_id(const EnumPropertyItem *item, const char *identifier, int *value);
-int	RNA_enum_id_from_value(const EnumPropertyItem *item, int value, const char **identifier);
+int	RNA_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *value);
+int	RNA_enum_id_from_value(EnumPropertyItem *item, int value, const char **identifier);
 
 void RNA_string_get(PointerRNA *ptr, const char *name, char *value);
 char *RNA_string_get_alloc(PointerRNA *ptr, const char *name, char *fixedbuf, int fixedlen);
@@ -688,6 +735,28 @@ void RNA_collection_clear(PointerRNA *ptr, const char *name);
 		RNA_property_collection_end(&rna_macro_iter); \
 	}
 
+#define RNA_PROP_BEGIN(sptr, itemptr, prop) \
+	{ \
+		CollectionPropertyIterator rna_macro_iter; \
+		for(RNA_property_collection_begin(sptr, prop, &rna_macro_iter); rna_macro_iter.valid; RNA_property_collection_next(&rna_macro_iter)) { \
+			PointerRNA itemptr= rna_macro_iter.ptr;
+
+#define RNA_PROP_END \
+		} \
+		RNA_property_collection_end(&rna_macro_iter); \
+	}
+
+#define RNA_STRUCT_BEGIN(sptr, prop) \
+	{ \
+		CollectionPropertyIterator rna_macro_iter; \
+		for(RNA_property_collection_begin(sptr, RNA_struct_iterator_property(sptr->type), &rna_macro_iter); rna_macro_iter.valid; RNA_property_collection_next(&rna_macro_iter)) { \
+			PropertyRNA *prop= rna_macro_iter.ptr.data;
+
+#define RNA_STRUCT_END \
+		} \
+		RNA_property_collection_end(&rna_macro_iter); \
+	}
+
 /* check if the idproperty exists, for operators */
 int RNA_property_is_set(PointerRNA *ptr, const char *name);
 
@@ -708,8 +777,9 @@ const struct ListBase *RNA_function_defined_parameters(FunctionRNA *func);
 
 /* Utility */
 
-ParameterList *RNA_parameter_list_create(PointerRNA *ptr, FunctionRNA *func);
+ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *ptr, FunctionRNA *func);
 void RNA_parameter_list_free(ParameterList *parms);
+int  RNA_parameter_list_size(ParameterList *parms);
 
 void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter);
 void RNA_parameter_list_next(ParameterIterator *iter);

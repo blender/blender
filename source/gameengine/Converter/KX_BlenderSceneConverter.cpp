@@ -44,19 +44,10 @@
 
 #include "DummyPhysicsEnvironment.h"
 
-//to decide to use sumo/ode or dummy physics - defines USE_ODE
 #include "KX_ConvertPhysicsObject.h"
 
 #ifdef USE_BULLET
 #include "CcdPhysicsEnvironment.h"
-#endif
-
-#ifdef USE_ODE
-#include "OdePhysicsEnvironment.h"
-#endif //USE_ODE
-
-#ifdef USE_SUMO_SOLID
-#include "SumoPhysicsEnvironment.h"
 #endif
 
 #include "KX_BlenderSceneConverter.h"
@@ -145,10 +136,6 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 		delete (*itm).second;
 		itm++;
 	}
-	
-#ifdef USE_SUMO_SOLID
-	KX_ClearSumoSharedShapes();
-#endif
 
 #ifdef USE_BULLET
 	KX_ClearBulletSharedShapes();
@@ -331,20 +318,7 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 				destinationscene->SetPhysicsEnvironment(ccdPhysEnv);
 				break;
 			}
-#endif
-
-#ifdef USE_SUMO_SOLID
-		case UseSumo:
-			destinationscene ->SetPhysicsEnvironment(new SumoPhysicsEnvironment());
-			break;
-#endif
-#ifdef USE_ODE
-
-		case UseODE:
-			destinationscene ->SetPhysicsEnvironment(new ODEPhysicsEnvironment());
-			break;
-#endif //USE_ODE
-	
+#endif	
 		case UseDynamo:
 		{
 		}

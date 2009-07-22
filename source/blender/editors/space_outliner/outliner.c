@@ -98,6 +98,7 @@
 #include "UI_view2d.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "ED_armature.h"
 #include "ED_keyframing.h"
@@ -949,7 +950,6 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		
 		/* NLA Data */
 		if (adt->nla_tracks.first) {
-#if 0
 			TreeElement *tenla= outliner_add_element(soops, &te->subtree, adt, te, TSE_NLA, 0);
 			NlaTrack *nlt;
 			int a= 0;
@@ -957,17 +957,18 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			tenla->name= "NLA Tracks";
 			
 			for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
-				TreeElement *tenlt= outliner_add_element(soops, &te->subtree, nlt, te, TSE_NLA_TRACK, a);
-				bActionStrip *strip;
+				TreeElement *tenlt= outliner_add_element(soops, &tenla->subtree, nlt, tenla, TSE_NLA_TRACK, a);
+				NlaStrip *strip;
 				TreeElement *ten;
 				int b= 0;
 				
-				for (strip=nlt->strips.first; strip; strip=strip->next, a++) {
-					ten= outliner_add_element(soops, &tenla->subtree, strip->act, tenla, TSE_NLA_ACTION, a);
+				tenlt->name= nlt->name;
+				
+				for (strip=nlt->strips.first; strip; strip=strip->next, b++) {
+					ten= outliner_add_element(soops, &tenlt->subtree, strip->act, tenlt, TSE_NLA_ACTION, b);
 					if(ten) ten->directdata= strip;
 				}
 			}
-#endif
 		}
 	}
 	else if(type==TSE_SEQUENCE) {
@@ -1031,7 +1032,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	}
 	else if(ELEM3(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
 		PointerRNA pptr, propptr, *ptr= (PointerRNA*)idv;
-		PropertyRNA *prop, *iterprop, *nameprop;
+		PropertyRNA *prop, *iterprop;
 		PropertyType proptype;
 		PropertySubType propsubtype;
 		int a, tot;
@@ -1043,12 +1044,10 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		}
 		else if(type == TSE_RNA_STRUCT) {
 			/* struct */
-			nameprop= RNA_struct_name_property(ptr->type);
+			te->name= RNA_struct_name_get_alloc(ptr, NULL, 0);
 
-			if(nameprop) {
-				te->name= RNA_property_string_get_alloc(ptr, nameprop, NULL, 0);
+			if(te->name)
 				te->flag |= TE_FREE_NAME;
-			}
 			else
 				te->name= (char*)RNA_struct_ui_name(ptr->type);
 
@@ -1447,6 +1446,8 @@ static void outliner_set_flag(SpaceOops *soops, ListBase *lb, short flag, short 
 	}
 }
 
+/* --- */
+
 void object_toggle_visibility_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	Scene *scene= NULL;		// XXX
@@ -1458,14 +1459,35 @@ void object_toggle_visibility_cb(TreeElement *te, TreeStoreElem *tsep, TreeStore
 	}
 }
 
-void outliner_toggle_visibility(Scene *scene, SpaceOops *soops)
+static int outliner_toggle_visibility_exec(bContext *C, wmOperator *op)
 {
-
+	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
+	ARegion *ar= CTX_wm_region(C);
+	
 	outliner_do_object_operation(scene, soops, &soops->tree, object_toggle_visibility_cb);
 	
-	BIF_undo_push("Outliner toggle selectability");
-
+	// XXX need proper notifiers here instead
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
 }
+
+void OUTLINER_OT_visibility_toggle(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toggle Visability";
+	ot->idname= "OUTLINER_OT_visibility_toggle";
+	ot->description= "Toggle the visibility of selected items.";
+	
+	/* callbacks */
+	ot->exec= outliner_toggle_visibility_exec;
+	ot->poll= ED_operator_outliner_active;
+	
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* --- */
 
 static void object_toggle_selectability_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
@@ -1478,14 +1500,35 @@ static void object_toggle_selectability_cb(TreeElement *te, TreeStoreElem *tsep,
 	}
 }
 
-void outliner_toggle_selectability(Scene *scene, SpaceOops *soops)
+static int outliner_toggle_selectability_exec(bContext *C, wmOperator *op)
 {
+	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
+	ARegion *ar= CTX_wm_region(C);
 	
 	outliner_do_object_operation(scene, soops, &soops->tree, object_toggle_selectability_cb);
 	
-	BIF_undo_push("Outliner toggle selectability");
-
+	// XXX need proper notifiers here instead
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
 }
+
+void OUTLINER_OT_selectability_toggle(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toggle Selectability";
+	ot->idname= "OUTLINER_OT_selectability_toggle";
+	ot->description= "Toggle the selectability";
+	
+	/* callbacks */
+	ot->exec= outliner_toggle_selectability_exec;
+	ot->poll= ED_operator_outliner_active;
+	
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* --- */
 
 void object_toggle_renderability_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
@@ -1498,39 +1541,103 @@ void object_toggle_renderability_cb(TreeElement *te, TreeStoreElem *tsep, TreeSt
 	}
 }
 
-void outliner_toggle_renderability(Scene *scene, SpaceOops *soops)
+static int outliner_toggle_renderability_exec(bContext *C, wmOperator *op)
 {
-
+	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
+	ARegion *ar= CTX_wm_region(C);
+	
 	outliner_do_object_operation(scene, soops, &soops->tree, object_toggle_renderability_cb);
 	
-	BIF_undo_push("Outliner toggle renderability");
-
+	// XXX need proper notifiers here instead
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
 }
 
-void outliner_toggle_visible(SpaceOops *soops)
+void OUTLINER_OT_renderability_toggle(wmOperatorType *ot)
 {
+	/* identifiers */
+	ot->name= "Toggle Renderability";
+	ot->idname= "OUTLINER_OT_renderability_toggle";
+	ot->description= "Toggle the renderbility of selected items.";
 	
-	if( outliner_has_one_flag(soops, &soops->tree, TSE_CLOSED, 1))
+	/* callbacks */
+	ot->exec= outliner_toggle_renderability_exec;
+	ot->poll= ED_operator_outliner_active;
+	
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* --- */
+
+static int outliner_toggle_expanded_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
+	
+	if (outliner_has_one_flag(soops, &soops->tree, TSE_CLOSED, 1))
 		outliner_set_flag(soops, &soops->tree, TSE_CLOSED, 0);
 	else 
 		outliner_set_flag(soops, &soops->tree, TSE_CLOSED, 1);
-
-	BIF_undo_push("Outliner toggle visible");
+	
+	// XXX need proper notifiers here instead
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
 }
 
-void outliner_toggle_selected(ARegion *ar, SpaceOops *soops)
+void OUTLINER_OT_expanded_toggle(wmOperatorType *ot)
 {
+	/* identifiers */
+	ot->name= "Expand/Collapse All";
+	ot->idname= "OUTLINER_OT_expanded_toggle";
+	ot->description= "Expand/Collapse all items.";
 	
-	if( outliner_has_one_flag(soops, &soops->tree, TSE_SELECTED, 1))
+	/* callbacks */
+	ot->exec= outliner_toggle_expanded_exec;
+	ot->poll= ED_operator_outliner_active;
+	
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* --- */
+
+static int outliner_toggle_selected_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
+	
+	if (outliner_has_one_flag(soops, &soops->tree, TSE_SELECTED, 1))
 		outliner_set_flag(soops, &soops->tree, TSE_SELECTED, 0);
 	else 
 		outliner_set_flag(soops, &soops->tree, TSE_SELECTED, 1);
 	
-	BIF_undo_push("Outliner toggle selected");
 	soops->storeflag |= SO_TREESTORE_REDRAW;
+	
+	// XXX need proper notifiers here instead
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
 }
 
+void OUTLINER_OT_selected_toggle(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toggle Selected";
+	ot->idname= "OUTLINER_OT_selected_toggle";
+	ot->description= "Toggle the Outliner selection of items.";
+	
+	/* callbacks */
+	ot->exec= outliner_toggle_selected_exec;
+	ot->poll= ED_operator_outliner_active;
+	
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
+/* --- */
+
+/* helper function for Show/Hide one level operator */
 static void outliner_openclose_level(SpaceOops *soops, ListBase *lb, int curlevel, int level, int open)
 {
 	TreeElement *te;
@@ -1548,6 +1655,44 @@ static void outliner_openclose_level(SpaceOops *soops, ListBase *lb, int curleve
 		
 		outliner_openclose_level(soops, &te->subtree, curlevel+1, level, open);
 	}
+}
+
+static int outliner_one_level_exec(bContext *C, wmOperator *op)
+{
+	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
+	int add= RNA_boolean_get(op->ptr, "open");
+	int level;
+	
+	level= outliner_has_one_flag(soops, &soops->tree, TSE_CLOSED, 1);
+	if(add==1) {
+		if(level) outliner_openclose_level(soops, &soops->tree, 1, level, 1);
+	}
+	else {
+		if(level==0) level= outliner_count_levels(soops, &soops->tree, 0);
+		if(level) outliner_openclose_level(soops, &soops->tree, 1, level-1, 0);
+	}
+	
+	// XXX need proper notifiers here instead
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_show_one_level(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Show/Hide One Level";
+	ot->idname= "OUTLINER_OT_show_one_level";
+	
+	/* callbacks */
+	ot->exec= outliner_one_level_exec;
+	ot->poll= ED_operator_outliner_active;
+	
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "open", 1, "Open", "Expand all entries one level deep.");
 }
 
 /* return 1 when levels were opened */
@@ -1592,22 +1737,7 @@ static void outliner_open_reveal(SpaceOops *soops, ListBase *lb, TreeElement *te
 }
 #endif
 
-void outliner_one_level(SpaceOops *soops, int add)
-{
-	int level;
-	
-	level= outliner_has_one_flag(soops, &soops->tree, TSE_CLOSED, 1);
-	if(add==1) {
-		if(level) outliner_openclose_level(soops, &soops->tree, 1, level, 1);
-	}
-	else {
-		if(level==0) level= outliner_count_levels(soops, &soops->tree, 0);
-		if(level) outliner_openclose_level(soops, &soops->tree, 1, level-1, 0);
-	}
-	
-	BIF_undo_push("Outliner show/hide one level");
-}
-
+// XXX just use View2D ops for this?
 void outliner_page_up_down(Scene *scene, ARegion *ar, SpaceOops *soops, int up)
 {
 	int dy= ar->v2d.mask.ymax-ar->v2d.mask.ymin;
@@ -1702,22 +1832,24 @@ static int tree_element_active_material(Scene *scene, SpaceOops *soops, TreeElem
 	if(tes->idcode==ID_OB) {
 		if(set) {
 			ob->actcol= te->index+1;
-			ob->colbits |= (1<<te->index);	// make ob material active too
+			ob->matbits[te->index]= 1;	// make ob material active too
+			ob->colbits |= (1<<te->index);
 		}
 		else {
 			if(ob->actcol == te->index+1) 
-				if(ob->colbits & (1<<te->index)) return 1;
+				if(ob->matbits[te->index]) return 1;
 		}
 	}
 	/* or we search for obdata material */
 	else {
 		if(set) {
 			ob->actcol= te->index+1;
-			ob->colbits &= ~(1<<te->index);	// make obdata material active too
+			ob->matbits[te->index]= 0;	// make obdata material active too
+			ob->colbits &= ~(1<<te->index);
 		}
 		else {
 			if(ob->actcol == te->index+1)
-				if( (ob->colbits & (1<<te->index))==0 ) return 1;
+				if(ob->matbits[te->index]==0) return 1;
 		}
 	}
 	if(set) {
@@ -2235,6 +2367,7 @@ static int outliner_activate_click(bContext *C, wmOperator *op, wmEvent *event)
 		BIF_undo_push("Outliner selection event");
 	}
 	
+	// XXX need proper notifiers here instead
 	ED_region_tag_redraw(ar);
 
 	return OPERATOR_FINISHED;
@@ -2302,52 +2435,56 @@ static TreeElement *outliner_find_id(SpaceOops *soops, ListBase *lb, ID *id)
 	return NULL;
 }
 
-void outliner_show_active(Scene *scene, ARegion *ar, SpaceOops *so)
+static int outliner_show_active_exec(bContext *C, wmOperator *op)
 {
+	SpaceOops *so= (SpaceOops *)CTX_wm_space_data(C);
+	Scene *scene= CTX_data_scene(C);
+	ARegion *ar= CTX_wm_region(C);
+	View2D *v2d= &ar->v2d;
+	
 	TreeElement *te;
 	int xdelta, ytop;
 	
-	if(OBACT == NULL) return;
+	// TODO: make this get this info from context instead...
+	if (OBACT == NULL) 
+		return OPERATOR_CANCELLED;
 	
 	te= outliner_find_id(so, &so->tree, (ID *)OBACT);
-	if(te) {
+	if (te) {
 		/* make te->ys center of view */
-		ytop= (int)(te->ys + (ar->v2d.mask.ymax-ar->v2d.mask.ymin)/2);
-		if(ytop>0) ytop= 0;
-		ar->v2d.cur.ymax= (float)ytop;
-		ar->v2d.cur.ymin= (float)(ytop-(ar->v2d.mask.ymax-ar->v2d.mask.ymin));
+		ytop= (int)(te->ys + (v2d->mask.ymax - v2d->mask.ymin)/2);
+		if (ytop>0) ytop= 0;
+		
+		v2d->cur.ymax= (float)ytop;
+		v2d->cur.ymin= (float)(ytop-(v2d->mask.ymax - v2d->mask.ymin));
 		
 		/* make te->xs ==> te->xend center of view */
-		xdelta = (int)(te->xs - ar->v2d.cur.xmin);
-		ar->v2d.cur.xmin += xdelta;
-		ar->v2d.cur.xmax += xdelta;
+		xdelta = (int)(te->xs - v2d->cur.xmin);
+		v2d->cur.xmin += xdelta;
+		v2d->cur.xmax += xdelta;
 		
 		so->storeflag |= SO_TREESTORE_REDRAW;
 	}
+	
+	// XXX need proper notifiers here instead
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
 }
 
-void outliner_show_selected(Scene *scene, ARegion *ar, SpaceOops *so)
+void OUTLINER_OT_show_active(wmOperatorType *ot)
 {
-	TreeElement *te;
-	int xdelta, ytop;
+	/* identifiers */
+	ot->name= "Show Active";
+	ot->idname= "OUTLINER_OT_show_active";
+	ot->description= "Adjust the view so that the active Object is shown centered.";
 	
-	te= outliner_find_id(so, &so->tree, (ID *)OBACT);
-	if(te) {
-		/* make te->ys center of view */
-		ytop= (int)(te->ys + (ar->v2d.mask.ymax-ar->v2d.mask.ymin)/2);
-		if(ytop>0) ytop= 0;
-		ar->v2d.cur.ymax= (float)ytop;
-		ar->v2d.cur.ymin= (float)(ytop-(ar->v2d.mask.ymax-ar->v2d.mask.ymin));
-		
-		/* make te->xs ==> te->xend center of view */
-		xdelta = (int)(te->xs - ar->v2d.cur.xmin);
-		ar->v2d.cur.xmin += xdelta;
-		ar->v2d.cur.xmax += xdelta;
-		
-		so->storeflag |= SO_TREESTORE_REDRAW;
-	}
+	/* callbacks */
+	ot->exec= outliner_show_active_exec;
+	ot->poll= ED_operator_outliner_active;
+	
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-
 
 /* find next element that has this name */
 static TreeElement *outliner_find_named(SpaceOops *soops, ListBase *lb, char *name, int flags, TreeElement *prev, int *prevFound)
@@ -2488,6 +2625,7 @@ void outliner_find_panel(Scene *scene, ARegion *ar, SpaceOops *soops, int again,
 	}
 }
 
+/* helper function for tree_element_shwo_hierarchy() - recursively checks whether subtrees have any objects*/
 static int subtree_has_objects(SpaceOops *soops, ListBase *lb)
 {
 	TreeElement *te;
@@ -2501,6 +2639,7 @@ static int subtree_has_objects(SpaceOops *soops, ListBase *lb)
 	return 0;
 }
 
+/* recursive helper function for Show Hierarchy operator */
 static void tree_element_show_hierarchy(Scene *scene, SpaceOops *soops, ListBase *lb)
 {
 	TreeElement *te;
@@ -2521,19 +2660,39 @@ static void tree_element_show_hierarchy(Scene *scene, SpaceOops *soops, ListBase
 			}
 		}
 		else tselem->flag |= TSE_CLOSED;
-
+		
 		if(tselem->flag & TSE_CLOSED); else tree_element_show_hierarchy(scene, soops, &te->subtree);
 	}
-	
 }
 
 /* show entire object level hierarchy */
-void outliner_show_hierarchy(Scene *scene, SpaceOops *soops)
+static int outliner_show_hierarchy_exec(bContext *C, wmOperator *op)
 {
+	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	ARegion *ar= CTX_wm_region(C);
+	Scene *scene= CTX_data_scene(C);
 	
+	/* recursively open/close levels */
 	tree_element_show_hierarchy(scene, soops, &soops->tree);
 	
-	BIF_undo_push("Outliner show hierarchy");
+	// XXX need proper notifiers here instead
+	ED_region_tag_redraw(ar);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_show_hierarchy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Show Hierarchy";
+	ot->idname= "OUTLINER_OT_show_hierarchy";
+	ot->description= "Open all object entries and close all others.";
+	
+	/* callbacks */
+	ot->exec= outliner_show_hierarchy_exec;
+	ot->poll= ED_operator_outliner_active; //  TODO: shouldn't be allowed in RNA views...
+	
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 void outliner_select(SpaceOops *soops, ListBase *lb, int *index, short *selecting)
@@ -3075,7 +3234,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 	TreeElement *tem, *temnext, *temsub;
 	TreeStoreElem *tse, *tsenext;
 	PointerRNA *ptr, *nextptr;
-	PropertyRNA *prop, *nameprop;
+	PropertyRNA *prop;
 	char *newpath=NULL;
 	
 	/* optimise tricks:
@@ -3119,17 +3278,16 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 					newpath= RNA_path_append(*path, ptr, prop, 0, NULL);
 				}
 				else if(RNA_property_type(prop) == PROP_COLLECTION) {
+					char buf[128], *name;
+
 					temnext= (TreeElement*)(ld->next->data);
 					tsenext= TREESTORE(temnext);
 					
 					nextptr= &temnext->rnaptr;
-					nameprop= RNA_struct_name_property(nextptr->type);
+					name= RNA_struct_name_get_alloc(nextptr, buf, sizeof(buf));
 					
-					if(nameprop) {
+					if(name) {
 						/* if possible, use name as a key in the path */
-						char buf[128], *name;
-						name= RNA_property_string_get_alloc(nextptr, nameprop, buf, sizeof(buf));
-						
 						newpath= RNA_path_append(*path, NULL, prop, 0, name);
 						
 						if(name != buf)
@@ -3242,7 +3400,7 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, short m
 					case DRIVERS_EDITMODE_ADD:
 					{
 						/* add a new driver with the information obtained (only if valid) */
-						ANIM_add_driver(id, path, array_index, flag);
+						ANIM_add_driver(id, path, array_index, flag, DRIVER_TYPE_AVERAGE);
 					}
 						break;
 					case DRIVERS_EDITMODE_REMOVE:
@@ -3521,6 +3679,8 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				UI_icon_draw(x, y, ICON_ANIM_DATA); break; // xxx
 			case TSE_NLA:
 				UI_icon_draw(x, y, ICON_NLA); break;
+			case TSE_NLA_TRACK:
+				UI_icon_draw(x, y, ICON_NLA); break; // XXX
 			case TSE_NLA_ACTION:
 				UI_icon_draw(x, y, ICON_ACTION); break;
 			case TSE_DEFGROUP_BASE:

@@ -1600,6 +1600,10 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 		
 		if(clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED)
 		{
+			float temp = clmd->sim_parms->stepsPerFrame;
+			/* not too nice hack, but collisions need this correction -jahka */
+			clmd->sim_parms->stepsPerFrame /= clmd->sim_parms->timescale;
+
 			// collisions 
 			// itstart();
 			
@@ -1614,7 +1618,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 			
 			// call collision function
 			// TODO: check if "step" or "step+dt" is correct - dg
-			result = cloth_bvh_objcollision(ob, clmd, step, dt);
+			result = cloth_bvh_objcollision(ob, clmd, step/clmd->sim_parms->timescale, dt/clmd->sim_parms->timescale);
 			
 			// correct velocity again, just to be sure we had to change it due to adaptive collisions
 			for(i = 0; i < numverts; i++)
@@ -1637,6 +1641,9 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 				}
 			}
 			
+			/* restore original stepsPerFrame */
+			clmd->sim_parms->stepsPerFrame = temp;
+			
 			// X = Xnew;
 			cp_lfvector(id->X, id->Xnew, numverts);
 			
@@ -1654,7 +1661,6 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 				
 				simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt / 2.0f, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv, id->M, id->bigI);
 			}
-			
 		}
 		else
 		{

@@ -54,8 +54,7 @@ public:
 			bool bFindMaterial,
 			const STR_String& touchedpropname,
 			class KX_Scene* scene,
-			 PHY_IPhysicsController*	ctrl,
-			PyTypeObject* T=&Type);
+			 PHY_IPhysicsController*	ctrl);
 /*
 public:
 	KX_NearSensor(class SCA_EventManager* eventmgr,
@@ -64,8 +63,7 @@ public:
 			double resetmargin,
 			bool bFindMaterial,
 			const STR_String& touchedpropname,
-			class KX_Scene* scene,
-			PyTypeObject* T=&Type);
+			class KX_Scene* scene);
 */
 	virtual ~KX_NearSensor(); 
 	virtual void SynchronizeTransform();
@@ -83,9 +81,6 @@ public:
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-	virtual PyObject* py_getattro(PyObject *attr);
-	virtual PyObject* py_getattro_dict();
-	virtual int py_setattro(PyObject *attr, PyObject* value);
 
 	//No methods
 

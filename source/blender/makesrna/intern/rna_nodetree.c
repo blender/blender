@@ -483,10 +483,10 @@ static void def_cmp_filter(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 	
-	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
 	RNA_def_property_enum_items(prop, type_items);
-	RNA_def_property_ui_text(prop, "Type", "");
+	RNA_def_property_ui_text(prop, "Filter Type", "");
 }
 
 static void def_cmp_map_value(StructRNA *srna)
@@ -653,14 +653,14 @@ static void def_cmp_output_file(StructRNA *srna)
 	
 	RNA_def_struct_sdna_from(srna, "NodeImageFile", "storage");
 	
-	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	prop = RNA_def_property(srna, "filename", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Name", "");
+	RNA_def_property_ui_text(prop, "Filename", "");
 	
-	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "image_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "imtype");
 	RNA_def_property_enum_items(prop, type_items);
-	RNA_def_property_ui_text(prop, "Type", "");
+	RNA_def_property_ui_text(prop, "Image Type", "");
 	
 	/* TODO: openexr only { */
 	
@@ -1092,10 +1092,10 @@ static void def_cmp_premul_key(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 	
-	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "mapping", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
 	RNA_def_property_enum_items(prop, type_items);
-	RNA_def_property_ui_text(prop, "Blend Type", "Conversion between premultiplied alpha and key alpha");
+	RNA_def_property_ui_text(prop, "Mapping", "Conversion between premultiplied alpha and key alpha");
 	
 }
 
@@ -1120,10 +1120,10 @@ static void def_cmp_glare(StructRNA *srna)
 	
 	RNA_def_struct_sdna_from(srna, "NodeGlare", "storage");
 	
-	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "glare_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, type_items);
-	RNA_def_property_ui_text(prop, "Type", "");
+	RNA_def_property_ui_text(prop, "Glare Type", "");
 	
 	prop = RNA_def_property(srna, "quality", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "quality");
@@ -1181,10 +1181,10 @@ static void def_cmp_tonemap(StructRNA *srna)
 	
 	RNA_def_struct_sdna_from(srna, "NodeTonemap", "storage");
 	
-	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "tonemap_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, type_items);
-	RNA_def_property_ui_text(prop, "Type", "");
+	RNA_def_property_ui_text(prop, "Tonemap Type", "");
 	
 	/* TODO: if type==0 { */
 	
@@ -1250,9 +1250,9 @@ static void def_tex_output(StructRNA *srna)
 
 	RNA_def_struct_sdna_from(srna, "TexNodeOutput", "storage");
 	
-	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	prop = RNA_def_property(srna, "output_name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Name", "");
+	RNA_def_property_ui_text(prop, "Output Name", "");
 }
 
 static void def_tex_image(StructRNA *srna)

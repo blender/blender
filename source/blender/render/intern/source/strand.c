@@ -281,9 +281,7 @@ void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *sseg, Str
 	shade_input_set_strand_texco(shi, sseg->strand, sseg->v[1], spoint);
 	
 	/* init material vars */
-	// note, keep this synced with render_types.h
-	memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
-	shi->har= shi->mat->har;
+	shade_input_init_material(shi);
 	
 	/* shade */
 	shade_samples_do_AO(ssamp);

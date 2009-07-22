@@ -168,7 +168,7 @@ static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
 		if(snode->treetype==NTREE_SHADER) {
 			Material *ma= (Material *)snode->id;
 			if(ma->use_nodes)
-				ED_preview_shader_job(C, sa, snode->id, 100, 100);
+				ED_preview_shader_job(C, sa, snode->id, NULL, 100, 100);
 		}
 		else if(snode->treetype==NTREE_COMPOSIT) {
 			Scene *scene= (Scene *)snode->id;
@@ -283,7 +283,12 @@ static int node_context(const bContext *C, const char *member, bContextDataResul
 {
 	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
 	
-	if(CTX_data_equals(member, "selected_nodes")) {
+	if(CTX_data_dir(member)) {
+		static const char *dir[] = {"selected_nodes", NULL};
+		CTX_data_dir_set(result, dir);
+		return 1;
+	}
+	else if(CTX_data_equals(member, "selected_nodes")) {
 		bNode *node;
 		
 		for(next_node(snode->edittree); (node=next_node(NULL));) {

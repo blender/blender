@@ -72,12 +72,12 @@ typedef struct World {
 	/**
 	 * Gravitation constant for the game world
 	 */
-	float gravity;
+	float gravity; // moved to scene->gamedata in 2.5
 
 	/**
 	 * Radius of the activity bubble, in Manhattan length. Objects
 	 * outside the box are activity-culled. */
-	float activityBoxRadius;
+	float activityBoxRadius; // moved to scene->gamedata in 2.5
 	
 	short skytype;
 	/**
@@ -89,10 +89,10 @@ typedef struct World {
 	 * bit 4: ambient occlusion
 	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustrum culling 
 	 */
-	short mode;
-	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */
-	short physicsEngine;	/* here it's aligned */
-	short ticrate, maxlogicstep, physubstep, maxphystep;
+	short mode;												// partially moved to scene->gamedata in 2.5
+	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */	// moved to scene->gamedata in 2.5
+	short physicsEngine;	/* here it's aligned */					// moved to scene->gamedata in 2.5
+	short ticrate, maxlogicstep, physubstep, maxphystep;	// moved to scene->gamedata in 2.5
 	
 	float misi, miststa, mistdist, misthi;
 	
@@ -119,6 +119,7 @@ typedef struct World {
 	
 	struct Ipo *ipo;			// XXX depreceated... old animation system
 	struct MTex *mtex[18];		/* MAX_MTEX */
+	short pr_texture, pad[3];
 
 	/* previews */
 	struct PreviewImage *preview;
@@ -180,14 +181,6 @@ typedef struct World {
 #define WOMAP_ZENUP		4
 #define WOMAP_ZENDOWN	8
 #define WOMAP_MIST		16
-
-/* physicsEngine */
-#define WOPHY_NONE		0
-#define WOPHY_ENJI		1
-#define WOPHY_SUMO		2
-#define WOPHY_DYNAMO	3
-#define WOPHY_ODE		4
-#define WOPHY_BULLET	5
 
 /* flag */
 #define WO_DS_EXPAND	(1<<0)

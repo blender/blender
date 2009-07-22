@@ -494,6 +494,21 @@ void BLI_makestringcode(const char *relfile, char *file)
 	}
 }
 
+int BLI_has_parent(char *path)
+{
+	int len;
+	int slashes = 0;
+	BLI_clean(path);
+	len = BLI_add_slash(path) - 1;
+
+	while (len>=0) {
+		if ((path[len] == '\\') || (path[len] == '/'))
+			slashes++;
+		len--;
+	}
+	return slashes > 1;
+}
+
 int BLI_parent_dir(char *path)
 {
 #ifdef WIN32
@@ -736,11 +751,27 @@ void BLI_splitdirstring(char *di, char *fi)
 	}
 }
 
-char *BLI_gethome(void) {
-	#ifdef __BeOS
-		return "/boot/home/";		/* BeOS 4.5: doubleclick at icon doesnt give home env */
+void BLI_getlastdir(const char* dir, char *last, int maxlen)
+{
+	const char *s = dir;
+	const char *lslash = NULL;
+	const char *prevslash = NULL;
+	while (*s) {
+		if ((*s == '\\') || (*s == '/')) {
+			prevslash = lslash;
+			lslash = s;
+		}
+		s++;
+	}
+	if (prevslash) {
+		BLI_strncpy(last, prevslash+1, maxlen);
+	} else {
+		BLI_strncpy(last, dir, maxlen);
+	}
+}
 
-	#elif !defined(WIN32)
+char *BLI_gethome(void) {
+	#if !defined(WIN32)
 		return getenv("HOME");
 
 	#else /* Windows */
@@ -920,6 +951,24 @@ char *BLI_gethome_folder(char *folder_name)
 	return NULL;
 }
 
+void BLI_setenv(const char *env, const char*val)
+{
+	/* SGI or free windows */
+#if (defined(__sgi) || ((defined(WIN32) || defined(WIN64)) && defined(FREE_WINDOWS)))
+	char *envstr= malloc(sizeof(char) * (strlen(env) + strlen(val) + 2)); /* one for = another for \0 */
+
+	sprintf(envstr, "%s=%s", env, val);
+	putenv(envstr);
+	free(envstr);
+
+	/* non-free windows */
+#elif (defined(WIN32) || defined(WIN64)) /* not free windows */
+	_putenv_s(env, val);
+#else
+	/* linux/osx/bsd */
+	setenv(env, val, 1);
+#endif
+}
 
 void BLI_clean(char *path)
 {
@@ -1244,22 +1293,12 @@ void BLI_split_dirfile(char *string, char *dir, char *file)
 /* simple appending of filename to dir, does not check for valid path! */
 void BLI_join_dirfile(char *string, const char *dir, const char *file)
 {
-	int sl_dir = strlen(dir);
-	BLI_strncpy(string, dir, FILE_MAX);
-	if (sl_dir > FILE_MAX-1) sl_dir = FILE_MAX-1;
+	int sl_dir;
 	
-	/* only add seperator if needed */
-#ifdef WIN32
-	if (string[sl_dir-1] != '\\') {
-		string[sl_dir] = '\\';
-		sl_dir++;
-	}
-#else
-	if (string[sl_dir-1] != '/') {
-		string[sl_dir] = '/';
-		sl_dir++;
-	}
-#endif
+	if(string != dir) /* compare pointers */
+		BLI_strncpy(string, dir, FILE_MAX);
+	
+	sl_dir= BLI_add_slash(string);
 	
 	if (sl_dir <FILE_MAX) {
 		BLI_strncpy(string + sl_dir, file, FILE_MAX-sl_dir);
@@ -1311,13 +1350,13 @@ void BLI_where_am_i(char *fullname, const char *name)
 {
 	char filename[FILE_MAXDIR+FILE_MAXFILE];
 	char *path = NULL, *temp;
-	int len;
+	
 #ifdef _WIN32
 	char *seperator = ";";
-	char *slash = "\\";
+	char slash = '\\';
 #else
 	char *seperator = ":";
-	char *slash = "/";
+	char slash = '/';
 #endif
 
 	
@@ -1337,11 +1376,13 @@ void BLI_where_am_i(char *fullname, const char *name)
 		if (name[0] == '.') {
 			// relative path, prepend cwd
 			BLI_getwdN(fullname);
-			len = strlen(fullname);
-			if (len && fullname[len -1] != slash[0]) {
-				strcat(fullname, slash);
-			}
-			strcat(fullname, name);
+			
+			// not needed but avoids annoying /./ in name
+			if(name && name[0]=='.' && name[1]==slash)
+				BLI_join_dirfile(fullname, fullname, name+2);
+			else
+				BLI_join_dirfile(fullname, fullname, name);
+			
 			add_win32_extension(fullname);
 		} else if (BLI_last_slash(name)) {
 			// full path
@@ -1360,11 +1401,7 @@ void BLI_where_am_i(char *fullname, const char *name)
 					} else {
 						strncpy(filename, path, sizeof(filename));
 					}
-					len = strlen(filename);
-					if (len && filename[len - 1] != slash[0]) {
-						strcat(filename, slash);
-					}
-					strcat(filename, name);
+					BLI_join_dirfile(fullname, fullname, name);
 					if (add_win32_extension(filename)) {
 						strcpy(fullname, filename);
 						break;

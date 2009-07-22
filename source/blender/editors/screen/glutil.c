@@ -1,5 +1,5 @@
 /**
- * $Id: glutil.c 11920 2007-09-02 17:25:03Z elubie $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -35,6 +35,7 @@
 #include "DNA_listBase.h"
 
 #include "BKE_utildefines.h"
+#include "BKE_colortools.h"
 
 #include "BLI_arithb.h"
 #include "BLI_threads.h"
@@ -482,27 +483,20 @@ void glaDrawPixelsTex(float x, float y, int img_w, int img_h, int format, void *
 	glaDrawPixelsTexScaled(x, y, img_w, img_h, format, rect, 1.0f, 1.0f);
 }
 
-void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int row_w, float *rectf)
+void glaDrawPixelsSafe_to32(float fx, float fy, int img_w, int img_h, int row_w, float *rectf, int gamma_correct)
 {
-	float *rf;
-	int x, y;
-	char *rect32, *rc;
+	unsigned char *rect32;
 	
 	/* copy imgw-imgh to a temporal 32 bits rect */
 	if(img_w<1 || img_h<1) return;
 	
-	rc= rect32= MEM_mallocN(img_w*img_h*sizeof(int), "temp 32 bits");
+	rect32= MEM_mallocN(img_w*img_h*sizeof(int), "temp 32 bits");
 	
-	for(y=0; y<img_h; y++) {
-		rf= rectf;
-		for(x=0; x<img_w; x++, rf+=4, rc+=4) {
-			rc[0]= FTOCHAR(rf[0]);
-			rc[1]= FTOCHAR(rf[1]);
-			rc[2]= FTOCHAR(rf[2]);
-			rc[3]= FTOCHAR(rf[3]);
-		}
-		rectf+= 4*row_w;
-	}
+	if (gamma_correct) {
+		floatbuf_to_srgb_byte(rectf, rect32, 0, img_w, 0, img_h, img_w);
+	} else {
+		floatbuf_to_byte(rectf, rect32, 0, img_w, 0, img_h, img_w);
+ 	}
 	
 	glaDrawPixelsSafe(fx, fy, img_w, img_h, img_w, GL_RGBA, GL_UNSIGNED_BYTE, rect32);
 
@@ -854,5 +848,4 @@ void bglFlush(void)
 // XXX		myswapbuffers(); //hack to get mac intel graphics to show frontbuffer
 #endif
 }
-
 

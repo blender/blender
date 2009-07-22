@@ -259,16 +259,41 @@ static void region_scissor_winrct(ARegion *ar, rcti *winrct)
 	while(ar->prev) {
 		ar= ar->prev;
 		
-		if(ar->flag & RGN_FLAG_HIDDEN);
-		else if(ar->alignment==RGN_OVERLAP_LEFT) {
-			winrct->xmin= ar->winrct.xmax + 1;
+		if(BLI_isect_rcti(winrct, &ar->winrct, NULL)) {
+			if(ar->flag & RGN_FLAG_HIDDEN);
+			else if(ar->alignment & RGN_SPLIT_PREV);
+			else if(ar->alignment==RGN_OVERLAP_LEFT) {
+				winrct->xmin= ar->winrct.xmax + 1;
+			}
+			else if(ar->alignment==RGN_OVERLAP_RIGHT) {
+				winrct->xmax= ar->winrct.xmin - 1;
+			}
+			else break;
 		}
-		else if(ar->alignment==RGN_OVERLAP_RIGHT) {
-			winrct->xmax= ar->winrct.xmin - 1;
-		}
-		else break;
 	}
 }
+
+/* only exported for WM */
+/* makes region ready for drawing, sets pixelspace */
+void ED_region_set(const bContext *C, ARegion *ar)
+{
+	wmWindow *win= CTX_wm_window(C);
+	ScrArea *sa= CTX_wm_area(C);
+	rcti winrct;
+	
+	/* checks other overlapping regions */
+	region_scissor_winrct(ar, &winrct);
+	
+	ar->drawrct= winrct;
+	
+	/* note; this sets state, so we can use wmOrtho and friends */
+	wmSubWindowScissorSet(win, ar->swinid, &ar->drawrct);
+	
+	UI_SetTheme(sa?sa->spacetype:0, ar->type?ar->type->regionid:0);
+	
+	ED_region_pixelspace(ar);
+}
+
 
 /* only exported for WM */
 void ED_region_do_draw(bContext *C, ARegion *ar)
@@ -1056,6 +1081,7 @@ static char *windowtype_pup(void)
 		   "|%l" //293
 		   
 		   "|Scripts Window %x14"//313
+		   "|Console %x18"
 		   );
 }
 
@@ -1113,6 +1139,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	PanelType *pt;
 	Panel *panel;
 	View2D *v2d= &ar->v2d;
+	View2DScrollers *scrollers;
 	float col[3];
 	int xco, yco, x, y, miny=0, w, em, header, triangle, open;
 
@@ -1125,8 +1152,6 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 		em= (ar->type->minsizex)? 10: 20;
 	}
 
-	header= 20; // XXX
-	triangle= 22;
 	x= 0;
 	y= -style->panelouter;
 
@@ -1147,10 +1172,14 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 			block= uiBeginBlock(C, ar, pt->idname, UI_EMBOSS);
 			panel= uiBeginPanel(sa, ar, block, pt, &open);
 
+			/* bad fixed values */
+			header= (pt->flag & PNL_NO_HEADER)? 0: 20;
+			triangle= 22;
+
 			if(vertical)
 				y -= header;
 
-			if(pt->draw_header && (open || vertical)) {
+			if(pt->draw_header && header && (open || vertical)) {
 				/* for enabled buttons */
 				panel->layout= uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
 					triangle, header+style->panelspace, header, 1, style);
@@ -1182,7 +1211,10 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 			uiEndBlock(C, block);
 
 			if(vertical) {
-				y += yco-style->panelouter;
+				if(pt->flag & PNL_NO_HEADER)
+					y += yco;
+				else
+					y += yco-style->panelouter;
 			}
 			else {
 				x += w;
@@ -1211,13 +1243,20 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	if(vertical) {
 		v2d->keepofs |= V2D_LOCKOFS_X;
 		v2d->keepofs &= ~V2D_LOCKOFS_Y;
+		
+		// don't jump back when panels close or hide
+		y= MAX2(-y, -v2d->cur.ymin);
 	}
 	else {
 		v2d->keepofs &= ~V2D_LOCKOFS_X;
 		v2d->keepofs |= V2D_LOCKOFS_Y;
+
+		// don't jump back when panels close or hide
+		x= MAX2(x, v2d->cur.xmax);
+		y= -y;
 	}
 
-	UI_view2d_totRect_set(v2d, x, -y);
+	UI_view2d_totRect_set(v2d, x, y);
 
 	/* set the view */
 	UI_view2d_view_ortho(C, v2d);
@@ -1227,12 +1266,24 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	
 	/* restore view matrix */
 	UI_view2d_view_restore(C);
+	
+	/* scrollers */
+	scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	UI_view2d_scrollers_draw(C, v2d, scrollers);
+	UI_view2d_scrollers_free(scrollers);
 }
 
 void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
 {
 	ListBase *keymap;
-
+	
+	// XXX quick hacks for files saved with 2.5 already (i.e. the builtin defaults file)
+		// scrollbars for button regions
+	ar->v2d.scroll |= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM); 
+		// correctly initialised User-Prefs?
+	if(!(ar->v2d.align & V2D_ALIGN_NO_POS_Y))
+		ar->v2d.flag &= ~V2D_IS_INITIALISED;
+	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
 
 	keymap= WM_keymap_listbase(wm, "View2D Buttons List", 0, 0);

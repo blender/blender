@@ -559,7 +559,8 @@ STR_String&	STR_String::TrimLeft()
 {
 	int skip;
 	assertd(pData != NULL);
-	for (skip=0; isSpace(pData[skip]); skip++, Len--);
+	for (skip=0; isSpace(pData[skip]); skip++, Len--)
+		{};
 	memmove(pData, pData+skip, Len+1);
 	return *this;
 }
@@ -598,7 +599,8 @@ STR_String&	STR_String::TrimLeft(char *set)
 {
 	int skip;
 	assertd(pData != NULL);
-	for (skip=0; Len && strchr(set, pData[skip]); skip++, Len--);
+	for (skip=0; Len && strchr(set, pData[skip]); skip++, Len--)
+		{};
 	memmove(pData, pData+skip, Len+1);
 	return *this;
 }

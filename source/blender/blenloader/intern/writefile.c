@@ -93,6 +93,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
 #include "DNA_actuator_types.h"
+#include "DNA_boid_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
@@ -382,6 +383,7 @@ static void writedata(WriteData *wd, int filecode, int len, void *adr)	/* do not
 /*These functions are used by blender's .blend system for file saving/loading.*/
 void IDP_WriteProperty_OnlyData(IDProperty *prop, void *wd);
 void IDP_WriteProperty(IDProperty *prop, void *wd);
+static void write_animdata(WriteData *wd, AnimData *adt); // XXX code needs reshuffling, but not before NLA SoC is merged back into 2.5
 
 static void IDP_WriteArray(IDProperty *prop, void *wd)
 {
@@ -549,6 +551,58 @@ static void write_userdef(WriteData *wd)
 	}
 }
 
+static void write_boid_state(WriteData *wd, BoidState *state)
+{
+	BoidRule *rule = state->rules.first;
+	//BoidCondition *cond = state->conditions.first;
+
+	writestruct(wd, DATA, "BoidState", 1, state);
+
+	for(; rule; rule=rule->next) {
+		switch(rule->type) {
+			case eBoidRuleType_Goal:
+			case eBoidRuleType_Avoid:
+				writestruct(wd, DATA, "BoidRuleGoalAvoid", 1, rule);
+				break;
+			case eBoidRuleType_AvoidCollision:
+				writestruct(wd, DATA, "BoidRuleAvoidCollision", 1, rule);
+				break;
+			case eBoidRuleType_FollowLeader:
+				writestruct(wd, DATA, "BoidRuleFollowLeader", 1, rule);
+				break;
+			case eBoidRuleType_AverageSpeed:
+				writestruct(wd, DATA, "BoidRuleAverageSpeed", 1, rule);
+				break;
+			case eBoidRuleType_Fight:
+				writestruct(wd, DATA, "BoidRuleFight", 1, rule);
+				break;
+			default:
+				writestruct(wd, DATA, "BoidRule", 1, rule);
+				break;
+		}
+	}
+	//for(; cond; cond=cond->next)
+	//	writestruct(wd, DATA, "BoidCondition", 1, cond);
+}
+/* TODO: replace *cache with *cachelist once it's coded */
+#define PTCACHE_WRITE_PSYS	0
+#define PTCACHE_WRITE_CLOTH	1
+static void write_pointcaches(WriteData *wd, PointCache *cache, int type)
+{
+	writestruct(wd, DATA, "PointCache", 1, cache);
+
+	if((cache->flag & PTCACHE_DISK_CACHE)==0) {
+		PTCacheMem *pm = cache->mem_cache.first;
+
+		for(; pm; pm=pm->next) {
+			writestruct(wd, DATA, "PTCacheMem", 1, pm);
+			if(type==PTCACHE_WRITE_PSYS)
+				writestruct(wd, DATA, "ParticleKey", pm->totpoint, pm->data);
+			else if(type==PTCACHE_WRITE_CLOTH)
+				writedata(wd, DATA, 9 * sizeof(float) * pm->totpoint, pm->data);
+		}
+	}
+}
 static void write_particlesettings(WriteData *wd, ListBase *idbase)
 {
 	ParticleSettings *part;
@@ -559,8 +613,18 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 			/* write LibData */
 			writestruct(wd, ID_PA, "ParticleSettings", 1, part);
 			if (part->id.properties) IDP_WriteProperty(part->id.properties, wd);
+			if (part->adt) write_animdata(wd, part->adt);
 			writestruct(wd, DATA, "PartDeflect", 1, part->pd);
 			writestruct(wd, DATA, "PartDeflect", 1, part->pd2);
+
+			if(part->boids && part->phystype == PART_PHYS_BOIDS) {
+				BoidState *state = part->boids->states.first;
+
+				writestruct(wd, DATA, "BoidSettings", 1, part->boids);
+
+				for(; state; state=state->next)
+					write_boid_state(wd, state);
+			}
 		}
 		part= part->id.next;
 	}
@@ -568,6 +632,7 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 static void write_particlesystems(WriteData *wd, ListBase *particles)
 {
 	ParticleSystem *psys= particles->first;
+	ParticleTarget *pt;
 	int a;
 
 	for(; psys; psys=psys->next) {
@@ -582,11 +647,18 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 				for(a=0; a<psys->totpart; a++, pa++)
 					writestruct(wd, DATA, "HairKey", pa->totkey, pa->hair);
 			}
+
+			if(psys->particles->boid && psys->part->phystype == PART_PHYS_BOIDS)
+				writestruct(wd, DATA, "BoidData", psys->totpart, psys->particles->boid);
 		}
+		pt = psys->targets.first;
+		for(; pt; pt=pt->next)
+			writestruct(wd, DATA, "ParticleTarget", 1, pt);
+
 		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
 		writestruct(wd, DATA, "SoftBody", 1, psys->soft);
-		if(psys->soft) writestruct(wd, DATA, "PointCache", 1, psys->soft->pointcache);
-		writestruct(wd, DATA, "PointCache", 1, psys->pointcache);
+		if(psys->soft) write_pointcaches(wd, psys->soft->pointcache, PTCACHE_WRITE_PSYS);
+		write_pointcaches(wd, psys->pointcache, PTCACHE_WRITE_PSYS);
 	}
 }
 
@@ -760,10 +832,59 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 	}
 }
 
+static void write_fmodifiers(WriteData *wd, ListBase *fmodifiers)
+{
+	FModifier *fcm;
+	
+	/* Modifiers */
+	for (fcm= fmodifiers->first; fcm; fcm= fcm->next) {
+		FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
+		
+		/* Write the specific data */
+		if (fmi && fcm->data) {
+			/* firstly, just write the plain fmi->data struct */
+			writestruct(wd, DATA, fmi->structName, 1, fcm->data);
+			
+			/* do any modifier specific stuff */
+			switch (fcm->type) {
+				case FMODIFIER_TYPE_GENERATOR:
+				{
+					FMod_Generator *data= (FMod_Generator *)fcm->data;
+					
+					/* write coefficients array */
+					if (data->coefficients)
+						writedata(wd, DATA, sizeof(float)*(data->arraysize), data->coefficients);
+				}
+					break;
+				case FMODIFIER_TYPE_ENVELOPE:
+				{
+					FMod_Envelope *data= (FMod_Envelope *)fcm->data;
+					
+					/* write envelope data */
+					if (data->data)
+						writedata(wd, DATA, sizeof(FCM_EnvelopeData)*(data->totvert), data->data);
+				}
+					break;
+				case FMODIFIER_TYPE_PYTHON:
+				{
+					FMod_Python *data = (FMod_Python *)fcm->data;
+					
+					/* Write ID Properties -- and copy this comment EXACTLY for easy finding
+					 of library blocks that implement this.*/
+					IDP_WriteProperty(data->prop, wd);
+				}
+					break;
+			}
+		}
+		
+		/* Write the modifier */
+		writestruct(wd, DATA, "FModifier", 1, fcm);
+	}
+}
+
 static void write_fcurves(WriteData *wd, ListBase *fcurves)
 {
 	FCurve *fcu;
-	FModifier *fcm;
 	
 	for (fcu=fcurves->first; fcu; fcu=fcu->next) {
 		/* F-Curve */
@@ -794,50 +915,8 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 			}
 		}
 		
-		/* Modifiers */
-		for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
-			FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
-			
-			/* Write the specific data */
-			if (fmi && fcm->data) {
-				/* firstly, just write the plain fmi->data struct */
-				writestruct(wd, DATA, fmi->structName, 1, fcm->data);
-				
-				/* do any modifier specific stuff */
-				switch (fcm->type) {
-					case FMODIFIER_TYPE_GENERATOR:
-					{
-						FMod_Generator *data= (FMod_Generator *)fcm->data;
-						
-						/* write coefficients array */
-						if (data->coefficients)
-							writedata(wd, DATA, sizeof(float)*(data->arraysize), data->coefficients);
-					}
-						break;
-					case FMODIFIER_TYPE_ENVELOPE:
-					{
-						FMod_Envelope *data= (FMod_Envelope *)fcm->data;
-						
-						/* write envelope data */
-						if (data->data)
-							writedata(wd, DATA, sizeof(FCM_EnvelopeData)*(data->totvert), data->data);
-					}
-						break;
-					case FMODIFIER_TYPE_PYTHON:
-					{
-						FMod_Python *data = (FMod_Python *)fcm->data;
-						
-						/* Write ID Properties -- and copy this comment EXACTLY for easy finding
-						 of library blocks that implement this.*/
-						IDP_WriteProperty(data->prop, wd);
-					}
-						break;
-				}
-			}
-			
-			/* Write the modifier */
-			writestruct(wd, DATA, "FModifier", 1, fcm);
-		}
+		/* write F-Modifiers */
+		write_fmodifiers(wd, &fcu->modifiers);
 	}
 }
 
@@ -888,6 +967,37 @@ static void write_keyingsets(WriteData *wd, ListBase *list)
 	}
 }
 
+static void write_nlastrips(WriteData *wd, ListBase *strips)
+{
+	NlaStrip *strip;
+	
+	for (strip= strips->first; strip; strip= strip->next) {
+		/* write the strip first */
+		writestruct(wd, DATA, "NlaStrip", 1, strip);
+		
+		/* write the strip's F-Curves and modifiers */
+		write_fcurves(wd, &strip->fcurves);
+		write_fmodifiers(wd, &strip->modifiers);
+		
+		/* write the strip's children */
+		write_nlastrips(wd, &strip->strips);
+	}
+}
+
+static void write_nladata(WriteData *wd, ListBase *nlabase)
+{
+	NlaTrack *nlt;
+	
+	/* write all the tracks */
+	for (nlt= nlabase->first; nlt; nlt= nlt->next) {
+		/* write the track first */
+		writestruct(wd, DATA, "NlaTrack", 1, nlt);
+		
+		/* write the track's strips */
+		write_nlastrips(wd, &nlt->strips);
+	}
+}
+
 static void write_animdata(WriteData *wd, AnimData *adt)
 {
 	AnimOverride *aor;
@@ -899,14 +1009,17 @@ static void write_animdata(WriteData *wd, AnimData *adt)
 	write_fcurves(wd, &adt->drivers);
 	
 	/* write overrides */
+	// FIXME: are these needed?
 	for (aor= adt->overrides.first; aor; aor= aor->next) {
 		/* overrides consist of base data + rna_path */
 		writestruct(wd, DATA, "AnimOverride", 1, aor);
 		writedata(wd, DATA, strlen(aor->rna_path)+1, aor->rna_path);
 	}
 	
+	// TODO write the remaps (if they are needed)
+	
 	/* write NLA data */
-	// XXX todo...
+	write_nladata(wd, &adt->nla_tracks);
 }
 
 static void write_constraints(WriteData *wd, ListBase *conlist)
@@ -1007,7 +1120,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase, int write_undo)
 			
 			writestruct(wd, DATA, "ClothSimSettings", 1, clmd->sim_parms);
 			writestruct(wd, DATA, "ClothCollSettings", 1, clmd->coll_parms);
-			writestruct(wd, DATA, "PointCache", 1, clmd->point_cache);
+			write_pointcaches(wd, clmd->point_cache, PTCACHE_WRITE_CLOTH);
 		} 
 		else if(md->type==eModifierType_Fluidsim) {
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
@@ -1064,6 +1177,7 @@ static void write_objects(WriteData *wd, ListBase *idbase, int write_undo)
 			
 			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*ob->totcol, ob->mat);
+			writedata(wd, DATA, sizeof(char)*ob->totcol, ob->matbits);
 			/* write_effects(wd, &ob->effect); */ /* not used anymore */
 			write_properties(wd, &ob->prop);
 			write_sensors(wd, &ob->sensors);
@@ -1418,7 +1532,10 @@ static void write_images(WriteData *wd, ListBase *idbase)
 
 			write_previews(wd, ima->preview);
 
-			}
+			/* exception: render text only saved in undo files (wd->current) */
+			if (ima->render_text && wd->current)
+				writedata(wd, DATA, IMA_RW_MAXTEXT, ima->render_text);
+		}
 		ima= ima->id.next;
 	}
 	/* flush helps the compression for undo-save */
@@ -1584,7 +1701,6 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			base= base->next;
 		}
 		
-		writestruct(wd, DATA, "Radio", 1, sce->radio);
 		writestruct(wd, DATA, "ToolSettings", 1, sce->toolsettings);
 		if(sce->toolsettings->vpaint)
 			writestruct(wd, DATA, "VPaint", 1, sce->toolsettings->vpaint);
@@ -1876,7 +1992,10 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "SpaceSound", 1, sl);
 				}
 				else if(sl->spacetype==SPACE_NLA){
-					writestruct(wd, DATA, "SpaceNla", 1, sl);
+					SpaceNla *snla= (SpaceNla *)sl;
+					
+					writestruct(wd, DATA, "SpaceNla", 1, snla);
+					if(snla->ads) writestruct(wd, DATA, "bDopeSheet", 1, snla->ads);
 				}
 				else if(sl->spacetype==SPACE_TIME){
 					writestruct(wd, DATA, "SpaceTime", 1, sl);
@@ -1886,6 +2005,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				}
 				else if(sl->spacetype==SPACE_LOGIC){
 					writestruct(wd, DATA, "SpaceLogic", 1, sl);
+				}
+				else if(sl->spacetype==SPACE_CONSOLE) {
+					writestruct(wd, DATA, "SpaceConsole", 1, sl);
 				}
 				sl= sl->next;
 			}

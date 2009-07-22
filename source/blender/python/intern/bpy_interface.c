@@ -28,6 +28,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_util.h"
+#include "BLI_fileops.h"
 #include "BLI_string.h"
 
 #include "BKE_context.h"
@@ -37,6 +38,11 @@
 #include "BPY_extern.h"
 
 #include "../generic/bpy_internal_import.h" // our own imports
+/* external util modules */
+
+#include "../generic/Mathutils.h"
+#include "../generic/Geometry.h"
+#include "../generic/BGL.h"
 
 
 void BPY_free_compiled_text( struct Text *text )
@@ -60,12 +66,18 @@ static void bpy_init_modules( void )
 	/* PyModule_AddObject( mod, "doc", BPY_rna_doc() ); */
 	PyModule_AddObject( mod, "types", BPY_rna_types() );
 	PyModule_AddObject( mod, "props", BPY_rna_props() );
-	PyModule_AddObject( mod, "ops", BPY_operator_module() );
-	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experemental, consider this a test, especially PyCObject is not meant to be perminant
+	PyModule_AddObject( mod, "__ops__", BPY_operator_module() ); /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
+	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experimental, consider this a test, especially PyCObject is not meant to be permanent
 	
 	/* add the module so we can import it */
 	PyDict_SetItemString(PySys_GetObject("modules"), "bpy", mod);
 	Py_DECREF(mod);
+
+
+	/* stand alone utility modules not related to blender directly */
+	Geometry_Init("Geometry");
+	Mathutils_Init("Mathutils");
+	BGL_Init("BGL");
 }
 
 #if (PY_VERSION_HEX < 0x02050000)
@@ -121,13 +133,61 @@ static PyObject *CreateGlobalDictionary( bContext *C )
 	return dict;
 }
 
+/* Use this so we can include our own python bundle */
+#if 0
+wchar_t* Py_GetPath(void)
+{
+	int i;
+	static wchar_t py_path[FILE_MAXDIR] = L"";
+	char *dirname= BLI_gethome_folder("python");
+	if(dirname) {
+		i= mbstowcs(py_path, dirname, FILE_MAXDIR);
+		printf("py path %s, %d\n", dirname, i);
+	}
+	return py_path;
+}
+#endif
+
+
+/* must be called before Py_Initialize */
+void BPY_start_python_path(void)
+{
+	char *py_path_bundle= BLI_gethome_folder("python");
+
+	if(py_path_bundle==NULL)
+		return;
+
+	/* set the environment path */
+	printf("found bundled python: %s\n", py_path_bundle);
+
+	BLI_setenv("PYTHONHOME", py_path_bundle);
+	BLI_setenv("PYTHONPATH", py_path_bundle);
+}
+
+
 void BPY_start_python( int argc, char **argv )
 {
 	PyThreadState *py_tstate = NULL;
 	
+	BPY_start_python_path(); /* allow to use our own included python */
+
 	Py_Initialize(  );
 	
-	//PySys_SetArgv( argc_copy, argv_copy );
+#if (PY_VERSION_HEX < 0x03000000)
+	PySys_SetArgv( argc, argv);
+#else
+	/* sigh, why do python guys not have a char** version anymore? :( */
+	{
+		int i;
+		PyObject *py_argv= PyList_New(argc);
+
+		for (i=0; i<argc; i++)
+			PyList_SET_ITEM(py_argv, i, PyUnicode_FromString(argv[i]));
+
+		PySys_SetObject("argv", py_argv);
+		Py_DECREF(py_argv);
+	}
+#endif
 	
 	/* Initialize thread support (also acquires lock) */
 	PyEval_InitThreads();
@@ -272,9 +332,9 @@ static int bpy_run_script_init(bContext *C, SpaceScript * sc)
 	return 1;
 }
 
-int BPY_run_script_space_draw(struct bContext *C, SpaceScript * sc)
+int BPY_run_script_space_draw(const struct bContext *C, SpaceScript * sc)
 {
-	if (bpy_run_script_init(C, sc)) {
+	if (bpy_run_script_init( (bContext *)C, sc)) {
 		PyGILState_STATE gilstate = PyGILState_Ensure();
 		PyObject *result = PyObject_CallObject( sc->script->py_draw, NULL );
 		
@@ -362,6 +422,26 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 #include "PIL_time.h"
 #endif
 
+/* for use by BPY_run_ui_scripts only */
+static int bpy_import_module(char *modname, int reload)
+{
+	PyObject *mod= PyImport_ImportModuleLevel(modname, NULL, NULL, NULL, 0);
+	if (mod) {
+		if (reload) {
+			PyObject *mod_orig= mod;
+			mod= PyImport_ReloadModule(mod);
+			Py_DECREF(mod_orig);
+		}
+	}
+
+	if(mod) {
+		Py_DECREF(mod); /* could be NULL from reloading */
+		return 0;
+	} else {
+		return -1;
+	}
+}
+
 /* XXX this is temporary, need a proper script registration system for 2.5 */
 void BPY_run_ui_scripts(bContext *C, int reload)
 {
@@ -373,19 +453,21 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	char *file_extension;
 	char *dirname;
 	char path[FILE_MAX];
-	char *dirs[] = {"io", "ui", NULL};
-	int a, filelen; /* filename length */
+	char *dirs[] = {"ui", "io", NULL};
+	int a, err;
 	
 	PyGILState_STATE gilstate;
-	PyObject *mod;
-	PyObject *sys_path_orig;
-	PyObject *sys_path_new;
+	PyObject *sys_path;
 
 	gilstate = PyGILState_Ensure();
 	
 	// XXX - evil, need to access context
 	BPy_SetContext(C);
 	bpy_import_main_set(CTX_data_main(C));
+
+
+	sys_path= PySys_GetObject("path"); /* borrow */
+	PyList_Insert(sys_path, 0, Py_None); /* place holder, resizes the list */
 
 	for(a=0; dirs[a]; a++) {
 		dirname= BLI_gethome_folder(dirs[a]);
@@ -397,51 +479,50 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 
 		if(!dir)
 			continue;
-
-		/* backup sys.path */
-		sys_path_orig= PySys_GetObject("path");
-		Py_INCREF(sys_path_orig); /* dont free it */
 		
-		sys_path_new= PyList_New(1);
-		PyList_SET_ITEM(sys_path_new, 0, PyUnicode_FromString(dirname));
-		PySys_SetObject("path", sys_path_new);
-		Py_DECREF(sys_path_new);
+		/* set the first dir in the sys.path for fast importing of modules */
+		PyList_SetItem(sys_path, 0, PyUnicode_FromString(dirname)); /* steals the ref */
 			
 		while((de = readdir(dir)) != NULL) {
 			/* We could stat the file but easier just to let python
 			 * import it and complain if theres a problem */
-			
-			file_extension = strstr(de->d_name, ".py");
-			
-			if(file_extension && *(file_extension + 3) == '\0') {
-				filelen = strlen(de->d_name);
-				BLI_strncpy(path, de->d_name, filelen-2); /* cut off the .py on copy */
-				
-				mod= PyImport_ImportModuleLevel(path, NULL, NULL, NULL, 0);
-				if (mod) {
-					if (reload) {
-						PyObject *mod_orig= mod;
-						mod= PyImport_ReloadModule(mod);
-						Py_DECREF(mod_orig);
-					}
-				}
-				
-				if(mod) {
-					Py_DECREF(mod); /* could be NULL from reloading */
-				} else {
-					BPy_errors_to_report(NULL); // TODO - reports
-					fprintf(stderr, "unable to import \"%s\"  %s/%s\n", path, dirname, de->d_name);
-				}
+			err = 0;
 
+			if (de->d_name[0] == '.') {
+				/* do nothing, probably .svn */
+			}
+			else if ((file_extension = strstr(de->d_name, ".py"))) {
+				/* normal py files? */
+				if(file_extension && file_extension[3] == '\0') {
+					de->d_name[(file_extension - de->d_name)] = '\0';
+					err= bpy_import_module(de->d_name, reload);
+				}
+			}
+#ifndef __linux__
+			else if( BLI_join_dirfile(path, dirname, de->d_name), S_ISDIR(BLI_exists(path))) {
+#else
+			else if(de->d_type==DT_DIR) {
+				BLI_join_dirfile(path, dirname, de->d_name);
+#endif
+				/* support packages */
+				BLI_join_dirfile(path, path, "__init__.py");
+
+				if(BLI_exists(path)) {
+					err= bpy_import_module(de->d_name, reload);
+				}
+			}
+
+			if(err==-1) {
+				BPy_errors_to_report(NULL);
+				fprintf(stderr, "unable to import %s/%s\n", dirname, de->d_name);
 			}
 		}
 
 		closedir(dir);
-
-		PySys_SetObject("path", sys_path_orig);
-		Py_DECREF(sys_path_orig);
 	}
 	
+	PyList_SetSlice(sys_path, 0, 1, NULL); /* remove the first item */
+
 	bpy_import_main_set(NULL);
 	
 	PyGILState_Release(gilstate);

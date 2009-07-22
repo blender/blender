@@ -427,9 +427,14 @@ typedef struct CollisionModifierData {
 typedef struct SurfaceModifierData {
 	ModifierData	modifier;
 
+	struct MVert *x; /* old position */
+	struct MVert *v; /* velocity */
+
 	struct DerivedMesh *dm;
 
 	struct BVHTreeFromMesh *bvhtree; /* bounding volume hierarchy of the mesh faces */
+
+	int cfra, numverts;
 } SurfaceModifierData;
 
 typedef enum {
@@ -503,12 +508,15 @@ typedef enum {
 	eParticleInstanceFlag_Unborn =		(1<<3),
 	eParticleInstanceFlag_Alive =		(1<<4),
 	eParticleInstanceFlag_Dead =		(1<<5),
+	eParticleInstanceFlag_KeepShape =	(1<<6),
+	eParticleInstanceFlag_UseSize =		(1<<7),
 } ParticleInstanceModifierFlag;
 
 typedef struct ParticleInstanceModifierData {
 	ModifierData modifier;
 	struct Object *ob;
-	short psys, flag, rt[2];
+	short psys, flag, axis, rt;
+	float position, random_position;
 } ParticleInstanceModifierData;
 
 typedef enum {

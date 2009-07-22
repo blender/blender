@@ -80,16 +80,27 @@
 #include "file_intern.h"
 #include "filelist.h"
 
+#if defined __BeOS
+static int fnmatch(const char *pattern, const char *string, int flags)
+{
+	return 0;
+}
+#elif defined WIN32 && !defined _LIBC
+	/* use fnmatch included in blenlib */
+	#include "BLI_fnmatch.h"
+#else
+	#include <fnmatch.h>
+#endif
 
 FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile)
 {
 	if (!sfile->params) {
-		ED_fileselect_set_params(sfile, "", "/", 0, FILE_SHORTDISPLAY, 0, FILE_SORTALPHA);
+		ED_fileselect_set_params(sfile, "", NULL, "/", 0, FILE_SHORTDISPLAY, 0, FILE_SORT_ALPHA);
 	}
 	return sfile->params;
 }
 
-short ED_fileselect_set_params(SpaceFile *sfile, const char *title, const char *path,
+short ED_fileselect_set_params(SpaceFile *sfile, const char *title, const char *last_dir, const char *path,
 							   short flag, short display, short filter, short sort)
 {
 	char name[FILE_MAX], dir[FILE_MAX], file[FILE_MAX];
@@ -107,14 +118,19 @@ short ED_fileselect_set_params(SpaceFile *sfile, const char *title, const char *
 	params->sort = sort;
 
 	BLI_strncpy(params->title, title, sizeof(params->title));
-	
-	BLI_strncpy(name, path, sizeof(name));
-	BLI_convertstringcode(name, G.sce);
 
-	BLI_split_dirfile(name, dir, file);
-	BLI_strncpy(params->file, file, sizeof(params->file));
-	BLI_strncpy(params->dir, dir, sizeof(params->dir));
-	BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */			
+	if(last_dir){
+		BLI_strncpy(params->dir, last_dir, sizeof(params->dir));
+	}
+	else {
+		BLI_strncpy(name, path, sizeof(name));
+		BLI_convertstringcode(name, G.sce);
+
+		BLI_split_dirfile(name, dir, file);
+		BLI_strncpy(params->file, file, sizeof(params->file));
+		BLI_strncpy(params->dir, dir, sizeof(params->dir));
+		BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */			
+	}
 
 	return 1;
 }
@@ -131,6 +147,9 @@ int ED_fileselect_layout_offset(FileLayout* layout, int x, int y)
 	int offsetx, offsety;
 	int active_file;
 
+	if (layout == NULL)
+		return 0;
+	
 	offsetx = (x)/(layout->tile_w + 2*layout->tile_border_x);
 	offsety = (y)/(layout->tile_h + 2*layout->tile_border_y);
 	
@@ -159,7 +178,7 @@ float file_string_width(const char* str)
 {
 	uiStyle *style= U.uistyles.first;
 	uiStyleFontSet(&style->widget);
-	return BLF_width(str);
+	return BLF_width((char *)str);
 }
 
 float file_font_pointsize()
@@ -278,4 +297,69 @@ FileLayout* ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar
 		ED_fileselect_init_layout(sfile, ar);
 	}
 	return sfile->layout;
+}
+
+void file_change_dir(struct SpaceFile *sfile)
+{
+	if (sfile->params) { 
+		if (BLI_exists(sfile->params->dir)) {
+			filelist_setdir(sfile->files, sfile->params->dir);
+
+			if(folderlist_clear_next(sfile))
+				folderlist_free(sfile->folders_next);
+
+			folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
+
+			filelist_free(sfile->files);
+			sfile->params->active_file = -1;
+		} else {
+			BLI_strncpy(sfile->params->dir, filelist_dir(sfile->files), FILE_MAX);
+		}
+	}
+}
+
+int file_select_match(struct SpaceFile *sfile, const char *pattern)
+{
+	int match = 0;
+	if (strchr(pattern, '*') || strchr(pattern, '?') || strchr(pattern, '[')) {
+		int i;
+		struct direntry *file;
+		int n = filelist_numfiles(sfile->files);
+
+		for (i = 0; i < n; i++) {
+			file = filelist_file(sfile->files, i);
+			if (fnmatch(pattern, file->relname, 0) == 0) {
+				file->flags |= ACTIVE;
+				match = 1;
+			}
+		}
+	}
+	return match;
+}
+
+
+void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
+{
+	char tmp[FILE_MAX];
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+
+	/* search if str matches the beginning of name */
+	if(str[0] && sfile->files) {
+		AutoComplete *autocpl= autocomplete_begin(str, FILE_MAX);
+		int nentries = filelist_numfiles(sfile->files);
+		int i;
+
+		for(i= 0; i<nentries; ++i) {
+			struct direntry* file = filelist_file(sfile->files, i);
+			const char* dir = filelist_dir(sfile->files);
+			if (file && S_ISDIR(file->type))	{
+				BLI_make_file_string(G.sce, tmp, dir, file->relname);
+				autocomplete_do_name(autocpl,tmp);
+			}
+		}
+		autocomplete_end(autocpl, str);
+		if (BLI_exists(str)) {
+			BLI_add_slash(str);
+		}
+	}
 }

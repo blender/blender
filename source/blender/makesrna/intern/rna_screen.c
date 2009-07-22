@@ -36,11 +36,40 @@ EnumPropertyItem region_type_items[] = {
 	{RGN_TYPE_WINDOW, "WINDOW", 0, "Window", ""},
 	{RGN_TYPE_HEADER, "HEADER", 0, "Header", ""},
 	{RGN_TYPE_CHANNELS, "CHANNELS", 0, "Channels", ""},
+	{RGN_TYPE_TOOLS, "TOOLS", 0, "Tools", ""},
 	{RGN_TYPE_TEMPORARY, "TEMPORARY", 0, "Temporary", ""},
 	{RGN_TYPE_UI, "UI", 0, "UI", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
+
+#include "ED_screen.h"
+
+
+#include "WM_api.h"
+#include "WM_types.h"
+
+static void rna_Screen_scene_set(PointerRNA *ptr, PointerRNA value)
+{
+	bScreen *sc= (bScreen*)ptr->data;
+
+	if(value.data == NULL)
+		return;
+
+	/* exception: can't set screens inside of area/region handers */
+	sc->newscene= value.data;
+}
+
+static void rna_Screen_scene_update(bContext *C, PointerRNA *ptr)
+{
+	bScreen *sc= (bScreen*)ptr->data;
+
+	/* exception: can't set screens inside of area/region handers */
+	if(sc->newscene) {
+		WM_event_add_notifier(C, NC_SCENE|ND_SCENEBROWSE, sc->newscene);
+		sc->newscene= NULL;
+	}
+}
 
 #else
 
@@ -71,15 +100,23 @@ static void rna_def_scrarea(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "show_menus", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", HEADER_NO_PULLDOWN);
 	RNA_def_property_ui_text(prop, "Show Menus", "Show menus in the header.");
+	
+	RNA_def_function(srna, "tag_redraw", "ED_area_tag_redraw");
 }
 
 static void rna_def_region(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "Region", NULL);
 	RNA_def_struct_ui_text(srna, "Region", "Region in a subdivided screen area.");
 	RNA_def_struct_sdna(srna, "ARegion");
+	
+	prop= RNA_def_property(srna, "id", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "swinid");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Region ID", "Uniqute ID for this region.");
 }
 
 static void rna_def_bscreen(BlenderRNA *brna)
@@ -94,6 +131,9 @@ static void rna_def_bscreen(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "scene", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_ui_text(prop, "Scene", "Active scene to be edited in the screen.");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Screen_scene_set", NULL);
+	RNA_def_property_update(prop, 0, "rna_Screen_scene_update");
 	
 	prop= RNA_def_property(srna, "areas", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "areabase", NULL);

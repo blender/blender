@@ -138,7 +138,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 				   class SND_IAudioDevice* adi,
 				   const STR_String& sceneName,
 				   Scene *scene): 
-	PyObjectPlus(&KX_Scene::Type),
+	PyObjectPlus(),
 	m_keyboardmgr(NULL),
 	m_mousemgr(NULL),
 	m_sceneConverter(NULL),
@@ -1629,17 +1629,15 @@ PyTypeObject KX_Scene::Type = {
 		0,
 		0,
 		py_base_repr,
-		0,0,0,0,0,0,
-		py_base_getattro,
-		py_base_setattro,
 		0,0,0,0,0,0,0,0,0,
-		Methods
-};
-
-PyParentObject KX_Scene::Parents[] = {
-	&KX_Scene::Type,
+		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+		0,0,0,0,0,0,0,
+		Methods,
+		0,
+		0,
 		&CValue::Type,
-		NULL
+		0,0,0,0,0,0,
+		py_base_new
 };
 
 PyMethodDef KX_Scene::Methods[] = {
@@ -1654,7 +1652,7 @@ PyMethodDef KX_Scene::Methods[] = {
 PyObject* KX_Scene::pyattr_get_name(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_Scene* self= static_cast<KX_Scene*>(self_v);
-	return PyString_FromString(self->GetName().ReadPtr());
+	return PyUnicode_FromString(self->GetName().ReadPtr());
 }
 
 PyObject* KX_Scene::pyattr_get_objects(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -1730,72 +1728,6 @@ PyAttributeDef KX_Scene::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* KX_Scene::py_getattro__internal(PyObject *attr)
-{	
-	py_getattro_up(PyObjectPlus);
-}
-
-int KX_Scene::py_setattro__internal(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(PyObjectPlus);
-}
-
-PyObject* KX_Scene::py_getattro(PyObject *attr)
-{
-	PyObject *object = py_getattro__internal(attr);
-	
-	if (object==NULL)
-	{
-		PyErr_Clear();
-		object = PyDict_GetItem(m_attr_dict, attr);
-		if(object) {
-			Py_INCREF(object);
-		}
-		else {
-			PyErr_Format(PyExc_AttributeError, "value = scene.myAttr: KX_Scene, attribute \"%s\" not found", PyString_AsString(attr));
-		}
-	}
-	
-	return object;
-}
-
-PyObject* KX_Scene::py_getattro_dict() {
-	//py_getattro_dict_up(PyObjectPlus);
-	
-	PyObject *dict= py_getattr_dict(PyObjectPlus::py_getattro_dict(), Type.tp_dict);
-	if(dict==NULL)
-		return NULL;
-	
-	/* normally just return this but KX_Scene has some more items */
-	
-	PyDict_Update(dict, m_attr_dict);
-	return dict;
-}
-
-int KX_Scene::py_setattro(PyObject *attr, PyObject *value)
-{
-	int ret= py_setattro__internal(attr, value);
-	
-	if (ret==PY_SET_ATTR_MISSING) {
-		if (PyDict_SetItem(m_attr_dict, attr, value)==0) {
-			PyErr_Clear();
-			ret= PY_SET_ATTR_SUCCESS;
-		}
-		else {
-			PyErr_SetString(PyExc_AttributeError, "scene.UserAttr = value: KX_Scenes, failed assigning value to internal dictionary");
-			ret= PY_SET_ATTR_FAIL;
-		}
-	}
-	
-	return ret;
-}
-
-int KX_Scene::py_delattro(PyObject *attr)
-{
-	PyDict_DelItem(m_attr_dict, attr);
-	return 0;
-}
-
 KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getLightList,
 "getLightList() -> list [KX_Light]\n"
 "Returns a list of all lights in the scene.\n"
@@ -1820,7 +1752,7 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getName,
 )
 {
 	ShowDeprecationWarning("getName()", "the name property");
-	return PyString_FromString(GetName());
+	return PyUnicode_FromString(GetName());
 }
 
 KX_PYMETHODDEF_DOC(KX_Scene, addObject,

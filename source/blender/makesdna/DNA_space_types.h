@@ -86,7 +86,7 @@ typedef struct SpaceInfo {
 } SpaceInfo;
 
 /* 'Graph' Editor (formerly known as the IPO Editor) */
-// XXX for now, we keep all old data...
+/* XXX for now, we keep all old data... */
 typedef struct SpaceIpo {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
@@ -96,10 +96,6 @@ typedef struct SpaceIpo {
 	short blockhandler[8];
 	View2D v2d; /* depricated, copied to region */
 	
-		// 'IPO keys' - vertical lines for editing multiple keyframes at once - use Dopesheet instead for this?
-	//ListBase ipokey;		// XXX it's not clear how these will come back yet
-	//short showkey;			// XXX this doesn't need to be restored until ipokeys come back
-	
 	struct bDopeSheet *ads;	/* settings for filtering animation data (NOTE: we use a pointer due to code-linking issues) */
 	
 	ListBase ghostCurves;	/* sampled snapshots of F-Curves used as in-session guides */
@@ -107,7 +103,7 @@ typedef struct SpaceIpo {
 	short mode;				/* mode for the Graph editor (eGraphEdit_Mode) */
 	short flag;				/* settings for Graph editor */
 	short autosnap;			/* time-transform autosnapping settings for Graph editor (eAnimEdit_AutoSnap in DNA_action_types.h) */
-	char pin, lock;
+	char pin, lock;			// XXX old, unused vars that are probably going to be depreceated soon...
 } SpaceIpo;
 
 typedef struct SpaceButs {
@@ -165,6 +161,33 @@ typedef struct SpaceSeq {
 	struct bGPdata *gpd;		/* grease-pencil data */
 } SpaceSeq;
 
+typedef struct FileSelectParams {
+	char title[24]; /* title, also used for the text of the execute button */
+	char dir[240]; /* directory */
+	char file[80]; /* file */
+
+	short flag; /* settings for filter, hiding files and display mode */
+	short sort; /* sort order */
+	short display; /* display mode flag */
+	short filter; /* filter when (flags & FILE_FILTER) is true */
+
+	/* XXX - temporary, better move to filelist */
+	short active_bookmark;
+	short pad;
+	int	active_file;
+	int selstate;
+
+	/* XXX --- still unused -- */
+	short f_fp; /* show font preview */
+	short menu; /* currently selected option in pupmenu */
+	char fp_str[8]; /* string to use for font preview */
+	
+	char *pupmenu; /* allows menu for save options - result stored in menup */
+	
+	/* XXX --- end unused -- */
+} FileSelectParams;
+
+
 typedef struct SpaceFile {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
@@ -174,6 +197,9 @@ typedef struct SpaceFile {
 	struct FileSelectParams *params; /* config and input for file select */
 	
 	struct FileList *files; /* holds the list of files to show */
+
+	ListBase *folders_prev; /* holds the list of previous directories to show */
+	ListBase *folders_next; /* holds the list of next directories (pushed from previous) to show */
 
 	/* operator that is invoking fileselect 
 	   op->exec() will be called on the 'Load' button.
@@ -229,7 +255,7 @@ typedef struct SpaceImage {
 	char dt_uv; /* UV draw type */
 	char sticky; /* sticky selection type */
 	char dt_uvstretch;
-	char pad;
+	char around;
 	
 	float xof, yof;					/* user defined offset, image is centered */
 	float zoom, pad4;				/* user defined zoom level */
@@ -246,10 +272,11 @@ typedef struct SpaceNla {
 
 	short blockhandler[8];
 
-	short menunr, lock;
 	short autosnap;			/* this uses the same settings as autosnap for Action Editor */
 	short flag;
+	int pad;
 	
+	struct bDopeSheet *ads;
 	View2D v2d;	 /* depricated, copied to region */
 } SpaceNla;
 
@@ -266,7 +293,8 @@ typedef struct SpaceText {
 	int top, viewlines;
 	short flags, menunr;	
 
-	int lheight;
+	short lheight;		/* user preference */
+	char cwidth, linenrs_tot;		/* runtime computed, character width and the number of chars to use when showing line numbers */
 	int left;
 	int showlinenrs;
 	int tabnumber;
@@ -436,6 +464,61 @@ typedef struct SpaceImaSel {
 } SpaceImaSel;
 
 
+typedef struct ConsoleLine {
+	struct ConsoleLine *next, *prev;
+	
+	/* keep these 3 vars so as to share free, realloc funcs */
+	int len_alloc;	/* allocated length */
+	int len;	/* real len - strlen() */
+	char *line; 
+	
+	int cursor;
+	int type; /* only for use when in the 'scrollback' listbase */
+} ConsoleLine;
+
+/* ConsoleLine.type */
+enum {
+	CONSOLE_LINE_OUTPUT=0,
+	CONSOLE_LINE_INPUT,
+	CONSOLE_LINE_INFO, /* autocomp feedback */
+	CONSOLE_LINE_ERROR
+};
+
+/* SpaceConsole.rpt_mask */
+enum {
+	CONSOLE_TYPE_PYTHON=0,
+	CONSOLE_TYPE_REPORT,
+};
+
+/* SpaceConsole.type see BKE_report.h */
+enum {
+	CONSOLE_RPT_DEBUG	= 1<<0,
+	CONSOLE_RPT_INFO	= 1<<1,
+	CONSOLE_RPT_OP		= 1<<2,
+	CONSOLE_RPT_WARN	= 1<<3,
+	CONSOLE_RPT_ERR		= 1<<4,
+};
+
+typedef struct SpaceConsole {
+	SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
+	int spacetype;
+	float blockscale;			// XXX are these needed?
+	
+	short blockhandler[8];		// XXX are these needed?
+	
+	/* space vars */
+	int type; /* console/report/..? */
+	int rpt_mask; /* which reports to display */
+	int flag, lheight;
+
+	ListBase scrollback; /* ConsoleLine; output */
+	ListBase history; /* ConsoleLine; command history, current edited line is the first */
+	char prompt[8];
+	
+} SpaceConsole;
+
+
 /* view3d  Now in DNA_view3d_types.h */
 
 
@@ -527,6 +610,22 @@ typedef struct SpaceImaSel {
 #define BUTS_SENS_STATE		512
 #define BUTS_ACT_STATE		1024
 
+/* FileSelectParams.display */
+enum FileDisplayTypeE {
+	FILE_SHORTDISPLAY = 1,
+	FILE_LONGDISPLAY,
+	FILE_IMGDISPLAY
+};
+
+/* FileSelectParams.sort */
+enum FileSortTypeE {
+	FILE_SORT_NONE = 0,
+	FILE_SORT_ALPHA = 1,
+	FILE_SORT_EXTENSION,
+	FILE_SORT_TIME,
+	FILE_SORT_SIZE
+};
+
 /* these values need to be hardcoded in structs, dna does not recognize defines */
 /* also defined in BKE */
 #define FILE_MAXDIR			160
@@ -553,12 +652,6 @@ typedef struct SpaceImaSel {
 #define FILE_SYNCPOSE		128
 #define FILE_FILTER			256
 #define FILE_BOOKMARKS		512
-
-/* sfile->sort */
-#define FILE_SORTALPHA		0
-#define FILE_SORTDATE		1
-#define FILE_SORTSIZE		2
-#define FILE_SORTEXTENS		3
 
 /* files in filesel list: 2=ACTIVE  */
 #define HILITE				1
@@ -711,8 +804,11 @@ enum {
 #define IMS_INFILESLI		4
 
 /* nla->flag */
+	// depreceated
 #define SNLA_ALLKEYED		(1<<0)
+	// depreceated
 #define SNLA_ACTIVELAYERS	(1<<1)
+
 #define SNLA_DRAWTIME		(1<<2)
 #define SNLA_NOTRANSKEYCULL	(1<<3)
 #define SNLA_NODRAWCFRANUM	(1<<4)
@@ -769,7 +865,8 @@ enum {
 	SPACE_TIME,
 	SPACE_NODE,
 	SPACE_LOGIC,
-	SPACEICONMAX = SPACE_LOGIC
+	SPACE_CONSOLE,
+	SPACEICONMAX = SPACE_CONSOLE
 };
 
 #endif

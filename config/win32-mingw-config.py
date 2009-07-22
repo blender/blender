@@ -2,13 +2,17 @@ LCGDIR = '#../lib/windows'
 LIBDIR = "${LCGDIR}"
 
 BF_PYTHON = LIBDIR + '/python'
-BF_PYTHON_VERSION = '2.5'
+BF_PYTHON_VERSION = '3.1'
+#BF_PYTHON_VERSION = '2.6'
 WITH_BF_STATICPYTHON = False
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = 'python'
-BF_PYTHON_LIB = 'python25'
-BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/lib25_vs2005'
-BF_PYTHON_LIB_STATIC = '${BF_PYTHON}/lib/lib25_vs2005/libpython25.a'
+#BF_PYTHON_LIB = 'python25'
+#BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/lib25_vs2005'
+#BF_PYTHON_LIB_STATIC = '${BF_PYTHON}/lib/lib25_vs2005/libpython25.a'
+BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION[0]}${BF_PYTHON_VERSION[2]}'
+BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
+BF_PYTHON_LIB_STATIC = '${BF_PYTHON}/lib/libpython${BF_PYTHON_VERSION[0]}${BF_PYTHON_VERSION[2]}.a'
 
 WITH_BF_OPENAL = True
 WITH_BF_STATICOPENAL = False
@@ -77,19 +81,10 @@ BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
 WITH_BF_GAMEENGINE = False
 
-WITH_BF_ODE = True
-BF_ODE = LIBDIR + '/ode'
-BF_ODE_INC = BF_ODE + '/include'
-BF_ODE_LIB = BF_ODE + '/lib/libode.a'
-
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
-
-BF_SOLID = '#extern/solid'
-BF_SOLID_INC = '${BF_SOLID}'
-BF_SOLID_LIB = 'extern_solid'
 
 BF_WINTAB = LIBDIR + '/wintab'
 BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
@@ -153,7 +148,7 @@ LLIBS = ['-lshell32', '-lshfolder', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32
 BF_DEBUG = False
 BF_DEBUG_CCFLAGS= ['-g']
 
-BF_PROFILE_CCFLAGS = ['-pg', '-g ']
+BF_PROFILE_CCFLAGS = ['-pg', '-g']
 BF_PROFILE_LINKFLAGS = ['-pg']
 BF_PROFILE_FLAGS = BF_PROFILE_CCFLAGS
 BF_PROFILE = False

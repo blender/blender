@@ -1,17 +1,9 @@
 LCGDIR = '../lib/linux2'
 LIBDIR = "${LCGDIR}"
 
-def py_version_string():
-	'''
-	returns py version - "2.5", "2.6" etc
-	'''
-	import platform
-	ver = platform.python_version_tuple()
-	return '%d.%d' % (int(ver[0]), int(ver[1])) # py2.5 uses strings, 2.6 ints
-
 BF_PYTHON = '/usr'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
-BF_PYTHON_VERSION = py_version_string()
+BF_PYTHON_VERSION = '3.1'
 WITH_BF_STATICPYTHON = False
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
@@ -77,19 +69,10 @@ BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 WITH_BF_GAMEENGINE = True
 WITH_BF_PLAYER = True
 
-WITH_BF_ODE = False
-BF_ODE = LIBDIR + '/ode'
-BF_ODE_INC = BF_ODE + '/include'
-BF_ODE_LIB = BF_ODE + '/lib/libode.a'
-
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
-
-BF_SOLID = '#extern/solid'
-BF_SOLID_INC = '${BF_SOLID}'
-BF_SOLID_LIB = 'extern_solid'
 
 #WITH_BF_NSPR = True
 #BF_NSPR = $(LIBDIR)/nspr

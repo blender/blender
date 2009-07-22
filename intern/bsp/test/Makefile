@@ -47,7 +47,7 @@ SLIBS += $(NAN_MOTO)/lib/$(DEBUG_DIR)libmoto.a
 SLIBS += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
 SLIBS += $(NAN_STRING)/lib/$(DEBUG_DIR)libstring.a
 
-ifeq ($(OS),$(findstring $(OS), "beos darwin linux freebsd openbsd"))
+ifeq ($(OS),$(findstring $(OS), "darwin linux freebsd openbsd"))
     LLIBS = -L/usr/X11R6/lib -lglut -pthread -lXi -lXmu
 endif
 

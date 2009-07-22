@@ -38,6 +38,10 @@
 
 #ifdef RNA_RUNTIME
 
+#include "MEM_guardedalloc.h"
+
+#include "BKE_texture.h"
+
 static PointerRNA rna_World_ambient_occlusion_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_WorldAmbientOcclusion, ptr->id.data);
@@ -56,7 +60,7 @@ static PointerRNA rna_World_mist_get(PointerRNA *ptr)
 static void rna_World_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	World *wo= (World*)ptr->data;
-	rna_iterator_array_begin(iter, (void*)wo->mtex, sizeof(MTex*), MAX_MTEX, NULL);
+	rna_iterator_array_begin(iter, (void*)wo->mtex, sizeof(MTex*), MAX_MTEX, 0, NULL);
 }
 
 static PointerRNA rna_World_active_texture_get(PointerRNA *ptr)
@@ -64,6 +68,29 @@ static PointerRNA rna_World_active_texture_get(PointerRNA *ptr)
 	World *wo= (World*)ptr->data;
 
 	return rna_pointer_inherit_refine(ptr, &RNA_TextureSlot, wo->mtex[(int)wo->texact]);
+}
+
+static void rna_World_active_texture_index_set(PointerRNA *ptr, int value)
+{
+	World *wo= (World*)ptr->data;
+	int act= wo->texact;
+
+	if(value == act || value < 0 || value >= MAX_MTEX)
+		return;
+
+	/* auto create/free mtex on activate/deactive, so we can edit
+	 * the texture pointer in the buttons UI. */
+	if(wo->mtex[act] && !wo->mtex[act]->tex) {
+		MEM_freeN(wo->mtex[act]);
+		wo->mtex[act]= NULL;
+	}
+
+	wo->texact= value;
+
+	if(!wo->mtex[value]) {
+		wo->mtex[value]= add_mtex();
+		wo->mtex[value]->texco= TEXCO_VIEW;
+	}
 }
 
 #else
@@ -87,37 +114,67 @@ static void rna_def_world_mtex(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "World Texture Slot", "Texture slot for textures in a World datablock.");
 
 	/* map to */
-	prop= RNA_def_property(srna, "map_to_blend", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "map_blend", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_BLEND);
-	RNA_def_property_ui_text(prop, "Map To Blend", "Affect the color progression of the background.");
+	RNA_def_property_ui_text(prop, "Blend", "Affect the color progression of the background.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
-	prop= RNA_def_property(srna, "map_to_horizon", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "map_horizon", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_HORIZ);
-	RNA_def_property_ui_text(prop, "Map To Horizon", "Affect the color of the horizon.");
+	RNA_def_property_ui_text(prop, "Horizon", "Affect the color of the horizon.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
-	prop= RNA_def_property(srna, "map_to_zenith_up", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "map_zenith_up", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_ZENUP);
-	RNA_def_property_ui_text(prop, "Map To Zenith Up", "Affect the color of the zenith above.");
+	RNA_def_property_ui_text(prop, "Zenith Up", "Affect the color of the zenith above.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
-	prop= RNA_def_property(srna, "map_to_zenith_down", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "map_zenith_down", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_ZENDOWN);
-	RNA_def_property_ui_text(prop, "Map To Zenith Down", "Affect the color of the zenith below.");
+	RNA_def_property_ui_text(prop, "Zenith Down", "Affect the color of the zenith below.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	/* unused
-	prop= RNA_def_property(srna, "map_to_mist", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "map_mist", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_MIST);
-	RNA_def_property_ui_text(prop, "Map To Mist", "Causes the texture to affect the intensity of the mist.");*/
+	RNA_def_property_ui_text(prop, "Mist", "Causes the texture to affect the intensity of the mist.");*/
 
 	prop= RNA_def_property(srna, "texture_coordinates", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "texco");
 	RNA_def_property_enum_items(prop, texco_items);
 	RNA_def_property_ui_text(prop, "Texture Coordinates", "Texture coordinates used to map the texture onto the background.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object");
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Object", "Object to use for mapping with Object texture coordinates.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "blend_factor", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "varfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Blend Factor", "Amount texture affects color progression of the background.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "horizon_factor", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "colfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Horizon Factor", "Amount texture affects color of the horizon.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "zenith_up_factor", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "colfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Zenith Up Factor", "Amount texture affects color of the zenith above.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "zenith_down_factor", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "colfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Zenith Down Factor", "Amount texture affects color of the zenith below.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 }
 
 static void rna_def_ambient_occlusion(BlenderRNA *brna)
@@ -334,21 +391,23 @@ void RNA_def_world(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+/*
 	static EnumPropertyItem physics_engine_items[] = {
 		{WOPHY_NONE, "NONE", 0, "None", ""},
 		//{WOPHY_ENJI, "ENJI", 0, "Enji", ""},
-		{WOPHY_SUMO, "SUMO", 0, "Sumo (Deprecated)", ""},
+		//{WOPHY_SUMO, "SUMO", 0, "Sumo (Deprecated)", ""},
 		//{WOPHY_DYNAMO, "DYNAMO", 0, "Dynamo", ""},
 		//{WOPHY_ODE, "ODE", 0, "ODE", ""},
 		{WOPHY_BULLET, "BULLET", 0, "Bullet", ""},
 		{0, NULL, 0, NULL, NULL}};
+*/
 
 	srna= RNA_def_struct(brna, "World", "ID");
 	RNA_def_struct_ui_text(srna, "World", "World datablock describing the environment and ambient lighting of a scene.");
 	RNA_def_struct_ui_icon(srna, ICON_WORLD_DATA);
 
 	rna_def_animdata_common(srna);
-	rna_def_mtex_common(srna, "rna_World_mtex_begin", "rna_World_active_texture_get", "WorldTextureSlot");
+	rna_def_mtex_common(srna, "rna_World_mtex_begin", "rna_World_active_texture_get", "rna_World_active_texture_index_set", "WorldTextureSlot");
 
 	/* colors */
 	prop= RNA_def_property(srna, "horizon_color", PROP_FLOAT, PROP_COLOR);
@@ -377,7 +436,7 @@ void RNA_def_world(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "range", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "range");
 	RNA_def_property_range(prop, 0.2, 5.0);
-	RNA_def_property_ui_text(prop, "Range", "The color rage that will be mapped to 0-1");
+	RNA_def_property_ui_text(prop, "Range", "The color range that will be mapped to 0-1.");
 
 	/* sky type */
 	prop= RNA_def_property(srna, "blend_sky", PROP_BOOLEAN, PROP_NONE);
@@ -394,17 +453,6 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "skytype", WO_SKYREAL);
 	RNA_def_property_ui_text(prop, "Real Sky", "Render background with a real horizon, relative to the camera angle.");
 	RNA_def_property_update(prop, NC_WORLD, NULL);
-
-	/* physics */
-	prop= RNA_def_property(srna, "physics_engine", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "physicsEngine");
-	RNA_def_property_enum_items(prop, physics_engine_items);
-	RNA_def_property_ui_text(prop, "Physics Engine", "Physics engine used for physics simulation in the game engine.");
-
-	prop= RNA_def_property(srna, "physics_gravity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "gravity");
-	RNA_def_property_range(prop, 0.0, 25.0);
-	RNA_def_property_ui_text(prop, "Physics Gravity", "Gravitational constant used for physics simulation in the game engine.");
 
 	/* nested structs */
 	prop= RNA_def_property(srna, "ambient_occlusion", PROP_POINTER, PROP_NEVER_NULL);

@@ -30,6 +30,8 @@
 #ifndef UI_INTERFACE_H
 #define UI_INTERFACE_H
 
+#include "RNA_types.h"
+
 /* Struct Declarations */
 
 struct ID;
@@ -51,8 +53,13 @@ struct rcti;
 struct rctf;
 struct uiStyle;
 struct uiFontStyle;
+struct uiWidgetColors;
 struct ColorBand;
 struct CurveMapping;
+struct Image;
+struct ImageUser;
+struct uiWidgetColors;
+struct Tex;
 
 typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
@@ -197,7 +204,9 @@ typedef struct uiLayout uiLayout;
 #define SEARCH_MENU	(40<<9)
 #define BUT_EXTRA	(41<<9)
 #define HSVCIRCLE	(42<<9)
-#define BUTTYPE	(63<<9)
+#define LISTBOX		(43<<9)
+#define LISTROW		(44<<9)
+#define BUTTYPE		(63<<9)
 
 /* Drawing
  *
@@ -211,6 +220,11 @@ int uiGetRoundBox(void);
 void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad);
 void uiDrawMenuBox(float minx, float miny, float maxx, float maxy, short flag, short direction);
 void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, float maxy);
+
+/* state for scrolldrawing */
+#define UI_SCROLL_PRESSED	1
+#define UI_SCROLL_ARROWS	2
+void uiWidgetScrollDraw(struct uiWidgetColors *wcol, struct rcti *rect, struct rcti *slider, int state);
 
 /* Menu Callbacks */
 
@@ -415,7 +429,7 @@ void uiBlockPickerButtons(struct uiBlock *block, float *col, float *hsv, float *
 void uiBlockColorbandButtons(struct uiBlock *block, struct ColorBand *coba, struct rctf *butr, int event);
 
 uiBut *uiDefAutoButR(uiBlock *block, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, char *name, int icon, int x1, int y1, int x2, int y2);
-void uiDefAutoButsRNA(const struct bContext *C, uiLayout *layout, struct PointerRNA *ptr);
+void uiDefAutoButsRNA(const struct bContext *C, uiLayout *layout, struct PointerRNA *ptr, int columns);
 
 /* Links
  *
@@ -452,9 +466,9 @@ typedef void (*uiButSearchFunc)(const struct bContext *C, void *arg, char *str, 
 typedef void (*uiBlockHandleFunc)(struct bContext *C, void *arg, int event);
 		
 		/* use inside searchfunc to add items */
-int		uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin);
+int		uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int iconid);
 		/* bfunc gets search item *poin as arg2, or if NULL the old string */
-void	uiButSetSearchFunc	(uiBut *but,		uiButSearchFunc sfunc, void *arg1, uiButHandleFunc bfunc);
+void	uiButSetSearchFunc	(uiBut *but,		uiButSearchFunc sfunc, void *arg1, uiButHandleFunc bfunc, void *active);
 		/* height in pixels, it's using hardcoded values still */
 int		uiSearchBoxhHeight(void);
 
@@ -468,7 +482,7 @@ void	uiButSetNFunc		(uiBut *but,		uiButHandleNFunc func, void *argN, void *arg2)
 
 void	uiButSetCompleteFunc(uiBut *but,		uiButCompleteFunc func, void *arg);
 
-void 	uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(const struct bContext *C, void *, struct rcti *rect));
+void 	uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(const struct bContext *C, void *, void *, struct rcti *rect), void *arg);
 
 /* Autocomplete
  *
@@ -535,11 +549,6 @@ void UI_init(void);
 void UI_init_userdef(void);
 void UI_exit(void);
 
-/* XXX hide this */
-
-uiBut *uiDefMenuButO(uiBlock *block, char *opname, char *name);
-uiBut *uiDefMenuSep(uiBlock *block);
-
 /* Layout
  *
  * More automated layout of buttons. Has three levels:
@@ -584,7 +593,6 @@ void uiLayoutSetKeepAspect(uiLayout *layout, int keepaspect);
 void uiLayoutSetScaleX(uiLayout *layout, float scale);
 void uiLayoutSetScaleY(uiLayout *layout, float scale);
 
-
 int uiLayoutGetOperatorContext(uiLayout *layout);
 int uiLayoutGetActive(uiLayout *layout);
 int uiLayoutGetEnabled(uiLayout *layout);
@@ -593,12 +601,14 @@ int uiLayoutGetAlignment(uiLayout *layout);
 int uiLayoutGetKeepAspect(uiLayout *layout);
 float uiLayoutGetScaleX(uiLayout *layout);
 float uiLayoutGetScaleY(uiLayout *layout);
+ListBase *uiLayoutBoxGetList(uiLayout *layout);
 
 /* layout specifiers */
 uiLayout *uiLayoutRow(uiLayout *layout, int align);
 uiLayout *uiLayoutColumn(uiLayout *layout, int align);
 uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, int align);
 uiLayout *uiLayoutBox(uiLayout *layout);
+uiLayout *uiLayoutListBox(uiLayout *layout);
 uiLayout *uiLayoutFree(uiLayout *layout, int align);
 uiLayout *uiLayoutSplit(uiLayout *layout, float percentage);
 
@@ -607,13 +617,28 @@ uiBlock *uiLayoutFreeBlock(uiLayout *layout);
 /* templates */
 void uiTemplateHeader(uiLayout *layout, struct bContext *C);
 void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
-	char *newop, char *openop, char *unlinkop);
+	char *newop, char *unlinkop);
 uiLayout *uiTemplateModifier(uiLayout *layout, struct PointerRNA *ptr);
 uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
-void uiTemplatePreview(uiLayout *layout, struct ID *id);
+void uiTemplatePreview(uiLayout *layout, struct ID *id, struct ID *parent);
 void uiTemplateColorRamp(uiLayout *layout, struct ColorBand *coba, int expand);
 void uiTemplateCurveMapping(uiLayout *layout, struct CurveMapping *cumap, int type);
+void uiTemplateTriColorSet(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, char *propname);
+void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
+void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);
+void uiTemplateOperatorSearch(uiLayout *layout);
+void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);
+void uiTemplateTextureImage(uiLayout *layout, struct bContext *C, struct Tex *tex);
+
+typedef struct uiListItem {
+	struct uiListItem *next, *prev;
+
+	struct PointerRNA data;
+	uiLayout *layout;
+} uiListItem;
+
+ListBase uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *activeptr, char *activeprop, int rows, int type);
 
 /* items */
 void uiItemO(uiLayout *layout, char *name, int icon, char *opname);
@@ -629,7 +654,9 @@ void uiItemFullO(uiLayout *layout, char *name, int icon, char *idname, struct ID
 void uiItemR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int expand, int slider, int toggle);
 void uiItemFullR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int expand, int slider, int toggle);
 void uiItemEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int value);
+void uiItemEnumR_string(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, char *value);
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname);
+void uiItemPointerR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, struct PointerRNA *searchptr, char *searchpropname);
 
 void uiItemL(uiLayout *layout, char *name, int icon); /* label */
 void uiItemM(uiLayout *layout, struct bContext *C, char *name, int icon, char *menuname); /* menu */

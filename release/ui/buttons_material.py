@@ -13,21 +13,18 @@ class MATERIAL_PT_preview(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_preview"
 	__label__ = "Preview"
 
-	def poll(self, context):
-		return (context.material or context.material_slot)
-
 	def draw(self, context):
 		layout = self.layout
 		mat = context.material
 		
 		layout.template_preview(mat)
-	
-class MATERIAL_PT_material(MaterialButtonsPanel):
-	__idname__= "MATERIAL_PT_material"
-	__label__ = "Material"
+		
+class MATERIAL_PT_context_material(MaterialButtonsPanel):
+	__idname__= "MATERIAL_PT_context_material"
+	__no_header__ = True
 
 	def poll(self, context):
-		return (context.material or context.material_slot)
+		return (context.object)
 
 	def draw(self, context):
 		layout = self.layout
@@ -37,29 +34,82 @@ class MATERIAL_PT_material(MaterialButtonsPanel):
 		slot = context.material_slot
 		space = context.space_data
 
+		if ob:
+			row = layout.row()
+
+			row.template_list(ob, "materials", ob, "active_material_index", rows=2)
+
+			col = row.column(align=True)
+			col.itemO("object.material_slot_add", icon="ICON_ZOOMIN", text="")
+			col.itemO("object.material_slot_remove", icon="ICON_ZOOMOUT", text="")
+
+			if context.edit_object:
+				row = layout.row(align=True)
+
+				row.itemO("object.material_slot_assign", text="Assign")
+				row.itemO("object.material_slot_select", text="Select")
+				row.itemO("object.material_slot_deselect", text="Deselect")
+
 		split = layout.split(percentage=0.65)
 
 		if ob and slot:
-			split.template_ID(context, slot, "material", new="MATERIAL_OT_new")
-			split.itemR(ob, "active_material_index", text="Active")
+			split.template_ID(slot, "material", new="material.new")
+			row = split.row()
+			row.itemR(slot, "link", expand=True)
 		elif mat:
-			split.template_ID(context, space, "pin_id")
+			split.template_ID(space, "pin_id")
 			split.itemS()
+	
+class MATERIAL_PT_material(MaterialButtonsPanel):
+	__idname__= "MATERIAL_PT_material"
+	__label__ = "Shading"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		mat = context.material
+		ob = context.object
+		slot = context.material_slot
+		space = context.space_data
 
 		if mat:
-			layout.itemS()
-		
 			layout.itemR(mat, "type", expand=True)
 			
-			layout.itemR(mat, "alpha", slider=True)
 
-			row = layout.row()
-			row.active = mat.type in ('SURFACE', 'VOLUME')
-			row.itemR(mat, "shadeless")	
-			row.itemR(mat, "wireframe")
-			rowsub = row.row()
-			rowsub.active = mat.shadeless== False
-			rowsub.itemR(mat, "tangent_shading")
+
+#			row = layout.row()
+
+			if mat.type == 'SURFACE':
+				split = layout.split()
+	
+				sub = split.column()
+				sub.itemR(mat, "alpha", slider=True)
+				sub.itemR(mat, "ambient", slider=True)
+				sub.itemR(mat, "emit")
+				sub.itemR(mat, "translucency", slider=True)
+				
+				sub = split.column()
+				sub.itemR(mat, "shadeless")	
+				sub.itemR(mat, "wireframe")
+				sub.itemR(mat, "tangent_shading")
+				sub.itemR(mat, "cubic", slider=True)
+			elif mat.type == 'VOLUME':
+				split = layout.split()
+	
+				sub = split.column()
+				sub.itemR(mat, "alpha", slider=True)
+				sub.itemR(mat, "ambient", slider=True)
+				sub.itemR(mat, "emit")
+				sub.itemR(mat, "translucency", slider=True)
+				
+				sub = split.column()
+				sub.itemR(mat, "shadeless")	
+				sub.itemR(mat, "wireframe")
+				sub.itemR(mat, "tangent_shading")
+				sub.itemR(mat, "cubic", slider=True)
+			elif mat.type == 'HALO':
+				layout.itemR(mat, "alpha", slider=True)
+
 			
 class MATERIAL_PT_strand(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_strand"
@@ -109,6 +159,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
 		sub.itemR(mat, "full_oversampling")
 		sub.itemR(mat, "sky")
 		sub.itemR(mat, "exclude_mist")
+		sub = split.column()
 		sub.itemR(mat, "face_texture")
 		colsub = sub.column()
 		colsub.active = mat.face_texture
@@ -117,22 +168,33 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
 		sub.itemR(mat, "light_group")
 		sub.itemR(mat, "light_group_exclusive")
 		
+		
+
+
+class MATERIAL_PT_shadows(MaterialButtonsPanel):
+	__idname__= "MATERIAL_PT_shadows"
+	__label__ = "Shadows"
+
+	def draw(self, context):
+		layout = self.layout
+		mat = context.material
+		
+		split = layout.split()
+		
 		sub = split.column()
-		sub.itemL(text="Shadows:")
-		sub.itemR(mat, "shadows", text="Recieve")
-		sub.itemR(mat, "transparent_shadows", text="Recieve Transparent")
+		sub.itemR(mat, "shadows", text="Receive")
+		sub.itemR(mat, "transparent_shadows", text="Receive Transparent")
 		sub.itemR(mat, "only_shadow", text="Shadows Only")
 		sub.itemR(mat, "cast_shadows_only", text="Cast Only")
 		sub.itemR(mat, "shadow_casting_alpha", text="Casting Alpha", slider=True)
-		
-		sub.itemR(mat, "ray_shadow_bias")
+		sub = split.column()
+		sub.itemR(mat, "ray_shadow_bias", text="Auto Ray Bias")
 		colsub = sub.column()
-		colsub.active = mat.ray_shadow_bias
-		colsub.itemR(mat, "shadow_ray_bias", text="Raytracing Bias")
+		colsub.active = not mat.ray_shadow_bias
+		colsub.itemR(mat, "shadow_ray_bias", text="Ray Shadow Bias")
 		sub.itemR(mat, "cast_buffer_shadows")
-		colsub = sub.column()
-		colsub.active = mat.cast_buffer_shadows
-		colsub.itemR(mat, "shadow_buffer_bias", text="Buffer Bias")
+		sub.itemR(mat, "shadow_buffer_bias", text="Buffer Bias")
+
 
 class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_diffuse"
@@ -150,19 +212,15 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 		
 		sub = split.column()
 		sub.itemR(mat, "diffuse_color", text="")
-		sub.itemR(mat, "object_color")
-		colsub = sub.column()
-		colsub.active = mat.shadeless== False
-		colsub.itemR(mat, "ambient", slider=True)
-		colsub.itemR(mat, "emit")
-		sub.itemR(mat, "translucency", slider=True)
+		sub.itemR(mat, "vertex_color_paint")
+		sub.itemR(mat, "vertex_color_light")
 		
 		sub = split.column()
 		sub.active = mat.shadeless== False
 		sub.itemR(mat, "diffuse_reflection", text="Intensity", slider=True)
-		sub.itemR(mat, "vertex_color_light")
-		sub.itemR(mat, "vertex_color_paint")
-		sub.itemR(mat, "cubic")
+		sub.itemR(mat, "object_color")
+		
+
 		
 		row = layout.row()
 		row.active = mat.shadeless== False
@@ -172,11 +230,9 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 		split.active = mat.shadeless== False
 		sub = split.column()
 		if mat.diffuse_shader == 'OREN_NAYAR':
-				sub.itemR(mat, "roughness")
-				sub = split.column()
+			sub.itemR(mat, "roughness")
 		if mat.diffuse_shader == 'MINNAERT':
 			sub.itemR(mat, "darkness")
-			sub = split.column()
 		if mat.diffuse_shader == 'TOON':
 			sub.itemR(mat, "diffuse_toon_size", text="Size")
 			sub = split.column()
@@ -216,14 +272,12 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
 		sub = split.column()
 		if mat.spec_shader in ('COOKTORR', 'PHONG'):
 			sub.itemR(mat, "specular_hardness", text="Hardness")
-			sub = split.column()
 		if mat.spec_shader == 'BLINN':
 			sub.itemR(mat, "specular_hardness", text="Hardness")
 			sub = split.column()
 			sub.itemR(mat, "specular_ior", text="IOR")
 		if mat.spec_shader == 'WARDISO':
 			sub.itemR(mat, "specular_slope", text="Slope")
-			sub.itemR(mat, "specular_hardness", text="Hardness")
 		if mat.spec_shader == 'TOON':
 			sub.itemR(mat, "specular_toon_size", text="Size")
 			sub = split.column()
@@ -413,6 +467,8 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
 		colsub.itemR(halo, "flare_seed", text="Seed")
 		colsub.itemR(halo, "flares_sub", text="Sub")
 
+
+bpy.types.register(MATERIAL_PT_context_material)
 bpy.types.register(MATERIAL_PT_preview)
 bpy.types.register(MATERIAL_PT_material)
 bpy.types.register(MATERIAL_PT_diffuse)
@@ -423,3 +479,4 @@ bpy.types.register(MATERIAL_PT_sss)
 bpy.types.register(MATERIAL_PT_halo)
 bpy.types.register(MATERIAL_PT_strand)
 bpy.types.register(MATERIAL_PT_options)
+bpy.types.register(MATERIAL_PT_shadows)

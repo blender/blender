@@ -31,6 +31,7 @@
 
 #include "DNA_curve_types.h"
 #include "DNA_material_types.h"
+#include "DNA_scene_types.h"
 
 EnumPropertyItem beztriple_handle_type_items[] = {
 		{HD_FREE, "FREE", 0, "Free", ""},
@@ -138,7 +139,7 @@ static int rna_Nurb_length(PointerRNA *ptr)
 static void rna_BPoint_array_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Nurb *nu= (Nurb*)ptr->data;
-	rna_iterator_array_begin(iter, (void*)nu->bp, sizeof(BPoint*), nu->pntsv>0 ? nu->pntsu*nu->pntsv : nu->pntsu, NULL);
+	rna_iterator_array_begin(iter, (void*)nu->bp, sizeof(BPoint*), nu->pntsv>0 ? nu->pntsu*nu->pntsv : nu->pntsu, 0, NULL);
 }
 
 #else
@@ -558,6 +559,11 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Resolution V", "Surface resolution in V direction used while rendering. Zero skips this property.");
 	
+	
+	prop= RNA_def_property(srna, "eval_time", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ctime");
+	RNA_def_property_ui_text(prop, "Evaluation Time", "Parametric position along the length of the curve that Objects 'following' it should be at.");
+	
 	/* pointers */
 	prop= RNA_def_property(srna, "bevel_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "bevobj");
@@ -695,7 +701,6 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "mat_nr");
 	RNA_def_property_ui_text(prop, "Material Index", "");
-	RNA_def_property_range(prop, 0, MAXMAT-1);
 	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_Curve_material_index_range");
 	
 	prop= RNA_def_property(srna, "character_index", PROP_INT, PROP_UNSIGNED);

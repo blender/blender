@@ -43,6 +43,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"		
@@ -445,7 +446,7 @@ Material *give_current_material(Object *ob, int act)
 	if(act>ob->totcol) act= ob->totcol;
 	else if(act<=0) act= 1;
 
-	if( BTST(ob->colbits, act-1) ) {	/* in object */
+	if(ob->matbits[act-1]) {	/* in object */
 		ma= ob->mat[act-1];
 	}
 	else {								/* in data */
@@ -473,7 +474,7 @@ ID *material_from(Object *ob, int act)
 	if(ob->totcol==0) return ob->data;
 	if(act==0) act= 1;
 
-	if( BTST(ob->colbits, act-1) ) return (ID *)ob;
+	if(ob->matbits[act-1]) return (ID *)ob;
 	else return ob->data;
 }
 
@@ -498,6 +499,7 @@ void test_object_materials(ID *id)
 	Curve *cu;
 	MetaBall *mb;
 	Material **newmatar;
+	char *newmatbits;
 	int totcol=0;
 
 	if(id==0) return;
@@ -524,16 +526,22 @@ void test_object_materials(ID *id)
 			if(totcol==0) {
 				if(ob->totcol) {
 					MEM_freeN(ob->mat);
-					ob->mat= 0;
+					MEM_freeN(ob->matbits);
+					ob->mat= NULL;
+					ob->matbits= NULL;
 				}
 			}
 			else if(ob->totcol<totcol) {
 				newmatar= MEM_callocN(sizeof(void *)*totcol, "newmatar");
+				newmatbits= MEM_callocN(sizeof(char)*totcol, "newmatbits");
 				if(ob->totcol) {
 					memcpy(newmatar, ob->mat, sizeof(void *)*ob->totcol);
+					memcpy(newmatbits, ob->matbits, sizeof(char)*ob->totcol);
 					MEM_freeN(ob->mat);
+					MEM_freeN(ob->matbits);
 				}
 				ob->mat= newmatar;
+				ob->matbits= newmatbits;
 			}
 			ob->totcol= totcol;
 			if(ob->totcol && ob->actcol==0) ob->actcol= 1;
@@ -547,6 +555,7 @@ void test_object_materials(ID *id)
 void assign_material(Object *ob, Material *ma, int act)
 {
 	Material *mao, **matar, ***matarar;
+	char *matbits;
 	short *totcolp;
 
 	if(act>MAXMAT) return;
@@ -559,29 +568,41 @@ void assign_material(Object *ob, Material *ma, int act)
 	
 	if(totcolp==0 || matarar==0) return;
 	
-	if( act > *totcolp) {
+	if(act > *totcolp) {
 		matar= MEM_callocN(sizeof(void *)*act, "matarray1");
-		if( *totcolp) {
-			memcpy(matar, *matarar, sizeof(void *)*( *totcolp ));
+
+		if(*totcolp) {
+			memcpy(matar, *matarar, sizeof(void *)*(*totcolp));
 			MEM_freeN(*matarar);
 		}
+
 		*matarar= matar;
 		*totcolp= act;
 	}
 	
 	if(act > ob->totcol) {
 		matar= MEM_callocN(sizeof(void *)*act, "matarray2");
+		matbits= MEM_callocN(sizeof(char)*act, "matbits1");
 		if( ob->totcol) {
 			memcpy(matar, ob->mat, sizeof(void *)*( ob->totcol ));
+			memcpy(matbits, ob->matbits, sizeof(char)*(*totcolp));
 			MEM_freeN(ob->mat);
+			MEM_freeN(ob->matbits);
 		}
 		ob->mat= matar;
+		ob->matbits= matbits;
 		ob->totcol= act;
+
+		/* copy object/mesh linking, or assign based on userpref */
+		if(ob->actcol)
+			ob->matbits[act-1]= ob->matbits[ob->actcol-1];
+		else
+			ob->matbits[act-1]= (U.flag & USER_MAT_ON_OB)? 1: 0;
 	}
 	
 	/* do it */
 
-	if( BTST(ob->colbits, act-1) ) {	/* in object */
+	if(ob->matbits[act-1]) {	/* in object */
 		mao= ob->mat[act-1];
 		if(mao) mao->id.us--;
 		ob->mat[act-1]= ma;
@@ -591,7 +612,9 @@ void assign_material(Object *ob, Material *ma, int act)
 		if(mao) mao->id.us--;
 		(*matarar)[act-1]= ma;
 	}
-	id_us_plus((ID *)ma);
+
+	if(ma)
+		id_us_plus((ID *)ma);
 	test_object_materials(ob->data);
 }
 
@@ -615,7 +638,7 @@ int find_material_index(Object *ob, Material *ma)
 	return 0;	   
 }
 
-void new_material_to_objectdata(Object *ob)
+void object_add_material_slot(Object *ob)
 {
 	Material *ma;
 	
@@ -623,19 +646,7 @@ void new_material_to_objectdata(Object *ob)
 	if(ob->totcol>=MAXMAT) return;
 	
 	ma= give_current_material(ob, ob->actcol);
-	if(ma==NULL)
-		ma= add_material("Material");
-	else
-		ma= copy_material(ma);
-	
-	ma->id.us= 0; /* eeh... */
-	
-	if(ob->actcol) {
-		if( BTST(ob->colbits, ob->actcol-1) ) {
-			ob->colbits= BSET(ob->colbits, ob->totcol);
-		}
-	}
-	
+
 	assign_material(ob, ma, ob->totcol+1);
 	ob->actcol= ob->totcol;
 }
@@ -660,6 +671,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 			ma->mapto |= mtex->mapto;
 			if(r_mode & R_OSA) {
 				if ELEM3(mtex->tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP) ma->texco |= TEXCO_OSA;
+				else if(mtex->texflag & MTEX_NEW_BUMP) ma->texco |= TEXCO_OSA; // NEWBUMP: need texture derivatives for procedurals as well
 			}
 			
 			if(ma->texco & (TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM|TEXCO_STRAND|TEXCO_STRESS)) needuv= 1;
@@ -854,7 +866,7 @@ void automatname(Material *ma)
 }
 
 
-void delete_material_index(Object *ob)
+void object_remove_material_slot(Object *ob)
 {
 	Material *mao, ***matarar;
 	Object *obt;
@@ -880,9 +892,8 @@ void delete_material_index(Object *ob)
 		if(mao) mao->id.us--;
 	}
 	
-	for(a=ob->actcol; a<ob->totcol; a++) {
+	for(a=ob->actcol; a<ob->totcol; a++)
 		(*matarar)[a-1]= (*matarar)[a];
-	}
 	(*totcolp)--;
 	
 	if(*totcolp==0) {
@@ -900,13 +911,18 @@ void delete_material_index(Object *ob)
 			mao= obt->mat[actcol-1];
 			if(mao) mao->id.us--;
 		
-			for(a=actcol; a<obt->totcol; a++) obt->mat[a-1]= obt->mat[a];
+			for(a=actcol; a<obt->totcol; a++) {
+				obt->mat[a-1]= obt->mat[a];
+				obt->matbits[a-1]= obt->matbits[a];
+			}
 			obt->totcol--;
 			if(obt->actcol > obt->totcol) obt->actcol= obt->totcol;
 			
 			if(obt->totcol==0) {
 				MEM_freeN(obt->mat);
+				MEM_freeN(obt->matbits);
 				obt->mat= 0;
+				obt->matbits= NULL;
 			}
 		}
 		obt= obt->id.next;

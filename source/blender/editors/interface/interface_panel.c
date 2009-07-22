@@ -70,6 +70,7 @@
 #define PNL_WAS_ACTIVE		4
 #define PNL_ANIM_ALIGN		8
 #define PNL_NEW_ADDED		16
+#define PNL_FIRST			32
 
 typedef enum uiHandlePanelState {
 	PANEL_STATE_DRAG,
@@ -103,7 +104,11 @@ static int panel_aligned(ScrArea *sa, ARegion *ar)
 		SpaceButs *sbuts= sa->spacedata.first;
 		return sbuts->align;
 	}
-	else if(ar->regiontype==RGN_TYPE_UI)
+	else if(sa->spacetype==SPACE_INFO && ar->regiontype == RGN_TYPE_WINDOW)
+		return BUT_VERTICAL;
+	else if(sa->spacetype==SPACE_FILE && ar->regiontype == RGN_TYPE_CHANNELS)
+		return BUT_VERTICAL;
+	else if(ELEM3(ar->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS, RGN_TYPE_TOOL_PROPS))
 		return BUT_VERTICAL;
 	
 	return 0;
@@ -124,6 +129,8 @@ static int panels_re_align(ScrArea *sa, ARegion *ar, Panel **r_pa)
 				return 1;
 	}
 	else if(ar->regiontype==RGN_TYPE_UI)
+		return 1;
+	else if(sa->spacetype==SPACE_FILE && ar->regiontype == RGN_TYPE_CHANNELS)
 		return 1;
 
 	/* in case panel is added or disappears */
@@ -261,14 +268,19 @@ void uiEndPanel(uiBlock *block, int width, int height)
 		pa->sizex= width;
 		pa->sizey= height;
 	}
-	else if(!(width == 0 || height == 0)) {
-		if(pa->sizex != width || pa->sizey != height) {
+	else {
+		/* check if we need to do an animation */
+		if(!ELEM(width, 0, pa->sizex) || !ELEM(height, 0, pa->sizey)) {
 			pa->runtime_flag |= PNL_ANIM_ALIGN;
-			pa->ofsy += pa->sizey-height;
+			if(height != 0)
+				pa->ofsy += pa->sizey-height;
 		}
 
-		pa->sizex= width;
-		pa->sizey= height;
+		/* update width/height if non-zero */
+		if(width != 0)
+			pa->sizex= width;
+		if(height != 0)
+			pa->sizey= height;
 	}
 }
 
@@ -528,12 +540,13 @@ static void rectf_scale(rctf *rect, float scale)
 /* panel integrated in buttonswindow, tool/property lists etc */
 void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *rect)
 {
-	Panel *panel= block->panel, *prev;
+	Panel *panel= block->panel;
 	rcti headrect;
 	rctf itemrect;
 	int ofsx;
 	
 	if(panel->paneltab) return;
+	if(panel->type && (panel->type->flag & PNL_NO_HEADER)) return;
 
 	/* calculate header rect */
 	/* + 0.001f to prevent flicker due to float inaccuracy */
@@ -541,14 +554,7 @@ void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *re
 	headrect.ymin= headrect.ymax;
 	headrect.ymax= headrect.ymin + floor(PNL_HEADER/block->aspect + 0.001f);
 	
-	/* divider only when there's a previous panel */
-	prev= panel->prev;
-	while(prev) {
-		if(prev->runtime_flag & PNL_ACTIVE) break;
-		prev= prev->prev;
-	}
-	
-	if(panel->sortorder != 0) {
+	if(!(panel->runtime_flag & PNL_FIRST)) {
 		float minx= rect->xmin+5.0f/block->aspect;
 		float maxx= rect->xmax-5.0f/block->aspect;
 		float y= headrect.ymax;
@@ -646,6 +652,22 @@ void ui_draw_aligned_panel(ARegion *ar, uiStyle *style, uiBlock *block, rcti *re
 
 /************************** panel alignment *************************/
 
+static int get_panel_header(Panel *pa)
+{
+	if(pa->type && (pa->type->flag & PNL_NO_HEADER))
+		return 0;
+
+	return PNL_HEADER;
+}
+
+static int get_panel_size_y(uiStyle *style, Panel *pa)
+{
+	if(pa->type && (pa->type->flag & PNL_NO_HEADER))
+		return pa->sizey;
+
+	return PNL_HEADER + pa->sizey + style->panelouter;
+}
+
 /* this function is needed because uiBlock and Panel itself dont
 change sizey or location when closed */
 static int get_panel_real_ofsy(Panel *pa)
@@ -658,8 +680,8 @@ static int get_panel_real_ofsy(Panel *pa)
 
 static int get_panel_real_ofsx(Panel *pa)
 {
-	if(pa->flag & PNL_CLOSEDX) return pa->ofsx+PNL_HEADER;
-	else if(pa->paneltab && (pa->paneltab->flag & PNL_CLOSEDX)) return pa->ofsx+PNL_HEADER;
+	if(pa->flag & PNL_CLOSEDX) return pa->ofsx+get_panel_header(pa);
+	else if(pa->paneltab && (pa->paneltab->flag & PNL_CLOSEDX)) return pa->ofsx+get_panel_header(pa);
 	else return pa->ofsx+pa->sizex;
 }
 
@@ -764,18 +786,18 @@ int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
 	/* no smart other default start loc! this keeps switching f5/f6/etc compatible */
 	ps= panelsort;
 	ps->pa->ofsx= 0;
-	ps->pa->ofsy= -ps->pa->sizey-PNL_HEADER-style->panelouter;
+	ps->pa->ofsy= -get_panel_size_y(style, ps->pa);
 
 	for(a=0; a<tot-1; a++, ps++) {
 		psnext= ps+1;
 	
 		if(align==BUT_VERTICAL) {
 			psnext->pa->ofsx= ps->pa->ofsx;
-			psnext->pa->ofsy= get_panel_real_ofsy(ps->pa) - psnext->pa->sizey-PNL_HEADER-style->panelouter;
+			psnext->pa->ofsy= get_panel_real_ofsy(ps->pa) - get_panel_size_y(style, psnext->pa);
 		}
 		else {
 			psnext->pa->ofsx= get_panel_real_ofsx(ps->pa);
-			psnext->pa->ofsy= ps->pa->ofsy + ps->pa->sizey - psnext->pa->sizey;
+			psnext->pa->ofsy= ps->pa->ofsy + get_panel_size_y(style, ps->pa) - get_panel_size_y(style, psnext->pa);
 		}
 	}
 	
@@ -848,7 +870,7 @@ void uiEndPanels(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	uiBlock *block;
-	Panel *panot, *panew, *patest, *pa;
+	Panel *panot, *panew, *patest, *pa, *firstpa;
 	
 	/* offset contents */
 	for(block= ar->uiblocks.first; block; block= block->next)
@@ -887,6 +909,16 @@ void uiEndPanels(const bContext *C, ARegion *ar)
 		else
 			uiAlignPanelStep(sa, ar, 1.0, 0);
 	}
+
+	/* tag first panel */
+	firstpa= NULL;
+	for(block= ar->uiblocks.first; block; block=block->next)
+		if(block->active && block->panel)
+			if(!firstpa || block->panel->sortorder < firstpa->sortorder)
+				firstpa= block->panel;
+	
+	if(firstpa)
+		firstpa->runtime_flag |= PNL_FIRST;
 
 	/* draw panels, selected on top */
 	for(block= ar->uiblocks.first; block; block=block->next) {
@@ -1192,6 +1224,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
 	uiBlock *block;
+	Panel *pa;
 	int retval, mx, my, inside_header= 0, inside_scale= 0, inside;
 
 	retval= WM_UI_HANDLER_CONTINUE;
@@ -1207,22 +1240,27 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 
 		/* check if inside boundbox */
 		inside= 0;
+		pa= block->panel;
 
-		if(block->panel && block->panel->paneltab==NULL)
-			if(block->minx <= mx && block->maxx >= mx)
-				if(block->miny <= my && block->maxy+PNL_HEADER >= my)
-					inside= 1;
+		if(!pa || pa->paneltab!=NULL)
+			continue;
+		if(pa->type && pa->type->flag & PNL_NO_HEADER)
+			continue;
+
+		if(block->minx <= mx && block->maxx >= mx)
+			if(block->miny <= my && block->maxy+PNL_HEADER >= my)
+				inside= 1;
 
 		if(inside) {
 			/* clicked at panel header? */
-			if(block->panel->flag & PNL_CLOSEDX) {
+			if(pa->flag & PNL_CLOSEDX) {
 				if(block->minx <= mx && block->minx+PNL_HEADER >= mx) 
 					inside_header= 1;
 			}
 			else if((block->maxy <= my) && (block->maxy+PNL_HEADER >= my)) {
 				inside_header= 1;
 			}
-			else if(block->panel->control & UI_PNL_SCALE) {
+			else if(pa->control & UI_PNL_SCALE) {
 				if(block->maxx-PNL_HEADER <= mx)
 					if(block->miny+PNL_HEADER >= my)
 						inside_scale= 1;
@@ -1234,8 +1272,8 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 						ui_handle_panel_header(C, block, mx, my);
 						break;
 					}
-					else if(inside_scale && !(block->panel->flag & PNL_CLOSED)) {
-						panel_activate_state(C, block->panel, PANEL_STATE_DRAG_SCALE);
+					else if(inside_scale && !(pa->flag & PNL_CLOSED)) {
+						panel_activate_state(C, pa, PANEL_STATE_DRAG_SCALE);
 						break;
 					}
 				}
@@ -1250,7 +1288,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 					int zoom=0;
 				
 					/* if panel is closed, only zoom if mouse is over the header */
-					if (block->panel->flag & (PNL_CLOSEDX|PNL_CLOSEDY)) {
+					if (pa->flag & (PNL_CLOSEDX|PNL_CLOSEDY)) {
 						if (inside_header)
 							zoom=1;
 					}
@@ -1263,7 +1301,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 						SpaceLink *sl= sa->spacedata.first;
 
 						if(sa->spacetype!=SPACE_BUTS) {
-							if(!(block->panel->control & UI_PNL_SCALE)) {
+							if(!(pa->control & UI_PNL_SCALE)) {
 								if(event->type==PADPLUSKEY) sl->blockscale+= 0.1;
 								else sl->blockscale-= 0.1;
 								CLAMP(sl->blockscale, 0.6, 1.0);
@@ -1284,6 +1322,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 
 /**************** window level modal panel interaction **************/
 
+/* note, this is modal handler and should not swallow events for animation */
 static int ui_handler_panel(bContext *C, wmEvent *event, void *userdata)
 {
 	Panel *panel= userdata;
@@ -1299,8 +1338,6 @@ static int ui_handler_panel(bContext *C, wmEvent *event, void *userdata)
 			panel_activate_state(C, panel, PANEL_STATE_ANIMATION);
 		else
 			panel_activate_state(C, panel, PANEL_STATE_EXIT);
-
-		return WM_UI_HANDLER_BREAK;
 	}
 	else if(event->type == MOUSEMOVE) {
 		if(data->state == PANEL_STATE_WAIT_UNTAB)

@@ -49,6 +49,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
+#include "BKE_pointcache.h"
 
 #include "ED_fileselect.h"
 #include "ED_screen.h"
@@ -234,6 +235,8 @@ void wm_event_do_notifiers(bContext *C)
 			for(base= scene->base.first; base; base= base->next) {
 				object_handle_update(scene, base->object);
 			}
+
+			BKE_ptcache_quick_cache_all(scene);
 		}		
 	}
 	CTX_wm_window_set(C, NULL);
@@ -265,7 +268,7 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 		
 		if(repeat==0) {
 			if(op->type->flag & OPTYPE_REGISTER)
-				wm_operator_register(CTX_wm_manager(C), op);
+				wm_operator_register(C, op);
 			else
 				WM_operator_free(op);
 		}
@@ -371,13 +374,17 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 				ED_undo_push_op(C, op);
 			
 			if(ot->flag & OPTYPE_REGISTER)
-				wm_operator_register(wm, op);
+				wm_operator_register(C, op);
 			else
 				WM_operator_free(op);
 		}
-		else if(!(retval & OPERATOR_RUNNING_MODAL)) {
-			WM_operator_free(op);
+		else if(retval & OPERATOR_RUNNING_MODAL) {
+			/* grab cursor during blocking modal ops (X11) */
+			if(ot->flag & OPTYPE_BLOCKING)
+				WM_cursor_grab(CTX_wm_window(C), 1);
 		}
+		else
+			WM_operator_free(op);
 	}
 
 	return retval;
@@ -386,7 +393,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 /* invokes operator in context */
 int WM_operator_name_call(bContext *C, const char *opstring, int context, PointerRNA *properties)
 {
-	wmOperatorType *ot= WM_operatortype_find(opstring);
+	wmOperatorType *ot= WM_operatortype_find(opstring, 0);
 	wmWindow *window= CTX_wm_window(C);
 	wmEvent *event;
 	
@@ -545,6 +552,7 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 			}
 
 			WM_operator_free(handler->op);
+			WM_cursor_grab(CTX_wm_window(C), 0);
 		}
 		else if(handler->ui_remove) {
 			ScrArea *area= CTX_wm_area(C);
@@ -644,6 +652,23 @@ static int wm_event_always_pass(wmEvent *event)
 	return ELEM5(event->type, TIMER, TIMER0, TIMER1, TIMER2, TIMERJOBS);
 }
 
+/* operator exists */
+static void wm_event_modalkeymap(wmOperator *op, wmEvent *event)
+{
+	if(op->type->modalkeymap) {
+		wmKeymapItem *kmi;
+		
+		for(kmi= op->type->modalkeymap->keymap.first; kmi; kmi= kmi->next) {
+			if(wm_eventmatch(event, kmi)) {
+					
+				event->type= EVT_MODAL_MAP;
+				event->val= kmi->propvalue;
+				printf("found modal event %s %d\n", kmi->idname, kmi->propvalue);
+			}
+		}
+	}
+}
+
 /* Warning: this function removes a modal handler, when finished */
 static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHandler *handler, wmEvent *event, PointerRNA *properties)
 {
@@ -660,8 +685,9 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			ARegion *region= CTX_wm_region(C);
 			
 			wm_handler_op_context(C, handler);
-			
 			wm_region_mouse_co(C, event);
+			wm_event_modalkeymap(op, event);
+			
 			retval= ot->modal(C, op, event);
 
 			/* putting back screen context, reval can pass trough after modal failures! */
@@ -689,7 +715,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 					ED_undo_push_op(C, op);
 				
 				if(ot->flag & OPTYPE_REGISTER)
-					wm_operator_register(CTX_wm_manager(C), op);
+					wm_operator_register(C, op);
 				else
 					WM_operator_free(op);
 				handler->op= NULL;
@@ -701,6 +727,8 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			
 			/* remove modal handler, operator itself should have been cancelled and freed */
 			if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
+				WM_cursor_grab(CTX_wm_window(C), 0);
+
 				BLI_remlink(handlers, handler);
 				wm_event_free_handler(handler);
 				
@@ -713,7 +741,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			printf("wm_handler_operator_call error\n");
 	}
 	else {
-		wmOperatorType *ot= WM_operatortype_find(event->keymap_idname);
+		wmOperatorType *ot= WM_operatortype_find(event->keymap_idname, 0);
 
 		if(ot)
 			retval= wm_operator_invoke(C, ot, event, properties);
@@ -730,17 +758,20 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	ScrArea *area= CTX_wm_area(C);
 	ARegion *region= CTX_wm_region(C);
 	ARegion *menu= CTX_wm_menu(C);
-	int retval;
+	int retval, always_pass;
 			
 	/* we set context to where ui handler came from */
 	if(handler->ui_area) CTX_wm_area_set(C, handler->ui_area);
 	if(handler->ui_region) CTX_wm_region_set(C, handler->ui_region);
 	if(handler->ui_menu) CTX_wm_menu_set(C, handler->ui_menu);
 
+	/* in advance to avoid access to freed event on window close */
+	always_pass= wm_event_always_pass(event);
+
 	retval= handler->ui_handle(C, event, handler->ui_userdata);
 
 	/* putting back screen context */
-	if((retval != WM_UI_HANDLER_BREAK) || wm_event_always_pass(event)) {
+	if((retval != WM_UI_HANDLER_BREAK) || always_pass) {
 		CTX_wm_area_set(C, area);
 		CTX_wm_region_set(C, region);
 		CTX_wm_menu_set(C, menu);
@@ -773,8 +804,8 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 		case EVT_FILESELECT_OPEN: 
 		case EVT_FILESELECT_FULL_OPEN: 
 			{
-				short flag =0; short display =FILE_SHORTDISPLAY; short filter =0; short sort =FILE_SORTALPHA;
-				char *path= RNA_string_get_alloc(handler->op->ptr, "filename", NULL, 0);
+				short flag =0; short display =FILE_SHORTDISPLAY; short filter =0; short sort =FILE_SORT_ALPHA;
+				char *dir= NULL; char *path= RNA_string_get_alloc(handler->op->ptr, "filename", NULL, 0);
 					
 				if(event->val==EVT_FILESELECT_OPEN)
 					ED_area_newspace(C, handler->op_area, SPACE_FILE);
@@ -792,9 +823,11 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 					filter = sfile->params->filter;
 					display = sfile->params->display;
 					sort = sfile->params->sort;
+					dir = sfile->params->dir;
 				}
 
-				ED_fileselect_set_params(sfile, handler->op->type->name, path, flag, display, filter, sort);
+				ED_fileselect_set_params(sfile, handler->op->type->name, dir, path, flag, display, filter, sort);
+				dir = NULL;
 				MEM_freeN(path);
 				
 				action= WM_HANDLER_BREAK;
@@ -869,6 +902,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 {
 	wmEventHandler *handler, *nexthandler;
 	int action= WM_HANDLER_CONTINUE;
+	int always_pass;
 
 	if(handlers==NULL) return action;
 	
@@ -878,6 +912,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 
 		/* optional boundbox */
 		if(handler_boundbox_test(handler, event)) {
+			/* in advance to avoid access to freed event on window close */
+			always_pass= wm_event_always_pass(event);
 		
 			/* modal+blocking handler */
 			if(handler->flag & WM_HANDLER_BLOCKING)
@@ -909,7 +945,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 				action= wm_handler_operator_call(C, handlers, handler, event, NULL);
 			}
 
-			if(!wm_event_always_pass(event) && action==WM_HANDLER_BREAK)
+			if(!always_pass && action==WM_HANDLER_BREAK)
 				break;
 		}
 		
@@ -1428,7 +1464,7 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			GHOST_TEventKeyData *kd= customdata;
 			event.type= convert_key(kd->key);
 			event.ascii= kd->ascii;
-			event.val= (type==GHOST_kEventKeyDown); /* XXX eventmatch uses defines, bad code... */
+			event.val= (type==GHOST_kEventKeyDown)?KM_PRESS:KM_RELEASE;
 			
 			/* exclude arrow keys, esc, etc from text input */
 			if(type==GHOST_kEventKeyUp || (event.ascii<32 && event.ascii>14))
@@ -1436,30 +1472,30 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			
 			/* modifiers */
 			if (event.type==LEFTSHIFTKEY || event.type==RIGHTSHIFTKEY) {
-				event.shift= evt->shift= event.val;
-				if(event.val && (evt->ctrl || evt->alt || evt->oskey))
+				event.shift= evt->shift= (event.val==KM_PRESS);
+				if(event.val==KM_PRESS && (evt->ctrl || evt->alt || evt->oskey))
 				   event.shift= evt->shift = 3;		// define?
 			} 
 			else if (event.type==LEFTCTRLKEY || event.type==RIGHTCTRLKEY) {
-				event.ctrl= evt->ctrl= event.val;
-				if(event.val && (evt->shift || evt->alt || evt->oskey))
+				event.ctrl= evt->ctrl= (event.val==KM_PRESS);
+				if(event.val==KM_PRESS && (evt->shift || evt->alt || evt->oskey))
 				   event.ctrl= evt->ctrl = 3;		// define?
 			} 
 			else if (event.type==LEFTALTKEY || event.type==RIGHTALTKEY) {
-				event.alt= evt->alt= event.val;
-				if(event.val && (evt->ctrl || evt->shift || evt->oskey))
+				event.alt= evt->alt= (event.val==KM_PRESS);
+				if(event.val==KM_PRESS && (evt->ctrl || evt->shift || evt->oskey))
 				   event.alt= evt->alt = 3;		// define?
 			} 
 			else if (event.type==COMMANDKEY) {
-				event.oskey= evt->oskey= event.val;
-				if(event.val && (evt->ctrl || evt->alt || evt->shift))
+				event.oskey= evt->oskey= (event.val==KM_PRESS);
+				if(event.val==KM_PRESS && (evt->ctrl || evt->alt || evt->shift))
 				   event.oskey= evt->oskey = 3;		// define?
 			}
 			
-			/* if test_break set, it catches this. Keep global for now? */
+			/* if test_break set, it catches this. XXX Keep global for now? */
 			if(event.type==ESCKEY)
 				G.afbreek= 1;
-			
+
 			wm_event_add(win, &event);
 			
 			break;
@@ -1492,4 +1528,3 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			break;
 	}
 }
-

@@ -50,9 +50,8 @@ void	SCA_ISensor::ReParent(SCA_IObject* parent)
 
 
 SCA_ISensor::SCA_ISensor(SCA_IObject* gameobj,
-						 class SCA_EventManager* eventmgr,
-						 PyTypeObject* T ) :
-	SCA_ILogicBrick(gameobj,T)
+						 class SCA_EventManager* eventmgr) :
+	SCA_ILogicBrick(gameobj)
 {
 	m_links = 0;
 	m_suspended = false;
@@ -301,7 +300,7 @@ PyObject* SCA_ISensor::PyIsPositive()
 {
 	ShowDeprecationWarning("isPositive()", "the read-only positive property");
 	int retval = GetState();
-	return PyInt_FromLong(retval);
+	return PyLong_FromSsize_t(retval);
 }
 
 const char SCA_ISensor::IsTriggered_doc[] = 
@@ -314,7 +313,7 @@ PyObject* SCA_ISensor::PyIsTriggered()
 	int retval = 0;
 	if (SCA_PythonController::m_sCurrentController)
 		retval = SCA_PythonController::m_sCurrentController->IsTriggered(this);
-	return PyInt_FromLong(retval);
+	return PyLong_FromSsize_t(retval);
 }
 
 /**
@@ -355,7 +354,7 @@ const char SCA_ISensor::GetFrequency_doc[] =
 PyObject* SCA_ISensor::PyGetFrequency()
 {
 	ShowDeprecationWarning("getFrequency()", "the frequency property");
-	return PyInt_FromLong(m_pulse_frequency);
+	return PyLong_FromSsize_t(m_pulse_frequency);
 }
 
 /**
@@ -489,19 +488,17 @@ PyTypeObject SCA_ISensor::Type = {
 	0,
 	0,
 	py_base_repr,
-	0,0,0,0,0,0,
-	py_base_getattro,
-	py_base_setattro,
 	0,0,0,0,0,0,0,0,0,
-	Methods
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_ILogicBrick::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
 
-PyParentObject SCA_ISensor::Parents[] = {
-	&SCA_ISensor::Type,
-	&SCA_ILogicBrick::Type,
-	&CValue::Type,
-	NULL
-};
 PyMethodDef SCA_ISensor::Methods[] = {
 	//Deprecated functions ----->
 	{"isPositive", (PyCFunction) SCA_ISensor::sPyIsPositive, 
@@ -548,19 +545,6 @@ PyAttributeDef SCA_ISensor::Attributes[] = {
 	{ NULL }	//Sentinel
 };
 
-PyObject* SCA_ISensor::py_getattro(PyObject *attr)
-{
-	py_getattro_up(SCA_ILogicBrick);
-}
-
-PyObject* SCA_ISensor::py_getattro_dict() {
-	py_getattro_dict_up(SCA_ILogicBrick);
-}
-
-int SCA_ISensor::py_setattro(PyObject *attr, PyObject *value)
-{
-	py_setattro_up(SCA_ILogicBrick);
-}
 
 PyObject* SCA_ISensor::pyattr_get_triggered(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
@@ -568,13 +552,13 @@ PyObject* SCA_ISensor::pyattr_get_triggered(void *self_v, const KX_PYATTRIBUTE_D
 	int retval = 0;
 	if (SCA_PythonController::m_sCurrentController)
 		retval = SCA_PythonController::m_sCurrentController->IsTriggered(self);
-	return PyInt_FromLong(retval);
+	return PyLong_FromSsize_t(retval);
 }
 
 PyObject* SCA_ISensor::pyattr_get_positive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_ISensor* self= static_cast<SCA_ISensor*>(self_v);
-	return PyInt_FromLong(self->GetState());
+	return PyLong_FromSsize_t(self->GetState());
 }
 
 int SCA_ISensor::pyattr_check_level(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

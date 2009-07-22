@@ -54,6 +54,7 @@ CPPFLAGS += -I../../readblenfile
 # This mod uses the GEN, DNA, BLI and BKE modules
 CPPFLAGS += -I../../../kernel/gen_messaging
 CPPFLAGS += -I../../makesdna
+CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../blenlib
 # path to the guarded memory allocator
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
