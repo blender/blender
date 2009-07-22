@@ -39,6 +39,7 @@ extern "C"
 #include "BKE_texture.h"
 #include "ED_keyframing.h"
 #include "BKE_fcurve.h"
+#include "BKE_depsgraph.h"
 }
 #include "DNA_lamp_types.h"
 #include "BKE_mesh.h"
@@ -412,10 +413,10 @@ public:
 		return ob;
 	}
 	
-	void write_node (COLLADAFW::Node *node, Scene *sce, Object *parent_ob = NULL)
+	void write_node (COLLADAFW::Node *node, Scene *sce, Object *par = NULL)
 	{
 		// XXX linking object with the first <instance_geometry>, though a node may have more of them...
-		// TODO: join multiple <instance_...> meshes into 1, and link object with it
+		// maybe join multiple <instance_...> meshes into 1, and link object with it? not sure...
 		if (node->getType() != COLLADAFW::Node::NODE) return;
 		
 		COLLADAFW::InstanceGeometryPointerArray &geom = node->getInstanceGeometries();
@@ -473,8 +474,24 @@ public:
 		}
 		// just checking if object wasn't created
 		if (ob == NULL) return;
-		// if parent_ob was given make this object child of the previous 
-		if (parent_ob != NULL) ob->parent = parent_ob;
+		// if par was given make this object child of the previous 
+		if (par != NULL) {
+			Object workob;
+
+			ob->parent = par;
+
+			// doing what 'set parent' operator does
+			par->recalc |= OB_RECALC_OB;
+			ob->parsubstr[0] = 0;
+
+			// since ob->obmat is identity, this is not needed?
+			what_does_parent(sce, ob, &workob);
+			Mat4Invert(ob->parentinv, workob.obmat);
+
+			ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
+			ob->partype = PAROBJECT;
+			DAG_scene_sort(sce);
+		}
 		// transform Object
 		float rot[3][3];
 		Mat3One(rot);
