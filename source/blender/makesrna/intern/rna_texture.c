@@ -40,7 +40,7 @@
 #include "WM_types.h"
 
 static EnumPropertyItem texture_filter_items[] = {
-	{TXF_DEFAULT, "DEFAULT", 0, "Default", ""},
+	{TXF_BOX, "BOX", 0, "Box", ""},
 	{TXF_EWA, "EWA", 0, "EWA", ""},
 	{TXF_FELINE, "FELINE", 0, "FELINE", ""},
 	{TXF_AREA, "AREA", 0, "Area", ""},
@@ -126,7 +126,7 @@ static void rna_ImageTexture_mipmap_set(PointerRNA *ptr, int value)
 	else tex->imaflag &= ~TEX_MIPMAP;
 
 	if((tex->imaflag & TEX_MIPMAP) && tex->texfilter == TXF_SAT)
-		tex->texfilter = TXF_DEFAULT;
+		tex->texfilter = TXF_EWA;
 }
 
 static EnumPropertyItem *rna_ImageTexture_filter_itemf(bContext *C, PointerRNA *ptr, int *free)
@@ -135,7 +135,7 @@ static EnumPropertyItem *rna_ImageTexture_filter_itemf(bContext *C, PointerRNA *
 	EnumPropertyItem *item= NULL;
 	int totitem= 0;
 
-	RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_DEFAULT);
+	RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_BOX);
 	RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_EWA);
 	RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_FELINE);
 	RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_AREA);

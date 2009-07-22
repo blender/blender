@@ -442,7 +442,7 @@ void default_tex(Tex *tex)
 	tex->extend= TEX_REPEAT;
 	tex->cropxmin= tex->cropymin= 0.0;
 	tex->cropxmax= tex->cropymax= 1.0;
-	tex->texfilter = TXF_DEFAULT;
+	tex->texfilter = TXF_EWA;
 	tex->afmax = 8;
 	tex->xrepeat= tex->yrepeat= 1;
 	tex->fie_ima= 2;

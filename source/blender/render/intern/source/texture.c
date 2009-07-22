@@ -1107,7 +1107,7 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *d
 				float origf= fx *= tex->xrepeat;
 				
 				// TXF: omit mirror here, see comments in do_material_tex() after do_2d_mapping() call
-				if (tex->texfilter == TXF_DEFAULT) {
+				if (tex->texfilter == TXF_BOX) {
 					if(fx>1.0f) fx -= (int)(fx);
 					else if(fx<0.0f) fx+= 1-(int)(fx);
 				
@@ -1127,7 +1127,7 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *d
 				float origf= fy *= tex->yrepeat;
 				
 				// TXF: omit mirror here, see comments in do_material_tex() after do_2d_mapping() call
-				if (tex->texfilter == TXF_DEFAULT) {
+				if (tex->texfilter == TXF_BOX) {
 					if(fy>1.0f) fy -= (int)(fy);
 					else if(fy<0.0f) fy+= 1-(int)(fy);
 				
@@ -1545,7 +1545,7 @@ static void texco_mapping(ShadeInput* shi, Tex* tex, MTex* mtex, float* co, floa
 		// textures are scaled (sizeXYZ) as well as repeated. See also modification in do_2d_mapping().
 		// (since currently only done in osa mode, results will look incorrect without osa TODO) 
 		if (tex->extend == TEX_REPEAT && (tex->flag & TEX_REPEAT_XMIR)) {
-			if (tex->texfilter == TXF_DEFAULT)
+			if (tex->texfilter == TXF_BOX)
 				texvec[0] -= floorf(texvec[0]);	// this line equivalent to old code, same below
 			else if (texvec[0] < 0.f || texvec[0] > 1.f) {
 				const float tx = 0.5f*texvec[0];
@@ -1554,7 +1554,7 @@ static void texco_mapping(ShadeInput* shi, Tex* tex, MTex* mtex, float* co, floa
 			}
 		}
 		if (tex->extend == TEX_REPEAT && (tex->flag & TEX_REPEAT_YMIR)) {
-			if  (tex->texfilter == TXF_DEFAULT)
+			if  (tex->texfilter == TXF_BOX)
 				texvec[1] -= floorf(texvec[1]);
 			else if (texvec[1] < 0.f || texvec[1] > 1.f) {
 				const float ty = 0.5f*texvec[1];

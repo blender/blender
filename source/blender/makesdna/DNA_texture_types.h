@@ -256,8 +256,8 @@ typedef struct TexMapping {
 #define TEX_FILTER_MIN	8192
 
 /* texfilter */
-// TXF_DEFAULT -> blender's old texture filtering method
-#define TXF_DEFAULT		0
+// TXF_BOX -> blender's old texture filtering method
+#define TXF_BOX			0
 #define TXF_EWA			1
 #define TXF_FELINE		2
 #define TXF_AREA		3
