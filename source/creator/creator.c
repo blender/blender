@@ -211,7 +211,7 @@ static void print_help(void)
 	printf ("  -nojoystick\tDisable joystick support\n");
 	printf ("  -noglsl\tDisable GLSL shading\n");
 	printf ("  -h\t\tPrint this help text\n");
-	printf ("  -y\t\tDisable automatic python script execution (scriptlinks, pydrivers, pyconstraints, pynodes)\n");
+	printf ("  -y\t\tDisable automatic python script execution (pydrivers, pyconstraints, pynodes)\n");
 	printf ("  -P <filename>\tRun the given Python script (filename or Blender Text)\n");
 #ifdef WIN32
 	printf ("  -R\t\tRegister .blend extension\n");
@@ -626,14 +626,8 @@ int main(int argc, char **argv)
 						Render *re = RE_NewRender(scene->id.name);
 
 						frame = MIN2(MAXFRAME, MAX2(1, frame));
-#ifndef DISABLE_PYTHON
-						if (G.f & G_DOSCRIPTLINKS)
-							BPY_do_all_scripts(SCRIPT_RENDER, 0);
-#endif
+						
 						RE_BlenderAnim(re, scene, frame, frame, scene->frame_step);
-#ifndef DISABLE_PYTHON
-						BPY_do_all_scripts(SCRIPT_POSTRENDER, 0);
-#endif
 					}
 				} else {
 					printf("\nError: no blend loaded. cannot use '-f'.\n");
@@ -643,15 +637,7 @@ int main(int argc, char **argv)
 				if (CTX_data_scene(C)) {
 					Scene *scene= CTX_data_scene(C);
 					Render *re= RE_NewRender(scene->id.name);
-#ifndef DISABLE_PYTHON
-					if (G.f & G_DOSCRIPTLINKS)
-						BPY_do_all_scripts(SCRIPT_RENDER, 1);
-#endif
 					RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->frame_step);
-#ifndef DISABLE_PYTHON
-					if (G.f & G_DOSCRIPTLINKS)
-						BPY_do_all_scripts(SCRIPT_POSTRENDER, 1);
-#endif
 				} else {
 					printf("\nError: no blend loaded. cannot use '-a'.\n");
 				}
