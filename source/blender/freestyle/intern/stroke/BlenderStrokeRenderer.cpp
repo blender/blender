@@ -52,7 +52,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer()
 	old_scene = G.scene;
 	
 	ListBase lb;
-	scene = add_scene("freestyle_strokes_scene  ");
+	scene = add_scene("freestyle_strokes");
 	lb = scene->r.layers;
 	scene->r= old_scene->r;
 	scene->r.layers= lb;
@@ -63,7 +63,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer()
 	float height = scene->r.ysch;
 
 	// Camera
-	object_camera = add_object(OB_CAMERA);
+	Object* object_camera = add_object(OB_CAMERA);
 	
 	Camera* camera = (Camera *) object_camera->data;
 	camera->type = CAM_ORTHO;
@@ -88,9 +88,25 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer(){
 	    delete _textureManager;
 	    _textureManager = 0;
 	  }
-	
-	free_object( object_camera );
-	free_material( material );
+
+	Base *base = (Base *)scene->base.first;
+	while(base) {
+		switch (base->object->type) {
+		case OB_MESH:
+			free_libblock( &G.main->mesh, base->object->data );
+			free_libblock( &G.main->object, base->object );
+			break;
+		case OB_CAMERA:
+			free_libblock( &G.main->camera, base->object->data );
+			free_libblock( &G.main->object, base->object );
+			break;
+		default:
+			char *name = base->object->id.name;
+			cerr << "Warning: unexpected object in the scene: " << name[0] << name[1] << ":" << (name+2) << endl;
+		}
+		base = base->next;
+	}
+	free_libblock( &G.main->mat, material );
 	free_libblock( &G.main->scene, scene );
 	
 	set_scene_bg( old_scene );
@@ -141,7 +157,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 		
 		// colors allocation  - me.vertexColors = True
 		mesh->mcol = (MCol *) CustomData_add_layer( &mesh->fdata, CD_MCOL, CD_CALLOC, NULL, mesh->totface );
-		
+
 		////////////////////
 		//  Data copy
 		////////////////////

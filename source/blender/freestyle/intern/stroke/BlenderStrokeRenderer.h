@@ -35,8 +35,6 @@ public:
 protected:
 	Scene* scene;
 	Scene* old_scene;
-	
-	Object* object_camera;
 	Material* material;
 
 };
