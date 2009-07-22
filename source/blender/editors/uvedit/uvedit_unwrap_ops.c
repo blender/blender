@@ -107,6 +107,7 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 
 ParamHandle *construct_param_handle(Scene *scene, EditMesh *em, short implicit, short fill, short sel, short correct_aspect)
 {
+#if 0
 	ParamHandle *handle;
 	EditFace *efa;
 	EditEdge *eed;
@@ -204,6 +205,7 @@ ParamHandle *construct_param_handle(Scene *scene, EditMesh *em, short implicit, 
 	param_construct_end(handle, fill, implicit);
 
 	return handle;
+#endif
 }
 
 /* ******************** Minimize Stretch operator **************** */
