@@ -368,7 +368,7 @@ void RNA_api_object(StructRNA *srna)
 	func= RNA_def_function(srna, "create_mesh", "rna_Object_create_mesh");
 	RNA_def_function_ui_description(func, "Create a Mesh datablock with modifiers applied.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
-	RNA_def_boolean(func, "apply_modifiers", 0, "", "Apply modifiers.");
+	parm= RNA_def_boolean(func, "apply_modifiers", 0, "", "Apply modifiers.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);

@@ -891,6 +891,7 @@ class EXPORT_OT_obj(bpy.types.Operator):
 	* multiple scene export (only active scene is written)
 	* particles
 	'''
+	__idname__ = "export.obj"
 	__label__ = 'Export OBJ'
 	
 	# List of operator properties, the attributes will be assigned

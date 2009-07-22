@@ -38,6 +38,7 @@ http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_fbx
 
 import os
 import time
+import math # math.pi
 
 # try:
 # 	import time
@@ -65,10 +66,10 @@ import bpy
 import Mathutils
 # from Blender.Mathutils import Matrix, Vector, RotationMatrix
 
-import BPyObject
-import BPyMesh
-import BPySys
-import BPyMessages
+# import BPyObject
+# import BPyMesh
+# import BPySys
+# import BPyMessages
 
 ## This was used to make V, but faster not to do all that
 ##valid = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_,.()[]{}'
@@ -79,7 +80,7 @@ invalid = ''.join([chr(i) for i in v])
 def cleanName(name):
 	for ch in invalid:	name = name.replace(ch, '_')
 	return name
-del v, i
+# del v, i
 
 
 def copy_file(source, dest):
@@ -107,14 +108,14 @@ def copy_images(dest_dir, textures):
 			# Make a name for the target path.
 			dest_image_path = dest_dir + image_path.split('\\')[-1].split('/')[-1]
 			if not Blender.sys.exists(dest_image_path): # Image isnt alredy there
-				print '\tCopying "%s" > "%s"' % (image_path, dest_image_path)
+				print('\tCopying "%s" > "%s"' % (image_path, dest_image_path))
 				try:
 					copy_file(image_path, dest_image_path)
 					copyCount+=1
 				except:
-					print '\t\tWarning, file failed to copy, skipping.'
+					print('\t\tWarning, file failed to copy, skipping.')
 	
-	print '\tCopied %d images' % copyCount
+	print('\tCopied %d images' % copyCount)
 
 def BPyObject_getObjectArmature(ob):
 	'''
@@ -141,9 +142,9 @@ def BPyObject_getObjectArmature(ob):
 def eulerRadToDeg(eul):
 	ret = Mathutils.Euler()
 
-	ret.x = 180 / math.pi * eul.x
-	ret.y = 180 / math.pi * eul.y
-	ret.z = 180 / math.pi * eul.z
+	ret.x = 180 / math.pi * eul[0]
+	ret.y = 180 / math.pi * eul[1]
+	ret.z = 180 / math.pi * eul[2]
 
 	return ret
 
@@ -221,7 +222,7 @@ def sane_name(data, dct):
 		#name = BPySys.cleanName(name)
 		name = cleanName(name) # use our own
 	
-	while name in dct.itervalues():	name = increment_string(name)
+	while name in iter(dct.values()):	name = increment_string(name)
 	
 	if use_other: # even if other is None - orig_name_other will be a string or None
 		dct[orig_name, orig_name_other] = name
@@ -286,9 +287,9 @@ def BPyMesh_meshWeight2List(ob):
 	
 	if not len_groupNames:
 		# no verts? return a vert aligned empty list
-		return [[] for i in xrange(len(me.verts))], []
+		return [[] for i in range(len(me.verts))], []
 	else:
-		vWeightList= [[0.0]*len_groupNames for i in xrange(len(me.verts))]
+		vWeightList= [[0.0]*len_groupNames for i in range(len(me.verts))]
 
 	for i, v in enumerate(me.verts):
 		for g in v.groups:
@@ -303,7 +304,7 @@ def BPyMesh_meshWeight2Dict(me, ob):
 	These 2 lists can be modified and then used with dict2MeshWeight to apply the changes.
 	'''
 	
-	vWeightDict= [dict() for i in xrange(len(me.verts))] # Sync with vertlist.
+	vWeightDict= [dict() for i in range(len(me.verts))] # Sync with vertlist.
 	
 	# Clear the vert group.
 	groupNames= [g.name for g in ob.vertex_groups]
@@ -368,7 +369,6 @@ def write(filename, batch_objects = None, \
 		ANIM_ACTION_ALL =			False,
 		BATCH_ENABLE =				False,
 		BATCH_GROUP =				True,
-		BATCH_SCENE =				False,
 		BATCH_FILE_PREFIX =			'',
 		BATCH_OWN_DIR =				False
 	):
@@ -436,7 +436,7 @@ def write(filename, batch_objects = None, \
 			
 			filename = new_fbxpath + newname + '.fbx'
 			
-			print '\nBatch exporting %s as...\n\t"%s"' % (data, filename)
+			print('\nBatch exporting %s as...\n\t"%s"' % (data, filename))
 
 			# XXX don't know what to do with this, probably do the same? (Arystan)
 			if BATCH_GROUP: #group
@@ -596,7 +596,8 @@ def write(filename, batch_objects = None, \
 			self.fbxGroupNames = []
 			self.fbxParent = None # set later on IF the parent is in the selection.
 			if matrixWorld:		self.matrixWorld = matrixWorld * GLOBAL_MATRIX
-			else:				self.matrixWorld = ob.matrixWorld * GLOBAL_MATRIX
+			else:				self.matrixWorld = ob.matrix * GLOBAL_MATRIX
+# 			else:				self.matrixWorld = ob.matrixWorld * GLOBAL_MATRIX
 			self.__anim_poselist = {} # we should only access this
 		
 		def parRelMatrix(self):
@@ -606,7 +607,8 @@ def write(filename, batch_objects = None, \
 				return self.matrixWorld
 		
 		def setPoseFrame(self, f):
-			self.__anim_poselist[f] =  self.blenObject.matrixWorld.copy()
+			self.__anim_poselist[f] =  self.blenObject.matrix.copy()
+# 			self.__anim_poselist[f] =  self.blenObject.matrixWorld.copy()
 		
 		def getAnimParRelMatrix(self, frame):
 			if self.fbxParent:
@@ -638,7 +640,7 @@ def write(filename, batch_objects = None, \
 	
 	
 	
-	print '\nFBX export starting...', filename
+	print('\nFBX export starting...', filename)
 	start_time = bpy.sys.time()
 # 	start_time = Blender.sys.time()
 	try:
@@ -713,7 +715,7 @@ def write(filename, batch_objects = None, \
 		else:
 			# This is bad because we need the parent relative matrix from the fbx parent (if we have one), dont use anymore
 			#if ob and not matrix: matrix = ob.matrixWorld * GLOBAL_MATRIX
-			if ob and not matrix: raise "error: this should never happen!"
+			if ob and not matrix: raise Exception("error: this should never happen!")
 			
 			matrix_rot = matrix
 			#if matrix:
@@ -751,7 +753,7 @@ def write(filename, batch_objects = None, \
 		loc, rot, scale, matrix, matrix_rot = object_tx(ob, loc, matrix, matrix_mod)
 		
 		file.write('\n\t\t\tProperty: "Lcl Translation", "Lcl Translation", "A+",%.15f,%.15f,%.15f' % loc)
-		file.write('\n\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",%.15f,%.15f,%.15f' % eulerRadToDeg(rot))
+		file.write('\n\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",%.15f,%.15f,%.15f' % tuple(eulerRadToDeg(rot)))
 # 		file.write('\n\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",%.15f,%.15f,%.15f' % rot)
 		file.write('\n\t\t\tProperty: "Lcl Scaling", "Lcl Scaling", "A+",%.15f,%.15f,%.15f' % scale)
 		return loc, rot, scale, matrix, matrix_rot
@@ -1453,7 +1455,7 @@ def write(filename, batch_objects = None, \
 				# TODO - this is a bit lazy, we could have a simple write loop
 				# for this case because all weights are 1.0 but for now this is ok
 				# Parent Bones arent used all that much anyway.
-				vgroup_data = [(j, 1.0) for j in xrange(len(my_mesh.blenData.verts))]
+				vgroup_data = [(j, 1.0) for j in range(len(my_mesh.blenData.verts))]
 			else:
 				# This bone is not a parent of this mesh object, no weights
 				vgroup_data = []
@@ -1728,7 +1730,7 @@ def write(filename, batch_objects = None, \
 				
 				file.write('\n\t\t\tColorIndex: ')
 				i = -1
-				for j in xrange(ii):
+				for j in range(ii):
 					if i == -1:
 						file.write('%i' % j)
 						i=0
@@ -1786,7 +1788,7 @@ def write(filename, batch_objects = None, \
 				
 				file.write('\n\t\t\tUVIndex: ')
 				i = -1
-				for j in xrange(ii):
+				for j in range(ii):
 					if i == -1:
 						file.write('%i'  % j)
 						i=0
@@ -1890,7 +1892,7 @@ def write(filename, batch_objects = None, \
 					uv_faces = [None] * len(me.faces)
 				
 				i=-1
-				for f, uf in zip(me.faces, uv_faces)
+				for f, uf in zip(me.faces, uv_faces):
 # 				for f in me.faces:
 					try:	mat = mats[f.material_index]
 # 					try:	mat = mats[f.mat]
@@ -1955,7 +1957,7 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\t}')
 		
 		if len(uvlayers) > 1:
-			for i in xrange(1, len(uvlayers)):
+			for i in range(1, len(uvlayers)):
 				
 				file.write('\n\t\tLayer: %i {' % i)
 				file.write('\n\t\t\tVersion: 100')
@@ -1983,7 +1985,7 @@ def write(filename, batch_objects = None, \
 			layer_offset = 0
 			if uvlayers: layer_offset = len(uvlayers)-1
 			
-			for i in xrange(layer_offset, len(collayers)+layer_offset):
+			for i in range(layer_offset, len(collayers)+layer_offset):
 				file.write('\n\t\tLayer: %i {' % i)
 				file.write('\n\t\t\tVersion: 100')
 				
@@ -2033,7 +2035,8 @@ def write(filename, batch_objects = None, \
 	
 	# if EXP_OBS_SELECTED is false, use sceens objects
 	if not batch_objects:
-		if EXP_OBS_SELECTED:	tmp_objects = sce.objects.context
+		if EXP_OBS_SELECTED:	tmp_objects = context.selected_objects
+# 		if EXP_OBS_SELECTED:	tmp_objects = sce.objects.context
 		else:					tmp_objects = sce.objects
 	else:
 		tmp_objects = batch_objects
@@ -2201,9 +2204,9 @@ def write(filename, batch_objects = None, \
 					my_mesh = my_object_generic(ob, mtx)
 					my_mesh.blenData =		me
 					my_mesh.origData = 		origData
-					my_mesh.blenMaterials =	material_mapping_local.keys()
+					my_mesh.blenMaterials =	list(material_mapping_local.keys())
 					my_mesh.blenMaterialList = mats
-					my_mesh.blenTextures =	texture_mapping_local.keys()
+					my_mesh.blenTextures =	list(texture_mapping_local.keys())
 					
 					# if only 1 null texture then empty the list
 					if len(my_mesh.blenTextures) == 1 and my_mesh.blenTextures[0] == None:
@@ -2336,8 +2339,8 @@ def write(filename, batch_objects = None, \
 	# Finished finding groups we use
 	
 	
-	materials =	[(sane_matname(mat_tex_pair), mat_tex_pair) for mat_tex_pair in materials.iterkeys()]
-	textures =	[(sane_texname(tex), tex) for tex in textures.iterkeys()  if tex]
+	materials =	[(sane_matname(mat_tex_pair), mat_tex_pair) for mat_tex_pair in materials.keys()]
+	textures =	[(sane_texname(tex), tex) for tex in textures.keys()  if tex]
 	materials.sort() # sort by name
 	textures.sort()
 	
@@ -2497,7 +2500,7 @@ Objects:  {''')
 			
 			#for bonename, bone, obname, bone_mesh, armob in ob_bones:
 			for my_bone in ob_bones:
-				if me in my_bone.blenMeshes.itervalues():
+				if me in iter(my_bone.blenMeshes.values()):
 					write_sub_deformer_skin(my_mesh, my_bone, weights)
 	
 	# Write pose's really weired, only needed when an armature and mesh are used together
@@ -2784,9 +2787,9 @@ Takes:  {''')
 			# we have tagged all actious that are used be selected armatures
 			if blenAction:
 				if blenAction.tag:
-					print '\taction: "%s" exporting...' % blenAction.name
+					print('\taction: "%s" exporting...' % blenAction.name)
 				else:
-					print '\taction: "%s" has no armature using it, skipping' % blenAction.name
+					print('\taction: "%s" has no armature using it, skipping' % blenAction.name)
 					continue
 			
 			if blenAction == None:
@@ -2866,7 +2869,7 @@ Takes:  {''')
 						file.write('\n\t\t\tVersion: 1.1')
 						file.write('\n\t\t\tChannel: "Transform" {')
 						
-						context_bone_anim_mats = [ (my_ob.getAnimParRelMatrix(frame), my_ob.getAnimParRelMatrixRot(frame)) for frame in xrange(act_start, act_end+1) ]
+						context_bone_anim_mats = [ (my_ob.getAnimParRelMatrix(frame), my_ob.getAnimParRelMatrixRot(frame)) for frame in range(act_start, act_end+1) ]
 						
 						# ----------------
 						# ----------------
@@ -2889,7 +2892,7 @@ Takes:  {''')
 							
 							file.write('\n\t\t\t\tChannel: "%s" {' % TX_CHAN) # translation
 							
-							for i in xrange(3):
+							for i in range(3):
 								# Loop on each axis of the bone
 								file.write('\n\t\t\t\t\tChannel: "%s" {'% ('XYZ'[i])) # translation
 								file.write('\n\t\t\t\t\t\tDefault: %.15f' % context_bone_anim_vecs[0][i] )
@@ -3064,7 +3067,7 @@ Takes:  {''')
 # 		copy_images( basepath,  [ tex[1] for tex in textures if tex[1] != None ])
 		bpy.util.copy_images( basepath,  [ tex[1] for tex in textures if tex[1] != None ])	
 	
-	print 'export finished in %.4f sec.' % (bpy.sys.time() - start_time)
+	print('export finished in %.4f sec.' % (bpy.sys.time() - start_time))
 # 	print 'export finished in %.4f sec.' % (Blender.sys.time() - start_time)
 	return True
 	
@@ -3072,7 +3075,7 @@ Takes:  {''')
 # --------------------------------------------
 # UI Function - not a part of the exporter.
 # this is to seperate the user interface from the rest of the exporter.
-from Blender import Draw, Window
+# from Blender import Draw, Window
 EVENT_NONE = 0
 EVENT_EXIT = 1
 EVENT_REDRAW = 2
@@ -3123,15 +3126,15 @@ def fbx_ui_exit(e,v):
 
 def do_help(e,v):
     url = 'http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_fbx'
-    print 'Trying to open web browser with documentation at this address...'
-    print '\t' + url
+    print('Trying to open web browser with documentation at this address...')
+    print('\t' + url)
     
     try:
         import webbrowser
         webbrowser.open(url)
     except:
         Blender.Draw.PupMenu("Error%t|Opening a webbrowser requires a full python installation")
-        print '...could not open a browser window.'
+        print('...could not open a browser window.')
 
 	
 
@@ -3358,17 +3361,95 @@ def write_ui():
 	
 	
 	# GLOBALS.clear()
-#test = [write_ui]
-if __name__ == '__main__':
-	# Cant call the file selector first because of a bug in the interface that crashes it.
-	# Blender.Window.FileSelector(write_ui, 'Export FBX', Blender.sys.makename(ext='.fbx'))
-	#write('/scratch/test.fbx')
-	#write_ui('/scratch/test.fbx')
+
+class EXPORT_OT_fbx(bpy.types.Operator):
+	'''
+	Operator documentation text, will be used for the operator tooltip and python docs.
+	'''
+	__idname__ = "export.fbx"
+	__label__ = "Export FBX"
 	
-	if not set:
-		Draw.PupMenu('Error%t|A full install of python2.3 or python 2.4+ is needed to run this script.')
-	else:
-		write_ui()
+	# List of operator properties, the attributes will be assigned
+	# to the class instance from the operator settings before calling.
+	
+	__props__ = [
+		bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for exporting the PLY file", maxlen= 1024, default=""),
+		bpy.props.BoolProperty(attr="EXP_OBS_SELECTED", name="Selected Objects", description="Export selected objects on visible layers", default=True),
+# 		bpy.props.BoolProperty(attr="EXP_OBS_SCENE", name="Scene Objects", description="Export all objects in this scene", default=True),
+		bpy.props.FloatProperty(attr="_SCALE", name="Scale", description="Scale all data, (Note! some imports dont support scaled armatures)", min=0.01, max=1000.0, soft_min=0.01, soft_max=1000.0, default=1.0),
+		bpy.props.BoolProperty(attr="_XROT90", name="Rot X90", description="Rotate all objects 90 degrese about the X axis", default=True),
+		bpy.props.BoolProperty(attr="_YROT90", name="Rot Y90", description="Rotate all objects 90 degrese about the Y axis", default=False),
+		bpy.props.BoolProperty(attr="_ZROT90", name="Rot Z90", description="Rotate all objects 90 degrese about the Z axis", default=False),
+		bpy.props.BoolProperty(attr="EXP_EMPTY", name="Empties", description="Export empty objects", default=True),
+		bpy.props.BoolProperty(attr="EXP_CAMERA", name="Cameras", description="Export camera objects", default=True),
+		bpy.props.BoolProperty(attr="EXP_LAMP", name="Lamps", description="Export lamp objects", default=True),
+		bpy.props.BoolProperty(attr="EXP_ARMATURE", name="Armatures", description="Export armature objects", default=True),
+		bpy.props.BoolProperty(attr="EXP_MESH", name="Meshes", description="Export mesh objects", default=True),
+		bpy.props.BoolProperty(attr="EXP_MESH_APPLY_MOD", name="Modifiers", description="Apply modifiers to mesh objects", default=True),
+		bpy.props.BoolProperty(attr="EXP_MESH_HQ_NORMALS", name="HQ Normals", description="Generate high quality normals", default=True),
+		bpy.props.BoolProperty(attr="EXP_IMAGE_COPY", name="Copy Image Files", description="Copy image files to the destination path", default=False),
+		# armature animation
+		bpy.props.BoolProperty(attr="ANIM_ENABLE", name="Enable Animation", description="Export keyframe animation", default=True),
+		bpy.props.BoolProperty(attr="ANIM_OPTIMIZE", name="Optimize Keyframes", description="Remove double keyframes", default=True),
+		bpy.props.FloatProperty(attr="ANIM_OPTIMIZE_PRECISSION", name="Precision", description="Tolerence for comparing double keyframes (higher for greater accuracy)", min=1, max=16, soft_min=1, soft_max=16, default=6.0),
+# 		bpy.props.BoolProperty(attr="ANIM_ACTION_ALL", name="Current Action", description="Use actions currently applied to the armatures (use scene start/end frame)", default=True),
+		bpy.props.BoolProperty(attr="ANIM_ACTION_ALL", name="All Actions", description="Use all actions for armatures", default=False),
+		# batch
+		bpy.props.BoolProperty(attr="BATCH_ENABLE", name="Enable Batch", description="Automate exporting multiple scenes or groups to files", default=False),
+		bpy.props.BoolProperty(attr="BATCH_GROUP", name="Group > File", description="Export each group as an FBX file, if false, export each scene as an FBX file", default=False),
+		bpy.props.BoolProperty(attr="BATCH_OWN_DIR", name="Own Dir", description="Create a dir for each exported file", default=True),
+		bpy.props.StringProperty(attr="BATCH_FILE_PREFIX", name="Prefix", description="Prefix each file with this name", maxlen= 1024, default=""),
+	]
+	
+	def poll(self, context):
+		print("Poll")
+		return context.active_object != None
+	
+	def execute(self, context):
+		if not self.filename:
+			raise Exception("filename not set")
+
+		GLOBAL_MATRIX = mtx4_identity
+		GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self._SCALE
+		if self._XROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_x90n
+		if self._YROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_y90n
+		if self._ZROT90: GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_z90n
+			
+		write(self.filename,
+			  None, # XXX
+			  context,
+			  self.EXP_OBS_SELECTED,
+			  self.EXP_MESH,
+			  self.EXP_MESH_APPLY_MOD,
+			  self.EXP_MESH_HQ_NORMALS,
+			  self.EXP_ARMATURE,
+			  self.EXP_LAMP,
+			  self.EXP_CAMERA,
+			  self.EXP_EMPTY,
+			  self.EXP_IMAGE_COPY,
+			  GLOBAL_MATRIX,
+			  self.ANIM_ENABLE,
+			  self.ANIM_OPTIMIZE,
+			  self.ANIM_OPTIMIZE_PRECISSION,
+			  self.ANIM_ACTION_ALL,
+			  self.BATCH_ENABLE,
+			  self.BATCH_GROUP,
+			  self.BATCH_FILE_PREFIX,
+			  self.BATCH_OWN_DIR)		
+
+		return ('FINISHED',)
+	
+	def invoke(self, context, event):	
+		wm = context.manager
+		wm.add_fileselect(self.__operator__)
+		return ('RUNNING_MODAL',)
+
+
+bpy.ops.add(EXPORT_OT_fbx)
+
+# if __name__ == "__main__":
+# 	bpy.ops.EXPORT_OT_ply(filename="/tmp/test.ply")
+
 
 # NOTES (all line numbers correspond to original export_fbx.py (under release/scripts)
 # - Draw.PupMenu alternative in 2.5?, temporarily replaced PupMenu with print
