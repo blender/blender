@@ -75,6 +75,7 @@ void ED_spacetypes_init(void)
 	ED_spacetype_text();
 	ED_spacetype_sequencer();
 	ED_spacetype_logic();
+	ED_spacetype_console();
 //	...
 	
 	/* register operator types for screen and all spaces */
@@ -92,6 +93,7 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_marker();
 	ED_operatortypes_pointcache();
 	ED_operatortypes_fluid();
+	ED_operatortypes_boids();
 	
 	ui_view2d_operatortypes();
 	

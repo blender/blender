@@ -57,6 +57,7 @@ void ED_object_apply_obmat(struct Object *ob);
 	/* single object duplicate, if dupflag==0, fully linked, else it uses U.dupflag */
 struct Base *ED_object_add_duplicate(struct Scene *scene, struct Base *base, int usedupflag);
 
+void ED_object_parent(struct Object *ob, struct Object *parent, int type, const char *substr);
 
 /* bitflags for enter/exit editmode */
 #define EM_FREEDATA		1
@@ -69,6 +70,7 @@ void ED_object_enter_editmode(struct bContext *C, int flag);
 void ED_object_base_init_from_view(struct bContext *C, struct Base *base);
 
 /* cleanup */
+int object_is_libdata(struct Object *ob);
 int object_data_is_libdata(struct Object *ob);
 
 /* constraints */

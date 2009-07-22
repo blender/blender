@@ -360,6 +360,32 @@ static int buttons_context_path_texture(ButsContextPath *path)
 	return 0;
 }
 
+static int buttons_context_path_game(ButsContextPath *path)
+{
+	/* XXX temporary context. Using material slot instead of ob->game_data */
+	Object *ob;
+	PointerRNA *ptr= &path->ptr[path->len-1];
+	Material *ma;
+
+	/* if we already have a (pinned) material, we're done */
+	if(RNA_struct_is_a(ptr->type, &RNA_Material)) {
+		return 1;
+	}
+	/* if we have an object, use the object material slot */
+	else if(buttons_context_path_object(path)) {
+		ob= path->ptr[path->len-1].data;
+
+		if(ob && ob->type && (ob->type<OB_LAMP)) {
+			ma= give_current_material(ob, ob->actcol);
+			RNA_id_pointer_create(&ma->id, &path->ptr[path->len]);
+			path->len++;
+			return 1;
+		}
+	}
+
+	/* no path to a material possible */
+	return 0;
+}
 static int buttons_context_path(const bContext *C, ButsContextPath *path, int mainb, int worldtex)
 {
 	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
@@ -404,6 +430,9 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 		case BCONTEXT_DATA:
 			found= buttons_context_path_data(path, -1);
 			break;
+		case BCONTEXT_GAME:
+			found= buttons_context_path_game(path);
+			break;
 		case BCONTEXT_PARTICLE:
 			found= buttons_context_path_particle(path);
 			break;
@@ -415,6 +444,8 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			break;
 		case BCONTEXT_BONE:
 			found= buttons_context_path_bone(path);
+			if(!found)
+				found= buttons_context_path_data(path, OB_ARMATURE);
 			break;
 		default:
 			found= 0;
@@ -494,8 +525,8 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 	/* here we handle context, getting data from precomputed path */
 	if(CTX_data_dir(member)) {
 		static const char *dir[] = {
-			"world", "object", "meshe", "armature", "lattice", "curve",
-			"meta_ball", "lamp", "camera", "material", "material_slot",
+			"world", "object", "mesh", "armature", "lattice", "curve",
+			"meta_ball", "lamp", "camera", "material", "material_slot", "game",
 			"texture", "texture_slot", "bone", "edit_bone", "particle_system",
 			"cloth", "soft_body", "fluid", "collision", NULL};
 
@@ -734,4 +765,3 @@ void buttons_context_register(ARegionType *art)
 	pt->flag= PNL_NO_HEADER;
 	BLI_addtail(&art->paneltypes, pt);
 }
-

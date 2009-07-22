@@ -102,15 +102,16 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 		VECCOPY(v, verts[(i+1) % nverts]);
 		VECCOPY(w, verts[(i+2) % nverts]);
 		
+#if 0
 		VECSUB(v1, w, v);
 		VECSUB(v2, v, u);
 		Normalize_d(v1);
 		Normalize_d(v2);
 
 		l = INPR(v1, v2);
-		if (ABS(l) < 0.1)
+		if (ABS(l-1.0) < 0.1)
 			continue;
-
+#endif
 		/* newell's method
 		
 		so thats?:
@@ -436,7 +437,7 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 	BMLoop *l;
 	int i;
 
-	if(f->len > 4){
+	if(1) { //f->len > 4){
 		i = 0;
 		l = f->loopbase;
 		do{

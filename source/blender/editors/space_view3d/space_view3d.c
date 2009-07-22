@@ -52,6 +52,7 @@
 #include "ED_armature.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
+#include "ED_object.h"
 
 #include "BIF_gl.h"
 
@@ -591,24 +592,12 @@ static void view3d_tools_area_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar, 1, view3d_context_string(C));
 }
 
-/*
- * Returns true if the Object is a from an external blend file (libdata)
- */
-static int object_is_libdata(Object *ob)
-{
-	if (!ob) return 0;
-	if (ob->proxy) return 0;
-	if (ob->id.lib) return 1;
-	return 0;
-}
-
 static int view3d_context(const bContext *C, const char *member, bContextDataResult *result)
 {
 	View3D *v3d= CTX_wm_view3d(C);
 	Scene *scene= CTX_data_scene(C);
 	Base *base;
-
-	if(v3d==NULL) return 0;
+	int lay = v3d ? v3d->lay:scene->lay; /* fallback to the scene layer, allows duplicate and other oject operators to run outside the 3d view */
 
 	if(CTX_data_dir(member)) {
 		static const char *dir[] = {
@@ -624,7 +613,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 		int selected_objects= CTX_data_equals(member, "selected_objects");
 
 		for(base=scene->base.first; base; base=base->next) {
-			if((base->flag & SELECT) && (base->lay & v3d->lay)) {
+			if((base->flag & SELECT) && (base->lay & lay)) {
 				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
 					if(selected_objects)
 						CTX_data_id_list_add(result, &base->object->id);
@@ -640,7 +629,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 		int selected_editable_objects= CTX_data_equals(member, "selected_editable_objects");
 
 		for(base=scene->base.first; base; base=base->next) {
-			if((base->flag & SELECT) && (base->lay & v3d->lay)) {
+			if((base->flag & SELECT) && (base->lay & lay)) {
 				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
 					if(0==object_is_libdata(base->object)) {
 						if(selected_editable_objects)
@@ -658,7 +647,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 		int visible_objects= CTX_data_equals(member, "visible_objects");
 
 		for(base=scene->base.first; base; base=base->next) {
-			if(base->lay & v3d->lay) {
+			if(base->lay & lay) {
 				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
 					if(visible_objects)
 						CTX_data_id_list_add(result, &base->object->id);
@@ -674,7 +663,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 		int selectable_objects= CTX_data_equals(member, "selectable_objects");
 
 		for(base=scene->base.first; base; base=base->next) {
-			if(base->lay & v3d->lay) {
+			if(base->lay & lay) {
 				if((base->object->restrictflag & OB_RESTRICT_VIEW)==0 && (base->object->restrictflag & OB_RESTRICT_SELECT)==0) {
 					if(selectable_objects)
 						CTX_data_id_list_add(result, &base->object->id);
@@ -687,14 +676,14 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 		return 1;
 	}
 	else if(CTX_data_equals(member, "active_base")) {
-		if(scene->basact && (scene->basact->lay & v3d->lay))
+		if(scene->basact && (scene->basact->lay & lay))
 			if((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)
 				CTX_data_pointer_set(result, &scene->id, &RNA_UnknownType, scene->basact);
 		
 		return 1;
 	}
 	else if(CTX_data_equals(member, "active_object")) {
-		if(scene->basact && (scene->basact->lay & v3d->lay))
+		if(scene->basact && (scene->basact->lay & lay))
 			if((scene->basact->object->restrictflag & OB_RESTRICT_VIEW)==0)
 				CTX_data_id_pointer_set(result, &scene->basact->object->id);
 		

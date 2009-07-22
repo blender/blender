@@ -32,6 +32,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_listBase.h"
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -55,7 +56,6 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
-
 
 /* ************************** registration - operator types **********************************/
 
@@ -154,6 +154,9 @@ static void action_keymap_keyframes (wmWindowManager *wm, ListBase *keymap)
 	
 	/* transform system */
 	transform_keymap_for_space(wm, keymap, SPACE_ACTION);
+	
+		/* test */
+	/* WM_keymap_add_item(keymap, "ACT_OT_test", QKEY, KM_PRESS, 0, 0); */
 }
 
 /* --------------- */

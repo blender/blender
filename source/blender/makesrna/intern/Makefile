@@ -53,6 +53,7 @@ CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../windowmanager
 CPPFLAGS += -I../../editors/include
 CPPFLAGS += -I../../bmesh
+CPPFLAGS += -I../../render/extern/include
 CPPFLAGS += -I..
 CPPFLAGS += -I.
 

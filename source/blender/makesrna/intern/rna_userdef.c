@@ -410,6 +410,12 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Scroll Widget Colors", "");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
+	prop= RNA_def_property(srna, "wcol_list_item", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "wcol_list_item");
+	RNA_def_property_struct_type(prop, "ThemeWidgetColors");
+	RNA_def_property_ui_text(prop, "List Item Colors", "");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
 	prop= RNA_def_property(srna, "wcol_state", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "wcol_state");
 	RNA_def_property_struct_type(prop, "ThemeWidgetStateColors");
@@ -1579,26 +1585,13 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "uiflag", USER_MENUFIXEDORDER);
 	RNA_def_property_ui_text(prop, "Contents Follow Opening Direction", "Otherwise menus, etc will always be top to bottom, left to right, no matter opening direction.");
 
-	/* snap to grid */
-	prop= RNA_def_property(srna, "snap_translate", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_AUTOGRABGRID);
-	RNA_def_property_ui_text(prop, "Enable Translation Snap", "Snap objects and sub-objects to grid units when moving.");
-
-	prop= RNA_def_property(srna, "snap_rotate", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_AUTOROTGRID);
-	RNA_def_property_ui_text(prop, "Enable Rotation Snap", "Snap objects and sub-objects to grid units when rotating.");
-
-	prop= RNA_def_property(srna, "snap_scale", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_AUTOSIZEGRID);
-	RNA_def_property_ui_text(prop, "Enable Scaling Snap", "Snap objects and sub-objects to grid units when scaling.");
+	prop= RNA_def_property(srna, "global_pivot", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_LOCKAROUND);
+	RNA_def_property_ui_text(prop, "Global Pivot", "Lock the same rotation/scaling pivot in all 3D Views.");
 
 	prop= RNA_def_property(srna, "auto_depth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ORBIT_ZBUF);
 	RNA_def_property_ui_text(prop, "Auto Depth", "Use the depth under the mouse to improve view pan/rotate/zoom functionality.");
-
-	prop= RNA_def_property(srna, "global_pivot", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_LOCKAROUND);
-	RNA_def_property_ui_text(prop, "Global Pivot", "Lock the same rotation/scaling pivot in all 3D Views.");
 
 	/* view zoom */
 	prop= RNA_def_property(srna, "viewport_zoom_style", PROP_ENUM, PROP_NONE);
@@ -1777,6 +1770,19 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "global_undo", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_GLOBALUNDO);
 	RNA_def_property_ui_text(prop, "Global Undo", "Global undo works by keeping a full copy of the file itself in memory, so takes extra memory.");
+
+	/* snap to grid */
+	prop= RNA_def_property(srna, "snap_translate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_AUTOGRABGRID);
+	RNA_def_property_ui_text(prop, "Enable Translation Snap", "Snap objects and sub-objects to grid units when moving.");
+
+	prop= RNA_def_property(srna, "snap_rotate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_AUTOROTGRID);
+	RNA_def_property_ui_text(prop, "Enable Rotation Snap", "Snap objects and sub-objects to grid units when rotating.");
+
+	prop= RNA_def_property(srna, "snap_scale", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_AUTOSIZEGRID);
+	RNA_def_property_ui_text(prop, "Enable Scaling Snap", "Snap objects and sub-objects to grid units when scaling.");
 
 	prop= RNA_def_property(srna, "auto_keying_enable", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "autokey_mode", AUTOKEY_ON);
@@ -2176,9 +2182,9 @@ void RNA_def_userdef(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem user_pref_sections[] = {
-		{0, "VIEW_CONTROLS", 0, "View & Controls", ""},
-		{1, "EDIT_METHODS", 0, "Edit Methods", ""},
-		{2, "LANGUAGE_COLORS", 0, "Language & Colors", ""},
+		{0, "VIEW_CONTROLS", 0, "View", ""},
+		{1, "EDIT_METHODS", 0, "Editing", ""},
+		{2, "LANGUAGE_COLORS", 0, "Language", ""},
 		{3, "AUTO_SAVE", 0, "Auto Save", ""},
 		{4, "SYSTEM_OPENGL", 0, "System & OpenGL", ""},
 		{5, "FILE_PATHS", 0, "File Paths", ""},

@@ -603,6 +603,21 @@ void select_connected_scredge(bScreen *sc, ScrEdge *edge)
 	}
 }
 
+/* helper call for below, correct buttons view */
+static void screen_test_scale_region(ListBase *regionbase, float facx, float facy)
+{
+	ARegion *ar;
+	
+	for(ar= regionbase->first; ar; ar= ar->next) {
+		if(ar->regiontype==RGN_TYPE_WINDOW) {
+			ar->v2d.cur.xmin *= facx;
+			ar->v2d.cur.xmax *= facx;
+			ar->v2d.cur.ymin *= facy;
+			ar->v2d.cur.ymax *= facy;
+		}
+	}
+}
+
 /* test if screen vertices should be scaled */
 static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 {
@@ -653,6 +668,19 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 			
 			CLAMP(sv->vec.y, 0, winsizey);
 		}
+		
+		/* keep buttons view2d same size */
+		for(sa= sc->areabase.first; sa; sa= sa->next) {
+			SpaceLink *sl;
+			
+			if(sa->spacetype==SPACE_BUTS)
+				screen_test_scale_region(&sa->regionbase, facx, facy);
+			
+			for(sl= sa->spacedata.first; sl; sl= sl->next)
+				if(sl->spacetype==SPACE_BUTS)
+					screen_test_scale_region(&sl->regionbase, facx, facy);
+		}
+		
 	}
 	
 	/* test for collapsed areas. This could happen in some blender version... */

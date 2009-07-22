@@ -52,6 +52,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_dlrbTree.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -2026,7 +2027,7 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
 	ActKeyColumn *ak;
-	ListBase keys;
+	DLRBT_Tree keys;
 	float *fp, *fp_start;
 	int a, stepsize;
 	int sfra, efra, len;
@@ -2168,12 +2169,14 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 				/* Keyframes - dots and numbers */
 				if (arm->pathflag & ARM_PATH_KFRAS) {
 					/* build list of all keyframes in active action for pchan */
-					keys.first = keys.last = NULL;	
+					BLI_dlrbTree_init(&keys);
 					
 					if (adt) {
 						bActionGroup *agrp= action_groups_find_named(adt->action, pchan->name);
-						if (agrp)
+						if (agrp) {
 							agroup_to_keylist(adt, agrp, &keys, NULL);
+							BLI_dlrbTree_linkedlist_sync(&keys);
+						}
 					}
 					
 					/* Draw slightly-larger yellow dots at each keyframe */
@@ -2205,7 +2208,7 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 						}
 					}
 					
-					BLI_freelistN(&keys);
+					BLI_dlrbTree_free(&keys);
 				}
 			}
 		}
@@ -2319,7 +2322,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	bAction *act= (adt) ? adt->action : NULL;
 	bArmature *arm= ob->data;
 	bPose *posen, *poseo;
-	ListBase keys= {NULL, NULL};
+	DLRBT_Tree keys;
 	ActKeyColumn *ak, *akn;
 	float start, end, range, colfac, i;
 	int cfrao, flago;
@@ -2330,13 +2333,16 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		return;
 	
 	/* get keyframes - then clip to only within range */
+	BLI_dlrbTree_init(&keys);
 	action_to_keylist(adt, act, &keys, NULL);
+	BLI_dlrbTree_linkedlist_sync(&keys);
+	
 	range= 0;
 	for (ak= keys.first; ak; ak= akn) {
 		akn= ak->next;
 		
 		if ((ak->cfra < start) || (ak->cfra > end))
-			BLI_freelinkN(&keys, ak);
+			BLI_freelinkN((ListBase *)&keys, ak);
 		else
 			range++;
 	}
@@ -2374,7 +2380,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 
 	ghost_poses_tag_unselected(ob, 1);		/* unhide unselected bones if need be */
-	BLI_freelistN(&keys);
+	BLI_dlrbTree_free(&keys);
 	free_pose(posen);
 	
 	/* restore */

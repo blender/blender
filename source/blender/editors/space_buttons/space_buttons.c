@@ -94,31 +94,6 @@ static SpaceLink *buttons_new(const bContext *C)
 	BLI_addtail(&sbuts->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-#if 0 // disabled, as this currently draws badly in new system
-	/* buts space goes from (0,0) to (1280, 228) */
-	ar->v2d.tot.xmin= 0.0f;
-	ar->v2d.tot.ymin= 0.0f;
-	ar->v2d.tot.xmax= 1279.0f;
-	ar->v2d.tot.ymax= 228.0f;
-	
-	ar->v2d.cur= sbuts->v2d.tot;
-	
-	ar->v2d.min[0]= 256.0f;
-	ar->v2d.min[1]= 42.0f;
-	
-	ar->v2d.max[0]= 2048.0f;
-	ar->v2d.max[1]= 450.0f;
-	
-	ar->v2d.minzoom= 0.5f;
-	ar->v2d.maxzoom= 1.21f;
-	
-	ar->v2d.scroll= 0;  // TODO: will we need scrollbars?
-	ar->v2d.align= V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y;
-	ar->v2d.keepzoom= V2D_KEEPZOOM|V2D_KEEPASPECT;
-	ar->v2d.keeptot= V2D_KEEPTOT_BOUNDS;
-#endif	
-	
-	
 	return (SpaceLink *)sbuts;
 }
 
@@ -164,13 +139,7 @@ static SpaceLink *buttons_duplicate(SpaceLink *sl)
 /* add handlers, stuff you only do once or on area/region changes */
 static void buttons_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
-
 	ED_region_panels_init(wm, ar);
-	
-	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "Buttons", SPACE_BUTS, 0);	/* XXX weak? */
-	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
 static void buttons_main_area_draw(const bContext *C, ARegion *ar)
@@ -203,6 +172,8 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 		ED_region_panels(C, ar, vertical, "modifier");
 	else if (sbuts->mainb == BCONTEXT_CONSTRAINT)
 		ED_region_panels(C, ar, vertical, "constraint");
+	else if (sbuts->mainb == BCONTEXT_GAME)
+		ED_region_panels(C, ar, vertical, "game");
 
     sbuts->re_align= 0;
 	sbuts->mainbo= sbuts->mainb;
@@ -210,6 +181,9 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 
 void buttons_operatortypes(void)
 {
+	WM_operatortype_append(OBJECT_OT_group_add);
+	WM_operatortype_append(OBJECT_OT_group_remove);
+
 	WM_operatortype_append(OBJECT_OT_material_slot_add);
 	WM_operatortype_append(OBJECT_OT_material_slot_remove);
 	WM_operatortype_append(OBJECT_OT_material_slot_assign);
@@ -224,10 +198,10 @@ void buttons_operatortypes(void)
 	WM_operatortype_append(OBJECT_OT_particle_system_remove);
 
 	WM_operatortype_append(PARTICLE_OT_new);
-	WM_operatortype_append(PARTICLE_OT_new_keyed_target);
-	WM_operatortype_append(PARTICLE_OT_remove_keyed_target);
-	WM_operatortype_append(PARTICLE_OT_keyed_target_move_up);
-	WM_operatortype_append(PARTICLE_OT_keyed_target_move_down);
+	WM_operatortype_append(PARTICLE_OT_new_target);
+	WM_operatortype_append(PARTICLE_OT_remove_target);
+	WM_operatortype_append(PARTICLE_OT_target_move_up);
+	WM_operatortype_append(PARTICLE_OT_target_move_down);
 
 	WM_operatortype_append(SCENE_OT_render_layer_add);
 	WM_operatortype_append(SCENE_OT_render_layer_remove);
@@ -354,6 +328,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_GEOM_SELECT:
+				case ND_CONSTRAINT:
 					ED_area_tag_redraw(sa);
 					break;
 				case ND_SHADING:

@@ -183,10 +183,10 @@ typedef struct RenderData {
 	/** For UR edge rendering: give the edges this color */
 	float edgeR, edgeG, edgeB;
 	
-	short fullscreen, xplay, yplay, freqplay;	/* standalone player */
-	short depth, attrib, rt1, rt2;			/* standalone player */
+	short fullscreen, xplay, yplay, freqplay;	/* standalone player */  //  XXX deprecated since 2.5
+	short depth, attrib, rt1, rt2;			/* standalone player */  //  XXX deprecated since 2.5
 
-	short stereomode;	/* standalone player stereo settings */
+	short stereomode;	/* standalone player stereo settings */  //  XXX deprecated since 2.5
 	
 	short dimensionspreset;		/* for the dimensions presets menu */
  	
@@ -235,7 +235,7 @@ typedef struct RenderData {
 	 */
 	int mode;
 
-	/* render engine, octree resolution */
+	/* render engine (deprecated), octree resolution */
 	short renderer, ocres;
 
 	/**
@@ -274,8 +274,12 @@ typedef struct RenderData {
 	 * Value used to define filter size for all filter options  */
 	float gauss;
 	
+	
+	/* color management settings - color profiles, gamma correction, etc */
+	int color_mgt_flag;
+	
 	/** post-production settings. Depricated, but here for upwards compat (initialized to 1) */	 
-	float postmul, postgamma, posthue, postsat;	 
+	float postgamma, posthue, postsat;	 
 	
  	/* Dither noise intensity */
 	float dither_intensity;
@@ -323,13 +327,15 @@ typedef struct RenderData {
 	short jp2_preset, jp2_depth;
 	int rpad3;
 
-	/* Dome variables */
-	short domeres, domemode;
-	short domeangle, dometilt;
-	float domeresbuf;
-	float pad2;
-	struct Text *dometext;
+	/* Dome variables */ //  XXX deprecated since 2.5
+	short domeres, domemode;	//  XXX deprecated since 2.5
+	short domeangle, dometilt;	//  XXX deprecated since 2.5
+	float domeresbuf;	//  XXX deprecated since 2.5
+	float pad2;			//  XXX deprecated since 2.5
+	struct Text *dometext;	//  XXX deprecated since 2.5
 
+	/* render engine */
+	char engine[32];
 } RenderData;
 
 /* control render convert and shading engine */
@@ -346,6 +352,20 @@ typedef struct RenderProfile {
 	
 } RenderProfile;
 
+typedef struct GameDome {
+	short res, mode;
+	short angle, tilt;
+	float resbuf, pad2;
+	struct Text *warptext;
+} GameDome;
+
+#define DOME_FISHEYE			1
+#define DOME_TRUNCATED_FRONT	2
+#define DOME_TRUNCATED_REAR		3
+#define DOME_ENVMAP				4
+#define DOME_PANORAM_SPH		5
+#define DOME_NUM_MODES			6
+
 typedef struct GameFraming {
 	float col[3];
 	char type, pad1, pad2, pad3;
@@ -354,6 +374,54 @@ typedef struct GameFraming {
 #define SCE_GAMEFRAMING_BARS   0
 #define SCE_GAMEFRAMING_EXTEND 1
 #define SCE_GAMEFRAMING_SCALE  2
+
+typedef struct GameData {
+
+	/* physics (it was in world)*/
+	float gravity; /*Gravitation constant for the game world*/
+
+	/*
+	 * Radius of the activity bubble, in Manhattan length. Objects
+	 * outside the box are activity-culled. */
+	float activityBoxRadius; //it's not being used ANYWHERE !!!!!!!!!!!!!!
+	/*
+	 * bit 3: (gameengine): Activity culling is enabled.
+	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustrum culling
+	*/
+	short mode, pad11;
+	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */
+	short physicsEngine;
+	short ticrate, maxlogicstep, physubstep, maxphystep;
+
+	/*  standalone player */
+	struct GameFraming framing;
+	short fullscreen, xplay, yplay, freqplay;
+	short depth, attrib, rt1, rt2;
+
+	/* stereo/dome mode */
+	struct GameDome dome;
+	short stereoflag, stereomode, xsch, ysch; //xsch and ysch can be deleted !!!
+} GameData;
+#define STEREO_NOSTEREO		1
+#define STEREO_ENABLED 		2
+#define STEREO_DOME	 		3
+
+//#define STEREO_NOSTEREO		 1
+#define STEREO_QUADBUFFERED 2
+#define STEREO_ABOVEBELOW	 3
+#define STEREO_INTERLACED	 4
+#define STEREO_ANAGLYPH		5
+#define STEREO_SIDEBYSIDE	6
+#define STEREO_VINTERLACE	7
+//#define STEREO_DOME		8
+
+/* physicsEngine */
+#define WOPHY_NONE		0
+#define WOPHY_ENJI		1
+#define WOPHY_SUMO		2
+#define WOPHY_DYNAMO	3
+#define WOPHY_ODE		4
+#define WOPHY_BULLET	5
 
 typedef struct TimeMarker {
 	struct TimeMarker *next, *prev;
@@ -584,8 +652,6 @@ typedef struct Scene {
 	
 	struct Editing *ed;								/* sequence editor data is allocated here */
 	
-	struct GameFraming framing;
-
 	struct ToolSettings *toolsettings;		/* default allocated now */
 	struct SceneStats *stats;				/* default allocated now */
 
@@ -613,6 +679,10 @@ typedef struct Scene {
 	/* User-Defined KeyingSets */
 	int active_keyingset;			/* index of the active KeyingSet. first KeyingSet has index 1, 'none' active is 0, 'add new' is -1 */
 	ListBase keyingsets;			/* KeyingSets for the given frame */
+	
+	/* Game Settings */
+	struct GameFraming framing; // XXX  deprecated since 2.5
+	struct GameData gm;
 } Scene;
 
 
@@ -722,6 +792,9 @@ typedef struct Scene {
 #define R_PLANES32		32
 #define R_PLANESBW		8
 
+/* color_mgt_flag */
+#define R_COLOR_MANAGEMENT	1
+
 /* imtype */
 #define R_TARGA		0
 #define R_IRIS		1
@@ -794,7 +867,7 @@ typedef struct Scene {
 /* depricate this! */
 #define TESTBASE(v3d, base)	( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0) )
 #define TESTBASELIB(v3d, base)	( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
-#define TESTBASELIB_BGMODE(base)   ( ((base)->flag & SELECT) && ((base)->lay & (v3d ? v3d->lay : scene->lay)) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
+#define TESTBASELIB_BGMODE(v3d, base)   ( ((base)->flag & SELECT) && ((base)->lay & (v3d ? v3d->lay : scene->lay)) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
 #define BASE_SELECTABLE(v3d, base)	 ((base->lay & v3d->lay) && (base->object->restrictflag & (OB_RESTRICT_SELECT|OB_RESTRICT_VIEW))==0)
 #define FIRSTBASE		scene->base.first
 #define LASTBASE		scene->base.last

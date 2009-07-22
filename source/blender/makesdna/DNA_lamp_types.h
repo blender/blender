@@ -104,8 +104,9 @@ typedef struct Lamp {
 	float YF_glowint, YF_glowofs;
 	short YF_glowtype, YF_pad2;
 	
-	struct MTex *mtex[18];			/* MAX_MTEX */
 	struct Ipo *ipo;				// XXX depreceated... old animation system
+	struct MTex *mtex[18];			/* MAX_MTEX */
+	short pr_texture, pad[3];
 	
 	/* preview */
 	struct PreviewImage *preview;

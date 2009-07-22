@@ -39,6 +39,7 @@
 #include "IMB_allocimbuf.h"
 #include "IMB_divers.h"
 #include "BKE_utildefines.h"
+#include "BKE_colortools.h"
 
 void imb_checkncols(struct ImBuf *ibuf)
 {
@@ -176,9 +177,11 @@ void IMB_gamwarp(struct ImBuf *ibuf, double gamma)
 void IMB_rect_from_float(struct ImBuf *ibuf)
 {
 	/* quick method to convert floatbuf to byte */
-	float *tof = ibuf->rect_float;
+	float *tof = (float *)ibuf->rect_float;
 	float dither= ibuf->dither;
+	float srgb[3];
 	int i, channels= ibuf->channels;
+	short profile= ibuf->profile;
 	unsigned char *to = (unsigned char *) ibuf->rect;
 	
 	if(tof==NULL) return;
@@ -187,7 +190,24 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 		to = (unsigned char *) ibuf->rect;
 	}
 	
-	if(dither==0.0f || channels!=4) {
+	if (profile == IB_PROFILE_SRGB && (channels == 3 || channels == 4)) {
+		if(channels == 3) {
+			for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof+=3) {
+				srgb[0]= linearrgb_to_srgb(tof[0]);
+				srgb[1]= linearrgb_to_srgb(tof[1]);
+				srgb[2]= linearrgb_to_srgb(tof[2]);
+
+				to[0] = FTOCHAR(srgb[0]);
+				to[1] = FTOCHAR(srgb[1]);
+				to[2] = FTOCHAR(srgb[2]);
+				to[3] = 255;
+			}
+		}
+		else if (channels == 4) {
+			floatbuf_to_srgb_byte(tof, to, 0, ibuf->x, 0, ibuf->y, ibuf->x);
+		}
+	}
+	else if(ELEM(profile, IB_PROFILE_NONE, IB_PROFILE_LINEAR_RGB) && (dither==0.0f || channels!=4)) {
 		if(channels==1) {
 			for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof++)
 				to[1]= to[2]= to[3]= to[0] = FTOCHAR(tof[0]);
@@ -242,14 +262,28 @@ void IMB_float_from_rect(struct ImBuf *ibuf)
 		tof = ibuf->rect_float;
 	}
 	
-	for (i = ibuf->x * ibuf->y; i > 0; i--) 
-	{
-		tof[0] = ((float)to[0])*(1.0f/255.0f);
-		tof[1] = ((float)to[1])*(1.0f/255.0f);
-		tof[2] = ((float)to[2])*(1.0f/255.0f);
-		tof[3] = ((float)to[3])*(1.0f/255.0f);
-		to += 4; 
-		tof += 4;
+	if (ibuf->profile == IB_PROFILE_SRGB) {
+		/* convert from srgb to linear rgb */
+		
+		for (i = ibuf->x * ibuf->y; i > 0; i--) 
+		{
+			tof[0] = srgb_to_linearrgb(((float)to[0])*(1.0f/255.0f));
+			tof[1] = srgb_to_linearrgb(((float)to[1])*(1.0f/255.0f));
+			tof[2] = srgb_to_linearrgb(((float)to[2])*(1.0f/255.0f));
+			tof[3] = ((float)to[3])*(1.0f/255.0f);
+			to += 4; 
+			tof += 4;
+		}
+	} else {
+		for (i = ibuf->x * ibuf->y; i > 0; i--) 
+		{
+			tof[0] = ((float)to[0])*(1.0f/255.0f);
+			tof[1] = ((float)to[1])*(1.0f/255.0f);
+			tof[2] = ((float)to[2])*(1.0f/255.0f);
+			tof[3] = ((float)to[3])*(1.0f/255.0f);
+			to += 4; 
+			tof += 4;
+		}
 	}
 }
 

@@ -65,6 +65,8 @@ void OBJECT_OT_object_add(struct wmOperatorType *ot);
 void OBJECT_OT_duplicate(struct wmOperatorType *ot);
 void OBJECT_OT_delete(struct wmOperatorType *ot);
 void OBJECT_OT_join(struct wmOperatorType *ot);
+void OBJECT_OT_shade_smooth(struct wmOperatorType *ot);
+void OBJECT_OT_shade_flat(struct wmOperatorType *ot);
 
 void OBJECT_OT_mesh_add(struct wmOperatorType *ot);
 void OBJECT_OT_curve_add(struct wmOperatorType *ot);
@@ -102,6 +104,16 @@ void OBJECT_OT_modifier_mdef_bind(struct wmOperatorType *ot);
 
 /* editconstraint.c */
 void OBJECT_OT_constraint_add(struct wmOperatorType *ot);
+void OBJECT_OT_constraint_add_with_targets(struct wmOperatorType *ot);
+void POSE_OT_constraint_add(struct wmOperatorType *ot);
+void POSE_OT_constraint_add_with_targets(struct wmOperatorType *ot);
+
+void OBJECT_OT_constraints_clear(struct wmOperatorType *ot);
+void POSE_OT_constraints_clear(struct wmOperatorType *ot);
+
+void POSE_OT_ik_add(struct wmOperatorType *ot);
+void POSE_OT_ik_clear(struct wmOperatorType *ot);
+
 void CONSTRAINT_OT_delete(struct wmOperatorType *ot);
 
 void CONSTRAINT_OT_move_up(struct wmOperatorType *ot);

@@ -1,4 +1,5 @@
-#!/bin/sh
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -7,7 +8,7 @@
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+# of the License, or (at your option) any later version. 
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +19,7 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+# The Original Code is Copyright (C) 2009 Blender Foundation
 # All rights reserved.
 #
 # The Original Code is: all of this file.
@@ -26,11 +27,26 @@
 # Contributor(s): none yet.
 #
 # ***** END GPL LICENSE BLOCK *****
-#
-# OS specific stuff for the package, only to be executed by ../Makefile
 
-# Add Python .so to package
-cp -f $NAN_PYTHON/lib/libpython$NAN_PYTHON_VERSION.so $DISTDIR/
+LIBNAME = ed_console
+DIR = $(OCGDIR)/blender/$(LIBNAME)
 
-# And create a drag'n'drop symlink for it
-cd $DISTDIR && ln -s /boot/home/config/lib Drag_libpython$NAN_PYTHON_VERSION.so_here
+include nan_compile.mk
+
+CFLAGS += $(LEVEL_1_C_WARNINGS)
+
+CPPFLAGS += -I$(NAN_GLEW)/include
+CPPFLAGS += -I$(OPENGL_HEADERS)
+
+# not very neat....
+CPPFLAGS += -I../../windowmanager
+CPPFLAGS += -I../../blenfont
+CPPFLAGS += -I../../blenkernel
+CPPFLAGS += -I../../blenlib
+CPPFLAGS += -I../../makesdna
+CPPFLAGS += -I../../makesrna
+CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+
+# own include 
+
+CPPFLAGS += -I../include 

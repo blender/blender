@@ -93,7 +93,7 @@ typedef struct Material {
 	
 	/* for buttons and render*/
 	char rgbsel, texact, pr_type, use_nodes;
-	short pr_back, pr_lamp, pad4, ml_flag;	/* ml_flag is for disable base material */
+	short pr_back, pr_lamp, pr_texture, ml_flag;	/* ml_flag is for disable base material */
 	
 	/* shaders */
 	short diff_shader, spec_shader;

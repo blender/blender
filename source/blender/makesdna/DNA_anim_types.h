@@ -63,7 +63,7 @@ typedef struct FModifier {
 /* Types of F-Curve modifier 
  * WARNING: order here is important!
  */
-enum {
+typedef enum eFModifier_Types {
 	FMODIFIER_TYPE_NULL = 0,
 	FMODIFIER_TYPE_GENERATOR,
 	FMODIFIER_TYPE_FN_GENERATOR,
@@ -79,7 +79,7 @@ enum {
 } eFModifier_Types;
 
 /* F-Curve Modifier Settings */
-enum {
+typedef enum eFModifier_Flags {
 		/* modifier is not able to be evaluated for some reason, and should be skipped (internal) */
 	FMODIFIER_FLAG_DISABLED		= (1<<0),
 		/* modifier's data is expanded (in UI) */
@@ -106,7 +106,7 @@ typedef struct FMod_Generator {
 } FMod_Generator;
 
 /* generator modes */
-enum {
+typedef enum eFMod_Generator_Modes {
 	FCM_GENERATOR_POLYNOMIAL	= 0,
 	FCM_GENERATOR_POLYNOMIAL_FACTORISED,
 } eFMod_Generator_Modes;
@@ -115,7 +115,7 @@ enum {
 /* generator flags 
  *	- shared by Generator and Function Generator
  */
-enum {
+typedef enum eFMod_Generator_Flags {
 		/* generator works in conjunction with other modifiers (i.e. doesn't replace those before it) */
 	FCM_GENERATOR_ADDITIVE	= (1<<0),
 } eFMod_Generator_Flags;
@@ -142,7 +142,7 @@ typedef struct FMod_FunctionGenerator {
 } FMod_FunctionGenerator;
 
 /* 'function' generator types */
-enum {
+typedef enum eFMod_Generator_Functions {
 	FCM_GENERATOR_FN_SIN	= 0,
 	FCM_GENERATOR_FN_COS,
 	FCM_GENERATOR_FN_TAN,
@@ -181,7 +181,7 @@ typedef struct FMod_Cycles {
 } FMod_Cycles;
 
 /* cycling modes */
-enum {
+typedef enum eFMod_Cycling_Modes {
 	FCM_EXTRAPOLATE_NONE = 0,			/* don't do anything */
 	FCM_EXTRAPOLATE_CYCLIC,				/* repeat keyframe range as-is */
 	FCM_EXTRAPOLATE_CYCLIC_OFFSET,		/* repeat keyframe range, but with offset based on gradient between values */
@@ -204,7 +204,7 @@ typedef struct FMod_Limits {
 } FMod_Limits;
 
 /* limiting flags */
-enum {
+typedef enum eFMod_Limit_Flags {
 	FCM_LIMIT_XMIN		= (1<<0),
 	FCM_LIMIT_XMAX		= (1<<1),
 	FCM_LIMIT_YMIN		= (1<<2),
@@ -217,14 +217,13 @@ typedef struct FMod_Noise {
 	float strength;
 	float phase;
 	float pad;
-
+	
 	short depth;
 	short modification;
-
 } FMod_Noise;
 	
 /* modification modes */
-enum {
+typedef enum eFMod_Noise_Modifications {
 	FCM_NOISE_MODIF_REPLACE = 0,	/* Modify existing curve, matching it's shape */
 	FCM_NOISE_MODIF_ADD,			/* Add noise to the curve */
 	FCM_NOISE_MODIF_SUBTRACT,		/* Subtract noise from the curve */
@@ -280,7 +279,7 @@ typedef struct ChannelDriver {
 } ChannelDriver;
 
 /* driver type */
-enum {
+typedef enum eDriver_Types {
 		/* target values are averaged together */
 	DRIVER_TYPE_AVERAGE	= 0,
 		/* python expression/function relates targets */
@@ -290,7 +289,7 @@ enum {
 } eDriver_Types;
 
 /* driver flags */
-enum {
+typedef enum eDriver_Flags {
 		/* driver has invalid settings (internal flag)  */
 	DRIVER_FLAG_INVALID		= (1<<0),
 		/* driver needs recalculation (set by depsgraph) */
@@ -346,7 +345,7 @@ typedef struct FCurve {
 
 
 /* user-editable flags/settings */
-enum {
+typedef enum eFCurve_Flags {
 		/* curve/keyframes are visible in editor */
 	FCURVE_VISIBLE		= (1<<0),
 		/* curve is selected for editing  */
@@ -369,13 +368,13 @@ enum {
 } eFCurve_Flags;
 
 /* extrapolation modes (only simple value 'extending') */
-enum {
+typedef enum eFCurve_Extend {
 	FCURVE_EXTRAPOLATE_CONSTANT	= 0,	/* just extend min/max keyframe value  */
 	FCURVE_EXTRAPOLATE_LINEAR,			/* just extend gradient of segment between first segment keyframes */
 } eFCurve_Extend;
 
 /* curve coloring modes */
-enum {
+typedef enum eFCurve_Coloring {
 	FCURVE_COLOR_AUTO_RAINBOW = 0,		/* automatically determine color using rainbow (calculated at drawtime) */
 	FCURVE_COLOR_AUTO_RGB,				/* automatically determine color using XYZ (array index) <-> RGB */
 	FCURVE_COLOR_CUSTOM,				/* custom color */
@@ -465,7 +464,7 @@ typedef struct NlaStrip {
 } NlaStrip;
 
 /* NLA Strip Blending Mode */
-enum {
+typedef enum eNlaStrip_Blend_Mode {
 	NLASTRIP_MODE_REPLACE = 0,
 	NLASTRIP_MODE_ADD,
 	NLASTRIP_MODE_SUBTRACT,
@@ -473,7 +472,7 @@ enum {
 } eNlaStrip_Blend_Mode;
 
 /* NLA Strip Extrpolation Mode */
-enum {
+typedef enum eNlaStrip_Extrapolate_Mode {
 		/* extend before first frame if no previous strips in track, and always hold+extend last frame */
 	NLASTRIP_EXTEND_HOLD	= 0,		
 		/* only hold+extend last frame */
@@ -483,7 +482,7 @@ enum {
 } eNlaStrip_Extrapolate_Mode;
 
 /* NLA Strip Settings */
-enum {
+typedef enum eNlaStrip_Flag {
 	/* UI selection flags */
 		/* NLA strip is the active one in the track (also indicates if strip is being tweaked) */
 	NLASTRIP_FLAG_ACTIVE		= (1<<0),	
@@ -517,7 +516,7 @@ enum {
 } eNlaStrip_Flag;
 
 /* NLA Strip Type */
-enum {	
+typedef enum eNlaStrip_Type {	
 		/* 'clip' - references an Action */
 	NLASTRIP_TYPE_CLIP	= 0,
 		/* 'transition' - blends between the adjacent strips */
@@ -547,7 +546,7 @@ typedef struct NlaTrack {
 } NlaTrack;
 
 /* settings for track */
-enum {
+typedef enum eNlaTrack_Flag {
 		/* track is the one that settings can be modified on, also indicates if track is being 'tweaked' */
 	NLATRACK_ACTIVE		= (1<<0),
 		/* track is selected in UI for relevant editing operations */
@@ -595,13 +594,13 @@ typedef struct KS_Path {
 } KS_Path;
 
 /* KS_Path->flag */
-enum {
+typedef enum eKSP_Settings {
 		/* entire array (not just the specified index) gets keyframed */
 	KSP_FLAG_WHOLE_ARRAY	= (1<<0),
 } eKSP_Settings;
 
 /* KS_Path->groupmode */
-enum {
+typedef enum eKSP_Grouping {
 		/* path should be grouped using group name stored in path */
 	KSP_GROUP_NAMED = 0,
 		/* path should not be grouped at all */
@@ -621,7 +620,7 @@ enum {
  * enum here defines the flags which define which templates are
  * required by a path before it can be used
  */
-enum {
+typedef enum eKSP_TemplateTypes {
 	KSP_TEMPLATE_OBJECT			= (1<<0),	/* #obj - selected object */
 	KSP_TEMPLATE_PCHAN 			= (1<<1),	/* #pch - selected posechannel */
 	KSP_TEMPLATE_CONSTRAINT 	= (1<<2),	/* #con - active only */
@@ -652,7 +651,7 @@ typedef struct KeyingSet {
 } KeyingSet;
 
 /* KeyingSet settings */
-enum {
+typedef enum eKS_Settings {
 		/* keyingset cannot be removed (and doesn't need to be freed) */
 	KEYINGSET_BUILTIN		= (1<<0),
 		/* keyingset does not depend on context info (i.e. paths are absolute) */
@@ -660,7 +659,7 @@ enum {
 } eKS_Settings;
 
 /* Flags for use by keyframe creation/deletion calls */
-enum {
+typedef enum eInsertKeyFlags {
 	INSERTKEY_NEEDED 	= (1<<0),	/* only insert keyframes where they're needed */
 	INSERTKEY_MATRIX 	= (1<<1),	/* insert 'visual' keyframes where possible/needed */
 	INSERTKEY_FAST 		= (1<<2),	/* don't recalculate handles,etc. after adding key */
@@ -734,7 +733,7 @@ typedef struct AnimData {
 } AnimData;
 
 /* Animation Data settings (mostly for NLA) */
-enum {
+typedef enum eAnimData_Flag {
 		/* only evaluate a single track in the NLA */
 	ADT_NLA_SOLO_TRACK		= (1<<0),
 		/* don't use NLA */
@@ -756,7 +755,7 @@ enum {
 } eAnimData_Flag;
 
 /* Animation Data recalculation settings (to be set by depsgraph) */
-enum {
+typedef enum eAnimData_Recalc {
 	ADT_RECALC_DRIVERS		= (1<<0),
 	ADT_RECALC_ANIM			= (1<<1),
 	ADT_RECALC_ALL			= (ADT_RECALC_DRIVERS|ADT_RECALC_ANIM),

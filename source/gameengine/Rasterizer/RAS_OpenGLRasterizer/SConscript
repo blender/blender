@@ -9,8 +9,9 @@ incs += ' #source/blender/gameengine/Ketsji #source/gameengine/SceneGraph #sourc
 incs += ' #intern/guardedalloc #source/blender/blenlib'
 
 cxxflags = []
-if env['OURPLATFORM']=='win32-vc':
+if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
 	cxxflags.append ('/GR')
 	cxxflags.append ('/O2')
+	cxxflags.append ('/EHsc')
 
 env.BlenderLib ( 'bf_oglrasterizer', Split(sources), Split(incs), [], libtype=['core','player'], priority=[350, 115], cxx_compileflags = cxxflags )

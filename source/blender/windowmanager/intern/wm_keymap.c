@@ -132,7 +132,7 @@ wmKeymapItem *WM_keymap_add_item(ListBase *lb, char *idname, short type, short v
    space/region ids are same as DNA_space_types.h */
 /* gets free'd in wm.c */
 
-ListBase *WM_keymap_listbase(wmWindowManager *wm, const char *nameid, int spaceid, int regionid)
+static wmKeyMap *wm_keymap_add(wmWindowManager *wm, const char *nameid, short spaceid, short regionid)
 {
 	wmKeyMap *km;
 	
@@ -140,7 +140,7 @@ ListBase *WM_keymap_listbase(wmWindowManager *wm, const char *nameid, int spacei
 		if(km->spaceid==spaceid && km->regionid==regionid)
 			if(0==strncmp(nameid, km->nameid, KMAP_MAX_NAME))
 				break;
-
+	
 	if(km==NULL) {
 		km= MEM_callocN(sizeof(struct wmKeyMap), "keymap list");
 		BLI_strncpy(km->nameid, nameid, KMAP_MAX_NAME);
@@ -149,8 +149,61 @@ ListBase *WM_keymap_listbase(wmWindowManager *wm, const char *nameid, int spacei
 		BLI_addtail(&wm->keymaps, km);
 	}
 	
+	return km;
+}
+
+ListBase *WM_keymap_listbase(wmWindowManager *wm, const char *nameid, short spaceid, short regionid)
+{
+	wmKeyMap *km= wm_keymap_add(wm, nameid, spaceid, regionid);
 	return &km->keymap;
 }
+
+/* ****************** modal keymaps ************ */
+
+/* modal maps get linked to a running operator, and filter the keys before sending to modal() callback */
+
+wmKeyMap *WM_modalkeymap_add(wmWindowManager *wm, const char *nameid, EnumPropertyItem *items)
+{
+	wmKeyMap *km= wm_keymap_add(wm, nameid, 0, 0);
+	km->is_modal= 1;
+	km->items= items;
+	
+	return km;
+}
+
+wmKeyMap *WM_modalkeymap_get(wmWindowManager *wm, const char *nameid)
+{
+	wmKeyMap *km;
+	
+	for(km= wm->keymaps.first; km; km= km->next)
+		if(km->is_modal)
+			if(0==strncmp(nameid, km->nameid, KMAP_MAX_NAME))
+				break;
+	
+	return km;
+}
+
+
+void WM_modalkeymap_add_item(wmKeyMap *km, short type, short val, int modifier, short keymodifier, short value)
+{
+	wmKeymapItem *kmi= MEM_callocN(sizeof(wmKeymapItem), "keymap entry");
+	
+	BLI_addtail(&km->keymap, kmi);
+	kmi->propvalue= value;
+	
+	keymap_event_set(kmi, type, val, modifier, keymodifier);
+}
+
+void WM_modalkeymap_assign(wmKeyMap *km, const char *opname)
+{
+	wmOperatorType *ot= WM_operatortype_find(opname, 0);
+	
+	if(ot)
+		ot->modalkeymap= km;
+	else
+		printf("error: modalkeymap_assign, unknown operator %s\n", opname);
+}
+
 
 /* ***************** get string from key events **************** */
 

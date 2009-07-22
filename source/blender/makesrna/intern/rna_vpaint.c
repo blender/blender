@@ -51,6 +51,10 @@ void RNA_def_vpaint(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "VPaint", NULL);
 	RNA_def_struct_ui_text(srna, "Vertex Paint", "Properties of the Vpaint tool.");
+    
+	prop= RNA_def_property(srna, "brush", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Brush");
+	RNA_def_property_ui_text(prop, "Brush", "");
 
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_mode_items);

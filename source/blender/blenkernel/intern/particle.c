@@ -36,6 +36,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
+#include "DNA_boid_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -58,6 +59,7 @@
 
 #include "BKE_anim.h"
 
+#include "BKE_boids.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_lattice.h"
@@ -355,10 +357,13 @@ void psys_free_settings(ParticleSettings *part)
 		MEM_freeN(part->pd);
 		part->pd = NULL;
 	}
+	
 	if(part->pd2) {
 		MEM_freeN(part->pd2);
 		part->pd2 = NULL;
 	}
+
+	boid_free_settings(part->boids);
 }
 
 void free_hair(ParticleSystem *psys, int softbody)
@@ -439,6 +444,9 @@ void psys_free(Object *ob, ParticleSystem * psys)
 			psys->free_edit(psys);
 
 		if(psys->particles){
+			if(psys->particles->boid)
+				MEM_freeN(psys->particles->boid);
+
 			MEM_freeN(psys->particles);
 			psys->particles = 0;
 			psys->totpart = 0;
@@ -479,8 +487,10 @@ void psys_free(Object *ob, ParticleSystem * psys)
 		if(psys->pointcache)
 			BKE_ptcache_free(psys->pointcache);
 		
-		if(psys->keyed_targets.first)
-			BLI_freelistN(&psys->keyed_targets);
+		if(psys->targets.first)
+			BLI_freelistN(&psys->targets);
+
+		BLI_kdtree_free(psys->tree);
 
 		MEM_freeN(psys);
 	}
@@ -1043,21 +1053,21 @@ static void do_particle_interpolation(ParticleSystem *psys, int p, ParticleData 
 			real_t = pind->kkey[0]->time + t * (pind->kkey[0][pa->totkey-1].time - pind->kkey[0]->time);
 
 		if(psys->part->phystype==PART_PHYS_KEYED && psys->flag & PSYS_KEYED_TIMING) {
-			KeyedParticleTarget *kpt = psys->keyed_targets.first;
+			ParticleTarget *pt = psys->targets.first;
 
-			kpt=kpt->next;
+			pt=pt->next;
 
-			while(kpt && pa->time + kpt->time < real_t)
-				kpt= kpt->next;
+			while(pt && pa->time + pt->time < real_t)
+				pt= pt->next;
 
-			if(kpt) {
-				kpt=kpt->prev;
+			if(pt) {
+				pt=pt->prev;
 
-				if(pa->time + kpt->time + kpt->duration > real_t)
-					real_t = pa->time + kpt->time;
+				if(pa->time + pt->time + pt->duration > real_t)
+					real_t = pa->time + pt->time;
 			}
 			else
-				real_t = pa->time + ((KeyedParticleTarget*)psys->keyed_targets.last)->time;
+				real_t = pa->time + ((ParticleTarget*)psys->targets.last)->time;
 		}
 
 		CLAMP(real_t, pa->time, pa->dietime);
@@ -3028,7 +3038,12 @@ void object_add_particle_system(Scene *scene, Object *ob)
 	psys->pointcache = BKE_ptcache_add();
 	BLI_addtail(&ob->particlesystem, psys);
 
-	psys->part = psys_new_settings("PSys", NULL);
+	psys->part = psys_new_settings("ParticleSettings", NULL);
+
+	if(BLI_countlist(&ob->particlesystem)>1)
+		sprintf(psys->name, "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
+	else
+		strcpy(psys->name, "ParticleSystem");
 
 	md= modifier_new(eModifierType_ParticleSystem);
 	sprintf(md->name, "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
@@ -3077,7 +3092,7 @@ static void default_particle_settings(ParticleSettings *part)
 	part->bb_uv_split=1;
 	part->bb_align=PART_BB_VIEW;
 	part->bb_split_offset=PART_BB_OFF_LINEAR;
-	part->flag=PART_REACT_MULTIPLE|PART_HAIR_GEOMETRY;
+	part->flag=PART_REACT_MULTIPLE|PART_HAIR_GEOMETRY|PART_EDISTR|PART_TRAND;
 
 	part->sta= 1.0;
 	part->end= 100.0;
@@ -3099,18 +3114,13 @@ static void default_particle_settings(ParticleSettings *part)
 	part->reactevent= PART_EVENT_DEATH;
 	part->disp=100;
 	part->from= PART_FROM_FACE;
-	part->nbetween= 4;
-	part->boidneighbours= 5;
 
-	part->max_vel = 10.0f;
-	part->average_vel = 0.3f;
-	part->max_tan_acc = 0.2f;
-	part->max_lat_acc = 1.0f;
+	part->normfac= 1.0f;
 
 	part->reactshape=1.0f;
 
 	part->mass=1.0;
-	part->size=1.0;
+	part->size=0.05;
 	part->childsize=1.0;
 
 	part->child_nbr=10;
@@ -3128,19 +3138,16 @@ static void default_particle_settings(ParticleSettings *part)
 	part->clength=1.0f;
 	part->clength_thres=0.0f;
 
+	part->draw= PART_DRAW_EMITTER|PART_DRAW_MAT_COL;
 	part->draw_line[0]=0.5;
 	part->path_start = 0.0f;
 	part->path_end = 1.0f;
 
 	part->keyed_loops = 1;
 
-	part->banking=1.0;
-	part->max_bank=1.0;
+	for(i=0; i<10; i++)
+		part->effector_weight[i]=1.0f;
 
-	for(i=0; i<BOID_TOT_RULES; i++){
-		part->boidrule[i]=(char)i;
-		part->boidfac[i]=0.5;
-	}
 
 #if 0 // XXX old animation system
 	part->ipo = NULL;
@@ -3174,6 +3181,8 @@ ParticleSettings *psys_copy_settings(ParticleSettings *part)
 	partn= copy_libblock(part);
 	if(partn->pd) partn->pd= MEM_dupallocN(part->pd);
 	if(partn->pd2) partn->pd2= MEM_dupallocN(part->pd2);
+
+	partn->boids = boid_copy_settings(part->boids);
 	
 	return partn;
 }

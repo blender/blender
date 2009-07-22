@@ -268,7 +268,7 @@ void MESH_OT_quads_convert_to_tris(struct wmOperatorType *ot);
 void MESH_OT_tris_convert_to_quads(struct wmOperatorType *ot);
 void MESH_OT_edge_flip(struct wmOperatorType *ot);
 void MESH_OT_faces_shade_smooth(struct wmOperatorType *ot);
-void MESH_OT_faces_shade_solid(struct wmOperatorType *ot);
+void MESH_OT_faces_shade_flat(struct wmOperatorType *ot);
 void MESH_OT_split(struct wmOperatorType *ot);
 void MESH_OT_extrude_repeat(struct wmOperatorType *ot);
 void MESH_OT_edge_rotate(struct wmOperatorType *ot);

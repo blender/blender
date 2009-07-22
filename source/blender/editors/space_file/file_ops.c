@@ -716,7 +716,6 @@ int file_directory_exec(bContext *C, wmOperator *unused)
 				while ( (*d == '\\') || (*d == '/') )
 					d++;
 				BLI_strncpy(homestr,  BLI_gethome(), FILE_MAX);
-				BLI_add_slash(homestr);
 				BLI_join_dirfile(tmpstr, homestr, d);
 				BLI_strncpy(sfile->params->dir, tmpstr, sizeof(sfile->params->dir));
 			}
@@ -877,14 +876,17 @@ int file_delete_poll(bContext *C)
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
 	struct direntry* file;
 
-	if(!sfile->params ) poll= 0;
-
-	if (sfile->params->active_file < 0) { 
-		poll= 0;
-	} else {
-		file = filelist_file(sfile->files, sfile->params->active_file);
-		if (file && S_ISDIR(file->type)) poll= 0;
+	if (sfile->params) {
+		if (sfile->params->active_file < 0) { 
+			poll= 0;
+		} else {
+			file = filelist_file(sfile->files, sfile->params->active_file);
+			if (file && S_ISDIR(file->type)) poll= 0;
+		}
 	}
+	else
+		poll= 0;
+		
 	return poll;
 }
 

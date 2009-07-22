@@ -33,34 +33,56 @@ struct wmOperatorType;
 
 /* editarmature.c operators */
 void ARMATURE_OT_bone_primitive_add(struct wmOperatorType *ot);
+
 void ARMATURE_OT_bones_align(struct wmOperatorType *ot);
 void ARMATURE_OT_calculate_roll(struct wmOperatorType *ot);
 void ARMATURE_OT_switch_direction(struct wmOperatorType *ot);
+
 void ARMATURE_OT_subdivs(struct wmOperatorType *ot);
 void ARMATURE_OT_subdivide_simple(struct wmOperatorType *ot);
 void ARMATURE_OT_subdivide_multi(struct wmOperatorType *ot);
+
 void ARMATURE_OT_parent_set(struct wmOperatorType *ot);
 void ARMATURE_OT_parent_clear(struct wmOperatorType *ot);
+
 void ARMATURE_OT_select_all_toggle(struct wmOperatorType *ot);
 void ARMATURE_OT_select_inverse(struct wmOperatorType *ot);
 void ARMATURE_OT_select_hierarchy(struct wmOperatorType *ot);
 void ARMATURE_OT_select_linked(struct wmOperatorType *ot);
+
 void ARMATURE_OT_delete(struct wmOperatorType *ot);
 void ARMATURE_OT_duplicate_selected(struct wmOperatorType *ot);
 void ARMATURE_OT_extrude(struct wmOperatorType *ot);
 void ARMATURE_OT_click_extrude(struct wmOperatorType *ot);
 
+/* ******************************************************* */
+/* Pose-Mode Operators */
 void POSE_OT_hide(struct wmOperatorType *ot);
 void POSE_OT_reveal(struct wmOperatorType *ot);
+
 void POSE_OT_rot_clear(struct wmOperatorType *ot);
 void POSE_OT_loc_clear(struct wmOperatorType *ot);
 void POSE_OT_scale_clear(struct wmOperatorType *ot);
+
+void POSE_OT_copy(struct wmOperatorType *ot);
+void POSE_OT_paste(struct wmOperatorType *ot);
+
 void POSE_OT_select_all_toggle(struct wmOperatorType *ot);
 void POSE_OT_select_inverse(struct wmOperatorType *ot);
 void POSE_OT_select_parent(struct wmOperatorType *ot);
 void POSE_OT_select_hierarchy(struct wmOperatorType *ot);
 void POSE_OT_select_linked(struct wmOperatorType *ot);
 void POSE_OT_select_constraint_target(struct wmOperatorType *ot);
+
+void POSE_OT_groups_menu(struct wmOperatorType *ot);
+void POSE_OT_group_add(struct wmOperatorType *ot);
+void POSE_OT_group_remove(struct wmOperatorType *ot);
+void POSE_OT_group_remove(struct wmOperatorType *ot);
+void POSE_OT_group_assign(struct wmOperatorType *ot);
+void POSE_OT_group_unassign(struct wmOperatorType *ot);
+
+/* ******************************************************* */
+/* Etch-A-Ton */
 
 void SKETCH_OT_gesture(struct wmOperatorType *ot);
 void SKETCH_OT_delete(struct wmOperatorType *ot);
@@ -70,12 +92,14 @@ void SKETCH_OT_finish_stroke(struct wmOperatorType *ot);
 void SKETCH_OT_cancel_stroke(struct wmOperatorType *ot);
 void SKETCH_OT_select(struct wmOperatorType *ot);
 
+/* ******************************************************* */
 /* PoseLib */
 void POSELIB_OT_pose_add(struct wmOperatorType *ot);
 void POSELIB_OT_pose_remove(struct wmOperatorType *ot);
 void POSELIB_OT_pose_rename(struct wmOperatorType *ot);
 void POSELIB_OT_browse_interactive(struct wmOperatorType *ot);
 
+/* ******************************************************* */
 /* editarmature.c */
 struct bArmature;
 struct EditBone;

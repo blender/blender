@@ -30,6 +30,7 @@ SET(INC
   intern/include ../../../intern/guardedalloc ../blenlib ../makesdna
   extern/include ../blenkernel ../radiosity/extern/include ../imbuf
   ../quicktime ../include ../../kernel/gen_messaging ../blenloader
+  ../makesrna
 )
 
 IF(WITH_OPENEXR)

@@ -92,8 +92,8 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	style->panelzoom= 1.0;
 
 	style->paneltitle.uifont_id= UIFONT_DEFAULT;
-	style->paneltitle.points= 13;
-	style->paneltitle.kerning= 0;
+	style->paneltitle.points= 12;
+	style->paneltitle.kerning= 1;
 	style->paneltitle.shadow= 5;
 	style->paneltitle.shadx= 2;
 	style->paneltitle.shady= -2;
@@ -102,7 +102,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	
 	style->grouplabel.uifont_id= UIFONT_DEFAULT;
 	style->grouplabel.points= 12;
-	style->grouplabel.kerning= 0;
+	style->grouplabel.kerning= 1;
 	style->grouplabel.shadow= 3;
 	style->grouplabel.shadx= 1;
 	style->grouplabel.shady= -1;
@@ -110,7 +110,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	
 	style->widgetlabel.uifont_id= UIFONT_DEFAULT;
 	style->widgetlabel.points= 11;
-	style->widgetlabel.kerning= 0;
+	style->widgetlabel.kerning= 1;
 	style->widgetlabel.shadow= 3;
 	style->widgetlabel.shadx= 1;
 	style->widgetlabel.shady= -1;
@@ -119,7 +119,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	
 	style->widget.uifont_id= UIFONT_DEFAULT;
 	style->widget.points= 11;
-	style->widget.kerning= 0;
+	style->widget.kerning= 1;
 	style->widget.shadowalpha= 0.25f;
 
 	style->columnspace= 5;

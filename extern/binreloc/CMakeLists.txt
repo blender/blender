@@ -18,8 +18,8 @@
 # All rights reserved.
 #
 
-SET(INC ./include ${WINTAB_INC})
-ADD_DEFINITIONS(-DWITH_BINRELOC)
+SET(INC ./include )
+ADD_DEFINITIONS(-DENABLE_BINRELOC)
 FILE(GLOB SRC *.c)
 
 BLENDERLIB(extern_binreloc "${SRC}" "${INC}")

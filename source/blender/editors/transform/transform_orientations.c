@@ -367,7 +367,6 @@ EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)
 	EnumPropertyItem normal = {V3D_MANIP_NORMAL, "NORMAL", 0, "Normal", ""};
 	EnumPropertyItem local = {V3D_MANIP_LOCAL, "LOCAL", 0, "Local", ""};
 	EnumPropertyItem view = {V3D_MANIP_VIEW, "VIEW", 0, "View", ""};
-	EnumPropertyItem sepr = {0, "", 0, NULL, NULL};
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
 	EnumPropertyItem *item= NULL;
 	int i = V3D_MANIP_CUSTOM, totitem= 0;
@@ -387,7 +386,7 @@ EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)
 	}
 		
 	if(ts)
-		RNA_enum_item_add(&item, &totitem, &sepr);
+		RNA_enum_item_add_separator(&item, &totitem);
 
 	for(; ts; ts = ts->next) {
 		tmp.identifier = "CUSTOM";

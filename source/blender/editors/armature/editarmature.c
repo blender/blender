@@ -1598,10 +1598,8 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *op)
 
 	/* cancel if nothing selected */
 	if (CTX_DATA_COUNT(C, selected_bones) == 0)
-	  return OPERATOR_CANCELLED;
-
-	/* if (okee("Erase selected bone(s)")==0) return; */
-
+		return OPERATOR_CANCELLED;
+	
 	/* Select mirrored bones */
 	if (arm->flag & ARM_MIRROR_EDIT) {
 		for (curBone=arm->edbo->first; curBone; curBone=curBone->next) {
@@ -5095,9 +5093,9 @@ static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldnam
 /* called by UI for renaming a bone */
 /* warning: make sure the original bone was not renamed yet! */
 /* seems messy, but thats what you get with not using pointers but channel names :) */
-void armature_bone_rename(Object *ob, char *oldnamep, char *newnamep)
+void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 {
-	bArmature *arm= ob->data;
+	Object *ob;
 	char newname[MAXBONENAME];
 	char oldname[MAXBONENAME];
 	
@@ -5242,7 +5240,7 @@ void armature_flip_names(Scene *scene)
 			if (ebone->flag & BONE_SELECTED) {
 				BLI_strncpy(newname, ebone->name, sizeof(newname));
 				bone_flip_name(newname, 1);		// 1 = do strip off number extensions
-				armature_bone_rename(obedit, ebone->name, newname);
+				ED_armature_bone_rename(arm, ebone->name, newname);
 			}
 		}
 	}
@@ -5263,7 +5261,7 @@ void armature_autoside_names(Scene *scene, short axis)
 			if (ebone->flag & BONE_SELECTED) {
 				BLI_strncpy(newname, ebone->name, sizeof(newname));
 				bone_autoside_name(newname, 1, axis, ebone->head[axis], ebone->tail[axis]);
-				armature_bone_rename(obedit, ebone->name, newname);
+				ED_armature_bone_rename(arm, ebone->name, newname);
 			}
 		}
 	}

@@ -130,7 +130,8 @@ void ED_operatortypes_curve(void)
 	WM_operatortype_append(CURVE_OT_radius_set);
 	WM_operatortype_append(CURVE_OT_spline_weight_set);
 	WM_operatortype_append(CURVE_OT_handle_type_set);
-	WM_operatortype_append(CURVE_OT_smooth_set);
+	WM_operatortype_append(CURVE_OT_shade_smooth);
+	WM_operatortype_append(CURVE_OT_shade_flat);
 	WM_operatortype_append(CURVE_OT_tilt_clear);
 
 	WM_operatortype_append(CURVE_OT_smooth);

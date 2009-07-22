@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="BPY_python"
 	ProjectGUID="{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}"
 	RootNamespace="BPY_python"

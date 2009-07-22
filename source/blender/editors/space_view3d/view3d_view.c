@@ -1383,6 +1383,8 @@ void VIEW3D_OT_localview(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 }
 
+#if GAMEBLENDER == 1
+
 static ListBase queue_back;
 static void SaveState(bContext *C)
 {
@@ -1425,12 +1427,12 @@ static void RestoreState(bContext *C)
 /* maybe we need this defined somewhere else */
 extern void StartKetsjiShell(struct bContext *C,int always_use_expand_framing);
 
+#endif // GAMEBLENDER == 1
 
 static int game_engine_exec(bContext *C, wmOperator *unused)
 {
-	Scene *startscene = CTX_data_scene(C);
-	
 #if GAMEBLENDER == 1
+	Scene *startscene = CTX_data_scene(C);
 	
 	view3d_operator_needs_opengl(C);
 	

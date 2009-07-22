@@ -613,7 +613,8 @@ void assign_material(Object *ob, Material *ma, int act)
 		(*matarar)[act-1]= ma;
 	}
 
-	id_us_plus((ID *)ma);
+	if(ma)
+		id_us_plus((ID *)ma);
 	test_object_materials(ob->data);
 }
 
@@ -645,13 +646,7 @@ void object_add_material_slot(Object *ob)
 	if(ob->totcol>=MAXMAT) return;
 	
 	ma= give_current_material(ob, ob->actcol);
-	if(ma==NULL)
-		ma= add_material("Material");
-	else
-		ma= copy_material(ma);
-	
-	ma->id.us= 0; /* eeh... */
-	
+
 	assign_material(ob, ma, ob->totcol+1);
 	ob->actcol= ob->totcol;
 }
@@ -676,6 +671,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 			ma->mapto |= mtex->mapto;
 			if(r_mode & R_OSA) {
 				if ELEM3(mtex->tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP) ma->texco |= TEXCO_OSA;
+				else if(mtex->texflag & MTEX_NEW_BUMP) ma->texco |= TEXCO_OSA; // NEWBUMP: need texture derivatives for procedurals as well
 			}
 			
 			if(ma->texco & (TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM|TEXCO_STRAND|TEXCO_STRESS)) needuv= 1;

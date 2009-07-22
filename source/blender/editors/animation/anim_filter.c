@@ -1471,18 +1471,20 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 					for (a=0; a < ob->totcol; a++) {
 						Material *ma= give_current_material(ob, a);
 						
-						/* if material has relevant animation data, break */
-						ANIMDATA_FILTER_CASES(ma, 
-							{
-								/* for the special AnimData blocks only case, we only need to add
-								 * the block if it is valid... then other cases just get skipped (hence ok=0)
-								 */
-								ANIMDATA_ADD_ANIMDATA(ma);
-								matOk=0;
-							},
-							matOk= 1;, 
-							matOk= 1;, 
-							matOk= 1;)
+						if (ma) {
+							/* if material has relevant animation data, break */
+							ANIMDATA_FILTER_CASES(ma, 
+								{
+									/* for the special AnimData blocks only case, we only need to add
+									 * the block if it is valid... then other cases just get skipped (hence ok=0)
+									 */
+									ANIMDATA_ADD_ANIMDATA(ma);
+									matOk=0;
+								},
+								matOk= 1;, 
+								matOk= 1;, 
+								matOk= 1;)
+						}
 							
 						if (matOk) 
 							break;

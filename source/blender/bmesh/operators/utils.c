@@ -88,3 +88,11 @@ void bmesh_rotate_exec(BMesh *bm, BMOperator *op) {
 	BMO_CallOpf(bm, "translate verts=%s vec=%v", op, "verts", vec);
 }
 
+void bmesh_reversefaces_exec(BMesh *bm, BMOperator *op) {
+	BMOIter iter;
+	BMFace *f;
+
+	BMO_ITER(f, &iter, bm, op, "faces", BM_FACE) {
+		BM_flip_normal(bm, f);
+	}
+}

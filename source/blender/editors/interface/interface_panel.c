@@ -104,6 +104,8 @@ static int panel_aligned(ScrArea *sa, ARegion *ar)
 		SpaceButs *sbuts= sa->spacedata.first;
 		return sbuts->align;
 	}
+	else if(sa->spacetype==SPACE_INFO && ar->regiontype == RGN_TYPE_WINDOW)
+		return BUT_VERTICAL;
 	else if(sa->spacetype==SPACE_FILE && ar->regiontype == RGN_TYPE_CHANNELS)
 		return BUT_VERTICAL;
 	else if(ELEM3(ar->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS, RGN_TYPE_TOOL_PROPS))
@@ -266,14 +268,19 @@ void uiEndPanel(uiBlock *block, int width, int height)
 		pa->sizex= width;
 		pa->sizey= height;
 	}
-	else if(!(width == 0 || height == 0)) {
-		if(pa->sizex != width || pa->sizey != height) {
+	else {
+		/* check if we need to do an animation */
+		if(!ELEM(width, 0, pa->sizex) || !ELEM(height, 0, pa->sizey)) {
 			pa->runtime_flag |= PNL_ANIM_ALIGN;
-			pa->ofsy += pa->sizey-height;
+			if(height != 0)
+				pa->ofsy += pa->sizey-height;
 		}
 
-		pa->sizex= width;
-		pa->sizey= height;
+		/* update width/height if non-zero */
+		if(width != 0)
+			pa->sizex= width;
+		if(height != 0)
+			pa->sizey= height;
 	}
 }
 

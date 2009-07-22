@@ -810,7 +810,7 @@ static int mesh_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		RNA_enum_set(op->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
 		RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
 	}
-	WM_operator_name_call(C, "TFM_OT_translation", WM_OP_INVOKE_REGION_WIN, op->ptr);
+	WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;
 }
@@ -1449,5 +1449,34 @@ void MESH_OT_duplicate(wmOperatorType *ot)
 	
 	/* to give to transform */
 	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
+}
+
+static int flip_normals(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
+	
+	if (!EDBM_CallOpf(em, op, "reversefaces facaes=%hf", BM_SELECT))
+		return OPERATOR_CANCELLED;
+	
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_flip_normals(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Flip Normals";
+	ot->idname= "MESH_OT_flip_normals";
+	
+	/* api callbacks */
+	ot->exec= flip_normals;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 

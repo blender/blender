@@ -25,14 +25,14 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
 		if md:
 			# remove modifier + settings
 			split.set_context_pointer("modifier", md)
-			split.itemO("OBJECT_OT_modifier_remove", text="Remove")
+			split.itemO("object.modifier_remove", text="Remove")
 
 			row = split.row(align=True)
 			row.itemR(md, "render", text="")
 			row.itemR(md, "realtime", text="")
 		else:
 			# add modifier
-			split.item_enumO("OBJECT_OT_modifier_add", "type", "SOFTBODY", text="Add")
+			split.item_enumO("object.modifier_add", "type", "SOFTBODY", text="Add")
 			split.itemL("")
 			
 		if md:
@@ -136,8 +136,8 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
 			
 			col.itemR(softbody, "new_aero", text="Aero")
 			subcol = col.column()
-			subcol.active = softbody.new_aero
-			subcol.itemR(softbody, "aero", text="Factor", enabled=softbody.new_aero)
+			subcol.enabled = softbody.new_aero
+			subcol.itemR(softbody, "aero", text="Factor")
 
 			col.itemL(text="Collision:")
 			col.itemR(softbody, "edge_collision", text="Edge")

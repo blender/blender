@@ -496,6 +496,63 @@ static char *transform_to_undostr(TransInfo *t)
 
 /* ************************************************* */
 
+/* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
+#define TFM_MODAL_CANCEL			1
+#define TFM_MODAL_CONFIRM			2
+#define TFM_MODAL_TRANSLATE			3
+#define TFM_MODAL_ROTATE			4
+#define TFM_MODAL_RESIZE			5
+#define TFM_MODAL_SNAP_GEARS		6
+#define TFM_MODAL_SNAP_GEARS_OFF	7
+
+/* called in transform_ops.c, on each regeneration of keymaps */
+void transform_modal_keymap(wmWindowManager *wm)
+{
+	static EnumPropertyItem modal_items[] = {
+	{TFM_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
+	{TFM_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
+	{TFM_MODAL_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
+	{TFM_MODAL_ROTATE, "ROTATE", 0, "Rotate", ""},
+	{TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
+	{TFM_MODAL_SNAP_GEARS, "SNAP_GEARS", 0, "Snap On", ""},
+	{TFM_MODAL_SNAP_GEARS_OFF, "SNAP_GEARS_OFF", 0, "Snap Off", ""},
+	{0, NULL, 0, NULL, NULL}};
+	
+	wmKeyMap *keymap= WM_modalkeymap_get(wm, "Transform Modal Map");
+	
+	/* this function is called for each spacetype, only needs to add map once */
+	if(keymap) return;
+	
+	keymap= WM_modalkeymap_add(wm, "Transform Modal Map", modal_items);
+	
+	/* items for modal map */
+	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, TFM_MODAL_CANCEL);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_ANY, KM_ANY, 0, TFM_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, PADENTER, KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
+
+	WM_modalkeymap_add_item(keymap, GKEY, KM_PRESS, 0, 0, TFM_MODAL_TRANSLATE);
+	WM_modalkeymap_add_item(keymap, RKEY, KM_PRESS, 0, 0, TFM_MODAL_ROTATE);
+	WM_modalkeymap_add_item(keymap, SKEY, KM_PRESS, 0, 0, TFM_MODAL_RESIZE);
+	
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_SNAP_GEARS);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, TFM_MODAL_SNAP_GEARS_OFF);
+	
+	/* assign map to operators */
+	WM_modalkeymap_assign(keymap, "TFM_OT_transform");
+	WM_modalkeymap_assign(keymap, "TFM_OT_translate");
+	WM_modalkeymap_assign(keymap, "TFM_OT_rotate");
+	WM_modalkeymap_assign(keymap, "TFM_OT_tosphere");
+	WM_modalkeymap_assign(keymap, "TFM_OT_resize");
+	WM_modalkeymap_assign(keymap, "TFM_OT_shear");
+	WM_modalkeymap_assign(keymap, "TFM_OT_warp");
+	WM_modalkeymap_assign(keymap, "TFM_OT_shrink_fatten");
+	WM_modalkeymap_assign(keymap, "TFM_OT_tilt");
+	WM_modalkeymap_assign(keymap, "TFM_OT_trackball");
+	
+}
+
+
 void transformEvent(TransInfo *t, wmEvent *event)
 {
 	float mati[3][3] = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
@@ -513,8 +570,71 @@ void transformEvent(TransInfo *t, wmEvent *event)
 		applyMouseInput(t, &t->mouse, t->mval, t->values);
 	}
 
-	if (event->val) {
+	/* handle modal keymap first */
+	if (event->type == EVT_MODAL_MAP) {
+		switch (event->val) {
+			case TFM_MODAL_CANCEL:
+				t->state = TRANS_CANCEL;
+				break;
+			case TFM_MODAL_CONFIRM:
+				t->state = TRANS_CONFIRM;
+				break;
+				
+			case TFM_MODAL_TRANSLATE:
+				/* only switch when... */
+				if( ELEM3(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL) ) {
+					resetTransRestrictions(t);
+					restoreTransObjects(t);
+					initTranslation(t);
+					initSnapping(t, NULL); // need to reinit after mode change
+					t->redraw = 1;
+				}
+				break;
+			case TFM_MODAL_ROTATE:
+				/* only switch when... */
+				if( ELEM4(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
+					
+					resetTransRestrictions(t);
+					
+					if (t->mode == TFM_ROTATION) {
+						restoreTransObjects(t);
+						initTrackball(t);
+					}
+					else {
+						restoreTransObjects(t);
+						initRotation(t);
+					}
+					initSnapping(t, NULL); // need to reinit after mode change
+					t->redraw = 1;
+				}
+				break;
+			case TFM_MODAL_RESIZE:
+				/* only switch when... */
+				if( ELEM3(t->mode, TFM_ROTATION, TFM_TRANSLATION, TFM_TRACKBALL) ) {
+					resetTransRestrictions(t);
+					restoreTransObjects(t);
+					initResize(t);
+					initSnapping(t, NULL); // need to reinit after mode change
+					t->redraw = 1;
+				}
+				break;
+				
+			case TFM_MODAL_SNAP_GEARS:
+				t->modifiers |= MOD_SNAP_GEARS;
+				t->redraw = 1;
+				break;
+			case TFM_MODAL_SNAP_GEARS_OFF:
+				t->modifiers &= ~MOD_SNAP_GEARS;
+				t->redraw = 1;
+				break;
+		}
+	}
+	/* else do non-mapped events */
+	else if (event->val==KM_PRESS) {
 		switch (event->type){
+		case RIGHTMOUSE:
+			t->state = TRANS_CANCEL;
+			break;
 		/* enforce redraw of transform when modifiers are used */
 		case LEFTCTRLKEY:
 		case RIGHTCTRLKEY:
@@ -814,9 +934,6 @@ void transformEvent(TransInfo *t, wmEvent *event)
 	}
 	else {
 		switch (event->type){
-		case RIGHTMOUSE:
-			t->state = TRANS_CANCEL;
-			break;
 		case LEFTMOUSE:
 			t->state = TRANS_CONFIRM;
 			break;
@@ -1450,202 +1567,6 @@ int transformEnd(bContext *C, TransInfo *t)
 	}
 
 	return exit_code;
-}
-
-/* ************************** Manipulator init and main **************************** */
-
-void initManipulator(int mode)
-{
-	printf("init manipulator mode %d\n", mode);
-
-#if 0 // TRANSFORM_FIX_ME
-	Trans.state = TRANS_RUNNING;
-
-	Trans.options = CTX_NONE;
-
-	Trans.mode = mode;
-
-	/* automatic switch to scaling bone envelopes */
-	if(mode==TFM_RESIZE && t->obedit && t->obedit->type==OB_ARMATURE) {
-		bArmature *arm= t->obedit->data;
-		if(arm->drawtype==ARM_ENVELOPE)
-			mode= TFM_BONE_ENVELOPE;
-	}
-
-	initTrans(&Trans);					// internal data, mouse, vectors
-
-	G.moving |= G_TRANSFORM_MANIP;		// signal to draw manipuls while transform
-	createTransData(&Trans);			// make TransData structs from selection
-
-	if (Trans.total == 0)
-		return;
-
-	initSnapping(&Trans); // Initialize snapping data AFTER mode flags
-
-	/* EVIL! posemode code can switch translation to rotate when 1 bone is selected. will be removed (ton) */
-	/* EVIL2: we gave as argument also texture space context bit... was cleared */
-	mode = Trans.mode;
-
-	calculatePropRatio(&Trans);
-	calculateCenter(&Trans);
-
-	switch (mode) {
-	case TFM_TRANSLATION:
-		initTranslation(&Trans);
-		break;
-	case TFM_ROTATION:
-		initRotation(&Trans);
-		break;
-	case TFM_RESIZE:
-		initResize(&Trans);
-		break;
-	case TFM_TRACKBALL:
-		initTrackball(&Trans);
-		break;
-	}
-
-	Trans.flag |= T_USES_MANIPULATOR;
-#endif
-}
-
-void ManipulatorTransform()
-{
-#if 0 // TRANSFORM_FIX_ME
-	int mouse_moved = 0;
-	short pmval[2] = {0, 0}, mval[2], val;
-	unsigned short event;
-
-	if (Trans.total == 0)
-		return;
-
-	Trans.redraw = 1; /* initial draw */
-
-	while (Trans.state == TRANS_RUNNING) {
-
-		getmouseco_areawin(mval);
-
-		if (mval[0] != pmval[0] || mval[1] != pmval[1]) {
-			Trans.redraw = 1;
-		}
-		if (Trans.redraw) {
-			pmval[0] = mval[0];
-			pmval[1] = mval[1];
-
-			//selectConstraint(&Trans);  needed?
-			if (Trans.transform) {
-				Trans.transform(&Trans, mval);
-			}
-			Trans.redraw = 0;
-		}
-
-		/* essential for idling subloop */
-		if( qtest()==0) PIL_sleep_ms(2);
-
-		while( qtest() ) {
-			event= extern_qread(&val);
-
-			switch (event){
-			case MOUSEX:
-			case MOUSEY:
-				mouse_moved = 1;
-				break;
-			/* enforce redraw of transform when modifiers are used */
-			case LEFTCTRLKEY:
-			case RIGHTCTRLKEY:
-				if(val) Trans.redraw = 1;
-				break;
-			case LEFTSHIFTKEY:
-			case RIGHTSHIFTKEY:
-				/* shift is modifier for higher resolution transform, works nice to store this mouse position */
-				if(val) {
-					getmouseco_areawin(Trans.shiftmval);
-					Trans.flag |= T_SHIFT_MOD;
-					Trans.redraw = 1;
-				}
-				else Trans.flag &= ~T_SHIFT_MOD;
-				break;
-
-			case ESCKEY:
-			case RIGHTMOUSE:
-				Trans.state = TRANS_CANCEL;
-				break;
-			case LEFTMOUSE:
-				if(mouse_moved==0 && val==0) break;
-				// else we pass on event to next, which cancels
-			case SPACEKEY:
-			case PADENTER:
-			case RETKEY:
-				Trans.state = TRANS_CONFIRM;
-				break;
-   //         case NDOFMOTION:
-     //           viewmoveNDOF(1);
-     //           break;
-			}
-			if(val) {
-				switch(event) {
-				case PADPLUSKEY:
-					if(G.qual & LR_ALTKEY && Trans.flag & T_PROP_EDIT) {
-						Trans.propsize*= 1.1f;
-						calculatePropRatio(&Trans);
-					}
-					Trans.redraw= 1;
-					break;
-				case PAGEUPKEY:
-				case WHEELDOWNMOUSE:
-					if (Trans.flag & T_AUTOIK) {
-						transform_autoik_update(&Trans, 1);
-					}
-					else if(Trans.flag & T_PROP_EDIT) {
-						Trans.propsize*= 1.1f;
-						calculatePropRatio(&Trans);
-					}
-					else view_editmove(event);
-					Trans.redraw= 1;
-					break;
-				case PADMINUS:
-					if(G.qual & LR_ALTKEY && Trans.flag & T_PROP_EDIT) {
-						Trans.propsize*= 0.90909090f;
-						calculatePropRatio(&Trans);
-					}
-					Trans.redraw= 1;
-					break;
-				case PAGEDOWNKEY:
-				case WHEELUPMOUSE:
-					if (Trans.flag & T_AUTOIK) {
-						transform_autoik_update(&Trans, -1);
-					}
-					else if (Trans.flag & T_PROP_EDIT) {
-						Trans.propsize*= 0.90909090f;
-						calculatePropRatio(&Trans);
-					}
-					else view_editmove(event);
-					Trans.redraw= 1;
-					break;
-				}
-
-				// Numerical input events
-				Trans.redraw |= handleNumInput(&(Trans.num), event);
-			}
-		}
-	}
-
-	if(Trans.state == TRANS_CANCEL) {
-		restoreTransObjects(&Trans);
-	}
-
-	/* free data, reset vars */
-	postTrans(&Trans);
-
-	/* aftertrans does insert ipos and action channels, and clears base flags */
-	special_aftertrans_update(&Trans);
-
-	/* send events out for redraws */
-	viewRedrawPost(&Trans);
-
-	if(Trans.state != TRANS_CANCEL) {
-		BIF_undo_push(transform_to_undostr(&Trans));
-	}
-#endif
 }
 
 /* ************************** TRANSFORM LOCKS **************************** */

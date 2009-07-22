@@ -332,8 +332,10 @@ extern "C" void StartKetsjiShell(struct bContext *C, int always_use_expand_frami
 			ketsjiengine->SetGame2IpoMode(game2ipo,startFrame);
 			
 			// Quad buffered needs a special window.
-			if (blscene->r.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
-				rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->r.stereomode);
+			if(blscene->gm.stereoflag == STEREO_ENABLED){
+				if (blscene->gm.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
+					rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->gm.stereomode);
+			}
 		}
 		
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
@@ -396,8 +398,8 @@ extern "C" void StartKetsjiShell(struct bContext *C, int always_use_expand_frami
 #endif
 
 			//initialize Dome Settings
-			if(blscene->r.stereomode == RAS_IRasterizer::RAS_STEREO_DOME)
-				ketsjiengine->InitDome(blscene->r.domeres, blscene->r.domemode, blscene->r.domeangle, blscene->r.domeresbuf, blscene->r.dometilt, blscene->r.dometext);
+			if(blscene->gm.stereoflag == STEREO_DOME)
+				ketsjiengine->InitDome(blscene->gm.dome.res, blscene->gm.dome.mode, blscene->gm.dome.angle, blscene->gm.dome.resbuf, blscene->gm.dome.tilt, blscene->gm.dome.warptext);
 
 			if (sceneconverter)
 			{
@@ -672,8 +674,10 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 		}
 
 		// Quad buffered needs a special window.
-		if (blscene->r.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
-			rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->r.stereomode);
+		if(blscene->gm.stereoflag == STEREO_ENABLED){
+			if (blscene->gm.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
+				rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->gm.stereomode);
+		}
 
 		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
 		{

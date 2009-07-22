@@ -32,6 +32,7 @@
 
 /* operators */
 
+void ED_operatortypes_boids(void);
 void ED_operatortypes_pointcache(void);
 void ED_operatortypes_fluid(void);
 //void ED_keymap_pointcache(struct wmWindowManager *wm);

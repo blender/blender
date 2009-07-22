@@ -34,7 +34,6 @@ SET(INC
   ../../../extern/bullet2/src
   ../nodes ../../../extern/glew/include ../gpu ../makesrna
   ../../../intern/bsp/extern
-  ${SDL_INC}
   ${ZLIB_INC}
 )
 
@@ -54,6 +53,12 @@ IF(WITH_QUICKTIME)
   SET(INC ${INC} ${QUICKTIME_INC})
   ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
+
+IF(WITH_SDL)
+  SET(INC ${INC} ${SDL_INC})
+ELSE(WITH_SDL)
+  ADD_DEFINITIONS(-DDISABLE_SDL)
+ENDIF(WITH_SDL)
 
 IF(WITH_FFMPEG)
   SET(INC ${INC} ${FFMPEG_INC})

@@ -103,7 +103,7 @@ typedef struct BlenderDefRNA {
 	ListBase structs;
 	ListBase allocs;
 	struct StructRNA *laststruct;
-	int error, silent, preprocess;
+	int error, silent, preprocess, verify;
 } BlenderDefRNA;
 
 extern BlenderDefRNA DefRNA;
@@ -117,6 +117,7 @@ void RNA_def_action(struct BlenderRNA *brna);
 void RNA_def_animation(struct BlenderRNA *brna);
 void RNA_def_armature(struct BlenderRNA *brna);
 void RNA_def_actuator(struct BlenderRNA *brna);
+void RNA_def_boid(struct BlenderRNA *brna);
 void RNA_def_brush(struct BlenderRNA *brna);
 void RNA_def_brushclone(struct BlenderRNA *brna);
 void RNA_def_camera(struct BlenderRNA *brna);
@@ -146,6 +147,7 @@ void RNA_def_object_force(struct BlenderRNA *brna);
 void RNA_def_packedfile(struct BlenderRNA *brna);
 void RNA_def_particle(struct BlenderRNA *brna);
 void RNA_def_pose(struct BlenderRNA *brna);
+void RNA_def_render(struct BlenderRNA *brna);
 void RNA_def_rna(struct BlenderRNA *brna);
 void RNA_def_scene(struct BlenderRNA *brna);
 void RNA_def_screen(struct BlenderRNA *brna);
@@ -169,7 +171,8 @@ void RNA_def_world(struct BlenderRNA *brna);
 void rna_def_animdata_common(struct StructRNA *srna);
 
 void rna_def_texmat_common(struct StructRNA *srna, const char *texspace_editable);
-void rna_def_mtex_common(struct StructRNA *srna, const char *begin, const char *activeget, const char *structname);
+void rna_def_mtex_common(struct StructRNA *srna, const char *begin, const char *activeget, const char *activeset, const char *structname);
+void rna_def_render_layer_common(struct StructRNA *srna, int scene);
 
 void rna_ID_name_get(struct PointerRNA *ptr, char *value);
 int rna_ID_name_length(struct PointerRNA *ptr);

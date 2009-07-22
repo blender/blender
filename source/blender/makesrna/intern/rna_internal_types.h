@@ -88,14 +88,6 @@ typedef struct ContainerRNA {
 	ListBase properties;
 } ContainerRNA;
 
-struct ParameterList {
-	/* storage for parameters */
-	void *data;
-
-	/* function passed at creation time */
-	FunctionRNA *func;
-};
-
 struct FunctionRNA {
 	/* structs are containers of properties */
 	ContainerRNA cont;

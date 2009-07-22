@@ -64,6 +64,7 @@
 //#include "BIF_editparticle.h"
 //#include "BIF_meshtools.h"
 
+#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_anim.h"
 #include "BKE_armature.h"
@@ -307,7 +308,6 @@ void recalcData(TransInfo *t)
 		flushTransSeq(t);
 	}
 	else if (t->spacetype == SPACE_ACTION) {
-		SpaceAction *sact= (SpaceAction *)t->sa->spacedata.first;
 		Scene *scene;
 		
 		bAnimContext ac;
@@ -342,7 +342,6 @@ void recalcData(TransInfo *t)
 		BLI_freelistN(&anim_data);
 	}
 	else if (t->spacetype == SPACE_IPO) {
-		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
 		Scene *scene;
 		
 		ListBase anim_data = {NULL, NULL};
@@ -376,7 +375,6 @@ void recalcData(TransInfo *t)
 		/* now test if there is a need to re-sort */
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			FCurve *fcu= (FCurve *)ale->key_data;
-			AnimData *adt= BKE_animdata_from_id(ale->id);
 			
 			/* watch it: if the time is wrong: do not correct handles yet */
 			if (test_time_fcurve(fcu))

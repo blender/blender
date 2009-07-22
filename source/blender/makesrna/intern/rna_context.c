@@ -25,6 +25,7 @@
 #include <stdlib.h>
 
 #include "DNA_ID.h"
+#include "DNA_userdef_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -102,6 +103,13 @@ static PointerRNA rna_Context_tool_settings_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_ToolSettings, CTX_data_tool_settings(C));
 }
 
+static PointerRNA rna_Context_user_preferences_get(PointerRNA *ptr)
+{
+	PointerRNA newptr;
+	RNA_pointer_create(NULL, &RNA_UserPreferences, &U, &newptr);
+	return newptr;
+}
+
 #else
 
 void RNA_def_context(BlenderRNA *brna)
@@ -165,6 +173,10 @@ void RNA_def_context(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ToolSettings");
 	RNA_def_property_pointer_funcs(prop, "rna_Context_tool_settings_get", NULL, NULL);
 
+	prop= RNA_def_property(srna, "user_preferences", PROP_POINTER, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_struct_type(prop, "UserPreferences");
+	RNA_def_property_pointer_funcs(prop, "rna_Context_user_preferences_get", NULL, NULL);
 }
 
 #endif

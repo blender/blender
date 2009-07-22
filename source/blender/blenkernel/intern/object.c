@@ -42,6 +42,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_boid_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
@@ -430,11 +431,13 @@ void unlink_object(Scene *scene, Object *ob)
 		if(obt->particlesystem.first) {
 			ParticleSystem *tpsys= obt->particlesystem.first;
 			for(; tpsys; tpsys=tpsys->next) {
-				KeyedParticleTarget *kpt = tpsys->keyed_targets.first;
-				for(; kpt; kpt=kpt->next) {
-					if(kpt->ob==ob) {
-						BLI_remlink(&tpsys->keyed_targets, kpt);
-						MEM_freeN(kpt);
+				BoidState *state = NULL;
+				BoidRule *rule = NULL;
+
+				ParticleTarget *pt = tpsys->targets.first;
+				for(; pt; pt=pt->next) {
+					if(pt->ob==ob) {
+						pt->ob = NULL;
 						obt->recalc |= OB_RECALC_DATA;
 						break;
 					}
@@ -456,6 +459,22 @@ void unlink_object(Scene *scene, Object *ob)
 						if(pa->stick_ob==ob) {
 							pa->stick_ob= 0;
 							pa->flag &= ~PARS_STICKY;
+						}
+					}
+				}
+				if(tpsys->part->boids) {
+					for(state = tpsys->part->boids->states.first; state; state=state->next) {
+						for(rule = state->rules.first; rule; rule=rule->next) {
+							if(rule->type==eBoidRuleType_Avoid) {
+								BoidRuleGoalAvoid *gabr = (BoidRuleGoalAvoid*)rule;
+								if(gabr->ob==ob)
+									gabr->ob= NULL;
+							}
+							else if(rule->type==eBoidRuleType_FollowLeader) {
+								BoidRuleFollowLeader *flbr = (BoidRuleFollowLeader*)rule;
+								if(flbr->ob==ob)
+									flbr->ob= NULL;
+							}
 						}
 					}
 				}
@@ -716,7 +735,7 @@ void *add_lamp(char *name)
 	
 	la->r= la->g= la->b= la->k= 1.0f;
 	la->haint= la->energy= 1.0f;
-	la->dist= 20.0f;
+	la->dist= 25.0f;
 	la->spotsize= 45.0f;
 	la->spotblend= 0.15f;
 	la->att2= 1.0f;
@@ -735,7 +754,7 @@ void *add_lamp(char *name)
 	la->ray_samp_method = LA_SAMP_HALTON;
 	la->adapt_thresh = 0.001f;
 	la->preview=NULL;
-	la->falloff_type = LA_FALLOFF_INVLINEAR;
+	la->falloff_type = LA_FALLOFF_INVSQUARE;
 	la->curfalloff = curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
 	la->sun_effect_type = 0;
 	la->horizon_brightness = 1.0;
@@ -1064,8 +1083,14 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 		psysn->soft->particles = psysn;
 	}
 
-	if(psys->keyed_targets.first)
-		BLI_duplicatelist(&psysn->keyed_targets, &psys->keyed_targets);
+	if(psys->particles->boid) {
+		psysn->particles->boid = MEM_dupallocN(psys->particles->boid);
+		for(a=1, pa=psysn->particles+1; a<psysn->totpart; a++, pa++)
+			pa->boid = (pa-1)->boid + 1;
+	}
+
+	if(psys->targets.first)
+		BLI_duplicatelist(&psysn->targets, &psys->targets);
 	
 	psysn->pathcache= NULL;
 	psysn->childcache= NULL;
@@ -1324,7 +1349,18 @@ void make_local_object(Object *ob)
 	expand_local_object(ob);
 }
 
-/* returns true if the Object data is a from an external blend file (libdata) */
+/*
+ * Returns true if the Object is a from an external blend file (libdata)
+ */
+int object_is_libdata(Object *ob)
+{
+	if (!ob) return 0;
+	if (ob->proxy) return 0;
+	if (ob->id.lib) return 1;
+	return 0;
+}
+
+/* Returns true if the Object data is a from an external blend file (libdata) */
 int object_data_is_libdata(Object *ob)
 {
 	if(!ob) return 0;
@@ -2358,10 +2394,17 @@ void object_handle_update(Scene *scene, Object *ob)
 			if(ob->particlesystem.first) {
 				ParticleSystem *tpsys, *psys;
 				DerivedMesh *dm;
+				ob->transflag &= ~OB_DUPLIPARTS;
 				
 				psys= ob->particlesystem.first;
 				while(psys) {
 					if(psys_check_enabled(ob, psys)) {
+						/* check use of dupli objects here */
+						if(psys->part && psys->part->draw_as == PART_DRAW_REND &&
+							((psys->part->ren_as == PART_DRAW_OB && psys->part->dup_ob)
+							|| (psys->part->ren_as == PART_DRAW_GR && psys->part->dup_group)))
+							ob->transflag |= OB_DUPLIPARTS;
+
 						particle_system_update(scene, ob, psys);
 						psys= psys->next;
 					}

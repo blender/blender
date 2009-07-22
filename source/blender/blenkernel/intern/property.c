@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -99,24 +100,17 @@ void init_property(bProperty *prop)
 	if(prop->poin && prop->poin != &prop->data) MEM_freeN(prop->poin);
 	prop->poin= 0;
 	
-	prop->otype= prop->type;
 	prop->data= 0;
 	
 	switch(prop->type) {
 	case GPROP_BOOL:
-		prop->poin= &prop->data;
-		break;
 	case GPROP_INT:
-		prop->poin= &prop->data;
-		break;
 	case GPROP_FLOAT:
+	case GPROP_TIME:
 		prop->poin= &prop->data;
 		break;
 	case GPROP_STRING:
 		prop->poin= MEM_callocN(MAX_PROPSTRING, "property string");
-		break;
-	case GPROP_TIME:
-		prop->poin= &prop->data;
 		break;
 	}
 }
@@ -134,6 +128,60 @@ bProperty *new_property(int type)
 	strcpy(prop->name, "prop");
 
 	return prop;
+}
+
+/* used by unique_property() only */
+static bProperty *get_property__internal(bProperty *first, bProperty *self, const char *name)
+{
+	bProperty *p;
+	for(p= first; p; p= p->next) {
+		if (p!=self && (strcmp(p->name, name)==0))
+			return p;
+	}
+	return NULL;
+}
+void unique_property(bProperty *first, bProperty *prop, int force)
+{
+	bProperty *p;
+
+	/* set the first if its not set */
+	if(first==NULL) {
+		first= prop;
+		while(first->prev) {
+			first= first->prev;
+		}
+	}
+
+	if(force) {
+		/* change other names to make them unique */
+		while((p = get_property__internal(first, prop, prop->name))) {
+			unique_property(first, p, 0);
+		}
+	}else {
+		/* change our own name until its unique */
+		if(get_property__internal(first, prop, prop->name)) {
+			/* there is a collision */
+			char new_name[sizeof(prop->name)];
+			char base_name[sizeof(prop->name)];
+			char num[sizeof(prop->name)];
+			int i= 0;
+
+			/* strip numbers */
+			strcpy(base_name, prop->name);
+			for(i= strlen(base_name)-1; (i>=0 && isdigit(base_name[i])); i--) {
+				base_name[i]= '\0';
+			}
+			i= 0;
+
+			do { /* ensure we have enough chars for the new number in the name */
+				sprintf(num, "%d", i++);
+				BLI_strncpy(new_name, base_name, sizeof(prop->name) - strlen(num));
+				strcat(new_name, num);
+			} while(get_property__internal(first, prop, new_name));
+
+			strcpy(prop->name, new_name);
+		}
+	}
 }
 
 bProperty *get_ob_property(Object *ob, char *name)

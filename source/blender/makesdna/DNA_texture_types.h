@@ -150,11 +150,13 @@ typedef struct Tex {
 
 	/* newnoise: noisebasis type for clouds/marble/etc, noisebasis2 only used for distorted noise */
 	short noisebasis, noisebasis2;
-	
+
 	short imaflag, flag;
 	short type, stype;
 	
 	float cropxmin, cropymin, cropxmax, cropymax;
+	int texfilter;
+	int afmax;	// anisotropic filter maximum value, ewa -> max eccentricity, feline -> max probes
 	short xrepeat, yrepeat;
 	short extend;
 
@@ -253,6 +255,15 @@ typedef struct TexMapping {
 #define TEX_GAUSS_MIP	4096
 #define TEX_FILTER_MIN	8192
 
+/* texfilter */
+// TXF_DEFAULT -> blender's old texture filtering method
+#define TXF_DEFAULT		0
+#define TXF_EWA			1
+#define TXF_FELINE		2
+#define TXF_AREA		3
+// TXF_SAT only available when mipmaps disabled
+#define TXF_SAT			4
+
 /* imaflag unused, only for version check */
 #define TEX_FIELDS_		8
 #define TEX_ANIMCYCLIC_	64
@@ -341,6 +352,11 @@ typedef struct TexMapping {
 #define TEX_RGB		1
 #define TEX_NOR		2
 
+/* pr_texture in material, world, lamp, */
+#define TEX_PR_TEXTURE	0
+#define TEX_PR_OTHER	1
+#define TEX_PR_BOTH		2
+
 /* **************** MTEX ********************* */
 
 /* proj */
@@ -357,6 +373,7 @@ typedef struct TexMapping {
 #define MTEX_VIEWSPACE		16
 #define MTEX_DUPLI_MAPTO	32
 #define MTEX_OB_DUPLI_ORIG	64
+#define MTEX_NEW_BUMP		128
 
 /* blendtype */
 #define MTEX_BLEND		0

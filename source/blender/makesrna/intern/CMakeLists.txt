@@ -39,7 +39,7 @@ SET(SRC
      ../../../../intern/guardedalloc/intern/mallocn.c
      ../../../../intern/guardedalloc/intern/mmap_win.c)
 
-INCLUDE_DIRECTORIES(../../../../intern/guardedalloc .. ../../makesdna ../../blenkernel ../../blenlib ../../windowmanager ../../editors/include ../../imbuf .)
+INCLUDE_DIRECTORIES(../../../../intern/guardedalloc .. ../../makesdna ../../blenkernel ../../blenlib ../../windowmanager ../../editors/include ../../imbuf ../../render/extern/include .)
 FILE(GLOB INC_FILES ../*.h ../../makesdna/*.h)
 
 IF(WITH_OPENEXR)

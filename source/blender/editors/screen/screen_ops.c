@@ -41,6 +41,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_blender.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
@@ -75,6 +76,11 @@
 #include "UI_resources.h"
 
 #include "screen_intern.h"	/* own module include */
+
+#define KM_MODAL_CANCEL		1
+#define KM_MODAL_APPLY		2
+#define KM_MODAL_STEP10		3
+#define KM_MODAL_STEP10_OFF	4
 
 /* ************** Exported Poll tests ********************** */
 
@@ -710,7 +716,7 @@ static void SCREEN_OT_area_dupli(wmOperatorType *ot)
 */
 
 typedef struct sAreaMoveData {
-	int bigger, smaller, origval;
+	int bigger, smaller, origval, step;
 	char dir;
 } sAreaMoveData;
 
@@ -867,32 +873,40 @@ static int area_move_cancel(bContext *C, wmOperator *op)
 /* modal callback for while moving edges */
 static int area_move_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	sAreaMoveData *md;
+	sAreaMoveData *md= op->customdata;
 	int delta, x, y;
-
-	md= op->customdata;
-
-	x= RNA_int_get(op->ptr, "x");
-	y= RNA_int_get(op->ptr, "y");
 
 	/* execute the events */
 	switch(event->type) {
 		case MOUSEMOVE:
+			
+			x= RNA_int_get(op->ptr, "x");
+			y= RNA_int_get(op->ptr, "y");
+			
 			delta= (md->dir == 'v')? event->x - x: event->y - y;
+			if(md->step) delta= delta - (delta % md->step);
 			RNA_int_set(op->ptr, "delta", delta);
 
 			area_move_apply(C, op);
 			break;
 			
-		case LEFTMOUSE:
-			if(event->val==0) {
-				area_move_exit(C, op);
-				return OPERATOR_FINISHED;
-			}
-			break;
+		case EVT_MODAL_MAP:
 			
-		case ESCKEY:
-			return area_move_cancel(C, op);
+			switch (event->val) {
+				case KM_MODAL_APPLY:
+					area_move_exit(C, op);
+					return OPERATOR_FINISHED;
+
+				case KM_MODAL_CANCEL:
+					return area_move_cancel(C, op);
+					
+				case KM_MODAL_STEP10:
+					md->step= 10;
+					break;
+				case KM_MODAL_STEP10_OFF:
+					md->step= 0;
+					break;
+			}
 	}
 	
 	return OPERATOR_RUNNING_MODAL;
@@ -1971,7 +1985,7 @@ void SCREEN_OT_region_foursplit(wmOperatorType *ot)
 	ot->idname= "SCREEN_OT_region_foursplit";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
+//	ot->invoke= WM_operator_confirm;
 	ot->exec= region_foursplit_exec;
 	ot->poll= ED_operator_areaactive;
 	ot->flag= OPTYPE_REGISTER;
@@ -2329,6 +2343,7 @@ static ScrArea *find_area_image_empty(bContext *C)
 	return sa;
 }
 
+#if 0 // XXX not used
 static ScrArea *find_empty_image_area(bContext *C)
 {
 	bScreen *sc= CTX_wm_screen(C);
@@ -2345,6 +2360,7 @@ static ScrArea *find_empty_image_area(bContext *C)
 	}
 	return sa;
 }
+#endif // XXX not used
 
 static void screen_set_image_output(bContext *C)
 {
@@ -2462,20 +2478,25 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 	else if(scene->r.scemode & R_SINGLE_LAYER)
 		spos+= sprintf(spos, "Single Layer | ");
 	
-	spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d ", (scene->r.cfra), rs->totvert, rs->totface);
-	if(rs->tothalo) spos+= sprintf(spos, "Ha:%d ", rs->tothalo);
-	if(rs->totstrand) spos+= sprintf(spos, "St:%d ", rs->totstrand);
-	spos+= sprintf(spos, "La:%d Mem:%.2fM (%.2fM) ", rs->totlamp, megs_used_memory, mmap_used_memory);
-	
-	if(rs->curfield)
-		spos+= sprintf(spos, "Field %d ", rs->curfield);
-	if(rs->curblur)
-		spos+= sprintf(spos, "Blur %d ", rs->curblur);
+	if(rs->statstr) {
+		spos+= sprintf(spos, "%s ", rs->statstr);
+	}
+	else {
+		spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d ", (scene->r.cfra), rs->totvert, rs->totface);
+		if(rs->tothalo) spos+= sprintf(spos, "Ha:%d ", rs->tothalo);
+		if(rs->totstrand) spos+= sprintf(spos, "St:%d ", rs->totstrand);
+		spos+= sprintf(spos, "La:%d Mem:%.2fM (%.2fM) ", rs->totlamp, megs_used_memory, mmap_used_memory);
+		
+		if(rs->curfield)
+			spos+= sprintf(spos, "Field %d ", rs->curfield);
+		if(rs->curblur)
+			spos+= sprintf(spos, "Blur %d ", rs->curblur);
+	}
 	
 	BLI_timestr(rs->lastframetime, info_time_str);
 	spos+= sprintf(spos, "Time:%s ", info_time_str);
 	
-	if(rs->infostr)
+	if(rs->infostr && rs->infostr[0])
 		spos+= sprintf(spos, "| %s ", rs->infostr);
 	
 	/* very weak... but 512 characters is quite safe */
@@ -2565,21 +2586,46 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 	rectf+= 4*(rr->rectx*ymin + xmin);
 	rectc= (char *)(ibuf->rect + ibuf->x*rymin + rxmin);
 
-	for(y1= 0; y1<ymax; y1++) {
-		float *rf= rectf;
-		char *rc= rectc;
-		
-		/* XXX temp. because crop offset */
-		if( rectc >= (char *)(ibuf->rect)) {
-			for(x1= 0; x1<xmax; x1++, rf += 4, rc+=4) {
-				rc[0]= FTOCHAR(rf[0]);
-				rc[1]= FTOCHAR(rf[1]);
-				rc[2]= FTOCHAR(rf[2]);
-				rc[3]= FTOCHAR(rf[3]);
+	/* XXX make nice consistent functions for this */
+	if (rj->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+		for(y1= 0; y1<ymax; y1++) {
+			float *rf= rectf;
+			float srgb[3];
+			char *rc= rectc;
+			
+			/* XXX temp. because crop offset */
+			if( rectc >= (char *)(ibuf->rect)) {
+				for(x1= 0; x1<xmax; x1++, rf += 4, rc+=4) {
+					srgb[0]= linearrgb_to_srgb(rf[0]);
+					srgb[1]= linearrgb_to_srgb(rf[1]);
+					srgb[2]= linearrgb_to_srgb(rf[2]);
+
+					rc[0]= FTOCHAR(srgb[0]);
+					rc[1]= FTOCHAR(srgb[1]);
+					rc[2]= FTOCHAR(srgb[2]);
+					rc[3]= FTOCHAR(rf[3]);
+				}
 			}
+			rectf += 4*rr->rectx;
+			rectc += 4*ibuf->x;
 		}
-		rectf += 4*rr->rectx;
-		rectc += 4*ibuf->x;
+	} else {
+		for(y1= 0; y1<ymax; y1++) {
+			float *rf= rectf;
+			char *rc= rectc;
+			
+			/* XXX temp. because crop offset */
+			if( rectc >= (char *)(ibuf->rect)) {
+				for(x1= 0; x1<xmax; x1++, rf += 4, rc+=4) {
+					rc[0]= FTOCHAR(rf[0]);
+					rc[1]= FTOCHAR(rf[1]);
+					rc[2]= FTOCHAR(rf[2]);
+					rc[3]= FTOCHAR(rf[3]);
+				}
+			}
+			rectf += 4*rr->rectx;
+			rectc += 4*ibuf->x;
+		}
 	}
 	
 	/* make jobs timer to send notifier */
@@ -2841,10 +2887,38 @@ void ED_operatortypes_screen(void)
 	
 }
 
+static void keymap_modal_set(wmWindowManager *wm)
+{
+	static EnumPropertyItem modal_items[] = {
+		{KM_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
+		{KM_MODAL_APPLY, "APPLY", 0, "Apply", ""},
+		{KM_MODAL_STEP10, "STEP10", 0, "Steps on", ""},
+		{KM_MODAL_STEP10_OFF, "STEP10_OFF", 0, "Steps off", ""},
+		{0, NULL, 0, NULL, NULL}};
+	wmKeyMap *keymap;
+	
+	/* Standard Modal keymap ------------------------------------------------ */
+	keymap= WM_modalkeymap_add(wm, "Standard Modal Map", modal_items);
+	
+	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, KM_MODAL_CANCEL);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_ANY, KM_ANY, 0, KM_MODAL_APPLY);
+	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, KM_MODAL_APPLY);
+	WM_modalkeymap_add_item(keymap, PADENTER, KM_PRESS, KM_ANY, 0, KM_MODAL_APPLY);
+
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, KM_MODAL_STEP10);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, KM_MODAL_STEP10_OFF);
+	
+	WM_modalkeymap_assign(keymap, "SCREEN_OT_area_move");
+
+}
+
 /* called in spacetypes.c */
 void ED_keymap_screen(wmWindowManager *wm)
 {
-	ListBase *keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
+	ListBase *keymap;
+	
+	/* Screen General ------------------------------------------------ */
+	keymap= WM_keymap_listbase(wm, "Screen", 0, 0);
 	
 	/* standard timers */
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_step", TIMER0, KM_ANY, KM_ANY, 0);
@@ -2897,13 +2971,19 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_cancel", ESCKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_show", F11KEY, KM_PRESS, 0, 0);
 	
-	/* frame offsets & play */
+	/* Anim Playback ------------------------------------------------ */
 	keymap= WM_keymap_listbase(wm, "Frames", 0, 0);
+	
+	/* frame offsets */
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", UPARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 10);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -10);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -1);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", RIGHTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
-	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT, 0);
 	
+	/* play (forward and backwards) */
+	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0)->ptr, "reverse", 1);
+
+	keymap_modal_set(wm);
 }
 

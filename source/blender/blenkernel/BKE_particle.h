@@ -55,6 +55,9 @@ struct IpoCurve;
 struct LinkNode;
 struct KDTree;
 struct RNG;
+struct SurfaceModifierData;
+struct BVHTreeRay;
+struct BVHTreeRayHit; 
 
 typedef struct ParticleEffectorCache {
 	struct ParticleEffectorCache *next, *prev;
@@ -94,16 +97,6 @@ typedef struct ParticleTexture{
 	float length, clump, kink, effector;/* used in path caching */
 	float rough1, rough2, roughe;		/* used in path caching */
 } ParticleTexture;
-
-typedef struct BoidVecFunc{
-	void (*Addf)(float *v, float *v1, float *v2);
-	void (*Subf)(float *v, float *v1, float *v2);
-	void (*Mulf)(float *v, float f);
-	float (*Length)(float *v);
-	float (*Normalize)(float *v);
-	float (*Inpf)(float *v1, float *v2);
-	void (*Copyf)(float *v1, float *v2);
-} BoidVecFunc;
 
 typedef struct ParticleSeam{
 	float v0[3], v1[3];
@@ -209,6 +202,19 @@ typedef struct ParticleBillboardData
 }
 ParticleBillboardData;
 
+/* container for moving data between deflet_particle and particle_intersect_face */
+typedef struct ParticleCollision
+{
+	struct Object *ob, *ob_t; // collided and current objects
+	struct CollisionModifierData *md; // collision modifier for ob_t;
+	float nor[3]; // normal at collision point
+	float vel[3]; // velocity of collision point
+	float co1[3], co2[3]; // ray start and end points
+	float ray_len; // original length of co2-co1, needed for collision time evaluation
+	float t;	// time of previous collision, needed for substracting face velocity
+}
+ParticleCollision;
+
 /* ----------- functions needed outside particlesystem ---------------- */
 /* particle.c */
 int count_particles(struct ParticleSystem *psys);
@@ -231,6 +237,7 @@ int psys_ob_has_hair(struct Object *ob);
 int psys_in_edit_mode(struct Scene *scene, struct ParticleSystem *psys);
 int psys_check_enabled(struct Object *ob, struct ParticleSystem *psys);
 
+void psys_free_boid_rules(struct ListBase *list);
 void psys_free_settings(struct ParticleSettings *part);
 void free_child_path_cache(struct ParticleSystem *psys);
 void psys_free_path_cache(struct ParticleSystem *psys);
@@ -288,6 +295,7 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3], float zvec[3], float center[3]);
 
 /* particle_system.c */
+struct ParticleSystem *psys_get_target_system(struct Object *ob, struct ParticleTarget *pt);
 void psys_count_keyed_targets(struct Object *ob, struct ParticleSystem *psys);
 void psys_get_reactor_target(struct Object *ob, struct ParticleSystem *psys, struct Object **target_ob, struct ParticleSystem **target_psys);
 
@@ -297,6 +305,8 @@ void psys_end_effectors(struct ParticleSystem *psys);
 void psys_make_temp_pointcache(struct Object *ob, struct ParticleSystem *psys);
 void psys_end_temp_pointcache(struct ParticleSystem *psys);
 void psys_get_pointcache_start_end(struct Scene *scene, struct ParticleSystem *psys, int *sfra, int *efra);
+
+void psys_check_boid_data(struct ParticleSystem *psys);
 
 void particle_system_update(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys);
 
@@ -321,11 +331,13 @@ float psys_interpolate_value_from_verts(struct DerivedMesh *dm, short from, int 
 void psys_get_from_key(struct ParticleKey *key, float *loc, float *vel, float *rot, float *time);
 
 int psys_intersect_dm(struct Scene *scene, struct Object *ob, struct DerivedMesh *dm, float *vert_cos, float *co1, float* co2, float *min_d, int *min_face, float *min_uv, float *face_minmax, float *pa_minmax, float radius, float *ipoint);
+void particle_intersect_face(void *userdata, int index, const struct BVHTreeRay *ray, struct BVHTreeRayHit *hit);
 void psys_particle_on_dm(struct DerivedMesh *dm, int from, int index, int index_dmcache, float *fw, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor);
 
 /* particle_system.c */
 void initialize_particle(struct ParticleData *pa, int p, struct Object *ob, struct ParticleSystem *psys, struct ParticleSystemModifierData *psmd);
 
+int effector_find_co(struct Scene *scene, float *pco, struct SurfaceModifierData *sur, struct Object *ob, struct PartDeflect *pd, float *co, float *nor, float *vel, int *index);
 void do_effectors(int pa_no, struct ParticleData *pa, struct ParticleKey *state, struct Scene *scene, struct Object *ob, struct ParticleSystem *psys, float *texco, float *force_field, float *vel,float framestep, float cfra);
 
 void psys_calc_dmcache(struct Object *ob, struct DerivedMesh *dm, struct ParticleSystem *psys);

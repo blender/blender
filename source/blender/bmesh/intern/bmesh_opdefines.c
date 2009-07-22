@@ -6,6 +6,15 @@
   through the code and find all references to them!*/
 
 
+BMOpDefine def_reversefaces = {
+	"reversefaces",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"},
+	{0} /*null-terminating sentinel*/,
+	},
+	bmesh_reversefaces_exec,
+	0
+};
+
 BMOpDefine def_edgesplit = {
 	"edgesplit",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"},
@@ -348,6 +357,7 @@ BMOpDefine *opdefines[] = {
 	&def_finddoubles,
 	&def_mirror,
 	&def_edgesplit,
+	&def_reversefaces,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

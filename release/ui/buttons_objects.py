@@ -14,9 +14,9 @@ class OBJECT_PT_context_object(ObjectButtonsPanel):
 		layout = self.layout
 		ob = context.object
 		
-		split = layout.split(percentage=0.06)
-		split.itemL(text="", icon="ICON_OBJECT_DATA")
-		split.itemR(ob, "name", text="")
+		row = layout.row()
+		row.itemL(text="", icon="ICON_OBJECT_DATA")
+		row.itemR(ob, "name", text="")
 
 class OBJECT_PT_transform(ObjectButtonsPanel):
 	__idname__ = "OBJECT_PT_transform"
@@ -31,6 +31,31 @@ class OBJECT_PT_transform(ObjectButtonsPanel):
 		row.column().itemR(ob, "rotation")
 		row.column().itemR(ob, "scale")
 
+class OBJECT_PT_relations(ObjectButtonsPanel):
+	__idname__ = "OBJECT_PT_relations"
+	__label__ = "Relations"
+
+	def draw(self, context):
+		layout = self.layout
+		ob = context.object
+
+		split = layout.split()
+		col = split.column()
+		col.itemR(ob, "layers")
+		col.itemS()
+		col.itemR(ob, "pass_index")
+
+		col = split.column()
+		col.itemL(text="Parent:")
+		col.itemR(ob, "parent", text="")
+
+		sub = col.column()
+		sub.itemR(ob, "parent_type", text="Type")
+		parent = ob.parent
+		if parent and ob.parent_type == 'BONE' and parent.type == 'ARMATURE':
+			sub.item_pointerR(ob, "parent_bone", parent.data, "bones", text="")
+		sub.active = parent != None
+
 class OBJECT_PT_groups(ObjectButtonsPanel):
 	__idname__ = "OBJECT_PT_groups"
 	__label__ = "Groups"
@@ -39,24 +64,23 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 		layout = self.layout
 		ob = context.object
 
-		row = layout.row()
-		row.itemR(ob, "pass_index")
-		row.itemR(ob, "parent")
-
-		# layout.left_right()
-		# layout.itemO("OBJECT_OT_add_group");
+		split = layout.split()
+		split.item_menu_enumO("object.group_add", "group", text="Add to Group")
+		split.itemL()
 
 		for group in bpy.data.groups:
 			if ob.name in group.objects:
 				col = layout.column(align=True)
 
+				col.set_context_pointer("group", group)
+
 				row = col.box().row()
 				row.itemR(group, "name", text="")
-				#row.itemO("OBJECT_OT_remove_group")
+				row.itemO("object.group_remove", text="", icon="VICON_X")
 
 				split = col.box().split()
-				split.column().itemR(group, "layer")
-				split.column().itemR(group, "dupli_offset")
+				split.column().itemR(group, "layer", text="Dupli")
+				split.column().itemR(group, "dupli_offset", text="")
 
 class OBJECT_PT_display(ObjectButtonsPanel):
 	__idname__ = "OBJECT_PT_display"
@@ -125,20 +149,31 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
 		sub = split.column()
 		sub.itemL(text="Time Offset:")
 		sub.itemR(ob, "time_offset_edit", text="Edit")
-		sub.itemR(ob, "time_offset_particle", text="Particle")
-		sub.itemR(ob, "time_offset_parent", text="Parent")
-		sub.itemR(ob, "slow_parent")
+		row = sub.row()
+		row.itemR(ob, "time_offset_particle", text="Particle")
+		row.active = len(ob.particle_systems) != 0
+		row = sub.row()
+		row.itemR(ob, "time_offset_parent", text="Parent")
+		row.active = ob.parent != None
+		row = sub.row()
+		row.itemR(ob, "slow_parent")
+		row.active = ob.parent != None
 		sub.itemR(ob, "time_offset", text="Offset")
-		
+
 		sub = split.column()
-		sub.itemL(text="Tracking:")
+		sub.itemL(text="Track:")
+		sub.itemR(ob, "track", text="")
 		sub.itemR(ob, "track_axis", text="Axis")
 		sub.itemR(ob, "up_axis", text="Up Axis")
-		sub.itemR(ob, "track_rotation", text="Rotation")
+		row = sub.row()
+		row.itemR(ob, "track_override_parent", text="Override Parent")
+		row.active = ob.parent != None
 
 bpy.types.register(OBJECT_PT_context_object)
 bpy.types.register(OBJECT_PT_transform)
+bpy.types.register(OBJECT_PT_relations)
 bpy.types.register(OBJECT_PT_groups)
 bpy.types.register(OBJECT_PT_display)
 bpy.types.register(OBJECT_PT_duplication)
 bpy.types.register(OBJECT_PT_animation)
+

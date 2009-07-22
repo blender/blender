@@ -148,7 +148,7 @@ int ED_fileselect_layout_offset(FileLayout* layout, int x, int y)
 	int active_file;
 
 	if (layout == NULL)
-		return NULL;
+		return 0;
 	
 	offsetx = (x)/(layout->tile_w + 2*layout->tile_border_x);
 	offsety = (y)/(layout->tile_h + 2*layout->tile_border_y);
@@ -351,7 +351,7 @@ void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
 
 		for(i= 0; i<nentries; ++i) {
 			struct direntry* file = filelist_file(sfile->files, i);
-			char* dir = filelist_dir(sfile->files);
+			const char* dir = filelist_dir(sfile->files);
 			if (file && S_ISDIR(file->type))	{
 				BLI_make_file_string(G.sce, tmp, dir, file->relname);
 				autocomplete_do_name(autocpl,tmp);

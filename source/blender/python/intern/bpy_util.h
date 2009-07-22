@@ -1,5 +1,5 @@
 /**
- * $Id: bpy_util.h 21094 2009-06-23 00:09:26Z gsrb3d $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -59,6 +59,7 @@ typedef struct BPY_class_attr_check {
 	const char	*name;		/* name of the class attribute */
     char		type;		/* 's' = string, 'f' = function, 'l' = list, (add as needed) */
     int			arg_count;	/* only for function types, -1 for undefined, includes self arg */
+    int 		len;		/* only for string types currently */
 	int			flag;		/* other options */
 } BPY_class_attr_check;
 

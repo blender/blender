@@ -128,7 +128,7 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 	BMIter iter, liter;
 	BMFace *f;
 	BMLoop *l;
-	int i = 0, j;
+	int i = 0, j, a, b;
 	
 	if (tm->looptris) MEM_freeN(tm->looptris);
 
@@ -184,20 +184,29 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 			BLI_edgefill(0, 0);
 			
 			for (efa = fillfacebase.first; efa; efa=efa->next) {
+				BMLoop *l1, *l2, *l3;
+
 				V_GROW(looptris);
 				V_GROW(looptris);
 				V_GROW(looptris);
 				
-				looptris[i*3] = efa->v1->tmp.p;
-				looptris[i*3+1] = efa->v2->tmp.p;
-				looptris[i*3+2] = efa->v3->tmp.p;
-
-				if (looptris[i*3]->head.eflag2 < looptris[i*3+1]->head.eflag2);
-					SWAP(BMLoop*, looptris[i*3], looptris[i*3+1]);
-				if (looptris[i*3+1]->head.eflag2 < looptris[i*3+2]->head.eflag2);
-					SWAP(BMLoop*, looptris[i*3+1], looptris[i*3+2]);
-				if (looptris[i*3]->head.eflag2 < looptris[i*3+1]->head.eflag2);
-					SWAP(BMLoop*, looptris[i*3], looptris[i*3+1]);
+				looptris[i*3] = l1 = efa->v1->tmp.p;
+				looptris[i*3+1] = l2 = efa->v2->tmp.p;
+				looptris[i*3+2] = l3 = efa->v3->tmp.p;
+				
+				if (l1->head.eflag2 > l2->head.eflag2) {
+					SWAP(BMLoop*, l1, l2);
+				}
+				if (l2->head.eflag2 > l3->head.eflag2) {
+					SWAP(BMLoop*, l2, l3);
+				}
+				if (l1->head.eflag2 > l2->head.eflag2) {
+					SWAP(BMLoop*, l1, l2);
+				}
+				
+				looptris[i*3] = l1;
+				looptris[i*3+1] = l2;
+				looptris[i*3+2] = l3;
 
 				i += 1;
 			}

@@ -1,6 +1,6 @@
 
 /**
- * $Id: bpy_operator_wrap.c 21440 2009-07-08 21:31:28Z blendix $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -44,8 +44,10 @@
 
 #define PYOP_ATTR_PROP			"__props__"
 #define PYOP_ATTR_UINAME		"__label__"
-#define PYOP_ATTR_IDNAME		"__name__"	/* use pythons class name */
+#define PYOP_ATTR_IDNAME		"__idname__"	/* the name given by python */
+#define PYOP_ATTR_IDNAME_BL		"__idname_bl__"	/* our own name converted into blender syntax, users wont see this */
 #define PYOP_ATTR_DESCRIPTION	"__doc__"	/* use pythons docstring */
+#define PYOP_ATTR_REGISTER		"__register__"	/* True/False. if this python operator should be registered */
 
 static struct BPY_flag_def pyop_ret_flags[] = {
 	{"RUNNING_MODAL", OPERATOR_RUNNING_MODAL},
@@ -190,6 +192,8 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 		Py_DECREF(ret);
 	}
 
+#if 0 /* only for testing */
+
 	/* print operator return value */
 	if (mode != PYOP_POLL) {
 		char flag_str[100];
@@ -210,11 +214,12 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 
 		/* get class name */
 		item= PyObject_GetAttrString(py_class, PYOP_ATTR_IDNAME);
-		Py_DECREF(item);
 		strcpy(class_name, _PyUnicode_AsString(item));
+		Py_DECREF(item);
 
 		fprintf(stderr, "%s's %s returned %s\n", class_name, mode == PYOP_EXEC ? "execute" : "invoke", flag_str);
 	}
+#endif
 
 	PyGILState_Release(gilstate);
 	bpy_import_main_set(NULL);
@@ -245,15 +250,14 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 	PyObject *props, *item;
 
 	/* identifiers */
-	item= PyObject_GetAttrString(py_class, PYOP_ATTR_IDNAME);
-	Py_DECREF(item);
+	item= PyObject_GetAttrString(py_class, PYOP_ATTR_IDNAME_BL);
 	ot->idname= _PyUnicode_AsString(item);
-	
+	Py_DECREF(item);
 
 	item= PyObject_GetAttrString(py_class, PYOP_ATTR_UINAME);
 	if (item) {
-		Py_DECREF(item);
 		ot->name= _PyUnicode_AsString(item);
+		Py_DECREF(item);
 	}
 	else {
 		ot->name= ot->idname;
@@ -261,8 +265,8 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 	}
 
 	item= PyObject_GetAttrString(py_class, PYOP_ATTR_DESCRIPTION);
-	Py_DECREF(item);
 	ot->description= (item && PyUnicode_Check(item)) ? _PyUnicode_AsString(item):"";
+	Py_DECREF(item);
 	
 	/* api callbacks, detailed checks dont on adding */ 
 	if (PyObject_HasAttrString(py_class, "invoke"))
@@ -274,13 +278,22 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 	
 	ot->pyop_data= userdata;
 	
+	/* flags */
+	item= PyObject_GetAttrString(py_class, PYOP_ATTR_REGISTER);
+	if (item) {
+		ot->flag= PyObject_IsTrue(item)!=0 ? OPTYPE_REGISTER:0;
+		Py_DECREF(item);
+	}
+	else {
+		ot->flag= OPTYPE_REGISTER; /* unspesified, leave on for now to help debug */
+		PyErr_Clear();
+	}
+	
 	props= PyObject_GetAttrString(py_class, PYOP_ATTR_PROP);
 	
 	if (props) {
 		PyObject *dummy_args = PyTuple_New(0);
 		int i;
-		
-		Py_DECREF(props);
 
 		for(i=0; i<PyList_Size(props); i++) {
 			PyObject *py_func_ptr, *py_kw, *py_srna_cobject, *py_ret;
@@ -310,6 +323,7 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 			// expect a tuple with a CObject and a dict
 		}
 		Py_DECREF(dummy_args);
+		Py_DECREF(props);
 	} else {
 		PyErr_Clear();
 	}
@@ -324,32 +338,44 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 	
 	
 	char *idname= NULL;
+	char idname_bl[OP_MAX_TYPENAME]; /* converted to blender syntax */
 	int i;
 
 	static struct BPY_class_attr_check pyop_class_attr_values[]= {
-		{PYOP_ATTR_IDNAME,		's', 0,	0},
-		{PYOP_ATTR_UINAME,		's', 0,	BPY_CLASS_ATTR_OPTIONAL},
-		{PYOP_ATTR_PROP,		'l', 0,	BPY_CLASS_ATTR_OPTIONAL},
-		{PYOP_ATTR_DESCRIPTION,	's', 0,	BPY_CLASS_ATTR_NONE_OK},
-		{"execute",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
-		{"invoke",	'f', 3,	BPY_CLASS_ATTR_OPTIONAL},
-		{"poll",	'f', 2,	BPY_CLASS_ATTR_OPTIONAL},
+		{PYOP_ATTR_IDNAME,		's', -1, OP_MAX_TYPENAME-3,	0}, /* -3 because a.b -> A_OT_b */
+		{PYOP_ATTR_UINAME,		's', -1,-1,	BPY_CLASS_ATTR_OPTIONAL},
+		{PYOP_ATTR_PROP,		'l', -1,-1,	BPY_CLASS_ATTR_OPTIONAL},
+		{PYOP_ATTR_DESCRIPTION,	's', -1,-1,	BPY_CLASS_ATTR_NONE_OK},
+		{"execute",				'f', 2,	-1, BPY_CLASS_ATTR_OPTIONAL},
+		{"invoke",				'f', 3,	-1, BPY_CLASS_ATTR_OPTIONAL},
+		{"poll",				'f', 2,	-1, BPY_CLASS_ATTR_OPTIONAL},
 		{NULL, 0, 0, 0}
 	};
 
 	// in python would be...
 	//PyObject *optype = PyObject_GetAttrString(PyObject_GetAttrString(PyDict_GetItemString(PyEval_GetGlobals(), "bpy"), "types"), "Operator");
 	base_class = PyObject_GetAttrStringArgs(PyDict_GetItemString(PyEval_GetGlobals(), "bpy"), 2, "types", "Operator");
-	Py_DECREF(base_class);
 
 	if(BPY_class_validate("Operator", py_class, base_class, pyop_class_attr_values, NULL) < 0) {
 		return NULL; /* BPY_class_validate sets the error */
 	}
+	Py_DECREF(base_class);
 
 	/* class name is used for operator ID - this can be changed later if we want */
 	item= PyObject_GetAttrString(py_class, PYOP_ATTR_IDNAME);
-	Py_DECREF(item);
 	idname =  _PyUnicode_AsString(item);
+
+
+	/* annoying conversion! */
+	WM_operator_bl_idname(idname_bl, idname);
+	Py_DECREF(item);
+
+	item= PyUnicode_FromString(idname_bl);
+	PyObject_SetAttrString(py_class, PYOP_ATTR_IDNAME_BL, item);
+	idname =  _PyUnicode_AsString(item);
+	Py_DECREF(item);
+	/* end annoying conversion! */
+
 	
 	/* remove if it already exists */
 	if ((ot=WM_operatortype_exists(idname))) {
@@ -362,7 +388,6 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 	/* If we have properties set, check its a list of dicts */
 	item= PyObject_GetAttrString(py_class, PYOP_ATTR_PROP);
 	if (item) {
-		Py_DECREF(item);
 		for(i=0; i<PyList_Size(item); i++) {
 			PyObject *py_args = PyList_GET_ITEM(item, i);
 			PyObject *py_func_ptr, *py_kw; /* place holders */
@@ -372,6 +397,7 @@ PyObject *PYOP_wrap_add(PyObject *self, PyObject *py_class)
 				return NULL;				
 			}
 		}
+		Py_DECREF(item);
 	}
 	else {
 		PyErr_Clear();

@@ -40,6 +40,7 @@
 #include "MTC_matrixops.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_boid_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_constraint_types.h" // for drawing constraint
@@ -3006,9 +3007,9 @@ static void draw_particle(ParticleKey *state, int draw_as, short draw, float pix
 	float vec[3], vec2[3];
 	float *vd = pdd->vd;
 	float *cd = pdd->cd;
-	float ma_r;
-	float ma_g;
-	float ma_b;
+	float ma_r=0.0f;
+	float ma_g=0.0f;
+	float ma_b=0.0f;
 
 	if(pdd->ma_r) {
 		ma_r = *pdd->ma_r;
@@ -3168,7 +3169,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	Material *ma;
 	float vel[3], imat[4][4];
 	float timestep, pixsize=1.0, pa_size, r_tilt, r_length;
-	float pa_time, pa_birthtime, pa_dietime;
+	float pa_time, pa_birthtime, pa_dietime, pa_health;
 	float cfra= bsystem_time(scene, ob,(float)CFRA,0.0);
 	float ma_r=0.0f, ma_g=0.0f, ma_b=0.0f;
 	int a, totpart, totpoint=0, totve=0, drawn, draw_as, totchild=0;
@@ -3394,6 +3395,10 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				pa_birthtime=pa->time;
 				pa_dietime = pa->dietime;
 				pa_size=pa->size;
+				if(part->phystype==PART_PHYS_BOIDS)
+					pa_health = pa->boid->health;
+				else
+					pa_health = -1.0;
 
 #if 0 // XXX old animation system	
 				if((part->flag&PART_ABS_TIME)==0){			
@@ -3455,6 +3460,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 #endif // XXX old animation system
 
 				pa_size=psys_get_child_size(psys,cpa,cfra,0);
+
+				pa_health = -1.0;
 
 				r_tilt = 2.0f * cpa->rand[2];
 				r_length = cpa->rand[1];
@@ -3538,9 +3545,19 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 						setlinestyle(0);
 					}
 
-					if(part->draw&PART_DRAW_NUM && !(G.f & G_RENDER_SHADOW)){
+					if((part->draw&PART_DRAW_NUM || part->draw&PART_DRAW_HEALTH) && !(G.f & G_RENDER_SHADOW)){
+						strcpy(val, "");
+						
+						if(part->draw&PART_DRAW_NUM)
+							sprintf(val, " %i", a);
+
+						if(part->draw&PART_DRAW_NUM && part->draw&PART_DRAW_HEALTH)
+							sprintf(val, "%s:", val);
+
+						if(part->draw&PART_DRAW_HEALTH && a < totpart && part->phystype==PART_PHYS_BOIDS)
+							sprintf(val, "%s %.2f", val, pa_health);
+
 						/* in path drawing state.co is the end point */
-						sprintf(val," %i",a);
 						view3d_particle_text_draw_add(state.co[0],  state.co[1],  state.co[2], val, 0);
 					}
 				}

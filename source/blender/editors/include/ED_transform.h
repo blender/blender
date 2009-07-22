@@ -40,6 +40,7 @@ struct bContext;
 struct Object;
 struct uiLayout;
 struct EnumPropertyItem;
+struct wmOperatorType;
 
 void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *keymap, int spaceid);
 void transform_operatortypes(void);
@@ -131,8 +132,6 @@ void Properties_Snapping(struct wmOperatorType *ot, short align);
 void Properties_Constraints(struct wmOperatorType *ot);
 
 /* view3d manipulators */
-void initManipulator(int mode);
-void ManipulatorTransform();
 
 int BIF_do_manipulator(struct bContext *C, struct wmEvent *event, struct wmOperator *op);
 void BIF_draw_manipulator(const struct bContext *C);

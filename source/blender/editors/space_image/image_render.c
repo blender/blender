@@ -119,7 +119,7 @@ void imagewindow_progress(SpaceImage *sima, RenderResult *rr, volatile rcti *ren
 	if(rect32)
 		glaDrawPixelsSafe(x1, y1, xmax, ymax, rr->rectx, GL_RGBA, GL_UNSIGNED_BYTE, rect32);
 	else
-		glaDrawPixelsSafe_to32(x1, y1, xmax, ymax, rr->rectx, rectf);
+		glaDrawPixelsSafe_to32(x1, y1, xmax, ymax, rr->rectx, rectf, 0);
 	
 	glPixelZoom(1.0, 1.0);
 	
