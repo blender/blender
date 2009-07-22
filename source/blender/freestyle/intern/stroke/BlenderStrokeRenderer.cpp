@@ -50,6 +50,8 @@ BlenderStrokeRenderer::BlenderStrokeRenderer()
 
 	// Scene.New("FreestyleStrokes")
 	old_scene = G.scene;
+
+	objects.first = objects.last = NULL;
 	
 	ListBase lb;
 	scene = add_scene("freestyle_strokes");
@@ -74,6 +76,8 @@ BlenderStrokeRenderer::BlenderStrokeRenderer()
 	object_camera->loc[2] = 1.0;
 	
 	scene->camera = object_camera;
+
+	store_object(object_camera);
 	
 	// Material
 	material = add_material("stroke_material");
@@ -89,27 +93,44 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer(){
 	    _textureManager = 0;
 	  }
 
-	Base *base = (Base *)scene->base.first;
-	while(base) {
-		switch (base->object->type) {
+	// release scene
+	free_libblock( &G.main->scene, scene );
+
+	// release objects and data blocks
+	LinkData *link = (LinkData *)objects.first;
+	while(link) {
+		Object *ob = (Object *)link->data;
+		void *data = ob->data;
+		char name[24];
+		strcpy(name, ob->id.name);
+		//cout << "removing " << name[0] << name[1] << ":" << (name+2) << endl;
+		switch (ob->type) {
 		case OB_MESH:
-			free_libblock( &G.main->mesh, base->object->data );
-			free_libblock( &G.main->object, base->object );
+			free_libblock( &G.main->object, ob );
+			free_libblock( &G.main->mesh, data );
 			break;
 		case OB_CAMERA:
-			free_libblock( &G.main->camera, base->object->data );
-			free_libblock( &G.main->object, base->object );
+			free_libblock( &G.main->object, ob );
+			free_libblock( &G.main->camera, data );
 			break;
 		default:
-			char *name = base->object->id.name;
 			cerr << "Warning: unexpected object in the scene: " << name[0] << name[1] << ":" << (name+2) << endl;
 		}
-		base = base->next;
+		link = link->next;
 	}
+	BLI_freelistN( &objects );
+
+	// release material
 	free_libblock( &G.main->mat, material );
-	free_libblock( &G.main->scene, scene );
 	
 	set_scene_bg( old_scene );
+}
+
+void BlenderStrokeRenderer::store_object(Object *ob) const {
+
+	LinkData *link = (LinkData *)MEM_callocN(sizeof(LinkData), "temporary object" );
+	link->data = ob;
+	BLI_addhead(const_cast<ListBase *>(&objects), link);
 }
 
 void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const{
@@ -138,12 +159,19 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 		MEM_freeN(mesh->bb);
 		mesh->bb= NULL;
 		mesh->id.us = 0;
+
+		store_object(object_mesh);
 		
+#if 1
 		// me.materials = [mat]
 		mesh->mat = ( Material ** ) MEM_mallocN( 1 * sizeof( Material * ), "MaterialList" );
 		mesh->mat[0] = material;
 		mesh->totcol = 1;
 		test_object_materials( (ID*) mesh );
+#else
+		assign_material(object_mesh, material, object_mesh->totcol+1);
+		object_mesh->actcol= object_mesh->totcol;
+#endif
 		
 		int strip_vertex_count = (*s)->sizeStrip();
 	

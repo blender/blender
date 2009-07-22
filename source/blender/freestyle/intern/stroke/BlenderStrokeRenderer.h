@@ -36,7 +36,9 @@ protected:
 	Scene* scene;
 	Scene* old_scene;
 	Material* material;
+	ListBase objects;
 
+	void store_object(Object *ob) const;
 };
 
 #endif // BLENDERSTROKERENDERER_H
