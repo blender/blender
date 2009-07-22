@@ -197,15 +197,17 @@ EditMesh *bmesh_to_editmesh_intern(BMesh *bm)
 	EditMesh *em;
 	EditVert *eve, **evlist;
 
-	int totvert, i, numTex, numCol;
+	int totvert, i, numTex, numCol, flag;
 
 	em = MEM_callocN(sizeof(EditMesh), "EditMesh from bmesh");
 
 	em->selectmode = bm->selectmode;
 
-	CustomData_copy(&bm->vdata, &em->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bm->edata, &em->edata, CD_MASK_BMESH, CD_CALLOC, 0);
-	CustomData_copy(&bm->pdata, &em->fdata, CD_MASK_BMESH, CD_CALLOC, 0);
+	flag = CD_MASK_BMESH & ~CD_MASK_MTEXPOLY;
+
+	CustomData_copy(&bm->vdata, &em->vdata, flag, CD_CALLOC, 0);
+	CustomData_copy(&bm->edata, &em->edata, flag, CD_CALLOC, 0);
+	CustomData_copy(&bm->pdata, &em->fdata, flag, CD_CALLOC, 0);
 	CustomData_from_bmeshpoly(&em->fdata, &bm->pdata, &bm->ldata,0);
 	numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
 	numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);

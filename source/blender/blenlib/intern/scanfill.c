@@ -44,6 +44,8 @@
 #include "BLI_scanfill.h"
 #include "BLI_callbacks.h"
 
+#include "BKE_utildefines.h"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -778,11 +780,37 @@ int BLI_edgefill(int mode, int mat_nr)
 
 	/* reset variables */
 	eve= fillvertbase.first;
+	a = 0;
 	while(eve) {
 		eve->f= 0;
 		eve->xs= 0;
 		eve->h= 0;
 		eve= eve->next;
+		a += 1;
+	}
+
+	if (a == 3) {
+		eve = fillvertbase.first;
+
+		addfillface(eve, eve->next, eve->next->next, 0);
+		return 1;
+	} else if (a == 4) {
+		float vec1[3], vec2[3];
+
+		eve = fillvertbase.first;
+
+		/*use shortest diagonal for quad*/
+		VecSubf(vec1, eve->co, eve->next->next->co);
+		VecSubf(vec2, eve->next->co, eve->next->next->next->co);
+
+		if (INPR(vec1, vec1) < INPR(vec2, vec2)) {
+			addfillface(eve, eve->next, eve->next->next, 0);
+			addfillface(eve->next->next, eve->next->next->next, eve, 0);
+		} else {
+			addfillface(eve->next, eve->next->next, eve->next->next->next, 0);
+			addfillface(eve->next->next->next, eve, eve->next, 0);
+		}
+		return 1;
 	}
 
 	/* first test vertices if they are in edges */
