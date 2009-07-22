@@ -1011,15 +1011,15 @@ static void colorband_buttons_large(uiBlock *block, ColorBand *coba, int xoffs, 
 	
 	if(coba==NULL) return;
 	
-	bt= uiDefBut(block, BUT, redraw,	"Add",			0+xoffs,100+yoffs,50,20, 0, 0, 0, 0, 0, "Adds a new color stop to the colorband");
-	bt= uiDefBut(block, BUT, redraw,	"Delete",		60+xoffs,100+yoffs,50,20, 0, 0, 0, 0, 0, "Deletes the active position");
+	bt= uiDefBut(block, BUT, redraw,	"Add",			0+xoffs,100+yoffs,50,20, 0, 0, 0, 0, 0, "Add a new color stop to the colorband");
 	uiButSetFunc(bt, colorband_add_cb, coba, NULL);
+	bt= uiDefBut(block, BUT, redraw,	"Delete",		60+xoffs,100+yoffs,50,20, 0, 0, 0, 0, 0, "Delete the active position");
 	uiDefButS(block, NUM, redraw,		"",				120+xoffs,100+yoffs,80, 20, &coba->cur, 0.0, (float)(coba->tot-1), 0, 0, "Choose active color stop");
 	
 	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
 	
 	uiDefButS(block, MENU, redraw,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
-		210+xoffs, 100+yoffs, 90, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Sets interpolation between color stops");
+		210+xoffs, 100+yoffs, 90, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Set interpolation between color stops");
 	uiBlockEndAlign(block);
 
 	uiDefBut(block, BUT_COLORBAND, redraw, "", 	xoffs,65+yoffs,300,30, coba, 0, 0, 0, 0, "");
@@ -1042,16 +1042,17 @@ static void colorband_buttons_small(uiBlock *block, ColorBand *coba, rctf *butr,
 	
 	cbd= coba->data + coba->cur;
 	
-	uiBlockBeginAlign(block);
-	uiDefButF(block, COL, event,		"",			xs,butr->ymin+20.0f,2.0f*unit,20,				&(cbd->r), 0, 0, 0, B_BANDCOL, "");
-	uiDefButF(block, NUM, event,		"A:",		xs+2.0f*unit,butr->ymin+20.0f,4.0f*unit,20,	&(cbd->a), 0.0f, 1.0f, 10, 2, "");
-	bt= uiDefBut(block, BUT, event,	"Add",		xs+6.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Adds a new color position to the colorband");
+	
+	bt= uiDefBut(block, BUT, event,	"Add",			xs,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Add a new color stop to the colorband");
 	uiButSetFunc(bt, colorband_add_cb, coba, NULL);
-	bt= uiDefBut(block, BUT, event,	"Del",		xs+8.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Deletes the active position");
+	bt= uiDefBut(block, BUT, event,	"Delete",		xs+2.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Delete the active position");
 	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
-
+	
+	uiDefButF(block, COL, event,		"",			xs+4.0f*unit,butr->ymin+20.0f,2.0f*unit,20,				&(cbd->r), 0, 0, 0, B_BANDCOL, "The color value for the active color stop");
+	uiDefButF(block, NUMSLI, event,		"A:",		xs+6.0f*unit,butr->ymin+20.0f,4.0f*unit,20,	&(cbd->a), 0.0f, 1.0f, 10, 2, "The alpha value of the active color stop");
+	
 	uiDefButS(block, MENU, event,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
-		xs+10.0f*unit, butr->ymin+20.0f, unit*4, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Sets interpolation type");
+		xs+10.0f*unit, butr->ymin+20.0f, unit*4, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Set interpolation between color stops");
 
 	uiDefBut(block, BUT_COLORBAND, event, "",		xs,butr->ymin,butr->xmax-butr->xmin,20.0f, coba, 0, 0, 0, 0, "");
 	uiBlockEndAlign(block);
