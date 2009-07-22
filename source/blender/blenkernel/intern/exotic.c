@@ -1900,6 +1900,11 @@ void write_stl(Scene *scene, char *str)
 	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
 	if(BLI_testextensie(str,".stl")==0) strcat(str, ".stl");
 
+	if (BLI_exists(str)) {
+		; //XXX if(saveover(str)==0)
+		//XXX   return;
+	}
+
 	fpSTL= fopen(str, "wb");
 	
 	if(fpSTL==NULL) {
