@@ -1281,9 +1281,9 @@ static float new_primitive_matrix(bContext *C, float primmat[][4])
 	
 	Mat4One(primmat);
 	
-	if(rv3d)
+	if(rv3d && (U.flag & USER_ADD_VIEWALIGNED)) {
 		Mat3CpyMat4(vmat, rv3d->viewmat);
-	else
+	} else
 		Mat3One(vmat);
 	
 	/* inverse transform for view and object */
