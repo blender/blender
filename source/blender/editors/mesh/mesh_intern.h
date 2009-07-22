@@ -74,7 +74,6 @@ int EDBM_FinishOp(struct BMEditMesh *em, struct BMOperator *bmop,
 		struct wmOperator *op, int report);
 
 void EDBM_clear_flag_all(struct BMEditMesh *em, int flag);
-void EDBM_set_actFace(struct BMEditMesh *em, struct BMFace *efa);
 void EDBM_store_selection(struct BMEditMesh *em, void *data);
 void EDBM_validate_selections(struct BMEditMesh *em);
 void EDBM_remove_selection(struct BMEditMesh *em, void *data);

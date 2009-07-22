@@ -594,10 +594,10 @@ subdpattern q_4edge = {
 
 subdpattern *patterns[] = {
 	//&q_1edge,
-	&q_2edge_op,
+	//&q_2edge_op,
 	&q_4edge,
 	&q_3edge,
-	&q_2edge,
+	//&q_2edge,
 	//&t_1edge,
 	&t_2edge,
 	&t_3edge,
