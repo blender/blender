@@ -21,6 +21,7 @@
 #include "COLLADAFWSampler.h"
 #include "COLLADAFWScale.h"
 #include "COLLADAFWSkinController.h"
+#include "COLLADAFWSkinControllerData.h"
 #include "COLLADAFWTransformation.h"
 #include "COLLADAFWTranslate.h"
 #include "COLLADAFWTypes.h"
@@ -41,7 +42,7 @@ extern "C"
 #include "BKE_fcurve.h"
 #include "BKE_depsgraph.h"
 }
-#include "DNA_lamp_types.h"
+#include "BKE_armature.h"
 #include "BKE_mesh.h"
 #include "BKE_global.h"
 #include "BKE_context.h"
@@ -53,6 +54,8 @@ extern "C"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 
+#include "DNA_lamp_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_texture_types.h"
@@ -138,6 +141,10 @@ private:
 	std::map<COLLADAFW::UniqueId, Material*> uid_effect_map;
 	std::map<COLLADAFW::UniqueId, Camera*> uid_camera_map;
 	std::map<COLLADAFW::UniqueId, Lamp*> uid_lamp_map;
+	// maps for skinning
+	//std::map<COLLADAFW::UniqueId, bArmature*> uid_controller_map;
+	//std::map<COLLADAFW::UniqueId, Bone*> uid_joint_map;
+	std::map<COLLADAFW::UniqueId, COLLADAFW::UniqueId> skinid_meshid_map;
 	// maps for assigning textures to uv layers
 	std::map<COLLADAFW::TextureMapId, char*> set_layername_map;
 	std::map<COLLADAFW::TextureMapId, std::vector<MTex*> > index_mtex_map;
@@ -304,7 +311,7 @@ public:
 	
 	// bind early created mesh to object, assign materials and textures
 	Object *create_mesh_object(Object *ob, Scene *sce, COLLADAFW::Node *node,
-							   COLLADAFW::InstanceGeometry *geom)
+							   COLLADAFW::InstanceGeometry *geom, bool isController)
 	{
 		ob = add_object(sce, OB_MESH);
 		
@@ -312,26 +319,37 @@ public:
 		if (id.length())
 			rename_id(&ob->id, (char*)id.c_str());
 		
-		const COLLADAFW::UniqueId& geom_uid = geom->getInstanciatedObjectId();
-		if (uid_mesh_map.find(geom_uid) == uid_mesh_map.end()) {
-			// XXX report to user
-			// this could happen if a mesh was not created
-			// (e.g. if it contains unsupported geometry)
-			fprintf(stderr, "Couldn't find a mesh by UID.\n");
-			return NULL;
-		}
 		// replace ob->data freeing the old one
 		Mesh *old_mesh = (Mesh*)ob->data;
-		set_mesh(ob, uid_mesh_map[geom_uid]);
+
+		const COLLADAFW::UniqueId& geom_uid = geom->getInstanciatedObjectId();
+		// checking if node instanciates controller or geometry
+		if (isController) {
+			if (skinid_meshid_map.find(geom_uid) == skinid_meshid_map.end()) {
+				fprintf(stderr, "Couldn't find a mesh UID by controller's UID.\n");
+				return NULL;
+			}
+			set_mesh(ob, uid_mesh_map[skinid_meshid_map[geom_uid]]);
+		}
+		else {
+			if (uid_mesh_map.find(geom_uid) == uid_mesh_map.end()) {
+				// XXX report to user
+				// this could happen if a mesh was not created
+				// (e.g. if it contains unsupported geometry)
+				fprintf(stderr, "Couldn't find a mesh by UID.\n");
+				return NULL;
+			}
+			set_mesh(ob, uid_mesh_map[geom_uid]);
+		}
+		
 		if (old_mesh->id.us == 0) free_libblock(&G.main->mesh, old_mesh);
 		
-		// assign materials to object
-		// assign material indices to mesh faces
 		Mesh *me = (Mesh*)ob->data;
 		MTex *mtex = NULL;
 		MTFace *tface = NULL;
 		char *layername = CustomData_get_layer_name(&me->fdata, CD_MTFACE, 0);
 		
+		// assign material indices to mesh faces
 		for (int k = 0; k < geom->getMaterialBindings().getCount(); k++) {
 			
 			const COLLADAFW::UniqueId& ma_uid = geom->getMaterialBindings()[k].getReferencedMaterial();
@@ -347,9 +365,7 @@ public:
 			// bvi_array "bind_vertex_input array"
 			COLLADAFW::InstanceGeometry::TextureCoordinateBindingArray& bvi_array = 
 				geom->getMaterialBindings()[k].getTextureCoordinateBindingArray();
-			
 			for (l = 0; l < bvi_array.getCount(); l++) {
-				
 				COLLADAFW::TextureMapId tex_index = bvi_array[l].textureMapId;
 				size_t set_index = bvi_array[l].setIndex;
 				char *uvname = set_layername_map[set_index];
@@ -364,7 +380,6 @@ public:
 				for (it = mtexes.begin(); it != mtexes.end(); it++) {
 					mtex = *it;
 					strcpy(mtex->uvname, uvname);
-					
 				}	
 			}
 			mtex = NULL;
@@ -427,12 +442,10 @@ public:
 		Object *ob = NULL;
 		int k;
 		
-		// if node has <instance_geometries> - connect mesh with object
-		// XXX currently only one <instance_geometry> in a node is supported
+		// <instance_geometry>
 		if (geom.getCount() != 0) {
-			ob = create_mesh_object(ob, sce, node, geom[0]);
+			ob = create_mesh_object(ob, sce, node, geom[0], false);
 		}
-		// checking all other possible instances
 		// <instance_camera>
 		else if (camera.getCount() != 0) {
 			const COLLADAFW::UniqueId& cam_uid = camera[0]->getInstanciatedObjectId();
@@ -461,14 +474,23 @@ public:
 			ob->data = la;
 			if (old_lamp->id.us == 0) free_libblock(&G.main->lamp, old_lamp);
 		}
+		// <instance_controller>
 		else if (controller.getCount() != 0) {
-			//ob = create_mesh_object(ob, sce, node, controller[0]);
-			return;
+			/*const COLLADAFW::UniqueId& geom_uid = controller[0]->getInstanciatedObjectId();
+			bArmature *arm = meshId_armature_map[geom_uid];
+			if (!arm) {
+				fprintf(stderr, "Cannot find armature by geometry uid. \n");
+				return;
+				}*/
+			COLLADAFW::InstanceGeometry *geom = (COLLADAFW::InstanceGeometry*)controller[0];
+			ob = create_mesh_object(ob, sce, node, geom, true);
 		}
+		// XXX <node> - this is not supported yet
 		else if (inst_node.getCount() != 0) {
 			return;
 		}
-		// if node has no instances - create empty object
+		// if node is empty - create empty object
+		// XXX empty node may not mean it is empty object, not sure about this
 		else {
 			ob = add_object(sce, OB_EMPTY);
 		}
@@ -1068,9 +1090,11 @@ public:
 	{
 		std::string name = camera->getOriginalId();
 		Camera *cam = (Camera*)add_camera((char*)name.c_str());
-		if (cam != NULL)
-			this->uid_camera_map[camera->getUniqueId()] = cam;
-		else fprintf(stderr, "Cannot create camera. \n");
+		if (!cam) {
+			fprintf(stderr, "Cannot create camera. \n");
+			return true;
+		}
+		this->uid_camera_map[camera->getUniqueId()] = cam;
 		// XXX import camera options
 		return true;
 	}
@@ -1081,10 +1105,11 @@ public:
 	{
 	    const std::string& filepath = image->getImageURI().toNativePath();
 		Image *ima = BKE_add_image_file((char*)filepath.c_str(), 0);
-		if (ima == NULL)
+		if (!ima) {
 			fprintf(stderr, "Cannot create image. \n");
-		else
-			this->uid_image_map[image->getUniqueId()] = ima;
+			return true;
+		}
+		this->uid_image_map[image->getUniqueId()] = ima;
 		
 		return true;
 	}
@@ -1095,6 +1120,10 @@ public:
 	{
 		std::string name = light->getOriginalId();
 		Lamp *lamp = (Lamp*)add_lamp((char*)name.c_str());
+		if (!lamp) {
+			fprintf(stderr, "Cannot create lamp. \n");
+			return true;
+		}
 		COLLADAFW::Light::LightType type = light->getLightType();
 		switch(type) {
 		case COLLADAFW::Light::AMBIENT_LIGHT:
@@ -1125,9 +1154,8 @@ public:
 			break;
 		}
 			
-		if (lamp != NULL)
-			this->uid_lamp_map[light->getUniqueId()] = lamp;
-		else fprintf(stderr, "Cannot create lamp. \n");
+		this->uid_lamp_map[light->getUniqueId()] = lamp;
+		
 		// XXX import light options*/
 		return true;
 	}
@@ -1156,6 +1184,7 @@ public:
 					  COLLADAFW::FloatOrDoubleArray outtan, size_t dim, float fps)
 	{
 		int i;
+		char *path = "location";
 		if (dim == 1) {
 			// create fcurve
 			FCurve *fcu = (FCurve*)MEM_callocN(sizeof(FCurve), "FCurve");
@@ -1163,7 +1192,7 @@ public:
 				fprintf(stderr, "Cannot create fcurve. \n");
 				return;
 			}
-			char *path = "location";
+
 			fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
 			fcu->rna_path = BLI_strdupn(path, strlen(path));
 			fcu->array_index = 0;
@@ -1199,8 +1228,9 @@ public:
 					fprintf(stderr, "Cannot create fcurve. \n");
 					continue;
 				}
+				
 				fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
-				fcu->rna_path = "location";
+				fcu->rna_path = BLI_strdupn(path, strlen(path));
 				fcu->array_index = 0;
 				fcu->totvert = curve->getKeyCount();
 				
@@ -1443,6 +1473,47 @@ public:
 	virtual bool writeSkinControllerData( const COLLADAFW::SkinControllerData* skinControllerData ) 
 	{
 		// see COLLADAFW::validate for an example of how to use SkinControllerData
+		/* what should I do here?
+		   - create armature (should I create it here or somewhere else?)
+		   - create bones
+		   - create vertex group for each bone?
+		   - create MDeformVerts? - no, I don't know what mesh to modify
+		   is it possible to create MDeformVerts & vertex groups without assigning them to a mesh or object
+		   - set weights
+		   - map something(armature, vgoups, dverts) to skin controller uid, so I can use it in controller
+		 */
+		/*const std::string& skin_id = skinControllerData->getOriginalId();
+		size_t num_bones = skinControllerData->getJointsCount();
+		bArmature *arm = add_armature((char*)skin_id.c_str());
+		if (!arm) {
+			fprintf(stderr, "Cannot create armature. \n");
+			return true;
+		}
+		for (int i = 0; i < num_bones; i++) {
+			// create bone
+			//addEditBone(arm, "my_bone");
+			Bone *bone = (Bone*)MEM_callocN(sizeof(Bone), "Bone");
+			BLI_strncpy(bone->name, "bone", 32);
+			//unique_bone_name(arm, "my_bone");
+			BLI_addtail(&arm->bonebase, bone);
+			
+			bone->flag |= BONE_TIPSEL;
+			bone->weight= 1.0f;
+			bone->dist= 0.25f;
+			bone->xwidth= 0.1f;
+			bone->zwidth= 0.1f;
+			bone->ease1= 1.0f;
+			bone->ease2= 1.0f;
+			bone->rad_head= 0.10f;
+			bone->rad_tail= 0.05f;
+			bone->segments= 1;
+			bone->layer= arm->layer;
+			// TODO: add inverse bind matrices
+			i++;
+			}
+		
+		this->uid_controller_map[skinControllerData->getUniqueId()] = arm;
+		*/
 		return true;
 	}
 
@@ -1450,14 +1521,34 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeController( const COLLADAFW::Controller* controller ) 
 	{
+		const COLLADAFW::UniqueId& skin_id = controller->getUniqueId();
 		// if skin controller
 		if (controller->getControllerType() == COLLADAFW::Controller::CONTROLLER_TYPE_SKIN) {
-			return true;
+			
+			COLLADAFW::SkinController *skin = (COLLADAFW::SkinController*)controller;
+			const COLLADAFW::UniqueId& skin_data_id = skin->getSkinControllerData();
+			/*if (uid_controller_map.find(skin_id) == uid_controller_map.end()) {
+				fprintf(stderr, "Cannot find armature by UID.\n");
+				return true;
+				}*/
+			//bArmature *arm = uid_controller_map[skin_id];
+			// map mesh to controller's uid
+			const COLLADAFW::UniqueId& geom_uid = skin->getSource();
+			this->skinid_meshid_map[skin_id] = geom_uid;
+			/*Bone *bone;
+			int i = 0;
+			// map bones to nodes(joints) uid
+			for (bone = (Bone*)arm->bonebase.first; bone; bone++) {
+				const COLLADAFW::UniqueId& joint_id = skin->getJoints()[i];
+				this->uid_joint_map[joint_id] = bone;
+				i++;
+				}*/
 		}
+		
 		// if morph controller
 		else {
-			return true;
 		}
+		return true;
 	}
 };
 
