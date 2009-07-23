@@ -108,11 +108,6 @@ static void do_time_redrawmenu(bContext *C, void *arg, int event)
 				sad->ar= time_top_left_3dwindow(screen);
 		}
 	}
-	else {
-		if(event==1001) {
-//			button(&CTX_data_scene(C)->r.frs_sec,1,120,"FPS:");
-		}
-	}
 }
 
 
@@ -120,10 +115,8 @@ static uiBlock *time_redrawmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *curarea= CTX_wm_area(C);
 	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
-	Scene *scene= CTX_data_scene(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120, icon;
-	char str[32];
 	
 	block= uiBeginBlock(C, ar, "header time_redrawmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_time_redrawmenu, NULL);
@@ -155,15 +148,9 @@ static uiBlock *time_redrawmenu(bContext *C, ARegion *ar, void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	sprintf(str, "Set Frames/Sec (%d/%f)", scene->r.frs_sec, scene->r.frs_sec_base);
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, str,	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1001, "");
-	
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
 	if(stime->redraws & TIME_CONTINUE_PHYSICS) icon= ICON_CHECKBOX_HLT;
 	else icon= ICON_CHECKBOX_DEHLT;
 	uiDefIconTextBut(block, BUTM, 1, icon, "Continue Physics",      0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_CONTINUE_PHYSICS, "During playblack, continue physics simulations regardless of the frame number");
-	
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -547,7 +534,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	}
 	uiBlockEndAlign(block);
 	
-	xco += (short)(4.5 * XIC + 16);
+	xco += (short)(4.5 * XIC);
 	
 	/* MINAFRAMEF not MINFRAMEF, since MINAFRAMEF allows to set current frame negative 
 	 * to facilitate easier keyframing in some situations
@@ -557,58 +544,60 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 			  &(scene->r.cfra), MINAFRAMEF, MAXFRAMEF, 0, 0,
 			  "Displays Current Frame of animation");
 	
-	xco += (short)(3.5 * XIC + 16);
+	xco += (short)(3.5 * XIC);
 	
+	uiBlockBeginAlign(block);
+
 	uiDefIconBut(block, BUT, B_TL_REW, ICON_REW,
 				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Skip to Start frame (Shift DownArrow)");
-	xco+= XIC+4;
+	xco+= XIC;
 	uiDefIconBut(block, BUT, B_TL_PREVKEY, ICON_PREV_KEYFRAME,
 				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Skip to previous keyframe (Ctrl PageDown)");
-	xco+= XIC+4;
+	xco+= XIC;
 	
 	if(CTX_wm_screen(C)->animtimer) {
-		/* pause button is drawn centered between the two other buttons for now (saves drawing 2 buttons, or having position changes) */
-		xco+= XIC/2 + 2;
-		
+		/* pause button 2*size to keep buttons in place */
 		uiDefIconBut(block, BUT, B_TL_STOP, ICON_PAUSE,
-					 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Stop Playing Timeline");
+					 xco, yco, XIC*2, YIC, 0, 0, 0, 0, 0, "Stop Playing Timeline");
 					 
-		xco+= XIC/2 + 2;
+		xco+= XIC;
 	}
 	else {	   
-			// FIXME: the icon for this is crap
-		uiDefIconBut(block, BUT, B_TL_RPLAY, ICON_REW/*ICON_PLAY*/,
+		uiDefIconBut(block, BUT, B_TL_RPLAY, ICON_PLAY_REVERSE,
 					 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Play Timeline in Reverse");
 					 
-		xco+= XIC+4;
+		xco+= XIC;
 					 
 		uiDefIconBut(block, BUT, B_TL_PLAY, ICON_PLAY,
 					 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Play Timeline ");
 	}
-	xco+= XIC+4;
+	xco+= XIC;
 	
 	uiDefIconBut(block, BUT, B_TL_NEXTKEY, ICON_NEXT_KEYFRAME,
 				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Skip to next keyframe (Ctrl PageUp)");
-	xco+= XIC+4;
+	xco+= XIC;
 	uiDefIconBut(block, BUT, B_TL_FF, ICON_FF,
 				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Skip to End frame (Shift UpArrow)");
-	xco+= XIC+8;
+	uiBlockEndAlign(block);
+
+	xco+= 2*XIC;
 	
 	uiBlockBeginAlign(block);
-		uiDefIconButBitS(block, TOG, AUTOKEY_ON, B_REDRAWALL, ICON_REC,
-						 xco, yco, XIC, YIC, &(scene->toolsettings->autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
-		xco+= XIC;
-		if (IS_AUTOKEY_ON(scene)) {
-			uiDefButS(block, MENU, B_REDRAWALL, 
-					  "Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
-					  xco, yco, (int)5.5*XIC, YIC, &(scene->toolsettings->autokey_mode), 0, 1, 0, 0, 
-					  "Mode of automatic keyframe insertion for Objects and Bones");
-			xco+= (6*XIC);
-		}
+	uiDefIconButBitS(block, TOG, AUTOKEY_ON, B_REDRAWALL, ICON_REC,
+					 xco, yco, XIC, YIC, &(scene->toolsettings->autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
+	xco+= XIC;
+
+	if(IS_AUTOKEY_ON(scene)) {
+		uiDefButS(block, MENU, B_REDRAWALL, 
+				  "Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
+				  xco, yco, (int)5.5*XIC, YIC, &(scene->toolsettings->autokey_mode), 0, 1, 0, 0, 
+				  "Mode of automatic keyframe insertion for Objects and Bones");
+		xco+= (5.5*XIC);
+	}
+	else
+		xco+= 6;
+
 	uiBlockEndAlign(block);
-	
-	xco+= 16;
-	
 	
 	menustr= ANIM_build_keyingsets_menu(&scene->keyingsets, 0);
 	uiDefButI(block, MENU, B_DIFF, 
@@ -616,16 +605,16 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 				  xco, yco, (int)5.5*XIC, YIC, &(scene->active_keyingset), 0, 1, 0, 0, 
 				  "Active Keying Set (i.e. set of channels to Insert Keyframes for)");
 	MEM_freeN(menustr);
-	xco+= (6*XIC);
+	xco+= (5.5*XIC);
 	
 	uiBlockBeginAlign(block);
-		uiDefIconButO(block, BUT, "ANIM_OT_delete_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_DEHLT, xco,yco,XIC,YIC, "Delete Keyframes for the Active Keying Set (Alt-I)");
-		xco += XIC;
-		uiDefIconButO(block, BUT, "ANIM_OT_insert_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_HLT, xco,yco,XIC,YIC, "Insert Keyframes for the Active Keying Set (I)");
-		xco += XIC;
+	uiDefIconButO(block, BUT, "ANIM_OT_delete_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_DEHLT, xco,yco,XIC,YIC, "Delete Keyframes for the Active Keying Set (Alt-I)");
+	xco += XIC;
+	uiDefIconButO(block, BUT, "ANIM_OT_insert_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_HLT, xco,yco,XIC,YIC, "Insert Keyframes for the Active Keying Set (I)");
+	xco += XIC;
 	uiBlockEndAlign(block);
 	
-	xco+= 16;
+	xco+= XIC;
 	
 	uiDefIconButBitI(block, TOG, TIME_WITH_SEQ_AUDIO, B_DIFF, ICON_SPEAKER,
 					 xco, yco, XIC, YIC, &(stime->redraws), 0, 0, 0, 0, "Play back and sync with audio from Sequence Editor");

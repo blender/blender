@@ -150,7 +150,6 @@ static void rna_Particle_target_reset(bContext *C, PointerRNA *ptr)
 		ParticleTarget *pt = (ParticleTarget*)ptr->data;
 		Object *ob = (Object*)ptr->id.data;
 		ParticleSystem *kpsys=NULL, *psys=psys_get_current(ob);
-		int psys_num = BLI_findindex(&ob->particlesystem, psys);
 
 		if(pt->ob==ob || pt->ob==NULL) {
 			kpsys = BLI_findlink(&ob->particlesystem, pt->psys-1);

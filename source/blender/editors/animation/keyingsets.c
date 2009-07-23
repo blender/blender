@@ -233,7 +233,7 @@ char *ANIM_build_keyingsets_menu (ListBase *list, short for_edit)
 		BLI_dynstr_append(pupds, " %x0|");
 	}
 	else
-		BLI_dynstr_append(pupds, "<No Keying Set Active>%x0|");
+		BLI_dynstr_append(pupds, "No Keying Set%x0|");
 	
 	/* loop through keyingsets, adding them */
 	for (ks=list->first, i=1; ks; ks=ks->next, i++) {

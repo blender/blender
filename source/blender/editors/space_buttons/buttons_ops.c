@@ -38,6 +38,8 @@
 #include "DNA_node_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_world_types.h"
 
 #include "BKE_context.h"
@@ -68,6 +70,8 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+
+#include "UI_interface.h"
 
 #include "buttons_intern.h"	// own include
 
@@ -899,5 +903,35 @@ void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** toolbox operator *********************/
+
+static int toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	bScreen *sc= CTX_wm_screen(C);
+	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	PointerRNA ptr;
+	uiPopupMenu *pup;
+	uiLayout *layout;
+
+	RNA_pointer_create(&sc->id, &RNA_SpaceButtonsWindow, sbuts, &ptr);
+
+	pup= uiPupMenuBegin(C, "Align", 0);
+	layout= uiPupMenuLayout(pup);
+	uiItemsEnumR(layout, &ptr, "align");
+	uiPupMenuEnd(C, pup);
+
+	return OPERATOR_CANCELLED;
+}
+
+void BUTTONS_OT_toolbox(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Toolbox";
+	ot->idname= "BUTTONS_OT_toolbox";
+	
+	/* api callbacks */
+	ot->invoke= toolbox_invoke;
 }
 

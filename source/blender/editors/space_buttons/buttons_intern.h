@@ -49,6 +49,9 @@ struct wmOperatorType;
 #define BUTS_SENS_STATE		512
 #define BUTS_ACT_STATE		1024
 
+#define BUTS_HEADERY		(HEADERY*1.2)
+#define BUTS_UI_UNIT		(UI_UNIT_Y*1.2)
+
 /* internal exports only */
 
 /* buttons_header.c */
@@ -85,6 +88,8 @@ void PARTICLE_OT_target_move_down(struct wmOperatorType *ot);
 
 void SCENE_OT_render_layer_add(struct wmOperatorType *ot);
 void SCENE_OT_render_layer_remove(struct wmOperatorType *ot);
+
+void BUTTONS_OT_toolbox(struct wmOperatorType *ot);
 
 #endif /* ED_BUTTONS_INTERN_H */
 

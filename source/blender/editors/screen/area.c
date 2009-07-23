@@ -1056,7 +1056,7 @@ static char *windowtype_pup(void)
 		   
 		   "|Video Sequence Editor %x8" //143
 		   "|Timeline %x15" //163
-		   "|Audio Window %x11" //163
+		   // "|Audio Window %x11" //163
 		   "|Text Editor %x9" //179
 		   
 		   "|%l" //192
@@ -1073,7 +1073,7 @@ static char *windowtype_pup(void)
 		   
 		   "|%l" //293
 		   
-		   "|Scripts Window %x14"//313
+		   // "|Scripts Window %x14"//313
 		   "|Console %x18"
 		   );
 }
@@ -1085,7 +1085,7 @@ static void spacefunc(struct bContext *C, void *arg1, void *arg2)
 }
 
 /* returns offset for next button in header */
-int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
+int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	uiBut *but;
@@ -1098,9 +1098,18 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 						   "Click for menu of available types.");
 	uiButSetFunc(but, spacefunc, NULL, NULL);
 	
-	xco += XIC + 14;
+	return xco + XIC + 14;
+}
+
+int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	int xco= 8;
 	
+	xco= ED_area_header_switchbutton(C, block, yco);
+
 	uiBlockSetEmboss(block, UI_EMBOSSN);
+
 	if (sa->flag & HEADER_NO_PULLDOWN) {
 		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0, 
 						 ICON_DISCLOSURE_TRI_RIGHT,
@@ -1115,11 +1124,10 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 						 &(sa->flag), 0, 0, 0, 0, 
 						 "Hide pulldown menus");
 	}
-	xco+=XIC;
-	
+
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
-	return xco;
+	return xco + XIC;
 }
 
 /************************ standard UI regions ************************/
