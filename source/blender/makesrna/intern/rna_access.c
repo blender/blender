@@ -2820,9 +2820,12 @@ void RNA_parameter_list_free(ParameterList *parms)
 		if(parm->type == PROP_COLLECTION) {
 			BLI_freelistN((ListBase*)((char*)parms->data+tot));
 		}
-		else if(parm->flag & PROP_DYNAMIC_ARRAY) {
-			/* for dynamic arrays, data is a pointer to an array */
-			MEM_freeN(*(char**)parms->data+tot);
+		else if(parm == parms->func->ret) {
+			/* for dynamic arrays and strings, data is a pointer to an array */
+			char *ptr= *(char**)((char*)parms->data+tot);
+			if((parm->flag & PROP_DYNAMIC_ARRAY || parm->type == PROP_STRING) && ptr) {
+				MEM_freeN(ptr);
+			}
 		}
 
 		tot+= rna_parameter_size(parm);

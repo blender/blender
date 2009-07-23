@@ -2160,14 +2160,11 @@ int BKE_export_image(Image *im, const char *dest_dir, char *out_path, int out_pa
 	/* expand "//" in filename and get absolute path */
 	BLI_convertstringcode(path, G.sce);
 
-	/* in unit tests, we don't want to modify the filesystem */
-#ifndef WITH_UNIT_TEST
 	/* proceed only if image file exists */
 	if (!BLI_exists(path)) {
 		if (G.f & G_DEBUG) printf("%s doesn't exist\n", path);
-		goto next;
+		return 0;
 	}
-#endif
 
 	/* get the directory part */
 	BLI_split_dirfile_basic(path, dir, base);
@@ -2191,10 +2188,8 @@ int BKE_export_image(Image *im, const char *dest_dir, char *out_path, int out_pa
 				
 			BLI_join_dirfile(dest_path, dest_dir, rel);
 
-#ifndef WITH_UNIT_TEST
 			/* build identical directory structure under dest_dir */
-			BLI_make_existing_file(dest_path);
-#endif
+			BLI_recurdir_fileops(dest_path);
 
 			BLI_join_dirfile(dest_path, dest_path, base);
 		}
@@ -2206,14 +2201,18 @@ int BKE_export_image(Image *im, const char *dest_dir, char *out_path, int out_pa
 		BLI_join_dirfile(dest_path, dest_dir, base);
 	}
 
-#ifndef WITH_UNIT_TEST
 	if (G.f & G_DEBUG) printf("copying %s to %s\n", path, dest_path);
 
-	if (BLI_copy_fileops(path, dest_path) != 0) {
-		if (G.f & G_DEBUG) printf("couldn't copy %s to %s\n", path, dest_path);
-		return 0;
+	/* only copy if paths differ */
+	if (strcmp(path, dest_path)) {
+		if (BLI_copy_fileops(path, dest_path) != 0) {
+			if (G.f & G_DEBUG) printf("couldn't copy %s to %s\n", path, dest_path);
+			return 0;
+		}
 	}
-#endif
+	else if (G.f & G_DEBUG){
+		printf("%s and %s are the same file\n", path, dest_path);
+	}
 
 	BLI_strncpy(out_path, dest_path, out_path_len);
 

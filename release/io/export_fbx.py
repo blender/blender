@@ -237,24 +237,24 @@ def sane_texname(data):		return sane_name(data, sane_name_mapping_tex)
 def sane_takename(data):	return sane_name(data, sane_name_mapping_take)
 def sane_groupname(data):	return sane_name(data, sane_name_mapping_group)
 
-def derived_paths(fname_orig, basepath, FORCE_CWD=False):
-	'''
-	fname_orig - blender path, can be relative
-	basepath - fname_rel will be relative to this
-	FORCE_CWD - dont use the basepath, just add a ./ to the filename.
-		use when we know the file will be in the basepath.
-	'''
-	fname = bpy.sys.expandpath(fname_orig)
-# 	fname = Blender.sys.expandpath(fname_orig)
-	fname_strip = os.path.basename(fname)
-# 	fname_strip = strip_path(fname)
-	if FORCE_CWD:
-		fname_rel = '.' + os.sep + fname_strip
-	else:
-		fname_rel = bpy.sys.relpath(fname, basepath)
-# 		fname_rel = Blender.sys.relpath(fname, basepath)
-	if fname_rel.startswith('//'): fname_rel = '.' + os.sep + fname_rel[2:]
-	return fname, fname_strip, fname_rel
+# def derived_paths(fname_orig, basepath, FORCE_CWD=False):
+# 	'''
+# 	fname_orig - blender path, can be relative
+# 	basepath - fname_rel will be relative to this
+# 	FORCE_CWD - dont use the basepath, just add a ./ to the filename.
+# 		use when we know the file will be in the basepath.
+# 	'''
+# 	fname = bpy.sys.expandpath(fname_orig)
+# # 	fname = Blender.sys.expandpath(fname_orig)
+# 	fname_strip = os.path.basename(fname)
+# # 	fname_strip = strip_path(fname)
+# 	if FORCE_CWD:
+# 		fname_rel = '.' + os.sep + fname_strip
+# 	else:
+# 		fname_rel = bpy.sys.relpath(fname, basepath)
+# # 		fname_rel = Blender.sys.relpath(fname, basepath)
+# 	if fname_rel.startswith('//'): fname_rel = '.' + os.sep + fname_rel[2:]
+# 	return fname, fname_strip, fname_rel
 
 
 def mat4x4str(mat):
@@ -1324,6 +1324,8 @@ def write(filename, batch_objects = None, \
 
 	# tex is an Image (Arystan)
 	def write_video(texname, tex):
+		if not EXP_IMAGE_COPY: return
+
 		# Same as texture really!
 		file.write('\n\tVideo: "Video::%s", "Clip" {' % texname)
 		
@@ -1335,7 +1337,10 @@ def write(filename, batch_objects = None, \
 			Property: "Width", "int", "",0
 			Property: "Height", "int", "",0''')
 		if tex:
-			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
+			abspath = tex.export(basepath)
+			fname_rel = os.path.relpath(abspath, basepath)
+			fname_strip = os.path.basename(abspath)
+# 			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
 		else:
 			fname = fname_strip = fname_rel = ''
 		
@@ -1361,6 +1366,8 @@ def write(filename, batch_objects = None, \
 
 	
 	def write_texture(texname, tex, num):
+		if not EXP_IMAGE_COPY: return
+
 		# if tex == None then this is a dummy tex
 		file.write('\n\tTexture: "Texture::%s", "TextureVideoClip" {' % texname)
 		file.write('\n\t\tType: "TextureVideoClip"')
@@ -1399,7 +1406,10 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\tMedia: "Video::%s"' % texname)
 		
 		if tex:
-			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
+			abspath = tex.export(basepath)
+			fname_rel = os.path.relpath(abspath, basepath)
+			fname_strip = os.path.basename(abspath)
+# 			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
 		else:
 			fname = fname_strip = fname_rel = ''
 		
@@ -3074,9 +3084,9 @@ Takes:  {''')
 	
 	
 	# copy images if enabled
-	if EXP_IMAGE_COPY:
-# 		copy_images( basepath,  [ tex[1] for tex in textures if tex[1] != None ])
-		bpy.util.copy_images( [ tex[1] for tex in textures if tex[1] != None ], basepath)	
+# 	if EXP_IMAGE_COPY:
+# # 		copy_images( basepath,  [ tex[1] for tex in textures if tex[1] != None ])
+# 		bpy.util.copy_images( [ tex[1] for tex in textures if tex[1] != None ], basepath)	
 	
 	print('export finished in %.4f sec.' % (bpy.sys.time() - start_time))
 # 	print 'export finished in %.4f sec.' % (Blender.sys.time() - start_time)

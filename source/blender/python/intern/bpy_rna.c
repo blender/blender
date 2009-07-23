@@ -1844,7 +1844,8 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 			break;
 		case PROP_STRING:
 		{
-			ret = PyUnicode_FromString( *(char**)data );
+			char *ptr = *(char**)data;
+			ret = ptr ? PyUnicode_FromString( ptr ) : Py_None;
 			break;
 		}
 		case PROP_ENUM:
