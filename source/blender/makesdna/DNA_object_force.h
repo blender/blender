@@ -89,10 +89,15 @@ typedef struct PointCache {
 	int endframe;	/* simulation end frame */
 	int editframe;	/* frame being edited (runtime only) */
 	int last_exact; /* last exact frame that's cached */
-	int xdata_type;	/* type of extra data */
+
+	/* for external cache files */
+	int totpoint;   /* number of cached points */
+	int index, rt;	/* modifier stack index */
+	
 	char name[64];
 	char prev_name[64];
 	char info[64];
+	char path[240]; /* file path */
 	struct ListBase mem_cache;
 } PointCache;
 
@@ -267,6 +272,7 @@ typedef struct SoftBody {
 #define PTCACHE_DISK_CACHE			64
 #define PTCACHE_QUICK_CACHE			128
 #define PTCACHE_FRAMES_SKIPPED		256
+#define PTCACHE_EXTERNAL			512
 
 /* PTCACHE_OUTDATED + PTCACHE_FRAMES_SKIPPED */
 #define PTCACHE_REDO_NEEDED			258

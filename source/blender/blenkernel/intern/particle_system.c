@@ -3982,7 +3982,8 @@ static void cached_step(Scene *scene, Object *ob, ParticleSystemModifierData *ps
 		/* update alive status and push events */
 		if(pa->time >= cfra) {
 			pa->alive = pa->time==cfra ? PARS_ALIVE : PARS_UNBORN;
-			reset_particle(scene, pa, psys, psmd, ob, 0.0f, cfra, NULL, NULL, NULL);
+			if((psys->pointcache->flag & PTCACHE_EXTERNAL) == 0)
+				reset_particle(scene, pa, psys, psmd, ob, 0.0f, cfra, NULL, NULL, NULL);
 		}
 		else if(dietime <= cfra){
 			if(dietime > psys->cfra){
@@ -4303,7 +4304,9 @@ static void system_step(Scene *scene, Object *ob, ParticleSystem *psys, Particle
 	oldtotpart = psys->totpart;
 	oldtotchild = psys->totchild;
 
-	if(part->distr == PART_DISTR_GRID && part->from != PART_FROM_VERT)
+	if(psys->pointcache->flag & PTCACHE_EXTERNAL)
+		totpart = pid.cache->totpoint;
+	else if(part->distr == PART_DISTR_GRID && part->from != PART_FROM_VERT)
 		totpart = part->grid_res*part->grid_res*part->grid_res;
 	else
 		totpart = psys->part->totpart;

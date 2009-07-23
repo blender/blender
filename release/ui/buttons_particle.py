@@ -86,6 +86,12 @@ class PARTICLE_PT_emission(ParticleButtonsPanel):
 	__idname__= "PARTICLE_PT_emission"
 	__label__ = "Emission"
 	
+	def poll(self, context):
+		if particle_panel_poll(context):
+			return not context.particle_system.point_cache.external
+		else:
+			return False
+	
 	def draw(self, context):
 		layout = self.layout
 
@@ -150,37 +156,60 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 		cache = psys.point_cache
 		
 		row = layout.row()
-		row.itemR(cache, "name")
+		row.itemL(text="File Name:")
+		row.itemR(cache, "external")
 		
-		row = layout.row()
-		
-		if cache.baked == True:
-			row.itemO("ptcache.free_bake_particle_system", text="Free Bake")
+		if cache.external:
+			split = layout.split(percentage=0.80)
+			split.itemR(cache, "name", text="")
+			split.itemR(cache, "index", text="")
+			
+			layout.itemL(text="File Path:")
+			layout.itemR(cache, "filepath", text="")
+			
+			layout.itemL(text=cache.info)
+			
+			split = layout.split()
+			
+			col = split.column(align=True)
+			col.itemR(part, "start")
+			col.itemR(part, "end")
+
+			col = split.column(align=True)
+			col.itemR(part, "lifetime")
+			col.itemR(part, "random_lifetime", slider=True)
 		else:
-			row.item_booleanO("ptcache.cache_particle_system", "bake", True, text="Bake")
+			layout.itemR(cache, "name", text="")
+			
+			row = layout.row()
 		
-		subrow = row.row()
-		subrow.enabled = (cache.frames_skipped or cache.outdated) and particle_panel_enabled(psys)
-		subrow.itemO("ptcache.cache_particle_system", text="Calculate to Current Frame")
+			if cache.baked == True:
+				row.itemO("ptcache.free_bake_particle_system", text="Free Bake")
+			else:
+				row.item_booleanO("ptcache.cache_particle_system", "bake", True, text="Bake")
 		
-		row = layout.row()
-		row.enabled = particle_panel_enabled(psys)
-		row.itemO("ptcache.bake_from_particles_cache", text="Current Cache to Bake")
-		row.itemR(cache, "step");
-	
-		row = layout.row()
-		row.enabled = particle_panel_enabled(psys)
-		row.itemR(cache, "quick_cache")
-		row.itemR(cache, "disk_cache")
+			subrow = row.row()
+			subrow.enabled = (cache.frames_skipped or cache.outdated) and particle_panel_enabled(psys)
+			subrow.itemO("ptcache.cache_particle_system", text="Calculate to Current Frame")
+			
+			row = layout.row()
+			row.enabled = particle_panel_enabled(psys)
+			row.itemO("ptcache.bake_from_particles_cache", text="Current Cache to Bake")
+			row.itemR(cache, "step");
 		
-		layout.itemL(text=cache.info)
+			row = layout.row()
+			row.enabled = particle_panel_enabled(psys)
+			row.itemR(cache, "quick_cache")
+			row.itemR(cache, "disk_cache")
 		
-		layout.itemS()
-		
-		row = layout.row()
-		row.item_booleanO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
-		row.itemO("ptcache.free_bake_all", text="Free All Bakes")
-		layout.itemO("ptcache.bake_all", text="Update All Dynamics to current frame")
+			layout.itemL(text=cache.info)
+			
+			layout.itemS()
+			
+			row = layout.row()
+			row.item_booleanO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
+			row.itemO("ptcache.free_bake_all", text="Free All Bakes")
+			layout.itemO("ptcache.bake_all", text="Update All Dynamics to current frame")
 		
 		# for particles these are figured out automatically
 		#row.itemR(cache, "start_frame")
@@ -193,7 +222,7 @@ class PARTICLE_PT_initial(ParticleButtonsPanel):
 	def poll(self, context):
 		if particle_panel_poll(context):
 			psys = context.particle_system
-			return psys.settings.physics_type != 'BOIDS'
+			return psys.settings.physics_type != 'BOIDS' and not psys.point_cache.external
 		else:
 			return False
 
@@ -256,6 +285,12 @@ class PARTICLE_PT_initial(ParticleButtonsPanel):
 class PARTICLE_PT_physics(ParticleButtonsPanel):
 	__idname__= "PARTICLE_PT_physics"
 	__label__ = "Physics"
+	
+	def poll(self, context):
+		if particle_panel_poll(context):
+			return not context.particle_system.point_cache.external
+		else:
+			return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -399,11 +434,14 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
 		psys = context.particle_system
 		if psys==None:	return False
 		if psys.settings==None:  return False
+		if psys.point_cache.external: return False
 		return psys.settings.physics_type=='BOIDS'
 	
 	def draw(self, context):
 		boids = context.particle_system.settings.boids
 		layout = self.layout
+		
+		layout.enabled = particle_panel_enabled(psys)
 		
 		# Currently boids can only use the first state so these are commented out for now.
 		#row = layout.row()
@@ -763,12 +801,6 @@ class PARTICLE_PT_effectors(ParticleButtonsPanel):
 	__idname__= "PARTICLE_PT_effectors"
 	__label__ = "Effectors"
 	__default_closed__ = True
-	
-	def poll(self, context):
-		psys = context.particle_system
-		if psys==None: return False
-		if psys.settings==None: return False
-		return True;
 	
 	def draw(self, context):
 		layout = self.layout
