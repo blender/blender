@@ -416,7 +416,7 @@ class CONSOLE_OT_autocomplete(bpy.types.Operator):
 		if not console:
 			return ('CANCELLED',)
 		
-		if sc.type != 'PYTHON':
+		if sc.console_type != 'PYTHON':
 			return ('CANCELLED',)
 		
 		# fake cursor, use for autocomp func.
