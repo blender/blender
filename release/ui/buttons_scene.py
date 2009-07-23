@@ -47,7 +47,9 @@ class RENDER_PT_layers(RenderButtonsPanel):
 
 		layout.itemR(rl, "light_override", text="Light")
 		layout.itemR(rl, "material_override", text="Material")
-
+		
+		layout.itemS()
+		layout.itemL(text="Include:")
 		split = layout.split()
 
 		col = split.column()
@@ -71,7 +73,9 @@ class RENDER_PT_layers(RenderButtonsPanel):
 			split = layout.split()
 			split.itemL(text="Zmask Layers:")
 			split.column().itemR(rl, "zmask_layers", text="")
-
+		
+		layout.itemS()
+		
 		split = layout.split()
 		col = split.column()
 		col.itemL(text="Passes:")
@@ -204,22 +208,21 @@ class RENDER_PT_output(RenderButtonsPanel):
 
 		split = layout.split()
 		col = split.column()
+		col.itemR(rd, "file_format", text="")
+		col.row().itemR(rd, "color_mode", text="Color", expand=True)
+
+		col = split.column()
+		col.itemR(rd, "file_extensions")
 		col.itemR(rd, "placeholders")
 		col.itemR(rd, "no_overwrite")
 
-		col = split.column()
-		col.itemR(rd, "file_format", text="")
-		col.itemR(rd, "file_extensions")		
-
 		if rd.file_format in ('AVIJPEG', 'JPEG'):
 			split = layout.split()
-			split.itemR(rd, "color_mode", text="Color")
 			split.itemR(rd, "quality", slider=True)
 			
 		elif rd.file_format == 'OPENEXR':
 			split = layout.split()
 			col = split.column()
-			col.itemR(rd, "color_mode", text="Color")
 			col.itemR(rd, "exr_codec")
 
 			subsplit = split.split()
@@ -232,7 +235,6 @@ class RENDER_PT_output(RenderButtonsPanel):
 		elif rd.file_format == 'JPEG2000':
 			split = layout.split()
 			col = split.column()
-			col.itemR(rd, "color_mode", text="Color")
 			col.itemL(text="Depth:")
 			col.row().itemR(rd, "jpeg_depth", expand=True)
 
@@ -244,7 +246,6 @@ class RENDER_PT_output(RenderButtonsPanel):
 		elif rd.file_format in ('CINEON', 'DPX'):
 			split = layout.split()
 			col = split.column()
-			col.itemR(rd, "color_mode", text="Color")
 			col.itemR(rd, "cineon_log", text="Convert to Log")
 
 			col = split.column(align=True)
@@ -255,13 +256,7 @@ class RENDER_PT_output(RenderButtonsPanel):
 			
 		elif rd.file_format == 'TIFF':
 			split = layout.split()
-			split.itemR(rd, "color_mode", text="Color")
 			split.itemR(rd, "tiff_bit")
-		
-		else:
-			split = layout.split()
-			split.itemR(rd, "color_mode", text="Color")
-			split.itemL()
 
 class RENDER_PT_encoding(RenderButtonsPanel):
 	__label__ = "Encoding"

@@ -54,7 +54,7 @@ class DATA_PT_lamp(DataButtonsPanel):
 		col = split.column()
 		#col.itemL(text="Type:")
 		#col.itemR(lamp, "type", text="")
-		colsub = col.column(align=True)
+		colsub = col.column()
 		colsub.itemR(lamp, "color", text="")
 		colsub.itemR(lamp, "energy")
 		
@@ -188,7 +188,7 @@ class DATA_PT_shadow(DataButtonsPanel):
 			split = layout.split()
 			
 			col = split.column()
-			col.itemR(lamp, "shadow_color")
+			col.itemR(lamp, "shadow_color", text="")
 			
 			sub = split.column()
 			sub.itemR(lamp, "shadow_layer", text="This Layer Only")

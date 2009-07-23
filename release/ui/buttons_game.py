@@ -55,25 +55,28 @@ class GAME_PT_physics(GameButtonsPanel):
 		col = split.column()
 		col.itemR(game, "do_fh", text="Use Material Physics")
 		col.itemR(game, "rotation_fh", text="Rotate From Normal")
+		col.itemR(game, "no_sleeping")
 		
 		layout.itemS()
 		split = layout.split()
 		col = split.column()
-
-		col.itemR(game, "mass")
-		col.itemR(game, "radius")
-		col.itemR(game, "no_sleeping")
-		col.itemR(game, "form_factor")
+		col.itemL(text="Attributes:")
+		colsub = col.column(align=True)
+		colsub.itemR(game, "mass")
+		colsub.itemR(game, "radius")
+		colsub.itemR(game, "form_factor")
 		col.itemS()
 		col.itemL(text="Damping:")
-		col.itemR(game, "damping", text="Translation", slider=True)
-		col.itemR(game, "rotation_damping", text="Rotation", slider=True)
+		colsub = col.column(align=True)
+		colsub.itemR(game, "damping", text="Translation", slider=True)
+		colsub.itemR(game, "rotation_damping", text="Rotation", slider=True)
 		
 		col = split.column()
 		
 		col.itemL(text="Velocity:")
-		col.itemR(game, "minimum_velocity", text="Minimum")
-		col.itemR(game, "maximum_velocity", text="Maximum")
+		colsub = col.column(align=True)
+		colsub.itemR(game, "minimum_velocity", text="Minimum")
+		colsub.itemR(game, "maximum_velocity", text="Maximum")
 		col.itemS()
 		col.itemR(game, "anisotropic_friction")
 		
@@ -115,12 +118,17 @@ class GAME_PT_collision_bounds(GameButtonsPanel):
 		
 		ob = context.scene.objects[0]
 		game = ob.game
+		layout.active = game.use_collision_bounds
 		
-		flow = layout.column_flow()
-		flow.active = game.use_collision_bounds
-		flow.itemR(game, "collision_bounds")
-		flow.itemR(game, "collision_compound")
-		flow.itemR(game, "collision_margin")
+		
+		
+		layout.itemR(game, "collision_bounds", text="Bounds")
+		
+		split = layout.split()
+		sub = split.column()
+		sub.itemR(game, "collision_compound", text="Compound")
+		sub = split.column()
+		sub.itemR(game, "collision_margin", text="Margin", slider=True)
 
 
 bpy.types.register(GAME_PT_context_game)

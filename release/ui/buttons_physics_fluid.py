@@ -43,17 +43,8 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 		
 		if fluid:
 			
-
 			col = layout.column(align=True)
-			row = col.row()
-			row.item_enumR(fluid, "type", "DOMAIN")
-			row.item_enumR(fluid, "type", "FLUID")
-			row.item_enumR(fluid, "type", "OBSTACLE")
-			row = col.row()
-			row.item_enumR(fluid, "type", "INFLOW")
-			row.item_enumR(fluid, "type", "OUTFLOW")
-			row.item_enumR(fluid, "type", "PARTICLE")
-			row.item_enumR(fluid, "type", "CONTROL")
+			col.itemR(fluid, "type")
 
 			if fluid.type == 'DOMAIN':
 				layout.itemO("fluid.bake", text="BAKE")
