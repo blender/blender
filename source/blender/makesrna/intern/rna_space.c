@@ -248,9 +248,11 @@ void rna_SpaceButtonsWindow_align_set(PointerRNA *ptr, int value)
 	sbuts->align= value;
 	sbuts->re_align= 1;
 
+#if 0 // XXX -bad level call?
 	for(sa=sc->areabase.first; sa; sa=sa->next)
 		if(BLI_findindex(&sa->spacedata, sbuts) != -1)
 			ED_area_tag_redraw(sa);
+#endif
 }
 
 /* Space Console */
