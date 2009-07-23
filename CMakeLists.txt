@@ -350,7 +350,7 @@ IF(APPLE)
     SET(PYTHON_BINARY "${PYTHON}/bin/python${PYTHON_VERSION}" CACHE STRING "")
     SET(PYTHON_LIB python${PYTHON_VERSION})
     SET(PYTHON_LIBPATH "${PYTHON}/lib/python${PYTHON_VERSION}" CACHE STRING "")
-    SET(PYTHON_LINKFLAGS "-u _PyMac_Error")
+    #    SET(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
   ELSE(PYTHON_VERSION MATCHES 3.1)
     # otherwise, use custom system framework
 
