@@ -1251,13 +1251,14 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	else {
 		v2d->keepofs &= ~V2D_LOCKOFS_X;
 		v2d->keepofs |= V2D_LOCKOFS_Y;
-
+		
 		// don't jump back when panels close or hide
 		x= MAX2(x, v2d->cur.xmax);
 		y= -y;
 	}
 
-	UI_view2d_totRect_set(v2d, x, y);
+	// +V2D_SCROLL_HEIGHT is workaround to set the actual height
+	UI_view2d_totRect_set(v2d, x, y+V2D_SCROLL_HEIGHT);
 
 	/* set the view */
 	UI_view2d_view_ortho(C, v2d);

@@ -1114,13 +1114,13 @@ static struct uiWidgetColors wcol_scroll= {
 	{50, 50, 50, 180},
 	{80, 80, 80, 180},
 	{100, 100, 100, 180},
-	{180, 180, 180, 255},
+	{128, 128, 128, 255},
 	
 	{0, 0, 0, 255},
 	{255, 255, 255, 255},
 	
 	1,
-	10, -20
+	5, -5
 };
 
 static struct uiWidgetColors wcol_list_item= {
@@ -1707,8 +1707,11 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 			wcol->shadetop+= 20;	/* XXX violates themes... */
 		else wcol->shadedown+= 20;
 		
-		if(state & UI_SCROLL_PRESSED)
-			SWAP(short, wcol->shadetop, wcol->shadedown);
+		if(state & UI_SCROLL_PRESSED) {
+			wcol->inner[0]= wcol->inner[0]>=250? 255 : wcol->inner[0]+5;
+			wcol->inner[1]= wcol->inner[1]>=250? 255 : wcol->inner[1]+5;
+			wcol->inner[2]= wcol->inner[2]>=250? 255 : wcol->inner[2]+5;
+		}
 
 		/* draw */
 		wtb.emboss= 0; /* only emboss once */

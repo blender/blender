@@ -122,10 +122,10 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	style->widget.kerning= 1;
 	style->widget.shadowalpha= 0.25f;
 
-	style->columnspace= 5;
+	style->columnspace= 8;
 	style->templatespace= 5;
 	style->boxspace= 5;
-	style->buttonspacex= 5;
+	style->buttonspacex= 8;
 	style->buttonspacey= 2;
 	style->panelspace= 8;
 	style->panelouter= 4;

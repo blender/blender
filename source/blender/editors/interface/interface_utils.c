@@ -972,6 +972,13 @@ static void colorband_pos_cb(bContext *C, void *coba_v, void *unused_v)
 			break;
 		}
 	}
+
+	WM_event_add_notifier(C, NC_TEXTURE, NULL);
+}
+
+static void colorband_cb(bContext *C, void *coba_v, void *unused_v)
+{
+	WM_event_add_notifier(C, NC_TEXTURE, NULL);
 }
 
 static void colorband_add_cb(bContext *C, void *coba_v, void *unused_v)
@@ -983,6 +990,7 @@ static void colorband_add_cb(bContext *C, void *coba_v, void *unused_v)
 	
 	colorband_pos_cb(C, coba, NULL);
 	ED_undo_push(C, "Add colorband");
+	WM_event_add_notifier(C, NC_TEXTURE, NULL);
 }
 
 static void colorband_del_cb(bContext *C, void *coba_v, void *unused_v)
@@ -1000,6 +1008,7 @@ static void colorband_del_cb(bContext *C, void *coba_v, void *unused_v)
 	
 	ED_undo_push(C, "Delete colorband");
 	// XXX BIF_preview_changed(ID_TE);
+	WM_event_add_notifier(C, NC_TEXTURE, NULL);
 }
 
 
@@ -1018,18 +1027,22 @@ static void colorband_buttons_large(uiBlock *block, ColorBand *coba, int xoffs, 
 	
 	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
 	
-	uiDefButS(block, MENU, redraw,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
+	bt= uiDefButS(block, MENU, redraw,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
 		210+xoffs, 100+yoffs, 90, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Set interpolation between color stops");
+	uiButSetFunc(bt, colorband_cb, coba, NULL);
 	uiBlockEndAlign(block);
 
-	uiDefBut(block, BUT_COLORBAND, redraw, "", 	xoffs,65+yoffs,300,30, coba, 0, 0, 0, 0, "");
+	bt= uiDefBut(block, BUT_COLORBAND, redraw, "", 	xoffs,65+yoffs,300,30, coba, 0, 0, 0, 0, "");
+	uiButSetFunc(bt, colorband_cb, coba, NULL);
 	
 	cbd= coba->data + coba->cur;
 	
 	bt= uiDefButF(block, NUM, redraw, "Pos:",			0+xoffs,40+yoffs,100, 20, &cbd->pos, 0.0, 1.0, 10, 0, "The position of the active color stop");
 	uiButSetFunc(bt, colorband_pos_cb, coba, NULL);
-	uiDefButF(block, COL, redraw,		"",				110+xoffs,40+yoffs,80,20, &(cbd->r), 0, 0, 0, B_BANDCOL, "The color value for the active color stop");
-	uiDefButF(block, NUMSLI, redraw,	"A ",			200+xoffs,40+yoffs,100,20, &cbd->a, 0.0, 1.0, 10, 0, "The alpha value of the active color stop");
+	bt= uiDefButF(block, COL, redraw,		"",				110+xoffs,40+yoffs,80,20, &(cbd->r), 0, 0, 0, B_BANDCOL, "The color value for the active color stop");
+	uiButSetFunc(bt, colorband_cb, coba, NULL);
+	bt= uiDefButF(block, NUMSLI, redraw,	"A ",			200+xoffs,40+yoffs,100,20, &cbd->a, 0.0, 1.0, 10, 0, "The alpha value of the active color stop");
+	uiButSetFunc(bt, colorband_cb, coba, NULL);
 
 }
 

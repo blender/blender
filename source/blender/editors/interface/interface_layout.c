@@ -724,8 +724,8 @@ static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PropertyRNA
 	subtype= RNA_property_subtype(prop);
 	len= RNA_property_array_length(prop);
 
-	if(ELEM(type, PROP_STRING, PROP_POINTER) && !name[0])
-		name= "non-empty";
+	if(ELEM3(type, PROP_STRING, PROP_POINTER, PROP_ENUM) && !name[0])
+		name= "non-empty text";
 	else if(type == PROP_BOOLEAN && !name[0])
 		icon= ICON_DOT;
 

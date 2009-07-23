@@ -291,10 +291,13 @@ void ui_remove_temporary_region(bContext *C, bScreen *sc, ARegion *ar)
 
 /************************* Creating Tooltips **********************/
 
+#define MAX_TOOLTIP_LINES 8
+
 typedef struct uiTooltipData {
 	rcti bbox;
 	uiFontStyle fstyle;
-	char lines[5][512];
+	char lines[MAX_TOOLTIP_LINES][512];
+	int linedark[MAX_TOOLTIP_LINES];
 	int totline;
 	int toth, spaceh, lineh;
 } uiTooltipData;
@@ -314,7 +317,7 @@ static void ui_tooltip_region_draw(const bContext *C, ARegion *ar)
 	bbox.ymin= bbox.ymax - data->lineh;
 
 	for(a=0; a<data->totline; a++) {
-		if(a == 0) glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		if(!data->linedark[a]) glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 		else glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
 
 		uiStyleFontDraw(&data->fstyle, &bbox, data->lines[a]);
@@ -344,22 +347,13 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	float x1f, x2f, y1f, y2f;
 	int x1, x2, y1, y2, winx, winy, ofsx, ofsy, w, h, a;
 
-	if(!but->tip || strlen(but->tip)==0)
-		return NULL;
-
-	/* create area region */
-	ar= ui_add_temporary_region(CTX_wm_screen(C));
-
-	memset(&type, 0, sizeof(ARegionType));
-	type.draw= ui_tooltip_region_draw;
-	type.free= ui_tooltip_region_free;
-	ar->type= &type;
-
 	/* create tooltip data */
 	data= MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
 
-	BLI_strncpy(data->lines[0], but->tip, sizeof(data->lines[0]));
-	data->totline= 1;
+	if(but->tip && strlen(but->tip)) {
+		BLI_strncpy(data->lines[data->totline], but->tip, sizeof(data->lines[0]));
+		data->totline++;
+	}
 
 	if(but->optype && !(but->block->flag & UI_BLOCK_LOOP)) {
 		/* operator keymap (not menus, they already have it) */
@@ -367,6 +361,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, buf, sizeof(buf))) {
 			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Shortcut: %s", buf);
+			data->linedark[data->totline]= 1;
 			data->totline++;
 		}
 	}
@@ -376,6 +371,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		ui_get_but_string(but, buf, sizeof(buf));
 		if(buf[0]) {
 			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Value: %s", buf);
+			data->linedark[data->totline]= 1;
 			data->totline++;
 		}
 	}
@@ -385,14 +381,29 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			if(ui_but_anim_expression_get(but, buf, sizeof(buf))) {
 				/* expression */
 				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Expression: %s", buf);
+				data->linedark[data->totline]= 1;
 				data->totline++;
 			}
 		}
 
 		/* rna info */
 		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Python: %s.%s", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
+		data->linedark[data->totline]= 1;
 		data->totline++;
 	}
+
+	if(data->totline == 0) {
+		MEM_freeN(data);
+		return NULL;
+	}
+
+	/* create area region */
+	ar= ui_add_temporary_region(CTX_wm_screen(C));
+
+	memset(&type, 0, sizeof(ARegionType));
+	type.draw= ui_tooltip_region_draw;
+	type.free= ui_tooltip_region_free;
+	ar->type= &type;
 	
 	/* set font, get bb */
 	data->fstyle= style->widget; /* copy struct */
