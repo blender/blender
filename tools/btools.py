@@ -66,7 +66,8 @@ def validate_arguments(args, bc):
 			'BF_NUMJOBS',
 			'BF_MSVS',
 
-			'WITH_BF_UNIT_TEST'
+			'WITH_BF_UNIT_TEST',
+			'BF_CHECK_LIB',
 			]
 	
 	# Have options here that scons expects to be lists
@@ -360,7 +361,8 @@ def read_opts(cfg, args):
 		('BF_NUMJOBS', 'Number of build processes to spawn', '1'),
 		('BF_MSVS', 'Generate MSVS project files and solution', False),
 
-		(BoolVariable('WITH_BF_UNIT_TEST', 'Build unit tests', False))
+		(BoolVariable('WITH_BF_UNIT_TEST', 'Build unit tests', False)),
+		('BF_CHECK_LIB', 'Check unit testing framework library', 'check'),
 
 	) # end of opts.AddOptions()
 

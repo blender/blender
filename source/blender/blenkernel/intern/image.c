@@ -2117,30 +2117,27 @@ void BKE_image_user_calc_imanr(ImageUser *iuser, int cfra, int fieldnr)
 }
 
 /*
-  Copy list of images to dest_dir.
-
-  paths is optional, if given, image paths for each image will be written in it.
-  It will also contain NULLs for images that cannot be copied.
-  If an image file doesn't exist, NULL is added in paths.
+  Copy an image to destination directory rebuilding subdirectory structure if needed.
+  Target image path is written to out_path.
+  Returns 1 on success, 0 otherwise.
 
   Logic:
 
-  For each image if it's "below" current .blend file directory,
-  rebuild the same dir structure in dest_dir.
+  - if an image is "below" current .blend file directory, rebuild the same dir structure in dest_dir
 
-  For example //textures/foo/bar.png becomes
-  [dest_dir]/textures/foo/bar.png.
+  For example //textures/foo/bar.png becomes [dest_dir]/textures/foo/bar.png.
 
-  If an image is not "below" current .blend file directory, disregard
-  it's path and copy it in the same directory where 3D file goes.
+  - if an image is not "below" current .blend file directory, disregard it's path and copy it in the
+  same directory where 3D file goes.
 
   For example //../foo/bar.png becomes [dest_dir]/bar.png.
 
   This logic will help ensure that all image paths are relative and
   that a user gets his images in one place. It'll also provide
   consistent behaviour across exporters.
-*/
-void BKE_copy_images(ListBase *images, char *dest_dir, ListBase *paths)
+
+ */
+int BKE_export_image(Image *im, const char *dest_dir, char *out_path, int out_path_len)
 {
 	char path[FILE_MAX];
 	char dir[FILE_MAX];
@@ -2148,88 +2145,77 @@ void BKE_copy_images(ListBase *images, char *dest_dir, ListBase *paths)
 	char blend_dir[FILE_MAX];	/* directory, where current .blend file resides */
 	char dest_path[FILE_MAX];
 	int len;
-	Image *im;
-	LinkData *link;
 
-	if (paths) {
-		memset(paths, 0, sizeof(*paths));
-	}
+	out_path[0]= 0;
 
 	BLI_split_dirfile_basic(G.sce, blend_dir, NULL);
-	
-	link= images->first;
 
-	while (link) {
-		im= link->data;
+	if (!strcmp(im->name, "") || im->type != IMA_TYPE_IMAGE) {
+		if (G.f & G_DEBUG) printf("invalid image type\n");
+		return 0;
+	}
 
-		LinkData *ld = MEM_callocN(sizeof(LinkData), "PathLinkData");
-		ld->data= NULL;
-		BLI_addtail(paths, ld);
+	BLI_strncpy(path, im->name, sizeof(path));
 
-		if (!strcmp(im->name, "") || im->type != IMA_TYPE_IMAGE)
-			goto next;
+	/* expand "//" in filename and get absolute path */
+	BLI_convertstringcode(path, G.sce);
 
-		BLI_strncpy(path, im->name, sizeof(path));
-
-		/* expand "//" in filename and get absolute path */
-		BLI_convertstringcode(path, G.sce);
-
-		/* in unit tests, we don't want to modify the filesystem */
+	/* in unit tests, we don't want to modify the filesystem */
 #ifndef WITH_UNIT_TEST
-		/* proceed only if image file exists */
-		if (!BLI_exists(path))
-			goto next;
+	/* proceed only if image file exists */
+	if (!BLI_exists(path)) {
+		if (G.f & G_DEBUG) printf("%s doesn't exist\n", path);
+		goto next;
+	}
 #endif
 
-		/* get the directory part */
-		BLI_split_dirfile_basic(path, dir, base);
+	/* get the directory part */
+	BLI_split_dirfile_basic(path, dir, base);
 
-		len= strlen(blend_dir);
+	len= strlen(blend_dir);
 
-		/* if image is "below" current .blend file directory */
-		if (!strncmp(path, blend_dir, len)) {
+	/* if image is "below" current .blend file directory */
+	if (!strncmp(path, blend_dir, len)) {
 
-			/* if image is _in_ current .blend file directory */
-			if (!strcmp(dir, blend_dir)) {
-				/* copy to dest_dir */
-				BLI_join_dirfile(dest_path, dest_dir, base);
-			}
-			/* "below" */
-			else {
-				char rel[FILE_MAX];
-
-				/* rel = image_path_dir - blend_dir */
-				BLI_strncpy(rel, dir + len, sizeof(rel));
-				
-				BLI_join_dirfile(dest_path, dest_dir, rel);
-
-#ifndef WITH_UNIT_TEST
-				/* build identical directory structure under dest_dir */
-				BLI_make_existing_file(dest_path);
-#endif
-
-				BLI_join_dirfile(dest_path, dest_path, base);
-			}
-			
-		}
-		/* image is out of current directory */
-		else {
+		/* if image is _in_ current .blend file directory */
+		if (!strcmp(dir, blend_dir)) {
 			/* copy to dest_dir */
 			BLI_join_dirfile(dest_path, dest_dir, base);
 		}
+		/* "below" */
+		else {
+			char rel[FILE_MAX];
+
+			/* rel = image_path_dir - blend_dir */
+			BLI_strncpy(rel, dir + len, sizeof(rel));
+				
+			BLI_join_dirfile(dest_path, dest_dir, rel);
 
 #ifndef WITH_UNIT_TEST
-		if (BLI_copy_fileops(path, dest_path) != 0)
-			goto next;
+			/* build identical directory structure under dest_dir */
+			BLI_make_existing_file(dest_path);
 #endif
 
-		if (paths) {
-			len= strlen(dest_path) + 1;
-			ld->data= MEM_callocN(len, "PathLinkData");
-			BLI_strncpy(ld->data, dest_path, len);
+			BLI_join_dirfile(dest_path, dest_path, base);
 		}
-
-	next:
-		link= link->next;
+			
 	}
+	/* image is out of current directory */
+	else {
+		/* copy to dest_dir */
+		BLI_join_dirfile(dest_path, dest_dir, base);
+	}
+
+#ifndef WITH_UNIT_TEST
+	if (G.f & G_DEBUG) printf("copying %s to %s\n", path, dest_path);
+
+	if (BLI_copy_fileops(path, dest_path) != 0) {
+		if (G.f & G_DEBUG) printf("couldn't copy %s to %s\n", path, dest_path);
+		return 0;
+	}
+#endif
+
+	BLI_strncpy(out_path, dest_path, out_path_len);
+
+	return 1;
 }

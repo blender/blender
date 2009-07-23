@@ -356,7 +356,7 @@ def write(filename, batch_objects = None, \
 		EXP_OBS_SELECTED =			True,
 		EXP_MESH =					True,
 		EXP_MESH_APPLY_MOD =		True,
-		EXP_MESH_HQ_NORMALS =		False,
+# 		EXP_MESH_HQ_NORMALS =		False,
 		EXP_ARMATURE =				True,
 		EXP_LAMP =					True,
 		EXP_CAMERA =				True,
@@ -464,7 +464,7 @@ def write(filename, batch_objects = None, \
 				False,
 				EXP_MESH,
 				EXP_MESH_APPLY_MOD,
-				EXP_MESH_HQ_NORMALS,
+# 				EXP_MESH_HQ_NORMALS,
 				EXP_ARMATURE,
 				EXP_LAMP,
 				EXP_CAMERA,
@@ -2306,19 +2306,25 @@ def write(filename, batch_objects = None, \
 	
 	# Build blenObject -> fbxObject mapping
 	# this is needed for groups as well as fbxParenting
-	for ob in bpy.data.objects:	ob.tag = False
+# 	for ob in bpy.data.objects:	ob.tag = False
 # 	bpy.data.objects.tag = False
+
+	# using a list of object names for tagging (Arystan)
+	tagged_objects = []
+
 	tmp_obmapping = {}
 	for ob_generic in ob_all_typegroups:
 		for ob_base in ob_generic:
-			ob_base.blenObject.tag = True
+			tagged_objects.append(ob_base.blenObject.name)
+# 			ob_base.blenObject.tag = True
 			tmp_obmapping[ob_base.blenObject] = ob_base
 	
 	# Build Groups from objects we export
 	for blenGroup in bpy.data.groups:
 		fbxGroupName = None
 		for ob in blenGroup.objects:
-			if ob.tag:
+			if ob.name in tagged_objects:
+# 			if ob.tag:
 				if fbxGroupName == None:
 					fbxGroupName = sane_groupname(blenGroup)
 					groups.append((fbxGroupName, blenGroup))
@@ -2331,7 +2337,8 @@ def write(filename, batch_objects = None, \
 	for ob_generic in ob_all_typegroups:
 		for my_ob in ob_generic:
 			parent = my_ob.blenObject.parent
-			if parent and parent.tag: # does it exist and is it in the mapping
+			if parent and parent.name in tagged_objects: # does it exist and is it in the mapping
+# 			if parent and parent.tag: # does it exist and is it in the mapping
 				my_ob.fbxParent = tmp_obmapping[parent]
 	
 	
@@ -2734,9 +2741,11 @@ Connections:  {''')
 		tmp_actions = [None] # None is the default action
 		blenActionDefault = None
 		action_lastcompat = None
+
+		# instead of tagging
+		tagged_actions = []
 		
 		if ANIM_ACTION_ALL:
-			for a in bpy.data.actions: a.tag = False
 # 			bpy.data.actions.tag = False
 			tmp_actions = list(bpy.data.actions)
 			
@@ -2759,7 +2768,8 @@ Connections:  {''')
 					
 					if action_chan_names: # at least one channel matches.
 						my_arm.blenActionList.append(action)
-						action.tag = True
+						tagged_actions.append(action.name)
+# 						action.tag = True
 						tmp_act_count += 1
 						
 						# incase there is no actions applied to armatures
@@ -2786,7 +2796,8 @@ Takes:  {''')
 		for blenAction in tmp_actions:
 			# we have tagged all actious that are used be selected armatures
 			if blenAction:
-				if blenAction.tag:
+				if blenAction.name in tagged_actions:
+# 				if blenAction.tag:
 					print('\taction: "%s" exporting...' % blenAction.name)
 				else:
 					print('\taction: "%s" has no armature using it, skipping' % blenAction.name)
@@ -3065,7 +3076,7 @@ Takes:  {''')
 	# copy images if enabled
 	if EXP_IMAGE_COPY:
 # 		copy_images( basepath,  [ tex[1] for tex in textures if tex[1] != None ])
-		bpy.util.copy_images( basepath,  [ tex[1] for tex in textures if tex[1] != None ])	
+		bpy.util.copy_images( [ tex[1] for tex in textures if tex[1] != None ], basepath)	
 	
 	print('export finished in %.4f sec.' % (bpy.sys.time() - start_time))
 # 	print 'export finished in %.4f sec.' % (Blender.sys.time() - start_time)
@@ -3393,7 +3404,7 @@ class EXPORT_OT_fbx(bpy.types.Operator):
 		bpy.props.BoolProperty(attr="ANIM_OPTIMIZE", name="Optimize Keyframes", description="Remove double keyframes", default=True),
 		bpy.props.FloatProperty(attr="ANIM_OPTIMIZE_PRECISSION", name="Precision", description="Tolerence for comparing double keyframes (higher for greater accuracy)", min=1, max=16, soft_min=1, soft_max=16, default=6.0),
 # 		bpy.props.BoolProperty(attr="ANIM_ACTION_ALL", name="Current Action", description="Use actions currently applied to the armatures (use scene start/end frame)", default=True),
-		bpy.props.BoolProperty(attr="ANIM_ACTION_ALL", name="All Actions", description="Use all actions for armatures", default=False),
+		bpy.props.BoolProperty(attr="ANIM_ACTION_ALL", name="All Actions", description="Use all actions for armatures, if false, use current action", default=False),
 		# batch
 		bpy.props.BoolProperty(attr="BATCH_ENABLE", name="Enable Batch", description="Automate exporting multiple scenes or groups to files", default=False),
 		bpy.props.BoolProperty(attr="BATCH_GROUP", name="Group > File", description="Export each group as an FBX file, if false, export each scene as an FBX file", default=False),
@@ -3421,7 +3432,7 @@ class EXPORT_OT_fbx(bpy.types.Operator):
 			  self.EXP_OBS_SELECTED,
 			  self.EXP_MESH,
 			  self.EXP_MESH_APPLY_MOD,
-			  self.EXP_MESH_HQ_NORMALS,
+# 			  self.EXP_MESH_HQ_NORMALS,
 			  self.EXP_ARMATURE,
 			  self.EXP_LAMP,
 			  self.EXP_CAMERA,

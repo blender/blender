@@ -338,6 +338,12 @@ int main(int argc, char **argv)
 			exit(0);
 		}
 
+#ifdef WITH_UNIT_TEST
+		if (!strcmp(argv[a], "--test")) {
+			exit(run_tests());
+		}
+#endif
+
 		/* end argument processing after -- */
 		if (!strcmp( argv[a], "--")){
 			a = argc;

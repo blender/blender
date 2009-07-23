@@ -1,7 +1,10 @@
 #!/usr/bin/python
 Import ('env')
 
-sources = 'creator.c'
+sources = ['creator.c']
+
+if env['WITH_BF_UNIT_TEST']:
+	sources += env.Glob('tests/*.c')
 
 incs = '#/intern/guardedalloc ../blender/blenlib ../blender/blenkernel'
 incs += ' ../blender/editors/include ../blender/blenloader ../blender/imbuf'
@@ -11,6 +14,10 @@ incs += ' ../kernel/gen_system #/extern/glew/include ../blender/gpu'
 incs += ' ' + env['BF_OPENGL_INC']
 
 defs = []
+
+if env['WITH_BF_UNIT_TEST']:
+	defs.append('WITH_UNIT_TEST')
+
 if env['WITH_BF_QUICKTIME']:
 	incs += ' ' + env['BF_QUICKTIME_INC']
 	defs.append('WITH_QUICKTIME')
@@ -32,4 +39,4 @@ if env['WITH_BF_PYTHON']:
 else:
 	defs.append('DISABLE_PYTHON')
 
-env.BlenderLib ( libname = 'bf_creator', sources = Split(sources), includes = Split(incs), defines = defs, libtype='core', priority = 0 )
+env.BlenderLib ( libname = 'bf_creator', sources = sources, includes = Split(incs), defines = defs, libtype='core', priority = 0 )

@@ -409,14 +409,6 @@ if 'blender' in B.targets or not env['WITH_BF_NOBLENDER']:
 	#env.BlenderProg(B.root_build_dir, "blender", dobj , [], mainlist + thestatlibs + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
 	blen = env.BlenderProg(B.root_build_dir, "blender", dobj + mainlist, [], thestatlibs + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
 
-	build_data = {"lib": thestatlibs + thesyslibs, "libpath": thelibincs, "blen": blen}
-
-	Export('env')
-	Export('build_data')
-
-	BuildDir(B.root_build_dir+'/tests', 'tests', duplicate=0)
-	SConscript(B.root_build_dir+'/tests/SConscript')
-
 if env['WITH_BF_PLAYER']:
 	playerlist = B.create_blender_liblist(env, 'player')
 	env.BlenderProg(B.root_build_dir, "blenderplayer", dobj + playerlist, [], thestatlibs + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')

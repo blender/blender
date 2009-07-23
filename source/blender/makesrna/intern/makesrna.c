@@ -1936,7 +1936,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_fcurve.c", NULL, RNA_def_fcurve},
 	{"rna_fluidsim.c", NULL, RNA_def_fluidsim},
 	{"rna_group.c", NULL, RNA_def_group},
-	{"rna_image.c", NULL, RNA_def_image},
+	{"rna_image.c", "rna_image_api.c", RNA_def_image},
 	{"rna_key.c", NULL, RNA_def_key},
 	{"rna_lamp.c", NULL, RNA_def_lamp},
 	{"rna_lattice.c", NULL, RNA_def_lattice},

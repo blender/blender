@@ -93,7 +93,7 @@ void BPY_update_modules( void )
 	PyObject *mod= PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);
 	PyModule_AddObject( mod, "data", BPY_rna_module() );
 	PyModule_AddObject( mod, "types", BPY_rna_types() );
-	PyModule_AddObject( mod, "util", BPY_util_module() );
+	/* PyModule_AddObject( mod, "util", BPY_util_module() ); */
 
 	/* XXX this will move to bpy.util */
 	PyModule_AddObject( mod, "sys", BPY_sys_module() );

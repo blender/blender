@@ -312,6 +312,8 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, "rna_Image_depth_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Depth", "Image bit depth.");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	RNA_api_image(srna);
 }
 
 void RNA_def_image(BlenderRNA *brna)
