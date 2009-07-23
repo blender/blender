@@ -2437,7 +2437,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	}
 	RE_test_break_cb(re, NULL, (int (*)(void *)) blender_test_break);
 	
-	if(RNA_boolean_get(op->ptr, "anim"))
+	if(RNA_boolean_get(op->ptr, "animation"))
 		RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->frame_step);
 	else
 		RE_BlenderFrame(re, scene, scene->r.cfra);
@@ -2716,7 +2716,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rj= MEM_callocN(sizeof(RenderJob), "render job");
 	rj->scene= scene;
 	rj->win= CTX_wm_window(C);
-	rj->anim= RNA_boolean_get(op->ptr, "anim");
+	rj->anim= RNA_boolean_get(op->ptr, "animation");
 	rj->iuser.scene= scene;
 	rj->iuser.ok= 1;
 	
@@ -2772,7 +2772,7 @@ void SCREEN_OT_render(wmOperatorType *ot)
 	ot->poll= ED_operator_screenactive;
 	
 	RNA_def_int(ot->srna, "layers", 0, 0, INT_MAX, "Layers", "", 0, INT_MAX);
-	RNA_def_boolean(ot->srna, "anim", 0, "Animation", "");
+	RNA_def_boolean(ot->srna, "animation", 0, "Animation", "");
 }
 
 /* *********************** cancel render viewer *************** */
@@ -2977,6 +2977,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 						  
 	/* render */
 	WM_keymap_add_item(keymap, "SCREEN_OT_render", F12KEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_render", F12KEY, KM_PRESS, KM_CTRL, 0)->ptr, "animation", 1);
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_cancel", ESCKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_show", F11KEY, KM_PRESS, 0, 0);
 	

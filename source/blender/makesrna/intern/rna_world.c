@@ -218,7 +218,7 @@ static void rna_def_ambient_occlusion(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "aodist");
 	RNA_def_property_ui_text(prop, "Distance", "Length of rays, defines how far away other faces give occlusion effect.");
 
-	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "falloff_strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aodistfac");
 	RNA_def_property_ui_text(prop, "Strength", "Distance attenuation factor, the higher, the 'shorter' the shadows.");
 

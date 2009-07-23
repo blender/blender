@@ -8,7 +8,8 @@ class PhysicButtonsPanel(bpy.types.Panel):
 
 	def poll(self, context):
 		ob = context.object
-		return (ob and ob.type == 'MESH')
+		rd = context.scene.render_data
+		return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
 		
 class PHYSICS_PT_cloth(PhysicButtonsPanel):
 	__idname__ = "PHYSICS_PT_cloth"

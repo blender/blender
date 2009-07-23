@@ -48,6 +48,41 @@
 
 /* RenderEngine */
 
+static RenderEngineType internal_render_type = {
+	NULL, NULL, "BLENDER_RENDER", "Blender Render", RE_INTERNAL, NULL, {NULL, NULL, NULL, NULL}};
+#if GAMEBLENDER == 1
+static RenderEngineType internal_game_type = {
+	NULL, NULL, "BLENDER_GAME", "Blender Game", RE_INTERNAL|RE_GAME, NULL, {NULL, NULL, NULL, NULL}};
+#endif
+
+ListBase R_engines = {NULL, NULL};
+
+void RE_engines_init()
+{
+	BLI_addtail(&R_engines, &internal_render_type);
+#if GAMEBLENDER == 1
+	BLI_addtail(&R_engines, &internal_game_type);
+#endif
+}
+
+void RE_engines_exit()
+{
+	RenderEngineType *type, *next;
+
+	for(type=R_engines.first; type; type=next) {
+		next= type->next;
+
+		BLI_remlink(&R_engines, type);
+
+		if(!(type->flag & RE_INTERNAL)) {
+			if(type->ext.free)
+				type->ext.free(type->ext.data);
+
+			MEM_freeN(type);
+		}
+	}
+}
+
 static void engine_render(RenderEngine *engine, struct Scene *scene)
 {
 	PointerRNA ptr;

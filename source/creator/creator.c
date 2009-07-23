@@ -313,6 +313,7 @@ int main(int argc, char **argv)
 	BLI_where_am_i(bprogname, argv[0]);
 	
 	RNA_init();
+	RE_engines_init();
 
 		/* Hack - force inclusion of the plugin api functions,
 		 * see blenpluginapi:pluginapi.c

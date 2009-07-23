@@ -16,12 +16,17 @@ class INFO_HT_header(bpy.types.Header):
 			row = layout.row()
 			row.itemM("INFO_MT_file")
 			row.itemM("INFO_MT_add")
-			row.itemM("INFO_MT_game")
-			row.itemM("INFO_MT_render")
+			if rd.use_game_engine:
+				row.itemM("INFO_MT_game")
+			else:
+				row.itemM("INFO_MT_render")
 			row.itemM("INFO_MT_help")
 
 		layout.template_ID(context.window, "screen") #, new="screen.new", open="scene.unlink")
 		layout.template_ID(context.screen, "scene") #, new="screen.new", unlink="scene.unlink")
+
+		if rd.multiple_engines:
+			layout.itemR(rd, "engine", text="")
 
 		layout.itemS()
 

@@ -2783,12 +2783,6 @@ void RE_init_threadcount(Render *re)
 
 /************************** External Engines ***************************/
 
-static RenderEngineType internal_engine_type = {
-	NULL, NULL, "BlenderRenderEngine", "Blender", NULL,
-	NULL, NULL, NULL, NULL};
-
-ListBase R_engines = {&internal_engine_type, &internal_engine_type};
-
 RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h)
 {
 	Render *re= engine->re;
@@ -2921,22 +2915,6 @@ static void external_render_3d(Render *re, RenderEngineType *type)
 		re->result= NULL;
 		
 		read_render_result(re, 0);
-	}
-}
-
-void RE_engines_free()
-{
-	RenderEngineType *type, *next;
-
-	for(type=R_engines.first; type; type=next) {
-		next= type->next;
-
-		if(type != &internal_engine_type) {
-			if(type->ext.free)
-				type->ext.free(type->ext.data);
-
-			MEM_freeN(type);
-		}
 	}
 }
 

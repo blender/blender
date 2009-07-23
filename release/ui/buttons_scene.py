@@ -6,7 +6,11 @@ class RenderButtonsPanel(bpy.types.Panel):
 	__region_type__ = "WINDOW"
 	__context__ = "scene"
 
-class RENDER_PT_render(RenderButtonsPanel):
+	def poll(self, context):
+		rd = context.scene.render_data
+		return (not rd.use_game_engine)
+
+class SCENE_PT_render(RenderButtonsPanel):
 	__label__ = "Render"
 
 	def draw(self, context):
@@ -15,13 +19,11 @@ class RENDER_PT_render(RenderButtonsPanel):
 
 		row = layout.row()
 		row.itemO("screen.render", text="Image", icon='ICON_IMAGE_COL')
-		row.item_booleanO("screen.render", "anim", True, text="Animation", icon='ICON_SEQUENCE')
+		row.item_booleanO("screen.render", "animation", True, text="Animation", icon='ICON_SEQUENCE')
 
 		layout.itemR(rd, "display_mode", text="Display")
-		if rd.multiple_engines:
-			layout.itemR(rd, "engine")
 
-class RENDER_PT_layers(RenderButtonsPanel):
+class SCENE_PT_layers(RenderButtonsPanel):
 	__label__ = "Layers"
 	__default_closed__ = True
 
@@ -107,7 +109,7 @@ class RENDER_PT_layers(RenderButtonsPanel):
 		row.itemR(rl, "pass_refraction")
 		row.itemR(rl, "pass_refraction_exclude", text="", icon="ICON_X")
 
-class RENDER_PT_shading(RenderButtonsPanel):
+class SCENE_PT_shading(RenderButtonsPanel):
 	__label__ = "Shading"
 
 	def draw(self, context):
@@ -127,7 +129,7 @@ class RENDER_PT_shading(RenderButtonsPanel):
 		col.itemR(rd, "color_management")
 		col.itemR(rd, "alpha_mode", text="Alpha")
 
-class RENDER_PT_performance(RenderButtonsPanel):
+class SCENE_PT_performance(RenderButtonsPanel):
 	__label__ = "Performance"
 	__default_closed__ = True
 
@@ -169,7 +171,7 @@ class RENDER_PT_performance(RenderButtonsPanel):
 		row.itemR(rd, "octree_resolution", text="Ray Tracing Octree")
 
 
-class RENDER_PT_post_processing(RenderButtonsPanel):
+class SCENE_PT_post_processing(RenderButtonsPanel):
 	__label__ = "Post Processing"
 	__default_closed__ = True
 
@@ -197,7 +199,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel):
 		split.itemL()
 		split.itemR(rd, "dither_intensity", text="Dither", slider=True)
 		
-class RENDER_PT_output(RenderButtonsPanel):
+class SCENE_PT_output(RenderButtonsPanel):
 	__label__ = "Output"
 
 	def draw(self, context):
@@ -258,7 +260,7 @@ class RENDER_PT_output(RenderButtonsPanel):
 			split = layout.split()
 			split.itemR(rd, "tiff_bit")
 
-class RENDER_PT_encoding(RenderButtonsPanel):
+class SCENE_PT_encoding(RenderButtonsPanel):
 	__label__ = "Encoding"
 	__default_closed__ = True
 	
@@ -305,7 +307,7 @@ class RENDER_PT_encoding(RenderButtonsPanel):
 		col = split.column()
 		col.itemR(rd, "ffmpeg_multiplex_audio")
 
-class RENDER_PT_antialiasing(RenderButtonsPanel):
+class SCENE_PT_antialiasing(RenderButtonsPanel):
 	__label__ = "Anti-Aliasing"
 
 	def draw_header(self, context):
@@ -330,7 +332,7 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
 		col.itemR(rd, "pixel_filter", text="")
 		col.itemR(rd, "filter_size", text="Size", slider=True)
 	
-class RENDER_PT_dimensions(RenderButtonsPanel):
+class SCENE_PT_dimensions(RenderButtonsPanel):
 	__label__ = "Dimensions"
 
 	def draw(self, context):
@@ -368,7 +370,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
 		col.itemR(rd, "fps")
 		col.itemR(rd, "fps_base",text="/")
 
-class RENDER_PT_stamp(RenderButtonsPanel):
+class SCENE_PT_stamp(RenderButtonsPanel):
 	__label__ = "Stamp"
 	__default_closed__ = True
 
@@ -408,14 +410,14 @@ class RENDER_PT_stamp(RenderButtonsPanel):
 		rowsub.active = rd.stamp_note
 		rowsub.itemR(rd, "stamp_note_text", text="")
 
-bpy.types.register(RENDER_PT_render)
-bpy.types.register(RENDER_PT_layers)
-bpy.types.register(RENDER_PT_dimensions)
-bpy.types.register(RENDER_PT_antialiasing)
-bpy.types.register(RENDER_PT_shading)
-bpy.types.register(RENDER_PT_output)
-bpy.types.register(RENDER_PT_encoding)
-bpy.types.register(RENDER_PT_performance)
-bpy.types.register(RENDER_PT_post_processing)
-bpy.types.register(RENDER_PT_stamp)
+bpy.types.register(SCENE_PT_render)
+bpy.types.register(SCENE_PT_layers)
+bpy.types.register(SCENE_PT_dimensions)
+bpy.types.register(SCENE_PT_antialiasing)
+bpy.types.register(SCENE_PT_shading)
+bpy.types.register(SCENE_PT_output)
+bpy.types.register(SCENE_PT_encoding)
+bpy.types.register(SCENE_PT_performance)
+bpy.types.register(SCENE_PT_post_processing)
+bpy.types.register(SCENE_PT_stamp)
 

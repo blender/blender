@@ -239,6 +239,20 @@ StructRNA *rna_SpaceButtonsWindow_pin_id_typef(PointerRNA *ptr)
 	return &RNA_ID;
 }
 
+void rna_SpaceButtonsWindow_align_set(PointerRNA *ptr, int value)
+{
+	SpaceButs *sbuts= (SpaceButs*)(ptr->data);
+	bScreen *sc= (bScreen*)(ptr->id.data);
+	ScrArea *sa;
+
+	sbuts->align= value;
+	sbuts->re_align= 1;
+
+	for(sa=sc->areabase.first; sa; sa=sa->next)
+		if(BLI_findindex(&sa->spacedata, sbuts) != -1)
+			ED_area_tag_redraw(sa);
+}
+
 /* Space Console */
 static void rna_ConsoleLine_line_get(PointerRNA *ptr, char *value)
 {
@@ -658,12 +672,11 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 		{BCONTEXT_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture"},
 		{BCONTEXT_PARTICLE, "PARTICLE", ICON_PARTICLES, "Particle", "Particle"},
 		{BCONTEXT_PHYSICS, "PHYSICS", ICON_PHYSICS, "Physics", "Physics"},
-		{BCONTEXT_GAME, "GAME", ICON_GAME, "Game", "Game"},
 		{0, NULL, 0, NULL, NULL}};
 		
-	static EnumPropertyItem panel_alignment_items[] = {
-		{1, "HORIZONTAL", 0, "Horizontal", ""},
-		{2, "VERTICAL", 0, "Vertical", ""},
+	static EnumPropertyItem align_items[] = {
+		{BUT_HORIZONTAL, "HORIZONTAL", 0, "Horizontal", ""},
+		{BUT_VERTICAL, "VERTICAL", 0, "Vertical", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 	srna= RNA_def_struct(brna, "SpaceButtonsWindow", "Space");
@@ -676,10 +689,11 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Buttons Context", "The type of active data to display and edit in the buttons window");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
-	prop= RNA_def_property(srna, "panel_alignment", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "align", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "align");
-	RNA_def_property_enum_items(prop, panel_alignment_items);
-	RNA_def_property_ui_text(prop, "Panel Alignment", "Arrangement of the panels within the buttons window");
+	RNA_def_property_enum_items(prop, align_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_SpaceButtonsWindow_align_set", NULL);
+	RNA_def_property_ui_text(prop, "Align", "Arrangement of the panels within the buttons window");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	/* pinned data */

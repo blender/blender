@@ -580,7 +580,6 @@ typedef struct SpaceConsole {
 #define BCONTEXT_TEXTURE	5
 #define BCONTEXT_PARTICLE	6
 #define BCONTEXT_PHYSICS	7
-#define BCONTEXT_GAME		8
 #define BCONTEXT_BONE		9
 #define BCONTEXT_MODIFIER	10
 #define BCONTEXT_CONSTRAINT 12

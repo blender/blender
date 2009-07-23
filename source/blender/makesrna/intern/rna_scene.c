@@ -232,6 +232,18 @@ static int rna_SceneRenderData_multiple_engines_get(PointerRNA *ptr)
 	return (BLI_countlist(&R_engines) > 1);
 }
 
+static int rna_SceneRenderData_use_game_engine_get(PointerRNA *ptr)
+{
+	RenderData *rd= (RenderData*)ptr->data;
+	RenderEngineType *type;
+
+	for(type=R_engines.first; type; type=type->next)
+		if(strcmp(type->idname, rd->engine) == 0)
+			return (type->flag & RE_GAME);
+	
+	return 0;
+}
+
 static void rna_SceneRenderLayer_layer_set(PointerRNA *ptr, const int *values)
 {
 	SceneRenderLayer *rl= (SceneRenderLayer*)ptr->data;
@@ -1579,11 +1591,17 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, engine_items);
 	RNA_def_property_enum_funcs(prop, "rna_SceneRenderData_engine_get", "rna_SceneRenderData_engine_set", "rna_SceneRenderData_engine_itemf");
 	RNA_def_property_ui_text(prop, "Engine", "Engine to use for rendering.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "multiple_engines", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_SceneRenderData_multiple_engines_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Multiple Engine", "More than one rendering engine is available.");
+	RNA_def_property_ui_text(prop, "Multiple Engines", "More than one rendering engine is available.");
+
+	prop= RNA_def_property(srna, "use_game_engine", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_SceneRenderData_use_game_engine_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Use Game Engine", "Current rendering engine is a game engine.");
 }
 
 void RNA_def_scene(BlenderRNA *brna)
