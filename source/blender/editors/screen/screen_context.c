@@ -93,7 +93,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	}
 	else if(CTX_data_equals(member, "active_base")) {
 		if(scene->basact)
-			CTX_data_pointer_set(result, &scene->id, &RNA_UnknownType, &scene->basact);
+			CTX_data_pointer_set(result, &scene->id, &RNA_UnknownType, scene->basact);
 
 		return 1;
 	}

@@ -3587,10 +3587,11 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	if(scene->id.lib) return;
 	if(base==NULL) return;
 	
-	if(sa->spacetype==SPACE_VIEW3D)
+	if(sa && sa->spacetype==SPACE_VIEW3D)
 		v3d= sa->spacedata.first;
 	
-	if((v3d==NULL || (base->lay & v3d->lay))==0) return;
+	if(v3d && (base->lay & v3d->lay)==0) return;
+	else if(!v3d && (base->lay & scene->lay)==0) return;
 
 	ob = base->object;
 

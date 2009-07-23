@@ -1425,7 +1425,7 @@ static void RestoreState(bContext *C)
 }
 
 /* maybe we need this defined somewhere else */
-extern void StartKetsjiShell(struct bContext *C,int always_use_expand_framing);
+extern void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int always_use_expand_framing);
 
 #endif // GAMEBLENDER == 1
 
@@ -1433,13 +1433,40 @@ static int game_engine_exec(bContext *C, wmOperator *unused)
 {
 #if GAMEBLENDER == 1
 	Scene *startscene = CTX_data_scene(C);
+	bScreen *sc= CTX_wm_screen(C);
+	ScrArea *sa, *prevsa= CTX_wm_area(C);
+	ARegion *ar, *prevar= CTX_wm_region(C);
+
+	sa= prevsa;
+	if(sa->spacetype != SPACE_VIEW3D) {
+		for(sa=sc->areabase.first; sa; sa= sa->next)
+			if(sa->spacetype==SPACE_VIEW3D)
+				break;
+	}
+
+	if(!sa)
+		return OPERATOR_CANCELLED;
 	
+	for(ar=sa->regionbase.first; ar; ar=ar->next)
+		if(ar->regiontype == RGN_TYPE_WINDOW)
+			break;
+	
+	if(!ar)
+		return OPERATOR_CANCELLED;
+	
+	// bad context switch ..
+	CTX_wm_area_set(C, sa);
+	CTX_wm_region_set(C, ar);
+
 	view3d_operator_needs_opengl(C);
 	
 	SaveState(C);
-	StartKetsjiShell(C, 1);
+	StartKetsjiShell(C, ar, 1);
 	RestoreState(C);
 	
+	CTX_wm_region_set(C, prevar);
+	CTX_wm_area_set(C, prevsa);
+
 	//XXX restore_all_scene_cfra(scene_cfra_store);
 	set_scene_bg(startscene);
 	//XXX scene_update_for_newframe(G.scene, G.scene->lay);
@@ -1461,7 +1488,7 @@ void VIEW3D_OT_game_start(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= game_engine_exec;
 	
-	ot->poll= ED_operator_view3d_active;
+	//ot->poll= ED_operator_view3d_active;
 }
 
 /* ************************************** */

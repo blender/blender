@@ -539,7 +539,7 @@ static void do_history(char *name, ReportList *reports)
 		BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 }
 
-void WM_write_file(bContext *C, char *target, ReportList *reports)
+void WM_write_file(bContext *C, char *target, int compress, ReportList *reports)
 {
 	Library *li;
 	int writeflags, len;
@@ -580,10 +580,11 @@ void WM_write_file(bContext *C, char *target, ReportList *reports)
 
 	do_history(di, reports);
 	
-	/* we use the UserDef to define compression flag */
-	writeflags= G.fileflags & ~G_FILE_COMPRESS;
-	if(U.flag & USER_FILECOMPRESS)
-		writeflags |= G_FILE_COMPRESS;
+	writeflags= G.fileflags;
+
+	/* set compression flag */
+	if(compress) writeflags |= G_FILE_COMPRESS;
+	else writeflags &= ~G_FILE_COMPRESS;
 	
 	if (BLO_write_file(CTX_data_main(C), di, writeflags, reports)) {
 		strcpy(G.sce, di);
@@ -591,6 +592,9 @@ void WM_write_file(bContext *C, char *target, ReportList *reports)
 		strcpy(G.main->name, di);	/* is guaranteed current file */
 
 		G.save_over = 1; /* disable untitled.blend convention */
+
+		if(compress) G.fileflags |= G_FILE_COMPRESS;
+		else G.fileflags &= ~G_FILE_COMPRESS;
 		
 		writeBlog();
 	}

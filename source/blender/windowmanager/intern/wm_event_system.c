@@ -451,7 +451,7 @@ int WM_operator_name_call(bContext *C, const char *opstring, int context, Pointe
 
 				CTX_wm_region_set(C, NULL);
 				CTX_wm_area_set(C, NULL);
-				retval= wm_operator_invoke(C, ot, window->eventstate, properties);
+				retval= wm_operator_invoke(C, ot, event, properties);
 				CTX_wm_region_set(C, ar);
 				CTX_wm_area_set(C, area);
 

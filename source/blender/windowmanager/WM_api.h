@@ -57,7 +57,7 @@ struct wmWindow	*WM_window_open		(struct bContext *C, struct rcti *rect);
 int			WM_read_homefile	(struct bContext *C, struct wmOperator *op);
 int			WM_write_homefile	(struct bContext *C, struct wmOperator *op);
 void		WM_read_file		(struct bContext *C, char *name, struct ReportList *reports);
-void		WM_write_file		(struct bContext *C, char *target, struct ReportList *reports);
+void		WM_write_file		(struct bContext *C, char *target, int compress, struct ReportList *reports);
 void		WM_read_autosavefile(struct bContext *C);
 void		WM_write_autosave	(struct bContext *C);
 

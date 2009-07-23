@@ -571,7 +571,7 @@ static void WM_OT_read_homefile(wmOperatorType *ot)
 
 static int recentfile_exec(bContext *C, wmOperator *op)
 {
-	int event= RNA_int_get(op->ptr, "nr");
+	int event= RNA_enum_get(op->ptr, "file");
 
 	// XXX wm in context is not set correctly after WM_read_file -> crash
 	// do it before for now, but is this correct with multiple windows?
@@ -594,30 +594,54 @@ static int recentfile_exec(bContext *C, wmOperator *op)
 
 static int wm_recentfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	struct RecentFile *recent;
 	uiPopupMenu *pup;
 	uiLayout *layout;
-	int i, ofs= 0;
 
 	pup= uiPupMenuBegin(C, "Open Recent", 0);
 	layout= uiPupMenuLayout(pup);
-
-	if(G.sce[0]) {
-		uiItemIntO(layout, G.sce, 0, op->type->idname, "nr", 1);
-		ofs = 1;
-	}
-	
-	for(recent = G.recent_files.first, i=0; (i<U.recent_files) && (recent); recent = recent->next, i++)
-		if(strcmp(recent->filename, G.sce))
-			uiItemIntO(layout, recent->filename, 0, op->type->idname, "nr", i+ofs+1);
-
+	uiItemsEnumO(layout, op->type->idname, "file");
 	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
 }
 
+static EnumPropertyItem *open_recentfile_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	EnumPropertyItem tmp = {0, "", 0, "", ""};
+	EnumPropertyItem *item= NULL;
+	struct RecentFile *recent;
+	int totitem= 0, i, ofs= 0;
+
+	if(G.sce[0]) {
+		tmp.value= 1;
+		tmp.identifier= G.sce;
+		tmp.name= G.sce;
+		RNA_enum_item_add(&item, &totitem, &tmp);
+		ofs = 1;
+	}
+
+	/* dynamically construct enum */
+	for(recent = G.recent_files.first, i=0; (i<U.recent_files) && (recent); recent = recent->next, i++) {
+		if(strcmp(recent->filename, G.sce)) {
+			tmp.value= i+ofs+1;
+			tmp.identifier= recent->filename;
+			tmp.name= recent->filename;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+		}
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
+}
+
 static void WM_OT_open_recentfile(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+	static EnumPropertyItem file_items[]= {
+		{0, NULL, 0, NULL, NULL}};
+
 	ot->name= "Open Recent File";
 	ot->idname= "WM_OT_open_recentfile";
 	
@@ -625,7 +649,8 @@ static void WM_OT_open_recentfile(wmOperatorType *ot)
 	ot->exec= recentfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	RNA_def_property(ot->srna, "nr", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_enum(ot->srna, "file", file_items, 1, "File", "");
+	RNA_def_enum_funcs(prop, open_recentfile_itemf);
 }
 
 /* ********* main file *********** */
@@ -675,15 +700,57 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	ot->exec= wm_open_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	ot->flag= 0;
-	
 	RNA_def_property(ot->srna, "filename", PROP_STRING, PROP_FILEPATH);
+}
 
+static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
+{
+	char scestr[FILE_MAX], filename[FILE_MAX];
+	int save_over;
+
+	/* back up some values */
+	BLI_strncpy(scestr, G.sce, sizeof(scestr));
+	save_over = G.save_over;
+
+	// XXX wm in context is not set correctly after WM_read_file -> crash
+	// do it before for now, but is this correct with multiple windows?
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+	/* load file */
+	BLI_make_file_string("/", filename, btempdir, "quit.blend");
+	WM_read_file(C, filename, op->reports);
+
+	/* restore */
+	G.save_over = save_over;
+	BLI_strncpy(G.sce, scestr, sizeof(G.sce));
+
+	return 0;
+}
+
+static void WM_OT_recover_last_session(wmOperatorType *ot)
+{
+	ot->name= "Recover Last Session";
+	ot->idname= "WM_OT_recover_last_session";
+	
+	ot->exec= wm_recover_last_session_exec;
+	ot->poll= WM_operator_winactive;
+}
+
+static void save_set_compress(wmOperator *op)
+{
+	if(!RNA_property_is_set(op->ptr, "compress")) {
+		if(G.save_over) /* keep flag for existing file */
+			RNA_boolean_set(op->ptr, "compress", G.fileflags & G_FILE_COMPRESS);
+		else /* use userdef for new file */
+			RNA_boolean_set(op->ptr, "compress", U.flag & USER_FILECOMPRESS);
+	}
 }
 
 static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	char name[FILE_MAX];
+
+	save_set_compress(op);
 	
 	BLI_strncpy(name, G.sce, FILE_MAX);
 	untitled(name);
@@ -698,6 +765,10 @@ static int wm_save_as_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *even
 static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
+	int compress;
+
+	save_set_compress(op);
+	compress= RNA_boolean_get(op->ptr, "compress");
 	
 	if(RNA_property_is_set(op->ptr, "filename"))
 		RNA_string_get(op->ptr, "filename", filename);
@@ -705,7 +776,8 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 		BLI_strncpy(filename, G.sce, FILE_MAX);
 		untitled(filename);
 	}
-	WM_write_file(C, filename, op->reports);
+
+	WM_write_file(C, filename, compress, op->reports);
 	
 	WM_event_add_notifier(C, NC_WM|ND_FILESAVE, NULL);
 
@@ -721,10 +793,8 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	ot->exec= wm_save_as_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	ot->flag= 0;
-	
-	RNA_def_property(ot->srna, "filename", PROP_STRING, PROP_FILEPATH);
-
+	RNA_def_string_file_path(ot->srna, "filename", "", 0, "Filename", "");
+	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
 }
 
 /* *************** Save file directly ******** */
@@ -732,6 +802,8 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	char name[FILE_MAX];
+
+	save_set_compress(op);
 	
 	BLI_strncpy(name, G.sce, FILE_MAX);
 	untitled(name);
@@ -750,10 +822,8 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	ot->exec= wm_save_as_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	ot->flag= 0;
-	
-	RNA_def_property(ot->srna, "filename", PROP_STRING, PROP_FILEPATH);
-	
+	RNA_def_string_file_path(ot->srna, "filename", "", 0, "Filename", "");
+	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
 }
 
 
@@ -1590,6 +1660,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_exit_blender);
 	WM_operatortype_append(WM_OT_open_recentfile);
 	WM_operatortype_append(WM_OT_open_mainfile);
+	WM_operatortype_append(WM_OT_recover_last_session);
 	WM_operatortype_append(WM_OT_jobs_timer);
 	WM_operatortype_append(WM_OT_save_as_mainfile);
 	WM_operatortype_append(WM_OT_save_mainfile);
