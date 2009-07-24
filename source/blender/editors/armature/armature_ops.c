@@ -129,6 +129,9 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_duplicate_selected);
 	WM_operatortype_append(ARMATURE_OT_extrude);
 	WM_operatortype_append(ARMATURE_OT_click_extrude);
+	
+	WM_operatortype_append(ARMATURE_OT_autoside_names);
+	WM_operatortype_append(ARMATURE_OT_flip_names);
 
 	/* SKETCH */	
 	WM_operatortype_append(SKETCH_OT_gesture);
@@ -150,9 +153,6 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_copy);
 	WM_operatortype_append(POSE_OT_paste);
 	
-	WM_operatortype_append(POSE_OT_paths_calculate);
-	WM_operatortype_append(POSE_OT_paths_clear);
-	
 	WM_operatortype_append(POSE_OT_select_all_toggle);
 	WM_operatortype_append(POSE_OT_select_inverse);
 
@@ -166,6 +166,13 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_group_remove);
 	WM_operatortype_append(POSE_OT_group_assign);
 	WM_operatortype_append(POSE_OT_group_unassign);
+	
+	WM_operatortype_append(POSE_OT_paths_calculate);
+	WM_operatortype_append(POSE_OT_paths_clear);
+	
+	WM_operatortype_append(POSE_OT_autoside_names);
+	WM_operatortype_append(POSE_OT_flip_names);
+	
 	
 	/* POSELIB */
 	WM_operatortype_append(POSELIB_OT_browse_interactive);

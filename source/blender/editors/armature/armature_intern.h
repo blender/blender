@@ -55,6 +55,9 @@ void ARMATURE_OT_duplicate_selected(struct wmOperatorType *ot);
 void ARMATURE_OT_extrude(struct wmOperatorType *ot);
 void ARMATURE_OT_click_extrude(struct wmOperatorType *ot);
 
+void ARMATURE_OT_autoside_names(struct wmOperatorType *ot);
+void ARMATURE_OT_flip_names(struct wmOperatorType *ot);
+
 /* ******************************************************* */
 /* Pose-Mode Operators */
 void POSE_OT_hide(struct wmOperatorType *ot);
@@ -66,9 +69,6 @@ void POSE_OT_scale_clear(struct wmOperatorType *ot);
 
 void POSE_OT_copy(struct wmOperatorType *ot);
 void POSE_OT_paste(struct wmOperatorType *ot);
-
-void POSE_OT_paths_calculate(struct wmOperatorType *ot);
-void POSE_OT_paths_clear(struct wmOperatorType *ot);
 
 void POSE_OT_select_all_toggle(struct wmOperatorType *ot);
 void POSE_OT_select_inverse(struct wmOperatorType *ot);
@@ -83,6 +83,12 @@ void POSE_OT_group_remove(struct wmOperatorType *ot);
 void POSE_OT_group_remove(struct wmOperatorType *ot);
 void POSE_OT_group_assign(struct wmOperatorType *ot);
 void POSE_OT_group_unassign(struct wmOperatorType *ot);
+
+void POSE_OT_paths_calculate(struct wmOperatorType *ot);
+void POSE_OT_paths_clear(struct wmOperatorType *ot);
+
+void POSE_OT_autoside_names(struct wmOperatorType *ot);
+void POSE_OT_flip_names(struct wmOperatorType *ot);
 
 /* ******************************************************* */
 /* Etch-A-Ton */

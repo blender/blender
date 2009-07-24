@@ -3168,14 +3168,19 @@ static void view3d_pose_armaturemenu(bContext *C, uiLayout *layout, void *arg_un
 	
 	uiItemS(layout);
 	
+	uiItemEnumO(layout, "AutoName Left-Right", 0, "POSE_OT_autoside_names", "axis", 0);
+	uiItemEnumO(layout, "AutoName Front-Back", 0, "POSE_OT_autoside_names", "axis", 1);
+	uiItemEnumO(layout, "AutoName Top-Bottom", 0, "POSE_OT_autoside_names", "axis", 2);
+	
+	uiItemO(layout, "Flip L/R Names", 0, "POSE_OT_flip_names");
+	
+	//separator + move layer operators...
+	
+	uiItemS(layout);
+	
 	uiItemMenuF(layout, "Show/Hide Bones", 0, view3d_pose_armature_showhidemenu);
 	
 #if 0
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "AutoName Left-Right|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "AutoName Front-Back|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "AutoName Top-Bottom|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Flip L/R Names|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy Attributes...|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

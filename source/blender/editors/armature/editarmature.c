@@ -5227,47 +5227,110 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 	}
 }
 
-/* context editmode object */
-void armature_flip_names(Scene *scene)
+
+static int armature_flip_names_exec (bContext *C, wmOperator *op)
 {
-	Object *obedit= scene->obedit; // XXX get from context
-	bArmature *arm= obedit->data;
-	EditBone *ebone;
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_edit_object(C);
+	bArmature *arm;
 	char newname[32];
 	
-	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
-		if (arm->layer & ebone->layer) {
-			if (ebone->flag & BONE_SELECTED) {
-				BLI_strncpy(newname, ebone->name, sizeof(newname));
-				bone_flip_name(newname, 1);		// 1 = do strip off number extensions
-				ED_armature_bone_rename(arm, ebone->name, newname);
-			}
-		}
-	}
+	/* paranoia checks */
+	if (ELEM(NULL, ob, ob->pose)) 
+		return OPERATOR_CANCELLED;
+	arm= ob->data;
 	
-	BIF_undo_push("Flip names");
+	/* loop through selected bones, auto-naming them */
+	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones)
+	{
+		BLI_strncpy(newname, ebone->name, sizeof(newname));
+		bone_flip_name(newname, 1);		// 1 = do strip off number extensions
+		ED_armature_bone_rename(arm, ebone->name, newname);
+	}
+	CTX_DATA_END;
+	
+	/* since we renamed stuff... */
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+	
+	return OPERATOR_FINISHED;
 }
 
-/* context: edtimode armature */
-void armature_autoside_names(Scene *scene, short axis)
+void ARMATURE_OT_flip_names (wmOperatorType *ot)
 {
-	Object *obedit= scene->obedit; // XXX get from context
-	bArmature *arm= obedit->data;
-	EditBone *ebone;
-	char newname[32];
+	/* identifiers */
+	ot->name= "Flip Names";
+	ot->idname= "ARMATURE_OT_flip_names";
+	ot->description= "Flips (and corrects) the names of selected bones.";
 	
-	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
-		if (arm->layer & ebone->layer) {
-			if (ebone->flag & BONE_SELECTED) {
-				BLI_strncpy(newname, ebone->name, sizeof(newname));
-				bone_autoside_name(newname, 1, axis, ebone->head[axis], ebone->tail[axis]);
-				ED_armature_bone_rename(arm, ebone->name, newname);
-			}
-		}
-	}
+	/* api callbacks */
+	ot->exec= armature_flip_names_exec;
+	ot->poll= ED_operator_editarmature;
 	
-	BIF_undo_push("Auto-side name");
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+
+
+static int armature_autoside_names_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_edit_object(C);
+	bArmature *arm;
+	char newname[32];
+	short axis= RNA_enum_get(op->ptr, "axis");
+	
+	/* paranoia checks */
+	if (ELEM(NULL, ob, ob->pose)) 
+		return OPERATOR_CANCELLED;
+	arm= ob->data;
+	
+	/* loop through selected bones, auto-naming them */
+	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones)
+	{
+		BLI_strncpy(newname, ebone->name, sizeof(newname));
+		bone_autoside_name(newname, 1, axis, ebone->head[axis], ebone->tail[axis]);
+		ED_armature_bone_rename(arm, ebone->name, newname);
+	}
+	CTX_DATA_END;
+	
+	/* since we renamed stuff... */
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ARMATURE_OT_autoside_names (wmOperatorType *ot)
+{
+	static EnumPropertyItem axis_items[]= {
+ 		{0, "XAXIS", 0, "X-Axis", "Left/Right"},
+		{1, "YAXIS", 0, "Y-Axis", "Front/Back"},
+		{2, "ZAXIS", 0, "Z-Axis", "Top/Bottom"},
+		{0, NULL, 0, NULL, NULL}};
+	
+	/* identifiers */
+	ot->name= "AutoName by Axis";
+	ot->idname= "ARMATURE_OT_autoside_names";
+	ot->description= "Automatically renames the selected bones according to which side of the target axis they fall on.";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= armature_autoside_names_exec;
+	ot->poll= ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* settings */
+	RNA_def_enum(ot->srna, "axis", axis_items, 0, "Axis", "Axis tag names with.");
+}
+
+
 
 /* if editbone (partial) selected, copy data */
 /* context; editmode armature, with mirror editing enabled */
