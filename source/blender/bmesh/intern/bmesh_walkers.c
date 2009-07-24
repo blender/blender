@@ -648,11 +648,16 @@ static void *faceloopWalker_step(BMWalker *walker)
 
 	BMW_popstate(walker);
 
-	l = l->head.next->next;
-	if (l == l->radial.next->data) {
-		l = l->head.prev->prev;
-	}
 	l = l->radial.next->data;
+	
+	if (BLI_ghash_haskey(walker->visithash, l->f)) {
+		l = lwalk->l;
+		l = l->head.next->next;
+		if (l == l->radial.next->data) {
+			l = l->head.prev->prev;
+		}
+		l = l->radial.next->data;
+	}
 
 	if (l->f->len == 4 && !BLI_ghash_haskey(walker->visithash, l->f)) {
 		BMW_pushstate(walker);

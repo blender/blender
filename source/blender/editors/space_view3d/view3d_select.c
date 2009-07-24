@@ -159,7 +159,7 @@ void EM_backbuf_checkAndSelectVerts(BMEditMesh *em, int select)
 	eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
 	for ( ; eve; eve=BMIter_Step(&iter), index++) {
 		if(!BM_TestHFlag(eve, BM_HIDDEN)) {
-			if(EM_check_backbuf(index)) {
+			if(EDBM_check_backbuf(index)) {
 				BM_Select_Vert(em->bm, eve, select);
 			}
 		}
@@ -175,7 +175,7 @@ void EM_backbuf_checkAndSelectEdges(BMEditMesh *em, int select)
 	eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
 	for ( ; eed; eed=BMIter_Step(&iter), index++) {
 		if(!BM_TestHFlag(eed, BM_HIDDEN)) {
-			if(EM_check_backbuf(index)) {
+			if(EDBM_check_backbuf(index)) {
 				BM_Select_Edge(em->bm, eed, select);
 			}
 		}
@@ -191,7 +191,7 @@ void EM_backbuf_checkAndSelectFaces(BMEditMesh *em, int select)
 	efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
 	for ( ; efa; efa=BMIter_Step(&iter), index++) {
 		if(!BM_TestHFlag(efa, BM_HIDDEN)) {
-			if(EM_check_backbuf(index)) {
+			if(EDBM_check_backbuf(index)) {
 				BM_Select_Face(em->bm, efa, select);
 			}
 		}
@@ -205,7 +205,7 @@ void EM_backbuf_checkAndSelectTFaces(Mesh *me, int select)
 
 	if (mface) {
 		for(a=1; a<=me->totface; a++, mface++) {
-			if(EM_check_backbuf(a)) {
+			if(EDBM_check_backbuf(a)) {
 				mface->flag = select?(mface->flag|ME_FACE_SEL):(mface->flag&~ME_FACE_SEL);
 			}
 		}
@@ -1660,9 +1660,9 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 		if (me) {
 			bm_vertoffs= me->totface+1;	/* max index array */
 
-			bbsel= EDBM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0));
-			EM_backbuf_checkAndSelectTFaces(me, selecting==LEFTMOUSE);
-			EM_free_backbuf();
+			//bbsel= EDBM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0));
+			//BMESH_TODO EM_backbuf_checkAndSelectTFaces(me, selecting==LEFTMOUSE);
+			//EDBM_free_backbuf();
 
 // XXX			object_tface_flags_changed(OBACT, 0);
 		}
@@ -1677,6 +1677,7 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 		data.mval[0] = mval[0];
 		data.mval[1] = mval[1];
 		data.radius = rad;
+		data.vc = vc;
 
 		if(vc->scene->toolsettings->selectmode & SCE_SELECT_VERTEX) {
 			if(bbsel) {
@@ -1702,7 +1703,7 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 			}
 		}
 
-		EM_free_backbuf();
+		EDBM_free_backbuf();
 		EDBM_selectmode_flush(vc->em);
 	}
 }
