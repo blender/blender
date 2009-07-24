@@ -244,8 +244,8 @@ struct BMFace *BM_Make_Ngon(struct BMesh *bm, struct BMVert *v1, struct BMVert *
 #define BM_ClearHFlag(ele, f) (((BMHeader*)ele)->flag = ((BMHeader*)ele)->flag & ~(f))
 
 /*stuff for setting indices in elements.*/
-#define BMINDEX_SET(ele, i) (((BMHeader*)ele)->index = i)
-#define BMINDEX_GET(ele) ((BMHeader*)ele)->index
+#define BMINDEX_SET(ele, i) (((BMHeader*)(ele))->index = i)
+#define BMINDEX_GET(ele) (((BMHeader*)(ele))->index)
 
 /*copies loop data from adjacent faces*/
 void BM_Face_CopyShared(BMesh *bm, BMFace *f);

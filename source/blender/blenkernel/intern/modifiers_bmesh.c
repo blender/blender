@@ -567,6 +567,8 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	            mtx, mmd->tolerance, axis);
 	
 	BMO_Exec_Op(bm, &op);
+
+	BMO_CallOpf(bm, "reversefaces faces=%s", &op, "newout");
 	
 	/*handle vgroup stuff*/
 	if (mmd->flag & MOD_MIR_VGROUP) {

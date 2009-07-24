@@ -62,6 +62,7 @@
 #include "BKE_object.h"
 #include "BKE_property.h"
 #include "BKE_utildefines.h"
+#include "BKE_tessmesh.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -398,7 +399,7 @@ static void draw_textured_end()
 }
 
 
-static int draw_tface__set_draw(MTFace *tface, MCol *mcol, int matnr)
+static int draw_tface__set_draw(MTFace *tface, int has_vcol, int matnr)
 {
 	if (tface && (tface->mode&TF_INVISIBLE)) return 0;
 
@@ -408,7 +409,7 @@ static int draw_tface__set_draw(MTFace *tface, MCol *mcol, int matnr)
 	} else if (tface && tface->mode&TF_OBCOL) {
 		glColor3ubv(Gtexdraw.obcol);
 		return 2; /* Don't set color */
-	} else if (!mcol) {
+	} else if (!has_vcol) {
 		if (tface) glColor3f(1.0, 1.0, 1.0);
 		else {
 			Material *ma= give_current_material(Gtexdraw.ob, matnr+1);
@@ -424,30 +425,50 @@ static int draw_tface__set_draw(MTFace *tface, MCol *mcol, int matnr)
 static int draw_tface_mapped__set_draw(void *userData, int index)
 {
 	Mesh *me = (Mesh*)userData;
-	MTFace *tface = (me->mtface)? &me->mtface[index]: NULL;
-	MFace *mface = (me->mface)? &me->mface[index]: NULL;
-	MCol *mcol = (me->mcol)? &me->mcol[index]: NULL;
-	int matnr = me->mface[index].mat_nr;
-	if (mface && mface->flag&ME_HIDE) return 0;
-	return draw_tface__set_draw(tface, mcol, matnr);
+	MTexPoly *tpoly = (me->mtpoly)? &me->mtpoly[index]: NULL;
+	MPoly *mpoly = (me->mpoly)? &me->mpoly[index]: NULL;
+	MTFace mtf;
+	int matnr = me->mpoly[index].mat_nr;
+
+	if (mpoly && mpoly->flag&ME_HIDE) return 0;
+
+	if (tpoly) {
+		mtf.flag = tpoly->flag;
+		mtf.tpage = tpoly->tpage;
+		mtf.transp = tpoly->transp;
+		mtf.mode = tpoly->mode;
+		mtf.tile = tpoly->tile;
+		mtf.unwrap = tpoly->unwrap;
+	}
+
+	return draw_tface__set_draw(&mtf, CustomData_has_layer(&me->ldata, CD_MLOOPUV), matnr);
 }
 
 static int draw_em_tf_mapped__set_draw(void *userData, int index)
 {
-	EditMesh *em = userData;
-	EditFace *efa= EM_get_face_for_index(index);
-	MTFace *tface;
-	MCol *mcol;
-	int matnr;
+	BMEditMesh *em = userData;
+	BMFace *efa= EDBM_get_face_for_index(em, index);
+	MTexPoly *tpoly;
+	MTFace mtf;
+	int matnr, has_vcol;
 
-	if (efa==NULL || efa->h)
+	if (efa==NULL || BM_TestHFlag(efa, BM_HIDDEN))
 		return 0;
 
-	tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-	mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
+	tpoly = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+	has_vcol = CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV);
 	matnr = efa->mat_nr;
 
-	return draw_tface__set_draw(tface, mcol, matnr);
+	if (tpoly) {
+		mtf.flag = tpoly->flag;
+		mtf.tpage = tpoly->tpage;
+		mtf.transp = tpoly->transp;
+		mtf.mode = tpoly->mode;
+		mtf.tile = tpoly->tile;
+		mtf.unwrap = tpoly->unwrap;
+	}
+
+	return draw_tface__set_draw(&mtf, has_vcol, matnr);
 }
 
 static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmooth_r)
@@ -550,7 +571,6 @@ void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 
 void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int faceselect)
 {
-#if 0
 	Mesh *me= ob->data;
 	
 	/* correct for negative scale */
@@ -561,7 +581,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 	draw_textured_begin(scene, v3d, rv3d, ob);
 
 	if(ob == scene->obedit) {
-		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, me->edit_mesh);
+		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, me->edit_btmesh);
 	} else if(faceselect) {
 		if(G.f & G_WEIGHTPAINT)
 			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me, 1);
@@ -587,6 +607,5 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 	
 	/* in editmode, the blend mode needs to be set incase it was ADD */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-#endif
 }
 

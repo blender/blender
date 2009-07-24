@@ -316,7 +316,7 @@ struct DerivedMesh {
 	 */
 	void (*drawFacesTex)(DerivedMesh *dm,
 	                     int (*setDrawOptions)(struct MTFace *tface,
-	                     struct MCol *mcol, int matnr));
+	                     int has_vcol, int matnr));
 
 	/* Draw all faces with GLSL materials
 	 *  o setMaterial is called for every different material nr
