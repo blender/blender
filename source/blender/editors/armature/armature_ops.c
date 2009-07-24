@@ -150,6 +150,9 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_copy);
 	WM_operatortype_append(POSE_OT_paste);
 	
+	WM_operatortype_append(POSE_OT_paths_calculate);
+	WM_operatortype_append(POSE_OT_paths_clear);
+	
 	WM_operatortype_append(POSE_OT_select_all_toggle);
 	WM_operatortype_append(POSE_OT_select_inverse);
 

@@ -3051,37 +3051,11 @@ static void view3d_pose_armature_groupmenu(bContext *C, uiLayout *layout, void *
 	uiItemO(layout, "Remove Active Group", 0, "POSE_OT_group_remove");
 }
 
-#if 0
-static void do_view3d_pose_armature_motionpathsmenu(bContext *C, void *arg, int event)
+static void view3d_pose_armature_motionpathsmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	switch(event) {
-		 
-	case 1:
-		pose_calculate_path(OBACT);
-		break;
-	case 2:
-		pose_clear_paths(OBACT);
-		break;
-	}
+	uiItemO(layout, NULL, 0, "POSE_OT_paths_calculate");
+	uiItemO(layout, NULL, 0, "POSE_OT_paths_clear");
 }
-
-
-static uiBlock *view3d_pose_armature_motionpathsmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	short yco = 20, menuwidth = 120;
-
-	block= uiBeginBlock(C, ar, "view3d_pose_armature_motionpathsmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_pose_armature_motionpathsmenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Calculate Paths|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear All Paths|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	return block;
-}
-#endif
 
 static void view3d_pose_armature_poselibmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
@@ -3184,7 +3158,7 @@ static void view3d_pose_armaturemenu(bContext *C, uiLayout *layout, void *arg_un
 	uiItemS(layout);
 
 	uiItemMenuF(layout, "Pose Library", 0, view3d_pose_armature_poselibmenu);
-	//uiItemMenuF(layout, "Motion Paths", 0, view3d_pose_armature_motionpathsmenu);
+	uiItemMenuF(layout, "Motion Paths", 0, view3d_pose_armature_motionpathsmenu);
 	uiItemMenuF(layout, "Bone Groups", 0, view3d_pose_armature_groupmenu);
 	
 	uiItemS(layout);
