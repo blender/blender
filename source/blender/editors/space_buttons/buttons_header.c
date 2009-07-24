@@ -81,6 +81,8 @@ static void do_buttons_buttons(bContext *C, void *arg, int event)
 			sbuts->preview= 1;
 			break;
 	}
+
+	sbuts->mainbuser= sbuts->mainb;
 }
 
 void buttons_header_buttons(const bContext *C, ARegion *ar)

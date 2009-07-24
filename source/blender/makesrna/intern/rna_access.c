@@ -752,7 +752,7 @@ int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
 	
 	id= ptr->id.data;
 
-	return (flag & PROP_EDITABLE) && (!id || !id->lib);
+	return (flag & PROP_EDITABLE) && (!id || !id->lib || (flag & PROP_LIB_EXCEPTION));
 }
 
 int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)

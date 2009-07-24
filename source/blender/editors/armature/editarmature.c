@@ -4614,44 +4614,28 @@ void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int m
 	MEM_freeN(verts);
 }
 
-void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par)
+void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par, int mode)
 {
 	/* Lets try to create some vertex groups 
 	 * based on the bones of the parent armature.
 	 */
 	bArmature *arm= par->data;
-	short mode;
 
-	/* Prompt the user on whether/how they want the vertex groups
-	 * added to the child mesh */
-    mode= pupmenu("Create Vertex Groups? %t|"
-				  "Don't Create Groups %x1|"
-				  "Name Groups %x2|"
-                  "Create From Envelopes %x3|"
-				  "Create From Bone Heat %x4|");
-	
-	mode= 3; // XXX
-	
-	switch (mode) {
-	case 2:
+	if(mode == ARM_GROUPS_NAME) {
 		/* Traverse the bone list, trying to create empty vertex 
 		 * groups cooresponding to the bone.
 		 */
-		bone_looper(ob, arm->bonebase.first, NULL,
-					add_defgroup_unique_bone);
+		bone_looper(ob, arm->bonebase.first, NULL, add_defgroup_unique_bone);
+
 		if (ob->type == OB_MESH)
 			create_dverts(ob->data);
-		
-		break;
-	
-	case 3:
-	case 4:
+	}
+	else if(mode == ARM_GROUPS_ENVELOPE || mode == ARM_GROUPS_AUTO) {
 		/* Traverse the bone list, trying to create vertex groups 
 		 * that are populated with the vertices for which the
 		 * bone is closest.
 		 */
-		add_verts_to_dgroups(scene, ob, par, (mode == 4), 0);
-		break;
+		add_verts_to_dgroups(scene, ob, par, (mode == ARM_GROUPS_AUTO), 0);
 	}
 } 
 /* ************* Clear Pose *****************************/

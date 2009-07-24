@@ -32,7 +32,7 @@ class IMAGE_MT_view(bpy.types.Menu):
 
 		for a, b in ratios:
 			text = "Zoom %d:%d" % (a, b)
-			layout.item_floatO("image.view_zoom_ratio", "ratio", a/b, text=text)
+			layout.item_floatO("image.view_zoom_ratio", "ratio", a/float(b), text=text)
 
 		layout.itemS()
 
@@ -225,34 +225,6 @@ class IMAGE_HT_header(bpy.types.Header):
 
 		layout.template_ID(sima, "image", new="image.new")
 
-		"""
-		/* image select */
-
-		pinflag= (show_render)? 0: UI_ID_PIN;
-		xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID*)sima->image, ID_IM, &sima->pin, xco, yco,
-			sima_idpoin_handle, UI_ID_BROWSE|UI_ID_BROWSE_RENDER|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_OPEN|UI_ID_DELETE|pinflag);
-		xco += 8;
-		"""
-
-		"""
-		if(ima && !ELEM3(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE, IMA_SRC_VIEWER) && ima->ok) {
-			/* XXX this should not be a static var */
-			static int headerbuttons_packdummy;
-			
-			headerbuttons_packdummy = 0;
-
-			if (ima->packedfile) {
-				headerbuttons_packdummy = 1;
-			}
-			if (ima->packedfile && ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
-				uiDefIconButBitI(block, TOG, 1, 0 /* XXX B_SIMA_REPACK */, ICON_UGLYPACKAGE,	xco,yco,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Re-Pack this image as PNG");
-			else
-				uiDefIconButBitI(block, TOG, 1, 0 /* XXX B_SIMAPACKIMA */, ICON_PACKAGE,	xco,yco,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Pack/Unpack this image");
-				
-			xco+= XIC+8;
-		}
-		"""
-
 		# uv editing
 		if show_uvedit:
 			uvedit = sima.uv_editor
@@ -294,7 +266,8 @@ class IMAGE_HT_header(bpy.types.Header):
 			if ima.type == "COMPOSITE" and ima.source in ("MOVIE", "SEQUENCE"):
 				row.itemO("image.play_composite", icon="ICON_PLAY")
 		
-		layout.itemR(sima, "update_automatically", text="")
+		if show_uvedit or sima.image_painting:
+			layout.itemR(sima, "update_automatically", text="")
 
 class IMAGE_PT_game_properties(bpy.types.Panel):
 	__space_type__ = "IMAGE_EDITOR"

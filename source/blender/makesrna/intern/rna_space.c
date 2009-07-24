@@ -242,17 +242,9 @@ StructRNA *rna_SpaceButtonsWindow_pin_id_typef(PointerRNA *ptr)
 void rna_SpaceButtonsWindow_align_set(PointerRNA *ptr, int value)
 {
 	SpaceButs *sbuts= (SpaceButs*)(ptr->data);
-	bScreen *sc= (bScreen*)(ptr->id.data);
-	ScrArea *sa;
 
 	sbuts->align= value;
 	sbuts->re_align= 1;
-
-#if 0 // XXX -bad level call?
-	for(sa=sc->areabase.first; sa; sa=sa->next)
-		if(BLI_findindex(&sa->spacedata, sbuts) != -1)
-			ED_area_tag_redraw(sa);
-#endif
 }
 
 /* Space Console */
@@ -321,8 +313,8 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 
 	static EnumPropertyItem sticky_mode_items[] = {
 		{SI_STICKY_DISABLE, "DISABLED", ICON_STICKY_UVS_DISABLE, "Disabled", "Sticky vertex selection disabled."},
-		{SI_STICKY_LOC, "SHARED_LOCATION", ICON_STICKY_UVS_LOC, "SHARED_LOCATION", "Select UVs that are at the same location and share a mesh vertex."},
-		{SI_STICKY_VERTEX, "SHARED_VERTEX", ICON_STICKY_UVS_VERT, "SHARED_VERTEX", "Select UVs that share mesh vertex, irrespective if they are in the same location."},
+		{SI_STICKY_LOC, "SHARED_LOCATION", ICON_STICKY_UVS_LOC, "Shared Location", "Select UVs that are at the same location and share a mesh vertex."},
+		{SI_STICKY_VERTEX, "SHARED_VERTEX", ICON_STICKY_UVS_VERT, "Shared Vertex", "Select UVs that share mesh vertex, irrespective if they are in the same location."},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem dt_uv_items[] = {
@@ -685,17 +677,17 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "SpaceButs");
 	RNA_def_struct_ui_text(srna, "Buttons Space", "Buttons Window space data");
 	
-	prop= RNA_def_property(srna, "buttons_context", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "context", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mainb");
 	RNA_def_property_enum_items(prop, buttons_context_items);
-	RNA_def_property_ui_text(prop, "Buttons Context", "The type of active data to display and edit in the buttons window");
+	RNA_def_property_ui_text(prop, "Context", "Type of active data to display and edit.");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "align", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "align");
 	RNA_def_property_enum_items(prop, align_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_SpaceButtonsWindow_align_set", NULL);
-	RNA_def_property_ui_text(prop, "Align", "Arrangement of the panels within the buttons window");
+	RNA_def_property_ui_text(prop, "Align", "Arrangement of the panels.");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	/* pinned data */

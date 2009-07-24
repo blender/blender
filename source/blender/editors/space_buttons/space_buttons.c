@@ -70,7 +70,6 @@ static SpaceLink *buttons_new(const bContext *C)
 	
 	sbuts= MEM_callocN(sizeof(SpaceButs), "initbuts");
 	sbuts->spacetype= SPACE_BUTS;
-	sbuts->scaflag= BUTS_SENS_LINK|BUTS_SENS_ACT|BUTS_CONT_ACT|BUTS_ACT_ACT|BUTS_ACT_LINK;
 	sbuts->align= BUT_AUTO;
 
 	/* header */

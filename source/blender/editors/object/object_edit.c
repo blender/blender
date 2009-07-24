@@ -2753,19 +2753,25 @@ void make_proxy(Scene *scene)
 
 /* ******************** make parent operator *********************** */
 
-#define PAR_OBJECT		0
-#define PAR_ARMATURE	1
-#define PAR_BONE		2
-#define PAR_CURVE		3
-#define PAR_FOLLOW		4
-#define PAR_PATH_CONST	5
-#define PAR_LATTICE		6
-#define PAR_VERTEX		7
-#define PAR_TRIA		8
+#define PAR_OBJECT				0
+#define PAR_ARMATURE			1
+#define PAR_ARMATURE_NAME		2
+#define PAR_ARMATURE_ENVELOPE	3
+#define PAR_ARMATURE_AUTO		4
+#define PAR_BONE				5
+#define PAR_CURVE				6
+#define PAR_FOLLOW				7
+#define PAR_PATH_CONST			8
+#define PAR_LATTICE				9
+#define PAR_VERTEX				10
+#define PAR_TRIA				11
 
 static EnumPropertyItem prop_make_parent_types[] = {
 	{PAR_OBJECT, "OBJECT", 0, "Object", ""},
 	{PAR_ARMATURE, "ARMATURE", 0, "Armature Deform", ""},
+	{PAR_ARMATURE_NAME, "ARMATURE_NAME", 0, "   With Empty Groups", ""},
+	{PAR_ARMATURE_AUTO, "ARMATURE_AUTO", 0, "   With Automatic Weights", ""},
+	{PAR_ARMATURE_ENVELOPE, "ARMATURE_ENVELOPE", 0, "   With Envelope Weights", ""},
 	{PAR_BONE, "BONE", 0, "Bone", ""},
 	{PAR_CURVE, "CURVE", 0, "Curve Deform", ""},
 	{PAR_FOLLOW, "FOLLOW", 0, "Follow Path", ""},
@@ -2809,6 +2815,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 	Object *par= CTX_data_active_object(C);
 	bPoseChannel *pchan= NULL;
 	int partype= RNA_enum_get(op->ptr, "type");
+	int pararm= ELEM4(partype, PAR_ARMATURE, PAR_ARMATURE_NAME, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO);
 	
 	par->recalc |= OB_RECALC_OB;
 	
@@ -2880,24 +2887,20 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 					ob->loc[0] = vec[0];
 					ob->loc[1] = vec[1];
 				}
-				else if(partype==PAR_ARMATURE && ob->type==OB_MESH && par->type == OB_ARMATURE) {
+				else if(pararm && ob->type==OB_MESH && par->type == OB_ARMATURE) {
+					if(partype == PAR_ARMATURE_NAME)
+						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_NAME);
+					else if(partype == PAR_ARMATURE_ENVELOPE)
+						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_ENVELOPE);
+					else if(partype == PAR_ARMATURE_AUTO)
+						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_AUTO);
 					
-					if(1) {
-						/* Prompt the user as to whether he wants to
-						* add some vertex groups based on the bones
-						* in the parent armature.
-						*/
-						create_vgroups_from_armature(scene, ob, par);
-						
-						/* get corrected inverse */
-						ob->partype= PAROBJECT;
-						what_does_parent(scene, ob, &workob);
-						
-						ob->partype= PARSKEL;
-					}
-					else
-						what_does_parent(scene, ob, &workob);
+					/* get corrected inverse */
+					ob->partype= PAROBJECT;
+					what_does_parent(scene, ob, &workob);
 					
+					ob->partype= PARSKEL;
+
 					Mat4Invert(ob->parentinv, workob.obmat);
 				}
 				else {
@@ -2908,7 +2911,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 				
 				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
 				
-				if( ELEM3(partype, PAR_CURVE, PAR_ARMATURE, PAR_LATTICE) )
+				if( ELEM(partype, PAR_CURVE, PAR_LATTICE) || pararm )
 					ob->partype= PARSKEL; /* note, dna define, not operator property */
 				else
 					ob->partype= PAROBJECT;	/* note, dna define, not operator property */
@@ -2936,6 +2939,9 @@ static int parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* ob becomes parent, make the associated menus */
 	if(ob->type==OB_ARMATURE) {
 		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE_NAME);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE_ENVELOPE);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE_AUTO);
 		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_BONE);
 	}
 	else if(ob->type==OB_CURVE) {

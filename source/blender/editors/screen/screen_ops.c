@@ -210,7 +210,6 @@ int ED_operator_object_active(bContext *C)
 int ED_operator_editmesh(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	printf("em %p %d\n", obedit, (obedit)? obedit->type == OB_MESH: -1);
 	if(obedit && obedit->type==OB_MESH)
 		return NULL != ((Mesh *)obedit->data)->edit_mesh;
 	return 0;

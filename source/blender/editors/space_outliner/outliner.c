@@ -1864,7 +1864,7 @@ static int tree_element_active_texture(Scene *scene, SpaceOops *soops, TreeEleme
 		if(set) {
 			if(sbuts) {
 				// XXX sbuts->tabo= TAB_SHADING_TEX;	// hack from header_buttonswin.c
-				sbuts->texfrom= 1;
+				// XXX sbuts->texfrom= 1;
 			}
 // XXX			extern_set_butspace(F6KEY, 0);	// force shading buttons texture
 			wrld->texact= te->index;
@@ -1878,7 +1878,7 @@ static int tree_element_active_texture(Scene *scene, SpaceOops *soops, TreeEleme
 		if(set) {
 			if(sbuts) {
 				// XXX sbuts->tabo= TAB_SHADING_TEX;	// hack from header_buttonswin.c
-				sbuts->texfrom= 2;
+				// XXX sbuts->texfrom= 2;
 			}
 // XXX			extern_set_butspace(F6KEY, 0);	// force shading buttons texture
 			la->texact= te->index;
@@ -1894,7 +1894,7 @@ static int tree_element_active_texture(Scene *scene, SpaceOops *soops, TreeEleme
 		if(set) {
 			if(sbuts) {
 				//sbuts->tabo= TAB_SHADING_TEX;	// hack from header_buttonswin.c
-				sbuts->texfrom= 0;
+				// XXX sbuts->texfrom= 0;
 			}
 // XXX			extern_set_butspace(F6KEY, 0);	// force shading buttons texture
 			ma->texact= (char)te->index;

@@ -1116,7 +1116,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 #endif
 
 	static EnumPropertyItem engine_items[] = {
-		{0, "BLENDER", 0, "Blender", ""},
+		{0, "BLENDER_RENDER", 0, "Blender Render", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SceneRenderData", NULL);

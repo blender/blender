@@ -112,8 +112,13 @@ void add_primitive_bone(struct Scene *scene, struct View3D *v3d, struct RegionVi
 
 void transform_armature_mirror_update(struct Object *obedit);
 void clear_armature(struct Scene *scene, struct Object *ob, char mode);
-void create_vgroups_from_armature(struct Scene *scene, struct Object *ob, struct Object *par);
 void docenter_armature (struct Scene *scene, struct View3D *v3d, struct Object *ob, int centermode);
+
+#define ARM_GROUPS_NAME		1
+#define ARM_GROUPS_ENVELOPE	2
+#define ARM_GROUPS_AUTO		3
+
+void create_vgroups_from_armature(struct Scene *scene, struct Object *ob, struct Object *par, int mode);
 
 void auto_align_armature(struct Scene *scene, struct View3D *v3d, short mode);
 void unique_editbone_name(struct ListBase *ebones, char *name, EditBone *bone); /* if bone is already in list, pass it as param to ignore it */

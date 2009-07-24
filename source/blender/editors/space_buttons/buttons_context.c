@@ -457,6 +457,11 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 		}
 	}
 
+	/* always try to use the tab that was explicitly
+	 * set to the user, so that once that context comes
+	 * back, the tab is activated again */
+	sbuts->mainb= sbuts->mainbuser;
+
 	/* in case something becomes invalid, change */
 	if((flag & (1 << sbuts->mainb)) == 0) {
 		if(flag & BCONTEXT_OBJECT) {
