@@ -101,11 +101,6 @@ static PointerRNA rna_UserDef_edit_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesEdit, ptr->data);
 }
 
-static PointerRNA rna_UserDef_autosave_get(PointerRNA *ptr)
-{
-	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesAutosave, ptr->data);
-}
-
 static PointerRNA rna_UserDef_language_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesLanguage, ptr->data);
@@ -1721,8 +1716,8 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	StructRNA *srna;
 
 	static EnumPropertyItem auto_key_modes[] = {
-		{AUTOKEY_MODE_NORMAL, "ADD_REPLACE_KEYS", 0, "Add/Replace Keys", ""},
-		{AUTOKEY_MODE_EDITKEYS, "REPLACE_KEYS", 0, "Replace Keys", ""},
+		{AUTOKEY_MODE_NORMAL, "ADD_REPLACE_KEYS", 0, "Add/Replace", ""},
+		{AUTOKEY_MODE_EDITKEYS, "REPLACE_KEYS", 0, "Replace", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem new_interpolation_types[] = {
@@ -1956,55 +1951,20 @@ static void rna_def_userdef_language(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 }
 
-static void rna_def_userdef_autosave(BlenderRNA *brna)
-{
-	PropertyRNA *prop;
-	StructRNA *srna;
-
-	/* Autosave  */
-
-	srna= RNA_def_struct(brna, "UserPreferencesAutosave", NULL);
-	RNA_def_struct_sdna(srna, "UserDef");
-	RNA_def_struct_nested(brna, srna, "UserPreferences");
-	RNA_def_struct_ui_text(srna, "Auto Save", "Automatic backup file settings.");
-
-	prop= RNA_def_property(srna, "save_version", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "versions");
-	RNA_def_property_range(prop, 0, 32);
-	RNA_def_property_ui_text(prop, "Save Versions", "The number of old versions to maintain in the current directory, when manually saving.");
-
-	prop= RNA_def_property(srna, "auto_save_temporary_files", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_AUTOSAVE);
-	RNA_def_property_ui_text(prop, "Auto Save Temporary Files", "Automatic saving of temporary files.");
-
-	prop= RNA_def_property(srna, "auto_save_time", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "savetime");
-	RNA_def_property_range(prop, 1, 60);
-	RNA_def_property_ui_text(prop, "Auto Save Time", "The time (in minutes) to wait between automatic temporary saves.");
-
-	prop= RNA_def_property(srna, "recent_files", PROP_INT, PROP_NONE);
-	RNA_def_property_range(prop, 0, 30);
-	RNA_def_property_ui_text(prop, "Recent Files", "Maximum number of recently opened files to remember.");
-
-	prop= RNA_def_property(srna, "save_preview_images", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_SAVE_PREVIEWS);
-	RNA_def_property_ui_text(prop, "Save Preview Images", "Enables automatic saving of preview images in the .blend file.");
-}
-
 static void rna_def_userdef_system(BlenderRNA *brna)
 {
 	PropertyRNA *prop;
 	StructRNA *srna;
 
 	static EnumPropertyItem gl_texture_clamp_items[] = {
-		{0, "GL_CLAMP_OFF", 0, "GL Texture Clamp Off", ""},
-		{8192, "GL_CLAMP_8192", 0, "GL Texture Clamp 8192", ""},
-		{4096, "GL_CLAMP_4096", 0, "GL Texture Clamp 4096", ""},
-		{2048, "GL_CLAMP_2048", 0, "GL Texture Clamp 2048", ""},
-		{1024, "GL_CLAMP_1024", 0, "GL Texture Clamp 1024", ""},
-		{512, "GL_CLAMP_512", 0, "GL Texture Clamp 512", ""},
-		{256, "GL_CLAMP_256", 0, "GL Texture Clamp 256", ""},
-		{128, "GL_CLAMP_128", 0, "GL Texture Clamp 128", ""},
+		{0, "GL_CLAMP_OFF", 0, "Off", ""},
+		{8192, "GL_CLAMP_8192", 0, "8192", ""},
+		{4096, "GL_CLAMP_4096", 0, "4096", ""},
+		{2048, "GL_CLAMP_2048", 0, "2048", ""},
+		{1024, "GL_CLAMP_1024", 0, "1024", ""},
+		{512, "GL_CLAMP_512", 0, "512", ""},
+		{256, "GL_CLAMP_256", 0, "256", ""},
+		{128, "GL_CLAMP_128", 0, "128", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem audio_mixing_samples_items[] = {
@@ -2174,7 +2134,32 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "temporary_directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "tempdir");
 	RNA_def_property_ui_text(prop, "Temporary Directory", "The directory for storing temporary save files.");
+
+	/* Autosave  */
+
+	prop= RNA_def_property(srna, "save_version", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "versions");
+	RNA_def_property_range(prop, 0, 32);
+	RNA_def_property_ui_text(prop, "Save Versions", "The number of old versions to maintain in the current directory, when manually saving.");
+
+	prop= RNA_def_property(srna, "auto_save_temporary_files", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_AUTOSAVE);
+	RNA_def_property_ui_text(prop, "Auto Save Temporary Files", "Automatic saving of temporary files.");
+
+	prop= RNA_def_property(srna, "auto_save_time", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "savetime");
+	RNA_def_property_range(prop, 1, 60);
+	RNA_def_property_ui_text(prop, "Auto Save Time", "The time (in minutes) to wait between automatic temporary saves.");
+
+	prop= RNA_def_property(srna, "recent_files", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 0, 30);
+	RNA_def_property_ui_text(prop, "Recent Files", "Maximum number of recently opened files to remember.");
+
+	prop= RNA_def_property(srna, "save_preview_images", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_SAVE_PREVIEWS);
+	RNA_def_property_ui_text(prop, "Save Preview Images", "Enables automatic saving of preview images in the .blend file.");
 }
+
 
 void RNA_def_userdef(BlenderRNA *brna)
 {
@@ -2185,10 +2170,9 @@ void RNA_def_userdef(BlenderRNA *brna)
 		{0, "VIEW_CONTROLS", 0, "View", ""},
 		{1, "EDIT_METHODS", 0, "Editing", ""},
 		{2, "LANGUAGE_COLORS", 0, "Language", ""},
-		{3, "AUTO_SAVE", 0, "Auto Save", ""},
-		{4, "SYSTEM_OPENGL", 0, "System & OpenGL", ""},
-		{5, "FILE_PATHS", 0, "File Paths", ""},
-		{6, "THEMES", 0, "Themes", ""},
+		{3, "SYSTEM_OPENGL", 0, "System", ""},
+		{4, "FILE_PATHS", 0, "File", ""},
+		{5, "THEMES", 0, "Themes", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	rna_def_userdef_dothemes(brna);
@@ -2224,11 +2208,6 @@ void RNA_def_userdef(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_UserDef_edit_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Edit Methods", "Settings for interacting with Blender data.");
 	
-	prop= RNA_def_property(srna, "autosave", PROP_POINTER, PROP_NEVER_NULL);
-	RNA_def_property_struct_type(prop, "UserPreferencesAutosave");
-	RNA_def_property_pointer_funcs(prop, "rna_UserDef_autosave_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Auto Save", "Automatic backup file settings.");
-
 	prop= RNA_def_property(srna, "language", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "UserPreferencesLanguage");
 	RNA_def_property_pointer_funcs(prop, "rna_UserDef_language_get", NULL, NULL);
@@ -2246,7 +2225,6 @@ void RNA_def_userdef(BlenderRNA *brna)
 	
 	rna_def_userdef_view(brna);
 	rna_def_userdef_edit(brna);
-	rna_def_userdef_autosave(brna);
 	rna_def_userdef_language(brna);
 	rna_def_userdef_filepaths(brna);
 	rna_def_userdef_system(brna);

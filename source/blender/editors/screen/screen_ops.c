@@ -2982,7 +2982,7 @@ static int userpref_show_invoke(bContext *C, wmOperator *unused, wmEvent *event)
 	rcti rect;
 	int sizex, sizey;
 	
-	sizex= 640;
+	sizex= 800;
 	sizey= 480;
 	
 	/* some magic to calculate postition */

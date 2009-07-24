@@ -195,7 +195,7 @@ class INFO_PT_view(bpy.types.Panel):
 
 		split = layout.split()
 		col = split.column()
-		colsplit = col.split(percentage=0.8)
+		colsplit = col.split(percentage=0.85)
 		colsplitcol = colsplit.column()
 		colsplitcol.itemL(text="Display:")
 		colsplitcol.itemR(view, "tooltips")
@@ -220,7 +220,7 @@ class INFO_PT_view(bpy.types.Panel):
 		
 		
 		col = split.column()
-		colsplit = col.split(percentage=0.8)
+		colsplit = col.split(percentage=0.85)
 		colsplitcol = colsplit.column()
 		colsplitcol.itemL(text="View Manipulation:")
 		colsplitcol.itemR(view, "auto_depth")
@@ -241,7 +241,7 @@ class INFO_PT_view(bpy.types.Panel):
 		colsplitcol.itemR(view, "ndof_rotate_speed", text="Orbit Speed")
 		
 		col = split.column()
-		colsplit = col.split(percentage=0.8)
+		colsplit = col.split(percentage=0.85)
 		colsplitcol = colsplit.column()
 		colsplitcol.itemL(text="Mouse Buttons:")
 		colsplitcol.itemR(view, "left_mouse_button_select")
@@ -264,7 +264,7 @@ class INFO_PT_view(bpy.types.Panel):
 
 		
 		col = split.column()
-		colsplit = col.split(percentage=0.8)
+		colsplit = col.split(percentage=0.85)
 		colsplitcol = colsplit.column()
 		#manipulator
 		colsplitcol.itemR(view, "use_manipulator")
@@ -301,7 +301,7 @@ class INFO_PT_edit(bpy.types.Panel):
 		
 		split = layout.split()
 		col = split.column()
-		colsplit = col.split(percentage=0.8)
+		colsplit = col.split(percentage=0.85)
 		colsplitcol = colsplit.column()
 
 		colsplitcol.itemL(text="Materials:")
@@ -322,7 +322,7 @@ class INFO_PT_edit(bpy.types.Panel):
 		colsplitcol.itemR(edit, "drag_immediately")
 		
 		col = split.column()
-		colsplit = col.split(percentage=0.8)
+		colsplit = col.split(percentage=0.85)
 		colsplitcol = colsplit.column()
 		colsplitcol.itemL(text="Snap:")
 		colsplitcol.itemR(edit, "snap_translate", text="Translate")
@@ -341,7 +341,7 @@ class INFO_PT_edit(bpy.types.Panel):
 		
 		
 		col = split.column()
-		colsplit = col.split(percentage=0.8)
+		colsplit = col.split(percentage=0.85)
 		colsplitcol = colsplit.column()
 
 		colsplitcol.itemL(text="Keyframing:")
@@ -367,7 +367,7 @@ class INFO_PT_edit(bpy.types.Panel):
 		colsplitcol.itemS()
 
 		col = split.column()
-		colsplit = col.split(percentage=0.8)
+		colsplit = col.split(percentage=0.85)
 		colsplitcol = colsplit.column()
 		colsplitcol.itemL(text="Duplicate:")
 		colsplitcol.itemR(edit, "duplicate_mesh", text="Mesh")
@@ -399,7 +399,7 @@ class INFO_PT_system(bpy.types.Panel):
 		
 		split = layout.split()
 		col = split.column()
-		colsplit = col.split(percentage=0.8)
+		colsplit = col.split(percentage=0.85)
 		colsplitcol = colsplit.column()
 		colsplitcol.itemR(system, "emulate_numpad")	
 		colsplitcol.itemS()
@@ -407,7 +407,10 @@ class INFO_PT_system(bpy.types.Panel):
 		#Weight Colors
 		colsplitcol.itemL(text="Weight Colors:")
 		colsplitcol.itemR(system, "use_weight_color_range", text="Use Custom Range")
-		colsplitcol.itemR(system, "weight_color_range")
+		
+		colsub = colsplitcol.column()
+		colsub.active = system.use_weight_color_range
+		colsub.template_color_ramp(system.weight_color_range, expand=True)
 		colsplitcol.itemS()
 		colsplitcol.itemS()
 		
@@ -417,7 +420,7 @@ class INFO_PT_system(bpy.types.Panel):
 		colsplitcol.itemR(system, "memory_cache_limit")
 		
 		col = split.column()	
-		colsplit = col.split(percentage=0.8)
+		colsplit = col.split(percentage=0.85)
 		colsplitcol = colsplit.column()
 		#System
 		colsplitcol.itemL(text="System:")
@@ -431,7 +434,7 @@ class INFO_PT_system(bpy.types.Panel):
 		colsplitcol.itemR(system, "audio_mixing_buffer")
 		
 		col = split.column()
-		colsplit = col.split(percentage=0.8)
+		colsplit = col.split(percentage=0.85)
 		colsplitcol = colsplit.column()
 		#OpenGL
 		colsplitcol.itemL(text="OpenGL:")
@@ -441,7 +444,7 @@ class INFO_PT_system(bpy.types.Panel):
 		row = colsplitcol.row()
 		row.itemR(system, "window_draw_method", expand=True)
 		colsplitcol.itemL(text="Textures:")
-		colsplitcol.itemR(system, "gl_texture_limit", text="Limit")
+		colsplitcol.itemR(system, "gl_texture_limit", text="Limit Size")
 		colsplitcol.itemR(system, "texture_time_out", text="Time Out")
 		colsplitcol.itemR(system, "texture_collection_rate", text="Collection Rate")		
 		
@@ -461,46 +464,48 @@ class INFO_PT_filepaths(bpy.types.Panel):
 		
 		split = layout.split()
 		col = split.column()
-		col.itemR(paths, "use_relative_paths")
-		col.itemR(paths, "compress_file")
-		col.itemR(paths, "fonts_directory")
-		col.itemR(paths, "textures_directory")
-		col.itemR(paths, "texture_plugin_directory")
-		col.itemR(paths, "sequence_plugin_directory")
-		col.itemR(paths, "render_output_directory")
-		col.itemR(paths, "python_scripts_directory")
-		col.itemR(paths, "sounds_directory")
-		col.itemR(paths, "temporary_directory")
-
-class INFO_PT_autosave(bpy.types.Panel):
-	__space_type__ = "USER_PREFERENCES"
-	__label__ = "Auto Save"
-	__no_header__ = True
-
-	def poll(self, context):
-		userpref = context.user_preferences
-		return (userpref.active_section == 'AUTO_SAVE')
-
-	def draw(self, context):
-		layout = self.layout
-		userpref = context.user_preferences
-		save = userpref.autosave
+		col.itemL(text="File Paths:")
+		splitcol = col.split(percentage=0.3)
 		
-		split = layout.split()
-		col = split.column()
-		colsplit = col.split(percentage=0.8)
-		colsplitcol = colsplit.column()
-		colsplitcol.itemR(save, "save_version")
-		colsplitcol.itemR(save, "recent_files")
-		colsplitcol.itemR(save, "save_preview_images")
+		splitcol.itemL(text="Fonts:")
+		splitcol.itemR(paths, "fonts_directory", text="")
+		splitcol = col.split(percentage=0.3)
+		splitcol.itemL(text="Textures:")
+		splitcol.itemR(paths, "textures_directory", text="")
+		splitcol = col.split(percentage=0.3)
+		splitcol.itemL(text="Texture Plugins:")
+		splitcol.itemR(paths, "texture_plugin_directory", text="")
+		splitcol = col.split(percentage=0.3)
+		splitcol.itemL(text="Sequence Plugins:")
+		splitcol.itemR(paths, "sequence_plugin_directory", text="")
+		splitcol = col.split(percentage=0.3)
+		splitcol.itemL(text="Render Output:")
+		splitcol.itemR(paths, "render_output_directory", text="")
+		splitcol = col.split(percentage=0.3)
+		splitcol.itemL(text="Scripts:")
+		splitcol.itemR(paths, "python_scripts_directory", text="")
+		splitcol = col.split(percentage=0.3)
+		splitcol.itemL(text="Sounds:")
+		splitcol.itemR(paths, "sounds_directory", text="")
+		splitcol = col.split(percentage=0.3)
+		splitcol.itemL(text="Temp:")
+		splitcol.itemR(paths, "temporary_directory", text="")
 		
 		col = split.column()
-		colsplit = col.split(percentage=0.8)
+		colsplit = col.split(percentage=0.2)
 		colsplitcol = colsplit.column()
-		colsplitcol.itemR(save, "auto_save_temporary_files")
+		colsplitcol = colsplit.column()
+		colsplitcol.itemL(text="Save & Load:")
+		colsplitcol.itemR(paths, "use_relative_paths")
+		colsplitcol.itemR(paths, "compress_file")
+		colsplitcol.itemL(text="Auto Save:")
+		colsplitcol.itemR(paths, "save_version")
+		colsplitcol.itemR(paths, "recent_files")
+		colsplitcol.itemR(paths, "save_preview_images")
+		colsplitcol.itemR(paths, "auto_save_temporary_files")
 		colsub = colsplitcol.column()
-		colsub.enabled = save.auto_save_temporary_files
-		colsub.itemR(save, "auto_save_time")
+		colsub.enabled = paths.auto_save_temporary_files
+		colsub.itemR(paths, "auto_save_time")
 
 class INFO_PT_language(bpy.types.Panel):
 	__space_type__ = "USER_PREFERENCES"
@@ -553,7 +558,6 @@ bpy.types.register(INFO_PT_view)
 bpy.types.register(INFO_PT_edit)
 bpy.types.register(INFO_PT_system)
 bpy.types.register(INFO_PT_filepaths)
-bpy.types.register(INFO_PT_autosave)
 bpy.types.register(INFO_PT_language)
 bpy.types.register(INFO_PT_bottombar)
 
