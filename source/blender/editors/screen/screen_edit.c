@@ -54,6 +54,7 @@
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 
+/* XXX actually should be not here... solve later */
 #include "wm_subwindow.h"
 
 #include "screen_intern.h"	/* own module include */
@@ -404,7 +405,7 @@ ScrArea *area_split(wmWindow *win, bScreen *sc, ScrArea *sa, char dir, float fac
 
 /* empty screen, with 1 dummy area without spacedata */
 /* uses window size */
-bScreen *screen_add(wmWindow *win, Scene *scene, char *name)
+bScreen *ED_screen_add(wmWindow *win, Scene *scene, char *name)
 {
 	bScreen *sc;
 	ScrVert *sv1, *sv2, *sv3, *sv4;
@@ -947,7 +948,7 @@ bScreen *ED_screen_duplicate(wmWindow *win, bScreen *sc)
 	if(sc->full != SCREENNORMAL) return NULL; /* XXX handle this case! */
 	
 	/* make new empty screen: */
-	newsc= screen_add(win, sc->scene, sc->id.name+2);
+	newsc= ED_screen_add(win, sc->scene, sc->id.name+2);
 	/* copy all data */
 	screen_copy(newsc, sc);
 	/* set in window */
@@ -1368,8 +1369,6 @@ void ED_screen_set_scene(bContext *C, Scene *scene)
 	
 	ED_update_for_newframe(C, 1);
 	
-//	set_radglobal();
-	
 	/* complete redraw */
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	
@@ -1434,7 +1433,7 @@ void ed_screen_fullarea(bContext *C, ScrArea *sa)
 		
 		oldscreen->full = SCREENFULL;
 		
-		sc= screen_add(CTX_wm_window(C), CTX_data_scene(C), "temp");
+		sc= ED_screen_add(CTX_wm_window(C), CTX_data_scene(C), "temp");
 		sc->full = SCREENFULL; // XXX
 		
 		/* timer */

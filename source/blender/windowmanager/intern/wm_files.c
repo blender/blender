@@ -605,11 +605,17 @@ void WM_write_file(bContext *C, char *target, int compress, ReportList *reports)
 /* operator entry */
 int WM_write_homefile(bContext *C, wmOperator *op)
 {
+	wmWindow *win= CTX_wm_window(C);
 	char tstr[FILE_MAXDIR+FILE_MAXFILE];
 	int write_flags;
 	
+	/* check current window and close it if temp */
+	if(win->screen->full == SCREENTEMP) {
+		wm_window_close(C, win);
+	}
+	
 	BLI_make_file_string("/", tstr, BLI_gethome(), ".B25.blend");
-		
+	
 	/*  force save as regular blend file */
 	write_flags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);
 

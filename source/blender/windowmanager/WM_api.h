@@ -51,7 +51,16 @@ void		WM_init				(struct bContext *C);
 void		WM_exit				(struct bContext *C);
 void		WM_main				(struct bContext *C);
 
-struct wmWindow	*WM_window_open		(struct bContext *C, struct rcti *rect);
+struct wmWindow	*WM_window_open	(struct bContext *C, struct rcti *rect);
+
+			/* defines for 'type' WM_window_open_temp */
+#define WM_WINDOW_RENDER		0
+#define WM_WINDOW_USERPREFS		1
+#define WM_WINDOW_FILESEL		2
+
+void		WM_window_open_temp	(struct bContext *C, struct rcti *position, int type);
+
+
 
 			/* files */
 int			WM_read_homefile	(struct bContext *C, struct wmOperator *op);

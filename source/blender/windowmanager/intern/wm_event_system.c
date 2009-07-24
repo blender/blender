@@ -513,8 +513,12 @@ static void wm_handler_op_context(bContext *C, wmEventHandler *handler)
 			for(sa= screen->areabase.first; sa; sa= sa->next)
 				if(sa==handler->op_area)
 					break;
-			if(sa==NULL)
-				printf("internal error: handler (%s) has invalid area\n", handler->op->type->idname);
+			if(sa==NULL) {
+				/* when changing screen layouts with running modal handlers (like render display), this
+				   is not an error to print */
+				if(handler->op==NULL)
+					printf("internal error: handler (%s) has invalid area\n", handler->op->type->idname);
+			}
 			else {
 				ARegion *ar;
 				CTX_wm_area_set(C, sa);
@@ -663,7 +667,6 @@ static void wm_event_modalkeymap(wmOperator *op, wmEvent *event)
 					
 				event->type= EVT_MODAL_MAP;
 				event->val= kmi->propvalue;
-				printf("found modal event %s %d\n", kmi->idname, kmi->propvalue);
 			}
 		}
 	}

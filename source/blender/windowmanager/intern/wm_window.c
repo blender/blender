@@ -70,7 +70,7 @@ static int prefsizx= 0, prefsizy= 0, prefstax= 0, prefstay= 0;
 
 /* ******** win open & close ************ */
 
-
+/* XXX this one should correctly check for apple top header... */
 static void wm_get_screensize(int *width_r, int *height_r) 
 {
 	unsigned int uiwidth;
@@ -80,6 +80,34 @@ static void wm_get_screensize(int *width_r, int *height_r)
 	*width_r= uiwidth;
 	*height_r= uiheight;
 }
+
+/* keeps offset and size within monitor bounds */
+/* XXX solve dual screen... */
+static void wm_window_check_position(rcti *rect)
+{
+	int width, height, d;
+	
+	wm_get_screensize(&width, &height);
+	
+#ifdef __APPLE__
+	height -= 22;
+#endif
+	
+	if(rect->xmax > width) {
+		d= rect->xmax - width;
+		rect->xmax -= d;
+		rect->xmin -= d;
+	}
+	if(rect->ymax > height) {
+		d= rect->ymax - height;
+		rect->ymax -= d;
+		rect->ymin -= d;
+	}
+	
+	if(rect->xmin < 0) rect->xmin= 0;
+	if(rect->ymin < 0) rect->ymin= 0;
+}
+
 
 static void wm_ghostwindow_destroy(wmWindow *win) 
 {
@@ -93,7 +121,7 @@ static void wm_ghostwindow_destroy(wmWindow *win)
    ED_screen_exit should have been called */
 void wm_window_free(bContext *C, wmWindow *win)
 {
-	wmTimer *wt;
+	wmTimer *wt, *wtnext;
 	
 	/* update context */
 	if(C) {
@@ -107,14 +135,20 @@ void wm_window_free(bContext *C, wmWindow *win)
 			CTX_wm_window_set(C, NULL);
 		
 		WM_event_remove_handlers(C, &win->handlers);
+
+		/* end running jobs, a job end also removes its timer */
+		for(wt= win->timers.first; wt; wt= wtnext) {
+			wtnext= wt->next;
+			if(wt->event_type==TIMERJOBS)
+				wm_jobs_timer_ended(wm, wt);
+		}
 	}	
 	
 	if(win->eventstate) MEM_freeN(win->eventstate);
 	
-	for(wt= win->timers.first; wt; wt= wt->next)
-		if(wt->customdata)
-			MEM_freeN(wt->customdata);
-	BLI_freelistN(&win->timers);
+	/* timer removing, need to call this api function */
+	while((wt= win->timers.first))
+		WM_event_remove_window_timer(win, wt);
 	
 	wm_event_free_all(win);
 	wm_subwindows_free(win);
@@ -174,7 +208,7 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 }
 
 /* this is event from ghost, or exit-blender op */
-static void wm_window_close(bContext *C, wmWindow *win)
+void wm_window_close(bContext *C, wmWindow *win)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	BLI_remlink(&wm->windows, win);
@@ -183,35 +217,50 @@ static void wm_window_close(bContext *C, wmWindow *win)
 	ED_screen_exit(C, win, win->screen);
 	wm_window_free(C, win);
 	
-	if(wm->windows.first==NULL)
+	/* check remaining windows */
+	if(wm->windows.first) {
+		for(win= wm->windows.first; win; win= win->next)
+			if(win->screen->full!=SCREENTEMP)
+				break;
+		/* in this case we close all */
+		if(win==NULL)
+			WM_exit(C);
+	}
+	else
 		WM_exit(C);
 }
 
 void wm_window_title(wmWindowManager *wm, wmWindow *win)
 {
-	/* this is set to 1 if you don't have .B.blend open */
-	if(G.save_over) {
-		char *str= MEM_mallocN(strlen(G.sce) + 16, "title");
-		
-		if(wm->file_saved)
-			sprintf(str, "Blender [%s]", G.sce);
-		else
-			sprintf(str, "Blender* [%s]", G.sce);
-		
-		GHOST_SetTitle(win->ghostwin, str);
-		
-		MEM_freeN(str);
-	}
-	else
+	/* handle the 'temp' window */
+	if(win->screen && win->screen->full==SCREENTEMP) {
 		GHOST_SetTitle(win->ghostwin, "Blender");
+	}
+	else {
+		
+		/* this is set to 1 if you don't have .B.blend open */
+		if(G.save_over) {
+			char *str= MEM_mallocN(strlen(G.sce) + 16, "title");
+			
+			if(wm->file_saved)
+				sprintf(str, "Blender [%s]", G.sce);
+			else
+				sprintf(str, "Blender* [%s]", G.sce);
+			
+			GHOST_SetTitle(win->ghostwin, str);
+			
+			MEM_freeN(str);
+		}
+		else
+			GHOST_SetTitle(win->ghostwin, "Blender");
 
 #ifdef __APPLE__
-	if(wm->file_saved)
-		GHOST_SetWindowState(win->ghostwin, GHOST_kWindowStateUnModified);
-	else
-		GHOST_SetWindowState(win->ghostwin, GHOST_kWindowStateModified);
+		if(wm->file_saved)
+			GHOST_SetWindowState(win->ghostwin, GHOST_kWindowStateUnModified);
+		else
+			GHOST_SetWindowState(win->ghostwin, GHOST_kWindowStateModified);
 #endif
-
+	}
 }
 
 /* belongs to below */
@@ -332,6 +381,71 @@ wmWindow *WM_window_open(bContext *C, rcti *rect)
 	wm_check(C);
 	
 	return win;
+}
+
+/* uses screen->full tag to define what to do, currently it limits
+   to only one "temp" window for render out, preferences, filewindow, etc */
+/* type is #define in WM_api.h */
+
+void WM_window_open_temp(bContext *C, rcti *position, int type)
+{
+	wmWindow *win;
+	ScrArea *sa;
+	
+	/* changes rect to fit within desktop */
+	wm_window_check_position(position);
+	
+	/* test if we have a temp screen already */
+	for(win= CTX_wm_manager(C)->windows.first; win; win= win->next)
+		if(win->screen->full == SCREENTEMP)
+			break;
+	
+	/* add new window? */
+	if(win==NULL) {
+		win= wm_window_new(C);
+		
+		win->posx= position->xmin;
+		win->posy= position->ymin;
+	}
+	
+	win->sizex= position->xmax - position->xmin;
+	win->sizey= position->ymax - position->ymin;
+	
+	if(win->ghostwin) {
+		wm_window_set_size(win, win->sizex, win->sizey) ;
+		wm_window_raise(win);
+	}
+	
+	/* add new screen? */
+	if(win->screen==NULL)
+		win->screen= ED_screen_add(win, CTX_data_scene(C), "temp");
+	win->screen->full = SCREENTEMP; 
+	
+	/* make window active, and validate/resize */
+	CTX_wm_window_set(C, win);
+	wm_check(C);
+	
+	/* ensure it shows the right spacetype editor */
+	sa= win->screen->areabase.first;
+	CTX_wm_area_set(C, sa);
+	
+	if(type==WM_WINDOW_RENDER) {
+		ED_area_newspace(C, sa, SPACE_IMAGE);
+	}
+	else {
+		ED_area_newspace(C, sa, SPACE_INFO);
+	}
+	
+	ED_screen_set(C, win->screen);
+	
+	if(sa->spacetype==SPACE_IMAGE)
+		GHOST_SetTitle(win->ghostwin, "Blender Render");
+	else if(ELEM(sa->spacetype, SPACE_OUTLINER, SPACE_INFO))
+		GHOST_SetTitle(win->ghostwin, "Blender User Preferences");
+	else if(sa->spacetype==SPACE_FILE)
+		GHOST_SetTitle(win->ghostwin, "Blender File View");
+	else
+		GHOST_SetTitle(win->ghostwin, "Blender");
 }
 
 
@@ -664,10 +778,12 @@ void WM_event_remove_window_timer(wmWindow *win, wmTimer *timer)
 {
 	wmTimer *wt;
 	
+	/* extra security check */
 	for(wt= win->timers.first; wt; wt= wt->next)
 		if(wt==timer)
 			break;
 	if(wt) {
+		
 		BLI_remlink(&win->timers, wt);
 		if(wt->customdata)
 			MEM_freeN(wt->customdata);
