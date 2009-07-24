@@ -62,6 +62,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -484,6 +485,16 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				ale->datatype= ALE_NONE;
 			}
 				break;
+			case ANIMTYPE_FILLPARTD:
+			{
+				Object *ob= (Object *)data;
+				
+				ale->flag= FILTER_PART_OBJC(ob);
+				
+				ale->key_data= NULL;
+				ale->datatype= ALE_NONE;
+			}
+				break;
 			
 			case ANIMTYPE_DSMAT:
 			{
@@ -546,6 +557,17 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				AnimData *adt= wo->adt;
 				
 				ale->flag= FILTER_WOR_SCED(wo); 
+				
+				ale->key_data= (adt) ? adt->action : NULL;
+				ale->datatype= ALE_ACT;
+			}
+				break;
+			case ANIMTYPE_DSPART:
+			{
+				ParticleSettings *part= (ParticleSettings*)ale->data;
+				AnimData *adt= part->adt;
+				
+				ale->flag= FILTER_PART_OBJD(part); 
 				
 				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
@@ -1008,6 +1030,60 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 	return items;
 }
 
+static int animdata_filter_dopesheet_particles (ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
+{
+	bAnimListElem *ale=NULL;
+	Object *ob= base->object;
+	ParticleSystem *psys = ob->particlesystem.first;
+	int items= 0, first = 1;
+
+	for(; psys; psys=psys->next) {
+		short ok = 0;
+
+		if(ELEM(NULL, psys->part, psys->part->adt))
+			continue;
+
+		ANIMDATA_FILTER_CASES(psys->part,
+			{ /* AnimData blocks - do nothing... */ },
+			ok=1;, 
+			ok=1;, 
+			ok=1;)
+		if (ok == 0) continue;
+
+		/* include particles-expand widget? */
+		if (first && (filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
+			ale= make_new_animlistelem(ob, ANIMTYPE_FILLPARTD, base, ANIMTYPE_OBJECT, (ID *)ob);
+			if (ale) {
+				BLI_addtail(anim_data, ale);
+				items++;
+			}
+			first = 0;
+		}
+		
+		/* add particle settings? */
+		if (FILTER_PART_OBJC(ob) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+			if ((filter_mode & ANIMFILTER_CHANNELS)){
+				ale = make_new_animlistelem(psys->part, ANIMTYPE_DSPART, base, ANIMTYPE_OBJECT, (ID *)psys->part);
+				if (ale) {
+					BLI_addtail(anim_data, ale);
+					items++;
+				}
+			}
+			
+			if (FILTER_PART_OBJD(psys->part) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+				ANIMDATA_FILTER_CASES(psys->part,
+					{ /* AnimData blocks - do nothing... */ },
+					items += animdata_filter_nla(anim_data, psys->part->adt, filter_mode, psys->part, ANIMTYPE_DSPART, (ID *)psys->part);, 
+					items += animdata_filter_fcurves(anim_data, psys->part->adt->drivers.first, NULL, psys->part, ANIMTYPE_DSPART, filter_mode, (ID *)psys->part);, 
+					items += animdata_filter_action(anim_data, psys->part->adt->action, filter_mode, psys->part, ANIMTYPE_DSPART, (ID *)psys->part);)
+			}
+		}
+	}
+	
+	/* return the number of items added to the list */
+	return items;
+}
+
 static int animdata_filter_dopesheet_obdata (ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
 {
 	bAnimListElem *ale=NULL;
@@ -1229,6 +1305,10 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 	}
 	if (obdata_ok) 
 		items += animdata_filter_dopesheet_obdata(anim_data, ads, base, filter_mode);
+
+	/* particles */
+	if(ob->particlesystem.first && !(ads->filterflag & ADS_FILTER_NOPART))
+		items += animdata_filter_dopesheet_particles(anim_data, ads, base, filter_mode);
 	
 	/* return the number of items added to the list */
 	return items;
@@ -1406,7 +1486,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 		if (base->object) {
 			Object *ob= base->object;
 			Key *key= ob_get_key(ob);
-			short actOk=1, keyOk=1, dataOk=1, matOk=1;
+			short actOk=1, keyOk=1, dataOk=1, matOk=1, partOk=1;
 			
 			/* firstly, check if object can be included, by the following fanimors:
 			 *	- if only visible, must check for layer and also viewport visibility
@@ -1548,9 +1628,35 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 						dataOk= 0;
 						break;
 				}
+
+				/* particles */
+				partOk = 0;
+				if(!(ads->filterflag & ADS_FILTER_NOPART) && ob->particlesystem.first) {
+					ParticleSystem *psys = ob->particlesystem.first;
+					for(; psys; psys=psys->next) {
+						if (psys->part) {
+							/* if particlesettings has relevant animation data, break */
+							ANIMDATA_FILTER_CASES(psys->part, 
+								{
+									/* for the special AnimData blocks only case, we only need to add
+									 * the block if it is valid... then other cases just get skipped (hence ok=0)
+									 */
+									ANIMDATA_ADD_ANIMDATA(psys->part);
+									partOk=0;
+								},
+								partOk= 1;, 
+								partOk= 1;, 
+								partOk= 1;)
+						}
+							
+						if (partOk) 
+							break;
+					}
+				}
+
 				
 				/* check if all bad (i.e. nothing to show) */
-				if (!actOk && !keyOk && !dataOk && !matOk)
+				if (!actOk && !keyOk && !dataOk && !matOk && !partOk)
 					continue;
 			}
 			else {
@@ -1599,9 +1705,22 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 						dataOk= 0;
 						break;
 				}
+
+				/* particles */
+				partOk = 0;
+				if(ob->particlesystem.first) {
+					ParticleSystem *psys = ob->particlesystem.first;
+					for(; psys; psys=psys->next) {
+						if(psys->part && ANIMDATA_HAS_KEYS(psys->part)) {
+							partOk = 1;
+							break;
+						}
+
+					}
+				}
 				
 				/* check if all bad (i.e. nothing to show) */
-				if (!actOk && !keyOk && !dataOk && !matOk)
+				if (!actOk && !keyOk && !dataOk && !matOk && !partOk)
 					continue;
 			}
 			

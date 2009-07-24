@@ -46,6 +46,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
@@ -693,6 +694,22 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					strcpy(name, "Materials");
 				}
 					break;
+				case ANIMTYPE_FILLPARTD: /* object particles (dopesheet) expand widget */
+				{
+					Object *ob = (Object *)ale->data;
+					
+					group = 4;
+					indent = 1;
+					special = ICON_PARTICLE_DATA;
+					
+					if (FILTER_PART_OBJC(ob))
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+						
+					strcpy(name, "Particles");
+				}
+					break;
 				
 				
 				case ANIMTYPE_DSMAT: /* single material (dopesheet) expand widget */
@@ -793,6 +810,23 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					strcpy(name, wo->id.name+2);
 				}
 					break;
+				case ANIMTYPE_DSPART: /* particle (dopesheet) expand widget */
+				{
+					ParticleSettings *part= (ParticleSettings*)ale->data;
+					
+					group = 0;
+					indent = 0;
+					special = ICON_PARTICLE_DATA;
+					offset = 21;
+					
+					if (FILTER_PART_OBJD(part))	
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+					
+					strcpy(name, part->id.name+2);
+				}
+					break;
 				
 				case ANIMTYPE_NLATRACK: /* NLA Track */
 				{
@@ -801,8 +835,8 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					indent= 0;
 					
 					if (ale->id) {
-						/* special exception for materials */
-						if (GS(ale->id->name) == ID_MA) {
+						/* special exception for materials and particles */
+						if (ELEM(GS(ale->id->name),ID_MA,ID_PA)) {
 							offset= 21;
 							indent= 1;
 						}
@@ -846,8 +880,8 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					group = 5;
 					
 					if (ale->id) {
-						/* special exception for materials */
-						if (GS(ale->id->name) == ID_MA) {
+						/* special exception for materials and particles */
+						if (ELEM(GS(ale->id->name),ID_MA,ID_PA)) {
 							offset= 21;
 							indent= 1;
 						}

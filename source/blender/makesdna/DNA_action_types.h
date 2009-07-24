@@ -310,12 +310,13 @@ typedef enum DOPESHEET_FILTERFLAG {
 	ADS_FILTER_NOCUR			= (1<<13),
 	ADS_FILTER_NOWOR			= (1<<14),
 	ADS_FILTER_NOSCE			= (1<<15),
+	ADS_FILTER_NOPART			= (1<<16),
 	
 		/* NLA-specific filters */
 	ADS_FILTER_NLA_NOACT		= (1<<20),	/* if the AnimData block has no NLA data, don't include to just show Action-line */
 	
 		/* combination filters (some only used at runtime) */
-	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM|ADS_FILTER_NOMAT|ADS_FILTER_NOLAM|ADS_FILTER_NOCUR),
+	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM|ADS_FILTER_NOMAT|ADS_FILTER_NOLAM|ADS_FILTER_NOCUR|ADS_FILTER_NOPART),
 } DOPESHEET_FILTERFLAG;	
 
 /* DopeSheet general flags */

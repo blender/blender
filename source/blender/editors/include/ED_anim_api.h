@@ -118,6 +118,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_FILLACTD,
 	ANIMTYPE_FILLDRIVERS,
 	ANIMTYPE_FILLMATD,
+	ANIMTYPE_FILLPARTD,
 	
 	ANIMTYPE_DSMAT,
 	ANIMTYPE_DSLAM,
@@ -125,6 +126,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_DSCUR,
 	ANIMTYPE_DSSKEY,
 	ANIMTYPE_DSWOR,
+	ANIMTYPE_DSPART,
 	
 	ANIMTYPE_SHAPEKEY,		// XXX probably can become depreceated???
 	
@@ -181,12 +183,14 @@ typedef enum eAnimFilter_Flags {
 #define EXPANDED_OBJC(ob) ((ob->nlaflag & OB_ADS_COLLAPSED)==0)
 	/* 'Sub-object' channels (flags stored in Object block) */
 #define FILTER_MAT_OBJC(ob) ((ob->nlaflag & OB_ADS_SHOWMATS))
+#define FILTER_PART_OBJC(ob) ((ob->nlaflag & OB_ADS_SHOWPARTS))
 	/* 'Sub-object' channels (flags stored in Data block) */
 #define FILTER_SKE_OBJD(key) ((key->flag & KEYBLOCK_DS_EXPAND))
 #define FILTER_MAT_OBJD(ma) ((ma->flag & MA_DS_EXPAND))
 #define FILTER_LAM_OBJD(la) ((la->flag & LA_DS_EXPAND))
 #define FILTER_CAM_OBJD(ca) ((ca->flag & CAM_DS_EXPAND))
 #define FILTER_CUR_OBJD(cu) ((cu->flag & CU_DS_EXPAND))
+#define FILTER_PART_OBJD(part) ((part->flag & PART_DS_EXPAND))
 	/* 'Sub-object/Action' channels (flags stored in Action) */
 #define SEL_ACTC(actc) ((actc->flag & ACT_SELECTED))
 #define EXPANDED_ACTC(actc) ((actc->flag & ACT_COLLAPSED)==0)

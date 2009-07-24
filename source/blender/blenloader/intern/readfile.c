@@ -9171,6 +9171,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 			part->path_end = 1.0f;
+			part->clength = 1.0f;
 		}
 		/* set old pointcaches to have disk cache flag */
 		for(ob = main->object.first; ob; ob= ob->id.next) {

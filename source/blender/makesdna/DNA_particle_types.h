@@ -246,7 +246,8 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_REACT_MULTIPLE	2
 
 #define PART_LOOP			4
-//#define PART_LOOP_INSTANT	8
+		/* for dopesheet */
+#define PART_DS_EXPAND		8
 
 #define PART_HAIR_GEOMETRY	16
 
