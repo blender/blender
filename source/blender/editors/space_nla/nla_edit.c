@@ -78,6 +78,28 @@
 #include "nla_private.h" // FIXME... maybe this shouldn't be included?
 
 /* *********************************************** */
+/* Utilities exported to other places... */
+
+/* Perform validation for blending/extend settings */
+void ED_nla_postop_refresh (bAnimContext *ac)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ANIMDATA | ANIMFILTER_FOREDIT);
+	
+	/* get blocks to work on */
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		/* performing auto-blending, extend-mode validation, etc. */
+		BKE_nla_validate_state(ale->data);
+	}
+	
+	/* free temp memory */
+	BLI_freelistN(&anim_data);
+}
+
+/* *********************************************** */
 /* 'Special' Editing */
 
 /* ******************** Tweak-Mode Operators ***************************** */
@@ -315,6 +337,9 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 	/* free temp data */
 	BLI_freelistN(&anim_data);
 	
+	/* refresh auto strip properties */
+	ED_nla_postop_refresh(&ac);
+	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 	
@@ -427,6 +452,9 @@ static int nlaedit_add_transition_exec (bContext *C, wmOperator *op)
 	
 	/* was anything added? */
 	if (done) {
+		/* refresh auto strip properties */
+		ED_nla_postop_refresh(&ac);
+		
 		/* set notifier that things have changed */
 		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 		
@@ -633,6 +661,9 @@ static int nlaedit_duplicate_exec (bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	if (done) {
+		/* refresh auto strip properties */
+		ED_nla_postop_refresh(&ac);
+		
 		/* set notifier that things have changed */
 		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 		
@@ -717,6 +748,9 @@ static int nlaedit_delete_exec (bContext *C, wmOperator *op)
 	
 	/* free temp data */
 	BLI_freelistN(&anim_data);
+	
+	/* refresh auto strip properties */
+	ED_nla_postop_refresh(&ac);
 	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
@@ -860,6 +894,9 @@ static int nlaedit_split_exec (bContext *C, wmOperator *op)
 	/* free temp data */
 	BLI_freelistN(&anim_data);
 	
+	/* refresh auto strip properties */
+	ED_nla_postop_refresh(&ac);
+	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 	
@@ -993,6 +1030,9 @@ static int nlaedit_move_up_exec (bContext *C, wmOperator *op)
 	/* free temp data */
 	BLI_freelistN(&anim_data);
 	
+	/* refresh auto strip properties */
+	ED_nla_postop_refresh(&ac);
+	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 	
@@ -1063,6 +1103,9 @@ static int nlaedit_move_down_exec (bContext *C, wmOperator *op)
 	
 	/* free temp data */
 	BLI_freelistN(&anim_data);
+	
+	/* refresh auto strip properties */
+	ED_nla_postop_refresh(&ac);
 	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
@@ -1222,6 +1265,9 @@ static int nlaedit_clear_scale_exec (bContext *C, wmOperator *op)
 	/* free temp data */
 	BLI_freelistN(&anim_data);
 	
+	/* refresh auto strip properties */
+	ED_nla_postop_refresh(&ac);
+	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 	
@@ -1359,6 +1405,9 @@ static int nlaedit_snap_exec (bContext *C, wmOperator *op)
 	
 	/* free temp data */
 	BLI_freelistN(&anim_data);
+	
+	/* refresh auto strip properties */
+	ED_nla_postop_refresh(&ac);
 	
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);

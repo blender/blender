@@ -343,6 +343,12 @@ void ANIM_nla_mapping_draw(struct gla2DDrawInfo *di, struct AnimData *adt, short
 /* Apply/Unapply NLA mapping to all keyframes in the nominated F-Curve */
 void ANIM_nla_mapping_apply_fcurve(struct AnimData *adt, struct FCurve *fcu, short restore, short only_keys);
 
+/* ..... */
+
+/* Perform auto-blending/extend refreshes after some operations */
+// NOTE: defined in space_nla/nla_edit.c, not in animation/
+void ED_nla_postop_refresh(bAnimContext *ac);
+
 /* ------------- Utility macros ----------------------- */
 
 /* checks if the given BezTriple is selected */

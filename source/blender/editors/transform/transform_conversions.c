@@ -4779,7 +4779,6 @@ void special_aftertrans_update(TransInfo *t)
 			/* get channels to work on */
 			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 			
-			/* these should all be ipo-blocks */
 			for (ale= anim_data.first; ale; ale= ale->next) {
 				AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 				FCurve *fcu= (FCurve *)ale->key_data;
@@ -4826,43 +4825,26 @@ void special_aftertrans_update(TransInfo *t)
 		{
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
+			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NLATRACKS);
 			
-			/* firstly, make the strips normal again */
-			{
-				short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NLATRACKS);
+			/* get channels to work on */
+			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+			
+			for (ale= anim_data.first; ale; ale= ale->next) {
+				NlaTrack *nlt= (NlaTrack *)ale->data;
 				
-				/* get channels to work on */
-				ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+				/* make sure strips are in order again */
+				BKE_nlatrack_sort_strips(nlt);
 				
-				for (ale= anim_data.first; ale; ale= ale->next) {
-					NlaTrack *nlt= (NlaTrack *)ale->data;
-					
-					/* make sure strips are in order again */
-					BKE_nlatrack_sort_strips(nlt);
-					
-					/* remove the temp metas */
-					BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
-				}
-				
-				/* free temp memory */
-				BLI_freelistN(&anim_data);
+				/* remove the temp metas */
+				BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
 			}
+			
+			/* free temp memory */
+			BLI_freelistN(&anim_data);
 			
 			/* perform after-transfrom validation */
-			{
-				short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ANIMDATA | ANIMFILTER_FOREDIT);
-				
-				/* get blocks to work on */
-				ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-				
-				for (ale= anim_data.first; ale; ale= ale->next) {
-					/* performing auto-blending, extend-mode validation, etc. */
-					BKE_nla_validate_state(ale->data);
-				}
-				
-				/* free temp memory */
-				BLI_freelistN(&anim_data);
-			}
+			ED_nla_postop_refresh(&ac);
 		}
 	}
 	else if (t->obedit) {

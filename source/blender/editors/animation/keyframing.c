@@ -1081,9 +1081,15 @@ static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
 	pup= uiPupMenuBegin(C, "Insert Keyframe", 0);
 	layout= uiPupMenuLayout(pup);
 	
-	/* active Keying Set */
-	uiItemIntO(layout, "Active Keying Set", 0, "ANIM_OT_insert_keyframe_menu", "type", i++);
-	uiItemS(layout);
+	/* active Keying Set 
+	 *	- only include entry if it exists
+	 */
+	if (scene->active_keyingset) {
+		uiItemIntO(layout, "Active Keying Set", 0, "ANIM_OT_insert_keyframe_menu", "type", i++);
+		uiItemS(layout);
+	}
+	else
+		i++;
 	
 	/* user-defined Keying Sets 
 	 *	- these are listed in the order in which they were defined for the active scene
@@ -1112,7 +1118,7 @@ static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
 void ANIM_OT_insert_keyframe_menu (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Insert Keyframe";
+	ot->name= "Insert Keyframe Menu";
 	ot->idname= "ANIM_OT_insert_keyframe_menu";
 	
 	/* callbacks */
