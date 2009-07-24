@@ -53,6 +53,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RNA_access.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -362,12 +364,8 @@ static uiBlock *time_framemenu(bContext *C, ARegion *ar, void *arg_unused)
 #define B_TL_PLAY		752
 #define B_TL_RPLAY		760
 #define B_TL_FF			753
-#define B_TL_PREVKEY	754
-#define B_TL_NEXTKEY	755
 #define B_TL_STOP		756
 #define B_TL_PREVIEWON	757
-#define B_TL_INSERTKEY	758
-#define B_TL_DELETEKEY	759
 
 #define B_FLIPINFOMENU 0
 #define B_NEWFRAME 0
@@ -425,14 +423,6 @@ void do_time_buttons(bContext *C, void *arg, int event)
 			WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 			//update_for_newframe();
 			break;
-		case B_TL_PREVKEY:
-			/* previous keyframe */
-			//nextprev_timeline_key(-1);
-			break;
-		case B_TL_NEXTKEY:
-			/* next keyframe */
-			//nextprev_timeline_key(1);
-			break;
 			
 		case B_TL_PREVIEWON:
 			if (scene->r.psfra) {
@@ -458,6 +448,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
 	Scene *scene= CTX_data_scene(C);
 	uiBlock *block;
+	uiBut *but;
 	int xco, yco= 3;
 	char *menustr= NULL;
 	
@@ -540,8 +531,9 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	uiDefIconBut(block, BUT, B_TL_REW, ICON_REW,
 				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Skip to Start frame (Shift DownArrow)");
 	xco+= XIC;
-	uiDefIconBut(block, BUT, B_TL_PREVKEY, ICON_PREV_KEYFRAME,
-				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Skip to previous keyframe (Ctrl PageDown)");
+	
+	but= uiDefIconButO(block, BUT, "SCREEN_OT_keyframe_jump", WM_OP_INVOKE_REGION_WIN, ICON_PREV_KEYFRAME, xco,yco,XIC,YIC, "Skip to previous keyframe (Ctrl PageDown)");
+		RNA_boolean_set(uiButGetOperatorPtrRNA(but), "next", 0);
 	xco+= XIC;
 	
 	if(CTX_wm_screen(C)->animtimer) {
@@ -562,9 +554,10 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	}
 	xco+= XIC;
 	
-	uiDefIconBut(block, BUT, B_TL_NEXTKEY, ICON_NEXT_KEYFRAME,
-				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Skip to next keyframe (Ctrl PageUp)");
+	but= uiDefIconButO(block, BUT, "SCREEN_OT_keyframe_jump", WM_OP_INVOKE_REGION_WIN, ICON_NEXT_KEYFRAME, xco,yco,XIC,YIC, "Skip to next keyframe (Ctrl PageUp)");
+		RNA_boolean_set(uiButGetOperatorPtrRNA(but), "next", 1);
 	xco+= XIC;
+	
 	uiDefIconBut(block, BUT, B_TL_FF, ICON_FF,
 				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Skip to End frame (Shift UpArrow)");
 	uiBlockEndAlign(block);
