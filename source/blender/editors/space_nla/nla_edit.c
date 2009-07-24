@@ -88,7 +88,7 @@ void ED_nla_postop_refresh (bAnimContext *ac)
 	short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ANIMDATA | ANIMFILTER_FOREDIT);
 	
 	/* get blocks to work on */
-	ANIM_animdata_filter(&ac, &anim_data, filter, ac->data, ac->datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		/* performing auto-blending, extend-mode validation, etc. */

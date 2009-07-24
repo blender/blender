@@ -31,6 +31,7 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
+#include "BLI_dlrbTree.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_image_types.h"
@@ -63,6 +64,7 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen_types.h"
+#include "ED_keyframes_draw.h"
 
 #include "RE_pipeline.h"
 #include "IMB_imbuf.h"
@@ -1373,7 +1375,6 @@ static void SCREEN_OT_region_scale(wmOperatorType *ot)
 
 /* ************** frame change operator ***************************** */
 
-
 /* function to be called outside UI context, or for redo */
 static int frame_offset_exec(bContext *C, wmOperator *op)
 {
@@ -1400,6 +1401,93 @@ static void SCREEN_OT_frame_offset(wmOperatorType *ot)
 
 	/* rna */
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
+}
+
+/* ************** jump to keyframe operator ***************************** */
+
+/* helper function - find actkeycolumn that occurs on cframe, or the nearest one if not found */
+// TODO: make this an API func?
+static ActKeyColumn *cfra_find_nearest_next_ak (ActKeyColumn *ak, float cframe, short next)
+{
+	ActKeyColumn *akn= NULL;
+	
+	/* sanity checks */
+	if (ak == NULL)
+		return NULL;
+	
+	/* check if this is a match, or whether it is in some subtree */
+	if (cframe < ak->cfra)
+		akn= cfra_find_nearest_next_ak(ak->left, cframe, next);
+	else if (cframe > ak->cfra)
+		akn= cfra_find_nearest_next_ak(ak->right, cframe, next);
+		
+	/* if no match found (or found match), just use the current one */
+	if (akn == NULL)
+		return ak;
+	else
+		return akn;
+}
+
+/* function to be called outside UI context, or for redo */
+static int keyframe_jump_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	DLRBT_Tree keys;
+	ActKeyColumn *ak;
+	short next= RNA_boolean_get(op->ptr, "next");
+	
+	/* sanity checks */
+	if (scene == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* init binarytree-list for getting keyframes */
+	BLI_dlrbTree_init(&keys);
+	
+	/* populate tree with keyframe nodes */
+	if (scene && scene->adt)
+		scene_to_keylist(NULL, scene, &keys, NULL);
+	if (ob && ob->adt)
+		ob_to_keylist(NULL, ob, &keys, NULL);
+		
+	/* build linked-list for searching */
+	BLI_dlrbTree_linkedlist_sync(&keys);
+	
+	/* find nearest keyframe in the right direction */
+	ak= cfra_find_nearest_next_ak(keys.root, (float)scene->r.cfra, next);
+	
+	/* set the new frame (if keyframe found) */
+	if (ak) {
+		if (next && ak->next)
+			scene->r.cfra= (int)ak->next->cfra;
+		else if (!next && ak->prev)
+			scene->r.cfra= (int)ak->prev->cfra;
+		else {
+			printf("ERROR: no suitable keyframe found. Using %f as new frame \n", ak->cfra);
+			scene->r.cfra= (int)ak->cfra; // XXX
+		}
+	}
+		
+	/* free temp stuff */
+	BLI_dlrbTree_free(&keys);
+	
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, CTX_data_scene(C));
+
+	return OPERATOR_FINISHED;
+}
+
+static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
+{
+	ot->name = "Jump to Keyframe";
+	ot->idname = "SCREEN_OT_keyframe_jump";
+
+	ot->exec= keyframe_jump_exec;
+
+	ot->poll= ED_operator_screenactive;
+	ot->flag= 0;
+
+	/* rna */
+	RNA_def_boolean(ot->srna, "next", 1, "Next Keyframe", "");
 }
 
 /* ************** switch screen operator ***************************** */
@@ -2955,6 +3043,8 @@ void ED_operatortypes_screen(void)
 	
 	/*frame changes*/
 	WM_operatortype_append(SCREEN_OT_frame_offset);
+	WM_operatortype_append(SCREEN_OT_keyframe_jump);
+	
 	WM_operatortype_append(SCREEN_OT_animation_step);
 	WM_operatortype_append(SCREEN_OT_animation_play);
 	
@@ -3065,6 +3155,9 @@ void ED_keymap_screen(wmWindowManager *wm)
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -10);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -1);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", RIGHTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
+	
+	WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", PAGEUPKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", PAGEDOWNKEY, KM_PRESS, KM_CTRL, 0)->ptr, "next", 0);
 	
 	/* play (forward and backwards) */
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT, 0);
