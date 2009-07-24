@@ -2326,9 +2326,12 @@ void RNA_enum_items_add(EnumPropertyItem **items, int *totitem, EnumPropertyItem
 
 void RNA_enum_items_add_value(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item, int value)
 {
-	for(; item->identifier; item++)
-		if(item->value == value)
+	for(; item->identifier; item++) {
+		if(item->value == value) {
 			RNA_enum_item_add(items, totitem, item);
+			break; // break on first match - does this break anything? (is quick hack to get object->parent_type working ok for armature/lattice)
+		}
+	}
 }
 
 void RNA_enum_item_end(EnumPropertyItem **items, int *totitem)

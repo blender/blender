@@ -111,10 +111,67 @@ static void rna_Scene_end_frame_set(PointerRNA *ptr, int value)
 	data->r.efra= value;
 }
 
+static int rna_Scene_use_preview_range_get(PointerRNA *ptr)
+{
+	Scene *data= (Scene*)ptr->data;
+	
+	/* this is simply overloaded to assume that preview-range 
+	 * start frame cannot be less than 1 when on,
+	 * so psfra=0 means 'off'
+	 */
+	return (data->r.psfra != 0);
+}
+
+static void rna_Scene_use_preview_range_set(PointerRNA *ptr, int value)
+{
+	Scene *data= (Scene*)ptr->data;
+	
+	/* if enable, copy range from render-range, otherwise just clear */
+	if (value) {
+		data->r.psfra= data->r.sfra;
+		data->r.pefra= data->r.efra;
+	}
+	else
+		data->r.psfra= 0;
+}
+
+
+static void rna_Scene_preview_range_start_frame_set(PointerRNA *ptr, int value)
+{
+	Scene *data= (Scene*)ptr->data;
+	
+	/* check if enabled already */
+	if (data->r.psfra == 0) {
+		/* set end of preview range to end frame, then clamp as per normal */
+		// TODO: or just refuse to set instead?
+		data->r.pefra= data->r.efra;
+	}
+	
+	/* now set normally */
+	CLAMP(value, 1, data->r.pefra);
+	data->r.psfra= value;
+}
+
+static void rna_Scene_preview_range_end_frame_set(PointerRNA *ptr, int value)
+{
+	Scene *data= (Scene*)ptr->data;
+	
+	/* check if enabled already */
+	if (data->r.psfra == 0) {
+		/* set start of preview range to start frame, then clamp as per normal */
+		// TODO: or just refuse to set instead?
+		data->r.psfra= data->r.sfra; 
+	}
+	
+	/* now set normally */
+	CLAMP(value, data->r.psfra, MAXFRAME);
+	data->r.pefra= value;
+}
+
 static void rna_Scene_frame_update(bContext *C, PointerRNA *ptr)
 {
 	//Scene *scene= ptr->id.data;
-	//update_for_newframe();
+	//ED_update_for_newframe(C);
 }
 
 static int rna_SceneRenderData_threads_get(PointerRNA *ptr)
@@ -1608,12 +1665,14 @@ void RNA_def_scene(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
+	
+	/* Struct definition */
 	srna= RNA_def_struct(brna, "Scene", "ID");
 	RNA_def_struct_ui_text(srna, "Scene", "Scene consisting objects and defining time and render related settings.");
 	RNA_def_struct_ui_icon(srna, ICON_SCENE_DATA);
 	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
-
+	
+	/* Global Settings */
 	prop= RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Camera", "Active camera used for rendering the scene.");
@@ -1626,19 +1685,23 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "cursor");
 	RNA_def_property_ui_text(prop, "Cursor Location", "3D cursor location.");
 	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);
-
+	
+	/* Bases/Objects */
 	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "base", NULL);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_ui_text(prop, "Objects", "");
 	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Scene_objects_get", 0, 0, 0, 0, 0);
 
+	/* Layers */
 	prop= RNA_def_property(srna, "visible_layers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_ui_text(prop, "Visible Layers", "Layers visible when rendering the scene.");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_layer_set");
-
+	
+	
+	/* Frame Range Stuff */
 	prop= RNA_def_property(srna, "current_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.cfra");
@@ -1665,20 +1728,46 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "frame_step");
 	RNA_def_property_ui_text(prop, "Frame Step", "Number of frames to skip forward while rendering/playing back each frame");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-
+	
+	/* Preview Range (frame-range for UI playback) */
+	prop=RNA_def_property(srna, "use_preview_range", PROP_BOOLEAN, PROP_NONE); /* use_preview_range is not really a separate setting in SDNA */
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Scene_use_preview_range_get", "rna_Scene_use_preview_range_set");
+	RNA_def_property_ui_text(prop, "Use Preview Range", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "preview_range_start_frame", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_int_sdna(prop, NULL, "r.psfra");
+	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_preview_range_start_frame_set", NULL);
+	RNA_def_property_ui_text(prop, "Preview Range Start Frame", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "preview_range_end_frame", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_int_sdna(prop, NULL, "r.pefra");
+	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_preview_range_end_frame_set", NULL);
+	RNA_def_property_ui_text(prop, "Preview Range End Frame", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	/* Stamp */
 	prop= RNA_def_property(srna, "stamp_note", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "r.stamp_udata");
 	RNA_def_property_ui_text(prop, "Stamp Note", "User define note for the render stamping.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-
+	
+	/* Nodes (Compositing) */
 	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Node Tree", "Compositing node tree.");
 	
+	/* Sequencer */
 	prop= RNA_def_property(srna, "sequence_editor", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ed");
 	RNA_def_property_struct_type(prop, "SequenceEditor");
 	RNA_def_property_ui_text(prop, "Sequence Editor", "");
 	
+	/* Keying Sets */
+		// TODO: hide the fact that active keyingset is an int?
 	prop= RNA_def_property(srna, "keyingsets", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "keyingsets", NULL);
 	RNA_def_property_struct_type(prop, "KeyingSet");
@@ -1687,17 +1776,20 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "active_keyingset", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active Keying Set", "Current Keying Set index.");
-
+	
+	/* Tool Settings */
 	prop= RNA_def_property(srna, "tool_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "toolsettings");
 	RNA_def_property_struct_type(prop, "ToolSettings");
 	RNA_def_property_ui_text(prop, "Tool Settings", "");
-
+	
+	/* Render Data */
 	prop= RNA_def_property(srna, "render_data", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "r");
 	RNA_def_property_struct_type(prop, "SceneRenderData");
 	RNA_def_property_ui_text(prop, "Render Data", "");
-
+	
+	/* Markers */
 	prop= RNA_def_property(srna, "timeline_markers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "markers", NULL);
 	RNA_def_property_struct_type(prop, "TimelineMarker");

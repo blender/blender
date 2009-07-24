@@ -44,7 +44,7 @@
 static EnumPropertyItem parent_type_items[] = {
 	{PAROBJECT, "OBJECT", 0, "Object", ""},
 	{PARCURVE, "CURVE", 0, "Curve", ""},
-	//{PARKEY, "KEY", 0, "Key", ""},
+	{PARKEY, "KEY", 0, "Key", ""},
 	{PARSKEL, "ARMATURE", 0, "Armature", ""},
 	{PARSKEL, "LATTICE", 0, "Lattice", ""}, // PARSKEL reuse will give issues
 	{PARVERT1, "VERTEX", 0, "Vertex", ""},
@@ -199,9 +199,9 @@ static EnumPropertyItem *rna_Object_parent_type_itemf(bContext *C, PointerRNA *p
 		if(par->type == OB_CURVE)
 			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARCURVE);
 		else if(par->type == OB_LATTICE)
-			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARSKEL);
+			RNA_enum_items_add_value(&item, &totitem, &parent_type_items[4], PARSKEL); // special hack: prevents this overriding others
 		else if(par->type == OB_ARMATURE) {
-			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARSKEL);
+			RNA_enum_items_add_value(&item, &totitem, &parent_type_items[3], PARSKEL); // special hack: prevents this being overrided
 			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARBONE);
 		}
 		else if(par->type == OB_MESH) {
