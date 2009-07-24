@@ -200,18 +200,15 @@ def copy_images(dest_dir):
 
 # XXX not converted
 def test_nurbs_compat(ob):
-	if ob.type != 'CURVE':
+	if ob.type != 'Curve':
 		return False
 	
-	for nu in ob.data.curves:
+	for nu in ob.data:
 		if (not nu.knotsV) and nu.type != 1: # not a surface and not bezier
 			return True
-
-#	for nu in ob.data:
-#		if (not nu.knotsV) and nu.type != 1: # not a surface and not bezier
-#			return True
 	
 	return False
+
 
 # XXX not converted
 def write_nurb(file, ob, ob_mat):

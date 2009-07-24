@@ -332,10 +332,11 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 
 	/* These three matrix properties await an implementation of the PROP_MATRIX subtype, which currently doesn't exist. */
-/*	prop= RNA_def_property(srna, "channel_matrix", PROP_FLOAT, PROP_MATRIX);
-	RNA_def_property_struct_type(prop, "chan_mat");
+	prop= RNA_def_property(srna, "channel_matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "chan_mat");
+	RNA_def_property_array(prop, 16);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Channel Matrix", "4x4 matrix, before constraints.");*/
+	RNA_def_property_ui_text(prop, "Channel Matrix", "4x4 matrix, before constraints.");
 
 	/* kaito says this should be not user-editable; I disagree; power users should be able to force this in python; he's the boss. */
 	prop= RNA_def_property(srna, "pose_matrix", PROP_FLOAT, PROP_MATRIX);

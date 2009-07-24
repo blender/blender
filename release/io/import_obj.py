@@ -57,7 +57,8 @@ def stripFile(path):
 	lastSlash= max(path.rfind('\\'), path.rfind('/'))
 	if lastSlash != -1:
 		path= path[:lastSlash]
-	return '%s%s' % (path, sys.sep)
+	return '%s%s' % (path, os.sep)
+# 	return '%s%s' % (path, sys.sep)
 
 def stripPath(path):
 	'''Strips the slashes from the back of a string'''
@@ -219,8 +220,9 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 	
 	# Add an MTL with the same name as the obj if no MTLs are spesified.
 	temp_mtl= stripExt(stripPath(filepath))+ '.mtl'
-	
-	if sys.exists(DIR + temp_mtl) and temp_mtl not in material_libs:
+
+	if os.path.exists(DIR + temp_mtl) and temp_mtl not in material_libs:
+# 	if sys.exists(DIR + temp_mtl) and temp_mtl not in material_libs:
 		material_libs.append( temp_mtl )
 	del temp_mtl
 	
@@ -236,7 +238,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 	
 	for libname in material_libs:
 		mtlpath= DIR + libname
-		if not bpy.sys.exists(mtlpath):
+		if not os.path.exists(mtlpath):
 # 		if not sys.exists(mtlpath):
 			#print '\tError Missing MTL: "%s"' % mtlpath
 			pass
@@ -247,7 +249,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 			for line in mtl: #.xreadlines():
 				if line.startswith('newmtl'):
 					context_material_name= line_value(line.split())
-					if unique_materials.has_key(context_material_name):
+					if context_material_name in unique_materials:
 						context_material = unique_materials[ context_material_name ]
 					else:
 						context_material = None
@@ -377,14 +379,14 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP, 
 				face_vert_loc_indicies[enum] = vert_remap[i] # remap to the local index
 			
 			matname= face[2]
-			if matname and not unique_materials_split.has_key(matname):
+			if matname and matname not in unique_materials_split:
 				unique_materials_split[matname] = unique_materials[matname]
 		
 		faces_split.append(face)
 	
 	
 	# remove one of the itemas and reorder
-	return [(value[0], value[1], value[2], key_to_name(key)) for key, value in face_split_dict.iteritems()]
+	return [(value[0], value[1], value[2], key_to_name(key)) for key, value in face_split_dict.items()]
 
 
 def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, verts_tex, faces, unique_materials, unique_material_images, unique_smooth_groups, vertex_groups, dataname):
@@ -397,7 +399,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 	
 	if unique_smooth_groups:
 		sharp_edges= {}
-		smooth_group_users= dict([ (context_smooth_group, {}) for context_smooth_group in unique_smooth_groups.iterkeys() ])
+		smooth_group_users= dict([ (context_smooth_group, {}) for context_smooth_group in unique_smooth_groups.keys() ])
 		context_smooth_group_old= -1
 	
 	# Split fgons into tri's
@@ -408,7 +410,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 	context_object= None
 	
 	# reverse loop through face indicies
-	for f_idx in xrange(len(faces)-1, -1, -1):
+	for f_idx in range(len(faces)-1, -1, -1):
 		
 		face_vert_loc_indicies,\
 		face_vert_tex_indicies,\
@@ -425,7 +427,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 			if CREATE_EDGES:
 				# generators are better in python 2.4+ but can't be used in 2.3
 				# edges.extend( (face_vert_loc_indicies[i], face_vert_loc_indicies[i+1]) for i in xrange(len_face_vert_loc_indicies-1) )
-				edges.extend( [(face_vert_loc_indicies[i], face_vert_loc_indicies[i+1]) for i in xrange(len_face_vert_loc_indicies-1)] )
+				edges.extend( [(face_vert_loc_indicies[i], face_vert_loc_indicies[i+1]) for i in range(len_face_vert_loc_indicies-1)] )
 
 			faces.pop(f_idx)
 		else:
@@ -437,7 +439,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 					edge_dict= smooth_group_users[context_smooth_group]
 					context_smooth_group_old= context_smooth_group
 				
-				for i in xrange(len_face_vert_loc_indicies):
+				for i in range(len_face_vert_loc_indicies):
 					i1= face_vert_loc_indicies[i]
 					i2= face_vert_loc_indicies[i-1]
 					if i1>i2: i1,i2= i2,i1
@@ -485,8 +487,8 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 		
 	# Build sharp edges
 	if unique_smooth_groups:
-		for edge_dict in smooth_group_users.itervalues():
-			for key, users in edge_dict.iteritems():
+		for edge_dict in smooth_group_users.values():
+			for key, users in edge_dict.items():
 				if users==1: # This edge is on the boundry of a group
 					sharp_edges[key]= None
 	
@@ -496,7 +498,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 	
 	materials= [None] * len(unique_materials)
 	
-	for name, index in material_mapping.iteritems():
+	for name, index in material_mapping.items():
 		materials[index]= unique_materials[name]
 
 	me= bpy.data.add_mesh(dataname)
@@ -639,7 +641,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 	# Create the vertex groups. No need to have the flag passed here since we test for the 
 	# content of the vertex_groups. If the user selects to NOT have vertex groups saved then
 	# the following test will never run
-	for group_name, group_indicies in vertex_groups.iteritems():
+	for group_name, group_indicies in vertex_groups.items():
 		group= ob.add_vertex_group(group_name)
 # 		me.addVertGroup(group_name)
 		for vertex_index in group_indicies:
@@ -660,16 +662,16 @@ def create_nurbs(scn, context_nurbs, vert_loc, new_objects):
 	cstype = context_nurbs.get('cstype', None)
 	
 	if cstype == None:
-		print '\tWarning, cstype not found'
+		print('\tWarning, cstype not found')
 		return
 	if cstype != 'bspline':
-		print '\tWarning, cstype is not supported (only bspline)'
+		print('\tWarning, cstype is not supported (only bspline)')
 		return
 	if not curv_idx:
-		print '\tWarning, curv argument empty or not set'
+		print('\tWarning, curv argument empty or not set')
 		return
 	if len(deg) > 1 or parm_v:
-		print '\tWarning, surfaces not supported'
+		print('\tWarning, surfaces not supported')
 		return
 	
 	cu = bpy.data.curves.new(name, 'Curve')
@@ -691,7 +693,7 @@ def create_nurbs(scn, context_nurbs, vert_loc, new_objects):
 	# get for endpoint flag from the weighting
 	if curv_range and len(parm_u) > deg[0]+1:
 		do_endpoints = True
-		for i in xrange(deg[0]+1):
+		for i in range(deg[0]+1):
 			
 			if abs(parm_u[i]-curv_range[0]) > 0.0001:
 				do_endpoints = False
@@ -773,7 +775,7 @@ def load_obj(filepath,
 	This function passes the file and sends the data off
 		to be split into objects and then converted into mesh objects
 	'''
-	print '\nimporting obj "%s"' % filepath
+	print('\nimporting obj "%s"' % filepath)
 	
 	if SPLIT_OBJECTS or SPLIT_GROUPS or SPLIT_MATERIALS:
 		POLYGROUPS = False
@@ -816,7 +818,7 @@ def load_obj(filepath,
 	# so we need to know weather 
 	context_multi_line= ''
 	
-	print '\tparsing obj file "%s"...' % filepath,
+	print('\tparsing obj file "%s"...' % filepath, end=' ')
 	time_sub= bpy.sys.time()
 # 	time_sub= sys.time()
 
@@ -1028,31 +1030,31 @@ def load_obj(filepath,
 	file.close()
 	time_new= bpy.sys.time()
 # 	time_new= sys.time()
-	print '%.4f sec' % (time_new-time_sub)
+	print('%.4f sec' % (time_new-time_sub))
 	time_sub= time_new
 	
 	
-	print '\tloading materials and images...',
+	print('\tloading materials and images...', end=' ')
 	create_materials(filepath, material_libs, unique_materials, unique_material_images, IMAGE_SEARCH)
 
 	time_new= bpy.sys.time()
 # 	time_new= sys.time()
-	print '%.4f sec' % (time_new-time_sub)
+	print('%.4f sec' % (time_new-time_sub))
 	time_sub= time_new
 	
 	if not ROTATE_X90:
 		verts_loc[:] = [(v[0], v[2], -v[1]) for v in verts_loc]
 	
 	# deselect all
-	if context.selected_objects:
-		bpy.ops.OBJECT_OT_select_all_toggle()
+# 	if context.selected_objects:
+# 		bpy.ops.OBJECT_OT_select_all_toggle()
 
 	scene = context.scene
 # 	scn = bpy.data.scenes.active
 # 	scn.objects.selected = []
 	new_objects= [] # put new objects here
 	
-	print '\tbuilding geometry...\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' % ( len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups) ),
+	print('\tbuilding geometry...\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' % ( len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups) ), end=' ')
 	# Split the mesh by objects/materials, may 
 	if SPLIT_OBJECTS or SPLIT_GROUPS:	SPLIT_OB_OR_GROUP = True
 	else:								SPLIT_OB_OR_GROUP = False
@@ -1095,8 +1097,8 @@ def load_obj(filepath,
 	time_new= bpy.sys.time()
 # 	time_new= sys.time()
 	
-	print '%.4f sec' % (time_new-time_sub)
-	print 'finished importing: "%s" in %.4f sec.' % (filepath, (time_new-time_main))
+	print('%.4f sec' % (time_new-time_sub))
+	print('finished importing: "%s" in %.4f sec.' % (filepath, (time_new-time_main)))
 
 
 DEBUG= True
@@ -1189,14 +1191,14 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 			
 		def do_help(e,v):
 			url = __url__[0]
-			print 'Trying to open web browser with documentation at this address...'
-			print '\t' + url
+			print('Trying to open web browser with documentation at this address...')
+			print('\t' + url)
 			
 			try:
 				import webbrowser
 				webbrowser.open(url)
 			except:
-				print '...could not open a browser window.'
+				print('...could not open a browser window.')
 		
 		def obj_ui():
 			ui_x, ui_y = GLOBALS['MOUSE']
@@ -1306,11 +1308,11 @@ def load_obj_ui_batch(file):
 
 DEBUG= False
 
-if __name__=='__main__' and not DEBUG:
-	if os and Window.GetKeyQualifiers() & Window.Qual.SHIFT:
-		Window.FileSelector(load_obj_ui_batch, 'Import OBJ Dir', '')
-	else:
-		Window.FileSelector(load_obj_ui, 'Import a Wavefront OBJ', '*.obj')
+# if __name__=='__main__' and not DEBUG:
+# 	if os and Window.GetKeyQualifiers() & Window.Qual.SHIFT:
+# 		Window.FileSelector(load_obj_ui_batch, 'Import OBJ Dir', '')
+# 	else:
+# 		Window.FileSelector(load_obj_ui, 'Import a Wavefront OBJ', '*.obj')
 
 	# For testing compatibility
 '''
@@ -1340,6 +1342,70 @@ else:
 #load_obj('/test.obj')
 #load_obj('/fe/obj/mba1.obj')
 
+
+
+class IMPORT_OT_obj(bpy.types.Operator):
+	'''
+	Operator documentation text, will be used for the operator tooltip and python docs.
+	'''
+	__idname__ = "import.obj"
+	__label__ = "Import OBJ"
+	
+	# List of operator properties, the attributes will be assigned
+	# to the class instance from the operator settings before calling.
+	
+	__props__ = [
+		bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for exporting the PLY file", maxlen= 1024, default= ""),
+
+		bpy.props.BoolProperty(attr="CREATE_SMOOTH_GROUPS", name="Smooth Groups", description="Surround smooth groups by sharp edges", default= True),
+		bpy.props.BoolProperty(attr="CREATE_FGONS", name="NGons as FGons", description="Import faces with more then 4 verts as fgons", default= True),
+		bpy.props.BoolProperty(attr="CREATE_EDGES", name="Lines as Edges", description="Import lines and faces with 2 verts as edge", default= True),
+		bpy.props.BoolProperty(attr="SPLIT_OBJECTS", name="Object", description="Import OBJ Objects into Blender Objects", default= True),
+		bpy.props.BoolProperty(attr="SPLIT_GROUPS", name="Group", description="Import OBJ Groups into Blender Objects", default= True),
+		bpy.props.BoolProperty(attr="SPLIT_MATERIALS", name="Material", description="Import each material into a seperate mesh (Avoids > 16 per mesh error)", default= True),
+		# old comment: only used for user feedback
+		# disabled this option because in old code a handler for it disabled SPLIT* params, it's not passed to load_obj
+		# bpy.props.BoolProperty(attr="KEEP_VERT_ORDER", name="Keep Vert Order", description="Keep vert and face order, disables split options, enable for morph targets", default= True),
+		bpy.props.BoolProperty(attr="ROTATE_X90", name="-X90", description="Rotate X 90.", default= True),
+		bpy.props.FloatProperty(attr="CLAMP_SIZE", name="Clamp Scale", description="Clamp the size to this maximum (Zero to Disable)", min=0.01, max=1000.0, soft_min=0.0, soft_max=1000.0, default=0.0),
+		bpy.props.BoolProperty(attr="POLYGROUPS", name="Poly Groups", description="Import OBJ groups as vertex groups.", default= True),
+		bpy.props.BoolProperty(attr="IMAGE_SEARCH", name="Image Search", description="Search subdirs for any assosiated images (Warning, may be slow)", default= True),
+	]
+	
+	def poll(self, context):
+		print("Poll")
+		return context.active_object != None
+	
+	def execute(self, context):
+		# print("Selected: " + context.active_object.name)
+
+		if not self.filename:
+			raise Exception("filename not set")
+
+		load_obj(self.filename,
+				 context,
+				 self.CLAMP_SIZE,
+				 self.CREATE_FGONS,
+				 self.CREATE_SMOOTH_GROUPS,
+				 self.CREATE_EDGES,
+				 self.SPLIT_OBJECTS,
+				 self.SPLIT_GROUPS,
+				 self.SPLIT_MATERIALS,
+				 self.ROTATE_X90,
+				 self.IMAGE_SEARCH,
+				 self.POLYGROUPS)
+
+		return ('FINISHED',)
+	
+	def invoke(self, context, event):	
+		wm = context.manager
+		wm.add_fileselect(self.__operator__)
+		return ('RUNNING_MODAL',)
+
+
+bpy.ops.add(IMPORT_OT_obj)
+
+
 # NOTES (all line numbers refer to 2.4x import_obj.py, not this file)
 # check later: line 489
 # can convert now: edge flags, edges: lines 508-528
@@ -1351,4 +1417,4 @@ else:
 # replaced BPyImage.comprehensiveImageLoad with a simplified version that only checks additional directory specified, but doesn't search dirs recursively (obj_image_load)
 # bitmask won't work? - 132
 # uses operator bpy.ops.OBJECT_OT_select_all_toggle() to deselect all (not necessary?)
-# uses bpy.sys.exists and bpy.sys.time()
+# uses bpy.sys.time()
