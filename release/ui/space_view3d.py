@@ -73,7 +73,8 @@ class VIEW3D_MT_view(bpy.types.Menu):
 		
 		layout.itemS()
 		
-		layout.itemO("screen.screen_full_area")
+		layout.itemO("screen.region_foursplit", text="Toggle Quad View")
+		layout.itemO("screen.screen_full_area", text="Toggle Full Screen")
 
 class VIEW3D_HT_header(bpy.types.Header):
 	__space_type__ = "VIEW_3D"
@@ -101,6 +102,7 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
 
 	def draw(self, context):
 		view = context.space_data
+		scene = context.scene
 		layout = self.layout
 		
 		split = layout.split()
@@ -113,6 +115,7 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
 		col.itemL(text="Grid:")
 		col.itemR(view, "grid_spacing", text="Spacing")
 		col.itemR(view, "grid_subdivisions", text="Subdivisions")
+		col.itemR(scene, "cursor_location", text="3D Cursor:")
 		
 class VIEW3D_PT_3dview_display(bpy.types.Panel):
 	__space_type__ = "VIEW_3D"
