@@ -811,6 +811,7 @@ enum {
 #define SNLA_DRAWTIME		(1<<2)
 #define SNLA_NOTRANSKEYCULL	(1<<3)
 #define SNLA_NODRAWCFRANUM	(1<<4)
+#define SNLA_NOSTRIPCURVES	(1<<5)
 
 /* time->flag */
 	/* show timing in frames instead of in seconds */

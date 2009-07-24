@@ -91,6 +91,8 @@ short BKE_nlatrack_has_animated_strips(struct NlaTrack *nlt);
 short BKE_nlatracks_have_animated_strips(ListBase *tracks);
 void BKE_nlastrip_validate_fcurves(struct NlaStrip *strip);
 
+void BKE_nla_validate_state(struct AnimData *adt);
+
 /* ............ */
 
 void BKE_nla_action_pushdown(struct AnimData *adt);

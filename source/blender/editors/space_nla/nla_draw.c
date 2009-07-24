@@ -252,10 +252,9 @@ static void nla_draw_strip_curves (NlaStrip *strip, View2D *v2d, float yminc, fl
 	// XXX nasty hacked color for now... which looks quite bad too...
 	glColor3f(0.7f, 0.7f, 0.7f);
 	
-	/* draw with AA'd line, 2 units thick (it's either 1 or 2 px) */
+	/* draw with AA'd line */
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
-	glLineWidth(2.0f);
 	
 	/* influence -------------------------- */
 	if (strip->flag & NLASTRIP_FLAG_USR_INFLUENCE) {
@@ -302,11 +301,10 @@ static void nla_draw_strip_curves (NlaStrip *strip, View2D *v2d, float yminc, fl
 	/* turn off AA'd lines */
 	glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
-	glLineWidth(1.0f);
 }
 
 /* main call for drawing a single NLA-strip */
-static void nla_draw_strip (AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
+static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
 {
 	float color[3];
 	
@@ -373,8 +371,11 @@ static void nla_draw_strip (AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2
 	gl_round_box_shade(GL_POLYGON, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1);
 	
 	
-	/* draw strip's control 'curves' */
-	nla_draw_strip_curves(strip, v2d, yminc, ymaxc);
+	/* draw strip's control 'curves'
+	 *	- only if user hasn't hidden them...
+	 */
+	if ((snla->flag & SNLA_NOSTRIPCURVES) == 0)
+		nla_draw_strip_curves(strip, v2d, yminc, ymaxc);
 	
 	/* draw strip outline 
 	 *	- color used here is to indicate active vs non-active
@@ -527,7 +528,7 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					for (strip=nlt->strips.first, index=1; strip; strip=strip->next, index++) {
 						if (BKE_nlastrip_within_bounds(strip, v2d->cur.xmin, v2d->cur.xmax)) {
 							/* draw the visualisation of the strip */
-							nla_draw_strip(adt, nlt, strip, v2d, yminc, ymaxc);
+							nla_draw_strip(snla, adt, nlt, strip, v2d, yminc, ymaxc);
 							
 							/* add the text for this strip to the cache */
 							nla_draw_strip_text(nlt, strip, index, v2d, yminc, ymaxc);

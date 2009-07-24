@@ -21,7 +21,7 @@
  * All rights reserved.
  *
  * 
- * Contributor(s): Blender Foundation
+ * Contributor(s): Blender Foundation, Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -100,7 +100,9 @@ static void nla_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 		uiItemO(layout, "Show Frames", 0, "ANIM_OT_time_toggle");
 	else
 		uiItemO(layout, "Show Seconds", 0, "ANIM_OT_time_toggle");
-
+	
+	uiItemR(layout, NULL, 0, &spaceptr, "show_strip_curves", 0, 0, 0);
+	
 	uiItemS(layout);
 	
 	uiItemS(layout);

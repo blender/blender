@@ -1060,6 +1060,10 @@ static void rna_def_space_nla(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SNLA_NODRAWCFRANUM);
 	RNA_def_property_ui_text(prop, "Show Frame Number Indicator", "Show frame number beside the current frame indicator line.");
 	
+	prop= RNA_def_property(srna, "show_strip_curves", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SNLA_NOSTRIPCURVES);
+	RNA_def_property_ui_text(prop, "Show Control Curves", "Show influence curves on strips.");
+	
 	/* editing */
 	// TODO... autosnap, dopesheet?
 }

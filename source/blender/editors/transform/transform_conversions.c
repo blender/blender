@@ -4645,34 +4645,34 @@ void special_aftertrans_update(TransInfo *t)
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		Scene *scene;
 		bAnimContext ac;
-
+		
 		/* initialise relevant anim-context 'context' data from TransInfo data */
 			/* NOTE: sync this with the code in ANIM_animdata_get_context() */
 		memset(&ac, 0, sizeof(bAnimContext));
-
+		
 		scene= ac.scene= t->scene;
 		ob= ac.obact= OBACT;
 		ac.sa= t->sa;
 		ac.ar= t->ar;
 		ac.spacetype= (t->sa)? t->sa->spacetype : 0;
 		ac.regiontype= (t->ar)? t->ar->regiontype : 0;
-
+		
 		if (ANIM_animdata_context_getdata(&ac) == 0)
 			return;
-
+		
 		if (ac.datatype == ANIMCONT_DOPESHEET) {
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
 			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
-
+			
 			/* get channels to work on */
 			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-
+			
 			/* these should all be ipo-blocks */
 			for (ale= anim_data.first; ale; ale= ale->next) {
 				AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 				FCurve *fcu= (FCurve *)ale->key_data;
-
+				
 				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
 				     ((cancelled == 0) || (duplicate)) )
 				{
@@ -4685,7 +4685,7 @@ void special_aftertrans_update(TransInfo *t)
 						posttrans_fcurve_clean(fcu);
 				}
 			}
-
+			
 			/* free temp memory */
 			BLI_freelistN(&anim_data);
 		}
@@ -4694,13 +4694,13 @@ void special_aftertrans_update(TransInfo *t)
 			// fixme... some of this stuff is not good
 			if (ob) {
 				ob->ctime= -1234567.0f;
-
+				
 				if (ob->pose || ob_get_key(ob))
 					DAG_object_flush_update(scene, ob, OB_RECALC);
 				else
 					DAG_object_flush_update(scene, ob, OB_RECALC_OB);
 			}
-
+			
 			/* Do curve cleanups? */
 			if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
 			     ((cancelled == 0) || (duplicate)) )
@@ -4712,7 +4712,7 @@ void special_aftertrans_update(TransInfo *t)
 #if 0 // XXX old animation system
 			/* fix up the Ipocurves and redraw stuff */
 			Key *key= (Key *)ac.data;
-
+			
 			if (key->ipo) {
 				if ( (saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
 				     ((cancelled == 0) || (duplicate)) )
@@ -4721,7 +4721,7 @@ void special_aftertrans_update(TransInfo *t)
 				}
 			}
 #endif // XXX old animation system
-
+			
 			DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
 		}
 #if 0 // XXX future of this is still not clear
@@ -4731,23 +4731,23 @@ void special_aftertrans_update(TransInfo *t)
 			{
 				bScreen *sc= (bScreen *)ac.data;
 				ScrArea *sa;
-
+				
 				/* BAD... we need to loop over all screen areas for current screen...
 				 * 	- sync this with actdata_filter_gpencil() in editaction.c
 				 */
 				for (sa= sc->areabase.first; sa; sa= sa->next) {
 					bGPdata *gpd= gpencil_data_getactive(sa);
-
+					
 					if (gpd)
 						posttrans_gpd_clean(gpd);
 				}
 			}
 		}
 #endif // XXX future of this is still not clear
-
+		
 		/* make sure all F-Curves are set correctly */
 		ANIM_editkeyframes_refresh(&ac);
-
+		
 		/* clear flag that was set for time-slide drawing */
 		saction->flag &= ~SACTION_MOVING;
 	}
@@ -4755,35 +4755,35 @@ void special_aftertrans_update(TransInfo *t)
 		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
 		Scene *scene;
 		bAnimContext ac;
-
+		
 		/* initialise relevant anim-context 'context' data from TransInfo data */
 			/* NOTE: sync this with the code in ANIM_animdata_get_context() */
 		memset(&ac, 0, sizeof(bAnimContext));
-
+		
 		scene= ac.scene= t->scene;
 		ob= ac.obact= OBACT;
 		ac.sa= t->sa;
 		ac.ar= t->ar;
 		ac.spacetype= (t->sa)? t->sa->spacetype : 0;
 		ac.regiontype= (t->ar)? t->ar->regiontype : 0;
-
+		
 		if (ANIM_animdata_context_getdata(&ac) == 0)
 			return;
-
+		
 		if (ac.datatype)
 		{
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
 			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY | ANIMFILTER_CURVEVISIBLE);
-
+			
 			/* get channels to work on */
 			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-
+			
 			/* these should all be ipo-blocks */
 			for (ale= anim_data.first; ale; ale= ale->next) {
 				AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 				FCurve *fcu= (FCurve *)ale->key_data;
-
+				
 				if ( (sipo->flag & SIPO_NOTRANSKEYCULL)==0 &&
 				     ((cancelled == 0) || (duplicate)) )
 				{
@@ -4796,58 +4796,74 @@ void special_aftertrans_update(TransInfo *t)
 						posttrans_fcurve_clean(fcu);
 				}
 			}
-
+			
 			/* free temp memory */
 			BLI_freelistN(&anim_data);
 		}
-
+		
 		/* make sure all F-Curves are set correctly */
 		ANIM_editkeyframes_refresh(&ac);
 	}
 	else if (t->spacetype == SPACE_NLA) {
 		Scene *scene;
 		bAnimContext ac;
-
+		
 		/* initialise relevant anim-context 'context' data from TransInfo data */
 		/* NOTE: sync this with the code in ANIM_animdata_get_context() */
 		memset(&ac, 0, sizeof(bAnimContext));
-
+		
 		scene= ac.scene= t->scene;
 		ob= ac.obact= OBACT;
 		ac.sa= t->sa;
 		ac.ar= t->ar;
 		ac.spacetype= (t->sa)? t->sa->spacetype : 0;
 		ac.regiontype= (t->ar)? t->ar->regiontype : 0;
-
+		
 		if (ANIM_animdata_context_getdata(&ac) == 0)
 			return;
-
+			
 		if (ac.datatype)
 		{
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
-			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NLATRACKS);
-
-			/* get channels to work on */
-			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-
-			for (ale= anim_data.first; ale; ale= ale->next) {
-				NlaTrack *nlt= (NlaTrack *)ale->data;
-
-				/* make sure strips are in order again */
-				BKE_nlatrack_sort_strips(nlt);
-
-				/* remove the temp metas */
-				BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
+			
+			/* firstly, make the strips normal again */
+			{
+				short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NLATRACKS);
+				
+				/* get channels to work on */
+				ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+				
+				for (ale= anim_data.first; ale; ale= ale->next) {
+					NlaTrack *nlt= (NlaTrack *)ale->data;
+					
+					/* make sure strips are in order again */
+					BKE_nlatrack_sort_strips(nlt);
+					
+					/* remove the temp metas */
+					BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
+				}
+				
+				/* free temp memory */
+				BLI_freelistN(&anim_data);
 			}
-
-			/* free temp memory */
-			BLI_freelistN(&anim_data);
+			
+			/* perform after-transfrom validation */
+			{
+				short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ANIMDATA | ANIMFILTER_FOREDIT);
+				
+				/* get blocks to work on */
+				ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+				
+				for (ale= anim_data.first; ale; ale= ale->next) {
+					/* performing auto-blending, extend-mode validation, etc. */
+					BKE_nla_validate_state(ale->data);
+				}
+				
+				/* free temp memory */
+				BLI_freelistN(&anim_data);
+			}
 		}
-
-		// XXX check on the calls below... we need some of these sanity checks
-		//synchronize_action_strips();
-		//ANIM_editkeyframes_refresh(&ac);
 	}
 	else if (t->obedit) {
 		// TRANSFORM_FIX_ME
