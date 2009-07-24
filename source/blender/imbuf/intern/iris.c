@@ -104,7 +104,9 @@ static int writetab(FILE *outf, unsigned int *tab, int len);
 static void readtab(FILE *inf, unsigned int *tab, int len);
 
 static void expandrow(unsigned char *optr, unsigned char *iptr, int z);
+static void expandrow2(float *optr, unsigned char *iptr, int z);
 static void interleaverow(unsigned char *lptr, unsigned char *cptr, int z, int n);
+static void interleaverow2(float *lptr, unsigned char *cptr, int z, int n);
 static int compressrow(unsigned char *lbuf, unsigned char *rlebuf, int z, int cnt);
 static void lumrow(unsigned char *rgbptr, unsigned char *lumptr, int n);
 
@@ -233,6 +235,7 @@ static void test_endian_zbuf(struct ImBuf *ibuf)
 struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 {
 	unsigned int *base, *lptr = NULL;
+	float *fbase, *fptr = NULL;
 	unsigned int *zbase, *zptr;
 	unsigned char *rledat;
 	unsigned int *starttab, *lengthtab;
@@ -257,8 +260,8 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 	
 	rle = ISRLE(image.type);
 	bpp = BPP(image.type);
-	if(bpp != 1 ) {
-		fprintf(stderr,"longimagedata: image must have 1 byte per pix chan\n");
+	if(bpp != 1 && bpp != 2) {
+		fprintf(stderr,"longimagedata: image must have 1 or 2 byte per pix chan\n");
 		return(0);
 	}
 	
@@ -273,6 +276,7 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 	}
 	
 	if (rle) {
+		
 		tablen = ysize*zsize*sizeof(int);
 		starttab = (unsigned int *)malloc(tablen);
 		lengthtab = (unsigned int *)malloc(tablen);
@@ -280,7 +284,7 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 		
 		readtab(inf,starttab,tablen);
 		readtab(inf,lengthtab,tablen);
-
+	
 		/* check data order */
 		cur = 0;
 		badorder = 0;
@@ -295,99 +299,200 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 			if(badorder)
 				break;
 		}
-
-		ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize, IB_rect, 0);
-		if (ibuf->depth > 32) ibuf->depth = 32;
-		base = ibuf->rect;
-		zbase = (unsigned int *)ibuf->zbuf;
-		
-		if (badorder) {
-			for(z=0; z<zsize; z++) {
+	
+		if (bpp == 1) {
+			
+			ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize, IB_rect, 0);
+			if (ibuf->depth > 32) ibuf->depth = 32;
+			base = ibuf->rect;
+			zbase = (unsigned int *)ibuf->zbuf;
+			
+			if (badorder) {
+				for(z=0; z<zsize; z++) {
+					lptr = base;
+					for(y=0; y<ysize; y++) {
+						file_offset = starttab[y+z*ysize];
+						
+						rledat = file_data + file_offset;
+						file_offset += lengthtab[y+z*ysize];
+						
+						expandrow((uchar *)lptr, rledat, 3-z);
+						lptr += xsize;
+					}
+				}
+			} else {
 				lptr = base;
+				zptr = zbase;
 				for(y=0; y<ysize; y++) {
-					file_offset = starttab[y+z*ysize];
-					
-					rledat = file_data + file_offset;
-					file_offset += lengthtab[y+z*ysize];
-					
-					expandrow((uchar *)lptr, rledat, 3-z);
+				
+					for(z=0; z<zsize; z++) {
+						
+						file_offset = starttab[y+z*ysize];
+
+						rledat = file_data + file_offset;
+						file_offset += lengthtab[y+z*ysize];
+						
+						if(z<4) expandrow((uchar *)lptr, rledat, 3-z);
+						else if(z<8) expandrow((uchar *)zptr, rledat, 7-z);
+					}
 					lptr += xsize;
+					zptr += xsize;
 				}
 			}
-		}
-		else {
-			lptr = base;
-			zptr = zbase;
-			for(y=0; y<ysize; y++) {
 			
-				for(z=0; z<zsize; z++) {
-					
-					file_offset = starttab[y+z*ysize];
 
-					rledat = file_data + file_offset;
-					file_offset += lengthtab[y+z*ysize];
-					
-					if(z<4) expandrow((uchar *)lptr, rledat, 3-z);
-					else if(z<8) expandrow((uchar *)zptr, rledat, 7-z);
+		} else {	/* bpp == 2 */
+			
+			ibuf = IMB_allocImBuf(xsize, ysize, 32, (flags & IB_rect)|IB_rectfloat, 0);
+			
+			fbase = ibuf->rect_float;
+			
+			if (badorder) {
+				for(z=0; z<zsize; z++) {
+					fptr = fbase;
+					for(y=0; y<ysize; y++) {
+						file_offset = starttab[y+z*ysize];
+						
+						rledat = file_data + file_offset;
+						file_offset += lengthtab[y+z*ysize];
+						
+						expandrow2(fptr, rledat, 3-z);
+						fptr += xsize * 4;
+					}
 				}
-				lptr += xsize;
-				zptr += xsize;
+			} else {
+				fptr = fbase;
+
+				for(y=0; y<ysize; y++) {
+				
+					for(z=0; z<zsize; z++) {
+						
+						file_offset = starttab[y+z*ysize];
+
+						rledat = file_data + file_offset;
+						file_offset += lengthtab[y+z*ysize];
+						
+						expandrow2(fptr, rledat, 3-z);
+						
+					}
+					fptr += xsize * 4;
+				}
 			}
 		}
 		
 		free(starttab);
-		free(lengthtab);
-	} 
-	else {
-	
-		ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize, IB_rect, 0);
-		if (ibuf->depth > 32) ibuf->depth = 32;
+		free(lengthtab);	
 
-		base = ibuf->rect;
-		zbase = (unsigned int *)ibuf->zbuf;
-		
-		file_offset = 512;
-		rledat = file_data + file_offset;
-		
-		for(z = 0; z < zsize; z++) {
+	} else {
+		if (bpp == 1) {
 			
-			if(z<4) lptr = base;
-			else if(z<8) lptr= zbase;
-			
-			for(y = 0; y < ysize; y++) {
+			ibuf = IMB_allocImBuf(xsize, ysize, 8 * zsize, IB_rect, 0);
+			if (ibuf->depth > 32) ibuf->depth = 32;
 
-				interleaverow((uchar *)lptr, rledat, 3-z, xsize);
-				rledat += xsize;
+			base = ibuf->rect;
+			zbase = (unsigned int *)ibuf->zbuf;
+			
+			file_offset = 512;
+			rledat = file_data + file_offset;
+			
+			for(z = 0; z < zsize; z++) {
 				
-				lptr += xsize;
+				if(z<4) lptr = base;
+				else if(z<8) lptr= zbase;
+				
+				for(y = 0; y < ysize; y++) {
+
+					interleaverow((uchar *)lptr, rledat, 3-z, xsize);
+					rledat += xsize;
+					
+					lptr += xsize;
+				}
+			}
+			
+		} else {	/* bpp == 2 */
+			
+			ibuf = IMB_allocImBuf(xsize, ysize, 32, (flags & IB_rect)|IB_rectfloat, 0);
+
+			fbase = ibuf->rect_float;
+
+			file_offset = 512;
+			rledat = file_data + file_offset;
+			
+			for(z = 0; z < zsize; z++) {
+				
+				fptr = fbase;
+				
+				for(y = 0; y < ysize; y++) {
+
+					interleaverow2(fptr, rledat, 3-z, xsize);
+					rledat += xsize * 2;
+					
+					fptr += xsize * 4;
+				}
+			}
+			
+		}
+	}
+	
+	
+	if (bpp == 1) {
+		
+		if (image.zsize == 1){
+			rect = (uchar *) ibuf->rect;
+			for (x = ibuf->x * ibuf->y; x > 0; x--) {
+				rect[0] = 255;
+				rect[1] = rect[2] = rect[3];
+				rect += 4;
+			}
+		} else if (image.zsize == 2){
+			/* grayscale with alpha */
+			rect = (uchar *) ibuf->rect;
+			for (x = ibuf->x * ibuf->y; x > 0; x--) {
+				rect[0] = rect[2];
+				rect[1] = rect[2] = rect[3];
+				rect += 4;
+			}
+		} else if (image.zsize == 3){
+			/* add alpha */
+			rect = (uchar *) ibuf->rect;
+			for (x = ibuf->x * ibuf->y; x > 0; x--) {
+				rect[0] = 255;
+				rect += 4;
 			}
 		}
+		
+	} else {	/* bpp == 2 */
+		
+		if (image.zsize == 1){
+			fbase = ibuf->rect_float;
+			for (x = ibuf->x * ibuf->y; x > 0; x--) {
+				fbase[0] = 1;
+				fbase[1] = rect[2] = rect[3];
+				fbase += 4;
+			}
+		} else if (image.zsize == 2){
+			/* grayscale with alpha */
+			fbase = ibuf->rect_float;
+			for (x = ibuf->x * ibuf->y; x > 0; x--) {
+				fbase[0] = fbase[2];
+				fbase[1] = fbase[2] = fbase[3];
+				fbase += 4;
+			}
+		} else if (image.zsize == 3){
+			/* add alpha */
+			fbase = ibuf->rect_float;
+			for (x = ibuf->x * ibuf->y; x > 0; x--) {
+				fbase[0] = 1;
+				fbase += 4;
+			}
+		}
+		
+		if (flags & IB_rect) {
+			IMB_rect_from_float(ibuf);
+		}
+		
 	}
-	
-	if (image.zsize == 1){
-		rect = (uchar *) ibuf->rect;
-		for (x = ibuf->x * ibuf->y; x > 0; x--) {
-			rect[0] = 255;
-			rect[1] = rect[2] = rect[3];
-			rect += 4;
-		}
-	} else if (image.zsize == 2){
-		/* grayscale with alpha */
-		rect = (uchar *) ibuf->rect;
-		for (x = ibuf->x * ibuf->y; x > 0; x--) {
-			rect[0] = rect[2];
-			rect[1] = rect[2] = rect[3];
-			rect += 4;
-		}
-	} else if (image.zsize == 3){
-		/* add alpha */
-		rect = (uchar *) ibuf->rect;
-		for (x = ibuf->x * ibuf->y; x > 0; x--) {
-			rect[0] = 255;
-			rect += 4;
-		}
-	}
-	
+
 	ibuf->ftype = IMAGIC;
 	if (flags & IB_ttob) IMB_flipy(ibuf);
 	
@@ -410,6 +515,71 @@ static void interleaverow(unsigned char *lptr, unsigned char *cptr, int z, int n
 		*lptr = *cptr++;
 		lptr += 4;
 	}
+}
+
+static void interleaverow2(float *lptr, unsigned char *cptr, int z, int n)
+{
+	lptr += z;
+	while(n--) {
+		*lptr = ((cptr[0]<<8) | (cptr[1]<<0)) / (float)0xFFFF;		
+		cptr += 2;
+		lptr += 4;
+	}
+}
+
+static void expandrow2(float *optr, unsigned char *iptr, int z)
+{
+	unsigned short pixel, count;
+	float pixel_f;
+
+	optr += z;
+	while(1) {
+		pixel = (iptr[0]<<8) | (iptr[1]<<0);
+		iptr += 2;
+		
+		if ( !(count = (pixel & 0x7f)) )
+			return;
+		if(pixel & 0x80) {
+			while(count>=8) {
+				optr[0*4] = ((iptr[0]<<8) | (iptr[1]<<0))/(float)0xFFFF;
+				optr[1*4] = ((iptr[2]<<8) | (iptr[3]<<0))/(float)0xFFFF;
+				optr[2*4] = ((iptr[4]<<8) | (iptr[5]<<0))/(float)0xFFFF;
+				optr[3*4] = ((iptr[6]<<8) | (iptr[7]<<0))/(float)0xFFFF;
+				optr[4*4] = ((iptr[8]<<8) | (iptr[9]<<0))/(float)0xFFFF;
+				optr[5*4] = ((iptr[10]<<8) | (iptr[11]<<0))/(float)0xFFFF;
+				optr[6*4] = ((iptr[12]<<8) | (iptr[13]<<0))/(float)0xFFFF;
+				optr[7*4] = ((iptr[14]<<8) | (iptr[15]<<0))/(float)0xFFFF;
+				optr += 8*4;
+				iptr += 8*2;
+				count -= 8;
+			}
+			while(count--) {
+				*optr = ((iptr[0]<<8) | (iptr[1]<<0))/(float)0xFFFF;
+				iptr+=2;
+				optr+=4;
+			}
+		} else {
+			pixel_f = ((iptr[0]<<8) | (iptr[1]<<0))/(float)0xFFFF;
+			iptr += 2;
+
+			while(count>=8) {
+				optr[0*4] = pixel_f;
+				optr[1*4] = pixel_f;
+				optr[2*4] = pixel_f;
+				optr[3*4] = pixel_f;
+				optr[4*4] = pixel_f;
+				optr[5*4] = pixel_f;
+				optr[6*4] = pixel_f;
+				optr[7*4] = pixel_f;
+				optr += 8*4;
+				count -= 8;
+			}
+			while(count--) {
+				*optr = pixel_f;
+				optr+=4;
+			}
+		}
+	}	
 }
 
 static void expandrow(unsigned char *optr, unsigned char *iptr, int z)
