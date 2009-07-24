@@ -116,14 +116,18 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
 		col.itemR(view, "camera")
 		col.itemR(view, "lens")
 		
-		col.itemL(text="Clip:")
+		layout.itemL(text="Clip:")
+		col = layout.column(align=True)
 		col.itemR(view, "clip_start", text="Start")
 		col.itemR(view, "clip_end", text="End")
 		
-		col.itemL(text="Grid:")
+		layout.itemL(text="Grid:")
+		col = layout.column(align=True)
+		col.itemR(view, "grid_lines", text="Lines")
 		col.itemR(view, "grid_spacing", text="Spacing")
 		col.itemR(view, "grid_subdivisions", text="Subdivisions")
-		col.itemR(scene, "cursor_location", text="3D Cursor:")
+		
+		layout.column().itemR(scene, "cursor_location", text="3D Cursor:")
 		
 class VIEW3D_PT_3dview_display(bpy.types.Panel):
 	__space_type__ = "VIEW_3D"
