@@ -1149,7 +1149,7 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 }
 /* ********************* Border Zoom operator ****************** */
 
-static int view3d_border_zoom_exec(bContext *C, wmOperator *op)
+static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar= CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -1285,7 +1285,7 @@ static int view3d_border_zoom_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int view3d_border_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int view3d_zoom_border_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
@@ -1305,8 +1305,8 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 	ot->idname= "VIEW3D_OT_zoom_border";
 
 	/* api callbacks */
-	ot->invoke= view3d_border_zoom_invoke;
-	ot->exec= view3d_border_zoom_exec;
+	ot->invoke= view3d_zoom_border_invoke;
+	ot->exec= view3d_zoom_border_exec;
 	ot->modal= WM_border_select_modal;
 
 	ot->poll= ED_operator_view3d_active;

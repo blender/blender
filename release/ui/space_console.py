@@ -18,7 +18,7 @@ class CONSOLE_HT_header(bpy.types.Header):
 		row = layout.row()
 		row.itemR(sc, "console_type", expand=True)
 
-		if sc.type == 'REPORT':
+		if sc.console_type == 'REPORT':
 			
 			if context.area.show_menus:
 				row = layout.row()

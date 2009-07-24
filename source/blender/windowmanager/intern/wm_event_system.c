@@ -267,7 +267,7 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 			ED_undo_push_op(C, op);
 		
 		if(repeat==0) {
-			if(op->type->flag & OPTYPE_REGISTER)
+			if((op->type->flag & OPTYPE_REGISTER) || (G.f & G_DEBUG))
 				wm_operator_register(C, op);
 			else
 				WM_operator_free(op);
@@ -373,7 +373,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 			if(ot->flag & OPTYPE_UNDO)
 				ED_undo_push_op(C, op);
 			
-			if(ot->flag & OPTYPE_REGISTER)
+			if((ot->flag & OPTYPE_REGISTER) || (G.f & G_DEBUG))
 				wm_operator_register(C, op);
 			else
 				WM_operator_free(op);
@@ -717,7 +717,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 				if(ot->flag & OPTYPE_UNDO)
 					ED_undo_push_op(C, op);
 				
-				if(ot->flag & OPTYPE_REGISTER)
+				if((ot->flag & OPTYPE_REGISTER) || (G.f & G_DEBUG))
 					wm_operator_register(C, op);
 				else
 					WM_operator_free(op);

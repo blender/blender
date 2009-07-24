@@ -277,6 +277,8 @@ void console_keymap(struct wmWindowManager *wm)
 
 #ifndef DISABLE_PYTHON
 	WM_keymap_add_item(keymap, "CONSOLE_OT_exec", RETKEY, KM_PRESS, 0, 0); /* python operator - space_text.py */
+	WM_keymap_add_item(keymap, "CONSOLE_OT_exec", PADENTER, KM_PRESS, 0, 0);
+	
 	//WM_keymap_add_item(keymap, "CONSOLE_OT_autocomplete", TABKEY, KM_PRESS, 0, 0); /* python operator - space_text.py */
 	WM_keymap_add_item(keymap, "CONSOLE_OT_autocomplete", RETKEY, KM_PRESS, KM_CTRL, 0); /* python operator - space_text.py */
 #endif
@@ -291,13 +293,8 @@ void console_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "CONSOLE_OT_report_delete", DELKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CONSOLE_OT_report_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 
-
-
-
-
-
 	RNA_string_set(WM_keymap_add_item(keymap, "CONSOLE_OT_insert", TABKEY, KM_PRESS, 0, 0)->ptr, "text", "    "); /* fake tabs */
-	WM_keymap_add_item(keymap, "CONSOLE_OT_insert", KM_TEXTINPUT, KM_PRESS, KM_ANY, 0); // last!
+	WM_keymap_add_item(keymap, "CONSOLE_OT_insert", KM_TEXTINPUT, KM_ANY, KM_ANY, 0); // last!
 }
 
 /****************** header region ******************/
