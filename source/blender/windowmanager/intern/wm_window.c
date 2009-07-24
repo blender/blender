@@ -90,9 +90,19 @@ static void wm_window_check_position(rcti *rect)
 	wm_get_screensize(&width, &height);
 	
 #ifdef __APPLE__
-	height -= 22;
+	height -= 42;
 #endif
 	
+	if(rect->xmin < 0) {
+		d= rect->xmin;
+		rect->xmax -= d;
+		rect->xmin -= d;
+	}
+	if(rect->ymin < 0) {
+		d= rect->ymin;
+		rect->ymax -= d;
+		rect->ymin -= d;
+	}
 	if(rect->xmax > width) {
 		d= rect->xmax - width;
 		rect->xmax -= d;
