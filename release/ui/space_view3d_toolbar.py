@@ -17,23 +17,20 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 		
 		layout.itemL(text="Transform:")
 		
-		split = layout.split()
-		col = split.column(align=True)
+		col = layout.column(align=True)
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
 		
 		layout.itemL(text="Object:")
 		
-		split = layout.split()
-		col = split.column(align=True)
+		col = layout.column(align=True)
 		col.itemO("object.duplicate")
 		col.itemO("object.delete")
 		
 		layout.itemL(text="Keyframes:")
 		
-		split = layout.split()
-		col = split.column(align=True)
+		col = layout.column(align=True)
 		col.itemO("anim.insert_keyframe_menu", text="Insert")
 		col.itemO("anim.delete_keyframe_v3d", text="Remove")
 
@@ -50,23 +47,23 @@ class VIEW3D_PT_tools_editmode_mesh(View3DPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		layout.itemL(text="Transform:")
 		
-		split = layout.split()
-		col = split.column(align=True)
+		col = layout.column(align=True)
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
 		
 		layout.itemL(text="Mesh:")
-		split = layout.split()
-		col = split.column(align=True)
+		
+		col = layout.column(align=True)
 		col.itemO("mesh.duplicate")
 		col.itemO("mesh.delete")
 		
 		layout.itemL(text="Modeling:")
-		split = layout.split()
-		col = split.column(align=True)
+		
+		col = layout.column(align=True)
 		col.itemO("mesh.extrude")
 		col.itemO("mesh.subdivide")
 		col.itemO("mesh.spin")
@@ -74,15 +71,13 @@ class VIEW3D_PT_tools_editmode_mesh(View3DPanel):
 		
 		layout.itemL(text="Shading:")
 		
-		split = layout.split()
-		col = split.column(align=True)
+		col = layout.column(align=True)
 		col.itemO("mesh.faces_shade_smooth", text="Smooth")
 		col.itemO("mesh.faces_shade_flat", text="Flat")
 		
 		layout.itemL(text="UV Mapping:")
 		
-		split = layout.split()
-		col = split.column(align=True)
+		col = layout.column(align=True)
 		col.itemO("uv.mapping_menu", text="Unwrap")
 		col.itemO("mesh.uvs_rotate")
 		col.itemO("mesh.uvs_mirror")
@@ -100,25 +95,25 @@ class VIEW3D_PT_tools_editmode_curve(View3DPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		layout.itemL(text="Transform:")
 		
-		split = layout.split()
-		col = split.column(align=True)
+		col = layout.column(align=True)
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
 		
 		layout.itemL(text="Curve:")
-		split = layout.split()
-		col = split.column(align=True)
+
+		col = layout.column(align=True)
 		col.itemO("curve.duplicate")
 		col.itemO("curve.delete")
 		col.itemO("curve.cyclic_toggle")
 		col.itemO("curve.switch_direction")
 		
 		layout.itemL(text="Modeling:")
-		split = layout.split()
-		col = split.column(align=True)
+
+		col = layout.column(align=True)
 		col.itemO("curve.extrude")
 		col.itemO("curve.subdivide")
 
@@ -135,24 +130,25 @@ class VIEW3D_PT_tools_editmode_surface(View3DPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		layout.itemL(text="Transform:")
-		split = layout.split()
-		col = split.column(align=True)
+
+		col = layout.column(align=True)
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
 		
 		layout.itemL(text="Curve:")
-		split = layout.split()
-		col = split.column(align=True)
+
+		col = layout.column(align=True)
 		col.itemO("curve.duplicate")
 		col.itemO("curve.delete")
 		col.itemO("curve.cyclic_toggle")
 		col.itemO("curve.switch_direction")
 		
 		layout.itemL(text="Modeling:")
-		split = layout.split()
-		col = split.column(align=True)
+
+		col = layout.column(align=True)
 		col.itemO("curve.extrude")
 		col.itemO("curve.subdivide")
 
@@ -170,10 +166,13 @@ class VIEW3D_PT_tools_editmode_text(View3DPanel):
 	def draw(self, context):
 		layout = self.layout
 
-		layout.row().itemO("font.text_copy")
-		layout.row().itemO("font.text_paste")
-		layout.row().itemO("font.case_set")
-		layout.row().itemO("font.style_toggle")
+		col = layout.column(align=True)
+		col.itemO("font.text_copy", text="Copy")
+		col.itemO("font.text_paste", text="Paste")
+		
+		col = layout.column()
+		col.itemO("font.case_set")
+		col.itemO("font.style_toggle")
 
 # ********** default tools for editmode_armature ****************
 
@@ -188,26 +187,24 @@ class VIEW3D_PT_tools_editmode_armature(View3DPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		layout.itemL(text="Transform:")
-		split = layout.split()
-		col = split.column(align=True)
+		
+		col = layout.column(align=True)
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
 		
 		layout.itemL(text="Bones:")
-		split = layout.split()
-		col = split.column(align=True)
+
+		col = layout.column(align=True)
 		col.itemO("armature.bone_primitive_add", text="Add")
 		col.itemO("armature.duplicate_selected", text="Duplicate")
 		col.itemO("armature.delete", text="Delete")
 		
 		layout.itemL(text="Modeling:")
-		split = layout.split()
-		col = split.column(align=True)
-		col.itemO("armature.extrude")
-		
-		
+		layout.itemO("armature.extrude")
+
 # ********** default tools for editmode_mball ****************
 
 class View3DPanel(bpy.types.Panel):
@@ -221,9 +218,10 @@ class VIEW3D_PT_tools_editmode_mball(View3DPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		layout.itemL(text="Transform:")
-		split = layout.split()
-		col = split.column(align=True)
+		
+		col = layout.column(align=True)
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
@@ -241,9 +239,10 @@ class VIEW3D_PT_tools_editmode_lattice(View3DPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		layout.itemL(text="Transform:")
-		split = layout.split()
-		col = split.column(align=True)
+
+		col = layout.column(align=True)
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
@@ -261,37 +260,39 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		layout.itemL(text="Transform:")
-		split = layout.split()
-		col = split.column(align=True)
+
+		col = layout.column(align=True)
 		col.itemO("tfm.translate")
 		col.itemO("tfm.rotate")
 		col.itemO("tfm.resize", text="Scale")
 		
 		layout.itemL(text="Bones:")
-		split = layout.split()
-		col = split.column(align=True)
+
+		col = layout.column(align=True)
 		col.itemO("pose.hide", text="Hide")
 		col.itemO("pose.reveal", text="Reveal")
 		
 		layout.itemL(text="Keyframes:")
 		
-		split = layout.split()
-		col = split.column(align=True)
+		col = layout.column(align=True)
 		col.itemO("anim.insert_keyframe_menu", text="Insert")
 		col.itemO("anim.delete_keyframe_v3d", text="Remove")
 		
 		layout.itemL(text="Pose:")
 		
-		split = layout.split()
-		col = split.column(align=True)
+		col = layout.column(align=True)
 		col.itemO("pose.copy", text="Copy")
 		col.itemO("pose.paste", text="Paste")
-		col.itemO("poselib.pose_add", text="Add to Library")
-		col.itemO("poselib.pose_remove", text="Remove From Library")
+		
+		layout.itemL(text="Library:")
+		
+		col = layout.column(align=True)
+		col.itemO("poselib.pose_add", text="Add")
+		col.itemO("poselib.pose_remove", text="Remove")
 
 # ********** default tools for paint modes ****************
-
 
 class VIEW3D_PT_tools_brush(bpy.types.Panel):
 	__space_type__ = "VIEW_3D"
@@ -324,16 +325,20 @@ class VIEW3D_PT_tools_brush(bpy.types.Panel):
 			layout.column().itemR(brush, "sculpt_tool", expand=True)
 
 		split = layout.split()
+		
 		col = split.column()
 		row = col.row(align=True)
 		row.itemR(brush, "size", slider=True)
 		row.itemR(brush, "size_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+		
 		if context.wpaint_object:
 			col.itemR(context.tool_settings, "vertex_group_weight", text="Weight", slider=True)
+			
 		col.itemR(brush, "strength", slider=True)
 		row = col.row(align=True)
 		row.itemR(brush, "falloff", slider=True)
 		row.itemR(brush, "falloff_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+		
 		if context.vpaint_object:
 			col.itemR(brush, "color", text="")
 		if context.tpaint_object:
@@ -353,7 +358,6 @@ class VIEW3D_PT_tools_brush(bpy.types.Panel):
 		col.itemR(brush, "airbrush")
 		col.itemR(brush, "anchored")
 		col.itemR(brush, "rake")
-
 
 class VIEW3D_PT_tools_brush_curve(bpy.types.Panel):
 	__space_type__ = "VIEW_3D"
@@ -392,14 +396,12 @@ class VIEW3D_PT_sculpt_options(bpy.types.Panel):
 		return context.sculpt_object
 
 	def draw(self, context):
+		layout = self.layout
 		sculpt = context.tool_settings.sculpt
 
-		split = self.layout.split()
-		
-		col = split.column()
+		col = layout.column()
 		col.itemR(sculpt, "partial_redraw", text="Partial Refresh")
 		col.itemR(sculpt, "show_brush")
-
 
 		split = self.layout.split()
 		
@@ -414,10 +416,7 @@ class VIEW3D_PT_sculpt_options(bpy.types.Panel):
 		col.itemR(sculpt, "lock_x", text="X")
 		col.itemR(sculpt, "lock_y", text="Y")
 		col.itemR(sculpt, "lock_z", text="Z")
-		
-		
-		
-		
+
 # ********** default tools for weightpaint ****************
 
 class View3DPanel(bpy.types.Panel):
@@ -430,10 +429,10 @@ class VIEW3D_PT_weightpaint_options(View3DPanel):
 	__label__ = "Options"
 
 	def draw(self, context):
-		wpaint = context.tool_settings.wpaint
 		layout = self.layout
-		split = self.layout.split()
-		col = split.column()
+		wpaint = context.tool_settings.wpaint
+
+		col = layout.column()
 		col.itemL(text="Blend:")
 		col.itemR(wpaint, "mode", text="")
 		col.itemR(wpaint, "all_faces")
@@ -447,8 +446,6 @@ class VIEW3D_PT_weightpaint_options(View3DPanel):
 #		col.itemL(text="Multiply:")
 #		col.itemR(wpaint, "mul", text="")
 
-		
-	
 
 # ********** default tools for vertexpaint ****************
 
@@ -462,10 +459,10 @@ class VIEW3D_PT_vertexpaint_options(View3DPanel):
 	__label__ = "Options"
 
 	def draw(self, context):
-		vpaint = context.tool_settings.vpaint
 		layout = self.layout
-		split = self.layout.split()
-		col = split.column()
+		vpaint = context.tool_settings.vpaint
+
+		col = layout.column()
 		col.itemL(text="Blend:")
 		col.itemR(vpaint, "mode", text="")
 		col.itemR(vpaint, "all_faces")
@@ -477,7 +474,8 @@ class VIEW3D_PT_vertexpaint_options(View3DPanel):
 #		col.itemR(vpaint, "gamma", text="")
 #		col.itemL(text="Multiply:")
 #		col.itemR(vpaint, "mul", text="")
-		
+
+
 # ********** default tools for texturepaint ****************
 
 class View3DPanel(bpy.types.Panel):
@@ -492,7 +490,8 @@ class VIEW3D_PT_tools_texturepaint(View3DPanel):
 	def draw(self, context):
 		layout = self.layout
 
-
+		layout.itemL(text="Nothing yet")
+		
 
 bpy.types.register(VIEW3D_PT_tools_objectmode)
 bpy.types.register(VIEW3D_PT_tools_editmode_mesh)
@@ -509,5 +508,3 @@ bpy.types.register(VIEW3D_PT_sculpt_options)
 bpy.types.register(VIEW3D_PT_vertexpaint_options)
 bpy.types.register(VIEW3D_PT_weightpaint_options)
 bpy.types.register(VIEW3D_PT_tools_texturepaint)
-
-
