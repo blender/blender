@@ -53,6 +53,7 @@ class INFO_MT_file(bpy.types.Menu):
 		layout.itemO("wm.save_mainfile", text="Save")
 		layout.operator_context = "INVOKE_AREA"
 		layout.itemO("wm.save_as_mainfile", text="Save As...")
+		layout.itemO("screen.userpref_show", text="User Preferences...")
 
 		layout.itemS()
 
@@ -535,6 +536,7 @@ class INFO_PT_bottombar(bpy.types.Panel):
 	
 		split = layout.split(percentage=0.8)
 		split.itemL(text="")
+		layout.operator_context = "EXEC_AREA"
 		split.itemO("wm.save_homefile", text="Save As Default")
 
 bpy.types.register(INFO_HT_header)
