@@ -448,17 +448,6 @@ void do_time_buttons(bContext *C, void *arg, int event)
 			//BIF_undo_push("Set anim-preview range");
 			WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
 			break;
-			
-		case B_TL_INSERTKEY:
-			/* insert keyframe */
-			//common_insertkey();
-			//allqueue(REDRAWTIME, 1);
-			break;
-		case B_TL_DELETEKEY:
-			/* delete keyframe */
-			//common_deletekey();
-			//allqueue(REDRAWTIME, 1);
-			break;
 	}
 }
 

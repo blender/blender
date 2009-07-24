@@ -29,6 +29,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -37,11 +38,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_dlrbTree.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
+#include "BKE_utildefines.h"
 
+#include "ED_keyframes_draw.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_util.h"
@@ -106,6 +110,95 @@ static void time_draw_sfra_efra(const bContext *C, SpaceTime *stime, ARegion *ar
 	fdrawline((float)PEFRA, v2d->cur.ymin, (float)PEFRA, v2d->cur.ymax);
 }
 
+/* helper function - find actkeycolumn that occurs on cframe, or the nearest one if not found */
+static ActKeyColumn *time_cfra_find_ak (ActKeyColumn *ak, float cframe)
+{
+	ActKeyColumn *akn= NULL;
+	
+	/* sanity checks */
+	if (ak == NULL)
+		return NULL;
+	
+	/* check if this is a match, or whether it is in some subtree */
+	if (cframe < ak->cfra)
+		akn= time_cfra_find_ak(ak->left, cframe);
+	else if (cframe > ak->cfra)
+		akn= time_cfra_find_ak(ak->right, cframe);
+		
+	/* if no match found (or found match), just use the current one */
+	if (akn == NULL)
+		return ak;
+	else
+		return akn;
+}
+
+/* helper for time_draw_keyframes() */
+static void time_draw_idblock_keyframes(View2D *v2d, ID *id)
+{
+	DLRBT_Tree keys;
+	ActKeyColumn *ak;
+	
+	/* init binarytree-list for getting keyframes */
+	BLI_dlrbTree_init(&keys);
+	
+	/* populate tree with keyframe nodes */
+	switch (GS(id->name)) {
+		case ID_SCE:
+			scene_to_keylist(NULL, (Scene *)id, &keys, NULL);
+			break;
+		case ID_OB:
+			ob_to_keylist(NULL, (Object *)id, &keys, NULL);
+			break;
+	}
+		
+	/* build linked-list for searching */
+	BLI_dlrbTree_linkedlist_sync(&keys);
+	
+	/* start drawing keyframes 
+	 *	- we use the binary-search capabilities of the tree to only start from 
+	 *	  the first visible keyframe (last one can then be easily checked)
+	 *	- draw within a single GL block to be faster
+	 */
+	glBegin(GL_LINES);
+		for ( ak=time_cfra_find_ak(keys.root, v2d->cur.xmin); 
+			 (ak) && (ak->cfra <= v2d->cur.xmax); 
+			  ak=ak->next ) 
+		{
+			glVertex2f(ak->cfra, v2d->cur.ymin);
+			glVertex2f(ak->cfra, v2d->cur.ymax);
+		}
+	glEnd(); // GL_LINES
+		
+	/* free temp stuff */
+	BLI_dlrbTree_free(&keys);
+}
+
+/* draw keyframe lines for timeline */
+static void time_draw_keyframes(const bContext *C, SpaceTime *stime, ARegion *ar)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	View2D *v2d= &ar->v2d;
+	
+	/* draw scene keyframes first 
+	 *	- only if we're not only showing the 
+	 */
+	if ((scene) && (stime->flag & TIME_ONLYACTSEL)==0) {
+		/* set draw color */
+		glColor3ub(0xDD, 0xA7, 0x00);
+		time_draw_idblock_keyframes(v2d, (ID *)scene);
+	}
+	
+	/* draw active object's keyframes */
+	if (ob) {
+		/* set draw color */
+		glColor3ub(0xDD, 0xD7, 0x00);
+		time_draw_idblock_keyframes(v2d, (ID *)ob);
+	}
+}
+
+/* ---------------- */
+
 /* add handlers, stuff you only do once or on area/region changes */
 static void time_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
@@ -117,7 +210,6 @@ static void time_main_area_init(wmWindowManager *wm, ARegion *ar)
 	keymap= WM_keymap_listbase(wm, "TimeLine", SPACE_TIME, 0);	/* XXX weak? */
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
-
 
 static void time_main_area_draw(const bContext *C, ARegion *ar)
 {
@@ -144,7 +236,10 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	grid= UI_view2d_grid_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
 	UI_view2d_grid_draw(C, v2d, grid, (V2D_VERTICAL_LINES|V2D_VERTICAL_AXIS));
 	UI_view2d_grid_free(grid);
-
+	
+	/* keyframes */
+	time_draw_keyframes(C, stime, ar);
+	
 	/* current frame */
 	time_draw_cfra_time(C, stime, ar);
 	

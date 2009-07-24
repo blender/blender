@@ -1223,7 +1223,7 @@ void ANIM_OT_delete_keyframe (wmOperatorType *ot)
  * -- Joshua Leung, Jan 2009
  */
  
-static int delete_key_old_exec (bContext *C, wmOperator *op)
+static int delete_key_v3d_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
@@ -1261,15 +1261,15 @@ static int delete_key_old_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_delete_keyframe_old (wmOperatorType *ot)
+void ANIM_OT_delete_keyframe_v3d (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Keyframe";
-	ot->idname= "ANIM_OT_delete_keyframe_old";
+	ot->idname= "ANIM_OT_delete_keyframe_v3d";
 	
 	/* callbacks */
 	ot->invoke= WM_operator_confirm;
-	ot->exec= delete_key_old_exec; 
+	ot->exec= delete_key_v3d_exec; 
 	
 	ot->poll= ED_operator_areaactive;
 	
@@ -1347,7 +1347,7 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 void ANIM_OT_insert_keyframe_button (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Insert Keyframe";
+	ot->name= "Insert Keyframe (Buttons)";
 	ot->idname= "ANIM_OT_insert_keyframe_button";
 	
 	/* callbacks */
@@ -1355,7 +1355,7 @@ void ANIM_OT_insert_keyframe_button (wmOperatorType *ot)
 	ot->poll= modify_key_op_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Insert a keyframe for all element of the array.");
@@ -1417,7 +1417,7 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 void ANIM_OT_delete_keyframe_button (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Keyframe";
+	ot->name= "Delete Keyframe (Buttons)";
 	ot->idname= "ANIM_OT_delete_keyframe_button";
 	
 	/* callbacks */
@@ -1425,7 +1425,7 @@ void ANIM_OT_delete_keyframe_button (wmOperatorType *ot)
 	ot->poll= modify_key_op_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete keyfames from all elements of the array.");

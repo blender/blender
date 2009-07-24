@@ -2093,7 +2093,7 @@ static void view3d_edit_objectmenu(bContext *C, uiLayout *layout, void *arg_unus
 
 	// TODO: these operators may get renamed
 	uiItemO(layout, NULL, 0, "ANIM_OT_insert_keyframe_menu");
-	uiItemO(layout, NULL, 0, "ANIM_OT_delete_keyframe_old");
+	uiItemO(layout, NULL, 0, "ANIM_OT_delete_keyframe_v3d");
 	
 	uiItemS(layout);
 	
@@ -3166,7 +3166,7 @@ static void view3d_pose_armaturemenu(bContext *C, uiLayout *layout, void *arg_un
 	
 	// TODO: these operators may get renamed
 	uiItemO(layout, NULL, 0, "ANIM_OT_insert_keyframe_menu");
-	uiItemO(layout, NULL, 0, "ANIM_OT_delete_keyframe_old");
+	uiItemO(layout, NULL, 0, "ANIM_OT_delete_keyframe_v3d");
 
 	uiItemS(layout);
 	
