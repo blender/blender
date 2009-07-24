@@ -216,7 +216,8 @@ ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em, short implicit
 			select[1] = uvedit_uv_selected(em, scene, ls[1]) != 0;
 			select[2] = uvedit_uv_selected(em, scene, ls[2]) != 0;
 
-			param_face_add(handle, key, 3, vkeys, co, uv, pin, select);
+			if (!p_face_exists(handle,vkeys,0,1,2))
+					param_face_add(handle, key, 3, vkeys, co, uv, pin, select);
 		}
 
 		BLI_end_edgefill();

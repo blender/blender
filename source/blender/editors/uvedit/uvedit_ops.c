@@ -604,6 +604,8 @@ static void find_nearest_uv_edge(Scene *scene, Image *ima, BMEditMesh *em, float
 				hit->lindex = i;
 				hit->vert1 = BMINDEX_GET(hit->l->v);
 				hit->vert2 = BMINDEX_GET(((BMLoop*)hit->l->head.next)->v);
+
+				mindist = dist;
 			}
 
 			i++;

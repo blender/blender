@@ -586,7 +586,7 @@ UvVertMap *EDBM_make_uv_vert_map(BMEditMesh *em, int selected, int do_face_idx_a
 				buf->f= a;
 				buf->separate = 0;
 				
-				buf->next= vmap->vert[BMINDEX_GET(((BMLoop*)l->head.next)->v)];
+				buf->next= vmap->vert[BMINDEX_GET(l->v)];
 				vmap->vert[BMINDEX_GET(l->v)]= buf;
 				
 				buf++;
