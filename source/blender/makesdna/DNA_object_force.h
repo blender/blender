@@ -165,12 +165,17 @@ typedef struct SoftBody {
 	int totpoint, totspring;
 	struct BodyPoint *bpoint;		/* not saved in file */
 	struct BodySpring *bspring;		/* not saved in file */
-	float pad;
+	char   pad;
+	char   msg_lock;
+	short  msg_value;
 	
 	/* part of UI: */
 	
 	/* general options */
 	float nodemass;		/* softbody mass of *vertex* */
+	char  namedVG_Mass[32]; /* along with it introduce mass painting
+							starting to fix old bug .. nastyness that VG are indexes 
+								rather find them by name tag to find it -> jow20090613 */
 	float grav;			/* softbody amount of gravitaion to apply */
 	float mediafrict;	/* friction to env */
 	float rklimit;		/* error limit for ODE solver */
@@ -183,13 +188,18 @@ typedef struct SoftBody {
 	float maxgoal;
 	float defgoal;		/* default goal for vertices without vgroup */
 	short vertgroup;	/* index starting at 1 */
+	char  namedVG_Softgoal[32]; /* starting to fix old bug .. nastyness that VG are indexes 
+								rather find them by name tag to find it -> jow20090613 */
   
 	short fuzzyness;      /* */
 	
 	/* springs */
 	float inspring;		/* softbody inner springs */
 	float infrict;		/* softbody inner springs friction */
- 	
+ 	char  namedVG_Spring_K[32]; /* along with it introduce Spring_K painting
+							starting to fix old bug .. nastyness that VG are indexes 
+								rather find them by name tag to find it -> jow20090613 */
+	
 	/* baking */
 	int sfra, efra;
 	int interval;
@@ -291,7 +301,7 @@ typedef struct SoftBody {
 #define OB_SB_FACECOLL  1024
 #define OB_SB_EDGECOLL  2048
 #define OB_SB_COLLFINAL 4096
-//#define OB_SB_PROTECT_CACHE	8192
+#define OB_SB_BIG_UI	8192
 #define OB_SB_AERO_ANGLE	16384
 
 /* sb->solverflags */
