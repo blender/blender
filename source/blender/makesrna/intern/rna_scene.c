@@ -362,19 +362,19 @@ static void rna_def_tpaint(BlenderRNA  *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_DISABLE);
 	RNA_def_property_ui_text(prop, "Project Paint", "Use projection painting for improved consistency in the brush strokes");
 	
-	prop= RNA_def_property(srna, "occlude", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_occlude", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_XRAY);
 	RNA_def_property_ui_text(prop, "Occlude", "Only paint onto the faces directly under the brush (slower)");
 	
-	prop= RNA_def_property(srna, "cull", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_cull", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_BACKFACE);
 	RNA_def_property_ui_text(prop, "Cull", "Ignore faces pointing away from the view (faster)");
 	
-	prop= RNA_def_property(srna, "normal", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_normal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_FLAT);
 	RNA_def_property_ui_text(prop, "Normal", "Paint most on faces pointing towards the view");
 	
-	prop= RNA_def_property(srna, "stencil_layer", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_stencil_layer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_LAYER_MASK);
 	RNA_def_property_ui_text(prop, "Stencil Layer", "Set the mask layer from the UV layer buttons");
 	
@@ -382,7 +382,7 @@ static void rna_def_tpaint(BlenderRNA  *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_LAYER_MASK_INV);
 	RNA_def_property_ui_text(prop, "Invert", "Invert the mask");
 	
-	prop= RNA_def_property(srna, "clone_layer", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_clone_layer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_LAYER_CLONE);
 	RNA_def_property_ui_text(prop, "Clone Layer", "Use another UV layer as clone source, otherwise use 3D the cursor as the source");
 	

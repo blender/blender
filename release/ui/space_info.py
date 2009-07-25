@@ -440,7 +440,7 @@ class INFO_PT_system(bpy.types.Panel):
 		colsplitcol.itemL(text="OpenGL:")
 		colsplitcol.itemR(system, "clip_alpha", slider=True)
 		colsplitcol.itemR(system, "use_mipmaps")
-		colsplitcol.itemL(text="Windom Draw Method:")
+		colsplitcol.itemL(text="Window Draw Method:")
 		row = colsplitcol.row()
 		row.itemR(system, "window_draw_method", expand=True)
 		colsplitcol.itemL(text="Textures:")
