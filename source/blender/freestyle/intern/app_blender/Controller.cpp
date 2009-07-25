@@ -191,6 +191,8 @@ int Controller::LoadMesh(Render *re, SceneRenderLayer* srl)
 
 	if( blenderScene->numberOfChildren() < 1) {
 		cout << "Empty scene" << endl;
+		blenderScene->destroy();
+		delete blenderScene;
 		return 1;
 	}
 
