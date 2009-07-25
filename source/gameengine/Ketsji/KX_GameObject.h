@@ -856,6 +856,7 @@ public:
 	KX_PYMETHOD_DOC_O(KX_GameObject,getDistanceTo);
 	KX_PYMETHOD_DOC_O(KX_GameObject,getVectTo);
 	KX_PYMETHOD_DOC_VARARGS(KX_GameObject, sendMessage);
+	KX_PYMETHOD_VARARGS(KX_GameObject, ReinstancePhysicsMesh);
 	
 	/* Dict access */
 	KX_PYMETHOD_VARARGS(KX_GameObject,get);

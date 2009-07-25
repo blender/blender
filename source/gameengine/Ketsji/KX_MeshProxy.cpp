@@ -84,7 +84,6 @@ PyMethodDef KX_MeshProxy::Methods[] = {
 {"getVertexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetVertexArrayLength,METH_VARARGS},
 {"getVertex", (PyCFunction)KX_MeshProxy::sPyGetVertex,METH_VARARGS},
 {"getPolygon", (PyCFunction)KX_MeshProxy::sPyGetPolygon,METH_VARARGS},
-KX_PYMETHODTABLE(KX_MeshProxy, reinstancePhysicsMesh),
 //{"getIndexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetIndexArrayLength,METH_VARARGS},
 
   {NULL,NULL} //Sentinel
@@ -241,17 +240,6 @@ PyObject* KX_MeshProxy::PyGetPolygon(PyObject* args, PyObject* kwds)
 		PyErr_SetString(PyExc_AttributeError, "mesh.getPolygon(int): KX_MeshProxy, polygon is NULL, unknown reason");
 	}
 	return polyob;
-}
-
-KX_PYMETHODDEF_DOC(KX_MeshProxy, reinstancePhysicsMesh,
-"Reinstance the physics mesh.")
-{
-#if 0
-	//this needs to be reviewed, it is dependend on Sumo/Solid. Who is using this ?
-	if(KX_ReInstanceShapeFromMesh(m_meshobj))
-		Py_RETURN_TRUE;
-#endif
-	Py_RETURN_FALSE;
 }
 
 PyObject* KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
