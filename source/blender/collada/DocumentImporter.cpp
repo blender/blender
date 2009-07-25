@@ -385,7 +385,7 @@ public:
 				std::vector<MTex*>::iterator it;
 				for (it = mtexes.begin(); it != mtexes.end(); it++) {
 					MTex *mtex = *it;
-					strcpy(mtex->uvname, uvname);
+					if (mtex && mtex->uvname) strcpy(mtex->uvname, uvname);
 				}	
 			}
 			for (l = 0; l < 18; l++) {
@@ -858,7 +858,11 @@ public:
 			}
 		}
 		
-		size_t totvert = cmesh->getPositions().getFloatValues()->getCount() / 3;
+		//size_t totvert = cmesh->getPositions().getFloatValues()->getCount() / 3;
+		size_t totvert;
+		if (cmesh->getPositions().empty())
+			return true; 
+		totvert = cmesh->getPositions().getFloatValues()->getCount() / 3;
 		
 		const std::string& str_geom_id = cgeom->getOriginalId();
 		Mesh *me = add_mesh((char*)str_geom_id.c_str());
@@ -1267,12 +1271,16 @@ public:
 		case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
 			{
 				COLLADAFW::ArrayPrimitiveType<float> *values = array.getFloatValues();
-				return (*values)[i];
+				if (!values->empty())
+					return (*values)[i];
+				else return 0;
 			}
 		case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE:
 			{
 				COLLADAFW::ArrayPrimitiveType<double> *values = array.getDoubleValues();
-				return (float)(*values)[i];
+				if (!values->empty())
+					return (float)(*values)[i];
+				else return 0;
 			}
 		}
 	}
@@ -1603,49 +1611,6 @@ public:
 			mat4_from_dae_mat4(jd.inv_bind_mat, inv_bind_mats[i]);
 			joint_index_to_joint_info_map[i] = jd;
 		}
-
-		// see COLLADAFW::validate for an example of how to use SkinControllerData
-		/* what should I do here?
-		   - create armature (should I create it here or somewhere else?)
-		   - create bones
-		   - create vertex group for each bone?
-		   - create MDeformVerts? - no, I don't know what mesh to modify
-		   is it possible to create MDeformVerts & vertex groups without assigning them to a mesh or object
-		   - set weights
-		   - map something(armature, vgoups, dverts) to skin controller uid, so I can use it in controller
-		 */
-		/*const std::string& skin_id = skinControllerData->getOriginalId();
-		size_t num_bones = skinControllerData->getJointsCount();
-		bArmature *arm = add_armature((char*)skin_id.c_str());
-		if (!arm) {
-			fprintf(stderr, "Cannot create armature. \n");
-			return true;
-		}
-		for (int i = 0; i < num_bones; i++) {
-			// create bone
-			//addEditBone(arm, "my_bone");
-			Bone *bone = (Bone*)MEM_callocN(sizeof(Bone), "Bone");
-			BLI_strncpy(bone->name, "bone", 32);
-			//unique_bone_name(arm, "my_bone");
-			BLI_addtail(&arm->bonebase, bone);
-			
-			bone->flag |= BONE_TIPSEL;
-			bone->weight= 1.0f;
-			bone->dist= 0.25f;
-			bone->xwidth= 0.1f;
-			bone->zwidth= 0.1f;
-			bone->ease1= 1.0f;
-			bone->ease2= 1.0f;
-			bone->rad_head= 0.10f;
-			bone->rad_tail= 0.05f;
-			bone->segments= 1;
-			bone->layer= arm->layer;
-			// TODO: add inverse bind matrices
-			i++;
-			}
-		
-		this->uid_controller_map[skinControllerData->getUniqueId()] = arm;
-		*/
 		return true;
 	}
 
@@ -1681,15 +1646,6 @@ public:
 				// now we'll be able to get inv bind matrix from joint id
 				joint_id_to_joint_index_map[joint_ids[i]] = i;
 			}
-			/*if (uid_controller_map.find(skin_id) == uid_controller_map.end()) {
-				fprintf(stderr, "Cannot find armature by UID.\n");
-				return true;
-				}*/
-			//bArmature *arm = uid_controller_map[skin_id];
-			// map mesh to controller's uid
-			//const COLLADAFW::UniqueId& geom_uid = skin->getSource();
-			//this->skinid_meshid_map[skin_id] = geom_uid;
-		
 		}
 		// morph controller
 		else {
