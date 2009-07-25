@@ -28,6 +28,13 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 		col.itemO("object.duplicate")
 		col.itemO("object.delete")
 		
+		if context.active_object.type == 'MESH':
+			layout.itemL(text="Shading:")
+		
+			col = layout.column(align=True)
+			col.itemO("object.shade_smooth", text="Smooth")
+			col.itemO("object.shade_flat", text="Flat")
+		
 		layout.itemL(text="Keyframes:")
 		
 		col = layout.column(align=True)
