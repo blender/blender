@@ -845,7 +845,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 				if (splits[j*2]) {
 					BMFace *nf;
 
-					nf = BM_Split_Face(bmesh, face, splits[j*a]->v, splits[j*2+1]->v, &nl, NULL);
+					nf = BM_Split_Face(bmesh, face, splits[j*2]->v, splits[j*2+1]->v, &nl, NULL);
 				}
 			}
 
