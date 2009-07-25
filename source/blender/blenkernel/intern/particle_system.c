@@ -2065,7 +2065,6 @@ void psys_count_keyed_targets(Object *ob, ParticleSystem *psys)
 {
 	ParticleSystem *kpsys;
 	ParticleTarget *pt = psys->targets.first;
-	int psys_num = BLI_findindex(&ob->particlesystem, psys);
 	int keys_valid = 1;
 	psys->totkeyed = 0;
 
@@ -2087,7 +2086,6 @@ void psys_count_keyed_targets(Object *ob, ParticleSystem *psys)
 
 static void set_keyed_keys(Scene *scene, Object *ob, ParticleSystem *psys)
 {
-	Object *kob = ob;
 	ParticleSystem *kpsys = psys;
 	ParticleTarget *pt;
 	ParticleData *pa;
@@ -2143,7 +2141,7 @@ static void set_keyed_keys(Scene *scene, Object *ob, ParticleSystem *psys)
 		if(psys->flag & PSYS_KEYED_TIMING && pt->duration!=0.0f)
 			k++;
 
-		pt = (pt->next && pt->next->flag & PTARGET_VALID) ? pt = pt->next : psys->targets.first;
+		pt = (pt->next && pt->next->flag & PTARGET_VALID)? pt->next : psys->targets.first;
 	}
 
 	psys->flag |= PSYS_KEYED;

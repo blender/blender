@@ -399,7 +399,7 @@ static int rule_flock(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, Parti
 	KDTreeNearest ptn[11];
 	float vec[3] = {0.0f, 0.0f, 0.0f}, loc[3] = {0.0f, 0.0f, 0.0f};
 	int neighbors = BLI_kdtree_find_n_nearest(bbd->psys->tree, 11, pa->state.co, pa->prev_state.ave, ptn);
-	int n, nearest = 1;
+	int n;
 	int ret = 0;
 
 	if(neighbors > 1) {
@@ -898,8 +898,6 @@ static BoidState *get_boid_state(BoidSettings *boids, ParticleData *pa) {
 /* determines the velocity the boid wants to have */
 void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 {
-	ParticleData *pars=bbd->psys->particles;
-	ParticleEffectorCache *ec=0;
 	BoidRule *rule;
 	BoidSettings *boids = bbd->part->boids;
 	BoidValues val;
@@ -1259,7 +1257,6 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 		}
 		case eBoidMode_Falling:
 		{
-			float zvec[3] = {0.0f,0.0f,1.0f};
 			float grav[3] = {0.0f, 0.0f, bbd->part->acc[2] < 0.0f ? -1.0f : 0.0f};
 
 			/* gather apparent gravity to r_ve */
@@ -1524,3 +1521,4 @@ BoidState *boid_get_current_state(BoidSettings *boids)
 
 	return state;
 }
+

@@ -280,7 +280,7 @@ static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 	
 	/* copy last mode, then we can re-init the region maps */
 	rv3d->lastmode= stype;
-	
+
 	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
 	if(ELEM(stype, 0, NS_MODE_OBJECT))
 		WM_event_add_keymap_handler(&ar->handlers, keymap);
