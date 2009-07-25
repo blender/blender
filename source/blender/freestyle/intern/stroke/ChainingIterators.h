@@ -79,10 +79,10 @@ public:
     return "AdjacencyIterator";
   }
 
-  virtual inline bool isEnd(){
+  virtual inline bool isEnd() const {
     return _internalIterator.isEnd();
   }
-  virtual inline bool isBegin(){
+  virtual inline bool isBegin() const {
     return _internalIterator.isBegin();
   }
   /*! Returns true if the current ViewEdge is is coming
