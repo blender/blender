@@ -1632,7 +1632,9 @@ public:
 
 			COLLADAFW::SkinController *skinco = (COLLADAFW::SkinController*)controller;
 			const COLLADAFW::UniqueId& id = skinco->getSkinControllerData();
-
+			
+			this->skinid_meshid_map[skin_id] = skinco->getSource();
+			
 			// "Node" ids
 			const COLLADAFW::UniqueIdArray& joint_ids = skinco->getJoints();
 
