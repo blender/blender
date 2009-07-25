@@ -1598,6 +1598,56 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 }
 
 
+/* ****** Drag & Drop ****** */
+
+static int view3d_drag_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmWindow *win= CTX_wm_window(C);
+	Object *ob= CTX_data_active_object(C);
+	PointerRNA ptr;
+
+	RNA_pointer_create(NULL, &RNA_Object, ob, &ptr);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int view3d_drag_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	switch(event->type) {
+		case MOUSEDRAG:
+
+			break;
+		case MOUSEDROP:
+			return OPERATOR_FINISHED;
+		case ESCKEY:
+			return OPERATOR_CANCELLED;
+	}
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int view3d_drag_exec(bContext *C, wmOperator *op)
+{
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_drag(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Drag";
+	ot->idname= "VIEW3D_OT_drag";
+	
+	/* api callbacks */
+	ot->invoke= view3d_drag_invoke;
+	ot->modal= view3d_drag_modal;
+	ot->exec= view3d_drag_exec;
+	ot->poll= ED_operator_view3d_active;
+	
+	/* flags */
+	/* ot->flag= OPTYPE_UNDO; */
+}
+
+
 /* -------------------- circle select --------------------------------------------- */
 
 static void mesh_circle_doSelectVert(void *userData, EditVert *eve, int x, int y, int index)

@@ -3452,6 +3452,57 @@ void OUTLINER_OT_data_operation(wmOperatorType *ot)
 }
 
 
+/* ****** Drag & Drop ****** */
+
+static int outliner_drag_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmWindow *win= CTX_wm_window(C);
+	Object *ob= CTX_data_active_object(C);
+	PointerRNA ptr;
+
+	RNA_pointer_create(NULL, &RNA_Object, ob, &ptr);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int outliner_drag_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	switch(event->type) {
+		case MOUSEDRAG:
+
+			break;
+		case MOUSEDROP:
+			return OPERATOR_FINISHED;
+		case ESCKEY:
+			return OPERATOR_CANCELLED;
+	}
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int outliner_drag_exec(bContext *C, wmOperator *op)
+{
+	return OPERATOR_FINISHED;
+}
+
+void OUTLINER_OT_drag(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Drag";
+	ot->idname= "OUTLINER_OT_drag";
+
+	/* api callbacks */
+	ot->invoke= outliner_drag_invoke;
+	ot->modal= outliner_drag_modal;
+	ot->exec= outliner_drag_exec;
+
+	ot->poll= ED_operator_outliner_active;
+
+	/* flags */
+	/* ot->flag= OPTYPE_UNDO; */
+}
+
+
 /* ******************** */
 
 

@@ -127,6 +127,8 @@ void OUTLINER_OT_group_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_id_operation(struct wmOperatorType *ot);
 void OUTLINER_OT_data_operation(struct wmOperatorType *ot);
 
+void OUTLINER_OT_drag(struct wmOperatorType *ot);
+
 void OUTLINER_OT_show_one_level(struct wmOperatorType *ot);
 void OUTLINER_OT_show_active(struct wmOperatorType *ot);
 void OUTLINER_OT_show_hierarchy(struct wmOperatorType *ot);

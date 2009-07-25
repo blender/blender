@@ -115,6 +115,7 @@ void VIEW3D_OT_select_extend(struct wmOperatorType *ot);
 void VIEW3D_OT_select_circle(struct wmOperatorType *ot);
 void VIEW3D_OT_select_border(struct wmOperatorType *ot);
 void VIEW3D_OT_select_lasso(struct wmOperatorType *ot);
+void VIEW3D_OT_drag(struct wmOperatorType *ot);
 
 /* view3d_view.c */
 void VIEW3D_OT_smoothview(struct wmOperatorType *ot);
