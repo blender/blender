@@ -164,8 +164,8 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	BMIter iter, liter;
 	int i, j, ototvert, totloop, numTex, numCol;
 	
-	numTex = CustomData_number_of_layers(&me->pdata, CD_MLOOPUV);
-	numCol = CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
+	numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
+	numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
 
 	bmtess = BM_Copy_Mesh(bm);
 	BMO_CallOpf(bmtess, "makefgon trifan=%i", 0);

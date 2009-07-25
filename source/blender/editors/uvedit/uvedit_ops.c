@@ -116,7 +116,8 @@ void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *pre
 	
 	/* ensure we have a uv layer */
 	if(!CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY)) {
-		BM_add_data_layer(em->bm, &em->bm->pdata, CD_MTFACE);
+		BM_add_data_layer(em->bm, &em->bm->pdata, CD_MTEXPOLY);
+		BM_add_data_layer(em->bm, &em->bm->ldata, CD_MLOOPUV);
 		update= 1;
 	}
 

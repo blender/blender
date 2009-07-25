@@ -537,6 +537,7 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
   which much be either a BMVert, BMEdge,
   or BMFace, converted to mesh flags.
 */
+
 int BMFlags_To_MEFlags(void *element) {
 	BMHeader *h = element;
 	int f = 0;
@@ -551,9 +552,9 @@ int BMFlags_To_MEFlags(void *element) {
 		if (h->flag & BM_SEAM) f |= ME_SEAM;
 		if (h->flag & BM_SHARP) f |= ME_SHARP;
 		if (BM_Wire_Edge(NULL, element)) f |= ME_LOOSEEDGE;
+		f |= ME_EDGEDRAW;
 	} else if (h->type == BM_VERT) {
 		if (h->flag & BM_SELECT) f |= BM_SELECT;
-		if (h->flag & BM_HIDDEN) f |= ME_HIDE;
 	}
 
 	return f;

@@ -724,12 +724,13 @@ static void bmDM_drawFacesTex_common(DerivedMesh *dm,
 		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
 			BMINDEX_SET(eve, i++);
 				
+		glBegin(GL_TRIANGLES);
 		for (i=0; i<em->tottri; i++) {
 			BMLoop **ls = em->looptris[i];
 			MTexPoly *tp= CustomData_bmesh_get(&bm->pdata, ls[0]->f->head.data, CD_MTEXPOLY);
 			MTFace mtf = {0};
 			unsigned char *cp= NULL;
-			int drawSmooth= BM_TestHFlag(ls[0]->f->head.data, BM_SMOOTH);
+			int drawSmooth= BM_TestHFlag(ls[0]->f, BM_SMOOTH);
 			int flag;
 
 			efa = ls[0]->f;
@@ -757,8 +758,6 @@ static void bmDM_drawFacesTex_common(DerivedMesh *dm,
 					glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
 				} 
 				
-
-				glBegin(GL_TRIANGLES);
 				if (!drawSmooth) {
 					glNormal3fv(bmdm->faceNos[i]);
 					
@@ -780,22 +779,22 @@ static void bmDM_drawFacesTex_common(DerivedMesh *dm,
 					
 					glTexCoord2fv(luv[0]->uv);
 					glColor3ub(lcol[0]->r, lcol[0]->g, lcol[0]->b);
-					glVertex3fv(vertexCos[BMINDEX_GET(ls[0]->v)]);
 					glNormal3fv(vertexNos[BMINDEX_GET(ls[0]->v)]);
+					glVertex3fv(vertexCos[BMINDEX_GET(ls[0]->v)]);
 
 					glTexCoord2fv(luv[1]->uv);
 					glColor3ub(lcol[1]->r, lcol[1]->g, lcol[1]->b);
-					glVertex3fv(vertexCos[BMINDEX_GET(ls[1]->v)]);
 					glNormal3fv(vertexNos[BMINDEX_GET(ls[1]->v)]);
+					glVertex3fv(vertexCos[BMINDEX_GET(ls[1]->v)]);
 
 					glTexCoord2fv(luv[2]->uv);
 					glColor3ub(lcol[2]->r, lcol[2]->g, lcol[2]->b);
-					glVertex3fv(vertexCos[BMINDEX_GET(ls[2]->v)]);
 					glNormal3fv(vertexNos[BMINDEX_GET(ls[2]->v)]);
+					glVertex3fv(vertexCos[BMINDEX_GET(ls[2]->v)]);
 				}
-				glEnd();
 			}
 		}
+		glEnd();
 	} else {
 		i = 0;
 		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
@@ -806,7 +805,7 @@ static void bmDM_drawFacesTex_common(DerivedMesh *dm,
 			MTexPoly *tp= CustomData_bmesh_get(&bm->pdata, ls[0]->f->head.data, CD_MTEXPOLY);
 			MTFace mtf = {0};
 			unsigned char *cp= NULL;
-			int drawSmooth= BM_TestHFlag(ls[0]->f->head.data, BM_SMOOTH);
+			int drawSmooth= BM_TestHFlag(ls[0]->f, BM_SMOOTH);
 			int flag;
 
 			efa = ls[0]->f;
@@ -834,7 +833,6 @@ static void bmDM_drawFacesTex_common(DerivedMesh *dm,
 					glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
 				} 
 				
-
 				glBegin(GL_TRIANGLES);
 				if (!drawSmooth) {
 					glNormal3fv(efa->no);
@@ -857,98 +855,23 @@ static void bmDM_drawFacesTex_common(DerivedMesh *dm,
 					
 					glTexCoord2fv(luv[0]->uv);
 					glColor3ub(lcol[0]->r, lcol[0]->g, lcol[0]->b);
-					glVertex3fv(ls[0]->v->co);
 					glNormal3fv(ls[0]->v->no);
+					glVertex3fv(ls[0]->v->co);
 
 					glTexCoord2fv(luv[1]->uv);
 					glColor3ub(lcol[1]->r, lcol[1]->g, lcol[1]->b);
-					glVertex3fv(ls[1]->v->co);
 					glNormal3fv(ls[1]->v->no);
+					glVertex3fv(ls[1]->v->co);
 
 					glTexCoord2fv(luv[2]->uv);
 					glColor3ub(lcol[2]->r, lcol[2]->g, lcol[2]->b);
-					glVertex3fv(ls[2]->v->co);
 					glNormal3fv(ls[2]->v->no);
+					glVertex3fv(ls[2]->v->co);
 				}
 				glEnd();
 			}
 		}
 	}
-#if 0
-	else {
-		for (i=0,efa= bm->faces.first; efa; i++,efa= efa->next) {
-			MTFace *tf= CustomData_bm_get(&bm->pdata, efa->data, CD_MTFACE);
-			MCol *mcol= CustomData_bm_get(&bm->pdata, efa->data, CD_MCOL);
-			unsigned char *cp= NULL;
-			int drawSmooth= (efa->flag & ME_SMOOTH);
-			int flag;
-
-			if(drawParams)
-				flag= drawParams(tf, mcol, efa->mat_nr);
-			else if(drawParamsMapped)
-				flag= drawParamsMapped(userData, i);
-			else
-				flag= 1;
-
-			if(flag != 0) { /* flag 0 == the face is hidden or invisible */
-				/* we always want smooth here since otherwise vertex colors dont interpolate */
-				if (mcol) {
-					if (flag==1) {
-						cp= (unsigned char*)mcol;
-					}
-				} else {
-					glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
-				} 
-
-				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
-				if (!drawSmooth) {
-					glNormal3fv(efa->n);
-
-					if(tf) glTexCoord2fv(tf->uv[0]);
-					if(cp) glColor3ub(cp[3], cp[2], cp[1]);
-					glVertex3fv(efa->v1->co);
-
-					if(tf) glTexCoord2fv(tf->uv[1]);
-					if(cp) glColor3ub(cp[7], cp[6], cp[5]);
-					glVertex3fv(efa->v2->co);
-
-					if(tf) glTexCoord2fv(tf->uv[2]);
-					if(cp) glColor3ub(cp[11], cp[10], cp[9]);
-					glVertex3fv(efa->v3->co);
-
-					if(efa->v4) {
-						if(tf) glTexCoord2fv(tf->uv[3]);
-						if(cp) glColor3ub(cp[15], cp[14], cp[13]);
-						glVertex3fv(efa->v4->co);
-					}
-				} else {
-					if(tf) glTexCoord2fv(tf->uv[0]);
-					if(cp) glColor3ub(cp[3], cp[2], cp[1]);
-					glNormal3fv(efa->v1->no);
-					glVertex3fv(efa->v1->co);
-
-					if(tf) glTexCoord2fv(tf->uv[1]);
-					if(cp) glColor3ub(cp[7], cp[6], cp[5]);
-					glNormal3fv(efa->v2->no);
-					glVertex3fv(efa->v2->co);
-
-					if(tf) glTexCoord2fv(tf->uv[2]);
-					if(cp) glColor3ub(cp[11], cp[10], cp[9]);
-					glNormal3fv(efa->v3->no);
-					glVertex3fv(efa->v3->co);
-
-					if(efa->v4) {
-						if(tf) glTexCoord2fv(tf->uv[3]);
-						if(cp) glColor3ub(cp[15], cp[14], cp[13]);
-						glNormal3fv(efa->v4->no);
-						glVertex3fv(efa->v4->co);
-					}
-				}
-				glEnd();
-			}
-		}
-	}
-#endif
 }
 
 static void bmDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, int has_vcol, int matnr))

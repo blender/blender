@@ -432,6 +432,7 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 
 	if (mpoly && mpoly->flag&ME_HIDE) return 0;
 
+	memset(&mtf, 0, sizeof(mtf));
 	if (tpoly) {
 		mtf.flag = tpoly->flag;
 		mtf.tpage = tpoly->tpage;
@@ -441,7 +442,7 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 		mtf.unwrap = tpoly->unwrap;
 	}
 
-	return draw_tface__set_draw(&mtf, CustomData_has_layer(&me->ldata, CD_MLOOPUV), matnr);
+	return draw_tface__set_draw(&mtf, CustomData_has_layer(&me->ldata, CD_MLOOPCOL), matnr);
 }
 
 static int draw_em_tf_mapped__set_draw(void *userData, int index)
@@ -456,8 +457,10 @@ static int draw_em_tf_mapped__set_draw(void *userData, int index)
 		return 0;
 
 	tpoly = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-	has_vcol = CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV);
+	has_vcol = CustomData_has_layer(&em->bm->ldata, CD_MLOOPCOL);
 	matnr = efa->mat_nr;
+
+	memset(&mtf, 0, sizeof(mtf));
 
 	if (tpoly) {
 		mtf.flag = tpoly->flag;
