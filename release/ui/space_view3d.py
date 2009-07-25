@@ -182,18 +182,20 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
 		layout = self.layout
 		
 		view = context.space_data
-		bg = context.space_data.background_image
-		
-		layout.active = view.display_background_image
-		split = layout.split()
-		col = split.column()
-		col.itemR(bg, "image")
-#		col.itemR(bg, "image_user")
-		col.itemR(bg, "size")
-		col.itemR(bg, "transparency", slider=True)
-		col.itemL(text="Offset:")
-		col.itemR(bg, "x_offset", text="X")
-		col.itemR(bg, "y_offset", text="Y")
+		bg = view.background_image
+
+		if bg:
+			layout.active = view.display_background_image
+
+			split = layout.split()
+			col = split.column()
+			col.itemR(bg, "image", text="")
+			#col.itemR(bg, "image_user")
+			col.itemR(bg, "size")
+			col.itemR(bg, "transparency", slider=True)
+			col.itemL(text="Offset:")
+			col.itemR(bg, "x_offset", text="X")
+			col.itemR(bg, "y_offset", text="Y")
 
 bpy.types.register(VIEW3D_MT_view_navigation)
 bpy.types.register(VIEW3D_MT_view)

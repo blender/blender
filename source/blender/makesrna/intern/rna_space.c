@@ -287,6 +287,22 @@ static void rna_ConsoleLine_cursor_index_range(PointerRNA *ptr, int *min, int *m
 	*max= ci->len;
 }
 
+static void rna_View3D_display_background_image_set(PointerRNA *ptr, int value)
+{
+	View3D *vd= (View3D*)ptr->data;
+
+	if(value) vd->flag |= V3D_DISPBGPIC;
+	else vd->flag &= ~V3D_DISPBGPIC;
+
+	if((vd->flag & V3D_DISPBGPIC) && vd->bgpic == NULL) {
+		vd->bgpic= MEM_callocN(sizeof(BGpic), "bgpic");
+		vd->bgpic->size= 5.0;
+		vd->bgpic->blend= 0.5;
+		vd->bgpic->iuser.fie_ima= 2;
+		vd->bgpic->iuser.ok= 1;
+	}
+}
+
 #else
 
 static void rna_def_space(BlenderRNA *brna)
@@ -454,6 +470,7 @@ static void rna_def_background_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ima");
 	RNA_def_property_ui_text(prop, "Image", "Image displayed and edited in this space.");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, NULL);
 
 	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
@@ -612,6 +629,7 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
 	prop= RNA_def_property(srna, "display_background_image", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_View3D_display_background_image_set");
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_DISPBGPIC);
 	RNA_def_property_ui_text(prop, "Display Background Image", "Display a reference image behind objects in the 3D View");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
@@ -699,6 +717,11 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, align_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_SpaceButtonsWindow_align_set", NULL);
 	RNA_def_property_ui_text(prop, "Align", "Arrangement of the panels.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "brush_texture", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SB_BRUSH_TEX);
+	RNA_def_property_ui_text(prop, "Brush Texture", "Show brush textures.");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	/* pinned data */
