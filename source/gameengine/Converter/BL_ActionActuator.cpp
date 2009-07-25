@@ -1106,13 +1106,16 @@ PyObject* BL_ActionActuator::pyattr_get_channel_names(void *self_v, const KX_PYA
 {
 	BL_ActionActuator* self= static_cast<BL_ActionActuator*>(self_v);
 	PyObject *ret= PyList_New(0);
+	PyObject *item;
 	
 	bPose *pose= ((BL_ArmatureObject*)self->GetParent())->GetOrigPose();
 	
 	if(pose) {
 		bPoseChannel *pchan;
 		for(pchan= (bPoseChannel *)pose->chanbase.first; pchan; pchan= (bPoseChannel *)pchan->next) {
-			PyList_Append(ret, PyString_FromString(pchan->name));
+			item= PyString_FromString(pchan->name);
+			PyList_Append(ret, item);
+			Py_DECREF(item);
 		}
 	}
 	
