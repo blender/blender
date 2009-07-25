@@ -323,6 +323,82 @@ static void rna_SceneRenderLayer_pass_update(bContext *C, PointerRNA *ptr)
 
 #else
 
+static void rna_def_tpaint(BlenderRNA  *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	static EnumPropertyItem texture_paint_items[] = {
+		{PAINT_TOOL_DRAW, "DRAW", 0, "Draw", "Draw brush"},
+		{PAINT_TOOL_SOFTEN, "SOFTEN", 0, "Soften", "Soften brush"},
+		{PAINT_TOOL_SMEAR, "SMEAR", 0, "Smear", "Smear brush"},
+		{0, NULL, 0, NULL, NULL}};
+		
+	static EnumPropertyItem projection_paint_items[] = {
+		{PAINT_TOOL_DRAW, "DRAW", 0, "Draw", "Draw brush"},
+		{PAINT_TOOL_SMEAR, "SMEAR", 0, "Smear", "Smear brush"},
+		{PAINT_TOOL_CLONE, "CLONE", 0, "Clone", "Clone brush, use RMB to drag source image"},
+		{0, NULL, 0, NULL, NULL}};
+		
+	srna= RNA_def_struct(brna, "ImagePaintSettings", NULL);
+	RNA_def_struct_nested(brna, srna, "Scene");
+	RNA_def_struct_ui_text(srna, "Texture Painting", "");
+	
+	prop= RNA_def_property(srna, "texture_paint_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "tool");
+	RNA_def_property_enum_items(prop, texture_paint_items);
+	RNA_def_property_ui_text(prop, "Paint Mode", "");
+	
+	/********** Projection Painting **********/
+	
+	prop= RNA_def_property(srna, "projection_paint_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "tool");
+	RNA_def_property_enum_items(prop, projection_paint_items);
+	RNA_def_property_ui_text(prop, "Paint Mode", "");
+	
+	/* Boolean */
+	
+	prop= RNA_def_property(srna, "use_projection", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_DISABLE);
+	RNA_def_property_ui_text(prop, "Project Paint", "Use projection painting for improved consistency in the brush strokes");
+	
+	prop= RNA_def_property(srna, "occlude", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_XRAY);
+	RNA_def_property_ui_text(prop, "Occlude", "Only paint onto the faces directly under the brush (slower)");
+	
+	prop= RNA_def_property(srna, "cull", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_BACKFACE);
+	RNA_def_property_ui_text(prop, "Cull", "Ignore faces pointing away from the view (faster)");
+	
+	prop= RNA_def_property(srna, "normal", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_FLAT);
+	RNA_def_property_ui_text(prop, "Normal", "Paint most on faces pointing towards the view");
+	
+	prop= RNA_def_property(srna, "stencil_layer", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_LAYER_MASK);
+	RNA_def_property_ui_text(prop, "Stencil Layer", "Set the mask layer from the UV layer buttons");
+	
+	prop= RNA_def_property(srna, "invert_mask", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_LAYER_MASK_INV);
+	RNA_def_property_ui_text(prop, "Invert", "Invert the mask");
+	
+	prop= RNA_def_property(srna, "clone_layer", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMAGEPAINT_PROJECT_LAYER_CLONE);
+	RNA_def_property_ui_text(prop, "Clone Layer", "Use another UV layer as clone source, otherwise use 3D the cursor as the source");
+	
+	/* Integer */
+	
+	prop= RNA_def_property(srna, "normal_angle", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "normal_angle");
+	RNA_def_property_range(prop, 10, 90);
+	RNA_def_property_ui_text(prop, "Angle", "Paint most on faces pointing towards the view acording to this angle");
+	
+	prop= RNA_def_property(srna, "bleed", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "seam_bleed");
+	RNA_def_property_range(prop, 0, 8);
+	RNA_def_property_ui_text(prop, "Bleed", "Extend paint beyond the faces UVs to reduce seams (in pixels, slower)");
+}
+
 static void rna_def_sculpt(BlenderRNA  *brna)
 {
 	StructRNA *srna;
@@ -482,6 +558,9 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 
 	/* Sculpt */
 	rna_def_sculpt(brna);
+	
+	/* Texture Paint */
+	rna_def_tpaint(brna);
 }
 
 void rna_def_render_layer_common(StructRNA *srna, int scene)

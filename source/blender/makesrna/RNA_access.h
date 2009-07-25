@@ -221,6 +221,7 @@ extern StructRNA RNA_ID;
 extern StructRNA RNA_IDProperty;
 extern StructRNA RNA_IDPropertyGroup;
 extern StructRNA RNA_Image;
+extern StructRNA RNA_ImagePaintSettings;
 extern StructRNA RNA_ImageSequence;
 extern StructRNA RNA_ImageTexture;
 extern StructRNA RNA_ImageUser;
