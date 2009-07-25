@@ -133,7 +133,7 @@ void makeraytree(Render *re)
 			else vlr++;
 			/* baking selected to active needs non-traceable too */
 			if((re->flag & R_BAKE_TRACE) || (vlr->mat->mode & MA_TRACEBLE)) {	
-				if((vlr->mat->mode & MA_WIRE)==0) {	
+				if(vlr->mat->material_type != MA_TYPE_WIRE) {
 					VECCOPY(co1, vlr->v1->co);
 					VECCOPY(co2, vlr->v2->co);
 					VECCOPY(co3, vlr->v3->co);
@@ -194,7 +194,7 @@ void makeraytree(Render *re)
 			else vlr++;
 			
 			if((re->flag & R_BAKE_TRACE) || (vlr->mat->mode & MA_TRACEBLE))
-				if((vlr->mat->mode & MA_WIRE)==0)
+				if(vlr->mat->material_type != MA_TYPE_WIRE)
 					RE_ray_tree_add_face(re->raytree, RAY_OBJECT_SET(re, obi), vlr);
 		}
 	}

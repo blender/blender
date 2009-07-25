@@ -9281,6 +9281,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 		for(ma = main->mat.first; ma; ma = ma->id.next) {
+			if(ma->mode & MA_WIRE) {
+				ma->material_type= MA_TYPE_WIRE;
+				ma->mode &= ~MA_WIRE;
+			}
 			if(ma->mode & MA_HALO) {
 				ma->material_type= MA_TYPE_HALO;
 				ma->mode &= ~MA_HALO;

@@ -559,7 +559,7 @@ bool ConvertMaterial(
 		material->ref			= mat->ref;
 		material->amb			= mat->amb;
 
-		material->ras_mode |= (mat->mode & MA_WIRE)? WIRE: 0;
+		material->ras_mode |= (mat->material_type == MA_TYPE_WIRE)? WIRE: 0;
 	}
 	else {
 		int valid = 0;

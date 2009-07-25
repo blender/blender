@@ -148,6 +148,7 @@ typedef struct Material {
 #define MA_TYPE_SURFACE	0
 #define MA_TYPE_HALO	1
 #define MA_TYPE_VOLUME	2
+#define MA_TYPE_WIRE	3
 
 /* flag */
 		/* for render */
@@ -159,7 +160,7 @@ typedef struct Material {
 #define MA_TRACEBLE		1
 #define MA_SHADOW		2
 #define MA_SHLESS		4
-#define MA_WIRE			8
+#define MA_WIRE			8			/* deprecated */
 #define MA_VERTEXCOL	16
 #define MA_HALO_SOFT	16
 #define MA_HALO			32			/* deprecated */
