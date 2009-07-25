@@ -434,7 +434,7 @@ typedef struct ImagePaintSettings {
 	short flag, tool;
 	
 	/* for projection painting only */
-	short seam_bleed,normal_angle;
+	short seam_bleed, normal_angle;
 
 	void *paintcursor;			/* wm handle */
 } ImagePaintSettings;
@@ -960,11 +960,10 @@ typedef enum SculptFlags {
 	SCULPT_LOCK_Z = 256
 } SculptFlags;
 
-/* toolsettings->imagepaint_flag */
+/* ImagePaintSettings.flag */
 #define IMAGEPAINT_DRAWING				1
 #define IMAGEPAINT_DRAW_TOOL			2
 #define IMAGEPAINT_DRAW_TOOL_DRAWING	4
-
 /* projection painting only */
 #define IMAGEPAINT_PROJECT_DISABLE		8	/* Non projection 3D painting */
 #define IMAGEPAINT_PROJECT_XRAY			16

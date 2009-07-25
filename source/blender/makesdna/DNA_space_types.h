@@ -577,6 +577,7 @@ typedef struct SpaceConsole {
 #define SB_PRV_OSA			1
 #define SB_PIN_CONTEXT		2
 #define SB_WORLD_TEX		4
+#define SB_BRUSH_TEX		8
 
 /* sbuts->align */
 #define BUT_FREE  		0

@@ -723,7 +723,7 @@ void RNA_def_struct_nested(BlenderRNA *brna, StructRNA *srna, const char *struct
 			break;
 
 	if(!srnafrom) {
-		fprintf(stderr, "RNA_def_struct_nested: struct %s not found.\n", structname);
+		fprintf(stderr, "RNA_def_struct_nested: struct %s not found for %s.\n", structname, srna->identifier);
 		DefRNA.error= 1;
 	}
 

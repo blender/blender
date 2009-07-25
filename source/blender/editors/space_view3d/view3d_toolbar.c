@@ -175,12 +175,12 @@ char *view3d_context_string(const bContext *C)
 	else {
 		Object *ob = CTX_data_active_object(C);
 		
-		if(ob && (ob->flag & OB_POSEMODE)) return "posemode";
-		else if (G.f & G_SCULPTMODE)  return "sculptmode";
-		else if (G.f & G_WEIGHTPAINT) return "weightpaint";
-		else if (G.f & G_VERTEXPAINT) return "vertexpaint";
-		else if (G.f & G_TEXTUREPAINT) return "texturepaint";
-		else if(G.f & G_PARTICLEEDIT) return "particlemode";
+		if(ob && (ob->flag & OB_POSEMODE)) return "pose_mode";
+		else if (G.f & G_SCULPTMODE)  return "sculpt_mode";
+		else if (G.f & G_WEIGHTPAINT) return "weight_paint";
+		else if (G.f & G_VERTEXPAINT) return "vertex_paint";
+		else if (G.f & G_TEXTUREPAINT) return "texture_paint";
+		else if(G.f & G_PARTICLEEDIT) return "particle_mode";
 	}
 	
 	return "objectmode";

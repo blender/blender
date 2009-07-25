@@ -9,7 +9,6 @@ class View3DPanel(bpy.types.Panel):
 	__context__ = "objectmode"
 
 class VIEW3D_PT_tools_objectmode(View3DPanel):
-	__idname__ = "VIEW3D_PT_tools_objectmode"
 	__label__ = "Object Tools"
 
 	def draw(self, context):
@@ -49,7 +48,6 @@ class View3DPanel(bpy.types.Panel):
 	__context__ = "editmode_mesh"
 
 class VIEW3D_PT_tools_editmode_mesh(View3DPanel):
-	__idname__ = "VIEW3D_PT_tools_editmode_mesh"
 	__label__ = "Mesh Tools"
 
 	def draw(self, context):
@@ -97,7 +95,6 @@ class View3DPanel(bpy.types.Panel):
 	__context__ = "editmode_curve"
 
 class VIEW3D_PT_tools_editmode_curve(View3DPanel):
-	__idname__ = "VIEW3D_PT_tools_editmode_curve"
 	__label__ = "Curve Tools"
 
 	def draw(self, context):
@@ -132,7 +129,6 @@ class View3DPanel(bpy.types.Panel):
 	__context__ = "editmode_surface"
 
 class VIEW3D_PT_tools_editmode_surface(View3DPanel):
-	__idname__ = "VIEW3D_PT_tools_editmode_surface"
 	__label__ = "Surface Tools"
 
 	def draw(self, context):
@@ -167,7 +163,6 @@ class View3DPanel(bpy.types.Panel):
 	__context__ = "editmode_text"
 
 class VIEW3D_PT_tools_editmode_text(View3DPanel):
-	__idname__ = "VIEW3D_PT_tools_editmode_text"
 	__label__ = "Text Tools"
 
 	def draw(self, context):
@@ -189,7 +184,6 @@ class View3DPanel(bpy.types.Panel):
 	__context__ = "editmode_armature"
 
 class VIEW3D_PT_tools_editmode_armature(View3DPanel):
-	__idname__ = "VIEW3D_PT_tools_editmode_armature"
 	__label__ = "Armature Tools"
 
 	def draw(self, context):
@@ -220,7 +214,6 @@ class View3DPanel(bpy.types.Panel):
 	__context__ = "editmode_mball"
 
 class VIEW3D_PT_tools_editmode_mball(View3DPanel):
-	__idname__ = "VIEW3D_PT_tools_editmode_mball"
 	__label__ = "Meta Tools"
 
 	def draw(self, context):
@@ -241,7 +234,6 @@ class View3DPanel(bpy.types.Panel):
 	__context__ = "editmode_lattice"
 
 class VIEW3D_PT_tools_editmode_lattice(View3DPanel):
-	__idname__ = "VIEW3D_PT_tools_editmode_lattice"
 	__label__ = "Lattice Tools"
 
 	def draw(self, context):
@@ -262,7 +254,6 @@ class View3DPanel(bpy.types.Panel):
 	__context__ = "posemode"
 
 class VIEW3D_PT_tools_posemode(View3DPanel):
-	__idname__ = "VIEW3D_PT_tools_posemode"
 	__label__ = "Pose Tools"
 
 	def draw(self, context):
@@ -301,102 +292,104 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
 
 # ********** default tools for paint modes ****************
 
-class VIEW3D_PT_tools_brush(bpy.types.Panel):
+class PaintPanel(bpy.types.Panel):
 	__space_type__ = "VIEW_3D"
 	__region_type__ = "TOOLS"
+
+	def paint_settings(self, context):
+		ts = context.tool_settings
+
+		if context.sculpt_object:
+			return ts.sculpt
+		elif context.vertex_paint_object:
+			return ts.vertex_paint
+		elif context.weight_paint_object:
+			return ts.weight_paint
+		elif context.texture_paint_object:
+			return ts.image_paint
+		elif context.particle_edit_object:
+			return ts.particle_edit
+
+		return False
+
+class VIEW3D_PT_tools_brush(PaintPanel):
 	__label__ = "Brush"
 
-	def brush_src(self, context):
-		ts = context.tool_settings
-		if context.sculpt_object:
-			return ts.sculpt
-		elif context.vpaint_object:
-			return ts.vpaint
-		elif context.wpaint_object:
-			return ts.wpaint
-		elif context.tpaint_object:
-			return ts.tpaint
-		return False
-
 	def poll(self, context):
-		return self.brush_src(context)
+		return self.paint_settings(context)
 
 	def draw(self, context):
-		src = self.brush_src(context)
-		brush = src.brush
+		settings = self.paint_settings(context)
+		brush = settings.brush
 		layout = self.layout
 
-		layout.split().row().template_ID(src, "brush")
+		if context.particle_edit_object:
+			layout.column().itemR(settings, "tool", expand=True)
+		else:
+			layout.split().row().template_ID(settings, "brush")
 
-		if context.sculpt_object:
-			layout.column().itemR(brush, "sculpt_tool", expand=True)
+		if brush and not context.particle_edit_object:
+			if context.sculpt_object:
+				layout.column().itemR(brush, "sculpt_tool", expand=True)
 
-		split = layout.split()
-		
-		col = split.column()
-		row = col.row(align=True)
-		row.itemR(brush, "size", slider=True)
-		row.itemR(brush, "size_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
-		
-		if context.wpaint_object:
-			col.itemR(context.tool_settings, "vertex_group_weight", text="Weight", slider=True)
+			elif context.texture_paint_object:
+				col = layout.column(align=True)
+				col.item_enumR(settings, "tool", "DRAW")
+				col.item_enumR(settings, "tool", "SOFTEN")
+				if settings.use_projection:
+					col.item_enumR(settings, "tool", "CLONE")
+				else:
+					col.item_enumR(settings, "tool", "SMEAR")
+
+			split = layout.split()
 			
-		col.itemR(brush, "strength", slider=True)
-		row = col.row(align=True)
-		row.itemR(brush, "falloff", slider=True)
-		row.itemR(brush, "falloff_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
-		
-		if context.vpaint_object:
-			col.itemR(brush, "color", text="")
-		if context.tpaint_object:
+			col = split.column()
 			row = col.row(align=True)
-			row.itemR(brush, "clone_opacity", slider=True, text=Opacity)
-			row.itemR(brush, "opacity_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
-		
-		row = col.row(align=True)
-		row.itemR(brush, "space", text="")
-		rowsub = row.row(align=True)
-		rowsub.active = brush.space
-		rowsub.itemR(brush, "spacing", text="Spacing", slider=True)
-		rowsub.itemR(brush, "spacing_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			row.itemR(brush, "size", slider=True)
+			row.itemR(brush, "size_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			if context.weight_paint_object:
+				col.itemR(context.tool_settings, "vertex_group_weight", text="Weight", slider=True)
+				
+			col.itemR(brush, "strength", slider=True)
+			row = col.row(align=True)
+			row.itemR(brush, "falloff", slider=True)
+			row.itemR(brush, "falloff_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			if context.vertex_paint_object:
+				col.itemR(brush, "color", text="")
+			if context.texture_paint_object:
+				row = col.row(align=True)
+				row.itemR(brush, "clone_opacity", slider=True, text="Opacity")
+				row.itemR(brush, "opacity_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			
+			row = col.row(align=True)
+			row.itemR(brush, "space", text="")
+			rowsub = row.row(align=True)
+			rowsub.active = brush.space
+			rowsub.itemR(brush, "spacing", text="Spacing", slider=True)
+			rowsub.itemR(brush, "spacing_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
 
-		split = layout.split()
-		col = split.column()
-		col.itemR(brush, "airbrush")
-		col.itemR(brush, "anchored")
-		col.itemR(brush, "rake")
+			split = layout.split()
+			col = split.column()
+			col.itemR(brush, "airbrush")
+			col.itemR(brush, "anchored")
+			col.itemR(brush, "rake")
 
-class VIEW3D_PT_tools_brush_curve(bpy.types.Panel):
-	__space_type__ = "VIEW_3D"
-	__region_type__ = "TOOLS"
+class VIEW3D_PT_tools_brush_curve(PaintPanel):
 	__label__ = "Curve"
 
-	def brush_src(self, context):
-		ts = context.tool_settings
-		if context.sculpt_object:
-			return ts.sculpt
-		elif context.vpaint_object:
-			return ts.vpaint
-		elif context.wpaint_object:
-			return ts.wpaint
-		elif context.tpaint_object:
-			return ts.tpaint
-		return False
-
 	def poll(self, context):
-		return self.brush_src(context)
+		settings = self.paint_settings(context)
+		return (settings and settings.brush and settings.brush.curve)
 
 	def draw(self, context):
-		src = self.brush_src(context)
-		brush = src.brush
+		settings = self.paint_settings(context)
+		brush = settings.brush
 		layout = self.layout
 
 		split = layout.split()
 		split.template_curve_mapping(brush.curve)
 		
-class VIEW3D_PT_sculpt_options(bpy.types.Panel):
-	__space_type__ = "VIEW_3D"
-	__region_type__ = "TOOLS"
+class VIEW3D_PT_sculpt_options(PaintPanel):
 	__label__ = "Options"
 
 	def poll(self, context):
@@ -429,15 +422,14 @@ class VIEW3D_PT_sculpt_options(bpy.types.Panel):
 class View3DPanel(bpy.types.Panel):
 	__space_type__ = "VIEW_3D"
 	__region_type__ = "TOOLS"
-	__context__ = "weightpaint"
+	__context__ = "weight_paint"
 
-class VIEW3D_PT_weightpaint_options(View3DPanel):
-	__idname__ = "VIEW3D_PT_tools_weightpaint"
+class VIEW3D_PT_weight_paint_options(View3DPanel):
 	__label__ = "Options"
 
 	def draw(self, context):
 		layout = self.layout
-		wpaint = context.tool_settings.wpaint
+		wpaint = context.tool_settings.weight_paint
 
 		col = layout.column()
 		col.itemL(text="Blend:")
@@ -459,15 +451,14 @@ class VIEW3D_PT_weightpaint_options(View3DPanel):
 class View3DPanel(bpy.types.Panel):
 	__space_type__ = "VIEW_3D"
 	__region_type__ = "TOOLS"
-	__context__ = "vertexpaint"
 
-class VIEW3D_PT_vertexpaint_options(View3DPanel):
-	__idname__ = "VIEW3D_PT_vertexpaintoptions"
+class VIEW3D_PT_vertex_paint_options(View3DPanel):
+	__context__ = "vertex_paint"
 	__label__ = "Options"
 
 	def draw(self, context):
 		layout = self.layout
-		vpaint = context.tool_settings.vpaint
+		vpaint = context.tool_settings.vertex_paint
 
 		col = layout.column()
 		col.itemL(text="Blend:")
@@ -488,17 +479,36 @@ class VIEW3D_PT_vertexpaint_options(View3DPanel):
 class View3DPanel(bpy.types.Panel):
 	__space_type__ = "VIEW_3D"
 	__region_type__ = "TOOLS"
-	__context__ = "texturepaint"
+	__context__ = "texture_paint"
 
-class VIEW3D_PT_tools_texturepaint(View3DPanel):
-	__idname__ = "VIEW3D_PT_tools_texturepaint"
-	__label__ = "Texture Paint Tools"
+class VIEW3D_PT_tools_texture_paint(View3DPanel):
+	__label__ = "Options"
 
 	def draw(self, context):
 		layout = self.layout
 
 		layout.itemL(text="Nothing yet")
 		
+# ********** default tools for particle mode ****************
+
+class View3DPanel(bpy.types.Panel):
+	__space_type__ = "VIEW_3D"
+	__region_type__ = "TOOLS"
+	__context__ = "particle_mode"
+
+class VIEW3D_PT_tools_particle_edit(View3DPanel):
+	__label__ = "Options"
+
+	def draw(self, context):
+		layout = self.layout
+		pe = context.tool_settings.particle_edit
+
+		col = layout.column(align=True)
+
+		col.itemR(pe, "emitter_deflect", text="Deflect")
+		sub = col.row()
+		sub.itemR(pe, "emitter_distance", text="Distance")
+		sub.active = pe.emitter_deflect
 
 bpy.types.register(VIEW3D_PT_tools_objectmode)
 bpy.types.register(VIEW3D_PT_tools_editmode_mesh)
@@ -512,6 +522,8 @@ bpy.types.register(VIEW3D_PT_tools_posemode)
 bpy.types.register(VIEW3D_PT_tools_brush)
 bpy.types.register(VIEW3D_PT_tools_brush_curve)
 bpy.types.register(VIEW3D_PT_sculpt_options)
-bpy.types.register(VIEW3D_PT_vertexpaint_options)
-bpy.types.register(VIEW3D_PT_weightpaint_options)
-bpy.types.register(VIEW3D_PT_tools_texturepaint)
+bpy.types.register(VIEW3D_PT_vertex_paint_options)
+bpy.types.register(VIEW3D_PT_weight_paint_options)
+bpy.types.register(VIEW3D_PT_tools_texture_paint)
+bpy.types.register(VIEW3D_PT_tools_particle_edit)
+
