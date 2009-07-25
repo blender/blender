@@ -245,7 +245,6 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 	int xsize, ysize, zsize;
 	int bpp, rle, cur, badorder;
 	ImBuf * ibuf;
-	uchar * rect;
 	
 	/*printf("new iris\n");*/
 	
@@ -436,6 +435,7 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 	
 	
 	if (bpp == 1) {
+		uchar * rect;
 		
 		if (image.zsize == 1){
 			rect = (uchar *) ibuf->rect;
@@ -467,7 +467,7 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 			fbase = ibuf->rect_float;
 			for (x = ibuf->x * ibuf->y; x > 0; x--) {
 				fbase[0] = 1;
-				fbase[1] = rect[2] = rect[3];
+				fbase[1] = fbase[2] = fbase[3];
 				fbase += 4;
 			}
 		} else if (image.zsize == 2){

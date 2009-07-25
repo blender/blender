@@ -347,7 +347,7 @@ bool ConvertPythonToMesh(PyObject * value, RAS_MeshObject **object, bool py_none
 		KX_MeshProxy *kx_mesh = static_cast<KX_MeshProxy*>BGE_PROXY_REF(value);
 		
 		/* sets the error */
-		if (*object==NULL) {
+		if (kx_mesh==NULL) {
 			PyErr_Format(PyExc_SystemError, "%s, " BGE_PROXY_ERROR_MSG, error_prefix);
 			return false;
 		}		
