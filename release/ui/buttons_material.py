@@ -74,37 +74,36 @@ class MATERIAL_PT_material(MaterialButtonsPanel):
 
 		if mat:
 			layout.itemR(mat, "type", expand=True)
-			
-
-
-#			row = layout.row()
 
 			if mat.type == 'SURFACE':
 				split = layout.split()
 	
 				sub = split.column()
+				sub.itemR(mat, "z_buffer")
 				sub.itemR(mat, "alpha", slider=True)
 				sub.itemR(mat, "ambient", slider=True)
 				sub.itemR(mat, "emit")
-				sub.itemR(mat, "translucency", slider=True)
 				
 				sub = split.column()
 				sub.itemR(mat, "shadeless")	
 				sub.itemR(mat, "wireframe")
+				
 				sub.itemR(mat, "tangent_shading")
 				sub.itemR(mat, "cubic", slider=True)
+				
 			elif mat.type == 'VOLUME':
 				split = layout.split()
 	
 				sub = split.column()
+				sub.itemR(mat, "z_buffer")
 				sub.itemR(mat, "alpha", slider=True)
 				sub.itemR(mat, "ambient", slider=True)
 				sub.itemR(mat, "emit")
-				sub.itemR(mat, "translucency", slider=True)
 				
 				sub = split.column()
 				sub.itemR(mat, "shadeless")	
 				sub.itemR(mat, "wireframe")
+				
 				sub.itemR(mat, "tangent_shading")
 				sub.itemR(mat, "cubic", slider=True)
 			elif mat.type == 'HALO':
@@ -218,9 +217,8 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 		sub = split.column()
 		sub.active = mat.shadeless== False
 		sub.itemR(mat, "diffuse_reflection", text="Intensity", slider=True)
+		sub.itemR(mat, "translucency", slider=True)
 		sub.itemR(mat, "object_color")
-		
-
 		
 		row = layout.row()
 		row.active = mat.shadeless== False
@@ -242,8 +240,9 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 			sub = split.column()
 			sub.itemR(mat, "diffuse_fresnel_factor", text="Factor")
 		
-		layout.itemR(mat, "diffuse_ramp", text="Ramp")
-
+		layout.template_color_ramp(mat.diffuse_ramp, expand=True)
+		
+		
 class MATERIAL_PT_specular(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_specular"
 	__label__ = "Specular"
@@ -283,8 +282,9 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
 			sub = split.column()
 			sub.itemR(mat, "specular_toon_smooth", text="Smooth")
 		
-		layout.itemR(mat, "specular_ramp", text="Ramp")
-
+		layout.template_color_ramp(mat.specular_ramp, expand=True)
+		
+		
 class MATERIAL_PT_sss(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_sss"
 	__label__ = "Subsurface Scattering"
