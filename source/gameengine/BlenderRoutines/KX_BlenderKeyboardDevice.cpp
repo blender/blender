@@ -104,7 +104,7 @@ bool	KX_BlenderKeyboardDevice::ConvertBlenderEvent(unsigned short incode,short v
 	{
 		int previousTable = 1-m_currentTable;
 
-		if (val > 0)
+		if (val == KM_PRESS)
 		{
 			if (kxevent == KX_ESCKEY && val != 0 && !m_hookesc)
 				result = true;
@@ -138,7 +138,7 @@ bool	KX_BlenderKeyboardDevice::ConvertBlenderEvent(unsigned short incode,short v
 				}
 			}
 			
-		} else
+		} else if (val == KM_RELEASE)
 		{
 			// blender eventval == 0
 			switch (m_eventStatusTables[previousTable][kxevent].m_status)
