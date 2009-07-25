@@ -34,11 +34,13 @@
 // TODO move "extern C" into header files
 extern "C" 
 {
+#include "ED_keyframing.h"
+#include "ED_armature.h"
+
 #include "BKE_main.h"
 #include "BKE_customdata.h"
 #include "BKE_library.h"
 #include "BKE_texture.h"
-#include "ED_keyframing.h"
 #include "BKE_fcurve.h"
 #include "BKE_depsgraph.h"
 #include "BLI_util.h"
@@ -133,8 +135,6 @@ class Writer: public COLLADAFW::IWriter
 private:
 	std::string mFilename;
 	
-	std::vector<COLLADAFW::VisualScene> mVisualScenes;
-
 	bContext *mContext;
 
 	std::map<COLLADAFW::UniqueId, Mesh*> uid_mesh_map; // geometry unique id-to-mesh map
@@ -165,6 +165,25 @@ private:
 	};
 	// Nodes don't share AnimationLists (Arystan)
 	std::map<COLLADAFW::UniqueId, AnimatedTransform> uid_animated_map; // AnimationList->uniqueId to AnimatedObject map
+
+	// ----------------------------------------------------------------------
+	// Armature and related
+
+	// to build armature bones form inverse bind matrices
+	struct JointData {
+		float inv_bind_mat[4][4]; // joint inverse bind matrix
+		Object *ob_arm;			  // armature object
+	};
+	std::map<int, JointData> joint_index_to_joint_info_map;
+	std::map<COLLADAFW::UniqueId, int> joint_id_to_joint_index_map;
+
+	struct ArmatureData {
+		bArmature *arm;
+		COLLADAFW::SkinController *controller;
+	};
+	std::map<COLLADAFW::UniqueId, ArmatureData> controller_id_to_arm_info_map;
+
+	std::vector<COLLADAFW::Node*> root_joints;
 
 	class UnitConverter
 	{
@@ -271,22 +290,6 @@ public:
 	/** This method is called after the last write* method. No other methods will be called after this.*/
 	virtual void finish()
 	{
-		// using mVisualScenes, do:
-		// - write <node> data to Objects: materials, transforms, etc.
-
-		// TODO: import materials (<instance_material> inside <instance_geometry>) and textures
-
-		std::vector<COLLADAFW::VisualScene>::iterator it = mVisualScenes.begin();
-		for (; it != mVisualScenes.end(); it++) {
-			COLLADAFW::VisualScene &visscene = *it;
-
-			// create new blender scene
-
-			// create Objects from <node>s inside this <visual_scene>
-
-			// link each Object with a Mesh
-			// for each Object's <instance_geometry> there should already exist a Mesh
-		}
 	}
 
 	/** When this method is called, the writer must write the global document asset.
@@ -439,7 +442,14 @@ public:
 	{
 		// XXX linking object with the first <instance_geometry>, though a node may have more of them...
 		// maybe join multiple <instance_...> meshes into 1, and link object with it? not sure...
-		if (node->getType() != COLLADAFW::Node::NODE) return;
+		if (node->getType() != COLLADAFW::Node::NODE) {
+
+			if (node->getType() == COLLADAFW::Node::JOINT) {
+				root_joints.push_back(node);
+			}
+
+			return;
+		}
 		
 		COLLADAFW::InstanceGeometryPointerArray &geom = node->getInstanceGeometries();
 		COLLADAFW::InstanceCameraPointerArray &camera = node->getInstanceCameras();
@@ -489,7 +499,7 @@ public:
 				fprintf(stderr, "Cannot find armature by geometry uid. \n");
 				return;
 				}*/
-			COLLADAFW::InstanceGeometry *geom = (COLLADAFW::InstanceGeometry*)controller[0];
+			COLLADAFW::InstanceController *geom = (COLLADAFW::InstanceController*)controller[0];
 			ob = create_mesh_object(ob, sce, node, geom, true);
 		}
 		// XXX <node> - this is not supported yet
@@ -590,6 +600,82 @@ public:
 		}
 	}
 
+	JointData *get_joint_data(COLLADAFW::Node *node)
+	{
+		const COLLADAFW::UniqueId& joint_id = node->getUniqueId();
+
+		if (joint_id_to_joint_index_map.find(joint_id) == joint_id_to_joint_index_map.end()) {
+			fprintf(stderr, "Cannot find a joint index by joint id for %s.\n",
+					node->getOriginalId().c_str());
+			return NULL;
+		}
+
+		int joint_index = joint_id_to_joint_index_map[joint_id];
+
+		return &joint_index_to_joint_info_map[joint_index];
+	}
+
+	void create_bone(COLLADAFW::Node *node, EditBone *parent, bArmature *arm)
+	{
+		JointData* jd = get_joint_data(node);
+
+		if (jd) {
+			float mat[4][4];
+
+			// get original world-space matrix
+			Mat4Invert(mat, jd->inv_bind_mat);
+
+			// TODO rename from Node "name" attrs later
+			EditBone *bone = addEditBone(arm, "Bone");
+
+			if (parent) bone->parent = parent;
+
+			// set head
+			VecCopyf(bone->head, mat[3]);
+
+			// set tail, can't set it to head because 0-length bones are not allowed
+			float vec[3] = {0.0f, 0.5f, 0.0f};
+			VecAddf(bone->tail, bone->head, vec);
+
+			// set parent tail
+			if (parent)
+				VecCopyf(parent->tail, bone->head);
+
+			COLLADAFW::NodePointerArray& children = node->getChildNodes();
+			for (int i = 0; i < children.getCount(); i++) {
+				create_bone(children[i], bone, arm);
+			}
+		}
+	}
+
+	void create_bone_branch(COLLADAFW::Node *root)
+	{
+		JointData* jd = get_joint_data(root);
+		if (!jd) return;
+
+		Object *ob_arm = jd->ob_arm;
+		
+		// enter armature edit mode
+		ED_armature_to_edit(ob_arm);
+
+		COLLADAFW::NodePointerArray& children = root->getChildNodes();
+		for (int i = 0; i < children.getCount(); i++) {
+			create_bone(children[i], NULL, (bArmature*)ob_arm->data);
+		}
+
+		// exit armature edit mode
+		ED_armature_from_edit(CTX_data_scene(mContext), ob_arm);
+	}
+
+	// here we add bones to armature, having armatures previously created in writeController
+	void build_armatures()
+	{
+		std::vector<COLLADAFW::Node*>::iterator it;
+		for (it = root_joints.begin(); it != root_joints.end(); it++) {
+			create_bone_branch(*it);
+		}
+	}
+
 	/** When this method is called, the writer must write the entire visual scene.
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeVisualScene ( const COLLADAFW::VisualScene* visualScene ) 
@@ -610,16 +696,20 @@ public:
 
 		for (int i = 0; i < visualScene->getRootNodes().getCount(); i++) {
 			COLLADAFW::Node *node = visualScene->getRootNodes()[i];
-			
-			if (node->getType() != COLLADAFW::Node::NODE) {
-				continue;
+			const COLLADAFW::Node::NodeType& type = node->getType();
+
+			if (type == COLLADAFW::Node::NODE) {
+				write_node(node, sce);
 			}
-			
-			write_node(node, sce);
+			else if (type == COLLADAFW::Node::JOINT){
+				root_joints.push_back(node);
+			}
+		}
+
+		if (root_joints.size()) {
+			build_armatures();
 		}
 		
-		mVisualScenes.push_back(*visualScene);
-
 		return true;
 	}
 
@@ -1478,29 +1568,130 @@ public:
 		
 		return true;
 	}
+
+	// TODO move it somewhere better place
+	void mat4_from_dae_mat4(float out[][4], const COLLADABU::Math::Matrix4& in) {
+		// in DAE, matrices use columns vectors, (see comments in COLLADABUMathMatrix4.h)
+		// so here, to make a blender matrix, we simply swap columns and rows
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				out[i][j] = in[j][i];
+			}
+		}
+	}
+	
 	
 	/** When this method is called, the writer must write the skin controller data.
 		@return The writer should return true, if writing succeeded, false otherwise.*/
-	virtual bool writeSkinControllerData( const COLLADAFW::SkinControllerData* skinControllerData ) 
+	virtual bool writeSkinControllerData( const COLLADAFW::SkinControllerData* skin ) 
 	{
+		// use inverse bind matrices to construct armature
+		// it is safe to invert them to get the original matrices
+		// because if they are inverse matrices, they can be inverted
+
+		// just do like so:
+		// - create armature
+		// - enter editmode
+		// - add edit bones and head/tail properties using matrices and parent-child info
+		// - exit edit mode
+
+		// store join inv bind matrix to use it later in armature construction
+		const COLLADAFW::Matrix4Array& inv_bind_mats = skin->getInverseBindMatrices();
+		int i;
+		for (i = 0; i < skin->getJointsCount(); i++) {
+			JointData jd;
+			mat4_from_dae_mat4(jd.inv_bind_mat, inv_bind_mats[i]);
+			joint_index_to_joint_info_map[i] = jd;
+		}
+
+		// see COLLADAFW::validate for an example of how to use SkinControllerData
+		/* what should I do here?
+		   - create armature (should I create it here or somewhere else?)
+		   - create bones
+		   - create vertex group for each bone?
+		   - create MDeformVerts? - no, I don't know what mesh to modify
+		   is it possible to create MDeformVerts & vertex groups without assigning them to a mesh or object
+		   - set weights
+		   - map something(armature, vgoups, dverts) to skin controller uid, so I can use it in controller
+		 */
+		/*const std::string& skin_id = skinControllerData->getOriginalId();
+		size_t num_bones = skinControllerData->getJointsCount();
+		bArmature *arm = add_armature((char*)skin_id.c_str());
+		if (!arm) {
+			fprintf(stderr, "Cannot create armature. \n");
+			return true;
+		}
+		for (int i = 0; i < num_bones; i++) {
+			// create bone
+			//addEditBone(arm, "my_bone");
+			Bone *bone = (Bone*)MEM_callocN(sizeof(Bone), "Bone");
+			BLI_strncpy(bone->name, "bone", 32);
+			//unique_bone_name(arm, "my_bone");
+			BLI_addtail(&arm->bonebase, bone);
+			
+			bone->flag |= BONE_TIPSEL;
+			bone->weight= 1.0f;
+			bone->dist= 0.25f;
+			bone->xwidth= 0.1f;
+			bone->zwidth= 0.1f;
+			bone->ease1= 1.0f;
+			bone->ease2= 1.0f;
+			bone->rad_head= 0.10f;
+			bone->rad_tail= 0.05f;
+			bone->segments= 1;
+			bone->layer= arm->layer;
+			// TODO: add inverse bind matrices
+			i++;
+			}
+		
+		this->uid_controller_map[skinControllerData->getUniqueId()] = arm;
+		*/
 		return true;
 	}
 
-	/** When this method is called, the writer must write the controller.
-		@return The writer should return true, if writing succeeded, false otherwise.*/
+	// this is called on postprocess, before writeVisualScenes
 	virtual bool writeController( const COLLADAFW::Controller* controller ) 
 	{
+		// here we:
+		// - create armature
+		// - create EditBones, not setting parent-child relationships
+		// - store armature
+
+		Scene *sce = CTX_data_scene(mContext);
+
 		const COLLADAFW::UniqueId& skin_id = controller->getUniqueId();
-		// if skin controller
+
 		if (controller->getControllerType() == COLLADAFW::Controller::CONTROLLER_TYPE_SKIN) {
-			
-			COLLADAFW::SkinController *skin = (COLLADAFW::SkinController*)controller;
-			const COLLADAFW::UniqueId& geom_uid = skin->getSource();
-			this->skinid_meshid_map[skin_id] = geom_uid;
+
+			Object *ob_arm = add_object(sce, OB_ARMATURE);
+
+			COLLADAFW::SkinController *skinco = (COLLADAFW::SkinController*)controller;
+			const COLLADAFW::UniqueId& id = skinco->getSkinControllerData();
+
+			// "Node" ids
+			const COLLADAFW::UniqueIdArray& joint_ids = skinco->getJoints();
+
+			int i;
+			for (i = 0; i < joint_ids.getCount(); i++) {
+
+				// store armature pointer
+				JointData& jd = joint_index_to_joint_info_map[i];
+				jd.ob_arm = ob_arm;
+
+				// now we'll be able to get inv bind matrix from joint id
+				joint_id_to_joint_index_map[joint_ids[i]] = i;
+			}
+			/*if (uid_controller_map.find(skin_id) == uid_controller_map.end()) {
+				fprintf(stderr, "Cannot find armature by UID.\n");
+				return true;
+				}*/
+			//bArmature *arm = uid_controller_map[skin_id];
+			// map mesh to controller's uid
+			//const COLLADAFW::UniqueId& geom_uid = skin->getSource();
+			//this->skinid_meshid_map[skin_id] = geom_uid;
 		
 		}
-		
-		// if morph controller
+		// morph controller
 		else {
 		}
 		return true;
