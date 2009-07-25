@@ -18,6 +18,7 @@
 extern "C" 
 {
 #include "BKE_DerivedMesh.h"
+#include "BLI_util.h"
 }
 #include "BKE_scene.h"
 #include "BKE_global.h"
@@ -29,36 +30,36 @@ extern "C"
 
 #include "DocumentExporter.h"
 
-#include <COLLADASWAsset.h>
-#include <COLLADASWLibraryVisualScenes.h>
-#include <COLLADASWNode.h>
-#include <COLLADASWLibraryGeometries.h>
-#include <COLLADASWSource.h>
-#include <COLLADASWInstanceGeometry.h>
-#include <COLLADASWInputList.h>
-#include <COLLADASWPrimitves.h>
-#include <COLLADASWVertices.h>
-#include <COLLADASWLibraryAnimations.h>
-#include <COLLADASWLibraryImages.h>
-#include <COLLADASWLibraryEffects.h>
-#include <COLLADASWImage.h>
-#include <COLLADASWEffectProfile.h>
-#include <COLLADASWColorOrTexture.h>
-#include <COLLADASWParamTemplate.h>
-#include <COLLADASWParamBase.h>
-#include <COLLADASWSurfaceInitOption.h>
-#include <COLLADASWSampler.h>
-#include <COLLADASWScene.h>
-#include <COLLADASWSurface.h>
-#include <COLLADASWTechnique.h>
-#include <COLLADASWTexture.h>
-#include <COLLADASWLibraryMaterials.h>
-#include <COLLADASWBindMaterial.h>
-#include <COLLADASWLibraryCameras.h>
-#include <COLLADASWLibraryLights.h>
-#include <COLLADASWInstanceCamera.h>
-#include <COLLADASWInstanceLight.h>
-#include <COLLADASWCameraOptic.h>
+#include "COLLADASWAsset.h"
+#include "COLLADASWLibraryVisualScenes.h"
+#include "COLLADASWNode.h"
+#include "COLLADASWLibraryGeometries.h"
+#include "COLLADASWSource.h"
+#include "COLLADASWInstanceGeometry.h"
+#include "COLLADASWInputList.h"
+#include "COLLADASWPrimitves.h"
+#include "COLLADASWVertices.h"
+#include "COLLADASWLibraryAnimations.h"
+#include "COLLADASWLibraryImages.h"
+#include "COLLADASWLibraryEffects.h"
+#include "COLLADASWImage.h"
+#include "COLLADASWEffectProfile.h"
+#include "COLLADASWColorOrTexture.h"
+#include "COLLADASWParamTemplate.h"
+#include "COLLADASWParamBase.h"
+#include "COLLADASWSurfaceInitOption.h"
+#include "COLLADASWSampler.h"
+#include "COLLADASWScene.h"
+#include "COLLADASWSurface.h"
+#include "COLLADASWTechnique.h"
+#include "COLLADASWTexture.h"
+#include "COLLADASWLibraryMaterials.h"
+#include "COLLADASWBindMaterial.h"
+#include "COLLADASWLibraryCameras.h"
+#include "COLLADASWLibraryLights.h"
+#include "COLLADASWInstanceCamera.h"
+#include "COLLADASWInstanceLight.h"
+#include "COLLADASWCameraOptic.h"
 
 #include <vector>
 #include <algorithm> // std::find
@@ -706,9 +707,11 @@ public:
 
 				Image *image = mtex->tex->ima;
 				std::string name(id_name(image));
-
+				char *ima_name;
+				BLI_split_dirfile_basic(image->name, NULL, ima_name);
+				
 				if (find(mImages.begin(), mImages.end(), name) == mImages.end()) {
-					COLLADASW::Image img(COLLADABU::URI(COLLADABU::URI::nativePathToUri(image->name)), name, "");
+					COLLADASW::Image img(COLLADABU::URI(COLLADABU::URI::nativePathToUri(ima_name)), name, "");
 					img.add(mSW);
 
 					mImages.push_back(name);

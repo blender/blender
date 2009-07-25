@@ -41,6 +41,7 @@ extern "C"
 #include "ED_keyframing.h"
 #include "BKE_fcurve.h"
 #include "BKE_depsgraph.h"
+#include "BLI_util.h"
 }
 #include "BKE_armature.h"
 #include "BKE_mesh.h"
@@ -49,6 +50,7 @@ extern "C"
 #include "BKE_object.h"
 #include "BKE_image.h"
 #include "BKE_material.h"
+#include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
 #include "BLI_listbase.h"
@@ -141,9 +143,6 @@ private:
 	std::map<COLLADAFW::UniqueId, Material*> uid_effect_map;
 	std::map<COLLADAFW::UniqueId, Camera*> uid_camera_map;
 	std::map<COLLADAFW::UniqueId, Lamp*> uid_lamp_map;
-	// maps for skinning
-	//std::map<COLLADAFW::UniqueId, bArmature*> uid_controller_map;
-	//std::map<COLLADAFW::UniqueId, Bone*> uid_joint_map;
 	std::map<COLLADAFW::UniqueId, COLLADAFW::UniqueId> skinid_meshid_map;
 	// maps for assigning textures to uv layers
 	std::map<COLLADAFW::TextureMapId, char*> set_layername_map;
@@ -322,32 +321,36 @@ public:
 		// replace ob->data freeing the old one
 		Mesh *old_mesh = (Mesh*)ob->data;
 
-		const COLLADAFW::UniqueId& geom_uid = geom->getInstanciatedObjectId();
+		const COLLADAFW::UniqueId *geom_uid = &geom->getInstanciatedObjectId();
+	 
 		// checking if node instanciates controller or geometry
 		if (isController) {
-			if (skinid_meshid_map.find(geom_uid) == skinid_meshid_map.end()) {
+			if (skinid_meshid_map.find(*geom_uid) == skinid_meshid_map.end()) {
 				fprintf(stderr, "Couldn't find a mesh UID by controller's UID.\n");
 				return NULL;
 			}
-			set_mesh(ob, uid_mesh_map[skinid_meshid_map[geom_uid]]);
+			geom_uid = &skinid_meshid_map[*geom_uid];
 		}
 		else {
-			if (uid_mesh_map.find(geom_uid) == uid_mesh_map.end()) {
+			if (uid_mesh_map.find(*geom_uid) == uid_mesh_map.end()) {
 				// XXX report to user
 				// this could happen if a mesh was not created
 				// (e.g. if it contains unsupported geometry)
 				fprintf(stderr, "Couldn't find a mesh by UID.\n");
 				return NULL;
 			}
-			set_mesh(ob, uid_mesh_map[geom_uid]);
 		}
+
+		set_mesh(ob, uid_mesh_map[*geom_uid]);
+
 		
 		if (old_mesh->id.us == 0) free_libblock(&G.main->mesh, old_mesh);
 		
 		Mesh *me = (Mesh*)ob->data;
-		MTex *mtex = NULL;
+		MTex *diffuse_mtex = NULL;
 		MTFace *tface = NULL;
-		char *layername = CustomData_get_layer_name(&me->fdata, CD_MTFACE, 0);
+		char layername[100];
+		bool first_time = true;
 		
 		// assign material indices to mesh faces
 		for (int k = 0; k < geom->getMaterialBindings().getCount(); k++) {
@@ -378,28 +381,26 @@ public:
 				std::vector<MTex*> mtexes = index_mtex_map[tex_index];
 				std::vector<MTex*>::iterator it;
 				for (it = mtexes.begin(); it != mtexes.end(); it++) {
-					mtex = *it;
+					MTex *mtex = *it;
 					strcpy(mtex->uvname, uvname);
+					if (mtex->mapto == MAP_COL) {
+						diffuse_mtex = mtex;
+						if (first_time) {
+							tface = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE, mtex->uvname);
+							strcpy(layername, diffuse_mtex->uvname);
+							first_time = false;
+						}
+						else if (strcmp(diffuse_mtex->uvname, layername) != 0) {
+							tface = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE, mtex->uvname);
+							strcpy(layername, diffuse_mtex->uvname);
+						}
+					}
 				}	
-			}
-			mtex = NULL;
-			// find and save texture mapped to diffuse
-			for (l = 0; l < 18; l++) {
-				if (ma->mtex[l] != NULL && ma->mtex[l]->mapto == MAP_COL)
-					mtex = ma->mtex[l];
-			}
-			// get mtface for first uv layer
-			if (tface == NULL && mtex != NULL)
-				tface = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE, mtex->uvname);
-			// get mtface for next uv layer
-			else if(layername != NULL && mtex != NULL && strcmp(layername, mtex->uvname) != 0) {
-				tface = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE, mtex->uvname);
-				layername = mtex->uvname;
 			}
 			
 			assign_material(ob, ma, ob->totcol + 1);
 			
-			MaterialIdPrimitiveArrayMap& mat_prim_map = geom_uid_mat_mapping_map[geom_uid];
+			MaterialIdPrimitiveArrayMap& mat_prim_map = geom_uid_mat_mapping_map[*geom_uid];
 			COLLADAFW::MaterialId mat_id = geom->getMaterialBindings()[k].getMaterialId();
 			
 			// if there's geometry that uses this material,
@@ -416,9 +417,11 @@ public:
 					while (l++ < prim.totface) {
 						prim.mface->mat_nr = k;
 						prim.mface++;
-						if (mtex != NULL && tface != NULL) {
-							tface->tpage = (Image*)mtex->tex->ima;
+						// if tface was set
+						// bind image to tface
+						if (tface) {
 							tface->mode = TF_TEX;
+							tface->tpage = (Image*)diffuse_mtex->tex->ima;
 							tface++;
 						}
 					}
@@ -791,7 +794,7 @@ public:
 
 		// count totface
 		int totface = cmesh->getFacesCount();
-
+		
 		// allocate faces
 		me->mface = (MFace*)CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, totface);
 		me->totface = totface;
@@ -850,7 +853,7 @@ public:
 					
 					set_face_indices(mface, indices, false);
 					indices += 3;
-
+					
 					for (k = 0; k < totuvset; k++) {
 						// get mtface by face index and uv set index
 						MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
@@ -866,7 +869,7 @@ public:
 			else if (type == COLLADAFW::MeshPrimitive::POLYLIST || type == COLLADAFW::MeshPrimitive::POLYGONS) {
 				COLLADAFW::Polygons *mpvc =	(COLLADAFW::Polygons*)mp;
 				COLLADAFW::Polygons::VertexCountArray& vcounta = mpvc->getGroupedVerticesVertexCountArray();
-
+				
 				for (j = 0; j < prim_totface; j++) {
 
 					// face
@@ -925,24 +928,21 @@ public:
 	{
 		COLLADAFW::SamplerPointerArray& samp_array = ef->getSamplerPointerArray();
 		COLLADAFW::Sampler *sampler = samp_array[ctex.getSamplerId()];
+			
+		const COLLADAFW::UniqueId& ima_uid = sampler->getSourceImage();
 		
-		if (sampler->getSamplerType() == COLLADAFW::Sampler::SAMPLER_TYPE_2D) {
-			
-			const COLLADAFW::UniqueId& ima_uid = sampler->getSourceImage();
-			
-			if (uid_image_map.find(ima_uid) == uid_image_map.end()) {
-				fprintf(stderr, "Couldn't find an image by UID.\n");
-				return NULL;
-			}
-			
-		    ma->mtex[i] = add_mtex();
-			ma->mtex[i]->texco = TEXCO_UV;
-			ma->mtex[i]->tex = add_texture("texture");
-			ma->mtex[i]->tex->type = TEX_IMAGE;
-			ma->mtex[i]->tex->ima = uid_image_map[ima_uid];
-			index_mtex_map[ctex.getTextureMapId()].push_back(ma->mtex[i]);
-			return ma->mtex[i];
+		if (uid_image_map.find(ima_uid) == uid_image_map.end()) {
+			fprintf(stderr, "Couldn't find an image by UID.\n");
+			return NULL;
 		}
+		
+		ma->mtex[i] = add_mtex();
+		ma->mtex[i]->texco = TEXCO_UV;
+		ma->mtex[i]->tex = add_texture("texture");
+		ma->mtex[i]->tex->type = TEX_IMAGE;
+		ma->mtex[i]->tex->ima = uid_image_map[ima_uid];
+		index_mtex_map[ctex.getTextureMapId()].push_back(ma->mtex[i]);
+		return ma->mtex[i];
 	}
 
 	/** When this method is called, the writer must write the effect.
@@ -1103,8 +1103,15 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeImage( const COLLADAFW::Image* image ) 
 	{
+		// XXX maybe it is necessary to check if the path is absolute or relative
 	    const std::string& filepath = image->getImageURI().toNativePath();
-		Image *ima = BKE_add_image_file((char*)filepath.c_str(), 0);
+		const char *filename = (const char*)mFilename.c_str();
+		char dir[FILE_MAX];
+		char full_path[FILE_MAX];
+
+		BLI_split_dirfile_basic(filename, dir, NULL);
+		BLI_join_dirfile(full_path, dir, filepath.c_str());
+		Image *ima = BKE_add_image_file(full_path, 0);
 		if (!ima) {
 			fprintf(stderr, "Cannot create image. \n");
 			return true;
@@ -1472,48 +1479,6 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeSkinControllerData( const COLLADAFW::SkinControllerData* skinControllerData ) 
 	{
-		// see COLLADAFW::validate for an example of how to use SkinControllerData
-		/* what should I do here?
-		   - create armature (should I create it here or somewhere else?)
-		   - create bones
-		   - create vertex group for each bone?
-		   - create MDeformVerts? - no, I don't know what mesh to modify
-		   is it possible to create MDeformVerts & vertex groups without assigning them to a mesh or object
-		   - set weights
-		   - map something(armature, vgoups, dverts) to skin controller uid, so I can use it in controller
-		 */
-		/*const std::string& skin_id = skinControllerData->getOriginalId();
-		size_t num_bones = skinControllerData->getJointsCount();
-		bArmature *arm = add_armature((char*)skin_id.c_str());
-		if (!arm) {
-			fprintf(stderr, "Cannot create armature. \n");
-			return true;
-		}
-		for (int i = 0; i < num_bones; i++) {
-			// create bone
-			//addEditBone(arm, "my_bone");
-			Bone *bone = (Bone*)MEM_callocN(sizeof(Bone), "Bone");
-			BLI_strncpy(bone->name, "bone", 32);
-			//unique_bone_name(arm, "my_bone");
-			BLI_addtail(&arm->bonebase, bone);
-			
-			bone->flag |= BONE_TIPSEL;
-			bone->weight= 1.0f;
-			bone->dist= 0.25f;
-			bone->xwidth= 0.1f;
-			bone->zwidth= 0.1f;
-			bone->ease1= 1.0f;
-			bone->ease2= 1.0f;
-			bone->rad_head= 0.10f;
-			bone->rad_tail= 0.05f;
-			bone->segments= 1;
-			bone->layer= arm->layer;
-			// TODO: add inverse bind matrices
-			i++;
-			}
-		
-		this->uid_controller_map[skinControllerData->getUniqueId()] = arm;
-		*/
 		return true;
 	}
 
@@ -1526,23 +1491,9 @@ public:
 		if (controller->getControllerType() == COLLADAFW::Controller::CONTROLLER_TYPE_SKIN) {
 			
 			COLLADAFW::SkinController *skin = (COLLADAFW::SkinController*)controller;
-			const COLLADAFW::UniqueId& skin_data_id = skin->getSkinControllerData();
-			/*if (uid_controller_map.find(skin_id) == uid_controller_map.end()) {
-				fprintf(stderr, "Cannot find armature by UID.\n");
-				return true;
-				}*/
-			//bArmature *arm = uid_controller_map[skin_id];
-			// map mesh to controller's uid
 			const COLLADAFW::UniqueId& geom_uid = skin->getSource();
 			this->skinid_meshid_map[skin_id] = geom_uid;
-			/*Bone *bone;
-			int i = 0;
-			// map bones to nodes(joints) uid
-			for (bone = (Bone*)arm->bonebase.first; bone; bone++) {
-				const COLLADAFW::UniqueId& joint_id = skin->getJoints()[i];
-				this->uid_joint_map[joint_id] = bone;
-				i++;
-				}*/
+		
 		}
 		
 		// if morph controller
