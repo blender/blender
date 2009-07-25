@@ -66,6 +66,7 @@ typedef unsigned long uint_ptr;
 #include "KX_PythonInit.h"
 #include "KX_PyMath.h"
 #include "KX_PythonSeq.h"
+#include "KX_ConvertPhysicsObject.h"
 #include "SCA_IActuator.h"
 #include "SCA_ISensor.h"
 #include "SCA_IController.h"
@@ -1183,6 +1184,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getPropertyNames", (PyCFunction)KX_GameObject::sPyGetPropertyNames,METH_NOARGS},
 	{"replaceMesh",(PyCFunction) KX_GameObject::sPyReplaceMesh, METH_O},
 	{"endObject",(PyCFunction) KX_GameObject::sPyEndObject, METH_NOARGS},
+	{"reinstancePhysicsMesh", (PyCFunction)KX_GameObject::sPyReinstancePhysicsMesh,METH_VARARGS},
 	
 	KX_PYMETHODTABLE(KX_GameObject, rayCastTo),
 	KX_PYMETHODTABLE(KX_GameObject, rayCast),
@@ -1278,6 +1280,28 @@ PyObject* KX_GameObject::PyEndObject()
 	
 	Py_RETURN_NONE;
 
+}
+
+PyObject* KX_GameObject::PyReinstancePhysicsMesh(PyObject* args)
+{
+	KX_GameObject *gameobj= NULL;
+	RAS_MeshObject *mesh= NULL;
+	
+	PyObject *gameobj_py= NULL;
+	PyObject *mesh_py= NULL;
+
+	if (	!PyArg_ParseTuple(args,"|OO:reinstancePhysicsMesh",&gameobj_py, &mesh_py) ||
+			(gameobj_py && !ConvertPythonToGameObject(gameobj_py, &gameobj, true, "gameOb.reinstancePhysicsMesh(obj, mesh): KX_GameObject")) || 
+			(mesh_py && !ConvertPythonToMesh(mesh_py, &mesh, true, "gameOb.reinstancePhysicsMesh(obj, mesh): KX_GameObject"))
+		) {
+		return NULL;
+	}
+	
+	/* gameobj and mesh can be NULL */
+	if(KX_ReInstanceBulletShapeFromMesh(this, gameobj, mesh))
+		Py_RETURN_TRUE;
+
+	Py_RETURN_FALSE;
 }
 
 

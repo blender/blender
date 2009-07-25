@@ -126,6 +126,7 @@ public:
 	/* vertex and polygon acces */
 	int					NumVertices(RAS_IPolyMaterial* mat);
 	RAS_TexVert*		GetVertex(unsigned int matid, unsigned int index);
+	const float*		GetVertexLocation(unsigned int orig_index);
 
 	int					NumPolygons();
 	RAS_Polygon*		GetPolygon(int num) const;
@@ -141,6 +142,13 @@ public:
 							bool culled);
 
 	void				RemoveFromBuckets(void *clientobj);
+	void				EndConversion() {
+#if 0
+		m_sharedvertex_map.clear(); // SharedVertex
+		vector<vector<SharedVertex> >	shared_null(0);
+		shared_null.swap( m_sharedvertex_map ); /* really free the memory */
+#endif
+	}
 
 	/* colors */
 	void				DebugColor(unsigned int abgr);
