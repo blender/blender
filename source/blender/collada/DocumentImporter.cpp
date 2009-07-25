@@ -383,21 +383,25 @@ public:
 				for (it = mtexes.begin(); it != mtexes.end(); it++) {
 					MTex *mtex = *it;
 					strcpy(mtex->uvname, uvname);
-					if (mtex->mapto == MAP_COL) {
-						diffuse_mtex = mtex;
-						if (first_time) {
-							tface = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE, mtex->uvname);
-							strcpy(layername, diffuse_mtex->uvname);
-							first_time = false;
-						}
-						else if (strcmp(diffuse_mtex->uvname, layername) != 0) {
-							tface = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE, mtex->uvname);
-							strcpy(layername, diffuse_mtex->uvname);
-						}
-					}
 				}	
 			}
-			
+			for (l = 0; l < 18; l++) {
+				if (ma->mtex[l] && ma->mtex[l]->mapto == MAP_COL) {
+					diffuse_mtex = ma->mtex[l];
+				}
+			}
+			if (diffuse_mtex) {
+				//diffuse_mtex = mtex;
+				if (first_time) {
+					tface = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE, diffuse_mtex->uvname);
+					strcpy(layername, diffuse_mtex->uvname);
+					first_time = false;
+				}
+				else if (strcmp(diffuse_mtex->uvname, layername) != 0) {
+					tface = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE, diffuse_mtex->uvname);
+					strcpy(layername, diffuse_mtex->uvname);
+				}
+			}
 			assign_material(ob, ma, ob->totcol + 1);
 			
 			MaterialIdPrimitiveArrayMap& mat_prim_map = geom_uid_mat_mapping_map[*geom_uid];
