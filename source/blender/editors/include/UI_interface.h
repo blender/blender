@@ -313,6 +313,10 @@ int		uiButGetRetVal		(uiBut *but);
 void	uiButSetFlag		(uiBut *but, int flag);
 void	uiButClearFlag		(uiBut *but, int flag);
 
+/* special button case, only draw it when used actively, for outliner etc */
+int		uiButActiveOnly		(const struct bContext *C, uiBlock *block, uiBut *but);
+
+
 /* Buttons
  *
  * Functions to define various types of buttons in a block. Postfixes:
@@ -474,9 +478,9 @@ int		uiSearchBoxhHeight(void);
 
 void	uiBlockSetHandleFunc(uiBlock *block,	uiBlockHandleFunc func, void *arg);
 void	uiBlockSetButmFunc	(uiBlock *block,	uiMenuHandleFunc func, void *arg);
-
 void	uiBlockSetFunc		(uiBlock *block,	uiButHandleFunc func, void *arg1, void *arg2);
-void	uiBlockSetRenameFunc(uiBlock *block,	uiButHandleRenameFunc func, void *arg1);
+
+void	uiButSetRenameFunc	(uiBut *but,		uiButHandleRenameFunc func, void *arg1);
 void	uiButSetFunc		(uiBut *but,		uiButHandleFunc func, void *arg1, void *arg2);
 void	uiButSetNFunc		(uiBut *but,		uiButHandleNFunc func, void *argN, void *arg2);
 

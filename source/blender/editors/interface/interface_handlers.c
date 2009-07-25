@@ -152,6 +152,10 @@ typedef struct uiAfterFunc {
 	uiButHandleNFunc funcN;
 	void *func_argN;
 
+	uiButHandleRenameFunc rename_func;
+	void *rename_arg1;
+	void *rename_orig;
+	
 	uiBlockHandleFunc handle_func;
 	void *handle_func_arg;
 	int retval;
@@ -239,7 +243,7 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 	 * handling is done, i.e. menus are closed, in order to avoid conflicts
 	 * with these functions removing the buttons we are working with */
 
-	if(but->func || but->funcN || block->handle_func || (but->type == BUTM && block->butm_func) || but->optype || but->rnaprop) {
+	if(but->func || but->funcN || block->handle_func || but->rename_func || (but->type == BUTM && block->butm_func) || but->optype || but->rnaprop) {
 		after= MEM_callocN(sizeof(uiAfterFunc), "uiAfterFunc");
 
 		after->func= but->func;
@@ -250,6 +254,10 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 		after->funcN= but->funcN;
 		after->func_argN= but->func_argN;
 
+		after->rename_func= but->rename_func;
+		after->rename_arg1= but->rename_arg1;
+		after->rename_orig= but->rename_orig; /* needs free! */
+		
 		after->handle_func= block->handle_func;
 		after->handle_func_arg= block->handle_func_arg;
 		after->retval= but->retval;
@@ -344,7 +352,12 @@ static void ui_apply_but_funcs_after(bContext *C)
 			after.handle_func(C, after.handle_func_arg, after.retval);
 		if(after.butm_func)
 			after.butm_func(C, after.butm_func_arg, after.a2);
-
+		
+		if(after.rename_func)
+			after.rename_func(C, after.rename_arg1, after.rename_orig);
+		if(after.rename_orig)
+			MEM_freeN(after.rename_orig);
+		
 		if(after.undostr[0])
 			ED_undo_push(C, after.undostr);
 	}
@@ -468,10 +481,10 @@ static void ui_apply_but_TEX(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 	/* give butfunc the original text too */
 	/* feature used for bone renaming, channels, etc */
-	/* XXX goes via uiButHandleRenameFunc now */
-//	if(but->func_arg2==NULL) but->func_arg2= data->origstr;
+	/* afterfunc frees origstr */
+	but->rename_orig= data->origstr;
+	data->origstr= NULL;
 	ui_apply_but_func(C, but);
-//	if(but->func_arg2==data->origstr) but->func_arg2= NULL;
 
 	data->retval= but->retval;
 	data->applied= 1;
@@ -3484,7 +3497,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 	data= MEM_callocN(sizeof(uiHandleButtonData), "uiHandleButtonData");
 	data->window= CTX_wm_window(C);
 	data->region= ar;
-	if( ELEM(but->type, BUT_CURVE, SEARCH_MENU) );  // XXX curve is temp
+	if( ELEM3(but->type, TEX, BUT_CURVE, SEARCH_MENU) );  // XXX curve is temp
 	else data->interactive= 1;
 	
 	data->state = BUTTON_STATE_INIT;
@@ -3628,6 +3641,23 @@ static int ui_handle_button_over(bContext *C, wmEvent *event, ARegion *ar)
 	}
 
 	return WM_UI_HANDLER_CONTINUE;
+}
+
+/* exported to interface.c: uiButActiveOnly() */
+void ui_button_activate_do(bContext *C, ARegion *ar, uiBut *but)
+{
+	wmWindow *win= CTX_wm_window(C);
+	wmEvent event;
+	
+	button_activate_init(C, ar, but, BUTTON_ACTIVATE_OVER);
+	
+	event= *(win->eventstate);	/* XXX huh huh? make api call */
+	event.type= EVT_BUT_OPEN;
+	event.val= KM_PRESS;
+	event.customdata= but;
+	event.customdatafree= FALSE;
+	
+	ui_do_button(C, but->block, but, &event);
 }
 
 static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiButtonActivateType type)

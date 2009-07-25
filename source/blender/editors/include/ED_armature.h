@@ -99,6 +99,8 @@ void ED_armature_from_edit(struct Scene *scene, struct Object *obedit);
 void ED_armature_to_edit(struct Object *ob);
 void ED_armature_edit_free(struct Object *ob);
 void ED_armature_edit_remake(struct Object *obedit);
+void ED_armature_deselectall(struct Object *obedit, int toggle, int doundo);
+
 int ED_do_pose_selectbuffer(struct Scene *scene, struct Base *base, unsigned int *buffer, 
 							short hits, short extend);
 void mouse_armature(struct bContext *C, short mval[2], int extend);

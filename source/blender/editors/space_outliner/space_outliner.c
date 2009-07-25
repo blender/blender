@@ -120,6 +120,7 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_MODE:
 				case ND_KEYINGSET:
 				case ND_FRAME:
+				case ND_RENDER_OPTIONS:
 					ED_region_tag_redraw(ar);
 					break;
 			}

@@ -3717,6 +3717,42 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 
 /* *************************** */
 
+static int posemode_exec(bContext *C, wmOperator *op)
+{
+	Base *base= CTX_data_active_base(C);
+	
+	if(base->object->type==OB_ARMATURE) {
+		if(base->object==CTX_data_edit_object(C)) {
+			ED_object_exit_editmode(C, EM_FREEDATA);
+			ED_armature_enter_posemode(C, base);
+		}
+		else if(base->object->flag & OB_POSEMODE)
+			ED_armature_exit_posemode(C, base);
+		else
+			ED_armature_enter_posemode(C, base);
+		
+		return OPERATOR_FINISHED;
+	}
+	
+	return OPERATOR_PASS_THROUGH;
+}
+
+void OBJECT_OT_posemode_toggle(wmOperatorType *ot) 
+{
+	/* identifiers */
+	ot->name= "Toggle Pose Mode";
+	ot->idname= "OBJECT_OT_posemode_toggle";
+	ot->description= "Enables or disables posing/selecting bones";
+	
+	/* api callbacks */
+	ot->exec= posemode_exec;
+	ot->poll= ED_operator_object_active;
+	
+	/* flag */
+	ot->flag= OPTYPE_REGISTER;
+}
+
+/* *********************** */
 
 void check_editmode(int type)
 {

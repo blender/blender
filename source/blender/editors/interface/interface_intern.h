@@ -186,7 +186,11 @@ struct uiBut {
 	
 	uiButSearchFunc search_func;
 	void *search_arg;
-	
+
+	uiButHandleRenameFunc rename_func;
+	void *rename_arg1;
+	void *rename_orig;
+
 	uiLink *link;
 	short linkto[2];
 	
@@ -416,6 +420,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rct
 
 
 /* interface_handlers.c */
+extern void ui_button_activate_do(struct bContext *C, struct ARegion *ar, uiBut *but);
 extern void ui_button_active_cancel(const struct bContext *C, uiBut *but);
 extern int ui_button_is_active(struct ARegion *ar);
 

@@ -1737,7 +1737,7 @@ void ARMATURE_OT_delete(wmOperatorType *ot)
  * toggle==2: only active tag
  * toggle==3: swap (no test)
  */
-void deselectall_armature(Object *obedit, int toggle, int doundo)
+void ED_armature_deselectall(Object *obedit, int toggle, int doundo)
 {
 	bArmature *arm= obedit->data;
 	EditBone	*eBone;
@@ -1809,7 +1809,7 @@ void mouse_armature(bContext *C, short mval[2], int extend)
 	if (nearBone) {
 
 		if (!extend)
-			deselectall_armature(obedit, 0, 0);
+			ED_armature_deselectall(obedit, 0, 0);
 		
 		/* by definition the non-root connected bones have no root point drawn,
 	       so a root selection needs to be delivered to the parent tip */
@@ -2187,7 +2187,7 @@ void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 	Mat3MulMat3(totmat, obmat, viewmat);
 	Mat3Inv(imat, totmat);
 	
-	deselectall_armature(obedit, 0, 0);
+	ED_armature_deselectall(obedit, 0, 0);
 	
 	/*	Create a bone	*/
 	bone= add_editbone(obedit, "Bone");
@@ -2240,7 +2240,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *op)
 		to_root= 1;
 	}
 	
-	deselectall_armature(obedit, 0, 0);
+	ED_armature_deselectall(obedit, 0, 0);
 	
 	/* we re-use code for mirror editing... */
 	flipbone= NULL;
@@ -3405,7 +3405,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 	Mat3MulMat3(totmat, obmat, viewmat);
 	Mat3Inv(imat, totmat);
 	
-	deselectall_armature(obedit, 0, 0);
+	ED_armature_deselectall(obedit, 0, 0);
 	
 	/*	Create a bone	*/
 	bone= add_editbone(obedit, name);
