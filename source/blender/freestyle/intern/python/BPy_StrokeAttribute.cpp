@@ -328,14 +328,16 @@ PyObject * StrokeAttribute_setColor( BPy_StrokeAttribute *self, PyObject *args )
 
 	if(!( PyArg_ParseTuple(args, "O|OO", &obj1, &obj2, &obj3) ))
 		return NULL;
-	
-	if( PyList_Check(obj1) && !obj2 && !obj3 ){
-		
-		Vec3f v( 	PyFloat_AsDouble( PyList_GetItem(obj1, 0) ),
-					PyFloat_AsDouble( PyList_GetItem(obj1, 1) ),
-					PyFloat_AsDouble( PyList_GetItem(obj1, 2) )  );
-		
-		self->sa->setColor( v );
+
+	if( obj1 && !obj2 && !obj3 ){
+
+		Vec3f *v = Vec3f_ptr_from_PyObject(obj1);
+		if( !v ) {
+			PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
+			return NULL;
+		}
+		self->sa->setColor( *v );
+		delete v;
 		
 	} else if( 	obj1 && obj2 && obj3 ){
 
@@ -367,12 +369,15 @@ PyObject * StrokeAttribute_setThickness( BPy_StrokeAttribute *self, PyObject *ar
 	if(!( PyArg_ParseTuple(args, "O|O", &obj1, &obj2) ))
 		return NULL;
 
-	if( PyList_Check(obj1) && !obj2 ){
+	if( obj1 && !obj2 ){
 		
-		Vec2f v( 	PyFloat_AsDouble( PyList_GetItem(obj1, 0) ),
-					PyFloat_AsDouble( PyList_GetItem(obj1, 1) )  );
-		
-		self->sa->setThickness( v );
+		Vec2f *v = Vec2f_ptr_from_PyObject(obj1);
+		if( !v ) {
+			PyErr_SetString(PyExc_TypeError, "argument 1 must be a 2D vector (either a list of 2 elements or Vector)");
+			return NULL;
+		}
+		self->sa->setThickness( *v );
+		delete v;
 				
 	} else if( 	obj1 && obj2 ){
 					
@@ -416,19 +421,14 @@ PyObject * StrokeAttribute_setAttributeVec2f( BPy_StrokeAttribute *self, PyObjec
 
 	if(!( PyArg_ParseTuple(args, "sO", &s, &obj) ))
 		return NULL;
-
-	if( PyList_Check(obj) && PyList_Size(obj) > 1) {
-
-		Vec2f v( 	PyFloat_AsDouble( PyList_GetItem(obj, 0) ),
-					PyFloat_AsDouble( PyList_GetItem(obj, 1) )  );
-
-		self->sa->setAttributeVec2f( s, v );
-
-	} else {
-		PyErr_SetString(PyExc_TypeError, "invalid arguments");
+	Vec2f *v = Vec2f_ptr_from_PyObject(obj);
+	if( !v ) {
+		PyErr_SetString(PyExc_TypeError, "argument 2 must be a 2D vector (either a list of 2 elements or Vector)");
 		return NULL;
 	}
-	
+	self->sa->setAttributeVec2f( s, *v );
+	delete v;
+
 	Py_RETURN_NONE;
 }
 
@@ -438,19 +438,13 @@ PyObject * StrokeAttribute_setAttributeVec3f( BPy_StrokeAttribute *self, PyObjec
 
 	if(!( PyArg_ParseTuple(args, "sO", &s, &obj) ))
 		return NULL;
-
-	if( PyList_Check(obj)  && PyList_Size(obj) > 2 ) {
-
-		Vec3f v( 	PyFloat_AsDouble( PyList_GetItem(obj, 0) ),
-					PyFloat_AsDouble( PyList_GetItem(obj, 1) ),
-					PyFloat_AsDouble( PyList_GetItem(obj, 2) )  );
-
-		self->sa->setAttributeVec3f( s, v );
-
-	} else {
-		PyErr_SetString(PyExc_TypeError, "invalid arguments");
+	Vec3f *v = Vec3f_ptr_from_PyObject(obj);
+	if( !v ) {
+		PyErr_SetString(PyExc_TypeError, "argument 2 must be a 3D vector (either a list of 3 elements or Vector)");
 		return NULL;
 	}
+	self->sa->setAttributeVec3f( s, *v );
+	delete v;
 
 	Py_RETURN_NONE;
 }

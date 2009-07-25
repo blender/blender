@@ -23,9 +23,9 @@ static PyObject * FEdgeSmooth_setMaterialIndex( BPy_FEdgeSmooth *self, PyObject 
 static PyMethodDef BPy_FEdgeSmooth_methods[] = {	
 	{"normal", ( PyCFunction ) FEdgeSmooth_normal, METH_NOARGS, "() Returns the normal to the Face it is running accross."},
 	{"materialIndex", ( PyCFunction ) FEdgeSmooth_materialIndex, METH_NOARGS, "() Returns the index of the material of the face it is running accross. "},
-	{"aMaterial", ( PyCFunction ) FEdgeSmooth_material, METH_NOARGS, "() Returns the material of the face it is running accross. "},
-	{"setNormalA", ( PyCFunction ) FEdgeSmooth_setNormal, METH_VARARGS, "([x,y,z]) Sets the normal to the Face it is running accross."},
-	{"setaMaterialIndex", ( PyCFunction ) FEdgeSmooth_setMaterialIndex, METH_VARARGS, "(unsigned int i) Sets the index of the material of the face it is running accross. "},
+	{"material", ( PyCFunction ) FEdgeSmooth_material, METH_NOARGS, "() Returns the material of the face it is running accross. "},
+	{"setNormal", ( PyCFunction ) FEdgeSmooth_setNormal, METH_VARARGS, "([x,y,z]) Sets the normal to the Face it is running accross."},
+	{"setMaterialIndex", ( PyCFunction ) FEdgeSmooth_setMaterialIndex, METH_VARARGS, "(unsigned int i) Sets the index of the material of the face it is running accross. "},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -162,20 +162,15 @@ PyObject * FEdgeSmooth_material( BPy_FEdgeSmooth *self ) {
 PyObject * FEdgeSmooth_setNormal( BPy_FEdgeSmooth *self, PyObject *args ) {
 	PyObject *obj = 0;
 
-	if(!( PyArg_ParseTuple(args, "O!", &PyList_Type, &obj) ))
+	if(!( PyArg_ParseTuple(args, "O", &obj) ))
 		return NULL;
-	if( PyList_Size(obj) != 3 ) {
-		stringstream msg("FEdgeSmooth::setNormal() accepts a list of 3 elements (");
-		msg << PyList_Size(obj) << " found)";
-		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+	Vec3r *v = Vec3r_ptr_from_PyObject(obj);
+	if( !v ) {
+		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
 		return NULL;
 	}
-	
-	Vec3r v(	PyFloat_AsDouble( PyList_GetItem(obj,0) ),
-				PyFloat_AsDouble( PyList_GetItem(obj,1) ),
-				PyFloat_AsDouble( PyList_GetItem(obj,2) ) );
-
-	self->fes->setNormal( v );
+	self->fes->setNormal( *v );
+	delete v;
 
 	Py_RETURN_NONE;
 }

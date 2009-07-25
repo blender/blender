@@ -184,20 +184,15 @@ PyObject * FEdgeSharp_bMaterial( BPy_FEdgeSharp *self ) {
 PyObject * FEdgeSharp_setNormalA( BPy_FEdgeSharp *self, PyObject *args ) {
 	PyObject *obj = 0;
 
-	if(!( PyArg_ParseTuple(args, "O!", &PyList_Type, &obj) ))
+	if(!( PyArg_ParseTuple(args, "O", &obj) ))
 		return NULL;
-	if( PyList_Size(obj) != 3 ) {
-		stringstream msg("FEdgeSharp::setNormalA() accepts a list of 3 elements (");
-		msg << PyList_Size(obj) << " found)";
-		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+	Vec3r *v = Vec3r_ptr_from_PyObject(obj);
+	if( !v ) {
+		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
 		return NULL;
 	}
-	
-	Vec3r v(	PyFloat_AsDouble( PyList_GetItem(obj,0) ),
-				PyFloat_AsDouble( PyList_GetItem(obj,1) ),
-				PyFloat_AsDouble( PyList_GetItem(obj,2) ) );
-
-	self->fes->setNormalA( v );
+	self->fes->setNormalA( *v );
+	delete v;
 
 	Py_RETURN_NONE;
 }
@@ -205,20 +200,15 @@ PyObject * FEdgeSharp_setNormalA( BPy_FEdgeSharp *self, PyObject *args ) {
 PyObject * FEdgeSharp_setNormalB( BPy_FEdgeSharp *self, PyObject *args ) {
 	PyObject *obj = 0;
 
-	if(!( PyArg_ParseTuple(args, "O!", &PyList_Type, &obj) ))
+	if(!( PyArg_ParseTuple(args, "O", &obj) ))
 		return NULL;
-	if( PyList_Size(obj) != 3 ) {
-		stringstream msg("FEdgeSharp::setNormalB() accepts a list of 3 elements (");
-		msg << PyList_Size(obj) << " found)";
-		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+	Vec3r *v = Vec3r_ptr_from_PyObject(obj);
+	if( !v ) {
+		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
 		return NULL;
 	}
-	
-	Vec3r v(	PyFloat_AsDouble( PyList_GetItem(obj,0) ),
-				PyFloat_AsDouble( PyList_GetItem(obj,1) ),
-				PyFloat_AsDouble( PyList_GetItem(obj,2) ) );
-
-	self->fes->setNormalB( v );
+	self->fes->setNormalB( *v );
+	delete v;
 
 	Py_RETURN_NONE;
 }

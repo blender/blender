@@ -105,17 +105,16 @@ int CalligraphicShader___init__( BPy_CalligraphicShader* self, PyObject *args)
 	PyObject *obj3 = 0, *obj4 = 0;
 	
 
-	if(!( PyArg_ParseTuple(args, "ddO!O", &d1, &d2, &PyList_Type, &obj3, &obj4) ))
+	if(!( PyArg_ParseTuple(args, "ddOO", &d1, &d2, &obj3, &obj4) ))
 		return -1;
-	if( PyList_Size(obj3) != 2 ) {
-		stringstream msg("CalligraphicShader() accepts a list of 2 elements (");
-		msg << PyList_Size(obj3) << " found)";
-		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+	Vec2f *v = Vec2f_ptr_from_PyObject(obj3);
+	if( !v ) {
+		PyErr_SetString(PyExc_TypeError, "argument 3 must be a 2D vector (either a list of 2 elements or Vector)");
 		return -1;
 	}
+	self->py_ss.ss = new CalligraphicShader(d1, d2, *v, bool_from_PyBool(obj4) );
+	delete v;
 
-	Vec2f v( PyFloat_AsDouble(PyList_GetItem(obj3,0)), PyFloat_AsDouble(PyList_GetItem(obj3,1)) );
-	self->py_ss.ss = new CalligraphicShader(d1, d2, v, bool_from_PyBool(obj4) );
 	return 0;
 
 }

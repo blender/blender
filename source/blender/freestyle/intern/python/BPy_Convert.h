@@ -115,9 +115,18 @@ bool bool_from_PyBool( PyObject *b );
 IntegrationType IntegrationType_from_BPy_IntegrationType( PyObject* obj );
 Stroke::MediumType MediumType_from_BPy_MediumType( PyObject* obj );
 Nature::EdgeNature EdgeNature_from_BPy_Nature( PyObject* obj );
+Vec2f * Vec2f_ptr_from_PyObject( PyObject* obj );
+Vec3f * Vec3f_ptr_from_PyObject( PyObject* obj );
+Vec3r * Vec3r_ptr_from_PyObject( PyObject* obj );
 Vec2f * Vec2f_ptr_from_Vector( PyObject* obj );
 Vec3f * Vec3f_ptr_from_Vector( PyObject* obj );
 Vec3r * Vec3r_ptr_from_Vector( PyObject* obj );
+Vec2f * Vec2f_ptr_from_PyList( PyObject* obj );
+Vec3f * Vec3f_ptr_from_PyList( PyObject* obj );
+Vec3r * Vec3r_ptr_from_PyList( PyObject* obj );
+Vec2f * Vec2f_ptr_from_PyTuple( PyObject* obj );
+Vec3f * Vec3f_ptr_from_PyTuple( PyObject* obj );
+Vec3r * Vec3r_ptr_from_PyTuple( PyObject* obj );
 
 
 

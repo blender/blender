@@ -376,6 +376,39 @@ Nature::EdgeNature EdgeNature_from_BPy_Nature( PyObject* obj ) {
 	return static_cast<Nature::EdgeNature>( PyInt_AsLong(obj) );
 }
 
+Vec2f * Vec2f_ptr_from_PyObject( PyObject* obj ) {
+	Vec2f *v;
+	if( (v = Vec2f_ptr_from_Vector( obj )) )
+		return v;
+	if( (v = Vec2f_ptr_from_PyList( obj )) )
+		return v;
+	if( (v = Vec2f_ptr_from_PyTuple( obj )) )
+		return v;
+	return NULL;
+}
+
+Vec3f * Vec3f_ptr_from_PyObject( PyObject* obj ) {
+	Vec3f *v;
+	if( (v = Vec3f_ptr_from_Vector( obj )) )
+		return v;
+	if( (v = Vec3f_ptr_from_PyList( obj )) )
+		return v;
+	if( (v = Vec3f_ptr_from_PyTuple( obj )) )
+		return v;
+	return NULL;
+}
+
+Vec3r * Vec3r_ptr_from_PyObject( PyObject* obj ) {
+	Vec3r *v;
+	if( (v = Vec3r_ptr_from_Vector( obj )) )
+		return v;
+	if( (v = Vec3r_ptr_from_PyList( obj )) )
+		return v;
+	if( (v = Vec3r_ptr_from_PyTuple( obj )) )
+		return v;
+	return NULL;
+}
+
 Vec2f * Vec2f_ptr_from_Vector( PyObject* obj ) {
 	PyObject *v;
 	if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 2)
@@ -421,6 +454,58 @@ Vec3r * Vec3r_ptr_from_Vector( PyObject* obj ) {
 	double z = PyFloat_AsDouble( v );
 	Py_DECREF( v );
 	
+	return new Vec3r(x,y,z);
+}
+
+Vec2f * Vec2f_ptr_from_PyList( PyObject* obj ) {
+	if( !PyList_Check(obj) || PyList_Size(obj) != 2 )
+		return NULL;
+	float x = PyFloat_AsDouble(PyList_GetItem(obj, 0));
+	float y = PyFloat_AsDouble(PyList_GetItem(obj, 1));
+	return new Vec2f(x,y);
+}
+
+Vec3f * Vec3f_ptr_from_PyList( PyObject* obj ) {
+	if( !PyList_Check(obj) || PyList_Size(obj) != 3 )
+		return NULL;
+	float x = PyFloat_AsDouble(PyList_GetItem(obj, 0));
+	float y = PyFloat_AsDouble(PyList_GetItem(obj, 1));
+	float z = PyFloat_AsDouble(PyList_GetItem(obj, 2));
+	return new Vec3f(x,y,z);
+}
+
+Vec3r * Vec3r_ptr_from_PyList( PyObject* obj ) {
+	if( !PyList_Check(obj) || PyList_Size(obj) != 3 )
+		return NULL;
+	float x = PyFloat_AsDouble(PyList_GetItem(obj, 0));
+	float y = PyFloat_AsDouble(PyList_GetItem(obj, 1));
+	float z = PyFloat_AsDouble(PyList_GetItem(obj, 2));
+	return new Vec3r(x,y,z);
+}
+
+Vec2f * Vec2f_ptr_from_PyTuple( PyObject* obj ) {
+	if( !PyTuple_Check(obj) || PyTuple_Size(obj) != 2 )
+		return NULL;
+	float x = PyFloat_AsDouble(PyTuple_GetItem(obj, 0));
+	float y = PyFloat_AsDouble(PyTuple_GetItem(obj, 1));
+	return new Vec2f(x,y);
+}
+
+Vec3f * Vec3f_ptr_from_PyTuple( PyObject* obj ) {
+	if( !PyTuple_Check(obj) || PyTuple_Size(obj) != 3 )
+		return NULL;
+	float x = PyFloat_AsDouble(PyTuple_GetItem(obj, 0));
+	float y = PyFloat_AsDouble(PyTuple_GetItem(obj, 1));
+	float z = PyFloat_AsDouble(PyTuple_GetItem(obj, 2));
+	return new Vec3f(x,y,z);
+}
+
+Vec3r * Vec3r_ptr_from_PyTuple( PyObject* obj ) {
+	if( !PyTuple_Check(obj) || PyTuple_Size(obj) != 3 )
+		return NULL;
+	float x = PyFloat_AsDouble(PyTuple_GetItem(obj, 0));
+	float y = PyFloat_AsDouble(PyTuple_GetItem(obj, 1));
+	float z = PyFloat_AsDouble(PyTuple_GetItem(obj, 2));
 	return new Vec3r(x,y,z);
 }
 

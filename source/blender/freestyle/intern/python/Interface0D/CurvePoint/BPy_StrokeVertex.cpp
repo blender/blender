@@ -229,30 +229,18 @@ PyObject *StrokeVertex_setPoint( BPy_StrokeVertex *self , PyObject *args) {
 	if(!( PyArg_ParseTuple(args, "O|O", &obj1, &obj2) ))
 		return NULL;
 	
-	if( PyList_Check(obj1) && !obj2 ){
-		if ( PyList_Size(obj1) != 2 ) {
-			stringstream msg("StrokeVertex::setPoint() accepts a list of 2 elements (");
-			msg << PyList_Size(obj1) << " found)";
-			PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+	if( obj1 && !obj2 ){
+		Vec2f *v = Vec2f_ptr_from_PyObject(obj1);
+		if( !v ) {
+			PyErr_SetString(PyExc_TypeError, "argument 1 must be a 2D vector (either a list of 2 elements or Vector)");
 			return NULL;
 		}
-		Vec2f v( 	PyFloat_AsDouble( PyList_GetItem(obj1, 0) ),
-					PyFloat_AsDouble( PyList_GetItem(obj1, 1) )  );
-		self->sv->setPoint( v );
-	} else if ( VectorObject_Check(obj1) && !obj2) {
-		if ( ((VectorObject *)obj1)->size != 2 ) {
-			stringstream msg("StrokeVertex::setPoint() accepts a vector of 2 elements (");
-			msg << ((VectorObject *)obj1)->size << " found)";
-			PyErr_SetString(PyExc_TypeError, msg.str().c_str());
-			return NULL;
-		}
-		Vec2f *v = Vec2f_ptr_from_Vector( obj1 );
 		self->sv->setPoint( *v );
 		delete v; 
 	} else if( PyFloat_Check(obj1) && obj2 && PyFloat_Check(obj2) ){
 		self->sv->setPoint( PyFloat_AsDouble(obj1), PyFloat_AsDouble(obj2) );
 	} else {
-		PyErr_SetString(PyExc_TypeError, "StrokeVertex::setPoint(): unknown argument type");
+		PyErr_SetString(PyExc_TypeError, "invalid arguments");
 		return NULL;
 	}
 

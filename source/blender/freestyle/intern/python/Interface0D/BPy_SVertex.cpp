@@ -130,20 +130,26 @@ int SVertex___init__(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *py_point = 0;
 	BPy_Id *py_id = 0;
+	
 
-    if (! PyArg_ParseTuple(args, "|OO", &py_point, &py_id) )
+	if (! PyArg_ParseTuple(args, "|OO!", &py_point, &Id_Type, &py_id) )
         return -1;
 	
-	if( py_point && py_id && PyList_Check(py_point) && PyList_Size(py_point) == 3 ) {
-		Vec3r v( 	PyFloat_AsDouble( PyList_GetItem(py_point, 0) ),
-					PyFloat_AsDouble( PyList_GetItem(py_point, 1) ),
-					PyFloat_AsDouble( PyList_GetItem(py_point, 2) )  );
-					
-		self->sv = new SVertex( v, *(py_id->id) );
-	} else {
+	if( py_point && py_id ) {
+		Vec3r *v = Vec3r_ptr_from_PyObject(py_point);
+		if( !v ) {
+			PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
+			return -1;
+		}
+		self->sv = new SVertex( *v, *(py_id->id) );
+		delete v;
+	} else if( !py_point && !py_id ) {
 		self->sv = new SVertex();
+	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
+		return -1;
 	}
-	
+
 	self->py_if0D.if0D = self->sv;
 	
 	return 0;
@@ -193,19 +199,15 @@ PyObject * SVertex_viewvertex( BPy_SVertex *self ) {
 PyObject *SVertex_setPoint3D( BPy_SVertex *self , PyObject *args) {
 	PyObject *py_point;
 
-	if(!( PyArg_ParseTuple(args, "O!", &PyList_Type, &py_point) ))
+	if(!( PyArg_ParseTuple(args, "O", &py_point) ))
 		return NULL;
-	if( PyList_Size(py_point) != 3 ) {
-		stringstream msg("SVertex::setPoint3D() accepts a list of 3 elements (");
-		msg << PyList_Size(py_point) << " found)";
-		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+	Vec3r *v = Vec3r_ptr_from_PyObject(py_point);
+	if( !v ) {
+		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
 		return NULL;
 	}
-
-	Vec3r v( 	PyFloat_AsDouble( PyList_GetItem(py_point, 0) ),
-				PyFloat_AsDouble( PyList_GetItem(py_point, 1) ),
-				PyFloat_AsDouble( PyList_GetItem(py_point, 2) )  );
-	self->sv->setPoint3D( v );
+	self->sv->setPoint3D( *v );
+	delete v;
 
 	Py_RETURN_NONE;
 }
@@ -213,19 +215,15 @@ PyObject *SVertex_setPoint3D( BPy_SVertex *self , PyObject *args) {
 PyObject *SVertex_setPoint2D( BPy_SVertex *self , PyObject *args) {
 	PyObject *py_point;
 
-	if(!( PyArg_ParseTuple(args, "O!", &PyList_Type, &py_point) ))
+	if(!( PyArg_ParseTuple(args, "O", &py_point) ))
 		return NULL;
-	if( PyList_Size(py_point) != 3 ) {
-		stringstream msg("SVertex::setPoint2D() accepts a list of 3 elements (");
-		msg << PyList_Size(py_point) << " found)";
-		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+	Vec3r *v = Vec3r_ptr_from_PyObject(py_point);
+	if( !v ) {
+		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
 		return NULL;
 	}
-
-	Vec3r v( 	PyFloat_AsDouble( PyList_GetItem(py_point, 0) ),
-				PyFloat_AsDouble( PyList_GetItem(py_point, 1) ),
-				PyFloat_AsDouble( PyList_GetItem(py_point, 2) )  );
-	self->sv->setPoint2D( v );
+	self->sv->setPoint2D( *v );
+	delete v;
 
 	Py_RETURN_NONE;
 }
@@ -233,19 +231,15 @@ PyObject *SVertex_setPoint2D( BPy_SVertex *self , PyObject *args) {
 PyObject *SVertex_AddNormal( BPy_SVertex *self , PyObject *args) {
 	PyObject *py_normal;
 
-	if(!( PyArg_ParseTuple(args, "O!", &PyList_Type, &py_normal) ))
+	if(!( PyArg_ParseTuple(args, "O", &py_normal) ))
 		return NULL;
-	if( PyList_Size(py_normal) != 3 ) {
-		stringstream msg("SVertex::AddNormal() accepts a list of 3 elements (");
-		msg << PyList_Size(py_normal) << " found)";
-		PyErr_SetString(PyExc_TypeError, msg.str().c_str());
+	Vec3r *n = Vec3r_ptr_from_PyObject(py_normal);
+	if( !n ) {
+		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
 		return NULL;
 	}
-
-	Vec3r n( 	PyFloat_AsDouble( PyList_GetItem(py_normal, 0) ),
-				PyFloat_AsDouble( PyList_GetItem(py_normal, 1) ),
-				PyFloat_AsDouble( PyList_GetItem(py_normal, 2) )  );
-	self->sv->AddNormal( n );
+	self->sv->AddNormal( *n );
+	delete n;
 
 	Py_RETURN_NONE;
 }
