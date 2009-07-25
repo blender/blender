@@ -2259,7 +2259,6 @@ static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, Spa
 				else tselem->flag |= TSE_CLOSED;
 				
 			}
-			soops->storeflag |= SO_TREESTORE_REDRAW;
 
 			return 1;
 		}
@@ -2371,8 +2370,6 @@ static int do_outliner_item_openclose(bContext *C, SpaceOops *soops, TreeElement
 			if(tselem->flag & TSE_CLOSED) tselem->flag &= ~TSE_CLOSED;
 			else tselem->flag |= TSE_CLOSED;
 		}
-		
-		soops->storeflag |= SO_TREESTORE_REDRAW;
 
 		return 1;
 	}
