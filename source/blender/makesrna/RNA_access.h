@@ -717,6 +717,7 @@ int RNA_string_length(PointerRNA *ptr, const char *name);
 void RNA_string_set(PointerRNA *ptr, const char *name, const char *value);
 
 PointerRNA RNA_pointer_get(PointerRNA *ptr, const char *name);
+void RNA_pointer_set(PointerRNA *ptr, const char *name, PointerRNA ptr_value);
 void RNA_pointer_add(PointerRNA *ptr, const char *name);
 
 void RNA_collection_begin(PointerRNA *ptr, const char *name, CollectionPropertyIterator *iter);

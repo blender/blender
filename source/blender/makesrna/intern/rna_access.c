@@ -2524,6 +2524,18 @@ PointerRNA RNA_pointer_get(PointerRNA *ptr, const char *name)
 	}
 }
 
+void RNA_pointer_set(PointerRNA *ptr, const char *name, PointerRNA ptr_value)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop) {
+		RNA_property_pointer_set(ptr, prop, ptr_value);
+	}
+	else {
+		printf("RNA_pointer_set: %s.%s not found.\n", ptr->type->identifier, name);
+	}
+}
+
 void RNA_pointer_add(PointerRNA *ptr, const char *name)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
