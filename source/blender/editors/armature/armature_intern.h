@@ -34,7 +34,7 @@ struct wmOperatorType;
 /* editarmature.c operators */
 void ARMATURE_OT_bone_primitive_add(struct wmOperatorType *ot);
 
-void ARMATURE_OT_bones_align(struct wmOperatorType *ot);
+void ARMATURE_OT_align(struct wmOperatorType *ot);
 void ARMATURE_OT_calculate_roll(struct wmOperatorType *ot);
 void ARMATURE_OT_switch_direction(struct wmOperatorType *ot);
 
@@ -51,9 +51,13 @@ void ARMATURE_OT_select_hierarchy(struct wmOperatorType *ot);
 void ARMATURE_OT_select_linked(struct wmOperatorType *ot);
 
 void ARMATURE_OT_delete(struct wmOperatorType *ot);
-void ARMATURE_OT_duplicate_selected(struct wmOperatorType *ot);
+void ARMATURE_OT_duplicate(struct wmOperatorType *ot);
 void ARMATURE_OT_extrude(struct wmOperatorType *ot);
 void ARMATURE_OT_click_extrude(struct wmOperatorType *ot);
+void ARMATURE_OT_fill(struct wmOperatorType *ot);
+void ARMATURE_OT_merge(struct wmOperatorType *ot);
+
+void ARMATURE_OT_separate(struct wmOperatorType *ot);
 
 void ARMATURE_OT_autoside_names(struct wmOperatorType *ot);
 void ARMATURE_OT_flip_names(struct wmOperatorType *ot);
@@ -62,6 +66,8 @@ void ARMATURE_OT_flip_names(struct wmOperatorType *ot);
 /* Pose-Mode Operators */
 void POSE_OT_hide(struct wmOperatorType *ot);
 void POSE_OT_reveal(struct wmOperatorType *ot);
+
+void POSE_OT_apply(struct wmOperatorType *ot);
 
 void POSE_OT_rot_clear(struct wmOperatorType *ot);
 void POSE_OT_loc_clear(struct wmOperatorType *ot);

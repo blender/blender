@@ -199,7 +199,7 @@ class VIEW3D_PT_tools_editmode_armature(View3DPanel):
 
 		col = layout.column(align=True)
 		col.itemO("armature.bone_primitive_add", text="Add")
-		col.itemO("armature.duplicate_selected", text="Duplicate")
+		col.itemO("armature.duplicate", text="Duplicate")
 		col.itemO("armature.delete", text="Delete")
 		
 		layout.itemL(text="Modeling:")

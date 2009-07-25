@@ -110,7 +110,7 @@ void ED_operatortypes_armature(void)
 	/* EDIT ARMATURE */
 	WM_operatortype_append(ARMATURE_OT_bone_primitive_add);
 	
-	WM_operatortype_append(ARMATURE_OT_bones_align);
+	WM_operatortype_append(ARMATURE_OT_align);
 	WM_operatortype_append(ARMATURE_OT_calculate_roll);
 	WM_operatortype_append(ARMATURE_OT_switch_direction);
 	WM_operatortype_append(ARMATURE_OT_subdivs);
@@ -126,9 +126,13 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_select_linked);
 
 	WM_operatortype_append(ARMATURE_OT_delete);
-	WM_operatortype_append(ARMATURE_OT_duplicate_selected);
+	WM_operatortype_append(ARMATURE_OT_duplicate);
 	WM_operatortype_append(ARMATURE_OT_extrude);
 	WM_operatortype_append(ARMATURE_OT_click_extrude);
+	WM_operatortype_append(ARMATURE_OT_fill);
+	WM_operatortype_append(ARMATURE_OT_merge);
+	
+	WM_operatortype_append(ARMATURE_OT_separate);
 	
 	WM_operatortype_append(ARMATURE_OT_autoside_names);
 	WM_operatortype_append(ARMATURE_OT_flip_names);
@@ -145,6 +149,8 @@ void ED_operatortypes_armature(void)
 	/* POSE */
 	WM_operatortype_append(POSE_OT_hide);
 	WM_operatortype_append(POSE_OT_reveal);
+	
+	WM_operatortype_append(POSE_OT_apply);
 	
 	WM_operatortype_append(POSE_OT_rot_clear);
 	WM_operatortype_append(POSE_OT_loc_clear);
@@ -173,7 +179,6 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_autoside_names);
 	WM_operatortype_append(POSE_OT_flip_names);
 	
-	
 	/* POSELIB */
 	WM_operatortype_append(POSELIB_OT_browse_interactive);
 	
@@ -195,7 +200,7 @@ void ED_keymap_armature(wmWindowManager *wm)
 	
 	/* only set in editmode armature, by space_view3d listener */
 //	WM_keymap_add_item(keymap, "ARMATURE_OT_hide", HKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_bones_align", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_align", AKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_calculate_roll", NKEY, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_switch_direction", FKEY, KM_PRESS, KM_ALT, 0);
@@ -225,12 +230,17 @@ void ED_keymap_armature(wmWindowManager *wm)
 		RNA_boolean_set(kmi->ptr, "extend", 1);
 
 	WM_keymap_add_item(keymap, "ARMATURE_OT_select_linked", LKEY, KM_PRESS, 0, 0);
+	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_delete", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ARMATURE_OT_duplicate_selected", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_extrude", EKEY, KM_PRESS, 0, 0);
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_extrude", EKEY, KM_PRESS, KM_SHIFT, 0);
 		RNA_boolean_set(kmi->ptr, "forked", 1);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_click_extrude", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_fill", FKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_merge", MKEY, KM_PRESS, KM_ALT, 0);
+	
+	WM_keymap_add_item(keymap, "ARMATURE_OT_separate", PKEY, KM_PRESS, /*KM_CTRL|KM_ALT*/0, 0);
 	
 	/* Armature -> Etch-A-Ton ------------------------ */
 	WM_keymap_add_item(keymap, "SKETCH_OT_delete", XKEY, KM_PRESS, 0, 0);
@@ -246,6 +256,9 @@ void ED_keymap_armature(wmWindowManager *wm)
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_hide", HKEY, KM_PRESS, KM_SHIFT, 0);
 		RNA_boolean_set(kmi->ptr, "unselected", 1);
 	WM_keymap_add_item(keymap, "POSE_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
+	
+	WM_keymap_add_item(keymap, "POSE_OT_apply", AKEY, KM_PRESS, KM_CTRL, 0);
+	
 	/*clear pose*/
 	WM_keymap_add_item(keymap, "POSE_OT_rot_clear", RKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_loc_clear", GKEY, KM_PRESS, KM_ALT, 0);
