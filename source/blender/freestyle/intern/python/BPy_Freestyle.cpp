@@ -3,6 +3,7 @@
 #include "BPy_BBox.h"
 #include "BPy_BinaryPredicate0D.h"
 #include "BPy_BinaryPredicate1D.h"
+#include "BPy_ContextFunctions.h"
 #include "BPy_FrsMaterial.h"
 #include "BPy_FrsNoise.h"
 #include "BPy_Id.h"
@@ -147,6 +148,7 @@ PyObject *Freestyle_Init( void )
 	BBox_Init( module );
 	BinaryPredicate0D_Init( module );
 	BinaryPredicate1D_Init( module );
+	ContextFunctions_Init( module );
 	FrsMaterial_Init( module );
 	FrsNoise_Init( module );
 	Id_Init( module );
