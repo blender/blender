@@ -439,6 +439,7 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 		{10, "SEQUENCE", 0, "Sequence", ""},
 		{11, "DATABLOCKS", 0, "Datablocks", ""},
 		{12, "USER_PREFERENCES", 0, "User Preferences", ""},
+		{13, "KEYMAPS", 0, "Key Maps", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SpaceOutliner", "Space");
