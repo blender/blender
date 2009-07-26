@@ -105,12 +105,18 @@ static void file_deselect_all(SpaceFile* sfile)
 	}
 }
 
-static void file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short val)
+typedef enum FileSelect { FILE_SELECT_DIR = 1, 
+  FILE_SELECT_FILE = 2 } FileSelect;
+
+
+static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short val)
 {
 	int first_file = -1;
 	int last_file = -1;
 	int act_file;
 	short selecting = (val == LEFTMOUSE);
+	FileSelect retval = FILE_SELECT_FILE;
+
 	FileSelectParams *params = ED_fileselect_get_params(sfile);
 	// FileLayout *layout = ED_fileselect_get_layout(sfile, ar);
 
@@ -147,25 +153,18 @@ static void file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, short v
 				BLI_add_slash(params->dir);
 				params->file[0] = '\0';
 				file_change_dir(sfile);
+				retval = FILE_SELECT_DIR;
 			}
 		}
 		else if (file)
 		{
 			if (file->relname) {
 				BLI_strncpy(params->file, file->relname, FILE_MAXFILE);
-				/* XXX
-				if(event==MIDDLEMOUSE && filelist_gettype(sfile->files)) 
-					imasel_execute(sfile);
-				*/
 			}
 			
 		}	
-		/* XXX
-		if(BIF_filelist_gettype(sfile->files)==FILE_MAIN) {
-			active_imasel_object(sfile);
-		}
-		*/
 	}
+	return retval;
 }
 
 
@@ -185,8 +184,11 @@ static int file_border_select_exec(bContext *C, wmOperator *op)
 
 	BLI_isect_rcti(&(ar->v2d.mask), &rect, &rect);
 	
-	file_select(sfile, ar, &rect, val );
-	WM_event_add_notifier(C, NC_WINDOW, NULL);
+	if (FILE_SELECT_DIR == file_select(sfile, ar, &rect, val )) {
+		WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+	} else {
+		WM_event_add_notifier(C, NC_FILE|ND_PARAMS, NULL);
+	}
 	return OPERATOR_FINISHED;
 }
 
@@ -226,8 +228,11 @@ static int file_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		/* single select, deselect all selected first */
 		file_deselect_all(sfile);
-		file_select(sfile, ar, &rect, val );
-		WM_event_add_notifier(C, NC_FILE|ND_PARAMS, NULL);
+		if (FILE_SELECT_DIR == file_select(sfile, ar, &rect, val )) {
+			WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
+		} else {
+			WM_event_add_notifier(C, NC_FILE|ND_PARAMS, NULL);
+		}
 	}
 	return OPERATOR_FINISHED;
 }
@@ -306,7 +311,7 @@ static int bookmark_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		file_change_dir(sfile);				
 		params->file[0] = '\0';
 
-		WM_event_add_notifier(C, NC_FILE|ND_PARAMS, NULL);
+		WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
 	}
 	
 	return OPERATOR_FINISHED;

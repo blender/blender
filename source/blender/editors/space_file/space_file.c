@@ -469,10 +469,19 @@ static void file_ui_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 }
 
-//static void file_main_area_listener(ARegion *ar, wmNotifier *wmn)
-//{
+static void file_ui_area_listener(ARegion *ar, wmNotifier *wmn)
+{
 	/* context changes */
-//}
+	switch(wmn->category) {
+		case NC_FILE:
+			switch (wmn->data) {
+				case ND_FILELIST:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+	}
+}
 
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_file(void)
@@ -515,6 +524,7 @@ void ED_spacetype_file(void)
 	art->regionid = RGN_TYPE_UI;
 	art->minsizey= 60;
 	art->keymapflag= ED_KEYMAP_UI;
+	art->listener= file_ui_area_listener;
 	art->init= file_ui_area_init;
 	art->draw= file_ui_area_draw;
 	BLI_addhead(&st->regiontypes, art);
