@@ -38,6 +38,7 @@
 
 #include "MEM_guardedalloc.h"
 #include "BKE_report.h"
+#include "BKE_utildefines.h"
 
 
 /* 'self' stores the operator string */
@@ -77,14 +78,14 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	}
 
 
-	ot= WM_operatortype_find(opname, 1);
+	ot= WM_operatortype_find(opname, TRUE);
 
 	if (ot == NULL) {
 		PyErr_Format( PyExc_SystemError, "bpy.__ops__.call: operator \"%s\"could not be found", opname);
 		return NULL;
 	}
 	
-	if(ot->poll && (ot->poll(C) == 0)) {
+	if(ot->poll && (ot->poll(C) == FALSE)) {
 		PyErr_SetString( PyExc_SystemError, "bpy.__ops__.call: operator poll() function failed, context is incorrect");
 		return NULL;
 	}
@@ -146,10 +147,38 @@ static PyObject *pyop_dir(PyObject *self)
 	return list;
 }
 
+static PyObject *pyop_getrna(PyObject *self, PyObject *value)
+{
+	wmOperatorType *ot;
+	PointerRNA ptr;
+	char *opname= _PyUnicode_AsString(value);
+	BPy_StructRNA *pyrna= NULL;
+	
+	if(opname==NULL) {
+		PyErr_SetString(PyExc_TypeError, "bpy.__ops__.get_rna() expects a string argument");
+		return NULL;
+	}
+	ot= WM_operatortype_find(opname, TRUE);
+	if(ot==NULL) {
+		PyErr_Format(PyExc_KeyError, "bpy.__ops__.get_rna(\"%s\") not found", opname);
+		return NULL;
+	}
+	
+	/* type */
+	//RNA_pointer_create(NULL, &RNA_Struct, ot->srna, &ptr);
+
+	/* XXX - should call WM_operator_properties_free */
+	WM_operator_properties_create(&ptr, ot->idname);
+	pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
+	pyrna->freeptr= TRUE;
+	return (PyObject *)pyrna;
+}
+
 PyObject *BPY_operator_module( void )
 {
 	static PyMethodDef pyop_call_meth =		{"call", (PyCFunction) pyop_call, METH_VARARGS, NULL};
 	static PyMethodDef pyop_dir_meth =		{"dir", (PyCFunction) pyop_dir, METH_NOARGS, NULL};
+	static PyMethodDef pyop_getrna_meth =	{"get_rna", (PyCFunction) pyop_getrna, METH_O, NULL};
 	static PyMethodDef pyop_add_meth =		{"add", (PyCFunction) PYOP_wrap_add, METH_O, NULL};
 	static PyMethodDef pyop_remove_meth =	{"remove", (PyCFunction) PYOP_wrap_remove, METH_O, NULL};
 
@@ -158,6 +187,7 @@ PyObject *BPY_operator_module( void )
 
 	PyModule_AddObject( submodule, "call",	PyCFunction_New(&pyop_call_meth,	NULL) );
 	PyModule_AddObject( submodule, "dir",		PyCFunction_New(&pyop_dir_meth,		NULL) );
+	PyModule_AddObject( submodule, "get_rna",	PyCFunction_New(&pyop_getrna_meth,	NULL) );
 	PyModule_AddObject( submodule, "add",		PyCFunction_New(&pyop_add_meth,		NULL) );
 	PyModule_AddObject( submodule, "remove",	PyCFunction_New(&pyop_remove_meth,	NULL) );
 

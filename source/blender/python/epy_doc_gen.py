@@ -503,20 +503,21 @@ def rna2epy(target_path):
 def op2epy(target_path):
 	out = open(target_path, 'w')
 	
-	operators = dir(bpy.ops)
-	operators.remove('add')
-	operators.remove('remove')
-	operators.sort()
+	op_mods = dir(bpy.ops)
+	op_mods.remove('add')
+	op_mods.remove('remove')
 	
-	for op in operators:
-		
-		if op.startswith('__'):
+	for op_mod_name in sorted(op_mods):
+		if op_mod_name.startswith('__'):
 			continue
+
+		op_mod = getattr(bpy.ops, op_mod_name)
 		
-		# rna = getattr(bpy.types, op).__rna__
-		rna = bpy.ops.__rna__(op)
-		
-		write_func(rna, '', out, 'OPERATOR')
+		operators = dir(op_mod)
+		for op in sorted(operators):
+			# rna = getattr(bpy.types, op).__rna__
+			rna = getattr(op_mod, op).get_rna()
+			write_func(rna, '', out, 'OPERATOR')
 	
 	out.write('\n')
 	out.close()
