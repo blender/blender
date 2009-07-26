@@ -2745,15 +2745,6 @@ static void view3d_edit_armature_parentmenu(bContext *C, uiLayout *layout, void 
 	uiItemO(layout, NULL, 0, "ARMATURE_OT_parent_clear");
 }
 
-#if 0
-void do_view3d_edit_armature_rollmenu(bContext *C, void *arg, int event)
-{
-		/* "Set Roll|Ctrl R" - interactively set bone roll */
-		initTransform(TFM_BONE_ROLL, CTX_NONE);
-		Transform();
-}
-#endif
-
 static void view3d_edit_armature_rollmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	/* 0 = 'Global', 1 = 'Cursor' */
@@ -2761,14 +2752,13 @@ static void view3d_edit_armature_rollmenu(bContext *C, uiLayout *layout, void *a
 	uiItemEnumO(layout, "Clear Roll (Z-Axis Up)", 0, "ARMATURE_OT_calculate_roll", "type", 0);
 	uiItemEnumO(layout, "Roll to Cursor", 0, "ARMATURE_OT_calculate_roll", "type", 1);
 	
-	//uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	//uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Roll|Ctrl R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiItemS(layout);
+	
+	uiItemEnumO(layout, "Set Roll", 0, "TFM_OT_transform", "mode", TFM_BONE_ROLL);
 }
 
 static void view3d_edit_armature_settingsmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	PointerRNA ptr;
-	
 	uiItemEnumO(layout, "Toggle a Setting", 0, "ARMATURE_OT_flags_set", "mode", 2);
 	uiItemEnumO(layout, "Enable a Setting", 0, "ARMATURE_OT_flags_set", "mode", 1);
 	uiItemEnumO(layout, "Disable a Setting", 0, "ARMATURE_OT_flags_set", "mode", 0);
@@ -2791,11 +2781,6 @@ static void do_view3d_edit_armaturemenu(bContext *C, void *arg, int event)
 	case 7: /* Warp */
 		initTransform(TFM_WARP, CTX_NONE);
 		Transform();
-	
-	case 17: /* move to layer */
-		pose_movetolayer();
-		break;
-	
 	case 23: /* bone sketching panel */
 		add_blockhandler(curarea, VIEW3D_HANDLER_BONESKETCH, UI_PNL_UNSTOW);
 		break;
@@ -2847,12 +2832,10 @@ static void view3d_edit_armaturemenu(bContext *C, uiLayout *layout, void *arg_un
 	
 	uiItemS(layout);
 	
-#if 0
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Switch Armature Layers|Shift M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Bone To Layer|M",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
-		
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-#endif
+	uiItemO(layout, NULL, 0, "ARMATURE_OT_armature_layers");
+	uiItemO(layout, NULL, 0, "ARMATURE_OT_bone_layers");
+	
+	uiItemS(layout);
 	
 	uiItemMenuF(layout, "Parent", 0, view3d_edit_armature_parentmenu);
 	
@@ -2927,8 +2910,6 @@ static void view3d_pose_armature_poselibmenu(bContext *C, uiLayout *layout, void
 
 static void view3d_pose_armature_settingsmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	PointerRNA ptr;
-	
 	uiItemEnumO(layout, "Toggle a Setting", 0, "POSE_OT_flags_set", "mode", 2);
 	uiItemEnumO(layout, "Enable a Setting", 0, "POSE_OT_flags_set", "mode", 1);
 	uiItemEnumO(layout, "Disable a Setting", 0, "POSE_OT_flags_set", "mode", 0);
@@ -2943,9 +2924,6 @@ static void do_view3d_pose_armaturemenu(bContext *C, void *arg, int event)
 	switch(event) {
 	case 5:
 		pose_copy_menu();
-		break;
-	case 14: /* move bone to layer / change armature layer */
-		pose_movetolayer();
 		break;
 	case 15:
 		pose_relax();
@@ -3004,23 +2982,18 @@ static void view3d_pose_armaturemenu(bContext *C, uiLayout *layout, void *arg_un
 	
 	uiItemO(layout, "Flip Left/Right Names", 0, "POSE_OT_flip_names");
 	
-	//separator + move layer operators...
+	uiItemS(layout);
+	
+	uiItemO(layout, NULL, 0, "POSE_OT_armature_layers");
+	uiItemO(layout, NULL, 0, "POSE_OT_bone_layers");
 	
 	uiItemS(layout);
 	
 	uiItemMenuF(layout, "Show/Hide Bones", 0, view3d_pose_armature_showhidemenu);
-	
-	uiItemS(layout);
-	
 	uiItemMenuF(layout, "Bone Settings", 0, view3d_pose_armature_settingsmenu);
 	
 #if 0
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy Attributes...|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Switch Armature Layers|Shift M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Bone To Layer|M",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
 #endif
 }
 

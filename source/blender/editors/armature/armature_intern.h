@@ -63,6 +63,9 @@ void ARMATURE_OT_flip_names(struct wmOperatorType *ot);
 
 void ARMATURE_OT_flags_set(struct wmOperatorType *ot);
 
+void ARMATURE_OT_armature_layers(struct wmOperatorType *ot);
+void ARMATURE_OT_bone_layers(struct wmOperatorType *ot);
+
 /* ******************************************************* */
 /* Pose-Mode Operators */
 void POSE_OT_hide(struct wmOperatorType *ot);
@@ -98,6 +101,9 @@ void POSE_OT_autoside_names(struct wmOperatorType *ot);
 void POSE_OT_flip_names(struct wmOperatorType *ot);
 
 void POSE_OT_flags_set(struct wmOperatorType *ot);
+
+void POSE_OT_armature_layers(struct wmOperatorType *ot);
+void POSE_OT_bone_layers(struct wmOperatorType *ot);
 
 /* ******************************************************* */
 /* Etch-A-Ton */

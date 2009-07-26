@@ -55,6 +55,7 @@
 #include "ED_armature.h"
 #include "ED_screen.h"
 #include "ED_object.h"
+#include "ED_transform.h"
 
 #include "armature_intern.h"
 
@@ -137,6 +138,9 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_flip_names);
 	
 	WM_operatortype_append(ARMATURE_OT_flags_set);
+	
+	WM_operatortype_append(ARMATURE_OT_armature_layers);
+	WM_operatortype_append(ARMATURE_OT_bone_layers);
 
 	/* SKETCH */	
 	WM_operatortype_append(SKETCH_OT_gesture);
@@ -181,6 +185,9 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_flip_names);
 	
 	WM_operatortype_append(POSE_OT_flags_set);
+	
+	WM_operatortype_append(POSE_OT_armature_layers);
+	WM_operatortype_append(POSE_OT_bone_layers);
 	
 	/* POSELIB */
 	WM_operatortype_append(POSELIB_OT_browse_interactive);
@@ -243,7 +250,7 @@ void ED_keymap_armature(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "ARMATURE_OT_fill", FKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_merge", MKEY, KM_PRESS, KM_ALT, 0);
 	
-	WM_keymap_add_item(keymap, "ARMATURE_OT_separate", PKEY, KM_PRESS, /*KM_CTRL|KM_ALT*/0, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_separate", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	
 		/* set flags */
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_flags_set", WKEY, KM_PRESS, KM_SHIFT, 0);
@@ -252,6 +259,18 @@ void ED_keymap_armature(wmWindowManager *wm)
 		RNA_enum_set(kmi->ptr, "mode", 1); // enable
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_flags_set", WKEY, KM_PRESS, KM_ALT, 0);
 		RNA_enum_set(kmi->ptr, "mode", 0); // clear
+		
+		/* armature/bone layers */
+	WM_keymap_add_item(keymap, "ARMATURE_OT_armature_layers", MKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_bone_layers", MKEY, KM_PRESS, 0, 0);
+	
+		/* special transforms: */
+		/* 	1) envelope/b-bone size */
+	kmi= WM_keymap_add_item(keymap, "TFM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0);
+		RNA_enum_set(kmi->ptr, "mode", TFM_BONESIZE);
+		/* 	2) set roll */
+	kmi= WM_keymap_add_item(keymap, "TFM_OT_transform", RKEY, KM_PRESS, KM_CTRL, 0);
+		RNA_enum_set(kmi->ptr, "mode", TFM_BONE_ROLL);
 	
 	/* Armature -> Etch-A-Ton ------------------------ */
 	WM_keymap_add_item(keymap, "SKETCH_OT_delete", XKEY, KM_PRESS, 0, 0);
@@ -270,7 +289,7 @@ void ED_keymap_armature(wmWindowManager *wm)
 	
 	WM_keymap_add_item(keymap, "POSE_OT_apply", AKEY, KM_PRESS, KM_CTRL, 0);
 	
-	/*clear pose*/
+	// TODO: clear pose
 	WM_keymap_add_item(keymap, "POSE_OT_rot_clear", RKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_loc_clear", GKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_scale_clear", SKEY, KM_PRESS, KM_ALT, 0);
@@ -307,13 +326,22 @@ void ED_keymap_armature(wmWindowManager *wm)
 	
 	WM_keymap_add_item(keymap, "POSE_OT_groups_menu", GKEY, KM_PRESS, KM_CTRL, 0);
 	
-	/* set flags */
+		/* set flags */
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_flags_set", WKEY, KM_PRESS, KM_SHIFT, 0);
 		RNA_enum_set(kmi->ptr, "mode", 2); // toggle
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_flags_set", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 		RNA_enum_set(kmi->ptr, "mode", 1); // enable
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_flags_set", WKEY, KM_PRESS, KM_ALT, 0);
 		RNA_enum_set(kmi->ptr, "mode", 0); // clear
+		
+		/* armature/bone layers */
+	WM_keymap_add_item(keymap, "POSE_OT_armature_layers", MKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_bone_layers", MKEY, KM_PRESS, 0, 0);
+	
+		/* special transforms: */
+		/* 	1) envelope/b-bone size */
+	kmi= WM_keymap_add_item(keymap, "TFM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0);
+		RNA_enum_set(kmi->ptr, "mode", TFM_BONESIZE);
 	
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
 	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe_menu", IKEY, KM_PRESS, 0, 0);

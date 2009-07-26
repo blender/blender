@@ -6301,12 +6301,11 @@ static Base *object_add_duplicate_internal(Scene *scene, Base *base, int dupflag
 	return basen;
 }
 
-/* single object duplicate, if dupflag==0, fully linked, else it uses U.dupflag */
+/* single object duplicate, if dupflag==0, fully linked, else it uses the flags given */
 /* leaves selection of base/object unaltered */
-Base *ED_object_add_duplicate(Scene *scene, Base *base, int usedupflag)
+Base *ED_object_add_duplicate(Scene *scene, Base *base, int dupflag)
 {
 	Base *basen;
-	int dupflag= usedupflag?U.dupflag:0;
 
 	clear_id_newpoins();
 	clear_sca_new_poins();	/* sensor/contr/act */
