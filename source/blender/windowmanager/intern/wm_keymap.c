@@ -290,3 +290,13 @@ char *WM_key_event_operator_string(const bContext *C, const char *opname, int op
 	return NULL;
 }
 
+/* ********************* */
+
+int WM_key_event_is_tweak(short type)
+{
+	if(type>=EVT_TWEAK_L && type<=EVT_GESTURE)
+		return 1;
+	return 0;
+}
+
+

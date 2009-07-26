@@ -151,6 +151,12 @@ static void view_pan_apply(bContext *C, wmOperator *op)
 	/* request updates to be done... */
 	ED_area_tag_redraw(vpd->sa);
 	UI_view2d_sync(vpd->sc, vpd->sa, v2d, V2D_LOCK_COPY);
+	
+	/* exceptions */
+	if(vpd->sa->spacetype==SPACE_OUTLINER) {
+		SpaceOops *soops= vpd->sa->spacedata.first;
+		soops->storeflag |= SO_TREESTORE_REDRAW;
+	}
 }
 
 /* cleanup temp customdata  */

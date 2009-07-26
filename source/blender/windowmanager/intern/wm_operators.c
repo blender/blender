@@ -906,7 +906,7 @@ void WM_paint_cursor_end(wmWindowManager *wm, void *handle)
    It stores 4 values (xmin, xmax, ymin, ymax) and event it ended with (event_type)
 */
 
-static int border_apply(bContext *C, wmOperator *op, int event_type)
+static int border_apply(bContext *C, wmOperator *op, int event_type, int event_orig)
 {
 	wmGesture *gesture= op->customdata;
 	rcti *rect= gesture->customdata;
@@ -924,9 +924,14 @@ static int border_apply(bContext *C, wmOperator *op, int event_type)
 	RNA_int_set(op->ptr, "ymin", rect->ymin);
 	RNA_int_set(op->ptr, "xmax", rect->xmax);
 	RNA_int_set(op->ptr, "ymax", rect->ymax);
-	if( RNA_struct_find_property(op->ptr, "event_type") )
-		RNA_int_set(op->ptr, "event_type", event_type);
 	
+	/* XXX weak; border should be configured for this without reading event types */
+	if( RNA_struct_find_property(op->ptr, "event_type") ) {
+		if(ELEM4(event_orig, EVT_TWEAK_L, EVT_TWEAK_R, EVT_TWEAK_A, EVT_TWEAK_S))
+			event_type= LEFTMOUSE;
+		
+		RNA_int_set(op->ptr, "event_type", event_type);
+	}
 	op->type->exec(C, op);
 	
 	return 1;
@@ -947,7 +952,10 @@ static void wm_gesture_end(bContext *C, wmOperator *op)
 
 int WM_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	op->customdata= WM_gesture_new(C, event, WM_GESTURE_CROSS_RECT);
+	if(WM_key_event_is_tweak(event->type))
+		op->customdata= WM_gesture_new(C, event, WM_GESTURE_RECT);
+	else
+		op->customdata= WM_gesture_new(C, event, WM_GESTURE_CROSS_RECT);
 
 	/* add modal handler */
 	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
@@ -984,14 +992,14 @@ int WM_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
-			if(event->val==1) {
+			if(event->val==KM_PRESS) {
 				if(gesture->type==WM_GESTURE_CROSS_RECT && gesture->mode==0) {
 					gesture->mode= 1;
 					wm_gesture_tag_redraw(C);
 				}
 			}
 			else {
-				if(border_apply(C, op, event->type)) {
+				if(border_apply(C, op, event->type, gesture->event_type)) {
 					wm_gesture_end(C, op);
 					return OPERATOR_FINISHED;
 				}

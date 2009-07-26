@@ -749,6 +749,7 @@ enum {
 #define SO_SEQUENCE		10
 #define SO_DATABLOCKS	11
 #define SO_USERDEF		12
+#define SO_KEYMAP		13
 
 /* SpaceOops->storeflag */
 #define SO_TREESTORE_CLEANUP	1

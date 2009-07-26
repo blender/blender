@@ -1805,7 +1805,10 @@ static int ui_do_but_KEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data, w
 {
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
 		if(ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val==KM_PRESS) {
-			button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
+			short event= (short)ui_get_but_val(but);
+			/* hardcoded prevention from editing or assigning ESC */
+			if(event!=ESCKEY)
+				button_activate_state(C, but, BUTTON_STATE_WAIT_KEY_EVENT);
 			return WM_UI_HANDLER_BREAK;
 		}
 	}
@@ -1814,7 +1817,7 @@ static int ui_do_but_KEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data, w
 			return WM_UI_HANDLER_CONTINUE;
 
 		if(event->val==KM_PRESS) {
-			if(WM_key_event_string(event->type)[0])
+			if(event->type!=ESCKEY && WM_key_event_string(event->type)[0])
 				ui_set_but_val(but, event->type);
 			else
 				data->cancel= 1;

@@ -229,6 +229,10 @@ typedef struct wmKeymapItem {
 	short keymodifier;				/* rawkey modifier */
 	
 	short propvalue;				/* if used, the item is from modal map */
+	
+	short inactive;					/* if set, deactivated item */
+	short maptype;						/* keymap editor */
+	short pad2, pad3;
 } wmKeymapItem;
 
 

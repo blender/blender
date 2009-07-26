@@ -740,7 +740,7 @@ static void ui_is_but_sel(uiBut *but)
 			push= 2;
 			break;
 		case KEYEVT:
-			if (value==-1) push= 1;
+			push= 2;
 			break;
 		case TOGBUT:
 		case TOG:

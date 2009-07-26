@@ -626,6 +626,8 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 {
 	int kmitype= wm_userdef_event_map(kmi->type);
 
+	if(kmi->inactive) return 0;
+	
 	/* the matching rules */
 	if(kmitype==KM_TEXTINPUT)
 		if(ISKEYBOARD(winevent->type)) return 1;

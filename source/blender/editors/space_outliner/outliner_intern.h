@@ -95,6 +95,8 @@ typedef struct TreeElement {
 #define TSE_RNA_PROPERTY	31
 #define TSE_RNA_ARRAY_ELEM	32
 #define TSE_NLA_TRACK		33
+#define TSE_KEYMAP			34
+#define TSE_KEYMAP_ITEM		35
 
 /* outliner search flags */
 #define OL_FIND					0

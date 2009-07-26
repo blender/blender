@@ -1123,6 +1123,45 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			}
 		}
 	}
+	else if(type == TSE_KEYMAP) {
+		wmKeyMap *km= (wmKeyMap *)idv;
+		wmKeymapItem *kmi;
+		char opname[OP_MAX_TYPENAME];
+		
+		te->directdata= idv;
+		te->name= km->nameid;
+		
+		if(!(tselem->flag & TSE_CLOSED)) {
+			
+			for (kmi= km->keymap.first; kmi; kmi= kmi->next) {
+				const char *key= WM_key_event_string(kmi->type);
+				
+				if(key[0]) {
+					wmOperatorType *ot= NULL;
+					
+					if(kmi->propvalue);
+					else ot= WM_operatortype_find(kmi->idname, 0);
+					
+					if(ot || kmi->propvalue) {
+						TreeElement *ten= outliner_add_element(soops, &te->subtree, kmi, te, TSE_KEYMAP_ITEM, a);
+						
+						ten->directdata= kmi;
+						
+						if(kmi->propvalue) {
+							ten->name= "Modal map, not yet";
+						}
+						else {
+							WM_operator_py_idname(opname, ot->idname);
+							ten->name= BLI_strdup(opname);
+							ten->flag |= TE_FREE_NAME;
+						}
+					}
+				}
+			}
+		}
+		else 
+			te->flag |= TE_LAZY_CLOSED;
+	}
 
 	return te;
 }
@@ -1374,6 +1413,14 @@ static void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 		if(show_opened)  {
 			tselem= TREESTORE(ten);
 			tselem->flag &= ~TSE_CLOSED;
+		}
+	}
+	else if(soops->outlinevis==SO_KEYMAP) {
+		wmWindowManager *wm= mainvar->wm.first;
+		wmKeyMap *km;
+		
+		for(km= wm->keymaps.first; km; km= km->next) {
+			ten= outliner_add_element(soops, &soops->tree, (void*)km, NULL, TSE_KEYMAP, 0);
 		}
 	}
 	else {
@@ -2193,6 +2240,21 @@ static int tree_element_active_sequence_dup(bContext *C, Scene *scene, TreeEleme
 	return(0);
 }
 
+static int tree_element_active_keymap_item(bContext *C, TreeElement *te, TreeStoreElem *tselem, int set)
+{
+	wmKeymapItem *kmi= te->directdata;
+	
+	if(set==0) {
+		if(kmi->inactive) return 0;
+		return 1;
+	}
+	else {
+		kmi->inactive= !kmi->inactive;
+	}
+	return 0;
+}
+
+
 /* generic call for non-id data to make/check active in UI */
 /* Context can be NULL when set==0 */
 static int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, int set)
@@ -2213,10 +2275,8 @@ static int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops,
 			break;
 		case TSE_LINKED_PSYS:
 			return tree_element_active_psys(C, scene, te, tselem, set);
-			break;
 		case TSE_POSE_BASE:
 			return tree_element_active_pose(C, scene, te, tselem, set);
-			break;
 		case TSE_POSE_CHANNEL:
 			return tree_element_active_posechannel(C, scene, te, tselem, set);
 		case TSE_CONSTRAINT:
@@ -2227,10 +2287,11 @@ static int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops,
 			return tree_element_active_posegroup(C, scene, te, tselem, set);
 		case TSE_SEQUENCE:
 			return tree_element_active_sequence(C, te, tselem, set);
-			break;
 		case TSE_SEQUENCE_DUP:
 			return tree_element_active_sequence_dup(C, scene, te, tselem, set);
-			break;
+		case TSE_KEYMAP_ITEM:
+			return tree_element_active_keymap_item(C, te, tselem, set);
+			
 	}
 	return 0;
 }
@@ -4953,6 +5014,241 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 	}
 }
 
+static void operator_call_cb(struct bContext *C, void *arg_kmi, void *arg2)
+{
+	wmOperatorType *ot= arg2;
+	wmKeymapItem *kmi= arg_kmi;
+	
+	if(ot)
+		BLI_strncpy(kmi->idname, ot->idname, OP_MAX_TYPENAME);
+}
+
+static void operator_search_cb(const struct bContext *C, void *arg_kmi, char *str, uiSearchItems *items)
+{
+	wmOperatorType *ot = WM_operatortype_first();
+	
+	for(; ot; ot= ot->next) {
+		
+		if(BLI_strcasestr(ot->idname, str)) {
+			char name[OP_MAX_TYPENAME];
+			
+			/* display name for menu */
+			WM_operator_py_idname(name, ot->idname);
+			
+			if(0==uiSearchItemAdd(items, name, ot, 0))
+				break;
+		}
+	}
+}
+
+/* operator Search browse menu, open */
+static uiBlock *operator_search_menu(bContext *C, ARegion *ar, void *arg_kmi)
+{
+	static char search[OP_MAX_TYPENAME];
+	wmEvent event;
+	wmWindow *win= CTX_wm_window(C);
+	wmKeymapItem *kmi= arg_kmi;
+	wmOperatorType *ot= WM_operatortype_find(kmi->idname, 0);
+	uiBlock *block;
+	uiBut *but;
+	
+	/* clear initial search string, then all items show */
+	search[0]= 0;
+	
+	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
+	
+	/* fake button, it holds space for search items */
+	uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+	
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 0, 150, 19, "");
+	uiButSetSearchFunc(but, operator_search_cb, arg_kmi, operator_call_cb, ot);
+	
+	uiBoundsBlock(block, 6);
+	uiBlockSetDirection(block, UI_DOWN);	
+	uiEndBlock(C, block);
+	
+	event= *(win->eventstate);	/* XXX huh huh? make api call */
+	event.type= EVT_BUT_OPEN;
+	event.val= KM_PRESS;
+	event.customdata= but;
+	event.customdatafree= FALSE;
+	wm_event_add(win, &event);
+	
+	return block;
+}
+
+#define OL_KM_KEYBOARD		0
+#define OL_KM_MOUSE			1
+#define OL_KM_TWEAK			2
+#define OL_KM_SPECIALS		3
+
+static short keymap_menu_type(short type)
+{
+	if(ISKEYBOARD(type)) return OL_KM_KEYBOARD;
+	if(WM_key_event_is_tweak(type)) return OL_KM_TWEAK;
+	if(type >= LEFTMOUSE && type <= WHEELOUTMOUSE) return OL_KM_MOUSE;
+//	return OL_KM_SPECIALS;
+	return 0;
+}
+
+static char *keymap_type_menu(void)
+{
+	static char string[500];
+	static char formatstr[] = "|%s %%x%d";
+	char *str= string;
+	
+	str += sprintf(str, "Event Type %%t");
+	
+	str += sprintf(str, formatstr, "Keyboard", OL_KM_KEYBOARD);
+	str += sprintf(str, formatstr, "Mouse", OL_KM_MOUSE);
+	str += sprintf(str, formatstr, "Tweak", OL_KM_TWEAK);
+//	str += sprintf(str, formatstr, "Specials", OL_KM_SPECIALS);
+	
+	return string;
+}	
+
+static char *keymap_mouse_menu(void)
+{
+	static char string[500];
+	static char formatstr[] = "|%s %%x%d";
+	char *str= string;
+	
+	str += sprintf(str, "Mouse Event %%t");
+	
+	str += sprintf(str, formatstr, "Left Mouse", LEFTMOUSE);
+	str += sprintf(str, formatstr, "Middle Mouse", MIDDLEMOUSE);
+	str += sprintf(str, formatstr, "Right Mouse", RIGHTMOUSE);
+	str += sprintf(str, formatstr, "Action Mouse", ACTIONMOUSE);
+	str += sprintf(str, formatstr, "Select Mouse", SELECTMOUSE);
+	str += sprintf(str, formatstr, "Mouse Move", MOUSEMOVE);
+	str += sprintf(str, formatstr, "Wheel Up", WHEELUPMOUSE);
+	str += sprintf(str, formatstr, "Wheel Down", WHEELDOWNMOUSE);
+	str += sprintf(str, formatstr, "Wheel In", WHEELINMOUSE);
+	str += sprintf(str, formatstr, "Wheel Out", WHEELOUTMOUSE);
+	
+	return string;
+}
+
+static char *keymap_tweak_menu(void)
+{
+	static char string[500];
+	static char formatstr[] = "|%s %%x%d";
+	char *str= string;
+	
+	str += sprintf(str, "Tweak Event %%t");
+	
+	str += sprintf(str, formatstr, "Left Mouse", EVT_TWEAK_L);
+	str += sprintf(str, formatstr, "Middle Mouse", EVT_TWEAK_M);
+	str += sprintf(str, formatstr, "Right Mouse", EVT_TWEAK_R);
+	str += sprintf(str, formatstr, "Action Mouse", EVT_TWEAK_A);
+	str += sprintf(str, formatstr, "Select Mouse", EVT_TWEAK_S);
+	
+	return string;
+}
+
+static void keymap_type_cb(bContext *C, void *kmi_v, void *unused_v)
+{
+	wmKeymapItem *kmi= kmi_v;
+	short maptype= keymap_menu_type(kmi->type);
+	
+	if(maptype!=kmi->maptype) {
+		switch(kmi->maptype) {
+			case OL_KM_KEYBOARD:
+				kmi->type= AKEY;
+				kmi->val= KM_PRESS;
+				break;
+			case OL_KM_MOUSE:
+				kmi->type= LEFTMOUSE;
+				kmi->val= KM_PRESS;
+				break;
+			case OL_KM_TWEAK:
+				kmi->type= EVT_TWEAK_L;
+				kmi->val= KM_ANY;
+				break;
+			case OL_KM_SPECIALS:
+				kmi->type= AKEY;
+				kmi->val= KM_PRESS;
+		}
+		ED_region_tag_redraw(CTX_wm_region(C));
+	}
+}
+
+static void outliner_draw_keymapbuts(uiBlock *block, ARegion *ar, SpaceOops *soops, ListBase *lb)
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	
+	uiBlockSetEmboss(block, UI_EMBOSST);
+	
+	for(te= lb->first; te; te= te->next) {
+		tselem= TREESTORE(te);
+		if(te->ys >= ar->v2d.cur.ymin && te->ys <= ar->v2d.cur.ymax) {
+			uiBut *but;
+			char *str;
+			int xstart= 240;
+			int butw1= 20; /* operator */
+			int butw2= 90; /* event type, menus */
+			int butw3= 43; /* modifiers */
+
+			if(tselem->type == TSE_KEYMAP_ITEM) {
+				wmKeymapItem *kmi= te->directdata;
+				
+				/* modal map? */
+				if(kmi->propvalue);
+				else {
+					uiDefBlockBut(block, operator_search_menu, kmi, "", xstart, (int)te->ys+1, butw1, OL_H-1, "Assign new Operator");
+				}
+				xstart+= butw1+10;
+				
+				/* map type button */
+				kmi->maptype= keymap_menu_type(kmi->type);
+				
+				str= keymap_type_menu();
+				but= uiDefButS(block, MENU, 0, str,	xstart, (int)te->ys+1, butw2, OL_H-1, &kmi->maptype, 0, 0, 0, 0, "Event type");
+				uiButSetFunc(but, keymap_type_cb, kmi, NULL);
+				xstart+= butw2+5;
+				
+				/* edit actual event */
+				switch(kmi->maptype) {
+					case OL_KM_KEYBOARD:
+						uiDefKeyevtButS(block, 0, "", xstart, (int)te->ys+1, butw2, OL_H-1, &kmi->type, "Key code");
+						xstart+= butw2+5;
+						break;
+					case OL_KM_MOUSE:
+						str= keymap_mouse_menu();
+						uiDefButS(block, MENU, 0, str, xstart,(int)te->ys+1, butw2, OL_H-1, &kmi->type, 0, 0, 0, 0,  "Mouse button");	
+						xstart+= butw2+5;
+						break;
+					case OL_KM_TWEAK:
+						str= keymap_tweak_menu();
+						uiDefButS(block, MENU, 0, str, xstart, (int)te->ys+1, butw2, OL_H-1, &kmi->type, 0, 0, 0, 0,  "Tweak gesture");	
+						xstart+= butw2+5;
+						break;
+				}
+				
+				/* modifiers */
+				uiBlockBeginAlign(block);
+				uiDefButS(block, OPTION, 0, "Shift",	xstart, (int)te->ys+1, butw3+5, OL_H-1, &kmi->shift, 0, 0, 0, 0, "Modifier"); xstart+= butw3+5;
+				uiDefButS(block, OPTION, 0, "Ctrl",	xstart, (int)te->ys+1, butw3, OL_H-1, &kmi->ctrl, 0, 0, 0, 0, "Modifier"); xstart+= butw3;
+				uiDefButS(block, OPTION, 0, "Alt",	xstart, (int)te->ys+1, butw3, OL_H-1, &kmi->alt, 0, 0, 0, 0, "Modifier"); xstart+= butw3;
+				uiDefButS(block, OPTION, 0, "Cmd",	xstart, (int)te->ys+1, butw3, OL_H-1, &kmi->oskey, 0, 0, 0, 0, "Modifier"); xstart+= butw3;
+				xstart+= 5;
+				uiBlockEndAlign(block);
+				
+				/* rna property */
+				if(kmi->ptr && kmi->ptr->data)
+					uiDefBut(block, LABEL, 0, "(RNA property)",	xstart, (int)te->ys+1, butw2, OL_H-1, &kmi->oskey, 0, 0, 0, 0, ""); xstart+= butw2;
+					
+				
+			}
+		}
+		
+		if((tselem->flag & TSE_CLOSED)==0) outliner_draw_keymapbuts(block, ar, soops, &te->subtree);
+	}
+}
+
+
 static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, SpaceOops *soops, ListBase *lb)
 {
 	uiBut *bt;
@@ -5007,7 +5303,7 @@ void draw_outliner(const bContext *C)
 	/* get extents of data */
 	outliner_height(soops, &soops->tree, &sizey);
 
-	if (ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {
+	if (ELEM3(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF, SO_KEYMAP)) {
 		/* RNA has two columns:
 		 * 	- column 1 is (max_width + OL_RNA_COL_SPACEX) or
 		 *				 (OL_RNA_COL_X), whichever is wider...
@@ -5052,6 +5348,9 @@ void draw_outliner(const bContext *C)
 		/* draw rna buttons */
 		outliner_draw_rnacols(ar, soops, sizex_rna);
 		outliner_draw_rnabuts(block, scene, ar, soops, sizex_rna, &soops->tree);
+	}
+	else if(soops->outlinevis == SO_KEYMAP) {
+		outliner_draw_keymapbuts(block, ar, soops, &soops->tree);
 	}
 	else if (!(soops->flag & SO_HIDE_RESTRICTCOLS)) {
 		/* draw restriction columns */

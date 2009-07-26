@@ -233,9 +233,9 @@ void outliner_header_buttons(const bContext *C, ARegion *ar)
 	
 	/* data selector*/
 	if(G.main->library.first) 
-		uiDefButS(block, MENU, B_REDR, "Outliner Display%t|Libraries %x7|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Groups %x6|Same Types %x5|Selected %x3|Active %x4|Sequence %x10|Datablocks %x11|User Preferences %x12",	 xco, yco, 120, 20,  &soutliner->outlinevis, 0, 0, 0, 0, "");
+		uiDefButS(block, MENU, B_REDR, "Outliner Display%t|Libraries %x7|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Groups %x6|Same Types %x5|Selected %x3|Active %x4|Sequence %x10|Datablocks %x11|User Preferences %x12||Key Maps %x13",	 xco, yco, 120, 20,  &soutliner->outlinevis, 0, 0, 0, 0, "");
 	else
-		uiDefButS(block, MENU, B_REDR, "Outliner Display%t|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Groups %x6|Same Types %x5|Selected %x3|Active %x4|Sequence %x10|Datablocks %x11|User Preferences %x12",	 xco, yco, 120, 20,  &soutliner->outlinevis, 0, 0, 0, 0, "");	
+		uiDefButS(block, MENU, B_REDR, "Outliner Display%t|All Scenes %x0|Current Scene %x1|Visible Layers %x2|Groups %x6|Same Types %x5|Selected %x3|Active %x4|Sequence %x10|Datablocks %x11|User Preferences %x12||Key Maps %x13",	 xco, yco, 120, 20,  &soutliner->outlinevis, 0, 0, 0, 0, "");	
 	xco += 120;
 	
 	/* KeyingSet editing buttons */

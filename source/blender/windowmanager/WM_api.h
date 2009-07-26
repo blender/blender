@@ -96,6 +96,7 @@ wmKeyMap	*WM_modalkeymap_get(struct wmWindowManager *wm, const char *nameid);
 void		WM_modalkeymap_add_item(wmKeyMap *km, short type, short val, int modifier, short keymodifier, short value);
 void		WM_modalkeymap_assign(wmKeyMap *km, const char *opname);
 
+int			WM_key_event_is_tweak(short type);
 
 const char	*WM_key_event_string(short type);
 char		*WM_key_event_operator_string(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, char *str, int len);
