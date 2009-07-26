@@ -265,9 +265,9 @@ void BLI_builddir(char *dirname, char *relname)
 				while(dlink){
 					memset(&files[actnum], 0 , sizeof(struct direntry));
 					files[actnum].relname = dlink->name;
-// use 64 bit file size, only needed for WIN32, WIN64 should work fine with stat. 
+// use 64 bit file size, only needed for WIN32 and WIN64. 
 // Excluding other than current MSVC compiler until able to test.
-#if defined(WIN32) && !defined(WIN64) && (_MSC_VER>=1500)
+#if (defined(WIN32) || defined(WIN64)) && (_MSC_VER>=1500)
 					_stat64(dlink->name,&files[actnum].s);
 #else
 					stat(dlink->name,&files[actnum].s);
