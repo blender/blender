@@ -21,12 +21,11 @@ static void BinaryPredicate1D___dealloc__(BPy_BinaryPredicate1D *self);
 static PyObject * BinaryPredicate1D___repr__(BPy_BinaryPredicate1D *self);
 
 static PyObject * BinaryPredicate1D_getName( BPy_BinaryPredicate1D *self, PyObject *args);
-static PyObject * BinaryPredicate1D___call__( BPy_BinaryPredicate1D *self, PyObject *args);
+static PyObject * BinaryPredicate1D___call__( BPy_BinaryPredicate1D *self, PyObject *args, PyObject *kwds);
 
 /*----------------------BinaryPredicate1D instance definitions ----------------------------*/
 static PyMethodDef BPy_BinaryPredicate1D_methods[] = {
 	{"getName", ( PyCFunction ) BinaryPredicate1D_getName, METH_NOARGS, "（ ）Returns the string of the name of the binary predicate."},
-	{"__call__", ( PyCFunction ) BinaryPredicate1D___call__, METH_VARARGS, "BinaryPredicate1D（Interface1D, Interface1D ）. Must be overloaded by inherited classes. It evaluates a relation between two Interface1D." },
 	{NULL, NULL, 0, NULL}
 };
 
@@ -55,7 +54,7 @@ PyTypeObject BinaryPredicate1D_Type = {
 	/* More standard operations (here for binary compatibility) */
 
 	NULL,						/* hashfunc tp_hash; */
-	NULL,                       /* ternaryfunc tp_call; */
+	(ternaryfunc)BinaryPredicate1D___call__,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
 	NULL,                       /* getattrofunc tp_getattro; */
 	NULL,                       /* setattrofunc tp_setattro; */
@@ -179,13 +178,21 @@ PyObject *BinaryPredicate1D_getName( BPy_BinaryPredicate1D *self, PyObject *args
 	return PyString_FromString( self->bp1D->getName().c_str() );
 }
 
-PyObject *BinaryPredicate1D___call__( BPy_BinaryPredicate1D *self, PyObject *args)
+PyObject *BinaryPredicate1D___call__( BPy_BinaryPredicate1D *self, PyObject *args, PyObject *kwds)
 {
 	BPy_Interface1D *obj1, *obj2;
 	
+	if( kwds != NULL ) {
+		PyErr_SetString(PyExc_TypeError, "keyword argument(s) not supported");
+		return NULL;
+	}
 	if( !PyArg_ParseTuple(args, "O!O!", &Interface1D_Type, &obj1, &Interface1D_Type, &obj2) )
 		return NULL;
 	
+	if( typeid(*(self->bp1D)) == typeid(BinaryPredicate1D) ) {
+		PyErr_SetString(PyExc_TypeError, "__call__ method must be overloaded");
+		return NULL;
+	}
 	if (self->bp1D->operator()( *(obj1->if1D) , *(obj2->if1D) ) < 0) {
 		if (!PyErr_Occurred()) {
 			string msg(self->bp1D->getName() + " __call__ method failed");

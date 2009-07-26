@@ -18,14 +18,13 @@ static void UnaryFunction1DEdgeNature___dealloc__(BPy_UnaryFunction1DEdgeNature*
 static PyObject * UnaryFunction1DEdgeNature___repr__(BPy_UnaryFunction1DEdgeNature* self);
 
 static PyObject * UnaryFunction1DEdgeNature_getName( BPy_UnaryFunction1DEdgeNature *self);
-static PyObject * UnaryFunction1DEdgeNature___call__( BPy_UnaryFunction1DEdgeNature *self, PyObject *args);
+static PyObject * UnaryFunction1DEdgeNature___call__( BPy_UnaryFunction1DEdgeNature *self, PyObject *args, PyObject *kwds);
 static PyObject * UnaryFunction1DEdgeNature_setIntegrationType(BPy_UnaryFunction1DEdgeNature* self, PyObject *args);
 static PyObject * UnaryFunction1DEdgeNature_getIntegrationType(BPy_UnaryFunction1DEdgeNature* self);
 
 /*----------------------UnaryFunction1DEdgeNature instance definitions ----------------------------*/
 static PyMethodDef BPy_UnaryFunction1DEdgeNature_methods[] = {
 	{"getName", ( PyCFunction ) UnaryFunction1DEdgeNature_getName, METH_NOARGS, "（ ）Returns the string of the name of the unary 1D function."},
-	{"__call__", ( PyCFunction ) UnaryFunction1DEdgeNature___call__, METH_VARARGS, "（Interface1D if1D ）Builds a UnaryFunction1D from an integration type. " },
 	{"setIntegrationType", ( PyCFunction ) UnaryFunction1DEdgeNature_setIntegrationType, METH_VARARGS, "（IntegrationType i ）Sets the integration method" },
 	{"getIntegrationType", ( PyCFunction ) UnaryFunction1DEdgeNature_getIntegrationType, METH_NOARGS, "() Returns the integration method." },
 	{NULL, NULL, 0, NULL}
@@ -57,7 +56,7 @@ PyTypeObject UnaryFunction1DEdgeNature_Type = {
 	/* More standard operations (here for binary compatibility) */
 
 	NULL,						/* hashfunc tp_hash; */
-	NULL,                       /* ternaryfunc tp_call; */
+	(ternaryfunc)UnaryFunction1DEdgeNature___call__,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
 	NULL,                       /* getattrofunc tp_getattro; */
 	NULL,                       /* setattrofunc tp_setattro; */
@@ -173,13 +172,21 @@ PyObject * UnaryFunction1DEdgeNature_getName( BPy_UnaryFunction1DEdgeNature *sel
 	return PyString_FromString( self->uf1D_edgenature->getName().c_str() );
 }
 
-PyObject * UnaryFunction1DEdgeNature___call__( BPy_UnaryFunction1DEdgeNature *self, PyObject *args)
+PyObject * UnaryFunction1DEdgeNature___call__( BPy_UnaryFunction1DEdgeNature *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *obj;
 
+	if( kwds != NULL ) {
+		PyErr_SetString(PyExc_TypeError, "keyword argument(s) not supported");
+		return NULL;
+	}
 	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) )
 		return NULL;
 	
+	if( typeid(*(self->uf1D_edgenature)) == typeid(UnaryFunction1D<Nature::EdgeNature>) ) {
+		PyErr_SetString(PyExc_TypeError, "__call__ method must be overloaded");
+		return NULL;
+	}
 	if (self->uf1D_edgenature->operator()(*( ((BPy_Interface1D *) obj)->if1D )) < 0) {
 		if (!PyErr_Occurred()) {
 			string msg(self->uf1D_edgenature->getName() + " __call__ method failed");

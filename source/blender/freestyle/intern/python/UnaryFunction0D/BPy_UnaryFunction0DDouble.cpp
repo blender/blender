@@ -28,12 +28,11 @@ static void UnaryFunction0DDouble___dealloc__(BPy_UnaryFunction0DDouble* self);
 static PyObject * UnaryFunction0DDouble___repr__(BPy_UnaryFunction0DDouble* self);
 
 static PyObject * UnaryFunction0DDouble_getName( BPy_UnaryFunction0DDouble *self);
-static PyObject * UnaryFunction0DDouble___call__( BPy_UnaryFunction0DDouble *self, PyObject *args);
+static PyObject * UnaryFunction0DDouble___call__( BPy_UnaryFunction0DDouble *self, PyObject *args, PyObject *kwds);
 
 /*----------------------UnaryFunction0DDouble instance definitions ----------------------------*/
 static PyMethodDef BPy_UnaryFunction0DDouble_methods[] = {
 	{"getName", ( PyCFunction ) UnaryFunction0DDouble_getName, METH_NOARGS, "（ ）Returns the string of the name of the unary 0D function."},
-	{"__call__", ( PyCFunction ) UnaryFunction0DDouble___call__, METH_VARARGS, "（Interface0DIterator it ）Executes the operator ()	on the iterator it pointing onto the point at which we wish to evaluate the function." },
 	{NULL, NULL, 0, NULL}
 };
 
@@ -63,7 +62,7 @@ PyTypeObject UnaryFunction0DDouble_Type = {
 	/* More standard operations (here for binary compatibility) */
 
 	NULL,						/* hashfunc tp_hash; */
-	NULL,                       /* ternaryfunc tp_call; */
+	(ternaryfunc)UnaryFunction0DDouble___call__,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
 	NULL,                       /* getattrofunc tp_getattro; */
 	NULL,                       /* setattrofunc tp_setattro; */
@@ -213,13 +212,21 @@ PyObject * UnaryFunction0DDouble_getName( BPy_UnaryFunction0DDouble *self )
 	return PyString_FromString( self->uf0D_double->getName().c_str() );
 }
 
-PyObject * UnaryFunction0DDouble___call__( BPy_UnaryFunction0DDouble *self, PyObject *args)
+PyObject * UnaryFunction0DDouble___call__( BPy_UnaryFunction0DDouble *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *obj;
 
+	if( kwds != NULL ) {
+		PyErr_SetString(PyExc_TypeError, "keyword argument(s) not supported");
+		return NULL;
+	}
 	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj))
 		return NULL;
 	
+	if( typeid(*(self->uf0D_double)) == typeid(UnaryFunction0D<double>) ) {
+		PyErr_SetString(PyExc_TypeError, "__call__ method must be overloaded");
+		return NULL;
+	}
 	if (self->uf0D_double->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it)) < 0) {
 		if (!PyErr_Occurred()) {
 			string msg(self->uf0D_double->getName() + " __call__ method failed");

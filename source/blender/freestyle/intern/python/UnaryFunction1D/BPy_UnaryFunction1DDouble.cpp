@@ -32,14 +32,13 @@ static void UnaryFunction1DDouble___dealloc__(BPy_UnaryFunction1DDouble* self);
 static PyObject * UnaryFunction1DDouble___repr__(BPy_UnaryFunction1DDouble* self);
 
 static PyObject * UnaryFunction1DDouble_getName( BPy_UnaryFunction1DDouble *self);
-static PyObject * UnaryFunction1DDouble___call__( BPy_UnaryFunction1DDouble *self, PyObject *args);
+static PyObject * UnaryFunction1DDouble___call__( BPy_UnaryFunction1DDouble *self, PyObject *args, PyObject *kwds);
 static PyObject * UnaryFunction1DDouble_setIntegrationType(BPy_UnaryFunction1DDouble* self, PyObject *args);
 static PyObject * UnaryFunction1DDouble_getIntegrationType(BPy_UnaryFunction1DDouble* self);
 
 /*----------------------UnaryFunction1DDouble instance definitions ----------------------------*/
 static PyMethodDef BPy_UnaryFunction1DDouble_methods[] = {
 	{"getName", ( PyCFunction ) UnaryFunction1DDouble_getName, METH_NOARGS, "（ ）Returns the string of the name of the unary 1D function."},
-	{"__call__", ( PyCFunction ) UnaryFunction1DDouble___call__, METH_VARARGS, "（Interface1D if1D ）Builds a UnaryFunction1D from an integration type. " },
 	{"setIntegrationType", ( PyCFunction ) UnaryFunction1DDouble_setIntegrationType, METH_VARARGS, "（IntegrationType i ）Sets the integration method" },
 	{"getIntegrationType", ( PyCFunction ) UnaryFunction1DDouble_getIntegrationType, METH_NOARGS, "() Returns the integration method." },
 	{NULL, NULL, 0, NULL}
@@ -71,7 +70,7 @@ PyTypeObject UnaryFunction1DDouble_Type = {
 	/* More standard operations (here for binary compatibility) */
 
 	NULL,						/* hashfunc tp_hash; */
-	NULL,                       /* ternaryfunc tp_call; */
+	(ternaryfunc)UnaryFunction1DDouble___call__,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
 	NULL,                       /* getattrofunc tp_getattro; */
 	NULL,                       /* setattrofunc tp_setattro; */
@@ -253,13 +252,21 @@ PyObject * UnaryFunction1DDouble_getName( BPy_UnaryFunction1DDouble *self )
 	return PyString_FromString( self->uf1D_double->getName().c_str() );
 }
 
-PyObject * UnaryFunction1DDouble___call__( BPy_UnaryFunction1DDouble *self, PyObject *args)
+PyObject * UnaryFunction1DDouble___call__( BPy_UnaryFunction1DDouble *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *obj;
 
+	if( kwds != NULL ) {
+		PyErr_SetString(PyExc_TypeError, "keyword argument(s) not supported");
+		return NULL;
+	}
 	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) )
 		return NULL;
 	
+	if( typeid(*(self->uf1D_double)) == typeid(UnaryFunction1D<double>) ) {
+		PyErr_SetString(PyExc_TypeError, "__call__ method must be overloaded");
+		return NULL;
+	}
 	if (self->uf1D_double->operator()(*( ((BPy_Interface1D *) obj)->if1D )) < 0) {
 		if (!PyErr_Occurred()) {
 			string msg(self->uf1D_double->getName() + " __call__ method failed");

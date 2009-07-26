@@ -25,12 +25,11 @@ static void UnaryPredicate1D___dealloc__(BPy_UnaryPredicate1D *self);
 static PyObject * UnaryPredicate1D___repr__(BPy_UnaryPredicate1D *self);
 
 static PyObject * UnaryPredicate1D_getName( BPy_UnaryPredicate1D *self, PyObject *args);
-static PyObject * UnaryPredicate1D___call__( BPy_UnaryPredicate1D *self, PyObject *args);
+static PyObject * UnaryPredicate1D___call__( BPy_UnaryPredicate1D *self, PyObject *args, PyObject *kwds);
 
 /*----------------------UnaryPredicate1D instance definitions ----------------------------*/
 static PyMethodDef BPy_UnaryPredicate1D_methods[] = {
 	{"getName", ( PyCFunction ) UnaryPredicate1D_getName, METH_NOARGS, ""},
-	{"__call__", ( PyCFunction ) UnaryPredicate1D___call__, METH_VARARGS, "" },
 	{NULL, NULL, 0, NULL}
 };
 
@@ -60,7 +59,7 @@ PyTypeObject UnaryPredicate1D_Type = {
 	/* More standard operations (here for binary compatibility) */
 
 	NULL,						/* hashfunc tp_hash; */
-	NULL,                       /* ternaryfunc tp_call; */
+	(ternaryfunc)UnaryPredicate1D___call__,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
 	NULL,                       /* getattrofunc tp_getattro; */
 	NULL,                       /* setattrofunc tp_setattro; */
@@ -203,10 +202,14 @@ PyObject * UnaryPredicate1D_getName( BPy_UnaryPredicate1D *self, PyObject *args)
 	return PyString_FromString( self->up1D->getName().c_str() );
 }
 
-PyObject * UnaryPredicate1D___call__( BPy_UnaryPredicate1D *self, PyObject *args)
+static PyObject * UnaryPredicate1D___call__( BPy_UnaryPredicate1D *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *py_if1D;
 
+	if( kwds != NULL ) {
+		PyErr_SetString(PyExc_TypeError, "keyword argument(s) not supported");
+		return NULL;
+	}
 	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &py_if1D) )
 		return NULL;
 	
@@ -215,6 +218,10 @@ PyObject * UnaryPredicate1D___call__( BPy_UnaryPredicate1D *self, PyObject *args
 	if( !if1D ) {
 		string msg(self->up1D->getName() + " has no Interface0DIterator");
 		PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		return NULL;
+	}
+	if( typeid(*(self->up1D)) == typeid(UnaryPredicate1D) ) {
+		PyErr_SetString(PyExc_TypeError, "__call__ method must be overloaded");
 		return NULL;
 	}
 	if( self->up1D->operator()(*if1D) < 0 ) {

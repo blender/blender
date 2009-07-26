@@ -21,7 +21,7 @@ static void UnaryFunction1DVoid___dealloc__(BPy_UnaryFunction1DVoid* self);
 static PyObject * UnaryFunction1DVoid___repr__(BPy_UnaryFunction1DVoid* self);
 
 static PyObject * UnaryFunction1DVoid_getName( BPy_UnaryFunction1DVoid *self);
-static PyObject * UnaryFunction1DVoid___call__( BPy_UnaryFunction1DVoid *self, PyObject *args);
+static PyObject * UnaryFunction1DVoid___call__( BPy_UnaryFunction1DVoid *self, PyObject *args, PyObject *kwds);
 
 static PyObject * UnaryFunction1DVoid_setIntegrationType(BPy_UnaryFunction1DVoid* self, PyObject *args);
 static PyObject * UnaryFunction1DVoid_getIntegrationType(BPy_UnaryFunction1DVoid* self);
@@ -29,7 +29,6 @@ static PyObject * UnaryFunction1DVoid_getIntegrationType(BPy_UnaryFunction1DVoid
 /*----------------------UnaryFunction1DVoid instance definitions ----------------------------*/
 static PyMethodDef BPy_UnaryFunction1DVoid_methods[] = {
 	{"getName", ( PyCFunction ) UnaryFunction1DVoid_getName, METH_NOARGS, "（ ）Returns the string of the name of the unary 1D function."},
-	{"__call__", ( PyCFunction ) UnaryFunction1DVoid___call__, METH_VARARGS, "（Interface1D if1D ）Builds a UnaryFunction1D from an integration type. " },
 	{"setIntegrationType", ( PyCFunction ) UnaryFunction1DVoid_setIntegrationType, METH_VARARGS, "（IntegrationType i ）Sets the integration method" },
 	{"getIntegrationType", ( PyCFunction ) UnaryFunction1DVoid_getIntegrationType, METH_NOARGS, "() Returns the integration method." },
 	{NULL, NULL, 0, NULL}
@@ -61,7 +60,7 @@ PyTypeObject UnaryFunction1DVoid_Type = {
 	/* More standard operations (here for binary compatibility) */
 
 	NULL,						/* hashfunc tp_hash; */
-	NULL,                       /* ternaryfunc tp_call; */
+	(ternaryfunc)UnaryFunction1DVoid___call__,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
 	NULL,                       /* getattrofunc tp_getattro; */
 	NULL,                       /* setattrofunc tp_setattro; */
@@ -188,13 +187,21 @@ PyObject * UnaryFunction1DVoid_getName( BPy_UnaryFunction1DVoid *self )
 	return PyString_FromString( self->uf1D_void->getName().c_str() );
 }
 
-PyObject * UnaryFunction1DVoid___call__( BPy_UnaryFunction1DVoid *self, PyObject *args)
+PyObject * UnaryFunction1DVoid___call__( BPy_UnaryFunction1DVoid *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *obj;
 
+	if( kwds != NULL ) {
+		PyErr_SetString(PyExc_TypeError, "keyword argument(s) not supported");
+		return NULL;
+	}
 	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) )
 		return NULL;
 	
+	if( typeid(*(self->uf1D_void)) == typeid(UnaryFunction1D_void) ) {
+		PyErr_SetString(PyExc_TypeError, "__call__ method must be overloaded");
+		return NULL;
+	}
 	if (self->uf1D_void->operator()(*( ((BPy_Interface1D *) obj)->if1D )) < 0) {
 		if (!PyErr_Occurred()) {
 			string msg(self->uf1D_void->getName() + " __call__ method failed");

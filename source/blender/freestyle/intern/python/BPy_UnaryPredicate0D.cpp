@@ -17,12 +17,11 @@ static void UnaryPredicate0D___dealloc__(BPy_UnaryPredicate0D *self);
 static PyObject * UnaryPredicate0D___repr__(BPy_UnaryPredicate0D *self);
 
 static PyObject * UnaryPredicate0D_getName( BPy_UnaryPredicate0D *self );
-static PyObject * UnaryPredicate0D___call__( BPy_UnaryPredicate0D *self, PyObject *args);
+static PyObject * UnaryPredicate0D___call__( BPy_UnaryPredicate0D *self, PyObject *args, PyObject *kwds);
 
 /*----------------------UnaryPredicate0D instance definitions ----------------------------*/
 static PyMethodDef BPy_UnaryPredicate0D_methods[] = {
 	{"getName", ( PyCFunction ) UnaryPredicate0D_getName, METH_NOARGS, "Returns the string of the name of the UnaryPredicate0D."},
-	{"__call__", ( PyCFunction ) UnaryPredicate0D___call__, METH_VARARGS, "The () operator. Must be overload by inherited classes." },
 	{NULL, NULL, 0, NULL}
 };
 
@@ -52,7 +51,7 @@ PyTypeObject UnaryPredicate0D_Type = {
 	/* More standard operations (here for binary compatibility) */
 
 	NULL,						/* hashfunc tp_hash; */
-	NULL,                       /* ternaryfunc tp_call; */
+	(ternaryfunc)UnaryPredicate0D___call__,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
 	NULL,                       /* getattrofunc tp_getattro; */
 	NULL,                       /* setattrofunc tp_setattro; */
@@ -161,10 +160,14 @@ PyObject * UnaryPredicate0D_getName( BPy_UnaryPredicate0D *self )
 	return PyString_FromString( self->up0D->getName().c_str() );
 }
 
-PyObject * UnaryPredicate0D___call__( BPy_UnaryPredicate0D *self, PyObject *args)
+PyObject * UnaryPredicate0D___call__( BPy_UnaryPredicate0D *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *py_if0D_it;
 
+	if( kwds != NULL ) {
+		PyErr_SetString(PyExc_TypeError, "keyword argument(s) not supported");
+		return NULL;
+	}
 	if( !PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &py_if0D_it) )
 		return NULL;
 
@@ -173,6 +176,10 @@ PyObject * UnaryPredicate0D___call__( BPy_UnaryPredicate0D *self, PyObject *args
 	if( !if0D_it ) {
 		string msg(self->up0D->getName() + " has no Interface0DIterator");
 		PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		return NULL;
+	}
+	if( typeid(*(self->up0D)) == typeid(UnaryPredicate0D) ) {
+		PyErr_SetString(PyExc_TypeError, "__call__ method must be overloaded");
 		return NULL;
 	}
 	if (self->up0D->operator()(*if0D_it) < 0) {

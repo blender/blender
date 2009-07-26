@@ -18,14 +18,13 @@ static void UnaryFunction1DVec3f___dealloc__(BPy_UnaryFunction1DVec3f* self);
 static PyObject * UnaryFunction1DVec3f___repr__(BPy_UnaryFunction1DVec3f* self);
 
 static PyObject * UnaryFunction1DVec3f_getName( BPy_UnaryFunction1DVec3f *self);
-static PyObject * UnaryFunction1DVec3f___call__( BPy_UnaryFunction1DVec3f *self, PyObject *args);
+static PyObject * UnaryFunction1DVec3f___call__( BPy_UnaryFunction1DVec3f *self, PyObject *args, PyObject *kwds);
 static PyObject * UnaryFunction1DVec3f_setIntegrationType(BPy_UnaryFunction1DVec3f* self, PyObject *args);
 static PyObject * UnaryFunction1DVec3f_getIntegrationType(BPy_UnaryFunction1DVec3f* self);
 
 /*----------------------UnaryFunction1DVec3f instance definitions ----------------------------*/
 static PyMethodDef BPy_UnaryFunction1DVec3f_methods[] = {
 	{"getName", ( PyCFunction ) UnaryFunction1DVec3f_getName, METH_NOARGS, "（ ）Returns the string of the name of the unary 1D function."},
-	{"__call__", ( PyCFunction ) UnaryFunction1DVec3f___call__, METH_VARARGS, "（Interface1D if1D ）Builds a UnaryFunction1D from an integration type. " },
 	{"setIntegrationType", ( PyCFunction ) UnaryFunction1DVec3f_setIntegrationType, METH_VARARGS, "（IntegrationType i ）Sets the integration method" },
 	{"getIntegrationType", ( PyCFunction ) UnaryFunction1DVec3f_getIntegrationType, METH_NOARGS, "() Returns the integration method." },
 	{NULL, NULL, 0, NULL}
@@ -57,7 +56,7 @@ PyTypeObject UnaryFunction1DVec3f_Type = {
 	/* More standard operations (here for binary compatibility) */
 
 	NULL,						/* hashfunc tp_hash; */
-	NULL,                       /* ternaryfunc tp_call; */
+	(ternaryfunc)UnaryFunction1DVec3f___call__,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
 	NULL,                       /* getattrofunc tp_getattro; */
 	NULL,                       /* setattrofunc tp_setattro; */
@@ -173,13 +172,21 @@ PyObject * UnaryFunction1DVec3f_getName( BPy_UnaryFunction1DVec3f *self )
 	return PyString_FromString( self->uf1D_vec3f->getName().c_str() );
 }
 
-PyObject * UnaryFunction1DVec3f___call__( BPy_UnaryFunction1DVec3f *self, PyObject *args)
+PyObject * UnaryFunction1DVec3f___call__( BPy_UnaryFunction1DVec3f *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *obj;
 
+	if( kwds != NULL ) {
+		PyErr_SetString(PyExc_TypeError, "keyword argument(s) not supported");
+		return NULL;
+	}
 	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &obj) )
 		return NULL;
 	
+	if( typeid(*(self->uf1D_vec3f)) == typeid(UnaryFunction1D<Vec3f>) ) {
+		PyErr_SetString(PyExc_TypeError, "__call__ method must be overloaded");
+		return NULL;
+	}
 	if (self->uf1D_vec3f->operator()(*( ((BPy_Interface1D *) obj)->if1D )) < 0) {
 		if (!PyErr_Occurred()) {
 			string msg(self->uf1D_vec3f->getName() + " __call__ method failed");
