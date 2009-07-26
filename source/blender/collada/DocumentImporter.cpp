@@ -145,13 +145,13 @@ private:
 	std::map<COLLADAFW::UniqueId, Lamp*> uid_lamp_map;
 	std::map<COLLADAFW::UniqueId, COLLADAFW::UniqueId> skinid_meshid_map;
 	// maps for assigning textures to uv layers
-	std::map<COLLADAFW::TextureMapId, char*> set_layername_map;
+	//std::map<COLLADAFW::TextureMapId, char*> set_layername_map;
 	std::map<COLLADAFW::TextureMapId, std::vector<MTex*> > index_mtex_map;
 	// this structure is used to assign material indices to faces
 	// when materials are assigned to an object
 	struct Primitive {
 		MFace *mface;
-		int totface;
+		unsigned int totface;
 	};
 	typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive> > MaterialIdPrimitiveArrayMap;
 	// amazing name!
@@ -343,9 +343,9 @@ public:
 				return NULL;
 			}
 		}
-
+		if (!uid_mesh_map[*geom_uid])
+			return NULL;
 		set_mesh(ob, uid_mesh_map[*geom_uid]);
-
 		
 		if (old_mesh->id.us == 0) free_libblock(&G.main->mesh, old_mesh);
 		
@@ -356,7 +356,7 @@ public:
 		bool first_time = true;
 		
 		// assign material indices to mesh faces
-		for (int k = 0; k < geom->getMaterialBindings().getCount(); k++) {
+		for (unsigned int k = 0; k < geom->getMaterialBindings().getCount(); k++) {
 			
 			const COLLADAFW::UniqueId& ma_uid = geom->getMaterialBindings()[k].getReferencedMaterial();
 			// check if material was properly written to map
@@ -365,7 +365,7 @@ public:
 				continue;
 			}
 			Material *ma = uid_material_map[ma_uid];
-			int l;
+			unsigned int l;
 			
 			// assign textures to uv layers
 			// bvi_array "bind_vertex_input array"
@@ -374,7 +374,13 @@ public:
 			for (l = 0; l < bvi_array.getCount(); l++) {
 				COLLADAFW::TextureMapId tex_index = bvi_array[l].textureMapId;
 				size_t set_index = bvi_array[l].setIndex;
-				char *uvname = set_layername_map[set_index];
+				
+				/*if (set_layername_map.find(set_index) == set_layername_map.end()) {
+					fprintf(stderr, "Cannot find uvlayer name by set index.\n");
+					continue;
+				}
+				char *uvname = set_layername_map[set_index];*/
+				char *uvname = CustomData_get_layer_name(&me->fdata, CD_MTFACE, set_index);
 				
 				// check if mtexes were properly added to vector
 				if (index_mtex_map.find(tex_index) == index_mtex_map.end()) {
@@ -393,7 +399,7 @@ public:
 					diffuse_mtex = ma->mtex[l];
 				}
 			}
-			if (diffuse_mtex) {
+			if (diffuse_mtex && strlen(diffuse_mtex->uvname)) {
 				//diffuse_mtex = mtex;
 				if (first_time) {
 					tface = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE, diffuse_mtex->uvname);
@@ -903,7 +909,7 @@ public:
 		for (i = 0; i < totuvset; i++) {
 			// add new CustomData layer
 			CustomData_add_layer(&me->fdata, CD_MTFACE, CD_CALLOC, NULL, totface);
-			this->set_layername_map[i] = CustomData_get_layer_name(&me->fdata, CD_MTFACE, i);
+			//this->set_layername_map[i] = CustomData_get_layer_name(&me->fdata, CD_MTFACE, i);
 			
 		}
 
