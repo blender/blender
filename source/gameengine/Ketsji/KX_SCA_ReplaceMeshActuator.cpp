@@ -96,6 +96,8 @@ PyMethodDef KX_SCA_ReplaceMeshActuator::Methods[] = {
 
 PyAttributeDef KX_SCA_ReplaceMeshActuator::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("mesh", KX_SCA_ReplaceMeshActuator, pyattr_get_mesh, pyattr_set_mesh),
+	KX_PYATTRIBUTE_BOOL_RW    ("useDisplayMesh", KX_SCA_ReplaceMeshActuator, m_use_gfx),
+	KX_PYATTRIBUTE_BOOL_RW    ("usePhysicsMesh", KX_SCA_ReplaceMeshActuator, m_use_phys),
 	{ NULL }	//Sentinel
 };
 
@@ -179,11 +181,15 @@ KX_PYMETHODDEF_DOC(KX_SCA_ReplaceMeshActuator, instantReplaceMesh,
 KX_SCA_ReplaceMeshActuator::KX_SCA_ReplaceMeshActuator(SCA_IObject *gameobj,
 													   class RAS_MeshObject *mesh,
 													   SCA_IScene* scene,
+													   bool use_gfx,
+													   bool use_phys,
 													   PyTypeObject* T) : 
 
 	SCA_IActuator(gameobj, T),
 	m_mesh(mesh),
-	m_scene(scene)
+	m_scene(scene),
+	m_use_gfx(use_gfx),
+	m_use_phys(use_phys)
 {
 } /* End of constructor */
 
@@ -205,7 +211,8 @@ bool KX_SCA_ReplaceMeshActuator::Update()
 	if (bNegativeEvent)
 		return false; // do nothing on negative events
 
-	if (m_mesh) m_scene->ReplaceMesh(GetParent(),m_mesh);
+	if (m_mesh || m_use_phys) /* NULL mesh is ok if were updating physics */
+		m_scene->ReplaceMesh(GetParent(),m_mesh, m_use_gfx, m_use_phys);
 
 	return false;
 }
@@ -227,7 +234,7 @@ CValue* KX_SCA_ReplaceMeshActuator::GetReplica()
 
 void KX_SCA_ReplaceMeshActuator::InstantReplaceMesh()
 {
-	if (m_mesh) m_scene->ReplaceMesh(GetParent(),m_mesh);
+	if (m_mesh) m_scene->ReplaceMesh(GetParent(),m_mesh, m_use_gfx, m_use_phys);
 }
 
 /* eof */

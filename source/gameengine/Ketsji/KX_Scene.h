@@ -323,7 +323,7 @@ public:
 	
 	int NewRemoveObject(CValue* gameobj);
 	void ReplaceMesh(CValue* gameobj,
-					 void* meshobj);
+					 void* meshob, bool use_gfx, bool use_phys);
 	/**
 	 * @section Logic stuff
 	 * Initiate an update of the logic system.
