@@ -34,9 +34,6 @@ struct ConsoleLine;
 struct wmOperatorType;
 struct ReportList;
 
-/* TODO, make into a pref */
-#define CONSOLE_SCROLLBACK_LIMIT 128 
-
 /* console_draw.c */
 void console_text_main(struct SpaceConsole *sc, struct ARegion *ar, struct ReportList *reports);
 int console_text_height(struct SpaceConsole *sc, struct ARegion *ar, struct ReportList *reports); /* needed to calculate the scrollbar */
@@ -62,7 +59,9 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot);
 
 void CONSOLE_OT_clear(wmOperatorType *ot);
 void CONSOLE_OT_history_cycle(wmOperatorType *ot);
+void CONSOLE_OT_copy(wmOperatorType *ot);
 void CONSOLE_OT_zoom(wmOperatorType *ot);
+
 
 /* console_report.c */
 void CONSOLE_OT_select_pick(wmOperatorType *ot); /* report selection */

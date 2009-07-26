@@ -1922,6 +1922,11 @@ static void rna_def_userdef_language(BlenderRNA *brna)
 	RNA_def_property_range(prop, 48, 128);
 	RNA_def_property_ui_text(prop, "DPI", "Font size and resolution for display.");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
+	
+	prop= RNA_def_property(srna, "scrollback", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "scrollback");
+	RNA_def_property_range(prop, 32, 32768);
+	RNA_def_property_ui_text(prop, "Scrollback", "Maximum number of lines to store for the console buffer.");
 
 	/* Language Selection */
 

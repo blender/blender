@@ -432,6 +432,7 @@ class INFO_PT_system(bpy.types.Panel):
 		colsplitcol.itemR(system, "filter_file_extensions")
 		colsplitcol.itemR(system, "hide_dot_files_datablocks")
 		colsplitcol.itemR(system, "audio_mixing_buffer")
+		colsplitcol.itemR(lan, "scrollback", text="Console Scrollback")
 		
 		col = split.column()
 		colsplit = col.split(percentage=0.85)

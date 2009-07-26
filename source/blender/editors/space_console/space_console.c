@@ -214,6 +214,7 @@ void console_operatortypes(void)
 	
 	WM_operatortype_append(CONSOLE_OT_clear); 
 	WM_operatortype_append(CONSOLE_OT_history_cycle);
+	WM_operatortype_append(CONSOLE_OT_copy);
 	WM_operatortype_append(CONSOLE_OT_zoom);
 
 
@@ -292,6 +293,8 @@ void console_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "CONSOLE_OT_report_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CONSOLE_OT_report_delete", DELKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CONSOLE_OT_report_copy", CKEY, KM_PRESS, KM_CTRL, 0);
+	
+	WM_keymap_add_item(keymap, "CONSOLE_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 
 	RNA_string_set(WM_keymap_add_item(keymap, "CONSOLE_OT_insert", TABKEY, KM_PRESS, 0, 0)->ptr, "text", "    "); /* fake tabs */
 	WM_keymap_add_item(keymap, "CONSOLE_OT_insert", KM_TEXTINPUT, KM_ANY, KM_ANY, 0); // last!
