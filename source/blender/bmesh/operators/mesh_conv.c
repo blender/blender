@@ -1,26 +1,29 @@
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
-#include "BKE_customdata.h" 
+
 #include "DNA_listBase.h"
 #include "DNA_customdata_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include <string.h>
+
+#include "BKE_customdata.h" 
 #include "BKE_utildefines.h"
 #include "BKE_mesh.h"
 #include "BKE_global.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
 
-#include "BLI_editVert.h"
-#include "mesh_intern.h"
-#include "ED_mesh.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
+#include "BLI_editVert.h"
+#include "BLI_scanfill.h"
 
+#include "ED_mesh.h"
+
+#include "mesh_intern.h"
 #include "bmesh.h"
 
 /*
@@ -147,8 +150,52 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	V_FREE(fedges);
 }
 
+
+static void loops_to_corners(BMesh *bm, Mesh *me, int findex,
+                             BMFace *f, BMLoop *ls[3], int numTex, int numCol) 
+{
+	BMLoop *l;
+	MTFace *texface;
+	MTexPoly *texpoly;
+	MCol *mcol;
+	MLoopCol *mloopcol;
+	MLoopUV *mloopuv;
+	int i, j;
+
+	for(i=0; i < numTex; i++){
+		texface = CustomData_get_n(&me->fdata, CD_MTFACE, findex, i);
+		texpoly = CustomData_bmesh_get_n(&bm->pdata, f->head.data, CD_MTEXPOLY, i);
+		
+		texface->tpage = texpoly->tpage;
+		texface->flag = texpoly->flag;
+		texface->transp = texpoly->transp;
+		texface->mode = texpoly->mode;
+		texface->tile = texpoly->tile;
+		texface->unwrap = texpoly->unwrap;
+
+		for (j=0; j<3; j++) {
+			l = ls[j];
+			mloopuv = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPUV, i);
+			texface->uv[j][0] = mloopuv->uv[0];
+			texface->uv[j][1] = mloopuv->uv[1];
+		}
+	}
+
+	for(i=0; i < numCol; i++){
+		mcol = CustomData_get_n(&me->fdata, CD_MCOL, findex, i);
+
+		for (j=0; j<3; j++) {
+			l = ls[j];
+			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPCOL, i);
+			mcol[j].r = mloopcol->r;
+			mcol[j].g = mloopcol->g;
+			mcol[j].b = mloopcol->b;
+			mcol[j].a = mloopcol->a;
+		}
+	}
+}
+
 void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
-	BMesh *bmtess;
 	Object *ob = BMO_Get_Pnt(op, "object");
 	Scene *scene = BMO_Get_Pnt(op, "scene");
 	Mesh *me = ob->data;
@@ -162,14 +209,11 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	BMLoop *l;
 	BMFace *f;
 	BMIter iter, liter;
-	int i, j, ototvert, totloop, numTex, numCol;
+	int i, j, ototvert, totloop, totface, numTex, numCol;
 	
 	numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
 	numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
 
-	bmtess = BM_Copy_Mesh(bm);
-	BMO_CallOpf(bmtess, "makefgon trifan=%i", 0);
-	
 	/* new Vertex block */
 	if(bm->totvert==0) mvert= NULL;
 	else mvert= MEM_callocN(bm->totvert*sizeof(MVert), "loadeditbMesh vert");
@@ -178,10 +222,6 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	if(bm->totedge==0) medge= NULL;
 	else medge= MEM_callocN(bm->totedge*sizeof(MEdge), "loadeditbMesh edge");
 	
-	/* new Face block */
-	if(bmtess->totface==0) mface= NULL;
-	else mface= MEM_callocN(bmtess->totface*sizeof(MFace), "loadeditbMesh face");
-
 	/*build ngon data*/
 	/* new Ngon Face block */
 	if(bm->totface==0) mpoly = NULL;
@@ -213,7 +253,6 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	/* add new custom data */
 	me->totvert= bm->totvert;
 	me->totedge= bm->totedge;
-	me->totface= bmtess->totface;
 	me->totloop= totloop;
 	me->totpoly= bm->totface;
 
@@ -224,22 +263,18 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 
 	CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, mvert, me->totvert);
 	CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, medge, me->totedge);
-	CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, mface, me->totface);
 	CustomData_add_layer(&me->ldata, CD_MLOOP, CD_ASSIGN, mloop, me->totloop);
 	CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, mpoly, me->totpoly);
 
-	CustomData_from_bmeshpoly(&me->fdata, &bmtess->pdata, &bmtess->ldata, bmtess->totface);
-
 	mesh_update_customdata_pointers(me);
 	
-	/*set indices*/
 	i = 0;
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		VECCOPY(mvert->co, v->co);
 
-		mvert->no[0] = (unsigned char) (v->no[0]*255.0f);
-		mvert->no[1] = (unsigned char) (v->no[1]*255.0f);
-		mvert->no[2] = (unsigned char) (v->no[2]*255.0f);
+		mvert->no[0] = (short) (v->no[0]*32767.0f);
+		mvert->no[1] = (short) (v->no[1]*32767.0f);
+		mvert->no[2] = (short) (v->no[2]*32767.0f);
 		
 		mvert->flag = BMFlags_To_MEFlags(v);
 
@@ -250,12 +285,6 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 
 		i++;
 		mvert++;
-	}
-
-	i = 0;
-	BM_ITER(v, &iter, bmtess, BM_VERTS_OF_MESH, NULL) {
-		BMINDEX_SET(v, i);
-		i++;
 	}
 
 	i = 0;
@@ -273,35 +302,104 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 		i++;
 		medge++;
 	}
+
+	/*new scanfill tesselation code*/	
+
+	/*first counter number of faces we'll need*/
+	totface = 0;
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		EditVert *eve, *lasteve = NULL, *firsteve = NULL;
+		EditFace *efa;
+		
+		i = 0;
+		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+			eve = BLI_addfillvert(l->v->co);
+			eve->tmp.p = l;
+			
+			BMINDEX_SET(l, i);
+
+			if (lasteve) {
+				BLI_addfilledge(lasteve, eve);
+			}
+
+			lasteve = eve;
+			if (!firsteve) firsteve = eve;
+
+			i++;
+		}
+
+		BLI_addfilledge(lasteve, firsteve);
+		BLI_edgefill(0, 0);
+
+		for (efa=fillfacebase.first; efa; efa=efa->next)
+			totface++;
+
+		BLI_end_edgefill();
+	}
+	
+	me->totface = totface;
+
+	/* new tess face block */
+	if(totface==0) mface= NULL;
+	else mface= MEM_callocN(totface*sizeof(MFace), "loadeditbMesh face");
+
+	CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, mface, me->totface);
+	CustomData_from_bmeshpoly(&me->fdata, &bm->pdata, &bm->ldata, totface);
+
+	mesh_update_customdata_pointers(me);
 	
 	i = 0;
-	BM_ITER(f, &iter, bmtess, BM_FACES_OF_MESH, NULL) {
-		mface->mat_nr = f->mat_nr;
-		mface->flag = BMFlags_To_MEFlags(f);
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		EditVert *eve, *lasteve = NULL, *firsteve = NULL;
+		EditFace *efa;
+		BMLoop *ls[3];
 		
-		mface->v1 = BMINDEX_GET(f->loopbase->v);
-		mface->v2 = BMINDEX_GET(((BMLoop*)f->loopbase->head.next)->v);
-		if (f->len < 3) { 
-			mface++;
-			i++; 
-			continue;
+		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+			eve = BLI_addfillvert(l->v->co);
+			eve->tmp.p = l;
+
+			if (lasteve) {
+				BLI_addfilledge(lasteve, eve);
+			}
+
+			lasteve = eve;
+			if (!firsteve) firsteve = eve;
 		}
 
-		mface->v3 = BMINDEX_GET(((BMLoop*)f->loopbase->head.next->next)->v);
-		if (f->len < 4) { 
-			mface->v4 = 0;
+		BLI_addfilledge(lasteve, firsteve);
+		BLI_edgefill(0, 0);
+
+		for (efa=fillfacebase.first; efa; efa=efa->next) {
+			ls[0] = efa->v1->tmp.p;
+			ls[1] = efa->v2->tmp.p;
+			ls[2] = efa->v3->tmp.p;
+			
+			/*ensue correct winding*/
+			if (BMINDEX_GET(ls[0]) > BMINDEX_GET(ls[1])) {
+				SWAP(BMLoop*, ls[0], ls[1]);
+			}
+			if (BMINDEX_GET(ls[1]) > BMINDEX_GET(ls[2])) {
+				SWAP(BMLoop*, ls[1], ls[2]);
+			}
+			if (BMINDEX_GET(ls[0]) > BMINDEX_GET(ls[1])) {
+				SWAP(BMLoop*, ls[0], ls[1]);
+			}
+
+			mface->mat_nr = f->mat_nr;
+			mface->flag = BMFlags_To_MEFlags(f);
+			
+			mface->v1 = BMINDEX_GET(ls[0]->v);
+			mface->v2 = BMINDEX_GET(ls[1]->v);
+			mface->v3 = BMINDEX_GET(ls[2]->v);
+
+			test_index_face(mface, &me->fdata, i, 1);
+			
+			loops_to_corners(bm, me, i, f, ls, numTex, numCol);
 			mface++;
-			i++; 
-			continue;
+			i++;
 		}
 
-		mface->v4 = BMINDEX_GET(((BMLoop*)f->loopbase->head.next->next->next)->v);
-		test_index_face(mface, &me->fdata, i, 1);
-		
-		BM_loops_to_corners(bmtess, me, i, f, numTex, numCol);
-
-		mface++;
-		i++;
+		BLI_end_edgefill();
 	}
 
 	i = 0;
@@ -329,6 +427,4 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 		i++;
 		mpoly++;
 	}
-
-	BM_Free_Mesh(bmtess);
 }

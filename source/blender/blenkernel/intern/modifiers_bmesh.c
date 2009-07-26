@@ -196,6 +196,7 @@ BMEditMesh *CDDM_To_BMesh(DerivedMesh *dm, BMEditMesh *existing)
 		
 		f = BM_Make_Ngon(bm, verts[0], verts[1], edges, dfiter->len, 0);
 		f->head.flag = MEFlags_To_BMFlags(dfiter->flags, BM_FACE);
+		f->mat_nr = dfiter->mat_nr;
 
 		if (!f) 
 			continue;

@@ -134,84 +134,64 @@ static void BMEdit_RecalcTesselation_intern(BMEditMesh *tm)
 
 	f = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
 	for ( ; f; f=BMIter_Step(&iter)) {
+		EditVert *v, *lastv=NULL, *firstv=NULL;
+		EditEdge *e;
+		EditFace *efa;
+
 		/*don't consider two-edged faces*/
 		if (f->len < 3) continue;
 		
-		if (f->len <= 4) {
-			/*triangle fan for quads.  should be recoded to
-			  just add one tri for tris, and two for quads,
-			  but this code works for now too.*/
-			l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
-			for (; l; l=BMIter_Step(&liter)) {
-				if (l == f->loopbase) continue;
-				if ((BMLoop*)l->head.next == f->loopbase) continue;
+		/*scanfill time*/
+		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
+		for (j=0; l; l=BMIter_Step(&liter), j++) {
+			/*mark order*/
+			l->head.eflag2 = j;
 
-				V_GROW(looptris);
-				V_GROW(looptris);
-				V_GROW(looptris);
-
-				looptris[i*3] = l;
-				looptris[i*3+1] = (BMLoop*)l->head.next;
-				looptris[i*3+2] = f->loopbase;
-
-				i += 1;
-			}
-		} else {
-			/*scanfill time*/
-			EditVert *v, *lastv=NULL, *firstv=NULL;
-			EditEdge *e;
-			EditFace *efa;
-
-			l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
-			for (j=0; l; l=BMIter_Step(&liter), j++) {
-				/*mark order*/
-				l->head.eflag2 = j;
-
-				v = BLI_addfillvert(l->v->co);
-				v->tmp.p = l;
-				
-				if (lastv) {
-					e = BLI_addfilledge(lastv, v);
-				}
-
-				lastv = v;
-				if (firstv==NULL) firstv = v;
-			}
-
-			/*complete the loop*/
-			BLI_addfilledge(firstv, v);
-
-			BLI_edgefill(0, 0);
+			v = BLI_addfillvert(l->v->co);
+			v->tmp.p = l;
 			
-			for (efa = fillfacebase.first; efa; efa=efa->next) {
-				BMLoop *l1, *l2, *l3;
-
-				V_GROW(looptris);
-				V_GROW(looptris);
-				V_GROW(looptris);
-				
-				looptris[i*3] = l1 = efa->v1->tmp.p;
-				looptris[i*3+1] = l2 = efa->v2->tmp.p;
-				looptris[i*3+2] = l3 = efa->v3->tmp.p;
-				
-				if (l1->head.eflag2 > l2->head.eflag2) {
-					SWAP(BMLoop*, l1, l2);
-				}
-				if (l2->head.eflag2 > l3->head.eflag2) {
-					SWAP(BMLoop*, l2, l3);
-				}
-				if (l1->head.eflag2 > l2->head.eflag2) {
-					SWAP(BMLoop*, l1, l2);
-				}
-				
-				looptris[i*3] = l1;
-				looptris[i*3+1] = l2;
-				looptris[i*3+2] = l3;
-
-				i += 1;
+			if (lastv) {
+				e = BLI_addfilledge(lastv, v);
 			}
-			BLI_end_edgefill();
+
+			lastv = v;
+			if (firstv==NULL) firstv = v;
 		}
+
+		/*complete the loop*/
+		BLI_addfilledge(firstv, v);
+
+		BLI_edgefill(0, 0);
+		
+		for (efa = fillfacebase.first; efa; efa=efa->next) {
+			BMLoop *l1, *l2, *l3;
+
+			V_GROW(looptris);
+			V_GROW(looptris);
+			V_GROW(looptris);
+			
+			looptris[i*3] = l1 = efa->v1->tmp.p;
+			looptris[i*3+1] = l2 = efa->v2->tmp.p;
+			looptris[i*3+2] = l3 = efa->v3->tmp.p;
+			
+			if (l1->head.eflag2 > l2->head.eflag2) {
+				SWAP(BMLoop*, l1, l2);
+			}
+			if (l2->head.eflag2 > l3->head.eflag2) {
+				SWAP(BMLoop*, l2, l3);
+			}
+			if (l1->head.eflag2 > l2->head.eflag2) {
+				SWAP(BMLoop*, l1, l2);
+			}
+			
+			looptris[i*3] = l1;
+			looptris[i*3+1] = l2;
+			looptris[i*3+2] = l3;
+
+			i += 1;
+		}
+
+		BLI_end_edgefill();
 	}
 
 	tm->tottri = i;

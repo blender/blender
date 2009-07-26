@@ -51,6 +51,7 @@
 #include "BKE_multires.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
+#include "BKE_tessmesh.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
@@ -508,11 +509,12 @@ static FaceVertWeight *get_ss_weights(WeightTable *wtable, int gridFaces, int fa
 	}
 
 	if (!wtable->weight_table[faceLen].valid) {
-		/*ok, need to calculate weights here*/
 		wtable->weight_table[faceLen].weight =
 			MEM_callocN(sizeof(FaceVertWeight)*gridFaces*gridFaces, 
 			            "vert face weight");
 		wtable->weight_table[faceLen].valid = 1;
+
+		/*ok, need to calculate weights here*/
 	}
 
 	return wtable->weight_table[faceLen].weight;
@@ -829,9 +831,9 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 			mat_nr = origMFace.mat_nr;
 			flag = origMFace.flag;
 		} else {
-			EditFace *ef = ccgSubSurf_getFaceFaceHandle(ss, f);
+			BMFace *ef = ccgSubSurf_getFaceFaceHandle(ss, f);
 			mat_nr = ef->mat_nr;
-			flag = ef->flag;
+			flag = BMFlags_To_MEFlags(ef);
 		}
 
 		for(S = 0; S < numVerts; S++) {
@@ -849,7 +851,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 					                      edgeSize, gridSize);
 					mf->mat_nr = mat_nr;
 					mf->flag = flag;
-#if 0 //BMESH_TODO
+#if 1 //BMESH_TODO
 					if(dm) {
 						int prevS = (S - 1 + numVerts) % numVerts;
 						int nextS = (S + 1) % numVerts;
@@ -862,7 +864,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 							w[j][nextS]  = (*weight)[j][2];
 							w[j][otherS] = (*weight)[j][3];
 						}
-
+						
 						DM_interp_tessface_data(dm, result, &faceIdx, NULL,
 						                    &w, 1, i);
 						weight++;
@@ -2650,7 +2652,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 
 			for(x = 1; x < gridFaces; x++) {
 				float w[4];
-#if 0 //BMESH_TODO
+#if 1 //BMESH_TODO
 				w[prevS]  = weight[x][0][0];
 				w[S]      = weight[x][0][1];
 				w[nextS]  = weight[x][0][2];
@@ -2671,7 +2673,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 			for(y = 1; y < gridFaces; y++) {
 				for(x = 1; x < gridFaces; x++) {
 					float w[4];
-#if 0 //BMESH_TODO
+#if 1 //BMESH_TODO
 					w[prevS]  = weight[y * gridFaces + x][0][0];
 					w[S]      = weight[y * gridFaces + x][0][1];
 					w[nextS]  = weight[y * gridFaces + x][0][2];
@@ -2702,7 +2704,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 					FaceVertWeight w;
 					int j;
 
-#if 0 //BMESH_TODO
+#if 1 //BMESH_TODO
 					for(j = 0; j < 4; ++j) {
 						w[j][prevS]  = (*weight)[j][0];
 						w[j][S]      = (*weight)[j][1];
