@@ -121,55 +121,46 @@ const char *geomTypeToStr(COLLADAFW::Geometry::GeometryType type)
 	return "UNKNOWN";
 }
 
-/*
-
-  COLLADA Importer limitations:
-
-  - no multiple scene import, all objects are added to active scene
-
- */
-/** Class that needs to be implemented by a writer. 
-	IMPORTANT: The write functions are called in arbitrary order.*/
-class Writer: public COLLADAFW::IWriter
+class UnitConverter
 {
 private:
-	std::string mFilename;
-	
-	bContext *mContext;
+	COLLADAFW::FileInfo::Unit unit;
+	COLLADAFW::FileInfo::UpAxisType up_axis;
 
-	std::map<COLLADAFW::UniqueId, Mesh*> uid_mesh_map; // geometry unique id-to-mesh map
-	std::map<COLLADAFW::UniqueId, Image*> uid_image_map;
-	std::map<COLLADAFW::UniqueId, Material*> uid_material_map;
-	std::map<COLLADAFW::UniqueId, Material*> uid_effect_map;
-	std::map<COLLADAFW::UniqueId, Camera*> uid_camera_map;
-	std::map<COLLADAFW::UniqueId, Lamp*> uid_lamp_map;
-	std::map<COLLADAFW::UniqueId, COLLADAFW::UniqueId> skinid_meshid_map;
-	// maps for assigning textures to uv layers
-	//std::map<COLLADAFW::TextureMapId, char*> set_layername_map;
-	std::map<COLLADAFW::TextureMapId, std::vector<MTex*> > index_mtex_map;
-	// this structure is used to assign material indices to faces
-	// when materials are assigned to an object
-	struct Primitive {
-		MFace *mface;
-		unsigned int totface;
-	};
-	typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive> > MaterialIdPrimitiveArrayMap;
-	// amazing name!
-	std::map<COLLADAFW::UniqueId, MaterialIdPrimitiveArrayMap> geom_uid_mat_mapping_map;
-	// maps for animation
-	std::map<COLLADAFW::UniqueId, std::vector<FCurve*> > uid_fcurve_map;
-	struct AnimatedTransform {
-		Object *ob;
-		// COLLADAFW::Node *node;
-		COLLADAFW::Transformation *tm; // which transform is animated by an AnimationList->id
-	};
-	// Nodes don't share AnimationLists (Arystan)
-	std::map<COLLADAFW::UniqueId, AnimatedTransform> uid_animated_map; // AnimationList->uniqueId to AnimatedObject map
+public:
 
-	// ----------------------------------------------------------------------
-	// Armature and related
+	UnitConverter() : unit(), up_axis(COLLADAFW::FileInfo::Z_UP) {}
 
-	// to build armature bones form inverse bind matrices
+	void read_asset(const COLLADAFW::FileInfo* asset)
+	{
+	}
+
+	// TODO
+	// convert vector vec from COLLADA format to Blender
+	void convertVec3(float *vec)
+	{
+	}
+		
+	// TODO need also for angle conversion, time conversion...
+
+	void mat4_from_dae_mat4(float out[][4], const COLLADABU::Math::Matrix4& in) {
+		// in DAE, matrices use columns vectors, (see comments in COLLADABUMathMatrix4.h)
+		// so here, to make a blender matrix, we simply swap columns and rows
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 4; j++) {
+				out[i][j] = in[j][i];
+			}
+		}
+	}
+};
+
+class ArmatureImporter
+{
+private:
+	Scene *scene;
+	UnitConverter *unit_converter;
+
+	// to build armature bones from inverse bind matrices
 	struct JointData {
 		float inv_bind_mat[4][4]; // joint inverse bind matrix
 		Object *ob_arm;			  // armature object
@@ -177,33 +168,201 @@ private:
 	std::map<int, JointData> joint_index_to_joint_info_map;
 	std::map<COLLADAFW::UniqueId, int> joint_id_to_joint_index_map;
 
+	/*
 	struct ArmatureData {
 		bArmature *arm;
 		COLLADAFW::SkinController *controller;
 	};
 	std::map<COLLADAFW::UniqueId, ArmatureData> controller_id_to_arm_info_map;
+	*/
 
 	std::vector<COLLADAFW::Node*> root_joints;
+	std::map<COLLADAFW::UniqueId, COLLADAFW::UniqueId> controller_id_to_geom_id_map;
 
-	class UnitConverter
+	JointData *get_joint_data(COLLADAFW::Node *node)
 	{
-	private:
-		COLLADAFW::FileInfo::Unit mUnit;
-		COLLADAFW::FileInfo::UpAxisType mUpAxis;
-	public:
-		UnitConverter(COLLADAFW::FileInfo::UpAxisType upAxis, COLLADAFW::FileInfo::Unit& unit) :
-			mUpAxis(upAxis), mUnit(unit)
-		{
+		const COLLADAFW::UniqueId& joint_id = node->getUniqueId();
+
+		if (joint_id_to_joint_index_map.find(joint_id) == joint_id_to_joint_index_map.end()) {
+			fprintf(stderr, "Cannot find a joint index by joint id for %s.\n",
+					node->getOriginalId().c_str());
+			return NULL;
 		}
 
-		// TODO
-		// convert vector vec from COLLADA format to Blender
-		void convertVec3(float *vec)
-		{
+		int joint_index = joint_id_to_joint_index_map[joint_id];
+
+		return &joint_index_to_joint_info_map[joint_index];
+	}
+
+	void create_bone(COLLADAFW::Node *node, EditBone *parent, bArmature *arm)
+	{
+		JointData* jd = get_joint_data(node);
+
+		if (jd) {
+			float mat[4][4];
+
+			// get original world-space matrix
+			Mat4Invert(mat, jd->inv_bind_mat);
+
+			// TODO rename from Node "name" attrs later
+			EditBone *bone = addEditBone(arm, "Bone");
+
+			if (parent) bone->parent = parent;
+
+			// set head
+			VecCopyf(bone->head, mat[3]);
+
+			// set tail, can't set it to head because 0-length bones are not allowed
+			float vec[3] = {0.0f, 0.5f, 0.0f};
+			VecAddf(bone->tail, bone->head, vec);
+
+			// set parent tail
+			if (parent)
+				VecCopyf(parent->tail, bone->head);
+
+			COLLADAFW::NodePointerArray& children = node->getChildNodes();
+			for (int i = 0; i < children.getCount(); i++) {
+				create_bone(children[i], bone, arm);
+			}
 		}
+	}
+
+	void create_bone_branch(COLLADAFW::Node *root)
+	{
+		JointData* jd = get_joint_data(root);
+		if (!jd) return;
+
+		Object *ob_arm = jd->ob_arm;
 		
-		// TODO need also for angle conversion, time conversion...
+		// enter armature edit mode
+		ED_armature_to_edit(ob_arm);
+
+		COLLADAFW::NodePointerArray& children = root->getChildNodes();
+		for (int i = 0; i < children.getCount(); i++) {
+			create_bone(children[i], NULL, (bArmature*)ob_arm->data);
+		}
+
+		// exit armature edit mode
+		ED_armature_from_edit(scene, ob_arm);
+	}
+
+public:
+
+	ArmatureImporter(UnitConverter *conv, Scene *sce) : unit_converter(conv), scene(sce) {}
+
+	void add_root_joint(COLLADAFW::Node *node)
+	{
+		root_joints.push_back(node);
+	}
+
+	bool has_root_joints()
+	{
+		return root_joints.size() > 0;
+	}
+
+	// here we add bones to armature, having armatures previously created in write_controller
+	void build_armatures()
+	{
+		this->scene = scene;
+		std::vector<COLLADAFW::Node*>::iterator it;
+		for (it = root_joints.begin(); it != root_joints.end(); it++) {
+			create_bone_branch(*it);
+		}
+	}
+
+	bool write_skin_controller_data(const COLLADAFW::SkinControllerData* skin)
+	{
+		// use inverse bind matrices to construct armature
+		// it is safe to invert them to get the original matrices
+		// because if they are inverse matrices, they can be inverted
+
+		// just do like so:
+		// - create armature
+		// - enter editmode
+		// - add edit bones and head/tail properties using matrices and parent-child info
+		// - exit edit mode
+
+		// store join inv bind matrix to use it later in armature construction
+		const COLLADAFW::Matrix4Array& inv_bind_mats = skin->getInverseBindMatrices();
+		int i;
+		for (i = 0; i < skin->getJointsCount(); i++) {
+			JointData jd;
+			unit_converter->mat4_from_dae_mat4(jd.inv_bind_mat, inv_bind_mats[i]);
+			joint_index_to_joint_info_map[i] = jd;
+		}
+
+		return true;
+	}
+
+	bool write_controller(const COLLADAFW::Controller* controller)
+	{
+		// here we:
+		// - create armature
+		// - create EditBones, not setting parent-child relationships
+		// - store armature
+
+		const COLLADAFW::UniqueId& skin_id = controller->getUniqueId();
+
+		if (controller->getControllerType() == COLLADAFW::Controller::CONTROLLER_TYPE_SKIN) {
+
+			Object *ob_arm = add_object(this->scene, OB_ARMATURE);
+
+			COLLADAFW::SkinController *skinco = (COLLADAFW::SkinController*)controller;
+			const COLLADAFW::UniqueId& id = skinco->getSkinControllerData();
+
+			// to find geom id by controller id
+			this->controller_id_to_geom_id_map[skin_id] = skinco->getSource();
+			
+			// "Node" ids
+			const COLLADAFW::UniqueIdArray& joint_ids = skinco->getJoints();
+
+			int i;
+			for (i = 0; i < joint_ids.getCount(); i++) {
+
+				// store armature pointer
+				JointData& jd = joint_index_to_joint_info_map[i];
+				jd.ob_arm = ob_arm;
+
+				// now we'll be able to get inv bind matrix from joint id
+				joint_id_to_joint_index_map[joint_ids[i]] = i;
+			}
+		}
+		// morph controller
+		else {
+		}
+
+		return true;
+	}
+
+	COLLADAFW::UniqueId *get_geometry_uid(const COLLADAFW::UniqueId& controller_uid)
+	{
+		if (controller_id_to_geom_id_map.find(controller_uid) == controller_id_to_geom_id_map.end())
+			return NULL;
+
+		return &controller_id_to_geom_id_map[controller_uid];
+	}
+};
+
+class MeshImporter
+{
+private:
+
+	Scene *scene;
+	ArmatureImporter *armature_importer;
+
+	std::map<COLLADAFW::UniqueId, Mesh*> uid_mesh_map; // geometry unique id-to-mesh map
+	// this structure is used to assign material indices to faces
+	// it holds a portion of Mesh faces and corresponds to a DAE primitive list (<triangles>, <polylist>, etc.)
+	struct Primitive {
+		MFace *mface;
+		unsigned int totface;
 	};
+	typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive> > MaterialIdPrimitiveArrayMap;
+	std::map<COLLADAFW::UniqueId, MaterialIdPrimitiveArrayMap> geom_uid_mat_mapping_map; // crazy name!
+
+	// maps for assigning textures to uv layers
+	//std::map<COLLADAFW::TextureMapId, char*> set_layername_map;
+	std::map<COLLADAFW::TextureMapId, std::vector<MTex*> > index_mtex_map;
 
 	class UVDataWrapper
 	{
@@ -248,10 +407,507 @@ private:
 		}
 	};
 
+	void set_face_indices(MFace *mface, unsigned int *indices, bool quad)
+	{
+		mface->v1 = indices[0];
+		mface->v2 = indices[1];
+		mface->v3 = indices[2];
+		if (quad) mface->v4 = indices[3];
+	}
+
+	// change face indices order so that v4 is not 0
+	void rotate_face_indices(MFace *mface) {
+		mface->v4 = mface->v1;
+		mface->v1 = mface->v2;
+		mface->v2 = mface->v3;
+		mface->v3 = 0;
+	}
+
+	void set_face_uv(MTFace *mtface, UVDataWrapper &uvs, int uv_set_index,
+					COLLADAFW::IndexList& index_list, int index, bool quad)
+	{
+		int uv_indices[4][2];
+
+		// per face vertex indices, this means for quad we have 4 indices, not 8
+		COLLADAFW::UIntValuesArray& indices = index_list.getIndices();
+
+		// make indices into FloatOrDoubleArray
+		for (int i = 0; i < (quad ? 4 : 3); i++) {
+			int uv_index = indices[index + i];
+			uv_indices[i][0] = uv_index * 2;
+			uv_indices[i][1] = uv_index * 2 + 1;
+		}
+
+		uvs.getUV(uv_set_index, uv_indices[0], mtface->uv[0]);
+		uvs.getUV(uv_set_index, uv_indices[1], mtface->uv[1]);
+		uvs.getUV(uv_set_index, uv_indices[2], mtface->uv[2]);
+
+		if (quad) uvs.getUV(uv_set_index, uv_indices[3], mtface->uv[3]);
+
+#ifdef COLLADA_DEBUG
+		if (quad) {
+			fprintf(stderr, "face uv:\n"
+					"((%d, %d), (%d, %d), (%d, %d), (%d, %d))\n"
+					"((%.1f, %.1f), (%.1f, %.1f), (%.1f, %.1f), (%.1f, %.1f))\n",
+
+					uv_indices[0][0], uv_indices[0][1],
+					uv_indices[1][0], uv_indices[1][1],
+					uv_indices[2][0], uv_indices[2][1],
+					uv_indices[3][0], uv_indices[3][1],
+
+					mtface->uv[0][0], mtface->uv[0][1],
+					mtface->uv[1][0], mtface->uv[1][1],
+					mtface->uv[2][0], mtface->uv[2][1],
+					mtface->uv[3][0], mtface->uv[3][1]);
+		}
+		else {
+			fprintf(stderr, "face uv:\n"
+					"((%d, %d), (%d, %d), (%d, %d))\n"
+					"((%.1f, %.1f), (%.1f, %.1f), (%.1f, %.1f))\n",
+
+					uv_indices[0][0], uv_indices[0][1],
+					uv_indices[1][0], uv_indices[1][1],
+					uv_indices[2][0], uv_indices[2][1],
+
+					mtface->uv[0][0], mtface->uv[0][1],
+					mtface->uv[1][0], mtface->uv[1][1],
+					mtface->uv[2][0], mtface->uv[2][1]);
+		}
+#endif
+	}
+
+#ifdef COLLADA_DEBUG
+	void print_index_list(COLLADAFW::IndexList& index_list)
+	{
+		fprintf(stderr, "Index list for \"%s\":\n", index_list.getName().c_str());
+		for (int i = 0; i < index_list.getIndicesCount(); i += 2) {
+			fprintf(stderr, "%u, %u\n", index_list.getIndex(i), index_list.getIndex(i + 1));
+		}
+		fprintf(stderr, "\n");
+	}
+#endif
+
+	bool is_nice_mesh(COLLADAFW::Mesh *mesh)
+	{
+		COLLADAFW::MeshPrimitiveArray& prim_arr = mesh->getMeshPrimitives();
+		int i;
+
+		const char *name = get_dae_name(mesh);
+		
+		for (i = 0; i < prim_arr.getCount(); i++) {
+			
+			COLLADAFW::MeshPrimitive *mp = prim_arr[i];
+			COLLADAFW::MeshPrimitive::PrimitiveType type = mp->getPrimitiveType();
+
+			const char *type_str = primTypeToStr(type);
+			
+			// OpenCollada passes POLYGONS type for <polylist>
+			if (type == COLLADAFW::MeshPrimitive::POLYLIST || type == COLLADAFW::MeshPrimitive::POLYGONS) {
+
+				COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons*)mp;
+				COLLADAFW::Polygons::VertexCountArray& vca = mpvc->getGroupedVerticesVertexCountArray();
+				
+				for(int j = 0; j < vca.getCount(); j++){
+					int count = vca[j];
+					if (count != 3 && count != 4) {
+						fprintf(stderr, "Primitive %s in %s has at least one face with vertex count > 4 or < 3\n",
+								type_str, name);
+						return false;
+					}
+				}
+					
+			}
+			else if(type != COLLADAFW::MeshPrimitive::TRIANGLES) {
+				fprintf(stderr, "Primitive type %s is not supported.\n", type_str);
+				return false;
+			}
+		}
+		
+		if (mesh->getPositions().empty()) {
+			fprintf(stderr, "Mesh %s has no vertices.\n", name);
+			return false;
+		}
+
+		return true;
+	}
+
+	const char *get_dae_name(COLLADAFW::Geometry *geom)
+	{
+		const std::string& name = geom->getName();
+		return name.size() ? name.c_str() : geom->getOriginalId().c_str();
+	}
+
+	void read_vertices(COLLADAFW::Mesh *mesh, Mesh *me)
+	{
+		// vertices	
+		me->totvert = mesh->getPositions().getFloatValues()->getCount() / 3;
+		me->mvert = (MVert*)CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
+
+		const COLLADAFW::MeshVertexData& pos = mesh->getPositions();
+		MVert *mvert;
+		int i, j;
+
+		for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++) {
+			j = i * 3;
+
+			if (pos.getType() == COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT) {
+				const float *array = pos.getFloatValues()->getData();
+				mvert->co[0] = array[j];
+				mvert->co[1] = array[j + 1];
+				mvert->co[2] = array[j + 2];
+			}
+			else if (pos.getType() == COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE){
+				const double *array = pos.getDoubleValues()->getData();
+				mvert->co[0] = (float)array[j];
+				mvert->co[1] = (float)array[j + 1];
+				mvert->co[2] = (float)array[j + 2];
+			}
+			else {
+				fprintf(stderr, "Cannot read vertex positions: unknown data type.\n");
+				break;
+			}
+		}
+	}
+
+	// TODO: import uv set names
+	void read_faces(COLLADAFW::Mesh *mesh, Mesh *me)
+	{
+		int i;
+
+		// allocate faces
+		me->totface = mesh->getFacesCount();
+		me->mface = (MFace*)CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, me->totface);
+		
+		// allocate UV layers
+		int totuvset = mesh->getUVCoords().getInputInfosArray().getCount();
+
+		for (i = 0; i < totuvset; i++) {
+			CustomData_add_layer(&me->fdata, CD_MTFACE, CD_CALLOC, NULL, me->totface);
+			//this->set_layername_map[i] = CustomData_get_layer_name(&me->fdata, CD_MTFACE, i);
+		}
+
+		// activate the first uv layer
+		if (totuvset) me->mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, 0);
+
+		UVDataWrapper uvs(mesh->getUVCoords());
+
+#ifdef COLLADA_DEBUG
+		uvs.print();
+#endif
+
+		MFace *mface = me->mface;
+
+		MaterialIdPrimitiveArrayMap mat_prim_map;
+
+		int face_index = 0;
+
+		COLLADAFW::MeshPrimitiveArray& prim_arr = mesh->getMeshPrimitives();
+
+		for (i = 0; i < prim_arr.getCount(); i++) {
+			
+ 			COLLADAFW::MeshPrimitive *mp = prim_arr[i];
+
+			// faces
+			size_t prim_totface = mp->getFaceCount();
+			unsigned int *indices = mp->getPositionIndices().getData();
+			int j, k;
+			int type = mp->getPrimitiveType();
+			int index = 0;
+			
+			// since we cannot set mface->mat_nr here, we store a portion of me->mface in Primitive
+			Primitive prim = {mface, 0};
+			COLLADAFW::IndexListArray& index_list_array = mp->getUVCoordIndicesArray();
+
+#ifdef COLLADA_DEBUG
+			fprintf(stderr, "Primitive %d:\n", i);
+			for (int j = 0; j < totuvset; j++) {
+				print_index_list(*index_list_array[j]);
+			}
+#endif
+			
+			if (type == COLLADAFW::MeshPrimitive::TRIANGLES) {
+				for (j = 0; j < prim_totface; j++){
+					
+					set_face_indices(mface, indices, false);
+					indices += 3;
+					
+					for (k = 0; k < totuvset; k++) {
+						// get mtface by face index and uv set index
+						MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
+						set_face_uv(&mtface[face_index], uvs, k, *index_list_array[k], index, false);
+					}
+					
+					index += 3;
+					mface++;
+					face_index++;
+					prim.totface++;
+				}
+			}
+			else if (type == COLLADAFW::MeshPrimitive::POLYLIST || type == COLLADAFW::MeshPrimitive::POLYGONS) {
+				COLLADAFW::Polygons *mpvc =	(COLLADAFW::Polygons*)mp;
+				COLLADAFW::Polygons::VertexCountArray& vcounta = mpvc->getGroupedVerticesVertexCountArray();
+				
+				for (j = 0; j < prim_totface; j++) {
+
+					// face
+					int vcount = vcounta[j];
+
+					set_face_indices(mface, indices, vcount == 4);
+					indices += vcount;
+					
+					// do the trick if needed
+					if (vcount == 4 && mface->v4 == 0)
+						rotate_face_indices(mface);
+
+					// set mtface for each uv set
+					// it is assumed that all primitives have equal number of UV sets
+
+					for (k = 0; k < totuvset; k++) {
+						// get mtface by face index and uv set index
+						MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
+						set_face_uv(&mtface[face_index], uvs, k, *index_list_array[k], index, mface->v4 != 0);
+					}
+
+					index += mface->v4 ? 4 : 3;
+					mface++;
+					face_index++;
+					prim.totface++;
+				}
+			}
+			
+		   	mat_prim_map[mp->getMaterialId()].push_back(prim);
+		}
+
+		geom_uid_mat_mapping_map[mesh->getUniqueId()] = mat_prim_map;
+	}
+
+public:
+
+	MeshImporter(ArmatureImporter *arm, Scene *sce) : scene(sce), armature_importer(arm) {}
+
+	// bind object with a mesh assigning materials and textures
+	Object *create_mesh_object(COLLADAFW::Node *node, COLLADAFW::InstanceGeometry *geom,
+							   bool isController, std::map<COLLADAFW::UniqueId, Material*>& uid_material_map)
+	{
+		const COLLADAFW::UniqueId *geom_uid = &geom->getInstanciatedObjectId();
+	 
+		// checking if node instanciates controller or geometry
+		if (isController) {
+			geom_uid = armature_importer->get_geometry_uid(*geom_uid);
+			if (!geom_uid) {
+				fprintf(stderr, "Couldn't find a mesh UID by controller's UID.\n");
+				return NULL;
+			}
+		}
+		else {
+			if (uid_mesh_map.find(*geom_uid) == uid_mesh_map.end()) {
+				// this could happen if a mesh was not created
+				// (e.g. if it contains unsupported geometry)
+				fprintf(stderr, "Couldn't find a mesh by UID.\n");
+				return NULL;
+			}
+		}
+
+		Object *ob = add_object(scene, OB_MESH);
+
+		// name Object
+		const std::string& id = node->getOriginalId();
+		if (id.length())
+			rename_id(&ob->id, (char*)id.c_str());
+		
+		// replace ob->data freeing the old one
+		Mesh *old_mesh = (Mesh*)ob->data;
+
+		set_mesh(ob, uid_mesh_map[*geom_uid]);
+		
+		if (old_mesh->id.us == 0) free_libblock(&G.main->mesh, old_mesh);
+		
+		Mesh *me = (Mesh*)ob->data;
+		MTex *diffuse_mtex = NULL;
+		/*
+		MTFace *tface = NULL;
+		char layername[100];
+		bool first_time = true;
+		*/
+		
+		// assign material indices to mesh faces
+		for (unsigned int k = 0; k < geom->getMaterialBindings().getCount(); k++) {
+			
+			const COLLADAFW::UniqueId& ma_uid = geom->getMaterialBindings()[k].getReferencedMaterial();
+			
+			// do we know this material?
+			if (uid_material_map.find(ma_uid) == uid_material_map.end()) {
+				fprintf(stderr, "Cannot find material by UID.\n");
+				continue;
+			}
+			
+			Material *ma = uid_material_map[ma_uid];
+
+			unsigned int l;
+
+			// XXX I don't understand this! (Arystan)
+
+			/*
+			// assign textures to uv layers
+			// bvi_array "bind_vertex_input array"
+			COLLADAFW::InstanceGeometry::TextureCoordinateBindingArray& bvi_array = 
+				geom->getMaterialBindings()[k].getTextureCoordinateBindingArray();
+			for (l = 0; l < bvi_array.getCount(); l++) {
+				COLLADAFW::TextureMapId tex_index = bvi_array[l].textureMapId;
+				size_t set_index = bvi_array[l].setIndex;
+				
+				// if (set_layername_map.find(set_index) == set_layername_map.end()) {
+				// 	fprintf(stderr, "Cannot find uvlayer name by set index.\n");
+				// 	continue;
+				// }
+				// char *uvname = set_layername_map[set_index];
+				char *uvname = CustomData_get_layer_name(&me->fdata, CD_MTFACE, set_index);
+				
+				// check if mtexes were properly added to vector
+				if (index_mtex_map.find(tex_index) == index_mtex_map.end()) {
+					fprintf(stderr, "Cannot find mtexes by texmap id.\n");
+					continue;
+				}
+				std::vector<MTex*> mtexes = index_mtex_map[tex_index];
+				std::vector<MTex*>::iterator it;
+				for (it = mtexes.begin(); it != mtexes.end(); it++) {
+					MTex *mtex = *it;
+					if (mtex && mtex->uvname) strcpy(mtex->uvname, uvname);
+				}	
+			}
+			for (l = 0; l < 18; l++) {
+				if (ma->mtex[l] && ma->mtex[l]->mapto == MAP_COL) {
+					diffuse_mtex = ma->mtex[l];
+				}
+			}
+			if (diffuse_mtex && strlen(diffuse_mtex->uvname)) {
+				if (first_time) {
+					tface = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE, diffuse_mtex->uvname);
+					strcpy(layername, diffuse_mtex->uvname);
+					first_time = false;
+				}
+				else if (strcmp(diffuse_mtex->uvname, layername) != 0) {
+					tface = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE, diffuse_mtex->uvname);
+					strcpy(layername, diffuse_mtex->uvname);
+				}
+			}
+			*/
+
+			assign_material(ob, ma, ob->totcol + 1);
+			
+			MaterialIdPrimitiveArrayMap& mat_prim_map = geom_uid_mat_mapping_map[*geom_uid];
+			COLLADAFW::MaterialId mat_id = geom->getMaterialBindings()[k].getMaterialId();
+			
+			// set material index on each face
+			if (mat_prim_map.find(mat_id) != mat_prim_map.end()) {
+				
+				std::vector<Primitive>& prims = mat_prim_map[mat_id];
+				
+				std::vector<Primitive>::iterator it;
+				
+				for (it = prims.begin(); it != prims.end(); it++) {
+					Primitive& prim = *it;
+					l = 0;
+					while (l++ < prim.totface) {
+						prim.mface->mat_nr = k;
+						prim.mface++;
+						/*
+						// if tface was set
+						// bind image to tface
+						if (tface) {
+							tface->mode = TF_TEX;
+							tface->tpage = (Image*)diffuse_mtex->tex->ima;
+							tface++;
+						}
+						*/
+					}
+				}
+			}
+		}
+		return ob;
+	}
+
+	// create a mesh storing a pointer in a map so it can be retrieved later by geometry UID
+	bool write_geometry(const COLLADAFW::Geometry* geom) 
+	{
+		// TODO: import also uvs, normals
+		// XXX what to do with normal indices?
+		// XXX num_normals may be != num verts, then what to do?
+
+		// check geometry->getType() first
+		if (geom->getType() != COLLADAFW::Geometry::GEO_TYPE_MESH) {
+			// TODO: report warning
+			fprintf(stderr, "Mesh type %s is not supported\n", geomTypeToStr(geom->getType()));
+			return true;
+		}
+		
+		COLLADAFW::Mesh *mesh = (COLLADAFW::Mesh*)geom;
+
+		if (!is_nice_mesh(mesh)) {
+			fprintf(stderr, "Ignoring mesh %s\n", get_dae_name(mesh));
+			return true;
+		}
+		
+		const std::string& str_geom_id = mesh->getOriginalId();
+		Mesh *me = add_mesh((char*)str_geom_id.c_str());
+
+		// store the Mesh pointer to link it later with an Object
+		this->uid_mesh_map[mesh->getUniqueId()] = me;
+		
+		read_vertices(mesh, me);
+
+		read_faces(mesh, me);
+		
+		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+		make_edges(me, 0);
+
+		return true;
+	}
+
+};
+
+/*
+
+  COLLADA Importer limitations:
+
+  - no multiple scene import, all objects are added to active scene
+
+ */
+/** Class that needs to be implemented by a writer. 
+	IMPORTANT: The write functions are called in arbitrary order.*/
+class Writer: public COLLADAFW::IWriter
+{
+private:
+	std::string mFilename;
+	
+	bContext *mContext;
+
+	UnitConverter unit_converter;
+	ArmatureImporter armature_importer;
+	MeshImporter mesh_importer;
+
+	std::map<COLLADAFW::UniqueId, Image*> uid_image_map;
+	std::map<COLLADAFW::UniqueId, Material*> uid_material_map;
+	std::map<COLLADAFW::UniqueId, Material*> uid_effect_map;
+	std::map<COLLADAFW::UniqueId, Camera*> uid_camera_map;
+	std::map<COLLADAFW::UniqueId, Lamp*> uid_lamp_map;
+
+	// animation
+	std::map<COLLADAFW::UniqueId, std::vector<FCurve*> > uid_fcurve_map;
+	struct AnimatedTransform {
+		Object *ob;
+		// COLLADAFW::Node *node;
+		COLLADAFW::Transformation *tm; // which transform is animated by an AnimationList->id
+	};
+	// Nodes don't share AnimationLists (Arystan)
+	std::map<COLLADAFW::UniqueId, AnimatedTransform> uid_animated_map; // AnimationList->uniqueId to AnimatedObject map
+
 public:
 
 	/** Constructor. */
-	Writer(bContext *C, const char *filename) : mContext(C), mFilename(filename) {};
+	Writer(bContext *C, const char *filename) : mContext(C), mFilename(filename),
+												armature_importer(&unit_converter, CTX_data_scene(C)),
+												mesh_importer(&armature_importer, CTX_data_scene(C)) {};
 
 	/** Destructor. */
 	~Writer() {};
@@ -299,6 +955,7 @@ public:
 		// XXX take up_axis, unit into account
 		// COLLADAFW::FileInfo::Unit unit = asset->getUnit();
 		// COLLADAFW::FileInfo::UpAxisType upAxis = asset->getUpAxisType();
+		unit_converter.read_asset(asset);
 
 		return true;
 	}
@@ -311,139 +968,6 @@ public:
 		return true;
 	}
 	
-	// bind early created mesh to object, assign materials and textures
-	Object *create_mesh_object(Object *ob, Scene *sce, COLLADAFW::Node *node,
-							   COLLADAFW::InstanceGeometry *geom, bool isController)
-	{
-		ob = add_object(sce, OB_MESH);
-		
-		const std::string& id = node->getOriginalId();
-		if (id.length())
-			rename_id(&ob->id, (char*)id.c_str());
-		
-		// replace ob->data freeing the old one
-		Mesh *old_mesh = (Mesh*)ob->data;
-
-		const COLLADAFW::UniqueId *geom_uid = &geom->getInstanciatedObjectId();
-	 
-		// checking if node instanciates controller or geometry
-		if (isController) {
-			if (skinid_meshid_map.find(*geom_uid) == skinid_meshid_map.end()) {
-				fprintf(stderr, "Couldn't find a mesh UID by controller's UID.\n");
-				return NULL;
-			}
-			geom_uid = &skinid_meshid_map[*geom_uid];
-		}
-		else {
-			if (uid_mesh_map.find(*geom_uid) == uid_mesh_map.end()) {
-				// XXX report to user
-				// this could happen if a mesh was not created
-				// (e.g. if it contains unsupported geometry)
-				fprintf(stderr, "Couldn't find a mesh by UID.\n");
-				return NULL;
-			}
-		}
-		if (!uid_mesh_map[*geom_uid])
-			return NULL;
-		set_mesh(ob, uid_mesh_map[*geom_uid]);
-		
-		if (old_mesh->id.us == 0) free_libblock(&G.main->mesh, old_mesh);
-		
-		Mesh *me = (Mesh*)ob->data;
-		MTex *diffuse_mtex = NULL;
-		MTFace *tface = NULL;
-		char layername[100];
-		bool first_time = true;
-		
-		// assign material indices to mesh faces
-		for (unsigned int k = 0; k < geom->getMaterialBindings().getCount(); k++) {
-			
-			const COLLADAFW::UniqueId& ma_uid = geom->getMaterialBindings()[k].getReferencedMaterial();
-			// check if material was properly written to map
-			if (uid_material_map.find(ma_uid) == uid_material_map.end()) {
-				fprintf(stderr, "Cannot find material by UID.\n");
-				continue;
-			}
-			Material *ma = uid_material_map[ma_uid];
-			unsigned int l;
-			
-			// assign textures to uv layers
-			// bvi_array "bind_vertex_input array"
-			COLLADAFW::InstanceGeometry::TextureCoordinateBindingArray& bvi_array = 
-				geom->getMaterialBindings()[k].getTextureCoordinateBindingArray();
-			for (l = 0; l < bvi_array.getCount(); l++) {
-				COLLADAFW::TextureMapId tex_index = bvi_array[l].textureMapId;
-				size_t set_index = bvi_array[l].setIndex;
-				
-				/*if (set_layername_map.find(set_index) == set_layername_map.end()) {
-					fprintf(stderr, "Cannot find uvlayer name by set index.\n");
-					continue;
-				}
-				char *uvname = set_layername_map[set_index];*/
-				char *uvname = CustomData_get_layer_name(&me->fdata, CD_MTFACE, set_index);
-				
-				// check if mtexes were properly added to vector
-				if (index_mtex_map.find(tex_index) == index_mtex_map.end()) {
-					fprintf(stderr, "Cannot find mtexes by texmap id.\n");
-					continue;
-				}
-				std::vector<MTex*> mtexes = index_mtex_map[tex_index];
-				std::vector<MTex*>::iterator it;
-				for (it = mtexes.begin(); it != mtexes.end(); it++) {
-					MTex *mtex = *it;
-					if (mtex && mtex->uvname) strcpy(mtex->uvname, uvname);
-				}	
-			}
-			for (l = 0; l < 18; l++) {
-				if (ma->mtex[l] && ma->mtex[l]->mapto == MAP_COL) {
-					diffuse_mtex = ma->mtex[l];
-				}
-			}
-			if (diffuse_mtex && strlen(diffuse_mtex->uvname)) {
-				//diffuse_mtex = mtex;
-				if (first_time) {
-					tface = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE, diffuse_mtex->uvname);
-					strcpy(layername, diffuse_mtex->uvname);
-					first_time = false;
-				}
-				else if (strcmp(diffuse_mtex->uvname, layername) != 0) {
-					tface = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE, diffuse_mtex->uvname);
-					strcpy(layername, diffuse_mtex->uvname);
-				}
-			}
-			assign_material(ob, ma, ob->totcol + 1);
-			
-			MaterialIdPrimitiveArrayMap& mat_prim_map = geom_uid_mat_mapping_map[*geom_uid];
-			COLLADAFW::MaterialId mat_id = geom->getMaterialBindings()[k].getMaterialId();
-			
-			// if there's geometry that uses this material,
-			// set mface->mat_nr=k for each face in that geometry
-			if (mat_prim_map.find(mat_id) != mat_prim_map.end()) {
-				
-				std::vector<Primitive>& prims = mat_prim_map[mat_id];
-				
-				std::vector<Primitive>::iterator it;
-				
-				for (it = prims.begin(); it != prims.end(); it++) {
-					Primitive& prim = *it;
-					l = 0;
-					while (l++ < prim.totface) {
-						prim.mface->mat_nr = k;
-						prim.mface++;
-						// if tface was set
-						// bind image to tface
-						if (tface) {
-							tface->mode = TF_TEX;
-							tface->tpage = (Image*)diffuse_mtex->tex->ima;
-							tface++;
-						}
-					}
-				}
-			}
-		}
-		return ob;
-	}
-	
 	void write_node (COLLADAFW::Node *node, Scene *sce, Object *par = NULL)
 	{
 		// XXX linking object with the first <instance_geometry>, though a node may have more of them...
@@ -451,7 +975,7 @@ public:
 		if (node->getType() != COLLADAFW::Node::NODE) {
 
 			if (node->getType() == COLLADAFW::Node::JOINT) {
-				root_joints.push_back(node);
+				armature_importer.add_root_joint(node);
 			}
 
 			return;
@@ -467,7 +991,7 @@ public:
 		
 		// <instance_geometry>
 		if (geom.getCount() != 0) {
-			ob = create_mesh_object(ob, sce, node, geom[0], false);
+			ob = mesh_importer.create_mesh_object(node, geom[0], false, uid_material_map);
 		}
 		// <instance_camera>
 		else if (camera.getCount() != 0) {
@@ -499,14 +1023,8 @@ public:
 		}
 		// <instance_controller>
 		else if (controller.getCount() != 0) {
-			/*const COLLADAFW::UniqueId& geom_uid = controller[0]->getInstanciatedObjectId();
-			bArmature *arm = meshId_armature_map[geom_uid];
-			if (!arm) {
-				fprintf(stderr, "Cannot find armature by geometry uid. \n");
-				return;
-				}*/
 			COLLADAFW::InstanceController *geom = (COLLADAFW::InstanceController*)controller[0];
-			ob = create_mesh_object(ob, sce, node, geom, true);
+			ob = mesh_importer.create_mesh_object(node, geom, true, uid_material_map);
 		}
 		// XXX <node> - this is not supported yet
 		else if (inst_node.getCount() != 0) {
@@ -606,82 +1124,6 @@ public:
 		}
 	}
 
-	JointData *get_joint_data(COLLADAFW::Node *node)
-	{
-		const COLLADAFW::UniqueId& joint_id = node->getUniqueId();
-
-		if (joint_id_to_joint_index_map.find(joint_id) == joint_id_to_joint_index_map.end()) {
-			fprintf(stderr, "Cannot find a joint index by joint id for %s.\n",
-					node->getOriginalId().c_str());
-			return NULL;
-		}
-
-		int joint_index = joint_id_to_joint_index_map[joint_id];
-
-		return &joint_index_to_joint_info_map[joint_index];
-	}
-
-	void create_bone(COLLADAFW::Node *node, EditBone *parent, bArmature *arm)
-	{
-		JointData* jd = get_joint_data(node);
-
-		if (jd) {
-			float mat[4][4];
-
-			// get original world-space matrix
-			Mat4Invert(mat, jd->inv_bind_mat);
-
-			// TODO rename from Node "name" attrs later
-			EditBone *bone = addEditBone(arm, "Bone");
-
-			if (parent) bone->parent = parent;
-
-			// set head
-			VecCopyf(bone->head, mat[3]);
-
-			// set tail, can't set it to head because 0-length bones are not allowed
-			float vec[3] = {0.0f, 0.5f, 0.0f};
-			VecAddf(bone->tail, bone->head, vec);
-
-			// set parent tail
-			if (parent)
-				VecCopyf(parent->tail, bone->head);
-
-			COLLADAFW::NodePointerArray& children = node->getChildNodes();
-			for (int i = 0; i < children.getCount(); i++) {
-				create_bone(children[i], bone, arm);
-			}
-		}
-	}
-
-	void create_bone_branch(COLLADAFW::Node *root)
-	{
-		JointData* jd = get_joint_data(root);
-		if (!jd) return;
-
-		Object *ob_arm = jd->ob_arm;
-		
-		// enter armature edit mode
-		ED_armature_to_edit(ob_arm);
-
-		COLLADAFW::NodePointerArray& children = root->getChildNodes();
-		for (int i = 0; i < children.getCount(); i++) {
-			create_bone(children[i], NULL, (bArmature*)ob_arm->data);
-		}
-
-		// exit armature edit mode
-		ED_armature_from_edit(CTX_data_scene(mContext), ob_arm);
-	}
-
-	// here we add bones to armature, having armatures previously created in writeController
-	void build_armatures()
-	{
-		std::vector<COLLADAFW::Node*>::iterator it;
-		for (it = root_joints.begin(); it != root_joints.end(); it++) {
-			create_bone_branch(*it);
-		}
-	}
-
 	/** When this method is called, the writer must write the entire visual scene.
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeVisualScene ( const COLLADAFW::VisualScene* visualScene ) 
@@ -708,12 +1150,12 @@ public:
 				write_node(node, sce);
 			}
 			else if (type == COLLADAFW::Node::JOINT){
-				root_joints.push_back(node);
+				armature_importer.add_root_joint(node);
 			}
 		}
 
-		if (root_joints.size()) {
-			build_armatures();
+		if (armature_importer.has_root_joints()) {
+			armature_importer.build_armatures();
 		}
 		
 		return true;
@@ -727,291 +1169,11 @@ public:
 		return true;
 	}
 
-	// utility functions
-
-	void set_face_indices(MFace *mface, unsigned int *indices, bool quad)
-	{
-		mface->v1 = indices[0];
-		mface->v2 = indices[1];
-		mface->v3 = indices[2];
-		if (quad) mface->v4 = indices[3];
-	}
-
-	// change face indices order so that v4 is not 0
-	void rotate_face_indices(MFace *mface) {
-		mface->v4 = mface->v1;
-		mface->v1 = mface->v2;
-		mface->v2 = mface->v3;
-		mface->v3 = 0;
-	}
-
-	void set_face_uv(MTFace *mtface, UVDataWrapper &uvs, int uv_set_index,
-					COLLADAFW::IndexList& index_list, int index, bool quad)
-	{
-		int uv_indices[4][2];
-
-		// per face vertex indices, this means for quad we have 4 indices, not 8
-		COLLADAFW::UIntValuesArray& indices = index_list.getIndices();
-
-		// make indices into FloatOrDoubleArray
-		for (int i = 0; i < (quad ? 4 : 3); i++) {
-			int uv_index = indices[index + i];
-			uv_indices[i][0] = uv_index * 2;
-			uv_indices[i][1] = uv_index * 2 + 1;
-		}
-
-		uvs.getUV(uv_set_index, uv_indices[0], mtface->uv[0]);
-		uvs.getUV(uv_set_index, uv_indices[1], mtface->uv[1]);
-		uvs.getUV(uv_set_index, uv_indices[2], mtface->uv[2]);
-
-		if (quad) uvs.getUV(uv_set_index, uv_indices[3], mtface->uv[3]);
-
-#ifdef COLLADA_DEBUG
-		if (quad) {
-			fprintf(stderr, "face uv:\n"
-					"((%d, %d), (%d, %d), (%d, %d), (%d, %d))\n"
-					"((%.1f, %.1f), (%.1f, %.1f), (%.1f, %.1f), (%.1f, %.1f))\n",
-
-					uv_indices[0][0], uv_indices[0][1],
-					uv_indices[1][0], uv_indices[1][1],
-					uv_indices[2][0], uv_indices[2][1],
-					uv_indices[3][0], uv_indices[3][1],
-
-					mtface->uv[0][0], mtface->uv[0][1],
-					mtface->uv[1][0], mtface->uv[1][1],
-					mtface->uv[2][0], mtface->uv[2][1],
-					mtface->uv[3][0], mtface->uv[3][1]);
-		}
-		else {
-			fprintf(stderr, "face uv:\n"
-					"((%d, %d), (%d, %d), (%d, %d))\n"
-					"((%.1f, %.1f), (%.1f, %.1f), (%.1f, %.1f))\n",
-
-					uv_indices[0][0], uv_indices[0][1],
-					uv_indices[1][0], uv_indices[1][1],
-					uv_indices[2][0], uv_indices[2][1],
-
-					mtface->uv[0][0], mtface->uv[0][1],
-					mtface->uv[1][0], mtface->uv[1][1],
-					mtface->uv[2][0], mtface->uv[2][1]);
-		}
-#endif
-	}
-
-#ifdef COLLADA_DEBUG
-	void print_index_list(COLLADAFW::IndexList& index_list)
-	{
-		fprintf(stderr, "Index list for \"%s\":\n", index_list.getName().c_str());
-		for (int i = 0; i < index_list.getIndicesCount(); i += 2) {
-			fprintf(stderr, "%u, %u\n", index_list.getIndex(i), index_list.getIndex(i + 1));
-		}
-		fprintf(stderr, "\n");
-	}
-#endif
-
 	/** When this method is called, the writer must write the geometry.
 		@return The writer should return true, if writing succeeded, false otherwise.*/
-	virtual bool writeGeometry ( const COLLADAFW::Geometry* cgeom ) 
+	virtual bool writeGeometry ( const COLLADAFW::Geometry* geom ) 
 	{
-		// - create a mesh object
-		// - write geometry
-
-		// - ignore usupported primitive types
-		
-		// TODO: import also uvs, normals
-		// XXX what to do with normal indices?
-		// XXX num_normals may be != num verts, then what to do?
-
-		// check geometry->getType() first
-		if (cgeom->getType() != COLLADAFW::Geometry::GEO_TYPE_MESH) {
-			// TODO: report warning
-			fprintf(stderr, "Mesh type %s is not supported\n", geomTypeToStr(cgeom->getType()));
-			return true;
-		}
-		
-		COLLADAFW::Mesh *cmesh = (COLLADAFW::Mesh*)cgeom;
-		
-		// first check if we can import this mesh
-		COLLADAFW::MeshPrimitiveArray& prim_arr = cmesh->getMeshPrimitives();
-		int i;
-		
-		for (i = 0; i < prim_arr.getCount(); i++) {
-			
-			COLLADAFW::MeshPrimitive *mp = prim_arr[i];
-			COLLADAFW::MeshPrimitive::PrimitiveType type = mp->getPrimitiveType();
-
-			const char *type_str = primTypeToStr(type);
-			
-			// OpenCollada passes POLYGONS type for <polylist>
-			if (type == COLLADAFW::MeshPrimitive::POLYLIST || type == COLLADAFW::MeshPrimitive::POLYGONS) {
-
-				COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons*)mp;
-				COLLADAFW::Polygons::VertexCountArray& vca = mpvc->getGroupedVerticesVertexCountArray();
-				
-				for(int j = 0; j < vca.getCount(); j++){
-					int count = vca[j];
-					if (count != 3 && count != 4) {
-						fprintf(stderr, "%s has at least one face with vertex count > 4 or < 3\n",
-								type_str);
-						return true;
-					}
-				}
-					
-			}
-			else if(type != COLLADAFW::MeshPrimitive::TRIANGLES) {
-				fprintf(stderr, "Primitive type %s is not supported.\n", type_str);
-				return true;
-			}
-		}
-		
-		//size_t totvert = cmesh->getPositions().getFloatValues()->getCount() / 3;
-		size_t totvert;
-		if (cmesh->getPositions().empty())
-			return true; 
-		totvert = cmesh->getPositions().getFloatValues()->getCount() / 3;
-		
-		const std::string& str_geom_id = cgeom->getOriginalId();
-		Mesh *me = add_mesh((char*)str_geom_id.c_str());
-
-		// store mesh ptr
-		// to link it later with Object
-		this->uid_mesh_map[cgeom->getUniqueId()] = me;
-		
-		// vertices	
-		me->mvert = (MVert*)CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
-		me->totvert = totvert;
-		
-		float *pos_float_array = cmesh->getPositions().getFloatValues()->getData();
-		
-		MVert *mvert = me->mvert;
-		i = 0;
-		while (i < totvert) {
-			// fill mvert
-			mvert->co[0] = pos_float_array[0];
-			mvert->co[1] = pos_float_array[1];
-			mvert->co[2] = pos_float_array[2];
-
-			pos_float_array += 3;
-			mvert++;
-			i++;
-		}
-
-		// count totface
-		int totface = cmesh->getFacesCount();
-		
-		// allocate faces
-		me->mface = (MFace*)CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, totface);
-		me->totface = totface;
-		
-		// UVs
-		int totuvset = cmesh->getUVCoords().getInputInfosArray().getCount();
-		
-		for (i = 0; i < totuvset; i++) {
-			// add new CustomData layer
-			CustomData_add_layer(&me->fdata, CD_MTFACE, CD_CALLOC, NULL, totface);
-			//this->set_layername_map[i] = CustomData_get_layer_name(&me->fdata, CD_MTFACE, i);
-			
-		}
-
-		// activate the first uv layer if any
-		if (totuvset) me->mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, 0);
-
-		UVDataWrapper uvs(cmesh->getUVCoords());
-
-#ifdef COLLADA_DEBUG
-		uvs.print();
-#endif
-
-		// read faces
-		MFace *mface = me->mface;
-
-		MaterialIdPrimitiveArrayMap mat_prim_map;
-
-		// TODO: import uv set names
-		int face_index = 0;
-
-		for (i = 0; i < prim_arr.getCount(); i++) {
-			
- 			COLLADAFW::MeshPrimitive *mp = prim_arr[i];
-
-			// faces
-			size_t prim_totface = mp->getFaceCount();
-			unsigned int *indices = mp->getPositionIndices().getData();
-			int j, k;
-			int type = mp->getPrimitiveType();
-			int index = 0;
-			
-			// since we cannot set mface->mat_nr here, we store a portion of me->mface in Primitive
-			Primitive prim = {mface, 0};
-			COLLADAFW::IndexListArray& index_list_array = mp->getUVCoordIndicesArray();
-
-#ifdef COLLADA_DEBUG
-			fprintf(stderr, "Primitive %d:\n", i);
-			for (int j = 0; j < totuvset; j++) {
-				print_index_list(*index_list_array[j]);
-			}
-#endif
-			
-			if (type == COLLADAFW::MeshPrimitive::TRIANGLES) {
-				for (j = 0; j < prim_totface; j++){
-					
-					set_face_indices(mface, indices, false);
-					indices += 3;
-					
-					for (k = 0; k < totuvset; k++) {
-						// get mtface by face index and uv set index
-						MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
-						set_face_uv(&mtface[face_index], uvs, k, *index_list_array[k], index, false);
-					}
-					
-					index += 3;
-					mface++;
-					face_index++;
-					prim.totface++;
-				}
-			}
-			else if (type == COLLADAFW::MeshPrimitive::POLYLIST || type == COLLADAFW::MeshPrimitive::POLYGONS) {
-				COLLADAFW::Polygons *mpvc =	(COLLADAFW::Polygons*)mp;
-				COLLADAFW::Polygons::VertexCountArray& vcounta = mpvc->getGroupedVerticesVertexCountArray();
-				
-				for (j = 0; j < prim_totface; j++) {
-
-					// face
-					int vcount = vcounta[j];
-
-					set_face_indices(mface, indices, vcount == 4);
-					indices += vcount;
-					
-					// do the trick if needed
-					if (vcount == 4 && mface->v4 == 0)
-						rotate_face_indices(mface);
-
-					// set mtface for each uv set
-					// it is assumed that all primitives have equal number of UV sets
-
-					for (k = 0; k < totuvset; k++) {
-						// get mtface by face index and uv set index
-						MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
-						set_face_uv(&mtface[face_index], uvs, k, *index_list_array[k], index, mface->v4 != 0);
-					}
-
-					index += mface->v4 ? 4 : 3;
-					mface++;
-					face_index++;
-					prim.totface++;
-				}
-			}
-			
-		   	mat_prim_map[mp->getMaterialId()].push_back(prim);
-			
-		}
-		
-		geom_uid_mat_mapping_map[cgeom->getUniqueId()] = mat_prim_map;
-		
-		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
-		make_edges(me, 0);
-
-		return true;
+		return mesh_importer.write_geometry(geom);
 	}
 
 	/** When this method is called, the writer must write the material.
@@ -1045,7 +1207,9 @@ public:
 		ma->mtex[i]->tex = add_texture("texture");
 		ma->mtex[i]->tex->type = TEX_IMAGE;
 		ma->mtex[i]->tex->ima = uid_image_map[ima_uid];
-		index_mtex_map[ctex.getTextureMapId()].push_back(ma->mtex[i]);
+
+		// index_mtex_map[ctex.getTextureMapId()].push_back(ma->mtex[i]);
+
 		return ma->mtex[i];
 	}
 
@@ -1582,83 +1746,18 @@ public:
 		
 		return true;
 	}
-
-	// TODO move it somewhere better place
-	void mat4_from_dae_mat4(float out[][4], const COLLADABU::Math::Matrix4& in) {
-		// in DAE, matrices use columns vectors, (see comments in COLLADABUMathMatrix4.h)
-		// so here, to make a blender matrix, we simply swap columns and rows
-		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < 4; j++) {
-				out[i][j] = in[j][i];
-			}
-		}
-	}
-	
 	
 	/** When this method is called, the writer must write the skin controller data.
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeSkinControllerData( const COLLADAFW::SkinControllerData* skin ) 
 	{
-		// use inverse bind matrices to construct armature
-		// it is safe to invert them to get the original matrices
-		// because if they are inverse matrices, they can be inverted
-
-		// just do like so:
-		// - create armature
-		// - enter editmode
-		// - add edit bones and head/tail properties using matrices and parent-child info
-		// - exit edit mode
-
-		// store join inv bind matrix to use it later in armature construction
-		const COLLADAFW::Matrix4Array& inv_bind_mats = skin->getInverseBindMatrices();
-		int i;
-		for (i = 0; i < skin->getJointsCount(); i++) {
-			JointData jd;
-			mat4_from_dae_mat4(jd.inv_bind_mat, inv_bind_mats[i]);
-			joint_index_to_joint_info_map[i] = jd;
-		}
-		return true;
+		return armature_importer.write_skin_controller_data(skin);
 	}
 
 	// this is called on postprocess, before writeVisualScenes
 	virtual bool writeController( const COLLADAFW::Controller* controller ) 
 	{
-		// here we:
-		// - create armature
-		// - create EditBones, not setting parent-child relationships
-		// - store armature
-
-		Scene *sce = CTX_data_scene(mContext);
-
-		const COLLADAFW::UniqueId& skin_id = controller->getUniqueId();
-
-		if (controller->getControllerType() == COLLADAFW::Controller::CONTROLLER_TYPE_SKIN) {
-
-			Object *ob_arm = add_object(sce, OB_ARMATURE);
-
-			COLLADAFW::SkinController *skinco = (COLLADAFW::SkinController*)controller;
-			const COLLADAFW::UniqueId& id = skinco->getSkinControllerData();
-			
-			this->skinid_meshid_map[skin_id] = skinco->getSource();
-			
-			// "Node" ids
-			const COLLADAFW::UniqueIdArray& joint_ids = skinco->getJoints();
-
-			int i;
-			for (i = 0; i < joint_ids.getCount(); i++) {
-
-				// store armature pointer
-				JointData& jd = joint_index_to_joint_info_map[i];
-				jd.ob_arm = ob_arm;
-
-				// now we'll be able to get inv bind matrix from joint id
-				joint_id_to_joint_index_map[joint_ids[i]] = i;
-			}
-		}
-		// morph controller
-		else {
-		}
-		return true;
+		return armature_importer.write_controller(controller);
 	}
 };
 
