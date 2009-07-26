@@ -187,13 +187,14 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
 		if bg:
 			layout.active = view.display_background_image
 
-			split = layout.split()
-			col = split.column()
+			col = layout.column()
 			col.itemR(bg, "image", text="")
 			#col.itemR(bg, "image_user")
 			col.itemR(bg, "size")
 			col.itemR(bg, "transparency", slider=True)
 			col.itemL(text="Offset:")
+			
+			col = layout.column(align=True)
 			col.itemR(bg, "x_offset", text="X")
 			col.itemR(bg, "y_offset", text="Y")
 

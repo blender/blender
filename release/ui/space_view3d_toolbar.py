@@ -319,9 +319,10 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 		return self.paint_settings(context)
 
 	def draw(self, context):
+		layout = self.layout
+		
 		settings = self.paint_settings(context)
 		brush = settings.brush
-		layout = self.layout
 
 		if context.particle_edit_object:
 			layout.column().itemR(settings, "tool", expand=True)
@@ -340,10 +341,8 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 					col.item_enumR(settings, "tool", "CLONE")
 				else:
 					col.item_enumR(settings, "tool", "SMEAR")
-
-			split = layout.split()
 			
-			col = split.column()
+			col = layout.column()
 			row = col.row(align=True)
 			row.itemR(brush, "size", slider=True)
 			row.itemR(brush, "size_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
@@ -368,8 +367,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			rowsub.itemR(brush, "spacing", text="Spacing", slider=True)
 			rowsub.itemR(brush, "spacing_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
 
-			split = layout.split()
-			col = split.column()
+			col = layout.column()
 			col.itemR(brush, "airbrush")
 			col.itemR(brush, "anchored")
 			col.itemR(brush, "rake")
@@ -386,8 +384,7 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel):
 		brush = settings.brush
 		layout = self.layout
 
-		split = layout.split()
-		split.template_curve_mapping(brush.curve)
+		layout.template_curve_mapping(brush.curve)
 		
 class VIEW3D_PT_sculpt_options(PaintPanel):
 	__label__ = "Options"
@@ -537,4 +534,3 @@ bpy.types.register(VIEW3D_PT_vertex_paint_options)
 bpy.types.register(VIEW3D_PT_weight_paint_options)
 bpy.types.register(VIEW3D_PT_tools_texture_paint)
 bpy.types.register(VIEW3D_PT_tools_particle_edit)
-
