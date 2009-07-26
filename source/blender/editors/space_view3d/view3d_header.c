@@ -2765,10 +2765,18 @@ static void view3d_edit_armature_rollmenu(bContext *C, uiLayout *layout, void *a
 	//uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Roll|Ctrl R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 }
 
+static void view3d_edit_armature_settingsmenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	PointerRNA ptr;
+	
+	uiItemEnumO(layout, "Toggle a Setting", 0, "ARMATURE_OT_flags_set", "mode", 2);
+	uiItemEnumO(layout, "Enable a Setting", 0, "ARMATURE_OT_flags_set", "mode", 1);
+	uiItemEnumO(layout, "Disable a Setting", 0, "ARMATURE_OT_flags_set", "mode", 0);
+}
+
 #if 0
 static void do_view3d_edit_armaturemenu(bContext *C, void *arg, int event)
 {
-#if 0
 	static short numcuts= 2;
 
 	switch(event) {
@@ -2783,14 +2791,7 @@ static void do_view3d_edit_armaturemenu(bContext *C, void *arg, int event)
 	case 7: /* Warp */
 		initTransform(TFM_WARP, CTX_NONE);
 		Transform();
-	case 10: /* forked! */
-		extrude_armature(1);
-		break;
 	
-	case 16: /* Alt-S transform (BoneSize) */
-		initTransform(TFM_BONESIZE, CTX_NONE);
-		Transform();
-		break;
 	case 17: /* move to layer */
 		pose_movetolayer();
 		break;
@@ -2799,66 +2800,6 @@ static void do_view3d_edit_armaturemenu(bContext *C, void *arg, int event)
 		add_blockhandler(curarea, VIEW3D_HANDLER_BONESKETCH, UI_PNL_UNSTOW);
 		break;
 	}
-	
-#endif
-}
-
-
-#ifndef DISABLE_PYTHON
-static void do_view3d_scripts_armaturemenu(bContext *C, void *arg, int event)
-{
-#if 0
-	BPY_menu_do_python(PYMENU_ARMATURE, event);
-	
-#endif
-}
-
-static uiBlock *view3d_scripts_armaturemenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-// XXX	BPyMenu *pym;
-//	int i= 0;
-//	short yco = 20, menuwidth = 120;
-	
-	block= uiBeginBlock(C, ar, "view3d_scripts_armaturemenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_scripts_armaturemenu, NULL);
-	
-	/* note that we acount for the N previous entries with i+20: */
-//	for (pym = BPyMenuTable[PYMENU_ARMATURE]; pym; pym = pym->next, i++) {
-//		
-//		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20, menuwidth, 19, 
-//						 NULL, 0.0, 0.0, 1, i, 
-//						 pym->tooltip?pym->tooltip:pym->filename);
-//	}
-	
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-	
-	return block;
-}
-#endif /* DISABLE_PYTHON */
-
-static void do_view3d_armature_settingsmenu(bContext *C, void *arg, int event)
-{
-// XXX	setflag_armature(event);
-}
-
-static uiBlock *view3d_armature_settingsmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-
-	block= uiBeginBlock(C, ar, "view3d_armature_settingsmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_armature_settingsmenu, NULL);
-
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Toggle a Setting|Shift W", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Enable a Setting|Ctrl Shift W", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Disable a Setting|Alt W", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
-
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 60);
-
-	return block;
 }
 #endif
 
@@ -2867,23 +2808,19 @@ static void view3d_edit_armaturemenu(bContext *C, uiLayout *layout, void *arg_un
 	Object *obedit = CTX_data_edit_object(C);
 	bArmature *arm= obedit->data;
 	
-	//uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Editing|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-
 #if 0
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Editing|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Bone Sketching|P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 23, "");
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");
-	// XXX uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
 #endif
+	uiItemMenuF(layout, "Snap", 0, view3d_edit_snapmenu);
 	uiItemMenuF(layout, "Bone Roll", 0, view3d_edit_armature_rollmenu);
 	
-#if 0
-	if (arm->drawtype==ARM_ENVELOPE)
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale Envelope Distance|Alt S",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
-	else if (arm->drawtype==ARM_B_BONE)
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale B-Bone Width|Alt S",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
-#endif 
+	if (arm->drawtype == ARM_ENVELOPE)
+		uiItemEnumO(layout, "Scale Envelope Distance", 0, "TFM_OT_transform", "mode", TFM_BONESIZE);
+	else
+		uiItemEnumO(layout, "Scale B-Bone Width", 0, "TFM_OT_transform", "mode", TFM_BONESIZE);
 	
 	uiItemS(layout);
 	
@@ -2918,15 +2855,10 @@ static void view3d_edit_armaturemenu(bContext *C, uiLayout *layout, void *arg_un
 #endif
 	
 	uiItemMenuF(layout, "Parent", 0, view3d_edit_armature_parentmenu);
-	//uiDefIconTextBlockBut(block, view3d_armature_settingsmenu, NULL, ICON_RIGHTARROW_THIN, "Bone Settings", 0, yco-=20, 120, 19, "");
 	
-#if 0
-#ifndef DISABLE_PYTHON
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiItemS(layout);
 	
-	uiDefIconTextBlockBut(block, view3d_scripts_armaturemenu, NULL, ICON_RIGHTARROW_THIN, "Scripts", 0, yco-=20, 120, 19, "");
-#endif
-#endif
+	uiItemMenuF(layout, "Bone Settings ", 0, view3d_edit_armature_settingsmenu);
 }
 
 
@@ -2993,6 +2925,15 @@ static void view3d_pose_armature_poselibmenu(bContext *C, uiLayout *layout, void
 	uiItemO(layout, NULL, 0, "POSELIB_OT_pose_remove");
 }
 
+static void view3d_pose_armature_settingsmenu(bContext *C, uiLayout *layout, void *arg_unused)
+{
+	PointerRNA ptr;
+	
+	uiItemEnumO(layout, "Toggle a Setting", 0, "POSE_OT_flags_set", "mode", 2);
+	uiItemEnumO(layout, "Enable a Setting", 0, "POSE_OT_flags_set", "mode", 1);
+	uiItemEnumO(layout, "Disable a Setting", 0, "POSE_OT_flags_set", "mode", 0);
+}
+
 #if 0
 static void do_view3d_pose_armaturemenu(bContext *C, void *arg, int event)
 {
@@ -3000,36 +2941,8 @@ static void do_view3d_pose_armaturemenu(bContext *C, void *arg, int event)
 	ob=OBACT;
 	
 	switch(event) {
-	case 0: /* transform properties */
-// XXX		mainqenter(NKEY, 1);
-		break;
-	case 1: /* copy current pose */
-		copy_posebuf();
-		break;
-	case 2: /* paste pose */
-		paste_posebuf(0);
-		break;
-	case 3: /* paste flipped pose */
-		paste_posebuf(1);
-		break;
-	case 4: /* insert keyframe */
-		common_insertkey();
-		break;
 	case 5:
 		pose_copy_menu();
-		break;
-	case 9:
-		pose_flip_names();
-		break;
-	case 13:
-		if(ob && (ob->flag & OB_POSEMODE)) {
-			bArmature *arm= ob->data;
-			if( (arm->drawtype == ARM_B_BONE) || (arm->drawtype == ARM_ENVELOPE)) {
-				initTransform(TFM_BONESIZE, CTX_NONE);
-				Transform();
-				break;
-			}
-		}
 		break;
 	case 14: /* move bone to layer / change armature layer */
 		pose_movetolayer();
@@ -3037,28 +2950,20 @@ static void do_view3d_pose_armaturemenu(bContext *C, void *arg, int event)
 	case 15:
 		pose_relax();
 		break;
-	case 16: /* auto-extensions for bones */
-	case 17:
-	case 18:
-		pose_autoside_names(event-16);
-		break;
-	case 19: /* assign pose as restpose */
-		apply_armature_pose2bones();
-		break;
-	case 20: /* delete keyframe */
-		common_deletekey();
-		break;
 	}
 }
 #endif
 
 static void view3d_pose_armaturemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
+{	
+	Object *ob = CTX_data_active_object(C);
+	bArmature *arm= ob->data;
+	
 #if 0 // XXX to be ported, using uiItemMenuF(layout, "<Name>", 0, view3d_pose_armature_<category>menu);
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
-	// ... clear transfrom sub-menu was here....
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale Envelope Distance|Alt S",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
 #endif 
+	if ( (arm) && ((arm->drawtype == ARM_B_BONE) || (arm->drawtype == ARM_ENVELOPE)) )
+		uiItemEnumO(layout, "Scale Envelope Distance", 0, "TFM_OT_transform", "mode", TFM_BONESIZE);
 	uiItemMenuF(layout, "Clear Transform", 0, view3d_pose_armature_transformmenu);
 	
 	uiItemS(layout);
@@ -3105,6 +3010,10 @@ static void view3d_pose_armaturemenu(bContext *C, uiLayout *layout, void *arg_un
 	
 	uiItemMenuF(layout, "Show/Hide Bones", 0, view3d_pose_armature_showhidemenu);
 	
+	uiItemS(layout);
+	
+	uiItemMenuF(layout, "Bone Settings", 0, view3d_pose_armature_settingsmenu);
+	
 #if 0
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy Attributes...|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 
@@ -3112,12 +3021,6 @@ static void view3d_pose_armaturemenu(bContext *C, uiLayout *layout, void *arg_un
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Switch Armature Layers|Shift M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Bone To Layer|M",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
-	
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6,  menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	// ... show/hide bones was here
-	uiDefIconTextBlockBut(block, view3d_armature_settingsmenu, 
-						  NULL, ICON_RIGHTARROW_THIN,   "Bone Settings", 0, yco-=20, 120, 19, "");
 #endif
 }
 

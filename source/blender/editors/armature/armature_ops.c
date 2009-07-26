@@ -131,11 +131,12 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_click_extrude);
 	WM_operatortype_append(ARMATURE_OT_fill);
 	WM_operatortype_append(ARMATURE_OT_merge);
-	
 	WM_operatortype_append(ARMATURE_OT_separate);
 	
 	WM_operatortype_append(ARMATURE_OT_autoside_names);
 	WM_operatortype_append(ARMATURE_OT_flip_names);
+	
+	WM_operatortype_append(ARMATURE_OT_flags_set);
 
 	/* SKETCH */	
 	WM_operatortype_append(SKETCH_OT_gesture);
@@ -178,6 +179,8 @@ void ED_operatortypes_armature(void)
 	
 	WM_operatortype_append(POSE_OT_autoside_names);
 	WM_operatortype_append(POSE_OT_flip_names);
+	
+	WM_operatortype_append(POSE_OT_flags_set);
 	
 	/* POSELIB */
 	WM_operatortype_append(POSELIB_OT_browse_interactive);
@@ -242,6 +245,14 @@ void ED_keymap_armature(wmWindowManager *wm)
 	
 	WM_keymap_add_item(keymap, "ARMATURE_OT_separate", PKEY, KM_PRESS, /*KM_CTRL|KM_ALT*/0, 0);
 	
+		/* set flags */
+	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_flags_set", WKEY, KM_PRESS, KM_SHIFT, 0);
+		RNA_enum_set(kmi->ptr, "mode", 2); // toggle
+	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_flags_set", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+		RNA_enum_set(kmi->ptr, "mode", 1); // enable
+	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_flags_set", WKEY, KM_PRESS, KM_ALT, 0);
+		RNA_enum_set(kmi->ptr, "mode", 0); // clear
+	
 	/* Armature -> Etch-A-Ton ------------------------ */
 	WM_keymap_add_item(keymap, "SKETCH_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SKETCH_OT_finish_stroke", SELECTMOUSE, KM_PRESS, 0, 0);
@@ -295,6 +306,14 @@ void ED_keymap_armature(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "POSE_OT_ik_clear", IKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "POSE_OT_groups_menu", GKEY, KM_PRESS, KM_CTRL, 0);
+	
+	/* set flags */
+	kmi= WM_keymap_add_item(keymap, "POSE_OT_flags_set", WKEY, KM_PRESS, KM_SHIFT, 0);
+		RNA_enum_set(kmi->ptr, "mode", 2); // toggle
+	kmi= WM_keymap_add_item(keymap, "POSE_OT_flags_set", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+		RNA_enum_set(kmi->ptr, "mode", 1); // enable
+	kmi= WM_keymap_add_item(keymap, "POSE_OT_flags_set", WKEY, KM_PRESS, KM_ALT, 0);
+		RNA_enum_set(kmi->ptr, "mode", 0); // clear
 	
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
 	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe_menu", IKEY, KM_PRESS, 0, 0);

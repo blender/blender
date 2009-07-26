@@ -371,6 +371,7 @@ void apply_rot_armature (Scene *scene, Object *ob, float mat[3][3])
 	ED_armature_edit_free(ob);
 }
 
+/* exported for use in editors/object/ */
 /* 0 == do center, 1 == center new, 2 == center cursor */
 void docenter_armature (Scene *scene, View3D *v3d, Object *ob, int centermode)
 {
@@ -1251,71 +1252,105 @@ static EditBone *editbone_get_child(bArmature *arm, EditBone *pabone, short use_
 	return chbone;
 }
 
-
-/* used by posemode and editmode */
-void setflag_armature (Scene *scene, short mode)
+/* callback for posemode setflag */
+static int pose_setflag_exec (bContext *C, wmOperator *op)
 {
-	Object *obedit= scene->obedit; // XXX get from context
-	Object *ob;
-	bArmature *arm;	
-	int flag;
+	int flag= RNA_enum_get(op->ptr, "type");
+	int mode= RNA_enum_get(op->ptr, "mode");
 	
-	/* get data */
-	if (obedit)
-		ob= obedit;
-	else if (OBACT)
-		ob= OBACT;
-	else
-		return;
-	arm= (bArmature *)ob->data;
-	
-	/* get flag to set (sync these with the ones used in eBone_Flag */
-	if (mode == 2)
-		flag= pupmenu("Disable Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5|Locked%x6");
-	else if (mode == 1)
-		flag= pupmenu("Enable Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5|Locked%x6");
-	else
-		flag= pupmenu("Toggle Setting%t|Draw Wire%x1|Deform%x2|Mult VG%x3|Hinge%x4|No Scale%x5|Locked%x6");
-	switch (flag) {
-		case 1: 	flag = BONE_DRAWWIRE; 	break;
-		case 2:		flag = BONE_NO_DEFORM; break;
-		case 3: 	flag = BONE_MULT_VG_ENV; break;
-		case 4:		flag = BONE_HINGE; break;
-		case 5:		flag = BONE_NO_SCALE; break;
-		case 6: 	flag = BONE_EDITMODE_LOCKED; break;
-		default:	return;
+	/* loop over all selected pchans */
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pchans) 
+	{
+		bone_setflag(&pchan->bone->flag, flag, mode);
 	}
+	CTX_DATA_END;
 	
-	/* determine which mode armature is in */
-	if ((!obedit) && (ob->flag & OB_POSEMODE)) {
-		/* deal with pose channels */
-		bPoseChannel *pchan;
-		
-		/* set setting */
-		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
-				if (pchan->bone->flag & BONE_SELECTED) {
-					bone_setflag(&pchan->bone->flag, flag, mode);
-				}
-			}
-		}
-	}
-	else if (obedit) {
-		/* deal with editbones */
-		EditBone *curbone;
-		
-		/* set setting */
-		for (curbone= arm->edbo->first; curbone; curbone= curbone->next) {
-			if (arm->layer & curbone->layer) {
-				if (curbone->flag & BONE_SELECTED) {
-					bone_setflag(&curbone->flag, flag, mode);
-				}
-			}
-		}
-	}
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, CTX_data_active_object(C));
 	
-	BIF_undo_push("Change Bone Setting");
+	return OPERATOR_FINISHED;
 }
+
+/* callback for editbones setflag */
+static int armature_bones_setflag_exec (bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	int flag= RNA_enum_get(op->ptr, "type");
+	int mode= RNA_enum_get(op->ptr, "mode");
+	
+	/* loop over all selected pchans */
+	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_bones) 
+	{
+		bone_setflag(&ebone->flag, flag, mode);
+	}
+	CTX_DATA_END;
+	
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, CTX_data_edit_object(C));
+	
+	return OPERATOR_FINISHED;
+}
+
+/* settings that can be changed */
+static EnumPropertyItem prop_bone_setting_types[] = {
+	{BONE_DRAWWIRE, "DRAWWIRE", 0, "Draw Wire", ""},
+	{BONE_NO_DEFORM, "DEFORM", 0, "Deform", ""},
+	{BONE_MULT_VG_ENV, "MULT_VG", 0, "Multiply Vertex Groups", ""},
+	{BONE_HINGE, "HINGE", 0, "Hinge", ""},
+	{BONE_NO_SCALE, "NO_SCALE", 0, "No Scale", ""},
+	{BONE_EDITMODE_LOCKED, "LOCKED", 0, "Locked", "(For EditMode only)"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+/* ways that settings can be changed */
+static EnumPropertyItem prop_bone_setting_modes[] = {
+	{0, "CLEAR", 0, "Clear", ""},
+	{1, "ENABLE", 0, "Enable", ""},
+	{2, "TOGGLE", 0, "Toggle", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+
+void ARMATURE_OT_flags_set (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Bone Flags";
+	ot->idname= "ARMATURE_OT_flags_set";
+	ot->description= "Set flags for armature bones.";
+	
+	/* callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= armature_bones_setflag_exec;
+	ot->poll= ED_operator_editarmature;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_enum(ot->srna, "type", prop_bone_setting_types, 0, "Type", "");
+	RNA_def_enum(ot->srna, "mode", prop_bone_setting_modes, 0, "Mode", "");
+}
+
+void POSE_OT_flags_set (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Bone Flags";
+	ot->idname= "POSE_OT_flags_set";
+	ot->description= "Set flags for armature bones.";
+	
+	/* callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= pose_setflag_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_enum(ot->srna, "type", prop_bone_setting_types, 0, "Type", "");
+	RNA_def_enum(ot->srna, "mode", prop_bone_setting_modes, 0, "Mode", "");
+}
+
 
 /* **************** END PoseMode & EditMode *************************** */
 /* **************** Posemode stuff ********************** */
@@ -1501,8 +1536,6 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* props */	
 }
 
 /* does bones and points */

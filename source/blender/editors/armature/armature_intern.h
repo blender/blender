@@ -56,11 +56,12 @@ void ARMATURE_OT_extrude(struct wmOperatorType *ot);
 void ARMATURE_OT_click_extrude(struct wmOperatorType *ot);
 void ARMATURE_OT_fill(struct wmOperatorType *ot);
 void ARMATURE_OT_merge(struct wmOperatorType *ot);
-
 void ARMATURE_OT_separate(struct wmOperatorType *ot);
 
 void ARMATURE_OT_autoside_names(struct wmOperatorType *ot);
 void ARMATURE_OT_flip_names(struct wmOperatorType *ot);
+
+void ARMATURE_OT_flags_set(struct wmOperatorType *ot);
 
 /* ******************************************************* */
 /* Pose-Mode Operators */
@@ -95,6 +96,8 @@ void POSE_OT_paths_clear(struct wmOperatorType *ot);
 
 void POSE_OT_autoside_names(struct wmOperatorType *ot);
 void POSE_OT_flip_names(struct wmOperatorType *ot);
+
+void POSE_OT_flags_set(struct wmOperatorType *ot);
 
 /* ******************************************************* */
 /* Etch-A-Ton */
