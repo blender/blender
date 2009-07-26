@@ -265,7 +265,13 @@ void BLI_builddir(char *dirname, char *relname)
 				while(dlink){
 					memset(&files[actnum], 0 , sizeof(struct direntry));
 					files[actnum].relname = dlink->name;
+// use 64 bit file size, only needed for WIN32, WIN64 should work fine with stat. 
+// Excluding other than current MSVC compiler until able to test.
+#if defined(WIN32) && !defined(WIN64) && (_MSC_VER>=1500)
+					_stat64(dlink->name,&files[actnum].s);
+#else
 					stat(dlink->name,&files[actnum].s);
+#endif
 					files[actnum].type=files[actnum].s.st_mode;
 					files[actnum].flags = 0;
 					totnum++;
@@ -361,7 +367,7 @@ void BLI_adddirstrings()
 		 * will buy us some time until files get bigger than 4GB or until
 		 * everyone starts using __USE_FILE_OFFSET64 or equivalent.
 		 */
-		st_size= (off_t)files[num].s.st_size;
+		st_size= files[num].s.st_size;
 
 		if (st_size > 1024*1024*1024) {
 			sprintf(files[num].size, "%.2f GB", ((double)st_size)/(1024*1024*1024));	

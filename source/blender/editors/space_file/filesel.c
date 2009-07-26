@@ -141,6 +141,21 @@ void ED_fileselect_reset_params(SpaceFile *sfile)
 	sfile->params->title[0] = '\0';
 }
 
+int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar)
+{
+	int numfiles;
+	short width, height;
+
+	if (layout->flag & FILE_LAYOUT_HOR) {
+		short width = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*layout->tile_border_x;
+		numfiles = width/layout->tile_w + 1;
+	} else {
+		short height = ar->v2d.cur.ymax - ar->v2d.cur.ymin - 2*layout->tile_border_y;
+		numfiles = height/layout->tile_h + 1;
+	}
+
+	return layout->columns*layout->rows;
+}
 
 int ED_fileselect_layout_offset(FileLayout* layout, int x, int y)
 {
@@ -227,68 +242,78 @@ static void column_widths(struct FileList* files, struct FileLayout* layout)
 
 void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 {
-	FileSelectParams* params = ED_fileselect_get_params(sfile);
+	FileSelectParams *params = ED_fileselect_get_params(sfile);
+	FileLayout *layout=0;
 	View2D *v2d= &ar->v2d;
 	int maxlen = 0;
-	int numfiles = filelist_numfiles(sfile->files);
-	int textheight = file_font_pointsize();
+	int numfiles;
+	int textheight;
 	if (sfile->layout == 0) {
 		sfile->layout = MEM_callocN(sizeof(struct FileLayout), "file_layout");
-	}
+		sfile->layout->dirty = 1;
+	} 
+
+	if (!sfile->layout->dirty) return;
+
+	numfiles = filelist_numfiles(sfile->files);
+	textheight = file_font_pointsize();
+	layout = sfile->layout;
+
 	if (params->display == FILE_IMGDISPLAY) {
-		sfile->layout->prv_w = 96;
-		sfile->layout->prv_h = 96;
-		sfile->layout->tile_border_x = 6;
-		sfile->layout->tile_border_y = 6;
-		sfile->layout->prv_border_x = 6;
-		sfile->layout->prv_border_y = 6;
-		sfile->layout->tile_w = sfile->layout->prv_w + 2*sfile->layout->prv_border_x;
-		sfile->layout->tile_h = sfile->layout->prv_h + 2*sfile->layout->prv_border_y + textheight;
-		sfile->layout->width= (v2d->cur.xmax - v2d->cur.xmin - 2*sfile->layout->tile_border_x);
-		sfile->layout->columns= sfile->layout->width / (sfile->layout->tile_w + 2*sfile->layout->tile_border_x);
-		if(sfile->layout->columns > 0)
-			sfile->layout->rows= numfiles/sfile->layout->columns + 1; // XXX dirty, modulo is zero
+		layout->prv_w = 96;
+		layout->prv_h = 96;
+		layout->tile_border_x = 6;
+		layout->tile_border_y = 6;
+		layout->prv_border_x = 6;
+		layout->prv_border_y = 6;
+		layout->tile_w = layout->prv_w + 2*layout->prv_border_x;
+		layout->tile_h = layout->prv_h + 2*layout->prv_border_y + textheight;
+		layout->width= (v2d->cur.xmax - v2d->cur.xmin - 2*layout->tile_border_x);
+		layout->columns= layout->width / (layout->tile_w + 2*layout->tile_border_x);
+		if(layout->columns > 0)
+			layout->rows= numfiles/layout->columns + 1; // XXX dirty, modulo is zero
 		else {
-			sfile->layout->columns = 1;
-			sfile->layout->rows= numfiles + 1; // XXX dirty, modulo is zero
+			layout->columns = 1;
+			layout->rows= numfiles + 1; // XXX dirty, modulo is zero
 		}
-		sfile->layout->height= sfile->layout->rows*(sfile->layout->tile_h+2*sfile->layout->tile_border_y) + sfile->layout->tile_border_y*2;
-		sfile->layout->flag = FILE_LAYOUT_VER;
+		layout->height= sfile->layout->rows*(layout->tile_h+2*layout->tile_border_y) + layout->tile_border_y*2;
+		layout->flag = FILE_LAYOUT_VER;
 	} else {
-		sfile->layout->prv_w = 0;
-		sfile->layout->prv_h = 0;
-		sfile->layout->tile_border_x = 8;
-		sfile->layout->tile_border_y = 2;
-		sfile->layout->prv_border_x = 0;
-		sfile->layout->prv_border_y = 0;
-		sfile->layout->tile_h = textheight*3/2;
-		sfile->layout->height= v2d->cur.ymax - v2d->cur.ymin;
-		sfile->layout->rows = sfile->layout->height / (sfile->layout->tile_h + 2*sfile->layout->tile_border_y);;
+		layout->prv_w = 0;
+		layout->prv_h = 0;
+		layout->tile_border_x = 8;
+		layout->tile_border_y = 2;
+		layout->prv_border_x = 0;
+		layout->prv_border_y = 0;
+		layout->tile_h = textheight*3/2;
+		layout->height= v2d->cur.ymax - v2d->cur.ymin - 2*layout->tile_border_y;
+		layout->rows = layout->height / (layout->tile_h + 2*layout->tile_border_y);
         
-		column_widths(sfile->files, sfile->layout);
+		column_widths(sfile->files, layout);
 
 		if (params->display == FILE_SHORTDISPLAY) {
-			maxlen = sfile->layout->column_widths[COLUMN_NAME] +
-					 sfile->layout->column_widths[COLUMN_SIZE];
+			maxlen = layout->column_widths[COLUMN_NAME] +
+					 layout->column_widths[COLUMN_SIZE];
 			maxlen += 20+2*10; // for icon and space between columns
 		} else {
-			maxlen = sfile->layout->column_widths[COLUMN_NAME] +
-					 sfile->layout->column_widths[COLUMN_DATE] +
-					 sfile->layout->column_widths[COLUMN_TIME] +
-					 sfile->layout->column_widths[COLUMN_SIZE];
+			maxlen = layout->column_widths[COLUMN_NAME] +
+					 layout->column_widths[COLUMN_DATE] +
+					 layout->column_widths[COLUMN_TIME] +
+					 layout->column_widths[COLUMN_SIZE];
 					/* XXX add mode1, mode2, mode3, owner columns for non-windows platforms */
 			maxlen += 20+4*10; // for icon and space between columns
 		}
-		sfile->layout->tile_w = maxlen + 40;
-		if(sfile->layout->rows > 0)
-			sfile->layout->columns = numfiles/sfile->layout->rows + 1; // XXX dirty, modulo is zero
+		layout->tile_w = maxlen + 40;
+		if(layout->rows > 0)
+			layout->columns = numfiles/layout->rows + 1; // XXX dirty, modulo is zero
 		else {
-			sfile->layout->rows = 1;
-			sfile->layout->columns = numfiles + 1; // XXX dirty, modulo is zero
+			layout->rows = 1;
+			layout->columns = numfiles + 1; // XXX dirty, modulo is zero
 		}
-		sfile->layout->width = sfile->layout->columns * (sfile->layout->tile_w + 2*sfile->layout->tile_border_x) + sfile->layout->tile_border_x*2;
-		sfile->layout->flag = FILE_LAYOUT_HOR;
-	} 
+		layout->width = sfile->layout->columns * (layout->tile_w + 2*layout->tile_border_x) + layout->tile_border_x*2;
+		layout->flag = FILE_LAYOUT_HOR;
+	}
+	layout->dirty= 0;
 }
 
 FileLayout* ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar)

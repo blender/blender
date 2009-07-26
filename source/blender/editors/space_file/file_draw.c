@@ -505,6 +505,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	struct FileList* files = sfile->files;
 	struct direntry *file;
 	int numfiles;
+	int numfiles_layout;
 	int colorid = 0;
 	short sx, sy;
 	int offset;
@@ -543,8 +544,10 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 	sx = ar->v2d.cur.xmin + layout->tile_border_x;
 	sy = ar->v2d.cur.ymax - layout->tile_border_y;
+	
+	numfiles_layout = ED_fileselect_layout_numfiles(layout, ar);
 
-	for (i=offset; (i < numfiles); ++i)
+	for (i=offset; (i < numfiles) && (i<offset+numfiles_layout); ++i)
 	{
 		ED_fileselect_layout_tilepos(layout, i, &sx, &sy);
 		sx += v2d->tot.xmin+2;

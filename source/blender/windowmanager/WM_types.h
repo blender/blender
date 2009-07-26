@@ -190,6 +190,7 @@ typedef struct wmNotifier {
 	/* NC_FILE Filebrowser */
 #define ND_PARAMS			(60<<16)
 #define ND_FILELIST			(61<<16)
+#define ND_FILEDISPLAY		(62<<16)
 
 	/* NC_ANIMATION Animato */
 #define ND_KEYFRAME_SELECT	(70<<16)

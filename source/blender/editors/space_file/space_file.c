@@ -153,6 +153,7 @@ static void file_free(SpaceLink *sl)
 /* spacetype; init callback, area size changes, screen set, etc */
 static void file_init(struct wmWindowManager *wm, ScrArea *sa)
 {
+	printf("file_init\n");
 }
 
 
@@ -200,6 +201,9 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 	}
 	filelist_setfilter(sfile->files, params->flag & FILE_FILTER ? params->filter : 0);	
 	if(params->sort!=FILE_SORT_NONE) filelist_sort(sfile->files, params->sort);		
+
+	if (sfile->layout) sfile->layout->dirty= 1;
+
 }
 
 static void file_listener(ScrArea *sa, wmNotifier *wmn)
@@ -213,11 +217,9 @@ static void file_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_FILELIST:
 					if (sfile->files) filelist_free(sfile->files);
 					ED_area_tag_refresh(sa);
-					ED_area_tag_redraw(sa);
 					break;
 				case ND_PARAMS:
 					ED_area_tag_refresh(sa);
-					ED_area_tag_redraw(sa);
 					break;
 			}
 			break;
@@ -241,6 +243,23 @@ static void file_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 }
 
+static void file_main_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_FILE:
+			switch (wmn->data) {
+				case ND_FILELIST:
+					ED_region_tag_redraw(ar);
+					break;
+				case ND_PARAMS:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+	}
+}
+
 static void file_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
@@ -251,6 +270,10 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
 	float col[3];
+
+	/* Needed, because filelist is not initialized on loading */
+	if (!sfile->files)
+		file_refresh(C, NULL);
 
 	layout = ED_fileselect_get_layout(sfile, ar);
 
@@ -471,7 +494,7 @@ void ED_spacetype_file(void)
 	art->regionid = RGN_TYPE_WINDOW;
 	art->init= file_main_area_init;
 	art->draw= file_main_area_draw;
-	// art->listener= file_main_area_listener;
+	art->listener= file_main_area_listener;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	BLI_addhead(&st->regiontypes, art);
 	
