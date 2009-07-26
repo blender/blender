@@ -157,7 +157,8 @@ int UnaryFunction1DVec3f___init__(BPy_UnaryFunction1DVec3f* self, PyObject *args
 }
 void UnaryFunction1DVec3f___dealloc__(BPy_UnaryFunction1DVec3f* self)
 {
-	delete self->uf1D_vec3f;
+	if (self->uf1D_vec3f)
+		delete self->uf1D_vec3f;
 	UnaryFunction1D_Type.tp_dealloc((PyObject*)self);
 }
 

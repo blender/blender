@@ -140,7 +140,8 @@ int UnaryFunction0DMaterial___init__(BPy_UnaryFunction0DMaterial* self)
 
 void UnaryFunction0DMaterial___dealloc__(BPy_UnaryFunction0DMaterial* self)
 {
-	delete self->uf0D_material;
+	if (self->uf0D_material)
+		delete self->uf0D_material;
 	UnaryFunction0D_Type.tp_dealloc((PyObject*)self);
 }
 

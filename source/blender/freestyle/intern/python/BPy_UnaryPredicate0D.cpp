@@ -144,7 +144,8 @@ int UnaryPredicate0D___init__(BPy_UnaryPredicate0D *self, PyObject *args, PyObje
 
 void UnaryPredicate0D___dealloc__(BPy_UnaryPredicate0D* self)
 {
-	delete self->up0D;
+	if (self->up0D)
+		delete self->up0D;
     self->ob_type->tp_free((PyObject*)self);
 }
 

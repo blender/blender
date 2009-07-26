@@ -150,7 +150,8 @@ int UnaryFunction1DFloat___init__(BPy_UnaryFunction1DFloat* self, PyObject *args
 }
 void UnaryFunction1DFloat___dealloc__(BPy_UnaryFunction1DFloat* self)
 {
-	delete self->uf1D_float;
+	if (self->uf1D_float)
+		delete self->uf1D_float;
 	UnaryFunction1D_Type.tp_dealloc((PyObject*)self);
 }
 

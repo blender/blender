@@ -193,7 +193,8 @@ PyMODINIT_FUNC Iterator_Init( PyObject *module )
 
 void Iterator___dealloc__(BPy_Iterator* self)
 {
-	delete self->it;
+	if (self->it)
+		delete self->it;
     self->ob_type->tp_free((PyObject*)self);
 }
 

@@ -208,7 +208,7 @@ int StrokeAttribute___init__(BPy_StrokeAttribute *self, PyObject *args, PyObject
 
 void StrokeAttribute___dealloc__(BPy_StrokeAttribute* self)
 {
-	if( self->sa->py_sa )
+	if( self->sa && self->sa->py_sa )
 		delete self->sa;
     self->ob_type->tp_free((PyObject*)self);
 }

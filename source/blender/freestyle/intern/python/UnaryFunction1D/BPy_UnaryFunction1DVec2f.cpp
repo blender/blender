@@ -163,7 +163,8 @@ int UnaryFunction1DVec2f___init__(BPy_UnaryFunction1DVec2f* self, PyObject *args
 }
 void UnaryFunction1DVec2f___dealloc__(BPy_UnaryFunction1DVec2f* self)
 {
-	delete self->uf1D_vec2f;
+	if (self->uf1D_vec2f)
+		delete self->uf1D_vec2f;
 	UnaryFunction1D_Type.tp_dealloc((PyObject*)self);
 }
 

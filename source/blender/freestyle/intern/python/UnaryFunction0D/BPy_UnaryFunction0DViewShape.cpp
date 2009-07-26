@@ -146,7 +146,8 @@ int UnaryFunction0DViewShape___init__(BPy_UnaryFunction0DViewShape* self)
 
 void UnaryFunction0DViewShape___dealloc__(BPy_UnaryFunction0DViewShape* self)
 {
-	delete self->uf0D_viewshape;
+	if (self->uf0D_viewshape)
+		delete self->uf0D_viewshape;
 	UnaryFunction0D_Type.tp_dealloc((PyObject*)self);
 }
 

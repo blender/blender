@@ -140,7 +140,8 @@ int UnaryFunction0DEdgeNature___init__(BPy_UnaryFunction0DEdgeNature* self)
 
 void UnaryFunction0DEdgeNature___dealloc__(BPy_UnaryFunction0DEdgeNature* self)
 {
-	delete self->uf0D_edgenature;
+	if (self->uf0D_edgenature)
+		delete self->uf0D_edgenature;
 	UnaryFunction0D_Type.tp_dealloc((PyObject*)self);
 }
 

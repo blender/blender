@@ -140,7 +140,8 @@ int UnaryFunction0DUnsigned___init__(BPy_UnaryFunction0DUnsigned* self)
 
 void UnaryFunction0DUnsigned___dealloc__(BPy_UnaryFunction0DUnsigned* self)
 {
-	delete self->uf0D_unsigned;
+	if (self->uf0D_unsigned)
+		delete self->uf0D_unsigned;
 	UnaryFunction0D_Type.tp_dealloc((PyObject*)self);
 }
 

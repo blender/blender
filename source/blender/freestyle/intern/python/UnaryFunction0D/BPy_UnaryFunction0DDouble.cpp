@@ -197,7 +197,8 @@ int UnaryFunction0DDouble___init__(BPy_UnaryFunction0DDouble* self)
 
 void UnaryFunction0DDouble___dealloc__(BPy_UnaryFunction0DDouble* self)
 {
-	delete self->uf0D_double;
+	if (self->uf0D_double)
+		delete self->uf0D_double;
 	UnaryFunction0D_Type.tp_dealloc((PyObject*)self);
 }
 

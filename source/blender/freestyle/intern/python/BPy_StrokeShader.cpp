@@ -266,7 +266,8 @@ int StrokeShader___init__(BPy_StrokeShader *self, PyObject *args, PyObject *kwds
 
 void StrokeShader___dealloc__(BPy_StrokeShader* self)
 {
-	delete self->ss;
+	if (self->ss)
+		delete self->ss;
     self->ob_type->tp_free((PyObject*)self);
 }
 

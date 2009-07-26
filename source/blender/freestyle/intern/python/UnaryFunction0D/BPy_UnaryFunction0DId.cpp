@@ -140,7 +140,8 @@ int UnaryFunction0DId___init__(BPy_UnaryFunction0DId* self)
 
 void UnaryFunction0DId___dealloc__(BPy_UnaryFunction0DId* self)
 {
-	delete self->uf0D_id;
+	if (self->uf0D_id)
+		delete self->uf0D_id;
 	UnaryFunction0D_Type.tp_dealloc((PyObject*)self);
 }
 
