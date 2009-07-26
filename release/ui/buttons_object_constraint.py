@@ -512,7 +512,6 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 			row.itemR(con, "axis_z")
 		
 class OBJECT_PT_constraints(ConstraintButtonsPanel):
-	__idname__ = "OBJECT_PT_constraints"
 	__label__ = "Constraints"
 	__context__ = "constraint"
 
@@ -531,7 +530,6 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
 			self.draw_constraint(con)
 
 class BONE_PT_constraints(ConstraintButtonsPanel):
-	__idname__ = "BONE_PT_constraints"
 	__label__ = "Constraints"
 	__context__ = "bone"
 

@@ -10,7 +10,6 @@ class BoneButtonsPanel(bpy.types.Panel):
 		return (context.bone or context.edit_bone)
 
 class BONE_PT_context_bone(BoneButtonsPanel):
-	__idname__ = "BONE_PT_context_bone"
 	__show_header__ = False
 
 	def draw(self, context):
@@ -24,7 +23,6 @@ class BONE_PT_context_bone(BoneButtonsPanel):
 		row.itemR(bone, "name", text="")
 
 class BONE_PT_transform(BoneButtonsPanel):
-	__idname__ = "BONE_PT_transform"
 	__label__ = "Transform"
 
 	def draw(self, context):
@@ -70,7 +68,6 @@ class BONE_PT_transform(BoneButtonsPanel):
 				col.row().itemR(pchan, "euler_rotation", text="")
 
 class BONE_PT_bone(BoneButtonsPanel):
-	__idname__ = "BONE_PT_bone"
 	__label__ = "Bone"
 
 
@@ -107,7 +104,6 @@ class BONE_PT_bone(BoneButtonsPanel):
 		sub.itemR(bone, "hidden", text="Hide")
 
 class BONE_PT_inverse_kinematics(BoneButtonsPanel):
-	__idname__ = "BONE_PT_inverse_kinematics"
 	__label__ = "Inverse Kinematics"
 	__default_closed__ = True
 	
@@ -177,7 +173,6 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel):
 		split.itemL()
 
 class BONE_PT_deform(BoneButtonsPanel):
-	__idname__ = "BONE_PT_deform"
 	__label__ = "Deform"
 	__default_closed__ = True
 

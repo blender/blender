@@ -10,7 +10,6 @@ class DataButtonsPanel(bpy.types.Panel):
 		return (context.camera != None)
 		
 class DATA_PT_context_camera(DataButtonsPanel):
-	__idname__ = "DATA_PT_context_camera"
 	__show_header__ = False
 	
 	def draw(self, context):
@@ -30,7 +29,6 @@ class DATA_PT_context_camera(DataButtonsPanel):
 			split.itemS()
 
 class DATA_PT_camera(DataButtonsPanel):
-	__idname__ = "DATA_PT_camera"
 	__label__ = "Lens"
 
 	def draw(self, context):
@@ -76,7 +74,6 @@ class DATA_PT_camera(DataButtonsPanel):
 		col.itemR(cam, "dof_distance", text="Distance")
 		
 class DATA_PT_camera_display(DataButtonsPanel):
-	__idname__ = "DATA_PT_camera_display"
 	__label__ = "Display"
 
 	def draw(self, context):

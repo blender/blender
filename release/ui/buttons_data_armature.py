@@ -10,7 +10,6 @@ class DataButtonsPanel(bpy.types.Panel):
 		return (context.armature != None)
 
 class DATA_PT_context_arm(DataButtonsPanel):
-	__idname__ = "DATA_PT_context_arm"
 	__show_header__ = False
 	
 	def draw(self, context):
@@ -30,7 +29,6 @@ class DATA_PT_context_arm(DataButtonsPanel):
 			split.itemS()
 
 class DATA_PT_skeleton(DataButtonsPanel):
-	__idname__ = "DATA_PT_skeleton"
 	__label__ = "Skeleton"
 	
 	def draw(self, context):
@@ -63,7 +61,6 @@ class DATA_PT_skeleton(DataButtonsPanel):
 			sub.template_layers(arm, "layer_protection")
 
 class DATA_PT_display(DataButtonsPanel):
-	__idname__ = "DATA_PT_display"
 	__label__ = "Display"
 	
 	def draw(self, context):
@@ -80,7 +77,6 @@ class DATA_PT_display(DataButtonsPanel):
 		sub.itemR(arm, "delay_deform", text="Delay Refresh")
 
 class DATA_PT_bone_groups(DataButtonsPanel):
-	__idname__ = "DATA_PT_bone_groups"
 	__label__ = "Bone Groups"
 	
 	def poll(self, context):
@@ -121,7 +117,6 @@ class DATA_PT_bone_groups(DataButtonsPanel):
 		#row.itemO("object.bone_group_deselect", text="Deselect")
 
 class DATA_PT_paths(DataButtonsPanel):
-	__idname__ = "DATA_PT_paths"
 	__label__ = "Paths"
 
 	def draw(self, context):
@@ -150,7 +145,6 @@ class DATA_PT_paths(DataButtonsPanel):
 		sub.itemR(arm, "paths_show_keyframe_numbers", text="Keyframe Numbers")
 
 class DATA_PT_ghost(DataButtonsPanel):
-	__idname__ = "DATA_PT_ghost"
 	__label__ = "Ghost"
 
 	def draw(self, context):

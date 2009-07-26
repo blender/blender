@@ -10,7 +10,6 @@ class DataButtonsPanel(bpy.types.Panel):
 		return (context.mesh != None)
 
 class DATA_PT_context_mesh(DataButtonsPanel):
-	__idname__ = "DATA_PT_context_mesh"
 	__show_header__ = False
 	
 	def draw(self, context):
@@ -30,7 +29,6 @@ class DATA_PT_context_mesh(DataButtonsPanel):
 			split.itemS()
 
 class DATA_PT_normals(DataButtonsPanel):
-	__idname__ = "DATA_PT_normals"
 	__label__ = "Normals"
 
 	def draw(self, context):
@@ -50,7 +48,6 @@ class DATA_PT_normals(DataButtonsPanel):
 		sub.itemR(mesh, "double_sided")
 
 class DATA_PT_vertex_groups(DataButtonsPanel):
-	__idname__ = "DATA_PT_vertex_groups"
 	__label__ = "Vertex Groups"
 	
 	def poll(self, context):
@@ -88,7 +85,6 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
 			layout.itemR(context.tool_settings, "vertex_group_weight", text="Weight")
 
 class DATA_PT_shape_keys(DataButtonsPanel):
-	__idname__ = "DATA_PT_shape_keys"
 	__label__ = "Shape Keys"
 	
 	def poll(self, context):
@@ -146,7 +142,6 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 			layout.enabled = False
 
 class DATA_PT_uv_texture(DataButtonsPanel):
-	__idname__ = "DATA_PT_uv_texture"
 	__label__ = "UV Texture"
 	
 	def draw(self, context):
@@ -167,7 +162,6 @@ class DATA_PT_uv_texture(DataButtonsPanel):
 			layout.itemR(lay, "name")
 
 class DATA_PT_vertex_colors(DataButtonsPanel):
-	__idname__ = "DATA_PT_vertex_colors"
 	__label__ = "Vertex Colors"
 	
 	def draw(self, context):
@@ -193,4 +187,3 @@ bpy.types.register(DATA_PT_vertex_groups)
 bpy.types.register(DATA_PT_shape_keys)
 bpy.types.register(DATA_PT_uv_texture)
 bpy.types.register(DATA_PT_vertex_colors)
-

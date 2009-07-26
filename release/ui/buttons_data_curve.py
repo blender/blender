@@ -10,7 +10,6 @@ class DataButtonsPanel(bpy.types.Panel):
 		return (context.object and context.object.type == 'CURVE' and context.curve)
 
 class DATA_PT_context_curve(DataButtonsPanel):
-	__idname__ = "DATA_PT_context_curve"
 	__show_header__ = False
 	
 	def draw(self, context):
@@ -31,7 +30,6 @@ class DATA_PT_context_curve(DataButtonsPanel):
 
 
 class DATA_PT_shape_curve(DataButtonsPanel):
-	__idname__ = "DATA_PT_shape_curve"
 	__label__ = "Shape"
 	
 	def draw(self, context):
@@ -70,7 +68,6 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 #			sub.itemR(curve, "vertex_normal_flip")
 
 class DATA_PT_geometry_curve(DataButtonsPanel):
-	__idname__ = "DATA_PT_geometry_curve"
 	__label__ = "Geometry "
 
 	def draw(self, context):
@@ -92,7 +89,6 @@ class DATA_PT_geometry_curve(DataButtonsPanel):
 		sub.itemR(curve, "bevel_object", icon="ICON_OUTLINER_OB_CURVE")
 	
 class DATA_PT_pathanim(DataButtonsPanel):
-	__idname__ = "DATA_PT_pathanim"
 	__label__ = "Path Animation"
 	
 	def draw_header(self, context):
@@ -117,7 +113,6 @@ class DATA_PT_pathanim(DataButtonsPanel):
 		sub.itemR(curve, "offset_path_distance", text="Offset Children")
 	
 class DATA_PT_current_curve(DataButtonsPanel):
-	__idname__ = "DATA_PT_current_curve"
 	__label__ = "Current Curve"
 
 	def draw(self, context):

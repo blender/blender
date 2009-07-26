@@ -19,7 +19,6 @@ class ParticleButtonsPanel(bpy.types.Panel):
 		return particle_panel_poll(context)
 
 class PARTICLE_PT_particles(ParticleButtonsPanel):
-	__idname__= "PARTICLE_PT_particles"
 	__show_header__ = False
 
 	def poll(self, context):
@@ -83,7 +82,6 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 					split.itemR(psys, "reactor_target_particle_system", text="Particle System")
 		
 class PARTICLE_PT_emission(ParticleButtonsPanel):
-	__idname__= "PARTICLE_PT_emission"
 	__label__ = "Emission"
 	
 	def poll(self, context):
@@ -135,7 +133,6 @@ class PARTICLE_PT_emission(ParticleButtonsPanel):
 				row.itemR(part, "grid_resolution")
 
 class PARTICLE_PT_cache(ParticleButtonsPanel):
-	__idname__= "PARTICLE_PT_cache"
 	__label__ = "Cache"
 	__default_closed__ = True
 	
@@ -216,7 +213,6 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 		#row.itemR(cache, "end_frame")
 
 class PARTICLE_PT_initial(ParticleButtonsPanel):
-	__idname__= "PARTICLE_PT_initial"
 	__label__ = "Velocity"
 	
 	def poll(self, context):
@@ -283,7 +279,6 @@ class PARTICLE_PT_initial(ParticleButtonsPanel):
 		sub.itemR(part, "angular_velocity_factor", text="")
 		
 class PARTICLE_PT_physics(ParticleButtonsPanel):
-	__idname__= "PARTICLE_PT_physics"
 	__label__ = "Physics"
 	
 	def poll(self, context):
@@ -427,7 +422,6 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
 					layout.itemR(key, "mode", expand=True)
 
 class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
-	__idname__ = "PARTICLE_PT_boidbrain"
 	__label__ = "Boid Brain"
 
 	def poll(self, context):
@@ -522,7 +516,6 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
 		
 
 class PARTICLE_PT_render(ParticleButtonsPanel):
-	__idname__= "PARTICLE_PT_render"
 	__label__ = "Render"
 	
 	def poll(self, context):
@@ -664,7 +657,6 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
 				col.itemL(text="")
 				
 class PARTICLE_PT_draw(ParticleButtonsPanel):
-	__idname__= "PARTICLE_PT_draw"
 	__label__ = "Display"
 	__default_closed__ = True
 	
@@ -721,7 +713,6 @@ class PARTICLE_PT_draw(ParticleButtonsPanel):
 			#subcol.itemL(text="Override material color")
 
 class PARTICLE_PT_children(ParticleButtonsPanel):
-	__idname__= "PARTICLE_PT_children"
 	__label__ = "Children"
 	__default_closed__ = True
 
@@ -798,7 +789,6 @@ class PARTICLE_PT_children(ParticleButtonsPanel):
 		sub.itemR(part, "kink_shape", slider=True)
 
 class PARTICLE_PT_effectors(ParticleButtonsPanel):
-	__idname__= "PARTICLE_PT_effectors"
 	__label__ = "Effectors"
 	__default_closed__ = True
 	
@@ -824,7 +814,6 @@ class PARTICLE_PT_effectors(ParticleButtonsPanel):
 		layout.itemR(part, "eweight_lennardjones", slider=True)
 		
 class PARTICLE_PT_vertexgroups(ParticleButtonsPanel):
-	__idname__= "PARTICLE_PT_vertexgroups"
 	__label__ = "Vertexgroups"
 	__default_closed__ = True
 

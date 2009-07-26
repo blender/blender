@@ -12,7 +12,6 @@ class PhysicButtonsPanel(bpy.types.Panel):
 		return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
 		
 class PHYSICS_PT_cloth(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_cloth"
 	__label__ = "Cloth"
 
 	def draw(self, context):
@@ -76,7 +75,6 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
 			"""
 
 class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
-	__idname__= "PHYSICS_PT_cloth_cache"
 	__label__ = "Cloth Cache"
 	__default_closed__ = True
 
@@ -126,7 +124,6 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
 		layout.itemO("ptcache.bake_all", text="Update All Dynamics to current frame")
 		
 class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_clothcollision"
 	__label__ = "Cloth Collision"
 	__default_closed__ = True
 
@@ -159,7 +156,6 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
 		col.itemR(cloth, "self_min_distance", slider=True, text="Distance")
 
 class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_stiffness"
 	__label__ = "Cloth Stiffness Scaling"
 	__default_closed__ = True
 
@@ -197,4 +193,3 @@ bpy.types.register(PHYSICS_PT_cloth)
 bpy.types.register(PHYSICS_PT_cloth_cache)
 bpy.types.register(PHYSICS_PT_cloth_collision)
 bpy.types.register(PHYSICS_PT_cloth_stiffness)
-

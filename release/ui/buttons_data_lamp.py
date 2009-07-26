@@ -20,7 +20,6 @@ class DATA_PT_preview(DataButtonsPanel):
 		layout.template_preview(lamp)
 	
 class DATA_PT_context_lamp(DataButtonsPanel):
-	__idname__ = "DATA_PT_context_lamp"
 	__show_header__ = False
 	
 	def draw(self, context):
@@ -40,7 +39,6 @@ class DATA_PT_context_lamp(DataButtonsPanel):
 			split.itemS()
 
 class DATA_PT_lamp(DataButtonsPanel):
-	__idname__ = "DATA_PT_lamp"
 	__label__ = "Lamp"
 
 	def draw(self, context):
@@ -104,7 +102,6 @@ class DATA_PT_lamp(DataButtonsPanel):
 			sub.itemR(lamp, "gamma", text="Value")
 				
 class DATA_PT_sunsky(DataButtonsPanel):
-	__idname__ = "DATA_PT_sunsky"
 	__label__ = "Sun/Sky"
 	
 	def poll(self, context):
@@ -170,7 +167,6 @@ class DATA_PT_sunsky(DataButtonsPanel):
 		sub.itemR(lamp, "atmosphere_extinction", slider=True ,text="Extinction")
 		
 class DATA_PT_shadow(DataButtonsPanel):
-	__idname__ = "DATA_PT_shadow"
 	__label__ = "Shadow"
 	
 	def poll(self, context):
@@ -263,7 +259,6 @@ class DATA_PT_shadow(DataButtonsPanel):
 				row.itemR(lamp, "shadow_buffer_clip_end", text=" Clip End")
 
 class DATA_PT_spot(DataButtonsPanel):
-	__idname__ = "DATA_PT_spot"
 	__label__ = "Spot"
 	
 	def poll(self, context):
@@ -290,7 +285,6 @@ class DATA_PT_spot(DataButtonsPanel):
 			colsub.itemR(lamp, "halo_step", text="Step")
 
 class DATA_PT_falloff_curve(DataButtonsPanel):
-	__idname__ = "DATA_PT_falloff_curve"
 	__label__ = "Falloff Curve"
 	__default_closed__ = True
 	

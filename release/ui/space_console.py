@@ -6,7 +6,6 @@ del bpy_ops
 
 class CONSOLE_HT_header(bpy.types.Header):
 	__space_type__ = "CONSOLE"
-	__idname__ = "CONSOLE_HT_header"
 
 	def draw(self, context):
 		sc = context.space_data

@@ -7,7 +7,6 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "modifier"
 	
 class DATA_PT_modifiers(DataButtonsPanel):
-	__idname__ = "DATA_PT_modifiers"
 	__label__ = "Modifiers"
 
 	def draw(self, context):

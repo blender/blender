@@ -3,7 +3,6 @@ import bpy
 
 class INFO_HT_header(bpy.types.Header):
 	__space_type__ = "USER_PREFERENCES"
-	__idname__ = "INFO_HT_header"
 
 	def draw(self, context):
 		st = context.space_data

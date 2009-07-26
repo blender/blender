@@ -7,7 +7,6 @@ class ObjectButtonsPanel(bpy.types.Panel):
 	__context__ = "object"
 
 class OBJECT_PT_context_object(ObjectButtonsPanel):
-	__idname__ = "OBJECT_PT_context_object"
 	__show_header__ = False
 
 	def draw(self, context):
@@ -19,7 +18,6 @@ class OBJECT_PT_context_object(ObjectButtonsPanel):
 		row.itemR(ob, "name", text="")
 
 class OBJECT_PT_transform(ObjectButtonsPanel):
-	__idname__ = "OBJECT_PT_transform"
 	__label__ = "Transform"
 
 	def draw(self, context):
@@ -32,7 +30,6 @@ class OBJECT_PT_transform(ObjectButtonsPanel):
 		row.column().itemR(ob, "scale")
 
 class OBJECT_PT_relations(ObjectButtonsPanel):
-	__idname__ = "OBJECT_PT_relations"
 	__label__ = "Relations"
 
 	def draw(self, context):
@@ -57,7 +54,6 @@ class OBJECT_PT_relations(ObjectButtonsPanel):
 		sub.active = parent != None
 
 class OBJECT_PT_groups(ObjectButtonsPanel):
-	__idname__ = "OBJECT_PT_groups"
 	__label__ = "Groups"
 
 	def draw(self, context):
@@ -83,7 +79,6 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 				split.column().itemR(group, "dupli_offset", text="")
 
 class OBJECT_PT_display(ObjectButtonsPanel):
-	__idname__ = "OBJECT_PT_display"
 	__label__ = "Display"
 
 	def draw(self, context):
@@ -103,7 +98,6 @@ class OBJECT_PT_display(ObjectButtonsPanel):
 		flow.itemR(ob, "draw_transparent", text="Transparency")
 
 class OBJECT_PT_duplication(ObjectButtonsPanel):
-	__idname__ = "OBJECT_PT_duplication"
 	__label__ = "Duplication"
 
 	def draw(self, context):
@@ -137,7 +131,6 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
 			layout.itemR(ob, "dupli_group", text="Group")
 
 class OBJECT_PT_animation(ObjectButtonsPanel):
-	__idname__ = "OBJECT_PT_animation"
 	__label__ = "Animation"
 
 	def draw(self, context):

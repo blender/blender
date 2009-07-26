@@ -11,7 +11,6 @@ class PhysicButtonsPanel(bpy.types.Panel):
 		return (context.object != None) and (not rd.use_game_engine)
 		
 class PHYSICS_PT_field(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_field"
 	__label__ = "Force Fields"
 	__default_closed__ = True
 
@@ -166,7 +165,6 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 				#layout.itemR(field, "surface")
 
 class PHYSICS_PT_collision(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_collision"
 	__label__ = "Collision"
 	__default_closed__ = True
 	

@@ -12,7 +12,6 @@ class PhysicButtonsPanel(bpy.types.Panel):
 		return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
 		
 class PHYSICS_PT_fluid(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_fluid"
 	__label__ = "Fluid"
 
 	def draw(self, context):
@@ -168,7 +167,6 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 				col.itemR(fluid, "velocity_radius", text="Radius")
 
 class PHYSICS_PT_domain_gravity(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_domain_gravity"
 	__label__ = "Domain World"
 	__default_closed__ = True
 	
@@ -212,7 +210,6 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel):
 		col.itemR(fluid, "compressibility", slider=True)
 	
 class PHYSICS_PT_domain_boundary(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_domain_boundary"
 	__label__ = "Domain Boundary"
 	__default_closed__ = True
 	
@@ -243,7 +240,6 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel):
 		col.itemR(fluid, "surface_subdivisions", text="Subdivisions")	
 		
 class PHYSICS_PT_domain_particles(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_domain_particles"
 	__label__ = "Domain Particles"
 	__default_closed__ = True
 	

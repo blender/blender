@@ -10,7 +10,6 @@ class DataButtonsPanel(bpy.types.Panel):
 		return (context.object and context.object.type == 'TEXT' and context.curve)
 
 class DATA_PT_context_text(DataButtonsPanel):
-	__idname__ = "DATA_PT_context_text"
 	__show_header__ = False
 
 	def draw(self, context):
@@ -30,7 +29,6 @@ class DATA_PT_context_text(DataButtonsPanel):
 			split.itemS()
 
 class DATA_PT_shape_text(DataButtonsPanel):
-	__idname__ = "DATA_PT_shape_text"
 	__label__ = "Shape Text"
 
 	def draw(self, context):
@@ -65,7 +63,6 @@ class DATA_PT_shape_text(DataButtonsPanel):
 			sub.itemR(curve, "fast")
 
 class DATA_PT_geometry_text(DataButtonsPanel):
-	__idname__ = "DATA_PT_geometry_text"
 	__label__ = "Geometry"
 
 	def draw(self, context):
@@ -87,7 +84,6 @@ class DATA_PT_geometry_text(DataButtonsPanel):
 		sub.itemR(curve, "bevel_object")
 
 class DATA_PT_font(DataButtonsPanel):
-	__idname__ = "DATA_PT_font"
 	__label__ = "Font"
 
 	def draw(self, context):
@@ -118,7 +114,6 @@ class DATA_PT_font(DataButtonsPanel):
 	#	sub.itemR(text, "edit_format")
 
 class DATA_PT_paragraph(DataButtonsPanel):
-	__idname__ = "DATA_PT_paragraph"
 	__label__ = "Paragraph"
 
 	def draw(self, context):
@@ -144,7 +139,6 @@ class DATA_PT_paragraph(DataButtonsPanel):
 
 """		
 class DATA_PT_textboxes(DataButtonsPanel):
-		__idname__ = "DATA_PT_textboxes"
 		__label__ = "Text Boxes"
 
 		def draw(self, context):
@@ -158,4 +152,3 @@ bpy.types.register(DATA_PT_geometry_text)
 bpy.types.register(DATA_PT_font)
 bpy.types.register(DATA_PT_paragraph)
 #bpy.types.register(DATA_PT_textboxes)
-

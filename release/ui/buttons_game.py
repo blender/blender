@@ -12,7 +12,6 @@ class PhysicsButtonsPanel(bpy.types.Panel):
 		return ob and ob.game and (rd.engine == 'BLENDER_GAME')
 
 class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
-	__idname__ = "PHYSICS_PT_game_physics"
 	__label__ = "Physics"
 
 	def draw(self, context):
@@ -77,7 +76,6 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 		sub.itemR(game, "lock_z_rot_axis", text="Z")
 
 class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel):
-	__idname__ = "PHYSICS_PT_game_collision_bounds"
 	__label__ = "Collision Bounds"
 
 	def draw_header(self, context):
