@@ -374,7 +374,8 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 			ls[1] = efa->v2->tmp.p;
 			ls[2] = efa->v3->tmp.p;
 			
-			/*ensue correct winding*/
+			/*ensue correct winding.  I believe this is
+			  analogous to bubble sort on three elements.*/
 			if (BMINDEX_GET(ls[0]) > BMINDEX_GET(ls[1])) {
 				SWAP(BMLoop*, ls[0], ls[1]);
 			}

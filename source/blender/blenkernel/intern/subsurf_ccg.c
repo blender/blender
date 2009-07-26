@@ -2652,7 +2652,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 
 			for(x = 1; x < gridFaces; x++) {
 				float w[4];
-#if 1 //BMESH_TODO
+#if 0 //BMESH_TODO
 				w[prevS]  = weight[x][0][0];
 				w[S]      = weight[x][0][1];
 				w[nextS]  = weight[x][0][2];
@@ -2673,7 +2673,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 			for(y = 1; y < gridFaces; y++) {
 				for(x = 1; x < gridFaces; x++) {
 					float w[4];
-#if 1 //BMESH_TODO
+#if 0 //BMESH_TODO
 					w[prevS]  = weight[y * gridFaces + x][0][0];
 					w[S]      = weight[y * gridFaces + x][0][1];
 					w[nextS]  = weight[y * gridFaces + x][0][2];
