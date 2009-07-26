@@ -11,7 +11,7 @@ class DataButtonsPanel(bpy.types.Panel):
 	
 class DATA_PT_context_lattice(DataButtonsPanel):
 	__idname__ = "DATA_PT_context_lattice"
-	__no_header__ = True
+	__show_header__ = False
 	
 	def draw(self, context):
 		layout = self.layout

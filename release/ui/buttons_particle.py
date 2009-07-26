@@ -20,7 +20,7 @@ class ParticleButtonsPanel(bpy.types.Panel):
 
 class PARTICLE_PT_particles(ParticleButtonsPanel):
 	__idname__= "PARTICLE_PT_particles"
-	__no_header__ = True
+	__show_header__ = False
 
 	def poll(self, context):
 		return (context.particle_system or context.object)

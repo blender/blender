@@ -34,7 +34,7 @@ class TEXTURE_PT_preview(TextureButtonsPanel):
 
 class TEXTURE_PT_context_texture(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_context_texture"
-	__no_header__ = True
+	__show_header__ = False
 
 	def poll(self, context):
 		return (context.material or context.world or context.lamp or context.brush or context.texture)

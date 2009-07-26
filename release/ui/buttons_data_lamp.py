@@ -21,7 +21,7 @@ class DATA_PT_preview(DataButtonsPanel):
 	
 class DATA_PT_context_lamp(DataButtonsPanel):
 	__idname__ = "DATA_PT_context_lamp"
-	__no_header__ = True
+	__show_header__ = False
 	
 	def draw(self, context):
 		layout = self.layout

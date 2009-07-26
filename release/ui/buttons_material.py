@@ -21,7 +21,7 @@ class MATERIAL_PT_preview(MaterialButtonsPanel):
 		
 class MATERIAL_PT_context_material(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_context_material"
-	__no_header__ = True
+	__show_header__ = False
 
 	def poll(self, context):
 		return (context.object)

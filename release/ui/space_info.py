@@ -171,7 +171,7 @@ class INFO_MT_help(bpy.types.Menu):
 
 class INFO_PT_tabs(bpy.types.Panel):
 	__space_type__ = "USER_PREFERENCES"
-	__no_header__ = True
+	__show_header__ = False
 
 	def draw(self, context):
 		layout = self.layout
@@ -182,7 +182,7 @@ class INFO_PT_tabs(bpy.types.Panel):
 class INFO_PT_view(bpy.types.Panel):
 	__space_type__ = "USER_PREFERENCES"
 	__label__ = "View"
-	__no_header__ = True
+	__show_header__ = False
 
 	def poll(self, context):
 		userpref = context.user_preferences
@@ -287,7 +287,7 @@ class INFO_PT_view(bpy.types.Panel):
 class INFO_PT_edit(bpy.types.Panel):
 	__space_type__ = "USER_PREFERENCES"
 	__label__ = "Edit"
-	__no_header__ = True
+	__show_header__ = False
 
 	def poll(self, context):
 		userpref = context.user_preferences
@@ -385,7 +385,7 @@ class INFO_PT_edit(bpy.types.Panel):
 class INFO_PT_system(bpy.types.Panel):
 	__space_type__ = "USER_PREFERENCES"
 	__label__ = "System"
-	__no_header__ = True
+	__show_header__ = False
 
 	def poll(self, context):
 		userpref = context.user_preferences
@@ -451,7 +451,7 @@ class INFO_PT_system(bpy.types.Panel):
 class INFO_PT_filepaths(bpy.types.Panel):
 	__space_type__ = "USER_PREFERENCES"
 	__label__ = "File Paths"
-	__no_header__ = True
+	__show_header__ = False
 
 	def poll(self, context):
 		userpref = context.user_preferences
@@ -510,7 +510,7 @@ class INFO_PT_filepaths(bpy.types.Panel):
 class INFO_PT_language(bpy.types.Panel):
 	__space_type__ = "USER_PREFERENCES"
 	__label__ = "Language"
-	__no_header__ = True
+	__show_header__ = False
 
 	def poll(self, context):
 		userpref = context.user_preferences
@@ -533,7 +533,7 @@ class INFO_PT_language(bpy.types.Panel):
 class INFO_PT_bottombar(bpy.types.Panel):
 	__space_type__ = "USER_PREFERENCES"
 	__label__ = " "
-	__no_header__ = True
+	__show_header__ = False
 
 	def draw(self, context):
 		layout = self.layout

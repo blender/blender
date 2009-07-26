@@ -205,7 +205,7 @@ class WorldButtonsPanel(bpy.types.Panel):
 		return (rd.engine == 'BLENDER_GAME')
 
 class WORLD_PT_game_context_world(WorldButtonsPanel):
-	__no_header__ = True
+	__show_header__ = False
 
 	def poll(self, context):
 		rd = context.scene.render_data

@@ -486,8 +486,19 @@ class VIEW3D_PT_tools_texture_paint(View3DPanel):
 
 	def draw(self, context):
 		layout = self.layout
-
-		layout.itemL(text="Nothing yet")
+		ipaint = context.tool_settings.image_paint
+		
+		col = layout.column()
+		col.itemR(ipaint, "use_projection")
+		col.itemR(ipaint, "use_occlude")
+		col.itemR(ipaint, "use_backface_cull")
+		col.itemR(ipaint, "use_normal_falloff")
+		col.itemR(ipaint, "invert_stencil")
+		col.itemR(ipaint, "use_clone_layer")
+		col.itemR(ipaint, "use_stencil_layer")
+		
+		col.itemR(ipaint, "seam_bleed")
+		col.itemR(ipaint, "normal_angle")
 		
 # ********** default tools for particle mode ****************
 
