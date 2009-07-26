@@ -642,7 +642,8 @@ enum FileSortTypeE {
 #define FILE_BOOKMARKS		512
 
 /* files in filesel list: 2=ACTIVE  */
-#define HILITE				1
+#define EDITING				1
+#define ACTIVE				2
 #define BLENDERFILE			4
 #define PSXFILE				8
 #define IMAGEFILE			16

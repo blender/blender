@@ -272,7 +272,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	float col[3];
 
 	/* Needed, because filelist is not initialized on loading */
-	if (!sfile->files)
+	if (!sfile->files || filelist_empty(sfile->files))
 		file_refresh(C, NULL);
 
 	layout = ED_fileselect_get_layout(sfile, ar);
@@ -346,6 +346,7 @@ void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_filenum);
 	WM_operatortype_append(FILE_OT_directory_new);
 	WM_operatortype_append(FILE_OT_delete);
+	WM_operatortype_append(FILE_OT_rename);
 }
 
 /* NOTE: do not add .blend file reading on this level */
@@ -360,7 +361,7 @@ void file_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "FILE_OT_hidedot", HKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_previous", BACKSPACEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_next", BACKSPACEKEY, KM_PRESS, KM_SHIFT, 0);
-	/* WM_keymap_add_item(keymap, "FILE_OT_directory_new", IKEY, KM_PRESS, 0, 0); */ /* XXX needs button */
+	WM_keymap_add_item(keymap, "FILE_OT_directory_new", IKEY, KM_PRESS, 0, 0);  /* XXX needs button */
 	WM_keymap_add_item(keymap, "FILE_OT_delete", XKEY, KM_PRESS, 0, 0);
 
 	/* keys for main area */
@@ -368,6 +369,7 @@ void file_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "FILE_OT_select", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "FILE_OT_rename", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_highlight", MOUSEMOVE, KM_ANY, 0, 0);
 	WM_keymap_add_item(keymap, "FILE_OT_loadimages", TIMER1, KM_ANY, KM_ANY, 0);
 	kmi = WM_keymap_add_item(keymap, "FILE_OT_filenum", PADPLUSKEY, KM_PRESS, 0, 0);

@@ -77,7 +77,6 @@ struct direntry{
 #define SELECT			1
 #define HIDDEN			1
 #define FIRST			1
-#define ACTIVE			2
 #define DESELECT		0
 #define NOT_YET			0
 #define VISIBLE			0

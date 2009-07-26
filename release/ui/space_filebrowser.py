@@ -48,6 +48,7 @@ class FILEBROWSER_MT_directory(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 
+		layout.itemO("file.directory_new", text="New Directory", icon='ICON_NEWFOLDER')
 		layout.itemO("file.refresh", text="Refresh", icon='ICON_FILE_REFRESH')
 		layout.itemO("file.parent", text="Parent", icon='ICON_FILE_PARENT')
 		

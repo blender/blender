@@ -870,6 +870,37 @@ void FILE_OT_filenum(struct wmOperatorType *ot)
 	RNA_def_int(ot->srna, "increment", 1, 0, 100, "Increment", "", 0,100);
 }
 
+int file_rename_exec(bContext *C, wmOperator *op)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	
+	if(sfile->params) {
+		int idx = sfile->params->active_file;
+		int numfiles = filelist_numfiles(sfile->files);
+		if ( (0<=idx) && (idx<numfiles) ) {
+			struct direntry *file= filelist_file(sfile->files, idx);
+			file->flags |= EDITING;
+		}
+		ED_area_tag_redraw(sa);
+	}
+	
+	return OPERATOR_FINISHED;
+
+}
+
+void FILE_OT_rename(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Rename File or Directory";
+	ot->idname= "FILE_OT_rename";
+	
+	/* api callbacks */
+	ot->exec= file_rename_exec;
+	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
+
+}
+
 int file_delete_poll(bContext *C)
 {
 	int poll = ED_operator_file_active(C);
