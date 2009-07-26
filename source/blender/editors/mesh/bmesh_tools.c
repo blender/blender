@@ -890,7 +890,7 @@ void MESH_OT_select_all_toggle(wmOperatorType *ot)
 static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ViewContext vc;
-	BMVert *eve, *v1;
+	BMVert *v1;
 	BMIter iter;
 	float min[3], max[3];
 	int done= 0;
@@ -1480,3 +1480,140 @@ void MESH_OT_flip_normals(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+#define DIRECTION_CW	1
+#define DIRECTION_CCW	2
+
+static const EnumPropertyItem direction_items[]= {
+	{DIRECTION_CW, "CW", 0, "Clockwise", ""},
+	{DIRECTION_CCW, "CCW", 0, "Counter Clockwise", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+/* only accepts 1 selected edge, or 2 selected faces */
+static int edge_rotate_selected(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	BMOperator bmop;
+	BMOIter siter;
+	BMEdge *eed;
+	BMFace *efa;
+	BMIter iter;
+	int ccw = RNA_int_get(op->ptr, "direction") == 1; // direction == 2 when clockwise and ==1 for counter CW.
+	short edgeCount = 0;
+	
+	if (!(em->bm->totfacesel == 2 || em->bm->totedgesel == 1)) {
+		BKE_report(op->reports, RPT_ERROR, "Select one edge or two adjacent faces");
+		return OPERATOR_CANCELLED;
+	}
+
+	/*first see if we have two adjacent faces*/
+	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		if (BM_Edge_FaceCount(eed) == 2) {
+			if (BM_TestHFlag(eed->loop->f, BM_SELECT) && BM_TestHFlag(((BMLoop*)eed->loop->radial.next->data)->f, BM_SELECT))
+				break;
+		}
+	}
+	
+	/*ok, we don't have two adjacent faces, but we do have two selected ones.
+	  that's an error condition.*/
+	if (!eed && em->bm->totfacesel == 2) {
+		BKE_report(op->reports, RPT_ERROR, "Select one edge or two adjacent faces");
+		return OPERATOR_CANCELLED;
+	}
+
+	if (!eed) {
+		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+			if (BM_TestHFlag(eed, BM_SELECT))
+				break;
+		}
+	}
+
+	/*this should never happen*/
+	if (!eed)
+		return OPERATOR_CANCELLED;
+	
+	EDBM_InitOpf(em, &bmop, op, "edgerotate edges=%e ccw=%d", eed, ccw);
+	BMO_Exec_Op(em->bm, &bmop);
+
+	BMO_ITER(eed, &siter, em->bm, &bmop, "edgeout", BM_EDGE) {
+		BM_Select(em->bm, eed, 1);
+	}
+
+	if (!EDBM_FinishOp(em, &bmop, op, 1))
+		return OPERATOR_CANCELLED;
+
+#if 0
+	/*clear new flag for new edges, count selected edges */
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		eed->f1= 0;
+		eed->f2 &= ~2;
+		if(eed->f & SELECT) edgeCount++;
+	}
+
+	if(edgeCount>1) {
+		/* more selected edges, check faces */
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->f & SELECT) {
+				efa->e1->f1++;
+				efa->e2->f1++;
+				efa->e3->f1++;
+				if(efa->e4) efa->e4->f1++;
+			}
+		}
+		edgeCount= 0;
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if(eed->f1==2) edgeCount++;
+		}
+		if(edgeCount==1) {
+			for(eed= em->edges.first; eed; eed= eed->next) {
+				if(eed->f1==2) {
+					edge_rotate(em, op, eed,dir);
+					break;
+				}
+			}
+		}
+		else
+		{
+			BKE_report(op->reports, RPT_ERROR, "Select one edge or two adjacent faces");
+			BKE_mesh_end_editmesh(obedit->data, em);
+			return OPERATOR_CANCELLED;
+		}
+	}
+	else if(edgeCount==1) {
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if(eed->f & SELECT) {
+				EM_select_edge(eed, 0);
+				edge_rotate(em, op, eed,dir);
+				break;
+			}
+		}
+	}
+	else  {
+		BKE_report(op->reports, RPT_ERROR, "Select one edge or two adjacent faces");
+		BKE_mesh_end_editmesh(obedit->data, em);
+		return OPERATOR_CANCELLED;
+	}
+#endif
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_edge_rotate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Rotate Selected Edge";
+	ot->idname= "MESH_OT_edge_rotate";
+
+	/* api callbacks */
+	ot->exec= edge_rotate_selected;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "direction", "direction to rotate edge around.");
+}

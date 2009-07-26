@@ -1200,6 +1200,17 @@ int BMO_VInitOpf(BMesh *bm, BMOperator *op, char *fmt, va_list vlist)
 				state = 1;
 				break;
 			}
+			case 'e': {
+				BMHeader *ele = va_arg(vlist, void*);
+				BMOpSlot *slot = BMO_GetSlot(op, slotname);
+
+				slot->data.buf = BLI_memarena_alloc(op->arena, sizeof(void*)*4);
+				slot->len = 1;
+				*((void**)slot->data.buf) = ele;
+
+				state = 1;
+				break;
+			}
 			case 's': {
 				BMOperator *op2 = va_arg(vlist, void*);
 				char *slotname2 = va_arg(vlist, char*);

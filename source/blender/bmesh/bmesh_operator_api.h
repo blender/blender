@@ -79,7 +79,7 @@ typedef struct BMOpSlot{
 		void *buf;
 		GHash *ghash;
 	} data;
-}BMOpSlot;
+} BMOpSlot;
 
 #define BMOP_MAX_SLOTS			16 /*way more than probably needed*/
 
@@ -158,14 +158,15 @@ int BMO_CountFlag(struct BMesh *bm, int flag, int type);
      %f - put float in slot
      %p - put pointer in slot
      %h[f/e/v] - put elements with a header flag in slot.
-          the letters after %h define which element types to use,
-	  so e.g. %hf will do faces, %hfe will do faces and edges,
-	  %hv will do verts, etc.  must pass in at least one
-	  element type letter.
+                  the letters after %h define which element types to use,
+	          so e.g. %hf will do faces, %hfe will do faces and edges,
+	          %hv will do verts, etc.  must pass in at least one
+	          element type letter.
      %f[f/e/v] - same as %h, except it deals with tool flags instead of
                   header flags.
      %a[f/e/v] - pass all elements (of types specified by f/e/v) to the
-                 slot.
+                  slot.
+     %e        - pass in a single element.
      %v - pointer to a float vector of length 3.
      %m[3/4] - matrix, 3/4 refers to the matrix size, 3 or 4.  the
                corrusponding argument must be a pointer to

@@ -4,6 +4,16 @@
 
 /*do not rename any operator or slot names! otherwise you must go 
   through the code and find all references to them!*/
+BMOpDefine def_edgerotate = {
+	"edgerotate",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"},
+	 {BMOP_OPSLOT_ELEMENT_BUF, "edgeout"}, //newly spun edges
+   	 {BMOP_OPSLOT_INT, "ccw"}, //rotate edge counter-clockwise if true, othewise clockwise
+	{0} /*null-terminating sentinel*/,
+	},
+	bmesh_edgerotate_exec,
+	0
+};
 
 
 BMOpDefine def_reversefaces = {
@@ -358,6 +368,7 @@ BMOpDefine *opdefines[] = {
 	&def_mirror,
 	&def_edgesplit,
 	&def_reversefaces,
+	&def_edgerotate,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

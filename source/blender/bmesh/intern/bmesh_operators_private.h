@@ -37,5 +37,6 @@ void bmesh_finddoubles_exec(BMesh *bm, BMOperator *op);
 void bmesh_mirror_exec(BMesh *bm, BMOperator *op);
 void esplit_exec(BMesh *bm, BMOperator *op);
 void bmesh_reversefaces_exec(BMesh *bm, BMOperator *op);
+void bmesh_edgerotate_exec(BMesh *bm, BMOperator *op);
 
 #endif

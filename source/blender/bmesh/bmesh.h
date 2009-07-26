@@ -290,6 +290,9 @@ struct BMVert  *BM_Split_Edge_Multi(struct BMesh *bm, struct BMEdge *e,
   be removed in the future.*/
 BMEdge *BM_Connect_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **nf);
 
+/*rotates an edge topologically, either clockwise (if ccw=0) or counterclockwise
+  (if ccw is 1).*/
+BMEdge *BM_Rotate_Edge(BMesh *bm, BMEdge *e, int ccw);
 
 /*updates a face normal*/
 void BM_Face_UpdateNormal(BMesh *bm, BMFace *f);
@@ -300,6 +303,7 @@ void BM_Edge_UpdateNormals(BMesh *bm, BMEdge *e);
 /*update a vert normal (but not the faces incident on it)*/
 void BM_Vert_UpdateNormal(BMesh *bm, BMVert *v);
 
+void BM_flip_normal(BMesh *bm, BMFace *f);
 
 /*dissolves all faces around a vert, and removes it.*/
 int BM_Dissolve_Disk(BMesh *bm, BMVert *v);

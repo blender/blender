@@ -415,3 +415,53 @@ int BM_Validate_Face(BMesh *bm, BMFace *face, FILE *err)
 	V_FREE(verts);
 	return ret;
 }
+
+/*
+            BM Rotate Edge
+
+    Spins an edge topologically, either counter-clockwise or clockwise.
+    If ccw is true, the edge is spun counter-clockwise, otherwise it is
+    spun clockwise.
+    
+    Returns the spun edge.  Note that this works by dissolving the edge
+    then re-creating it, so the returned edge won't have the same pointer
+    address as the original one.
+
+    Returns NULL on error (e.g., if the edge isn't surrounded by exactly
+    two faces).
+*/
+BMEdge *BM_Rotate_Edge(BMesh *bm, BMEdge *e, int ccw)
+{
+	BMVert *v1, *v2;
+	BMLoop *l, *l1, *l2, *nl;
+	BMFace *f;
+	BMIter liter;
+
+	v1 = e->v1;
+	v2 = e->v2;
+
+	if (BM_Edge_FaceCount(e) != 2)
+		return NULL;
+
+	f = BM_Join_Faces(bm, e->loop->f, ((BMLoop*)e->loop->radial.next->data)->f, e);
+	
+	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+		if (l->v == v1)
+			l1 = l;
+		else if (l->v == v2)
+			l2 = l;
+	}
+	
+	if (ccw) {
+		l1 = (BMLoop*) l1->head.prev;
+		l2 = (BMLoop*) l2->head.prev;
+	} else {
+		l1 = (BMLoop*) l1->head.next;
+		l2 = (BMLoop*) l2->head.next;
+	}
+
+	if (!BM_Split_Face(bm, f, l1->v, l2->v, &nl, NULL))
+		return NULL;
+
+	return nl->e;
+}

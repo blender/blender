@@ -57,8 +57,6 @@ void bmesh_transform_exec(BMesh *bm, BMOperator *op) {
   sure the transform op is working, since initially
   only this one will be used.*/
 void bmesh_translate_exec(BMesh *bm, BMOperator *op) {
-	BMOIter iter;
-	BMVert *v;
 	float mat[4][4], vec[3];
 	
 	BMO_Get_Vec(op, "vec", vec);
@@ -70,9 +68,7 @@ void bmesh_translate_exec(BMesh *bm, BMOperator *op) {
 }
 
 void bmesh_rotate_exec(BMesh *bm, BMOperator *op) {
-	BMOIter iter;
-	BMVert *v;
-	float mat[4][4], vec[3];
+	float vec[3];
 	
 	BMO_Get_Vec(op, "cent", vec);
 	
@@ -89,10 +85,27 @@ void bmesh_rotate_exec(BMesh *bm, BMOperator *op) {
 }
 
 void bmesh_reversefaces_exec(BMesh *bm, BMOperator *op) {
-	BMOIter iter;
+	BMOIter siter;
 	BMFace *f;
 
-	BMO_ITER(f, &iter, bm, op, "faces", BM_FACE) {
+	BMO_ITER(f, &siter, bm, op, "faces", BM_FACE) {
 		BM_flip_normal(bm, f);
 	}
+}
+
+void bmesh_edgerotate_exec(BMesh *bm, BMOperator *op) {
+	BMOIter siter;
+	BMEdge *e, *e2;
+	int ccw = BMO_Get_Int(op, "ccw");
+
+	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
+		if (!(e2 = BM_Rotate_Edge(bm, e, ccw))) {
+			BMO_RaiseError(bm, op, BMERR_INVALID_SELECTION, "Could not rotate edge");
+			return;
+		}
+
+		BMO_SetFlag(bm, e2, 1);
+	}
+
+	BMO_Flag_To_Slot(bm, op, "edgeout", 1, BM_EDGE);
 }

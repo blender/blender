@@ -3328,13 +3328,6 @@ void edge_flip(EditMesh *em)
 	MEM_freeN(efaar);
 }
 
-#define DIRECTION_CW	1
-#define DIRECTION_CCW	2
-
-static const EnumPropertyItem direction_items[]= {
-	{DIRECTION_CW, "CW", 0, "Clockwise", ""},
-	{DIRECTION_CCW, "CCW", 0, "Counter Clockwise", ""},
-	{0, NULL, 0, NULL, NULL}};
 
 #define AXIS_X		1
 #define AXIS_Y		2
@@ -3344,6 +3337,7 @@ static const EnumPropertyItem axis_items[]= {
 	{AXIS_Y, "Y", 0, "Y", ""},
 	{0, NULL, 0, NULL, NULL}};
 
+#if 0
 static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
 {
 	EditVert **verts[2];
@@ -3518,97 +3512,7 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
 	free_editface(em, face[1]);
 }
 
-// XXX ton please check
-/* only accepts 1 selected edge, or 2 selected faces */
-static int edge_rotate_selected(bContext *C, wmOperator *op)
-{
-	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-	EditEdge *eed;
-	EditFace *efa;
-	int dir = RNA_int_get(op->ptr, "direction"); // dir == 2 when clockwise and ==1 for counter CW.
-	short edgeCount = 0;
-
-	/*clear new flag for new edges, count selected edges */
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		eed->f1= 0;
-		eed->f2 &= ~2;
-		if(eed->f & SELECT) edgeCount++;
-	}
-
-	if(edgeCount>1) {
-		/* more selected edges, check faces */
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->f & SELECT) {
-				efa->e1->f1++;
-				efa->e2->f1++;
-				efa->e3->f1++;
-				if(efa->e4) efa->e4->f1++;
-			}
-		}
-		edgeCount= 0;
-		for(eed= em->edges.first; eed; eed= eed->next) {
-			if(eed->f1==2) edgeCount++;
-		}
-		if(edgeCount==1) {
-			for(eed= em->edges.first; eed; eed= eed->next) {
-				if(eed->f1==2) {
-					edge_rotate(em, op, eed,dir);
-					break;
-				}
-			}
-		}
-		else
-		{
-			BKE_report(op->reports, RPT_ERROR, "Select one edge or two adjacent faces");
-			BKE_mesh_end_editmesh(obedit->data, em);
-			return OPERATOR_CANCELLED;
-		}
-	}
-	else if(edgeCount==1) {
-		for(eed= em->edges.first; eed; eed= eed->next) {
-			if(eed->f & SELECT) {
-				EM_select_edge(eed, 0);
-				edge_rotate(em, op, eed,dir);
-				break;
-			}
-		}
-	}
-	else  {
-		BKE_report(op->reports, RPT_ERROR, "Select one edge or two adjacent faces");
-		BKE_mesh_end_editmesh(obedit->data, em);
-		return OPERATOR_CANCELLED;
-	}
-
-	/* flush selected vertices (again) to edges/faces */
-	EM_select_flush(em);
-
-	BKE_mesh_end_editmesh(obedit->data, em);
-
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_edge_rotate(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Rotate Selected Edge";
-	ot->idname= "MESH_OT_edge_rotate";
-
-	/* api callbacks */
-	ot->exec= edge_rotate_selected;
-	ot->poll= ED_operator_editmesh;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	/* props */
-	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "direction", "direction to rotate edge around.");
-}
-
+#endif
 
 /******************* BEVEL CODE STARTS HERE ********************/
 
@@ -6132,6 +6036,14 @@ void MESH_OT_loop_to_region(wmOperatorType *ot)
 
 // XXX please check if these functions do what you want them to
 /* texface and vertex color editmode tools for the face menu */
+
+#define DIRECTION_CW	1
+#define DIRECTION_CCW	2
+
+static const EnumPropertyItem direction_items[]= {
+	{DIRECTION_CW, "CW", 0, "Clockwise", ""},
+	{DIRECTION_CCW, "CCW", 0, "Counter Clockwise", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 {

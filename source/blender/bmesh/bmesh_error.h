@@ -37,6 +37,7 @@ int BMO_CatchOpError(BMesh *bm, BMOperator *catchop, int errorcode, char **msg);
 #define BMERR_DISSOLVEVERTS_FAILED		6
 #define BMERR_TESSELATION			7
 #define BMERR_NONMANIFOLD			8
+#define BMERR_INVALID_SELECTION			9
 
 static char *bmop_error_messages[] = {
        0,
@@ -47,7 +48,8 @@ static char *bmop_error_messages[] = {
        "Could not dissolve faces",
        "Could not dissolve vertices",
        "Tesselation error",
-       "Can not deal with non-manifold geometry"
+       "Can not deal with non-manifold geometry",
+       "Invalid selection",
 };
 
 #endif /* _BMESH_ERROR_H */
