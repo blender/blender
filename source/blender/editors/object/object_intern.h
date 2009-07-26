@@ -120,6 +120,8 @@ void CONSTRAINT_OT_delete(struct wmOperatorType *ot);
 void CONSTRAINT_OT_move_up(struct wmOperatorType *ot);
 void CONSTRAINT_OT_move_down(struct wmOperatorType *ot);
 
+void CONSTRAINT_OT_stretchto_reset(struct wmOperatorType *ot);
+void CONSTRAINT_OT_limitdistance_reset(struct wmOperatorType *ot);
 void CONSTRAINT_OT_childof_set_inverse(struct wmOperatorType *ot);
 void CONSTRAINT_OT_childof_clear_inverse(struct wmOperatorType *ot);
 

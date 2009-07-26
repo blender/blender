@@ -379,26 +379,29 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 	def limit_distance(self, layout, con):
 		self.target_template(layout, con)
 		
-		layout.itemR(con, "distance")
+		col = layout.column(align=True);
+		col.itemR(con, "distance")
+		col.itemO("constraint.limitdistance_reset")
 		
 		row = layout.row()
 		row.itemL(text="Clamp Region:")
 		row.itemR(con, "limit_mode", text="")
-		#Missing: Recalculate Button
 		
 	def stretch_to(self, layout, con):
 		self.target_template(layout, con)
 		
-		row = layout.row()
-		row.itemR(con, "original_length", text="Rest Length")
-		row.itemR(con, "bulge", text="Volume Variation")
+		col = layout.column(align=True)
+		col.itemR(con, "original_length", text="Rest Length")
+		col.itemO("constraint.stretchto_reset")
+		
+		col = layout.column()
+		col.itemR(con, "bulge", text="Volume Variation")
 		
 		row = layout.row()
 		row.itemL(text="Volume:")
 		row.itemR(con, "volume", expand=True)
 		row.itemL(text="Plane:")
 		row.itemR(con, "keep_axis", expand=True)
-		#Missing: Recalculate Button
 		
 	def floor(self, layout, con):
 		self.target_template(layout, con)

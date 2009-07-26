@@ -462,6 +462,58 @@ void object_test_constraints (Object *owner)
 
 /* ********************** CONSTRAINT-SPECIFIC STUFF ********************* */
 
+/* ---------- Distance-Dependent Constraints ---------- */
+/* StretchTo, Limit Distance */
+
+static int stretchto_reset_exec (bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "constraint", &RNA_StretchToConstraint);
+	
+	/* just set original length to 0.0, which will cause a reset on next recalc */
+	RNA_float_set(&ptr, "original_length", 0.0f);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void CONSTRAINT_OT_stretchto_reset (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Reset Original Length";
+	ot->idname= "CONSTRAINT_OT_stretchto_reset";
+	ot->description= "Reset original length of bone for Stretch To Constraint.";
+	
+	ot->exec= stretchto_reset_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
+static int limitdistance_reset_exec (bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "constraint", &RNA_LimitDistanceConstraint);
+	
+	/* just set distance to 0.0, which will cause a reset on next recalc */
+	RNA_float_set(&ptr, "distance", 0.0f);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void CONSTRAINT_OT_limitdistance_reset (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Reset Distance";
+	ot->idname= "CONSTRAINT_OT_limitdistance_reset";
+	ot->description= "Reset limiting distance for Limit Distance Constraint.";
+	
+	ot->exec= limitdistance_reset_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /* ------------- Child-Of Constraint ------------------ */
 
 /* ChildOf Constraint - set inverse callback */
