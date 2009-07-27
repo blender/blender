@@ -143,7 +143,7 @@ ImBuf *IMB_ibImageFromMemory(int *mem, int size, int flags) {
 		ibuf = imb_bmp_decode((uchar *)mem, size, flags);
 		if (ibuf) return(ibuf);
 
-		ibuf = imb_loadtarga((uchar *)mem, flags);
+		ibuf = imb_loadtarga((uchar *)mem, size, flags);
 		if (ibuf) return(ibuf);
 
 		ibuf = imb_loaddpx((uchar *)mem, size, flags);
@@ -229,7 +229,7 @@ struct ImBuf *IMB_loadiffmem(int *mem, int flags) {
 		}
 	}
 
-	ibuf = imb_loadtarga((uchar *) mem,flags);
+	ibuf = imb_loadtarga((uchar *) mem,maxlen,flags);
 	if (ibuf) return(ibuf);
 
 	if (IB_verbose) fprintf(stderr,"Unknown fileformat\n");
