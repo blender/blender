@@ -14,6 +14,7 @@ class DATA_PT_empty(DataButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		ob = context.object
 
 		layout.itemR(ob, "empty_draw_type")

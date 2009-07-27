@@ -28,7 +28,6 @@ class DATA_PT_context_lattice(DataButtonsPanel):
 			split.template_ID(space, "pin_id")
 			split.itemS()
 
-
 class DATA_PT_lattice(DataButtonsPanel):
 	__label__ = "Lattice"
 
@@ -55,4 +54,3 @@ class DATA_PT_lattice(DataButtonsPanel):
 
 bpy.types.register(DATA_PT_context_lattice)
 bpy.types.register(DATA_PT_lattice)
-
