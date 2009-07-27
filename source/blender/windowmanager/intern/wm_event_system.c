@@ -820,18 +820,8 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				/* settings for filebrowser, sfile is not operator owner but sends events */
 				sfile= (SpaceFile*)CTX_wm_space_data(C);
 				sfile->op= handler->op;
-				
-				/* XXX for now take the settings from the existing (previous) filebrowser 
-				   should be stored in settings and passed via the operator */
-				if (sfile->params) {
-					flag = sfile->params->flag;
-					filter = sfile->params->filter;
-					display = sfile->params->display;
-					sort = sfile->params->sort;
-					dir = sfile->params->dir;
-				}
 
-				ED_fileselect_set_params(sfile, handler->op->type->name, dir, path, flag, display, filter, sort);
+				ED_fileselect_set_params(sfile);
 				dir = NULL;
 				MEM_freeN(path);
 				

@@ -903,9 +903,6 @@ void filelist_swapselect(struct FileList* filelist)
 
 void filelist_sort(struct FileList* filelist, short sort)
 {
-	struct direntry *file;
-	int num;/*  , act= 0; */
-
 	switch(sort) {
 	case FILE_SORT_ALPHA:
 		qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_name);	

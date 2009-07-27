@@ -609,6 +609,10 @@ static const EnumPropertyItem image_file_type_items[] = {
 static void image_filesel(bContext *C, wmOperator *op, const char *path)
 {
 	RNA_string_set(op->ptr, "filename", path);
+	RNA_boolean_set(op->ptr, "filter_image", 1);
+	RNA_boolean_set(op->ptr, "filter_movie", 1);
+	RNA_boolean_set(op->ptr, "filter_folder", 1);
+	RNA_enum_set(op->ptr, "display", FILE_IMGDISPLAY);
 	WM_event_add_fileselect(C, op); 
 }
 
@@ -649,6 +653,14 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void IMAGE_OT_open(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
+	static EnumPropertyItem file_display_items[] = {
+		{FILE_SHORTDISPLAY, "FILE_SHORTDISPLAY", ICON_SHORTDISPLAY, "Short List", "Display files as short list"},
+		{FILE_LONGDISPLAY, "FILE_LONGDISPLAY", ICON_LONGDISPLAY, "Long List", "Display files as a detailed list"},
+		{FILE_IMGDISPLAY, "FILE_IMGDISPLAY", ICON_IMGDISPLAY, "Thumbnails", "Display files as thumbnails"},
+		{0, NULL, 0, NULL, NULL}};
+
 	/* identifiers */
 	ot->name= "Open";
 	ot->idname= "IMAGE_OT_open";
@@ -663,6 +675,19 @@ void IMAGE_OT_open(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "File path of image to open.");
+
+	prop= RNA_def_boolean(ot->srna, "filter_image", 0, "Show image files", "");
+	RNA_def_property_boolean_sdna(prop, NULL, "filter", IMAGEFILE);
+	prop= RNA_def_boolean(ot->srna, "filter_movie", 0, "Show movie files", "");
+	RNA_def_property_boolean_sdna(prop, NULL, "filter", MOVIEFILE);
+	prop= RNA_def_boolean(ot->srna, "filter_folder", 0, "Show folders", "");
+	RNA_def_property_boolean_sdna(prop, NULL, "filter", FOLDERFILE);
+
+	prop= RNA_def_property(ot->srna, "display", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "display");
+	RNA_def_property_enum_items(prop, file_display_items);
+	RNA_def_property_ui_text(prop, "Display Mode", "Display mode for the file list");
+	
 }
 
 /******************** replace image operator ********************/

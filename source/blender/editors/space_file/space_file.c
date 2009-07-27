@@ -195,11 +195,11 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 		params->active_file = -1; // added this so it opens nicer (ton)
 	}
 	filelist_hidedot(sfile->files, params->flag & FILE_HIDE_DOT);
+	filelist_setfilter(sfile->files, params->flag & FILE_FILTER ? params->filter : 0);	
 	if (filelist_empty(sfile->files))
 	{
 		filelist_readdir(sfile->files);
 	}
-	filelist_setfilter(sfile->files, params->flag & FILE_FILTER ? params->filter : 0);	
 	if(params->sort!=FILE_SORT_NONE) filelist_sort(sfile->files, params->sort);		
 
 	if (sfile->layout) sfile->layout->dirty= 1;

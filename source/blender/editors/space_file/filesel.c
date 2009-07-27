@@ -73,6 +73,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "RNA_access.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -95,41 +97,60 @@ static int fnmatch(const char *pattern, const char *string, int flags)
 FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile)
 {
 	if (!sfile->params) {
-		ED_fileselect_set_params(sfile, "", NULL, "/", 0, FILE_SHORTDISPLAY, 0, FILE_SORT_ALPHA);
+		ED_fileselect_set_params(sfile);
 	}
 	return sfile->params;
 }
 
-short ED_fileselect_set_params(SpaceFile *sfile, const char *title, const char *last_dir, const char *path,
-							   short flag, short display, short filter, short sort)
+short ED_fileselect_set_params(SpaceFile *sfile)
 {
 	char name[FILE_MAX], dir[FILE_MAX], file[FILE_MAX];
 	FileSelectParams *params;
+	wmOperator *op = sfile->op;
 
+	/* create new parameters if necessary */
 	if (!sfile->params) {
 		sfile->params= MEM_callocN(sizeof(FileSelectParams), "fileselparams");
+		/* set path to most recently opened .blend */
+		BLI_strncpy(sfile->params->dir, G.sce, sizeof(sfile->params->dir));
+		BLI_split_dirfile(G.sce, dir, file);
+		BLI_strncpy(sfile->params->file, file, sizeof(sfile->params->file));
+		BLI_make_file_string(G.sce, sfile->params->dir, dir, ""); /* XXX needed ? - also solve G.sce */
 	}
 
 	params = sfile->params;
 
-	params->flag = flag;
-	params->display = display;
-	params->filter = filter;
-	params->sort = sort;
-
-	BLI_strncpy(params->title, title, sizeof(params->title));
-
-	if(last_dir){
-		BLI_strncpy(params->dir, last_dir, sizeof(params->dir));
-	}
-	else {
-		BLI_strncpy(name, path, sizeof(name));
-		BLI_convertstringcode(name, G.sce);
-
-		BLI_split_dirfile(name, dir, file);
-		BLI_strncpy(params->file, file, sizeof(params->file));
-		BLI_strncpy(params->dir, dir, sizeof(params->dir));
-		BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */			
+	/* set the parameters from the operator, if it exists */
+	if (op) {
+		BLI_strncpy(params->title, op->type->name, sizeof(params->title));
+		params->filter = 0;
+		params->filter |= RNA_boolean_get(op->ptr, "filter_folder") ? FOLDERFILE : 0;
+		params->filter |= RNA_boolean_get(op->ptr, "filter_blender") ? BLENDERFILE : 0;
+		params->filter |= RNA_boolean_get(op->ptr, "filter_image") ? IMAGEFILE : 0;
+		params->filter |= RNA_boolean_get(op->ptr, "filter_movie") ? MOVIEFILE : 0;
+		if (params->filter != 0)
+			params->flag |= FILE_FILTER;
+		
+		if (RNA_property_is_set(op->ptr, "display")) {
+			params->display= RNA_int_get(op->ptr, "display");
+		} else {
+			params->display = FILE_SHORTDISPLAY;
+		}
+		
+		/* if operator has path set, use it, otherwise keep the last */
+		if (RNA_property_is_set(op->ptr, "filename")) {
+			RNA_string_get(op->ptr, "filename", name);
+			BLI_convertstringcode(name, G.sce);
+			BLI_split_dirfile(name, dir, file);
+			BLI_strncpy(params->file, file, sizeof(params->file));
+			BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */		
+		}
+	} else {
+		/* default values, if no operator */
+		params->flag = 0;
+		params->display = FILE_SHORTDISPLAY;
+		params->filter = 0;
+		params->sort = FILE_SORT_ALPHA;
 	}
 
 	return 1;
@@ -144,7 +165,6 @@ void ED_fileselect_reset_params(SpaceFile *sfile)
 int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar)
 {
 	int numfiles;
-	short width, height;
 
 	if (layout->flag & FILE_LAYOUT_HOR) {
 		short width = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*layout->tile_border_x;

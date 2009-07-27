@@ -672,6 +672,8 @@ static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 
 	RNA_string_set(op->ptr, "filename", G.sce);
+	RNA_boolean_set(op->ptr, "filter_blender", 1);
+	RNA_boolean_set(op->ptr, "filter_folder", 1);
 	WM_event_add_fileselect(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
@@ -693,6 +695,7 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 
 static void WM_OT_open_mainfile(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
 	ot->name= "Open Blender File";
 	ot->idname= "WM_OT_open_mainfile";
 	
@@ -700,7 +703,13 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	ot->exec= wm_open_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	RNA_def_property(ot->srna, "filename", PROP_STRING, PROP_FILEPATH);
+	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "File path of blendfile to open.");
+
+	prop= RNA_def_boolean(ot->srna, "filter_blender", 0, "Filter Blendfiles", "");
+	RNA_def_property_boolean_sdna(prop, NULL, "filter", BLENDERFILE);
+	prop= RNA_def_boolean(ot->srna, "filter_folder", 0, "Filter Blendfiles", "");
+	RNA_def_property_boolean_sdna(prop, NULL, "filter", FOLDERFILE);
+	
 }
 
 static int wm_recover_last_session_exec(bContext *C, wmOperator *op)

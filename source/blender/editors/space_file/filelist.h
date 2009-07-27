@@ -54,7 +54,7 @@ void				filelist_sort(struct FileList* filelist, short sort);
 int					filelist_numfiles(struct FileList* filelist);
 const char *		filelist_dir(struct FileList* filelist);
 void				filelist_setdir(struct FileList* filelist, const char *dir);
-void				filelist_end_edit(struct FileList* filelist, int index);
+struct direntry *	filelist_file(struct FileList* filelist, int index);
 void				filelist_hidedot(struct FileList* filelist, short hide);
 void				filelist_setfilter(struct FileList* filelist, unsigned int filter);
 void				filelist_filter(struct FileList* filelist);
