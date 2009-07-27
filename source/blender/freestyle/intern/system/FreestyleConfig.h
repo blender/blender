@@ -44,7 +44,7 @@ namespace Config {
 
   // Directory separators
 # ifdef WIN32
-  static const string DIR_SEP("\\\\");
+  static const string DIR_SEP("\\");
   static const string PATH_SEP(";");
 # else
   static const string DIR_SEP("/");
