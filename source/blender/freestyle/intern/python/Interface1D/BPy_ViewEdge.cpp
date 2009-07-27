@@ -40,6 +40,7 @@ static PyObject * ViewEdge_verticesBegin( BPy_ViewEdge *self );
 static PyObject * ViewEdge_verticesEnd( BPy_ViewEdge *self );
 static PyObject * ViewEdge_pointsBegin( BPy_ViewEdge *self, PyObject *args );
 static PyObject * ViewEdge_pointsEnd( BPy_ViewEdge *self, PyObject *args );
+static PyObject * ViewEdge_qi( BPy_ViewEdge *self );
 
 
 /*----------------------ViewEdge instance definitions ----------------------------*/
@@ -67,6 +68,7 @@ static PyMethodDef BPy_ViewEdge_methods[] = {
 	{"verticesEnd", ( PyCFunction ) ViewEdge_verticesEnd, METH_NOARGS, "() Returns an Interface0DIterator to iterate over the SVertex constituing the embedding of this ViewEdge. The returned Interface0DIterator points after the last SVertex of the ViewEdge."},
 	{"pointsBegin", ( PyCFunction ) ViewEdge_pointsBegin, METH_VARARGS, "(float t=0) Returns an Interface0DIterator to iterate over the points of this ViewEdge at a given resolution t. The returned Interface0DIterator points on the first Point of the ViewEdge."},
 	{"pointsEnd", ( PyCFunction ) ViewEdge_pointsEnd, METH_VARARGS, "(float t=0) Returns an Interface0DIterator to iterate over the points of this ViewEdge at a given resolution t. The returned Interface0DIterator points after the last Point of the ViewEdge."},
+	{"qi", ( PyCFunction ) ViewEdge_qi, METH_NOARGS, "() Returns the quantitative invisibility of the ViewEdge."},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -370,6 +372,10 @@ PyObject * ViewEdge_pointsEnd( BPy_ViewEdge *self, PyObject *args ) {
 	
 	Interface0DIterator if0D_it( self->ve->pointsEnd(f) );
 	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+}
+
+PyObject * ViewEdge_qi( BPy_ViewEdge *self ) {
+	return PyInt_FromLong( self->ve->qi() );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

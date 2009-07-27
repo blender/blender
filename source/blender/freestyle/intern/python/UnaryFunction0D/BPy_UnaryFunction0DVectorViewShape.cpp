@@ -167,7 +167,7 @@ PyObject * UnaryFunction0DVectorViewShape___call__( BPy_UnaryFunction0DVectorVie
 	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj))
 		return NULL;
 
-	if( typeid(*(self->uf0D_vectorviewshape)) == typeid(UnaryFunction0D<std::vector<ViewShape*>>) ) {
+	if( typeid(*(self->uf0D_vectorviewshape)) == typeid(UnaryFunction0D< std::vector<ViewShape*> >) ) {
 		PyErr_SetString(PyExc_TypeError, "__call__ method must be overloaded");
 		return NULL;
 	}
