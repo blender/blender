@@ -323,6 +323,7 @@ def AppIt(target=None, source=None, env=None):
 	
 	a = '%s' % (target[0])
 	builddir, b = os.path.split(a)
+	libdir = env['LCGDIR'][1:]
 
 	bldroot = env.Dir('.').abspath
 	binary = env['BINARYKIND']
@@ -354,6 +355,10 @@ def AppIt(target=None, source=None, env=None):
 	cmd = 'cp -R %s/bin/.blender/locale %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
 	commands.getoutput(cmd) 
 	cmd = 'cp %s/bin/.blender/.Blanguages %s/%s.app/Contents/Resources/'%(bldroot,builddir,binary)
+	commands.getoutput(cmd) 
+	cmd = 'mkdir %s/%s.app/Contents/MacOS/.blender/python/'%(builddir,binary)
+	commands.getoutput(cmd) 
+	cmd = 'unzip -q %s/release/python.zip -d %s/%s.app/Contents/MacOS/.blender/python/'%(libdir,builddir,binary)
 	commands.getoutput(cmd) 
 	cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
 	commands.getoutput(cmd)
