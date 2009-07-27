@@ -29,7 +29,6 @@ from freestyle_init import *
 from logical_operators import *
 from PredicatesB1D import *
 from shaders import *
-from vector import *
 from PredicatesU0D import *
 from math import *
 

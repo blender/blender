@@ -62,7 +62,7 @@ class pyViewMapGradientVectorF0D(UnaryFunction0DVec2f):
 		p = iter.getObject().getPoint2D()
 		gx = ReadCompleteViewMapPixelCF(self._l, int(p.x()+self._step), int(p.y()))- ReadCompleteViewMapPixelCF(self._l, int(p.x()), int(p.y()))
 		gy = ReadCompleteViewMapPixelCF(self._l, int(p.x()), int(p.y()+self._step))- ReadCompleteViewMapPixelCF(self._l, int(p.x()), int(p.y()))
-		return Vec2f(gx, gy)
+		return Vector(gx, gy)
 
 class pyViewMapGradientNormF0D(UnaryFunction0DDouble):
 	def __init__(self, l):
@@ -75,7 +75,7 @@ class pyViewMapGradientNormF0D(UnaryFunction0DDouble):
 		p = iter.getObject().getPoint2D()
 		gx = ReadCompleteViewMapPixelCF(self._l, int(p.x()+self._step), int(p.y()))- ReadCompleteViewMapPixelCF(self._l, int(p.x()), int(p.y()))
 		gy = ReadCompleteViewMapPixelCF(self._l, int(p.x()), int(p.y()+self._step))- ReadCompleteViewMapPixelCF(self._l, int(p.x()), int(p.y()))
-		grad = Vec2f(gx, gy)
-		return grad.norm()
+		grad = Vector(gx, gy)
+		return grad.length
 
 

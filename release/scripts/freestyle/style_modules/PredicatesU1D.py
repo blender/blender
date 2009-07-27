@@ -220,25 +220,25 @@ class pyIsOccludedByUP1D(UnaryPredicate1D):
 		itlast.decrement()
 		v =  it.getObject()
 		vlast = itlast.getObject()
-		tvertex = v.castToTVertex()
-		if(tvertex != None):
-			#print "TVertex: [ ", tvertex.getId().getFirst(), ",",  tvertex.getId().getSecond()," ]"
+		tvertex = v.viewvertex()
+		if type(tvertex) is TVertex:
+			print "TVertex: [ ", tvertex.getId().getFirst(), ",",  tvertex.getId().getSecond()," ]"
 			eit = tvertex.edgesBegin()
 			while(eit.isEnd() == 0):
-				ve = eit.getObject().first
-				if(ve.shape_id() == self._id):
+				ve, incoming = eit.getObject()
+				if(ve.getId() == self._id):
 					return 1
-				#print "-------", ve.getId().getFirst(), "-", ve.getId().getSecond()
+				print "-------", ve.getId().getFirst(), "-", ve.getId().getSecond()
 				eit.increment()
-		tvertex = vlast.castToTVertex()
-		if(tvertex != None):
-			#print "TVertex: [ ", tvertex.getId().getFirst(), ",",  tvertex.getId().getSecond()," ]"
+		tvertex = vlast.viewvertex()
+		if type(tvertex) is TVertex:
+			print "TVertex: [ ", tvertex.getId().getFirst(), ",",  tvertex.getId().getSecond()," ]"
 			eit = tvertex.edgesBegin()
 			while(eit.isEnd() == 0):
-				ve = eit.getObject().first
-				if(ve.shape_id() == self._id):
+				ve, incoming = eit.getObject()
+				if(ve.getId() == self._id):
 					return 1
-				#print "-------", ve.getId().getFirst(), "-", ve.getId().getSecond()
+				print "-------", ve.getId().getFirst(), "-", ve.getId().getSecond()
 				eit.increment()
 		return 0
 

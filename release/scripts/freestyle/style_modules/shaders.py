@@ -6,7 +6,6 @@ from logical_operators import *
 from ChainingIterators import *
 from random import *
 from math import *
-from vector import *
 
 ## thickness modifiers
 ######################
@@ -308,12 +307,12 @@ class pyImportance2DThicknessShader(StrokeShader):
 	def getName(self):
 		return "pyImportanceThicknessShader"
 	def shade(self, stroke):
-		origin = Vec2(self._x, self._y)
+		origin = Vector(self._x, self._y)
 		it = stroke.strokeVerticesBegin()
 		while it.isEnd() == 0:
 			v = it.getObject()
-			p = Vec2(v.getProjectedX(), v.getProjectedY())
-			d = (p-origin).length()
+			p = Vector(v.getProjectedX(), v.getProjectedY())
+			d = (p-origin).length
 			if(d>self._w):
 				k = self._kmin
 			else:
@@ -337,12 +336,12 @@ class pyImportance3DThicknessShader(StrokeShader):
 	def getName(self):
 		return "pyImportance3DThicknessShader"
 	def shade(self, stroke):
-		origin = Vec3(self._x, self._y, self._z)
+		origin = Vector(self._x, self._y, self._z)
 		it = stroke.strokeVerticesBegin()
 		while it.isEnd() == 0:
 			v = it.getObject()
-			p = Vec3(v.getX(), v.getY(), v.getZ())
-			d = (p-origin).length()
+			p = Vector(v.getX(), v.getY(), v.getZ())
+			d = (p-origin).length
 			if(d>self._w):
 				k = self._kmin
 			else:
@@ -486,7 +485,7 @@ class pyMaterialColorShader(StrokeShader):
 			u = 4.*X / (X + 15.*Y + 3.*Z)
 			v = 9.*Y / (X + 15.*Y + 3.*Z)
 			
-			L= 116. * math.pow((Y/Yn),(1./3.)) -16
+			L= 116. * pow((Y/Yn),(1./3.)) -16
 			U = 13. * L * (u - un)
 			V = 13. * L * (v - vn)
 			
@@ -500,7 +499,7 @@ class pyMaterialColorShader(StrokeShader):
 			u = U / (13. * L) + un
 			v = V / (13. * L) + vn
 			
-			Y = Yn * math.pow( ((L+16.)/116.), 3.)
+			Y = Yn * pow( ((L+16.)/116.), 3.)
 			X = -9. * Y * u / ((u - 4.)* v - u * v)
 			Z = (9. * Y - 15*v*Y - v*X) /( 3. * v)
 			
@@ -593,14 +592,14 @@ class pyBackboneStretcherShader(StrokeShader):
 		v1 = it1.getObject()
 		vn_1 = itn_1.getObject()
 		vn = itn.getObject()
-		p0 = Vec2f(v0.getProjectedX(), v0.getProjectedY())
-		pn = Vec2f(vn.getProjectedX(), vn.getProjectedY())
-		p1 = Vec2f(v1.getProjectedX(), v1.getProjectedY())
-		pn_1 = Vec2f(vn_1.getProjectedX(), vn_1.getProjectedY())
+		p0 = Vector(v0.getProjectedX(), v0.getProjectedY())
+		pn = Vector(vn.getProjectedX(), vn.getProjectedY())
+		p1 = Vector(v1.getProjectedX(), v1.getProjectedY())
+		pn_1 = Vector(vn_1.getProjectedX(), vn_1.getProjectedY())
 		d1 = p0-p1
-		d1 = d1/d1.norm()
+		d1.normalize()
 		dn = pn-pn_1
-		dn = dn/dn.norm()
+		dn.normalize()
 		newFirst = p0+d1*float(self._l)
 		newLast = pn+dn*float(self._l)
 		v0.setPoint(newFirst)
@@ -626,14 +625,14 @@ class pyLengthDependingBackboneStretcherShader(StrokeShader):
 		v1 = it1.getObject()
 		vn_1 = itn_1.getObject()
 		vn = itn.getObject()
-		p0 = Vec2f(v0.getProjectedX(), v0.getProjectedY())
-		pn = Vec2f(vn.getProjectedX(), vn.getProjectedY())
-		p1 = Vec2f(v1.getProjectedX(), v1.getProjectedY())
-		pn_1 = Vec2f(vn_1.getProjectedX(), vn_1.getProjectedY())
+		p0 = Vector(v0.getProjectedX(), v0.getProjectedY())
+		pn = Vector(vn.getProjectedX(), vn.getProjectedY())
+		p1 = Vector(v1.getProjectedX(), v1.getProjectedY())
+		pn_1 = Vector(vn_1.getProjectedX(), vn_1.getProjectedY())
 		d1 = p0-p1
-		d1 = d1/d1.norm()
+		d1.normalize()
 		dn = pn-pn_1
-		dn = dn/dn.norm()
+		dn.normalize()
 		newFirst = p0+d1*float(stretch)
 		newLast = pn+dn*float(stretch)
 		v0.setPoint(newFirst)
@@ -688,7 +687,7 @@ class pyBackboneStretcherNoCuspShader(StrokeShader):
 			p0 = v0.getPoint()
 			p1 = v1.getPoint()
 			d1 = p0-p1
-			d1 = d1/d1.norm()
+			d1.normalize()
 			newFirst = p0+d1*float(self._l)
 			v0.setPoint(newFirst)
 		vn_1 = itn_1.getObject()
@@ -697,7 +696,7 @@ class pyBackboneStretcherNoCuspShader(StrokeShader):
 			pn = vn.getPoint()
 			pn_1 = vn_1.getPoint()
 			dn = pn-pn_1
-			dn = dn/dn.norm()
+			dn.normalize()
 			newLast = pn+dn*float(self._l)	
 			vn.setPoint(newLast)
 
@@ -778,14 +777,17 @@ class pyTVertexRemoverShader(StrokeShader):
 class pyExtremitiesOrientationShader(StrokeShader):
 	def __init__(self, x1,y1,x2=0,y2=0):
 		StrokeShader.__init__(self)
-		self._v1 = Vec2(x1,y1)
-		self._v2 = Vec2(x2,y2)
+		self._v1 = Vector(x1,y1)
+		self._v2 = Vector(x2,y2)
 	def getName(self):
 		return "pyExtremitiesOrientationShader"
 	def shade(self, stroke):
-		print self._v1.x(),self._v1.y()
-		stroke.setBeginningOrientation(self._v1.x(),self._v1.y())
-		stroke.setEndingOrientation(self._v2.x(),self._v2.y())
+		print self._v1.x,self._v1.y
+		stroke.setBeginningOrientation(self._v1.x,self._v1.y)
+		stroke.setEndingOrientation(self._v2.x,self._v2.y)
+
+def getFEdge(it1, it2):
+	return it1.getFEdge(it2)
 
 class pyHLRShader(StrokeShader):
 	def getName(self):
@@ -799,7 +801,7 @@ class pyHLRShader(StrokeShader):
 		it2 = StrokeVertexIterator(it)
 		it2.increment()
 		fe = getFEdge(it.getObject(), it2.getObject())
-		if(fe.qi() != 0):
+		if(fe.viewedge().qi() != 0):
 			invisible = 1
 		while(it2.isEnd() == 0):
 			v = it.getObject()
@@ -807,7 +809,7 @@ class pyHLRShader(StrokeShader):
 			if(v.getNature() & Nature.VIEW_VERTEX):
 				#if(v.getNature() & Nature.T_VERTEX):
 				fe = getFEdge(v,vnext)
-				qi = fe.qi()
+				qi = fe.viewedge().qi()
 				if(qi != 0):
 					invisible = 1
 				else:
@@ -856,7 +858,7 @@ class pyTVertexOrientationShader(StrokeShader):
 			ve = getFEdge(v, it2.getObject()).viewedge()
 			if(tv != None):			
 				dir = self.findOrientation(tv, ve)
-				#print dir.x(), dir.y()
+				#print dir.x, dir.y
 				v.attribute().setAttributeVec2f("orientation", dir)
 		while(it2.isEnd() == 0):
 			vprevious = it.getObject()
@@ -866,7 +868,7 @@ class pyTVertexOrientationShader(StrokeShader):
 				ve = getFEdge(vprevious, v).viewedge()
 				if(tv != None):	
 					dir = self.findOrientation(tv, ve)
-					#print dir.x(), dir.y()
+					#print dir.x, dir.y
 					v.attribute().setAttributeVec2f("orientation", dir)			
 			it.increment()
 			it2.increment()
@@ -879,7 +881,7 @@ class pyTVertexOrientationShader(StrokeShader):
 			ve = getFEdge(itPrevious.getObject(), v).viewedge()
 			if(tv != None):			
 				dir = self.findOrientation(tv, ve)
-				#print dir.x(), dir.y()
+				#print dir.x, dir.y
 				v.attribute().setAttributeVec2f("orientation", dir)
 
 class pySinusDisplacementShader(StrokeShader):
@@ -901,7 +903,7 @@ class pySinusDisplacementShader(StrokeShader):
 			u = v.u()
 			a = self._a*(1-2*(fabs(u-0.5)))
 			n = n*a*cos(self._f*u*6.28)
-			#print n.x(), n.y()
+			#print n.x, n.y
 			v.setPoint(p+n)
 			#v.setPoint(v.getPoint()+n*a*cos(f*v.u()))
 			it.increment()
@@ -938,7 +940,7 @@ class pyPerlinNoise2DShader(StrokeShader):
 		it = stroke.strokeVerticesBegin()
 		while it.isEnd() == 0:
 			v = it.getObject()
-			vec = Vec2f(v.getProjectedX(), v.getProjectedY())
+			vec = Vector(v.getProjectedX(), v.getProjectedY())
 			nres = self.__noise.turbulence2(vec, self.__freq, self.__amp, self.__oct)
 			v.setPoint(v.getProjectedX() + nres, v.getProjectedY() + nres)
 			it.increment()
@@ -950,44 +952,42 @@ class pyBluePrintCirclesShader(StrokeShader):
 	def getName(self):
 		return "pyBluePrintCirclesShader"
 	def shade(self, stroke):
-		p_min = Vec2f(10000, 10000)
-		p_max = Vec2f(0, 0)
+		p_min = Vector(10000, 10000)
+		p_max = Vector(0, 0)
 		it = stroke.strokeVerticesBegin()
 		while it.isEnd() == 0:
 			p = it.getObject().getPoint()
-			if (p.x() < p_min.x()):
-				p_min.setX(p.x())
-			if (p.x() > p_max.x()):
-				p_max.setX(p.x())
-			if (p.y() < p_min.y()):
-				p_min.setY(p.y())
-			if (p.y() > p_max.y()):
-				p_max.setY(p.y())
+			if (p.x < p_min.x):
+				p_min.x = p.x
+			if (p.x > p_max.x):
+				p_max.x = p.x
+			if (p.y < p_min.y):
+				p_min.y = p.y
+			if (p.y > p_max.y):
+				p_max.y = p.y
 			it.increment()
 		stroke.Resample(32 * self.__turns)
 		sv_nb = stroke.strokeVerticesSize()
-#		print "min  :", p_min.x(), p_min.y() # DEBUG
-#		print "mean :", p_sum.x(), p_sum.y() # DEBUG
-#		print "max  :", p_max.x(), p_max.y() # DEBUG
+#		print "min  :", p_min.x, p_min.y # DEBUG
+#		print "mean :", p_sum.x, p_sum.y # DEBUG
+#		print "max  :", p_max.x, p_max.y # DEBUG
 #		print "----------------------" # DEBUG
 #######################################################	
 		sv_nb = sv_nb / self.__turns
 		center = (p_min + p_max) / 2
-		radius = (center.x() - p_min.x() + center.y() - p_min.y()) / 2
-		p_new = Vec2f()
+		radius = (center.x - p_min.x + center.y - p_min.y) / 2
+		p_new = Vector(0, 0)
 #######################################################
 		it = stroke.strokeVerticesBegin()
 		for j in range(self.__turns):
 			radius = radius + randint(-3, 3)
-			center_x = center.x() + randint(-5, 5)
-			center_y = center.y() + randint(-5, 5)
-			center.setX(center_x)
-			center.setY(center_y)
+			center.x = center.x + randint(-5, 5)
+			center.y = center.y + randint(-5, 5)
 			i = 0
 			while i < sv_nb:
-				p_new.setX(center.x() + radius * cos(2 * pi * float(i) / float(sv_nb - 1)))
-   				p_new.setY(center.y() + radius * sin(2 * pi * float(i) / float(sv_nb - 1)))
-				it.getObject().setPoint(p_new.x(), p_new.y())
+				p_new.x = center.x + radius * cos(2 * pi * float(i) / float(sv_nb - 1))
+   				p_new.y = center.y + radius * sin(2 * pi * float(i) / float(sv_nb - 1))
+				it.getObject().setPoint(p_new)
 				i = i + 1
 				it.increment()
 		while it.isEnd() == 0:
@@ -1002,46 +1002,44 @@ class pyBluePrintEllipsesShader(StrokeShader):
 	def getName(self):
 		return "pyBluePrintEllipsesShader"
 	def shade(self, stroke):
-		p_min = Vec2f(10000, 10000)
-		p_max = Vec2f(0, 0)
+		p_min = Vector(10000, 10000)
+		p_max = Vector(0, 0)
 		it = stroke.strokeVerticesBegin()
 		while it.isEnd() == 0:
 			p = it.getObject().getPoint()
-			if (p.x() < p_min.x()):
-				p_min.setX(p.x())
-			if (p.x() > p_max.x()):
-				p_max.setX(p.x())
-			if (p.y() < p_min.y()):
-				p_min.setY(p.y())
-			if (p.y() > p_max.y()):
-				p_max.setY(p.y())
+			if (p.x < p_min.x):
+				p_min.x = p.x
+			if (p.x > p_max.x):
+				p_max.x = p.x
+			if (p.y < p_min.y):
+				p_min.y = p.y
+			if (p.y > p_max.y):
+				p_max.y = p.y
 			it.increment()
 		stroke.Resample(32 * self.__turns)
 		sv_nb = stroke.strokeVerticesSize()
-#		print "min  :", p_min.x(), p_min.y() # DEBUG
-#		print "mean :", p_sum.x(), p_sum.y() # DEBUG
-#		print "max  :", p_max.x(), p_max.y() # DEBUG
+#		print "min  :", p_min.x, p_min.y # DEBUG
+#		print "mean :", p_sum.x, p_sum.y # DEBUG
+#		print "max  :", p_max.x, p_max.y # DEBUG
 #		print "----------------------" # DEBUG
 #######################################################	
 		sv_nb = sv_nb / self.__turns
 		center = (p_min + p_max) / 2
-		radius_x = center.x() - p_min.x()
-		radius_y = center.y() - p_min.y()
-		p_new = Vec2f()
+		radius_x = center.x - p_min.x
+		radius_y = center.y - p_min.y
+		p_new = Vector(0, 0)
 #######################################################
 		it = stroke.strokeVerticesBegin()
 		for j in range(self.__turns):
 			radius_x = radius_x + randint(-3, 3)
 			radius_y = radius_y + randint(-3, 3)
-			center_x = center.x() + randint(-5, 5)
-			center_y = center.y() + randint(-5, 5)
-			center.setX(center_x)
-			center.setY(center_y)
+			center.x = center.x + randint(-5, 5)
+			center.y = center.y + randint(-5, 5)
 			i = 0
 			while i < sv_nb:
-				p_new.setX(center.x() + radius_x * cos(2 * pi * float(i) / float(sv_nb - 1)))
-   				p_new.setY(center.y() + radius_y * sin(2 * pi * float(i) / float(sv_nb - 1)))
-				it.getObject().setPoint(p_new.x(), p_new.y())
+				p_new.x = center.x + radius_x * cos(2 * pi * float(i) / float(sv_nb - 1))
+   				p_new.y = center.y + radius_y * sin(2 * pi * float(i) / float(sv_nb - 1))
+				it.getObject().setPoint(p_new)
 				i = i + 1
 				it.increment()
 		while it.isEnd() == 0:
@@ -1057,19 +1055,19 @@ class pyBluePrintSquaresShader(StrokeShader):
 	def getName(self):
 		return "pyBluePrintSquaresShader"
 	def shade(self, stroke):
-		p_min = Vec2f(10000, 10000)
-		p_max = Vec2f(0, 0)
+		p_min = Vector(10000, 10000)
+		p_max = Vector(0, 0)
 		it = stroke.strokeVerticesBegin()
 		while it.isEnd() == 0:
 			p = it.getObject().getPoint()
-			if (p.x() < p_min.x()):
-				p_min.setX(p.x())
-			if (p.x() > p_max.x()):
-				p_max.setX(p.x())
-			if (p.y() < p_min.y()):
-				p_min.setY(p.y())
-			if (p.y() > p_max.y()):
-				p_max.setY(p.y())
+			if (p.x < p_min.x):
+				p_min.x = p.x
+			if (p.x > p_max.x):
+				p_max.x = p.x
+			if (p.y < p_min.y):
+				p_min.y = p.y
+			if (p.y > p_max.y):
+				p_max.y = p.y
 			it.increment()
 		stroke.Resample(32 * self.__turns)
 		sv_nb = stroke.strokeVerticesSize()
@@ -1079,14 +1077,14 @@ class pyBluePrintSquaresShader(StrokeShader):
 		second = 2 * first
 		third = 3 * first
 		fourth = sv_nb
-		vec_first = Vec2f(p_max.x() - p_min.x() + 2 * self.__bb_len, 0)
-		vec_second = Vec2f(0, p_max.y() - p_min.y() + 2 * self.__bb_len)
+		vec_first = Vector(p_max.x - p_min.x + 2 * self.__bb_len, 0)
+		vec_second = Vector(0, p_max.y - p_min.y + 2 * self.__bb_len)
 		vec_third = vec_first * -1
 		vec_fourth = vec_second * -1
-		p_first = Vec2f(p_min.x() - self.__bb_len, p_min.y())
-		p_second = Vec2f(p_max.x(), p_min.y() - self.__bb_len)
-		p_third = Vec2f(p_max.x() + self.__bb_len, p_max.y())
-		p_fourth = Vec2f(p_min.x(), p_max.y() + self.__bb_len)
+		p_first = Vector(p_min.x - self.__bb_len, p_min.y)
+		p_second = Vector(p_max.x, p_min.y - self.__bb_len)
+		p_third = Vector(p_max.x + self.__bb_len, p_max.y)
+		p_fourth = Vector(p_min.x, p_max.y + self.__bb_len)
 #######################################################
 		it = stroke.strokeVerticesBegin()
 		visible = 1
@@ -1109,7 +1107,7 @@ class pyBluePrintSquaresShader(StrokeShader):
 					p_new = p_fourth + vec_fourth * float(i - third)/float(fourth - third - 1)
 					if i == fourth - 1:
 						visible = 0
-				it.getObject().setPoint(p_new.x(), p_new.y())
+				it.getObject().setPoint(p_new)
 				it.getObject().attribute().setVisible(visible)
 				if visible == 0:
 					visible = 1
@@ -1130,21 +1128,21 @@ class pyBluePrintDirectedSquaresShader(StrokeShader):
 		return "pyBluePrintDirectedSquaresShader"
 	def shade(self, stroke):
 		stroke.Resample(32 * self.__turns)
-		p_mean = Vec2f(0, 0)
-		p_min = Vec2f(10000, 10000)
-		p_max = Vec2f(0, 0)
+		p_mean = Vector(0, 0)
+		p_min = Vector(10000, 10000)
+		p_max = Vector(0, 0)
 		it = stroke.strokeVerticesBegin()
 		while it.isEnd() == 0:
 			p = it.getObject().getPoint()
 			p_mean = p_mean + p
-## 			if (p.x() < p_min.x()):
-## 				p_min.setX(p.x())
-## 			if (p.x() > p_max.x()):
-## 				p_max.setX(p.x())
-## 			if (p.y() < p_min.y()):
-## 				p_min.setY(p.y())
-## 			if (p.y() > p_max.y()):
-## 				p_max.setY(p.y())
+## 			if (p.x < p_min.x):
+## 				p_min.x = p.x
+## 			if (p.x > p_max.x):
+## 				p_max.x = p.x
+## 			if (p.y < p_min.y):
+## 				p_min.y = p.y
+## 			if (p.y > p_max.y):
+## 				p_max.y = p.y
 			it.increment()
 		sv_nb = stroke.strokeVerticesSize()
 		p_mean = p_mean / sv_nb
@@ -1154,9 +1152,9 @@ class pyBluePrintDirectedSquaresShader(StrokeShader):
 		it = stroke.strokeVerticesBegin()
 		while it.isEnd() == 0:
 			p = it.getObject().getPoint()
-			p_var_xx = p_var_xx + pow(p.x() - p_mean.x(), 2)
-			p_var_yy = p_var_yy + pow(p.y() - p_mean.y(), 2)
-			p_var_xy = p_var_xy + (p.x() - p_mean.x()) * (p.y() - p_mean.y())
+			p_var_xx = p_var_xx + pow(p.x - p_mean.x, 2)
+			p_var_yy = p_var_yy + pow(p.y - p_mean.y, 2)
+			p_var_xy = p_var_xy + (p.x - p_mean.x) * (p.y - p_mean.y)
 			it.increment()
 		p_var_xx = p_var_xx / sv_nb
 		p_var_yy = p_var_yy / sv_nb
@@ -1171,11 +1169,11 @@ class pyBluePrintDirectedSquaresShader(StrokeShader):
 		theta = atan(2 * p_var_xy / (p_var_xx - p_var_yy)) / 2
 ##		print theta
 		if p_var_yy > p_var_xx:
-			e1 = Vec2f(cos(theta + pi / 2), sin(theta + pi / 2)) * sqrt(lambda1) * self.__mult
-			e2 = Vec2f(cos(theta + pi), sin(theta + pi)) *  sqrt(lambda2) * self.__mult
+			e1 = Vector(cos(theta + pi / 2), sin(theta + pi / 2)) * sqrt(lambda1) * self.__mult
+			e2 = Vector(cos(theta + pi), sin(theta + pi)) *  sqrt(lambda2) * self.__mult
 		else:
-			e1 = Vec2f(cos(theta), sin(theta)) * sqrt(lambda1) * self.__mult
-			e2 = Vec2f(cos(theta + pi / 2), sin(theta + pi / 2)) * sqrt(lambda2) * self.__mult
+			e1 = Vector(cos(theta), sin(theta)) * sqrt(lambda1) * self.__mult
+			e2 = Vector(cos(theta + pi / 2), sin(theta + pi / 2)) * sqrt(lambda2) * self.__mult
 #######################################################	
 		sv_nb = sv_nb / self.__turns
 		first = sv_nb / 4
@@ -1214,7 +1212,7 @@ class pyBluePrintDirectedSquaresShader(StrokeShader):
 					p_new = p_fourth + vec_fourth * float(i - third)/float(fourth - third - 1)
 					if i == fourth - 1:
 						visible = 0
-				it.getObject().setPoint(p_new.x(), p_new.y())
+				it.getObject().setPoint(p_new)
 				it.getObject().attribute().setVisible(visible)
 				if visible == 0:
 					visible = 1
@@ -1236,7 +1234,7 @@ class pyModulateAlphaShader(StrokeShader):
 		while it.isEnd() == 0:
 			alpha = it.getObject().attribute().getAlpha()
 			p = it.getObject().getPoint()
-			alpha = alpha * p.y() / 400
+			alpha = alpha * p.y / 400
 			if alpha < self.__min:
 				alpha = self.__min
 			elif alpha > self.__max:

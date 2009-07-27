@@ -42,9 +42,8 @@ class pyChainSilhouetteIterator(ChainingIterator):
 	def traverse(self, iter):
 		winner = None
 		it = AdjacencyIterator(iter)
-		nextVertex = self.getVertex()
-		if(nextVertex.getNature() & Nature.T_VERTEX != 0):
-			tvertex = nextVertex.castToTVertex()
+		tvertex = self.getVertex()
+		if type(tvertex) is TVertex:
 			mateVE = tvertex.mate(self.getCurrentEdge())
 			while(it.isEnd() == 0):
 				ve = it.getObject()
@@ -95,9 +94,8 @@ class pyChainSilhouetteGenericIterator(ChainingIterator):
 	def traverse(self, iter):
 		winner = None
 		it = AdjacencyIterator(iter)
-		nextVertex = self.getVertex()
-		if(nextVertex.getNature() & Nature.T_VERTEX != 0):
-			tvertex = nextVertex.castToTVertex()
+		tvertex = self.getVertex()
+		if type(tvertex) is TVertex:
 			mateVE = tvertex.mate(self.getCurrentEdge())
 			while(it.isEnd() == 0):
 				ve = it.getObject()
@@ -198,9 +196,8 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
 	def traverse(self, iter):
 		winner = None
 		it = AdjacencyIterator(iter)
-		nextVertex = self.getVertex()
-		if(nextVertex.getNature() & Nature.T_VERTEX != 0):
-			tvertex = nextVertex.castToTVertex()
+		tvertex = self.getVertex()
+		if type(tvertex) is TVertex:
 			mateVE = tvertex.mate(self.getCurrentEdge())
 			while(it.isEnd() == 0):
 				ve = it.getObject()
@@ -295,9 +292,8 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 		winnerOrientation = 0
 		print self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond()
 		it = AdjacencyIterator(iter)
-		nextVertex = self.getVertex()
-		if(nextVertex.getNature() & Nature.T_VERTEX != 0):
-			tvertex = nextVertex.castToTVertex()
+		tvertex = self.getVertex()
+		if type(tvertex) is TVertex:
 			mateVE = tvertex.mate(self.getCurrentEdge())
 			while(it.isEnd() == 0):
 				ve = it.getObject()
@@ -395,9 +391,8 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
 		winnerOrientation = 0
 		#print self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond()
 		it = AdjacencyIterator(iter)
-		nextVertex = self.getVertex()
-		if(nextVertex.getNature() & Nature.T_VERTEX != 0):
-			tvertex = nextVertex.castToTVertex()
+		tvertex = self.getVertex()
+		if type(tvertex) is TVertex:
 			mateVE = tvertex.mate(self.getCurrentEdge())
 			while(it.isEnd() == 0):
 				ve = it.getObject()
@@ -471,9 +466,8 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 		winnerOrientation = 0
 		print self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond()
 		it = AdjacencyIterator(iter)
-		nextVertex = self.getVertex()
-		if(nextVertex.getNature() & Nature.T_VERTEX != 0):
-			tvertex = nextVertex.castToTVertex()
+		tvertex = self.getVertex()
+		if type(tvertex) is TVertex:
 			mateVE = tvertex.mate(self.getCurrentEdge())
 			while(it.isEnd() == 0):
 				ve = it.getObject()
@@ -577,9 +571,8 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 		winnerOrientation = 0
 		print self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond()
 		it = AdjacencyIterator(iter)
-		nextVertex = self.getVertex()
-		if(nextVertex.getNature() & Nature.T_VERTEX != 0):
-			tvertex = nextVertex.castToTVertex()
+		tvertex = self.getVertex()
+		if type(tvertex) is TVertex:
 			mateVE = tvertex.mate(self.getCurrentEdge())
 			while(it.isEnd() == 0):
 				ve = it.getObject()
@@ -676,9 +669,8 @@ class pyNoIdChainSilhouetteIterator(ChainingIterator):
 	def traverse(self, iter):
 		winner = None
 		it = AdjacencyIterator(iter)
-		nextVertex = self.getVertex()
-		if(nextVertex.getNature() & Nature.T_VERTEX != 0):
-			tvertex = nextVertex.castToTVertex()
+		tvertex = self.getVertex()
+		if type(tvertex) is TVertex:
 			mateVE = tvertex.mate(self.getCurrentEdge())
 			while(it.isEnd() == 0):
 				ve = it.getObject()
