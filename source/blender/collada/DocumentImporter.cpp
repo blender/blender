@@ -154,6 +154,8 @@ public:
 	}
 };
 
+typedef std::map<COLLADAFW::TextureMapId, std::vector<MTex*> > TexIndexTextureArrayMap;
+
 class ArmatureImporter
 {
 private:
@@ -359,11 +361,12 @@ private:
 	};
 	typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive> > MaterialIdPrimitiveArrayMap;
 	std::map<COLLADAFW::UniqueId, MaterialIdPrimitiveArrayMap> geom_uid_mat_mapping_map; // crazy name!
-
+	/*
 	// maps for assigning textures to uv layers
 	//std::map<COLLADAFW::TextureMapId, char*> set_layername_map;
-	std::map<COLLADAFW::TextureMapId, std::vector<MTex*> > index_mtex_map;
-
+	typedef std::map<COLLADAFW::TextureMapId, std::vector<MTex*> > TexIndexTextureArrayMap;
+	std::map<Material*, TexIndexTextureArrayMap> material_texture_mapping_map;
+	*/
 	class UVDataWrapper
 	{
 		COLLADAFW::MeshVertexData *mVData;
@@ -389,6 +392,7 @@ private:
 			case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
 				{
 					COLLADAFW::ArrayPrimitiveType<float>* values = mVData->getFloatValues();
+					if (values->empty()) return;
 					uv[0] = (*values)[uv_index[0]];
 					uv[1] = (*values)[uv_index[1]];
 					
@@ -397,7 +401,7 @@ private:
 			case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE:
 				{
 					COLLADAFW::ArrayPrimitiveType<double>* values = mVData->getDoubleValues();
-					
+					if (values->empty()) return;
 					uv[0] = (float)(*values)[uv_index[0]];
 					uv[1] = (float)(*values)[uv_index[1]];
 					
@@ -413,6 +417,10 @@ private:
 		mface->v2 = indices[1];
 		mface->v3 = indices[2];
 		if (quad) mface->v4 = indices[3];
+		else mface->v4 = 0;
+#ifdef COLLADA_DEBUG
+		fprintf(stderr, "%u, %u, %u \n", indices[0], indices[1], indices[2]);
+#endif
 	}
 
 	// change face indices order so that v4 is not 0
@@ -630,7 +638,7 @@ private:
 					
 					set_face_indices(mface, indices, false);
 					indices += 3;
-					
+
 					for (k = 0; k < totuvset; k++) {
 						// get mtface by face index and uv set index
 						MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
@@ -684,14 +692,105 @@ private:
 public:
 
 	MeshImporter(ArmatureImporter *arm, Scene *sce) : scene(sce), armature_importer(arm) {}
+	
+	MTex *assign_textures_to_uvlayer(COLLADAFW::InstanceGeometry::TextureCoordinateBinding &ctexture, Mesh **me, TexIndexTextureArrayMap& texindex_texarray_map, MTex *color_texture)
+	{
+		COLLADAFW::TextureMapId texture_index = ctexture.textureMapId;
+		size_t set_index = ctexture.setIndex;
+		char *uvname = CustomData_get_layer_name(&(*me)->fdata, CD_MTFACE, set_index);
+		
+		if (texindex_texarray_map.find(texture_index) == texindex_texarray_map.end()) {
+			fprintf(stderr, "Cannot find texture array by texture index.\n");
+			return NULL;
+		}
+		// assign uvlayer name to texture
+		std::vector<MTex*> textures = texindex_texarray_map[texture_index];
+		std::vector<MTex*>::iterator it;
+		for (it = textures.begin(); it != textures.end(); it++) {
+			MTex *texture = *it;
+			if (texture) {
+				strcpy(texture->uvname, uvname);
+				if (texture->mapto == MAP_COL) color_texture = texture;
+			}
+		}
+		return color_texture;
+	}
+	
+	MTFace *assign_material_to_geom(COLLADAFW::InstanceGeometry::MaterialBinding cmaterial,
+								 std::map<COLLADAFW::UniqueId, Material*>& uid_material_map,
+								 Object *ob, Mesh *me, const COLLADAFW::UniqueId *geom_uid, 
+								 MTex **color_texture, char *layername, MTFace *texture_face,
+								 std::map<Material*, TexIndexTextureArrayMap>& material_texture_mapping_map, int mat_index)
+	{
+		const COLLADAFW::UniqueId& ma_uid = cmaterial.getReferencedMaterial();
+		unsigned int j;
+		// do we know this material?
+		if (uid_material_map.find(ma_uid) == uid_material_map.end()) {
+			fprintf(stderr, "Cannot find material by UID.\n");
+			return NULL;
+		}
+		Material *ma = uid_material_map[ma_uid];
+		
+		TexIndexTextureArrayMap texindex_texarray_map = material_texture_mapping_map[ma];
+		
+		COLLADAFW::InstanceGeometry::TextureCoordinateBindingArray& tex_array = cmaterial.getTextureCoordinateBindingArray();
+		
+		// loop through material's textures
+		for (j = 0; j < tex_array.getCount(); j++) {
+			*color_texture = assign_textures_to_uvlayer(tex_array[j], &me, texindex_texarray_map, *color_texture);
+		}
+		// if material has color texture
+		if (*color_texture && strlen((*color_texture)->uvname)) {
+			// multiple color textures may refer to the same uvlayer, 
+			// set tface only once, otherwise images will rewrite each other 
+			if (strcmp(layername, (*color_texture)->uvname) != 0) {
+				texture_face = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE, (*color_texture)->uvname);
+				strcpy(layername, (*color_texture)->uvname);
+			}
+		}
+		
+		assign_material(ob, ma, ob->totcol + 1);
+		
+		MaterialIdPrimitiveArrayMap& mat_prim_map = geom_uid_mat_mapping_map[*geom_uid];
+		COLLADAFW::MaterialId mat_id = cmaterial.getMaterialId();
+		
+		// assign material indices to mesh faces
+		if (mat_prim_map.find(mat_id) != mat_prim_map.end()) {
+			
+			std::vector<Primitive>& prims = mat_prim_map[mat_id];
+			
+			std::vector<Primitive>::iterator it;
+			
+			for (it = prims.begin(); it != prims.end(); it++) {
+				Primitive& prim = *it;
+				j = 0;
+				while (j++ < prim.totface) {
+					prim.mface->mat_nr = mat_index;
+					prim.mface++;
+					
+					// if tface was set
+					// bind image to tface
+					if (texture_face && (*color_texture)) {
+						texture_face->mode = TF_TEX;
+						texture_face->tpage = (Image*)(*color_texture)->tex->ima;
+						texture_face++;
+					}
+				}
+			}
+		}
 
-	// bind object with a mesh assigning materials and textures
+		return texture_face;
+	}
+	
+	// bind object to mesh
 	Object *create_mesh_object(COLLADAFW::Node *node, COLLADAFW::InstanceGeometry *geom,
-							   bool isController, std::map<COLLADAFW::UniqueId, Material*>& uid_material_map)
+							   bool isController,
+							   std::map<COLLADAFW::UniqueId, Material*>& uid_material_map,
+							   std::map<Material*, TexIndexTextureArrayMap>& material_texture_mapping_map)
 	{
 		const COLLADAFW::UniqueId *geom_uid = &geom->getInstanciatedObjectId();
-	 
-		// checking if node instanciates controller or geometry
+		
+		// check if node instanciates controller or geometry
 		if (isController) {
 			geom_uid = armature_importer->get_geometry_uid(*geom_uid);
 			if (!geom_uid) {
@@ -707,9 +806,10 @@ public:
 				return NULL;
 			}
 		}
-
+		if (!uid_mesh_map[*geom_uid]) return NULL;
+		
 		Object *ob = add_object(scene, OB_MESH);
-
+		
 		// name Object
 		const std::string& id = node->getOriginalId();
 		if (id.length())
@@ -723,107 +823,19 @@ public:
 		if (old_mesh->id.us == 0) free_libblock(&G.main->mesh, old_mesh);
 		
 		Mesh *me = (Mesh*)ob->data;
-		MTex *diffuse_mtex = NULL;
-		/*
-		MTFace *tface = NULL;
 		char layername[100];
-		bool first_time = true;
-		*/
+		MTFace *texture_face = NULL;
+		MTex *color_texture = NULL;
 		
-		// assign material indices to mesh faces
-		for (unsigned int k = 0; k < geom->getMaterialBindings().getCount(); k++) {
+		COLLADAFW::InstanceGeometry::MaterialBindingArray& mat_array = geom->getMaterialBindings();
+		
+		// loop through geom's materials
+		for (unsigned int i = 0; i < mat_array.getCount(); i++)	{
+			texture_face = assign_material_to_geom(mat_array[i], uid_material_map, ob, me, geom_uid, &color_texture, layername, texture_face, material_texture_mapping_map, i);
 			
-			const COLLADAFW::UniqueId& ma_uid = geom->getMaterialBindings()[k].getReferencedMaterial();
-			
-			// do we know this material?
-			if (uid_material_map.find(ma_uid) == uid_material_map.end()) {
-				fprintf(stderr, "Cannot find material by UID.\n");
-				continue;
-			}
-			
-			Material *ma = uid_material_map[ma_uid];
-
-			unsigned int l;
-
-			// XXX I don't understand this! (Arystan)
-
-			/*
-			// assign textures to uv layers
-			// bvi_array "bind_vertex_input array"
-			COLLADAFW::InstanceGeometry::TextureCoordinateBindingArray& bvi_array = 
-				geom->getMaterialBindings()[k].getTextureCoordinateBindingArray();
-			for (l = 0; l < bvi_array.getCount(); l++) {
-				COLLADAFW::TextureMapId tex_index = bvi_array[l].textureMapId;
-				size_t set_index = bvi_array[l].setIndex;
-				
-				// if (set_layername_map.find(set_index) == set_layername_map.end()) {
-				// 	fprintf(stderr, "Cannot find uvlayer name by set index.\n");
-				// 	continue;
-				// }
-				// char *uvname = set_layername_map[set_index];
-				char *uvname = CustomData_get_layer_name(&me->fdata, CD_MTFACE, set_index);
-				
-				// check if mtexes were properly added to vector
-				if (index_mtex_map.find(tex_index) == index_mtex_map.end()) {
-					fprintf(stderr, "Cannot find mtexes by texmap id.\n");
-					continue;
-				}
-				std::vector<MTex*> mtexes = index_mtex_map[tex_index];
-				std::vector<MTex*>::iterator it;
-				for (it = mtexes.begin(); it != mtexes.end(); it++) {
-					MTex *mtex = *it;
-					if (mtex && mtex->uvname) strcpy(mtex->uvname, uvname);
-				}	
-			}
-			for (l = 0; l < 18; l++) {
-				if (ma->mtex[l] && ma->mtex[l]->mapto == MAP_COL) {
-					diffuse_mtex = ma->mtex[l];
-				}
-			}
-			if (diffuse_mtex && strlen(diffuse_mtex->uvname)) {
-				if (first_time) {
-					tface = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE, diffuse_mtex->uvname);
-					strcpy(layername, diffuse_mtex->uvname);
-					first_time = false;
-				}
-				else if (strcmp(diffuse_mtex->uvname, layername) != 0) {
-					tface = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE, diffuse_mtex->uvname);
-					strcpy(layername, diffuse_mtex->uvname);
-				}
-			}
-			*/
-
-			assign_material(ob, ma, ob->totcol + 1);
-			
-			MaterialIdPrimitiveArrayMap& mat_prim_map = geom_uid_mat_mapping_map[*geom_uid];
-			COLLADAFW::MaterialId mat_id = geom->getMaterialBindings()[k].getMaterialId();
-			
-			// set material index on each face
-			if (mat_prim_map.find(mat_id) != mat_prim_map.end()) {
-				
-				std::vector<Primitive>& prims = mat_prim_map[mat_id];
-				
-				std::vector<Primitive>::iterator it;
-				
-				for (it = prims.begin(); it != prims.end(); it++) {
-					Primitive& prim = *it;
-					l = 0;
-					while (l++ < prim.totface) {
-						prim.mface->mat_nr = k;
-						prim.mface++;
-						/*
-						// if tface was set
-						// bind image to tface
-						if (tface) {
-							tface->mode = TF_TEX;
-							tface->tpage = (Image*)diffuse_mtex->tex->ima;
-							tface++;
-						}
-						*/
-					}
-				}
-			}
 		}
+		
+			
 		return ob;
 	}
 
@@ -858,8 +870,8 @@ public:
 
 		read_faces(mesh, me);
 		
-		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
-		make_edges(me, 0);
+ 		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+// 		make_edges(me, 0);
 
 		return true;
 	}
@@ -891,7 +903,9 @@ private:
 	std::map<COLLADAFW::UniqueId, Material*> uid_effect_map;
 	std::map<COLLADAFW::UniqueId, Camera*> uid_camera_map;
 	std::map<COLLADAFW::UniqueId, Lamp*> uid_lamp_map;
-
+	// maps for assigning textures to uv layers
+	//std::map<COLLADAFW::TextureMapId, char*> set_layername_map;
+	std::map<Material*, TexIndexTextureArrayMap> material_texture_mapping_map;
 	// animation
 	std::map<COLLADAFW::UniqueId, std::vector<FCurve*> > uid_fcurve_map;
 	struct AnimatedTransform {
@@ -991,7 +1005,7 @@ public:
 		
 		// <instance_geometry>
 		if (geom.getCount() != 0) {
-			ob = mesh_importer.create_mesh_object(node, geom[0], false, uid_material_map);
+			ob = mesh_importer.create_mesh_object(node, geom[0], false, uid_material_map, material_texture_mapping_map);
 		}
 		// <instance_camera>
 		else if (camera.getCount() != 0) {
@@ -1024,7 +1038,7 @@ public:
 		// <instance_controller>
 		else if (controller.getCount() != 0) {
 			COLLADAFW::InstanceController *geom = (COLLADAFW::InstanceController*)controller[0];
-			ob = mesh_importer.create_mesh_object(node, geom, true, uid_material_map);
+			ob = mesh_importer.create_mesh_object(node, geom, true, uid_material_map, material_texture_mapping_map);
 		}
 		// XXX <node> - this is not supported yet
 		else if (inst_node.getCount() != 0) {
@@ -1046,14 +1060,15 @@ public:
 			// doing what 'set parent' operator does
 			par->recalc |= OB_RECALC_OB;
 			ob->parsubstr[0] = 0;
-
+			
+			DAG_scene_sort(sce);
 			// since ob->obmat is identity, this is not needed?
-			what_does_parent(sce, ob, &workob);
+			/*what_does_parent(sce, ob, &workob);
 			Mat4Invert(ob->parentinv, workob.obmat);
 
 			ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
 			ob->partype = PAROBJECT;
-			DAG_scene_sort(sce);
+			DAG_scene_sort(sce);*/
 		}
 		// transform Object
 		float rot[3][3];
@@ -1190,7 +1205,7 @@ public:
 	}
 	
 	// create mtex, create texture, set texture image
-	MTex *create_texture(COLLADAFW::EffectCommon *ef, COLLADAFW::Texture ctex, Material *ma, int i)
+	MTex *create_texture(COLLADAFW::EffectCommon *ef, COLLADAFW::Texture &ctex, Material *ma, int i, TexIndexTextureArrayMap &texindex_texarray_map)
 	{
 		COLLADAFW::SamplerPointerArray& samp_array = ef->getSamplerPointerArray();
 		COLLADAFW::Sampler *sampler = samp_array[ctex.getSamplerId()];
@@ -1207,33 +1222,14 @@ public:
 		ma->mtex[i]->tex = add_texture("texture");
 		ma->mtex[i]->tex->type = TEX_IMAGE;
 		ma->mtex[i]->tex->ima = uid_image_map[ima_uid];
-
-		// index_mtex_map[ctex.getTextureMapId()].push_back(ma->mtex[i]);
-
+		
+		texindex_texarray_map[ctex.getTextureMapId()].push_back(ma->mtex[i]);
+		
 		return ma->mtex[i];
 	}
-
-	/** When this method is called, the writer must write the effect.
-		@return The writer should return true, if writing succeeded, false otherwise.*/
-	virtual bool writeEffect( const COLLADAFW::Effect* effect ) 
+	
+	void write_profile_COMMON(COLLADAFW::EffectCommon *ef, Material *ma)
 	{
-		
-		const COLLADAFW::UniqueId& uid = effect->getUniqueId();
-		if (uid_effect_map.find(uid) == uid_effect_map.end()) {
-			fprintf(stderr, "Couldn't find a material by UID.\n");
-			return true;
-		}
-		
-		Material *ma = uid_effect_map[uid];
-		
-		COLLADAFW::CommonEffectPointerArray common_efs = effect->getCommonEffects();
-		if (common_efs.getCount() < 1) {
-			fprintf(stderr, "<effect> hasn't got <profile_COMMON>s.\n Currently we support only them. \n");
-			return true;
-		}
-		// XXX TODO: Take all <profile_common>s
-		// Currently only first <profile_common> is supported
-		COLLADAFW::EffectCommon *ef = common_efs[0];
 		COLLADAFW::EffectCommon::ShaderType shader = ef->getShaderType();
 		
 		// blinn
@@ -1264,6 +1260,7 @@ public:
 		COLLADAFW::Color col;
 		COLLADAFW::Texture ctex;
 		MTex *mtex = NULL;
+		TexIndexTextureArrayMap texindex_texarray_map;
 		
 		// DIFFUSE
 		// color
@@ -1276,7 +1273,7 @@ public:
 		// texture
 		else if (ef->getDiffuse().isTexture()) {
 			ctex = ef->getDiffuse().getTexture(); 
-			mtex = create_texture(ef, ctex, ma, i);
+			mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
 			if (mtex != NULL) {
 				mtex->mapto = MAP_COL;
 				ma->texact = (int)i;
@@ -1294,7 +1291,7 @@ public:
 		// texture
 		else if (ef->getAmbient().isTexture()) {
 			ctex = ef->getAmbient().getTexture(); 
-			mtex = create_texture(ef, ctex, ma, i);
+			mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
 			if (mtex != NULL) {
 				mtex->mapto = MAP_AMB; 
 				i++;
@@ -1311,7 +1308,7 @@ public:
 		// texture
 		else if (ef->getSpecular().isTexture()) {
 			ctex = ef->getSpecular().getTexture(); 
-			mtex = create_texture(ef, ctex, ma, i);
+			mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
 			if (mtex != NULL) {
 				mtex->mapto = MAP_SPEC; 
 				i++;
@@ -1328,7 +1325,7 @@ public:
 		// texture
 		else if (ef->getReflective().isTexture()) {
 			ctex = ef->getReflective().getTexture(); 
-			mtex = create_texture(ef, ctex, ma, i);
+			mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
 			if (mtex != NULL) {
 				mtex->mapto = MAP_REF; 
 				i++;
@@ -1343,12 +1340,37 @@ public:
 		// texture
 		else if (ef->getEmission().isTexture()) {
 			ctex = ef->getEmission().getTexture(); 
-			mtex = create_texture(ef, ctex, ma, i);
+			mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
 			if (mtex != NULL) {
 				mtex->mapto = MAP_EMIT; 
 				i++;
 			}
 		}
+		material_texture_mapping_map[ma] = texindex_texarray_map;
+	}
+	/** When this method is called, the writer must write the effect.
+		@return The writer should return true, if writing succeeded, false otherwise.*/
+	virtual bool writeEffect( const COLLADAFW::Effect* effect ) 
+	{
+		
+		const COLLADAFW::UniqueId& uid = effect->getUniqueId();
+		if (uid_effect_map.find(uid) == uid_effect_map.end()) {
+			fprintf(stderr, "Couldn't find a material by UID.\n");
+			return true;
+		}
+		
+		Material *ma = uid_effect_map[uid];
+		
+		COLLADAFW::CommonEffectPointerArray common_efs = effect->getCommonEffects();
+		if (common_efs.getCount() < 1) {
+			fprintf(stderr, "<effect> hasn't got <profile_COMMON>s.\n Currently we support only them. \n");
+			return true;
+		}
+		// XXX TODO: Take all <profile_common>s
+		// Currently only first <profile_common> is supported
+		COLLADAFW::EffectCommon *ef = common_efs[0];
+		write_profile_COMMON(ef, ma);
+		
 		return true;
 	}
 
