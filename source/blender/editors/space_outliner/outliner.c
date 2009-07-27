@@ -561,7 +561,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	TreeElement *te;
 	TreeStoreElem *tselem;
 	ID *id= idv;
-	int a;
+	int a = 0;
 	
 	if(ELEM3(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {
 		id= ((PointerRNA*)idv)->id.data;
