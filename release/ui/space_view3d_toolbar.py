@@ -27,7 +27,8 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 		col.itemO("object.duplicate")
 		col.itemO("object.delete")
 		
-		if context.active_object.type == 'MESH':
+		active_object= context.active_object
+		if active_object and active_object.type == 'MESH':
 			layout.itemL(text="Shading:")
 		
 			col = layout.column(align=True)

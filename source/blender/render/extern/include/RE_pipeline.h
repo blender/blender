@@ -39,6 +39,7 @@ struct bNodeTree;
 struct Image;
 struct NodeBlurData;
 struct Object;
+struct ReportList;
 struct RenderData;
 struct RenderEngine;
 struct RenderEngineType;
@@ -264,6 +265,8 @@ typedef struct RenderEngine {
 	struct Render *re;
 	ListBase fullresult;
 } RenderEngine;
+
+void RE_layer_rect_from_file(RenderLayer *layer, struct ReportList *reports, char *filename, int x, int y);
 
 struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h);
 void RE_engine_update_result(RenderEngine *engine, struct RenderResult *result);
