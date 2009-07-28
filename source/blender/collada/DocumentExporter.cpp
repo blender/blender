@@ -14,6 +14,8 @@
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_modifier_types.h"
 
 extern "C" 
 {
@@ -24,11 +26,11 @@ extern "C"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_action.h" // pose functions
 
 #include "BLI_arithb.h"
 #include "BLI_string.h"
-
-#include "DocumentExporter.h"
+#include "BLI_listbase.h"
 
 #include "COLLADASWAsset.h"
 #include "COLLADASWLibraryVisualScenes.h"
@@ -60,6 +62,12 @@ extern "C"
 #include "COLLADASWInstanceCamera.h"
 #include "COLLADASWInstanceLight.h"
 #include "COLLADASWCameraOptic.h"
+#include "COLLADASWConstants.h"
+#include "COLLADASWLibraryControllers.h"
+#include "COLLADASWBaseInputElement.h"
+
+#include "collada_internal.h"
+#include "DocumentExporter.h"
 
 #include <vector>
 #include <algorithm> // std::find
@@ -549,6 +557,259 @@ public:
 
 		return tris;
 		}*/
+};
+
+// XXX exporter assumes armatures are not shared between meshes.
+class ArmatureExporter: COLLADASW::LibraryControllers
+{
+public:
+	ArmatureExporter(COLLADASW::StreamWriter *sw) : COLLADASW::LibraryControllers(sw) {}
+
+	void export_armatures(Scene *sce)
+	{
+		openLibrary();
+
+		forEachMeshObjectInScene(sce, *this);
+
+		closeLibrary();
+	}
+
+	void operator()(Object *ob)
+	{
+		Object *ob_arm = NULL;
+		if (ob->parent && ob->partype == PARSKEL && ob->parent->type == OB_ARMATURE) {
+			ob_arm = ob->parent;
+		}
+		else {
+			ModifierData *mod = (ModifierData*)ob->modifiers.first;
+			while (mod) {
+				if (mod->type == eModifierType_Armature) {
+					ob_arm = ((ArmatureModifierData*)mod)->object;
+				}
+
+				mod = mod->next;
+			}
+		}
+
+		if (ob_arm)
+			export_armature(ob, ob_arm);
+	}
+
+private:
+
+	UnitConverter converter;
+
+	// ob should be of type OB_MESH
+	// both args are required
+	void export_armature(Object* ob, Object *ob_arm)
+	{
+		// joint names
+		// joint inverse bind matrices
+		// vertex weights
+
+		// input:
+		// joint names: ob -> vertex group names
+		// vertex group weights: me->dvert -> groups -> index, weight
+
+		/*
+		me->dvert:
+
+		typedef struct MDeformVert {
+			struct MDeformWeight *dw;
+			int totweight;
+			int flag;	// flag only in use for weightpaint now
+		} MDeformVert;
+
+		typedef struct MDeformWeight {
+			int				def_nr;
+			float			weight;
+		} MDeformWeight;
+		*/
+
+		Mesh *me = (Mesh*)ob->data;
+		if (!me->dvert) return;
+
+		std::string controller_name(ob_arm->id.name);
+		std::string controller_id = controller_name + SKIN_CONTROLLER_ID_SUFFIX;
+
+		openSkin(controller_id, controller_name, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, ob->id.name));
+
+		add_bind_shape_mat(ob);
+
+		std::string joints_source_id = add_joints_source(&ob->defbase, controller_id);
+		std::string inv_bind_mat_source_id =
+			add_inv_bind_mats_source((bArmature*)ob_arm->data, &ob->defbase, controller_id);
+		std::string weights_source_id = add_weights_source(me, controller_id);
+
+		add_joints_element(&ob->defbase, joints_source_id, inv_bind_mat_source_id);
+		add_vertex_weights_element(weights_source_id, joints_source_id, me);
+
+		closeSkin();
+		closeController();
+	}
+
+	void add_joints_element(ListBase *defbase,
+							const std::string& joints_source_id, const std::string& inv_bind_mat_source_id)
+	{
+		COLLADASW::JointsElement joints(mSW);
+		COLLADASW::InputList &input = joints.getInputList();
+
+		int offset = 0;
+		input.push_back(COLLADASW::Input(COLLADASW::JOINT, // constant declared in COLLADASWInputList.h
+										 COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, joints_source_id)));
+        input.push_back(COLLADASW::Input(COLLADASW::BINDMATRIX,
+										 COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, inv_bind_mat_source_id)));
+		joints.add();
+	}
+
+	void add_bind_shape_mat(Object *ob)
+	{
+		float ob_bind_mat[4][4];
+		double dae_mat[4][4];
+
+		// TODO: get matrix from ob
+		Mat4One(ob_bind_mat);
+
+		converter.mat4_to_dae(dae_mat, ob_bind_mat);
+
+		addBindShapeTransform(dae_mat);
+	}
+
+	std::string add_joints_source(ListBase *defbase, const std::string& controller_id)
+	{
+		std::string source_id = controller_id + JOINTS_SOURCE_ID_SUFFIX;
+
+		COLLADASW::NameSource source(mSW);
+		source.setId(source_id);
+		source.setArrayId(source_id + ARRAY_ID_SUFFIX);
+		source.setAccessorCount(BLI_countlist(defbase));
+		source.setAccessorStride(1);
+		
+		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
+		param.push_back("JOINT");
+
+		source.prepareToAppendValues();
+
+		bDeformGroup *def;
+
+		for (def = (bDeformGroup*)defbase->first; def; def = def->next) {
+			source.appendValues(def->name);
+		}
+
+		source.finish();
+
+		return source_id;
+	}
+
+	std::string add_inv_bind_mats_source(bArmature *arm, ListBase *defbase, const std::string& controller_id)
+	{
+		std::string source_id = controller_id + BIND_POSES_SOURCE_ID_SUFFIX;
+
+		COLLADASW::FloatSourceF source(mSW);
+		source.setId(source_id);
+		source.setArrayId(source_id + ARRAY_ID_SUFFIX);
+		source.setAccessorCount(BLI_countlist(defbase));
+		source.setAccessorStride(16);
+		
+		source.setParameterTypeName(&COLLADASW::CSWC::CSW_VALUE_TYPE_FLOAT4x4);
+		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
+		param.push_back("TRANSFORM");
+
+		source.prepareToAppendValues();
+
+		bDeformGroup *def;
+
+		/*
+		Bone *get_named_bone (struct bArmature *arm, const char *name);
+		bPoseChannel *get_pose_channel(const struct bPose *pose, const char *name);
+		*/
+
+		float inv_bind_mat[4][4];
+		Mat4One(inv_bind_mat);
+
+		float dae_mat[4][4];
+		converter.mat4_to_dae(dae_mat, inv_bind_mat);
+
+		// TODO: write inverse bind matrices for each bone (name taken from defbase)
+		for (def = (bDeformGroup*)defbase->first; def; def = def->next) {
+			source.appendValues(dae_mat);
+		}
+
+		source.finish();
+
+		return source_id;
+	}
+
+	std::string add_weights_source(Mesh *me, const std::string& controller_id)
+	{
+		std::string source_id = controller_id + WEIGHTS_SOURCE_ID_SUFFIX;
+
+		COLLADASW::FloatSourceF source(mSW);
+		source.setId(source_id);
+		source.setArrayId(source_id + ARRAY_ID_SUFFIX);
+		source.setAccessorCount(me->totvert);
+		source.setAccessorStride(1);
+		
+		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
+		param.push_back("WEIGHT");
+
+		source.prepareToAppendValues();
+
+		// NOTE: COLLADA spec says weights should be normalized
+
+		for (int i = 0; i < me->totvert; i++) {
+			MDeformVert *vert = &me->dvert[i];
+			for (int j = 0; j < vert->totweight; j++) {
+				source.appendValues(vert->dw[j].weight);
+			}
+		}
+
+		source.finish();
+
+		return source_id;
+	}
+
+	void add_vertex_weights_element(const std::string& weights_source_id, const std::string& joints_source_id, Mesh *me)
+	{
+		COLLADASW::VertexWeightsElement weights(mSW);
+		COLLADASW::InputList &input = weights.getInputList();
+
+		int offset = 0;
+		input.push_back(COLLADASW::Input(COLLADASW::JOINT, // constant declared in COLLADASWInputList.h
+										 COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, joints_source_id), offset++));
+        input.push_back(COLLADASW::Input(COLLADASW::WEIGHT,
+										 COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, weights_source_id), offset++));
+
+		weights.setCount(me->totvert);
+
+		// write number of deformers per vertex
+		COLLADASW::PrimitivesBase::VCountList vcount;
+		int i;
+		for (i = 0; i < me->totvert; i++) {
+			vcount.push_back(me->dvert[i].totweight);
+		}
+
+		weights.prepareToAppendVCountValues();
+		weights.appendVertexCount(vcount);
+
+		std::vector<unsigned long> indices;
+
+		// write deformer index - weight index pairs
+		int weight_index = 0;
+		for (i = 0; i < me->totvert; i++) {
+			MDeformVert *dvert = &me->dvert[i];
+
+			for (int j = 0; j < dvert->totweight; j++) {
+				indices.push_back(dvert->dw[j].def_nr);
+				indices.push_back(weight_index++);
+			}
+		}
+		
+		weights.CloseVCountAndOpenVElement();
+		weights.appendValues(indices);
+
+		weights.finish();
+	}
 };
 
 class SceneExporter: COLLADASW::LibraryVisualScenes
@@ -1301,7 +1562,10 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	// <library_animations>
 	AnimationExporter ae(&sw);
 	ae.exportAnimations(sce);
-	
+
+	// <library_controllers>
+	ArmatureExporter(&sw).export_armatures(sce);
+
 	// <library_visual_scenes>
 	SceneExporter se(&sw);
 	se.exportScene(sce);
