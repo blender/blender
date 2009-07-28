@@ -49,10 +49,13 @@ class DATA_PT_lamp(DataButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		col.itemR(lamp, "color", text="")
-		col.itemR(lamp, "energy")
+		sub = col.column(align=True)
+		sub.itemR(lamp, "color", text="")
+		sub.itemR(lamp, "energy")
 		col.itemR(lamp, "negative")
-		col.itemR(lamp, "distance")
+		
+		if lamp.type == "AREA":
+			col.itemR(lamp, "distance")
 	
 		col = split.column()
 		col.itemR(lamp, "layer", text="This Layer Only")
@@ -67,7 +70,7 @@ class DATA_PT_lamp(DataButtonsPanel):
 			sub = col.column(align=True)
 			sub.itemR(lamp, "falloff_type", text="")
 			sub.itemR(lamp, "distance")
-			sub.itemR(lamp, "sphere")
+			col.itemR(lamp, "sphere")
 			
 			if lamp.falloff_type == 'LINEAR_QUADRATIC_WEIGHTED':
 				col = split.column()
@@ -201,20 +204,18 @@ class DATA_PT_shadow(DataButtonsPanel):
 			elif lamp.type == 'AREA':
 				split = layout.split()
 				
-				col = split.column(align=True)
+				col = split.column()
+				sub = split.column(align=True)
 				if lamp.shape == 'SQUARE':
-					col.itemR(lamp, "shadow_ray_samples_x", text="Samples")
+					sub.itemR(lamp, "shadow_ray_samples_x", text="Samples")
 				elif lamp.shape == 'RECTANGLE':
-					col.itemR(lamp, "shadow_ray_samples_x", text="Samples X")
-					col.itemR(lamp, "shadow_ray_samples_y", text="Samples Y")
+					sub.itemR(lamp, "shadow_ray_samples_x", text="Samples X")
+					sub.itemR(lamp, "shadow_ray_samples_y", text="Samples Y")
 					
 				if lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC':
-					col.itemR(lamp, "shadow_adaptive_threshold", text="Threshold")
-					split.column()
-				elif lamp.shadow_ray_sampling_method == 'CONSTANT_QMC':
-					split.column()
+					sub.itemR(lamp, "shadow_adaptive_threshold", text="Threshold")
+					
 				elif lamp.shadow_ray_sampling_method == 'CONSTANT_JITTERED':
-					col = split.column()
 					col.itemR(lamp, "umbra")
 					col.itemR(lamp, "dither")
 					col.itemR(lamp, "jitter")	
