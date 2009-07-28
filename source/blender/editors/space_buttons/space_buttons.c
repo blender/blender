@@ -149,7 +149,7 @@ static void buttons_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	SpaceButs *sbuts= CTX_wm_space_buts(C);
 	int vertical= (sbuts->align == BUT_VERTICAL);
 
 	buttons_context_compute(C, sbuts);
@@ -267,7 +267,7 @@ static void buttons_context_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void buttons_context_area_draw(const bContext *C, ARegion *ar)
 {
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	SpaceButs *sbuts= CTX_wm_space_buts(C);
 	uiStyle *style= U.uistyles.first;
 	uiBlock *block;
 	uiLayout *layout;

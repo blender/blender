@@ -69,7 +69,7 @@ static void graph_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *sa= CTX_wm_area(C);
-	SpaceIpo *sipo= (SpaceIpo*)CTX_wm_space_data(C);
+	SpaceIpo *sipo= CTX_wm_space_graph(C);
 	PointerRNA spaceptr;
 	
 	/* retrieve state */
@@ -252,7 +252,7 @@ static void do_graph_buttons(bContext *C, void *arg, int event)
 void graph_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
-	SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
+	SpaceIpo *sipo= CTX_wm_space_graph(C);
 	uiBlock *block;
 	int xco, yco= 3;
 	

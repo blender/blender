@@ -242,7 +242,7 @@ static void driver_update_flags_cb (bContext *C, void *fcu_v, void *dummy_v)
 /* drivers panel poll */
 static int graph_panel_drivers_poll(const bContext *C, PanelType *pt)
 {
-	SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
+	SpaceIpo *sipo= CTX_wm_space_graph(C);
 
 	if(sipo->mode != SIPO_MODE_DRIVERS)
 		return 0;

@@ -127,7 +127,7 @@ static void image_editcursor_buts(const bContext *C, View2D *v2d, uiBlock *block
 
 static void do_image_panel_events(bContext *C, void *arg, int event)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
 	
 	switch(event) {
@@ -234,7 +234,7 @@ static void image_transform_but_attr(SpaceImage *sima, int *imx, int *imy, int *
 /* is used for both read and write... */
 static void image_editvertex_buts(const bContext *C, uiBlock *block)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Object *obedit= CTX_data_edit_object(C);
 	static float ocent[2];
 	float cent[2]= {0.0, 0.0};
@@ -347,7 +347,7 @@ static void image_editvertex_buts(const bContext *C, uiBlock *block)
 /* is used for both read and write... */
 static void image_editcursor_buts(const bContext *C, View2D *v2d, uiBlock *block)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	static float ocent[2];
 	int imx= 256, imy= 256;
 	int step, digits;
@@ -386,7 +386,7 @@ static void image_editcursor_buts(const bContext *C, View2D *v2d, uiBlock *block
 #if 0
 static void image_panel_view_properties(const bContext *C, Panel *pa)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
 	Object *obedit= CTX_data_edit_object(C);
 	uiBlock *block;
@@ -448,7 +448,7 @@ void brush_buttons(const bContext *C, uiBlock *block, short fromsima,
 				   int evt_del, int evt_keepdata,
 				   int evt_texbrowse, int evt_texdel)
 {
-//	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+//	SpaceImage *sima= CTX_wm_space_image(C);
 	ToolSettings *settings= CTX_data_tool_settings(C);
 	Brush *brush= settings->imapaint.brush;
 	ID *id;
@@ -565,14 +565,14 @@ void brush_buttons(const bContext *C, uiBlock *block, short fromsima,
 
 static int image_panel_paint_poll(const bContext *C, PanelType *pt)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	
 	return (sima->image && (sima->flag & SI_DRAWTOOL));
 }
 
 static void image_panel_paintcolor(const bContext *C, Panel *pa)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ToolSettings *settings= CTX_data_tool_settings(C);
 	Brush *brush= settings->imapaint.brush;
 	uiBlock *block;
@@ -591,7 +591,7 @@ static void image_panel_paintcolor(const bContext *C, Panel *pa)
 
 static void image_panel_paint(const bContext *C, Panel *pa)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	uiBlock *block;
 	
 	if(!sima->image || (sima->flag & SI_DRAWTOOL)==0)
@@ -605,7 +605,7 @@ static void image_panel_paint(const bContext *C, Panel *pa)
 
 static void image_panel_curves_reset(bContext *C, void *cumap_v, void *ibuf_v)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	CurveMapping *cumap = cumap_v;
 	int a;
 	
@@ -625,7 +625,7 @@ static void image_panel_curves_reset(bContext *C, void *cumap_v, void *ibuf_v)
 
 static void image_panel_curves(const bContext *C, Panel *pa)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ImBuf *ibuf;
 	uiBlock *block;
 	uiBut *bt;
@@ -1201,7 +1201,7 @@ void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, I
 						 short redraw, short imagechanged)
 {
 	Scene *scene= CTX_data_scene(C);
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Image *ima= *ima_pp;
 	uiBut *but;
 	char str[128], *strp;
@@ -1397,7 +1397,7 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
 
 static void image_panel_properties(const bContext *C, Panel *pa)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	uiBlock *block;
 	
 	block= uiLayoutFreeBlock(pa->layout);

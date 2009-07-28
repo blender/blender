@@ -2033,7 +2033,7 @@ static EnumPropertyItem prop_calc_roll_types[] = {
 static int armature_calc_roll_exec(bContext *C, wmOperator *op) 
 {
 	Scene *scene= CTX_data_scene(C);
-	View3D *v3d= (View3D *)CTX_wm_space_data(C);
+	View3D *v3d= CTX_wm_view3d(C);
 	Object *ob= CTX_data_edit_object(C);
 	void (*roll_func)(Scene *, View3D *, EditBone *) = NULL;
 	
@@ -2851,7 +2851,7 @@ static int armature_fill_bones_exec (bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	bArmature *arm= (obedit) ? obedit->data : NULL;
 	Scene *scene= CTX_data_scene(C);
-	View3D *v3d= (View3D *)CTX_wm_space_data(C);
+	View3D *v3d= CTX_wm_view3d(C);
 	EditBone *newbone=NULL;
 	ListBase points = {NULL, NULL};
 	int count;

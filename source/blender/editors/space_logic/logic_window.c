@@ -2751,7 +2751,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 
 static void do_sensor_menu(bContext *C, void *arg, int event)
 {	
-	SpaceLogic *slogic= (SpaceLogic *)CTX_wm_space_data(C);
+	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	ID **idar;
 	Object *ob;
 	bSensor *sens;
@@ -2800,7 +2800,7 @@ static uiBlock *sensor_menu(bContext *C, ARegion *ar, void *arg_unused)
 
 static void do_controller_menu(bContext *C, void *arg, int event)
 {	
-	SpaceLogic *slogic= (SpaceLogic *)CTX_wm_space_data(C);
+	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	ID **idar;
 	Object *ob;
 	bController *cont;
@@ -2849,7 +2849,7 @@ static uiBlock *controller_menu(bContext *C, ARegion *ar, void *arg_unused)
 
 static void do_actuator_menu(bContext *C, void *arg, int event)
 {	
-	SpaceLogic *slogic= (SpaceLogic *)CTX_wm_space_data(C);
+	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	ID **idar;
 	Object *ob;
 	bActuator *act;
@@ -3011,7 +3011,7 @@ static int is_sensor_linked(uiBlock *block, bSensor *sens)
 
 void logic_buttons(bContext *C, ARegion *ar)
 {
-	SpaceLogic *slogic= (SpaceLogic *)CTX_wm_space_data(C);
+	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	Object *ob= CTX_data_active_object(C);
 	ID **idar;
 	bSensor *sens;

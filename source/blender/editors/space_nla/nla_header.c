@@ -83,7 +83,7 @@ static void nla_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *sa= CTX_wm_area(C);
-	SpaceNla *snla= (SpaceNla*)CTX_wm_space_data(C);
+	SpaceNla *snla= CTX_wm_space_nla(C);
 	PointerRNA spaceptr;
 	
 	/* retrieve state */
@@ -213,7 +213,7 @@ static void do_nla_buttons(bContext *C, void *arg, int event)
 
 void nla_header_buttons(const bContext *C, ARegion *ar)
 {
-	SpaceNla *snla= (SpaceNla *)CTX_wm_space_data(C);
+	SpaceNla *snla= CTX_wm_space_nla(C);
 	ScrArea *sa= CTX_wm_area(C);
 	uiBlock *block;
 	int xco, yco= 3;

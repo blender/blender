@@ -1489,7 +1489,7 @@ void object_toggle_visibility_cb(bContext *C, Scene *scene, TreeElement *te, Tre
 
 static int outliner_toggle_visibility_exec(bContext *C, wmOperator *op)
 {
-	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
 	
@@ -1528,7 +1528,7 @@ static void object_toggle_selectability_cb(bContext *C, Scene *scene, TreeElemen
 
 static int outliner_toggle_selectability_exec(bContext *C, wmOperator *op)
 {
-	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
 	
@@ -1567,7 +1567,7 @@ void object_toggle_renderability_cb(bContext *C, Scene *scene, TreeElement *te, 
 
 static int outliner_toggle_renderability_exec(bContext *C, wmOperator *op)
 {
-	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
 	
@@ -1596,7 +1596,7 @@ void OUTLINER_OT_renderability_toggle(wmOperatorType *ot)
 
 static int outliner_toggle_expanded_exec(bContext *C, wmOperator *op)
 {
-	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
 	ARegion *ar= CTX_wm_region(C);
 	
 	if (outliner_has_one_flag(soops, &soops->tree, TSE_CLOSED, 1))
@@ -1627,7 +1627,7 @@ void OUTLINER_OT_expanded_toggle(wmOperatorType *ot)
 
 static int outliner_toggle_selected_exec(bContext *C, wmOperator *op)
 {
-	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
 	ARegion *ar= CTX_wm_region(C);
 	
 	if (outliner_has_one_flag(soops, &soops->tree, TSE_SELECTED, 1))
@@ -1680,7 +1680,7 @@ static void outliner_openclose_level(SpaceOops *soops, ListBase *lb, int curleve
 
 static int outliner_one_level_exec(bContext *C, wmOperator *op)
 {
-	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
 	ARegion *ar= CTX_wm_region(C);
 	int add= RNA_boolean_get(op->ptr, "open");
 	int level;
@@ -2367,7 +2367,7 @@ static int outliner_item_activate(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
-	SpaceOops *soops= (SpaceOops*)CTX_wm_space_data(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
 	TreeElement *te;
 	float fmval[2];
 	int extend= RNA_boolean_get(op->ptr, "extend");
@@ -2447,7 +2447,7 @@ static int do_outliner_item_openclose(bContext *C, SpaceOops *soops, TreeElement
 static int outliner_item_openclose(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
-	SpaceOops *soops= (SpaceOops*)CTX_wm_space_data(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
 	TreeElement *te;
 	float fmval[2];
 	int all= RNA_boolean_get(op->ptr, "all");
@@ -2514,7 +2514,7 @@ static int do_outliner_item_rename(bContext *C, ARegion *ar, SpaceOops *soops, T
 static int outliner_item_rename(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
-	SpaceOops *soops= (SpaceOops*)CTX_wm_space_data(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
 	TreeElement *te;
 	float fmval[2];
 	
@@ -2592,7 +2592,7 @@ static TreeElement *outliner_find_id(SpaceOops *soops, ListBase *lb, ID *id)
 
 static int outliner_show_active_exec(bContext *C, wmOperator *op)
 {
-	SpaceOops *so= (SpaceOops *)CTX_wm_space_data(C);
+	SpaceOops *so= CTX_wm_space_outliner(C);
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= &ar->v2d;
@@ -2822,7 +2822,7 @@ static void tree_element_show_hierarchy(Scene *scene, SpaceOops *soops, ListBase
 /* show entire object level hierarchy */
 static int outliner_show_hierarchy_exec(bContext *C, wmOperator *op)
 {
-	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
 	ARegion *ar= CTX_wm_region(C);
 	Scene *scene= CTX_data_scene(C);
 	
@@ -3247,7 +3247,7 @@ static EnumPropertyItem prop_object_op_types[] = {
 static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	SpaceOops *soops= (SpaceOops*)CTX_wm_space_data(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
 	int event;
 	char *str;
 	
@@ -3329,7 +3329,7 @@ static EnumPropertyItem prop_group_op_types[] = {
 static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	SpaceOops *soops= (SpaceOops*)CTX_wm_space_data(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
 	int event;
 	
 	/* check for invalid states */
@@ -3386,7 +3386,7 @@ static EnumPropertyItem prop_id_op_types[] = {
 static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	SpaceOops *soops= (SpaceOops*)CTX_wm_space_data(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
 	int scenelevel=0, objectlevel=0, idlevel=0, datalevel=0;
 	int event;
 	
@@ -3453,7 +3453,7 @@ static EnumPropertyItem prop_data_op_types[] = {
 
 static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 {
-	SpaceOops *soops= (SpaceOops*)CTX_wm_space_data(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
 	int scenelevel=0, objectlevel=0, idlevel=0, datalevel=0;
 	int event;
 	
@@ -3517,7 +3517,6 @@ void OUTLINER_OT_data_operation(wmOperatorType *ot)
 
 static int outliner_drag_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	wmWindow *win= CTX_wm_window(C);
 	Object *ob= CTX_data_active_object(C);
 	PointerRNA ptr;
 
@@ -3626,7 +3625,7 @@ static int outliner_operation(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
-	SpaceOops *soops= (SpaceOops*)CTX_wm_space_data(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
 	TreeElement *te;
 	float fmval[2];
 	
@@ -3660,7 +3659,7 @@ static int ed_operator_outliner_datablocks_active(bContext *C)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	if ((sa) && (sa->spacetype==SPACE_OUTLINER)) {
-		SpaceOops *so= (SpaceOops *)CTX_wm_space_data(C);
+		SpaceOops *so= CTX_wm_space_outliner(C);
 		return (so->outlinevis == SO_DATABLOCKS);
 	}
 	return 0;
@@ -3873,7 +3872,7 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, short m
 
 static int outliner_drivers_addsel_exec(bContext *C, wmOperator *op)
 {
-	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
+	SpaceOops *soutliner= CTX_wm_space_outliner(C);
 	
 	/* check for invalid states */
 	if (soutliner == NULL)
@@ -3908,7 +3907,7 @@ void OUTLINER_OT_drivers_add(wmOperatorType *ot)
 
 static int outliner_drivers_deletesel_exec(bContext *C, wmOperator *op)
 {
-	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
+	SpaceOops *soutliner= CTX_wm_space_outliner(C);
 	
 	/* check for invalid states */
 	if (soutliner == NULL)
@@ -4043,7 +4042,7 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 
 static int outliner_keyingset_additems_exec(bContext *C, wmOperator *op)
 {
-	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
+	SpaceOops *soutliner= CTX_wm_space_outliner(C);
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks= verify_active_keyingset(scene, 1);
 	
@@ -4083,7 +4082,7 @@ void OUTLINER_OT_keyingset_add_selected(wmOperatorType *ot)
 
 static int outliner_keyingset_removeitems_exec(bContext *C, wmOperator *op)
 {
-	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
+	SpaceOops *soutliner= CTX_wm_space_outliner(C);
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks= verify_active_keyingset(scene, 1);
 	
@@ -4765,7 +4764,7 @@ static void restrictbutton_bone_cb(bContext *C, void *poin, void *poin2)
 
 static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 {
-	SpaceOops *soops= (SpaceOops *)CTX_wm_space_data(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	TreeStore *ts= soops->treestore;
@@ -5294,7 +5293,7 @@ void draw_outliner(const bContext *C)
 	Scene *scene= CTX_data_scene(C);
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= &ar->v2d;
-	SpaceOops *soops= (SpaceOops*)CTX_wm_space_data(C);
+	SpaceOops *soops= CTX_wm_space_outliner(C);
 	uiBlock *block;
 	int sizey= 0, sizex= 0, sizex_rna= 0;
 	

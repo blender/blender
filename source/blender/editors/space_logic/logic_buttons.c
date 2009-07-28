@@ -80,7 +80,7 @@ static void do_logic_panel_events(bContext *C, void *arg, int event)
 
 static void logic_panel_properties(const bContext *C, Panel *pa)
 {
-//	SpaceLogic *slogic= (SpaceLogic*)CTX_wm_space_data(C);
+//	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	uiBlock *block;
 	
 	block= uiLayoutFreeBlock(pa->layout);
@@ -90,7 +90,7 @@ static void logic_panel_properties(const bContext *C, Panel *pa)
 
 static void logic_panel_view_properties(const bContext *C, Panel *pa)
 {
-	//	SpaceLogic *slogic= (SpaceLogic*)CTX_wm_space_data(C);
+	//	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	uiBlock *block;
 	
 	block= uiLayoutFreeBlock(pa->layout);
@@ -101,8 +101,9 @@ static void logic_panel_view_properties(const bContext *C, Panel *pa)
 
 void logic_buttons_register(ARegionType *art)
 {
-	PanelType *pt;
 #if 0
+	PanelType *pt;
+
 	pt= MEM_callocN(sizeof(PanelType), "spacetype logic panel properties");
 	strcpy(pt->idname, "LOGIC_PT_properties");
 	strcpy(pt->label, "Logic Properties");

@@ -165,7 +165,7 @@ static void action_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void action_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceAction *saction= (SpaceAction*)CTX_wm_space_data(C);
+	SpaceAction *saction= CTX_wm_space_action(C);
 	bAnimContext ac;
 	View2D *v2d= &ar->v2d;
 	View2DGrid *grid;
@@ -228,7 +228,7 @@ static void action_channel_area_init(wmWindowManager *wm, ARegion *ar)
 static void action_channel_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceAction *saction= (SpaceAction*)CTX_wm_space_data(C);
+	SpaceAction *saction= CTX_wm_space_action(C);
 	bAnimContext ac;
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;

@@ -2416,7 +2416,7 @@ static void UVsToTransData(SpaceImage *sima, TransData *td, TransData2D *td2d, f
 
 static void createTransUVs(bContext *C, TransInfo *t)
 {
-	SpaceImage *sima = (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima = CTX_wm_space_image(C);
 	Image *ima = CTX_data_edit_image(C);
 	Scene *scene = CTX_data_scene(C);
 	TransData *td = NULL;

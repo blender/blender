@@ -965,18 +965,15 @@ static int modify_key_op_poll(bContext *C)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Scene *scene= CTX_data_scene(C);
+	SpaceOops *so= CTX_wm_space_outliner(C);
 	
 	/* if no area or active scene */
 	if (ELEM(NULL, sa, scene)) 
 		return 0;
 	
 	/* if Outliner, only allow in DataBlocks view */
-	if (sa->spacetype == SPACE_OUTLINER) {
-		SpaceOops *so= (SpaceOops *)CTX_wm_space_data(C);
-		
-		if ((so->outlinevis != SO_DATABLOCKS))
-			return 0;
-	}
+	if (so && (so->outlinevis != SO_DATABLOCKS))
+		return 0;
 	
 	/* TODO: checks for other space types can be added here */
 	

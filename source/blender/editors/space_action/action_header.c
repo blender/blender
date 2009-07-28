@@ -77,7 +77,7 @@ static void act_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *sa= CTX_wm_area(C);
-	SpaceAction *sact= (SpaceAction*)CTX_wm_space_data(C);
+	SpaceAction *sact= CTX_wm_space_action(C);
 	PointerRNA spaceptr;
 	
 	/* retrieve state */
@@ -248,7 +248,7 @@ static void do_action_buttons(bContext *C, void *arg, int event)
 
 static void saction_idpoin_handle(bContext *C, ID *id, int event)
 {
-	SpaceAction *saction= (SpaceAction*)CTX_wm_space_data(C);
+	SpaceAction *saction= CTX_wm_space_action(C);
 	Object *obact= CTX_data_active_object(C);
 	
 	printf("actedit do id: \n");
@@ -296,7 +296,7 @@ static void saction_idpoin_handle(bContext *C, ID *id, int event)
 void action_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
-	SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(C);
+	SpaceAction *saction= CTX_wm_space_action(C);
 	bAnimContext ac;
 	uiBlock *block;
 	int xco, yco= 3, xmax;

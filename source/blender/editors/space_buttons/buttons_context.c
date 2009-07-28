@@ -416,7 +416,7 @@ static int buttons_context_path_texture(ButsContextPath *path)
 
 static int buttons_context_path(const bContext *C, ButsContextPath *path, int mainb, int flag)
 {
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	SpaceButs *sbuts= CTX_wm_space_buts(C);
 	ID *id;
 	int found;
 
@@ -546,7 +546,7 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 
 int buttons_context(const bContext *C, const char *member, bContextDataResult *result)
 {
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	SpaceButs *sbuts= CTX_wm_space_buts(C);
 	ButsContextPath *path= sbuts?sbuts->path:NULL;
 
 	if(!path)
@@ -713,7 +713,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 static void pin_cb(bContext *C, void *arg1, void *arg2)
 {
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	SpaceButs *sbuts= CTX_wm_space_buts(C);
 	ButsContextPath *path= sbuts->path;
 	PointerRNA *ptr;
 	int a;
@@ -738,7 +738,7 @@ static void pin_cb(bContext *C, void *arg1, void *arg2)
 
 void buttons_context_draw(const bContext *C, uiLayout *layout)
 {
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	SpaceButs *sbuts= CTX_wm_space_buts(C);
 	ButsContextPath *path= sbuts->path;
 	uiLayout *row;
 	uiBlock *block;

@@ -910,7 +910,7 @@ void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 static int toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bScreen *sc= CTX_wm_screen(C);
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	SpaceButs *sbuts= CTX_wm_space_buts(C);
 	PointerRNA ptr;
 	uiPopupMenu *pup;
 	uiLayout *layout;

@@ -96,7 +96,7 @@ static void do_time_redrawmenu(bContext *C, void *arg, int event)
 	
 	if(event < 1001) {
 		bScreen *screen= CTX_wm_screen(C);
-		SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+		SpaceTime *stime= CTX_wm_space_time(C);
 		
 		stime->redraws ^= event;
 		
@@ -116,7 +116,7 @@ static void do_time_redrawmenu(bContext *C, void *arg, int event)
 static uiBlock *time_redrawmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *curarea= CTX_wm_area(C);
-	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+	SpaceTime *stime= CTX_wm_space_time(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120, icon;
 	
@@ -171,7 +171,7 @@ static uiBlock *time_redrawmenu(bContext *C, ARegion *ar, void *arg_unused)
 static void do_time_viewmenu(bContext *C, void *arg, int event)
 {
 	ScrArea *curarea= CTX_wm_area(C);
-	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+	SpaceTime *stime= CTX_wm_space_time(C);
 	View2D *v2d= UI_view2d_fromcontext_rwin(C);
 	Scene *scene= CTX_data_scene(C);
 	int first;
@@ -229,7 +229,7 @@ static void do_time_viewmenu(bContext *C, void *arg, int event)
 static uiBlock *time_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *curarea= CTX_wm_area(C);
-	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+	SpaceTime *stime= CTX_wm_space_time(C);
 	View2D *v2d= UI_view2d_fromcontext_rwin(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
@@ -375,7 +375,7 @@ static uiBlock *time_framemenu(bContext *C, ARegion *ar, void *arg_unused)
 void do_time_buttons(bContext *C, void *arg, int event)
 {
 	bScreen *screen= CTX_wm_screen(C);
-	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+	SpaceTime *stime= CTX_wm_space_time(C);
 	Scene *scene= CTX_data_scene(C);
 	
 	switch(event) {
@@ -445,7 +445,7 @@ void do_time_buttons(bContext *C, void *arg, int event)
 void time_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
-	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+	SpaceTime *stime= CTX_wm_space_time(C);
 	Scene *scene= CTX_data_scene(C);
 	uiBlock *block;
 	uiBut *but;

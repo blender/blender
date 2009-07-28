@@ -65,7 +65,10 @@
 
 static void do_buttons_buttons(bContext *C, void *arg, int event)
 {
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	SpaceButs *sbuts= CTX_wm_space_buts(C);
+
+	if(!sbuts) /* window type switch */
+		return;
 
 	switch(event) {
 		case B_CONTEXT_SWITCH:
@@ -87,7 +90,7 @@ static void do_buttons_buttons(bContext *C, void *arg, int event)
 
 void buttons_header_buttons(const bContext *C, ARegion *ar)
 {
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	SpaceButs *sbuts= CTX_wm_space_buts(C);
 	uiBlock *block;
 	int xco, yco= 3;
 

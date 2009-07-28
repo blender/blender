@@ -246,7 +246,7 @@ void image_keymap(struct wmWindowManager *wm)
 
 static void image_refresh(const bContext *C, ScrArea *sa)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima;
 
@@ -306,7 +306,7 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 
 static int image_context(const bContext *C, const char *member, bContextDataResult *result)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 
 	if(CTX_data_dir(member)) {
 		static const char *dir[] = {"edit_image", NULL};
@@ -416,7 +416,7 @@ static void image_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void image_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Scene *scene= CTX_data_scene(C);
 	View2D *v2d= &ar->v2d;

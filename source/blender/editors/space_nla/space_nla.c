@@ -223,7 +223,7 @@ static void nla_channel_area_init(wmWindowManager *wm, ARegion *ar)
 /* draw entirely, view changes should be handled here */
 static void nla_channel_area_draw(const bContext *C, ARegion *ar)
 {
-	SpaceNla *snla= (SpaceNla*)CTX_wm_space_data(C);
+	SpaceNla *snla= CTX_wm_space_nla(C);
 	bAnimContext ac;
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
@@ -268,7 +268,7 @@ static void nla_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void nla_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceNla *snla= (SpaceNla*)CTX_wm_space_data(C);
+	SpaceNla *snla= CTX_wm_space_nla(C);
 	bAnimContext ac;
 	View2D *v2d= &ar->v2d;
 	View2DGrid *grid;

@@ -205,7 +205,7 @@ static void handle_view3d_lock(bContext *C)
 {
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= (View3D *)CTX_wm_space_data(C);
+	View3D *v3d= CTX_wm_view3d(C);
 	
 	if (v3d != NULL && sa != NULL) {
 		if(v3d->localview==0 && v3d->scenelock && sa->spacetype==SPACE_VIEW3D) {

@@ -209,7 +209,7 @@ void outliner_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Scene *scene= CTX_data_scene(C);
-	SpaceOops *soutliner= (SpaceOops*)CTX_wm_space_data(C);
+	SpaceOops *soutliner= CTX_wm_space_outliner(C);
 	uiBlock *block;
 	int xco, yco= 3, xmax;
 	

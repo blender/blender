@@ -63,12 +63,12 @@
 
 static void do_logic_buttons(bContext *C, void *arg, int event)
 {
-//	SpaceLogic *slogic= (SpaceLogic*)CTX_wm_space_data(C);
+//	SpaceLogic *slogic= CTX_wm_space_logic(C);
 }
 
 static uiBlock *logic_addmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
-//	SpaceLogic *slogic= (SpaceLogic*)CTX_wm_space_data(C);
+//	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
@@ -87,7 +87,7 @@ static uiBlock *logic_addmenu(bContext *C, ARegion *ar, void *arg_unused)
 void logic_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
-//	SpaceLogic *slogic= (SpaceLogic*)CTX_wm_space_data(C);
+//	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	uiBlock *block;
 	short xco, yco= 3;
 	

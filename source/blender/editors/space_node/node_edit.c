@@ -1089,7 +1089,7 @@ typedef struct NodeSizeWidget {
 
 static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	ARegion *ar= CTX_wm_region(C);
 	bNode *node= editnode_get_active(snode->edittree);
 	NodeSizeWidget *nsw= op->customdata;
@@ -1132,7 +1132,7 @@ static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 static int node_resize_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	ARegion *ar= CTX_wm_region(C);
 	bNode *node= editnode_get_active(snode->edittree);
 	
@@ -1691,7 +1691,7 @@ void node_mute(SpaceNode *snode)
 
 int node_duplicate_exec(bContext *C, wmOperator *op)
 {
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	
 	ntreeCopyTree(snode->edittree, 1);	/* 1 == internally selected nodes */
 	
@@ -1833,7 +1833,7 @@ static void node_remove_extra_links(SpaceNode *snode, bNodeSocket *tsock, bNodeL
 /* in_out = starting socket */
 static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	ARegion *ar= CTX_wm_region(C);
 	NodeLinkDrag *nldrag= op->customdata;
 	bNode *tnode, *node;
@@ -1970,7 +1970,7 @@ static int node_link_init(SpaceNode *snode, NodeLinkDrag *nldrag)
 
 static int node_link_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	ARegion *ar= CTX_wm_region(C);
 	NodeLinkDrag *nldrag= MEM_callocN(sizeof(NodeLinkDrag), "drag link op customdata");
 	
@@ -2166,7 +2166,7 @@ static int cut_links_intersect(bNodeLink *link, float mcoords[][2], int tot)
 
 static int cut_links_exec(bContext *C, wmOperator *op)
 {
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	ARegion *ar= CTX_wm_region(C);
 	float mcoords[256][2];
 	int i= 0;
@@ -2573,7 +2573,7 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 static int node_delete_selection_exec(bContext *C, wmOperator *op)
 {
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	ARegion *ar= CTX_wm_region(C);
 	
 	node_delete(snode);

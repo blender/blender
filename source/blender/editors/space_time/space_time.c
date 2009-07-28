@@ -214,7 +214,7 @@ static void time_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void time_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+	SpaceTime *stime= CTX_wm_space_time(C);
 	View2D *v2d= &ar->v2d;
 	View2DGrid *grid;
 	View2DScrollers *scrollers;
