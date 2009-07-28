@@ -638,6 +638,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				case ANIMTYPE_SCENE: /* scene */
 				{
 					Scene *sce= (Scene *)ale->data;
+					AnimData *adt= ale->adt;
 					
 					group= 4;
 					indent= 0;
@@ -649,6 +650,14 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 						expand= ICON_TRIA_DOWN;
 					else
 						expand= ICON_TRIA_RIGHT;
+						
+					/* NLA evaluation on/off button */
+					if (adt) {
+						if (adt->flag & ADT_NLA_EVAL_OFF)
+							mute = ICON_MUTE_IPO_ON;
+						else	
+							mute = ICON_MUTE_IPO_OFF;
+					}
 					
 					sel = SEL_SCEC(sce);
 					strcpy(name, sce->id.name+2);
@@ -658,6 +667,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				{
 					Base *base= (Base *)ale->data;
 					Object *ob= base->object;
+					AnimData *adt= ale->adt;
 					
 					group= 4;
 					indent= 0;
@@ -673,6 +683,14 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 						expand= ICON_TRIA_DOWN;
 					else
 						expand= ICON_TRIA_RIGHT;
+					
+					/* NLA evaluation on/off button */
+					if (adt) {
+						if (adt->flag & ADT_NLA_EVAL_OFF)
+							mute = ICON_MUTE_IPO_ON;
+						else	
+							mute = ICON_MUTE_IPO_OFF;
+					}
 					
 					sel = SEL_OBJC(base);
 					strcpy(name, ob->id.name+2);
@@ -706,7 +724,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 						expand = ICON_TRIA_DOWN;
 					else
 						expand = ICON_TRIA_RIGHT;
-						
+					
 					strcpy(name, "Particles");
 				}
 					break;
@@ -715,6 +733,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				case ANIMTYPE_DSMAT: /* single material (dopesheet) expand widget */
 				{
 					Material *ma = (Material *)ale->data;
+					AnimData *adt= ale->adt;
 					
 					group = 0;
 					indent = 0;
@@ -725,6 +744,14 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 						expand = ICON_TRIA_DOWN;
 					else
 						expand = ICON_TRIA_RIGHT;
+						
+					/* NLA evaluation on/off button */
+					if (adt) {
+						if (adt->flag & ADT_NLA_EVAL_OFF)
+							mute = ICON_MUTE_IPO_ON;
+						else	
+							mute = ICON_MUTE_IPO_OFF;
+					}
 					
 					strcpy(name, ma->id.name+2);
 				}
@@ -732,6 +759,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				case ANIMTYPE_DSLAM: /* lamp (dopesheet) expand widget */
 				{
 					Lamp *la = (Lamp *)ale->data;
+					AnimData *adt= ale->adt;
 					
 					group = 4;
 					indent = 1;
@@ -741,6 +769,14 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 						expand = ICON_TRIA_DOWN;
 					else
 						expand = ICON_TRIA_RIGHT;
+						
+					/* NLA evaluation on/off button */
+					if (adt) {
+						if (adt->flag & ADT_NLA_EVAL_OFF)
+							mute = ICON_MUTE_IPO_ON;
+						else	
+							mute = ICON_MUTE_IPO_OFF;
+					}
 					
 					strcpy(name, la->id.name+2);
 				}
@@ -748,6 +784,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				case ANIMTYPE_DSCAM: /* camera (dopesheet) expand widget */
 				{
 					Camera *ca = (Camera *)ale->data;
+					AnimData *adt= ale->adt;
 					
 					group = 4;
 					indent = 1;
@@ -757,6 +794,14 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 						expand = ICON_TRIA_DOWN;
 					else
 						expand = ICON_TRIA_RIGHT;
+						
+					/* NLA evaluation on/off button */
+					if (adt) {
+						if (adt->flag & ADT_NLA_EVAL_OFF)
+							mute = ICON_MUTE_IPO_ON;
+						else	
+							mute = ICON_MUTE_IPO_OFF;
+					}
 					
 					strcpy(name, ca->id.name+2);
 				}
@@ -764,6 +809,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				case ANIMTYPE_DSCUR: /* curve (dopesheet) expand widget */
 				{
 					Curve *cu = (Curve *)ale->data;
+					AnimData *adt= ale->adt;
 					
 					group = 4;
 					indent = 1;
@@ -773,6 +819,14 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 						expand = ICON_TRIA_DOWN;
 					else
 						expand = ICON_TRIA_RIGHT;
+						
+					/* NLA evaluation on/off button */
+					if (adt) {
+						if (adt->flag & ADT_NLA_EVAL_OFF)
+							mute = ICON_MUTE_IPO_ON;
+						else	
+							mute = ICON_MUTE_IPO_OFF;
+					}
 					
 					strcpy(name, cu->id.name+2);
 				}
@@ -780,15 +834,24 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				case ANIMTYPE_DSSKEY: /* shapekeys (dopesheet) expand widget */
 				{
 					Key *key= (Key *)ale->data;
+					AnimData *adt= ale->adt;
 					
 					group = 4;
 					indent = 1;
-					special = ICON_SHAPEKEY_DATA; // XXX 
+					special = ICON_SHAPEKEY_DATA; 
 					
 					if (FILTER_SKE_OBJD(key))	
 						expand = ICON_TRIA_DOWN;
 					else
 						expand = ICON_TRIA_RIGHT;
+						
+					/* NLA evaluation on/off button */
+					if (adt) {
+						if (adt->flag & ADT_NLA_EVAL_OFF)
+							mute = ICON_MUTE_IPO_ON;
+						else	
+							mute = ICON_MUTE_IPO_OFF;
+					}
 						
 					//sel = SEL_OBJC(base);
 					strcpy(name, "Shape Keys");
@@ -797,6 +860,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				case ANIMTYPE_DSWOR: /* world (dopesheet) expand widget */
 				{
 					World *wo= (World *)ale->data;
+					AnimData *adt= ale->adt;
 					
 					group = 4;
 					indent = 1;
@@ -806,6 +870,14 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 						expand = ICON_TRIA_DOWN;
 					else
 						expand = ICON_TRIA_RIGHT;
+						
+					/* NLA evaluation on/off button */
+					if (adt) {
+						if (adt->flag & ADT_NLA_EVAL_OFF)
+							mute = ICON_MUTE_IPO_ON;
+						else	
+							mute = ICON_MUTE_IPO_OFF;
+					}
 					
 					strcpy(name, wo->id.name+2);
 				}
@@ -813,6 +885,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 				case ANIMTYPE_DSPART: /* particle (dopesheet) expand widget */
 				{
 					ParticleSettings *part= (ParticleSettings*)ale->data;
+					AnimData *adt= ale->adt;
 					
 					group = 0;
 					indent = 0;
@@ -823,6 +896,14 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 						expand = ICON_TRIA_DOWN;
 					else
 						expand = ICON_TRIA_RIGHT;
+						
+					/* NLA evaluation on/off button */
+					if (adt) {
+						if (adt->flag & ADT_NLA_EVAL_OFF)
+							mute = ICON_MUTE_IPO_ON;
+						else	
+							mute = ICON_MUTE_IPO_OFF;
+					}
 					
 					strcpy(name, part->id.name+2);
 				}

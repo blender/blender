@@ -459,6 +459,8 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->key_data= sce;
 				ale->datatype= ALE_SCE;
+				
+				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
 			case ANIMTYPE_OBJECT:
@@ -470,6 +472,8 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->key_data= ob;
 				ale->datatype= ALE_OB;
+				
+				ale->adt= BKE_animdata_from_id(&ob->id);
 			}
 				break;
 			case ANIMTYPE_FILLACTD:
@@ -523,6 +527,8 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
 			case ANIMTYPE_DSLAM:
@@ -534,6 +540,8 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
 			case ANIMTYPE_DSCAM:
@@ -545,6 +553,8 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
 			case ANIMTYPE_DSCUR:
@@ -556,6 +566,8 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
 			case ANIMTYPE_DSSKEY:
@@ -567,6 +579,8 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
 			case ANIMTYPE_DSWOR:
@@ -578,6 +592,8 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
 			case ANIMTYPE_DSPART:
@@ -589,6 +605,8 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
 				
