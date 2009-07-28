@@ -273,10 +273,12 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 				v2d->tot.ymin= -winy;
 				
 				v2d->cur.xmin= 0.0f;
-				v2d->cur.xmax= winx*panelzoom;
+				/* bad workaround for keeping zoom level with scrollers */
+				v2d->cur.xmax= (winx - V2D_SCROLL_WIDTH)*panelzoom;
 				
 				v2d->cur.ymax= 0.0f;
-				v2d->cur.ymin= -winy*panelzoom;
+				/* bad workaround for keeping zoom level with scrollers */
+				v2d->cur.ymin= (-winy + V2D_SCROLL_HEIGHT)*panelzoom;
 			}
 				break;
 				

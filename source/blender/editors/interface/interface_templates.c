@@ -1558,7 +1558,7 @@ ListBase uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 					/* XXX hardcoded */
 					if(itemptr.type == &RNA_MeshTextureFaceLayer || itemptr.type == &RNA_MeshColorLayer) {
 						uiBlockSetEmboss(block, UI_EMBOSSN);
-						uiItemR(subrow, "", ICON_SCENE, &itemptr, "active_render", 0, 0, 0);
+						uiDefIconButR(block, TOG, 0, ICON_SCENE, 0, 0, UI_UNIT_X, UI_UNIT_Y, &itemptr, "active_render", 0, 0, 0, 0, 0, NULL);
 						uiBlockSetEmboss(block, UI_EMBOSS);
 					}
 

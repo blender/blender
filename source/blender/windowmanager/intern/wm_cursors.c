@@ -104,6 +104,13 @@ void WM_cursor_set(wmWindow *win, int curs)
 		return;
 	}
 
+#ifdef _WIN32
+	/* the default win32 cross cursor is barely visible,
+	 * only 1 pixel thick, use another one instead */
+	if(curs==CURSOR_EDIT)
+		curs= BC_CROSSCURSOR;
+#endif
+
 	GHOST_SetCursorVisibility(win->ghostwin, 1);
 	
 	win->cursor= curs;

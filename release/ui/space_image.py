@@ -275,8 +275,9 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
 	__label__ = "Game Properties"
 
 	def poll(self, context):
+		rd = context.scene.render_data
 		sima = context.space_data
-		return (sima and sima.image)
+		return (sima and sima.image) and (rd.engine == 'BLENDER_GAME')
 
 	def draw(self, context):
 		sima = context.space_data
