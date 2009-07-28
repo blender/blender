@@ -311,9 +311,9 @@ void BLI_recurdir_fileops(char *dirname) {
 int BLI_rename(char *from, char *to) {
 	if (!BLI_exists(from)) return 0;
 
-	/* refuse to rename if file already exists */
-	if (BLI_exists(to))
-		return 1; 
+	/* make sure the filenames are different (case insensitive) before removing */
+	if (BLI_exists(to) && BLI_strcasecmp(from, to))
+		if(BLI_delete(to, 0, 0)) return 1;
 
 	return rename(from, to);
 }
@@ -391,8 +391,7 @@ void BLI_recurdir_fileops(char *dirname) {
 int BLI_rename(char *from, char *to) {
 	if (!BLI_exists(from)) return 0;
 	
-	/* refuse to rename if file already exists */
-	if (BLI_exists(to)) return 1;
+	if (BLI_exists(to))	if(BLI_delete(to, 0, 0)) return 1;
 
 	return rename(from, to);
 }

@@ -501,6 +501,8 @@ static void renamebutton_cb(bContext *C, void *arg1, char *oldname)
 	char orgname[FILE_MAX+12];
 	char filename[FILE_MAX+12];
 	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	ARegion* ar = CTX_wm_region(C);
+
 	struct direntry *file = (struct direntry *)arg1;
 
 	BLI_make_file_string(G.sce, orgname, sfile->params->dir, oldname);
@@ -508,10 +510,15 @@ static void renamebutton_cb(bContext *C, void *arg1, char *oldname)
 	BLI_make_file_string(G.sce, newname, sfile->params->dir, filename);
 
 	if( strcmp(orgname, newname) != 0 ) {
-		BLI_rename(orgname, newname);
-
-		/* to refresh the file list, does sorting again */
-		filelist_free(sfile->files);
+		if (!BLI_exists(newname)) {
+			BLI_rename(orgname, newname);
+			/* to make sure we show what is on disk */
+			filelist_free(sfile->files);
+		} else {
+			BLI_strncpy(file->relname, oldname, strlen(oldname)+1);
+		}
+		
+		ED_region_tag_redraw(ar);
 	}
 }
 
