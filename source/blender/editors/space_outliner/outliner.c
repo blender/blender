@@ -1132,8 +1132,9 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		te->name= km->nameid;
 		
 		if(!(tselem->flag & TSE_CLOSED)) {
+			a= 0;
 			
-			for (kmi= km->keymap.first; kmi; kmi= kmi->next) {
+			for (kmi= km->keymap.first; kmi; kmi= kmi->next, a++) {
 				const char *key= WM_key_event_string(kmi->type);
 				
 				if(key[0]) {

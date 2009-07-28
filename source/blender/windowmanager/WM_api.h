@@ -100,6 +100,7 @@ int			WM_key_event_is_tweak(short type);
 
 const char	*WM_key_event_string(short type);
 char		*WM_key_event_operator_string(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, char *str, int len);
+void		WM_key_event_operator_change(const bContext *C, const char *opname, int opcontext, struct IDProperty *properties, short key, short modifier);
 
 			/* handlers */
 

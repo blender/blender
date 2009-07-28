@@ -739,6 +739,7 @@ static void ui_is_but_sel(uiBut *but)
 		case BUT:
 			push= 2;
 			break;
+		case HOTKEYEVT:
 		case KEYEVT:
 			push= 2;
 			break;
@@ -1846,7 +1847,33 @@ void ui_check_but(uiBut *but)
 			strcat(but->drawstr, WM_key_event_string((short) ui_get_but_val(but)));
 		}
 		break;
-
+		
+	case HOTKEYEVT:
+		if (but->flag & UI_SELECT) {
+			short *sp= (short *)but->func_arg3;
+			
+			strcpy(but->drawstr, but->str);
+			
+			if(*sp) {
+				char *str= but->drawstr;
+				
+				if(*sp & KM_SHIFT)
+					str= strcat(str, "Shift ");
+				if(*sp & KM_CTRL)
+					str= strcat(str, "Ctrl ");
+				if(*sp & KM_ALT)
+					str= strcat(str, "Alt ");
+				if(*sp & KM_OSKEY)
+					str= strcat(str, "Cmd ");
+			}
+			else
+				strcat(but->drawstr, "Press a key  ");
+		} else {
+			/* XXX todo, button currently only used temporarily */
+			strcpy(but->drawstr, WM_key_event_string((short) ui_get_but_val(but)));
+		}
+		break;
+		
 	case BUT_TOGDUAL:
 		/* trying to get the dual-icon to left of text... not very nice */
 		if(but->str[0]) {
@@ -2940,6 +2967,17 @@ void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, 
 	uiBut *but= ui_def_but(block, KEYEVT|SHO, retval, str, x1, y1, x2, y2, spoin, 0.0, 0.0, 0.0, 0.0, tip);
 	ui_check_but(but);
 }
+
+/* short pointers hardcoded */
+/* modkeypoin will be set to KM_SHIFT, KM_ALT, KM_CTRL, KM_OSKEY bits */
+uiBut *uiDefHotKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *keypoin, short *modkeypoin, char *tip)
+{
+	uiBut *but= ui_def_but(block, HOTKEYEVT|SHO, retval, str, x1, y1, x2, y2, keypoin, 0.0, 0.0, 0.0, 0.0, tip);
+	but->func_arg3= modkeypoin; /* XXX hrmf, abuse! */
+	ui_check_but(but);
+	return but;
+}
+
 
 /* arg is pointer to string/name, use uiButSetSearchFunc() below to make this work */
 uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxlen, short x1, short y1, short x2, short y2, char *tip)

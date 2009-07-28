@@ -206,6 +206,8 @@ typedef struct uiLayout uiLayout;
 #define HSVCIRCLE	(42<<9)
 #define LISTBOX		(43<<9)
 #define LISTROW		(44<<9)
+#define HOTKEYEVT	(45<<9)
+
 #define BUTTYPE		(63<<9)
 
 /* Drawing
@@ -426,6 +428,7 @@ uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int 
 uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip);
 
 void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip);
+uiBut *uiDefHotKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *keypoin, short *modkeypoin, char *tip);
 
 uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxlen, short x1, short y1, short x2, short y2, char *tip);
 
