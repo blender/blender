@@ -58,6 +58,10 @@
 #include "BKE_utildefines.h"
 #endif
 
+#ifdef __linux__
+#include <mntent.h>
+#endif
+
 #include "fsmenu.h"  /* include ourselves */
 
 
@@ -303,13 +307,40 @@ void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 		char dir[FILE_MAXDIR];
 		char *home= BLI_gethome();
 
-		fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, "/", 1, 0);
+		// fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, "/", 1, 0);
 
 		if(home) {
 			BLI_snprintf(dir, FILE_MAXDIR, "%s/", home);
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, dir, 1, 0);
 			BLI_snprintf(dir, FILE_MAXDIR, "%s/Desktop/", home);
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, dir, 1, 0);
+		}
+
+		{
+			/* loop over mount points */
+			struct mntent *mnt;
+			FILE *fp;
+			fp = setmntent (MOUNTED, "r");
+			if (fp == NULL) {
+				fprintf(stderr, "could not get a list of mounted filesystemts\n");
+			}
+			else {
+				while ((mnt = getmntent (fp))) {
+					/* printf("%s %s %s %s %s %s\n", mnt->mnt_fsname, mnt->mnt_dir, mnt->mnt_type, mnt->mnt_opts, mnt->mnt_freq, mnt->mnt_passno); */
+
+					/* probably need to add more here */
+					if(	(strcmp (mnt->mnt_fsname, "none")==0) ||	/* /sys, /dev/pts */
+						(strcmp (mnt->mnt_type, "ramfs")==0)		/* /dev */
+					) {
+						continue;
+					}
+
+					fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, mnt->mnt_dir, 1, 0);
+				}
+				if (endmntent (fp) == 0) {
+					fprintf(stderr, "could not close the list of mounted filesystemts\n");
+				}
+			}
 		}
 	}
 #endif
