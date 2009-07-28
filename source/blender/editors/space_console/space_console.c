@@ -171,7 +171,7 @@ static void console_main_area_draw(const bContext *C, ARegion *ar)
 		console_scrollback_add_str(C, "Cursor:           Left/Right Home/End", 0);
 		console_scrollback_add_str(C, "Remove:           Backspace/Delete", 0);
 		console_scrollback_add_str(C, "Execute:          Enter", 0);
-		console_scrollback_add_str(C, "Autocomplete:     Ctrl+Enter", 0);
+		console_scrollback_add_str(C, "Autocomplete:     Ctrl+Space", 0);
 		console_scrollback_add_str(C, "Ctrl +/-  Wheel:  Zoom", 0);
 		console_scrollback_add_str(C, "Builtin Modules: bpy, bpy.data, bpy.ops, bpy.props, bpy.types, bpy.ui", 0);
 	}
@@ -281,7 +281,7 @@ void console_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "CONSOLE_OT_exec", PADENTER, KM_PRESS, 0, 0);
 	
 	//WM_keymap_add_item(keymap, "CONSOLE_OT_autocomplete", TABKEY, KM_PRESS, 0, 0); /* python operator - space_text.py */
-	WM_keymap_add_item(keymap, "CONSOLE_OT_autocomplete", RETKEY, KM_PRESS, KM_CTRL, 0); /* python operator - space_text.py */
+	WM_keymap_add_item(keymap, "CONSOLE_OT_autocomplete", SPACEKEY, KM_PRESS, KM_CTRL, 0); /* python operator - space_text.py */
 #endif
 
 	/* report selection */

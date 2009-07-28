@@ -521,6 +521,14 @@ static int wm_search_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_CANCELLED;
 }
 
+/* op->poll */
+int wm_search_menu_poll(bContext *C)
+{
+	if(CTX_wm_window(C)==NULL) return 0;
+	if(CTX_wm_area(C) && CTX_wm_area(C)->spacetype==SPACE_CONSOLE) return 0;  // XXX - so we can use the shortcut in the console
+	return 1;
+}
+
 static void WM_OT_search_menu(wmOperatorType *ot)
 {
 	ot->name= "Search Menu";
@@ -528,7 +536,7 @@ static void WM_OT_search_menu(wmOperatorType *ot)
 	
 	ot->invoke= wm_search_menu_invoke;
 	ot->exec= wm_search_menu_exec;
-	ot->poll= WM_operator_winactive;
+	ot->poll= wm_search_menu_poll;
 }
 
 
@@ -1708,7 +1716,7 @@ void wm_window_keymap(wmWindowManager *wm)
 	/* debug/testing */
 	WM_keymap_verify_item(keymap, "WM_OT_ten_timer", TKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_debug_menu", DKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_search_menu", FKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_search_menu", SPACEKEY, KM_PRESS, KM_CTRL, 0);
 	
 }
 

@@ -33,6 +33,7 @@
 struct ConsoleLine;
 struct wmOperatorType;
 struct ReportList;
+struct bContext;
 
 /* console_draw.c */
 void console_text_main(struct SpaceConsole *sc, struct ARegion *ar, struct ReportList *reports);
@@ -42,10 +43,10 @@ void *console_text_pick(struct SpaceConsole *sc, struct ARegion *ar, struct Repo
 /* console_ops.c */
 void console_history_free(SpaceConsole *sc, ConsoleLine *cl);
 void console_scrollback_free(SpaceConsole *sc, ConsoleLine *cl);
-ConsoleLine *console_history_add_str(const bContext *C, char *str, int own);
-ConsoleLine *console_scrollback_add_str(const bContext *C, char *str, int own);
+ConsoleLine *console_history_add_str(const struct bContext *C, char *str, int own);
+ConsoleLine *console_scrollback_add_str(const struct bContext *C, char *str, int own);
 
-ConsoleLine *console_history_verify(const bContext *C);
+ConsoleLine *console_history_verify(const struct bContext *C);
 
 int console_report_mask(SpaceConsole *sc);
 

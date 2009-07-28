@@ -59,7 +59,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-//#include "console_intern.h"
+#include "console_intern.h"
 
 static void console_font_begin(SpaceConsole *sc)
 {

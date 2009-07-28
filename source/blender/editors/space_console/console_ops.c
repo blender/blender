@@ -563,7 +563,7 @@ static int copy_exec(bContext *C, wmOperator *op)
 	
 	ConsoleLine *cl;
 	
-	for(cl= sc->scrollback.last; cl; cl= cl->prev) {
+	for(cl= sc->scrollback.first; cl; cl= cl->next) {
 		BLI_dynstr_append(buf_dyn, cl->line);
 		BLI_dynstr_append(buf_dyn, "\n");
 	}
