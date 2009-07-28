@@ -210,14 +210,14 @@ class DATA_PT_shadow(DataButtonsPanel):
 					
 				if lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC':
 					col.itemR(lamp, "shadow_adaptive_threshold", text="Threshold")
-				
+					split.column()
+				elif lamp.shadow_ray_sampling_method == 'CONSTANT_QMC':
+					split.column()
 				elif lamp.shadow_ray_sampling_method == 'CONSTANT_JITTERED':
 					col = split.column()
 					col.itemR(lamp, "umbra")
 					col.itemR(lamp, "dither")
 					col.itemR(lamp, "jitter")	
-				else:
-					split.column()
 
 		if lamp.shadow_method == 'BUFFER_SHADOW':
 			col = layout.column()
