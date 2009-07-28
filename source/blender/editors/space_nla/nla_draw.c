@@ -520,7 +520,7 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 			switch (ale->type) {
 				case ANIMTYPE_NLATRACK:
 				{
-					AnimData *adt= BKE_animdata_from_id(ale->id);
+					AnimData *adt= ale->adt;
 					NlaTrack *nlt= (NlaTrack *)ale->data;
 					NlaStrip *strip;
 					int index;
@@ -540,7 +540,7 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					
 				case ANIMTYPE_NLAACTION:
 				{
-					AnimData *adt= BKE_animdata_from_id(ale->id);
+					AnimData *adt= ale->adt;
 					float color[4];
 					
 					/* just draw a semi-shaded rect spanning the width of the viewable area if there's data,
@@ -932,7 +932,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 			}
 			else if (group == 5) {
 				/* Action Line */
-				AnimData *adt= BKE_animdata_from_id(ale->id);
+				AnimData *adt= ale->adt;
 				
 				// TODO: if tweaking some action, use the same color as for the tweaked track (quick hack done for now)
 				if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {
@@ -1018,7 +1018,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 			
 			/* draw NLA-action line 'status-icons' - only when there's an action */
 			if ((ale->type == ANIMTYPE_NLAACTION) && (ale->data)) {
-				AnimData *adt= BKE_animdata_from_id(ale->id);
+				AnimData *adt= ale->adt;
 				
 				offset += 16;
 				

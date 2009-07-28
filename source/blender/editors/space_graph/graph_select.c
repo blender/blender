@@ -567,8 +567,13 @@ static short findnearest_fcurve_vert (bAnimContext *ac, int mval[2], FCurve **fc
 	*fcurve= 0;
 	*bezt= 0;
 	
-	/* get curves to search through */
+	/* get curves to search through 
+	 *	- if the option to only show keyframes that belong to selected F-Curves is enabled,
+	 *	  include the 'only selected' flag...
+	 */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY);
+	if (sipo->flag & SIPO_SELCUVERTSONLY) 
+		filter |= ANIMFILTER_SEL;
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -718,7 +723,7 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, s
 	else {
 		BeztEditFunc select_cb;
 		BeztEditData bed;
-	
+		
 		/* initialise keyframe editing data */
 		memset(&bed, 0, sizeof(BeztEditData));
 		

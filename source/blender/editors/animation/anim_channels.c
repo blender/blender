@@ -722,7 +722,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *op)
 			/* only groups - don't check other types yet, since they may no-longer exist */
 			if (ale->type == ANIMTYPE_GROUP) {
 				bActionGroup *agrp= (bActionGroup *)ale->data;
-				AnimData *adt= BKE_animdata_from_id(ale->id);
+				AnimData *adt= ale->adt;
 				FCurve *fcu, *fcn;
 				
 				/* skip this group if no AnimData available, as we can't safely remove the F-Curves */
@@ -760,7 +760,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *op)
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			/* only F-Curves, and only if we can identify its parent */
 			if (ale->type == ANIMTYPE_FCURVE) {
-				AnimData *adt= BKE_animdata_from_id(ale->id);
+				AnimData *adt= ale->adt;
 				FCurve *fcu= (FCurve *)ale->data;
 				
 				/* if no AnimData, we've got nowhere to remove the F-Curve from */

@@ -30,15 +30,18 @@
 #define ED_ANIM_API_H
 
 struct ID;
-struct Scene;
 struct ListBase;
+struct AnimData;
+
 struct bContext;
 struct wmWindowManager;
 struct ScrArea;
 struct ARegion;
 struct View2D;
-struct gla2DDrawInfo;
+
+struct Scene;
 struct Object;
+
 struct bActionGroup;
 struct FCurve;
 struct FModifier;
@@ -88,18 +91,19 @@ typedef enum eAnimCont_Types {
 typedef struct bAnimListElem {
 	struct bAnimListElem *next, *prev;
 	
-	void 	*data;		/* source data this elem represents */
-	int 	type;		/* one of the ANIMTYPE_* values */
-	int		flag;		/* copy of elem's flags for quick access */
-	int 	index;		/* copy of adrcode where applicable */
+	void 	*data;			/* source data this elem represents */
+	int 	type;			/* one of the ANIMTYPE_* values */
+	int		flag;			/* copy of elem's flags for quick access */
+	int 	index;			/* copy of adrcode where applicable */
 	
-	void	*key_data;	/* motion data - mostly F-Curves, but can be other types too */
-	short	datatype;	/* type of motion data to expect */
+	void	*key_data;		/* motion data - mostly F-Curves, but can be other types too */
+	short	datatype;		/* type of motion data to expect */
 	
-	struct ID *id;		/* ID block that channel is attached to (may be used  */
+	struct ID *id;			/* ID block that channel is attached to */
+	struct AnimData *adt; 	/* source of the animation data attached to ID block (for convenience) */
 	
-	void 	*owner;		/* group or channel which acts as this channel's owner */
-	short	ownertype;	/* type of owner */
+	void 	*owner;			/* group or channel which acts as this channel's owner */
+	short	ownertype;		/* type of owner */
 } bAnimListElem;
 
 
@@ -166,6 +170,7 @@ typedef enum eAnimFilter_Flags {
 	ANIMFILTER_ACTIVE		= (1<<8),	/* channel should be 'active' */
 	ANIMFILTER_ANIMDATA		= (1<<9),	/* only return the underlying AnimData blocks (not the tracks, etc.) data comes from */
 	ANIMFILTER_NLATRACKS	= (1<<10),	/* only include NLA-tracks */
+	ANIMFILTER_SELEDIT		= (1<<11),	/* link editability with selected status */
 } eAnimFilter_Flags;
 
 
@@ -340,9 +345,6 @@ void ipo_rainbow(int cur, int tot, float *out);
 
 /* Obtain the AnimData block providing NLA-scaling for the given channel if applicable */
 struct AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale);
-
-/* Set/clear temporary mapping of coordinates from 'local-action' time to 'global-nla-mapped' time */
-void ANIM_nla_mapping_draw(struct gla2DDrawInfo *di, struct AnimData *adt, short restore);
 
 /* Apply/Unapply NLA mapping to all keyframes in the nominated F-Curve */
 void ANIM_nla_mapping_apply_fcurve(struct AnimData *adt, struct FCurve *fcu, short restore, short only_keys);

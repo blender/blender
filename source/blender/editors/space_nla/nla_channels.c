@@ -247,7 +247,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 		case ANIMTYPE_NLATRACK:
 		{
 			NlaTrack *nlt= (NlaTrack *)ale->data;
-			AnimData *adt= BKE_animdata_from_id(ale->id);
+			AnimData *adt= ale->adt;
 			short offset;
 			
 			/* offset for start of channel (on LHS of channel-list) */
@@ -431,7 +431,7 @@ static int nlaedit_add_tracks_exec (bContext *C, wmOperator *op)
 	/* add tracks... */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		NlaTrack *nlt= (NlaTrack *)ale->data;
-		AnimData *adt= BKE_animdata_from_id(ale->id);
+		AnimData *adt= ale->adt;
 		
 		/* check if just adding a new track above this one,
 		 * or whether we're adding a new one to the top of the stack that this one belongs to
@@ -497,7 +497,7 @@ static int nlaedit_delete_tracks_exec (bContext *C, wmOperator *op)
 	/* delete tracks */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		NlaTrack *nlt= (NlaTrack *)ale->data;
-		AnimData *adt= BKE_animdata_from_id(ale->id);
+		AnimData *adt= ale->adt;
 		
 		/* call delete on this track - deletes all strips too */
 		free_nlatrack(&adt->nla_tracks, nlt);

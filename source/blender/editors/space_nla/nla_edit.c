@@ -312,7 +312,7 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 	/* for every active track, try to add strip to free space in track or to the top of the stack if no space */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		NlaTrack *nlt= (NlaTrack *)ale->data;
-		AnimData *adt= BKE_animdata_from_id(ale->id);
+		AnimData *adt= ale->adt;
 		NlaStrip *strip= NULL;
 		
 		/* create a new strip, and offset it to start on the current frame */
@@ -391,7 +391,7 @@ static int nlaedit_add_transition_exec (bContext *C, wmOperator *op)
 	/* for each track, find pairs of strips to add transitions to */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		NlaTrack *nlt= (NlaTrack *)ale->data;
-		AnimData *adt= BKE_animdata_from_id(ale->id);
+		AnimData *adt= ale->adt;
 		NlaStrip *s1, *s2;
 		
 		/* get initial pair of strips */
@@ -505,7 +505,7 @@ static int nlaedit_add_meta_exec (bContext *C, wmOperator *op)
 	/* for each track, find pairs of strips to add transitions to */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		NlaTrack *nlt= (NlaTrack *)ale->data;
-		AnimData *adt= BKE_animdata_from_id(ale->id);
+		AnimData *adt= ale->adt;
 		NlaStrip *strip;
 		
 		/* create meta-strips from the continuous chains of selected strips */
@@ -624,7 +624,7 @@ static int nlaedit_duplicate_exec (bContext *C, wmOperator *op)
 	 */
 	for (ale= anim_data.last; ale; ale= ale->prev) {
 		NlaTrack *nlt= (NlaTrack *)ale->data;
-		AnimData *adt= BKE_animdata_from_id(ale->id);
+		AnimData *adt= ale->adt;
 		NlaStrip *strip, *nstrip, *next;
 		NlaTrack *track;
 		
@@ -866,7 +866,7 @@ static int nlaedit_split_exec (bContext *C, wmOperator *op)
 	/* for each NLA-Track, split all selected strips into two strips */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		NlaTrack *nlt= (NlaTrack *)ale->data;
-		AnimData *adt= BKE_animdata_from_id(ale->id);
+		AnimData *adt= ale->adt;
 		NlaStrip *strip, *next;
 		
 		for (strip= nlt->strips.first; strip; strip= next) {
@@ -1329,7 +1329,7 @@ static int nlaedit_snap_exec (bContext *C, wmOperator *op)
 	/* since we may add tracks, perform this in reverse order */
 	for (ale= anim_data.last; ale; ale= ale->prev) {
 		ListBase tmp_strips = {NULL, NULL};
-		AnimData *adt= BKE_animdata_from_id(ale->id);
+		AnimData *adt= ale->adt;
 		NlaTrack *nlt= (NlaTrack *)ale->data;
 		NlaStrip *strip, *stripn;
 		NlaTrack *track;

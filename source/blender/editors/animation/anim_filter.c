@@ -17,11 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
+ * The Original Code is Copyright (C) 2008 Blender Foundation, Joshua Leung
  * All rights reserved.
  *
  * 
- * Contributor(s): Joshua Leung
+ * Contributor(s): Joshua Leung (original author)
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -33,15 +33,16 @@
  * for cases to ignore. 
  *
  * While this is primarily used for the Action/Dopesheet Editor (and its accessory modes),
- * the IPO Editor also uses this for it's channel list and for determining which curves
- * are being edited.
+ * the Graph Editor also uses this for its channel list and for determining which curves
+ * are being edited. Likewise, the NLA Editor also uses this for its channel list and in
+ * its operators.
  *
  * Note: much of the original system this was based on was built before the creation of the RNA
  * system. In future, it would be interesting to replace some parts of this code with RNA queries,
  * however, RNA does not eliminate some of the boiler-plate reduction benefits presented by this 
  * system, so if any such work does occur, it should only be used for the internals used here...
  *
- * -- Joshua Leung, Dec 2008
+ * -- Joshua Leung, Dec 2008 (Last revision July 2009)
  */
 
 #include <string.h>
@@ -73,6 +74,7 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
@@ -204,6 +206,12 @@ static short graphedit_get_context (bAnimContext *ac, SpaceIpo *sipo)
 	/* init dopesheet data if non-existant (i.e. for old files) */
 	if (sipo->ads == NULL)
 		sipo->ads= MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
+	
+	/* set settings for Graph Editor - "Selected = Editable" */
+	if (sipo->flag & SIPO_SELCUVERTSONLY)
+		sipo->ads->filterflag |= ADS_FILTER_SELEDIT;
+	else
+		sipo->ads->filterflag &= ~ADS_FILTER_SELEDIT;
 	
 	/* sync settings with current view status, then return appropriate data */
 	switch (sipo->mode) {
@@ -403,11 +411,20 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 	
 
 
-/* quick macro to test if a anim-channel (F-Curve, Group, etc.) is selected in an acceptable way */
+/* quick macro to test if an anim-channel (F-Curve, Group, etc.) is selected in an acceptable way */
 #define ANIMCHANNEL_SELOK(test_func) \
 		( !(filter_mode & (ANIMFILTER_SEL|ANIMFILTER_UNSEL)) || \
 		  ((filter_mode & ANIMFILTER_SEL) && test_func) || \
 		  ((filter_mode & ANIMFILTER_UNSEL) && test_func==0) ) 
+		  
+/* quick macro to test if an anim-channel (F-Curve) is selected ok for editing purposes 
+ *	- _SELEDIT means that only selected curves will have visible+editable keyframes
+ */
+// FIXME: this doesn't work cleanly yet...
+#define ANIMCHANNEL_SELEDITOK(test_func) \
+		( !(filter_mode & ANIMFILTER_SELEDIT) || \
+		  (filter_mode & ANIMFILTER_CHANNELS) || \
+		  (test_func) )
 
 /* ----------- 'Private' Stuff --------------- */
 
@@ -430,6 +447,7 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 		ale->ownertype= ownertype;
 		
 		ale->id= owner_id;
+		ale->adt= BKE_animdata_from_id(owner_id);
 		
 		/* do specifics */
 		switch (datatype) {
@@ -649,7 +667,7 @@ static int animdata_filter_fcurves (ListBase *anim_data, FCurve *first, bActionG
 			/* only work with this channel and its subchannels if it is editable */
 			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_FCU(fcu)) {
 				/* only include this curve if selected in a way consistent with the filtering requirements */
-				if ( ANIMCHANNEL_SELOK(SEL_FCU(fcu)) ) {
+				if ( ANIMCHANNEL_SELOK(SEL_FCU(fcu)) && ANIMCHANNEL_SELEDITOK(SEL_FCU(fcu)) ) {
 					/* only include if this curve is active */
 					if (!(filter_mode & ANIMFILTER_ACTIVE) || (fcu->flag & FCURVE_ACTIVE)) {
 						ale= make_new_animlistelem(fcu, ANIMTYPE_FCURVE, owner, ownertype, owner_id);
@@ -1628,10 +1646,10 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 						dataOk= 0;
 						break;
 				}
-
+				
 				/* particles */
 				partOk = 0;
-				if(!(ads->filterflag & ADS_FILTER_NOPART) && ob->particlesystem.first) {
+				if (!(ads->filterflag & ADS_FILTER_NOPART) && ob->particlesystem.first) {
 					ParticleSystem *psys = ob->particlesystem.first;
 					for(; psys; psys=psys->next) {
 						if (psys->part) {
@@ -1653,7 +1671,6 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 							break;
 					}
 				}
-
 				
 				/* check if all bad (i.e. nothing to show) */
 				if (!actOk && !keyOk && !dataOk && !matOk && !partOk)
@@ -1705,17 +1722,16 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 						dataOk= 0;
 						break;
 				}
-
+				
 				/* particles */
 				partOk = 0;
-				if(ob->particlesystem.first) {
+				if (ob->particlesystem.first) {
 					ParticleSystem *psys = ob->particlesystem.first;
 					for(; psys; psys=psys->next) {
 						if(psys->part && ANIMDATA_HAS_KEYS(psys->part)) {
 							partOk = 1;
 							break;
 						}
-
 					}
 				}
 				
