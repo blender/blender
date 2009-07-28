@@ -246,9 +246,9 @@ void CutEdgeloop(int numcuts)
 			
 			sprintf(msg,"Number of Cuts: %d",numcuts);
 			if(smooth){
-				sprintf(msg,"%s (S)mooth: on",msg);
+				strcat(msg," (S)mooth: on");
 			} else {
-				sprintf(msg,"%s (S)mooth: off",msg);
+				strcat(msg," (S)mooth: off");
 			}
 			
 			headerprint(msg);
