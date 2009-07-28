@@ -66,30 +66,32 @@ static void rna_World_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *p
 static PointerRNA rna_World_active_texture_get(PointerRNA *ptr)
 {
 	World *wo= (World*)ptr->data;
+	Tex *tex;
 
-	return rna_pointer_inherit_refine(ptr, &RNA_TextureSlot, wo->mtex[(int)wo->texact]);
+	tex= (wo->mtex[(int)wo->texact])? wo->mtex[(int)wo->texact]->tex: NULL;
+	return rna_pointer_inherit_refine(ptr, &RNA_Texture, tex);
 }
 
-static void rna_World_active_texture_index_set(PointerRNA *ptr, int value)
+static void rna_World_active_texture_set(PointerRNA *ptr, PointerRNA value)
 {
 	World *wo= (World*)ptr->data;
 	int act= wo->texact;
 
-	if(value == act || value < 0 || value >= MAX_MTEX)
-		return;
+	if(wo->mtex[act] && wo->mtex[act]->tex)
+		id_us_min(&wo->mtex[act]->tex->id);
 
-	/* auto create/free mtex on activate/deactive, so we can edit
-	 * the texture pointer in the buttons UI. */
-	if(wo->mtex[act] && !wo->mtex[act]->tex) {
+	if(value.data) {
+		if(!wo->mtex[act]) {
+			wo->mtex[act]= add_mtex();
+			wo->mtex[act]->texco= TEXCO_VIEW;
+		}
+		
+		wo->mtex[act]->tex= value.data;
+		id_us_plus(&wo->mtex[act]->tex->id);
+	}
+	else if(wo->mtex[act]) {
 		MEM_freeN(wo->mtex[act]);
 		wo->mtex[act]= NULL;
-	}
-
-	wo->texact= value;
-
-	if(!wo->mtex[value]) {
-		wo->mtex[value]= add_mtex();
-		wo->mtex[value]->texco= TEXCO_VIEW;
 	}
 }
 
@@ -407,7 +409,8 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_WORLD_DATA);
 
 	rna_def_animdata_common(srna);
-	rna_def_mtex_common(srna, "rna_World_mtex_begin", "rna_World_active_texture_get", "rna_World_active_texture_index_set", "WorldTextureSlot");
+	rna_def_mtex_common(srna, "rna_World_mtex_begin", "rna_World_active_texture_get",
+		"rna_World_active_texture_set", "WorldTextureSlot");
 
 	/* colors */
 	prop= RNA_def_property(srna, "horizon_color", PROP_FLOAT, PROP_COLOR);

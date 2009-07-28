@@ -85,28 +85,31 @@ static void rna_Material_mtex_begin(CollectionPropertyIterator *iter, PointerRNA
 static PointerRNA rna_Material_active_texture_get(PointerRNA *ptr)
 {
 	Material *ma= (Material*)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_TextureSlot, ma->mtex[(int)ma->texact]);
+	Tex *tex;
+
+	tex= (ma->mtex[(int)ma->texact])? ma->mtex[(int)ma->texact]->tex: NULL;
+	return rna_pointer_inherit_refine(ptr, &RNA_Texture, tex);
 }
 
-static void rna_Material_active_texture_index_set(PointerRNA *ptr, int value)
+static void rna_Material_active_texture_set(PointerRNA *ptr, PointerRNA value)
 {
 	Material *ma= (Material*)ptr->data;
 	int act= ma->texact;
 
-	if(value == act || value < 0 || value >= MAX_MTEX)
-		return;
+	if(ma->mtex[act] && ma->mtex[act]->tex)
+		id_us_min(&ma->mtex[act]->tex->id);
 
-	/* auto create/free mtex on activate/deactive, so we can edit
-	 * the texture pointer in the buttons UI. */
-	if(ma->mtex[act] && !ma->mtex[act]->tex) {
+	if(value.data) {
+		if(!ma->mtex[act])
+			ma->mtex[act]= add_mtex();
+		
+		ma->mtex[act]->tex= value.data;
+		id_us_plus(&ma->mtex[act]->tex->id);
+	}
+	else if(ma->mtex[act]) {
 		MEM_freeN(ma->mtex[act]);
 		ma->mtex[act]= NULL;
 	}
-
-	ma->texact= value;
-
-	if(!ma->mtex[value])
-		ma->mtex[value]= add_mtex();
 }
 
 static void rna_MaterialStrand_start_size_range(PointerRNA *ptr, float *min, float *max)
@@ -1276,7 +1279,8 @@ void RNA_def_material(BlenderRNA *brna)
 
 	/* common */
 	rna_def_animdata_common(srna);
-	rna_def_mtex_common(srna, "rna_Material_mtex_begin", "rna_Material_active_texture_get", "rna_Material_active_texture_index_set", "MaterialTextureSlot");
+	rna_def_mtex_common(srna, "rna_Material_mtex_begin", "rna_Material_active_texture_get",
+		"rna_Material_active_texture_set", "MaterialTextureSlot");
 	
 	rna_def_material_colors(srna);
 	rna_def_material_diffuse(srna);
@@ -1302,14 +1306,13 @@ void rna_def_mtex_common(StructRNA *srna, const char *begin, const char *activeg
 	RNA_def_property_ui_text(prop, "Textures", "Texture slots defining the mapping and influence of textures.");
 
 	prop= RNA_def_property(srna, "active_texture", PROP_POINTER, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_struct_type(prop, structname);
-	RNA_def_property_pointer_funcs(prop, activeget, NULL, NULL);
+	RNA_def_property_struct_type(prop, "Texture");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, activeget, activeset, NULL);
 	RNA_def_property_ui_text(prop, "Active Texture", "Active texture slot being displayed.");
 
 	prop= RNA_def_property(srna, "active_texture_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "texact");
-	RNA_def_property_int_funcs(prop, NULL, activeset, NULL);
 	RNA_def_property_range(prop, 0, MAX_MTEX-1);
 	RNA_def_property_ui_text(prop, "Active Texture Index", "Index of active texture slot.");
 }

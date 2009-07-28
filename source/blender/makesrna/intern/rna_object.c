@@ -377,7 +377,17 @@ static void rna_Object_active_material_index_range(PointerRNA *ptr, int *min, in
 static PointerRNA rna_Object_active_material_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
-	return rna_pointer_inherit_refine(ptr, &RNA_MaterialSlot, ob->mat+ob->actcol);
+	Material *ma;
+
+	ma= (ob->totcol)? give_current_material(ob, ob->actcol): NULL;
+	return rna_pointer_inherit_refine(ptr, &RNA_Material, ma);
+}
+
+static void rna_Object_active_material_set(PointerRNA *ptr, PointerRNA value)
+{
+	Object *ob= (Object*)ptr->id.data;
+
+	assign_material(ob, value.data, ob->actcol);
 }
 
 static void rna_Object_active_particle_system_index_range(PointerRNA *ptr, int *min, int *max)
@@ -399,15 +409,6 @@ static void rna_Object_active_particle_system_index_set(struct PointerRNA *ptr, 
 	Object *ob= (Object*)ptr->id.data;
 	psys_set_current_num(ob, value);
 }
-
-#if 0
-static void rna_Object_active_material_set(PointerRNA *ptr, PointerRNA value)
-{
-	Object *ob= (Object*)ptr->id.data;
-
-	assign_material(ob, value.data, ob->actcol);
-}
-#endif
 
 static PointerRNA rna_MaterialSlot_material_get(PointerRNA *ptr)
 {
@@ -1027,9 +1028,11 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Materials", "Material slots in the object.");
 
 	prop= RNA_def_property(srna, "active_material", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "MaterialSlot");
-	RNA_def_property_pointer_funcs(prop, "rna_Object_active_material_get", NULL, NULL);
+	RNA_def_property_struct_type(prop, "Material");
+	RNA_def_property_pointer_funcs(prop, "rna_Object_active_material_get", "rna_Object_active_material_set", NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Active Material", "Active material being displayed.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_SHADING, "rna_Object_update");
 
 	prop= RNA_def_property(srna, "active_material_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "actcol");

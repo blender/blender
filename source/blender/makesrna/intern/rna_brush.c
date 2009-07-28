@@ -46,29 +46,32 @@ static void rna_Brush_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *p
 
 static PointerRNA rna_Brush_active_texture_get(PointerRNA *ptr)
 {
-	Brush *brush= (Brush*)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_TextureSlot, brush->mtex[(int)brush->texact]);
+	Brush *br= (Brush*)ptr->data;
+	Tex *tex;
+
+	tex= (br->mtex[(int)br->texact])? br->mtex[(int)br->texact]->tex: NULL;
+	return rna_pointer_inherit_refine(ptr, &RNA_Texture, tex);
 }
 
-static void rna_Brush_active_texture_index_set(PointerRNA *ptr, int value)
+static void rna_Brush_active_texture_set(PointerRNA *ptr, PointerRNA value)
 {
-	Brush *brush= (Brush*)ptr->data;
-	int act= brush->texact;
+	Brush *br= (Brush*)ptr->data;
+	int act= br->texact;
 
-	if(value == act || value < 0 || value >= MAX_MTEX)
-		return;
+	if(br->mtex[act] && br->mtex[act]->tex)
+		id_us_min(&br->mtex[act]->tex->id);
 
-	/* auto create/free mtex on activate/deactive, so we can edit
-	 * the texture pointer in the buttons UI. */
-	if(brush->mtex[act] && !brush->mtex[act]->tex) {
-		MEM_freeN(brush->mtex[act]);
-		brush->mtex[act]= NULL;
+	if(value.data) {
+		if(!br->mtex[act])
+			br->mtex[act]= add_mtex();
+		
+		br->mtex[act]->tex= value.data;
+		id_us_plus(&br->mtex[act]->tex->id);
 	}
-
-	brush->texact= value;
-
-	if(!brush->mtex[value])
-		brush->mtex[value]= add_mtex();
+	else if(br->mtex[act]) {
+		MEM_freeN(br->mtex[act]);
+		br->mtex[act]= NULL;
+	}
 }
 
 static float rna_Brush_rotation_get(PointerRNA *ptr)
@@ -224,7 +227,8 @@ void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Curve", "Editable falloff curve.");
 
 	/* texture */
-	rna_def_mtex_common(srna, "rna_Brush_mtex_begin", "rna_Brush_active_texture_get", "rna_Brush_active_texture_index_set", "TextureSlot");
+	rna_def_mtex_common(srna, "rna_Brush_mtex_begin", "rna_Brush_active_texture_get",
+		"rna_Brush_active_texture_set", "TextureSlot");
 
 	/* clone tool */
 	prop= RNA_def_property(srna, "clone_image", PROP_POINTER, PROP_NONE);

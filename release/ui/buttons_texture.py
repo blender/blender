@@ -48,26 +48,26 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 		wo = context.world
 		br = context.brush
 		space = context.space_data
-		slot = context.texture_slot
 
-		if ma or la or wo or br:
+		if ma:
+			id = ma
+		elif la:
+			id = la
+		elif wo:
+			id = wo
+		elif br:
+			id = br
+		else:
+			id = None
+
+		if id:
 			row = layout.row()
-			if ma:
-				row.template_list(ma, "textures", ma, "active_texture_index", type="ICONS")
-			elif la:
-				row.template_list(la, "textures", la, "active_texture_index", type="ICONS")
-			elif wo:
-				row.template_list(wo, "textures", wo, "active_texture_index", type="ICONS")
-			elif br:
-				row.template_list(br, "textures", br, "active_texture_index", type="ICONS")
+			row.template_list(id, "textures", id, "active_texture_index", type="ICONS")
 
 		split = layout.split(percentage=0.65)
 
-		if ma or la or wo or br:
-			if slot:
-				split.template_ID(slot, "texture", new="texture.new")
-			else:
-				split.itemS()
+		if id:
+			split.template_ID(id, "active_texture", new="texture.new")
 		elif tex:
 			split.template_ID(space, "pin_id")
 
@@ -75,8 +75,6 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 		   (context.sculpt_object or context.vertex_paint_object or \
 		   context.weight_paint_object or context.texture_paint_object):
 			split.itemR(space, "brush_texture", text="Brush", toggle=True)
-		else:
-			split.itemS()
 		
 		layout.itemS()
 
