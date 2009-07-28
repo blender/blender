@@ -124,18 +124,24 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 	if (op) {
 		BLI_strncpy(params->title, op->type->name, sizeof(params->title));
 		params->filter = 0;
-		params->filter |= RNA_boolean_get(op->ptr, "filter_folder") ? FOLDERFILE : 0;
 		params->filter |= RNA_boolean_get(op->ptr, "filter_blender") ? BLENDERFILE : 0;
 		params->filter |= RNA_boolean_get(op->ptr, "filter_image") ? IMAGEFILE : 0;
 		params->filter |= RNA_boolean_get(op->ptr, "filter_movie") ? MOVIEFILE : 0;
+		params->filter |= RNA_boolean_get(op->ptr, "filter_text") ? TEXTFILE : 0;
+		params->filter |= RNA_boolean_get(op->ptr, "filter_python") ? PYSCRIPTFILE : 0;
+		params->filter |= RNA_boolean_get(op->ptr, "filter_font") ? FTFONTFILE : 0;
+		params->filter |= RNA_boolean_get(op->ptr, "filter_sound") ? SOUNDFILE : 0;
+		params->filter |= RNA_boolean_get(op->ptr, "filter_text") ? TEXTFILE : 0;
+		params->filter |= RNA_boolean_get(op->ptr, "filter_folder") ? FOLDERFILE : 0;
 		if (params->filter != 0)
 			params->flag |= FILE_FILTER;
+
+		params->flag |= FILE_HIDE_DOT;
 		
-		if (RNA_property_is_set(op->ptr, "display")) {
-			params->display= RNA_int_get(op->ptr, "display");
-		} else {
-			params->display = FILE_SHORTDISPLAY;
-		}
+		if(params->filter & (IMAGEFILE|MOVIEFILE))
+			params->display= FILE_IMGDISPLAY;
+		else
+			params->display= FILE_SHORTDISPLAY;
 		
 		/* if operator has path set, use it, otherwise keep the last */
 		if (RNA_property_is_set(op->ptr, "filename")) {
@@ -147,11 +153,14 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		}
 	} else {
 		/* default values, if no operator */
-		params->flag = 0;
+		params->flag |= FILE_HIDE_DOT;
 		params->display = FILE_SHORTDISPLAY;
 		params->filter = 0;
 		params->sort = FILE_SORT_ALPHA;
 	}
+
+	/* new params, refresh file list */
+	if(sfile->files) filelist_free(sfile->files);
 
 	return 1;
 }
@@ -188,8 +197,8 @@ int ED_fileselect_layout_offset(FileLayout* layout, int x, int y)
 	offsetx = (x)/(layout->tile_w + 2*layout->tile_border_x);
 	offsety = (y)/(layout->tile_h + 2*layout->tile_border_y);
 	
-	if (offsetx > layout->columns-1) offsetx = -1 ;
-	if (offsety > layout->rows-1) offsety = -1 ;
+	if (offsetx > layout->columns-1) return -1 ;
+	if (offsety > layout->rows-1) return -1 ;
 
 	if (layout->flag & FILE_LAYOUT_HOR) 
 		active_file = layout->rows*offsetx + offsety;
@@ -386,7 +395,7 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern)
 void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
 {
 	char tmp[FILE_MAX];
-	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	SpaceFile *sfile= CTX_wm_space_file(C);
 
 	/* search if str matches the beginning of name */
 	if(str[0] && sfile->files) {

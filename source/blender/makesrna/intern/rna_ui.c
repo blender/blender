@@ -620,6 +620,9 @@ static void rna_def_panel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "UILayout");
 
+	prop= RNA_def_property(srna, "text", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "drawname");
+
 	/* registration */
 	prop= RNA_def_property(srna, "idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");

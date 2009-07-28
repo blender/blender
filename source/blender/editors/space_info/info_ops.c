@@ -330,7 +330,7 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "File path of image to open.");
+	WM_operator_properties_filesel(ot, 0);
 }
 
 #if 0

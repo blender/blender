@@ -164,6 +164,7 @@ int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, struct 
 
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
+void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter);
 
 		/* operator as a python command (resultuing string must be free'd) */
 char		*WM_operator_pystring(struct wmOperator *op);

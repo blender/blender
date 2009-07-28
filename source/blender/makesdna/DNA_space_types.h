@@ -200,6 +200,8 @@ typedef struct SpaceFile {
 
 	struct FileLayout *layout;
 	
+	short recentnr, bookmarknr;
+	short systemnr, pad2;
 } SpaceFile;
 
 typedef struct SpaceOops {

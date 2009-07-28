@@ -320,6 +320,21 @@ int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *event)
 	}
 }
 
+/* default properties for fileselect */
+void WM_operator_properties_filesel(wmOperatorType *ot, int filter)
+{
+	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "Path to file.");
+
+	RNA_def_boolean(ot->srna, "filter_blender", (filter & BLENDERFILE), "Filter .blend files", "");
+	RNA_def_boolean(ot->srna, "filter_image", (filter & IMAGEFILE), "Filter image files", "");
+	RNA_def_boolean(ot->srna, "filter_movie", (filter & MOVIEFILE), "Filter movie files", "");
+	RNA_def_boolean(ot->srna, "filter_python", (filter & PYSCRIPTFILE), "Filter python files", "");
+	RNA_def_boolean(ot->srna, "filter_font", (filter & FTFONTFILE), "Filter font files", "");
+	RNA_def_boolean(ot->srna, "filter_sound", (filter & SOUNDFILE), "Filter sound files", "");
+	RNA_def_boolean(ot->srna, "filter_text", (filter & TEXTFILE), "Filter text files", "");
+	RNA_def_boolean(ot->srna, "filter_folder", (filter & FOLDERFILE), "Filter folders", "");
+}
+
 /* op->poll */
 int WM_operator_winactive(bContext *C)
 {
@@ -678,10 +693,7 @@ static void untitled(char *name)
 
 static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-
 	RNA_string_set(op->ptr, "filename", G.sce);
-	RNA_boolean_set(op->ptr, "filter_blender", 1);
-	RNA_boolean_set(op->ptr, "filter_folder", 1);
 	WM_event_add_fileselect(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
@@ -703,7 +715,6 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 
 static void WM_OT_open_mainfile(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
 	ot->name= "Open Blender File";
 	ot->idname= "WM_OT_open_mainfile";
 	
@@ -711,13 +722,7 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	ot->exec= wm_open_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "File path of blendfile to open.");
-
-	prop= RNA_def_boolean(ot->srna, "filter_blender", 0, "Filter Blendfiles", "");
-	RNA_def_property_boolean_sdna(prop, NULL, "filter", BLENDERFILE);
-	prop= RNA_def_boolean(ot->srna, "filter_folder", 0, "Filter Blendfiles", "");
-	RNA_def_property_boolean_sdna(prop, NULL, "filter", FOLDERFILE);
-	
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE);
 }
 
 static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
@@ -810,7 +815,7 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	ot->exec= wm_save_as_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	RNA_def_string_file_path(ot->srna, "filename", "", 0, "Filename", "");
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
 }
 
@@ -839,7 +844,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	ot->exec= wm_save_as_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	RNA_def_string_file_path(ot->srna, "filename", "", 0, "Filename", "");
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
 }
 

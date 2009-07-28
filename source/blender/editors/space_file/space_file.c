@@ -184,7 +184,7 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 
 static void file_refresh(const bContext *C, ScrArea *sa)
 {
-	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	SpaceFile *sfile= CTX_wm_space_file(C);
 	FileSelectParams *params = ED_fileselect_get_params(sfile);
 
 	if (!sfile->folders_prev)
@@ -217,9 +217,11 @@ static void file_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_FILELIST:
 					if (sfile->files) filelist_free(sfile->files);
 					ED_area_tag_refresh(sa);
+					ED_area_tag_redraw(sa);
 					break;
 				case ND_PARAMS:
 					ED_area_tag_refresh(sa);
+					ED_area_tag_redraw(sa);
 					break;
 			}
 			break;
@@ -263,7 +265,7 @@ static void file_main_area_listener(ARegion *ar, wmNotifier *wmn)
 static void file_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	SpaceFile *sfile= CTX_wm_space_file(C);
 	FileSelectParams *params = ED_fileselect_get_params(sfile);
 	FileLayout *layout=NULL;
 
@@ -305,7 +307,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	/* on first read, find active file */
 	if (params->active_file == -1) {
 		wmEvent *event= CTX_wm_window(C)->eventstate;
-		file_hilight_set(sfile, ar, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin);
+		file_hilight_set(sfile, ar, event->x, event->y);
 	}
 	
 	if (params->display == FILE_IMGDISPLAY) {

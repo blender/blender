@@ -34,9 +34,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_space_types.h" /* FILE_MAX */
+
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_dynstr.h"
+#include "BLI_string.h"
 
 #ifdef WIN32
 #include <windows.h> /* need to include windows.h so _WIN32_IE is defined  */
@@ -245,7 +248,7 @@ void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 	FSMenuCategory category = FS_CATEGORY_BOOKMARKS;
 	FILE *fp;
 
-	#ifdef WIN32
+#ifdef WIN32
 	/* Add the drive names to the listing */
 	{
 		__int64 tmp;
@@ -272,8 +275,7 @@ void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 		SHGetSpecialFolderPath(0, folder, CSIDL_DESKTOPDIRECTORY, 0);
 		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, folder, 1, 0);
 	}
-#endif
-
+#else
 #ifdef __APPLE__
 	{
 		OSErr err=noErr;
@@ -293,6 +295,22 @@ void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)path, 1, 0);
 		}
 	}
+#else
+	/* unix */
+	{
+		char dir[FILE_MAXDIR];
+		char *home= BLI_gethome();
+
+		fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, "/", 1, 0);
+
+		if(home) {
+			BLI_snprintf(dir, FILE_MAXDIR, "%s/", home);
+			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, dir, 1, 0);
+			BLI_snprintf(dir, FILE_MAXDIR, "%s/Desktop/", home);
+			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, dir, 1, 0);
+		}
+	}
+#endif
 #endif
 
 	fp = fopen(filename, "r");

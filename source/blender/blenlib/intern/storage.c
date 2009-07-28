@@ -218,7 +218,7 @@ void BLI_builddir(char *dirname, char *relname)
 {
 	struct dirent *fname;
 	struct dirlink *dlink;
-	int rellen, newnum = 0;
+	int rellen, newnum = 0, len;
 	char buf[256];
 	DIR *dir;
 
@@ -237,13 +237,11 @@ void BLI_builddir(char *dirname, char *relname)
 
 	if ( (dir = (DIR *)opendir(".")) ){
 		while ((fname = (struct dirent*) readdir(dir)) != NULL) {
+			len= strlen(fname->d_name);
 			
-			if(hide_dot && fname->d_name[0]=='.' && fname->d_name[1]!='.' && fname->d_name[1]!=0) {
-			}
-			else if ( ( (fname->d_name[0] == '.') && (fname->d_name[1] == 0) ) ||
-					  ( (fname->d_name[0] == '.') && (fname->d_name[1] == '.') && (fname->d_name[2] == 0)) ) {
-				/* ignore '.' and '..' */
-			}
+			if(hide_dot && fname->d_name[0]=='.' && fname->d_name[1]!='.' && fname->d_name[1]!=0); /* ignore .file */
+			else if(hide_dot && len && fname->d_name[len-1]=='~'); /* ignore file~ */
+			else if (((fname->d_name[0] == '.') && (fname->d_name[1] == 0) )); /* ignore . */
 			else {
 				dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
 				if (dlink){

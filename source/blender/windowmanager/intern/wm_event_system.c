@@ -885,10 +885,22 @@ static int handler_boundbox_test(wmEventHandler *handler, wmEvent *event)
 		if(handler->bblocal) {
 			rcti rect= *handler->bblocal;
 			BLI_translate_rcti(&rect, handler->bbwin->xmin, handler->bbwin->ymin);
-			return BLI_in_rcti(&rect, event->x, event->y);
+
+			if(BLI_in_rcti(&rect, event->x, event->y))
+				return 1;
+			else if(event->type==MOUSEMOVE && BLI_in_rcti(&rect, event->prevx, event->prevy))
+				return 1;
+			else
+				return 0;
 		}
-		else 
-			return BLI_in_rcti(handler->bbwin, event->x, event->y);
+		else {
+			if(BLI_in_rcti(handler->bbwin, event->x, event->y))
+				return 1;
+			else if(event->type==MOUSEMOVE && BLI_in_rcti(handler->bbwin, event->prevx, event->prevy))
+				return 1;
+			else
+				return 0;
+		}
 	}
 	return 1;
 }

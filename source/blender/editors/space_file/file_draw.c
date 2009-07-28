@@ -153,7 +153,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	
 	uiBut*            but;
 	uiBlock*          block;
-	SpaceFile*        sfile  = (SpaceFile*) CTX_wm_space_data(C);
+	SpaceFile*        sfile  = CTX_wm_space_file(C);
 	FileSelectParams* params = ED_fileselect_get_params(sfile);
 	
 	/* Initialize UI block. */
@@ -345,7 +345,7 @@ static void file_draw_string(short sx, short sy, const char* string, float width
 
 void file_calc_previews(const bContext *C, ARegion *ar)
 {
-	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	SpaceFile *sfile= CTX_wm_space_file(C);
 	View2D *v2d= &ar->v2d;
 	
 	ED_fileselect_init_layout(sfile, ar);
@@ -354,7 +354,7 @@ void file_calc_previews(const bContext *C, ARegion *ar)
 
 void file_draw_previews(const bContext *C, ARegion *ar)
 {
-	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	SpaceFile *sfile= CTX_wm_space_file(C);
 	FileSelectParams* params= ED_fileselect_get_params(sfile);
 	FileLayout* layout= ED_fileselect_get_layout(sfile, ar);
 	View2D *v2d= &ar->v2d;
@@ -517,7 +517,7 @@ static void renamebutton_cb(bContext *C, void *arg1, char *oldname)
 
 void file_draw_list(const bContext *C, ARegion *ar)
 {
-	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	SpaceFile *sfile= CTX_wm_space_file(C);
 	FileSelectParams* params = ED_fileselect_get_params(sfile);
 	FileLayout* layout= ED_fileselect_get_layout(sfile, ar);
 	View2D *v2d= &ar->v2d;

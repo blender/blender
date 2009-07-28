@@ -488,7 +488,7 @@ static void rna_def_userdef_theme_spaces_main(StructRNA *srna, int spacetype)
 	}
 	
 	/* list/channels */
-	if(ELEM4(spacetype, SPACE_IPO, SPACE_ACTION, SPACE_NLA, SPACE_NODE)) {
+	if(ELEM5(spacetype, SPACE_IPO, SPACE_ACTION, SPACE_NLA, SPACE_NODE, SPACE_FILE)) {
 		prop= RNA_def_property(srna, "list", PROP_FLOAT, PROP_COLOR);
 		RNA_def_property_array(prop, 3);
 		RNA_def_property_ui_text(prop, "List Back", "");

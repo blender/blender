@@ -173,7 +173,7 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 	
 	ot->flag= 0;
 	
-	RNA_def_property(ot->srna, "filename", PROP_STRING, PROP_FILEPATH);
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE);
 	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "");
 }
 

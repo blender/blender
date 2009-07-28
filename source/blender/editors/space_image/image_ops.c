@@ -609,10 +609,6 @@ static const EnumPropertyItem image_file_type_items[] = {
 static void image_filesel(bContext *C, wmOperator *op, const char *path)
 {
 	RNA_string_set(op->ptr, "filename", path);
-	RNA_boolean_set(op->ptr, "filter_image", 1);
-	RNA_boolean_set(op->ptr, "filter_movie", 1);
-	RNA_boolean_set(op->ptr, "filter_folder", 1);
-	RNA_enum_set(op->ptr, "display", FILE_IMGDISPLAY);
 	WM_event_add_fileselect(C, op); 
 }
 
@@ -653,14 +649,6 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 void IMAGE_OT_open(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
-	static EnumPropertyItem file_display_items[] = {
-		{FILE_SHORTDISPLAY, "FILE_SHORTDISPLAY", ICON_SHORTDISPLAY, "Short List", "Display files as short list"},
-		{FILE_LONGDISPLAY, "FILE_LONGDISPLAY", ICON_LONGDISPLAY, "Long List", "Display files as a detailed list"},
-		{FILE_IMGDISPLAY, "FILE_IMGDISPLAY", ICON_IMGDISPLAY, "Thumbnails", "Display files as thumbnails"},
-		{0, NULL, 0, NULL, NULL}};
-
 	/* identifiers */
 	ot->name= "Open";
 	ot->idname= "IMAGE_OT_open";
@@ -674,27 +662,14 @@ void IMAGE_OT_open(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "File path of image to open.");
-
-	prop= RNA_def_boolean(ot->srna, "filter_image", 0, "Show image files", "");
-	RNA_def_property_boolean_sdna(prop, NULL, "filter", IMAGEFILE);
-	prop= RNA_def_boolean(ot->srna, "filter_movie", 0, "Show movie files", "");
-	RNA_def_property_boolean_sdna(prop, NULL, "filter", MOVIEFILE);
-	prop= RNA_def_boolean(ot->srna, "filter_folder", 0, "Show folders", "");
-	RNA_def_property_boolean_sdna(prop, NULL, "filter", FOLDERFILE);
-
-	prop= RNA_def_property(ot->srna, "display", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "display");
-	RNA_def_property_enum_items(prop, file_display_items);
-	RNA_def_property_ui_text(prop, "Display Mode", "Display mode for the file list");
-	
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE);
 }
 
 /******************** replace image operator ********************/
 
 static int replace_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	char str[FILE_MAX];
 
 	if(!sima->image)
@@ -740,7 +715,7 @@ void IMAGE_OT_replace(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "File path of image to replace current image with.");
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE);
 }
 
 /******************** save image as operator ********************/
@@ -884,15 +859,15 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "File path to save image to.");
 	RNA_def_enum(ot->srna, "file_type", image_file_type_items, R_PNG, "File Type", "File type to save image as.");
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE);
 }
 
 /******************** save image operator ********************/
 
 static int save_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Image *ima = ED_space_image(sima);
 	ImBuf *ibuf= ED_space_image_buffer(sima);
 	Scene *scene= CTX_data_scene(C);
