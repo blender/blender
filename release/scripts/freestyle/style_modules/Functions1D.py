@@ -29,7 +29,7 @@ class pyDensityAnisotropyF1D(UnaryFunction1DDouble):
 	def getName(self):
 		return "pyDensityAnisotropyF1D"
 	def __call__(self, inter):
-		v =  integrateDouble(self._func, inter.pointsBegin(self._sampling), inter.pointsEnd(self._sampling), self._integration)
+		v = integrate(self._func, inter.pointsBegin(self._sampling), inter.pointsEnd(self._sampling), self._integration)
 		return v
 
 class pyViewMapGradientNormF1D(UnaryFunction1DDouble):
@@ -41,5 +41,5 @@ class pyViewMapGradientNormF1D(UnaryFunction1DDouble):
 	def getName(self):
 		return "pyViewMapGradientNormF1D"
 	def __call__(self, inter):
-		v =  integrateDouble(self._func, inter.pointsBegin(self._sampling), inter.pointsEnd(self._sampling), self._integration)
+		v = integrate(self._func, inter.pointsBegin(self._sampling), inter.pointsEnd(self._sampling), self._integration)
 		return v
