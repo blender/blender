@@ -1595,7 +1595,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 	}
 
 	if(changed) {
-		/* never update while typing for now */
+		/* only update when typing for TAB key */
 		if(update && data->interactive) ui_apply_button(C, block, but, data, 1);
 		else ui_check_but(but);
 		
@@ -3636,7 +3636,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 	data= MEM_callocN(sizeof(uiHandleButtonData), "uiHandleButtonData");
 	data->window= CTX_wm_window(C);
 	data->region= ar;
-	if( ELEM3(but->type, TEX, BUT_CURVE, SEARCH_MENU) );  // XXX curve is temp
+	if( ELEM(but->type, BUT_CURVE, SEARCH_MENU) );  // XXX curve is temp
 	else data->interactive= 1;
 	
 	data->state = BUTTON_STATE_INIT;
