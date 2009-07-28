@@ -573,10 +573,10 @@ int blf_glyph_bitmap_render(FontBLF *font, GlyphBLF *g, float x, float y)
 			return(0);
 	}
 
-	glBitmap(0, 0, 0.0, 0.0, x + font->pos[0], y - font->pos[1], (const GLubyte *)&null_bitmap);
+	glBitmap(0, 0, 0.0, 0.0, x, y, (const GLubyte *)&null_bitmap);
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, gt->pitch * 8);
 	glBitmap(gt->width, gt->height, 0.0, gt->pos_y, 0.0, 0.0, (const GLubyte *)gt->image);
-	glBitmap(0, 0, 0.0, 0.0, -x - font->pos[0], -y + font->pos[1], (const GLubyte *)&null_bitmap);
+	glBitmap(0, 0, 0.0, 0.0, -x, -y, (const GLubyte *)&null_bitmap);
 	return(1);
 }
 
