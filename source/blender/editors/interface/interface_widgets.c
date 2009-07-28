@@ -749,7 +749,7 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 		
 		/* textbut exception */
 		if(but->editstr && but->pos != -1) {
-			int pos= but->pos+strlen(but->str);
+			int pos= but->pos+1;
 			
 			if(pos-1 < but->ofs) {
 				pos= but->ofs-pos+1;
@@ -784,44 +784,46 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 		short selsta_tmp, selend_tmp, selsta_draw, selwidth_draw;
 		
 		if ((but->selend - but->selsta) > 0) {
-			/* XXX weak, why is this? (ton) */
-			t= but->str[0]?1:-2;
-			
 			/* text button selection */
-			selsta_tmp = but->selsta + strlen(but->str);
-			selend_tmp = but->selend + strlen(but->str);
+			selsta_tmp = but->selsta;
+			selend_tmp = but->selend;
 			
 			if(but->drawstr[0]!=0) {
 				ch= but->drawstr[selsta_tmp];
 				but->drawstr[selsta_tmp]= 0;
 				
-				selsta_draw = BLF_width(but->drawstr+but->ofs) + t;
+				selsta_draw = BLF_width(but->drawstr+but->ofs);
 				
 				but->drawstr[selsta_tmp]= ch;
 				
 				ch= but->drawstr[selend_tmp];
 				but->drawstr[selend_tmp]= 0;
 				
-				selwidth_draw = BLF_width(but->drawstr+but->ofs) + t;
+				selwidth_draw = BLF_width(but->drawstr+but->ofs);
 				
 				but->drawstr[selend_tmp]= ch;
+
+				/* if at pos 0, leave a bit more to the left */
+				t= (pos == 0)? 0: 1;
 				
 				glColor3ubv((unsigned char*)wcol->item);
 				glRects(rect->xmin+selsta_draw+1, rect->ymin+2, rect->xmin+selwidth_draw+1, rect->ymax-2);
 			}
 		} else {
 			/* text cursor */
-			pos= but->pos+strlen(but->str);
+			pos= but->pos;
 			if(pos >= but->ofs) {
 				if(but->drawstr[0]!=0) {
 					ch= but->drawstr[pos];
 					but->drawstr[pos]= 0;
 					
-					t= BLF_width(but->drawstr+but->ofs) + 1;
+					t= BLF_width(but->drawstr+but->ofs);
 					
 					but->drawstr[pos]= ch;
 				}
-				else t= 1;
+
+				/* if at pos 0, leave a bit more to the left */
+				t += (pos == 0)? 0: 1;
 				
 				glColor3ub(255,0,0);
 				glRects(rect->xmin+t, rect->ymin+2, rect->xmin+t+2, rect->ymax-2);
@@ -857,7 +859,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	if(but==NULL) return;
 	
 	/* cutting off from left part */
-	if ELEM3(but->type, NUM, NUMABS, TEX) {	
+	if ELEM5(but->type, NUM, NUMABS, NUMSLI, SLI, TEX) {	
 		ui_text_leftclip(fstyle, but, rect);
 	}
 	else but->ofs= 0;
@@ -889,7 +891,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 			if(but->editstr || (but->flag & UI_TEXT_LEFT)) 
 				rect->xmin += 5;
 		}
-		else if(but->flag & UI_TEXT_LEFT)
+		else if((but->flag & UI_TEXT_LEFT)) 
 			rect->xmin += 5;
 		
 		/* always draw text for textbutton cursor */
@@ -1599,6 +1601,7 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 {
 	uiWidgetBase wtb;
 	float rad= 0.5f*(rect->ymax - rect->ymin);
+	int textoffs;
 	
 	widget_init(&wtb);
 	
@@ -1613,9 +1616,15 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 	widgetbase_draw(&wtb, wcol);
 	
 	/* text space */
-	rect->xmin += (rect->ymax-rect->ymin);
-	rect->xmax -= (rect->ymax-rect->ymin);
-
+	if(!(state & UI_TEXTINPUT)) {
+		rect->xmin += (rect->ymax-rect->ymin);
+		rect->xmax -= (rect->ymax-rect->ymin);
+	}
+	else {
+		textoffs= rad;
+		rect->xmin += textoffs;
+		rect->xmax -= textoffs;
+	}
 }
 
 
@@ -1822,6 +1831,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	rcti rect1;
 	double value;
 	float offs, fac;
+	int textoffs;
 	char outline[3];
 	
 	widget_init(&wtb);
@@ -1831,6 +1841,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	
 	/* fully rounded */
 	offs= 0.5f*(rect->ymax - rect->ymin);
+	textoffs= offs;
 	round_box_edges(&wtb, roundboxalign, rect, offs);
 
 	wtb.outline= 0;
@@ -1872,9 +1883,8 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	widgetbase_draw(&wtb, wcol);
 	
 	/* text space */
-	rect->xmin += (rect->ymax-rect->ymin);
-	rect->xmax -= (rect->ymax-rect->ymin);
-	
+	rect->xmin += textoffs;
+	rect->xmax -= textoffs;
 }
 
 static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)

@@ -1045,15 +1045,17 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	
 	/* XXX solve generic */
 	if(but->type==NUM || but->type==NUMSLI)
-		startx += 20;
+		startx += (int)(0.5f*(but->y2 - but->y1));
+	else if(but->type==TEX)
+		startx += 5;
 	
+	/* XXX does not take zoom level into account */
 	while((BLF_width(origstr+but->ofs) + startx) > x) {
 		if (but->pos <= 0) break;
 		but->pos--;
 		origstr[but->pos+but->ofs] = 0;
 	}
 	
-	but->pos -= strlen(but->str);
 	but->pos += but->ofs;
 	if(but->pos<0) but->pos= 0;
 

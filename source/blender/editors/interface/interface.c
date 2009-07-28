@@ -1887,10 +1887,8 @@ void ui_check_but(uiBut *but)
 	}
 
 	/* if we are doing text editing, this will override the drawstr */
-	if(but->editstr) {
-		strcpy(but->drawstr, but->str);
-		strcat(but->drawstr, but->editstr);
-	}
+	if(but->editstr)
+		strcpy(but->drawstr, but->editstr);
 	
 	/* text clipping moved to widget drawing code itself */
 }
