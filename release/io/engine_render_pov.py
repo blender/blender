@@ -6,6 +6,13 @@ import os
 import sys
 import time
 
+import platform as pltfrm
+
+if pltfrm.architecture()[0] == '64bit':
+	bitness = 64
+else:
+	bitness = 32
+
 def write_pov(filename, scene=None, info_callback = None):
 	file = open(filename, 'w')
 	
@@ -487,7 +494,16 @@ class PovrayRenderEngine(bpy.types.RenderEngine):
 		# This works too but means we have to wait until its done
 		# os.system('povray %s' % self.temp_file_ini)
 		
-		self.process = subprocess.Popen(["povray", self.temp_file_ini]) # stdout=subprocess.PIPE, stderr=subprocess.PIPE
+		pov_binary = "povray"
+		
+		if sys.platform=='win32':
+			if bitness == 64:
+				pov_binary = "pvengine64"
+			else:
+				pov_binary = "pvengine"
+			
+		self.process = subprocess.Popen([pov_binary, self.temp_file_ini]) # stdout=subprocess.PIPE, stderr=subprocess.PIPE
+		
 		print ("***-DONE-***")
 	
 	def _cleanup(self):
