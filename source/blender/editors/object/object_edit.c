@@ -2666,68 +2666,110 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 	DAG_scene_sort(scene);
 }
 
-static Object *group_objects_menu(Group *group)
+
+/* ******************** make proxy operator *********************** */
+
+/* present menu listing the possible objects within the group to proxify */
+static void proxy_group_objects_menu (bContext *C, wmOperator *op, Object *ob, Group *group)
 {
+	PointerRNA gob_ptr;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 	GroupObject *go;
-	int len= 0;
-	short a, nr;
-	char *str;
-		
-	for(go= group->gobject.first; go; go= go->next) {
-		if(go->ob)
-			len++;
-	}
-	if(len==0) return NULL;
+	int len=0;
 	
-	str= MEM_callocN(40+32*len, "menu");
+	/* check if there are any objects within the group to assign for */
+	for (go= group->gobject.first; go; go= go->next) {
+		if (go->ob) len++;
+	}
+	if (len==0) return;
 	
-	strcpy(str, "Make Proxy for: %t");
-	a= strlen(str);
-	for(nr=1, go= group->gobject.first; go; go= go->next, nr++) {
-		a+= sprintf(str+a, "|%s %%x%d", go->ob->id.name+2, nr);
+	/* now create the menu to draw */
+	pup= uiPupMenuBegin(C, "Make Proxy For:", 0);
+	layout= uiPupMenuLayout(pup);
+	
+	/* make RNA pointer for object that group belongs to */
+	RNA_id_pointer_create((ID *)ob, &gob_ptr);
+	
+	for (go= group->gobject.first; go; go= go->next) {
+		if (go->ob) {
+			PointerRNA props_ptr, ob_ptr;
+			
+			/* create pointer for this object */
+			RNA_id_pointer_create((ID *)go->ob, &ob_ptr);
+			
+			/* create operator properties, and assign the relevant pointers to that, 
+			 * and add a menu entry which uses these props 
+			 */
+			WM_operator_properties_create(&props_ptr, op->idname);
+				RNA_pointer_set(&props_ptr, "object", ob_ptr);
+				RNA_pointer_set(&props_ptr, "group_object", gob_ptr);
+			uiItemFullO(layout, go->ob->id.name+2, 0, op->idname, props_ptr.data, WM_OP_EXEC_REGION_WIN);
+		}
 	}
 	
-	a= pupmenu_col(str, 20);
-	MEM_freeN(str);
-	if(a>0) {
-		go= BLI_findlink(&group->gobject, a-1);
-		return go->ob;
-	}
-	return NULL;
+	/* display the menu, and be done */
+	uiPupMenuEnd(C, pup);
 }
 
-
-/* adds empty object to become local replacement data of a library-linked object */
-void make_proxy(Scene *scene)
+/* set the object to proxify */
+static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
-	Object *ob= OBACT;
-	Object *gob= NULL;
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
 	
-	if(scene->id.lib) return;
-	if(ob==NULL) return;
-	
-	
-	if(ob->dup_group && ob->dup_group->id.lib) {
-		gob= ob;
+	/* sanity checks */
+	if (!scene || scene->id.lib || !ob)
+		return OPERATOR_CANCELLED;
+		
+	/* Get object to work on - use a menu if we need to... */
+	if (ob->dup_group && ob->dup_group->id.lib) {
 		/* gives menu with list of objects in group */
-		ob= group_objects_menu(ob->dup_group);
+		proxy_group_objects_menu(C, op, ob, ob->dup_group);
 	}
-	else if(ob->id.lib) {
-		if(okee("Make Proxy Object")==0)
-		return;
+	else if (ob->id.lib) {
+		uiPopupMenu *pup= uiPupMenuBegin(C, "OK?", ICON_QUESTION);
+		uiLayout *layout= uiPupMenuLayout(pup);
+		PointerRNA ob_ptr, props_ptr;
+		
+		/* create pointer for this object */
+		RNA_id_pointer_create((ID *)ob, &ob_ptr);
+		
+		/* create operator properties, and assign the relevant pointers to that, 
+		 * and add a menu entry which uses these props 
+		 */
+		WM_operator_properties_create(&props_ptr, op->idname);
+			RNA_pointer_set(&props_ptr, "object", ob_ptr);
+		uiItemFullO(layout, op->type->name, 0, op->idname, props_ptr.data, WM_OP_EXEC_REGION_WIN);
+		
+		/* present the menu and be done... */
+		uiPupMenuEnd(C, pup);
 	}
 	else {
-		error("Can only make proxy for a referenced object or group");
-		return;
+		/* error.. cannot continue */
+		BKE_report(op->reports, RPT_ERROR, "Can only make proxy for a referenced object or group");
 	}
 	
-	if(ob) {
+	/* this invoke just calls another instance of this operator... */
+	return OPERATOR_CANCELLED;
+}
+
+static int make_proxy_exec (bContext *C, wmOperator *op)
+{
+	PointerRNA ob_ptr= RNA_pointer_get(op->ptr, "object");
+	PointerRNA gob_ptr= RNA_pointer_get(op->ptr, "group_object");
+	Object *ob= ob_ptr.data;
+	Object *gob= gob_ptr.data;
+	Scene *scene= CTX_data_scene(C);
+	
+	if (ob) {
 		Object *newob;
 		Base *newbase, *oldbase= BASACT;
 		char name[32];
 		
+		/* Add new object for the proxy */
 		newob= add_object(scene, OB_EMPTY);
-		if(gob)
+		if (gob)
 			strcpy(name, gob->id.name+2);
 		else
 			strcpy(name, ob->id.name+2);
@@ -2740,15 +2782,43 @@ void make_proxy(Scene *scene)
 		newob->lay= newbase->lay;
 		
 		/* remove base, leave user count of object, it gets linked in object_make_proxy */
-		if(gob==NULL) {
+		if (gob==NULL) {
 			BLI_remlink(&scene->base, oldbase);
 			MEM_freeN(oldbase);
-		}		
+		}
+		
 		object_make_proxy(newob, ob, gob);
 		
+		/* depsgraph flushes are needed for the new data */
 		DAG_scene_sort(scene);
 		DAG_object_flush_update(scene, newob, OB_RECALC);
 	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "No object to make proxy for");
+		return OPERATOR_CANCELLED;
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_proxy_make (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Make Proxy";
+	ot->idname= "OBJECT_OT_proxy_make";
+	ot->description= "Add empty object to become local replacement data of a library-linked object";
+	
+	/* callbacks */
+	ot->invoke= make_proxy_invoke;
+	ot->exec= make_proxy_exec;
+	ot->poll= ED_operator_object_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_pointer(ot->srna, "object", "Object", "Proxy Object", "Lib-linked/grouped object to make a proxy for.");
+	RNA_def_pointer(ot->srna, "group_object", "Object", "Group Object", "Group instancer (if applicable).");
 }
 
 /* ******************** make parent operator *********************** */

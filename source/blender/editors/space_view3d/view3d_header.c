@@ -2100,9 +2100,9 @@ static void view3d_edit_objectmenu(bContext *C, uiLayout *layout, void *arg_unus
 	uiItemO(layout, NULL, 0, "OBJECT_OT_duplicate");
 	uiItemBooleanO(layout, "Duplicate Linked", 0, "OBJECT_OT_duplicate", "linked", 1);
 	uiItemO(layout, NULL, 0, "OBJECT_OT_delete");
-
+	
+	uiItemO(layout, NULL, 0, "OBJECT_OT_proxy_make");
 #if 0
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Proxy|Ctrl Alt P",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
 	uiDefIconTextBlockBut(block, view3d_edit_object_makelinksmenu, NULL, ICON_RIGHTARROW_THIN, "Make Links", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_object_singleusermenu, NULL, ICON_RIGHTARROW_THIN, "Make Single User", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_object_makelocalmenu, NULL, ICON_RIGHTARROW_THIN, "Make Local", 0, yco-=20, 120, 19, "");
