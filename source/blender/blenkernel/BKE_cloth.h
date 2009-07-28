@@ -64,8 +64,7 @@ struct CollisionTree;
 #elif defined (__sun) || defined (__sun__)
 #   define DO_INLINE
 #else
-#   define DO_INLINE inline
-#   define LINUX
+#   define DO_INLINE static inline
 #endif
 
 #define CLOTH_MAX_THREAD 2
