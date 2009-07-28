@@ -9,7 +9,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for GetYF0D instance  -----------*/
-	static int GetYF0D___init__(BPy_GetYF0D* self);
+	static int GetYF0D___init__(BPy_GetYF0D* self, PyObject *args);
 
 /*-----------------------BPy_GetYF0D type definition ------------------------------*/
 
@@ -98,9 +98,12 @@ PyTypeObject GetYF0D_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int GetYF0D___init__( BPy_GetYF0D* self )
+int GetYF0D___init__( BPy_GetYF0D* self, PyObject *args )
 {
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
 	self->py_uf0D_double.uf0D_double = new Functions0D::GetYF0D();
+	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

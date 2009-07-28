@@ -9,7 +9,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for GetXF0D instance  -----------*/
-	static int GetXF0D___init__(BPy_GetXF0D* self);
+	static int GetXF0D___init__(BPy_GetXF0D* self, PyObject *args);
 
 /*-----------------------BPy_GetXF0D type definition ------------------------------*/
 
@@ -98,9 +98,12 @@ PyTypeObject GetXF0D_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int GetXF0D___init__( BPy_GetXF0D* self )
+int GetXF0D___init__( BPy_GetXF0D* self, PyObject *args )
 {
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
 	self->py_uf0D_double.uf0D_double = new Functions0D::GetXF0D();
+	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

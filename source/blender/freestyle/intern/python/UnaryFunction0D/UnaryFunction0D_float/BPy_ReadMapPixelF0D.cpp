@@ -103,12 +103,10 @@ int ReadMapPixelF0D___init__( BPy_ReadMapPixelF0D* self, PyObject *args)
 	const char *s;
 	int i;
 
-	if( !PyArg_ParseTuple(args, "si", &s, &i) ) {
-		cout << "ERROR: ReadMapPixelF0D___init__" << endl;		
+	if( !PyArg_ParseTuple(args, "si", &s, &i) )
 		return -1;
-	}
-	
 	self->py_uf0D_float.uf0D_float = new Functions0D::ReadMapPixelF0D(s,i);
+	self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

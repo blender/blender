@@ -102,12 +102,10 @@ int LocalAverageDepthF0D___init__( BPy_LocalAverageDepthF0D* self, PyObject *arg
 {
 	double d = 5.0;
 
-	if( !PyArg_ParseTuple(args, "|d", &d) ) {
-		cout << "ERROR: LocalAverageDepthF0D___init__" << endl;		
+	if( !PyArg_ParseTuple(args, "|d", &d) )
 		return -1;
-	}
-	
 	self->py_uf0D_double.uf0D_double = new Functions0D::LocalAverageDepthF0D(d);
+	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

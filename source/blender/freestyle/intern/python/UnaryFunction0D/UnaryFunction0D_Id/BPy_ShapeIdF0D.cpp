@@ -9,7 +9,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for ShapeIdF0D instance  -----------*/
-	static int ShapeIdF0D___init__(BPy_ShapeIdF0D* self);
+	static int ShapeIdF0D___init__(BPy_ShapeIdF0D* self, PyObject *args);
 
 /*-----------------------BPy_ShapeIdF0D type definition ------------------------------*/
 
@@ -98,9 +98,12 @@ PyTypeObject ShapeIdF0D_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int ShapeIdF0D___init__( BPy_ShapeIdF0D* self )
+int ShapeIdF0D___init__( BPy_ShapeIdF0D* self, PyObject *args )
 {
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
 	self->py_uf0D_id.uf0D_id = new Functions0D::ShapeIdF0D();
+	self->py_uf0D_id.uf0D_id->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

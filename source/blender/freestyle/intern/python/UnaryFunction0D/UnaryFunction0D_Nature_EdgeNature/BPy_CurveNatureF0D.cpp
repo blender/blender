@@ -9,7 +9,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for CurveNatureF0D instance  -----------*/
-	static int CurveNatureF0D___init__(BPy_CurveNatureF0D* self);
+	static int CurveNatureF0D___init__(BPy_CurveNatureF0D* self, PyObject *args);
 
 /*-----------------------BPy_CurveNatureF0D type definition ------------------------------*/
 
@@ -98,9 +98,12 @@ PyTypeObject CurveNatureF0D_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int CurveNatureF0D___init__( BPy_CurveNatureF0D* self )
+int CurveNatureF0D___init__( BPy_CurveNatureF0D* self, PyObject *args )
 {
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
 	self->py_uf0D_edgenature.uf0D_edgenature = new Functions0D::CurveNatureF0D();
+	self->py_uf0D_edgenature.uf0D_edgenature->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

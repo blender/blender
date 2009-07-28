@@ -102,12 +102,10 @@ int GetViewMapGradientNormF0D___init__( BPy_GetViewMapGradientNormF0D* self, PyO
 {
 	int i;
 
-	if( !PyArg_ParseTuple(args, "i", &i) ) {
-		cout << "ERROR: GetViewMapGradientNormF0D___init__" << endl;		
+	if( !PyArg_ParseTuple(args, "i", &i) )
 		return -1;
-	}
-	
 	self->py_uf0D_float.uf0D_float = new Functions0D::GetViewMapGradientNormF0D(i);
+	self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

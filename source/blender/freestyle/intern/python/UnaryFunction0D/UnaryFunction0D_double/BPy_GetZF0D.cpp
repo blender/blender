@@ -9,7 +9,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for GetZF0D instance  -----------*/
-	static int GetZF0D___init__(BPy_GetZF0D* self);
+	static int GetZF0D___init__(BPy_GetZF0D* self, PyObject *args);
 
 /*-----------------------BPy_GetZF0D type definition ------------------------------*/
 
@@ -98,9 +98,12 @@ PyTypeObject GetZF0D_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int GetZF0D___init__( BPy_GetZF0D* self )
+int GetZF0D___init__( BPy_GetZF0D* self, PyObject *args )
 {
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
 	self->py_uf0D_double.uf0D_double = new Functions0D::GetZF0D();
+	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

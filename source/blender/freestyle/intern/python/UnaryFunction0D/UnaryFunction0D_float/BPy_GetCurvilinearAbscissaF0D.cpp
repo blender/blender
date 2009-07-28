@@ -9,7 +9,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for GetCurvilinearAbscissaF0D instance  -----------*/
-	static int GetCurvilinearAbscissaF0D___init__(BPy_GetCurvilinearAbscissaF0D* self);
+	static int GetCurvilinearAbscissaF0D___init__(BPy_GetCurvilinearAbscissaF0D* self, PyObject *args);
 
 /*-----------------------BPy_GetCurvilinearAbscissaF0D type definition ------------------------------*/
 
@@ -98,9 +98,12 @@ PyTypeObject GetCurvilinearAbscissaF0D_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int GetCurvilinearAbscissaF0D___init__( BPy_GetCurvilinearAbscissaF0D* self )
+int GetCurvilinearAbscissaF0D___init__( BPy_GetCurvilinearAbscissaF0D* self, PyObject *args )
 {
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
 	self->py_uf0D_float.uf0D_float = new Functions0D::GetCurvilinearAbscissaF0D();
+	self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

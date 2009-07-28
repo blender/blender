@@ -9,7 +9,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for GetParameterF0D instance  -----------*/
-	static int GetParameterF0D___init__(BPy_GetParameterF0D* self);
+	static int GetParameterF0D___init__(BPy_GetParameterF0D* self, PyObject *args);
 
 /*-----------------------BPy_GetParameterF0D type definition ------------------------------*/
 
@@ -98,9 +98,12 @@ PyTypeObject GetParameterF0D_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int GetParameterF0D___init__( BPy_GetParameterF0D* self )
+int GetParameterF0D___init__( BPy_GetParameterF0D* self, PyObject *args )
 {
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
 	self->py_uf0D_float.uf0D_float = new Functions0D::GetParameterF0D();
+	self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

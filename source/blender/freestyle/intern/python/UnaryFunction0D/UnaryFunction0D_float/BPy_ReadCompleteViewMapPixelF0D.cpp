@@ -102,12 +102,10 @@ int ReadCompleteViewMapPixelF0D___init__( BPy_ReadCompleteViewMapPixelF0D* self,
 {
 	int i;
 
-	if( !PyArg_ParseTuple(args, "i", &i) ) {
-		cout << "ERROR: ReadCompleteViewMapPixelF0D___init__" << endl;		
+	if( !PyArg_ParseTuple(args, "i", &i) )
 		return -1;
-	}
-	
 	self->py_uf0D_float.uf0D_float = new Functions0D::ReadCompleteViewMapPixelF0D(i);
+	self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

@@ -103,12 +103,10 @@ int ReadSteerableViewMapPixelF0D___init__( BPy_ReadSteerableViewMapPixelF0D* sel
 	unsigned int u;
 	int i;
 
-	if( !PyArg_ParseTuple(args, "Ii", &u, &i) ) {
-		cout << "ERROR: ReadSteerableViewMapPixelF0D___init__" << endl;		
+	if( !PyArg_ParseTuple(args, "Ii", &u, &i) )
 		return -1;
-	}
-	
 	self->py_uf0D_float.uf0D_float = new Functions0D::ReadSteerableViewMapPixelF0D(u,i);
+	self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

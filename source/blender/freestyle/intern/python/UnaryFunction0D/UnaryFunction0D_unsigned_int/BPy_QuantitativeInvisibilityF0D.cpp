@@ -9,7 +9,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for QuantitativeInvisibilityF0D instance  -----------*/
-	static int QuantitativeInvisibilityF0D___init__(BPy_QuantitativeInvisibilityF0D* self);
+	static int QuantitativeInvisibilityF0D___init__(BPy_QuantitativeInvisibilityF0D* self, PyObject *args);
 
 /*-----------------------BPy_QuantitativeInvisibilityF0D type definition ------------------------------*/
 
@@ -98,9 +98,12 @@ PyTypeObject QuantitativeInvisibilityF0D_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int QuantitativeInvisibilityF0D___init__( BPy_QuantitativeInvisibilityF0D* self )
+int QuantitativeInvisibilityF0D___init__( BPy_QuantitativeInvisibilityF0D* self, PyObject *args )
 {
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
 	self->py_uf0D_unsigned.uf0D_unsigned = new Functions0D::QuantitativeInvisibilityF0D();
+	self->py_uf0D_unsigned.uf0D_unsigned->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

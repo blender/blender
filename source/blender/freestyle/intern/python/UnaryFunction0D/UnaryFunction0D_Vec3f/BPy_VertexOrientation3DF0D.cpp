@@ -9,7 +9,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for VertexOrientation3DF0D instance  -----------*/
-	static int VertexOrientation3DF0D___init__(BPy_VertexOrientation3DF0D* self);
+	static int VertexOrientation3DF0D___init__(BPy_VertexOrientation3DF0D* self, PyObject *args);
 
 /*-----------------------BPy_VertexOrientation3DF0D type definition ------------------------------*/
 
@@ -98,9 +98,12 @@ PyTypeObject VertexOrientation3DF0D_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int VertexOrientation3DF0D___init__( BPy_VertexOrientation3DF0D* self )
+int VertexOrientation3DF0D___init__( BPy_VertexOrientation3DF0D* self, PyObject *args )
 {
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
 	self->py_uf0D_vec3f.uf0D_vec3f = new Functions0D::VertexOrientation3DF0D();
+	self->py_uf0D_vec3f.uf0D_vec3f->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

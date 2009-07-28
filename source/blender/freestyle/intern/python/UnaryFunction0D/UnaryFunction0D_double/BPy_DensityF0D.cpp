@@ -102,12 +102,10 @@ int DensityF0D___init__( BPy_DensityF0D* self, PyObject *args)
 {
 	double d = 2;
 
-	if( !PyArg_ParseTuple(args, "|d", &d) ) {
-		cout << "ERROR: DensityF0D___init__" << endl;		
+	if( !PyArg_ParseTuple(args, "|d", &d) )
 		return -1;
-	}
-	
 	self->py_uf0D_double.uf0D_double = new Functions0D::DensityF0D(d);
+	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

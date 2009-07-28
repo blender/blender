@@ -9,7 +9,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for ZDiscontinuityF0D instance  -----------*/
-	static int ZDiscontinuityF0D___init__(BPy_ZDiscontinuityF0D* self);
+	static int ZDiscontinuityF0D___init__(BPy_ZDiscontinuityF0D* self, PyObject *args);
 
 /*-----------------------BPy_ZDiscontinuityF0D type definition ------------------------------*/
 
@@ -98,9 +98,12 @@ PyTypeObject ZDiscontinuityF0D_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int ZDiscontinuityF0D___init__( BPy_ZDiscontinuityF0D* self )
+int ZDiscontinuityF0D___init__( BPy_ZDiscontinuityF0D* self, PyObject *args )
 {
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
 	self->py_uf0D_double.uf0D_double = new Functions0D::ZDiscontinuityF0D();
+	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

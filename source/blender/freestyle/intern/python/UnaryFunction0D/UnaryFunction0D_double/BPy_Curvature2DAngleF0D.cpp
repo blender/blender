@@ -9,7 +9,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for Curvature2DAngleF0D instance  -----------*/
-	static int Curvature2DAngleF0D___init__(BPy_Curvature2DAngleF0D* self);
+	static int Curvature2DAngleF0D___init__(BPy_Curvature2DAngleF0D* self, PyObject *args);
 
 /*-----------------------BPy_Curvature2DAngleF0D type definition ------------------------------*/
 
@@ -98,9 +98,12 @@ PyTypeObject Curvature2DAngleF0D_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int Curvature2DAngleF0D___init__( BPy_Curvature2DAngleF0D* self )
+int Curvature2DAngleF0D___init__( BPy_Curvature2DAngleF0D* self, PyObject *args )
 {
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
 	self->py_uf0D_double.uf0D_double = new Functions0D::Curvature2DAngleF0D();
+	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

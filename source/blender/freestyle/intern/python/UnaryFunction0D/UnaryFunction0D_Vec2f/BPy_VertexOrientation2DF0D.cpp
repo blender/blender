@@ -9,7 +9,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for VertexOrientation2DF0D instance  -----------*/
-	static int VertexOrientation2DF0D___init__(BPy_VertexOrientation2DF0D* self);
+	static int VertexOrientation2DF0D___init__(BPy_VertexOrientation2DF0D* self, PyObject *args);
 
 /*-----------------------BPy_VertexOrientation2DF0D type definition ------------------------------*/
 
@@ -98,9 +98,12 @@ PyTypeObject VertexOrientation2DF0D_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int VertexOrientation2DF0D___init__( BPy_VertexOrientation2DF0D* self )
+int VertexOrientation2DF0D___init__( BPy_VertexOrientation2DF0D* self, PyObject *args )
 {
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
 	self->py_uf0D_vec2f.uf0D_vec2f = new Functions0D::VertexOrientation2DF0D();
+	self->py_uf0D_vec2f.uf0D_vec2f->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

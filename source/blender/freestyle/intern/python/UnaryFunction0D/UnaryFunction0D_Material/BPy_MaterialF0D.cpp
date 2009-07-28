@@ -9,7 +9,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for MaterialF0D instance  -----------*/
-	static int MaterialF0D___init__(BPy_MaterialF0D* self);
+	static int MaterialF0D___init__(BPy_MaterialF0D* self, PyObject *args);
 
 /*-----------------------BPy_MaterialF0D type definition ------------------------------*/
 
@@ -98,9 +98,12 @@ PyTypeObject MaterialF0D_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int MaterialF0D___init__( BPy_MaterialF0D* self )
+int MaterialF0D___init__( BPy_MaterialF0D* self, PyObject *args )
 {
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
 	self->py_uf0D_material.uf0D_material = new Functions0D::MaterialF0D();
+	self->py_uf0D_material.uf0D_material->py_uf0D = (PyObject *)self;
 	return 0;
 }
 

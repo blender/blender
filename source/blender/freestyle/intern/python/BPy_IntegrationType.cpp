@@ -1,6 +1,10 @@
 #include "BPy_IntegrationType.h"
 
 #include "BPy_Convert.h"
+#include "UnaryFunction0D/BPy_UnaryFunction0DDouble.h"
+#include "UnaryFunction0D/BPy_UnaryFunction0DFloat.h"
+#include "UnaryFunction0D/BPy_UnaryFunction0DUnsigned.h"
+#include "Iterator/BPy_Interface0DIterator.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,6 +13,19 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 static PyObject *BPy_IntegrationType_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
+
+static PyObject * Integrator_integrate( PyObject *self, PyObject *args );
+
+/*-----------------------Integrator module docstring---------------------------------------*/
+
+static char module_docstring[] = "The Blender.Freestyle.Integrator submodule";
+
+/*-----------------------Integrator module functions definitions---------------------------*/
+
+static PyMethodDef module_functions[] = {
+  {"integrate", (PyCFunction)Integrator_integrate, METH_VARARGS, ""},
+  {NULL, NULL, 0, NULL}
+};
 
 /*-----------------------BPy_IntegrationType type definition ------------------------------*/
 
@@ -121,7 +138,7 @@ BPy_IntegrationType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 //-------------------MODULE INITIALIZATION--------------------------------
 PyMODINIT_FUNC IntegrationType_Init( PyObject *module )
 {	
-	PyObject *tmp;
+	PyObject *tmp, *m, *d, *f;
 	
 	if( module == NULL )
 		return;
@@ -151,7 +168,76 @@ PyMODINIT_FUNC IntegrationType_Init( PyObject *module )
 	PyDict_SetItemString( IntegrationType_Type.tp_dict, "LAST", tmp);
 	Py_DECREF(tmp);
 	
-	
+	m = Py_InitModule3("Blender.Freestyle.Integrator", module_functions, module_docstring);
+	if (m == NULL)
+		return;
+	PyModule_AddObject(module, "Integrator", m);
+
+	// from Integrator import *
+	d = PyModule_GetDict(m);
+	for (PyMethodDef *p = module_functions; p->ml_name; p++) {
+		f = PyDict_GetItemString(d, p->ml_name);
+		Py_INCREF(f);
+		PyModule_AddObject(module, p->ml_name, f);
+	}
+}
+
+//------------------------ MODULE FUNCTIONS ----------------------------------
+
+static PyObject * Integrator_integrate( PyObject *self, PyObject *args )
+{
+	PyObject *obj1, *obj4 = 0;
+	BPy_Interface0DIterator *obj2, *obj3;
+
+#if 1
+	if(!( PyArg_ParseTuple(args, "O!O!O!|O!", &UnaryFunction0D_Type, &obj1,
+		&Interface0DIterator_Type, &obj2, &Interface0DIterator_Type, &obj3,
+		&IntegrationType_Type, &obj4) ))
+		return NULL;
+#else
+	if(!( PyArg_ParseTuple(args, "OOO|O", &obj1, &obj2, &obj3, &obj4) ))
+		return NULL;
+	if(!BPy_UnaryFunction0D_Check(obj1)) {
+		PyErr_SetString(PyExc_TypeError, "argument 1 must be a UnaryFunction0D object");
+		return NULL;
+	}
+	if(!BPy_Interface0DIterator_Check(obj2)) {
+		PyErr_SetString(PyExc_TypeError, "argument 2 must be a Interface0DIterator object");
+		return NULL;
+	}
+	if(!BPy_Interface0DIterator_Check(obj3)) {
+		PyErr_SetString(PyExc_TypeError, "argument 3 must be a Interface0DIterator object");
+		return NULL;
+	}
+	if(obj4 && !BPy_IntegrationType_Check(obj4)) {
+		PyErr_SetString(PyExc_TypeError, "argument 4 must be a IntegrationType object");
+		return NULL;
+	}
+#endif
+
+	Interface0DIterator it(*(obj2->if0D_it)), it_end(*(obj3->if0D_it));
+	IntegrationType t = ( obj4 ) ? IntegrationType_from_BPy_IntegrationType( obj4 ) : MEAN;
+
+	if( BPy_UnaryFunction0DDouble_Check(obj1) ) {
+		UnaryFunction0D<double> *fun = ((BPy_UnaryFunction0DDouble *)obj1)->uf0D_double;
+		double res = integrate( *fun, it, it_end, t );
+		return PyFloat_FromDouble( res );
+
+	} else if( BPy_UnaryFunction0DFloat_Check(obj1) ) {
+		UnaryFunction0D<float> *fun = ((BPy_UnaryFunction0DFloat *)obj1)->uf0D_float;
+		float res = integrate( *fun, it, it_end, t );
+		return PyFloat_FromDouble( res );
+
+	} else if( BPy_UnaryFunction0DUnsigned_Check(obj1) ) {
+		UnaryFunction0D<unsigned int> *fun = ((BPy_UnaryFunction0DUnsigned *)obj1)->uf0D_unsigned;
+		unsigned int res = integrate( *fun, it, it_end, t );
+		return PyInt_FromLong( res );
+
+	} else {
+		string msg("unsupported function type: " + string(obj1->ob_type->tp_name));
+		PyErr_SetString(PyExc_TypeError, msg.c_str());
+		return NULL;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
