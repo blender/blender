@@ -62,8 +62,7 @@ def write_pov(filename, scene=None, info_callback = None):
 			
 			color = tuple([c * lamp.energy for c in lamp.color]) # Colour is modified by energy
 			
-			file.write('light_source')
-			file.write('{\n')
+			file.write('light_source {\n')
 			file.write('\t< 0,0,0 >\n')
 			file.write('\tcolor red %.6f green %.6f blue %.6f\n' % color)
 			
@@ -365,8 +364,8 @@ def write_pov(filename, scene=None, info_callback = None):
 			# normal_indices indicies
 			file.write('\tnormal_indices {\n')
 			file.write('\t\t%d' % (len(me.faces) + quadCount)) # faces count
-			for fi, f in enumerate(me.faces):
-				fv = faces_verts[fi]
+			for fi, fv in enumerate(faces_verts):
+				
 				if len(fv) == 4:	indicies = (0,1,2), (0,2,3)
 				else:				indicies = ((0,1,2),)
 				
@@ -380,32 +379,27 @@ def write_pov(filename, scene=None, info_callback = None):
 						idx = uniqueNormals[faces_normals[fi]][0]
 						file.write(',\n\t\t<%d,%d,%d>' % (idx, idx, idx)) # vert count
 						
-						
 			file.write('\n  }\n')
-			
-			
-			# normal_indices indicies
 			
 			if uv_layer:
 				file.write('\tuv_indices {\n')
 				file.write('\t\t%d' % (len(me.faces) + quadCount)) # faces count
-				for f in me.faces:
-					fv = faces_verts[fi]
+				for fi, fv in enumerate(faces_verts):
 					
 					if len(fv) == 4:	indicies = (0,1,2), (0,2,3)
 					else:				indicies = ((0,1,2),)
 					
 					uv = uv_layer[fi]
 					if len(faces_verts[fi])==4:
-						uvs = uv.uv1, uv.uv2, uv.uv3, uv.uv4
+						uvs = tuple(uv.uv1), tuple(uv.uv2), tuple(uv.uv3), tuple(uv.uv4)
 					else:
-						uvs = uv.uv1, uv.uv2, uv.uv3
+						uvs = tuple(uv.uv1), tuple(uv.uv2), tuple(uv.uv3)
 					
 					for i1, i2, i3 in indicies:
 						file.write(',\n\t\t<%d,%d,%d>' %\
-						(uniqueUVs[tuple(uvs[i1][0:2])][0],\
-						 uniqueUVs[tuple(uvs[i2][0:2])][0],\
-						 uniqueUVs[tuple(uvs[i2][0:2])][0])) # vert count
+						(uniqueUVs[uvs[i1]][0],\
+						 uniqueUVs[uvs[i2]][0],\
+						 uniqueUVs[uvs[i2]][0])) # vert count
 				file.write('\n  }\n')
 			
 			if me.materials:
@@ -508,8 +502,9 @@ class PovrayRenderEngine(bpy.types.RenderEngine):
 	
 	def _cleanup(self):
 		for f in (self.temp_file_in, self.temp_file_ini, self.temp_file_out):
-			try:		os.remove(f)
-			except:	pass
+			#try:		os.remove(f)
+			#except:	pass
+			pass
 		
 		self.update_stats("", "")
 	
@@ -530,49 +525,58 @@ class PovrayRenderEngine(bpy.types.RenderEngine):
 		
 		# Wait for the file to be created
 		while not os.path.exists(self.temp_file_out):
-			time.sleep(self.DELAY)
-		
-		self.update_stats("", "POVRAY: Rendering")
-		
-		prev_size = -1
-		
-		def update_image():
-			result = self.begin_result(0, 0, x, y)
-			lay = result.layers[0]
-			# possible the image wont load early on.
-			try:		lay.rect_from_file(self.temp_file_out, 0, 0)
-			except:	pass
-			self.end_result(result)
-		
-		# Update while povray renders
-		while True:
-			
-			# test if povray exists
-			if self.process.poll() != None:
-				update_image();
-				break
-			
-			# user exit
 			if self.test_break():
-				try: # It might not be running
-					self.process.terminate()
-				except:
-					pass
-				
+				try:		self.process.terminate()
+				except:	pass
 				break
 			
-			# Would be nice to redirect the output
-			# stdout_value, stderr_value = self.process.communicate() # locks
-			
-			
-			# check if the file updated
-			new_size = os.path.getsize(self.temp_file_out)
-			
-			if new_size != prev_size:
-				update_image()
-				prev_size = new_size
+			if self.process.poll() != None:
+				self.update_stats("", "POVRAY: Failed")
+				break
 			
 			time.sleep(self.DELAY)
+		
+		if os.path.exists(self.temp_file_out):
+			
+			self.update_stats("", "POVRAY: Rendering")
+			
+			prev_size = -1
+			
+			def update_image():
+				result = self.begin_result(0, 0, x, y)
+				lay = result.layers[0]
+				# possible the image wont load early on.
+				try:		lay.rect_from_file(self.temp_file_out, 0, 0)
+				except:	pass
+				self.end_result(result)
+			
+			# Update while povray renders
+			while True:
+				
+				# test if povray exists
+				if self.process.poll() != None:
+					update_image();
+					break
+				
+				# user exit
+				if self.test_break():
+					try:		self.process.terminate()
+					except:	pass
+					
+					break
+				
+				# Would be nice to redirect the output
+				# stdout_value, stderr_value = self.process.communicate() # locks
+				
+				
+				# check if the file updated
+				new_size = os.path.getsize(self.temp_file_out)
+				
+				if new_size != prev_size:
+					update_image()
+					prev_size = new_size
+				
+				time.sleep(self.DELAY)
 		
 		self._cleanup()
 
