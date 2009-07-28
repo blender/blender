@@ -157,7 +157,6 @@ static FileSelect file_select(SpaceFile* sfile, ARegion* ar, const rcti* rect, s
 					BLI_add_slash(params->dir);
 				}
 
-				params->file[0] = '\0';
 				file_change_dir(sfile);
 				retval = FILE_SELECT_DIR;
 			}
@@ -322,7 +321,6 @@ static int bookmark_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		BLI_strncpy(params->dir, entry, sizeof(params->dir));
 		BLI_cleanup_dir(G.sce, params->dir);
 		file_change_dir(sfile);				
-		params->file[0] = '\0';
 
 		WM_event_add_notifier(C, NC_FILE|ND_FILELIST, NULL);
 	}

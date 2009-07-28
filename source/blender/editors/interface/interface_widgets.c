@@ -780,7 +780,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 		
 	/* text button selection and cursor */
 	if(but->editstr && but->pos != -1) {
-		short t, pos, ch;
+		short t=0, pos=0, ch;
 		short selsta_tmp, selend_tmp, selsta_draw, selwidth_draw;
 		
 		if ((but->selend - but->selsta) > 0) {
