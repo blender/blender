@@ -3687,6 +3687,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *but, int mousemove)
 {
 	uiBlock *block= but->block;
+	uiBut *bt;
 
 	/* ensure we are in the exit state */
 	if(data->state != BUTTON_STATE_EXIT)
@@ -3712,7 +3713,14 @@ static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *b
 	if(!data->cancel)
 		ui_apply_autokey_undo(C, but);
 
-	/* disable tooltips until mousemove */
+	/* disable tooltips until mousemove + last active flag */
+	for(block=data->region->uiblocks.first; block; block=block->next) {
+		for(bt=block->buttons.first; bt; bt=bt->next)
+			bt->flag &= ~UI_BUT_LAST_ACTIVE;
+
+		block->tooltipdisabled= 1;
+	}
+
 	ui_blocks_set_tooltips(data->region, 0);
 
 	/* clean up */
@@ -3728,6 +3736,7 @@ static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *b
 	MEM_freeN(but->active);
 	but->active= NULL;
 	but->flag &= ~(UI_ACTIVE|UI_SELECT);
+	but->flag |= UI_BUT_LAST_ACTIVE;
 	ui_check_but(but);
 
 	/* adds empty mousemove in queue for re-init handler, in case mouse is

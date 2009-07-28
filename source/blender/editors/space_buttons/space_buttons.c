@@ -209,6 +209,7 @@ void buttons_operatortypes(void)
 	WM_operatortype_append(SCENE_OT_render_layer_remove);
 
 	WM_operatortype_append(BUTTONS_OT_toolbox);
+	WM_operatortype_append(BUTTONS_OT_file_browse);
 }
 
 void buttons_keymap(struct wmWindowManager *wm)

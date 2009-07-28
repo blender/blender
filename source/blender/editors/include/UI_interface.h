@@ -142,6 +142,7 @@ typedef struct uiLayout uiLayout;
 #define UI_BUT_ANIMATED_KEY	(1<<21)
 #define UI_BUT_DRIVEN		(1<<22)
 #define UI_BUT_INACTIVE		(1<<23)
+#define UI_BUT_LAST_ACTIVE	(1<<24)
 
 #define UI_PANEL_WIDTH			340
 #define UI_COMPACT_PANEL_WIDTH	160
@@ -674,9 +675,9 @@ void uiItemMenuF(uiLayout *layout, char *name, int icon, uiMenuCreateFunc func);
 void uiItemMenuEnumO(uiLayout *layout, char *name, int icon, char *opname, char *propname);
 void uiItemMenuEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname);
 
-/* Animation */
-
+/* Helpers for Operators */
 void uiAnimContextProperty(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index);
+void uiFileBrowseContextProperty(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop);
 
 /* Styled text draw */
 void uiStyleFontSet(struct uiFontStyle *fs);

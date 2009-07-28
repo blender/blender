@@ -89,6 +89,7 @@ void PARTICLE_OT_target_move_down(struct wmOperatorType *ot);
 void SCENE_OT_render_layer_add(struct wmOperatorType *ot);
 void SCENE_OT_render_layer_remove(struct wmOperatorType *ot);
 
+void BUTTONS_OT_file_browse(struct wmOperatorType *ot);
 void BUTTONS_OT_toolbox(struct wmOperatorType *ot);
 
 #endif /* ED_BUTTONS_INTERN_H */
