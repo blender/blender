@@ -51,6 +51,8 @@
 #endif
 
 #ifdef __APPLE__
+/* XXX BIG WARNING: carbon.h can not be included in blender code, it conflicts with struct ID */
+#define ID ID_
 #include <CoreServices/CoreServices.h>
 
 #include "BKE_utildefines.h"
