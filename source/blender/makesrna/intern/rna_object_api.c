@@ -34,6 +34,8 @@
 
 #ifdef RNA_RUNTIME
 
+#include "MEM_guardedalloc.h"
+
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
 
@@ -60,6 +62,25 @@ Mesh *rna_Object_create_render_mesh(Object *ob, Scene *scene)
 	me->id.us--; /* we don't assign it to anything */
 	DM_to_mesh(dm, me);
 	dm->release(dm);
+
+
+	{	/* update the material */
+		short i, *totcol =give_totcolp(ob);
+
+		/* free the current material list */
+		if(me->mat)
+			MEM_freeN((void *)me->mat);
+
+		me->mat= (Material **)MEM_callocN(sizeof(void *)*(*totcol), "matarray");
+
+		for(i=0; i<*totcol; i++) {
+			Material *mat= give_current_material(ob, i+1);
+			if(mat) {
+				me->mat[i]= mat;
+				mat->id.us++;
+			}
+		}
+	}
 
 	return me;
 }

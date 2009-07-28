@@ -1867,8 +1867,12 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 				newptr= *(PointerRNA*)data;
 			}
 			else {
-				/* XXX this is missing the ID part! */
-				RNA_pointer_create(NULL, type, *(void**)data, &newptr);
+				if(RNA_struct_is_ID(type)) {
+					RNA_id_pointer_create(*(void**)data, &newptr);
+				} else {
+					/* XXX this is missing the ID part! */
+					RNA_pointer_create(NULL, type, *(void**)data, &newptr);
+				}
 			}
 
 			if (newptr.data) {

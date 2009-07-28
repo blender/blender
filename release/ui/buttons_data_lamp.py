@@ -85,7 +85,7 @@ class DATA_PT_lamp(DataButtonsPanel):
 			sub.itemR(lamp, "shape", text="")
 			if (lamp.shape == 'SQUARE'):
 				sub.itemR(lamp, "size")
-			if (lamp.shape == 'RECTANGLE'):
+			elif (lamp.shape == 'RECTANGLE'):
 				sub.itemR(lamp, "size", text="Size X")
 				sub.itemR(lamp, "size_y", text="Size Y")
 			
@@ -198,15 +198,20 @@ class DATA_PT_shadow(DataButtonsPanel):
 				if lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC':
 					col.itemR(lamp, "shadow_adaptive_threshold", text="Threshold")
 						
-			if lamp.type == 'AREA':
+			elif lamp.type == 'AREA':
 				split = layout.split()
 				
 				col = split.column(align=True)
-				col.itemR(lamp, "shadow_ray_samples_x", text="Samples")
+				if lamp.shape == 'SQUARE':
+					col.itemR(lamp, "shadow_ray_samples_x", text="Samples")
+				elif lamp.shape == 'RECTANGLE':
+					col.itemR(lamp, "shadow_ray_samples_x", text="Samples X")
+					col.itemR(lamp, "shadow_ray_samples_y", text="Samples Y")
+					
 				if lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC':
 					col.itemR(lamp, "shadow_adaptive_threshold", text="Threshold")
 				
-				if lamp.shadow_ray_sampling_method == 'CONSTANT_JITTERED':
+				elif lamp.shadow_ray_sampling_method == 'CONSTANT_JITTERED':
 					col = split.column()
 					col.itemR(lamp, "umbra")
 					col.itemR(lamp, "dither")
@@ -236,7 +241,7 @@ class DATA_PT_shadow(DataButtonsPanel):
 				sub.itemR(lamp, "shadow_buffer_size", text="Size")
 				sub.itemR(lamp, "shadow_buffer_samples", text="Samples")
 				
-			if (lamp.shadow_buffer_type == 'IRREGULAR'):
+			elif lamp.shadow_buffer_type == 'IRREGULAR':
 				layout.itemR(lamp, "shadow_buffer_bias", text="Bias")
 			
 			row = layout.row()
