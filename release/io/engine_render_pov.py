@@ -468,7 +468,7 @@ class PovrayRenderEngine(bpy.types.RenderEngine):
 		import tempfile
 		
 		self.temp_file_in = tempfile.mktemp(suffix='.pov')
-		self.temp_file_out = tempfile.mktemp(suffix='.ppm')
+		self.temp_file_out = tempfile.mktemp(suffix='.tga')
 		self.temp_file_ini = tempfile.mktemp(suffix='.ini')
 		
 		def info_callback(txt):
