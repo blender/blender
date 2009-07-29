@@ -19,7 +19,7 @@
  basic design pattern: the walker step function goes through it's
  list of possible choices for recursion, and recurses (by pushing a new state)
  using the first non-visited one.  this choise is the flagged as visited using
- the ghash.  each time this happens, only one state is pushed.
+ the ghash.  each step may push multiple new states onto the stack at once.
 
  * walkers use tool flags, not header flags
  * walkers now use ghash for storing visited elements, 
@@ -57,7 +57,13 @@ typedef struct loopWalker {
 typedef struct faceloopWalker {
 	struct faceloopWalker * prev;
 	BMLoop *l;
+	int nocalc;
 } faceloopWalker;
+
+typedef struct edgeringWalker {
+	struct edgeringWalker * prev;
+	BMLoop *l;
+} edgeringWalker;
 
 /*  NOTE: this comment is out of date, update it - joeedh
  *	BMWalker - change this to use the filters functions.
@@ -106,6 +112,10 @@ static void *loopWalker_step(BMWalker *walker);
 static void faceloopWalker_begin(BMWalker *walker, void *data);
 static void *faceloopWalker_yield(BMWalker *walker);
 static void *faceloopWalker_step(BMWalker *walker);
+
+static void edgeringWalker_begin(BMWalker *walker, void *data);
+static void *edgeringWalker_yield(BMWalker *walker);
+static void *edgeringWalker_step(BMWalker *walker);
 
 /* Pointer hiding*/
 typedef struct bmesh_walkerGeneric{
@@ -167,6 +177,12 @@ void BMW_Init(BMWalker *walker, BMesh *bm, int type, int searchmask)
 			walker->step = faceloopWalker_step;
 			walker->yield = faceloopWalker_yield;
 			size = sizeof(faceloopWalker);
+			break;
+		case BMW_EDGERING:
+			walker->begin = edgeringWalker_begin;
+			walker->step = edgeringWalker_step;
+			walker->yield = edgeringWalker_yield;
+			size = sizeof(edgeringWalker);
 			break;
 		default:
 			break;
@@ -614,6 +630,7 @@ static void faceloopWalker_begin(BMWalker *walker, void *data)
 
 	lwalk = walker->currentstate;
 	lwalk->l = e->loop;
+	lwalk->nocalc = 0;
 	BLI_ghash_insert(walker->visithash, lwalk->l->f, NULL);
 
 	/*rewind*/
@@ -625,6 +642,7 @@ static void faceloopWalker_begin(BMWalker *walker, void *data)
 	BMW_pushstate(walker);
 	lwalk = walker->currentstate;
 	*lwalk = owalk;
+	lwalk->nocalc = 0;
 
 	BLI_ghash_free(walker->visithash, NULL, NULL);
 	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
@@ -644,12 +662,15 @@ static void *faceloopWalker_step(BMWalker *walker)
 {
 	faceloopWalker *lwalk = walker->currentstate;
 	BMFace *f = lwalk->l->f;
-	BMLoop *l = lwalk->l;
+	BMLoop *l = lwalk->l, *origl = lwalk->l;
 
 	BMW_popstate(walker);
 
 	l = l->radial.next->data;
 	
+	if (lwalk->nocalc)
+		return f;
+
 	if (BLI_ghash_haskey(walker->visithash, l->f)) {
 		l = lwalk->l;
 		l = l->head.next->next;
@@ -659,14 +680,86 @@ static void *faceloopWalker_step(BMWalker *walker)
 		l = l->radial.next->data;
 	}
 
-	if (l->f->len == 4 && !BLI_ghash_haskey(walker->visithash, l->f)) {
+	if (!BLI_ghash_haskey(walker->visithash, l->f)) {
 		BMW_pushstate(walker);
 		lwalk = walker->currentstate;
 		lwalk->l = l;
+
+		if (l->f->len != 4) {
+			lwalk->nocalc = 1;
+			lwalk->l = origl;
+		} else
+			lwalk->nocalc = 0;
 
 		BLI_ghash_insert(walker->visithash, l->f, NULL);
 	}
 
 	return f;
+}
+
+static void edgeringWalker_begin(BMWalker *walker, void *data)
+{
+	edgeringWalker *lwalk, owalk;
+	BMEdge *e = data;
+
+	BMW_pushstate(walker);
+
+	if (!e->loop) return;
+
+	lwalk = walker->currentstate;
+	lwalk->l = e->loop;
+	BLI_ghash_insert(walker->visithash, lwalk->l->e, NULL);
+
+	/*rewind*/
+	while (walker->currentstate) {
+		owalk = *((edgeringWalker*)walker->currentstate);
+		BMW_walk(walker);
+	}
+
+	BMW_pushstate(walker);
+	lwalk = walker->currentstate;
+	*lwalk = owalk;
+
+	if (lwalk->l->f->len != 4)
+		lwalk->l = lwalk->l->radial.next->data;
+
+	BLI_ghash_free(walker->visithash, NULL, NULL);
+	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	BLI_ghash_insert(walker->visithash, lwalk->l->e, NULL);
+}
+
+static void *edgeringWalker_yield(BMWalker *walker)
+{
+	edgeringWalker *lwalk = walker->currentstate;
+	
+	if (!lwalk) return NULL;
+
+	return lwalk->l->e;
+}
+
+static void *edgeringWalker_step(BMWalker *walker)
+{
+	edgeringWalker *lwalk = walker->currentstate;
+	BMEdge *e = lwalk->l->e;
+	BMLoop *l = lwalk->l, *origl = lwalk->l;
+
+	BMW_popstate(walker);
+
+	l = l->radial.next->data;
+	l = l->head.next->next;
+	
+	if (l->f->len != 4) {
+		l = lwalk->l->head.next->next;
+	}
+
+	if (l->f->len == 4 && !BLI_ghash_haskey(walker->visithash, l->e)) {
+		BMW_pushstate(walker);
+		lwalk = walker->currentstate;
+		lwalk->l = l;
+
+		BLI_ghash_insert(walker->visithash, l->e, NULL);
+	}
+
+	return e;
 }
 

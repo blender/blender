@@ -805,6 +805,10 @@ static int similar_face_select__internal(Scene *scene, BMEditMesh *em, int mode)
 /* ***************************************************** */
 
 /* ****************  LOOP SELECTS *************** */
+/*faceloop_select, edgeloop_select, and edgering_select, are left
+  here for reference purposes temporarily, but have all been replaced
+  by uses of walker_select.*/
+
 static void walker_select(BMEditMesh *em, int walkercode, void *start, int select)
 {
 	BMesh *bm = em->bm;
@@ -1071,13 +1075,13 @@ static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring
 		}
 		else if(em->selectmode & SCE_SELECT_EDGE) {
 			if(ring)
-				edgering_select(em, eed, select);
+				walker_select(em, BMW_EDGERING, eed, select);
 			else
 				walker_select(em, BMW_LOOP, eed, select);
 		}
 		else if(em->selectmode & SCE_SELECT_VERTEX) {
 			if(ring)
-				edgering_select(em, eed, select);
+				walker_select(em, BMW_EDGERING, eed, select);
 			else 
 				walker_select(em, BMW_LOOP, eed, select);
 		}
