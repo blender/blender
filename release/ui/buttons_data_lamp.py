@@ -49,7 +49,7 @@ class DATA_PT_lamp(DataButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		sub = col.column(align=True)
+		sub = col.column()
 		sub.itemR(lamp, "color", text="")
 		sub.itemR(lamp, "energy")
 		col.itemR(lamp, "negative")
@@ -67,7 +67,7 @@ class DATA_PT_lamp(DataButtonsPanel):
 		if lamp.type in ('POINT', 'SPOT'):
 			col = split.column()
 			col.itemL(text="Falloff:")
-			sub = col.column(align=True)
+			sub = col.column()
 			sub.itemR(lamp, "falloff_type", text="")
 			sub.itemR(lamp, "distance")
 			col.itemR(lamp, "sphere")
@@ -84,8 +84,8 @@ class DATA_PT_lamp(DataButtonsPanel):
 		if lamp.type == 'AREA':
 			col = split.column()
 			col.itemL(text="Shape:")
+			col.itemR(lamp, "shape", text="")
 			sub = col.column(align=True)
-			sub.itemR(lamp, "shape", text="")
 			if (lamp.shape == 'SQUARE'):
 				sub.itemR(lamp, "size")
 			elif (lamp.shape == 'RECTANGLE'):
