@@ -391,6 +391,21 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		data->linedark[data->totline]= 1;
 		data->totline++;
 	}
+	else if (but->optype) {
+		PointerRNA *opptr;
+		char *str;
+		opptr= uiButGetOperatorPtrRNA(but);
+
+		str= WM_operator_pystring(but->optype, opptr);
+
+		/* operator info */
+		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Python: %s", str);
+		data->linedark[data->totline]= 1;
+		data->totline++;
+
+		WM_operator_properties_free(opptr);
+		MEM_freeN(str);
+	}
 
 	if(data->totline == 0) {
 		MEM_freeN(data);

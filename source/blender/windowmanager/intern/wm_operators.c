@@ -340,8 +340,12 @@ void WM_operator_bl_idname(char *to, const char *from)
 }
 
 /* print a string representation of the operator, with the args that it runs 
- * so python can run it again */
-char *WM_operator_pystring(wmOperator *op)
+ * so python can run it again,
+ *
+ * When calling from an existing wmOperator do.
+ * WM_operator_pystring(op->type, op->ptr);
+ */
+char *WM_operator_pystring(wmOperatorType *ot, PointerRNA *opptr)
 {
 	const char *arg_name= NULL;
 	char idname_py[OP_MAX_TYPENAME];
@@ -353,18 +357,18 @@ char *WM_operator_pystring(wmOperator *op)
 	char *cstring, *buf;
 	int first_iter=1;
 
-	WM_operator_py_idname(idname_py, op->idname);
+	WM_operator_py_idname(idname_py, ot->idname);
 	BLI_dynstr_appendf(dynstr, "bpy.ops.%s(", idname_py);
 
-	iterprop= RNA_struct_iterator_property(op->ptr->type);
+	iterprop= RNA_struct_iterator_property(opptr->type);
 
-	RNA_PROP_BEGIN(op->ptr, propptr, iterprop) {
+	RNA_PROP_BEGIN(opptr, propptr, iterprop) {
 		prop= propptr.data;
 		arg_name= RNA_property_identifier(prop);
 
 		if (strcmp(arg_name, "rna_type")==0) continue;
 
-		buf= RNA_property_as_string(op->ptr, prop);
+		buf= RNA_property_as_string(opptr, prop);
 		
 		BLI_dynstr_appendf(dynstr, first_iter?"%s=%s":", %s=%s", arg_name, buf);
 

@@ -716,6 +716,7 @@ void FILE_OT_directory_new(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Create New Directory";
 	ot->idname= "FILE_OT_directory_new";
+	ot->description= "Create a new directory";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;

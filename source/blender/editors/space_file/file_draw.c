@@ -81,6 +81,7 @@
 
 /* ui geometry */
 #define IMASEL_BUTTONS_HEIGHT 40
+#define IMASEL_BUTTONS_MARGIN 6
 #define TILE_BORDER_X 8
 #define TILE_BORDER_Y 8
 
@@ -134,8 +135,8 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	/* Button layout. */
 	const short min_x      = 10;
 	const short max_x      = ar->winx - 10;
-	const short line2_y    = ar->winy - IMASEL_BUTTONS_HEIGHT - 12;
-	const short line1_y    = line2_y  + IMASEL_BUTTONS_HEIGHT/2 + 4;
+	const short line2_y    = IMASEL_BUTTONS_HEIGHT/2 + IMASEL_BUTTONS_MARGIN*2;
+	const short line1_y    = IMASEL_BUTTONS_MARGIN;
 	const short input_minw = 20;
 	const short btn_h      = UI_UNIT_Y;
 	const short btn_fn_w   = UI_UNIT_X;
