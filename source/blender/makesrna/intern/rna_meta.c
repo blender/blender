@@ -64,11 +64,11 @@ void rna_def_metaelement(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem prop_type_items[] = {
-		{MB_BALL, "BALL", 0, "Ball", ""},
-		{MB_TUBE, "TUBE", 0, "Tube", ""},
-		{MB_PLANE, "PLANE", 0, "Plane", ""},
-		{MB_ELIPSOID, "ELLIPSOID", 0, "Ellipsoid", ""}, // NOTE: typo at original definition!
-		{MB_CUBE, "CUBE", 0, "Cube", ""},
+		{MB_BALL, "BALL", ICON_META_BALL, "Ball", ""},
+		{MB_TUBE, "TUBE", ICON_META_TUBE, "Tube", ""},
+		{MB_PLANE, "PLANE", ICON_META_PLANE, "Plane", ""},
+		{MB_ELIPSOID, "ELLIPSOID", ICON_META_ELLIPSOID, "Ellipsoid", ""}, // NOTE: typo at original definition!
+		{MB_CUBE, "CUBE", ICON_META_CUBE, "Cube", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "MetaElement", NULL);

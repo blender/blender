@@ -51,7 +51,7 @@ class DATA_PT_metaball(DataButtonsPanel):
 		layout.itemR(mball, "flag", expand=True)
 
 class DATA_PT_metaball_element(DataButtonsPanel):
-	__label__ = "Meta Element"
+	__label__ = "Active Element"
 	
 	def poll(self, context):
 		return (context.meta_ball and context.meta_ball.last_selected_element)
@@ -60,6 +60,10 @@ class DATA_PT_metaball_element(DataButtonsPanel):
 		layout = self.layout
 		
 		metaelem = context.meta_ball.last_selected_element
+		
+		split = layout.split(percentage=0.3)
+		split.itemL(text="Type:")	
+		split.itemR(metaelem, "type", text="")
 		
 		split = layout.split()
 		
@@ -70,13 +74,9 @@ class DATA_PT_metaball_element(DataButtonsPanel):
 		col = split.column()
 		col.itemL(text="Settings:")
 		col.itemR(metaelem, "stiffness", text="Stiffness")
+		col.itemR(metaelem, "negative", text="Negative")
+		col.itemR(metaelem, "hide", text="Hide")
 		
-		layout.itemL(text="Type:")
-		layout.itemR(metaelem, "type", expand=True)
-		
-		flow = layout.column_flow()
-		flow.itemR(metaelem, "negative", text="Negative")
-		flow.itemR(metaelem, "hide", text="Hide")
 	
 bpy.types.register(DATA_PT_context_metaball)
 bpy.types.register(DATA_PT_metaball)
