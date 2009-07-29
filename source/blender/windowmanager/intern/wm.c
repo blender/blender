@@ -74,6 +74,12 @@ void WM_operator_free(wmOperator *op)
 		MEM_freeN(op->reports);
 	}
 
+	if(op->macro.first) {
+		wmOperator *opm;
+		for(opm= op->macro.first; opm; opm= opm->next) 
+			WM_operator_free(opm);
+	}
+	
 	MEM_freeN(op);
 }
 

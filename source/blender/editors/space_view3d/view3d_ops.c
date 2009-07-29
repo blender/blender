@@ -218,8 +218,8 @@ void view3d_keymap(wmWindowManager *wm)
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_snap_menu", SKEY, KM_PRESS, KM_SHIFT, 0);
 
-	/* drag & drop */
-	WM_keymap_add_item(keymap, "VIEW3D_OT_drag", MOUSEDRAG, KM_ANY, 0, 0);
+	/* drag & drop (disabled) */
+//	WM_keymap_add_item(keymap, "VIEW3D_OT_drag", MOUSEDRAG, KM_ANY, 0, 0);
 	
 	/* radial control */
 	RNA_enum_set(WM_keymap_add_item(keymap, "SCULPT_OT_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);

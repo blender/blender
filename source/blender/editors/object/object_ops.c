@@ -63,6 +63,8 @@
 
 void ED_operatortypes_object(void)
 {
+	wmOperatorType *ot;
+	
 	WM_operatortype_append(OBJECT_OT_editmode_toggle);
 	WM_operatortype_append(OBJECT_OT_posemode_toggle);
 	WM_operatortype_append(OBJECT_OT_parent_set);
@@ -147,6 +149,13 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(LATTICE_OT_select_all_toggle);
 	WM_operatortype_append(LATTICE_OT_make_regular);
+	
+	/* macros */
+	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	if(ot) {
+		WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
+		WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	}
 }
 
 void ED_keymap_object(wmWindowManager *wm)
@@ -185,7 +194,7 @@ void ED_keymap_object(wmWindowManager *wm)
 	
 	WM_keymap_verify_item(keymap, "OBJECT_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "OBJECT_OT_primitive_add", AKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "OBJECT_OT_duplicate", DKEY, KM_PRESS, KM_ALT, 0)->ptr, "linked", 1);
 	WM_keymap_add_item(keymap, "OBJECT_OT_join", JKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_proxy_make", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);

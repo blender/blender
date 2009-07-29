@@ -71,6 +71,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "util_intern.h"
+
 /* ***************** generic undo system ********************* */
 
 /* ********* XXX **************** */
@@ -81,7 +83,7 @@ void ED_undo_push(bContext *C, char *str)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	Object *obedit= CTX_data_edit_object(C);
-	
+
 	if(obedit) {
 		if (U.undosteps == 0) return;
 		
@@ -114,13 +116,7 @@ void ED_undo_push(bContext *C, char *str)
 	}
 }
 
-void ED_undo_push_op(bContext *C, wmOperator *op)
-{
-	/* in future, get undo string info? */
-	ED_undo_push(C, op->type->name);
-}
-
-static int ed_undo_step(bContext *C, int step)
+static int ed_undo_step(bContext *C, int step, const char *undoname)
 {	
 	Object *obedit= CTX_data_edit_object(C);
 	ScrArea *sa= CTX_wm_area(C);
@@ -140,8 +136,12 @@ static int ed_undo_step(bContext *C, int step)
 		ED_text_undo_step(C, step);
 	}
 	else if(obedit) {
-		if ELEM7(obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE)
-			undo_editmode_step(C, step);
+		if ELEM7(obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE) {
+			if(undoname)
+				undo_editmode_name(C, undoname);
+			else
+				undo_editmode_step(C, step);
+		}
 	}
 	else {
 		int do_glob_undo= 0;
@@ -163,7 +163,10 @@ static int ed_undo_step(bContext *C, int step)
 #ifndef DISABLE_PYTHON
 				// XXX		BPY_scripts_clear_pyobjects();
 #endif
-				BKE_undo_step(C, step);
+				if(undoname)
+					BKE_undo_name(C, undoname);
+				else
+					BKE_undo_step(C, step);
 				sound_initialize_sounds();
 			}
 			
@@ -177,22 +180,35 @@ static int ed_undo_step(bContext *C, int step)
 
 void ED_undo_pop(bContext *C)
 {
-	ed_undo_step(C, 1);
+	ed_undo_step(C, 1, NULL);
 }
 void ED_undo_redo(bContext *C)
 {
-	ed_undo_step(C, -1);
+	ed_undo_step(C, -1, NULL);
+}
+
+void ED_undo_push_op(bContext *C, wmOperator *op)
+{
+	/* in future, get undo string info? */
+	ED_undo_push(C, op->type->name);
+}
+
+void ED_undo_pop_op(bContext *C, wmOperator *op)
+{
+	/* search back a couple of undo's, in case something else added pushes */
+	ed_undo_step(C, 0, op->type->name);
 }
 
 static int ed_undo_exec(bContext *C, wmOperator *op)
 {
 	/* "last operator" should disappear, later we can tie ths with undo stack nicer */
 	WM_operator_stack_clear(C);
-	return ed_undo_step(C, 1);
+	return ed_undo_step(C, 1, NULL);
 }
+
 static int ed_redo_exec(bContext *C, wmOperator *op)
 {
-	return ed_undo_step(C, -1);
+	return ed_undo_step(C, -1, NULL);
 }
 
 void ED_undo_menu(bContext *C)

@@ -297,6 +297,21 @@ static void undo_number(bContext *C, int nr)
 	undo_editmode_step(C, 0);
 }
 
+void undo_editmode_name(bContext *C, const char *undoname)
+{
+	UndoElem *uel;
+	
+	for(uel= undobase.last; uel; uel= uel->prev) {
+		if(strcmp(undoname, uel->name)==0)
+			break;
+	}
+	if(uel && uel->prev) {
+		curundo= uel->prev;
+		undo_editmode_step(C, 0);
+	}
+}
+
+
 /* ************** for interaction with menu/pullown */
 
 void undo_editmode_menu(bContext *C)

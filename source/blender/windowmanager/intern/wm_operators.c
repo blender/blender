@@ -154,6 +154,134 @@ void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType*, void*), void *us
 	BLI_addtail(&global_ops, ot);
 }
 
+/* ********************* macro operator ******************** */
+
+/* macro exec only runs exec calls */
+static int wm_macro_exec(bContext *C, wmOperator *op)
+{
+	wmOperator *opm;
+	int retval= OPERATOR_FINISHED;
+	
+//	printf("macro exec %s\n", op->type->idname);
+	
+	for(opm= op->macro.first; opm; opm= opm->next) {
+		
+		if(opm->type->exec) {
+//			printf("macro exec %s\n", opm->type->idname);
+			retval= opm->type->exec(C, opm);
+		
+			if(!(retval & OPERATOR_FINISHED))
+				break;
+		}
+	}
+//	if(opm)
+//		printf("macro ended not finished\n");
+//	else
+//		printf("macro end\n");
+	
+	return retval;
+}
+
+static int wm_macro_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	wmOperator *opm;
+	int retval= OPERATOR_FINISHED;
+	
+//	printf("macro invoke %s\n", op->type->idname);
+	
+	for(opm= op->macro.first; opm; opm= opm->next) {
+		
+		if(opm->type->invoke)
+			retval= opm->type->invoke(C, opm, event);
+		else if(opm->type->exec)
+			retval= opm->type->exec(C, opm);
+		
+		if(!(retval & OPERATOR_FINISHED))
+			break;
+	}
+	
+//	if(opm)
+//		printf("macro ended not finished\n");
+//	else
+//		printf("macro end\n");
+	
+	
+	return retval;
+}
+
+static int wm_macro_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+//	printf("macro modal %s\n", op->type->idname);
+	
+	if(op->opm==NULL)
+		printf("macro error, calling NULL modal()\n");
+	else {
+//		printf("macro modal %s\n", op->opm->type->idname);
+		return op->opm->type->modal(C, op->opm, event);
+	}	
+	
+	return OPERATOR_FINISHED;
+}
+
+/* Names have to be static for now */
+wmOperatorType *WM_operatortype_append_macro(char *idname, char *name, int flag)
+{
+	wmOperatorType *ot;
+	
+	if(WM_operatortype_exists(idname)) {
+		printf("Macro error: operator %s exists\n", idname);
+		return NULL;
+	}
+	
+	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype");
+	ot->srna= RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties");
+	
+	ot->idname= idname;
+	ot->name= name;
+	ot->flag= OPTYPE_MACRO | flag;
+	
+	ot->exec= wm_macro_exec;
+	ot->invoke= wm_macro_invoke;
+	ot->modal= wm_macro_modal;
+	ot->poll= NULL;
+	
+	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:"(undocumented operator)"); // XXX All ops should have a description but for now allow them not to.
+	RNA_def_struct_identifier(ot->srna, ot->idname);
+
+	BLI_addtail(&global_ops, ot);
+
+	return ot;
+}
+
+wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char *idname)
+{
+	wmOperatorTypeMacro *otmacro= MEM_callocN(sizeof(wmOperatorTypeMacro), "wmOperatorTypeMacro");
+	
+	BLI_strncpy(otmacro->idname, idname, OP_MAX_TYPENAME);
+
+	/* do this on first use, since operatordefinitions might have been not done yet */
+//	otmacro->ptr= MEM_callocN(sizeof(PointerRNA), "optype macro ItemPtr");
+//	WM_operator_properties_create(otmacro->ptr, idname);
+	
+	BLI_addtail(&ot->macro, otmacro);
+	
+	return otmacro;
+}
+
+static void wm_operatortype_free_macro(wmOperatorType *ot)
+{
+	wmOperatorTypeMacro *otmacro;
+	
+	for(otmacro= ot->macro.first; otmacro; otmacro= otmacro->next) {
+		if(otmacro->ptr) {
+			WM_operator_properties_free(otmacro->ptr);
+			MEM_freeN(otmacro->ptr);
+		}
+	}
+	BLI_freelistN(&ot->macro);
+}
+
+
 int WM_operatortype_remove(const char *idname)
 {
 	wmOperatorType *ot = WM_operatortype_find(idname, 0);
@@ -163,6 +291,10 @@ int WM_operatortype_remove(const char *idname)
 	
 	BLI_remlink(&global_ops, ot);
 	RNA_struct_free(&BLENDER_RNA, ot->srna);
+	
+	if(ot->macro.first)
+		wm_operatortype_free_macro(ot);
+	
 	MEM_freeN(ot);
 
 	return 1;
@@ -348,7 +480,7 @@ static void redo_cb(bContext *C, void *arg_op, void *arg2)
 	wmOperator *lastop= arg_op;
 	
 	if(lastop) {
-		ED_undo_pop(C);
+		ED_undo_pop_op(C, lastop);
 		WM_operator_repeat(C, lastop);
 	}
 }
@@ -1677,6 +1809,12 @@ static void WM_OT_ten_timer(wmOperatorType *ot)
 /* called on initialize WM_exit() */
 void wm_operatortype_free(void)
 {
+	wmOperatorType *ot;
+	
+	for(ot= global_ops.first; ot; ot= ot->next)
+		if(ot->macro.first)
+			wm_operatortype_free_macro(ot);
+	
 	BLI_freelistN(&global_ops);
 }
 

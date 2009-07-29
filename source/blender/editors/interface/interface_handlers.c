@@ -358,8 +358,8 @@ static void ui_apply_but_funcs_after(bContext *C)
 		if(after.rename_orig)
 			MEM_freeN(after.rename_orig);
 		
-		if(after.undostr[0])
-			ED_undo_push(C, after.undostr);
+//		if(after.undostr[0])
+//			ED_undo_push(C, after.undostr);
 	}
 }
 
