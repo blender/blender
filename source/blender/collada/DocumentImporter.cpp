@@ -361,12 +361,7 @@ private:
 	};
 	typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive> > MaterialIdPrimitiveArrayMap;
 	std::map<COLLADAFW::UniqueId, MaterialIdPrimitiveArrayMap> geom_uid_mat_mapping_map; // crazy name!
-	/*
-	// maps for assigning textures to uv layers
-	//std::map<COLLADAFW::TextureMapId, char*> set_layername_map;
-	typedef std::map<COLLADAFW::TextureMapId, std::vector<MTex*> > TexIndexTextureArrayMap;
-	std::map<Material*, TexIndexTextureArrayMap> material_texture_mapping_map;
-	*/
+	
 	class UVDataWrapper
 	{
 		COLLADAFW::MeshVertexData *mVData;
@@ -693,21 +688,30 @@ public:
 
 	MeshImporter(ArmatureImporter *arm, Scene *sce) : scene(sce), armature_importer(arm) {}
 	
-	MTex *assign_textures_to_uvlayer(COLLADAFW::InstanceGeometry::TextureCoordinateBinding &ctexture, Mesh **me, TexIndexTextureArrayMap& texindex_texarray_map, MTex *color_texture)
+	
+	MTex *assign_textures_to_uvlayer(COLLADAFW::InstanceGeometry::TextureCoordinateBinding &ctexture,
+									 Mesh *me, TexIndexTextureArrayMap& texindex_texarray_map,
+									 MTex *color_texture)
 	{
+		
 		COLLADAFW::TextureMapId texture_index = ctexture.textureMapId;
-		size_t set_index = ctexture.setIndex;
-		char *uvname = CustomData_get_layer_name(&(*me)->fdata, CD_MTFACE, set_index);
+		
+		char *uvname = CustomData_get_layer_name(&me->fdata, CD_MTFACE, ctexture.setIndex);
 		
 		if (texindex_texarray_map.find(texture_index) == texindex_texarray_map.end()) {
+			
 			fprintf(stderr, "Cannot find texture array by texture index.\n");
 			return NULL;
 		}
-		// assign uvlayer name to texture
+		
 		std::vector<MTex*> textures = texindex_texarray_map[texture_index];
+		
 		std::vector<MTex*>::iterator it;
+		
 		for (it = textures.begin(); it != textures.end(); it++) {
+			
 			MTex *texture = *it;
+			
 			if (texture) {
 				strcpy(texture->uvname, uvname);
 				if (texture->mapto == MAP_COL) color_texture = texture;
@@ -717,39 +721,45 @@ public:
 	}
 	
 	MTFace *assign_material_to_geom(COLLADAFW::InstanceGeometry::MaterialBinding cmaterial,
-								 std::map<COLLADAFW::UniqueId, Material*>& uid_material_map,
-								 Object *ob, Mesh *me, const COLLADAFW::UniqueId *geom_uid, 
-								 MTex **color_texture, char *layername, MTFace *texture_face,
-								 std::map<Material*, TexIndexTextureArrayMap>& material_texture_mapping_map, int mat_index)
+									std::map<COLLADAFW::UniqueId, Material*>& uid_material_map,
+									Object *ob, const COLLADAFW::UniqueId *geom_uid, 
+									MTex **color_texture, char *layername, MTFace *texture_face,
+									std::map<Material*, TexIndexTextureArrayMap>& material_texture_mapping_map, int mat_index)
 	{
+		Mesh *me = (Mesh*)ob->data;
 		const COLLADAFW::UniqueId& ma_uid = cmaterial.getReferencedMaterial();
-		unsigned int j;
+		
 		// do we know this material?
 		if (uid_material_map.find(ma_uid) == uid_material_map.end()) {
+			
 			fprintf(stderr, "Cannot find material by UID.\n");
 			return NULL;
 		}
+		
 		Material *ma = uid_material_map[ma_uid];
+		assign_material(ob, ma, ob->totcol + 1);
 		
+		COLLADAFW::InstanceGeometry::TextureCoordinateBindingArray& tex_array = 
+			cmaterial.getTextureCoordinateBindingArray();
 		TexIndexTextureArrayMap texindex_texarray_map = material_texture_mapping_map[ma];
-		
-		COLLADAFW::InstanceGeometry::TextureCoordinateBindingArray& tex_array = cmaterial.getTextureCoordinateBindingArray();
-		
-		// loop through material's textures
-		for (j = 0; j < tex_array.getCount(); j++) {
-			*color_texture = assign_textures_to_uvlayer(tex_array[j], &me, texindex_texarray_map, *color_texture);
+		unsigned int i;
+		// loop through <bind_vertex_inputs>
+		for (i = 0; i < tex_array.getCount(); i++) {
+			
+			*color_texture = assign_textures_to_uvlayer(tex_array[i], me, texindex_texarray_map,
+														*color_texture);
 		}
+		
 		// if material has color texture
 		if (*color_texture && strlen((*color_texture)->uvname)) {
-			// multiple color textures may refer to the same uvlayer, 
-			// set tface only once, otherwise images will rewrite each other 
+			// set tface
 			if (strcmp(layername, (*color_texture)->uvname) != 0) {
-				texture_face = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE, (*color_texture)->uvname);
+				
+				texture_face = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE,
+																   (*color_texture)->uvname);
 				strcpy(layername, (*color_texture)->uvname);
 			}
 		}
-		
-		assign_material(ob, ma, ob->totcol + 1);
 		
 		MaterialIdPrimitiveArrayMap& mat_prim_map = geom_uid_mat_mapping_map[*geom_uid];
 		COLLADAFW::MaterialId mat_id = cmaterial.getMaterialId();
@@ -763,12 +773,10 @@ public:
 			
 			for (it = prims.begin(); it != prims.end(); it++) {
 				Primitive& prim = *it;
-				j = 0;
-				while (j++ < prim.totface) {
+				i = 0;
+				while (i++ < prim.totface) {
 					prim.mface->mat_nr = mat_index;
 					prim.mface++;
-					
-					// if tface was set
 					// bind image to tface
 					if (texture_face && (*color_texture)) {
 						texture_face->mode = TF_TEX;
@@ -778,11 +786,11 @@ public:
 				}
 			}
 		}
-
+		
 		return texture_face;
 	}
 	
-	// bind object to mesh
+	
 	Object *create_mesh_object(COLLADAFW::Node *node, COLLADAFW::InstanceGeometry *geom,
 							   bool isController,
 							   std::map<COLLADAFW::UniqueId, Material*>& uid_material_map,
@@ -792,13 +800,16 @@ public:
 		
 		// check if node instanciates controller or geometry
 		if (isController) {
+			
 			geom_uid = armature_importer->get_geometry_uid(*geom_uid);
+			
 			if (!geom_uid) {
 				fprintf(stderr, "Couldn't find a mesh UID by controller's UID.\n");
 				return NULL;
 			}
 		}
 		else {
+			
 			if (uid_mesh_map.find(*geom_uid) == uid_mesh_map.end()) {
 				// this could happen if a mesh was not created
 				// (e.g. if it contains unsupported geometry)
@@ -822,7 +833,6 @@ public:
 		
 		if (old_mesh->id.us == 0) free_libblock(&G.main->mesh, old_mesh);
 		
-		Mesh *me = (Mesh*)ob->data;
 		char layername[100];
 		MTFace *texture_face = NULL;
 		MTex *color_texture = NULL;
@@ -831,10 +841,11 @@ public:
 		
 		// loop through geom's materials
 		for (unsigned int i = 0; i < mat_array.getCount(); i++)	{
-			texture_face = assign_material_to_geom(mat_array[i], uid_material_map, ob, me, geom_uid, &color_texture, layername, texture_face, material_texture_mapping_map, i);
 			
+			texture_face = assign_material_to_geom(mat_array[i], uid_material_map, ob, geom_uid,
+												   &color_texture, layername, texture_face,
+												   material_texture_mapping_map, i);
 		}
-		
 			
 		return ob;
 	}
@@ -1221,6 +1232,7 @@ public:
 		ma->mtex[i]->texco = TEXCO_UV;
 		ma->mtex[i]->tex = add_texture("texture");
 		ma->mtex[i]->tex->type = TEX_IMAGE;
+		ma->mtex[i]->tex->imaflag &= ~TEX_USEALPHA;
 		ma->mtex[i]->tex->ima = uid_image_map[ima_uid];
 		
 		texindex_texarray_map[ctex.getTextureMapId()].push_back(ma->mtex[i]);
@@ -1240,7 +1252,8 @@ public:
 		// phong
 		else if (shader == COLLADAFW::EffectCommon::SHADER_PHONG) {
 			ma->spec_shader = MA_SPEC_PHONG;
-			ma->spec = ef->getShininess().getFloatValue();
+			// XXX setting specular hardness instead of specularity intensity
+			ma->har = ef->getShininess().getFloatValue() * 4;
 		}
 		// lambert
 		else if (shader == COLLADAFW::EffectCommon::SHADER_LAMBERT) {
@@ -1383,6 +1396,25 @@ public:
 		if (!cam) {
 			fprintf(stderr, "Cannot create camera. \n");
 			return true;
+		}
+		COLLADAFW::Camera::CameraType type = camera->getCameraType();
+		switch(type) {
+		case COLLADAFW::Camera::ORTHOGRAPHIC:
+			{
+				cam->type = CAM_ORTHO;
+			}
+			break;
+		case COLLADAFW::Camera::PERSPECTIVE:
+			{
+				cam->type = CAM_PERSP;
+			}
+			break;
+		case COLLADAFW::Camera::UNDEFINED_CAMERATYPE:
+			{
+				fprintf(stderr, "Current camera type is not supported. \n");
+				cam->type = CAM_PERSP;
+			}
+			break;
 		}
 		this->uid_camera_map[camera->getUniqueId()] = cam;
 		// XXX import camera options

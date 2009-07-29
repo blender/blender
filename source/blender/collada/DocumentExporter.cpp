@@ -1009,9 +1009,14 @@ public:
 		// set shader type - one of three blinn, phong or lambert
 		if (ma->spec_shader == MA_SPEC_BLINN) {
 			ep.setShaderType(COLLADASW::EffectProfile::BLINN);
+			// shininess
+			ep.setShininess(ma->spec);
 		}
 		else if (ma->spec_shader == MA_SPEC_PHONG) {
 			ep.setShaderType(COLLADASW::EffectProfile::PHONG);
+			// shininess
+			// XXX not sure about this
+			ep.setShininess(ma->har / 4);
 		}
 		else {
 			// XXX write warning "Current shader type is not supported" 
@@ -1026,8 +1031,6 @@ public:
 		}
 		// transparency
 		ep.setTransparency(ma->alpha);
-		// shininess
-		ep.setShininess(ma->spec);
 		// emission
 		COLLADASW::ColorOrTexture cot = getcol(0.0f, 0.0f, 0.0f, 1.0f);
 		ep.setEmission(cot);
