@@ -114,6 +114,7 @@
 #include "ED_curve.h"
 #include "ED_particle.h"
 #include "ED_mesh.h"
+#include "ED_mball.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
@@ -538,6 +539,78 @@ void OBJECT_OT_surface_add(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_surface_types, 0, "Primitive", "");
 }
 
+static EnumPropertyItem prop_metaball_types[]= {
+	{MB_BALL, "MBALL_BALL", ICON_META_BALL, "Meta Ball", ""},
+	{MB_TUBE, "MBALL_TUBE", ICON_META_TUBE, "Meta Tube", ""},
+	{MB_PLANE, "MBALL_PLANE", ICON_META_PLANE, "Meta Plane", ""},
+	{MB_CUBE, "MBALL_CUBE", ICON_META_CUBE, "Meta Cube", ""},
+	{MB_ELIPSOID, "MBALL_ELLIPSOID", ICON_META_ELLIPSOID, "Meta Ellipsoid", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static int object_metaball_add_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	MetaBall *mball;
+	MetaElem *elem;
+	int newob= 0;
+	
+	if(obedit==NULL || obedit->type!=OB_MBALL) {
+		object_add_type(C, OB_MBALL);
+		ED_object_enter_editmode(C, 0);
+		newob = 1;
+	}
+	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	
+	obedit= CTX_data_edit_object(C);
+	elem= (MetaElem*)add_metaball_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
+	mball= (MetaBall*)obedit->data;
+	BLI_addtail(mball->editelems, elem);
+	
+	/* userdef */
+	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
+		ED_object_exit_editmode(C, EM_FREEDATA);
+	}
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int object_metaball_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	uiPopupMenu *pup;
+	uiLayout *layout;
+
+	pup= uiPupMenuBegin(C, op->type->name, 0);
+	layout= uiPupMenuLayout(pup);
+	if(!obedit || obedit->type == OB_MBALL)
+		uiItemsEnumO(layout, op->type->idname, "type");
+	else
+		uiItemsEnumO(layout, "OBJECT_OT_metaball_add", "type");
+	uiPupMenuEnd(C, pup);
+
+	return OPERATOR_CANCELLED;
+}
+
+void OBJECT_OT_metaball_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Metaball";
+	ot->description= "Add an metaball object to the scene.";
+	ot->idname= "OBJECT_OT_metaball_add";
+
+	/* api callbacks */
+	ot->invoke= object_metaball_add_invoke;
+	ot->exec= object_metaball_add_exec;
+	ot->poll= ED_operator_scene_editable;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "type", prop_metaball_types, 0, "Primitive", "");
+}
 static int object_add_text_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -616,7 +689,6 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-
 static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	uiPopupMenu *pup= uiPupMenuBegin(C, "Add Object", 0);
@@ -625,7 +697,7 @@ static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	uiItemMenuEnumO(layout, "Mesh", ICON_OUTLINER_OB_MESH, "OBJECT_OT_mesh_add", "type");
 	uiItemMenuEnumO(layout, "Curve", ICON_OUTLINER_OB_CURVE, "OBJECT_OT_curve_add", "type");
 	uiItemMenuEnumO(layout, "Surface", ICON_OUTLINER_OB_SURFACE, "OBJECT_OT_surface_add", "type");
-	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_META, "OBJECT_OT_object_add", "type", OB_MBALL);
+	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_META, "OBJECT_OT_metaball_add", "type");
 	uiItemO(layout, "Text", ICON_OUTLINER_OB_FONT, "OBJECT_OT_text_add");
 	uiItemS(layout);
 	uiItemO(layout, "Armature", ICON_OUTLINER_OB_ARMATURE, "OBJECT_OT_armature_add");
@@ -3629,9 +3701,8 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		if(freedata) free_editLatt(obedit);
 	}
 	else if(obedit->type==OB_MBALL) {
-//		extern ListBase editelems;
-//		load_editMball();
-//		if(freedata) BLI_freelistN(&editelems);
+		load_editMball(obedit);
+		if(freedata) free_editMball(obedit);
 	}
 	
 	/* freedata only 0 now on file saves */
@@ -3721,14 +3792,15 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		scene->obedit= ob; // XXX for context
 		ok= 1;
  		make_editText(ob);
+
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_TEXT, scene);
 	}
 	else if(ob->type==OB_MBALL) {
 		scene->obedit= ob; // XXX for context
-//		ok= 1;
-// XXX		make_editMball();
+		ok= 1;
+		make_editMball(ob);
+
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MBALL, scene);
-		
 	}
 	else if(ob->type==OB_LATTICE) {
 		scene->obedit= ob; // XXX for context

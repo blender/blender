@@ -40,6 +40,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_meta_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_colortools.h"
@@ -309,6 +310,14 @@ int ED_operator_editlattice(bContext *C)
 	Object *obedit= CTX_data_edit_object(C);
 	if(obedit && obedit->type==OB_LATTICE)
 		return NULL != ((Lattice *)obedit->data)->editlatt;
+	return 0;
+}
+
+int ED_operator_editmball(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	if(obedit && obedit->type==OB_MBALL)
+		return NULL != ((MetaBall *)obedit->data)->editelems;
 	return 0;
 }
 

@@ -51,6 +51,7 @@
 #include "ED_sculpt.h"
 #include "ED_space_api.h"
 #include "ED_uvedit.h"
+#include "ED_mball.h"
 
 /* only call once on startup, storage is global in BKE kernel listbase */
 void ED_spacetypes_init(void)
@@ -93,6 +94,7 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_marker();
 	ED_operatortypes_pointcache();
 	ED_operatortypes_fluid();
+	ED_operatortypes_metaball();
 	ED_operatortypes_boids();
 	
 	ui_view2d_operatortypes();
@@ -120,6 +122,7 @@ void ED_spacetypes_keymap(wmWindowManager *wm)
 	ED_keymap_curve(wm);
 	ED_keymap_armature(wm);
 	ED_keymap_particle(wm);
+	ED_keymap_metaball(wm);
 	ED_marker_keymap(wm);
 
 	UI_view2d_keymap(wm);

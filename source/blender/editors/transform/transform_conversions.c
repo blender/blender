@@ -1217,8 +1217,7 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 
 static void createTransMBallVerts(bContext *C, TransInfo *t)
 {
-	// TRANSFORM_FIX_ME
-#if 0
+	MetaBall *mb = (MetaBall*)t->obedit->data;
  	MetaElem *ml;
 	TransData *td;
 	TransDataExtension *tx;
@@ -1227,7 +1226,7 @@ static void createTransMBallVerts(bContext *C, TransInfo *t)
 	int propmode = t->flag & T_PROP_EDIT;
 
 	/* count totals */
-	for(ml= editelems.first; ml; ml= ml->next) {
+	for(ml= mb->editelems->first; ml; ml= ml->next) {
 		if(ml->flag & SELECT) countsel++;
 		if(propmode) count++;
 	}
@@ -1244,7 +1243,7 @@ static void createTransMBallVerts(bContext *C, TransInfo *t)
 	Mat3CpyMat4(mtx, t->obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-	for(ml= editelems.first; ml; ml= ml->next) {
+	for(ml= mb->editelems->first; ml; ml= ml->next) {
 		if(propmode || (ml->flag & SELECT)) {
 			td->loc= &ml->x;
 			VECCOPY(td->iloc, td->loc);
@@ -1285,7 +1284,6 @@ static void createTransMBallVerts(bContext *C, TransInfo *t)
 			tx++;
 		}
 	}
-#endif
 }
 
 /* ********************* curve/surface ********* */

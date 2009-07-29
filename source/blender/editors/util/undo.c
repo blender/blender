@@ -74,7 +74,6 @@
 /* ***************** generic undo system ********************* */
 
 /* ********* XXX **************** */
-static void undo_push_mball() {}
 static void sound_initialize_sounds() {}
 /* ********* XXX **************** */
 
@@ -93,7 +92,7 @@ void ED_undo_push(bContext *C, char *str)
 		else if (obedit->type==OB_FONT)
 			undo_push_font(C, str);
 		else if (obedit->type==OB_MBALL)
-			undo_push_mball(str);
+			undo_push_mball(C, str);
 		else if (obedit->type==OB_LATTICE)
 			undo_push_lattice(C, str);
 		else if (obedit->type==OB_ARMATURE)

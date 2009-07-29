@@ -2508,6 +2508,8 @@ static void direct_link_mball(FileData *fd, MetaBall *mb)
 	mb->disp.first= mb->disp.last= NULL;
 	mb->editelems= NULL;
 	mb->bb= NULL;
+/*	mb->edit_elems.first= mb->edit_elems.last= NULL;*/
+	mb->lastelem= NULL;
 }
 
 /* ************ READ WORLD ***************** */

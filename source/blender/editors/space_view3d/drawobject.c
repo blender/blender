@@ -123,11 +123,6 @@
 	(((vd->drawtype==OB_SOLID) && (dt>=OB_SOLID) && (vd->flag2 & V3D_SOLID_TEX) && (vd->flag & V3D_ZBUF_SELECT)) == 0) \
 	)
 
-
-/* pretty stupid */
-/* editmball.c */
-extern ListBase editelems;
-
 static void draw_bounding_volume(Scene *scene, Object *ob);
 
 static void drawcube_size(float size);
