@@ -1485,23 +1485,6 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 				
 				update_tablet_data(win, &event);
 				wm_event_add(win, &event);
-
-				cx = abs((win->downx - event.x));
-				cy = abs((win->downy - event.y));
-
-				/* probably minimum drag size should be #defined instead of hardcoded 3
-				 * also, cy seems always to be 6 pixels off, not sure why
-				 */
-				if ((win->downstate == LEFTMOUSE || win->downstate == MOUSEDRAG) && (cx > 3 || cy > 9)) {
-					wmEvent dragevt= *evt;
-					dragevt.type= MOUSEDRAG;
-					dragevt.customdata= NULL;
-					dragevt.customdatafree= 0;
-
-					win->downstate= MOUSEDRAG;
-
-					wm_event_add(win, &dragevt);
-				}
 			}
 			break;
 		}
@@ -1525,28 +1508,6 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			
 			update_tablet_data(win, &event);
 			wm_event_add(win, &event);
-
-			if (event.val) {
-				win->downstate= event.type;
-				win->downx= event.x;
-				win->downy= event.y;
-			}
-			else {
-				short downstate= win->downstate;
-
-				win->downstate= 0;
-				win->downx= 0;
-				win->downy= 0;
-
-				if (downstate == MOUSEDRAG) {
-					wmEvent dropevt= *evt;
-					dropevt.type= MOUSEDROP;
-					dropevt.customdata= NULL;
-					dropevt.customdatafree= 0;
-
-					wm_event_add(win, &dropevt);
-				}
-			}
 			
 			break;
 		}

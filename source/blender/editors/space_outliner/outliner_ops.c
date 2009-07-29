@@ -56,8 +56,6 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_id_operation);
 	WM_operatortype_append(OUTLINER_OT_data_operation);
 
-	WM_operatortype_append(OUTLINER_OT_drag);
-
 	WM_operatortype_append(OUTLINER_OT_show_one_level);
 	WM_operatortype_append(OUTLINER_OT_show_active);
 	WM_operatortype_append(OUTLINER_OT_show_hierarchy);
@@ -88,9 +86,6 @@ void outliner_keymap(wmWindowManager *wm)
 	
 	WM_keymap_add_item(keymap, "OUTLINER_OT_item_rename", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "OUTLINER_OT_operation", RIGHTMOUSE, KM_PRESS, 0, 0);
-
-	/* drag & drop */
-	WM_keymap_add_item(keymap, "OUTLINER_OT_drag", MOUSEDRAG, KM_ANY, 0, 0);
 
 	WM_keymap_add_item(keymap, "OUTLINER_OT_show_hierarchy", HOMEKEY, KM_PRESS, 0, 0);
 	

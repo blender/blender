@@ -146,9 +146,7 @@ typedef struct wmWindow {
 	short cursor;		/* current mouse cursor type */
 	short lastcursor;	/* for temp waitcursor */
 	short addmousemove;	/* internal: tag this for extra mousemove event, makes cursors/buttons active on UI switching */
-	short downstate; /* used for drag & drop: remembers mouse button down state */
-	short downx, downy; /* mouse coords for button down event */
-	short pad3, pad4, pad5;
+	int pad3;
 	
 	struct wmEvent *eventstate;	/* storage for event system */
 	

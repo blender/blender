@@ -73,7 +73,6 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_view_center);
 	WM_operatortype_append(VIEW3D_OT_select);
 	WM_operatortype_append(VIEW3D_OT_select_border);
-	WM_operatortype_append(VIEW3D_OT_drag);
 	WM_operatortype_append(VIEW3D_OT_clip_border);
 	WM_operatortype_append(VIEW3D_OT_select_circle);
 	WM_operatortype_append(VIEW3D_OT_smoothview);
@@ -217,9 +216,6 @@ void view3d_keymap(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_camera_to_view", PAD0, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_snap_menu", SKEY, KM_PRESS, KM_SHIFT, 0);
-
-	/* drag & drop (disabled) */
-//	WM_keymap_add_item(keymap, "VIEW3D_OT_drag", MOUSEDRAG, KM_ANY, 0, 0);
 	
 	/* radial control */
 	RNA_enum_set(WM_keymap_add_item(keymap, "SCULPT_OT_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
