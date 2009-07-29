@@ -88,6 +88,21 @@ void console_scrollback_limit(SpaceConsole *sc)
 		console_scrollback_free(sc, sc->scrollback.first);
 }
 
+static ConsoleLine * console_history_find(SpaceConsole *sc, const char *str, ConsoleLine *cl_ignore)
+{
+	ConsoleLine *cl;
+
+	for(cl= sc->history.last; cl; cl= cl->prev) {
+		if (cl==cl_ignore)
+			continue;
+
+		if(strcmp(str, cl->line)==0)
+			return cl;
+	}
+
+	return NULL;
+}
+
 /* return 0 if no change made, clamps the range */
 static int console_line_cursor_set(ConsoleLine *cl, int cursor)
 {
@@ -476,11 +491,23 @@ void CONSOLE_OT_history_cycle(wmOperatorType *ot)
 static int history_append_exec(bContext *C, wmOperator *op)
 {
 	ConsoleLine *ci= console_history_verify(C);
-	
-	
 	char *str= RNA_string_get_alloc(op->ptr, "text", NULL, 0); /* own this text in the new line, dont free */
 	int cursor= RNA_int_get(op->ptr, "current_character");
-	
+	short rem_dupes= RNA_boolean_get(op->ptr, "remove_duplicates");
+
+	if(rem_dupes) {
+		SpaceConsole *sc= CTX_wm_space_console(C);
+		ConsoleLine *cl;
+
+		while((cl= console_history_find(sc, ci->line, ci)))
+			console_history_free(sc, cl);
+
+		if(strcmp(str, ci->line)==0) {
+			MEM_freeN(str);
+			return OPERATOR_FINISHED;
+		}
+	}
+
 	ci= console_history_add_str(C, str, 1); /* own the string */
 	console_line_cursor_set(ci, cursor);
 	
@@ -505,6 +532,7 @@ void CONSOLE_OT_history_append(wmOperatorType *ot)
 	/* properties */
 	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");	
 	RNA_def_int(ot->srna, "current_character", 0, 0, INT_MAX, "Cursor", "The index of the cursor.", 0, 10000);
+	RNA_def_boolean(ot->srna, "remove_duplicates", 0, "Remove Duplicates", "Remove duplicate items in the history");
 }
 
 

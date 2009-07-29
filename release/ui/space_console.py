@@ -182,7 +182,7 @@ class CONSOLE_OT_exec(bpy.types.Operator):
 		else:				sc.prompt = self.PROMPT
 		
 		# insert a new blank line
-		bpy.ops.console.history_append(text="", current_character=0)
+		bpy.ops.console.history_append(text="", current_character=0, remove_duplicates= True)
 		
 		# Insert the output into the editor
 		# not quite correct because the order might have changed, but ok 99% of the time.

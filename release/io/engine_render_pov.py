@@ -502,9 +502,8 @@ class PovrayRenderEngine(bpy.types.RenderEngine):
 	
 	def _cleanup(self):
 		for f in (self.temp_file_in, self.temp_file_ini, self.temp_file_out):
-			#try:		os.remove(f)
-			#except:	pass
-			pass
+			try:		os.remove(f)
+			except:	pass
 		
 		self.update_stats("", "")
 	
