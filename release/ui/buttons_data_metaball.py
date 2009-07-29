@@ -35,16 +35,20 @@ class DATA_PT_metaball(DataButtonsPanel):
 		
 		mball = context.meta_ball
 		
-		col = layout.column()
+		split = layout.split()
 		
+		col = split.column()
+		col.itemL(text="Resolution:")
+		sub = col.column(align=True)
+		sub.itemR(mball, "wire_size", text="View")
+		sub.itemR(mball, "render_size", text="Render")	
+		
+		col = split.column()
 		col.itemL(text="Settings:")
 		col.itemR(mball, "threshold", text="Threshold")
-		col.itemL(text="Resolution:")
-		col = layout.column(align=True)
-		col.itemR(mball, "wire_size", text="View")
-		col.itemR(mball, "render_size", text="Render")
-				
-		layout.itemR(mball, "flag")
+
+		layout.itemL(text="Update:")
+		layout.itemR(mball, "flag", expand=True)
 
 class DATA_PT_metaball_element(DataButtonsPanel):
 	__label__ = "Meta Element"
@@ -57,14 +61,22 @@ class DATA_PT_metaball_element(DataButtonsPanel):
 		
 		metaelem = context.meta_ball.last_selected_element
 		
-		col = layout.column()
-			
+		split = layout.split()
+		
+		col = split.column()
+		col.itemL(text="Size:")	
+		col.itemR(metaelem, "size", text="")
+		
+		col = split.column()
 		col.itemL(text="Settings:")
 		col.itemR(metaelem, "stiffness", text="Stiffness")
-		col.itemR(metaelem, "size", text="Size")
-		col.itemL(text="Type:")
-		col.row().itemR(metaelem, "type", expand=True)
-		col.itemR(metaelem, "negative", text="Negative")
+		
+		layout.itemL(text="Type:")
+		layout.itemR(metaelem, "type", expand=True)
+		
+		flow = layout.column_flow()
+		flow.itemR(metaelem, "negative", text="Negative")
+		flow.itemR(metaelem, "hide", text="Hide")
 	
 bpy.types.register(DATA_PT_context_metaball)
 bpy.types.register(DATA_PT_metaball)
