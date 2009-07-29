@@ -11,6 +11,7 @@ extern "C" {
 
 /*---------------  Python API function prototypes for AdjacencyIterator instance  -----------*/
 static int AdjacencyIterator___init__(BPy_AdjacencyIterator *self, PyObject *args);
+static PyObject * AdjacencyIterator_iternext(BPy_AdjacencyIterator *self);
 
 static PyObject * AdjacencyIterator_isIncoming(BPy_AdjacencyIterator *self);
 static PyObject * AdjacencyIterator_getObject(BPy_AdjacencyIterator *self);
@@ -76,8 +77,8 @@ PyTypeObject AdjacencyIterator_Type = {
 
   /*** Added in release 2.2 ***/
 	/*   Iterators */
-	NULL,                       /* getiterfunc tp_iter; */
-	NULL,                       /* iternextfunc tp_iternext; */
+	PyObject_SelfIter,              /* getiterfunc tp_iter; */
+	(iternextfunc)AdjacencyIterator_iternext,       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
 	BPy_AdjacencyIterator_methods,	/* struct PyMethodDef *tp_methods; */
@@ -140,6 +141,16 @@ int AdjacencyIterator___init__(BPy_AdjacencyIterator *self, PyObject *args )
 	
 	return 0;
 
+}
+
+PyObject * AdjacencyIterator_iternext(BPy_AdjacencyIterator *self) {
+	if (self->a_it->isEnd()) {
+		PyErr_SetNone(PyExc_StopIteration);
+		return NULL;
+	}
+	ViewEdge *ve = self->a_it->operator->();
+	self->a_it->increment();
+	return BPy_ViewEdge_from_ViewEdge_ptr( ve );
 }
 
 PyObject * AdjacencyIterator_isIncoming(BPy_AdjacencyIterator *self) {
