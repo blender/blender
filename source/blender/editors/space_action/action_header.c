@@ -385,24 +385,13 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 			uiBlockEndAlign(block);
 			xco += 30;
 		}
-		else if (saction->mode == SACTCONT_ACTION) { // not too appropriate for shapekeys atm...
-			/* NAME ETC */
-			//uiClearButLock();
-			
+		else if (saction->mode == SACTCONT_ACTION) {
 			/* NAME ETC  */
 			xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID*)saction->action, ID_AC, &saction->pin, xco, yco,
 				saction_idpoin_handle, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_DELETE|UI_ID_FAKE_USER|UI_ID_ALONE|UI_ID_PIN);
 			
 			xco += 8;
 		}
-		
-		/* COPY PASTE */
-		uiBlockBeginAlign(block);
-			uiDefIconButO(block, BUT, "ACT_OT_copy", WM_OP_INVOKE_REGION_WIN, ICON_COPYDOWN, xco,yco,XIC,YIC, "Copies the selected keyframes to the buffer.");
-			xco += XIC;
-			uiDefIconButO(block, BUT, "ACT_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEDOWN, xco,yco,XIC,YIC, "Pastes the keyframes from the buffer into the selected channels.");
-		uiBlockEndAlign(block);
-		xco += (XIC + 8);
 		
 		/* draw AUTOSNAP */
 		if (saction->mode != SACTCONT_GPENCIL) {
@@ -422,12 +411,13 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 			xco += (70 + 8);
 		}
 		
-		/* draw LOCK */
-			// XXX this feature is probably not relevant anymore!
-		//uiDefIconButS(block, ICONTOG, B_LOCK, ICON_UNLOCKED,	xco, yco, XIC, YIC, 
-		//			  &(saction->lock), 0, 0, 0, 0, 
-		//			  "Updates other affected window spaces automatically "
-		//			  "to reflect changes in real time");
+		/* COPY PASTE */
+		uiBlockBeginAlign(block);
+			uiDefIconButO(block, BUT, "ACT_OT_copy", WM_OP_INVOKE_REGION_WIN, ICON_COPYDOWN, xco,yco,XIC,YIC, "Copies the selected keyframes to the buffer.");
+			xco += XIC;
+			uiDefIconButO(block, BUT, "ACT_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEDOWN, xco,yco,XIC,YIC, "Pastes the keyframes from the buffer into the selected channels.");
+		uiBlockEndAlign(block);
+		xco += (XIC + 8);
 	}
 
 	/* always as last  */

@@ -457,10 +457,14 @@ typedef struct NlaStrip {
 	
 	float blendin, blendout;	/* strip blending length (only used when there are no F-Curves) */	
 	short blendmode;			/* strip blending mode (layer-based mixing) */
-	short extendmode;			/* strip extrapolation mode (time-based mixing) */
 	
-	short flag;					/* settings */
+	short extendmode;			/* strip extrapolation mode (time-based mixing) */
+	short pad1;
+	
 	short type;					/* type of NLA strip */
+	
+	int flag;					/* settings */
+	int pad2;
 } NlaStrip;
 
 /* NLA Strip Blending Mode */
@@ -498,21 +502,23 @@ typedef enum eNlaStrip_Flag {
 	NLASTRIP_FLAG_USR_INFLUENCE	= (1<<5),
 	NLASTRIP_FLAG_USR_TIME		= (1<<6),
 	
+		/* NLA strip length is synced to the length of the referenced action */
+	NLASTRIP_FLAG_SYNC_LENGTH	= (1<<9),
+	
 	/* playback flags (may be overriden by F-Curves) */
 		/* NLA strip blendin/out values are set automatically based on overlaps */
 	NLASTRIP_FLAG_AUTO_BLENDS	= (1<<10),
 		/* NLA strip is played back in reverse order */
 	NLASTRIP_FLAG_REVERSE		= (1<<11),
 		/* NLA strip is muted (i.e. doesn't contribute in any way) */
-		// TODO: this overlaps a lot with the functionality in track
 	NLASTRIP_FLAG_MUTED			= (1<<12),
-		/* NLA strip length is synced to the length of the referenced action */
-	NLASTRIP_FLAG_SYNC_LENGTH	= (1<<13),
+		/* NLA Strip is played back in 'ping-pong' style */
+	NLASTRIP_FLAG_MIRROR		= (1<<13),
 	
 	/* temporary editing flags */
 		/* NLA-Strip is really just a temporary meta used to facilitate easier transform code */
-	NLASTRIP_FLAG_TEMP_META		= (1<<14),
-	NLASTRIP_FLAG_EDIT_TOUCHED	= (1<<15),
+	NLASTRIP_FLAG_TEMP_META		= (1<<30),
+	NLASTRIP_FLAG_EDIT_TOUCHED	= (1<<31),
 } eNlaStrip_Flag;
 
 /* NLA Strip Type */
