@@ -45,6 +45,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_userdef_types.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -106,6 +107,8 @@ MetaElem *add_metaball_primitive(bContext *C, int type, int newname)
 	MetaElem *ml;
 	float *curs, mat[3][3], cent[3], imat[3][3], cmat[3][3];
 
+	if(!obedit) return NULL;
+
 	/* Deselect all existing metaelems */
 	ml= mball->editelems->first;
 	while(ml) {
@@ -114,7 +117,6 @@ MetaElem *add_metaball_primitive(bContext *C, int type, int newname)
 	}
 
 	Mat3CpyMat4(mat, obedit->obmat);
-
 	if(v3d) {
 		curs= give_cursor(scene, v3d);
 		VECCOPY(cent, curs);
@@ -127,12 +129,17 @@ MetaElem *add_metaball_primitive(bContext *C, int type, int newname)
 	cent[2]-= obedit->obmat[3][2];
 
 	if (rv3d) {
-		Mat3CpyMat4(imat, rv3d->viewmat);
+		if (!(newname) || U.flag & USER_ADD_VIEWALIGNED || !rv3d)
+			Mat3CpyMat4(imat, rv3d->viewmat);
+		else
+			Mat3One(imat);
 		Mat3MulVecfl(imat, cent);
 		Mat3MulMat3(cmat, imat, mat);
 		Mat3Inv(imat,cmat);
 		Mat3MulVecfl(imat, cent);
 	}
+	else
+		Mat3One(imat);
 
 	ml= MEM_callocN(sizeof(MetaElem), "metaelem");
 

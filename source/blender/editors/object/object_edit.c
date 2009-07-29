@@ -597,7 +597,7 @@ static int object_metaball_add_invoke(bContext *C, wmOperator *op, wmEvent *even
 void OBJECT_OT_metaball_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Metaball";
+	ot->name= "Metaball";
 	ot->description= "Add an metaball object to the scene.";
 	ot->idname= "OBJECT_OT_metaball_add";
 

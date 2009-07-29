@@ -40,6 +40,7 @@
 #include "BKE_depsgraph.h"
 
 #include "WM_types.h"
+#include "WM_api.h"
 
 static int rna_Meta_texspace_editable(PointerRNA *ptr)
 {
