@@ -311,7 +311,9 @@ void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 			BLI_snprintf(dir, FILE_MAXDIR, "%s/", home);
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, dir, 1, 0);
 			BLI_snprintf(dir, FILE_MAXDIR, "%s/Desktop/", home);
-			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, dir, 1, 0);
+			if (BLI_exists(dir)) {
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, dir, 1, 0);
+			}
 		}
 
 		{
