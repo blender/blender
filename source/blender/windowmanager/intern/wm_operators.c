@@ -345,7 +345,7 @@ void WM_operator_bl_idname(char *to, const char *from)
  * When calling from an existing wmOperator do.
  * WM_operator_pystring(op->type, op->ptr);
  */
-char *WM_operator_pystring(wmOperatorType *ot, PointerRNA *opptr)
+char *WM_operator_pystring(wmOperatorType *ot, PointerRNA *opptr, int all_args)
 {
 	const char *arg_name= NULL;
 	char idname_py[OP_MAX_TYPENAME];
@@ -355,7 +355,17 @@ char *WM_operator_pystring(wmOperatorType *ot, PointerRNA *opptr)
 	/* for building the string */
 	DynStr *dynstr= BLI_dynstr_new();
 	char *cstring, *buf;
-	int first_iter=1;
+	int first_iter=1, ok= 1;
+
+
+	/* only to get the orginal props for comparisons */
+	PointerRNA opptr_default;
+	PropertyRNA *prop_default;
+	char *buf_default;
+	if(!all_args) {
+		WM_operator_properties_create(&opptr_default, ot->idname);
+	}
+
 
 	WM_operator_py_idname(idname_py, ot->idname);
 	BLI_dynstr_appendf(dynstr, "bpy.ops.%s(", idname_py);
@@ -370,12 +380,35 @@ char *WM_operator_pystring(wmOperatorType *ot, PointerRNA *opptr)
 
 		buf= RNA_property_as_string(opptr, prop);
 		
-		BLI_dynstr_appendf(dynstr, first_iter?"%s=%s":", %s=%s", arg_name, buf);
+		ok= 1;
+
+		if(!all_args) {
+			/* not verbose, so only add in attributes that use non-default values
+			 * slow but good for tooltips */
+			prop_default= RNA_struct_find_property(&opptr_default, arg_name);
+
+			if(prop_default) {
+				buf_default= RNA_property_as_string(&opptr_default, prop_default);
+
+				if(strcmp(buf, buf_default)==0)
+					ok= 0; /* values match, dont bother printing */
+
+				MEM_freeN(buf_default);
+			}
+
+		}
+		if(ok) {
+			BLI_dynstr_appendf(dynstr, first_iter?"%s=%s":", %s=%s", arg_name, buf);
+			first_iter = 0;
+		}
 
 		MEM_freeN(buf);
-		first_iter = 0;
+
 	}
 	RNA_PROP_END;
+
+	if(all_args==0)
+		WM_operator_properties_free(&opptr_default);
 
 	BLI_dynstr_append(dynstr, ")");
 
