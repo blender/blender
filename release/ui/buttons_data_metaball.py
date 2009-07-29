@@ -6,7 +6,7 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		return (context.meta_ball != None)
+		return (context.meta_ball)
 
 class DATA_PT_context_metaball(DataButtonsPanel):
 	__show_header__ = False
@@ -35,37 +35,37 @@ class DATA_PT_metaball(DataButtonsPanel):
 		
 		mball = context.meta_ball
 		
-		split = layout.split()
-		sub = split.column()
+		col = layout.column()
 		
-		sub.itemL(text="Settings:")
-		sub.itemR(mball, "threshold", text="Threshold")
-		sub.itemR(mball, "wire_size", text="View Resolution")
-		sub.itemR(mball, "render_size", text="Render Resolution")
-		
-		sub.itemL(text="Update:")		
-		sub.itemR(mball, "flag", expand=True)
+		col.itemL(text="Settings:")
+		col.itemR(mball, "threshold", text="Threshold")
+		col.itemL(text="Resolution:")
+		col = layout.column(align=True)
+		col.itemR(mball, "wire_size", text="View")
+		col.itemR(mball, "render_size", text="Render")
+				
+		layout.itemR(mball, "flag")
 
-class DATA_PT_metaball_metaelem(DataButtonsPanel):
-	__label__ = "MetaElem"
+class DATA_PT_metaball_element(DataButtonsPanel):
+	__label__ = "Meta Element"
+	
+	def poll(self, context):
+		return (context.meta_ball and context.meta_ball.last_selected_element)
 
 	def draw(self, context):
 		layout = self.layout
 		
 		metaelem = context.meta_ball.last_selected_element
 		
-		if(metaelem != None):
-			split = layout.split()
-			sub = split.column()
+		col = layout.column()
 			
-			sub.itemL(text="Settings:")
-			sub.itemR(metaelem, "stiffness", text="Stiffness")
-			sub.itemR(metaelem, "size", text="Size")
-			sub.itemL(text="Type:")
-			sub.itemR(metaelem, "type", expand=True)
-			sub.itemR(metaelem, "negative", text="Negative")
-
-		
+		col.itemL(text="Settings:")
+		col.itemR(metaelem, "stiffness", text="Stiffness")
+		col.itemR(metaelem, "size", text="Size")
+		col.itemL(text="Type:")
+		col.row().itemR(metaelem, "type", expand=True)
+		col.itemR(metaelem, "negative", text="Negative")
+	
 bpy.types.register(DATA_PT_context_metaball)
 bpy.types.register(DATA_PT_metaball)
-bpy.types.register(DATA_PT_metaball_metaelem)
+bpy.types.register(DATA_PT_metaball_element)
