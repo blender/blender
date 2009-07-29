@@ -100,12 +100,12 @@ static SpaceLink *console_new(const bContext *C)
 	ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
 	ar->v2d.align |= V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y; /* align bottom left */
 	ar->v2d.keepofs |= V2D_LOCKOFS_X;
-	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
+	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_LIMITZOOM|V2D_KEEPASPECT);
 	ar->v2d.keeptot= V2D_KEEPTOT_BOUNDS;
 	ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
 
 	/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
-	//ar->v2d.keepzoom= (V2D_KEEPASPECT|V2D_KEEPZOOM);
+	//ar->v2d.keepzoom= (V2D_KEEPASPECT|V2D_LIMITZOOM);
 
 	return (SpaceLink *)sconsole;
 }

@@ -1132,7 +1132,7 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 
 /************************ standard UI regions ************************/
 
-void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *context)
+void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *context, int contextnr)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	uiStyle *style= U.uistyles.first;
@@ -1142,7 +1142,10 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
 	float col[3];
-	int xco, yco, x, y, miny=0, w, em, header, triangle, open;
+	int xco, yco, x, y, miny=0, w, em, header, triangle, open, newcontext= 0;
+
+	if(contextnr >= 0)
+		newcontext= UI_view2d_tab_set(v2d, contextnr);
 
 	if(vertical) {
 		w= v2d->cur.xmax - v2d->cur.xmin;
@@ -1242,23 +1245,27 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 
 	/* before setting the view */
 	if(vertical) {
-		v2d->keepofs |= V2D_LOCKOFS_X;
-		v2d->keepofs &= ~V2D_LOCKOFS_Y;
+		v2d->keepofs |= V2D_LOCKOFS_X|V2D_KEEPOFS_Y;
+		v2d->keepofs &= ~(V2D_LOCKOFS_Y|V2D_KEEPOFS_X);
 		
 		// don't jump back when panels close or hide
-		y= MAX2(-y, -v2d->cur.ymin);
+		if(!newcontext)
+			y= MAX2(-y, -v2d->cur.ymin);
+		else
+			y= -y;
 	}
 	else {
-		v2d->keepofs &= ~V2D_LOCKOFS_X;
-		v2d->keepofs |= V2D_LOCKOFS_Y;
+		v2d->keepofs |= V2D_LOCKOFS_Y|V2D_KEEPOFS_X;
+		v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_KEEPOFS_Y);
 		
 		// don't jump back when panels close or hide
-		x= MAX2(x, v2d->cur.xmax);
+		if(!newcontext)
+			x= MAX2(x, v2d->cur.xmax);
 		y= -y;
 	}
 
 	// +V2D_SCROLL_HEIGHT is workaround to set the actual height
-	UI_view2d_totRect_set(v2d, x, y+V2D_SCROLL_HEIGHT);
+	UI_view2d_totRect_set(v2d, x+V2D_SCROLL_WIDTH, y+V2D_SCROLL_HEIGHT);
 
 	/* set the view */
 	UI_view2d_view_ortho(C, v2d);
@@ -1282,6 +1289,8 @@ void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
 	// XXX quick hacks for files saved with 2.5 already (i.e. the builtin defaults file)
 		// scrollbars for button regions
 	ar->v2d.scroll |= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM); 
+	ar->v2d.keepzoom |= V2D_KEEPZOOM;
+
 		// correctly initialised User-Prefs?
 	if(!(ar->v2d.align & V2D_ALIGN_NO_POS_Y))
 		ar->v2d.flag &= ~V2D_IS_INITIALISED;

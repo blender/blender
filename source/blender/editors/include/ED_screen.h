@@ -55,7 +55,7 @@ void	ED_region_init(struct bContext *C, struct ARegion *ar);
 void	ED_region_tag_redraw(struct ARegion *ar);
 void	ED_region_tag_redraw_partial(struct ARegion *ar, struct rcti *rct);
 void	ED_region_panels_init(struct wmWindowManager *wm, struct ARegion *ar);
-void	ED_region_panels(const struct bContext *C, struct ARegion *ar, int vertical, char *context);
+void	ED_region_panels(const struct bContext *C, struct ARegion *ar, int vertical, char *context, int contextnr);
 void	ED_region_header_init(struct ARegion *ar);
 void	ED_region_header(const struct bContext *C, struct ARegion *ar);
 

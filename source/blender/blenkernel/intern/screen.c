@@ -179,6 +179,9 @@ ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
 		else
 			newar->regiondata= MEM_dupallocN(ar->regiondata);
 	}
+
+	if(ar->v2d.tab_offset)
+		newar->v2d.tab_offset= MEM_dupallocN(ar->v2d.tab_offset);
 	
 	newar->panels.first= newar->panels.last= NULL;
 	BLI_duplicatelist(&newar->panels, &ar->panels);
@@ -271,10 +274,14 @@ void BKE_area_region_free(SpaceType *st, ARegion *ar)
 	}
 	else if(ar->type && ar->type->free)
 		ar->type->free(ar);
-
-	if(ar) {
-		BLI_freelistN(&ar->panels);
+	
+	if(ar->v2d.tab_offset) {
+		MEM_freeN(ar->v2d.tab_offset);
+		ar->v2d.tab_offset= NULL;
 	}
+
+	if(ar)
+		BLI_freelistN(&ar->panels);
 }
 
 /* not area itself */

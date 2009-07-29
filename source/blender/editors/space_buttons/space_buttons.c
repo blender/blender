@@ -155,27 +155,27 @@ static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 	buttons_context_compute(C, sbuts);
 
 	if(sbuts->mainb == BCONTEXT_SCENE)
-		ED_region_panels(C, ar, vertical, "scene");
+		ED_region_panels(C, ar, vertical, "scene", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_WORLD)
-		ED_region_panels(C, ar, vertical, "world");
+		ED_region_panels(C, ar, vertical, "world", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_OBJECT)
-		ED_region_panels(C, ar, vertical, "object");
+		ED_region_panels(C, ar, vertical, "object", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_DATA)
-		ED_region_panels(C, ar, vertical, "data");
+		ED_region_panels(C, ar, vertical, "data", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_MATERIAL)
-		ED_region_panels(C, ar, vertical, "material");
+		ED_region_panels(C, ar, vertical, "material", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_TEXTURE)
-		ED_region_panels(C, ar, vertical, "texture");
+		ED_region_panels(C, ar, vertical, "texture", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_PARTICLE)
-		ED_region_panels(C, ar, vertical, "particle");
+		ED_region_panels(C, ar, vertical, "particle", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_PHYSICS)
-		ED_region_panels(C, ar, vertical, "physics");
+		ED_region_panels(C, ar, vertical, "physics", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_BONE)
-		ED_region_panels(C, ar, vertical, "bone");
+		ED_region_panels(C, ar, vertical, "bone", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_MODIFIER)
-		ED_region_panels(C, ar, vertical, "modifier");
+		ED_region_panels(C, ar, vertical, "modifier", sbuts->mainb);
 	else if (sbuts->mainb == BCONTEXT_CONSTRAINT)
-		ED_region_panels(C, ar, vertical, "constraint");
+		ED_region_panels(C, ar, vertical, "constraint", sbuts->mainb);
 
     sbuts->re_align= 0;
 	sbuts->mainbo= sbuts->mainb;

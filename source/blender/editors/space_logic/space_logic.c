@@ -142,7 +142,7 @@ static SpaceLink *logic_new(const bContext *C)
 	ar->v2d.maxzoom= 1.21f;
 	
 	ar->v2d.scroll= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
-	ar->v2d.keepzoom= V2D_KEEPZOOM|V2D_KEEPASPECT;
+	ar->v2d.keepzoom= V2D_LIMITZOOM|V2D_KEEPASPECT;
 	ar->v2d.keeptot= 0;
 	
 	
@@ -279,7 +279,7 @@ static void logic_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void logic_buttons_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, NULL);
+	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
 /************************* header region **************************/

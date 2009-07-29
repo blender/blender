@@ -362,7 +362,7 @@ static void graph_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void graph_buttons_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, NULL);
+	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
 static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
