@@ -394,7 +394,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	else if (but->optype) {
 		PointerRNA *opptr;
 		char *str;
-		opptr= uiButGetOperatorPtrRNA(but);
+		opptr= uiButGetOperatorPtrRNA(but); /* allocated when needed, the button owns it */
 
 		str= WM_operator_pystring(but->optype, opptr);
 
@@ -403,7 +403,6 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		data->linedark[data->totline]= 1;
 		data->totline++;
 
-		WM_operator_properties_free(opptr);
 		MEM_freeN(str);
 	}
 
