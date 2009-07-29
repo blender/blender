@@ -933,7 +933,7 @@ int file_delete_poll(bContext *C)
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	struct direntry* file;
 
-	if (sfile->params) {
+	if (sfile && sfile->params) {
 		if (sfile->params->active_file < 0) { 
 			poll= 0;
 		} else {

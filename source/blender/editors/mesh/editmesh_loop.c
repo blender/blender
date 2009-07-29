@@ -723,7 +723,7 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
 	ot->modal= WM_gesture_lines_modal;
 	ot->exec= knife_cut_exec;
 	
-	ot->poll= ED_operator_editmesh;
+	ot->poll= EM_view3d_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
