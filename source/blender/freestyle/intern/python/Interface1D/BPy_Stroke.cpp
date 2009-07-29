@@ -134,7 +134,7 @@ PyTypeObject Stroke_Type = {
 
   /*** Added in release 2.2 ***/
 	/*   Iterators */
-	Stroke___iter__,            /* getiterfunc tp_iter; */
+	(getiterfunc)Stroke___iter__,            /* getiterfunc tp_iter; */
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
