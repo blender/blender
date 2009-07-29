@@ -89,6 +89,7 @@ typedef enum SK_PMode
 typedef struct SK_Point
 {
 	float p[3];
+	short p2d[2];
 	float no[3];
 	float size;
 	SK_PType type;
@@ -591,12 +592,14 @@ SK_Sketch* sk_createSketch()
 	return sketch;
 }
 
-void sk_initPoint(bContext *C, SK_Point *pt)
+void sk_initPoint(bContext *C, SK_Point *pt, SK_DrawData *dd)
 {
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ar->regiondata;
 
 	VECCOPY(pt->no, rv3d->viewinv[2]);
+	pt->p2d[0] = dd->mval[0];
+	pt->p2d[1] = dd->mval[1];
 	Normalize(pt->no);
 	/* more init code here */
 }
@@ -892,15 +895,13 @@ void sk_cancelStroke(SK_Sketch *sketch)
 	}
 }
 
-/* Apply reverse Chaikin filter to simplify the polyline
- * */
 void sk_filterStroke(SK_Stroke *stk, int start, int end)
 {
 	SK_Point *old_points = stk->points;
 	int nb_points = stk->nb_points;
+	char *marked = NULL;
+	char work;
 	int i, j;
-
-	return;
 
 	if (start == -1)
 	{
@@ -917,6 +918,10 @@ void sk_filterStroke(SK_Stroke *stk, int start, int end)
 		sk_appendStrokePoint(stk, old_points + i);
 	}
 
+#if 0
+
+	/* Apply reverse Chaikin filter to simplify the polyline
+	 * */
 	for (i = start, j = start; i <= end; i++)
 	{
 		if (i - j == 3)
@@ -960,6 +965,91 @@ void sk_filterStroke(SK_Stroke *stk, int start, int end)
 			j = i;
 		}
 	}
+#else
+	/* Ramer-Douglas-Peucker */
+	marked = MEM_callocN(nb_points, "marked array");
+	marked[start] = 1;
+	marked[end] = 1;
+	
+	work = 1;
+	
+	/* while still reducing */
+	while (work)
+	{
+		int ls, le;
+		work = 0;
+		
+		ls = start;
+		le = start+1;
+		
+		/* while not over interval */
+		while (ls < end)
+		{
+			int i;
+			int max_i = 0;
+			short v1[2];
+			float max_dist = 16; /* more than 4 pixels */
+			
+			/* find the next marked point */
+			while(marked[le] == 0)
+			{
+				le++;
+			}
+			
+			/* perpendicular vector to ls-le */
+			v1[1] = old_points[le].p2d[0] - old_points[ls].p2d[0]; 
+			v1[0] = old_points[ls].p2d[1] - old_points[le].p2d[1]; 
+			
+
+			for( i = ls + 1; i < le; i++ )
+			{
+				float mul;
+				float dist;
+				short v2[2];
+				
+				v2[0] = old_points[i].p2d[0] - old_points[ls].p2d[0]; 
+				v2[1] = old_points[i].p2d[1] - old_points[ls].p2d[1];
+				
+				if (v2[0] == 0 && v2[1] == 0)
+				{
+					continue;
+				}
+
+				mul = (float)(v1[0]*v2[0] + v1[1]*v2[1]) / (float)(v2[0]*v2[0] + v2[1]*v2[1]);
+				
+				dist = mul * mul * (v2[0]*v2[0] + v2[1]*v2[1]);
+				
+				if (dist > max_dist)
+				{
+					max_dist = dist;
+					max_i = i;
+				}
+			}
+			
+			if (max_i != 0)
+			{
+				work = 1;
+				marked[max_i] = 1;
+			}
+			
+			ls = le;
+			le = ls + 1;
+		}
+	}
+	
+
+	/* adding points after range */
+	for (i = start; i <= end; i++)
+	{
+		if (marked[i])
+		{
+			sk_appendStrokePoint(stk, old_points + i);
+		}
+	}
+
+	MEM_freeN(marked);
+#endif
+	
 
 	/* adding points after range */
 	for (i = end + 1; i < nb_points; i++)
@@ -1571,7 +1661,7 @@ int sk_addStrokeDrawPoint(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_Dra
 {
 	SK_Point pt;
 
-	sk_initPoint(C, &pt);
+	sk_initPoint(C, &pt, dd);
 
 	sk_getStrokeDrawPoint(C, &pt, sketch, stk, dd);
 
@@ -1734,7 +1824,7 @@ int sk_addStrokeSnapPoint(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_Dra
 	int point_added;
 	SK_Point pt;
 
-	sk_initPoint(C, &pt);
+	sk_initPoint(C, &pt, dd);
 
 	point_added = sk_getStrokeSnapPoint(C, &pt, sketch, stk, dd);
 
@@ -2998,6 +3088,7 @@ int sk_draw_stroke(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *
 		sk_addStrokePoint(C, sketch, stk, dd, snap);
 		sk_updateDrawData(dd);
 		sk_updateNextPoint(sketch, stk);
+		
 		return 1;
 	}
 
