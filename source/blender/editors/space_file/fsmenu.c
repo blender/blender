@@ -307,8 +307,6 @@ void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 		char dir[FILE_MAXDIR];
 		char *home= BLI_gethome();
 
-		// fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, "/", 1, 0);
-
 		if(home) {
 			BLI_snprintf(dir, FILE_MAXDIR, "%s/", home);
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, dir, 1, 0);
@@ -317,30 +315,42 @@ void fsmenu_read_file(struct FSMenu* fsmenu, const char *filename)
 		}
 
 		{
+			int found= 0;
+#ifdef __linux__
 			/* loop over mount points */
 			struct mntent *mnt;
 			FILE *fp;
+			int len;
+
 			fp = setmntent (MOUNTED, "r");
 			if (fp == NULL) {
 				fprintf(stderr, "could not get a list of mounted filesystemts\n");
 			}
 			else {
 				while ((mnt = getmntent (fp))) {
-					/* printf("%s %s %s %s %s %s\n", mnt->mnt_fsname, mnt->mnt_dir, mnt->mnt_type, mnt->mnt_opts, mnt->mnt_freq, mnt->mnt_passno); */
-
-					/* probably need to add more here */
-					if(	(strcmp (mnt->mnt_fsname, "none")==0) ||	/* /sys, /dev/pts */
-						(strcmp (mnt->mnt_type, "ramfs")==0)		/* /dev */
-					) {
+					/* not sure if this is right, but seems to give the relevant mnts */
+					if(strncmp(mnt->mnt_fsname, "/dev", 4))
 						continue;
-					}
 
-					fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, mnt->mnt_dir, 1, 0);
+					len= strlen(mnt->mnt_dir);
+					if(len && mnt->mnt_dir[len-1] != '/') {
+						BLI_snprintf(dir, FILE_MAXDIR, "%s/", mnt->mnt_dir);
+						fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, dir, 1, 0);
+					}
+					else
+						fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, mnt->mnt_dir, 1, 0);
+
+					found= 1;
 				}
 				if (endmntent (fp) == 0) {
 					fprintf(stderr, "could not close the list of mounted filesystemts\n");
 				}
 			}
+#endif
+
+			/* fallback */
+			if(!found)
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, "/", 1, 0);
 		}
 	}
 #endif
