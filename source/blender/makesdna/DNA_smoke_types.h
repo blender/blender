@@ -1,5 +1,5 @@
 /**
-* $Id: DNA_cloth_types.h 19820 2009-04-20 15:06:46Z blendix $
+* $Id$
 *
 * ***** BEGIN GPL LICENSE BLOCK *****
 *

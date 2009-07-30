@@ -1,7 +1,7 @@
 # -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
 # vim: tabstop=8
 #
-# $Id: Makefile 19330 2009-03-19 01:50:45Z hos $
+# $Id$
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
