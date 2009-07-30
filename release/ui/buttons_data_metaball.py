@@ -76,8 +76,7 @@ class DATA_PT_metaball_element(DataButtonsPanel):
 		col.itemR(metaelem, "stiffness", text="Stiffness")
 		col.itemR(metaelem, "negative", text="Negative")
 		col.itemR(metaelem, "hide", text="Hide")
-		
-	
+
 bpy.types.register(DATA_PT_context_metaball)
 bpy.types.register(DATA_PT_metaball)
 bpy.types.register(DATA_PT_metaball_element)

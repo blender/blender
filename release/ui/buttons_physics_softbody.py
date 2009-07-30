@@ -16,6 +16,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		md = context.soft_body
 		ob = context.object
 
@@ -50,22 +51,23 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
 			col.itemL(text="Simulation:")
 			col.itemR(softbody, "gravity")
 			col.itemR(softbody, "speed")
-			
-			
+	
 class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
 	__label__ = "Soft Body Goal"
 	
 	def poll(self, context):
-		return (context.soft_body != None)
+		return (context.soft_body)
 		
 	def draw_header(self, context):
 		layout = self.layout
+		
 		softbody = context.soft_body.settings
 	
 		layout.itemR(softbody, "use_goal", text="")
 		
 	def draw(self, context):
 		layout = self.layout
+		
 		md = context.soft_body
 		ob = context.object
 
@@ -81,34 +83,35 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
 			col = split.column()
 			col.itemL(text="Goal Strengths:")
 			col.itemR(softbody, "goal_default", text="Default")
-			subcol = col.column(align=True)
-			subcol.itemR(softbody, "goal_min", text="Minimum")
-			subcol.itemR(softbody, "goal_max", text="Maximum")
+			sub = col.column(align=True)
+			sub.itemR(softbody, "goal_min", text="Minimum")
+			sub.itemR(softbody, "goal_max", text="Maximum")
 			
 			col = split.column()
 			col.itemL(text="Goal Settings:")
 			col.itemR(softbody, "goal_spring", text="Stiffness")
 			col.itemR(softbody, "goal_friction", text="Damping")
+			
 			layout.item_pointerR(softbody, "goal_vertex_group", ob, "vertex_groups", text="Vertex Group")
 
 class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
 	__label__ = "Soft Body Edges"
 	
 	def poll(self, context):
-		return (context.soft_body != None)
+		return (context.soft_body)
 		
 	def draw_header(self, context):
 		layout = self.layout
+		
 		softbody = context.soft_body.settings
 	
 		layout.itemR(softbody, "use_edges", text="")
 		
 	def draw(self, context):
 		layout = self.layout
+		
 		md = context.soft_body
 		ob = context.object
-
-		split = layout.split()
 			
 		if md:
 			softbody = md.settings
@@ -128,14 +131,14 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
 			
 			col = split.column()
 			col.itemR(softbody, "stiff_quads")
-			subcol = col.column()
-			subcol.active = softbody.stiff_quads
-			subcol.itemR(softbody, "shear")
+			sub = col.column()
+			sub.active = softbody.stiff_quads
+			sub.itemR(softbody, "shear")
 			
 			col.itemR(softbody, "new_aero", text="Aero")
-			subcol = col.column()
-			subcol.enabled = softbody.new_aero
-			subcol.itemR(softbody, "aero", text="Factor")
+			sub = col.column()
+			sub.enabled = softbody.new_aero
+			sub.itemR(softbody, "aero", text="Factor")
 
 			col.itemL(text="Collision:")
 			col.itemR(softbody, "edge_collision", text="Edge")
@@ -145,25 +148,26 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
 	__label__ = "Soft Body Collision"
 	
 	def poll(self, context):
-		return (context.soft_body != None)
+		return (context.soft_body)
 		
 	def draw_header(self, context):
 		layout = self.layout
+		
 		softbody = context.soft_body.settings
 	
 		layout.itemR(softbody, "self_collision", text="")
 		
 	def draw(self, context):
 		layout = self.layout
+		
 		md = context.soft_body
 		ob = context.object
-
-		split = layout.split()
 			
 		if md:
 			softbody = md.settings
 
 			layout.active = softbody.self_collision
+			
 			layout.itemL(text="Collision Type:")
 			layout.itemR(softbody, "collision_type", expand=True)
 			
@@ -177,15 +181,14 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
 	__label__ = "Soft Body Solver"
 	
 	def poll(self, context):
-		return (context.soft_body != None)
+		return (context.soft_body)
 		
 	def draw(self, context):
 		layout = self.layout
+		
 		md = context.soft_body
 		ob = context.object
-
-		split = layout.split()
-			
+		
 		if md:
 			softbody = md.settings
 
@@ -200,7 +203,6 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
 			
 			col = split.column()
 			col.itemR(softbody, "error_limit")
-
 			col.itemL(text="Helpers:")
 			col.itemR(softbody, "choke")
 			col.itemR(softbody, "fuzzy")

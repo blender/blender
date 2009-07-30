@@ -14,8 +14,10 @@ class RenderButtonsPanel(bpy.types.Panel):
 class SCENE_PT_render(RenderButtonsPanel):
 	__label__ = "Render"
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
+	
 	def draw(self, context):
 		layout = self.layout
+		
 		rd = context.scene.render_data
 
 		row = layout.row()
@@ -31,6 +33,7 @@ class SCENE_PT_layers(RenderButtonsPanel):
 	
 	def draw(self, context):
 		layout = self.layout
+		
 		scene = context.scene
 		rd = scene.render_data
 
@@ -44,6 +47,7 @@ class SCENE_PT_layers(RenderButtonsPanel):
 		rl = rd.layers[rd.active_layer_index]
 
 		split = layout.split()
+		
 		col = split.column()
 		col.itemR(scene, "visible_layers", text="Scene")
 		col = split.column()
@@ -54,6 +58,7 @@ class SCENE_PT_layers(RenderButtonsPanel):
 		
 		layout.itemS()
 		layout.itemL(text="Include:")
+		
 		split = layout.split()
 
 		col = split.column()
@@ -81,6 +86,7 @@ class SCENE_PT_layers(RenderButtonsPanel):
 		layout.itemS()
 		
 		split = layout.split()
+		
 		col = split.column()
 		col.itemL(text="Passes:")
 		col.itemR(rl, "pass_combined")
@@ -117,6 +123,7 @@ class SCENE_PT_shading(RenderButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		rd = context.scene.render_data
 		
 		split = layout.split()
@@ -139,6 +146,7 @@ class SCENE_PT_performance(RenderButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		rd = context.scene.render_data
 
 		split = layout.split()
@@ -146,16 +154,14 @@ class SCENE_PT_performance(RenderButtonsPanel):
 		col = split.column(align=True)
 		col.itemL(text="Threads:")
 		col.row().itemR(rd, "threads_mode", expand=True)
-		colsub = col.column()
-		colsub.enabled = rd.threads_mode == 'THREADS_FIXED'
-		colsub.itemR(rd, "threads")
+		sub = col.column()
+		sub.enabled = rd.threads_mode == 'THREADS_FIXED'
+		sub.itemR(rd, "threads")
 
-		col = split.column()
-		
-		sub = col.column(align=True)
-		sub.itemL(text="Tiles:")
-		sub.itemR(rd, "parts_x", text="X")
-		sub.itemR(rd, "parts_y", text="Y")
+		col = split.column(align=True)
+		col.itemL(text="Tiles:")
+		col.itemR(rd, "parts_x", text="X")
+		col.itemR(rd, "parts_y", text="Y")
 
 		split = layout.split()
 
@@ -166,14 +172,13 @@ class SCENE_PT_performance(RenderButtonsPanel):
 		row.enabled = not rd.full_sample
 
 		col = split.column()
+		col.active = rd.use_compositing
 		col.itemL()
 		col.itemR(rd, "free_image_textures")
-		col.active = rd.use_compositing
 
 		row = layout.row()
 		row.active = rd.render_raytracing
 		row.itemR(rd, "octree_resolution", text="Ray Tracing Octree")
-
 
 class SCENE_PT_post_processing(RenderButtonsPanel):
 	__label__ = "Post Processing"
@@ -182,6 +187,7 @@ class SCENE_PT_post_processing(RenderButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		rd = context.scene.render_data
 
 		split = layout.split()
@@ -193,12 +199,12 @@ class SCENE_PT_post_processing(RenderButtonsPanel):
 		col = split.column()
 		row = col.row()
 		row.itemR(rd, "fields", text="Fields")
-		rowsub = row.row()
-		rowsub.active = rd.fields
-		rowsub.itemR(rd, "fields_still", text="Still")
-		rowsub = col.row()
-		rowsub.active = rd.fields
-		rowsub.itemR(rd, "field_order", expand=True)
+		sub = row.row()
+		sub.active = rd.fields
+		sub.itemR(rd, "fields_still", text="Still")
+		sub = col.row()
+		sub.active = rd.fields
+		sub.itemR(rd, "field_order", expand=True)
 
 		split = layout.split()
 		split.itemL()
@@ -210,6 +216,7 @@ class SCENE_PT_output(RenderButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		rd = context.scene.render_data
 		
 		layout.itemR(rd, "output_path", text="")
@@ -230,6 +237,7 @@ class SCENE_PT_output(RenderButtonsPanel):
 			
 		elif rd.file_format == 'OPENEXR':
 			split = layout.split()
+			
 			col = split.column()
 			col.itemR(rd, "exr_codec")
 
@@ -277,9 +285,11 @@ class SCENE_PT_encoding(RenderButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		rd = context.scene.render_data
 
 		split = layout.split()
+		
 		split.itemR(rd, "ffmpeg_format")
 		if rd.ffmpeg_format in ('AVI', 'QUICKTIME', 'MKV', 'OGG'):
 			split.itemR(rd, "ffmpeg_codec")
@@ -320,12 +330,14 @@ class SCENE_PT_antialiasing(RenderButtonsPanel):
 
 	def draw_header(self, context):
 		layout = self.layout
+		
 		rd = context.scene.render_data
 
 		layout.itemR(rd, "antialiasing", text="")
 
 	def draw(self, context):
 		layout = self.layout
+		
 		rd = context.scene.render_data
 
 		layout.active = rd.antialiasing
@@ -385,13 +397,15 @@ class SCENE_PT_stamp(RenderButtonsPanel):
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw_header(self, context):
+		layout = self.layout
+		
 		rd = context.scene.render_data
 
-		layout = self.layout
 		layout.itemR(rd, "render_stamp", text="")
 
 	def draw(self, context):
 		layout = self.layout
+		
 		rd = context.scene.render_data
 
 		layout.active = rd.render_stamp
@@ -408,17 +422,17 @@ class SCENE_PT_stamp(RenderButtonsPanel):
 		col.itemR(rd, "stamp_marker", text="Marker")
 		col.itemR(rd, "stamp_sequence_strip", text="Seq. Strip")
 
-		sub = split.column()
-		sub.active = rd.render_stamp
-		sub.itemR(rd, "stamp_foreground", slider=True)
-		sub.itemR(rd, "stamp_background", slider=True)
-		sub.itemR(rd, "stamp_font_size", text="Font Size")
+		col = split.column()
+		col.active = rd.render_stamp
+		col.itemR(rd, "stamp_foreground", slider=True)
+		col.itemR(rd, "stamp_background", slider=True)
+		col.itemR(rd, "stamp_font_size", text="Font Size")
 
 		row = layout.split(percentage=0.2)
 		row.itemR(rd, "stamp_note", text="Note")
-		rowsub = row.row()
-		rowsub.active = rd.stamp_note
-		rowsub.itemR(rd, "stamp_note_text", text="")
+		sub = row.row()
+		sub.active = rd.stamp_note
+		sub.itemR(rd, "stamp_note_text", text="")
 
 bpy.types.register(SCENE_PT_render)
 bpy.types.register(SCENE_PT_layers)
@@ -430,4 +444,3 @@ bpy.types.register(SCENE_PT_encoding)
 bpy.types.register(SCENE_PT_performance)
 bpy.types.register(SCENE_PT_post_processing)
 bpy.types.register(SCENE_PT_stamp)
-

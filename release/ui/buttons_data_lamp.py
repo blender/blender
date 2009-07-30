@@ -52,41 +52,24 @@ class DATA_PT_lamp(DataButtonsPanel):
 		sub = col.column()
 		sub.itemR(lamp, "color", text="")
 		sub.itemR(lamp, "energy")
-		
-	
-		
-		
-		#split = layout.split()
-		
+
 		if lamp.type in ('POINT', 'SPOT'):
-			#col = split.column()
-			#col.itemL(text="Falloff:")
-			sub = col.column()
 			sub.itemR(lamp, "falloff_type", text="Falloff")
 			sub.itemR(lamp, "distance")
-			
-			
+
 			if lamp.falloff_type == 'LINEAR_QUADRATIC_WEIGHTED':
-				#col = split.column()
 				col.itemL(text="Attenuation Factors:")
 				sub = col.column(align=True)
 				sub.itemR(lamp, "linear_attenuation", slider=True, text="Linear")
 				sub.itemR(lamp, "quadratic_attenuation", slider=True, text="Quadratic")
-			#else:
-				# 
-				# split.column()
 			
 			col.itemR(lamp, "sphere")
 			
 		if lamp.type == 'AREA':
-			#col = split.column()
 			col.itemR(lamp, "distance")
 			col.itemR(lamp, "gamma")
-
-			#col = split.column()
-			
-			
 			col.itemR(lamp, "shape")
+			
 			sub = col.column(align=True)
 			if (lamp.shape == 'SQUARE'):
 				sub.itemR(lamp, "size")
@@ -99,7 +82,6 @@ class DATA_PT_lamp(DataButtonsPanel):
 		col.itemR(lamp, "layer", text="This Layer Only")
 		col.itemR(lamp, "specular")
 		col.itemR(lamp, "diffuse")	
-			
 
 class DATA_PT_sunsky(DataButtonsPanel):
 	__label__ = "Sun/Sky"

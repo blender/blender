@@ -16,6 +16,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		ob = context.object
 		field = ob.field
 
@@ -24,65 +25,67 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 		split = layout.split(percentage=0.3)
 		
 		split.itemL(text="Type:")
-		split.itemR(field, "type", text=""
-		)
+		split.itemR(field, "type", text="")
 
 		split = layout.split()
 		
-		sub = split.column()
+		col = split.column()
 							
 		if field.type == "GUIDE":
-			sub = col.column()
-			sub.itemR(field, "guide_path_add")
+			col.itemR(field, "guide_path_add")
 			
-		if field.type == "WIND":
-			sub.itemR(field, "strength")
-			sub = split.column()
-			sub.itemR(field, "noise")
-			sub.itemR(field, "seed")
+		elif field.type == "WIND":
+			col.itemR(field, "strength")
+			
+			col = split.column()
+			col.itemR(field, "noise")
+			col.itemR(field, "seed")
 
-		
-		if field.type == "VORTEX":
-			sub.itemR(field, "strength")
-			sub = split.column()
-			sub.itemL(text="")
+		elif field.type == "VORTEX":
+			col.itemR(field, "strength")
+			
+			col = split.column()
+			col.itemL(text="")
 
-		if field.type in ("SPHERICAL", "CHARGE", "LENNARDJ"):
-			sub.itemR(field, "strength")
-			sub = split.column()
-			sub.itemR(field, "planar")
-			sub.itemR(field, "surface")
+		elif field.type in ("SPHERICAL", "CHARGE", "LENNARDJ"):
+			col.itemR(field, "strength")
 			
-		if field.type == "BOID":
-			sub.itemR(field, "strength")
-			sub = split.column()
-			sub.itemR(field, "surface")
+			col = split.column()
+			col.itemR(field, "planar")
+			col.itemR(field, "surface")
 			
-		if field.type == "MAGNET":
-			sub.itemR(field, "strength")
-			sub = split.column()
-			sub.itemR(field, "planar")
+		elif field.type == "BOID":
+			col.itemR(field, "strength")
 			
-		if field.type == "HARMONIC":
-			sub.itemR(field, "strength")
-			sub.itemR(field, "harmonic_damping", text="Damping")
-			sub = split.column()
-			sub.itemR(field, "surface")
-			sub.itemR(field, "planar")
+			col = split.column()
+			col.itemR(field, "surface")
 			
-		if field.type == "TEXTURE":
-			sub.itemR(field, "strength")
-			sub.itemR(field, "texture", text="")
-			sub.itemR(field, "texture_mode")
-			sub.itemR(field, "texture_nabla")
-			sub = split.column()
-			sub.itemR(field, "use_coordinates")
-			sub.itemR(field, "root_coordinates")
-			sub.itemR(field, "force_2d")
+		elif field.type == "MAGNET":
+			col.itemR(field, "strength")
+			
+			col = split.column()
+			col.itemR(field, "planar")
+			
+		elif field.type == "HARMONIC":
+			col.itemR(field, "strength")
+			col.itemR(field, "harmonic_damping", text="Damping")
+			
+			col = split.column()
+			col.itemR(field, "surface")
+			col.itemR(field, "planar")
+			
+		elif field.type == "TEXTURE":
+			col.itemR(field, "strength")
+			col.itemR(field, "texture", text="")
+			col.itemR(field, "texture_mode")
+			col.itemR(field, "texture_nabla")
+			
+			col = split.column()
+			col.itemR(field, "use_coordinates")
+			col.itemR(field, "root_coordinates")
+			col.itemR(field, "force_2d")
 			
 		if field.type in ("HARMONIC", "SPHERICAL", "CHARGE", "WIND", "VORTEX", "TEXTURE", "MAGNET", "BOID"):
-		
-			
 			layout.itemS()			
 			layout.itemL(text="Falloff:")
 			layout.itemR(field, "falloff_type", expand=True)
@@ -93,19 +96,18 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 			
 			layout.itemS()	
 			split = layout.split()
-			sub = split.column()
 			
-			sub.itemR(field, "use_min_distance", text="Minimum")
-			colsub1 = sub.column()
-			colsub1.active = field.use_min_distance
-			colsub1.itemR(field, "minimum_distance", text="Distance")
+			col = split.column()
+			col.itemR(field, "use_min_distance", text="Minimum")
+			sub = col.column()
+			sub.active = field.use_min_distance
+			sub.itemR(field, "minimum_distance", text="Distance")
 			
-			sub = split.column()
-			
-			sub.itemR(field, "use_max_distance", text="Maximum")
-			colsub2 = sub.column()
-			colsub2.active = field.use_max_distance
-			colsub2.itemR(field, "maximum_distance", text="Distance")
+			col = split.column()
+			col.itemR(field, "use_max_distance", text="Maximum")
+			sub = col.column()
+			sub.active = field.use_max_distance
+			sub.itemR(field, "maximum_distance", text="Distance")
 			
 			if field.falloff_type == "CONE":
 				layout.itemS()	
@@ -113,45 +115,43 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 				
 				row = layout.row()
 				row.itemR(field, "radial_falloff", text="Power")
-				row.itemL(text="")
+				row.itemL()
 				
 				split = layout.split()
-				sub = split.column()
 				
-				sub.itemR(field, "use_radial_min", text="Minimum")	
-				colsub1 = sub.column()
-				colsub1.active = field.use_radial_min
-				colsub1.itemR(field, "radial_minimum", text="Angle")
+				col = split.column()
+				col.itemR(field, "use_radial_min", text="Minimum")	
+				sub = col.column()
+				sub.active = field.use_radial_min
+				sub.itemR(field, "radial_minimum", text="Angle")
 				
-				sub = split.column()
+				col = split.column()
+				col.itemR(field, "use_radial_max", text="Maximum")
+				sub = col.column()
+				sub.active = field.use_radial_max
+				sub.itemR(field, "radial_maximum", text="Angle")
 				
-				sub.itemR(field, "use_radial_max", text="Maximum")
-				colsub2 = sub.column()
-				colsub2.active = field.use_radial_max
-				colsub2.itemR(field, "radial_maximum", text="Angle")
-				
-			if field.falloff_type == "TUBE":
-				
+			elif field.falloff_type == "TUBE":
 				layout.itemS()	
 				layout.itemL(text="Radial:")	
+				
 				row = layout.row()
 				row.itemR(field, "radial_falloff", text="Power")
-				row.itemL(text="")
+				row.itemL()
 				
 				split = layout.split()
-				sub = split.column()
 				
-				sub.itemR(field, "use_radial_min", text="Minimum")	
-				colsub1 = sub.column()
-				colsub1.active = field.use_radial_min
-				colsub1.itemR(field, "radial_minimum", text="Distance")
+				col = split.column()
+				col.itemR(field, "use_radial_min", text="Minimum")	
+				sub = col.column()
+				sub.active = field.use_radial_min
+				sub.itemR(field, "radial_minimum", text="Distance")
 				
-				sub = split.column()
-				
-				sub.itemR(field, "use_radial_max", text="Maximum")
-				colsub2 = sub.column()
-				colsub2.active = field.use_radial_max
-				colsub2.itemR(field, "radial_maximum", text="Distance")
+				col = split.column()
+				col.itemR(field, "use_radial_max", text="Maximum")
+				sub = col.column()
+				sub.active = field.use_radial_max
+				sub.itemR(field, "radial_maximum", text="Distance")
 				
 		#if ob.type in "CURVE":
 			#if field.type == "GUIDE":
@@ -179,6 +179,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		md = context.collision
 		settings = context.object.collision
 
@@ -190,25 +191,25 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
 		col.itemL(text="Particle:")
 		col.itemR(settings, "permeability", slider=True)
 		col.itemL(text="Particle Damping:")
-		colsub = col.column(align=True)
-		colsub.itemR(settings, "damping_factor", text="Factor", slider=True)
-		colsub.itemR(settings, "random_damping", text="Random", slider=True)
+		sub = col.column(align=True)
+		sub.itemR(settings, "damping_factor", text="Factor", slider=True)
+		sub.itemR(settings, "random_damping", text="Random", slider=True)
 		
 		col.itemL(text="Soft Body and Cloth:")
-		colsub = col.column(align=True)
-		colsub.itemR(settings, "outer_thickness", text="Outer", slider=True)
-		colsub.itemR(settings, "inner_thickness", text="Inner", slider=True)
+		sub = col.column(align=True)
+		sub.itemR(settings, "outer_thickness", text="Outer", slider=True)
+		sub.itemR(settings, "inner_thickness", text="Inner", slider=True)
 		
-		col.itemL(text="Force Fields:")
+		layout.itemL(text="Force Fields:")
 		layout.itemR(md, "absorption", text="Absorption")
 		
 		col = split.column()
 		col.itemL(text="")
 		col.itemR(settings, "kill_particles")
 		col.itemL(text="Particle Friction:")
-		colsub = col.column(align=True)
-		colsub.itemR(settings, "friction_factor", text="Factor", slider=True)
-		colsub.itemR(settings, "random_friction", text="Random", slider=True)
+		sub = col.column(align=True)
+		sub.itemR(settings, "friction_factor", text="Factor", slider=True)
+		sub.itemR(settings, "random_friction", text="Random", slider=True)
 		col.itemL(text="Soft Body Damping:")
 		col.itemR(settings, "damping", text="Factor", slider=True)
 		

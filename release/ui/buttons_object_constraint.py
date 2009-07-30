@@ -8,6 +8,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
 	def draw_constraint(self, con):
 		layout = self.layout
+		
 		box = layout.template_constraint(con)
 
 		if box:
@@ -91,23 +92,23 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
 		split = layout.split()
 		
-		sub = split.column()
-		sub.itemL(text="Location:")
-		sub.itemR(con, "locationx", text="X")
-		sub.itemR(con, "locationy", text="Y")
-		sub.itemR(con, "locationz", text="Z")
+		col = split.column()
+		col.itemL(text="Location:")
+		col.itemR(con, "locationx", text="X")
+		col.itemR(con, "locationy", text="Y")
+		col.itemR(con, "locationz", text="Z")
 		
-		sub = split.column()
-		sub.itemL(text="Rotation:")
-		sub.itemR(con, "rotationx", text="X")
-		sub.itemR(con, "rotationy", text="Y")
-		sub.itemR(con, "rotationz", text="Z")
+		col = split.column()
+		col.itemL(text="Rotation:")
+		col.itemR(con, "rotationx", text="X")
+		col.itemR(con, "rotationy", text="Y")
+		col.itemR(con, "rotationz", text="Z")
 		
-		sub = split.column()
-		sub.itemL(text="Scale:")
-		sub.itemR(con, "sizex", text="X")
-		sub.itemR(con, "sizey", text="Y")
-		sub.itemR(con, "sizez", text="Z")
+		col = split.column()
+		col.itemL(text="Scale:")
+		col.itemR(con, "sizex", text="X")
+		col.itemR(con, "sizey", text="Y")
+		col.itemR(con, "sizez", text="Z")
 		
 		row = layout.row()
 		row.itemO("constraint.childof_set_inverse")
@@ -134,18 +135,18 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		if con.pole_target and con.pole_target.type == "ARMATURE":
 			layout.item_pointerR(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
 		
-		col = layout.column_flow()
-		col.itemR(con, "iterations")
-		col.itemR(con, "pole_angle")
-		col.itemR(con, "weight")
-		col.itemR(con, "orient_weight")
-		col.itemR(con, "chain_length")
+		flow = layout.column_flow()
+		flow.itemR(con, "iterations")
+		flow.itemR(con, "pole_angle")
+		flow.itemR(con, "weight")
+		flow.itemR(con, "orient_weight")
+		flow.itemR(con, "chain_length")
 		
-		col = layout.column_flow()
-		col.itemR(con, "tail")
-		col.itemR(con, "rotation")
-		col.itemR(con, "targetless")
-		col.itemR(con, "stretch")
+		flow = layout.column_flow()
+		flow.itemR(con, "tail")
+		flow.itemR(con, "rotation")
+		flow.itemR(con, "targetless")
+		flow.itemR(con, "stretch")
 		
 	def follow_path(self, layout, con):
 		self.target_template(layout, con)
@@ -168,24 +169,24 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		
 		col = split.column()
 		col.itemR(con, "use_limit_x")
-		colsub = col.column()
-		colsub.active = con.use_limit_x
-		colsub.itemR(con, "minimum_x", text="Min")
-		colsub.itemR(con, "maximum_x", text="Max")
+		sub = col.column()
+		sub.active = con.use_limit_x
+		sub.itemR(con, "minimum_x", text="Min")
+		sub.itemR(con, "maximum_x", text="Max")
 		
 		col = split.column()
 		col.itemR(con, "use_limit_y")
-		colsub = col.column()
-		colsub.active = con.use_limit_y
-		colsub.itemR(con, "minimum_y", text="Min")
-		colsub.itemR(con, "maximum_y", text="Max")
+		sub = col.column()
+		sub.active = con.use_limit_y
+		sub.itemR(con, "minimum_y", text="Min")
+		sub.itemR(con, "maximum_y", text="Max")
 		
 		col = split.column()
 		col.itemR(con, "use_limit_z")
-		colsub = col.column()
-		colsub.active = con.use_limit_z
-		colsub.itemR(con, "minimum_z", text="Min")
-		colsub.itemR(con, "maximum_z", text="Max")
+		sub = col.column()
+		sub.active = con.use_limit_z
+		sub.itemR(con, "minimum_z", text="Min")
+		sub.itemR(con, "maximum_z", text="Max")
 		
 		row = layout.row()
 		row.itemR(con, "limit_transform")
@@ -200,33 +201,33 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		
 		col = split.column()
 		col.itemR(con, "use_minimum_x")
-		colsub = col.column()
-		colsub.active = con.use_minimum_x
-		colsub.itemR(con, "minimum_x", text="")
+		sub = col.column()
+		sub.active = con.use_minimum_x
+		sub.itemR(con, "minimum_x", text="")
 		col.itemR(con, "use_maximum_x")
-		colsub = col.column()
-		colsub.active = con.use_maximum_x
-		colsub.itemR(con, "maximum_x", text="")
+		sub = col.column()
+		sub.active = con.use_maximum_x
+		sub.itemR(con, "maximum_x", text="")
 		
 		col = split.column()
 		col.itemR(con, "use_minimum_y")
-		colsub = col.column()
-		colsub.active = con.use_minimum_y
-		colsub.itemR(con, "minimum_y", text="")
+		sub = col.column()
+		sub.active = con.use_minimum_y
+		sub.itemR(con, "minimum_y", text="")
 		col.itemR(con, "use_maximum_y")
-		colsub = col.column()
-		colsub.active = con.use_maximum_y
-		colsub.itemR(con, "maximum_y", text="")
+		sub = col.column()
+		sub.active = con.use_maximum_y
+		sub.itemR(con, "maximum_y", text="")
 		
 		col = split.column()
 		col.itemR(con, "use_minimum_z")
-		colsub = col.column()
-		colsub.active = con.use_minimum_z
-		colsub.itemR(con, "minimum_z", text="")
+		sub = col.column()
+		sub.active = con.use_minimum_z
+		sub.itemR(con, "minimum_z", text="")
 		col.itemR(con, "use_maximum_z")
-		colsub = col.column()
-		colsub.active = con.use_maximum_z
-		colsub.itemR(con, "maximum_z", text="")
+		sub = col.column()
+		sub.active = con.use_maximum_z
+		sub.itemR(con, "maximum_z", text="")
 	
 		row = layout.row()
 		row.itemR(con, "limit_transform")
@@ -241,33 +242,33 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
 		col = split.column()
 		col.itemR(con, "use_minimum_x")
-		colsub = col.column()
-		colsub.active = con.use_minimum_x
-		colsub.itemR(con, "minimum_x", text="")
+		sub = col.column()
+		sub.active = con.use_minimum_x
+		sub.itemR(con, "minimum_x", text="")
 		col.itemR(con, "use_maximum_x")
-		colsub = col.column()
-		colsub.active = con.use_maximum_x
-		colsub.itemR(con, "maximum_x", text="")
+		sub = col.column()
+		sub.active = con.use_maximum_x
+		sub.itemR(con, "maximum_x", text="")
 		
 		col = split.column()
 		col.itemR(con, "use_minimum_y")
-		colsub = col.column()
-		colsub.active = con.use_minimum_y
-		colsub.itemR(con, "minimum_y", text="")
+		sub = col.column()
+		sub.active = con.use_minimum_y
+		sub.itemR(con, "minimum_y", text="")
 		col.itemR(con, "use_maximum_y")
-		colsub = col.column()
-		colsub.active = con.use_maximum_y
-		colsub.itemR(con, "maximum_y", text="")
+		sub = col.column()
+		sub.active = con.use_maximum_y
+		sub.itemR(con, "maximum_y", text="")
 		
 		col = split.column()
 		col.itemR(con, "use_minimum_z")
-		colsub = col.column()
-		colsub.active = con.use_minimum_z
-		colsub.itemR(con, "minimum_z", text="")
+		sub = col.column()
+		sub.active = con.use_minimum_z
+		sub.itemR(con, "minimum_z", text="")
 		col.itemR(con, "use_maximum_z")
-		colsub = col.column()
-		colsub.active = con.use_maximum_z
-		colsub.itemR(con, "maximum_z", text="")
+		sub = col.column()
+		sub.active = con.use_maximum_z
+		sub.itemR(con, "maximum_z", text="")
 		
 		row = layout.row()
 		row.itemR(con, "limit_transform")
@@ -284,21 +285,21 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		
 		col = split.column()
 		col.itemR(con, "rotate_like_x", text="X")
-		colsub = col.column()
-		colsub.active = con.rotate_like_x
-		colsub.itemR(con, "invert_x", text="Invert")
+		sub = col.column()
+		sub.active = con.rotate_like_x
+		sub.itemR(con, "invert_x", text="Invert")
 		
 		col = split.column()
 		col.itemR(con, "rotate_like_y", text="Y")
-		colsub = col.column()
-		colsub.active = con.rotate_like_y
-		colsub.itemR(con, "invert_y", text="Invert")
+		sub = col.column()
+		sub.active = con.rotate_like_y
+		sub.itemR(con, "invert_y", text="Invert")
 		
 		col = split.column()
 		col.itemR(con, "rotate_like_z", text="Z")
-		colsub = col.column()
-		colsub.active = con.rotate_like_z
-		colsub.itemR(con, "invert_z", text="Invert")
+		sub = col.column()
+		sub.active = con.rotate_like_z
+		sub.itemR(con, "invert_z", text="Invert")
 
 		layout.itemR(con, "offset")
 		
@@ -311,21 +312,21 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		
 		col = split.column()
 		col.itemR(con, "locate_like_x", text="X")
-		colsub = col.column()
-		colsub.active = con.locate_like_x
-		colsub.itemR(con, "invert_x", text="Invert")
+		sub = col.column()
+		sub.active = con.locate_like_x
+		sub.itemR(con, "invert_x", text="Invert")
 		
 		col = split.column()
 		col.itemR(con, "locate_like_y", text="Y")
-		colsub = col.column()
-		colsub.active = con.locate_like_y
-		colsub.itemR(con, "invert_y", text="Invert")
+		sub = col.column()
+		sub.active = con.locate_like_y
+		sub.itemR(con, "invert_y", text="Invert")
 		
 		col = split.column()
 		col.itemR(con, "locate_like_z", text="Z")
-		colsub = col.column()
-		colsub.active = con.locate_like_z
-		colsub.itemR(con, "invert_z", text="Invert")
+		sub = col.column()
+		sub.active = con.locate_like_z
+		sub.itemR(con, "invert_z", text="Invert")
 
 		layout.itemR(con, "offset")
 			
@@ -516,11 +517,11 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
 	__context__ = "constraint"
 
 	def poll(self, context):
-		return (context.object != None)
+		return (context.object)
 		
 	def draw(self, context):
-		ob = context.object
 		layout = self.layout
+		ob = context.object
 
 		row = layout.row()
 		row.item_menu_enumO("object.constraint_add", "type")
@@ -538,9 +539,10 @@ class BONE_PT_constraints(ConstraintButtonsPanel):
 		return (ob and ob.type == "ARMATURE" and context.bone)
 		
 	def draw(self, context):
+		layout = self.layout
+		
 		ob = context.object
 		pchan = ob.pose.pose_channels[context.bone.name]
-		layout = self.layout
 
 		row = layout.row()
 		row.item_menu_enumO("pose.constraint_add", "type")
