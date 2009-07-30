@@ -32,7 +32,7 @@
 extern "C" {
 #endif
 
-struct FLUID_3D *smoke_init(int *res, int amplify, float *p0, float dt);
+struct FLUID_3D *smoke_init(int *res, int amplify, float *p0, float *p1, float dt);
 void smoke_free(struct FLUID_3D *fluid);
 
 void smoke_initBlenderRNA(struct FLUID_3D *fluid, float *alpha, float *beta);
