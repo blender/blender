@@ -5,14 +5,16 @@ class WorldButtonsPanel(bpy.types.Panel):
 	__space_type__ = "BUTTONS_WINDOW"
 	__region_type__ = "WINDOW"
 	__context__ = "world"
-
+	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
+	
 	def poll(self, context):
 		rd = context.scene.render_data
-		return (context.world != None) and (not rd.use_game_engine)
+		return (context.world != None) and (not rd.use_game_engine) and (rd.engine in self.COMPAT_ENGINES)
 
 class WORLD_PT_preview(WorldButtonsPanel):
 	__label__ = "Preview"
-
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
+	
 	def draw(self, context):
 		layout = self.layout
 		world = context.world
@@ -21,10 +23,11 @@ class WORLD_PT_preview(WorldButtonsPanel):
 	
 class WORLD_PT_context_world(WorldButtonsPanel):
 	__show_header__ = False
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def poll(self, context):
 		rd = context.scene.render_data
-		return (context.scene != None) and (not rd.use_game_engine)
+		return (not rd.use_game_engine) and (rd.engine in self.COMPAT_ENGINES)
 
 	def draw(self, context):
 		layout = self.layout
@@ -42,6 +45,7 @@ class WORLD_PT_context_world(WorldButtonsPanel):
 
 class WORLD_PT_world(WorldButtonsPanel):
 	__label__ = "World"
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw(self, context):
 		layout = self.layout
@@ -64,6 +68,7 @@ class WORLD_PT_world(WorldButtonsPanel):
 		
 class WORLD_PT_mist(WorldButtonsPanel):
 	__label__ = "Mist"
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw_header(self, context):
 		layout = self.layout
@@ -87,6 +92,7 @@ class WORLD_PT_mist(WorldButtonsPanel):
 		
 class WORLD_PT_stars(WorldButtonsPanel):
 	__label__ = "Stars"
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw_header(self, context):
 		layout = self.layout
@@ -108,6 +114,7 @@ class WORLD_PT_stars(WorldButtonsPanel):
 		
 class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 	__label__ = "Ambient Occlusion"
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw_header(self, context):
 		layout = self.layout

@@ -5,13 +5,15 @@ class MaterialButtonsPanel(bpy.types.Panel):
 	__space_type__ = "BUTTONS_WINDOW"
 	__region_type__ = "WINDOW"
 	__context__ = "material"
+	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
 	def poll(self, context):
-		return (context.material != None)
+		return (context.material) and (context.scene.render_data.engine in self.COMPAT_ENGINES)
 
 class MATERIAL_PT_preview(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_preview"
 	__label__ = "Preview"
+	COMPAT_ENGINES = set(['BLENDER_RENDER', 'BLENDER_GAME'])
 
 	def draw(self, context):
 		layout = self.layout
@@ -22,9 +24,13 @@ class MATERIAL_PT_preview(MaterialButtonsPanel):
 class MATERIAL_PT_context_material(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_context_material"
 	__show_header__ = False
+	COMPAT_ENGINES = set(['BLENDER_RENDER', 'BLENDER_GAME'])
 
 	def poll(self, context):
-		return (context.object)
+		# An exception, dont call the parent poll func because
+		# this manages materials for all engine types
+		
+		return (context.object) and (context.scene.render_data.engine in self.COMPAT_ENGINES)
 
 	def draw(self, context):
 		layout = self.layout
@@ -66,6 +72,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
 class MATERIAL_PT_material(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_material"
 	__label__ = "Shading"
+	COMPAT_ENGINES = set(['BLENDER_RENDER', 'BLENDER_GAME'])
 
 	def draw(self, context):
 		layout = self.layout
@@ -100,6 +107,7 @@ class MATERIAL_PT_strand(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_strand"
 	__label__ = "Strand"
 	__default_closed__ = True
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 	
 	def draw(self, context):
 		layout = self.layout
@@ -132,6 +140,7 @@ class MATERIAL_PT_strand(MaterialButtonsPanel):
 class MATERIAL_PT_options(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_options"
 	__label__ = "Options"
+	COMPAT_ENGINES = set(['BLENDER_RENDER', 'BLENDER_GAME'])
 
 	def draw(self, context):
 		layout = self.layout
@@ -165,6 +174,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
 class MATERIAL_PT_shadows(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_shadows"
 	__label__ = "Shadows"
+	COMPAT_ENGINES = set(['BLENDER_RENDER', 'BLENDER_GAME'])
 
 	def draw(self, context):
 		layout = self.layout
@@ -190,10 +200,10 @@ class MATERIAL_PT_shadows(MaterialButtonsPanel):
 class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_diffuse"
 	__label__ = "Diffuse"
+	COMPAT_ENGINES = set(['BLENDER_RENDER', 'BLENDER_GAME'])
 
 	def poll(self, context):
-		mat = context.material
-		return (mat and mat.type != 'HALO')
+		return (context.material.type != 'HALO') and (context.scene.render_data.engine in self.COMPAT_ENGINES)
 
 	def draw(self, context):
 		layout = self.layout
@@ -234,10 +244,10 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 class MATERIAL_PT_specular(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_specular"
 	__label__ = "Specular"
+	COMPAT_ENGINES = set(['BLENDER_RENDER', 'BLENDER_GAME'])
 
 	def poll(self, context):
-		mat = context.material
-		return (mat and mat.type != 'HALO')
+		return (context.material.type != 'HALO') and (context.scene.render_data.engine in self.COMPAT_ENGINES)
 
 	def draw(self, context):
 		layout = self.layout
@@ -278,10 +288,10 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_sss"
 	__label__ = "Subsurface Scattering"
 	__default_closed__ = True
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 	
 	def poll(self, context):
-		mat = context.material
-		return (mat and (mat.type == 'SURFACE' or mat.type == 'WIRE'))
+		return (context.material.type in ('SURFACE', 'WIRE')) and (context.scene.render_data.engine in self.COMPAT_ENGINES)
 
 	def draw_header(self, context):
 		layout = self.layout
@@ -317,10 +327,10 @@ class MATERIAL_PT_raymir(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_raymir"
 	__label__ = "Ray Mirror"
 	__default_closed__ = True
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 	
 	def poll(self, context):
-		mat = context.material
-		return (mat and (mat.type == 'SURFACE' or mat.type == 'WIRE'))
+		return (context.material.type in 'SURFACE', 'WIRE') and (context.scene.render_data.engine in self.COMPAT_ENGINES)
 	
 	def draw_header(self, context):
 		layout = self.layout
@@ -361,10 +371,10 @@ class MATERIAL_PT_raytransp(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_raytransp"
 	__label__= "Ray Transparency"
 	__default_closed__ = True
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 		
 	def poll(self, context):
-		mat = context.material
-		return (mat and (mat.type == 'SURFACE' or mat.type == 'WIRE'))
+		return (context.material.type in 'SURFACE', 'WIRE') and (context.scene.render_data.engine in self.COMPAT_ENGINES)
 
 	def draw_header(self, context):
 		layout = self.layout
@@ -405,10 +415,10 @@ class MATERIAL_PT_raytransp(MaterialButtonsPanel):
 class MATERIAL_PT_halo(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_halo"
 	__label__= "Halo"
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 	
 	def poll(self, context):
-		mat = context.material
-		return (mat and mat.type == 'HALO')
+		return (context.material.type == 'HALO') and (context.scene.render_data.engine in self.COMPAT_ENGINES)
 	
 	def draw(self, context):
 		layout = self.layout

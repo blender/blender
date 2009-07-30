@@ -50,6 +50,7 @@ class CONSOLE_MT_console(bpy.types.Menu):
 		layout.column()
 		layout.itemO("console.clear")
 		layout.itemO("console.copy")
+		layout.itemO("console.paste")
 
 class CONSOLE_MT_report(bpy.types.Menu):
 	__space_type__ = "CONSOLE"

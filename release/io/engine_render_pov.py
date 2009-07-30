@@ -64,7 +64,7 @@ def write_pov(filename, scene=None, info_callback = None):
 			
 			file.write('light_source {\n')
 			file.write('\t< 0,0,0 >\n')
-			file.write('\tcolor red %.6f green %.6f blue %.6f\n' % color)
+			file.write('\tcolor rgb<%.3g, %.3g, %.3g>\n' % color)
 			
 			if lamp.type == 'POINT': # Point Lamp 
 				pass
@@ -310,7 +310,7 @@ def write_pov(filename, scene=None, info_callback = None):
 				
 				float_col = col[0], col[1], col[2], 1-material.alpha, materialString
 				#print material.apl
-				file.write(',\n\t\ttexture { pigment {rgbf<%.6f, %.6f, %.6f, %.6f>}%s}' % float_col)
+				file.write(',\n\t\ttexture { pigment {rgbf<%.3g, %.3g, %.3g, %.3g>}%s}' % float_col)
 				index[0] = idx
 				idx+=1
 			
@@ -412,6 +412,22 @@ def write_pov(filename, scene=None, info_callback = None):
 			
 			bpy.data.remove_mesh(me)
 	
+	def exportWorld(world):
+		if not world:
+			return
+		
+		mist = world.mist
+		
+		if mist.enabled:
+			file.write('\tfog {\n')
+			file.write('\t\tdistance %.6f\n' % mist.depth)
+			file.write('\t\tcolor rgbt<%.3g, %.3g, %.3g, %.3g>\n' % (tuple(world.horizon_color) + (1-mist.intensity,)))
+			#file.write('\t\tfog_offset %.6f\n' % mist.start)
+			#file.write('\t\tfog_alt 5\n')
+			#file.write('\t\tturbulence 0.2\n')
+			#file.write('\t\tturb_depth 0.3\n')
+			file.write('\t\tfog_type 1\n')
+			file.write('\t}\n')
 	
 	exportCamera()
 	#exportMaterials()
@@ -419,6 +435,7 @@ def write_pov(filename, scene=None, info_callback = None):
 	lamps = [l for l in sel if l.type == 'LAMP']
 	exportLamps(lamps)
 	exportMeshs(sel)
+	exportWorld(scene.world)
 	
 	file.close()
 
@@ -462,7 +479,8 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
 	file.close()
 
 
-class PovrayRenderEngine(bpy.types.RenderEngine):
+class PovrayRender(bpy.types.RenderEngine):
+	__idname__ = 'POVRAY_RENDER'
 	__label__ = "Povray"
 	DELAY = 0.02
 	def _export(self, scene):
@@ -471,6 +489,11 @@ class PovrayRenderEngine(bpy.types.RenderEngine):
 		self.temp_file_in = tempfile.mktemp(suffix='.pov')
 		self.temp_file_out = tempfile.mktemp(suffix='.tga')
 		self.temp_file_ini = tempfile.mktemp(suffix='.ini')
+		'''
+		self.temp_file_in = '/test.pov'
+		self.temp_file_out = '/test.tga'
+		self.temp_file_ini = '/test.ini'
+		'''
 		
 		def info_callback(txt):
 			self.update_stats("", "POVRAY: " + txt)
@@ -580,4 +603,28 @@ class PovrayRenderEngine(bpy.types.RenderEngine):
 		self._cleanup()
 
 
-bpy.types.register(PovrayRenderEngine)
+bpy.types.register(PovrayRender)
+
+# Use some of the existing buttons.
+import buttons_scene
+buttons_scene.SCENE_PT_render.COMPAT_ENGINES.add('POVRAY_RENDER')
+buttons_scene.SCENE_PT_dimensions.COMPAT_ENGINES.add('POVRAY_RENDER')
+buttons_scene.SCENE_PT_antialiasing.COMPAT_ENGINES.add('POVRAY_RENDER')
+buttons_scene.SCENE_PT_output.COMPAT_ENGINES.add('POVRAY_RENDER')
+del buttons_scene
+
+# Use only a subset of the world panels
+import buttons_world
+buttons_world.WORLD_PT_preview.COMPAT_ENGINES.add('POVRAY_RENDER')
+buttons_world.WORLD_PT_context_world.COMPAT_ENGINES.add('POVRAY_RENDER')
+buttons_world.WORLD_PT_world.COMPAT_ENGINES.add('POVRAY_RENDER')
+buttons_world.WORLD_PT_mist.COMPAT_ENGINES.add('POVRAY_RENDER')
+del buttons_world
+
+# Example of wrapping every class 'as is'
+import buttons_material
+for member in dir(buttons_material):
+	subclass = getattr(buttons_material, member)
+	try:		subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+	except:	pass
+del buttons_material
