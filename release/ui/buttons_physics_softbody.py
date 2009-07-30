@@ -8,10 +8,10 @@ class PhysicButtonsPanel(bpy.types.Panel):
 
 	def poll(self, context):
 		ob = context.object
-		return (ob and ob.type == 'MESH')
+		rd = context.scene.render_data
+		return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
 		
 class PHYSICS_PT_softbody(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_softbody"
 	__label__ = "Soft Body"
 
 	def draw(self, context):
@@ -53,7 +53,6 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
 			
 			
 class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_softbody_goal"
 	__label__ = "Soft Body Goal"
 	
 	def poll(self, context):
@@ -93,7 +92,6 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
 			layout.item_pointerR(softbody, "goal_vertex_group", ob, "vertex_groups", text="Vertex Group")
 
 class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_softbody_edge"
 	__label__ = "Soft Body Edges"
 	
 	def poll(self, context):
@@ -144,7 +142,6 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
 			col.itemR(softbody, "face_collision", text="Face")
 			
 class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_softbody_collision"
 	__label__ = "Soft Body Collision"
 	
 	def poll(self, context):
@@ -177,7 +174,6 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
 			col.itemR(softbody, "ball_damp", text="Dampening")
 
 class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_softbody_solver"
 	__label__ = "Soft Body Solver"
 	
 	def poll(self, context):

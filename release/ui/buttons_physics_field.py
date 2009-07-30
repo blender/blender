@@ -7,10 +7,10 @@ class PhysicButtonsPanel(bpy.types.Panel):
 	__context__ = "physics"
 
 	def poll(self, context):
-		return (context.object != None)
+		rd = context.scene.render_data
+		return (context.object != None) and (not rd.use_game_engine)
 		
 class PHYSICS_PT_field(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_field"
 	__label__ = "Force Fields"
 	__default_closed__ = True
 
@@ -165,13 +165,13 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 				#layout.itemR(field, "surface")
 
 class PHYSICS_PT_collision(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_collision"
 	__label__ = "Collision"
 	__default_closed__ = True
 	
 	def poll(self, context):
 		ob = context.object
-		return (ob and ob.type == 'MESH')
+		rd = context.scene.render_data
+		return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
 
 	def draw_header(self, context):
 		settings = context.object.collision

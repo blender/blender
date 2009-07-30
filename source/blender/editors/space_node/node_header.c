@@ -67,7 +67,7 @@
 static void do_node_selectmenu(bContext *C, void *arg, int event)
 {
 	ScrArea *curarea= CTX_wm_area(C);
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C); 
+	SpaceNode *snode= CTX_wm_space_node(C); 
 	
 	/* functions in editnode.c assume there's a tree */
 	if(snode->nodetree==NULL)
@@ -124,7 +124,7 @@ static uiBlock *node_selectmenu(bContext *C, ARegion *ar, void *arg_unused)
 
 void do_node_addmenu(bContext *C, void *arg, int event)
 {
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	bNode *node;
 	
 	/* store selection in temp test flag */
@@ -144,7 +144,7 @@ void do_node_addmenu(bContext *C, void *arg, int event)
 static void node_make_addmenu(bContext *C, int nodeclass, uiBlock *block)
 {
 	Main *bmain= CTX_data_main(C);
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	bNodeTree *ntree;
 	int tot= 0, a;
 	short yco= 0, menuwidth=120;
@@ -393,7 +393,7 @@ static uiBlock *node_add_dynamicmenu(bContext *C, ARegion *ar, void *arg_unused)
 static uiBlock *node_addmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *curarea= CTX_wm_area(C);
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
@@ -449,7 +449,7 @@ static uiBlock *node_addmenu(bContext *C, ARegion *ar, void *arg_unused)
 static void do_node_nodemenu(bContext *C, void *arg, int event)
 {
 	ScrArea *curarea= CTX_wm_area(C);
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C); 
+	SpaceNode *snode= CTX_wm_space_node(C); 
 	int fromlib=0;
 	
 	/* functions in editnode.c assume there's a tree */
@@ -514,7 +514,7 @@ static void do_node_nodemenu(bContext *C, void *arg, int event)
 static uiBlock *node_nodemenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *curarea= CTX_wm_area(C);
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
@@ -574,7 +574,7 @@ static uiBlock *node_nodemenu(bContext *C, ARegion *ar, void *arg_unused)
 
 static void do_node_viewmenu(bContext *C, void *arg, int event)
 {
-//	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+//	SpaceNode *snode= CTX_wm_space_node(C);
 //	ARegion *ar= CTX_wm_region(C);
 	ScrArea *sa= CTX_wm_area(C);
 	
@@ -598,7 +598,7 @@ static void do_node_viewmenu(bContext *C, void *arg, int event)
 static uiBlock *node_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *curarea= CTX_wm_area(C);
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
@@ -641,7 +641,7 @@ static void do_node_buttons(bContext *C, void *arg, int event)
 {
 	// NODE_FIX_ME : instead of using "current material/texture/scene", node editor can also pin context?
 	// note: scene context better not gets overridden, that'll clash too much (ton)
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	Scene *scene= CTX_data_scene(C);
 	Material *ma;
 	Tex *tx;
@@ -687,7 +687,7 @@ static void do_node_buttons(bContext *C, void *arg, int event)
 void node_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	Scene *scene= CTX_data_scene(C);
 	uiBlock *block;
 	short xco, yco= 3;

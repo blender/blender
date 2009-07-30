@@ -48,6 +48,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -721,7 +722,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *op)
 			/* only groups - don't check other types yet, since they may no-longer exist */
 			if (ale->type == ANIMTYPE_GROUP) {
 				bActionGroup *agrp= (bActionGroup *)ale->data;
-				AnimData *adt= BKE_animdata_from_id(ale->id);
+				AnimData *adt= ale->adt;
 				FCurve *fcu, *fcn;
 				
 				/* skip this group if no AnimData available, as we can't safely remove the F-Curves */
@@ -759,7 +760,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *op)
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			/* only F-Curves, and only if we can identify its parent */
 			if (ale->type == ANIMTYPE_FCURVE) {
-				AnimData *adt= BKE_animdata_from_id(ale->id);
+				AnimData *adt= ale->adt;
 				FCurve *fcu= (FCurve *)ale->data;
 				
 				/* if no AnimData, we've got nowhere to remove the F-Curve from */
@@ -981,6 +982,20 @@ static void setflag_anim_channels (bAnimContext *ac, short setting, short mode, 
 				}
 			}
 				break;
+			case ANIMTYPE_FILLPARTD:
+			{
+				Object *ob= (Object *)ale->data;
+				
+				// XXX - settings should really be moved out of ob->nlaflag
+				if ((onlysel == 0) || (ob->flag & SELECT)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						if (mode == ACHANNEL_SETFLAG_TOGGLE) 	ob->nlaflag ^= OB_ADS_SHOWPARTS;
+						else if (mode == ACHANNEL_SETFLAG_ADD) 	ob->nlaflag |= OB_ADS_SHOWPARTS;
+						else 									ob->nlaflag &= ~OB_ADS_SHOWPARTS;
+					}
+				}
+			}
+				break;
 					
 			case ANIMTYPE_DSMAT:
 			{
@@ -1044,6 +1059,17 @@ static void setflag_anim_channels (bAnimContext *ac, short setting, short mode, 
 				if (ASUBCHANNEL_SEL_OK(ale)) {
 					if (setting == ACHANNEL_SETTING_EXPAND) {
 						ACHANNEL_SET_FLAG(wo, mode, WO_DS_EXPAND);
+					}
+				}
+			}
+				break;
+			case ANIMTYPE_DSPART:
+			{
+				ParticleSettings *part= (ParticleSettings*)ale->data;
+
+				if (ASUBCHANNEL_SEL_OK(ale)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						ACHANNEL_SET_FLAG(part, mode, PART_DS_EXPAND);
 					}
 				}
 			}
@@ -1605,6 +1631,13 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 			notifierFlags |= ND_ANIMCHAN_EDIT;
 		}
 			break;
+		case ANIMTYPE_FILLPARTD:
+		{
+			Object *ob= (Object *)ale->data;
+			ob->nlaflag ^= OB_ADS_SHOWPARTS;	// XXX 
+			notifierFlags |= ND_ANIMCHAN_EDIT;
+		}
+			break;
 				
 		case ANIMTYPE_DSMAT:
 		{
@@ -1645,6 +1678,13 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 		{
 			World *wo= (World *)ale->data;
 			wo->flag ^= WO_DS_EXPAND;
+			notifierFlags |= ND_ANIMCHAN_EDIT;
+		}
+			break;
+		case ANIMTYPE_DSPART:
+		{
+			ParticleSettings *part= (ParticleSettings *)ale->data;
+			part->flag ^= PART_DS_EXPAND;
 			notifierFlags |= ND_ANIMCHAN_EDIT;
 		}
 			break;

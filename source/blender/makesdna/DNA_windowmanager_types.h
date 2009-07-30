@@ -171,6 +171,18 @@ typedef struct wmWindow {
 
 #
 #
+typedef struct wmOperatorTypeMacro {
+	struct wmOperatorTypeMacro *next, *prev;
+	
+	/* operator id */
+	char idname[MAX_ID_NAME];
+	/* rna pointer to access properties, like keymap */
+	struct PointerRNA *ptr;	
+
+} wmOperatorTypeMacro;
+
+#
+#
 typedef struct wmOperatorType {
 	struct wmOperatorType *next, *prev;
 	
@@ -202,6 +214,9 @@ typedef struct wmOperatorType {
 	/* rna for properties */
 	struct StructRNA *srna;
 	
+	/* struct wmOperatorTypeMacro */
+	ListBase macro;
+	
 	short flag;
 	
 	/* pointer to modal keymap, do not free! */
@@ -227,6 +242,10 @@ typedef struct wmKeymapItem {
 	short keymodifier;				/* rawkey modifier */
 	
 	short propvalue;				/* if used, the item is from modal map */
+	
+	short inactive;					/* if set, deactivated item */
+	short maptype;						/* keymap editor */
+	short pad2, pad3;
 } wmKeymapItem;
 
 
@@ -259,8 +278,12 @@ typedef struct wmOperator {
 	/* runtime */
 	wmOperatorType *type;		/* operator type definition from idname */
 	void *customdata;			/* custom storage, only while operator runs */
+	
 	struct PointerRNA *ptr;		/* rna pointer to access properties */
 	struct ReportList *reports;	/* errors and warnings storage */
+	
+	ListBase macro;				/* list of operators, can be a tree */
+	struct wmOperator *opm;		/* current running macro, not saved */
 	
 } wmOperator;
 

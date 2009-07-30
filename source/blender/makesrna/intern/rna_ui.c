@@ -620,6 +620,9 @@ static void rna_def_panel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "UILayout");
 
+	prop= RNA_def_property(srna, "text", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "drawname");
+
 	/* registration */
 	prop= RNA_def_property(srna, "idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
@@ -647,8 +650,8 @@ static void rna_def_panel(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", PNL_DEFAULT_CLOSED);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
-	prop= RNA_def_property(srna, "no_header", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", PNL_NO_HEADER);
+	prop= RNA_def_property(srna, "show_header", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "type->flag", PNL_NO_HEADER);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 }
 

@@ -1107,7 +1107,7 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *d
 				float origf= fx *= tex->xrepeat;
 				
 				// TXF: omit mirror here, see comments in do_material_tex() after do_2d_mapping() call
-				if (tex->texfilter == TXF_DEFAULT) {
+				if (tex->texfilter == TXF_BOX) {
 					if(fx>1.0f) fx -= (int)(fx);
 					else if(fx<0.0f) fx+= 1-(int)(fx);
 				
@@ -1127,7 +1127,7 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *d
 				float origf= fy *= tex->yrepeat;
 				
 				// TXF: omit mirror here, see comments in do_material_tex() after do_2d_mapping() call
-				if (tex->texfilter == TXF_DEFAULT) {
+				if (tex->texfilter == TXF_BOX) {
 					if(fy>1.0f) fy -= (int)(fy);
 					else if(fy<0.0f) fy+= 1-(int)(fy);
 				
@@ -1545,7 +1545,7 @@ static void texco_mapping(ShadeInput* shi, Tex* tex, MTex* mtex, float* co, floa
 		// textures are scaled (sizeXYZ) as well as repeated. See also modification in do_2d_mapping().
 		// (since currently only done in osa mode, results will look incorrect without osa TODO) 
 		if (tex->extend == TEX_REPEAT && (tex->flag & TEX_REPEAT_XMIR)) {
-			if (tex->texfilter == TXF_DEFAULT)
+			if (tex->texfilter == TXF_BOX)
 				texvec[0] -= floorf(texvec[0]);	// this line equivalent to old code, same below
 			else if (texvec[0] < 0.f || texvec[0] > 1.f) {
 				const float tx = 0.5f*texvec[0];
@@ -1554,7 +1554,7 @@ static void texco_mapping(ShadeInput* shi, Tex* tex, MTex* mtex, float* co, floa
 			}
 		}
 		if (tex->extend == TEX_REPEAT && (tex->flag & TEX_REPEAT_YMIR)) {
-			if  (tex->texfilter == TXF_DEFAULT)
+			if  (tex->texfilter == TXF_BOX)
 				texvec[1] -= floorf(texvec[1]);
 			else if (texvec[1] < 0.f || texvec[1] > 1.f) {
 				const float ty = 0.5f*texvec[1];
@@ -2571,7 +2571,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 	float *co = NULL, *dx = NULL, *dy = NULL, fact, stencilTin=1.0;
 	float texvec[3], dxt[3], dyt[3], tempvec[3];
-	int tex_nr, rgb= 0;
+	int i, tex_nr, rgb= 0;
 	
 	if (R.r.scemode & R_NO_TEX) return;
 	tex_nr= 0;
@@ -2647,21 +2647,33 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 			else texvec[2]= mtex->size[2]*(mtex->ofs[2]);
 			
 			if(shi->osatex) {
-				if(mtex->projx) {
-					dxt[0]= mtex->size[0]*dx[mtex->projx-1];
-					dyt[0]= mtex->size[0]*dy[mtex->projx-1];
+				if (!dx) {
+					for(i=0;i<2;i++) { 
+						dxt[i] = dyt[i] = 0.0;
+					}
+				} else {
+					if(mtex->projx) {
+						dxt[0]= mtex->size[0]*dx[mtex->projx-1];
+						dyt[0]= mtex->size[0]*dy[mtex->projx-1];
+					} else {
+						dxt[0]= 0.0;
+						dyt[0]= 0.0;
+					}
+					if(mtex->projy) {
+						dxt[1]= mtex->size[1]*dx[mtex->projy-1];
+						dyt[1]= mtex->size[1]*dy[mtex->projy-1];
+					} else {
+						dxt[1]= 0.0;
+						dyt[1]= 0.0;
+					}
+					if(mtex->projz) {
+						dxt[2]= mtex->size[2]*dx[mtex->projz-1];
+						dyt[2]= mtex->size[2]*dy[mtex->projz-1];
+					} else {
+						dxt[2]= 0.0;
+						dyt[2]= 0.0;
+					}
 				}
-				else dxt[0]= 0.0;
-				if(mtex->projy) {
-					dxt[1]= mtex->size[1]*dx[mtex->projy-1];
-					dyt[1]= mtex->size[1]*dy[mtex->projy-1];
-				}
-				else dxt[1]= 0.0;
-				if(mtex->projx) {
-					dxt[2]= mtex->size[2]*dx[mtex->projz-1];
-					dyt[2]= mtex->size[2]*dy[mtex->projz-1];
-				}
-				else dxt[2]= 0.0;
 			}
 			
 			/* texture */

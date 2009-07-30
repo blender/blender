@@ -99,6 +99,8 @@ void ED_armature_from_edit(struct Scene *scene, struct Object *obedit);
 void ED_armature_to_edit(struct Object *ob);
 void ED_armature_edit_free(struct Object *ob);
 void ED_armature_edit_remake(struct Object *obedit);
+void ED_armature_deselectall(struct Object *obedit, int toggle, int doundo);
+
 int ED_do_pose_selectbuffer(struct Scene *scene, struct Base *base, unsigned int *buffer, 
 							short hits, short extend);
 void mouse_armature(struct bContext *C, short mval[2], int extend);
@@ -113,8 +115,13 @@ EditBone *addEditBone(struct bArmature *arm, char *name); /* used by COLLADA imp
 
 void transform_armature_mirror_update(struct Object *obedit);
 void clear_armature(struct Scene *scene, struct Object *ob, char mode);
-void create_vgroups_from_armature(struct Scene *scene, struct Object *ob, struct Object *par);
 void docenter_armature (struct Scene *scene, struct View3D *v3d, struct Object *ob, int centermode);
+
+#define ARM_GROUPS_NAME		1
+#define ARM_GROUPS_ENVELOPE	2
+#define ARM_GROUPS_AUTO		3
+
+void create_vgroups_from_armature(struct Scene *scene, struct Object *ob, struct Object *par, int mode);
 
 void auto_align_armature(struct Scene *scene, struct View3D *v3d, short mode);
 void unique_editbone_name(struct ListBase *ebones, char *name, EditBone *bone); /* if bone is already in list, pass it as param to ignore it */
@@ -127,15 +134,13 @@ void ED_armature_exit_posemode(struct bContext *C, struct Base *base);
 void ED_armature_enter_posemode(struct bContext *C, struct Base *base);
 int ED_pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan);
 void ED_pose_deselectall(struct Object *ob, int test, int doundo);
+void ED_pose_recalculate_paths(struct bContext *C, struct Scene *scene, struct Object *ob);
 
 /* sketch */
 
 int ED_operator_sketch_mode_active_stroke(struct bContext *C);
 int ED_operator_sketch_full_mode(struct bContext *C);
 int ED_operator_sketch_mode(const struct bContext *C);
-
-void ED_freeSketch(struct SK_Sketch *sketch);
-struct SK_Sketch* ED_createSketch();
 
 void BIF_convertSketch(struct bContext *C);
 void BIF_deleteSketch(struct bContext *C);

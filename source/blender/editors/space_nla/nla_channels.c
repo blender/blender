@@ -38,6 +38,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -116,10 +117,17 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 		case ANIMTYPE_SCENE:
 		{
 			Scene *sce= (Scene *)ale->data;
+			AnimData *adt= ale->data;
 			
 			if (x < 16) {
 				/* toggle expand */
 				sce->flag ^= SCE_DS_COLLAPSED;
+				
+				notifierFlags |= ND_ANIMCHAN_EDIT;
+			}
+			else if ( (adt) && (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) ) {
+				/* toggle mute */
+				adt->flag ^= ADT_NLA_EVAL_OFF;
 				
 				notifierFlags |= ND_ANIMCHAN_EDIT;
 			}
@@ -143,11 +151,18 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 			Scene *sce= (Scene *)ads->source;
 			Base *base= (Base *)ale->data;
 			Object *ob= base->object;
+			AnimData *adt= ale->adt;
 			
 			if (x < 16) {
 				/* toggle expand */
 				ob->nlaflag ^= OB_ADS_COLLAPSED; // XXX
 				notifierFlags |= ND_ANIMCHAN_EDIT;				
+			}
+			else if ( (adt) && (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) ) {
+				/* toggle mute */
+				adt->flag ^= ADT_NLA_EVAL_OFF;
+				
+				notifierFlags |= ND_ANIMCHAN_EDIT;
 			}
 			else if (nlaedit_is_tweakmode_on(ac) == 0) {
 				/* set selection status */
@@ -185,46 +200,123 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 			notifierFlags |= ND_ANIMCHAN_EDIT;
 		}
 			break;
+		case ANIMTYPE_FILLPARTD:
+		{
+			Object *ob= (Object *)ale->data;
+			ob->nlaflag ^= OB_ADS_SHOWPARTS;	// XXX 
+			notifierFlags |= ND_ANIMCHAN_EDIT;
+		}
+			break;
 				
 		case ANIMTYPE_DSMAT:
 		{
 			Material *ma= (Material *)ale->data;
-			ma->flag ^= MA_DS_EXPAND;
+			AnimData *adt= ale->adt;
+			
+			if ( (adt) && (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) ) {
+				/* toggle mute */
+				adt->flag ^= ADT_NLA_EVAL_OFF;
+			} 
+			else {
+				/* toggle expand */
+				ma->flag ^= MA_DS_EXPAND;
+			}
 			notifierFlags |= ND_ANIMCHAN_EDIT;
 		}
 			break;
 		case ANIMTYPE_DSLAM:
 		{
 			Lamp *la= (Lamp *)ale->data;
-			la->flag ^= LA_DS_EXPAND;
+			AnimData *adt= ale->adt;
+			
+			if ( (adt) && (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) ) {
+				/* toggle mute */
+				adt->flag ^= ADT_NLA_EVAL_OFF;
+			} 
+			else {
+				/* toggle expand */
+				la->flag ^= LA_DS_EXPAND;
+			}
 			notifierFlags |= ND_ANIMCHAN_EDIT;
 		}
 			break;
 		case ANIMTYPE_DSCAM:
 		{
 			Camera *ca= (Camera *)ale->data;
-			ca->flag ^= CAM_DS_EXPAND;
+			AnimData *adt= ale->adt;
+			
+			if ( (adt) && (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) ) {
+				/* toggle mute */
+				adt->flag ^= ADT_NLA_EVAL_OFF;
+			} 
+			else {
+				/* toggle expand */
+				ca->flag ^= CAM_DS_EXPAND;
+			}
 			notifierFlags |= ND_ANIMCHAN_EDIT;
 		}
 			break;
 		case ANIMTYPE_DSCUR:
 		{
 			Curve *cu= (Curve *)ale->data;
-			cu->flag ^= CU_DS_EXPAND;
+			AnimData *adt= ale->adt;
+			
+			if ( (adt) && (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) ) {
+				/* toggle mute */
+				adt->flag ^= ADT_NLA_EVAL_OFF;
+			} 
+			else {
+				/* toggle expand */
+				cu->flag ^= CU_DS_EXPAND;
+			}
 			notifierFlags |= ND_ANIMCHAN_EDIT;
 		}
 			break;
 		case ANIMTYPE_DSSKEY:
 		{
 			Key *key= (Key *)ale->data;
-			key->flag ^= KEYBLOCK_DS_EXPAND;
+			AnimData *adt= ale->adt;
+			
+			if ( (adt) && (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) ) {
+				/* toggle mute */
+				adt->flag ^= ADT_NLA_EVAL_OFF;
+			} 
+			else {
+				/* toggle expand */
+				key->flag ^= KEYBLOCK_DS_EXPAND;
+			}
 			notifierFlags |= ND_ANIMCHAN_EDIT;
 		}
 			break;
 		case ANIMTYPE_DSWOR:
 		{
 			World *wo= (World *)ale->data;
-			wo->flag ^= WO_DS_EXPAND;
+			AnimData *adt= ale->adt;
+			
+			if ( (adt) && (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) ) {
+				/* toggle mute */
+				adt->flag ^= ADT_NLA_EVAL_OFF;
+			} 
+			else {
+				/* toggle expand */
+				wo->flag ^= WO_DS_EXPAND;
+			}
+			notifierFlags |= ND_ANIMCHAN_EDIT;
+		}
+			break;
+		case ANIMTYPE_DSPART:
+		{
+			ParticleSettings *part= (ParticleSettings *)ale->data;
+			AnimData *adt= ale->adt;
+			
+			if ( (adt) && (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) ) {
+				/* toggle mute */
+				adt->flag ^= ADT_NLA_EVAL_OFF;
+			} 
+			else {
+				/* toggle expand */
+				part->flag ^= PART_DS_EXPAND;
+			}
 			notifierFlags |= ND_ANIMCHAN_EDIT;
 		}
 			break;
@@ -232,13 +324,13 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 		case ANIMTYPE_NLATRACK:
 		{
 			NlaTrack *nlt= (NlaTrack *)ale->data;
-			AnimData *adt= BKE_animdata_from_id(ale->id);
+			AnimData *adt= ale->adt;
 			short offset;
 			
 			/* offset for start of channel (on LHS of channel-list) */
 			if (ale->id) {
-				/* special exception for materials */
-				if (GS(ale->id->name) == ID_MA)
+				/* special exception for materials and particles */
+				if (ELEM(GS(ale->id->name),ID_MA,ID_PA))
 					offset= 21 + NLACHANNEL_BUTTON_WIDTH;
 				else
 					offset= 14;
@@ -416,7 +508,7 @@ static int nlaedit_add_tracks_exec (bContext *C, wmOperator *op)
 	/* add tracks... */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		NlaTrack *nlt= (NlaTrack *)ale->data;
-		AnimData *adt= BKE_animdata_from_id(ale->id);
+		AnimData *adt= ale->adt;
 		
 		/* check if just adding a new track above this one,
 		 * or whether we're adding a new one to the top of the stack that this one belongs to
@@ -482,7 +574,7 @@ static int nlaedit_delete_tracks_exec (bContext *C, wmOperator *op)
 	/* delete tracks */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		NlaTrack *nlt= (NlaTrack *)ale->data;
-		AnimData *adt= BKE_animdata_from_id(ale->id);
+		AnimData *adt= ale->adt;
 		
 		/* call delete on this track - deletes all strips too */
 		free_nlatrack(&adt->nla_tracks, nlt);

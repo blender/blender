@@ -193,6 +193,10 @@
 	/* only used for KM_TEXTINPUT, so assume that we want all user-inputtable ascii codes included */
 #define ISKEYBOARD(event)	(event >=' ' && event <=255)
 
+/* test whether event type is acceptable as hotkey, excluding modifiers */
+#define ISHOTKEY(event)	(event >=' ' && event <=320 && !(event>=LEFTCTRLKEY && event<=ESCKEY) && !(event>=UNKNOWNKEY && event<=GRLESSKEY))
+
+
 /* **************** BLENDER GESTURE EVENTS ********************* */
 
 #define EVT_ACTIONZONE_AREA		0x5000

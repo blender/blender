@@ -94,7 +94,7 @@ typedef struct SpaceIpo {
 	float blockscale;
 
 	short blockhandler[8];
-	View2D v2d; /* depricated, copied to region */
+	View2D v2d; /* deprecated, copied to region */
 	
 	struct bDopeSheet *ads;	/* settings for filtering animation data (NOTE: we use a pointer due to code-linking issues) */
 	
@@ -116,24 +116,12 @@ typedef struct SpaceButs {
 	
 	struct RenderInfo *ri;
 
-	short cursens, curact;
-	short align, preview;		/* align for panels, preview is signal to refresh */
-	View2D v2d; /* depricated, copied to region */
+	View2D v2d;						/* deprecated, copied to region */
 	
-	short mainb, menunr;	/* texnr and menunr have to remain shorts */
-	short pin, mainbo;	
-	void *lockpoin;
-	
-	short texnr;
-	char texfrom, showgroup;
-	
-	short modeltype;
-	short scriptblock;
-	short scaflag;
-	short re_align;
-	
-	short oldkeypress;		/* for keeping track of the sub tab key cycling */
-	char flag, texact;
+	short mainb, mainbo, mainbuser;	/* context tabs */
+	short re_align, align;			/* align for panels */
+	short preview;					/* preview is signal to refresh */
+	char flag, pad[3];
 	
 	void *path;				/* runtime */
 	int pathflag, dataicon;	/* runtime */
@@ -148,7 +136,7 @@ typedef struct SpaceSeq {
 
 	short blockhandler[8];
 
-	View2D v2d; /* depricated, copied to region */
+	View2D v2d; /* deprecated, copied to region */
 	
 	float xof, yof;	/* offset for drawing the image preview */
 	short mainb;
@@ -212,6 +200,8 @@ typedef struct SpaceFile {
 
 	struct FileLayout *layout;
 	
+	short recentnr, bookmarknr;
+	short systemnr, pad2;
 } SpaceFile;
 
 typedef struct SpaceOops {
@@ -222,7 +212,7 @@ typedef struct SpaceOops {
 
 	short blockhandler[8];
 
-	View2D v2d; /* depricated, copied to region */
+	View2D v2d; /* deprecated, copied to region */
 	
 	ListBase tree;
 	struct TreeStore *treestore;
@@ -277,7 +267,7 @@ typedef struct SpaceNla {
 	int pad;
 	
 	struct bDopeSheet *ads;
-	View2D v2d;	 /* depricated, copied to region */
+	View2D v2d;	 /* deprecated, copied to region */
 } SpaceNla;
 
 typedef struct SpaceText {
@@ -349,7 +339,7 @@ typedef struct SpaceTime {
 	int spacetype;
 	float blockscale;
 	
-	View2D v2d; /* depricated, copied to region */
+	View2D v2d; /* deprecated, copied to region */
 	
 	int flag, redraws;
 	
@@ -363,7 +353,7 @@ typedef struct SpaceNode {
 	
 	short blockhandler[8];
 	
-	View2D v2d; /* depricated, copied to region */
+	View2D v2d; /* deprecated, copied to region */
 	
 	struct ID *id, *from;		/* context, no need to save in file? well... pinning... */
 	short flag, menunr;			/* menunr: browse id block in header */
@@ -412,7 +402,7 @@ typedef struct SpaceImaSel {
 	
 	short blockhandler[8];
 
-	View2D v2d; /* depricated, copied to region */
+	View2D v2d; /* deprecated, copied to region */
 
 	struct FileList *files;
 
@@ -580,7 +570,6 @@ typedef struct SpaceConsole {
 #define BCONTEXT_TEXTURE	5
 #define BCONTEXT_PARTICLE	6
 #define BCONTEXT_PHYSICS	7
-#define BCONTEXT_GAME		8
 #define BCONTEXT_BONE		9
 #define BCONTEXT_MODIFIER	10
 #define BCONTEXT_CONSTRAINT 12
@@ -590,6 +579,7 @@ typedef struct SpaceConsole {
 #define SB_PRV_OSA			1
 #define SB_PIN_CONTEXT		2
 #define SB_WORLD_TEX		4
+#define SB_BRUSH_TEX		8
 
 /* sbuts->align */
 #define BUT_FREE  		0
@@ -654,7 +644,8 @@ enum FileSortTypeE {
 #define FILE_BOOKMARKS		512
 
 /* files in filesel list: 2=ACTIVE  */
-#define HILITE				1
+#define EDITING				1
+#define ACTIVE				2
 #define BLENDERFILE			4
 #define PSXFILE				8
 #define IMAGEFILE			16
@@ -720,6 +711,8 @@ enum FileSortTypeE {
 #define SIPO_NOHANDLES			(1<<2)
 #define SIPO_NODRAWCFRANUM		(1<<3)
 #define SIPO_DRAWTIME			(1<<4)
+#define SIPO_SELCUVERTSONLY		(1<<5)
+#define SIPO_DRAWNAMES			(1<<6)
 
 /* SpaceIpo->mode (Graph Editor Mode) */
 enum {
@@ -761,6 +754,7 @@ enum {
 #define SO_SEQUENCE		10
 #define SO_DATABLOCKS	11
 #define SO_USERDEF		12
+#define SO_KEYMAP		13
 
 /* SpaceOops->storeflag */
 #define SO_TREESTORE_CLEANUP	1
@@ -812,6 +806,7 @@ enum {
 #define SNLA_DRAWTIME		(1<<2)
 #define SNLA_NOTRANSKEYCULL	(1<<3)
 #define SNLA_NODRAWCFRANUM	(1<<4)
+#define SNLA_NOSTRIPCURVES	(1<<5)
 
 /* time->flag */
 	/* show timing in frames instead of in seconds */

@@ -1565,33 +1565,6 @@ static PreviewImage *direct_link_preview_image(FileData *fd, PreviewImage *old_p
 	return prv;
 }
 
-/* ************ READ SCRIPTLINK *************** */
-
-static void lib_link_scriptlink(FileData *fd, ID *id, ScriptLink *slink)
-{
-	int i;
-
-	for(i=0; i<slink->totscript; i++) {
-		slink->scripts[i]= newlibadr(fd, id->lib, slink->scripts[i]);
-	}
-}
-
-static void direct_link_scriptlink(FileData *fd, ScriptLink *slink)
-{
-	slink->scripts= newdataadr(fd, slink->scripts);
-	test_pointer_array(fd, (void **)&slink->scripts);
-	
-	slink->flag= newdataadr(fd, slink->flag);
-
-	if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-		int a;
-
-		for(a=0; a<slink->totscript; a++) {
-			SWITCH_SHORT(slink->flag[a]);
-		}
-	}
-}
-
 /* ************ READ ANIMATION STUFF ***************** */
 
 /* Legacy Data Support (for Version Patching) ----------------------------- */
@@ -2367,8 +2340,6 @@ static void lib_link_camera(FileData *fd, Main *main)
 			
 			ca->dof_ob= newlibadr_us(fd, ca->id.lib, ca->dof_ob);
 			
-			lib_link_scriptlink(fd, &ca->id, &ca->scriptlink);
-			
 			ca->id.flag -= LIB_NEEDLINK;
 		}
 		ca= ca->id.next;
@@ -2379,8 +2350,6 @@ static void direct_link_camera(FileData *fd, Camera *ca)
 {
 	ca->adt= newdataadr(fd, ca->adt);
 	direct_link_animdata(fd, ca->adt);
-	
-	direct_link_scriptlink(fd, &ca->scriptlink);
 }
 
 
@@ -2407,8 +2376,6 @@ static void lib_link_lamp(FileData *fd, Main *main)
 			
 			la->ipo= newlibadr_us(fd, la->id.lib, la->ipo); // XXX depreceated - old animation system
 			
-			lib_link_scriptlink(fd, &la->id, &la->scriptlink);
-			
 			la->id.flag -= LIB_NEEDLINK;
 		}
 		la= la->id.next;
@@ -2421,8 +2388,6 @@ static void direct_link_lamp(FileData *fd, Lamp *la)
 	
 	la->adt= newdataadr(fd, la->adt);
 	direct_link_animdata(fd, la->adt);
-	
-	direct_link_scriptlink(fd, &la->scriptlink);
 
 	for(a=0; a<MAX_MTEX; a++) {
 		la->mtex[a]= newdataadr(fd, la->mtex[a]);
@@ -2543,6 +2508,8 @@ static void direct_link_mball(FileData *fd, MetaBall *mb)
 	mb->disp.first= mb->disp.last= NULL;
 	mb->editelems= NULL;
 	mb->bb= NULL;
+/*	mb->edit_elems.first= mb->edit_elems.last= NULL;*/
+	mb->lastelem= NULL;
 }
 
 /* ************ READ WORLD ***************** */
@@ -2568,8 +2535,6 @@ static void lib_link_world(FileData *fd, Main *main)
 				}
 			}
 			
-			lib_link_scriptlink(fd, &wrld->id, &wrld->scriptlink);
-			
 			wrld->id.flag -= LIB_NEEDLINK;
 		}
 		wrld= wrld->id.next;
@@ -2582,8 +2547,6 @@ static void direct_link_world(FileData *fd, World *wrld)
 
 	wrld->adt= newdataadr(fd, wrld->adt);
 	direct_link_animdata(fd, wrld->adt);
-	
-	direct_link_scriptlink(fd, &wrld->scriptlink);
 
 	for(a=0; a<MAX_MTEX; a++) {
 		wrld->mtex[a]= newdataadr(fd, wrld->mtex[a]);
@@ -2921,7 +2884,6 @@ static void lib_link_material(FileData *fd, Main *main)
 					mtex->object= newlibadr(fd, ma->id.lib, mtex->object);
 				}
 			}
-			lib_link_scriptlink(fd, &ma->id, &ma->scriptlink);
 			
 			if(ma->nodetree)
 				lib_link_ntree(fd, &ma->id, ma->nodetree);
@@ -2945,8 +2907,6 @@ static void direct_link_material(FileData *fd, Material *ma)
 
 	ma->ramp_col= newdataadr(fd, ma->ramp_col);
 	ma->ramp_spec= newdataadr(fd, ma->ramp_spec);
-	
-	direct_link_scriptlink(fd, &ma->scriptlink);
 	
 	ma->nodetree= newdataadr(fd, ma->nodetree);
 	if(ma->nodetree)
@@ -3585,7 +3545,6 @@ static void lib_link_object(FileData *fd, Main *main)
 				if(ob->pd->tex)
 					ob->pd->tex=newlibadr_us(fd, ob->id.lib, ob->pd->tex);
 
-			lib_link_scriptlink(fd, &ob->id, &ob->scriptlink);
 			lib_link_particlesystems(fd, ob, &ob->id, &ob->particlesystem);
 			lib_link_modifiers(fd, ob);
 		}
@@ -3784,8 +3743,6 @@ static void direct_link_object(FileData *fd, Object *ob)
 	direct_link_nlastrips(fd, &ob->nlastrips);
 	link_list(fd, &ob->constraintChannels);
 // >>> XXX depreceated - old animation system 
-
-	direct_link_scriptlink(fd, &ob->scriptlink);
 
 	ob->mat= newdataadr(fd, ob->mat);
 	test_pointer_array(fd, (void **)&ob->mat);
@@ -4039,8 +3996,6 @@ static void lib_link_scene(FileData *fd, Main *main)
 			}
 			SEQ_END
 			
-			lib_link_scriptlink(fd, &sce->id, &sce->scriptlink);
-			
 			if(sce->nodetree) {
 				lib_link_ntree(fd, &sce->id, sce->nodetree);
 				composite_patch(sce->nodetree, sce);
@@ -4173,6 +4128,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 				} else {
 					seq->strip->color_balance = 0;
 				}
+				if (seq->strip->color_balance) {
+					// seq->strip->color_balance->gui = 0; // XXX - peter, is this relevant in 2.5?
+				}
 			}
 		}
 		SEQ_END
@@ -4216,8 +4174,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			}
 		}
 	}
-
-	direct_link_scriptlink(fd, &sce->scriptlink);
 	
 	sce->r.avicodecdata = newdataadr(fd, sce->r.avicodecdata);
 	if (sce->r.avicodecdata) {
@@ -4372,9 +4328,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 				
 				sa->full= newlibadr(fd, sc->id.lib, sa->full);
 				
-				/* space handler scriptlinks */
-				lib_link_scriptlink(fd, &sc->id, &sa->scriptlink);
-				
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if(sl->spacetype==SPACE_VIEW3D) {
 						View3D *v3d= (View3D*) sl;
@@ -4397,9 +4350,10 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 					else if(sl->spacetype==SPACE_BUTS) {
 						SpaceButs *sbuts= (SpaceButs *)sl;
-						sbuts->lockpoin= NULL;
 						sbuts->ri= NULL;
 						sbuts->pinid= newlibadr(fd, sc->id.lib, sbuts->pinid);
+						sbuts->mainbo= sbuts->mainb;
+						sbuts->mainbuser= sbuts->mainb;
 						if(main->versionfile<132)
 							butspace_version_132(sbuts);
 					}
@@ -4553,16 +4507,6 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 		while(sa) {
 			SpaceLink *sl;
 
-			if (sa->scriptlink.totscript) {
-				/* restore screen area script links */
-				ScriptLink *slink = &sa->scriptlink;
-				int script_idx;
-				for (script_idx = 0; script_idx < slink->totscript; script_idx++) {
-					slink->scripts[script_idx] = restore_pointer_by_name(newmain,
-						(ID *)slink->scripts[script_idx], 1);
-				}
-			}
-
 			for (sl= sa->spacedata.first; sl; sl= sl->next) {
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D*) sl;
@@ -4618,7 +4562,6 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 				}
 				else if(sl->spacetype==SPACE_BUTS) {
 					SpaceButs *sbuts= (SpaceButs *)sl;
-					sbuts->lockpoin= NULL;
 					sbuts->pinid = restore_pointer_by_name(newmain, sbuts->pinid, 0);
 					//XXX if (sbuts->ri) sbuts->ri->curtile = 0;
 				}
@@ -4738,6 +4681,9 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 		}
 	}
 	
+	ar->v2d.tab_offset= NULL;
+	ar->v2d.tab_num= 0;
+	ar->v2d.tab_cur= 0;
 	ar->handlers.first= ar->handlers.last= NULL;
 	ar->uiblocks.first= ar->uiblocks.last= NULL;
 	ar->headerstr= NULL;
@@ -4939,9 +4885,6 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 		sa->v2= newdataadr(fd, sa->v2);
 		sa->v3= newdataadr(fd, sa->v3);
 		sa->v4= newdataadr(fd, sa->v4);
-
-		/* space handler scriptlinks */
-		direct_link_scriptlink(fd, &sa->scriptlink);
 	}
 }
 
@@ -5714,7 +5657,7 @@ static void area_add_header_region(ScrArea *sa, ListBase *lb)
 	
 	/* initialise view2d data for header region, to allow panning */
 	/* is copy from ui_view2d.c */
-	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
+	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_LIMITZOOM|V2D_KEEPASPECT);
 	ar->v2d.keepofs = V2D_LOCKOFS_Y;
 	ar->v2d.keeptot = V2D_KEEPTOT_STRICT; 
 	ar->v2d.align = V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y;
@@ -5907,7 +5850,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				memcpy(&ar->v2d, &snode->v2d, sizeof(View2D));
 				
 				ar->v2d.scroll= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
-				ar->v2d.keepzoom= V2D_KEEPZOOM|V2D_KEEPASPECT;
+				ar->v2d.keepzoom= V2D_LIMITZOOM|V2D_KEEPASPECT;
 				break;
 			}
 			case SPACE_BUTS:
@@ -5928,7 +5871,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->regiontype= RGN_TYPE_WINDOW;
 				ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM_O);
 				ar->v2d.align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
-				ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
+				ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_LIMITZOOM|V2D_KEEPASPECT);
 				break;
 			}
 			case SPACE_TEXT:
@@ -6332,7 +6275,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	if(main->versionfile <= 191) {
-		bScreen *sc= main->screen.first;
 		Object *ob= main->object.first;
 		Material *ma = main->mat.first;
 
@@ -6347,22 +6289,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			ob->damping= 0.1f;
 			/*ob->quat[1]= 1.0f;*/ /* quats arnt used yet */
 			ob= ob->id.next;
-		}
-
-		while(sc) {
-			ScrArea *sa= sc->areabase.first;
-			while(sa) {
-				SpaceLink *sl= sa->spacedata.first;
-				while(sl) {
-					if(sl->spacetype==SPACE_BUTS) {
-						SpaceButs *sbuts= (SpaceButs*) sl;
-						sbuts->scaflag= BUTS_SENS_LINK|BUTS_SENS_ACT|BUTS_CONT_ACT|BUTS_ACT_ACT|BUTS_ACT_LINK;
-					}
-					sl= sl->next;
-				}
-				sa= sa->next;
-			}
-			sc= sc->id.next;
 		}
 	}
 
@@ -8276,7 +8202,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							simasel->v2d.minzoom= 0.5f;
 							simasel->v2d.maxzoom= 1.21f;						
 							simasel->v2d.scroll= 0;
-							simasel->v2d.keepzoom= V2D_KEEPZOOM|V2D_KEEPASPECT;
+							simasel->v2d.keepzoom= V2D_LIMITZOOM|V2D_KEEPASPECT;
 							simasel->v2d.keeptot= 0;
 							simasel->prv_h = 96;
 							simasel->prv_w = 96;
@@ -9253,6 +9179,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 			part->path_end = 1.0f;
+			part->clength = 1.0f;
 		}
 		/* set old pointcaches to have disk cache flag */
 		for(ob = main->object.first; ob; ob= ob->id.next) {
@@ -9359,6 +9286,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 		for(ma = main->mat.first; ma; ma = ma->id.next) {
+			if(ma->mode & MA_WIRE) {
+				ma->material_type= MA_TYPE_WIRE;
+				ma->mode &= ~MA_WIRE;
+			}
 			if(ma->mode & MA_HALO) {
 				ma->material_type= MA_TYPE_HALO;
 				ma->mode &= ~MA_HALO;
@@ -9829,7 +9760,8 @@ static void expand_particlesettings(FileData *fd, Main *mainvar, ParticleSetting
 	expand_doit(fd, mainvar, part->eff_group);
 	expand_doit(fd, mainvar, part->bb_ob);
 	
-	expand_animdata(fd, mainvar, part->adt);
+	if(part->adt)
+		expand_animdata(fd, mainvar, part->adt);
 }
 
 static void expand_group(FileData *fd, Main *mainvar, Group *group)
@@ -10200,15 +10132,6 @@ static void expand_modifier(FileData *fd, Main *mainvar, ModifierData *md)
 	}
 }
 
-static void expand_scriptlink(FileData *fd, Main *mainvar, ScriptLink *slink)
-{
-	int i;
-	
-	for(i=0; i<slink->totscript; i++) {
-		expand_doit(fd, mainvar, slink->scripts[i]);
-	}
-}
-
 static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 {
 	ModifierData *md;
@@ -10336,7 +10259,6 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	if(ob->pd && ob->pd->tex)
 		expand_doit(fd, mainvar, ob->pd->tex);
 	
-	expand_scriptlink(fd, mainvar, &ob->scriptlink);
 }
 
 static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)

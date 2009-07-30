@@ -965,18 +965,15 @@ static int modify_key_op_poll(bContext *C)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	Scene *scene= CTX_data_scene(C);
+	SpaceOops *so= CTX_wm_space_outliner(C);
 	
 	/* if no area or active scene */
 	if (ELEM(NULL, sa, scene)) 
 		return 0;
 	
 	/* if Outliner, only allow in DataBlocks view */
-	if (sa->spacetype == SPACE_OUTLINER) {
-		SpaceOops *so= (SpaceOops *)CTX_wm_space_data(C);
-		
-		if ((so->outlinevis != SO_DATABLOCKS))
-			return 0;
-	}
+	if (so && (so->outlinevis != SO_DATABLOCKS))
+		return 0;
 	
 	/* TODO: checks for other space types can be added here */
 	
@@ -1081,9 +1078,15 @@ static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
 	pup= uiPupMenuBegin(C, "Insert Keyframe", 0);
 	layout= uiPupMenuLayout(pup);
 	
-	/* active Keying Set */
-	uiItemIntO(layout, "Active Keying Set", 0, "ANIM_OT_insert_keyframe_menu", "type", i++);
-	uiItemS(layout);
+	/* active Keying Set 
+	 *	- only include entry if it exists
+	 */
+	if (scene->active_keyingset) {
+		uiItemIntO(layout, "Active Keying Set", 0, "ANIM_OT_insert_keyframe_menu", "type", i++);
+		uiItemS(layout);
+	}
+	else
+		i++;
 	
 	/* user-defined Keying Sets 
 	 *	- these are listed in the order in which they were defined for the active scene
@@ -1112,7 +1115,7 @@ static int insert_key_menu_invoke (bContext *C, wmOperator *op, wmEvent *event)
 void ANIM_OT_insert_keyframe_menu (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Insert Keyframe";
+	ot->name= "Insert Keyframe Menu";
 	ot->idname= "ANIM_OT_insert_keyframe_menu";
 	
 	/* callbacks */
@@ -1217,7 +1220,7 @@ void ANIM_OT_delete_keyframe (wmOperatorType *ot)
  * -- Joshua Leung, Jan 2009
  */
  
-static int delete_key_old_exec (bContext *C, wmOperator *op)
+static int delete_key_v3d_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
@@ -1255,15 +1258,15 @@ static int delete_key_old_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_delete_keyframe_old (wmOperatorType *ot)
+void ANIM_OT_delete_keyframe_v3d (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Keyframe";
-	ot->idname= "ANIM_OT_delete_keyframe_old";
+	ot->idname= "ANIM_OT_delete_keyframe_v3d";
 	
 	/* callbacks */
 	ot->invoke= WM_operator_confirm;
-	ot->exec= delete_key_old_exec; 
+	ot->exec= delete_key_v3d_exec; 
 	
 	ot->poll= ED_operator_areaactive;
 	
@@ -1341,7 +1344,7 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 void ANIM_OT_insert_keyframe_button (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Insert Keyframe";
+	ot->name= "Insert Keyframe (Buttons)";
 	ot->idname= "ANIM_OT_insert_keyframe_button";
 	
 	/* callbacks */
@@ -1349,7 +1352,7 @@ void ANIM_OT_insert_keyframe_button (wmOperatorType *ot)
 	ot->poll= modify_key_op_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Insert a keyframe for all element of the array.");
@@ -1411,7 +1414,7 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 void ANIM_OT_delete_keyframe_button (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Delete Keyframe";
+	ot->name= "Delete Keyframe (Buttons)";
 	ot->idname= "ANIM_OT_delete_keyframe_button";
 	
 	/* callbacks */
@@ -1419,7 +1422,7 @@ void ANIM_OT_delete_keyframe_button (wmOperatorType *ot)
 	ot->poll= modify_key_op_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete keyfames from all elements of the array.");

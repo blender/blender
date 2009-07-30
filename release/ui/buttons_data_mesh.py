@@ -10,8 +10,7 @@ class DataButtonsPanel(bpy.types.Panel):
 		return (context.mesh != None)
 
 class DATA_PT_context_mesh(DataButtonsPanel):
-	__idname__ = "DATA_PT_context_mesh"
-	__no_header__ = True
+	__show_header__ = False
 	
 	def draw(self, context):
 		layout = self.layout
@@ -30,7 +29,6 @@ class DATA_PT_context_mesh(DataButtonsPanel):
 			split.itemS()
 
 class DATA_PT_normals(DataButtonsPanel):
-	__idname__ = "DATA_PT_normals"
 	__label__ = "Normals"
 
 	def draw(self, context):
@@ -42,23 +40,15 @@ class DATA_PT_normals(DataButtonsPanel):
 		
 		col = split.column()
 		col.itemR(mesh, "autosmooth")
-		colsub = col.column()
-		colsub.active = mesh.autosmooth
-		colsub.itemR(mesh, "autosmooth_angle", text="Angle")
+		sub = col.column()
+		sub.active = mesh.autosmooth
+		sub.itemR(mesh, "autosmooth_angle", text="Angle")
+		
 		sub = split.column()
 		sub.itemR(mesh, "vertex_normal_flip")
 		sub.itemR(mesh, "double_sided")
 
-		row = layout.row(align=True)
-		if context.edit_object:
-			row.itemO("MESH_OT_faces_shade_smooth")
-			row.itemO("MESH_OT_faces_shade_flat")
-		else:
-			row.itemO("OBJECT_OT_shade_smooth")
-			row.itemO("OBJECT_OT_shade_flat")
-
 class DATA_PT_vertex_groups(DataButtonsPanel):
-	__idname__ = "DATA_PT_vertex_groups"
 	__label__ = "Vertex Groups"
 	
 	def poll(self, context):
@@ -66,10 +56,10 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		ob = context.object
 
 		row = layout.row()
-
 		row.template_list(ob, "vertex_groups", ob, "active_vertex_group_index")
 
 		col = row.column(align=True)
@@ -96,7 +86,6 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
 			layout.itemR(context.tool_settings, "vertex_group_weight", text="Weight")
 
 class DATA_PT_shape_keys(DataButtonsPanel):
-	__idname__ = "DATA_PT_shape_keys"
 	__label__ = "Shape Keys"
 	
 	def poll(self, context):
@@ -104,6 +93,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		ob = context.object
 		key = ob.data.shape_keys
 		kb = ob.active_shape_key
@@ -147,23 +137,22 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 				row.itemR(key, "relative")
 				row.itemR(key, "slurph")
 
-				row = layout.row()
-				row.itemR(kb, "name")
+				layout.itemR(kb, "name")
 
 		if context.edit_object:
 			layout.enabled = False
 
 class DATA_PT_uv_texture(DataButtonsPanel):
-	__idname__ = "DATA_PT_uv_texture"
 	__label__ = "UV Texture"
 	
 	def draw(self, context):
 		layout = self.layout
+		
 		me = context.mesh
 
 		row = layout.row()
-
 		col = row.column()
+		
 		col.template_list(me, "uv_textures", me, "active_uv_texture_index", rows=2)
 
 		col = row.column(align=True)
@@ -175,11 +164,11 @@ class DATA_PT_uv_texture(DataButtonsPanel):
 			layout.itemR(lay, "name")
 
 class DATA_PT_vertex_colors(DataButtonsPanel):
-	__idname__ = "DATA_PT_vertex_colors"
 	__label__ = "Vertex Colors"
 	
 	def draw(self, context):
 		layout = self.layout
+		
 		me = context.mesh
 
 		row = layout.row()
@@ -201,4 +190,3 @@ bpy.types.register(DATA_PT_vertex_groups)
 bpy.types.register(DATA_PT_shape_keys)
 bpy.types.register(DATA_PT_uv_texture)
 bpy.types.register(DATA_PT_vertex_colors)
-

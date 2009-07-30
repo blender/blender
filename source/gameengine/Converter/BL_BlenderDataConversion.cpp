@@ -559,7 +559,7 @@ bool ConvertMaterial(
 		material->ref			= mat->ref;
 		material->amb			= mat->amb;
 
-		material->ras_mode |= (mat->mode & MA_WIRE)? WIRE: 0;
+		material->ras_mode |= (mat->material_type == MA_TYPE_WIRE)? WIRE: 0;
 	}
 	else {
 		int valid = 0;
@@ -1039,7 +1039,10 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 			layer.face++;
 		}
 	}
-	meshobj->m_sharedvertex_map.clear();
+	// keep meshobj->m_sharedvertex_map for reinstance phys mesh.
+	// 2.49a and before it did: meshobj->m_sharedvertex_map.clear();
+	// but this didnt save much ram. - Campbell
+	meshobj->EndConversion();
 
 	// pre calculate texture generation
 	for(list<RAS_MeshMaterial>::iterator mit = meshobj->GetFirstMaterial();

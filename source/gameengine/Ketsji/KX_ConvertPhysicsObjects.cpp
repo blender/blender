@@ -628,5 +628,44 @@ void	KX_ClearBulletSharedShapes()
 {
 }
 
-#endif
+/* Refresh the physics object from either an object or a mesh.
+ * gameobj must be valid
+ * from_gameobj and from_meshobj can be NULL
+ * 
+ * when setting the mesh, the following vars get priority
+ * 1) from_meshobj - creates the phys mesh from RAS_MeshObject
+ * 2) from_gameobj - creates the phys mesh from the DerivedMesh where possible, else the RAS_MeshObject
+ * 3) gameobj - update the phys mesh from DerivedMesh or RAS_MeshObject
+ * 
+ * Most of the logic behind this is in shapeInfo->UpdateMesh(...)
+ */
+bool KX_ReInstanceBulletShapeFromMesh(KX_GameObject *gameobj, KX_GameObject *from_gameobj, RAS_MeshObject* from_meshobj)
+{
+	KX_BulletPhysicsController	*spc= static_cast<KX_BulletPhysicsController*>((gameobj->GetPhysicsController()));
+	CcdShapeConstructionInfo	*shapeInfo;
 
+	/* if this is the child of a compound shape this can happen
+	 * dont support compound shapes for now */
+	if(spc==NULL)
+		return false;
+	
+	shapeInfo = spc->GetShapeInfo();
+	
+	if(shapeInfo->m_shapeType != PHY_SHAPE_MESH || spc->GetSoftBody())
+		return false;
+	
+	spc->DeleteControllerShape();
+	
+	if(from_gameobj==NULL && from_meshobj==NULL)
+		from_gameobj= gameobj;
+	
+	/* updates the arrays used for making the new bullet mesh */
+	shapeInfo->UpdateMesh(from_gameobj, from_meshobj);
+
+	/* create the new bullet mesh */
+	btCollisionShape* bm= shapeInfo->CreateBulletShape(spc->getConstructionInfo().m_margin);
+
+	spc->ReplaceControllerShape(bm);
+	return true;
+}
+#endif

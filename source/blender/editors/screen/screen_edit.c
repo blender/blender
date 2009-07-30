@@ -54,6 +54,7 @@
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 
+/* XXX actually should be not here... solve later */
 #include "wm_subwindow.h"
 
 #include "screen_intern.h"	/* own module include */
@@ -404,7 +405,7 @@ ScrArea *area_split(wmWindow *win, bScreen *sc, ScrArea *sa, char dir, float fac
 
 /* empty screen, with 1 dummy area without spacedata */
 /* uses window size */
-bScreen *screen_add(wmWindow *win, Scene *scene, char *name)
+bScreen *ED_screen_add(wmWindow *win, Scene *scene, char *name)
 {
 	bScreen *sc;
 	ScrVert *sv1, *sv2, *sv3, *sv4;
@@ -465,7 +466,6 @@ static void screen_copy(bScreen *to, bScreen *from)
 		sa->spacedata.first= sa->spacedata.last= NULL;
 		sa->regionbase.first= sa->regionbase.last= NULL;
 		sa->actionzones.first= sa->actionzones.last= NULL;
-		sa->scriptlink.totscript= 0;
 		
 		area_copy_data(sa, saf, 0);
 	}
@@ -603,21 +603,6 @@ void select_connected_scredge(bScreen *sc, ScrEdge *edge)
 	}
 }
 
-/* helper call for below, correct buttons view */
-static void screen_test_scale_region(ListBase *regionbase, float facx, float facy)
-{
-	ARegion *ar;
-	
-	for(ar= regionbase->first; ar; ar= ar->next) {
-		if(ar->regiontype==RGN_TYPE_WINDOW) {
-			ar->v2d.cur.xmin *= facx;
-			ar->v2d.cur.xmax *= facx;
-			ar->v2d.cur.ymin *= facy;
-			ar->v2d.cur.ymax *= facy;
-		}
-	}
-}
-
 /* test if screen vertices should be scaled */
 static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 {
@@ -668,19 +653,6 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 			
 			CLAMP(sv->vec.y, 0, winsizey);
 		}
-		
-		/* keep buttons view2d same size */
-		for(sa= sc->areabase.first; sa; sa= sa->next) {
-			SpaceLink *sl;
-			
-			if(sa->spacetype==SPACE_BUTS)
-				screen_test_scale_region(&sa->regionbase, facx, facy);
-			
-			for(sl= sa->spacedata.first; sl; sl= sl->next)
-				if(sl->spacetype==SPACE_BUTS)
-					screen_test_scale_region(&sl->regionbase, facx, facy);
-		}
-		
 	}
 	
 	/* test for collapsed areas. This could happen in some blender version... */
@@ -948,7 +920,7 @@ bScreen *ED_screen_duplicate(wmWindow *win, bScreen *sc)
 	if(sc->full != SCREENNORMAL) return NULL; /* XXX handle this case! */
 	
 	/* make new empty screen: */
-	newsc= screen_add(win, sc->scene, sc->id.name+2);
+	newsc= ED_screen_add(win, sc->scene, sc->id.name+2);
 	/* copy all data */
 	screen_copy(newsc, sc);
 	/* set in window */
@@ -1369,8 +1341,6 @@ void ED_screen_set_scene(bContext *C, Scene *scene)
 	
 	ED_update_for_newframe(C, 1);
 	
-//	set_radglobal();
-	
 	/* complete redraw */
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	
@@ -1435,7 +1405,7 @@ void ed_screen_fullarea(bContext *C, ScrArea *sa)
 		
 		oldscreen->full = SCREENFULL;
 		
-		sc= screen_add(CTX_wm_window(C), CTX_data_scene(C), "temp");
+		sc= ED_screen_add(CTX_wm_window(C), CTX_data_scene(C), "temp");
 		sc->full = SCREENFULL; // XXX
 		
 		/* timer */

@@ -81,6 +81,7 @@
 
 /* ui geometry */
 #define IMASEL_BUTTONS_HEIGHT 40
+#define IMASEL_BUTTONS_MARGIN 6
 #define TILE_BORDER_X 8
 #define TILE_BORDER_Y 8
 
@@ -134,8 +135,8 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	/* Button layout. */
 	const short min_x      = 10;
 	const short max_x      = ar->winx - 10;
-	const short line2_y    = ar->winy - IMASEL_BUTTONS_HEIGHT - 12;
-	const short line1_y    = line2_y  + IMASEL_BUTTONS_HEIGHT/2 + 4;
+	const short line1_y    = IMASEL_BUTTONS_HEIGHT/2 + IMASEL_BUTTONS_MARGIN*2;
+	const short line2_y    = IMASEL_BUTTONS_MARGIN;
 	const short input_minw = 20;
 	const short btn_h      = UI_UNIT_Y;
 	const short btn_fn_w   = UI_UNIT_X;
@@ -153,7 +154,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	
 	uiBut*            but;
 	uiBlock*          block;
-	SpaceFile*        sfile  = (SpaceFile*) CTX_wm_space_data(C);
+	SpaceFile*        sfile  = CTX_wm_space_file(C);
 	FileSelectParams* params = ED_fileselect_get_params(sfile);
 	
 	/* Initialize UI block. */
@@ -345,7 +346,7 @@ static void file_draw_string(short sx, short sy, const char* string, float width
 
 void file_calc_previews(const bContext *C, ARegion *ar)
 {
-	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	SpaceFile *sfile= CTX_wm_space_file(C);
 	View2D *v2d= &ar->v2d;
 	
 	ED_fileselect_init_layout(sfile, ar);
@@ -354,7 +355,7 @@ void file_calc_previews(const bContext *C, ARegion *ar)
 
 void file_draw_previews(const bContext *C, ARegion *ar)
 {
-	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	SpaceFile *sfile= CTX_wm_space_file(C);
 	FileSelectParams* params= ED_fileselect_get_params(sfile);
 	FileLayout* layout= ED_fileselect_get_layout(sfile, ar);
 	View2D *v2d= &ar->v2d;
@@ -495,16 +496,43 @@ void file_draw_previews(const bContext *C, ARegion *ar)
 	uiSetRoundBox(0);
 }
 
+static void renamebutton_cb(bContext *C, void *arg1, char *oldname)
+{
+	char newname[FILE_MAX+12];
+	char orgname[FILE_MAX+12];
+	char filename[FILE_MAX+12];
+	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	ARegion* ar = CTX_wm_region(C);
+
+	struct direntry *file = (struct direntry *)arg1;
+
+	BLI_make_file_string(G.sce, orgname, sfile->params->dir, oldname);
+	BLI_strncpy(filename, file->relname, sizeof(filename));
+	BLI_make_file_string(G.sce, newname, sfile->params->dir, filename);
+
+	if( strcmp(orgname, newname) != 0 ) {
+		if (!BLI_exists(newname)) {
+			BLI_rename(orgname, newname);
+			/* to make sure we show what is on disk */
+			filelist_free(sfile->files);
+		} else {
+			BLI_strncpy(file->relname, oldname, strlen(oldname)+1);
+		}
+		
+		ED_region_tag_redraw(ar);
+	}
+}
 
 void file_draw_list(const bContext *C, ARegion *ar)
 {
-	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	SpaceFile *sfile= CTX_wm_space_file(C);
 	FileSelectParams* params = ED_fileselect_get_params(sfile);
 	FileLayout* layout= ED_fileselect_get_layout(sfile, ar);
 	View2D *v2d= &ar->v2d;
 	struct FileList* files = sfile->files;
 	struct direntry *file;
 	int numfiles;
+	int numfiles_layout;
 	int colorid = 0;
 	short sx, sy;
 	int offset;
@@ -543,23 +571,27 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 	sx = ar->v2d.cur.xmin + layout->tile_border_x;
 	sy = ar->v2d.cur.ymax - layout->tile_border_y;
+	
+	numfiles_layout = ED_fileselect_layout_numfiles(layout, ar);
 
-	for (i=offset; (i < numfiles); ++i)
+	for (i=offset; (i < numfiles) && (i<offset+numfiles_layout); ++i)
 	{
 		ED_fileselect_layout_tilepos(layout, i, &sx, &sy);
 		sx += v2d->tot.xmin+2;
 		sy = v2d->tot.ymax - sy;
 
 		file = filelist_file(files, i);	
-
-		if (params->active_file == i) {
-			if (file->flags & ACTIVE) colorid= TH_HILITE;
-			else colorid = TH_BACK;
-			draw_tile(sx-2, sy-3, layout->tile_w+2, sfile->layout->tile_h+layout->tile_border_y, colorid,20);
-		} else if (file->flags & ACTIVE) {
-			colorid = TH_HILITE;
-			draw_tile(sx-2, sy-3, layout->tile_w+2, sfile->layout->tile_h+layout->tile_border_y, colorid,0);
-		} 
+		
+		if (!(file->flags & EDITING)) {
+			if (params->active_file == i) {
+				if (file->flags & ACTIVE) colorid= TH_HILITE;
+				else colorid = TH_BACK;
+				draw_tile(sx-2, sy-3, layout->tile_w+2, sfile->layout->tile_h+layout->tile_border_y, colorid,20);
+			} else if (file->flags & ACTIVE) {
+				colorid = TH_HILITE;
+				draw_tile(sx-2, sy-3, layout->tile_w+2, sfile->layout->tile_h+layout->tile_border_y, colorid,0);
+			} 
+		}
 
 		spos = sx;
 		file_draw_icon(spos, sy-3, get_file_icon(file), ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH);
@@ -568,7 +600,19 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		UI_ThemeColor4(TH_TEXT);
 		
 		sw = file_string_width(file->relname);
-		file_draw_string(spos, sy, file->relname, sw, layout->tile_h, FILE_SHORTEN_END);
+		if (file->flags & EDITING) {
+			uiBlock *block = uiBeginBlock(C, ar, "FileName", UI_EMBOSS);
+			uiBut *but = uiDefBut(block, TEX, 1, "", spos, sy-layout->tile_h-3, 
+				layout->column_widths[COLUMN_NAME], layout->tile_h, file->relname, 1.0f, (float)FILE_MAX,0,0,"");
+			uiButSetRenameFunc(but, renamebutton_cb, file);
+			if ( 0 == uiButActiveOnly(C, block, but)) {
+				file->flags &= ~EDITING;
+			}
+			uiEndBlock(C, block);
+			uiDrawBlock(C, block);
+		} else {
+			file_draw_string(spos, sy, file->relname, sw, layout->tile_h, FILE_SHORTEN_END);
+		}
 		spos += layout->column_widths[COLUMN_NAME] + 12;
 		if (params->display == FILE_SHOWSHORT) {
 			if (!(file->type & S_IFDIR)) {

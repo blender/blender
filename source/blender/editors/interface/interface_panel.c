@@ -1031,6 +1031,9 @@ static void ui_do_drag(const bContext *C, wmEvent *event, Panel *panel)
 
 	dx= (event->x-data->startx) & ~(PNL_GRID-1);
 	dy= (event->y-data->starty) & ~(PNL_GRID-1);
+
+	dx *= (float)(ar->v2d.cur.xmax - ar->v2d.cur.xmin)/(float)(ar->winrct.xmax - ar->winrct.xmin);
+	dy *= (float)(ar->v2d.cur.ymax - ar->v2d.cur.ymin)/(float)(ar->winrct.ymax - ar->winrct.ymin);
 	
 	if(data->state == PANEL_STATE_DRAG_SCALE) {
 		panel->sizex = MAX2(data->startsizex+dx, UI_PANEL_MINX);

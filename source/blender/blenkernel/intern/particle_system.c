@@ -2065,7 +2065,6 @@ void psys_count_keyed_targets(Object *ob, ParticleSystem *psys)
 {
 	ParticleSystem *kpsys;
 	ParticleTarget *pt = psys->targets.first;
-	int psys_num = BLI_findindex(&ob->particlesystem, psys);
 	int keys_valid = 1;
 	psys->totkeyed = 0;
 
@@ -2087,7 +2086,6 @@ void psys_count_keyed_targets(Object *ob, ParticleSystem *psys)
 
 static void set_keyed_keys(Scene *scene, Object *ob, ParticleSystem *psys)
 {
-	Object *kob = ob;
 	ParticleSystem *kpsys = psys;
 	ParticleTarget *pt;
 	ParticleData *pa;
@@ -2143,7 +2141,7 @@ static void set_keyed_keys(Scene *scene, Object *ob, ParticleSystem *psys)
 		if(psys->flag & PSYS_KEYED_TIMING && pt->duration!=0.0f)
 			k++;
 
-		pt = (pt->next && pt->next->flag & PTARGET_VALID) ? pt = pt->next : psys->targets.first;
+		pt = (pt->next && pt->next->flag & PTARGET_VALID)? pt->next : psys->targets.first;
 	}
 
 	psys->flag |= PSYS_KEYED;
@@ -3982,7 +3980,8 @@ static void cached_step(Scene *scene, Object *ob, ParticleSystemModifierData *ps
 		/* update alive status and push events */
 		if(pa->time >= cfra) {
 			pa->alive = pa->time==cfra ? PARS_ALIVE : PARS_UNBORN;
-			reset_particle(scene, pa, psys, psmd, ob, 0.0f, cfra, NULL, NULL, NULL);
+			if((psys->pointcache->flag & PTCACHE_EXTERNAL) == 0)
+				reset_particle(scene, pa, psys, psmd, ob, 0.0f, cfra, NULL, NULL, NULL);
 		}
 		else if(dietime <= cfra){
 			if(dietime > psys->cfra){
@@ -4303,7 +4302,9 @@ static void system_step(Scene *scene, Object *ob, ParticleSystem *psys, Particle
 	oldtotpart = psys->totpart;
 	oldtotchild = psys->totchild;
 
-	if(part->distr == PART_DISTR_GRID && part->from != PART_FROM_VERT)
+	if(psys->pointcache->flag & PTCACHE_EXTERNAL)
+		totpart = pid.cache->totpoint;
+	else if(part->distr == PART_DISTR_GRID && part->from != PART_FROM_VERT)
 		totpart = part->grid_res*part->grid_res*part->grid_res;
 	else
 		totpart = psys->part->totpart;

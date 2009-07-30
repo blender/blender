@@ -117,18 +117,34 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	m_maxPressure(0)
 {
 	if (state != GHOST_kWindowStateFullScreen) {
-		// take taskbar into account
 		RECT rect;
+		GHOST_TUns32 tw, th; 
+
+		width += GetSystemMetrics(SM_CXSIZEFRAME)*2;
+		height += GetSystemMetrics(SM_CYSIZEFRAME)*2 + GetSystemMetrics(SM_CYCAPTION);
+
+		// take taskbar into account
 		SystemParametersInfo(SPI_GETWORKAREA,0,&rect,0);
-		height = rect.bottom - rect.top;
-		width = rect.right - rect.left;
+		th = rect.bottom - rect.top;
+		tw = rect.right - rect.left;
+
+		if(tw < width)
+		{
+			width = tw;
+			left = rect.left;
+		}
+		if(th < height)
+		{
+			height = th;
+			top = rect.top;
+		}
 
 		m_hWnd = ::CreateWindow(
 			s_windowClassName,			// pointer to registered class name
 			title,						// pointer to window name
 			WS_OVERLAPPEDWINDOW,		// window style
-			rect.left,					// horizontal position of window
-			rect.top,					// vertical position of window
+			left,					// horizontal position of window
+			top,					// vertical position of window
 			width,						// window width
 			height,						// window height
 			0,							// handle to parent or owner window

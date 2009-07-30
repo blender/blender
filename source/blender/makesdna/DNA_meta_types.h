@@ -85,8 +85,10 @@ typedef struct MetaBall {
 	mother ball changes will effect other objects thresholds,
 	but these may also have their own thresh as an offset */
 	float thresh;
-	
-	
+
+	/* used in editmode */
+	/*ListBase edit_elems;*/
+	MetaElem *lastelem;	
 } MetaBall;
 
 /* **************** METABALL ********************* */

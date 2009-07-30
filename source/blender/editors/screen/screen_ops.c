@@ -31,6 +31,7 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
+#include "BLI_dlrbTree.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_image_types.h"
@@ -39,6 +40,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_meta_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_colortools.h"
@@ -63,6 +65,7 @@
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen_types.h"
+#include "ED_keyframes_draw.h"
 
 #include "RE_pipeline.h"
 #include "IMB_imbuf.h"
@@ -73,6 +76,8 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "wm_window.h"
 
 #include "screen_intern.h"	/* own module include */
 
@@ -164,11 +169,11 @@ int ED_operator_buttons_active(bContext *C)
 
 int ED_operator_node_active(bContext *C)
 {
-	if(ed_spacetype_test(C, SPACE_NODE)) {
-		SpaceNode *snode= (SpaceNode *)CTX_wm_space_data(C);
-		if(snode->edittree)
-			return 1;
-	}
+	SpaceNode *snode= CTX_wm_space_node(C);
+
+	if(snode && snode->edittree)
+		return 1;
+
 	return 0;
 }
 
@@ -305,6 +310,14 @@ int ED_operator_editlattice(bContext *C)
 	Object *obedit= CTX_data_edit_object(C);
 	if(obedit && obedit->type==OB_LATTICE)
 		return NULL != ((Lattice *)obedit->data)->editlatt;
+	return 0;
+}
+
+int ED_operator_editmball(bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	if(obedit && obedit->type==OB_MBALL)
+		return NULL != ((MetaBall *)obedit->data)->editelems;
 	return 0;
 }
 
@@ -501,7 +514,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void SCREEN_OT_actionzone(wmOperatorType *ot)
+static void SCREEN_OT_actionzone(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Handle area action zones";
@@ -667,7 +680,7 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	newwin= WM_window_open(C, &rect);
 	
 	/* allocs new screen and adds to newly created window, using window size */
-	newsc= screen_add(newwin, CTX_data_scene(C), sc->id.name+2);
+	newsc= ED_screen_add(newwin, CTX_data_scene(C), sc->id.name+2);
 	newwin->screen= newsc;
 	
 	/* copy area to new screen */
@@ -920,7 +933,7 @@ static int area_move_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void SCREEN_OT_area_move(wmOperatorType *ot)
+static void SCREEN_OT_area_move(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Move area edges";
@@ -1236,7 +1249,7 @@ static EnumPropertyItem prop_direction_items[] = {
 	{'v', "VERTICAL", 0, "Vertical", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-void SCREEN_OT_area_split(wmOperatorType *ot)
+static void SCREEN_OT_area_split(wmOperatorType *ot)
 {
 	ot->name = "Split area";
 	ot->idname = "SCREEN_OT_area_split";
@@ -1370,7 +1383,6 @@ static void SCREEN_OT_region_scale(wmOperatorType *ot)
 
 /* ************** frame change operator ***************************** */
 
-
 /* function to be called outside UI context, or for redo */
 static int frame_offset_exec(bContext *C, wmOperator *op)
 {
@@ -1385,7 +1397,7 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void SCREEN_OT_frame_offset(wmOperatorType *ot)
+static void SCREEN_OT_frame_offset(wmOperatorType *ot)
 {
 	ot->name = "Frame Offset";
 	ot->idname = "SCREEN_OT_frame_offset";
@@ -1397,6 +1409,93 @@ void SCREEN_OT_frame_offset(wmOperatorType *ot)
 
 	/* rna */
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
+}
+
+/* ************** jump to keyframe operator ***************************** */
+
+/* helper function - find actkeycolumn that occurs on cframe, or the nearest one if not found */
+// TODO: make this an API func?
+static ActKeyColumn *cfra_find_nearest_next_ak (ActKeyColumn *ak, float cframe, short next)
+{
+	ActKeyColumn *akn= NULL;
+	
+	/* sanity checks */
+	if (ak == NULL)
+		return NULL;
+	
+	/* check if this is a match, or whether it is in some subtree */
+	if (cframe < ak->cfra)
+		akn= cfra_find_nearest_next_ak(ak->left, cframe, next);
+	else if (cframe > ak->cfra)
+		akn= cfra_find_nearest_next_ak(ak->right, cframe, next);
+		
+	/* if no match found (or found match), just use the current one */
+	if (akn == NULL)
+		return ak;
+	else
+		return akn;
+}
+
+/* function to be called outside UI context, or for redo */
+static int keyframe_jump_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	DLRBT_Tree keys;
+	ActKeyColumn *ak;
+	short next= RNA_boolean_get(op->ptr, "next");
+	
+	/* sanity checks */
+	if (scene == NULL)
+		return OPERATOR_CANCELLED;
+	
+	/* init binarytree-list for getting keyframes */
+	BLI_dlrbTree_init(&keys);
+	
+	/* populate tree with keyframe nodes */
+	if (scene && scene->adt)
+		scene_to_keylist(NULL, scene, &keys, NULL);
+	if (ob && ob->adt)
+		ob_to_keylist(NULL, ob, &keys, NULL);
+		
+	/* build linked-list for searching */
+	BLI_dlrbTree_linkedlist_sync(&keys);
+	
+	/* find nearest keyframe in the right direction */
+	ak= cfra_find_nearest_next_ak(keys.root, (float)scene->r.cfra, next);
+	
+	/* set the new frame (if keyframe found) */
+	if (ak) {
+		if (next && ak->next)
+			scene->r.cfra= (int)ak->next->cfra;
+		else if (!next && ak->prev)
+			scene->r.cfra= (int)ak->prev->cfra;
+		else {
+			printf("ERROR: no suitable keyframe found. Using %f as new frame \n", ak->cfra);
+			scene->r.cfra= (int)ak->cfra; // XXX
+		}
+	}
+		
+	/* free temp stuff */
+	BLI_dlrbTree_free(&keys);
+	
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, CTX_data_scene(C));
+
+	return OPERATOR_FINISHED;
+}
+
+static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
+{
+	ot->name = "Jump to Keyframe";
+	ot->idname = "SCREEN_OT_keyframe_jump";
+
+	ot->exec= keyframe_jump_exec;
+
+	ot->poll= ED_operator_screenactive;
+	ot->flag= 0;
+
+	/* rna */
+	RNA_def_boolean(ot->srna, "next", 1, "Next Keyframe", "");
 }
 
 /* ************** switch screen operator ***************************** */
@@ -1441,7 +1540,7 @@ static int screen_set_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-void SCREEN_OT_screen_set(wmOperatorType *ot)
+static void SCREEN_OT_screen_set(wmOperatorType *ot)
 {
 	ot->name = "Set Screen";
 	ot->idname = "SCREEN_OT_screen_set";
@@ -1464,7 +1563,7 @@ static int screen_full_area_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void SCREEN_OT_screen_full_area(wmOperatorType *ot)
+static void SCREEN_OT_screen_full_area(wmOperatorType *ot)
 {
 	ot->name = "Toggle Make Area Fullscreen";
 	ot->idname = "SCREEN_OT_screen_full_area";
@@ -1736,7 +1835,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* Operator for joining two areas (space types) */
-void SCREEN_OT_area_join(wmOperatorType *ot)
+static void SCREEN_OT_area_join(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Join area";
@@ -1769,7 +1868,7 @@ static int repeat_last_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-void SCREEN_OT_repeat_last(wmOperatorType *ot)
+static void SCREEN_OT_repeat_last(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Repeat Last";
@@ -1821,7 +1920,7 @@ static int repeat_history_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void SCREEN_OT_repeat_history(wmOperatorType *ot)
+static void SCREEN_OT_repeat_history(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Repeat History";
@@ -1854,7 +1953,7 @@ static int redo_last_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_CANCELLED;
 }
 
-void SCREEN_OT_redo_last(wmOperatorType *ot)
+static void SCREEN_OT_redo_last(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Redo Last";
@@ -1897,7 +1996,7 @@ static int region_split_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void SCREEN_OT_region_split(wmOperatorType *ot)
+static void SCREEN_OT_region_split(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Split Region";
@@ -1986,7 +2085,7 @@ static int region_foursplit_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void SCREEN_OT_region_foursplit(wmOperatorType *ot)
+static void SCREEN_OT_region_foursplit(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Split Region in 4 Parts";
@@ -2024,7 +2123,7 @@ static int region_flip_exec(bContext *C, wmOperator *op)
 }
 
 
-void SCREEN_OT_region_flip(wmOperatorType *ot)
+static void SCREEN_OT_region_flip(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Flip Region";
@@ -2194,7 +2293,7 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void SCREEN_OT_animation_play(wmOperatorType *ot)
+static void SCREEN_OT_animation_play(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Animation player";
@@ -2243,7 +2342,7 @@ static int border_select_do(bContext *C, wmOperator *op)
 	return 1;
 }
 
-void SCREEN_OT_border_select(wmOperatorType *ot)
+static void SCREEN_OT_border_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border select";
@@ -2370,13 +2469,36 @@ static ScrArea *find_empty_image_area(bContext *C)
 }
 #endif // XXX not used
 
-static void screen_set_image_output(bContext *C)
+/* new window uses x,y to set position */
+static void screen_set_image_output(bContext *C, int mx, int my)
 {
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa;
 	SpaceImage *sima;
 	
-	if(scene->r.displaymode==R_OUTPUT_SCREEN) {
+	if(scene->r.displaymode==R_OUTPUT_WINDOW) {
+		rcti rect;
+		int sizex, sizey;
+		
+		sizex= 10 + (scene->r.xsch*scene->r.size)/100;
+		sizey= 40 + (scene->r.ysch*scene->r.size)/100;
+		
+		/* arbitrary... miniature image window views don't make much sense */
+		if(sizex < 320) sizex= 320;
+		if(sizey < 256) sizey= 256;
+		
+		/* XXX some magic to calculate postition */
+		rect.xmin= mx + CTX_wm_window(C)->posx - sizex/2;
+		rect.ymin= my + CTX_wm_window(C)->posy - sizey/2;
+		rect.xmax= rect.xmin + sizex;
+		rect.ymax= rect.ymin + sizey;
+		
+		/* changes context! */
+		WM_window_open_temp(C, &rect, WM_WINDOW_RENDER);
+		
+		sa= CTX_wm_area(C);
+	}
+	else if(scene->r.displaymode==R_OUTPUT_SCREEN) {
 		/* this function returns with changed context */
 		ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_IMAGE);
 		sa= CTX_wm_area(C);
@@ -2436,7 +2558,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	}
 	RE_test_break_cb(re, NULL, (int (*)(void *)) blender_test_break);
 	
-	if(RNA_boolean_get(op->ptr, "anim"))
+	if(RNA_boolean_get(op->ptr, "animation"))
 		RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->frame_step);
 	else
 		RE_BlenderFrame(re, scene, scene->r.cfra);
@@ -2709,13 +2831,13 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	// store spare
 	
 	/* ensure at least 1 area shows result */
-	screen_set_image_output(C);
+	screen_set_image_output(C, event->x, event->y);
 
 	/* job custom data */
 	rj= MEM_callocN(sizeof(RenderJob), "render job");
 	rj->scene= scene;
 	rj->win= CTX_wm_window(C);
-	rj->anim= RNA_boolean_get(op->ptr, "anim");
+	rj->anim= RNA_boolean_get(op->ptr, "animation");
 	rj->iuser.scene= scene;
 	rj->iuser.ok= 1;
 	
@@ -2757,7 +2879,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 
 /* contextual render, using current scene, view3d? */
-void SCREEN_OT_render(wmOperatorType *ot)
+static void SCREEN_OT_render(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Render";
@@ -2771,7 +2893,7 @@ void SCREEN_OT_render(wmOperatorType *ot)
 	ot->poll= ED_operator_screenactive;
 	
 	RNA_def_int(ot->srna, "layers", 0, 0, INT_MAX, "Layers", "", 0, INT_MAX);
-	RNA_def_boolean(ot->srna, "anim", 0, "Animation", "");
+	RNA_def_boolean(ot->srna, "animation", 0, "Animation", "");
 }
 
 /* *********************** cancel render viewer *************** */
@@ -2781,7 +2903,12 @@ static int render_view_cancel_exec(bContext *C, wmOperator *unused)
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceImage *sima= sa->spacedata.first;
 	
-	if(sima->flag & SI_PREVSPACE) {
+	/* test if we have a temp screen in front */
+	if(CTX_wm_window(C)->screen->full==SCREENTEMP) {
+		wm_window_lower(CTX_wm_window(C));
+	}
+	/* determine if render already shows */
+	else if(sima->flag & SI_PREVSPACE) {
 		sima->flag &= ~SI_PREVSPACE;
 		
 		if(sima->flag & SI_FULLWINDOW) {
@@ -2799,7 +2926,7 @@ static int render_view_cancel_exec(bContext *C, wmOperator *unused)
 	return OPERATOR_FINISHED;
 }
 
-void SCREEN_OT_render_view_cancel(struct wmOperatorType *ot)
+static void SCREEN_OT_render_view_cancel(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Cancel Render View";
@@ -2812,12 +2939,16 @@ void SCREEN_OT_render_view_cancel(struct wmOperatorType *ot)
 
 /* *********************** show render viewer *************** */
 
-static int render_view_show_exec(bContext *C, wmOperator *unused)
+static int render_view_show_invoke(bContext *C, wmOperator *unused, wmEvent *event)
 {
 	ScrArea *sa= find_area_showing_r_result(C);
-	
+
+	/* test if we have a temp screen in front */
+	if(CTX_wm_window(C)->screen->full==SCREENTEMP) {
+		wm_window_lower(CTX_wm_window(C));
+	}
 	/* determine if render already shows */
-	if(sa) {
+	else if(sa) {
 		SpaceImage *sima= sa->spacedata.first;
 		
 		if(sima->flag & SI_PREVSPACE) {
@@ -2834,20 +2965,58 @@ static int render_view_show_exec(bContext *C, wmOperator *unused)
 		}
 	}
 	else {
-		screen_set_image_output(C);
+		screen_set_image_output(C, event->x, event->y);
 	}
 	
 	return OPERATOR_FINISHED;
 }
 
-void SCREEN_OT_render_view_show(struct wmOperatorType *ot)
+static void SCREEN_OT_render_view_show(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Show/Hide Render View";
 	ot->idname= "SCREEN_OT_render_view_show";
 	
 	/* api callbacks */
-	ot->exec= render_view_show_exec;
+	ot->invoke= render_view_show_invoke;
+	ot->poll= ED_operator_screenactive;
+}
+
+/* *********** show user pref window ****** */
+
+static int userpref_show_invoke(bContext *C, wmOperator *unused, wmEvent *event)
+{
+	ScrArea *sa;
+	rcti rect;
+	int sizex, sizey;
+	
+	sizex= 800;
+	sizey= 480;
+	
+	/* some magic to calculate postition */
+	rect.xmin= event->x + CTX_wm_window(C)->posx - sizex/2;
+	rect.ymin= event->y + CTX_wm_window(C)->posy - sizey/2;
+	rect.xmax= rect.xmin + sizex;
+	rect.ymax= rect.ymin + sizey;
+	
+	/* changes context! */
+	WM_window_open_temp(C, &rect, WM_WINDOW_USERPREFS);
+	
+	sa= CTX_wm_area(C);
+	
+	
+	return OPERATOR_FINISHED;
+}
+
+
+static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Show/Hide User Preferences";
+	ot->idname= "SCREEN_OT_userpref_show";
+	
+	/* api callbacks */
+	ot->invoke= userpref_show_invoke;
 	ot->poll= ED_operator_screenactive;
 }
 
@@ -2878,9 +3047,12 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_screen_full_area);
 	WM_operatortype_append(SCREEN_OT_screenshot);
 	WM_operatortype_append(SCREEN_OT_screencast);
+	WM_operatortype_append(SCREEN_OT_userpref_show);
 	
 	/*frame changes*/
 	WM_operatortype_append(SCREEN_OT_frame_offset);
+	WM_operatortype_append(SCREEN_OT_keyframe_jump);
+	
 	WM_operatortype_append(SCREEN_OT_animation_step);
 	WM_operatortype_append(SCREEN_OT_animation_play);
 	
@@ -2948,7 +3120,6 @@ void ED_keymap_screen(wmWindowManager *wm)
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_screen_set", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", -1);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", UPARROWKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", DOWNARROWKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", SPACEKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screenshot", F3KEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screencast", F3KEY, KM_PRESS, KM_ALT, 0);
 
@@ -2976,8 +3147,12 @@ void ED_keymap_screen(wmWindowManager *wm)
 						  
 	/* render */
 	WM_keymap_add_item(keymap, "SCREEN_OT_render", F12KEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_render", F12KEY, KM_PRESS, KM_CTRL, 0)->ptr, "animation", 1);
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_cancel", ESCKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_show", F11KEY, KM_PRESS, 0, 0);
+	
+	/* user prefs */
+	WM_keymap_add_item(keymap, "SCREEN_OT_userpref_show", UKEY, KM_PRESS, KM_ALT, 0);
 	
 	/* Anim Playback ------------------------------------------------ */
 	keymap= WM_keymap_listbase(wm, "Frames", 0, 0);
@@ -2987,6 +3162,9 @@ void ED_keymap_screen(wmWindowManager *wm)
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -10);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -1);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", RIGHTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
+	
+	WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", PAGEUPKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", PAGEDOWNKEY, KM_PRESS, KM_CTRL, 0)->ptr, "next", 0);
 	
 	/* play (forward and backwards) */
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT, 0);

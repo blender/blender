@@ -382,6 +382,13 @@ RAS_TexVert* RAS_MeshObject::GetVertex(unsigned int matid,
 	return NULL;
 }
 
+const float* RAS_MeshObject::GetVertexLocation(unsigned int orig_index)
+{
+	vector<SharedVertex>& sharedmap = m_sharedvertex_map[orig_index];
+	vector<SharedVertex>::iterator it= sharedmap.begin();
+	return it->m_darray->m_vertex[it->m_offset].getXYZ();
+}
+
 void RAS_MeshObject::AddMeshUser(void *clientobj, SG_QList *head, RAS_Deformer* deformer)
 {
 	list<RAS_MeshMaterial>::iterator it;

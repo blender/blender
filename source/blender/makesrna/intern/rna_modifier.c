@@ -311,6 +311,11 @@ static void rna_CurveModifier_object_set(PointerRNA *ptr, PointerRNA value)
 	modifier_object_set(&((CurveModifierData*)ptr->data)->object, OB_CURVE, value);
 }
 
+static void rna_CastModifier_object_set(PointerRNA *ptr, PointerRNA value)
+{
+	modifier_object_set(&((CastModifierData*)ptr->data)->object, OB_MESH, value);
+}
+
 static void rna_ArmatureModifier_object_set(PointerRNA *ptr, PointerRNA value)
 {
 	modifier_object_set(&((ArmatureModifierData*)ptr->data)->object, OB_ARMATURE, value);
@@ -1203,6 +1208,12 @@ static void rna_def_modifier_cast(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, prop_cast_type_items);
 	RNA_def_property_ui_text(prop, "Cast Type", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
+	
+	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Object", "Control object: if available, its location determines the center of the effect");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_CastModifier_object_set", NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_dependency_update");
 
 	prop= RNA_def_property(srna, "x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_CAST_X);
@@ -1217,6 +1228,16 @@ static void rna_def_modifier_cast(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_CAST_Z);
 	RNA_def_property_ui_text(prop, "Z", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
+	
+	prop= RNA_def_property(srna, "from_radius", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_CAST_SIZE_FROM_RADIUS);
+	RNA_def_property_ui_text(prop, "From Radius", "Use radius as size of projection shape (0 = auto)");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
+	
+	prop= RNA_def_property(srna, "use_transform", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_CAST_USE_OB_TRANSFORM);
+	RNA_def_property_ui_text(prop, "Use transform", "Use object transform to control projection shape");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 	
 	prop= RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);

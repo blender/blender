@@ -265,8 +265,8 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 	}
 
 	item= PyObject_GetAttrString(py_class, PYOP_ATTR_DESCRIPTION);
-	ot->description= (item && PyUnicode_Check(item)) ? _PyUnicode_AsString(item):"";
-	Py_DECREF(item);
+	ot->description= (item && PyUnicode_Check(item)) ? _PyUnicode_AsString(item):"undocumented python operator";
+	Py_XDECREF(item);
 	
 	/* api callbacks, detailed checks dont on adding */ 
 	if (PyObject_HasAttrString(py_class, "invoke"))

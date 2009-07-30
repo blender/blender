@@ -150,8 +150,11 @@ static void draw_render_info(Image *ima, ARegion *ar)
 	
 	/* clear header rect */
 	UI_GetThemeColor3fv(TH_BACK, colf);
-	glColor3f(colf[0]+0.1f, colf[1]+0.1f, colf[2]+0.1f);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glColor4f(colf[0]+0.1f, colf[1]+0.1f, colf[2]+0.1f, 0.5f);
 	glRecti(rect.xmin, rect.ymin, rect.xmax, rect.ymax+1);
+	glDisable(GL_BLEND);
 	
 	UI_ThemeColor(TH_TEXT_HI);
 

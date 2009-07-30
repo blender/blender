@@ -45,6 +45,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_writeavi.h"	/* <------ should be replaced once with generic movie module */
 #include "BKE_pointcache.h"
@@ -2783,12 +2784,6 @@ void RE_init_threadcount(Render *re)
 
 /************************** External Engines ***************************/
 
-static RenderEngineType internal_engine_type = {
-	NULL, NULL, "BlenderRenderEngine", "Blender", NULL,
-	NULL, NULL, NULL, NULL};
-
-ListBase R_engines = {&internal_engine_type, &internal_engine_type};
-
 RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h)
 {
 	Render *re= engine->re;
@@ -2882,6 +2877,47 @@ void RE_engine_update_stats(RenderEngine *engine, char *stats, char *info)
 	re->i.statstr= NULL;
 }
 
+/* loads in image into a result, size must match
+ * x/y offsets are only used on a partial copy when dimensions dont match */
+void RE_layer_rect_from_file(RenderLayer *layer, ReportList *reports, char *filename, int x, int y)
+{
+	ImBuf *ibuf = IMB_loadiffname(filename, IB_rect);
+
+	if(ibuf  && (ibuf->rect || ibuf->rect_float)) {
+		if (ibuf->x == layer->rectx && ibuf->y == layer->recty) {
+			if(ibuf->rect_float==NULL)
+				IMB_float_from_rect(ibuf);
+
+			memcpy(layer->rectf, ibuf->rect_float, sizeof(float)*4*layer->rectx*layer->recty);
+		} else {
+			if ((ibuf->x - x >= layer->rectx) && (ibuf->y - y >= layer->recty)) {
+				ImBuf *ibuf_clip;
+
+				if(ibuf->rect_float==NULL)
+					IMB_float_from_rect(ibuf);
+
+				ibuf_clip = IMB_allocImBuf(layer->rectx, layer->recty, 32, IB_rectfloat, 0);
+				if(ibuf_clip) {
+					IMB_rectcpy(ibuf_clip, ibuf, 0,0, x,y, layer->rectx, layer->recty);
+
+					memcpy(layer->rectf, ibuf_clip->rect_float, sizeof(float)*4*layer->rectx*layer->recty);
+					IMB_freeImBuf(ibuf_clip);
+				}
+				else {
+					BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to allocate clip buffer '%s'\n", filename);
+				}
+			}
+			else {
+				BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: incorrect dimensions for partial copy '%s'\n", filename);
+			}
+		}
+
+		IMB_freeImBuf(ibuf);
+	}
+	else {
+		BKE_reportf(reports, RPT_ERROR, "RE_result_rect_from_file: failed to load '%s'\n", filename);
+	}
+}
 static void external_render_3d(Render *re, RenderEngineType *type)
 {
 	RenderEngine engine;
@@ -2921,22 +2957,6 @@ static void external_render_3d(Render *re, RenderEngineType *type)
 		re->result= NULL;
 		
 		read_render_result(re, 0);
-	}
-}
-
-void RE_engines_free()
-{
-	RenderEngineType *type, *next;
-
-	for(type=R_engines.first; type; type=next) {
-		next= type->next;
-
-		if(type != &internal_engine_type) {
-			if(type->ext.free)
-				type->ext.free(type->ext.data);
-
-			MEM_freeN(type);
-		}
 	}
 }
 

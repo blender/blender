@@ -82,6 +82,7 @@
 #include "ED_screen.h"
 #include "ED_types.h"
 #include "ED_util.h"
+#include "ED_mball.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -1361,9 +1362,10 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			do_nurbs_box_select(&vc, &rect, val==LEFTMOUSE);
 		}
 		else if(obedit->type==OB_MBALL) {
+			MetaBall *mb = (MetaBall*)obedit->data;
 			hits= view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
 			
-			ml= NULL; // XXX editelems.first;
+			ml= mb->editelems->first;
 			
 			while(ml) {
 				for(a=0; a<hits; a++) {
@@ -1569,6 +1571,8 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			mouse_lattice(C, event->mval, extend);
 		else if(ELEM(obedit->type, OB_CURVE, OB_SURF))
 			mouse_nurb(C, event->mval, extend);
+		else if(obedit->type==OB_MBALL)
+			mouse_mball(C, event->mval, extend);
 			
 	}
 	else if(G.f & G_PARTICLEEDIT)

@@ -55,8 +55,8 @@ void ED_base_object_activate(struct bContext *C, struct Base *base);
 void ED_base_object_free_and_unlink(struct Scene *scene, struct Base *base);
 
 void ED_object_apply_obmat(struct Object *ob);
-	/* single object duplicate, if dupflag==0, fully linked, else it uses U.dupflag */
-struct Base *ED_object_add_duplicate(struct Scene *scene, struct Base *base, int usedupflag);
+	/* single object duplicate, if dupflag==0, fully linked, else it uses the flags given */
+struct Base *ED_object_add_duplicate(struct Scene *scene, struct Base *base, int dupflag);
 
 void ED_object_parent(struct Object *ob, struct Object *parent, int type, const char *substr);
 

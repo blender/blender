@@ -66,7 +66,7 @@ void wm_gesture_tag_redraw(bContext *C);
 
 /* wm_jobs.h */
 void WM_OT_jobs_timer(struct wmOperatorType *ot);
-
+void wm_jobs_timer_ended(wmWindowManager *wm, wmTimer *wt);
 
 #endif /* WM_H */
 

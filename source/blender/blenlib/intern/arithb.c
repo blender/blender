@@ -118,15 +118,15 @@ float Normalize(float *n)
 	
 	d= n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
 	/* A larger value causes normalize errors in a scaled down models with camera xtreme close */
-	if(d>1.0e-35F) {
+	if(d>1.0e-35f) {
 		d= (float)sqrt(d);
 
 		n[0]/=d; 
 		n[1]/=d; 
 		n[2]/=d;
 	} else {
-		n[0]=n[1]=n[2]= 0.0;
-		d= 0.0;
+		n[0]=n[1]=n[2]= 0.0f;
+		d= 0.0f;
 	}
 	return d;
 }
@@ -3334,7 +3334,7 @@ float Normalize2(float *n)
 	
 	d= n[0]*n[0]+n[1]*n[1];
 
-	if(d>1.0e-35F) {
+	if(d>1.0e-35f) {
 		d= (float)sqrt(d);
 		n[0]/=d; 
 		n[1]/=d; 
@@ -3352,15 +3352,15 @@ void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
 
 	h *= 360.0f;
 	
-	if(s==0.0) {
+	if(s==0.0f) {
 		*r = v;
 		*g = v;
 		*b = v;
 	}
 	else {
-		if(h==360) h = 0;
+		if(h== 360.0f) h = 0.0f;
 		
-		h /= 60;
+		h /= 60.0f;
 		i = (int)floor(h);
 		f = h - i;
 		p = v*(1.0f-s);

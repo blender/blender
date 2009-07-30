@@ -113,7 +113,6 @@ typedef struct FileList
 	int numfiles;
 	int numfiltered;
 	char dir[FILE_MAX];
-	int has_func;
 	short prv_w;
 	short prv_h;
 	short hide_dot;
@@ -698,7 +697,6 @@ struct direntry * filelist_file(struct FileList* filelist, int index)
 	return &filelist->filelist[fidx];
 }
 
-
 int filelist_find(struct FileList* filelist, char *file)
 {
 	int index = -1;
@@ -905,9 +903,6 @@ void filelist_swapselect(struct FileList* filelist)
 
 void filelist_sort(struct FileList* filelist, short sort)
 {
-	struct direntry *file;
-	int num;/*  , act= 0; */
-
 	switch(sort) {
 	case FILE_SORT_ALPHA:
 		qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_name);	
@@ -922,9 +917,5 @@ void filelist_sort(struct FileList* filelist, short sort)
 		qsort(filelist->filelist, filelist->numfiles, sizeof(struct direntry), compare_extension);	
 	}
 
-	file= filelist->filelist;
-	for(num=0; num<filelist->numfiles; num++, file++) {
-		file->flags &= ~HILITE;
-	}
 	filelist_filter(filelist);
 }

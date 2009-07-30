@@ -7,7 +7,8 @@ class WorldButtonsPanel(bpy.types.Panel):
 	__context__ = "world"
 
 	def poll(self, context):
-		return (context.world != None)
+		rd = context.scene.render_data
+		return (context.world != None) and (not rd.use_game_engine)
 
 class WORLD_PT_preview(WorldButtonsPanel):
 	__label__ = "Preview"
@@ -19,10 +20,11 @@ class WORLD_PT_preview(WorldButtonsPanel):
 		layout.template_preview(world)
 	
 class WORLD_PT_context_world(WorldButtonsPanel):
-	__no_header__ = True
+	__show_header__ = False
 
 	def poll(self, context):
-		return (context.scene != None)
+		rd = context.scene.render_data
+		return (context.scene != None) and (not rd.use_game_engine)
 
 	def draw(self, context):
 		layout = self.layout
@@ -60,17 +62,6 @@ class WORLD_PT_world(WorldButtonsPanel):
 			col.active = world.blend_sky
 			row.column().itemR(world, "ambient_color")
 		
-class WORLD_PT_color_correction(WorldButtonsPanel):
-	__label__ = "Color Correction"
-
-	def draw(self, context):
-		layout = self.layout
-		world = context.world
-
-		row = layout.row()
-		row.itemR(world, "exposure")
-		row.itemR(world, "range")
-	
 class WORLD_PT_mist(WorldButtonsPanel):
 	__label__ = "Mist"
 
@@ -91,9 +82,8 @@ class WORLD_PT_mist(WorldButtonsPanel):
 		flow.itemR(world.mist, "depth")
 		flow.itemR(world.mist, "height")
 		flow.itemR(world.mist, "intensity")
-		col = layout.column()
-		col.itemL(text="Fallof:")
-		col.row().itemR(world.mist, "falloff", expand=True)
+
+		layout.itemR(world.mist, "falloff")
 		
 class WORLD_PT_stars(WorldButtonsPanel):
 	__label__ = "Stars"
@@ -112,9 +102,9 @@ class WORLD_PT_stars(WorldButtonsPanel):
 
 		flow = layout.column_flow()
 		flow.itemR(world.stars, "size")
+		flow.itemR(world.stars, "color_randomization", text="Colors")
 		flow.itemR(world.stars, "min_distance", text="Min. Dist")
 		flow.itemR(world.stars, "average_separation", text="Separation")
-		flow.itemR(world.stars, "color_randomization", text="Random")
 		
 class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 	__label__ = "Ambient Occlusion"
@@ -132,49 +122,46 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 		layout.active = ao.enabled
 		
 		layout.itemR(ao, "gather_method", expand=True)
+
+		split = layout.split()
 		
+		col = split.column()
+		col.itemL(text="Attenuation:")
+		col.itemR(ao, "distance")
+		col.itemR(ao, "falloff")
+		sub = col.row()
+		sub.active = ao.falloff
+		sub.itemR(ao, "falloff_strength", text="Strength")
+	
 		if ao.gather_method == 'RAYTRACE':
-			split = layout.split()
-			
 			col = split.column()
-			col.itemR(ao, "samples")
-			col.itemR(ao, "distance")
 			
-			col = split.column()
-			col.itemR(ao, "falloff")
-			colsub = col.column()
-			colsub.active = ao.falloff
-			colsub.itemR(ao, "strength")
-			
-			layout.itemR(ao, "sample_method")
+			col.itemL(text="Sampling:")
+			col.itemR(ao, "sample_method", text="")
+
+			sub = col.column(align=True)
+			sub.itemR(ao, "samples")
+
 			if ao.sample_method == 'ADAPTIVE_QMC':
-				row = layout.row()
-				row.itemR(ao, "threshold")
-				row.itemR(ao, "adapt_to_speed")
-				
-			if ao.sample_method == 'CONSTANT_JITTERED':
-				row = layout.row()
-				row.itemR(ao, "bias")
+				sub.itemR(ao, "threshold")
+				sub.itemR(ao, "adapt_to_speed")
+			elif ao.sample_method == 'CONSTANT_JITTERED':
+				sub.itemR(ao, "bias")
 						
 		if ao.gather_method == 'APPROXIMATE':
-			split = layout.split()
-			
 			col = split.column()
-			col.itemR(ao, "passes")
+			
+			col.itemL(text="Sampling:")
 			col.itemR(ao, "error_tolerance", text="Error")
+			col.itemR(ao, "pixel_cache")
 			col.itemR(ao, "correction")
 			
-			col = split.column() 
-			col.itemR(ao, "falloff")
-			colsub = col.column()
-			colsub.active = ao.falloff
-			colsub.itemR(ao, "strength")
-			col.itemR(ao, "pixel_cache")
-
-		col = layout.column()
-		col.row().itemR(ao, "blend_mode", expand=True)
-		col.row().itemR(ao, "color", expand=True)
-		col.itemR(ao, "energy")
+		col = layout.column(align=True)
+		col.itemL(text="Influence:")
+		row = col.row()
+		row.itemR(ao, "blend_mode", text="")
+		row.itemR(ao, "color", text="")
+		row.itemR(ao, "energy", text="")
 
 bpy.types.register(WORLD_PT_context_world)	
 bpy.types.register(WORLD_PT_preview)
@@ -182,4 +169,4 @@ bpy.types.register(WORLD_PT_world)
 bpy.types.register(WORLD_PT_ambient_occlusion)
 bpy.types.register(WORLD_PT_mist)
 bpy.types.register(WORLD_PT_stars)
-bpy.types.register(WORLD_PT_color_correction)
+

@@ -4724,11 +4724,13 @@ Nurb *add_nurbs_primitive(bContext *C, int type, int newname)
 			Mat3MulMat3(cmat, imat, mat);
 			Mat3Inv(imat, cmat);
 		}
+		else
+			Mat3One(imat);
+
 		setflagsNurb(editnurb, 0);
 	}
-	else {
+	else
 		return NULL;
-	}
 	
 	/* these types call this function to return a Nurb */
 	if (stype!=CU_PRIM_TUBE && stype!=CU_PRIM_DONUT) {

@@ -301,11 +301,10 @@ int calc_manipulator_stats(const bContext *C)
 			}
 		}
 		else if(obedit->type==OB_MBALL) {
-			/* editmball.c */
-			ListBase editelems= {NULL, NULL};  /* XXX */
+			MetaBall *mb = (MetaBall*)obedit->data;
 			MetaElem *ml, *ml_sel=NULL;
 
-			ml= editelems.first;
+			ml= mb->editelems->first;
 			while(ml) {
 				if(ml->flag & SELECT) {
 					calc_tw_center(scene, &ml->x);

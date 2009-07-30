@@ -165,6 +165,10 @@ void uiAnimContextProperty(const bContext *C, struct PointerRNA *ptr, struct Pro
 	uiBlock *block;
 	uiBut *but;
 
+	memset(ptr, 0, sizeof(*ptr));
+	*prop= NULL;
+	*index= 0;
+
 	if(ar) {
 		for(block=ar->uiblocks.first; block; block=block->next) {
 			for(but=block->buttons.first; but; but= but->next) {

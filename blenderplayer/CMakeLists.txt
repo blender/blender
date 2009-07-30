@@ -69,7 +69,6 @@ IF(UNIX)
     bf_blenkernel 
     verse 
     bf_blenkernel 
-    bf_decimation 
     bf_blenloader 
     bf_blenpluginapi 
     bf_blroutines 

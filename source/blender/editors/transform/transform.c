@@ -1947,7 +1947,7 @@ int handleEventWarp(TransInfo *t, wmEvent *event)
 {
 	int status = 0;
 
-	if (event->type == MIDDLEMOUSE && event->val)
+	if (event->type == MIDDLEMOUSE && event->val==KM_PRESS)
 	{
 		// Use customData pointer to signal warp direction
 		if	(t->customData == 0)
@@ -2081,7 +2081,7 @@ int handleEventShear(TransInfo *t, wmEvent *event)
 {
 	int status = 0;
 
-	if (event->type == MIDDLEMOUSE && event->val)
+	if (event->type == MIDDLEMOUSE && event->val==KM_PRESS)
 	{
 		// Use customData pointer to signal Shear direction
 		if	(t->customData == 0)
@@ -3514,7 +3514,7 @@ void initBevel(TransInfo *t)
 
 int handleEventBevel(TransInfo *t, wmEvent *event)
 {
-	if (event->val) {
+	if (event->val==KM_PRESS) {
 		if(!G.editBMesh) return 0;
 
 		switch (event->type) {

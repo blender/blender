@@ -1387,6 +1387,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\physics\physics_boids.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\physics\physics_intern.h"
 				>
 			</File>
@@ -1412,6 +1416,30 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_logic\space_logic.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="space_console"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_console\console_draw.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_console\console_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_console\console_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_console\console_report.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_console\space_console.c"
 				>
 			</File>
 		</Filter>

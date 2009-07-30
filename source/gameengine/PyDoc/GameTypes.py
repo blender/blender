@@ -310,6 +310,8 @@ class BL_ActionActuator(SCA_IActuator):
 	
 	@ivar action: The name of the action to set as the current action.
 	@type action: string
+	@ivar channelNames: A list of channel names that may be used with L{setChannel} and L{getChannel}
+	@type channelNames: list of strings
 	@ivar frameStart: Specifies the starting frame of the animation.
 	@type frameStart: float
 	@ivar frameEnd: Specifies the ending frame of the animation.
@@ -340,7 +342,8 @@ class BL_ActionActuator(SCA_IActuator):
 		"""
 		Alternative to the 2 arguments, 4 arguments (channel, matrix, loc, size, quat) are also supported.
 		
-		@param channel: A string specifying the name of the bone channel, created if missing.
+		@note: These values are relative to the bones rest position, currently the api has no way to get this info (which is annoying), but can be worked around by using bones with a rest pose that has no translation.
+		@param channel: A string specifying the name of the bone channel, error raised if not in L{channelNames}.
 		@type channel: string
 		@param matrix: A 4x4 matrix specifying the overriding transformation
 		               as an offset from the bone's rest position.
@@ -349,7 +352,7 @@ class BL_ActionActuator(SCA_IActuator):
 
 	def getChannel(channel):
 		"""
-		@param channel: A string specifying the name of the bone channel. error raised if missing.
+		@param channel: A string specifying the name of the bone channel. error raised if not in L{channelNames}.
 		@type channel: string
 		@rtype: tuple
 		@return: (loc, size, quat)
@@ -2075,6 +2078,26 @@ class KX_GameObject(SCA_IObject):
 		@param to: The name of the object to send the message to (optional)
 		@type to: string
 		"""
+	def reinstancePhysicsMesh(gameObject, meshObject):
+		"""
+		Updates the physics system with the changed mesh.
+		
+		If no arguments are given the physics mesh will be re-created from the first mesh assigned to the game object.
+
+		@param gameObject: optional argument, set the physics shape from this gameObjets mesh.
+		@type gameObject: string, L{KX_GameObject} or None
+		@param meshObject: optional argument, set the physics shape from this mesh.
+		@type meshObject: string, L{KX_MeshProxy} or None
+
+		@note: if this object has instances the other instances will be updated too.
+		@note: the gameObject argument has an advantage that it can convert from a mesh with modifiers applied (such as subsurf).
+		@warning: only triangle mesh type objects are supported currently (not convex hull)
+		@warning: if the object is a part of a combound object it will fail (parent or child)
+		@warning: rebuilding the physics mesh can be slow, running many times per second will give a performance hit.
+		@rtype: boolean
+		@return: True if reinstance succeeded, False if it failed.
+		"""
+		
 	def get(key, default=None):
 		"""
 		Return the value matching key, or the default value if its not found.
@@ -2383,18 +2406,6 @@ class KX_MeshProxy(SCA_IObject):
 		@param index: polygon number
 		@rtype: L{KX_PolyProxy}
 		@return: a polygon object.
-		"""
-	def reinstancePhysicsMesh():
-		"""
-		Updates the physics system with the changed mesh.
-		
-		A mesh must have only one material with collision flags, 
-		and have all collision primitives in one vertex array (ie. < 65535 verts) and
-		be either a polytope or polyheder mesh.  If you don't get a warning in the
-		console when the collision type is polytope, the mesh is suitable for reinstance.
-		@bug: This currently does not work.
-		@rtype: boolean
-		@return: True if reinstance succeeded, False if it failed.
 		"""
 
 class SCA_MouseSensor(SCA_ISensor):

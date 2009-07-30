@@ -21,7 +21,7 @@ class MATERIAL_PT_preview(MaterialButtonsPanel):
 		
 class MATERIAL_PT_context_material(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_context_material"
-	__no_header__ = True
+	__show_header__ = False
 
 	def poll(self, context):
 		return (context.object)
@@ -52,10 +52,13 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
 
 		split = layout.split(percentage=0.65)
 
-		if ob and slot:
-			split.template_ID(slot, "material", new="material.new")
+		if ob:
+			split.template_ID(ob, "active_material", new="material.new")
 			row = split.row()
-			row.itemR(slot, "link", expand=True)
+			if slot:
+				row.itemR(slot, "link", expand=True)
+			else:
+				row.itemL()
 		elif mat:
 			split.template_ID(space, "pin_id")
 			split.itemS()
@@ -74,12 +77,8 @@ class MATERIAL_PT_material(MaterialButtonsPanel):
 
 		if mat:
 			layout.itemR(mat, "type", expand=True)
-			
 
-
-#			row = layout.row()
-
-			if mat.type == 'SURFACE':
+			if mat.type in ('SURFACE', 'WIRE', 'VOLUME'):
 				split = layout.split()
 	
 				sub = split.column()
@@ -89,27 +88,13 @@ class MATERIAL_PT_material(MaterialButtonsPanel):
 				sub.itemR(mat, "translucency", slider=True)
 				
 				sub = split.column()
+				sub.itemR(mat, "z_transparency")
 				sub.itemR(mat, "shadeless")	
-				sub.itemR(mat, "wireframe")
 				sub.itemR(mat, "tangent_shading")
 				sub.itemR(mat, "cubic", slider=True)
-			elif mat.type == 'VOLUME':
-				split = layout.split()
-	
-				sub = split.column()
-				sub.itemR(mat, "alpha", slider=True)
-				sub.itemR(mat, "ambient", slider=True)
-				sub.itemR(mat, "emit")
-				sub.itemR(mat, "translucency", slider=True)
 				
-				sub = split.column()
-				sub.itemR(mat, "shadeless")	
-				sub.itemR(mat, "wireframe")
-				sub.itemR(mat, "tangent_shading")
-				sub.itemR(mat, "cubic", slider=True)
 			elif mat.type == 'HALO':
 				layout.itemR(mat, "alpha", slider=True)
-
 			
 class MATERIAL_PT_strand(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_strand"
@@ -159,17 +144,23 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
 		sub.itemR(mat, "full_oversampling")
 		sub.itemR(mat, "sky")
 		sub.itemR(mat, "exclude_mist")
+		sub.itemR(mat, "invert_z")
+
+		col = sub.column(align=True)
+		col.itemL(text="Light Group:")
+		col.itemR(mat, "light_group", text="")
+		row = col.row()
+		row.active = mat.light_group
+		row.itemR(mat, "light_group_exclusive", text="Exclusive")
+
 		sub = split.column()
 		sub.itemR(mat, "face_texture")
 		colsub = sub.column()
 		colsub.active = mat.face_texture
 		colsub.itemR(mat, "face_texture_alpha")
-		sub.itemR(mat, "invert_z")
-		sub.itemR(mat, "light_group")
-		sub.itemR(mat, "light_group_exclusive")
-		
-		
-
+		sub.itemR(mat, "vertex_color_paint")
+		sub.itemR(mat, "vertex_color_light")
+		sub.itemR(mat, "object_color")
 
 class MATERIAL_PT_shadows(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_shadows"
@@ -202,7 +193,7 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 
 	def poll(self, context):
 		mat = context.material
-		return (mat and mat.type != "HALO")
+		return (mat and mat.type != 'HALO')
 
 	def draw(self, context):
 		layout = self.layout
@@ -212,19 +203,14 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 		
 		sub = split.column()
 		sub.itemR(mat, "diffuse_color", text="")
-		sub.itemR(mat, "vertex_color_paint")
-		sub.itemR(mat, "vertex_color_light")
+		row = sub.row()
+		row.active = mat.shadeless== False
+		row.itemR(mat, "diffuse_reflection", text="Intensity", slider=True)
 		
 		sub = split.column()
 		sub.active = mat.shadeless== False
-		sub.itemR(mat, "diffuse_reflection", text="Intensity", slider=True)
-		sub.itemR(mat, "object_color")
-		
-
-		
-		row = layout.row()
-		row.active = mat.shadeless== False
-		row.itemR(mat, "diffuse_shader", text="Shader")
+		sub.itemR(mat, "diffuse_shader", text="")
+		sub.itemR(mat, "use_diffuse_ramp", text="Ramp")
 		
 		split = layout.split()
 		split.active = mat.shadeless== False
@@ -242,15 +228,16 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 			sub = split.column()
 			sub.itemR(mat, "diffuse_fresnel_factor", text="Factor")
 		
-		layout.itemR(mat, "diffuse_ramp", text="Ramp")
-
+		if mat.use_diffuse_ramp:
+			layout.template_color_ramp(mat.diffuse_ramp, expand=True)
+		
 class MATERIAL_PT_specular(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_specular"
 	__label__ = "Specular"
 
 	def poll(self, context):
 		mat = context.material
-		return (mat and mat.type != "HALO")
+		return (mat and mat.type != 'HALO')
 
 	def draw(self, context):
 		layout = self.layout
@@ -262,29 +249,31 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
 		
 		sub = split.column()
 		sub.itemR(mat, "specular_color", text="")
-		sub = split.column()
 		sub.itemR(mat, "specular_reflection", text="Intensity", slider=True)
-		
-		layout.itemR(mat, "spec_shader", text="Shader")
+
+		sub = split.column()
+		sub.itemR(mat, "specular_shader", text="")
+		sub.itemR(mat, "use_specular_ramp", text="Ramp")
 		
 		split = layout.split()
 		
 		sub = split.column()
-		if mat.spec_shader in ('COOKTORR', 'PHONG'):
+		if mat.specular_shader in ('COOKTORR', 'PHONG'):
 			sub.itemR(mat, "specular_hardness", text="Hardness")
-		if mat.spec_shader == 'BLINN':
+		if mat.specular_shader == 'BLINN':
 			sub.itemR(mat, "specular_hardness", text="Hardness")
 			sub = split.column()
 			sub.itemR(mat, "specular_ior", text="IOR")
-		if mat.spec_shader == 'WARDISO':
+		if mat.specular_shader == 'WARDISO':
 			sub.itemR(mat, "specular_slope", text="Slope")
-		if mat.spec_shader == 'TOON':
+		if mat.specular_shader == 'TOON':
 			sub.itemR(mat, "specular_toon_size", text="Size")
 			sub = split.column()
 			sub.itemR(mat, "specular_toon_smooth", text="Smooth")
 		
-		layout.itemR(mat, "specular_ramp", text="Ramp")
-
+		if mat.use_specular_ramp:
+			layout.template_color_ramp(mat.specular_ramp, expand=True)
+		
 class MATERIAL_PT_sss(MaterialButtonsPanel):
 	__idname__= "MATERIAL_PT_sss"
 	__label__ = "Subsurface Scattering"
@@ -292,7 +281,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 	
 	def poll(self, context):
 		mat = context.material
-		return (mat and mat.type == "SURFACE")
+		return (mat and (mat.type == 'SURFACE' or mat.type == 'WIRE'))
 
 	def draw_header(self, context):
 		layout = self.layout
@@ -331,7 +320,7 @@ class MATERIAL_PT_raymir(MaterialButtonsPanel):
 	
 	def poll(self, context):
 		mat = context.material
-		return (mat and mat.type == "SURFACE")
+		return (mat and (mat.type == 'SURFACE' or mat.type == 'WIRE'))
 	
 	def draw_header(self, context):
 		layout = self.layout
@@ -375,7 +364,7 @@ class MATERIAL_PT_raytransp(MaterialButtonsPanel):
 		
 	def poll(self, context):
 		mat = context.material
-		return (mat and mat.type == "SURFACE")
+		return (mat and (mat.type == 'SURFACE' or mat.type == 'WIRE'))
 
 	def draw_header(self, context):
 		layout = self.layout
@@ -419,7 +408,7 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
 	
 	def poll(self, context):
 		mat = context.material
-		return (mat and mat.type == "HALO")
+		return (mat and mat.type == 'HALO')
 	
 	def draw(self, context):
 		layout = self.layout

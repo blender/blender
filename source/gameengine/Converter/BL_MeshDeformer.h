@@ -68,6 +68,8 @@ public:
 	virtual	RAS_Deformer*	GetReplica(){return NULL;};
 	virtual void ProcessReplica();
 	struct Mesh* GetMesh() { return m_bmesh; };
+	virtual class RAS_MeshObject* GetRasMesh() { return (RAS_MeshObject*)m_pMeshObject; };
+	virtual float (* GetTransVerts(int *tot))[3]	{	*tot= m_tvtot; return m_transverts; }
 	//	virtual void InitDeform(double time){};
 
 protected:

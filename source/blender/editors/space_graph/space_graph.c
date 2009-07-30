@@ -217,7 +217,7 @@ static void graph_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void graph_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceIpo *sipo= (SpaceIpo*)CTX_wm_space_data(C);
+	SpaceIpo *sipo= CTX_wm_space_graph(C);
 	bAnimContext ac;
 	View2D *v2d= &ar->v2d;
 	View2DGrid *grid;
@@ -294,7 +294,7 @@ static void graph_channel_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void graph_channel_area_draw(const bContext *C, ARegion *ar)
 {
-	SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
+	SpaceIpo *sipo= CTX_wm_space_graph(C);
 	bAnimContext ac;
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
@@ -362,7 +362,7 @@ static void graph_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void graph_buttons_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, NULL);
+	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
 static void graph_region_listener(ARegion *ar, wmNotifier *wmn)
