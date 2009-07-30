@@ -911,6 +911,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 									
 								obstacles[index] = 1;
 
+								// for moving gobstacles
 								/*
 								const LbmFloat maxVelVal = 0.1666;
 								const LbmFloat maxusqr = maxVelVal*maxVelVal*3. *1.5;
