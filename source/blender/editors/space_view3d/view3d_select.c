@@ -127,7 +127,7 @@ void view3d_get_transformation(ViewContext *vc, Object *ob, bglMats *mats)
 	float cpy[4][4];
 	int i, j;
 
-	Mat4MulMat4(cpy, vc->rv3d->viewmat, ob->obmat);
+	Mat4MulMat4(cpy, ob->obmat, vc->rv3d->viewmat);
 
 	for(i = 0; i < 4; ++i) {
 		for(j = 0; j < 4; ++j) {
