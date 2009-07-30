@@ -310,7 +310,7 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|MOVIEFILE);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-	RNA_def_boolean(ot->srna, "sound", FALSE, "Sound", "Load hd sound with the movie"); // XXX need to impliment this
+	RNA_def_boolean(ot->srna, "sound", TRUE, "Sound", "Load hd sound with the movie"); // XXX need to impliment this
 }
 
 
@@ -416,7 +416,7 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-	RNA_def_boolean(ot->srna, "hd", FALSE, "HD Sound", "Load the sound as streaming audio"); // XXX need to impliment this
+	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Load the sound as streaming audio"); // XXX need to impliment this
 }
 
 /* add image operator */

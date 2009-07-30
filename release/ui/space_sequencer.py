@@ -149,10 +149,8 @@ class SEQUENCER_MT_add(bpy.types.Menu):
 		layout.column()
 		layout.itemO("sequencer.scene_strip_add", text="Scene")
 		layout.itemO("sequencer.movie_strip_add", text="Movie")
-		layout.item_booleanO("sequencer.movie_strip_add", "sound", True, text="Movie & Sound") # FFMPEG ONLY
 		layout.itemO("sequencer.image_strip_add", text="Image")
-		layout.itemO("sequencer.sound_strip_add", text="Sound (Ram)")
-		layout.item_booleanO("sequencer.sound_strip_add", "hd", True, text="Sound (Streaming)") # FFMPEG ONLY
+		layout.itemO("sequencer.sound_strip_add", text="Sound")
 		
 		layout.itemM("SEQUENCER_MT_add_effect")
 
