@@ -107,6 +107,7 @@ endif
     export NAN_TEST_VERBOSITY ?= 1
     export NAN_OPENNL ?= $(LCGDIR)/opennl
     export NAN_ELBEEM ?= $(LCGDIR)/elbeem
+    export NAN_SMOKE ?= $(LCGDIR)/smoke
     export NAN_SUPERLU ?= $(LCGDIR)/superlu
     export NAN_GLEW ?= $(LCGDIR)/glew
     ifeq ($(FREE_WINDOWS), true)

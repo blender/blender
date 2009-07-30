@@ -1,5 +1,7 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
-# $Id$
+# $Id: Makefile 19330 2009-03-19 01:50:45Z hos $
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -22,26 +24,31 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): Hans Lambermont, GSR
 #
 # ***** END GPL LICENSE BLOCK *****
-# Bounces make to subdirectories. Also installs after succesful all target.
+# smoke main makefile.
+#
 
-SOURCEDIR = intern
+include nan_definitions.mk
 
-# include nan_subdirs.mk
+unexport NAN_QUIET
 
-ALLDIRS = string ghost guardedalloc moto container memutil
-ALLDIRS += decimation iksolver bsp SoundSystem opennl elbeem boolop smoke
+LIBNAME = smoke
+SOURCEDIR = intern/$(LIBNAME)
+DIR = $(OCGDIR)/$(SOURCEDIR)
+DIRS = intern
+#not ready yet TESTDIRS = test
 
-all::
-	@for i in $(ALLDIRS); do \
-	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
-	    $(MAKE) -C $$i install || exit 1; \
-	done
-clean test debug::
-	@for i in $(ALLDIRS); do \
-	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
-	    $(MAKE) -C $$i $@ || exit 1; \
-	done
+include nan_subdirs.mk
+
+install: $(ALL_OR_DEBUG)
+	@[ -d $(NAN_SMOKE) ] || mkdir $(NAN_SMOKE)
+	@[ -d $(NAN_SMOKE)/include ] || mkdir $(NAN_SMOKE)/include
+	@[ -d $(NAN_SMOKE)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_SMOKE)/lib/$(DEBUG_DIR)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)lib$(LIBNAME).a $(NAN_SMOKE)/lib/$(DEBUG_DIR)
+ifeq ($(OS),darwin)
+	ranlib $(NAN_SMOKE)/lib/$(DEBUG_DIR)lib$(LIBNAME).a
+endif
+	@../tools/cpifdiff.sh extern/*.h $(NAN_SMOKE)/include/
 

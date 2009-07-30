@@ -1,12 +1,12 @@
 #
-# $Id$
+# $Id: Makefile 17433 2008-11-12 21:16:53Z blendix $
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version. 
+# of the License, or (at your option) any later version.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2007 Blender Foundation
+# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
 # All rights reserved.
 #
 # The Original Code is: all of this file.
@@ -25,34 +25,28 @@
 # Contributor(s): none yet.
 #
 # ***** END GPL LICENSE BLOCK *****
+# smoke intern Makefile
 #
-# Makes module object directory and bounces make to subdirectories.
 
-LIBNAME = ed_view3d
-DIR = $(OCGDIR)/blender/$(LIBNAME)
+LIBNAME = smoke
+DIR = $(OCGDIR)/intern/$(LIBNAME)
 
 include nan_compile.mk
 
-CFLAGS += $(LEVEL_1_C_WARNINGS)
+unexport NAN_QUIET
 
-CPPFLAGS += -I$(NAN_GLEW)/include
-CPPFLAGS += -I$(OPENGL_HEADERS)
+CCFLAGS += $(LEVEL_2_CPP_WARNINGS)
 
+ifeq ($(WITH_BF_OPENMP),true)
+   CPPFLAGS += -DPARALLEL
+endif
 
-# not very neat....
-CPPFLAGS += -I../../windowmanager
-CPPFLAGS += -I../../blenloader
-CPPFLAGS += -I../../blenkernel
-CPPFLAGS += -I../../blenlib
-CPPFLAGS += -I../../makesdna
-CPPFLAGS += -I../../imbuf
-CPPFLAGS += -I../../python
-CPPFLAGS += -I../../gpu
-CPPFLAGS += -I../../makesrna
-CPPFLAGS += -I../../render/extern/include
-CPPFLAGS += -I../../blenfont
-CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
-CPPFLAGS += -I$(NAN_SMOKE)/include
-# own include 
+CPPFLAGS += -I.
+CPPFLAGS += -I../extern
+CPPFLAGS += -I$(NAN_PNG)/include
+CPPFLAGS += -I$(NAN_PNG)/include/libpng
 
-CPPFLAGS += -I../include 
+# zlib
+ifeq ($(OS),$(findstring $(OS), "solaris windows"))
+    CPPFLAGS += -I$(NAN_ZLIB)/include
+endif
