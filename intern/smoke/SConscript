@@ -10,6 +10,6 @@ if env['WITH_BF_OPENMP']:
 
 incs = env['BF_PNG_INC'] + ' ' + env['BF_ZLIB_INC'] 
 incs += ' intern ../../extern/bullet2/src ../memutil ../guardealloc '
-incs += env['BF_FFTW3_INC'] 
+# incs += env['BF_FFTW3_INC'] 
 
 env.BlenderLib ('bf_smoke', sources, Split(incs), Split(defs), libtype=['intern'], priority=[40] )
