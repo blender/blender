@@ -99,11 +99,22 @@ void rna_def_metaelement(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Radius", "");
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 
-	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "sizex", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "expx");
 	RNA_def_property_range(prop, 0.0f, 20.0f);
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Size", "Size of element, use of components depends on element type.");
+	RNA_def_property_ui_text(prop, "Size X", "Size of element, use of components depends on element type.");
+	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
+
+	prop= RNA_def_property(srna, "sizey", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "expy");
+	RNA_def_property_range(prop, 0.0f, 20.0f);
+	RNA_def_property_ui_text(prop, "Size Y", "Size of element, use of components depends on element type.");
+	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
+
+	prop= RNA_def_property(srna, "sizez", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "expz");
+	RNA_def_property_range(prop, 0.0f, 20.0f);
+	RNA_def_property_ui_text(prop, "Size Z", "Size of element, use of components depends on element type.");
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 	
 	prop= RNA_def_property(srna, "stiffness", PROP_FLOAT, PROP_NONE);

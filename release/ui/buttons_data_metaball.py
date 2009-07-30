@@ -66,16 +66,46 @@ class DATA_PT_metaball_element(DataButtonsPanel):
 		split.itemR(metaelem, "type", text="")
 		
 		split = layout.split()
-		
-		col = split.column()
-		col.itemL(text="Size:")	
-		col.itemR(metaelem, "size", text="")
-		
+			
 		col = split.column()
 		col.itemL(text="Settings:")
 		col.itemR(metaelem, "stiffness", text="Stiffness")
 		col.itemR(metaelem, "negative", text="Negative")
 		col.itemR(metaelem, "hide", text="Hide")
+		
+		if metaelem.type == 'BALL':
+		
+			col = split.column(align=True)
+			
+		elif metaelem.type == 'CUBE':
+		
+			col = split.column(align=True)
+			col.itemL(text="Size:")	
+			col.itemR(metaelem, "sizex", text="X")
+			col.itemR(metaelem, "sizey", text="Y")
+			col.itemR(metaelem, "sizez", text="Z")
+			
+		elif metaelem.type == 'TUBE':
+		
+			col = split.column(align=True)
+			col.itemL(text="Size:")	
+			col.itemR(metaelem, "sizex", text="X")
+			
+		elif metaelem.type == 'PLANE':
+			
+			col = split.column(align=True)
+			col.itemL(text="Size:")	
+			col.itemR(metaelem, "sizex", text="X")
+			col.itemR(metaelem, "sizey", text="Y")
+			
+		elif metaelem.type == 'ELLIPSOID':
+			
+			col = split.column(align=True)
+			col.itemL(text="Size:")	
+			col.itemR(metaelem, "sizex", text="X")
+			col.itemR(metaelem, "sizey", text="Y")
+			col.itemR(metaelem, "sizez", text="Z")
+		
 
 bpy.types.register(DATA_PT_context_metaball)
 bpy.types.register(DATA_PT_metaball)
