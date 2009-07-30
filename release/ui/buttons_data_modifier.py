@@ -70,6 +70,8 @@ class DATA_PT_modifiers(DataButtonsPanel):
 					self.shrinkwrap(box, ob, md)
 				elif md.type == 'SIMPLE_DEFORM':
 					self.simpledeform(box, ob, md)
+				elif md.type == 'SMOKE':
+					self.smoke(box, ob, md)
 				elif md.type == 'SMOOTH':
 					self.smooth(box, ob, md)
 				elif md.type == 'SOFTBODY':
@@ -82,8 +84,6 @@ class DATA_PT_modifiers(DataButtonsPanel):
 					self.uvproject(box, ob, md)
 				elif md.type == 'WAVE':
 					self.wave(box, ob, md)
-				if md.type == 'SMOKE':
-					self.smoke(box, ob, md)
 							
 	def armature(self, layout, ob, md):
 		layout.itemR(md, "object")
@@ -357,6 +357,32 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		if md.mode in ('TAPER', 'STRETCH'):
 			layout.itemR(md, "lock_x_axis")
 			layout.itemR(md, "lock_y_axis")
+			
+	def smoke(self, layout, ob, md):
+		layout.itemR(md, "smoke_type")
+		
+		if md.smoke_type == 'TYPE_DOMAIN':
+			layout.itemS()
+			layout.itemR(md.domain_settings, "maxres")
+			layout.itemR(md.domain_settings, "color")
+			layout.itemR(md.domain_settings, "amplify")
+			layout.itemR(md.domain_settings, "highres")
+			layout.itemR(md.domain_settings, "noise_type")
+			layout.itemR(md.domain_settings, "visibility")
+			layout.itemR(md.domain_settings, "alpha")
+			layout.itemR(md.domain_settings, "beta")
+			layout.itemR(md.domain_settings, "fluid_group")
+			layout.itemR(md.domain_settings, "eff_group")
+			layout.itemR(md.domain_settings, "coll_group")
+		elif md.smoke_type == 'TYPE_FLOW':
+			layout.itemS()
+			layout.itemR(md.flow_settings, "density")
+			layout.itemR(md.flow_settings, "temperature")
+			layout.itemL(text="Velocity")
+			layout.row().itemR(md.flow_settings, "velocity", text="")
+			layout.item_pointerR(md.flow_settings, "psys", ob, "particle_systems")
+		elif md.smoke_type == 'TYPE_COLL':
+			layout.itemS()
 	
 	def smooth(self, layout, ob, md):
 		split = layout.split()
@@ -436,30 +462,5 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		flow.itemR(md, "height", slider=True)
 		flow.itemR(md, "width", slider=True)
 		flow.itemR(md, "narrowness", slider=True)
-		
-	def smoke(self, layout, ob, md):
-		layout.itemR(md, "fluid_type")
-		if md.fluid_type == 'TYPE_DOMAIN':
-			layout.itemS()
-			layout.itemR(md.domain_settings, "maxres")
-			layout.itemR(md.domain_settings, "color")
-			layout.itemR(md.domain_settings, "amplify")
-			layout.itemR(md.domain_settings, "highres")
-			layout.itemR(md.domain_settings, "noise_type")
-			layout.itemR(md.domain_settings, "visibility")
-			layout.itemR(md.domain_settings, "alpha")
-			layout.itemR(md.domain_settings, "beta")
-			layout.itemR(md.domain_settings, "fluid_group")
-			layout.itemR(md.domain_settings, "eff_group")
-			layout.itemR(md.domain_settings, "coll_group")
-		if md.fluid_type == 'TYPE_FLOW':
-			layout.itemS()
-			layout.itemR(md.flow_settings, "density")
-			layout.itemR(md.flow_settings, "temperature")
-			layout.itemL(text="Velocity")
-			layout.row().itemR(md.flow_settings, "velocity", text="")
-			layout.item_pointerR(md.flow_settings, "psys", ob, "particle_systems")
-		if md.fluid_type == 'TYPE_FLUID':
-			layout.itemS()
 
 bpy.types.register(DATA_PT_modifiers)
