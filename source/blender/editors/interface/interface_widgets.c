@@ -889,10 +889,10 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 			rect->xmin += UI_icon_get_width(but->icon+but->iconadd);
 			
 			if(but->editstr || (but->flag & UI_TEXT_LEFT)) 
-				rect->xmin += 5;
+				rect->xmin += 10;
 		}
 		else if((but->flag & UI_TEXT_LEFT)) 
-			rect->xmin += 5;
+			rect->xmin += 10;
 		
 		/* always draw text for textbutton cursor */
 		widget_draw_text(fstyle, wcol, but, rect);
