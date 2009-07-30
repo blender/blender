@@ -75,6 +75,8 @@ class INFO_MT_file_import(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 
+		layout.itemO("WM_OT_collada_import", text="COLLADA")
+
 class INFO_MT_file_export(bpy.types.Menu):
 	__space_type__ = "USER_PREFERENCES"
 	__label__ = "Export"
@@ -83,6 +85,7 @@ class INFO_MT_file_export(bpy.types.Menu):
 		layout = self.layout
 
 		layout.itemO("export.ply", text="PLY")
+		layout.itemO("WM_OT_collada_export", text="COLLADA")
 
 class INFO_MT_file_external_data(bpy.types.Menu):
 	__space_type__ = "USER_PREFERENCES"
