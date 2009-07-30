@@ -73,12 +73,13 @@ extern "C"
 #include "MEM_guardedalloc.h"
 
 #include "DocumentImporter.h"
+#include "collada_internal.h"
 
 #include <string>
 #include <map>
 
 
-// #define COLLADA_DEBUG
+#define COLLADA_DEBUG
 
 char *CustomData_get_layer_name(const struct CustomData *data, int type, int n);
 
@@ -121,39 +122,6 @@ const char *geomTypeToStr(COLLADAFW::Geometry::GeometryType type)
 	return "UNKNOWN";
 }
 
-class UnitConverter
-{
-private:
-	COLLADAFW::FileInfo::Unit unit;
-	COLLADAFW::FileInfo::UpAxisType up_axis;
-
-public:
-
-	UnitConverter() : unit(), up_axis(COLLADAFW::FileInfo::Z_UP) {}
-
-	void read_asset(const COLLADAFW::FileInfo* asset)
-	{
-	}
-
-	// TODO
-	// convert vector vec from COLLADA format to Blender
-	void convertVec3(float *vec)
-	{
-	}
-		
-	// TODO need also for angle conversion, time conversion...
-
-	void mat4_from_dae_mat4(float out[][4], const COLLADABU::Math::Matrix4& in) {
-		// in DAE, matrices use columns vectors, (see comments in COLLADABUMathMatrix4.h)
-		// so here, to make a blender matrix, we simply swap columns and rows
-		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < 4; j++) {
-				out[i][j] = in[j][i];
-			}
-		}
-	}
-};
-
 typedef std::map<COLLADAFW::TextureMapId, std::vector<MTex*> > TexIndexTextureArrayMap;
 
 class ArmatureImporter
@@ -169,6 +137,17 @@ private:
 	};
 	std::map<int, JointData> joint_index_to_joint_info_map;
 	std::map<COLLADAFW::UniqueId, int> joint_id_to_joint_index_map;
+
+	struct LeafBone {
+		// COLLADAFW::Node *node;
+		EditBone *bone;
+		float mat[4][4]; // bone matrix, derived from inv_bind_mat
+	};
+	std::vector<LeafBone> leaf_bones;
+	int bone_direction_row;
+	float leaf_bone_length;
+	int totbone;
+	float min_angle; // minimum angle between bone head-tail and a row of bone matrix
 
 	/*
 	struct ArmatureData {
@@ -196,7 +175,13 @@ private:
 		return &joint_index_to_joint_info_map[joint_index];
 	}
 
-	void create_bone(COLLADAFW::Node *node, EditBone *parent, bArmature *arm)
+	const char *get_dae_name(COLLADAFW::Node *node)
+	{
+		const std::string& name = node->getName();
+		return name.size() ? name.c_str() : node->getOriginalId().c_str();
+	}
+
+	void create_bone(COLLADAFW::Node *node, EditBone *parent, int totchild, float parent_mat[][4], bArmature *arm)
 	{
 		JointData* jd = get_joint_data(node);
 
@@ -207,45 +192,145 @@ private:
 			Mat4Invert(mat, jd->inv_bind_mat);
 
 			// TODO rename from Node "name" attrs later
-			EditBone *bone = addEditBone(arm, "Bone");
+			EditBone *bone = addEditBone(arm, (char*)get_dae_name(node));
 
 			if (parent) bone->parent = parent;
 
 			// set head
 			VecCopyf(bone->head, mat[3]);
 
-			// set tail, can't set it to head because 0-length bones are not allowed
-			float vec[3] = {0.0f, 0.5f, 0.0f};
-			VecAddf(bone->tail, bone->head, vec);
-
 			// set parent tail
-			if (parent)
+			if (parent && totchild == 1) {
 				VecCopyf(parent->tail, bone->head);
+
+				// derive leaf bone length
+				float length = VecLenf(parent->head, bone->head);
+				if (length < leaf_bone_length || totbone == 0) {
+					leaf_bone_length = length;
+				}
+
+				// and which row in mat is bone direction
+				float vec[3];
+				VecSubf(vec, parent->tail, parent->head);
+#ifdef COLLADA_DEBUG
+				printvecf("tail - head", vec);
+				printmatrix4("matrix", parent_mat);
+#endif
+				for (int i = 0; i < 3; i++) {
+#ifdef COLLADA_DEBUG
+					char *axis_names[] = {"X", "Y", "Z"};
+					printf("%s-axis length is %f\n", axis_names[i], VecLength(parent_mat[i]));
+#endif
+					float angle = VecAngle2(vec, parent_mat[i]);
+					if (angle < min_angle) {
+#ifdef COLLADA_DEBUG
+						printvecf("picking", parent_mat[i]);
+						printf("^ %s axis of %s's matrix\n", axis_names[i], get_dae_name(node));
+#endif
+						bone_direction_row = i;
+						min_angle = angle;
+					}
+				}
+			}
+			else {
+				// set tail anyway, don't set it to head because 0-length bones are not allowed
+				float vec[3] = {0.0f, 0.5f, 0.0f};
+				VecAddf(bone->tail, bone->head, vec);
+			}
+
+			totbone++;
 
 			COLLADAFW::NodePointerArray& children = node->getChildNodes();
 			for (int i = 0; i < children.getCount(); i++) {
-				create_bone(children[i], bone, arm);
+				create_bone(children[i], bone, children.getCount(), mat, arm);
+			}
+
+			// in second case it's not a leaf bone, but we handle it the same way
+			if (!children.getCount() || children.getCount() > 1) {
+				LeafBone leaf;
+
+				leaf.bone = bone;
+				Mat4CpyMat4(leaf.mat, mat);
+
+				leaf_bones.push_back(leaf);
 			}
 		}
 	}
 
+	void fix_leaf_bones()
+	{
+		std::vector<LeafBone>::iterator it;
+		for (it = leaf_bones.begin(); it != leaf_bones.end(); it++) {
+			LeafBone& leaf = *it;
+			float vec[3];
+
+			VecCopyf(vec, leaf.mat[bone_direction_row]);
+			VecMulf(vec, leaf_bone_length);
+
+			VecCopyf(leaf.bone->tail, leaf.bone->head);
+			VecAddf(leaf.bone->tail, leaf.bone->head, vec);
+		}
+	}
+
+	/*
+	Object *find_armature(COLLADAFW::Node *node)
+	{
+		JointData* jd = get_joint_data(node);
+		if (jd) return jd->ob_arm;
+
+		COLLADAFW::NodePointerArray& children = node->getChildNodes();
+		for (int i = 0; i < children.getCount(); i++) {
+			Object *ob_arm = find_armature(children[i]);
+			if (ob_arm) return ob_arm;
+		}
+
+		return NULL;
+	}
+	*/
+
 	void create_bone_branch(COLLADAFW::Node *root)
 	{
-		JointData* jd = get_joint_data(root);
-		if (!jd) return;
-
-		Object *ob_arm = jd->ob_arm;
+		Object *ob_arm;
 		
+		JointData* jd = get_joint_data(root);
+		if (jd) {
+			ob_arm = jd->ob_arm;
+		}
+		// sometimes root joint may not be in <controller>, then we get armature from the first child
+		else {
+			COLLADAFW::NodePointerArray& children = root->getChildNodes();
+			if (children.getCount()) {
+				jd = get_joint_data(children[0]);
+				if (jd) ob_arm = jd->ob_arm;
+			}
+		}
+
+		if (!ob_arm) {
+			fprintf(stderr, "Cannot find armature for %s\n", get_dae_name(root));
+			return;
+		}
+
 		// enter armature edit mode
 		ED_armature_to_edit(ob_arm);
 
+		totbone = 0;
+		leaf_bones.clear();
+		bone_direction_row = 1; // TODO: don't default to Y but use asset and based on it decide on default row
+		leaf_bone_length = 0.1f;
+		min_angle = 360.0f;		// minimum angle between bone head-tail and a row of bone matrix
+
 		COLLADAFW::NodePointerArray& children = root->getChildNodes();
 		for (int i = 0; i < children.getCount(); i++) {
-			create_bone(children[i], NULL, (bArmature*)ob_arm->data);
+			create_bone(children[i], NULL, children.getCount(), NULL, (bArmature*)ob_arm->data);
 		}
+
+		// handle leaf bones
+		fix_leaf_bones();
 
 		// exit armature edit mode
 		ED_armature_from_edit(scene, ob_arm);
+		ED_armature_edit_free(ob_arm);
+		DAG_object_flush_update(scene, ob_arm, OB_RECALC_OB|OB_RECALC_DATA);
 	}
 
 public:
@@ -265,7 +350,6 @@ public:
 	// here we add bones to armature, having armatures previously created in write_controller
 	void build_armatures()
 	{
-		this->scene = scene;
 		std::vector<COLLADAFW::Node*>::iterator it;
 		for (it = root_joints.begin(); it != root_joints.end(); it++) {
 			create_bone_branch(*it);
@@ -289,7 +373,7 @@ public:
 		int i;
 		for (i = 0; i < skin->getJointsCount(); i++) {
 			JointData jd;
-			unit_converter->mat4_from_dae_mat4(jd.inv_bind_mat, inv_bind_mats[i]);
+			unit_converter->mat4_from_dae(jd.inv_bind_mat, inv_bind_mats[i]);
 			joint_index_to_joint_info_map[i] = jd;
 		}
 
@@ -307,13 +391,13 @@ public:
 
 		if (controller->getControllerType() == COLLADAFW::Controller::CONTROLLER_TYPE_SKIN) {
 
-			Object *ob_arm = add_object(this->scene, OB_ARMATURE);
+			Object *ob_arm = add_object(scene, OB_ARMATURE);
 
 			COLLADAFW::SkinController *skinco = (COLLADAFW::SkinController*)controller;
 			const COLLADAFW::UniqueId& id = skinco->getSkinControllerData();
 
 			// to find geom id by controller id
-			this->controller_id_to_geom_id_map[skin_id] = skinco->getSource();
+			controller_id_to_geom_id_map[skin_id] = skinco->getSource();
 			
 			// "Node" ids
 			const COLLADAFW::UniqueIdArray& joint_ids = skinco->getJoints();
@@ -373,9 +457,27 @@ private:
 		void print()
 		{
 			fprintf(stderr, "UVs:\n");
-			COLLADAFW::ArrayPrimitiveType<float>* values = mVData->getFloatValues();
-			for (int i = 0; i < values->getCount(); i += 2) {
-				fprintf(stderr, "%.1f, %.1f\n", (*values)[i], (*values)[i+1]);
+			switch(mVData->getType()) {
+			case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
+				{
+					COLLADAFW::ArrayPrimitiveType<float>* values = mVData->getFloatValues();
+					if (values->getCount()) {
+						for (int i = 0; i < values->getCount(); i += 2) {
+							fprintf(stderr, "%.1f, %.1f\n", (*values)[i], (*values)[i+1]);
+						}
+					}
+				}
+				break;
+			case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE:
+				{
+					COLLADAFW::ArrayPrimitiveType<double>* values = mVData->getDoubleValues();
+					if (values->getCount()) {
+						for (int i = 0; i < values->getCount(); i += 2) {
+							fprintf(stderr, "%.1f, %.1f\n", (float)(*values)[i], (float)(*values)[i+1]);
+						}
+					}
+				}
+				break;
 			}
 			fprintf(stderr, "\n");
 		}
@@ -391,8 +493,8 @@ private:
 					uv[0] = (*values)[uv_index[0]];
 					uv[1] = (*values)[uv_index[1]];
 					
-					break;
 				}
+				break;
 			case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE:
 				{
 					COLLADAFW::ArrayPrimitiveType<double>* values = mVData->getDoubleValues();
@@ -400,8 +502,8 @@ private:
 					uv[0] = (float)(*values)[uv_index[0]];
 					uv[1] = (float)(*values)[uv_index[1]];
 					
-					break;
 				}
+				break;
 			}
 		}
 	};
@@ -1086,6 +1188,8 @@ public:
 		Mat3One(rot);
 		
 		// transform Object and store animation linking info
+		// TODO: apply transforms sequentially and then extract location/scale/rotation from final matrix
+		// this will be the correct way
 		for (k = 0; k < node->getTransformations().getCount(); k ++) {
 			
 			COLLADAFW::Transformation *tm = node->getTransformations()[k];
@@ -1499,6 +1603,7 @@ public:
 					return (*values)[i];
 				else return 0;
 			}
+			break;
 		case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE:
 			{
 				COLLADAFW::ArrayPrimitiveType<double> *values = array.getDoubleValues();
@@ -1506,6 +1611,7 @@ public:
 					return (float)(*values)[i];
 				else return 0;
 			}
+			break;
 		}
 	}
 	
