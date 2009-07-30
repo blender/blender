@@ -17,13 +17,14 @@
 #include "COLLADAFWMeshPrimitiveWithFaceVertexCount.h"
 #include "COLLADAFWNode.h"
 #include "COLLADAFWPolygons.h"
-#include "COLLADAFWRotate.h"
 #include "COLLADAFWSampler.h"
-#include "COLLADAFWScale.h"
 #include "COLLADAFWSkinController.h"
 #include "COLLADAFWSkinControllerData.h"
 #include "COLLADAFWTransformation.h"
 #include "COLLADAFWTranslate.h"
+#include "COLLADAFWRotate.h"
+#include "COLLADAFWScale.h"
+#include "COLLADAFWMatrix.h"
 #include "COLLADAFWTypes.h"
 #include "COLLADAFWVisualScene.h"
 #include "COLLADAFWFileInfo.h"
@@ -53,6 +54,7 @@ extern "C"
 #include "BKE_image.h"
 #include "BKE_material.h"
 #include "BKE_utildefines.h"
+#include "BKE_action.h"
 
 #include "BLI_arithb.h"
 #include "BLI_listbase.h"
@@ -78,6 +80,8 @@ extern "C"
 #include <string>
 #include <map>
 
+#include <math.h>
+#include <float.h>
 
 #define COLLADA_DEBUG
 
@@ -141,21 +145,23 @@ private:
 	struct LeafBone {
 		// COLLADAFW::Node *node;
 		EditBone *bone;
+		char name[32];
 		float mat[4][4]; // bone matrix, derived from inv_bind_mat
 	};
 	std::vector<LeafBone> leaf_bones;
-	int bone_direction_row;
+	// int bone_direction_row; // XXX not used
 	float leaf_bone_length;
 	int totbone;
-	float min_angle; // minimum angle between bone head-tail and a row of bone matrix
+	// XXX not used
+	// float min_angle; // minimum angle between bone head-tail and a row of bone matrix
 
-	/*
-	struct ArmatureData {
-		bArmature *arm;
-		COLLADAFW::SkinController *controller;
+	struct ArmatureJoints {
+		Object *ob_arm;
+		std::vector<COLLADAFW::Node*> root_joints;
 	};
-	std::map<COLLADAFW::UniqueId, ArmatureData> controller_id_to_arm_info_map;
-	*/
+	std::vector<ArmatureJoints> armature_joints;
+
+	Object *empty; // empty for leaf bones
 
 	std::vector<COLLADAFW::Node*> root_joints;
 	std::map<COLLADAFW::UniqueId, COLLADAFW::UniqueId> controller_id_to_geom_id_map;
@@ -185,86 +191,177 @@ private:
 	{
 		JointData* jd = get_joint_data(node);
 
-		if (jd) {
-			float mat[4][4];
+		float mat[4][4];
 
+		if (jd) {
 			// get original world-space matrix
 			Mat4Invert(mat, jd->inv_bind_mat);
+		}
+		// create a bone even if there's no jd for it (i.e. it has no influence)
+		else {
+			float obmat[4][4];
 
-			// TODO rename from Node "name" attrs later
-			EditBone *bone = addEditBone(arm, (char*)get_dae_name(node));
+			// object-space
+			get_node_mat(obmat, node);
 
-			if (parent) bone->parent = parent;
+			// get world-space
+			if (parent)
+				Mat4MulMat4(mat, obmat, parent_mat);
+			else
+				Mat4CpyMat4(mat, obmat);
+		}
 
-			// set head
-			VecCopyf(bone->head, mat[3]);
+		// TODO rename from Node "name" attrs later
+		EditBone *bone = addEditBone(arm, (char*)get_dae_name(node));
 
-			// set parent tail
-			if (parent && totchild == 1) {
-				VecCopyf(parent->tail, bone->head);
+		if (parent) bone->parent = parent;
 
-				// derive leaf bone length
-				float length = VecLenf(parent->head, bone->head);
-				if (length < leaf_bone_length || totbone == 0) {
-					leaf_bone_length = length;
+		// set head
+		VecCopyf(bone->head, mat[3]);
+
+		// set tail, don't set it to head because 0-length bones are not allowed
+		float vec[3] = {0.0f, 0.5f, 0.0f};
+		VecAddf(bone->tail, bone->head, vec);
+
+		// set parent tail
+		if (parent && totchild == 1) {
+			VecCopyf(parent->tail, bone->head);
+
+			// derive leaf bone length
+			float length = VecLenf(parent->head, parent->tail);
+			if ((length < leaf_bone_length || totbone == 0) && length > FLT_EPSILON) {
+				leaf_bone_length = length;
+			}
+
+			// treat zero-sized bone like a leaf bone
+			if (length < FLT_EPSILON) {
+				add_leaf_bone(parent_mat, parent);
+			}
+
+			/*
+#if 0
+			// and which row in mat is bone direction
+			float vec[3];
+			VecSubf(vec, parent->tail, parent->head);
+#ifdef COLLADA_DEBUG
+			printvecf("tail - head", vec);
+			printmatrix4("matrix", parent_mat);
+#endif
+			for (int i = 0; i < 3; i++) {
+#ifdef COLLADA_DEBUG
+				char *axis_names[] = {"X", "Y", "Z"};
+				printf("%s-axis length is %f\n", axis_names[i], VecLength(parent_mat[i]));
+#endif
+				float angle = VecAngle2(vec, parent_mat[i]);
+				if (angle < min_angle) {
+#ifdef COLLADA_DEBUG
+					printvecf("picking", parent_mat[i]);
+					printf("^ %s axis of %s's matrix\n", axis_names[i], get_dae_name(node));
+#endif
+					bone_direction_row = i;
+					min_angle = angle;
 				}
+			}
+#endif
+			*/
+		}
 
-				// and which row in mat is bone direction
-				float vec[3];
-				VecSubf(vec, parent->tail, parent->head);
-#ifdef COLLADA_DEBUG
-				printvecf("tail - head", vec);
-				printmatrix4("matrix", parent_mat);
-#endif
-				for (int i = 0; i < 3; i++) {
-#ifdef COLLADA_DEBUG
-					char *axis_names[] = {"X", "Y", "Z"};
-					printf("%s-axis length is %f\n", axis_names[i], VecLength(parent_mat[i]));
-#endif
-					float angle = VecAngle2(vec, parent_mat[i]);
-					if (angle < min_angle) {
-#ifdef COLLADA_DEBUG
-						printvecf("picking", parent_mat[i]);
-						printf("^ %s axis of %s's matrix\n", axis_names[i], get_dae_name(node));
-#endif
-						bone_direction_row = i;
-						min_angle = angle;
-					}
+		totbone++;
+
+		COLLADAFW::NodePointerArray& children = node->getChildNodes();
+		for (int i = 0; i < children.getCount(); i++) {
+			create_bone(children[i], bone, children.getCount(), mat, arm);
+		}
+
+		// in second case it's not a leaf bone, but we handle it the same way
+		if (!children.getCount() || children.getCount() > 1) {
+			add_leaf_bone(mat, bone);
+		}
+	}
+
+	void add_leaf_bone(float mat[][4], EditBone *bone)
+	{
+		LeafBone leaf;
+
+		leaf.bone = bone;
+		Mat4CpyMat4(leaf.mat, mat);
+		BLI_strncpy(leaf.name, bone->name, sizeof(leaf.name));
+
+		leaf_bones.push_back(leaf);
+	}
+
+	void get_node_mat(float mat[][4], COLLADAFW::Node *node)
+	{
+		float cur[4][4];
+		float copy[4][4];
+
+		Mat4One(mat);
+		
+		for (int i = 0; i < node->getTransformations().getCount(); i++) {
+
+			COLLADAFW::Transformation *tm = node->getTransformations()[i];
+			COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
+
+			switch(type) {
+			case COLLADAFW::Transformation::TRANSLATE:
+				{
+					COLLADAFW::Translate *tra = (COLLADAFW::Translate*)tm;
+					COLLADABU::Math::Vector3& t = tra->getTranslation();
+
+					Mat4One(cur);
+					cur[3][0] = (float)t[0];
+					cur[3][1] = (float)t[1];
+					cur[3][2] = (float)t[2];
 				}
+				break;
+			case COLLADAFW::Transformation::ROTATE:
+				{
+					COLLADAFW::Rotate *ro = (COLLADAFW::Rotate*)tm;
+					COLLADABU::Math::Vector3& raxis = ro->getRotationAxis();
+					float angle = (float)(ro->getRotationAngle() * M_PI / 180.0f);
+					float axis[] = {raxis[0], raxis[1], raxis[2]};
+					float quat[4];
+					float rot_copy[3][3];
+					float mat[3][3];
+					AxisAngleToQuat(quat, axis, angle);
+					
+					QuatToMat4(quat, cur);
+				}
+				break;
+			case COLLADAFW::Transformation::SCALE:
+				{
+					COLLADABU::Math::Vector3& s = ((COLLADAFW::Scale*)tm)->getScale();
+					float size[3] = {(float)s[0], (float)s[1], (float)s[2]};
+					SizeToMat4(size, cur);
+				}
+				break;
+			case COLLADAFW::Transformation::MATRIX:
+				{
+					unit_converter->mat4_from_dae(cur, ((COLLADAFW::Matrix*)tm)->getMatrix());
+				}
+				break;
+			case COLLADAFW::Transformation::LOOKAT:
+			case COLLADAFW::Transformation::SKEW:
+				fprintf(stderr, "LOOKAT and SKEW transformations are not supported yet.\n");
+				break;
 			}
-			else {
-				// set tail anyway, don't set it to head because 0-length bones are not allowed
-				float vec[3] = {0.0f, 0.5f, 0.0f};
-				VecAddf(bone->tail, bone->head, vec);
-			}
 
-			totbone++;
-
-			COLLADAFW::NodePointerArray& children = node->getChildNodes();
-			for (int i = 0; i < children.getCount(); i++) {
-				create_bone(children[i], bone, children.getCount(), mat, arm);
-			}
-
-			// in second case it's not a leaf bone, but we handle it the same way
-			if (!children.getCount() || children.getCount() > 1) {
-				LeafBone leaf;
-
-				leaf.bone = bone;
-				Mat4CpyMat4(leaf.mat, mat);
-
-				leaf_bones.push_back(leaf);
-			}
+			Mat4CpyMat4(copy, mat);
+			Mat4MulMat4(mat, cur, copy);
 		}
 	}
 
 	void fix_leaf_bones()
 	{
+		// just setting tail for leaf bones here
+
 		std::vector<LeafBone>::iterator it;
 		for (it = leaf_bones.begin(); it != leaf_bones.end(); it++) {
 			LeafBone& leaf = *it;
-			float vec[3];
 
-			VecCopyf(vec, leaf.mat[bone_direction_row]);
+			// pointing up
+			float vec[3] = {0.0f, 0.0f, 1.0f};
+
 			VecMulf(vec, leaf_bone_length);
 
 			VecCopyf(leaf.bone->tail, leaf.bone->head);
@@ -272,7 +369,35 @@ private:
 		}
 	}
 
-	/*
+	void set_leaf_bone_shapes(Object *ob_arm)
+	{
+		bPose *pose = ob_arm->pose;
+
+		std::vector<LeafBone>::iterator it;
+		for (it = leaf_bones.begin(); it != leaf_bones.end(); it++) {
+			LeafBone& leaf = *it;
+
+			bPoseChannel *pchan = get_pose_channel(pose, leaf.name);
+			if (pchan) {
+				pchan->custom = get_empty_for_leaves();
+			}
+			else {
+				fprintf(stderr, "Cannot find a pose channel for leaf bone %s\n", leaf.name);
+			}
+		}
+
+	}
+
+	Object *get_empty_for_leaves()
+	{
+		if (empty) return empty;
+		
+		empty = add_object(scene, OB_EMPTY);
+		empty->empty_drawtype = OB_EMPTY_SPHERE;
+
+		return empty;
+	}
+
 	Object *find_armature(COLLADAFW::Node *node)
 	{
 		JointData* jd = get_joint_data(node);
@@ -286,87 +411,101 @@ private:
 
 		return NULL;
 	}
-	*/
 
-	void create_bone_branch(COLLADAFW::Node *root)
+	ArmatureJoints& get_armature_joints(Object *ob_arm)
 	{
-		Object *ob_arm;
-		
-		JointData* jd = get_joint_data(root);
-		if (jd) {
-			ob_arm = jd->ob_arm;
-		}
-		// sometimes root joint may not be in <controller>, then we get armature from the first child
-		else {
-			COLLADAFW::NodePointerArray& children = root->getChildNodes();
-			if (children.getCount()) {
-				jd = get_joint_data(children[0]);
-				if (jd) ob_arm = jd->ob_arm;
-			}
+		// try finding it
+		std::vector<ArmatureJoints>::iterator it;
+		for (it = armature_joints.begin(); it != armature_joints.end(); it++) {
+			if ((*it).ob_arm == ob_arm) return *it;
 		}
 
-		if (!ob_arm) {
-			fprintf(stderr, "Cannot find armature for %s\n", get_dae_name(root));
-			return;
-		}
+		// not found, create one
+		ArmatureJoints aj;
+		aj.ob_arm = ob_arm;
+		armature_joints.push_back(aj);
+
+		return armature_joints.back();
+	}
+
+	void create_armature_bones(ArmatureJoints &arm_joints)
+	{
+		Object *ob_arm = arm_joints.ob_arm;
+		std::vector<COLLADAFW::Node*>& root_joints = arm_joints.root_joints;
 
 		// enter armature edit mode
 		ED_armature_to_edit(ob_arm);
 
-		totbone = 0;
 		leaf_bones.clear();
-		bone_direction_row = 1; // TODO: don't default to Y but use asset and based on it decide on default row
+		totbone = 0;
+		// bone_direction_row = 1; // TODO: don't default to Y but use asset and based on it decide on default row
 		leaf_bone_length = 0.1f;
-		min_angle = 360.0f;		// minimum angle between bone head-tail and a row of bone matrix
+		// min_angle = 360.0f;		// minimum angle between bone head-tail and a row of bone matrix
 
-		COLLADAFW::NodePointerArray& children = root->getChildNodes();
-		for (int i = 0; i < children.getCount(); i++) {
-			create_bone(children[i], NULL, children.getCount(), NULL, (bArmature*)ob_arm->data);
+		std::vector<COLLADAFW::Node*>::iterator it;
+		for (it = root_joints.begin(); it != root_joints.end(); it++) {
+
+			COLLADAFW::Node *root_joint = *it;
+			COLLADAFW::NodePointerArray& children = root_joint->getChildNodes();
+
+			create_bone(*it, NULL, children.getCount(), NULL, (bArmature*)ob_arm->data);
+
+			// for (int i = 0; i < children.getCount(); i++) {
+			// 	create_bone(children[i], NULL, children.getCount(), NULL, (bArmature*)ob_arm->data);
+			// }
+
 		}
 
-		// handle leaf bones
 		fix_leaf_bones();
 
 		// exit armature edit mode
 		ED_armature_from_edit(scene, ob_arm);
 		ED_armature_edit_free(ob_arm);
 		DAG_object_flush_update(scene, ob_arm, OB_RECALC_OB|OB_RECALC_DATA);
+
+		set_leaf_bone_shapes(ob_arm);
 	}
 
 public:
 
-	ArmatureImporter(UnitConverter *conv, Scene *sce) : unit_converter(conv), scene(sce) {}
+	ArmatureImporter(UnitConverter *conv, Scene *sce) : unit_converter(conv), scene(sce), empty(NULL) {}
 
 	void add_root_joint(COLLADAFW::Node *node)
 	{
-		root_joints.push_back(node);
+		// root_joints.push_back(node);
+		Object *ob_arm = find_armature(node);
+		if (ob_arm)	{
+			get_armature_joints(ob_arm).root_joints.push_back(node);
+		}
+#ifdef COLLADA_DEBUG
+		else {
+			fprintf(stderr, "%s cannot be added to armature.\n", get_dae_name(node));
+		}
+#endif
 	}
 
-	bool has_root_joints()
-	{
-		return root_joints.size() > 0;
-	}
-
-	// here we add bones to armature, having armatures previously created in write_controller
+	// here we add bones to armatures, having armatures previously created in write_controller
 	void build_armatures()
 	{
-		std::vector<COLLADAFW::Node*>::iterator it;
-		for (it = root_joints.begin(); it != root_joints.end(); it++) {
-			create_bone_branch(*it);
-		}
-	}
-
-	bool write_skin_controller_data(const COLLADAFW::SkinControllerData* skin)
-	{
-		// use inverse bind matrices to construct armature
-		// it is safe to invert them to get the original matrices
-		// because if they are inverse matrices, they can be inverted
-
 		// just do like so:
 		// - create armature
 		// - enter editmode
 		// - add edit bones and head/tail properties using matrices and parent-child info
 		// - exit edit mode
+		// - set a sphere shape to leaf bones
+
+		std::vector<ArmatureJoints>::iterator it;
+
+		for (it = armature_joints.begin(); it != armature_joints.end(); it++) {
+			create_armature_bones(*it);
+		}
+	}
+
+	bool write_skin_controller_data(const COLLADAFW::SkinControllerData* skin)
+	{
+		// using inverse bind matrices to construct armature
+		// it is safe to invert them to get the original matrices
+		// because if they are inverse matrices, they can be inverted
 
 		// store join inv bind matrix to use it later in armature construction
 		const COLLADAFW::Matrix4Array& inv_bind_mats = skin->getInverseBindMatrices();
@@ -383,9 +522,8 @@ public:
 	bool write_controller(const COLLADAFW::Controller* controller)
 	{
 		// here we:
-		// - create armature
-		// - create EditBones, not setting parent-child relationships
-		// - store armature
+		// - create and store armature
+		// - init a "joint id to joint index" map
 
 		const COLLADAFW::UniqueId& skin_id = controller->getUniqueId();
 
@@ -516,7 +654,7 @@ private:
 		if (quad) mface->v4 = indices[3];
 		else mface->v4 = 0;
 #ifdef COLLADA_DEBUG
-		fprintf(stderr, "%u, %u, %u \n", indices[0], indices[1], indices[2]);
+		// fprintf(stderr, "%u, %u, %u \n", indices[0], indices[1], indices[2]);
 #endif
 	}
 
@@ -550,7 +688,7 @@ private:
 		if (quad) uvs.getUV(uv_set_index, uv_indices[3], mtface->uv[3]);
 
 #ifdef COLLADA_DEBUG
-		if (quad) {
+		/*if (quad) {
 			fprintf(stderr, "face uv:\n"
 					"((%d, %d), (%d, %d), (%d, %d), (%d, %d))\n"
 					"((%.1f, %.1f), (%.1f, %.1f), (%.1f, %.1f), (%.1f, %.1f))\n",
@@ -577,7 +715,7 @@ private:
 					mtface->uv[0][0], mtface->uv[0][1],
 					mtface->uv[1][0], mtface->uv[1][1],
 					mtface->uv[2][0], mtface->uv[2][1]);
-		}
+		}*/
 #endif
 	}
 
@@ -697,7 +835,7 @@ private:
 		UVDataWrapper uvs(mesh->getUVCoords());
 
 #ifdef COLLADA_DEBUG
-		uvs.print();
+		// uvs.print();
 #endif
 
 		MFace *mface = me->mface;
@@ -724,10 +862,12 @@ private:
 			COLLADAFW::IndexListArray& index_list_array = mp->getUVCoordIndicesArray();
 
 #ifdef COLLADA_DEBUG
+			/*
 			fprintf(stderr, "Primitive %d:\n", i);
 			for (int j = 0; j < totuvset; j++) {
 				print_index_list(*index_list_array[j]);
 			}
+			*/
 #endif
 			
 			if (type == COLLADAFW::MeshPrimitive::TRIANGLES) {
@@ -1218,7 +1358,7 @@ public:
 					
 					QuatToMat3(quat, mat);
 					Mat3CpyMat3(rot_copy, rot);
-					Mat3MulMat3(rot, rot_copy, mat);
+					Mat3MulMat3(rot, mat, rot_copy);
 				}
 				break;
 			case COLLADAFW::Transformation::SCALE:
@@ -1284,9 +1424,7 @@ public:
 			}
 		}
 
-		if (armature_importer.has_root_joints()) {
-			armature_importer.build_armatures();
-		}
+		armature_importer.build_armatures();
 		
 		return true;
 	}
