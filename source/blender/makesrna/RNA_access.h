@@ -378,6 +378,7 @@ extern StructRNA RNA_ShapeKeyPoint;
 extern StructRNA RNA_ShrinkwrapConstraint;
 extern StructRNA RNA_ShrinkwrapModifier;
 extern StructRNA RNA_SimpleDeformModifier;
+extern StructRNA RNA_SmokeModifier;
 extern StructRNA RNA_SmoothModifier;
 extern StructRNA RNA_SoftBodyModifier;
 extern StructRNA RNA_SoftBodySettings;

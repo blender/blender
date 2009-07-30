@@ -132,6 +132,7 @@ char *includefiles[] = {
 	"DNA_windowmanager_types.h",
 	"DNA_anim_types.h",
 	"DNA_boid_types.h",
+	"DNA_smoke_types.h",
 
 	// empty string to indicate end of includefiles
 	""
@@ -1154,4 +1155,5 @@ int main(int argc, char ** argv)
 #include "DNA_windowmanager_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_boid_types.h"
+#include "DNA_smoke_types.h"
 /* end of list */

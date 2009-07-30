@@ -256,6 +256,7 @@ IF(UNIX)
     bf_converter 
     bf_dummy 
     bf_bullet 
+    bf_smoke
     bf_common 
     bf_ketsji 
     bf_logic 

@@ -130,6 +130,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "DNA_sdna_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_sensor_types.h"
+#include "DNA_smoke_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sound_types.h"
@@ -1115,6 +1116,18 @@ static void write_modifiers(WriteData *wd, ListBase *modbase, int write_undo)
 			writestruct(wd, DATA, "ClothSimSettings", 1, clmd->sim_parms);
 			writestruct(wd, DATA, "ClothCollSettings", 1, clmd->coll_parms);
 			write_pointcaches(wd, clmd->point_cache, PTCACHE_WRITE_CLOTH);
+		} 
+		else if(md->type==eModifierType_Smoke) {
+			SmokeModifierData *smd = (SmokeModifierData*) md;
+			
+			if(smd->type==MOD_SMOKE_TYPE_DOMAIN)
+				writestruct(wd, DATA, "SmokeDomainSettings", 1, smd->domain);
+			else if(smd->type==MOD_SMOKE_TYPE_FLOW)
+				writestruct(wd, DATA, "SmokeFlowSettings", 1, smd->flow);
+			/*
+			else if(smd->type==MOD_SMOKE_TYPE_COLL)
+				writestruct(wd, DATA, "SmokeCollSettings", 1, smd->coll);
+			*/
 		} 
 		else if(md->type==eModifierType_Fluidsim) {
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;

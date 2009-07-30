@@ -71,6 +71,7 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Surface, "SURFACE", ICON_MOD_PHYSICS, "Surface", ""},
 	{eModifierType_UVProject, "UV_PROJECT", ICON_MOD_UVPROJECT, "UV Project", ""},
 	{eModifierType_Wave, "WAVE", ICON_MOD_WAVE, "Wave", ""},
+	{eModifierType_Smoke, "SMOKE", 0, "Smoke", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 
@@ -151,6 +152,8 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_MultiresModifier;
 		case eModifierType_Surface:
 			return &RNA_SurfaceModifier;
+		case eModifierType_Smoke:
+			return &RNA_SmokeModifier;
 		default:
 			return &RNA_Modifier;
 	}
@@ -170,6 +173,19 @@ static void rna_Modifier_dependency_update(bContext *C, PointerRNA *ptr)
 {
 	rna_Modifier_update(C, ptr);
     DAG_scene_sort(CTX_data_scene(C));
+}
+
+static void rna_Smoke_set_type(bContext *C, PointerRNA *ptr)
+{
+	SmokeModifierData *smd= (SmokeModifierData *)ptr->data;
+		
+	smokeModifier_free(smd); // XXX TODO: completely free all 3 pointers
+	smokeModifier_createType(smd); // create regarding of selected type
+	// particle_system_slot_add_exec(C, NULL);
+	// particle_system_slot_remove_exec(C, NULL);
+	
+	// update dependancy since a domain - other type switch could have happened
+	rna_Modifier_dependency_update(C, ptr);
 }
 
 static void rna_ExplodeModifier_vgroup_get(PointerRNA *ptr, char *value)
@@ -1466,6 +1482,41 @@ static void rna_def_modifier_cloth(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Point Cache", "");
 }
 
+static void rna_def_modifier_smoke(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	static EnumPropertyItem prop_smoke_type_items[] = {
+			{0, "NONE", 0, "None", ""},
+			{MOD_SMOKE_TYPE_DOMAIN, "TYPE_DOMAIN", 0, "Domain", ""},
+			{MOD_SMOKE_TYPE_FLOW, "TYPE_FLOW", 0, "Flow", "Inflow/Outflow"},
+			{MOD_SMOKE_TYPE_COLL, "TYPE_COLL", 0, "Collision", ""},
+			{0, NULL, 0, NULL, NULL}};
+	
+	srna= RNA_def_struct(brna, "SmokeModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "Smoke Modifier", "Smoke simulation modifier.");
+	RNA_def_struct_sdna(srna, "SmokeModifierData");
+	
+	prop= RNA_def_property(srna, "domain_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "domain");
+	RNA_def_property_ui_text(prop, "Domain Settings", "");
+	
+	prop= RNA_def_property(srna, "flow_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "flow");
+	RNA_def_property_ui_text(prop, "Flow Settings", "");
+	
+	prop= RNA_def_property(srna, "coll_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "coll");
+	RNA_def_property_ui_text(prop, "Collision Settings", "");
+	
+	prop= RNA_def_property(srna, "fluid_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, prop_smoke_type_items);
+	RNA_def_property_ui_text(prop, "Type", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_set_type");
+}
+
 static void rna_def_modifier_collision(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1763,7 +1814,6 @@ static void rna_def_modifier_surface(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "SurfaceModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_PHYSICS);
 }
-
 void RNA_def_modifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1847,6 +1897,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_simpledeform(brna);
 	rna_def_modifier_multires(brna);
 	rna_def_modifier_surface(brna);
+	rna_def_modifier_smoke(brna);
 }
 
 #endif

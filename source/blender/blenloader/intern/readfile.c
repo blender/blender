@@ -94,6 +94,7 @@
 #include "DNA_sdna_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_smoke_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
 #include "DNA_texture_types.h"
@@ -3539,6 +3540,17 @@ static void lib_link_object(FileData *fd, Main *main)
 				if(fluidmd && fluidmd->fss) 
 					fluidmd->fss->ipo = newlibadr_us(fd, ob->id.lib, fluidmd->fss->ipo);
 			}
+
+			{
+				SmokeModifierData *smd = (SmokeModifierData *)modifiers_findByType(ob, eModifierType_Smoke);
+				
+				if(smd && smd->type == MOD_SMOKE_TYPE_DOMAIN && smd->domain) 
+				{
+					smd->domain->coll_group = newlibadr_us(fd, ob->id.lib, smd->domain->coll_group);
+					smd->domain->eff_group = newlibadr_us(fd, ob->id.lib, smd->domain->eff_group);
+					smd->domain->fluid_group = newlibadr_us(fd, ob->id.lib, smd->domain->fluid_group);
+				}
+			}
 			
 			/* texture field */
 			if(ob->pd)
@@ -3629,6 +3641,44 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			
 			fluidmd->fss= newdataadr(fd, fluidmd->fss);
 			fluidmd->fss->meshSurfNormals = 0;
+		}
+		else if (md->type==eModifierType_Smoke) {
+			SmokeModifierData *smd = (SmokeModifierData*) md;
+
+			if(smd->type==MOD_SMOKE_TYPE_DOMAIN)
+			{
+				smd->flow = NULL;
+				smd->coll = NULL;
+				if(smd->domain)
+					smd->domain = newdataadr(fd, smd->domain);
+
+				smd->domain->fluid = NULL;
+				smd->domain->tvox = NULL;
+				smd->domain->tray = NULL;
+				smd->domain->tvoxbig = NULL;
+				smd->domain->traybig = NULL;
+				smd->domain->bind = NULL;
+				smd->domain->max_textures = 0;
+				smd->domain->viewsettings = 0; // reset view for new frame
+			}
+			else if(smd->type==MOD_SMOKE_TYPE_FLOW)
+			{
+				smd->domain = NULL;
+				smd->coll = NULL;
+				smd->flow = newdataadr(fd, smd->flow);
+				smd->flow->psys = newdataadr(fd, smd->flow->psys);
+			}
+			else if(smd->type==MOD_SMOKE_TYPE_COLL)
+			{
+				smd->flow = NULL;
+				smd->domain = NULL;
+				smd->coll = NULL;
+				/*
+				smd->coll = newdataadr(fd, smd->coll);
+				smd->coll->points = NULL;
+				smd->coll->numpoints = 0;
+				*/
+			}
 		}
 		else if (md->type==eModifierType_Collision) {
 			
@@ -4846,7 +4896,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			}
 			else if(sl->spacetype==SPACE_LOGIC) {
 				SpaceLogic *slogic= (SpaceLogic *)sl;
-				
+					
 				if(slogic->gpd) {
 					slogic->gpd= newdataadr(fd, slogic->gpd);
 					direct_link_gpencil(fd, slogic->gpd);
@@ -10129,6 +10179,19 @@ static void expand_modifier(FileData *fd, Main *mainvar, ModifierData *md)
 		
 		expand_doit(fd, mainvar, dmd->map_object);
 		expand_doit(fd, mainvar, dmd->texture);
+	}
+	else if (md->type==eModifierType_Smoke) {
+		SmokeModifierData *smd = (SmokeModifierData*) md;
+			
+		if(smd->type==MOD_SMOKE_TYPE_DOMAIN && smd->domain)
+		{	
+			//if(smd->domain->coll_group)
+				expand_doit(fd, mainvar, smd->domain->coll_group);
+			//if(smd->domain->fluid_group)
+				expand_doit(fd, mainvar, smd->domain->fluid_group);
+			//if(smd->domain->eff_group)
+				expand_doit(fd, mainvar, smd->domain->eff_group);
+		}
 	}
 }
 

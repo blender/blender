@@ -1941,6 +1941,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_sculpt_paint.c", NULL, RNA_def_sculpt_paint},
 	{"rna_sensor.c", NULL, RNA_def_sensor},
 	{"rna_sequence.c", NULL, RNA_def_sequence},
+	{"rna_smoke.c", NULL, RNA_def_smoke},
 	{"rna_space.c", NULL, RNA_def_space},
 	{"rna_text.c", NULL, RNA_def_text},
 	{"rna_timeline.c", NULL, RNA_def_timeline_marker},
