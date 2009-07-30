@@ -181,8 +181,9 @@ void WTURBULENCE::setNoise(int type)
 {
 	if(type == 4) // FFT
 	{
-		std::string noiseTileFilename = std::string("noise.fft");
-		generatTile_FFT(_noiseTile, noiseTileFilename);
+		// needs fft
+		// std::string noiseTileFilename = std::string("noise.fft");
+		// generatTile_FFT(_noiseTile, noiseTileFilename);
 	}
 	else if(type == 8) // curl
 	{
