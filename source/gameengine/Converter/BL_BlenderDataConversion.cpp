@@ -326,7 +326,6 @@ bool ConvertMaterial(
 	MFace* mface, 
 	MCol* mmcol, 
 	int lightlayer, 
-	Object* blenderobj,
 	MTF_localLayer *layers,
 	bool glslmat)
 {
@@ -752,11 +751,11 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 	// Determine if we need to make a skinned mesh
 	if (mesh->dvert || mesh->key || ((blenderobj->gameflag & OB_SOFT_BODY) != 0) || BL_ModifierDeformer::HasCompatibleDeformer(blenderobj))
 	{
-		meshobj = new BL_SkinMeshObject(mesh, lightlayer);
+		meshobj = new BL_SkinMeshObject(mesh);
 		skinMesh = true;
 	}
 	else
-		meshobj = new RAS_MeshObject(mesh, lightlayer);
+		meshobj = new RAS_MeshObject(mesh);
 
 	// Extract avaiable layers
 	MTF_localLayer *layers =  new MTF_localLayer[MAX_MTFACE];
@@ -861,7 +860,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 				if (!bl_mat)
 					bl_mat = new BL_Material();
 				ConvertMaterial(bl_mat, ma, tface, tfaceName, mface, mcol,
-					lightlayer, blenderobj, layers, converter->GetGLSLMaterials());
+					lightlayer, layers, converter->GetGLSLMaterials());
 
 				visible = ((bl_mat->ras_mode & POLY_VIS)!=0);
 				collider = ((bl_mat->ras_mode & COLLIDER)!=0);
@@ -1699,8 +1698,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 								Object *ob, 
 								KX_Scene *kxscene, 
 								RAS_IRenderTools *rendertools, 
-								KX_BlenderSceneConverter *converter,
-								Scene *blenderscene) 
+								KX_BlenderSceneConverter *converter) 
 {
 	KX_GameObject *gameobj = NULL;
 	
@@ -1912,7 +1910,6 @@ KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist){
 
 // convert blender objects into ketsji gameobjects
 void BL_ConvertBlenderObjects(struct Main* maggie,
-							  const STR_String& scenename,
 							  KX_Scene* kxscene,
 							  KX_KetsjiEngine* ketsjiEngine,
 							  e_PhysicsEngine	physics_engine,
@@ -1925,7 +1922,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							  )
 {	
 
-	Scene *blenderscene = converter->GetBlenderSceneForName(scenename);
+	Scene *blenderscene = kxscene->GetBlenderScene();
 	// for SETLOOPER
 	Scene *sce;
 	Base *base;
@@ -2021,8 +2018,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 										base->object, 
 										kxscene, 
 										rendertools, 
-										converter,
-										blenderscene);
+										converter);
 										
 		bool isInActiveLayer = (blenderobject->lay & activeLayerBitInfo) !=0;
 		bool addobj=true;
@@ -2211,8 +2207,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 														blenderobject, 
 														kxscene, 
 														rendertools, 
-														converter,
-														blenderscene);
+														converter);
 										
 						// this code is copied from above except that
 						// object from groups are never in active layer

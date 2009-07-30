@@ -92,7 +92,6 @@ public:
 	 * dictobj: python dictionary (for pythoncontrollers)
 	 */
 	virtual void	ConvertScene(
-						const STR_String& scenename,
 						class KX_Scene* destinationscene,
 						PyObject* dictobj,
 						class SCA_IInputDevice* keyinputdev,

@@ -90,9 +90,8 @@ struct RAS_MeshObject::fronttoback
 
 STR_String RAS_MeshObject::s_emptyname = "";
 
-RAS_MeshObject::RAS_MeshObject(Mesh* mesh, int lightlayer)
-	: //m_lightlayer(lightlayer),
-	m_bModified(true),
+RAS_MeshObject::RAS_MeshObject(Mesh* mesh)
+	: m_bModified(true),
 	m_bMeshModified(true),
 	m_mesh(mesh),
 	m_bDeformed(false)

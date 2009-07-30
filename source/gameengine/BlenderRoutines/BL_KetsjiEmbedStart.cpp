@@ -383,7 +383,6 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			{
 				// convert and add scene
 				sceneconverter->ConvertScene(
-					startscenename,
 					startscene,
 					dictionaryobject,
 					keyboarddevice,
@@ -682,7 +681,6 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 			{
 				// convert and add scene
 				sceneconverter->ConvertScene(
-					startscenename,
 					startscene,
 					dictionaryobject,
 					keyboarddevice,
