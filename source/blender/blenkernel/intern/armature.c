@@ -66,8 +66,7 @@
 #include "BKE_object.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
-
-//XXX #include "BIF_editdeform.h"
+#include "BKE_sketch.h"
 
 #include "IK_solver.h"
 
@@ -144,7 +143,7 @@ void free_armature(bArmature *arm)
 
 		/* free sketch */
 		if (arm->sketch) {
-			ED_freeSketch(arm->sketch);
+			freeSketch(arm->sketch);
 			arm->sketch = NULL;
 		}
 	}
