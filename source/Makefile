@@ -249,6 +249,7 @@ PULIB += $(OCGDIR)/blender/makesrna/$(DEBUG_DIR)librna.a
 PULIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
 PULIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
 PULIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
+PULIB += $(NAN_SMOKE)/lib/$(DEBUG_DIR)/libsmoke.a 
 
 ifeq ($(NAN_NO_KETSJI),true)
     PULIB += $(NAN_MOTO)/lib/$(DEBUG_DIR)libmoto.a
