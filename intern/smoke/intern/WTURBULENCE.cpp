@@ -56,7 +56,7 @@ WTURBULENCE::WTURBULENCE(int xResSm, int yResSm, int zResSm, int amplify)
 	_strength = 2.;
 	
 	// add the corresponding octaves of noise
-	_octaves = log((float)_amplify) / log(2.0f);
+	_octaves = (int)log((float)_amplify) / log(2.0f); // XXX DEBUG/ TODO: int casting correct? - dg
 	
 	// noise resolution
 	_xResBig = _amplify * xResSm;
@@ -561,7 +561,7 @@ Vec3 WTURBULENCE::WVelocityWithJacobian(Vec3 orgPos, float* xUnwarped, float* yU
   final[0] = WNoiseDx(p1, _noiseTile);
   final[1] = WNoiseDy(p1, _noiseTile);
   final[2] = WNoiseDz(p1, _noiseTile);
-  const float f1x = xUnwarped[0] * final[0] + xUnwarped[1] * final[1] + xUnwarped[2] * final[2];
+  // UNUSED const float f1x = xUnwarped[0] * final[0] + xUnwarped[1] * final[1] + xUnwarped[2] * final[2];
   const float f1y = yUnwarped[0] * final[0] + yUnwarped[1] * final[1] + yUnwarped[2] * final[2];
   const float f1z = zUnwarped[0] * final[0] + zUnwarped[1] * final[1] + zUnwarped[2] * final[2];
 
@@ -569,7 +569,7 @@ Vec3 WTURBULENCE::WVelocityWithJacobian(Vec3 orgPos, float* xUnwarped, float* yU
   final[1] = WNoiseDy(p2, _noiseTile);
   final[2] = WNoiseDz(p2, _noiseTile);
   const float f2x = xUnwarped[0] * final[0] + xUnwarped[1] * final[1] + xUnwarped[2] * final[2];
-  const float f2y = yUnwarped[0] * final[0] + yUnwarped[1] * final[1] + yUnwarped[2] * final[2];
+  // UNUSED const float f2y = yUnwarped[0] * final[0] + yUnwarped[1] * final[1] + yUnwarped[2] * final[2];
   const float f2z = zUnwarped[0] * final[0] + zUnwarped[1] * final[1] + zUnwarped[2] * final[2];
 
   final[0] = WNoiseDx(p3, _noiseTile);
@@ -577,7 +577,7 @@ Vec3 WTURBULENCE::WVelocityWithJacobian(Vec3 orgPos, float* xUnwarped, float* yU
   final[2] = WNoiseDz(p3, _noiseTile);
   const float f3x = xUnwarped[0] * final[0] + xUnwarped[1] * final[1] + xUnwarped[2] * final[2];
   const float f3y = yUnwarped[0] * final[0] + yUnwarped[1] * final[1] + yUnwarped[2] * final[2];
-  const float f3z = zUnwarped[0] * final[0] + zUnwarped[1] * final[1] + zUnwarped[2] * final[2];
+  // UNUSED const float f3z = zUnwarped[0] * final[0] + zUnwarped[1] * final[1] + zUnwarped[2] * final[2];
 
   Vec3 ret = Vec3( 
       f3y - f2z,
@@ -764,8 +764,6 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
   { float maxVelMag1 = 0.;
 #if PARALLEL==1
     const int id  = omp_get_thread_num(), num = omp_get_num_threads();
-#else
-    const int id  = 0; 
 #endif
 
   // vector noise main loop
@@ -795,8 +793,11 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
     float yWarped[] = {0.0f, 1.0f, 0.0f};
     float zWarped[] = {0.0f, 0.0f, 1.0f};
     bool nonSingular = LU.isNonsingular();
+#if 0
+	// UNUSED
     float eigMax = 10.0f;
     float eigMin = 0.1f;
+#endif
     if (nonSingular)
     {
       solveLU3x3(LU, xUnwarped, xWarped);
@@ -961,3 +962,4 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
   
   _totalStepsBig++;
 }
+

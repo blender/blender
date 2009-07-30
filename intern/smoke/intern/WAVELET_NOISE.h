@@ -223,7 +223,7 @@ static bool loadTile(float* const noiseTileData, std::string filename)
 	int gridSize = noiseTileSize * noiseTileSize * noiseTileSize;
 
 	// noiseTileData memory is managed by caller
-	int bread = fread((void*)noiseTileData, sizeof(float), gridSize, file);
+	size_t bread = fread((void*)noiseTileData, sizeof(float), gridSize, file);
 	fclose(file);
 	printf("Noise tile file '%s' loaded.\n", filename.c_str());
 
@@ -330,22 +330,22 @@ static void generateTile_WAVELET(float* const noiseTileData, std::string filenam
 // x derivative of noise
 //////////////////////////////////////////////////////////////////////////////////////////
 static inline float WNoiseDx(Vec3 p, float* data) { 
-  int i, f[3], c[3], mid[3], n = noiseTileSize;
+  int c[3], mid[3], n = noiseTileSize;
   float w[3][3], t, result = 0;
   
-  mid[0] = ceil(p[0] - 0.5); 
+  mid[0] = (int)ceil(p[0] - 0.5); 
   t = mid[0] - (p[0] - 0.5);
 	w[0][0] = -t;
 	w[0][2] = (1.f - t);
 	w[0][1] = 2.0f * t - 1.0f;
   
-  mid[1] = ceil(p[1] - 0.5); 
+  mid[1] = (int)ceil(p[1] - 0.5); 
   t = mid[1] - (p[1] - 0.5);
   w[1][0] = t * t / 2; 
   w[1][2] = (1 - t) * (1 - t) / 2;
   w[1][1] = 1 - w[1][0] - w[1][2];
 
-  mid[2] = ceil(p[2] - 0.5); 
+  mid[2] = (int)ceil(p[2] - 0.5); 
   t = mid[2] - (p[2] - 0.5);
   w[2][0] = t * t / 2; 
   w[2][2] = (1 - t) * (1 - t)/2; 
@@ -372,22 +372,22 @@ static inline float WNoiseDx(Vec3 p, float* data) {
 // y derivative of noise
 //////////////////////////////////////////////////////////////////////////////////////////
 static inline float WNoiseDy(Vec3 p, float* data) { 
-  int i, f[3], c[3], mid[3], n=noiseTileSize; 
+  int c[3], mid[3], n=noiseTileSize; 
   float w[3][3], t, result =0;
   
-  mid[0] = ceil(p[0] - 0.5); 
+  mid[0] = (int)ceil(p[0] - 0.5); 
   t = mid[0]-(p[0] - 0.5);
   w[0][0] = t * t / 2; 
   w[0][2] = (1 - t) * (1 - t) / 2;
   w[0][1] = 1 - w[0][0] - w[0][2];
   
-  mid[1] = ceil(p[1] - 0.5); 
+  mid[1] = (int)ceil(p[1] - 0.5); 
   t = mid[1]-(p[1] - 0.5);
 	w[1][0] = -t;
 	w[1][2] = (1.f - t);
 	w[1][1] = 2.0f * t - 1.0f;
 
-  mid[2] = ceil(p[2] - 0.5); 
+  mid[2] = (int)ceil(p[2] - 0.5); 
   t = mid[2] - (p[2] - 0.5);
   w[2][0] = t * t / 2; 
   w[2][2] = (1 - t) * (1 - t)/2; 
@@ -415,22 +415,22 @@ static inline float WNoiseDy(Vec3 p, float* data) {
 // z derivative of noise
 //////////////////////////////////////////////////////////////////////////////////////////
 static inline float WNoiseDz(Vec3 p, float* data) { 
-  int i, f[3], c[3], mid[3], n=noiseTileSize; 
+  int c[3], mid[3], n=noiseTileSize; 
   float w[3][3], t, result =0;
 
-  mid[0] = ceil(p[0] - 0.5); 
+  mid[0] = (int)ceil(p[0] - 0.5); 
   t = mid[0]-(p[0] - 0.5);
   w[0][0] = t * t / 2; 
   w[0][2] = (1 - t) * (1 - t) / 2;
   w[0][1] = 1 - w[0][0] - w[0][2];
   
-  mid[1] = ceil(p[1] - 0.5); 
+  mid[1] = (int)ceil(p[1] - 0.5); 
   t = mid[1]-(p[1] - 0.5);
   w[1][0] = t * t / 2; 
   w[1][2] = (1 - t) * (1 - t) / 2;
   w[1][1] = 1 - w[1][0] - w[1][2];
 
-  mid[2] = ceil(p[2] - 0.5); 
+  mid[2] = (int)ceil(p[2] - 0.5); 
   t = mid[2] - (p[2] - 0.5);
 	w[2][0] = -t;
 	w[2][2] = (1.f - t);
@@ -454,3 +454,4 @@ static inline float WNoiseDz(Vec3 p, float* data) {
 }
 
 #endif
+

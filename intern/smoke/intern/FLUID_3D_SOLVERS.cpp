@@ -78,7 +78,7 @@ void FLUID_3D::solvePressure(float* field, float* b, unsigned char* skip)
         deltaNew += _residual[index] * _residual[index];
 
   // delta0 = deltaNew
-  float delta0 = deltaNew;
+  // float delta0 = deltaNew;
 
   // While deltaNew > (eps^2) * delta0
   const float eps  = SOLVER_ACCURACY;
@@ -225,7 +225,7 @@ void FLUID_3D::solveHeat(float* field, float* b, unsigned char* skip)
         deltaNew += _residual[index] * _residual[index];
 
   // delta0 = deltaNew
-  float delta0 = deltaNew;
+  // float delta0 = deltaNew;
 
   // While deltaNew > (eps^2) * delta0
   const float eps  = SOLVER_ACCURACY;
@@ -316,3 +316,4 @@ void FLUID_3D::solveHeat(float* field, float* b, unsigned char* skip)
   }
   cout << i << " iterations converged to " << maxR << endl;
 }
+

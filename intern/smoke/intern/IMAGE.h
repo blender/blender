@@ -77,7 +77,8 @@ template < class T > inline float MIN3V( T vec) {
 #include <png.h>
 
 namespace IMAGE {
-  static int writePng(const char *fileName, unsigned char **rowsp, int w, int h, bool normalize)
+	/*
+  static int writePng(const char *fileName, unsigned char **rowsp, int w, int h)
   {
     // defaults
     const int colortype = PNG_COLOR_TYPE_RGBA;
@@ -123,13 +124,14 @@ namespace IMAGE {
     if(png_ptr || info_ptr) png_destroy_write_struct(&png_ptr, &info_ptr);
     return -1;
   }
+  */
 
   /////////////////////////////////////////////////////////////////////////////////
   // write a numbered PNG file out, padded with zeros up to three zeros
   /////////////////////////////////////////////////////////////////////////////////
+  /*
   static void dumpNumberedPNG(int counter, std::string prefix, float* field, int xRes, int yRes)
   {
-    /*
 	char buffer[256];
     sprintf(buffer,"%04i", counter);
     std::string number = std::string(buffer);
@@ -153,12 +155,13 @@ namespace IMAGE {
     std::string filenamePNG = prefix + number + std::string(".png");
     writePng(filenamePNG.c_str(), rows, xRes, yRes, false);
     printf("Writing %s\n", filenamePNG.c_str());
-    */
+   
   }
-
+*/
   /////////////////////////////////////////////////////////////////////////////////
   // export pbrt volumegrid geometry object
   /////////////////////////////////////////////////////////////////////////////////
+	/*
   static void dumpPBRT(int counter, std::string prefix, float* fieldOrg, int xRes, int yRes, int zRes)
   {
     char buffer[256];
@@ -213,10 +216,12 @@ namespace IMAGE {
     gzclose(file);
     delete[] field;
   }
+  */
 
   /////////////////////////////////////////////////////////////////////////////////
   // 3D df3 export
   /////////////////////////////////////////////////////////////////////////////////
+/*
   static void dumpDF3(int counter, std::string prefix, float* fieldOrg, int xRes, int yRes, int zRes)
   {
     char buffer[256];
@@ -263,8 +268,10 @@ namespace IMAGE {
     gzclose(file);
     delete[] buf;
   }
+  */
 
 };
 
 
 #endif
+

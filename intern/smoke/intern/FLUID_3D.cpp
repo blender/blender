@@ -38,8 +38,8 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-FLUID_3D::FLUID_3D(int *res, int amplify, float *p0, float *p1, float dt) :
-	_xRes(res[0]), _yRes(res[1]), _zRes(res[2]), _res(0.), _dt(dt)
+FLUID_3D::FLUID_3D(int *res, int amplify, float *p0, float dt) :
+	_xRes(res[0]), _yRes(res[1]), _zRes(res[2]), _res(0.0f), _dt(dt)
 {
 	// set simulation consts
 	// _dt = dt; // 0.10
@@ -486,9 +486,11 @@ void FLUID_3D::setObstacleBoundaries()
 				const int down  = _obstacles[index - _xRes];
 				const int left  = _obstacles[index - 1];
 				const int right = _obstacles[index + 1];
-				const bool fullz = (top && bottom);
-				const bool fully = (up && down);
-				const bool fullx = (left && right);
+
+				// unused
+				// const bool fullz = (top && bottom);
+				// const bool fully = (up && down);
+				//const bool fullx = (left && right);
 
 				_xVelocity[index] =
 				_yVelocity[index] =

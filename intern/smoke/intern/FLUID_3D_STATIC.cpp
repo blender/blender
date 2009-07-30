@@ -29,6 +29,7 @@
 //////////////////////////////////////////////////////////////////////
 // add a test cube of density to the center
 //////////////////////////////////////////////////////////////////////
+/*
 void FLUID_3D::addSmokeColumn() {
 	addSmokeTestCase(_density, _res, 1.0);
 	// addSmokeTestCase(_zVelocity, _res, 1.0);
@@ -37,11 +38,13 @@ void FLUID_3D::addSmokeColumn() {
 		addSmokeTestCase(_wTurbulence->getDensityBig(), _wTurbulence->getResBig(), 1.0);
 	}
 }
+*/
 
 //////////////////////////////////////////////////////////////////////
 // generic static version, so that it can be applied to the
 // WTURBULENCE grid as well
 //////////////////////////////////////////////////////////////////////
+/*
 void FLUID_3D::addSmokeTestCase(float* field, Vec3Int res, float value)
 {
 	const int slabSize = res[0]*res[1]; int maxRes = (int)MAX3V(res);
@@ -69,6 +72,7 @@ void FLUID_3D::addSmokeTestCase(float* field, Vec3Int res, float value)
         }
       }
 }
+*/
 
 //////////////////////////////////////////////////////////////////////
 // set x direction to Neumann boundary conditions
@@ -114,7 +118,7 @@ void FLUID_3D::setNeumannY(float* field, Vec3Int res)
 		for (int x = 0; x < res[0]; x++)
 		{
 			// top slab
-			int index = x + z * slabSize;
+			index = x + z * slabSize;
 			index += slabSize - res[0];
 			if(field[index]<0.) field[index] = 0.;
 			index -= res[0];
@@ -226,7 +230,6 @@ void FLUID_3D::copyBorderX(float* field, Vec3Int res)
 void FLUID_3D::copyBorderY(float* field, Vec3Int res)
 {
 	const int slabSize = res[0] * res[1];
-	const int totalCells = res[0] * res[1] * res[2];
 	int index;
 	for (int z = 0; z < res[2]; z++)
 		for (int x = 0; x < res[0]; x++)
@@ -265,8 +268,6 @@ void FLUID_3D::advectFieldSemiLagrange(const float dt, const float* velx, const 
 	const int xres = res[0];
 	const int yres = res[1];
 	const int zres = res[2];
-	static int hits = 0;
-	static int total = 0;
 	const int slabSize = res[0] * res[1];
 
 	// scale dt up to grid resolution
@@ -615,12 +616,16 @@ static int getOtherDir(int dir1, int dir2) {
 				case 0: return 1;
 				case 1: return 0; }
 			break;
+		default:
+			return 0;
 	}
+	return 0;
 }
 
 //////////////////////////////////////////////////////////////////////
 // average densities along third spatial direction
 //////////////////////////////////////////////////////////////////////
+/*
 void FLUID_3D::writeProjectedIntern(const float *field, Vec3Int res,
 		int dir1, int dir2, string prefix, int picCnt, float scale) {
 	const int nitems = res[dir1]*res[dir2];
@@ -645,6 +650,8 @@ void FLUID_3D::writeProjectedIntern(const float *field, Vec3Int res,
 				buf[bufindex] += field[index] * scale *div;
 			}
 	}
-	IMAGE::dumpNumberedPNG(picCnt, prefix, buf, res[dir1], res[dir2]);
+	// IMAGE::dumpNumberedPNG(picCnt, prefix, buf, res[dir1], res[dir2]);
 	delete[] buf;
 }
+*/
+

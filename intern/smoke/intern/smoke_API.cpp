@@ -34,7 +34,7 @@
 extern "C" FLUID_3D *smoke_init(int *res, int amplify, float *p0, float *p1, float dt)
 {
 	// smoke lib uses y as top-bottom/vertical axis where blender uses z
-	FLUID_3D *fluid = new FLUID_3D(res, amplify, p0, p1, dt);
+	FLUID_3D *fluid = new FLUID_3D(res, amplify, p0, dt);
 
 	// printf("xres: %d, yres: %d, zres: %d\n", res[0], res[1], res[2]);
 
@@ -47,7 +47,7 @@ extern "C" void smoke_free(FLUID_3D *fluid)
 	fluid = NULL;
 }
 
-extern "C" void smoke_step(FLUID_3D *fluid, float dx)
+extern "C" void smoke_step(FLUID_3D *fluid)
 {
 	// fluid->addSmokeColumn();
 	fluid->step();
@@ -105,13 +105,13 @@ extern "C" unsigned char *smoke_get_obstacle(FLUID_3D *fluid)
 	return fluid->_obstacles;
 }
 
-extern "C" size_t smoke_get_index(int x, int max_x, int y, int max_y, int z, int max_z)
+extern "C" size_t smoke_get_index(int x, int max_x, int y, int max_y, int z /*, int max_z */)
 {
 	// // const int index = x + y * smd->res[0] + z * smd->res[0]*smd->res[1];
 	return x + y * max_x + z * max_x*max_y;
 }
 
-extern "C" size_t smoke_get_index2d(int x, int max_x, int y, int max_y, int z, int max_z)
+extern "C" size_t smoke_get_index2d(int x, int max_x, int y /*, int max_y, int z, int max_z */)
 {
 	return x + y * max_x;
 }
@@ -120,6 +120,3 @@ extern "C" void smoke_set_noise(FLUID_3D *fluid, int type)
 {
 	fluid->_wTurbulence->setNoise(type);
 }
-
-
-

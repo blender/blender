@@ -5342,12 +5342,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		if(smd->domain && smd->domain->fluid)
 		{
 			int x, y, z, i;
-			float *density = NULL;
 			float viewnormal[3];
 			int mainaxis[3] = {0,0,0};
 			float align = 0;
 			int max_textures = 0, counter_textures = 0;
-			int counter=0;
 			float *buffer = NULL;
 			int res[3];
 			float bigfactor = 1.0;
@@ -5471,7 +5469,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				if(!smd->domain->viewsettings) // new frame or new start
 				{
 					smd->domain->max_textures = max_textures;
-					glGenTextures(smd->domain->max_textures, smd->domain->bind);
+					glGenTextures(smd->domain->max_textures, (GLuint *)smd->domain->bind);
 					new = 1;
 					// printf("glGenTextures\n");
 				}
@@ -5480,9 +5478,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					if(new)
 					{
 						// printf("glDeleteTextures\n");
-						glDeleteTextures(smd->domain->max_textures, smd->domain->bind);
+						glDeleteTextures(smd->domain->max_textures, (GLuint *)smd->domain->bind);
 						smd->domain->max_textures = max_textures;
-						glGenTextures(smd->domain->max_textures, smd->domain->bind);
+						glGenTextures(smd->domain->max_textures, (GLuint *)smd->domain->bind);
 					}
 				}
 
@@ -5501,24 +5499,23 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 								size_t index;
 								size_t image_index;
 								float tray, tvox;
+
+								image_index = smoke_get_index2d(y, res[mainaxis[1]], x);
 		
 								if(mainaxis[0] == 0)
 								{
 									// mainaxis[1] == 1, mainaxis[2] == 2
-									image_index = smoke_get_index2d(y, res[mainaxis[1]], x, res[mainaxis[2]], z, res[mainaxis[0]]);
-									index = smoke_get_index(z, res[mainaxis[0]], y, res[mainaxis[1]], x, res[mainaxis[2]]);
+									index = smoke_get_index(z, res[mainaxis[0]], y, res[mainaxis[1]], x);
 								}
 								else if(mainaxis[0] == 1)
 								{
 									// mainaxis[1] == 2, mainaxis[2] == 0
-									image_index = smoke_get_index2d(y, res[mainaxis[1]], x, res[mainaxis[2]], z, res[mainaxis[0]]);
-									index = smoke_get_index(x, res[mainaxis[2]], z, res[mainaxis[0]], y, res[mainaxis[1]]);
+									index = smoke_get_index(x, res[mainaxis[2]], z, res[mainaxis[0]], y);
 								}
 								else // mainaxis[0] == 2
 								{
 									// mainaxis[1] == 0, mainaxis[2] == 1
-									image_index = smoke_get_index2d(y, res[mainaxis[1]], x, res[mainaxis[2]], z, res[mainaxis[0]]);
-									index = smoke_get_index(y, res[mainaxis[1]], x, res[mainaxis[2]], z, res[mainaxis[0]]);
+									index = smoke_get_index(y, res[mainaxis[1]], x, res[mainaxis[2]], z);
 								}
 								
 								if(!big)

@@ -37,7 +37,7 @@ class WTURBULENCE;
 class FLUID_3D  
 {
 	public:
-		FLUID_3D(int *res, int amplify, float *p0, float *p1, float dt);
+		FLUID_3D(int *res, int amplify, float *p0, float dt);
 		FLUID_3D() {};
 		virtual ~FLUID_3D();
 
@@ -166,11 +166,10 @@ class FLUID_3D
 				float* oldField, float* newField, Vec3Int res, const float* obstacles, const float *oldAdvection);
 
 		// output helper functions
-		static void writeImageSliceXY(const float *field, Vec3Int res, int slice, string prefix, int picCnt, float scale=1.);
-		static void writeImageSliceYZ(const float *field, Vec3Int res, int slice, string prefix, int picCnt, float scale=1.);
-		static void writeImageSliceXZ(const float *field, Vec3Int res, int slice, string prefix, int picCnt, float scale=1.);
-		static void writeProjectedIntern(const float *field, Vec3Int res, int dir1, int dir2, string prefix, int picCnt, float scale=1.); 
+		// static void writeImageSliceXY(const float *field, Vec3Int res, int slice, string prefix, int picCnt, float scale=1.);
+		// static void writeImageSliceYZ(const float *field, Vec3Int res, int slice, string prefix, int picCnt, float scale=1.);
+		// static void writeImageSliceXZ(const float *field, Vec3Int res, int slice, string prefix, int picCnt, float scale=1.);
+		// static void writeProjectedIntern(const float *field, Vec3Int res, int dir1, int dir2, string prefix, int picCnt, float scale=1.); 
 };
 
 #endif
-

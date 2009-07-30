@@ -32,7 +32,7 @@
 extern "C" {
 #endif
 
-struct FLUID_3D *smoke_init(int *res, int amplify, float *p0, float *p1, float dt);
+struct FLUID_3D *smoke_init(int *res, int amplify, float *p0, float dt);
 void smoke_free(struct FLUID_3D *fluid);
 
 void smoke_initBlenderRNA(struct FLUID_3D *fluid, float *alpha, float *beta);
@@ -48,8 +48,8 @@ float *smoke_get_velocity_z(struct FLUID_3D *fluid);
 
 unsigned char *smoke_get_obstacle(struct FLUID_3D *fluid);
 
-size_t smoke_get_index(int x, int max_x, int y, int max_y, int z, int max_z);
-size_t smoke_get_index2d(int x, int max_x, int y, int max_y, int z, int max_z);
+size_t smoke_get_index(int x, int max_x, int y, int max_y, int z);
+size_t smoke_get_index2d(int x, int max_x, int y);
 
 void smoke_set_noise(struct FLUID_3D *fluid, int type);
 

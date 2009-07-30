@@ -29,6 +29,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/* Part of the code copied from elbeem fluid library, copyright by Nils Thuerey */
+
 #include <GL/glew.h>
 
 #include "MEM_guardedalloc.h"
@@ -472,7 +474,7 @@ void smokeModifier_freeDomain(SmokeModifierData *smd)
 		// free visualisation buffers
 		if(smd->domain->bind)
 		{
-			glDeleteTextures(smd->domain->max_textures, smd->domain->bind);
+			glDeleteTextures(smd->domain->max_textures, (GLuint *)smd->domain->bind);
 			MEM_freeN(smd->domain->bind);
 		}
 		smd->domain->max_textures = 0; // unnecessary but let's be sure
@@ -528,7 +530,7 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 			// free visualisation buffers
 			if(smd->domain->bind)
 			{
-				glDeleteTextures(smd->domain->max_textures, smd->domain->bind);
+				glDeleteTextures(smd->domain->max_textures, (GLuint *)smd->domain->bind);
 				MEM_freeN(smd->domain->bind);
 				smd->domain->bind = NULL;
 			}
@@ -651,8 +653,6 @@ void smoke_calc_transparency(struct SmokeModifierData *smd, float *light, int bi
 
 void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm)
 {
-	int new = 0;
-
 	if(scene->r.cfra >= smd->time)
 		smokeModifier_init(smd, ob, scene, dm);
 
@@ -793,7 +793,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 										continue;
 									
 									// 2. set cell values (heat, density and velocity)
-									index = smoke_get_index(cell[0], sds->res[0], cell[1], sds->res[1], cell[2], sds->res[2]);
+									index = smoke_get_index(cell[0], sds->res[0], cell[1], sds->res[1], cell[2]);
 									
 									heat[index] = sfs->temp;
 									density[index] = sfs->density;
@@ -810,7 +810,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 											for(j = 0; j < smd->domain->amplify; j++)
 												for(k = 0; k < smd->domain->amplify; k++)
 												{
-													index = smoke_get_index(smd->domain->amplify * cell[0] + i, bigres[0], smd->domain->amplify * cell[1] + j, bigres[1], smd->domain->amplify * cell[2] + k, bigres[2]);
+													index = smoke_get_index(smd->domain->amplify * cell[0] + i, bigres[0], smd->domain->amplify * cell[1] + j, bigres[1], smd->domain->amplify * cell[2] + k);
 													bigdensity[index] = sfs->density;
 												}
 									}
@@ -907,7 +907,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 									continue;
 								
 								// 2. set cell values (heat, density and velocity)
-								index = smoke_get_index(cell[0], sds->res[0], cell[1], sds->res[1], cell[2], sds->res[2]);
+								index = smoke_get_index(cell[0], sds->res[0], cell[1], sds->res[1], cell[2]);
 									
 								obstacles[index] = 1;
 
@@ -964,7 +964,6 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 void smoke_prepare_View(SmokeModifierData *smd, float *light)
 {
 	float *density = NULL;
-	size_t i = 0;
 	int x, y, z;
 
 	if(!smd->domain->tray)
@@ -986,7 +985,7 @@ void smoke_prepare_View(SmokeModifierData *smd, float *light)
 				{
 					size_t index;
 
-					index = smoke_get_index(x, smd->domain->res[0], y, smd->domain->res[1], z, smd->domain->res[2]);
+					index = smoke_get_index(x, smd->domain->res[0], y, smd->domain->res[1], z);
 					// Transparency computation
 					// formula taken from "Visual Simulation of Smoke" / Fedkiw et al. pg. 4
 					// T_vox = exp(-C_ext * h)
@@ -1091,7 +1090,7 @@ long long smoke_get_mem_req(int xres, int yres, int zres, int amplify)
 static void calc_voxel_transp(SmokeModifierData *smd, int *pixel, float *tRay)
 {
 	// printf("Pixel(%d, %d, %d)\n", pixel[0], pixel[1], pixel[2]);
-	const size_t index = smoke_get_index(pixel[0], smd->domain->res[0], pixel[1], smd->domain->res[1], pixel[2], smd->domain->res[2]);
+	const size_t index = smoke_get_index(pixel[0], smd->domain->res[0], pixel[1], smd->domain->res[1], pixel[2]);
 
 	// T_ray *= T_vox
 	*tRay *= smoke_get_tvox(smd, index);
@@ -1103,7 +1102,7 @@ static void calc_voxel_transp_big(SmokeModifierData *smd, int *pixel, float *tRa
 	size_t index;
 
 	smoke_get_bigres(smd->domain->fluid, bigres);
-	index = smoke_get_index(pixel[0], bigres[0], pixel[1], bigres[1], pixel[2], bigres[2]);
+	index = smoke_get_index(pixel[0], bigres[0], pixel[1], bigres[1], pixel[2]);
 
 	/*
 	if(index > bigres[0]*bigres[1]*bigres[2])
@@ -1301,7 +1300,7 @@ void smoke_calc_transparency(struct SmokeModifierData *smd, float *light, int bi
 				int cell[3];
 				float tRay = 1.0;
 
-				index = smoke_get_index(x, res[0], y, res[1], z, res[2]);
+				index = smoke_get_index(x, res[0], y, res[1], z);
 
 				// voxelCenter = m_voxelarray[i].GetCenter();
 				voxelCenter[0] = smd->domain->p0[0] + smd->domain->dx * bigfactor * x + smd->domain->dx * bigfactor * 0.5;
