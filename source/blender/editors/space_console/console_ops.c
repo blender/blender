@@ -205,6 +205,11 @@ static int console_line_insert(ConsoleLine *ci, char *str)
 {
 	int len = strlen(str);
 	
+	if(len>0 && str[len-1]=='\n') {/* stop new lines being pasted at the end of lines */
+		str[len-1]= '\0';
+		len--;
+	}
+
 	if(len==0)
 		return 0;
 	
@@ -614,6 +619,40 @@ void CONSOLE_OT_copy(wmOperatorType *ot)
 	/* api callbacks */
 	ot->poll= console_edit_poll;
 	ot->exec= copy_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+
+	/* properties */
+}
+
+static int paste_exec(bContext *C, wmOperator *op)
+{
+	ConsoleLine *ci= console_history_verify(C);
+
+	char *buf_str= WM_clipboard_text_get(0);
+
+	if(buf_str==NULL)
+		return OPERATOR_CANCELLED;
+
+	console_line_insert(ci, buf_str); /* TODO - Multiline copy?? */
+
+	MEM_freeN(buf_str);
+
+	ED_area_tag_redraw(CTX_wm_area(C));
+
+	return OPERATOR_FINISHED;
+}
+
+void CONSOLE_OT_paste(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Paste from Clipboard";
+	ot->idname= "CONSOLE_OT_paste";
+
+	/* api callbacks */
+	ot->poll= console_edit_poll;
+	ot->exec= paste_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER;

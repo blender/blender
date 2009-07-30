@@ -375,9 +375,9 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 	return ret;
 }
 
-/* This function is only used by operators right now
- * Its used for taking keyword args and filling in property values */
-int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, const char *error_prefix)
+/* This function is used by operators and converting dicts into collections.
+ * Its takes keyword args and fills them with property values */
+int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, int all_args, const char *error_prefix)
 {
 	int error_val = 0;
 	int totkw;
@@ -397,20 +397,21 @@ int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, const char *error_prefi
 			break;
 		}
 
-		item= PyDict_GetItemString(kw, arg_name);
+		item= PyDict_GetItemString(kw, arg_name); /* wont set an error */
 
 		if (item == NULL) {
-			PyErr_Format( PyExc_TypeError, "%.200s: keyword \"%.200s\" missing", error_prefix, arg_name ? arg_name : "<UNKNOWN>");
-			error_val = -1; /* pyrna_py_to_prop sets the error */
-			break;
+			if(all_args) {
+				PyErr_Format( PyExc_TypeError, "%.200s: keyword \"%.200s\" missing", error_prefix, arg_name ? arg_name : "<UNKNOWN>");
+				error_val = -1; /* pyrna_py_to_prop sets the error */
+				break;
+			}
+		} else {
+			if (pyrna_py_to_prop(ptr, prop, NULL, item, error_prefix)) {
+				error_val= -1;
+				break;
+			}
+			totkw--;
 		}
-
-		if (pyrna_py_to_prop(ptr, prop, NULL, item, error_prefix)) {
-			error_val= -1;
-			break;
-		}
-
-		totkw--;
 	}
 	RNA_STRUCT_END;
 
@@ -753,7 +754,7 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 				else
 					RNA_property_collection_add(ptr, prop, &itemptr);
 
-				if(pyrna_pydict_to_props(&itemptr, item, "Converting a python list to an RNA collection")==-1) {
+				if(pyrna_pydict_to_props(&itemptr, item, 1, "Converting a python list to an RNA collection")==-1) {
 					Py_DECREF(item);
 					return -1;
 				}

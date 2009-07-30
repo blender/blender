@@ -61,6 +61,7 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot);
 void CONSOLE_OT_clear(wmOperatorType *ot);
 void CONSOLE_OT_history_cycle(wmOperatorType *ot);
 void CONSOLE_OT_copy(wmOperatorType *ot);
+void CONSOLE_OT_paste(wmOperatorType *ot);
 void CONSOLE_OT_zoom(wmOperatorType *ot);
 
 

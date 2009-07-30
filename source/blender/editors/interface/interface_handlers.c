@@ -961,6 +961,20 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
 	}
+	/* operator button (any type) */
+	else if (but->optype) {
+		if(mode=='c') {
+			PointerRNA *opptr;
+			char *str;
+			opptr= uiButGetOperatorPtrRNA(but); /* allocated when needed, the button owns it */
+
+			str= WM_operator_pystring(but->optype, opptr, 0);
+
+			WM_clipboard_text_set(str, 0);
+
+			MEM_freeN(str);
+		}
+	}
 }
 
 /* ************* in-button text selection/editing ************* */
