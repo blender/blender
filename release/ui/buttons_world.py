@@ -86,7 +86,7 @@ class WORLD_PT_mist(WorldButtonsPanel):
 		flow.itemR(world.mist, "start")
 		flow.itemR(world.mist, "depth")
 		flow.itemR(world.mist, "height")
-		flow.itemR(world.mist, "intensity")
+		flow.itemR(world.mist, "intensity", slider=True)
 
 		layout.itemR(world.mist, "falloff")
 		
@@ -163,12 +163,21 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 			col.itemR(ao, "pixel_cache")
 			col.itemR(ao, "correction")
 			
-		col = layout.column(align=True)
+		col = layout.column()
 		col.itemL(text="Influence:")
-		row = col.row()
-		row.itemR(ao, "blend_mode", text="")
-		row.itemR(ao, "color", text="")
-		row.itemR(ao, "energy", text="")
+		
+		col.row().itemR(ao, "blend_mode", expand=True)
+		
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(ao, "energy")
+		
+		col = split.column()
+		colsub = col.split(percentage=0.3)
+		colsub.itemL(text="Color:")
+		colsub.itemR(ao, "color", text="")
+		
 
 bpy.types.register(WORLD_PT_context_world)	
 bpy.types.register(WORLD_PT_preview)
