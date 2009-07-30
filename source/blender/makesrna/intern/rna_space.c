@@ -477,24 +477,29 @@ static void rna_def_background_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
 	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed.");
+	RNA_def_property_update(prop, NC_OBJECT, NULL);
 	
 	prop= RNA_def_property(srna, "x_offset", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xof");
 	RNA_def_property_ui_text(prop, "X Offset", "Offsets image horizontally from the view center");
+	RNA_def_property_update(prop, NC_OBJECT, NULL);
 	
 	prop= RNA_def_property(srna, "y_offset", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "yof");
 	RNA_def_property_ui_text(prop, "Y Offset", "Offsets image vertically from the view center");
+	RNA_def_property_update(prop, NC_OBJECT, NULL);
 	
 	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "size");
 	RNA_def_property_ui_text(prop, "Size", "Scaling factor for the background image.");
 	RNA_def_property_range(prop, 0.0, FLT_MAX);
+	RNA_def_property_update(prop, NC_OBJECT, NULL);
 	
 	prop= RNA_def_property(srna, "transparency", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "blend");
 	RNA_def_property_ui_text(prop, "Transparency", "Amount to blend the image against the background color.");
 	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_update(prop, NC_OBJECT, NULL);
 
 }
 
