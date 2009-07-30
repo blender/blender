@@ -384,7 +384,7 @@ class MATERIAL_PT_raytransp(MaterialButtonsPanel):
 		mat = context.material
 		rayt = context.material.raytrace_transparency
 		
-		layout.active = rayt.enabled and mat.shadeless = False
+		layout.active = rayt.enabled and mat.shadeless == False
 		
 		split = layout.split()
 		

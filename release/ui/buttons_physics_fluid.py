@@ -69,7 +69,6 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 				col.itemR(fluid, "reverse_frames")
 				col.itemR(fluid, "generate_speed_vectors")
 				
-				layout.itemL(text="Path:")
 				layout.itemR(fluid, "path", text="")
 				
 			elif fluid.type == 'FLUID':
@@ -133,7 +132,6 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 				sub.itemR(fluid, "particle_influence", text="Size")
 				sub.itemR(fluid, "alpha_influence", text="Alpha")
 				
-				layout.itemL(text="Path:")
 				layout.itemR(fluid, "path", text="")
 				
 				col = split.column()
