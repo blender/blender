@@ -5486,7 +5486,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 				mod_texture = MAX3(1, smd->domain->visibility, (int)(res[mainaxis[0]] / smd->domain->max_textures ));
 				
-				for (z = res[mainaxis[0]]-1; z >= 0; z--) // 2
+				for (z = 0; z < res[mainaxis[0]]; z++) // 2
 				{
 					float quad[4][3];
 

@@ -178,11 +178,15 @@ static void rna_Modifier_dependency_update(bContext *C, PointerRNA *ptr)
 static void rna_Smoke_set_type(bContext *C, PointerRNA *ptr)
 {
 	SmokeModifierData *smd= (SmokeModifierData *)ptr->data;
+	Object *ob= (Object*)ptr->id.data;
 		
 	smokeModifier_free(smd); // XXX TODO: completely free all 3 pointers
 	smokeModifier_createType(smd); // create regarding of selected type
 	// particle_system_slot_add_exec(C, NULL);
 	// particle_system_slot_remove_exec(C, NULL);
+
+	if(smd->type == MOD_SMOKE_TYPE_DOMAIN)
+		ob->dt = OB_WIRE;
 	
 	// update dependancy since a domain - other type switch could have happened
 	rna_Modifier_dependency_update(C, ptr);

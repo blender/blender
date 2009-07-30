@@ -601,7 +601,7 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->domain->fluid_group = NULL;
 			smd->domain->coll_group = NULL;
 			smd->domain->maxres = 48;
-			smd->domain->amplify = 4;
+			smd->domain->amplify = 2;
 			smd->domain->omega = 0.5;
 			smd->domain->alpha = -0.001;
 			smd->domain->beta = 0.1;
@@ -990,7 +990,7 @@ void smoke_prepare_View(SmokeModifierData *smd, float *light)
 					// formula taken from "Visual Simulation of Smoke" / Fedkiw et al. pg. 4
 					// T_vox = exp(-C_ext * h)
 					// C_ext/sigma_t = density * C_ext
-					smoke_set_tvox(smd, index, exp(-density[index] * smd->domain->dx));
+					smoke_set_tvox(smd, index, exp(-density[index] * 4.0 * smd->domain->dx));
 	}
 	smoke_calc_transparency(smd, light, 0);
 }
@@ -1022,7 +1022,7 @@ void smoke_prepare_bigView(SmokeModifierData *smd, float *light)
 		// formula taken from "Visual Simulation of Smoke" / Fedkiw et al. pg. 4
 		// T_vox = exp(-C_ext * h)
 		// C_ext/sigma_t = density * C_ext
-		smoke_set_bigtvox(smd, i, exp(-density[i] * smd->domain->dx / smd->domain->amplify) );
+		smoke_set_bigtvox(smd, i, exp(-density[i] * 4.0 * smd->domain->dx / smd->domain->amplify) );
 	}
 	smoke_calc_transparency(smd, light, 1);
 }

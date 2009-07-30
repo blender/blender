@@ -3645,12 +3645,14 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		else if (md->type==eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData*) md;
 
+			smd->point_cache = NULL;
+
 			if(smd->type==MOD_SMOKE_TYPE_DOMAIN)
 			{
 				smd->flow = NULL;
 				smd->coll = NULL;
-				if(smd->domain)
-					smd->domain = newdataadr(fd, smd->domain);
+				smd->domain = newdataadr(fd, smd->domain);
+				smd->domain->smd = smd;
 
 				smd->domain->fluid = NULL;
 				smd->domain->tvox = NULL;
@@ -3666,6 +3668,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->domain = NULL;
 				smd->coll = NULL;
 				smd->flow = newdataadr(fd, smd->flow);
+				smd->flow->smd = smd;
 				smd->flow->psys = newdataadr(fd, smd->flow->psys);
 			}
 			else if(smd->type==MOD_SMOKE_TYPE_COLL)
@@ -10185,12 +10188,9 @@ static void expand_modifier(FileData *fd, Main *mainvar, ModifierData *md)
 			
 		if(smd->type==MOD_SMOKE_TYPE_DOMAIN && smd->domain)
 		{	
-			//if(smd->domain->coll_group)
-				expand_doit(fd, mainvar, smd->domain->coll_group);
-			//if(smd->domain->fluid_group)
-				expand_doit(fd, mainvar, smd->domain->fluid_group);
-			//if(smd->domain->eff_group)
-				expand_doit(fd, mainvar, smd->domain->eff_group);
+			expand_doit(fd, mainvar, smd->domain->coll_group);
+			expand_doit(fd, mainvar, smd->domain->fluid_group);
+			expand_doit(fd, mainvar, smd->domain->eff_group);
 		}
 	}
 }

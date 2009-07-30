@@ -49,7 +49,6 @@ extern "C" void smoke_free(FLUID_3D *fluid)
 
 extern "C" void smoke_step(FLUID_3D *fluid)
 {
-	// fluid->addSmokeColumn();
 	fluid->step();
 }
 
