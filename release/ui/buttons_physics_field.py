@@ -22,51 +22,55 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 
 		#layout.active = field.enabled
 		
-		split = layout.split(percentage=0.3)
-		
-		split.itemL(text="Type:")
-		split.itemR(field, "type", text="")
-
 		split = layout.split()
 		
 		col = split.column()
-							
-		if field.type == "GUIDE":
+		col.itemR(field, "type", text="")
+		
+		col = split.column()
+		split = layout.split(percentage=0.5)
+		
+		if field.type == 'NONE':
+			col = split.column()
+			
+		elif field.type == 'GUIDE':
+			col = split.column()
 			col.itemR(field, "guide_path_add")
 			
-		elif field.type == "WIND":
+		elif field.type == 'WIND':
 			col.itemR(field, "strength")
 			
 			col = split.column()
 			col.itemR(field, "noise")
 			col.itemR(field, "seed")
 
-		elif field.type == "VORTEX":
+		elif field.type == 'VORTEX':
 			col.itemR(field, "strength")
 			
 			col = split.column()
-			col.itemL(text="")
 
-		elif field.type in ("SPHERICAL", "CHARGE", "LENNARDJ"):
+		elif field.type in ('SPHERICAL', 'CHARGE', 'LENNARDJ'):
+			col = split.column()
 			col.itemR(field, "strength")
 			
 			col = split.column()
 			col.itemR(field, "planar")
+			col = split.column()
 			col.itemR(field, "surface")
 			
-		elif field.type == "BOID":
+		elif field.type == 'BOID':
 			col.itemR(field, "strength")
 			
 			col = split.column()
 			col.itemR(field, "surface")
 			
-		elif field.type == "MAGNET":
+		elif field.type == 'MAGNET':
 			col.itemR(field, "strength")
 			
 			col = split.column()
 			col.itemR(field, "planar")
 			
-		elif field.type == "HARMONIC":
+		elif field.type == 'HARMONIC':
 			col.itemR(field, "strength")
 			col.itemR(field, "harmonic_damping", text="Damping")
 			
@@ -74,81 +78,80 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 			col.itemR(field, "surface")
 			col.itemR(field, "planar")
 			
-		elif field.type == "TEXTURE":
+		elif field.type == 'TEXTURE':
 			col.itemR(field, "strength")
 			col.itemR(field, "texture", text="")
-			col.itemR(field, "texture_mode")
-			col.itemR(field, "texture_nabla")
-			
-			col = split.column()
-			col.itemR(field, "use_coordinates")
-			col.itemR(field, "root_coordinates")
 			col.itemR(field, "force_2d")
 			
-		if field.type in ("HARMONIC", "SPHERICAL", "CHARGE", "WIND", "VORTEX", "TEXTURE", "MAGNET", "BOID"):
-			layout.itemS()			
+			col = split.column()
+			col.itemR(field, "texture_mode", text="")
+			col.itemR(field, "texture_nabla")
+			col.itemR(field, "use_coordinates")
+			col.itemR(field, "root_coordinates")
+			
+		if field.type in ('HARMONIC', 'SPHERICAL', 'CHARGE', 'WIND', 'VORTEX', 'TEXTURE', 'MAGNET', 'BOID'):
+			
 			layout.itemL(text="Falloff:")
 			layout.itemR(field, "falloff_type", expand=True)
-			
-			row = layout.row()
-			row.itemR(field, "falloff_power", text="Power")
-			row.itemR(field, "positive_z", text="Positive Z")
-			
-			layout.itemS()	
-			split = layout.split()
+
+			split = layout.split(percentage=0.35)
 			
 			col = split.column()
-			col.itemR(field, "use_min_distance", text="Minimum")
+			col.itemR(field, "positive_z", text="Positive Z")
+			col.itemR(field, "use_min_distance", text="Use Minimum")
+			col.itemR(field, "use_max_distance", text="Use Maximum")
+
+			col = split.column()
+			col.itemR(field, "falloff_power", text="Power")
+			
 			sub = col.column()
 			sub.active = field.use_min_distance
 			sub.itemR(field, "minimum_distance", text="Distance")
 			
-			col = split.column()
-			col.itemR(field, "use_max_distance", text="Maximum")
 			sub = col.column()
 			sub.active = field.use_max_distance
 			sub.itemR(field, "maximum_distance", text="Distance")
 			
-			if field.falloff_type == "CONE":
-				layout.itemS()	
-				layout.itemL(text="Angular:")
+			if field.falloff_type == 'CONE':
 				
-				row = layout.row()
-				row.itemR(field, "radial_falloff", text="Power")
-				row.itemL()
+				layout.itemS()
 				
-				split = layout.split()
+				split = layout.split(percentage=0.35)
 				
 				col = split.column()
-				col.itemR(field, "use_radial_min", text="Minimum")	
+				col.itemL(text="Angular:")
+				col.itemR(field, "use_radial_min", text="Use Minimum")	
+				col.itemR(field, "use_radial_max", text="Use Maximum")
+				
+				col = split.column()
+				col.itemR(field, "radial_falloff", text="Power")
+				
 				sub = col.column()
 				sub.active = field.use_radial_min
 				sub.itemR(field, "radial_minimum", text="Angle")
 				
-				col = split.column()
-				col.itemR(field, "use_radial_max", text="Maximum")
 				sub = col.column()
 				sub.active = field.use_radial_max
 				sub.itemR(field, "radial_maximum", text="Angle")
 				
-			elif field.falloff_type == "TUBE":
-				layout.itemS()	
-				layout.itemL(text="Radial:")	
+			elif field.falloff_type == 'TUBE':
 				
-				row = layout.row()
-				row.itemR(field, "radial_falloff", text="Power")
-				row.itemL()
+				layout.itemS()
 				
-				split = layout.split()
+				split = layout.split(percentage=0.35)
+					
+				col = split.column()
+				col.itemL(text="Radial:")	
+				col.itemR(field, "use_radial_min", text="Use Minimum")	
+				col.itemR(field, "use_radial_max", text="Use Maximum")
 				
 				col = split.column()
-				col.itemR(field, "use_radial_min", text="Minimum")	
+				col.itemR(field, "radial_falloff", text="Power")
+				
 				sub = col.column()
 				sub.active = field.use_radial_min
 				sub.itemR(field, "radial_minimum", text="Distance")
 				
-				col = split.column()
-				col.itemR(field, "use_radial_max", text="Maximum")
 				sub = col.column()
 				sub.active = field.use_radial_max
 				sub.itemR(field, "radial_maximum", text="Distance")
