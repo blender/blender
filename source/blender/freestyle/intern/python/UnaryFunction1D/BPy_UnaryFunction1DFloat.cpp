@@ -178,7 +178,7 @@ PyObject * UnaryFunction1DFloat___call__( BPy_UnaryFunction1DFloat *self, PyObje
 		return NULL;
 	
 	if( typeid(*(self->uf1D_float)) == typeid(UnaryFunction1D<float>) ) {
-		PyErr_SetString(PyExc_TypeError, "__call__ method must be overloaded");
+		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
 	}
 	if (self->uf1D_float->operator()(*( ((BPy_Interface1D *) obj)->if1D )) < 0) {

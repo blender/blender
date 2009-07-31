@@ -154,7 +154,7 @@ int ChainingIterator___init__(BPy_ChainingIterator *self, PyObject *args )
 
 PyObject *ChainingIterator_init( BPy_ChainingIterator *self ) {
 	if( typeid(*(self->c_it)) == typeid(ChainingIterator) ) {
-		PyErr_SetString(PyExc_TypeError, "init() method must be overloaded");
+		PyErr_SetString(PyExc_TypeError, "init() method not properly overridden");
 		return NULL;
 	}
 	self->c_it->init();
@@ -169,7 +169,7 @@ PyObject *ChainingIterator_traverse( BPy_ChainingIterator *self, PyObject *args 
 		return NULL;
 	
 	if( typeid(*(self->c_it)) == typeid(ChainingIterator) ) {
-		PyErr_SetString(PyExc_TypeError, "traverse() method must be overloaded");
+		PyErr_SetString(PyExc_TypeError, "traverse() method not properly overridden");
 		return NULL;
 	}
 	if( ((BPy_AdjacencyIterator *) py_a_it)->a_it )

@@ -185,7 +185,7 @@ PyObject * UnaryFunction1DVec3f___call__( BPy_UnaryFunction1DVec3f *self, PyObje
 		return NULL;
 	
 	if( typeid(*(self->uf1D_vec3f)) == typeid(UnaryFunction1D<Vec3f>) ) {
-		PyErr_SetString(PyExc_TypeError, "__call__ method must be overloaded");
+		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
 	}
 	if (self->uf1D_vec3f->operator()(*( ((BPy_Interface1D *) obj)->if1D )) < 0) {

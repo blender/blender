@@ -265,7 +265,7 @@ PyObject * UnaryFunction1DDouble___call__( BPy_UnaryFunction1DDouble *self, PyOb
 		return NULL;
 	
 	if( typeid(*(self->uf1D_double)) == typeid(UnaryFunction1D<double>) ) {
-		PyErr_SetString(PyExc_TypeError, "__call__ method must be overloaded");
+		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
 	}
 	if (self->uf1D_double->operator()(*( ((BPy_Interface1D *) obj)->if1D )) < 0) {

@@ -185,7 +185,7 @@ PyObject * UnaryFunction1DUnsigned___call__( BPy_UnaryFunction1DUnsigned *self, 
 		return NULL;
 	
 	if( typeid(*(self->uf1D_unsigned)) == typeid(UnaryFunction1D<unsigned int>) ) {
-		PyErr_SetString(PyExc_TypeError, "__call__ method must be overloaded");
+		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
 	}
 	if (self->uf1D_unsigned->operator()(*( ((BPy_Interface1D *) obj)->if1D )) < 0) {

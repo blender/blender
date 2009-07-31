@@ -185,7 +185,7 @@ PyObject * UnaryFunction1DEdgeNature___call__( BPy_UnaryFunction1DEdgeNature *se
 		return NULL;
 	
 	if( typeid(*(self->uf1D_edgenature)) == typeid(UnaryFunction1D<Nature::EdgeNature>) ) {
-		PyErr_SetString(PyExc_TypeError, "__call__ method must be overloaded");
+		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
 	}
 	if (self->uf1D_edgenature->operator()(*( ((BPy_Interface1D *) obj)->if1D )) < 0) {

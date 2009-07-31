@@ -168,7 +168,7 @@ PyObject * UnaryFunction0DMaterial___call__( BPy_UnaryFunction0DMaterial *self, 
 		return NULL;
 	
 	if( typeid(*(self->uf0D_material)) == typeid(UnaryFunction0D<FrsMaterial>) ) {
-		PyErr_SetString(PyExc_TypeError, "__call__ method must be overloaded");
+		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
 	}
 	if (self->uf0D_material->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) < 0) {
