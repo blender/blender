@@ -432,31 +432,21 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 		/* Softbody not allowed in this situation, enforce! */
 		if(((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) && (md->type!=eModifierType_Surface)) {
 			uiItemR(row, "", ICON_SCENE, &ptr, "render", 0, 0, 0);
-			uiItemR(row, "", ICON_VIEW3D, &ptr, "realtime", 0, 0, 0);
+			uiItemR(row, "", ICON_RESTRICT_VIEW_OFF, &ptr, "realtime", 0, 0, 0);
 
 			if(mti->flags & eModifierTypeFlag_SupportsEditmode)
-				uiItemR(row, "", ICON_VIEW3D, &ptr, "editmode", 0, 0, 0);
+				uiItemR(row, "", ICON_EDITMODE_HLT, &ptr, "editmode", 0, 0, 0);
 		}
-		uiBlockEndAlign(block);
+		
 
 		/* XXX uiBlockSetEmboss(block, UI_EMBOSSR); */
 
 		if(ob->type==OB_MESH && modifier_couldBeCage(md) && index<=lastCageIndex) {
-			int icon; //, color;
 
-			if(index==cageIndex) {
-				// XXX color = TH_BUT_SETTING;
-				icon = VICON_EDITMODE_HLT;
-			} else if(index<cageIndex) {
-				// XXX color = TH_BUT_NEUTRAL;
-				icon = VICON_EDITMODE_DEHLT;
-			} else {
-				// XXX color = TH_BUT_NEUTRAL;
-				icon = ICON_BLANK1;
-			}
 			/* XXX uiBlockSetCol(block, color); */
-			but = uiDefIconBut(block, BUT, 0, icon, 0, 0, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
+			but = uiDefIconBut(block, BUT, 0, ICON_MESH_DATA, 0, 0, 16, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
 			uiButSetFunc(but, modifiers_setOnCage, ob, md);
+			uiBlockEndAlign(block);
 			/* XXX uiBlockSetCol(block, TH_AUTO); */
 		}
 	}
@@ -464,8 +454,10 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	/* up/down/delete */
 	if(!isVirtual) {
 		/* XXX uiBlockSetCol(block, TH_BUT_ACTION); */
+		uiBlockBeginAlign(block);
 		uiItemO(row, "", VICON_MOVE_UP, "OBJECT_OT_modifier_move_up");
 		uiItemO(row, "", VICON_MOVE_DOWN, "OBJECT_OT_modifier_move_down");
+		uiBlockEndAlign(block);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 
