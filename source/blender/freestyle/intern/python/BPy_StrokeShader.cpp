@@ -289,8 +289,17 @@ PyObject *StrokeShader_shade( BPy_StrokeShader *self , PyObject *args) {
 	if(!( PyArg_ParseTuple(args, "O!", &Stroke_Type, &py_s) ))
 		return NULL;
 	
-	self->ss->shade(*( ((BPy_Stroke *) py_s)->s ));
-
+	if( typeid(*(self->ss)) == typeid(StrokeShader) ) {
+		PyErr_SetString(PyExc_TypeError, "shade method not properly overridden");
+		return NULL;
+	}
+	if (self->ss->shade(*( ((BPy_Stroke *) py_s)->s )) < 0) {
+		if (!PyErr_Occurred()) {
+			string msg(self->ss->getName() + " shade method failed");
+			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		}
+		return NULL;
+	}
 	Py_RETURN_NONE;
 }
 
