@@ -137,6 +137,7 @@ int StrokeVertexIterator___init__(BPy_StrokeVertexIterator *self, PyObject *args
 	}
 
 	self->py_it.it = self->sv_it;
+	self->reversed = 0;
 
 	return 0;
 }
@@ -171,7 +172,7 @@ PyObject * StrokeVertexIterator_u( BPy_StrokeVertexIterator *self ) {
 
 PyObject * StrokeVertexIterator_castToInterface0DIterator( BPy_StrokeVertexIterator *self ) {
 	Interface0DIterator it( self->sv_it->castToInterface0DIterator() );
-	return BPy_Interface0DIterator_from_Interface0DIterator( it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( it, 0 );
 }
 
 PyObject * StrokeVertexIterator_getObject( BPy_StrokeVertexIterator *self) {

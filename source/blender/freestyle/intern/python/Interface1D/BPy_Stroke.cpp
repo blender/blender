@@ -383,12 +383,12 @@ PyObject * Stroke_strokeVerticesSize( BPy_Stroke *self ) {
 
 PyObject * Stroke_verticesBegin( BPy_Stroke *self ) {
 	Interface0DIterator if0D_it( self->s->verticesBegin() );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 0 );
 }
 
 PyObject * Stroke_verticesEnd( BPy_Stroke *self ) {
 	Interface0DIterator if0D_it( self->s->verticesEnd() );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );	
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 1 );	
 }
 
 PyObject * Stroke_pointsBegin( BPy_Stroke *self , PyObject *args) {
@@ -398,7 +398,7 @@ PyObject * Stroke_pointsBegin( BPy_Stroke *self , PyObject *args) {
 		return NULL;
 
 	Interface0DIterator if0D_it( self->s->pointsBegin(f) );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 0 );
 }
 
 PyObject * Stroke_pointsEnd( BPy_Stroke *self , PyObject *args) {
@@ -408,7 +408,7 @@ PyObject * Stroke_pointsEnd( BPy_Stroke *self , PyObject *args) {
 		return NULL;
 	
 	Interface0DIterator if0D_it( self->s->pointsEnd(f) );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 1 );
 }
 	
 ///////////////////////////////////////////////////////////////////////////////////////////

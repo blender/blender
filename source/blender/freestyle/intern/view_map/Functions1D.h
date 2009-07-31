@@ -99,16 +99,7 @@ public:
    *  \return the result of the function of type T.
    */
   virtual int operator()(Interface1D& inter) {
-	string name( py_uf1D ? PyString_AsString(PyObject_CallMethod(py_uf1D, "getName", "")) : getName() );
-
-	if( py_uf1D && PyObject_HasAttrString(py_uf1D, "__call__") ) {
-		if (Director_BPy_UnaryFunction1D___call__( this, py_uf1D, inter) < 0) {
-		    return -1;
-		}
-	} else {
-		cerr << "Warning: " << name << " operator() not implemented" << endl;
-	}
-	return 0;
+	return Director_BPy_UnaryFunction1D___call__( this, py_uf1D, inter );
   }
 	
   /*! Sets the integration method */
@@ -141,17 +132,8 @@ public:
 	}
 	
 	int operator()(Interface1D& inter) {
-		string name( py_uf1D ? PyString_AsString(PyObject_CallMethod(py_uf1D, "getName", "")) : getName() );
-
-		if( py_uf1D && PyObject_HasAttrString(py_uf1D, "__call__") ) {
-			if (Director_BPy_UnaryFunction1D___call__( this, py_uf1D, inter) < 0) {
-				return -1;
-			}
-		} else {
-			cerr << "Warning: " << name << " operator() not implemented" << endl;
-		}
-		return 0;
-	  }
+		return Director_BPy_UnaryFunction1D___call__( this, py_uf1D, inter );
+	}
 	
 	void setIntegrationType(IntegrationType integration) { _integration = integration; }
 	IntegrationType getIntegrationType() const { return _integration; }

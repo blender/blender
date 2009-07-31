@@ -256,12 +256,12 @@ PyObject *Interface1D_setTimeStamp( BPy_Interface1D *self, PyObject *args) {
 
 PyObject * Interface1D_verticesBegin( BPy_Interface1D *self ) {
 	Interface0DIterator if0D_it( self->if1D->verticesBegin() );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 0 );
 }
 
 PyObject * Interface1D_verticesEnd( BPy_Interface1D *self ) {
 	Interface0DIterator if0D_it( self->if1D->verticesEnd() );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 1 );
 }
 
 
@@ -272,7 +272,7 @@ PyObject * Interface1D_pointsBegin( BPy_Interface1D *self, PyObject *args ) {
 		return NULL;
 	
 	Interface0DIterator if0D_it( self->if1D->pointsBegin(f) );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 0 );
 }
 
 PyObject * Interface1D_pointsEnd( BPy_Interface1D *self, PyObject *args ) {
@@ -282,7 +282,7 @@ PyObject * Interface1D_pointsEnd( BPy_Interface1D *self, PyObject *args ) {
 		return NULL;
 	
 	Interface0DIterator if0D_it( self->if1D->pointsEnd(f) );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 1 );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

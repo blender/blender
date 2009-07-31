@@ -145,7 +145,7 @@ PyObject * ViewVertex_edgesBegin( BPy_ViewVertex *self ) {
 		Py_RETURN_NONE;
 		
 	ViewVertexInternal::orientedViewEdgeIterator ove_it( self->vv->edgesBegin() );
-	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ove_it );
+	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ove_it, 0 );
 }
 
 PyObject * ViewVertex_edgesEnd( BPy_ViewVertex *self ) {
@@ -153,7 +153,7 @@ PyObject * ViewVertex_edgesEnd( BPy_ViewVertex *self ) {
 		Py_RETURN_NONE;
 		
 	ViewVertexInternal::orientedViewEdgeIterator ove_it( self->vv->edgesEnd() );
-	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ove_it );
+	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ove_it, 1 );
 }
 
 
@@ -168,7 +168,7 @@ PyObject * ViewVertex_edgesIterator( BPy_ViewVertex *self, PyObject *args ) {
 	
 	ViewEdge *ve = ((BPy_ViewEdge *) py_ve)->ve;
 	ViewVertexInternal::orientedViewEdgeIterator ove_it( self->vv->edgesIterator( ve ) );
-	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ove_it );
+	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ove_it, 0 );
 }
 
 

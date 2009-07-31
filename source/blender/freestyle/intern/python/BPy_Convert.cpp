@@ -83,6 +83,23 @@ PyObject * BPy_Id_from_Id( Id& id ) {
 }
 
 PyObject * BPy_Interface0D_from_Interface0D( Interface0D& if0D ) {
+	if (typeid(if0D) == typeid(CurvePoint)) {
+		return BPy_CurvePoint_from_CurvePoint_ptr(dynamic_cast<CurvePoint*>(&if0D));
+	} else if (typeid(if0D) == typeid(StrokeVertex)) {
+		return BPy_StrokeVertex_from_StrokeVertex_ptr(dynamic_cast<StrokeVertex*>(&if0D));
+	} else if (typeid(if0D) == typeid(SVertex)) {
+		return BPy_SVertex_from_SVertex_ptr(dynamic_cast<SVertex*>(&if0D));
+	} else if (typeid(if0D) == typeid(ViewVertex)) {
+		return BPy_ViewVertex_from_ViewVertex_ptr(dynamic_cast<ViewVertex*>(&if0D));
+	} else if (typeid(if0D) == typeid(NonTVertex)) {
+		return BPy_NonTVertex_from_NonTVertex_ptr(dynamic_cast<NonTVertex*>(&if0D));
+	} else if (typeid(if0D) == typeid(TVertex)) {
+		return BPy_TVertex_from_TVertex_ptr(dynamic_cast<TVertex*>(&if0D));
+	} else if (typeid(if0D) != typeid(Interface0D)) {
+		string msg("unexpected type: " + if0D.getExactTypeName());
+		PyErr_SetString(PyExc_TypeError, msg.c_str());
+		return NULL;
+	}
 	PyObject *py_if0D =  Interface0D_Type.tp_new( &Interface0D_Type, 0, 0 );
 	((BPy_Interface0D *) py_if0D)->if0D = &if0D;
 
@@ -90,6 +107,17 @@ PyObject * BPy_Interface0D_from_Interface0D( Interface0D& if0D ) {
 }
 
 PyObject * BPy_Interface1D_from_Interface1D( Interface1D& if1D ) {
+	if (typeid(if1D) == typeid(ViewEdge)) {
+		return BPy_ViewEdge_from_ViewEdge_ptr(dynamic_cast<ViewEdge*>(&if1D));
+	} else if (typeid(if1D) == typeid(Chain)) {
+		return BPy_Chain_from_Chain_ptr(dynamic_cast<Chain*>(&if1D));
+	} else if (typeid(if1D) == typeid(Stroke)) {
+		return BPy_Stroke_from_Stroke_ptr(dynamic_cast<Stroke*>(&if1D));
+	} else if (typeid(if1D) != typeid(Interface1D)) {
+		string msg("unexpected type: " + if1D.getExactTypeName());
+		PyErr_SetString(PyExc_TypeError, msg.c_str());
+		return NULL;
+	}
 	PyObject *py_if1D =  Interface1D_Type.tp_new( &Interface1D_Type, 0, 0 );
 	((BPy_Interface1D *) py_if1D)->if1D = &if1D;
 
@@ -281,10 +309,11 @@ PyObject * BPy_AdjacencyIterator_from_AdjacencyIterator( AdjacencyIterator& a_it
 	return py_a_it;
 }
 
-PyObject * BPy_Interface0DIterator_from_Interface0DIterator( Interface0DIterator& if0D_it ) {
+PyObject * BPy_Interface0DIterator_from_Interface0DIterator( Interface0DIterator& if0D_it, int reversed ) {
 	PyObject *py_if0D_it = Interface0DIterator_Type.tp_new( &Interface0DIterator_Type, 0, 0 );
 	((BPy_Interface0DIterator *) py_if0D_it)->if0D_it = new Interface0DIterator( if0D_it );
 	((BPy_Interface0DIterator *) py_if0D_it)->py_it.it = ((BPy_Interface0DIterator *) py_if0D_it)->if0D_it;
+	((BPy_Interface0DIterator *) py_if0D_it)->reversed = reversed;
 
 	return py_if0D_it;
 }
@@ -315,10 +344,11 @@ PyObject * BPy_SVertexIterator_from_SVertexIterator( ViewEdgeInternal::SVertexIt
 }
 
 
-PyObject * BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ViewVertexInternal::orientedViewEdgeIterator& ove_it ) {
+PyObject * BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ViewVertexInternal::orientedViewEdgeIterator& ove_it, int reversed ) {
 	PyObject *py_ove_it = orientedViewEdgeIterator_Type.tp_new( &orientedViewEdgeIterator_Type, 0, 0 );
 	((BPy_orientedViewEdgeIterator *) py_ove_it)->ove_it = new ViewVertexInternal::orientedViewEdgeIterator( ove_it );
 	((BPy_orientedViewEdgeIterator *) py_ove_it)->py_it.it = ((BPy_orientedViewEdgeIterator *) py_ove_it)->ove_it;
+	((BPy_orientedViewEdgeIterator *) py_ove_it)->reversed = reversed;
 	
 	return py_ove_it;
 }

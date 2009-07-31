@@ -22,6 +22,7 @@ extern PyTypeObject orientedViewEdgeIterator_Type;
 typedef struct {
 	BPy_Iterator py_it;
 	ViewVertexInternal::orientedViewEdgeIterator *ove_it;
+	int reversed;
 } BPy_orientedViewEdgeIterator;
 
 ///////////////////////////////////////////////////////////////////////////////////////////

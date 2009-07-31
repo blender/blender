@@ -10,6 +10,7 @@ extern "C" {
 
 /*---------------  Python API function prototypes for Interface0DIterator instance  -----------*/
 static int Interface0DIterator___init__(BPy_Interface0DIterator *self, PyObject *args);
+static PyObject * Interface0DIterator_iternext( BPy_Interface0DIterator *self );
 
 static PyObject * Interface0DIterator_t( BPy_Interface0DIterator *self );
 static PyObject * Interface0DIterator_u( BPy_Interface0DIterator *self );
@@ -78,8 +79,8 @@ PyTypeObject Interface0DIterator_Type = {
 
   /*** Added in release 2.2 ***/
 	/*   Iterators */
-	NULL,                       /* getiterfunc tp_iter; */
-	NULL,                       /* iternextfunc tp_iternext; */
+	PyObject_SelfIter,              /* getiterfunc tp_iter; */
+	(iternextfunc)Interface0DIterator_iternext,     /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
 	BPy_Interface0DIterator_methods,	/* struct PyMethodDef *tp_methods; */
@@ -123,8 +124,29 @@ int Interface0DIterator___init__(BPy_Interface0DIterator *self, PyObject *args )
 
 	self->if0D_it = new Interface0DIterator(*( ((BPy_Interface0DIterator *) obj)->if0D_it ));
 	self->py_it.it = self->if0D_it;
+	self->reversed = 0;
 	
 	return 0;
+}
+
+PyObject * Interface0DIterator_iternext( BPy_Interface0DIterator *self ) {
+	Interface0D *if0D;
+	if (self->reversed) {
+		if (self->if0D_it->isBegin()) {
+			PyErr_SetNone(PyExc_StopIteration);
+			return NULL;
+		}
+		self->if0D_it->decrement();
+		if0D = self->if0D_it->operator->();
+	} else {
+		if (self->if0D_it->isEnd()) {
+			PyErr_SetNone(PyExc_StopIteration);
+			return NULL;
+		}
+		if0D = self->if0D_it->operator->();
+		self->if0D_it->increment();
+	}
+	return BPy_Interface0D_from_Interface0D( *if0D );
 }
 
 PyObject * Interface0DIterator_t( BPy_Interface0DIterator *self ) {
@@ -136,23 +158,7 @@ PyObject * Interface0DIterator_u( BPy_Interface0DIterator *self ) {
 }
 
 PyObject * Interface0DIterator_getObject(BPy_Interface0DIterator *self) {
-	Interface0D &if0D = self->if0D_it->operator*();
-	if (typeid(if0D) == typeid(CurvePoint)) {
-		return BPy_CurvePoint_from_CurvePoint_ptr(dynamic_cast<CurvePoint*>(&if0D));
-	} else if (typeid(if0D) == typeid(StrokeVertex)) {
-		return BPy_StrokeVertex_from_StrokeVertex_ptr(dynamic_cast<StrokeVertex*>(&if0D));
-	} else if (typeid(if0D) == typeid(SVertex)) {
-		return BPy_SVertex_from_SVertex_ptr(dynamic_cast<SVertex*>(&if0D));
-	} else if (typeid(if0D) == typeid(ViewVertex)) {
-		return BPy_ViewVertex_from_ViewVertex_ptr(dynamic_cast<ViewVertex*>(&if0D));
-	} else if (typeid(if0D) == typeid(NonTVertex)) {
-		return BPy_NonTVertex_from_NonTVertex_ptr(dynamic_cast<NonTVertex*>(&if0D));
-	} else if (typeid(if0D) == typeid(TVertex)) {
-		return BPy_TVertex_from_TVertex_ptr(dynamic_cast<TVertex*>(&if0D));
-	} else {
-		cerr << "Warning: cast to " << if0D.getExactTypeName() << " not implemented" << endl;
-		return BPy_Interface0D_from_Interface0D(if0D);
-	}
+	return BPy_Interface0D_from_Interface0D( self->if0D_it->operator*() );
 }
 
 

@@ -10,6 +10,7 @@ extern "C" {
 
 /*---------------  Python API function prototypes for orientedViewEdgeIterator instance  -----------*/
 static int orientedViewEdgeIterator___init__(BPy_orientedViewEdgeIterator *self, PyObject *args);
+static PyObject * orientedViewEdgeIterator_iternext(BPy_orientedViewEdgeIterator *self);
 
 static PyObject * orientedViewEdgeIterator_getObject(BPy_orientedViewEdgeIterator *self);
 
@@ -74,8 +75,8 @@ PyTypeObject orientedViewEdgeIterator_Type = {
 
   /*** Added in release 2.2 ***/
 	/*   Iterators */
-	NULL,                       /* getiterfunc tp_iter; */
-	NULL,                       /* iternextfunc tp_iternext; */
+	PyObject_SelfIter,				/* getiterfunc tp_iter; */
+	(iternextfunc)orientedViewEdgeIterator_iternext,	/* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
 	BPy_orientedViewEdgeIterator_methods,	/* struct PyMethodDef *tp_methods; */
@@ -124,8 +125,29 @@ int orientedViewEdgeIterator___init__(BPy_orientedViewEdgeIterator *self, PyObje
 	}
 	
 	self->py_it.it = self->ove_it;
+	self->reversed = 0;
 	
 	return 0;
+}
+
+PyObject * orientedViewEdgeIterator_iternext( BPy_orientedViewEdgeIterator *self ) {
+	ViewVertex::directedViewEdge *dve;
+	if (self->reversed) {
+		if (self->ove_it->isBegin()) {
+			PyErr_SetNone(PyExc_StopIteration);
+			return NULL;
+		}
+		self->ove_it->decrement();
+		dve = self->ove_it->operator->();
+	} else {
+		if (self->ove_it->isEnd()) {
+			PyErr_SetNone(PyExc_StopIteration);
+			return NULL;
+		}
+		dve = self->ove_it->operator->();
+		self->ove_it->increment();
+	}
+	return BPy_directedViewEdge_from_directedViewEdge( *dve );
 }
 
 PyObject * orientedViewEdgeIterator_getObject( BPy_orientedViewEdgeIterator *self) {

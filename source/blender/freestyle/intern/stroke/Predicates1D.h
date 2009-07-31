@@ -77,18 +77,7 @@ public:
    *    false otherwise.
    */
   virtual int operator()(Interface1D& inter) {
-	string name( py_up1D ? PyString_AsString(PyObject_CallMethod(py_up1D, "getName", "")) : getName() );
-	
-	if( py_up1D && PyObject_HasAttrString(py_up1D, "__call__")) {
-		int res = Director_BPy_UnaryPredicate1D___call__(py_up1D, inter);
-		if (res < 0)
-			return -1;
-		result = (res == 1);
-	} else {
-		cerr << "Warning: " << name << " operator() not implemented" << endl;
-		result = false;
-	}
-	return 0;
+	return Director_BPy_UnaryPredicate1D___call__(this, inter);
   }
 
 };
@@ -131,18 +120,7 @@ public:
    *  \return true or false.
    */
   virtual int operator()(Interface1D& inter1, Interface1D& inter2) {
-	string name( py_bp1D ? PyString_AsString(PyObject_CallMethod(py_bp1D, "getName", "")) : getName() );
-	
-	if( py_bp1D && PyObject_HasAttrString(py_bp1D, "__call__") ) {
-		int res = Director_BPy_BinaryPredicate1D___call__(py_bp1D, inter1, inter2);
-		if (res < 0)
-			return -1;
-		result = (res == 1);
-	} else {
-		cerr << "Warning: " << name << " operator() not implemented" << endl;
-		result = false;
-	}
-	return 0;
+	return Director_BPy_BinaryPredicate1D___call__(this, inter1, inter2);
   }
 
 };

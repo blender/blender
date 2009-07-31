@@ -204,12 +204,12 @@ PyObject * FrsCurve_nSegments( BPy_FrsCurve *self ) {
 
 PyObject * FrsCurve_verticesBegin( BPy_FrsCurve *self ) {
 	Interface0DIterator if0D_it( self->c->verticesBegin() );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 0 );
 }
 
 PyObject * FrsCurve_verticesEnd( BPy_FrsCurve *self ) {
 	Interface0DIterator if0D_it( self->c->verticesEnd() );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 1 );
 }
 
 
@@ -220,7 +220,7 @@ PyObject * FrsCurve_pointsBegin( BPy_FrsCurve *self, PyObject *args ) {
 		return NULL;
 	
 	Interface0DIterator if0D_it( self->c->pointsBegin(f) );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 0 );
 }
 
 PyObject * FrsCurve_pointsEnd( BPy_FrsCurve *self, PyObject *args ) {
@@ -230,7 +230,7 @@ PyObject * FrsCurve_pointsEnd( BPy_FrsCurve *self, PyObject *args ) {
 		return NULL;
 	
 	Interface0DIterator if0D_it( self->c->pointsEnd(f) );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 1 );
 }
 
 

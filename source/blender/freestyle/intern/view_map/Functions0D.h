@@ -95,16 +95,7 @@ UnaryFunction0D() { py_uf0D  = 0;}
    *  \return the result of the function of type T.
    */
   virtual int operator()(Interface0DIterator& iter) {
-	string name( py_uf0D ? PyString_AsString(PyObject_CallMethod(py_uf0D, "getName", "")) : getName() );
-	
-	if( py_uf0D && PyObject_HasAttrString(py_uf0D, "__call__") ) {
-		if (Director_BPy_UnaryFunction0D___call__( this, py_uf0D, iter) < 0) {
-			return -1;
-		}
-	} else {
-		cerr << "Warning: " << name << " operator() not implemented" << endl;
-	}
-	return 0;
+	return Director_BPy_UnaryFunction0D___call__( this, py_uf0D, iter );
   }
 
 };

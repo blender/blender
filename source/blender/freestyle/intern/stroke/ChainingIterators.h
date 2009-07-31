@@ -186,16 +186,7 @@ public:
    *  might want to keep.  
    */
   virtual int init() {
-	string name( py_c_it ? PyString_AsString(PyObject_CallMethod(py_c_it, "getExactTypeName", "")) : getExactTypeName() );
-	
-	if( py_c_it && PyObject_HasAttrString(py_c_it, "init") ) {
-		if (Director_BPy_ChainingIterator_init( py_c_it ) < 0) {
-			return -1;
-		}
-	} else {
-		cerr << "Warning: " << name << " init() method not implemented" << endl;
-	}
-	return 0;
+	return Director_BPy_ChainingIterator_init( this );
   }
   
   /*! This method iterates over the potential next 
@@ -210,16 +201,7 @@ public:
    *    rules by only iterating over the valid ViewEdges.
    */
   virtual int traverse(const AdjacencyIterator &it){
-	string name( py_c_it ? PyString_AsString(PyObject_CallMethod(py_c_it, "getExactTypeName", "")) : getExactTypeName() );
-	
-	if( py_c_it && PyObject_HasAttrString(py_c_it, "traverse") ) {
-		if (Director_BPy_ChainingIterator_traverse(py_c_it, const_cast<AdjacencyIterator &>(it), &result ) < 0) {
-			return -1;
-		}
-	} else {
-	    cerr << "Warning: the " << name << " traverse() method not defined" << endl;
-	}
-    return 0;
+	return Director_BPy_ChainingIterator_traverse( this, const_cast<AdjacencyIterator &>(it) );
   }
 
   /* accessors */

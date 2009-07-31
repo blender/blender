@@ -43,88 +43,113 @@
 
 
 //   BinaryPredicate0D: __call__
-int Director_BPy_BinaryPredicate0D___call__( PyObject *obj, Interface0D& i1, Interface0D& i2) {
+int Director_BPy_BinaryPredicate0D___call__( BinaryPredicate0D *bp0D, Interface0D& i1, Interface0D& i2 ) {
+	if (!bp0D->py_bp0D) { // internal error
+		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_bp0D) not initialized");
+		return -1;
+	}
 	PyObject *arg1 = BPy_Interface0D_from_Interface0D(i1);
 	PyObject *arg2 = BPy_Interface0D_from_Interface0D(i2);
-	PyObject *result = PyObject_CallMethod( obj, "__call__", "OO", arg1, arg2 );
+	if (!arg1 || !arg2) {
+		Py_XDECREF(arg1);
+		Py_XDECREF(arg2);
+		return -1;
+	}
+	PyObject *result = PyObject_CallMethod( bp0D->py_bp0D, "__call__", "OO", arg1, arg2 );
 	Py_DECREF(arg1);
 	Py_DECREF(arg2);
 	if (!result)
 		return -1;
 	int ret = PyObject_IsTrue(result);
 	Py_DECREF(result);
-	return ret;
+	if (ret < 0)
+		return -1;
+	bp0D->result = ret;
+	return 0;
 }
 
 
 //   BinaryPredicate1D: __call__
-int Director_BPy_BinaryPredicate1D___call__( PyObject *obj, Interface1D& i1, Interface1D& i2) {
-	PyObject *arg1, *arg2;
-	if (typeid(i1) == typeid(ViewEdge)) {
-		arg1 = BPy_ViewEdge_from_ViewEdge_ptr(dynamic_cast<ViewEdge*>(&i1));
-		arg2 = BPy_ViewEdge_from_ViewEdge_ptr(dynamic_cast<ViewEdge*>(&i2));
-	} else if (typeid(i1) == typeid(Chain)) {
-		arg1 = BPy_Chain_from_Chain_ptr(dynamic_cast<Chain*>(&i1));
-		arg2 = BPy_Chain_from_Chain_ptr(dynamic_cast<Chain*>(&i2));
-	} else if (typeid(i1) == typeid(Stroke)) {
-		arg1 = BPy_Stroke_from_Stroke_ptr(dynamic_cast<Stroke*>(&i1));
-		arg2 = BPy_Stroke_from_Stroke_ptr(dynamic_cast<Stroke*>(&i2));
-	} else {
-		cerr << "Warning: cast to " + i1.getExactTypeName() + " not implemented" << endl;
-		arg1 = BPy_Interface1D_from_Interface1D(i1);
-		arg2 = BPy_Interface1D_from_Interface1D(i2);
+int Director_BPy_BinaryPredicate1D___call__( BinaryPredicate1D *bp1D, Interface1D& i1, Interface1D& i2 ) {
+	if (!bp1D->py_bp1D) { // internal error
+		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_bp1D) not initialized");
+		return -1;
 	}
-	PyObject *result = PyObject_CallMethod( obj, "__call__", "OO", arg1, arg2 );
+	PyObject *arg1 = BPy_Interface1D_from_Interface1D(i1);
+	PyObject *arg2 = BPy_Interface1D_from_Interface1D(i2);
+	if (!arg1 || !arg2) {
+		Py_XDECREF(arg1);
+		Py_XDECREF(arg2);
+		return -1;
+	}
+	PyObject *result = PyObject_CallMethod( bp1D->py_bp1D, "__call__", "OO", arg1, arg2 );
 	Py_DECREF(arg1);
 	Py_DECREF(arg2);
 	if (!result)
 		return -1;
 	int ret = PyObject_IsTrue(result);
 	Py_DECREF(result);
-	return ret;
+	if (ret < 0)
+		return -1;
+	bp1D->result = ret;
+	return 0;
 }
 
 
 //   UnaryPredicate0D: __call__
-int Director_BPy_UnaryPredicate0D___call__( PyObject *obj, Interface0DIterator& if0D_it) {
-	PyObject *arg = BPy_Interface0DIterator_from_Interface0DIterator(if0D_it);
-	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", arg );
+int Director_BPy_UnaryPredicate0D___call__( UnaryPredicate0D *up0D, Interface0DIterator& if0D_it ) {
+	if (!up0D->py_up0D) { // internal error
+		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_up0D) not initialized");
+		return -1;
+	}
+	PyObject *arg = BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, 0);
+	if (!arg)
+		return -1;
+	PyObject *result = PyObject_CallMethod( up0D->py_up0D, "__call__", "O", arg );
 	Py_DECREF(arg);
 	if (!result)
 		return -1;
 	int ret = PyObject_IsTrue(result);
 	Py_DECREF(result);
-	return ret;
+	if (ret < 0)
+		return -1;
+	up0D->result = ret;
+	return 0;
 }
 
 
 //   UnaryPredicate1D: __call__
-int Director_BPy_UnaryPredicate1D___call__( PyObject *obj, Interface1D& if1D) {
-	PyObject *arg;
-	if (typeid(if1D) == typeid(ViewEdge)) {
-		arg = BPy_ViewEdge_from_ViewEdge_ptr(dynamic_cast<ViewEdge*>(&if1D));
-	} else if (typeid(if1D) == typeid(Chain)) {
-		arg = BPy_Chain_from_Chain_ptr(dynamic_cast<Chain*>(&if1D));
-	} else if (typeid(if1D) == typeid(Stroke)) {
-		arg = BPy_Stroke_from_Stroke_ptr(dynamic_cast<Stroke*>(&if1D));
-	} else {
-		cerr << "Warning: cast to " + if1D.getExactTypeName() + " not implemented" << endl;
-		arg = BPy_Interface1D_from_Interface1D(if1D);
+int Director_BPy_UnaryPredicate1D___call__( UnaryPredicate1D *up1D, Interface1D& if1D ) {
+	if (!up1D->py_up1D) { // internal error
+		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_up1D) not initialized");
+		return -1;
 	}
-	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", arg );
+	PyObject *arg = BPy_Interface1D_from_Interface1D(if1D);
+	if (!arg)
+		return -1;
+	PyObject *result = PyObject_CallMethod( up1D->py_up1D, "__call__", "O", arg );
 	Py_DECREF(arg);
 	if (!result)
 		return -1;
 	int ret = PyObject_IsTrue(result);
 	Py_DECREF(result);
-	return ret;
+	if (ret < 0)
+		return -1;
+	up1D->result = ret;
+	return 0;
 }
 
 
 //   StrokeShader: shade
-int Director_BPy_StrokeShader_shade( PyObject *obj, Stroke& s) {
+int Director_BPy_StrokeShader_shade( StrokeShader *ss, Stroke& s ) {
+	if (!ss->py_ss) { // internal error
+		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_ss) not initialized");
+		return -1;
+	}
 	PyObject *arg = BPy_Stroke_from_Stroke_ptr(&s);
-	PyObject *result = PyObject_CallMethod( obj, "shade", "O", arg );
+	if (!arg)
+		return -1;
+	PyObject *result = PyObject_CallMethod( ss->py_ss, "shade", "O", arg );
 	Py_DECREF(arg);
 	if (!result)
 		return -1;
@@ -133,24 +158,34 @@ int Director_BPy_StrokeShader_shade( PyObject *obj, Stroke& s) {
 }
 
 //   ChainingIterator: init, traverse
-int Director_BPy_ChainingIterator_init( PyObject *obj ) {
-	PyObject *result = PyObject_CallMethod( obj, "init", "", 0 );
+int Director_BPy_ChainingIterator_init( ChainingIterator *c_it ) {
+	if (!c_it->py_c_it) { // internal error
+		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_c_it) not initialized");
+		return -1;
+	}
+	PyObject *result = PyObject_CallMethod( c_it->py_c_it, "init", "");
 	if (!result)
 		return -1;
 	Py_DECREF(result);
 	return 0;
 }
 
-int Director_BPy_ChainingIterator_traverse( PyObject *obj, AdjacencyIterator& a_it, ViewEdge **ve ) {
+int Director_BPy_ChainingIterator_traverse( ChainingIterator *c_it, AdjacencyIterator& a_it ) {
+	if (!c_it->py_c_it) { // internal error
+		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_c_it) not initialized");
+		return -1;
+	}
 	PyObject *arg = BPy_AdjacencyIterator_from_AdjacencyIterator(a_it);
-	PyObject *result = PyObject_CallMethod( obj, "traverse", "O", arg );
+	if (!arg)
+		return -1;
+	PyObject *result = PyObject_CallMethod( c_it->py_c_it, "traverse", "O", arg );
 	Py_DECREF(arg);
 	if (!result)
 		return -1;
 	if (BPy_ViewEdge_Check(result)) {
-		*ve = ((BPy_ViewEdge *) result)->ve;
+		c_it->result = ((BPy_ViewEdge *) result)->ve;
 	} else if (result == Py_None) {
-		*ve = NULL;
+		c_it->result = NULL;
 	} else {
 		PyErr_SetString(PyExc_RuntimeError, "traverse method returned a wrong value");
 		Py_DECREF(result);
@@ -164,7 +199,13 @@ int Director_BPy_ChainingIterator_traverse( PyObject *obj, AdjacencyIterator& a_
 // BPy_UnaryFunction{0D,1D}: __call__
 int Director_BPy_UnaryFunction0D___call__( void *uf0D, PyObject *obj, Interface0DIterator& if0D_it) {
 
-	PyObject *arg = BPy_Interface0DIterator_from_Interface0DIterator(if0D_it);
+	if (!obj) { // internal error
+		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_uf0D) not initialized");
+		return -1;
+	}
+	PyObject *arg = BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, 0);
+	if (!arg)
+		return -1;
 	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", arg );
 	Py_DECREF(arg);
 	if (!result)
@@ -218,7 +259,13 @@ int Director_BPy_UnaryFunction0D___call__( void *uf0D, PyObject *obj, Interface0
 
 int Director_BPy_UnaryFunction1D___call__( void *uf1D, PyObject *obj, Interface1D& if1D) {
 
+	if (!obj) { // internal error
+		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_uf1D) not initialized");
+		return -1;
+	}
 	PyObject *arg = BPy_Interface1D_from_Interface1D(if1D);
+	if (!arg)
+		return -1;
 	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", arg );
 	Py_DECREF(arg);
 	if (!result)

@@ -341,12 +341,12 @@ PyObject *FEdge_setSmooth( BPy_FEdge *self , PyObject *args) {
 
 PyObject * FEdge_verticesBegin( BPy_FEdge *self ) {
 	Interface0DIterator if0D_it( self->fe->verticesBegin() );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 0 );
 }
 
 PyObject * FEdge_verticesEnd( BPy_FEdge *self ) {
 	Interface0DIterator if0D_it( self->fe->verticesEnd() );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 1 );
 }
 
 
@@ -357,7 +357,7 @@ PyObject * FEdge_pointsBegin( BPy_FEdge *self, PyObject *args ) {
 		return NULL;
 	
 	Interface0DIterator if0D_it( self->fe->pointsBegin(f) );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 0 );
 }
 
 PyObject * FEdge_pointsEnd( BPy_FEdge *self, PyObject *args ) {
@@ -367,7 +367,7 @@ PyObject * FEdge_pointsEnd( BPy_FEdge *self, PyObject *args ) {
 		return NULL;
 	
 	Interface0DIterator if0D_it( self->fe->pointsEnd(f) );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 1 );
 }
 ///////////////////////////////////////////////////////////////////////////////////////////
 

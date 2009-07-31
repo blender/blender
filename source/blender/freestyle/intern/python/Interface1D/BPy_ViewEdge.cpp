@@ -345,12 +345,12 @@ PyObject * ViewEdge_setQI( BPy_ViewEdge *self, PyObject *args ) {
 
 PyObject * ViewEdge_verticesBegin( BPy_ViewEdge *self ) {
 	Interface0DIterator if0D_it( self->ve->verticesBegin() );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 0 );
 }
 
 PyObject * ViewEdge_verticesEnd( BPy_ViewEdge *self ) {
 	Interface0DIterator if0D_it( self->ve->verticesEnd() );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 1 );
 }
 
 
@@ -361,7 +361,7 @@ PyObject * ViewEdge_pointsBegin( BPy_ViewEdge *self, PyObject *args ) {
 		return NULL;
 	
 	Interface0DIterator if0D_it( self->ve->pointsBegin(f) );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 0 );
 }
 
 PyObject * ViewEdge_pointsEnd( BPy_ViewEdge *self, PyObject *args ) {
@@ -371,7 +371,7 @@ PyObject * ViewEdge_pointsEnd( BPy_ViewEdge *self, PyObject *args ) {
 		return NULL;
 	
 	Interface0DIterator if0D_it( self->ve->pointsEnd(f) );
-	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it );
+	return BPy_Interface0DIterator_from_Interface0DIterator( if0D_it, 1 );
 }
 
 PyObject * ViewEdge_qi( BPy_ViewEdge *self ) {

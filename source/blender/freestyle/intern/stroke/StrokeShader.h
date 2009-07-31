@@ -116,16 +116,7 @@ public:
    *    as Color, Thickness, Geometry...)
    */
   virtual int shade(Stroke& ioStroke) const {
-	string name( py_ss ? PyString_AsString(PyObject_CallMethod(py_ss, "getName", "")) : getName() );
-	
-	if( py_ss && PyObject_HasAttrString(py_ss, "shade") ) {
-		if (Director_BPy_StrokeShader_shade(py_ss, ioStroke) < 0) {
-			return -1;
-		}
-	} else {
-		cerr << "Warning: " << name << " shade() method not implemented" << endl;
-	}
-	return 0;
+	return Director_BPy_StrokeShader_shade( const_cast<StrokeShader *>(this), ioStroke );
   }
 
 };
