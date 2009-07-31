@@ -62,8 +62,8 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 
 		if id:
 			row = layout.row()
-			row.template_list(id, "textures", id, "active_texture_index", type="ICONS")
-
+			row.template_list(id, "textures", id, "active_texture_index", rows=2)
+			
 		split = layout.split(percentage=0.65)
 
 		if id:
