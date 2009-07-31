@@ -1438,10 +1438,17 @@ int autokeyframe_cfra_can_key(Scene *scene, ID *id)
 	/* only filter if auto-key mode requires this */
 	if (IS_AUTOKEY_ON(scene) == 0)
 		return 0;
-	else if (IS_AUTOKEY_MODE(scene, NORMAL)) 
+		
+	if (IS_AUTOKEY_MODE(scene, NORMAL)) {
+		/* can insert anytime we like... */
 		return 1;
-	else 
+	}
+	else /* REPLACE */ {
+		/* for whole block - only key if there's a keyframe on that frame already
+		 *	this is a valid assumption when we're blocking + tweaking
+		 */
 		return id_frame_has_keyframe(id, cfra, ANIMFILTER_KEYS_LOCAL);
+	}
 }
 
 /* ******************************************* */

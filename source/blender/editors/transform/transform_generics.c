@@ -92,6 +92,7 @@
 #include "ED_markers.h"
 #include "ED_mesh.h"
 #include "ED_retopo.h"
+#include "ED_screen_types.h"
 #include "ED_space_api.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
@@ -285,6 +286,42 @@ static void animedit_refresh_id_tags (ID *id)
 			ob->recalc |= OB_RECALC;
 		}
 			break;
+	}
+}
+
+/* for the realtime animation recording feature, handle overlapping data */
+static void animrecord_check_state (Scene *scene, ID *id, wmTimer *animtimer)
+{
+	ScreenAnimData *sad= animtimer->customdata;
+	
+	/* if animtimer is running and we're not interested in only keying for available channels,
+	 * check if there's a keyframe on the current frame
+	 */
+	if (IS_AUTOKEY_FLAG(INSERTAVAIL)==0) {
+		/* if playback has just looped around, we need to add a new NLA track+strip to allow a clean pass to occur */
+		if (sad->flag & ANIMPLAY_FLAG_JUMPED) {
+			AnimData *adt= BKE_animdata_from_id(id);
+			
+			/* perform push-down manually with some differences 
+			 * NOTE: BKE_nla_action_pushdown() sync warning...
+			 */
+			if ((adt->action) && !(adt->flag & ADT_NLA_EDIT_ON)) {
+				NlaStrip *strip= add_nlastrip_to_stack(adt, adt->action);
+				
+				/* clear reference to action now that we've pushed it onto the stack */
+				adt->action->id.us--;
+				adt->action= NULL;
+				
+				/* adjust blending + extend so that they will behave correctly */
+				strip->extendmode= NLASTRIP_EXTEND_NOTHING;
+				strip->flag &= ~(NLASTRIP_FLAG_AUTO_BLENDS|NLASTRIP_FLAG_SELECT|NLASTRIP_FLAG_ACTIVE);
+				
+				/* also, adjust the AnimData's action extend mode to be on 
+				 * 'nothing' so that previous result still play 
+				 */
+				adt->act_extendmode= NLASTRIP_EXTEND_NOTHING;
+			}
+		}
 	}
 }
 
@@ -716,6 +753,8 @@ void recalcData(TransInfo *t)
 		// TODO: maybe the ob->adt check isn't really needed? makes it too difficult to use...
 		if (/*(ob->adt) && */(t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
 			short targetless_ik= (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
+			
+			animrecord_check_state(t->scene, &ob->id, t->animtimer);
 			autokeyframe_pose_cb_func(t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
 		}
 
@@ -745,6 +784,7 @@ void recalcData(TransInfo *t)
 				// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
 				// TODO: maybe the ob->adt check isn't really needed? makes it too difficult to use...
 				if (/*(ob->adt) && */(t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+					animrecord_check_state(t->scene, &ob->id, t->animtimer);
 					autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
 				}
 			}

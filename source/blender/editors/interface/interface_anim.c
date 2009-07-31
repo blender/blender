@@ -144,7 +144,7 @@ void ui_but_anim_autokey(uiBut *but, Scene *scene, float cfra)
 
 	if(fcu && !driven) {
 		id= but->rnapoin.id.data;
-
+		
 		if(autokeyframe_cfra_can_key(scene, id)) {
 			short flag = 0;
 			

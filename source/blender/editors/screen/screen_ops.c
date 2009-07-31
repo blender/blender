@@ -2197,39 +2197,50 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		
 		if(scene->audio.flag & AUDIO_SYNC) {
 			int step = floor(wt->duration * FPS);
-			if (sad->reverse) // XXX does this option work with audio?
+			if (sad->flag & ANIMPLAY_FLAG_REVERSE) // XXX does this option work with audio?
 				scene->r.cfra -= step;
 			else
 				scene->r.cfra += step;
 			wt->duration -= ((float)step)/FPS;
 		}
 		else {
-			if (sad->reverse)
+			if (sad->flag & ANIMPLAY_FLAG_REVERSE)
 				scene->r.cfra--;
 			else
 				scene->r.cfra++;
 		}
 		
-		if (sad->reverse) {
-			/* jump back to end */
+		/* reset 'jumped' flag before checking if we need to jump... */
+		sad->flag &= ~ANIMPLAY_FLAG_JUMPED;
+		
+		if (sad->flag & ANIMPLAY_FLAG_REVERSE) {
+			/* jump back to end? */
 			if (scene->r.psfra) {
-				if(scene->r.cfra < scene->r.psfra)
+				if (scene->r.cfra < scene->r.psfra) {
 					scene->r.cfra= scene->r.pefra;
+					sad->flag |= ANIMPLAY_FLAG_JUMPED;
+				}
 			}
 			else {
-				if(scene->r.cfra < scene->r.sfra)
+				if (scene->r.cfra < scene->r.sfra) {
 					scene->r.cfra= scene->r.efra;
+					sad->flag |= ANIMPLAY_FLAG_JUMPED;
+				}
 			}
 		}
 		else {
-			/* jump back to start */
+			/* jump back to start? */
 			if (scene->r.psfra) {
-				if(scene->r.cfra > scene->r.pefra)
+				if (scene->r.cfra > scene->r.pefra) {
 					scene->r.cfra= scene->r.psfra;
+					sad->flag |= ANIMPLAY_FLAG_JUMPED;
+				}
 			}
 			else {
-				if(scene->r.cfra > scene->r.efra)
+				if (scene->r.cfra > scene->r.efra) {
 					scene->r.cfra= scene->r.sfra;
+					sad->flag |= ANIMPLAY_FLAG_JUMPED;
+				}
 			}
 		}
 

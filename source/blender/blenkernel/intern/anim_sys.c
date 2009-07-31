@@ -120,8 +120,15 @@ AnimData *BKE_id_add_animdata (ID *id)
 		IdAdtTemplate *iat= (IdAdtTemplate *)id;
 		
 		/* check if there's already AnimData, in which case, don't add */
-		if (iat->adt == NULL)
-			iat->adt= MEM_callocN(sizeof(AnimData), "AnimData");
+		if (iat->adt == NULL) {
+			AnimData *adt;
+			
+			/* add animdata */
+			adt= iat->adt= MEM_callocN(sizeof(AnimData), "AnimData");
+			
+			/* set default settings */
+			adt->act_influence= 1.0f;
+		}
 		
 		return iat->adt;
 	}
@@ -1190,6 +1197,9 @@ void nladata_flush_channels (ListBase *channels)
  */
 static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 {
+	ListBase dummy_trackslist = {NULL, NULL};
+	NlaStrip dummy_strip;
+	
 	NlaTrack *nlt;
 	short track_index=0;
 	
@@ -1216,6 +1226,29 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 		/* otherwise, get strip to evaluate for this channel */
 		nes= nlastrips_ctime_get_strip(&estrips, &nlt->strips, track_index, ctime);
 		if (nes) nes->track= nlt;
+	}
+	
+	/* add 'active' Action (may be tweaking track) as last strip to evaluate in NLA stack
+	 *	- only do this if we're not exclusively evaluating the 'solo' NLA-track
+	 */
+	if ((adt->action) && !(adt->flag & ADT_NLA_SOLO_TRACK)) {
+		/* make dummy NLA strip, and add that to the stack */
+		memset(&dummy_strip, 0, sizeof(NlaStrip));
+		dummy_trackslist.first= dummy_trackslist.last= &dummy_strip;
+		
+		dummy_strip.act= adt->action;
+		dummy_strip.remap= adt->remap;
+		
+		calc_action_range(dummy_strip.act, &dummy_strip.actstart, &dummy_strip.actend, 1);
+		dummy_strip.start = dummy_strip.actstart;
+		dummy_strip.end = (IS_EQ(dummy_strip.actstart, dummy_strip.actend)) ?  (dummy_strip.actstart + 1.0f): (dummy_strip.actend);
+		
+		dummy_strip.blendmode= adt->act_blendmode;
+		dummy_strip.extendmode= adt->act_extendmode;
+		dummy_strip.influence= adt->act_influence;
+		
+		/* add this to our list of evaluation strips */
+		nlastrips_ctime_get_strip(&estrips, &dummy_trackslist, -1, ctime);
 	}
 	
 	/* only continue if there are strips to evaluate */
@@ -1316,14 +1349,10 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
 		/* evaluate NLA data */
 		if ((adt->nla_tracks.first) && !(adt->flag & ADT_NLA_EVAL_OFF))
 		{
-			/* evaluate NLA-stack */
-			animsys_evaluate_nla(&id_ptr, adt, ctime);
-			
-			/* evaluate 'active' Action (may be tweaking track) on top of results of NLA-evaluation 
-			 *	- only do this if we're not exclusively evaluating the 'solo' NLA-track
+			/* evaluate NLA-stack 
+			 *	- active action is evaluated as part of the NLA stack as the last item
 			 */
-			if ((adt->action) && !(adt->flag & ADT_NLA_SOLO_TRACK))
-				animsys_evaluate_action(&id_ptr, adt->action, adt->remap, ctime);
+			animsys_evaluate_nla(&id_ptr, adt, ctime);
 		}
 		/* evaluate Active Action only */
 		else if (adt->action)

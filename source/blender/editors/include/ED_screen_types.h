@@ -33,8 +33,17 @@
 typedef struct ScreenAnimData {
 	ARegion *ar;	/* do not read from this, only for comparing if region exists */
 	int redraws;
-	int reverse;
+	int flag;		/* flags for playback */
 } ScreenAnimData;
+
+/* for animplayer */
+enum {
+		/* user-setting - frame range is played backwards */
+	ANIMPLAY_FLAG_REVERSE		= (1<<0),
+		/* temporary - playback just jumped to the start/end */
+	ANIMPLAY_FLAG_JUMPED		= (1<<1),
+};
+
 
 
 typedef struct AZone {

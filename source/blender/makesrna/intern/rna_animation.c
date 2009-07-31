@@ -26,6 +26,7 @@
 
 #include "RNA_define.h"
 #include "RNA_types.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -187,9 +188,26 @@ void rna_def_animdata(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "NlaTrack");
 	RNA_def_property_ui_text(prop, "NLA Tracks", "NLA Tracks (i.e. Animation Layers).");
 	
-	/* Action */
+	/* Active Action */
 	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Action", "Active Action for this datablock.");	
+	RNA_def_property_ui_text(prop, "Action", "Active Action for this datablock.");
+	
+	/* Active Action Settings */
+	prop= RNA_def_property(srna, "action_extrapolation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "act_extendmode");
+	RNA_def_property_enum_items(prop, nla_mode_extend_items);
+	RNA_def_property_ui_text(prop, "Action Extrapolation", "Action to take for gaps past the Active Action's range (when evaluating with NLA).");
+	
+	prop= RNA_def_property(srna, "action_blending", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "act_blendmode");
+	RNA_def_property_enum_items(prop, nla_mode_blend_items);
+	RNA_def_property_ui_text(prop, "Action Blending", "Method used for combining Active Action's result with result of NLA stack.");
+	
+	prop= RNA_def_property(srna, "action_influence", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "act_influence");
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Action Influence", "Amount the Active Action contributes to the result of the NLA stack.");
 	
 	/* Drivers */
 	prop= RNA_def_property(srna, "drivers", PROP_COLLECTION, PROP_NONE);
@@ -197,7 +215,10 @@ void rna_def_animdata(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "FCurve");
 	RNA_def_property_ui_text(prop, "Drivers", "The Drivers/Expressions for this datablock.");
 	
-	/* Settings */
+	/* General Settings */
+	prop= RNA_def_property(srna, "nla_enabled", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ADT_NLA_EVAL_OFF);
+	RNA_def_property_ui_text(prop, "NLA Evaluation Enabled", "NLA stack is evaluated when evaluating this block.");
 }
 
 /* --- */
