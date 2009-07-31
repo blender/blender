@@ -58,7 +58,7 @@
 /* **** XXX ******** */
 static int seqrectx= 0;	/* bad bad global! */
 static int seqrecty= 0;
-static void waitcursor() {}
+static void waitcursor(int val) {}
 static int blender_test_break() {return 0;}
 
 /* **** XXX ******** */

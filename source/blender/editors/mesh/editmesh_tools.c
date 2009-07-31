@@ -94,7 +94,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 
 /* XXX */
 static int extern_qread() {return 0;}
-static void waitcursor() {}
+static void waitcursor(int val) {}
 static int pupmenu() {return 0;}
 static int qtest() {return 0;}
 #define add_numbut(a, b, c, d, e, f, g) {}

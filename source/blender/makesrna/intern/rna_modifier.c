@@ -37,6 +37,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_bmesh.h" /* For BevelModifierData */
+#include "BKE_smoke.h" /* For smokeModifier_free & smokeModifier_createType */
 
 #include "WM_types.h"
 

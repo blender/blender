@@ -96,7 +96,7 @@
 #include "mesh_intern.h"
 
 /* XXX */
-static void waitcursor() {}
+static void waitcursor(int val) {}
 static void error() {}
 static int pupmenu() {return 0;}
 /* XXX */

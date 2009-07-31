@@ -5832,7 +5832,7 @@ static void smokeModifier_freeData(ModifierData *md)
 
 static void smokeModifier_deformVerts(
 					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
-      float (*vertexCos)[3], int numVerts)
+      float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	SmokeModifierData *smd = (SmokeModifierData*) md;
 	DerivedMesh *dm = NULL;

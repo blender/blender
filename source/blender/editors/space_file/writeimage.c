@@ -53,7 +53,7 @@
 
 /* XXX */
 static void error() {}
-static void waitcursor() {}
+static void waitcursor(int val) {}
 static void activate_fileselect() {}
 static int saveover() {return 0;}
 /* XXX */

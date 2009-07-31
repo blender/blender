@@ -1144,7 +1144,7 @@ static void bresenham_linie_3D(SmokeModifierData *smd, int x1, int y1, int z1, i
 				calc_voxel_transp(smd, pixel, tRay);
 			else
 				calc_voxel_transp_big(smd, pixel, tRay);
-        	if(tRay < 0)
+        	if(*tRay < 0.0f)
         		return;
             if (err_1 > 0) {
                 pixel[1] += y_inc;
@@ -1166,7 +1166,7 @@ static void bresenham_linie_3D(SmokeModifierData *smd, int x1, int y1, int z1, i
 				calc_voxel_transp(smd, pixel, tRay);
 			else
 				calc_voxel_transp_big(smd, pixel, tRay);
-        	if(tRay < 0)
+        	if(*tRay < 0.0f)
         		return;
             if (err_1 > 0) {
                 pixel[0] += x_inc;
@@ -1188,7 +1188,7 @@ static void bresenham_linie_3D(SmokeModifierData *smd, int x1, int y1, int z1, i
 				calc_voxel_transp(smd, pixel, tRay);
 			else
 				calc_voxel_transp_big(smd, pixel, tRay);
-        	if(tRay < 0)
+        	if(*tRay < 0.0f)
         		return;
             if (err_1 > 0) {
                 pixel[1] += y_inc;

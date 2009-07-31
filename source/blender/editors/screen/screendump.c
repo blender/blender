@@ -242,7 +242,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update)
 		if(sj->dumprect) {
 			
 			if(mh) {
-				mh->append_movie(&rd, cfra, sj->dumprect, sj->dumpsx, sj->dumpsy);
+				mh->append_movie(&rd, cfra, (int *)sj->dumprect, sj->dumpsx, sj->dumpsy);
 				printf("Append frame %d\n", cfra);
 			}
 			else {

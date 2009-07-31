@@ -99,7 +99,7 @@
 
 /* ************* XXX *************** */
 static int okee() {return 0;}
-static void BIF_undo_push() {}
+static void BIF_undo_push(const char *msg) {}
 /* ************* XXX *************** */
 
 /* **************** tools on Editmode Armature **************** */

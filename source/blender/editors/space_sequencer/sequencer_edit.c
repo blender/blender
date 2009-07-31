@@ -95,7 +95,7 @@
 //static int _last_seq_init=0;
 /* XXX */
 static void error() {}
-static void waitcursor() {}
+static void waitcursor(int val) {}
 static void activate_fileselect() {}
 static int pupmenu() {return 0;}
 static int okee() {return 0;}

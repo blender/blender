@@ -138,10 +138,10 @@
 
 /* ************* XXX **************** */
 static void error() {}
-static void waitcursor() {}
-static int pupmenu() {return 0;}
-static int pupmenu_col() {return 0;}
-static int okee() {return 0;}
+static void waitcursor(int val) {}
+static int pupmenu(const char *msg) {return 0;}
+static int pupmenu_col(const char *msg, int val) {return 0;}
+static int okee(const char *msg) {return 0;}
 
 /* port over here */
 static bContext *C;

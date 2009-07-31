@@ -140,6 +140,9 @@ char **BLF_dir_get(int *ndir);
 /* Free the data return by BLF_dir_get. */
 void BLF_dir_free(char **dirs, int count);
 
+/* Set the current draw mode. */
+void BLF_mode(int mode);
+
 /* font->flags. */
 #define BLF_ROTATION (1<<0)
 #define BLF_CLIPPING (1<<1)
