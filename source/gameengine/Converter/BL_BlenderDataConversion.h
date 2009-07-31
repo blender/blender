@@ -34,14 +34,13 @@
 #include "KX_Python.h"
 #include "KX_PhysicsEngineEnums.h"
 
-class RAS_MeshObject* BL_ConvertMesh(struct Mesh* mesh,struct Object* lightobj,class RAS_IRenderTools* rendertools,class KX_Scene* scene, class KX_BlenderSceneConverter *converter);
+class RAS_MeshObject* BL_ConvertMesh(struct Mesh* mesh,struct Object* lightobj,class KX_Scene* scene, class KX_BlenderSceneConverter *converter);
 
 void BL_ConvertBlenderObjects(struct Main* maggie,
 							  class KX_Scene* kxscene,
 							  class KX_KetsjiEngine* ketsjiEngine,
 							  e_PhysicsEngine	physics_engine,
 							  PyObject* pythondictionary,
- 							  class SCA_IInputDevice* keydev,
 							  class RAS_IRenderTools* rendertools,
 							  class RAS_ICanvas* canvas, 
 							  class KX_BlenderSceneConverter* sceneconverter, 

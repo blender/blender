@@ -88,8 +88,7 @@ void KX_PolygonMaterial::Initialize(
 							mode,
 							transp,
 							alpha,
-							zsort,
-							lightlayer);
+							zsort);
 	m_tface = tface;
 	m_mcol = mcol;
 	m_material = ma;

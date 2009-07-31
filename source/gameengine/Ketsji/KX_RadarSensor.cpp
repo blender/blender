@@ -49,7 +49,6 @@ KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 			double resetmargin,
 			bool bFindMaterial,
 			const STR_String& touchedpropname,
-			class KX_Scene* kxscene,
 			PyTypeObject* T)
 
 			: KX_NearSensor(
@@ -60,7 +59,6 @@ KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 				resetmargin,
 				bFindMaterial,
 				touchedpropname,
-				kxscene,
 				physCtrl,
 				T),
 				m_coneradius(coneradius),

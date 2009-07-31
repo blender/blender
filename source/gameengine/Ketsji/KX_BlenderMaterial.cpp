@@ -61,8 +61,7 @@ KX_BlenderMaterial::KX_BlenderMaterial(
 void KX_BlenderMaterial::Initialize(
     KX_Scene *scene,
 	BL_Material *data,
-	bool skin,
-	int lightlayer)
+	bool skin)
 {
 	RAS_IPolyMaterial::Initialize(
 		data->texname[0],
@@ -74,8 +73,7 @@ void KX_BlenderMaterial::Initialize(
 		data->mode,
 		data->transp,
 		((data->ras_mode &ALPHA)!=0),
-		((data->ras_mode &ZSORT)!=0),
-		lightlayer
+		((data->ras_mode &ZSORT)!=0)
 	);
 	mMaterial = data;
 	mShader = 0;
@@ -778,6 +776,7 @@ void KX_BlenderMaterial::UpdateIPO(
 	mMaterial->hard			= (float)(hard);
 	mMaterial->emit			= (float)(emit);
 	mMaterial->spec_f		= (float)(spec);
+	mMaterial->ref			= (float)(ref);
 }
 
 

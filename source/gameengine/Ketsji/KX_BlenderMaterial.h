@@ -29,8 +29,7 @@ public:
 	void Initialize(
 		class KX_Scene*	scene,
 		BL_Material*	mat,
-		bool			skin,
-		int				lightlayer
+		bool			skin
 	);
 
 	virtual ~KX_BlenderMaterial();

@@ -70,7 +70,6 @@ public:
 			double resetmargin,
 			bool bFindMaterial,
 			const STR_String& touchedpropname,
-			class KX_Scene* kxscene,
 			PyTypeObject* T = &Type);
 	KX_RadarSensor();
 	virtual ~KX_RadarSensor();

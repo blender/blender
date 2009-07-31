@@ -50,7 +50,6 @@ public:
 	virtual void ConvertScene(
 		class KX_Scene* destinationscene,
 		PyObject* dictobj,
-		class SCA_IInputDevice* keyinputdev,
 		class RAS_IRenderTools* rendertools, 
 		class RAS_ICanvas*  canvas)=0;
 	

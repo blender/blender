@@ -47,7 +47,6 @@ KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 							 float resetmargin,
 							 bool bFindMaterial,
 							 const STR_String& touchedpropname,
-							 class KX_Scene* scene,
  							 PHY_IPhysicsController*	ctrl,
 							 PyTypeObject* T)
 			 :KX_TouchSensor(eventmgr,
@@ -55,7 +54,6 @@ KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 							 bFindMaterial,
 							 false,
 							 touchedpropname,
-							 /* scene, */
 							 T),
 			 m_Margin(margin),
 			 m_ResetMargin(resetmargin)

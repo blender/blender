@@ -711,7 +711,6 @@ bool GPG_Application::startEngine(void)
 			startscenename,
 			startscene,
 			dictionaryobject,
-			m_keyboard,
 			m_rendertools,
 			m_canvas);
 		m_ketsjiengine->AddScene(startscene);

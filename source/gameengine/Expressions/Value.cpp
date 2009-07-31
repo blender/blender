@@ -541,13 +541,6 @@ CValue*	CValue::FindIdentifier(const STR_String& identifiername)
 
 #ifndef NO_EXP_PYTHON_EMBEDDING
 
-
-static PyMethodDef	CValueMethods[] = 
-{
-	//{ "new", CValue::PyMake , METH_VARARGS},
-	{ NULL,NULL}	// Sentinel
-};
-
 PyAttributeDef CValue::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("name",	CValue, pyattr_get_name),
 	{ NULL }	//Sentinel
