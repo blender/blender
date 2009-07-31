@@ -162,7 +162,7 @@ PyObject * BinaryPredicate0D___call__( BPy_BinaryPredicate0D *self, PyObject *ar
 		return NULL;
 	
 	if( typeid(*(self->bp0D)) == typeid(BinaryPredicate0D) ) {
-		PyErr_SetString(PyExc_TypeError, "__call__ method must be overloaded");
+		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
 	}
 	if (self->bp0D->operator()( *(obj1->if0D) , *(obj2->if0D) ) < 0) {

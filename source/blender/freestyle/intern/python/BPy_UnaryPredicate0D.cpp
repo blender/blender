@@ -180,7 +180,7 @@ PyObject * UnaryPredicate0D___call__( BPy_UnaryPredicate0D *self, PyObject *args
 		return NULL;
 	}
 	if( typeid(*(self->up0D)) == typeid(UnaryPredicate0D) ) {
-		PyErr_SetString(PyExc_TypeError, "__call__ method must be overloaded");
+		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
 	}
 	if (self->up0D->operator()(*if0D_it) < 0) {

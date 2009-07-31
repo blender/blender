@@ -222,7 +222,7 @@ static PyObject * UnaryPredicate1D___call__( BPy_UnaryPredicate1D *self, PyObjec
 		return NULL;
 	}
 	if( typeid(*(self->up1D)) == typeid(UnaryPredicate1D) ) {
-		PyErr_SetString(PyExc_TypeError, "__call__ method must be overloaded");
+		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
 	}
 	if( self->up1D->operator()(*if1D) < 0 ) {
