@@ -46,7 +46,7 @@ protected:
 	vector<int>				 m_cacheWeightIndex;
 
 public:
-	BL_SkinMeshObject(Mesh* mesh, int lightlayer);
+	BL_SkinMeshObject(Mesh* mesh);
 	~BL_SkinMeshObject();
 
 	void UpdateBuckets(void* clientobj, double* oglmatrix,

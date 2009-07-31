@@ -55,7 +55,6 @@ class RAS_MeshObject
 {
 private:
 	unsigned int				m_debugcolor;
-	//int							m_lightlayer;
 
 	bool						m_bModified;
 	bool						m_bMeshModified;
@@ -77,7 +76,7 @@ protected:
 
 public:
 	// for now, meshes need to be in a certain layer (to avoid sorting on lights in realtime)
-	RAS_MeshObject(Mesh* mesh, int lightlayer);
+	RAS_MeshObject(Mesh* mesh);
 	virtual ~RAS_MeshObject();
 
 

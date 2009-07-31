@@ -242,15 +242,14 @@ struct	BlenderDebugDraw : public btIDebugDraw
 
 #endif
 
-void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
-											class KX_Scene* destinationscene,
+void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
 											PyObject* dictobj,
 											class SCA_IInputDevice* keyinputdev,
 											class RAS_IRenderTools* rendertools,
 											class RAS_ICanvas* canvas)
 {
 	//find out which physics engine
-	Scene *blenderscene = GetBlenderSceneForName(scenename);
+	Scene *blenderscene = destinationscene->GetBlenderScene();
 
 	e_PhysicsEngine physics_engine = UseBullet;
 	bool useDbvtCulling = false;
@@ -331,7 +330,6 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 	}
 
 	BL_ConvertBlenderObjects(m_maggie,
-		scenename,
 		destinationscene,
 		m_ketsjiEngine,
 		physics_engine,

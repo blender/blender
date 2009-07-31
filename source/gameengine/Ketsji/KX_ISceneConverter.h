@@ -47,7 +47,7 @@ public:
 	destinationscene: pass an empty scene, everything goes into this
 	dictobj: python dictionary (for pythoncontrollers)
 	*/
-	virtual void ConvertScene(const STR_String& scenename,
+	virtual void ConvertScene(
 		class KX_Scene* destinationscene,
 		PyObject* dictobj,
 		class SCA_IInputDevice* keyinputdev,

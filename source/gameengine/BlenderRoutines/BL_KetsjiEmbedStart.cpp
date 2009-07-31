@@ -404,7 +404,6 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 			{
 				// convert and add scene
 				sceneconverter->ConvertScene(
-					startscenename,
 					startscene,
 					dictionaryobject,
 					keyboarddevice,
@@ -717,7 +716,6 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 			{
 				// convert and add scene
 				sceneconverter->ConvertScene(
-					startscenename,
 					startscene,
 					dictionaryobject,
 					keyboarddevice,

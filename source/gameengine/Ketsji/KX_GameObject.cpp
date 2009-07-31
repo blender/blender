@@ -1388,7 +1388,7 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getChildrenRecursive", (PyCFunction)KX_GameObject::sPyGetChildrenRecursive,METH_NOARGS},
 	{"getPhysicsId", (PyCFunction)KX_GameObject::sPyGetPhysicsId,METH_NOARGS},
 	{"getPropertyNames", (PyCFunction)KX_GameObject::sPyGetPropertyNames,METH_NOARGS},
-	{"replaceMesh",(PyCFunction) KX_GameObject::sPyReplaceMesh, METH_O},
+	{"replaceMesh",(PyCFunction) KX_GameObject::sPyReplaceMesh, METH_VARARGS},
 	{"endObject",(PyCFunction) KX_GameObject::sPyEndObject, METH_NOARGS},
 	{"reinstancePhysicsMesh", (PyCFunction)KX_GameObject::sPyReinstancePhysicsMesh,METH_VARARGS},
 	
@@ -1466,15 +1466,21 @@ bool KX_GameObject::ConvertPythonVectorArgs(PyObject* args,
 }
 */
 
-PyObject* KX_GameObject::PyReplaceMesh(PyObject* value)
+PyObject* KX_GameObject::PyReplaceMesh(PyObject* args)
 {
 	KX_Scene *scene = KX_GetActiveScene();
-	RAS_MeshObject* new_mesh;
+	
+	PyObject *value;
+	int use_gfx= 1, use_phys= 0;
+	RAS_MeshObject *new_mesh;
+	
+	if (!PyArg_ParseTuple(args,"O|ii:replaceMesh", &value, &use_gfx, &use_phys))
+		return NULL;
 	
 	if (!ConvertPythonToMesh(value, &new_mesh, false, "gameOb.replaceMesh(value): KX_GameObject"))
 		return NULL;
 	
-	scene->ReplaceMesh(this, new_mesh);
+	scene->ReplaceMesh(this, new_mesh, (bool)use_gfx, (bool)use_phys);
 	Py_RETURN_NONE;
 }
 

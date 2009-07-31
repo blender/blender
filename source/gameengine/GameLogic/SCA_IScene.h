@@ -55,7 +55,7 @@ public:
 	//virtual void	DelayedReleaseObject(class CValue* gameobj)=0;
 	
 	virtual void	ReplaceMesh(class CValue* gameobj,
-								void* meshobj)=0;
+								void* meshobj, bool use_gfx, bool use_phys)=0;
 	std::vector<SCA_DebugProp*>& GetDebugProperties();
 	void			AddDebugProperty(class CValue* debugprop,
 									 const STR_String &name);
