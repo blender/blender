@@ -48,8 +48,7 @@ KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 			double margin,
 			double resetmargin,
 			bool bFindMaterial,
-			const STR_String& touchedpropname,
-			class KX_Scene* kxscene)
+			const STR_String& touchedpropname)
 
 			: KX_NearSensor(
 				eventmgr,
@@ -59,7 +58,6 @@ KX_RadarSensor::KX_RadarSensor(SCA_EventManager* eventmgr,
 				resetmargin,
 				bFindMaterial,
 				touchedpropname,
-				kxscene,
 				physCtrl),
 
 				m_coneradius(coneradius),

@@ -406,7 +406,6 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 				sceneconverter->ConvertScene(
 					startscene,
 					dictionaryobject,
-					keyboarddevice,
 					rendertools,
 					canvas);
 				ketsjiengine->AddScene(startscene);
@@ -718,7 +717,6 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 				sceneconverter->ConvertScene(
 					startscene,
 					dictionaryobject,
-					keyboarddevice,
 					rendertools,
 					canvas);
 				ketsjiengine->AddScene(startscene);
