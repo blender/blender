@@ -149,11 +149,16 @@ PyObject * ViewVertex_edgesBegin( BPy_ViewVertex *self ) {
 }
 
 PyObject * ViewVertex_edgesEnd( BPy_ViewVertex *self ) {
+#if 0
 	if( !self->vv )
 		Py_RETURN_NONE;
 		
 	ViewVertexInternal::orientedViewEdgeIterator ove_it( self->vv->edgesEnd() );
 	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ove_it, 1 );
+#else
+	PyErr_SetString(PyExc_NotImplementedError, "edgesEnd method currently disabled");
+	return NULL;
+#endif
 }
 
 
