@@ -52,7 +52,7 @@ extern "C"
 #include "COLLADASWSurfaceInitOption.h"
 #include "COLLADASWSampler.h"
 #include "COLLADASWScene.h"
-#include "COLLADASWSurface.h"
+// #include "COLLADASWSurface.h"
 #include "COLLADASWTechnique.h"
 #include "COLLADASWTexture.h"
 #include "COLLADASWLibraryMaterials.h"
@@ -982,6 +982,7 @@ public:
 	}
 };
 
+#if 0
 class EffectsExporter: COLLADASW::LibraryEffects
 {
 public:
@@ -1182,6 +1183,7 @@ public:
 		}
 	}
 };
+#endif
 
 class MaterialsExporter: COLLADASW::LibraryMaterials
 {
@@ -1249,6 +1251,7 @@ public:
 	}	
 };
 
+#if 0
 class LightsExporter: COLLADASW::LibraryLights
 {
 public:
@@ -1298,6 +1301,7 @@ public:
 		}
 	}
 };
+#endif
 
 // TODO: it would be better to instantiate animations rather than create a new one per object
 // COLLADA allows this through multiple <channel>s in <animation>.
@@ -1542,17 +1546,21 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	CamerasExporter ce(&sw);
 	ce.exportCameras(sce);
 	
+#if 0
 	// <library_lights>
 	LightsExporter le(&sw);
 	le.exportLights(sce);
-	
+#endif
+
 	// <library_images>
 	ImagesExporter ie(&sw);
 	ie.exportImages(sce);
 	
+#if 0
 	// <library_effects>
 	EffectsExporter ee(&sw);
 	ee.exportEffects(sce);
+#endif
 	
 	// <library_materials>
 	MaterialsExporter me(&sw);
