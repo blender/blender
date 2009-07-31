@@ -1,6 +1,12 @@
 	
 import bpy
 
+# If python version is less than 2.4, try to get set stuff from module
+try:
+	set
+except:
+	from sets import Set as set
+
 class MaterialButtonsPanel(bpy.types.Panel):
 	__space_type__ = "BUTTONS_WINDOW"
 	__region_type__ = "WINDOW"
