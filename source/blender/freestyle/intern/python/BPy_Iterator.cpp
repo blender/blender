@@ -209,12 +209,20 @@ PyObject * Iterator_getExactTypeName(BPy_Iterator* self) {
 
 
 PyObject * Iterator_increment(BPy_Iterator* self) {
+	if (self->it->isEnd()) {
+		PyErr_SetString(PyExc_RuntimeError , "cannot increment any more");
+		return NULL;
+	}
 	self->it->increment();
 		
 	Py_RETURN_NONE;
 }
 
 PyObject * Iterator_decrement(BPy_Iterator* self) {
+	if (self->it->isBegin()) {
+		PyErr_SetString(PyExc_RuntimeError , "cannot decrement any more");
+		return NULL;
+	}
 	self->it->decrement();
 		
 	Py_RETURN_NONE;
