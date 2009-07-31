@@ -708,7 +708,6 @@ bool GPG_Application::startEngine(void)
 		loadGamePythonConfig(m_pyGlobalDictString, m_pyGlobalDictString_Length);
 		
 		m_sceneconverter->ConvertScene(
-			startscenename,
 			startscene,
 			dictionaryobject,
 			m_rendertools,
