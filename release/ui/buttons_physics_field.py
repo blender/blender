@@ -22,72 +22,62 @@ class PHYSICS_PT_field(PhysicButtonsPanel):
 
 		#layout.active = field.enabled
 		
+		split = layout.split(percentage=0.2)
+		
+		split.itemL(text="Type:")
+		split.itemR(field, "type",text="")
+			
 		split = layout.split()
 		
-		col = split.column()
-		col.itemR(field, "type", text="")
-		
-		col = split.column()
-		split = layout.split(percentage=0.5)
-		
-		if field.type == 'NONE':
-			col = split.column()
-			
-		elif field.type == 'GUIDE':
-			col = split.column()
-			col.itemR(field, "guide_path_add")
+		if field.type == 'GUIDE':
+			layout.itemR(field, "guide_path_add")
 			
 		elif field.type == 'WIND':
-			col.itemR(field, "strength")
+			split.itemR(field, "strength")
 			
 			col = split.column()
 			col.itemR(field, "noise")
 			col.itemR(field, "seed")
 
 		elif field.type == 'VORTEX':
-			col.itemR(field, "strength")
+			split.itemR(field, "strength")
+			split.itemL()
 			
-			col = split.column()
-
 		elif field.type in ('SPHERICAL', 'CHARGE', 'LENNARDJ'):
-			col = split.column()
-			col.itemR(field, "strength")
+			split.itemR(field, "strength")
 			
 			col = split.column()
 			col.itemR(field, "planar")
-			col = split.column()
 			col.itemR(field, "surface")
 			
 		elif field.type == 'BOID':
-			col.itemR(field, "strength")
-			
-			col = split.column()
-			col.itemR(field, "surface")
+			split.itemR(field, "strength")
+			split.itemR(field, "surface")
 			
 		elif field.type == 'MAGNET':
-			col.itemR(field, "strength")
-			
-			col = split.column()
-			col.itemR(field, "planar")
+			split.itemR(field, "strength")
+			split.itemR(field, "planar")
 			
 		elif field.type == 'HARMONIC':
+			col = split.column()
 			col.itemR(field, "strength")
 			col.itemR(field, "harmonic_damping", text="Damping")
 			
 			col = split.column()
-			col.itemR(field, "surface")
 			col.itemR(field, "planar")
+			col.itemR(field, "surface")
 			
 		elif field.type == 'TEXTURE':
+			col = split.column()
 			col.itemR(field, "strength")
 			col.itemR(field, "texture", text="")
-			col.itemR(field, "force_2d")
-			
-			col = split.column()
 			col.itemR(field, "texture_mode", text="")
 			col.itemR(field, "texture_nabla")
+			
+			col = split.column()
 			col.itemR(field, "use_coordinates")
 			col.itemR(field, "root_coordinates")
+			col.itemR(field, "force_2d")
 			
 		if field.type in ('HARMONIC', 'SPHERICAL', 'CHARGE', 'WIND', 'VORTEX', 'TEXTURE', 'MAGNET', 'BOID'):
 			
