@@ -70,6 +70,13 @@ void BLF_boundbox(char *str, struct rctf *box);
 float BLF_width(char *str);
 float BLF_height(char *str);
 
+
+/*
+ * For fixed width fonts only, returns the width of a
+ * character.
+ */
+float BLF_fixed_width(void);
+
 /*
  * and this two function return the width and height
  * of the string, using the default font and both value
@@ -133,10 +140,14 @@ char **BLF_dir_get(int *ndir);
 /* Free the data return by BLF_dir_get. */
 void BLF_dir_free(char **dirs, int count);
 
+/* Set the current draw mode. */
+void BLF_mode(int mode);
+
 /* font->flags. */
 #define BLF_ROTATION (1<<0)
 #define BLF_CLIPPING (1<<1)
 #define BLF_SHADOW (1<<2)
+#define BLF_KERNING_DEFAULT (1<<3)
 
 /* font->mode. */
 #define BLF_MODE_TEXTURE 0

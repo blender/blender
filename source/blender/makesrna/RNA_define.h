@@ -42,6 +42,7 @@ extern "C" {
 BlenderRNA *RNA_create(void);
 void RNA_define_free(BlenderRNA *brna);
 void RNA_free(BlenderRNA *brna);
+void RNA_define_verify_sdna(int verify);
 
 void RNA_init(void);
 void RNA_exit(void);
@@ -164,8 +165,19 @@ void RNA_def_function_ui_description(FunctionRNA *func, const char *description)
  * strings are not freed, assumed pointing to static location. */
 
 void RNA_enum_item_add(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item);
+void RNA_enum_item_add_separator(EnumPropertyItem **items, int *totitem);
 void RNA_enum_items_add(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item);
+void RNA_enum_items_add_value(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item, int value);
 void RNA_enum_item_end(EnumPropertyItem **items, int *totitem);
+
+/* Memory management */
+
+void RNA_def_struct_duplicate_pointers(StructRNA *srna);
+void RNA_def_struct_free_pointers(StructRNA *srna);
+void RNA_def_func_duplicate_pointers(FunctionRNA *func);
+void RNA_def_func_free_pointers(FunctionRNA *func);
+void RNA_def_property_duplicate_pointers(PropertyRNA *prop);
+void RNA_def_property_free_pointers(PropertyRNA *prop);
 
 #ifdef __cplusplus
 }

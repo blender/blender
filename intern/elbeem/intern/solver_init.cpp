@@ -1464,7 +1464,7 @@ void LbmFsgrSolver::initMovingObstacles(bool staticInit) {
 				obj->applyTransformation(targetTime, &mMOIVertices,NULL /* no old normals needed */, 0, mMOIVertices.size(), false );
 			} else {
 				// only do transform update
-				obj->getMovingPoints(mMOIVertices,pNormals);
+				obj->getMovingPoints(mMOIVertices,pNormals); // mMOIVertices = mCachedMovPoints
 				mMOIVerticesOld = mMOIVertices;
 				// WARNING - assumes mSimulationTime is global!?
 				obj->applyTransformation(targetTime, &mMOIVertices,pNormals, 0, mMOIVertices.size(), false );

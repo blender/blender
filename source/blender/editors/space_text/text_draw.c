@@ -95,13 +95,7 @@ static int text_font_draw_character(SpaceText *st, int x, int y, char c)
 	BLF_position(x, y, 0);
 	BLF_draw(str);
 
-	return text_font_width_character(st);
-}
-
-int text_font_width_character(SpaceText *st)
-{
-	// XXX need quick BLF function, or cache it somewhere
-	return (st->lheight == 12)? 7: 9;
+	return st->cwidth;
 }
 
 int text_font_width(SpaceText *st, char *str)
@@ -115,22 +109,18 @@ static void flatten_string_append(FlattenString *fs, char c, int accum)
 {
 	if(fs->pos>=fs->len && fs->pos>=sizeof(fs->fixedbuf)-1) {
 		char *nbuf; int *naccum;
-		int olen= fs->len;
-		
-		if(olen) fs->len*= 2;
-		else fs->len= 256;
-		
+		if(fs->len) fs->len*= 2;
+		else fs->len= sizeof(fs->fixedbuf) * 2;
+
 		nbuf= MEM_callocN(sizeof(*fs->buf)*fs->len, "fs->buf");
 		naccum= MEM_callocN(sizeof(*fs->accum)*fs->len, "fs->accum");
+
+		memcpy(nbuf, fs->buf, fs->pos);
+		memcpy(naccum, fs->accum, fs->pos);
 		
-		if(olen) {
-			memcpy(nbuf, fs->buf, olen);
-			memcpy(naccum, fs->accum, olen);
-			
-			if(fs->buf != fs->fixedbuf) {
-				MEM_freeN(fs->buf);
-				MEM_freeN(fs->accum);
-			}
+		if(fs->buf != fs->fixedbuf) {
+			MEM_freeN(fs->buf);
+			MEM_freeN(fs->accum);
 		}
 		
 		fs->buf= nbuf;
@@ -140,8 +130,7 @@ static void flatten_string_append(FlattenString *fs, char c, int accum)
 	fs->buf[fs->pos]= c;	
 	fs->accum[fs->pos]= accum;
 	
-	if(c==0) fs->pos= 0;
-	else fs->pos++;
+	fs->pos++;
 }
 
 int flatten_string(SpaceText *st, FlattenString *fs, char *in)
@@ -523,7 +512,7 @@ int wrap_width(SpaceText *st, ARegion *ar)
 	int x, max;
 	
 	x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
-	max= (ar->winx-x)/text_font_width_character(st);
+	max= (ar->winx-x)/st->cwidth;
 	return max>8 ? max : 8;
 }
 
@@ -615,7 +604,7 @@ static int text_draw_wrapped(SpaceText *st, char *str, int x, int y, int w, char
 	
 	len= flatten_string(st, &fs, str);
 	str= fs.buf;
-	max= w/text_font_width_character(st);
+	max= w/st->cwidth;
 	if(max<8) max= 8;
 	basex= x;
 
@@ -687,7 +676,7 @@ static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int dra
 	}
 	else {
 		while(w-- && *acc++ < maxwidth)
-			r+= text_font_width_character(st);
+			r+= st->cwidth;
 	}
 
 	flatten_string_free(&fs);
@@ -877,18 +866,18 @@ static void draw_markers(SpaceText *st, ARegion *ar)
 				if(y1==y2) {
 					y -= y1*st->lheight;
 					glBegin(GL_LINE_LOOP);
-					glVertex2i(x+x2*text_font_width_character(st)+1, y);
-					glVertex2i(x+x1*text_font_width_character(st)-2, y);
-					glVertex2i(x+x1*text_font_width_character(st)-2, y-st->lheight);
-					glVertex2i(x+x2*text_font_width_character(st)+1, y-st->lheight);
+					glVertex2i(x+x2*st->cwidth+1, y);
+					glVertex2i(x+x1*st->cwidth-2, y);
+					glVertex2i(x+x1*st->cwidth-2, y-st->lheight);
+					glVertex2i(x+x2*st->cwidth+1, y-st->lheight);
 					glEnd();
 				}
 				else {
 					y -= y1*st->lheight;
 					glBegin(GL_LINE_STRIP);
 					glVertex2i(ar->winx, y);
-					glVertex2i(x+x1*text_font_width_character(st)-2, y);
-					glVertex2i(x+x1*text_font_width_character(st)-2, y-st->lheight);
+					glVertex2i(x+x1*st->cwidth-2, y);
+					glVertex2i(x+x1*st->cwidth-2, y-st->lheight);
 					glVertex2i(ar->winx, y-st->lheight);
 					glEnd();
 					y-=st->lheight;
@@ -905,8 +894,8 @@ static void draw_markers(SpaceText *st, ARegion *ar)
 
 					glBegin(GL_LINE_STRIP);
 					glVertex2i(x, y);
-					glVertex2i(x+x2*text_font_width_character(st)+1, y);
-					glVertex2i(x+x2*text_font_width_character(st)+1, y-st->lheight);
+					glVertex2i(x+x2*st->cwidth+1, y);
+					glVertex2i(x+x2*st->cwidth+1, y-st->lheight);
 					glVertex2i(x, y-st->lheight);
 					glEnd();
 				}
@@ -940,18 +929,18 @@ static void draw_documentation(SpaceText *st, ARegion *ar)
 	if(l<0) return;
 	
 	if(st->showlinenrs) {
-		x= text_font_width_character(st)*(st->text->curc-st->left) + TXT_OFFSET + TEXTXLOC - 4;
+		x= st->cwidth*(st->text->curc-st->left) + TXT_OFFSET + TEXTXLOC - 4;
 	}
 	else {
-		x= text_font_width_character(st)*(st->text->curc-st->left) + TXT_OFFSET - 4;
+		x= st->cwidth*(st->text->curc-st->left) + TXT_OFFSET - 4;
 	}
 	if(texttool_suggest_first()) {
-		x += SUGG_LIST_WIDTH*text_font_width_character(st) + 50;
+		x += SUGG_LIST_WIDTH*st->cwidth + 50;
 	}
 
 	top= y= ar->winy - st->lheight*l - 2;
 	len= strlen(docs);
-	boxw= DOC_WIDTH*text_font_width_character(st) + 20;
+	boxw= DOC_WIDTH*st->cwidth + 20;
 	boxh= (DOC_HEIGHT+1)*st->lheight;
 
 	/* Draw panel */
@@ -1034,14 +1023,14 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 	if(l<0) return;
 	
 	if(st->showlinenrs) {
-		x = text_font_width_character(st)*(st->text->curc-st->left) + TXT_OFFSET + TEXTXLOC - 4;
+		x = st->cwidth*(st->text->curc-st->left) + TXT_OFFSET + TEXTXLOC - 4;
 	}
 	else {
-		x = text_font_width_character(st)*(st->text->curc-st->left) + TXT_OFFSET - 4;
+		x = st->cwidth*(st->text->curc-st->left) + TXT_OFFSET - 4;
 	}
 	y = ar->winy - st->lheight*l - 2;
 
-	boxw = SUGG_LIST_WIDTH*text_font_width_character(st) + 20;
+	boxw = SUGG_LIST_WIDTH*st->cwidth + 20;
 	boxh = SUGG_LIST_SIZE*st->lheight + 8;
 	
 	UI_ThemeColor(TH_SHADE1);
@@ -1111,9 +1100,9 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 		if(vcurl==vsell) {
 			y -= vcurl*st->lheight;
 			if(vcurc < vselc)
-				glRecti(x+vcurc*text_font_width_character(st)-1, y, x+vselc*text_font_width_character(st), y-st->lheight);
+				glRecti(x+vcurc*st->cwidth-1, y, x+vselc*st->cwidth, y-st->lheight);
 			else
-				glRecti(x+vselc*text_font_width_character(st)-1, y, x+vcurc*text_font_width_character(st), y-st->lheight);
+				glRecti(x+vselc*st->cwidth-1, y, x+vcurc*st->cwidth, y-st->lheight);
 		}
 		else {
 			int froml, fromc, tol, toc;
@@ -1128,11 +1117,11 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 			}
 
 			y -= froml*st->lheight;
-			glRecti(x+fromc*text_font_width_character(st)-1, y, ar->winx, y-st->lheight); y-=st->lheight;
+			glRecti(x+fromc*st->cwidth-1, y, ar->winx, y-st->lheight); y-=st->lheight;
 			for(i=froml+1; i<tol; i++)
 				glRecti(x-4, y, ar->winx, y-st->lheight),  y-=st->lheight;
 
-			glRecti(x-4, y, x+toc*text_font_width_character(st), y-st->lheight);  y-=st->lheight;
+			glRecti(x-4, y, x+toc*st->cwidth, y-st->lheight);  y-=st->lheight;
 		}
 	}
 	else {
@@ -1149,13 +1138,13 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 	if(!hidden) {
 		/* Draw the cursor itself (we draw the sel. cursor as this is the leading edge) */
 		x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
-		x += vselc*text_font_width_character(st);
+		x += vselc*st->cwidth;
 		y= ar->winy-2 - vsell*st->lheight;
 		
 		if(st->overwrite) {
 			char ch= text->sell->line[text->selc];
 			if(!ch) ch= ' ';
-			w= text_font_width_character(st);
+			w= st->cwidth;
 			UI_ThemeColor(TH_HILITE);
 			glRecti(x, y-st->lheight-1, x+w, y-st->lheight+1);
 		}
@@ -1255,8 +1244,8 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 	if(viewc >= 0){
 		viewl= txt_get_span(text->lines.first, startl) - st->top + offl;
 
-		text_font_draw_character(st, x+viewc*text_font_width_character(st), y-viewl*st->lheight, ch);
-		text_font_draw_character(st, x+viewc*text_font_width_character(st)+1, y-viewl*st->lheight, ch);
+		text_font_draw_character(st, x+viewc*st->cwidth, y-viewl*st->lheight, ch);
+		text_font_draw_character(st, x+viewc*st->cwidth+1, y-viewl*st->lheight, ch);
 	}
 
 	/* draw closing bracket */
@@ -1267,8 +1256,8 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 	if(viewc >= 0) {
 		viewl= txt_get_span(text->lines.first, endl) - st->top + offl;
 
-		text_font_draw_character(st, x+viewc*text_font_width_character(st), y-viewl*st->lheight, ch);
-		text_font_draw_character(st, x+viewc*text_font_width_character(st)+1, y-viewl*st->lheight, ch);
+		text_font_draw_character(st, x+viewc*st->cwidth, y-viewl*st->lheight, ch);
+		text_font_draw_character(st, x+viewc*st->cwidth+1, y-viewl*st->lheight, ch);
 	}
 }
 
@@ -1306,22 +1295,29 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 		linecount++;
 	}
 
+	text_font_begin(st);
+	st->cwidth= BLF_fixed_width();
+	st->cwidth= MAX2(st->cwidth, 1);
+
 	/* draw line numbers background */
 	if(st->showlinenrs) {
-		UI_ThemeColor(TH_GRID);
-		glRecti(23, 0, (st->lheight==15)? 63: 59, ar->winy - 2);
-	}
+		st->linenrs_tot = (int)floor(log10((float)(linecount + st->viewlines))) + 1;
+		x= TXT_OFFSET + TEXTXLOC;
 
-	text_font_begin(st);
+		UI_ThemeColor(TH_GRID);
+		glRecti((TXT_OFFSET-12), 0, (TXT_OFFSET-5) + TEXTXLOC, ar->winy - 2);
+	}
+	else {
+		st->linenrs_tot= 0; /* not used */
+		x= TXT_OFFSET;
+	}
+	y= ar->winy-st->lheight;
 
 	/* draw cursor */
 	draw_cursor(st, ar);
 
 	/* draw the text */
 	UI_ThemeColor(TH_TEXT);
-
-	y= ar->winy-st->lheight;
-	x= (st->showlinenrs)? TXT_OFFSET + TEXTXLOC: TXT_OFFSET;
 
 	for(i=0; y>0 && i<st->viewlines && tmp; i++, tmp= tmp->next) {
 		if(st->showsyntax && !tmp->format)
@@ -1334,14 +1330,9 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 			else
 				UI_ThemeColor(TH_TEXT);
 
-			if(((float)(i + linecount + 1)/10000.0) < 1.0) {
-				sprintf(linenr, "%4d", i + linecount + 1);
-				text_font_draw(st, TXT_OFFSET - 7, y, linenr);
-			}
-			else {
-				sprintf(linenr, "%5d", i + linecount + 1);
-				text_font_draw(st, TXT_OFFSET - 11, y, linenr);
-			}
+			sprintf(linenr, "%d", i + linecount + 1);
+			/* itoa(i + linecount + 1, linenr, 10); */ /* not ansi-c :/ */
+			text_font_draw(st, TXT_OFFSET - 7, y, linenr);
 
 			UI_ThemeColor(TH_TEXT);
 		}
@@ -1371,6 +1362,14 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 
 /************************** update ***************************/
 
+void text_update_character_width(SpaceText *st)
+{
+	text_font_begin(st);
+	st->cwidth= BLF_fixed_width();
+	st->cwidth= MAX2(st->cwidth, 1);
+	text_font_end(st);
+}
+
 /* Moves the view to the cursor location,
   also used to make sure the view isnt outside the file */
 void text_update_cursor_moved(SpaceText *st, ARegion *ar)
@@ -1379,6 +1378,8 @@ void text_update_cursor_moved(SpaceText *st, ARegion *ar)
 	int i, x;
 
 	if(!text || !text->curl) return;
+
+	text_update_character_width(st);
 
 	i= txt_get_span(text->lines.first, text->sell);
 	if(st->top+st->viewlines <= i || st->top > i)
@@ -1391,7 +1392,7 @@ void text_update_cursor_moved(SpaceText *st, ARegion *ar)
 		x= text_draw(st, text->sell->line, st->left, text->selc, 0, 0, 0, NULL);
 
 		if(x==0 || x>ar->winx)
-			st->left= text->curc-0.5*(ar->winx)/text_font_width_character(st);
+			st->left= text->curc-0.5*(ar->winx)/st->cwidth;
 	}
 
 	if(st->top < 0) st->top= 0;

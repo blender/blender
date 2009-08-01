@@ -1,10 +1,37 @@
-/* Testing code for new animation system in 2.5 
- * Copyright 2009, Joshua Leung
+/**
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): Joshua Leung (full recode)
+ *
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
+#include <float.h>
+#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -12,9 +39,12 @@
 #include "BLI_arithb.h"
 #include "BLI_dynstr.h"
 
+#include "DNA_anim_types.h"
+
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
+#include "BKE_nla.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
@@ -22,7 +52,7 @@
 #include "RNA_access.h"
 #include "RNA_types.h"
 
-#include "DNA_anim_types.h"
+#include "nla_private.h"
 
 /* ***************************************** */
 /* AnimData API */
@@ -90,8 +120,15 @@ AnimData *BKE_id_add_animdata (ID *id)
 		IdAdtTemplate *iat= (IdAdtTemplate *)id;
 		
 		/* check if there's already AnimData, in which case, don't add */
-		if (iat->adt == NULL)
-			iat->adt= MEM_callocN(sizeof(AnimData), "AnimData");
+		if (iat->adt == NULL) {
+			AnimData *adt;
+			
+			/* add animdata */
+			adt= iat->adt= MEM_callocN(sizeof(AnimData), "AnimData");
+			
+			/* set default settings */
+			adt->act_influence= 1.0f;
+		}
 		
 		return iat->adt;
 	}
@@ -116,7 +153,13 @@ void BKE_free_animdata (ID *id)
 			/* unlink action (don't free, as it's in its own list) */
 			if (adt->action)
 				adt->action->id.us--;
+			/* same goes for the temporarily displaced action */
+			if (adt->tmpact)
+				adt->tmpact->id.us--;
 				
+			/* free nla data */
+			free_nladata(&adt->nla_tracks);
+			
 			/* free drivers - stored as a list of F-Curves */
 			free_fcurves(&adt->drivers);
 			
@@ -146,9 +189,10 @@ AnimData *BKE_copy_animdata (AnimData *adt)
 	// XXX review this... it might not be optimal behaviour yet...
 	//id_us_plus((ID *)dadt->action);
 	dadt->action= copy_action(adt->action);
+	dadt->tmpact= copy_action(adt->tmpact);
 	
 	/* duplicate NLA data */
-	// XXX todo...
+	copy_nladata(&dadt->nla_tracks, &adt->nla_tracks);
 	
 	/* duplicate drivers (F-Curves) */
 	copy_fcurves(&dadt->drivers, &adt->drivers);
@@ -355,10 +399,10 @@ void BKE_keyingsets_free (ListBase *list)
 short animsys_remap_path (AnimMapper *remap, char *path, char **dst)
 {
 	/* is there a valid remapping table to use? */
-	if (remap) {
+	//if (remap) {
 		/* find a matching entry... to use to remap */
 		// ...TODO...
-	}
+	//}
 	
 	/* nothing suitable found, so just set dst to look at path (i.e. no alloc/free needed) */
 	*dst= path;
@@ -455,11 +499,14 @@ static void animsys_evaluate_fcurves (PointerRNA *ptr, ListBase *list, AnimMappe
 	/* calculate then execute each curve */
 	for (fcu= list->first; fcu; fcu= fcu->next) 
 	{
-		/* check if this curve should be skipped */
-		if ((fcu->flag & (FCURVE_MUTED|FCURVE_DISABLED)) == 0) 
-		{
-			calculate_fcurve(fcu, ctime);
-			animsys_execute_fcurve(ptr, remap, fcu); 
+		/* check if this F-Curve doesn't belong to a muted group */
+		if ((fcu->grp == NULL) || (fcu->grp->flag & AGRP_MUTED)==0) {
+			/* check if this curve should be skipped */
+			if ((fcu->flag & (FCURVE_MUTED|FCURVE_DISABLED)) == 0) 
+			{
+				calculate_fcurve(fcu, ctime);
+				animsys_execute_fcurve(ptr, remap, fcu); 
+			}
 		}
 	}
 }
@@ -481,7 +528,6 @@ static void animsys_evaluate_drivers (PointerRNA *ptr, AnimData *adt, float ctim
 		short ok= 0;
 		
 		/* check if this driver's curve should be skipped */
-		// FIXME: maybe we shouldn't check for muted, though that would make things more confusing, as there's already too many ways to disable?
 		if ((fcu->flag & (FCURVE_MUTED|FCURVE_DISABLED)) == 0) 
 		{
 			/* check if driver itself is tagged for recalculation */
@@ -514,6 +560,10 @@ void animsys_evaluate_action_group (PointerRNA *ptr, bAction *act, bActionGroup 
 	if ELEM(NULL, act, agrp) return;
 	if ((remap) && (remap->target != act)) remap= NULL;
 	
+	/* if group is muted, don't evaluated any of the F-Curve */
+	if (agrp->flag & AGRP_MUTED)
+		return;
+	
 	/* calculate then execute each curve */
 	for (fcu= agrp->channels.first; (fcu) && (fcu->grp == agrp); fcu= fcu->next) 
 	{
@@ -540,152 +590,603 @@ void animsys_evaluate_action (PointerRNA *ptr, bAction *act, AnimMapper *remap, 
 /* ***************************************** */
 /* NLA System - Evaluation */
 
-/* used for list of strips to accumulate at current time */
-typedef struct NlaEvalStrip {
-	struct NlaEvalStrip *next, *prev;
-	
-	NlaTrack *track;			/* track that this strip belongs to */
-	NlaStrip *strip;		/* strip that's being used */
-	NlaStrip *sblend;		/* strip that's being blended towards (if applicable) */
-	
-	short track_index;			/* the index of the track within the list */
-	short strip_mode;			/* which end of the strip are we looking at */
-} NlaEvalStrip;
-
-/* bNlaEvalStrip->strip_mode */
-enum {
-	NES_TIME_BEFORE = -1,
-	NES_TIME_WITHIN,
-	NES_TIME_AFTER,
-	NES_TIME_AFTER_BLEND
-} eNlaEvalStrip_StripMode;
-
-
-/* temp channel for accumulating data from NLA (avoids needing to clear all values first) */
-// TODO: maybe this will be used as the 'cache' stuff needed for editable values too?
-typedef struct NlaEvalChannel {
-	struct NlaEvalChannel *next, *prev;
-	
-	char *path;				/* ready-to-use path (i.e. remapped already) */
-	int array_index;		/* if applicable... */
-	
-	float value;			/* value of this channel */
-} NlaEvalChannel;
-
-
-/* ---------------------- */
-
-/* evaluate the F-Curves controlling settings for the NLA-strips (currently, not relinkable) */
-static void nlastrip_evaluate_fcurves (NlaStrip *strip, float ctime)
+/* calculate influence of strip based for given frame based on blendin/out values */
+static float nlastrip_get_influence (NlaStrip *strip, float cframe)
 {
-	//PointerRNA actstrip_ptr;
-	//FCurve *fcu;
+	/* sanity checks - normalise the blendin/out values? */
+	strip->blendin= (float)fabs(strip->blendin);
+	strip->blendout= (float)fabs(strip->blendout);
 	
-	/* create RNA-pointer needed to set values */
-	//RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &actstrip_ptr);
-	
-	/* execute these settings as per normal */
-	//animsys_evaluate_fcurves(&actstrip_ptr, &strip->fcurves, NULL, ctime);
+	/* result depends on where frame is in respect to blendin/out values */
+	if (IS_EQ(strip->blendin, 0)==0 && (cframe <= (strip->start + strip->blendin))) {
+		/* there is some blend-in */
+		return (float)fabs(cframe - strip->start) / (strip->blendin);
+	}
+	else if (IS_EQ(strip->blendout, 0)==0 && (cframe >= (strip->end - strip->blendout))) {
+		/* there is some blend-out */
+		return (float)fabs(strip->end - cframe) / (strip->blendout);
+	}
+	else {
+		/* in the middle of the strip, we should be full strength */
+		return 1.0f;
+	}
 }
 
-
-/* gets the strip active at the current time for a track */
-static void nlatrack_ctime_get_strip (ListBase *list, NlaTrack *nlt, short index, float ctime)
+/* evaluate the evaluation time and influence for the strip, storing the results in the strip */
+static void nlastrip_evaluate_controls (NlaStrip *strip, float ctime)
 {
-	NlaStrip *strip, *astrip=NULL, *bstrip=NULL;
+	/* firstly, analytically generate values for influence and time (if applicable) */
+	if ((strip->flag & NLASTRIP_FLAG_USR_TIME) == 0)
+		strip->strip_time= nlastrip_get_frame(strip, ctime, NLATIME_CONVERT_EVAL);
+	if ((strip->flag & NLASTRIP_FLAG_USR_INFLUENCE) == 0)
+		strip->influence= nlastrip_get_influence(strip, ctime);
+	
+	/* now strip's evaluate F-Curves for these settings (if applicable) */
+	if (strip->fcurves.first) {
+		PointerRNA strip_ptr;
+		
+		/* create RNA-pointer needed to set values */
+		RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &strip_ptr);
+		
+		/* execute these settings as per normal */
+		animsys_evaluate_fcurves(&strip_ptr, &strip->fcurves, NULL, ctime);
+	}
+}
+
+/* gets the strip active at the current time for a list of strips for evaluation purposes */
+NlaEvalStrip *nlastrips_ctime_get_strip (ListBase *list, ListBase *strips, short index, float ctime)
+{
+	NlaStrip *strip, *estrip=NULL;
 	NlaEvalStrip *nes;
 	short side= 0;
 	
-	/* skip if track is muted */
-	if (nlt->flag & NLATRACK_MUTED) 
-		return;
-	
 	/* loop over strips, checking if they fall within the range */
-	for (strip= nlt->strips.first; strip; strip= strip->next) {
-		/* only consider if:
-		 *	- current time occurs within strip's extents
-		 *	- current time occurs before strip (if it is the first)
-		 *	- current time occurs after strip (if hold is on)
-		 *	- current time occurs between strips (1st of those isn't holding) - blend!
-		 */
-		if (IN_RANGE(ctime, strip->start, strip->end)) {
-			astrip= strip;
+	for (strip= strips->first; strip; strip= strip->next) {
+		/* check if current time occurs within this strip  */
+		if (IN_RANGE_INCL(ctime, strip->start, strip->end)) {
+			/* this strip is active, so try to use it */
+			estrip= strip;
 			side= NES_TIME_WITHIN;
 			break;
 		}
-		else if (ctime < strip->start) {
-			if (strip == nlt->strips.first) {
-				astrip= strip;
+		
+		/* if time occurred before current strip... */
+		if (ctime < strip->start) {
+			if (strip == strips->first) {
+				/* before first strip - only try to use it if it extends backwards in time too */
+				if (strip->extendmode == NLASTRIP_EXTEND_HOLD)
+					estrip= strip;
+					
+				/* side is 'before' regardless of whether there's a useful strip */
 				side= NES_TIME_BEFORE;
-				break;
 			}
 			else {
-				astrip= strip->prev;
+				/* before next strip - previous strip has ended, but next hasn't begun, 
+				 * so blending mode depends on whether strip is being held or not...
+				 * 	- only occurs when no transition strip added, otherwise the transition would have
+				 * 	  been picked up above...
+				 */
+				strip= strip->prev;
 				
-				if (astrip->flag & NLASTRIP_HOLDLASTFRAME) {
-					side= NES_TIME_AFTER;
-					break;
-				}
-				else {
-					bstrip= strip;
-					side= NES_TIME_AFTER_BLEND;
-					break;
-				}
+				if (strip->extendmode != NLASTRIP_EXTEND_NOTHING)
+					estrip= strip;
+				side= NES_TIME_AFTER;
 			}
+			break;
+		}
+		
+		/* if time occurred after current strip... */
+		if (ctime > strip->end) {
+			/* only if this is the last strip should we do anything, and only if that is being held */
+			if (strip == strips->last) {
+				if (strip->extendmode != NLASTRIP_EXTEND_NOTHING)
+					estrip= strip;
+					
+				side= NES_TIME_AFTER;
+				break;
+			}
+			
+			/* otherwise, skip... as the 'before' case will catch it more elegantly! */
 		}
 	}
 	
-	/* check if strip has been found (and whether it has data worth considering) */
-	if (ELEM(NULL, astrip, astrip->act)) 
-		return;
-	if (astrip->flag & NLASTRIP_MUTE) 
-		return;
-	
-	/* check if blending between strips */
-	if (side == NES_TIME_AFTER_BLEND) {
-		/* blending between strips... so calculate influence+act_time of both */
-		nlastrip_evaluate_fcurves(astrip, ctime);
-		nlastrip_evaluate_fcurves(bstrip, ctime);
+	/* check if a valid strip was found
+	 *	- must not be muted (i.e. will have contribution
+	 */
+	if ((estrip == NULL) || (estrip->flag & NLASTRIP_FLAG_MUTED)) 
+		return NULL;
 		
-		if ((astrip->influence <= 0.0f) && (bstrip->influence <= 0.0f))
-			return;
-	}
-	else {
-		/* calculate/set the influence+act_time of this strip - don't consider if 0 influence */
-		nlastrip_evaluate_fcurves(astrip, ctime);
-		
-		if (astrip->influence <= 0.0f) 
-			return;
+	/* if ctime was not within the boundaries of the strip, clamp! */
+	switch (side) {
+		case NES_TIME_BEFORE: /* extend first frame only */
+			ctime= estrip->start;
+			break;
+		case NES_TIME_AFTER: /* extend last frame only */
+			ctime= estrip->end;
+			break;
 	}
 	
+	/* evaluate strip's evaluation controls  
+	 * 	- skip if no influence (i.e. same effect as muting the strip)
+	 *	- negative influence is not supported yet... how would that be defined?
+	 */
+	// TODO: this sounds a bit hacky having a few isolated F-Curves stuck on some data it operates on...
+	nlastrip_evaluate_controls(estrip, ctime);
+	if (estrip->influence <= 0.0f)
+		return NULL;
+		
+	/* check if strip has valid data to evaluate,
+	 * and/or perform any additional type-specific actions
+	 */
+	switch (estrip->type) {
+		case NLASTRIP_TYPE_CLIP: 
+			/* clip must have some action to evaluate */
+			if (estrip->act == NULL)
+				return NULL;
+			break;
+		case NLASTRIP_TYPE_TRANSITION:
+			/* there must be strips to transition from and to (i.e. prev and next required) */
+			if (ELEM(NULL, estrip->prev, estrip->next))
+				return NULL;
+				
+			/* evaluate controls for the relevant extents of the bordering strips... */
+			nlastrip_evaluate_controls(estrip->prev, estrip->start);
+			nlastrip_evaluate_controls(estrip->next, estrip->end);
+			break;
+	}
 	
-	/* allocate new eval-strip for this strip + add to stack */
+	/* add to list of strips we need to evaluate */
 	nes= MEM_callocN(sizeof(NlaEvalStrip), "NlaEvalStrip");
 	
-	nes->track= nlt;
-	nes->strip= astrip;
-	nes->sblend= bstrip;
-	nes->track_index= index;
+	nes->strip= estrip;
 	nes->strip_mode= side;
+	nes->track_index= index;
+	nes->strip_time= estrip->strip_time;
 	
-	BLI_addtail(list, nes);
+	if (list)
+		BLI_addtail(list, nes);
+	
+	return nes;
 }
 
 /* ---------------------- */
 
-/* evaluates the given evaluation strip */
-// FIXME: will we need the evaluation cache table set up to blend stuff in?
-// TODO: only evaluate here, but flush in one go using the accumulated channels at end...
-static void nlastrip_ctime_evaluate (ListBase *channels, NlaEvalStrip *nes, float ctime)
+/* find an NlaEvalChannel that matches the given criteria 
+ *	- ptr and prop are the RNA data to find a match for
+ */
+static NlaEvalChannel *nlaevalchan_find_match (ListBase *channels, PointerRNA *ptr, PropertyRNA *prop, int array_index)
 {
-	// 1. (in old code) was to extract 'IPO-channels' from actions
-	// 2. blend between the 'accumulated' data, and the new data
+	NlaEvalChannel *nec;
+	
+	/* sanity check */
+	if (channels == NULL)
+		return NULL;
+	
+	/* loop through existing channels, checking for a channel which affects the same property */
+	for (nec= channels->first; nec; nec= nec->next) {
+		/* - comparing the PointerRNA's is done by comparing the pointers
+		 *   to the actual struct the property resides in, since that all the
+		 *   other data stored in PointerRNA cannot allow us to definitively 
+		 *	identify the data 
+		 */
+		if ((nec->ptr.data == ptr->data) && (nec->prop == prop) && (nec->index == array_index))
+			return nec;
+	}
+	
+	/* not found */
+	return NULL;
+}
+
+/* verify that an appropriate NlaEvalChannel for this F-Curve exists */
+static NlaEvalChannel *nlaevalchan_verify (PointerRNA *ptr, ListBase *channels, NlaEvalStrip *nes, FCurve *fcu, short *newChan)
+{
+	NlaEvalChannel *nec;
+	NlaStrip *strip= nes->strip;
+	PropertyRNA *prop;
+	PointerRNA new_ptr;
+	char *path = NULL;
+	short free_path=0;
+	
+	/* sanity checks */
+	if (channels == NULL)
+		return NULL;
+	
+	/* get RNA pointer+property info from F-Curve for more convenient handling */
+		/* get path, remapped as appropriate to work in its new environment */
+	free_path= animsys_remap_path(strip->remap, fcu->rna_path, &path);
+	
+		/* a valid property must be available, and it must be animateable */
+	if (RNA_path_resolve(ptr, path, &new_ptr, &prop) == 0) {
+		if (G.f & G_DEBUG) printf("NLA Strip Eval: Cannot resolve path \n");
+		return NULL;
+	}
+		/* only ok if animateable */
+	else if (RNA_property_animateable(&new_ptr, prop) == 0) {
+		if (G.f & G_DEBUG) printf("NLA Strip Eval: Property not animateable \n");
+		return NULL;
+	}
+	
+	/* try to find a match */
+	nec= nlaevalchan_find_match(channels, &new_ptr, prop, fcu->array_index);
+	
+	/* allocate a new struct for this if none found */
+	if (nec == NULL) {
+		nec= MEM_callocN(sizeof(NlaEvalChannel), "NlaEvalChannel");
+		*newChan= 1;
+		BLI_addtail(channels, nec);
+		
+		nec->ptr= new_ptr; 
+		nec->prop= prop;
+		nec->index= fcu->array_index;
+	}
+	else
+		*newChan= 0;
+	
+	/* we can now return */
+	return nec;
+}
+
+/* accumulate (i.e. blend) the given value on to the channel it affects */
+static void nlaevalchan_accumulate (NlaEvalChannel *nec, NlaEvalStrip *nes, short newChan, float value)
+{
+	NlaStrip *strip= nes->strip;
+	short blendmode= strip->blendmode;
+	float inf= strip->influence;
+	
+	/* if channel is new, just store value regardless of blending factors, etc. */
+	if (newChan) {
+		nec->value= value;
+		return;
+	}
+		
+	/* if this is being performed as part of transition evaluation, incorporate
+	 * an additional weighting factor for the influence
+	 */
+	if (nes->strip_mode == NES_TIME_TRANSITION_END) 
+		inf *= nes->strip_time;
+	
+	/* premultiply the value by the weighting factor */
+	if (IS_EQ(inf, 0)) return;
+	value *= inf;
+	
+	/* perform blending */
+	switch (blendmode) {
+		case NLASTRIP_MODE_ADD:
+			/* simply add the scaled value on to the stack */
+			nec->value += value;
+			break;
+			
+		case NLASTRIP_MODE_SUBTRACT:
+			/* simply subtract the scaled value from the stack */
+			nec->value -= value;
+			break;
+			
+		case NLASTRIP_MODE_MULTIPLY:
+			/* multiply the scaled value with the stack */
+			nec->value *= value;
+			break;
+		
+		case NLASTRIP_MODE_REPLACE:
+		default: // TODO: do we really want to blend by default? it seems more uses might prefer add...
+			/* do linear interpolation 
+			 *	- the influence of the accumulated data (elsewhere, that is called dstweight) 
+			 *	  is 1 - influence, since the strip's influence is srcweight
+			 */
+			nec->value= nec->value * (1.0f - inf)   +   value;
+			break;
+	}
+}
+
+/* accumulate the results of a temporary buffer with the results of the full-buffer */
+static void nlaevalchan_buffers_accumulate (ListBase *channels, ListBase *tmp_buffer, NlaEvalStrip *nes)
+{
+	NlaEvalChannel *nec, *necn, *necd;
+	
+	/* optimise - abort if no channels */
+	if (tmp_buffer->first == NULL)
+		return;
+	
+	/* accumulate results in tmp_channels buffer to the accumulation buffer */
+	for (nec= tmp_buffer->first; nec; nec= necn) {
+		/* get pointer to next channel in case we remove the current channel from the temp-buffer */
+		necn= nec->next;
+		
+		/* try to find an existing matching channel for this setting in the accumulation buffer */
+		necd= nlaevalchan_find_match(channels, &nec->ptr, nec->prop, nec->index);
+		
+		/* if there was a matching channel already in the buffer, accumulate to it,
+		 * otherwise, add the current channel to the buffer for efficiency
+		 */
+		if (necd)
+			nlaevalchan_accumulate(necd, nes, 0, nec->value);
+		else {
+			BLI_remlink(tmp_buffer, nec);
+			BLI_addtail(channels, nec);
+		}
+	}
+	
+	/* free temp-channels that haven't been assimilated into the buffer */
+	BLI_freelistN(tmp_buffer);
+}
+
+/* ---------------------- */
+/* F-Modifier stack joining/separation utilities - should we generalise these for BLI_listbase.h interface? */
+
+/* Temporarily join two lists of modifiers together, storing the result in a third list */
+static void nlaeval_fmodifiers_join_stacks (ListBase *result, ListBase *list1, ListBase *list2)
+{
+	FModifier *fcm1, *fcm2;
+	
+	/* if list1 is invalid...  */
+	if ELEM(NULL, list1, list1->first) {
+		if (list2 && list2->first) {
+			result->first= list2->first;
+			result->last= list2->last;
+		}
+	}
+	/* if list 2 is invalid... */
+	else if ELEM(NULL, list2, list2->first) {
+		result->first= list1->first;
+		result->last= list1->last;
+	}
+	else {
+		/* list1 should be added first, and list2 second, with the endpoints of these being the endpoints for result 
+		 * 	- the original lists must be left unchanged though, as we need that fact for restoring
+		 */
+		result->first= list1->first;
+		result->last= list2->last;
+		
+		fcm1= list1->last;
+		fcm2= list2->first;
+		
+		fcm1->next= fcm2;
+		fcm2->prev= fcm1;
+	}
+}
+
+/* Split two temporary lists of modifiers */
+static void nlaeval_fmodifiers_split_stacks (ListBase *list1, ListBase *list2)
+{
+	FModifier *fcm1, *fcm2;
+	
+	/* if list1/2 is invalid... just skip */
+	if ELEM(NULL, list1, list2)
+		return;
+	if ELEM(NULL, list1->first, list2->first)
+		return;
+		
+	/* get endpoints */
+	fcm1= list1->last;
+	fcm2= list2->first;
+	
+	/* clear their links */
+	fcm1->next= NULL;
+	fcm2->prev= NULL;
+}
+
+/* ---------------------- */
+
+/* evaluate action-clip strip */
+static void nlastrip_evaluate_actionclip (PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes)
+{
+	ListBase tmp_modifiers = {NULL, NULL};
+	NlaStrip *strip= nes->strip;
+	FCurve *fcu;
+	float evaltime;
+	
+	/* join this strip's modifiers to the parent's modifiers (own modifiers first) */
+	nlaeval_fmodifiers_join_stacks(&tmp_modifiers, &strip->modifiers, modifiers);
+	
+	/* evaluate strip's modifiers which modify time to evaluate the base curves at */
+	evaltime= evaluate_time_fmodifiers(&tmp_modifiers, NULL, 0.0f, strip->strip_time);
+	
+	/* evaluate all the F-Curves in the action, saving the relevant pointers to data that will need to be used */
+	for (fcu= strip->act->curves.first; fcu; fcu= fcu->next) {
+		NlaEvalChannel *nec;
+		float value = 0.0f;
+		short newChan = -1;
+		
+		/* check if this curve should be skipped */
+		if (fcu->flag & (FCURVE_MUTED|FCURVE_DISABLED)) 
+			continue;
+		if ((fcu->grp) && (fcu->grp->flag & AGRP_MUTED))
+			continue;
+			
+		/* evaluate the F-Curve's value for the time given in the strip 
+		 * NOTE: we use the modified time here, since strip's F-Curve Modifiers are applied on top of this 
+		 */
+		value= evaluate_fcurve(fcu, evaltime);
+		
+		/* apply strip's F-Curve Modifiers on this value 
+		 * NOTE: we apply the strip's original evaluation time not the modified one (as per standard F-Curve eval)
+		 */
+		evaluate_value_fmodifiers(&tmp_modifiers, fcu, &value, strip->strip_time);
+		
+		
+		/* get an NLA evaluation channel to work with, and accumulate the evaluated value with the value(s)
+		 * stored in this channel if it has been used already
+		 */
+		nec= nlaevalchan_verify(ptr, channels, nes, fcu, &newChan);
+		if (nec)
+			nlaevalchan_accumulate(nec, nes, newChan, value);
+	}
+	
+	/* unlink this strip's modifiers from the parent's modifiers again */
+	nlaeval_fmodifiers_split_stacks(&strip->modifiers, modifiers);
+}
+
+/* evaluate transition strip */
+static void nlastrip_evaluate_transition (PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes)
+{
+	ListBase tmp_channels = {NULL, NULL};
+	ListBase tmp_modifiers = {NULL, NULL};
+	NlaEvalStrip tmp_nes;
+	NlaStrip *s1, *s2;
+	
+	/* join this strip's modifiers to the parent's modifiers (own modifiers first) */
+	nlaeval_fmodifiers_join_stacks(&tmp_modifiers, &nes->strip->modifiers, modifiers);
+	
+	/* get the two strips to operate on 
+	 *	- we use the endpoints of the strips directly flanking our strip
+	 *	  using these as the endpoints of the transition (destination and source)
+	 *	- these should have already been determined to be valid...
+	 *	- if this strip is being played in reverse, we need to swap these endpoints
+	 *	  otherwise they will be interpolated wrong
+	 */
+	if (nes->strip->flag & NLASTRIP_FLAG_REVERSE) {
+		s1= nes->strip->next;
+		s2= nes->strip->prev;
+	}
+	else {
+		s1= nes->strip->prev;
+		s2= nes->strip->next;
+	}
+	
+	/* prepare template for 'evaluation strip' 
+	 *	- based on the transition strip's evaluation strip data
+	 *	- strip_mode is NES_TIME_TRANSITION_* based on which endpoint
+	 *	- strip_time is the 'normalised' (i.e. in-strip) time for evaluation,
+	 *	  which doubles up as an additional weighting factor for the strip influences
+	 *	  which allows us to appear to be 'interpolating' between the two extremes
+	 */
+	tmp_nes= *nes;
+	
+	/* evaluate these strips into a temp-buffer (tmp_channels) */
+	// FIXME: modifier evalation here needs some work...
+		/* first strip */
+	tmp_nes.strip_mode= NES_TIME_TRANSITION_START;
+	tmp_nes.strip= s1;
+	nlastrip_evaluate(ptr, &tmp_channels, &tmp_modifiers, &tmp_nes);
+	
+		/* second strip */
+	tmp_nes.strip_mode= NES_TIME_TRANSITION_END;
+	tmp_nes.strip= s2;
+	nlastrip_evaluate(ptr, &tmp_channels, &tmp_modifiers, &tmp_nes);
+	
+	
+	/* assumulate temp-buffer and full-buffer, using the 'real' strip */
+	nlaevalchan_buffers_accumulate(channels, &tmp_channels, nes);
+	
+	/* unlink this strip's modifiers from the parent's modifiers again */
+	nlaeval_fmodifiers_split_stacks(&nes->strip->modifiers, modifiers);
+}
+
+/* evaluate meta-strip */
+static void nlastrip_evaluate_meta (PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes)
+{
+	ListBase tmp_channels = {NULL, NULL};
+	ListBase tmp_modifiers = {NULL, NULL};
+	NlaStrip *strip= nes->strip;
+	NlaEvalStrip *tmp_nes;
+	float evaltime;
+	
+	/* meta-strip was calculated normally to have some time to be evaluated at
+	 * and here we 'look inside' the meta strip, treating it as a decorated window to
+	 * it's child strips, which get evaluated as if they were some tracks on a strip 
+	 * (but with some extra modifiers to apply).
+	 *
+	 * NOTE: keep this in sync with animsys_evaluate_nla()
+	 */
+	 
+	/* join this strip's modifiers to the parent's modifiers (own modifiers first) */
+	nlaeval_fmodifiers_join_stacks(&tmp_modifiers, &strip->modifiers, modifiers); 
+	
+	/* find the child-strip to evaluate */
+	evaltime= (nes->strip_time * (strip->end - strip->start)) + strip->start;
+	tmp_nes= nlastrips_ctime_get_strip(NULL, &strip->strips, -1, evaltime);
+	if (tmp_nes == NULL)
+		return;
+		
+	/* evaluate child-strip into tmp_channels buffer before accumulating 
+	 * in the accumulation buffer
+	 */
+	nlastrip_evaluate(ptr, &tmp_channels, &tmp_modifiers, tmp_nes);
+	
+	/* assumulate temp-buffer and full-buffer, using the 'real' strip */
+	nlaevalchan_buffers_accumulate(channels, &tmp_channels, nes);
+	
+	/* free temp eval-strip */
+	MEM_freeN(tmp_nes);
+	
+	/* unlink this strip's modifiers from the parent's modifiers again */
+	nlaeval_fmodifiers_split_stacks(&strip->modifiers, modifiers);
+}
+
+/* evaluates the given evaluation strip */
+void nlastrip_evaluate (PointerRNA *ptr, ListBase *channels, ListBase *modifiers, NlaEvalStrip *nes)
+{
+	NlaStrip *strip= nes->strip;
+	
+	/* to prevent potential infinite recursion problems (i.e. transition strip, beside meta strip containing a transition
+	 * several levels deep inside it), we tag the current strip as being evaluated, and clear this when we leave
+	 */
+	// TODO: be careful with this flag, since some edit tools may be running and have set this while animplayback was running
+	if (strip->flag & NLASTRIP_FLAG_EDIT_TOUCHED)
+		return;
+	strip->flag |= NLASTRIP_FLAG_EDIT_TOUCHED;
+	
+	/* actions to take depend on the type of strip */
+	switch (strip->type) {
+		case NLASTRIP_TYPE_CLIP: /* action-clip */
+			nlastrip_evaluate_actionclip(ptr, channels, modifiers, nes);
+			break;
+		case NLASTRIP_TYPE_TRANSITION: /* transition */
+			nlastrip_evaluate_transition(ptr, channels, modifiers, nes);
+			break;
+		case NLASTRIP_TYPE_META: /* meta */
+			nlastrip_evaluate_meta(ptr, channels, modifiers, nes);
+			break;
+	}
+	
+	/* clear temp recursion safe-check */
+	strip->flag &= ~NLASTRIP_FLAG_EDIT_TOUCHED;
 }
 
 /* write the accumulated settings to */
-static void nladata_flush_channels (PointerRNA *ptr, ListBase *channels)
+void nladata_flush_channels (ListBase *channels)
 {
+	NlaEvalChannel *nec;
 	
+	/* sanity checks */
+	if (channels == NULL)
+		return;
+	
+	/* for each channel with accumulated values, write its value on the property it affects */
+	for (nec= channels->first; nec; nec= nec->next) {
+		PointerRNA *ptr= &nec->ptr;
+		PropertyRNA *prop= nec->prop;
+		int array_index= nec->index;
+		float value= nec->value;
+		
+		/* write values - see animsys_write_rna_setting() to sync the code */
+		switch (RNA_property_type(prop)) 
+		{
+			case PROP_BOOLEAN:
+				if (RNA_property_array_length(prop))
+					RNA_property_boolean_set_index(ptr, prop, array_index, (int)value);
+				else
+					RNA_property_boolean_set(ptr, prop, (int)value);
+				break;
+			case PROP_INT:
+				if (RNA_property_array_length(prop))
+					RNA_property_int_set_index(ptr, prop, array_index, (int)value);
+				else
+					RNA_property_int_set(ptr, prop, (int)value);
+				break;
+			case PROP_FLOAT:
+				if (RNA_property_array_length(prop))
+					RNA_property_float_set_index(ptr, prop, array_index, value);
+				else
+					RNA_property_float_set(ptr, prop, value);
+				break;
+			case PROP_ENUM:
+				RNA_property_enum_set(ptr, prop, (int)value);
+				break;
+			default:
+				// can't do anything with other types of property....
+				break;
+		}
+	}
 }
 
 /* ---------------------- */
@@ -696,6 +1197,9 @@ static void nladata_flush_channels (PointerRNA *ptr, ListBase *channels)
  */
 static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 {
+	ListBase dummy_trackslist = {NULL, NULL};
+	NlaStrip dummy_strip;
+	
 	NlaTrack *nlt;
 	short track_index=0;
 	
@@ -703,9 +1207,49 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 	ListBase echannels= {NULL, NULL};
 	NlaEvalStrip *nes;
 	
+	// TODO: need to zero out all channels used, otherwise we have problems with threadsafety
+	// and also when the user jumps between different times instead of moving sequentially...
+	
 	/* 1. get the stack of strips to evaluate at current time (influence calculated here) */
-	for (nlt=adt->nla_tracks.first; nlt; nlt=nlt->next, track_index++) 
-		nlatrack_ctime_get_strip(&estrips, nlt, track_index, ctime);
+	for (nlt=adt->nla_tracks.first; nlt; nlt=nlt->next, track_index++) { 
+		/* if tweaking is on and this strip is the tweaking track, stop on this one */
+		if ((adt->flag & ADT_NLA_EDIT_ON) && (nlt->flag & NLATRACK_DISABLED))
+			break;
+			
+		/* skip if we're only considering a track tagged 'solo' */
+		if ((adt->flag & ADT_NLA_SOLO_TRACK) && (nlt->flag & NLATRACK_SOLO)==0)
+			continue;
+		/* skip if track is muted */
+		if (nlt->flag & NLATRACK_MUTED) 
+			continue;
+			
+		/* otherwise, get strip to evaluate for this channel */
+		nes= nlastrips_ctime_get_strip(&estrips, &nlt->strips, track_index, ctime);
+		if (nes) nes->track= nlt;
+	}
+	
+	/* add 'active' Action (may be tweaking track) as last strip to evaluate in NLA stack
+	 *	- only do this if we're not exclusively evaluating the 'solo' NLA-track
+	 */
+	if ((adt->action) && !(adt->flag & ADT_NLA_SOLO_TRACK)) {
+		/* make dummy NLA strip, and add that to the stack */
+		memset(&dummy_strip, 0, sizeof(NlaStrip));
+		dummy_trackslist.first= dummy_trackslist.last= &dummy_strip;
+		
+		dummy_strip.act= adt->action;
+		dummy_strip.remap= adt->remap;
+		
+		calc_action_range(dummy_strip.act, &dummy_strip.actstart, &dummy_strip.actend, 1);
+		dummy_strip.start = dummy_strip.actstart;
+		dummy_strip.end = (IS_EQ(dummy_strip.actstart, dummy_strip.actend)) ?  (dummy_strip.actstart + 1.0f): (dummy_strip.actend);
+		
+		dummy_strip.blendmode= adt->act_blendmode;
+		dummy_strip.extendmode= adt->act_extendmode;
+		dummy_strip.influence= adt->act_influence;
+		
+		/* add this to our list of evaluation strips */
+		nlastrips_ctime_get_strip(&estrips, &dummy_trackslist, -1, ctime);
+	}
 	
 	/* only continue if there are strips to evaluate */
 	if (estrips.first == NULL)
@@ -714,10 +1258,10 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 	
 	/* 2. for each strip, evaluate then accumulate on top of existing channels, but don't set values yet */
 	for (nes= estrips.first; nes; nes= nes->next) 
-		nlastrip_ctime_evaluate(&echannels, nes, ctime);
+		nlastrip_evaluate(ptr, &echannels, NULL, nes);
 	
 	/* 3. flush effects of accumulating channels in NLA to the actual data they affect */
-	nladata_flush_channels(ptr, &echannels);
+	nladata_flush_channels(&echannels);
 	
 	/* 4. free temporary evaluation data */
 	BLI_freelistN(&estrips);
@@ -799,17 +1343,19 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
 	 *	- NLA before Active Action, as Active Action behaves as 'tweaking track'
 	 *	  that overrides 'rough' work in NLA
 	 */
+	// TODO: need to double check that this all works correctly
 	if ((recalc & ADT_RECALC_ANIM) || (adt->recalc & ADT_RECALC_ANIM))
  	{
 		/* evaluate NLA data */
 		if ((adt->nla_tracks.first) && !(adt->flag & ADT_NLA_EVAL_OFF))
 		{
+			/* evaluate NLA-stack 
+			 *	- active action is evaluated as part of the NLA stack as the last item
+			 */
 			animsys_evaluate_nla(&id_ptr, adt, ctime);
 		}
-		
-		/* evaluate Action data */
-		// FIXME: what if the solo track was not tweaking one, then nla-solo should be checked too?
-		if (adt->action) 
+		/* evaluate Active Action only */
+		else if (adt->action)
 			animsys_evaluate_action(&id_ptr, adt->action, adt->remap, ctime);
 		
 		/* reset tag */
@@ -876,10 +1422,22 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	EVAL_ANIM_IDS(main->camera.first, ADT_RECALC_ANIM);
 	
 	/* shapekeys */
+		// TODO: we probably need the same hack as for curves (ctime-hack)
 	EVAL_ANIM_IDS(main->key.first, ADT_RECALC_ANIM);
 	
 	/* curves */
-	// TODO...
+		/* we need to perform a special hack here to ensure that the ctime 
+		 * value of the curve gets set in case there's no animation for that
+		 *	- it needs to be set before animation is evaluated just so that 
+		 *	  animation can successfully override...
+		 */
+	for (id= main->curve.first; id; id= id->next) {
+		AnimData *adt= BKE_animdata_from_id(id);
+		Curve *cu= (Curve *)id;
+		
+		cu->ctime= ctime;
+		BKE_animsys_evaluate_animdata(id, adt, ctime, ADT_RECALC_ANIM);
+	}
 	
 	/* meshes */
 	// TODO...

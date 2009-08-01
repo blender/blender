@@ -4550,14 +4550,14 @@ void CURVE_OT_delete(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "Which elements to delete.");
 }
 
-/********************** set smooth operator *********************/
+/********************** shade smooth/flat operator *********************/
 
-static int set_smooth_exec(bContext *C, wmOperator *op)
+static int shade_smooth_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
 	Nurb *nu;
-	int clear= RNA_boolean_get(op->ptr, "clear");
+	int clear= (strcmp(op->idname, "CURVE_OT_shade_flat") == 0);
 	
 	if(obedit->type != OB_CURVE)
 		return OPERATOR_CANCELLED;
@@ -4575,31 +4575,40 @@ static int set_smooth_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void CURVE_OT_smooth_set(wmOperatorType *ot)
+void CURVE_OT_shade_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Smooth";
-	ot->idname= "CURVE_OT_smooth_set";
+	ot->name= "Shade Smooth";
+	ot->idname= "CURVE_OT_shade_smooth";
 	
 	/* api callbacks */
-	ot->exec= set_smooth_exec;
+	ot->exec= shade_smooth_exec;
 	ot->poll= ED_operator_editsurfcurve;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
-	/* properties */
-	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "Clear smooth shading to solid for selection instead of enabling it.");
+void CURVE_OT_shade_flat(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Shade Flat";
+	ot->idname= "CURVE_OT_shade_flat";
+	
+	/* api callbacks */
+	ot->exec= shade_smooth_exec;
+	ot->poll= ED_operator_editsurfcurve;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /************** join operator, to be used externally? ****************/
 
-int join_curve(bContext *C, wmOperator *op, int type)
+int join_curve_exec(bContext *C, wmOperator *op)
 {
-	View3D *v3d= CTX_wm_view3d(C);
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_edit_object(C);
-	Base *base, *nextb;
+	Object *ob= CTX_data_active_object(C);
 	Curve *cu;
 	Nurb *nu, *newnu;
 	BezTriple *bezt;
@@ -4608,64 +4617,51 @@ int join_curve(bContext *C, wmOperator *op, int type)
 	float imat[4][4], cmat[4][4];
 	int a;
 
-	// XXX not integrated yet, to be called by object/ module? */
-	
-	if(object_data_is_libdata(ob)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata");
-		return OPERATOR_CANCELLED;
-	} 
-	
-	if(ob->type!=type)
-		return 0;
-
 	tempbase.first= tempbase.last= 0;
 	
 	/* trasnform all selected curves inverse in obact */
 	Mat4Invert(imat, ob->obmat);
 	
-	for(base= FIRSTBASE; base; base=nextb) {
-		nextb= base->next;
-
-		if(TESTBASE(v3d, base)) {
-			if(base->object->type==type) {
-				if(base->object != ob) {
-				
-					cu= base->object->data;
-				
-					if(cu->nurb.first) {
-						/* watch it: switch order here really goes wrong */
-						Mat4MulMat4(cmat, base->object->obmat, imat);
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+		if(base->object->type==ob->type) {
+			if(base->object != ob) {
+			
+				cu= base->object->data;
+			
+				if(cu->nurb.first) {
+					/* watch it: switch order here really goes wrong */
+					Mat4MulMat4(cmat, base->object->obmat, imat);
+					
+					nu= cu->nurb.first;
+					while(nu) {
+						newnu= duplicateNurb(nu);
+						BLI_addtail(&tempbase, newnu);
 						
-						nu= cu->nurb.first;
-						while(nu) {
-							newnu= duplicateNurb(nu);
-							BLI_addtail(&tempbase, newnu);
-							
-							if( (bezt= newnu->bezt) ) {
-								a= newnu->pntsu;
-								while(a--) {
-									Mat4MulVecfl(cmat, bezt->vec[0]);
-									Mat4MulVecfl(cmat, bezt->vec[1]);
-									Mat4MulVecfl(cmat, bezt->vec[2]);
-									bezt++;
-								}
+						if( (bezt= newnu->bezt) ) {
+							a= newnu->pntsu;
+							while(a--) {
+								Mat4MulVecfl(cmat, bezt->vec[0]);
+								Mat4MulVecfl(cmat, bezt->vec[1]);
+								Mat4MulVecfl(cmat, bezt->vec[2]);
+								bezt++;
 							}
-							if( (bp= newnu->bp) ) {
-								a= newnu->pntsu*nu->pntsv;
-								while(a--) {
-									Mat4MulVecfl(cmat, bp->vec);
-									bp++;
-								}
-							}
-							nu= nu->next;
 						}
+						if( (bp= newnu->bp) ) {
+							a= newnu->pntsu*nu->pntsv;
+							while(a--) {
+								Mat4MulVecfl(cmat, bp->vec);
+								bp++;
+							}
+						}
+						nu= nu->next;
 					}
-				
-					ED_base_object_free_and_unlink(scene, base);
 				}
+			
+				ED_base_object_free_and_unlink(scene, base);
 			}
 		}
 	}
+	CTX_DATA_END;
 	
 	cu= ob->data;
 	addlisttolist(&cu->nurb, &tempbase);
@@ -4674,8 +4670,8 @@ int join_curve(bContext *C, wmOperator *op, int type)
 	
 	ED_object_enter_editmode(C, EM_WAITCURSOR);
 	ED_object_exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR);
-	
-	// BIF_undo_push("Join");
+
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -4728,11 +4724,13 @@ Nurb *add_nurbs_primitive(bContext *C, int type, int newname)
 			Mat3MulMat3(cmat, imat, mat);
 			Mat3Inv(imat, cmat);
 		}
+		else
+			Mat3One(imat);
+
 		setflagsNurb(editnurb, 0);
 	}
-	else {
+	else
 		return NULL;
-	}
 	
 	/* these types call this function to return a Nurb */
 	if (stype!=CU_PRIM_TUBE && stype!=CU_PRIM_DONUT) {

@@ -1088,7 +1088,7 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 	Mesh *me;
 	
 	me= get_mesh(ob);
-	if(ob->id.lib || me==NULL) return OPERATOR_CANCELLED;
+	if(ob->id.lib || me==NULL) return OPERATOR_PASS_THROUGH;
 	
 	if(me && me->totface>=MAXINDEX) {
 		error("Maximum number of faces: %d", MAXINDEX-1);
@@ -1225,7 +1225,7 @@ void PAINT_OT_weight_paint_radial_control(wmOperatorType *ot)
 	ot->poll= wp_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 }
 
 void PAINT_OT_vertex_paint_radial_control(wmOperatorType *ot)
@@ -1241,7 +1241,7 @@ void PAINT_OT_vertex_paint_radial_control(wmOperatorType *ot)
 	ot->poll= vp_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 }
 
 /* ************ weight paint operator ********** */
@@ -1465,7 +1465,7 @@ static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	// XXX	if(multires_level1_test()) return;
 	
 	me= get_mesh(ob);
-	if(me==NULL || me->totface==0) return OPERATOR_CANCELLED;
+	if(me==NULL || me->totface==0) return OPERATOR_PASS_THROUGH;
 	
 	/* if nothing was added yet, we make dverts and a vertex deform group */
 	if (!me->dvert)
@@ -1567,7 +1567,7 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 	ot->poll= wp_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 }
 
@@ -1585,7 +1585,7 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 	
 	if(me==NULL || object_data_is_libdata(ob)) {
 		G.f &= ~G_VERTEXPAINT;
-		return OPERATOR_FINISHED;
+		return OPERATOR_PASS_THROUGH;
 	}
 	
 	if(me && me->totface>=MAXINDEX) {
@@ -1821,7 +1821,7 @@ static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	/* context checks could be a poll() */
 	me= get_mesh(ob);
-	if(me==NULL || me->totface==0) return OPERATOR_CANCELLED;
+	if(me==NULL || me->totface==0) return OPERATOR_PASS_THROUGH;
 	
 	if(me->mcol==NULL) make_vertexcol(CTX_data_scene(C), 0);
 	if(me->mcol==NULL) return OPERATOR_CANCELLED;
@@ -1864,6 +1864,6 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 	ot->poll= vp_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 }
 

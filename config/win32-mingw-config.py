@@ -2,7 +2,8 @@ LCGDIR = '#../lib/windows'
 LIBDIR = "${LCGDIR}"
 
 BF_PYTHON = LIBDIR + '/python'
-BF_PYTHON_VERSION = '2.5'
+BF_PYTHON_VERSION = '3.1'
+#BF_PYTHON_VERSION = '2.6'
 #BF_PYTHON_VERSION = '2.6'
 WITH_BF_STATICPYTHON = False
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
@@ -80,6 +81,7 @@ BF_GETTEXT_LIB = 'gnu_gettext'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
 WITH_BF_GAMEENGINE = False
+WITH_BF_PLAYER = False
 
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
@@ -148,7 +150,7 @@ LLIBS = ['-lshell32', '-lshfolder', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32
 BF_DEBUG = False
 BF_DEBUG_CCFLAGS= ['-g']
 
-BF_PROFILE_CCFLAGS = ['-pg', '-g ']
+BF_PROFILE_CCFLAGS = ['-pg', '-g']
 BF_PROFILE_LINKFLAGS = ['-pg']
 BF_PROFILE_FLAGS = BF_PROFILE_CCFLAGS
 BF_PROFILE = False

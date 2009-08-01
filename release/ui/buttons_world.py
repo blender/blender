@@ -1,17 +1,26 @@
 
 import bpy
 
+# If python version is less than 2.4, try to get set stuff from module
+try:
+	set
+except:
+	from sets import Set as set
+
 class WorldButtonsPanel(bpy.types.Panel):
 	__space_type__ = "BUTTONS_WINDOW"
 	__region_type__ = "WINDOW"
 	__context__ = "world"
-
+	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
+	
 	def poll(self, context):
-		return (context.world != None)
+		rd = context.scene.render_data
+		return (context.world != None) and (not rd.use_game_engine) and (rd.engine in self.COMPAT_ENGINES)
 
 class WORLD_PT_preview(WorldButtonsPanel):
 	__label__ = "Preview"
-
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
+	
 	def draw(self, context):
 		layout = self.layout
 		world = context.world
@@ -19,10 +28,12 @@ class WORLD_PT_preview(WorldButtonsPanel):
 		layout.template_preview(world)
 	
 class WORLD_PT_context_world(WorldButtonsPanel):
-	__no_header__ = True
+	__show_header__ = False
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def poll(self, context):
-		return (context.scene != None)
+		rd = context.scene.render_data
+		return (not rd.use_game_engine) and (rd.engine in self.COMPAT_ENGINES)
 
 	def draw(self, context):
 		layout = self.layout
@@ -34,12 +45,13 @@ class WORLD_PT_context_world(WorldButtonsPanel):
 		split = layout.split(percentage=0.65)
 
 		if scene:
-			split.template_ID(scene, "world", new="WORLD_OT_new")
+			split.template_ID(scene, "world", new="world.new")
 		elif world:
 			split.template_ID(space, "pin_id")
 
 class WORLD_PT_world(WorldButtonsPanel):
 	__label__ = "World"
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw(self, context):
 		layout = self.layout
@@ -60,19 +72,9 @@ class WORLD_PT_world(WorldButtonsPanel):
 			col.active = world.blend_sky
 			row.column().itemR(world, "ambient_color")
 		
-class WORLD_PT_color_correction(WorldButtonsPanel):
-	__label__ = "Color Correction"
-
-	def draw(self, context):
-		layout = self.layout
-		world = context.world
-
-		row = layout.row()
-		row.itemR(world, "exposure")
-		row.itemR(world, "range")
-	
 class WORLD_PT_mist(WorldButtonsPanel):
 	__label__ = "Mist"
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw_header(self, context):
 		layout = self.layout
@@ -90,13 +92,13 @@ class WORLD_PT_mist(WorldButtonsPanel):
 		flow.itemR(world.mist, "start")
 		flow.itemR(world.mist, "depth")
 		flow.itemR(world.mist, "height")
-		flow.itemR(world.mist, "intensity")
-		col = layout.column()
-		col.itemL(text="Fallof:")
-		col.row().itemR(world.mist, "falloff", expand=True)
+		flow.itemR(world.mist, "intensity", slider=True)
+
+		layout.itemR(world.mist, "falloff")
 		
 class WORLD_PT_stars(WorldButtonsPanel):
 	__label__ = "Stars"
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw_header(self, context):
 		layout = self.layout
@@ -112,12 +114,13 @@ class WORLD_PT_stars(WorldButtonsPanel):
 
 		flow = layout.column_flow()
 		flow.itemR(world.stars, "size")
+		flow.itemR(world.stars, "color_randomization", text="Colors")
 		flow.itemR(world.stars, "min_distance", text="Min. Dist")
 		flow.itemR(world.stars, "average_separation", text="Separation")
-		flow.itemR(world.stars, "color_randomization", text="Random")
 		
 class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 	__label__ = "Ambient Occlusion"
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw_header(self, context):
 		layout = self.layout
@@ -132,49 +135,55 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 		layout.active = ao.enabled
 		
 		layout.itemR(ao, "gather_method", expand=True)
+
+		split = layout.split()
 		
+		col = split.column()
+		col.itemL(text="Attenuation:")
+		col.itemR(ao, "distance")
+		col.itemR(ao, "falloff")
+		sub = col.row()
+		sub.active = ao.falloff
+		sub.itemR(ao, "falloff_strength", text="Strength")
+	
 		if ao.gather_method == 'RAYTRACE':
-			split = layout.split()
-			
 			col = split.column()
-			col.itemR(ao, "samples")
-			col.itemR(ao, "distance")
 			
-			col = split.column()
-			col.itemR(ao, "falloff")
-			colsub = col.column()
-			colsub.active = ao.falloff
-			colsub.itemR(ao, "strength")
-			
-			layout.itemR(ao, "sample_method")
+			col.itemL(text="Sampling:")
+			col.itemR(ao, "sample_method", text="")
+
+			sub = col.column(align=True)
+			sub.itemR(ao, "samples")
+
 			if ao.sample_method == 'ADAPTIVE_QMC':
-				row = layout.row()
-				row.itemR(ao, "threshold")
-				row.itemR(ao, "adapt_to_speed")
-				
-			if ao.sample_method == 'CONSTANT_JITTERED':
-				row = layout.row()
-				row.itemR(ao, "bias")
+				sub.itemR(ao, "threshold")
+				sub.itemR(ao, "adapt_to_speed")
+			elif ao.sample_method == 'CONSTANT_JITTERED':
+				sub.itemR(ao, "bias")
 						
 		if ao.gather_method == 'APPROXIMATE':
-			split = layout.split()
-			
 			col = split.column()
-			col.itemR(ao, "passes")
+			
+			col.itemL(text="Sampling:")
 			col.itemR(ao, "error_tolerance", text="Error")
+			col.itemR(ao, "pixel_cache")
 			col.itemR(ao, "correction")
 			
-			col = split.column() 
-			col.itemR(ao, "falloff")
-			colsub = col.column()
-			colsub.active = ao.falloff
-			colsub.itemR(ao, "strength")
-			col.itemR(ao, "pixel_cache")
-
 		col = layout.column()
+		col.itemL(text="Influence:")
+		
 		col.row().itemR(ao, "blend_mode", expand=True)
-		col.row().itemR(ao, "color", expand=True)
+		
+		split = layout.split()
+		
+		col = split.column()
 		col.itemR(ao, "energy")
+		
+		col = split.column()
+		colsub = col.split(percentage=0.3)
+		colsub.itemL(text="Color:")
+		colsub.itemR(ao, "color", text="")
+		
 
 bpy.types.register(WORLD_PT_context_world)	
 bpy.types.register(WORLD_PT_preview)
@@ -182,4 +191,4 @@ bpy.types.register(WORLD_PT_world)
 bpy.types.register(WORLD_PT_ambient_occlusion)
 bpy.types.register(WORLD_PT_mist)
 bpy.types.register(WORLD_PT_stars)
-bpy.types.register(WORLD_PT_color_correction)
+

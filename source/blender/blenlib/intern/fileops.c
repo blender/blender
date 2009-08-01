@@ -83,19 +83,22 @@ char *BLI_last_slash(const char *string) {
 }
 
 /* adds a slash if there isnt one there alredy */
-void BLI_add_slash(char *string) {
+int BLI_add_slash(char *string) {
 	int len = strlen(string);
 #ifdef WIN32
 	if (len==0 || string[len-1]!='\\') {
 		string[len] = '\\';
 		string[len+1] = '\0';
+		return len+1;
 	}
 #else
 	if (len==0 || string[len-1]!='/') {
 		string[len] = '/';
 		string[len+1] = '\0';
+		return len+1;
 	}
 #endif
+	return len;
 }
 
 /* removes a slash if there is one */
@@ -153,10 +156,24 @@ int BLI_is_writable(char *filename)
 {
 	int file;
 	
+	/* first try to open without creating */
 	file = open(filename, O_BINARY | O_RDWR, 0666);
 	
-	if (file < 0)
-		return 0;
+	if (file < 0) {
+		/* now try to open and create. a test without actually
+		 * creating a file would be nice, but how? */
+		file = open(filename, O_BINARY | O_RDWR | O_CREAT, 0666);
+		
+		if(file < 0) {
+			return 0;
+		}
+		else {
+			/* success, delete the file we create */
+			close(file);
+			BLI_delete(filename, 0, 0);
+			return 1;
+		}
+	}
 	else {
 		close(file);
 		return 1;
@@ -297,7 +314,7 @@ int BLI_rename(char *from, char *to) {
 	/* make sure the filenames are different (case insensitive) before removing */
 	if (BLI_exists(to) && BLI_strcasecmp(from, to))
 		if(BLI_delete(to, 0, 0)) return 1;
-		
+
 	return rename(from, to);
 }
 
@@ -375,7 +392,7 @@ int BLI_rename(char *from, char *to) {
 	if (!BLI_exists(from)) return 0;
 	
 	if (BLI_exists(to))	if(BLI_delete(to, 0, 0)) return 1;
-		
+
 	return rename(from, to);
 }
 

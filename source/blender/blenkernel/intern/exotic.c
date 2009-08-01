@@ -334,7 +334,7 @@ static void read_stl_mesh_ascii(Scene *scene, char *str)
 	 */
 	numtenthousand = 1;
 	vertdata = malloc(numtenthousand*3*30000*sizeof(float));	// uses realloc!
-	if (!vertdata); STLALLOCERROR;
+	if (!vertdata) { STLALLOCERROR; }
 
 	linenum = 1;
 	/* Get rid of the first line */
@@ -357,7 +357,7 @@ static void read_stl_mesh_ascii(Scene *scene, char *str)
 			++numtenthousand;
 			vertdata = realloc(vertdata, 
 							   numtenthousand*3*30000*sizeof(float));
-			if (!vertdata); STLALLOCERROR;
+			if (!vertdata) { STLALLOCERROR; }
 		}
 		
 		/* Don't read normal, but check line for proper syntax anyway
@@ -1415,11 +1415,6 @@ static void displist_to_mesh(Scene *scene, DispList *dlfirst)
 		return;
 	}
 	
-	if(totcol>16) {
-		//XXX error("Found more than 16 different colors");
-		totcol= 16;
-	}
-
 	vec[0]= (min[0]+max[0])/2;
 	vec[1]= (min[1]+max[1])/2;
 	vec[2]= (min[2]+max[2])/2;
@@ -1433,6 +1428,7 @@ static void displist_to_mesh(Scene *scene, DispList *dlfirst)
 	/* colors */
 	if(totcol) {
 		ob->mat= MEM_callocN(sizeof(void *)*totcol, "ob->mat");
+		ob->matbits= MEM_callocN(sizeof(char)*totcol, "ob->matbits");
 		me->mat= MEM_callocN(sizeof(void *)*totcol, "me->mat");
 		me->totcol= totcol;
 		ob->totcol= (unsigned char) me->totcol;
@@ -1482,7 +1478,7 @@ static void displist_to_mesh(Scene *scene, DispList *dlfirst)
 	dl= dlfirst;
 	while(dl) {
 		
-		colnr= (dl->col>15 ? 15: dl->col);
+		colnr= dl->col;
 		if(colnr) colnr--;
 		
 		if(dl->type==DL_SURF) {
@@ -1691,7 +1687,7 @@ static void displist_to_objects(Scene *scene, ListBase *lbase)
 
 	if(totvert==0) {
 		
-		if(ivsurf==0) ; //XXX error("Found no data");
+		if(ivsurf==0) {}; //XXX error("Found no data");
 		if(lbase->first) BLI_freelistN(lbase);
 		
 		return;
@@ -1904,16 +1900,15 @@ void write_stl(Scene *scene, char *str)
 	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
 	if(BLI_testextensie(str,".stl")==0) strcat(str, ".stl");
 
-	if (!during_script()) {
-		if (BLI_exists(str))
-			; //XXX if(saveover(str)==0)
-			//XXX	return;
+	if (BLI_exists(str)) {
+		; //XXX if(saveover(str)==0)
+		//XXX   return;
 	}
 
 	fpSTL= fopen(str, "wb");
 	
 	if(fpSTL==NULL) {
-		if (!during_script()) ; //XXX error("Can't write file");
+		//XXX error("Can't write file");
 		return;
 	}
 	strcpy(temp_dir, str);
@@ -2237,11 +2232,11 @@ void write_vrml(Scene *scene, char *str)
 	if(BLI_testextensie(str,".blend")) str[ strlen(str)-6]= 0;
 	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
 	if(BLI_testextensie(str,".wrl")==0) strcat(str, ".wrl");
-	//XXX saveover()       if(!during_script() && saveover(str)==0) return;
+	//XXX saveover()       if(saveover(str)==0) return;
 	
 	fp= fopen(str, "w");
 	
-	if(fp==NULL && !during_script()) {
+	if(fp==NULL) {
 		//XXX error("Can't write file");
 		return;
 	}
@@ -2548,15 +2543,15 @@ void write_dxf(struct Scene *scene, char *str)
 	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
 	if(BLI_testextensie(str,".dxf")==0) strcat(str, ".dxf");
 
-	if (!during_script()) {
-		if (BLI_exists(str))
-			; //XXX if(saveover(str)==0)
-			//	return;
+	
+	if (BLI_exists(str)) {
+		; //XXX if(saveover(str)==0)
+		//	return;
 	}
 
 	fp= fopen(str, "w");
 	
-	if(fp==NULL && !during_script()) {
+	if(fp==NULL) {
 		//XXX error("Can't write file");
 		return;
 	}
@@ -2804,8 +2799,11 @@ static void dxf_add_mat (Object *ob, Mesh *me, float color[3], char *layer)
 	
 	if (!me) return;
 	
-	if(ob) ob->mat= MEM_callocN(sizeof(void *)*1, "ob->mat");
-	if(ob) ob->actcol= 1;
+	if(ob) {
+		ob->mat= MEM_callocN(sizeof(void *)*1, "ob->mat");
+		ob->matbits= MEM_callocN(sizeof(char)*1, "ob->matbits");
+		ob->actcol= 1;
+	}
 
 	me->totcol= 1;
 	me->mat= MEM_callocN(sizeof(void *)*1, "me->mat");
@@ -4053,7 +4051,6 @@ static void dxf_read(Scene *scene, char *filename)
 						ob->type= OB_MESH;
 	
 						ob->dt= OB_SHADED;
-						if(U.flag & USER_MAT_ON_OB) ob->colbits= -1;
 
 						ob->trackflag= OB_POSY;
 						ob->upflag= OB_POSZ;
@@ -4072,9 +4069,10 @@ static void dxf_read(Scene *scene, char *filename)
 						VECCOPY(ob->rot, obrot);
 						
 						ob->mat= MEM_callocN(sizeof(void *)*1, "ob->mat");
+						ob->matbits= MEM_callocN(sizeof(char)*1, "ob->matbits");
 						ob->totcol= (unsigned char) ((Mesh*)ob->data)->totcol;
 						ob->actcol= 1;
-						
+
 						/* note: materials are either linked to mesh or object, if both then 
 							you have to increase user counts. below line is not needed.
 							I leave it commented out here as warning (ton) */

@@ -1557,7 +1557,7 @@ static void isb_bsp_fillfaces(Render *re, LampRen *lar, ISBBranch *root)
 				ma= vlr->mat;
 				ok= 1;
 				if((ma->mode & MA_SHADBUF)==0) ok= 0;
-				if(ma->mode & MA_WIRE) ok= 0;
+				if(ma->material_type == MA_TYPE_WIRE) ok= 0;
 				zspanstrand.shad_alpha= zspan.shad_alpha= ma->shad_alpha;
 			}
 			
@@ -1589,7 +1589,7 @@ static void isb_bsp_fillfaces(Render *re, LampRen *lar, ISBBranch *root)
 						c4= testclip(hoco[3]); 
 					
 					/* ***** NO WIRE YET */			
-					if(ma->mode & MA_WIRE)  {
+					if(ma->material_type == MA_TYPE_WIRE) {
 						if(vlr->v4)
 							zbufclipwire(&zspan, i, a+1, vlr->ec, hoco[0], hoco[1], hoco[2], hoco[3], c1, c2, c3, c4);
 						else

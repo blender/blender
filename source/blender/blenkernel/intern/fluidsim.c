@@ -83,9 +83,9 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		fss->type = OB_FLUIDSIM_ENABLE;
 		fss->show_advancedoptions = 0;
 
-		fss->resolutionxyz = 50;
-		fss->previewresxyz = 25;
-		fss->realsize = 0.03;
+		fss->resolutionxyz = 65;
+		fss->previewresxyz = 45;
+		fss->realsize = 0.5;
 		fss->guiDisplayMode = 2; // preview
 		fss->renderDisplayMode = 3; // render
 
@@ -98,7 +98,7 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		fss->gravy = 0.0;
 		fss->gravz = -9.81;
 		fss->animStart = 0.0; 
-		fss->animEnd = 0.30;
+		fss->animEnd = 4.0;
 		fss->gstar = 0.005; // used as normgstar
 		fss->maxRefine = -1;
 		// maxRefine is set according to resolutionxyz during bake
@@ -114,15 +114,15 @@ void fluidsim_init(FluidsimModifierData *fluidmd)
 		// no bounding box needed
 		
 		// todo - reuse default init from elbeem!
-		fss->typeFlags = OB_FSBND_NOSLIP;
+		fss->typeFlags = OB_FSBND_PARTSLIP;
 		fss->domainNovecgen = 0;
 		fss->volumeInitType = 1; // volume
-		fss->partSlipValue = 0.0;
+		fss->partSlipValue = 0.2;
 
 		fss->generateTracers = 0;
 		fss->generateParticles = 0.0;
 		fss->surfaceSmoothing = 1.0;
-		fss->surfaceSubdivs = 1.0;
+		fss->surfaceSubdivs = 0.0;
 		fss->particleInfSize = 0.0;
 		fss->particleInfAlpha = 0.0;
 	

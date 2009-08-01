@@ -54,7 +54,6 @@
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_scriptlink_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 
@@ -142,10 +141,6 @@ void free_scene(Scene *sce)
 
 	BLI_freelistN(&sce->base);
 	seq_free_editing(sce->ed);
-	
-#ifndef DISABLE_PYTHON
-	BPY_free_scriptlink(&sce->scriptlink);
-#endif
 
 	BKE_free_animdata((ID *)sce);
 	BKE_keyingsets_free(&sce->keyingsets);
@@ -204,17 +199,17 @@ Scene *add_scene(char *name)
 	sce= alloc_libblock(&G.main->scene, ID_SCE, name);
 	sce->lay= 1;
 	
-	sce->r.mode= R_GAMMA;
+	sce->r.mode= R_GAMMA|R_OSA|R_SHADOW|R_SSS|R_ENVMAP|R_RAYTRACE;
 	sce->r.cfra= 1;
 	sce->r.sfra= 1;
 	sce->r.efra= 250;
-	sce->r.xsch= 320;
-	sce->r.ysch= 256;
+	sce->r.xsch= 1920;
+	sce->r.ysch= 1080;
 	sce->r.xasp= 1;
 	sce->r.yasp= 1;
-	sce->r.xparts= 4;
-	sce->r.yparts= 4;
-	sce->r.size= 100;
+	sce->r.xparts= 8;
+	sce->r.yparts= 8;
+	sce->r.size= 25;
 	sce->r.planes= 24;
 	sce->r.quality= 90;
 	sce->r.framapto= 100;
@@ -223,26 +218,18 @@ Scene *add_scene(char *name)
 	sce->r.frs_sec= 25;
 	sce->r.frs_sec_base= 1;
 	sce->r.ocres = 128;
+	sce->r.color_mgt_flag |= R_COLOR_MANAGEMENT;
 	
 	sce->r.bake_mode= 1;	/* prevent to include render stuff here */
-	sce->r.bake_filter= 2;
+	sce->r.bake_filter= 8;
 	sce->r.bake_osa= 5;
 	sce->r.bake_flag= R_BAKE_CLEAR;
 	sce->r.bake_normal_space= R_BAKE_SPACE_TANGENT;
-	
-	sce->r.xplay= 640;
-	sce->r.yplay= 480;
-	sce->r.freqplay= 60;
-	sce->r.depth= 32;
+
+	sce->r.scemode= R_DOCOMP|R_DOSEQ|R_EXTENSION;
+	sce->r.stamp= R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_SCENE|R_STAMP_CAMERA;
 	
 	sce->r.threads= 1;
-	
-	sce->r.stereomode = 1;  // no stereo
-	sce->r.domeangle = 180;
-	sce->r.domemode = 1;
-	sce->r.domeres = 4;
-	sce->r.domeresbuf = 1.0f;
-	sce->r.dometilt = 0;
 
 	sce->r.simplify_subsurf= 6;
 	sce->r.simplify_particles= 1.0f;
@@ -318,6 +305,29 @@ Scene *add_scene(char *name)
 	/* note; in header_info.c the scene copy happens..., if you add more to renderdata it has to be checked there */
 	scene_add_render_layer(sce);
 	
+	/* game data */
+	sce->gm.stereoflag = STEREO_NOSTEREO;
+	sce->gm.stereomode = STEREO_ANAGLYPH;
+	sce->gm.dome.angle = 180;
+	sce->gm.dome.mode = DOME_FISHEYE;
+	sce->gm.dome.res = 4;
+	sce->gm.dome.resbuf = 1.0f;
+	sce->gm.dome.tilt = 0;
+
+	sce->gm.xplay= 800;
+	sce->gm.yplay= 600;
+	sce->gm.freqplay= 60;
+	sce->gm.depth= 32;
+
+	sce->gm.gravity= 9.8f;
+	sce->gm.physicsEngine= WOPHY_BULLET;
+	sce->gm.mode = 32; //XXX ugly harcoding, still not sure we should drop mode. 32 == 1 << 5 == use_occlusion_culling 
+	sce->gm.occlusionRes = 128;
+	sce->gm.ticrate = 60;
+	sce->gm.maxlogicstep = 5;
+	sce->gm.physubstep = 1;
+	sce->gm.maxphystep = 5;
+
 	return sce;
 }
 
@@ -383,9 +393,6 @@ void set_scene_bg(Scene *scene)
 		ob->ctime= -1234567.0;	/* force ipo to be calculated later */
 	}
 	/* no full animation update, this to enable render code to work (render code calls own animation updates) */
-	
-	/* do we need FRAMECHANGED in set_scene? */
-//	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED, 0);
 }
 
 /* called from creator.c */
@@ -644,9 +651,6 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 	/* clear animation overrides */
 	// XXX TODO...
 	
-#ifndef DISABLE_PYTHON
-	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED, 0);
-#endif
 	/* sets first, we allow per definition current scene to have dependencies on sets */
 	for(sce= sce->set; sce; sce= sce->set)
 		scene_update(sce, lay);

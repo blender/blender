@@ -10,8 +10,7 @@ class DataButtonsPanel(bpy.types.Panel):
 		return (context.object and context.object.type == 'CURVE' and context.curve)
 
 class DATA_PT_context_curve(DataButtonsPanel):
-	__idname__ = "DATA_PT_context_curve"
-	__no_header__ = True
+	__show_header__ = False
 	
 	def draw(self, context):
 		layout = self.layout
@@ -29,9 +28,7 @@ class DATA_PT_context_curve(DataButtonsPanel):
 			split.template_ID(space, "pin_id")
 			split.itemS()
 
-
 class DATA_PT_shape_curve(DataButtonsPanel):
-	__idname__ = "DATA_PT_shape_curve"
 	__label__ = "Shape"
 	
 	def draw(self, context):
@@ -70,11 +67,11 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 #			sub.itemR(curve, "vertex_normal_flip")
 
 class DATA_PT_geometry_curve(DataButtonsPanel):
-	__idname__ = "DATA_PT_geometry_curve"
 	__label__ = "Geometry "
 
 	def draw(self, context):
 		layout = self.layout
+		
 		curve = context.curve
 
 		split = layout.split()
@@ -92,66 +89,67 @@ class DATA_PT_geometry_curve(DataButtonsPanel):
 		sub.itemR(curve, "bevel_object", icon="ICON_OUTLINER_OB_CURVE")
 	
 class DATA_PT_pathanim(DataButtonsPanel):
-	__idname__ = "DATA_PT_pathanim"
 	__label__ = "Path Animation"
 	
 	def draw_header(self, context):
 		layout = self.layout
+		
 		curve = context.curve
 
 		layout.itemR(curve, "path", text="")
 
 	def draw(self, context):
-		curve = context.curve
 		layout = self.layout
+		
+		curve = context.curve
+		
 		layout.active = curve.path	
 		
 		split = layout.split()		
 		
-		sub = split.column()
-		sub.itemR(curve, "path_length", text="Frames")
-		sub.itemR(curve, "follow")
+		col = split.column()
+		col.itemR(curve, "path_length", text="Frames")
+		col.itemR(curve, "follow")
 
-		sub = split.column()
-		sub.itemR(curve, "stretch")
-		sub.itemR(curve, "offset_path_distance", text="Offset Children")
+		col = split.column()
+		col.itemR(curve, "stretch")
+		col.itemR(curve, "offset_path_distance", text="Offset Children")
 	
 class DATA_PT_current_curve(DataButtonsPanel):
-	__idname__ = "DATA_PT_current_curve"
 	__label__ = "Current Curve"
 
 	def draw(self, context):
 		layout = self.layout
+		
 		currentcurve = context.curve.curves[0] # XXX
 
 		split = layout.split()
 	
-		sub = split.column()
-		sub.itemL(text="Cyclic:")
-		sub.itemR(currentcurve, "cyclic_u", text="U")
-		sub.itemR(currentcurve, "cyclic_v", text="V")
-		sub.itemL(text="Order:")
-		sub.itemR(currentcurve, "order_u", text="U")
-		sub.itemR(currentcurve, "order_v", text="V")
-		sub.itemL(text="Endpoints:")
-		sub.itemR(currentcurve, "endpoint_u", text="U")
-		sub.itemR(currentcurve, "endpoint_v", text="V")
+		col = split.column()
+		col.itemL(text="Cyclic:")
+		col.itemR(currentcurve, "cyclic_u", text="U")
+		col.itemR(currentcurve, "cyclic_v", text="V")
+		col.itemL(text="Order:")
+		col.itemR(currentcurve, "order_u", text="U")
+		col.itemR(currentcurve, "order_v", text="V")
+		col.itemL(text="Endpoints:")
+		col.itemR(currentcurve, "endpoint_u", text="U")
+		col.itemR(currentcurve, "endpoint_v", text="V")
 		
-		sub = split.column()
-		sub.itemL(text="Bezier:")
-		sub.itemR(currentcurve, "bezier_u", text="U")
-		sub.itemR(currentcurve, "bezier_v", text="V")
-		sub.itemL(text="Resolution:")
-		sub.itemR(currentcurve, "resolution_u", text="U")
-		sub.itemR(currentcurve, "resolution_v", text="V")
-		sub.itemL(text="Interpolation:")
-		sub.itemR(currentcurve, "tilt_interpolation", text="Tilt")
-		sub.itemR(currentcurve, "radius_interpolation", text="Tilt")
-		sub.itemR(currentcurve, "smooth")
+		col = split.column()
+		col.itemL(text="Bezier:")
+		col.itemR(currentcurve, "bezier_u", text="U")
+		col.itemR(currentcurve, "bezier_v", text="V")
+		col.itemL(text="Resolution:")
+		col.itemR(currentcurve, "resolution_u", text="U")
+		col.itemR(currentcurve, "resolution_v", text="V")
+		col.itemL(text="Interpolation:")
+		col.itemR(currentcurve, "tilt_interpolation", text="Tilt")
+		col.itemR(currentcurve, "radius_interpolation", text="Tilt")
+		col.itemR(currentcurve, "smooth")
 		
 bpy.types.register(DATA_PT_context_curve)
 bpy.types.register(DATA_PT_shape_curve)
 bpy.types.register(DATA_PT_geometry_curve)
 bpy.types.register(DATA_PT_pathanim)
 bpy.types.register(DATA_PT_current_curve)
-

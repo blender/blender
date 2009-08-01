@@ -34,16 +34,44 @@
 
 #ifdef RNA_RUNTIME
 
+#include "MEM_guardedalloc.h"
+
+#include "BKE_texture.h"
+
 static void rna_Brush_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Brush *brush= (Brush*)ptr->data;
-	rna_iterator_array_begin(iter, (void*)brush->mtex, sizeof(MTex*), MAX_MTEX, NULL);
+	rna_iterator_array_begin(iter, (void*)brush->mtex, sizeof(MTex*), MAX_MTEX, 0, NULL);
 }
 
 static PointerRNA rna_Brush_active_texture_get(PointerRNA *ptr)
 {
-	Brush *brush= (Brush*)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_TextureSlot, brush->mtex[(int)brush->texact]);
+	Brush *br= (Brush*)ptr->data;
+	Tex *tex;
+
+	tex= (br->mtex[(int)br->texact])? br->mtex[(int)br->texact]->tex: NULL;
+	return rna_pointer_inherit_refine(ptr, &RNA_Texture, tex);
+}
+
+static void rna_Brush_active_texture_set(PointerRNA *ptr, PointerRNA value)
+{
+	Brush *br= (Brush*)ptr->data;
+	int act= br->texact;
+
+	if(br->mtex[act] && br->mtex[act]->tex)
+		id_us_min(&br->mtex[act]->tex->id);
+
+	if(value.data) {
+		if(!br->mtex[act])
+			br->mtex[act]= add_mtex();
+		
+		br->mtex[act]->tex= value.data;
+		id_us_plus(&br->mtex[act]->tex->id);
+	}
+	else if(br->mtex[act]) {
+		MEM_freeN(br->mtex[act]);
+		br->mtex[act]= NULL;
+	}
 }
 
 static float rna_Brush_rotation_get(PointerRNA *ptr)
@@ -89,6 +117,7 @@ void rna_def_brush(BlenderRNA *brna)
 		{SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", ""},
 		{SCULPT_TOOL_LAYER, "LAYER", 0, "Layer", ""},
 		{SCULPT_TOOL_FLATTEN, "FLATTEN", 0, "Flatten", ""},
+		{SCULPT_TOOL_CLAY, "CLAY", 0, "Clay", ""},
  		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Brush", "ID");
@@ -153,7 +182,7 @@ void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_TORUS);
 	RNA_def_property_ui_text(prop, "Wrap", "Enable torus wrapping while painting.");
 	
-	prop= RNA_def_property(srna, "alpha_pressure", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "opacity_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ALPHA_PRESSURE);
 	RNA_def_property_ui_text(prop, "Opacity Pressure", "Enable tablet pressure sensitivity for opacity.");
 	
@@ -198,7 +227,8 @@ void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Curve", "Editable falloff curve.");
 
 	/* texture */
-	rna_def_mtex_common(srna, "rna_Brush_mtex_begin", "rna_Brush_active_texture_get", "TextureSlot");
+	rna_def_mtex_common(srna, "rna_Brush_mtex_begin", "rna_Brush_active_texture_get",
+		"rna_Brush_active_texture_set", "TextureSlot");
 
 	/* clone tool */
 	prop= RNA_def_property(srna, "clone_image", PROP_POINTER, PROP_NONE);

@@ -47,7 +47,7 @@ extern void wm_check(bContext *C);
 extern void wm_clear_default_size(bContext *C);
 			
 			/* register to windowmanager for redo or macro */
-void		wm_operator_register(wmWindowManager *wm, wmOperator *op);
+void		wm_operator_register(bContext *C, wmOperator *op);
 
 extern void wm_report_free(wmReport *report);
 
@@ -66,7 +66,7 @@ void wm_gesture_tag_redraw(bContext *C);
 
 /* wm_jobs.h */
 void WM_OT_jobs_timer(struct wmOperatorType *ot);
-
+void wm_jobs_timer_ended(wmWindowManager *wm, wmTimer *wt);
 
 #endif /* WM_H */
 

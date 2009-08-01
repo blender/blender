@@ -7,7 +7,7 @@ Group: 'Import'
 Tooltip: 'Import for DWG/DXF geometry data.'
 """
 __author__ = 'Kitsu(Ed Blake) & migius(Remigiusz Fiedler)'
-__version__ = '1.12 - 2009.05.27 by migius'
+__version__ = '1.12 - 2009.06.16 by migius'
 __url__ = ["http://blenderartists.org/forum/showthread.php?t=84319",
 	 "http://wiki.blender.org/index.php/Scripts/Manual/Import/DXF-3D"]
 __email__ = ["migius(at)4d-vectors.de","Kitsune_e(at)yahoo.com"]
@@ -100,7 +100,7 @@ History:
  -- better support for long dxf-layer-names 
  -- add configuration file.ini handles multiple material setups
  -- added f_layerFilter
- -- to-check: obj/mat/group/_mapping-idea from ideasman42:
+ -- to-check: obj/mat/group/_mapping-idea from ideasman42
  -- curves: added "fill/non-fill" option for closed curves: CIRCLEs,ELLIPSEs,POLYLINEs
  -- "normalize Z" option to correct non-planar figures
  -- LINEs need "width" in 3d-space incl vGroups
@@ -108,11 +108,13 @@ History:
  -- add better support for color_index BYLAYER=256, BYBLOCK=0 
  -- bug: "oneMesh" produces irregularly errors
  -- bug: Registry recall from hd_cache ?? only win32 bug??
- -- support DXF-definitions of scene, lights and cameras
+ -- support DXF-definitions of autoshade: scene, lights and cameras
  -- support ortho mode for VIEWs and VPORTs as cameras 
 
+ v1.12 - 2009.06.16 by migius
+ d7 fix for ignored BLOCKs (e.g. *X) which are members of other BLOCKs
  v1.12 - 2009.05.27 by migius
- d6 todo: bugfix negative scaled INSERTs - isLeftHand(Matrix) check
+ d6 bugfix negative scaled INSERTs - isLeftHand(Matrix) check
  v1.12 - 2009.05.26 by migius
  d5 changed to the new 2.49 method Vector.cross()
  d5 bugfix WORLDY(1,1,0) to (0,1,0)
@@ -161,7 +163,7 @@ History:
  a4 added to analyzeTool: report about VIEWs, VPORTs, unused/xref BLOCKs
  a4 bugfix: individual support for 2D/3DPOLYLINE/POLYMESH
  a4 added to UI: (*wip)BLOCK-(F): name filtering for BLOCKs
- a4 added to UI: BLOCK-(n): filter anoname/hatch BLOCKs *X...
+ a4 added to UI: BLOCK-(n): filter noname/hatch BLOCKs *X...
  a2 g_scale_as is no more GUI_A-variable
  a2 bugfix "material": negative sign color_index
  a2 added support for BLOCKs defined with origin !=(0,0,0)
@@ -4520,7 +4522,7 @@ def getBlocksmap(drawing, layersmap, layFrozen_on=False):  #--------------------
 					item2str = [item2.name, item2.layer]
 					childList.append(item2str)
 			try: usedblocks[item.name] = [used, childList]
-			except KeyError: print 'Cannot map "%s" - "%s" as Block!' %(item.name, item)
+			except KeyError: print 'Cannot find "%s" Block!' %(item.name)
 	#print 'deb:getBlocksmap: usedblocks=' , usedblocks #-------------
 	#print 'deb:getBlocksmap:  layersmap=' , layersmap #-------------
 
@@ -4528,7 +4530,7 @@ def getBlocksmap(drawing, layersmap, layFrozen_on=False):  #--------------------
 		if type(item) != list and item.type == 'insert':
 			if not layersmap or (not layersmap[item.layer].frozen or layFrozen_on): #if insert_layer is not frozen
 				try: usedblocks[item.name][0] = True 
-				except: pass
+				except KeyError: print 'Cannot find "%s" Block!' %(item.name)
 				
 	key_list = usedblocks.keys()
 	key_list.reverse()
@@ -4536,7 +4538,8 @@ def getBlocksmap(drawing, layersmap, layFrozen_on=False):  #--------------------
 		if usedblocks[key][0]: #if parent used, then set used also all child blocks
 			for child in usedblocks[key][1]:
 				if not layersmap or (layersmap and not layersmap[child[1]].frozen): #if insert_layer is not frozen
-					usedblocks[child[0]][0] = True # marked as used BLOCK
+					try: usedblocks[child[0]][0] = True # marked as used BLOCK
+					except KeyError: print 'Cannot find "%s" Block!' %(child[0])
 
 	usedblocks = [i for i in usedblocks.keys() if usedblocks[i][0]]
 	#print 'deb:getBlocksmap: usedblocks=' , usedblocks #-------------

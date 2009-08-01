@@ -43,6 +43,8 @@
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 
+#include "RNA_access.h"
+
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
 #include "BKE_key.h"

@@ -1250,7 +1250,7 @@ static void particle_curve(Render *re, ObjectRen *obr, DerivedMesh *dm, Material
 {
 	HaloRen *har=0;
 
-	if(ma->mode&MA_WIRE)
+	if(ma->material_type == MA_TYPE_WIRE)
 		static_particle_wire(obr, ma, loc, loc1, sd->first, sd->line);
 	else if(ma->material_type == MA_TYPE_HALO) {
 		har= RE_inithalo_particle(re, obr, dm, ma, loc, loc1, sd->orco, sd->uvco, sd->size, 1.0, seed);
@@ -1513,12 +1513,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		return 1;
 
 /* 2. start initialising things */
-	if(part->phystype==PART_PHYS_KEYED){
-		if(psys->flag & PSYS_FIRST_KEYED)
-			psys_count_keyed_targets(ob,psys);
-		else
-			return 1;
-	}
+	if(part->phystype==PART_PHYS_KEYED)
+		psys_count_keyed_targets(ob,psys);
 
 	/* last possibility to bail out! */
 	psmd= psys_get_modifier(ob,psys);
@@ -1606,10 +1602,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		calc_ipo(part->ipo, cfra);
 		execute_ipo((ID *)part, part->ipo);
 	}
-#endif // XXX old animation system
 
 	if(part->flag & PART_GLOB_TIME)
-		cfra = bsystem_time(re->scene, 0, (float)re->scene->r.cfra, 0.0);
+#endif // XXX old animation system
+	cfra = bsystem_time(re->scene, 0, (float)re->scene->r.cfra, 0.0);
 
 /* 2.4 setup reactors */
 	if(part->type == PART_REACTOR){
@@ -1631,7 +1627,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		path_nbr=(int)pow(2.0,(double) part->ren_step);
 
 		if(path_nbr) {
-			if((ma->material_type != MA_TYPE_HALO) && (ma->mode & MA_WIRE)==0) {
+			if(!ELEM(ma->material_type, MA_TYPE_HALO, MA_TYPE_WIRE)) {
 				sd.orco = MEM_mallocN(3*sizeof(float)*(totpart+totchild), "particle orcos");
 				set_object_orco(re, psys, sd.orco);
 			}
@@ -1707,8 +1703,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			pa_time=(cfra-pa->time)/pa->lifetime;
 			pa_birthtime = pa->time;
 			pa_dietime = pa->dietime;
-			if((part->flag&PART_ABS_TIME) == 0){
 #if 0 // XXX old animation system
+			if((part->flag&PART_ABS_TIME) == 0){
 				if(ma->ipo) {
 					/* correction for lifetime */
 					calc_ipo(ma->ipo, 100.0f * pa_time);
@@ -1719,8 +1715,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					calc_ipo(part->ipo, 100.0f*pa_time);
 					execute_ipo((ID *)part, part->ipo);
 				}
-#endif // XXX old animation system
 			}
+#endif // XXX old animation system
 
 			hasize = ma->hasize;
 
@@ -1767,8 +1763,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			
 			pa_time = psys_get_child_time(psys, cpa, cfra, &pa_birthtime, &pa_dietime);
 
-			if((part->flag & PART_ABS_TIME) == 0) {
 #if 0 // XXX old animation system
+			if((part->flag & PART_ABS_TIME) == 0) {
 				if(ma->ipo){
 					/* correction for lifetime */
 					calc_ipo(ma->ipo, 100.0f * pa_time);
@@ -1779,8 +1775,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					calc_ipo(part->ipo, 100.0f * pa_time);
 					execute_ipo((ID *)part, part->ipo);
 				}
-#endif // XXX old animation system
 			}
+#endif // XXX old animation system
 
 			pa_size = psys_get_child_size(psys, cpa, cfra, &pa_time);
 
@@ -2247,6 +2243,7 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 	/* memset above means we dont need this */
 	/*shi.osatex= 0;*/		/* signal not to use dx[] and dy[] texture AA vectors */
 
+	shi.obr= obr;
 	shi.vlr= vlr;		/* current render face */
 	shi.mat= vlr->mat;		/* current input material */
 	shi.thread= 0;
@@ -2586,9 +2583,9 @@ static void init_render_surf(Render *re, ObjectRen *obr)
 	Curve *cu;
 	ListBase displist;
 	DispList *dl;
-	Material *matar[32];
+	Material **matar;
 	float *orco=NULL, *orcobase=NULL, mat[4][4];
-	int a, need_orco=0;
+	int a, totmat, need_orco=0;
 
 	cu= ob->data;
 	nu= cu->nurb.first;
@@ -2598,13 +2595,14 @@ static void init_render_surf(Render *re, ObjectRen *obr)
 	MTC_Mat4Invert(ob->imat, mat);
 
 	/* material array */
-	memset(matar, 0, 4*32);
-	matar[0]= give_render_material(re, ob, 0);
-	for(a=0; a<ob->totcol; a++) {
+	totmat= ob->totcol+1;
+	matar= MEM_callocN(sizeof(Material*)*totmat, "init_render_surf matar");
+
+	for(a=0; a<totmat; a++) {
 		matar[a]= give_render_material(re, ob, a+1);
-		if(matar[a] && matar[a]->texco & TEXCO_ORCO) {
+
+		if(matar[a] && matar[a]->texco & TEXCO_ORCO)
 			need_orco= 1;
-		}
 	}
 
 	if(ob->parent && (ob->parent->type==OB_LATTICE)) need_orco= 1;
@@ -2614,17 +2612,15 @@ static void init_render_surf(Render *re, ObjectRen *obr)
 	displist.first= displist.last= 0;
 	makeDispListSurf(re->scene, ob, &displist, 1, 0);
 
-	dl= displist.first;
 	/* walk along displaylist and create rendervertices/-faces */
-	while(dl) {
-			/* watch out: u ^= y, v ^= x !! */
-		if(dl->type==DL_SURF) {
+	for(dl=displist.first; dl; dl=dl->next) {
+		/* watch out: u ^= y, v ^= x !! */
+		if(dl->type==DL_SURF)
 			orco+= 3*dl_surf_to_renderdata(obr, dl, matar, orco, mat);
-		}
-
-		dl= dl->next;
 	}
+
 	freedisplist(&displist);
+	MEM_freeN(matar);
 }
 
 static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
@@ -2635,11 +2631,11 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	VlakRen *vlr;
 	DispList *dl;
 	ListBase olddl={NULL, NULL};
-	Material *matar[32];
+	Material **matar;
 	float len, *data, *fp, *orco=NULL, *orcobase= NULL;
 	float n[3], mat[4][4];
 	int nr, startvert, startvlak, a, b;
-	int frontside, need_orco=0;
+	int frontside, need_orco=0, totmat;
 
 	cu= ob->data;
 	if(ob->type==OB_FONT && cu->str==NULL) return;
@@ -2660,13 +2656,14 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	MTC_Mat4Invert(ob->imat, mat);
 
 	/* material array */
-	memset(matar, 0, 4*32);
-	matar[0]= give_render_material(re, ob, 0);
-	for(a=0; a<ob->totcol; a++) {
+	totmat= ob->totcol+1;
+	matar= MEM_callocN(sizeof(Material*)*totmat, "init_render_surf matar");
+
+	for(a=0; a<totmat; a++) {
 		matar[a]= give_render_material(re, ob, a+1);
-		if(matar[a]->texco & TEXCO_ORCO) {
+
+		if(matar[a] && matar[a]->texco & TEXCO_ORCO)
 			need_orco= 1;
-		}
 	}
 
 	if(need_orco) orcobase=orco= get_object_orco(re, ob);
@@ -2844,6 +2841,8 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 		freedisplist(&cu->disp);
 		SWAP(ListBase, olddl, cu->disp);
 	}
+
+	MEM_freeN(matar);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -3125,7 +3124,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				}
 				
 				/* if wire material, and we got edges, don't do the faces */
-				if(ma->mode & MA_WIRE) {
+				if(ma->material_type == MA_TYPE_WIRE) {
 					end= dm->getNumEdges(dm);
 					if(end) ok= 0;
 				}
@@ -3210,7 +3209,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			end= dm->getNumEdges(dm);
 			mvert= dm->getVertArray(dm);
 			ma= give_render_material(re, ob, 1);
-			if(end && (ma->mode & MA_WIRE)) {
+			if(end && (ma->material_type == MA_TYPE_WIRE)) {
 				MEdge *medge;
 				struct edgesort *edgetable;
 				int totedge= 0;
@@ -3835,7 +3834,7 @@ static void split_quads(ObjectRen *obr, int dir)
 		vlr= RE_findOrAddVlak(obr, a);
 		
 		/* test if rendering as a quad or triangle, skip wire */
-		if(vlr->v4 && (vlr->flag & R_STRAND)==0 && (vlr->mat->mode & MA_WIRE)==0) {
+		if(vlr->v4 && (vlr->flag & R_STRAND)==0 && (vlr->mat->material_type != MA_TYPE_WIRE)) {
 			
 			if(vlr->v4) {
 
@@ -3885,7 +3884,7 @@ static void check_non_flat_quads(ObjectRen *obr)
 		vlr= RE_findOrAddVlak(obr, a);
 		
 		/* test if rendering as a quad or triangle, skip wire */
-		if(vlr->v4 && (vlr->flag & R_STRAND)==0 && (vlr->mat->mode & MA_WIRE)==0) {
+		if(vlr->v4 && (vlr->flag & R_STRAND)==0 && (vlr->mat->material_type != MA_TYPE_WIRE)) {
 			
 			/* check if quad is actually triangle */
 			v1= vlr->v1;
@@ -4703,6 +4702,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	extern int slurph_opt;	/* key.c */
 	Scene *sce;
 	float mat[4][4];
+	float amb[3];
 	unsigned int lay;
 
 	re->scene= scene;
@@ -4749,7 +4749,9 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	
 	/* still bad... doing all */
 	init_render_textures(re);
-	init_render_materials(re->r.mode, &re->wrld.ambr);
+	if (re->r.color_mgt_flag & R_COLOR_MANAGEMENT) color_manage_linearize(amb, &re->wrld.ambr);
+	else VECCOPY(amb, &re->wrld.ambr);
+	init_render_materials(re->r.mode, amb);
 	set_node_shader_lamp_loop(shade_material_loop);
 
 	/* MAKE RENDER DATA */
@@ -5360,6 +5362,7 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 {
 	float mat[4][4];
+	float amb[3];
 	unsigned int lay;
 	int onlyselected, nolamps;
 	
@@ -5421,9 +5424,13 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 	
 	/* still bad... doing all */
 	init_render_textures(re);
-	init_render_materials(re->r.mode, &re->wrld.ambr);
+	
+	if (re->r.color_mgt_flag & R_COLOR_MANAGEMENT) color_manage_linearize(amb, &re->wrld.ambr);
+	else VECCOPY(amb, &re->wrld.ambr);
+	init_render_materials(re->r.mode, amb);
+	
 	set_node_shader_lamp_loop(shade_material_loop);
-
+	
 	/* MAKE RENDER DATA */
 	nolamps= !ELEM3(type, RE_BAKE_LIGHT, RE_BAKE_ALL, RE_BAKE_SHADOW);
 	onlyselected= ELEM3(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_DISPLACEMENT);

@@ -8,14 +8,15 @@ class PhysicButtonsPanel(bpy.types.Panel):
 
 	def poll(self, context):
 		ob = context.object
-		return (ob and ob.type == 'MESH')
+		rd = context.scene.render_data
+		return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
 		
 class PHYSICS_PT_softbody(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_softbody"
 	__label__ = "Soft Body"
 
 	def draw(self, context):
 		layout = self.layout
+		
 		md = context.soft_body
 		ob = context.object
 
@@ -25,14 +26,14 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
 		if md:
 			# remove modifier + settings
 			split.set_context_pointer("modifier", md)
-			split.itemO("OBJECT_OT_modifier_remove", text="Remove")
+			split.itemO("object.modifier_remove", text="Remove")
 
 			row = split.row(align=True)
 			row.itemR(md, "render", text="")
 			row.itemR(md, "realtime", text="")
 		else:
 			# add modifier
-			split.item_enumO("OBJECT_OT_modifier_add", "type", "SOFTBODY", text="Add")
+			split.item_enumO("object.modifier_add", "type", "SOFTBODY", text="Add")
 			split.itemL("")
 			
 		if md:
@@ -50,23 +51,23 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
 			col.itemL(text="Simulation:")
 			col.itemR(softbody, "gravity")
 			col.itemR(softbody, "speed")
-			
-			
+	
 class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_softbody_goal"
 	__label__ = "Soft Body Goal"
 	
 	def poll(self, context):
-		return (context.soft_body != None)
+		return (context.soft_body)
 		
 	def draw_header(self, context):
 		layout = self.layout
+		
 		softbody = context.soft_body.settings
 	
 		layout.itemR(softbody, "use_goal", text="")
 		
 	def draw(self, context):
 		layout = self.layout
+		
 		md = context.soft_body
 		ob = context.object
 
@@ -82,35 +83,35 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
 			col = split.column()
 			col.itemL(text="Goal Strengths:")
 			col.itemR(softbody, "goal_default", text="Default")
-			subcol = col.column(align=True)
-			subcol.itemR(softbody, "goal_min", text="Minimum")
-			subcol.itemR(softbody, "goal_max", text="Maximum")
+			sub = col.column(align=True)
+			sub.itemR(softbody, "goal_min", text="Minimum")
+			sub.itemR(softbody, "goal_max", text="Maximum")
 			
 			col = split.column()
 			col.itemL(text="Goal Settings:")
 			col.itemR(softbody, "goal_spring", text="Stiffness")
 			col.itemR(softbody, "goal_friction", text="Damping")
+			
 			layout.item_pointerR(softbody, "goal_vertex_group", ob, "vertex_groups", text="Vertex Group")
 
 class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_softbody_edge"
 	__label__ = "Soft Body Edges"
 	
 	def poll(self, context):
-		return (context.soft_body != None)
+		return (context.soft_body)
 		
 	def draw_header(self, context):
 		layout = self.layout
+		
 		softbody = context.soft_body.settings
 	
 		layout.itemR(softbody, "use_edges", text="")
 		
 	def draw(self, context):
 		layout = self.layout
+		
 		md = context.soft_body
 		ob = context.object
-
-		split = layout.split()
 			
 		if md:
 			softbody = md.settings
@@ -130,43 +131,43 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
 			
 			col = split.column()
 			col.itemR(softbody, "stiff_quads")
-			subcol = col.column()
-			subcol.active = softbody.stiff_quads
-			subcol.itemR(softbody, "shear")
+			sub = col.column()
+			sub.active = softbody.stiff_quads
+			sub.itemR(softbody, "shear")
 			
 			col.itemR(softbody, "new_aero", text="Aero")
-			subcol = col.column()
-			subcol.active = softbody.new_aero
-			subcol.itemR(softbody, "aero", text="Factor", enabled=softbody.new_aero)
+			sub = col.column()
+			sub.enabled = softbody.new_aero
+			sub.itemR(softbody, "aero", text="Factor")
 
 			col.itemL(text="Collision:")
 			col.itemR(softbody, "edge_collision", text="Edge")
 			col.itemR(softbody, "face_collision", text="Face")
 			
 class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_softbody_collision"
 	__label__ = "Soft Body Collision"
 	
 	def poll(self, context):
-		return (context.soft_body != None)
+		return (context.soft_body)
 		
 	def draw_header(self, context):
 		layout = self.layout
+		
 		softbody = context.soft_body.settings
 	
 		layout.itemR(softbody, "self_collision", text="")
 		
 	def draw(self, context):
 		layout = self.layout
+		
 		md = context.soft_body
 		ob = context.object
-
-		split = layout.split()
 			
 		if md:
 			softbody = md.settings
 
 			layout.active = softbody.self_collision
+			
 			layout.itemL(text="Collision Type:")
 			layout.itemR(softbody, "collision_type", expand=True)
 			
@@ -177,19 +178,17 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
 			col.itemR(softbody, "ball_damp", text="Dampening")
 
 class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_softbody_solver"
 	__label__ = "Soft Body Solver"
 	
 	def poll(self, context):
-		return (context.soft_body != None)
+		return (context.soft_body)
 		
 	def draw(self, context):
 		layout = self.layout
+		
 		md = context.soft_body
 		ob = context.object
-
-		split = layout.split()
-			
+		
 		if md:
 			softbody = md.settings
 
@@ -204,7 +203,6 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
 			
 			col = split.column()
 			col.itemR(softbody, "error_limit")
-
 			col.itemL(text="Helpers:")
 			col.itemR(softbody, "choke")
 			col.itemR(softbody, "fuzzy")

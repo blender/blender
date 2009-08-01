@@ -365,8 +365,24 @@ int imb_is_a_targa(void *buf) {
 	return checktarga(&tga, buf);
 }
 
-static void decodetarga(struct ImBuf *ibuf, unsigned char *mem, int psize)
+static void complete_partial_load(struct ImBuf *ibuf, unsigned int *rect)
 {
+	int size = (ibuf->x * ibuf->y) - (rect - ibuf->rect);
+	if(size) {
+		printf("decodetarga: incomplete file, %.1f%% missing\n", 100*((float)size / (ibuf->x * ibuf->y)));
+
+		/* not essential but makes displaying partially rendered TGA's less ugly  */
+		memset(rect, 0, size);
+	}
+	else {
+		/* shouldnt happen */
+		printf("decodetarga: incomplete file, all pixels written\n");
+	}
+}
+
+static void decodetarga(struct ImBuf *ibuf, unsigned char *mem, int mem_size, int psize)
+{
+	unsigned char *mem_end = mem+mem_size;
 	int count, col, size;
 	unsigned int *rect;
 	uchar * cp = (uchar *) &col;
@@ -380,9 +396,13 @@ static void decodetarga(struct ImBuf *ibuf, unsigned char *mem, int psize)
 	/* set alpha */
 	cp[0] = 0xff;
 	cp[1] = cp[2] = 0;
-	
+
 	while(size > 0){
 		count = *mem++;
+
+		if(mem>mem_end)
+			goto partial_load;
+
 		if (count >= 128) {
 			/*if (count == 128) printf("TARGA: 128 in file !\n");*/
 			count -= 127;
@@ -452,15 +472,28 @@ static void decodetarga(struct ImBuf *ibuf, unsigned char *mem, int psize)
 					}
 					*rect++ = col;
 					count --;
+
+					if(mem>mem_end)
+						goto partial_load;
 				}
+
+				if(mem>mem_end)
+					goto partial_load;
 			}
 		}
 	}
-	if (size) printf("decodetarga: count would overwrite %d pixels\n", -size);
+	if (size) {
+		printf("decodetarga: count would overwrite %d pixels\n", -size);
+	}
+	return;
+
+partial_load:
+	complete_partial_load(ibuf, rect);
 }
 
-static void ldtarga(struct ImBuf * ibuf,unsigned char * mem, int psize)
+static void ldtarga(struct ImBuf * ibuf,unsigned char * mem, int mem_size, int psize)
 {
+	unsigned char *mem_end = mem+mem_size;
 	int col,size;
 	unsigned int *rect;
 	uchar * cp = (uchar *) &col;
@@ -476,6 +509,9 @@ static void ldtarga(struct ImBuf * ibuf,unsigned char * mem, int psize)
 	cp[1] = cp[2] = 0;
 
 	while(size > 0){
+		if(mem>mem_end)
+			goto partial_load;
+
 		if (psize & 2){
 			if (psize & 1){
 				/* order = bgra */
@@ -505,10 +541,14 @@ static void ldtarga(struct ImBuf * ibuf,unsigned char * mem, int psize)
 		*rect++ = col;
 		size--;
 	}
+	return;
+
+partial_load:
+	complete_partial_load(ibuf, rect);
 }
 
 
-struct ImBuf *imb_loadtarga(unsigned char *mem, int flags)
+struct ImBuf *imb_loadtarga(unsigned char *mem, int mem_size, int flags)
 {
 	TARGA tga;
 	struct ImBuf * ibuf;
@@ -579,18 +619,18 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, int flags)
 	case 1:
 	case 2:
 	case 3:
-		if (tga.pixsize <= 8) ldtarga(ibuf,mem,0);
-		else if (tga.pixsize <= 16) ldtarga(ibuf,mem,1);
-		else if (tga.pixsize <= 24) ldtarga(ibuf,mem,2);
-		else if (tga.pixsize <= 32) ldtarga(ibuf,mem,3);
+		if (tga.pixsize <= 8) ldtarga(ibuf,mem,mem_size,0);
+		else if (tga.pixsize <= 16) ldtarga(ibuf,mem,mem_size,1);
+		else if (tga.pixsize <= 24) ldtarga(ibuf,mem,mem_size,2);
+		else if (tga.pixsize <= 32) ldtarga(ibuf,mem,mem_size,3);
 		break;
 	case 9:
 	case 10:
 	case 11:
-		if (tga.pixsize <= 8) decodetarga(ibuf,mem,0);
-		else if (tga.pixsize <= 16) decodetarga(ibuf,mem,1);
-		else if (tga.pixsize <= 24) decodetarga(ibuf,mem,2);
-		else if (tga.pixsize <= 32) decodetarga(ibuf,mem,3);
+		if (tga.pixsize <= 8) decodetarga(ibuf,mem,mem_size,0);
+		else if (tga.pixsize <= 16) decodetarga(ibuf,mem,mem_size,1);
+		else if (tga.pixsize <= 24) decodetarga(ibuf,mem,mem_size,2);
+		else if (tga.pixsize <= 32) decodetarga(ibuf,mem,mem_size,3);
 		break;
 	}
 	

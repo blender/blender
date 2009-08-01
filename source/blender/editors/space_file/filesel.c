@@ -73,6 +73,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "RNA_access.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -95,42 +97,70 @@ static int fnmatch(const char *pattern, const char *string, int flags)
 FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile)
 {
 	if (!sfile->params) {
-		ED_fileselect_set_params(sfile, "", NULL, "/", 0, FILE_SHORTDISPLAY, 0, FILE_SORT_ALPHA);
+		ED_fileselect_set_params(sfile);
 	}
 	return sfile->params;
 }
 
-short ED_fileselect_set_params(SpaceFile *sfile, const char *title, const char *last_dir, const char *path,
-							   short flag, short display, short filter, short sort)
+short ED_fileselect_set_params(SpaceFile *sfile)
 {
 	char name[FILE_MAX], dir[FILE_MAX], file[FILE_MAX];
 	FileSelectParams *params;
+	wmOperator *op = sfile->op;
 
+	/* create new parameters if necessary */
 	if (!sfile->params) {
 		sfile->params= MEM_callocN(sizeof(FileSelectParams), "fileselparams");
+		/* set path to most recently opened .blend */
+		BLI_strncpy(sfile->params->dir, G.sce, sizeof(sfile->params->dir));
+		BLI_split_dirfile(G.sce, dir, file);
+		BLI_strncpy(sfile->params->file, file, sizeof(sfile->params->file));
+		BLI_make_file_string(G.sce, sfile->params->dir, dir, ""); /* XXX needed ? - also solve G.sce */
 	}
 
 	params = sfile->params;
 
-	params->flag = flag;
-	params->display = display;
-	params->filter = filter;
-	params->sort = sort;
+	/* set the parameters from the operator, if it exists */
+	if (op) {
+		BLI_strncpy(params->title, op->type->name, sizeof(params->title));
+		params->filter = 0;
+		params->filter |= RNA_boolean_get(op->ptr, "filter_blender") ? BLENDERFILE : 0;
+		params->filter |= RNA_boolean_get(op->ptr, "filter_image") ? IMAGEFILE : 0;
+		params->filter |= RNA_boolean_get(op->ptr, "filter_movie") ? MOVIEFILE : 0;
+		params->filter |= RNA_boolean_get(op->ptr, "filter_text") ? TEXTFILE : 0;
+		params->filter |= RNA_boolean_get(op->ptr, "filter_python") ? PYSCRIPTFILE : 0;
+		params->filter |= RNA_boolean_get(op->ptr, "filter_font") ? FTFONTFILE : 0;
+		params->filter |= RNA_boolean_get(op->ptr, "filter_sound") ? SOUNDFILE : 0;
+		params->filter |= RNA_boolean_get(op->ptr, "filter_text") ? TEXTFILE : 0;
+		params->filter |= RNA_boolean_get(op->ptr, "filter_folder") ? FOLDERFILE : 0;
+		if (params->filter != 0)
+			params->flag |= FILE_FILTER;
 
-	BLI_strncpy(params->title, title, sizeof(params->title));
-
-	if(last_dir){
-		BLI_strncpy(params->dir, last_dir, sizeof(params->dir));
+		params->flag |= FILE_HIDE_DOT;
+		
+		if(params->filter & (IMAGEFILE|MOVIEFILE))
+			params->display= FILE_IMGDISPLAY;
+		else
+			params->display= FILE_SHORTDISPLAY;
+		
+		/* if operator has path set, use it, otherwise keep the last */
+		if (RNA_property_is_set(op->ptr, "filename")) {
+			RNA_string_get(op->ptr, "filename", name);
+			BLI_convertstringcode(name, G.sce);
+			BLI_split_dirfile(name, dir, file);
+			BLI_strncpy(params->file, file, sizeof(params->file));
+			BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */		
+		}
+	} else {
+		/* default values, if no operator */
+		params->flag |= FILE_HIDE_DOT;
+		params->display = FILE_SHORTDISPLAY;
+		params->filter = 0;
+		params->sort = FILE_SORT_ALPHA;
 	}
-	else {
-		BLI_strncpy(name, path, sizeof(name));
-		BLI_convertstringcode(name, G.sce);
 
-		BLI_split_dirfile(name, dir, file);
-		BLI_strncpy(params->file, file, sizeof(params->file));
-		BLI_strncpy(params->dir, dir, sizeof(params->dir));
-		BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */			
-	}
+	/* new params, refresh file list */
+	if(sfile->files) filelist_free(sfile->files);
 
 	return 1;
 }
@@ -141,17 +171,34 @@ void ED_fileselect_reset_params(SpaceFile *sfile)
 	sfile->params->title[0] = '\0';
 }
 
+int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar)
+{
+	int numfiles;
+
+	if (layout->flag & FILE_LAYOUT_HOR) {
+		short width = ar->v2d.cur.xmax - ar->v2d.cur.xmin - 2*layout->tile_border_x;
+		numfiles = width/layout->tile_w + 1;
+	} else {
+		short height = ar->v2d.cur.ymax - ar->v2d.cur.ymin - 2*layout->tile_border_y;
+		numfiles = height/layout->tile_h + 1;
+	}
+
+	return layout->columns*layout->rows;
+}
 
 int ED_fileselect_layout_offset(FileLayout* layout, int x, int y)
 {
 	int offsetx, offsety;
 	int active_file;
 
+	if (layout == NULL)
+		return 0;
+	
 	offsetx = (x)/(layout->tile_w + 2*layout->tile_border_x);
 	offsety = (y)/(layout->tile_h + 2*layout->tile_border_y);
 	
-	if (offsetx > layout->columns-1) offsetx = -1 ;
-	if (offsety > layout->rows-1) offsety = -1 ;
+	if (offsetx > layout->columns-1) return -1 ;
+	if (offsety > layout->rows-1) return -1 ;
 
 	if (layout->flag & FILE_LAYOUT_HOR) 
 		active_file = layout->rows*offsetx + offsety;
@@ -224,68 +271,78 @@ static void column_widths(struct FileList* files, struct FileLayout* layout)
 
 void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 {
-	FileSelectParams* params = ED_fileselect_get_params(sfile);
+	FileSelectParams *params = ED_fileselect_get_params(sfile);
+	FileLayout *layout=0;
 	View2D *v2d= &ar->v2d;
 	int maxlen = 0;
-	int numfiles = filelist_numfiles(sfile->files);
-	int textheight = file_font_pointsize();
+	int numfiles;
+	int textheight;
 	if (sfile->layout == 0) {
 		sfile->layout = MEM_callocN(sizeof(struct FileLayout), "file_layout");
-	}
+		sfile->layout->dirty = 1;
+	} 
+
+	if (!sfile->layout->dirty) return;
+
+	numfiles = filelist_numfiles(sfile->files);
+	textheight = file_font_pointsize();
+	layout = sfile->layout;
+
 	if (params->display == FILE_IMGDISPLAY) {
-		sfile->layout->prv_w = 96;
-		sfile->layout->prv_h = 96;
-		sfile->layout->tile_border_x = 6;
-		sfile->layout->tile_border_y = 6;
-		sfile->layout->prv_border_x = 6;
-		sfile->layout->prv_border_y = 6;
-		sfile->layout->tile_w = sfile->layout->prv_w + 2*sfile->layout->prv_border_x;
-		sfile->layout->tile_h = sfile->layout->prv_h + 2*sfile->layout->prv_border_y + textheight;
-		sfile->layout->width= (v2d->cur.xmax - v2d->cur.xmin - 2*sfile->layout->tile_border_x);
-		sfile->layout->columns= sfile->layout->width / (sfile->layout->tile_w + 2*sfile->layout->tile_border_x);
-		if(sfile->layout->columns > 0)
-			sfile->layout->rows= numfiles/sfile->layout->columns + 1; // XXX dirty, modulo is zero
+		layout->prv_w = 96;
+		layout->prv_h = 96;
+		layout->tile_border_x = 6;
+		layout->tile_border_y = 6;
+		layout->prv_border_x = 6;
+		layout->prv_border_y = 6;
+		layout->tile_w = layout->prv_w + 2*layout->prv_border_x;
+		layout->tile_h = layout->prv_h + 2*layout->prv_border_y + textheight;
+		layout->width= (v2d->cur.xmax - v2d->cur.xmin - 2*layout->tile_border_x);
+		layout->columns= layout->width / (layout->tile_w + 2*layout->tile_border_x);
+		if(layout->columns > 0)
+			layout->rows= numfiles/layout->columns + 1; // XXX dirty, modulo is zero
 		else {
-			sfile->layout->columns = 1;
-			sfile->layout->rows= numfiles + 1; // XXX dirty, modulo is zero
+			layout->columns = 1;
+			layout->rows= numfiles + 1; // XXX dirty, modulo is zero
 		}
-		sfile->layout->height= sfile->layout->rows*(sfile->layout->tile_h+2*sfile->layout->tile_border_y) + sfile->layout->tile_border_y*2;
-		sfile->layout->flag = FILE_LAYOUT_VER;
+		layout->height= sfile->layout->rows*(layout->tile_h+2*layout->tile_border_y) + layout->tile_border_y*2;
+		layout->flag = FILE_LAYOUT_VER;
 	} else {
-		sfile->layout->prv_w = 0;
-		sfile->layout->prv_h = 0;
-		sfile->layout->tile_border_x = 8;
-		sfile->layout->tile_border_y = 2;
-		sfile->layout->prv_border_x = 0;
-		sfile->layout->prv_border_y = 0;
-		sfile->layout->tile_h = textheight*3/2;
-		sfile->layout->height= v2d->cur.ymax - v2d->cur.ymin;
-		sfile->layout->rows = sfile->layout->height / (sfile->layout->tile_h + 2*sfile->layout->tile_border_y);;
+		layout->prv_w = 0;
+		layout->prv_h = 0;
+		layout->tile_border_x = 8;
+		layout->tile_border_y = 2;
+		layout->prv_border_x = 0;
+		layout->prv_border_y = 0;
+		layout->tile_h = textheight*3/2;
+		layout->height= v2d->cur.ymax - v2d->cur.ymin - 2*layout->tile_border_y;
+		layout->rows = layout->height / (layout->tile_h + 2*layout->tile_border_y);
         
-		column_widths(sfile->files, sfile->layout);
+		column_widths(sfile->files, layout);
 
 		if (params->display == FILE_SHORTDISPLAY) {
-			maxlen = sfile->layout->column_widths[COLUMN_NAME] +
-					 sfile->layout->column_widths[COLUMN_SIZE];
+			maxlen = layout->column_widths[COLUMN_NAME] +
+					 layout->column_widths[COLUMN_SIZE];
 			maxlen += 20+2*10; // for icon and space between columns
 		} else {
-			maxlen = sfile->layout->column_widths[COLUMN_NAME] +
-					 sfile->layout->column_widths[COLUMN_DATE] +
-					 sfile->layout->column_widths[COLUMN_TIME] +
-					 sfile->layout->column_widths[COLUMN_SIZE];
+			maxlen = layout->column_widths[COLUMN_NAME] +
+					 layout->column_widths[COLUMN_DATE] +
+					 layout->column_widths[COLUMN_TIME] +
+					 layout->column_widths[COLUMN_SIZE];
 					/* XXX add mode1, mode2, mode3, owner columns for non-windows platforms */
 			maxlen += 20+4*10; // for icon and space between columns
 		}
-		sfile->layout->tile_w = maxlen + 40;
-		if(sfile->layout->rows > 0)
-			sfile->layout->columns = numfiles/sfile->layout->rows + 1; // XXX dirty, modulo is zero
+		layout->tile_w = maxlen + 40;
+		if(layout->rows > 0)
+			layout->columns = numfiles/layout->rows + 1; // XXX dirty, modulo is zero
 		else {
-			sfile->layout->rows = 1;
-			sfile->layout->columns = numfiles + 1; // XXX dirty, modulo is zero
+			layout->rows = 1;
+			layout->columns = numfiles + 1; // XXX dirty, modulo is zero
 		}
-		sfile->layout->width = sfile->layout->columns * (sfile->layout->tile_w + 2*sfile->layout->tile_border_x) + sfile->layout->tile_border_x*2;
-		sfile->layout->flag = FILE_LAYOUT_HOR;
-	} 
+		layout->width = sfile->layout->columns * (layout->tile_w + 2*layout->tile_border_x) + layout->tile_border_x*2;
+		layout->flag = FILE_LAYOUT_HOR;
+	}
+	layout->dirty= 0;
 }
 
 FileLayout* ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar)
@@ -298,16 +355,20 @@ FileLayout* ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar
 
 void file_change_dir(struct SpaceFile *sfile)
 {
-	if (sfile->params && BLI_exists(sfile->params->dir)) {
-		filelist_setdir(sfile->files, sfile->params->dir);
+	if (sfile->params) { 
+		if (BLI_exists(sfile->params->dir)) {
+			filelist_setdir(sfile->files, sfile->params->dir);
 
-		if(folderlist_clear_next(sfile))
-			folderlist_free(sfile->folders_next);
+			if(folderlist_clear_next(sfile))
+				folderlist_free(sfile->folders_next);
 
-		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
+			folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
-		filelist_free(sfile->files);
-		sfile->params->active_file = -1;
+			filelist_free(sfile->files);
+			sfile->params->active_file = -1;
+		} else {
+			BLI_strncpy(sfile->params->dir, filelist_dir(sfile->files), FILE_MAX);
+		}
 	}
 }
 
@@ -334,7 +395,7 @@ int file_select_match(struct SpaceFile *sfile, const char *pattern)
 void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
 {
 	char tmp[FILE_MAX];
-	SpaceFile *sfile= (SpaceFile*)CTX_wm_space_data(C);
+	SpaceFile *sfile= CTX_wm_space_file(C);
 
 	/* search if str matches the beginning of name */
 	if(str[0] && sfile->files) {
@@ -344,12 +405,15 @@ void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
 
 		for(i= 0; i<nentries; ++i) {
 			struct direntry* file = filelist_file(sfile->files, i);
-			char* dir = filelist_dir(sfile->files);
+			const char* dir = filelist_dir(sfile->files);
 			if (file && S_ISDIR(file->type))	{
 				BLI_make_file_string(G.sce, tmp, dir, file->relname);
 				autocomplete_do_name(autocpl,tmp);
 			}
 		}
 		autocomplete_end(autocpl, str);
+		if (BLI_exists(str)) {
+			BLI_add_slash(str);
+		}
 	}
 }

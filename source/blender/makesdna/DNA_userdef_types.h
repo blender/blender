@@ -66,6 +66,8 @@ typedef struct uiFont {
 typedef struct uiFontStyle {
 	short uifont_id;		/* saved in file, 0 is default */
 	short points;			/* actual size depends on 'global' dpi */
+	short kerning;			/* unfitted or default kerning value. */
+	char pad[6];
 	short italic, bold;		/* style hint */
 	short shadow;			/* value is amount of pixels blur */
 	short shadx, shady;		/* shadow offset in pixels */
@@ -120,6 +122,16 @@ typedef struct uiWidgetColors {
 	short pad;
 } uiWidgetColors;
 
+typedef struct uiWidgetStateColors {
+	char inner_anim[4];
+	char inner_anim_sel[4];
+	char inner_key[4];
+	char inner_key_sel[4];
+	char inner_driven[4];
+	char inner_driven_sel[4];
+	float blend, pad;
+} uiWidgetStateColors;
+
 typedef struct ThemeUI {
 	
 	/* Interface Elements (buttons, menus, icons) */
@@ -127,7 +139,9 @@ typedef struct ThemeUI {
 	uiWidgetColors wcol_radio, wcol_option, wcol_toggle;
 	uiWidgetColors wcol_num, wcol_numslider;
 	uiWidgetColors wcol_menu, wcol_pulldown, wcol_menu_back, wcol_menu_item;
-	uiWidgetColors wcol_box, wcol_scroll;
+	uiWidgetColors wcol_box, wcol_scroll, wcol_list_item;
+
+	uiWidgetStateColors wcol_state;
 	
 	char iconfile[80];	// FILE_MAXFILE length
 	
@@ -279,7 +293,7 @@ typedef struct UserDef {
 	short userpref, viewzoom;
 	
 	int mixbufsize;
-	int pad1;
+	int scrollback; /* console scrollback limit */
 	int dpi;		/* range 48-128? */
 	short encoding;
 	short transopts;
@@ -390,9 +404,12 @@ extern UserDef U; /* from blenkernel blender.c */
 #define		AUTOKEY_MODE_EDITKEYS	5
 
 /* Auto-Keying flag */
+	/* U.autokey_flag */
 #define		AUTOKEY_FLAG_INSERTAVAIL	(1<<0)
 #define		AUTOKEY_FLAG_INSERTNEEDED	(1<<1)
 #define		AUTOKEY_FLAG_AUTOMATKEY		(1<<2)
+	/* toolsettings->autokey_flag */
+#define 	ANIMRECORD_FLAG_WITHNLA		(1<<10)
 
 
 /* transopts */

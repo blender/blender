@@ -148,7 +148,7 @@ typedef struct Curve {
 	ListBase *editnurb;	/* edited data, not in file, use pointer so we can check for it */
 	
 	struct Object *bevobj, *taperobj, *textoncurve;
-	struct Ipo *ipo;
+	struct Ipo *ipo;	// XXX depreceated... old animation system
 	Path *path;
 	struct Key *key;
 	struct Material **mat;
@@ -193,7 +193,8 @@ typedef struct Curve {
 
 	int sepchar;
 	
-	int totbox, actbox, pad;
+	float ctime;			/* current evaltime - for use by Objects parented to curves */
+	int totbox, actbox;
 	struct TextBox *tb;	
 	
 	int selstart, selend;	

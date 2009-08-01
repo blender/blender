@@ -43,6 +43,7 @@ struct direntry;
 
 char *BLI_gethome(void);
 char *BLI_gethome_folder(char *folder_name);
+void BLI_setenv(const char *env, const char *val);
 
 void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file);
 void BLI_make_exist(char *dir);

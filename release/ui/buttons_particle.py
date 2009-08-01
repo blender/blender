@@ -19,8 +19,7 @@ class ParticleButtonsPanel(bpy.types.Panel):
 		return particle_panel_poll(context)
 
 class PARTICLE_PT_particles(ParticleButtonsPanel):
-	__idname__= "PARTICLE_PT_particles"
-	__no_header__ = True
+	__show_header__ = False
 
 	def poll(self, context):
 		return (context.particle_system or context.object)
@@ -36,38 +35,44 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 			row.template_list(ob, "particle_systems", ob, "active_particle_system_index")
 
 			col = row.column(align=True)
-			col.itemO("OBJECT_OT_particle_system_add", icon="ICON_ZOOMIN", text="")
-			col.itemO("OBJECT_OT_particle_system_remove", icon="ICON_ZOOMOUT", text="")
+			col.itemO("object.particle_system_add", icon="ICON_ZOOMIN", text="")
+			col.itemO("object.particle_system_remove", icon="ICON_ZOOMOUT", text="")
 
 		if psys:
-			split = layout.split(percentage=0.65)
+			part = psys.settings
 			
-			split.template_ID(psys, "settings", new="PARTICLE_OT_new")
+			split = layout.split(percentage=0.32)
+			col = split.column()
+			col.itemL(text="Name:")
+			if part.type in ('EMITTER', 'REACTOR', 'HAIR'):
+				col.itemL(text="Settings:")
+				col.itemL(text="Type:")
+			
+			col = split.column()
+			col.itemR(psys, "name", text="")
+			if part.type in ('EMITTER', 'REACTOR', 'HAIR'):
+				col.template_ID(psys, "settings", new="particle.new")
 			
 			#row = layout.row()
 			#row.itemL(text="Viewport")
 			#row.itemL(text="Render")
 			
-			part = psys.settings
-			
 			if part:
-				ptype = psys.settings.type
-				if ptype not in ('EMITTER', 'REACTOR', 'HAIR'):
+				if part.type not in ('EMITTER', 'REACTOR', 'HAIR'):
 					layout.itemL(text="No settings for fluid particles")
 					return
-					
-				split = layout.split(percentage=0.65)
 				
-				split.enabled = particle_panel_enabled(psys)
-				split.itemR(part, "type")
-				split.itemR(psys, "seed")
+				row=col.row()
+				row.enabled = particle_panel_enabled(psys)
+				row.itemR(part, "type", text="")
+				row.itemR(psys, "seed")
 				
 				split = layout.split(percentage=0.65)
 				if part.type=='HAIR':
 					if psys.editable==True:
-						split.itemO("PARTICLE_OT_editable_set", text="Free Edit")
+						split.itemO("particle.editable_set", text="Free Edit")
 					else:
-						split.itemO("PARTICLE_OT_editable_set", text="Make Editable")
+						split.itemO("particle.editable_set", text="Make Editable")
 					row = split.row()
 					row.enabled = particle_panel_enabled(psys)
 					row.itemR(part, "hair_step")
@@ -77,8 +82,13 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 					split.itemR(psys, "reactor_target_particle_system", text="Particle System")
 		
 class PARTICLE_PT_emission(ParticleButtonsPanel):
-	__idname__= "PARTICLE_PT_emission"
 	__label__ = "Emission"
+	
+	def poll(self, context):
+		if particle_panel_poll(context):
+			return not context.particle_system.point_cache.external
+		else:
+			return False
 	
 	def draw(self, context):
 		layout = self.layout
@@ -123,7 +133,6 @@ class PARTICLE_PT_emission(ParticleButtonsPanel):
 				row.itemR(part, "grid_resolution")
 
 class PARTICLE_PT_cache(ParticleButtonsPanel):
-	__idname__= "PARTICLE_PT_cache"
 	__label__ = "Cache"
 	__default_closed__ = True
 	
@@ -131,6 +140,9 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 		psys = context.particle_system
 		if psys==None:	return False
 		if psys.settings==None:  return False
+		phystype = psys.settings.physics_type
+		if phystype == 'NO' or phystype == 'KEYED':
+			return False
 		return psys.settings.type in ('EMITTER', 'REACTOR')
 
 	def draw(self, context):
@@ -141,45 +153,74 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 		cache = psys.point_cache
 		
 		row = layout.row()
-		row.itemR(cache, "name")
+		row.itemL(text="File Name:")
+		row.itemR(cache, "external")
 		
-		row = layout.row()
-		
-		if cache.baked == True:
-			row.itemO("PTCACHE_OT_free_bake_particle_system", text="Free Bake")
+		if cache.external:
+			split = layout.split(percentage=0.80)
+			split.itemR(cache, "name", text="")
+			split.itemR(cache, "index", text="")
+			
+			layout.itemL(text="File Path:")
+			layout.itemR(cache, "filepath", text="")
+			
+			layout.itemL(text=cache.info)
+			
+			split = layout.split()
+			
+			col = split.column(align=True)
+			col.itemR(part, "start")
+			col.itemR(part, "end")
+
+			col = split.column(align=True)
+			col.itemR(part, "lifetime")
+			col.itemR(part, "random_lifetime", slider=True)
 		else:
-			row.item_booleanO("PTCACHE_OT_cache_particle_system", "bake", True, text="Bake")
+			layout.itemR(cache, "name", text="")
+			
+			row = layout.row()
 		
-		subrow = row.row()
-		subrow.enabled = (cache.frames_skipped or cache.outdated) and particle_panel_enabled(psys)
-		subrow.itemO("PTCACHE_OT_cache_particle_system", text="Calculate to Current Frame")
+			if cache.baked == True:
+				row.itemO("ptcache.free_bake_particle_system", text="Free Bake")
+			else:
+				row.item_booleanO("ptcache.cache_particle_system", "bake", True, text="Bake")
 		
-		row = layout.row()
-		row.enabled = particle_panel_enabled(psys)
-		row.itemO("PTCACHE_OT_bake_from_particles_cache", text="Current Cache to Bake")
-		row.itemR(cache, "step");
-	
-		row = layout.row()
-		row.enabled = particle_panel_enabled(psys)
-		row.itemR(cache, "quick_cache")
-		row.itemR(cache, "disk_cache")
+			subrow = row.row()
+			subrow.enabled = (cache.frames_skipped or cache.outdated) and particle_panel_enabled(psys)
+			subrow.itemO("ptcache.cache_particle_system", text="Calculate to Current Frame")
+			
+			row = layout.row()
+			row.enabled = particle_panel_enabled(psys)
+			row.itemO("ptcache.bake_from_particles_cache", text="Current Cache to Bake")
+			row.itemR(cache, "step");
 		
-		layout.itemL(text=cache.info)
+			row = layout.row()
+			row.enabled = particle_panel_enabled(psys)
+			row.itemR(cache, "quick_cache")
+			row.itemR(cache, "disk_cache")
 		
-		layout.itemS()
-		
-		row = layout.row()
-		row.item_booleanO("PTCACHE_OT_bake_all", "bake", True, text="Bake All Dynamics")
-		row.itemO("PTCACHE_OT_free_bake_all", text="Free All Bakes")
-		layout.itemO("PTCACHE_OT_bake_all", text="Update All Dynamics to current frame")
+			layout.itemL(text=cache.info)
+			
+			layout.itemS()
+			
+			row = layout.row()
+			row.item_booleanO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
+			row.itemO("ptcache.free_bake_all", text="Free All Bakes")
+			layout.itemO("ptcache.bake_all", text="Update All Dynamics to current frame")
 		
 		# for particles these are figured out automatically
 		#row.itemR(cache, "start_frame")
 		#row.itemR(cache, "end_frame")
 
 class PARTICLE_PT_initial(ParticleButtonsPanel):
-	__idname__= "PARTICLE_PT_initial"
 	__label__ = "Velocity"
+	
+	def poll(self, context):
+		if particle_panel_poll(context):
+			psys = context.particle_system
+			return psys.settings.physics_type != 'BOIDS' and not psys.point_cache.external
+		else:
+			return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -238,8 +279,13 @@ class PARTICLE_PT_initial(ParticleButtonsPanel):
 		sub.itemR(part, "angular_velocity_factor", text="")
 		
 class PARTICLE_PT_physics(ParticleButtonsPanel):
-	__idname__= "PARTICLE_PT_physics"
 	__label__ = "Physics"
+	
+	def poll(self, context):
+		if particle_panel_poll(context):
+			return not context.particle_system.point_cache.external
+		else:
+			return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -247,13 +293,11 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
 		psys = context.particle_system
 		part = psys.settings
 		
-		layout.enabled = layout.enabled = particle_panel_enabled(psys)
+		layout.enabled = particle_panel_enabled(psys)
 
 		row = layout.row()
 		row.itemR(part, "physics_type", expand=True)
 		if part.physics_type != 'NO':
-			layout.itemR(part, "effector_group")
-		
 			row = layout.row()
 			col = row.column(align=True)
 			col.itemR(part, "particle_size")
@@ -261,12 +305,10 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
 			col = row.column(align=True)
 			col.itemR(part, "mass")
 			col.itemR(part, "sizemass", text="Multiply mass with size")
-							
-			split = layout.split()
-			
-			sub = split.column()
 			
 		if part.physics_type == 'NEWTON':
+			split = layout.split()
+			sub = split.column()
 			
 			sub.itemL(text="Forces:")
 			sub.itemR(part, "brownian_factor")
@@ -277,24 +319,203 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
 			sub.itemR(part, "acceleration")
 			
 		elif part.physics_type == 'KEYED':
-			sub.itemR(psys, "keyed_first")
-			if psys.keyed_first==True:
-				sub.itemR(psys, "timed_keys", text="Key timing")
-			else:
-				sub.itemR(part, "keyed_time")
+			split = layout.split()
 			sub = split.column()
-			sub.itemL(text="Next key from object:")
-			sub.itemR(psys, "keyed_object", text="")
-			sub.itemR(psys, "keyed_particle_system")
-		
-		if part.physics_type=='NEWTON' or part.physics_type=='BOIDS':
+			
+			row = layout.row()
+			col = row.column()
+			col.active = not psys.keyed_timing
+			col.itemR(part, "keyed_loops", text="Loops")
+			row.itemR(psys, "keyed_timing", text="Use Timing")
+			
+			layout.itemL(text="Keys:")
+		elif part.physics_type=='BOIDS':
+			boids = part.boids
+			
 
+			row = layout.row()
+			row.itemR(boids, "allow_flight")
+			row.itemR(boids, "allow_land")
+			row.itemR(boids, "allow_climb")
+			
+			split = layout.split()
+			
+			sub = split.column()
+			col = sub.column(align=True)
+			col.active = boids.allow_flight
+			col.itemR(boids, "air_max_speed")
+			col.itemR(boids, "air_min_speed", slider="True")
+			col.itemR(boids, "air_max_acc", slider="True")
+			col.itemR(boids, "air_max_ave", slider="True")
+			col.itemR(boids, "air_personal_space")
+			row = col.row()
+			row.active = (boids.allow_land or boids.allow_climb) and boids.allow_flight
+			row.itemR(boids, "landing_smoothness")
+			
+			sub = split.column()
+			col = sub.column(align=True)
+			col.active = boids.allow_land or boids.allow_climb
+			col.itemR(boids, "land_max_speed")
+			col.itemR(boids, "land_jump_speed")
+			col.itemR(boids, "land_max_acc", slider="True")
+			col.itemR(boids, "land_max_ave", slider="True")
+			col.itemR(boids, "land_personal_space")
+			col.itemR(boids, "land_stick_force")
+			
+			row = layout.row()
+			
+			col = row.column(align=True)
+			col.itemL(text="Battle:")
+			col.itemR(boids, "health")
+			col.itemR(boids, "strength")
+			col.itemR(boids, "aggression")
+			col.itemR(boids, "accuracy")
+			col.itemR(boids, "range")
+			
+			col = row.column()
+			col.itemL(text="Misc:")
+			col.itemR(part, "gravity")
+			col.itemR(boids, "banking", slider=True)
+			col.itemR(boids, "height", slider=True)
+			
+		if part.physics_type=='NEWTON':
 			sub.itemR(part, "size_deflect")
 			sub.itemR(part, "die_on_collision")
 			sub.itemR(part, "sticky")
+		elif part.physics_type=='KEYED' or part.physics_type=='BOIDS':
+			if part.physics_type=='BOIDS':
+				layout.itemL(text="Relations:")
+			
+			row = layout.row()
+			row.template_list(psys, "targets", psys, "active_particle_target_index")
+			
+			col = row.column()
+			subrow = col.row()
+			subcol = subrow.column(align=True)
+			subcol.itemO("particle.new_target", icon="ICON_ZOOMIN", text="")
+			subcol.itemO("particle.remove_target", icon="ICON_ZOOMOUT", text="")
+			subrow = col.row()
+			subcol = subrow.column(align=True)
+			subcol.itemO("particle.target_move_up", icon="VICON_MOVE_UP", text="")
+			subcol.itemO("particle.target_move_down", icon="VICON_MOVE_DOWN", text="")
+			
+			key = psys.active_particle_target
+			if key:
+				row = layout.row()
+				if part.physics_type=='KEYED':
+					col = row.column()
+					#doesn't work yet
+					#col.red_alert = key.valid
+					col.itemR(key, "object", text="")
+					col.itemR(key, "system", text="System")
+					col = row.column();
+					col.active = psys.keyed_timing
+					col.itemR(key, "time")
+					col.itemR(key, "duration")
+				else:
+					subrow = row.row()
+					#doesn't work yet
+					#subrow.red_alert = key.valid
+					subrow.itemR(key, "object", text="")
+					subrow.itemR(key, "system", text="System")
+					
+					layout.itemR(key, "mode", expand=True)
+
+class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
+	__label__ = "Boid Brain"
+
+	def poll(self, context):
+		psys = context.particle_system
+		if psys==None:	return False
+		if psys.settings==None:  return False
+		if psys.point_cache.external: return False
+		return psys.settings.physics_type=='BOIDS'
+	
+	def draw(self, context):
+		boids = context.particle_system.settings.boids
+		layout = self.layout
+		
+		layout.enabled = particle_panel_enabled(psys)
+		
+		# Currently boids can only use the first state so these are commented out for now.
+		#row = layout.row()
+		#row.template_list(boids, "states", boids, "active_boid_state_index", compact="True")
+		#col = row.row()
+		#subrow = col.row(align=True)
+		#subrow.itemO("boid.boidstate_add", icon="ICON_ZOOMIN", text="")
+		#subrow.itemO("boid.boidstate_del", icon="ICON_ZOOMOUT", text="")
+		#subrow = row.row(align=True)
+		#subrow.itemO("boid.boidstate_move_up", icon="VICON_MOVE_UP", text="")
+		#subrow.itemO("boid.boidstate_move_down", icon="VICON_MOVE_DOWN", text="")
+		
+		state = boids.active_boid_state
+		
+		#layout.itemR(state, "name", text="State name")
+		
+		row = layout.row()
+		row.itemR(state, "ruleset_type")
+		if state.ruleset_type=='FUZZY':
+			row.itemR(state, "rule_fuzziness", slider=True)
+		else:
+			row.itemL(text="")
+		
+		row = layout.row()
+		row.template_list(state, "rules", state, "active_boid_rule_index")
+		
+		col = row.column()
+		subrow = col.row()
+		subcol = subrow.column(align=True)
+		subcol.item_menu_enumO("boid.boidrule_add", "type", icon="ICON_ZOOMIN", text="")
+		subcol.itemO("boid.boidrule_del", icon="ICON_ZOOMOUT", text="")
+		subrow = col.row()
+		subcol = subrow.column(align=True)
+		subcol.itemO("boid.boidrule_move_up", icon="VICON_MOVE_UP", text="")
+		subcol.itemO("boid.boidrule_move_down", icon="VICON_MOVE_DOWN", text="")
+		
+		rule = state.active_boid_rule
+		
+		if rule:
+			row = layout.row()
+			row.itemR(rule, "name", text="")
+			#somebody make nice icons for boids here please! -jahka
+			row.itemR(rule, "in_air", icon="VICON_MOVE_UP", text="")
+			row.itemR(rule, "on_land", icon="VICON_MOVE_DOWN", text="")
+			
+			row = layout.row()
+
+			if rule.type == 'GOAL':
+				row.itemR(rule, "object")
+				row = layout.row()
+				row.itemR(rule, "predict")
+			elif rule.type == 'AVOID':
+				row.itemR(rule, "object")
+				row = layout.row()
+				row.itemR(rule, "predict")
+				row.itemR(rule, "fear_factor")
+			elif rule.type == 'FOLLOW_PATH':
+				row.itemL(text="Not yet functional.")
+			elif rule.type == 'AVOID_COLLISION':
+				row.itemR(rule, "boids")
+				row.itemR(rule, "deflectors")
+				row.itemR(rule, "look_ahead")
+			elif rule.type == 'FOLLOW_LEADER':
+				row.itemR(rule, "object", text="")
+				row.itemR(rule, "distance")
+				row = layout.row()
+				row.itemR(rule, "line")
+				subrow = row.row()
+				subrow.active = rule.line
+				subrow.itemR(rule, "queue_size")
+			elif rule.type == 'AVERAGE_SPEED':
+				row.itemR(rule, "speed", slider=True)
+				row.itemR(rule, "wander", slider=True)
+				row.itemR(rule, "level", slider=True)
+			elif rule.type == 'FIGHT':
+				row.itemR(rule, "distance")
+				row.itemR(rule, "flee_distance")
+		
 
 class PARTICLE_PT_render(ParticleButtonsPanel):
-	__idname__= "PARTICLE_PT_render"
 	__label__ = "Render"
 	
 	def poll(self, context):
@@ -308,7 +529,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
 
 		psys = context.particle_system
 		part = psys.settings
-		
+
 		row = layout.row()
 		row.itemR(part, "material")
 		row.itemR(psys, "parent");
@@ -336,7 +557,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
 			sub.itemR(part, "velocity_length")
 		elif part.ren_as == 'PATH':
 		
-			if (part.type!='HAIR' and psys.point_cache.baked==False):
+			if (part.type!='HAIR' and part.physics_type!='KEYED' and psys.point_cache.baked==False):
 				box = layout.box()
 				box.itemL(text="Baked or keyed particles needed for correct rendering.")
 				return
@@ -436,7 +657,6 @@ class PARTICLE_PT_render(ParticleButtonsPanel):
 				col.itemL(text="")
 				
 class PARTICLE_PT_draw(ParticleButtonsPanel):
-	__idname__= "PARTICLE_PT_draw"
 	__label__ = "Display"
 	__default_closed__ = True
 	
@@ -460,7 +680,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel):
 			
 		path = (part.ren_as=='PATH' and part.draw_as=='RENDER') or part.draw_as=='PATH'
 			
-		if path and part.type!='HAIR' and psys.point_cache.baked==False:
+		if path and part.type!='HAIR' and part.physics_type!='KEYED' and psys.point_cache.baked==False:
 			box = layout.box()
 			box.itemL(text="Baked or keyed particles needed for correct drawing.")
 			return
@@ -493,7 +713,6 @@ class PARTICLE_PT_draw(ParticleButtonsPanel):
 			#subcol.itemL(text="Override material color")
 
 class PARTICLE_PT_children(ParticleButtonsPanel):
-	__idname__= "PARTICLE_PT_children"
 	__label__ = "Children"
 	__default_closed__ = True
 
@@ -549,6 +768,15 @@ class PARTICLE_PT_children(ParticleButtonsPanel):
 		col.itemR(part, "rough2_size")
 		col.itemR(part, "rough2_thres", slider=True)
 		
+		row = layout.row()
+		col = row.column(align=True)
+		col.itemR(part, "child_length", slider=True)
+		col.itemR(part, "child_length_thres", slider=True)
+		
+		col = row.column(align=True)
+		col.itemL(text="Space reserved for")
+		col.itemL(text="hair parting controls")
+		
 		layout.row().itemL(text="Kink:")
 		layout.row().itemR(part, "kink", expand=True)
 		
@@ -560,8 +788,32 @@ class PARTICLE_PT_children(ParticleButtonsPanel):
 		sub = split.column()
 		sub.itemR(part, "kink_shape", slider=True)
 
+class PARTICLE_PT_effectors(ParticleButtonsPanel):
+	__label__ = "Effectors"
+	__default_closed__ = True
+	
+	def draw(self, context):
+		layout = self.layout
+
+		psys = context.particle_system
+		part = psys.settings
+		
+		layout.itemR(part, "effector_group")
+		
+		layout.itemR(part, "eweight_all", slider=True)
+		
+		layout.itemS()
+		layout.itemR(part, "eweight_spherical", slider=True)
+		layout.itemR(part, "eweight_vortex", slider=True)
+		layout.itemR(part, "eweight_magnetic", slider=True)
+		layout.itemR(part, "eweight_wind", slider=True)
+		layout.itemR(part, "eweight_curveguide", slider=True)
+		layout.itemR(part, "eweight_texture", slider=True)
+		layout.itemR(part, "eweight_harmonic", slider=True)
+		layout.itemR(part, "eweight_charge", slider=True)
+		layout.itemR(part, "eweight_lennardjones", slider=True)
+		
 class PARTICLE_PT_vertexgroups(ParticleButtonsPanel):
-	__idname__= "PARTICLE_PT_vertexgroups"
 	__label__ = "Vertexgroups"
 	__default_closed__ = True
 
@@ -631,7 +883,9 @@ bpy.types.register(PARTICLE_PT_cache)
 bpy.types.register(PARTICLE_PT_emission)
 bpy.types.register(PARTICLE_PT_initial)
 bpy.types.register(PARTICLE_PT_physics)
+bpy.types.register(PARTICLE_PT_boidbrain)
 bpy.types.register(PARTICLE_PT_render)
 bpy.types.register(PARTICLE_PT_draw)
 bpy.types.register(PARTICLE_PT_children)
+bpy.types.register(PARTICLE_PT_effectors)
 bpy.types.register(PARTICLE_PT_vertexgroups)

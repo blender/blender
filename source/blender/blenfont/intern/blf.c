@@ -349,7 +349,7 @@ void BLF_draw(char *str)
 			glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
 			glPushAttrib(GL_ENABLE_BIT);
 			glPixelStorei(GL_UNPACK_LSB_FIRST, GL_FALSE);
-			glPixelStorei( GL_UNPACK_ALIGNMENT, 1);
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 			glDisable(GL_BLEND);
 			glRasterPos3f(font->pos[0], font->pos[1], font->pos[2]);
 
@@ -395,6 +395,16 @@ float BLF_width(char *str)
 	font= global_font[global_font_cur];
 	if (font)
 		return(blf_font_width(font, str));
+	return(0.0f);
+}
+
+float BLF_fixed_width(void)
+{
+	FontBLF *font;
+
+	font= global_font[global_font_cur];
+	if (font)
+		return(blf_font_fixed_width(font));
 	return(0.0f);
 }
 

@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\windowmanager;..\..\..\source\blender\editors\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\windowmanager;..\..\..\source\blender\editors\include;..\..\..\source\blender\render\extern\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -114,7 +114,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\windowmanager;..\..\..\source\blender\editors\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\windowmanager;..\..\..\source\blender\editors\include;..\..\..\source\blender\render\extern\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				RuntimeLibrary="0"
@@ -184,6 +184,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_armature_gen.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_boid_gen.c"
 				>
 			</File>
 			<File
@@ -271,6 +275,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_nla_gen.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_nodetree_gen.c"
 				>
 			</File>
@@ -299,6 +307,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_render_gen.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_rna_gen.c"
 				>
 			</File>
@@ -311,7 +323,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_scriptlink_gen.c"
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_sculpt_paint_gen.c"
 				>
 			</File>
 			<File
@@ -352,10 +364,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_vfont_gen.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesrna\intern\rna_vpaint_gen.c"
 				>
 			</File>
 			<File

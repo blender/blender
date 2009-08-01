@@ -32,7 +32,7 @@ SOURCEDIR = intern
 # include nan_subdirs.mk
 
 ALLDIRS = string ghost guardedalloc moto container memutil
-ALLDIRS += decimation iksolver bsp SoundSystem opennl elbeem boolop
+ALLDIRS += decimation iksolver bsp SoundSystem opennl elbeem boolop smoke
 
 all::
 	@for i in $(ALLDIRS); do \

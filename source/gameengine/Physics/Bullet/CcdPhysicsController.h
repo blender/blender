@@ -146,6 +146,9 @@ public:
 		return m_meshObject;
 	}
 
+	bool UpdateMesh(class KX_GameObject* gameobj, class RAS_MeshObject* mesh);
+
+
 	bool SetProxy(CcdShapeConstructionInfo* shapeInfo);
 	CcdShapeConstructionInfo* GetProxy(void)
 	{
@@ -185,6 +188,7 @@ protected:
 											// the actual shape is of type btScaledBvhTriangleMeshShape
 	std::vector<CcdShapeConstructionInfo*> m_shapeArray;	// for compound shapes
 	bool	m_useGimpact; //use gimpact for concave dynamic/moving collision detection
+	bool	m_forceReInstance; //use gimpact for concave dynamic/moving collision detection
 	float	m_weldingThreshold1;	//welding closeby vertices together can improve softbody stability etc.
 	CcdShapeConstructionInfo* m_shapeProxy;	// only used for PHY_SHAPE_PROXY, pointer to actual shape info
 };
@@ -380,6 +384,9 @@ protected:
 	
 
 		CcdPhysicsController (const CcdConstructionInfo& ci);
+
+		bool DeleteControllerShape();
+		bool ReplaceControllerShape(btCollisionShape *newShape);
 
 		virtual ~CcdPhysicsController();
 

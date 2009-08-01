@@ -89,10 +89,15 @@ typedef struct PointCache {
 	int endframe;	/* simulation end frame */
 	int editframe;	/* frame being edited (runtime only) */
 	int last_exact; /* last exact frame that's cached */
-	int xdata_type;	/* type of extra data */
+
+	/* for external cache files */
+	int totpoint;   /* number of cached points */
+	int index, rt;	/* modifier stack index */
+	
 	char name[64];
 	char prev_name[64];
 	char info[64];
+	char path[240]; /* file path */
 	struct ListBase mem_cache;
 } PointCache;
 
@@ -160,12 +165,17 @@ typedef struct SoftBody {
 	int totpoint, totspring;
 	struct BodyPoint *bpoint;		/* not saved in file */
 	struct BodySpring *bspring;		/* not saved in file */
-	float pad;
+	char   pad;
+	char   msg_lock;
+	short  msg_value;
 	
 	/* part of UI: */
 	
 	/* general options */
 	float nodemass;		/* softbody mass of *vertex* */
+	char  namedVG_Mass[32]; /* along with it introduce mass painting
+							starting to fix old bug .. nastyness that VG are indexes 
+								rather find them by name tag to find it -> jow20090613 */
 	float grav;			/* softbody amount of gravitaion to apply */
 	float mediafrict;	/* friction to env */
 	float rklimit;		/* error limit for ODE solver */
@@ -178,13 +188,18 @@ typedef struct SoftBody {
 	float maxgoal;
 	float defgoal;		/* default goal for vertices without vgroup */
 	short vertgroup;	/* index starting at 1 */
+	char  namedVG_Softgoal[32]; /* starting to fix old bug .. nastyness that VG are indexes 
+								rather find them by name tag to find it -> jow20090613 */
   
 	short fuzzyness;      /* */
 	
 	/* springs */
 	float inspring;		/* softbody inner springs */
 	float infrict;		/* softbody inner springs friction */
- 	
+ 	char  namedVG_Spring_K[32]; /* along with it introduce Spring_K painting
+							starting to fix old bug .. nastyness that VG are indexes 
+								rather find them by name tag to find it -> jow20090613 */
+	
 	/* baking */
 	int sfra, efra;
 	int interval;
@@ -227,6 +242,7 @@ typedef struct SoftBody {
 #define PFIELD_HARMONIC	7
 #define PFIELD_CHARGE	8
 #define PFIELD_LENNARDJ	9
+#define PFIELD_BOID		10
 
 
 /* pd->flag: various settings */
@@ -266,6 +282,7 @@ typedef struct SoftBody {
 #define PTCACHE_DISK_CACHE			64
 #define PTCACHE_QUICK_CACHE			128
 #define PTCACHE_FRAMES_SKIPPED		256
+#define PTCACHE_EXTERNAL			512
 
 /* PTCACHE_OUTDATED + PTCACHE_FRAMES_SKIPPED */
 #define PTCACHE_REDO_NEEDED			258
@@ -284,7 +301,7 @@ typedef struct SoftBody {
 #define OB_SB_FACECOLL  1024
 #define OB_SB_EDGECOLL  2048
 #define OB_SB_COLLFINAL 4096
-//#define OB_SB_PROTECT_CACHE	8192
+#define OB_SB_BIG_UI	8192
 #define OB_SB_AERO_ANGLE	16384
 
 /* sb->solverflags */

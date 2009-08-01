@@ -560,7 +560,7 @@ void VIEW3D_OT_viewrotate(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_BLOCKING;
 }
 
 /* ************************ viewmove ******************************** */
@@ -644,7 +644,7 @@ void VIEW3D_OT_viewmove(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_BLOCKING;
 }
 
 /* ************************ viewzoom ******************************** */
@@ -844,7 +844,7 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_BLOCKING;
 
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 }
@@ -925,7 +925,7 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= 0;
 
 	RNA_def_boolean(ot->srna, "center", 0, "Center", "");
 }
@@ -1064,7 +1064,7 @@ void VIEW3D_OT_view_center(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= 0;
 }
 
 /* ********************* Set render border operator ****************** */
@@ -1149,7 +1149,7 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 }
 /* ********************* Border Zoom operator ****************** */
 
-static int view3d_border_zoom_exec(bContext *C, wmOperator *op)
+static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar= CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -1285,7 +1285,7 @@ static int view3d_border_zoom_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int view3d_border_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int view3d_zoom_border_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
@@ -1305,14 +1305,14 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 	ot->idname= "VIEW3D_OT_zoom_border";
 
 	/* api callbacks */
-	ot->invoke= view3d_border_zoom_invoke;
-	ot->exec= view3d_border_zoom_exec;
+	ot->invoke= view3d_zoom_border_invoke;
+	ot->exec= view3d_zoom_border_exec;
 	ot->modal= WM_border_select_modal;
 
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= 0;
 
 	/* rna */
 	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
@@ -1477,7 +1477,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= 0;
 
 	RNA_def_enum(ot->srna, "type", prop_view_items, 0, "View", "The Type of view");
 }
@@ -1546,7 +1546,7 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= 0;
 	RNA_def_enum(ot->srna, "type", prop_view_orbit_items, 0, "Orbit", "Direction of View Orbit");
 }
 
@@ -1596,7 +1596,7 @@ void VIEW3D_OT_view_pan(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= 0;
 	RNA_def_enum(ot->srna, "type", prop_view_pan_items, 0, "Pan", "Direction of View Pan");
 }
 
@@ -1628,7 +1628,7 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= 0;
 }
 
 
@@ -1730,7 +1730,7 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= 0;
 
 	/* rna */
 	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
@@ -1783,7 +1783,7 @@ void VIEW3D_OT_drawtype(wmOperatorType *ot)
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= 0;
 
 	/* rna XXX should become enum */
 	RNA_def_int(ot->srna, "draw_type", 0, INT_MIN, INT_MAX, "Draw Type", "", INT_MIN, INT_MAX);

@@ -68,6 +68,7 @@ struct bContext {
 		struct Scene *scene;
 
 		int recursion;
+		int py_init; /* true if python is initialized */
 	} data;
 	
 	/* data evaluation */
@@ -162,6 +163,16 @@ void CTX_store_free_list(ListBase *contexts)
 	}
 }
 
+/* is python initialied? */
+int CTX_py_init_get(bContext *C)
+{
+	return C->data.py_init;
+}
+void CTX_py_init_set(bContext *C, int value)
+{
+	C->data.py_init= value;
+}
+
 /* window manager context */
 
 wmWindowManager *CTX_wm_manager(const bContext *C)
@@ -204,6 +215,11 @@ struct ARegion *CTX_wm_menu(const bContext *C)
 	return C->wm.menu;
 }
 
+struct ReportList *CTX_wm_reports(const bContext *C)
+{
+	return &(C->wm.manager->reports);
+}
+
 View3D *CTX_wm_view3d(const bContext *C)
 {
 	if(C->wm.area && C->wm.area->spacetype==SPACE_VIEW3D)
@@ -226,9 +242,93 @@ struct SpaceText *CTX_wm_space_text(const bContext *C)
 	return NULL;
 }
 
+struct SpaceConsole *CTX_wm_space_console(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_CONSOLE)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
 struct SpaceImage *CTX_wm_space_image(const bContext *C)
 {
 	if(C->wm.area && C->wm.area->spacetype==SPACE_IMAGE)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceButs *CTX_wm_space_buts(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_BUTS)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceFile *CTX_wm_space_file(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_FILE)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceSeq *CTX_wm_space_seq(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_SEQ)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceOops *CTX_wm_space_outliner(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_OUTLINER)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceNla *CTX_wm_space_nla(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_NLA)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceTime *CTX_wm_space_time(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_TIME)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceNode *CTX_wm_space_node(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_NODE)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceLogic *CTX_wm_space_logic(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_LOGIC)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceIpo *CTX_wm_space_graph(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_IPO)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceAction *CTX_wm_space_action(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_ACTION)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceInfo *CTX_wm_space_info(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_INFO)
 		return C->wm.area->spacedata.first;
 	return NULL;
 }
@@ -604,6 +704,16 @@ int CTX_data_visible_objects(const bContext *C, ListBase *list)
 int CTX_data_visible_bases(const bContext *C, ListBase *list)
 {
 	return ctx_data_collection_get(C, "visible_bases", list);
+}
+
+int CTX_data_selectable_objects(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, "selectable_objects", list);
+}
+
+int CTX_data_selectable_bases(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, "selectable_bases", list);
 }
 
 struct Object *CTX_data_active_object(const bContext *C)

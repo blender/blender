@@ -165,7 +165,7 @@ static void action_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void action_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceAction *saction= (SpaceAction*)CTX_wm_space_data(C);
+	SpaceAction *saction= CTX_wm_space_action(C);
 	bAnimContext ac;
 	View2D *v2d= &ar->v2d;
 	View2DGrid *grid;
@@ -228,7 +228,7 @@ static void action_channel_area_init(wmWindowManager *wm, ARegion *ar)
 static void action_channel_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceAction *saction= (SpaceAction*)CTX_wm_space_data(C);
+	SpaceAction *saction= CTX_wm_space_action(C);
 	bAnimContext ac;
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
@@ -288,6 +288,9 @@ static void action_channel_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_ANIMATION:
+			ED_region_tag_redraw(ar);
+			break;
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_OB_ACTIVE:
@@ -314,6 +317,9 @@ static void action_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_ANIMATION:
+			ED_region_tag_redraw(ar);
+			break;
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_OB_ACTIVE:
@@ -344,6 +350,9 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
+		case NC_ANIMATION:
+			ED_area_tag_refresh(sa);
+			break;
 		case NC_SCENE:
 			/*switch (wmn->data) {
 				case ND_OB_ACTIVE:

@@ -700,18 +700,16 @@ bool GPG_Application::startEngine(void)
 #endif
 
 		//initialize Dome Settings
-		if(m_startScene->r.stereomode == RAS_IRasterizer::RAS_STEREO_DOME)
-			m_ketsjiengine->InitDome(m_startScene->r.domeres, m_startScene->r.domemode, m_startScene->r.domeangle, m_startScene->r.domeresbuf, m_startScene->r.dometilt, m_startScene->r.dometext);
+		if(m_startScene->gm.stereoflag == STEREO_DOME)
+			m_ketsjiengine->InitDome(m_startScene->gm.dome.res, m_startScene->gm.dome.mode, m_startScene->gm.dome.angle, m_startScene->gm.dome.resbuf, m_startScene->gm.dome.tilt, m_startScene->gm.dome.warptext);
 
 		// Set the GameLogic.globalDict from marshal'd data, so we can
 		// load new blend files and keep data in GameLogic.globalDict
 		loadGamePythonConfig(m_pyGlobalDictString, m_pyGlobalDictString_Length);
 		
 		m_sceneconverter->ConvertScene(
-			startscenename,
 			startscene,
 			dictionaryobject,
-			m_keyboard,
 			m_rendertools,
 			m_canvas);
 		m_ketsjiengine->AddScene(startscene);

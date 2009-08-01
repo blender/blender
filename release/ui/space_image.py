@@ -9,11 +9,11 @@ class IMAGE_MT_view(bpy.types.Menu):
 		layout = self.layout
 		sima = context.space_data
 		uv = sima.uv_editor
-		settings = context.scene.tool_settings
+		settings = context.tool_settings
 
 		show_uvedit = sima.show_uvedit
 
-		layout.itemO("IMAGE_OT_properties", icon="ICON_MENU_PANEL")
+		layout.itemO("image.properties", icon="ICON_MENU_PANEL")
 
 		layout.itemS()
 
@@ -23,8 +23,8 @@ class IMAGE_MT_view(bpy.types.Menu):
 
 		layout.itemS()
 
-		layout.itemO("IMAGE_OT_view_zoom_in")
-		layout.itemO("IMAGE_OT_view_zoom_out")
+		layout.itemO("image.view_zoom_in")
+		layout.itemO("image.view_zoom_out")
 
 		layout.itemS()
 
@@ -32,15 +32,15 @@ class IMAGE_MT_view(bpy.types.Menu):
 
 		for a, b in ratios:
 			text = "Zoom %d:%d" % (a, b)
-			layout.item_floatO("IMAGE_OT_view_zoom_ratio", "ratio", a/b, text=text)
+			layout.item_floatO("image.view_zoom_ratio", "ratio", a/float(b), text=text)
 
 		layout.itemS()
 
 		if show_uvedit:
-			layout.itemO("IMAGE_OT_view_selected")
+			layout.itemO("image.view_selected")
 
-		layout.itemO("IMAGE_OT_view_all")
-		layout.itemO("SCREEN_OT_screen_full_area")
+		layout.itemO("image.view_all")
+		layout.itemO("screen.screen_full_area")
 
 class IMAGE_MT_select(bpy.types.Menu):
 	__space_type__ = "IMAGE_EDITOR"
@@ -49,19 +49,19 @@ class IMAGE_MT_select(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 
-		layout.itemO("UV_OT_select_border")
-		layout.item_booleanO("UV_OT_select_border", "pinned", True)
+		layout.itemO("uv.select_border")
+		layout.item_booleanO("uv.select_border", "pinned", True)
 
 		layout.itemS()
 		
-		layout.itemO("UV_OT_select_all_toggle")
-		layout.itemO("UV_OT_select_inverse")
-		layout.itemO("UV_OT_unlink_selection")
+		layout.itemO("uv.select_all_toggle")
+		layout.itemO("uv.select_inverse")
+		layout.itemO("uv.unlink_selection")
 		
 		layout.itemS()
 
-		layout.itemO("UV_OT_select_pinned")
-		layout.itemO("UV_OT_select_linked")
+		layout.itemO("uv.select_pinned")
+		layout.itemO("uv.select_linked")
 
 class IMAGE_MT_image(bpy.types.Menu):
 	__space_type__ = "IMAGE_EDITOR"
@@ -72,35 +72,35 @@ class IMAGE_MT_image(bpy.types.Menu):
 		sima = context.space_data
 		ima = sima.image
 
-		layout.itemO("IMAGE_OT_new")
-		layout.itemO("IMAGE_OT_open")
+		layout.itemO("image.new")
+		layout.itemO("image.open")
 
 		show_render = sima.show_render
 
 		if ima:
-			if show_render:
-				layout.itemO("IMAGE_OT_replace")
-				layout.itemO("IMAGE_OT_reload")
+			if not show_render:
+				layout.itemO("image.replace")
+				layout.itemO("image.reload")
 
-			layout.itemO("IMAGE_OT_save")
-			layout.itemO("IMAGE_OT_save_as")
+			layout.itemO("image.save")
+			layout.itemO("image.save_as")
 
 			if ima.source == "SEQUENCE":
-				layout.itemO("IMAGE_OT_save_sequence")
+				layout.itemO("image.save_sequence")
 
 			if not show_render:
 				layout.itemS()
 
 				if ima.packed_file:
-					layout.itemO("IMAGE_OT_unpack")
+					layout.itemO("image.unpack")
 				else:
-					layout.itemO("IMAGE_OT_pack")
+					layout.itemO("image.pack")
 
 				# only for dirty && specific image types, perhaps
 				# this could be done in operator poll too
 				if ima.dirty:
 					if ima.source in ("FILE", "GENERATED") and ima.type != "MULTILAYER":
-						layout.item_booleanO("IMAGE_OT_pack", "as_png", True, text="Pack As PNG")
+						layout.item_booleanO("image.pack", "as_png", True, text="Pack As PNG")
 
 			layout.itemS()
 
@@ -113,9 +113,9 @@ class IMAGE_MT_uvs_showhide(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 
-		layout.itemO("UV_OT_reveal")
-		layout.itemO("UV_OT_hide")
-		layout.item_booleanO("UV_OT_hide", "unselected", True)
+		layout.itemO("uv.reveal")
+		layout.itemO("uv.hide")
+		layout.item_booleanO("uv.hide", "unselected", True)
 
 class IMAGE_MT_uvs_transform(bpy.types.Menu):
 	__space_type__ = "IMAGE_EDITOR"
@@ -124,9 +124,9 @@ class IMAGE_MT_uvs_transform(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 
-		layout.item_enumO("TFM_OT_transform", "mode", "TRANSLATION")
-		layout.item_enumO("TFM_OT_transform", "mode", "ROTATION")
-		layout.item_enumO("TFM_OT_transform", "mode", "RESIZE")
+		layout.item_enumO("tfm.transform", "mode", "TRANSLATION")
+		layout.item_enumO("tfm.transform", "mode", "ROTATION")
+		layout.item_enumO("tfm.transform", "mode", "RESIZE")
 
 class IMAGE_MT_uvs_mirror(bpy.types.Menu):
 	__space_type__ = "IMAGE_EDITOR"
@@ -135,8 +135,8 @@ class IMAGE_MT_uvs_mirror(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 
-		layout.item_enumO("UV_OT_mirror", "axis", "MIRROR_X") # "X Axis", M, 
-		layout.item_enumO("UV_OT_mirror", "axis", "MIRROR_Y") # "Y Axis", M, 
+		layout.item_enumO("uv.mirror", "axis", "MIRROR_X") # "X Axis", M, 
+		layout.item_enumO("uv.mirror", "axis", "MIRROR_Y") # "Y Axis", M, 
 
 class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
 	__space_type__ = "IMAGE_EDITOR"
@@ -145,8 +145,8 @@ class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 
-		layout.itemO("UV_OT_weld") # W, 1
-		layout.items_enumO("UV_OT_align", "axis") # W, 2/3/4
+		layout.itemO("uv.weld") # W, 1
+		layout.items_enumO("uv.align", "axis") # W, 2/3/4
 
 
 class IMAGE_MT_uvs(bpy.types.Menu):
@@ -157,7 +157,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 		layout = self.layout
 		sima = context.space_data
 		uv = sima.uv_editor
-		settings = context.scene.tool_settings
+		settings = context.tool_settings
 
 		layout.itemR(uv, "snap_to_pixels")
 		layout.itemR(uv, "constrain_to_image_bounds")
@@ -165,16 +165,16 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 		layout.itemS()
 
 		layout.itemR(uv, "live_unwrap")
-		layout.itemO("UV_OT_unwrap")
-		layout.item_booleanO("UV_OT_pin", "clear", True, text="Unpin")
-		layout.itemO("UV_OT_pin")
+		layout.itemO("uv.unwrap")
+		layout.item_booleanO("uv.pin", "clear", True, text="Unpin")
+		layout.itemO("uv.pin")
 
 		layout.itemS()
 
-		layout.itemO("UV_OT_pack_islands")
-		layout.itemO("UV_OT_average_islands_scale")
-		layout.itemO("UV_OT_minimize_stretch")
-		layout.itemO("UV_OT_stitch")
+		layout.itemO("uv.pack_islands")
+		layout.itemO("uv.average_islands_scale")
+		layout.itemO("uv.minimize_stretch")
+		layout.itemO("uv.stitch")
 
 		layout.itemS()
 
@@ -199,7 +199,7 @@ class IMAGE_HT_header(bpy.types.Header):
 		ima = sima.image
 		iuser = sima.image_user
 		layout = self.layout
-		settings = context.scene.tool_settings
+		settings = context.tool_settings
 
 		show_render = sima.show_render
 		show_paint = sima.show_paint
@@ -223,35 +223,7 @@ class IMAGE_HT_header(bpy.types.Header):
 			if show_uvedit:
 				row.itemM("IMAGE_MT_uvs")
 
-		layout.template_ID(sima, "image", new="IMAGE_OT_new", open="IMAGE_OT_open")
-
-		"""
-		/* image select */
-
-		pinflag= (show_render)? 0: UI_ID_PIN;
-		xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID*)sima->image, ID_IM, &sima->pin, xco, yco,
-			sima_idpoin_handle, UI_ID_BROWSE|UI_ID_BROWSE_RENDER|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_OPEN|UI_ID_DELETE|pinflag);
-		xco += 8;
-		"""
-
-		"""
-		if(ima && !ELEM3(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE, IMA_SRC_VIEWER) && ima->ok) {
-			/* XXX this should not be a static var */
-			static int headerbuttons_packdummy;
-			
-			headerbuttons_packdummy = 0;
-
-			if (ima->packedfile) {
-				headerbuttons_packdummy = 1;
-			}
-			if (ima->packedfile && ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
-				uiDefIconButBitI(block, TOG, 1, 0 /* XXX B_SIMA_REPACK */, ICON_UGLYPACKAGE,	xco,yco,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Re-Pack this image as PNG");
-			else
-				uiDefIconButBitI(block, TOG, 1, 0 /* XXX B_SIMAPACKIMA */, ICON_PACKAGE,	xco,yco,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Pack/Unpack this image");
-				
-			xco+= XIC+8;
-		}
-		"""
+		layout.template_ID(sima, "image", new="image.new")
 
 		# uv editing
 		if show_uvedit:
@@ -290,11 +262,12 @@ class IMAGE_HT_header(bpy.types.Header):
 
 			row = layout.row(align=True)
 			if ima.type == "COMPOSITE":
-				row.itemO("IMAGE_OT_record_composite", icon="ICON_REC")
+				row.itemO("image.record_composite", icon="ICON_REC")
 			if ima.type == "COMPOSITE" and ima.source in ("MOVIE", "SEQUENCE"):
-				row.itemO("IMAGE_OT_play_composite", icon="ICON_PLAY")
+				row.itemO("image.play_composite", icon="ICON_PLAY")
 		
-		layout.itemR(sima, "update_automatically", text="")
+		if show_uvedit or sima.image_painting:
+			layout.itemR(sima, "update_automatically", text="")
 
 class IMAGE_PT_game_properties(bpy.types.Panel):
 	__space_type__ = "IMAGE_EDITOR"
@@ -302,8 +275,9 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
 	__label__ = "Game Properties"
 
 	def poll(self, context):
+		rd = context.scene.render_data
 		sima = context.space_data
-		return (sima and sima.image)
+		return (sima and sima.image) and (rd.engine == 'BLENDER_GAME')
 
 	def draw(self, context):
 		sima = context.space_data

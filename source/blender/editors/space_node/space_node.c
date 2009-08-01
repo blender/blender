@@ -81,6 +81,7 @@ static SpaceLink *node_new(const bContext *C)
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
 	
+#if 0
 	/* channels */
 	ar= MEM_callocN(sizeof(ARegion), "nodetree area for node");
 	
@@ -89,6 +90,7 @@ static SpaceLink *node_new(const bContext *C)
 	ar->alignment= RGN_ALIGN_LEFT;
 	
 	//ar->v2d.scroll = (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
+#endif
 	
 	/* main area */
 	ar= MEM_callocN(sizeof(ARegion), "main area for node");
@@ -116,7 +118,7 @@ static SpaceLink *node_new(const bContext *C)
 	ar->v2d.maxzoom= 1.21f;
 	
 	ar->v2d.scroll= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
-	ar->v2d.keepzoom= V2D_KEEPZOOM|V2D_KEEPASPECT;
+	ar->v2d.keepzoom= V2D_LIMITZOOM|V2D_KEEPASPECT;
 	ar->v2d.keeptot= 0;
 	
 	return (SpaceLink *)snode;
@@ -168,7 +170,7 @@ static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
 		if(snode->treetype==NTREE_SHADER) {
 			Material *ma= (Material *)snode->id;
 			if(ma->use_nodes)
-				ED_preview_shader_job(C, sa, snode->id, 100, 100);
+				ED_preview_shader_job(C, sa, snode->id, NULL, 100, 100);
 		}
 		else if(snode->treetype==NTREE_COMPOSIT) {
 			Scene *scene= (Scene *)snode->id;
@@ -189,6 +191,7 @@ static SpaceLink *node_duplicate(SpaceLink *sl)
 	return (SpaceLink *)snoden;
 }
 
+#if 0
 static void node_channel_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
@@ -217,6 +220,7 @@ static void node_channel_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
 }
+#endif
 
 /* Initialise main area, setting handlers. */
 static void node_main_area_init(wmWindowManager *wm, ARegion *ar)
@@ -281,7 +285,7 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 
 static int node_context(const bContext *C, const char *member, bContextDataResult *result)
 {
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	
 	if(CTX_data_dir(member)) {
 		static const char *dir[] = {"selected_nodes", NULL};
@@ -341,6 +345,7 @@ void ED_spacetype_node(void)
 	
 	BLI_addhead(&st->regiontypes, art);
 	
+#if 0
 	/* regions: channels */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype node region");
 	art->regionid = RGN_TYPE_CHANNELS;
@@ -351,6 +356,7 @@ void ED_spacetype_node(void)
 	art->draw= node_channel_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
+#endif
 	
 	
 	BKE_spacetype_register(st);

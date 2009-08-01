@@ -68,6 +68,7 @@ BF_GETTEXT_LIB = 'gettextlib'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
 WITH_BF_GAMEENGINE=False
+WITH_BF_PLAYER = False
 
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'

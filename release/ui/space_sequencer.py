@@ -8,7 +8,6 @@ def act_strip(context):
 # Header
 class SEQUENCER_HT_header(bpy.types.Header):
 	__space_type__ = "SEQUENCE_EDITOR"
-	__idname__ = "SEQUENCE_HT_header"
 
 	def draw(self, context):
 		
@@ -31,7 +30,7 @@ class SEQUENCER_HT_header(bpy.types.Header):
 				row.itemM("SEQUENCER_MT_add")
 				row.itemM("SEQUENCER_MT_strip")
 				layout.itemS()
-				row.itemO("SEQUENCER_OT_reload")
+				row.itemO("sequencer.reload")
 			else:
 				row.itemR(st, "display_channel") # text="Chan"
 
@@ -74,8 +73,8 @@ class SEQUENCER_MT_view(bpy.types.Menu):
 
 		"""
 		layout.itemS()
-		layout.itemO("SEQUENCER_OT_view_all")
-		layout.itemO("SEQUENCER_OT_view_selected")
+		layout.itemO("sequencer.view_all")
+		layout.itemO("sequencer.view_selected")
 		layout.itemS()
 		"""
 	
@@ -110,16 +109,16 @@ class SEQUENCER_MT_select(bpy.types.Menu):
 		st = context.space_data
 		
 		layout.column()
-		layout.item_enumO("SEQUENCER_OT_select_active_side", "side", 'LEFT', text="Strips to the Left")
-		layout.item_enumO("SEQUENCER_OT_select_active_side", "side", 'RIGHT', text="Strips to the Right")
+		layout.item_enumO("sequencer.select_active_side", "side", 'LEFT', text="Strips to the Left")
+		layout.item_enumO("sequencer.select_active_side", "side", 'RIGHT', text="Strips to the Right")
 		layout.itemS()
-		layout.item_enumO("SEQUENCER_OT_select_handles", "side", 'BOTH', text="Surrounding Handles")
-		layout.item_enumO("SEQUENCER_OT_select_handles", "side", 'LEFT', text="Left Handle")
-		layout.item_enumO("SEQUENCER_OT_select_handles", "side", 'RIGHT', text="Right Handle")
+		layout.item_enumO("sequencer.select_handles", "side", 'BOTH', text="Surrounding Handles")
+		layout.item_enumO("sequencer.select_handles", "side", 'LEFT', text="Left Handle")
+		layout.item_enumO("sequencer.select_handles", "side", 'RIGHT', text="Right Handle")
 		layout.itemS()
-		layout.itemO("SEQUENCER_OT_select_linked")
-		layout.itemO("SEQUENCER_OT_select_all_toggle")
-		layout.itemO("SEQUENCER_OT_select_inverse")
+		layout.itemO("sequencer.select_linked")
+		layout.itemO("sequencer.select_all_toggle")
+		layout.itemO("sequencer.select_inverse")
 
 class SEQUENCER_MT_marker(bpy.types.Menu):
 	__space_type__ = "SEQUENCE_EDITOR"
@@ -130,14 +129,14 @@ class SEQUENCER_MT_marker(bpy.types.Menu):
 		st = context.space_data
 		
 		layout.column()
-		layout.itemO("SEQUENCER_OT_sound_strip_add", text="Add Marker|Ctrl Alt M")
-		layout.itemO("SEQUENCER_OT_sound_strip_add", text="Duplicate Marker|Ctrl Shift D")
-		layout.itemO("SEQUENCER_OT_sound_strip_add", text="Delete Marker|Shift X")
+		layout.itemO("sequencer.sound_strip_add", text="Add Marker|Ctrl Alt M")
+		layout.itemO("sequencer.sound_strip_add", text="Duplicate Marker|Ctrl Shift D")
+		layout.itemO("sequencer.sound_strip_add", text="Delete Marker|Shift X")
 		layout.itemS()
-		layout.itemO("SEQUENCER_OT_sound_strip_add", text="(Re)Name Marker|Ctrl M")
-		layout.itemO("SEQUENCER_OT_sound_strip_add", text="Grab/Move Marker|Ctrl G")
+		layout.itemO("sequencer.sound_strip_add", text="(Re)Name Marker|Ctrl M")
+		layout.itemO("sequencer.sound_strip_add", text="Grab/Move Marker|Ctrl G")
 		layout.itemS()
-		layout.itemO("SEQUENCER_OT_sound_strip_add", text="Transform Markers") # toggle, will be rna - (sseq->flag & SEQ_MARKER_TRANS)
+		layout.itemO("sequencer.sound_strip_add", text="Transform Markers") # toggle, will be rna - (sseq->flag & SEQ_MARKER_TRANS)
 
 class SEQUENCER_MT_add(bpy.types.Menu):
 	__space_type__ = "SEQUENCE_EDITOR"
@@ -148,12 +147,10 @@ class SEQUENCER_MT_add(bpy.types.Menu):
 		st = context.space_data
 		
 		layout.column()
-		layout.itemO("SEQUENCER_OT_scene_strip_add", text="Scene")
-		layout.itemO("SEQUENCER_OT_movie_strip_add", text="Movie")
-		layout.item_booleanO("SEQUENCER_OT_movie_strip_add", "sound", True, text="Movie & Sound") # FFMPEG ONLY
-		layout.itemO("SEQUENCER_OT_image_strip_add", text="Image")
-		layout.itemO("SEQUENCER_OT_sound_strip_add", text="Sound (Ram)")
-		layout.item_booleanO("SEQUENCER_OT_sound_strip_add", "hd", True, text="Sound (Streaming)") # FFMPEG ONLY
+		layout.itemO("sequencer.scene_strip_add", text="Scene")
+		layout.itemO("sequencer.movie_strip_add", text="Movie")
+		layout.itemO("sequencer.image_strip_add", text="Image")
+		layout.itemO("sequencer.sound_strip_add", text="Sound")
 		
 		layout.itemM("SEQUENCER_MT_add_effect")
 
@@ -167,19 +164,19 @@ class SEQUENCER_MT_add_effect(bpy.types.Menu):
 		st = context.space_data
 		
 		self.layout.column()
-		self.layout.item_enumO("SEQUENCER_OT_effect_strip_add", 'type', 'ADD')
-		self.layout.item_enumO("SEQUENCER_OT_effect_strip_add", 'type', 'SUBTRACT')
-		self.layout.item_enumO("SEQUENCER_OT_effect_strip_add", 'type', 'ALPHA_OVER')
-		self.layout.item_enumO("SEQUENCER_OT_effect_strip_add", 'type', 'ALPHA_UNDER')
-		self.layout.item_enumO("SEQUENCER_OT_effect_strip_add", 'type', 'GAMMA_CROSS')
-		self.layout.item_enumO("SEQUENCER_OT_effect_strip_add", 'type', 'MULTIPLY')
-		self.layout.item_enumO("SEQUENCER_OT_effect_strip_add", 'type', 'OVER_DROP')
-		self.layout.item_enumO("SEQUENCER_OT_effect_strip_add", 'type', 'PLUGIN')
-		self.layout.item_enumO("SEQUENCER_OT_effect_strip_add", 'type', 'WIPE')
-		self.layout.item_enumO("SEQUENCER_OT_effect_strip_add", 'type', 'GLOW')
-		self.layout.item_enumO("SEQUENCER_OT_effect_strip_add", 'type', 'TRANSFORM')
-		self.layout.item_enumO("SEQUENCER_OT_effect_strip_add", 'type', 'COLOR')
-		self.layout.item_enumO("SEQUENCER_OT_effect_strip_add", 'type', 'SPEED')
+		self.layout.item_enumO("sequencer.effect_strip_add", 'type', 'ADD')
+		self.layout.item_enumO("sequencer.effect_strip_add", 'type', 'SUBTRACT')
+		self.layout.item_enumO("sequencer.effect_strip_add", 'type', 'ALPHA_OVER')
+		self.layout.item_enumO("sequencer.effect_strip_add", 'type', 'ALPHA_UNDER')
+		self.layout.item_enumO("sequencer.effect_strip_add", 'type', 'GAMMA_CROSS')
+		self.layout.item_enumO("sequencer.effect_strip_add", 'type', 'MULTIPLY')
+		self.layout.item_enumO("sequencer.effect_strip_add", 'type', 'OVER_DROP')
+		self.layout.item_enumO("sequencer.effect_strip_add", 'type', 'PLUGIN')
+		self.layout.item_enumO("sequencer.effect_strip_add", 'type', 'WIPE')
+		self.layout.item_enumO("sequencer.effect_strip_add", 'type', 'GLOW')
+		self.layout.item_enumO("sequencer.effect_strip_add", 'type', 'TRANSFORM')
+		self.layout.item_enumO("sequencer.effect_strip_add", 'type', 'COLOR')
+		self.layout.item_enumO("sequencer.effect_strip_add", 'type', 'SPEED')
 
 class SEQUENCER_MT_strip(bpy.types.Menu):
 	__space_type__ = "SEQUENCE_EDITOR"
@@ -192,18 +189,18 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 		layout.operator_context = 'INVOKE_REGION_WIN'
 		
 		layout.column()
-		layout.item_enumO("TFM_OT_transform", "mode", 'TRANSLATION', text="Grab/Move")
-		layout.item_enumO("TFM_OT_transform", "mode", 'TIME_EXTEND', text="Grab/Extend from frame")
-		#  uiItemO(layout, NULL, 0, "SEQUENCER_OT_strip_snap"); // TODO - add this operator
+		layout.item_enumO("tfm.transform", "mode", 'TRANSLATION', text="Grab/Move")
+		layout.item_enumO("tfm.transform", "mode", 'TIME_EXTEND', text="Grab/Extend from frame")
+		#  uiItemO(layout, NULL, 0, "sequencer.strip_snap"); // TODO - add this operator
 		layout.itemS()
 		
-		layout.item_enumO("SEQUENCER_OT_cut", "type", 'HARD', text="Cut (hard) at frame")
-		layout.item_enumO("SEQUENCER_OT_cut", "type", 'SOFT', text="Cut (soft) at frame")
-		layout.itemO("SEQUENCER_OT_images_separate")
+		layout.item_enumO("sequencer.cut", "type", 'HARD', text="Cut (hard) at frame")
+		layout.item_enumO("sequencer.cut", "type", 'SOFT', text="Cut (soft) at frame")
+		layout.itemO("sequencer.images_separate")
 		layout.itemS()
 		
-		layout.itemO("SEQUENCER_OT_duplicate")
-		layout.itemO("SEQUENCER_OT_delete")
+		layout.itemO("sequencer.duplicate")
+		layout.itemO("sequencer.delete")
 		
 		strip = act_strip(context)
 		
@@ -212,39 +209,39 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
 			
 			if	stype=='EFFECT':
 				layout.itemS()
-				layout.itemO("SEQUENCER_OT_effect_change")
-				layout.itemO("SEQUENCER_OT_effect_reassign_inputs")
+				layout.itemO("sequencer.effect_change")
+				layout.itemO("sequencer.effect_reassign_inputs")
 			elif stype=='IMAGE':
 				layout.itemS()
-				layout.itemO("SEQUENCER_OT_image_change")
+				layout.itemO("sequencer.image_change")
 			elif stype=='SCENE':
 				layout.itemS()
-				layout.itemO("SEQUENCER_OT_scene_change", text="Change Scene")
+				layout.itemO("sequencer.scene_change", text="Change Scene")
 			elif stype=='MOVIE':
 				layout.itemS()
-				layout.itemO("SEQUENCER_OT_movie_change")
+				layout.itemO("sequencer.movie_change")
 			
 		layout.itemS()
 		
-		layout.itemO("SEQUENCER_OT_meta_make")
-		layout.itemO("SEQUENCER_OT_meta_separate")
+		layout.itemO("sequencer.meta_make")
+		layout.itemO("sequencer.meta_separate")
 		
 		#if (ed && (ed->metastack.first || (ed->act_seq && ed->act_seq->type == SEQ_META))) {
 		#	uiItemS(layout);
-		#	uiItemO(layout, NULL, 0, "SEQUENCER_OT_meta_toggle");
+		#	uiItemO(layout, NULL, 0, "sequencer.meta_toggle");
 		#}
 		
 		layout.itemS()
-		layout.itemO("SEQUENCER_OT_reload")
+		layout.itemO("sequencer.reload")
 		layout.itemS()
-		layout.itemO("SEQUENCER_OT_lock")
-		layout.itemO("SEQUENCER_OT_unlock")
-		layout.itemO("SEQUENCER_OT_mute")
-		layout.itemO("SEQUENCER_OT_unmute")
+		layout.itemO("sequencer.lock")
+		layout.itemO("sequencer.unlock")
+		layout.itemO("sequencer.mute")
+		layout.itemO("sequencer.unmute")
 		
-		layout.item_booleanO("SEQUENCER_OT_mute", "unselected", 1, text="Mute Deselected Strips")
+		layout.item_booleanO("sequencer.mute", "unselected", 1, text="Mute Deselected Strips")
 
-		layout.itemO("SEQUENCER_OT_snap")
+		layout.itemO("sequencer.snap")
 
 # Panels
 class SequencerButtonsPanel(bpy.types.Panel):
@@ -263,7 +260,6 @@ class SequencerButtonsPanel_Output(bpy.types.Panel):
 
 class SEQUENCER_PT_edit(SequencerButtonsPanel):
 	__label__ = "Edit Strip"
-	__idname__ = "SEQUENCER_PT_edit"
 
 	def draw(self, context):
 		layout = self.layout
@@ -302,7 +298,6 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 		
 class SEQUENCER_PT_effect(SequencerButtonsPanel):
 	__label__ = "Effect Strip"
-	__idname__ = "SEQUENCER_PT_effect"
 
 	def poll(self, context):
 		if context.space_data.display_mode != 'SEQUENCER':
@@ -395,7 +390,6 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
 
 class SEQUENCER_PT_input(SequencerButtonsPanel):
 	__label__ = "Strip Input"
-	__idname__ = "SEQUENCER_PT_input"
 	
 	def poll(self, context):
 		if context.space_data.display_mode != 'SEQUENCER':
@@ -451,7 +445,6 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel):
 	__label__ = "Filter"
-	__idname__ = "SEQUENCER_PT_filter"
 	
 	def poll(self, context):
 		if context.space_data.display_mode != 'SEQUENCER':
@@ -500,7 +493,6 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
 
 class SEQUENCER_PT_proxy(SequencerButtonsPanel):
 	__label__ = "Proxy"
-	__idname__ = "SEQUENCER_PT_proxy"
 	
 	def poll(self, context):
 		if context.space_data.display_mode != 'SEQUENCER':
@@ -533,7 +525,6 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel):
 
 class SEQUENCER_PT_view(SequencerButtonsPanel_Output):
 	__label__ = "View Settings"
-	__idname__ = "SEQUENCER_PT_view"
 
 	def draw(self, context):
 		st = context.space_data
@@ -560,4 +551,3 @@ bpy.types.register(SEQUENCER_PT_filter)
 bpy.types.register(SEQUENCER_PT_proxy)
 
 bpy.types.register(SEQUENCER_PT_view) # view panels
-

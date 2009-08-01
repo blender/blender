@@ -154,13 +154,15 @@ static void view2d_masks(View2D *v2d)
  */
 void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 {
-	short tot_changed= 0;
+	short tot_changed= 0, init= 0;
 	uiStyle *style= U.uistyles.first;
 
 	/* initialise data if there is a need for such */
 	if ((v2d->flag & V2D_IS_INITIALISED) == 0) {
 		/* set initialised flag so that View2D doesn't get reinitialised next time again */
 		v2d->flag |= V2D_IS_INITIALISED;
+
+		init= 1;
 		
 		/* see eView2D_CommonViewTypes in UI_view2d.h for available view presets */
 		switch (type) {
@@ -170,7 +172,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			case V2D_COMMONVIEW_STANDARD:
 			{
 				/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
-				v2d->keepzoom= (V2D_KEEPASPECT|V2D_KEEPZOOM);
+				v2d->keepzoom= (V2D_KEEPASPECT|V2D_LIMITZOOM);
 				v2d->minzoom= 0.01f;
 				v2d->maxzoom= 1000.0f;
 				
@@ -197,7 +199,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			case V2D_COMMONVIEW_LIST:
 			{
 				/* zoom + aspect ratio are locked */
-				v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
+				v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_LIMITZOOM|V2D_KEEPASPECT);
 				v2d->minzoom= v2d->maxzoom= 1.0f;
 				
 				/* tot rect has strictly regulated placement, and must only occur in +/- quadrant */
@@ -209,11 +211,28 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			}
 				break;
 				
+			/* 'stack view' - practically the same as list/channel view, except is located in the pos y half instead. 
+			 * 	zoom, aspect ratio, and alignment restrictions are set here */
+			case V2D_COMMONVIEW_STACK:
+			{
+				/* zoom + aspect ratio are locked */
+				v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_LIMITZOOM|V2D_KEEPASPECT);
+				v2d->minzoom= v2d->maxzoom= 1.0f;
+				
+				/* tot rect has strictly regulated placement, and must only occur in +/+ quadrant */
+				v2d->align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y);
+				v2d->keeptot = V2D_KEEPTOT_STRICT;
+				tot_changed= 1;
+				
+				/* scroller settings are currently not set here... that is left for regions... */
+			}
+				break;
+				
 			/* 'header' regions - zoom, aspect ratio, alignment, and panning restrictions are set here */
 			case V2D_COMMONVIEW_HEADER:
 			{
 				/* zoom + aspect ratio are locked */
-				v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
+				v2d->keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_LIMITZOOM|V2D_KEEPASPECT);
 				v2d->minzoom= v2d->maxzoom= 1.0f;
 				v2d->min[0]= v2d->max[0]= (float)(winx-1);
 				v2d->min[1]= v2d->max[1]= (float)(winy-1);
@@ -237,28 +256,35 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			/* panels view, with horizontal/vertical align */
 			case V2D_COMMONVIEW_PANELS_UI:
 			{
+				float panelzoom= (style) ? style->panelzoom : 1.0f;
+				
 				/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
-				v2d->keepzoom= (V2D_KEEPASPECT|V2D_KEEPZOOM);
+				v2d->keepzoom= (V2D_KEEPASPECT|V2D_LIMITZOOM|V2D_KEEPZOOM);
 				v2d->minzoom= 0.5f;
 				v2d->maxzoom= 2.0f;
+				//tot_changed= 1;
 				
 				v2d->align= (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
 				v2d->keeptot= V2D_KEEPTOT_BOUNDS;
 				
+				v2d->scroll |= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
+				
 				v2d->tot.xmin= 0.0f;
 				v2d->tot.xmax= winx;
-
+				
 				v2d->tot.ymax= 0.0f;
 				v2d->tot.ymin= -winy;
-
+				
 				v2d->cur.xmin= 0.0f;
-				v2d->cur.xmax= winx*style->panelzoom;
-
+				/* bad workaround for keeping zoom level with scrollers */
+				v2d->cur.xmax= (winx - V2D_SCROLL_WIDTH)*panelzoom;
+				
 				v2d->cur.ymax= 0.0f;
-				v2d->cur.ymin= -winy*style->panelzoom;
+				/* bad workaround for keeping zoom level with scrollers */
+				v2d->cur.ymin= (-winy + V2D_SCROLL_HEIGHT)*panelzoom;
 			}
 				break;
-
+				
 				/* other view types are completely defined using their own settings already */
 			default:
 				/* we don't do anything here, as settings should be fine, but just make sure that rect */
@@ -275,17 +301,16 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 	
 	/* set 'tot' rect before setting cur? */
 	if (tot_changed) 
-		UI_view2d_totRect_set(v2d, winx, winy);
+		UI_view2d_totRect_set_resize(v2d, winx, winy, !init);
 	else
-		UI_view2d_curRect_validate(v2d);
-	
+		UI_view2d_curRect_validate_resize(v2d, !init);
 }
 
 /* Ensure View2D rects remain in a viable configuration 
  *	- cur is not allowed to be: larger than max, smaller than min, or outside of tot
  */
 // XXX pre2.5 -> this used to be called  test_view2d()
-void UI_view2d_curRect_validate(View2D *v2d)
+void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 {
 	float totwidth, totheight, curwidth, curheight, width, height;
 	float winx, winy;
@@ -328,10 +353,30 @@ void UI_view2d_curRect_validate(View2D *v2d)
 	if(winx<1) winx= 1;
 	if(winy<1) winy= 1;
 	
-	/* keepzoom (V2D_KEEPZOOM set), indicates that zoom level on each axis must not exceed limits 
+	/* V2D_LIMITZOOM indicates that zoom level should be preserved when the window size changes */
+	if (resize && (v2d->keepzoom & V2D_KEEPZOOM)) {
+		float zoom, oldzoom;
+
+		if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0) {
+			zoom= winx / width;
+			oldzoom= v2d->oldwinx / curwidth;
+
+			if(oldzoom != zoom)
+				width *= zoom/oldzoom;
+		}
+
+		if ((v2d->keepzoom & V2D_LOCKZOOM_Y)==0) {
+			zoom= winy / height;
+			oldzoom= v2d->oldwiny / curheight;
+
+			if(oldzoom != zoom)
+				height *= zoom/oldzoom;
+		}
+	}
+	/* keepzoom (V2D_LIMITZOOM set), indicates that zoom level on each axis must not exceed limits 
 	 * NOTE: in general, it is not expected that the lock-zoom will be used in conjunction with this
 	 */
-	if (v2d->keepzoom & V2D_KEEPZOOM) {
+	else if (v2d->keepzoom & V2D_LIMITZOOM) {
 		float zoom, fac;
 		
 		/* check if excessive zoom on x-axis */
@@ -437,10 +482,16 @@ void UI_view2d_curRect_validate(View2D *v2d)
 	if ((width != curwidth) || (height != curheight)) {
 		float temp, dh;
 		
-		/* resize from centerpoint */
+		/* resize from centerpoint, unless otherwise specified */
 		if (width != curwidth) {
 			if (v2d->keepofs & V2D_LOCKOFS_X) {
 				cur->xmax += width - (cur->xmax - cur->xmin);
+			}
+			else if (v2d->keepofs & V2D_KEEPOFS_X) {
+				if(v2d->align & V2D_ALIGN_NO_POS_X)
+					cur->xmin -= width - (cur->xmax - cur->xmin);
+				else
+					cur->xmax += width - (cur->xmax - cur->xmin);
 			}
 			else {
 				temp= (cur->xmax + cur->xmin) * 0.5f;
@@ -453,6 +504,12 @@ void UI_view2d_curRect_validate(View2D *v2d)
 		if (height != curheight) {
 			if (v2d->keepofs & V2D_LOCKOFS_Y) {
 				cur->ymax += height - (cur->ymax - cur->ymin);
+			}
+			else if (v2d->keepofs & V2D_KEEPOFS_Y) {
+				if(v2d->align & V2D_ALIGN_NO_POS_Y)
+					cur->ymin -= height - (cur->ymax - cur->ymin);
+				else
+					cur->ymax += height - (cur->ymax - cur->ymin);
 			}
 			else {
 				temp= (cur->ymax + cur->ymin) * 0.5f;
@@ -473,7 +530,7 @@ void UI_view2d_curRect_validate(View2D *v2d)
 		curheight= cur->ymax - cur->ymin;
 		
 		/* width */
-		if ( (curwidth > totwidth) && !(v2d->keepzoom & (V2D_KEEPZOOM|V2D_LOCKZOOM_X)) ) {
+		if ( (curwidth > totwidth) && !(v2d->keepzoom & (V2D_KEEPZOOM|V2D_LOCKZOOM_X|V2D_LIMITZOOM)) ) {
 			/* if zoom doesn't have to be maintained, just clamp edges */
 			if (cur->xmin < tot->xmin) cur->xmin= tot->xmin;
 			if (cur->xmax > tot->xmax) cur->xmax= tot->xmax;
@@ -519,13 +576,13 @@ void UI_view2d_curRect_validate(View2D *v2d)
 			 * We favour moving the 'minimum' across, as that's origin for most things
 			 * (XXX - in the past, max was favoured... if there are bugs, swap!)
 			 */
-			if ((cur->ymin < tot->ymin) && (cur->ymax > tot->ymax)) {
+			if ((cur->xmin < tot->xmin) && (cur->xmax > tot->xmax)) {
 				/* outside boundaries on both sides, so take middle-point of tot, and place in balanced way */
-				temp= (tot->ymax + tot->ymin) * 0.5f;
+				temp= (tot->xmax + tot->xmin) * 0.5f;
 				diff= curheight * 0.5f;
 				
-				cur->ymin= temp - diff;
-				cur->ymax= temp + diff;
+				cur->xmin= temp - diff;
+				cur->xmax= temp + diff;
 			}
 			else if (cur->xmin < tot->xmin) {
 				/* move cur across so that it sits at minimum of tot */
@@ -556,7 +613,7 @@ void UI_view2d_curRect_validate(View2D *v2d)
 		}
 		
 		/* height */
-		if ( (curheight > totheight) && !(v2d->keepzoom & (V2D_KEEPZOOM|V2D_LOCKZOOM_Y)) ) {
+		if ( (curheight > totheight) && !(v2d->keepzoom & (V2D_KEEPZOOM|V2D_LOCKZOOM_Y|V2D_LIMITZOOM)) ) {
 			/* if zoom doesn't have to be maintained, just clamp edges */
 			if (cur->ymin < tot->ymin) cur->ymin= tot->ymin;
 			if (cur->ymax > tot->ymax) cur->ymax= tot->ymax;
@@ -639,6 +696,11 @@ void UI_view2d_curRect_validate(View2D *v2d)
 	
 	/* set masks */
 	view2d_masks(v2d);
+}
+
+void UI_view2d_curRect_validate(View2D *v2d)
+{
+	return UI_view2d_curRect_validate_resize(v2d, 0);
 }
 
 /* ------------------ */
@@ -760,7 +822,7 @@ void UI_view2d_curRect_reset (View2D *v2d)
 /* ------------------ */
 
 /* Change the size of the maximum viewable area (i.e. 'tot' rect) */
-void UI_view2d_totRect_set (View2D *v2d, int width, int height)
+void UI_view2d_totRect_set_resize (View2D *v2d, int width, int height, int resize)
 {
 	int scroll= view2d_scroll_mapped(v2d->scroll);
 	
@@ -818,7 +880,57 @@ void UI_view2d_totRect_set (View2D *v2d, int width, int height)
 	}
 	
 	/* make sure that 'cur' rect is in a valid state as a result of these changes */
-	UI_view2d_curRect_validate(v2d);
+	UI_view2d_curRect_validate_resize(v2d, resize);
+}
+
+void UI_view2d_totRect_set(View2D *v2d, int width, int height)
+{
+	UI_view2d_totRect_set_resize(v2d, width, height, 0);
+}
+
+int UI_view2d_tab_set(View2D *v2d, int tab)
+{
+	float default_offset[2]= {0.0f, 0.0f};
+	float *offset, *new_offset;
+	int changed= 0;
+
+	/* if tab changed, change offset */
+	if(tab != v2d->tab_cur && v2d->tab_offset) {
+		if(tab < v2d->tab_num)
+			offset= &v2d->tab_offset[tab*2];
+		else
+			offset= default_offset;
+
+		v2d->cur.xmax += offset[0] - v2d->cur.xmin;
+		v2d->cur.xmin= offset[0];
+
+		v2d->cur.ymin += offset[1] - v2d->cur.ymax;
+		v2d->cur.ymax= offset[1];
+
+		/* validation should happen in subsequent totRect_set */
+
+		changed= 1;
+	}
+
+	/* resize array if needed */
+	if(tab >= v2d->tab_num) {
+		new_offset= MEM_callocN(sizeof(float)*(tab+1)*2, "view2d tab offset");
+
+		if(v2d->tab_offset) {
+			memcpy(new_offset, v2d->tab_offset, sizeof(float)*v2d->tab_num*2);
+			MEM_freeN(v2d->tab_offset);
+		}
+
+		v2d->tab_offset= new_offset;
+		v2d->tab_num= tab+1;
+	}
+
+	/* set current tab and offset */
+	v2d->tab_cur= tab;
+	v2d->tab_offset[2*tab+0]= v2d->cur.xmin;
+	v2d->tab_offset[2*tab+1]= v2d->cur.ymax;
+
+	return changed;
 }
 
 /* *********************************************************************** */

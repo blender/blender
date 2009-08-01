@@ -114,6 +114,13 @@ PyObject *Mathutils_Init(const char *from)
 
 	//seed the generator for the rand function
 	BLI_srand((unsigned int) (PIL_check_seconds_timer() * 0x7FFFFFFF));
+
+#if (PY_VERSION_HEX < 0x03000000)
+	vector_Type.tp_flags |= Py_TPFLAGS_CHECKTYPES;
+	matrix_Type.tp_flags |= Py_TPFLAGS_CHECKTYPES;
+	euler_Type.tp_flags |= Py_TPFLAGS_CHECKTYPES;
+	quaternion_Type.tp_flags |= Py_TPFLAGS_CHECKTYPES;
+#endif
 	
 	if( PyType_Ready( &vector_Type ) < 0 )
 		return NULL;

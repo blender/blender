@@ -46,18 +46,28 @@ extern "C" {
 #define FFMPEG_MKV      9
 #define FFMPEG_OGG      10
 
-#define FFMPEG_PRESET_NONE 0
-#define FFMPEG_PRESET_DVD  1
-#define FFMPEG_PRESET_SVCD 2
-#define FFMPEG_PRESET_VCD  3
-#define FFMPEG_PRESET_DV   4
-#define FFMPEG_PRESET_H264 5
+#define FFMPEG_PRESET_NONE		0
+#define FFMPEG_PRESET_DVD		1
+#define FFMPEG_PRESET_SVCD		2
+#define FFMPEG_PRESET_VCD 		3
+#define FFMPEG_PRESET_DV		4
+#define FFMPEG_PRESET_H264		5
+#define FFMPEG_PRESET_THEORA	6
+#define FFMPEG_PRESET_XVID		7
 
+struct IDProperty;
 struct RenderData;	
 
 extern void start_ffmpeg(struct RenderData *rd, int rectx, int recty);
 extern void end_ffmpeg(void);
 extern void append_ffmpeg(struct RenderData *rd, int frame, int *pixels, int rectx, int recty);
+
+extern void ffmpeg_set_preset(struct RenderData *rd, int preset);
+extern void ffmpeg_verify_image_type(struct RenderData *rd);
+
+extern struct IDProperty *ffmpeg_property_add(struct RenderData *Rd, char *type, int opt_index, int parent_index);
+extern int ffmpeg_property_add_string(struct RenderData *rd, const char *type, const char *str);
+extern void ffmpeg_property_del(struct RenderData *rd, void *type, void *prop_);
 
 #ifdef __cplusplus
 }

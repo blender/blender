@@ -4,7 +4,6 @@ import bpy
 
 class FILEBROWSER_HT_header(bpy.types.Header):
 	__space_type__ = "FILE_BROWSER"
-	__idname__ = "FILEBROWSER_HT_header"
 
 	def draw(self, context):
 		st = context.space_data
@@ -12,17 +11,15 @@ class FILEBROWSER_HT_header(bpy.types.Header):
 		
 		params = st.params 
 		layout.template_header()
-
-		if context.area.show_menus:
-			row = layout.row()
-			row.itemM("FILEBROWSER_MT_directory")
-			row.itemM("FILEBROWSER_MT_bookmarks")
-
+		
 		row = layout.row(align=True)
-		row.itemO("FILE_OT_parent", text="", icon='ICON_FILE_PARENT')
-		row.itemO("FILE_OT_refresh", text="", icon='ICON_FILE_REFRESH')
-		row.itemO("FILE_OT_previous", text="", icon='ICON_PREV_KEYFRAME')
-		row.itemO("FILE_OT_next", text="", icon='ICON_NEXT_KEYFRAME')
+		row.itemO("file.parent", text="", icon='ICON_FILE_PARENT')
+		row.itemO("file.refresh", text="", icon='ICON_FILE_REFRESH')
+		row.itemO("file.previous", text="", icon='ICON_PREV_KEYFRAME')
+		row.itemO("file.next", text="", icon='ICON_NEXT_KEYFRAME')
+		
+		row = layout.row(align=True)
+		row.itemO("file.directory_new", text="", icon='ICON_NEWFOLDER')
 		
 		layout.itemR(params, "display", expand=True, text="")
 		layout.itemR(params, "sort", expand=True, text="")
@@ -42,26 +39,5 @@ class FILEBROWSER_HT_header(bpy.types.Header):
 
 		row.active = params.do_filter
 
-class FILEBROWSER_MT_directory(bpy.types.Menu):
-	__space_type__ = "FILE_BROWSER"
-	__label__ = "Directory"
-
-	def draw(self, context):
-		layout = self.layout
-
-		layout.itemO("FILE_OT_refresh", text="Refresh", icon='ICON_FILE_REFRESH')
-		layout.itemO("FILE_OT_parent", text="Parent", icon='ICON_FILE_PARENT')
-		
-class FILEBROWSER_MT_bookmarks(bpy.types.Menu):
-	__space_type__ = "FILE_BROWSER"
-	__label__ = "Bookmarks"
-
-	def draw(self, context):
-		layout = self.layout
-
-		layout.itemO("FILE_OT_add_bookmark", text="Add current directory", icon='ICON_BOOKMARKS')
-
 		
 bpy.types.register(FILEBROWSER_HT_header)
-bpy.types.register(FILEBROWSER_MT_directory)
-bpy.types.register(FILEBROWSER_MT_bookmarks)

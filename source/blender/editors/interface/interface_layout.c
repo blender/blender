@@ -148,6 +148,7 @@ typedef struct uiLayoutItemFlow {
 typedef struct uiLayoutItemBx {
 	uiLayout litem;
 	uiBut *roundbox;
+	ListBase items;
 } uiLayoutItemBx;
 
 typedef struct uiLayoutItemSplt {
@@ -218,7 +219,7 @@ static int ui_text_icon_width(uiLayout *layout, char *name, int icon)
 {
 	int variable = ui_layout_vary_direction(layout) == UI_ITEM_VARY_X;
 
-	if(icon && strcmp(name, "") == 0)
+	if(icon && !name[0])
 		return UI_UNIT_X; /* icon only */
 	else if(icon)
 		return (variable)? UI_GetStringWidth(name) + 4 + UI_UNIT_X: 10*UI_UNIT_X; /* icon + text */
@@ -466,13 +467,18 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, i
 	uiLayout *sub;
 	uiBut *but;
 	PropertySubType subtype;
+	int labelw;
 
 	sub= uiLayoutRow(layout, 0);
 	uiBlockSetCurLayout(block, sub);
 
 	if(strcmp(name, "") != 0) {
-		w= w/2;
-		uiDefBut(block, LABEL, 0, name, x, y, w, h, NULL, 0.0, 0.0, 0, 0, "");
+		/* XXX UI_GetStringWidth is not accurate
+		labelw= UI_GetStringWidth(name);
+		CLAMP(labelw, w/4, 3*w/4);*/
+		labelw= w/2;
+		uiDefBut(block, LABEL, 0, name, x, y, labelw, h, NULL, 0.0, 0.0, 0, 0, "");
+		w= w-labelw;
 	}
 
 	subtype= RNA_property_subtype(prop);
@@ -480,13 +486,43 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, i
 	if(subtype == PROP_FILEPATH || subtype == PROP_DIRPATH) {
 		uiBlockSetCurLayout(block, uiLayoutRow(sub, 1));
 		uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, w-UI_UNIT_X, h);
-		but= uiDefIconBut(block, BUT, 0, ICON_FILESEL, x, y, UI_UNIT_X, h, NULL, 0.0f, 0.0f, 0.0f, 0.0f, "DUMMY file select button"); /* XXX */
+
+		/* BUTTONS_OT_file_browse calls uiFileBrowseContextProperty */
+		but= uiDefIconButO(block, BUT, "BUTTONS_OT_file_browse", WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, "Browse for file or directory.");
 	}
 	else
 		but= uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, w, h);
 
 	uiBlockSetCurLayout(block, layout);
 	return but;
+}
+
+void uiFileBrowseContextProperty(const bContext *C, PointerRNA *ptr, PropertyRNA **prop)
+{
+	ARegion *ar= CTX_wm_region(C);
+	uiBlock *block;
+	uiBut *but, *prevbut;
+
+	memset(ptr, 0, sizeof(*ptr));
+	*prop= NULL;
+
+	if(!ar)
+		return;
+
+	for(block=ar->uiblocks.first; block; block=block->next) {
+		for(but=block->buttons.first; but; but= but->next) {
+			prevbut= but->prev;
+
+			/* find the button before the active one */
+			if((but->flag & UI_BUT_LAST_ACTIVE) && prevbut && prevbut->rnapoin.id.data) {
+				if(RNA_property_type(prevbut->rnaprop) == PROP_STRING) {
+					*ptr= prevbut->rnapoin;
+					*prop= prevbut->rnaprop;
+					return;
+				}
+			}
+		}
+	}
 }
 
 /********************* Button Items *************************/
@@ -515,7 +551,7 @@ static void ui_item_disabled(uiLayout *layout, char *name)
 void uiItemFullO(uiLayout *layout, char *name, int icon, char *idname, IDProperty *properties, int context)
 {
 	uiBlock *block= layout->root->block;
-	wmOperatorType *ot= WM_operatortype_find(idname);
+	wmOperatorType *ot= WM_operatortype_find(idname, 0);
 	uiBut *but;
 	int w;
 
@@ -550,7 +586,7 @@ void uiItemFullO(uiLayout *layout, char *name, int icon, char *idname, IDPropert
 
 static char *ui_menu_enumpropname(uiLayout *layout, char *opname, char *propname, int retval)
 {
-	wmOperatorType *ot= WM_operatortype_find(opname);
+	wmOperatorType *ot= WM_operatortype_find(opname, 0);
 	PointerRNA ptr;
 	PropertyRNA *prop;
 
@@ -593,7 +629,7 @@ void uiItemEnumO(uiLayout *layout, char *name, int icon, char *opname, char *pro
 
 void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
 {
-	wmOperatorType *ot= WM_operatortype_find(opname);
+	wmOperatorType *ot= WM_operatortype_find(opname, 0);
 	PointerRNA ptr;
 	PropertyRNA *prop;
 
@@ -718,15 +754,17 @@ static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PropertyRNA
 	subtype= RNA_property_subtype(prop);
 	len= RNA_property_array_length(prop);
 
-	if(ELEM(type, PROP_STRING, PROP_POINTER) && strcmp(name, "") == 0)
-		name= "non-empty";
+	if(ELEM3(type, PROP_STRING, PROP_POINTER, PROP_ENUM) && !name[0])
+		name= "non-empty text";
+	else if(type == PROP_BOOLEAN && !name[0])
+		icon= ICON_DOT;
 
 	w= ui_text_icon_width(layout, name, icon);
 	h= UI_UNIT_Y;
 
 	/* increase height for arrays */
 	if(index == RNA_NO_INDEX && len > 0) {
-		if(strcmp(name, "") == 0 && icon == 0)
+		if(!name[0] && icon == 0)
 			h= 0;
 
 		if(type == PROP_BOOLEAN && len == 20)
@@ -1213,7 +1251,7 @@ static void menu_item_enum_opname_menu(bContext *C, uiLayout *layout, void *arg)
 
 void uiItemMenuEnumO(uiLayout *layout, char *name, int icon, char *opname, char *propname)
 {
-	wmOperatorType *ot= WM_operatortype_find(opname);
+	wmOperatorType *ot= WM_operatortype_find(opname, 0);
 	MenuItemLevel *lvl;
 
 	if(!ot || !ot->srna) {
@@ -1803,7 +1841,7 @@ uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, int align)
 	return &flow->litem;
 }
 
-uiLayout *uiLayoutBox(uiLayout *layout)
+static uiLayout *ui_layout_box(uiLayout *layout, int type)
 {
 	uiLayoutItemBx *box;
 
@@ -1818,9 +1856,25 @@ uiLayout *uiLayoutBox(uiLayout *layout)
 
 	uiBlockSetCurLayout(layout->root->block, &box->litem);
 
-	box->roundbox= uiDefBut(layout->root->block, ROUNDBOX, 0, "", 0, 0, 0, 0, NULL, 0.0, 0.0, 0, 0, "");
+	box->roundbox= uiDefBut(layout->root->block, type, 0, "", 0, 0, 0, 0, NULL, 0.0, 0.0, 0, 0, "");
 
 	return &box->litem;
+}
+
+uiLayout *uiLayoutBox(uiLayout *layout)
+{
+	return ui_layout_box(layout, ROUNDBOX);
+}
+
+uiLayout *uiLayoutListBox(uiLayout *layout)
+{
+	return ui_layout_box(layout, LISTBOX);
+}
+
+ListBase *uiLayoutBoxGetList(uiLayout *layout)
+{
+	uiLayoutItemBx *box= (uiLayoutItemBx*)layout;
+	return &box->items;
 }
 
 uiLayout *uiLayoutFree(uiLayout *layout, int align)
@@ -2126,6 +2180,9 @@ static void ui_layout_free(uiLayout *layout)
 		else
 			ui_layout_free((uiLayout*)item);
 	}
+
+	if(layout->item.type == ITEM_LAYOUT_BOX)
+		BLI_freelistN(&((uiLayoutItemBx*)layout)->items);
 
 	MEM_freeN(layout);
 }

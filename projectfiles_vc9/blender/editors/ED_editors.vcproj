@@ -639,6 +639,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_graph\graph_utils.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_graph\space_graph.c"
 				>
 			</File>
@@ -839,11 +843,35 @@
 			Name="space_nla"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\space_nla\nla_buttons.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_nla\nla_channels.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_nla\nla_draw.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_nla\nla_edit.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\space_nla\nla_header.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_nla\nla_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_nla\nla_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_nla\nla_select.c"
 				>
 			</File>
 			<File
@@ -996,6 +1024,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\animation\drivers.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\animation\fmodifier_ui.c"
 				>
 			</File>
 			<File
@@ -1355,6 +1387,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\physics\physics_boids.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\physics\physics_intern.h"
 				>
 			</File>
@@ -1380,6 +1416,30 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_logic\space_logic.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="space_console"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_console\console_draw.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_console\console_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_console\console_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_console\console_report.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\space_console\space_console.c"
 				>
 			</File>
 		</Filter>

@@ -101,6 +101,10 @@ bContextStore *CTX_store_copy(bContextStore *store);
 void CTX_store_free(bContextStore *store);
 void CTX_store_free_list(ListBase *contexts);
 
+/* need to store if python is initialized or not */
+int CTX_py_init_get(bContext *C);
+void CTX_py_init_set(bContext *C, int value);
+
 /* Window Manager Context */
 
 struct wmWindowManager *CTX_wm_manager(const bContext *C);
@@ -111,11 +115,24 @@ struct SpaceLink *CTX_wm_space_data(const bContext *C);
 struct ARegion *CTX_wm_region(const bContext *C);
 void *CTX_wm_region_data(const bContext *C);
 struct ARegion *CTX_wm_menu(const bContext *C);
+struct ReportList *CTX_wm_reports(const bContext *C);
 
 struct View3D *CTX_wm_view3d(const bContext *C);
 struct RegionView3D *CTX_wm_region_view3d(const bContext *C);
 struct SpaceText *CTX_wm_space_text(const bContext *C);
 struct SpaceImage *CTX_wm_space_image(const bContext *C);
+struct SpaceConsole *CTX_wm_space_console(const bContext *C);
+struct SpaceButs *CTX_wm_space_buts(const bContext *C);
+struct SpaceFile *CTX_wm_space_file(const bContext *C);
+struct SpaceSeq *CTX_wm_space_seq(const bContext *C);
+struct SpaceOops *CTX_wm_space_outliner(const bContext *C);
+struct SpaceNla *CTX_wm_space_nla(const bContext *C);
+struct SpaceTime *CTX_wm_space_time(const bContext *C);
+struct SpaceNode *CTX_wm_space_node(const bContext *C);
+struct SpaceLogic *CTX_wm_space_logic(const bContext *C);
+struct SpaceIpo *CTX_wm_space_graph(const bContext *C);
+struct SpaceAction *CTX_wm_space_action(const bContext *C);
+struct SpaceInfo *CTX_wm_space_info(const bContext *C);
 
 void CTX_wm_manager_set(bContext *C, struct wmWindowManager *wm);
 void CTX_wm_window_set(bContext *C, struct wmWindow *win);
@@ -185,6 +202,9 @@ int CTX_data_selected_bases(const bContext *C, ListBase *list);
 
 int CTX_data_visible_objects(const bContext *C, ListBase *list);
 int CTX_data_visible_bases(const bContext *C, ListBase *list);
+
+int CTX_data_selectable_objects(const bContext *C, ListBase *list);
+int CTX_data_selectable_bases(const bContext *C, ListBase *list);
 
 struct Object *CTX_data_active_object(const bContext *C);
 struct Base *CTX_data_active_base(const bContext *C);

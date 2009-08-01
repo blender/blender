@@ -114,6 +114,7 @@
 #include "ED_curve.h"
 #include "ED_particle.h"
 #include "ED_mesh.h"
+#include "ED_mball.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
@@ -137,10 +138,10 @@
 
 /* ************* XXX **************** */
 static void error() {}
-static void waitcursor() {}
-static int pupmenu() {return 0;}
-static int pupmenu_col() {return 0;}
-static int okee() {return 0;}
+static void waitcursor(int val) {}
+static int pupmenu(const char *msg) {return 0;}
+static int pupmenu_col(const char *msg, int val) {return 0;}
+static int okee(const char *msg) {return 0;}
 
 /* port over here */
 static bContext *C;
@@ -322,16 +323,16 @@ void OBJECT_OT_object_add(wmOperatorType *ot)
 /* ******  work both in and outside editmode ****** */
 
 static EnumPropertyItem prop_mesh_types[] = {
-	{0, "PLANE", 0, "Plane", ""},
-	{1, "CUBE", 0, "Cube", ""},
-	{2, "CIRCLE", 0, "Circle", ""},
-	{3, "UVSPHERE", 0, "UVsphere", ""},
-	{4, "ICOSPHERE", 0, "Icosphere", ""},
-	{5, "CYLINDER", 0, "Cylinder", ""},
-	{6, "CONE", 0, "Cone", ""},
+	{0, "PLANE", ICON_MESH_PLANE, "Plane", ""},
+	{1, "CUBE", ICON_MESH_CUBE, "Cube", ""},
+	{2, "CIRCLE", ICON_MESH_CIRCLE, "Circle", ""},
+	{3, "UVSPHERE", ICON_MESH_UVSPHERE, "UVsphere", ""},
+	{4, "ICOSPHERE", ICON_MESH_ICOSPHERE, "Icosphere", ""},
+	{5, "CYLINDER", ICON_MESH_TUBE, "Cylinder", ""},
+	{6, "CONE", ICON_MESH_CONE, "Cone", ""},
 	{0, "", 0, NULL, NULL},
-	{7, "GRID", 0, "Grid", ""},
-	{8, "MONKEY", 0, "Monkey", ""},
+	{7, "GRID", ICON_MESH_GRID, "Grid", ""},
+	{8, "MONKEY", ICON_MESH_MONKEY, "Monkey", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -407,11 +408,11 @@ void OBJECT_OT_mesh_add(wmOperatorType *ot)
 }
 
 static EnumPropertyItem prop_curve_types[] = {
-	{CU_BEZIER|CU_2D|CU_PRIM_CURVE, "BEZIER_CURVE", 0, "Bezier Curve", ""},
-	{CU_BEZIER|CU_2D|CU_PRIM_CIRCLE, "BEZIER_CIRCLE", 0, "Bezier Circle", ""},
-	{CU_NURBS|CU_2D|CU_PRIM_CURVE, "NURBS_CURVE", 0, "NURBS Curve", ""},
-	{CU_NURBS|CU_2D|CU_PRIM_CIRCLE, "NURBS_CIRCLE", 0, "NURBS Circle", ""},
-	{CU_NURBS|CU_2D|CU_PRIM_PATH, "PATH", 0, "Path", ""},
+	{CU_BEZIER|CU_2D|CU_PRIM_CURVE, "BEZIER_CURVE", ICON_CURVE_BEZCURVE, "Bezier Curve", ""},
+	{CU_BEZIER|CU_2D|CU_PRIM_CIRCLE, "BEZIER_CIRCLE", ICON_CURVE_BEZCIRCLE, "Bezier Circle", ""},
+	{CU_NURBS|CU_2D|CU_PRIM_CURVE, "NURBS_CURVE", ICON_CURVE_NCURVE, "NURBS Curve", ""},
+	{CU_NURBS|CU_2D|CU_PRIM_CIRCLE, "NURBS_CIRCLE", ICON_CURVE_NCIRCLE, "NURBS Circle", ""},
+	{CU_NURBS|CU_2D|CU_PRIM_PATH, "PATH", ICON_CURVE_PATH, "Path", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -481,12 +482,12 @@ void OBJECT_OT_curve_add(wmOperatorType *ot)
 }
 
 static EnumPropertyItem prop_surface_types[]= {
-	{CU_PRIM_CURVE|CU_NURBS, "NURBS_CURVE", 0, "NURBS Curve", ""},
-	{CU_PRIM_CIRCLE|CU_NURBS, "NURBS_CIRCLE", 0, "NURBS Circle", ""},
-	{CU_PRIM_PATCH|CU_NURBS, "NURBS_SURFACE", 0, "NURBS Surface", ""},
-	{CU_PRIM_TUBE|CU_NURBS, "NURBS_TUBE", 0, "NURBS Tube", ""},
-	{CU_PRIM_SPHERE|CU_NURBS, "NURBS_SPHERE", 0, "NURBS Sphere", ""},
-	{CU_PRIM_DONUT|CU_NURBS, "NURBS_DONUT", 0, "NURBS Donut", ""},
+	{CU_PRIM_CURVE|CU_NURBS, "NURBS_CURVE", ICON_SURFACE_NCURVE, "NURBS Curve", ""},
+	{CU_PRIM_CIRCLE|CU_NURBS, "NURBS_CIRCLE", ICON_SURFACE_NCIRCLE, "NURBS Circle", ""},
+	{CU_PRIM_PATCH|CU_NURBS, "NURBS_SURFACE", ICON_SURFACE_NSURFACE, "NURBS Surface", ""},
+	{CU_PRIM_TUBE|CU_NURBS, "NURBS_TUBE", ICON_SURFACE_NTUBE, "NURBS Tube", ""},
+	{CU_PRIM_SPHERE|CU_NURBS, "NURBS_SPHERE", ICON_SURFACE_NSPHERE, "NURBS Sphere", ""},
+	{CU_PRIM_DONUT|CU_NURBS, "NURBS_DONUT", ICON_SURFACE_NDONUT, "NURBS Donut", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -538,6 +539,78 @@ void OBJECT_OT_surface_add(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_surface_types, 0, "Primitive", "");
 }
 
+static EnumPropertyItem prop_metaball_types[]= {
+	{MB_BALL, "MBALL_BALL", ICON_META_BALL, "Meta Ball", ""},
+	{MB_TUBE, "MBALL_TUBE", ICON_META_TUBE, "Meta Tube", ""},
+	{MB_PLANE, "MBALL_PLANE", ICON_META_PLANE, "Meta Plane", ""},
+	{MB_CUBE, "MBALL_CUBE", ICON_META_CUBE, "Meta Cube", ""},
+	{MB_ELIPSOID, "MBALL_ELLIPSOID", ICON_META_ELLIPSOID, "Meta Ellipsoid", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static int object_metaball_add_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	MetaBall *mball;
+	MetaElem *elem;
+	int newob= 0;
+	
+	if(obedit==NULL || obedit->type!=OB_MBALL) {
+		object_add_type(C, OB_MBALL);
+		ED_object_enter_editmode(C, 0);
+		newob = 1;
+	}
+	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	
+	obedit= CTX_data_edit_object(C);
+	elem= (MetaElem*)add_metaball_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
+	mball= (MetaBall*)obedit->data;
+	BLI_addtail(mball->editelems, elem);
+	
+	/* userdef */
+	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
+		ED_object_exit_editmode(C, EM_FREEDATA);
+	}
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int object_metaball_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	uiPopupMenu *pup;
+	uiLayout *layout;
+
+	pup= uiPupMenuBegin(C, op->type->name, 0);
+	layout= uiPupMenuLayout(pup);
+	if(!obedit || obedit->type == OB_MBALL)
+		uiItemsEnumO(layout, op->type->idname, "type");
+	else
+		uiItemsEnumO(layout, "OBJECT_OT_metaball_add", "type");
+	uiPupMenuEnd(C, pup);
+
+	return OPERATOR_CANCELLED;
+}
+
+void OBJECT_OT_metaball_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Metaball";
+	ot->description= "Add an metaball object to the scene.";
+	ot->idname= "OBJECT_OT_metaball_add";
+
+	/* api callbacks */
+	ot->invoke= object_metaball_add_invoke;
+	ot->exec= object_metaball_add_exec;
+	ot->poll= ED_operator_scene_editable;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "type", prop_metaball_types, 0, "Primitive", "");
+}
 static int object_add_text_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -616,7 +689,6 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-
 static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	uiPopupMenu *pup= uiPupMenuBegin(C, "Add Object", 0);
@@ -625,7 +697,7 @@ static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	uiItemMenuEnumO(layout, "Mesh", ICON_OUTLINER_OB_MESH, "OBJECT_OT_mesh_add", "type");
 	uiItemMenuEnumO(layout, "Curve", ICON_OUTLINER_OB_CURVE, "OBJECT_OT_curve_add", "type");
 	uiItemMenuEnumO(layout, "Surface", ICON_OUTLINER_OB_SURFACE, "OBJECT_OT_surface_add", "type");
-	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_META, "OBJECT_OT_object_add", "type", OB_MBALL);
+	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_META, "OBJECT_OT_metaball_add", "type");
 	uiItemO(layout, "Text", ICON_OUTLINER_OB_FONT, "OBJECT_OT_text_add");
 	uiItemS(layout);
 	uiItemO(layout, "Armature", ICON_OUTLINER_OB_ARMATURE, "OBJECT_OT_armature_add");
@@ -747,7 +819,7 @@ static void copy_object_set_idnew(Scene *scene, View3D *v3d, int dupflag)
 	
 	/* XXX check object pointers */
 	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
+		if(TESTBASELIB_BGMODE(v3d, base)) {
 			ob= base->object;
 			relink_constraints(&ob->constraints);
 			if (ob->pose){
@@ -1690,6 +1762,308 @@ void OBJECT_OT_select_linked(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "seltype", prop_select_types, 1, "Selection", "Extend selection or clear selection then select");
 
 }
+
+/* ****** selection grouped *******/
+
+static EnumPropertyItem prop_select_grouped_types[] = {
+	{1, "CHILDREN_RECURSIVE", 0, "Children", ""}, // XXX depreceated animation system stuff...
+	{2, "CHILDREN", 0, "Immediate Children", ""},
+	{3, "PARENT", 0, "Parent", ""},
+	{4, "SIBLINGS", 0, "Siblings", "Shared Parent"},
+	{5, "TYPE", 0, "Type", "Shared object type"},
+	{6, "LAYER", 0, "Layer", "Shared layers"},
+	{7, "GROUP", 0, "Group", "Shared group"},
+	{8, "HOOK", 0, "Hook", ""},
+	{9, "PASS", 0, "Pass", "Render pass Index"},
+	{10, "COLOR", 0, "Color", "Object Color"},
+	{11, "PROPERTIES", 0, "Properties", "Game Properties"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+
+static short select_grouped_children(bContext *C, Object *ob, int recursive)
+{
+	short changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if (ob == base->object->parent) {
+			if (!(base->flag & SELECT)) {
+				ED_base_object_select(base, BA_SELECT);
+				changed = 1;
+			}
+
+			if (recursive)
+				changed |= select_grouped_children(C, base->object, 1);
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static short select_grouped_parent(bContext *C)	/* Makes parent active and de-selected OBACT */
+{
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d= CTX_wm_view3d(C);
+
+	short changed = 0;
+	Base *baspar, *basact= CTX_data_active_base(C);
+
+	if (!basact || !(basact->object->parent)) return 0; /* we know OBACT is valid */
+
+	baspar= object_in_scene(basact->object->parent, scene);
+
+	/* can be NULL if parent in other scene */
+	if(baspar && BASE_SELECTABLE(v3d, baspar)) {
+		ED_base_object_select(basact, BA_DESELECT);
+		ED_base_object_select(baspar, BA_SELECT);
+		ED_base_object_activate(C, baspar);
+		changed = 1;
+	}
+	return changed;
+}
+
+
+#define GROUP_MENU_MAX	24
+static short select_grouped_group(bContext *C, Object *ob)	/* Select objects in the same group as the active */
+{
+	short changed = 0;
+	Group *group, *ob_groups[GROUP_MENU_MAX];
+	//char str[10 + (24*GROUP_MENU_MAX)];
+	//char *p = str;
+	int group_count=0; //, menu, i;
+
+	for (	group=G.main->group.first;
+			group && group_count < GROUP_MENU_MAX;
+			group=group->id.next
+		) {
+		if (object_in_group (ob, group)) {
+			ob_groups[group_count] = group;
+			group_count++;
+		}
+	}
+
+	if (!group_count)
+		return 0;
+
+	else if (group_count == 1) {
+		group = ob_groups[0];
+		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+			if (!(base->flag & SELECT) && object_in_group(base->object, group)) {
+				ED_base_object_select(base, BA_SELECT);
+				changed = 1;
+			}
+		}
+		CTX_DATA_END;
+		return changed;
+	}
+#if 0 // XXX hows this work in 2.5?
+	/* build the menu. */
+	p += sprintf(str, "Groups%%t");
+	for (i=0; i<group_count; i++) {
+		group = ob_groups[i];
+		p += sprintf (p, "|%s%%x%i", group->id.name+2, i);
+	}
+
+	menu = pupmenu (str);
+	if (menu == -1)
+		return 0;
+
+	group = ob_groups[menu];
+	for (base= FIRSTBASE; base; base= base->next) {
+		if (!(base->flag & SELECT) && object_in_group(base->object, group)) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+#endif
+	return changed;
+}
+
+static short select_grouped_object_hooks(bContext *C, Object *ob)
+{
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d= CTX_wm_view3d(C);
+
+	short changed = 0;
+	Base *base;
+	ModifierData *md;
+	HookModifierData *hmd;
+
+	for (md = ob->modifiers.first; md; md=md->next) {
+		if (md->type==eModifierType_Hook) {
+			hmd= (HookModifierData*) md;
+			if (hmd->object && !(hmd->object->flag & SELECT)) {
+				base= object_in_scene(hmd->object, scene);
+				if (base && (BASE_SELECTABLE(v3d, base))) {
+					ED_base_object_select(base, BA_SELECT);
+					changed = 1;
+				}
+			}
+		}
+	}
+	return changed;
+}
+
+/* Select objects woth the same parent as the active (siblings),
+ * parent can be NULL also */
+static short select_grouped_siblings(bContext *C, Object *ob)
+{
+	short changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if ((base->object->parent==ob->parent)  && !(base->flag & SELECT)) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static short select_grouped_type(bContext *C, Object *ob)
+{
+	short changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if ((base->object->type == ob->type) && !(base->flag & SELECT)) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static short select_grouped_layer(bContext *C, Object *ob)
+{
+	char changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if ((base->lay & ob->lay) && !(base->flag & SELECT)) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static short select_grouped_index_object(bContext *C, Object *ob)
+{
+	char changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if ((base->object->index == ob->index) && !(base->flag & SELECT)) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static short select_grouped_color(bContext *C, Object *ob)
+{
+	char changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if (!(base->flag & SELECT) && (FloatCompare(base->object->col, ob->col, 0.005f))) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static short objects_share_gameprop(Object *a, Object *b)
+{
+	bProperty *prop;
+	/*make a copy of all its properties*/
+
+	for( prop= a->prop.first; prop; prop = prop->next ) {
+		if ( get_ob_property(b, prop->name) )
+			return 1;
+	}
+	return 0;
+}
+
+static short select_grouped_gameprops(bContext *C, Object *ob)
+{
+	char changed = 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) {
+		if (!(base->flag & SELECT) && (objects_share_gameprop(base->object, ob))) {
+			ED_base_object_select(base, BA_SELECT);
+			changed = 1;
+		}
+	}
+	CTX_DATA_END;
+	return changed;
+}
+
+static int object_select_grouped_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob;
+	int nr = RNA_enum_get(op->ptr, "type");
+	short changed = 0, seltype;
+
+	seltype = RNA_enum_get(op->ptr, "seltype");
+	
+	if (seltype == 0) {
+		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+			ED_base_object_select(base, BA_DESELECT);
+		}
+		CTX_DATA_END;
+	}
+	
+	ob= OBACT;
+	if(ob==0){ 
+		BKE_report(op->reports, RPT_ERROR, "No Active Object");
+		return OPERATOR_CANCELLED;
+	}
+	
+	if(nr==1)		changed = select_grouped_children(C, ob, 1);
+	else if(nr==2)	changed = select_grouped_children(C, ob, 0);
+	else if(nr==3)	changed = select_grouped_parent(C);
+	else if(nr==4)	changed = select_grouped_siblings(C, ob);
+	else if(nr==5)	changed = select_grouped_type(C, ob);
+	else if(nr==6)	changed = select_grouped_layer(C, ob);
+	else if(nr==7)	changed = select_grouped_group(C, ob);
+	else if(nr==8)	changed = select_grouped_object_hooks(C, ob);
+	else if(nr==9)	changed = select_grouped_index_object(C, ob);
+	else if(nr==10)	changed = select_grouped_color(C, ob);
+	else if(nr==11)	changed = select_grouped_gameprops(C, ob);
+	
+	if (changed) {
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
+		return OPERATOR_FINISHED;
+	}
+	
+	return OPERATOR_CANCELLED;
+}
+
+void OBJECT_OT_select_grouped(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Grouped";
+	ot->description = "Select all visible objects grouped by various properties.";
+	ot->idname= "OBJECT_OT_select_grouped";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= object_select_grouped_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
+	RNA_def_enum(ot->srna, "seltype", prop_select_types, 1, "Selection", "Extend selection or clear selection then select");
+
+}
+
 /* ****** selection by layer *******/
 
 static int object_select_by_layer_exec(bContext *C, wmOperator *op)
@@ -2364,68 +2738,110 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 	DAG_scene_sort(scene);
 }
 
-static Object *group_objects_menu(Group *group)
+
+/* ******************** make proxy operator *********************** */
+
+/* present menu listing the possible objects within the group to proxify */
+static void proxy_group_objects_menu (bContext *C, wmOperator *op, Object *ob, Group *group)
 {
+	PointerRNA gob_ptr;
+	uiPopupMenu *pup;
+	uiLayout *layout;
 	GroupObject *go;
-	int len= 0;
-	short a, nr;
-	char *str;
-		
-	for(go= group->gobject.first; go; go= go->next) {
-		if(go->ob)
-			len++;
-	}
-	if(len==0) return NULL;
+	int len=0;
 	
-	str= MEM_callocN(40+32*len, "menu");
+	/* check if there are any objects within the group to assign for */
+	for (go= group->gobject.first; go; go= go->next) {
+		if (go->ob) len++;
+	}
+	if (len==0) return;
 	
-	strcpy(str, "Make Proxy for: %t");
-	a= strlen(str);
-	for(nr=1, go= group->gobject.first; go; go= go->next, nr++) {
-		a+= sprintf(str+a, "|%s %%x%d", go->ob->id.name+2, nr);
+	/* now create the menu to draw */
+	pup= uiPupMenuBegin(C, "Make Proxy For:", 0);
+	layout= uiPupMenuLayout(pup);
+	
+	/* make RNA pointer for object that group belongs to */
+	RNA_id_pointer_create((ID *)ob, &gob_ptr);
+	
+	for (go= group->gobject.first; go; go= go->next) {
+		if (go->ob) {
+			PointerRNA props_ptr, ob_ptr;
+			
+			/* create pointer for this object */
+			RNA_id_pointer_create((ID *)go->ob, &ob_ptr);
+			
+			/* create operator properties, and assign the relevant pointers to that, 
+			 * and add a menu entry which uses these props 
+			 */
+			WM_operator_properties_create(&props_ptr, op->idname);
+				RNA_pointer_set(&props_ptr, "object", ob_ptr);
+				RNA_pointer_set(&props_ptr, "group_object", gob_ptr);
+			uiItemFullO(layout, go->ob->id.name+2, 0, op->idname, props_ptr.data, WM_OP_EXEC_REGION_WIN);
+		}
 	}
 	
-	a= pupmenu_col(str, 20);
-	MEM_freeN(str);
-	if(a>0) {
-		go= BLI_findlink(&group->gobject, a-1);
-		return go->ob;
-	}
-	return NULL;
+	/* display the menu, and be done */
+	uiPupMenuEnd(C, pup);
 }
 
-
-/* adds empty object to become local replacement data of a library-linked object */
-void make_proxy(Scene *scene)
+/* set the object to proxify */
+static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
-	Object *ob= OBACT;
-	Object *gob= NULL;
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
 	
-	if(scene->id.lib) return;
-	if(ob==NULL) return;
-	
-	
-	if(ob->dup_group && ob->dup_group->id.lib) {
-		gob= ob;
+	/* sanity checks */
+	if (!scene || scene->id.lib || !ob)
+		return OPERATOR_CANCELLED;
+		
+	/* Get object to work on - use a menu if we need to... */
+	if (ob->dup_group && ob->dup_group->id.lib) {
 		/* gives menu with list of objects in group */
-		ob= group_objects_menu(ob->dup_group);
+		proxy_group_objects_menu(C, op, ob, ob->dup_group);
 	}
-	else if(ob->id.lib) {
-		if(okee("Make Proxy Object")==0)
-		return;
+	else if (ob->id.lib) {
+		uiPopupMenu *pup= uiPupMenuBegin(C, "OK?", ICON_QUESTION);
+		uiLayout *layout= uiPupMenuLayout(pup);
+		PointerRNA ob_ptr, props_ptr;
+		
+		/* create pointer for this object */
+		RNA_id_pointer_create((ID *)ob, &ob_ptr);
+		
+		/* create operator properties, and assign the relevant pointers to that, 
+		 * and add a menu entry which uses these props 
+		 */
+		WM_operator_properties_create(&props_ptr, op->idname);
+			RNA_pointer_set(&props_ptr, "object", ob_ptr);
+		uiItemFullO(layout, op->type->name, 0, op->idname, props_ptr.data, WM_OP_EXEC_REGION_WIN);
+		
+		/* present the menu and be done... */
+		uiPupMenuEnd(C, pup);
 	}
 	else {
-		error("Can only make proxy for a referenced object or group");
-		return;
+		/* error.. cannot continue */
+		BKE_report(op->reports, RPT_ERROR, "Can only make proxy for a referenced object or group");
 	}
 	
-	if(ob) {
+	/* this invoke just calls another instance of this operator... */
+	return OPERATOR_CANCELLED;
+}
+
+static int make_proxy_exec (bContext *C, wmOperator *op)
+{
+	PointerRNA ob_ptr= RNA_pointer_get(op->ptr, "object");
+	PointerRNA gob_ptr= RNA_pointer_get(op->ptr, "group_object");
+	Object *ob= ob_ptr.data;
+	Object *gob= gob_ptr.data;
+	Scene *scene= CTX_data_scene(C);
+	
+	if (ob) {
 		Object *newob;
 		Base *newbase, *oldbase= BASACT;
 		char name[32];
 		
+		/* Add new object for the proxy */
 		newob= add_object(scene, OB_EMPTY);
-		if(gob)
+		if (gob)
 			strcpy(name, gob->id.name+2);
 		else
 			strcpy(name, ob->id.name+2);
@@ -2438,32 +2854,66 @@ void make_proxy(Scene *scene)
 		newob->lay= newbase->lay;
 		
 		/* remove base, leave user count of object, it gets linked in object_make_proxy */
-		if(gob==NULL) {
+		if (gob==NULL) {
 			BLI_remlink(&scene->base, oldbase);
 			MEM_freeN(oldbase);
-		}		
+		}
+		
 		object_make_proxy(newob, ob, gob);
 		
+		/* depsgraph flushes are needed for the new data */
 		DAG_scene_sort(scene);
 		DAG_object_flush_update(scene, newob, OB_RECALC);
 	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "No object to make proxy for");
+		return OPERATOR_CANCELLED;
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_proxy_make (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Make Proxy";
+	ot->idname= "OBJECT_OT_proxy_make";
+	ot->description= "Add empty object to become local replacement data of a library-linked object";
+	
+	/* callbacks */
+	ot->invoke= make_proxy_invoke;
+	ot->exec= make_proxy_exec;
+	ot->poll= ED_operator_object_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_pointer(ot->srna, "object", "Object", "Proxy Object", "Lib-linked/grouped object to make a proxy for.");
+	RNA_def_pointer(ot->srna, "group_object", "Object", "Group Object", "Group instancer (if applicable).");
 }
 
 /* ******************** make parent operator *********************** */
 
-#define PAR_OBJECT		0
-#define PAR_ARMATURE	1
-#define PAR_BONE		2
-#define PAR_CURVE		3
-#define PAR_FOLLOW		4
-#define PAR_PATH_CONST	5
-#define PAR_LATTICE		6
-#define PAR_VERTEX		7
-#define PAR_TRIA		8
+#define PAR_OBJECT				0
+#define PAR_ARMATURE			1
+#define PAR_ARMATURE_NAME		2
+#define PAR_ARMATURE_ENVELOPE	3
+#define PAR_ARMATURE_AUTO		4
+#define PAR_BONE				5
+#define PAR_CURVE				6
+#define PAR_FOLLOW				7
+#define PAR_PATH_CONST			8
+#define PAR_LATTICE				9
+#define PAR_VERTEX				10
+#define PAR_TRIA				11
 
 static EnumPropertyItem prop_make_parent_types[] = {
 	{PAR_OBJECT, "OBJECT", 0, "Object", ""},
 	{PAR_ARMATURE, "ARMATURE", 0, "Armature Deform", ""},
+	{PAR_ARMATURE_NAME, "ARMATURE_NAME", 0, "   With Empty Groups", ""},
+	{PAR_ARMATURE_AUTO, "ARMATURE_AUTO", 0, "   With Automatic Weights", ""},
+	{PAR_ARMATURE_ENVELOPE, "ARMATURE_ENVELOPE", 0, "   With Envelope Weights", ""},
 	{PAR_BONE, "BONE", 0, "Bone", ""},
 	{PAR_CURVE, "CURVE", 0, "Curve Deform", ""},
 	{PAR_FOLLOW, "FOLLOW", 0, "Follow Path", ""},
@@ -2484,6 +2934,22 @@ static int test_parent_loop(Object *par, Object *ob)
 	return test_parent_loop(par->parent, ob);
 }
 
+void ED_object_parent(Object *ob, Object *par, int type, const char *substr)
+{
+	if(!par || test_parent_loop(par, ob)) {
+		ob->parent= NULL;
+		ob->partype= PAROBJECT;
+		ob->parsubstr[0]= 0;
+		return;
+	}
+
+	/* this could use some more checks */
+
+	ob->parent= par;
+	ob->partype &= ~PARTYPE;
+	ob->partype |= type;
+	BLI_strncpy(ob->parsubstr, substr, sizeof(ob->parsubstr));
+}
 
 static int parent_set_exec(bContext *C, wmOperator *op)
 {
@@ -2491,6 +2957,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 	Object *par= CTX_data_active_object(C);
 	bPoseChannel *pchan= NULL;
 	int partype= RNA_enum_get(op->ptr, "type");
+	int pararm= ELEM4(partype, PAR_ARMATURE, PAR_ARMATURE_NAME, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO);
 	
 	par->recalc |= OB_RECALC_OB;
 	
@@ -2562,24 +3029,20 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 					ob->loc[0] = vec[0];
 					ob->loc[1] = vec[1];
 				}
-				else if(partype==PAR_ARMATURE && ob->type==OB_MESH && par->type == OB_ARMATURE) {
+				else if(pararm && ob->type==OB_MESH && par->type == OB_ARMATURE) {
+					if(partype == PAR_ARMATURE_NAME)
+						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_NAME);
+					else if(partype == PAR_ARMATURE_ENVELOPE)
+						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_ENVELOPE);
+					else if(partype == PAR_ARMATURE_AUTO)
+						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_AUTO);
 					
-					if(1) {
-						/* Prompt the user as to whether he wants to
-						* add some vertex groups based on the bones
-						* in the parent armature.
-						*/
-						create_vgroups_from_armature(scene, ob, par);
-						
-						/* get corrected inverse */
-						ob->partype= PAROBJECT;
-						what_does_parent(scene, ob, &workob);
-						
-						ob->partype= PARSKEL;
-					}
-					else
-						what_does_parent(scene, ob, &workob);
+					/* get corrected inverse */
+					ob->partype= PAROBJECT;
+					what_does_parent(scene, ob, &workob);
 					
+					ob->partype= PARSKEL;
+
 					Mat4Invert(ob->parentinv, workob.obmat);
 				}
 				else {
@@ -2590,7 +3053,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 				
 				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
 				
-				if( ELEM3(partype, PAR_CURVE, PAR_ARMATURE, PAR_LATTICE) )
+				if( ELEM(partype, PAR_CURVE, PAR_LATTICE) || pararm )
 					ob->partype= PARSKEL; /* note, dna define, not operator property */
 				else
 					ob->partype= PAROBJECT;	/* note, dna define, not operator property */
@@ -2618,6 +3081,9 @@ static int parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* ob becomes parent, make the associated menus */
 	if(ob->type==OB_ARMATURE) {
 		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE_NAME);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE_ENVELOPE);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE_AUTO);
 		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_BONE);
 	}
 	else if(ob->type==OB_CURVE) {
@@ -3235,9 +3701,8 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		if(freedata) free_editLatt(obedit);
 	}
 	else if(obedit->type==OB_MBALL) {
-//		extern ListBase editelems;
-//		load_editMball();
-//		if(freedata) BLI_freelistN(&editelems);
+		load_editMball(obedit);
+		if(freedata) free_editMball(obedit);
 	}
 	
 	/* freedata only 0 now on file saves */
@@ -3269,10 +3734,11 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	if(scene->id.lib) return;
 	if(base==NULL) return;
 	
-	if(sa->spacetype==SPACE_VIEW3D)
+	if(sa && sa->spacetype==SPACE_VIEW3D)
 		v3d= sa->spacedata.first;
 	
-	if((v3d==NULL || (base->lay & v3d->lay))==0) return;
+	if(v3d && (base->lay & v3d->lay)==0) return;
+	else if(!v3d && (base->lay & scene->lay)==0) return;
 
 	ob = base->object;
 
@@ -3326,14 +3792,15 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		scene->obedit= ob; // XXX for context
 		ok= 1;
  		make_editText(ob);
+
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_TEXT, scene);
 	}
 	else if(ob->type==OB_MBALL) {
 		scene->obedit= ob; // XXX for context
-//		ok= 1;
-// XXX		make_editMball();
+		ok= 1;
+		make_editMball(ob);
+
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MBALL, scene);
-		
 	}
 	else if(ob->type==OB_LATTICE) {
 		scene->obedit= ob; // XXX for context
@@ -3392,6 +3859,42 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 
 /* *************************** */
 
+static int posemode_exec(bContext *C, wmOperator *op)
+{
+	Base *base= CTX_data_active_base(C);
+	
+	if(base->object->type==OB_ARMATURE) {
+		if(base->object==CTX_data_edit_object(C)) {
+			ED_object_exit_editmode(C, EM_FREEDATA);
+			ED_armature_enter_posemode(C, base);
+		}
+		else if(base->object->flag & OB_POSEMODE)
+			ED_armature_exit_posemode(C, base);
+		else
+			ED_armature_enter_posemode(C, base);
+		
+		return OPERATOR_FINISHED;
+	}
+	
+	return OPERATOR_PASS_THROUGH;
+}
+
+void OBJECT_OT_posemode_toggle(wmOperatorType *ot) 
+{
+	/* identifiers */
+	ot->name= "Toggle Pose Mode";
+	ot->idname= "OBJECT_OT_posemode_toggle";
+	ot->description= "Enables or disables posing/selecting bones";
+	
+	/* api callbacks */
+	ot->exec= posemode_exec;
+	ot->poll= ED_operator_object_active;
+	
+	/* flag */
+	ot->flag= OPTYPE_REGISTER;
+}
+
+/* *********************** */
 
 void check_editmode(int type)
 {
@@ -5940,12 +6443,11 @@ static Base *object_add_duplicate_internal(Scene *scene, Base *base, int dupflag
 	return basen;
 }
 
-/* single object duplicate, if dupflag==0, fully linked, else it uses U.dupflag */
+/* single object duplicate, if dupflag==0, fully linked, else it uses the flags given */
 /* leaves selection of base/object unaltered */
-Base *ED_object_add_duplicate(Scene *scene, Base *base, int usedupflag)
+Base *ED_object_add_duplicate(Scene *scene, Base *base, int dupflag)
 {
 	Base *basen;
-	int dupflag= usedupflag?U.dupflag:0;
 
 	clear_id_newpoins();
 	clear_sca_new_poins();	/* sensor/contr/act */
@@ -5995,8 +6497,8 @@ static int duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	duplicate_exec(C, op);
 	
-	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
-	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+//	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
+//	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;
 }
@@ -6022,6 +6524,123 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data.");
 	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
+
+/* ************************** JOIN *********************** */
+
+static int join_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+
+	if(scene->obedit) {
+		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in editmode.");
+		return OPERATOR_CANCELLED;
+	}
+	else if(!ob) {
+		BKE_report(op->reports, RPT_ERROR, "Can't join unless there is an active object.");
+		return OPERATOR_CANCELLED;
+	}
+	else if(object_data_is_libdata(ob)) {
+		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata.");
+		return OPERATOR_CANCELLED;
+	}
+
+	if(ob->type == OB_MESH)
+		return join_mesh_exec(C, op);
+	else if(ELEM(ob->type, OB_CURVE, OB_SURF))
+		return join_curve_exec(C, op);
+	else if(ob->type == OB_ARMATURE)
+		return join_armature_exec(C, op);
+
+	BKE_report(op->reports, RPT_ERROR, "This object type doesn't support joining.");
+
+	return OPERATOR_CANCELLED;
+}
+
+void OBJECT_OT_join(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Join";
+	ot->description = "Join selected objects into active object.";
+	ot->idname= "OBJECT_OT_join";
+	
+	/* api callbacks */
+	ot->exec= join_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** Smooth/Flat *********************/
+
+static int shade_smooth_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob;
+	Curve *cu;
+	Nurb *nu;
+	int clear= (strcmp(op->idname, "OBJECT_OT_shade_flat") == 0);
+	int done= 0;
+
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
+		ob= base->object;
+
+		if(ob->type==OB_MESH) {
+			mesh_set_smooth_flag(ob, !clear);
+
+			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+
+			done= 1;
+		}
+		else if ELEM(ob->type, OB_SURF, OB_CURVE) {
+			cu= ob->data;
+
+			for(nu=cu->nurb.first; nu; nu=nu->next) {
+				if(!clear) nu->flag |= ME_SMOOTH;
+				else nu->flag &= ~ME_SMOOTH;
+				nu= nu->next;
+			}
+
+			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+
+			done= 1;
+		}
+	}
+	CTX_DATA_END;
+
+	return (done)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
+}
+
+void OBJECT_OT_shade_flat(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Shade Flat";
+	ot->idname= "OBJECT_OT_shade_flat";
+	
+	/* api callbacks */
+	ot->exec= shade_smooth_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+void OBJECT_OT_shade_smooth(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Shade Smooth";
+	ot->idname= "OBJECT_OT_shade_smooth";
+	
+	/* api callbacks */
+	ot->exec= shade_smooth_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
 
 /* ********************** */
 

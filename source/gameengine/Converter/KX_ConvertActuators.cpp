@@ -629,7 +629,6 @@ void BL_ConvertActuators(char* maggiename,
 							tmpmesh = BL_ConvertMesh(
 								editobact->me,
 								blenderobject,
-								rendertools,
 								scene,
 								converter
 								);
@@ -638,7 +637,10 @@ void BL_ConvertActuators(char* maggiename,
 							= new KX_SCA_ReplaceMeshActuator(
 								gameobj,
 								tmpmesh,
-								scene
+								scene,
+								(editobact->flag & ACT_EDOB_REPLACE_MESH_NOGFX)==0,
+								(editobact->flag & ACT_EDOB_REPLACE_MESH_PHYS)!=0
+								
 								);
 							
 							baseact = tmpreplaceact;

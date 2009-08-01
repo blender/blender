@@ -505,7 +505,10 @@ void ui_theme_init_userdef(void)
 	btheme->tact= btheme->tipo;
 	SETCOL(btheme->tact.strip, 			12, 10, 10, 128); 
 	SETCOL(btheme->tact.strip_select, 	255, 140, 0, 255); 
-
+	
+	/* space nla */
+	btheme->tnla= btheme->tact;
+	
 	/* space file */
 	/* to have something initialized */
 	btheme->tfile= btheme->tv3d;
@@ -521,20 +524,6 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tfile.movie,	250, 250, 250, 255);
 	SETCOL(btheme->tfile.scene,	250, 250, 250, 255);
 
-	
-	
-
-	/* space nla */
-	btheme->tnla= btheme->tv3d;
-	SETCOL(btheme->tnla.back, 	116, 116, 116, 255);
-	SETCOL(btheme->tnla.text, 	0, 0, 0, 255);
-	SETCOL(btheme->tnla.text_hi, 255, 255, 255, 255);
-	SETCOL(btheme->tnla.grid,  94, 94, 94, 255);	
-	SETCOL(btheme->tnla.shade1,  172, 172, 172, 255);		// sliders
-	SETCOL(btheme->tnla.shade2,  84, 44, 31, 100);	// bar
-	SETCOL(btheme->tnla.hilite,  17, 27, 60, 100);	// bar
-	SETCOL(btheme->tnla.strip_select, 	0xff, 0xff, 0xaa, 255);
-	SETCOL(btheme->tnla.strip, 0xe4, 0x9c, 0xc6, 255);
 	
 	/* space seq */
 	btheme->tseq= btheme->tv3d;
@@ -592,7 +581,7 @@ void ui_theme_init_userdef(void)
 	
 	/* space info */
 	btheme->tinfo= btheme->tv3d;
-	SETCOL(btheme->tinfo.back, 	153, 153, 153, 255);
+	SETCOLF(btheme->tinfo.back, 	0.45, 0.45, 0.45, 1.0);
 
 	/* space sound */
 	btheme->tsnd= btheme->tv3d;
@@ -1086,19 +1075,6 @@ void init_userdef_do_versions(void)
 			SETCOL(btheme->ttime.cframe, 0x60, 0xc0, 0x40, 255);
 		}
 	}
-	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 11)) {
-		bTheme *btheme;
-		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* these should all use the same color */
-			SETCOL(btheme->tv3d.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tipo.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tact.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tnla.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tseq.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->tsnd.cframe, 0x60, 0xc0, 0x40, 255);
-			SETCOL(btheme->ttime.cframe, 0x60, 0xc0, 0x40, 255);
-		}
-	}
 	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 13)) {
 		bTheme *btheme;
 		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
@@ -1221,6 +1197,13 @@ void init_userdef_do_versions(void)
 			/* Graph Editor - Group Channel color */
 			SETCOL(btheme->tipo.group, 79, 101, 73, 255);
 			SETCOL(btheme->tipo.group_active, 135, 177, 125, 255);
+			
+			/* Nla Editor - (Object) Channel color */
+			SETCOL(btheme->tnla.ds_channel, 	82, 96, 110, 255);
+			SETCOL(btheme->tnla.ds_subchannel,	124, 137, 150, 255);
+			/* NLA Editor - New Strip colors */
+			SETCOL(btheme->tnla.strip, 			12, 10, 10, 128); 
+			SETCOL(btheme->tnla.strip_select, 	255, 140, 0, 255);
 		}
 		
 		/* adjust grease-pencil distances */
@@ -1248,6 +1231,8 @@ void init_userdef_do_versions(void)
 				btheme->tlogic= btheme->tv3d;
 				SETCOL(btheme->tlogic.back, 100, 100, 100, 255);
 			}
+
+			SETCOLF(btheme->tinfo.back, 0.45, 0.45, 0.45, 1.0);
 		}
 	}
 	

@@ -323,6 +323,7 @@ def AppIt(target=None, source=None, env=None):
 	
 	a = '%s' % (target[0])
 	builddir, b = os.path.split(a)
+	libdir = env['LCGDIR'][1:]
 
 	bldroot = env.Dir('.').abspath
 	binary = env['BINARYKIND']
@@ -355,9 +356,15 @@ def AppIt(target=None, source=None, env=None):
 	commands.getoutput(cmd) 
 	cmd = 'cp %s/bin/.blender/.Blanguages %s/%s.app/Contents/Resources/'%(bldroot,builddir,binary)
 	commands.getoutput(cmd) 
+	cmd = 'mkdir %s/%s.app/Contents/MacOS/.blender/python/'%(builddir,binary)
+	commands.getoutput(cmd) 
+	cmd = 'unzip -q %s/release/python.zip -d %s/%s.app/Contents/MacOS/.blender/python/'%(libdir,builddir,binary)
+	commands.getoutput(cmd) 
 	cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
 	commands.getoutput(cmd)
 	cmd = 'cp -R %s/release/ui %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
+	commands.getoutput(cmd)
+	cmd = 'cp -R %s/release/io %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
 	commands.getoutput(cmd)
 	cmd = 'chmod +x  %s/%s.app/Contents/MacOS/%s'%(builddir,binary, binary)
 	commands.getoutput(cmd)
@@ -448,6 +455,12 @@ class BlenderEnvironment(SConsEnvironment):
 			lenv.Append(CFLAGS = lenv['C_WARN'])
 			lenv.Append(CCFLAGS = lenv['CC_WARN'])
 			lenv.Append(CXXFLAGS = lenv['CXX_WARN'])
+
+			if lenv['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+				if lenv['BF_DEBUG']:
+					lenv.Append(CCFLAGS = ['/MTd'])
+				else:
+					lenv.Append(CCFLAGS = ['/MT'])
 			
 			targetdir = root_build_dir+'lib/' + libname
 			if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
@@ -476,6 +489,7 @@ class BlenderEnvironment(SConsEnvironment):
 		lenv = self.Clone()
 		if lenv['OURPLATFORM'] in ('win32-vc', 'cygwin', 'win64-vc'):
 			lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
+			lenv.Append(LINKFLAGS = ['/FORCE:MULTIPLE'])
 			if lenv['BF_DEBUG']:
 				lenv.Prepend(LINKFLAGS = ['/DEBUG','/PDB:'+progname+'.pdb'])
 		if  lenv['OURPLATFORM']=='linux2':

@@ -393,7 +393,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 		BLI_addtail(&ob->prop, prop);
 		ED_undo_push(C, "Add property");
 		break;
-	
+#if 0 // XXX Now done in python
 	case B_CHANGE_PROP:
 		prop= ob->prop.first;
 		while(prop) {
@@ -403,7 +403,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 			prop= prop->next;
 		}
 		break;
-	
+#endif
 	case B_ADD_SENS:
 		for(ob=G.main->object.first; ob; ob=ob->id.next) {
 			if(ob->scaflag & OB_ADDSENS) {
@@ -2134,7 +2134,10 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 	 
-			uiDefIDPoinBut(block, test_meshpoin_but, ID_ME, 1, "ME:",		xco+40, yco-44, (width-80), 19, &(eoa->me), "replace the existing mesh with this one");
+			uiDefIDPoinBut(block, test_meshpoin_but, ID_ME, 1, "ME:",		xco+40, yco-44, (width-80)/2, 19, &(eoa->me), "replace the existing, when left blank 'Phys' will remake the existing physics mesh");
+			
+			uiDefButBitS(block, TOGN, ACT_EDOB_REPLACE_MESH_NOGFX, 0, "Gfx",	xco+40 + (width-80)/2, yco-44, (width-80)/4, 19, &eoa->flag, 0, 0, 0, 0, "Replace the display mesh");
+			uiDefButBitS(block, TOG, ACT_EDOB_REPLACE_MESH_PHYS, 0, "Phys",	xco+40 + (width-80)/2 +(width-80)/4, yco-44, (width-80)/4, 19, &eoa->flag, 0, 0, 0, 0, "Replace the physics mesh (triangle bounds only. compound shapes not supported)");
 		}
 		else if(eoa->type==ACT_EDOB_TRACK_TO) {
 			ysize= 48;
@@ -2751,7 +2754,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 
 static void do_sensor_menu(bContext *C, void *arg, int event)
 {	
-	SpaceLogic *slogic= (SpaceLogic *)CTX_wm_space_data(C);
+	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	ID **idar;
 	Object *ob;
 	bSensor *sens;
@@ -2800,7 +2803,7 @@ static uiBlock *sensor_menu(bContext *C, ARegion *ar, void *arg_unused)
 
 static void do_controller_menu(bContext *C, void *arg, int event)
 {	
-	SpaceLogic *slogic= (SpaceLogic *)CTX_wm_space_data(C);
+	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	ID **idar;
 	Object *ob;
 	bController *cont;
@@ -2849,7 +2852,7 @@ static uiBlock *controller_menu(bContext *C, ARegion *ar, void *arg_unused)
 
 static void do_actuator_menu(bContext *C, void *arg, int event)
 {	
-	SpaceLogic *slogic= (SpaceLogic *)CTX_wm_space_data(C);
+	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	ID **idar;
 	Object *ob;
 	bActuator *act;
@@ -3011,7 +3014,7 @@ static int is_sensor_linked(uiBlock *block, bSensor *sens)
 
 void logic_buttons(bContext *C, ARegion *ar)
 {
-	SpaceLogic *slogic= (SpaceLogic *)CTX_wm_space_data(C);
+	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	Object *ob= CTX_data_active_object(C);
 	ID **idar;
 	bSensor *sens;

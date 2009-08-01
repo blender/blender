@@ -93,11 +93,14 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+/* enable/disable overall compilation */
+#ifndef DISABLE_ELBEEM
+
 /* XXX */
 /* from header info.c */
 static int start_progress_bar(void) {return 0;};
 static void end_progress_bar(void) {};
-static void waitcursor() {};
+static void waitcursor(int val) {};
 static int progress_bar(float done, char *busy_info) {return 0;}
 static int pupmenu() {return 0;}
 /* XXX */
@@ -120,10 +123,6 @@ char* fluidsimViscosityPresetString[6] = {
 	"  = 2.0 * 10^-3", /* ca. honey */
 	"INVALID"	/* end */
 };
-
-/* enable/disable overall compilation */
-#ifndef DISABLE_ELBEEM
-
 
 /* ********************** fluid sim settings struct functions ********************** */
 

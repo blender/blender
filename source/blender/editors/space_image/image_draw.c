@@ -106,7 +106,7 @@ static int image_curves_active(SpaceImage *sima)
 	return 0;
 }
 
-static void image_verify_buffer_float(SpaceImage *sima, ImBuf *ibuf)
+static void image_verify_buffer_float(SpaceImage *sima, Image *ima, ImBuf *ibuf, int color_manage)
 {
 	/* detect if we need to redo the curve map.
 	   ibuf->rect is zero for compositor and render results after change 
@@ -121,6 +121,12 @@ static void image_verify_buffer_float(SpaceImage *sima, ImBuf *ibuf)
 				curvemapping_do_ibuf(sima->cumap, ibuf);
 			}
 			else {
+				if (color_manage) {
+						if (ima && ima->source == IMA_SRC_VIEWER)
+							ibuf->profile = IB_PROFILE_SRGB;
+				} else {
+					ibuf->profile = IB_PROFILE_NONE;
+				}
 				IMB_rect_from_float(ibuf);
 			}
 		}
@@ -144,8 +150,11 @@ static void draw_render_info(Image *ima, ARegion *ar)
 	
 	/* clear header rect */
 	UI_GetThemeColor3fv(TH_BACK, colf);
-	glColor3f(colf[0]+0.1f, colf[1]+0.1f, colf[2]+0.1f);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glColor4f(colf[0]+0.1f, colf[1]+0.1f, colf[2]+0.1f, 0.5f);
 	glRecti(rect.xmin, rect.ymin, rect.xmax, rect.ymax+1);
+	glDisable(GL_BLEND);
 	
 	UI_ThemeColor(TH_TEXT_HI);
 
@@ -371,9 +380,10 @@ static void sima_draw_zbuffloat_pixels(Scene *scene, float x1, float y1, int rec
 	MEM_freeN(rectf);
 }
 
-static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, ImBuf *ibuf, float fx, float fy, float zoomx, float zoomy)
+static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image *ima, ImBuf *ibuf, float fx, float fy, float zoomx, float zoomy)
 {
 	int x, y;
+	int color_manage = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 
 	/* set zoom */
 	glPixelZoom(zoomx, zoomy);
@@ -398,7 +408,7 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, ImBuf
 	}
 #ifdef WITH_LCMS
 	else if(sima->flag & SI_COLOR_CORRECTION) {
-		image_verify_buffer_float(sima, ibuf);
+		image_verify_buffer_float(sima, ima, ibuf, color_manage);
 		
 		sima_draw_colorcorrected_pixels(x, y, ibuf);
 
@@ -414,7 +424,7 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, ImBuf
 
 		/* we don't draw floats buffers directly but
 		 * convert them, and optionally apply curves */
-		image_verify_buffer_float(sima, ibuf);
+		image_verify_buffer_float(sima, ima, ibuf, color_manage);
 
 		if(ibuf->rect)
 			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
@@ -451,10 +461,11 @@ static unsigned int *get_part_from_ibuf(ImBuf *ibuf, short startx, short starty,
 	return rectmain;
 }
 
-static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Image *ima, ImBuf *ibuf, float fx, float fy, float zoomx, float zoomy)
+static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene, Image *ima, ImBuf *ibuf, float fx, float fy, float zoomx, float zoomy)
 {
 	unsigned int *rect;
 	int dx, dy, sx, sy, x, y;
+	int color_manage = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 
 	/* verify valid values, just leave this a while */
 	if(ima->xrep<1) return;
@@ -466,7 +477,7 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Image *ima, I
 		sima->curtile = ima->xrep*ima->yrep - 1; 
 	
 	/* create char buffer from float if needed */
-	image_verify_buffer_float(sima, ibuf);
+	image_verify_buffer_float(sima, ima, ibuf, color_manage);
 
 	/* retrieve part of image buffer */
 	dx= ibuf->x/ima->xrep;
@@ -499,9 +510,9 @@ static void draw_image_buffer_repeated(SpaceImage *sima, ARegion *ar, Scene *sce
 	for(x=floor(ar->v2d.cur.xmin); x<ar->v2d.cur.xmax; x += 1.0f) { 
 		for(y=floor(ar->v2d.cur.ymin); y<ar->v2d.cur.ymax; y += 1.0f) { 
 			if(ima && (ima->tpageflag & IMA_TILES))
-				draw_image_buffer_tiled(sima, ar, ima, ibuf, x, y, zoomx, zoomy);
+				draw_image_buffer_tiled(sima, ar, scene, ima, ibuf, x, y, zoomx, zoomy);
 			else
-				draw_image_buffer(sima, ar, scene, ibuf, x, y, zoomx, zoomy);
+				draw_image_buffer(sima, ar, scene, ima, ibuf, x, y, zoomx, zoomy);
 
 			/* only draw until running out of time */
 			if((PIL_check_seconds_timer() - time_current) > 0.25)
@@ -673,9 +684,9 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	else if(sima->flag & SI_DRAW_TILE)
 		draw_image_buffer_repeated(sima, ar, scene, ima, ibuf, zoomx, zoomy);
 	else if(ima && (ima->tpageflag & IMA_TILES))
-		draw_image_buffer_tiled(sima, ar, ima, ibuf, 0.0f, 0.0, zoomx, zoomy);
+		draw_image_buffer_tiled(sima, ar, scene, ima, ibuf, 0.0f, 0.0, zoomx, zoomy);
 	else
-		draw_image_buffer(sima, ar, scene, ibuf, 0.0f, 0.0f, zoomx, zoomy);
+		draw_image_buffer(sima, ar, scene, ima, ibuf, 0.0f, 0.0f, zoomx, zoomy);
 
 	/* grease pencil */
 	draw_image_grease_pencil(sima, ibuf);

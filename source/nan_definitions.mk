@@ -107,6 +107,7 @@ endif
     export NAN_TEST_VERBOSITY ?= 1
     export NAN_OPENNL ?= $(LCGDIR)/opennl
     export NAN_ELBEEM ?= $(LCGDIR)/elbeem
+    export NAN_SMOKE ?= $(LCGDIR)/smoke
     export NAN_SUPERLU ?= $(LCGDIR)/superlu
     export NAN_GLEW ?= $(LCGDIR)/glew
     ifeq ($(FREE_WINDOWS), true)
@@ -307,7 +308,7 @@ endif
     export FREEDESKTOP ?= true
 
     export NAN_PYTHON ?= /usr
-    export NAN_PYTHON_VERSION ?= 2.5
+    export NAN_PYTHON_VERSION ?= 2.6
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= /usr

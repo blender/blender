@@ -125,10 +125,11 @@ typedef struct EditFace
 		float			fp;
 	} tmp;
 	float n[3], cent[3];
-	unsigned char mat_nr, flag;
+	unsigned char flag;
 	unsigned char f, f1, h;
 	unsigned char fast;			/* only 0 or 1, for editmesh_fastmalloc */
 	unsigned char fgonf;		/* flag for fgon options */
+	short mat_nr;
 	void *data;		/* custom face data */
 } EditFace;
 

@@ -230,8 +230,8 @@ void duplicate_defgroup ( Object *ob )
 	bDeformGroup *dg, *cdg;
 	char name[32], s[32];
 	MDeformWeight *org, *cpy;
-	MDeformVert *dvert, *dvert_array;
-	int i, idg, icdg, dvert_tot;
+	MDeformVert *dvert, *dvert_array=NULL;
+	int i, idg, icdg, dvert_tot=0;
 
 	if (ob->type != OB_MESH && ob->type != OB_LATTICE)
 		return;
@@ -353,9 +353,8 @@ static void del_defgroup_update_users(Object *ob, int id)
 void del_defgroup_in_object_mode ( Object *ob )
 {
 	bDeformGroup *dg;
-	MDeformVert *dvert_array, *dvert;
-	
-	int i, e, dvert_tot;
+	MDeformVert *dvert, *dvert_array=NULL;
+	int i, e, dvert_tot=0;
 
 	if ((!ob) || (ob->type != OB_MESH && ob->type != OB_LATTICE))
 		return;

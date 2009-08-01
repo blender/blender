@@ -522,6 +522,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\boids.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\booleanops.c"
 				>
 			</File>
@@ -607,6 +611,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\fluidsim.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\fmodifier.c"
 				>
 			</File>
 			<File
@@ -824,6 +832,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_bmfont_types.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_boids.h"
 				>
 			</File>
 			<File
@@ -1096,6 +1108,14 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\depsgraph_private.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\Makefile"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\nla_private.h"
 				>
 			</File>
 		</Filter>

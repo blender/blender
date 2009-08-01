@@ -67,7 +67,7 @@ static int change_frame_init(bContext *C, wmOperator *op)
 		return 0;
 	
 	if (curarea->spacetype == SPACE_TIME) {
-		SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+		SpaceTime *stime= CTX_wm_space_time(C);
 		
 		/* timeline displays frame number only when dragging indicator */
 		// XXX make this more in line with other anim editors?
@@ -83,10 +83,12 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	int cfra;
 	
-	/* get frame, and clamp to MINFRAME */
+	/* get frame, and clamp to MINAFRAME 
+	 *	- not MINFRAME, since it's useful to be able to key a few-frames back
+	 */
 	cfra= RNA_int_get(op->ptr, "frame");
 	
-	if (cfra < MINFRAME) cfra= MINFRAME;
+	if (cfra < MINAFRAME) cfra= MINAFRAME;
 	CFRA= cfra;
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
@@ -101,7 +103,7 @@ static void change_frame_exit(bContext *C, wmOperator *op)
 		return;
 	
 	if (curarea->spacetype == SPACE_TIME) {
-		SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+		SpaceTime *stime= CTX_wm_space_time(C);
 		
 		/* timeline displays frame number only when dragging indicator */
 		// XXX make this more in line with other anim editors?
@@ -207,9 +209,12 @@ void ANIM_OT_change_frame(wmOperatorType *ot)
 	ot->invoke= change_frame_invoke;
 	ot->cancel= change_frame_cancel;
 	ot->modal= change_frame_modal;
+	
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
 
 	/* rna */
-	RNA_def_int(ot->srna, "frame", 0, 1, MAXFRAME, "Frame", "", 1, MAXFRAME);
+	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
 }
 
 /* ****************** set preview range operator ****************************/
@@ -317,31 +322,31 @@ static int toggle_time_exec(bContext *C, wmOperator *op)
 	switch (curarea->spacetype) {
 		case SPACE_TIME: /* TimeLine */
 		{
-			SpaceTime *stime= (SpaceTime *)CTX_wm_space_data(C);
+			SpaceTime *stime= CTX_wm_space_time(C);
 			stime->flag ^= TIME_DRAWFRAMES;
 		}
 			break;
 		case SPACE_ACTION: /* Action Editor */
 		{
-			SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(C);
+			SpaceAction *saction= CTX_wm_space_action(C);
 			saction->flag ^= SACTION_DRAWTIME;
 		}
 			break;
 		case SPACE_IPO: /* Graph Editor */
 		{
-			SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
+			SpaceIpo *sipo= CTX_wm_space_graph(C);
 			sipo->flag ^= SIPO_DRAWTIME;
 		}
 			break;
 		case SPACE_NLA: /* NLA Editor */
 		{
-			SpaceNla *snla= (SpaceNla *)CTX_wm_space_data(C);
+			SpaceNla *snla= CTX_wm_space_nla(C);
 			snla->flag ^= SNLA_DRAWTIME;
 		}
 			break;
 		case SPACE_SEQ: /* Sequencer */
 		{
-			SpaceSeq *sseq= (SpaceSeq *)CTX_wm_space_data(C);
+			SpaceSeq *sseq= CTX_wm_space_seq(C);
 			sseq->flag ^= SEQ_DRAWFRAMES;
 		}
 			break;
@@ -381,10 +386,10 @@ void ED_operatortypes_anim(void)
 	WM_operatortype_append(ANIM_OT_insert_keyframe);
 	WM_operatortype_append(ANIM_OT_delete_keyframe);
 	WM_operatortype_append(ANIM_OT_insert_keyframe_menu);
-	//WM_operatortype_append(ANIM_OT_delete_keyframe_menu);
+	WM_operatortype_append(ANIM_OT_delete_keyframe_v3d);
 	WM_operatortype_append(ANIM_OT_insert_keyframe_button);
 	WM_operatortype_append(ANIM_OT_delete_keyframe_button);
-	WM_operatortype_append(ANIM_OT_delete_keyframe_old); // xxx remove?
+
 	
 	WM_operatortype_append(ANIM_OT_add_driver_button);
 	WM_operatortype_append(ANIM_OT_remove_driver_button);

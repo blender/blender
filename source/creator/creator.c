@@ -211,7 +211,7 @@ static void print_help(void)
 	printf ("  -nojoystick\tDisable joystick support\n");
 	printf ("  -noglsl\tDisable GLSL shading\n");
 	printf ("  -h\t\tPrint this help text\n");
-	printf ("  -y\t\tDisable automatic python script execution (scriptlinks, pydrivers, pyconstraints, pynodes)\n");
+	printf ("  -y\t\tDisable automatic python script execution (pydrivers, pyconstraints, pynodes)\n");
 	printf ("  -P <filename>\tRun the given Python script (filename or Blender Text)\n");
 #ifdef WIN32
 	printf ("  -R\t\tRegister .blend extension\n");
@@ -313,6 +313,7 @@ int main(int argc, char **argv)
 	BLI_where_am_i(bprogname, argv[0]);
 	
 	RNA_init();
+	RE_engines_init();
 
 		/* Hack - force inclusion of the plugin api functions,
 		 * see blenpluginapi:pluginapi.c
@@ -501,25 +502,11 @@ int main(int argc, char **argv)
 		BLI_where_is_temp( btempdir, 1 ); /* call after loading the .B.blend so we can read U.tempdir */
 
 #ifndef DISABLE_SDL
-#if (defined(WIN32) || defined(WIN64))
-#if defined(FREE_WINDOWS)
-		putenv("SDL_VIDEODRIVER=dummy");
-#else
-		_putenv_s("SDL_VIDEODRIVER", "dummy");
-#endif
-#else
-#ifdef __sgi
-		putenv("SDL_VIDEODRIVER=dummy");
-#else
-		setenv("SDL_VIDEODRIVER", "dummy", 1); /* initializing the video driver can cause crashes on some systems - Campbell */
-#endif
-#endif
+	BLI_setenv("SDL_VIDEODRIVER", "dummy");
 #ifdef __linux__
-		/* On linux the default SDL driver dma often would not play
-		 * use alsa if none is set */
-		if ( getenv("SDL_AUDIODRIVER") == NULL) {
-			setenv("SDL_AUDIODRIVER", "alsa", 1);
-		}
+	/* On linux the default SDL driver dma often would not play
+	 * use alsa if none is set */
+	setenv("SDL_AUDIODRIVER", "alsa", 0);
 #endif
 #endif
 	}
@@ -549,6 +536,9 @@ int main(int argc, char **argv)
 	BPY_run_ui_scripts(C, 0); /* dont need to reload the first time */
 #endif
 	
+	CTX_py_init_set(C, 1);
+	WM_keymap_init(C); /* after BPY_run_ui_scripts() */
+
 #ifdef WITH_QUICKTIME
 
 	quicktime_init();
@@ -637,14 +627,8 @@ int main(int argc, char **argv)
 						Render *re = RE_NewRender(scene->id.name);
 
 						frame = MIN2(MAXFRAME, MAX2(1, frame));
-#ifndef DISABLE_PYTHON
-						if (G.f & G_DOSCRIPTLINKS)
-							BPY_do_all_scripts(SCRIPT_RENDER, 0);
-#endif
+						
 						RE_BlenderAnim(re, scene, frame, frame, scene->frame_step);
-#ifndef DISABLE_PYTHON
-						BPY_do_all_scripts(SCRIPT_POSTRENDER, 0);
-#endif
 					}
 				} else {
 					printf("\nError: no blend loaded. cannot use '-f'.\n");
@@ -654,15 +638,7 @@ int main(int argc, char **argv)
 				if (CTX_data_scene(C)) {
 					Scene *scene= CTX_data_scene(C);
 					Render *re= RE_NewRender(scene->id.name);
-#ifndef DISABLE_PYTHON
-					if (G.f & G_DOSCRIPTLINKS)
-						BPY_do_all_scripts(SCRIPT_RENDER, 1);
-#endif
 					RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->frame_step);
-#ifndef DISABLE_PYTHON
-					if (G.f & G_DOSCRIPTLINKS)
-						BPY_do_all_scripts(SCRIPT_POSTRENDER, 1);
-#endif
 				} else {
 					printf("\nError: no blend loaded. cannot use '-a'.\n");
 				}

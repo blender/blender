@@ -84,9 +84,6 @@ static SpaceLink *info_new(const bContext *C)
 	BLI_addtail(&sinfo->regionbase, ar);
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
-	/* channel list region XXX */
-
-	
 	return (SpaceLink *)sinfo;
 }
 
@@ -118,35 +115,12 @@ static SpaceLink *info_duplicate(SpaceLink *sl)
 /* add handlers, stuff you only do once or on area/region changes */
 static void info_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ListBase *keymap;
-	
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
-	
-	/* own keymap */
-	keymap= WM_keymap_listbase(wm, "info", SPACE_INFO, 0);	/* XXX weak? */
-	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+	ED_region_panels_init(wm, ar);
 }
 
 static void info_main_area_draw(const bContext *C, ARegion *ar)
 {
-	/* draw entirely, view changes should be handled here */
-	// SpaceInfo *sinfo= (SpaceInfo*)CTX_wm_space_data(C);
-	View2D *v2d= &ar->v2d;
-	float col[3];
-
-	/* clear and setup matrix */
-	UI_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	UI_view2d_view_ortho(C, v2d);
-		
-	/* data... */
-
-	/* reset view matrix */
-	UI_view2d_view_restore(C);
-	
-	/* scrollers? */
+	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
 void info_operatortypes(void)
@@ -217,7 +191,7 @@ void ED_spacetype_info(void)
 	art->init= info_main_area_init;
 	art->draw= info_main_area_draw;
 	art->listener= info_main_area_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 
 	BLI_addhead(&st->regiontypes, art);
 	

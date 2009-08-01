@@ -58,7 +58,7 @@
 /* **** XXX ******** */
 static int seqrectx= 0;	/* bad bad global! */
 static int seqrecty= 0;
-static void waitcursor() {}
+static void waitcursor(int val) {}
 static int blender_test_break() {return 0;}
 
 /* **** XXX ******** */
@@ -2017,7 +2017,8 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 		RenderResult rres;
 		int doseq, rendering= G.rendering;
 		char scenename[64];
-		int sce_valid =sce&& (sce->camera || sce->r.scemode & R_DOSEQ);
+		int have_seq= (sce->r.scemode & R_DOSEQ) && sce->ed && sce->ed->seqbase.first;
+		int sce_valid =sce && (sce->camera || have_seq);
 			
 		if (se->ibuf == NULL && sce_valid && !build_proxy_run) {
 			se->ibuf = seq_proxy_fetch(scene, seq, cfra, render_size);
@@ -2038,7 +2039,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 		} else if (se->ibuf==NULL && sce_valid) {
 			/* no need to display a waitcursor on sequencer
 			   scene strips */
-			if (!(sce->r.scemode & R_DOSEQ)) 
+			if (!have_seq)
 				waitcursor(1);
 			
 			/* Hack! This function can be called from do_render_seq(), in that case
@@ -2093,7 +2094,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			// XXX
 #if 0
 			if((G.f & G_PLAYANIM)==0 /* bad, is set on do_render_seq */
-			   && !(sce->r.scemode & R_DOSEQ)
+			   && !have_seq
 			   && !build_proxy_run) 
 #endif
 			

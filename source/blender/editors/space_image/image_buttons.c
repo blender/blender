@@ -127,7 +127,7 @@ static void image_editcursor_buts(const bContext *C, View2D *v2d, uiBlock *block
 
 static void do_image_panel_events(bContext *C, void *arg, int event)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
 	
 	switch(event) {
@@ -234,7 +234,7 @@ static void image_transform_but_attr(SpaceImage *sima, int *imx, int *imy, int *
 /* is used for both read and write... */
 static void image_editvertex_buts(const bContext *C, uiBlock *block)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Object *obedit= CTX_data_edit_object(C);
 	static float ocent[2];
 	float cent[2]= {0.0, 0.0};
@@ -347,7 +347,7 @@ static void image_editvertex_buts(const bContext *C, uiBlock *block)
 /* is used for both read and write... */
 static void image_editcursor_buts(const bContext *C, View2D *v2d, uiBlock *block)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	static float ocent[2];
 	int imx= 256, imy= 256;
 	int step, digits;
@@ -386,7 +386,7 @@ static void image_editcursor_buts(const bContext *C, View2D *v2d, uiBlock *block
 #if 0
 static void image_panel_view_properties(const bContext *C, Panel *pa)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
 	Object *obedit= CTX_data_edit_object(C);
 	uiBlock *block;
@@ -448,7 +448,7 @@ void brush_buttons(const bContext *C, uiBlock *block, short fromsima,
 				   int evt_del, int evt_keepdata,
 				   int evt_texbrowse, int evt_texdel)
 {
-//	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+//	SpaceImage *sima= CTX_wm_space_image(C);
 	ToolSettings *settings= CTX_data_tool_settings(C);
 	Brush *brush= settings->imapaint.brush;
 	ID *id;
@@ -565,14 +565,14 @@ void brush_buttons(const bContext *C, uiBlock *block, short fromsima,
 
 static int image_panel_paint_poll(const bContext *C, PanelType *pt)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	
 	return (sima->image && (sima->flag & SI_DRAWTOOL));
 }
 
 static void image_panel_paintcolor(const bContext *C, Panel *pa)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ToolSettings *settings= CTX_data_tool_settings(C);
 	Brush *brush= settings->imapaint.brush;
 	uiBlock *block;
@@ -591,7 +591,7 @@ static void image_panel_paintcolor(const bContext *C, Panel *pa)
 
 static void image_panel_paint(const bContext *C, Panel *pa)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	uiBlock *block;
 	
 	if(!sima->image || (sima->flag & SI_DRAWTOOL)==0)
@@ -605,7 +605,7 @@ static void image_panel_paint(const bContext *C, Panel *pa)
 
 static void image_panel_curves_reset(bContext *C, void *cumap_v, void *ibuf_v)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	CurveMapping *cumap = cumap_v;
 	int a;
 	
@@ -625,7 +625,7 @@ static void image_panel_curves_reset(bContext *C, void *cumap_v, void *ibuf_v)
 
 static void image_panel_curves(const bContext *C, Panel *pa)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ImBuf *ibuf;
 	uiBlock *block;
 	uiBut *bt;
@@ -1201,7 +1201,7 @@ void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, I
 						 short redraw, short imagechanged)
 {
 	Scene *scene= CTX_data_scene(C);
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Image *ima= *ima_pp;
 	uiBut *but;
 	char str[128], *strp;
@@ -1243,20 +1243,20 @@ void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, I
 // XXX		uiSetButLock(ima->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 		uiBlockBeginAlign(block);
 		uiBlockSetFunc(block, image_src_change_cb, ima, iuser);
-		uiDefButS(block, ROW, imagechanged, "Still",		10, 180, 60, 20, &ima->source, 0.0, IMA_SRC_FILE, 0, 0, "Single Image file");
-		uiDefButS(block, ROW, imagechanged, "Movie",		70, 180, 60, 20, &ima->source, 0.0, IMA_SRC_MOVIE, 0, 0, "Movie file");
-		uiDefButS(block, ROW, imagechanged, "Sequence",	130, 180, 90, 20, &ima->source, 0.0, IMA_SRC_SEQUENCE, 0, 0, "Multiple Image files, as a sequence");
-		uiDefButS(block, ROW, imagechanged, "Generated",	220, 180, 90, 20, &ima->source, 0.0, IMA_SRC_GENERATED, 0, 0, "Generated Image");
+		uiDefButS(block, ROW, imagechanged, "Still",		0, 180, 105, 20, &ima->source, 0.0, IMA_SRC_FILE, 0, 0, "Single Image file");
+		uiDefButS(block, ROW, imagechanged, "Movie",		105, 180, 105, 20, &ima->source, 0.0, IMA_SRC_MOVIE, 0, 0, "Movie file");
+		uiDefButS(block, ROW, imagechanged, "Sequence",		210, 180, 105, 20, &ima->source, 0.0, IMA_SRC_SEQUENCE, 0, 0, "Multiple Image files, as a sequence");
+		uiDefButS(block, ROW, imagechanged, "Generated",	315, 180, 105, 20, &ima->source, 0.0, IMA_SRC_GENERATED, 0, 0, "Generated Image");
 		uiBlockSetFunc(block, NULL, NULL, NULL);
 	}
 	else
-		uiDefBut(block, LABEL, 0, " ",					10, 180, 300, 20, 0, 0, 0, 0, 0, "");	/* for align in panel */
+		uiDefBut(block, LABEL, 0, " ",					0, 180, 440, 20, 0, 0, 0, 0, 0, "");	/* for align in panel */
 				 
 	 /* Browse */
 	 IMAnames_to_pupstring(&strp, NULL, NULL, &(CTX_data_main(C)->image), NULL, &iuser->menunr);
 	 
 	 uiBlockBeginAlign(block);
-	 but= uiDefButS(block, MENU, imagechanged, strp,		10,155,23,20, &iuser->menunr, 0, 0, 0, 0, "Selects an existing Image or Movie");
+	 but= uiDefButS(block, MENU, imagechanged, strp,		0,155,40,20, &iuser->menunr, 0, 0, 0, 0, "Selects an existing Image or Movie");
 	 uiButSetFunc(but, image_browse_cb, ima_pp, iuser);
 	 
 	 MEM_freeN(strp);
@@ -1265,31 +1265,34 @@ void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, I
 	 if(ima) {
 		 int drawpack= (ima->source!=IMA_SRC_SEQUENCE && ima->source!=IMA_SRC_MOVIE && ima->ok);
 
-		 but= uiDefBut(block, TEX, B_IDNAME, "IM:",		33, 155, 177, 20, ima->id.name+2, 0.0, 21.0, 0, 0, "Current Image Datablock name.");
+		 but= uiDefBut(block, TEX, B_IDNAME, "IM:",				40, 155, 220, 20, ima->id.name+2, 0.0, 21.0, 0, 0, "Current Image Datablock name.");
 		 uiButSetFunc(but, test_idbutton_cb, ima->id.name, NULL);
-		 but= uiDefBut(block, BUT, imagechanged, "Reload",		210, 155, 60, 20, NULL, 0, 0, 0, 0, "Reloads Image or Movie");
+		 but= uiDefBut(block, BUT, imagechanged, "Reload",		260, 155, 70, 20, NULL, 0, 0, 0, 0, "Reloads Image or Movie");
 		 uiButSetFunc(but, image_reload_cb, ima, iuser);
 		 
-		 but= uiDefIconBut(block, BUT, imagechanged, ICON_X,	270,155,20,20, 0, 0, 0, 0, 0, "Unlink Image block");
+		 but= uiDefIconBut(block, BUT, imagechanged, ICON_X,	330, 155, 40, 20, 0, 0, 0, 0, 0, "Unlink Image block");
 		 uiButSetFunc(but, image_unlink_cb, ima_pp, NULL);
 		 sprintf(str, "%d", ima->id.us);
-		 uiDefBut(block, BUT, B_NOP, str,					290,155,20,20, 0, 0, 0, 0, 0, "Only displays number of users of Image block");
+		 uiDefBut(block, BUT, B_NOP, str,					370, 155, 40, 20, 0, 0, 0, 0, 0, "Only displays number of users of Image block");
+		 uiBlockEndAlign(block);
 		 
-		 but= uiDefIconBut(block, BUT, imagechanged, ICON_FILESEL,	10, 135, 23, 20, 0, 0, 0, 0, 0, "Open Fileselect to load new Image");
+		 uiBlockBeginAlign(block);
+		 but= uiDefIconBut(block, BUT, imagechanged, ICON_FILESEL,	0, 130, 40, 20, 0, 0, 0, 0, 0, "Open Fileselect to load new Image");
 		 uiButSetFunc(but, image_load_fs_cb, ima_pp, iuser);
-		 but= uiDefBut(block, TEX, imagechanged, "",				33,135,257+(drawpack?0:20),20, ima->name, 0.0, 239.0, 0, 0, "Image/Movie file name, change to load new");
+		 but= uiDefBut(block, TEX, imagechanged, "",				40,130, 340+(drawpack?0:20),20, ima->name, 0.0, 239.0, 0, 0, "Image/Movie file name, change to load new");
 		 uiButSetFunc(but, image_load_cb, ima_pp, iuser);
+		 uiBlockEndAlign(block);
 		 
 		 if(drawpack) {
 			 if (ima->packedfile) packdummy = 1;
 			 else packdummy = 0;
-			 but= uiDefIconButBitI(block, TOG, 1, redraw, ICON_PACKAGE, 290,135,20,20, &packdummy, 0, 0, 0, 0, "Toggles Packed status of this Image");
+			 but= uiDefIconButBitI(block, TOG, 1, redraw, ICON_PACKAGE, 380, 130, 40, 20, &packdummy, 0, 0, 0, 0, "Toggles Packed status of this Image");
 			 uiButSetFunc(but, image_pack_cb, ima, iuser);
 		 }
 		 
 	 }
 	 else {
-		 but= uiDefBut(block, BUT, imagechanged, "Load",		33, 155, 100,20, NULL, 0, 0, 0, 0, "Load new Image of Movie");
+		 but= uiDefBut(block, BUT, imagechanged, "Load",		33, 155, 200,20, NULL, 0, 0, 0, 0, "Load new Image of Movie");
 		 uiButSetFunc(but, image_load_fs_cb, ima_pp, iuser);
 	 }
 	 uiBlockEndAlign(block);
@@ -1320,46 +1323,54 @@ void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, I
 		 /* left side default per-image options, right half the additional options */
 		 
 		 /* fields */
-		 uiBlockBeginAlign(block);
-		 but= uiDefButBitS(block, TOGBUT, IMA_FIELDS, imagechanged, "Fields",	10, 70, 65, 20, &ima->flag, 0, 0, 0, 0, "Click to enable use of fields in Image");
+		 
+		 but= uiDefButBitS(block, TOGBUT, IMA_FIELDS, imagechanged, "Fields",	0, 80, 200, 20, &ima->flag, 0, 0, 0, 0, "Click to enable use of fields in Image");
 		 uiButSetFunc(but, image_field_test, ima, iuser);
-		 uiDefButBitS(block, TOGBUT, IMA_STD_FIELD, B_NOP, "Odd",			75, 70, 45, 20, &ima->flag, 0, 0, 0, 0, "Standard Field Toggle");
+		 uiDefButBitS(block, TOGBUT, IMA_STD_FIELD, B_NOP, "Odd",				0, 55, 200, 20, &ima->flag, 0, 0, 0, 0, "Standard Field Toggle");
+		
 		 
 		 uiBlockSetFunc(block, image_reload_cb, ima, iuser);
-		 uiDefButBitS(block, TOGBUT, IMA_ANTIALI, B_NOP, "Anti",			10, 50, 45, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
-		 uiDefButBitS(block, TOGBUT, IMA_DO_PREMUL, imagechanged, "Premul",		55, 50, 65, 20, &ima->flag, 0, 0, 0, 0, "Toggles premultiplying alpha");
-		 uiBlockEndAlign(block);
+		 uiDefButBitS(block, TOGBUT, IMA_ANTIALI, B_NOP, "Anti",				0, 5, 200, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
+		 uiDefButBitS(block, TOGBUT, IMA_DO_PREMUL, imagechanged, "Premul",		0, -20, 200, 20, &ima->flag, 0, 0, 0, 0, "Toggles premultiplying alpha");
+		 
 		 
 		 if( ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 			 sprintf(str, "(%d) Frames:", iuser->framenr);
 			 
-			 uiBlockBeginAlign(block);
+			 //uiBlockBeginAlign(block);
 			 uiBlockSetFunc(block, image_user_change, iuser, NULL);
-			 uiDefButBitS(block, TOG, IMA_ANIM_ALWAYS, B_NOP, "Auto Refresh",	120, 70, 190, 20, &iuser->flag, 0, 0, 0, 0, "Always refresh Image on frame changes");
-			 
+			 			 
 			 if(ima->anim) {
-				 uiDefButI(block, NUM, imagechanged, str,		120, 50,170, 20, &iuser->frames, 0.0, MAXFRAMEF, 0, 0, "Sets the number of images of a movie to use");
-				 but= uiDefBut(block, BUT, redraw, "<",		290, 50, 20, 20, 0, 0, 0, 0, 0, "Copies number of frames in movie file to Frames: button");
+			 	 uiBlockBeginAlign(block);
+				 uiDefButI(block, NUM, imagechanged, str,						220, 80, 160, 20, &iuser->frames, 0.0, MAXFRAMEF, 0, 0, "Sets the number of images of a movie to use");
+				 but= uiDefBut(block, BUT, redraw, "<",							380, 80, 40, 20, 0, 0, 0, 0, 0, "Copies number of frames in movie file to Frames: button");
 				 uiButSetFunc(but, set_frames_cb, ima, iuser);
+				 uiBlockEndAlign(block);
 			 }
 			 else 
-				 uiDefButI(block, NUM, imagechanged, str,		120, 50,190, 20, &iuser->frames, 0.0, MAXFRAMEF, 0, 0, "Sets the number of images of a movie to use");
+				 uiDefButI(block, NUM, imagechanged, str,						220, 80, 200, 20, &iuser->frames, 0.0, MAXFRAMEF, 0, 0, "Sets the number of images of a movie to use");
 			 
-			 uiDefButI(block, NUM, imagechanged, "Offs:",	120,30,100,20, &iuser->offset, -MAXFRAMEF, MAXFRAMEF, 0, 0, "Offsets the number of the frame to use in the animation");
-			 uiDefButS(block, NUM, imagechanged, "Fie/Ima:",	220,30,90,20, &iuser->fie_ima, 1.0, 200.0, 0, 0, "The number of fields per rendered frame (2 fields is 1 image)");
+			 uiDefButI(block, NUM, imagechanged, "Start Frame:",				220, 55, 200, 20, &iuser->sfra, 1.0, MAXFRAMEF, 0, 0, "Sets the global starting frame of the movie");
+			 uiDefButI(block, NUM, imagechanged, "Offset:",						220, 30, 200, 20, &iuser->offset, -MAXFRAMEF, MAXFRAMEF, 0, 0, "Offsets the number of the frame to use in the animation");
+			 uiDefButS(block, NUM, imagechanged, "Fields:",						0, 30, 200, 20, &iuser->fie_ima, 1.0, 200.0, 0, 0, "The number of fields per rendered frame (2 fields is 1 image)");
 			 
-			 uiDefButI(block, NUM, imagechanged, "StartFr:",	120,10,100,20, &iuser->sfra, 1.0, MAXFRAMEF, 0, 0, "Sets the global starting frame of the movie");
-			 uiDefButS(block, TOG, imagechanged, "Cyclic",	220,10,90,20, &iuser->cycl, 0.0, 1.0, 0, 0, "Cycle the images in the movie");
+			uiDefButBitS(block, TOG, IMA_ANIM_ALWAYS, B_NOP, "Auto Refresh",	220, 5, 200, 20, &iuser->flag, 0, 0, 0, 0, "Always refresh Image on frame changes");
+
+			 uiDefButS(block, TOG, imagechanged, "Cyclic",						220, -20, 200, 20, &iuser->cycl, 0.0, 1.0, 0, 0, "Cycle the images in the movie");
 			 
 			 uiBlockSetFunc(block, NULL, iuser, NULL);
 		 }
 		 else if(ima->source==IMA_SRC_GENERATED) {
 			 
+			 uiDefBut(block, LABEL, 0, "Size:",					220, 80, 200, 20, 0, 0, 0, 0, 0, "");	
+
 			 uiBlockBeginAlign(block);
 			 uiBlockSetFunc(block, image_generated_change_cb, ima, iuser);
-			 uiDefButS(block, NUM, imagechanged, "SizeX:",	120,70,100,20, &ima->gen_x, 1.0, 5000.0, 0, 0, "Image size x");
-			 uiDefButS(block, NUM, imagechanged, "SizeY:",	220,70,90,20, &ima->gen_y, 1.0, 5000.0, 0, 0, "Image size y");
-			 uiDefButS(block, TOGBUT, imagechanged, "UV Test grid",120,50,190,20, &ima->gen_type, 0.0, 1.0, 0, 0, "");
+			 uiDefButS(block, NUM, imagechanged, "X:",	220, 55,200,20, &ima->gen_x, 1.0, 5000.0, 0, 0, "Image size x");
+			 uiDefButS(block, NUM, imagechanged, "Y:",	220, 35,200,20, &ima->gen_y, 1.0, 5000.0, 0, 0, "Image size y");
+			 uiBlockEndAlign(block);
+			 
+			 uiDefButS(block, TOGBUT, imagechanged, "UV Test grid", 220,10,200,20, &ima->gen_type, 0.0, 1.0, 0, 0, "");
 			 uiBlockSetFunc(block, NULL, NULL, NULL);
 		 }
 	 }
@@ -1386,7 +1397,7 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
 
 static void image_panel_properties(const bContext *C, Panel *pa)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	uiBlock *block;
 	
 	block= uiLayoutFreeBlock(pa->layout);

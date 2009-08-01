@@ -49,6 +49,7 @@
 #include "BKE_object.h"
 #include "BKE_anim.h"
 #include "BKE_context.h"
+#include "BKE_sketch.h"
 
 #include "ED_view3d.h"
 #include "ED_screen.h"
@@ -74,75 +75,21 @@
 //#include "mydevice.h"
 #include "reeb.h"
 
-typedef enum SK_PType
-{
-	PT_CONTINUOUS,
-	PT_EXACT,
-} SK_PType;
 
-typedef enum SK_PMode
-{
-	PT_SNAP,
-	PT_PROJECT,
-} SK_PMode;
 
-typedef struct SK_Point
-{
-	float p[3];
-	float no[3];
-	float size;
-	SK_PType type;
-	SK_PMode mode;
-} SK_Point;
+typedef int  (*GestureDetectFct)(bContext*, SK_Gesture*, SK_Sketch *);
+typedef void (*GestureApplyFct)(bContext*, SK_Gesture*, SK_Sketch *);
 
-typedef struct SK_Stroke
-{
-	struct SK_Stroke *next, *prev;
+typedef struct SK_GestureAction {
+	char name[64];
+	GestureDetectFct	detect;
+	GestureApplyFct		apply;
+} SK_GestureAction;
 
-	SK_Point *points;
-	int nb_points;
-	int buf_size;
-	int selected;
-} SK_Stroke;
+SK_Point boneSnap;
+int    LAST_SNAP_POINT_VALID = 0;
+float  LAST_SNAP_POINT[3];
 
-#define SK_OVERDRAW_LIMIT	5
-
-typedef struct SK_Overdraw
-{
-	SK_Stroke *target;
-	int	start, end;
-	int count;
-} SK_Overdraw;
-
-#define SK_Stroke_BUFFER_INIT_SIZE 20
-
-typedef struct SK_DrawData
-{
-	short mval[2];
-	short previous_mval[2];
-	SK_PType type;
-} SK_DrawData;
-
-typedef struct SK_Intersection
-{
-	struct SK_Intersection *next, *prev;
-	SK_Stroke *stroke;
-	int			before;
-	int			after;
-	int			gesture_index;
-	float		p[3];
-	float		lambda; /* used for sorting intersection points */
-} SK_Intersection;
-
-typedef struct SK_Sketch
-{
-	ListBase	strokes;
-	ListBase	depth_peels;
-	SK_Stroke	*active_stroke;
-	SK_Stroke	*gesture;
-	SK_Point	next_point;
-	SK_Overdraw over;
-} SK_Sketch;
 
 typedef struct SK_StrokeIterator {
 	HeadFct		head;
@@ -165,40 +112,11 @@ typedef struct SK_StrokeIterator {
 	int stride;
 } SK_StrokeIterator;
 
-typedef struct SK_Gesture {
-	SK_Stroke	*stk;
-	SK_Stroke	*segments;
-
-	ListBase	intersections;
-	ListBase	self_intersections;
-
-	int			nb_self_intersections;
-	int			nb_intersections;
-	int			nb_segments;
-} SK_Gesture;
-
-typedef int  (*GestureDetectFct)(bContext*, SK_Gesture*, SK_Sketch *);
-typedef void (*GestureApplyFct)(bContext*, SK_Gesture*, SK_Sketch *);
-
-typedef struct SK_GestureAction {
-	char name[64];
-	GestureDetectFct	detect;
-	GestureApplyFct		apply;
-} SK_GestureAction;
-
-SK_Sketch *GLOBAL_sketch = NULL;
-SK_Point boneSnap;
-int    LAST_SNAP_POINT_VALID = 0;
-float  LAST_SNAP_POINT[3];
-
 /******************** PROTOTYPES ******************************/
 
 void initStrokeIterator(BArcIterator *iter, SK_Stroke *stk, int start, int end);
 
 void sk_deleteSelectedStrokes(SK_Sketch *sketch);
-
-void sk_freeStroke(SK_Stroke *stk);
-void sk_freeSketch(SK_Sketch *sketch);
 
 SK_Point *sk_lastStrokePoint(SK_Stroke *stk);
 
@@ -217,6 +135,8 @@ void sk_applyReverseGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch);
 int sk_detectConvertGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch);
 void sk_applyConvertGesture(bContext *C, SK_Gesture *gest, SK_Sketch *sketch);
 
+SK_Sketch* contextSketch(const bContext *c, int create);
+SK_Sketch* viewcontextSketch(ViewContext *vc, int create);
 
 void sk_resetOverdraw(SK_Sketch *sketch);
 int sk_hasOverdraw(SK_Sketch *sketch, SK_Stroke *stk);
@@ -381,7 +301,7 @@ int BIF_nbJointsTemplate(const bContext *C)
 char * BIF_nameBoneTemplate(const bContext *C)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
-	SK_Sketch *stk = GLOBAL_sketch;
+	SK_Sketch *stk = contextSketch(C, 1);
 	RigGraph *rg;
 	int index = 0;
 
@@ -559,329 +479,6 @@ void sk_retargetStroke(bContext *C, SK_Stroke *stk)
 
 /**************************************************************/
 
-void sk_freeSketch(SK_Sketch *sketch)
-{
-	SK_Stroke *stk, *next;
-
-	for (stk = sketch->strokes.first; stk; stk = next)
-	{
-		next = stk->next;
-
-		sk_freeStroke(stk);
-	}
-
-	BLI_freelistN(&sketch->depth_peels);
-
-	MEM_freeN(sketch);
-}
-
-SK_Sketch* sk_createSketch()
-{
-	SK_Sketch *sketch;
-
-	sketch = MEM_callocN(sizeof(SK_Sketch), "SK_Sketch");
-
-	sketch->active_stroke = NULL;
-	sketch->gesture = NULL;
-
-	sketch->strokes.first = NULL;
-	sketch->strokes.last = NULL;
-
-	return sketch;
-}
-
-void sk_initPoint(bContext *C, SK_Point *pt)
-{
-	ARegion *ar = CTX_wm_region(C);
-	RegionView3D *rv3d = ar->regiondata;
-
-	VECCOPY(pt->no, rv3d->viewinv[2]);
-	Normalize(pt->no);
-	/* more init code here */
-}
-
-void sk_copyPoint(SK_Point *dst, SK_Point *src)
-{
-	memcpy(dst, src, sizeof(SK_Point));
-}
-
-void sk_allocStrokeBuffer(SK_Stroke *stk)
-{
-	stk->points = MEM_callocN(sizeof(SK_Point) * stk->buf_size, "SK_Point buffer");
-}
-
-void sk_freeStroke(SK_Stroke *stk)
-{
-	MEM_freeN(stk->points);
-	MEM_freeN(stk);
-}
-
-SK_Stroke* sk_createStroke()
-{
-	SK_Stroke *stk;
-
-	stk = MEM_callocN(sizeof(SK_Stroke), "SK_Stroke");
-
-	stk->selected = 0;
-	stk->nb_points = 0;
-	stk->buf_size = SK_Stroke_BUFFER_INIT_SIZE;
-
-	sk_allocStrokeBuffer(stk);
-
-	return stk;
-}
-
-void sk_shrinkStrokeBuffer(SK_Stroke *stk)
-{
-	if (stk->nb_points < stk->buf_size)
-	{
-		SK_Point *old_points = stk->points;
-
-		stk->buf_size = stk->nb_points;
-
-		sk_allocStrokeBuffer(stk);
-
-		memcpy(stk->points, old_points, sizeof(SK_Point) * stk->nb_points);
-
-		MEM_freeN(old_points);
-	}
-}
-
-void sk_growStrokeBuffer(SK_Stroke *stk)
-{
-	if (stk->nb_points == stk->buf_size)
-	{
-		SK_Point *old_points = stk->points;
-
-		stk->buf_size *= 2;
-
-		sk_allocStrokeBuffer(stk);
-
-		memcpy(stk->points, old_points, sizeof(SK_Point) * stk->nb_points);
-
-		MEM_freeN(old_points);
-	}
-}
-
-void sk_growStrokeBufferN(SK_Stroke *stk, int n)
-{
-	if (stk->nb_points + n > stk->buf_size)
-	{
-		SK_Point *old_points = stk->points;
-
-		while (stk->nb_points + n > stk->buf_size)
-		{
-			stk->buf_size *= 2;
-		}
-
-		sk_allocStrokeBuffer(stk);
-
-		memcpy(stk->points, old_points, sizeof(SK_Point) * stk->nb_points);
-
-		MEM_freeN(old_points);
-	}
-}
-
-
-void sk_replaceStrokePoint(SK_Stroke *stk, SK_Point *pt, int n)
-{
-	memcpy(stk->points + n, pt, sizeof(SK_Point));
-}
-
-void sk_insertStrokePoint(SK_Stroke *stk, SK_Point *pt, int n)
-{
-	int size = stk->nb_points - n;
-
-	sk_growStrokeBuffer(stk);
-
-	memmove(stk->points + n + 1, stk->points + n, size * sizeof(SK_Point));
-
-	memcpy(stk->points + n, pt, sizeof(SK_Point));
-
-	stk->nb_points++;
-}
-
-void sk_appendStrokePoint(SK_Stroke *stk, SK_Point *pt)
-{
-	sk_growStrokeBuffer(stk);
-
-	memcpy(stk->points + stk->nb_points, pt, sizeof(SK_Point));
-
-	stk->nb_points++;
-}
-
-void sk_insertStrokePoints(SK_Stroke *stk, SK_Point *pts, int len, int start, int end)
-{
-	int size = end - start + 1;
-
-	sk_growStrokeBufferN(stk, len - size);
-
-	if (len != size)
-	{
-		int tail_size = stk->nb_points - end + 1;
-
-		memmove(stk->points + start + len, stk->points + end + 1, tail_size * sizeof(SK_Point));
-	}
-
-	memcpy(stk->points + start, pts, len * sizeof(SK_Point));
-
-	stk->nb_points += len - size;
-}
-
-void sk_trimStroke(SK_Stroke *stk, int start, int end)
-{
-	int size = end - start + 1;
-
-	if (start > 0)
-	{
-		memmove(stk->points, stk->points + start, size * sizeof(SK_Point));
-	}
-
-	stk->nb_points = size;
-}
-
-void sk_straightenStroke(SK_Stroke *stk, int start, int end, float p_start[3], float p_end[3])
-{
-	SK_Point pt1, pt2;
-	SK_Point *prev, *next;
-	float delta_p[3];
-	int i, total;
-
-	total = end - start;
-
-	VecSubf(delta_p, p_end, p_start);
-
-	prev = stk->points + start;
-	next = stk->points + end;
-
-	VECCOPY(pt1.p, p_start);
-	VECCOPY(pt1.no, prev->no);
-	pt1.mode = prev->mode;
-	pt1.type = prev->type;
-
-	VECCOPY(pt2.p, p_end);
-	VECCOPY(pt2.no, next->no);
-	pt2.mode = next->mode;
-	pt2.type = next->type;
-
-	sk_insertStrokePoint(stk, &pt1, start + 1); /* insert after start */
-	sk_insertStrokePoint(stk, &pt2, end + 1); /* insert before end (since end was pushed back already) */
-
-	for (i = 1; i < total; i++)
-	{
-		float delta = (float)i / (float)total;
-		float *p = stk->points[start + 1 + i].p;
-
-		VECCOPY(p, delta_p);
-		VecMulf(p, delta);
-		VecAddf(p, p, p_start);
-	}
-}
-
-void sk_polygonizeStroke(SK_Stroke *stk, int start, int end)
-{
-	int offset;
-	int i;
-
-	/* find first exact points outside of range */
-	for (;start > 0; start--)
-	{
-		if (stk->points[start].type == PT_EXACT)
-		{
-			break;
-		}
-	}
-
-	for (;end < stk->nb_points - 1; end++)
-	{
-		if (stk->points[end].type == PT_EXACT)
-		{
-			break;
-		}
-	}
-
-	offset = start + 1;
-
-	for (i = start + 1; i < end; i++)
-	{
-		if (stk->points[i].type == PT_EXACT)
-		{
-			if (offset != i)
-			{
-				memcpy(stk->points + offset, stk->points + i, sizeof(SK_Point));
-			}
-
-			offset++;
-		}
-	}
-
-	/* some points were removes, move end of array */
-	if (offset < end)
-	{
-		int size = stk->nb_points - end;
-		memmove(stk->points + offset, stk->points + end, size * sizeof(SK_Point));
-		stk->nb_points = offset + size;
-	}
-}
-
-void sk_flattenStroke(SK_Stroke *stk, int start, int end)
-{
-	float normal[3], distance[3];
-	float limit;
-	int i, total;
-
-	total = end - start + 1;
-
-	VECCOPY(normal, stk->points[start].no);
-
-	VecSubf(distance, stk->points[end].p, stk->points[start].p);
-	Projf(normal, distance, normal);
-	limit = Normalize(normal);
-
-	for (i = 1; i < total - 1; i++)
-	{
-		float d = limit * i / total;
-		float offset[3];
-		float *p = stk->points[start + i].p;
-
-		VecSubf(distance, p, stk->points[start].p);
-		Projf(distance, distance, normal);
-
-		VECCOPY(offset, normal);
-		VecMulf(offset, d);
-
-		VecSubf(p, p, distance);
-		VecAddf(p, p, offset);
-	}
-}
-
-void sk_removeStroke(SK_Sketch *sketch, SK_Stroke *stk)
-{
-	if (sketch->active_stroke == stk)
-	{
-		sketch->active_stroke = NULL;
-	}
-
-	BLI_remlink(&sketch->strokes, stk);
-	sk_freeStroke(stk);
-}
-
-void sk_reverseStroke(SK_Stroke *stk)
-{
-	SK_Point *old_points = stk->points;
-	int i = 0;
-
-	sk_allocStrokeBuffer(stk);
-
-	for (i = 0; i < stk->nb_points; i++)
-	{
-		sk_copyPoint(stk->points + i, old_points + stk->nb_points - 1 - i);
-	}
-
-	MEM_freeN(old_points);
-}
-
-
 void sk_cancelStroke(SK_Sketch *sketch)
 {
 	if (sketch->active_stroke != NULL)
@@ -891,114 +488,6 @@ void sk_cancelStroke(SK_Sketch *sketch)
 	}
 }
 
-/* Apply reverse Chaikin filter to simplify the polyline
- * */
-void sk_filterStroke(SK_Stroke *stk, int start, int end)
-{
-	SK_Point *old_points = stk->points;
-	int nb_points = stk->nb_points;
-	int i, j;
-
-	return;
-
-	if (start == -1)
-	{
-		start = 0;
-		end = stk->nb_points - 1;
-	}
-
-	sk_allocStrokeBuffer(stk);
-	stk->nb_points = 0;
-
-	/* adding points before range */
-	for (i = 0; i < start; i++)
-	{
-		sk_appendStrokePoint(stk, old_points + i);
-	}
-
-	for (i = start, j = start; i <= end; i++)
-	{
-		if (i - j == 3)
-		{
-			SK_Point pt;
-			float vec[3];
-
-			sk_copyPoint(&pt, &old_points[j+1]);
-
-			pt.p[0] = 0;
-			pt.p[1] = 0;
-			pt.p[2] = 0;
-
-			VECCOPY(vec, old_points[j].p);
-			VecMulf(vec, -0.25);
-			VecAddf(pt.p, pt.p, vec);
-
-			VECCOPY(vec, old_points[j+1].p);
-			VecMulf(vec,  0.75);
-			VecAddf(pt.p, pt.p, vec);
-
-			VECCOPY(vec, old_points[j+2].p);
-			VecMulf(vec,  0.75);
-			VecAddf(pt.p, pt.p, vec);
-
-			VECCOPY(vec, old_points[j+3].p);
-			VecMulf(vec, -0.25);
-			VecAddf(pt.p, pt.p, vec);
-
-			pt.size = -0.25 * old_points[j].size + 0.75 * old_points[j+1].size + 0.75 * old_points[j+2].size - 0.25 * old_points[j+3].size;
-
-			sk_appendStrokePoint(stk, &pt);
-
-			j += 2;
-		}
-
-		/* this might be uneeded when filtering last continuous stroke */
-		if (old_points[i].type == PT_EXACT)
-		{
-			sk_appendStrokePoint(stk, old_points + i);
-			j = i;
-		}
-	}
-
-	/* adding points after range */
-	for (i = end + 1; i < nb_points; i++)
-	{
-		sk_appendStrokePoint(stk, old_points + i);
-	}
-
-	MEM_freeN(old_points);
-
-	sk_shrinkStrokeBuffer(stk);
-}
-
-void sk_filterLastContinuousStroke(SK_Stroke *stk)
-{
-	int start, end;
-
-	end = stk->nb_points -1;
-
-	for (start = end - 1; start > 0 && stk->points[start].type == PT_CONTINUOUS; start--)
-	{
-		/* nothing to do here*/
-	}
-
-	if (end - start > 1)
-	{
-		sk_filterStroke(stk, start, end);
-	}
-}
-
-SK_Point *sk_lastStrokePoint(SK_Stroke *stk)
-{
-	SK_Point *pt = NULL;
-
-	if (stk->nb_points > 0)
-	{
-		pt = stk->points + (stk->nb_points - 1);
-	}
-
-	return pt;
-}
 
 float sk_clampPointSize(SK_Point *pt, float size)
 {
@@ -1036,7 +525,7 @@ void sk_drawNormal(GLUquadric *quad, SK_Point *pt, float size, float height)
 {
 	float vec2[3] = {0, 0, 1}, axis[3];
 	float angle;
-
+	
 	glPushMatrix();
 
 	Crossf(axis, vec2, pt->no);
@@ -1324,12 +813,6 @@ void sk_updateOverdraw(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawDa
 		int closest_index = -1;
 		int dist = SNAP_MIN_DISTANCE * 2;
 
-//		/* If snapping, don't start overdraw */ Can't do that, snap is embed too now
-//		if (sk_lastStrokePoint(stk)->mode == PT_SNAP)
-//		{
-//			return;
-//		}
-
 		for (target = sketch->strokes.first; target; target = target->next)
 		{
 			if (target != stk)
@@ -1568,9 +1051,11 @@ int sk_getStrokeDrawPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Strok
 
 int sk_addStrokeDrawPoint(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 {
+	ARegion *ar = CTX_wm_region(C);
+	RegionView3D *rv3d = ar->regiondata;
 	SK_Point pt;
 
-	sk_initPoint(C, &pt);
+	sk_initPoint(&pt, dd, rv3d->viewinv[2]);
 
 	sk_getStrokeDrawPoint(C, &pt, sketch, stk, dd);
 
@@ -1592,6 +1077,7 @@ int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Strok
 		float p[3];
 		float size = 0;
 
+		BLI_freelistN(&sketch->depth_peels);
 		sketch->depth_peels.first = sketch->depth_peels.last = NULL;
 
 		peelObjectsContext(C, &sketch->depth_peels, dd->mval);
@@ -1730,9 +1216,11 @@ int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Strok
 int sk_addStrokeSnapPoint(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *dd)
 {
 	int point_added;
+	ARegion *ar = CTX_wm_region(C);
+	RegionView3D *rv3d = ar->regiondata;
 	SK_Point pt;
 
-	sk_initPoint(C, &pt);
+	sk_initPoint(&pt, dd, rv3d->viewinv[2]);
 
 	point_added = sk_getStrokeSnapPoint(C, &pt, sketch, stk, dd);
 
@@ -1818,38 +1306,6 @@ void sk_getStrokePoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Stroke *
 	}
 }
 
-void sk_endContinuousStroke(SK_Stroke *stk)
-{
-	stk->points[stk->nb_points - 1].type = PT_EXACT;
-}
-
-void sk_updateNextPoint(SK_Sketch *sketch, SK_Stroke *stk)
-{
-	if (stk)
-	{
-		memcpy(&sketch->next_point, stk->points[stk->nb_points - 1].p, sizeof(SK_Point));
-	}
-}
-
-int sk_stroke_filtermval(SK_DrawData *dd)
-{
-	int retval = 0;
-	if (ABS(dd->mval[0] - dd->previous_mval[0]) + ABS(dd->mval[1] - dd->previous_mval[1]) > U.gp_manhattendist)
-	{
-		retval = 1;
-	}
-
-	return retval;
-}
-
-void sk_initDrawData(SK_DrawData *dd, short mval[2])
-{
-	dd->mval[0] = mval[0];
-	dd->mval[1] = mval[1];
-	dd->previous_mval[0] = -1;
-	dd->previous_mval[1] = -1;
-	dd->type = PT_EXACT;
-}
 /********************************************/
 
 static void* headPoint(void *arg);
@@ -2697,56 +2153,6 @@ void sk_applyGesture(bContext *C, SK_Sketch *sketch)
 
 /********************************************/
 
-void sk_deleteSelectedStrokes(SK_Sketch *sketch)
-{
-	SK_Stroke *stk, *next;
-
-	for (stk = sketch->strokes.first; stk; stk = next)
-	{
-		next = stk->next;
-
-		if (stk->selected == 1)
-		{
-			sk_removeStroke(sketch, stk);
-		}
-	}
-}
-
-void sk_selectAllSketch(SK_Sketch *sketch, int mode)
-{
-	SK_Stroke *stk = NULL;
-
-	if (mode == -1)
-	{
-		for (stk = sketch->strokes.first; stk; stk = stk->next)
-		{
-			stk->selected = 0;
-		}
-	}
-	else if (mode == 0)
-	{
-		for (stk = sketch->strokes.first; stk; stk = stk->next)
-		{
-			stk->selected = 1;
-		}
-	}
-	else if (mode == 1)
-	{
-		int selected = 1;
-
-		for (stk = sketch->strokes.first; stk; stk = stk->next)
-		{
-			selected &= stk->selected;
-		}
-
-		selected ^= 1;
-
-		for (stk = sketch->strokes.first; stk; stk = stk->next)
-		{
-			stk->selected = selected;
-		}
-	}
-}
 
 void sk_selectStroke(bContext *C, SK_Sketch *sketch, short mval[2], int extend)
 {
@@ -2895,7 +2301,7 @@ void sk_drawSketch(Scene *scene, View3D *v3d, SK_Sketch *sketch, int with_names)
 		}
 	}
 
-#if 0
+#if 1
 	if (sketch->depth_peels.first != NULL)
 	{
 		float colors[8][3] = {
@@ -2996,6 +2402,7 @@ int sk_draw_stroke(bContext *C, SK_Sketch *sketch, SK_Stroke *stk, SK_DrawData *
 		sk_addStrokePoint(C, sketch, stk, dd, snap);
 		sk_updateDrawData(dd);
 		sk_updateNextPoint(sketch, stk);
+		
 		return 1;
 	}
 
@@ -3023,9 +2430,10 @@ int BDR_drawSketchNames(ViewContext *vc)
 {
 	if (ValidSketchViewContext(vc))
 	{
-		if (GLOBAL_sketch != NULL)
+		SK_Sketch *sketch = viewcontextSketch(vc, 0);
+		if (sketch)
 		{
-			sk_drawSketch(vc->scene, vc->v3d, GLOBAL_sketch, 1);
+			sk_drawSketch(vc->scene, vc->v3d, sketch, 1);
 			return 1;
 		}
 	}
@@ -3037,18 +2445,20 @@ void BDR_drawSketch(const bContext *C)
 {
 	if (ED_operator_sketch_mode(C))
 	{
-		if (GLOBAL_sketch != NULL)
+		SK_Sketch *sketch = contextSketch(C, 0);
+		if (sketch)
 		{
-			sk_drawSketch(CTX_data_scene(C), CTX_wm_view3d(C), GLOBAL_sketch, 0);
+			sk_drawSketch(CTX_data_scene(C), CTX_wm_view3d(C), sketch, 0);
 		}
 	}
 }
 
 static int sketch_delete(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if (GLOBAL_sketch != NULL)
+	SK_Sketch *sketch = contextSketch(C, 0);
+	if (sketch)
 	{
-		sk_deleteSelectedStrokes(GLOBAL_sketch);
+		sk_deleteSelectedStrokes(sketch);
 //			allqueue(REDRAWVIEW3D, 0);
 	}
 	return OPERATOR_FINISHED;
@@ -3056,9 +2466,10 @@ static int sketch_delete(bContext *C, wmOperator *op, wmEvent *event)
 
 void BIF_sk_selectStroke(bContext *C, short mval[2], short extend)
 {
-	if (GLOBAL_sketch != NULL)
+	SK_Sketch *sketch = contextSketch(C, 0);
+	if (sketch)
 	{
-		sk_selectStroke(C, GLOBAL_sketch, mval, extend);
+		sk_selectStroke(C, sketch, mval, extend);
 	}
 }
 
@@ -3066,9 +2477,10 @@ void BIF_convertSketch(bContext *C)
 {
 	if (ED_operator_sketch_full_mode(C))
 	{
-		if (GLOBAL_sketch != NULL)
+		SK_Sketch *sketch = contextSketch(C, 0);
+		if (sketch)
 		{
-			sk_convert(C, GLOBAL_sketch);
+			sk_convert(C, sketch);
 //			BIF_undo_push("Convert Sketch");
 //			allqueue(REDRAWVIEW3D, 0);
 //			allqueue(REDRAWBUTSEDIT, 0);
@@ -3080,42 +2492,76 @@ void BIF_deleteSketch(bContext *C)
 {
 	if (ED_operator_sketch_full_mode(C))
 	{
-		if (GLOBAL_sketch != NULL)
+		SK_Sketch *sketch = contextSketch(C, 0);
+		if (sketch)
 		{
-			sk_deleteSelectedStrokes(GLOBAL_sketch);
+			sk_deleteSelectedStrokes(sketch);
 //			BIF_undo_push("Convert Sketch");
 //			allqueue(REDRAWVIEW3D, 0);
 		}
 	}
 }
 
-//void BIF_selectAllSketch(bContext *C, int mode)
-//{
-//	if (BIF_validSketchMode(C))
-//	{
-//		if (GLOBAL_sketch != NULL)
-//		{
-//			sk_selectAllSketch(GLOBAL_sketch, mode);
-////			XXX
-////			allqueue(REDRAWVIEW3D, 0);
-//		}
-//	}
-//}
-
-void BIF_freeSketch(bContext *C)
+#if 0
+void BIF_selectAllSketch(bContext *C, int mode)
 {
-	if (GLOBAL_sketch != NULL)
+	if (BIF_validSketchMode(C))
 	{
-		sk_freeSketch(GLOBAL_sketch);
-		GLOBAL_sketch = NULL;
+		SK_Sketch *sketch = contextSketch(C, 0);
+		if (sketch)
+		{
+			sk_selectAllSketch(sketch, mode);
+//			XXX
+//			allqueue(REDRAWVIEW3D, 0);
+		}
 	}
+}
+#endif
+
+SK_Sketch* contextSketch(const bContext *C, int create)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	SK_Sketch *sketch = NULL;
+
+	if (obedit && obedit->type == OB_ARMATURE)
+	{
+		bArmature *arm = obedit->data;
+	
+		if (arm->sketch == NULL && create)
+		{
+			arm->sketch = createSketch();
+		}
+		sketch = arm->sketch;
+	}
+
+	return sketch;
+}
+
+SK_Sketch* viewcontextSketch(ViewContext *vc, int create)
+{
+	Object *obedit = vc->obedit;
+	SK_Sketch *sketch = NULL;
+
+	if (obedit && obedit->type == OB_ARMATURE)
+	{
+		bArmature *arm = obedit->data;
+	
+		if (arm->sketch == NULL && create)
+		{
+			arm->sketch = createSketch();
+		}
+		sketch = arm->sketch;
+	}
+
+	return sketch;
 }
 
 static int sketch_cancel(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if (GLOBAL_sketch != NULL)
+	SK_Sketch *sketch = contextSketch(C, 0);
+	if (sketch != NULL)
 	{
-		sk_cancelStroke(GLOBAL_sketch);
+		sk_cancelStroke(sketch);
 		ED_area_tag_redraw(CTX_wm_area(C));
 		return OPERATOR_FINISHED;
 	}
@@ -3124,9 +2570,10 @@ static int sketch_cancel(bContext *C, wmOperator *op, wmEvent *event)
 
 static int sketch_finish(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if (GLOBAL_sketch != NULL)
+	SK_Sketch *sketch = contextSketch(C, 0);
+	if (sketch != NULL)
 	{
-		if (sk_finish_stroke(C, GLOBAL_sketch))
+		if (sk_finish_stroke(C, sketch))
 		{
 			ED_area_tag_redraw(CTX_wm_area(C));
 			return OPERATOR_FINISHED;
@@ -3137,10 +2584,11 @@ static int sketch_finish(bContext *C, wmOperator *op, wmEvent *event)
 
 static int sketch_select(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if (GLOBAL_sketch != NULL)
+	SK_Sketch *sketch = contextSketch(C, 0);
+	if (sketch)
 	{
 		short extend = 0;
-		sk_selectStroke(C, GLOBAL_sketch, event->mval, extend);
+		sk_selectStroke(C, sketch, event->mval, extend);
 		ED_area_tag_redraw(CTX_wm_area(C));
 	}
 
@@ -3149,7 +2597,8 @@ static int sketch_select(bContext *C, wmOperator *op, wmEvent *event)
 
 static int sketch_draw_stroke_cancel(bContext *C, wmOperator *op)
 {
-	sk_cancelStroke(GLOBAL_sketch);
+	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
+	sk_cancelStroke(sketch);
 	MEM_freeN(op->customdata);
 	return OPERATOR_CANCELLED;
 }
@@ -3158,18 +2607,14 @@ static int sketch_draw_stroke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	short snap = RNA_boolean_get(op->ptr, "snap");
 	SK_DrawData *dd;
-
-	if (GLOBAL_sketch == NULL)
-	{
-		GLOBAL_sketch = sk_createSketch();
-	}
+	SK_Sketch *sketch = contextSketch(C, 1);
 
 	op->customdata = dd = MEM_callocN(sizeof("SK_DrawData"), "SketchDrawData");
 	sk_initDrawData(dd, event->mval);
 
-	sk_start_draw_stroke(GLOBAL_sketch);
+	sk_start_draw_stroke(sketch);
 
-	sk_draw_stroke(C, GLOBAL_sketch, GLOBAL_sketch->active_stroke, dd, snap);
+	sk_draw_stroke(C, sketch, sketch->active_stroke, dd, snap);
 
 	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 
@@ -3178,7 +2623,8 @@ static int sketch_draw_stroke(bContext *C, wmOperator *op, wmEvent *event)
 
 static int sketch_draw_gesture_cancel(bContext *C, wmOperator *op)
 {
-	sk_cancelStroke(GLOBAL_sketch);
+	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
+	sk_cancelStroke(sketch);
 	MEM_freeN(op->customdata);
 	return OPERATOR_CANCELLED;
 }
@@ -3187,17 +2633,14 @@ static int sketch_draw_gesture(bContext *C, wmOperator *op, wmEvent *event)
 {
 	short snap = RNA_boolean_get(op->ptr, "snap");
 	SK_DrawData *dd;
-
-	if (GLOBAL_sketch == NULL)
-	{
-		GLOBAL_sketch = sk_createSketch();
-	}
+	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
+	sk_cancelStroke(sketch);
 
 	op->customdata = dd = MEM_callocN(sizeof("SK_DrawData"), "SketchDrawData");
 	sk_initDrawData(dd, event->mval);
 
-	sk_start_draw_gesture(GLOBAL_sketch);
-	sk_draw_stroke(C, GLOBAL_sketch, GLOBAL_sketch->gesture, dd, snap);
+	sk_start_draw_gesture(sketch);
+	sk_draw_stroke(C, sketch, sketch->gesture, dd, snap);
 
 	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 
@@ -3208,6 +2651,7 @@ static int sketch_draw_modal(bContext *C, wmOperator *op, wmEvent *event, short 
 {
 	short snap = RNA_boolean_get(op->ptr, "snap");
 	SK_DrawData *dd = op->customdata;
+	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
 	int retval = OPERATOR_RUNNING_MODAL;
 
 	switch (event->type)
@@ -3220,7 +2664,7 @@ static int sketch_draw_modal(bContext *C, wmOperator *op, wmEvent *event, short 
 	case MOUSEMOVE:
 		dd->mval[0] = event->mval[0];
 		dd->mval[1] = event->mval[1];
-		sk_draw_stroke(C, GLOBAL_sketch, stk, dd, snap);
+		sk_draw_stroke(C, sketch, stk, dd, snap);
 		ED_area_tag_redraw(CTX_wm_area(C));
 		break;
 	case ESCKEY:
@@ -3235,7 +2679,7 @@ static int sketch_draw_modal(bContext *C, wmOperator *op, wmEvent *event, short 
 			{
 				sk_endContinuousStroke(stk);
 				sk_filterLastContinuousStroke(stk);
-				sk_updateNextPoint(GLOBAL_sketch, stk);
+				sk_updateNextPoint(sketch, stk);
 				ED_area_tag_redraw(CTX_wm_area(C));
 				MEM_freeN(op->customdata);
 				retval = OPERATOR_FINISHED;
@@ -3248,11 +2692,11 @@ static int sketch_draw_modal(bContext *C, wmOperator *op, wmEvent *event, short 
 				if (stk->nb_points > 1)
 				{
 					/* apply gesture here */
-					sk_applyGesture(C, GLOBAL_sketch);
+					sk_applyGesture(C, sketch);
 				}
 
 				sk_freeStroke(stk);
-				GLOBAL_sketch->gesture = NULL;
+				sketch->gesture = NULL;
 
 				ED_area_tag_redraw(CTX_wm_area(C));
 				MEM_freeN(op->customdata);
@@ -3267,21 +2711,23 @@ static int sketch_draw_modal(bContext *C, wmOperator *op, wmEvent *event, short 
 
 static int sketch_draw_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	return sketch_draw_modal(C, op, event, 0, GLOBAL_sketch->active_stroke);
+	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
+	return sketch_draw_modal(C, op, event, 0, sketch->active_stroke);
 }
 
 static int sketch_draw_gesture_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	return sketch_draw_modal(C, op, event, 1, GLOBAL_sketch->gesture);
+	SK_Sketch *sketch = contextSketch(C, 1); /* create just to be sure */
+	return sketch_draw_modal(C, op, event, 1, sketch->gesture);
 }
 
 static int sketch_draw_preview(bContext *C, wmOperator *op, wmEvent *event)
 {
 	short snap = RNA_boolean_get(op->ptr, "snap");
+	SK_Sketch *sketch = contextSketch(C, 0);
 
-	if (GLOBAL_sketch != NULL)
+	if (sketch)
 	{
-		SK_Sketch *sketch = GLOBAL_sketch;
 		SK_DrawData dd;
 
 		sk_initDrawData(&dd, event->mval);
@@ -3296,14 +2742,12 @@ static int sketch_draw_preview(bContext *C, wmOperator *op, wmEvent *event)
 
 int ED_operator_sketch_mode_active_stroke(bContext *C)
 {
-	Object *obedit = CTX_data_edit_object(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
+	SK_Sketch *sketch = contextSketch(C, 0);
 
-	if (obedit &&
-		obedit->type == OB_ARMATURE &&
-		ts->bone_sketching & BONE_SKETCHING &&
-		GLOBAL_sketch != NULL &&
-		GLOBAL_sketch->active_stroke != NULL)
+	if (ts->bone_sketching & BONE_SKETCHING &&
+		sketch != NULL &&
+		sketch->active_stroke != NULL)
 	{
 		return 1;
 	}
@@ -3315,15 +2759,13 @@ int ED_operator_sketch_mode_active_stroke(bContext *C)
 
 int ED_operator_sketch_mode_gesture(bContext *C)
 {
-	Object *obedit = CTX_data_edit_object(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
+	SK_Sketch *sketch = contextSketch(C, 0);
 
-	if (obedit &&
-		obedit->type == OB_ARMATURE &&
-		ts->bone_sketching & BONE_SKETCHING &&
+	if (ts->bone_sketching & BONE_SKETCHING &&
 		(ts->bone_sketching & BONE_SKETCHING_QUICK) == 0 &&
-		GLOBAL_sketch != NULL &&
-		GLOBAL_sketch->active_stroke == NULL)
+		sketch != NULL &&
+		sketch->active_stroke == NULL)
 	{
 		return 1;
 	}
@@ -3463,7 +2905,7 @@ void SKETCH_OT_draw_stroke(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
 
 	/* flags */
-//	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_BLOCKING; // OPTYPE_REGISTER|OPTYPE_UNDO
 }
 
 void SKETCH_OT_gesture(wmOperatorType *ot)
@@ -3482,5 +2924,6 @@ void SKETCH_OT_gesture(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
 
 	/* flags */
-//	ot->flag= OPTYPE_UNDO;
+	ot->flag= OPTYPE_BLOCKING; // OPTYPE_UNDO
 }
+

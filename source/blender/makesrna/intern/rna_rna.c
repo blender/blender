@@ -432,6 +432,19 @@ static int rna_Property_registered_optional_get(PointerRNA *ptr)
 	return prop->flag & PROP_REGISTER_OPTIONAL;
 }
 
+static int rna_BoolProperty_default_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	rna_idproperty_check(&prop, ptr);
+	return ((BooleanPropertyRNA*)prop)->defaultvalue;
+}
+
+static int rna_IntProperty_default_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	rna_idproperty_check(&prop, ptr);
+	return ((IntPropertyRNA*)prop)->defaultvalue;
+}
 static int rna_IntProperty_hard_min_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
@@ -467,6 +480,12 @@ static int rna_IntProperty_step_get(PointerRNA *ptr)
 	return ((IntPropertyRNA*)prop)->step;
 }
 
+static float rna_FloatProperty_default_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	rna_idproperty_check(&prop, ptr);
+	return ((FloatPropertyRNA*)prop)->defaultvalue;
+}
 static float rna_FloatProperty_hard_min_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
@@ -509,6 +528,19 @@ static int rna_FloatProperty_precision_get(PointerRNA *ptr)
 	return ((FloatPropertyRNA*)prop)->precision;
 }
 
+static void rna_StringProperty_default_get(PointerRNA *ptr, char *value)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	rna_idproperty_check(&prop, ptr);
+	strcpy(value, ((StringPropertyRNA*)prop)->defaultvalue);
+}
+static int rna_StringProperty_default_length(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	rna_idproperty_check(&prop, ptr);
+	return strlen(((StringPropertyRNA*)prop)->defaultvalue);
+}
+
 static int rna_StringProperty_max_length_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
@@ -516,14 +548,7 @@ static int rna_StringProperty_max_length_get(PointerRNA *ptr)
 	return ((StringPropertyRNA*)prop)->maxlength;
 }
 
-static int rna_enum_check_separator(CollectionPropertyIterator *iter, void *data)
-{
-	EnumPropertyItem *item= (EnumPropertyItem*)data;
-
-	return (item->identifier[0] != 0);
-}
-
-static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static EnumPropertyItem *rna_EnumProperty_default_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	EnumPropertyRNA *eprop;
@@ -531,7 +556,39 @@ static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, Point
 	rna_idproperty_check(&prop, ptr);
 	eprop= (EnumPropertyRNA*)prop;
 
-	rna_iterator_array_begin(iter, (void*)eprop->item, sizeof(eprop->item[0]), eprop->totitem, rna_enum_check_separator);
+	if(eprop->itemf==NULL || eprop->itemf==rna_EnumProperty_default_itemf)
+		return eprop->item;
+
+	return eprop->itemf(C, ptr, free);
+}
+
+/* XXX - not sore this is needed? */
+static int rna_EnumProperty_default_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	rna_idproperty_check(&prop, ptr);
+	return ((EnumPropertyRNA*)prop)->defaultvalue;
+}
+
+static int rna_enum_check_separator(CollectionPropertyIterator *iter, void *data)
+{
+	EnumPropertyItem *item= (EnumPropertyItem*)data;
+
+	return (item->identifier[0] == 0);
+}
+
+static void rna_EnumProperty_items_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	EnumPropertyRNA *eprop;
+	EnumPropertyItem *item= NULL;
+	int totitem, free= 0;
+	
+	rna_idproperty_check(&prop, ptr);
+	eprop= (EnumPropertyRNA*)prop;
+	
+	RNA_property_enum_items(NULL, ptr, prop, &item, &totitem, &free);
+	rna_iterator_array_begin(iter, (void*)item, sizeof(EnumPropertyItem), totitem, free, rna_enum_check_separator);
 }
 
 static void rna_EnumPropertyItem_identifier_get(PointerRNA *ptr, char *value)
@@ -813,6 +870,31 @@ static void rna_def_number_property(StructRNA *srna, PropertyType type)
 {
 	PropertyRNA *prop;
 
+	prop= RNA_def_property(srna, "default", type, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Default", "Default value for this number");
+
+	switch(type) {
+	case PROP_BOOLEAN:
+		RNA_def_property_boolean_funcs(prop, "rna_BoolProperty_default_get", NULL);
+		break;
+	case PROP_INT:
+		RNA_def_property_int_funcs(prop, "rna_IntProperty_default_get", NULL, NULL);
+		break;
+	case PROP_FLOAT:
+		RNA_def_property_float_funcs(prop, "rna_FloatProperty_default_get", NULL, NULL);
+		break;
+	}
+
+
+#if 0 // XXX - Variable length arrays
+	prop= RNA_def_property(srna, "default_array", type, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	if(type == PROP_INT) RNA_def_property_int_funcs(prop, "rna_IntProperty_default_array_get", NULL, NULL);
+	else RNA_def_property_float_funcs(prop, "rna_FloatProperty_default_array_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Default", "Default value for this number");
+#endif
+
 	prop= RNA_def_property(srna, "array_length", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_Property_array_length_get", NULL, NULL);
@@ -863,6 +945,11 @@ static void rna_def_string_property(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
+	prop= RNA_def_property(srna, "default", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_string_funcs(prop, "rna_StringProperty_default_get", "rna_StringProperty_default_length", NULL);
+	RNA_def_property_ui_text(prop, "Default", "string default value.");
+
 	prop= RNA_def_property(srna, "max_length", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_StringProperty_max_length_get", NULL, NULL);
@@ -872,6 +959,17 @@ static void rna_def_string_property(StructRNA *srna)
 static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 {
 	PropertyRNA *prop;
+
+	/* the itemf func is used instead, keep blender happy */
+	static EnumPropertyItem default_dummy_items[] = {
+		{PROP_NONE, "DUMMY", 0, "Dummy", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	prop= RNA_def_property(srna, "default", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_enum_items(prop, default_dummy_items);
+	RNA_def_property_enum_funcs(prop, "rna_EnumProperty_default_get", NULL, "rna_EnumProperty_default_itemf");
+	RNA_def_property_ui_text(prop, "Default", "Default value for this enum");
 
 	prop= RNA_def_property(srna, "items", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

@@ -51,6 +51,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_mball.h"
+#include "BKE_report.h"
 #include "BKE_utildefines.h"
 #include "BKE_packedFile.h"
 
@@ -100,6 +101,18 @@ static void sound_init_listener(void)
 	G.listener->dopplervelocity = 340.29f;
 }
 
+
+static void wm_init_reports(bContext *C)
+{
+	BKE_reports_init(CTX_wm_reports(C), RPT_STORE);
+}
+static void wm_free_reports(bContext *C)
+{
+	BKE_reports_clear(CTX_wm_reports(C));
+}
+
+
+
 /* only called once, for startup */
 void WM_init(bContext *C)
 {
@@ -123,6 +136,8 @@ void WM_init(bContext *C)
 	
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, NULL);
+	
+	wm_init_reports(C); /* reports cant be initialized before the wm */
 	
 	UI_init();
 	
@@ -163,6 +178,7 @@ extern wchar_t *copybufinfo;
 
 	// XXX copy/paste buffer stuff...
 extern void free_anim_copybuf(); 
+extern void free_posebuf(); 
 
 /* called in creator.c even... tsk, split this! */
 void WM_exit(bContext *C)
@@ -193,7 +209,6 @@ void WM_exit(bContext *C)
 //	BIF_GlobalReebFree();
 //	BIF_freeRetarget();
 	BIF_freeTemplates(C);
-	BIF_freeSketch(C);
 	
 	free_ttfont(); /* bke_font.h */
 	
@@ -213,9 +228,11 @@ void WM_exit(bContext *C)
 	
 	fastshade_free_render();	/* shaded view */
 	ED_preview_free_dbase();	/* frees a Main dbase, before free_blender! */
+	wm_free_reports(C);			/* before free_blender! - since the ListBases get freed there */
 	free_blender();				/* blender.c, does entire library and spacetypes */
 //	free_matcopybuf();
 	free_anim_copybuf();
+	free_posebuf();
 //	free_vertexpaint();
 //	free_imagepaint();
 	
@@ -224,6 +241,7 @@ void WM_exit(bContext *C)
 	BLF_exit();
 
 	RE_FreeAllRender();
+	RE_engines_exit();
 	
 //	free_txt_data();
 	

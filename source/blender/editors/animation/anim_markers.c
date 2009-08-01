@@ -85,6 +85,7 @@ static ListBase *context_get_markers(const bContext *C)
 }
 
 /* Get the marker that is closest to this point */
+/* XXX for select, the min_dist should be small */
 TimeMarker *ED_markers_find_nearest_marker (ListBase *markers, float x) 
 {
 	TimeMarker *marker, *nearest=NULL;
@@ -620,7 +621,7 @@ static void MARKER_OT_move(wmOperatorType *ot)
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* rna storage */
 	RNA_def_int(ot->srna, "frames", 0, INT_MIN, INT_MAX, "Frames", "", INT_MIN, INT_MAX);
@@ -828,6 +829,7 @@ static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 	/* XXX marker context */
 	for(marker= markers->first; marker; marker= marker->next) {
 		if ((marker->frame > xminf) && (marker->frame <= xmaxf)) {
+			/* XXX weak... */
 			switch (event_type) {
 				case LEFTMOUSE:
 					if ((marker->flag & SELECT) == 0) 

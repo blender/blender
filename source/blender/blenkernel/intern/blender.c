@@ -387,10 +387,6 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	/* now tag update flags, to ensure deformers get calculated on redraw */
 	DAG_scene_update_flags(CTX_data_scene(C), CTX_data_scene(C)->lay);
 	
-	if (G.f & G_DOSCRIPTLINKS) {
-		/* there's an onload scriptlink to execute in screenmain */
-// XXX		mainqenter(ONLOAD_SCRIPT, 1);
-	}
 	if (G.sce != filename) /* these are the same at times, should never copy to the same location */
 		strcpy(G.sce, filename);
 	
@@ -691,6 +687,22 @@ void BKE_undo_number(bContext *C, int nr)
 	curundo= uel;
 	BKE_undo_step(C, 0);
 }
+
+/* go back to the last occurance of name in stack */
+void BKE_undo_name(bContext *C, const char *name)
+{
+	UndoElem *uel;
+	
+	for(uel= undobase.last; uel; uel= uel->prev) {
+		if(strcmp(name, uel->name)==0)
+			break;
+	}
+	if(uel && uel->prev) {
+		curundo= uel->prev;
+		BKE_undo_step(C, 0);
+	}
+}
+
 
 char *BKE_undo_menu_string(void)
 {

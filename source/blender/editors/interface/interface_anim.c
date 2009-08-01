@@ -10,6 +10,7 @@
 #include "DNA_screen_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"
@@ -18,6 +19,8 @@
 #include "RNA_access.h"
 #include "RNA_types.h"
 
+#include "ED_keyframing.h"
+
 #include "UI_interface.h"
 
 #include "WM_api.h"
@@ -25,44 +28,133 @@
 
 #include "interface_intern.h"
 
-void ui_but_anim_flag(uiBut *but, float cfra)
+static FCurve *ui_but_get_fcurve(uiBut *but, bAction **action, int *driven)
 {
-	but->flag &= ~(UI_BUT_ANIMATED|UI_BUT_ANIMATED_KEY|UI_BUT_DRIVEN);
+	FCurve *fcu= NULL;
 
-	if(but->rnaprop && but->rnapoin.id.data) {
+	*driven= 0;
+
+	/* there must be some RNA-pointer + property combo for this button */
+	if(but->rnaprop && but->rnapoin.id.data && 
+		RNA_property_animateable(&but->rnapoin, but->rnaprop)) 
+	{
 		AnimData *adt= BKE_animdata_from_id(but->rnapoin.id.data);
-		FCurve *fcu;
 		char *path;
-
-		if (adt) {
-			if ((adt->action && adt->action->curves.first) || (adt->drivers.first)) {
+		
+		if(adt) {
+			if((adt->action && adt->action->curves.first) || (adt->drivers.first)) {
 				/* XXX this function call can become a performance bottleneck */
 				path= RNA_path_from_ID_to_property(&but->rnapoin, but->rnaprop);
-				
-				if (path) {
+
+				if(path) {
 					/* animation takes priority over drivers */
-					if (adt->action && adt->action->curves.first) {
+					if(adt->action && adt->action->curves.first)
 						fcu= list_find_fcurve(&adt->action->curves, path, but->rnaindex);
-						
-						if (fcu) {
-							but->flag |= UI_BUT_ANIMATED;
-							
-							if (on_keyframe_fcurve(fcu, cfra))
-								but->flag |= UI_BUT_ANIMATED_KEY;
-						}
-					}
 					
 					/* if not animated, check if driven */
-					if ((but->flag & UI_BUT_ANIMATED)==0 && (adt->drivers.first)) {
+					if(!fcu && (adt->drivers.first)) {
 						fcu= list_find_fcurve(&adt->drivers, path, but->rnaindex);
 						
-						if (fcu)
-							but->flag |= UI_BUT_DRIVEN;
+						if(fcu)
+							*driven= 1;
 					}
-					
+
+					if(fcu && action)
+						*action= adt->action;
+
 					MEM_freeN(path);
 				}
 			}
+		}
+	}
+
+	return fcu;
+}
+
+void ui_but_anim_flag(uiBut *but, float cfra)
+{
+	FCurve *fcu;
+	int driven;
+
+	but->flag &= ~(UI_BUT_ANIMATED|UI_BUT_ANIMATED_KEY|UI_BUT_DRIVEN);
+
+	fcu= ui_but_get_fcurve(but, NULL, &driven);
+
+	if(fcu) {
+		if(!driven) {
+			but->flag |= UI_BUT_ANIMATED;
+			
+			if(fcurve_frame_has_keyframe(fcu, cfra, 0))
+				but->flag |= UI_BUT_ANIMATED_KEY;
+		}
+		else {
+			but->flag |= UI_BUT_DRIVEN;
+		}
+	}
+}
+
+int ui_but_anim_expression_get(uiBut *but, char *str, int maxlen)
+{
+	FCurve *fcu;
+	ChannelDriver *driver;
+	int driven;
+
+	fcu= ui_but_get_fcurve(but, NULL, &driven);
+
+	if(fcu && driven) {
+		driver= fcu->driver;
+
+		if(driver && driver->type == DRIVER_TYPE_PYTHON) {
+			BLI_strncpy(str, driver->expression, maxlen);
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+int ui_but_anim_expression_set(uiBut *but, const char *str)
+{
+	FCurve *fcu;
+	ChannelDriver *driver;
+	int driven;
+
+	fcu= ui_but_get_fcurve(but, NULL, &driven);
+
+	if(fcu && driven) {
+		driver= fcu->driver;
+
+		if(driver && driver->type == DRIVER_TYPE_PYTHON) {
+			BLI_strncpy(driver->expression, str, sizeof(driver->expression));
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+void ui_but_anim_autokey(uiBut *but, Scene *scene, float cfra)
+{
+	ID *id;
+	bAction *action;
+	FCurve *fcu;
+	int driven;
+
+	fcu= ui_but_get_fcurve(but, &action, &driven);
+
+	if(fcu && !driven) {
+		id= but->rnapoin.id.data;
+		
+		if(autokeyframe_cfra_can_key(scene, id)) {
+			short flag = 0;
+			
+			if (IS_AUTOKEY_FLAG(INSERTNEEDED))
+				flag |= INSERTKEY_NEEDED;
+			if (IS_AUTOKEY_FLAG(AUTOMATKEY))
+				flag |= INSERTKEY_MATRIX;
+			
+			fcu->flag &= ~FCURVE_SELECTED;
+			insert_keyframe(id, action, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
 		}
 	}
 }
@@ -72,6 +164,10 @@ void uiAnimContextProperty(const bContext *C, struct PointerRNA *ptr, struct Pro
 	ARegion *ar= CTX_wm_region(C);
 	uiBlock *block;
 	uiBut *but;
+
+	memset(ptr, 0, sizeof(*ptr));
+	*prop= NULL;
+	*index= 0;
 
 	if(ar) {
 		for(block=ar->uiblocks.first; block; block=block->next) {
@@ -111,7 +207,6 @@ void ui_but_anim_remove_driver(bContext *C)
 	WM_operator_name_call(C, "ANIM_OT_remove_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
-// TODO: refine the logic for adding/removing drivers...
 void ui_but_anim_menu(bContext *C, uiBut *but)
 {
 	uiPopupMenu *pup;
@@ -136,6 +231,7 @@ void ui_but_anim_menu(bContext *C, uiBut *but)
 				uiItemBooleanO(layout, "Delete Keyframe", 0, "ANIM_OT_delete_keyframe_button", "all", 0);
 			}
 		}
+		else if(but->flag & UI_BUT_DRIVEN);
 		else if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
 			if(length) {
 				uiItemBooleanO(layout, "Insert Keyframes", 0, "ANIM_OT_insert_keyframe_button", "all", 1);
@@ -149,17 +245,18 @@ void ui_but_anim_menu(bContext *C, uiBut *but)
 			uiItemS(layout);
 			
 			if(length) {
-				uiItemBooleanO(layout, "Remove Driver", 0, "ANIM_OT_remove_driver_button", "all", 1);
-				uiItemBooleanO(layout, "Remove Single Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
+				uiItemBooleanO(layout, "Delete Drivers", 0, "ANIM_OT_remove_driver_button", "all", 1);
+				uiItemBooleanO(layout, "Delete Single Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
 			}
 			else
-				uiItemBooleanO(layout, "Remove Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
+				uiItemBooleanO(layout, "Delete Driver", 0, "ANIM_OT_remove_driver_button", "all", 0);
 		}
+		else if(but->flag & UI_BUT_ANIMATED_KEY);
 		else if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
 			uiItemS(layout);
 			
 			if(length) {
-				uiItemBooleanO(layout, "Add Driver", 0, "ANIM_OT_add_driver_button", "all", 1);
+				uiItemBooleanO(layout, "Add Drivers", 0, "ANIM_OT_add_driver_button", "all", 1);
 				uiItemBooleanO(layout, "Add Single Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
 			}
 			else

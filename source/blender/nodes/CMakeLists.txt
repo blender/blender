@@ -27,7 +27,7 @@ FILE(GLOB SRC intern/*.c intern/CMP_nodes/*.c intern/SHD_nodes/*.c intern/TEX_no
 
 SET(INC 
   . ../../../intern/guardedalloc ../editors/include ../blenlib ../makesdna
-  ../render/extern/include ../../../intern/decimation/extern
+  ../render/extern/include ../../../intern/decimation/extern ../makesrna
   ../imbuf ../avi ../../../intern/elbeem/extern
   ../../../intern/iksolver/extern ../blenloader ../quicktime
   ../blenkernel ../../../extern/glew/include ../gpu

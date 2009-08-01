@@ -112,6 +112,7 @@ typedef struct ShaderPreview {
 	
 	Scene *scene;
 	ID *id;
+	ID *parent;
 	
 	int sizex, sizey;
 	int *pr_rect;
@@ -273,11 +274,10 @@ static Object *find_object(ListBase *lb, const char *name)
 
 /* call this with a pointer to initialize preview scene */
 /* call this with NULL to restore assigned ID pointers in preview scene */
-static Scene *preview_prepare_scene(Scene *scene, int id_type, ShaderPreview *sp)
+static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPreview *sp)
 {
 	Scene *sce;
 	Base *base;
-	ID *id= sp?sp->id:NULL;
 	
 	if(pr_main==NULL) return NULL;
 	
@@ -293,6 +293,7 @@ static Scene *preview_prepare_scene(Scene *scene, int id_type, ShaderPreview *sp
 			sce->world->range= scene->world->range;
 		}
 		
+		sce->r.color_mgt_flag = scene->r.color_mgt_flag;
 		sce->r.cfra= scene->r.cfra;
 		
 		if(id_type==ID_MA) {
@@ -353,6 +354,9 @@ static Scene *preview_prepare_scene(Scene *scene, int id_type, ShaderPreview *sp
 			
 			sce->lay= 1<<MA_TEXTURE;
 			
+			/* exception: don't color manage texture previews */
+			sce->r.color_mgt_flag &= ~R_COLOR_MANAGEMENT;
+			
 			for(base= sce->base.first; base; base= base->next) {
 				if(base->object->id.name[2]=='t') {
 					Material *mat= give_current_material(base->object, base->object->actcol);
@@ -404,35 +408,79 @@ static Scene *preview_prepare_scene(Scene *scene, int id_type, ShaderPreview *sp
 	return NULL;
 }
 
-
 /* new UI convention: draw is in pixel space already. */
 /* uses ROUNDBOX button in block to get the rect */
-void ED_preview_draw(const bContext *C, void *idp, rcti *rect)
+static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int first, rcti *rect, rcti *newrect)
+{
+	RenderResult rres;
+	char name[32];
+	int gamma_correct=0;
+	int offx=0, newx= rect->xmax-rect->xmin, newy= rect->ymax-rect->ymin;
+
+	if (id && GS(id->name) != ID_TE) {
+		/* exception: don't color manage texture previews - show the raw values */
+		if (sce) gamma_correct = sce->r.color_mgt_flag & R_COLOR_MANAGEMENT;
+	}
+
+	if(!split || first) sprintf(name, "Preview %p", sa);
+	else sprintf(name, "SecondPreview %p", sa);
+
+	if(split) {
+		if(first) {
+			offx= 0;
+			newx= newx/2;
+		}
+		else {
+			offx= newx/2;
+			newx= newx - newx/2;
+		}
+	}
+
+	RE_GetResultImage(RE_GetRender(name), &rres);
+
+	if(rres.rectf) {
+		
+		if(ABS(rres.rectx-newx)<2 && ABS(rres.recty-newy)<2) {
+			newrect->xmax= MAX2(newrect->xmax, rect->xmin + rres.rectx + offx);
+			newrect->ymax= MAX2(newrect->ymax, rect->ymin + rres.recty);
+
+			glPushMatrix();
+			glTranslatef(offx, 0, 0);
+			glaDrawPixelsSafe_to32(rect->xmin, rect->ymin, rres.rectx, rres.recty, rres.rectx, rres.rectf, gamma_correct);
+			glPopMatrix();
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+void ED_preview_draw(const bContext *C, void *idp, void *parentp, rcti *rect)
 {
 	if(idp) {
 		ScrArea *sa= CTX_wm_area(C);
+		Scene *sce = CTX_data_scene(C);
+		ID *id = (ID *)idp;
+		ID *parent= (ID *)parentp;
 		SpaceButs *sbuts= sa->spacedata.first;
-		RenderResult rres;
+		rcti newrect;
+		int ok;
 		int newx= rect->xmax-rect->xmin, newy= rect->ymax-rect->ymin;
-		int ok= 0;
-		char name[32];
-		
-		sprintf(name, "Preview %p", sa);
-		BLI_lock_malloc_thread();
-		RE_GetResultImage(RE_GetRender(name), &rres);
 
-		if(rres.rectf) {
-			
-			if( ABS(rres.rectx-newx)<2 && ABS(rres.recty-newy)<2 ) {
-				/* correct size, then black outline matches */
-				rect->xmax= rect->xmin + rres.rectx;
-				rect->ymax= rect->ymin + rres.recty;
-			
-				glaDrawPixelsSafe(rect->xmin, rect->ymin, rres.rectx, rres.recty, rres.rectx, GL_RGBA, GL_FLOAT, rres.rectf);
-				ok= 1;
-			}
+		newrect.xmin= rect->xmin;
+		newrect.xmax= rect->xmin;
+		newrect.ymin= rect->ymin;
+		newrect.ymax= rect->ymin;
+
+		if(parent) {
+			ok = ed_preview_draw_rect(sa, sce, parent, 1, 1, rect, &newrect);
+			ok &= ed_preview_draw_rect(sa, sce, id, 1, 0, rect, &newrect);
 		}
-		BLI_unlock_malloc_thread();
+		else
+			ok = ed_preview_draw_rect(sa, sce, id, 0, 0, rect, &newrect);
+
+		if(ok)
+			*rect= newrect;
 
 		/* check for spacetype... */
 		if(sbuts->spacetype==SPACE_BUTS && sbuts->preview) {
@@ -441,7 +489,7 @@ void ED_preview_draw(const bContext *C, void *idp, rcti *rect)
 		}
 		
 		if(ok==0) {
-			ED_preview_shader_job(C, sa, idp, newx, newy);
+			ED_preview_shader_job(C, sa, id, parent, newx, newy);
 		}
 	}	
 }
@@ -453,7 +501,7 @@ void view3d_previewrender_progress(RenderResult *rr, volatile rcti *renrect)
 //	ScrArea *sa= NULL; // XXX
 //	View3D *v3d= NULL; // XXX
 	RenderLayer *rl;
-	int ofsx, ofsy;
+	int ofsx=0, ofsy=0;
 	
 	if(renrect) return;
 	
@@ -468,7 +516,7 @@ void view3d_previewrender_progress(RenderResult *rr, volatile rcti *renrect)
 	
 	glDrawBuffer(GL_FRONT);
 //	glaDefine2DArea(&sa->winrct);
-	glaDrawPixelsSafe_to32(ofsx, ofsy, rr->rectx, rr->recty, rr->rectx, rl->rectf);
+	glaDrawPixelsSafe_to32(ofsx, ofsy, rr->rectx, rr->recty, rr->rectx, rl->rectf, 0);
 	bglFlush();
 	glDrawBuffer(GL_BACK);
 
@@ -576,7 +624,7 @@ void BIF_view3d_previewrender(Scene *scene, ScrArea *sa)
 	View3D *v3d= sa->spacedata.first;
 	RegionView3D *rv3d= NULL; // XXX
 	Render *re;
-	RenderInfo *ri;	/* preview struct! */
+	RenderInfo *ri=NULL;	/* preview struct! */
 	RenderStats *rstats;
 	RenderData rdata;
 	rctf viewplane;
@@ -782,23 +830,20 @@ static void shader_preview_updatejob(void *spv)
 	
 }
 
-/* runs inside thread for material, in foreground for icons */
-static void shader_preview_startjob(void *customdata, short *stop, short *do_update)
+static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int first)
 {
-	ShaderPreview *sp= customdata;
 	Render *re;
 	Scene *sce;
 	float oldlens;
-	char name [32];
+	char name[32];
+	int sizex;
 
-	sp->stop= stop;
-	sp->do_update= do_update;
-	
 	/* get the stuff from the builtin preview dbase */
-	sce= preview_prepare_scene(sp->scene, GS(sp->id->name), sp);
+	sce= preview_prepare_scene(sp->scene, id, GS(id->name), sp); // XXX sizex
 	if(sce==NULL) return;
 	
-	sprintf(name, "Preview %p", sp->owner);
+	if(!split || first) sprintf(name, "Preview %p", sp->owner);
+	else sprintf(name, "SecondPreview %p", sp->owner);
 	re= RE_GetRender(name);
 	
 	/* full refreshed render from first tile */
@@ -816,8 +861,15 @@ static void shader_preview_startjob(void *customdata, short *stop, short *do_upd
 		sce->r.scemode |= R_NO_IMAGE_LOAD;
 	}
 
+	/* in case of split preview, use border render */
+	if(split) {
+		if(first) sizex= sp->sizex/2;
+		else sizex= sp->sizex - sp->sizex/2;
+	}
+	else sizex= sp->sizex;
+
 	/* allocates or re-uses render result */
-	RE_InitState(re, NULL, &sce->r, sp->sizex, sp->sizey, NULL);
+	RE_InitState(re, NULL, &sce->r, sizex, sp->sizey, NULL);
 
 	/* callbacs are cleared on GetRender() */
 	if(sp->pr_method==PR_DO_RENDER) {
@@ -826,8 +878,8 @@ static void shader_preview_startjob(void *customdata, short *stop, short *do_upd
 	}
 	/* lens adjust */
 	oldlens= ((Camera *)sce->camera->data)->lens;
-	if(sp->sizex > sp->sizey)
-		((Camera *)sce->camera->data)->lens *= (float)sp->sizey/(float)sp->sizex;
+	if(sizex > sp->sizey)
+		((Camera *)sce->camera->data)->lens *= (float)sp->sizey/(float)sizex;
 
 	/* entire cycle for render engine */
 	RE_SetCamera(re, sce->camera);
@@ -836,12 +888,11 @@ static void shader_preview_startjob(void *customdata, short *stop, short *do_upd
 	RE_Database_Free(re);
 
 	((Camera *)sce->camera->data)->lens= oldlens;
-	*do_update= 1;
 
 	/* handle results */
 	if(sp->pr_method==PR_ICON_RENDER) {
 		if(sp->pr_rect)
-			RE_ResultGet32(re, sp->pr_rect);
+			RE_ResultGet32(re, (unsigned int *)sp->pr_rect);
 	}
 	else {
 		/* validate owner */
@@ -851,8 +902,25 @@ static void shader_preview_startjob(void *customdata, short *stop, short *do_upd
 	}
 
 	/* unassign the pointers, reset vars */
-	preview_prepare_scene(sp->scene, GS(sp->id->name), NULL);
+	preview_prepare_scene(sp->scene, NULL, GS(id->name), NULL);
+}
 
+/* runs inside thread for material, in foreground for icons */
+static void shader_preview_startjob(void *customdata, short *stop, short *do_update)
+{
+	ShaderPreview *sp= customdata;
+
+	sp->stop= stop;
+	sp->do_update= do_update;
+
+	if(sp->parent) {
+		shader_preview_render(sp, sp->parent, 1, 1);
+		shader_preview_render(sp, sp->id, 1, 0);
+	}
+	else
+		shader_preview_render(sp, sp->id, 0, 0);
+
+	*do_update= 1;
 }
 
 static void shader_preview_free(void *customdata)
@@ -862,7 +930,7 @@ static void shader_preview_free(void *customdata)
 	MEM_freeN(sp);
 }
 
-void ED_preview_shader_job(const bContext *C, void *owner, ID *id, int sizex, int sizey)
+void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, int sizex, int sizey)
 {
 	wmJob *steve;
 	ShaderPreview *sp;
@@ -881,6 +949,7 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, int sizex, in
 	sp->sizey= sizey;
 	sp->pr_method= PR_DO_RENDER;
 	sp->id = id;
+	sp->parent= parent;
 	
 	/* setup job */
 	WM_jobs_customdata(steve, sp, shader_preview_free);
@@ -894,17 +963,19 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, int sizex, in
 }
 
 /* rect should be allocated, sizex/sizy pixels, 32 bits */
-void ED_preview_iconrender(Scene *scene, ID *id, int *rect, int sizex, int sizey)
+void ED_preview_iconrender(Scene *scene, ID *id, unsigned int *rect, int sizex, int sizey)
 {
-	ShaderPreview *sp= MEM_callocN(sizeof(ShaderPreview), "ShaderPreview");
+	ShaderPreview *sp;
 	short stop=0, do_update=0;
+
+	sp= MEM_callocN(sizeof(ShaderPreview), "ShaderPreview");
 	
 	/* customdata for preview thread */
 	sp->scene= scene;
 	sp->sizex= sizex;
 	sp->sizey= sizey;
 	sp->pr_method= PR_ICON_RENDER;
-	sp->pr_rect= rect;
+	sp->pr_rect= (int *)rect; /* shouldnt pr_rect be unsigned int also? - Campbell */
 	sp->id = id;
 
 	shader_preview_startjob(sp, &stop, &do_update);

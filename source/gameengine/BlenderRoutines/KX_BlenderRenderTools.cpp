@@ -261,6 +261,12 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 				// couldn't find something to cast the shadow on...
 				glMultMatrixd(oglmatrix);
 			}
+			else
+			{ // we found the "ground", but the cast matrix doesn't take
+			  // scaling in consideration, so we must apply the object scale
+				MT_Vector3  size = gameobj->GetSGNode()->GetLocalScale();
+				glScalef(size[0], size[1], size[2]);
+			}
 		} else
 		{
 
@@ -385,4 +391,3 @@ void KX_BlenderRenderTools::Render2DFilters(RAS_ICanvas* canvas)
 {
 	m_filtermanager.RenderFilters(canvas);
 }
-

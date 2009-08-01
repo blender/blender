@@ -21,6 +21,7 @@
  * All rights reserved.
  *
  * Contributor(s): Full recode, Ton Roosendaal, Crete 2005
+ *				 Full recode, Joshua Leung, 2009
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -31,7 +32,8 @@
 
 #include <string.h>
 #include <math.h>
-#include <stdlib.h>	/* for NULL */
+#include <stdlib.h>
+#include <stddef.h>	
 
 #include "MEM_guardedalloc.h"
 
@@ -67,8 +69,6 @@
 
 #include "RNA_access.h"
 #include "RNA_types.h"
-
-//XXX #include "nla.h"
 
 /* *********************** NOTE ON POSE AND ACTION **********************
 
@@ -765,73 +765,76 @@ void framechange_poses_clear_unkeyed(void)
 	}
 }
 
-/* ************************ END Pose channels *************** */
+/* ************************** Bone Groups ************************** */
+
+/* Adds a new bone-group */
+void pose_add_group (Object *ob)
+{
+	bPose *pose= (ob) ? ob->pose : NULL;
+	bActionGroup *grp;
+	
+	if (ELEM(NULL, ob, ob->pose))
+		return;
+	
+	grp= MEM_callocN(sizeof(bActionGroup), "PoseGroup");
+	strcpy(grp->name, "Group");
+	BLI_addtail(&pose->agroups, grp);
+	BLI_uniquename(&pose->agroups, grp, "Group", '.', offsetof(bActionGroup, name), 32);
+	
+	pose->active_group= BLI_countlist(&pose->agroups);
+}
+
+/* Remove the active bone-group */
+void pose_remove_group (Object *ob)
+{
+	bPose *pose= (ob) ? ob->pose : NULL;
+	bActionGroup *grp = NULL;
+	bPoseChannel *pchan;
+	
+	/* sanity checks */
+	if (ELEM(NULL, ob, pose))
+		return;
+	if (pose->active_group <= 0)
+		return;
+	
+	/* get group to remove */
+	grp= BLI_findlink(&pose->agroups, pose->active_group-1);
+	if (grp) {
+		/* adjust group references (the trouble of using indices!):
+		 *	- firstly, make sure nothing references it 
+		 *	- also, make sure that those after this item get corrected
+		 */
+		for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+			if (pchan->agrp_index == pose->active_group)
+				pchan->agrp_index= 0;
+			else if (pchan->agrp_index > pose->active_group)
+				pchan->agrp_index--;
+		}
+		
+		/* now, remove it from the pose */
+		BLI_freelinkN(&pose->agroups, grp);
+		pose->active_group= 0;
+	}
+}
 
 /* ************** time ****************** */
 
-static bActionStrip *get_active_strip(Object *ob)
+/* Check if the given action has any keyframes */
+short action_has_motion(const bAction *act)
 {
-#if 0	// XXX old animation system
-	bActionStrip *strip;
+	FCurve *fcu;
 	
-	if(ob->action==NULL)
-		return NULL;
-		
-	for (strip=ob->nlastrips.first; strip; strip=strip->next)
-		if(strip->flag & ACTSTRIP_ACTIVE)
-			break;
+	/* return on the first F-Curve that has some keyframes/samples defined */
+	if (act) {
+		for (fcu= act->curves.first; fcu; fcu= fcu->next) {
+			if (fcu->totvert)
+				return 1;
+		}
+	}
 	
-	if(strip && strip->act==ob->action)
-		return strip;
-#endif // XXX old animation system
-		
-	return NULL;
+	/* nothing found */
+	return 0;
 }
-
-/* non clipped mapping of strip */
-static float get_actionstrip_frame(bActionStrip *strip, float cframe, int invert)
-{
-	float length, actlength, repeat, scale;
-	
-	if (strip->repeat == 0.0f) strip->repeat = 1.0f;
-	repeat = (strip->flag & ACTSTRIP_USESTRIDE) ? (1.0f) : (strip->repeat);
-	
-	if (strip->scale == 0.0f) strip->scale= 1.0f;
-	scale = (float)fabs(strip->scale); /* scale must be positive (for now) */
-	
-	actlength = strip->actend-strip->actstart;
-	if (actlength == 0.0f) actlength = 1.0f;
-	length = repeat * scale * actlength;
-	
-	/* invert = convert action-strip time to global time */
-	if (invert)
-		return length*(cframe - strip->actstart)/(repeat*actlength) + strip->start;
-	else
-		return repeat*actlength*(cframe - strip->start)/length + strip->actstart;
-}
-
-/* if the conditions match, it converts current time to strip time */
-float get_action_frame(Object *ob, float cframe)
-{
-	bActionStrip *strip= get_active_strip(ob);
-	
-	if(strip)
-		return get_actionstrip_frame(strip, cframe, 0);
-	return cframe;
-}
-
-/* inverted, strip time to current time */
-float get_action_frame_inv(Object *ob, float cframe)
-{
-	bActionStrip *strip= get_active_strip(ob);
-	
-	if(strip)
-		return get_actionstrip_frame(strip, cframe, 1);
-	return cframe;
-}
-
-
-
 
 /* Calculate the extents of given action */
 void calc_action_range(const bAction *act, float *start, float *end, int incl_hidden)

@@ -33,6 +33,8 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BKE_property.h"
+
 static StructRNA* rna_GameProperty_refine(struct PointerRNA *ptr)
 {
 	bProperty *property= (bProperty*)ptr->data;
@@ -67,6 +69,24 @@ static void rna_GameFloatProperty_value_set(PointerRNA *ptr, float value)
 	*(float*)(&prop->data)= value;
 }
 
+static void rna_GameProperty_type_set(PointerRNA *ptr, int value)
+{
+	bProperty *prop= (bProperty*)(ptr->data);
+
+	if(prop->type != value) {
+		prop->type= value;
+		init_property(prop);
+	}
+}
+
+static void rna_GameProperty_name_set(PointerRNA *ptr, const char *value)
+{
+	bProperty *prop= (bProperty*)(ptr->data);
+	BLI_strncpy(prop->name, value, sizeof(prop->name));
+	unique_property(NULL, prop, 1);
+}
+
+
 #else
 
 void RNA_def_gameproperty(BlenderRNA *brna)
@@ -89,14 +109,14 @@ void RNA_def_gameproperty(BlenderRNA *brna)
 	RNA_def_struct_refine_func(srna, "rna_GameProperty_refine");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* must be unique */
 	RNA_def_property_ui_text(prop, "Name", "Available as as GameObject attributes in the game engines python api");
 	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_GameProperty_name_set");
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, gameproperty_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
+	RNA_def_property_enum_funcs(prop, NULL, "rna_GameProperty_type_set", NULL);
 
 	prop= RNA_def_property(srna, "debug", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PROP_DEBUG);

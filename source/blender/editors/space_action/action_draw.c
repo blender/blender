@@ -52,6 +52,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -422,6 +423,8 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 		 */
 		v2d->tot.ymin= (float)(-height);
 	}
+	/* need to do a view-sync here, so that the keys area doesn't jump around */
+	UI_view2d_sync(NULL, ac->sa, v2d, V2D_VIEWSYNC_AREA_VERTICAL);
 	
 	/* loop through channels, and set up drawing depending on their type  */	
 	y= (float)ACHANNEL_FIRST;
@@ -515,6 +518,22 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						expand = ICON_TRIA_RIGHT;
 						
 					strcpy(name, "Materials");
+				}
+					break;
+				case ANIMTYPE_FILLPARTD: /* object particles (dopesheet) expand widget */
+				{
+					Object *ob = (Object *)ale->data;
+					
+					group = 4;
+					indent = 1;
+					special = ICON_PARTICLE_DATA;
+					
+					if (FILTER_PART_OBJC(ob))
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+						
+					strcpy(name, "Particles");
 				}
 					break;
 				
@@ -617,6 +636,23 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					strcpy(name, wo->id.name+2);
 				}
 					break;
+				case ANIMTYPE_DSPART: /* particle (dopesheet) expand widget */
+				{
+					ParticleSettings *part= (ParticleSettings*)ale->data;
+					
+					group = 0;
+					indent = 0;
+					special = ICON_PARTICLE_DATA;
+					offset = 21;
+					
+					if (FILTER_PART_OBJD(part))	
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+					
+					strcpy(name, part->id.name+2);
+				}
+					break;
 					
 				
 				case ANIMTYPE_GROUP: /* action group */
@@ -645,6 +681,11 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 							expand = ICON_TRIA_RIGHT;
 					}
 					
+					if (agrp->flag & AGRP_MUTED)
+						mute = ICON_MUTE_IPO_ON;
+					else	
+						mute = ICON_MUTE_IPO_OFF;
+					
 					if (EDITABLE_AGRP(agrp))
 						protect = ICON_UNLOCKED;
 					else
@@ -664,8 +705,8 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					grp= fcu->grp;
 					
 					if (ale->id) {
-						/* special exception for materials */
-						if (GS(ale->id->name) == ID_MA) {
+						/* special exception for materials and particles */
+						if (ELEM(GS(ale->id->name),ID_MA,ID_PA)) {
 							offset= 21;
 							indent= 1;
 						}
@@ -955,27 +996,8 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 /* ************************************************************************* */
 /* Keyframes */
 
-ActKeysInc *init_aki_data(bAnimContext *ac, bAnimListElem *ale)
-{
-	static ActKeysInc aki;
-	
-	/* no need to set settings if wrong context */
-	if ((ac->data == NULL) || ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET)==0)
-		return NULL;
-	
-	/* if strip is mapped, store settings */
-	aki.ob= ANIM_nla_mapping_get(ac, ale);
-	
-	if (ac->datatype == ANIMCONT_DOPESHEET)
-		aki.ads= (bDopeSheet *)ac->data;
-	else
-		aki.ads= NULL;
-	aki.actmode= ac->datatype;
-		
-	/* always return pointer... */
-	return &aki;
-}
-
+/* extra padding for lengths (to go under scrollers) */
+#define EXTRA_SCROLL_PAD	100.0f
 
 /* draw keyframes in each channel */
 void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
@@ -985,13 +1007,11 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	int filter;
 	
 	View2D *v2d= &ar->v2d;
-	Object *nob= NULL;
-	gla2DDrawInfo *di;
-	rcti scr_rct;
+	bDopeSheet *ads= &saction->ads;
+	AnimData *adt= NULL;
 	
-	int act_start, act_end, dummy;
+	float act_start, act_end, y;
 	int height, items;
-	float y, sta, end;
 	
 	char col1[3], col2[3];
 	char col1a[3], col2a[3];
@@ -1001,6 +1021,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	/* get theme colors */
 	UI_GetThemeColor3ubv(TH_BACK, col2);
 	UI_GetThemeColor3ubv(TH_HILITE, col1);
+	
 	UI_GetThemeColor3ubv(TH_GROUP, col2a);
 	UI_GetThemeColor3ubv(TH_GROUP_ACTIVE, col1a);
 	
@@ -1008,26 +1029,14 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	UI_GetThemeColor3ubv(TH_DOPESHEET_CHANNELSUBOB, col2b);
 	
 	/* set view-mapping rect (only used for x-axis), for NLA-scaling mapping with less calculation */
-	scr_rct.xmin= ar->winrct.xmin + ar->v2d.mask.xmin;
-	scr_rct.ymin= ar->winrct.ymin + ar->v2d.mask.ymin;
-	scr_rct.xmax= ar->winrct.xmin + ar->v2d.hor.xmax;
-	scr_rct.ymax= ar->winrct.ymin + ar->v2d.mask.ymax; 
-	di= glaBegin2DDraw(&scr_rct, &v2d->cur);
 
 	/* if in NLA there's a strip active, map the view */
 	if (ac->datatype == ANIMCONT_ACTION) {
-		nob= ANIM_nla_mapping_get(ac, NULL);
-		
-		if (nob)
-			ANIM_nla_mapping_draw(di, nob, 0);
+		adt= ANIM_nla_mapping_get(ac, NULL);
 		
 		/* start and end of action itself */
-		calc_action_range(ac->data, &sta, &end, 0);
-		gla2DDrawTranslatePt(di, sta, 0.0f, &act_start, &dummy);
-		gla2DDrawTranslatePt(di, end, 0.0f, &act_end, &dummy);
-		
-		if (nob)
-			ANIM_nla_mapping_draw(di, nob, 1);
+		// TODO: this has not had scaling applied
+		calc_action_range(ac->data, &act_start, &act_end, 0);
 	}
 	
 	/* build list of channels to draw */
@@ -1058,7 +1067,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 		if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
 			 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
 		{
-			int frame1_x, channel_y, sel=0;
+			int sel=0;
 			
 			/* determine if any need to draw channel */
 			if (ale->datatype != ALE_NONE) {
@@ -1097,8 +1106,6 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 				}
 				
 				if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET)) {
-					gla2DDrawTranslatePt(di, v2d->cur.xmin, y, &frame1_x, &channel_y);
-					
 					switch (ale->type) {
 						case ANIMTYPE_SCENE:
 						case ANIMTYPE_OBJECT:
@@ -1110,6 +1117,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						
 						case ANIMTYPE_FILLACTD:
 						case ANIMTYPE_FILLMATD:
+						case ANIMTYPE_FILLPARTD:
 						case ANIMTYPE_DSSKEY:
 						case ANIMTYPE_DSWOR:
 						{
@@ -1134,36 +1142,32 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					}
 					
 					/* draw region twice: firstly backdrop, then the current range */
-					glRectf((float)frame1_x,  (float)channel_y-ACHANNEL_HEIGHT_HALF,  (float)v2d->hor.xmax,  (float)channel_y+ACHANNEL_HEIGHT_HALF);
+					glRectf(v2d->cur.xmin,  (float)y-ACHANNEL_HEIGHT_HALF,  v2d->cur.xmax+EXTRA_SCROLL_PAD,  (float)y+ACHANNEL_HEIGHT_HALF);
 					
 					if (ac->datatype == ANIMCONT_ACTION)
-						glRectf((float)act_start,  (float)channel_y-ACHANNEL_HEIGHT_HALF,  (float)act_end,  (float)channel_y+ACHANNEL_HEIGHT_HALF);
+						glRectf(act_start,  (float)y-ACHANNEL_HEIGHT_HALF,  act_end,  (float)y+ACHANNEL_HEIGHT_HALF);
 				}
 				else if (ac->datatype == ANIMCONT_SHAPEKEY) {
-					gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
-					
 					/* all frames that have a frame number less than one
 					 * get a desaturated orange background
 					 */
 					glColor4ub(col2[0], col2[1], col2[2], 0x22);
-					glRectf(0.0f, (float)channel_y-ACHANNEL_HEIGHT_HALF, (float)frame1_x, (float)channel_y+ACHANNEL_HEIGHT_HALF);
+					glRectf(0.0f, (float)y-ACHANNEL_HEIGHT_HALF, 1.0f, (float)y+ACHANNEL_HEIGHT_HALF);
 					
 					/* frames one and higher get a saturated orange background */
 					glColor4ub(col2[0], col2[1], col2[2], 0x44);
-					glRectf((float)frame1_x, (float)channel_y-ACHANNEL_HEIGHT_HALF, (float)v2d->hor.xmax,  (float)channel_y+ACHANNEL_HEIGHT_HALF);
+					glRectf(1.0f, (float)y-ACHANNEL_HEIGHT_HALF, v2d->cur.xmax+EXTRA_SCROLL_PAD,  (float)y+ACHANNEL_HEIGHT_HALF);
 				}
 				else if (ac->datatype == ANIMCONT_GPENCIL) {
-					gla2DDrawTranslatePt(di, v2d->cur.xmin, y, &frame1_x, &channel_y);
-					
 					/* frames less than one get less saturated background */
 					if (sel) glColor4ub(col1[0], col1[1], col1[2], 0x22);
 					else glColor4ub(col2[0], col2[1], col2[2], 0x22);
-					glRectf(0.0f, (float)channel_y-ACHANNEL_HEIGHT_HALF, (float)frame1_x, (float)channel_y+ACHANNEL_HEIGHT_HALF);
+					glRectf(0.0f, (float)y-ACHANNEL_HEIGHT_HALF, v2d->cur.xmin, (float)y+ACHANNEL_HEIGHT_HALF);
 					
 					/* frames one and higher get a saturated background */
 					if (sel) glColor4ub(col1[0], col1[1], col1[2], 0x44);
 					else glColor4ub(col2[0], col2[1], col2[2], 0x44);
-					glRectf((float)frame1_x, (float)channel_y-ACHANNEL_HEIGHT_HALF, (float)v2d->hor.xmax,  (float)channel_y+ACHANNEL_HEIGHT_HALF);
+					glRectf(v2d->cur.xmin, (float)y-ACHANNEL_HEIGHT_HALF, v2d->cur.xmax+EXTRA_SCROLL_PAD,  (float)y+ACHANNEL_HEIGHT_HALF);
 				}
 			}
 		}
@@ -1190,36 +1194,29 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 		{
 			/* check if anything to show for this channel */
 			if (ale->datatype != ALE_NONE) {
-				ActKeysInc *aki= init_aki_data(ac, ale); 
-				nob= ANIM_nla_mapping_get(ac, ale);
-				
-				if (nob)
-					ANIM_nla_mapping_draw(di, nob, 0);
+				adt= ANIM_nla_mapping_get(ac, ale);
 				
 				/* draw 'keyframes' for each specific datatype */
 				switch (ale->datatype) {
 					case ALE_SCE:
-						draw_scene_channel(di, aki, ale->key_data, y);
+						draw_scene_channel(v2d, ads, ale->key_data, y);
 						break;
 					case ALE_OB:
-						draw_object_channel(di, aki, ale->key_data, y);
+						draw_object_channel(v2d, ads, ale->key_data, y);
 						break;
 					case ALE_ACT:
-						draw_action_channel(di, aki, ale->key_data, y);
+						draw_action_channel(v2d, adt, ale->key_data, y);
 						break;
 					case ALE_GROUP:
-						draw_agroup_channel(di, aki, ale->data, y);
+						draw_agroup_channel(v2d, adt, ale->data, y);
 						break;
 					case ALE_FCURVE:
-						draw_fcurve_channel(di, aki, ale->key_data, y);
+						draw_fcurve_channel(v2d, adt, ale->key_data, y);
 						break;
 					case ALE_GPFRAME:
-						draw_gpl_channel(di, aki, ale->data, y);
+						draw_gpl_channel(v2d, ads, ale->data, y);
 						break;
 				}
-				
-				if (nob) 
-					ANIM_nla_mapping_draw(di, nob, 1);
 			}
 		}
 		
@@ -1231,16 +1228,11 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 
 	/* black line marking 'current frame' for Time-Slide transform mode */
 	if (saction->flag & SACTION_MOVING) {
-		int frame1_x;
-		
-		gla2DDrawTranslatePt(di, saction->timeslide, 0, &frame1_x, &dummy);
-		cpack(0x0);
+		glColor3f(0.0f, 0.0f, 0.0f);
 		
 		glBegin(GL_LINES);
-			glVertex2f((float)frame1_x, (float)v2d->mask.ymin - 100);
-			glVertex2f((float)frame1_x, (float)v2d->mask.ymax);
+			glVertex2f(saction->timeslide, v2d->cur.ymin-EXTRA_SCROLL_PAD);
+			glVertex2f(saction->timeslide, v2d->cur.ymax);
 		glEnd();
 	}
-	
-	glaEnd2DDraw(di);
 }

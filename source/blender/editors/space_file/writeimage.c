@@ -53,7 +53,7 @@
 
 /* XXX */
 static void error() {}
-static void waitcursor() {}
+static void waitcursor(int val) {}
 static void activate_fileselect() {}
 static int saveover() {return 0;}
 /* XXX */
@@ -153,6 +153,9 @@ void save_image_filesel_str(Scene *scene, char *str)
 			strcpy(str, "Save Radiance HDR");
 			break;
 		case R_FFMPEG:
+		case R_H264:
+		case R_XVID:
+		case R_THEORA:
 		case R_PNG:
 			strcpy(str, "Save PNG");
 			break;

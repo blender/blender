@@ -47,14 +47,12 @@ KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 							 float resetmargin,
 							 bool bFindMaterial,
 							 const STR_String& touchedpropname,
-							 class KX_Scene* scene,
  							 PHY_IPhysicsController* ctrl)
 			 :KX_TouchSensor(eventmgr,
 							 gameobj,
 							 bFindMaterial,
 							 false,
-							 touchedpropname
-							 /*, scene */),
+							 touchedpropname),
 			 m_Margin(margin),
 			 m_ResetMargin(resetmargin)
 

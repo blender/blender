@@ -43,6 +43,9 @@ EnumPropertyItem region_type_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#include "ED_screen.h"
+
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -97,15 +100,23 @@ static void rna_def_scrarea(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "show_menus", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", HEADER_NO_PULLDOWN);
 	RNA_def_property_ui_text(prop, "Show Menus", "Show menus in the header.");
+	
+	RNA_def_function(srna, "tag_redraw", "ED_area_tag_redraw");
 }
 
 static void rna_def_region(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "Region", NULL);
 	RNA_def_struct_ui_text(srna, "Region", "Region in a subdivided screen area.");
 	RNA_def_struct_sdna(srna, "ARegion");
+	
+	prop= RNA_def_property(srna, "id", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "swinid");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Region ID", "Uniqute ID for this region.");
 }
 
 static void rna_def_bscreen(BlenderRNA *brna)

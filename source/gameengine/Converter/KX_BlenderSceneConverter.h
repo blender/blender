@@ -92,10 +92,8 @@ public:
 	 * dictobj: python dictionary (for pythoncontrollers)
 	 */
 	virtual void	ConvertScene(
-						const STR_String& scenename,
 						class KX_Scene* destinationscene,
 						PyObject* dictobj,
-						class SCA_IInputDevice* keyinputdev,
 						class RAS_IRenderTools* rendertools,
 						class RAS_ICanvas* canvas
 					);
@@ -150,6 +148,9 @@ public:
 	virtual bool GetGLSLMaterials();
 
 	struct Scene* GetBlenderSceneForName(const STR_String& name);
+
+	struct Main* GetMain() { return m_maggie; };
+
 };
 
 #endif //__KX_BLENDERSCENECONVERTER_H

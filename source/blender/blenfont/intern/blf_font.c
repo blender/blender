@@ -102,7 +102,7 @@ void blf_font_draw(FontBLF *font, char *str)
 	FT_Vector delta;
 	FT_UInt glyph_index, g_prev_index;
 	int pen_x, pen_y;
-	int i, has_kerning;
+	int i, has_kerning, st;
 
 	if (!font->glyph_cache)
 		return;
@@ -143,9 +143,13 @@ void blf_font_draw(FontBLF *font, char *str)
 			delta.x= 0;
 			delta.y= 0;
 
-			if (FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta) == 0) {
+			if (font->flags & BLF_KERNING_DEFAULT)
+				st= FT_Get_Kerning(font->face, g_prev_index, glyph_index, ft_kerning_default, &delta);
+			else
+				st= FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta);
+
+			if (st == 0)
 				pen_x += delta.x >> 6;
-			}
 		}
 
 		/* do not return this loop if clipped, we want every character tested */
@@ -165,7 +169,7 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 	FT_UInt glyph_index, g_prev_index;
 	rctf gbox;
 	int pen_x, pen_y;
-	int i, has_kerning;
+	int i, has_kerning, st;
 
 	if (!font->glyph_cache)
 		return;
@@ -211,9 +215,13 @@ void blf_font_boundbox(FontBLF *font, char *str, rctf *box)
 			delta.x= 0;
 			delta.y= 0;
 
-			if (FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta) == 0) {
+			if (font->flags & BLF_KERNING_DEFAULT)
+				st= FT_Get_Kerning(font->face, g_prev_index, glyph_index, ft_kerning_default, &delta);
+			else
+				st= FT_Get_Kerning(font->face, g_prev_index, glyph_index, FT_KERNING_UNFITTED, &delta);
+
+			if (st == 0)
 				pen_x += delta.x >> 6;
-			}
 		}
 
 		gbox.xmin= g->box.xmin + pen_x;
@@ -264,6 +272,27 @@ float blf_font_height(FontBLF *font, char *str)
 
 	blf_font_boundbox(font, str, &box);
 	return((box.ymax - box.ymin) * font->aspect);
+}
+
+float blf_font_fixed_width(FontBLF *font)
+{
+	GlyphBLF *g;
+	FT_UInt glyph_index;
+	unsigned int c = ' ';
+
+	if (!font->glyph_cache)
+		return 0.0f;
+
+	glyph_index= FT_Get_Char_Index(font->face, c);
+	g= blf_glyph_search(font->glyph_cache, c);
+	if (!g)
+		g= blf_glyph_add(font, glyph_index, c);
+
+	/* if we don't find the glyph. */
+	if (!g)
+		return 0.0f;
+	
+	return g->advance;
 }
 
 void blf_font_free(FontBLF *font)

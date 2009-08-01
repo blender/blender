@@ -130,12 +130,10 @@ def write(filename, scene, ob, \
 		
 		
 		smooth = f.smooth
-		# XXX need face normals
-		"""
 		if not smooth:
-			normal = tuple(f.no)
+			normal = tuple(f.normal)
 			normal_key = rvec3d(normal)
-		"""
+		
 		if faceUV:
 			uv = active_uv_layer[i]
 			uv = uv.uv1, uv.uv2, uv.uv3, uv.uv4 # XXX - crufty :/
@@ -149,12 +147,10 @@ def write(filename, scene, ob, \
 		pf= ply_faces[i]
 		for j, vidx in enumerate(f_verts):
 			v = mesh_verts[vidx]
-			"""
+			
 			if smooth:
-				normal=		tuple(v.no)
+				normal=		tuple(v.normal)
 				normal_key = rvec3d(normal)
-			"""
-			normal_key = None # XXX
 			
 			if faceUV:
 				uvcoord=	uv[j][0], 1.0-uv[j][1]
@@ -240,6 +236,7 @@ class EXPORT_OT_ply(bpy.types.Operator):
 	'''
 	Operator documentatuon text, will be used for the operator tooltip and python docs.
 	'''
+	__idname__ = "export.ply"
 	__label__ = "Export PLY"
 	
 	# List of operator properties, the attributes will be assigned

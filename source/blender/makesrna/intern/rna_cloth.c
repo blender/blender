@@ -215,7 +215,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "mass_vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_ClothSettings_mass_vgroup_get", "rna_ClothSettings_mass_vgroup_length", "rna_ClothSettings_mass_vgroup_set");
-	RNA_def_property_ui_text(prop, "Mass Vertex Group", "Vertex group for fine control over mass distribution.");
+	RNA_def_property_ui_text(prop, "Mass Vertex Group", "Vertex Group for pinning of vertices.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_cloth_update");
 	
 	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_VECTOR);
@@ -235,7 +235,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "pin_cloth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", CLOTH_SIMSETTINGS_FLAG_GOAL);
-	RNA_def_property_ui_text(prop, "Pin Cloth", "Define forces for vertices to stick to animated position.");
+	RNA_def_property_ui_text(prop, "Pin Cloth", "Enable pinning of cloth vertices to other objects/positions.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_cloth_update");
 
 	prop= RNA_def_property(srna, "pin_stiffness", PROP_FLOAT, PROP_NONE);
@@ -247,7 +247,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "quality", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "stepsPerFrame");
 	RNA_def_property_range(prop, 4, 80);
-	RNA_def_property_ui_text(prop, "Quality", "Quality of the simulation in steps per frame (higher is better quality but slower).");
+	RNA_def_property_ui_text(prop, "Quality", "Quality of the simulation in steps per frame. (higher is better quality but slower)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_cloth_update");
 
 	/* springs */
@@ -260,7 +260,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "spring_damping", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "Cdis");
 	RNA_def_property_range(prop, 0.0f, 50.0f);
-	RNA_def_property_ui_text(prop, "Spring Damping", "Damping of cloth velocity (higher = more smooth, less jiggling)");
+	RNA_def_property_ui_text(prop, "Spring Damping", "Damping of cloth velocity. (higher = more smooth, less jiggling)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_cloth_update");
 	
 	prop= RNA_def_property(srna, "structural_stiffness", PROP_FLOAT, PROP_NONE);
@@ -284,7 +284,7 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "bending_stiffness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "bending");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
-	RNA_def_property_ui_text(prop, "Bending Stiffness", "Wrinkle coefficient (higher = less smaller but more big wrinkles).");
+	RNA_def_property_ui_text(prop, "Bending Stiffness", "Wrinkle coefficient. (higher = less smaller but more big wrinkles)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_cloth_update");
 
 	prop= RNA_def_property(srna, "bending_stiffness_max", PROP_FLOAT, PROP_NONE);
@@ -363,12 +363,12 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "min_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "epsilon");
 	RNA_def_property_range(prop, 0.001f, 1.0f);
-	RNA_def_property_ui_text(prop, "Minimum Distance", "Minimum distance between collision objects before collision response takes in, can be changed for each frame.");
+	RNA_def_property_ui_text(prop, "Minimum Distance", "Minimum distance between collision objects before collision response takes in.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_cloth_update");
 
 	prop= RNA_def_property(srna, "friction", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 80.0f);
-	RNA_def_property_ui_text(prop, "Friction", "Friction force if a collision happened (0=movement not changed, 100=no movement left)");
+	RNA_def_property_ui_text(prop, "Friction", "Friction force if a collision happened. (higher = less movement)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_cloth_update");
 
 	prop= RNA_def_property(srna, "collision_quality", PROP_INT, PROP_NONE);
@@ -387,7 +387,7 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "self_min_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "selfepsilon");
 	RNA_def_property_range(prop, 0.5f, 1.0f);
-	RNA_def_property_ui_text(prop, "Self Minimum Distance", "0.5 means no distance at all, 1.0 is maximum distance");
+	RNA_def_property_ui_text(prop, "Self Minimum Distance", "0.5 means no distance at all, 1.0 is maximum distance.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_cloth_update");
 	
 	prop= RNA_def_property(srna, "self_friction", PROP_FLOAT, PROP_NONE);
@@ -398,7 +398,7 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "self_collision_quality", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "self_loop_count");
 	RNA_def_property_range(prop, 1, 10);
-	RNA_def_property_ui_text(prop, "Self Collision Quality", "How many self collision iterations should be done. (higher is better quality but slower), can be changed for each frame.");
+	RNA_def_property_ui_text(prop, "Self Collision Quality", "How many self collision iterations should be done. (higher is better quality but slower)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_cloth_update");
 }
 

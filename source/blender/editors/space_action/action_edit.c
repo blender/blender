@@ -67,6 +67,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
+#include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -100,7 +101,7 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max)
 	int filter;
 	
 	/* get data to filter, from Action or Dopesheet */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* set large values to try to override */
@@ -111,16 +112,16 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max)
 	if (anim_data.first) {
 		/* go through channels, finding max extents */
 		for (ale= anim_data.first; ale; ale= ale->next) {
-			Object *nob= ANIM_nla_mapping_get(ac, ale);
+			AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 			FCurve *fcu= (FCurve *)ale->key_data;
 			float tmin, tmax;
 			
 			/* get range and apply necessary scaling before */
 			calc_fcurve_range(fcu, &tmin, &tmax);
 			
-			if (nob) {
-				tmin= get_action_frame_inv(nob, tmin);
-				tmax= get_action_frame_inv(nob, tmax);
+			if (adt) {
+				tmin= BKE_nla_tweakedit_remap(adt, tmin, NLATIME_CONVERT_MAP);
+				tmax= BKE_nla_tweakedit_remap(adt, tmax, NLATIME_CONVERT_MAP);
 			}
 			
 			/* try to set cur using these values, if they're more extreme than previously set values */
@@ -177,10 +178,11 @@ void ACT_OT_previewrange_set (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Auto-Set Preview Range";
 	ot->idname= "ACT_OT_previewrange_set";
+	ot->description= "Set Preview Range based on extents of selected Keyframes.";
 	
 	/* api callbacks */
 	ot->exec= actkeys_previewrange_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -213,7 +215,7 @@ static int actkeys_viewall_exec(bContext *C, wmOperator *op)
 	/* do View2D syncing */
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
 	
-	/* set notifier that things have changed */
+	/* just redraw this view */
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
 	return OPERATOR_FINISHED;
@@ -224,10 +226,11 @@ void ACT_OT_view_all (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "View All";
 	ot->idname= "ACT_OT_view_all";
+	ot->description= "Reset viewable area to show full keyframe range.";
 	
 	/* api callbacks */
 	ot->exec= actkeys_viewall_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -300,21 +303,19 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
-	
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_keyframes_copy (wmOperatorType *ot)
+void ACT_OT_copy (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Copy Keyframes";
-	ot->idname= "ACT_OT_keyframes_copy";
+	ot->idname= "ACT_OT_copy";
+	ot->description= "Copy selected keyframes to the copy/paste buffer.";
 	
 	/* api callbacks */
 	ot->exec= actkeys_copy_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -344,21 +345,22 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	/* set notifier that keyframes have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_keyframes_paste (wmOperatorType *ot)
+void ACT_OT_paste (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Paste Keyframes";
-	ot->idname= "ACT_OT_keyframes_paste";
+	ot->idname= "ACT_OT_paste";
+	ot->description= "Paste keyframes from copy/paste buffer for the selected channels, starting on the current frame.";
 	
 	/* api callbacks */
 	ot->exec= actkeys_paste_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -399,14 +401,14 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 	
 	/* insert keyframes */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		//Object *nob= ANIM_nla_mapping_get(ac, ale);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		FCurve *fcu= (FCurve *)ale->key_data;
 		
 		/* adjust current frame for NLA-scaling */
-		//if (nob)
-		//	cfra= get_action_frame(nob, CFRA);
-		//else 
-		//	cfra= (float)CFRA;
+		if (adt)
+			cfra= BKE_nla_tweakedit_remap(adt, (float)CFRA, NLATIME_CONVERT_UNMAP);
+		else 
+			cfra= (float)CFRA;
 			
 		/* if there's an id */
 		if (ale->id)
@@ -431,31 +433,32 @@ static int actkeys_insertkey_exec(bContext *C, wmOperator *op)
 	if (ac.datatype == ANIMCONT_GPENCIL)
 		return OPERATOR_CANCELLED;
 		
-	/* get snapping mode */
+	/* what channels to affect? */
 	mode= RNA_enum_get(op->ptr, "type");
 	
-	/* snap keyframes */
+	/* insert keyframes */
 	insert_action_keys(&ac, mode);
 	
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	/* set notifier that keyframes have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
 	return OPERATOR_FINISHED;
 }
 
-void ACT_OT_keyframes_insert (wmOperatorType *ot)
+void ACT_OT_insert_keyframe (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Insert Keyframes";
-	ot->idname= "ACT_OT_keyframes_insert";
+	ot->idname= "ACT_OT_insert_keyframe";
+	ot->description= "Insert keyframes for the specified channels.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= actkeys_insertkey_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -507,8 +510,8 @@ static int actkeys_duplicate_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	/* set notifier that keyframes have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
 	return OPERATOR_FINISHED; // xxx - start transform
 }
@@ -523,16 +526,17 @@ static int actkeys_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_keyframes_duplicate (wmOperatorType *ot)
+void ACT_OT_duplicate (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Duplicate Keyframes";
-	ot->idname= "ACT_OT_keyframes_duplicate";
+	ot->idname= "ACT_OT_duplicate";
+	ot->description= "Make a copy of all selected keyframes.";
 	
 	/* api callbacks */
 	ot->invoke= actkeys_duplicate_invoke;
 	ot->exec= actkeys_duplicate_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -584,22 +588,23 @@ static int actkeys_delete_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	/* set notifier that keyframes have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_keyframes_delete (wmOperatorType *ot)
+void ACT_OT_delete (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Keyframes";
-	ot->idname= "ACT_OT_keyframes_delete";
+	ot->idname= "ACT_OT_delete";
+	ot->description= "Remove all selected keyframes.";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
 	ot->exec= actkeys_delete_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -647,22 +652,23 @@ static int actkeys_clean_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	/* set notifier that keyframes have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_keyframes_clean (wmOperatorType *ot)
+void ACT_OT_clean (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clean Keyframes";
-	ot->idname= "ACT_OT_keyframes_clean";
+	ot->idname= "ACT_OT_clean";
+	ot->description= "Simplify F-Curves by removing closely spaced keyframes.";
 	
 	/* api callbacks */
 	//ot->invoke=  // XXX we need that number popup for this! 
 	ot->exec= actkeys_clean_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -771,21 +777,22 @@ static int actkeys_sample_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	/* set notifier that keyframes have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_keyframes_sample (wmOperatorType *ot)
+void ACT_OT_sample (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Sample Keyframes";
-	ot->idname= "ACT_OT_keyframes_sample";
+	ot->idname= "ACT_OT_sample";
+	ot->description= "Add keyframes on every frame between the selected keyframes.";
 	
 	/* api callbacks */
 	ot->exec= actkeys_sample_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -846,22 +853,23 @@ static int actkeys_expo_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	/* set notifier that keyframe properties have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_keyframes_extrapolation_type_set (wmOperatorType *ot)
+void ACT_OT_extrapolation_type (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Extrapolation";
-	ot->idname= "ACT_OT_keyframes_extrapolation_type_set";
+	ot->idname= "ACT_OT_extrapolation_type";
+	ot->description= "Set extrapolation mode for selected F-Curves.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= actkeys_expo_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -916,22 +924,23 @@ static int actkeys_ipo_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	/* set notifier that keyframe properties have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_keyframes_interpolation_type (wmOperatorType *ot)
+void ACT_OT_interpolation_type (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Interpolation";
-	ot->idname= "ACT_OT_keyframes_interpolation_type";
+	ot->idname= "ACT_OT_interpolation_type";
+	ot->description= "Set interpolation mode for the F-Curve segments starting from the selected keyframes.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= actkeys_ipo_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1004,22 +1013,23 @@ static int actkeys_handletype_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	/* set notifier that keyframe properties have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_keyframes_handle_type_set (wmOperatorType *ot)
+void ACT_OT_handle_type (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Keyframe Handle Type";
-	ot->idname= "ACT_OT_keyframes_handle_type_set";
+	ot->idname= "ACT_OT_handle_type";
+	ot->description= "Set type of handle for selected keyframes.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= actkeys_handletype_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1031,10 +1041,10 @@ void ACT_OT_keyframes_handle_type_set (wmOperatorType *ot)
 /* ************************************************************************** */
 /* TRANSFORM STUFF */
 
-/* ***************** Snap Current Frame Operator *********************** */
+/* ***************** Jump to Selected Frames Operator *********************** */
 
 /* snap current-frame indicator to 'average time' of selected keyframe */
-static int actkeys_cfrasnap_exec(bContext *C, wmOperator *op)
+static int actkeys_framejump_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
 	ListBase anim_data= {NULL, NULL};
@@ -1053,8 +1063,17 @@ static int actkeys_cfrasnap_exec(bContext *C, wmOperator *op)
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
-	for (ale= anim_data.first; ale; ale= ale->next)
-		ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
+		
+		if (adt) {
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
+		}
+		else
+			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
+	}
 	
 	BLI_freelistN(&anim_data);
 	
@@ -1070,15 +1089,16 @@ static int actkeys_cfrasnap_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ACT_OT_keyframes_cfrasnap (wmOperatorType *ot)
+void ACT_OT_frame_jump (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Snap Current Frame to Keys";
-	ot->idname= "ACT_OT_keyframes_cfrasnap";
+	ot->name= "Jump to Frame";
+	ot->idname= "ACT_OT_frame_jump";
+	ot->description= "Set the current frame to the average frame of the selected keyframes.";
 	
 	/* api callbacks */
-	ot->exec= actkeys_cfrasnap_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->exec= actkeys_framejump_exec;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1124,12 +1144,12 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 	
 	/* snap keyframes */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
-		if (nob) {
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 1); 
+		if (adt) {
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		//else if (ale->type == ACTTYPE_GPLAYER)
 		//	snap_gplayer_frames(ale->data, mode);
@@ -1159,22 +1179,23 @@ static int actkeys_snap_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	/* set notifier that keyframes have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_keyframes_snap (wmOperatorType *ot)
+void ACT_OT_snap (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Snap Keys";
-	ot->idname= "ACT_OT_keyframes_snap";
+	ot->idname= "ACT_OT_snap";
+	ot->description= "Snap selected keyframes to the times specified.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= actkeys_snap_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1187,10 +1208,10 @@ void ACT_OT_keyframes_snap (wmOperatorType *ot)
 
 /* defines for mirror keyframes tool */
 EnumPropertyItem prop_actkeys_mirror_types[] = {
-	{ACTKEYS_MIRROR_CFRA, "CFRA", 0, "Current frame", ""},
-	{ACTKEYS_MIRROR_YAXIS, "YAXIS", 0, "Vertical Axis", ""},
-	{ACTKEYS_MIRROR_XAXIS, "XAXIS", 0, "Horizontal Axis", ""},
-	{ACTKEYS_MIRROR_MARKER, "MARKER", 0, "First Selected Marker", ""},
+	{ACTKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current frame", ""},
+	{ACTKEYS_MIRROR_YAXIS, "YAXIS", 0, "By Times over Time=0", ""},
+	{ACTKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0", ""},
+	{ACTKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1240,12 +1261,12 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 	
 	/* mirror keyframes */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
-		if (nob) {
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 1); 
+		if (adt) {
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		//else if (ale->type == ACTTYPE_GPLAYER)
 		//	snap_gplayer_frames(ale->data, mode);
@@ -1275,22 +1296,23 @@ static int actkeys_mirror_exec(bContext *C, wmOperator *op)
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
 	
-	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_VALUES);
+	/* set notifier that keyframes have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
 	return OPERATOR_FINISHED;
 }
  
-void ACT_OT_keyframes_mirror (wmOperatorType *ot)
+void ACT_OT_mirror (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mirror Keys";
-	ot->idname= "ACT_OT_keyframes_mirror";
+	ot->idname= "ACT_OT_mirror";
+	ot->description= "Flip selected keyframes over the selected mirror line.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= actkeys_mirror_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= ED_operator_action_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

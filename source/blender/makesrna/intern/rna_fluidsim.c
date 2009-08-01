@@ -93,7 +93,7 @@ static void rna_FluidSettings_update_type(bContext *C, PointerRNA *ptr)
 
 		if(ob->type == OB_MESH && !psys) {
 			/* add particle system */
-			part= psys_new_settings("PSys", bmain);
+			part= psys_new_settings("ParticleSettings", bmain);
 			psys= MEM_callocN(sizeof(ParticleSystem), "particle_system");
 
 			part->type= PART_FLUID;
@@ -274,7 +274,7 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "compressibility", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "gstar");
 	RNA_def_property_range(prop, 0.001, 0.1);
-	RNA_def_property_ui_text(prop, "Compressibility", "Allowed compressibility due to gravitational force for standing fluid (directly affects simulation step size).");
+	RNA_def_property_ui_text(prop, "Compressibility", "Allowed compressibility due to gravitational force for standing fluid. (directly affects simulation step size)");
 
 	/* domain boundary settings */
 
@@ -382,7 +382,7 @@ static void rna_def_fluidsim_inflow(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "local_coordinates", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "typeFlags", OB_FSINFLOW_LOCALCOORD);
-	RNA_def_property_ui_text(prop, "Local Coordinates", "Use local coordinates for inflow (e.g. for rotating objects).");
+	RNA_def_property_ui_text(prop, "Local Coordinates", "Use local coordinates for inflow. (e.g. for rotating objects)");
 }
 
 static void rna_def_fluidsim_outflow(BlenderRNA *brna)
@@ -425,7 +425,7 @@ static void rna_def_fluidsim_particle(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "alpha_influence", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "particleInfAlpha");
 	RNA_def_property_range(prop, 0.0, 2.0);
-	RNA_def_property_ui_text(prop, "Alpha Influence", "Amount of particle alpha change, inverse of size influence: 0=off (all same alpha), 1=full (large particles get lower alphas, smaller ones higher values).");
+	RNA_def_property_ui_text(prop, "Alpha Influence", "Amount of particle alpha change, inverse of size influence: 0=off (all same alpha), 1=full. (large particles get lower alphas, smaller ones higher values)");
 
 	prop= RNA_def_property(srna, "path", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_maxlength(prop, 240);
@@ -476,7 +476,7 @@ static void rna_def_fluidsim_control(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "quality", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "cpsQuality");
 	RNA_def_property_range(prop, 5.0, 100.0);
-	RNA_def_property_ui_text(prop, "Quality", "Specifies the quality which is used for object sampling (higher = better but slower).");
+	RNA_def_property_ui_text(prop, "Quality", "Specifies the quality which is used for object sampling. (higher = better but slower)");
 
 	prop= RNA_def_property(srna, "reverse_frames", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_FLUIDSIM_REVERSE);

@@ -40,8 +40,10 @@ struct wmWindowManager;
 /* ************** wmOperatorType ************************ */
 
 /* flag */
-#define OPTYPE_REGISTER		1
-#define OPTYPE_UNDO			2
+#define OPTYPE_REGISTER		1	/* register operators in stack after finishing */
+#define OPTYPE_UNDO			2	/* do undo push after after */
+#define OPTYPE_BLOCKING		4	/* let blender grab all input from the WM (X11) */
+#define OPTYPE_MACRO		8
 
 /* context to call operator in for WM_operator_name_call */
 /* rna_ui.c contains EnumPropertyItem's of these, keep in sync */
@@ -129,6 +131,8 @@ typedef struct wmNotifier {
 #define	NC_TEXT				(12<<24)
 #define NC_WORLD			(13<<24)
 #define NC_FILE				(14<<24)
+#define NC_ANIMATION		(15<<24)
+#define NC_CONSOLE			(16<<24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000
@@ -187,6 +191,20 @@ typedef struct wmNotifier {
 	/* NC_FILE Filebrowser */
 #define ND_PARAMS			(60<<16)
 #define ND_FILELIST			(61<<16)
+
+	/* NC_ANIMATION Animato */
+#define ND_KEYFRAME_SELECT	(70<<16)
+#define ND_KEYFRAME_EDIT	(71<<16)
+#define ND_KEYFRAME_PROP	(72<<16)
+#define ND_ANIMCHAN_SELECT	(73<<16)
+#define ND_ANIMCHAN_EDIT	(74<<16)
+#define ND_NLA_SELECT		(75<<16)
+#define ND_NLA_EDIT			(76<<16)
+#define ND_NLA_ACTCHANGE	(77<<16)
+
+	/* console */
+#define ND_CONSOLE			(78<<16) /* general redraw */
+#define ND_CONSOLE_REPORT	(79<<16) /* update for reports, could spesify type */
 
 /* subtype, 256 entries too */
 #define NOTE_SUBTYPE		0x0000FF00

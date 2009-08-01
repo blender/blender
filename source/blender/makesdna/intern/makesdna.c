@@ -76,7 +76,6 @@ char *includefiles[] = {
 	"DNA_ID.h",
 	"DNA_ipo_types.h",
 	"DNA_key_types.h",
-	"DNA_scriptlink_types.h",
 	"DNA_text_types.h",
 	"DNA_packedFile_types.h",
 	"DNA_camera_types.h",
@@ -132,6 +131,8 @@ char *includefiles[] = {
 	// of makesdna.c (this file) as well
 	"DNA_windowmanager_types.h",
 	"DNA_anim_types.h",
+	"DNA_boid_types.h",
+	"DNA_smoke_types.h",
 
 	// empty string to indicate end of includefiles
 	""
@@ -1104,7 +1105,6 @@ int main(int argc, char ** argv)
 #include "DNA_ID.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
-#include "DNA_scriptlink_types.h"
 #include "DNA_text_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_camera_types.h"
@@ -1154,4 +1154,6 @@ int main(int argc, char ** argv)
 #include "DNA_gpencil_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_anim_types.h"
+#include "DNA_boid_types.h"
+#include "DNA_smoke_types.h"
 /* end of list */

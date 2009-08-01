@@ -32,41 +32,14 @@
 extern "C" {
 #endif
 
-#include "DNA_listBase.h"
+#include "DNA_windowmanager_types.h"
 
 /* Reporting Information and Errors
  *
  * These functions also accept NULL in case no error reporting
  * is needed. */
 
-typedef enum ReportType {
-	RPT_DEBUG					= 0,
-	RPT_INFO					= 1000,
-	RPT_WARNING					= 2000,
-	RPT_ERROR					= 3000,
-	RPT_ERROR_INVALID_INPUT		= 3001,
-	RPT_ERROR_INVALID_CONTEXT	= 3002,
-	RPT_ERROR_OUT_OF_MEMORY		= 3003
-} ReportType;
-
-enum ReportListFlags {
-	RPT_PRINT = 1,
-	RPT_STORE = 2,
-};
-
-typedef struct Report {
-	struct Report *next, *prev;
-	ReportType type;
-	char *typestr;
-	char *message;
-} Report;
-
-typedef struct ReportList {
-	ListBase list;
-	ReportType printlevel;
-	ReportType storelevel;
-	int flag;
-} ReportList;
+/* report structures are stored in DNA */
 
 void BKE_reports_init(ReportList *reports, int flag);
 void BKE_reports_clear(ReportList *reports);

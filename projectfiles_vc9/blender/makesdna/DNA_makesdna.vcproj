@@ -614,6 +614,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesdna\DNA_boid_types.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_brush_types.h"
 				>
 			</File>
@@ -759,10 +763,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_script_types.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\makesdna\DNA_scriptlink_types.h"
 				>
 			</File>
 			<File

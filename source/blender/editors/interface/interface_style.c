@@ -92,7 +92,8 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	style->panelzoom= 1.0;
 
 	style->paneltitle.uifont_id= UIFONT_DEFAULT;
-	style->paneltitle.points= 13;
+	style->paneltitle.points= 12;
+	style->paneltitle.kerning= 1;
 	style->paneltitle.shadow= 5;
 	style->paneltitle.shadx= 2;
 	style->paneltitle.shady= -2;
@@ -101,6 +102,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	
 	style->grouplabel.uifont_id= UIFONT_DEFAULT;
 	style->grouplabel.points= 12;
+	style->grouplabel.kerning= 1;
 	style->grouplabel.shadow= 3;
 	style->grouplabel.shadx= 1;
 	style->grouplabel.shady= -1;
@@ -108,6 +110,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	
 	style->widgetlabel.uifont_id= UIFONT_DEFAULT;
 	style->widgetlabel.points= 11;
+	style->widgetlabel.kerning= 1;
 	style->widgetlabel.shadow= 3;
 	style->widgetlabel.shadx= 1;
 	style->widgetlabel.shady= -1;
@@ -116,12 +119,13 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	
 	style->widget.uifont_id= UIFONT_DEFAULT;
 	style->widget.points= 11;
+	style->widget.kerning= 1;
 	style->widget.shadowalpha= 0.25f;
 
-	style->columnspace= 5;
+	style->columnspace= 8;
 	style->templatespace= 5;
 	style->boxspace= 5;
-	style->buttonspacex= 5;
+	style->buttonspacex= 8;
 	style->buttonspacey= 2;
 	style->panelspace= 8;
 	style->panelouter= 4;
@@ -169,10 +173,15 @@ void uiStyleFontDraw(uiFontStyle *fs, rcti *rect, char *str)
 		BLF_shadow_offset(fs->shadx, fs->shady);
 	}
 
+	if (fs->kerning == 1)
+		BLF_enable(BLF_KERNING_DEFAULT);
+
 	BLF_draw(str);
 	BLF_disable(BLF_CLIPPING);
 	if (fs->shadow)
 		BLF_disable(BLF_SHADOW);
+	if (fs->kerning == 1)
+		BLF_disable(BLF_KERNING_DEFAULT);
 }
 
 /* ************** helpers ************************ */
@@ -239,6 +248,9 @@ void uiStyleInit(void)
 			BLF_size(11, U.dpi);
 			BLF_size(12, U.dpi);
 			BLF_size(14, U.dpi);
+
+			if (!(U.transopts & USER_USETEXTUREFONT))
+				BLF_mode(BLF_MODE_BITMAP);
 		}
 	}
 	

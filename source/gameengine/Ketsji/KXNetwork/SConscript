@@ -10,9 +10,10 @@ incs += ' #source/gameengine/Network #source/gameengine/SceneGraph'
 incs += ' ' + env['BF_PYTHON_INC']
 
 cxxflags = []
-if env['OURPLATFORM']=='win32-vc':
+if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
 	cxxflags.append ('/GR')
 	cxxflags.append ('/O2')
+	cxxflags.append ('/EHsc')
 
 
 env.BlenderLib ( 'kx_network', Split(sources), Split(incs), defines=[],libtype=['core', 'player'], priority=[400, 145], cxx_compileflags=cxxflags )

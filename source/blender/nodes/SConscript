@@ -8,7 +8,7 @@ texsources = env.Glob('intern/TEX_nodes/*.c')
 
 incs = '. ./intern '
 incs += '#/intern/guardedalloc ../editors/include ../blenlib ../makesdna'
-incs += ' ../render/extern/include '
+incs += ' ../render/extern/include ../makesrna '
 incs += ' ../imbuf ../avi '
 incs += ' ../blenloader'
 incs += ' ../blenkernel ../renderconverter '

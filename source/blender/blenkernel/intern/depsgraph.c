@@ -39,6 +39,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_boid_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_ID.h"
@@ -555,6 +556,8 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 		GroupObject *go;
 
 		for(; psys; psys=psys->next) {
+			BoidRule *rule = NULL;
+			BoidState *state = NULL;
 			ParticleSettings *part= psys->part;
 
 			dag_add_relation(dag, node, node, DAG_RL_OB_DATA, "Particle-Object Relation");
@@ -562,10 +565,15 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 			if(!psys_check_enabled(ob, psys))
 				continue;
 
-			if(part->phystype==PART_PHYS_KEYED && psys->keyed_ob &&
-			   BLI_findlink(&psys->keyed_ob->particlesystem,psys->keyed_psys-1)) {
-				node2 = dag_get_node(dag, psys->keyed_ob);
-				dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA, "Particle Keyed Physics");
+			if(ELEM(part->phystype,PART_PHYS_KEYED,PART_PHYS_BOIDS)) {
+				ParticleTarget *pt = psys->targets.first;
+
+				for(; pt; pt=pt->next) {
+					if(pt->ob && BLI_findlink(&pt->ob->particlesystem, pt->psys-1)) {
+						node2 = dag_get_node(dag, pt->ob);
+						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Targets");
+					}
+			   }
 			}
 
 			if(part->ren_as == PART_DRAW_OB && part->dup_ob) {
@@ -582,33 +590,47 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 				}
 			}
 
-			if(psys->effectors.first)
-				psys_end_effectors(psys);
+			psys_end_effectors(psys);
 			psys_init_effectors(scene, ob, psys->part->eff_group, psys);
 
-			if(psys->effectors.first) {
-				for(nec= psys->effectors.first; nec; nec= nec->next) {
-					Object *ob1= nec->ob;
+			for(nec= psys->effectors.first; nec; nec= nec->next) {
+				Object *ob1= nec->ob;
 
-					if(nec->type & PSYS_EC_EFFECTOR) {
-						node2 = dag_get_node(dag, ob1);
-						if(ob1->pd->forcefield==PFIELD_GUIDE)
-							dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Field");
-						else
-							dag_add_relation(dag, node2, node, DAG_RL_OB_DATA, "Particle Field");
-					}
-					else if(nec->type & PSYS_EC_DEFLECT) {
-						node2 = dag_get_node(dag, ob1);
-						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Collision");
-					}
-					else if(nec->type & PSYS_EC_PARTICLE) {
-						node2 = dag_get_node(dag, ob1);
-						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA, "Particle Field");
-					}
-					
-					if(nec->type & PSYS_EC_REACTOR) {
-						node2 = dag_get_node(dag, ob1);
-						dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA, "Particle Reactor");
+				if(nec->type & PSYS_EC_EFFECTOR) {
+					node2 = dag_get_node(dag, ob1);
+					if(ob1->pd->forcefield==PFIELD_GUIDE)
+						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Field");
+					else
+						dag_add_relation(dag, node2, node, DAG_RL_OB_DATA, "Particle Field");
+				}
+				else if(nec->type & PSYS_EC_DEFLECT) {
+					node2 = dag_get_node(dag, ob1);
+					dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Particle Collision");
+				}
+				else if(nec->type & PSYS_EC_PARTICLE) {
+					node2 = dag_get_node(dag, ob1);
+					dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA, "Particle Field");
+				}
+				
+				if(nec->type & PSYS_EC_REACTOR) {
+					node2 = dag_get_node(dag, ob1);
+					dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA, "Particle Reactor");
+				}
+			}
+
+			if(part->boids) {
+				for(state = part->boids->states.first; state; state=state->next) {
+					for(rule = state->rules.first; rule; rule=rule->next) {
+						Object *ruleob = NULL;
+						if(rule->type==eBoidRuleType_Avoid)
+							ruleob = ((BoidRuleGoalAvoid*)rule)->ob;
+						else if(rule->type==eBoidRuleType_FollowLeader)
+							ruleob = ((BoidRuleFollowLeader*)rule)->ob;
+
+						if(ruleob) {
+							node2 = dag_get_node(dag, ruleob);
+							dag_add_relation(dag, node2, node, DAG_RL_OB_DATA, "Boid Rule");
+						}
 					}
 				}
 			}
@@ -1975,8 +1997,6 @@ static void dag_object_time_update_flags(Object *ob)
 		}
 	}
 	
-	if(ob->scriptlink.totscript) ob->recalc |= OB_RECALC_OB;
-	
 	if(ob->parent) {
 		/* motion path or bone child */
 		if(ob->parent->type==OB_CURVE || ob->parent->type==OB_ARMATURE) ob->recalc |= OB_RECALC_OB;
@@ -2063,7 +2083,6 @@ static void dag_object_time_update_flags(Object *ob)
 		}
 	}		
 }
-
 /* flag all objects that need recalc, for changes in time for example */
 void DAG_scene_update_flags(Scene *scene, unsigned int lay)
 {

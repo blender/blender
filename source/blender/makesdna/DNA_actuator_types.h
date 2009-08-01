@@ -405,6 +405,10 @@ typedef struct FreeCamera {
 /* editObjectActuator->flag */
 #define ACT_TRACK_3D			1
 
+/* editObjectActuator->flag for replace mesh actuator */
+#define ACT_EDOB_REPLACE_MESH_NOGFX		2 /* use for replace mesh actuator */
+#define ACT_EDOB_REPLACE_MESH_PHYS		4
+
 /* SceneActuator->type */
 #define ACT_SCENE_RESTART		0
 #define ACT_SCENE_SET			1

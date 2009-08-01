@@ -48,7 +48,9 @@ typedef struct MetaElem {
 	short type, flag, selcol1, selcol2;
 	float x, y, z;          /* Position of center of MetaElem */
 	float quat[4];          /* Rotation of MetaElem */
-	float expx, expy, expz; /* dimension parameters, used for some types like cubes */
+	float expx; /* dimension parameters, used for some types like cubes */
+	float expy;
+	float expz;
 	float rad;              /* radius of the meta element */
 	float rad2;             /* temp field, used only while processing */
 	float s;                /* stiffness, how much of the element to fill */
@@ -85,8 +87,10 @@ typedef struct MetaBall {
 	mother ball changes will effect other objects thresholds,
 	but these may also have their own thresh as an offset */
 	float thresh;
-	
-	
+
+	/* used in editmode */
+	/*ListBase edit_elems;*/
+	MetaElem *lastelem;	
 } MetaBall;
 
 /* **************** METABALL ********************* */

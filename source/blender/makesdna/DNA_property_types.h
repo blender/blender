@@ -39,12 +39,9 @@
 typedef struct bProperty {
 	struct bProperty *next, *prev;
 	char name[32];
-	short type, otype;		/* otype is for buttons, when a property type changes */
+	short type, flag;
 	int data;				/* data should be 4 bytes to store int,float stuff */
-	int old;				/* old is for simul */
-	short flag, pad;
-	void *poin;
-	void *oldpoin;			/* oldpoin is for simul */
+	void *poin;				/* references data unless its a string which is malloc'd */
 	
 } bProperty;
 

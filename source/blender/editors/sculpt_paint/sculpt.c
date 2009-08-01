@@ -1151,7 +1151,7 @@ static void SCULPT_OT_radial_control(wmOperatorType *ot)
 	ot->exec= sculpt_radial_control_exec;
 	ot->poll= sculpt_poll;
 
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 }
 
 /**** Operator for applying a stroke (various attributes including mouse path)
@@ -1589,7 +1589,7 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	ot->poll= sculpt_poll;
 	
 	/* flags (sculpt does own undo? (ton) */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_BLOCKING;
 
 	/* properties */
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
@@ -1627,8 +1627,6 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		sculptsession_free(ts->sculpt);
 	}
 	else {
-		MTex *mtex; // XXX: temporary
-
 		/* Enter sculptmode */
 
 		G.f |= G_SCULPTMODE;
@@ -1647,17 +1645,7 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		/* If there's no brush, create one */
 		brush_check_exists(&ts->sculpt->brush);
 
-		/* XXX: testing: set the brush texture to the first available one */
-		if(G.main->tex.first) {
-			Tex *tex = G.main->tex.first;
-			if(tex->type) {
-				mtex = MEM_callocN(sizeof(MTex), "test mtex");
-				ts->sculpt->brush->texact = 0;
-				ts->sculpt->brush->mtex[0] = mtex;
-				mtex->tex = tex;
-				mtex->size[0] = mtex->size[1] = mtex->size[2] = 50;
-			}
-		}
+		WM_event_add_notifier(C, NC_SCENE|ND_MODE, CTX_data_scene(C));
 	}
 
 	return OPERATOR_FINISHED;

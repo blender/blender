@@ -31,7 +31,6 @@
 #include "DNA_view2d_types.h"
 #include "DNA_vec_types.h"
 
-#include "DNA_scriptlink_types.h"
 #include "DNA_ID.h"
 
 struct SpaceType;
@@ -110,16 +109,6 @@ typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	char list_search[64];
 } Panel;
 
-typedef struct Header {
-	struct HeaderType *type;	/* runtime */
-	struct uiLayout *layout;	/* runtime for drawing */
-} Header;
-
-typedef struct Menu {
-	struct MenuType *type;		/* runtime */
-	struct uiLayout *layout;	/* runtime for drawing */
-} Menu;
-
 typedef struct ScrArea {
 	struct ScrArea *next, *prev;
 	
@@ -135,8 +124,6 @@ typedef struct ScrArea {
 	short pad;
 	short do_refresh;				/* private, for spacetype refresh callback */
 	short cursor, flag;
-
-	ScriptLink scriptlink;
 	
 	struct SpaceType *type;		/* callbacks for this space type */
 	
@@ -199,6 +186,8 @@ typedef struct ARegion {
 #define SCREENNORMAL    0
 #define SCREENFULL      1
 #define SCREENAUTOPLAY  2
+#define SCREENTEMP		3
+
 
 /* Panel->snap - for snapping to screen edges */
 #define PNL_SNAP_NONE		0

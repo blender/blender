@@ -351,10 +351,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\source\blender\python\intern\bpy_scriptlink.c"
-					>
-				</File>
-				<File
 					RelativePath="..\..\..\source\blender\python\intern\bpy_ui.c"
 					>
 				</File>

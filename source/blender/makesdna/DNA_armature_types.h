@@ -73,6 +73,8 @@ typedef struct bArmature {
 	ListBase	chainbase;
 	ListBase	*edbo;					/* editbone listbase, we use pointer so we can check state */
 	
+	void		*sketch;				/* sketch struct for etch-a-ton */
+	
 	int			flag;
 	int			drawtype;			
 	short		deformflag; 

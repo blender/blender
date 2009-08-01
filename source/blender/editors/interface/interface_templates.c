@@ -99,11 +99,12 @@ static void id_search_cb(const struct bContext *C, void *arg_template, char *str
 
 	/* ID listbase */
 	for(id= lb->first; id; id= id->next) {
-		iconid= ui_id_icon_get(scene, id);
+		if(BLI_strcasestr(id->name+2, str)) {
+			iconid= ui_id_icon_get(scene, id);
 
-		if(BLI_strcasestr(id->name+2, str))
 			if(!uiSearchItemAdd(items, id->name+2, id, iconid))
 				break;
+		}
 	}
 }
 
@@ -431,31 +432,21 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 		/* Softbody not allowed in this situation, enforce! */
 		if(((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) && (md->type!=eModifierType_Surface)) {
 			uiItemR(row, "", ICON_SCENE, &ptr, "render", 0, 0, 0);
-			uiItemR(row, "", ICON_VIEW3D, &ptr, "realtime", 0, 0, 0);
+			uiItemR(row, "", ICON_RESTRICT_VIEW_OFF, &ptr, "realtime", 0, 0, 0);
 
 			if(mti->flags & eModifierTypeFlag_SupportsEditmode)
-				uiItemR(row, "", ICON_VIEW3D, &ptr, "editmode", 0, 0, 0);
+				uiItemR(row, "", ICON_EDITMODE_HLT, &ptr, "editmode", 0, 0, 0);
 		}
-		uiBlockEndAlign(block);
+		
 
 		/* XXX uiBlockSetEmboss(block, UI_EMBOSSR); */
 
 		if(ob->type==OB_MESH && modifier_couldBeCage(md) && index<=lastCageIndex) {
-			int icon; //, color;
 
-			if(index==cageIndex) {
-				// XXX color = TH_BUT_SETTING;
-				icon = VICON_EDITMODE_HLT;
-			} else if(index<cageIndex) {
-				// XXX color = TH_BUT_NEUTRAL;
-				icon = VICON_EDITMODE_DEHLT;
-			} else {
-				// XXX color = TH_BUT_NEUTRAL;
-				icon = ICON_BLANK1;
-			}
 			/* XXX uiBlockSetCol(block, color); */
-			but = uiDefIconBut(block, BUT, 0, icon, 0, 0, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
+			but = uiDefIconBut(block, BUT, 0, ICON_MESH_DATA, 0, 0, 16, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
 			uiButSetFunc(but, modifiers_setOnCage, ob, md);
+			uiBlockEndAlign(block);
 			/* XXX uiBlockSetCol(block, TH_AUTO); */
 		}
 	}
@@ -463,8 +454,10 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	/* up/down/delete */
 	if(!isVirtual) {
 		/* XXX uiBlockSetCol(block, TH_BUT_ACTION); */
+		uiBlockBeginAlign(block);
 		uiItemO(row, "", VICON_MOVE_UP, "OBJECT_OT_modifier_move_up");
 		uiItemO(row, "", VICON_MOVE_DOWN, "OBJECT_OT_modifier_move_down");
+		uiBlockEndAlign(block);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 
@@ -616,12 +609,6 @@ static void constraint_active_func(bContext *C, void *ob_v, void *con_v)
 	ED_object_constraint_set_active(ob_v, con_v);
 }
 
-static void del_constraint_func (bContext *C, void *ob_v, void *con_v)
-{
-	if(ED_object_constraint_delete(NULL, ob_v, con_v))
-		ED_undo_push(C, "Delete Constraint");
-}
-
 static void verify_constraint_name_func (bContext *C, void *con_v, void *name_v)
 {
 	Object *ob= CTX_data_active_object(C);
@@ -637,18 +624,6 @@ static void verify_constraint_name_func (bContext *C, void *con_v, void *name_v)
 	ED_object_constraint_rename(ob, con, oldname);
 	ED_object_constraint_set_active(ob, con);
 	// XXX allqueue(REDRAWACTION, 0); 
-}
-
-static void constraint_moveUp(bContext *C, void *ob_v, void *con_v)
-{
-	if(ED_object_constraint_move_up(NULL, ob_v, con_v))
-		ED_undo_push(C, "Move Constraint");
-}
-
-static void constraint_moveDown(bContext *C, void *ob_v, void *con_v)
-{
-	if(ED_object_constraint_move_down(NULL, ob_v, con_v))
-		ED_undo_push(C, "Move Constraint");
 }
 
 /* some commonly used macros in the constraints drawing code */
@@ -781,7 +756,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	
 	if(proxy_protected == 0) {
 		but = uiDefBut(block, TEX, B_CONSTRAINT_TEST, "", xco+120, yco, 85, 18, con->name, 0.0, 29.0, 0.0, 0.0, "Constraint name"); 
-		uiButSetFunc(but, verify_constraint_name_func, con, NULL);
+		uiButSetFunc(but, verify_constraint_name_func, con, con->name);
 	}
 	else
 		uiDefBut(block, LABEL, B_CONSTRAINT_TEST, con->name, xco+120, yco-1, 135, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
@@ -828,25 +803,18 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 			uiBlockBeginAlign(block);
 				uiBlockSetEmboss(block, UI_EMBOSS);
 				
-				if (show_upbut) {
-					but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_UP, xco+width-50, yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint up in constraint stack");
-					uiButSetFunc(but, constraint_moveUp, ob, con);
-				}
+				if (show_upbut)
+					uiDefIconButO(block, BUT, "CONSTRAINT_OT_move_up", WM_OP_INVOKE_DEFAULT, VICON_MOVE_UP, xco+width-50, yco, 16, 18, "Move constraint up in constraint stack");
 				
-				if (show_downbut) {
-					but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_DOWN, xco+width-50+18, yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint down in constraint stack");
-					uiButSetFunc(but, constraint_moveDown, ob, con);
-				}
+				if (show_downbut)
+					uiDefIconButO(block, BUT, "CONSTRAINT_OT_move_down", WM_OP_INVOKE_DEFAULT, VICON_MOVE_DOWN, xco+width-50+18, yco, 16, 18, "Move constraint down in constraint stack");
 			uiBlockEndAlign(block);
 		}
 		
 		
 		/* Close 'button' - emboss calls here disable drawing of 'button' behind X */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-		
-		but = uiDefIconBut(block, BUT, B_CONSTRAINT_CHANGETARGET, ICON_X, xco+262, yco, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Delete constraint");
-		uiButSetFunc(but, del_constraint_func, ob, con);
-		
+			uiDefIconButO(block, BUT, "CONSTRAINT_OT_delete", WM_OP_INVOKE_DEFAULT, ICON_X, xco+262, yco, 19, 19, "Delete constraint");
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	
@@ -944,19 +912,6 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 			}
 			break;
 #endif /* DISABLE_PYTHON */
-		/*case CONSTRAINT_TYPE_CHILDOF:
-			{
-				// Inverse options 
-				uiBlockBeginAlign(block);
-					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Set Offset", xco, yco-151, (width/2),18, NULL, 0, 24, 0, 0, "Calculate current Parent-Inverse Matrix (i.e. restore offset from parent)");
-					// XXX uiButSetFunc(but, childof_const_setinv, con, NULL);
-					
-					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Clear Offset", xco+((width/2)+10), yco-151, (width/2),18, NULL, 0, 24, 0, 0, "Clear Parent-Inverse Matrix (i.e. clear offset from parent)");
-					// XXX uiButSetFunc(but, childof_const_clearinv, con, NULL);
-				uiBlockEndAlign(block);
-			}
-			break; 
-		*/
 		
 		/*case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 			{
@@ -1192,10 +1147,11 @@ uiLayout *uiTemplateGroup(uiLayout *layout, Object *ob, Group *group)
 
 /************************* Preview Template ***************************/
 
+#include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_world_types.h"
 
 #define B_MATPRV 1
-
 
 static void do_preview_buttons(bContext *C, void *arg, int event)
 {
@@ -1206,32 +1162,55 @@ static void do_preview_buttons(bContext *C, void *arg, int event)
 	}
 }
 
-void uiTemplatePreview(uiLayout *layout, ID *id)
+void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent)
 {
 	uiLayout *row, *col;
 	uiBlock *block;
-	Material *ma;
+	Material *ma= NULL;
+	ID *pid, *pparent;
+	short *pr_texture= NULL;
 
 	if(id && !ELEM4(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA)) {
 		printf("uiTemplatePreview: expected ID of type material, texture, lamp or world.\n");
 		return;
 	}
 
+	/* decide what to render */
+	pid= id;
+	pparent= NULL;
+
+	if(id && (GS(id->name) == ID_TE)) {
+		if(parent && (GS(parent->name) == ID_MA))
+			pr_texture= &((Material*)parent)->pr_texture;
+		else if(parent && (GS(parent->name) == ID_WO))
+			pr_texture= &((World*)parent)->pr_texture;
+		else if(parent && (GS(parent->name) == ID_LA))
+			pr_texture= &((Lamp*)parent)->pr_texture;
+
+		if(pr_texture) {
+			if(*pr_texture == TEX_PR_OTHER)
+				pid= parent;
+			else if(*pr_texture == TEX_PR_BOTH)
+				pparent= parent;
+		}
+	}
+
+	/* layout */
 	block= uiLayoutGetBlock(layout);
-
 	row= uiLayoutRow(layout, 0);
-
 	col= uiLayoutColumn(row, 0);
 	uiLayoutSetKeepAspect(col, 1);
 	
-	uiDefBut(block, BUT_EXTRA, 0, "", 0, 0, UI_UNIT_X*6, UI_UNIT_Y*6, id, 0.0, 0.0, 0, 0, "");
-	uiBlockSetDrawExtraFunc(block, ED_preview_draw);
-	
+	/* add preview */
+	uiDefBut(block, BUT_EXTRA, 0, "", 0, 0, UI_UNIT_X*6, UI_UNIT_Y*6, pid, 0.0, 0.0, 0, 0, "");
+	uiBlockSetDrawExtraFunc(block, ED_preview_draw, pparent);
 	uiBlockSetHandleFunc(block, do_preview_buttons, NULL);
 	
-	if(id) {
-		if(GS(id->name) == ID_MA) {
-			ma= (Material*)id;
+	/* add buttons */
+	if(pid) {
+		if(GS(pid->name) == ID_MA || (pparent && GS(pparent->name) == ID_MA)) {
+			if(GS(pid->name) == ID_MA) ma= (Material*)pid;
+			else ma= (Material*)pparent;
 
 			uiLayoutColumn(row, 1);
 
@@ -1240,7 +1219,20 @@ void uiTemplatePreview(uiLayout *layout, ID *id)
 			uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,   0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_CUBE, 0, 0, "Preview type: Cube");
 			uiDefIconButC(block, ROW, B_MATPRV, ICON_MONKEY,    0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_MONKEY, 0, 0, "Preview type: Monkey");
 			uiDefIconButC(block, ROW, B_MATPRV, ICON_HAIR,      0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_HAIR, 0, 0, "Preview type: Hair strands");
-			uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE, 0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE_A, 0, 0, "Preview type: Large sphere with sky");
+			uiDefIconButC(block, ROW, B_MATPRV, ICON_MAT_SPHERE_SKY, 0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE_A, 0, 0, "Preview type: Large sphere with sky");
+		}
+
+		if(pr_texture) {
+			uiLayoutRow(layout, 1);
+
+			uiDefButS(block, ROW, B_MATPRV, "Texture",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_TEXTURE, 0, 0, "");
+			if(GS(parent->name) == ID_MA)
+				uiDefButS(block, ROW, B_MATPRV, "Material",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_OTHER, 0, 0, "");
+			else if(GS(parent->name) == ID_LA)
+				uiDefButS(block, ROW, B_MATPRV, "Lamp",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_OTHER, 0, 0, "");
+			else if(GS(parent->name) == ID_WO)
+				uiDefButS(block, ROW, B_MATPRV, "World",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_OTHER, 0, 0, "");
+			uiDefButS(block, ROW, B_MATPRV, "Both",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_BOTH, 0, 0, "");
 		}
 	}
 }
@@ -1279,6 +1271,34 @@ void uiTemplateCurveMapping(uiLayout *layout, CurveMapping *cumap, int type)
 	}
 }
 
+/********************* TriColor (ThemeWireColorSet) Template ************************/
+
+void uiTemplateTriColorSet(uiLayout *layout, PointerRNA *ptr, char *propname)
+{
+	uiLayout *row;
+	PropertyRNA *prop;
+	PointerRNA csPtr;
+	
+	if (!ptr->data)
+		return;
+	
+	prop= RNA_struct_find_property(ptr, propname);
+	if (!prop) {
+		printf("uiTemplateTriColorSet: property not found: %s\n", propname);
+		return;
+	}
+	
+	/* we lay out the data in a row as 3 color swatches */
+	row= uiLayoutRow(layout, 1);
+	
+	/* nselected, selected, active color swatches */
+	csPtr= RNA_property_pointer_get(ptr, prop);
+	
+	uiItemR(row, "", 0, &csPtr, "normal", 0, 0, 0);
+	uiItemR(row, "", 0, &csPtr, "selected", 0, 0, 0);
+	uiItemR(row, "", 0, &csPtr, "active", 0, 0, 0);
+}
+
 /********************* Layer Buttons Template ************************/
 
 // TODO:
@@ -1313,7 +1333,10 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname)
 	groups= ((cols / 2) < 5) ? (1) : (cols / 2);
 	
 	/* layers are laid out going across rows, with the columns being divided into groups */
-	uSplit= uiLayoutSplit(layout, (1.0f/(float)groups));
+	if (groups > 1)
+		uSplit= uiLayoutSplit(layout, (1.0f/(float)groups));
+	else	
+		uSplit= layout;
 	
 	for (group= 0; group < groups; group++) {
 		uCol= uiLayoutColumn(uSplit, 1);
@@ -1334,18 +1357,38 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname)
 
 /************************* List Template **************************/
 
-ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, PointerRNA *activeptr, char *activepropname, int rows, int columns, int compact)
+#if 0
+static void list_item_add(ListBase *lb, ListBase *itemlb, uiLayout *layout, PointerRNA *data)
 {
 	CollectionPointerLink *link;
+	uiListItem *item;
+
+	/* add to list to store in box */
+	item= MEM_callocN(sizeof(uiListItem), "uiListItem");
+	item->layout= layout;
+	item->data= *data;
+	BLI_addtail(itemlb, item);
+
+	/* add to list to return from function */
+	link= MEM_callocN(sizeof(CollectionPointerLink), "uiTemplateList return");
+	RNA_pointer_create(NULL, &RNA_UIListItem, item, &link->ptr);
+	BLI_addtail(lb, link);
+}
+#endif
+
+ListBase uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, PointerRNA *activeptr, char *activepropname, int rows, int listtype)
+{
+	//Scene *scene= CTX_data_scene(C);
 	PropertyRNA *prop= NULL, *activeprop;
 	PropertyType type, activetype;
-	uiLayout *box, *row, *col;
+	StructRNA *ptype;
+	uiLayout *box, *row, *col, *subrow;
 	uiBlock *block;
 	uiBut *but;
 	Panel *pa;
-	ListBase lb;
+	ListBase lb, *itemlb;
 	char *name, str[32];
-	int i= 0, activei= 0, len, items, found, min, max;
+	int icon=0, i= 0, activei= 0, len, items, found, min, max;
 
 	lb.first= lb.last= NULL;
 	
@@ -1389,10 +1432,48 @@ ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, Point
 		return lb;
 	}
 
+	/* get icon */
+	if(ptr->data && prop) {
+		ptype= RNA_property_pointer_type(ptr, prop);
+		icon= RNA_struct_ui_icon(ptype);
+	}
+
 	/* get active data */
 	activei= RNA_property_int_get(activeptr, activeprop);
 
-	if(compact) {
+	if(listtype == 'i') {
+		box= uiLayoutListBox(layout);
+		col= uiLayoutColumn(box, 1);
+		row= uiLayoutRow(col, 0);
+
+		itemlb= uiLayoutBoxGetList(box);
+
+		if(ptr->data && prop) {
+			/* create list items */
+			RNA_PROP_BEGIN(ptr, itemptr, prop) {
+				/* create button */
+				if(i == 9)
+					row= uiLayoutRow(col, 0);
+
+				if(RNA_struct_is_a(itemptr.type, &RNA_TextureSlot)) {
+#if 0
+					MTex *mtex= itemptr.data;
+
+					if(mtex && mtex->tex)
+						icon= ui_id_icon_get(scene, &mtex->tex->id);
+#endif
+				}
+
+				uiDefIconButR(block, LISTROW, 0, icon, 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
+
+				//list_item_add(&lb, itemlb, uiLayoutRow(row, 1), &itemptr);
+
+				i++;
+			}
+			RNA_PROP_END;
+		}
+	}
+	else if(listtype == 'c') {
 		/* compact layout */
 		found= 0;
 
@@ -1406,15 +1487,13 @@ ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, Point
 				if(found) {
 					/* create button */
 					name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
-					if(name) {
-						uiItemL(row, name, RNA_struct_ui_icon(itemptr.type));
+					uiItemL(row, (name)? name: "", icon);
+
+					if(name)
 						MEM_freeN(name);
-					}
 
 					/* add to list to return */
-					link= MEM_callocN(sizeof(CollectionPointerLink), "uiTemplateList return");
-					link->ptr= itemptr;
-					BLI_addtail(&lb, link);
+					//list_item_add(&lb, itemlb, uiLayoutRow(row, 1), &itemptr);
 				}
 
 				i++;
@@ -1433,27 +1512,25 @@ ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, Point
 			uiButSetFlag(but, UI_BUT_DISABLED);
 	}
 	else {
-		/* default rows/columns */
+		/* default rows */
 		if(rows == 0)
 			rows= 5;
-		if(columns == 0)
-			columns= 1;
 
 		/* layout */
-		box= uiLayoutBox(layout);
+		box= uiLayoutListBox(layout);
 		row= uiLayoutRow(box, 0);
 		col = uiLayoutColumn(row, 1);
-
-		uiBlockSetEmboss(block, UI_EMBOSSN);
 
 		/* init numbers */
 		RNA_property_int_range(activeptr, activeprop, &min, &max);
 
 		len= max - min + 1;
-		items= rows*columns;
+		items= CLAMPIS(len, rows, 5);
 
 		pa->list_scroll= MIN2(pa->list_scroll, len-items);
 		pa->list_scroll= MAX2(pa->list_scroll, 0);
+
+		itemlb= uiLayoutBoxGetList(box);
 
 		if(ptr->data && prop) {
 			/* create list items */
@@ -1461,18 +1538,27 @@ ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, Point
 				if(i >= pa->list_scroll && i<pa->list_scroll+items) {
 					name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
 
-					if(name) {
-						/* create button */
-						but= uiDefIconTextButR(block, ROW, 0, RNA_struct_ui_icon(itemptr.type), name, 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
-						uiButSetFlag(but, UI_ICON_LEFT|UI_TEXT_LEFT);
+					subrow= uiLayoutRow(col, 0);
 
-						MEM_freeN(name);
+					/* create button */
+					if(!icon || icon == ICON_DOT)
+						but= uiDefButR(block, LISTROW, 0, (name)? name: "", 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
+					else
+						but= uiDefIconTextButR(block, LISTROW, 0, icon, (name)? name: "", 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
+					uiButSetFlag(but, UI_ICON_LEFT|UI_TEXT_LEFT);
+
+					/* XXX hardcoded */
+					if(itemptr.type == &RNA_MeshTextureFaceLayer || itemptr.type == &RNA_MeshColorLayer) {
+						uiBlockSetEmboss(block, UI_EMBOSSN);
+						uiDefIconButR(block, TOG, 0, ICON_SCENE, 0, 0, UI_UNIT_X, UI_UNIT_Y, &itemptr, "active_render", 0, 0, 0, 0, 0, NULL);
+						uiBlockSetEmboss(block, UI_EMBOSS);
 					}
 
+					if(name)
+						MEM_freeN(name);
+
 					/* add to list to return */
-					link= MEM_callocN(sizeof(CollectionPointerLink), "uiTemplateList return");
-					link->ptr= itemptr;
-					BLI_addtail(&lb, link);
+					//list_item_add(&lb, itemlb, subrow, &itemptr);
 				}
 
 				i++;
@@ -1486,8 +1572,6 @@ ListBase uiTemplateList(uiLayout *layout, PointerRNA *ptr, char *propname, Point
 				uiItemL(col, "", 0);
 			i++;
 		}
-
-		uiBlockSetEmboss(block, UI_EMBOSS);
 
 		/* add scrollbar */
 		if(len > items) {
@@ -1589,5 +1673,19 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_REC, "Capture", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop screencast");
 	if(screen->animtimer)
 		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_REC, "Anim Player", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
+}
+
+/************************* Image Template **************************/
+
+#include "ED_image.h"
+
+void uiTemplateTextureImage(uiLayout *layout, bContext *C, Tex *tex)
+{
+	uiBlock *block;
+
+	if(tex) {
+		block= uiLayoutFreeBlock(layout);
+		ED_image_uiblock_panel(C, block, &tex->ima, &tex->iuser, 0, 0);
+	}
 }
 

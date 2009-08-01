@@ -63,6 +63,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
+#include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_context.h"
 #include "BKE_utildefines.h"
@@ -168,20 +169,21 @@ static int graphkeys_deselectall_exec(bContext *C, wmOperator *op)
 		deselect_graph_keys(&ac, 1, SELECT_ADD);
 	
 	/* set notifier that things have changed */
-	ED_area_tag_redraw(CTX_wm_area(C)); // FIXME... should be updating 'keyframes' data context or so instead!
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
 	
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_select_all_toggle (wmOperatorType *ot)
+void GRAPH_OT_select_all_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select All";
-	ot->idname= "GRAPHEDIT_OT_keyframes_select_all_toggle";
+	ot->idname= "GRAPH_OT_select_all_toggle";
+	ot->description= "Toggle selection of all keyframes.";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_deselectall_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_visible_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
@@ -231,14 +233,14 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 	
 	/* loop over data, doing border select */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		/* set horizontal range (if applicable) */
 		if (mode != BEZT_OK_VALUERANGE) {
 			/* if channel is mapped in NLA, apply correction */
-			if (nob) {
-				bed.f1= get_action_frame(nob, rectf.xmin);
-				bed.f2= get_action_frame(nob, rectf.xmax);
+			if (adt) {
+				bed.f1= BKE_nla_tweakedit_remap(adt, rectf.xmin, NLATIME_CONVERT_UNMAP);
+				bed.f2= BKE_nla_tweakedit_remap(adt, rectf.xmax, NLATIME_CONVERT_UNMAP);
 			}
 			else {
 				bed.f1= rectf.xmin;
@@ -301,21 +303,25 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 	/* apply borderselect action */
 	borderselect_graphkeys(&ac, rect, mode, selectmode);
 	
+	/* send notifier that keyframe selection has changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	
 	return OPERATOR_FINISHED;
 } 
 
-void GRAPHEDIT_OT_keyframes_select_border(wmOperatorType *ot)
+void GRAPH_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
-	ot->idname= "GRAPHEDIT_OT_keyframes_select_border";
+	ot->idname= "GRAPH_OT_select_border";
+	ot->description= "Select all keyframes within the specified region.";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
 	ot->exec= graphkeys_borderselect_exec;
 	ot->modal= WM_border_select_modal;
 	
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_visible_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
@@ -379,12 +385,12 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	
 	/* select keys in-between */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
-		if (nob) {	
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 1);
+		if (adt) {	
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else {
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
@@ -450,15 +456,15 @@ static void columnselect_graph_keys (bAnimContext *ac, short mode)
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		/* loop over cfraelems (stored in the BeztEditData->list)
 		 *	- we need to do this here, as we can apply fewer NLA-mapping conversions
 		 */
 		for (ce= bed.list.first; ce; ce= ce->next) {
 			/* set frame for validation callback to refer to */
-			if (nob)
-				bed.f1= get_action_frame(nob, ce->cfra);
+			if (ale)
+				bed.f1= BKE_nla_tweakedit_remap(adt, ce->cfra, NLATIME_CONVERT_UNMAP);
 			else
 				bed.f1= ce->cfra;
 			
@@ -491,21 +497,22 @@ static int graphkeys_columnselect_exec(bContext *C, wmOperator *op)
 	else
 		columnselect_graph_keys(&ac, mode);
 	
-	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_KEYFRAMES_SELECT);
+	/* set notifier that keyframe selection has changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
 	
 	return OPERATOR_FINISHED;
 }
  
-void GRAPHEDIT_OT_keyframes_columnselect (wmOperatorType *ot)
+void GRAPH_OT_select_column (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select All";
-	ot->idname= "GRAPHEDIT_OT_keyframes_columnselect";
+	ot->idname= "GRAPH_OT_select_column";
+	ot->description= "Select all keyframes on the specified frame(s).";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_columnselect_exec;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_visible_keyframes_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
@@ -560,16 +567,26 @@ static short findnearest_fcurve_vert (bAnimContext *ac, int mval[2], FCurve **fc
 	*fcurve= 0;
 	*bezt= 0;
 	
-	/* get curves to search through */
+	/* get curves to search through 
+	 *	- if the option to only show keyframes that belong to selected F-Curves is enabled,
+	 *	  include the 'only selected' flag...
+	 */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY);
+	if (sipo->flag & SIPO_SELCUVERTSONLY) 
+		filter |= ANIMFILTER_SEL;
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		FCurve *fcu= (FCurve *)ale->key_data;
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		/* try to progressively get closer to the right point... */
 		if (fcu->bezt) {
 			BezTriple *bezt1=fcu->bezt, *prevbezt=NULL;
+			
+			/* apply NLA mapping to all the keyframes */
+			if (adt)
+				ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
 			
 			for (i=0; i < fcu->totvert; i++, prevbezt=bezt1, bezt1++) {
 				/* convert beztriple points to screen-space */
@@ -624,6 +641,10 @@ static short findnearest_fcurve_vert (bAnimContext *ac, int mval[2], FCurve **fc
 					}
 				}
 			}
+			
+			/* un-apply NLA mapping from all the keyframes */
+			if (adt)
+				ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 	}
 	
@@ -702,7 +723,7 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, s
 	else {
 		BeztEditFunc select_cb;
 		BeztEditData bed;
-	
+		
 		/* initialise keyframe editing data */
 		memset(&bed, 0, sizeof(BeztEditData));
 		
@@ -722,7 +743,7 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, s
 	/* set active F-Curve (NOTE: sync the filter flags with findnearest_fcurve_vert) */
 	if (fcu->flag & FCURVE_SELECTED) {
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY);
-		ANIM_set_active_channel(ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
+		ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
 	}
 }
 
@@ -753,7 +774,7 @@ static void graphkeys_mselect_leftright (bAnimContext *ac, short leftright, shor
 	
 	memset(&bed, 0, sizeof(BeztEditFunc));
 	if (leftright == GRAPHKEYS_LRSEL_LEFT) {
-		bed.f1 = -MAXFRAMEF;
+		bed.f1 = MINAFRAMEF;
 		bed.f2 = (float)(CFRA + 0.1f);
 	} 
 	else {
@@ -767,12 +788,12 @@ static void graphkeys_mselect_leftright (bAnimContext *ac, short leftright, shor
 		
 	/* select keys on the side where most data occurs */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
-		if (nob) {
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 1);
+		if (adt) {
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
-			ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
@@ -827,11 +848,11 @@ static void graphkeys_mselect_column (bAnimContext *ac, int mval[2], short selec
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		Object *nob= ANIM_nla_mapping_get(ac, ale);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		/* set frame for validation callback to refer to */
-		if (nob)
-			bed.f1= get_action_frame(nob, selx);
+		if (adt)
+			bed.f1= BKE_nla_tweakedit_remap(adt, selx, NLATIME_CONVERT_UNMAP);
 		else
 			bed.f1= selx;
 		
@@ -901,22 +922,23 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
 		mouse_graph_keys(&ac, mval, selectmode, 0);
 	}
 	
-	/* set notifier that things have changed */
-	ANIM_animdata_send_notifiers(C, &ac, ANIM_CHANGED_BOTH);
+	/* set notifier that keyframe selection (and also channel selection in some cases) has changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT|ND_ANIMCHAN_SELECT, NULL);
 	
 	/* for tweak grab to work */
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 }
  
-void GRAPHEDIT_OT_keyframes_clickselect (wmOperatorType *ot)
+void GRAPH_OT_clickselect (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mouse Select Keys";
-	ot->idname= "GRAPHEDIT_OT_keyframes_clickselect";
+	ot->idname= "GRAPH_OT_clickselect";
+	ot->description= "Select keyframes by clicking on them.";
 	
 	/* api callbacks */
 	ot->invoke= graphkeys_clickselect_invoke;
-	ot->poll= ED_operator_areaactive;
+	ot->poll= graphop_visible_keyframes_poll;
 	
 	/* id-props */
 	// XXX should we make this into separate operators?

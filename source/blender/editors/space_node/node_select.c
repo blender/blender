@@ -107,7 +107,7 @@ static void node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short 
 static int node_select_exec(bContext *C, wmOperator *op)
 {
 	// XXX wmWindow *window=  CTX_wm_window(C);
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	ARegion *ar= CTX_wm_region(C);
 	int select_type;
 	short mval[2];
@@ -213,7 +213,7 @@ void NODE_OT_select(wmOperatorType *ot)
 	ot->modal= node_select_modal;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	RNA_def_enum(ot->srna, "select_type", prop_select_items, 0, "Select Type", "");
 	
@@ -232,7 +232,7 @@ static EnumPropertyItem prop_select_types[] = {
 
 static int node_borderselect_exec(bContext *C, wmOperator *op)
 {
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	ARegion *ar= CTX_wm_region(C);
 	bNode *node;
 	rcti rect;

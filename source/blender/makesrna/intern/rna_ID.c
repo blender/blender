@@ -67,7 +67,6 @@ short RNA_type_to_ID_code(StructRNA *type)
 	if(RNA_struct_is_a(type, &RNA_Curve)) return ID_CU;
 	if(RNA_struct_is_a(type, &RNA_Group)) return ID_GR;
 	if(RNA_struct_is_a(type, &RNA_Image)) return ID_IM;
-	//if(RNA_struct_is_a(type, &RNA_Ipo)) return case ID_IP;
 	if(RNA_struct_is_a(type, &RNA_Key)) return ID_KE;
 	if(RNA_struct_is_a(type, &RNA_Lamp)) return ID_LA;
 	if(RNA_struct_is_a(type, &RNA_Library)) return ID_LI;
@@ -100,7 +99,6 @@ StructRNA *ID_code_to_RNA_type(short idcode)
 		case ID_CU: return &RNA_Curve;
 		case ID_GR: return &RNA_Group;
 		case ID_IM: return &RNA_Image;
-		//case ID_IP: return &RNA_Ipo;
 		case ID_KE: return &RNA_Key;
 		case ID_LA: return &RNA_Lamp;
 		case ID_LI: return &RNA_Library;

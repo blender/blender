@@ -317,7 +317,7 @@ int handleMouseInput(TransInfo *t, MouseInput *mi, wmEvent *event)
 	{
 	case LEFTSHIFTKEY:
 	case RIGHTSHIFTKEY:
-		if (event->val)
+		if (event->val==KM_PRESS)
 		{
 			t->modifiers |= MOD_PRECISION;
 			/* shift is modifier for higher precision transform

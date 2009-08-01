@@ -62,10 +62,14 @@ ELSE(WITH_PYTHON)
   ADD_DEFINITIONS(-DDISABLE_PYTHON)
 ENDIF(WITH_PYTHON)
 
-IF(LINUX)
+IF(NOT WITH_SDL)
+  ADD_DEFINITIONS(-DDISABLE_SDL)
+ENDIF(NOT WITH_SDL)
+
+IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
   ADD_DEFINITIONS(-DWITH_BINRELOC)
   INCLUDE_DIRECTORIES(${BINRELOC_INC})
-endif(LINUX)
+ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 MESSAGE(STATUS "Configuring blender")
 
@@ -124,8 +128,11 @@ IF(APPLE)
     COMMAND cp -R ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/Resources/
     COMMAND cp -R ${CMAKE_SOURCE_DIR}/bin/.blender/locale ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
     COMMAND cp ${CMAKE_SOURCE_DIR}/bin/.blender/.Blanguages ${TARGETDIR}/blender.app/Contents/Resources/
-    COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
-    COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/ui ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
+    COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/scripts ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
+    COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/ui ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
+    COMMAND cp -Rf ${CMAKE_SOURCE_DIR}/release/io ${TARGETDIR}/blender.app/Contents/MacOS/.blender/
+    COMMAND mkdir ${TARGETDIR}/blender.app/Contents/MacOS/.blender/python/
+    COMMAND unzip -q ${LIBDIR}/release/python.zip -d ${TARGETDIR}/blender.app/Contents/MacOS/.blender/python/
     COMMAND find ${TARGETDIR}/blender.app -name CVS -prune -exec rm -rf {} "\;"
     COMMAND find ${TARGETDIR}/blender.app -name CVS.sandboxinfo -prune -exec rm -rf {} "\;"
     COMMAND find ${TARGETDIR}/blender.app -name .DS_Store -prune -exec rm -rf {} "\;"
@@ -249,6 +256,7 @@ IF(UNIX)
     bf_converter 
     bf_dummy 
     bf_bullet 
+    bf_smoke
     bf_common 
     bf_ketsji 
     bf_logic 

@@ -50,12 +50,17 @@ class KX_SCA_ReplaceMeshActuator : public SCA_IActuator
 	// mesh reference (mesh to replace)
 	RAS_MeshObject* m_mesh;
 	SCA_IScene*	 m_scene;
+	bool m_use_phys;
+	bool m_use_gfx; 
 
  public:
 	KX_SCA_ReplaceMeshActuator(
 		SCA_IObject* gameobj, 
 		RAS_MeshObject *mesh, 
-		SCA_IScene* scene);
+		SCA_IScene* scene,
+		bool use_gfx,
+		bool use_phys
+	);
 
 	~KX_SCA_ReplaceMeshActuator(
 	);
@@ -69,7 +74,6 @@ class KX_SCA_ReplaceMeshActuator : public SCA_IActuator
 
 	void	InstantReplaceMesh();
 
-	/* python api */
 	static PyObject* pyattr_get_mesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int pyattr_set_mesh(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 

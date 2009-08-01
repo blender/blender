@@ -1,6 +1,6 @@
 /*  BKE_action.h   May 2001
  *  
- *  Blender kernel action functionality
+ *  Blender kernel action and pose functionality
  *
  *	Reevan McKay
  *
@@ -26,7 +26,7 @@
  * All rights reserved.
  *
  * Contributor(s): Full recode, Ton Roosendaal, Crete 2005
- *				Full recode, Joshua Leung, 2009
+ *				 Full recode, Joshua Leung, 2009
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -68,6 +68,9 @@ void make_local_action(struct bAction *act);
 /* Some kind of bounding box operation on the action */
 void calc_action_range(const struct bAction *act, float *start, float *end, int incl_hidden);
 
+/* Does action have any motion data at all? */
+short action_has_motion(const struct bAction *act);
+
 /* Action Groups API ----------------- */
 
 /* Make the given Action Group the active one */
@@ -100,8 +103,7 @@ void free_pose(struct bPose *pose);
  * Allocate a new pose on the heap, and copy the src pose and it's channels
  * into the new pose. *dst is set to the newly allocated structure, and assumed to be NULL.
  */ 
-void copy_pose(struct bPose **dst, struct bPose *src,
-			   int copyconstraints);
+void copy_pose(struct bPose **dst, struct bPose *src, int copyconstraints);
 
 
 
@@ -109,9 +111,8 @@ void copy_pose(struct bPose **dst, struct bPose *src,
  * Return a pointer to the pose channel of the given name
  * from this pose.
  */
-struct  bPoseChannel *get_pose_channel(const struct bPose *pose,
-									   const char *name);
-									   
+struct bPoseChannel *get_pose_channel(const struct bPose *pose, const char *name);
+
 /**
  * Return a pointer to the active pose channel from this Object.
  * (Note: Object, not bPose is used here, as we need layer info from Armature)
@@ -123,8 +124,9 @@ struct bPoseChannel *get_active_posechannel(struct Object *ob);
  * already exists in this pose - if not a new one is
  * allocated and initialized.
  */
-struct bPoseChannel *verify_pose_channel(struct bPose* pose, 
-										 const char* name);
+struct bPoseChannel *verify_pose_channel(struct bPose* pose, const char* name);
+
+
 
 /* sets constraint flags */
 void update_pose_constraint_flags(struct bPose *pose);
@@ -133,23 +135,29 @@ void update_pose_constraint_flags(struct bPose *pose);
 // XXX to be depreceated for a more general solution in animsys...
 void framechange_poses_clear_unkeyed(void);
 
+/* Bone Groups API --------------------- */	
+
+/* Adds a new bone-group */
+void pose_add_group(struct Object *ob);
+
+/* Remove the active bone-group */
+void pose_remove_group(struct Object *ob);
+
+/* Assorted Evaluation ----------------- */	
+
 /* Used for the Action Constraint */
 void what_does_obaction(struct Scene *scene, struct Object *ob, struct Object *workob, struct bPose *pose, struct bAction *act, char groupname[], float cframe);
-
-/* exported for game engine */
-void game_blend_poses(struct bPose *dst, struct bPose *src, float srcweight/*, short mode*/); /* was blend_poses */
-void extract_pose_from_pose(struct bPose *pose, const struct bPose *src);
 
 /* for proxy */
 void copy_pose_result(struct bPose *to, struct bPose *from);
 /* clear all transforms */
 void rest_pose(struct bPose *pose);
 
-/* map global time (frame nr) to strip converted time, doesn't clip */
-float get_action_frame(struct Object *ob, float cframe);
-/* map strip time to global time (frame nr)  */
-float get_action_frame_inv(struct Object *ob, float cframe);
+/* Game Engine ------------------------- */
 
+/* exported for game engine */
+void game_blend_poses(struct bPose *dst, struct bPose *src, float srcweight/*, short mode*/); /* was blend_poses */
+void extract_pose_from_pose(struct bPose *pose, const struct bPose *src);
 
 /* functions used by the game engine */
 void game_copy_pose(struct bPose **dst, struct bPose *src);

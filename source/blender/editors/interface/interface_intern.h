@@ -84,7 +84,8 @@ typedef enum {
 	UI_WTYPE_RGB_PICKER,
 	UI_WTYPE_NORMAL,
 	UI_WTYPE_BOX,
-	UI_WTYPE_SCROLL
+	UI_WTYPE_SCROLL,
+	UI_WTYPE_LISTITEM
 	
 } uiWidgetTypeEnum;
 
@@ -185,7 +186,11 @@ struct uiBut {
 	
 	uiButSearchFunc search_func;
 	void *search_arg;
-	
+
+	uiButHandleRenameFunc rename_func;
+	void *rename_arg1;
+	void *rename_orig;
+
 	uiLink *link;
 	short linkto[2];
 	
@@ -268,7 +273,8 @@ struct uiBlock {
 	int (*block_event_func)(const struct bContext *C, struct uiBlock *, struct wmEvent *);
 	
 	/* extra draw function for custom blocks */
-	void (*drawextra)(const struct bContext *C, void *idv, rcti *rect);
+	void (*drawextra)(const struct bContext *C, void *idv, void *argv, rcti *rect);
+	void *drawextra_arg;
 
 	int afterval, flag;
 	
@@ -414,6 +420,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rct
 
 
 /* interface_handlers.c */
+extern void ui_button_activate_do(struct bContext *C, struct ARegion *ar, uiBut *but);
 extern void ui_button_active_cancel(const struct bContext *C, uiBut *but);
 extern int ui_button_is_active(struct ARegion *ar);
 
@@ -455,6 +462,9 @@ void ui_but_anim_delete_keyframe(struct bContext *C);
 void ui_but_anim_add_driver(struct bContext *C);
 void ui_but_anim_remove_driver(struct bContext *C);
 void ui_but_anim_menu(struct bContext *C, uiBut *but);
+int ui_but_anim_expression_get(uiBut *but, char *str, int maxlen);
+int ui_but_anim_expression_set(uiBut *but, const char *str);
+void ui_but_anim_autokey(uiBut *but, struct Scene *scene, float cfra);
 
 #endif
 

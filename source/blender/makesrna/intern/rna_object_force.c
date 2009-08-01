@@ -105,6 +105,7 @@ static void rna_Cache_toggle_disk_cache(bContext *C, PointerRNA *ptr)
 
 static void rna_Cache_idname_change(bContext *C, PointerRNA *ptr)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	PointCache *cache = (PointCache*)ptr->data;
 	PTCacheID *pid = NULL, *pid2= NULL;
@@ -119,33 +120,50 @@ static void rna_Cache_idname_change(bContext *C, PointerRNA *ptr)
 
 	BKE_ptcache_ids_from_object(&pidlist, ob);
 
-	for(pid=pidlist.first; pid; pid=pid->next) {
-		if(pid->cache==cache)
-			pid2 = pid;
-		else if(strcmp(cache->name, "") && strcmp(cache->name,pid->cache->name)==0) {
-			/*TODO: report "name exists" to user */
-			strcpy(cache->name, cache->prev_name);
-			new_name = 0;
+	if(cache->flag & PTCACHE_EXTERNAL) {
+		for(pid=pidlist.first; pid; pid=pid->next) {
+			if(pid->cache==cache)
+				break;
 		}
+
+		if(!pid)
+			return;
+
+		cache->flag |= (PTCACHE_BAKED|PTCACHE_DISK_CACHE|PTCACHE_SIMULATION_VALID);
+		cache->flag &= ~(PTCACHE_OUTDATED|PTCACHE_FRAMES_SKIPPED);
+
+		BKE_ptcache_load_external(pid);
+		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	}
-
-	if(new_name) {
-		if(pid2 && cache->flag & PTCACHE_DISK_CACHE) {
-			strcpy(name, cache->name);
-			strcpy(cache->name, cache->prev_name);
-
-			cache->flag &= ~PTCACHE_DISK_CACHE;
-
-			BKE_ptcache_toggle_disk_cache(pid2);
-
-			strcpy(cache->name, name);
-
-			cache->flag |= PTCACHE_DISK_CACHE;
-
-			BKE_ptcache_toggle_disk_cache(pid2);
+	else {
+		for(pid=pidlist.first; pid; pid=pid->next) {
+			if(pid->cache==cache)
+				pid2 = pid;
+			else if(strcmp(cache->name, "") && strcmp(cache->name,pid->cache->name)==0) {
+				/*TODO: report "name exists" to user */
+				strcpy(cache->name, cache->prev_name);
+				new_name = 0;
+			}
 		}
 
-		strcpy(cache->prev_name, cache->name);
+		if(new_name) {
+			if(pid2 && cache->flag & PTCACHE_DISK_CACHE) {
+				strcpy(name, cache->name);
+				strcpy(cache->name, cache->prev_name);
+
+				cache->flag &= ~PTCACHE_DISK_CACHE;
+
+				BKE_ptcache_toggle_disk_cache(pid2);
+
+				strcpy(cache->name, name);
+
+				cache->flag |= PTCACHE_DISK_CACHE;
+
+				BKE_ptcache_toggle_disk_cache(pid2);
+			}
+
+			strcpy(cache->prev_name, cache->name);
+		}
 	}
 
 	BLI_freelistN(&pidlist);
@@ -284,7 +302,7 @@ static void rna_FieldSettings_surface_update(bContext *C, PointerRNA *ptr)
 	/* add/remove modifier as needed */
 	if(!md) {
 		if(pd && (pd->flag & PFIELD_SURFACE))
-			if(ELEM5(pd->forcefield,PFIELD_HARMONIC,PFIELD_FORCE,PFIELD_HARMONIC,PFIELD_CHARGE,PFIELD_LENNARDJ))
+			if(ELEM6(pd->forcefield,PFIELD_HARMONIC,PFIELD_FORCE,PFIELD_HARMONIC,PFIELD_CHARGE,PFIELD_LENNARDJ,PFIELD_BOID))
 				if(ELEM4(ob->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE))
 					ED_object_modifier_add(NULL, scene, ob, eModifierType_Surface);
 	}
@@ -365,10 +383,15 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "End", "Frame on which the simulation stops.");
 
 	prop= RNA_def_property(srna, "step", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "step");
 	RNA_def_property_range(prop, 1, 20);
 	RNA_def_property_ui_text(prop, "Cache Step", "Number of frames between cached frames.");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_change");
+
+	prop= RNA_def_property(srna, "index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "index");
+	RNA_def_property_range(prop, -1, 100);
+	RNA_def_property_ui_text(prop, "Cache Index", "Index number of cache files.");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
 
 	/* flags */
 	prop= RNA_def_property(srna, "baked", PROP_BOOLEAN, PROP_NONE);
@@ -398,6 +421,11 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "Cache name");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
 
+	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_sdna(prop, NULL, "path");
+	RNA_def_property_ui_text(prop, "File Path", "Cache file path.");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
+
 	prop= RNA_def_property(srna, "quick_cache", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_QUICK_CACHE);
 	RNA_def_property_ui_text(prop, "Quick Cache", "Update simulation with cache steps");
@@ -407,6 +435,11 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "info");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Cache Info", "Info on current cache status.");
+
+	prop= RNA_def_property(srna, "external", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_EXTERNAL);
+	RNA_def_property_ui_text(prop, "External", "Read cache from an external location");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
 }
 
 static void rna_def_collision(BlenderRNA *brna)
@@ -504,6 +537,7 @@ static void rna_def_field(BlenderRNA *brna)
 		{PFIELD_HARMONIC, "HARMONIC", 0, "Harmonic", ""},
 		{PFIELD_CHARGE, "CHARGE", 0, "Charge", ""},
 		{PFIELD_LENNARDJ, "LENNARDJ", 0, "Lennard-Jones", ""},
+		{PFIELD_BOID, "BOID", 0, "Boid", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem falloff_items[] = {

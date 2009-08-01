@@ -93,6 +93,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
 #include "DNA_actuator_types.h"
+#include "DNA_boid_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
@@ -129,6 +130,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "DNA_sdna_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_sensor_types.h"
+#include "DNA_smoke_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sound_types.h"
@@ -497,12 +499,6 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 		writestruct(wd, DATA, "bNodeLink", 1, link);
 }
 
-static void write_scriptlink(WriteData *wd, ScriptLink *slink)
-{
-	writedata(wd, DATA, sizeof(void *)*slink->totscript, slink->scripts);
-	writedata(wd, DATA, sizeof(short)*slink->totscript, slink->flag);
-}
-
 static void current_screen_compat(Main *mainvar, bScreen **screen)
 {
 	wmWindowManager *wm;
@@ -550,6 +546,39 @@ static void write_userdef(WriteData *wd)
 	}
 }
 
+static void write_boid_state(WriteData *wd, BoidState *state)
+{
+	BoidRule *rule = state->rules.first;
+	//BoidCondition *cond = state->conditions.first;
+
+	writestruct(wd, DATA, "BoidState", 1, state);
+
+	for(; rule; rule=rule->next) {
+		switch(rule->type) {
+			case eBoidRuleType_Goal:
+			case eBoidRuleType_Avoid:
+				writestruct(wd, DATA, "BoidRuleGoalAvoid", 1, rule);
+				break;
+			case eBoidRuleType_AvoidCollision:
+				writestruct(wd, DATA, "BoidRuleAvoidCollision", 1, rule);
+				break;
+			case eBoidRuleType_FollowLeader:
+				writestruct(wd, DATA, "BoidRuleFollowLeader", 1, rule);
+				break;
+			case eBoidRuleType_AverageSpeed:
+				writestruct(wd, DATA, "BoidRuleAverageSpeed", 1, rule);
+				break;
+			case eBoidRuleType_Fight:
+				writestruct(wd, DATA, "BoidRuleFight", 1, rule);
+				break;
+			default:
+				writestruct(wd, DATA, "BoidRule", 1, rule);
+				break;
+		}
+	}
+	//for(; cond; cond=cond->next)
+	//	writestruct(wd, DATA, "BoidCondition", 1, cond);
+}
 /* TODO: replace *cache with *cachelist once it's coded */
 #define PTCACHE_WRITE_PSYS	0
 #define PTCACHE_WRITE_CLOTH	1
@@ -582,6 +611,15 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 			if (part->adt) write_animdata(wd, part->adt);
 			writestruct(wd, DATA, "PartDeflect", 1, part->pd);
 			writestruct(wd, DATA, "PartDeflect", 1, part->pd2);
+
+			if(part->boids && part->phystype == PART_PHYS_BOIDS) {
+				BoidState *state = part->boids->states.first;
+
+				writestruct(wd, DATA, "BoidSettings", 1, part->boids);
+
+				for(; state; state=state->next)
+					write_boid_state(wd, state);
+			}
 		}
 		part= part->id.next;
 	}
@@ -589,6 +627,7 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 static void write_particlesystems(WriteData *wd, ListBase *particles)
 {
 	ParticleSystem *psys= particles->first;
+	ParticleTarget *pt;
 	int a;
 
 	for(; psys; psys=psys->next) {
@@ -603,7 +642,14 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 				for(a=0; a<psys->totpart; a++, pa++)
 					writestruct(wd, DATA, "HairKey", pa->totkey, pa->hair);
 			}
+
+			if(psys->particles->boid && psys->part->phystype == PART_PHYS_BOIDS)
+				writestruct(wd, DATA, "BoidData", psys->totpart, psys->particles->boid);
 		}
+		pt = psys->targets.first;
+		for(; pt; pt=pt->next)
+			writestruct(wd, DATA, "ParticleTarget", 1, pt);
+
 		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
 		writestruct(wd, DATA, "SoftBody", 1, psys->soft);
 		if(psys->soft) write_pointcaches(wd, psys->soft->pointcache, PTCACHE_WRITE_PSYS);
@@ -781,10 +827,59 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 	}
 }
 
+static void write_fmodifiers(WriteData *wd, ListBase *fmodifiers)
+{
+	FModifier *fcm;
+	
+	/* Modifiers */
+	for (fcm= fmodifiers->first; fcm; fcm= fcm->next) {
+		FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
+		
+		/* Write the specific data */
+		if (fmi && fcm->data) {
+			/* firstly, just write the plain fmi->data struct */
+			writestruct(wd, DATA, fmi->structName, 1, fcm->data);
+			
+			/* do any modifier specific stuff */
+			switch (fcm->type) {
+				case FMODIFIER_TYPE_GENERATOR:
+				{
+					FMod_Generator *data= (FMod_Generator *)fcm->data;
+					
+					/* write coefficients array */
+					if (data->coefficients)
+						writedata(wd, DATA, sizeof(float)*(data->arraysize), data->coefficients);
+				}
+					break;
+				case FMODIFIER_TYPE_ENVELOPE:
+				{
+					FMod_Envelope *data= (FMod_Envelope *)fcm->data;
+					
+					/* write envelope data */
+					if (data->data)
+						writedata(wd, DATA, sizeof(FCM_EnvelopeData)*(data->totvert), data->data);
+				}
+					break;
+				case FMODIFIER_TYPE_PYTHON:
+				{
+					FMod_Python *data = (FMod_Python *)fcm->data;
+					
+					/* Write ID Properties -- and copy this comment EXACTLY for easy finding
+					 of library blocks that implement this.*/
+					IDP_WriteProperty(data->prop, wd);
+				}
+					break;
+			}
+		}
+		
+		/* Write the modifier */
+		writestruct(wd, DATA, "FModifier", 1, fcm);
+	}
+}
+
 static void write_fcurves(WriteData *wd, ListBase *fcurves)
 {
 	FCurve *fcu;
-	FModifier *fcm;
 	
 	for (fcu=fcurves->first; fcu; fcu=fcu->next) {
 		/* F-Curve */
@@ -815,50 +910,8 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 			}
 		}
 		
-		/* Modifiers */
-		for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
-			FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
-			
-			/* Write the specific data */
-			if (fmi && fcm->data) {
-				/* firstly, just write the plain fmi->data struct */
-				writestruct(wd, DATA, fmi->structName, 1, fcm->data);
-				
-				/* do any modifier specific stuff */
-				switch (fcm->type) {
-					case FMODIFIER_TYPE_GENERATOR:
-					{
-						FMod_Generator *data= (FMod_Generator *)fcm->data;
-						
-						/* write coefficients array */
-						if (data->coefficients)
-							writedata(wd, DATA, sizeof(float)*(data->arraysize), data->coefficients);
-					}
-						break;
-					case FMODIFIER_TYPE_ENVELOPE:
-					{
-						FMod_Envelope *data= (FMod_Envelope *)fcm->data;
-						
-						/* write envelope data */
-						if (data->data)
-							writedata(wd, DATA, sizeof(FCM_EnvelopeData)*(data->totvert), data->data);
-					}
-						break;
-					case FMODIFIER_TYPE_PYTHON:
-					{
-						FMod_Python *data = (FMod_Python *)fcm->data;
-						
-						/* Write ID Properties -- and copy this comment EXACTLY for easy finding
-						 of library blocks that implement this.*/
-						IDP_WriteProperty(data->prop, wd);
-					}
-						break;
-				}
-			}
-			
-			/* Write the modifier */
-			writestruct(wd, DATA, "FModifier", 1, fcm);
-		}
+		/* write F-Modifiers */
+		write_fmodifiers(wd, &fcu->modifiers);
 	}
 }
 
@@ -909,6 +962,37 @@ static void write_keyingsets(WriteData *wd, ListBase *list)
 	}
 }
 
+static void write_nlastrips(WriteData *wd, ListBase *strips)
+{
+	NlaStrip *strip;
+	
+	for (strip= strips->first; strip; strip= strip->next) {
+		/* write the strip first */
+		writestruct(wd, DATA, "NlaStrip", 1, strip);
+		
+		/* write the strip's F-Curves and modifiers */
+		write_fcurves(wd, &strip->fcurves);
+		write_fmodifiers(wd, &strip->modifiers);
+		
+		/* write the strip's children */
+		write_nlastrips(wd, &strip->strips);
+	}
+}
+
+static void write_nladata(WriteData *wd, ListBase *nlabase)
+{
+	NlaTrack *nlt;
+	
+	/* write all the tracks */
+	for (nlt= nlabase->first; nlt; nlt= nlt->next) {
+		/* write the track first */
+		writestruct(wd, DATA, "NlaTrack", 1, nlt);
+		
+		/* write the track's strips */
+		write_nlastrips(wd, &nlt->strips);
+	}
+}
+
 static void write_animdata(WriteData *wd, AnimData *adt)
 {
 	AnimOverride *aor;
@@ -920,14 +1004,17 @@ static void write_animdata(WriteData *wd, AnimData *adt)
 	write_fcurves(wd, &adt->drivers);
 	
 	/* write overrides */
+	// FIXME: are these needed?
 	for (aor= adt->overrides.first; aor; aor= aor->next) {
 		/* overrides consist of base data + rna_path */
 		writestruct(wd, DATA, "AnimOverride", 1, aor);
 		writedata(wd, DATA, strlen(aor->rna_path)+1, aor->rna_path);
 	}
 	
+	// TODO write the remaps (if they are needed)
+	
 	/* write NLA data */
-	// XXX todo...
+	write_nladata(wd, &adt->nla_tracks);
 }
 
 static void write_constraints(WriteData *wd, ListBase *conlist)
@@ -1030,6 +1117,18 @@ static void write_modifiers(WriteData *wd, ListBase *modbase, int write_undo)
 			writestruct(wd, DATA, "ClothCollSettings", 1, clmd->coll_parms);
 			write_pointcaches(wd, clmd->point_cache, PTCACHE_WRITE_CLOTH);
 		} 
+		else if(md->type==eModifierType_Smoke) {
+			SmokeModifierData *smd = (SmokeModifierData*) md;
+			
+			if(smd->type==MOD_SMOKE_TYPE_DOMAIN)
+				writestruct(wd, DATA, "SmokeDomainSettings", 1, smd->domain);
+			else if(smd->type==MOD_SMOKE_TYPE_FLOW)
+				writestruct(wd, DATA, "SmokeFlowSettings", 1, smd->flow);
+			/*
+			else if(smd->type==MOD_SMOKE_TYPE_COLL)
+				writestruct(wd, DATA, "SmokeCollSettings", 1, smd->coll);
+			*/
+		} 
 		else if(md->type==eModifierType_Fluidsim) {
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
 			
@@ -1085,12 +1184,12 @@ static void write_objects(WriteData *wd, ListBase *idbase, int write_undo)
 			
 			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*ob->totcol, ob->mat);
+			writedata(wd, DATA, sizeof(char)*ob->totcol, ob->matbits);
 			/* write_effects(wd, &ob->effect); */ /* not used anymore */
 			write_properties(wd, &ob->prop);
 			write_sensors(wd, &ob->sensors);
 			write_controllers(wd, &ob->controllers);
 			write_actuators(wd, &ob->actuators);
-			write_scriptlink(wd, &ob->scriptlink);
 			write_pose(wd, ob->pose);
 			write_defgroups(wd, &ob->defbase);
 			write_constraints(wd, &ob->constraints);
@@ -1178,9 +1277,6 @@ static void write_cameras(WriteData *wd, ListBase *idbase)
 			if (cam->id.properties) IDP_WriteProperty(cam->id.properties, wd);
 			
 			if (cam->adt) write_animdata(wd, cam->adt);
-			
-			/* direct data */
-			write_scriptlink(wd, &cam->scriptlink);
 		}
 
 		cam= cam->id.next;
@@ -1508,8 +1604,6 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 			if(ma->ramp_col) writestruct(wd, DATA, "ColorBand", 1, ma->ramp_col);
 			if(ma->ramp_spec) writestruct(wd, DATA, "ColorBand", 1, ma->ramp_spec);
 			
-			write_scriptlink(wd, &ma->scriptlink);
-			
 			/* nodetree is integral part of material, no libdata */
 			if(ma->nodetree) {
 				writestruct(wd, DATA, "bNodeTree", 1, ma->nodetree);
@@ -1540,8 +1634,6 @@ static void write_worlds(WriteData *wd, ListBase *idbase)
 				if(wrld->mtex[a]) writestruct(wd, DATA, "MTex", 1, wrld->mtex[a]);
 			}
 			
-			write_scriptlink(wd, &wrld->scriptlink);
-			
 			write_previews(wd, wrld->preview);
 		}
 		wrld= wrld->id.next;
@@ -1569,8 +1661,6 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 			
 			if(la->curfalloff)
 				write_curvemapping(wd, la->curfalloff);	
-			
-			write_scriptlink(wd, &la->scriptlink);
 			
 			write_previews(wd, la->preview);
 			
@@ -1682,8 +1772,6 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 				writestruct(wd, DATA, "MetaStack", 1, ms);
 			}
 		}
-		
-		write_scriptlink(wd, &sce->scriptlink);
 		
 		if (sce->r.avicodecdata) {
 			writestruct(wd, DATA, "AviCodecData", 1, sce->r.avicodecdata);
@@ -1826,9 +1914,6 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "Panel", 1, pa);
 			}
 			
-			/* space handler scriptlinks */
-			write_scriptlink(wd, &sa->scriptlink);
-			
 			sl= sa->spacedata.first;
 			while(sl) {
 				for(ar= sl->regionbase.first; ar; ar= ar->next)
@@ -1899,7 +1984,10 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "SpaceSound", 1, sl);
 				}
 				else if(sl->spacetype==SPACE_NLA){
-					writestruct(wd, DATA, "SpaceNla", 1, sl);
+					SpaceNla *snla= (SpaceNla *)sl;
+					
+					writestruct(wd, DATA, "SpaceNla", 1, snla);
+					if(snla->ads) writestruct(wd, DATA, "bDopeSheet", 1, snla->ads);
 				}
 				else if(sl->spacetype==SPACE_TIME){
 					writestruct(wd, DATA, "SpaceTime", 1, sl);
@@ -1909,6 +1997,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				}
 				else if(sl->spacetype==SPACE_LOGIC){
 					writestruct(wd, DATA, "SpaceLogic", 1, sl);
+				}
+				else if(sl->spacetype==SPACE_CONSOLE) {
+					writestruct(wd, DATA, "SpaceConsole", 1, sl);
 				}
 				sl= sl->next;
 			}

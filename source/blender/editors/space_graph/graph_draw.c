@@ -52,6 +52,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -722,24 +723,6 @@ static void draw_fcurve_curve_bezts (FCurve *fcu, View2D *v2d, View2DGrid *grid)
 	glEnd();
 } 
 
-#if 0
-static void draw_ipokey(SpaceIpo *sipo, ARegion *ar)
-{
-	View2D *v2d= &ar->v2d;
-	IpoKey *ik;
-	
-	glBegin(GL_LINES);
-	for (ik= sipo->ipokey.first; ik; ik= ik->next) {
-		if (ik->flag & SELECT) glColor3ub(0xFF, 0xFF, 0x99);
-		else glColor3ub(0xAA, 0xAA, 0x55);
-		
-		glVertex2f(ik->val, v2d->cur.ymin);
-		glVertex2f(ik->val, v2d->cur.ymax);
-	}
-	glEnd();
-}
-#endif
-
 /* Public Curve-Drawing API  ---------------- */
 
 /* Draw the 'ghost' F-Curves (i.e. snapshots of the curve) */
@@ -775,46 +758,6 @@ void graph_draw_ghost_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, Vie
 	glDisable(GL_BLEND);
 }
 
-/* check if any FModifiers to draw controls for  - fcm is 'active' modifier */
-static short fcurve_needs_draw_fmodifier_controls (FCurve *fcu, FModifier *fcm)
-{
-	/* don't draw if there aren't any modifiers at all */
-	if (fcu->modifiers.first == NULL) 
-		return 0;
-	
-	/* if there's an active modifier - don't draw if it doesn't drastically
-	 * alter the curve...
-	 */
-	if (fcm) {
-		switch (fcm->type) {
-			/* clearly harmless */
-			case FMODIFIER_TYPE_CYCLES:
-				return 0;
-				
-			/* borderline... */
-			case FMODIFIER_TYPE_NOISE:
-				return 0;
-		}
-	}
-	
-	/* if only one modifier - don't draw if it is muted or disabled */
-	if (fcu->modifiers.first == fcu->modifiers.last) {
-		fcm= fcu->modifiers.first;
-		if (fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) 
-			return 0;
-	}
-	
-	/* if only active modifier - don't draw if it is muted or disabled */
-	if (fcm) {
-		if (fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) 
-			return 0;
-	}
-	
-	/* if we're still here, this means that there are modifiers with controls to be drawn */
-	// FIXME: what happens if all the modifiers were muted/disabled
-	return 1;
-}
-
 /* This is called twice from space_graph.c -> graph_main_area_draw()
  * Unselected then selected F-Curves are drawn so that they do not occlude each other.
  */
@@ -835,12 +778,12 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 	 */
 	for (ale=anim_data.first; ale; ale=ale->next) {
 		FCurve *fcu= (FCurve *)ale->key_data;
-		FModifier *fcm= fcurve_find_active_modifier(fcu);
-		//Object *nob= ANIM_nla_mapping_get(ac, ale);
+		FModifier *fcm= find_active_fmodifier(&fcu->modifiers);
+		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		/* map keyframes for drawing if scaled F-Curve */
-		//if (nob)
-		//	ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 0, 0); 
+		if (adt)
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 0); 
 		
 		/* draw curve:
 		 *	- curve line may be result of one or more destructive modifiers or just the raw data,
@@ -894,32 +837,36 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 			glDisable(GL_BLEND);
 		}
 		
-		/* 2) draw handles and vertices as appropriate based on active */
-		if (fcurve_needs_draw_fmodifier_controls(fcu, fcm)) {
-			/* only draw controls if this is the active modifier */
-			if ((fcu->flag & FCURVE_ACTIVE) && (fcm)) {
-				switch (fcm->type) {
-					case FMODIFIER_TYPE_ENVELOPE: /* envelope */
-						draw_fcurve_modifier_controls_envelope(fcu, fcm, &ar->v2d);
-						break;
+		/* 2) draw handles and vertices as appropriate based on active 
+		 *	- if the option to only show controls if the F-Curve is selected is enabled, we must obey this
+		 */
+		if (!(sipo->flag & SIPO_SELCUVERTSONLY) || (fcu->flag & FCURVE_SELECTED)) {
+			if (fcurve_needs_draw_fmodifier_controls(fcu, fcm)) {
+				/* only draw controls if this is the active modifier */
+				if ((fcu->flag & FCURVE_ACTIVE) && (fcm)) {
+					switch (fcm->type) {
+						case FMODIFIER_TYPE_ENVELOPE: /* envelope */
+							draw_fcurve_modifier_controls_envelope(fcu, fcm, &ar->v2d);
+							break;
+					}
 				}
 			}
-		}
-		else if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 
-			if (fcu->bezt) {
-				/* only draw handles/vertices on keyframes */
-				draw_fcurve_handles(sipo, ar, fcu);
-				draw_fcurve_vertices(sipo, ar, fcu);
-			}
-			else {
-				/* samples: should we only draw two indicators at either end as indicators? */
-				draw_fcurve_samples(sipo, ar, fcu);
+			else if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 
+				if (fcu->bezt) {
+					/* only draw handles/vertices on keyframes */
+					draw_fcurve_handles(sipo, ar, fcu);
+					draw_fcurve_vertices(sipo, ar, fcu);
+				}
+				else {
+					/* samples: should we only draw two indicators at either end as indicators? */
+					draw_fcurve_samples(sipo, ar, fcu);
+				}
 			}
 		}
 		
 		/* undo mapping of keyframes for drawing if scaled F-Curve */
-		//if (nob)
-		//	ANIM_nla_mapping_apply_fcurve(nob, ale->key_data, 1, 0); 
+		if (adt)
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0); 
 	}
 	
 	/* free list of curves */
@@ -1078,6 +1025,22 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					strcpy(name, "Materials");
 				}
 					break;
+				case ANIMTYPE_FILLPARTD: /* object particles (dopesheet) expand widget */
+				{
+					Object *ob = (Object *)ale->data;
+					
+					group = 4;
+					indent = 1;
+					special = ICON_PARTICLE_DATA;
+					
+					if (FILTER_PART_OBJC(ob))
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+						
+					strcpy(name, "Particles");
+				}
+					break;
 				
 				
 				case ANIMTYPE_DSMAT: /* single material (dopesheet) expand widget */
@@ -1178,6 +1141,23 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					strcpy(name, wo->id.name+2);
 				}
 					break;
+				case ANIMTYPE_DSPART: /* particle (dopesheet) expand widget */
+				{
+					ParticleSettings *part= (ParticleSettings*)ale->data;
+					
+					group = 0;
+					indent = 0;
+					special = ICON_PARTICLE_DATA;
+					offset = 21;
+					
+					if (FILTER_PART_OBJD(part))	
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+					
+					strcpy(name, part->id.name+2);
+				}
+					break;
 				
 				
 				case ANIMTYPE_GROUP: /* action group */
@@ -1206,6 +1186,17 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 							expand = ICON_TRIA_RIGHT;
 					}
 					
+					/* for now, 'special' (i.e. in front of name) is used to show visibility status */
+					if (agrp->flag & AGRP_NOTVISIBLE)
+						special= ICON_CHECKBOX_DEHLT;
+					else
+						special= ICON_CHECKBOX_HLT;
+					
+					if (agrp->flag & AGRP_MUTED)
+						mute = ICON_MUTE_IPO_ON;
+					else	
+						mute = ICON_MUTE_IPO_OFF;
+					
 					if (EDITABLE_AGRP(agrp))
 						protect = ICON_UNLOCKED;
 					else
@@ -1225,8 +1216,8 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 					grp= fcu->grp;
 					
 					if (ale->id) {
-						/* special exception for materials */
-						if (GS(ale->id->name) == ID_MA) {
+						/* special exception for materials and particles */
+						if (ELEM(GS(ale->id->name),ID_MA,ID_PA)) {
 							offset= 21;
 							indent= 1;
 						}

@@ -36,6 +36,7 @@
 #include <map>
 
 #include "wm_event_types.h"
+#include "WM_types.h"
 #include "SCA_IInputDevice.h"
 
 

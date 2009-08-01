@@ -32,10 +32,10 @@ IF(WITH_QUICKTIME)
   ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
-IF(LINUX)
+IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
   ADD_DEFINITIONS(-DWITH_BINRELOC)
   INCLUDE_DIRECTORIES(${BINRELOC_INC})
-endif(LINUX)
+ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 ADD_CUSTOM_COMMAND(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/dna.c
@@ -69,7 +69,6 @@ IF(UNIX)
     bf_blenkernel 
     verse 
     bf_blenkernel 
-    bf_decimation 
     bf_blenloader 
     bf_blenpluginapi 
     bf_blroutines 

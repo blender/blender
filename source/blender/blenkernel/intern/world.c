@@ -36,7 +36,6 @@
 
 #include "DNA_world_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_scriptlink_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_camera_types.h"
@@ -66,10 +65,7 @@ void free_world(World *wrld)
 {
 	MTex *mtex;
 	int a;
-
-#ifndef DISABLE_PYTHON
-	BPY_free_scriptlink(&wrld->scriptlink);
-#endif
+	
 	for(a=0; a<MAX_MTEX; a++) {
 		mtex= wrld->mtex[a];
 		if(mtex && mtex->tex) mtex->tex->id.us--;
@@ -94,7 +90,6 @@ World *add_world(char *name)
 	wrld->skytype= WO_SKYBLEND;
 	wrld->stardist= 15.0f;
 	wrld->starsize= 2.0f;
-	wrld->gravity= 9.8f;
 	
 	wrld->exp= 0.0f;
 	wrld->exposure=wrld->range= 1.0f;
@@ -106,14 +101,7 @@ World *add_world(char *name)
 	wrld->ao_samp_method = WO_AOSAMP_HAMMERSLEY;	
 	wrld->ao_approx_error= 0.25f;
 	
-	wrld->physicsEngine= WOPHY_BULLET;//WOPHY_SUMO; Bullet by default
-	wrld->mode = WO_DBVT_CULLING;	// DBVT culling by default
-	wrld->occlusionRes = 128;
 	wrld->preview = NULL;
-	wrld->ticrate = 60;
-	wrld->maxlogicstep = 5;
-	wrld->physubstep = 1;
-	wrld->maxphystep = 5;
 
 	return wrld;
 }
@@ -134,9 +122,6 @@ World *copy_world(World *wrld)
 	}
 	
 	if (wrld->preview) wrldn->preview = BKE_previewimg_copy(wrld->preview);
-#ifndef DISABLE_PYTHON
-	BPY_copy_scriptlink(&wrld->scriptlink);
-#endif
 
 #if 0 // XXX old animation system
 	id_us_plus((ID *)wrldn->ipo);

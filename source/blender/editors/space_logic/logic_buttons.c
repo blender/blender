@@ -66,6 +66,7 @@
 
 #include "logic_intern.h"
 
+#if 0
 static void do_logic_panel_events(bContext *C, void *arg, int event)
 {
 	
@@ -79,7 +80,7 @@ static void do_logic_panel_events(bContext *C, void *arg, int event)
 
 static void logic_panel_properties(const bContext *C, Panel *pa)
 {
-//	SpaceLogic *slogic= (SpaceLogic*)CTX_wm_space_data(C);
+//	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	uiBlock *block;
 	
 	block= uiLayoutFreeBlock(pa->layout);
@@ -89,17 +90,18 @@ static void logic_panel_properties(const bContext *C, Panel *pa)
 
 static void logic_panel_view_properties(const bContext *C, Panel *pa)
 {
-	//	SpaceLogic *slogic= (SpaceLogic*)CTX_wm_space_data(C);
+	//	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	uiBlock *block;
 	
 	block= uiLayoutFreeBlock(pa->layout);
 	uiBlockSetHandleFunc(block, do_logic_panel_events, NULL);
 	
 }	
-
+#endif
 
 void logic_buttons_register(ARegionType *art)
 {
+#if 0
 	PanelType *pt;
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype logic panel properties");
@@ -113,6 +115,7 @@ void logic_buttons_register(ARegionType *art)
 	strcpy(pt->label, "View Properties");
 	pt->draw= logic_panel_view_properties;
 	BLI_addtail(&art->paneltypes, pt);
+#endif
 
 }
 

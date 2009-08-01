@@ -8,14 +8,15 @@ class PhysicButtonsPanel(bpy.types.Panel):
 
 	def poll(self, context):
 		ob = context.object
-		return (ob and ob.type == 'MESH')
+		rd = context.scene.render_data
+		return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
 		
 class PHYSICS_PT_fluid(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_fluid"
 	__label__ = "Fluid"
 
 	def draw(self, context):
 		layout = self.layout
+		
 		md = context.fluid
 		ob = context.object
 
@@ -25,87 +26,113 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 		if md:
 			# remove modifier + settings
 			split.set_context_pointer("modifier", md)
-			split.itemO("OBJECT_OT_modifier_remove", text="Remove")
+			split.itemO("object.modifier_remove", text="Remove")
 
 			row = split.row(align=True)
 			row.itemR(md, "render", text="")
 			row.itemR(md, "realtime", text="")
+			
+			fluid = md.settings
+			
 		else:
 			# add modifier
-			split.item_enumO("OBJECT_OT_modifier_add", "type", "FLUID_SIMULATION", text="Add")
+			split.item_enumO("object.modifier_add", "type", "FLUID_SIMULATION", text="Add")
 			split.itemL()
-
-		if md:
-			fluid = md.settings
-
-			col = layout.column(align=True)
-			row = col.row()
-			row.item_enumR(fluid, "type", "DOMAIN")
-			row.item_enumR(fluid, "type", "FLUID")
-			row.item_enumR(fluid, "type", "OBSTACLE")
-			row = col.row()
-			row.item_enumR(fluid, "type", "INFLOW")
-			row.item_enumR(fluid, "type", "OUTFLOW")
-			row.item_enumR(fluid, "type", "PARTICLE")
-			row.item_enumR(fluid, "type", "CONTROL")
+			
+			fluid = None
+		
+		
+		if fluid:
+			layout.itemR(fluid, "type")
 
 			if fluid.type == 'DOMAIN':
-				layout.itemO("FLUID_OT_bake", text="BAKE")
-				layout.itemL(text="Required Memory: " + fluid.memory_estimate)
-				
-				layout.itemL(text="Resolution:")
-				
+				layout.itemO("fluid.bake", text="BAKE")
 				split = layout.split()
 				
 				col = split.column()
-				colsub = col.column(align=True)
-				colsub.itemR(fluid, "resolution", text="Final")
-				colsub.itemR(fluid, "render_display_mode", text="")
-				colsub = col.column(align=True)
-				colsub.itemL(text="Time:")
-				colsub.itemR(fluid, "start_time", text="Start")
-				colsub.itemR(fluid, "end_time", text="End")
+				col.itemL(text="Resolution:")
+				sub = col.column()
+				sub.itemR(fluid, "resolution", text="Final")
+				sub.itemL(text="Render Display:")
+				sub.itemR(fluid, "render_display_mode", text="")
+				col.itemL(text="Time:")
+				sub = col.column(align=True)
+				sub.itemR(fluid, "start_time", text="Start")
+				sub.itemR(fluid, "end_time", text="End")
 				
 				col = split.column()
-				colsub = col.column(align=True)
-				colsub.itemR(fluid, "preview_resolution", text="Preview", slider=True)
-				colsub.itemR(fluid, "viewport_display_mode", text="")
-				colsub = col.column()
-				colsub.itemR(fluid, "reverse_frames")
-				colsub.itemR(fluid, "generate_speed_vectors")
-				colsub.itemR(fluid, "path", text="")
+				col.itemL(text="Required Memory: " + fluid.memory_estimate)
+				col.itemR(fluid, "preview_resolution", text="Preview")
+				col.itemL(text="Viewport Display:")
+				col.itemR(fluid, "viewport_display_mode", text="")
+				col.itemL()
+				col.itemR(fluid, "reverse_frames")
+				col.itemR(fluid, "generate_speed_vectors")
 				
-			if fluid.type in ('FLUID', 'OBSTACLE', 'INFLOW', 'OUTFLOW'):
-				layout.itemR(fluid, "volume_initialization")
+				layout.itemR(fluid, "path", text="")
 				
-			if fluid.type == 'FLUID':
-				row = layout.row()
-				row.column().itemR(fluid, "initial_velocity")
-				row.itemR(fluid, "export_animated_mesh")
+			elif fluid.type == 'FLUID':
+				split = layout.split()
 				
-			if fluid.type == 'OBSTACLE':
-				row = layout.row()
-				row.itemL()
-				row.itemR(fluid, "export_animated_mesh")
-				layout.itemR(fluid, "slip_type", expand=True)
+				col = split.column()
+				col.itemL(text="Volume Initialization:")
+				col.itemR(fluid, "volume_initialization", text="")
+				col.itemR(fluid, "export_animated_mesh")
+				
+				col = split.column()
+				col.itemL(text="Initial Velocity:")
+				col.itemR(fluid, "initial_velocity", text="")
+				
+			elif fluid.type == 'OBSTACLE':
+				split = layout.split()
+				
+				col = split.column()
+				col.itemL(text="Volume Initialization:")
+				col.itemR(fluid, "volume_initialization", text="")
+				col.itemR(fluid, "export_animated_mesh")
+				
+				col = split.column()
+				col.itemL(text="Slip Type:")
+				sub = col.column(align=True)
+				sub.itemR(fluid, "slip_type", text="")
 				if fluid.slip_type == 'PARTIALSLIP':
-					layout.itemR(fluid, "partial_slip_amount", text="Amount")
+					sub.itemR(fluid, "partial_slip_amount", slider=True, text="Amount")
 					
-				layout.itemR(fluid, "impact_factor")
+				col.itemR(fluid, "impact_factor")
 				
-			if fluid.type == 'INFLOW':
-				row = layout.row()
-				row.column().itemR(fluid, "inflow_velocity")
-				row.itemR(fluid, "export_animated_mesh")
-				layout.itemR(fluid, "local_coordinates")
-				
-			if fluid.type == 'OUTFLOW':
-				row = layout.row()
-				row.itemL()
-				row.itemR(fluid, "export_animated_mesh")
-				
-			if fluid.type == 'PARTICLE':
+			elif fluid.type == 'INFLOW':
 				split = layout.split()
+				
+				col = split.column()
+				col.itemL(text="Volume Initialization:")
+				col.itemR(fluid, "volume_initialization", text="")
+				col.itemR(fluid, "export_animated_mesh")
+				col.itemR(fluid, "local_coordinates")
+				
+				col = split.column()
+				col.itemL(text="Inflow Velocity:")
+				col.itemR(fluid, "inflow_velocity", text="")
+				
+			elif fluid.type == 'OUTFLOW':
+				split = layout.split()
+				
+				col = split.column()
+				col.itemL(text="Volume Initialization:")
+				col.itemR(fluid, "volume_initialization", text="")
+				col.itemR(fluid, "export_animated_mesh")
+				
+				split.column()
+				
+			elif fluid.type == 'PARTICLE':
+				split = layout.split()
+				
+				col = split.column()
+				col.itemL(text="Influence:")
+				sub = col.column(align=True)
+				sub.itemR(fluid, "particle_influence", text="Size")
+				sub.itemR(fluid, "alpha_influence", text="Alpha")
+				
+				layout.itemR(fluid, "path", text="")
 				
 				col = split.column()
 				col.itemL(text="Type:")
@@ -113,109 +140,131 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 				col.itemR(fluid, "floats")
 				col.itemR(fluid, "tracer")
 				
-				col = split.column()
-				col.itemL(text="Influence:")
-				col.itemR(fluid, "particle_influence", text="Particle")
-				col.itemR(fluid, "alpha_influence", text="Alpha")
-				
-				layout.itemR(fluid, "path")
-				
-			if fluid.type == 'CONTROL':
+			elif fluid.type == 'CONTROL':
 				split = layout.split()
 				
 				col = split.column()
-				col.itemL(text="Time:")
-				col.itemR(fluid, "start_time", text="Start")
-				col.itemR(fluid, "end_time", text="End")
-				
-				col = split.column()
+				col.itemL(text="")
 				col.itemR(fluid, "quality", slider=True)
 				col.itemR(fluid, "reverse_frames")
 				
+				col = split.column()
+				col.itemL(text="Time:")
+				sub = col.column(align=True)
+				sub.itemR(fluid, "start_time", text="Start")
+				sub.itemR(fluid, "end_time", text="End")
+				
 				split = layout.split()
 				
 				col = split.column()
-				col.itemL(text="Attraction:")
-				col.itemR(fluid, "attraction_strength", text="Strength")
-				col.itemR(fluid, "attraction_radius", text="Radius")
+				col.itemL(text="Attraction Force:")
+				sub = col.column(align=True)
+				sub.itemR(fluid, "attraction_strength", text="Strength")
+				sub.itemR(fluid, "attraction_radius", text="Radius")
 				
 				col = split.column()
-				col.itemL(text="Velocity:")
-				col.itemR(fluid, "velocity_strength", text="Strength")
-				col.itemR(fluid, "velocity_radius", text="Radius")
+				col.itemL(text="Velocity Force:")
+				sub = col.column(align=True)
+				sub.itemR(fluid, "velocity_strength", text="Strength")
+				sub.itemR(fluid, "velocity_radius", text="Radius")
 
 class PHYSICS_PT_domain_gravity(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_domain_gravity"
-	__label__ = "Domain World/Gravity"
+	__label__ = "Domain World"
 	__default_closed__ = True
 	
 	def poll(self, context):
 		md = context.fluid
 		if md:
-			return (md.settings.type == 'DOMAIN')
+			settings = md.settings
+			if settings:
+				return (settings.type == 'DOMAIN')
+		
+		return False
 
 	def draw(self, context):
 		layout = self.layout
+		
 		fluid = context.fluid.settings
 		
 		split = layout.split()
 		
 		col = split.column()
-		col.itemR(fluid, "gravity")
+		col.itemL(text="Gravity:")
+		col.itemR(fluid, "gravity", text="")
+		col.itemL(text="Real World Size:")
+		col.itemR(fluid, "real_world_size", text="Metres")
 		
-		col = split.column(align=True)
-		col.itemL(text="Viscosity:")
-		col.itemR(fluid, "viscosity_preset", text="")
+		col = split.column()
+		col.itemL(text="Viscosity Presets:")
+		sub = col.column(align=True)
+		sub.itemR(fluid, "viscosity_preset", text="")
+		
 		if fluid.viscosity_preset == 'MANUAL':
-			col.itemR(fluid, "viscosity_base", text="Base")
-			col.itemR(fluid, "viscosity_exponent", text="Exponent")
+			sub.itemR(fluid, "viscosity_base", text="Base")
+			sub.itemR(fluid, "viscosity_exponent", text="Exponent", slider=True)
+		else:
+			sub.itemL()
+			sub.itemL()
 			
-		col = layout.column_flow()
-		col.itemR(fluid, "real_world_size")
-		col.itemR(fluid, "grid_levels")
-		col.itemR(fluid, "compressibility")
+		col.itemL(text="Optimization:")
+		sub = col.column(align=True)
+		sub.itemR(fluid, "grid_levels", slider=True)
+		sub.itemR(fluid, "compressibility", slider=True)
 	
 class PHYSICS_PT_domain_boundary(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_domain_boundary"
 	__label__ = "Domain Boundary"
 	__default_closed__ = True
 	
 	def poll(self, context):
 		md = context.fluid
 		if md:
-			return (md.settings.type == 'DOMAIN')
+			settings = md.settings
+			if settings:
+				return (settings.type == 'DOMAIN')
+		
+		return False
 
 	def draw(self, context):
 		layout = self.layout
+		
 		fluid = context.fluid.settings
 		
-		layout.itemL(text="Slip:")
+		split = layout.split()
 		
-		layout.itemR(fluid, "slip_type", expand=True)
+		col = split.column()
+		col.itemL(text="Slip Type:")
+		sub = col.column(align=True)
+		sub.itemR(fluid, "slip_type", text="")
 		if fluid.slip_type == 'PARTIALSLIP':
-			layout.itemR(fluid, "partial_slip_amount", text="Amount")
-		
-		layout.itemL(text="Surface:")
-		row = layout.row()
-		row.itemR(fluid, "surface_smoothing", text="Smoothing")
-		row.itemR(fluid, "surface_subdivisions", text="Subdivisions")
+			sub.itemR(fluid, "partial_slip_amount", slider=True, text="Amount")
+
+		col = split.column()
+		col.itemL(text="Surface:")
+		sub = col.column(align=True)
+		sub.itemR(fluid, "surface_smoothing", text="Smoothing")
+		sub.itemR(fluid, "surface_subdivisions", text="Subdivisions")	
 		
 class PHYSICS_PT_domain_particles(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_domain_particles"
 	__label__ = "Domain Particles"
 	__default_closed__ = True
 	
 	def poll(self, context):
 		md = context.fluid
 		if md:
-			return (md.settings.type == 'DOMAIN')
+			settings = md.settings
+			if settings:
+				return (settings.type == 'DOMAIN')
+		
+		return False
 
 	def draw(self, context):
 		layout = self.layout
+		
 		fluid = context.fluid.settings
 		
-		layout.itemR(fluid, "tracer_particles")
-		layout.itemR(fluid, "generate_particles")
+		col = layout.column(align=True)
+		col.itemR(fluid, "tracer_particles")
+		col.itemR(fluid, "generate_particles")
 
 bpy.types.register(PHYSICS_PT_fluid)
 bpy.types.register(PHYSICS_PT_domain_gravity)

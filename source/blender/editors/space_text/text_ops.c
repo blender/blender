@@ -231,7 +231,7 @@ void TEXT_OT_open(wmOperatorType *ot)
 	ot->poll= text_new_poll;
 
 	/* properties */
-	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "File path of image to open.");
+	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE);
 }
 
 /******************* reload operator *********************/
@@ -248,8 +248,6 @@ static int reload_exec(bContext *C, wmOperator *op)
 #ifndef DISABLE_PYTHON
 	if(text->compiled)
 		BPY_free_compiled_text(text);
-
-	text->compiled = NULL;
 #endif
 
 	text_update_edited(text);
@@ -282,16 +280,9 @@ static void text_unlink(Main *bmain, Text *text)
 	 * disabled it will leave invalid pointers in files! */
 
 #ifndef DISABLE_PYTHON
-	// XXX BPY_clear_bad_scriptlinks(text);
 	// XXX BPY_free_pyconstraint_links(text);
 	// XXX free_text_controllers(text);
 	// XXX free_dome_warp_text(text);
-
-	/* check if this text was used as script link:
-	 * this check function unsets the pointers and returns how many
-	 * script links used this Text */
-	if(0) // XXX BPY_text_check_all_scriptlinks (text))
-		; // XXX notifier: allqueue(REDRAWBUTSSCRIPT, 0);
 
 	/* equivalently for pynodes: */
 	if(0) // XXX nodeDynamicUnlinkText ((ID*)text))
@@ -507,7 +498,7 @@ void TEXT_OT_save_as(wmOperatorType *ot)
 	ot->poll= text_edit_poll;
 
 	/* properties */
-	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "File path to save image to.");
+	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE);
 }
 
 /******************* run script operator *********************/
@@ -1289,6 +1280,8 @@ static void wrap_move_bol(SpaceText *st, ARegion *ar, short sel)
 	Text *text= st->text;
 	int offl, offc, lin;
 
+	text_update_character_width(st);
+
 	lin= txt_get_span(text->lines.first, text->sell);
 	wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
 
@@ -1306,6 +1299,8 @@ static void wrap_move_eol(SpaceText *st, ARegion *ar, short sel)
 {
 	Text *text= st->text;
 	int offl, offc, lin, startl, c;
+
+	text_update_character_width(st);
 
 	lin= txt_get_span(text->lines.first, text->sell);
 	wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
@@ -1330,6 +1325,8 @@ static void wrap_move_up(SpaceText *st, ARegion *ar, short sel)
 {
 	Text *text= st->text;
 	int offl, offl_1, offc, fromline, toline, c, target;
+
+	text_update_character_width(st);
 
 	wrap_offset(st, ar, text->sell, 0, &offl_1, &offc);
 	wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
@@ -1375,6 +1372,8 @@ static void wrap_move_down(SpaceText *st, ARegion *ar, short sel)
 {
 	Text *text= st->text;
 	int offl, startoff, offc, fromline, toline, c, target;
+
+	text_update_character_width(st);
 
 	wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
 	fromline= toline= txt_get_span(text->lines.first, text->sell);
@@ -1754,6 +1753,8 @@ static void scroll_apply(bContext *C, wmOperator *op, wmEvent *event)
 	TextScroll *tsc= op->customdata;
 	short *mval= event->mval;
 
+	text_update_character_width(st);
+
 	if(tsc->first) {
 		tsc->old[0]= mval[0];
 		tsc->old[1]= mval[1];
@@ -1763,7 +1764,7 @@ static void scroll_apply(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if(!tsc->scrollbar) {
-		tsc->delta[0]= (tsc->hold[0]-mval[0])/text_font_width_character(st);
+		tsc->delta[0]= (tsc->hold[0]-mval[0])/st->cwidth;
 		tsc->delta[1]= (mval[1]-tsc->hold[1])/st->lheight;
 	}
 	else
@@ -1836,6 +1837,9 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 	ot->cancel= scroll_cancel;
 	ot->poll= text_space_edit_poll;
 
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
+
 	/* properties */
 	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll.", -100, 100);
 }
@@ -1880,6 +1884,9 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
 	ot->cancel= scroll_cancel;
 	ot->poll= text_region_edit_poll;
 
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
+
 	/* properties */
 	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll.", -100, 100);
 }
@@ -1900,6 +1907,8 @@ static void set_cursor_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 	int *charp;
 	int w;
 
+	text_update_character_width(st);
+
 	if(sel) { linep= &text->sell; charp= &text->selc; } 
 	else { linep= &text->curl; charp= &text->curc; }
 	
@@ -1911,7 +1920,7 @@ static void set_cursor_to_pos(SpaceText *st, ARegion *ar, int x, int y, int sel)
 		x-= TXT_OFFSET;
 
 	if(x<0) x= 0;
-	x = (x/text_font_width_character(st)) + st->left;
+	x = (x/st->cwidth) + st->left;
 	
 	if(st->wordwrap) {
 		int i, j, endj, curs, max, chop, start, end, chars, loop;
@@ -2151,7 +2160,7 @@ void TEXT_OT_cursor_set(wmOperatorType *ot)
 	ot->poll= text_region_edit_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_BLOCKING;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "select", 0, "Select", "Set selection end rather than cursor.");
@@ -2211,19 +2220,21 @@ static int insert_exec(bContext *C, wmOperator *op)
 	SpaceText *st= CTX_wm_space_text(C);
 	Text *text= CTX_data_edit_text(C);
 	char *str;
-	int done, ascii;
+	int done = 0, i;
 
 	str= RNA_string_get_alloc(op->ptr, "text", NULL, 0);
-	ascii= str[0];
+
+	if(st && st->overwrite) {
+		for(i=0; str[i]; i++) {
+			done |= txt_replace_char(text, str[i]);
+		}
+	} else {
+		for(i=0; str[i]; i++) {
+			done |= txt_add_char(text, str[i]);
+		}
+	}
+
 	MEM_freeN(str);
-
-	if(!ascii)
-		return OPERATOR_CANCELLED;
-
-	if(st && st->overwrite)
-		done= txt_replace_char(text, ascii);
-	else
-		done= txt_add_char(text, ascii);
 	
 	if(!done)
 		return OPERATOR_CANCELLED;
@@ -2255,7 +2266,7 @@ static int insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* run the script while editing, evil but useful */
 	if(ret==OPERATOR_FINISHED && CTX_wm_space_text(C)->live_edit)
 		run_script_exec(C, op);
-	
+
 	return ret;
 }
 
