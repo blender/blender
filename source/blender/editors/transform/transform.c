@@ -93,6 +93,7 @@
 //#include "BSE_view.h"
 
 #include "ED_image.h"
+#include "ED_keyframing.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_markers.h"
@@ -298,6 +299,10 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 	{
 		/* Do we need more refined tags? */
 		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+		
+		/* for realtime animation record - send notifiers recognised by animation editors */
+		if ((t->animtimer) && IS_AUTOKEY_ON(t->scene))
+			WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, NULL);
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		//SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;

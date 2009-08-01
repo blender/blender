@@ -125,7 +125,11 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 				if ob.active_shape_key_index != 0:
 					if not ob.shape_key_lock:
 						row = layout.row(align=True)
-						row.itemR(kb, "value", text="")
+						row.itemL(text="Value:")
+						row.itemR(kb, "value", text="", slider=True)
+						
+						row = layout.row(align=True);
+						row.itemL(text="Range:")
 						row.itemR(kb, "slider_min", text="Min")
 						row.itemR(kb, "slider_max", text="Max")
 
