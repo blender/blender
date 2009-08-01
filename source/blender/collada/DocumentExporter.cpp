@@ -52,7 +52,7 @@ extern "C"
 #include "COLLADASWSurfaceInitOption.h"
 #include "COLLADASWSampler.h"
 #include "COLLADASWScene.h"
-// #include "COLLADASWSurface.h"
+//#include "COLLADASWSurface.h"
 #include "COLLADASWTechnique.h"
 #include "COLLADASWTexture.h"
 #include "COLLADASWLibraryMaterials.h"
@@ -982,7 +982,7 @@ public:
 	}
 };
 
-#if 0
+
 class EffectsExporter: COLLADASW::LibraryEffects
 {
 public:
@@ -1062,9 +1062,10 @@ public:
 
 		// create <sampler> and <surface> for each image
 		COLLADASW::Sampler samplers[MAX_MTEX];
-		COLLADASW::Surface surfaces[MAX_MTEX];
-		void *samp_surf[MAX_MTEX][2];
-
+		//COLLADASW::Surface surfaces[MAX_MTEX];
+		//void *samp_surf[MAX_MTEX][2];
+		void *samp_surf[MAX_MTEX][1];
+		
 		// image to index to samp_surf map
 		// samp_surf[index] stores 2 pointers, sampler and surface
 		std::map<std::string, int> im_samp_map;
@@ -1073,29 +1074,30 @@ public:
 		for (a = 0, b = 0; a < tex_indices.size(); a++) {
 			MTex *t = ma->mtex[tex_indices[a]];
 			Image *ima = t->tex->ima;
-
+			
 			std::string key(id_name(ima));
 
 			// create only one <sampler>/<surface> pair for each unique image
 			if (im_samp_map.find(key) == im_samp_map.end()) {
 				//<newparam> <surface> <init_from>
-				COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D,
-										   key + COLLADASW::Surface::SURFACE_SID_SUFFIX);
-				COLLADASW::SurfaceInitOption sio(COLLADASW::SurfaceInitOption::INIT_FROM);
-				sio.setImageReference(key);
-				surface.setInitOption(sio);
-
+			// 	COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D,
+// 										   key + COLLADASW::Surface::SURFACE_SID_SUFFIX);
+// 				COLLADASW::SurfaceInitOption sio(COLLADASW::SurfaceInitOption::INIT_FROM);
+// 				sio.setImageReference(key);
+// 				surface.setInitOption(sio);
+				
 				//<newparam> <sampler> <source>
 				COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
-										   key + COLLADASW::Surface::SURFACE_SID_SUFFIX);
-
+										   key + COLLADASW::Sampler::SAMPLER_SID_SUFFIX,
+										   key + COLLADASW::Sampler::SURFACE_SID_SUFFIX);
+				sampler.setImageId(key);
 				// copy values to arrays since they will live longer
 				samplers[a] = sampler;
-				surfaces[a] = surface;
-
+				//surfaces[a] = surface;
+				
 				// store pointers so they can be used later when we create <texture>s
 				samp_surf[b][0] = &samplers[a];
-				samp_surf[b][1] = &surfaces[a];
+				//samp_surf[b][1] = &surfaces[a];
 				
 				im_samp_map[key] = b;
 				b++;
@@ -1112,34 +1114,34 @@ public:
 			MTex *t = ma->mtex[tex_indices[a]];
 			Image *ima = t->tex->ima;
 
-			// we assume map input is always TEXTCO_UV
+			// we assume map input is always TEXCO_UV
 
 			std::string key(id_name(ima));
 			int i = im_samp_map[key];
 			COLLADASW::Sampler *sampler = (COLLADASW::Sampler*)samp_surf[i][0];
-			COLLADASW::Surface *surface = (COLLADASW::Surface*)samp_surf[i][1];
+			//COLLADASW::Surface *surface = (COLLADASW::Surface*)samp_surf[i][1];
 
 			std::string uvname = strlen(t->uvname) ? t->uvname : active_uv;
 
 			// color
 			if (t->mapto & MAP_COL) {
-				ep.setDiffuse(createTexture(ima, uvname, sampler, surface));
+				ep.setDiffuse(createTexture(ima, uvname, sampler));
 			}
 			// ambient
 			if (t->mapto & MAP_AMB) {
-				ep.setAmbient(createTexture(ima, uvname, sampler, surface));
+				ep.setAmbient(createTexture(ima, uvname, sampler));
 			}
 			// specular
 			if (t->mapto & MAP_SPEC) {
-				ep.setSpecular(createTexture(ima, uvname, sampler, surface));
+				ep.setSpecular(createTexture(ima, uvname, sampler));
 			}
 			// emission
 			if (t->mapto & MAP_EMIT) {
-				ep.setEmission(createTexture(ima, uvname, sampler, surface));
+				ep.setEmission(createTexture(ima, uvname, sampler));
 			}
 			// reflective
 			if (t->mapto & MAP_REF) {
-				ep.setReflective(createTexture(ima, uvname, sampler, surface));
+				ep.setReflective(createTexture(ima, uvname, sampler));
 			}
 		}
 		// performs the actual writing
@@ -1150,13 +1152,13 @@ public:
 	
 	COLLADASW::ColorOrTexture createTexture(Image *ima,
 											std::string& uv_layer_name,
-											COLLADASW::Sampler *sampler,
-											COLLADASW::Surface *surface)
+											COLLADASW::Sampler *sampler
+											/*COLLADASW::Surface *surface*/)
 	{
 		
 		COLLADASW::Texture texture(id_name(ima));
 		texture.setTexcoord(uv_layer_name);
-		texture.setSurface(*surface);
+		//texture.setSurface(*surface);
 		texture.setSampler(*sampler);
 		
 		COLLADASW::ColorOrTexture cot(texture);
@@ -1183,7 +1185,6 @@ public:
 		}
 	}
 };
-#endif
 
 class MaterialsExporter: COLLADASW::LibraryMaterials
 {
@@ -1556,11 +1557,9 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	ImagesExporter ie(&sw);
 	ie.exportImages(sce);
 	
-#if 0
 	// <library_effects>
 	EffectsExporter ee(&sw);
 	ee.exportEffects(sce);
-#endif
 	
 	// <library_materials>
 	MaterialsExporter me(&sw);

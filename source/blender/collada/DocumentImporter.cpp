@@ -49,6 +49,7 @@ extern "C"
 #include "BKE_fcurve.h"
 #include "BKE_depsgraph.h"
 #include "BLI_util.h"
+#include "BKE_displist.h"
 }
 #include "BKE_armature.h"
 #include "BKE_mesh.h"
@@ -973,6 +974,26 @@ private:
 		mface->v2 = mface->v3;
 		mface->v3 = 0;
 	}
+	
+	void set_face_uv(MTFace *mtface, UVDataWrapper &uvs, int uv_set_index,
+					 COLLADAFW::IndexList& index_list, unsigned int *tris_indices)
+	{
+		int uv_indices[4][2];
+
+		// per face vertex indices, this means for quad we have 4 indices, not 8
+		COLLADAFW::UIntValuesArray& indices = index_list.getIndices();
+
+		// make indices into FloatOrDoubleArray
+		for (int i = 0; i < 3; i++) {
+			int uv_index = indices[tris_indices[i]];
+			uv_indices[i][0] = uv_index * 2;
+			uv_indices[i][1] = uv_index * 2 + 1;
+		}
+
+		uvs.getUV(uv_set_index, uv_indices[0], mtface->uv[0]);
+		uvs.getUV(uv_set_index, uv_indices[1], mtface->uv[1]);
+		uvs.getUV(uv_set_index, uv_indices[2], mtface->uv[2]);
+	}
 
 	void set_face_uv(MTFace *mtface, UVDataWrapper &uvs, int uv_set_index,
 					COLLADAFW::IndexList& index_list, int index, bool quad)
@@ -1060,8 +1081,8 @@ private:
 				
 				for(int j = 0; j < vca.getCount(); j++){
 					int count = vca[j];
-					if (count != 3 && count != 4) {
-						fprintf(stderr, "Primitive %s in %s has at least one face with vertex count > 4 or < 3\n",
+					if (count < 3 || count > 4) {
+						fprintf(stderr, "Primitive %s in %s has at least one face with vertex count < 3 or > 4\n",
 								type_str, name);
 						return false;
 					}
@@ -1113,7 +1134,51 @@ private:
 			}
 		}
 	}
+	
+	int triangulate(int *indices, int vcount, MVert *verts, std::vector<unsigned int>& tri)
+	{
+		ListBase dispbase = {NULL, NULL};
+		ListBase trisbase = {NULL, NULL};
+		DispList *dl;
+		float *vert;
+		int i = 0;
+		
+		dispbase.first = dispbase.last = NULL;
+		
+		dl = (DispList*)MEM_callocN(sizeof(DispList), "poly disp");
+		BLI_addtail(&dispbase, dl);
+		dl->type = DL_INDEX3;
+		dl->nr = vcount;
+		dl->type = DL_POLY;
+		dl->parts = 1;
+		dl->col = 0;
+		dl->verts = vert = (float*)MEM_callocN( sizeof(float) * 3 * vcount, "dl verts");
+		dl->index = (int*)MEM_callocN(sizeof(int) * 3 * vcount, "dl index");
+		
+		for (i = 0; i < vcount; ++i, vert += 3) {
+			MVert *mvert = &verts[indices[i]];
+			vert[0] = mvert->co[0];
+			vert[1] = mvert->co[1];
+			vert[2] = mvert->co[2];
+			fprintf(stderr, "%.1f %.1f %.1f \n", mvert->co[0], mvert->co[1], mvert->co[2]);
+		}
+		
+		filldisplist(&dispbase, &trisbase);
 
+		dl = (DispList*)trisbase.first;
+		int tottri = dl->parts;
+		int *index = dl->index;
+		
+		for (i = 0; i < tottri * 3; i++, index++) {
+			tri.push_back(*index);
+		}
+
+		freedisplist(&dispbase);
+		freedisplist(&trisbase);
+
+		return tottri;
+	}
+	
 	// TODO: import uv set names
 	void read_faces(COLLADAFW::Mesh *mesh, Mesh *me)
 	{
@@ -1195,30 +1260,71 @@ private:
 				COLLADAFW::Polygons::VertexCountArray& vcounta = mpvc->getGroupedVerticesVertexCountArray();
 				
 				for (j = 0; j < prim_totface; j++) {
-
+					
 					// face
 					int vcount = vcounta[j];
-
-					set_face_indices(mface, indices, vcount == 4);
-					indices += vcount;
-					
-					// do the trick if needed
-					if (vcount == 4 && mface->v4 == 0)
-						rotate_face_indices(mface);
-
-					// set mtface for each uv set
-					// it is assumed that all primitives have equal number of UV sets
-
-					for (k = 0; k < totuvset; k++) {
-						// get mtface by face index and uv set index
-						MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
-						set_face_uv(&mtface[face_index], uvs, k, *index_list_array[k], index, mface->v4 != 0);
+					if (vcount == 3 || vcount == 4) {
+						
+						set_face_indices(mface, indices, vcount == 4);
+						indices += vcount;
+						
+						// do the trick if needed
+						if (vcount == 4 && mface->v4 == 0)
+							rotate_face_indices(mface);
+						
+						
+						// set mtface for each uv set
+						// it is assumed that all primitives have equal number of UV sets
+						
+						for (k = 0; k < totuvset; k++) {
+							// get mtface by face index and uv set index
+							MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
+							set_face_uv(&mtface[face_index], uvs, k, *index_list_array[k], index, mface->v4 != 0);
+						}
+						
+						index += mface->v4 ? 4 : 3;
+						mface++;
+						face_index++;
+						prim.totface++;
+						
 					}
-
-					index += mface->v4 ? 4 : 3;
-					mface++;
-					face_index++;
-					prim.totface++;
+					/*else {
+						// create triangles using PolyFill
+						int *temp_indices = (int*)MEM_callocN(sizeof(int) * vcount, "");
+						
+						for (k = 0; k < vcount; k++) {
+							temp_indices[k] = indices[k];
+						}
+						
+						std::vector<unsigned int> tri;
+						
+						triangulate(temp_indices, vcount, me->mvert, tri);
+						
+						for (k = 0; k < tri.size() / 3; k++) {
+							unsigned int tris_indices[3];
+							tris_indices[0] = temp_indices[tri[k * 3]];
+							tris_indices[1] = temp_indices[tri[k * 3 + 1]];
+							tris_indices[2] = temp_indices[tri[k * 3 + 2]];
+							fprintf(stderr, "%u %u %u \n", tris_indices[0], tris_indices[1], tris_indices[2]);
+							set_face_indices(mface, tris_indices, false);
+							
+// 							for (int l = 0; l < totuvset; l++) {
+// 								// get mtface by face index and uv set index
+// 								MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, l);
+// 								set_face_uv(&mtface[face_index], uvs, l, *index_list_array[l], tris_indices);
+								
+// 							}
+							
+							mface++;
+							face_index++;
+							prim.totface++;
+						}
+						
+						index += vcount;
+						indices += vcount;
+						MEM_freeN(temp_indices);
+					}
+					*/
 				}
 			}
 			
@@ -1929,7 +2035,7 @@ public:
 		
 		COLLADAFW::CommonEffectPointerArray common_efs = effect->getCommonEffects();
 		if (common_efs.getCount() < 1) {
-			fprintf(stderr, "<effect> hasn't got <profile_COMMON>s.\n Currently we support only them. \n");
+			fprintf(stderr, "<effect> hasn't got any <profile_COMMON>.\n");
 			return true;
 		}
 		// XXX TODO: Take all <profile_common>s
