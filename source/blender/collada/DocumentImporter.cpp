@@ -37,6 +37,10 @@ extern "C"
 {
 #include "ED_keyframing.h"
 #include "ED_armature.h"
+#include "ED_mesh.h" // add_vert_to_defgroup, ...
+#include "ED_anim_api.h"
+#include "WM_types.h"
+#include "WM_api.h"
 
 #include "BKE_main.h"
 #include "BKE_customdata.h"
@@ -126,7 +130,30 @@ const char *geomTypeToStr(COLLADAFW::Geometry::GeometryType type)
 	return "UNKNOWN";
 }
 
+// works for COLLADAFW::Node, COLLADAFW::Geometry
+template<class T>
+const char *get_dae_name(T *node)
+{
+	const std::string& name = node->getName();
+	return name.size() ? name.c_str() : node->getOriginalId().c_str();
+}
+
+float get_float_value(const COLLADAFW::FloatOrDoubleArray& array, int index)
+{
+	if (array.getType() == COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT)
+		return array.getFloatValues()->getData()[index];
+	else 
+		return array.getDoubleValues()->getData()[index];
+}
+
 typedef std::map<COLLADAFW::TextureMapId, std::vector<MTex*> > TexIndexTextureArrayMap;
+
+// this is only for ArmatureImporter to "see" MeshImporter::get_object_by_geom_uid
+class MeshImporterBase
+{
+public:
+	virtual Object *get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid) = 0;
+};
 
 class ArmatureImporter
 {
@@ -134,13 +161,8 @@ private:
 	Scene *scene;
 	UnitConverter *unit_converter;
 
-	// to build armature bones from inverse bind matrices
-	struct JointData {
-		float inv_bind_mat[4][4]; // joint inverse bind matrix
-		Object *ob_arm;			  // armature object
-	};
-	std::map<int, JointData> joint_index_to_joint_info_map;
-	std::map<COLLADAFW::UniqueId, int> joint_id_to_joint_index_map;
+	// std::map<int, JointData> joint_index_to_joint_info_map;
+	// std::map<COLLADAFW::UniqueId, int> joint_id_to_joint_index_map;
 
 	struct LeafBone {
 		// COLLADAFW::Node *node;
@@ -155,17 +177,244 @@ private:
 	// XXX not used
 	// float min_angle; // minimum angle between bone head-tail and a row of bone matrix
 
+#if 0
 	struct ArmatureJoints {
 		Object *ob_arm;
 		std::vector<COLLADAFW::Node*> root_joints;
 	};
 	std::vector<ArmatureJoints> armature_joints;
+#endif
 
 	Object *empty; // empty for leaf bones
 
+	std::map<COLLADAFW::UniqueId, COLLADAFW::UniqueId> geom_uid_by_controller_uid;
+	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> joint_by_uid; // contains all joints
 	std::vector<COLLADAFW::Node*> root_joints;
-	std::map<COLLADAFW::UniqueId, COLLADAFW::UniqueId> controller_id_to_geom_id_map;
 
+	// This is used to store data passed in write_controller_data.
+	// Arrays from COLLADAFW::SkinControllerData lose ownership, so do this class members
+	// so that arrays don't get freed until we free them explicitly.
+	class SkinInfo
+	{
+	private:
+		// to build armature bones from inverse bind matrices
+		struct JointData {
+			float inv_bind_mat[4][4]; // joint inverse bind matrix
+			COLLADAFW::UniqueId joint_uid; // joint node UID
+			// Object *ob_arm;			  // armature object
+		};
+
+		float bind_shape_matrix[4][4];
+
+		// data from COLLADAFW::SkinControllerData, each array should be freed
+		COLLADAFW::UIntValuesArray joints_per_vertex;
+		COLLADAFW::UIntValuesArray weight_indices;
+		COLLADAFW::UIntValuesArray joint_indices;
+		// COLLADAFW::FloatOrDoubleArray weights;
+		std::vector<float> weights;
+
+		std::vector<JointData> joint_data; // index to this vector is joint index
+
+		UnitConverter *unit_converter;
+
+		Object *ob_arm;
+		COLLADAFW::UniqueId controller_uid;
+	public:
+
+		SkinInfo() {}
+
+		SkinInfo(const SkinInfo& skin) : weights(skin.weights),
+										 joint_data(skin.joint_data),
+										 unit_converter(skin.unit_converter),
+										 ob_arm(skin.ob_arm),
+										 controller_uid(skin.controller_uid)
+		{
+			Mat4CpyMat4(bind_shape_matrix, (float (*)[4])skin.bind_shape_matrix);
+
+			transfer_array_data_const(skin.joints_per_vertex, joints_per_vertex);
+			transfer_array_data_const(skin.weight_indices, weight_indices);
+			transfer_array_data_const(skin.joint_indices, joint_indices);
+		}
+
+		SkinInfo(UnitConverter *conv) : unit_converter(conv), ob_arm(NULL) {}
+
+		// nobody owns the data after this, so it should be freed manually with releaseMemory
+		void transfer_array_data(COLLADAFW::UIntValuesArray& src, COLLADAFW::UIntValuesArray& dest)
+		{
+			dest.setData((unsigned int*)src.getData(), src.getCount());
+			src.yieldOwnerShip();
+			dest.yieldOwnerShip();
+		}
+
+		// when src is const we cannot src.yieldOwnerShip, this is used by copy constructor
+		void transfer_array_data_const(const COLLADAFW::UIntValuesArray& src, COLLADAFW::UIntValuesArray& dest)
+		{
+			dest.setData((unsigned int*)src.getData(), src.getCount());
+			dest.yieldOwnerShip();
+		}
+
+		void borrow_skin_controller_data(const COLLADAFW::SkinControllerData* skin)
+		{
+			transfer_array_data((COLLADAFW::UIntValuesArray&)skin->getJointsPerVertex(), joints_per_vertex);
+			transfer_array_data((COLLADAFW::UIntValuesArray&)skin->getWeightIndices(), weight_indices);
+			transfer_array_data((COLLADAFW::UIntValuesArray&)skin->getJointIndices(), joint_indices);
+			// transfer_array_data(skin->getWeights(), weights);
+
+			// cannot transfer data for FloatOrDoubleArray, copy values manually
+			const COLLADAFW::FloatOrDoubleArray& weight = skin->getWeights();
+			for (int i = 0; i < weight.getValuesCount(); i++)
+				weights.push_back(get_float_value(weight, i));
+
+			unit_converter->mat4_from_dae(bind_shape_matrix, skin->getBindShapeMatrix());
+		}
+			
+		void free()
+		{
+			joints_per_vertex.releaseMemory();
+			weight_indices.releaseMemory();
+			joint_indices.releaseMemory();
+			// weights.releaseMemory();
+		}
+
+		// using inverse bind matrices to construct armature
+		// it is safe to invert them to get the original matrices
+		// because if they are inverse matrices, they can be inverted
+		void add_joint(const COLLADABU::Math::Matrix4& matrix)
+		{
+			JointData jd;
+			unit_converter->mat4_from_dae(jd.inv_bind_mat, matrix);
+			joint_data.push_back(jd);
+		}
+
+		// called from write_controller
+		void create_armature(const COLLADAFW::SkinController* co, Scene *scene)
+		{
+			ob_arm = add_object(scene, OB_ARMATURE);
+
+			controller_uid = co->getUniqueId();
+
+			const COLLADAFW::UniqueIdArray& joint_uids = co->getJoints();
+			for (int i = 0; i < joint_uids.getCount(); i++) {
+				joint_data[i].joint_uid = joint_uids[i];
+
+				// // store armature pointer
+				// JointData& jd = joint_index_to_joint_info_map[i];
+				// jd.ob_arm = ob_arm;
+
+				// now we'll be able to get inv bind matrix from joint id
+				// joint_id_to_joint_index_map[joint_ids[i]] = i;
+			}
+		}
+
+		bool get_joint_inv_bind_matrix(float inv_bind_mat[][4], COLLADAFW::Node *node)
+		{
+			const COLLADAFW::UniqueId& uid = node->getUniqueId();
+			std::vector<JointData>::iterator it;
+			for (it = joint_data.begin(); it != joint_data.end(); it++) {
+				if ((*it).joint_uid == uid) {
+					Mat4CpyMat4(inv_bind_mat, (*it).inv_bind_mat);
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		Object *get_armature()
+		{
+			return ob_arm;
+		}
+
+		const COLLADAFW::UniqueId& get_controller_uid()
+		{
+			return controller_uid;
+		}
+
+		// some nodes may not be referenced by SkinController,
+		// in this case to determine if the node belongs to this armature,
+		// we need to search down the tree
+		bool uses_joint(COLLADAFW::Node *node)
+		{
+			const COLLADAFW::UniqueId& uid = node->getUniqueId();
+			std::vector<JointData>::iterator it;
+			for (it = joint_data.begin(); it != joint_data.end(); it++) {
+				if ((*it).joint_uid == uid)
+					return true;
+			}
+
+			COLLADAFW::NodePointerArray& children = node->getChildNodes();
+			for (int i = 0; i < children.getCount(); i++) {
+				if (this->uses_joint(children[i]))
+					return true;
+			}
+
+			return false;
+		}
+
+		void link_armature(bContext *C, Object *ob, std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& joint_by_uid)
+		{
+			ob->parent = ob_arm;
+			ob->partype = PARSKEL;
+			ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
+
+			((bArmature*)ob_arm->data)->deformflag = ARM_DEF_VGROUP;
+
+			// we need armature matrix here... where do we get it from I wonder...
+			// root node/joint? or node with <instance_controller>?
+			float parmat[4][4];
+			Mat4One(parmat);
+			Mat4Invert(ob->parentinv, parmat);
+
+			// create all vertex groups
+			std::vector<JointData>::iterator it;
+			int joint_index;
+			for (it = joint_data.begin(), joint_index = 0; it != joint_data.end(); it++, joint_index++) {
+				const char *name = "Group";
+
+				// name group by joint node name
+				if (joint_by_uid.find((*it).joint_uid) != joint_by_uid.end()) {
+					name = get_dae_name(joint_by_uid[(*it).joint_uid]);
+				}
+
+				add_defgroup_name(ob, (char*)name);
+			}
+
+			// <vcount> - number of joints per vertex - joints_per_vertex
+			// <v> - [[bone index, weight index] * joints per vertex] * vertices - weight indices
+			// ^ bone index can be -1 meaning weight toward bind shape, how to express this in Blender?
+
+			// for each vertex in weight indices
+			//   for each bone index in vertex
+			//     add vertex to group at group index
+			//     treat group index -1 specially
+
+			// get def group by index with BLI_findlink
+
+			for (int vertex = 0, weight = 0; vertex < joints_per_vertex.getCount(); vertex++) {
+
+				int limit = weight + joints_per_vertex[vertex];
+				for ( ; weight < limit; weight++) {
+					int joint = joint_indices[weight], joint_weight = weight_indices[weight];
+
+					// -1 means "weight towards the bind shape", we just don't assign it to any group
+					if (joint != -1) {
+						bDeformGroup *def = (bDeformGroup*)BLI_findlink(&ob->defbase, joint);
+
+						add_vert_to_defgroup(ob, def, vertex, weights[joint_weight], WEIGHT_REPLACE);
+					}
+				}
+			}
+
+			DAG_scene_sort(CTX_data_scene(C));
+			ED_anim_dag_flush_update(C);
+			WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+		}
+	};
+
+	std::map<COLLADAFW::UniqueId, SkinInfo> skin_by_data_uid; // data UID = skin controller data UID
+	MeshImporterBase *mesh_importer;
+
+#if 0
 	JointData *get_joint_data(COLLADAFW::Node *node)
 	{
 		const COLLADAFW::UniqueId& joint_id = node->getUniqueId();
@@ -180,24 +429,22 @@ private:
 
 		return &joint_index_to_joint_info_map[joint_index];
 	}
+#endif
 
-	const char *get_dae_name(COLLADAFW::Node *node)
+	void create_bone(SkinInfo& skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
+					 float parent_mat[][4], bArmature *arm)
 	{
-		const std::string& name = node->getName();
-		return name.size() ? name.c_str() : node->getOriginalId().c_str();
-	}
+		float joint_inv_bind_mat[4][4];
 
-	void create_bone(COLLADAFW::Node *node, EditBone *parent, int totchild, float parent_mat[][4], bArmature *arm)
-	{
-		JointData* jd = get_joint_data(node);
+		// JointData* jd = get_joint_data(node);
 
 		float mat[4][4];
 
-		if (jd) {
+		if (skin.get_joint_inv_bind_matrix(joint_inv_bind_mat, node)) {
 			// get original world-space matrix
-			Mat4Invert(mat, jd->inv_bind_mat);
+			Mat4Invert(mat, joint_inv_bind_mat);
 		}
-		// create a bone even if there's no jd for it (i.e. it has no influence)
+		// create a bone even if there's no joint data for it (i.e. it has no influence)
 		else {
 			float obmat[4][4];
 
@@ -213,6 +460,7 @@ private:
 
 		// TODO rename from Node "name" attrs later
 		EditBone *bone = addEditBone(arm, (char*)get_dae_name(node));
+		totbone++;
 
 		if (parent) bone->parent = parent;
 
@@ -227,14 +475,16 @@ private:
 		if (parent && totchild == 1) {
 			VecCopyf(parent->tail, bone->head);
 
+			const float epsilon = 0.000001f;
+
 			// derive leaf bone length
 			float length = VecLenf(parent->head, parent->tail);
-			if ((length < leaf_bone_length || totbone == 0) && length > FLT_EPSILON) {
+			if ((length < leaf_bone_length || totbone == 0) && length > epsilon) {
 				leaf_bone_length = length;
 			}
 
 			// treat zero-sized bone like a leaf bone
-			if (length < FLT_EPSILON) {
+			if (length <= epsilon) {
 				add_leaf_bone(parent_mat, parent);
 			}
 
@@ -266,11 +516,9 @@ private:
 			*/
 		}
 
-		totbone++;
-
 		COLLADAFW::NodePointerArray& children = node->getChildNodes();
 		for (int i = 0; i < children.getCount(); i++) {
-			create_bone(children[i], bone, children.getCount(), mat, arm);
+			create_bone(skin, children[i], bone, children.getCount(), mat, arm);
 		}
 
 		// in second case it's not a leaf bone, but we handle it the same way
@@ -398,6 +646,7 @@ private:
 		return empty;
 	}
 
+#if 0
 	Object *find_armature(COLLADAFW::Node *node)
 	{
 		JointData* jd = get_joint_data(node);
@@ -427,11 +676,18 @@ private:
 
 		return armature_joints.back();
 	}
+#endif
 
-	void create_armature_bones(ArmatureJoints &arm_joints)
+	void create_armature_bones(SkinInfo& skin)
 	{
-		Object *ob_arm = arm_joints.ob_arm;
-		std::vector<COLLADAFW::Node*>& root_joints = arm_joints.root_joints;
+		// just do like so:
+		// - get armature
+		// - enter editmode
+		// - add edit bones and head/tail properties using matrices and parent-child info
+		// - exit edit mode
+		// - set a sphere shape to leaf bones
+
+		Object *ob_arm = skin.get_armature();
 
 		// enter armature edit mode
 		ED_armature_to_edit(ob_arm);
@@ -442,18 +698,14 @@ private:
 		leaf_bone_length = 0.1f;
 		// min_angle = 360.0f;		// minimum angle between bone head-tail and a row of bone matrix
 
+		// create bones
+
 		std::vector<COLLADAFW::Node*>::iterator it;
 		for (it = root_joints.begin(); it != root_joints.end(); it++) {
-
-			COLLADAFW::Node *root_joint = *it;
-			COLLADAFW::NodePointerArray& children = root_joint->getChildNodes();
-
-			create_bone(*it, NULL, children.getCount(), NULL, (bArmature*)ob_arm->data);
-
-			// for (int i = 0; i < children.getCount(); i++) {
-			// 	create_bone(children[i], NULL, children.getCount(), NULL, (bArmature*)ob_arm->data);
-			// }
-
+			// since root_joints may contain joints for multiple controllers, we need to filter
+			if (skin.uses_joint(*it)) {
+				create_bone(skin, *it, NULL, (*it)->getChildNodes().getCount(), NULL, (bArmature*)ob_arm->data);
+			}
 		}
 
 		fix_leaf_bones();
@@ -468,8 +720,28 @@ private:
 
 public:
 
-	ArmatureImporter(UnitConverter *conv, Scene *sce) : unit_converter(conv), scene(sce), empty(NULL) {}
+	ArmatureImporter(UnitConverter *conv, MeshImporterBase *imp, Scene *sce) :
+		unit_converter(conv), scene(sce), empty(NULL), mesh_importer(imp) {}
 
+	~ArmatureImporter()
+	{
+		// free skin controller data if we forget to do this earlier
+		std::map<COLLADAFW::UniqueId, SkinInfo>::iterator it;
+		for (it = skin_by_data_uid.begin(); it != skin_by_data_uid.end(); it++) {
+			it->second.free();
+		}
+	}
+
+	// root - if this joint is the top joint in hierarchy, if a joint
+	// is a child of a node (not joint), root should be true since
+	// this is where we build armature bones from
+	void add_joint(COLLADAFW::Node *node, bool root)
+	{
+		joint_by_uid[node->getUniqueId()] = node;
+		if (root) root_joints.push_back(node);
+	}
+
+#if 0
 	void add_root_joint(COLLADAFW::Node *node)
 	{
 		// root_joints.push_back(node);
@@ -483,76 +755,111 @@ public:
 		}
 #endif
 	}
+#endif
 
 	// here we add bones to armatures, having armatures previously created in write_controller
-	void build_armatures()
+	void make_armatures(bContext *C)
 	{
-		// just do like so:
-		// - create armature
-		// - enter editmode
-		// - add edit bones and head/tail properties using matrices and parent-child info
-		// - exit edit mode
-		// - set a sphere shape to leaf bones
-
+#if 0
 		std::vector<ArmatureJoints>::iterator it;
 
 		for (it = armature_joints.begin(); it != armature_joints.end(); it++) {
 			create_armature_bones(*it);
 		}
+#endif
+		std::map<COLLADAFW::UniqueId, SkinInfo>::iterator it;
+		for (it = skin_by_data_uid.begin(); it != skin_by_data_uid.end(); it++) {
+
+			SkinInfo& skin = it->second;
+
+			create_armature_bones(skin);
+
+			// link armature with an object
+			Object *ob = mesh_importer->get_object_by_geom_uid(*get_geometry_uid(skin.get_controller_uid()));
+			if (ob) {
+				skin.link_armature(C, ob, joint_by_uid);
+			}
+			else {
+				fprintf(stderr, "Cannot find object to link armature with.\n");
+			}
+
+			// free memory stolen from SkinControllerData
+			skin.free();
+		}
 	}
 
-	bool write_skin_controller_data(const COLLADAFW::SkinControllerData* skin)
+#if 0
+	// link with meshes, create vertex groups, assign weights
+	void link_armature(Object *ob_arm, const COLLADAFW::UniqueId& geom_id, const COLLADAFW::UniqueId& controller_data_id)
 	{
-		// using inverse bind matrices to construct armature
-		// it is safe to invert them to get the original matrices
-		// because if they are inverse matrices, they can be inverted
+		Object *ob = mesh_importer->get_object_by_geom_uid(geom_id);
+
+		if (!ob) {
+			fprintf(stderr, "Cannot find object by geometry UID.\n");
+			return;
+		}
+
+		if (skin_by_data_uid.find(controller_data_id) == skin_by_data_uid.end()) {
+			fprintf(stderr, "Cannot find skin info by controller data UID.\n");
+			return;
+		}
+
+		SkinInfo& skin = skin_by_data_uid[conroller_data_id];
+
+		// create vertex groups
+	}
+#endif
+
+	bool write_skin_controller_data(const COLLADAFW::SkinControllerData* data)
+	{
+		// at this stage we get vertex influence info that should go into me->verts and ob->defbase
+		// there's no info to which object this should be long so we associate it with skin controller data UID
+
+		// don't forget to call unique_vertexgroup_name before we copy
+
+		// controller data uid -> [armature] -> joint data, 
+		// [mesh object]
+		// 
+
+		SkinInfo skin(unit_converter);
+		skin.borrow_skin_controller_data(data);
 
 		// store join inv bind matrix to use it later in armature construction
-		const COLLADAFW::Matrix4Array& inv_bind_mats = skin->getInverseBindMatrices();
-		int i;
-		for (i = 0; i < skin->getJointsCount(); i++) {
-			JointData jd;
-			unit_converter->mat4_from_dae(jd.inv_bind_mat, inv_bind_mats[i]);
-			joint_index_to_joint_info_map[i] = jd;
+		const COLLADAFW::Matrix4Array& inv_bind_mats = data->getInverseBindMatrices();
+		for (int i = 0; i < data->getJointsCount(); i++) {
+			skin.add_joint(inv_bind_mats[i]);
 		}
+
+		skin_by_data_uid[data->getUniqueId()] = skin;
 
 		return true;
 	}
 
 	bool write_controller(const COLLADAFW::Controller* controller)
 	{
-		// here we:
-		// - create and store armature
-		// - init a "joint id to joint index" map
+		// - create and store armature object
 
 		const COLLADAFW::UniqueId& skin_id = controller->getUniqueId();
 
 		if (controller->getControllerType() == COLLADAFW::Controller::CONTROLLER_TYPE_SKIN) {
 
-			Object *ob_arm = add_object(scene, OB_ARMATURE);
-
-			COLLADAFW::SkinController *skinco = (COLLADAFW::SkinController*)controller;
-			const COLLADAFW::UniqueId& id = skinco->getSkinControllerData();
+			COLLADAFW::SkinController *co = (COLLADAFW::SkinController*)controller;
 
 			// to find geom id by controller id
-			controller_id_to_geom_id_map[skin_id] = skinco->getSource();
-			
-			// "Node" ids
-			const COLLADAFW::UniqueIdArray& joint_ids = skinco->getJoints();
+			geom_uid_by_controller_uid[skin_id] = co->getSource();
 
-			int i;
-			for (i = 0; i < joint_ids.getCount(); i++) {
-
-				// store armature pointer
-				JointData& jd = joint_index_to_joint_info_map[i];
-				jd.ob_arm = ob_arm;
-
-				// now we'll be able to get inv bind matrix from joint id
-				joint_id_to_joint_index_map[joint_ids[i]] = i;
+			const COLLADAFW::UniqueId& data_uid = co->getSkinControllerData();
+			if (skin_by_data_uid.find(data_uid) == skin_by_data_uid.end()) {
+				fprintf(stderr, "Cannot find skin by controller data UID.\n");
+				return true;
 			}
+
+			skin_by_data_uid[data_uid].create_armature(co, scene);
 		}
 		// morph controller
 		else {
+			// shape keys? :)
+			fprintf(stderr, "Morph controller is not supported yet.\n");
 		}
 
 		return true;
@@ -560,14 +867,14 @@ public:
 
 	COLLADAFW::UniqueId *get_geometry_uid(const COLLADAFW::UniqueId& controller_uid)
 	{
-		if (controller_id_to_geom_id_map.find(controller_uid) == controller_id_to_geom_id_map.end())
+		if (geom_uid_by_controller_uid.find(controller_uid) == geom_uid_by_controller_uid.end())
 			return NULL;
 
-		return &controller_id_to_geom_id_map[controller_uid];
+		return &geom_uid_by_controller_uid[controller_uid];
 	}
 };
 
-class MeshImporter
+class MeshImporter : public MeshImporterBase
 {
 private:
 
@@ -575,6 +882,7 @@ private:
 	ArmatureImporter *armature_importer;
 
 	std::map<COLLADAFW::UniqueId, Mesh*> uid_mesh_map; // geometry unique id-to-mesh map
+	std::map<COLLADAFW::UniqueId, Object*> uid_object_map; // geom uid-to-object
 	// this structure is used to assign material indices to faces
 	// it holds a portion of Mesh faces and corresponds to a DAE primitive list (<triangles>, <polylist>, etc.)
 	struct Primitive {
@@ -774,12 +1082,6 @@ private:
 		return true;
 	}
 
-	const char *get_dae_name(COLLADAFW::Geometry *geom)
-	{
-		const std::string& name = geom->getName();
-		return name.size() ? name.c_str() : geom->getOriginalId().c_str();
-	}
-
 	void read_vertices(COLLADAFW::Mesh *mesh, Mesh *me)
 	{
 		// vertices	
@@ -929,7 +1231,13 @@ private:
 public:
 
 	MeshImporter(ArmatureImporter *arm, Scene *sce) : scene(sce), armature_importer(arm) {}
-	
+
+	virtual Object *get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid)
+	{
+		if (uid_object_map.find(geom_uid) != uid_object_map.end())
+			return uid_object_map[geom_uid];
+		return NULL;
+	}
 	
 	MTex *assign_textures_to_uvlayer(COLLADAFW::InstanceGeometry::TextureCoordinateBinding &ctexture,
 									 Mesh *me, TexIndexTextureArrayMap& texindex_texarray_map,
@@ -1062,6 +1370,9 @@ public:
 		if (!uid_mesh_map[*geom_uid]) return NULL;
 		
 		Object *ob = add_object(scene, OB_MESH);
+
+		// store object pointer for ArmatureImporter
+		uid_object_map[*geom_uid] = ob;
 		
 		// name Object
 		const std::string& id = node->getOriginalId();
@@ -1173,7 +1484,7 @@ public:
 
 	/** Constructor. */
 	Writer(bContext *C, const char *filename) : mContext(C), mFilename(filename),
-												armature_importer(&unit_converter, CTX_data_scene(C)),
+												armature_importer(&unit_converter, &mesh_importer, CTX_data_scene(C)),
 												mesh_importer(&armature_importer, CTX_data_scene(C)) {};
 
 	/** Destructor. */
@@ -1235,14 +1546,19 @@ public:
 		return true;
 	}
 	
-	void write_node (COLLADAFW::Node *node, Scene *sce, Object *par = NULL)
+	void write_node (COLLADAFW::Node *node, COLLADAFW::Node *parent_node, Scene *sce, Object *par)
 	{
 		// XXX linking object with the first <instance_geometry>, though a node may have more of them...
 		// maybe join multiple <instance_...> meshes into 1, and link object with it? not sure...
 		if (node->getType() != COLLADAFW::Node::NODE) {
 
 			if (node->getType() == COLLADAFW::Node::JOINT) {
-				armature_importer.add_root_joint(node);
+				armature_importer.add_joint(node, parent_node == NULL || parent_node->getType() != COLLADAFW::Node::JOINT);
+			}
+
+			COLLADAFW::NodePointerArray &child_nodes = node->getChildNodes();
+			for (int i = 0; i < child_nodes.getCount(); i++) {	
+				write_node(child_nodes[i], node, sce, NULL);
 			}
 
 			return;
@@ -1390,7 +1706,7 @@ public:
 		for (k = 0; k < child_nodes.getCount(); k++) {	
 			
 			COLLADAFW::Node *child_node = child_nodes[k];
-			write_node(child_node, sce, ob);
+			write_node(child_node, node, sce, ob);
 		}
 	}
 
@@ -1416,15 +1732,10 @@ public:
 			COLLADAFW::Node *node = visualScene->getRootNodes()[i];
 			const COLLADAFW::Node::NodeType& type = node->getType();
 
-			if (type == COLLADAFW::Node::NODE) {
-				write_node(node, sce);
-			}
-			else if (type == COLLADAFW::Node::JOINT){
-				armature_importer.add_root_joint(node);
-			}
+			write_node(node, NULL, sce, NULL);
 		}
 
-		armature_importer.build_armatures();
+		armature_importer.make_armatures(mContext);
 		
 		return true;
 	}
