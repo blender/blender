@@ -913,7 +913,7 @@ public:
 		// write node for child object
 		Base *b = (Base*) sce->base.first;
 		while(b) {
-			
+			// cob - child object
 			Object *cob = b->object;
 			
 			if ((cob->type == OB_MESH || cob->type == OB_CAMERA || cob->type == OB_LAMP || cob->type == OB_EMPTY) && cob->parent == ob) {
@@ -1252,7 +1252,6 @@ public:
 	}	
 };
 
-#if 0
 class LightsExporter: COLLADASW::LibraryLights
 {
 public:
@@ -1273,26 +1272,26 @@ public:
 		
 		// sun
 		if (la->type == LA_SUN) {
-			COLLADASW::DirectionalLight cla(mSW, la_name, la->energy);
+			COLLADASW::DirectionalLight cla(mSW, la_name, "", la->energy);
 			cla.setColor(col);
 			addLight(cla);
 		}
 		// hemi
 		else if (la->type == LA_HEMI) {
-			COLLADASW::AmbientLight cla(mSW, la_name, la->energy);
+			COLLADASW::AmbientLight cla(mSW, la_name, "", la->energy);
 			cla.setColor(col);
 			addLight(cla);
 		}
 		// spot
 		// XXX add other params later
 		else if (la->type == LA_SPOT) {
-			COLLADASW::SpotLight cla(mSW, la_name, la->energy);
+			COLLADASW::SpotLight cla(mSW, la_name, "", la->energy);
 			cla.setColor(col);
 			addLight(cla);
 		}
 		// lamp
 		else if (la->type != LA_AREA) {
-			COLLADASW::PointLight cla(mSW, la_name, la->energy);
+			COLLADASW::PointLight cla(mSW, la_name, "", la->energy);
 			cla.setColor(col);
 			addLight(cla);
 		}
@@ -1302,7 +1301,6 @@ public:
 		}
 	}
 };
-#endif
 
 // TODO: it would be better to instantiate animations rather than create a new one per object
 // COLLADA allows this through multiple <channel>s in <animation>.
@@ -1547,11 +1545,9 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	CamerasExporter ce(&sw);
 	ce.exportCameras(sce);
 	
-#if 0
 	// <library_lights>
 	LightsExporter le(&sw);
 	le.exportLights(sce);
-#endif
 
 	// <library_images>
 	ImagesExporter ie(&sw);
