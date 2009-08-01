@@ -294,10 +294,12 @@ static void animrecord_check_state (Scene *scene, ID *id, wmTimer *animtimer)
 {
 	ScreenAnimData *sad= animtimer->customdata;
 	
-	/* if animtimer is running and we're not interested in only keying for available channels,
-	 * check if there's a keyframe on the current frame
+	/* check if we need a new strip if:
+	 * 	- if animtimer is running 
+	 *	- we're not only keying for available channels
+	 *	- the option to add new actions for each round is not enabled
 	 */
-	if (IS_AUTOKEY_FLAG(INSERTAVAIL)==0) {
+	if (IS_AUTOKEY_FLAG(INSERTAVAIL)==0 && (scene->toolsettings->autokey_flag & ANIMRECORD_FLAG_WITHNLA)) {
 		/* if playback has just looped around, we need to add a new NLA track+strip to allow a clean pass to occur */
 		if (sad->flag & ANIMPLAY_FLAG_JUMPED) {
 			AnimData *adt= BKE_animdata_from_id(id);
@@ -306,20 +308,26 @@ static void animrecord_check_state (Scene *scene, ID *id, wmTimer *animtimer)
 			 * NOTE: BKE_nla_action_pushdown() sync warning...
 			 */
 			if ((adt->action) && !(adt->flag & ADT_NLA_EDIT_ON)) {
-				NlaStrip *strip= add_nlastrip_to_stack(adt, adt->action);
+				float astart, aend;
 				
-				/* clear reference to action now that we've pushed it onto the stack */
-				adt->action->id.us--;
-				adt->action= NULL;
-				
-				/* adjust blending + extend so that they will behave correctly */
-				strip->extendmode= NLASTRIP_EXTEND_NOTHING;
-				strip->flag &= ~(NLASTRIP_FLAG_AUTO_BLENDS|NLASTRIP_FLAG_SELECT|NLASTRIP_FLAG_ACTIVE);
-				
-				/* also, adjust the AnimData's action extend mode to be on 
-				 * 'nothing' so that previous result still play 
-				 */
-				adt->act_extendmode= NLASTRIP_EXTEND_NOTHING;
+				/* only push down if action is more than 1-2 frames long */
+				calc_action_range(adt->action, &astart, &aend, 1);
+				if (aend > astart+2.0f) {
+					NlaStrip *strip= add_nlastrip_to_stack(adt, adt->action);
+					
+					/* clear reference to action now that we've pushed it onto the stack */
+					adt->action->id.us--;
+					adt->action= NULL;
+					
+					/* adjust blending + extend so that they will behave correctly */
+					strip->extendmode= NLASTRIP_EXTEND_NOTHING;
+					strip->flag &= ~(NLASTRIP_FLAG_AUTO_BLENDS|NLASTRIP_FLAG_SELECT|NLASTRIP_FLAG_ACTIVE);
+					
+					/* also, adjust the AnimData's action extend mode to be on 
+					 * 'nothing' so that previous result still play 
+					 */
+					adt->act_extendmode= NLASTRIP_EXTEND_NOTHING;
+				}
 			}
 		}
 	}

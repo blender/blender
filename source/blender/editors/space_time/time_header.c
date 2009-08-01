@@ -447,6 +447,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	ScrArea *sa= CTX_wm_area(C);
 	SpaceTime *stime= CTX_wm_space_time(C);
 	Scene *scene= CTX_data_scene(C);
+	wmTimer *animtimer= CTX_wm_screen(C)->animtimer;
 	uiBlock *block;
 	uiBut *but;
 	int xco, yco= 3;
@@ -536,7 +537,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 		RNA_boolean_set(uiButGetOperatorPtrRNA(but), "next", 0);
 	xco+= XIC;
 	
-	if(CTX_wm_screen(C)->animtimer) {
+	if (animtimer) {
 		/* pause button 2*size to keep buttons in place */
 		uiDefIconBut(block, BUT, B_TL_STOP, ICON_PAUSE,
 					 xco, yco, XIC*2, YIC, 0, 0, 0, 0, 0, "Stop Playing Timeline");
@@ -568,13 +569,21 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	uiDefIconButBitS(block, TOG, AUTOKEY_ON, B_REDRAWALL, ICON_REC,
 					 xco, yco, XIC, YIC, &(scene->toolsettings->autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
 	xco+= XIC;
-
-	if(IS_AUTOKEY_ON(scene)) {
+	
+	if (IS_AUTOKEY_ON(scene)) {
 		uiDefButS(block, MENU, B_REDRAWALL, 
 				  "Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
 				  xco, yco, (int)5.5*XIC, YIC, &(scene->toolsettings->autokey_mode), 0, 1, 0, 0, 
 				  "Mode of automatic keyframe insertion for Objects and Bones");
 		xco+= (5.5*XIC);
+		
+		if (animtimer) {
+			uiDefButBitS(block, TOG, ANIMRECORD_FLAG_WITHNLA, B_REDRAWALL, "Layered",	
+				  xco,yco, XIC*2.5, YIC,
+				  &(scene->toolsettings->autokey_flag),0, 1, 0, 0,
+				  "Add a new NLA Track + Strip for every loop/pass made over the animation to allow non-destructive tweaking.");
+			xco+= (3*XIC);
+		}
 	}
 	else
 		xco+= 6;
