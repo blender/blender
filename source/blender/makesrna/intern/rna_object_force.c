@@ -715,10 +715,68 @@ static void rna_def_field(BlenderRNA *brna)
 static void rna_def_game_softbody(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "GameSoftBodySettings", NULL);
 	RNA_def_struct_sdna(srna, "BulletSoftBody");
 	RNA_def_struct_ui_text(srna, "Game Soft Body Settings", "Soft body simulation settings for an object in the game engine.");
+	
+	/* Floats */
+	
+	prop= RNA_def_property(srna, "linstiff", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "linStiff");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Linear Stiffness", "Linear stiffness of the soft body links");
+	
+	prop= RNA_def_property(srna, "dynamic_friction", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "kDF");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Friction", "Dynamic Friction");
+	
+	prop= RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "kMT");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Threshold", "Shape matching threshold");
+	
+	prop= RNA_def_property(srna, "margin", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "margin");
+	RNA_def_property_range(prop, 0.01f, 1.0f);
+	RNA_def_property_ui_text(prop, "Margin", "Collision margin for soft body. Small value makes the algorithm unstable");
+	
+	prop= RNA_def_property(srna, "welding", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "welding");
+	RNA_def_property_range(prop, 0.0f, 0.01f);
+	RNA_def_property_ui_text(prop, "Welding", "Welding threshold: distance between nearby vertices to be considered equal => set to 0.0 to disable welding test and speed up scene loading (ok if the mesh has no duplicates)");
+
+	/* Integers */
+	
+	prop= RNA_def_property(srna, "position_iterations", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "piterations");
+	RNA_def_property_range(prop, 0, 10);
+	RNA_def_property_ui_text(prop, "Position Iterations", "Position solver iterations");
+	
+	prop= RNA_def_property(srna, "cluster_iterations", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "numclusteriterations");
+	RNA_def_property_range(prop, 1, 128);
+	RNA_def_property_ui_text(prop, "Cluster Iterations", "Specify the number of cluster iterations");
+	
+	/* Booleans */
+	
+	prop= RNA_def_property(srna, "shape_match", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_BSB_SHAPE_MATCHING);
+	RNA_def_property_ui_text(prop, "Shape Match", "Enable soft body shape matching goal");
+	
+	prop= RNA_def_property(srna, "bending_const", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_BSB_BENDING_CONSTRAINTS);
+	RNA_def_property_ui_text(prop, "Bending Const", "Enable bending constraints");
+	
+	prop= RNA_def_property(srna, "enable_rs_collision", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "collisionflags", OB_BSB_COL_CL_RS);
+	RNA_def_property_ui_text(prop, "Cluster Collision RS", "Enable cluster collision between soft and rigid body");
+	
+	prop= RNA_def_property(srna, "enable_ss_collision", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "collisionflags", OB_BSB_COL_CL_SS);
+	RNA_def_property_ui_text(prop, "Cluster Collision SS", "Enable cluster collision between soft and soft body");
 }
 
 static void rna_def_softbody(BlenderRNA *brna)
