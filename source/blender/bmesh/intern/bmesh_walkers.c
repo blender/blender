@@ -318,13 +318,13 @@ static void *shellWalker_step(BMWalker *walker)
 	int restrictpass = 1;
 	shellWalker *shellWalk = walker->currentstate;
 	
-	if (!BLI_ghash_lookup(walker->visithash, shellWalk->base))
+	if (!BLI_ghash_haskey(walker->visithash, shellWalk->base))
 		BLI_ghash_insert(walker->visithash, shellWalk->base, NULL);
 
 	/*find the next edge whose other vertex has not been visited*/
 	curedge = shellWalk->curedge;
 	do{
-		if (!BLI_ghash_lookup(walker->visithash, curedge)) { 
+		if (!BLI_ghash_haskey(walker->visithash, curedge)) { 
 			BLI_ghash_insert(walker->visithash, curedge, NULL);
 			if(walker->restrictflag && 
 			  (!BMO_TestFlag(walker->bm, curedge, walker->restrictflag))) 

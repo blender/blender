@@ -1485,3 +1485,80 @@ void MESH_OT_select_inverse(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+
+
+static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	ViewContext vc;
+	BMWalker walker;
+	BMEditMesh *em;
+	BMVert *eve;
+	BMEdge *e, *eed;
+	BMFace *efa;
+	short done=1, toggle=0;
+	int sel= !RNA_boolean_get(op->ptr, "deselect");
+	int limit= RNA_boolean_get(op->ptr, "limit");
+	
+	/* unified_finednearest needs ogl */
+	view3d_operator_needs_opengl(C);
+	
+	/* setup view context for argument to callbacks */
+	em_setup_viewcontext(C, &vc);
+	em = vc.em;
+
+	if(vc.em->bm->totedge==0)
+		return OPERATOR_CANCELLED;
+	
+	vc.mval[0]= event->mval[0];
+	vc.mval[1]= event->mval[1];
+	
+	/* return warning! */
+
+	/*if(limit) {
+		int retval= select_linked_limited_invoke(&vc, 0, sel);
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+		return retval;
+	}*/
+	
+	if( unified_findnearest(&vc, &eve, &eed, &efa)==0 ) {
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+		return OPERATOR_CANCELLED;
+	}
+	
+	if (efa) {
+		eed = efa->loopbase->e;
+	} else if (!eed) {
+		if (!eve || !eve->edge)
+			return OPERATOR_CANCELLED;
+		
+		eed = eve->edge;
+	}
+
+	BMW_Init(&walker, em->bm, BMW_SHELL, 0);
+	e = BMW_Begin(&walker, eed);
+	for (; e; e=BMW_Step(&walker)) {
+		BM_Select(em->bm, e, sel);
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_select_linked_pick(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Linked";
+	ot->idname= "MESH_OT_select_linked_pick";
+	
+	/* api callbacks */
+	ot->invoke= select_linked_pick_invoke;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
+	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "");
+}
