@@ -775,12 +775,30 @@ int is_a_really_crappy_nvidia_card(void)
 	return well_is_it;
 }
 
+int troublesome_mesa_buffers(void)
+{
+	static int check = -1;
+
+	/* Driver bug is reported upstream, it should be fixed at some point, so do not hardcode */
+	/* It has been reported to happen with intel and radeon drivers, must be something more general (DRI?) */
+	/* https://bugs.freedesktop.org/show_bug.cgi?id=21774 */
+	if (check == -1) {
+		check = (getenv("BLENDER_FORCE_SWAPBUFFERS") != NULL);
+	}
+
+	return check;
+}
+
 void bglFlush(void) 
 {
 	glFlush();
 #ifdef __APPLE__
 	if(is_a_really_crappy_intel_card())
 		myswapbuffers(); //hack to get mac intel graphics to show frontbuffer
+#endif
+#ifdef __linux__
+	if(troublesome_mesa_buffers())
+		myswapbuffers();
 #endif
 }
 
