@@ -383,6 +383,8 @@ int checkPackedFile(char * filename, PackedFile * pf)
 					}
 				}
 			}
+			
+			close(file);
 		}
 	}
 	

@@ -483,15 +483,18 @@ static void *read_file_data(char *filename, int *len_r)
 	data= MEM_mallocN(*len_r, "read_file_data");
 	if (!data) {
 		*len_r= -1;
+		fclose(fp);
 		return NULL;
 	}
 
 	if (fread(data, *len_r, 1, fp)!=1) {
 		*len_r= -1;
 		MEM_freeN(data);
+		fclose(fp);
 		return NULL;
 	}
-
+	
+	fclose(fp);
 	return data;
 }
 

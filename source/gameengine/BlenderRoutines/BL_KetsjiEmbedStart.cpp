@@ -747,6 +747,16 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 			delete mousedevice;
 			mousedevice = NULL;
 		}
+		if (rasterizer)
+		{
+			delete rasterizer;
+			rasterizer = NULL;
+		}
+		if (rendertools)
+		{
+			delete rendertools;
+			rendertools = NULL;
+		}
 		SND_DeviceManager::Unsubscribe();
 
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);

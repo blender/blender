@@ -289,7 +289,10 @@ short imb_savetarga(struct ImBuf * ibuf, char *name, int flags)
 	fildes = fopen(name,"wb");
         if (!fildes) return 0;
 
-	if (fwrite(buf, 1, 18,fildes) != 18) return (0);
+	if (fwrite(buf, 1, 18,fildes) != 18) {
+		fclose(fildes);
+		return (0);
+	}
 
 	if (ibuf->cmap){
 		for (i = 0 ; i<ibuf->maxcol ; i++){
