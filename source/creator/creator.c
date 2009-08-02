@@ -254,6 +254,10 @@ static void print_help(void)
 	printf ("  $IMAGEEDITOR\t\tImage editor executable, launch with the IKey from the file selector.\n");
 	printf ("  $WINEDITOR\t\tText editor executable, launch with the EKey from the file selector.\n");
 	printf ("  $PYTHONHOME\t\tPath to the python directory, eg. /usr/lib/python.\n");
+#ifdef __linux__
+	printf ("  $BLENDER_FORCE_SWAPBUFFERS\tFixes menu drawing with some Intel and Radeon cards\n");
+	printf ("  \t\tThe value is not used, only that the env var is set (linux specific).\n");
+#endif
 	printf ("\nNote: Arguments must be separated by white space. eg:\n");
 	printf ("    \"blender -ba test.blend\"\n");
 	printf ("  ...will ignore the 'a'\n");
