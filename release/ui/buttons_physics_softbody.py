@@ -51,7 +51,54 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
 			col.itemL(text="Simulation:")
 			col.itemR(softbody, "gravity")
 			col.itemR(softbody, "speed")
+			
+class PHYSICS_PT_softbody_cache(PhysicButtonsPanel):
+	__label__ = "Soft Body Cache"
+	__default_closed__ = True
+
+	def poll(self, context):
+		return (context.soft_body)
+
+	def draw(self, context):
+		layout = self.layout
+
+		cache = context.soft_body.point_cache
+		
+		row = layout.row()
+		row.itemR(cache, "name")
+		
+		row = layout.row()
+		row.itemR(cache, "start_frame")
+		row.itemR(cache, "end_frame")
+		
+		row = layout.row()
+		
+		if cache.baked == True:
+			row.itemO("ptcache.free_bake_softbody", text="Free Bake")
+		else:
+			row.item_booleanO("ptcache.cache_softbody", "bake", True, text="Bake")
+		
+		sub = row.row()
+		sub.enabled = cache.frames_skipped or cache.outdated
+		sub.itemO("ptcache.cache_softbody", text="Calculate to Current Frame")
+			
+		row = layout.row()
+		row.itemO("ptcache.bake_from_softbody_cache", text="Current Cache to Bake")
+		row.itemR(cache, "step");
 	
+		row = layout.row()
+		row.itemR(cache, "quick_cache")
+		row.itemR(cache, "disk_cache")
+		
+		layout.itemL(text=cache.info)
+		
+		layout.itemS()
+		
+		row = layout.row()
+		row.itemO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
+		row.itemO("ptcache.free_bake_all", text="Free All Bakes")
+		layout.itemO("ptcache.bake_all", text="Update All Dynamics to current frame")
+		
 class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
 	__label__ = "Soft Body Goal"
 	
@@ -211,6 +258,7 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
 			layout.itemR(softbody, "diagnose")
 	
 bpy.types.register(PHYSICS_PT_softbody)
+bpy.types.register(PHYSICS_PT_softbody_cache)
 bpy.types.register(PHYSICS_PT_softbody_goal)
 bpy.types.register(PHYSICS_PT_softbody_edge)
 bpy.types.register(PHYSICS_PT_softbody_collision)

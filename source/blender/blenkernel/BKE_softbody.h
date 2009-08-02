@@ -69,7 +69,7 @@ extern void				sbObjectToSoftbody(struct Object *ob);
 extern void             sbSetInterruptCallBack(int (*f)(void));
 
 /* writing to cache for bake editing */
-extern void 			sbWriteCache(struct Object *ob, int framenr);
+extern void 			softbody_write_cache(struct Object *ob, struct SoftBody *soft, int cfra);
 
 #endif
 

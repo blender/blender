@@ -34,6 +34,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_bmesh.h" /* For BevelModifierData */
@@ -381,6 +382,12 @@ static PointerRNA rna_SoftBodyModifier_settings_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 	return rna_pointer_inherit_refine(ptr, &RNA_SoftBodySettings, ob->soft);
+}
+
+static PointerRNA rna_SoftBodyModifier_point_cache_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	return rna_pointer_inherit_refine(ptr, &RNA_PointCache, ob->soft->pointcache);
 }
 
 static PointerRNA rna_CollisionModifier_settings_get(PointerRNA *ptr)
@@ -883,6 +890,11 @@ static void rna_def_modifier_softbody(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "SoftBodySettings");
 	RNA_def_property_pointer_funcs(prop, "rna_SoftBodyModifier_settings_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Soft Body Settings", "");
+
+	prop= RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "PointCache");
+	RNA_def_property_pointer_funcs(prop, "rna_SoftBodyModifier_point_cache_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Soft Body Point Cache", "");
 }
 
 static void rna_def_modifier_boolean(BlenderRNA *brna)
