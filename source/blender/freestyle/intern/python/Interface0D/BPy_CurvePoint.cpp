@@ -128,24 +128,33 @@ int CurvePoint___init__(BPy_CurvePoint *self, PyObject *args, PyObject *kwds)
 
 	PyObject *obj1 = 0, *obj2 = 0 , *obj3 = 0;
 
-    if (! PyArg_ParseTuple(args, "|OOO", &obj1, &obj2, &obj3) )
+    if (! PyArg_ParseTuple(args, "|OOO!", &obj1, &obj2, &PyFloat_Type, &obj3) )
         return -1;
 
-	if( !obj1 && !obj2 && !obj3 ){
+	if( !obj1 ){
 		self->cp = new CurvePoint();
-	} else if( PyFloat_Check(obj3) ) {
-		if( BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2) ) {
-			self->cp = new CurvePoint(  ((BPy_SVertex *) obj1)->sv,
-										((BPy_SVertex *) obj2)->sv,
-										PyFloat_AsDouble( obj3 ) );
-		} else if( BPy_CurvePoint_Check(obj1) && BPy_CurvePoint_Check(obj2) ) {
-			self->cp = new CurvePoint(  ((BPy_CurvePoint *) obj1)->cp,
-										((BPy_CurvePoint *) obj2)->cp,
-										PyFloat_AsDouble( obj3 ) );
-		} else {
-			PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
-			return -1;	
-		}		
+
+	} else if( !obj2 && BPy_CurvePoint_Check(obj1) ) {
+		self->cp = new CurvePoint( *(((BPy_CurvePoint *) obj1)->cp) );
+
+	} else if( obj3 && BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2) ) {
+		self->cp = new CurvePoint(  ((BPy_SVertex *) obj1)->sv,
+									((BPy_SVertex *) obj2)->sv,
+									PyFloat_AsDouble( obj3 ) );
+
+	} else if( obj3 && BPy_CurvePoint_Check(obj1) && BPy_CurvePoint_Check(obj2) ) {
+		CurvePoint *cp1 = ((BPy_CurvePoint *) obj1)->cp;
+		CurvePoint *cp2 = ((BPy_CurvePoint *) obj2)->cp;
+		if( !cp1 || cp1->A() == 0 || cp1->B() == 0 ) {
+			PyErr_SetString(PyExc_TypeError, "argument 1 is an invalid CurvePoint object");
+			return -1;
+		}
+		if( !cp2 || cp2->A() == 0 || cp2->B() == 0 ) {
+			PyErr_SetString(PyExc_TypeError, "argument 2 is an invalid CurvePoint object");
+			return -1;
+		}
+		self->cp = new CurvePoint( cp1, cp2, PyFloat_AsDouble( obj3 ) );
+
 	} else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
