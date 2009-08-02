@@ -15,8 +15,6 @@ extern "C" {
 /*---------------  Python API function prototypes for TVertex___init__ instance  -----------*/
 static int TVertex___init__(BPy_TVertex *self, PyObject *args, PyObject *kwds);
 
-static PyObject * TVertex_castToViewVertex( BPy_TVertex *self );
-static PyObject * TVertex_castToTVertex( BPy_TVertex *self );
 static PyObject * TVertex_frontSVertex( BPy_TVertex *self );
 static PyObject * TVertex_backSVertex( BPy_TVertex *self );
 static PyObject * TVertex_setFrontSVertex( BPy_TVertex *self, PyObject *args); 
@@ -28,8 +26,6 @@ static PyObject * TVertex_mate( BPy_TVertex *self, PyObject *args);
 /*----------------------TVertex instance definitions ----------------------------*/
 static PyMethodDef BPy_TVertex_methods[] = {	
 //	{"__copy__", ( PyCFunction ) TVertex___copy__, METH_NOARGS, "（ ）Cloning method."},
-	{"castToViewVertex", ( PyCFunction ) TVertex_castToViewVertex, METH_NOARGS, "（ ）Cast the Interface0D in ViewVertex if it can be. "},
-	{"castToTVertex", ( PyCFunction ) TVertex_castToTVertex, METH_NOARGS, "（ ）Cast the Interface0D in TVertex if it can be. "},
 	{"frontSVertex", ( PyCFunction ) TVertex_frontSVertex, METH_NOARGS, "（ ）Returns the SVertex that is closer to the viewpoint. "},
 	{"backSVertex", ( PyCFunction ) TVertex_backSVertex, METH_NOARGS, "（ ）Returns the SVertex that is further away from the viewpoint. "},
 	{"setFrontSVertex", ( PyCFunction ) TVertex_setFrontSVertex, METH_VARARGS, "（SVertex sv ）Sets the SVertex that is closer to the viewpoint. "},
@@ -139,14 +135,6 @@ int TVertex___init__(BPy_TVertex *self, PyObject *args, PyObject *kwds)
 	return 0;
 }
 
-
-PyObject * TVertex_castToViewVertex( BPy_TVertex *self ) {
-	return BPy_ViewVertex_from_ViewVertex( *(self->tv->castToViewVertex()) );
-}
-
-PyObject * TVertex_castToTVertex( BPy_TVertex *self ) {
-	return BPy_TVertex_from_TVertex( *(self->tv->castToTVertex()) );
-}
 
 PyObject * TVertex_frontSVertex( BPy_TVertex *self ) {
 	SVertex *v = self->tv->frontSVertex();

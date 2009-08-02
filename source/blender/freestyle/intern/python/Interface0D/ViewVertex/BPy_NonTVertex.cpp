@@ -12,18 +12,12 @@ extern "C" {
 /*---------------  Python API function prototypes for NonTVertex___init__ instance  -----------*/
 static int NonTVertex___init__(BPy_NonTVertex *self, PyObject *args, PyObject *kwds);
 
-static PyObject * NonTVertex_castToSVertex( BPy_NonTVertex *self );
-static PyObject * NonTVertex_castToViewVertex( BPy_NonTVertex *self );
-static PyObject * NonTVertex_castToNonTVertex( BPy_NonTVertex *self );
 static PyObject * NonTVertex_svertex( BPy_NonTVertex *self );
 static PyObject * NonTVertex_setSVertex( BPy_NonTVertex *self, PyObject *args);
 
 /*----------------------NonTVertex instance definitions ----------------------------*/
 static PyMethodDef BPy_NonTVertex_methods[] = {	
 //	{"__copy__", ( PyCFunction ) NonTVertex___copy__, METH_NOARGS, "（ ）Cloning method."},
-	{"castToSVertex", ( PyCFunction ) NonTVertex_castToSVertex, METH_NOARGS, "（ ）Cast the Interface0D in SVertex if it can be. "},
-	{"castToViewVertex", ( PyCFunction ) NonTVertex_castToViewVertex, METH_NOARGS, "（ ）Cast the Interface0D in ViewVertex if it can be. "},
-	{"castToNonTVertex", ( PyCFunction ) NonTVertex_castToNonTVertex, METH_NOARGS, "（ ）Cast the Interface0D in NonTVertex if it can be. "},
 	{"svertex", ( PyCFunction ) NonTVertex_svertex, METH_NOARGS, "（ ）Returns the SVertex on top of which this NonTVertex is built. "},
 	{"setSVertex", ( PyCFunction ) NonTVertex_setSVertex, METH_VARARGS, "（SVertex sv ）Sets the SVertex on top of which this NonTVertex is built. "},
 	{NULL, NULL, 0, NULL}
@@ -142,21 +136,6 @@ int NonTVertex___init__(BPy_NonTVertex *self, PyObject *args, PyObject *kwds)
 	self->py_vv.py_if0D.borrowed = 0;
 
 	return 0;
-}
-
-PyObject * NonTVertex_castToSVertex( BPy_NonTVertex *self ) {
-	PyObject *py_sv =  SVertex_Type.tp_new( &SVertex_Type, 0, 0 );
-	((BPy_SVertex *) py_sv)->sv = self->ntv->castToSVertex();
-
-	return py_sv;
-}
-
-PyObject * NonTVertex_castToViewVertex( BPy_NonTVertex *self ) {
-	return BPy_ViewVertex_from_ViewVertex( *(self->ntv->castToViewVertex()) );
-}
-
-PyObject * NonTVertex_castToNonTVertex( BPy_NonTVertex *self ) {
-	return BPy_NonTVertex_from_NonTVertex( *(self->ntv->castToNonTVertex()) );
 }
 
 PyObject * NonTVertex_svertex( BPy_NonTVertex *self ) {
