@@ -5344,7 +5344,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			int x, y, z, i;
 			float viewnormal[3];
 			int mainaxis[3] = {0,0,0};
-			float align = 0;
+			float align = 0, signed_align = 0;
 			int max_textures = 0, counter_textures = 0;
 			float *buffer = NULL;
 			int res[3];
@@ -5386,6 +5386,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				{
 					mainaxis[0] = i;
 					align = ABS(viewnormal[i]);
+					signed_align = viewnormal[i];
 				}
 			}
 			mainaxis[1] = (mainaxis[0] + 1) % 3;
@@ -5438,8 +5439,23 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			
 			if(new > 1)
 			{
-				float light[3] = {0.0,0.0,2.0};
-				
+				float light[3] = {0.0,0.0,2.0}; // TODO: take real LAMP coordinates - dg
+				Base *base_tmp = NULL;
+
+				for(base_tmp = scene->base.first; base_tmp; base_tmp= base_tmp->next) 
+				{
+					if(base_tmp->object->type == OB_LAMP) 
+					{
+						Lamp *la = (Lamp *)base_tmp->object->data;
+						
+						if(la->type == LA_LOCAL)
+						{
+							VECCOPY(light, base_tmp->object->obmat[3]);
+							break;
+						}
+					}
+				}
+
 				if(!big && !(smd->domain->viewsettings & MOD_SMOKE_VIEW_SMALL))
 				{
 					smoke_prepare_View(smd, light);
@@ -5486,7 +5502,17 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 				mod_texture = MAX3(1, smd->domain->visibility, (int)(res[mainaxis[0]] / smd->domain->max_textures ));
 				
-				for (z = 0; z < res[mainaxis[0]]; z++) // 2
+				// align order of billboards to be front or backview (e.g. +x or -x axis)
+				if(signed_align < 0)
+				{
+					z = res[mainaxis[0]] - 1;
+				}
+				else
+				{
+					z = 0;
+				}
+
+				for (; signed_align > 0 ? (z < res[mainaxis[0]]) : (z >= 0); signed_align > 0 ? z++ : z--) // 2
 				{
 					float quad[4][3];
 
