@@ -60,7 +60,6 @@ static void rna_Pose_update(bContext *C, PointerRNA *ptr)
 
 static char *rna_PoseChannel_path(PointerRNA *ptr)
 {
-	// XXX do we really need the 'pose.' bit?
 	return BLI_sprintfN("pose.pose_channels[\"%s\"]", ((bPoseChannel*)ptr->data)->name);
 }
 

@@ -993,6 +993,28 @@ NlaStrip *BKE_nlastrip_find_active (NlaTrack *nlt)
 	return NULL;
 }
 
+/* Make the given NLA-Strip the active one within the given block */
+void BKE_nlastrip_set_active (AnimData *adt, NlaStrip *strip)
+{
+	NlaTrack *nlt;
+	NlaStrip *nls;
+	
+	/* sanity checks */
+	if (adt == NULL)
+		return;
+	
+	/* loop over tracks, deactivating*/
+	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
+		for (nls= nlt->strips.first; nls; nls= nls->next)  {
+			if (nls != strip)
+				nls->flag &= ~NLASTRIP_FLAG_ACTIVE;
+			else
+				nls->flag |= NLASTRIP_FLAG_ACTIVE;
+		}
+	}
+}
+
+
 /* Does the given NLA-strip fall within the given bounds (times)? */
 short BKE_nlastrip_within_bounds (NlaStrip *strip, float min, float max)
 {
@@ -1403,6 +1425,9 @@ void BKE_nla_action_pushdown (AnimData *adt)
 			// FIXME: this needs to be more automated, since user can rearrange strips
 			strip->extendmode= NLASTRIP_EXTEND_HOLD_FORWARD;
 		}
+		
+		/* make strip the active one... */
+		BKE_nlastrip_set_active(adt, strip);
 	}
 }
 
