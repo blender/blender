@@ -376,10 +376,9 @@ class DATA_PT_modifiers(DataButtonsPanel):
 			layout.itemR(md.domain_settings, "coll_group")
 		elif md.smoke_type == 'TYPE_FLOW':
 			layout.itemS()
+			layout.itemR(md.flow_settings, "outflow")
 			layout.itemR(md.flow_settings, "density")
 			layout.itemR(md.flow_settings, "temperature")
-			layout.itemL(text="Velocity")
-			layout.row().itemR(md.flow_settings, "velocity", text="")
 			layout.item_pointerR(md.flow_settings, "psys", ob, "particle_systems")
 		elif md.smoke_type == 'TYPE_COLL':
 			layout.itemS()

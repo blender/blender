@@ -120,29 +120,29 @@ FLUID_3D::FLUID_3D(int *res, int amplify, float *p0, float dt) :
 
 	// set side obstacles
   int index;
-  for (int y = 0; y < _yRes; y++)
+  for (int y = 0; y < _yRes; y++) // z
     for (int x = 0; x < _xRes; x++)
     {
       // front slab
       index = x + y * _xRes;
-      if(DOMAIN_BC_FRONT==1) _obstacles[index] = 1;
+      if(DOMAIN_BC_BOTTOM==1) _obstacles[index] = 1;
 
       // back slab
       index += _totalCells - _slabSize;
-      if(DOMAIN_BC_BACK==1) _obstacles[index] = 1;
+      if(DOMAIN_BC_TOP==1) _obstacles[index] = 1;
     }
-  for (int z = 0; z < _zRes; z++)
+  for (int z = 0; z < _zRes; z++) // y
     for (int x = 0; x < _xRes; x++)
     {
       // bottom slab
       index = x + z * _slabSize;
-      if(DOMAIN_BC_BOTTOM==1) _obstacles[index] = 1;
+      if(DOMAIN_BC_FRONT==1) _obstacles[index] = 1;
 
       // top slab
       index += _slabSize - _xRes;
-      if(DOMAIN_BC_TOP==1) _obstacles[index] = 1;
+      if(DOMAIN_BC_BACK==1) _obstacles[index] = 1;
     }
-  for (int z = 0; z < _zRes; z++)
+  for (int z = 0; z < _zRes; z++) // x
     for (int y = 0; y < _yRes; y++)
     {
       // left slab
@@ -360,11 +360,11 @@ void FLUID_3D::project()
 	if(DOMAIN_BC_LEFT == 0)  setNeumannX(_xVelocity, _res);
 	else setZeroX(_xVelocity, _res);
 
-	if(DOMAIN_BC_TOP == 0)   setNeumannY(_yVelocity, _res);
-	else setZeroY(_yVelocity, _res);
-
-	if(DOMAIN_BC_FRONT == 0) setNeumannZ(_zVelocity, _res);
+	if(DOMAIN_BC_TOP == 0)   setNeumannZ(_zVelocity, _res);
 	else setZeroZ(_zVelocity, _res);
+
+	if(DOMAIN_BC_FRONT == 0) setNeumannY(_yVelocity, _res);
+	else setZeroY(_yVelocity, _res);
 
 	// calculate divergence
 	index = _slabSize + _xRes + 1;
@@ -630,11 +630,11 @@ void FLUID_3D::advectMacCormack()
 	if(DOMAIN_BC_LEFT == 0) copyBorderX(_xVelocity, res);
 	else setZeroX(_xVelocity, res);
 
-	if(DOMAIN_BC_TOP == 0) copyBorderY(_yVelocity, res);
-	else setZeroY(_yVelocity, res);
-
-	if(DOMAIN_BC_FRONT == 0) copyBorderZ(_zVelocity, res);
+	if(DOMAIN_BC_TOP == 0) copyBorderZ(_zVelocity, res);
 	else setZeroZ(_zVelocity, res);
+
+	if(DOMAIN_BC_FRONT == 0) copyBorderY(_yVelocity, res);
+	else setZeroY(_yVelocity, res);
 
 	SWAP_POINTERS(_xVelocity, _xVelocityOld);
 	SWAP_POINTERS(_yVelocity, _yVelocityOld);
@@ -658,11 +658,11 @@ void FLUID_3D::advectMacCormack()
 	if(DOMAIN_BC_LEFT == 0) copyBorderX(_xVelocity, res);
 	else setZeroX(_xVelocity, res);
 
-	if(DOMAIN_BC_TOP == 0) copyBorderY(_yVelocity, res);
-	else setZeroY(_yVelocity, res);
-
-	if(DOMAIN_BC_FRONT == 0) copyBorderZ(_zVelocity, res);
+	if(DOMAIN_BC_TOP == 0) copyBorderZ(_zVelocity, res);
 	else setZeroZ(_zVelocity, res);
+
+	if(DOMAIN_BC_FRONT == 0) copyBorderY(_yVelocity, res);
+	else setZeroY(_yVelocity, res);
 
 	setZeroBorder(_density, res);
 	setZeroBorder(_heat, res);

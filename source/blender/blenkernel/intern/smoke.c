@@ -199,7 +199,9 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 			}
 		}
 
-		printf("res[0]: %d, res[1]: %d, res[2]: %d\n", smd->domain->res[0], smd->domain->res[1], smd->domain->res[2]);
+		// TODO: put in failsafe if res<=0 - dg
+
+		// printf("res[0]: %d, res[1]: %d, res[2]: %d\n", smd->domain->res[0], smd->domain->res[1], smd->domain->res[2]);
 
 		// dt max is 0.1
 		smd->domain->fluid = smoke_init(smd->domain->res, smd->domain->amplify, smd->domain->p0, smd->domain->p1, 2.5 / FPS);
@@ -222,9 +224,13 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 
 		return 1;
 	}
-	else if((smd->type & MOD_SMOKE_TYPE_COLL) && smd->coll)
+	else if((smd->type & MOD_SMOKE_TYPE_COLL))
 	{
 		smd->time = scene->r.cfra;
+
+		// todo: delete this when loading colls work -dg
+		if(!smd->coll)
+			smokeModifier_createType(smd);
 
 		if(!smd->coll->points)
 		{
@@ -600,7 +606,7 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->domain->eff_group = NULL;
 			smd->domain->fluid_group = NULL;
 			smd->domain->coll_group = NULL;
-			smd->domain->maxres = 48;
+			smd->domain->maxres = 32;
 			smd->domain->amplify = 2;
 			smd->domain->omega = 0.5;
 			smd->domain->alpha = -0.001;
@@ -652,7 +658,7 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 void smoke_calc_transparency(struct SmokeModifierData *smd, float *light, int big);
 
 void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm)
-{
+{	
 	if(scene->r.cfra >= smd->time)
 		smokeModifier_init(smd, ob, scene, dm);
 
@@ -793,24 +799,49 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 									// 2. set cell values (heat, density and velocity)
 									index = smoke_get_index(cell[0], sds->res[0], cell[1], sds->res[1], cell[2]);
 									
-									heat[index] = sfs->temp;
-									density[index] = sfs->density;
-									velocity_x[index] = pa->state.vel[0];
-									velocity_y[index] = pa->state.vel[1];
-									velocity_z[index] = pa->state.vel[2];
-
-									// we need different handling for the high-res feature
-									if(bigdensity)
+									if(!(sfs->type & MOD_SMOKE_FLOW_TYPE_OUTFLOW)) // this is inflow
 									{
-										// init all surrounding cells according to amplification, too
-										int i, j, k;
-										for(i = 0; i < smd->domain->amplify; i++)
-											for(j = 0; j < smd->domain->amplify; j++)
-												for(k = 0; k < smd->domain->amplify; k++)
-												{
-													index = smoke_get_index(smd->domain->amplify * cell[0] + i, bigres[0], smd->domain->amplify * cell[1] + j, bigres[1], smd->domain->amplify * cell[2] + k);
-													bigdensity[index] = sfs->density;
-												}
+										heat[index] = sfs->temp;
+										density[index] = sfs->density;
+										velocity_x[index] = pa->state.vel[0];
+										velocity_y[index] = pa->state.vel[1];
+										velocity_z[index] = pa->state.vel[2];
+
+										// we need different handling for the high-res feature
+										if(bigdensity)
+										{
+											// init all surrounding cells according to amplification, too
+											int i, j, k;
+											for(i = 0; i < smd->domain->amplify; i++)
+												for(j = 0; j < smd->domain->amplify; j++)
+													for(k = 0; k < smd->domain->amplify; k++)
+													{
+														index = smoke_get_index(smd->domain->amplify * cell[0] + i, bigres[0], smd->domain->amplify * cell[1] + j, bigres[1], smd->domain->amplify * cell[2] + k);
+														bigdensity[index] = sfs->density;
+													}
+										}
+									}
+									else // outflow
+									{
+										heat[index] = 0.f;
+										density[index] = 0.f;
+										velocity_x[index] = 0.f;
+										velocity_y[index] = 0.f;
+										velocity_z[index] = 0.f;
+
+										// we need different handling for the high-res feature
+										if(bigdensity)
+										{
+											// init all surrounding cells according to amplification, too
+											int i, j, k;
+											for(i = 0; i < smd->domain->amplify; i++)
+												for(j = 0; j < smd->domain->amplify; j++)
+													for(k = 0; k < smd->domain->amplify; k++)
+													{
+														index = smoke_get_index(smd->domain->amplify * cell[0] + i, bigres[0], smd->domain->amplify * cell[1] + j, bigres[1], smd->domain->amplify * cell[2] + k);
+														bigdensity[index] = 0.f;
+													}
+										}
 									}
 								}
 							}	
@@ -886,7 +917,6 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 							// we got nice collision object
 							SmokeCollSettings *scs = smd2->coll;
 							int cell[3];
-							int valid = 1;
 							size_t index = 0;
 							size_t i, j;
 							unsigned char *obstacles = smoke_get_obstacle(smd->domain->fluid);
@@ -899,10 +929,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 								// check if cell is valid (in the domain boundary)
 								for(j = 0; j < 3; j++)
 									if((cell[j] > sds->res[j] - 1) || (cell[j] < 0))
-										valid = 0;
-								
-								if(!valid)
-									continue;
+										continue;
 								
 								// 2. set cell values (heat, density and velocity)
 								index = smoke_get_index(cell[0], sds->res[0], cell[1], sds->res[1], cell[2]);
