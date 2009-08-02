@@ -163,28 +163,22 @@ class SCENE_PT_performance(RenderButtonsPanel):
 		sub = col.column()
 		sub.enabled = rd.threads_mode == 'THREADS_FIXED'
 		sub.itemR(rd, "threads")
-
-		col = split.column(align=True)
 		col.itemL(text="Tiles:")
 		col.itemR(rd, "parts_x", text="X")
 		col.itemR(rd, "parts_y", text="Y")
 
-		split = layout.split()
-
 		col = split.column()
 		col.itemL(text="Memory:")
-		row = col.row()
-		row.itemR(rd, "save_buffers")
-		row.enabled = not rd.full_sample
-
-		col = split.column()
-		col.active = rd.use_compositing
-		col.itemL()
-		col.itemR(rd, "free_image_textures")
-
-		row = layout.row()
-		row.active = rd.render_raytracing
-		row.itemR(rd, "octree_resolution", text="Ray Tracing Octree")
+		sub = col.column()
+		sub.itemR(rd, "save_buffers")
+		sub.enabled = not rd.full_sample
+		sub = col.column()
+		sub.active = rd.use_compositing
+		sub.itemR(rd, "free_image_textures")
+		sub = col.column()
+		sub.active = rd.render_raytracing
+		sub.itemL(text="Ray Tracing Octree:")
+		sub.itemR(rd, "octree_resolution", text="")
 
 class SCENE_PT_post_processing(RenderButtonsPanel):
 	__label__ = "Post Processing"
