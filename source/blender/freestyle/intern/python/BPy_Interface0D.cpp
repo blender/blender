@@ -182,6 +182,8 @@ PyMODINIT_FUNC Interface0D_Init( PyObject *module )
 
 int Interface0D___init__(BPy_Interface0D *self, PyObject *args, PyObject *kwds)
 {
+    if ( !PyArg_ParseTuple(args, "") )
+        return -1;
 	self->if0D = new Interface0D();
 	self->borrowed = 0;
 	return 0;

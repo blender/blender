@@ -135,7 +135,13 @@ int SVertex___init__(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 	if (! PyArg_ParseTuple(args, "|OO!", &py_point, &Id_Type, &py_id) )
         return -1;
 	
-	if( py_point && py_id ) {
+	if( !py_point ) {
+		self->sv = new SVertex();
+
+	} else if( !py_id && BPy_SVertex_Check(py_point) ) {
+		self->sv = new SVertex( *(((BPy_SVertex *)py_point)->sv) );
+
+	} else if( py_point && py_id ) {
 		Vec3r *v = Vec3r_ptr_from_PyObject(py_point);
 		if( !v ) {
 			PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
@@ -143,8 +149,7 @@ int SVertex___init__(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 		}
 		self->sv = new SVertex( *v, *(py_id->id) );
 		delete v;
-	} else if( !py_point && !py_id ) {
-		self->sv = new SVertex();
+
 	} else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;

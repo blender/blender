@@ -11,7 +11,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for ViewVertex instance  -----------*/
-static int ViewVertex___init__(BPy_ViewVertex *self);
+static int ViewVertex___init__( BPy_ViewVertex *self, PyObject *args, PyObject *kwds );
 static PyObject * ViewVertex_setNature( BPy_ViewVertex *self, PyObject *args );
 static PyObject * ViewVertex_edgesBegin( BPy_ViewVertex *self );
 static PyObject * ViewVertex_edgesEnd( BPy_ViewVertex *self );
@@ -116,10 +116,12 @@ PyTypeObject ViewVertex_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int ViewVertex___init__(BPy_ViewVertex *self )
+int ViewVertex___init__( BPy_ViewVertex *self, PyObject *args, PyObject *kwds )
 {	
+    if( !PyArg_ParseTuple(args, "") )
+        return -1;
 	self->vv = 0; // ViewVertex is abstract
-	self->py_if0D.if0D = new Interface0D();
+	self->py_if0D.if0D = self->vv;
 	self->py_if0D.borrowed = 0;
 	return 0;
 }

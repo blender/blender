@@ -117,13 +117,13 @@ int NonTVertex___init__(BPy_NonTVertex *self, PyObject *args, PyObject *kwds)
 
 	PyObject *obj = 0;
 
-    if (! PyArg_ParseTuple(args, "|O", &obj) )
+    if (! PyArg_ParseTuple(args, "|O!", &SVertex_Type, &obj) )
         return -1;
 
 	if( !obj ){
 		self->ntv = new NonTVertex();
 
-	} else if( BPy_SVertex_Check(obj) && ((BPy_SVertex *) obj)->sv ) {
+	} else if( ((BPy_SVertex *) obj)->sv ) {
 		self->ntv = new NonTVertex( ((BPy_SVertex *) obj)->sv );
 
 	} else {

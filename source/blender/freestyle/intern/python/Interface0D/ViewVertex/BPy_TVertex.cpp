@@ -127,6 +127,8 @@ PyTypeObject TVertex_Type = {
 
 int TVertex___init__(BPy_TVertex *self, PyObject *args, PyObject *kwds)
 {
+    if( !PyArg_ParseTuple(args, "") )
+        return -1;
 	self->tv = new TVertex();
 	self->py_vv.vv = self->tv;
 	self->py_vv.py_if0D.if0D = self->tv;
