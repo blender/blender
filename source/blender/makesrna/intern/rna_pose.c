@@ -58,6 +58,12 @@ static void rna_Pose_update(bContext *C, PointerRNA *ptr)
 	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_DATA);
 }
 
+static char *rna_PoseChannel_path(PointerRNA *ptr)
+{
+	// XXX do we really need the 'pose.' bit?
+	return BLI_sprintfN("pose.pose_channels[\"%s\"]", ((bPoseChannel*)ptr->data)->name);
+}
+
 static void rna_BoneGroup_color_set_set(PointerRNA *ptr, int value)
 {
 	bActionGroup *grp= ptr->data;
@@ -297,6 +303,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "PoseChannel", NULL);
 	RNA_def_struct_sdna(srna, "bPoseChannel");
 	RNA_def_struct_ui_text(srna, "Pose Channel", "Channel defining pose data for a bone in a Pose.");
+	RNA_def_struct_path_func(srna, "rna_PoseChannel_path");
 	RNA_def_struct_idproperties_func(srna, "rna_PoseChannel_idproperties");
 
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
