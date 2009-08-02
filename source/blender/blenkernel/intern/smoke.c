@@ -769,7 +769,6 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 								for(p=0, pa=psys->particles; p<psys->totpart; p++, pa++)
 								{
 									int cell[3];
-									int valid = 1;
 									size_t i = 0;
 									size_t index = 0;
 									
@@ -786,11 +785,10 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 								
 									// check if cell is valid (in the domain boundary)
 									for(i = 0; i < 3; i++)
+									{
 										if((cell[i] > sds->res[i] - 1) || (cell[i] < 0))
-											valid = 0;
-									
-									if(!valid)
-										continue;
+											continue;
+									}
 									
 									// 2. set cell values (heat, density and velocity)
 									index = smoke_get_index(cell[0], sds->res[0], cell[1], sds->res[1], cell[2]);
@@ -1218,15 +1216,15 @@ static void get_cell(struct SmokeModifierData *smd, float *pos, int *cell, int c
 
 	if(correct)
 	{
-		cell[0] = MIN2(smd->domain->res[0] - 1, MAX2(0, (int)(tmp[0] + 0.5)));
-		cell[1] = MIN2(smd->domain->res[1] - 1, MAX2(0, (int)(tmp[1] + 0.5)));
-		cell[2] = MIN2(smd->domain->res[2] - 1, MAX2(0, (int)(tmp[2] + 0.5)));
+		cell[0] = MIN2(smd->domain->res[0] - 1, MAX2(0, (int)floor(tmp[0])));
+		cell[1] = MIN2(smd->domain->res[1] - 1, MAX2(0, (int)floor(tmp[1])));
+		cell[2] = MIN2(smd->domain->res[2] - 1, MAX2(0, (int)floor(tmp[2])));
 	}
 	else
 	{
-		cell[0] = (int)(tmp[0] + 0.5);
-		cell[1] = (int)(tmp[1] + 0.5);
-		cell[2] = (int)(tmp[2] + 0.5);
+		cell[0] = (int)floor(tmp[0]);
+		cell[1] = (int)floor(tmp[1]);
+		cell[2] = (int)floor(tmp[2]);
 	}
 }
 static void get_bigcell(struct SmokeModifierData *smd, float *pos, int *cell, int correct)
@@ -1241,15 +1239,15 @@ static void get_bigcell(struct SmokeModifierData *smd, float *pos, int *cell, in
 
 	if(correct)
 	{
-		cell[0] = MIN2(res[0] - 1, MAX2(0, (int)(tmp[0] + 0.5)));
-		cell[1] = MIN2(res[1] - 1, MAX2(0, (int)(tmp[1] + 0.5)));
-		cell[2] = MIN2(res[2] - 1, MAX2(0, (int)(tmp[2] + 0.5)));
+		cell[0] = MIN2(res[0] - 1, MAX2(0, (int)floor(tmp[0])));
+		cell[1] = MIN2(res[1] - 1, MAX2(0, (int)floor(tmp[1])));
+		cell[2] = MIN2(res[2] - 1, MAX2(0, (int)floor(tmp[2])));
 	}
 	else
 	{
-		cell[0] = (int)(tmp[0] + 0.5);
-		cell[1] = (int)(tmp[1] + 0.5);
-		cell[2] = (int)(tmp[2] + 0.5);
+		cell[0] = (int)floor(tmp[0]);
+		cell[1] = (int)floor(tmp[1]);
+		cell[2] = (int)floor(tmp[2]);
 	}
 }
 
