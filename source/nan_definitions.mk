@@ -136,18 +136,24 @@ endif
     export ID = $(shell whoami)
     export HOST = $(shell hostname -s)
 
-    export PY_FRAMEWORK ?= 1
+    export NAN_PYTHON_VERSION = 3.1
 
-    ifdef PY_FRAMEWORK
-       export NAN_PYTHON ?= /System/Library/Frameworks/Python.framework/Versions/2.3
-       export NAN_PYTHON_VERSION ?= 2.3
-       export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-       export NAN_PYTHON_LIB ?= -framework Python
+    ifeq ($(NAN_PYTHON_VERSION),3.1)
+      export PY_FRAMEWORK ?= 0
+	  export NAN_PYTHON ?= $(LCGDIR)/python
+      export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/libpython$(NAN_PYTHON_VERSION).a
     else
-       export NAN_PYTHON ?= /sw
-       export NAN_PYTHON_VERSION ?= 2.3
-       export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-       export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+      export PY_FRAMEWORK ?= 1
+      ifdef PY_FRAMEWORK
+        export NAN_PYTHON ?= /System/Library/Frameworks/Python.framework/Versions/2.5
+        export NAN_PYTHON_VERSION ?= 2.5
+        export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+        export NAN_PYTHON_LIB ?= -framework Python
+      else
+        export NAN_PYTHON ?= /sw
+        export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+        export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+      endif
     endif
 
     export NAN_OPENAL ?= $(LCGDIR)/openal
@@ -171,13 +177,9 @@ endif
 
     export NAN_OPENEXR ?= $(LCGDIR)/openexr
     export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
-    ifeq ($(CPU),powerpc)
-      export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
-    else
-      export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a
-    endif
-
-    # export NAN_NO_KETSJI=true
+    export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a
+    
+    export NAN_NO_KETSJI=false
 
     ifeq ($(CPU), i386)
       export NAN_NO_OPENAL=true
