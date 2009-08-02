@@ -360,10 +360,8 @@ static uiBlock *time_framemenu(bContext *C, ARegion *ar, void *arg_unused)
 
 
 #define B_REDRAWALL		750
-#define B_TL_REW		751
 #define B_TL_PLAY		752
 #define B_TL_RPLAY		760
-#define B_TL_FF			753
 #define B_TL_STOP		756
 #define B_TL_PREVIEWON	757
 
@@ -384,11 +382,6 @@ void do_time_buttons(bContext *C, void *arg, int event)
 			break;
 		case B_NEWFRAME:
 			WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
-			break;
-		case B_TL_REW:
-			scene->r.cfra= PSFRA;
-			WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
-			//update_for_newframe();
 			break;
 		case B_TL_PLAY:
 			ED_screen_animation_timer(C, stime->redraws, 1);
@@ -416,12 +409,6 @@ void do_time_buttons(bContext *C, void *arg, int event)
 			break;
 		case B_TL_STOP:
 			ED_screen_animation_timer(C, 0, 0);
-			break;
-		case B_TL_FF:
-			/* end frame */
-			scene->r.cfra= PEFRA;
-			WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
-			//update_for_newframe();
 			break;
 			
 		case B_TL_PREVIEWON:
@@ -528,9 +515,9 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	xco += (short)(3.5 * XIC);
 	
 	uiBlockBeginAlign(block);
-
-	uiDefIconBut(block, BUT, B_TL_REW, ICON_REW,
-				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Skip to Start frame (Shift DownArrow)");
+	
+	but= uiDefIconButO(block, BUT, "SCREEN_OT_frame_jump", WM_OP_INVOKE_REGION_WIN, ICON_REW, xco,yco,XIC,YIC, "Skip to Start frame (Shift DownArrow)");
+		RNA_boolean_set(uiButGetOperatorPtrRNA(but), "end", 0);
 	xco+= XIC;
 	
 	but= uiDefIconButO(block, BUT, "SCREEN_OT_keyframe_jump", WM_OP_INVOKE_REGION_WIN, ICON_PREV_KEYFRAME, xco,yco,XIC,YIC, "Skip to previous keyframe (Ctrl PageDown)");
@@ -559,8 +546,9 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 		RNA_boolean_set(uiButGetOperatorPtrRNA(but), "next", 1);
 	xco+= XIC;
 	
-	uiDefIconBut(block, BUT, B_TL_FF, ICON_FF,
-				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Skip to End frame (Shift UpArrow)");
+	but= uiDefIconButO(block, BUT, "SCREEN_OT_frame_jump", WM_OP_INVOKE_REGION_WIN, ICON_FF, xco,yco,XIC,YIC, "Skip to End frame (Shift UpArrow)");
+		RNA_boolean_set(uiButGetOperatorPtrRNA(but), "end", 1);
+	xco+= XIC;
 	uiBlockEndAlign(block);
 
 	xco+= 2*XIC;

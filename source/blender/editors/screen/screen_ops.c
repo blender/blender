@@ -1411,6 +1411,37 @@ static void SCREEN_OT_frame_offset(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 }
 
+
+/* function to be called outside UI context, or for redo */
+static int frame_jump_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	
+	if (RNA_boolean_get(op->ptr, "end"))
+		CFRA= PEFRA;
+	else
+		CFRA= PSFRA;
+
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+static void SCREEN_OT_frame_jump(wmOperatorType *ot)
+{
+	ot->name = "Jump to Endpoint";
+	ot->idname = "SCREEN_OT_frame_jump";
+
+	ot->exec= frame_jump_exec;
+
+	ot->poll= ED_operator_screenactive;
+	ot->flag= 0;
+
+	/* rna */
+	RNA_def_boolean(ot->srna, "end", 0, "Last Frame", "Jump to the last frame of the frame range.");
+}
+
+
 /* ************** jump to keyframe operator ***************************** */
 
 /* helper function - find actkeycolumn that occurs on cframe, or the nearest one if not found */
@@ -3062,6 +3093,7 @@ void ED_operatortypes_screen(void)
 	
 	/*frame changes*/
 	WM_operatortype_append(SCREEN_OT_frame_offset);
+	WM_operatortype_append(SCREEN_OT_frame_jump);
 	WM_operatortype_append(SCREEN_OT_keyframe_jump);
 	
 	WM_operatortype_append(SCREEN_OT_animation_step);
@@ -3173,6 +3205,9 @@ void ED_keymap_screen(wmWindowManager *wm)
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -10);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -1);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", RIGHTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
+	
+	WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", DOWNARROWKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", UPARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", 1);
 	
 	WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", PAGEUPKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", PAGEDOWNKEY, KM_PRESS, KM_CTRL, 0)->ptr, "next", 0);
