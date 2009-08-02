@@ -32,6 +32,7 @@
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
+#include "MEM_CacheLimiterC-Api.h"
 
 #include "DNA_listBase.h"
 #include "DNA_sequence_types.h"
@@ -122,7 +123,7 @@ void new_tstripdata(Sequence *seq)
 
 /* free */
 
-static void free_proxy_seq(Sequence *seq)
+void free_proxy_seq(Sequence *seq)
 {
 	if (seq->strip && seq->strip->proxy && seq->strip->proxy->anim) {
 		IMB_free_anim(seq->strip->proxy->anim);
@@ -3039,11 +3040,36 @@ void free_imbuf_seq_except(Scene *scene, int cfra)
 	SEQ_END
 }
 
-void free_imbuf_seq(ListBase * seqbase)
+void free_imbuf_seq(ListBase * seqbase, int check_mem_usage)
 {
 	Sequence *seq;
 	TStripElem *se;
 	int a;
+
+	if (check_mem_usage) {
+		/* Let the cache limitor take care of this (schlaile) */
+		/* While render let's keep all memory available for render 
+		   (ton)
+		   At least if free memory is tight...
+		   This can make a big difference in encoding speed
+		   (it is around 4 times(!) faster, if we do not waste time
+		   on freeing _all_ buffers every time on long timelines...)
+		   (schlaile)
+		*/
+	
+		uintptr_t mem_in_use;
+		uintptr_t mmap_in_use;
+		uintptr_t max;
+	
+		mem_in_use= MEM_get_memory_in_use();
+		mmap_in_use= MEM_get_mapped_memory_in_use();
+		max = MEM_CacheLimiter_get_maximum();
+	
+		if (max == 0 || mem_in_use + mmap_in_use <= max) {
+			return;
+		}
+	}
+
 	
 	for(seq= seqbase->first; seq; seq= seq->next) {
 		if(seq->strip) {
@@ -3076,7 +3102,11 @@ void free_imbuf_seq(ListBase * seqbase)
 			}
 		}
 		if(seq->type==SEQ_META) {
-			free_imbuf_seq(&seq->seqbase);
+			free_imbuf_seq(&seq->seqbase, FALSE);
+		}
+		if(seq->type==SEQ_SCENE) {
+			/* FIXME: recurs downwards, 
+			   but do recurs protection somehow! */
 		}
 	}
 	
@@ -3173,88 +3203,6 @@ void free_imbuf_seq_with_ipo(Scene *scene, struct Ipo *ipo)
 	}
 	SEQ_END
 }
-
-#if 0
-/* bad levell call... */
-void do_render_seq(RenderResult *rr, int cfra)
-{
-	static int recurs_depth = 0
-	ImBuf *ibuf;
-
-	recurs_depth++;
-
-	ibuf= give_ibuf_seq(rr->rectx, rr->recty, cfra, 0, 100.0);
-
-	recurs_depth--;
-	
-	if(ibuf) {
-		if(ibuf->rect_float) {
-			if (!rr->rectf)
-				rr->rectf= MEM_mallocN(4*sizeof(float)*rr->rectx*rr->recty, "render_seq rectf");
-			
-			memcpy(rr->rectf, ibuf->rect_float, 4*sizeof(float)*rr->rectx*rr->recty);
-			
-			/* TSK! Since sequence render doesn't free the *rr render result, the old rect32
-			   can hang around when sequence render has rendered a 32 bits one before */
-			if(rr->rect32) {
-				MEM_freeN(rr->rect32);
-				rr->rect32= NULL;
-			}
-		}
-		else if(ibuf->rect) {
-			if (!rr->rect32)
-				rr->rect32= MEM_mallocN(sizeof(int)*rr->rectx*rr->recty, "render_seq rect");
-
-			memcpy(rr->rect32, ibuf->rect, 4*rr->rectx*rr->recty);
-
-			/* if (ibuf->zbuf) { */
-			/* 	if (R.rectz) freeN(R.rectz); */
-			/* 	R.rectz = BLI_dupallocN(ibuf->zbuf); */
-			/* } */
-		}
-		
-		/* Let the cache limitor take care of this (schlaile) */
-		/* While render let's keep all memory available for render 
-		   (ton)
-		   At least if free memory is tight...
-		   This can make a big difference in encoding speed
-		   (it is around 4 times(!) faster, if we do not waste time
-		   on freeing _all_ buffers every time on long timelines...)
-		   (schlaile)
-		*/
-		if (recurs_depth == 0) { /* with nested scenes, only free on toplevel... */
-			uintptr_t mem_in_use;
-			uintptr_t mmap_in_use;
-			uintptr_t max;
-
-			mem_in_use= MEM_get_memory_in_use();
-			mmap_in_use= MEM_get_mapped_memory_in_use();
-			max = MEM_CacheLimiter_get_maximum();
-
-			if (max != 0 && mem_in_use + mmap_in_use > max) {
-				fprintf(stderr, "Memory in use > maximum memory\n");
-				fprintf(stderr, "Cleaning up, please wait...\n"
-					"If this happens very often,\n"
-					"consider "
-					"raising the memcache limit in the "
-					"user preferences.\n");
-				free_imbuf_seq();
-			}
-			free_proxy_seq(seq);
-		}
-	}
-	else {
-		/* render result is delivered empty in most cases, nevertheless we handle all cases */
-		if (rr->rectf)
-			memset(rr->rectf, 0, 4*sizeof(float)*rr->rectx*rr->recty);
-		else if (rr->rect32)
-			memset(rr->rect32, 0, 4*rr->rectx*rr->recty);
-		else
-			rr->rect32= MEM_callocN(sizeof(int)*rr->rectx*rr->recty, "render_seq rect");
-	}
-}
-
-#endif
 
 /* seq funcs's for transforming internally
  notice the difference between start/end and left/right.

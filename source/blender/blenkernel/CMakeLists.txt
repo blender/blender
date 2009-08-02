@@ -27,7 +27,7 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC 
-  . ../../../intern/guardedalloc ../editors/include ../blenlib ../makesdna
+  . ../../../intern/guardedalloc ../../../intern/memutil ../editors/include ../blenlib ../makesdna
   ../render/extern/include ../../../intern/decimation/extern
   ../imbuf ../avi ../../../intern/elbeem/extern ../../../intern/opennl/extern
   ../../../intern/iksolver/extern ../blenloader ../quicktime

@@ -41,6 +41,7 @@ CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I../../../intern/memutil
 # Reference to the types in makesdna and imbuf
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../makesrna
