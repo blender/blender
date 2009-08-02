@@ -252,7 +252,7 @@ class VIEW3D_PT_tools_editmode_lattice(View3DPanel):
 class View3DPanel(bpy.types.Panel):
 	__space_type__ = "VIEW_3D"
 	__region_type__ = "TOOLS"
-	__context__ = "posemode"
+	__context__ = "pose_mode"
 
 class VIEW3D_PT_tools_posemode(View3DPanel):
 	__label__ = "Pose Tools"
@@ -325,8 +325,25 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 		settings = self.paint_settings(context)
 		brush = settings.brush
 
+		# XXX This needs a check if psys is editable.
 		if context.particle_edit_object:
 			layout.column().itemR(settings, "tool", expand=True)
+			if settings.tool != 'NONE':
+				col = layout.column(align=True)
+				col.itemR(brush, "size", slider=True)
+				col.itemR(brush, "strength", slider=True)
+				
+			if settings.tool == 'ADD':
+				layout.itemR(settings, "add_interpolate")
+				
+				col = layout.column()
+				col.itemR(brush, "steps", slider=True)
+				col.itemR(settings, "add_keys", slider=True)
+			elif settings.tool == 'LENGTH':
+				layout.itemR(brush, "length_mode", expand=True)
+			elif settings.tool == 'PUFF':
+				layout.itemR(brush, "puff_mode", expand=True)
+				
 		else:
 			layout.split().row().template_ID(settings, "brush")
 
@@ -354,7 +371,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			row = col.row(align=True)
 			row.itemR(brush, "falloff", slider=True)
 			row.itemR(brush, "falloff_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
-			if context.vertex_paint_object:
+			if context.vertex_paint_object or context.texture_paint_object:
 				col.itemR(brush, "color", text="")
 			if context.texture_paint_object:
 				row = col.row(align=True)
@@ -443,6 +460,8 @@ class VIEW3D_PT_weight_paint_options(View3DPanel):
 #		col.itemL(text="Multiply:")
 #		col.itemR(wpaint, "mul", text="")
 
+# Also missing now:
+# Soft, Vgroup, X-Mirror and "Clear" Operator.
 
 # ********** default tools for vertexpaint ****************
 
@@ -513,11 +532,20 @@ class VIEW3D_PT_tools_particle_edit(View3DPanel):
 		pe = context.tool_settings.particle_edit
 
 		col = layout.column(align=True)
-
 		col.itemR(pe, "emitter_deflect", text="Deflect")
 		sub = col.row()
-		sub.itemR(pe, "emitter_distance", text="Distance")
 		sub.active = pe.emitter_deflect
+		sub.itemR(pe, "emitter_distance", text="Distance")
+		
+		col = layout.column(align=True)
+		col.itemL(text="Keep:")
+		col.itemR(pe, "keep_lengths", text="Lenghts")
+		col.itemR(pe, "keep_root", text="Root")
+		
+		col = layout.column(align=True)
+		col.itemL(text="Draw:")
+		col.itemR(pe, "show_time", text="Time")
+		col.itemR(pe, "show_children", text="Children")
 
 bpy.types.register(VIEW3D_PT_tools_objectmode)
 bpy.types.register(VIEW3D_PT_tools_editmode_mesh)
