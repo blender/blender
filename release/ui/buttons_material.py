@@ -1,12 +1,6 @@
 	
 import bpy
 
-# If python version is less than 2.4, try to get set stuff from module
-try:
-	set
-except:
-	from sets import Set as set
-
 class MaterialButtonsPanel(bpy.types.Panel):
 	__space_type__ = "BUTTONS_WINDOW"
 	__region_type__ = "WINDOW"
@@ -240,8 +234,18 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 			row.itemR(mat, "diffuse_fresnel", text="Fresnel")
 			row.itemR(mat, "diffuse_fresnel_factor", text="Factor")
 			
-		elif mat.use_diffuse_ramp:
+		if mat.use_diffuse_ramp:
+			layout.itemS()
 			layout.template_color_ramp(mat.diffuse_ramp, expand=True)
+			layout.itemS()
+			row = layout.row()
+			split = row.split(percentage=0.3)
+			split.itemL(text="Input:")
+			split.itemR(mat, "diffuse_ramp_input", text="")
+			split = row.split(percentage=0.3)
+			split.itemL(text="Blend:")
+			split.itemR(mat, "diffuse_ramp_blend", text="")
+			
 		
 class MATERIAL_PT_specular(MaterialButtonsPanel):
 	__label__ = "Specular"
@@ -282,7 +286,16 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
 			row.itemR(mat, "specular_toon_smooth", text="Smooth")
 		
 		if mat.use_specular_ramp:
+			layout.itemS()
 			layout.template_color_ramp(mat.specular_ramp, expand=True)
+			layout.itemS()
+			row = layout.row()
+			split = row.split(percentage=0.3)
+			split.itemL(text="Input:")
+			split.itemR(mat, "specular_ramp_input", text="")
+			split = row.split(percentage=0.3)
+			split.itemL(text="Blend:")
+			split.itemR(mat, "specular_ramp_blend", text="")
 		
 class MATERIAL_PT_sss(MaterialButtonsPanel):
 	__label__ = "Subsurface Scattering"

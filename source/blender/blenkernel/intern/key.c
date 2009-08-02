@@ -1382,18 +1382,11 @@ int do_ob_key(Scene *scene, Object *ob)
 		return 1;
 	}
 	else {
-#if 0 // XXX old animation system
-		// NOTE: this stuff was NEVER reliable at all...
-		if(ob->ipoflag & OB_ACTION_KEY)
-			do_all_object_actions(scene, ob);
-		else {
-			calc_ipo(key->ipo, bsystem_time(scene, ob, scene->r.cfra, 0.0));
-			execute_ipo((ID *)key, key->ipo);
-		}
-#endif // XXX old animation system
 		/* do shapekey local drivers */
 		float ctime= (float)scene->r.cfra; // XXX this needs to be checked
-		if (G.f & G_DEBUG) printf("ob %s - do shapekey (%s) drivers \n", ob->id.name+2, key->id.name+2);
+		
+		if (G.f & G_DEBUG) 
+			printf("ob %s - do shapekey (%s) drivers \n", ob->id.name+2, key->id.name+2);
 		BKE_animsys_evaluate_animdata(&key->id, key->adt, ctime, ADT_RECALC_DRIVERS);
 		
 		if(ob->type==OB_MESH) return do_mesh_key(scene, ob, ob->data);

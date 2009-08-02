@@ -271,28 +271,34 @@ static void editmesh_apply_to_mirror(TransInfo *t)
  */
 static void animedit_refresh_id_tags (ID *id)
 {
-	AnimData *adt= BKE_animdata_from_id(id);
-	
-	/* tag AnimData for refresh so that other views will update in realtime with these changes */
-	if (adt)
-		adt->recalc |= ADT_RECALC_ANIM;
+	if (id) {
+		AnimData *adt= BKE_animdata_from_id(id);
 		
-	/* if ID-block is Object, set recalc flags */
-	// TODO: this should probably go through the depsgraph instead... but for now, let's be lazy
-	switch (GS(id->name)) {
-		case ID_OB:
-		{
-			Object *ob= (Object *)id;
-			ob->recalc |= OB_RECALC;
+		/* tag AnimData for refresh so that other views will update in realtime with these changes */
+		if (adt)
+			adt->recalc |= ADT_RECALC_ANIM;
+			
+		/* if ID-block is Object, set recalc flags */
+		// TODO: this should probably go through the depsgraph instead... but for now, let's be lazy
+		switch (GS(id->name)) {
+			case ID_OB:
+			{
+				Object *ob= (Object *)id;
+				ob->recalc |= OB_RECALC;
+			}
+				break;
 		}
-			break;
 	}
 }
 
 /* for the realtime animation recording feature, handle overlapping data */
 static void animrecord_check_state (Scene *scene, ID *id, wmTimer *animtimer)
 {
-	ScreenAnimData *sad= animtimer->customdata;
+	ScreenAnimData *sad= (animtimer) ? animtimer->customdata : NULL;
+	
+	/* sanity checks */
+	if ELEM3(NULL, scene, id, sad)
+		return;
 	
 	/* check if we need a new strip if:
 	 * 	- if animtimer is running 
@@ -301,7 +307,7 @@ static void animrecord_check_state (Scene *scene, ID *id, wmTimer *animtimer)
 	 */
 	if (IS_AUTOKEY_FLAG(INSERTAVAIL)==0 && (scene->toolsettings->autokey_flag & ANIMRECORD_FLAG_WITHNLA)) {
 		/* if playback has just looped around, we need to add a new NLA track+strip to allow a clean pass to occur */
-		if (sad->flag & ANIMPLAY_FLAG_JUMPED) {
+		if ((sad) && (sad->flag & ANIMPLAY_FLAG_JUMPED)) {
 			AnimData *adt= BKE_animdata_from_id(id);
 			
 			/* perform push-down manually with some differences 
@@ -351,7 +357,7 @@ void recalcData(TransInfo *t)
 		flushTransSeq(t);
 	}
 	else if (t->spacetype == SPACE_ACTION) {
-		Scene *scene;
+		Scene *scene= t->scene;
 		
 		bAnimContext ac;
 		ListBase anim_data = {NULL, NULL};
@@ -362,7 +368,7 @@ void recalcData(TransInfo *t)
 			/* NOTE: sync this with the code in ANIM_animdata_get_context() */
 		memset(&ac, 0, sizeof(bAnimContext));
 		
-		scene= ac.scene= t->scene;
+		ac.scene= t->scene;
 		ac.obact= OBACT;
 		ac.sa= t->sa;
 		ac.ar= t->ar;

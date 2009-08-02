@@ -130,7 +130,7 @@ void WM_keymap_init(bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 
-	if(CTX_py_init_get(C) && (wm->initialized & WM_INIT_KEYMAP) == 0) {
+	if(wm && CTX_py_init_get(C) && (wm->initialized & WM_INIT_KEYMAP) == 0) {
 		wm_window_keymap(wm);
 		ED_spacetypes_keymap(wm);
 

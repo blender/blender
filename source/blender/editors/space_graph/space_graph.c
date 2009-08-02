@@ -69,20 +69,20 @@ ARegion *graph_has_buttons_region(ScrArea *sa)
 	ARegion *ar, *arnew;
 	
 	for (ar= sa->regionbase.first; ar; ar= ar->next) {
-		if(ar->regiontype==RGN_TYPE_UI)
+		if (ar->regiontype==RGN_TYPE_UI)
 			return ar;
 	}
 	
-	/* add subdiv level; after main window */
+	/* add subdiv level; after main */
 	for (ar= sa->regionbase.first; ar; ar= ar->next) {
-		if(ar->regiontype==RGN_TYPE_WINDOW)
+		if (ar->regiontype==RGN_TYPE_WINDOW)
 			break;
 	}
 	
 	/* is error! */
-	if(ar==NULL) return NULL;
+	if (ar==NULL) return NULL;
 	
-	arnew= MEM_callocN(sizeof(ARegion), "buttons for nla");
+	arnew= MEM_callocN(sizeof(ARegion), "buttons for graph");
 	
 	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
 	arnew->regiontype= RGN_TYPE_UI;

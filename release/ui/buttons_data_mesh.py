@@ -123,19 +123,23 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 				row.itemR(kb, "name")
 
 				if ob.active_shape_key_index != 0:
-					if not ob.shape_key_lock:
-						row = layout.row(align=True)
-						row.itemL(text="Value:")
-						row.itemR(kb, "value", text="", slider=True)
-						
-						row = layout.row(align=True);
-						row.itemL(text="Range:")
-						row.itemR(kb, "slider_min", text="Min")
-						row.itemR(kb, "slider_max", text="Max")
-
+					
 					row = layout.row()
-					row.item_pointerR(kb, "vertex_group", ob, "vertex_groups", text="")
-					row.item_pointerR(kb, "relative_key", key, "keys", text="")
+					row.enabled = ob.shape_key_lock == False
+					row.itemR(kb, "value", slider=True)
+					
+					split = layout.split()
+					sub = split.column()
+					sub.enabled = ob.shape_key_lock == False
+					sub.itemL(text="Range:")
+					sub.itemR(kb, "slider_min", text="Min")
+					sub.itemR(kb, "slider_max", text="Max")
+					
+					sub = split.column()
+					sub.itemL(text="Blend:")
+					sub.item_pointerR(kb, "vertex_group", ob, "vertex_groups", text="")
+					sub.item_pointerR(kb, "relative_key", key, "keys", text="")
+					
 			else:
 				row = layout.row()
 				row.itemR(key, "relative")

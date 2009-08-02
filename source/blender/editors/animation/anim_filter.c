@@ -856,71 +856,6 @@ static int animdata_filter_nla (ListBase *anim_data, AnimData *adt, int filter_m
 	/* return the number of items added to the list */
 	return items;
 }
-
-static int animdata_filter_shapekey (ListBase *anim_data, Key *key, int filter_mode, void *owner, short ownertype, ID *owner_id)
-{
-	bAnimListElem *ale;
-	KeyBlock *kb;
-	//FCurve *fcu;
-	int i, items=0;
-	
-	/* are we filtering for display or editing */
-	if (filter_mode & ANIMFILTER_CHANNELS) {
-		/* for display - loop over shapekeys, adding ipo-curve references where needed */
-		kb= key->block.first;
-		
-		/* loop through possible shapekeys, manually creating entries */
-		for (i= 1; i < key->totkey; i++) {
-			ale= MEM_callocN(sizeof(bAnimListElem), "bAnimListElem");
-			kb = kb->next; /* do this even on the first try, as the first is 'Basis' (which doesn't get included) */
-			
-			ale->data= kb;
-			ale->type= ANIMTYPE_SHAPEKEY; /* 'abused' usage of this type */
-			ale->owner= key;
-			ale->ownertype= ANIMTYPE_SHAPEKEY;
-			ale->datatype= ALE_NONE;
-			ale->index = i;
-			
-#if 0 // XXX fixme... old system
-			if (key->ipo) {
-				for (icu= key->ipo->curve.first; icu; icu=icu->next) {
-					if (icu->adrcode == i) {
-						ale->key_data= icu;
-						ale->datatype= ALE_ICU;
-						break;
-					}
-				}
-			}
-#endif // XXX fixme... old system
-			
-			ale->id= owner_id;
-			
-			BLI_addtail(anim_data, ale);
-			items++;
-		}
-	}
-	else {
-#if 0 // XXX fixme... old system
-		/* loop over ipo curves if present - for editing */
-		if (key->ipo) {
-			if (filter_mode & ANIMFILTER_IPOKEYS) {
-				ale= make_new_animlistelem(key->ipo, ANIMTYPE_IPO, key, ANIMTYPE_SHAPEKEY);
-				if (ale) {
-					if (owned) ale->id= owner;
-					BLI_addtail(anim_data, ale);
-					items++;
-				}
-			}
-			else {
-				items += animdata_filter_ipocurves(anim_data, key->ipo, filter_mode, key, ANIMTYPE_SHAPEKEY, (owned)?(owner):(NULL));
-			}
-		}
-#endif // XXX fixme... old system
-	}
-	
-	/* return the number of items added to the list */
-	return items;
-}
  
 #if 0
 // FIXME: switch this to use the bDopeSheet...
@@ -1272,7 +1207,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 				
 				/* add channels */
 				if (FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_CURVESONLY)) {
-					items += animdata_filter_shapekey(anim_data, key, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob);
+					items += animdata_filter_fcurves(anim_data, adt->drivers.first, NULL, key, ANIMTYPE_DSSKEY, filter_mode, (ID *)key);
 				}
 			},
 			{ /* action (keyframes) */
@@ -1287,7 +1222,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 				
 				/* add channels */
 				if (FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_CURVESONLY)) {
-					items += animdata_filter_shapekey(anim_data, key, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob);
+					items += animdata_filter_action(anim_data, adt->action, filter_mode, key, ANIMTYPE_DSSKEY, (ID *)key); 
 				}
 			}
 		);
@@ -1792,7 +1727,7 @@ int ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_mode
 				break;
 				
 			case ANIMCONT_SHAPEKEY:
-				items= animdata_filter_shapekey(anim_data, data, filter_mode, NULL, ANIMTYPE_NONE, (ID *)obact);
+				//items= animdata_filter_shapekey(anim_data, data, filter_mode, NULL, ANIMTYPE_NONE, (ID *)obact);
 				break;
 				
 			case ANIMCONT_GPENCIL:

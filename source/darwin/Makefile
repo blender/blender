@@ -51,8 +51,11 @@ ifeq ($(APPLICATION), blender)
 	@cp -R $(NANBLENDERHOME)/release/scripts $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/
 	@echo "---> copying ui scripts"
 	@cp -R $(NANBLENDERHOME)/release/ui $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/
+	@echo "---> copying python modules"
+	@mkdir $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/python
+	@unzip -q $(LCGDIR)/release/python.zip -d $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/python/	
 endif
-	@echo "---> removing SNV directories and Mac hidden files from distribution"
+	@echo "---> removing SVN directories and Mac hidden files from distribution"
 	@find $(DIR)/bin/$(APPLICATION).app -name CVS -prune -exec rm -rf {} \;
 	@find $(DIR)/bin/$(APPLICATION).app -name .DS_Store -exec rm -f {} \;
 	@find $(DIR)/bin/$(APPLICATION).app -name .svn -prune -exec rm -rf {} \;

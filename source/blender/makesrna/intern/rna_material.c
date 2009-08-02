@@ -477,6 +477,32 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 static void rna_def_material_colors(StructRNA *srna)
 {
 	PropertyRNA *prop;
+	
+	static EnumPropertyItem prop_ramp_blend_diffuse_items[] = {
+		{MA_RAMP_BLEND, "MIX", 0, "Mix", ""},
+		{MA_RAMP_ADD, "ADD", 0, "Add", ""},
+		{MA_RAMP_MULT, "MULTIPLY", 0, "Multiply", ""},
+		{MA_RAMP_SUB, "SUBTRACT", 0, "Subtract", ""},
+		{MA_RAMP_SCREEN, "SCREEN", 0, "Screen", ""},
+		{MA_RAMP_DIV, "DIVIDE", 0, "Divide", ""},
+		{MA_RAMP_DIFF, "DIFFERENCE", 0, "Difference", ""},
+		{MA_RAMP_DARK, "DARKEN", 0, "Darken", ""},
+		{MA_RAMP_LIGHT, "LIGHTEN", 0, "Lighten", ""},
+		{MA_RAMP_OVERLAY, "OVERLAY", 0, "Overlay", ""},
+		{MA_RAMP_DODGE, "DODGE", 0, "Dodge", ""},
+		{MA_RAMP_BURN, "BURN", 0, "Burn", ""},
+		{MA_RAMP_HUE, "HUE", 0, "Hue", ""},
+		{MA_RAMP_SAT, "SATURATION", 0, "Saturation", ""},
+		{MA_RAMP_VAL, "VALUE", 0, "Value", ""},
+		{MA_RAMP_COLOR, "COLOR", 0, "Color", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem prop_ramp_input_items[] = {
+		{MA_RAMP_IN_SHADER, "SHADER", 0, "Shader", ""},
+		{MA_RAMP_IN_ENERGY, "ENERGY", 0, "Energy", ""},
+		{MA_RAMP_IN_NOR, "NORMAL", 0, "Normal", ""},
+		{MA_RAMP_IN_RESULT, "RESULT", 0, "Result", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	prop= RNA_def_property(srna, "diffuse_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "r");
@@ -523,6 +549,31 @@ static void rna_def_material_colors(StructRNA *srna)
 	RNA_def_property_pointer_sdna(prop, NULL, "ramp_spec");
 	RNA_def_property_struct_type(prop, "ColorRamp");
 	RNA_def_property_ui_text(prop, "Specular Ramp", "Color ramp used to affect specular shading.");
+	
+	prop= RNA_def_property(srna, "diffuse_ramp_blend", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "rampblend_col");
+	RNA_def_property_enum_items(prop, prop_ramp_blend_diffuse_items);
+	RNA_def_property_ui_text(prop, "Diffuse Ramp Blend", "");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW, NULL);
+	
+	prop= RNA_def_property(srna, "specular_ramp_blend", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "rampblend_spec");
+	RNA_def_property_enum_items(prop, prop_ramp_blend_diffuse_items);
+	RNA_def_property_ui_text(prop, "Diffuse Ramp Blend", "");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW, NULL);
+
+	prop= RNA_def_property(srna, "diffuse_ramp_input", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "rampin_col");
+	RNA_def_property_enum_items(prop, prop_ramp_input_items);
+	RNA_def_property_ui_text(prop, "Diffuse Ramp Input", "");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
+	
+	prop= RNA_def_property(srna, "specular_ramp_input", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "rampin_spec");
+	RNA_def_property_enum_items(prop, prop_ramp_input_items);
+	RNA_def_property_ui_text(prop, "Specular Ramp Input", "");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
+
 }
 
 static void rna_def_material_diffuse(StructRNA *srna)
