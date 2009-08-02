@@ -167,6 +167,7 @@ static void act_edit_transformmenu(bContext *C, uiLayout *layout, void *arg_unus
 
 static void act_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_snap", "type", ACTKEYS_SNAP_CFRA);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_snap", "type", ACTKEYS_SNAP_NEAREST_FRAME);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_snap", "type", ACTKEYS_SNAP_NEAREST_SECOND);
@@ -175,6 +176,7 @@ static void act_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void act_edit_mirrormenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_mirror", "type", ACTKEYS_MIRROR_CFRA);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_mirror", "type", ACTKEYS_MIRROR_YAXIS);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_mirror", "type", ACTKEYS_MIRROR_XAXIS);
@@ -183,6 +185,7 @@ static void act_edit_mirrormenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void act_edit_handlesmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type", "type", HD_FREE);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type", "type", HD_AUTO);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type", "type", HD_VECT);
@@ -192,6 +195,7 @@ static void act_edit_handlesmenu(bContext *C, uiLayout *layout, void *arg_unused
 
 static void act_edit_ipomenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_interpolation_type", "type", BEZT_IPO_CONST);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_interpolation_type", "type", BEZT_IPO_LIN);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_interpolation_type", "type", BEZT_IPO_BEZ);
@@ -199,6 +203,7 @@ static void act_edit_ipomenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void act_edit_expomenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_extrapolation_type", "type", FCURVE_EXTRAPOLATE_CONSTANT);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_extrapolation_type", "type", FCURVE_EXTRAPOLATE_LINEAR);
 }
