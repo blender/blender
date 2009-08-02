@@ -1,6 +1,12 @@
 	
 import bpy
 
+# If python version is less than 2.4, try to get set stuff from module
+try:
+	set
+except:
+	from sets import Set as set
+
 class MaterialButtonsPanel(bpy.types.Panel):
 	__space_type__ = "BUTTONS_WINDOW"
 	__region_type__ = "WINDOW"
@@ -189,8 +195,9 @@ class MATERIAL_PT_shadows(MaterialButtonsPanel):
 		col = split.column()
 		col.itemR(mat, "ray_shadow_bias", text="Auto Ray Bias")
 		sub = col.column()
-		sub.active = not mat.ray_shadow_bias
-		sub.itemR(mat, "shadow_ray_bias", text="Ray Shadow Bias")
+		subsub = sub.column()
+		subsub.active = not mat.ray_shadow_bias
+		subsub.itemR(mat, "shadow_ray_bias", text="Ray Shadow Bias")
 		sub.itemR(mat, "cast_buffer_shadows")
 		sub.itemR(mat, "shadow_buffer_bias", text="Buffer Bias")
 
@@ -228,7 +235,7 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 		elif mat.diffuse_shader == 'TOON':
 			row = col.row()
 			row.itemR(mat, "diffuse_toon_size", text="Size")
-			row.itemR(mat, "diffuse_toon_smooth", text="Smooth")
+			row.itemR(mat, "diffuse_toon_smooth", text="Smooth", slider=True)
 		elif mat.diffuse_shader == 'FRESNEL':
 			row = col.row()
 			row.itemR(mat, "diffuse_fresnel", text="Fresnel")
@@ -283,7 +290,7 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
 		elif mat.specular_shader == 'TOON':
 			row = col.row()
 			row.itemR(mat, "specular_toon_size", text="Size")
-			row.itemR(mat, "specular_toon_smooth", text="Smooth")
+			row.itemR(mat, "specular_toon_smooth", text="Smooth", slider=True)
 		
 		if mat.use_specular_ramp:
 			layout.itemS()
@@ -322,18 +329,19 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 		split = layout.split()
 		split.active = mat.shadeless== False
 		
-		col = split.column()
+		col = split.column(align=True)
 		col.itemR(sss, "color", text="")
 		col.itemL(text="Blend:")
-		col.itemR(sss, "color_factor", slider=True)
-		col.itemR(sss, "texture_factor", slider=True)
+		col.itemR(sss, "color_factor", text="Color", slider=True)
+		col.itemR(sss, "texture_factor", text="Texture", slider=True)
 		col.itemL(text="Scattering Weight:")
 		col.itemR(sss, "front")
 		col.itemR(sss, "back")
 		
 		col = split.column()
-		col.itemR(sss, "ior")
-		col.itemR(sss, "scale")
+		sub = col.column(align=True)
+		sub.itemR(sss, "ior")
+		sub.itemR(sss, "scale")
 		col.itemR(sss, "radius", text="RGB Radius")
 		col.itemR(sss, "error_tolerance")
 
@@ -366,7 +374,9 @@ class MATERIAL_PT_raymir(MaterialButtonsPanel):
 		col.itemR(raym, "reflect", text="Reflectivity", slider=True)
 		col.itemR(mat, "mirror_color", text="")
 		col.itemR(raym, "fresnel")
-		col.itemR(raym, "fresnel_fac", text="Fac", slider=True)
+		sub = col.column()
+		sub.active = raym.fresnel > 0
+		sub.itemR(raym, "fresnel_fac", text="Fac", slider=True)
 		
 		col = split.column()
 		col.itemR(raym, "gloss", slider=True)
@@ -410,7 +420,9 @@ class MATERIAL_PT_raytransp(MaterialButtonsPanel):
 		col = split.column()
 		col.itemR(rayt, "ior")
 		col.itemR(rayt, "fresnel")
-		col.itemR(rayt, "fresnel_fac", text="Fac", slider=True)
+		sub = col.column()
+		sub.active = rayt.fresnel > 0
+		sub.itemR(rayt, "fresnel_fac", text="Fac", slider=True)
 		
 		col = split.column()
 		col.itemR(rayt, "gloss", slider=True)
