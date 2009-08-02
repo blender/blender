@@ -171,29 +171,47 @@ PyMODINIT_FUNC FrsMaterial_Init( PyObject *module )
 
 //------------------------INSTANCE METHODS ----------------------------------
 
+static int Vec4(PyObject *obj, float *v)
+{
+	if (VectorObject_Check(obj) && ((VectorObject *)obj)->size == 4) {
+		for (int i = 0; i < 4; i++)
+			v[i] = ((VectorObject *)obj)->vec[i];
+	} else if( PyList_Check(obj) && PyList_Size(obj) == 4 ) {
+		for (int i = 0; i < 4; i++)
+			v[i] = PyFloat_AsDouble(PyList_GetItem(obj, i));
+	} else if( PyTuple_Check(obj) && PyTuple_Size(obj) == 4 ) {
+		for (int i = 0; i < 4; i++)
+			v[i] = PyFloat_AsDouble(PyTuple_GetItem(obj, i));
+	} else {
+		return 0;
+	}
+	return 1;
+}
+
 int FrsMaterial___init__(BPy_FrsMaterial *self, PyObject *args, PyObject *kwds)
 {
-	PyObject *obj1 = 0;
-	float f1 = 0, f2 = 0., f3 = 0., f4 = 0., f5 = 0.;
+	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0, *obj4 = 0;
+	float f1[4], f2[4], f3[4], f4[4], f5 = 0.;
 
-    if (! PyArg_ParseTuple(args, "|Offff", &obj1, &f2, &f3, &f4, &f5) )
+    if (! PyArg_ParseTuple(args, "|OOOOf", &obj1, &obj2, &obj3, &obj4, &f5) )
         return -1;
 
 	if( !obj1 ){
 		self->m = new FrsMaterial();
 
-	} else if( BPy_FrsMaterial_Check(obj1) ) {
-		if( ((BPy_FrsMaterial *) obj1)->m )
-			self->m = new FrsMaterial(*( ((BPy_FrsMaterial *) obj1)->m ));
-		else
+	} else if( BPy_FrsMaterial_Check(obj1) && !obj2 ) {
+		FrsMaterial *m = ((BPy_FrsMaterial *) obj1)->m;
+		if( !m ) {
+			PyErr_SetString(PyExc_RuntimeError, "invalid FrsMaterial object");
 			return -1;
+		}
+		self->m = new FrsMaterial( *m );
 
-	} else if( PyFloat_Check(obj1) ) {
-		f1 = PyFloat_AsDouble(obj1);
-		self->m = new FrsMaterial(&f1, &f2, &f3, &f4, f5);
+	} else if( Vec4(obj1, f1) && obj2 && Vec4(obj2, f2) && obj3 && Vec4(obj3, f3) && obj4 && Vec4(obj4, f4) ) {
+		self->m = new FrsMaterial(f1, f2, f3, f4, f5);
 
 	} else {
-		PyErr_SetString(PyExc_TypeError, "invalid arguments");
+		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
 	self->borrowed = 0;
@@ -215,15 +233,13 @@ PyObject * FrsMaterial___repr__( BPy_FrsMaterial* self)
 }
 
 PyObject * FrsMaterial_diffuse( BPy_FrsMaterial* self) {
-	PyObject *tmp;
-	
 	const float *diffuse = self->m->diffuse();
-	PyObject *py_diffuse = PyList_New(4);
+	PyObject *py_diffuse = PyTuple_New(4);
 	
-	tmp = PyFloat_FromDouble( diffuse[0] ); PyList_SetItem( py_diffuse, 0, tmp); Py_DECREF(tmp);
-	tmp = PyFloat_FromDouble( diffuse[1] ); PyList_SetItem( py_diffuse, 1, tmp); Py_DECREF(tmp);
-	tmp = PyFloat_FromDouble( diffuse[2] ); PyList_SetItem( py_diffuse, 2, tmp); Py_DECREF(tmp);
-	tmp = PyFloat_FromDouble( diffuse[3] ); PyList_SetItem( py_diffuse, 3, tmp); Py_DECREF(tmp);
+	PyTuple_SetItem( py_diffuse, 0, PyFloat_FromDouble( diffuse[0] ) );
+	PyTuple_SetItem( py_diffuse, 1, PyFloat_FromDouble( diffuse[1] ) );
+	PyTuple_SetItem( py_diffuse, 2, PyFloat_FromDouble( diffuse[2] ) );
+	PyTuple_SetItem( py_diffuse, 3, PyFloat_FromDouble( diffuse[3] ) );
 	
 	return py_diffuse;
 }
@@ -245,15 +261,13 @@ PyObject * FrsMaterial_diffuseA( BPy_FrsMaterial* self) {
 }
 
 PyObject * FrsMaterial_specular( BPy_FrsMaterial* self) {
-	PyObject *tmp;
-	
 	const float *specular = self->m->specular();
-	PyObject *py_specular = PyList_New(4);
+	PyObject *py_specular = PyTuple_New(4);
 	
-	tmp = PyFloat_FromDouble( specular[0] ); PyList_SetItem( py_specular, 0, tmp); Py_DECREF(tmp);
-	tmp = PyFloat_FromDouble( specular[1] ); PyList_SetItem( py_specular, 1, tmp); Py_DECREF(tmp);
-	tmp = PyFloat_FromDouble( specular[2] ); PyList_SetItem( py_specular, 2, tmp); Py_DECREF(tmp);
-	tmp = PyFloat_FromDouble( specular[3] ); PyList_SetItem( py_specular, 3, tmp); Py_DECREF(tmp);
+	PyTuple_SetItem( py_specular, 0, PyFloat_FromDouble( specular[0] ) );
+	PyTuple_SetItem( py_specular, 1, PyFloat_FromDouble( specular[1] ) );
+	PyTuple_SetItem( py_specular, 2, PyFloat_FromDouble( specular[2] ) );
+	PyTuple_SetItem( py_specular, 3, PyFloat_FromDouble( specular[3] ) );
 	
 	return py_specular;
 }
@@ -275,15 +289,13 @@ PyObject * FrsMaterial_specularA( BPy_FrsMaterial* self) {
 }
 
 PyObject * FrsMaterial_ambient( BPy_FrsMaterial* self) {
-	PyObject *tmp;
-	
 	const float *ambient = self->m->ambient();
-	PyObject *py_ambient = PyList_New(4);
+	PyObject *py_ambient = PyTuple_New(4);
 	
-	tmp = PyFloat_FromDouble( ambient[0] ); PyList_SetItem(	py_ambient, 0, tmp); Py_DECREF(tmp);
-	tmp = PyFloat_FromDouble( ambient[1] ); PyList_SetItem(	py_ambient, 1, tmp); Py_DECREF(tmp);
-	tmp = PyFloat_FromDouble( ambient[2] ); PyList_SetItem(	py_ambient, 2, tmp); Py_DECREF(tmp);
-	tmp = PyFloat_FromDouble( ambient[3] ); PyList_SetItem(	py_ambient, 3, tmp); Py_DECREF(tmp);
+	PyTuple_SetItem( py_ambient, 0, PyFloat_FromDouble( ambient[0] ) );
+	PyTuple_SetItem( py_ambient, 1, PyFloat_FromDouble( ambient[1] ) );
+	PyTuple_SetItem( py_ambient, 2, PyFloat_FromDouble( ambient[2] ) );
+	PyTuple_SetItem( py_ambient, 3, PyFloat_FromDouble( ambient[3] ) );
 	
 	return py_ambient;
 }
@@ -305,15 +317,13 @@ PyObject * FrsMaterial_ambientA( BPy_FrsMaterial* self) {
 }
 
 PyObject * FrsMaterial_emission( BPy_FrsMaterial* self) {
-	PyObject *tmp;
-	
 	const float *emission = self->m->emission();
-	PyObject *py_emission = PyList_New(4);
+	PyObject *py_emission = PyTuple_New(4);
 	
-	tmp = PyFloat_FromDouble( emission[0] ); PyList_SetItem( py_emission, 0, tmp); Py_DECREF(tmp);
-	tmp = PyFloat_FromDouble( emission[1] ); PyList_SetItem( py_emission, 1, tmp); Py_DECREF(tmp);
-	tmp = PyFloat_FromDouble( emission[2] ); PyList_SetItem( py_emission, 2, tmp); Py_DECREF(tmp);
-	tmp = PyFloat_FromDouble( emission[3] ); PyList_SetItem( py_emission, 3, tmp); Py_DECREF(tmp);
+	PyTuple_SetItem( py_emission, 0, PyFloat_FromDouble( emission[0] ) );
+	PyTuple_SetItem( py_emission, 1, PyFloat_FromDouble( emission[1] ) );
+	PyTuple_SetItem( py_emission, 2, PyFloat_FromDouble( emission[2] ) );
+	PyTuple_SetItem( py_emission, 3, PyFloat_FromDouble( emission[3] ) );
 	
 	return py_emission;
 }
