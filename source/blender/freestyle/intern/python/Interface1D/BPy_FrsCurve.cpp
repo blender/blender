@@ -149,6 +149,7 @@ int FrsCurve___init__(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 	}
 
 	self->py_if1D.if1D = self->c;
+	self->py_if1D.borrowed = 0;
 
 	return 0;
 }

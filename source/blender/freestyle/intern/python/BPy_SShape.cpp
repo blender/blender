@@ -155,13 +155,15 @@ int SShape___init__(BPy_SShape *self, PyObject *args, PyObject *kwds)
 	} else {
 		self->ss = new SShape(*( ((BPy_SShape *) obj)->ss ));
 	}
-	
+	self->borrowed = 0;
+
     return 0;
 }
 
 void SShape___dealloc__(BPy_SShape *self)
 {
-	delete self->ss;
+	if( self->ss && !self->borrowed )
+		delete self->ss;
     self->ob_type->tp_free((PyObject*)self);
 }
 
@@ -222,7 +224,7 @@ PyObject * SShape_getVertexList( BPy_SShape *self ) {
 	vector< SVertex * >::iterator it;
 	
 	for( it = vertices.begin(); it != vertices.end(); it++ ) {
-		PyList_Append( py_vertices, BPy_SVertex_from_SVertex_ptr(*it) );
+		PyList_Append( py_vertices, BPy_SVertex_from_SVertex(*( *it )) );
 	}
 	
 	return py_vertices;
@@ -236,7 +238,7 @@ PyObject * SShape_getEdgeList( BPy_SShape *self ) {
 	vector< FEdge * >::iterator it;
 	
 	for( it = edges.begin(); it != edges.end(); it++ ) {
-		PyList_Append( py_edges, BPy_FEdge_from_FEdge(*( *it )) );
+		PyList_Append( py_edges, Any_BPy_FEdge_from_FEdge(*( *it )) );
 	}
 	
 	return py_edges;

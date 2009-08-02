@@ -159,7 +159,7 @@ PyObject * StrokeVertexIterator_iternext( BPy_StrokeVertexIterator *self ) {
 		sv = self->sv_it->operator->();
 		self->sv_it->increment();
 	}
-	return BPy_StrokeVertex_from_StrokeVertex_ptr( sv );
+	return BPy_StrokeVertex_from_StrokeVertex( *sv );
 }
 
 PyObject * StrokeVertexIterator_t( BPy_StrokeVertexIterator *self ) {
@@ -178,7 +178,7 @@ PyObject * StrokeVertexIterator_castToInterface0DIterator( BPy_StrokeVertexItera
 PyObject * StrokeVertexIterator_getObject( BPy_StrokeVertexIterator *self) {
 	StrokeVertex *sv = self->sv_it->operator->();
 	if( sv )	
-		return BPy_StrokeVertex_from_StrokeVertex_ptr( sv );
+		return BPy_StrokeVertex_from_StrokeVertex( *sv );
 
 	Py_RETURN_NONE;
 }

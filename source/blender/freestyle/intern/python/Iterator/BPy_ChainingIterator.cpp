@@ -180,8 +180,9 @@ PyObject *ChainingIterator_traverse( BPy_ChainingIterator *self, PyObject *args 
 
 
 PyObject *ChainingIterator_getVertex( BPy_ChainingIterator *self ) {
-	if( self->c_it->getVertex() )
-		return BPy_ViewVertex_from_ViewVertex_ptr( self->c_it->getVertex()  );
+	ViewVertex *v = self->c_it->getVertex();
+	if( v )
+		return Any_BPy_ViewVertex_from_ViewVertex( *v );
 		
 	Py_RETURN_NONE;
 }
@@ -194,7 +195,7 @@ PyObject * ChainingIterator_getObject( BPy_ChainingIterator *self) {
 	
 	ViewEdge *ve = self->c_it->operator*();
 	if( ve )
-		return BPy_ViewEdge_from_ViewEdge_ptr( ve );
+		return BPy_ViewEdge_from_ViewEdge( *ve );
 
 	Py_RETURN_NONE;
 }

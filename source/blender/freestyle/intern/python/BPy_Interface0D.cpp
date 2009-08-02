@@ -183,13 +183,13 @@ PyMODINIT_FUNC Interface0D_Init( PyObject *module )
 int Interface0D___init__(BPy_Interface0D *self, PyObject *args, PyObject *kwds)
 {
 	self->if0D = new Interface0D();
-	self->if0D->py_if0D = (PyObject *)self;
+	self->borrowed = 0;
 	return 0;
 }
 
 void Interface0D___dealloc__(BPy_Interface0D* self)
 {
-	if( self->if0D && self->if0D->py_if0D )
+	if( self->if0D && !self->borrowed )
 		delete self->if0D;
     self->ob_type->tp_free((PyObject*)self);
 }
@@ -205,43 +205,65 @@ PyObject *Interface0D_getExactTypeName( BPy_Interface0D *self ) {
 
 
 PyObject *Interface0D_getX( BPy_Interface0D *self ) {
-	return PyFloat_FromDouble( self->if0D->getX() );
+	double x = self->if0D->getX();
+	if (PyErr_Occurred())
+		return NULL;
+	return PyFloat_FromDouble( x );
 }
 
 
 PyObject *Interface0D_getY( BPy_Interface0D *self ) {
-	return PyFloat_FromDouble( self->if0D->getY() );
+	double y = self->if0D->getY();
+	if (PyErr_Occurred())
+		return NULL;
+	return PyFloat_FromDouble( y );
 }
 
 
 PyObject *Interface0D_getZ( BPy_Interface0D *self ) {
-	return PyFloat_FromDouble( self->if0D->getZ() );
+	double z = self->if0D->getZ();
+	if (PyErr_Occurred())
+		return NULL;
+	return PyFloat_FromDouble( z );
 }
 
 
 PyObject *Interface0D_getPoint3D( BPy_Interface0D *self ) {
 	Vec3f v( self->if0D->getPoint3D() );
+	if (PyErr_Occurred())
+		return NULL;
 	return Vector_from_Vec3f( v );
 }
 
 
 PyObject *Interface0D_getProjectedX( BPy_Interface0D *self ) {
-	return PyFloat_FromDouble( self->if0D->getProjectedX() );
+	double x = self->if0D->getProjectedX();
+	if (PyErr_Occurred())
+		return NULL;
+	return PyFloat_FromDouble( x );
 }
 
 
 PyObject *Interface0D_getProjectedY( BPy_Interface0D *self ) {
-	return PyFloat_FromDouble( self->if0D->getProjectedY() );
+	double y = self->if0D->getProjectedY();
+	if (PyErr_Occurred())
+		return NULL;
+	return PyFloat_FromDouble( y );
 }
 
 
 PyObject *Interface0D_getProjectedZ( BPy_Interface0D *self ) {
-	return PyFloat_FromDouble( self->if0D->getProjectedZ() );
+	double z = self->if0D->getProjectedZ();
+	if (PyErr_Occurred())
+		return NULL;
+	return PyFloat_FromDouble( z );
 }
 
 
 PyObject *Interface0D_getPoint2D( BPy_Interface0D *self ) {
 	Vec2f v( self->if0D->getPoint2D() );
+	if (PyErr_Occurred())
+		return NULL;
 	return Vector_from_Vec2f( v );
 }
 
@@ -253,8 +275,10 @@ PyObject *Interface0D_getFEdge( BPy_Interface0D *self, PyObject *args ) {
 		return NULL;
 
 	FEdge *fe = self->if0D->getFEdge(*( ((BPy_Interface0D *) py_if0D)->if0D ));
+	if (PyErr_Occurred())
+		return NULL;
 	if( fe )
-		return BPy_FEdge_from_FEdge( *fe );
+		return Any_BPy_FEdge_from_FEdge( *fe );
 	
 	Py_RETURN_NONE;
 }
@@ -262,12 +286,17 @@ PyObject *Interface0D_getFEdge( BPy_Interface0D *self, PyObject *args ) {
 
 PyObject *Interface0D_getId( BPy_Interface0D *self ) {
 	Id id( self->if0D->getId() );
+	if (PyErr_Occurred())
+		return NULL;
 	return BPy_Id_from_Id( id );
 }
 
 
 PyObject *Interface0D_getNature( BPy_Interface0D *self ) {
-	return BPy_Nature_from_Nature( self->if0D->getNature() );
+	Nature::VertexNature nature = self->if0D->getNature();
+	if (PyErr_Occurred())
+		return NULL;
+	return BPy_Nature_from_Nature( nature );
 }
 
 

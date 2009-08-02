@@ -144,7 +144,7 @@ ContextFunctions_GetSelectedFEdgeCF( PyObject *self )
 {
   FEdge *fe = ContextFunctions::GetSelectedFEdgeCF();
   if( fe )
-    return BPy_FEdge_from_FEdge( *fe );
+    return Any_BPy_FEdge_from_FEdge( *fe );
 
   Py_RETURN_NONE;
 }

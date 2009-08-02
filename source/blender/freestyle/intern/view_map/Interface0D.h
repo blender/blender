@@ -40,7 +40,15 @@ using namespace std;
 
 #include "../system/Iterator.h" //soc 
 
-#include "../python/Director.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <Python.h>
+
+#ifdef __cplusplus
+}
+#endif
 
 //
 // Interface0D
@@ -56,13 +64,11 @@ class TVertex;
 class Interface0D
 {
 public:
+
+  /*! Default constructor */
+  Interface0D() {}
+  virtual ~Interface0D() {}; //soc
  
-	PyObject *py_if0D;
-
-	/*! Default constructor */
-	Interface0D() { py_if0D = 0; }
-	virtual ~Interface0D() {}; //soc
-
   /*! Returns the string "Interface0D".*/
   virtual string getExactTypeName() const {
     return "Interface0D";
@@ -72,185 +78,94 @@ public:
 
   /*! Returns the 3D x coordinate of the point. */ 
   virtual real getX() const {
-		string name( py_if0D ? PyString_AsString(PyObject_CallMethod(py_if0D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if0D && PyObject_HasAttrString(py_if0D, "getX") ) {
-			return Director_BPy_Interface0D_getX(py_if0D);
-		} else {
-			cerr << "Warning: " << name << " getX() not implemented" << endl;
-			return 0;
-		}
+	  PyErr_SetString(PyExc_TypeError, "method getX() not properly overridden");
+	  return 0;
   }
-
 
   /*! Returns the 3D y coordinate of the point. */ 
   virtual real getY() const {
-		string name( py_if0D ? PyString_AsString(PyObject_CallMethod(py_if0D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if0D && PyObject_HasAttrString(py_if0D, "getY") ) {
-			return Director_BPy_Interface0D_getY(py_if0D);
-		} else {
-			cerr << "Warning: " << name << " getY() not implemented" << endl;
-			return 0;
-		}
+	  PyErr_SetString(PyExc_TypeError, "method getY() not properly overridden");
+	  return 0;
   }
 
   /*!  Returns the 3D z coordinate of the point. */ 
   virtual real getZ() const {
-		string name( py_if0D ? PyString_AsString(PyObject_CallMethod(py_if0D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if0D && PyObject_HasAttrString(py_if0D, "getZ") ) {
-			return Director_BPy_Interface0D_getZ(py_if0D);
-		} else {
-			cerr << "Warning: " << name << " getZ() not implemented" << endl;
-			return 0;
-		}
+	  PyErr_SetString(PyExc_TypeError, "method getZ() not properly overridden");
+	  return 0;
   }
 
   /*!  Returns the 3D point. */ 
   virtual Geometry::Vec3f getPoint3D() const {
-		string name( py_if0D ? PyString_AsString(PyObject_CallMethod(py_if0D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if0D && PyObject_HasAttrString(py_if0D, "getPoint3D") ) {
-			return Director_BPy_Interface0D_getPoint3D(py_if0D);
-		} else {
-			cerr << "Warning: " << name << " getPoint3D() not implemented" << endl;
-			return 0;
-		}
+	  PyErr_SetString(PyExc_TypeError, "method getPoint3D() not properly overridden");
+	  return 0;
   }
 
   /*! Returns the 2D x coordinate of the point. */ 
   virtual real getProjectedX() const {
-		string name( py_if0D ? PyString_AsString(PyObject_CallMethod(py_if0D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if0D && PyObject_HasAttrString(py_if0D, "getProjectedX") ) {
-			return Director_BPy_Interface0D_getProjectedX(py_if0D);
-		} else {
-			cerr << "Warning: " << name << " getProjectedX() not implemented" << endl;
-			return 0;
-		}
+	  PyErr_SetString(PyExc_TypeError, "method getProjectedX() not properly overridden");
+	  return 0;
   }
 
   /*! Returns the 2D y coordinate of the point. */ 
   virtual real getProjectedY() const {
-		string name( py_if0D ? PyString_AsString(PyObject_CallMethod(py_if0D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if0D && PyObject_HasAttrString(py_if0D, "getProjectedY") ) {
-			return Director_BPy_Interface0D_getProjectedY(py_if0D);
-		} else {
-			cerr << "Warning: " << name << " getProjectedY() not implemented" << endl;
-			return 0;
-		}
+	  PyErr_SetString(PyExc_TypeError, "method getProjectedY() not properly overridden");
+	  return 0;
   }
 
   /*! Returns the 2D z coordinate of the point. */ 
   virtual real getProjectedZ() const {
-		string name( py_if0D ? PyString_AsString(PyObject_CallMethod(py_if0D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if0D && PyObject_HasAttrString(py_if0D, "getProjectedZ") ) {
-			return Director_BPy_Interface0D_getProjectedZ(py_if0D);
-		} else {
-			cerr << "Warning: " << name << " getProjectedZ() not implemented" << endl;
-			return 0;
-		}
+	  PyErr_SetString(PyExc_TypeError, "method getProjectedZ() not properly overridden");
+	  return 0;
   }
 
   /*!  Returns the 2D point. */ 
   virtual Geometry::Vec2f getPoint2D() const {
-		string name( py_if0D ? PyString_AsString(PyObject_CallMethod(py_if0D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if0D && PyObject_HasAttrString(py_if0D, "getPoint2D") ) {
-			return Director_BPy_Interface0D_getPoint2D(py_if0D);
-		} else {
-			cerr << "Warning: " << name << " getPoint2D() not implemented" << endl;
-			return 0;
-		}
+	  PyErr_SetString(PyExc_TypeError, "method getPoint2D() not properly overridden");
+	  return 0;
   }
 	
   /*! Returns the FEdge that lies between this Interface0D and the
    *  Interface0D given as argument. */
   virtual FEdge* getFEdge(Interface0D&) {
-		string name( py_if0D ? PyString_AsString(PyObject_CallMethod(py_if0D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if0D && PyObject_HasAttrString(py_if0D, "getFEdge") ) {
-			return Director_BPy_Interface0D_getFEdge(py_if0D);
-		} else {
-			cerr << "Warning: " << name << " getFEdge() not implemented" << endl;
-			return 0;
-		}
+	  PyErr_SetString(PyExc_TypeError, "method getFEdge() not properly overridden");
+	  return 0;
   }
 
   /*! Returns the Id of the point. */ 
   virtual Id getId() const {
-		string name( py_if0D ? PyString_AsString(PyObject_CallMethod(py_if0D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if0D && PyObject_HasAttrString(py_if0D, "getId") ) {
-			return Director_BPy_Interface0D_getId(py_if0D);
-		} else {
-			cerr << "Warning: " << name << " getId() not implemented" << endl;
-			return 0;
-		}
+	  PyErr_SetString(PyExc_TypeError, "method getId() not properly overridden");
+	  return 0;
   }
 
   /*! Returns the nature of the point. */ 
   virtual Nature::VertexNature getNature() const {
-		string name( py_if0D ? PyString_AsString(PyObject_CallMethod(py_if0D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if0D && PyObject_HasAttrString(py_if0D, "getNature") ) {
-			return Director_BPy_Interface0D_getNature(py_if0D);
-		} else {
-			cerr << "Warning: " << name << " getNature() not implemented" << endl;
-			return Nature::POINT;
-		}
+	  PyErr_SetString(PyExc_TypeError, "method getNature() not properly overridden");
+	  return Nature::POINT;
   }	
 
 
   /*! Cast the Interface0D in SVertex if it can be. */ 
   virtual SVertex * castToSVertex(){
-		string name( py_if0D ? PyString_AsString(PyObject_CallMethod(py_if0D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if0D && PyObject_HasAttrString(py_if0D, "castToSVertex") ) {
-			return Director_BPy_Interface0D_castToSVertex(py_if0D);
-		} else {
-			cerr << "Warning: " << name << " castToSVertex() not implemented" << endl;
-			return 0;
-		}
+	  PyErr_SetString(PyExc_TypeError, "method castToSVertex() not properly overridden");
+	  return 0;
   }
 
   /*! Cast the Interface0D in ViewVertex if it can be. */ 
   virtual ViewVertex * castToViewVertex(){
-		string name( py_if0D ? PyString_AsString(PyObject_CallMethod(py_if0D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if0D && PyObject_HasAttrString(py_if0D, "castToViewVertex") ) {
-			return Director_BPy_Interface0D_castToViewVertex(py_if0D);
-		} else {
-			cerr << "Warning: " << name << " castToViewVertex() not implemented" << endl;
-			return 0;
-		}
+	  PyErr_SetString(PyExc_TypeError, "method castToViewVertex() not properly overridden");
+	  return 0;
   }
 
   /*! Cast the Interface0D in NonTVertex if it can be. */ 
   virtual NonTVertex * castToNonTVertex(){
-		string name( py_if0D ? PyString_AsString(PyObject_CallMethod(py_if0D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if0D && PyObject_HasAttrString(py_if0D, "castToNonTVertex") ) {
-			return Director_BPy_Interface0D_castToNonTVertex(py_if0D);
-		} else {
-			cerr << "Warning: " << name << " castToNonTVertex() not implemented" << endl;
-			return 0;
-		}
+	  PyErr_SetString(PyExc_TypeError, "method castToNonTVertex() not properly overridden");
+	  return 0;
   }
 
   /*! Cast the Interface0D in TVertex if it can be. */ 
   virtual TVertex * castToTVertex(){
-		string name( py_if0D ? PyString_AsString(PyObject_CallMethod(py_if0D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if0D && PyObject_HasAttrString(py_if0D, "castToTVertex") ) {
-			return Director_BPy_Interface0D_castToTVertex(py_if0D);
-		} else {
-			cerr << "Warning: " << name << " castToTVertex() not implemented" << endl;
-			return 0;
-		}
+	  PyErr_SetString(PyExc_TypeError, "method castToTVertex() not properly overridden");
+	  return 0;
   }
 	
 };

@@ -164,7 +164,7 @@ PyObject * SVertexIterator_getObject( BPy_SVertexIterator *self) {
 	SVertex *sv = self->sv_it->operator->();
 	
 	if( sv )
-		return BPy_SVertex_from_SVertex_ptr( sv );
+		return BPy_SVertex_from_SVertex( *sv );
 		
 	Py_RETURN_NONE;	
 }

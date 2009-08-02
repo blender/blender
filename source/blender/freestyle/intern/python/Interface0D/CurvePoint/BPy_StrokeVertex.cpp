@@ -166,6 +166,7 @@ int StrokeVertex___init__(BPy_StrokeVertex *self, PyObject *args, PyObject *kwds
 
 	self->py_cp.cp = self->sv;
 	self->py_cp.py_if0D.if0D = self->sv;
+	self->py_cp.py_if0D.borrowed = 0;
 
 	return 0;
 }
@@ -184,7 +185,7 @@ PyObject * StrokeVertex_getPoint( BPy_StrokeVertex *self ) {
 }
 
 PyObject * StrokeVertex_attribute( BPy_StrokeVertex *self ) {
-	return BPy_StrokeAttribute_from_StrokeAttribute_ptr( &(self->sv->attribute()) );
+	return BPy_StrokeAttribute_from_StrokeAttribute( self->sv->attribute() );
 }
 
 PyObject * StrokeVertex_curvilinearAbscissa( BPy_StrokeVertex *self ) {

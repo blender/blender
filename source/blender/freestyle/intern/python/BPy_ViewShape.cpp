@@ -160,13 +160,15 @@ int ViewShape___init__(BPy_ViewShape *self, PyObject *args, PyObject *kwds)
 		PyErr_SetString(PyExc_TypeError, "invalid argument");
 		return -1;
 	}
+	self->borrowed = 0;
 	
     return 0;
 }
 
 void ViewShape___dealloc__(BPy_ViewShape *self)
 {
-	delete self->vs;
+	if( self->vs && !self->borrowed )
+		delete self->vs;
     self->ob_type->tp_free((PyObject*)self);
 }
 
@@ -176,8 +178,7 @@ PyObject * ViewShape___repr__(BPy_ViewShape *self)
 }
 
 PyObject * ViewShape_sshape( BPy_ViewShape *self ) {
-	SShape ss(*( self->vs->sshape() ));
-	return BPy_SShape_from_SShape( ss );
+	return BPy_SShape_from_SShape( *(self->vs->sshape()) );
 }
 
 
@@ -188,7 +189,7 @@ PyObject * ViewShape_vertices( BPy_ViewShape *self ) {
 	vector< ViewVertex * >::iterator it;
 	
 	for( it = vertices.begin(); it != vertices.end(); it++ ) {
-		PyList_Append( py_vertices, BPy_ViewVertex_from_ViewVertex_ptr( *it ) );
+		PyList_Append( py_vertices, Any_BPy_ViewVertex_from_ViewVertex(*( *it )) );
 	}
 	
 	return py_vertices;
@@ -202,7 +203,7 @@ PyObject * ViewShape_edges( BPy_ViewShape *self ) {
 	vector< ViewEdge * >::iterator it;
 	
 	for( it = edges.begin(); it != edges.end(); it++ ) {
-		PyList_Append( py_edges, BPy_ViewEdge_from_ViewEdge_ptr(*it) );
+		PyList_Append( py_edges, BPy_ViewEdge_from_ViewEdge(*( *it )) );
 	}
 	
 	return py_edges;

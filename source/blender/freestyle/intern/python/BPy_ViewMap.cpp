@@ -138,7 +138,8 @@ int ViewMap___init__(BPy_ViewMap *self, PyObject *args, PyObject *kwds)
 
 void ViewMap___dealloc__(BPy_ViewMap *self)
 {
-	delete self->vm;
+	if( self->vm )
+		delete self->vm;
     self->ob_type->tp_free((PyObject*)self);
 }
 
@@ -155,7 +156,7 @@ PyObject * ViewMap_getClosestViewEdge( BPy_ViewMap *self , PyObject *args) {
 
 	ViewEdge *ve = const_cast<ViewEdge *>( self->vm->getClosestViewEdge(x,y) );
 	if( ve )
-		return BPy_ViewEdge_from_ViewEdge_ptr(ve);
+		return BPy_ViewEdge_from_ViewEdge(*ve);
 
 	Py_RETURN_NONE;
 }
@@ -168,7 +169,7 @@ PyObject * ViewMap_getClosestFEdge( BPy_ViewMap *self , PyObject *args) {
 
 	FEdge *fe = const_cast<FEdge *>( self->vm->getClosestFEdge(x,y) );
 	if( fe )
-		return BPy_FEdge_from_FEdge(*fe);
+		return Any_BPy_FEdge_from_FEdge(*fe);
 
 	Py_RETURN_NONE;
 }

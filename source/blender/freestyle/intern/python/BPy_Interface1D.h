@@ -19,6 +19,7 @@ extern PyTypeObject Interface1D_Type;
 typedef struct {
 	PyObject_HEAD
 	Interface1D *if1D;
+	int borrowed; /* non-zero if *if1D is a borrowed object */
 } BPy_Interface1D;
 
 /*---------------------------Python BPy_Interface1D visible prototypes-----------*/

@@ -198,6 +198,7 @@ int Stroke___init__(BPy_Stroke *self, PyObject *args, PyObject *kwds)
 	}
 
 	self->py_if1D.if1D = self->s;
+	self->py_if1D.borrowed = 0;
 
 	return 0;
 }
@@ -216,7 +217,7 @@ PyObject * Stroke_item( BPy_Stroke *self, Py_ssize_t i ) {
 		PyErr_SetString(PyExc_IndexError, "subscript index out of range");
 		return NULL;
 	}
-	return BPy_StrokeVertex_from_StrokeVertex_ptr( self->s->strokeVerticeAt(i) );
+	return BPy_StrokeVertex_from_StrokeVertex( self->s->strokeVerticeAt(i) );
 }
 
 PyObject * Stroke___getitem__( BPy_Stroke *self, PyObject *item ) {

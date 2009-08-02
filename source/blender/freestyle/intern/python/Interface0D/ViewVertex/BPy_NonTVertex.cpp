@@ -139,6 +139,7 @@ int NonTVertex___init__(BPy_NonTVertex *self, PyObject *args, PyObject *kwds)
 
 	self->py_vv.vv = self->ntv;
 	self->py_vv.py_if0D.if0D = self->ntv;
+	self->py_vv.py_if0D.borrowed = 0;
 
 	return 0;
 }
@@ -151,16 +152,17 @@ PyObject * NonTVertex_castToSVertex( BPy_NonTVertex *self ) {
 }
 
 PyObject * NonTVertex_castToViewVertex( BPy_NonTVertex *self ) {
-	return BPy_ViewVertex_from_ViewVertex_ptr( self->ntv->castToViewVertex() );
+	return BPy_ViewVertex_from_ViewVertex( *(self->ntv->castToViewVertex()) );
 }
 
 PyObject * NonTVertex_castToNonTVertex( BPy_NonTVertex *self ) {
-	return BPy_NonTVertex_from_NonTVertex_ptr( self->ntv->castToNonTVertex() );
+	return BPy_NonTVertex_from_NonTVertex( *(self->ntv->castToNonTVertex()) );
 }
 
 PyObject * NonTVertex_svertex( BPy_NonTVertex *self ) {
-	if( self->ntv->svertex() ){
-		return BPy_SVertex_from_SVertex_ptr( self->ntv->svertex() );
+	SVertex *v = self->ntv->svertex();
+	if( v ){
+		return BPy_SVertex_from_SVertex( *v );
 	}
 
 	Py_RETURN_NONE;

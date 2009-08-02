@@ -38,7 +38,15 @@
 # include "../winged_edge/Nature.h"
 # include "Functions0D.h"
 
-#include "../python/Director.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <Python.h>
+
+#ifdef __cplusplus
+}
+#endif
 
 using namespace std;
 /*! \file Interface1D.h
@@ -133,11 +141,9 @@ class Interface1D
 {
 public:
 
-	PyObject *py_if1D;
-
   /*! Default constructor */
-	Interface1D() {_timeStamp=0; py_if1D = 0; }
-   virtual ~Interface1D() {}; //soc
+  Interface1D() {_timeStamp=0;}
+  virtual ~Interface1D() {}; //soc
 
   /*! Returns the string "Interface1D" .*/
   virtual string getExactTypeName() const {
@@ -150,28 +156,16 @@ public:
    *  pointing to the first vertex.
    */
   virtual Interface0DIterator verticesBegin() {
-		string name( py_if1D ? PyString_AsString(PyObject_CallMethod(py_if1D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if1D && PyObject_HasAttrString(py_if1D, "verticesBegin") ) {
-			return Director_BPy_Interface1D_verticesBegin(py_if1D);
-		} else {
-			cerr << "Warning: " << name << " verticesBegin() not implemented" << endl;
-			return Interface0DIterator();
-		}
+	  PyErr_SetString(PyExc_TypeError, "method verticesBegin() not properly overridden");
+	  return Interface0DIterator();
   }
 	
   /*! Returns an iterator over the Interface1D vertices,
    *  pointing after the last vertex.
    */
   virtual Interface0DIterator verticesEnd(){
-		string name( py_if1D ? PyString_AsString(PyObject_CallMethod(py_if1D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if1D && PyObject_HasAttrString(py_if1D, "verticesEnd") ) {
-			return Director_BPy_Interface1D_verticesEnd(py_if1D);
-		} else {
-			cerr << "Warning: " << name << " verticesEnd() not implemented" << endl;
-			return Interface0DIterator();
-		}
+	  PyErr_SetString(PyExc_TypeError, "method verticesEnd() not properly overridden");
+	  return Interface0DIterator();
   }
 
   /*! Returns an iterator over the Interface1D points,
@@ -184,14 +178,8 @@ public:
    *    this 1D element.
    */
   virtual Interface0DIterator pointsBegin(float t=0.f) {
-		string name( py_if1D ? PyString_AsString(PyObject_CallMethod(py_if1D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if1D && PyObject_HasAttrString(py_if1D, "pointsBegin") ) {
-			return Director_BPy_Interface1D_pointsBegin(py_if1D);
-		} else {
-			cerr << "Warning: " << name << " pointsBegin() not implemented" << endl;
-			return Interface0DIterator();
-		}
+	  PyErr_SetString(PyExc_TypeError, "method pointsBegin() not properly overridden");
+	  return Interface0DIterator();
   }
 
   /*! Returns an iterator over the Interface1D points,
@@ -204,54 +192,30 @@ public:
    *    this 1D element.
    */
   virtual Interface0DIterator pointsEnd(float t=0.f) {
-		string name( py_if1D ? PyString_AsString(PyObject_CallMethod(py_if1D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if1D && PyObject_HasAttrString(py_if1D, "pointsEnd") ) {
-			return Director_BPy_Interface1D_pointsEnd(py_if1D);
-		} else {
-			cerr << "Warning: " << name << " pointsEnd() not implemented" << endl;
-			return Interface0DIterator();
-		}
+	  PyErr_SetString(PyExc_TypeError, "method pointsEnd() not properly overridden");
+	  return Interface0DIterator();
   }
 
   // Data access methods
 
   /*! Returns the 2D length of the 1D element. */
   virtual real getLength2D() const {
-		string name( py_if1D ? PyString_AsString(PyObject_CallMethod(py_if1D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if1D && PyObject_HasAttrString(py_if1D, "getLength2D") ) {
-			return Director_BPy_Interface1D_getLength2D(py_if1D);
-		} else {
-			cerr << "Warning: " << name << " getLength2D() not implemented" << endl;
-			return 0;
-		}
+	  PyErr_SetString(PyExc_TypeError, "method getLength2D() not properly overridden");
+	  return 0;
   }
 
   /*! Returns the Id of the 1D element .*/
   virtual Id getId() const {
-		string name( py_if1D ? PyString_AsString(PyObject_CallMethod(py_if1D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if1D && PyObject_HasAttrString(py_if1D, "getId") ) {
-			return Director_BPy_Interface1D_getId(py_if1D);
-		} else {
-			cerr << "Warning: " << name << " getId() not implemented" << endl;
-			return Id(0, 0);
-		}
+	  PyErr_SetString(PyExc_TypeError, "method getId() not properly overridden");
+	  return Id(0, 0);
   }	
 
 
   // FIXME: ce truc n'a rien a faire la...(c une requete complexe qui doit etre ds les Function1D)
   /*! Returns the nature of the 1D element. */
   virtual Nature::EdgeNature getNature() const {
-		string name( py_if1D ? PyString_AsString(PyObject_CallMethod(py_if1D, "getExactTypeName", "")) : getExactTypeName() );
-
-		if( py_if1D && PyObject_HasAttrString(py_if1D, "getNature") ) {
-			return Director_BPy_Interface1D_getNature(py_if1D);
-		} else {
-			cerr << "Warning: " << name << " getNature() not implemented" << endl;
-			return Nature::NO_FEATURE;
-		}
+	  PyErr_SetString(PyExc_TypeError, "method getNature() not properly overridden");
+	  return Nature::NO_FEATURE;
   }	
   
   /*! Returns the time stamp of the 1D element. Mainly used for selection. */

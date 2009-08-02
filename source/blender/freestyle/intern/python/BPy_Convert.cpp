@@ -82,74 +82,124 @@ PyObject * BPy_Id_from_Id( Id& id ) {
 	return py_id;
 }
 
-PyObject * BPy_Interface0D_from_Interface0D( Interface0D& if0D ) {
+PyObject * Any_BPy_Interface0D_from_Interface0D( Interface0D& if0D ) {
 	if (typeid(if0D) == typeid(CurvePoint)) {
-		return BPy_CurvePoint_from_CurvePoint_ptr(dynamic_cast<CurvePoint*>(&if0D));
+		return BPy_CurvePoint_from_CurvePoint(dynamic_cast<CurvePoint&>(if0D));
 	} else if (typeid(if0D) == typeid(StrokeVertex)) {
-		return BPy_StrokeVertex_from_StrokeVertex_ptr(dynamic_cast<StrokeVertex*>(&if0D));
+		return BPy_StrokeVertex_from_StrokeVertex(dynamic_cast<StrokeVertex&>(if0D));
 	} else if (typeid(if0D) == typeid(SVertex)) {
-		return BPy_SVertex_from_SVertex_ptr(dynamic_cast<SVertex*>(&if0D));
+		return BPy_SVertex_from_SVertex(dynamic_cast<SVertex&>(if0D));
 	} else if (typeid(if0D) == typeid(ViewVertex)) {
-		return BPy_ViewVertex_from_ViewVertex_ptr(dynamic_cast<ViewVertex*>(&if0D));
+		return BPy_ViewVertex_from_ViewVertex(dynamic_cast<ViewVertex&>(if0D));
 	} else if (typeid(if0D) == typeid(NonTVertex)) {
-		return BPy_NonTVertex_from_NonTVertex_ptr(dynamic_cast<NonTVertex*>(&if0D));
+		return BPy_NonTVertex_from_NonTVertex(dynamic_cast<NonTVertex&>(if0D));
 	} else if (typeid(if0D) == typeid(TVertex)) {
-		return BPy_TVertex_from_TVertex_ptr(dynamic_cast<TVertex*>(&if0D));
-	} else if (typeid(if0D) != typeid(Interface0D)) {
-		string msg("unexpected type: " + if0D.getExactTypeName());
-		PyErr_SetString(PyExc_TypeError, msg.c_str());
-		return NULL;
+		return BPy_TVertex_from_TVertex(dynamic_cast<TVertex&>(if0D));
+	} else if (typeid(if0D) == typeid(Interface0D)) {
+		return BPy_Interface0D_from_Interface0D(if0D);
 	}
+	string msg("unexpected type: " + if0D.getExactTypeName());
+	PyErr_SetString(PyExc_TypeError, msg.c_str());
+	return NULL;
+}
+
+PyObject * Any_BPy_Interface1D_from_Interface1D( Interface1D& if1D ) {
+	if (typeid(if1D) == typeid(ViewEdge)) {
+		return BPy_ViewEdge_from_ViewEdge(dynamic_cast<ViewEdge&>(if1D));
+	} else if (typeid(if1D) == typeid(Chain)) {
+		return BPy_Chain_from_Chain(dynamic_cast<Chain&>(if1D));
+	} else if (typeid(if1D) == typeid(Stroke)) {
+		return BPy_Stroke_from_Stroke(dynamic_cast<Stroke&>(if1D));
+	} else if (typeid(if1D) == typeid(FEdgeSharp)) {
+		return BPy_FEdgeSharp_from_FEdgeSharp(dynamic_cast<FEdgeSharp&>(if1D));
+	} else if (typeid(if1D) == typeid(FEdgeSmooth)) {
+		return BPy_FEdgeSmooth_from_FEdgeSmooth(dynamic_cast<FEdgeSmooth&>(if1D));
+	} else if (typeid(if1D) == typeid(FEdge)) {
+		return BPy_FEdge_from_FEdge(dynamic_cast<FEdge&>(if1D));
+	} else if (typeid(if1D) == typeid(Interface1D)) {
+		return BPy_Interface1D_from_Interface1D( if1D );
+	}
+	string msg("unexpected type: " + if1D.getExactTypeName());
+	PyErr_SetString(PyExc_TypeError, msg.c_str());
+	return NULL;
+}
+
+PyObject * Any_BPy_FEdge_from_FEdge( FEdge& fe ) {
+	if (typeid(fe) == typeid(FEdgeSharp)) {
+		return BPy_FEdgeSharp_from_FEdgeSharp( dynamic_cast<FEdgeSharp&>(fe) );
+	} else if (typeid(fe) == typeid(FEdgeSmooth)) {
+		return BPy_FEdgeSmooth_from_FEdgeSmooth( dynamic_cast<FEdgeSmooth&>(fe) );
+	} else if (typeid(fe) == typeid(FEdge)) {
+		return BPy_FEdge_from_FEdge( fe );
+	}
+	string msg("unexpected type: " + fe.getExactTypeName());
+	PyErr_SetString(PyExc_TypeError, msg.c_str());
+	return NULL;
+}
+
+PyObject * Any_BPy_ViewVertex_from_ViewVertex( ViewVertex& vv ) {
+	if (typeid(vv) == typeid(NonTVertex)) {
+		return BPy_NonTVertex_from_NonTVertex( dynamic_cast<NonTVertex&>(vv) );
+	} else if (typeid(vv) == typeid(TVertex)) {
+		return BPy_TVertex_from_TVertex( dynamic_cast<TVertex&>(vv) );
+	} else if (typeid(vv) == typeid(ViewVertex)) {
+		return BPy_ViewVertex_from_ViewVertex( vv );
+	}
+	string msg("unexpected type: " + vv.getExactTypeName());
+	PyErr_SetString(PyExc_TypeError, msg.c_str());
+	return NULL;
+}
+
+PyObject * BPy_Interface0D_from_Interface0D( Interface0D& if0D ) {
 	PyObject *py_if0D =  Interface0D_Type.tp_new( &Interface0D_Type, 0, 0 );
 	((BPy_Interface0D *) py_if0D)->if0D = &if0D;
+	((BPy_Interface0D *) py_if0D)->borrowed = 1;
 
 	return py_if0D;
 }
 
 PyObject * BPy_Interface1D_from_Interface1D( Interface1D& if1D ) {
-	if (typeid(if1D) == typeid(ViewEdge)) {
-		return BPy_ViewEdge_from_ViewEdge_ptr(dynamic_cast<ViewEdge*>(&if1D));
-	} else if (typeid(if1D) == typeid(Chain)) {
-		return BPy_Chain_from_Chain_ptr(dynamic_cast<Chain*>(&if1D));
-	} else if (typeid(if1D) == typeid(Stroke)) {
-		return BPy_Stroke_from_Stroke_ptr(dynamic_cast<Stroke*>(&if1D));
-	} else if (typeid(if1D) != typeid(Interface1D)) {
-		string msg("unexpected type: " + if1D.getExactTypeName());
-		PyErr_SetString(PyExc_TypeError, msg.c_str());
-		return NULL;
-	}
 	PyObject *py_if1D =  Interface1D_Type.tp_new( &Interface1D_Type, 0, 0 );
 	((BPy_Interface1D *) py_if1D)->if1D = &if1D;
+	((BPy_Interface1D *) py_if1D)->borrowed = 1;
 
 	return py_if1D;
 }
 
-
-PyObject * BPy_SVertex_from_SVertex_ptr( SVertex *sv ) {
+PyObject * BPy_SVertex_from_SVertex( SVertex& sv ) {
 	PyObject *py_sv = SVertex_Type.tp_new( &SVertex_Type, 0, 0 );
-	((BPy_SVertex *) py_sv)->sv = sv;
+	((BPy_SVertex *) py_sv)->sv = &sv;
 	((BPy_SVertex *) py_sv)->py_if0D.if0D = ((BPy_SVertex *) py_sv)->sv;
+	((BPy_SVertex *) py_sv)->py_if0D.borrowed = 1;
 
 	return py_sv;
 }
 
+PyObject * BPy_FEdgeSharp_from_FEdgeSharp( FEdgeSharp& fes ) {
+	PyObject *py_fe = FEdgeSharp_Type.tp_new( &FEdgeSharp_Type, 0, 0 );
+	((BPy_FEdgeSharp *) py_fe)->fes = &fes;
+	((BPy_FEdgeSharp *) py_fe)->py_fe.fe = ((BPy_FEdgeSharp *) py_fe)->fes;
+	((BPy_FEdgeSharp *) py_fe)->py_fe.py_if1D.if1D = ((BPy_FEdgeSharp *) py_fe)->fes;
+	((BPy_FEdgeSharp *) py_fe)->py_fe.py_if1D.borrowed = 1;
+
+	return py_fe;
+}
+
+PyObject * BPy_FEdgeSmooth_from_FEdgeSmooth( FEdgeSmooth& fes ) {
+	PyObject *py_fe = FEdgeSmooth_Type.tp_new( &FEdgeSmooth_Type, 0, 0 );
+	((BPy_FEdgeSmooth *) py_fe)->fes = &fes;
+	((BPy_FEdgeSmooth *) py_fe)->py_fe.fe = ((BPy_FEdgeSmooth *) py_fe)->fes;
+	((BPy_FEdgeSmooth *) py_fe)->py_fe.py_if1D.if1D = ((BPy_FEdgeSmooth *) py_fe)->fes;
+	((BPy_FEdgeSmooth *) py_fe)->py_fe.py_if1D.borrowed = 1;
+
+	return py_fe;
+}
+
 PyObject * BPy_FEdge_from_FEdge( FEdge& fe ) {
-	PyObject *py_fe;
-	if (typeid(fe) == typeid(FEdgeSharp)) {
-		py_fe = FEdgeSharp_Type.tp_new( &FEdgeSharp_Type, 0, 0 );
-		((BPy_FEdgeSharp *) py_fe)->fes = new FEdgeSharp( dynamic_cast<FEdgeSharp&>(fe) );
-		((BPy_FEdgeSharp *) py_fe)->py_fe.fe = ((BPy_FEdgeSharp *) py_fe)->fes;
-		((BPy_FEdgeSharp *) py_fe)->py_fe.py_if1D.if1D = ((BPy_FEdgeSharp *) py_fe)->fes;
-	} else if (typeid(fe) == typeid(FEdgeSmooth)) {
-		py_fe = FEdgeSmooth_Type.tp_new( &FEdgeSmooth_Type, 0, 0 );
-		((BPy_FEdgeSmooth *) py_fe)->fes = new FEdgeSmooth( dynamic_cast<FEdgeSmooth&>(fe) );
-		((BPy_FEdgeSmooth *) py_fe)->py_fe.fe = ((BPy_FEdgeSmooth *) py_fe)->fes;
-		((BPy_FEdgeSmooth *) py_fe)->py_fe.py_if1D.if1D = ((BPy_FEdgeSmooth *) py_fe)->fes;
-	} else {
-		py_fe = FEdge_Type.tp_new( &FEdge_Type, 0, 0 );
-		((BPy_FEdge *) py_fe)->fe = new FEdge( fe );
-		((BPy_FEdge *) py_fe)->py_if1D.if1D = ((BPy_FEdge *) py_fe)->fe;
-	}
+	PyObject *py_fe = FEdge_Type.tp_new( &FEdge_Type, 0, 0 );
+	((BPy_FEdge *) py_fe)->fe = &fe;
+	((BPy_FEdge *) py_fe)->py_if1D.if1D = ((BPy_FEdge *) py_fe)->fe;
+	((BPy_FEdge *) py_fe)->py_if1D.borrowed = 1;
 
 	return py_fe;
 }
@@ -165,17 +215,19 @@ PyObject * BPy_Nature_from_Nature( unsigned short n ) {
 	return py_n;
 }
 
-PyObject * BPy_Stroke_from_Stroke_ptr( Stroke* s ) {
+PyObject * BPy_Stroke_from_Stroke( Stroke& s ) {
 	PyObject *py_s = Stroke_Type.tp_new( &Stroke_Type, 0, 0 );
-	((BPy_Stroke *) py_s)->s = s;
+	((BPy_Stroke *) py_s)->s = &s;
 	((BPy_Stroke *) py_s)->py_if1D.if1D = ((BPy_Stroke *) py_s)->s;
+	((BPy_Stroke *) py_s)->py_if1D.borrowed = 1;
 
 	return py_s;
 }
 
-PyObject * BPy_StrokeAttribute_from_StrokeAttribute_ptr( StrokeAttribute *sa ) {
+PyObject * BPy_StrokeAttribute_from_StrokeAttribute( StrokeAttribute& sa ) {
 	PyObject *py_sa = StrokeAttribute_Type.tp_new( &StrokeAttribute_Type, 0, 0 );
-	((BPy_StrokeAttribute *) py_sa)->sa = sa;
+	((BPy_StrokeAttribute *) py_sa)->sa = &sa;
+	((BPy_StrokeAttribute *) py_sa)->borrowed = 1;
 	return py_sa;	
 }
 
@@ -190,37 +242,41 @@ PyObject * BPy_MediumType_from_MediumType( int n ) {
 	return py_mt;
 }
 
-PyObject * BPy_StrokeVertex_from_StrokeVertex_ptr( StrokeVertex *sv ) {
+PyObject * BPy_StrokeVertex_from_StrokeVertex( StrokeVertex& sv ) {
 	PyObject *py_sv = StrokeVertex_Type.tp_new( &StrokeVertex_Type, 0, 0 );
-	((BPy_StrokeVertex *) py_sv)->sv = sv;
+	((BPy_StrokeVertex *) py_sv)->sv = &sv;
 	((BPy_StrokeVertex *) py_sv)->py_cp.cp = ((BPy_StrokeVertex *) py_sv)->sv;
 	((BPy_StrokeVertex *) py_sv)->py_cp.py_if0D.if0D = ((BPy_StrokeVertex *) py_sv)->sv;
+	((BPy_StrokeVertex *) py_sv)->py_cp.py_if0D.borrowed = 1;
 
 	return py_sv;
 }
 
-PyObject * BPy_ViewVertex_from_ViewVertex_ptr( ViewVertex *vv ) {
+PyObject * BPy_ViewVertex_from_ViewVertex( ViewVertex& vv ) {
 	PyObject *py_vv = ViewVertex_Type.tp_new( &ViewVertex_Type, 0, 0 );
-	((BPy_ViewVertex *) py_vv)->vv = vv;
+	((BPy_ViewVertex *) py_vv)->vv = &vv;
 	((BPy_ViewVertex *) py_vv)->py_if0D.if0D = ((BPy_ViewVertex *) py_vv)->vv;
+	((BPy_ViewVertex *) py_vv)->py_if0D.borrowed = 1;
 
 	return py_vv;
 }
 
-PyObject * BPy_NonTVertex_from_NonTVertex_ptr( NonTVertex *ntv ) {
+PyObject * BPy_NonTVertex_from_NonTVertex( NonTVertex& ntv ) {
 	PyObject *py_ntv = NonTVertex_Type.tp_new( &NonTVertex_Type, 0, 0 );
-	((BPy_NonTVertex *) py_ntv)->ntv = ntv;
+	((BPy_NonTVertex *) py_ntv)->ntv = &ntv;
 	((BPy_NonTVertex *) py_ntv)->py_vv.vv = ((BPy_NonTVertex *) py_ntv)->ntv;
 	((BPy_NonTVertex *) py_ntv)->py_vv.py_if0D.if0D = ((BPy_NonTVertex *) py_ntv)->ntv;
+	((BPy_NonTVertex *) py_ntv)->py_vv.py_if0D.borrowed = 1;
 
 	return py_ntv;
 }
 
-PyObject * BPy_TVertex_from_TVertex_ptr( TVertex *tv ) {
+PyObject * BPy_TVertex_from_TVertex( TVertex& tv ) {
 	PyObject *py_tv = TVertex_Type.tp_new( &TVertex_Type, 0, 0 );
-	((BPy_TVertex *) py_tv)->tv = tv;
+	((BPy_TVertex *) py_tv)->tv = &tv;
 	((BPy_TVertex *) py_tv)->py_vv.vv = ((BPy_TVertex *) py_tv)->tv;
 	((BPy_TVertex *) py_tv)->py_vv.py_if0D.if0D = ((BPy_TVertex *) py_tv)->tv;
+	((BPy_TVertex *) py_tv)->py_vv.py_if0D.borrowed = 1;
 
 	return py_tv;
 }
@@ -232,39 +288,44 @@ PyObject * BPy_BBox_from_BBox( BBox< Vec3r > &bb ) {
 	return py_bb;
 }
 
-PyObject * BPy_ViewEdge_from_ViewEdge_ptr( ViewEdge* ve ) {
+PyObject * BPy_ViewEdge_from_ViewEdge( ViewEdge& ve ) {
 	PyObject *py_ve = ViewEdge_Type.tp_new( &ViewEdge_Type, 0, 0 );
-	((BPy_ViewEdge *) py_ve)->ve = ve;
+	((BPy_ViewEdge *) py_ve)->ve = &ve;
 	((BPy_ViewEdge *) py_ve)->py_if1D.if1D = ((BPy_ViewEdge *) py_ve)->ve;
+	((BPy_ViewEdge *) py_ve)->py_if1D.borrowed = 1;
 
 	return py_ve;
 }
 
-PyObject * BPy_Chain_from_Chain_ptr( Chain* c ) {
+PyObject * BPy_Chain_from_Chain( Chain& c ) {
 	PyObject *py_c = Chain_Type.tp_new( &Chain_Type, 0, 0 );
-	((BPy_Chain *) py_c)->c = c;
+	((BPy_Chain *) py_c)->c = &c;
 	((BPy_Chain *) py_c)->py_c.c = ((BPy_Chain *) py_c)->c;
 	((BPy_Chain *) py_c)->py_c.py_if1D.if1D = ((BPy_Chain *) py_c)->c;
+	((BPy_Chain *) py_c)->py_c.py_if1D.borrowed = 1;
 	return py_c;
 }
 
 PyObject * BPy_SShape_from_SShape( SShape& ss ) {
 	PyObject *py_ss = SShape_Type.tp_new( &SShape_Type, 0, 0 );
-	((BPy_SShape *) py_ss)->ss = new SShape( ss );
+	((BPy_SShape *) py_ss)->ss = &ss;
+	((BPy_SShape *) py_ss)->borrowed = 1;
 
 	return py_ss;	
 }
 
 PyObject * BPy_ViewShape_from_ViewShape( ViewShape& vs ) {
 	PyObject *py_vs = ViewShape_Type.tp_new( &ViewShape_Type, 0, 0 );
-	((BPy_ViewShape *) py_vs)->vs = new ViewShape( vs );
+	((BPy_ViewShape *) py_vs)->vs = &vs;
+	((BPy_ViewShape *) py_vs)->borrowed = 1;
 
 	return py_vs;
 }
 
 PyObject * BPy_FrsMaterial_from_FrsMaterial( FrsMaterial& m ){
 	PyObject *py_m = FrsMaterial_Type.tp_new( &FrsMaterial_Type, 0, 0 );
-	((BPy_FrsMaterial*) py_m)->m = new FrsMaterial( m );
+	((BPy_FrsMaterial*) py_m)->m = &m;
+	((BPy_FrsMaterial*) py_m)->borrowed = 1;
 
 	return py_m;
 }
@@ -280,10 +341,11 @@ PyObject * BPy_IntegrationType_from_IntegrationType( int i ) {
 	return py_it;
 }
 
-PyObject * BPy_CurvePoint_from_CurvePoint_ptr( CurvePoint *cp ) {
+PyObject * BPy_CurvePoint_from_CurvePoint( CurvePoint& cp ) {
 	PyObject *py_cp = CurvePoint_Type.tp_new( &CurvePoint_Type, 0, 0 );
-	((BPy_CurvePoint*) py_cp)->cp = cp;
+	((BPy_CurvePoint*) py_cp)->cp = &cp;
 	((BPy_CurvePoint*) py_cp)->py_if0D.if0D = ((BPy_CurvePoint*) py_cp)->cp;
+	((BPy_CurvePoint*) py_cp)->py_if0D.borrowed = 1;
 
 	return py_cp;
 }
@@ -291,7 +353,7 @@ PyObject * BPy_CurvePoint_from_CurvePoint_ptr( CurvePoint *cp ) {
 PyObject * BPy_directedViewEdge_from_directedViewEdge( ViewVertex::directedViewEdge& dve ) {
 	PyObject *py_dve = PyTuple_New(2);
 	
-	PyTuple_SetItem( py_dve, 0, BPy_ViewEdge_from_ViewEdge_ptr(dve.first) );
+	PyTuple_SetItem( py_dve, 0, BPy_ViewEdge_from_ViewEdge(*(dve.first)) );
 	PyTuple_SetItem( py_dve, 1, PyBool_from_bool(dve.second) );
 	
 	return py_dve;

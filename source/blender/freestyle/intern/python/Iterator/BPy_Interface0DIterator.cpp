@@ -146,7 +146,7 @@ PyObject * Interface0DIterator_iternext( BPy_Interface0DIterator *self ) {
 		if0D = self->if0D_it->operator->();
 		self->if0D_it->increment();
 	}
-	return BPy_Interface0D_from_Interface0D( *if0D );
+	return Any_BPy_Interface0D_from_Interface0D( *if0D );
 }
 
 PyObject * Interface0DIterator_t( BPy_Interface0DIterator *self ) {
@@ -158,7 +158,7 @@ PyObject * Interface0DIterator_u( BPy_Interface0DIterator *self ) {
 }
 
 PyObject * Interface0DIterator_getObject(BPy_Interface0DIterator *self) {
-	return BPy_Interface0D_from_Interface0D( self->if0D_it->operator*() );
+	return Any_BPy_Interface0D_from_Interface0D( self->if0D_it->operator*() );
 }
 
 

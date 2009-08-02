@@ -157,8 +157,9 @@ int ViewEdgeIterator___init__(BPy_ViewEdgeIterator *self, PyObject *args )
 
 
 PyObject *ViewEdgeIterator_getCurrentEdge( BPy_ViewEdgeIterator *self ) {
-	if( self->ve_it->getCurrentEdge() )
-		return BPy_ViewEdge_from_ViewEdge_ptr( self->ve_it->getCurrentEdge() );
+	ViewEdge *ve = self->ve_it->getCurrentEdge();
+	if( ve )
+		return BPy_ViewEdge_from_ViewEdge( *ve );
 		
 	Py_RETURN_NONE;
 }
@@ -176,8 +177,9 @@ PyObject *ViewEdgeIterator_setCurrentEdge( BPy_ViewEdgeIterator *self, PyObject 
 
 
 PyObject *ViewEdgeIterator_getBegin( BPy_ViewEdgeIterator *self ) {
-	if( self->ve_it->getBegin() )
-		return BPy_ViewEdge_from_ViewEdge_ptr( self->ve_it->getBegin() );
+	ViewEdge *ve = self->ve_it->getBegin();
+	if( ve )
+		return BPy_ViewEdge_from_ViewEdge( *ve );
 		
 	Py_RETURN_NONE;
 }
@@ -218,7 +220,7 @@ PyObject * ViewEdgeIterator_getObject( BPy_ViewEdgeIterator *self) {
 
 	ViewEdge *ve = self->ve_it->operator*();
 	if( ve )
-		return BPy_ViewEdge_from_ViewEdge_ptr( ve );
+		return BPy_ViewEdge_from_ViewEdge( *ve );
 
 	Py_RETURN_NONE;
 }

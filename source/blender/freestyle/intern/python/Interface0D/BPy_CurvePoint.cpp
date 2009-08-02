@@ -152,6 +152,7 @@ int CurvePoint___init__(BPy_CurvePoint *self, PyObject *args, PyObject *kwds)
 	}
 
 	self->py_if0D.if0D = self->cp;
+	self->py_if0D.borrowed = 0;
 
 	return 0;
 }
@@ -163,20 +164,23 @@ PyObject * CurvePoint___copy__( BPy_CurvePoint *self ) {
 	
 	py_cp->cp = new CurvePoint( *(self->cp) );
 	py_cp->py_if0D.if0D = py_cp->cp;
+	py_cp->py_if0D.borrowed = 0;
 
 	return (PyObject *) py_cp;
 }
 
 PyObject * CurvePoint_A( BPy_CurvePoint *self ) {
-	if( SVertex *A = self->cp->A() )
-		return BPy_SVertex_from_SVertex_ptr( A );
+	SVertex *A = self->cp->A();
+	if( A )
+		return BPy_SVertex_from_SVertex( *A );
 
 	Py_RETURN_NONE;
 }
 
 PyObject * CurvePoint_B( BPy_CurvePoint *self ) {
-	if( SVertex *B = self->cp->B() )
-		return BPy_SVertex_from_SVertex_ptr( B );
+	SVertex *B = self->cp->B();
+	if( B )
+		return BPy_SVertex_from_SVertex( *B );
 
 	Py_RETURN_NONE;
 }

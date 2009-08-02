@@ -120,6 +120,7 @@ int ViewVertex___init__(BPy_ViewVertex *self )
 {	
 	self->vv = 0; // ViewVertex is abstract
 	self->py_if0D.if0D = new Interface0D();
+	self->py_if0D.borrowed = 0;
 	return 0;
 }
 

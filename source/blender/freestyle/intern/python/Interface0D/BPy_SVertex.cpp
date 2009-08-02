@@ -151,6 +151,7 @@ int SVertex___init__(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 	}
 
 	self->py_if0D.if0D = self->sv;
+	self->py_if0D.borrowed = 0;
 	
 	return 0;
 }
@@ -162,6 +163,7 @@ PyObject * SVertex___copy__( BPy_SVertex *self ) {
 	
 	py_svertex->sv = self->sv->duplicate();
 	py_svertex->py_if0D.if0D = py_svertex->sv;
+	py_svertex->py_if0D.borrowed = 0;
 
 	return (PyObject *) py_svertex;
 }
@@ -188,12 +190,10 @@ PyObject * SVertex_normalsSize( BPy_SVertex *self ) {
 
 PyObject * SVertex_viewvertex( BPy_SVertex *self ) {
 	ViewVertex *vv = self->sv->viewvertex();
-	if (!vv)
-		Py_RETURN_NONE;
-	if (typeid(*vv) == typeid(NonTVertex))
-		return BPy_NonTVertex_from_NonTVertex_ptr( dynamic_cast<NonTVertex*>(vv) );
-	else
-		return BPy_TVertex_from_TVertex_ptr( dynamic_cast<TVertex*>(vv) );
+	if( vv )
+		return Any_BPy_ViewVertex_from_ViewVertex( *vv );
+
+	Py_RETURN_NONE;
 }
 
 PyObject *SVertex_setPoint3D( BPy_SVertex *self , PyObject *args) {

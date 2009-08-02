@@ -148,6 +148,7 @@ int FEdgeSharp___init__(BPy_FEdgeSharp *self, PyObject *args, PyObject *kwds)
 
 	self->py_fe.fe = self->fes;
 	self->py_fe.py_if1D.if1D = self->fes;
+	self->py_fe.py_if1D.borrowed = 0;
 
 	return 0;
 }

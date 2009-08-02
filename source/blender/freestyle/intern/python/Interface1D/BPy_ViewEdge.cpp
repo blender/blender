@@ -163,54 +163,61 @@ int ViewEdge___init__(BPy_ViewEdge *self, PyObject *args, PyObject *kwds)
 {
 	self->ve = new ViewEdge();
 	self->py_if1D.if1D = self->ve;
+	self->py_if1D.borrowed = 0;
 
 	return 0;
 }
 
 
 PyObject * ViewEdge_A( BPy_ViewEdge *self ) {	
-	if( self->ve->A() ){
-		return BPy_ViewVertex_from_ViewVertex_ptr( self->ve->A() );
+	ViewVertex *v = self->ve->A();
+	if( v ){
+		return Any_BPy_ViewVertex_from_ViewVertex( *v );
 	}
 		
 	Py_RETURN_NONE;
 }
 
 PyObject * ViewEdge_B( BPy_ViewEdge *self ) {	
-	if( self->ve->B() ){
-		return BPy_ViewVertex_from_ViewVertex_ptr( self->ve->B() );
+	ViewVertex *v = self->ve->B();
+	if( v ){
+		return Any_BPy_ViewVertex_from_ViewVertex( *v );
 	}
 		
 	Py_RETURN_NONE;
 }
 
 PyObject * ViewEdge_fedgeA( BPy_ViewEdge *self ) {	
-	if( self->ve->fedgeA() ){
-		return BPy_FEdge_from_FEdge(*( self->ve->fedgeA() ));
+	FEdge *A = self->ve->fedgeA();
+	if( A ){
+		return Any_BPy_FEdge_from_FEdge( *A );
 	}
 		
 	Py_RETURN_NONE;
 }
 
 PyObject * ViewEdge_fedgeB( BPy_ViewEdge *self ) {	
-	if( self->ve->fedgeB() ){
-		return BPy_FEdge_from_FEdge(*( self->ve->fedgeB() ));
+	FEdge *B = self->ve->fedgeB();
+	if( B ){
+		return Any_BPy_FEdge_from_FEdge( *B );
 	}
 		
 	Py_RETURN_NONE;
 }
 
 PyObject * ViewEdge_viewShape( BPy_ViewEdge *self ) {	
-	if( self->ve->viewShape() ){
-		return BPy_ViewShape_from_ViewShape(*( self->ve->viewShape() ));
+	ViewShape *vs = self->ve->viewShape();
+	if( vs ){
+		return BPy_ViewShape_from_ViewShape( *vs );
 	}
 		
 	Py_RETURN_NONE;
 }
 
 PyObject * ViewEdge_aShape( BPy_ViewEdge *self ) {	
-	if( self->ve->aShape() ){
-		return BPy_ViewShape_from_ViewShape(*( self->ve->aShape() ));
+	ViewShape *vs = self->ve->aShape();
+	if( vs ){
+		return BPy_ViewShape_from_ViewShape( *vs );
 	}
 		
 	Py_RETURN_NONE;

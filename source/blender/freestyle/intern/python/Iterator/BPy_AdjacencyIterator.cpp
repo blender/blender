@@ -148,9 +148,9 @@ PyObject * AdjacencyIterator_iternext(BPy_AdjacencyIterator *self) {
 		PyErr_SetNone(PyExc_StopIteration);
 		return NULL;
 	}
-	ViewEdge *ve = self->a_it->operator->();
+	ViewEdge *ve = self->a_it->operator*();
 	self->a_it->increment();
-	return BPy_ViewEdge_from_ViewEdge_ptr( ve );
+	return BPy_ViewEdge_from_ViewEdge( *ve );
 }
 
 PyObject * AdjacencyIterator_isIncoming(BPy_AdjacencyIterator *self) {
@@ -161,7 +161,7 @@ PyObject * AdjacencyIterator_getObject(BPy_AdjacencyIterator *self) {
 	
 	ViewEdge *ve = self->a_it->operator*();
 	if( ve )
-		return BPy_ViewEdge_from_ViewEdge_ptr( ve );
+		return BPy_ViewEdge_from_ViewEdge( *ve );
 
 	Py_RETURN_NONE;
 }

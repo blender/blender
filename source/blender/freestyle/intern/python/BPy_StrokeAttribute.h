@@ -19,6 +19,7 @@ extern PyTypeObject StrokeAttribute_Type;
 typedef struct {
 	PyObject_HEAD
 	StrokeAttribute *sa;
+	int borrowed; /* non-zero if *sa is a borrowed reference */
 } BPy_StrokeAttribute;
 
 /*---------------------------Python BPy_StrokeAttribute visible prototypes-----------*/

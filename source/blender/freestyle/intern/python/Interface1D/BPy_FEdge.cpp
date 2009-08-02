@@ -155,12 +155,12 @@ int FEdge___init__(BPy_FEdge *self, PyObject *args, PyObject *kwds)
 
 	PyObject *obj1 = 0, *obj2 = 0;
 
-    if (! PyArg_ParseTuple(args, "|OO", &obj1, &obj2) )
+    if (! PyArg_ParseTuple(args, "|O!O!", &SVertex_Type, &obj1, &SVertex_Type, &obj2) )
         return -1;
 
 	if( !obj1 && !obj2 ){
 		self->fe = new FEdge();
-	} else if( BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2) ) {
+	} else if( obj1 && obj2 ) {
 		self->fe = new FEdge( ((BPy_SVertex *) obj1)->sv, ((BPy_SVertex *) obj2)->sv );
 	} else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
@@ -168,6 +168,7 @@ int FEdge___init__(BPy_FEdge *self, PyObject *args, PyObject *kwds)
 	}
 
 	self->py_if1D.if1D = self->fe;
+	self->py_if1D.borrowed = 0;
 
 	return 0;
 }
@@ -180,21 +181,24 @@ PyObject * FEdge___copy__( BPy_FEdge *self ) {
 	
 	py_fe->fe = new FEdge( *(self->fe) );
 	py_fe->py_if1D.if1D = py_fe->fe;
+	py_fe->py_if1D.borrowed = 0;
 
 	return (PyObject *) py_fe;
 }
 
 PyObject * FEdge_vertexA( BPy_FEdge *self ) {	
-	if( self->fe->vertexA() ){
-		return BPy_SVertex_from_SVertex_ptr( self->fe->vertexA() );
+	SVertex *A = self->fe->vertexA();
+	if( A ){
+		return BPy_SVertex_from_SVertex( *A );
 	}
 		
 	Py_RETURN_NONE;
 }
 
 PyObject * FEdge_vertexB( BPy_FEdge *self ) {
-	if( self->fe->vertexB() ){
-		return BPy_SVertex_from_SVertex_ptr( self->fe->vertexB() );
+	SVertex *B = self->fe->vertexB();
+	if( B ){
+		return BPy_SVertex_from_SVertex( *B );
 	}
 		
 	Py_RETURN_NONE;
@@ -211,29 +215,33 @@ PyObject * FEdge___getitem__( BPy_FEdge *self, PyObject *args ) {
 		return NULL;
 	}
 	
-	if( SVertex *v = self->fe->operator[](i) )
-		return BPy_SVertex_from_SVertex_ptr( v );
+	SVertex *v = self->fe->operator[](i);
+	if( v )
+		return BPy_SVertex_from_SVertex( *v );
 
 	Py_RETURN_NONE;
 }
 
 PyObject * FEdge_nextEdge( BPy_FEdge *self ) {
-	if( FEdge *fe = self->fe->nextEdge() )
-		return BPy_FEdge_from_FEdge( *fe );
+	FEdge *fe = self->fe->nextEdge();
+	if( fe )
+		return Any_BPy_FEdge_from_FEdge( *fe );
 
 	Py_RETURN_NONE;
 }
 
 PyObject * FEdge_previousEdge( BPy_FEdge *self ) {
-	if( FEdge *fe = self->fe->previousEdge() )
-		return BPy_FEdge_from_FEdge( *fe );
+	FEdge *fe = self->fe->previousEdge();
+	if( fe )
+		return Any_BPy_FEdge_from_FEdge( *fe );
 
 	Py_RETURN_NONE;
 }
 
 PyObject * FEdge_viewedge( BPy_FEdge *self ) {
-	if( ViewEdge *ve = self->fe->viewedge() )
-		return BPy_ViewEdge_from_ViewEdge_ptr( ve );
+	ViewEdge *ve = self->fe->viewedge();
+	if( ve )
+		return BPy_ViewEdge_from_ViewEdge( *ve );
 
 	Py_RETURN_NONE;
 }

@@ -156,7 +156,7 @@ PyObject * CurvePointIterator_castToInterface0DIterator( BPy_CurvePointIterator 
 }
 
 PyObject * CurvePointIterator_getObject(BPy_CurvePointIterator *self) {
-	return BPy_CurvePoint_from_CurvePoint_ptr( &(self->cp_it->operator*()) );
+	return BPy_CurvePoint_from_CurvePoint( self->cp_it->operator*() );
 }
 
 

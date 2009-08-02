@@ -196,13 +196,15 @@ int FrsMaterial___init__(BPy_FrsMaterial *self, PyObject *args, PyObject *kwds)
 		PyErr_SetString(PyExc_TypeError, "invalid arguments");
 		return -1;
 	}
+	self->borrowed = 0;
 
 	return 0;
 }
 
 void FrsMaterial___dealloc__( BPy_FrsMaterial* self)
 {
-	delete self->m;
+	if( self->m && !self->borrowed )
+		delete self->m;
     self->ob_type->tp_free((PyObject*)self);
 }
 

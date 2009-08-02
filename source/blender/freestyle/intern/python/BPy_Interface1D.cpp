@@ -198,13 +198,13 @@ PyMODINIT_FUNC Interface1D_Init( PyObject *module )
 int Interface1D___init__(BPy_Interface1D *self, PyObject *args, PyObject *kwds)
 {
 	self->if1D = new Interface1D();
-	self->if1D->py_if1D = (PyObject *) self;
+	self->borrowed = 0;
 	return 0;
 }
 
 void Interface1D___dealloc__(BPy_Interface1D* self)
 {
-	if( self->if1D && self->if1D->py_if1D )
+	if( self->if1D && !self->borrowed )
 		delete self->if1D;
     self->ob_type->tp_free((PyObject*)self);
 }
