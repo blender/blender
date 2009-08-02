@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
+#include <algorithm>
 
 #include "rayobject_rtbuild.h"
 #include "MEM_guardedalloc.h"
@@ -198,34 +199,20 @@ struct CostObject
 	float bb[6];
 };
 
-//Ugly.. but using qsort and no globals its the cleaner I can get
-#define costobject_cmp(axis) costobject_cmp##axis
-#define define_costobject_cmp(axis) 								\
-int costobject_cmp(axis)(const CostObject *a, const CostObject *b)	\
-{																	\
-	if(a->bb[axis] < b->bb[axis]) return -1;						\
-	if(a->bb[axis] > b->bb[axis]) return  1;						\
-	if(a->obj < b->obj) return -1;									\
-	if(a->obj > b->obj) return 1;									\
-	return 0;														\
-}	
-
-define_costobject_cmp(0)
-define_costobject_cmp(1)
-define_costobject_cmp(2)
-define_costobject_cmp(3)
-define_costobject_cmp(4)
-define_costobject_cmp(5)
+template<class Obj,int Axis>
+bool obj_bb_compare(const Obj &a, const Obj &b)
+{
+	if(a.bb[Axis] != b.bb[Axis])
+		return a.bb[Axis] < b.bb[Axis];
+	return a.obj < b.obj;
+}
 
 void costobject_sort(CostObject *begin, CostObject *end, int axis)
 {
-	//TODO introsort
-	     if(axis == 0) qsort(begin, end-begin, sizeof(*begin), (int(*)(const void *, const void *)) costobject_cmp(0));
-	else if(axis == 1) qsort(begin, end-begin, sizeof(*begin), (int(*)(const void *, const void *)) costobject_cmp(1));
-	else if(axis == 2) qsort(begin, end-begin, sizeof(*begin), (int(*)(const void *, const void *)) costobject_cmp(2));
-	else if(axis == 3) qsort(begin, end-begin, sizeof(*begin), (int(*)(const void *, const void *)) costobject_cmp(3));
-	else if(axis == 4) qsort(begin, end-begin, sizeof(*begin), (int(*)(const void *, const void *)) costobject_cmp(4));
-	else if(axis == 5) qsort(begin, end-begin, sizeof(*begin), (int(*)(const void *, const void *)) costobject_cmp(5));
+	if(axis == 0) return std::sort(begin, end, obj_bb_compare<CostObject,0> );
+	if(axis == 1) return std::sort(begin, end, obj_bb_compare<CostObject,1> );
+	if(axis == 2) return std::sort(begin, end, obj_bb_compare<CostObject,2> );
+	assert(false);
 }
 
 
