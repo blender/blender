@@ -323,6 +323,7 @@ static void generateTile_WAVELET(float* const noiseTileData, std::string filenam
 	saveTile(noise3, filename); 
 	delete[] temp13;
 	delete[] temp23;
+	delete[] noise3;
 	std::cout <<"Generating new 3d noise done\n";
 }
 
