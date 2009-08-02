@@ -33,6 +33,11 @@
 #include <math.h>
 #include <string.h>
 
+/* getenv only */
+#ifdef __linux__
+#include <stdlib.h>
+#endif
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_vec_types.h"
