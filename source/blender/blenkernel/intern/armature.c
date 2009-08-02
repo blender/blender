@@ -2213,7 +2213,7 @@ static void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, fl
 			Mat4MulSerie(pchan->pose_mat, tmat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
 		}
 		else if(bone->flag & BONE_NO_SCALE) {
-			float orthmat[4][4], vec[3];
+			float orthmat[4][4];
 			
 			/* get the official transform, but we only use the vector from it (optimize...) */
 			Mat4MulSerie(pchan->pose_mat, parchan->pose_mat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);

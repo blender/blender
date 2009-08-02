@@ -187,6 +187,8 @@ GHOST_WindowX11(
 		printf("%s:%d: X11 glxChooseVisual() failed for OpenGL, verify working openGL system!\n", __FILE__, __LINE__);
 		return;
 	}
+	
+	memset(&m_xtablet, 0, sizeof(m_xtablet));
 
 	// Create a bunch of attributes needed to create an X window.
 
