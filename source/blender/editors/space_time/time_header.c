@@ -69,7 +69,8 @@
 
 /* ************************ header time area region *********************** */
 
-static ARegion *time_top_left_3dwindow(bScreen *screen)
+/* exported for use in screen_ops.c */
+ARegion *time_top_left_3dwindow(bScreen *screen)
 {
 	ARegion *aret= NULL;
 	ScrArea *sa;
@@ -203,12 +204,6 @@ static void do_time_viewmenu(bContext *C, void *arg, int event)
 			break;
 		case 7:
 			//nextprev_marker(-1);
-			break;
-		case 8:
-			//nextprev_timeline_key(1);
-			break;
-		case 9:
-			//nextprev_timeline_key(-1);
 			break;
 		case 10:
 			//timeline_frame_to_center();
@@ -372,8 +367,6 @@ static uiBlock *time_framemenu(bContext *C, ARegion *ar, void *arg_unused)
 
 void do_time_buttons(bContext *C, void *arg, int event)
 {
-	bScreen *screen= CTX_wm_screen(C);
-	SpaceTime *stime= CTX_wm_space_time(C);
 	Scene *scene= CTX_data_scene(C);
 	
 	switch(event) {
@@ -383,34 +376,6 @@ void do_time_buttons(bContext *C, void *arg, int event)
 		case B_NEWFRAME:
 			WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 			break;
-		case B_TL_PLAY:
-			ED_screen_animation_timer(C, stime->redraws, 1);
-			
-			/* update region if TIME_REGION was set, to leftmost 3d window */
-			if(screen->animtimer && (stime->redraws & TIME_REGION)) {
-				wmTimer *wt= screen->animtimer;
-				ScreenAnimData *sad= wt->customdata;
-				
-				sad->ar= time_top_left_3dwindow(screen);
-			}
-			
-			break;
-		case B_TL_RPLAY:
-			ED_screen_animation_timer(C, stime->redraws, -1);
-			
-			/* update region if TIME_REGION was set, to leftmost 3d window */
-			if(screen->animtimer && (stime->redraws & TIME_REGION)) {
-				wmTimer *wt= screen->animtimer;
-				ScreenAnimData *sad= wt->customdata;
-				
-				sad->ar= time_top_left_3dwindow(screen);
-			}
-			
-			break;
-		case B_TL_STOP:
-			ED_screen_animation_timer(C, 0, 0);
-			break;
-			
 		case B_TL_PREVIEWON:
 			if (scene->r.psfra) {
 				/* turn on preview range */
@@ -526,19 +491,17 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	
 	if (animtimer) {
 		/* pause button 2*size to keep buttons in place */
-		uiDefIconBut(block, BUT, B_TL_STOP, ICON_PAUSE,
-					 xco, yco, XIC*2, YIC, 0, 0, 0, 0, 0, "Stop Playing Timeline");
-					 
+		but=uiDefIconButO(block, BUT, "SCREEN_OT_animation_play", WM_OP_INVOKE_REGION_WIN, ICON_PAUSE, xco,yco,XIC*2,YIC, "Stop Playing Timeline");
+		
 		xco+= XIC;
 	}
 	else {	   
-		uiDefIconBut(block, BUT, B_TL_RPLAY, ICON_PLAY_REVERSE,
-					 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Play Timeline in Reverse");
-					 
+		but=uiDefIconButO(block, BUT, "SCREEN_OT_animation_play", WM_OP_INVOKE_REGION_WIN, ICON_PLAY_REVERSE, xco,yco,XIC,YIC, "Play Timeline in Reverse");
+			RNA_boolean_set(uiButGetOperatorPtrRNA(but), "reverse", 1);	
 		xco+= XIC;
 					 
-		uiDefIconBut(block, BUT, B_TL_PLAY, ICON_PLAY,
-					 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Play Timeline ");
+		but=uiDefIconButO(block, BUT, "SCREEN_OT_animation_play", WM_OP_INVOKE_REGION_WIN, ICON_PLAY, xco,yco,XIC,YIC, "Play Timeline");
+			RNA_boolean_set(uiButGetOperatorPtrRNA(but), "reverse", 0);	
 	}
 	xco+= XIC;
 	
@@ -551,7 +514,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	xco+= XIC;
 	uiBlockEndAlign(block);
 
-	xco+= 2*XIC;
+	xco+= 1.5*XIC;
 	
 	uiBlockBeginAlign(block);
 	uiDefIconButBitS(block, TOG, AUTOKEY_ON, B_REDRAWALL, ICON_REC,

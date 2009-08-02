@@ -1391,19 +1391,36 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
  * 'local' (i.e. belonging in the nearest ID-block that setting is related to, not a
  * standard 'root') block are overridden by a larger 'user'
  */
-// TODO: we currently go over entire 'main' database...
+// FIXME?: we currently go over entire 'main' database...
 void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 {
 	ID *id;
 	
 	if (G.f & G_DEBUG)
 		printf("Evaluate all animation - %f \n", ctime);
-
-	/* macro for less typing */
-#define EVAL_ANIM_IDS(first, flag) \
+	
+	/* macro for less typing 
+	 *	- only evaluate animation data for id if it has users (and not just fake ones)
+	 *	- whether animdata exists is checked for by the evaluation function, though taking 
+	 *	  this outside of the function may make things slightly faster?
+	 */
+#define EVAL_ANIM_IDS(first, aflag) \
 	for (id= first; id; id= id->next) { \
 		AnimData *adt= BKE_animdata_from_id(id); \
-		BKE_animsys_evaluate_animdata(id, adt, ctime, flag); \
+		if ( (id->us > 1) || (id->us && !(id->flag & LIB_FAKEUSER)) ) \
+			BKE_animsys_evaluate_animdata(id, adt, ctime, aflag); \
+	}
+	
+	/* optimisation: 
+	 * when there are no actions, don't go over database and loop over heaps of datablocks, 
+	 * which should ultimately be empty, since it is not possible for now to have any animation 
+	 * without some actions, and drivers wouldn't get affected by any state changes
+	 */
+	if (main->action.first == NULL) {
+		if (G.f & G_DEBUG)
+			printf("\tNo Actions, so no animation needs to be evaluated...\n");
+			
+		return;
 	}
 	
 	/* nodes */

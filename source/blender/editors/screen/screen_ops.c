@@ -2311,6 +2311,10 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
 
 /* ****************** anim player, starts or ends timer ***************** */
 
+/* helper for screen_animation_play() - only to be used for TimeLine */
+// NOTE: defined in time_header.c for now...
+extern ARegion *time_top_left_3dwindow(bScreen *screen);
+
 /* toggle operator */
 static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -2320,15 +2324,32 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 		ED_screen_animation_timer(C, 0, 0);
 	}
 	else {
+		ScrArea *sa= CTX_wm_area(C);
 		int mode= (RNA_boolean_get(op->ptr, "reverse")) ? -1 : 1;
 		
-		ED_screen_animation_timer(C, TIME_REGION|TIME_ALL_3D_WIN, mode);
-		
-		if(screen->animtimer) {
-			wmTimer *wt= screen->animtimer;
-			ScreenAnimData *sad= wt->customdata;
+		/* timeline gets special treatment since it has it's own menu for determining redraws */
+		if ((sa) && (sa->spacetype == SPACE_TIME)) {
+			SpaceTime *stime= (SpaceTime *)sa->spacedata.first;
 			
-			sad->ar= CTX_wm_region(C);
+			ED_screen_animation_timer(C, stime->redraws, mode);
+			
+			/* update region if TIME_REGION was set, to leftmost 3d window */
+			if(screen->animtimer && (stime->redraws & TIME_REGION)) {
+				wmTimer *wt= screen->animtimer;
+				ScreenAnimData *sad= wt->customdata;
+				
+				sad->ar= time_top_left_3dwindow(screen);
+			}
+		}
+		else {
+			ED_screen_animation_timer(C, TIME_REGION|TIME_ALL_3D_WIN, mode);
+			
+			if(screen->animtimer) {
+				wmTimer *wt= screen->animtimer;
+				ScreenAnimData *sad= wt->customdata;
+				
+				sad->ar= CTX_wm_region(C);
+			}
 		}
 	}
 	
