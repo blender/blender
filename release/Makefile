@@ -167,11 +167,11 @@ endif
 	@echo "----> Copy python UI files"
 	@[ ! -d ui ] || cp -r ui $(CONFDIR)/ui
 	
-	ifeq ($(OS),darwin)
+    ifeq ($(OS),darwin)
 	@echo "----> Copy python modules"
 	@mkdir $(CONFDIR)/python/
 	@unzip -q $(LCGDIR)/release/python.zip -d $(CONFDIR)/python/	
-	endif
+    endif
 
     ifeq ($(OS),darwin)
 	@echo "----> Move .blender to .app/Contents/MacOS/"
