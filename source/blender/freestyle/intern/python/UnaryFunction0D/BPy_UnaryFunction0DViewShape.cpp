@@ -13,7 +13,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for UnaryFunction0DViewShape instance  -----------*/
-static int UnaryFunction0DViewShape___init__(BPy_UnaryFunction0DViewShape* self);
+static int UnaryFunction0DViewShape___init__(BPy_UnaryFunction0DViewShape* self, PyObject *args, PyObject *kwds);
 static void UnaryFunction0DViewShape___dealloc__(BPy_UnaryFunction0DViewShape* self);
 static PyObject * UnaryFunction0DViewShape___repr__(BPy_UnaryFunction0DViewShape* self);
 
@@ -137,8 +137,10 @@ PyMODINIT_FUNC UnaryFunction0DViewShape_Init( PyObject *module ) {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int UnaryFunction0DViewShape___init__(BPy_UnaryFunction0DViewShape* self)
+int UnaryFunction0DViewShape___init__(BPy_UnaryFunction0DViewShape* self, PyObject *args, PyObject *kwds)
 {
+    if ( !PyArg_ParseTuple(args, "") )
+        return -1;
 	self->uf0D_viewshape = new UnaryFunction0D<ViewShape*>();
 	self->uf0D_viewshape->py_uf0D = (PyObject *)self;
 	return 0;

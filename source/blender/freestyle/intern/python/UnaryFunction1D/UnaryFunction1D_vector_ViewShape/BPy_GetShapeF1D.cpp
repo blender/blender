@@ -11,7 +11,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for GetShapeF1D instance  -----------*/
-	static int GetShapeF1D___init__(BPy_GetShapeF1D* self);
+	static int GetShapeF1D___init__(BPy_GetShapeF1D* self, PyObject *args);
 
 /*-----------------------BPy_GetShapeF1D type definition ------------------------------*/
 
@@ -100,8 +100,10 @@ PyTypeObject GetShapeF1D_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int GetShapeF1D___init__( BPy_GetShapeF1D* self )
+int GetShapeF1D___init__( BPy_GetShapeF1D* self, PyObject *args )
 {
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
 	self->py_uf1D_vectorviewshape.uf1D_vectorviewshape = new Functions1D::GetShapeF1D();
 	return 0;
 }

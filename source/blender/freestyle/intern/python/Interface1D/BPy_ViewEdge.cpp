@@ -161,6 +161,8 @@ PyTypeObject ViewEdge_Type = {
 	
 int ViewEdge___init__(BPy_ViewEdge *self, PyObject *args, PyObject *kwds)
 {
+    if ( !PyArg_ParseTuple(args, "") )
+        return -1;
 	self->ve = new ViewEdge();
 	self->py_if1D.if1D = self->ve;
 	self->py_if1D.borrowed = 0;

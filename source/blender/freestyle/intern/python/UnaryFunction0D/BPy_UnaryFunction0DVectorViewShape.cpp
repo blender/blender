@@ -12,7 +12,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for UnaryFunction0DVectorViewShape instance  -----------*/
-static int UnaryFunction0DVectorViewShape___init__(BPy_UnaryFunction0DVectorViewShape* self);
+static int UnaryFunction0DVectorViewShape___init__(BPy_UnaryFunction0DVectorViewShape* self, PyObject *args, PyObject *kwds);
 static void UnaryFunction0DVectorViewShape___dealloc__(BPy_UnaryFunction0DVectorViewShape* self);
 static PyObject * UnaryFunction0DVectorViewShape___repr__(BPy_UnaryFunction0DVectorViewShape* self);
 
@@ -131,8 +131,10 @@ PyMODINIT_FUNC UnaryFunction0DVectorViewShape_Init( PyObject *module ) {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int UnaryFunction0DVectorViewShape___init__(BPy_UnaryFunction0DVectorViewShape* self)
+int UnaryFunction0DVectorViewShape___init__(BPy_UnaryFunction0DVectorViewShape* self, PyObject *args, PyObject *kwds)
 {
+    if ( !PyArg_ParseTuple(args, "") )
+        return -1;
 	self->uf0D_vectorviewshape = new UnaryFunction0D< std::vector<ViewShape*> >();
 	self->uf0D_vectorviewshape->py_uf0D = (PyObject *)self;
 	return 0;

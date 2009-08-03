@@ -13,7 +13,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for UnaryFunction0DVec2f instance  -----------*/
-static int UnaryFunction0DVec2f___init__(BPy_UnaryFunction0DVec2f* self);
+static int UnaryFunction0DVec2f___init__(BPy_UnaryFunction0DVec2f* self, PyObject *args, PyObject *kwds);
 static void UnaryFunction0DVec2f___dealloc__(BPy_UnaryFunction0DVec2f* self);
 static PyObject * UnaryFunction0DVec2f___repr__(BPy_UnaryFunction0DVec2f* self);
 
@@ -137,8 +137,10 @@ PyMODINIT_FUNC UnaryFunction0DVec2f_Init( PyObject *module ) {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int UnaryFunction0DVec2f___init__(BPy_UnaryFunction0DVec2f* self)
+int UnaryFunction0DVec2f___init__(BPy_UnaryFunction0DVec2f* self, PyObject *args, PyObject *kwds)
 {
+    if ( !PyArg_ParseTuple(args, "") )
+        return -1;
 	self->uf0D_vec2f = new UnaryFunction0D<Vec2f>();
 	self->uf0D_vec2f->py_uf0D = (PyObject *)self;
 	return 0;

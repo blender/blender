@@ -137,6 +137,8 @@ PyMODINIT_FUNC UnaryPredicate0D_Init( PyObject *module )
 
 int UnaryPredicate0D___init__(BPy_UnaryPredicate0D *self, PyObject *args, PyObject *kwds)
 {
+    if ( !PyArg_ParseTuple(args, "") )
+        return -1;
 	self->up0D = new UnaryPredicate0D();
 	self->up0D->py_up0D = (PyObject *) self;
 	return 0;

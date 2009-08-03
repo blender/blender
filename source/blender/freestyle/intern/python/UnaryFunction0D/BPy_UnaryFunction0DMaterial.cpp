@@ -12,7 +12,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for UnaryFunction0DMaterial instance  -----------*/
-static int UnaryFunction0DMaterial___init__(BPy_UnaryFunction0DMaterial* self);
+static int UnaryFunction0DMaterial___init__(BPy_UnaryFunction0DMaterial* self, PyObject *args, PyObject *kwds);
 static void UnaryFunction0DMaterial___dealloc__(BPy_UnaryFunction0DMaterial* self);
 static PyObject * UnaryFunction0DMaterial___repr__(BPy_UnaryFunction0DMaterial* self);
 
@@ -131,8 +131,10 @@ PyMODINIT_FUNC UnaryFunction0DMaterial_Init( PyObject *module ) {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int UnaryFunction0DMaterial___init__(BPy_UnaryFunction0DMaterial* self)
+int UnaryFunction0DMaterial___init__(BPy_UnaryFunction0DMaterial* self, PyObject *args, PyObject *kwds)
 {
+    if ( !PyArg_ParseTuple(args, "") )
+        return -1;
 	self->uf0D_material = new UnaryFunction0D<FrsMaterial>();
 	self->uf0D_material->py_uf0D = (PyObject *)self;
 	return 0;

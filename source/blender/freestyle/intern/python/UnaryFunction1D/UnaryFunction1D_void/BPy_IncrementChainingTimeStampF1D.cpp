@@ -11,7 +11,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for IncrementChainingTimeStampF1D instance  -----------*/
-	static int IncrementChainingTimeStampF1D___init__(BPy_IncrementChainingTimeStampF1D* self);
+	static int IncrementChainingTimeStampF1D___init__(BPy_IncrementChainingTimeStampF1D* self, PyObject *args);
 
 /*-----------------------BPy_IncrementChainingTimeStampF1D type definition ------------------------------*/
 
@@ -100,8 +100,10 @@ PyTypeObject IncrementChainingTimeStampF1D_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int IncrementChainingTimeStampF1D___init__( BPy_IncrementChainingTimeStampF1D* self )
+int IncrementChainingTimeStampF1D___init__( BPy_IncrementChainingTimeStampF1D* self, PyObject *args )
 {
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
 	self->py_uf1D_void.uf1D_void = new Functions1D::IncrementChainingTimeStampF1D();
 	return 0;
 }

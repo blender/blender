@@ -12,7 +12,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for UnaryFunction0DUnsigned instance  -----------*/
-static int UnaryFunction0DUnsigned___init__(BPy_UnaryFunction0DUnsigned* self);
+static int UnaryFunction0DUnsigned___init__(BPy_UnaryFunction0DUnsigned* self, PyObject *args, PyObject *kwds);
 static void UnaryFunction0DUnsigned___dealloc__(BPy_UnaryFunction0DUnsigned* self);
 static PyObject * UnaryFunction0DUnsigned___repr__(BPy_UnaryFunction0DUnsigned* self);
 
@@ -131,8 +131,10 @@ PyMODINIT_FUNC UnaryFunction0DUnsigned_Init( PyObject *module ) {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int UnaryFunction0DUnsigned___init__(BPy_UnaryFunction0DUnsigned* self)
+int UnaryFunction0DUnsigned___init__(BPy_UnaryFunction0DUnsigned* self, PyObject *args, PyObject *kwds)
 {
+    if ( !PyArg_ParseTuple(args, "") )
+        return -1;
 	self->uf0D_unsigned = new UnaryFunction0D<unsigned int>();
 	self->uf0D_unsigned->py_uf0D = (PyObject *)self;
 	return 0;

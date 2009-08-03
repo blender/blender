@@ -157,6 +157,8 @@ PyMODINIT_FUNC BinaryPredicate1D_Init( PyObject *module )
 
 int BinaryPredicate1D___init__(BPy_BinaryPredicate1D *self, PyObject *args, PyObject *kwds)
 {
+    if ( !PyArg_ParseTuple(args, "") )
+        return -1;
 	self->bp1D = new BinaryPredicate1D();
 	self->bp1D->py_bp1D = (PyObject *) self;	
 	return 0;

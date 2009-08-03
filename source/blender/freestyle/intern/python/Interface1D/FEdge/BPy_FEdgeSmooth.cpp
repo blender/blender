@@ -127,10 +127,10 @@ int FEdgeSmooth___init__(BPy_FEdgeSmooth *self, PyObject *args, PyObject *kwds)
 	if( !obj1 ){
 		self->fes = new FEdgeSmooth();
 		
-	} else if( BPy_FEdgeSmooth_Check(obj1) ) {
+	} else if( !obj2 && BPy_FEdgeSmooth_Check(obj1) ) {
 		self->fes = new FEdgeSmooth(*( ((BPy_FEdgeSmooth *) obj1)->fes ));
 		
-	} else if( BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2) ) {
+	} else if( obj2 && BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2) ) {
 		self->fes = new FEdgeSmooth( ((BPy_SVertex *) obj1)->sv, ((BPy_SVertex *) obj2)->sv );
 
 	} else {

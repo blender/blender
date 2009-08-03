@@ -11,7 +11,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for ChainingTimeStampF1D instance  -----------*/
-	static int ChainingTimeStampF1D___init__(BPy_ChainingTimeStampF1D* self);
+	static int ChainingTimeStampF1D___init__(BPy_ChainingTimeStampF1D* self, PyObject *args);
 
 /*-----------------------BPy_ChainingTimeStampF1D type definition ------------------------------*/
 
@@ -100,8 +100,10 @@ PyTypeObject ChainingTimeStampF1D_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int ChainingTimeStampF1D___init__( BPy_ChainingTimeStampF1D* self )
+int ChainingTimeStampF1D___init__( BPy_ChainingTimeStampF1D* self, PyObject *args )
 {
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
 	self->py_uf1D_void.uf1D_void = new Functions1D::ChainingTimeStampF1D();
 	return 0;
 }

@@ -23,7 +23,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for UnaryFunction0DDouble instance  -----------*/
-static int UnaryFunction0DDouble___init__(BPy_UnaryFunction0DDouble* self);
+static int UnaryFunction0DDouble___init__(BPy_UnaryFunction0DDouble* self, PyObject *args, PyObject *kwds);
 static void UnaryFunction0DDouble___dealloc__(BPy_UnaryFunction0DDouble* self);
 static PyObject * UnaryFunction0DDouble___repr__(BPy_UnaryFunction0DDouble* self);
 
@@ -188,8 +188,10 @@ PyMODINIT_FUNC UnaryFunction0DDouble_Init( PyObject *module ) {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int UnaryFunction0DDouble___init__(BPy_UnaryFunction0DDouble* self)
+int UnaryFunction0DDouble___init__(BPy_UnaryFunction0DDouble* self, PyObject *args, PyObject *kwds)
 {
+    if ( !PyArg_ParseTuple(args, "") )
+        return -1;
 	self->uf0D_double = new UnaryFunction0D<double>();
 	self->uf0D_double->py_uf0D = (PyObject *)self;
 	return 0;

@@ -17,7 +17,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for UnaryFunction0DFloat instance  -----------*/
-static int UnaryFunction0DFloat___init__(BPy_UnaryFunction0DFloat* self);
+static int UnaryFunction0DFloat___init__(BPy_UnaryFunction0DFloat* self, PyObject *args, PyObject *kwds);
 static void UnaryFunction0DFloat___dealloc__(BPy_UnaryFunction0DFloat* self);
 static PyObject * UnaryFunction0DFloat___repr__(BPy_UnaryFunction0DFloat* self);
 
@@ -160,8 +160,10 @@ PyMODINIT_FUNC UnaryFunction0DFloat_Init( PyObject *module ) {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int UnaryFunction0DFloat___init__(BPy_UnaryFunction0DFloat* self)
+int UnaryFunction0DFloat___init__(BPy_UnaryFunction0DFloat* self, PyObject *args, PyObject *kwds)
 {
+    if ( !PyArg_ParseTuple(args, "") )
+        return -1;
 	self->uf0D_float = new UnaryFunction0D<float>();
 	self->uf0D_float->py_uf0D = (PyObject *)self;
 	return 0;

@@ -259,6 +259,8 @@ PyMODINIT_FUNC StrokeShader_Init( PyObject *module )
 
 int StrokeShader___init__(BPy_StrokeShader *self, PyObject *args, PyObject *kwds)
 {
+    if ( !PyArg_ParseTuple(args, "") )
+        return -1;
 	self->ss = new StrokeShader();
 	self->ss->py_ss = (PyObject *) self;
 	return 0;

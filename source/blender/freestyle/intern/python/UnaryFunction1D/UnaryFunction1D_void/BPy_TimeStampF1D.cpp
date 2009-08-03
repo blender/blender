@@ -11,7 +11,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for TimeStampF1D instance  -----------*/
-	static int TimeStampF1D___init__(BPy_TimeStampF1D* self);
+	static int TimeStampF1D___init__(BPy_TimeStampF1D* self, PyObject *args);
 
 /*-----------------------BPy_TimeStampF1D type definition ------------------------------*/
 
@@ -100,8 +100,10 @@ PyTypeObject TimeStampF1D_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int TimeStampF1D___init__( BPy_TimeStampF1D* self )
+int TimeStampF1D___init__( BPy_TimeStampF1D* self, PyObject *args )
 {
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
 	self->py_uf1D_void.uf1D_void = new Functions1D::TimeStampF1D();
 	return 0;
 }

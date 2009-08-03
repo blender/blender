@@ -152,16 +152,20 @@ PyTypeObject FEdge_Type = {
 	
 int FEdge___init__(BPy_FEdge *self, PyObject *args, PyObject *kwds)
 {
-
 	PyObject *obj1 = 0, *obj2 = 0;
 
-    if (! PyArg_ParseTuple(args, "|O!O!", &SVertex_Type, &obj1, &SVertex_Type, &obj2) )
+    if (! PyArg_ParseTuple(args, "|OO", &obj1, &obj2) )
         return -1;
 
-	if( !obj1 && !obj2 ){
+	if( !obj1 ){
 		self->fe = new FEdge();
-	} else if( obj1 && obj2 ) {
+
+	} else if( !obj2 && BPy_FEdge_Check(obj1) ) {
+		self->fe = new FEdge(*( ((BPy_FEdge *) obj1)->fe ));
+		
+	} else if( obj2 && BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2) ) {
 		self->fe = new FEdge( ((BPy_SVertex *) obj1)->sv, ((BPy_SVertex *) obj2)->sv );
+
 	} else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;

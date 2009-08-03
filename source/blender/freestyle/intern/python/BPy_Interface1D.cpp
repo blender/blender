@@ -197,6 +197,8 @@ PyMODINIT_FUNC Interface1D_Init( PyObject *module )
 
 int Interface1D___init__(BPy_Interface1D *self, PyObject *args, PyObject *kwds)
 {
+    if ( !PyArg_ParseTuple(args, "") )
+        return -1;
 	self->if1D = new Interface1D();
 	self->borrowed = 0;
 	return 0;

@@ -135,10 +135,10 @@ int FEdgeSharp___init__(BPy_FEdgeSharp *self, PyObject *args, PyObject *kwds)
 	if( !obj1 ){
 		self->fes = new FEdgeSharp();
 		
-	} else if( BPy_FEdgeSharp_Check(obj1) ) {
+	} else if( !obj2 && BPy_FEdgeSharp_Check(obj1) ) {
 		self->fes = new FEdgeSharp(*( ((BPy_FEdgeSharp *) obj1)->fes ));
 		
-	} else if( BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2) ) {
+	} else if( obj2 && BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2) ) {
 		self->fes = new FEdgeSharp( ((BPy_SVertex *) obj1)->sv, ((BPy_SVertex *) obj2)->sv );
 
 	} else {

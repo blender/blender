@@ -183,17 +183,18 @@ int Stroke___init__(BPy_Stroke *self, PyObject *args, PyObject *kwds)
 	if (! PyArg_ParseTuple(args, "|OO", &obj1, &obj2) )
         return -1;
 
-	if( !obj1 && !obj2 ){
+	if( !obj1 ){
 		self->s = new Stroke();
-	} else if ( obj1 && !obj2 ) {
-		if (! BPy_Stroke_Check(obj1) ) {
-			PyErr_SetString(PyExc_TypeError, "not a Stroke object");
-			return -1;
-		}
+
+	} else if ( !obj2 && BPy_Stroke_Check(obj1) ) {
 		self->s = new Stroke(*( ((BPy_Stroke *)obj1)->s ));
-	} else {
-		PyErr_SetString(PyExc_NotImplementedError,
+
+	} else if ( obj2 ) {
+		PyErr_SetString(PyExc_TypeError,
 			"Stroke(InputVertexIterator iBegin, InputVertexIterator iEnd) not implemented");
+		return -1;
+	} else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
 

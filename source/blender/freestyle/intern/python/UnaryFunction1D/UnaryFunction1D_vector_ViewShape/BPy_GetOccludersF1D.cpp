@@ -11,7 +11,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for GetOccludersF1D instance  -----------*/
-	static int GetOccludersF1D___init__(BPy_GetOccludersF1D* self);
+	static int GetOccludersF1D___init__(BPy_GetOccludersF1D* self, PyObject *args);
 
 /*-----------------------BPy_GetOccludersF1D type definition ------------------------------*/
 
@@ -100,8 +100,10 @@ PyTypeObject GetOccludersF1D_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int GetOccludersF1D___init__( BPy_GetOccludersF1D* self )
+int GetOccludersF1D___init__( BPy_GetOccludersF1D* self, PyObject *args )
 {
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
 	self->py_uf1D_vectorviewshape.uf1D_vectorviewshape = new Functions1D::GetOccludersF1D();
 	return 0;
 }

@@ -11,7 +11,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for GetOccludeeF1D instance  -----------*/
-	static int GetOccludeeF1D___init__(BPy_GetOccludeeF1D* self);
+	static int GetOccludeeF1D___init__(BPy_GetOccludeeF1D* self, PyObject *args);
 
 /*-----------------------BPy_GetOccludeeF1D type definition ------------------------------*/
 
@@ -100,8 +100,10 @@ PyTypeObject GetOccludeeF1D_Type = {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int GetOccludeeF1D___init__( BPy_GetOccludeeF1D* self )
+int GetOccludeeF1D___init__( BPy_GetOccludeeF1D* self, PyObject *args )
 {
+	if( !PyArg_ParseTuple(args, "") )
+		return -1;
 	self->py_uf1D_vectorviewshape.uf1D_vectorviewshape = new Functions1D::GetOccludeeF1D();
 	return 0;
 }

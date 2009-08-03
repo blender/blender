@@ -12,7 +12,7 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 /*---------------  Python API function prototypes for UnaryFunction0DEdgeNature instance  -----------*/
-static int UnaryFunction0DEdgeNature___init__(BPy_UnaryFunction0DEdgeNature* self);
+static int UnaryFunction0DEdgeNature___init__(BPy_UnaryFunction0DEdgeNature* self, PyObject *args, PyObject *kwds);
 static void UnaryFunction0DEdgeNature___dealloc__(BPy_UnaryFunction0DEdgeNature* self);
 static PyObject * UnaryFunction0DEdgeNature___repr__(BPy_UnaryFunction0DEdgeNature* self);
 
@@ -131,8 +131,10 @@ PyMODINIT_FUNC UnaryFunction0DEdgeNature_Init( PyObject *module ) {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-int UnaryFunction0DEdgeNature___init__(BPy_UnaryFunction0DEdgeNature* self)
+int UnaryFunction0DEdgeNature___init__(BPy_UnaryFunction0DEdgeNature* self, PyObject *args, PyObject *kwds)
 {
+    if ( !PyArg_ParseTuple(args, "") )
+        return -1;
 	self->uf0D_edgenature = new UnaryFunction0D<Nature::EdgeNature>();
 	self->uf0D_edgenature->py_uf0D = (PyObject *)self;
 	return 0;
