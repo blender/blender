@@ -37,6 +37,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_mball.h"
 #include "BKE_depsgraph.h"
 
 #include "WM_types.h"
@@ -49,6 +50,24 @@ static int rna_Meta_texspace_editable(PointerRNA *ptr)
 }
 
 static void rna_MetaBall_update_data(bContext *C, PointerRNA *ptr)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *active_object = CTX_data_active_object(C);
+	Object *obedit= CTX_data_edit_object(C);
+
+	if(obedit) {
+		copy_mball_properties(scene, obedit);
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	}
+	else if(active_object) {
+		copy_mball_properties(scene, active_object);
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, active_object);
+		DAG_object_flush_update(scene, active_object, OB_RECALC_DATA);
+	}	
+}
+
+static void rna_MetaElem_update_data(bContext *C, PointerRNA *ptr)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -80,59 +99,59 @@ void rna_def_metaelement(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Type", "Metaball types.");
-	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
+	RNA_def_property_update(prop, 0, "rna_MetaElem_update_data");
 	
 	/* number values */
 	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
 	RNA_def_property_float_sdna(prop, NULL, "x");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Location", "");
-	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
+	RNA_def_property_update(prop, 0, "rna_MetaElem_update_data");
 
 	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ROTATION);
 	RNA_def_property_float_sdna(prop, NULL, "quat");
 	RNA_def_property_ui_text(prop, "Rotation", "");
-	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
+	RNA_def_property_update(prop, 0, "rna_MetaElem_update_data");
 
 	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "rad");
 	RNA_def_property_ui_text(prop, "Radius", "");
-	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
+	RNA_def_property_update(prop, 0, "rna_MetaElem_update_data");
 
 	prop= RNA_def_property(srna, "sizex", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "expx");
 	RNA_def_property_range(prop, 0.0f, 20.0f);
 	RNA_def_property_ui_text(prop, "Size X", "Size of element, use of components depends on element type.");
-	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
+	RNA_def_property_update(prop, 0, "rna_MetaElem_update_data");
 
 	prop= RNA_def_property(srna, "sizey", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "expy");
 	RNA_def_property_range(prop, 0.0f, 20.0f);
 	RNA_def_property_ui_text(prop, "Size Y", "Size of element, use of components depends on element type.");
-	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
+	RNA_def_property_update(prop, 0, "rna_MetaElem_update_data");
 
 	prop= RNA_def_property(srna, "sizez", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "expz");
 	RNA_def_property_range(prop, 0.0f, 20.0f);
 	RNA_def_property_ui_text(prop, "Size Z", "Size of element, use of components depends on element type.");
-	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
+	RNA_def_property_update(prop, 0, "rna_MetaElem_update_data");
 	
 	prop= RNA_def_property(srna, "stiffness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "s");
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Stiffness", "Stiffness defines how much of the element to fill.");
-	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
+	RNA_def_property_update(prop, 0, "rna_MetaElem_update_data");
 	
 	/* flags */
 	prop= RNA_def_property(srna, "negative", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MB_NEGATIVE);
 	RNA_def_property_ui_text(prop, "Negative", "Set metaball as negative one.");
-	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
+	RNA_def_property_update(prop, 0, "rna_MetaElem_update_data");
 	
 	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MB_HIDE);
 	RNA_def_property_ui_text(prop, "Hide", "Hide element.");
-	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
+	RNA_def_property_update(prop, 0, "rna_MetaElem_update_data");
 }
 
 void rna_def_metaball(BlenderRNA *brna)
@@ -176,6 +195,7 @@ void rna_def_metaball(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "rendersize");
 	RNA_def_property_range(prop, 0.050f, 1.0f);
 	RNA_def_property_ui_text(prop, "Render Size", "Polygonization resolution in rendering.");
+	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 	
 	prop= RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "thresh");

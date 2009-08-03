@@ -4399,7 +4399,7 @@ static int drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	if(ml==NULL) return 1;
 	
 	/* in case solid draw, reset wire colors */
-	if(mb->editelems && (ob->flag & SELECT)) {
+	if(ob->flag & SELECT) {
 		if(ob==OBACT) UI_ThemeColor(TH_ACTIVE);
 		else UI_ThemeColor(TH_SELECT);
 	}
