@@ -147,7 +147,7 @@ typedef struct Sequence {
 
 	Strip *strip;
 
-	struct Ipo *ipo;
+	struct Ipo *ipo;	// xxx depreceated... old animation system
 	struct Scene *scene;
 	struct anim *anim;
 	float facf0, facf1;

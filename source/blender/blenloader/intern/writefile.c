@@ -1297,6 +1297,7 @@ static void write_mballs(WriteData *wd, ListBase *idbase)
 
 			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*mb->totcol, mb->mat);
+			if (mb->adt) write_animdata(wd, mb->adt);
 
 			ml= mb->elems.first;
 			while(ml) {

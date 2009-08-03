@@ -60,6 +60,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_windowmanager_types.h"
@@ -651,6 +652,22 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						expand = ICON_TRIA_RIGHT;
 					
 					strcpy(name, part->id.name+2);
+				}
+					break;
+				case ANIMTYPE_DSMBALL: /* metaball (dopesheet) expand widget */
+				{
+					MetaBall *mb = (MetaBall *)ale->data;
+					
+					group = 4;
+					indent = 1;
+					special = ICON_META_DATA;
+					
+					if (FILTER_MBALL_OBJD(mb))
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+					
+					strcpy(name, mb->id.name+2);
 				}
 					break;
 					

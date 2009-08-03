@@ -2488,7 +2488,8 @@ static void lib_link_mball(FileData *fd, Main *main)
 	mb= main->mball.first;
 	while(mb) {
 		if(mb->id.flag & LIB_NEEDLINK) {
-
+			if (mb->adt) lib_link_animdata(fd, &mb->id, mb->adt);
+			
 			for(a=0; a<mb->totcol; a++) mb->mat[a]= newlibadr_us(fd, mb->id.lib, mb->mat[a]);
 
 			mb->ipo= newlibadr_us(fd, mb->id.lib, mb->ipo); // XXX depreceated - old animation system
@@ -2501,6 +2502,9 @@ static void lib_link_mball(FileData *fd, Main *main)
 
 static void direct_link_mball(FileData *fd, MetaBall *mb)
 {
+	mb->adt= newdataadr(fd, mb->adt);
+	direct_link_animdata(fd, mb->adt);
+	
 	mb->mat= newdataadr(fd, mb->mat);
 	test_pointer_array(fd, (void **)&mb->mat);
 
@@ -9946,6 +9950,9 @@ static void expand_mball(FileData *fd, Main *mainvar, MetaBall *mb)
 	for(a=0; a<mb->totcol; a++) {
 		expand_doit(fd, mainvar, mb->mat[a]);
 	}
+	
+	if(mb->adt)
+		expand_animdata(fd, mainvar, mb->adt);
 }
 
 static void expand_curve(FileData *fd, Main *mainvar, Curve *cu)

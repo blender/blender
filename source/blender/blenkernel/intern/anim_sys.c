@@ -71,7 +71,7 @@ static short id_has_animdata (ID *id)
 	switch (GS(id->name)) {
 			/* has AnimData */
 		case ID_OB:
-		case ID_CU:
+		case ID_MB: case ID_CU:
 		case ID_KE:
 		case ID_PA:
 		case ID_MA: case ID_TE: case ID_NT:
@@ -1441,6 +1441,9 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	/* shapekeys */
 		// TODO: we probably need the same hack as for curves (ctime-hack)
 	EVAL_ANIM_IDS(main->key.first, ADT_RECALC_ANIM);
+	
+	/* metaballs */
+	EVAL_ANIM_IDS(main->mball.first, ADT_RECALC_ANIM);
 	
 	/* curves */
 		/* we need to perform a special hack here to ensure that the ctime 
