@@ -27,6 +27,8 @@ else :
 	LCGDIR = '#../lib/darwin-8.x.i386'
 LIBDIR = '${LCGDIR}'
 
+BF_PYTHON_VERSION = '3.1'
+
 if MAC_PROC== 'powerpc' and BF_PYTHON_VERSION == '2.3':
 	MAC_MIN_VERS = '10.3'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.3.9.sdk'
@@ -46,8 +48,6 @@ if USE_SDK==True:
 	BF_FFMPEG_EXTRA = '-isysroot '+MACOSX_SDK+' -mmacosx-version-min='+MAC_MIN_VERS
 #BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 #BF_FFMPEG_LIB = 'avformat.a avcodec.a avutil.a'
-
-BF_PYTHON_VERSION = '3.1'
 
 if BF_PYTHON_VERSION=='3.1':
 	# python 3.1 uses precompiled libraries in bf svn /lib by default
