@@ -2744,7 +2744,6 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 /* present menu listing the possible objects within the group to proxify */
 static void proxy_group_objects_menu (bContext *C, wmOperator *op, Object *ob, Group *group)
 {
-	PointerRNA gob_ptr;
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	GroupObject *go;
@@ -2760,22 +2759,16 @@ static void proxy_group_objects_menu (bContext *C, wmOperator *op, Object *ob, G
 	pup= uiPupMenuBegin(C, "Make Proxy For:", 0);
 	layout= uiPupMenuLayout(pup);
 	
-	/* make RNA pointer for object that group belongs to */
-	RNA_id_pointer_create((ID *)ob, &gob_ptr);
-	
 	for (go= group->gobject.first; go; go= go->next) {
 		if (go->ob) {
-			PointerRNA props_ptr, ob_ptr;
-			
-			/* create pointer for this object */
-			RNA_id_pointer_create((ID *)go->ob, &ob_ptr);
+			PointerRNA props_ptr;
 			
 			/* create operator properties, and assign the relevant pointers to that, 
 			 * and add a menu entry which uses these props 
 			 */
 			WM_operator_properties_create(&props_ptr, op->idname);
-				RNA_pointer_set(&props_ptr, "object", ob_ptr);
-				RNA_pointer_set(&props_ptr, "group_object", gob_ptr);
+				RNA_string_set(&props_ptr, "object", go->ob->id.name+2);
+				RNA_string_set(&props_ptr, "group_object", go->ob->id.name+2);
 			uiItemFullO(layout, go->ob->id.name+2, 0, op->idname, props_ptr.data, WM_OP_EXEC_REGION_WIN);
 		}
 	}
@@ -2802,16 +2795,13 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	else if (ob->id.lib) {
 		uiPopupMenu *pup= uiPupMenuBegin(C, "OK?", ICON_QUESTION);
 		uiLayout *layout= uiPupMenuLayout(pup);
-		PointerRNA ob_ptr, props_ptr;
-		
-		/* create pointer for this object */
-		RNA_id_pointer_create((ID *)ob, &ob_ptr);
+		PointerRNA props_ptr;
 		
 		/* create operator properties, and assign the relevant pointers to that, 
 		 * and add a menu entry which uses these props 
 		 */
 		WM_operator_properties_create(&props_ptr, op->idname);
-			RNA_pointer_set(&props_ptr, "object", ob_ptr);
+			RNA_string_set(&props_ptr, "object", ob->id.name+2);
 		uiItemFullO(layout, op->type->name, 0, op->idname, props_ptr.data, WM_OP_EXEC_REGION_WIN);
 		
 		/* present the menu and be done... */
@@ -2828,11 +2818,39 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 
 static int make_proxy_exec (bContext *C, wmOperator *op)
 {
-	PointerRNA ob_ptr= RNA_pointer_get(op->ptr, "object");
-	PointerRNA gob_ptr= RNA_pointer_get(op->ptr, "group_object");
-	Object *ob= ob_ptr.data;
-	Object *gob= gob_ptr.data;
+	Object *ob=NULL, *gob=NULL;
 	Scene *scene= CTX_data_scene(C);
+	char ob_name[21], gob_name[21];
+	
+	/* get object and group object
+	 *	- firstly names
+	 *	- then pointers from context 
+	 */
+	RNA_string_get(op->ptr, "object", ob_name);
+	RNA_string_get(op->ptr, "group_object", gob_name);
+	
+	if (gob_name[0]) {
+		Group *group;
+		GroupObject *go;
+		
+		/* active object is group object... */
+		// FIXME: we should get the nominated name instead
+		gob= CTX_data_active_object(C);
+		group= gob->dup_group;
+		
+		/* find the object to affect */
+		for (go= group->gobject.first; go; go= go->next) {
+			if ((go->ob) && strcmp(go->ob->id.name+2, gob_name)==0) {
+				ob= go->ob;
+				break;
+			}
+		}
+	}
+	else {
+		/* just use the active object for now */
+		// FIXME: we should get the nominated name instead
+		ob= CTX_data_active_object(C);
+	}
 	
 	if (ob) {
 		Object *newob;
@@ -2864,6 +2882,8 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 		/* depsgraph flushes are needed for the new data */
 		DAG_scene_sort(scene);
 		DAG_object_flush_update(scene, newob, OB_RECALC);
+		
+		WM_event_add_notifier(C, NC_OBJECT, NULL);
 	}
 	else {
 		BKE_report(op->reports, RPT_ERROR, "No object to make proxy for");
@@ -2889,8 +2909,8 @@ void OBJECT_OT_proxy_make (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_pointer(ot->srna, "object", "Object", "Proxy Object", "Lib-linked/grouped object to make a proxy for.");
-	RNA_def_pointer(ot->srna, "group_object", "Object", "Group Object", "Group instancer (if applicable).");
+	RNA_def_string(ot->srna, "object", "", 19, "Proxy Object", "Name of lib-linked/grouped object to make a proxy for.");
+	RNA_def_string(ot->srna, "group_object", "", 19, "Group Object", "Name of group instancer (if applicable).");
 }
 
 /* ******************** make parent operator *********************** */
