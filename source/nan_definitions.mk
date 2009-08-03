@@ -211,7 +211,7 @@ endif
     export FREEDESKTOP ?= true
 
     export NAN_PYTHON ?= /usr/local
-    export NAN_PYTHON_VERSION ?= 2.5
+    export NAN_PYTHON_VERSION ?= 3.1
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= /usr/local
@@ -251,7 +251,7 @@ endif
     export HOST = $(shell /usr/bsd/hostname -s)
     #export NAN_NO_KETSJI=true
     export NAN_JUST_BLENDERDYNAMIC=true
-    export NAN_PYTHON_VERSION ?= 2.5
+    export NAN_PYTHON_VERSION ?= 3.1
     ifeq ($(IRIX_USE_GCC), true)
         export NAN_PYTHON ?= $(LCGDIR)/python_gcc
     else
@@ -310,7 +310,7 @@ endif
     export FREEDESKTOP ?= true
 
     export NAN_PYTHON ?= /usr
-    export NAN_PYTHON_VERSION ?= 2.6
+    export NAN_PYTHON_VERSION ?= 3.1
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= /usr
@@ -370,7 +370,7 @@ endif
     export FREEDESKTOP ?= true
 
     export NAN_PYTHON ?= $(LCGDIR)/python
-    export NAN_PYTHON_VERSION ?= 2.3
+    export NAN_PYTHON_VERSION ?= 3.1
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= $(LCGDIR)/openal
@@ -409,7 +409,7 @@ endif
     export ID = $(shell /usr/ucb/whoami)
     export HOST = $(shell hostname)
     export NAN_PYTHON ?= $(LCGDIR)/python
-    export NAN_PYTHON_VERSION ?= 2.5
+    export NAN_PYTHON_VERSION ?= 3.1
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= $(LCGDIR)/openal
@@ -454,7 +454,7 @@ endif
     export ID = $(LOGNAME)
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_ICONV ?= $(LCGDIR)/iconv
-    export NAN_PYTHON_VERSION ?= 2.5
+    export NAN_PYTHON_VERSION ?= 3.1
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_JPEG ?= $(LCGDIR)/jpeg
     export NAN_PNG ?= $(LCGDIR)/png
@@ -510,7 +510,7 @@ endif
   else # Platform not listed above
 
     export NAN_PYTHON ?= $(LCGDIR)/python
-    export NAN_PYTHON_VERSION ?= 2.3
+    export NAN_PYTHON_VERSION ?= 3.1
     export NAN_PYTHON_BINARY ?= python
     export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
 
