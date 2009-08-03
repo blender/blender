@@ -115,7 +115,7 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid, float 
 
 	if(rtbuild_size(builder) == 1)
 	{
-		RayObject *child = builder->begin[0];
+		RayObject *child = rtbuild_get_primitive( builder, 0 );
 
 		if(RayObject_isRayFace(child))
 		{
@@ -127,7 +127,7 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid, float 
 
 			for(i=0; i<1; i++)
 			{
-				parent->child[i] = (BVHNode*)builder->begin[i];
+				parent->child[i] = (BVHNode*)rtbuild_get_primitive( builder, i );
 				bvh_node_merge_bb(parent->child[i], parent->bb, parent->bb+3);
 			}
 			for(; i<BVH_NCHILDS; i++)
@@ -176,6 +176,8 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid, float 
 		*cost += nc*RAY_BB_TEST_COST;
 		return parent;
 	}
+
+	assert(false);
 }
 
 template<>

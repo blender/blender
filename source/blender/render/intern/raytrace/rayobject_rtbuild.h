@@ -47,18 +47,35 @@ extern "C" {
  * specific structure on the fly.
  */
 #define RTBUILD_MAX_CHILDS 32
+
+
 typedef struct RTBuilder
 {
-	/* list to all primitives in this tree */
-	RayObject **begin, **end;
+	struct Object
+	{
+		RayObject *obj;
+		float cost;
+		float bb[6];
+		int selected;
+	};
 	
+	/* list to all primitives added in this tree */
+	struct
+	{
+		Object *begin, *end;
+		int maxsize;
+	} primitives;
+	
+	/* sorted list of rayobjects */
+	struct Object **sorted_begin[3], **sorted_end[3];
+
 	/* axis used (if any) on the split method */
 	int split_axis;
 	
 	/* child partitions calculated during splitting */
 	int child_offset[RTBUILD_MAX_CHILDS+1];
 	
-	int child_sorted_axis; /* -1 if not sorted */
+//	int child_sorted_axis; /* -1 if not sorted */
 	
 	float bb[6];
 
@@ -68,8 +85,11 @@ typedef struct RTBuilder
 RTBuilder* rtbuild_create(int size);
 void rtbuild_free(RTBuilder *b);
 void rtbuild_add(RTBuilder *b, RayObject *o);
+void rtbuild_done(RTBuilder *b);
 void rtbuild_merge_bb(RTBuilder *b, float *min, float *max);
 int rtbuild_size(RTBuilder *b);
+
+RayObject* rtbuild_get_primitive(RTBuilder *b, int offset);
 
 /* used during tree reorganization */
 RTBuilder* rtbuild_get_child(RTBuilder *b, int child, RTBuilder *tmp);

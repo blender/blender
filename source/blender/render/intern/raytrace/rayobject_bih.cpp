@@ -186,7 +186,7 @@ static BIHNode *bih_rearrange(BIHTree *tree, RTBuilder *builder, int nid, float 
 {
 	if(rtbuild_size(builder) == 1)
 	{
-		RayObject *child = builder->begin[0];
+		RayObject *child = rtbuild_get_primitive( builder, 0 );
 		assert(!RayObject_isAligned(child));
 
 		INIT_MINMAX(bb, bb+3);
@@ -226,11 +226,6 @@ static BIHNode *bih_rearrange(BIHTree *tree, RTBuilder *builder, int nid, float 
 	}
 }
 
-static void bih_info(BIHTree *obj)
-{
-	printf("BIH: Used %d nodes\n", obj->node_next - obj->node_alloc);
-}
-	
 static void bih_done(BIHTree *obj)
 {
 	int needed_nodes;

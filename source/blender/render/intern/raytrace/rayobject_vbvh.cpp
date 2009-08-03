@@ -235,7 +235,7 @@ Node *bvh_rearrange(Tree *tree, Builder *builder)
 		Node *node = bvh_new_node(tree);
 		INIT_MINMAX(node->bb, node->bb+3);
 		rtbuild_merge_bb(builder, node->bb, node->bb+3);		
-		node->child = (BVHNode*)builder->begin[0];
+		node->child = (BVHNode*) rtbuild_get_primitive( builder, 0 );
 		return node;
 	}
 	else
@@ -266,6 +266,8 @@ Node *bvh_rearrange(Tree *tree, Builder *builder)
 template<>
 void bvh_done<BVHTree>(BVHTree *obj)
 {
+	rtbuild_done(obj->builder);
+	
 	int needed_nodes = (rtbuild_size(obj->builder)+1)*2;
 	if(needed_nodes > BLI_MEMARENA_STD_BUFSIZE)
 		needed_nodes = BLI_MEMARENA_STD_BUFSIZE;
