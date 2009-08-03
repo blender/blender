@@ -335,8 +335,8 @@ int rtbuild_heuristic_object_split(RTBuilder *b, int nchilds)
 				right_side= bb_area(sweep[i].bb, sweep[i].bb+3)*(sweep[i].cost+logf(size-i));
 				hcost = left_side+right_side;
 
-				assert(left_side > 0);
-				assert(right_side > 0);
+				assert(left_side >= 0);
+				assert(right_side >= 0);
 				
 				if(left_side > bcost) break;	//No way we can find a better heuristic in this axis
 

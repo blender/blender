@@ -308,13 +308,18 @@ static void makeraytree_single(Render *re)
 		ObjectRen *obr = obi->obr;
 		obs++;
 		
-		assert((obi->flag & R_TRANSFORMED) == 0); //Not suported
-	
-		for(v=0;v<obr->totvlak;v++)
+		if(obi->flag & R_TRANSFORMED)
 		{
-			VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
-			if(is_raytraceable_vlr(re, vlr))
-				faces++;
+			faces++;
+		}
+		else
+		{
+			for(v=0;v<obr->totvlak;v++)
+			{
+				VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
+				if(is_raytraceable_vlr(re, vlr))
+					faces++;
+			}
 		}
 	}
 	
@@ -329,22 +334,30 @@ static void makeraytree_single(Render *re)
 	for(obi=re->instancetable.first; obi; obi=obi->next)
 	if(is_raytraceable(re, obi))
 	{
-		int v;
-		ObjectRen *obr = obi->obr;
-
-		for(v=0;v<obr->totvlak;v++)
+		if(obi->flag & R_TRANSFORMED)
 		{
-			VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
-			face->v1 = vlr->v1->co;
-			face->v2 = vlr->v2->co;
-			face->v3 = vlr->v3->co;
-			face->v4 = vlr->v4 ? vlr->v4->co : NULL;
-			
-			face->ob   = obi;
-			face->face = vlr;
-			
-			RE_rayobject_add( raytree, RayObject_unalignRayFace(face) );
-			face++;
+			RayObject *obj = makeraytree_object(re, obi);
+			RE_rayobject_add( re->raytree, obj );
+		}
+		else
+		{
+			int v;
+			ObjectRen *obr = obi->obr;
+
+			for(v=0;v<obr->totvlak;v++)
+			{
+				VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
+				face->v1 = vlr->v1->co;
+				face->v2 = vlr->v2->co;
+				face->v3 = vlr->v3->co;
+				face->v4 = vlr->v4 ? vlr->v4->co : NULL;
+				
+				face->ob   = obi;
+				face->face = vlr;
+				
+				RE_rayobject_add( raytree, RayObject_unalignRayFace(face) );
+				face++;
+			}
 		}
 	}
 	RE_rayobject_done( raytree );	
@@ -356,6 +369,7 @@ void makeraytree(Render *re)
 	int i;
 	const char *tree_type = "Tree(unknown)";
 
+	re->r.raytrace_tree_type = R_RAYSTRUCTURE_SINGLE_BVH;
 #ifdef RE_RAYCOUNTER
 	if(re->r.raytrace_tree_type == R_RAYTRACE_TREE_BVH)
 		tree_type = "BVH";
