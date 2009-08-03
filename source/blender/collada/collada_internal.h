@@ -57,7 +57,7 @@ public:
 
 class TransformBase
 {
-protected:
+public:
 	void decompose(float mat[][4], float *loc, float *rot, float *size)
 	{
 		Mat4ToSize(mat, size);

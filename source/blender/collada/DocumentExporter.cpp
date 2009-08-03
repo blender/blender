@@ -1273,18 +1273,31 @@ public:
 
 				Image *image = mtex->tex->ima;
 				std::string name(id_name(image));
-				char ima_name[FILE_MAX];
+				char rel[FILE_MAX];
+				char abs[FILE_MAX];
+				char src[FILE_MAX];
 				char dir[FILE_MAX];
 				
 				BLI_split_dirfile_basic(mfilename, dir, NULL);
-				BKE_get_image_export_path(image, dir, NULL, NULL, ima_name, sizeof(ima_name));
+
+				BKE_get_image_export_path(image, dir, abs, sizeof(abs), rel, sizeof(rel));
+
+				if (strlen(abs)) {
+
+					// make absolute source path
+					BLI_strncpy(src, image->name, sizeof(src));
+					BLI_convertstringcode(src, G.sce);
+
+					// make dest directory if it doesn't exist
+					BLI_make_existing_file(abs);
 				
-				if (BLI_copy_fileops(image->name, dir) != 0) {
-					fprintf(stderr, "Cannot copy image to file's directory. \n");
-				}
+					if (BLI_copy_fileops(src, abs) != 0) {
+						fprintf(stderr, "Cannot copy image to file's directory. \n");
+					}
+				} 
 				
 				if (find(mImages.begin(), mImages.end(), name) == mImages.end()) {
-					COLLADASW::Image img(COLLADABU::URI(COLLADABU::URI::nativePathToUri(ima_name)), name, "");
+					COLLADASW::Image img(COLLADABU::URI(COLLADABU::URI::nativePathToUri(rel)), name, "");
 					img.add(mSW);
 
 					mImages.push_back(name);

@@ -167,7 +167,7 @@ public:
 	virtual Object *get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid) = 0;
 };
 
-class TransformReader : protected TransformBase
+class TransformReader : public TransformBase
 {
 protected:
 
@@ -459,8 +459,11 @@ private:
 			return false;
 		}
 
-		void link_armature(bContext *C, Object *ob, std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& joint_by_uid)
+		void link_armature(bContext *C, Object *ob, std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& joint_by_uid,
+						   TransformReader *tm)
 		{
+			tm->decompose(bind_shape_matrix, ob->loc, ob->rot, ob->size);
+
 			ob->parent = ob_arm;
 			ob->partype = PARSKEL;
 			ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
@@ -856,7 +859,7 @@ public:
 			// link armature with an object
 			Object *ob = mesh_importer->get_object_by_geom_uid(*get_geometry_uid(skin.get_controller_uid()));
 			if (ob) {
-				skin.link_armature(C, ob, joint_by_uid);
+				skin.link_armature(C, ob, joint_by_uid, this);
 			}
 			else {
 				fprintf(stderr, "Cannot find object to link armature with.\n");
