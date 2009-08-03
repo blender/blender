@@ -156,8 +156,7 @@ struct Image *BKE_image_copy(struct Image *ima);
 void BKE_image_merge(struct Image *dest, struct Image *source);
 
 /* copy image file to a directory rebuilding subdirectory structure */
-int BKE_export_image(struct Image *im, const char *dest_dir, char *out_path, int out_path_len);
-
+int BKE_get_image_export_path(struct Image *im, const char *dest_dir, char *abs, int abs_size, char *rel, int rel_size);
 
 #ifdef __cplusplus
 }

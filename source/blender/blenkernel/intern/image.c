@@ -2117,41 +2117,51 @@ void BKE_image_user_calc_imanr(ImageUser *iuser, int cfra, int fieldnr)
 }
 
 /*
-  Copy an image to destination directory rebuilding subdirectory structure if needed.
-  Target image path is written to out_path.
-  Returns 1 on success, 0 otherwise.
+  Produce image export path.
+
+  Fails returning 0 if image filename is empty or if destination path
+  matches image path (i.e. both are the same file).
+
+  Trailing slash in dest_dir is optional.
 
   Logic:
 
-  - if an image is "below" current .blend file directory, rebuild the same dir structure in dest_dir
+  - if an image is "below" current .blend file directory, rebuild the
+    same dir structure in dest_dir
 
-  For example //textures/foo/bar.png becomes [dest_dir]/textures/foo/bar.png.
+  For example //textures/foo/bar.png becomes
+  [dest_dir]/textures/foo/bar.png.
 
-  - if an image is not "below" current .blend file directory, disregard it's path and copy it in the
-  same directory where 3D file goes.
+  - if an image is not "below" current .blend file directory,
+  disregard it's path and copy it in the same directory where 3D file
+  goes.
 
   For example //../foo/bar.png becomes [dest_dir]/bar.png.
 
   This logic will help ensure that all image paths are relative and
   that a user gets his images in one place. It'll also provide
   consistent behaviour across exporters.
-
  */
-int BKE_export_image(Image *im, const char *dest_dir, char *out_path, int out_path_len)
+int BKE_get_image_export_path(struct Image *im, const char *dest_dir, char *abs, int abs_size, char *rel, int rel_size)
 {
 	char path[FILE_MAX];
 	char dir[FILE_MAX];
 	char base[FILE_MAX];
 	char blend_dir[FILE_MAX];	/* directory, where current .blend file resides */
 	char dest_path[FILE_MAX];
+	char rel_dir[FILE_MAX];
 	int len;
 
-	out_path[0]= 0;
+	if (abs)
+		abs[0]= 0;
+
+	if (rel)
+		rel[0]= 0;
 
 	BLI_split_dirfile_basic(G.sce, blend_dir, NULL);
 
-	if (!strcmp(im->name, "") || im->type != IMA_TYPE_IMAGE) {
-		if (G.f & G_DEBUG) printf("invalid image type\n");
+	if (!strlen(im->name)) {
+		if (G.f & G_DEBUG) printf("Invalid image type.\n");
 		return 0;
 	}
 
@@ -2160,61 +2170,48 @@ int BKE_export_image(Image *im, const char *dest_dir, char *out_path, int out_pa
 	/* expand "//" in filename and get absolute path */
 	BLI_convertstringcode(path, G.sce);
 
-	/* proceed only if image file exists */
-	if (!BLI_exists(path)) {
-		if (G.f & G_DEBUG) printf("%s doesn't exist\n", path);
-		return 0;
-	}
-
 	/* get the directory part */
 	BLI_split_dirfile_basic(path, dir, base);
 
 	len= strlen(blend_dir);
+
+	rel_dir[0] = 0;
 
 	/* if image is "below" current .blend file directory */
 	if (!strncmp(path, blend_dir, len)) {
 
 		/* if image is _in_ current .blend file directory */
 		if (!strcmp(dir, blend_dir)) {
-			/* copy to dest_dir */
 			BLI_join_dirfile(dest_path, dest_dir, base);
 		}
 		/* "below" */
 		else {
-			char rel[FILE_MAX];
-
 			/* rel = image_path_dir - blend_dir */
-			BLI_strncpy(rel, dir + len, sizeof(rel));
-				
-			BLI_join_dirfile(dest_path, dest_dir, rel);
+			BLI_strncpy(rel_dir, dir + len, sizeof(rel_dir));
 
-			/* build identical directory structure under dest_dir */
-			BLI_recurdir_fileops(dest_path);
-
+			BLI_join_dirfile(dest_path, dest_dir, rel_dir);
 			BLI_join_dirfile(dest_path, dest_path, base);
 		}
 			
 	}
 	/* image is out of current directory */
 	else {
-		/* copy to dest_dir */
 		BLI_join_dirfile(dest_path, dest_dir, base);
 	}
 
-	if (G.f & G_DEBUG) printf("copying %s to %s\n", path, dest_path);
-
-	/* only copy if paths differ */
-	if (strcmp(path, dest_path)) {
-		if (BLI_copy_fileops(path, dest_path) != 0) {
-			if (G.f & G_DEBUG) printf("couldn't copy %s to %s\n", path, dest_path);
-			return 0;
-		}
-	}
-	else if (G.f & G_DEBUG){
-		printf("%s and %s are the same file\n", path, dest_path);
+	/* only return 1 if paths differ */
+	if (!strcmp(path, dest_path)) {
+		if (G.f & G_DEBUG) printf("%s and %s are the same file\n", path, dest_path);
+		return 0;
 	}
 
-	BLI_strncpy(out_path, dest_path, out_path_len);
+	if (abs)
+		BLI_strncpy(abs, dest_path, abs_size);
+
+	if (rel) {
+		strncat(rel, rel_dir, rel_size);
+		strncat(rel, base, rel_size);
+	}
 
 	return 1;
 }

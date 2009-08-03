@@ -41,12 +41,12 @@
 #include "BKE_utildefines.h"
 #include "BKE_image.h"
 
-static char *rna_Image_export(Image *image, char *dest_dir)
+static char *rna_Image_get_export_path(Image *image, char *dest_dir, int rel)
 {
 	int length = FILE_MAX;
 	char *path= MEM_callocN(length, "image file path");
 
-	if (!BKE_export_image(image, dest_dir, path, length)) {
+	if (!BKE_get_image_export_path(image, dest_dir, rel ? NULL : path, length, rel ? path : NULL, length )) {
 		MEM_freeN(path);
 		return NULL;
 	}
@@ -61,11 +61,13 @@ void RNA_api_image(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	func= RNA_def_function(srna, "export", "rna_Image_export");
-	RNA_def_function_ui_description(func, "Copy image file to a directory rebuilding subdirectory structure.");
+	func= RNA_def_function(srna, "export", "rna_Image_get_export_path");
+	RNA_def_function_ui_description(func, "Produce image export path.");
 	parm= RNA_def_string(func, "dest_dir", "", 0, "", "Destination directory.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_string(func, "path", "", 0, "", "Absolute file path of copied image.");
+	parm= RNA_def_boolean(func, "get_rel_path", 1, "", "Return relative path if True.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_string(func, "path", "", 0, "", "Absolute export path.");
 	RNA_def_function_return(func, parm);
 }
 
