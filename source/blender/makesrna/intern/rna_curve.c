@@ -214,7 +214,6 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "BezierCurvePoint", NULL);
 	RNA_def_struct_sdna(srna, "BezTriple");
 	RNA_def_struct_ui_text(srna, "Bezier Curve Point", "Bezier curve point with two handles.");
-	RNA_def_property_update(prop, 0, "rna_Curve_update");
 
 	/* Boolean values */
 	prop= RNA_def_property(srna, "selected_handle1", PROP_BOOLEAN, PROP_NONE);
