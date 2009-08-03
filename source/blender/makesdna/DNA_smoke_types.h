@@ -75,10 +75,8 @@ typedef struct SmokeDomainSettings {
 	int max_textures;
 	short noise; /* noise type: wave, curl, anisotropic */
 	short pad2;
-	int prev_res[3];
-	int prev_maxres;
-	int render_res[3];
-	int render_maxres;
+	int pad;
+	int pad3;
 } SmokeDomainSettings;
 
 
@@ -104,6 +102,7 @@ typedef struct SmokeFlowSettings {
 /* collision objects (filled with smoke) */
 typedef struct SmokeCollSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
+	struct BVHTree *bvhtree; /* bounding volume hierarchy for this cloth object */
 	float *points;
 	float *points_old;
 	float *vel;

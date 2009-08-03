@@ -5844,7 +5844,7 @@ static void smokeModifier_deformVerts(
 	CDDM_apply_vert_coords(dm, vertexCos);
 	CDDM_calc_normals(dm);
 
-	smokeModifier_do(smd, md->scene, ob, dm);
+	smokeModifier_do(smd, md->scene, ob, dm, useRenderParams, isFinalCalc);
 
 	if(dm != derivedData) dm->release(dm);
 }
