@@ -106,10 +106,8 @@ int GetDirectionalViewMapDensityF1D___init__( BPy_GetDirectionalViewMapDensityF1
 	unsigned int u1, u2;
 	float f = 2.0;
 
-	if( !PyArg_ParseTuple(args, "II|O!f", &u1, &u2, &IntegrationType_Type, &obj, &f) ) {
-		cout << "ERROR: GetDirectionalViewMapDensityF1D___init__ " << endl;		
+	if( !PyArg_ParseTuple(args, "II|O!f", &u1, &u2, &IntegrationType_Type, &obj, &f) )
 		return -1;
-	}
 	
 	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
 	self->py_uf1D_double.uf1D_double = new Functions1D::GetDirectionalViewMapDensityF1D(u1, u2, t, f);

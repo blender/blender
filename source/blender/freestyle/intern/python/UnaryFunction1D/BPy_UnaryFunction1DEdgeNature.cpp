@@ -138,12 +138,10 @@ PyMODINIT_FUNC UnaryFunction1DEdgeNature_Init( PyObject *module ) {
 
 int UnaryFunction1DEdgeNature___init__(BPy_UnaryFunction1DEdgeNature* self, PyObject *args)
 {
-	PyObject *obj;
+	PyObject *obj = 0;
 
-	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) ) {
-		cout << "ERROR: UnaryFunction1DEdgeNature___init__ " << endl;		
+	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) )		
 		return -1;
-	}
 	
 	if( !obj )
 		self->uf1D_edgenature = new UnaryFunction1D<Nature::EdgeNature>();

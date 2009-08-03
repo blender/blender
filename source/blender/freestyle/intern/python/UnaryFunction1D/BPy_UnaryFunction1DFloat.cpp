@@ -131,12 +131,10 @@ PyMODINIT_FUNC UnaryFunction1DFloat_Init( PyObject *module ) {
 
 int UnaryFunction1DFloat___init__(BPy_UnaryFunction1DFloat* self, PyObject *args)
 {
-	PyObject *obj;
+	PyObject *obj = 0;
 
-	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) ) {
-		cout << "ERROR: UnaryFunction1DFloat___init__ " << endl;		
+	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) )	
 		return -1;
-	}
 	
 	if( !obj )
 		self->uf1D_float = new UnaryFunction1D<float>();

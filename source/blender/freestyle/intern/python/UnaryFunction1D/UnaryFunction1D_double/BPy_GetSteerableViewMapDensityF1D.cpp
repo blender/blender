@@ -106,10 +106,8 @@ int GetSteerableViewMapDensityF1D___init__( BPy_GetSteerableViewMapDensityF1D* s
 	int i;
 	float f = 2.0;
 
-	if( !PyArg_ParseTuple(args, "i|O!f", &i, &IntegrationType_Type, &obj, &f) ) {
-		cout << "ERROR: GetSteerableViewMapDensityF1D___init__ " << endl;		
+	if( !PyArg_ParseTuple(args, "i|O!f", &i, &IntegrationType_Type, &obj, &f) )
 		return -1;
-	}
 	
 	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
 	self->py_uf1D_double.uf1D_double = new Functions1D::GetSteerableViewMapDensityF1D(i,t,f);

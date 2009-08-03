@@ -138,12 +138,10 @@ PyMODINIT_FUNC UnaryFunction1DVec3f_Init( PyObject *module ) {
 
 int UnaryFunction1DVec3f___init__(BPy_UnaryFunction1DVec3f* self, PyObject *args)
 {
-	PyObject *obj;
+	PyObject *obj = 0;
 
-	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) ) {
-		cout << "ERROR: UnaryFunction1DVec3f___init__ " << endl;		
+	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) )	
 		return -1;
-	}
 	
 	if( !obj )
 		self->uf1D_vec3f = new UnaryFunction1D<Vec3f>();
