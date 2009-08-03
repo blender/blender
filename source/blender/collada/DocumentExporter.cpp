@@ -27,6 +27,7 @@ extern "C"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_action.h" // pose functions
+#include "BKE_armature.h"
 
 #include "BLI_arithb.h"
 #include "BLI_string.h"
@@ -64,6 +65,7 @@ extern "C"
 #include "COLLADASWCameraOptic.h"
 #include "COLLADASWConstants.h"
 #include "COLLADASWLibraryControllers.h"
+#include "COLLADASWInstanceController.h"
 #include "COLLADASWBaseInputElement.h"
 
 #include "collada_internal.h"
@@ -114,9 +116,25 @@ char *CustomData_get_active_layer_name(const CustomData *data, int type)
 	return data->layers[layer_index].name;
 }
 
-std::string id_name(void *id)
+static std::string id_name(void *id)
 {
 	return ((ID*)id)->name + 2;
+}
+
+static std::string get_geometry_id(Object *ob)
+{
+	return id_name(ob) + "-mesh";
+}
+
+static void replace_chars(char *str, char chars[], char with)
+{
+	char *ch, *p;
+
+	for (ch = chars; *ch; ch++) {
+		while ((p = strchr(str, *ch))) {
+			*p = with;
+		}
+	}
 }
 
 /*
@@ -251,32 +269,33 @@ public:
 	void operator()(Object *ob)
 	{
 		// XXX don't use DerivedMesh, Mesh instead?
-		
+
+#if 0		
 		DerivedMesh *dm = mesh_get_derived_final(mScene, ob, CD_MASK_BAREMESH);
+#endif
 		Mesh *me = (Mesh*)ob->data;
-		std::string geom_name(id_name(ob));
+		std::string geom_id = get_geometry_id(ob);
 		
 		// openMesh(geoId, geoName, meshId)
-		openMesh(geom_name, "", "");
+		openMesh(geom_id, "", "");
 		
 		// writes <source> for vertex coords
-		createVertsSource(geom_name, dm);
+		createVertsSource(geom_id, me);
 		
 		// writes <source> for normal coords
-		createNormalsSource(geom_name, dm);
+		createNormalsSource(geom_id, me);
 
 		int has_uvs = CustomData_has_layer(&me->fdata, CD_MTFACE);
 		
 		// writes <source> for uv coords if mesh has uv coords
 		if (has_uvs) {
-			createTexcoordsSource(geom_name, dm, (Mesh*)ob->data);
+			createTexcoordsSource(geom_id, (Mesh*)ob->data);
 		}
 		// <vertices>
 		COLLADASW::Vertices verts(mSW);
-		verts.setId(getIdBySemantics(geom_name, COLLADASW::VERTEX));
+		verts.setId(getIdBySemantics(geom_id, COLLADASW::VERTEX));
 		COLLADASW::InputList &input_list = verts.getInputList();
-		COLLADASW::Input input(COLLADASW::POSITION,
-							   getUrlBySemantics(geom_name, COLLADASW::POSITION));
+		COLLADASW::Input input(COLLADASW::POSITION, getUrlBySemantics(geom_id, COLLADASW::POSITION));
 		input_list.push_back(input);
 		verts.add();
 
@@ -285,18 +304,19 @@ public:
 			for(int a = 0; a < ob->totcol; a++)	{
 				// account for NULL materials, this should not normally happen?
 				Material *ma = give_current_material(ob, a + 1);
-				createPolylist(ma != NULL, a, has_uvs, ob, dm, geom_name);
+				createPolylist(ma != NULL, a, has_uvs, ob, geom_id);
 			}
 		}
 		else {
-			createPolylist(false, 0, has_uvs, ob, dm, geom_name);
+			createPolylist(false, 0, has_uvs, ob, geom_id);
 		}
 		
 		closeMesh();
 		closeGeometry();
 		
+#if 0
 		dm->release(dm);
-		
+#endif
 	}
 
 	// powerful because it handles both cases when there is material and when there's not
@@ -304,12 +324,15 @@ public:
 						int material_index,
 						bool has_uvs,
 						Object *ob,
-						DerivedMesh *dm,
-						std::string& geom_name)
+						std::string& geom_id)
 	{
+#if 0
 		MFace *mfaces = dm->getFaceArray(dm);
 		int totfaces = dm->getNumFaces(dm);
+#endif
 		Mesh *me = (Mesh*)ob->data;
+		MFace *mfaces = me->mface;
+		int totfaces = me->totface;
 
 		// <vcount>
 		int i;
@@ -350,11 +373,11 @@ public:
 			
 		// creates <input> in <polylist> for vertices 
 		COLLADASW::Input input1(COLLADASW::VERTEX, getUrlBySemantics
-								(geom_name, COLLADASW::VERTEX), 0);
+								(geom_id, COLLADASW::VERTEX), 0);
 			
 		// creates <input> in <polylist> for normals
 		COLLADASW::Input input2(COLLADASW::NORMAL, getUrlBySemantics
-								(geom_name, COLLADASW::NORMAL), 0);
+								(geom_id, COLLADASW::NORMAL), 0);
 			
 		til.push_back(input1);
 		til.push_back(input2);
@@ -365,7 +388,7 @@ public:
 		for (i = 0; i < num_layers; i++) {
 			char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, i);
 			COLLADASW::Input input3(COLLADASW::TEXCOORD,
-									makeUrl(makeTexcoordSourceId(geom_name, i)),
+									makeUrl(makeTexcoordSourceId(geom_id, i)),
 									1, // offset always 1, this is only until we have optimized UV sets
 									i  // set number equals UV layer index
 									);
@@ -403,15 +426,18 @@ public:
 	}
 	
 	// creates <source> for positions
-	void createVertsSource(std::string geom_name, DerivedMesh *dm)
+	void createVertsSource(std::string geom_id, Mesh *me)
 	{
+#if 0
 		int totverts = dm->getNumVerts(dm);
 		MVert *verts = dm->getVertArray(dm);
-		
+#endif
+		int totverts = me->totvert;
+		MVert *verts = me->mvert;
 		
 		COLLADASW::FloatSourceF source(mSW);
-		source.setId(getIdBySemantics(geom_name, COLLADASW::POSITION));
-		source.setArrayId(getIdBySemantics(geom_name, COLLADASW::POSITION) +
+		source.setId(getIdBySemantics(geom_id, COLLADASW::POSITION));
+		source.setArrayId(getIdBySemantics(geom_id, COLLADASW::POSITION) +
 						  ARRAY_ID_SUFFIX);
 		source.setAccessorCount(totverts);
 		source.setAccessorStride(3);
@@ -425,27 +451,30 @@ public:
 		//appends data to <float_array>
 		int i = 0;
 		for (i = 0; i < totverts; i++) {
-			source.appendValues(verts[i].co[0], verts[i].co[1], verts[i].co[2]);
-			
+			source.appendValues(verts[i].co[0], verts[i].co[1], verts[i].co[2]);			
 		}
 		
 		source.finish();
 	
 	}
 
-	std::string makeTexcoordSourceId(std::string& geom_name, int layer_index)
+	std::string makeTexcoordSourceId(std::string& geom_id, int layer_index)
 	{
 		char suffix[20];
 		sprintf(suffix, "-%d", layer_index);
-		return getIdBySemantics(geom_name, COLLADASW::TEXCOORD) + suffix;
+		return getIdBySemantics(geom_id, COLLADASW::TEXCOORD) + suffix;
 	}
 
 	//creates <source> for texcoords
-	void createTexcoordsSource(std::string geom_name, DerivedMesh *dm, Mesh *me)
+	void createTexcoordsSource(std::string geom_id, Mesh *me)
 	{
-
+#if 0
 		int totfaces = dm->getNumFaces(dm);
 		MFace *mfaces = dm->getFaceArray(dm);
+#endif
+		int totfaces = me->totface;
+		MFace *mfaces = me->mface;
+
 		int totuv = 0;
 		int i;
 
@@ -469,7 +498,7 @@ public:
 			char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, a);
 			
 			COLLADASW::FloatSourceF source(mSW);
-			std::string layer_id = makeTexcoordSourceId(geom_name, a);
+			std::string layer_id = makeTexcoordSourceId(geom_id, a);
 			source.setId(layer_id);
 			source.setArrayId(layer_id + ARRAY_ID_SUFFIX);
 			
@@ -496,14 +525,19 @@ public:
 
 
 	//creates <source> for normals
-	void createNormalsSource(std::string geom_name, DerivedMesh *dm)
+	void createNormalsSource(std::string geom_id, Mesh *me)
 	{
+#if 0
 		int totverts = dm->getNumVerts(dm);
 		MVert *verts = dm->getVertArray(dm);
-		
+#endif
+
+		int totverts = me->totvert;
+		MVert *verts = me->mvert;
+
 		COLLADASW::FloatSourceF source(mSW);
-		source.setId(getIdBySemantics(geom_name, COLLADASW::NORMAL));
-		source.setArrayId(getIdBySemantics(geom_name, COLLADASW::NORMAL) +
+		source.setId(getIdBySemantics(geom_id, COLLADASW::NORMAL));
+		source.setArrayId(getIdBySemantics(geom_id, COLLADASW::NORMAL) +
 						  ARRAY_ID_SUFFIX);
 		source.setAccessorCount(totverts);
 		source.setAccessorStride(3);
@@ -526,14 +560,14 @@ public:
 		source.finish();
 	}
 	
-	std::string getIdBySemantics(std::string geom_name, COLLADASW::Semantics type, std::string other_suffix = "") {
-		return geom_name + getSuffixBySemantic(type) + other_suffix;
+	std::string getIdBySemantics(std::string geom_id, COLLADASW::Semantics type, std::string other_suffix = "") {
+		return geom_id + getSuffixBySemantic(type) + other_suffix;
 	}
 	
 	
-	COLLADASW::URI getUrlBySemantics(std::string geom_name, COLLADASW::Semantics type, std::string other_suffix = "") {
+	COLLADASW::URI getUrlBySemantics(std::string geom_id, COLLADASW::Semantics type, std::string other_suffix = "") {
 		
-		std::string id(getIdBySemantics(geom_name, type, other_suffix));
+		std::string id(getIdBySemantics(geom_id, type, other_suffix));
 		return COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, id);
 		
 	}
@@ -559,14 +593,120 @@ public:
 		}*/
 };
 
-// XXX exporter assumes armatures are not shared between meshes.
-class ArmatureExporter: COLLADASW::LibraryControllers
+class TransformWriter : protected TransformBase
 {
+protected:
+	void add_node_transform(COLLADASW::Node& node, float mat[][4])
+	{
+		float loc[3], rot[3], size[3];
+
+		TransformBase::decompose(mat, loc, rot, size);
+		
+		/*
+		// this code used to create a single <rotate> representing object rotation
+		float quat[4];
+		float axis[3];
+		float angle;
+		double angle_deg;
+		EulToQuat(rot, quat);
+		NormalQuat(quat);
+		QuatToAxisAngle(quat, axis, &angle);
+		angle_deg = angle * 180.0f / M_PI;
+		node.addRotate(axis[0], axis[1], axis[2], angle_deg);
+		*/
+		node.addTranslate("location", loc[0], loc[1], loc[2]);
+
+		node.addRotateZ("rotationZ", COLLADABU::Math::Utils::radToDegF(rot[2]));
+		node.addRotateY("rotationY", COLLADABU::Math::Utils::radToDegF(rot[1]));
+		node.addRotateX("rotationX", COLLADABU::Math::Utils::radToDegF(rot[0]));
+
+		node.addScale("scale", size[0], size[1], size[2]);
+	}
+};
+
+class InstanceWriter
+{
+protected:
+	void add_material_bindings(COLLADASW::BindMaterial& bind_material, Object *ob)
+	{
+		for(int a = 0; a < ob->totcol; a++)	{
+			Material *ma = give_current_material(ob, a+1);
+				
+			COLLADASW::InstanceMaterialList& iml = bind_material.getInstanceMaterialList();
+
+			if (ma) {
+				std::string matid(id_name(ma));
+				COLLADASW::InstanceMaterial im(matid, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
+				
+				// create <bind_vertex_input> for each uv layer
+				Mesh *me = (Mesh*)ob->data;
+				int totlayer = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
+				
+				for (int b = 0; b < totlayer; b++) {
+					char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, b);
+					im.push_back(COLLADASW::BindVertexInput(name, "TEXCOORD", b));
+				}
+				
+				iml.push_back(im);
+			}
+		}
+	}
+};
+
+// XXX exporter writes wrong data for shared armatures.  A separate
+// controller should be written for each armature-mesh binding how do
+// we make controller ids then?
+class ArmatureExporter: public COLLADASW::LibraryControllers, protected TransformWriter, protected InstanceWriter
+{
+private:
+	Scene *scene;
+
 public:
 	ArmatureExporter(COLLADASW::StreamWriter *sw) : COLLADASW::LibraryControllers(sw) {}
 
-	void export_armatures(Scene *sce)
+	// write bone nodes
+	void add_armature_bones(Object *ob_arm, Scene *sce)
 	{
+		// write bone nodes
+		bArmature *arm = (bArmature*)ob_arm->data;
+		for (Bone *bone = (Bone*)arm->bonebase.first; bone; bone = bone->next) {
+			// start from root bones
+			if (!bone->parent)
+				add_bone_node(bone, ob_arm);
+		}
+	}
+
+	bool is_skinned_mesh(Object *ob)
+	{
+		return get_assigned_armature(ob) != NULL;
+	}
+
+	void add_instance_controller(Object *ob)
+	{
+		Object *ob_arm = get_assigned_armature(ob);
+		bArmature *arm = (bArmature*)ob_arm->data;
+
+		const std::string& controller_id = get_controller_id(ob_arm);
+
+		COLLADASW::InstanceController ins(mSW);
+		ins.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, controller_id));
+
+		// write root bone URLs
+		Bone *bone;
+		for (bone = (Bone*)arm->bonebase.first; bone; bone = bone->next) {
+			if (!bone->parent)
+				ins.addSkeleton(COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, get_joint_id(bone, ob_arm)));
+		}
+
+		InstanceWriter::add_material_bindings(ins.getBindMaterial(), ob);
+			
+		ins.add();
+	}
+
+	void export_controllers(Scene *sce)
+	{
+		scene = sce;
+
 		openLibrary();
 
 		forEachMeshObjectInScene(sce, *this);
@@ -576,7 +716,50 @@ public:
 
 	void operator()(Object *ob)
 	{
+		Object *ob_arm = get_assigned_armature(ob);
+
+		if (ob_arm /*&& !already_written(ob_arm)*/)
+			export_controller(ob, ob_arm);
+	}
+
+private:
+
+	UnitConverter converter;
+
+#if 0
+	std::vector<Object*> written_armatures;
+
+	bool already_written(Object *ob_arm)
+	{
+		return std::find(written_armatures.begin(), written_armatures.end(), ob_arm) != written_armatures.end();
+	}
+
+	void wrote(Object *ob_arm)
+	{
+		written_armatures.push_back(ob_arm);
+	}
+
+	void find_objects_using_armature(Object *ob_arm, std::vector<Object *>& objects, Scene *sce)
+	{
+		objects.clear();
+
+		Base *base= (Base*) sce->base.first;
+		while(base) {
+			Object *ob = base->object;
+			
+			if (ob->type == OB_MESH && get_assigned_armature(ob) == ob_arm) {
+				objects.push_back(ob);
+			}
+
+			base= base->next;
+		}
+	}
+#endif
+
+	Object *get_assigned_armature(Object *ob)
+	{
 		Object *ob_arm = NULL;
+
 		if (ob->parent && ob->partype == PARSKEL && ob->parent->type == OB_ARMATURE) {
 			ob_arm = ob->parent;
 		}
@@ -591,17 +774,82 @@ public:
 			}
 		}
 
-		if (ob_arm)
-			export_armature(ob, ob_arm);
+		return ob_arm;
 	}
 
-private:
+	std::string get_joint_id(Bone *bone, Object *ob_arm)
+	{
+		return id_name(ob_arm) + "_" + bone->name;
+	}
 
-	UnitConverter converter;
+	std::string get_joint_sid(Bone *bone)
+	{
+		char name[100];
+		BLI_strncpy(name, bone->name, sizeof(name));
+
+		// these chars have special meaning in SID
+		replace_chars(name, ".()", '_');
+
+		return name;
+	}
+
+	// parent_mat is armature-space
+	void add_bone_node(Bone *bone, Object *ob_arm)
+	{
+		std::string node_id = get_joint_id(bone, ob_arm);
+		std::string node_name = std::string(bone->name);
+		std::string node_sid = get_joint_sid(bone);
+
+		COLLADASW::Node node(mSW);
+
+		node.setType(COLLADASW::Node::JOINT);
+		node.setNodeId(node_id);
+		node.setNodeName(node_name);
+		node.setNodeSid(node_sid);
+
+		node.start();
+
+		add_bone_transform(ob_arm, bone, node);
+
+		for (Bone *child = (Bone*)bone->childbase.first; child; child = child->next) {
+			add_bone_node(child, ob_arm);
+		}
+
+		node.end();
+	}
+
+	void add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW::Node& node)
+	{
+		bPose *pose = ob_arm->pose;
+
+		bPoseChannel *pchan = get_pose_channel(ob_arm->pose, bone->name);
+
+		float mat[4][4];
+
+		if (bone->parent) {
+			// get bone-space matrix from armature-space
+			bPoseChannel *parchan = get_pose_channel(ob_arm->pose, bone->parent->name);
+
+			float invpar[4][4];
+			Mat4Invert(invpar, parchan->pose_mat);
+			Mat4MulMat4(mat, pchan->pose_mat, invpar);
+		}
+		else {
+			// get world-space from armature-space
+			Mat4MulMat4(mat, pchan->pose_mat, ob_arm->obmat);
+		}
+
+		TransformWriter::add_node_transform(node, mat);
+	}
+
+	std::string get_controller_id(Object *ob_arm)
+	{
+		return id_name(ob_arm) + SKIN_CONTROLLER_ID_SUFFIX;
+	}
 
 	// ob should be of type OB_MESH
 	// both args are required
-	void export_armature(Object* ob, Object *ob_arm)
+	void export_controller(Object* ob, Object *ob_arm)
 	{
 		// joint names
 		// joint inverse bind matrices
@@ -629,20 +877,20 @@ private:
 		Mesh *me = (Mesh*)ob->data;
 		if (!me->dvert) return;
 
-		std::string controller_name(ob_arm->id.name);
-		std::string controller_id = controller_name + SKIN_CONTROLLER_ID_SUFFIX;
+		std::string controller_name = id_name(ob_arm);
+		std::string controller_id = get_controller_id(ob_arm);
 
-		openSkin(controller_id, controller_name, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, ob->id.name));
+		openSkin(controller_id, controller_name,
+				 COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, get_geometry_id(ob)));
 
 		add_bind_shape_mat(ob);
 
-		std::string joints_source_id = add_joints_source(&ob->defbase, controller_id);
-		std::string inv_bind_mat_source_id =
-			add_inv_bind_mats_source((bArmature*)ob_arm->data, &ob->defbase, controller_id);
+		std::string joints_source_id = add_joints_source(ob_arm, &ob->defbase, controller_id);
+		std::string inv_bind_mat_source_id = add_inv_bind_mats_source(ob_arm, &ob->defbase, controller_id);
 		std::string weights_source_id = add_weights_source(me, controller_id);
 
 		add_joints_element(&ob->defbase, joints_source_id, inv_bind_mat_source_id);
-		add_vertex_weights_element(weights_source_id, joints_source_id, me);
+		add_vertex_weights_element(weights_source_id, joints_source_id, me, ob_arm, &ob->defbase);
 
 		closeSkin();
 		closeController();
@@ -664,25 +912,28 @@ private:
 
 	void add_bind_shape_mat(Object *ob)
 	{
-		float ob_bind_mat[4][4];
-		double dae_mat[4][4];
+		double bind_mat[4][4];
 
-		// TODO: get matrix from ob
-		Mat4One(ob_bind_mat);
+		converter.mat4_to_dae_double(bind_mat, ob->obmat);
 
-		converter.mat4_to_dae(dae_mat, ob_bind_mat);
-
-		addBindShapeTransform(dae_mat);
+		addBindShapeTransform(bind_mat);
 	}
 
-	std::string add_joints_source(ListBase *defbase, const std::string& controller_id)
+	std::string add_joints_source(Object *ob_arm, ListBase *defbase, const std::string& controller_id)
 	{
 		std::string source_id = controller_id + JOINTS_SOURCE_ID_SUFFIX;
+
+		int totjoint = 0;
+		bDeformGroup *def;
+		for (def = (bDeformGroup*)defbase->first; def; def = def->next) {
+			if (is_bone_defgroup(ob_arm, def))
+				totjoint++;
+		}
 
 		COLLADASW::NameSource source(mSW);
 		source.setId(source_id);
 		source.setArrayId(source_id + ARRAY_ID_SUFFIX);
-		source.setAccessorCount(BLI_countlist(defbase));
+		source.setAccessorCount(totjoint);
 		source.setAccessorStride(1);
 		
 		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
@@ -690,10 +941,10 @@ private:
 
 		source.prepareToAppendValues();
 
-		bDeformGroup *def;
-
 		for (def = (bDeformGroup*)defbase->first; def; def = def->next) {
-			source.appendValues(def->name);
+			Bone *bone = get_bone_from_defgroup(ob_arm, def);
+			if (bone)
+				source.appendValues(get_joint_sid(bone));
 		}
 
 		source.finish();
@@ -701,7 +952,7 @@ private:
 		return source_id;
 	}
 
-	std::string add_inv_bind_mats_source(bArmature *arm, ListBase *defbase, const std::string& controller_id)
+	std::string add_inv_bind_mats_source(Object *ob_arm, ListBase *defbase, const std::string& controller_id)
 	{
 		std::string source_id = controller_id + BIND_POSES_SOURCE_ID_SUFFIX;
 
@@ -717,22 +968,40 @@ private:
 
 		source.prepareToAppendValues();
 
-		bDeformGroup *def;
+		bPose *pose = ob_arm->pose;
+		bArmature *arm = (bArmature*)ob_arm->data;
 
-		/*
-		Bone *get_named_bone (struct bArmature *arm, const char *name);
-		bPoseChannel *get_pose_channel(const struct bPose *pose, const char *name);
-		*/
+		int flag = arm->flag;
 
-		float inv_bind_mat[4][4];
-		Mat4One(inv_bind_mat);
+		// put armature in rest position
+		if (!(arm->flag & ARM_RESTPOS)) {
+			arm->flag |= ARM_RESTPOS;
+			where_is_pose(scene, ob_arm);
+		}
 
-		float dae_mat[4][4];
-		converter.mat4_to_dae(dae_mat, inv_bind_mat);
+		for (bDeformGroup *def = (bDeformGroup*)defbase->first; def; def = def->next) {
+			if (is_bone_defgroup(ob_arm, def)) {
 
-		// TODO: write inverse bind matrices for each bone (name taken from defbase)
-		for (def = (bDeformGroup*)defbase->first; def; def = def->next) {
-			source.appendValues(dae_mat);
+				bPoseChannel *pchan = get_pose_channel(pose, def->name);
+
+				float mat[4][4];
+				float world[4][4];
+				float inv_bind_mat[4][4];
+
+				// make world-space matrix, pose_mat is armature-space
+				Mat4MulMat4(world, pchan->pose_mat, ob_arm->obmat);
+				
+				Mat4Invert(mat, world);
+				converter.mat4_to_dae(inv_bind_mat, mat);
+
+				source.appendValues(inv_bind_mat);
+			}
+		}
+
+		// back from rest positon
+		if (!(flag & ARM_RESTPOS)) {
+			arm->flag = flag;
+			where_is_pose(scene, ob_arm);
 		}
 
 		source.finish();
@@ -740,14 +1009,32 @@ private:
 		return source_id;
 	}
 
+	Bone *get_bone_from_defgroup(Object *ob_arm, bDeformGroup* def)
+	{
+		bPoseChannel *pchan = get_pose_channel(ob_arm->pose, def->name);
+		return pchan ? pchan->bone : NULL;
+	}
+
+	bool is_bone_defgroup(Object *ob_arm, bDeformGroup* def)
+	{
+		return get_bone_from_defgroup(ob_arm, def) != NULL;
+	}
+
 	std::string add_weights_source(Mesh *me, const std::string& controller_id)
 	{
 		std::string source_id = controller_id + WEIGHTS_SOURCE_ID_SUFFIX;
 
+		int i;
+		int totweight = 0;
+
+		for (i = 0; i < me->totvert; i++) {
+			totweight += me->dvert[i].totweight;
+		}
+
 		COLLADASW::FloatSourceF source(mSW);
 		source.setId(source_id);
 		source.setArrayId(source_id + ARRAY_ID_SUFFIX);
-		source.setAccessorCount(me->totvert);
+		source.setAccessorCount(totweight);
 		source.setAccessorStride(1);
 		
 		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
@@ -757,7 +1044,7 @@ private:
 
 		// NOTE: COLLADA spec says weights should be normalized
 
-		for (int i = 0; i < me->totvert; i++) {
+		for (i = 0; i < me->totvert; i++) {
 			MDeformVert *vert = &me->dvert[i];
 			for (int j = 0; j < vert->totweight; j++) {
 				source.appendValues(vert->dw[j].weight);
@@ -769,7 +1056,8 @@ private:
 		return source_id;
 	}
 
-	void add_vertex_weights_element(const std::string& weights_source_id, const std::string& joints_source_id, Mesh *me)
+	void add_vertex_weights_element(const std::string& weights_source_id, const std::string& joints_source_id, Mesh *me,
+									Object *ob_arm, ListBase *defbase)
 	{
 		COLLADASW::VertexWeightsElement weights(mSW);
 		COLLADASW::InputList &input = weights.getInputList();
@@ -792,30 +1080,39 @@ private:
 		weights.prepareToAppendVCountValues();
 		weights.appendVertexCount(vcount);
 
-		std::vector<unsigned long> indices;
+		// def group index -> joint index
+		std::map<int, int> joint_index_by_def_index;
+		bDeformGroup *def;
+		int j;
+		for (def = (bDeformGroup*)defbase->first, i = 0, j = 0; def; def = def->next, i++) {
+			if (is_bone_defgroup(ob_arm, def))
+				joint_index_by_def_index[i] = j++;
+			else
+				joint_index_by_def_index[i] = -1;
+		}
+
+		weights.CloseVCountAndOpenVElement();
 
 		// write deformer index - weight index pairs
 		int weight_index = 0;
 		for (i = 0; i < me->totvert; i++) {
 			MDeformVert *dvert = &me->dvert[i];
-
 			for (int j = 0; j < dvert->totweight; j++) {
-				indices.push_back(dvert->dw[j].def_nr);
-				indices.push_back(weight_index++);
+				weights.appendValues(joint_index_by_def_index[dvert->dw[j].def_nr]);
+				weights.appendValues(weight_index++);
 			}
 		}
-		
-		weights.CloseVCountAndOpenVElement();
-		weights.appendValues(indices);
 
 		weights.finish();
 	}
 };
 
-class SceneExporter: COLLADASW::LibraryVisualScenes
+class SceneExporter: COLLADASW::LibraryVisualScenes, protected TransformWriter, protected InstanceWriter
 {
+	ArmatureExporter *arm_exporter;
 public:
-	SceneExporter(COLLADASW::StreamWriter *sw) : COLLADASW::LibraryVisualScenes(sw) {}
+	SceneExporter(COLLADASW::StreamWriter *sw, ArmatureExporter *arm) : COLLADASW::LibraryVisualScenes(sw),
+																		arm_exporter(arm) {}
 	
 	void exportScene(Scene *sce) {
  		// <library_visual_scenes> <visual_scene>
@@ -833,66 +1130,75 @@ public:
 		closeLibrary();
 	}
 
+	void exportHierarchy(Scene *sce)
+	{
+		Base *base= (Base*) sce->base.first;
+		while(base) {
+			Object *ob = base->object;
+
+			if (!ob->parent) {
+				switch(ob->type) {
+				case OB_MESH:
+				case OB_CAMERA:
+				case OB_LAMP:
+				case OB_EMPTY:
+				case OB_ARMATURE:
+					// write nodes....
+					writeNodes(ob, sce);
+					break;
+				}
+			}
+
+			base= base->next;
+		}
+	}
+
+
 	// called for each object
 	//void operator()(Object *ob) {
-	void writeNodes(Object *ob, Scene *sce) {
-		
+	void writeNodes(Object *ob, Scene *sce)
+	{
 		COLLADASW::Node node(mSW);
-		node.setNodeId(ob->id.name);
+		node.setNodeId(id_name(ob));
 		node.setType(COLLADASW::Node::NODE);
 
 		std::string ob_name(id_name(ob));
 
 		node.start();
-		node.addTranslate("location", ob->loc[0], ob->loc[1], ob->loc[2]);
+
+		bool is_skinned_mesh = arm_exporter->is_skinned_mesh(ob);
+
+		float mat[4][4];
 		
-		// this code used to create a single <rotate> representing object rotation
-		// float quat[4];
-		// float axis[3];
-		// float angle;
-		// double angle_deg;
-		// EulToQuat(ob->rot, quat);
-		// NormalQuat(quat);
-		// QuatToAxisAngle(quat, axis, &angle);
-		// angle_deg = angle * 180.0f / M_PI;
-		// node.addRotate(axis[0], axis[1], axis[2], angle_deg);
+		if (ob->type == OB_MESH && is_skinned_mesh)
+			// for skinned mesh we write obmat in <bind_shape_matrix>
+			Mat4One(mat);
+		else
+			Mat4CpyMat4(mat, ob->obmat);
 
-		float *rot = ob->rot;
-		node.addRotateX("rotationX", COLLADABU::Math::Utils::radToDegF(rot[0]));
-		node.addRotateY("rotationY", COLLADABU::Math::Utils::radToDegF(rot[1]));
-		node.addRotateZ("rotationZ", COLLADABU::Math::Utils::radToDegF(rot[2]));
-
-		node.addScale("scale", ob->size[0], ob->size[1], ob->size[2]);
+		TransformWriter::add_node_transform(node, mat);
 		
 		// <instance_geometry>
 		if (ob->type == OB_MESH) {
-			COLLADASW::InstanceGeometry instGeom(mSW);
-			instGeom.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, ob_name));
-			
-			for(int a = 0; a < ob->totcol; a++)	{
-				Material *ma = give_current_material(ob, a+1);
-				
-				COLLADASW::BindMaterial& bm = instGeom.getBindMaterial();
-				COLLADASW::InstanceMaterialList& iml = bm.getInstanceMaterialList();
-
-				if (ma) {
-					std::string matid(id_name(ma));
-					COLLADASW::InstanceMaterial im(matid, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
-				
-					// create <bind_vertex_input> for each uv layer
-					Mesh *me = (Mesh*)ob->data;
-					int totlayer = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
-				
-					for (int b = 0; b < totlayer; b++) {
-						char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, b);
-						im.push_back(COLLADASW::BindVertexInput(name, "TEXCOORD", b));
-					}
-				
-					iml.push_back(im);
-				}
+			if (is_skinned_mesh) {
+				arm_exporter->add_instance_controller(ob);
 			}
+			else {
+				COLLADASW::InstanceGeometry instGeom(mSW);
+				instGeom.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, get_geometry_id(ob)));
+
+				InstanceWriter::add_material_bindings(instGeom.getBindMaterial(), ob);
 			
-			instGeom.add();
+				instGeom.add();
+			}
+		}
+
+		// <instance_controller>
+		else if (ob->type == OB_ARMATURE) {
+			arm_exporter->add_armature_bones(ob, sce);
+
+			// XXX this looks unstable...
+			node.end();
 		}
 		
 		// <instance_camera>
@@ -906,41 +1212,36 @@ public:
 			COLLADASW::InstanceLight instLa(mSW, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, ob_name));
 			instLa.add();
 		}
+
 		// empty object
 		else if (ob->type == OB_EMPTY) {
 		}
-		
-		// write node for child object
+
+		// write nodes for child objects
 		Base *b = (Base*) sce->base.first;
 		while(b) {
 			// cob - child object
 			Object *cob = b->object;
-			
-			if ((cob->type == OB_MESH || cob->type == OB_CAMERA || cob->type == OB_LAMP || cob->type == OB_EMPTY) && cob->parent == ob) {
-				// write node...
-				writeNodes(cob, sce);
+
+			if (cob->parent == ob) {
+				switch(cob->type) {
+				case OB_MESH:
+				case OB_CAMERA:
+				case OB_LAMP:
+				case OB_EMPTY:
+				case OB_ARMATURE:
+					// write node...
+					writeNodes(cob, sce);
+					break;
+				}
 			}
+
 			b = b->next;
 		}
-		
-		node.end();
-	}
 
-	void exportHierarchy(Scene *sce)
-	{
-		Base *base= (Base*) sce->base.first;
-		while(base) {
-			Object *ob = base->object;
-			
-			if ((ob->type == OB_MESH || ob->type == OB_CAMERA || ob->type == OB_LAMP || ob->type == OB_EMPTY) && !ob->parent) {
-				// write nodes....
-				writeNodes(ob, sce);
-				
-			}
-			base= base->next;
-		}
+		if (ob->type != OB_ARMATURE)
+			node.end();
 	}
-
 };
 
 class ImagesExporter: COLLADASW::LibraryImages
@@ -1349,7 +1650,7 @@ public:
 	}
 
 	void add_source_parameters(COLLADASW::SourceBase::ParameterNameList& param,
-							   Sampler::Semantic semantic, bool rotation, char *axis) {
+							   Sampler::Semantic semantic, bool rotation, const char *axis) {
 		switch(semantic) {
 		case Sampler::INPUT:
 			param.push_back("TIME");
@@ -1394,7 +1695,7 @@ public:
 		}
 	}
 
-	std::string create_source(Sampler::Semantic semantic, FCurve *fcu, std::string& anim_id, char *axis_name)
+	std::string create_source(Sampler::Semantic semantic, FCurve *fcu, std::string& anim_id, const char *axis_name)
 	{
 		std::string source_id = anim_id + get_semantic_suffix(semantic);
 
@@ -1425,7 +1726,7 @@ public:
 		return source_id;
 	}
 
-	std::string create_interpolation_source(FCurve *fcu, std::string& anim_id, char *axis_name)
+	std::string create_interpolation_source(FCurve *fcu, std::string& anim_id, const char *axis_name)
 	{
 		std::string source_id = anim_id + get_semantic_suffix(Sampler::INTERPOLATION);
 
@@ -1452,7 +1753,7 @@ public:
 		return source_id;
 	}
 
-	std::string get_transform_sid(char *rna_path, char *axis_name)
+	std::string get_transform_sid(char *rna_path, const char *axis_name)
 	{
 		if (!strcmp(rna_path, "rotation"))
 			return std::string(rna_path) + axis_name;
@@ -1462,8 +1763,8 @@ public:
 
 	void add_animation(FCurve *fcu, const char *ob_name)
 	{
-		static char *axis_names[] = {"X", "Y", "Z"};
-		char *axis_name = NULL;
+		const char *axis_names[] = {"X", "Y", "Z"};
+		const char *axis_name = NULL;
 		char c_anim_id[100]; // careful!
 
 		if (fcu->array_index < 3)
@@ -1537,7 +1838,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	// <asset>
 	COLLADASW::Asset asset(&sw);
 	// XXX ask blender devs about this?
-	asset.setUnit("meter", 1.0);
+	asset.setUnit("decimetre", 0.1);
 	asset.setUpAxisType(COLLADASW::Asset::Z_UP);
 	asset.add();
 	
@@ -1570,10 +1871,11 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	ae.exportAnimations(sce);
 
 	// <library_controllers>
-	ArmatureExporter(&sw).export_armatures(sce);
+	ArmatureExporter arm_exporter(&sw);
+	arm_exporter.export_controllers(sce);
 
 	// <library_visual_scenes>
-	SceneExporter se(&sw);
+	SceneExporter se(&sw, &arm_exporter);
 	se.exportScene(sce);
 	
 	// <scene>

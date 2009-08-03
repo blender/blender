@@ -43,15 +43,26 @@ public:
 		Mat4Transp(out);
 	}
 
-	void mat4_to_dae(double out[][4], float in[][4])
+	void mat4_to_dae_double(double out[][4], float in[][4])
 	{
-		float outf[4][4];
+		float mat[4][4];
 
-		mat4_to_dae(outf, in);
+		mat4_to_dae(mat, in);
 
 		for (int i = 0; i < 4; i++)
 			for (int j = 0; j < 4; j++)
-				out[i][j] = outf[i][j];
+				out[i][j] = mat[i][j];
+	}
+};
+
+class TransformBase
+{
+protected:
+	void decompose(float mat[][4], float *loc, float *rot, float *size)
+	{
+		Mat4ToSize(mat, size);
+		Mat4ToEul(mat, rot);
+		VecCopyf(loc, mat[3]);
 	}
 };
 
