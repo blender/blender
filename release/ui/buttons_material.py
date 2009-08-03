@@ -170,6 +170,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
 		sub = col.column()
 		sub.active = mat.face_texture
 		sub.itemR(mat, "face_texture_alpha")
+		col.itemS()
 		col.itemR(mat, "vertex_color_paint")
 		col.itemR(mat, "vertex_color_light")
 		col.itemR(mat, "object_color")
@@ -373,24 +374,28 @@ class MATERIAL_PT_raymir(MaterialButtonsPanel):
 		col = split.column()
 		col.itemR(raym, "reflect", text="Reflectivity", slider=True)
 		col.itemR(mat, "mirror_color", text="")
-		col.itemR(raym, "fresnel")
+		col.itemL(text="Fresnel:")
+		col.itemR(raym, "fresnel", text="Amount")
 		sub = col.column()
 		sub.active = raym.fresnel > 0
-		sub.itemR(raym, "fresnel_fac", text="Fac", slider=True)
+		sub.itemR(raym, "fresnel_fac", text="Blend", slider=True)
+		col.itemS()
+		col.itemS()
+		sub = col.split(percentage=0.4)
+		sub.itemL(text="Fade To:")
+		sub.itemR(raym, "fade_to", text="")
 		
 		col = split.column()
-		col.itemR(raym, "gloss", slider=True)
+		col.itemR(raym, "depth")
+		col.itemR(raym, "distance", text="Max Dist")
+		col.itemL(text="Gloss:")
+		col.itemR(raym, "gloss", text="Amount", slider=True)
 		sub = col.column()
 		sub.active = raym.gloss < 1
 		sub.itemR(raym, "gloss_threshold", slider=True, text="Threshold")
 		sub.itemR(raym, "gloss_samples", text="Samples")
 		sub.itemR(raym, "gloss_anisotropic", slider=True, text="Anisotropic")
 		
-		row = layout.row()
-		row.itemR(raym, "distance", text="Max Dist")
-		row.itemR(raym, "depth")
-		
-		layout.itemR(raym, "fade_to")
 		
 class MATERIAL_PT_raytransp(MaterialButtonsPanel):
 	__label__= "Ray Transparency"
@@ -419,24 +424,30 @@ class MATERIAL_PT_raytransp(MaterialButtonsPanel):
 		
 		col = split.column()
 		col.itemR(rayt, "ior")
-		col.itemR(rayt, "fresnel")
-		sub = col.column()
-		sub.active = rayt.fresnel > 0
-		sub.itemR(rayt, "fresnel_fac", text="Fac", slider=True)
+		col.itemR(rayt, "falloff")
+		col.itemR(rayt, "limit")
 		
 		col = split.column()
-		col.itemR(rayt, "gloss", slider=True)
+		col.itemR(rayt, "depth")
+		col.itemR(rayt, "filter", slider=True)
+		col.itemR(rayt, "specular_opacity", slider=True, text="Spec Opacity")
+		
+		split = layout.split()
+		
+		col = split.column()
+		col.itemL(text="Fresnel:")
+		col.itemR(rayt, "fresnel", text="Amount")
+		sub = col.column()
+		sub.active = rayt.fresnel > 0
+		sub.itemR(rayt, "fresnel_fac", text="Blend", slider=True)
+		
+		col = split.column()
+		col.itemL(text="Gloss:")
+		col.itemR(rayt, "gloss", text="Amount", slider=True)
 		sub = col.column()
 		sub.active = rayt.gloss < 1
 		sub.itemR(rayt, "gloss_threshold", slider=True, text="Threshold")
 		sub.itemR(rayt, "gloss_samples", text="Samples")
-		
-		flow = layout.column_flow()
-		flow.itemR(rayt, "filter", slider=True)
-		flow.itemR(rayt, "limit")
-		flow.itemR(rayt, "falloff")
-		flow.itemR(rayt, "specular_opacity", slider=True, text="Spec Opacity")
-		flow.itemR(rayt, "depth")
 		
 class MATERIAL_PT_halo(MaterialButtonsPanel):
 	__label__= "Halo"

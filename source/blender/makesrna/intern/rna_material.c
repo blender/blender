@@ -641,8 +641,8 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_fadeto_mir_items[] = {
-		{MA_RAYMIR_FADETOSKY, "FADE_TO_SKY", 0, "Fade to Sky Color", ""},
-		{MA_RAYMIR_FADETOMAT, "FADE_TO_MATERIAL", 0, "Fade to Material Color", ""},
+		{MA_RAYMIR_FADETOSKY, "FADE_TO_SKY", 0, "Sky", ""},
+		{MA_RAYMIR_FADETOMAT, "FADE_TO_MATERIAL", 0, "Material", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "MaterialRaytraceMirror", NULL);
