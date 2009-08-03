@@ -9429,28 +9429,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->gm.depth= sce->r.depth;
 
 			//Physic (previously stored in world)
-			//temporarily getting the correct world address
-			wo = newlibadr(fd, sce->id.lib, sce->world);
-			if (wo){
-				sce->gm.gravity = wo->gravity;
-				sce->gm.physicsEngine= wo->physicsEngine;
-				sce->gm.mode = wo->mode;
-				sce->gm.occlusionRes = wo->occlusionRes;
-				sce->gm.ticrate = wo->ticrate;
-				sce->gm.maxlogicstep = wo->maxlogicstep;
-				sce->gm.physubstep = wo->physubstep;
-				sce->gm.maxphystep = wo->maxphystep;
-			}
-			else{
-				sce->gm.gravity =9.8f;
-				sce->gm.physicsEngine= WOPHY_BULLET;// Bullet by default
-				sce->gm.mode = WO_DBVT_CULLING;	// DBVT culling by default
-				sce->gm.occlusionRes = 128;
-				sce->gm.ticrate = 60;
-				sce->gm.maxlogicstep = 5;
-				sce->gm.physubstep = 1;
-				sce->gm.maxphystep = 5;
-			}
+			sce->gm.gravity =9.8f;
+			sce->gm.physicsEngine= WOPHY_BULLET;// Bullet by default
+			sce->gm.mode = WO_DBVT_CULLING;	// DBVT culling by default
+			sce->gm.occlusionRes = 128;
+			sce->gm.ticrate = 60;
+			sce->gm.maxlogicstep = 5;
+			sce->gm.physubstep = 1;
+			sce->gm.maxphystep = 5;
 		}
 	}
 
