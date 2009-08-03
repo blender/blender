@@ -587,6 +587,10 @@ void transform_operatortypes(void)
 void transform_keymap_for_space(struct wmWindowManager *wm, struct ListBase *keymap, int spaceid)
 {
 	wmKeymapItem *km;
+	
+	/* transform.c, only adds modal map once, checks if it's there */
+	transform_modal_keymap(wm);
+	
 	switch(spaceid)
 	{
 		case SPACE_VIEW3D:

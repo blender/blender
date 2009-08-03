@@ -472,9 +472,12 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, rcti *rect)
 		newrect.ymin= rect->ymin;
 		newrect.ymax= rect->ymin;
 
-		ok= ed_preview_draw_rect(sa, sce, id, (parent != NULL), 1, rect, &newrect);
-		if(parent)
-			ok &= ed_preview_draw_rect(sa, sce, parent, 1, 0, rect, &newrect);
+		if(parent) {
+			ok = ed_preview_draw_rect(sa, sce, parent, 1, 1, rect, &newrect);
+			ok &= ed_preview_draw_rect(sa, sce, id, 1, 0, rect, &newrect);
+		}
+		else
+			ok = ed_preview_draw_rect(sa, sce, id, 0, 0, rect, &newrect);
 
 		if(ok)
 			*rect= newrect;
@@ -889,7 +892,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	/* handle results */
 	if(sp->pr_method==PR_ICON_RENDER) {
 		if(sp->pr_rect)
-			RE_ResultGet32(re, sp->pr_rect);
+			RE_ResultGet32(re, (unsigned int *)sp->pr_rect);
 	}
 	else {
 		/* validate owner */
@@ -960,7 +963,7 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, i
 }
 
 /* rect should be allocated, sizex/sizy pixels, 32 bits */
-void ED_preview_iconrender(Scene *scene, ID *id, int *rect, int sizex, int sizey)
+void ED_preview_iconrender(Scene *scene, ID *id, unsigned int *rect, int sizex, int sizey)
 {
 	ShaderPreview *sp;
 	short stop=0, do_update=0;
@@ -972,7 +975,7 @@ void ED_preview_iconrender(Scene *scene, ID *id, int *rect, int sizex, int sizey
 	sp->sizex= sizex;
 	sp->sizey= sizey;
 	sp->pr_method= PR_ICON_RENDER;
-	sp->pr_rect= rect;
+	sp->pr_rect= (int *)rect; /* shouldnt pr_rect be unsigned int also? - Campbell */
 	sp->id = id;
 
 	shader_preview_startjob(sp, &stop, &do_update);

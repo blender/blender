@@ -1464,7 +1464,7 @@ def write(filename, batch_objects = None, \
 		
 		# Write Edge Smoothing
 		file.write('''
-		LayerElementSmoothing: 0 {
+		LayerElementSmoothing: 1 {
 			Version: 101
 			Name: ""
 			MappingInformationType: "ByEdge"

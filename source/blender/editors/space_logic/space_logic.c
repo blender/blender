@@ -142,7 +142,7 @@ static SpaceLink *logic_new(const bContext *C)
 	ar->v2d.maxzoom= 1.21f;
 	
 	ar->v2d.scroll= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
-	ar->v2d.keepzoom= V2D_KEEPZOOM|V2D_KEEPASPECT;
+	ar->v2d.keepzoom= V2D_LIMITZOOM|V2D_KEEPASPECT;
 	ar->v2d.keeptot= 0;
 	
 	
@@ -188,7 +188,7 @@ void logic_keymap(struct wmWindowManager *wm)
 
 static void logic_refresh(const bContext *C, ScrArea *sa)
 {
-//	SpaceLogic *slogic= (SpaceImage*)CTX_wm_space_data(C);
+//	SpaceLogic *slogic= CTX_wm_space_logic(C);
 //	Object *obedit= CTX_data_edit_object(C);
 
 }
@@ -215,7 +215,7 @@ static void logic_listener(ARegion *ar, wmNotifier *wmn)
 
 static int logic_context(const bContext *C, const char *member, bContextDataResult *result)
 {
-//	SpaceLogic *slogic= (SpaceLogic*)CTX_wm_space_data(C);
+//	SpaceLogic *slogic= CTX_wm_space_logic(C);
 
 
 	return 0;
@@ -239,7 +239,7 @@ static void logic_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void logic_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-//	SpaceLogic *slogic= (SpaceLogic*)CTX_wm_space_data(C);
+//	SpaceLogic *slogic= CTX_wm_space_logic(C);
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
 	float col[3];
@@ -279,7 +279,7 @@ static void logic_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void logic_buttons_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, NULL);
+	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
 /************************* header region **************************/

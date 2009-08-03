@@ -456,19 +456,19 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, sho
 		* easy to tweak like this, speed isn't really that much of an issue in this situation... */
 		
 		/* checkers */
-		for(y=0; y<ibuf->y; y++) {
-			dark = pow(-1, floor(y / checkerwidth));
+		for(y=0; y<height; y++) {
+			dark = powf(-1.0f, floorf(y / checkerwidth));
 			
-			for(x=0; x<ibuf->x; x++) {
+			for(x=0; x<width; x++) {
 				if (x % checkerwidth == 0) dark *= -1;
 				
 				if (floatbuf) {
 					if (dark > 0) {
-						rect_float[0] = rect_float[1] = rect_float[2] = 0.25;
-						rect_float[3] = 1.0;
+						rect_float[0] = rect_float[1] = rect_float[2] = 0.25f;
+						rect_float[3] = 1.0f;
 					} else {
-						rect_float[0] = rect_float[1] = rect_float[2] = 0.58;
-						rect_float[3] = 1.0;
+						rect_float[0] = rect_float[1] = rect_float[2] = 0.58f;
+						rect_float[3] = 1.0f;
 					}
 					rect_float+=4;
 				}
@@ -489,11 +489,11 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, sho
 		if (floatbuf) rect_float= (float*)ibuf->rect_float;
 		else rect= (unsigned char*)ibuf->rect;
 		
-		for(y=0; y<ibuf->y; y++) {
-			hoffs = 0.125 * floor(y / checkerwidth);
+		for(y=0; y<height; y++) {
+			hoffs = 0.125f * floorf(y / checkerwidth);
 			
-			for(x=0; x<ibuf->x; x++) {
-				h = 0.125 * floor(x / checkerwidth);
+			for(x=0; x<width; x++) {
+				h = 0.125f * floorf(x / checkerwidth);
 				
 				if ((fabs((x % checkerwidth) - (checkerwidth / 2)) < 4) &&
 					(fabs((y % checkerwidth) - (checkerwidth / 2)) < 4)) {
@@ -501,19 +501,19 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, sho
 					if ((fabs((x % checkerwidth) - (checkerwidth / 2)) < 1) ||
 						(fabs((y % checkerwidth) - (checkerwidth / 2)) < 1)) {
 						
-						hue = fmod(fabs(h-hoffs), 1.0);
+						hue = fmodf(fabs(h-hoffs), 1.0f);
 						hsv_to_rgb(hue, s, v, &r, &g, &b);
 						
 						if (floatbuf) {
 							rect_float[0]= r;
 							rect_float[1]= g;
 							rect_float[2]= b;
-							rect_float[3]= 1.0;
+							rect_float[3]= 1.0f;
 						}
 						else {
-							rect[0]= (char)(r * 255.0);
-							rect[1]= (char)(g * 255.0);
-							rect[2]= (char)(b * 255.0);
+							rect[0]= (char)(r * 255.0f);
+							rect[1]= (char)(g * 255.0f);
+							rect[2]= (char)(b * 255.0f);
 							rect[3]= 255;
 						}
 					}
@@ -526,8 +526,15 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, sho
 			}
 		}
 	} else {	/* blank image */
-		for(y=0; y<ibuf->y; y++) {
-			for(x=0; x<ibuf->x; x++) {
+		char ccol[4];
+
+		ccol[0]= (char)(color[0]*255.0f);
+		ccol[1]= (char)(color[1]*255.0f);
+		ccol[2]= (char)(color[2]*255.0f);
+		ccol[3]= (char)(color[3]*255.0f);
+
+		for(y=0; y<height; y++) {
+			for(x=0; x<width; x++) {
 				if (floatbuf) {
 					rect_float[0]= color[0];
 					rect_float[1]= color[1];
@@ -536,10 +543,10 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, sho
 					rect_float+=4;
 				}
 				else {
-					rect[0]= (char)(color[0] * 255.0);
-					rect[1]= (char)(color[1] * 255.0);
-					rect[2]= (char)(color[2] * 255.0);
-					rect[3]= (char)(color[3] * 255.0);
+					rect[0]= ccol[0];
+					rect[1]= ccol[1];
+					rect[2]= ccol[2];
+					rect[3]= ccol[3];
 					rect+=4;
 				}
 			}

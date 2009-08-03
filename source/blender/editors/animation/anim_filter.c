@@ -17,11 +17,11 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
+ * The Original Code is Copyright (C) 2008 Blender Foundation, Joshua Leung
  * All rights reserved.
  *
  * 
- * Contributor(s): Joshua Leung
+ * Contributor(s): Joshua Leung (original author)
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -33,15 +33,16 @@
  * for cases to ignore. 
  *
  * While this is primarily used for the Action/Dopesheet Editor (and its accessory modes),
- * the IPO Editor also uses this for it's channel list and for determining which curves
- * are being edited.
+ * the Graph Editor also uses this for its channel list and for determining which curves
+ * are being edited. Likewise, the NLA Editor also uses this for its channel list and in
+ * its operators.
  *
  * Note: much of the original system this was based on was built before the creation of the RNA
  * system. In future, it would be interesting to replace some parts of this code with RNA queries,
  * however, RNA does not eliminate some of the boiler-plate reduction benefits presented by this 
  * system, so if any such work does occur, it should only be used for the internals used here...
  *
- * -- Joshua Leung, Dec 2008
+ * -- Joshua Leung, Dec 2008 (Last revision July 2009)
  */
 
 #include <string.h>
@@ -62,6 +63,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -72,6 +74,7 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
@@ -203,6 +206,12 @@ static short graphedit_get_context (bAnimContext *ac, SpaceIpo *sipo)
 	/* init dopesheet data if non-existant (i.e. for old files) */
 	if (sipo->ads == NULL)
 		sipo->ads= MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
+	
+	/* set settings for Graph Editor - "Selected = Editable" */
+	if (sipo->flag & SIPO_SELCUVERTSONLY)
+		sipo->ads->filterflag |= ADS_FILTER_SELEDIT;
+	else
+		sipo->ads->filterflag &= ~ADS_FILTER_SELEDIT;
 	
 	/* sync settings with current view status, then return appropriate data */
 	switch (sipo->mode) {
@@ -402,11 +411,20 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 	
 
 
-/* quick macro to test if a anim-channel (F-Curve, Group, etc.) is selected in an acceptable way */
+/* quick macro to test if an anim-channel (F-Curve, Group, etc.) is selected in an acceptable way */
 #define ANIMCHANNEL_SELOK(test_func) \
 		( !(filter_mode & (ANIMFILTER_SEL|ANIMFILTER_UNSEL)) || \
 		  ((filter_mode & ANIMFILTER_SEL) && test_func) || \
 		  ((filter_mode & ANIMFILTER_UNSEL) && test_func==0) ) 
+		  
+/* quick macro to test if an anim-channel (F-Curve) is selected ok for editing purposes 
+ *	- _SELEDIT means that only selected curves will have visible+editable keyframes
+ */
+// FIXME: this doesn't work cleanly yet...
+#define ANIMCHANNEL_SELEDITOK(test_func) \
+		( !(filter_mode & ANIMFILTER_SELEDIT) || \
+		  (filter_mode & ANIMFILTER_CHANNELS) || \
+		  (test_func) )
 
 /* ----------- 'Private' Stuff --------------- */
 
@@ -429,6 +447,7 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 		ale->ownertype= ownertype;
 		
 		ale->id= owner_id;
+		ale->adt= BKE_animdata_from_id(owner_id);
 		
 		/* do specifics */
 		switch (datatype) {
@@ -440,6 +459,8 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->key_data= sce;
 				ale->datatype= ALE_SCE;
+				
+				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
 			case ANIMTYPE_OBJECT:
@@ -451,6 +472,8 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->key_data= ob;
 				ale->datatype= ALE_OB;
+				
+				ale->adt= BKE_animdata_from_id(&ob->id);
 			}
 				break;
 			case ANIMTYPE_FILLACTD:
@@ -484,6 +507,16 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				ale->datatype= ALE_NONE;
 			}
 				break;
+			case ANIMTYPE_FILLPARTD:
+			{
+				Object *ob= (Object *)data;
+				
+				ale->flag= FILTER_PART_OBJC(ob);
+				
+				ale->key_data= NULL;
+				ale->datatype= ALE_NONE;
+			}
+				break;
 			
 			case ANIMTYPE_DSMAT:
 			{
@@ -494,6 +527,8 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
 			case ANIMTYPE_DSLAM:
@@ -505,6 +540,8 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
 			case ANIMTYPE_DSCAM:
@@ -516,6 +553,8 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
 			case ANIMTYPE_DSCUR:
@@ -527,6 +566,8 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
 			case ANIMTYPE_DSSKEY:
@@ -538,6 +579,8 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
 			case ANIMTYPE_DSWOR:
@@ -549,6 +592,21 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				
 				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
+			}
+				break;
+			case ANIMTYPE_DSPART:
+			{
+				ParticleSettings *part= (ParticleSettings*)ale->data;
+				AnimData *adt= part->adt;
+				
+				ale->flag= FILTER_PART_OBJD(part); 
+				
+				ale->key_data= (adt) ? adt->action : NULL;
+				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
 				
@@ -627,7 +685,7 @@ static int animdata_filter_fcurves (ListBase *anim_data, FCurve *first, bActionG
 			/* only work with this channel and its subchannels if it is editable */
 			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_FCU(fcu)) {
 				/* only include this curve if selected in a way consistent with the filtering requirements */
-				if ( ANIMCHANNEL_SELOK(SEL_FCU(fcu)) ) {
+				if ( ANIMCHANNEL_SELOK(SEL_FCU(fcu)) && ANIMCHANNEL_SELEDITOK(SEL_FCU(fcu)) ) {
 					/* only include if this curve is active */
 					if (!(filter_mode & ANIMFILTER_ACTIVE) || (fcu->flag & FCURVE_ACTIVE)) {
 						ale= make_new_animlistelem(fcu, ANIMTYPE_FCURVE, owner, ownertype, owner_id);
@@ -798,71 +856,6 @@ static int animdata_filter_nla (ListBase *anim_data, AnimData *adt, int filter_m
 	/* return the number of items added to the list */
 	return items;
 }
-
-static int animdata_filter_shapekey (ListBase *anim_data, Key *key, int filter_mode, void *owner, short ownertype, ID *owner_id)
-{
-	bAnimListElem *ale;
-	KeyBlock *kb;
-	//FCurve *fcu;
-	int i, items=0;
-	
-	/* are we filtering for display or editing */
-	if (filter_mode & ANIMFILTER_CHANNELS) {
-		/* for display - loop over shapekeys, adding ipo-curve references where needed */
-		kb= key->block.first;
-		
-		/* loop through possible shapekeys, manually creating entries */
-		for (i= 1; i < key->totkey; i++) {
-			ale= MEM_callocN(sizeof(bAnimListElem), "bAnimListElem");
-			kb = kb->next; /* do this even on the first try, as the first is 'Basis' (which doesn't get included) */
-			
-			ale->data= kb;
-			ale->type= ANIMTYPE_SHAPEKEY; /* 'abused' usage of this type */
-			ale->owner= key;
-			ale->ownertype= ANIMTYPE_SHAPEKEY;
-			ale->datatype= ALE_NONE;
-			ale->index = i;
-			
-#if 0 // XXX fixme... old system
-			if (key->ipo) {
-				for (icu= key->ipo->curve.first; icu; icu=icu->next) {
-					if (icu->adrcode == i) {
-						ale->key_data= icu;
-						ale->datatype= ALE_ICU;
-						break;
-					}
-				}
-			}
-#endif // XXX fixme... old system
-			
-			ale->id= owner_id;
-			
-			BLI_addtail(anim_data, ale);
-			items++;
-		}
-	}
-	else {
-#if 0 // XXX fixme... old system
-		/* loop over ipo curves if present - for editing */
-		if (key->ipo) {
-			if (filter_mode & ANIMFILTER_IPOKEYS) {
-				ale= make_new_animlistelem(key->ipo, ANIMTYPE_IPO, key, ANIMTYPE_SHAPEKEY);
-				if (ale) {
-					if (owned) ale->id= owner;
-					BLI_addtail(anim_data, ale);
-					items++;
-				}
-			}
-			else {
-				items += animdata_filter_ipocurves(anim_data, key->ipo, filter_mode, key, ANIMTYPE_SHAPEKEY, (owned)?(owner):(NULL));
-			}
-		}
-#endif // XXX fixme... old system
-	}
-	
-	/* return the number of items added to the list */
-	return items;
-}
  
 #if 0
 // FIXME: switch this to use the bDopeSheet...
@@ -1003,6 +996,60 @@ static int animdata_filter_dopesheet_mats (ListBase *anim_data, bDopeSheet *ads,
 	
 	/* free cache */
 	BLI_freelistN(&mats);
+	
+	/* return the number of items added to the list */
+	return items;
+}
+
+static int animdata_filter_dopesheet_particles (ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
+{
+	bAnimListElem *ale=NULL;
+	Object *ob= base->object;
+	ParticleSystem *psys = ob->particlesystem.first;
+	int items= 0, first = 1;
+
+	for(; psys; psys=psys->next) {
+		short ok = 0;
+
+		if(ELEM(NULL, psys->part, psys->part->adt))
+			continue;
+
+		ANIMDATA_FILTER_CASES(psys->part,
+			{ /* AnimData blocks - do nothing... */ },
+			ok=1;, 
+			ok=1;, 
+			ok=1;)
+		if (ok == 0) continue;
+
+		/* include particles-expand widget? */
+		if (first && (filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
+			ale= make_new_animlistelem(ob, ANIMTYPE_FILLPARTD, base, ANIMTYPE_OBJECT, (ID *)ob);
+			if (ale) {
+				BLI_addtail(anim_data, ale);
+				items++;
+			}
+			first = 0;
+		}
+		
+		/* add particle settings? */
+		if (FILTER_PART_OBJC(ob) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+			if ((filter_mode & ANIMFILTER_CHANNELS)){
+				ale = make_new_animlistelem(psys->part, ANIMTYPE_DSPART, base, ANIMTYPE_OBJECT, (ID *)psys->part);
+				if (ale) {
+					BLI_addtail(anim_data, ale);
+					items++;
+				}
+			}
+			
+			if (FILTER_PART_OBJD(psys->part) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+				ANIMDATA_FILTER_CASES(psys->part,
+					{ /* AnimData blocks - do nothing... */ },
+					items += animdata_filter_nla(anim_data, psys->part->adt, filter_mode, psys->part, ANIMTYPE_DSPART, (ID *)psys->part);, 
+					items += animdata_filter_fcurves(anim_data, psys->part->adt->drivers.first, NULL, psys->part, ANIMTYPE_DSPART, filter_mode, (ID *)psys->part);, 
+					items += animdata_filter_action(anim_data, psys->part->adt->action, filter_mode, psys->part, ANIMTYPE_DSPART, (ID *)psys->part);)
+			}
+		}
+	}
 	
 	/* return the number of items added to the list */
 	return items;
@@ -1160,7 +1207,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 				
 				/* add channels */
 				if (FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_CURVESONLY)) {
-					items += animdata_filter_shapekey(anim_data, key, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob);
+					items += animdata_filter_fcurves(anim_data, adt->drivers.first, NULL, key, ANIMTYPE_DSSKEY, filter_mode, (ID *)key);
 				}
 			},
 			{ /* action (keyframes) */
@@ -1175,7 +1222,7 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 				
 				/* add channels */
 				if (FILTER_SKE_OBJD(key) || (filter_mode & ANIMFILTER_CURVESONLY)) {
-					items += animdata_filter_shapekey(anim_data, key, filter_mode, ob, ANIMTYPE_OBJECT, (ID *)ob);
+					items += animdata_filter_action(anim_data, adt->action, filter_mode, key, ANIMTYPE_DSSKEY, (ID *)key); 
 				}
 			}
 		);
@@ -1229,6 +1276,10 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 	}
 	if (obdata_ok) 
 		items += animdata_filter_dopesheet_obdata(anim_data, ads, base, filter_mode);
+
+	/* particles */
+	if(ob->particlesystem.first && !(ads->filterflag & ADS_FILTER_NOPART))
+		items += animdata_filter_dopesheet_particles(anim_data, ads, base, filter_mode);
 	
 	/* return the number of items added to the list */
 	return items;
@@ -1406,7 +1457,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 		if (base->object) {
 			Object *ob= base->object;
 			Key *key= ob_get_key(ob);
-			short actOk=1, keyOk=1, dataOk=1, matOk=1;
+			short actOk=1, keyOk=1, dataOk=1, matOk=1, partOk=1;
 			
 			/* firstly, check if object can be included, by the following fanimors:
 			 *	- if only visible, must check for layer and also viewport visibility
@@ -1549,8 +1600,33 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 						break;
 				}
 				
+				/* particles */
+				partOk = 0;
+				if (!(ads->filterflag & ADS_FILTER_NOPART) && ob->particlesystem.first) {
+					ParticleSystem *psys = ob->particlesystem.first;
+					for(; psys; psys=psys->next) {
+						if (psys->part) {
+							/* if particlesettings has relevant animation data, break */
+							ANIMDATA_FILTER_CASES(psys->part, 
+								{
+									/* for the special AnimData blocks only case, we only need to add
+									 * the block if it is valid... then other cases just get skipped (hence ok=0)
+									 */
+									ANIMDATA_ADD_ANIMDATA(psys->part);
+									partOk=0;
+								},
+								partOk= 1;, 
+								partOk= 1;, 
+								partOk= 1;)
+						}
+							
+						if (partOk) 
+							break;
+					}
+				}
+				
 				/* check if all bad (i.e. nothing to show) */
-				if (!actOk && !keyOk && !dataOk && !matOk)
+				if (!actOk && !keyOk && !dataOk && !matOk && !partOk)
 					continue;
 			}
 			else {
@@ -1600,8 +1676,20 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 						break;
 				}
 				
+				/* particles */
+				partOk = 0;
+				if (ob->particlesystem.first) {
+					ParticleSystem *psys = ob->particlesystem.first;
+					for(; psys; psys=psys->next) {
+						if(psys->part && ANIMDATA_HAS_KEYS(psys->part)) {
+							partOk = 1;
+							break;
+						}
+					}
+				}
+				
 				/* check if all bad (i.e. nothing to show) */
-				if (!actOk && !keyOk && !dataOk && !matOk)
+				if (!actOk && !keyOk && !dataOk && !matOk && !partOk)
 					continue;
 			}
 			
@@ -1639,7 +1727,7 @@ int ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_mode
 				break;
 				
 			case ANIMCONT_SHAPEKEY:
-				items= animdata_filter_shapekey(anim_data, data, filter_mode, NULL, ANIMTYPE_NONE, (ID *)obact);
+				//items= animdata_filter_shapekey(anim_data, data, filter_mode, NULL, ANIMTYPE_NONE, (ID *)obact);
 				break;
 				
 			case ANIMCONT_GPENCIL:

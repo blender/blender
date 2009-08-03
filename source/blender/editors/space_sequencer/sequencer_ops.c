@@ -123,7 +123,7 @@ void sequencer_keymap(wmWindowManager *wm)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SEQUENCER_OT_unmute", HKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0)->ptr, "unselected", 1);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_lock", LKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_unlock", HKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_unlock", LKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_reload", RKEY, KM_PRESS, KM_ALT, 0);
 

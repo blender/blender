@@ -157,6 +157,19 @@ static void rna_EditBone_name_set(PointerRNA *ptr, const char *value)
 	ED_armature_bone_rename(arm, oldname, newname);
 }
 
+static void rna_Bone_name_set(PointerRNA *ptr, const char *value)
+{
+	bArmature *arm= (bArmature*)ptr->id.data;
+	Bone *bone= (Bone*)ptr->data;
+	char oldname[32], newname[32];
+	
+	/* need to be on the stack */
+	BLI_strncpy(newname, value, 32);
+	BLI_strncpy(oldname, bone->name, 32);
+	
+	ED_armature_bone_rename(arm, oldname, newname);
+}
+
 static void rna_EditBone_layer_get(PointerRNA *ptr, int values[16])
 {
 	EditBone *data= (EditBone*)(ptr->data);
@@ -320,6 +333,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
 	if(editbone) RNA_def_property_string_funcs(prop, NULL, NULL, "rna_EditBone_name_set");
+	else RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Bone_name_set");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
 	/* flags */
@@ -604,6 +618,7 @@ void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Visible Layers", "Armature layer visibility.");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Armature_layer_set");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, NULL);
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
 		/* layer protection */
 	prop= RNA_def_property(srna, "layer_protection", PROP_BOOLEAN, PROP_NONE);
@@ -616,7 +631,7 @@ void rna_def_armature(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "rest_position", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_RESTPOS);
 	RNA_def_property_ui_text(prop, "Rest Position", "Show Armature in Rest Position. No posing possible.");
-	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
 	prop= RNA_def_property(srna, "draw_axes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_DRAWAXES);
@@ -631,7 +646,7 @@ void rna_def_armature(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "delay_deform", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_DELAYDEFORM);
 	RNA_def_property_ui_text(prop, "Delay Deform", "Don't deform children when manipulating bones in Pose Mode");
-	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
 	prop= RNA_def_property(srna, "x_axis_mirror", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_MIRROR_EDIT);

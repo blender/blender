@@ -109,7 +109,7 @@ static void sima_zoom_set_factor(SpaceImage *sima, ARegion *ar, float zoomfac)
 
 static int space_image_poll(bContext *C)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	if(sima && sima->spacetype==SPACE_IMAGE)
 		if(ED_space_image_buffer(sima))
 			return 1;
@@ -119,7 +119,7 @@ static int space_image_poll(bContext *C)
 static int space_image_file_exists_poll(bContext *C)
 {
 	if(space_image_poll(C)) {
-		SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+		SpaceImage *sima= CTX_wm_space_image(C);
 		ImBuf *ibuf= ED_space_image_buffer(sima);
 		
 		if(ibuf && BLI_exists(ibuf->name) && BLI_is_writable(ibuf->name))
@@ -131,10 +131,10 @@ static int space_image_file_exists_poll(bContext *C)
 
 int space_image_main_area_poll(bContext *C)
 {
-	SpaceLink *slink= CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	// XXX ARegion *ar= CTX_wm_region(C);
 
-	if(slink && (slink->spacetype == SPACE_IMAGE))
+	if(sima)
 		return 1; // XXX (ar && ar->type->regionid == RGN_TYPE_WINDOW);
 	
 	return 0;
@@ -149,7 +149,7 @@ typedef struct ViewPanData {
 
 static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ViewPanData *vpd;
 
 	op->customdata= vpd= MEM_callocN(sizeof(ViewPanData), "ImageViewPanData");
@@ -165,7 +165,7 @@ static void view_pan_init(bContext *C, wmOperator *op, wmEvent *event)
 
 static void view_pan_exit(bContext *C, wmOperator *op, int cancel)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ViewPanData *vpd= op->customdata;
 
 	if(cancel) {
@@ -180,7 +180,7 @@ static void view_pan_exit(bContext *C, wmOperator *op, int cancel)
 
 static int view_pan_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	float offset[2];
 
 	RNA_float_get_array(op->ptr, "offset", offset);
@@ -209,7 +209,7 @@ static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ViewPanData *vpd= op->customdata;
 	float offset[2];
 
@@ -269,7 +269,7 @@ typedef struct ViewZoomData {
 
 static void view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ViewZoomData *vpd;
 
 	op->customdata= vpd= MEM_callocN(sizeof(ViewZoomData), "ImageViewZoomData");
@@ -284,7 +284,7 @@ static void view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
 
 static void view_zoom_exit(bContext *C, wmOperator *op, int cancel)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ViewZoomData *vpd= op->customdata;
 
 	if(cancel) {
@@ -298,7 +298,7 @@ static void view_zoom_exit(bContext *C, wmOperator *op, int cancel)
 
 static int view_zoom_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
 
 	sima_zoom_set_factor(sima, ar, RNA_float_get(op->ptr, "factor"));
@@ -325,7 +325,7 @@ static int view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
 	ViewZoomData *vpd= op->customdata;
 	float factor;
@@ -392,7 +392,7 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	int width, height;
 
 	/* retrieve state */
-	sima= (SpaceImage*)CTX_wm_space_data(C);
+	sima= CTX_wm_space_image(C);
 	ar= CTX_wm_region(C);
 	scene= (Scene*)CTX_data_scene(C);
 	obedit= CTX_data_edit_object(C);
@@ -449,7 +449,7 @@ static int view_selected_exec(bContext *C, wmOperator *op)
 	int width, height;
 
 	/* retrieve state */
-	sima= (SpaceImage*)CTX_wm_space_data(C);
+	sima= CTX_wm_space_image(C);
 	ar= CTX_wm_region(C);
 	scene= (Scene*)CTX_data_scene(C);
 	obedit= CTX_data_edit_object(C);
@@ -493,7 +493,7 @@ void IMAGE_OT_view_selected(wmOperatorType *ot)
 
 static int view_zoom_in_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
 
 	sima_zoom_set_factor(sima, ar, 1.25f);
@@ -516,7 +516,7 @@ void IMAGE_OT_view_zoom_in(wmOperatorType *ot)
 
 static int view_zoom_out_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
 
 	sima_zoom_set_factor(sima, ar, 0.8f);
@@ -541,7 +541,7 @@ void IMAGE_OT_view_zoom_out(wmOperatorType *ot)
 
 static int view_zoom_ratio_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
 
 	sima_zoom_set(sima, ar, RNA_float_get(op->ptr, "ratio"));
@@ -616,7 +616,7 @@ static void image_filesel(bContext *C, wmOperator *op, const char *path)
 
 static int open_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima= NULL;
@@ -636,7 +636,7 @@ static int open_exec(bContext *C, wmOperator *op)
 
 static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	char *path= (sima->image)? sima->image->name: U.textudir;
 
 	if(RNA_property_is_set(op->ptr, "filename"))
@@ -662,14 +662,14 @@ void IMAGE_OT_open(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "File path of image to open.");
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE);
 }
 
 /******************** replace image operator ********************/
 
 static int replace_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	char str[FILE_MAX];
 
 	if(!sima->image)
@@ -686,7 +686,7 @@ static int replace_exec(bContext *C, wmOperator *op)
 
 static int replace_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	char *path= (sima->image)? sima->image->name: U.textudir;
 
 	if(!sima->image)
@@ -715,7 +715,7 @@ void IMAGE_OT_replace(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "File path of image to replace current image with.");
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE);
 }
 
 /******************** save image as operator ********************/
@@ -791,7 +791,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 
 static int save_as_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Scene *scene= CTX_data_scene(C);
 	Image *ima = ED_space_image(sima);
 	char str[FILE_MAX];
@@ -809,7 +809,7 @@ static int save_as_exec(bContext *C, wmOperator *op)
 
 static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Image *ima = ED_space_image(sima);
 	ImBuf *ibuf= ED_space_image_buffer(sima);
 	Scene *scene= CTX_data_scene(C);
@@ -859,15 +859,15 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string_file_path(ot->srna, "filename", "", FILE_MAX, "Filename", "File path to save image to.");
 	RNA_def_enum(ot->srna, "file_type", image_file_type_items, R_PNG, "File Type", "File type to save image as.");
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE);
 }
 
 /******************** save image operator ********************/
 
 static int save_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Image *ima = ED_space_image(sima);
 	ImBuf *ibuf= ED_space_image_buffer(sima);
 	Scene *scene= CTX_data_scene(C);
@@ -916,7 +916,7 @@ void IMAGE_OT_save(wmOperatorType *ot)
 
 static int save_sequence_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ImBuf *ibuf;
 	int tot= 0;
 	char di[FILE_MAX], fi[FILE_MAX];
@@ -995,7 +995,7 @@ static int reload_exec(bContext *C, wmOperator *op)
 	SpaceImage *sima;
 
 	/* retrieve state */
-	sima= (SpaceImage*)CTX_wm_space_data(C);
+	sima= CTX_wm_space_image(C);
 
 	if(!sima->image)
 		return OPERATOR_CANCELLED;
@@ -1037,7 +1037,7 @@ static int new_exec(bContext *C, wmOperator *op)
 	int width, height, floatbuf, uvtestgrid;
 
 	/* retrieve state */
-	sima= (SpaceImage*)CTX_wm_space_data(C);
+	sima= CTX_wm_space_image(C);
 	scene= (Scene*)CTX_data_scene(C);
 	obedit= CTX_data_edit_object(C);
 
@@ -1102,7 +1102,7 @@ static int pack_test(bContext *C, wmOperator *op)
 
 static int pack_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Image *ima= ED_space_image(sima);
 	ImBuf *ibuf= ED_space_image_buffer(sima);
 	int as_png= RNA_boolean_get(op->ptr, "as_png");
@@ -1125,7 +1125,7 @@ static int pack_exec(bContext *C, wmOperator *op)
 
 static int pack_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ImBuf *ibuf= ED_space_image_buffer(sima);
 	uiPopupMenu *pup;
 	uiLayout *layout;
@@ -1311,7 +1311,7 @@ typedef struct ImageSampleInfo {
 
 static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ImBuf *ibuf= ED_space_image_buffer(sima);
 	ImageSampleInfo *info= arg_info;
 
@@ -1324,7 +1324,7 @@ static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 
 static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
 	ImBuf *ibuf= ED_space_image_buffer(sima);
 	ImageSampleInfo *info= op->customdata;
@@ -1439,7 +1439,7 @@ static void sample_exit(bContext *C, wmOperator *op)
 
 static int sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);
 	ImBuf *ibuf= ED_space_image_buffer(sima);
 	ImageSampleInfo *info;
@@ -1532,7 +1532,7 @@ typedef struct RecordCompositeData {
 
 int record_composite_apply(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	RecordCompositeData *rcd= op->customdata;
 	Scene *scene= CTX_data_scene(C);
 	ImBuf *ibuf;
@@ -1560,7 +1560,7 @@ int record_composite_apply(bContext *C, wmOperator *op)
 
 static int record_composite_init(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Scene *scene= CTX_data_scene(C);
 	RecordCompositeData *rcd;
 
@@ -1582,7 +1582,7 @@ static int record_composite_init(bContext *C, wmOperator *op)
 static void record_composite_exit(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	RecordCompositeData *rcd= op->customdata;
 
 	scene->r.cfra= rcd->old_cfra;

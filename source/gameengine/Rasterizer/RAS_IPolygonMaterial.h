@@ -73,7 +73,6 @@ protected:
 	int						m_transp;
 	bool					m_alpha;
 	bool					m_zsort;
-	//int						m_lightlayer;
 	int						m_materialindex;
 	
 	unsigned int			m_polymatid;
@@ -110,8 +109,7 @@ public:
 					  int mode,
 					  int transp,
 					  bool alpha,
-					  bool zsort,
-					  int lightlayer);
+					  bool zsort);
 	void Initialize(const STR_String& texname,
 					const STR_String& matname,
 					int materialindex,
@@ -121,8 +119,7 @@ public:
 					int mode,
 					int transp,
 					bool alpha,
-					bool zsort,
-					int lightlayer);
+					bool zsort);
 	virtual ~RAS_IPolyMaterial() {};
  
 	/**

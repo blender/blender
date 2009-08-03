@@ -334,7 +334,7 @@ static void read_stl_mesh_ascii(Scene *scene, char *str)
 	 */
 	numtenthousand = 1;
 	vertdata = malloc(numtenthousand*3*30000*sizeof(float));	// uses realloc!
-	if (!vertdata); STLALLOCERROR;
+	if (!vertdata) { STLALLOCERROR; }
 
 	linenum = 1;
 	/* Get rid of the first line */
@@ -357,7 +357,7 @@ static void read_stl_mesh_ascii(Scene *scene, char *str)
 			++numtenthousand;
 			vertdata = realloc(vertdata, 
 							   numtenthousand*3*30000*sizeof(float));
-			if (!vertdata); STLALLOCERROR;
+			if (!vertdata) { STLALLOCERROR; }
 		}
 		
 		/* Don't read normal, but check line for proper syntax anyway
@@ -1687,7 +1687,7 @@ static void displist_to_objects(Scene *scene, ListBase *lbase)
 
 	if(totvert==0) {
 		
-		if(ivsurf==0) ; //XXX error("Found no data");
+		if(ivsurf==0) {}; //XXX error("Found no data");
 		if(lbase->first) BLI_freelistN(lbase);
 		
 		return;
@@ -1900,16 +1900,15 @@ void write_stl(Scene *scene, char *str)
 	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
 	if(BLI_testextensie(str,".stl")==0) strcat(str, ".stl");
 
-	if (!during_script()) {
-		if (BLI_exists(str))
-			; //XXX if(saveover(str)==0)
-			//XXX	return;
+	if (BLI_exists(str)) {
+		; //XXX if(saveover(str)==0)
+		//XXX   return;
 	}
 
 	fpSTL= fopen(str, "wb");
 	
 	if(fpSTL==NULL) {
-		if (!during_script()) ; //XXX error("Can't write file");
+		//XXX error("Can't write file");
 		return;
 	}
 	strcpy(temp_dir, str);
@@ -2233,11 +2232,11 @@ void write_vrml(Scene *scene, char *str)
 	if(BLI_testextensie(str,".blend")) str[ strlen(str)-6]= 0;
 	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
 	if(BLI_testextensie(str,".wrl")==0) strcat(str, ".wrl");
-	//XXX saveover()       if(!during_script() && saveover(str)==0) return;
+	//XXX saveover()       if(saveover(str)==0) return;
 	
 	fp= fopen(str, "w");
 	
-	if(fp==NULL && !during_script()) {
+	if(fp==NULL) {
 		//XXX error("Can't write file");
 		return;
 	}
@@ -2544,15 +2543,15 @@ void write_dxf(struct Scene *scene, char *str)
 	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
 	if(BLI_testextensie(str,".dxf")==0) strcat(str, ".dxf");
 
-	if (!during_script()) {
-		if (BLI_exists(str))
-			; //XXX if(saveover(str)==0)
-			//	return;
+	
+	if (BLI_exists(str)) {
+		; //XXX if(saveover(str)==0)
+		//	return;
 	}
 
 	fp= fopen(str, "w");
 	
-	if(fp==NULL && !during_script()) {
+	if(fp==NULL) {
 		//XXX error("Can't write file");
 		return;
 	}

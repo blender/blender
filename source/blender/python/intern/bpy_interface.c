@@ -265,10 +265,24 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 		py_result =  PyEval_EvalCode( text->compiled, py_dict, py_dict );
 		
 	} else {
-		char pystring[512];
-		/* TODO - look into a better way to run a file */
-		sprintf(pystring, "exec(open(r'%s').read())", fn);	
-		py_result = PyRun_String( pystring, Py_file_input, py_dict, py_dict );			
+#if 0
+		char *pystring;
+		pystring= malloc(strlen(fn) + 32);
+		pystring[0]= '\0';
+		sprintf(pystring, "exec(open(r'%s').read())", fn);
+		py_result = PyRun_String( pystring, Py_file_input, py_dict, py_dict );
+		free(pystring);
+#else
+		FILE *fp= fopen(fn, "r");		
+		if(fp) {
+			py_result = PyRun_File(fp, fn, Py_file_input, py_dict, py_dict);
+			fclose(fp);
+		}
+		else {
+			PyErr_Format(PyExc_SystemError, "Python file \"%s\" could not be opened: %s", fn, strerror(errno));
+			py_result= NULL;
+		}
+#endif
 	}
 	
 	if (!py_result) {

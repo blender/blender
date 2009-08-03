@@ -401,8 +401,6 @@ int imb_get_anim_type(char * name) {
 	if (ib_stat(name,&st) == -1) return(0);
 	if (((st.st_mode) & S_IFMT) != S_IFREG) return(0);
 
-	if (isavi(name)) return (ANIM_AVI);
-
 	if (ismovie(name)) return (ANIM_MOVIE);
 #	ifdef WITH_QUICKTIME
 	if (isqtime(name)) return (ANIM_QTIME);
@@ -410,6 +408,7 @@ int imb_get_anim_type(char * name) {
 #	ifdef WITH_FFMPEG
 	if (isffmpeg(name)) return (ANIM_FFMPEG);
 #	endif
+	if (isavi(name)) return (ANIM_AVI);
 #endif
 #ifdef WITH_REDCODE
 	if (isredcode(name)) return (ANIM_REDCODE);

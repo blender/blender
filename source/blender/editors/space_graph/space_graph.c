@@ -69,20 +69,20 @@ ARegion *graph_has_buttons_region(ScrArea *sa)
 	ARegion *ar, *arnew;
 	
 	for (ar= sa->regionbase.first; ar; ar= ar->next) {
-		if(ar->regiontype==RGN_TYPE_UI)
+		if (ar->regiontype==RGN_TYPE_UI)
 			return ar;
 	}
 	
-	/* add subdiv level; after main window */
+	/* add subdiv level; after main */
 	for (ar= sa->regionbase.first; ar; ar= ar->next) {
-		if(ar->regiontype==RGN_TYPE_WINDOW)
+		if (ar->regiontype==RGN_TYPE_WINDOW)
 			break;
 	}
 	
 	/* is error! */
-	if(ar==NULL) return NULL;
+	if (ar==NULL) return NULL;
 	
-	arnew= MEM_callocN(sizeof(ARegion), "buttons for nla");
+	arnew= MEM_callocN(sizeof(ARegion), "buttons for graph");
 	
 	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
 	arnew->regiontype= RGN_TYPE_UI;
@@ -217,7 +217,7 @@ static void graph_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void graph_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceIpo *sipo= (SpaceIpo*)CTX_wm_space_data(C);
+	SpaceIpo *sipo= CTX_wm_space_graph(C);
 	bAnimContext ac;
 	View2D *v2d= &ar->v2d;
 	View2DGrid *grid;
@@ -294,7 +294,7 @@ static void graph_channel_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void graph_channel_area_draw(const bContext *C, ARegion *ar)
 {
-	SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
+	SpaceIpo *sipo= CTX_wm_space_graph(C);
 	bAnimContext ac;
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
@@ -362,7 +362,7 @@ static void graph_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void graph_buttons_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, NULL);
+	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
 static void graph_region_listener(ARegion *ar, wmNotifier *wmn)

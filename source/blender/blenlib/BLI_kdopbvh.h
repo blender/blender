@@ -93,5 +93,7 @@ int BLI_bvhtree_find_nearest(BVHTree *tree, const float *co, BVHTreeNearest *nea
 
 int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, float radius, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata);
 
+float BLI_bvhtree_bb_raycast(float *bv, float *light_start, float *light_end, float *pos);
+
 #endif // BLI_KDOPBVH_H
 

@@ -55,7 +55,6 @@ class RAS_MeshObject
 {
 private:
 	unsigned int				m_debugcolor;
-	//int							m_lightlayer;
 
 	bool						m_bModified;
 	bool						m_bMeshModified;
@@ -77,7 +76,7 @@ protected:
 
 public:
 	// for now, meshes need to be in a certain layer (to avoid sorting on lights in realtime)
-	RAS_MeshObject(Mesh* mesh, int lightlayer);
+	RAS_MeshObject(Mesh* mesh);
 	virtual ~RAS_MeshObject();
 
 
@@ -126,6 +125,7 @@ public:
 	/* vertex and polygon acces */
 	int					NumVertices(RAS_IPolyMaterial* mat);
 	RAS_TexVert*		GetVertex(unsigned int matid, unsigned int index);
+	const float*		GetVertexLocation(unsigned int orig_index);
 
 	int					NumPolygons();
 	RAS_Polygon*		GetPolygon(int num) const;
@@ -141,6 +141,13 @@ public:
 							bool culled);
 
 	void				RemoveFromBuckets(void *clientobj);
+	void				EndConversion() {
+#if 0
+		m_sharedvertex_map.clear(); // SharedVertex
+		vector<vector<SharedVertex> >	shared_null(0);
+		shared_null.swap( m_sharedvertex_map ); /* really free the memory */
+#endif
+	}
 
 	/* colors */
 	void				DebugColor(unsigned int abgr);

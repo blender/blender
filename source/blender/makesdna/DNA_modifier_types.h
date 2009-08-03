@@ -41,6 +41,7 @@ typedef enum ModifierType {
 	eModifierType_SimpleDeform,
 	eModifierType_Multires,
 	eModifierType_Surface,
+	eModifierType_Smoke,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -236,6 +237,23 @@ typedef struct BMeshModifierData {
 	float pad;
 	int type;
 } BMeshModifierData;
+
+
+/* Smoke modifier flags */
+#define MOD_SMOKE_TYPE_DOMAIN (1 << 0)
+#define MOD_SMOKE_TYPE_FLOW (1 << 1)
+#define MOD_SMOKE_TYPE_COLL (1 << 2)
+
+typedef struct SmokeModifierData {
+	ModifierData modifier;
+
+	struct SmokeDomainSettings *domain;
+	struct SmokeFlowSettings *flow; /* inflow, outflow, smoke objects */
+	struct SmokeCollSettings *coll; /* collision objects */
+	float time;
+	int type;  /* domain, inflow, outflow, ... */
+	struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
+} SmokeModifierData;
 
 typedef struct DisplaceModifierData {
 	ModifierData modifier;

@@ -164,13 +164,19 @@ static KeyBlock *add_keyblock(Scene *scene, Key *key)
 	kb= MEM_callocN(sizeof(KeyBlock), "Keyblock");
 	BLI_addtail(&key->block, kb);
 	kb->type= KEY_CARDINAL;
+	
 	tot= BLI_countlist(&key->block);
 	if(tot==1) strcpy(kb->name, "Basis");
 	else sprintf(kb->name, "Key %d", tot-1);
+	
+		// XXX this is old anim system stuff? (i.e. the 'index' of the shapekey)
 	kb->adrcode= tot-1;
 	
 	key->totkey++;
 	if(key->totkey==1) key->refkey= kb;
+	
+	kb->slidermin= 0.0f;
+	kb->slidermax= 1.0f;
 	
 	// XXX kb->pos is the confusing old horizontal-line RVK crap in old IPO Editor...
 	if(key->type == KEY_RELATIVE) 

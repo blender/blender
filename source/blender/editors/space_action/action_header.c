@@ -77,7 +77,7 @@ static void act_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *sa= CTX_wm_area(C);
-	SpaceAction *sact= (SpaceAction*)CTX_wm_space_data(C);
+	SpaceAction *sact= CTX_wm_space_action(C);
 	PointerRNA spaceptr;
 	
 	/* retrieve state */
@@ -167,6 +167,7 @@ static void act_edit_transformmenu(bContext *C, uiLayout *layout, void *arg_unus
 
 static void act_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_snap", "type", ACTKEYS_SNAP_CFRA);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_snap", "type", ACTKEYS_SNAP_NEAREST_FRAME);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_snap", "type", ACTKEYS_SNAP_NEAREST_SECOND);
@@ -175,6 +176,7 @@ static void act_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void act_edit_mirrormenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_mirror", "type", ACTKEYS_MIRROR_CFRA);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_mirror", "type", ACTKEYS_MIRROR_YAXIS);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_mirror", "type", ACTKEYS_MIRROR_XAXIS);
@@ -183,6 +185,7 @@ static void act_edit_mirrormenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void act_edit_handlesmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type", "type", HD_FREE);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type", "type", HD_AUTO);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_handle_type", "type", HD_VECT);
@@ -192,6 +195,7 @@ static void act_edit_handlesmenu(bContext *C, uiLayout *layout, void *arg_unused
 
 static void act_edit_ipomenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_interpolation_type", "type", BEZT_IPO_CONST);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_interpolation_type", "type", BEZT_IPO_LIN);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_interpolation_type", "type", BEZT_IPO_BEZ);
@@ -199,6 +203,7 @@ static void act_edit_ipomenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void act_edit_expomenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_extrapolation_type", "type", FCURVE_EXTRAPOLATE_CONSTANT);
 	uiItemEnumO(layout, NULL, 0, "ACT_OT_extrapolation_type", "type", FCURVE_EXTRAPOLATE_LINEAR);
 }
@@ -248,7 +253,7 @@ static void do_action_buttons(bContext *C, void *arg, int event)
 
 static void saction_idpoin_handle(bContext *C, ID *id, int event)
 {
-	SpaceAction *saction= (SpaceAction*)CTX_wm_space_data(C);
+	SpaceAction *saction= CTX_wm_space_action(C);
 	Object *obact= CTX_data_active_object(C);
 	
 	printf("actedit do id: \n");
@@ -296,7 +301,7 @@ static void saction_idpoin_handle(bContext *C, ID *id, int event)
 void action_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
-	SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(C);
+	SpaceAction *saction= CTX_wm_space_action(C);
 	bAnimContext ac;
 	uiBlock *block;
 	int xco, yco= 3, xmax;
@@ -381,27 +386,17 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOLAM, B_REDR, ICON_LAMP_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(saction->ads.filterflag), 0, 0, 0, 0, "Display Lamps");
 				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCAM, B_REDR, ICON_CAMERA_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(saction->ads.filterflag), 0, 0, 0, 0, "Display Cameras");
 				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCUR, B_REDR, ICON_CURVE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(saction->ads.filterflag), 0, 0, 0, 0, "Display Curves");
+				uiDefIconButBitI(block, TOGN, ADS_FILTER_NOPART, B_REDR, ICON_PARTICLE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(saction->ads.filterflag), 0, 0, 0, 0, "Display Particles");
 			uiBlockEndAlign(block);
 			xco += 30;
 		}
-		else if (saction->mode == SACTCONT_ACTION) { // not too appropriate for shapekeys atm...
-			/* NAME ETC */
-			//uiClearButLock();
-			
+		else if (saction->mode == SACTCONT_ACTION) {
 			/* NAME ETC  */
 			xco= uiDefIDPoinButs(block, CTX_data_main(C), NULL, (ID*)saction->action, ID_AC, &saction->pin, xco, yco,
 				saction_idpoin_handle, UI_ID_BROWSE|UI_ID_RENAME|UI_ID_ADD_NEW|UI_ID_DELETE|UI_ID_FAKE_USER|UI_ID_ALONE|UI_ID_PIN);
 			
 			xco += 8;
 		}
-		
-		/* COPY PASTE */
-		uiBlockBeginAlign(block);
-			uiDefIconButO(block, BUT, "ACT_OT_copy", WM_OP_INVOKE_REGION_WIN, ICON_COPYDOWN, xco,yco,XIC,YIC, "Copies the selected keyframes to the buffer.");
-			xco += XIC;
-			uiDefIconButO(block, BUT, "ACT_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEDOWN, xco,yco,XIC,YIC, "Pastes the keyframes from the buffer into the selected channels.");
-		uiBlockEndAlign(block);
-		xco += (XIC + 8);
 		
 		/* draw AUTOSNAP */
 		if (saction->mode != SACTCONT_GPENCIL) {
@@ -421,12 +416,13 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 			xco += (70 + 8);
 		}
 		
-		/* draw LOCK */
-			// XXX this feature is probably not relevant anymore!
-		//uiDefIconButS(block, ICONTOG, B_LOCK, ICON_UNLOCKED,	xco, yco, XIC, YIC, 
-		//			  &(saction->lock), 0, 0, 0, 0, 
-		//			  "Updates other affected window spaces automatically "
-		//			  "to reflect changes in real time");
+		/* COPY PASTE */
+		uiBlockBeginAlign(block);
+			uiDefIconButO(block, BUT, "ACT_OT_copy", WM_OP_INVOKE_REGION_WIN, ICON_COPYDOWN, xco,yco,XIC,YIC, "Copies the selected keyframes to the buffer.");
+			xco += XIC;
+			uiDefIconButO(block, BUT, "ACT_OT_paste", WM_OP_INVOKE_REGION_WIN, ICON_PASTEDOWN, xco,yco,XIC,YIC, "Pastes the keyframes from the buffer into the selected channels.");
+		uiBlockEndAlign(block);
+		xco += (XIC + 8);
 	}
 
 	/* always as last  */

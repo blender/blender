@@ -85,6 +85,11 @@ typedef enum PropertyFlag {
 	 * for pointers and collections. */
 	PROP_EDITABLE = 1,
 
+	/* this property is editable even if it is lib linked,
+	 * meaning it will get lost on reload, but it's useful
+	 * for editing. */
+	PROP_LIB_EXCEPTION = 65536,
+
 	/* animateable means the property can be driven by some
 	 * other input, be it animation curves, expressions, ..
 	 * properties are animateable by default except for pointers
@@ -116,6 +121,7 @@ typedef enum PropertyFlag {
 	PROP_IDPROPERTY = 1024,
 	PROP_RAW_ACCESS = 8192,
 	PROP_RAW_ARRAY = 16384,
+	PROP_FREE_POINTERS = 32768
 } PropertyFlag;
 
 typedef struct CollectionPropertyIterator {
@@ -201,7 +207,8 @@ typedef enum FunctionFlag {
 	/* internal flags */
 	FUNC_BUILTIN = 128,
 	FUNC_EXPORT = 256,
-	FUNC_RUNTIME = 512
+	FUNC_RUNTIME = 512,
+	FUNC_FREE_POINTERS = 1024
 } FunctionFlag;
 
 typedef void (*CallFunc)(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, ParameterList *parms);
@@ -217,7 +224,8 @@ typedef enum StructFlag {
 
 	/* internal flags */
 	STRUCT_RUNTIME = 4,
-	STRUCT_GENERATED = 8
+	STRUCT_GENERATED = 8,
+	STRUCT_FREE_POINTERS = 16
 } StructFlag;
 
 typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_function);
@@ -234,6 +242,19 @@ typedef struct StructRNA StructRNA;
  * Root RNA data structure that lists all struct types. */
 
 typedef struct BlenderRNA BlenderRNA;
+
+/* Extending
+ *
+ * This struct must be embedded in *Type structs in
+ * order to make then definable through RNA. */
+
+typedef struct ExtensionRNA {
+	void *data;
+	StructRNA *srna;
+
+	int (*call)(PointerRNA *, FunctionRNA *, ParameterList *);
+	void (*free)(void *data);
+} ExtensionRNA;
 
 #ifdef __cplusplus
 }

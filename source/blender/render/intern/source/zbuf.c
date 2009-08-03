@@ -2154,7 +2154,7 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 						ma= vlr->mat;
 						nofill= ma->mode & (MA_ZTRA|MA_ONLYCAST);
 						env= (ma->mode & MA_ENV);
-						wire= (ma->mode & MA_WIRE);
+						wire= (ma->material_type == MA_TYPE_WIRE);
 						
 						for(zsample=0; zsample<samples; zsample++) {
 							if(ma->mode & MA_ZINV || (zmaskpass && neg_zmask))
@@ -2341,7 +2341,7 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 				c2= zbuf_shadow_project(cache, vlr->v2->index, obwinmat, vlr->v2->co, ho2);
 				c3= zbuf_shadow_project(cache, vlr->v3->index, obwinmat, vlr->v3->co, ho3);
 
-				if((ma->mode & MA_WIRE) || (vlr->flag & R_STRAND)) {
+				if((ma->material_type == MA_TYPE_WIRE) || (vlr->flag & R_STRAND)) {
 					if(vlr->v4) {
 						c4= zbuf_shadow_project(cache, vlr->v4->index, obwinmat, vlr->v4->co, ho4);
 						zbufclipwire(&zspan, 0, a+1, vlr->ec, ho1, ho2, ho3, ho4, c1, c2, c3, c4);
@@ -2571,7 +2571,7 @@ void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(vo
 						ma= vlr->mat;
 						nofill= ma->mode & MA_ONLYCAST;
 						env= (ma->mode & MA_ENV);
-						wire= (ma->mode & MA_WIRE);
+						wire= (ma->material_type == MA_TYPE_WIRE);
 					}
 				}
 				else {
@@ -3357,7 +3357,7 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, Re
 							zspan= &zspans[zsample];
 							zspan->polygon_offset= polygon_offset;
 				
-							if(ma->mode & (MA_WIRE)) {
+							if(ma->material_type == MA_TYPE_WIRE) {
 								if(v4)
 									zbufclipwire(zspan, i, zvlnr, vlr->ec, ho1, ho2, ho3, ho4, c1, c2, c3, c4);
 								else

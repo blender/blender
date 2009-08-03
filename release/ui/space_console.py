@@ -6,7 +6,6 @@ del bpy_ops
 
 class CONSOLE_HT_header(bpy.types.Header):
 	__space_type__ = "CONSOLE"
-	__idname__ = "CONSOLE_HT_header"
 
 	def draw(self, context):
 		sc = context.space_data
@@ -18,7 +17,7 @@ class CONSOLE_HT_header(bpy.types.Header):
 		row = layout.row()
 		row.itemR(sc, "console_type", expand=True)
 
-		if sc.type == 'REPORT':
+		if sc.console_type == 'REPORT':
 			
 			if context.area.show_menus:
 				row = layout.row()
@@ -50,6 +49,8 @@ class CONSOLE_MT_console(bpy.types.Menu):
 
 		layout.column()
 		layout.itemO("console.clear")
+		layout.itemO("console.copy")
+		layout.itemO("console.paste")
 
 class CONSOLE_MT_report(bpy.types.Menu):
 	__space_type__ = "CONSOLE"
@@ -144,7 +145,7 @@ class CONSOLE_OT_exec(bpy.types.Operator):
 		except:
 			return ('CANCELLED',)
 		
-		if sc.type != 'PYTHON':
+		if sc.console_type != 'PYTHON':
 			return ('CANCELLED',)
 		
 		namespace, console, stdout, stderr = get_console(hash(context.region))
@@ -182,7 +183,7 @@ class CONSOLE_OT_exec(bpy.types.Operator):
 		else:				sc.prompt = self.PROMPT
 		
 		# insert a new blank line
-		bpy.ops.console.history_append(text="", current_character=0)
+		bpy.ops.console.history_append(text="", current_character=0, remove_duplicates= True)
 		
 		# Insert the output into the editor
 		# not quite correct because the order might have changed, but ok 99% of the time.
@@ -416,7 +417,7 @@ class CONSOLE_OT_autocomplete(bpy.types.Operator):
 		if not console:
 			return ('CANCELLED',)
 		
-		if sc.type != 'PYTHON':
+		if sc.console_type != 'PYTHON':
 			return ('CANCELLED',)
 		
 		# fake cursor, use for autocomp func.

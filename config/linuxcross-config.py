@@ -82,6 +82,7 @@ BF_GETTEXT_LIB = 'gnu_gettext'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
 WITH_BF_GAMEENGINE = False
+WITH_BF_PLAYER = False
 
 WITH_BF_ODE = True
 BF_ODE = LIBDIR + '/ode'

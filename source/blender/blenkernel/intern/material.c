@@ -80,10 +80,6 @@ void free_material(Material *ma)
 {
 	MTex *mtex;
 	int a;
-
-#ifndef DISABLE_PYTHON
-	BPY_free_scriptlink(&ma->scriptlink);
-#endif
 	
 	for(a=0; a<MAX_MTEX; a++) {
 		mtex= ma->mtex[a];
@@ -210,10 +206,6 @@ Material *copy_material(Material *ma)
 			id_us_plus((ID *)man->mtex[a]->tex);
 		}
 	}
-
-#ifndef DISABLE_PYTHON	
-	BPY_copy_scriptlink(&ma->scriptlink);
-#endif
 	
 	if(ma->ramp_col) man->ramp_col= MEM_dupallocN(ma->ramp_col);
 	if(ma->ramp_spec) man->ramp_spec= MEM_dupallocN(ma->ramp_spec);
@@ -671,6 +663,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 			ma->mapto |= mtex->mapto;
 			if(r_mode & R_OSA) {
 				if ELEM3(mtex->tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP) ma->texco |= TEXCO_OSA;
+				else if(mtex->texflag & MTEX_NEW_BUMP) ma->texco |= TEXCO_OSA; // NEWBUMP: need texture derivatives for procedurals as well
 			}
 			
 			if(ma->texco & (TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM|TEXCO_STRAND|TEXCO_STRESS)) needuv= 1;

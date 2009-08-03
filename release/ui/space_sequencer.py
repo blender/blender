@@ -8,7 +8,6 @@ def act_strip(context):
 # Header
 class SEQUENCER_HT_header(bpy.types.Header):
 	__space_type__ = "SEQUENCE_EDITOR"
-	__idname__ = "SEQUENCE_HT_header"
 
 	def draw(self, context):
 		
@@ -150,10 +149,8 @@ class SEQUENCER_MT_add(bpy.types.Menu):
 		layout.column()
 		layout.itemO("sequencer.scene_strip_add", text="Scene")
 		layout.itemO("sequencer.movie_strip_add", text="Movie")
-		layout.item_booleanO("sequencer.movie_strip_add", "sound", True, text="Movie & Sound") # FFMPEG ONLY
 		layout.itemO("sequencer.image_strip_add", text="Image")
-		layout.itemO("sequencer.sound_strip_add", text="Sound (Ram)")
-		layout.item_booleanO("sequencer.sound_strip_add", "hd", True, text="Sound (Streaming)") # FFMPEG ONLY
+		layout.itemO("sequencer.sound_strip_add", text="Sound")
 		
 		layout.itemM("SEQUENCER_MT_add_effect")
 
@@ -263,7 +260,6 @@ class SequencerButtonsPanel_Output(bpy.types.Panel):
 
 class SEQUENCER_PT_edit(SequencerButtonsPanel):
 	__label__ = "Edit Strip"
-	__idname__ = "SEQUENCER_PT_edit"
 
 	def draw(self, context):
 		layout = self.layout
@@ -302,7 +298,6 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 		
 class SEQUENCER_PT_effect(SequencerButtonsPanel):
 	__label__ = "Effect Strip"
-	__idname__ = "SEQUENCER_PT_effect"
 
 	def poll(self, context):
 		if context.space_data.display_mode != 'SEQUENCER':
@@ -395,7 +390,6 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
 
 class SEQUENCER_PT_input(SequencerButtonsPanel):
 	__label__ = "Strip Input"
-	__idname__ = "SEQUENCER_PT_input"
 	
 	def poll(self, context):
 		if context.space_data.display_mode != 'SEQUENCER':
@@ -451,7 +445,6 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel):
 	__label__ = "Filter"
-	__idname__ = "SEQUENCER_PT_filter"
 	
 	def poll(self, context):
 		if context.space_data.display_mode != 'SEQUENCER':
@@ -500,7 +493,6 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
 
 class SEQUENCER_PT_proxy(SequencerButtonsPanel):
 	__label__ = "Proxy"
-	__idname__ = "SEQUENCER_PT_proxy"
 	
 	def poll(self, context):
 		if context.space_data.display_mode != 'SEQUENCER':
@@ -533,7 +525,6 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel):
 
 class SEQUENCER_PT_view(SequencerButtonsPanel_Output):
 	__label__ = "View Settings"
-	__idname__ = "SEQUENCER_PT_view"
 
 	def draw(self, context):
 		st = context.space_data
@@ -560,4 +551,3 @@ bpy.types.register(SEQUENCER_PT_filter)
 bpy.types.register(SEQUENCER_PT_proxy)
 
 bpy.types.register(SEQUENCER_PT_view) # view panels
-

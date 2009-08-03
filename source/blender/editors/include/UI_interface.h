@@ -59,6 +59,7 @@ struct CurveMapping;
 struct Image;
 struct ImageUser;
 struct uiWidgetColors;
+struct Tex;
 
 typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
@@ -141,6 +142,7 @@ typedef struct uiLayout uiLayout;
 #define UI_BUT_ANIMATED_KEY	(1<<21)
 #define UI_BUT_DRIVEN		(1<<22)
 #define UI_BUT_INACTIVE		(1<<23)
+#define UI_BUT_LAST_ACTIVE	(1<<24)
 
 #define UI_PANEL_WIDTH			340
 #define UI_COMPACT_PANEL_WIDTH	160
@@ -205,6 +207,8 @@ typedef struct uiLayout uiLayout;
 #define HSVCIRCLE	(42<<9)
 #define LISTBOX		(43<<9)
 #define LISTROW		(44<<9)
+#define HOTKEYEVT	(45<<9)
+
 #define BUTTYPE		(63<<9)
 
 /* Drawing
@@ -311,6 +315,10 @@ int		uiButGetRetVal		(uiBut *but);
 
 void	uiButSetFlag		(uiBut *but, int flag);
 void	uiButClearFlag		(uiBut *but, int flag);
+
+/* special button case, only draw it when used actively, for outliner etc */
+int		uiButActiveOnly		(const struct bContext *C, uiBlock *block, uiBut *but);
+
 
 /* Buttons
  *
@@ -421,6 +429,7 @@ uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int 
 uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int icon, char *str, short x1, short y1, short x2, short y2, char *tip);
 
 void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip);
+uiBut *uiDefHotKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *keypoin, short *modkeypoin, char *tip);
 
 uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxlen, short x1, short y1, short x2, short y2, char *tip);
 
@@ -473,9 +482,9 @@ int		uiSearchBoxhHeight(void);
 
 void	uiBlockSetHandleFunc(uiBlock *block,	uiBlockHandleFunc func, void *arg);
 void	uiBlockSetButmFunc	(uiBlock *block,	uiMenuHandleFunc func, void *arg);
-
 void	uiBlockSetFunc		(uiBlock *block,	uiButHandleFunc func, void *arg1, void *arg2);
-void	uiBlockSetRenameFunc(uiBlock *block,	uiButHandleRenameFunc func, void *arg1);
+
+void	uiButSetRenameFunc	(uiBut *but,		uiButHandleRenameFunc func, void *arg1);
 void	uiButSetFunc		(uiBut *but,		uiButHandleFunc func, void *arg1, void *arg2);
 void	uiButSetNFunc		(uiBut *but,		uiButHandleNFunc func, void *argN, void *arg2);
 
@@ -622,11 +631,13 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplatePreview(uiLayout *layout, struct ID *id, struct ID *parent);
 void uiTemplateColorRamp(uiLayout *layout, struct ColorBand *coba, int expand);
 void uiTemplateCurveMapping(uiLayout *layout, struct CurveMapping *cumap, int type);
+void uiTemplateTriColorSet(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
 void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);
 void uiTemplateOperatorSearch(uiLayout *layout);
 void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);
+void uiTemplateTextureImage(uiLayout *layout, struct bContext *C, struct Tex *tex);
 
 typedef struct uiListItem {
 	struct uiListItem *next, *prev;
@@ -664,9 +675,9 @@ void uiItemMenuF(uiLayout *layout, char *name, int icon, uiMenuCreateFunc func);
 void uiItemMenuEnumO(uiLayout *layout, char *name, int icon, char *opname, char *propname);
 void uiItemMenuEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname);
 
-/* Animation */
-
+/* Helpers for Operators */
 void uiAnimContextProperty(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index);
+void uiFileBrowseContextProperty(const struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop);
 
 /* Styled text draw */
 void uiStyleFontSet(struct uiFontStyle *fs);

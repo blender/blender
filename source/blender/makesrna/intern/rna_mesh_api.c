@@ -130,7 +130,7 @@ static void rna_Mesh_transform(Mesh *me, float *mat)
 	MVert *mvert= me->mvert;
 
 	for(i= 0; i < me->totvert; i++, mvert++) {
-		Mat4MulVecfl(mat, mvert->co);
+		Mat4MulVecfl((float (*)[4])mat, mvert->co);
 	}
 }
 

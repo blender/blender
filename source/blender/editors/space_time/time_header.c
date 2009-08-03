@@ -53,6 +53,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RNA_access.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -67,7 +69,8 @@
 
 /* ************************ header time area region *********************** */
 
-static ARegion *time_top_left_3dwindow(bScreen *screen)
+/* exported for use in screen_ops.c */
+ARegion *time_top_left_3dwindow(bScreen *screen)
 {
 	ARegion *aret= NULL;
 	ScrArea *sa;
@@ -94,7 +97,7 @@ static void do_time_redrawmenu(bContext *C, void *arg, int event)
 	
 	if(event < 1001) {
 		bScreen *screen= CTX_wm_screen(C);
-		SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+		SpaceTime *stime= CTX_wm_space_time(C);
 		
 		stime->redraws ^= event;
 		
@@ -108,22 +111,15 @@ static void do_time_redrawmenu(bContext *C, void *arg, int event)
 				sad->ar= time_top_left_3dwindow(screen);
 		}
 	}
-	else {
-		if(event==1001) {
-//			button(&CTX_data_scene(C)->r.frs_sec,1,120,"FPS:");
-		}
-	}
 }
 
 
 static uiBlock *time_redrawmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *curarea= CTX_wm_area(C);
-	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
-	Scene *scene= CTX_data_scene(C);
+	SpaceTime *stime= CTX_wm_space_time(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120, icon;
-	char str[32];
 	
 	block= uiBeginBlock(C, ar, "header time_redrawmenu", UI_EMBOSSP);
 	uiBlockSetButmFunc(block, do_time_redrawmenu, NULL);
@@ -155,15 +151,9 @@ static uiBlock *time_redrawmenu(bContext *C, ARegion *ar, void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	sprintf(str, "Set Frames/Sec (%d/%f)", scene->r.frs_sec, scene->r.frs_sec_base);
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, str,	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1001, "");
-	
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
 	if(stime->redraws & TIME_CONTINUE_PHYSICS) icon= ICON_CHECKBOX_HLT;
 	else icon= ICON_CHECKBOX_DEHLT;
 	uiDefIconTextBut(block, BUTM, 1, icon, "Continue Physics",      0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_CONTINUE_PHYSICS, "During playblack, continue physics simulations regardless of the frame number");
-	
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -182,7 +172,7 @@ static uiBlock *time_redrawmenu(bContext *C, ARegion *ar, void *arg_unused)
 static void do_time_viewmenu(bContext *C, void *arg, int event)
 {
 	ScrArea *curarea= CTX_wm_area(C);
-	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+	SpaceTime *stime= CTX_wm_space_time(C);
 	View2D *v2d= UI_view2d_fromcontext_rwin(C);
 	Scene *scene= CTX_data_scene(C);
 	int first;
@@ -215,12 +205,6 @@ static void do_time_viewmenu(bContext *C, void *arg, int event)
 		case 7:
 			//nextprev_marker(-1);
 			break;
-		case 8:
-			//nextprev_timeline_key(1);
-			break;
-		case 9:
-			//nextprev_timeline_key(-1);
-			break;
 		case 10:
 			//timeline_frame_to_center();
 			break;
@@ -240,7 +224,7 @@ static void do_time_viewmenu(bContext *C, void *arg, int event)
 static uiBlock *time_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
 {
 	ScrArea *curarea= CTX_wm_area(C);
-	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+	SpaceTime *stime= CTX_wm_space_time(C);
 	View2D *v2d= UI_view2d_fromcontext_rwin(C);
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
@@ -371,16 +355,10 @@ static uiBlock *time_framemenu(bContext *C, ARegion *ar, void *arg_unused)
 
 
 #define B_REDRAWALL		750
-#define B_TL_REW		751
 #define B_TL_PLAY		752
 #define B_TL_RPLAY		760
-#define B_TL_FF			753
-#define B_TL_PREVKEY	754
-#define B_TL_NEXTKEY	755
 #define B_TL_STOP		756
 #define B_TL_PREVIEWON	757
-#define B_TL_INSERTKEY	758
-#define B_TL_DELETEKEY	759
 
 #define B_FLIPINFOMENU 0
 #define B_NEWFRAME 0
@@ -389,8 +367,6 @@ static uiBlock *time_framemenu(bContext *C, ARegion *ar, void *arg_unused)
 
 void do_time_buttons(bContext *C, void *arg, int event)
 {
-	bScreen *screen= CTX_wm_screen(C);
-	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
 	Scene *scene= CTX_data_scene(C);
 	
 	switch(event) {
@@ -400,53 +376,6 @@ void do_time_buttons(bContext *C, void *arg, int event)
 		case B_NEWFRAME:
 			WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 			break;
-		case B_TL_REW:
-			scene->r.cfra= PSFRA;
-			WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
-			//update_for_newframe();
-			break;
-		case B_TL_PLAY:
-			ED_screen_animation_timer(C, stime->redraws, 1);
-			
-			/* update region if TIME_REGION was set, to leftmost 3d window */
-			if(screen->animtimer && (stime->redraws & TIME_REGION)) {
-				wmTimer *wt= screen->animtimer;
-				ScreenAnimData *sad= wt->customdata;
-				
-				sad->ar= time_top_left_3dwindow(screen);
-			}
-			
-			break;
-		case B_TL_RPLAY:
-			ED_screen_animation_timer(C, stime->redraws, -1);
-			
-			/* update region if TIME_REGION was set, to leftmost 3d window */
-			if(screen->animtimer && (stime->redraws & TIME_REGION)) {
-				wmTimer *wt= screen->animtimer;
-				ScreenAnimData *sad= wt->customdata;
-				
-				sad->ar= time_top_left_3dwindow(screen);
-			}
-			
-			break;
-		case B_TL_STOP:
-			ED_screen_animation_timer(C, 0, 0);
-			break;
-		case B_TL_FF:
-			/* end frame */
-			scene->r.cfra= PEFRA;
-			WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
-			//update_for_newframe();
-			break;
-		case B_TL_PREVKEY:
-			/* previous keyframe */
-			//nextprev_timeline_key(-1);
-			break;
-		case B_TL_NEXTKEY:
-			/* next keyframe */
-			//nextprev_timeline_key(1);
-			break;
-			
 		case B_TL_PREVIEWON:
 			if (scene->r.psfra) {
 				/* turn on preview range */
@@ -461,17 +390,6 @@ void do_time_buttons(bContext *C, void *arg, int event)
 			//BIF_undo_push("Set anim-preview range");
 			WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
 			break;
-			
-		case B_TL_INSERTKEY:
-			/* insert keyframe */
-			//common_insertkey();
-			//allqueue(REDRAWTIME, 1);
-			break;
-		case B_TL_DELETEKEY:
-			/* delete keyframe */
-			//common_deletekey();
-			//allqueue(REDRAWTIME, 1);
-			break;
 	}
 }
 
@@ -479,9 +397,11 @@ void do_time_buttons(bContext *C, void *arg, int event)
 void time_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
-	SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+	SpaceTime *stime= CTX_wm_space_time(C);
 	Scene *scene= CTX_data_scene(C);
+	wmTimer *animtimer= CTX_wm_screen(C)->animtimer;
 	uiBlock *block;
+	uiBut *but;
 	int xco, yco= 3;
 	char *menustr= NULL;
 	
@@ -547,7 +467,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	}
 	uiBlockEndAlign(block);
 	
-	xco += (short)(4.5 * XIC + 16);
+	xco += (short)(4.5 * XIC);
 	
 	/* MINAFRAMEF not MINFRAMEF, since MINAFRAMEF allows to set current frame negative 
 	 * to facilitate easier keyframing in some situations
@@ -557,58 +477,69 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 			  &(scene->r.cfra), MINAFRAMEF, MAXFRAMEF, 0, 0,
 			  "Displays Current Frame of animation");
 	
-	xco += (short)(3.5 * XIC + 16);
-	
-	uiDefIconBut(block, BUT, B_TL_REW, ICON_REW,
-				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Skip to Start frame (Shift DownArrow)");
-	xco+= XIC+4;
-	uiDefIconBut(block, BUT, B_TL_PREVKEY, ICON_PREV_KEYFRAME,
-				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Skip to previous keyframe (Ctrl PageDown)");
-	xco+= XIC+4;
-	
-	if(CTX_wm_screen(C)->animtimer) {
-		/* pause button is drawn centered between the two other buttons for now (saves drawing 2 buttons, or having position changes) */
-		xco+= XIC/2 + 2;
-		
-		uiDefIconBut(block, BUT, B_TL_STOP, ICON_PAUSE,
-					 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Stop Playing Timeline");
-					 
-		xco+= XIC/2 + 2;
-	}
-	else {	   
-			// FIXME: the icon for this is crap
-		uiDefIconBut(block, BUT, B_TL_RPLAY, ICON_REW/*ICON_PLAY*/,
-					 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Play Timeline in Reverse");
-					 
-		xco+= XIC+4;
-					 
-		uiDefIconBut(block, BUT, B_TL_PLAY, ICON_PLAY,
-					 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Play Timeline ");
-	}
-	xco+= XIC+4;
-	
-	uiDefIconBut(block, BUT, B_TL_NEXTKEY, ICON_NEXT_KEYFRAME,
-				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Skip to next keyframe (Ctrl PageUp)");
-	xco+= XIC+4;
-	uiDefIconBut(block, BUT, B_TL_FF, ICON_FF,
-				 xco, yco, XIC, YIC, 0, 0, 0, 0, 0, "Skip to End frame (Shift UpArrow)");
-	xco+= XIC+8;
+	xco += (short)(3.5 * XIC);
 	
 	uiBlockBeginAlign(block);
-		uiDefIconButBitS(block, TOG, AUTOKEY_ON, B_REDRAWALL, ICON_REC,
-						 xco, yco, XIC, YIC, &(scene->toolsettings->autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
+	
+	but= uiDefIconButO(block, BUT, "SCREEN_OT_frame_jump", WM_OP_INVOKE_REGION_WIN, ICON_REW, xco,yco,XIC,YIC, "Skip to Start frame (Shift DownArrow)");
+		RNA_boolean_set(uiButGetOperatorPtrRNA(but), "end", 0);
+	xco+= XIC;
+	
+	but= uiDefIconButO(block, BUT, "SCREEN_OT_keyframe_jump", WM_OP_INVOKE_REGION_WIN, ICON_PREV_KEYFRAME, xco,yco,XIC,YIC, "Skip to previous keyframe (Ctrl PageDown)");
+		RNA_boolean_set(uiButGetOperatorPtrRNA(but), "next", 0);
+	xco+= XIC;
+	
+	if (animtimer) {
+		/* pause button 2*size to keep buttons in place */
+		but=uiDefIconButO(block, BUT, "SCREEN_OT_animation_play", WM_OP_INVOKE_REGION_WIN, ICON_PAUSE, xco,yco,XIC*2,YIC, "Stop Playing Timeline");
+		
 		xco+= XIC;
-		if (IS_AUTOKEY_ON(scene)) {
-			uiDefButS(block, MENU, B_REDRAWALL, 
-					  "Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
-					  xco, yco, (int)5.5*XIC, YIC, &(scene->toolsettings->autokey_mode), 0, 1, 0, 0, 
-					  "Mode of automatic keyframe insertion for Objects and Bones");
-			xco+= (6*XIC);
-		}
+	}
+	else {	   
+		but=uiDefIconButO(block, BUT, "SCREEN_OT_animation_play", WM_OP_INVOKE_REGION_WIN, ICON_PLAY_REVERSE, xco,yco,XIC,YIC, "Play Timeline in Reverse");
+			RNA_boolean_set(uiButGetOperatorPtrRNA(but), "reverse", 1);	
+		xco+= XIC;
+					 
+		but=uiDefIconButO(block, BUT, "SCREEN_OT_animation_play", WM_OP_INVOKE_REGION_WIN, ICON_PLAY, xco,yco,XIC,YIC, "Play Timeline");
+			RNA_boolean_set(uiButGetOperatorPtrRNA(but), "reverse", 0);	
+	}
+	xco+= XIC;
+	
+	but= uiDefIconButO(block, BUT, "SCREEN_OT_keyframe_jump", WM_OP_INVOKE_REGION_WIN, ICON_NEXT_KEYFRAME, xco,yco,XIC,YIC, "Skip to next keyframe (Ctrl PageUp)");
+		RNA_boolean_set(uiButGetOperatorPtrRNA(but), "next", 1);
+	xco+= XIC;
+	
+	but= uiDefIconButO(block, BUT, "SCREEN_OT_frame_jump", WM_OP_INVOKE_REGION_WIN, ICON_FF, xco,yco,XIC,YIC, "Skip to End frame (Shift UpArrow)");
+		RNA_boolean_set(uiButGetOperatorPtrRNA(but), "end", 1);
+	xco+= XIC;
 	uiBlockEndAlign(block);
+
+	xco+= 1.5*XIC;
 	
-	xco+= 16;
+	uiBlockBeginAlign(block);
+	uiDefIconButBitS(block, TOG, AUTOKEY_ON, B_REDRAWALL, ICON_REC,
+					 xco, yco, XIC, YIC, &(scene->toolsettings->autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
+	xco+= XIC;
 	
+	if (IS_AUTOKEY_ON(scene)) {
+		uiDefButS(block, MENU, B_REDRAWALL, 
+				  "Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
+				  xco, yco, (int)5.5*XIC, YIC, &(scene->toolsettings->autokey_mode), 0, 1, 0, 0, 
+				  "Mode of automatic keyframe insertion for Objects and Bones");
+		xco+= (5.5*XIC);
+		
+		if (animtimer) {
+			uiDefButBitS(block, TOG, ANIMRECORD_FLAG_WITHNLA, B_REDRAWALL, "Layered",	
+				  xco,yco, XIC*2.5, YIC,
+				  &(scene->toolsettings->autokey_flag),0, 1, 0, 0,
+				  "Add a new NLA Track + Strip for every loop/pass made over the animation to allow non-destructive tweaking.");
+			xco+= (3*XIC);
+		}
+	}
+	else
+		xco+= 6;
+
+	uiBlockEndAlign(block);
 	
 	menustr= ANIM_build_keyingsets_menu(&scene->keyingsets, 0);
 	uiDefButI(block, MENU, B_DIFF, 
@@ -616,16 +547,16 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 				  xco, yco, (int)5.5*XIC, YIC, &(scene->active_keyingset), 0, 1, 0, 0, 
 				  "Active Keying Set (i.e. set of channels to Insert Keyframes for)");
 	MEM_freeN(menustr);
-	xco+= (6*XIC);
+	xco+= (5.5*XIC);
 	
 	uiBlockBeginAlign(block);
-		uiDefIconButO(block, BUT, "ANIM_OT_delete_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_DEHLT, xco,yco,XIC,YIC, "Delete Keyframes for the Active Keying Set (Alt-I)");
-		xco += XIC;
-		uiDefIconButO(block, BUT, "ANIM_OT_insert_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_HLT, xco,yco,XIC,YIC, "Insert Keyframes for the Active Keying Set (I)");
-		xco += XIC;
+	uiDefIconButO(block, BUT, "ANIM_OT_delete_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_DEHLT, xco,yco,XIC,YIC, "Delete Keyframes for the Active Keying Set (Alt-I)");
+	xco += XIC;
+	uiDefIconButO(block, BUT, "ANIM_OT_insert_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_HLT, xco,yco,XIC,YIC, "Insert Keyframes for the Active Keying Set (I)");
+	xco += XIC;
 	uiBlockEndAlign(block);
 	
-	xco+= 16;
+	xco+= XIC;
 	
 	uiDefIconButBitI(block, TOG, TIME_WITH_SEQ_AUDIO, B_DIFF, ICON_SPEAKER,
 					 xco, yco, XIC, YIC, &(stime->redraws), 0, 0, 0, 0, "Play back and sync with audio from Sequence Editor");

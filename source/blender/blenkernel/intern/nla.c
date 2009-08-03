@@ -375,7 +375,7 @@ static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short
 			return strip->actend - (repeatsNum * actlength * scale) 
 					- (fmod(cframe - strip->start, actlength*scale) / scale);
 		}
-		else {
+		else /* if (mode == NLATIME_CONVERT_EVAL) */{
 			if (IS_EQ(cframe, strip->end) && IS_EQ(strip->repeat, ((int)strip->repeat))) {
 				/* this case prevents the motion snapping back to the first frame at the end of the strip 
 				 * by catching the case where repeats is a whole number, which means that the end of the strip
@@ -993,6 +993,28 @@ NlaStrip *BKE_nlastrip_find_active (NlaTrack *nlt)
 	return NULL;
 }
 
+/* Make the given NLA-Strip the active one within the given block */
+void BKE_nlastrip_set_active (AnimData *adt, NlaStrip *strip)
+{
+	NlaTrack *nlt;
+	NlaStrip *nls;
+	
+	/* sanity checks */
+	if (adt == NULL)
+		return;
+	
+	/* loop over tracks, deactivating*/
+	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
+		for (nls= nlt->strips.first; nls; nls= nls->next)  {
+			if (nls != strip)
+				nls->flag &= ~NLASTRIP_FLAG_ACTIVE;
+			else
+				nls->flag |= NLASTRIP_FLAG_ACTIVE;
+		}
+	}
+}
+
+
 /* Does the given NLA-strip fall within the given bounds (times)? */
 short BKE_nlastrip_within_bounds (NlaStrip *strip, float min, float max)
 {
@@ -1229,13 +1251,52 @@ void BKE_nlastrip_validate_name (AnimData *adt, NlaStrip *strip)
 
 /* ---- */
 
+/* Get strips which overlap the given one at the start/end of its range 
+ *	- strip: strip that we're finding overlaps for
+ *	- track: nla-track that the overlapping strips should be found from
+ *	- start, end: frames for the offending endpoints
+ */
+static void nlastrip_get_endpoint_overlaps (NlaStrip *strip, NlaTrack *track, float **start, float **end)
+{
+	NlaStrip *nls;
+	
+	/* find strips that overlap over the start/end of the given strip,
+	 * but which don't cover the entire length 
+	 */
+	// TODO: this scheme could get quite slow for doing this on many strips...
+	for (nls= track->strips.first; nls; nls= nls->next) {
+		/* check if strip overlaps (extends over or exactly on) the entire range of the strip we're validating */
+		if ((nls->start <= strip->start) && (nls->end >= strip->end)) {
+			*start= NULL;
+			*end= NULL;
+			return;
+		}
+		
+		/* check if strip doesn't even occur anywhere near... */
+		if (nls->end < strip->start)
+			continue; /* skip checking this strip... not worthy of mention */
+		if (nls->start > strip->end)
+			return; /* the range we're after has already passed */
+			
+		/* if this strip is not part of an island of continuous strips, it can be used
+		 *	- this check needs to be done for each end of the strip we try and use...
+		 */
+		if ((nls->next == NULL) || IS_EQ(nls->next->start, nls->end)==0) {
+			if ((nls->end > strip->start) && (nls->end < strip->end))
+				*start= &nls->end;
+		}
+		if ((nls->prev == NULL) || IS_EQ(nls->prev->end, nls->start)==0) {
+			if ((nls->start < strip->end) && (nls->start > strip->start))
+				*end= &nls->start;
+		}
+	}
+}
+
 /* Determine auto-blending for the given strip */
 void BKE_nlastrip_validate_autoblends (NlaTrack *nlt, NlaStrip *nls)
 {
-	NlaTrack *track;
-	NlaStrip *strip;
-	//float *ps=NULL, *pe=NULL;
-	//float *ns=NULL, *ne=NULL;
+	float *ps=NULL, *pe=NULL;
+	float *ns=NULL, *ne=NULL;
 	
 	/* sanity checks */
 	if ELEM(NULL, nls, nlt)
@@ -1246,40 +1307,74 @@ void BKE_nlastrip_validate_autoblends (NlaTrack *nlt, NlaStrip *nls)
 		return;
 	
 	/* get test ranges */
-	if (nlt->prev) {
-		/* find strips that overlap over the start/end of the given strip,
-		 * but which don't cover the entire length 
-		 */
-		track= nlt->prev;
-		for (strip= track->strips.first; strip; strip= strip->next) {
-			
-		}
+	if (nlt->prev)
+		nlastrip_get_endpoint_overlaps(nls, nlt->prev, &ps, &pe);
+	if (nlt->next)
+		nlastrip_get_endpoint_overlaps(nls, nlt->next, &ns, &ne);
+		
+	/* set overlaps for this strip 
+	 *	- don't use the values obtained though if the end in question 
+	 *	  is directly followed/preceeded by another strip, forming an 
+	 *	  'island' of continuous strips
+	 */
+	if ( (ps || ns) && ((nls->prev == NULL) || IS_EQ(nls->prev->end, nls->start)==0) ) 
+	{
+		/* start overlaps - pick the largest overlap */
+		if ( ((ps && ns) && (*ps > *ns)) || (ps) )
+			nls->blendin= *ps - nls->start;
+		else
+			nls->blendin= *ns - nls->start;
 	}
-	if (nlt->next) {
-		/* find strips that overlap over the start/end of the given strip,
-		 * but which don't cover the entire length 
-		 */
-		track= nlt->next;
-		for (strip= track->strips.first; strip; strip= strip->next) {
-			
-		}
+	else /* no overlap allowed/needed */
+		nls->blendin= 0.0f;
+		
+	if ( (pe || ne) && ((nls->next == NULL) || IS_EQ(nls->next->start, nls->end)==0) ) 
+	{
+		/* end overlaps - pick the largest overlap */
+		if ( ((pe && ne) && (*pe > *ne)) || (pe) )
+			nls->blendout= nls->end - *pe;
+		else
+			nls->blendout= nls->end - *ne;
 	}
+	else /* no overlap allowed/needed */
+		nls->blendout= 0.0f;
 }
 
 /* Ensure that auto-blending and other settings are set correctly */
 void BKE_nla_validate_state (AnimData *adt)
 {
-	NlaStrip *strip;
+	NlaStrip *strip, *fstrip=NULL;
 	NlaTrack *nlt;
 	
 	/* sanity checks */
 	if ELEM(NULL, adt, adt->nla_tracks.first)
 		return;
 		
-	/* adjust blending values for auto-blending */
+	/* adjust blending values for auto-blending, and also do an initial pass to find the earliest strip */
 	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
 		for (strip= nlt->strips.first; strip; strip= strip->next) {
+			/* auto-blending first */
 			BKE_nlastrip_validate_autoblends(nlt, strip);
+			
+			/* extend mode - find first strip */
+			if ((fstrip == NULL) || (strip->start < fstrip->start))
+				fstrip= strip;
+		}
+	}
+	
+	/* second pass over the strips to adjust the extend-mode to fix any problems */
+	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next) {
+		for (strip= nlt->strips.first; strip; strip= strip->next) {
+			/* apart from 'nothing' option which user has to explicitly choose, we don't really know if 
+			 * we should be overwriting the extend setting (but assume that's what the user wanted)
+			 */
+			// TODO: 1 solution is to tie this in with auto-blending...
+			if (strip->extendmode != NLASTRIP_EXTEND_NOTHING) {
+				if (strip == fstrip)
+					strip->extendmode= NLASTRIP_EXTEND_HOLD;
+				else
+					strip->extendmode= NLASTRIP_EXTEND_HOLD_FORWARD;
+			}
 		}
 	}
 }
@@ -1330,6 +1425,9 @@ void BKE_nla_action_pushdown (AnimData *adt)
 			// FIXME: this needs to be more automated, since user can rearrange strips
 			strip->extendmode= NLASTRIP_EXTEND_HOLD_FORWARD;
 		}
+		
+		/* make strip the active one... */
+		BKE_nlastrip_set_active(adt, strip);
 	}
 }
 

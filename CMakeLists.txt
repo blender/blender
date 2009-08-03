@@ -339,17 +339,29 @@ IF(APPLE)
     ENDIF(OPENAL_FOUND)
   ENDIF(WITH_OPENAL)
 
-  SET(PYTHON /System/Library/Frameworks/Python.framework/Versions/)
-  SET(PYTHON_VERSION 2.5)
-  SET(PYTHON_INC "${PYTHON}${PYTHON_VERSION}/include/python${PYTHON_VERSION}" CACHE STRING "")
-  SET(PYTHON_BINARY ${PYTHON}${PYTHON_VERSION}/bin/python${PYTHON_VERSION} CACHE STRING "")
-  SET(PYTHON_LIB "")
-  SET(PYTHON_LIBPATH ${PYTHON}${PYTHON_VERSION}/lib/python${PYTHON_VERSION}/config CACHE STRING "")
-  IF(CMAKE_SYSTEM_VERSION GREATER 10.4)
-	SET(PYTHON_LINKFLAGS "-u _PyMac_Error -framework System -framework Python")
-  ELSE(CMAKE_SYSTEM_VERSION GREATER 10.4)
+
+  SET(PYTHON_VERSION 3.1)
+
+  IF(PYTHON_VERSION MATCHES 3.1)
+    # we use precompiled libraries for py 3.1 and up by default
+
+    SET(PYTHON ${LIBDIR}/python)
+    SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}" CACHE STRING "")
+    SET(PYTHON_BINARY "${PYTHON}/bin/python${PYTHON_VERSION}" CACHE STRING "")
+    SET(PYTHON_LIB python${PYTHON_VERSION})
+    SET(PYTHON_LIBPATH "${PYTHON}/lib/python${PYTHON_VERSION}" CACHE STRING "")
+    #    SET(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
+  ELSE(PYTHON_VERSION MATCHES 3.1)
+    # otherwise, use custom system framework
+
+    SET(PYTHON /System/Library/Frameworks/Python.framework/Versions/)
+    SET(PYTHON_VERSION 2.5)
+    SET(PYTHON_INC "${PYTHON}${PYTHON_VERSION}/include/python${PYTHON_VERSION}" CACHE STRING "")
+    SET(PYTHON_BINARY ${PYTHON}${PYTHON_VERSION}/bin/python${PYTHON_VERSION} CACHE STRING "")
+    SET(PYTHON_LIB "")
+    SET(PYTHON_LIBPATH ${PYTHON}${PYTHON_VERSION}/lib/python${PYTHON_VERSION}/config CACHE STRING "")
     SET(PYTHON_LINKFLAGS "-u _PyMac_Error -framework System -framework Python")
-  ENDIF(CMAKE_SYSTEM_VERSION GREATER 10.4)
+  ENDIF(PYTHON_VERSION MATCHES 3.1)
 
   SET(GETTEXT ${LIBDIR}/gettext)
   SET(GETTEXT_INC "${GETTEXT}/include")
@@ -370,11 +382,7 @@ IF(APPLE)
 
   SET(OPENEXR ${LIBDIR}/openexr)
   SET(OPENEXR_INC ${OPENEXR}/include/OpenEXR ${OPENEXR}/include)
-  IF(CMAKE_OSX_ARCHITECTURES MATCHES i386)
-    SET(OPENEXR_LIB Iex Half IlmImf Imath IlmThread)
-  ELSE(CMAKE_OSX_ARCHITECTURES MATCHES i386)
-    SET(OPENEXR_LIB Iex Half IlmImf Imath)
-  ENDIF(CMAKE_OSX_ARCHITECTURES MATCHES i386)
+  SET(OPENEXR_LIB Iex Half IlmImf Imath IlmThread)
   SET(OPENEXR_LIBPATH ${OPENEXR}/lib)
 
   SET(LLIBS stdc++ SystemStubs)

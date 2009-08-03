@@ -64,29 +64,32 @@ static void rna_Lamp_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *pt
 static PointerRNA rna_Lamp_active_texture_get(PointerRNA *ptr)
 {
 	Lamp *la= (Lamp*)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_TextureSlot, la->mtex[(int)la->texact]);
+	Tex *tex;
+
+	tex= (la->mtex[(int)la->texact])? la->mtex[(int)la->texact]->tex: NULL;
+	return rna_pointer_inherit_refine(ptr, &RNA_Texture, tex);
 }
 
-static void rna_Lamp_active_texture_index_set(PointerRNA *ptr, int value)
+static void rna_Lamp_active_texture_set(PointerRNA *ptr, PointerRNA value)
 {
 	Lamp *la= (Lamp*)ptr->data;
 	int act= la->texact;
 
-	if(value == act || value < 0 || value >= MAX_MTEX)
-		return;
+	if(la->mtex[act] && la->mtex[act]->tex)
+		id_us_min(&la->mtex[act]->tex->id);
 
-	/* auto create/free mtex on activate/deactive, so we can edit
-	 * the texture pointer in the buttons UI. */
-	if(la->mtex[act] && !la->mtex[act]->tex) {
+	if(value.data) {
+		if(!la->mtex[act]) {
+			la->mtex[act]= add_mtex();
+			la->mtex[act]->texco= TEXCO_GLOB;
+		}
+		
+		la->mtex[act]->tex= value.data;
+		id_us_plus(&la->mtex[act]->tex->id);
+	}
+	else if(la->mtex[act]) {
 		MEM_freeN(la->mtex[act]);
 		la->mtex[act]= NULL;
-	}
-
-	la->texact= value;
-
-	if(!la->mtex[value]) {
-		la->mtex[value]= add_mtex();
-		la->mtex[value]->texco= TEXCO_GLOB;
 	}
 }
 
@@ -141,10 +144,24 @@ static void rna_def_lamp_mtex(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "map_color", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", LAMAP_COL);
 	RNA_def_property_ui_text(prop, "Color", "Lets the texture affect the basic color of the lamp.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	prop= RNA_def_property(srna, "map_shadow", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", LAMAP_SHAD);
 	RNA_def_property_ui_text(prop, "Shadow", "Lets the texture affect the shadow color of the lamp.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "color_factor", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "colfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Color Factor", "Amount texture affects color values.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "shadow_factor", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "colfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Shadow Factor", "Amount texture affects shadow.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 }
 
 static void rna_def_lamp_sky_settings(BlenderRNA *brna)
@@ -335,13 +352,8 @@ static void rna_def_lamp(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LAMP|ND_LIGHTING, NULL);
 
 	/* textures */
-	rna_def_mtex_common(srna, "rna_Lamp_mtex_begin", "rna_Lamp_active_texture_get", "rna_Lamp_active_texture_index_set", "LampTextureSlot");
-
-	/* script link */
-	prop= RNA_def_property(srna, "script_link", PROP_POINTER, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "scriptlink");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Script Link", "Scripts linked to this lamp.");
+	rna_def_mtex_common(srna, "rna_Lamp_mtex_begin", "rna_Lamp_active_texture_get",
+		"rna_Lamp_active_texture_set", "LampTextureSlot");
 }
 
 static void rna_def_lamp_falloff(StructRNA *srna)

@@ -68,7 +68,7 @@
 
 static int view_toggle_handles_exec (bContext *C, wmOperator *op)
 {
-	SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
+	SpaceIpo *sipo= CTX_wm_space_graph(C);
 	ARegion *ar= CTX_wm_region(C);
 	
 	if (sipo == NULL)

@@ -35,7 +35,6 @@
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
-#include "DNA_scriptlink_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -172,7 +171,6 @@ typedef struct Object {
 	float empty_drawsize;
 	float dupfacesca;	/* dupliface scale */
 	
-	ScriptLink scriptlink;
 	ListBase prop;
 	ListBase sensors;
 	ListBase controllers;
@@ -498,6 +496,8 @@ extern Object workob;
 #define OB_ADS_SHOWCONS		(1<<12)
 	/* object's material channels */
 #define OB_ADS_SHOWMATS		(1<<13)
+	/* object's marticle channels */
+#define OB_ADS_SHOWPARTS	(1<<14)
 
 /* ob->protectflag */
 #define OB_LOCK_LOCX	1

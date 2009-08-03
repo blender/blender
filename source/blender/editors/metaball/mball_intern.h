@@ -6,7 +6,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * of the License, or (at your option) any later version. 
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,32 +17,31 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * Contributor(s): Blender Foundation (2008).
+ * The Original Code is Copyright (C) 2008 Blender Foundation.
+ * All rights reserved.
+ *
+ * 
+ * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <stdlib.h>
+#ifndef ED_MBALL_INTERN_H
+#define ED_MBALL_INTERN_H
 
-#include "RNA_define.h"
-#include "RNA_types.h"
+#include "DNA_object_types.h"
 
-#include "rna_internal.h"
+#include "DNA_windowmanager_types.h"
 
-#include "DNA_scriptlink_types.h"
+void MBALL_OT_hide_metaelems(struct wmOperatorType *ot);
+void MBALL_OT_reveal_metaelems(struct wmOperatorType *ot);
 
-#ifdef RNA_RUNTIME
+void MBALL_OT_delete_metaelems(struct wmOperatorType *ot);
+void MBALL_OT_duplicate_metaelems(struct wmOperatorType *ot);
 
-#else
-
-void RNA_def_scriptlink(BlenderRNA *brna)
-{
-	StructRNA *srna;
-
-	srna= RNA_def_struct(brna, "ScriptLink", NULL);
-	RNA_def_struct_ui_text(srna, "Script Link", "Scripts linked to a datablock, to be executed on changes to the datablock.");
-	RNA_def_struct_ui_icon(srna, ICON_PYTHON);
-}
+void MBALL_OT_select_deselect_all_metaelems(struct wmOperatorType *ot);
+void MBALL_OT_select_inverse_metaelems(struct wmOperatorType *ot);
+void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot);
 
 #endif
 

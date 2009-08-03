@@ -21,7 +21,7 @@
  * All rights reserved.
  *
  * 
- * Contributor(s): Blender Foundation
+ * Contributor(s): Blender Foundation, Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -83,7 +83,7 @@ static void nla_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *sa= CTX_wm_area(C);
-	SpaceNla *snla= (SpaceNla*)CTX_wm_space_data(C);
+	SpaceNla *snla= CTX_wm_space_nla(C);
 	PointerRNA spaceptr;
 	
 	/* retrieve state */
@@ -100,7 +100,9 @@ static void nla_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 		uiItemO(layout, "Show Frames", 0, "ANIM_OT_time_toggle");
 	else
 		uiItemO(layout, "Show Seconds", 0, "ANIM_OT_time_toggle");
-
+	
+	uiItemR(layout, NULL, 0, &spaceptr, "show_strip_curves", 0, 0, 0);
+	
 	uiItemS(layout);
 	
 	uiItemS(layout);
@@ -211,7 +213,7 @@ static void do_nla_buttons(bContext *C, void *arg, int event)
 
 void nla_header_buttons(const bContext *C, ARegion *ar)
 {
-	SpaceNla *snla= (SpaceNla *)CTX_wm_space_data(C);
+	SpaceNla *snla= CTX_wm_space_nla(C);
 	ScrArea *sa= CTX_wm_area(C);
 	uiBlock *block;
 	int xco, yco= 3;
@@ -259,6 +261,7 @@ void nla_header_buttons(const bContext *C, ARegion *ar)
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOLAM, B_REDR, ICON_LAMP_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(snla->ads->filterflag), 0, 0, 0, 0, "Display Lamps");
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCAM, B_REDR, ICON_CAMERA_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(snla->ads->filterflag), 0, 0, 0, 0, "Display Cameras");
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCUR, B_REDR, ICON_CURVE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(snla->ads->filterflag), 0, 0, 0, 0, "Display Curves");
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOPART, B_REDR, ICON_PARTICLE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(snla->ads->filterflag), 0, 0, 0, 0, "Display Particles");
 		uiBlockEndAlign(block);
 		xco += 15;
 	}

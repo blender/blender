@@ -61,16 +61,16 @@ static void spacetype_free(SpaceType *st)
 		BLI_freelistN(&art->drawcalls);
 
 		for(pt= art->paneltypes.first; pt; pt= pt->next)
-			if(pt->py_free)
-				pt->py_free(pt->py_data);
+			if(pt->ext.free)
+				pt->ext.free(pt->ext.data);
 
 		for(ht= art->headertypes.first; ht; ht= ht->next)
-			if(ht->py_free)
-				ht->py_free(ht->py_data);
+			if(ht->ext.free)
+				ht->ext.free(ht->ext.data);
 
 		for(mt= art->menutypes.first; mt; mt= mt->next)
-			if(mt->py_free)
-				mt->py_free(mt->py_data);
+			if(mt->ext.free)
+				mt->ext.free(mt->ext.data);
 
 		BLI_freelistN(&art->paneltypes);
 		BLI_freelistN(&art->headertypes);
@@ -112,7 +112,7 @@ ARegionType *BKE_regiontype_from_id(SpaceType *st, int regionid)
 		if(art->regionid==regionid)
 			return art;
 	
-	printf("Error, region type missing in %s\n", st->name);
+	printf("Error, region type missing in - name:\"%s\", id:%d\n", st->name, st->spaceid);
 	return st->regiontypes.first;
 }
 
@@ -179,6 +179,9 @@ ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
 		else
 			newar->regiondata= MEM_dupallocN(ar->regiondata);
 	}
+
+	if(ar->v2d.tab_offset)
+		newar->v2d.tab_offset= MEM_dupallocN(ar->v2d.tab_offset);
 	
 	newar->panels.first= newar->panels.last= NULL;
 	BLI_duplicatelist(&newar->panels, &ar->panels);
@@ -271,10 +274,14 @@ void BKE_area_region_free(SpaceType *st, ARegion *ar)
 	}
 	else if(ar->type && ar->type->free)
 		ar->type->free(ar);
-
-	if(ar) {
-		BLI_freelistN(&ar->panels);
+	
+	if(ar->v2d.tab_offset) {
+		MEM_freeN(ar->v2d.tab_offset);
+		ar->v2d.tab_offset= NULL;
 	}
+
+	if(ar)
+		BLI_freelistN(&ar->panels);
 }
 
 /* not area itself */
@@ -291,10 +298,6 @@ void BKE_screen_area_free(ScrArea *sa)
 	BKE_spacedata_freelist(&sa->spacedata);
 	
 	BLI_freelistN(&sa->actionzones);
-	
-#ifndef DISABLE_PYTHON
-	BPY_free_scriptlink(&sa->scriptlink);
-#endif
 }
 
 /* don't free screen itself */

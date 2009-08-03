@@ -10,11 +10,11 @@ class DataButtonsPanel(bpy.types.Panel):
 		return (context.object.type == 'EMPTY')
 	
 class DATA_PT_empty(DataButtonsPanel):
-	__idname__ = "DATA_PT_empty"
 	__label__ = "Empty"
 
 	def draw(self, context):
 		layout = self.layout
+		
 		ob = context.object
 
 		layout.itemR(ob, "empty_draw_type")

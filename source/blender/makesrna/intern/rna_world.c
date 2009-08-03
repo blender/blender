@@ -66,30 +66,32 @@ static void rna_World_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *p
 static PointerRNA rna_World_active_texture_get(PointerRNA *ptr)
 {
 	World *wo= (World*)ptr->data;
+	Tex *tex;
 
-	return rna_pointer_inherit_refine(ptr, &RNA_TextureSlot, wo->mtex[(int)wo->texact]);
+	tex= (wo->mtex[(int)wo->texact])? wo->mtex[(int)wo->texact]->tex: NULL;
+	return rna_pointer_inherit_refine(ptr, &RNA_Texture, tex);
 }
 
-static void rna_World_active_texture_index_set(PointerRNA *ptr, int value)
+static void rna_World_active_texture_set(PointerRNA *ptr, PointerRNA value)
 {
 	World *wo= (World*)ptr->data;
 	int act= wo->texact;
 
-	if(value == act || value < 0 || value >= MAX_MTEX)
-		return;
+	if(wo->mtex[act] && wo->mtex[act]->tex)
+		id_us_min(&wo->mtex[act]->tex->id);
 
-	/* auto create/free mtex on activate/deactive, so we can edit
-	 * the texture pointer in the buttons UI. */
-	if(wo->mtex[act] && !wo->mtex[act]->tex) {
+	if(value.data) {
+		if(!wo->mtex[act]) {
+			wo->mtex[act]= add_mtex();
+			wo->mtex[act]->texco= TEXCO_VIEW;
+		}
+		
+		wo->mtex[act]->tex= value.data;
+		id_us_plus(&wo->mtex[act]->tex->id);
+	}
+	else if(wo->mtex[act]) {
 		MEM_freeN(wo->mtex[act]);
 		wo->mtex[act]= NULL;
-	}
-
-	wo->texact= value;
-
-	if(!wo->mtex[value]) {
-		wo->mtex[value]= add_mtex();
-		wo->mtex[value]->texco= TEXCO_VIEW;
 	}
 }
 
@@ -117,18 +119,22 @@ static void rna_def_world_mtex(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "map_blend", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_BLEND);
 	RNA_def_property_ui_text(prop, "Blend", "Affect the color progression of the background.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	prop= RNA_def_property(srna, "map_horizon", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_HORIZ);
 	RNA_def_property_ui_text(prop, "Horizon", "Affect the color of the horizon.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	prop= RNA_def_property(srna, "map_zenith_up", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_ZENUP);
 	RNA_def_property_ui_text(prop, "Zenith Up", "Affect the color of the zenith above.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	prop= RNA_def_property(srna, "map_zenith_down", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mapto", WOMAP_ZENDOWN);
 	RNA_def_property_ui_text(prop, "Zenith Down", "Affect the color of the zenith below.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	/* unused
 	prop= RNA_def_property(srna, "map_mist", PROP_BOOLEAN, PROP_NONE);
@@ -139,12 +145,38 @@ static void rna_def_world_mtex(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "texco");
 	RNA_def_property_enum_items(prop, texco_items);
 	RNA_def_property_ui_text(prop, "Texture Coordinates", "Texture coordinates used to map the texture onto the background.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object");
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Object", "Object to use for mapping with Object texture coordinates.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "blend_factor", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "varfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Blend Factor", "Amount texture affects color progression of the background.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "horizon_factor", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "colfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Horizon Factor", "Amount texture affects color of the horizon.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "zenith_up_factor", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "colfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Zenith Up Factor", "Amount texture affects color of the zenith above.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "zenith_down_factor", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_float_sdna(prop, NULL, "colfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Zenith Down Factor", "Amount texture affects color of the zenith below.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 }
 
 static void rna_def_ambient_occlusion(BlenderRNA *brna)
@@ -188,7 +220,7 @@ static void rna_def_ambient_occlusion(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "aodist");
 	RNA_def_property_ui_text(prop, "Distance", "Length of rays, defines how far away other faces give occlusion effect.");
 
-	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "falloff_strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aodistfac");
 	RNA_def_property_ui_text(prop, "Strength", "Distance attenuation factor, the higher, the 'shorter' the shadows.");
 
@@ -377,7 +409,8 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_WORLD_DATA);
 
 	rna_def_animdata_common(srna);
-	rna_def_mtex_common(srna, "rna_World_mtex_begin", "rna_World_active_texture_get", "rna_World_active_texture_index_set", "WorldTextureSlot");
+	rna_def_mtex_common(srna, "rna_World_mtex_begin", "rna_World_active_texture_get",
+		"rna_World_active_texture_set", "WorldTextureSlot");
 
 	/* colors */
 	prop= RNA_def_property(srna, "horizon_color", PROP_FLOAT, PROP_COLOR);
@@ -439,10 +472,6 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "WorldStarsSettings");
 	RNA_def_property_pointer_funcs(prop, "rna_World_stars_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Stars", "World stars settings.");
-
-	prop= RNA_def_property(srna, "script_link", PROP_POINTER, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "scriptlink");
-	RNA_def_property_ui_text(prop, "Script Link", "Scripts linked to this object.");
 
 	rna_def_ambient_occlusion(brna);
 	rna_def_world_mist(brna);

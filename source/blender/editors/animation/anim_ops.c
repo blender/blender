@@ -67,7 +67,7 @@ static int change_frame_init(bContext *C, wmOperator *op)
 		return 0;
 	
 	if (curarea->spacetype == SPACE_TIME) {
-		SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+		SpaceTime *stime= CTX_wm_space_time(C);
 		
 		/* timeline displays frame number only when dragging indicator */
 		// XXX make this more in line with other anim editors?
@@ -103,7 +103,7 @@ static void change_frame_exit(bContext *C, wmOperator *op)
 		return;
 	
 	if (curarea->spacetype == SPACE_TIME) {
-		SpaceTime *stime= (SpaceTime*)CTX_wm_space_data(C);
+		SpaceTime *stime= CTX_wm_space_time(C);
 		
 		/* timeline displays frame number only when dragging indicator */
 		// XXX make this more in line with other anim editors?
@@ -322,31 +322,31 @@ static int toggle_time_exec(bContext *C, wmOperator *op)
 	switch (curarea->spacetype) {
 		case SPACE_TIME: /* TimeLine */
 		{
-			SpaceTime *stime= (SpaceTime *)CTX_wm_space_data(C);
+			SpaceTime *stime= CTX_wm_space_time(C);
 			stime->flag ^= TIME_DRAWFRAMES;
 		}
 			break;
 		case SPACE_ACTION: /* Action Editor */
 		{
-			SpaceAction *saction= (SpaceAction *)CTX_wm_space_data(C);
+			SpaceAction *saction= CTX_wm_space_action(C);
 			saction->flag ^= SACTION_DRAWTIME;
 		}
 			break;
 		case SPACE_IPO: /* Graph Editor */
 		{
-			SpaceIpo *sipo= (SpaceIpo *)CTX_wm_space_data(C);
+			SpaceIpo *sipo= CTX_wm_space_graph(C);
 			sipo->flag ^= SIPO_DRAWTIME;
 		}
 			break;
 		case SPACE_NLA: /* NLA Editor */
 		{
-			SpaceNla *snla= (SpaceNla *)CTX_wm_space_data(C);
+			SpaceNla *snla= CTX_wm_space_nla(C);
 			snla->flag ^= SNLA_DRAWTIME;
 		}
 			break;
 		case SPACE_SEQ: /* Sequencer */
 		{
-			SpaceSeq *sseq= (SpaceSeq *)CTX_wm_space_data(C);
+			SpaceSeq *sseq= CTX_wm_space_seq(C);
 			sseq->flag ^= SEQ_DRAWFRAMES;
 		}
 			break;
@@ -386,10 +386,10 @@ void ED_operatortypes_anim(void)
 	WM_operatortype_append(ANIM_OT_insert_keyframe);
 	WM_operatortype_append(ANIM_OT_delete_keyframe);
 	WM_operatortype_append(ANIM_OT_insert_keyframe_menu);
-	//WM_operatortype_append(ANIM_OT_delete_keyframe_menu);
+	WM_operatortype_append(ANIM_OT_delete_keyframe_v3d);
 	WM_operatortype_append(ANIM_OT_insert_keyframe_button);
 	WM_operatortype_append(ANIM_OT_delete_keyframe_button);
-	WM_operatortype_append(ANIM_OT_delete_keyframe_old); // xxx remove?
+
 	
 	WM_operatortype_append(ANIM_OT_add_driver_button);
 	WM_operatortype_append(ANIM_OT_remove_driver_button);

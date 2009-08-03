@@ -1366,8 +1366,6 @@ def write(filename, batch_objects = None, \
 
 	
 	def write_texture(texname, tex, num):
-		if not EXP_IMAGE_COPY: return
-
 		# if tex == None then this is a dummy tex
 		file.write('\n\tTexture: "Texture::%s", "TextureVideoClip" {' % texname)
 		file.write('\n\t\tType: "TextureVideoClip"')
@@ -1406,9 +1404,12 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\tMedia: "Video::%s"' % texname)
 		
 		if tex:
-			abspath = tex.export(basepath)
-			fname_rel = os.path.relpath(abspath, basepath)
-			fname_strip = os.path.basename(abspath)
+			fname_rel = tex.get_export_path(relpath, True)
+			fname_strip = os.path.basename(fname_rel)
+
+			if EXP_IMAGE_COPY:
+				
+
 # 			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
 		else:
 			fname = fname_strip = fname_rel = ''

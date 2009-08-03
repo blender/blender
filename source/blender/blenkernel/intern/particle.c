@@ -2568,8 +2568,7 @@ void psys_cache_paths(Scene *scene, Object *ob, ParticleSystem *psys, float cfra
 	ParticleSettings *part = psys->part;
 	
 	ParticleData *pa;
-	ParticleKey result, *kkey[2] = {NULL, NULL};
-	HairKey *hkey[2] = {NULL, NULL};
+	ParticleKey result;
 
 	ParticleEdit *edit = 0;
 	ParticleEditKey *ekey = 0;
@@ -2709,6 +2708,10 @@ void psys_cache_paths(Scene *scene, Object *ob, ParticleSystem *psys, float cfra
 
 			dietime = birthtime + pa_length * (dietime - birthtime);
 		}
+		else
+			/* XXX brecht: don't know if this code from 2.4 is correct
+			 * still, but makes hair appear again in particle mode */
+			dietime= pind.hkey[0][pa->totkey-1].time;
 
 		/*--interpolate actual path from data points--*/
 		for(k=0, ca=cache[i]; k<=steps; k++, ca++){
@@ -2731,14 +2734,14 @@ void psys_cache_paths(Scene *scene, Object *ob, ParticleSystem *psys, float cfra
 			if(edit){
 				if(pset->brushtype==PE_BRUSH_WEIGHT){
 					if(k==steps)
-						VecLerpf(ca->col, nosel_col, sel_col, hkey[0]->weight);
+						VecLerpf(ca->col, nosel_col, sel_col, pind.hkey[0]->weight);
 					else
 						VecLerpf(ca->col, nosel_col, sel_col,
-						(1.0f - keytime) * hkey[0]->weight + keytime * hkey[1]->weight);
+						(1.0f - keytime) * pind.hkey[0]->weight + keytime * pind.hkey[1]->weight);
 				}
 				else{
-					if((ekey + (hkey[0] - pa->hair))->flag & PEK_SELECT){
-						if((ekey + (hkey[1] - pa->hair))->flag & PEK_SELECT){
+					if((ekey + (pind.hkey[0] - pa->hair))->flag & PEK_SELECT){
+						if((ekey + (pind.hkey[1] - pa->hair))->flag & PEK_SELECT){
 							VECCOPY(ca->col, sel_col);
 						}
 						else{
@@ -2746,7 +2749,7 @@ void psys_cache_paths(Scene *scene, Object *ob, ParticleSystem *psys, float cfra
 						}
 					}
 					else{
-						if((ekey + (hkey[1] - pa->hair))->flag & PEK_SELECT){
+						if((ekey + (pind.hkey[1] - pa->hair))->flag & PEK_SELECT){
 							VecLerpf(ca->col, nosel_col, sel_col, keytime);
 						}
 						else{
@@ -3627,8 +3630,6 @@ void psys_get_particle_on_path(Scene *scene, Object *ob, ParticleSystem *psys, i
 	ParticleData *pa;
 	ChildParticle *cpa;
 	ParticleTexture ptex;
-	ParticleKey *kkey[2] = {NULL, NULL};
-	HairKey *hkey[2] = {NULL, NULL};
 	ParticleKey *par=0, keys[4], tstate;
 	ParticleThreadContext ctx; /* fake thread context for child modifiers */
 	ParticleInterpolationData pind;

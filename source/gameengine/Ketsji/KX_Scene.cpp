@@ -1017,17 +1017,18 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 
 
 
-void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
+void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool use_phys)
 {
 	KX_GameObject* gameobj = static_cast<KX_GameObject*>(obj);
 	RAS_MeshObject* mesh = static_cast<RAS_MeshObject*>(meshobj);
 
-	if(!gameobj || !mesh)
-	{
-		std::cout << "warning: invalid object, mesh will not be replaced" << std::endl;
+	if(!gameobj) {
+		std::cout << "KX_Scene::ReplaceMesh Warning: invalid object, doing nothing" << std::endl;
 		return;
 	}
 
+	if(use_gfx && mesh != NULL)
+	{		
 	gameobj->RemoveMeshes();
 	gameobj->AddMesh(mesh);
 	
@@ -1156,6 +1157,11 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj)
 	}
 
 	gameobj->AddMeshUser();
+	}
+	
+	if(use_phys) { /* update the new assigned mesh with the physics mesh */
+		KX_ReInstanceBulletShapeFromMesh(gameobj, NULL, use_gfx?NULL:mesh);
+	}
 }
 
 KX_Camera* KX_Scene::FindCamera(KX_Camera* cam)

@@ -1250,7 +1250,7 @@ static void particle_curve(Render *re, ObjectRen *obr, DerivedMesh *dm, Material
 {
 	HaloRen *har=0;
 
-	if(ma->mode&MA_WIRE)
+	if(ma->material_type == MA_TYPE_WIRE)
 		static_particle_wire(obr, ma, loc, loc1, sd->first, sd->line);
 	else if(ma->material_type == MA_TYPE_HALO) {
 		har= RE_inithalo_particle(re, obr, dm, ma, loc, loc1, sd->orco, sd->uvco, sd->size, 1.0, seed);
@@ -1627,7 +1627,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		path_nbr=(int)pow(2.0,(double) part->ren_step);
 
 		if(path_nbr) {
-			if((ma->material_type != MA_TYPE_HALO) && (ma->mode & MA_WIRE)==0) {
+			if(!ELEM(ma->material_type, MA_TYPE_HALO, MA_TYPE_WIRE)) {
 				sd.orco = MEM_mallocN(3*sizeof(float)*(totpart+totchild), "particle orcos");
 				set_object_orco(re, psys, sd.orco);
 			}
@@ -2243,6 +2243,7 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 	/* memset above means we dont need this */
 	/*shi.osatex= 0;*/		/* signal not to use dx[] and dy[] texture AA vectors */
 
+	shi.obr= obr;
 	shi.vlr= vlr;		/* current render face */
 	shi.mat= vlr->mat;		/* current input material */
 	shi.thread= 0;
@@ -3123,7 +3124,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				}
 				
 				/* if wire material, and we got edges, don't do the faces */
-				if(ma->mode & MA_WIRE) {
+				if(ma->material_type == MA_TYPE_WIRE) {
 					end= dm->getNumEdges(dm);
 					if(end) ok= 0;
 				}
@@ -3208,7 +3209,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			end= dm->getNumEdges(dm);
 			mvert= dm->getVertArray(dm);
 			ma= give_render_material(re, ob, 1);
-			if(end && (ma->mode & MA_WIRE)) {
+			if(end && (ma->material_type == MA_TYPE_WIRE)) {
 				MEdge *medge;
 				struct edgesort *edgetable;
 				int totedge= 0;
@@ -3833,7 +3834,7 @@ static void split_quads(ObjectRen *obr, int dir)
 		vlr= RE_findOrAddVlak(obr, a);
 		
 		/* test if rendering as a quad or triangle, skip wire */
-		if(vlr->v4 && (vlr->flag & R_STRAND)==0 && (vlr->mat->mode & MA_WIRE)==0) {
+		if(vlr->v4 && (vlr->flag & R_STRAND)==0 && (vlr->mat->material_type != MA_TYPE_WIRE)) {
 			
 			if(vlr->v4) {
 
@@ -3883,7 +3884,7 @@ static void check_non_flat_quads(ObjectRen *obr)
 		vlr= RE_findOrAddVlak(obr, a);
 		
 		/* test if rendering as a quad or triangle, skip wire */
-		if(vlr->v4 && (vlr->flag & R_STRAND)==0 && (vlr->mat->mode & MA_WIRE)==0) {
+		if(vlr->v4 && (vlr->flag & R_STRAND)==0 && (vlr->mat->material_type != MA_TYPE_WIRE)) {
 			
 			/* check if quad is actually triangle */
 			v1= vlr->v1;

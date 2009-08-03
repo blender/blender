@@ -44,7 +44,7 @@ class KX_NearSensor : public KX_TouchSensor
 protected:
 	float	m_Margin;
 	float  m_ResetMargin;
-	KX_Scene*	m_scene;
+
 	KX_ClientObjectInfo*	m_client_info;
 public:
 	KX_NearSensor(class SCA_EventManager* eventmgr,
@@ -53,7 +53,6 @@ public:
 			float resetmargin,
 			bool bFindMaterial,
 			const STR_String& touchedpropname,
-			class KX_Scene* scene,
 			 PHY_IPhysicsController*	ctrl);
 /*
 public:

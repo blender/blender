@@ -442,7 +442,7 @@ static int ui_but_equals_old(uiBut *but, uiBut *oldbut)
 	if(but->retval != oldbut->retval) return 0;
 	if(but->rnapoin.data != oldbut->rnapoin.data) return 0;
 	if(but->rnaprop != oldbut->rnaprop)
-	if(but->rnaindex != oldbut->rnaindex) return 0;
+		if(but->rnaindex != oldbut->rnaindex) return 0;
 	if(but->func != oldbut->func) return 0;
 	if(but->funcN != oldbut->funcN) return 0;
 	if(oldbut->func_arg1 != oldbut && but->func_arg1 != oldbut->func_arg1) return 0;
@@ -494,6 +494,43 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 	}
 	
 	return found;
+}
+
+/* needed for temporarily rename buttons, such as in outliner or fileselect,
+   they should keep calling uiDefButs to keep them alive */
+/* returns 0 when button removed */
+int uiButActiveOnly(const bContext *C, uiBlock *block, uiBut *but)
+{
+	uiBlock *oldblock;
+	uiBut *oldbut;
+	int activate= 0, found= 0, isactive= 0;
+	
+	oldblock= block->oldblock;
+	if(!oldblock)
+		activate= 1;
+	else {
+		for(oldbut=oldblock->buttons.first; oldbut; oldbut=oldbut->next) {
+			if(ui_but_equals_old(oldbut, but)) {
+				found= 1;
+				
+				if(oldbut->active)
+					isactive= 1;
+				
+				break;
+			}
+		}
+	}
+	if(activate || found==0) {
+		ui_button_activate_do( (bContext *)C, CTX_wm_region(C), but);
+	}
+	else if(found && isactive==0) {
+		
+		BLI_remlink(&block->buttons, but);
+		ui_free_but(C, but);
+		return 0;
+	}
+	
+	return 1;
 }
 
 void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
@@ -702,8 +739,9 @@ static void ui_is_but_sel(uiBut *but)
 		case BUT:
 			push= 2;
 			break;
+		case HOTKEYEVT:
 		case KEYEVT:
-			if (value==-1) push= 1;
+			push= 2;
 			break;
 		case TOGBUT:
 		case TOG:
@@ -1809,7 +1847,33 @@ void ui_check_but(uiBut *but)
 			strcat(but->drawstr, WM_key_event_string((short) ui_get_but_val(but)));
 		}
 		break;
-
+		
+	case HOTKEYEVT:
+		if (but->flag & UI_SELECT) {
+			short *sp= (short *)but->func_arg3;
+			
+			strcpy(but->drawstr, but->str);
+			
+			if(*sp) {
+				char *str= but->drawstr;
+				
+				if(*sp & KM_SHIFT)
+					str= strcat(str, "Shift ");
+				if(*sp & KM_CTRL)
+					str= strcat(str, "Ctrl ");
+				if(*sp & KM_ALT)
+					str= strcat(str, "Alt ");
+				if(*sp & KM_OSKEY)
+					str= strcat(str, "Cmd ");
+			}
+			else
+				strcat(but->drawstr, "Press a key  ");
+		} else {
+			/* XXX todo, button currently only used temporarily */
+			strcpy(but->drawstr, WM_key_event_string((short) ui_get_but_val(but)));
+		}
+		break;
+		
 	case BUT_TOGDUAL:
 		/* trying to get the dual-icon to left of text... not very nice */
 		if(but->str[0]) {
@@ -1823,10 +1887,8 @@ void ui_check_but(uiBut *but)
 	}
 
 	/* if we are doing text editing, this will override the drawstr */
-	if(but->editstr) {
-		strcpy(but->drawstr, but->str);
-		strcat(but->drawstr, but->editstr);
-	}
+	if(but->editstr)
+		strcpy(but->drawstr, but->editstr);
 	
 	/* text clipping moved to widget drawing code itself */
 }
@@ -2767,9 +2829,10 @@ void uiBlockSetFunc(uiBlock *block, uiButHandleFunc func, void *arg1, void *arg2
 	block->func_arg2= arg2;
 }
 
-void uiBlockSetRenameFunc(uiBlock *block, uiButHandleRenameFunc func, void *arg1)
+void uiButSetRenameFunc(uiBut *but, uiButHandleRenameFunc func, void *arg1)
 {
-	
+	but->rename_func= func;
+	but->rename_arg1= arg1;
 }
 
 void uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(const bContext *C, void *idv, void *argv, rcti *rect), void *arg)
@@ -2902,6 +2965,17 @@ void uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, 
 	uiBut *but= ui_def_but(block, KEYEVT|SHO, retval, str, x1, y1, x2, y2, spoin, 0.0, 0.0, 0.0, 0.0, tip);
 	ui_check_but(but);
 }
+
+/* short pointers hardcoded */
+/* modkeypoin will be set to KM_SHIFT, KM_ALT, KM_CTRL, KM_OSKEY bits */
+uiBut *uiDefHotKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *keypoin, short *modkeypoin, char *tip)
+{
+	uiBut *but= ui_def_but(block, HOTKEYEVT|SHO, retval, str, x1, y1, x2, y2, keypoin, 0.0, 0.0, 0.0, 0.0, tip);
+	but->func_arg3= modkeypoin; /* XXX hrmf, abuse! */
+	ui_check_but(but);
+	return but;
+}
+
 
 /* arg is pointer to string/name, use uiButSetSearchFunc() below to make this work */
 uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxlen, short x1, short y1, short x2, short y2, char *tip)

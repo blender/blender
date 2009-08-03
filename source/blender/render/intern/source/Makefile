@@ -43,6 +43,7 @@ CPPFLAGS += -I../../../radiosity/extern/include
 CPPFLAGS += -I../../../blenlib
 CPPFLAGS += -I../../../imbuf
 CPPFLAGS += -I../../../makesdna
+CPPFLAGS += -I../../../makesrna
 CPPFLAGS += -I../../../blenkernel
 CPPFLAGS += -I../../../quicktime
 CPPFLAGS += -I../../../../kernel/gen_messaging

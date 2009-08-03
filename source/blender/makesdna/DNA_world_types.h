@@ -32,7 +32,6 @@
 #define DNA_WORLD_TYPES_H
 
 #include "DNA_ID.h"
-#include "DNA_scriptlink_types.h"
 
 struct AnimData;
 struct Ipo;
@@ -119,11 +118,10 @@ typedef struct World {
 	
 	struct Ipo *ipo;			// XXX depreceated... old animation system
 	struct MTex *mtex[18];		/* MAX_MTEX */
+	short pr_texture, pad[3];
 
 	/* previews */
 	struct PreviewImage *preview;
-
-	ScriptLink scriptlink;
 
 } World;
 

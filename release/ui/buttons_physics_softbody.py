@@ -8,14 +8,15 @@ class PhysicButtonsPanel(bpy.types.Panel):
 
 	def poll(self, context):
 		ob = context.object
-		return (ob and ob.type == 'MESH')
+		rd = context.scene.render_data
+		return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
 		
 class PHYSICS_PT_softbody(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_softbody"
 	__label__ = "Soft Body"
 
 	def draw(self, context):
 		layout = self.layout
+		
 		md = context.soft_body
 		ob = context.object
 
@@ -51,22 +52,69 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
 			col.itemR(softbody, "gravity")
 			col.itemR(softbody, "speed")
 			
+class PHYSICS_PT_softbody_cache(PhysicButtonsPanel):
+	__label__ = "Soft Body Cache"
+	__default_closed__ = True
+
+	def poll(self, context):
+		return (context.soft_body)
+
+	def draw(self, context):
+		layout = self.layout
+
+		cache = context.soft_body.point_cache
+		
+		row = layout.row()
+		row.itemR(cache, "name")
+		
+		row = layout.row()
+		row.itemR(cache, "start_frame")
+		row.itemR(cache, "end_frame")
+		
+		row = layout.row()
+		
+		if cache.baked == True:
+			row.itemO("ptcache.free_bake_softbody", text="Free Bake")
+		else:
+			row.item_booleanO("ptcache.cache_softbody", "bake", True, text="Bake")
+		
+		sub = row.row()
+		sub.enabled = cache.frames_skipped or cache.outdated
+		sub.itemO("ptcache.cache_softbody", text="Calculate to Current Frame")
 			
+		row = layout.row()
+		row.itemO("ptcache.bake_from_softbody_cache", text="Current Cache to Bake")
+		row.itemR(cache, "step");
+	
+		row = layout.row()
+		row.itemR(cache, "quick_cache")
+		row.itemR(cache, "disk_cache")
+		
+		layout.itemL(text=cache.info)
+		
+		layout.itemS()
+		
+		row = layout.row()
+		row.itemO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
+		row.itemO("ptcache.free_bake_all", text="Free All Bakes")
+		layout.itemO("ptcache.bake_all", text="Update All Dynamics to current frame")
+		
 class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_softbody_goal"
 	__label__ = "Soft Body Goal"
 	
 	def poll(self, context):
-		return (context.soft_body != None)
+		return (context.soft_body)
 		
 	def draw_header(self, context):
 		layout = self.layout
+		
 		softbody = context.soft_body.settings
 	
 		layout.itemR(softbody, "use_goal", text="")
 		
 	def draw(self, context):
 		layout = self.layout
+		
 		md = context.soft_body
 		ob = context.object
 
@@ -82,35 +130,35 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
 			col = split.column()
 			col.itemL(text="Goal Strengths:")
 			col.itemR(softbody, "goal_default", text="Default")
-			subcol = col.column(align=True)
-			subcol.itemR(softbody, "goal_min", text="Minimum")
-			subcol.itemR(softbody, "goal_max", text="Maximum")
+			sub = col.column(align=True)
+			sub.itemR(softbody, "goal_min", text="Minimum")
+			sub.itemR(softbody, "goal_max", text="Maximum")
 			
 			col = split.column()
 			col.itemL(text="Goal Settings:")
 			col.itemR(softbody, "goal_spring", text="Stiffness")
 			col.itemR(softbody, "goal_friction", text="Damping")
+			
 			layout.item_pointerR(softbody, "goal_vertex_group", ob, "vertex_groups", text="Vertex Group")
 
 class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_softbody_edge"
 	__label__ = "Soft Body Edges"
 	
 	def poll(self, context):
-		return (context.soft_body != None)
+		return (context.soft_body)
 		
 	def draw_header(self, context):
 		layout = self.layout
+		
 		softbody = context.soft_body.settings
 	
 		layout.itemR(softbody, "use_edges", text="")
 		
 	def draw(self, context):
 		layout = self.layout
+		
 		md = context.soft_body
 		ob = context.object
-
-		split = layout.split()
 			
 		if md:
 			softbody = md.settings
@@ -130,43 +178,43 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
 			
 			col = split.column()
 			col.itemR(softbody, "stiff_quads")
-			subcol = col.column()
-			subcol.active = softbody.stiff_quads
-			subcol.itemR(softbody, "shear")
+			sub = col.column()
+			sub.active = softbody.stiff_quads
+			sub.itemR(softbody, "shear")
 			
 			col.itemR(softbody, "new_aero", text="Aero")
-			subcol = col.column()
-			subcol.enabled = softbody.new_aero
-			subcol.itemR(softbody, "aero", text="Factor")
+			sub = col.column()
+			sub.enabled = softbody.new_aero
+			sub.itemR(softbody, "aero", text="Factor")
 
 			col.itemL(text="Collision:")
 			col.itemR(softbody, "edge_collision", text="Edge")
 			col.itemR(softbody, "face_collision", text="Face")
 			
 class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_softbody_collision"
 	__label__ = "Soft Body Collision"
 	
 	def poll(self, context):
-		return (context.soft_body != None)
+		return (context.soft_body)
 		
 	def draw_header(self, context):
 		layout = self.layout
+		
 		softbody = context.soft_body.settings
 	
 		layout.itemR(softbody, "self_collision", text="")
 		
 	def draw(self, context):
 		layout = self.layout
+		
 		md = context.soft_body
 		ob = context.object
-
-		split = layout.split()
 			
 		if md:
 			softbody = md.settings
 
 			layout.active = softbody.self_collision
+			
 			layout.itemL(text="Collision Type:")
 			layout.itemR(softbody, "collision_type", expand=True)
 			
@@ -177,19 +225,17 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
 			col.itemR(softbody, "ball_damp", text="Dampening")
 
 class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
-	__idname__ = "PHYSICS_PT_softbody_solver"
 	__label__ = "Soft Body Solver"
 	
 	def poll(self, context):
-		return (context.soft_body != None)
+		return (context.soft_body)
 		
 	def draw(self, context):
 		layout = self.layout
+		
 		md = context.soft_body
 		ob = context.object
-
-		split = layout.split()
-			
+		
 		if md:
 			softbody = md.settings
 
@@ -204,7 +250,6 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
 			
 			col = split.column()
 			col.itemR(softbody, "error_limit")
-
 			col.itemL(text="Helpers:")
 			col.itemR(softbody, "choke")
 			col.itemR(softbody, "fuzzy")
@@ -213,6 +258,7 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
 			layout.itemR(softbody, "diagnose")
 	
 bpy.types.register(PHYSICS_PT_softbody)
+bpy.types.register(PHYSICS_PT_softbody_cache)
 bpy.types.register(PHYSICS_PT_softbody_goal)
 bpy.types.register(PHYSICS_PT_softbody_edge)
 bpy.types.register(PHYSICS_PT_softbody_collision)

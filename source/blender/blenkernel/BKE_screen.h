@@ -46,10 +46,8 @@ struct wmWindow;
 struct wmWindowManager;
 struct uiLayout;
 struct uiMenuItem;
-struct StructRNA;
-struct PointerRNA;
-struct FunctionRNA;
-struct ParameterList;
+
+#include "RNA_types.h"
 
 /* spacetype has everything stored to get an editor working, it gets initialized via 
    ED_spacetypes_init() in editors/area/spacetypes.c   */
@@ -169,11 +167,8 @@ typedef struct PanelType {
 	/* draw entirely, view changes should be handled here */
 	void		(*draw)(const struct bContext *, struct Panel *);	
 
-	/* python integration */
-	void				*py_data;
-	struct StructRNA	*py_srna;
-	int					(*py_call)(struct PointerRNA *, struct FunctionRNA *, struct ParameterList *);
-	void				(*py_free)(void *py_data);
+	/* RNA integration */
+	ExtensionRNA ext;
 } PanelType;
 
 /* header types */
@@ -187,11 +182,8 @@ typedef struct HeaderType {
 	/* draw entirely, view changes should be handled here */
 	void		(*draw)(const struct bContext *, struct Header *);	
 
-	/* python integration */
-	void				*py_data;
-	struct StructRNA	*py_srna;
-	int					(*py_call)(struct PointerRNA *, struct FunctionRNA *, struct ParameterList *);
-	void				(*py_free)(void *py_data);
+	/* RNA integration */
+	ExtensionRNA ext;
 } HeaderType;
 
 typedef struct Header {
@@ -214,11 +206,8 @@ typedef struct MenuType {
 	/* draw entirely, view changes should be handled here */
 	void		(*draw)(const struct bContext *, struct Menu *);	
 
-	/* python integration */
-	void				*py_data;
-	struct StructRNA	*py_srna;
-	int					(*py_call)(struct PointerRNA *, struct FunctionRNA *, struct ParameterList *);
-	void				(*py_free)(void *py_data);
+	/* RNA integration */
+	ExtensionRNA ext;
 } MenuType;
 
 typedef struct Menu {

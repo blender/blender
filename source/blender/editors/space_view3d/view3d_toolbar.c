@@ -109,7 +109,7 @@ static void redo_cb(bContext *C, void *arg_op, void *arg2)
 		int retval;
 		
 		printf("operator redo %s\n", lastop->type->name);
-		ED_undo_pop(C);
+		ED_undo_pop_op(C, lastop);
 		retval= WM_operator_repeat(C, lastop);
 		if((retval & OPERATOR_FINISHED)==0) {
 			printf("operator redo failed %s\n", lastop->type->name);
@@ -118,11 +118,25 @@ static void redo_cb(bContext *C, void *arg_op, void *arg2)
 	}
 }
 
+static void view3d_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOperator *op)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	PointerRNA ptr;
+	
+	if(!op->properties) {
+		IDPropertyTemplate val = {0};
+		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
+	}
+	
+	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+	uiDefAutoButsRNA(C, pa->layout, &ptr, 1);
+	
+}
+
 static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmOperator *op;
-	PointerRNA ptr;
 	uiBlock *block;
 	
 	block= uiLayoutGetBlock(pa->layout);
@@ -139,13 +153,13 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 	
 	uiBlockSetFunc(block, redo_cb, op, NULL);
 	
-	if(!op->properties) {
-		IDPropertyTemplate val = {0};
-		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
+	if(op->macro.first) {
+		for(op= op->macro.first; op; op= op->next)
+			view3d_panel_operator_redo_buts(C, pa, op);
 	}
-	
-	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	uiDefAutoButsRNA(C, pa->layout, &ptr, 1);
+	else {
+		view3d_panel_operator_redo_buts(C, pa, op);
+	}
 }
 
 /* ******************* */
@@ -175,12 +189,12 @@ char *view3d_context_string(const bContext *C)
 	else {
 		Object *ob = CTX_data_active_object(C);
 		
-		if(ob && (ob->flag & OB_POSEMODE)) return "posemode";
-		else if (G.f & G_SCULPTMODE)  return "sculptmode";
-		else if (G.f & G_WEIGHTPAINT) return "weightpaint";
-		else if (G.f & G_VERTEXPAINT) return "vertexpaint";
-		else if (G.f & G_TEXTUREPAINT) return "texturepaint";
-		else if(G.f & G_PARTICLEEDIT) return "particlemode";
+		if(ob && (ob->flag & OB_POSEMODE)) return "pose_mode";
+		else if (G.f & G_SCULPTMODE)  return "sculpt_mode";
+		else if (G.f & G_WEIGHTPAINT) return "weight_paint";
+		else if (G.f & G_VERTEXPAINT) return "vertex_paint";
+		else if (G.f & G_TEXTUREPAINT) return "texture_paint";
+		else if(G.f & G_PARTICLEEDIT) return "particle_mode";
 	}
 	
 	return "objectmode";

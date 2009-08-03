@@ -36,7 +36,6 @@ extern "C" {
 #include "DNA_brush_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_listBase.h"
-#include "DNA_scriptlink_types.h"
 #include "DNA_ID.h"
 
 struct Object;
@@ -235,7 +234,7 @@ typedef struct RenderData {
 	 */
 	int mode;
 
-	/* render engine, octree resolution */
+	/* render engine (deprecated), octree resolution */
 	short renderer, ocres;
 
 	/**
@@ -334,6 +333,8 @@ typedef struct RenderData {
 	float pad2;			//  XXX deprecated since 2.5
 	struct Text *dometext;	//  XXX deprecated since 2.5
 
+	/* render engine */
+	char engine[32];
 } RenderData;
 
 /* control render convert and shading engine */
@@ -433,7 +434,7 @@ typedef struct ImagePaintSettings {
 	short flag, tool;
 	
 	/* for projection painting only */
-	short seam_bleed,normal_angle;
+	short seam_bleed, normal_angle;
 
 	void *paintcursor;			/* wm handle */
 } ImagePaintSettings;
@@ -569,7 +570,7 @@ typedef struct ToolSettings {
 	float clean_thresh;
 
 	/* Auto-Keying Mode */
-	short autokey_mode, pad2;	/* defines in DNA_userdef_types.h */
+	short autokey_mode, autokey_flag;	/* defines in DNA_userdef_types.h */
 	
 	/* Retopo */
 	char retopo_mode;
@@ -657,8 +658,6 @@ typedef struct Scene {
 	/* no, is on the right place (ton) */
 	struct RenderData r;
 	struct AudioData audio;		/* DEPRECATED 2.5 */
-	
-	ScriptLink scriptlink;
 	
 	ListBase markers;
 	ListBase transform_spaces;
@@ -961,11 +960,10 @@ typedef enum SculptFlags {
 	SCULPT_LOCK_Z = 256
 } SculptFlags;
 
-/* toolsettings->imagepaint_flag */
+/* ImagePaintSettings.flag */
 #define IMAGEPAINT_DRAWING				1
 #define IMAGEPAINT_DRAW_TOOL			2
 #define IMAGEPAINT_DRAW_TOOL_DRAWING	4
-
 /* projection painting only */
 #define IMAGEPAINT_PROJECT_DISABLE		8	/* Non projection 3D painting */
 #define IMAGEPAINT_PROJECT_XRAY			16

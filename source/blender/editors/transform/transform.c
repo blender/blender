@@ -93,6 +93,7 @@
 //#include "BSE_view.h"
 
 #include "ED_image.h"
+#include "ED_keyframing.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_markers.h"
@@ -298,6 +299,10 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 	{
 		/* Do we need more refined tags? */
 		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+		
+		/* for realtime animation record - send notifiers recognised by animation editors */
+		if ((t->animtimer) && IS_AUTOKEY_ON(t->scene))
+			WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, NULL);
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		//SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
@@ -496,6 +501,63 @@ static char *transform_to_undostr(TransInfo *t)
 
 /* ************************************************* */
 
+/* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
+#define TFM_MODAL_CANCEL			1
+#define TFM_MODAL_CONFIRM			2
+#define TFM_MODAL_TRANSLATE			3
+#define TFM_MODAL_ROTATE			4
+#define TFM_MODAL_RESIZE			5
+#define TFM_MODAL_SNAP_GEARS		6
+#define TFM_MODAL_SNAP_GEARS_OFF	7
+
+/* called in transform_ops.c, on each regeneration of keymaps */
+void transform_modal_keymap(wmWindowManager *wm)
+{
+	static EnumPropertyItem modal_items[] = {
+	{TFM_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
+	{TFM_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
+	{TFM_MODAL_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
+	{TFM_MODAL_ROTATE, "ROTATE", 0, "Rotate", ""},
+	{TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
+	{TFM_MODAL_SNAP_GEARS, "SNAP_GEARS", 0, "Snap On", ""},
+	{TFM_MODAL_SNAP_GEARS_OFF, "SNAP_GEARS_OFF", 0, "Snap Off", ""},
+	{0, NULL, 0, NULL, NULL}};
+	
+	wmKeyMap *keymap= WM_modalkeymap_get(wm, "Transform Modal Map");
+	
+	/* this function is called for each spacetype, only needs to add map once */
+	if(keymap) return;
+	
+	keymap= WM_modalkeymap_add(wm, "Transform Modal Map", modal_items);
+	
+	/* items for modal map */
+	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, TFM_MODAL_CANCEL);
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_ANY, KM_ANY, 0, TFM_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
+	WM_modalkeymap_add_item(keymap, PADENTER, KM_PRESS, KM_ANY, 0, TFM_MODAL_CONFIRM);
+
+	WM_modalkeymap_add_item(keymap, GKEY, KM_PRESS, 0, 0, TFM_MODAL_TRANSLATE);
+	WM_modalkeymap_add_item(keymap, RKEY, KM_PRESS, 0, 0, TFM_MODAL_ROTATE);
+	WM_modalkeymap_add_item(keymap, SKEY, KM_PRESS, 0, 0, TFM_MODAL_RESIZE);
+	
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_SNAP_GEARS);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, TFM_MODAL_SNAP_GEARS_OFF);
+	
+	/* assign map to operators */
+	WM_modalkeymap_assign(keymap, "TFM_OT_transform");
+	WM_modalkeymap_assign(keymap, "TFM_OT_translate");
+	WM_modalkeymap_assign(keymap, "TFM_OT_rotate");
+	WM_modalkeymap_assign(keymap, "TFM_OT_tosphere");
+	WM_modalkeymap_assign(keymap, "TFM_OT_resize");
+	WM_modalkeymap_assign(keymap, "TFM_OT_shear");
+	WM_modalkeymap_assign(keymap, "TFM_OT_warp");
+	WM_modalkeymap_assign(keymap, "TFM_OT_shrink_fatten");
+	WM_modalkeymap_assign(keymap, "TFM_OT_tilt");
+	WM_modalkeymap_assign(keymap, "TFM_OT_trackball");
+	
+}
+
+
 void transformEvent(TransInfo *t, wmEvent *event)
 {
 	float mati[3][3] = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
@@ -513,7 +575,67 @@ void transformEvent(TransInfo *t, wmEvent *event)
 		applyMouseInput(t, &t->mouse, t->mval, t->values);
 	}
 
-	if (event->val) {
+	/* handle modal keymap first */
+	if (event->type == EVT_MODAL_MAP) {
+		switch (event->val) {
+			case TFM_MODAL_CANCEL:
+				t->state = TRANS_CANCEL;
+				break;
+			case TFM_MODAL_CONFIRM:
+				t->state = TRANS_CONFIRM;
+				break;
+				
+			case TFM_MODAL_TRANSLATE:
+				/* only switch when... */
+				if( ELEM3(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL) ) {
+					resetTransRestrictions(t);
+					restoreTransObjects(t);
+					initTranslation(t);
+					initSnapping(t, NULL); // need to reinit after mode change
+					t->redraw = 1;
+				}
+				break;
+			case TFM_MODAL_ROTATE:
+				/* only switch when... */
+				if( ELEM4(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
+					
+					resetTransRestrictions(t);
+					
+					if (t->mode == TFM_ROTATION) {
+						restoreTransObjects(t);
+						initTrackball(t);
+					}
+					else {
+						restoreTransObjects(t);
+						initRotation(t);
+					}
+					initSnapping(t, NULL); // need to reinit after mode change
+					t->redraw = 1;
+				}
+				break;
+			case TFM_MODAL_RESIZE:
+				/* only switch when... */
+				if( ELEM3(t->mode, TFM_ROTATION, TFM_TRANSLATION, TFM_TRACKBALL) ) {
+					resetTransRestrictions(t);
+					restoreTransObjects(t);
+					initResize(t);
+					initSnapping(t, NULL); // need to reinit after mode change
+					t->redraw = 1;
+				}
+				break;
+				
+			case TFM_MODAL_SNAP_GEARS:
+				t->modifiers |= MOD_SNAP_GEARS;
+				t->redraw = 1;
+				break;
+			case TFM_MODAL_SNAP_GEARS_OFF:
+				t->modifiers &= ~MOD_SNAP_GEARS;
+				t->redraw = 1;
+				break;
+		}
+	}
+	/* else do non-mapped events */
+	else if (event->val==KM_PRESS) {
 		switch (event->type){
 		case RIGHTMOUSE:
 			t->state = TRANS_CANCEL;
@@ -1830,7 +1952,7 @@ int handleEventWarp(TransInfo *t, wmEvent *event)
 {
 	int status = 0;
 
-	if (event->type == MIDDLEMOUSE && event->val)
+	if (event->type == MIDDLEMOUSE && event->val==KM_PRESS)
 	{
 		// Use customData pointer to signal warp direction
 		if	(t->customData == 0)
@@ -1964,7 +2086,7 @@ int handleEventShear(TransInfo *t, wmEvent *event)
 {
 	int status = 0;
 
-	if (event->type == MIDDLEMOUSE && event->val)
+	if (event->type == MIDDLEMOUSE && event->val==KM_PRESS)
 	{
 		// Use customData pointer to signal Shear direction
 		if	(t->customData == 0)
@@ -3397,7 +3519,7 @@ void initBevel(TransInfo *t)
 
 int handleEventBevel(TransInfo *t, wmEvent *event)
 {
-	if (event->val) {
+	if (event->val==KM_PRESS) {
 		if(!G.editBMesh) return 0;
 
 		switch (event->type) {

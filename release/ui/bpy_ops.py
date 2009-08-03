@@ -3,6 +3,7 @@ from bpy.__ops__ import add		as op_add
 from bpy.__ops__ import remove		as op_remove
 from bpy.__ops__ import dir		as op_dir
 from bpy.__ops__ import call		as op_call
+from bpy.__ops__ import get_rna	as op_get_rna
 
 class bpy_ops(object):
 	'''
@@ -89,13 +90,22 @@ class bpy_ops_submodule_op(object):
 		self.module = module
 		self.func = func
 	
-	def __call__(self, **kw):
+	def idname(self):
 		# submod.foo -> SUBMOD_OT_foo
-		id_name = self.module.upper() + '_OT_' + self.func
+		return self.module.upper() + '_OT_' + self.func
+	
+	def __call__(self, **kw):
 		
-		# Get the operator from 
-		return op_call(id_name, kw)
-		
+		# Get the operator from blender
+		return op_call(self.idname(), kw)
+	
+	def get_rna(self):
+		'''
+		currently only used for '__rna__'
+		'''
+		return op_get_rna(self.idname())
+			
+	
 	def __repr__(self):
 		return "<function bpy.ops.%s.%s at 0x%x'>" % (self.module, self.func, id(self))
 

@@ -59,15 +59,21 @@ typedef struct View2D {
 	
 	short around;					/* pivot point for transforms (rotate and scale) */
 	float cursor[2]; 				/* only used in the UV view for now (for 2D-cursor) */
+
+	float *tab_offset;				/* different offset per tab, for buttons */
+	int tab_num;					/* number of tabs stored */
+	int tab_cur;					/* current tab */
 } View2D;
 
 /* ---------------------------------- */
 
 /* view zooming restrictions, per axis (v2d->keepzoom) */
 	/* zoom is clamped to lie within limits set by minzoom and maxzoom */
-#define V2D_KEEPZOOM		0x0001
+#define V2D_LIMITZOOM		0x0001
 	/* aspect ratio is maintained on view resize */
 #define V2D_KEEPASPECT		0x0002
+	/* zoom is kept when the window resizes */
+#define V2D_KEEPZOOM		0x0004
 	/* zooming on x-axis is not allowed */
 #define V2D_LOCKZOOM_X		0x0100
 	/* zooming on y-axis is not allowed */
@@ -78,6 +84,10 @@ typedef struct View2D {
 #define V2D_LOCKOFS_X	(1<<1)
 	/* panning on y-axis is not allowed */
 #define V2D_LOCKOFS_Y	(1<<2)
+	/* on resize, keep the x offset */
+#define V2D_KEEPOFS_X	(1<<3)
+	/* on resize, keep the y offset */
+#define V2D_KEEPOFS_Y	(1<<4)
 
 /* view extent restrictions (v2d->keeptot) */
 	/* 'cur' view can be out of extents of 'tot' */

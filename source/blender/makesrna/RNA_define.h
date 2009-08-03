@@ -170,6 +170,15 @@ void RNA_enum_items_add(EnumPropertyItem **items, int *totitem, EnumPropertyItem
 void RNA_enum_items_add_value(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item, int value);
 void RNA_enum_item_end(EnumPropertyItem **items, int *totitem);
 
+/* Memory management */
+
+void RNA_def_struct_duplicate_pointers(StructRNA *srna);
+void RNA_def_struct_free_pointers(StructRNA *srna);
+void RNA_def_func_duplicate_pointers(FunctionRNA *func);
+void RNA_def_func_free_pointers(FunctionRNA *func);
+void RNA_def_property_duplicate_pointers(PropertyRNA *prop);
+void RNA_def_property_free_pointers(PropertyRNA *prop);
+
 #ifdef __cplusplus
 }
 #endif

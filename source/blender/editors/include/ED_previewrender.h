@@ -71,7 +71,7 @@ void ED_preview_init_dbase(void);
 void ED_preview_free_dbase(void);
 
 void ED_preview_shader_job(const struct bContext *C, void *owner, struct ID *id, struct ID *parent, int sizex, int sizey);
-void ED_preview_iconrender(struct Scene *scene, struct ID *id, int *rect, int sizex, int sizey);
+void ED_preview_iconrender(struct Scene *scene, struct ID *id, unsigned int *rect, int sizex, int sizey);
 
 void ED_preview_draw(const struct bContext *C, void *idp, void *parentp, rcti *rect);
 

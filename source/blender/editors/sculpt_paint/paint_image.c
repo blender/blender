@@ -4387,10 +4387,9 @@ static int image_paint_poll(bContext *C)
 		return 1;
 	}
 	else {
-		ScrArea *sa= CTX_wm_area(C);
-		SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+		SpaceImage *sima= CTX_wm_space_image(C);
 
-		if(sa && sa->spacetype==SPACE_IMAGE) {
+		if(sima) {
 			ARegion *ar= CTX_wm_region(C);
 
 			if((sima->flag & SI_DRAWTOOL) && ar->regiontype==RGN_TYPE_WINDOW)
@@ -4507,7 +4506,7 @@ static int paint_init(bContext *C, wmOperator *op)
 			view3d_set_viewcontext(C, &pop->vc);
 	}
 	else {
-		pop->s.sima= (SpaceImage*)CTX_wm_space_data(C);
+		pop->s.sima= CTX_wm_space_image(C);
 		pop->s.v2d= &CTX_wm_region(C)->v2d;
 	}
 
@@ -4815,7 +4814,7 @@ static int get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 
 	if(!rv3d) {
-		SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+		SpaceImage *sima= CTX_wm_space_image(C);
 		ARegion *ar= CTX_wm_region(C);
 		
 		ED_space_image_zoom(sima, ar, zoomx, zoomy);

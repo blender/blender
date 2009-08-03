@@ -166,4 +166,6 @@ void BKE_ptcache_quick_cache_all(struct Scene *scene);
 void BKE_ptcache_make_cache(struct PTCacheBaker* baker);
 void BKE_ptcache_toggle_disk_cache(struct PTCacheID *pid);
 
+void BKE_ptcache_load_external(struct PTCacheID *pid);
+
 #endif

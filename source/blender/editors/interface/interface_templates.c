@@ -432,31 +432,21 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 		/* Softbody not allowed in this situation, enforce! */
 		if(((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) && (md->type!=eModifierType_Surface)) {
 			uiItemR(row, "", ICON_SCENE, &ptr, "render", 0, 0, 0);
-			uiItemR(row, "", ICON_VIEW3D, &ptr, "realtime", 0, 0, 0);
+			uiItemR(row, "", ICON_RESTRICT_VIEW_OFF, &ptr, "realtime", 0, 0, 0);
 
 			if(mti->flags & eModifierTypeFlag_SupportsEditmode)
-				uiItemR(row, "", ICON_VIEW3D, &ptr, "editmode", 0, 0, 0);
+				uiItemR(row, "", ICON_EDITMODE_HLT, &ptr, "editmode", 0, 0, 0);
 		}
-		uiBlockEndAlign(block);
+		
 
 		/* XXX uiBlockSetEmboss(block, UI_EMBOSSR); */
 
 		if(ob->type==OB_MESH && modifier_couldBeCage(md) && index<=lastCageIndex) {
-			int icon; //, color;
 
-			if(index==cageIndex) {
-				// XXX color = TH_BUT_SETTING;
-				icon = VICON_EDITMODE_HLT;
-			} else if(index<cageIndex) {
-				// XXX color = TH_BUT_NEUTRAL;
-				icon = VICON_EDITMODE_DEHLT;
-			} else {
-				// XXX color = TH_BUT_NEUTRAL;
-				icon = ICON_BLANK1;
-			}
 			/* XXX uiBlockSetCol(block, color); */
-			but = uiDefIconBut(block, BUT, 0, icon, 0, 0, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
+			but = uiDefIconBut(block, BUT, 0, ICON_MESH_DATA, 0, 0, 16, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
 			uiButSetFunc(but, modifiers_setOnCage, ob, md);
+			uiBlockEndAlign(block);
 			/* XXX uiBlockSetCol(block, TH_AUTO); */
 		}
 	}
@@ -464,8 +454,10 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	/* up/down/delete */
 	if(!isVirtual) {
 		/* XXX uiBlockSetCol(block, TH_BUT_ACTION); */
+		uiBlockBeginAlign(block);
 		uiItemO(row, "", VICON_MOVE_UP, "OBJECT_OT_modifier_move_up");
 		uiItemO(row, "", VICON_MOVE_DOWN, "OBJECT_OT_modifier_move_down");
+		uiBlockEndAlign(block);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 
@@ -1155,10 +1147,11 @@ uiLayout *uiTemplateGroup(uiLayout *layout, Object *ob, Group *group)
 
 /************************* Preview Template ***************************/
 
+#include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_world_types.h"
 
 #define B_MATPRV 1
-
 
 static void do_preview_buttons(bContext *C, void *arg, int event)
 {
@@ -1173,8 +1166,9 @@ void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent)
 {
 	uiLayout *row, *col;
 	uiBlock *block;
-	Material *ma;
+	Material *ma= NULL;
 	ID *pid, *pparent;
+	short *pr_texture= NULL;
 
 	if(id && !ELEM4(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA)) {
 		printf("uiTemplatePreview: expected ID of type material, texture, lamp or world.\n");
@@ -1185,13 +1179,20 @@ void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent)
 	pid= id;
 	pparent= NULL;
 
-	if((id && GS(id->name) == ID_TE) && (parent && GS(parent->name) == ID_MA)) {
-		ma= ((Material*)parent);
+	if(id && (GS(id->name) == ID_TE)) {
+		if(parent && (GS(parent->name) == ID_MA))
+			pr_texture= &((Material*)parent)->pr_texture;
+		else if(parent && (GS(parent->name) == ID_WO))
+			pr_texture= &((World*)parent)->pr_texture;
+		else if(parent && (GS(parent->name) == ID_LA))
+			pr_texture= &((Lamp*)parent)->pr_texture;
 
-		if(ma->pr_texture == MA_PR_MATERIAL)
-			pid= parent;
-		else if(ma->pr_texture == MA_PR_BOTH)
-			pparent= parent;
+		if(pr_texture) {
+			if(*pr_texture == TEX_PR_OTHER)
+				pid= parent;
+			else if(*pr_texture == TEX_PR_BOTH)
+				pparent= parent;
+		}
 	}
 
 	/* layout */
@@ -1206,10 +1207,10 @@ void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent)
 	uiBlockSetHandleFunc(block, do_preview_buttons, NULL);
 	
 	/* add buttons */
-	if(id) {
-		if(GS(id->name) == ID_MA || (parent && GS(parent->name) == ID_MA)) {
-			if(GS(id->name) == ID_MA) ma= (Material*)id;
-			else ma= (Material*)parent;
+	if(pid) {
+		if(GS(pid->name) == ID_MA || (pparent && GS(pparent->name) == ID_MA)) {
+			if(GS(pid->name) == ID_MA) ma= (Material*)pid;
+			else ma= (Material*)pparent;
 
 			uiLayoutColumn(row, 1);
 
@@ -1218,15 +1219,20 @@ void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent)
 			uiDefIconButC(block, ROW, B_MATPRV, ICON_MATCUBE,   0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_CUBE, 0, 0, "Preview type: Cube");
 			uiDefIconButC(block, ROW, B_MATPRV, ICON_MONKEY,    0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_MONKEY, 0, 0, "Preview type: Monkey");
 			uiDefIconButC(block, ROW, B_MATPRV, ICON_HAIR,      0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_HAIR, 0, 0, "Preview type: Hair strands");
-			uiDefIconButC(block, ROW, B_MATPRV, ICON_MATSPHERE, 0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE_A, 0, 0, "Preview type: Large sphere with sky");
+			uiDefIconButC(block, ROW, B_MATPRV, ICON_MAT_SPHERE_SKY, 0, 0,UI_UNIT_X*1.5,UI_UNIT_Y, &(ma->pr_type), 10, MA_SPHERE_A, 0, 0, "Preview type: Large sphere with sky");
 		}
 
-		if(GS(id->name) == ID_TE && (parent && GS(parent->name) == ID_MA)) {
+		if(pr_texture) {
 			uiLayoutRow(layout, 1);
 
-			uiDefButS(block, ROW, B_MATPRV, "Texture",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, &(ma->pr_texture), 10, MA_PR_TEXTURE, 0, 0, "");
-			uiDefButS(block, ROW, B_MATPRV, "Material",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, &(ma->pr_texture), 10, MA_PR_MATERIAL, 0, 0, "");
-			uiDefButS(block, ROW, B_MATPRV, "Both",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, &(ma->pr_texture), 10, MA_PR_BOTH, 0, 0, "");
+			uiDefButS(block, ROW, B_MATPRV, "Texture",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_TEXTURE, 0, 0, "");
+			if(GS(parent->name) == ID_MA)
+				uiDefButS(block, ROW, B_MATPRV, "Material",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_OTHER, 0, 0, "");
+			else if(GS(parent->name) == ID_LA)
+				uiDefButS(block, ROW, B_MATPRV, "Lamp",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_OTHER, 0, 0, "");
+			else if(GS(parent->name) == ID_WO)
+				uiDefButS(block, ROW, B_MATPRV, "World",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_OTHER, 0, 0, "");
+			uiDefButS(block, ROW, B_MATPRV, "Both",  0, 0,UI_UNIT_X*10,UI_UNIT_Y, pr_texture, 10, TEX_PR_BOTH, 0, 0, "");
 		}
 	}
 }
@@ -1265,6 +1271,34 @@ void uiTemplateCurveMapping(uiLayout *layout, CurveMapping *cumap, int type)
 	}
 }
 
+/********************* TriColor (ThemeWireColorSet) Template ************************/
+
+void uiTemplateTriColorSet(uiLayout *layout, PointerRNA *ptr, char *propname)
+{
+	uiLayout *row;
+	PropertyRNA *prop;
+	PointerRNA csPtr;
+	
+	if (!ptr->data)
+		return;
+	
+	prop= RNA_struct_find_property(ptr, propname);
+	if (!prop) {
+		printf("uiTemplateTriColorSet: property not found: %s\n", propname);
+		return;
+	}
+	
+	/* we lay out the data in a row as 3 color swatches */
+	row= uiLayoutRow(layout, 1);
+	
+	/* nselected, selected, active color swatches */
+	csPtr= RNA_property_pointer_get(ptr, prop);
+	
+	uiItemR(row, "", 0, &csPtr, "normal", 0, 0, 0);
+	uiItemR(row, "", 0, &csPtr, "selected", 0, 0, 0);
+	uiItemR(row, "", 0, &csPtr, "active", 0, 0, 0);
+}
+
 /********************* Layer Buttons Template ************************/
 
 // TODO:
@@ -1299,7 +1333,10 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname)
 	groups= ((cols / 2) < 5) ? (1) : (cols / 2);
 	
 	/* layers are laid out going across rows, with the columns being divided into groups */
-	uSplit= uiLayoutSplit(layout, (1.0f/(float)groups));
+	if (groups > 1)
+		uSplit= uiLayoutSplit(layout, (1.0f/(float)groups));
+	else	
+		uSplit= layout;
 	
 	for (group= 0; group < groups; group++) {
 		uCol= uiLayoutColumn(uSplit, 1);
@@ -1513,7 +1550,7 @@ ListBase uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 					/* XXX hardcoded */
 					if(itemptr.type == &RNA_MeshTextureFaceLayer || itemptr.type == &RNA_MeshColorLayer) {
 						uiBlockSetEmboss(block, UI_EMBOSSN);
-						uiItemR(subrow, "", ICON_SCENE, &itemptr, "active_render", 0, 0, 0);
+						uiDefIconButR(block, TOG, 0, ICON_SCENE, 0, 0, UI_UNIT_X, UI_UNIT_Y, &itemptr, "active_render", 0, 0, 0, 0, 0, NULL);
 						uiBlockSetEmboss(block, UI_EMBOSS);
 					}
 
@@ -1636,5 +1673,19 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		uiDefIconTextBut(block, BUT, B_STOPCAST, ICON_REC, "Capture", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop screencast");
 	if(screen->animtimer)
 		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_REC, "Anim Player", 0,0,85,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
+}
+
+/************************* Image Template **************************/
+
+#include "ED_image.h"
+
+void uiTemplateTextureImage(uiLayout *layout, bContext *C, Tex *tex)
+{
+	uiBlock *block;
+
+	if(tex) {
+		block= uiLayoutFreeBlock(layout);
+		ED_image_uiblock_panel(C, block, &tex->ima, &tex->iuser, 0, 0);
+	}
 }
 

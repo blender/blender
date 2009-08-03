@@ -230,6 +230,8 @@ static void MESH_OT_specials(wmOperatorType *ot)
 
 void ED_operatortypes_mesh(void)
 {
+	wmOperatorType *ot;
+	
 	WM_operatortype_append(MESH_OT_select_all_toggle);
 	WM_operatortype_append(MESH_OT_select_more);
 	WM_operatortype_append(MESH_OT_select_less);
@@ -313,6 +315,20 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_edge_specials);
 	WM_operatortype_append(MESH_OT_face_specials);
 	WM_operatortype_append(MESH_OT_specials);
+	
+	/* macros */
+	ot= WM_operatortype_append_macro("MESH_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	WM_operatortype_macro_define(ot, "MESH_OT_duplicate");
+	WM_operatortype_macro_define(ot, "TFM_OT_translate");
+
+	ot= WM_operatortype_append_macro("MESH_OT_rip_move", "Rip", OPTYPE_UNDO|OPTYPE_REGISTER);
+	WM_operatortype_macro_define(ot, "MESH_OT_rip");
+	WM_operatortype_macro_define(ot, "TFM_OT_translate");
+
+	ot= WM_operatortype_append_macro("MESH_OT_extrude_move", "Extrude", OPTYPE_UNDO|OPTYPE_REGISTER);
+	WM_operatortype_macro_define(ot, "MESH_OT_extrude");
+	WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	
 }
 
 /* note mesh keymap also for other space? */
@@ -363,7 +379,7 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_normals_make_consistent", NKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_normals_make_consistent", NKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "inside", 1);
 	
-	WM_keymap_add_item(keymap, "MESH_OT_extrude", EKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_extrude_move", EKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_spin", RKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_screw", NINEKEY, KM_PRESS, KM_CTRL, 0);
@@ -386,12 +402,12 @@ void ED_keymap_mesh(wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "MESH_OT_colors_rotate",EIGHTKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_colors_mirror",EIGHTKEY, KM_PRESS, KM_ALT, 0);
 
-	WM_keymap_add_item(keymap, "MESH_OT_rip",VKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_rip_move",VKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_merge", MKEY, KM_PRESS, KM_ALT, 0);
 
 	/* add/remove */
 	WM_keymap_add_item(keymap, "MESH_OT_edge_face_add", FKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_mesh_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_separate", PKEY, KM_PRESS, KM_SHIFT, 0);
 						/* use KM_RELEASE because same key is used for tweaks */

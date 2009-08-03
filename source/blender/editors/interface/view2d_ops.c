@@ -151,6 +151,13 @@ static void view_pan_apply(bContext *C, wmOperator *op)
 	/* request updates to be done... */
 	ED_area_tag_redraw(vpd->sa);
 	UI_view2d_sync(vpd->sc, vpd->sa, v2d, V2D_LOCK_COPY);
+	WM_event_add_mousemove(C);
+	
+	/* exceptions */
+	if(vpd->sa->spacetype==SPACE_OUTLINER) {
+		SpaceOops *soops= vpd->sa->spacedata.first;
+		soops->storeflag |= SO_TREESTORE_REDRAW;
+	}
 }
 
 /* cleanup temp customdata  */
@@ -464,7 +471,7 @@ void VIEW2D_OT_scroll_up(wmOperatorType *ot)
 /* ------------------ 'Shared' stuff ------------------------ */
  
 /* check if step-zoom can be applied */
-static short view_zoomstep_ok(bContext *C)
+static int view_zoom_poll(bContext *C)
 {
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d;
@@ -487,16 +494,32 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 {
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= &ar->v2d;
-	float dx, dy;
+	float dx, dy, facx, facy;
 	
-	/* calculate amount to move view by */
-	dx= (v2d->cur.xmax - v2d->cur.xmin) * (float)RNA_float_get(op->ptr, "zoomfacx");
-	dy= (v2d->cur.ymax - v2d->cur.ymin) * (float)RNA_float_get(op->ptr, "zoomfacy");
-	
+	/* calculate amount to move view by, ensuring symmetry so the
+	 * old zoom level is restored after zooming back the same amount */
+	facx= RNA_float_get(op->ptr, "zoomfacx");
+	facy= RNA_float_get(op->ptr, "zoomfacy");
+
+	if(facx >= 0.0f) {
+		dx= (v2d->cur.xmax - v2d->cur.xmin) * facx;
+		dy= (v2d->cur.ymax - v2d->cur.ymin) * facy;
+	}
+	else {
+		dx= ((v2d->cur.xmax - v2d->cur.xmin)/(1.0f + 2.0f*facx)) * facx;
+		dy= ((v2d->cur.ymax - v2d->cur.ymin)/(1.0f + 2.0f*facy)) * facy;
+	}
+
 	/* only resize view on an axis if change is allowed */
 	if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0) {
 		if (v2d->keepofs & V2D_LOCKOFS_X) {
 			v2d->cur.xmax -= 2*dx;
+		}
+		else if (v2d->keepofs & V2D_KEEPOFS_X) {
+			if(v2d->align & V2D_ALIGN_NO_POS_X)
+				v2d->cur.xmin += 2*dx;
+			else
+				v2d->cur.xmax -= 2*dx;
 		}
 		else {
 			v2d->cur.xmin += dx;
@@ -507,18 +530,25 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 		if (v2d->keepofs & V2D_LOCKOFS_Y) {
 			v2d->cur.ymax -= 2*dy;
 		}
+		else if (v2d->keepofs & V2D_KEEPOFS_Y) {
+			if(v2d->align & V2D_ALIGN_NO_POS_Y)
+				v2d->cur.ymin += 2*dy;
+			else
+				v2d->cur.ymax -= 2*dy;
+		}
 		else {
 			v2d->cur.ymin += dy;
 			v2d->cur.ymax -= dy;
 		}
 	}
-	
+
 	/* validate that view is in valid configuration after this operation */
 	UI_view2d_curRect_validate(v2d);
-	
+
 	/* request updates to be done... */
 	ED_area_tag_redraw(CTX_wm_area(C));
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
+	WM_event_add_mousemove(C);
 }
 
 /* --------------- Individual Operators ------------------- */
@@ -527,7 +557,7 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 static int view_zoomin_exec(bContext *C, wmOperator *op)
 {
 	/* check that there's an active region, as View2D data resides there */
-	if (!view_zoomstep_ok(C))
+	if (!view_zoom_poll(C))
 		return OPERATOR_PASS_THROUGH;
 	
 	/* set RNA-Props - zooming in by uniform factor */
@@ -563,7 +593,7 @@ void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 static int view_zoomout_exec(bContext *C, wmOperator *op)
 {
 	/* check that there's an active region, as View2D data resides there */
-	if (!view_zoomstep_ok(C))
+	if (!view_zoom_poll(C))
 		return OPERATOR_PASS_THROUGH;
 	
 	/* set RNA-Props - zooming in by uniform factor */
@@ -675,6 +705,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 	/* request updates to be done... */
 	ED_area_tag_redraw(CTX_wm_area(C));
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
+	WM_event_add_mousemove(C);
 }
 
 /* cleanup temp customdata  */
@@ -831,6 +862,8 @@ void VIEW2D_OT_zoom(wmOperatorType *ot)
 	ot->invoke= view_zoomdrag_invoke;
 	ot->modal= view_zoomdrag_modal;
 	
+	ot->poll= view_zoom_poll;
+	
 	/* operator is repeatable */
 	// ot->flag= OPTYPE_REGISTER|OPTYPE_BLOCKING;
 	
@@ -914,6 +947,7 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 	/* request updates to be done... */
 	ED_area_tag_redraw(CTX_wm_area(C));
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
+	WM_event_add_mousemove(C);
 	
 	return OPERATOR_FINISHED;
 } 
@@ -929,7 +963,7 @@ void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 	ot->exec= view_borderzoom_exec;
 	ot->modal= WM_border_select_modal;
 	
-	ot->poll= ED_operator_areaactive;
+	ot->poll= view_zoom_poll;
 	
 	/* rna */
 	RNA_def_int(ot->srna, "event_type", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
@@ -1154,6 +1188,7 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
 	/* request updates to be done... */
 	ED_area_tag_redraw(CTX_wm_area(C));
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
+	WM_event_add_mousemove(C);
 }
 
 /* handle user input for scrollers - calculations of mouse-movement need to be done here, not in the apply callback! */
@@ -1293,20 +1328,20 @@ static int reset_exec(bContext *C, wmOperator *op)
 		/* posx and negx flags are mutually exclusive, so watch out */
 		if ((v2d->align & V2D_ALIGN_NO_POS_X) && !(v2d->align & V2D_ALIGN_NO_NEG_X)) {
 			v2d->cur.xmax= 0.0f;
-			v2d->cur.xmin= v2d->winx*style->panelzoom;
+			v2d->cur.xmin= -winx*style->panelzoom;
 		}
 		else if ((v2d->align & V2D_ALIGN_NO_NEG_X) && !(v2d->align & V2D_ALIGN_NO_POS_X)) {
-			v2d->cur.xmax= (v2d->cur.xmax - v2d->cur.xmin)*style->panelzoom;
+			v2d->cur.xmax= winx*style->panelzoom;
 			v2d->cur.xmin= 0.0f;
 		}
 
 		/* - posx and negx flags are mutually exclusive, so watch out */
 		if ((v2d->align & V2D_ALIGN_NO_POS_Y) && !(v2d->align & V2D_ALIGN_NO_NEG_Y)) {
 			v2d->cur.ymax= 0.0f;
-			v2d->cur.ymin= -v2d->winy*style->panelzoom;
+			v2d->cur.ymin= -winy*style->panelzoom;
 		}
 		else if ((v2d->align & V2D_ALIGN_NO_NEG_Y) && !(v2d->align & V2D_ALIGN_NO_POS_Y)) {
-			v2d->cur.ymax= (v2d->cur.ymax - v2d->cur.ymin)*style->panelzoom;
+			v2d->cur.ymax= winy*style->panelzoom;
 			v2d->cur.ymin= 0.0f;
 		}
 	}
@@ -1317,6 +1352,7 @@ static int reset_exec(bContext *C, wmOperator *op)
 	/* request updates to be done... */
 	ED_area_tag_redraw(CTX_wm_area(C));
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
+	WM_event_add_mousemove(C);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1332,7 +1368,7 @@ void VIEW2D_OT_reset(wmOperatorType *ot)
 	ot->poll= view2d_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	// ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
  
 /* ********************************************************* */

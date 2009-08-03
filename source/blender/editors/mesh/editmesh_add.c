@@ -1281,9 +1281,9 @@ static float new_primitive_matrix(bContext *C, float primmat[][4])
 	
 	Mat4One(primmat);
 	
-	if(rv3d)
+	if(rv3d && (U.flag & USER_ADD_VIEWALIGNED)) {
 		Mat3CpyMat4(vmat, rv3d->viewmat);
-	else
+	} else
 		Mat3One(vmat);
 	
 	/* inverse transform for view and object */
@@ -1682,9 +1682,6 @@ static int mesh_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	WM_cursor_wait(1);
 	mesh_duplicate_exec(C, op);
 	WM_cursor_wait(0);
-	
-	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
-	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
 	
 	return OPERATOR_FINISHED;
 }

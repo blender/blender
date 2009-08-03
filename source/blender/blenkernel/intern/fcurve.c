@@ -722,6 +722,8 @@ float driver_get_target_value (ChannelDriver *driver, DriverTarget *dtar)
 				break;
 		}
 	}
+	else if (G.f & G_DEBUG)
+		printf("Driver Evaluation Error: cannot resolve target for %s -> %s \n", id->name, path);
 	
 	return value;
 }

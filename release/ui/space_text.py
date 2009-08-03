@@ -3,7 +3,6 @@ import bpy
 
 class TEXT_HT_header(bpy.types.Header):
 	__space_type__ = "TEXT_EDITOR"
-	__idname__ = "TEXT_HT_header"
 
 	def draw(self, context):
 		st = context.space_data

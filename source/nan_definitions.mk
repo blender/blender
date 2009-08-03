@@ -107,6 +107,7 @@ endif
     export NAN_TEST_VERBOSITY ?= 1
     export NAN_OPENNL ?= $(LCGDIR)/opennl
     export NAN_ELBEEM ?= $(LCGDIR)/elbeem
+    export NAN_SMOKE ?= $(LCGDIR)/smoke
     export NAN_SUPERLU ?= $(LCGDIR)/superlu
     export NAN_GLEW ?= $(LCGDIR)/glew
     ifeq ($(FREE_WINDOWS), true)
@@ -135,18 +136,24 @@ endif
     export ID = $(shell whoami)
     export HOST = $(shell hostname -s)
 
-    export PY_FRAMEWORK ?= 1
+    export NAN_PYTHON_VERSION = 3.1
 
-    ifdef PY_FRAMEWORK
-       export NAN_PYTHON ?= /System/Library/Frameworks/Python.framework/Versions/2.3
-       export NAN_PYTHON_VERSION ?= 2.3
-       export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-       export NAN_PYTHON_LIB ?= -framework Python
+    ifeq ($(NAN_PYTHON_VERSION),3.1)
+      export PY_FRAMEWORK ?= 0
+	  export NAN_PYTHON ?= $(LCGDIR)/python
+      export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/libpython$(NAN_PYTHON_VERSION).a
     else
-       export NAN_PYTHON ?= /sw
-       export NAN_PYTHON_VERSION ?= 2.3
-       export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-       export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+      export PY_FRAMEWORK ?= 1
+      ifdef PY_FRAMEWORK
+        export NAN_PYTHON ?= /System/Library/Frameworks/Python.framework/Versions/2.5
+        export NAN_PYTHON_VERSION ?= 2.5
+        export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+        export NAN_PYTHON_LIB ?= -framework Python
+      else
+        export NAN_PYTHON ?= /sw
+        export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+        export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+      endif
     endif
 
     export NAN_OPENAL ?= $(LCGDIR)/openal
@@ -170,13 +177,9 @@ endif
 
     export NAN_OPENEXR ?= $(LCGDIR)/openexr
     export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
-    ifeq ($(CPU),powerpc)
-      export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
-    else
-      export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a
-    endif
-
-    # export NAN_NO_KETSJI=true
+    export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a
+    
+    export NAN_NO_KETSJI=false
 
     ifeq ($(CPU), i386)
       export NAN_NO_OPENAL=true
@@ -208,7 +211,7 @@ endif
     export FREEDESKTOP ?= true
 
     export NAN_PYTHON ?= /usr/local
-    export NAN_PYTHON_VERSION ?= 2.5
+    export NAN_PYTHON_VERSION ?= 3.1
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= /usr/local
@@ -248,7 +251,7 @@ endif
     export HOST = $(shell /usr/bsd/hostname -s)
     #export NAN_NO_KETSJI=true
     export NAN_JUST_BLENDERDYNAMIC=true
-    export NAN_PYTHON_VERSION ?= 2.5
+    export NAN_PYTHON_VERSION ?= 3.1
     ifeq ($(IRIX_USE_GCC), true)
         export NAN_PYTHON ?= $(LCGDIR)/python_gcc
     else
@@ -307,7 +310,7 @@ endif
     export FREEDESKTOP ?= true
 
     export NAN_PYTHON ?= /usr
-    export NAN_PYTHON_VERSION ?= 2.6
+    export NAN_PYTHON_VERSION ?= 3.1
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= /usr
@@ -367,7 +370,7 @@ endif
     export FREEDESKTOP ?= true
 
     export NAN_PYTHON ?= $(LCGDIR)/python
-    export NAN_PYTHON_VERSION ?= 2.3
+    export NAN_PYTHON_VERSION ?= 3.1
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= $(LCGDIR)/openal
@@ -406,7 +409,7 @@ endif
     export ID = $(shell /usr/ucb/whoami)
     export HOST = $(shell hostname)
     export NAN_PYTHON ?= $(LCGDIR)/python
-    export NAN_PYTHON_VERSION ?= 2.5
+    export NAN_PYTHON_VERSION ?= 3.1
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= $(LCGDIR)/openal
@@ -451,7 +454,7 @@ endif
     export ID = $(LOGNAME)
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_ICONV ?= $(LCGDIR)/iconv
-    export NAN_PYTHON_VERSION ?= 2.5
+    export NAN_PYTHON_VERSION ?= 3.1
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_JPEG ?= $(LCGDIR)/jpeg
     export NAN_PNG ?= $(LCGDIR)/png
@@ -507,7 +510,7 @@ endif
   else # Platform not listed above
 
     export NAN_PYTHON ?= $(LCGDIR)/python
-    export NAN_PYTHON_VERSION ?= 2.3
+    export NAN_PYTHON_VERSION ?= 3.1
     export NAN_PYTHON_BINARY ?= python
     export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
 

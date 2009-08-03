@@ -76,7 +76,6 @@ char *includefiles[] = {
 	"DNA_ID.h",
 	"DNA_ipo_types.h",
 	"DNA_key_types.h",
-	"DNA_scriptlink_types.h",
 	"DNA_text_types.h",
 	"DNA_packedFile_types.h",
 	"DNA_camera_types.h",
@@ -133,6 +132,7 @@ char *includefiles[] = {
 	"DNA_windowmanager_types.h",
 	"DNA_anim_types.h",
 	"DNA_boid_types.h",
+	"DNA_smoke_types.h",
 
 	// empty string to indicate end of includefiles
 	""
@@ -485,15 +485,18 @@ static void *read_file_data(char *filename, int *len_r)
 	data= MEM_mallocN(*len_r, "read_file_data");
 	if (!data) {
 		*len_r= -1;
+		fclose(fp);
 		return NULL;
 	}
 
 	if (fread(data, *len_r, 1, fp)!=1) {
 		*len_r= -1;
 		MEM_freeN(data);
+		fclose(fp);
 		return NULL;
 	}
-
+	
+	fclose(fp);
 	return data;
 }
 
@@ -1105,7 +1108,6 @@ int main(int argc, char ** argv)
 #include "DNA_ID.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
-#include "DNA_scriptlink_types.h"
 #include "DNA_text_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_camera_types.h"
@@ -1156,4 +1158,5 @@ int main(int argc, char ** argv)
 #include "DNA_windowmanager_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_boid_types.h"
+#include "DNA_smoke_types.h"
 /* end of list */

@@ -3,7 +3,6 @@ import bpy
 
 class Buttons_HT_header(bpy.types.Header):
 	__space_type__ = "BUTTONS_WINDOW"
-	__idname__ = "BUTTONS_HT_header"
 
 	def draw(self, context):
 		layout = self.layout

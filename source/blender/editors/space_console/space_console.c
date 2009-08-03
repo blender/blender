@@ -100,12 +100,12 @@ static SpaceLink *console_new(const bContext *C)
 	ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
 	ar->v2d.align |= V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y; /* align bottom left */
 	ar->v2d.keepofs |= V2D_LOCKOFS_X;
-	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_KEEPZOOM|V2D_KEEPASPECT);
+	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_LIMITZOOM|V2D_KEEPASPECT);
 	ar->v2d.keeptot= V2D_KEEPTOT_BOUNDS;
 	ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
 
 	/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
-	//ar->v2d.keepzoom= (V2D_KEEPASPECT|V2D_KEEPZOOM);
+	//ar->v2d.keepzoom= (V2D_KEEPASPECT|V2D_LIMITZOOM);
 
 	return (SpaceLink *)sconsole;
 }
@@ -171,7 +171,7 @@ static void console_main_area_draw(const bContext *C, ARegion *ar)
 		console_scrollback_add_str(C, "Cursor:           Left/Right Home/End", 0);
 		console_scrollback_add_str(C, "Remove:           Backspace/Delete", 0);
 		console_scrollback_add_str(C, "Execute:          Enter", 0);
-		console_scrollback_add_str(C, "Autocomplete:     Ctrl+Enter", 0);
+		console_scrollback_add_str(C, "Autocomplete:     Ctrl+Space", 0);
 		console_scrollback_add_str(C, "Ctrl +/-  Wheel:  Zoom", 0);
 		console_scrollback_add_str(C, "Builtin Modules: bpy, bpy.data, bpy.ops, bpy.props, bpy.types, bpy.ui", 0);
 	}
@@ -214,6 +214,8 @@ void console_operatortypes(void)
 	
 	WM_operatortype_append(CONSOLE_OT_clear); 
 	WM_operatortype_append(CONSOLE_OT_history_cycle);
+	WM_operatortype_append(CONSOLE_OT_copy);
+	WM_operatortype_append(CONSOLE_OT_paste);
 	WM_operatortype_append(CONSOLE_OT_zoom);
 
 
@@ -277,8 +279,10 @@ void console_keymap(struct wmWindowManager *wm)
 
 #ifndef DISABLE_PYTHON
 	WM_keymap_add_item(keymap, "CONSOLE_OT_exec", RETKEY, KM_PRESS, 0, 0); /* python operator - space_text.py */
+	WM_keymap_add_item(keymap, "CONSOLE_OT_exec", PADENTER, KM_PRESS, 0, 0);
+	
 	//WM_keymap_add_item(keymap, "CONSOLE_OT_autocomplete", TABKEY, KM_PRESS, 0, 0); /* python operator - space_text.py */
-	WM_keymap_add_item(keymap, "CONSOLE_OT_autocomplete", RETKEY, KM_PRESS, KM_CTRL, 0); /* python operator - space_text.py */
+	WM_keymap_add_item(keymap, "CONSOLE_OT_autocomplete", SPACEKEY, KM_PRESS, KM_CTRL, 0); /* python operator - space_text.py */
 #endif
 
 	/* report selection */
@@ -290,14 +294,12 @@ void console_keymap(struct wmWindowManager *wm)
 	WM_keymap_add_item(keymap, "CONSOLE_OT_report_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CONSOLE_OT_report_delete", DELKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CONSOLE_OT_report_copy", CKEY, KM_PRESS, KM_CTRL, 0);
-
-
-
-
-
+	
+	WM_keymap_add_item(keymap, "CONSOLE_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "CONSOLE_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
 
 	RNA_string_set(WM_keymap_add_item(keymap, "CONSOLE_OT_insert", TABKEY, KM_PRESS, 0, 0)->ptr, "text", "    "); /* fake tabs */
-	WM_keymap_add_item(keymap, "CONSOLE_OT_insert", KM_TEXTINPUT, KM_PRESS, KM_ANY, 0); // last!
+	WM_keymap_add_item(keymap, "CONSOLE_OT_insert", KM_TEXTINPUT, KM_ANY, KM_ANY, 0); // last!
 }
 
 /****************** header region ******************/

@@ -252,29 +252,38 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *steve)
 	}
 }
 
-void WM_jobs_stop_all(wmWindowManager *wm)
+/* stop job, free data completely */
+static void wm_jobs_kill_job(wmWindowManager *wm, wmJob *steve)
 {
-	wmJob *steve= wm->jobs.first;
+	if(steve->running) {
+		/* signal job to end */
+		steve->stop= 1;
+		BLI_end_threads(&steve->threads);
+	}
 	
-	for(; steve; steve= steve->next) {
-		if(steve->running) {
-			/* signal job to end */
-			steve->stop= 1;
-			BLI_end_threads(&steve->threads);
-		}
-		
-		if(steve->wt)
-			WM_event_remove_window_timer(steve->win, steve->wt);
-		if(steve->customdata)
-			steve->free(steve->customdata);
-		if(steve->run_customdata)
-			steve->run_free(steve->run_customdata);
-	}	
+	if(steve->wt)
+		WM_event_remove_window_timer(steve->win, steve->wt);
+	if(steve->customdata)
+		steve->free(steve->customdata);
+	if(steve->run_customdata)
+		steve->run_free(steve->run_customdata);
 	
-	BLI_freelistN(&wm->jobs);
+	/* remove steve */
+	BLI_remlink(&wm->jobs, steve);
+	MEM_freeN(steve);
+	
 }
 
-/* stops job(s) from this owner */
+void WM_jobs_stop_all(wmWindowManager *wm)
+{
+	wmJob *steve;
+	
+	while((steve= wm->jobs.first))
+		wm_jobs_kill_job(wm, steve);
+	
+}
+
+/* signal job(s) from this owner to stop, timer is required to get handled */
 void WM_jobs_stop(wmWindowManager *wm, void *owner)
 {
 	wmJob *steve;
@@ -283,6 +292,19 @@ void WM_jobs_stop(wmWindowManager *wm, void *owner)
 		if(steve->owner==owner)
 			if(steve->running)
 				steve->stop= 1;
+}
+
+/* kill job entirely, also removes timer itself */
+void wm_jobs_timer_ended(wmWindowManager *wm, wmTimer *wt)
+{
+	wmJob *steve;
+	
+	for(steve= wm->jobs.first; steve; steve= steve->next) {
+		if(steve->wt==wt) {
+			wm_jobs_kill_job(wm, steve);
+			return;
+		}
+	}
 }
 
 /* hardcoded to event TIMERJOBS */

@@ -140,7 +140,7 @@ static int node_toggle_visibility(SpaceNode *snode, ARegion *ar, short *mval)
 
 static int node_toggle_visibility_exec(bContext *C, wmOperator *op)
 {
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	ARegion *ar= CTX_wm_region(C);
 	short mval[2];
 
@@ -187,7 +187,7 @@ static int node_fit_all_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
-	SpaceNode *snode= (SpaceNode *)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	snode_home(sa, ar, snode);
 	ED_region_tag_redraw(ar);
 	return OPERATOR_FINISHED;

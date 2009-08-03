@@ -55,6 +55,9 @@ struct IpoCurve;
 struct LinkNode;
 struct KDTree;
 struct RNG;
+struct SurfaceModifierData;
+struct BVHTreeRay;
+struct BVHTreeRayHit; 
 
 typedef struct ParticleEffectorCache {
 	struct ParticleEffectorCache *next, *prev;

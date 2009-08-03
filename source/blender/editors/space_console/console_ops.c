@@ -37,9 +37,11 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_dynstr.h"
 #include "PIL_time.h"
 
 #include "BKE_utildefines.h"
@@ -79,8 +81,26 @@ void console_scrollback_free(SpaceConsole *sc, ConsoleLine *cl)
 void console_scrollback_limit(SpaceConsole *sc)
 {
 	int tot;
-	for(tot= BLI_countlist(&sc->scrollback); tot > CONSOLE_SCROLLBACK_LIMIT; tot--)
+	
+	if (U.scrollback < 32) U.scrollback= 128; // XXX - save in user defaults
+	
+	for(tot= BLI_countlist(&sc->scrollback); tot > U.scrollback; tot--)
 		console_scrollback_free(sc, sc->scrollback.first);
+}
+
+static ConsoleLine * console_history_find(SpaceConsole *sc, const char *str, ConsoleLine *cl_ignore)
+{
+	ConsoleLine *cl;
+
+	for(cl= sc->history.last; cl; cl= cl->prev) {
+		if (cl==cl_ignore)
+			continue;
+
+		if(strcmp(str, cl->line)==0)
+			return cl;
+	}
+
+	return NULL;
 }
 
 /* return 0 if no change made, clamps the range */
@@ -185,6 +205,11 @@ static int console_line_insert(ConsoleLine *ci, char *str)
 {
 	int len = strlen(str);
 	
+	if(len>0 && str[len-1]=='\n') {/* stop new lines being pasted at the end of lines */
+		str[len-1]= '\0';
+		len--;
+	}
+
 	if(len==0)
 		return 0;
 	
@@ -471,11 +496,23 @@ void CONSOLE_OT_history_cycle(wmOperatorType *ot)
 static int history_append_exec(bContext *C, wmOperator *op)
 {
 	ConsoleLine *ci= console_history_verify(C);
-	
-	
 	char *str= RNA_string_get_alloc(op->ptr, "text", NULL, 0); /* own this text in the new line, dont free */
 	int cursor= RNA_int_get(op->ptr, "current_character");
-	
+	short rem_dupes= RNA_boolean_get(op->ptr, "remove_duplicates");
+
+	if(rem_dupes) {
+		SpaceConsole *sc= CTX_wm_space_console(C);
+		ConsoleLine *cl;
+
+		while((cl= console_history_find(sc, ci->line, ci)))
+			console_history_free(sc, cl);
+
+		if(strcmp(str, ci->line)==0) {
+			MEM_freeN(str);
+			return OPERATOR_FINISHED;
+		}
+	}
+
 	ci= console_history_add_str(C, str, 1); /* own the string */
 	console_line_cursor_set(ci, cursor);
 	
@@ -500,6 +537,7 @@ void CONSOLE_OT_history_append(wmOperatorType *ot)
 	/* properties */
 	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");	
 	RNA_def_int(ot->srna, "current_character", 0, 0, INT_MAX, "Cursor", "The index of the cursor.", 0, 10000);
+	RNA_def_boolean(ot->srna, "remove_duplicates", 0, "Remove Duplicates", "Remove duplicate items in the history");
 }
 
 
@@ -546,6 +584,80 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 	/* properties */
 	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");	
 	RNA_def_enum(ot->srna, "type", console_line_type_items, CONSOLE_LINE_OUTPUT, "Type", "Console output type.");
+}
+
+
+static int copy_exec(bContext *C, wmOperator *op)
+{
+	SpaceConsole *sc= CTX_wm_space_console(C);
+
+	DynStr *buf_dyn= BLI_dynstr_new();
+	char *buf_str;
+	
+	ConsoleLine *cl;
+	
+	for(cl= sc->scrollback.first; cl; cl= cl->next) {
+		BLI_dynstr_append(buf_dyn, cl->line);
+		BLI_dynstr_append(buf_dyn, "\n");
+	}
+
+	buf_str= BLI_dynstr_get_cstring(buf_dyn);
+	BLI_dynstr_free(buf_dyn);
+
+	WM_clipboard_text_set(buf_str, 0);
+
+	MEM_freeN(buf_str);
+	return OPERATOR_FINISHED;
+}
+
+void CONSOLE_OT_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy to Clipboard";
+	ot->idname= "CONSOLE_OT_copy";
+
+	/* api callbacks */
+	ot->poll= console_edit_poll;
+	ot->exec= copy_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+
+	/* properties */
+}
+
+static int paste_exec(bContext *C, wmOperator *op)
+{
+	ConsoleLine *ci= console_history_verify(C);
+
+	char *buf_str= WM_clipboard_text_get(0);
+
+	if(buf_str==NULL)
+		return OPERATOR_CANCELLED;
+
+	console_line_insert(ci, buf_str); /* TODO - Multiline copy?? */
+
+	MEM_freeN(buf_str);
+
+	ED_area_tag_redraw(CTX_wm_area(C));
+
+	return OPERATOR_FINISHED;
+}
+
+void CONSOLE_OT_paste(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Paste from Clipboard";
+	ot->idname= "CONSOLE_OT_paste";
+
+	/* api callbacks */
+	ot->poll= console_edit_poll;
+	ot->exec= paste_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+
+	/* properties */
 }
 
 static int zoom_exec(bContext *C, wmOperator *op)

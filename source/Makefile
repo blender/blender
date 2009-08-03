@@ -229,6 +229,7 @@ PULIB += $(OCGDIR)/blender/ed_view3d/$(DEBUG_DIR)libed_view3d.a
 PULIB += $(OCGDIR)/blender/ed_interface/$(DEBUG_DIR)libed_interface.a
 PULIB += $(OCGDIR)/blender/ed_object/$(DEBUG_DIR)libed_object.a
 PULIB += $(OCGDIR)/blender/ed_curve/$(DEBUG_DIR)libed_curve.a
+PULIB += $(OCGDIR)/blender/ed_metaball/$(DEBUG_DIR)libed_metaball.a
 PULIB += $(OCGDIR)/blender/ed_armature/$(DEBUG_DIR)libed_armature.a
 PULIB += $(OCGDIR)/blender/ed_mesh/$(DEBUG_DIR)libed_mesh.a
 PULIB += $(OCGDIR)/blender/ed_sculpt_paint/$(DEBUG_DIR)libed_sculpt_paint.a
@@ -248,6 +249,7 @@ PULIB += $(OCGDIR)/blender/makesrna/$(DEBUG_DIR)librna.a
 PULIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
 PULIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
 PULIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
+PULIB += $(NAN_SMOKE)/lib/$(DEBUG_DIR)/libsmoke.a 
 
 ifeq ($(NAN_NO_KETSJI),true)
     PULIB += $(NAN_MOTO)/lib/$(DEBUG_DIR)libmoto.a

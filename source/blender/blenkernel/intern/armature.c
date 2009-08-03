@@ -66,8 +66,7 @@
 #include "BKE_object.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
-
-//XXX #include "BIF_editdeform.h"
+#include "BKE_sketch.h"
 
 #include "IK_solver.h"
 
@@ -83,6 +82,7 @@ bArmature *add_armature(char *name)
 	
 	arm= alloc_libblock (&G.main->armature, ID_AR, name);
 	arm->deformflag = ARM_DEF_VGROUP|ARM_DEF_ENVELOPE;
+	arm->flag = ARM_COL_CUSTOM; /* custom bone-group colors */
 	arm->layer= 1;
 	return arm;
 }
@@ -143,7 +143,7 @@ void free_armature(bArmature *arm)
 
 		/* free sketch */
 		if (arm->sketch) {
-			ED_freeSketch(arm->sketch);
+			freeSketch(arm->sketch);
 			arm->sketch = NULL;
 		}
 	}
@@ -2213,7 +2213,7 @@ static void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, fl
 			Mat4MulSerie(pchan->pose_mat, tmat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
 		}
 		else if(bone->flag & BONE_NO_SCALE) {
-			float orthmat[4][4], vec[3];
+			float orthmat[4][4];
 			
 			/* get the official transform, but we only use the vector from it (optimize...) */
 			Mat4MulSerie(pchan->pose_mat, parchan->pose_mat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);

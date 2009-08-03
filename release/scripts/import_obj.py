@@ -9,7 +9,7 @@ Tooltip: 'Load a Wavefront OBJ File, Shift: batch import all dir.'
 
 __author__= "Campbell Barton", "Jiri Hnidek", "Paolo Ciccone"
 __url__= ['http://wiki.blender.org/index.php/Scripts/Manual/Import/wavefront_obj', 'blender.org', 'blenderartists.org']
-__version__= "2.11"
+__version__= "2.13"
 
 __bpydoc__= """\
 This script imports a Wavefront OBJ files to Blender.
@@ -21,7 +21,8 @@ Note, This loads mesh objects and materials only, nurbs and curves are not suppo
 
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
-# Script copyright (C) Campbell J Barton 2007
+# Script copyright (C) Campbell J Barton 2007-2009
+# - V2.12- bspline import/export added (funded by PolyDimensions GmbH)
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -124,6 +125,16 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 		image= obj_image_load(imagepath, DIR, IMAGE_SEARCH)
 		has_data = image.has_data
 		texture.image = image
+
+		if not has_data:
+			try:
+				# first time using this image. We need to load it first
+				image.glLoad()
+			except:
+				# probably the image is crashed
+				pass
+			else:
+				has_data = image.has_data
 		
 		# Adds textures for materials (rendering)
 		if type == 'Kd':
@@ -207,6 +218,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 						context_material.setIOR( max(1, min(float(line_split[1]), 3))) # Between 1 and 3
 					elif line_lower.startswith('d') or line_lower.startswith('tr'):
 						context_material.setAlpha(float(line_split[1]))
+						context_material.mode |= Material.Modes.ZTRANSP
 					elif line_lower.startswith('map_ka'):
 						img_filepath= line_value(line.split())
 						if img_filepath:

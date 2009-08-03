@@ -65,6 +65,8 @@ static void keymap_event_set(wmKeymapItem *kmi, short type, short val, int modif
 	}
 	else {
 		
+		kmi->shift= kmi->ctrl= kmi->alt= kmi->oskey= 0;
+		
 		/* defines? */
 		if(modifier & KM_SHIFT)
 			kmi->shift= 1;
@@ -132,7 +134,7 @@ wmKeymapItem *WM_keymap_add_item(ListBase *lb, char *idname, short type, short v
    space/region ids are same as DNA_space_types.h */
 /* gets free'd in wm.c */
 
-ListBase *WM_keymap_listbase(wmWindowManager *wm, const char *nameid, int spaceid, int regionid)
+static wmKeyMap *wm_keymap_add(wmWindowManager *wm, const char *nameid, short spaceid, short regionid)
 {
 	wmKeyMap *km;
 	
@@ -140,7 +142,7 @@ ListBase *WM_keymap_listbase(wmWindowManager *wm, const char *nameid, int spacei
 		if(km->spaceid==spaceid && km->regionid==regionid)
 			if(0==strncmp(nameid, km->nameid, KMAP_MAX_NAME))
 				break;
-
+	
 	if(km==NULL) {
 		km= MEM_callocN(sizeof(struct wmKeyMap), "keymap list");
 		BLI_strncpy(km->nameid, nameid, KMAP_MAX_NAME);
@@ -149,8 +151,61 @@ ListBase *WM_keymap_listbase(wmWindowManager *wm, const char *nameid, int spacei
 		BLI_addtail(&wm->keymaps, km);
 	}
 	
+	return km;
+}
+
+ListBase *WM_keymap_listbase(wmWindowManager *wm, const char *nameid, short spaceid, short regionid)
+{
+	wmKeyMap *km= wm_keymap_add(wm, nameid, spaceid, regionid);
 	return &km->keymap;
 }
+
+/* ****************** modal keymaps ************ */
+
+/* modal maps get linked to a running operator, and filter the keys before sending to modal() callback */
+
+wmKeyMap *WM_modalkeymap_add(wmWindowManager *wm, const char *nameid, EnumPropertyItem *items)
+{
+	wmKeyMap *km= wm_keymap_add(wm, nameid, 0, 0);
+	km->is_modal= 1;
+	km->items= items;
+	
+	return km;
+}
+
+wmKeyMap *WM_modalkeymap_get(wmWindowManager *wm, const char *nameid)
+{
+	wmKeyMap *km;
+	
+	for(km= wm->keymaps.first; km; km= km->next)
+		if(km->is_modal)
+			if(0==strncmp(nameid, km->nameid, KMAP_MAX_NAME))
+				break;
+	
+	return km;
+}
+
+
+void WM_modalkeymap_add_item(wmKeyMap *km, short type, short val, int modifier, short keymodifier, short value)
+{
+	wmKeymapItem *kmi= MEM_callocN(sizeof(wmKeymapItem), "keymap entry");
+	
+	BLI_addtail(&km->keymap, kmi);
+	kmi->propvalue= value;
+	
+	keymap_event_set(kmi, type, val, modifier, keymodifier);
+}
+
+void WM_modalkeymap_assign(wmKeyMap *km, const char *opname)
+{
+	wmOperatorType *ot= WM_operatortype_find(opname, 0);
+	
+	if(ot)
+		ot->modalkeymap= km;
+	else
+		printf("error: modalkeymap_assign, unknown operator %s\n", opname);
+}
+
 
 /* ***************** get string from key events **************** */
 
@@ -179,7 +234,7 @@ static char *wm_keymap_item_to_string(wmKeymapItem *kmi, char *str, int len)
 		strcat(buf, "Alt ");
 
 	if(kmi->oskey)
-		strcat(buf, "OS ");
+		strcat(buf, "Cmd ");
 
 	strcat(buf, WM_key_event_string(kmi->type));
 	BLI_strncpy(str, buf, len);
@@ -187,7 +242,7 @@ static char *wm_keymap_item_to_string(wmKeymapItem *kmi, char *str, int len)
 	return str;
 }
 
-static char *wm_keymap_item_find(ListBase *handlers, const char *opname, int opcontext, IDProperty *properties, char *str, int len)
+static wmKeymapItem *wm_keymap_item_find_handlers(ListBase *handlers, const char *opname, int opcontext, IDProperty *properties)
 {
 	wmEventHandler *handler;
 	wmKeymapItem *kmi;
@@ -198,42 +253,73 @@ static char *wm_keymap_item_find(ListBase *handlers, const char *opname, int opc
 			for(kmi=handler->keymap->first; kmi; kmi=kmi->next)
 				if(strcmp(kmi->idname, opname) == 0 && WM_key_event_string(kmi->type)[0])
 					if(kmi->ptr && IDP_EqualsProperties(properties, kmi->ptr->data))
-						return wm_keymap_item_to_string(kmi, str, len);
+						return kmi;
 	
 	return NULL;
 }
 
-char *WM_key_event_operator_string(const bContext *C, const char *opname, int opcontext, IDProperty *properties, char *str, int len)
+static wmKeymapItem *wm_keymap_item_find(const bContext *C, const char *opname, int opcontext, IDProperty *properties)
 {
-	char *found= NULL;
+	wmKeymapItem *found= NULL;
 
 	/* look into multiple handler lists to find the item */
 	if(CTX_wm_window(C))
-		if((found= wm_keymap_item_find(&CTX_wm_window(C)->handlers, opname, opcontext, properties, str, len)))
-			return found;
+		found= wm_keymap_item_find_handlers(&CTX_wm_window(C)->handlers, opname, opcontext, properties);
+	
 
-	if(CTX_wm_area(C))
-		if((found= wm_keymap_item_find(&CTX_wm_area(C)->handlers, opname, opcontext, properties, str, len)))
-			return found;
+	if(CTX_wm_area(C) && found==NULL)
+		found= wm_keymap_item_find_handlers(&CTX_wm_area(C)->handlers, opname, opcontext, properties);
 
-	if(ELEM(opcontext, WM_OP_EXEC_REGION_WIN, WM_OP_INVOKE_REGION_WIN)) {
-		if(CTX_wm_area(C)) {
-			ARegion *ar= CTX_wm_area(C)->regionbase.first;
-			for(; ar; ar= ar->next)
-				if(ar->regiontype==RGN_TYPE_WINDOW)
-					break;
+	if(found==NULL) {
+		if(ELEM(opcontext, WM_OP_EXEC_REGION_WIN, WM_OP_INVOKE_REGION_WIN)) {
+			if(CTX_wm_area(C)) {
+				ARegion *ar= CTX_wm_area(C)->regionbase.first;
+				for(; ar; ar= ar->next)
+					if(ar->regiontype==RGN_TYPE_WINDOW)
+						break;
 
-			if(ar)
-				if((found= wm_keymap_item_find(&ar->handlers, opname, opcontext, properties, str, len)))
-					return found;
+				if(ar)
+					found= wm_keymap_item_find_handlers(&ar->handlers, opname, opcontext, properties);
+			}
+		}
+		else {
+			if(CTX_wm_region(C))
+				found= wm_keymap_item_find_handlers(&CTX_wm_region(C)->handlers, opname, opcontext, properties);
 		}
 	}
-	else {
-		if(CTX_wm_region(C))
-			if((found= wm_keymap_item_find(&CTX_wm_region(C)->handlers, opname, opcontext, properties, str, len)))
-				return found;
+	
+	return found;
+}
+
+char *WM_key_event_operator_string(const bContext *C, const char *opname, int opcontext, IDProperty *properties, char *str, int len)
+{
+	wmKeymapItem *found= wm_keymap_item_find(C, opname, opcontext, properties);
+	
+	if(found) {
+		wm_keymap_item_to_string(found, str, len);
+		return str;
 	}
 
 	return NULL;
 }
+
+/* searches context and changes keymap item, if found */
+void WM_key_event_operator_change(const bContext *C, const char *opname, int opcontext, IDProperty *properties, short key, short modifier)
+{
+	wmKeymapItem *found= wm_keymap_item_find(C, opname, opcontext, properties);
+
+	if(found) {
+		keymap_event_set(found, key, KM_PRESS, modifier, 0);
+	}
+}
+
+/* ********************* */
+
+int WM_key_event_is_tweak(short type)
+{
+	if(type>=EVT_TWEAK_L && type<=EVT_GESTURE)
+		return 1;
+	return 0;
+}
+
 

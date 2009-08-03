@@ -60,66 +60,17 @@
 #include "buttons_intern.h"
 
 
-/* ************************ header area region *********************** */
-
-static void do_viewmenu(bContext *C, void *arg, int event)
-{
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
-	ScrArea *sa= CTX_wm_area(C);
-
-	switch(event) {
-		case 1:
-		case 2:
-			sbuts->align= event;
-			sbuts->re_align= 1;
-            break;
-    }
-
-	ED_area_tag_redraw(sa);
-}
-
-static uiBlock *dummy_viewmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
-	ScrArea *sa= CTX_wm_area(C);
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-	
-	block= uiBeginBlock(C, ar, "dummy_viewmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_viewmenu, NULL);
-	
-	if (sbuts->align == 1) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Horizontal", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Horizontal", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-
-	if (sbuts->align == 2) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Vertical", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Vertical", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-
-	if(sa->headertype==HEADERTOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-	
-	uiTextBoundsBlock(block, 50);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-
 #define B_CONTEXT_SWITCH	101
 #define B_BUTSPREVIEW		102
-#define B_NEWFRAME			103
 
 static void do_buttons_buttons(bContext *C, void *arg, int event)
 {
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	SpaceButs *sbuts= CTX_wm_space_buts(C);
+
+	if(!sbuts) /* window type switch */
+		return;
 
 	switch(event) {
-		case B_NEWFRAME:
-			WM_event_add_notifier(C, NC_SCENE|ND_FRAME, NULL);
-			break;
 		case B_CONTEXT_SWITCH:
 		case B_BUTSPREVIEW:
 			ED_area_tag_redraw(CTX_wm_area(C));
@@ -133,12 +84,13 @@ static void do_buttons_buttons(bContext *C, void *arg, int event)
 			sbuts->preview= 1;
 			break;
 	}
+
+	sbuts->mainbuser= sbuts->mainb;
 }
 
 void buttons_header_buttons(const bContext *C, ARegion *ar)
 {
-	ScrArea *sa= CTX_wm_area(C);
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	SpaceButs *sbuts= CTX_wm_space_buts(C);
 	uiBlock *block;
 	int xco, yco= 3;
 
@@ -147,17 +99,7 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	block= uiBeginBlock(C, ar, "header buttons", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_buttons_buttons, NULL);
 	
-	xco= ED_area_header_standardbuttons(C, block, yco);
-	
-	if((sa->flag & HEADER_NO_PULLDOWN)==0) {
-		int xmax;
-		
-		xmax= GetButStringLength("View");
-		uiDefPulldownBut(block, dummy_viewmenu, CTX_wm_area(C), 
-						 "View", xco, yco, xmax-3, 20, "");
-		
-		xco+=xmax;
-	}
+	xco= ED_area_header_switchbutton(C, block, yco);
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
@@ -166,30 +108,28 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	// Default panels
 	uiBlockBeginAlign(block);
 	if(sbuts->pathflag & (1<<BCONTEXT_SCENE))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE,			xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_SCENE, 0, 0, "Scene");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE,			xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_SCENE, 0, 0, "Scene");
 	if(sbuts->pathflag & (1<<BCONTEXT_WORLD))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_WORLD,		xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_WORLD, 0, 0, "World");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_WORLD,		xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_WORLD, 0, 0, "World");
 	if(sbuts->pathflag & (1<<BCONTEXT_OBJECT))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_OBJECT_DATA,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_OBJECT, 0, 0, "Object");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_OBJECT_DATA,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_OBJECT, 0, 0, "Object");
 	if(sbuts->pathflag & (1<<BCONTEXT_CONSTRAINT))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_CONSTRAINT,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_CONSTRAINT, 0, 0, "Constraint");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_CONSTRAINT,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_CONSTRAINT, 0, 0, "Constraint");
 	if(sbuts->pathflag & (1<<BCONTEXT_DATA))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	sbuts->dataicon,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_DATA, 0, 0, "Object Data");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	sbuts->dataicon,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_DATA, 0, 0, "Object Data");
 	if(sbuts->pathflag & (1<<BCONTEXT_MODIFIER))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_MODIFIER,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_MODIFIER, 0, 0, "Modifier");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_MODIFIER,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_MODIFIER, 0, 0, "Modifier");
 	if(sbuts->pathflag & (1<<BCONTEXT_BONE))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_BONE_DATA,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_BONE, 0, 0, "Bone");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_BONE_DATA,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_BONE, 0, 0, "Bone");
 	if(sbuts->pathflag & (1<<BCONTEXT_MATERIAL))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_MATERIAL,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_MATERIAL, 0, 0, "Material");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_MATERIAL,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_MATERIAL, 0, 0, "Material");
 	if(sbuts->pathflag & (1<<BCONTEXT_TEXTURE))
-		uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_TEXTURE,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_TEXTURE, 0, 0, "Texture");
+		uiDefIconButS(block, ROW, B_BUTSPREVIEW,	ICON_TEXTURE,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_TEXTURE, 0, 0, "Texture");
 	if(sbuts->pathflag & (1<<BCONTEXT_PARTICLE))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PARTICLES,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PARTICLE, 0, 0, "Particles");
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PARTICLES,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_PARTICLE, 0, 0, "Particles");
 	if(sbuts->pathflag & (1<<BCONTEXT_PHYSICS))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PHYSICS,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_PHYSICS, 0, 0, "Physics");
-	if(sbuts->pathflag & (1<<BCONTEXT_GAME))
-		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_GAME,	xco+=XIC, yco, XIC, YIC, &(sbuts->mainb), 0.0, (float)BCONTEXT_GAME, 0, 0, "Game");
-	xco+= XIC;
+		uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_PHYSICS,	xco+=BUTS_UI_UNIT, yco, BUTS_UI_UNIT, BUTS_UI_UNIT, &(sbuts->mainb), 0.0, (float)BCONTEXT_PHYSICS, 0, 0, "Physics");
+	xco+= BUTS_UI_UNIT;
 	
 	uiBlockEndAlign(block);
 	

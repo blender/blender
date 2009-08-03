@@ -33,12 +33,18 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 #include "BKE_utildefines.h"
+#include "RNA_types.h"
 
-struct Scene;
-struct RenderData;
+struct bNodeTree;
+struct Image;
 struct NodeBlurData;
 struct Object;
-struct bNodeTree;
+struct ReportList;
+struct RenderData;
+struct RenderEngine;
+struct RenderEngineType;
+struct RenderResult;
+struct Scene;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* this include is what is exposed of render to outside world */
@@ -64,6 +70,7 @@ typedef struct RenderPass {
 	char name[16];		/* amount defined in openexr_multi.h */
 	char chan_id[8];	/* amount defined in openexr_multi.h */
 	float *rect;
+	int rectx, recty;
 } RenderPass;
 
 /* a renderlayer is a full image, but with all passes and samples */
@@ -83,6 +90,7 @@ typedef struct RenderLayer {
 	float *rectf;		/* 4 float, standard rgba buffer (read not above!) */
 	float *acolrect;	/* 4 float, optional transparent buffer, needs storage for display updates */
 	float *scolrect;	/* 4 float, optional strand buffer, needs storage for display updates */
+	int rectx, recty;
 	
 	ListBase passes;
 	
@@ -128,7 +136,7 @@ typedef struct RenderStats {
 	int totface, totvert, totstrand, tothalo, totlamp, totpart;
 	short curfield, curblur, curpart, partsdone, convertdone;
 	double starttime, lastframetime;
-	char *infostr, scenename[32];
+	char *infostr, *statstr, scenename[32];
 	
 } RenderStats;
 
@@ -230,6 +238,45 @@ void RE_Database_Baking(struct Render *re, struct Scene *scene, int type, struct
 void RE_DataBase_GetView(struct Render *re, float mat[][4]);
 void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, float mat[][4]);
 struct Scene *RE_GetScene(struct Render *re);
+
+/* External Engine */
+
+#define RE_INTERNAL		1
+#define RE_GAME			2
+
+extern ListBase R_engines;
+
+typedef struct RenderEngineType {
+	struct RenderEngineType *next, *prev;
+
+	/* type info */
+	char idname[32];
+	char name[32];
+	int flag;
+
+	void (*render)(struct RenderEngine *engine, struct Scene *scene);
+
+	/* RNA integration */
+	ExtensionRNA ext;
+} RenderEngineType;
+
+typedef struct RenderEngine {
+	RenderEngineType *type;
+	struct Render *re;
+	ListBase fullresult;
+} RenderEngine;
+
+void RE_layer_rect_from_file(RenderLayer *layer, struct ReportList *reports, char *filename, int x, int y);
+
+struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h);
+void RE_engine_update_result(RenderEngine *engine, struct RenderResult *result);
+void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result);
+
+int RE_engine_test_break(RenderEngine *engine);
+void RE_engine_update_stats(RenderEngine *engine, char *stats, char *info);
+
+void RE_engines_init(void);
+void RE_engines_exit(void);
 
 #endif /* RE_PIPELINE_H */
 

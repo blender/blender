@@ -40,6 +40,7 @@ struct wmJob;
 struct wmNotifier;
 struct rcti;
 struct PointerRNA;
+struct EnumPropertyItem;
 
 typedef struct wmJob wmJob;
 
@@ -50,13 +51,22 @@ void		WM_init				(struct bContext *C);
 void		WM_exit				(struct bContext *C);
 void		WM_main				(struct bContext *C);
 
-struct wmWindow	*WM_window_open		(struct bContext *C, struct rcti *rect);
+struct wmWindow	*WM_window_open	(struct bContext *C, struct rcti *rect);
+
+			/* defines for 'type' WM_window_open_temp */
+#define WM_WINDOW_RENDER		0
+#define WM_WINDOW_USERPREFS		1
+#define WM_WINDOW_FILESEL		2
+
+void		WM_window_open_temp	(struct bContext *C, struct rcti *position, int type);
+
+
 
 			/* files */
 int			WM_read_homefile	(struct bContext *C, struct wmOperator *op);
 int			WM_write_homefile	(struct bContext *C, struct wmOperator *op);
 void		WM_read_file		(struct bContext *C, char *name, struct ReportList *reports);
-void		WM_write_file		(struct bContext *C, char *target, struct ReportList *reports);
+void		WM_write_file		(struct bContext *C, char *target, int compress, struct ReportList *reports);
 void		WM_read_autosavefile(struct bContext *C);
 void		WM_write_autosave	(struct bContext *C);
 
@@ -79,10 +89,18 @@ wmKeymapItem *WM_keymap_add_item(ListBase *lb, char *idname, short type,
 								 short val, int modifier, short keymodifier);
 void		WM_keymap_tweak	(ListBase *lb, short type, short val, int modifier, short keymodifier);
 ListBase	*WM_keymap_listbase	(struct wmWindowManager *wm, const char *nameid, 
-								 int spaceid, int regionid);
+								 short spaceid, short regionid);
+
+wmKeyMap	*WM_modalkeymap_add(struct wmWindowManager *wm, const char *nameid, struct EnumPropertyItem *items);
+wmKeyMap	*WM_modalkeymap_get(struct wmWindowManager *wm, const char *nameid);
+void		WM_modalkeymap_add_item(wmKeyMap *km, short type, short val, int modifier, short keymodifier, short value);
+void		WM_modalkeymap_assign(wmKeyMap *km, const char *opname);
+
+int			WM_key_event_is_tweak(short type);
 
 const char	*WM_key_event_string(short type);
 char		*WM_key_event_operator_string(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, char *str, int len);
+void		WM_key_event_operator_change(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, short key, short modifier);
 
 			/* handlers */
 
@@ -140,6 +158,10 @@ void		WM_operatortype_append	(void (*opfunc)(wmOperatorType*));
 void		WM_operatortype_append_ptr	(void (*opfunc)(wmOperatorType*, void *), void *userdata);
 int			WM_operatortype_remove(const char *idname);
 
+wmOperatorType *WM_operatortype_append_macro(char *idname, char *name, int flag);
+wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char *idname);
+
+
 int			WM_operator_call		(struct bContext *C, struct wmOperator *op);
 int			WM_operator_repeat		(struct bContext *C, struct wmOperator *op);
 int         WM_operator_name_call	(struct bContext *C, const char *opstring, int context, struct PointerRNA *properties);
@@ -147,9 +169,10 @@ int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, struct 
 
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
+void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter);
 
 		/* operator as a python command (resultuing string must be free'd) */
-char		*WM_operator_pystring(struct wmOperator *op);
+char		*WM_operator_pystring(struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args);
 void		WM_operator_bl_idname(char *to, const char *from);
 void		WM_operator_py_idname(char *to, const char *from);
 

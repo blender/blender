@@ -10,8 +10,7 @@ class DataButtonsPanel(bpy.types.Panel):
 		return (context.lattice != None)
 	
 class DATA_PT_context_lattice(DataButtonsPanel):
-	__idname__ = "DATA_PT_context_lattice"
-	__no_header__ = True
+	__show_header__ = False
 	
 	def draw(self, context):
 		layout = self.layout
@@ -29,9 +28,7 @@ class DATA_PT_context_lattice(DataButtonsPanel):
 			split.template_ID(space, "pin_id")
 			split.itemS()
 
-
 class DATA_PT_lattice(DataButtonsPanel):
-	__idname__ = "DATA_PT_lattice"
 	__label__ = "Lattice"
 
 	def draw(self, context):
@@ -57,4 +54,3 @@ class DATA_PT_lattice(DataButtonsPanel):
 
 bpy.types.register(DATA_PT_context_lattice)
 bpy.types.register(DATA_PT_lattice)
-

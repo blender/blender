@@ -31,6 +31,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
@@ -45,6 +46,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
@@ -65,7 +67,7 @@
 typedef struct ButsContextPath {
 	PointerRNA ptr[8];
 	int len;
-	int worldtex;
+	int flag;
 } ButsContextPath;
 
 static int set_pointer_type(ButsContextPath *path, bContextDataResult *result, StructRNA *type)
@@ -302,10 +304,48 @@ static int buttons_context_path_particle(ButsContextPath *path)
 	return 0;
 }
 
+static int buttons_context_path_brush(ButsContextPath *path)
+{
+	Scene *scene;
+	ToolSettings *ts;
+	Brush *br= NULL;
+	PointerRNA *ptr= &path->ptr[path->len-1];
+
+	/* if we already have a (pinned) brush, we're done */
+	if(RNA_struct_is_a(ptr->type, &RNA_Brush)) {
+		return 1;
+	}
+	/* if we have a scene, use the toolsettings brushes */
+	else if(buttons_context_path_scene(path)) {
+		scene= path->ptr[path->len-1].data;
+		ts= scene->toolsettings;
+
+		if(G.f & G_SCULPTMODE)
+			br= ts->sculpt->brush;
+		else if(G.f & G_VERTEXPAINT)
+			br= ts->vpaint->brush;
+		else if(G.f & G_WEIGHTPAINT)
+			br= ts->wpaint->brush;
+		else if(G.f & G_TEXTUREPAINT)
+			br= ts->imapaint.brush;
+
+		if(br) {
+			RNA_id_pointer_create(&br->id, &path->ptr[path->len]);
+			path->len++;
+
+			return 1;
+		}
+	}
+
+	/* no path to a world possible */
+	return 0;
+}
+
 static int buttons_context_path_texture(ButsContextPath *path)
 {
 	Material *ma;
 	Lamp *la;
+	Brush *br;
 	World *wo;
 	MTex *mtex;
 	Tex *tex;
@@ -315,8 +355,21 @@ static int buttons_context_path_texture(ButsContextPath *path)
 	if(RNA_struct_is_a(ptr->type, &RNA_Texture)) {
 		return 1;
 	}
+	/* try brush */
+	else if((path->flag & SB_BRUSH_TEX) && buttons_context_path_brush(path)) {
+		br= path->ptr[path->len-1].data;
+
+		if(br) {
+			mtex= br->mtex[(int)br->texact];
+			tex= (mtex)? mtex->tex: NULL;
+
+			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
+			path->len++;
+			return 1;
+		}
+	}
 	/* try world */
-	else if(path->worldtex && buttons_context_path_world(path)) {
+	else if((path->flag & SB_WORLD_TEX) && buttons_context_path_world(path)) {
 		wo= path->ptr[path->len-1].data;
 
 		if(wo) {
@@ -354,46 +407,21 @@ static int buttons_context_path_texture(ButsContextPath *path)
 			return 1;
 		}
 	}
-	/* TODO: material nodes, brush */
+	/* TODO: material nodes */
 
-	/* no path to a particle system possible */
+	/* no path to a texture possible */
 	return 0;
 }
 
-static int buttons_context_path_game(ButsContextPath *path)
+
+static int buttons_context_path(const bContext *C, ButsContextPath *path, int mainb, int flag)
 {
-	/* XXX temporary context. Using material slot instead of ob->game_data */
-	Object *ob;
-	PointerRNA *ptr= &path->ptr[path->len-1];
-	Material *ma;
-
-	/* if we already have a (pinned) material, we're done */
-	if(RNA_struct_is_a(ptr->type, &RNA_Material)) {
-		return 1;
-	}
-	/* if we have an object, use the object material slot */
-	else if(buttons_context_path_object(path)) {
-		ob= path->ptr[path->len-1].data;
-
-		if(ob && ob->type && (ob->type<OB_LAMP)) {
-			ma= give_current_material(ob, ob->actcol);
-			RNA_id_pointer_create(&ma->id, &path->ptr[path->len]);
-			path->len++;
-			return 1;
-		}
-	}
-
-	/* no path to a material possible */
-	return 0;
-}
-static int buttons_context_path(const bContext *C, ButsContextPath *path, int mainb, int worldtex)
-{
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	SpaceButs *sbuts= CTX_wm_space_buts(C);
 	ID *id;
 	int found;
 
 	memset(path, 0, sizeof(*path));
-	path->worldtex= worldtex;
+	path->flag= flag;
 
 	/* if some ID datablock is pinned, set the root pointer */
 	if(sbuts->pinid) {
@@ -430,9 +458,6 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 		case BCONTEXT_DATA:
 			found= buttons_context_path_data(path, -1);
 			break;
-		case BCONTEXT_GAME:
-			found= buttons_context_path_game(path);
-			break;
 		case BCONTEXT_PARTICLE:
 			found= buttons_context_path_particle(path);
 			break;
@@ -459,18 +484,18 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 {
 	ButsContextPath *path;
 	PointerRNA *ptr;
-	int a, worldtex, flag= 0;
+	int a, pflag, flag= 0;
 
 	if(!sbuts->path)
 		sbuts->path= MEM_callocN(sizeof(ButsContextPath), "ButsContextPath");
 	
 	path= sbuts->path;
-	worldtex= (sbuts->flag & SB_WORLD_TEX);
+	pflag= (sbuts->flag & (SB_WORLD_TEX|SB_BRUSH_TEX));
 	
 	/* for each context, see if we can compute a valid path to it, if
 	 * this is the case, we know we have to display the button */
 	for(a=0; a<BCONTEXT_TOT; a++) {
-		if(buttons_context_path(C, path, a, worldtex)) {
+		if(buttons_context_path(C, path, a, pflag)) {
 			flag |= (1<<a);
 
 			/* setting icon for data context */
@@ -484,6 +509,11 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 			}
 		}
 	}
+
+	/* always try to use the tab that was explicitly
+	 * set to the user, so that once that context comes
+	 * back, the tab is activated again */
+	sbuts->mainb= sbuts->mainbuser;
 
 	/* in case something becomes invalid, change */
 	if((flag & (1 << sbuts->mainb)) == 0) {
@@ -500,7 +530,7 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 		}
 	}
 
-	buttons_context_path(C, path, sbuts->mainb, worldtex);
+	buttons_context_path(C, path, sbuts->mainb, pflag);
 
 	if(!(flag & (1 << sbuts->mainb))) {
 		if(flag & (1 << BCONTEXT_OBJECT))
@@ -516,7 +546,7 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 
 int buttons_context(const bContext *C, const char *member, bContextDataResult *result)
 {
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	SpaceButs *sbuts= CTX_wm_space_buts(C);
 	ButsContextPath *path= sbuts?sbuts->path:NULL;
 
 	if(!path)
@@ -526,9 +556,9 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 	if(CTX_data_dir(member)) {
 		static const char *dir[] = {
 			"world", "object", "mesh", "armature", "lattice", "curve",
-			"meta_ball", "lamp", "camera", "material", "material_slot", "game",
+			"meta_ball", "lamp", "camera", "material", "material_slot",
 			"texture", "texture_slot", "bone", "edit_bone", "particle_system",
-			"cloth", "soft_body", "fluid", "collision", NULL};
+			"cloth", "soft_body", "fluid", "collision", "brush", NULL};
 
 		CTX_data_dir_set(result, dir);
 		return 1;
@@ -671,6 +701,10 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			return 1;
 		}
 	}
+	else if(CTX_data_equals(member, "brush")) {
+		set_pointer_type(path, result, &RNA_Brush);
+		return 1;
+	}
 
 	return 0;
 }
@@ -679,7 +713,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 static void pin_cb(bContext *C, void *arg1, void *arg2)
 {
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	SpaceButs *sbuts= CTX_wm_space_buts(C);
 	ButsContextPath *path= sbuts->path;
 	PointerRNA *ptr;
 	int a;
@@ -704,7 +738,7 @@ static void pin_cb(bContext *C, void *arg1, void *arg2)
 
 void buttons_context_draw(const bContext *C, uiLayout *layout)
 {
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	SpaceButs *sbuts= CTX_wm_space_buts(C);
 	ButsContextPath *path= sbuts->path;
 	uiLayout *row;
 	uiBlock *block;
