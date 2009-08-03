@@ -21,6 +21,7 @@ extern "C"
 {
 #include "BKE_DerivedMesh.h"
 #include "BLI_util.h"
+#include "BLI_fileops.h"
 }
 #include "BKE_scene.h"
 #include "BKE_global.h"
@@ -28,6 +29,8 @@ extern "C"
 #include "BKE_material.h"
 #include "BKE_action.h" // pose functions
 #include "BKE_armature.h"
+#include "BKE_image.h"
+#include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
 #include "BLI_string.h"
@@ -1246,9 +1249,10 @@ public:
 
 class ImagesExporter: COLLADASW::LibraryImages
 {
+	const char *mfilename;
 	std::vector<std::string> mImages; // contains list of written images, to avoid duplicates
 public:
-	ImagesExporter(COLLADASW::StreamWriter *sw) : COLLADASW::LibraryImages(sw)
+	ImagesExporter(COLLADASW::StreamWriter *sw, const char* filename) : COLLADASW::LibraryImages(sw), mfilename(filename)
 	{}
 	
 	void exportImages(Scene *sce)
@@ -1269,8 +1273,15 @@ public:
 
 				Image *image = mtex->tex->ima;
 				std::string name(id_name(image));
-				char *ima_name;
-				BLI_split_dirfile_basic(image->name, NULL, ima_name);
+				char ima_name[FILE_MAX];
+				char dir[FILE_MAX];
+				
+				BLI_split_dirfile_basic(mfilename, dir, NULL);
+				BKE_get_image_export_path(image, dir, NULL, NULL, ima_name, sizeof(ima_name));
+				
+				if (BLI_copy_fileops(image->name, dir) != 0) {
+					fprintf(stderr, "Cannot copy image to file's directory. \n");
+				}
 				
 				if (find(mImages.begin(), mImages.end(), name) == mImages.end()) {
 					COLLADASW::Image img(COLLADABU::URI(COLLADABU::URI::nativePathToUri(ima_name)), name, "");
@@ -1851,7 +1862,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	le.exportLights(sce);
 
 	// <library_images>
-	ImagesExporter ie(&sw);
+	ImagesExporter ie(&sw, filename);
 	ie.exportImages(sce);
 	
 	// <library_effects>
