@@ -119,10 +119,6 @@ protected:
 										// the Qlist is for objects that needs to be rescheduled
 										// for updates after udpate is over (slow parent, bone parent)
 
-	/**
-	 *  The tree of objects in the scene.
-	 */
-	SG_Tree*			m_objecttree;
 
 	/**
 	 * The set of cameras for this scene

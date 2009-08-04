@@ -1579,11 +1579,6 @@ void	KX_Scene::SetGravity(const MT_Vector3& gravity)
 	GetPhysicsEnvironment()->setGravity(gravity[0],gravity[1],gravity[2]);
 }
 
-void KX_Scene::SetNodeTree(SG_Tree* root)
-{
-	m_objecttree = root;
-}
-
 void KX_Scene::SetSceneConverter(class KX_BlenderSceneConverter* sceneConverter)
 {
 	m_sceneConverter = sceneConverter;

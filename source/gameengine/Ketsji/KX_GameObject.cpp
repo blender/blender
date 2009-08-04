@@ -101,7 +101,6 @@ KX_GameObject::KX_GameObject(
 	m_bOccluder(false),
 	m_pPhysicsController1(NULL),
 	m_pGraphicController(NULL),
-	m_pPhysicsEnvironment(NULL),
 	m_xray(false),
 	m_pHitObject(NULL),
 	m_isDeformable(false),
@@ -2693,8 +2692,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 		toDir.normalize();
 		toPoint = fromPoint + (dist) * toDir;
 	}
-
-	PHY_IPhysicsEnvironment* pe = GetPhysicsEnvironment();
+	PHY_IPhysicsEnvironment* pe = KX_GetActiveScene()->GetPhysicsEnvironment();
 	KX_IPhysicsController *spc = GetPhysicsController();
 	KX_GameObject *parent = GetParent();
 	if (!spc && parent)
@@ -2821,7 +2819,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 		return none_tuple_3();
 	}
 	
-	PHY_IPhysicsEnvironment* pe = GetPhysicsEnvironment();
+	PHY_IPhysicsEnvironment* pe = KX_GetActiveScene()->GetPhysicsEnvironment();
 	KX_IPhysicsController *spc = GetPhysicsController();
 	KX_GameObject *parent = GetParent();
 	if (!spc && parent)

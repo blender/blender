@@ -1794,7 +1794,6 @@ static KX_GameObject *gameobject_from_blenderobject(
 	}
 	if (gameobj) 
 	{
-		gameobj->SetPhysicsEnvironment(kxscene->GetPhysicsEnvironment());
 		gameobj->SetLayer(ob->lay);
 		gameobj->SetBlenderObject(ob);
 		/* set the visibility state based on the objects render option in the outliner */
