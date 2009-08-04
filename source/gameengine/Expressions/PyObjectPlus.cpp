@@ -85,8 +85,8 @@ PyTypeObject PyObjectPlus::Type = {
 PyObjectPlus::~PyObjectPlus()
 {
 	if(m_proxy) {
-		Py_DECREF(m_proxy);			/* Remove own reference, python may still have 1 */
 		BGE_PROXY_REF(m_proxy)= NULL;
+		Py_DECREF(m_proxy);			/* Remove own reference, python may still have 1 */
 	}
 //	assert(ob_refcnt==0);
 }
