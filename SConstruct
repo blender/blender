@@ -554,8 +554,8 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
 	if env['WITH_BF_PYTHON']:
 		ver = env["BF_PYTHON_VERSION"].replace(".", "")
 		
-		dllsources.append('#release/windows/extra/python' + ver + '.zip')
-		dllsources.append('#release/windows/extra/zlib.pyd')
+		dllsources.append('${LCGDIR}/release/python' + ver + '.zip')
+		dllsources.append('${LCGDIR}/release/zlib.pyd')
 		if env['BF_DEBUG']:
 			dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_LIB}_d.dll')
 		else:
