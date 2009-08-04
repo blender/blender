@@ -1504,7 +1504,9 @@ public:
 		indices.clear();
 
 		for (int a = 0; a < MAX_MTEX; a++) {
-			if (ma->mtex[a] && ma->mtex[a]->tex->type == TEX_IMAGE){
+			if (ma->mtex[a] &&
+				ma->mtex[a]->tex->type == TEX_IMAGE &&
+				ma->mtex[a]->texco == TEXCO_UV){
 				indices.push_back(a);
 			}
 		}
