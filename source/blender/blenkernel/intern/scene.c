@@ -131,6 +131,7 @@ void free_qtcodecdata(QuicktimeCodecData *qcd)
 void free_scene(Scene *sce)
 {
 	Base *base;
+	SceneRenderLayer *srl;
 
 	base= sce->base.first;
 	while(base) {
@@ -164,7 +165,6 @@ void free_scene(Scene *sce)
 		sce->r.ffcodecdata.properties = NULL;
 	}
 	
-	SceneRenderLayer *srl;
 	for(srl= sce->r.layers.first; srl; srl= srl->next) {
 		BLI_freelistN( &srl->freestyleConfig.modules);
 	}

@@ -3523,6 +3523,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	Sequence *seq;
 	MetaStack *ms;
 	int a;
+	SceneRenderLayer *srl;
 
 	sce->theDag = NULL;
 	sce->dagisvalid = 0;
@@ -3682,7 +3683,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	link_list(fd, &(sce->transform_spaces));
 	link_list(fd, &(sce->r.layers));
 	
-	SceneRenderLayer *srl;
 	for(srl= sce->r.layers.first; srl; srl= srl->next) {
 		link_list(fd, &(srl->freestyleConfig.modules));
 	}
