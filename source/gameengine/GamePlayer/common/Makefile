@@ -47,7 +47,6 @@ CPPFLAGS += -I../../../blender/gpu
 CPPFLAGS += -I../../../kernel/gen_system
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
-CPPFLAGS += -I$(NAN_FUZZICS)/include
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_PNG)/include
