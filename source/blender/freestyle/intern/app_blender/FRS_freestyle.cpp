@@ -15,19 +15,18 @@ extern "C" {
 #include "MEM_guardedalloc.h"
 
 #include "DNA_camera_types.h"
-#include "DNA_listBase.h"
-#include "DNA_scene_types.h"
+#include "DNA_freestyle_types.h"
 
 #include "BKE_global.h"
 #include "BLI_blenlib.h"
 #include "BIF_renderwin.h"
 #include "BPY_extern.h"
 
-#include "render_types.h"
 #include "renderpipeline.h"
 #include "pixelblending.h"
 
 #include "../../FRS_freestyle.h"
+#include "../../FRS_freestyle_config.h"
 
 	// Freestyle configuration
 	short freestyle_is_initialized = 0;
@@ -42,7 +41,6 @@ extern "C" {
 	int freestyle_viewport[4];
 	
 	// Panel configuration
-	short freestyle_current_layer_number = 0;
 	char* freestyle_current_module_path = NULL;
 	SceneRenderLayer* freestyle_current_layer = NULL;
 
@@ -51,31 +49,13 @@ extern "C" {
 	float* freestyle_sphere_radius;
 	float* freestyle_dkr_epsilon;
 	
-	class FreestylePanelConfigurationData {
-	public:
-		set<SceneRenderLayer*> layers;
-		map<SceneRenderLayer*, ListBase*> modules;
-		map<SceneRenderLayer*, int*> flags;
-		map<SceneRenderLayer*, float*> sphere_radius;
-		map<SceneRenderLayer*, float*> dkr_epsilon;
-		
-		FreestylePanelConfigurationData() {}
-		~FreestylePanelConfigurationData() {
-			set<SceneRenderLayer*>::iterator it;
-			
-			for( it=layers.begin(); it!=layers.end(); it++)
-				FRS_delete_layer( *it, 1 );
-		}
-	};
-	static FreestylePanelConfigurationData* panelConfig;
-	
 	string default_module_path;
 
 	//=======================================================
 	//   Initialization 
 	//=======================================================
 
-	void FRS_initialize(){
+	void FRS_initialize( short select_layer ){
 		
 		if( !freestyle_is_initialized ) {
 
@@ -83,27 +63,21 @@ extern "C" {
 			controller = new Controller;
 			view = new AppView;
 			controller->setView(view);
-
-		} else {
-
-			delete panelConfig;
-
+			
+			default_module_path = pathconfig->getProjectDir() + Config::DIR_SEP + "style_modules" + Config::DIR_SEP + "contour.py";
+			
+			freestyle_is_initialized = 1;
 		}
-
-		panelConfig = new FreestylePanelConfigurationData;
-			
-		default_module_path = pathconfig->getProjectDir() + Config::DIR_SEP + "style_modules" + Config::DIR_SEP + "contour.py";
-		FRS_select_layer( (SceneRenderLayer*) BLI_findlink(&G.scene->r.layers, G.scene->r.actlay) );
-			
-		freestyle_is_initialized = 1;
+		
+		if( select_layer )
+			FRS_select_layer( (SceneRenderLayer*) BLI_findlink(&G.scene->r.layers, G.scene->r.actlay) );
 		
 	}
-
+	
 	void FRS_exit() {
 		delete pathconfig;
 		delete controller;
 		delete view;
-		delete panelConfig;
 	}
 
 	//=======================================================
@@ -130,26 +104,6 @@ extern "C" {
 		freestyle_viewpoint[1] = maincam_obj->obmat[3][1];
 		freestyle_viewpoint[2] = maincam_obj->obmat[3][2];
 		
-		// freestyle_mv[0][0] = maincam_obj->obmat[0][0];
-		// freestyle_mv[0][1] = maincam_obj->obmat[1][0];
-		// freestyle_mv[0][2] = maincam_obj->obmat[2][0];
-		// freestyle_mv[0][3] = 0.0;
-		// 
-		// freestyle_mv[1][0] = maincam_obj->obmat[0][1];
-		// freestyle_mv[1][1] = maincam_obj->obmat[1][1];
-		// freestyle_mv[1][2] = maincam_obj->obmat[2][1];
-		// freestyle_mv[1][3] = 0.0;
-		// 
-		// freestyle_mv[2][0] = re->viewmat[2][0];
-		// freestyle_mv[2][1] = re->viewmat[2][1];
-		// freestyle_mv[2][2] = re->viewmat[2][2];
-		// freestyle_mv[2][3] = 0.0;
-		// 
-		// freestyle_mv[3][0] = re->viewmat[3][0];
-		// freestyle_mv[3][1] = re->viewmat[3][1];
-		// freestyle_mv[3][2] = re->viewmat[3][2];
-		// freestyle_mv[3][3] = 1.0;
-
 		for( int i = 0; i < 4; i++ )
 		   for( int j = 0; j < 4; j++ )
 			freestyle_mv[i][j] = re->viewmat[i][j];
@@ -157,13 +111,11 @@ extern "C" {
 		for( int i = 0; i < 4; i++ )
 		   for( int j = 0; j < 4; j++ )
 			freestyle_proj[i][j] = re->winmat[i][j];
-			
-		//f(cam && (re->r.mode & R_ORTHO)) {
 	}
 
 	
 	void prepare(Render* re, SceneRenderLayer* srl ) {
-		
+				
 		// clear canvas
 		controller->Clear();
 
@@ -172,10 +124,14 @@ extern "C" {
 			return;
 		
 		// add style modules
+		FreestyleConfig* config = &srl->freestyleConfig;
+		
 		cout << "\n===  Rendering options  ===" << endl;
 		cout << "Modules :"<< endl;
 		int layer_count = 0;
-		for( StyleModuleConf* module_conf = (StyleModuleConf *)panelConfig->modules[srl]->first; module_conf; module_conf = module_conf->next ) {
+		
+
+		for( FreestyleModuleConfig* module_conf = (FreestyleModuleConfig *)config->modules.first; module_conf; module_conf = module_conf->next ) {
 			if( module_conf->is_displayed ) {
 				cout << "  " << layer_count+1 << ": " << module_conf->module_path << endl;
 				controller->InsertStyleModule( layer_count, module_conf->module_path );
@@ -186,10 +142,10 @@ extern "C" {
 		cout << endl;
 		
 		// set parameters
-		controller->setSphereRadius(*panelConfig->sphere_radius[srl]);
-		controller->setComputeRidgesAndValleysFlag((*panelConfig->flags[srl] & FREESTYLE_RIDGES_AND_VALLEYS_FLAG) ? true : false);
-		controller->setComputeSuggestiveContoursFlag((*panelConfig->flags[srl] & FREESTYLE_SUGGESTIVE_CONTOURS_FLAG) ? true : false);
-		controller->setSuggestiveContourKrDerivativeEpsilon(*panelConfig->dkr_epsilon[srl]);
+		controller->setSphereRadius( config->sphere_radius );
+		controller->setComputeRidgesAndValleysFlag( (config->flags & FREESTYLE_RIDGES_AND_VALLEYS_FLAG) ? true : false);
+		controller->setComputeSuggestiveContoursFlag( (config->flags & FREESTYLE_SUGGESTIVE_CONTOURS_FLAG) ? true : false);
+		controller->setSuggestiveContourKrDerivativeEpsilon( config->dkr_epsilon ) ;
 
 		cout << "Sphere radius : " << controller->getSphereRadius() << endl;
 		cout << "Redges and valleys : " << (controller->getComputeRidgesAndValleysFlag() ? "enabled" : "disabled") << endl;
@@ -236,11 +192,8 @@ extern "C" {
 	
 	int displayed_layer_count( SceneRenderLayer* srl ) {
 		int count = 0;
-		
-		if( panelConfig->layers.find(srl) == panelConfig->layers.end() )
-			return 0;
 
-		for( StyleModuleConf* module_conf = (StyleModuleConf *)panelConfig->modules[srl]->first; module_conf; module_conf = module_conf->next ) {
+		for( FreestyleModuleConfig* module_conf = (FreestyleModuleConfig *)srl->freestyleConfig.modules.first; module_conf; module_conf = module_conf->next ) {
 			if( module_conf->is_displayed )
 				count++;
 		}
@@ -257,6 +210,7 @@ extern "C" {
 		cout << "#  Freestyle" << endl;
 		cout << "#===============================================================" << endl;
 		
+		FRS_initialize( 0 );
 		init_view(re);
 		init_camera(re);
 		
@@ -300,50 +254,37 @@ extern "C" {
 	//   Freestyle Panel Configuration
 	//=======================================================
 
-	void FRS_select_layer( SceneRenderLayer* srl )
-	{
-		if( panelConfig->layers.find(srl) == panelConfig->layers.end() )
-		{
-			panelConfig->layers.insert(srl);
-			
-			panelConfig->modules[srl] = new ListBase;
-			panelConfig->modules[srl]->first = panelConfig->modules[srl]->last = NULL;
-			
-			panelConfig->flags[srl] = new int(0);
-			panelConfig->sphere_radius[srl] = new float(1.0);
-			panelConfig->dkr_epsilon[srl] = new float(0.001);
-		}
+	void FRS_add_freestyle_config( SceneRenderLayer* srl )
+	{		
+		FreestyleConfig* config = &srl->freestyleConfig;
 		
-		freestyle_modules = panelConfig->modules[srl];
-		freestyle_flags = panelConfig->flags[srl];
-		freestyle_sphere_radius = panelConfig->sphere_radius[srl];
-		freestyle_dkr_epsilon = panelConfig->dkr_epsilon[srl];
-		
-		freestyle_current_layer = srl;
-		freestyle_current_layer_number = BLI_findindex(&G.scene->r.layers, freestyle_current_layer);
+		config->modules.first = config->modules.last = NULL;
+		config->flags = 0;
+		config->sphere_radius = 1.0;
+		config->dkr_epsilon = 0.001;
+	}
+	
+	void FRS_free_freestyle_config( SceneRenderLayer* srl )
+	{		
+		BLI_freelistN( &srl->freestyleConfig.modules );
 	}
 
-	void FRS_delete_layer( SceneRenderLayer* srl, short isDestructor )
-	{
-		BLI_freelistN( panelConfig->modules[srl] );
-		delete panelConfig->modules[srl];
+	void FRS_select_layer( SceneRenderLayer* srl )
+	{	
+		FreestyleConfig* config = &srl->freestyleConfig;
 		
-		delete panelConfig->flags[srl];
-		delete panelConfig->sphere_radius[srl];
-		delete panelConfig->dkr_epsilon[srl];
+		freestyle_modules = &config->modules;
+		freestyle_flags = &config->flags;
+		freestyle_sphere_radius = &config->sphere_radius;
+		freestyle_dkr_epsilon = &config->dkr_epsilon;
 		
-		panelConfig->modules.erase(srl);
-		panelConfig->flags.erase(srl);
-		panelConfig->sphere_radius.erase(srl);
-		panelConfig->dkr_epsilon.erase(srl);
-		
-		if( !isDestructor )
-			panelConfig->layers.erase(srl);
+		freestyle_current_layer = srl;
+		G.scene->freestyle_current_layer_number = BLI_findindex(&G.scene->r.layers, freestyle_current_layer);
 	}
 	
 	void FRS_add_module()
 	{
-		StyleModuleConf* module_conf = (StyleModuleConf*) MEM_callocN( sizeof(StyleModuleConf), "style module configuration");
+		FreestyleModuleConfig* module_conf = (FreestyleModuleConfig*) MEM_callocN( sizeof(FreestyleModuleConfig), "style module configuration");
 		BLI_addtail(freestyle_modules, (void*) module_conf);
 		
 		strcpy( module_conf->module_path, default_module_path.c_str() );
@@ -352,14 +293,14 @@ extern "C" {
 	
 	void FRS_delete_module(void *module_index_ptr, void *unused)
 	{
-		StyleModuleConf* module_conf = (StyleModuleConf*) BLI_findlink(freestyle_modules, (intptr_t)module_index_ptr);
+		FreestyleModuleConfig* module_conf = (FreestyleModuleConfig*) BLI_findlink(freestyle_modules, (intptr_t)module_index_ptr);
 
 		BLI_freelinkN( freestyle_modules, module_conf);
 	}
 	
 	void FRS_move_up_module(void *module_index_ptr, void *unused)
 	{
-		StyleModuleConf* module_conf = (StyleModuleConf*) BLI_findlink(freestyle_modules, (intptr_t)module_index_ptr);
+		FreestyleModuleConfig* module_conf = (FreestyleModuleConfig*) BLI_findlink(freestyle_modules, (intptr_t)module_index_ptr);
 		
 		BLI_remlink(freestyle_modules, module_conf);
 		BLI_insertlink(freestyle_modules, module_conf->prev->prev, module_conf);
@@ -367,7 +308,7 @@ extern "C" {
 	
 	void FRS_move_down_module(void *module_index_ptr, void *unused)
 	{			
-		StyleModuleConf* module_conf = (StyleModuleConf*) BLI_findlink(freestyle_modules, (intptr_t)module_index_ptr);
+		FreestyleModuleConfig* module_conf = (FreestyleModuleConfig*) BLI_findlink(freestyle_modules, (intptr_t)module_index_ptr);
 		
 		BLI_remlink(freestyle_modules, module_conf);
 		BLI_insertlink(freestyle_modules, module_conf->next, module_conf);
@@ -375,7 +316,7 @@ extern "C" {
 	
 	void FRS_set_module_path(void *module_index_ptr, void *unused)
 	{
-		StyleModuleConf* module_conf = (StyleModuleConf*) BLI_findlink(freestyle_modules, (intptr_t)module_index_ptr);
+		FreestyleModuleConfig* module_conf = (FreestyleModuleConfig*) BLI_findlink(freestyle_modules, (intptr_t)module_index_ptr);
 		freestyle_current_module_path = module_conf->module_path;
 	}
 	

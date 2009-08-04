@@ -59,6 +59,7 @@ private:
   static real _glProjectionMatrix[4][4];  // GL style (column major) projection matrix
   static real _glModelViewMatrix[4][4];  // GL style (column major) model view matrix
 
+static bool _isOrthographicProjection;
   
   
   static SilhouetteGeomEngine *_pInstance;

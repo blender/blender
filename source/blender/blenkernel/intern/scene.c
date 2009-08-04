@@ -96,6 +96,8 @@
 #include <sys/time.h>
 #endif
 
+#include "FRS_freestyle_config.h"
+
 void free_avicodecdata(AviCodecData *acd)
 {
 	if (acd) {
@@ -162,6 +164,11 @@ void free_scene(Scene *sce)
 		sce->r.ffcodecdata.properties = NULL;
 	}
 	
+	SceneRenderLayer *srl;
+	for(srl= sce->r.layers.first; srl; srl= srl->next) {
+		BLI_freelistN( &srl->freestyleConfig.modules);
+	}
+	
 	BLI_freelistN(&sce->markers);
 	BLI_freelistN(&sce->transform_spaces);
 	BLI_freelistN(&sce->r.layers);
@@ -195,7 +202,7 @@ Scene *add_scene(char *name)
 	sce->selectmode= SCE_SELECT_VERTEX;
 	sce->editbutsize= 0.1;
 	sce->autokey_mode= U.autokey_mode;
-	
+
 	sce->r.mode= R_GAMMA;
 	sce->r.cfra= 1;
 	sce->r.sfra= 1;
@@ -615,6 +622,8 @@ void scene_add_render_layer(Scene *sce)
 	srl->lay= (1<<20) -1;
 	srl->layflag= 0x7FFF;	/* solid ztra halo edge strand */
 	srl->passflag= SCE_PASS_COMBINED|SCE_PASS_Z;
+	FRS_add_freestyle_config( srl );
+	
 }
 
 /* Initialize 'permanent' sculpt data that is saved with file kept after

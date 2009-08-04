@@ -122,6 +122,8 @@ extern void makeffmpegstring(char* string);
 #endif
 
 #include "FRS_freestyle.h"
+#include "FRS_freestyle_config.h"
+#include "DNA_freestyle_types.h"
 
 /* here the calls for scene buttons
    - render
@@ -1744,7 +1746,7 @@ void do_render_panels(unsigned short event)
 #endif
 
 	case B_FRS_SELECT_RENDER_LAYER:
-		FRS_select_layer( BLI_findlink(&G.scene->r.layers, freestyle_current_layer_number ) );
+		FRS_select_layer( BLI_findlink(&G.scene->r.layers, G.scene->freestyle_current_layer_number ) );
 		allqueue(REDRAWBUTSSCENE, 0);
 		break;
 
@@ -3314,7 +3316,7 @@ static void render_panel_freestyle()
 	
 	uiBut *bt;
 	int module_list_y;
-	StyleModuleConf* module_conf;
+	FreestyleModuleConfig* module_conf;
 	int module_number, last_module_number;
 	
 	// block
@@ -3331,7 +3333,7 @@ static void render_panel_freestyle()
 	}
 	
 	uiDefBut(block, LABEL, 0, "Render Layer:", 10,210,100,20, NULL, 0, 0, 0, 0, "");
-	uiDefButS(block, MENU, B_FRS_SELECT_RENDER_LAYER, str, 110,210,200,20, &freestyle_current_layer_number, 0, 0, 0, 0, "Settings for current Render Layer");
+	uiDefButS(block, MENU, B_FRS_SELECT_RENDER_LAYER, str, 110,210,200,20, &G.scene->freestyle_current_layer_number, 0, 0, 0, 0, "Settings for current Render Layer");
 	MEM_freeN(str);
 	
 	// label to force a boundbox for buttons not to be centered
@@ -3398,16 +3400,16 @@ static void delete_scene_layer_func(void *srl_v, void *act_i)
 		intptr_t act= (intptr_t)act_i;
 		
 		int deleted_layer = G.scene->r.actlay;
-		FRS_delete_layer( BLI_findlink(&G.scene->r.layers, deleted_layer), 0 );
+		FRS_free_freestyle_config( BLI_findlink(&G.scene->r.layers, deleted_layer) );
 		
 		BLI_remlink(&G.scene->r.layers, srl_v);
 		MEM_freeN(srl_v);
 		G.scene->r.actlay = 0;
 		
-		if( deleted_layer == freestyle_current_layer_number ) {
+		if( deleted_layer == G.scene->freestyle_current_layer_number ) {
 			FRS_select_layer( BLI_findlink(&G.scene->r.layers, G.scene->r.actlay) );
 		} else {
-			freestyle_current_layer_number = BLI_findindex(&G.scene->r.layers, freestyle_current_layer);
+			G.scene->freestyle_current_layer_number = BLI_findindex(&G.scene->r.layers, freestyle_current_layer);
 		}
 		
 		if(G.scene->nodetree) {

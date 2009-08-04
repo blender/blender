@@ -72,7 +72,7 @@
 #endif /* disable yafray */
 
 #include "FRS_freestyle.h"
-
+#include "FRS_freestyle_config.h"
 
 /* internal */
 #include "render_types.h"
@@ -592,6 +592,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 		rl->lay= (1<<20) -1;
 		rl->layflag= 0x7FFF;	/* solid ztra halo strand */
 		rl->passflag= SCE_PASS_COMBINED;
+		FRS_add_freestyle_config( srl );
 		
 		re->r.actlay= 0;
 	}

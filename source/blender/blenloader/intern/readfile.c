@@ -3682,6 +3682,11 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	link_list(fd, &(sce->transform_spaces));
 	link_list(fd, &(sce->r.layers));
 	
+	SceneRenderLayer *srl;
+	for(srl= sce->r.layers.first; srl; srl= srl->next) {
+		link_list(fd, &(srl->freestyleConfig.modules));
+	}
+
 	sce->nodetree= newdataadr(fd, sce->nodetree);
 	if(sce->nodetree)
 		direct_link_nodetree(fd, sce->nodetree);
@@ -8776,7 +8781,7 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	
 	for(srl= sce->r.layers.first; srl; srl= srl->next) {
 		expand_doit(fd, mainvar, srl->mat_override);
-		expand_doit(fd, mainvar, srl->light_override);
+		expand_doit(fd, mainvar, srl->light_override);		
 	}
 				
 }

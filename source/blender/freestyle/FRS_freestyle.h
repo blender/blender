@@ -8,13 +8,8 @@
 extern "C" {
 #endif	
 	
-	typedef struct StyleModuleConf {
-		struct StyleModuleConf *next, *prev;
-		
-		char module_path[255];
-		short is_displayed;
-	} StyleModuleConf;
-	
+	#include "DNA_listBase.h"
+	#include "DNA_scene_types.h"
 	
 	extern short freestyle_is_initialized;
 	
@@ -22,8 +17,7 @@ extern "C" {
 	extern float freestyle_mv[4][4];
 	extern float freestyle_proj[4][4];
 	extern int freestyle_viewport[4];
-	
-	extern short freestyle_current_layer_number;
+
 	extern char* freestyle_current_module_path;
 	extern SceneRenderLayer* freestyle_current_layer;
 	extern ListBase* freestyle_modules;
@@ -32,13 +26,12 @@ extern "C" {
 	extern float* freestyle_dkr_epsilon;
 	
 	// Rendering
-	void FRS_initialize();
+	void FRS_initialize( short select_layer );
 	void FRS_add_Freestyle(Render* re);
 	void FRS_exit();
 	
 	// Panel configuration
 	void FRS_select_layer( SceneRenderLayer* srl );
-	void FRS_delete_layer( SceneRenderLayer* srl, short isDestructor );
 	void FRS_add_module();
 	void FRS_delete_module(void *module_index_ptr, void *unused);
 	void FRS_move_up_module(void *module_index_ptr, void *unused);

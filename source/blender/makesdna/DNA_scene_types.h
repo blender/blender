@@ -38,6 +38,7 @@ extern "C" {
 #include "DNA_scriptlink_types.h"
 #include "DNA_ID.h"
 #include "DNA_scriptlink_types.h"
+#include "DNA_freestyle_types.h"
 
 struct Radio;
 struct Object;
@@ -46,6 +47,7 @@ struct Scene;
 struct Image;
 struct Group;
 struct bNodeTree;
+
 
 typedef struct Base {
 	struct Base *next, *prev;
@@ -125,6 +127,9 @@ typedef struct SceneRenderLayer {
 	
 	int passflag;			/* pass_xor has to be after passflag */
 	int pass_xor;
+	
+	struct FreestyleConfig freestyleConfig;
+	
 } SceneRenderLayer;
 
 /* srl->layflag */
@@ -448,7 +453,8 @@ typedef struct ToolSettings {
 	
 	/* Alt+RMB option */
 	char edge_mode;
-} ToolSettings;
+	
+} ToolSettings; 
 
 /* Used by all brushes to store their properties, which can be directly set
    by the interface code. Note that not all properties are actually used by
@@ -565,7 +571,11 @@ typedef struct Scene {
 
 	/* frame step. */
 	int frame_step;
-	int pad;
+	
+	/* Freestyle */
+	short freestyle_current_layer_number;
+	short pad;
+	
 } Scene;
 
 

@@ -52,7 +52,8 @@ real SilhouetteGeomEngine::_glModelViewMatrix[4][4] = {{1,0,0,0},
 						       {0,0,0,1}};
 real SilhouetteGeomEngine::_znear = 0.0;
 real SilhouetteGeomEngine::_zfar = 100.0;
-  
+bool SilhouetteGeomEngine::_isOrthographicProjection = false;  
+
 SilhouetteGeomEngine * SilhouetteGeomEngine::_pInstance = 0;
 
 void SilhouetteGeomEngine::setTransform(const real iModelViewMatrix[4][4], const real iProjectionMatrix[4][4], const int iViewport[4], real iFocal) 
@@ -91,6 +92,8 @@ void SilhouetteGeomEngine::setTransform(const real iModelViewMatrix[4][4], const
     _viewport[i] = iViewport[i];
   }
   _Focal = iFocal;
+
+	_isOrthographicProjection = (iProjectionMatrix[3][3] != 0.0);
 }
 
 void SilhouetteGeomEngine::setFrustum(real iZNear, real iZFar) 
@@ -146,6 +149,10 @@ void SilhouetteGeomEngine::ProjectSilhouette(SVertex* ioVertex)
 
 real SilhouetteGeomEngine::ImageToWorldParameter(FEdge *fe, real t)
 {
+	
+	if( _isOrthographicProjection )
+		return t;
+	
   // we need to compute for each parameter t the corresponding 
   // parameter T which gives the intersection in 3D.
   //currentEdge = (*fe);

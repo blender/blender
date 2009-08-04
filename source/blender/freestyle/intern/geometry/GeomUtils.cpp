@@ -619,11 +619,21 @@ namespace GeomUtils {
 
   void fromRetinaToCamera(const Vec3r& p,
 			  Vec3r& q,
-			  real z,
+			  real focal,
 			  const real projection_matrix[4][4]) {
-    q[0] = (-p[0] * z) / projection_matrix[0][0];
-    q[1] = (-p[1] * z) / projection_matrix[1][1];
-    q[2] = z;
+
+	if( projection_matrix[3][3] == 0.0 ) // perspective
+	{
+	    q[0] = (-p[0] * focal) / projection_matrix[0][0];
+	    q[1] = (-p[1] * focal) / projection_matrix[1][1];
+	    q[2] = focal;
+	}
+	else // orthogonal
+	{
+		q[0] = p[0] / projection_matrix[0][0];
+	    q[1] = p[1] / projection_matrix[1][1];
+	    q[2] = focal;
+	}
   }
 
   void fromCameraToWorld(const Vec3r& p,
