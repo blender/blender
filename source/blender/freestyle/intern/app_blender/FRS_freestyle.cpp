@@ -210,7 +210,6 @@ extern "C" {
 		cout << "#  Freestyle" << endl;
 		cout << "#===============================================================" << endl;
 		
-		FRS_initialize( 0 );
 		init_view(re);
 		init_camera(re);
 		
