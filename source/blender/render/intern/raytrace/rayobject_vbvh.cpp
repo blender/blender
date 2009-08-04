@@ -345,24 +345,32 @@ void bvh_dfs_make_hint_push_siblings(Node *node, LCTSHint *hint, int reserve_spa
 			bvh_dfs_make_hint_push_siblings(node->sibling, hint, reserve_space+1, min, max);
 
 		bvh_dfs_make_hint(node, hint, reserve_space, min, max);
-	}
-		
-	
+	}	
 }
 
 template<class Node>
 void bvh_dfs_make_hint(Node *node, LCTSHint *hint, int reserve_space, float *min, float *max)
 {
-	assert( hint->size - reserve_space + 1 <= RE_RAY_LCTS_MAX_SIZE );
+	assert( hint->size + reserve_space + 1 <= RE_RAY_LCTS_MAX_SIZE );
 	
-	if(hint->size - reserve_space + 1 == RE_RAY_LCTS_MAX_SIZE || !RayObject_isAligned(node))
+	if(!RayObject_isAligned(node))
+	{
 		hint->stack[hint->size++] = (RayObject*)node;
+	}
 	else
 	{
-		/* We are 100% sure the ray will be pass inside this node */
-		if(bb_fits_inside(node->bb, node->bb+3, min, max) )
+		int childs = count_childs(node);
+		if(hint->size + reserve_space + childs <= RE_RAY_LCTS_MAX_SIZE)
 		{
-			bvh_dfs_make_hint_push_siblings(node->child, hint, reserve_space, min, max);
+			/* We are 100% sure the ray will be pass inside this node */
+			if(bb_fits_inside(node->bb, node->bb+3, min, max) )
+			{
+				bvh_dfs_make_hint_push_siblings(node->child, hint, reserve_space, min, max);
+			}
+			else
+			{
+				hint->stack[hint->size++] = (RayObject*)node;
+			}
 		}
 		else
 		{
