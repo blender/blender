@@ -369,7 +369,7 @@ void makeraytree(Render *re)
 	int i;
 	const char *tree_type = "Tree(unknown)";
 
-	re->r.raytrace_tree_type = R_RAYSTRUCTURE_SINGLE_BVH;
+	re->r.raystructure = R_RAYSTRUCTURE_SINGLE_BVH;
 #ifdef RE_RAYCOUNTER
 	if(re->r.raytrace_tree_type == R_RAYTRACE_TREE_BVH)
 		tree_type = "BVH";
