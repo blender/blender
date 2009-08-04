@@ -81,12 +81,23 @@ template<class Node>
 inline static void bvh_node_push_childs(Node *node, Isect *isec, Node **stack, int &stack_pos)
 {
 	Node *child = node->child;
-	while(child)
+
+	if(!RayObject_isAligned(child))
 	{
 		stack[stack_pos++] = child;
-		if(RayObject_isAligned(child))
+	}
+	else
+	{
+		while(child)
+		{
+			//Skips BB tests on primitives
+			if(!RayObject_isAligned(child->child))
+				stack[stack_pos++] = child->child;
+			else
+				stack[stack_pos++] = child;
+				
 			child = child->sibling;
-		else break;
+		}
 	}
 }
 
