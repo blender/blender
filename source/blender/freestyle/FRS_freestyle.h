@@ -26,7 +26,7 @@ extern "C" {
 	extern float* freestyle_dkr_epsilon;
 	
 	// Rendering
-	void FRS_initialize( short select_layer );
+	void FRS_initialize();
 	void FRS_add_Freestyle(Render* re);
 	void FRS_exit();
 	

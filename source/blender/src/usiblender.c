@@ -605,7 +605,7 @@ void BIF_read_file(char *name)
 		
 		if (retval!=0) G.relbase_valid = 1;
 
-		FRS_initialize( 1 );
+		FRS_initialize();
 
 		undo_editmode_clear();
 		undo_imagepaint_clear();
@@ -681,7 +681,7 @@ int BIF_read_homefile(int from_memory)
 	
 	init_userdef_file();
 
-	FRS_initialize( 1 );
+	FRS_initialize();
 
 	undo_editmode_clear();
 	undo_imagepaint_clear();

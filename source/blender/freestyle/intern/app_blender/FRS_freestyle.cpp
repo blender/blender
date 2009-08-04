@@ -55,7 +55,7 @@ extern "C" {
 	//   Initialization 
 	//=======================================================
 
-	void FRS_initialize( short select_layer ){
+	void FRS_initialize(){
 		
 		if( !freestyle_is_initialized ) {
 
@@ -69,8 +69,7 @@ extern "C" {
 			freestyle_is_initialized = 1;
 		}
 		
-		if( select_layer )
-			FRS_select_layer( (SceneRenderLayer*) BLI_findlink(&G.scene->r.layers, G.scene->r.actlay) );
+		FRS_select_layer( (SceneRenderLayer*) BLI_findlink(&G.scene->r.layers, G.scene->r.actlay) );
 		
 	}
 	
