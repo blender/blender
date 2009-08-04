@@ -36,6 +36,7 @@
 #include "MT_Matrix3x3.h"
 #include "KX_GameObject.h"
 #include "KX_RayCast.h"
+#include "KX_PythonInit.h" // KX_GetActiveScene
 #include "blendef.h"
 
 #ifdef HAVE_CONFIG_H
@@ -329,7 +330,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 			}
 			{
 				MT_Point3 topoint = position + (m_maximumBound) * direction;
-				PHY_IPhysicsEnvironment* pe = obj->GetPhysicsEnvironment();
+				PHY_IPhysicsEnvironment* pe = KX_GetActiveScene()->GetPhysicsEnvironment();
 				KX_IPhysicsController *spc = obj->GetPhysicsController();
 
 				if (!pe) {
@@ -442,7 +443,7 @@ bool KX_ConstraintActuator::Update(double curtime, bool frame)
 			}
 			normal.normalize();
 			{
-				PHY_IPhysicsEnvironment* pe = obj->GetPhysicsEnvironment();
+				PHY_IPhysicsEnvironment* pe = KX_GetActiveScene()->GetPhysicsEnvironment();
 				KX_IPhysicsController *spc = obj->GetPhysicsController();
 
 				if (!pe) {

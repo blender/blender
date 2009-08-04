@@ -94,8 +94,6 @@ protected:
 
 	KX_IPhysicsController*				m_pPhysicsController1;
 	PHY_IGraphicController*				m_pGraphicController;
-	// used for ray casting
-	PHY_IPhysicsEnvironment*			m_pPhysicsEnvironment;
 	STR_String							m_testPropName;
 	bool								m_xray;
 	KX_GameObject*						m_pHitObject;
@@ -333,20 +331,6 @@ public:
 		bool lin_vel_local,
 		bool ang_vel_local
 	);
-
-
-	/**
-	 * @return a pointer to the physics environment in use during the game, for rayCasting
-	 */
-	PHY_IPhysicsEnvironment* GetPhysicsEnvironment()
-	{
-		return m_pPhysicsEnvironment;
-	}
-
-	void SetPhysicsEnvironment(PHY_IPhysicsEnvironment* physicsEnvironment)
-	{
-		m_pPhysicsEnvironment = physicsEnvironment;
-	}
 
 	/**
 	 * @return a pointer to the physics controller owned by this class.
