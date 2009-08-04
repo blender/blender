@@ -1202,6 +1202,7 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 	
 	NlaTrack *nlt;
 	short track_index=0;
+	short has_strips = 0;
 	
 	ListBase estrips= {NULL, NULL};
 	ListBase echannels= {NULL, NULL};
@@ -1223,6 +1224,12 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 		if (nlt->flag & NLATRACK_MUTED) 
 			continue;
 			
+		/* if this track has strips (but maybe they won't be suitable), set has_strips 
+		 *	- used for mainly for still allowing normal action evaluation...
+		 */
+		if (nlt->strips.first)
+			has_strips= 1;
+			
 		/* otherwise, get strip to evaluate for this channel */
 		nes= nlastrips_ctime_get_strip(&estrips, &nlt->strips, track_index, ctime);
 		if (nes) nes->track= nlt;
@@ -1232,23 +1239,33 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 	 *	- only do this if we're not exclusively evaluating the 'solo' NLA-track
 	 */
 	if ((adt->action) && !(adt->flag & ADT_NLA_SOLO_TRACK)) {
-		/* make dummy NLA strip, and add that to the stack */
-		memset(&dummy_strip, 0, sizeof(NlaStrip));
-		dummy_trackslist.first= dummy_trackslist.last= &dummy_strip;
-		
-		dummy_strip.act= adt->action;
-		dummy_strip.remap= adt->remap;
-		
-		calc_action_range(dummy_strip.act, &dummy_strip.actstart, &dummy_strip.actend, 1);
-		dummy_strip.start = dummy_strip.actstart;
-		dummy_strip.end = (IS_EQ(dummy_strip.actstart, dummy_strip.actend)) ?  (dummy_strip.actstart + 1.0f): (dummy_strip.actend);
-		
-		dummy_strip.blendmode= adt->act_blendmode;
-		dummy_strip.extendmode= adt->act_extendmode;
-		dummy_strip.influence= adt->act_influence;
-		
-		/* add this to our list of evaluation strips */
-		nlastrips_ctime_get_strip(&estrips, &dummy_trackslist, -1, ctime);
+		/* if there are strips, evaluate action as per NLA rules */
+		if (has_strips) {
+			/* make dummy NLA strip, and add that to the stack */
+			memset(&dummy_strip, 0, sizeof(NlaStrip));
+			dummy_trackslist.first= dummy_trackslist.last= &dummy_strip;
+			
+			dummy_strip.act= adt->action;
+			dummy_strip.remap= adt->remap;
+			
+				// FIXME: what happens when we want to included F-Modifier access?
+			calc_action_range(dummy_strip.act, &dummy_strip.actstart, &dummy_strip.actend, 1);
+			dummy_strip.start = dummy_strip.actstart;
+			dummy_strip.end = (IS_EQ(dummy_strip.actstart, dummy_strip.actend)) ?  (dummy_strip.actstart + 1.0f): (dummy_strip.actend);
+			
+			dummy_strip.blendmode= adt->act_blendmode;
+			dummy_strip.extendmode= adt->act_extendmode;
+			dummy_strip.influence= adt->act_influence;
+			
+			/* add this to our list of evaluation strips */
+			nlastrips_ctime_get_strip(&estrips, &dummy_trackslist, -1, ctime);
+		}
+		else {
+			/* special case - evaluate as if there isn't any NLA data */
+			// TODO: this is really just a stop-gap measure...
+			animsys_evaluate_action(ptr, adt->action, adt->remap, ctime);
+			return;
+		}
 	}
 	
 	/* only continue if there are strips to evaluate */
