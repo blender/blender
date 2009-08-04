@@ -10543,7 +10543,7 @@ static void append_named_part(FileData *fd, Main *mainvar, Scene *scene, char *n
 					}
 				}
 
-				if(idcode==ID_OB) {	/* loose object: give a base */
+				if(idcode==ID_OB && scene) {	/* loose object: give a base */
 					base= MEM_callocN( sizeof(Base), "app_nam_part");
 					BLI_addtail(&scene->base, base);
 
@@ -10683,7 +10683,8 @@ void BLO_script_library_append(BlendHandle **bh, char *dir, char *name,
 	if(fd) fd->reports= NULL;
 
 	/* do we need to do this? */
-	DAG_scene_sort(scene);
+	if(scene)
+		DAG_scene_sort(scene);
 
 	*bh= (BlendHandle*)fd;
 }
