@@ -401,7 +401,8 @@ static void heat_ray_tree_create(LaplacianSystem *sys)
 	MFace *mface;
 	int a;
 
-	sys->heat.raytree = RE_rayobject_mesh_create(me, me);
+	assert(0); //TODO
+	//sys->heat.raytree = RE_rayobject_mesh_create(me, me);
 
 	sys->heat.vface = MEM_callocN(sizeof(MFace*)*me->totvert, "HeatVFaces");
 	for(a=0, mface=me->mface; a<me->totface; a++, mface++) {

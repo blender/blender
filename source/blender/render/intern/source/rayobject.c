@@ -165,7 +165,7 @@ static int intersect_rayface(RayFace *face, Isect *is)
 
 	VECCOPY(co1, face->v1);
 	VECCOPY(co2, face->v2);
-	if(face->v4)
+	if(RE_rayface_isQuad(face))
 	{
 		VECCOPY(co3, face->v4);
 		VECCOPY(co4, face->v3);
@@ -219,7 +219,7 @@ static int intersect_rayface(RayFace *face, Isect *is)
 		}
 	}
 
-	if(ok==0 && face->v4) {
+	if(ok==0 && RE_rayface_isQuad(face)) {
 
 		t20= co3[0]-co4[0];
 		t21= co3[1]-co4[1];
@@ -296,6 +296,33 @@ static int intersect_rayface(RayFace *face, Isect *is)
 
 	return 0;
 }
+
+void RE_rayface_from_vlak(RayFace *face, ObjectInstanceRen *obi, VlakRen *vlr)
+{
+#ifdef RE_RAYFACE_COORDS_LOCAL
+	VECCOPY(face->v1, vlr->v1->co);
+	VECCOPY(face->v2, vlr->v2->co);
+	VECCOPY(face->v3, vlr->v3->co);
+	if(vlr->v4)
+	{
+		VECCOPY(face->v4, vlr->v4->co);
+		face->quad = 1;
+	}
+	else
+	{
+		face->quad = 0;
+	}
+#elif defined(RE_RAYFACE_COORDS_POINTER)
+	face->v1 = vlr->v1->co;
+	face->v2 = vlr->v2->co;
+	face->v3 = vlr->v3->co;
+	face->v4 = vlr->v4 ? vlr->v4->co : NULL;
+#elif defined(RE_RAYFACE_COORDS_VLAKREN)
+#endif
+	face->ob   = obi;
+	face->face = vlr;
+}
+
 
 int RE_rayobject_raycast(RayObject *r, Isect *isec)
 {
@@ -390,7 +417,7 @@ void RE_rayobject_merge_bb(RayObject *r, float *min, float *max)
 		DO_MINMAX( face->v1, min, max );
 		DO_MINMAX( face->v2, min, max );
 		DO_MINMAX( face->v3, min, max );
-		if(face->v4) DO_MINMAX( face->v4, min, max );
+		if(RE_rayface_isQuad(face)) DO_MINMAX( face->v4, min, max );
 	}
 	else if(RayObject_isRayAPI(r))
 	{

@@ -34,6 +34,7 @@ extern "C" {
 #endif
 
 #include "RE_raytrace.h"
+#include "render_types.h"
 #include <float.h>
 
 
@@ -75,15 +76,37 @@ extern "C" {
 	You actually don't need to care about this if you are only using the API
 	described on RE_raytrace.h
  */
+
+/* defines where coordinates of rayface primitives are stored */
+#define RE_RAYFACE_COORDS_LOCAL
+//#define RE_RAYFACE_COORDS_POINTER
+//#define RE_RAYFACE_COORDS_VLAKREN
  
 typedef struct RayFace
 {
-	float *v1, *v2, *v3, *v4;
-	
+#ifdef RE_RAYFACE_COORDS_LOCAL
+	float v1[4], v2[4], v3[4], v4[3];
+	int quad;
 	void *ob;
 	void *face;
+#elif defined(RE_RAYFACE_COORDS_POINTER)
+	float *v1, *v2, *v3, *v4;
+	void *ob;
+	void *face;
+#elif defined(RE_RAYFACE_COORDS_VLAKREN)
+	void *ob;
+	void *face;
+#endif
 	
 } RayFace;
+
+#ifdef RE_RAYFACE_COORDS_LOCAL
+#	define RE_rayface_isQuad(a) ((a)->quad)
+#elif defined(RE_RAYFACE_COORDS_POINTER)
+#	define RE_rayface_isQuad(a) ((a)->v4)
+#elif defined(RE_RAYFACE_COORDS_VLAKREN)
+#endif
+
 
 struct RayObject
 {
@@ -119,6 +142,11 @@ typedef struct RayObjectAPI
 #define RayObject_isAligned(o)	((((intptr_t)o)&3) == 0)
 #define RayObject_isRayFace(o)	((((intptr_t)o)&3) == 1)
 #define RayObject_isRayAPI(o)	((((intptr_t)o)&3) == 2)
+
+/*
+ * Loads a VlakRen on a RayFace
+ */
+void RE_rayface_from_vlak(RayFace *face, ObjectInstanceRen *obi, VlakRen *vlr);
 
 /*
  * Extend min/max coords so that the rayobject is inside them
