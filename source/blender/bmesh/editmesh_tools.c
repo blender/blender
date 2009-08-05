@@ -2435,13 +2435,13 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 
 	BMO_Init_Op(&subdop, BMOP_ESUBDIVIDE);
 	for (tot=0, bed=BMIter_New(&iter, bm, BM_EDGES, NULL); bed; bed=BMIter_Step(&iter)) {
-		if (BM_Is_Selected(bm, bed)) tot++;
+		if (BM_Selected(bm, bed)) tot++;
 	}
 	
 	list = MEM_callocN(sizeof(void*)*tot, "vert ptr list");
 
 	for (tot=0, bed=BMIter_New(&iter, bm, BM_EDGES, NULL); bed; bed=BMIter_Step(&iter)) {
-		if (BM_Is_Selected(bm, bed)) list[tot++] = bed;
+		if (BM_Selected(bm, bed)) list[tot++] = bed;
 	}
 	
 	BMO_Set_PntBuf(&subdop, BMOP_ESUBDIVIDE_EDGES, list, tot);

@@ -1580,7 +1580,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	int i, tot;
 
 	tot = 0;
-	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+	BM_ITER_SELECT(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL)
 		if (BM_TestHFlag(v, BM_SELECT)) {
 			V_GROW(verts);
 			verts[tot++] = v;

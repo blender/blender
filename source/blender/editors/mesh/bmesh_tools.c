@@ -336,6 +336,7 @@ void MESH_OT_subdivs(wmOperatorType *ot)
 /* will use vertex normals for extrusion directions, so *nor is unaffected */
 short EDBM_Extrude_face_indiv(BMEditMesh *em, short flag, float *nor)
 {
+	return 'g';
 #if 0
 	EditVert *eve, *v1, *v2, *v3, *v4;
 	EditEdge *eed;
@@ -899,11 +900,9 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 	
 	INIT_MINMAX(min, max);
 	
-	BM_ITER(v1, &iter, vc.em->bm, BM_VERTS_OF_MESH, NULL) {
-		if(BM_TestHFlag(v1, BM_SELECT)) {
-			DO_MINMAX(v1->co, min, max);
-			done= 1;
-		}
+	BM_ITER_SELECT(v1, &iter, vc.em->bm, BM_VERTS_OF_MESH, NULL)
+		DO_MINMAX(v1->co, min, max);
+		done= 1;
 	}
 
 	/* call extrude? */
@@ -1223,21 +1222,13 @@ static int editbmesh_mark_seam(bContext *C, wmOperator *op)
 	}
 
 	if(clear) {
-		BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			if (BM_TestHFlag(eed, BM_HIDDEN) == 0 &&
-			    BM_TestHFlag(eed, BM_SELECT) != 0)
-			{
-				BM_ClearHFlag(eed, BM_SEAM);
-			}
+		BM_ITER_SELECT(eed, &iter, bm, BM_EDGES_OF_MESH, NULL)
+			BM_ClearHFlag(eed, BM_SEAM);
 		}
 	}
 	else {
-		BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			if (BM_TestHFlag(eed, BM_HIDDEN) == 0 &&
-			    BM_TestHFlag(eed, BM_SELECT) != 0)
-			{
-				BM_SetHFlag(eed, BM_SEAM);
-			}
+		BM_ITER_SELECT(eed, &iter, bm, BM_EDGES_OF_MESH, NULL)
+			BM_SetHFlag(eed, BM_SEAM);
 		}
 	}
 
@@ -1280,20 +1271,12 @@ static int editbmesh_mark_sharp(bContext *C, wmOperator *op)
 	}
 
 	if(!clear) {
-		BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			if (BM_TestHFlag(eed, BM_HIDDEN) == 0 &&
-			    BM_TestHFlag(eed, BM_SELECT) != 0)
-			{
-				BM_SetHFlag(eed, BM_SHARP);
-			}
+		BM_ITER_SELECT(eed, &iter, bm, BM_EDGES_OF_MESH, NULL)
+			BM_SetHFlag(eed, BM_SHARP);
 		}
 	} else {
-		BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			if (BM_TestHFlag(eed, BM_HIDDEN) == 0 &&
-			    BM_TestHFlag(eed, BM_SELECT) != 0)
-			{
-				BM_ClearHFlag(eed, BM_SHARP);
-			}
+		BM_ITER_SELECT(eed, &iter, bm, BM_EDGES_OF_MESH, NULL)
+			BM_ClearHFlag(eed, BM_SHARP);
 		}
 	}
 
@@ -1497,7 +1480,6 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	BMOIter siter;
 	BMEdge *eed;
-	BMFace *efa;
 	BMIter iter;
 	int ccw = RNA_int_get(op->ptr, "direction") == 1; // direction == 2 when clockwise and ==1 for counter CW.
 	short edgeCount = 0;
@@ -1510,8 +1492,11 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 	/*first see if we have two adjacent faces*/
 	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_Edge_FaceCount(eed) == 2) {
-			if (BM_TestHFlag(eed->loop->f, BM_SELECT) && BM_TestHFlag(((BMLoop*)eed->loop->radial.next->data)->f, BM_SELECT))
+			if ((BM_TestHFlag(eed->loop->f, BM_SELECT) && BM_TestHFlag(((BMLoop*)eed->loop->radial.next->data)->f, BM_SELECT))
+			     && !(BM_TestHFlag(eed->loop->f, BM_HIDDEN) || BM_TestHFlag(((BMLoop*)eed->loop->radial.next->data)->f, BM_HIDDEN)))
+			{
 				break;
+			}
 		}
 	}
 	
@@ -1523,7 +1508,7 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 	}
 
 	if (!eed) {
-		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		BM_ITER_SELECT(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL)
 			if (BM_TestHFlag(eed, BM_SELECT))
 				break;
 		}
@@ -1543,58 +1528,6 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 	if (!EDBM_FinishOp(em, &bmop, op, 1))
 		return OPERATOR_CANCELLED;
 
-#if 0
-	/*clear new flag for new edges, count selected edges */
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		eed->f1= 0;
-		eed->f2 &= ~2;
-		if(eed->f & SELECT) edgeCount++;
-	}
-
-	if(edgeCount>1) {
-		/* more selected edges, check faces */
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->f & SELECT) {
-				efa->e1->f1++;
-				efa->e2->f1++;
-				efa->e3->f1++;
-				if(efa->e4) efa->e4->f1++;
-			}
-		}
-		edgeCount= 0;
-		for(eed= em->edges.first; eed; eed= eed->next) {
-			if(eed->f1==2) edgeCount++;
-		}
-		if(edgeCount==1) {
-			for(eed= em->edges.first; eed; eed= eed->next) {
-				if(eed->f1==2) {
-					edge_rotate(em, op, eed,dir);
-					break;
-				}
-			}
-		}
-		else
-		{
-			BKE_report(op->reports, RPT_ERROR, "Select one edge or two adjacent faces");
-			BKE_mesh_end_editmesh(obedit->data, em);
-			return OPERATOR_CANCELLED;
-		}
-	}
-	else if(edgeCount==1) {
-		for(eed= em->edges.first; eed; eed= eed->next) {
-			if(eed->f & SELECT) {
-				EM_select_edge(eed, 0);
-				edge_rotate(em, op, eed,dir);
-				break;
-			}
-		}
-	}
-	else  {
-		BKE_report(op->reports, RPT_ERROR, "Select one edge or two adjacent faces");
-		BKE_mesh_end_editmesh(obedit->data, em);
-		return OPERATOR_CANCELLED;
-	}
-#endif
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
@@ -1616,4 +1549,116 @@ void MESH_OT_edge_rotate(wmOperatorType *ot)
 
 	/* props */
 	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "direction", "direction to rotate edge around.");
+}
+
+/* swap is 0 or 1, if 1 it hides not selected */
+void EDBM_hide_mesh(BMEditMesh *em, int swap)
+{
+	BMIter iter;
+	BMHeader *h;
+	int itermode;
+
+	if(em==NULL) return;
+	
+	if (em->selectmode & SCE_SELECT_VERTEX)
+		itermode = BM_VERTS_OF_MESH;
+	else if (em->selectmode & SCE_SELECT_EDGE)
+		itermode = BM_EDGES_OF_MESH;
+	else
+		itermode = BM_FACES_OF_MESH;
+
+	BM_ITER(h, &iter, em->bm, itermode, NULL) {
+		if (BM_TestHFlag(h, BM_SELECT) ^ swap)
+			BM_Hide(em->bm, h, 1);
+	}
+
+	/*original hide flushing comment (OUTDATED): 
+	  hide happens on least dominant select mode, and flushes up, not down! (helps preventing errors in subsurf) */
+	/*  - vertex hidden, always means edge is hidden too
+		- edge hidden, always means face is hidden too
+		- face hidden, only set face hide
+		- then only flush back down what's absolute hidden
+	*/
+
+}
+
+static int hide_mesh_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	Scene *scene = CTX_data_scene(C);
+	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
+	
+	EDBM_hide_mesh(em, RNA_boolean_get(op->ptr, "unselected"));
+		
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
+
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_hide(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Hide Selection";
+	ot->idname= "MESH_OT_hide";
+	
+	/* api callbacks */
+	ot->exec= hide_mesh_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
+}
+
+
+void EDBM_reveal_mesh(BMEditMesh *em)
+{
+	BMIter iter;
+	BMHeader *ele;
+	int i, types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
+	int sels[3] = {1, !(em->selectmode & SCE_SELECT_VERTEX), !(em->selectmode & SCE_SELECT_VERTEX | SCE_SELECT_EDGE)};
+
+	for (i=0; i<3; i++) {
+		BM_ITER(ele, &iter, em->bm, types[i], NULL) {
+			if (BM_TestHFlag(ele, BM_HIDDEN)) {
+				BM_Hide(em->bm, ele, 0);
+
+				if (sels[i])
+					BM_Select(em->bm, ele, 1);
+			}
+		}
+	}
+
+	EDBM_selectmode_flush(em);
+}
+
+static int reveal_mesh_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	Scene *scene = CTX_data_scene(C);
+	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
+	
+	EDBM_reveal_mesh(em);
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
+
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_reveal(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Reveal Hidden";
+	ot->idname= "MESH_OT_reveal";
+	
+	/* api callbacks */
+	ot->exec= reveal_mesh_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }

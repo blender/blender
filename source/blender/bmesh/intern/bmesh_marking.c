@@ -282,7 +282,7 @@ void BM_Selectmode_Set(BMesh *bm, int selectmode)
 }
 
 
-int BM_CountFlag(struct BMesh *bm, int type, int flag)
+int BM_CountFlag(struct BMesh *bm, int type, int flag, int respecthide)
 {
 	BMHeader *head;
 	BMIter iter;
@@ -290,16 +290,19 @@ int BM_CountFlag(struct BMesh *bm, int type, int flag)
 
 	if (type & BM_VERT) {
 		for (head = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL); head; head=BMIter_Step(&iter)) {
+			if (respecthide && BM_TestHFlag(head, BM_HIDDEN)) continue;
 			if (head->flag & flag) tot++;
 		}
 	}
 	if (type & BM_EDGE) {
 		for (head = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL); head; head=BMIter_Step(&iter)) {
+			if (respecthide && BM_TestHFlag(head, BM_HIDDEN)) continue;
 			if (head->flag & flag) tot++;
 		}
 	}
 	if (type & BM_FACE) {
 		for (head = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL); head; head=BMIter_Step(&iter)) {
+			if (respecthide && BM_TestHFlag(head, BM_HIDDEN)) continue;
 			if (head->flag & flag) tot++;
 		}
 	}
@@ -317,7 +320,7 @@ void BM_Select(struct BMesh *bm, void *element, int select)
 	else if(head->type == BM_FACE) BM_Select_Face(bm, (BMFace*)element, select);
 }
 
-int BM_Is_Selected(BMesh *bm, void *element)
+int BM_Selected(BMesh *bm, void *element)
 {
 	BMHeader *head = element;
 	return BM_TestHFlag(head, BM_SELECT);
@@ -500,3 +503,103 @@ void BM_validate_selections(BMesh *em)
 		ese = nextese;
 	}
 }
+
+/***************** Mesh Hiding stuff *************/
+
+#define SETHIDE(ele) hide ? BM_SetHFlag(ele, BM_HIDDEN) : BM_ClearHFlag(ele, BM_HIDDEN);
+
+static void vert_flush_hide(BMesh *bm, BMVert *v) {
+	BMIter iter;
+	BMEdge *e;
+
+	BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
+		if (!BM_TestHFlag(e, BM_HIDDEN))
+			return;
+	}
+
+	BM_SetHFlag(v, BM_HIDDEN);
+}
+
+static void edge_flush_hide(BMesh *bm, BMEdge *e) {
+	BMIter iter;
+	BMFace *f;
+
+	BM_ITER(f, &iter, bm, BM_FACES_OF_EDGE, e) {
+		if (!BM_TestHFlag(f, BM_HIDDEN))
+			return;
+	}
+
+	BM_SetHFlag(e, BM_HIDDEN);
+}
+
+void BM_Hide_Vert(BMesh *bm, BMVert *v, int hide)
+{
+	/*vert hiding: vert + surrounding edges and faces*/
+	BMIter iter, fiter;
+	BMEdge *e;
+	BMFace *f;
+
+	SETHIDE(v);
+
+	BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
+		SETHIDE(e);
+
+		BM_ITER(f, &fiter, bm, BM_FACES_OF_EDGE, e) {
+			SETHIDE(f);
+		}
+	}
+}
+
+void BM_Hide_Edge(BMesh *bm, BMEdge *e, int hide)
+{
+	BMIter iter;
+	BMFace *f;
+	BMVert *v;
+
+	/*edge hiding: faces around the edge*/
+	BM_ITER(f, &iter, bm, BM_FACES_OF_EDGE, e) {
+		SETHIDE(f);
+	}
+	
+	SETHIDE(e);
+
+	/*hide vertices if necassary*/
+	vert_flush_hide(bm, e->v1);
+	vert_flush_hide(bm, e->v2);
+}
+
+void BM_Hide_Face(BMesh *bm, BMFace *f, int hide)
+{
+	BMIter iter;
+	BMLoop *l;
+
+	/**/
+	SETHIDE(f);
+
+	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
+		edge_flush_hide(bm, l->e);
+	}
+
+	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
+		vert_flush_hide(bm, l->v);
+	}
+}
+
+void BM_Hide(BMesh *bm, void *element, int hide)
+{
+	BMHeader *h = element;
+
+	switch (h->type) {
+		case BM_VERT:
+			BM_Hide_Vert(bm, element, hide);
+			break;
+		case BM_EDGE:
+			BM_Hide_Edge(bm, element, hide);
+			break;
+		case BM_FACE:
+			BM_Hide_Face(bm, element, hide);
+			break;
+	}
+}
+
+

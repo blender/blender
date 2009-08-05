@@ -234,7 +234,8 @@ void BMO_HeaderFlag_Buffer(struct BMesh *bm, struct BMOperator *op, char *slotna
 void BMO_UnHeaderFlag_Buffer(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag);
 
 /*puts every element of type type (which is a bitmask) with header flag 
-  flag, into a slot.*/
+  flag, into a slot.  note: ignores hidden elements (e.g. elements with
+  header flag BM_HIDDEN set).*/
 void BMO_HeaderFlag_To_Slot(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag, int type);
 
 /*counts number of elements inside a slot array.*/

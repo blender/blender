@@ -392,7 +392,7 @@ void BM_Copy_Attributes(BMesh *source_mesh, BMesh *target_mesh, void *source, vo
 		return;
 
 	/*First we copy select*/
-	if(BM_Is_Selected(source_mesh, source)) BM_Select(target_mesh, target, 1);
+	if(BM_Selected(source_mesh, source)) BM_Select(target_mesh, target, 1);
 	
 	/*Now we copy flags*/
 	theader->flag = sheader->flag;

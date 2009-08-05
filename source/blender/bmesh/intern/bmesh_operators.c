@@ -649,14 +649,14 @@ void BMO_HeaderFlag_To_Slot(BMesh *bm, BMOperator *op, char *slotname, int flag,
 	BMOpSlot *output = BMO_GetSlot(op, slotname);
 	int totelement=0, i=0;
 	
-	totelement = BM_CountFlag(bm, type, flag);
+	totelement = BM_CountFlag(bm, type, flag, 1);
 
 	if(totelement){
 		alloc_slot_buffer(op, slotname, totelement);
 
 		if (type & BM_VERT) {
 			for (e = BMIter_New(&elements, bm, BM_VERTS_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
-				if(e->flag & flag) {
+				if(!BM_TestHFlag(e, BM_HIDDEN) && BM_TestHFlag(e, flag)) {
 					((BMHeader**)output->data.p)[i] = e;
 					i++;
 				}
@@ -665,7 +665,7 @@ void BMO_HeaderFlag_To_Slot(BMesh *bm, BMOperator *op, char *slotname, int flag,
 
 		if (type & BM_EDGE) {
 			for (e = BMIter_New(&elements, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
-				if(e->flag & flag){
+				if(!BM_TestHFlag(e, BM_HIDDEN) && BM_TestHFlag(e, flag)) {
 					((BMHeader**)output->data.p)[i] = e;
 					i++;
 				}
@@ -674,7 +674,7 @@ void BMO_HeaderFlag_To_Slot(BMesh *bm, BMOperator *op, char *slotname, int flag,
 
 		if (type & BM_FACE) {
 			for (e = BMIter_New(&elements, bm, BM_FACES_OF_MESH, bm); e; e = BMIter_Step(&elements)) {
-				if(e->flag & flag){
+				if(!BM_TestHFlag(e, BM_HIDDEN) && BM_TestHFlag(e, flag)) {
 					((BMHeader**)output->data.p)[i] = e;
 					i++;
 				}

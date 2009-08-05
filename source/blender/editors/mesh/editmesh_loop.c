@@ -834,7 +834,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	i = 0;
 	/*store percentage of edge cut for KNIFE_EXACT here.*/
 	for (be=BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL); be; be=BMIter_Step(&iter)) {
-		if( BM_Is_Selected(bm, be) ) {
+		if( BM_Selected(bm, be) ) {
 			isect= bm_seg_intersect(be, curve, len, mode, gh, &isected);
 			
 			if (isect != 0.0f) {

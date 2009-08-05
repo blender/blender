@@ -30,6 +30,10 @@
 	ele = BMIter_New(iter, bm, type, data); \
 	for ( ; ele; ele=BMIter_Step(iter))
 
+#define BM_ITER_SELECT(ele, iter, bm, type, data)\
+for (ele = BMIter_New(iter, bm, type, data); ele; ele=BMIter_Step(iter)) {\
+	if (BM_TestHFlag(ele, BM_HIDDEN) || !BM_TestHFlag(ele, BM_SELECT)) continue;
+
 /*these are topological iterators.*/
 #define BM_EDGES_OF_VERT 			4
 #define BM_FACES_OF_VERT 			5
