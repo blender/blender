@@ -1900,42 +1900,6 @@ void selectconnected_mesh_all(EditMesh *em)
 	//	if (EM_texFaceCheck())
 }
 
-static int select_linked_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh(obedit->data);
-	
-	if( RNA_boolean_get(op->ptr, "limit") ) {
-		ViewContext vc;
-		em_setup_viewcontext(C, &vc);
-		select_linked_limited_invoke(&vc, 1, 1);
-	}
-	else
-		selectconnected_mesh_all(em);
-	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-
-	BKE_mesh_end_editmesh(obedit->data, em);
-	return OPERATOR_FINISHED;	
-}
-
-void MESH_OT_select_linked(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Select Linked All";
-	ot->idname= "MESH_OT_select_linked";
-	
-	/* api callbacks */
-	ot->exec= select_linked_exec;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "");
-}
-
-
 /* ************************* */
 
 /* swap is 0 or 1, if 1 it hides not selected */

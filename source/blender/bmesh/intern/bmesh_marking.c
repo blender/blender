@@ -150,9 +150,18 @@ void BM_Select_Edge(BMesh *bm, BMEdge *e, int select)
 
 	/*ensure vert selections are valid, only if not in a multiselect
 	  mode that shares SCE_SELECT_VERT*/
-	if (bm->selectmode & (SCE_SELECT_VERTEX|SCE_SELECT_EDGE)) testiso = 1;
-	else if (bm->selectmode & (SCE_SELECT_VERTEX|SCE_SELECT_FACE)) testiso = 1;
-	
+	switch (bm->selectmode) {
+		case SCE_SELECT_VERTEX:
+		case SCE_SELECT_EDGE:
+		case SCE_SELECT_FACE:
+		case SCE_SELECT_EDGE|SCE_SELECT_FACE:
+			testiso = 1;
+			break;
+		default:
+			testiso = 0;
+			break;
+	}
+
 	if (testiso && !select) {
 		BMIter eiter;
 		BMEdge *e2;
@@ -177,8 +186,8 @@ void BM_Select_Edge(BMesh *bm, BMEdge *e, int select)
 		if (!BM_TestHFlag(e, BM_SELECT)) bm->totedgesel += 1;
 
 		BM_SetHFlag(&(e->head), BM_SELECT);
-		BM_SetHFlag(e->v1, BM_SELECT);
-		BM_SetHFlag(e->v2, BM_SELECT);
+		BM_Select(bm, e->v1, 1);
+		BM_Select(bm, e->v2, 1);
 	}
 	else{ 
 		if (BM_TestHFlag(e, BM_SELECT)) bm->totedgesel -= 1;
@@ -208,8 +217,8 @@ void BM_Select_Face(BMesh *bm, BMFace *f, int select)
 		BM_SetHFlag(&(f->head), BM_SELECT);
 		l = f->loopbase;
 		do{
-			BM_SetHFlag(&(l->v->head), BM_SELECT);
-			BM_SetHFlag(&(l->e->head), BM_SELECT);
+			BM_Select_Vert(bm, l->v, 1);
+			BM_Select_Edge(bm, l->e, 1);
 			l = ((BMLoop*)(l->head.next));
 		}while(l != f->loopbase);
 	}
@@ -219,8 +228,8 @@ void BM_Select_Face(BMesh *bm, BMFace *f, int select)
 		BM_ClearHFlag(&(f->head), BM_SELECT);
 		l = f->loopbase;
 		do {
-			BM_ClearHFlag(&(l->v->head), BM_SELECT);
-			BM_ClearHFlag(&(l->e->head), BM_SELECT);
+			BM_Select_Vert(bm, l->v, 0);
+			BM_Select_Edge(bm, l->e, 0);
 			l = ((BMLoop*)(l->head.next));
 		} while(l != f->loopbase);
 	}

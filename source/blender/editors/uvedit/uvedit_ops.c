@@ -628,7 +628,8 @@ static void find_nearest_uv_face(Scene *scene, Image *ima, BMEditMesh *em, float
 
 	/*this will fill in hit.vert1 and hit.vert2*/
 	find_nearest_uv_edge(scene, ima, em, co, hit);
-	hit->l = hit->nextl = hit->luv = hit->nextluv = NULL;
+	hit->l = hit->nextl = NULL;
+	hit->luv = hit->nextluv = NULL;
 
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
@@ -715,7 +716,8 @@ static void find_nearest_uv_vert(Scene *scene, Image *ima, BMEditMesh *em,
 
 	/*this will fill in hit.vert1 and hit.vert2*/
 	find_nearest_uv_edge(scene, ima, em, co, hit);
-	hit->l = hit->nextl = hit->luv = hit->nextluv = NULL;
+	hit->l = hit->nextl = NULL;
+	hit->luv = hit->nextluv = NULL;
 
 	mindist= 1e10f;
 	memset(hit, 0, sizeof(*hit));

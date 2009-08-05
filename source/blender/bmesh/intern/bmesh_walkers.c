@@ -303,6 +303,7 @@ static void shellWalker_begin(BMWalker *walker, void *data){
 	if(v->edge){
 		shellWalk->base = v;
 		shellWalk->curedge = v->edge;
+		BLI_ghash_insert(walker->visithash, v->edge, NULL);
 	}
 }
 static void *shellWalker_yield(BMWalker *walker)
@@ -316,44 +317,37 @@ static void *shellWalker_step(BMWalker *walker)
 	BMEdge *curedge, *next = NULL;
 	BMVert *ov = NULL;
 	int restrictpass = 1;
-	shellWalker *shellWalk = walker->currentstate;
+	shellWalker shellWalk = *((shellWalker*)walker->currentstate);
 	
-	if (!BLI_ghash_haskey(walker->visithash, shellWalk->base))
-		BLI_ghash_insert(walker->visithash, shellWalk->base, NULL);
+	if (!BLI_ghash_haskey(walker->visithash, shellWalk.base))
+		BLI_ghash_insert(walker->visithash, shellWalk.base, NULL);
+
+	BMW_popstate(walker);
 
 	/*find the next edge whose other vertex has not been visited*/
-	curedge = shellWalk->curedge;
+	curedge = shellWalk.curedge;
 	do{
 		if (!BLI_ghash_haskey(walker->visithash, curedge)) { 
 			BLI_ghash_insert(walker->visithash, curedge, NULL);
-			if(walker->restrictflag && 
-			  (!BMO_TestFlag(walker->bm, curedge, walker->restrictflag))) 
-			{
-				restrictpass = 0;
-			}
-			if(restrictpass) {
-				ov = BM_OtherEdgeVert(curedge, shellWalk->base);
-				
-				/*save current state*/
-				shellWalk->curedge = curedge;
 
+			if(!(walker->restrictflag && 
+			     !BMO_TestFlag(walker->bm, curedge, walker->restrictflag)))
+			{
+				ov = BM_OtherEdgeVert(curedge, shellWalk.base);
+				
 				/*push a new state onto the stack*/
 				BMW_pushstate(walker);
 				
 				/*populate the new state*/
+
 				((shellWalker*)walker->currentstate)->base = ov;
 				((shellWalker*)walker->currentstate)->curedge = curedge;
-				/*break out of loop*/
-
-				next = curedge;
-				break;
 			}
 		}
-		curedge = bmesh_disk_nextedge(curedge, shellWalk->base);
-	}while(curedge != shellWalk->curedge);
+		curedge = bmesh_disk_nextedge(curedge, shellWalk.base);
+	}while(curedge != shellWalk.curedge);
 	
-	shellWalk->current = next;
-	return next;
+	return shellWalk.curedge;
 }
 
 /*	Island Boundary Walker:

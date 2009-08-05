@@ -93,15 +93,23 @@ struct BMEdge *EDBM_get_edge_for_index(struct BMEditMesh *tm, int index);
 struct BMFace *EDBM_get_face_for_index(struct BMEditMesh *tm, int index);
 struct BMFace *EDBM_get_actFace(struct BMEditMesh *em, int sloppy);
 
+/*flushes based on the current select mode.  if in vertex select mode,
+  verts select/deselect edges and faces, if in edge select mode,
+  edges select/deselect faces and vertices, and in face select mode faces select/deselect
+  edges and vertices.*/
 void EDBM_selectmode_flush(struct BMEditMesh *em);
 int EDBM_get_actSelection(struct BMEditMesh *em, struct BMEditSelection *ese);
+/*exactly the same as EDBM_selectmode_flush, but you pass in the selectmode
+  instead of using the current one*/
+void EDBM_select_flush(struct BMEditMesh *em, int selectmode);
+
+void EDBM_selectmode_set(struct BMEditMesh *em);
+void EDBM_convertsel(struct BMEditMesh *em, short oldmode, short selectmode);
 
 void EDBM_editselection_center(struct BMEditMesh *em, float *center, struct BMEditSelection *ese);
 void EDBM_editselection_plane(struct BMEditMesh *em, float *plane, struct BMEditSelection *ese);
 void EDBM_editselection_normal(float *normal, struct BMEditSelection *ese);
 
-void EDBM_selectmode_set(struct BMEditMesh *em);
-void EDBM_convertsel(struct BMEditMesh *em, short oldmode, short selectmode);
 
 void EDBM_hide_mesh(struct BMEditMesh *em, int swap);
 void EDBM_reveal_mesh(struct BMEditMesh *em);

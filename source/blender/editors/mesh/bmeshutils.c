@@ -386,6 +386,13 @@ BMFace *EDBM_get_actFace(BMEditMesh *em, int sloppy)
 
 }
 
+void EDBM_select_flush(BMEditMesh *em, int selectmode)
+{
+	em->bm->selectmode = selectmode;
+	BM_SelectMode_Flush(em->bm);
+	em->bm->selectmode = em->selectmode;
+}
+
 void EDBM_selectmode_flush(BMEditMesh *em)
 {
 	em->bm->selectmode = em->selectmode;
@@ -440,6 +447,7 @@ void EDBM_clear_flag_all(BMEditMesh *em, int flag)
 				type = BM_FACES_OF_MESH;
 				break;
 		}
+		
 		ele = BMIter_New(&iter, em->bm, type, NULL);
 		for ( ; ele; ele=BMIter_Step(&iter)) {
 			if (flag & BM_SELECT) BM_Select(em->bm, ele, 0);
@@ -467,6 +475,7 @@ void EDBM_set_flag_all(BMEditMesh *em, int flag)
 				type = BM_FACES_OF_MESH;
 				break;
 		}
+		
 		ele = BMIter_New(&iter, em->bm, type, NULL);
 		for ( ; ele; ele=BMIter_Step(&iter)) {
 			if (flag & BM_SELECT) BM_Select(em->bm, ele, 1);

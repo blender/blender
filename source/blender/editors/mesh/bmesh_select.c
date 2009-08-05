@@ -1537,10 +1537,13 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 	}
 
 	BMW_Init(&walker, em->bm, BMW_SHELL, 0);
-	e = BMW_Begin(&walker, eed);
+	e = BMW_Begin(&walker, eed->v1);
 	for (; e; e=BMW_Step(&walker)) {
-		BM_Select(em->bm, e, sel);
+			BM_Select(em->bm, e->v1, sel);
+			BM_Select(em->bm, e->v2, sel);
 	}
+	BMW_End(&walker);
+	EDBM_select_flush(em, SCE_SELECT_VERTEX);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	return OPERATOR_FINISHED;	
@@ -1560,5 +1563,59 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
+	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "");
+}
+
+
+static int select_linked_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
+	V_DECLARE(verts);
+	BMVert **verts = NULL;
+	BMIter iter;
+	BMVert *v;
+	BMEdge *e;
+	BMWalker walker;
+	int i, tot;
+
+	tot = 0;
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (BM_TestHFlag(v, BM_SELECT)) {
+			V_GROW(verts);
+			verts[tot++] = v;
+		}
+	}
+
+	BMW_Init(&walker, em->bm, BMW_SHELL, 0);
+	for (i=0; i<tot; i++) {
+		e = BMW_Begin(&walker, verts[i]);
+		for (; e; e=BMW_Step(&walker)) {
+			BM_Select(em->bm, e->v1, 1);
+			BM_Select(em->bm, e->v2, 1);
+		}
+	}
+	BMW_End(&walker);
+	EDBM_select_flush(em, SCE_SELECT_VERTEX);
+
+	V_FREE(verts);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_select_linked(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Linked All";
+	ot->idname= "MESH_OT_select_linked";
+	
+	/* api callbacks */
+	ot->exec= select_linked_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
 	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "");
 }

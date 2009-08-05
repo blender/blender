@@ -105,7 +105,9 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 
 /****************** Parametrizer Conversion ***************/
 
-ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em, short implicit, short fill, short sel, short correct_aspect)
+ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em, 
+				    short implicit, short fill, short sel, 
+				    short correct_aspect)
 {
 	ParamHandle *handle;
 	BMFace *efa;
@@ -510,7 +512,7 @@ void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
 		return;
 	}
 
-	liveHandle = construct_param_handle(scene, em, 0, fillholes, 1, 1);
+	liveHandle = construct_param_handle(scene, em, 0, fillholes, 0, 1);
 
 	param_lscm_begin(liveHandle, PARAM_TRUE, abf);
 }
@@ -824,7 +826,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	handle= construct_param_handle(scene, em, 0, fill_holes, 1, correct_aspect);
+	handle= construct_param_handle(scene, em, 0, fill_holes, 0, correct_aspect);
 
 	param_lscm_begin(handle, PARAM_FALSE, method == 0);
 	param_lscm_solve(handle);
