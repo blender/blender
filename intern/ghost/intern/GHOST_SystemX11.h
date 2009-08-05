@@ -59,6 +59,12 @@ public:
 	GHOST_SystemX11(
 	);
 	
+	/**
+	 * Destructor.
+	 */
+	virtual ~GHOST_SystemX11();
+
+
 		GHOST_TSuccess 
 	init(
 	);

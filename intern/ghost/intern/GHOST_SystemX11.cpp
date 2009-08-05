@@ -148,6 +148,13 @@ GHOST_SystemX11(
 	
 }
 
+GHOST_SystemX11::
+~GHOST_SystemX11()
+{
+	XCloseDisplay(m_display);
+}
+
+
 	GHOST_TSuccess 
 GHOST_SystemX11::
 init(

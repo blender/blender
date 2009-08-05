@@ -274,6 +274,8 @@ void WM_exit(bContext *C)
 
 	RNA_exit();
 	
+	wm_ghost_exit();
+
 	CTX_free(C);
 	
 	if(MEM_get_memory_blocks_in_use()!=0) {
