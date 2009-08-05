@@ -26,6 +26,47 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+/* 
+template<int SIZE>
+struct BBGroup
+{
+	float bb[6][SIZE];
+};
+
+
+static inline int test_bb_group(BBGroup<4> *bb_group, Isect *isec)
+{
+	const float *bb = _bb;
+	__m128 tmin={0}, tmax = {isec->labda};
+
+	tmin = _mm_max_ps(tmin, _mm_mul_ps( _mm_sub_ps( group->bb[isec->bv_index[0]], isec->sse_start[0] ), isec->sse_idot_axis[0]) );
+	tmax = _mm_min_ps(tmax, _mm_mul_ps( _mm_sub_ps( group->bb[isec->bv_index[1]], isec->sse_start[0] ), isec->sse_idot_axis[0]) );	
+	tmin = _mm_max_ps(tmin, _mm_mul_ps( _mm_sub_ps( group->bb[isec->bv_index[2]], isec->sse_start[1] ), isec->sse_idot_axis[1]) );
+	tmax = _mm_min_ps(tmax, _mm_mul_ps( _mm_sub_ps( group->bb[isec->bv_index[3]], isec->sse_start[1] ), isec->sse_idot_axis[1]) );
+	tmin = _mm_max_ps(tmin, _mm_mul_ps( _mm_sub_ps( group->bb[isec->bv_index[4]], isec->sse_start[2] ), isec->sse_idot_axis[2]) );
+	tmax = _mm_min_ps(tmax, _mm_mul_ps( _mm_sub_ps( group->bb[isec->bv_index[5]], isec->sse_start[2] ), isec->sse_idot_axis[2]) );
+	
+	return _mm_movemask_ps(_mm_cmpge_ps(tmax, tmin));
+}
+
+static inline int test_bb_group(BBGroup<1> *bb_group, Isect *isec)
+{
+	float t1x = (bb[isec->bv_index[0]] - isec->start[0]) * isec->idot_axis[0];
+	float t2x = (bb[isec->bv_index[1]] - isec->start[0]) * isec->idot_axis[0];
+	float t1y = (bb[isec->bv_index[2]] - isec->start[1]) * isec->idot_axis[1];
+	float t2y = (bb[isec->bv_index[3]] - isec->start[1]) * isec->idot_axis[1];
+	float t1z = (bb[isec->bv_index[4]] - isec->start[2]) * isec->idot_axis[2];
+	float t2z = (bb[isec->bv_index[5]] - isec->start[2]) * isec->idot_axis[2];
+
+	RE_RC_COUNT(isec->raycounter->bb.test);
+	if(t1x > t2y || t2x < t1y || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) return 0;
+	if(t2x < 0.0 || t2y < 0.0 || t2z < 0.0) return 0;
+	if(t1x > isec->labda || t1y > isec->labda || t1z > isec->labda) return 0;
+
+	RE_RC_COUNT(isec->raycounter->bb.hit);
+	return 1;
+}
+*/
 
 /* bvh tree generics */
 template<class Tree> static int bvh_intersect(Tree *obj, Isect *isec);
@@ -68,7 +109,7 @@ static float bvh_cost(Tree *obj)
 /* bvh tree nodes generics */
 template<class Node> static inline int bvh_node_hit_test(Node *node, Isect *isec)
 {
-	return RE_rayobject_bb_intersect(isec, (const float*)node->bb) != FLT_MAX;
+	return RE_rayobject_bb_intersect_test(isec, (const float*)node->bb);
 }
 
 

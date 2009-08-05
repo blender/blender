@@ -164,7 +164,8 @@ int RE_rayobject_intersect(RayObject *r, Isect *i);
  * Returns distance ray must travel to hit the given bounding box
  * BB should be in format [2][3]
  */
-float RE_rayobject_bb_intersect(const Isect *i, const float *bb);
+/* float RE_rayobject_bb_intersect(const Isect *i, const float *bb); */
+int RE_rayobject_bb_intersect_test(const Isect *i, const float *bb); /* same as bb_intersect but doens't calculates distance */
 
 /*
  * Returns the expected cost of raycast on this node, primitives have a cost of 1

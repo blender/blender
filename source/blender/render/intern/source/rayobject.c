@@ -42,6 +42,7 @@
  * Based on Tactical Optimization of Ray/Box Intersection, by Graham Fyffe
  *  [http://tog.acm.org/resources/RTNews/html/rtnv21n1.html#art9]
  */
+/*
 float RE_rayobject_bb_intersect(const Isect *isec, const float *_bb)
 {
 	const float *bb = _bb;
@@ -66,6 +67,27 @@ float RE_rayobject_bb_intersect(const Isect *isec, const float *_bb)
 	if (t1y > dist) dist = t1y;
     if (t1z > dist) dist = t1z;
 	return dist;
+}
+*/
+int RE_rayobject_bb_intersect_test(const Isect *isec, const float *_bb)
+{
+	const float *bb = _bb;
+	
+	float t1x = (bb[isec->bv_index[0]] - isec->start[0]) * isec->idot_axis[0];
+	float t2x = (bb[isec->bv_index[1]] - isec->start[0]) * isec->idot_axis[0];
+	float t1y = (bb[isec->bv_index[2]] - isec->start[1]) * isec->idot_axis[1];
+	float t2y = (bb[isec->bv_index[3]] - isec->start[1]) * isec->idot_axis[1];
+	float t1z = (bb[isec->bv_index[4]] - isec->start[2]) * isec->idot_axis[2];
+	float t2z = (bb[isec->bv_index[5]] - isec->start[2]) * isec->idot_axis[2];
+
+	RE_RC_COUNT(isec->raycounter->bb.test);
+	
+	if(t1x > t2y || t2x < t1y || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) return 0;
+	if(t2x < 0.0 || t2y < 0.0 || t2z < 0.0) return 0;
+	if(t1x > isec->labda || t1y > isec->labda || t1z > isec->labda) return 0;
+	RE_RC_COUNT(isec->raycounter->bb.hit);	
+
+	return 1;
 }
 
 
