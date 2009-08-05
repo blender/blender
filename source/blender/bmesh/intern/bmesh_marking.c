@@ -223,15 +223,37 @@ void BM_Select_Face(BMesh *bm, BMFace *f, int select)
 		}while(l != f->loopbase);
 	}
 	else{ 
-		if (BM_TestHFlag(f, BM_SELECT)) bm->totfacesel -= 1;
+		BMIter liter, fiter, eiter;
+		BMFace *f2;
+		BMLoop *l;
+		BMEdge *e;
 
+		if (BM_TestHFlag(f, BM_SELECT)) bm->totfacesel -= 1;
 		BM_ClearHFlag(&(f->head), BM_SELECT);
-		l = f->loopbase;
-		do {
-			BM_Select_Vert(bm, l->v, 0);
-			BM_Select_Edge(bm, l->e, 0);
-			l = ((BMLoop*)(l->head.next));
-		} while(l != f->loopbase);
+
+		/*flush down to edges*/
+		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+			BM_ITER(f2, &fiter, bm, BM_FACES_OF_EDGE, l->e) {
+				if (BM_TestHFlag(f2, BM_SELECT))
+					break;
+			}
+
+			if (!f2) {
+				BM_Select(bm, l->e, 0);
+			}
+		}
+
+		/*flush down to verts*/
+		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+			BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, l->v) {
+				if (BM_TestHFlag(e, BM_SELECT))
+					break;
+			}
+
+			if (!e) {
+				BM_Select(bm, l->v, 0);
+			}
+		}
 	}
 }
 
@@ -417,7 +439,7 @@ void BM_editselection_plane(BMesh *em, float *plane, BMEditSelection *ese)
 		
 		/*for now, use face normal*/
 
-		/* make a fake  plane thats at rightangles to the normal
+		/* make a fake plane thats at rightangles to the normal
 		we cant make a crossvec from a vec thats the same as the vec
 		unlikely but possible, so make sure if the normal is (0,0,1)
 		that vec isnt the same or in the same direction even.*/
@@ -425,7 +447,7 @@ void BM_editselection_plane(BMesh *em, float *plane, BMEditSelection *ese)
 		else if (efa->no[1]<0.5)	vec[1]=1.0f;
 		else				vec[2]=1.0f;
 		Crossf(plane, efa->no, vec);
-#if 0
+#if 0 //BMESH_TODO
 
 		if (efa->v4) { /*if its a quad- set the plane along the 2 longest edges.*/
 			float vecA[3], vecB[3];

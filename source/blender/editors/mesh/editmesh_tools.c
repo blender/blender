@@ -4392,29 +4392,6 @@ useless:
 #endif // END OF XXX
 }
 
-int EdgeLoopDelete(EditMesh *em, wmOperator *op)
-{
-
-	/* temporal flag setting so we keep UVs when deleting edge loops,
-	* this is a bit of a hack but it works how you would want in almost all cases */
-	//	short uvcalc_flag_orig = 0; // XXX scene->toolsettings->uvcalc_flag;
-	//	scene->toolsettings->uvcalc_flag |= UVCALC_TRANSFORM_CORRECT;
-
-	if(!EdgeSlide(em, op, 1, 1)) {
-		return 0;
-	}
-
-	/* restore uvcalc flag */
-	//	scene->toolsettings->uvcalc_flag = uvcalc_flag_orig;
-
-	EM_select_more(em);
-	removedoublesflag(em, 1,0, 0.001);
-	EM_select_flush(em);
-	//	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	return 1;
-}
-
-
 /* -------------------- More tools ------------------ */
 #if 0
 void mesh_set_face_flags(EditMesh *em, short mode)
