@@ -83,9 +83,11 @@ def unpack_list(list_of_tuples):
 def unpack_face_list(list_of_tuples):
 	l = []
 	for t in list_of_tuples:
-		if len(t) == 3:
-			t += [0]
-		l.extend(t)
+		face = [i for i in t]
+		if len(face) > 4:
+			raise RuntimeError("More than 4 vertices per face.")
+		if len(face) == 3: face.append(0)
+		l.extend(face)
 	return l
 
 
@@ -163,7 +165,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 		
 		# Absolute path - c:\.. etc would work here
 		image= obj_image_load(imagepath, DIR, IMAGE_SEARCH)
-		has_data = image.has_data
+		has_data = image.has_data if image else False
 
 		if image:
 			texture.image = image
@@ -503,8 +505,11 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 
 	me= bpy.data.add_mesh(dataname)
 # 	me= bpy.data.meshes.new(dataname)
-	
-	me.materials= materials[0:16] # make sure the list isnt too big.
+
+	# make sure the list isnt too big
+	for material in materials[0:16]:
+		me.add_material(material)
+# 	me.materials= materials[0:16] # make sure the list isnt too big.
 	#me.verts.extend([(0,0,0)]) # dummy vert
 
 	me.add_geometry(len(verts_loc), 0, len(faces))
@@ -569,7 +574,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 				
 				if verts_tex:
 
-					blender_tface= me.uv_layers[0].data[i]
+					blender_tface= me.uv_textures[0].data[i]
 
 					if context_material:
 						image, has_data= unique_material_images[context_material]
@@ -621,7 +626,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 	
 	if CREATE_EDGES:
 
-		me.add_geometry(0, len(edges))
+		me.add_geometry(0, len(edges), 0)
 
 		# edges should be a list of (a, b) tuples
 		me.edges.foreach_set("verts", unpack_list(edges))
@@ -629,7 +634,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 	
 # 	del me_edges
 
-	me.calc_normals()
+	me.update()
 # 	me.calcNormals()
 
 	ob= bpy.data.add_object("MESH", "Mesh")

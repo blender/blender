@@ -258,6 +258,29 @@ static void rna_Mesh_calc_normals(Mesh *me)
 	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 }
 
+static void rna_Mesh_add_material(Mesh *me, Material *ma)
+{
+	int i;
+	int totcol = me->totcol + 1;
+	Material **mat;
+
+	/* don't add if mesh already has it */
+	for (i = 0; i < me->totcol; i++)
+		if (me->mat[i] == ma)
+			return;
+
+	mat= MEM_callocN(sizeof(void*) * totcol, "newmatar");
+
+	if (me->totcol) memcpy(mat, me->mat, sizeof(void*) * me->totcol);
+	if (me->mat) MEM_freeN(me->mat);
+
+	me->mat = mat;
+	me->mat[me->totcol++] = ma;
+	ma->id.us++;
+
+	test_object_materials((ID*)me);
+}
+
 #else
 
 void RNA_api_mesh(StructRNA *srna)
@@ -289,17 +312,13 @@ void RNA_api_mesh(StructRNA *srna)
 	func= RNA_def_function(srna, "calc_normals", "rna_Mesh_calc_normals");
 	RNA_def_function_ui_description(func, "Calculate vertex normals.");
 
-	/*
-	func= RNA_def_function(srna, "add_geom", "rna_Mesh_add_geom");
-	RNA_def_function_ui_description(func, "Add geometry data to mesh.");
-	prop= RNA_def_collection(func, "verts", "?", "", "Vertices.");
-	RNA_def_property_flag(prop, PROP_REQUIRED);
-	prop= RNA_def_collection(func, "faces", "?", "", "Faces.");
-	RNA_def_property_flag(prop, PROP_REQUIRED);
-	*/
-
 	func= RNA_def_function(srna, "update", "rna_Mesh_update");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+
+	func= RNA_def_function(srna, "add_material", "rna_Mesh_add_material");
+	RNA_def_function_ui_description(func, "Add a new material to Mesh.");
+	parm= RNA_def_pointer(func, "material", "Material", "", "Material to add.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 #endif
