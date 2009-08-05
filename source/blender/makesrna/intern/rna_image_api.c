@@ -41,6 +41,11 @@
 #include "BKE_utildefines.h"
 #include "BKE_image.h"
 
+/*
+  User should check if returned path exists before copying a file there.
+
+  TODO: it would be better to return a (abs, rel) tuple.
+*/
 static char *rna_Image_get_export_path(Image *image, char *dest_dir, int rel)
 {
 	int length = FILE_MAX;

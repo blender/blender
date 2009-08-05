@@ -2206,18 +2206,18 @@ int BKE_get_image_export_path(struct Image *im, const char *dest_dir, char *abs,
 		BLI_join_dirfile(dest_path, dest_dir, base);
 	}
 
-	/* only return 1 if paths differ */
-	if (!strcmp(path, dest_path)) {
-		if (G.f & G_DEBUG) printf("%s and %s are the same file\n", path, dest_path);
-		return 0;
-	}
-
 	if (abs)
 		BLI_strncpy(abs, dest_path, abs_size);
 
 	if (rel) {
 		strncat(rel, rel_dir, rel_size);
 		strncat(rel, base, rel_size);
+	}
+
+	/* return 2 if src=dest */
+	if (!strcmp(path, dest_path)) {
+		if (G.f & G_DEBUG) printf("%s and %s are the same file\n", path, dest_path);
+		return 2;
 	}
 
 	return 1;

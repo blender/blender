@@ -39,6 +39,7 @@ http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_fbx
 import os
 import time
 import math # math.pi
+import shutil # for file copying
 
 # try:
 # 	import time
@@ -1324,8 +1325,6 @@ def write(filename, batch_objects = None, \
 
 	# tex is an Image (Arystan)
 	def write_video(texname, tex):
-		if not EXP_IMAGE_COPY: return
-
 		# Same as texture really!
 		file.write('\n\tVideo: "Video::%s", "Clip" {' % texname)
 		
@@ -1337,9 +1336,15 @@ def write(filename, batch_objects = None, \
 			Property: "Width", "int", "",0
 			Property: "Height", "int", "",0''')
 		if tex:
-			abspath = tex.export(basepath)
-			fname_rel = os.path.relpath(abspath, basepath)
-			fname_strip = os.path.basename(abspath)
+			src = bpy.sys.expandpath(tex.filename)
+			fname_rel = tex.get_export_path(basepath, True)
+			fname_abs = tex.get_export_path(basepath, False)
+			fname_strip = os.path.basename(fname_rel)
+
+			if EXP_IMAGE_COPY:
+				if !os.path.exists(fname_abs):
+					shutil.copy(src, fname_abs)
+
 # 			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
 		else:
 			fname = fname_strip = fname_rel = ''
@@ -1404,11 +1409,14 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\tMedia: "Video::%s"' % texname)
 		
 		if tex:
-			fname_rel = tex.get_export_path(relpath, True)
+			src = bpy.sys.expandpath(tex.filename)
+			fname_rel = tex.get_export_path(basepath, True)
+			fname_abs = tex.get_export_path(basepath, False)
 			fname_strip = os.path.basename(fname_rel)
 
 			if EXP_IMAGE_COPY:
-				
+				if !os.path.exists(fname_abs):
+					shutil.copy(src, fname_abs)
 
 # 			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
 		else:

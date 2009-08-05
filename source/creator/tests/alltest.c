@@ -60,19 +60,19 @@ START_TEST(test_copy_images)
 		{"//image.png", {{"/home/user/image.png", "image.png", 1},
 						 {"/home/user/image.png", "image.png", 1},
 						 {"/home/user/export/image.png", "image.png", 1},
-						 {"", "", 0},}},
+						 {"/home/user/foo/image.png", "image.png", 2},}},
 
 		/* relative, 1 level deep */
 		{"//bar/image.png", {{"/home/user/bar/image.png", "bar/image.png", 1},
 							 {"/home/user/bar/image.png", "bar/image.png", 1},
 							 {"/home/user/export/bar/image.png", "bar/image.png", 1},
-							 {"", "", 0},}},
+							 {"/home/user/foo/bar/image.png", "bar/image.png", 2},}},
 
 		/* relative, 2 level deep */
 		{"//bar/foo/image.png", {{"/home/user/bar/foo/image.png", "bar/foo/image.png", 1},
 								 {"/home/user/bar/foo/image.png", "bar/foo/image.png", 1},
 								 {"/home/user/export/bar/foo/image.png", "bar/foo/image.png", 1},
-								 {"", "", 0},}},
+								 {"/home/user/foo/bar/foo/image.png", "bar/foo/image.png", 2},}},
 
 		/* absolute, not under .blend dir */
 		{"/home/user/bar/image.png", {{"/home/user/image.png", "image.png", 1},
@@ -84,19 +84,19 @@ START_TEST(test_copy_images)
 		{"/home/user/foo/image.png", {{"/home/user/image.png", "image.png", 1},
 									  {"/home/user/image.png", "image.png", 1},
 									  {"/home/user/export/image.png", "image.png", 1},
-									  {"", "", 0},}},
+									  {"/home/user/foo/image.png", "image.png", 2},}},
 
 		/* absolute, under .blend dir, 1 level deep */
 		{"/home/user/foo/bar/image.png", {{"/home/user/bar/image.png", "bar/image.png", 1},
 										  {"/home/user/bar/image.png", "bar/image.png", 1},
 										  {"/home/user/export/bar/image.png", "bar/image.png", 1},
-										  {"", "", 0},}},
+										  {"/home/user/foo/bar/image.png", "bar/image.png", 2},}},
 
 		/* absolute, under .blend dir, 2 level deep */
 		{"/home/user/foo/bar/foo/image.png", {{"/home/user/bar/foo/image.png", "bar/foo/image.png", 1},
 											  {"/home/user/bar/foo/image.png", "bar/foo/image.png", 1},
 											  {"/home/user/export/bar/foo/image.png", "bar/foo/image.png", 1},
-											  {"", "", 0},}},
+											  {"/home/user/foo/bar/foo/image.png", "bar/foo/image.png", 2},}},
 
 		/* empty image path, don't let these pass! */
 		{"", {{"", 0},
