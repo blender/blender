@@ -562,6 +562,9 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
 			dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_LIB}.dll')
 	if env['WITH_BF_ICONV']:
 		dllsources += ['${BF_ICONV_LIBPATH}/iconv.dll']
+	if env['WITH_BF_OPENAL']:
+		dllsources.append('${LCGDIR}/openal/lib/OpenAL32.dll')
+		dllsources.append('${LCGDIR}/openal/lib/wrap_oal.dll')
 	if env['WITH_BF_FFMPEG']:
 		dllsources += ['${LCGDIR}/ffmpeg/lib/avcodec-52.dll',
 						'${LCGDIR}/ffmpeg/lib/avformat-52.dll',
