@@ -599,11 +599,21 @@ public:
 class TransformWriter : protected TransformBase
 {
 protected:
-	void add_node_transform(COLLADASW::Node& node, float mat[][4])
+	void add_node_transform(COLLADASW::Node& node, float mat[][4], float parent_mat[][4])
 	{
 		float loc[3], rot[3], size[3];
+		float local[4][4];
 
-		TransformBase::decompose(mat, loc, rot, size);
+		if (parent_mat) {
+			float invpar[4][4];
+			Mat4Invert(invpar, parent_mat);
+			Mat4MulMat4(local, mat, invpar);
+		}
+		else {
+			Mat4CpyMat4(local, mat);
+		}
+
+		TransformBase::decompose(local, loc, rot, size);
 		
 		/*
 		// this code used to create a single <rotate> representing object rotation
@@ -842,7 +852,7 @@ private:
 			Mat4MulMat4(mat, pchan->pose_mat, ob_arm->obmat);
 		}
 
-		TransformWriter::add_node_transform(node, mat);
+		TransformWriter::add_node_transform(node, mat, NULL);
 	}
 
 	std::string get_controller_id(Object *ob_arm)
@@ -1179,7 +1189,7 @@ public:
 		else
 			Mat4CpyMat4(mat, ob->obmat);
 
-		TransformWriter::add_node_transform(node, mat);
+		TransformWriter::add_node_transform(node, mat, ob->parent ? ob->parent->obmat : NULL);
 		
 		// <instance_geometry>
 		if (ob->type == OB_MESH) {
