@@ -208,7 +208,7 @@ IF(WIN32)
   #SET(WITH_OPENAL ON)
   SET(OPENAL ${LIBDIR}/openal)
   SET(OPENAL_INC ${OPENAL}/include ${OPENAL}/include/AL)
-  SET(OPENAL_LIB openal_static)
+  SET(OPENAL_LIB wrap_oal)
   SET(OPENAL_LIBPATH ${OPENAL}/lib)
 
   IF(CMAKE_CL_64)

@@ -372,9 +372,6 @@ SND_OpenALDevice::SND_OpenALDevice()
 	{
 #ifdef __APPLE__
 		ALenum alc_error = ALC_NO_ERROR;	// openal_2.12
-#elif defined(_WIN32)
-		// alcGetError has no arguments on windows
-		ALenum alc_error = alcGetError();       // openal_2.14+
 #else
 		ALenum alc_error = alcGetError(NULL);	// openal_2.14+
 #endif
@@ -410,9 +407,6 @@ void SND_OpenALDevice::UseCD(void) const
 
 void SND_OpenALDevice::MakeCurrent() const
 {
-#ifdef WIN32
-	alcMakeContextCurrent(m_context);
-#endif
 }
 
 
@@ -614,11 +608,11 @@ void SND_OpenALDevice::InitListener()
 	// have the same settings)
 	float lispos[3] = {0,0,0};
 	float lisvel[3] = {0,0,0};
-#ifdef WIN32
+/*#ifdef WIN32
 	float lisori[6] = {0,1,0,0,0,1};
-#else
+#else*/
 	float lisori[6] = {0,0,1,0,-1,0};
-#endif
+//#endif
 
 	alListenerfv(AL_POSITION, lispos);
 	alListenerfv(AL_VELOCITY, lisvel);
