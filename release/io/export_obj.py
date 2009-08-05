@@ -47,7 +47,7 @@ will be exported as mesh data.
 
 # import math and other in functions that use them for the sake of fast Blender startup
 # import math
-import os # os.sep
+import os
 
 import bpy
 import Mathutils
@@ -83,12 +83,25 @@ def BPySys_cleanName(name):
 
 # A Dict of Materials
 # (material.name, image.name):matname_imagename # matname_imagename has gaps removed.
-MTL_DICT = {} 
+MTL_DICT = {} 	
 
-def write_mtl(scene, filename):
+def write_mtl(scene, filename, copy_images):
 
 	world = scene.world
 	worldAmb = world.ambient_color
+
+	dest_dir = os.path.dirname(filename)
+
+	def copy_image(image):
+		rel = image.get_export_path(dest_dir, True)
+
+		if copy_images:
+			abspath = image.get_export_path(dest_dir, False)
+			if not os.path.exists(abs_path):
+				shutil.copy(bpy.sys.expandpath(image.filename), abs_path)
+
+		return rel
+
 
 	file = open(filename, "w")
 	# XXX
@@ -129,13 +142,17 @@ def write_mtl(scene, filename):
 		
 		# Write images!
 		if img:	 # We have an image on the face!
-			file.write('map_Kd %s\n' % img.filename.split('\\')[-1].split('/')[-1]) # Diffuse mapping image			
+			# write relative image path
+			rel = copy_image(img)
+			file.write('map_Kd %s\n' % rel) # Diffuse mapping image
+# 			file.write('map_Kd %s\n' % img.filename.split('\\')[-1].split('/')[-1]) # Diffuse mapping image			
 		
 		elif mat: # No face image. if we havea material search for MTex image.
 			for mtex in mat.textures:
 				if mtex and mtex.texure.type == 'IMAGE':
 					try:
-						filename = mtex.texture.image.filename.split('\\')[-1].split('/')[-1]
+						filename = copy_image(mtex.texture.image)
+# 						filename = mtex.texture.image.filename.split('\\')[-1].split('/')[-1]
 						file.write('map_Kd %s\n' % filename) # Diffuse mapping image
 						break
 					except:
@@ -146,6 +163,7 @@ def write_mtl(scene, filename):
 	
 	file.close()
 
+# XXX not used
 def copy_file(source, dest):
 	file = open(source, 'rb')
 	data = file.read()
@@ -156,6 +174,7 @@ def copy_file(source, dest):
 	file.close()
 
 
+# XXX not used
 def copy_images(dest_dir):
 	if dest_dir[-1] != os.sep:
 		dest_dir += os.sep
@@ -181,7 +200,7 @@ def copy_images(dest_dir):
 							pass
 	
 	# Now copy images
-# 	copyCount = 0
+	copyCount = 0
 	
 # 	for bImage in uniqueImages.values():
 # 		image_path = bpy.sys.expandpath(bImage.filename)
@@ -193,7 +212,7 @@ def copy_images(dest_dir):
 # 				copy_file(image_path, dest_image_path)
 # 				copyCount+=1
 
-	paths= bpy.util.copy_images(uniqueImages.values(), dest_dir)
+# 	paths= bpy.util.copy_images(uniqueImages.values(), dest_dir)
 
 	print('\tCopied %d images' % copyCount)
 # 	print('\tCopied %d images' % copyCount)
@@ -412,16 +431,11 @@ def write(filename, objects, scene,
 			if ob.type != 'MESH':
 				continue
 
-			if EXPORT_APPLY_MODIFIERS:
-				me = ob.create_mesh('PREVIEW')
-			else:
-				me = ob.data.create_copy()
+			me = ob.create_mesh(EXPORT_APPLY_MODIFIERS, 'PREVIEW')
 
 			if EXPORT_ROTX90:
-				print(ob_mat * mat_xrot90)
 				me.transform(ob_mat * mat_xrot90)
 			else:
-				print(ob_mat)
 				me.transform(ob_mat)
 
 #			# Will work for non meshes now! :)
@@ -597,7 +611,7 @@ def write(filename, objects, scene,
 #							file.write('vt %.6f %.6f\n' % tuple(uv))
 				
 				uv_unique_count = len(uv_dict)
-				del uv, uvkey, uv_dict, f_index, uv_index
+# 				del uv, uvkey, uv_dict, f_index, uv_index
 				# Only need uv_unique_count and uv_face_mapping
 			
 			# NORMAL, Smooth/Non smoothed.
@@ -783,16 +797,17 @@ def write(filename, objects, scene,
 	
 	# Now we have all our materials, save them
 	if EXPORT_MTL:
-		write_mtl(scene, mtlfilename)
-	if EXPORT_COPY_IMAGES:
-		dest_dir = filename
-		# Remove chars until we are just the path.
-		while dest_dir and dest_dir[-1] not in '\\/':
-			dest_dir = dest_dir[:-1]
-		if dest_dir:
-			copy_images(dest_dir)
-		else:
-			print('\tError: "%s" could not be used as a base for an image path.' % filename)
+		write_mtl(scene, mtlfilename, EXPORT_COPY_IMAGES)
+# 	if EXPORT_COPY_IMAGES:
+# 		dest_dir = os.path.basename(filename)
+# # 		dest_dir = filename
+# # 		# Remove chars until we are just the path.
+# # 		while dest_dir and dest_dir[-1] not in '\\/':
+# # 			dest_dir = dest_dir[:-1]
+# 		if dest_dir:
+# 			copy_images(dest_dir)
+# 		else:
+# 			print('\tError: "%s" could not be used as a base for an image path.' % filename)
 
 	print("OBJ Export time: %.2f" % (bpy.sys.time() - time1))
 #	print "OBJ Export time: %.2f" % (sys.time() - time1)
@@ -898,7 +913,7 @@ class EXPORT_OT_obj(bpy.types.Operator):
 		bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for exporting the PLY file", maxlen= 1024, default= ""),
 
 		# context group
-		bpy.props.BoolProperty(attr="use_selection", name="Selection Only", description="", default= True),
+		bpy.props.BoolProperty(attr="use_selection", name="Selection Only", description="", default= False),
 		bpy.props.BoolProperty(attr="use_all_scenes", name="All Scenes", description="", default= False),
 		bpy.props.BoolProperty(attr="use_animation", name="All Animation", description="", default= False),
 

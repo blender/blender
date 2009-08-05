@@ -1323,6 +1323,19 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\t}')
 		file.write('\n\t}')
 
+	def copy_image(image):
+
+		rel = image.get_export_path(basepath, True)
+		base = os.path.basename(fname_rel)
+
+		if EXP_IMAGE_COPY:
+			src = bpy.sys.expandpath(image.filename)
+			absp = image.get_export_path(basepath, False)
+			if not os.path.exists(absp):
+				shutil.copy(src, absp)
+
+		return (rel, base)
+
 	# tex is an Image (Arystan)
 	def write_video(texname, tex):
 		# Same as texture really!
@@ -1336,15 +1349,7 @@ def write(filename, batch_objects = None, \
 			Property: "Width", "int", "",0
 			Property: "Height", "int", "",0''')
 		if tex:
-			src = bpy.sys.expandpath(tex.filename)
-			fname_rel = tex.get_export_path(basepath, True)
-			fname_abs = tex.get_export_path(basepath, False)
-			fname_strip = os.path.basename(fname_rel)
-
-			if EXP_IMAGE_COPY:
-				if !os.path.exists(fname_abs):
-					shutil.copy(src, fname_abs)
-
+			fname_rel, fname_strip = copy_image(tex)
 # 			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
 		else:
 			fname = fname_strip = fname_rel = ''
@@ -1409,15 +1414,7 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\tMedia: "Video::%s"' % texname)
 		
 		if tex:
-			src = bpy.sys.expandpath(tex.filename)
-			fname_rel = tex.get_export_path(basepath, True)
-			fname_abs = tex.get_export_path(basepath, False)
-			fname_strip = os.path.basename(fname_rel)
-
-			if EXP_IMAGE_COPY:
-				if !os.path.exists(fname_abs):
-					shutil.copy(src, fname_abs)
-
+			fname_rel, fname_strip = copy_image(tex)
 # 			fname, fname_strip, fname_rel = derived_paths(tex.filename, basepath, EXP_IMAGE_COPY)
 		else:
 			fname = fname_strip = fname_rel = ''

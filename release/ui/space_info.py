@@ -74,6 +74,7 @@ class INFO_MT_file_import(bpy.types.Menu):
 
 	def draw(self, context):
 		layout = self.layout
+		layout.itemO("import.obj", text="OBJ")
 
 class INFO_MT_file_export(bpy.types.Menu):
 	__space_type__ = "USER_PREFERENCES"
@@ -82,6 +83,8 @@ class INFO_MT_file_export(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 
+		layout.itemO("export.fbx", text="FBX")
+		layout.itemO("export.obj", text="OBJ")
 		layout.itemO("export.ply", text="PLY")
 
 class INFO_MT_file_external_data(bpy.types.Menu):
