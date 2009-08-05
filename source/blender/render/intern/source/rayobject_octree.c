@@ -489,11 +489,22 @@ static void octree_fill_rayface(Octree *oc, RayFace *face)
 
 	ocres2= oc->ocres*oc->ocres;
 
+#ifdef RE_RAYFACE_COORDS_VLAKREN
+	{
+		VlakRen *vlr = (VlakRen*)face->face;
+		VECCOPY(co1, vlr->v1->co);
+		VECCOPY(co2, vlr->v2->co);
+		VECCOPY(co3, vlr->v3->co);
+		if(RE_rayface_isQuad(face))
+			VECCOPY(co4, vlr->v4->co);
+	}
+#else
 	VECCOPY(co1, face->v1);
 	VECCOPY(co2, face->v2);
 	VECCOPY(co3, face->v3);
 	if(face->v4)
 		VECCOPY(co4, face->v4);
+#endif
 
 	for(c=0;c<3;c++) {
 		rtf[0][c]= (co1[c]-oc->min[c])*ocfac[c] ;
@@ -502,7 +513,7 @@ static void octree_fill_rayface(Octree *oc, RayFace *face)
 		rts[1][c]= (short)rtf[1][c];
 		rtf[2][c]= (co3[c]-oc->min[c])*ocfac[c] ;
 		rts[2][c]= (short)rtf[2][c];
-		if(face->v4) {
+		if(RE_rayface_isQuad(face)) {
 			rtf[3][c]= (co4[c]-oc->min[c])*ocfac[c] ;
 			rts[3][c]= (short)rtf[3][c];
 		}
@@ -512,7 +523,7 @@ static void octree_fill_rayface(Octree *oc, RayFace *face)
 		oc1= rts[0][c];
 		oc2= rts[1][c];
 		oc3= rts[2][c];
-		if(face->v4==NULL) {
+		if(!RE_rayface_isQuad(face)) {
 			ocmin[c]= MIN3(oc1,oc2,oc3);
 			ocmax[c]= MAX3(oc1,oc2,oc3);
 		}
@@ -526,7 +537,7 @@ static void octree_fill_rayface(Octree *oc, RayFace *face)
 	}
 	
 	if(ocmin[0]==ocmax[0] && ocmin[1]==ocmax[1] && ocmin[2]==ocmax[2]) {
-		ocwrite(oc, face, (face->v4 != NULL), ocmin[0], ocmin[1], ocmin[2], rtf);
+		ocwrite(oc, face, RE_rayface_isQuad(face), ocmin[0], ocmin[1], ocmin[2], rtf);
 	}
 	else {
 		
@@ -536,7 +547,7 @@ static void octree_fill_rayface(Octree *oc, RayFace *face)
 		d2dda(oc, 1,2,0,1,ocface+ocres2,rts,rtf);
 		d2dda(oc, 1,2,0,2,ocface,rts,rtf);
 		d2dda(oc, 1,2,1,2,ocface+2*ocres2,rts,rtf);
-		if(face->v4==NULL) {
+		if(!RE_rayface_isQuad(face)) {
 			d2dda(oc, 2,0,0,1,ocface+ocres2,rts,rtf);
 			d2dda(oc, 2,0,0,2,ocface,rts,rtf);
 			d2dda(oc, 2,0,1,2,ocface+2*ocres2,rts,rtf);
@@ -565,7 +576,7 @@ static void octree_fill_rayface(Octree *oc, RayFace *face)
 					for(z=ocmin[2];z<=ocmax[2];z++) {
 						if(ocface[b+z] && ocface[a+z]) {
 							if(face_in_node(NULL, x, y, z, rtf))
-								ocwrite(oc, face, (face->v4 != NULL), x,y,z, rtf);
+								ocwrite(oc, face, RE_rayface_isQuad(face), x,y,z, rtf);
 						}
 					}
 				}

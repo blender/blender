@@ -78,9 +78,9 @@ extern "C" {
  */
 
 /* defines where coordinates of rayface primitives are stored */
-#define RE_RAYFACE_COORDS_LOCAL
+//#define RE_RAYFACE_COORDS_LOCAL
 //#define RE_RAYFACE_COORDS_POINTER
-//#define RE_RAYFACE_COORDS_VLAKREN
+#define RE_RAYFACE_COORDS_VLAKREN
  
 typedef struct RayFace
 {
@@ -105,13 +105,13 @@ typedef struct RayFace
 #elif defined(RE_RAYFACE_COORDS_POINTER)
 #	define RE_rayface_isQuad(a) ((a)->v4)
 #elif defined(RE_RAYFACE_COORDS_VLAKREN)
+#	define RE_rayface_isQuad(a) ((((VlakRen*)((a)->face))->v4) != NULL)
 #endif
 
 
 struct RayObject
 {
 	struct RayObjectAPI *api;
-	
 };
 
 
