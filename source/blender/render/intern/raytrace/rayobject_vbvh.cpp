@@ -38,6 +38,7 @@ extern "C"
 #include "rayobject.h"
 };
 
+#include "rayobject_hint.h"
 #include "reorganize.h"
 #include "bvh.h"
 #include <queue>
@@ -331,25 +332,25 @@ int intersect(BVHTree *obj, Isect* isec)
 	}
 }
 
-template<class Node>
-void bvh_dfs_make_hint(Node *node, LCTSHint *hint, int reserve_space, float *min, float *max);
+template<class Node,class HintObject>
+void bvh_dfs_make_hint(Node *node, LCTSHint *hint, int reserve_space, HintObject *hintObject);
 
-template<class Node>
-void bvh_dfs_make_hint_push_siblings(Node *node, LCTSHint *hint, int reserve_space, float *min, float *max)
+template<class Node,class HintObject>
+void bvh_dfs_make_hint_push_siblings(Node *node, LCTSHint *hint, int reserve_space, HintObject *hintObject)
 {
 	if(!RayObject_isAligned(node))
 		hint->stack[hint->size++] = (RayObject*)node;
 	else
 	{
 		if(node->sibling)
-			bvh_dfs_make_hint_push_siblings(node->sibling, hint, reserve_space+1, min, max);
+			bvh_dfs_make_hint_push_siblings(node->sibling, hint, reserve_space+1, hintObject);
 
-		bvh_dfs_make_hint(node, hint, reserve_space, min, max);
+		bvh_dfs_make_hint(node, hint, reserve_space, hintObject);
 	}	
 }
 
-template<class Node>
-void bvh_dfs_make_hint(Node *node, LCTSHint *hint, int reserve_space, float *min, float *max)
+template<class Node,class HintObject>
+void bvh_dfs_make_hint(Node *node, LCTSHint *hint, int reserve_space, HintObject *hintObject)
 {
 	assert( hint->size + reserve_space + 1 <= RE_RAY_LCTS_MAX_SIZE );
 	
@@ -362,12 +363,13 @@ void bvh_dfs_make_hint(Node *node, LCTSHint *hint, int reserve_space, float *min
 		int childs = count_childs(node);
 		if(hint->size + reserve_space + childs <= RE_RAY_LCTS_MAX_SIZE)
 		{
-			/* We are 100% sure the ray will be pass inside this node */
-			if(bb_fits_inside(node->bb, node->bb+3, min, max) )
+			int result = hint_test_bb(hintObject, node->bb, node->bb+3);
+			if(result == HINT_RECURSE)
 			{
-				bvh_dfs_make_hint_push_siblings(node->child, hint, reserve_space, min, max);
+				/* We are 100% sure the ray will be pass inside this node */
+				bvh_dfs_make_hint_push_siblings(node->child, hint, reserve_space, hintObject);
 			}
-			else
+			else if(result == HINT_ACCEPT)
 			{
 				hint->stack[hint->size++] = (RayObject*)node;
 			}
@@ -382,8 +384,12 @@ void bvh_dfs_make_hint(Node *node, LCTSHint *hint, int reserve_space, float *min
 template<class Tree>
 void bvh_hint_bb(Tree *tree, LCTSHint *hint, float *min, float *max)
 {
+	HintBB bb;
+	VECCOPY(bb.bb, min);
+	VECCOPY(bb.bb+3, max);
+	
 	hint->size = 0;
-	bvh_dfs_make_hint( tree->root, hint, 0, min, max );
+	bvh_dfs_make_hint( tree->root, hint, 0, &bb );
 	tot_hints++;
 }
 
