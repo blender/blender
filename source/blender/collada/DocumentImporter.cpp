@@ -1180,7 +1180,7 @@ private:
 				
 				for(int j = 0; j < vca.getCount(); j++){
 					int count = vca[j];
-					if (count < 3 || count > 4) {
+					if (count < 3) {
 						fprintf(stderr, "Primitive %s in %s has at least one face with vertex count < 3 or > 4\n",
 								type_str, name);
 						return false;
@@ -1433,10 +1433,12 @@ private:
 					}
 					else {
 						// create triangles using PolyFill
-						int *temp_indices = (int*)MEM_callocN(sizeof(int) * vcount, "face_index");
+						int *temp_indices = (int*)MEM_callocN(sizeof(int) *vcount, "face_index");
+						int *temp_uv_indices = (int*)MEM_callocN(sizeof(int) *vcount, "uv_index");
 						
 						for (k = 0; k < vcount; k++) {
 							temp_indices[k] = indices[k];
+							temp_uv_indices[k] = index + k;
 						}
 						
 						std::vector<unsigned int> tri;
@@ -1445,16 +1447,20 @@ private:
 						
 						for (k = 0; k < tri.size() / 3; k++) {
 							unsigned int tris_indices[3];
+							unsigned int uv_indices[3];
 							tris_indices[0] = temp_indices[tri[k * 3]];
 							tris_indices[1] = temp_indices[tri[k * 3 + 1]];
 							tris_indices[2] = temp_indices[tri[k * 3 + 2]];
+							uv_indices[0] = temp_uv_indices[tri[k * 3]];
+							uv_indices[1] = temp_uv_indices[tri[k * 3 + 1]];
+							uv_indices[2] = temp_uv_indices[tri[k * 3 + 2]];
 							//fprintf(stderr, "%u %u %u \n", tris_indices[0], tris_indices[1], tris_indices[2]);
 							set_face_indices(mface, tris_indices, false);
 							
 							for (int l = 0; l < totuvset; l++) {
 								// get mtface by face index and uv set index
 								MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, l);
-								set_face_uv(&mtface[face_index], uvs, l, *index_list_array[l], tris_indices);
+								set_face_uv(&mtface[face_index], uvs, l, *index_list_array[l], uv_indices);
 								
 							}
 							
@@ -1466,6 +1472,7 @@ private:
 						index += vcount;
 						indices += vcount;
 						MEM_freeN(temp_indices);
+						MEM_freeN(temp_uv_indices);
 					}
 				}
 			}
@@ -1638,7 +1645,8 @@ public:
 		MTFace *texture_face = NULL;
 		MTex *color_texture = NULL;
 		
-		COLLADAFW::InstanceGeometry::MaterialBindingArray& mat_array = geom->getMaterialBindings();
+		COLLADAFW::InstanceGeometry::MaterialBindingArray& mat_array = 
+			geom->getMaterialBindings();
 		
 		// loop through geom's materials
 		for (unsigned int i = 0; i < mat_array.getCount(); i++)	{
@@ -1682,12 +1690,11 @@ public:
 		
 		read_vertices(mesh, me);
 
-		//new_tris = count_new_tris(mesh, me, new_tris);
+		new_tris = count_new_tris(mesh, me, new_tris);
 		
 		read_faces(mesh, me, new_tris);
 		
  		//mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
-// 		make_edges(me, 0);
 
 		return true;
 	}
@@ -1736,6 +1743,7 @@ private:
 				// outtangent
 				bez.vec[2][0] = get_float_value(outtan, i + i) * fps;
 				bez.vec[2][1] = get_float_value(outtan, i + i + 1);
+				
 				bez.ipo = U.ipo_new; /* use default interpolation mode here... */
 				bez.f1 = bez.f2 = bez.f3 = SELECT;
 				bez.h1 = bez.h2 = HD_AUTO;
@@ -1768,6 +1776,7 @@ private:
 					// outtangent
 					bez.vec[2][0] = get_float_value(outtan, j * 6 + i + i) * fps;
 					bez.vec[2][1] = get_float_value(outtan, j * 6 + i + i + 1);
+
 					bez.ipo = U.ipo_new; /* use default interpolation mode here... */
 					bez.f1 = bez.f2 = bez.f3 = SELECT;
 					bez.h1 = bez.h2 = HD_AUTO;
@@ -2085,8 +2094,6 @@ private:
 	std::map<COLLADAFW::UniqueId, Material*> uid_effect_map;
 	std::map<COLLADAFW::UniqueId, Camera*> uid_camera_map;
 	std::map<COLLADAFW::UniqueId, Lamp*> uid_lamp_map;
-	// maps for assigning textures to uv layers
-	//std::map<COLLADAFW::TextureMapId, char*> set_layername_map;
 	std::map<Material*, TexIndexTextureArrayMap> material_texture_mapping_map;
 	// animation
 	// std::map<COLLADAFW::UniqueId, std::vector<FCurve*> > uid_fcurve_map;
@@ -2313,7 +2320,8 @@ public:
 	}
 	
 	// create mtex, create texture, set texture image
-	MTex *create_texture(COLLADAFW::EffectCommon *ef, COLLADAFW::Texture &ctex, Material *ma, int i, TexIndexTextureArrayMap &texindex_texarray_map)
+	MTex *create_texture(COLLADAFW::EffectCommon *ef, COLLADAFW::Texture &ctex, Material *ma,
+						 int i, TexIndexTextureArrayMap &texindex_texarray_map)
 	{
 		COLLADAFW::SamplerPointerArray& samp_array = ef->getSamplerPointerArray();
 		COLLADAFW::Sampler *sampler = samp_array[ctex.getSamplerId()];
@@ -2458,8 +2466,10 @@ public:
 		}
 		material_texture_mapping_map[ma] = texindex_texarray_map;
 	}
+	
 	/** When this method is called, the writer must write the effect.
 		@return The writer should return true, if writing succeeded, false otherwise.*/
+	
 	virtual bool writeEffect( const COLLADAFW::Effect* effect ) 
 	{
 		
@@ -2483,7 +2493,8 @@ public:
 		
 		return true;
 	}
-
+	
+	
 	/** When this method is called, the writer must write the camera.
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeCamera( const COLLADAFW::Camera* camera ) 
