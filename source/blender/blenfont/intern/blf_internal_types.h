@@ -78,7 +78,19 @@ typedef struct GlyphCacheBLF {
 	float descender;
 } GlyphCacheBLF;
 
-typedef struct GlyphTextureBLF {
+typedef struct GlyphBLF {
+	struct GlyphBLF *next;
+	struct GlyphBLF *prev;
+
+	/* and the character, as UTF8 */
+	unsigned int c;
+
+	/* glyph box. */
+	rctf box;
+
+	/* advance size. */
+	float advance;
+
 	/* texture id where this glyph is store. */
 	GLuint tex;
 
@@ -99,38 +111,6 @@ typedef struct GlyphTextureBLF {
 	 */
 	float pos_x;
 	float pos_y;
-} GlyphTextureBLF;
-
-typedef struct GlyphBitmapBLF {
-	/* image data. */
-	unsigned char *image;
-
-	int width;
-	int height;
-	int pitch;
-
-	float pos_x;
-	float pos_y;
-} GlyphBitmapBLF;
-
-typedef struct GlyphBLF {
-	struct GlyphBLF *next;
-	struct GlyphBLF *prev;
-
-	/* and the character, as UTF8 */
-	unsigned int c;
-
-	/* glyph box. */
-	rctf box;
-
-	/* advance size. */
-	float advance;
-
-	/* texture information. */
-	GlyphTextureBLF *tex_data;
-
-	/* bitmap information. */
-	GlyphBitmapBLF *bitmap_data;
 } GlyphBLF;
 
 typedef struct FontBLF {
@@ -139,9 +119,6 @@ typedef struct FontBLF {
 
 	/* filename or NULL. */
 	char *filename;
-
-	/* draw mode, texture or bitmap. */
-	int mode;
 
 	/* aspect ratio or scale. */
 	float aspect;

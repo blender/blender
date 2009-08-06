@@ -333,7 +333,6 @@ void BLF_default_rotation(float angle)
 	}
 }
 
-
 void BLF_draw(char *str)
 {
 	FontBLF *font;
@@ -342,40 +341,24 @@ void BLF_draw(char *str)
 	 * The pixmap alignment hack is handle
 	 * in BLF_position (old ui_rasterpos_safe).
 	 */
-
 	font= global_font[global_font_cur];
 	if (font) {
-		if (font->mode == BLF_MODE_BITMAP) {
-			glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
-			glPushAttrib(GL_ENABLE_BIT);
-			glPixelStorei(GL_UNPACK_LSB_FIRST, GL_FALSE);
-			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-			glDisable(GL_BLEND);
-			glRasterPos3f(font->pos[0], font->pos[1], font->pos[2]);
+		glEnable(GL_BLEND);
+		glEnable(GL_TEXTURE_2D);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-			blf_font_draw(font, str);
+		glPushMatrix();
+		glTranslatef(font->pos[0], font->pos[1], font->pos[2]);
+		glScalef(font->aspect, font->aspect, 1.0);
 
-			glPopAttrib();
-			glPopClientAttrib();
-		}
-		else {
-			glEnable(GL_BLEND);
-			glEnable(GL_TEXTURE_2D);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		if (font->flags & BLF_ROTATION)
+			glRotatef(font->angle, 0.0f, 0.0f, 1.0f);
 
-			glPushMatrix();
-			glTranslatef(font->pos[0], font->pos[1], font->pos[2]);
-			glScalef(font->aspect, font->aspect, 1.0);
+		blf_font_draw(font, str);
 
-			if (font->flags & BLF_ROTATION)
-				glRotatef(font->angle, 0.0f, 0.0f, 1.0f);
-
-			blf_font_draw(font, str);
-
-			glPopMatrix();
-			glDisable(GL_BLEND);
-			glDisable(GL_TEXTURE_2D);
-		}
+		glPopMatrix();
+		glDisable(GL_BLEND);
+		glDisable(GL_TEXTURE_2D);
 	}
 }
 
@@ -504,15 +487,6 @@ void BLF_clipping(float xmin, float ymin, float xmax, float ymax)
 		font->clip_rec.xmax= xmax;
 		font->clip_rec.ymax= ymax;
 	}
-}
-
-void BLF_mode(int mode)
-{
-	FontBLF *font;
-
-	font= global_font[global_font_cur];
-	if (font)
-		font->mode= mode;
 }
 
 void BLF_shadow(int level, float r, float g, float b, float a)
