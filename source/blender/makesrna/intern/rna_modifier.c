@@ -69,7 +69,7 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_SimpleDeform, "SIMPLE_DEFORM", ICON_MOD_SIMPLEDEFORM, "Simple Deform", ""},
 	{eModifierType_Smoke, "SMOKE", 0, "Smoke", ""},
 	{eModifierType_Smooth, "SMOOTH", ICON_MOD_SMOOTH, "Smooth", ""},
-	{eModifierType_Softbody, "SOFTBODY", ICON_MOD_SOFT, "Soft Body", ""},
+	{eModifierType_Softbody, "SOFT_BODY", ICON_MOD_SOFT, "Soft Body", ""},
 	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
 	{eModifierType_Surface, "SURFACE", ICON_MOD_PHYSICS, "Surface", ""},
 	{eModifierType_UVProject, "UV_PROJECT", ICON_MOD_UVPROJECT, "UV Project", ""},

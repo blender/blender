@@ -20,7 +20,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
 		ob = context.object
 
 		split = layout.split()
-		split.operator_context = "EXEC_DEFAULT"
+		split.operator_context = 'EXEC_DEFAULT'
 
 		if md:
 			# remove modifier + settings
@@ -32,7 +32,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
 			row.itemR(md, "realtime", text="")
 		else:
 			# add modifier
-			split.item_enumO("object.modifier_add", "type", "CLOTH", text="Add")
+			split.item_enumO("object.modifier_add", "type", 'CLOTH', text="Add")
 			split.itemL()
 
 		if md:

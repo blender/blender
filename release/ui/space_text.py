@@ -34,9 +34,9 @@ class TEXT_HT_header(bpy.types.Header):
 			row = layout.row()
 			if text.filename != "":
 				if text.dirty:
-					row.itemL(text="File: *" + text.filename + " (unsaved)")
+					row.itemL(text="File: *%s (unsaved)" % text.filename)
 				else:
-					row.itemL(text="File: " + text.filename)
+					row.itemL(text="File: %s" % text.filename )
 			else:
 				if text.library:
 					row.itemL(text="Text: External")
@@ -137,8 +137,8 @@ class TEXT_MT_edit_view(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 
-		layout.item_enumO("text.move", "type", "FILE_TOP", text="Top of File")
-		layout.item_enumO("text.move", "type", "FILE_BOTTOM", text="Bottom of File")
+		layout.item_enumO("text.move", "type", 'FILE_TOP', text="Top of File")
+		layout.item_enumO("text.move", "type", 'FILE_BOTTOM', text="Bottom of File")
 
 class TEXT_MT_edit_select(bpy.types.Menu):
 	__space_type__ = "TEXT_EDITOR"

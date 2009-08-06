@@ -43,22 +43,13 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 		layout = self.layout
 
 		tex = context.texture
-		ma = context.material
-		la = context.lamp
-		wo = context.world
-		br = context.brush
+		
+		id =				context.material
+		if not id: id =	context.lamp
+		if not id: id =	context.world
+		if not id: id =	context.brush
+		
 		space = context.space_data
-
-		if ma:
-			id = ma
-		elif la:
-			id = la
-		elif wo:
-			id = wo
-		elif br:
-			id = br
-		else:
-			id = None
 
 		if id:
 			row = layout.row()
@@ -71,9 +62,11 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 		elif tex:
 			split.template_ID(space, "pin_id")
 
-		if not space.pin_id and \
-		   (context.sculpt_object or context.vertex_paint_object or \
-		   context.weight_paint_object or context.texture_paint_object):
+		if (not space.pin_id) and (	context.sculpt_object or \
+										context.vertex_paint_object or \
+										context.weight_paint_object or \
+										context.texture_paint_object \
+									):
 			split.itemR(space, "brush_texture", text="Brush", toggle=True)
 		
 		layout.itemS()

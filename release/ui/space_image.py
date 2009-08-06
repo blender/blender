@@ -124,9 +124,9 @@ class IMAGE_MT_uvs_transform(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 
-		layout.item_enumO("tfm.transform", "mode", "TRANSLATION")
-		layout.item_enumO("tfm.transform", "mode", "ROTATION")
-		layout.item_enumO("tfm.transform", "mode", "RESIZE")
+		layout.item_enumO("tfm.transform", "mode", 'TRANSLATION')
+		layout.item_enumO("tfm.transform", "mode", 'ROTATION')
+		layout.item_enumO("tfm.transform", "mode", 'RESIZE')
 
 class IMAGE_MT_uvs_mirror(bpy.types.Menu):
 	__space_type__ = "IMAGE_EDITOR"
@@ -135,8 +135,8 @@ class IMAGE_MT_uvs_mirror(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 
-		layout.item_enumO("uv.mirror", "axis", "MIRROR_X") # "X Axis", M, 
-		layout.item_enumO("uv.mirror", "axis", "MIRROR_Y") # "Y Axis", M, 
+		layout.item_enumO("uv.mirror", "axis", 'MIRROR_X') # "X Axis", M, 
+		layout.item_enumO("uv.mirror", "axis", 'MIRROR_Y') # "Y Axis", M, 
 
 class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
 	__space_type__ = "IMAGE_EDITOR"

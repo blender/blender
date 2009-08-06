@@ -33,7 +33,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
 			row.itemR(md, "realtime", text="")
 		else:
 			# add modifier
-			split.item_enumO("object.modifier_add", "type", "SOFTBODY", text="Add")
+			split.item_enumO("object.modifier_add", "type", 'SOFT_BODY', text="Add")
 			split.itemL("")
 			
 		if md:

@@ -353,12 +353,12 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 
 			elif context.texture_paint_object:
 				col = layout.column(align=True)
-				col.item_enumR(settings, "tool", "DRAW")
-				col.item_enumR(settings, "tool", "SOFTEN")
+				col.item_enumR(settings, "tool", 'DRAW')
+				col.item_enumR(settings, "tool", 'SOFTEN')
 				if settings.use_projection:
-					col.item_enumR(settings, "tool", "CLONE")
+					col.item_enumR(settings, "tool", 'CLONE')
 				else:
-					col.item_enumR(settings, "tool", "SMEAR")
+					col.item_enumR(settings, "tool", 'SMEAR')
 			
 			col = layout.column()
 			row = col.row(align=True)

@@ -127,7 +127,7 @@ class MATERIAL_PT_strand(MaterialButtonsPanel):
 		col.itemR(tan, "min_size", text="Minimum")
 		col.itemR(tan, "blender_units")
 		sub = col.column()
-		sub.active = mat.shadeless == False
+		sub.active = (not mat.shadeless)
 		sub.itemR(tan, "tangent_shading")
 		
 		col = split.column()
@@ -135,7 +135,7 @@ class MATERIAL_PT_strand(MaterialButtonsPanel):
 		col.itemR(tan, "width_fade")
 		col.itemR(tan, "uv_layer")
 		sub = col.column()
-		sub.active = mat.shadeless == False
+		sub.active = (not mat.shadeless)
 		sub.itemR(tan, "surface_diffuse")
 		sub = col.column()
 		sub.active = tan.surface_diffuse
@@ -197,7 +197,7 @@ class MATERIAL_PT_shadows(MaterialButtonsPanel):
 		col.itemR(mat, "ray_shadow_bias", text="Auto Ray Bias")
 		sub = col.column()
 		subsub = sub.column()
-		subsub.active = not mat.ray_shadow_bias
+		subsub.active = (not mat.ray_shadow_bias)
 		subsub.itemR(mat, "shadow_ray_bias", text="Ray Shadow Bias")
 		sub.itemR(mat, "cast_buffer_shadows")
 		sub.itemR(mat, "shadow_buffer_bias", text="Buffer Bias")
@@ -219,16 +219,16 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 		col = split.column()
 		col.itemR(mat, "diffuse_color", text="")
 		sub = col.column()
-		sub.active = mat.shadeless== False
+		sub.active = (not mat.shadeless)
 		sub.itemR(mat, "diffuse_reflection", text="Intensity", slider=True)
 		
 		col = split.column()
-		col.active = mat.shadeless== False
+		col.active = (not mat.shadeless)
 		col.itemR(mat, "diffuse_shader", text="")
 		col.itemR(mat, "use_diffuse_ramp", text="Ramp")
 		
 		col = layout.column()
-		col.active = mat.shadeless== False
+		col.active = (not mat.shadeless)
 		if mat.diffuse_shader == 'OREN_NAYAR':
 			col.itemR(mat, "roughness")
 		elif mat.diffuse_shader == 'MINNAERT':
@@ -267,7 +267,7 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
 		
 		mat = context.material
 		
-		layout.active = mat.shadeless == False
+		layout.active = (not mat.shadeless)
 		
 		split = layout.split()
 		
@@ -328,7 +328,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 		layout.active = sss.enabled	
 		
 		split = layout.split()
-		split.active = mat.shadeless== False
+		split.active = (not mat.shadeless)
 		
 		col = split.column(align=True)
 		col.itemR(sss, "color", text="")
@@ -418,7 +418,7 @@ class MATERIAL_PT_raytransp(MaterialButtonsPanel):
 		mat = context.material
 		rayt = context.material.raytrace_transparency
 		
-		layout.active = rayt.enabled and mat.shadeless == False
+		layout.active = rayt.enabled and (not mat.shadeless)
 		
 		split = layout.split()
 		

@@ -279,7 +279,7 @@ class WORLD_PT_game_physics(WorldButtonsPanel):
 		gs = context.scene.game_data
 		
 		layout.itemR(gs, "physics_engine")
-		if gs.physics_engine != "NONE":
+		if gs.physics_engine != 'NONE':
 			layout.itemR(gs, "physics_gravity", text="Gravity")
  
 			split = layout.split()
