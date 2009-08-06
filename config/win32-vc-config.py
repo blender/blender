@@ -19,7 +19,7 @@ WITH_BF_OPENAL = True
 WITH_BF_STATICOPENAL = False
 BF_OPENAL = LIBDIR + '/openal'
 BF_OPENAL_INC = '${BF_OPENAL}/include ${BF_OPENAL}/include/AL '
-BF_OPENAL_LIB = 'dxguid openal_static'
+BF_OPENAL_LIB = 'OpenAL32 wrap_oal' #'dxguid openal_static'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 # Warning, this static lib configuration is untested! users of this OS please confirm.
 BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
