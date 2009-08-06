@@ -156,7 +156,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "viewhighres", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "viewsettings", MOD_SMOKE_VIEW_USEBIG);
 	RNA_def_property_ui_text(prop, "Show high res", "Show high resolution (using amplification).");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_redraw");
 
 	prop= RNA_def_property(srna, "noise_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noise");
