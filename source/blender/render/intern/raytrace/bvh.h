@@ -28,20 +28,20 @@
  */
 #include <xmmintrin.h>
 
-inline int test_bb_group4(__m128 *bb_group, Isect *isec)
+inline int test_bb_group4(__m128 *bb_group, __m128 *start, __m128 *idot_axis, Isect *isec)
 {
-/*
-	const float *bb = _bb;
-	__m128 tmin={0}, tmax = {isec->labda};
+	
+	__m128 tmin = _mm_setzero_ps();
+	__m128 tmax = _mm_load1_ps(&isec->labda);
 
-	tmin = _mm_max_ps(tmin, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[0]], isec->sse_start[0] ), isec->sse_idot_axis[0]) );
-	tmax = _mm_min_ps(tmax, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[1]], isec->sse_start[0] ), isec->sse_idot_axis[0]) );	
-	tmin = _mm_max_ps(tmin, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[2]], isec->sse_start[1] ), isec->sse_idot_axis[1]) );
-	tmax = _mm_min_ps(tmax, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[3]], isec->sse_start[1] ), isec->sse_idot_axis[1]) );
-	tmin = _mm_max_ps(tmin, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[4]], isec->sse_start[2] ), isec->sse_idot_axis[2]) );
-	tmax = _mm_min_ps(tmax, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[5]], isec->sse_start[2] ), isec->sse_idot_axis[2]) );
-	*/
-	return 4; //_mm_movemask_ps(_mm_cmpge_ps(tmax, tmin));
+	tmin = _mm_max_ps(tmin, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[0]], start[0] ), idot_axis[0]) );
+	tmax = _mm_min_ps(tmax, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[1]], start[0] ), idot_axis[0]) );	
+	tmin = _mm_max_ps(tmin, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[2]], start[1] ), idot_axis[1]) );
+	tmax = _mm_min_ps(tmax, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[3]], start[1] ), idot_axis[1]) );
+	tmin = _mm_max_ps(tmin, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[4]], start[2] ), idot_axis[2]) );
+	tmax = _mm_min_ps(tmax, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[5]], start[2] ), idot_axis[2]) );
+	
+	return _mm_movemask_ps(_mm_cmpge_ps(tmax, tmin));
 }
 
 
@@ -151,6 +151,9 @@ static int bvh_node_stack_raycast(Node *root, Isect *isec)
 template<class Node,int MAX_STACK_SIZE,bool TEST_ROOT>
 static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 {
+	__m128 idot_axis[3] = { _mm_load1_ps(&isec->idot_axis[0]), 	_mm_load1_ps(&isec->idot_axis[1]),	_mm_load1_ps(&isec->idot_axis[2])	};
+	__m128 start[3] 	= { _mm_load1_ps(&isec->start[0]),		_mm_load1_ps(&isec->start[1]),		_mm_load1_ps(&isec->start[2])		};
+
 	Node *stack[MAX_STACK_SIZE];
 	__m128 t_bb[6];
 	Node * t_node[4];
@@ -180,7 +183,7 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 	while(true)
 	{
 		//Use SIMD 4
-		if(0 && stack_pos >= 4)
+		if(stack_pos >= 4)
 		{
 			stack_pos -= 4;
 			for(int i=0; i<4; i++)
@@ -197,7 +200,7 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 				bb[4*5] = t->bb[5];
 				t_node[i] = t->child;
 			}
-			int res = test_bb_group4( t_bb, isec );
+			int res = test_bb_group4( t_bb, start, idot_axis, isec );
 
 			for(int i=0; i<4; i++)
 			if(res & (1<<i))
