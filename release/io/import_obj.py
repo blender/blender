@@ -40,8 +40,11 @@ Note, This loads mesh objects and materials only, nurbs and curves are not suppo
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-import bpy
 import os
+
+import bpy
+import Mathutils
+import Geometry
 
 # from Blender import Mesh, Draw, Window, Texture, Material, sys
 # # import BPyMesh
@@ -84,12 +87,196 @@ def unpack_face_list(list_of_tuples):
 	l = []
 	for t in list_of_tuples:
 		face = [i for i in t]
-		if len(face) > 4:
-			raise RuntimeError("More than 4 vertices per face.")
-		if len(face) == 3: face.append(0)
+		if len(face) != 3 and len(face) != 4:
+			raise RuntimeError("{0} vertices in face.".format(len(face)))
+		if len(face) == 3:
+			face.append(0)
 		l.extend(face)
 	return l
 
+def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
+	'''
+	Takes a polyline of indices (fgon)
+	and returns a list of face indicie lists.
+	Designed to be used for importers that need indices for an fgon to create from existing verts.
+	
+	from_data: either a mesh, or a list/tuple of vectors.
+	indices: a list of indicies to use this list is the ordered closed polyline to fill, and can be a subset of the data given.
+	PREF_FIX_LOOPS: If this is enabled polylines that use loops to make multiple polylines are delt with correctly.
+	'''
+	
+	if not set: # Need sets for this, otherwise do a normal fill.
+		PREF_FIX_LOOPS= False 
+	
+	Vector= Mathutils.Vector
+	if not indices:
+		return []
+	
+	#	return []
+	def rvec(co): return round(co.x, 6), round(co.y, 6), round(co.z, 6)
+	def mlen(co): return abs(co[0])+abs(co[1])+abs(co[2]) # manhatten length of a vector, faster then length
+	
+	def vert_treplet(v, i):
+		return v, rvec(v), i, mlen(v)
+	
+	def ed_key_mlen(v1, v2):
+		if v1[3] > v2[3]:
+			return v2[1], v1[1]
+		else:
+			return v1[1], v2[1]
+	
+	
+	if not PREF_FIX_LOOPS:
+		'''
+		Normal single concave loop filling
+		'''
+		if type(from_data) in (tuple, list):
+			verts= [Vector(from_data[i]) for ii, i in enumerate(indices)]
+		else:
+			verts= [from_data.verts[i].co for ii, i in enumerate(indices)]
+		
+		for i in range(len(verts)-1, 0, -1): # same as reversed(xrange(1, len(verts))):
+			if verts[i][1]==verts[i-1][0]:
+				verts.pop(i-1)
+		
+		fill= Geometry.PolyFill([verts])
+		
+	else:
+		'''
+		Seperate this loop into multiple loops be finding edges that are used twice
+		This is used by lightwave LWO files a lot
+		'''
+		
+		if type(from_data) in (tuple, list):
+			verts= [vert_treplet(Vector(from_data[i]), ii) for ii, i in enumerate(indices)]
+		else:
+			verts= [vert_treplet(from_data.verts[i].co, ii) for ii, i in enumerate(indices)]
+			
+		edges= [(i, i-1) for i in range(len(verts))]
+		if edges:
+			edges[0]= (0,len(verts)-1)
+		
+		if not verts:
+			return []
+		
+		
+		edges_used= set()
+		edges_doubles= set()
+		# We need to check if any edges are used twice location based.
+		for ed in edges:
+			edkey= ed_key_mlen(verts[ed[0]], verts[ed[1]])
+			if edkey in edges_used:
+				edges_doubles.add(edkey)
+			else:
+				edges_used.add(edkey)
+		
+		# Store a list of unconnected loop segments split by double edges.
+		# will join later
+		loop_segments= [] 
+		
+		v_prev= verts[0]
+		context_loop= [v_prev]
+		loop_segments= [context_loop]
+		
+		for v in verts:
+			if v!=v_prev:
+				# Are we crossing an edge we removed?
+				if ed_key_mlen(v, v_prev) in edges_doubles:
+					context_loop= [v]
+					loop_segments.append(context_loop)
+				else:
+					if context_loop and context_loop[-1][1]==v[1]:
+						#raise "as"
+						pass
+					else:
+						context_loop.append(v)
+				
+				v_prev= v
+		# Now join loop segments
+		
+		def join_seg(s1,s2):
+			if s2[-1][1]==s1[0][1]: # 
+				s1,s2= s2,s1
+			elif s1[-1][1]==s2[0][1]:
+				pass
+			else:
+				return False
+			
+			# If were stuill here s1 and s2 are 2 segments in the same polyline
+			s1.pop() # remove the last vert from s1
+			s1.extend(s2) # add segment 2 to segment 1
+			
+			if s1[0][1]==s1[-1][1]: # remove endpoints double
+				s1.pop()
+			
+			s2[:]= [] # Empty this segment s2 so we dont use it again.
+			return True
+		
+		joining_segments= True
+		while joining_segments:
+			joining_segments= False
+			segcount= len(loop_segments)
+			
+			for j in range(segcount-1, -1, -1): #reversed(range(segcount)):
+				seg_j= loop_segments[j]
+				if seg_j:
+					for k in range(j-1, -1, -1): # reversed(range(j)):
+						if not seg_j:
+							break
+						seg_k= loop_segments[k]
+						
+						if seg_k and join_seg(seg_j, seg_k):
+							joining_segments= True
+		
+		loop_list= loop_segments
+		
+		for verts in loop_list:
+			while verts and verts[0][1]==verts[-1][1]:
+				verts.pop()
+		
+		loop_list= [verts for verts in loop_list if len(verts)>2]
+		# DONE DEALING WITH LOOP FIXING
+		
+		
+		# vert mapping
+		vert_map= [None]*len(indices)
+		ii=0
+		for verts in loop_list:
+			if len(verts)>2:
+				for i, vert in enumerate(verts):
+					vert_map[i+ii]= vert[2]
+				ii+=len(verts)
+		
+		fill= Geometry.PolyFill([ [v[0] for v in loop] for loop in loop_list ])
+		#draw_loops(loop_list)
+		#raise 'done loop'
+		# map to original indicies
+		fill= [[vert_map[i] for i in reversed(f)] for f in fill]
+	
+	
+	if not fill:
+		print('Warning Cannot scanfill, fallback on a triangle fan.')
+		fill= [ [0, i-1, i] for i in range(2, len(indices)) ]
+	else:
+		# Use real scanfill.
+		# See if its flipped the wrong way.
+		flip= None
+		for fi in fill:
+			if flip != None:
+				break
+			for i, vi in enumerate(fi):
+				if vi==0 and fi[i-1]==1:
+					flip= False
+					break
+				elif vi==1 and fi[i-1]==0:
+					flip= True
+					break
+		
+		if not flip:
+			for i, fi in enumerate(fill):
+				fill[i]= tuple([ii for ii in reversed(fi)])		
+	
+	return fill
 
 def line_value(line_split):
 	'''
@@ -388,7 +575,7 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP, 
 	
 	
 	# remove one of the itemas and reorder
-	return [(value[0], value[1], value[2], key_to_name(key)) for key, value in face_split_dict.items()]
+	return [(value[0], value[1], value[2], key_to_name(key)) for key, value in list(face_split_dict.items())]
 
 
 def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, verts_tex, faces, unique_materials, unique_material_images, unique_smooth_groups, vertex_groups, dataname):
@@ -401,7 +588,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 	
 	if unique_smooth_groups:
 		sharp_edges= {}
-		smooth_group_users= dict([ (context_smooth_group, {}) for context_smooth_group in unique_smooth_groups.keys() ])
+		smooth_group_users= dict([ (context_smooth_group, {}) for context_smooth_group in list(unique_smooth_groups.keys()) ])
 		context_smooth_group_old= -1
 	
 	# Split fgons into tri's
@@ -452,45 +639,45 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 						edge_dict[i1,i2]=  1
 			
 			# FGons into triangles
-# 			if has_ngons and len_face_vert_loc_indicies > 4:
+			if has_ngons and len_face_vert_loc_indicies > 4:
 				
-# 				ngon_face_indices= BPyMesh.ngon(verts_loc, face_vert_loc_indicies)
-# 				faces.extend(\
-# 				[(\
-# 				[face_vert_loc_indicies[ngon[0]], face_vert_loc_indicies[ngon[1]], face_vert_loc_indicies[ngon[2]] ],\
-# 				[face_vert_tex_indicies[ngon[0]], face_vert_tex_indicies[ngon[1]], face_vert_tex_indicies[ngon[2]] ],\
-# 				context_material,\
-# 				context_smooth_group,\
-# 				context_object)\
-# 				for ngon in ngon_face_indices]\
-# 				)
+				ngon_face_indices= BPyMesh_ngon(verts_loc, face_vert_loc_indicies)
+				faces.extend(\
+				[(\
+				[face_vert_loc_indicies[ngon[0]], face_vert_loc_indicies[ngon[1]], face_vert_loc_indicies[ngon[2]] ],\
+				[face_vert_tex_indicies[ngon[0]], face_vert_tex_indicies[ngon[1]], face_vert_tex_indicies[ngon[2]] ],\
+				context_material,\
+				context_smooth_group,\
+				context_object)\
+				for ngon in ngon_face_indices]\
+				)
 				
-# 				# edges to make fgons
-# 				if CREATE_FGONS:
-# 					edge_users= {}
-# 					for ngon in ngon_face_indices:
-# 						for i in (0,1,2):
-# 							i1= face_vert_loc_indicies[ngon[i  ]]
-# 							i2= face_vert_loc_indicies[ngon[i-1]]
-# 							if i1>i2: i1,i2= i2,i1
+				# edges to make fgons
+				if CREATE_FGONS:
+					edge_users= {}
+					for ngon in ngon_face_indices:
+						for i in (0,1,2):
+							i1= face_vert_loc_indicies[ngon[i  ]]
+							i2= face_vert_loc_indicies[ngon[i-1]]
+							if i1>i2: i1,i2= i2,i1
 							
-# 							try:
-# 								edge_users[i1,i2]+=1
-# 							except KeyError:
-# 								edge_users[i1,i2]= 1
+							try:
+								edge_users[i1,i2]+=1
+							except KeyError:
+								edge_users[i1,i2]= 1
 					
-# 					for key, users in edge_users.iteritems():
-# 						if users>1:
-# 							fgon_edges[key]= None
+					for key, users in edge_users.items():
+						if users>1:
+							fgon_edges[key]= None
 				
-# 				# remove all after 3, means we dont have to pop this one.
-# 				faces.pop(f_idx)
+				# remove all after 3, means we dont have to pop this one.
+				faces.pop(f_idx)
 		
 		
 	# Build sharp edges
 	if unique_smooth_groups:
-		for edge_dict in smooth_group_users.values():
-			for key, users in edge_dict.items():
+		for edge_dict in list(smooth_group_users.values()):
+			for key, users in list(edge_dict.items()):
 				if users==1: # This edge is on the boundry of a group
 					sharp_edges[key]= None
 	
@@ -500,7 +687,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 	
 	materials= [None] * len(unique_materials)
 	
-	for name, index in material_mapping.items():
+	for name, index in list(material_mapping.items()):
 		materials[index]= unique_materials[name]
 
 	me= bpy.data.add_mesh(dataname)
@@ -607,23 +794,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 # 						uv.x, uv.y=  verts_tex[face_vert_tex_indicies[ii]]
 	del me_faces
 # 	del ALPHA
-	
-	# Add edge faces.
-	me_edges= me.edges
-# 	if CREATE_FGONS and fgon_edges:
-# 		FGON= Mesh.EdgeFlags.FGON
-# 		for ed in me.findEdges( fgon_edges.keys() ):
-# 			if ed!=None:
-# 				me_edges[ed].flag |= FGON
-# 		del FGON
-	
-# 	if unique_smooth_groups and sharp_edges:
-# 		SHARP= Mesh.EdgeFlags.SHARP
-# 		for ed in me.findEdges( sharp_edges.keys() ):
-# 			if ed!=None:
-# 				me_edges[ed].flag |= SHARP
-# 		del SHARP
-	
+
 	if CREATE_EDGES:
 
 		me.add_geometry(0, len(edges), 0)
@@ -633,10 +804,44 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 # 		me_edges.extend( edges )
 	
 # 	del me_edges
+	
+	# Add edge faces.
+# 	me_edges= me.edges
+
+	def edges_match(e1, e2):
+		return (e1[0] == e2[0] and e1[1] == e2[1]) or (e1[0] == e2[1] and e1[1] == e2[0])
+
+	# XXX slow
+# 	if CREATE_FGONS and fgon_edges:
+# 		for fgon_edge in fgon_edges.keys():
+# 			for ed in me.edges:
+# 				if edges_match(fgon_edge, ed.verts):
+# 					ed.fgon = True
+
+# 	if CREATE_FGONS and fgon_edges:
+# 		FGON= Mesh.EdgeFlags.FGON
+# 		for ed in me.findEdges( fgon_edges.keys() ):
+# 			if ed!=None:
+# 				me_edges[ed].flag |= FGON
+# 		del FGON
+
+	# XXX slow
+# 	if unique_smooth_groups and sharp_edges:
+# 		for sharp_edge in sharp_edges.keys():
+# 			for ed in me.edges:
+# 				if edges_match(sharp_edge, ed.verts):
+# 					ed.sharp = True
+
+# 	if unique_smooth_groups and sharp_edges:
+# 		SHARP= Mesh.EdgeFlags.SHARP
+# 		for ed in me.findEdges( sharp_edges.keys() ):
+# 			if ed!=None:
+# 				me_edges[ed].flag |= SHARP
+# 		del SHARP
 
 	me.update()
 # 	me.calcNormals()
-
+	
 	ob= bpy.data.add_object("MESH", "Mesh")
 	ob.data= me
 	scn.add_object(ob)
@@ -823,7 +1028,7 @@ def load_obj(filepath,
 	# so we need to know weather 
 	context_multi_line= ''
 	
-	print('\tparsing obj file "%s"...' % filepath, end=' ')
+	print('\tparsing obj file "%s"...' % filepath)
 	time_sub= bpy.sys.time()
 # 	time_sub= sys.time()
 
@@ -1039,7 +1244,7 @@ def load_obj(filepath,
 	time_sub= time_new
 	
 	
-	print('\tloading materials and images...', end=' ')
+	print('\tloading materials and images...')
 	create_materials(filepath, material_libs, unique_materials, unique_material_images, IMAGE_SEARCH)
 
 	time_new= bpy.sys.time()
@@ -1059,7 +1264,7 @@ def load_obj(filepath,
 # 	scn.objects.selected = []
 	new_objects= [] # put new objects here
 	
-	print('\tbuilding geometry...\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' % ( len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups) ), end=' ')
+	print('\tbuilding geometry...\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' % ( len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups) ))
 	# Split the mesh by objects/materials, may 
 	if SPLIT_OBJECTS or SPLIT_GROUPS:	SPLIT_OB_OR_GROUP = True
 	else:								SPLIT_OB_OR_GROUP = False

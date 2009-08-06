@@ -1801,6 +1801,10 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 		/* resolve the array from a new pytype */
 		ret = PyTuple_New(len);
 
+		/* for return values, data is a pointer to an array, not first element pointer */
+		if (prop->flag & PROP_DYNAMIC_ARRAY)
+			data = *((char**)data)
+
 		switch (type) {
 		case PROP_BOOLEAN:
 			for(a=0; a<len; a++)

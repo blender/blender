@@ -1326,7 +1326,7 @@ def write(filename, batch_objects = None, \
 	def copy_image(image):
 
 		rel = image.get_export_path(basepath, True)
-		base = os.path.basename(fname_rel)
+		base = os.path.basename(rel)
 
 		if EXP_IMAGE_COPY:
 			src = bpy.sys.expandpath(image.filename)

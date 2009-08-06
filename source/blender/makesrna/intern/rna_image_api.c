@@ -66,7 +66,7 @@ void RNA_api_image(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	func= RNA_def_function(srna, "export", "rna_Image_get_export_path");
+	func= RNA_def_function(srna, "get_export_path", "rna_Image_get_export_path");
 	RNA_def_function_ui_description(func, "Produce image export path.");
 	parm= RNA_def_string(func, "dest_dir", "", 0, "", "Destination directory.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);

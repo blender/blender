@@ -120,7 +120,10 @@ def write_mtl(scene, filename, copy_images):
 			file.write('Ka %.6f %.6f %.6f\n' %	tuple([c*mat.ambient for c in worldAmb])  ) # Ambient, uses mirror colour,
 			file.write('Kd %.6f %.6f %.6f\n' % tuple([c*mat.diffuse_reflection for c in mat.diffuse_color]) ) # Diffuse
 			file.write('Ks %.6f %.6f %.6f\n' % tuple([c*mat.specular_reflection for c in mat.specular_color]) ) # Specular
-			file.write('Ni %.6f\n' % mat.ior) # Refraction index
+			if hasattr(mat, "ior"):
+				file.write('Ni %.6f\n' % mat.ior) # Refraction index
+			else:
+				file.write('Ni %.6f\n' % 1.0)
 			file.write('d %.6f\n' % mat.alpha) # Alpha (obj uses 'd' for dissolve)
 
 			# 0 to disable lighting, 1 for ambient & diffuse only (specular color set to black), 2 for full lighting.
