@@ -1273,6 +1273,26 @@ static int Bone_setLayerMask(BPy_Bone *self, PyObject *value)
 
 	return 0;
 }
+//-------------------------Bone.activate()
+static PyObject *Bone_activate(BPy_Bone *self)
+
+{
+	struct Bone *firstbone = self->bone; // unset all bone's active flag first
+	while(firstbone->prev ) 
+		firstbone= firstbone->prev;
+		
+	while(firstbone->next) {
+		firstbone->flag &= ~BONE_ACTIVE;	
+		firstbone= firstbone->next;
+	}
+	
+	self->bone->flag |= BONE_ACTIVE; // this makes the bones curves display in the IPO editor
+	
+	/* redraw will need to be called by python */
+	
+	Py_RETURN_NONE;
+
+}
 
 //------------------TYPE_OBECT IMPLEMENTATION--------------------------
 //------------------------tp_methods
@@ -1284,6 +1304,8 @@ static PyMethodDef BPy_Bone_methods[] = {
 		"() - True/False - Bone has 1 or more children"},
 	{"getAllChildren", (PyCFunction) Bone_getAllChildren, METH_NOARGS, 
 		"() - All the children for this bone - including children's children"},
+	{"activate", (PyCFunction) Bone_activate, METH_NOARGS,
+		"Display curves in the IPO editor"},
 	{NULL, NULL, 0, NULL}
 };
 //------------------------tp_getset

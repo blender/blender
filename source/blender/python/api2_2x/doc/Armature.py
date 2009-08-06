@@ -307,6 +307,11 @@ class Bone:
 	@type layerMask: Int
 	"""
 
+	def activate():
+		"""
+		Sets this bone as active, de-activating all others.
+		"""
+
 	def hasParent():
 		"""
 		Whether or not this bone has a parent
