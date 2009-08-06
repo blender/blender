@@ -1622,84 +1622,25 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 
 /* ******************** **************** */
 
-void EDBM_select_more(BMEditMesh *em)
-{
-	BMIter iter;
-	
-	/*for now, bmops aren't supposed to mess with header flags
-	  (might need to revisit that design decision later), so 
-	  this function is slightly unconventional to avoid the use
-	  of the BMO_[Set/Clear]Flag functions.  it accumulates lists
-	  of elements to make selection changes to in pointer arrays.*/
-
-	if (em->selectmode <= SCE_SELECT_EDGE) {
-		BMVert *v;
-		BMEdge *e;
-		BMIter eiter;
-		BMVert **verts = NULL;
-		V_DECLARE(verts);
-		V_DECLARE(edges);
-		BMEdge **edges = NULL;
-		int vtot=0, etot=0, i;
-
-		BM_ITER_NOTSELECT(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL)
-			BM_ITER(e, &eiter, em->bm, BM_EDGES_OF_VERT, v) {
-				if (BM_TestHFlag(BM_OtherEdgeVert(e, v), BM_SELECT))
-					break;
-			}
-
-			if (e) {
-				V_GROW(verts);
-				verts[vtot++] = v;
-			}
-
-		}
-
-		for (i=0; i<vtot; i++) {
-			BM_Select(em->bm, verts[i], 1);
-		}
-
-		/*make sure we flush from vertices on up, not from edges*/
-		EDBM_select_flush(em, SCE_SELECT_VERTEX);
-
-		V_FREE(verts);
-	} else {
-		BMIter liter, fiter;
-		BMFace *f, *f2, **faces = NULL;
-		V_DECLARE(faces);
-		BMLoop *l;
-		int i, tot=0;
-
-		BM_ITER_SELECT(f, &iter, em->bm, BM_FACES_OF_MESH, NULL)
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, f) {
-				BM_ITER(f2, &fiter, em->bm, BM_FACES_OF_EDGE, l->e) {
-					if (!BM_TestHFlag(f2, BM_SELECT)) {
-						V_GROW(faces);
-						faces[tot++] = f2;
-					}
-				}
-			}
-		}
-
-		for (i=0; i<tot; i++) {
-			BM_Select(em->bm, faces[i], 1);
-		}
-
-		V_FREE(faces);
-	}
-
-	EDBM_selectmode_flush(em);
-}
-
 static int select_more(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
+	BMOperator bmop;
+	int usefaces = em->selectmode > SCE_SELECT_EDGE;
 
-	EDBM_select_more(em);
+	EDBM_InitOpf(em, &bmop, op, "regionextend geom=%hvef constrict=%d usefaces=%d", 
+	             BM_SELECT, 0, usefaces);
+
+	BMO_Exec_Op(em->bm, &bmop);
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT);
+
+	EDBM_selectmode_flush(em);
+
+	if (!EDBM_FinishOp(em, &bmop, op, 1))
+		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-
 	return OPERATOR_FINISHED;
 }
 
@@ -1717,92 +1658,23 @@ void MESH_OT_select_more(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-void EDBM_select_less(BMEditMesh *em)
-{
-	BMIter iter;
-	
-	/*for now, bmops aren't supposed to mess with header flags
-	  (might need to revisit that design decision later), so 
-	  this function is slightly unconventional to avoid the use
-	  of the BMO_[Set/Clear]Flag functions.  it accumulates lists
-	  of elements to make selection changes to in pointer arrays.*/
-
-	if (em->selectmode <= SCE_SELECT_EDGE) {
-		BMVert *v;
-		BMEdge *e;
-		BMIter eiter;
-		BMVert **verts = NULL;
-		V_DECLARE(verts);
-		V_DECLARE(edges);
-		BMEdge **edges = NULL;
-		int vtot=0, etot=0, i;
-
-		BM_ITER_SELECT(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL)
-			BM_ITER(e, &eiter, em->bm, BM_EDGES_OF_VERT, v) {
-				if (!BM_TestHFlag(e, BM_SELECT))
-					break;
-			}
-
-			if (e) {
-				V_GROW(verts);
-				verts[vtot++] = v;
-
-				BM_ITER(e, &eiter, em->bm, BM_EDGES_OF_VERT, v) {
-					V_GROW(edges);
-					edges[etot++] = e;
-				}
-			}
-		}
-
-		for (i=0; i<vtot; i++) {
-			BM_Select(em->bm, verts[i], 0);
-		}
-
-		for (i=0; i<etot; i++) {
-			BM_Select(em->bm, edges[i], 0);
-		}
-
-		V_FREE(verts);
-		V_FREE(edges);
-	} else {
-		BMIter liter, fiter;
-		BMFace *f, *f2, **faces = NULL;
-		V_DECLARE(faces);
-		BMLoop *l;
-		int i, tot=0;
-
-		BM_ITER_SELECT(f, &iter, em->bm, BM_FACES_OF_MESH, NULL)
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, f) {
-				BM_ITER(f2, &fiter, em->bm, BM_FACES_OF_EDGE, l->e) {
-					if (!BM_TestHFlag(f2, BM_SELECT))
-						break;
-				}
-				if (f2)
-					break;
-			}
-
-			if (l) {
-				V_GROW(faces);
-				faces[tot++] = f;
-			}
-		}
-
-		for (i=0; i<tot; i++) {
-			BM_Select(em->bm, faces[i], 0);
-		}
-
-		V_FREE(faces);
-	}
-
-	EDBM_selectmode_flush(em);
-}
-
 static int select_less(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
+	BMOperator bmop;
+	int usefaces = em->selectmode > SCE_SELECT_EDGE;
 
-	EDBM_select_less(em);
+	EDBM_InitOpf(em, &bmop, op, "regionextend geom=%hvef constrict=%d usefaces=%d", 
+	             BM_SELECT, 1, usefaces);
+
+	BMO_Exec_Op(em->bm, &bmop);
+	BMO_UnHeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT);
+
+	EDBM_selectmode_flush(em);
+
+	if (!EDBM_FinishOp(em, &bmop, op, 1))
+		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 	return OPERATOR_FINISHED;

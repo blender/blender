@@ -502,18 +502,11 @@ short EDBM_Extrude_verts_indiv(BMEditMesh *em, wmOperator *op, short flag, float
 	EDBM_InitOpf(em, &bmop, op, "extrude_vert_indiv verts=%hv", flag);
 
 	/*deselect original verts*/
-	v = BMO_IterNew(&siter, em->bm, &bmop, "verts", BM_VERT);
-	for (; v; v=BMO_IterStep(&siter)) {
-		BM_Select(em->bm, v, 0);
-	}
+	BMO_UnHeaderFlag_Buffer(em->bm, &bmop, "verts", BM_SELECT);
 
 	BMO_Exec_Op(em->bm, &bmop);
 
-	v = BMO_IterNew(&siter, em->bm, &bmop, "vertout", BM_VERT);
-	for (; v; v=BMO_IterStep(&siter)) {
-		BM_Select(em->bm, v, 1);
-	}
-
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "vertout", BM_SELECT);
 	if (!EDBM_FinishOp(em, &bmop, op, 1)) return 0;
 
 	return 'g'; // g is grab

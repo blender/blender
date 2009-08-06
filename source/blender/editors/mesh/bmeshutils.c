@@ -399,6 +399,37 @@ void EDBM_selectmode_flush(BMEditMesh *em)
 	BM_SelectMode_Flush(em->bm);
 }
 
+/*EDBM_select_[more/less] are api functions, I think the uv editor
+  uses them? though the select more/less ops themselves do not.*/
+void EDBM_select_more(BMEditMesh *em)
+{
+	BMOperator bmop;
+	int usefaces = em->selectmode > SCE_SELECT_EDGE;
+
+	BMO_InitOpf(em->bm, &bmop, 
+	            "regionextend geom=%hvef constrict=%d usefaces=%d",
+	            BM_SELECT, 0, usefaces);
+	BMO_Exec_Op(em->bm, &bmop);
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT);
+	BMO_Finish_Op(em->bm, &bmop);
+
+	EDBM_selectmode_flush(em);
+}
+
+void EDBM_select_less(BMEditMesh *em)
+{
+	BMOperator bmop;
+	int usefaces = em->selectmode > SCE_SELECT_EDGE;
+
+	BMO_InitOpf(em->bm, &bmop, 
+	            "regionextend geom=%hvef constrict=%d usefaces=%d",
+	            BM_SELECT, 0, usefaces);
+	BMO_Exec_Op(em->bm, &bmop);
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT);
+	BMO_Finish_Op(em->bm, &bmop);
+
+	EDBM_selectmode_flush(em);
+}
 
 int EDBM_get_actSelection(BMEditMesh *em, BMEditSelection *ese)
 {

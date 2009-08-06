@@ -2,11 +2,99 @@
 #include "bmesh_private.h"
 #include <stdio.h>
 
-/*do not rename any operator or slot names! otherwise you must go 
-  through the code and find all references to them!*/
+/*
+This file defines (and documents) all bmesh operators (bmops).
+
+Do not rename any operator or slot names! otherwise you must go 
+through the code and find all references to them!
+
+A word on slot names:
+
+For geometry input slots, the following are valid names:
+* verts
+* edges
+* faces
+* edgefacein
+* vertfacein
+* vertedgein
+* vertfacein
+* geom
+
+The basic rules are, for single-type geometry slots, use the plural of the
+type name (e.g. edges).  for double-type slots, use the two type names plus
+"in" (e.g. edgefacein).  for three-type slots, use geom.
+
+for output slots, for single-type geometry slots, use the type name plus "out",
+(e.g. vertout), for double-type slots, use the two type names plus "out",
+(e.g. vertfaceout), for three-type slots, use geom.  note that you can also
+use more esohteric names (e.g. skirtout) do long as the comment next to the
+slot definition tells you what types of elements are in it.
+
+*/
+
+/*
+ok, I'm going to write a little docgen script. so all
+bmop comments must conform to the following template/rules:
+
+template (py quotes used because nested comments don't work
+on all C compilers):
+
+"""
+Region Extend.
+
+paragraph1, Extends bleh bleh bleh.
+Bleh Bleh bleh.
+
+Another paragraph.
+
+Another paragraph.
+"""
+
+so the first line is the "title" of the bmop.
+subsequent line blocks seperated by blank lines
+are paragraphs.  individual descriptions of slots 
+would be extracted from comments
+next to them, e.g.
+
+{BMOP_OPSLOT_ELEMENT_BUF, "geomout"}, //output slot, boundary region
+
+the doc generator would automatically detect the presence of "output slot"
+and flag the slot as an output.  the same happens for "input slot".  also
+note that "edges", "faces", "verts", "loops", and "geometry" are valid 
+substitutions for "slot".
+*/
+
+/*
+  Region Extend
+  
+  used to implement the select more/less tools.
+  this puts some geometry surrounding regions of
+  geometry in geom into geomout.
+  
+  if usefaces is 0 then geomout spits out verts and edges, 
+  otherwise it spits out faces.
+  */
+BMOpDefine def_regionextend = {
+	"regionextend",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"}, //input geometry
+	 {BMOP_OPSLOT_ELEMENT_BUF, "geomout"}, //output slot, computed boundary geometry.
+	 {BMOP_OPSLOT_INT, "constrict"}, //find boundary inside the regions, not outside.
+	 {BMOP_OPSLOT_INT, "usefaces"}, //extend from faces instead of edges
+	{0} /*null-terminating sentinel*/,
+	},
+	bmesh_regionextend_exec,
+	0
+};
+
+/*
+  Edge Rotate
+
+  Rotates edges topologically.  Also known as "spin edge" to some people.
+  Simple example: [/] becomes [|] then [\].
+*/
 BMOpDefine def_edgerotate = {
 	"edgerotate",
-	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"},
+	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, //input edges
 	 {BMOP_OPSLOT_ELEMENT_BUF, "edgeout"}, //newly spun edges
    	 {BMOP_OPSLOT_INT, "ccw"}, //rotate edge counter-clockwise if true, othewise clockwise
 	{0} /*null-terminating sentinel*/,
@@ -15,38 +103,54 @@ BMOpDefine def_edgerotate = {
 	0
 };
 
+/*
+  Reverse Faces
 
+  Reverses the winding (vertex order) of faces.  This has the effect of
+  flipping the normal.
+*/
 BMOpDefine def_reversefaces = {
 	"reversefaces",
-	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"},
+	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, //input faces
 	{0} /*null-terminating sentinel*/,
 	},
 	bmesh_reversefaces_exec,
 	0
 };
 
+/*
+  Edge Split
+
+  Splits input edges (but doesn't do anything else).
+*/
 BMOpDefine def_edgesplit = {
 	"edgesplit",
-	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"},
-	{BMOP_OPSLOT_INT, "numcuts"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "outsplit"},
+	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, //input edges
+	{BMOP_OPSLOT_INT, "numcuts"}, //number of cuts
+	{BMOP_OPSLOT_ELEMENT_BUF, "outsplit"}, //newly created vertices and edges
 	{0} /*null-terminating sentinel*/,
 	},
 	esplit_exec,
 	0
 };
 
+/*
+  Mirror
+
+  Mirrors geometry along an axis.  The resulting geometry is welded on using
+  mergedist.  Pairs of original/mirrored vertices are welded using the mergedist
+  parameter (which defines the minimum distance for welding to happen).
+*/
+
 BMOpDefine def_mirror = {
 	"mirror",
-	/*maps welded vertices to verts they should weld to.*/
-	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"},
-	 //list of verts to keep
+	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"}, //input geometry
 	 {BMOP_OPSLOT_MAT, "mat"}, //matrix defining the mirror transformation
-	 {BMOP_OPSLOT_FLT, "mergedist"}, //does no merging if mergedist is 0
-	 {BMOP_OPSLOT_ELEMENT_BUF, "newout"},
-	 {BMOP_OPSLOT_INT,         "axis"},
-	 {BMOP_OPSLOT_INT,         "mirror_u"},
-	 {BMOP_OPSLOT_INT,         "mirror_v"},
+	 {BMOP_OPSLOT_FLT, "mergedist"}, //maximum distance for merging.  does no merging if 0.
+	 {BMOP_OPSLOT_ELEMENT_BUF, "newout"}, //output geometry, mirrored
+	 {BMOP_OPSLOT_INT,         "axis"}, //the axis to use, 0, 1, or 2 for x, y, z
+	 {BMOP_OPSLOT_INT,         "mirror_u"}, //mirror UVs across the u axis
+	 {BMOP_OPSLOT_INT,         "mirror_v"}, //mirror UVs across the v axis
 	 {0, /*null-terminating sentinel*/}},
 	bmesh_mirror_exec,
 	0,
@@ -369,6 +473,7 @@ BMOpDefine *opdefines[] = {
 	&def_edgesplit,
 	&def_reversefaces,
 	&def_edgerotate,
+	&def_regionextend,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

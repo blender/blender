@@ -344,18 +344,15 @@ BMVert *BM_Split_Edge(BMesh *bm, BMVert *v, BMEdge *e, BMEdge **ne, float percen
 	v2 = bmesh_edge_getothervert(e,v);
 	nv = bmesh_semv(bm,v,e,ne);
 	if (nv == NULL) return NULL;
+
 	VECSUB(nv->co,v2->co,v->co);
 	VECADDFAC(nv->co,v->co,nv->co,percent);
+
 	if (ne) {
-		if(bmesh_test_sysflag(&(e->head), BM_SELECT)) {
-			bmesh_set_sysflag((BMHeader*)*ne, BM_SELECT);
-			bmesh_set_sysflag((BMHeader*)nv, BM_SELECT);
-		}
-		if(bmesh_test_sysflag(&(e->head), BM_HIDDEN)) {
-			bmesh_set_sysflag((BMHeader*)*ne, BM_HIDDEN);
-			bmesh_set_sysflag((BMHeader*)nv, BM_HIDDEN);
-		}
+		(*ne)->head.flag = e->head.flag;
+		BM_Copy_Attributes(bm, bm, e, *ne);
 	}
+
 	/*v->nv->v2*/
 	BM_Data_Facevert_Edgeinterp(bm,v2, v, nv, e, percent);	
 	BM_Data_Interp_From_Verts(bm, v2, v, nv, percent);
