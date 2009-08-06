@@ -26,47 +26,24 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-/* 
-template<int SIZE>
-struct BBGroup
-{
-	float bb[6][SIZE];
-};
+#include <xmmintrin.h>
 
-
-static inline int test_bb_group(BBGroup<4> *bb_group, Isect *isec)
+inline int test_bb_group4(__m128 *bb_group, Isect *isec)
 {
+/*
 	const float *bb = _bb;
 	__m128 tmin={0}, tmax = {isec->labda};
 
-	tmin = _mm_max_ps(tmin, _mm_mul_ps( _mm_sub_ps( group->bb[isec->bv_index[0]], isec->sse_start[0] ), isec->sse_idot_axis[0]) );
-	tmax = _mm_min_ps(tmax, _mm_mul_ps( _mm_sub_ps( group->bb[isec->bv_index[1]], isec->sse_start[0] ), isec->sse_idot_axis[0]) );	
-	tmin = _mm_max_ps(tmin, _mm_mul_ps( _mm_sub_ps( group->bb[isec->bv_index[2]], isec->sse_start[1] ), isec->sse_idot_axis[1]) );
-	tmax = _mm_min_ps(tmax, _mm_mul_ps( _mm_sub_ps( group->bb[isec->bv_index[3]], isec->sse_start[1] ), isec->sse_idot_axis[1]) );
-	tmin = _mm_max_ps(tmin, _mm_mul_ps( _mm_sub_ps( group->bb[isec->bv_index[4]], isec->sse_start[2] ), isec->sse_idot_axis[2]) );
-	tmax = _mm_min_ps(tmax, _mm_mul_ps( _mm_sub_ps( group->bb[isec->bv_index[5]], isec->sse_start[2] ), isec->sse_idot_axis[2]) );
-	
-	return _mm_movemask_ps(_mm_cmpge_ps(tmax, tmin));
+	tmin = _mm_max_ps(tmin, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[0]], isec->sse_start[0] ), isec->sse_idot_axis[0]) );
+	tmax = _mm_min_ps(tmax, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[1]], isec->sse_start[0] ), isec->sse_idot_axis[0]) );	
+	tmin = _mm_max_ps(tmin, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[2]], isec->sse_start[1] ), isec->sse_idot_axis[1]) );
+	tmax = _mm_min_ps(tmax, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[3]], isec->sse_start[1] ), isec->sse_idot_axis[1]) );
+	tmin = _mm_max_ps(tmin, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[4]], isec->sse_start[2] ), isec->sse_idot_axis[2]) );
+	tmax = _mm_min_ps(tmax, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[5]], isec->sse_start[2] ), isec->sse_idot_axis[2]) );
+	*/
+	return 4; //_mm_movemask_ps(_mm_cmpge_ps(tmax, tmin));
 }
 
-static inline int test_bb_group(BBGroup<1> *bb_group, Isect *isec)
-{
-	float t1x = (bb[isec->bv_index[0]] - isec->start[0]) * isec->idot_axis[0];
-	float t2x = (bb[isec->bv_index[1]] - isec->start[0]) * isec->idot_axis[0];
-	float t1y = (bb[isec->bv_index[2]] - isec->start[1]) * isec->idot_axis[1];
-	float t2y = (bb[isec->bv_index[3]] - isec->start[1]) * isec->idot_axis[1];
-	float t1z = (bb[isec->bv_index[4]] - isec->start[2]) * isec->idot_axis[2];
-	float t2z = (bb[isec->bv_index[5]] - isec->start[2]) * isec->idot_axis[2];
-
-	RE_RC_COUNT(isec->raycounter->bb.test);
-	if(t1x > t2y || t2x < t1y || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) return 0;
-	if(t2x < 0.0 || t2y < 0.0 || t2z < 0.0) return 0;
-	if(t1x > isec->labda || t1y > isec->labda || t1z > isec->labda) return 0;
-
-	RE_RC_COUNT(isec->raycounter->bb.hit);
-	return 1;
-}
-*/
 
 /* bvh tree generics */
 template<class Tree> static int bvh_intersect(Tree *obj, Isect *isec);
@@ -163,8 +140,107 @@ static int bvh_node_stack_raycast(Node *root, Isect *isec)
 		}
 	}
 	return hit;
-
 }
+
+
+/*
+ * Generic SIMD bvh recursion
+ * this was created to be able to use any simd (with the cost of some memmoves)
+ * it can take advantage of any SIMD width and doens't needs any special tree care
+ */
+template<class Node,int MAX_STACK_SIZE,bool TEST_ROOT>
+static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
+{
+	Node *stack[MAX_STACK_SIZE];
+	__m128 t_bb[6];
+	Node * t_node[4];
+
+	int hit = 0, stack_pos = 0;
+		
+	if(!TEST_ROOT)
+	{
+		if(RayObject_isAligned(root))
+		{
+			if(RayObject_isAligned(root->child))
+				bvh_node_push_childs(root, isec, stack, stack_pos);
+			else
+				return RE_rayobject_intersect( (RayObject*)root->child, isec);
+		}
+		else
+			return RE_rayobject_intersect( (RayObject*)root, isec);
+	}
+	else
+	{
+		if(RayObject_isAligned(root))
+			stack[stack_pos++] = root;
+		else
+			return RE_rayobject_intersect( (RayObject*)root, isec);
+	}
+
+	while(true)
+	{
+		//Use SIMD 4
+		if(0 && stack_pos >= 4)
+		{
+			stack_pos -= 4;
+			for(int i=0; i<4; i++)
+			{
+				Node *t = stack[stack_pos+i];
+				assert(RayObject_isAligned(t));
+				
+				float *bb = ((float*)t_bb)+i;
+				bb[4*0] = t->bb[0];
+				bb[4*1] = t->bb[1];
+				bb[4*2] = t->bb[2];
+				bb[4*3] = t->bb[3];
+				bb[4*4] = t->bb[4];
+				bb[4*5] = t->bb[5];
+				t_node[i] = t->child;
+			}
+			int res = test_bb_group4( t_bb, isec );
+
+			for(int i=0; i<4; i++)
+			if(res & (1<<i))
+			{
+				if(RayObject_isAligned(t_node[i]))
+				{
+					for(Node *t=t_node[i]; t; t=t->sibling)
+					{
+						assert(stack_pos < MAX_STACK_SIZE);
+						stack[stack_pos++] = t;
+					}
+				}
+				else
+				{
+					hit |= RE_rayobject_intersect( (RayObject*)t_node[i], isec);
+					if(hit && isec->mode == RE_RAY_SHADOW) return hit;				
+				}	
+			}
+		}
+		else if(stack_pos > 0)
+		{	
+			Node *node = stack[--stack_pos];
+			assert(RayObject_isAligned(node));
+			
+			if(bvh_node_hit_test(node,isec))
+			{
+				if(RayObject_isAligned(node->child))
+				{
+					bvh_node_push_childs(node, isec, stack, stack_pos);
+					assert(stack_pos <= MAX_STACK_SIZE);
+				}
+				else
+				{
+					hit |= RE_rayobject_intersect( (RayObject*)node->child, isec);
+					if(hit && isec->mode == RE_RAY_SHADOW) return hit;
+				}
+			}
+		}
+		else break;
+	}
+	return hit;
+}
+
 
 /*
  * recursively transverse a BVH looking for a rayhit using system stack

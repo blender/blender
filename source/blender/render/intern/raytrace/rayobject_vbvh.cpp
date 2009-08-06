@@ -48,7 +48,7 @@ extern "C"
 
 #define RAY_BB_TEST_COST (0.2f)
 #define DFS_STACK_SIZE	256
-#define DYNAMIC_ALLOC
+//#define DYNAMIC_ALLOC_BB
 
 //#define rtbuild_split	rtbuild_mean_split_largest_axis		/* objects mean split on the longest axis, childs BB are allowed to overlap */
 //#define rtbuild_split	rtbuild_median_split_largest_axis	/* space median split on the longest axis, childs BB are allowed to overlap */
@@ -59,7 +59,11 @@ struct BVHNode
 	BVHNode *child;
 	BVHNode *sibling;
 
+#ifdef DYNAMIC_ALLOC_BB
+	float *bb;
+#else
 	float	bb[6];
+#endif
 };
 
 struct BVHTree
@@ -92,9 +96,11 @@ inline static void bvh_node_push_childs(Node *node, Isect *isec, Node **stack, i
 		while(child)
 		{
 			//Skips BB tests on primitives
+/*
 			if(!RayObject_isAligned(child->child))
 				stack[stack_pos++] = child->child;
 			else
+*/
 				stack[stack_pos++] = child;
 				
 			child = child->sibling;
@@ -111,6 +117,9 @@ static BVHNode *bvh_new_node(BVHTree *tree)
 	node->sibling = NULL;
 	node->child   = NULL;
 
+#ifdef DYNAMIC_ALLOC_BB
+	node->bb = (float*)BLI_memarena_alloc(tree->node_arena, 6*sizeof(float));
+#endif
 	assert(RayObject_isAligned(node));
 	return node;
 }
@@ -275,6 +284,28 @@ Node *bvh_rearrange(Tree *tree, Builder *builder)
 	}
 }
 
+template<class Node>
+float bvh_refit(Node *node)
+{
+	if(RayObject_isAligned(node)) return 0;	
+	if(RayObject_isAligned(node->child)) return 0;
+	
+	float total = 0;
+	
+	for(Node *child = node->child; RayObject_isAligned(child) && child; child = child->sibling)
+		total += bvh_refit(child);
+		
+	float old_area = bb_area(node->bb, node->bb+3);
+	INIT_MINMAX(node->bb, node->bb+3);
+	for(Node *child = node->child; RayObject_isAligned(child) && child; child = child->sibling)
+	{
+		DO_MIN(child->bb, node->bb);
+		DO_MIN(child->bb+3, node->bb+3);
+	}
+	total += old_area - bb_area(node->bb, node->bb+3);
+	return total;
+}
+
 template<>
 void bvh_done<BVHTree>(BVHTree *obj)
 {
@@ -292,6 +323,7 @@ void bvh_done<BVHTree>(BVHTree *obj)
 	reorganize(obj->root);
 	remove_useless(obj->root, &obj->root);
 	pushup(obj->root);
+	printf("refit: %f\n", bvh_refit(obj->root) );
 	pushdown(obj->root);
 //	obj->root = memory_rearrange(obj->root);
 	obj->cost = 1.0;
@@ -313,7 +345,7 @@ int intersect(BVHTree *obj, Isect* isec)
 		{
 			BVHNode *node = (BVHNode*)lcts->stack[i];
 			if(RayObject_isAligned(node))
-				hit |= bvh_node_stack_raycast<BVHNode,StackSize,true>(node, isec);
+				hit |= bvh_node_stack_raycast_simd<BVHNode,StackSize,true>(node, isec);
 			else
 				hit |= RE_rayobject_intersect( (RayObject*)node, isec );
 			
@@ -326,7 +358,7 @@ int intersect(BVHTree *obj, Isect* isec)
 	else
 	{
 		if(RayObject_isAligned(obj->root))
-			return bvh_node_stack_raycast<BVHNode,StackSize,false>(obj->root, isec);
+			return bvh_node_stack_raycast_simd<BVHNode,StackSize,false>(obj->root, isec);
 		else
 			return RE_rayobject_intersect( (RayObject*) obj->root, isec );
 	}
