@@ -98,6 +98,11 @@ typedef struct GlyphBLF {
 	int xoff;
 	int yoff;
 
+	/* Bitmap data, from freetype. Take care that this
+	 * can be NULL.
+	 */
+	unsigned char *bitmap;
+
 	/* glyph width and height. */
 	int width;
 	int height;
@@ -111,6 +116,9 @@ typedef struct GlyphBLF {
 	 */
 	float pos_x;
 	float pos_y;
+
+	/* with value of zero mean that we need build the texture. */
+	short build_tex;
 } GlyphBLF;
 
 typedef struct FontBLF {

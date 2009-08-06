@@ -310,7 +310,7 @@ void blf_font_fill(FontBLF *font)
 	font->cache.last= NULL;
 	font->glyph_cache= NULL;
 	font->blur= 0;
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&font->max_tex_size);
+	font->max_tex_size= -1;
 }
 
 FontBLF *blf_font_new(char *name, char *filename)
