@@ -851,6 +851,8 @@ class Object:
 				of being ignored (default way). See L{NMesh.NMesh.getMaterials}.
 		@rtype: list of Material Objects
 		@return: list of Material Objects assigned to the object.
+		@warn. Not used much. To get a list of the materials assigned to the object,
+		use mat=ob.getData(mesh=1).materials instead
 		"""
 
 	def getMatrix(space = 'worldspace'):

@@ -150,6 +150,7 @@ def Load (filename = None):
   @param filename: the pathname to the desired file.  If 'filename'
       isn't given or if it contains the substring '.B.blend', the default
       .B.blend file is loaded.
+      Cannot use relative qualifier (//). use cleanpath(expandpath(filespec)).
 
   @warn: loading a new .blend file removes the current data in Blender.  For
      safety, this function saves the current data as an auto-save file in
@@ -196,6 +197,8 @@ def Run (script):
   @param script: the name of an available Blender Text (use L{Text.Get}() to
       get a complete list) or the full pathname to a Python script file in the
       system.
+      Cannot use relative qualifier (//). use cleanpath(expandpath(filespec)).
+      
   @note: the script is executed in its own context -- with its own global
       dictionary -- as if it had been executed from the Text Editor or chosen
       from a menu.
