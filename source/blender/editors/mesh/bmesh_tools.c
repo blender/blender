@@ -134,7 +134,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int(ot->srna, "number_cuts", 1, 1, 10, "Number of Cuts", "", 1, INT_MAX);
+	RNA_def_int(ot->srna, "number_cuts", 1, 1, 20, "Number of Cuts", "", 1, INT_MAX);
 	RNA_def_float(ot->srna, "fractal", 0.0, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor.", 0.0f, 1000.0f);
 	RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, 1000.0f, "Smoothness", "Smoothness factor.", 0.0f, FLT_MAX);
 }
@@ -1506,7 +1506,7 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 	EDBM_InitOpf(em, &bmop, op, "edgerotate edges=%e ccw=%d", eed, ccw);
 	BMO_Exec_Op(em->bm, &bmop);
 
-	BMO_HeaderFlag_Slot(em->bm, &bmop, "edgeout", BM_SELECT);
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "edgeout", BM_SELECT);
 
 	if (!EDBM_FinishOp(em, &bmop, op, 1))
 		return OPERATOR_CANCELLED;
@@ -1680,3 +1680,68 @@ void MESH_OT_normals_make_consistent(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "inside", 0, "Inside", "");
 }
 
+
+
+static int do_smooth_vertex(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	ModifierData *md;
+	int mirrx=0, mirry=0, mirrz=0;
+	int i, repeat;
+
+	/* if there is a mirror modifier with clipping, flag the verts that
+	 * are within tolerance of the plane(s) of reflection 
+	 */
+	for(md=obedit->modifiers.first; md; md=md->next) {
+		if(md->type==eModifierType_Mirror) {
+			MirrorModifierData *mmd = (MirrorModifierData*) md;	
+		
+			if(mmd->flag & MOD_MIR_CLIPPING) {
+				if (mmd->flag & MOD_MIR_AXIS_X)
+					mirrx = 1;
+				if (mmd->flag & MOD_MIR_AXIS_Y)
+					mirry = 1;
+				if (mmd->flag & MOD_MIR_AXIS_Z)
+					mirrz = 1;
+			}
+		}
+	}
+
+	repeat = RNA_int_get(op->ptr,"repeat");
+	if (!repeat)
+		repeat = 1;
+	
+	for (i=0; i<repeat; i++) {
+		if (!EDBM_CallOpf(em, op, "vertexsmooth verts=%hv mirror_clip_x=%d mirror_clip_y=%d mirror_clip_z=%d",
+				  BM_SELECT, mirrx, mirry, mirrz))
+		{
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	//BMESH_TODO: need to handle the x-axis editing option here properly.
+	//should probably make a helper function for that? I dunno.
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit); //TODO is this needed ?
+
+	return OPERATOR_FINISHED;
+}	
+	
+void MESH_OT_vertices_smooth(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Smooth Vertex";
+	ot->idname= "MESH_OT_vertices_smooth";
+	
+	/* api callbacks */
+	ot->exec= do_smooth_vertex;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_int(ot->srna, "repeat", 1, 1, 200, "How many times to smooth the mesh", "", 1, INT_MAX);
+}

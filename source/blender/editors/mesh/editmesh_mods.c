@@ -2874,12 +2874,9 @@ void editmesh_align_view_to_selected(Object *obedit, EditMesh *em, wmOperator *o
 
 /* **************** VERTEX DEFORMS *************** */
 
-static int smooth_vertex(bContext *C, wmOperator *op)
+/*scene is needed for some tool settings*/
+static void smooth_vertex(EditMesh *em, Object *obedit, Scene *scene)
 {
-#if 0 //BMESH_TODO
-	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	EditVert *eve, *eve_mir = NULL;
 	EditEdge *eed;
 	float *adror, *adr, fac;
@@ -2888,7 +2885,6 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 	ModifierData *md;
 
 	if(em==NULL) {
-		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -3010,28 +3006,6 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 	MEM_freeN(adror);
 
 	recalc_editnormals(em);
-
-	BKE_mesh_end_editmesh(obedit->data, em);
-
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-
-#endif
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_vertices_smooth(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Smooth Vertex";
-	ot->idname= "MESH_OT_vertices_smooth";
-	
-	/* api callbacks */
-	ot->exec= smooth_vertex;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_UNDO;
 }
 
 void vertexnoise(Object *obedit, EditMesh *em)

@@ -40,5 +40,6 @@ void bmesh_reversefaces_exec(BMesh *bm, BMOperator *op);
 void bmesh_edgerotate_exec(BMesh *bm, BMOperator *op);
 void bmesh_regionextend_exec(BMesh *bm, BMOperator *op);
 void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op);
+void bmesh_vertexsmooth_exec(BMesh *bm, BMOperator *op);
 
 #endif

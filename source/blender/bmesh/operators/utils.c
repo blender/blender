@@ -317,3 +317,63 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 }
+
+void bmesh_vertexsmooth_exec(BMesh *bm, BMOperator *op)
+{
+	BMOIter siter;
+	BMIter iter;
+	BMVert *v;
+	BMEdge *e;
+	V_DECLARE(cos);
+	float (*cos)[3] = NULL;
+	float *co, *co2, clipdist = BMO_Get_Float(op, "clipdist");
+	int i, j, clipx, clipy, clipz;
+	
+	clipx = BMO_Get_Int(op, "mirror_clip_x");
+	clipy = BMO_Get_Int(op, "mirror_clip_y");
+	clipz = BMO_Get_Int(op, "mirror_clip_z");
+
+	i = 0;
+	BMO_ITER(v, &siter, bm, op, "verts", BM_VERT) {
+		V_GROW(cos);
+		co = cos[i];
+		
+		j  = 0;
+		BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
+			co2 = BM_OtherEdgeVert(e, v)->co;
+			VECADD(co, co, co2);
+			j += 1;
+		}
+		
+		if (!j) {
+			VECCOPY(co, v->co);
+			i++;
+			continue;
+		}
+
+		co[0] /= (float)j;
+		co[1] /= (float)j;
+		co[2] /= (float)j;
+
+		co[0] = v->co[0]*0.5 + co[0]*0.5;
+		co[1] = v->co[1]*0.5 + co[1]*0.5;
+		co[2] = v->co[2]*0.5 + co[2]*0.5;
+		
+		if (clipx && fabs(v->co[0]) < clipdist)
+			co[0] = 0.0f;
+		if (clipy && fabs(v->co[1]) < clipdist)
+			co[1] = 0.0f;
+		if (clipz && fabs(v->co[2]) < clipdist)
+			co[2] = 0.0f;
+
+		i++;
+	}
+
+	i = 0;
+	BMO_ITER(v, &siter, bm, op, "verts", BM_VERT) {
+		VECCOPY(v->co, cos[i]);
+		i++;
+	}
+
+	V_FREE(cos);
+}

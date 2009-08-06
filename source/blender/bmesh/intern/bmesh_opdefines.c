@@ -66,6 +66,30 @@ substitutions for "slot".
 note that slots default to being input slots.
 */
 
+/*
+  Vertex Smooth
+
+  Smoothes vertices by using a basic vertex averaging scheme.
+*/
+BMOpDefine def_vertexsmooth = {
+	"vertexsmooth",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
+	 {BMOP_OPSLOT_INT, "mirror_clip_x"}, //set vertices close to the x axis before the operation to 0
+	 {BMOP_OPSLOT_INT, "mirror_clip_y"}, //set vertices close to the y axis before the operation to 0
+	 {BMOP_OPSLOT_INT, "mirror_clip_z"}, //set vertices close to the z axis before the operation to 0
+	 {BMOP_OPSLOT_FLT, "clipdist"}, //clipping threshod for the above three slots
+	{0} /*null-terminating sentinel*/,
+	},
+	bmesh_vertexsmooth_exec,
+	0
+};
+
+/*
+  Right-Hand Faces
+
+  Computes an "outside" normal for the specified input faces.
+*/
+
 BMOpDefine def_righthandfaces = {
 	"righthandfaces",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"},
@@ -547,6 +571,7 @@ BMOpDefine *opdefines[] = {
 	&def_edgerotate,
 	&def_regionextend,
 	&def_righthandfaces,
+	&def_vertexsmooth,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));
