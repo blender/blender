@@ -1284,11 +1284,16 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 
 	if (!BM_TestHFlag(eve, BM_HIDDEN)) {
 		short s[2]= {IS_CLIPPED, 0};
+		float co2[3];
+
+		VECCOPY(co2, co);
+
+		MTC_Mat4MulVecfl(data->vc.obedit->obmat, co2);
 
 		if (data->clipVerts) {
-			view3d_project_short_clip(data->vc.ar, co, s);
+			project_short(data->vc.ar, co2, s);
 		} else {
-			view3d_project_short_noclip(data->vc.ar, co, s);
+			project_short_noclip(data->vc.ar, co2, s);
 		}
 
 		if (s[0]!=IS_CLIPPED)
@@ -1318,14 +1323,21 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 	struct { void (*func)(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
 	BMEdge *eed = EDBM_get_edge_for_index(data->vc.em, index);
 	short s[2][2];
+	float v1_co[3], v2_co[3];
+	
+	VECCOPY(v1_co, v0co);
+	VECCOPY(v2_co, v1co);
+
+	MTC_Mat4MulVecfl(data->vc.obedit->obmat, v1_co);
+	MTC_Mat4MulVecfl(data->vc.obedit->obmat, v2_co);
 
 	if (!BM_TestHFlag(eed, BM_HIDDEN)) {
 		if (data->clipVerts==1) {
-			view3d_project_short_clip(data->vc.ar, v0co, s[0]);
-			view3d_project_short_clip(data->vc.ar, v1co, s[1]);
+			project_short(data->vc.ar, v1_co, s[0]);
+			project_short(data->vc.ar, v2_co, s[1]);
 		} else {
-			view3d_project_short_noclip(data->vc.ar, v0co, s[0]);
-			view3d_project_short_noclip(data->vc.ar, v1co, s[1]);
+			project_short_noclip(data->vc.ar, v1_co, s[0]);
+			project_short_noclip(data->vc.ar, v2_co, s[1]);
 
 			if (data->clipVerts==2) {
                 if (!(s[0][0]>=0 && s[0][1]>= 0 && s[0][0]<data->vc.ar->winx && s[0][1]<data->vc.ar->winy)) 
@@ -1362,7 +1374,8 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *ce
 	short s[2];
 
 	if (efa && !BM_TestHFlag(efa, BM_HIDDEN)) {
-		view3d_project_short_clip(data->vc.ar, cent, s);
+		MTC_Mat4MulVecfl(data->vc.obedit->obmat, cent);
+		project_short(data->vc.ar, cent, s);
 
 		data->func(data->userData, efa, s[0], s[1], index);
 	}
