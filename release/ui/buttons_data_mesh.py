@@ -44,9 +44,39 @@ class DATA_PT_normals(DataButtonsPanel):
 		sub.active = mesh.autosmooth
 		sub.itemR(mesh, "autosmooth_angle", text="Angle")
 		
-		sub = split.column()
-		sub.itemR(mesh, "vertex_normal_flip")
-		sub.itemR(mesh, "double_sided")
+		col = split.column()
+		col.itemR(mesh, "vertex_normal_flip")
+		col.itemR(mesh, "double_sided")
+
+class DATA_PT_meshdraw(DataButtonsPanel):
+	__label__ = "Draw"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		mesh = context.mesh
+		
+		layout.itemL(text="Edit Mode only, WIP")
+		
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(mesh, "draw_edges", text="Edges")
+		col.itemR(mesh, "draw_faces", text="Faces")
+		col.itemR(mesh, "draw_creases", text="Creases")
+		col.itemR(mesh, "draw_bevel_weights", text="Bevel Weights")
+		col.itemR(mesh, "draw_seams", text="Seams")
+		col.itemR(mesh, "draw_sharp", text="Sharp")
+		
+		col = split.column()
+		col.itemR(mesh, "draw_normals", text="Face Normals")
+		col.itemR(mesh, "draw_vertex_normals", text="Vertex Normals")
+		
+		col.itemS()
+		
+		col.itemR(mesh, "draw_edge_lenght")
+		col.itemR(mesh, "draw_edge_angle")
+		col.itemR(mesh, "draw_face_area")
 
 class DATA_PT_vertex_groups(DataButtonsPanel):
 	__label__ = "Vertex Groups"
@@ -194,6 +224,7 @@ class DATA_PT_vertex_colors(DataButtonsPanel):
 
 bpy.types.register(DATA_PT_context_mesh)
 bpy.types.register(DATA_PT_normals)
+bpy.types.register(DATA_PT_meshdraw)
 bpy.types.register(DATA_PT_vertex_groups)
 bpy.types.register(DATA_PT_shape_keys)
 bpy.types.register(DATA_PT_uv_texture)
