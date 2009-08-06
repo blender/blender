@@ -271,9 +271,15 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 
 	BM_Compute_Face_Center(bm, startf, cent);
 
+	/*make sure the starting face has the correct winding*/
 	if (cent[0]*startf->no[0] + cent[1]*startf->no[1] + cent[2]*startf->no[2] < 0.0)
 		BM_flip_normal(bm, startf);
 	
+	/*now that we've found our starting face, make all connected faces
+	  have the same winding.  this is done recursively, using a manual
+	  stack (if we use simple function recursion, we'd end up overloading
+	  the stack on large meshes).*/
+
 	V_GROW(fstack);
 	fstack[0] = startf;
 	BMO_SetFlag(bm, startf, FACE_VIS);

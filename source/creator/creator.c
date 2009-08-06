@@ -28,7 +28,7 @@
  */
 #include <stdlib.h>
 #include <string.h>
-
+#include <signal.h>
 
 /* for setuid / getuid */
 #ifdef __sgi
@@ -261,19 +261,42 @@ double PIL_check_seconds_timer(void);
 	}
 }*/
 
+#ifndef _DEBUG
+int segmentation_handler(int sig)
+{
+	char fname[256];
+
+	if (!G.sce[0]) {
+		char str[FILE_MAXDIR+FILE_MAXFILE];
+
+		BLI_make_file_string("/", fname, btempdir, "quit.blend");
+	} else
+		sprintf(fname, "%s.crash.blend", G.sce);
+
+	BKE_undo_save(fname);
+
+	/*induce a real crash*/
+	signal(SIGSEGV, SIG_DFL);
+	*(int*)NULL = 0;
+}
+#endif
+
 int main(int argc, char **argv)
 {
 	SYS_SystemHandle syshandle;
 	bContext *C= CTX_create();
 	int a, i, stax, stay, sizx, sizy /*XXX, scr_init = 0*/;
-
 #if defined(WIN32) || defined (__linux__)
 	int audio = 1;
 #else
 	int audio = 0;
 #endif
 
-	
+#ifndef _DEBUG
+	signal(SIGSEGV, segmentation_handler);
+	signal(SIGFPE, segmentation_handler);
+#endif
+
 #ifdef WITH_BINRELOC
 	br_init( NULL );
 #endif

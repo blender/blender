@@ -1,7 +1,7 @@
 /**
  * BKE_bmesh.h    jan 2007
  *
- *	BMesh modeler structure and functions.
+ *	(old) BMesh modeler structure and functions.
  *
  * $Id$
  *
@@ -52,6 +52,7 @@ struct BME_Edge;
 struct BME_Poly;
 struct BME_Loop;
 
+/*NOTE: this is the bmesh 1.0 code.  it's completely outdated.*/
 
 /*Notes on further structure Cleanup:
 	-Remove the tflags, they belong in custom data layers

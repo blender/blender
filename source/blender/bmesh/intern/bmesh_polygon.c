@@ -383,8 +383,8 @@ void poly_rotate_plane(float normal[3], float (*verts)[3], int nverts)
 
 void BM_Face_UpdateNormal(BMesh *bm, BMFace *f)
 {
-	float projverts[12][3];
-	float (*proj)[3] = f->len < 12 ? projverts : MEM_mallocN(sizeof(float)*f->len*3, "projvertsn");
+	float projverts[200][3];
+	float (*proj)[3] = f->len < 200 ? projverts : MEM_mallocN(sizeof(float)*f->len*3, "projvertsn");
 	BMLoop *l = f->loopbase;
 	int i=0;
 
@@ -476,9 +476,9 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 /*
  * BMESH FLIP NORMAL
  * 
- *  Reverses the winding of a  faces
- *  Note that this does *not* update the calculated 
- *  Normal 
+ *  Reverses the winding of a face.
+ *  Note that this updates the calculated 
+ *  normal.
 */
 void BM_flip_normal(BMesh *bm, BMFace *f)
 {	

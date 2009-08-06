@@ -726,10 +726,18 @@ char *BKE_undo_menu_string(void)
 	/* saves quit.blend */
 void BKE_undo_save_quit(void)
 {
+	char str[FILE_MAXDIR+FILE_MAXFILE];
+
+	BLI_make_file_string("/", str, btempdir, "quit.blend");
+
+	BKE_undo_save(str);
+}
+
+void BKE_undo_save(char *fname)
+{
 	UndoElem *uel;
 	MemFileChunk *chunk;
 	int file;
-	char str[FILE_MAXDIR+FILE_MAXFILE];
 	
 	if( (U.uiflag & USER_GLOBALUNDO)==0) return;
 	
@@ -742,9 +750,7 @@ void BKE_undo_save_quit(void)
 	/* no undo state to save */
 	if(undobase.first==undobase.last) return;
 		
-	BLI_make_file_string("/", str, btempdir, "quit.blend");
-
-	file = open(str,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
+	file = open(fname, O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if(file == -1) {
 		//XXX error("Unable to save %s, check you have permissions", str);
 		return;
@@ -758,7 +764,7 @@ void BKE_undo_save_quit(void)
 	
 	close(file);
 	
-	if(chunk) ; //XXX error("Unable to save %s, internal error", str);
-	else printf("Saved session recovery to %s\n", str);
+	if(chunk) ; //XXX error("Unable to save %s, internal error", fname);
+	else printf("Saved session recovery to %s\n", fname);
 }
 

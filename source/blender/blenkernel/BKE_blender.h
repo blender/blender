@@ -75,6 +75,7 @@ extern void BKE_undo_name(struct bContext *C, const char *name);
 extern void BKE_reset_undo(void);
 extern char *BKE_undo_menu_string(void);
 extern void BKE_undo_number(struct bContext *C, int nr);
+void BKE_undo_save(char *fname);
 extern void BKE_undo_save_quit(void);
 
 #ifdef __cplusplus
