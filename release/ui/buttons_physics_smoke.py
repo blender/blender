@@ -41,24 +41,60 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 			layout.itemR(md, "smoke_type")
 		
 			if md.smoke_type == 'TYPE_DOMAIN':
-				layout.itemS()
-				layout.itemR(md.domain_settings, "maxres")
-				layout.itemR(md.domain_settings, "color")
-				layout.itemR(md.domain_settings, "amplify")
-				layout.itemR(md.domain_settings, "highres")
-				layout.itemR(md.domain_settings, "noise_type")
-				layout.itemR(md.domain_settings, "visibility")
-				layout.itemR(md.domain_settings, "alpha")
-				layout.itemR(md.domain_settings, "beta")
-				layout.itemR(md.domain_settings, "fluid_group")
-				layout.itemR(md.domain_settings, "eff_group")
-				layout.itemR(md.domain_settings, "coll_group")
+				
+				split = layout.split()
+				
+				col = split.column()
+				col.itemL(text="Behavior:")
+				col.itemR(md.domain_settings, "alpha")
+				col.itemR(md.domain_settings, "beta")
+				
+				col.itemL(text="Resolution:")
+				col.itemR(md.domain_settings, "maxres", text="Low")
+				sub = col.column()
+				sub.active = md.domain_settings.highres
+				sub.itemR(md.domain_settings, "amplify", text="High")
+				col.itemR(md.domain_settings, "highres", text="Use High Resolution")
+				
+				sub = split.column()
+				sub.itemL(text="Display:")
+				sub.itemR(md.domain_settings, "visibility")
+				sub.itemR(md.domain_settings, "color")
+				
+				layout.itemL(text="Noise Type:")
+				layout.itemR(md.domain_settings, "noise_type", expand=True)
+				
+				split = layout.split()
+				
+				col = split.column()
+				col.itemL(text="Flow Group:")
+				col.itemR(md.domain_settings, "fluid_group", text="")
+				
+				#col.itemL(text="Effector Group:")
+				#col.itemR(md.domain_settings, "eff_group", text="")
+				
+				col = split.column()
+				col.itemL(text="Collision Group:")
+				col.itemR(md.domain_settings, "coll_group", text="")
+				
 			elif md.smoke_type == 'TYPE_FLOW':
-				layout.itemS()
+				
 				layout.itemR(md.flow_settings, "outflow")
-				layout.itemR(md.flow_settings, "density")
-				layout.itemR(md.flow_settings, "temperature")
-				layout.item_pointerR(md.flow_settings, "psys", ob, "particle_systems")
+				
+				split = layout.split()
+				
+				if md.flow_settings.outflow:				
+					col = split.column()
+				else:
+					col = split.column()
+					col.itemL(text="Behavior:")
+					col.itemR(md.flow_settings, "temperature")
+					col.itemR(md.flow_settings, "density")
+				
+					sub = split.column()
+					sub.itemL(text="particle System:")
+					sub.item_pointerR(md.flow_settings, "psys", ob, "particle_systems", text="")
+					
 			elif md.smoke_type == 'TYPE_COLL':
 				layout.itemS()
 
