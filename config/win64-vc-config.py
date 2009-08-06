@@ -18,7 +18,7 @@ BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 WITH_BF_OPENAL = False 
 BF_OPENAL = LIBDIR + '/openal'
 BF_OPENAL_INC = '${BF_OPENAL}/include ${BF_OPENAL}/include/AL '
-BF_OPENAL_LIB = 'OpenAL32 wrap_oal' #'dxguid openal_static'
+BF_OPENAL_LIB = 'OpenAL32 wrap_oal'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 
 # TODO - are these useful on win32?
