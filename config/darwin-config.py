@@ -32,22 +32,28 @@ BF_PYTHON_VERSION = '3.1'
 if MAC_PROC== 'powerpc' and BF_PYTHON_VERSION == '2.3':
 	MAC_MIN_VERS = '10.3'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.3.9.sdk'
-elif MAC_CUR_VER=='10.4':
+else:
 	MAC_MIN_VERS = '10.4'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.4u.sdk'
-else:
-	MAC_MIN_VERS = '10.5'
-	MACOSX_SDK='/Developer/SDKs/MacOSX10.5.sdk'
 
 
 # enable ffmpeg  support
 WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
-BF_FFMPEG = "#extern/ffmpeg"
-BF_FFMPEG_INC = '${BF_FFMPEG}'
-if USE_SDK==True:
-	BF_FFMPEG_EXTRA = '-isysroot '+MACOSX_SDK+' -mmacosx-version-min='+MAC_MIN_VERS
-#BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
-#BF_FFMPEG_LIB = 'avformat.a avcodec.a avutil.a'
+FFMPEG_PRECOMPILED = False
+if FFMPEG_PRECOMPILED:
+	# use precompiled ffmpeg in /lib
+	BF_FFMPEG = LIBDIR + '/ffmpeg'
+	BF_FFMPEG_INC = "#extern/ffmpeg"
+	BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
+	BF_FFMPEG_LIB = 'avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore'
+else:
+	# use ffmpeg in extern
+	BF_FFMPEG = "#extern/ffmpeg"
+	BF_FFMPEG_INC = '${BF_FFMPEG}'
+	if USE_SDK==True:
+		BF_FFMPEG_EXTRA = '-isysroot '+MACOSX_SDK+' -mmacosx-version-min='+MAC_MIN_VERS
+	BF_XVIDCORE_CONFIG = '--disable-assembly'	# currently causes errors, even with yasm installed
+	BF_X264_CONFIG = '--disable-pthread'
 
 if BF_PYTHON_VERSION=='3.1':
 	# python 3.1 uses precompiled libraries in bf svn /lib by default
@@ -105,6 +111,11 @@ BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
 BF_CXX = '/usr'
 WITH_BF_STATICCXX = False
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
+
+BF_LIBSAMPLERATE = LIBDIR + '/SRC'
+BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
+BF_LIBSAMPLERATE_LIB = 'samplerate'
+BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
 
 WITH_BF_SDL = True
 BF_SDL = LIBDIR + '/sdl' #$(shell sdl-config --prefix)
@@ -188,6 +199,11 @@ BF_ICONV = LIBDIR + "/iconv"
 BF_ICONV_INC = '${BF_ICONV}/include'
 BF_ICONV_LIB = 'iconv'
 #BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
+
+BF_LIBSAMPLERATE = LIBDIR + '/samplerate'
+BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
+BF_LIBSAMPLERATE_LIB = 'samplerate'
+BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
 
 # Mesa Libs should go here if your using them as well....
 WITH_BF_STATICOPENGL = True
