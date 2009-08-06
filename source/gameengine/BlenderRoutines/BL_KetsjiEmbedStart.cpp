@@ -118,11 +118,10 @@ static BlendFileData *load_game_data(char *filename)
 	return bfd;
 }
 
-extern "C" void StartKetsjiShell(struct bContext *C, int always_use_expand_framing)
+extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int always_use_expand_framing)
 {
 	/* context values */
 	struct wmWindow *win= CTX_wm_window(C);
-	struct ARegion *ar= CTX_wm_region(C);
 	struct Scene *scene= CTX_data_scene(C);
 	struct Main* maggie1= CTX_data_main(C);
 	
@@ -405,10 +404,8 @@ extern "C" void StartKetsjiShell(struct bContext *C, int always_use_expand_frami
 			{
 				// convert and add scene
 				sceneconverter->ConvertScene(
-					startscenename,
 					startscene,
 					dictionaryobject,
-					keyboarddevice,
 					rendertools,
 					canvas);
 				ketsjiengine->AddScene(startscene);
@@ -718,10 +715,8 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 			{
 				// convert and add scene
 				sceneconverter->ConvertScene(
-					startscenename,
 					startscene,
 					dictionaryobject,
-					keyboarddevice,
 					rendertools,
 					canvas);
 				ketsjiengine->AddScene(startscene);
@@ -786,6 +781,16 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 		{
 			delete mousedevice;
 			mousedevice = NULL;
+		}
+		if (rasterizer)
+		{
+			delete rasterizer;
+			rasterizer = NULL;
+		}
+		if (rendertools)
+		{
+			delete rendertools;
+			rendertools = NULL;
 		}
 		SND_DeviceManager::Unsubscribe();
 

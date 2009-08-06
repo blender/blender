@@ -47,6 +47,21 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+static void rna_ShapeKey_value_set(PointerRNA *ptr, float value)
+{
+	KeyBlock *data= (KeyBlock*)ptr->data;
+	CLAMP(value, data->slidermin, data->slidermax);
+	data->curval= value;
+}
+
+static void rna_ShapeKey_value_range(PointerRNA *ptr, float *min, float *max)
+{
+	KeyBlock *data= (KeyBlock*)ptr->data;
+
+	*min= data->slidermin;
+	*max= data->slidermax;
+}
+
 static Key *rna_ShapeKey_find_key(ID *id)
 {
 	switch(GS(id->name)) {
@@ -345,6 +360,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	/* for now, this is editable directly, as users can set this even if they're not animating them (to test results) */
 	prop= RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "curval");
+	RNA_def_property_float_funcs(prop, NULL, "rna_ShapeKey_value_set", "rna_ShapeKey_value_range");
 	RNA_def_property_ui_text(prop, "Value", "Value of shape key at the current frame.");
 	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
@@ -380,6 +396,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "slider_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "slidermax");
 	RNA_def_property_range(prop, -10.0f, 10.0f);
+	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_ui_text(prop, "Slider Max", "Maximum for slider.");
 
 	prop= RNA_def_property(srna, "data", PROP_COLLECTION, PROP_NONE);

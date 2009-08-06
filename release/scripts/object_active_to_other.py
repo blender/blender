@@ -38,13 +38,13 @@ def my_object_util(sce):
 		Draw.PupMenu('Error%t|No active object selected')
 		return
 	
-	mats = [ob.matrixWorld for ob in sce.objects.context if ob != ob_act]
+	mats = [(ob, ob.matrixWorld) for ob in sce.objects.context if ob != ob_act]
 	
-	for m in mats:
+	for ob, m in mats:
 		ob_copy = ob_act.copy()
 		sce.objects.link(ob_copy)
 		ob_copy.setMatrix(m)
-		ob_copy.Layers = ob.Layers
+		ob_copy.Layers = ob.Layers & (1<<20)-1
 		
 
 def main():

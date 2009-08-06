@@ -98,8 +98,6 @@ protected:
 
 	KX_IPhysicsController*				m_pPhysicsController1;
 	PHY_IGraphicController*				m_pGraphicController;
-	// used for ray casting
-	PHY_IPhysicsEnvironment*			m_pPhysicsEnvironment;
 	STR_String							m_testPropName;
 	bool								m_xray;
 	KX_GameObject*						m_pHitObject;
@@ -336,20 +334,6 @@ public:
 		bool lin_vel_local,
 		bool ang_vel_local
 	);
-
-
-	/**
-	 * @return a pointer to the physics environment in use during the game, for rayCasting
-	 */
-	PHY_IPhysicsEnvironment* GetPhysicsEnvironment()
-	{
-		return m_pPhysicsEnvironment;
-	}
-
-	void SetPhysicsEnvironment(PHY_IPhysicsEnvironment* physicsEnvironment)
-	{
-		m_pPhysicsEnvironment = physicsEnvironment;
-	}
 
 	/**
 	 * @return a pointer to the physics controller owned by this class.
@@ -849,13 +833,14 @@ public:
 	KX_PYMETHOD_VARARGS(KX_GameObject,GetMesh);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPhysicsId);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPropertyNames);
-	KX_PYMETHOD_O(KX_GameObject,ReplaceMesh);
+	KX_PYMETHOD_VARARGS(KX_GameObject,ReplaceMesh);
 	KX_PYMETHOD_NOARGS(KX_GameObject,EndObject);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCastTo);
 	KX_PYMETHOD_DOC(KX_GameObject,rayCast);
 	KX_PYMETHOD_DOC_O(KX_GameObject,getDistanceTo);
 	KX_PYMETHOD_DOC_O(KX_GameObject,getVectTo);
 	KX_PYMETHOD_DOC_VARARGS(KX_GameObject, sendMessage);
+	KX_PYMETHOD_VARARGS(KX_GameObject, ReinstancePhysicsMesh);
 	
 	/* Dict access */
 	KX_PYMETHOD_VARARGS(KX_GameObject,get);

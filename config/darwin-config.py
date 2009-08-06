@@ -10,8 +10,6 @@ import commands
 # IMPORTANT NOTE : OFFICIAL BUILDS SHOULD BE DONE WITH SDKs
 USE_SDK=True
 
-BF_PYTHON_VERSION = '2.3'
-
 cmd = 'uname -p'
 MAC_PROC=commands.getoutput(cmd) 
 cmd = 'uname -r'
@@ -29,12 +27,17 @@ else :
 	LCGDIR = '#../lib/darwin-8.x.i386'
 LIBDIR = '${LCGDIR}'
 
+BF_PYTHON_VERSION = '3.1'
+
 if MAC_PROC== 'powerpc' and BF_PYTHON_VERSION == '2.3':
 	MAC_MIN_VERS = '10.3'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.3.9.sdk'
-else:
+elif MAC_CUR_VER=='10.4':
 	MAC_MIN_VERS = '10.4'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.4u.sdk'
+else:
+	MAC_MIN_VERS = '10.5'
+	MACOSX_SDK='/Developer/SDKs/MacOSX10.5.sdk'
 
 
 # enable ffmpeg  support
@@ -46,24 +49,33 @@ if USE_SDK==True:
 #BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 #BF_FFMPEG_LIB = 'avformat.a avcodec.a avutil.a'
 
-# python.org libs install in /library we want to use that for 2.5 
-#
-# if you want py2.5 on leopard without installing
-# change value to BF_PYTHON = '/Library/Frameworks/Python.framework/Versions/'
-# BEWARE: in that case it will work only on leopard
+if BF_PYTHON_VERSION=='3.1':
+	# python 3.1 uses precompiled libraries in bf svn /lib by default
 
-if BF_PYTHON_VERSION=='2.3':
-	BF_PYTHON = '/System/Library/Frameworks/Python.framework/Versions/'
+	BF_PYTHON = LIBDIR + '/python'
+	BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
+	# BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
+	BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}'
+	BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/python${BF_PYTHON_VERSION}'
+	# BF_PYTHON_LINKFLAGS = '-u _PyMac_Error -framework System'
 else:
-	BF_PYTHON = '/Library/Frameworks/Python.framework/Versions/'
+	# python 2.5 etc. uses built-in framework
 
-BF_PYTHON_INC = '${BF_PYTHON}${BF_PYTHON_VERSION}/include/python${BF_PYTHON_VERSION}'
-BF_PYTHON_BINARY = '${BF_PYTHON}${BF_PYTHON_VERSION}/bin/python${BF_PYTHON_VERSION}'
-BF_PYTHON_LIB = ''
-BF_PYTHON_LIBPATH = '${BF_PYTHON}${BF_PYTHON_VERSION}/lib/python${BF_PYTHON_VERSION}/config'
-BF_PYTHON_LINKFLAGS = '-u _PyMac_Error -framework System -framework Python'
-if MAC_CUR_VER=='10.3' or  MAC_CUR_VER=='10.4':
-	BF_PYTHON_LINKFLAGS ='-u __dummy '+BF_PYTHON_LINKFLAGS
+	# python.org libs install in /library we want to use that for 2.5 
+	#
+	# if you want py2.5 on leopard without installing
+	# change value to BF_PYTHON = '/Library/Frameworks/Python.framework/Versions/'
+	# BEWARE: in that case it will work only on leopard
+
+	BF_PYTHON = '/System/Library/Frameworks/Python.framework/Versions/'
+
+	BF_PYTHON_INC = '${BF_PYTHON}${BF_PYTHON_VERSION}/include/python${BF_PYTHON_VERSION}'
+	BF_PYTHON_BINARY = '${BF_PYTHON}${BF_PYTHON_VERSION}/bin/python${BF_PYTHON_VERSION}'
+	BF_PYTHON_LIB = ''
+	BF_PYTHON_LIBPATH = '${BF_PYTHON}${BF_PYTHON_VERSION}/lib/python${BF_PYTHON_VERSION}/config'
+	BF_PYTHON_LINKFLAGS = '-u _PyMac_Error -framework System -framework Python'
+	if MAC_CUR_VER=='10.3' or  MAC_CUR_VER=='10.4':
+		BF_PYTHON_LINKFLAGS ='-u __dummy '+BF_PYTHON_LINKFLAGS
 	
 BF_QUIET = '1'
 WITH_BF_OPENMP = '0'
@@ -139,7 +151,7 @@ BF_GETTEXT_LIB = 'intl'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
 WITH_BF_GAMEENGINE=True
-WITH_BF_PLAYER=True
+WITH_BF_PLAYER = False
 
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'

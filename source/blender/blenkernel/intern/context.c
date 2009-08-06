@@ -256,6 +256,83 @@ struct SpaceImage *CTX_wm_space_image(const bContext *C)
 	return NULL;
 }
 
+struct SpaceButs *CTX_wm_space_buts(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_BUTS)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceFile *CTX_wm_space_file(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_FILE)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceSeq *CTX_wm_space_seq(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_SEQ)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceOops *CTX_wm_space_outliner(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_OUTLINER)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceNla *CTX_wm_space_nla(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_NLA)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceTime *CTX_wm_space_time(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_TIME)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceNode *CTX_wm_space_node(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_NODE)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceLogic *CTX_wm_space_logic(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_LOGIC)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceIpo *CTX_wm_space_graph(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_IPO)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceAction *CTX_wm_space_action(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_ACTION)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
+struct SpaceInfo *CTX_wm_space_info(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_INFO)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
 void CTX_wm_manager_set(bContext *C, wmWindowManager *wm)
 {
 	C->wm.manager= wm;

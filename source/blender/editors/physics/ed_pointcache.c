@@ -146,6 +146,113 @@ void PTCACHE_OT_free_bake_all(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/**************************** softbody **********************************/
+static int ptcache_bake_softbody_poll(bContext *C)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	SoftBody *sb = ob->soft;
+
+	if(!scene || !ob || ob->id.lib || !sb)
+		return 0;
+	
+	return 1;
+}
+
+static int ptcache_bake_softbody_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	SoftBody *sb = ob->soft;
+	PTCacheID pid;
+	PTCacheBaker baker;
+
+	BKE_ptcache_id_from_softbody(&pid, ob, sb);
+
+	baker.scene = scene;
+	baker.pid = &pid;
+	baker.bake = RNA_boolean_get(op->ptr, "bake");
+	baker.render = 0;
+	baker.anim_init = 0;
+	baker.quick_step = 1;
+	baker.break_test = cache_break_test;
+	baker.break_data = NULL;
+	baker.progressbar = (void (*)(void *, int))WM_timecursor;
+	baker.progresscontext = CTX_wm_window(C);
+
+	BKE_ptcache_make_cache(&baker);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+
+	return OPERATOR_FINISHED;
+}
+static int ptcache_free_bake_softbody_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	SoftBody *sb = ob->soft;
+	PTCacheID pid;
+
+	BKE_ptcache_id_from_softbody(&pid, ob, sb);
+	pid.cache->flag &= ~PTCACHE_BAKED;
+
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+
+	return OPERATOR_FINISHED;
+}
+void PTCACHE_OT_cache_softbody(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Bake Softbody";
+	ot->idname= "PTCACHE_OT_cache_softbody";
+	
+	/* api callbacks */
+	ot->exec= ptcache_bake_softbody_exec;
+	ot->poll= ptcache_bake_softbody_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "bake", 0, "Bake", "");
+}
+void PTCACHE_OT_free_bake_softbody(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Free SoftBody Bake";
+	ot->idname= "PTCACHE_OT_free_bake_softbody";
+	
+	/* api callbacks */
+	ot->exec= ptcache_free_bake_softbody_exec;
+	ot->poll= ptcache_bake_softbody_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+static int ptcache_bake_from_softbody_cache_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	SoftBody *sb = ob->soft;
+	PTCacheID pid;
+
+	BKE_ptcache_id_from_softbody(&pid, ob, sb);
+	pid.cache->flag |= PTCACHE_BAKED;
+
+	return OPERATOR_FINISHED;
+}
+void PTCACHE_OT_bake_from_softbody_cache(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Bake From Cache";
+	ot->idname= "PTCACHE_OT_bake_from_softbody_cache";
+	
+	/* api callbacks */
+	ot->exec= ptcache_bake_from_softbody_cache_exec;
+	ot->poll= ptcache_bake_softbody_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /**************************** cloth **********************************/
 static int ptcache_bake_cloth_poll(bContext *C)
 {
@@ -371,6 +478,9 @@ void ED_operatortypes_pointcache(void)
 	WM_operatortype_append(PTCACHE_OT_cache_cloth);
 	WM_operatortype_append(PTCACHE_OT_free_bake_cloth);
 	WM_operatortype_append(PTCACHE_OT_bake_from_cloth_cache);
+	WM_operatortype_append(PTCACHE_OT_cache_softbody);
+	WM_operatortype_append(PTCACHE_OT_free_bake_softbody);
+	WM_operatortype_append(PTCACHE_OT_bake_from_softbody_cache);
 }
 
 //void ED_keymap_pointcache(wmWindowManager *wm)

@@ -708,10 +708,8 @@ bool GPG_Application::startEngine(void)
 		loadGamePythonConfig(m_pyGlobalDictString, m_pyGlobalDictString_Length);
 		
 		m_sceneconverter->ConvertScene(
-			startscenename,
 			startscene,
 			dictionaryobject,
-			m_keyboard,
 			m_rendertools,
 			m_canvas);
 		m_ketsjiengine->AddScene(startscene);

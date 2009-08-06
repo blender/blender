@@ -39,6 +39,7 @@ struct bNodeTree;
 struct Image;
 struct NodeBlurData;
 struct Object;
+struct ReportList;
 struct RenderData;
 struct RenderEngine;
 struct RenderEngineType;
@@ -240,6 +241,8 @@ struct Scene *RE_GetScene(struct Render *re);
 
 /* External Engine */
 
+#define RE_INTERNAL		1
+#define RE_GAME			2
 
 extern ListBase R_engines;
 
@@ -249,6 +252,7 @@ typedef struct RenderEngineType {
 	/* type info */
 	char idname[32];
 	char name[32];
+	int flag;
 
 	void (*render)(struct RenderEngine *engine, struct Scene *scene);
 
@@ -262,6 +266,8 @@ typedef struct RenderEngine {
 	ListBase fullresult;
 } RenderEngine;
 
+void RE_layer_rect_from_file(RenderLayer *layer, struct ReportList *reports, char *filename, int x, int y);
+
 struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h);
 void RE_engine_update_result(RenderEngine *engine, struct RenderResult *result);
 void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result);
@@ -269,7 +275,8 @@ void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result);
 int RE_engine_test_break(RenderEngine *engine);
 void RE_engine_update_stats(RenderEngine *engine, char *stats, char *info);
 
-void RE_engines_free(void);
+void RE_engines_init(void);
+void RE_engines_exit(void);
 
 #endif /* RE_PIPELINE_H */
 

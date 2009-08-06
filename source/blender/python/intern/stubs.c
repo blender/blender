@@ -30,9 +30,7 @@
 void BPY_post_start_python() {}
 //void BPY_run_python_script() {}
 //void BPY_start_python() {}
-void BPY_do_all_scripts() {}
 void BPY_call_importloader() {}
-void BPY_do_pyscript() {}
 void BPY_clear_script() {}
 //void BPY_free_compiled_text() {}
 void BPY_pyconstraint_eval() {}

@@ -416,7 +416,7 @@ void FONT_OT_file_paste(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string_file_path(ot->srna, "filename", "", 0, "Filename", "File path of text file to load.");
+	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE);
 }
 
 /******************* paste buffer operator ********************/

@@ -2154,12 +2154,12 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 						
 						/* only draw framenum if several consecutive highlighted points don't occur on same point */
 						if (a == 0) {
-							sprintf(str, "  %d\n", (a+sfra));
+							sprintf(str, "%d", (a+sfra));
 							view3d_object_text_draw_add(fp[0], fp[1], fp[2], str, 0);
 						}
 						else if ((a > stepsize) && (a < len-stepsize)) { 
 							if ((VecEqual(fp, fp-(stepsize*3))==0) || (VecEqual(fp, fp+(stepsize*3))==0)) {
-								sprintf(str, "  %d\n", (a+sfra));
+								sprintf(str, "%d", (a+sfra));
 								view3d_object_text_draw_add(fp[0], fp[1], fp[2], str, 0);
 							}
 						}
@@ -2201,7 +2201,7 @@ static void draw_pose_paths(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 								if (ak->cfra == (a+sfra)) {
 									char str[32];
 									
-									sprintf(str, "  %d\n", (a+sfra));
+									sprintf(str, "%d", (a+sfra));
 									view3d_object_text_draw_add(fp[0], fp[1], fp[2], str, 0);
 								}
 							}

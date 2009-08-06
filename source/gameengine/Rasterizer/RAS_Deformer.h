@@ -38,6 +38,7 @@
 #include "GEN_Map.h"
 
 struct DerivedMesh;
+class RAS_MeshObject;
 
 class RAS_Deformer
 {
@@ -71,6 +72,12 @@ public:
 	{
 		return NULL;
 	}
+	virtual class RAS_MeshObject* GetRasMesh()
+	{
+		/* m_pMesh does not seem to be being used?? */
+		return NULL;
+	}
+	virtual float (* GetTransVerts(int *tot))[3]	{	*tot= 0; return NULL; }
 
 protected:
 	class RAS_MeshObject	*m_pMesh;

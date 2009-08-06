@@ -3,7 +3,6 @@ import bpy
 
 class OUTLINER_HT_header(bpy.types.Header):
 	__space_type__ = "OUTLINER"
-	__idname__ = "OUTLINER_HT_header"
 
 	def draw(self, context):
 		so = context.space_data

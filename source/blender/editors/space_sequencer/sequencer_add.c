@@ -97,7 +97,6 @@
 /* avoid passing multiple args and be more verbose */
 #define SEQPROP_STARTFRAME	1<<0
 #define SEQPROP_ENDFRAME	1<<1
-#define SEQPROP_FILENAME	1<<2
 
 static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
 {
@@ -110,9 +109,6 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
 		RNA_def_int(ot->srna, "end_frame", 0, INT_MIN, INT_MAX, "End Frame", "End frame for the color strip", INT_MIN, INT_MAX); /* not useual since most strips have a fixed length */
 	
 	RNA_def_int(ot->srna, "channel", 1, 1, MAXSEQ, "Channel", "Channel to place this strip into", 1, MAXSEQ);
-	
-	if(flag & SEQPROP_FILENAME)
-		RNA_def_string(ot->srna, "filename", "", FILE_MAX, "Scene Name", "full path to load the strip data from");
 	
 	RNA_def_boolean(ot->srna, "replace_sel", 1, "Replace Selection", "replace the current selection");
 }
@@ -312,8 +308,9 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_FILENAME);
-	RNA_def_boolean(ot->srna, "sound", FALSE, "Sound", "Load hd sound with the movie"); // XXX need to impliment this
+	WM_operator_properties_filesel(ot, FOLDERFILE|MOVIEFILE);
+	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
+	RNA_def_boolean(ot->srna, "sound", TRUE, "Sound", "Load hd sound with the movie"); // XXX need to impliment this
 }
 
 
@@ -417,8 +414,9 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_FILENAME);
-	RNA_def_boolean(ot->srna, "hd", FALSE, "HD Sound", "Load the sound as streaming audio"); // XXX need to impliment this
+	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE);
+	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
+	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Load the sound as streaming audio"); // XXX need to impliment this
 }
 
 /* add image operator */
@@ -512,7 +510,8 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_FILENAME);
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE);
+	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
 	
 	RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
 }
@@ -646,7 +645,8 @@ void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_ENDFRAME|SEQPROP_FILENAME);
+	WM_operator_properties_filesel(ot, 0);
+	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_ENDFRAME);
 	RNA_def_enum(ot->srna, "type", sequencer_prop_effect_types, SEQ_CROSS, "Type", "Sequencer effect type");
 	RNA_def_float_vector(ot->srna, "color", 3, NULL, 0.0f, 1.0f, "Color", "Initialize the strip with this color (only used when type='COLOR')", 0.0f, 1.0f);
 }

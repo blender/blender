@@ -372,7 +372,7 @@ static void text_properties_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void text_properties_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, NULL);
+	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
 /********************* registration ********************/

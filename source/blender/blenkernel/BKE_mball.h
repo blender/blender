@@ -164,6 +164,7 @@ struct MetaBall *copy_mball(struct MetaBall *mb);
 void make_local_mball(struct MetaBall *mb);
 void tex_space_mball(struct Object *ob);
 float *make_orco_mball(struct Object *ob);
+void copy_mball_properties(struct Scene *scene, struct Object *active_object);
 struct Object *find_basis_mball(struct Scene *scene, struct Object *ob);
 int is_basis_mball(struct Object *ob);
 void metaball_polygonize(struct Scene *scene, struct Object *ob);

@@ -32,7 +32,6 @@
 #define DNA_WORLD_TYPES_H
 
 #include "DNA_ID.h"
-#include "DNA_scriptlink_types.h"
 
 struct AnimData;
 struct Ipo;
@@ -72,12 +71,12 @@ typedef struct World {
 	/**
 	 * Gravitation constant for the game world
 	 */
-	float gravity; // moved to scene->gamedata in 2.5
+	float gravity; // XXX moved to scene->gamedata in 2.5
 
 	/**
 	 * Radius of the activity bubble, in Manhattan length. Objects
 	 * outside the box are activity-culled. */
-	float activityBoxRadius; // moved to scene->gamedata in 2.5
+	float activityBoxRadius; // XXX moved to scene->gamedata in 2.5
 	
 	short skytype;
 	/**
@@ -90,9 +89,9 @@ typedef struct World {
 	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustrum culling 
 	 */
 	short mode;												// partially moved to scene->gamedata in 2.5
-	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */	// moved to scene->gamedata in 2.5
-	short physicsEngine;	/* here it's aligned */					// moved to scene->gamedata in 2.5
-	short ticrate, maxlogicstep, physubstep, maxphystep;	// moved to scene->gamedata in 2.5
+	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */	// XXX moved to scene->gamedata in 2.5
+	short physicsEngine;	/* here it's aligned */					// XXX moved to scene->gamedata in 2.5
+	short ticrate, maxlogicstep, physubstep, maxphystep;	// XXX moved to scene->gamedata in 2.5
 	
 	float misi, miststa, mistdist, misthi;
 	
@@ -123,8 +122,6 @@ typedef struct World {
 
 	/* previews */
 	struct PreviewImage *preview;
-
-	ScriptLink scriptlink;
 
 } World;
 

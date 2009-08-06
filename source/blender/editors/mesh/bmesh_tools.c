@@ -1396,17 +1396,9 @@ static int mesh_duplicate_exec(bContext *C, wmOperator *op)
 
 static int mesh_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	int ret;
-
 	WM_cursor_wait(1);
-	ret = mesh_duplicate_exec(C, op);
+	mesh_duplicate_exec(C, op);
 	WM_cursor_wait(0);
-
-	if (ret == OPERATOR_CANCELLED)
-		return OPERATOR_CANCELLED;
-	
-	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
-	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1514,9 +1506,7 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 	EDBM_InitOpf(em, &bmop, op, "edgerotate edges=%e ccw=%d", eed, ccw);
 	BMO_Exec_Op(em->bm, &bmop);
 
-	BMO_ITER(eed, &siter, em->bm, &bmop, "edgeout", BM_EDGE) {
-		BM_Select(em->bm, eed, 1);
-	}
+	BMO_HeaderFlag_Slot(em->bm, &bmop, "edgeout", BM_SELECT);
 
 	if (!EDBM_FinishOp(em, &bmop, op, 1))
 		return OPERATOR_CANCELLED;

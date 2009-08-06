@@ -805,6 +805,10 @@ PyObject* BL_ActionActuator::PyGetChannel(PyObject* value) {
 	
 	bPoseChannel *pchan;
 	
+	if(m_userpose==NULL && m_pose==NULL) {
+		BL_ArmatureObject *obj = (BL_ArmatureObject*)GetParent();
+		obj->GetPose(&m_pose); /* Get the underlying pose from the armature */
+	}
 	
 	// get_pose_channel accounts for NULL pose, run on both incase one exists but
 	// the channel doesnt
@@ -950,14 +954,18 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 		obj->GetPose(&m_pose); /* Get the underlying pose from the armature */
 		
 		if (!m_userpose) {
-			obj->GetPose(&m_pose); /* Get the underlying pose from the armature */
+			if(!m_pose)
+				obj->GetPose(&m_pose); /* Get the underlying pose from the armature */
 			game_copy_pose(&m_userpose, m_pose);
 		}
-		pchan= verify_pose_channel(m_userpose, string); // adds the channel if its not there.
+		// pchan= verify_pose_channel(m_userpose, string); // adds the channel if its not there.
+		pchan= get_pose_channel(m_userpose, string); // adds the channel if its not there.
 		
-		VECCOPY (pchan->loc, matrix[3]);
-		Mat4ToSize(matrix, pchan->size);
-		Mat4ToQuat(matrix, pchan->quat);
+		if(pchan) {
+			VECCOPY (pchan->loc, matrix[3]);
+			Mat4ToSize(matrix, pchan->size);
+			Mat4ToQuat(matrix, pchan->quat);
+		}
 	}
 	else {
 		MT_Vector3 loc;
@@ -969,15 +977,24 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 		
 		// same as above
 		if (!m_userpose) {
-			obj->GetPose(&m_pose); /* Get the underlying pose from the armature */
+			if(!m_pose)
+				obj->GetPose(&m_pose); /* Get the underlying pose from the armature */
 			game_copy_pose(&m_userpose, m_pose);
 		}
-		pchan= verify_pose_channel(m_userpose, string);
+		// pchan= verify_pose_channel(m_userpose, string);
+		pchan= get_pose_channel(m_userpose, string); // adds the channel if its not there.
 		
 		// for some reason loc.setValue(pchan->loc) fails
-		pchan->loc[0]= loc[0]; pchan->loc[1]= loc[1]; pchan->loc[2]= loc[2];
-		pchan->size[0]= size[0]; pchan->size[1]= size[1]; pchan->size[2]= size[2];
-		pchan->quat[0]= quat[3]; pchan->quat[1]= quat[0]; pchan->quat[2]= quat[1]; pchan->quat[3]= quat[2]; /* notice xyzw -> wxyz is intentional */
+		if(pchan) {
+			pchan->loc[0]= loc[0]; pchan->loc[1]= loc[1]; pchan->loc[2]= loc[2];
+			pchan->size[0]= size[0]; pchan->size[1]= size[1]; pchan->size[2]= size[2];
+			pchan->quat[0]= quat[3]; pchan->quat[1]= quat[0]; pchan->quat[2]= quat[1]; pchan->quat[3]= quat[2]; /* notice xyzw -> wxyz is intentional */
+		}
+	}
+	
+	if(pchan==NULL) {
+		PyErr_SetString(PyExc_ValueError, "Channel could not be found, use the 'channelNames' attribute to get a list of valid channels");
+		return NULL;
 	}
 	
 	pchan->flag |= POSE_ROT|POSE_LOC|POSE_SIZE;
@@ -1051,6 +1068,7 @@ PyAttributeDef BL_ActionActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RW("frameEnd", 0, MAXFRAMEF, BL_ActionActuator, m_endframe),
 	KX_PYATTRIBUTE_FLOAT_RW("blendIn", 0, MAXFRAMEF, BL_ActionActuator, m_blendin),
 	KX_PYATTRIBUTE_RW_FUNCTION("action", BL_ActionActuator, pyattr_get_action, pyattr_set_action),
+	KX_PYATTRIBUTE_RO_FUNCTION("channelNames", BL_ActionActuator, pyattr_get_channel_names),
 	KX_PYATTRIBUTE_SHORT_RW("priority", 0, 100, false, BL_ActionActuator, m_priority),
 	KX_PYATTRIBUTE_FLOAT_RW_CHECK("frame", 0, MAXFRAMEF, BL_ActionActuator, m_localtime, CheckFrame),
 	KX_PYATTRIBUTE_STRING_RW("propName", 0, 31, false, BL_ActionActuator, m_propname),
@@ -1093,4 +1111,24 @@ int BL_ActionActuator::pyattr_set_action(void *self_v, const KX_PYATTRIBUTE_DEF 
 	self->SetAction(action);
 	return PY_SET_ATTR_SUCCESS;
 
+}
+
+PyObject* BL_ActionActuator::pyattr_get_channel_names(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	BL_ActionActuator* self= static_cast<BL_ActionActuator*>(self_v);
+	PyObject *ret= PyList_New(0);
+	PyObject *item;
+	
+	bPose *pose= ((BL_ArmatureObject*)self->GetParent())->GetOrigPose();
+	
+	if(pose) {
+		bPoseChannel *pchan;
+		for(pchan= (bPoseChannel *)pose->chanbase.first; pchan; pchan= (bPoseChannel *)pchan->next) {
+			item= PyUnicode_FromString(pchan->name);
+			PyList_Append(ret, item);
+			Py_DECREF(item);
+		}
+	}
+	
+	return ret;
 }

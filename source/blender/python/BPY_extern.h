@@ -1,5 +1,5 @@
 /*
- * $Id: BPY_extern.h 21462 2009-07-09 15:40:04Z ton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -37,7 +37,6 @@ struct Text; /* defined in DNA_text_types.h */
 struct ID; /* DNA_ID.h */
 struct Object; /* DNA_object_types.h */
 struct ChannelDriver; /* DNA_anim_types.h */
-struct ScriptLink; /* DNA_scriptlink_types.h */
 struct ListBase; /* DNA_listBase.h */
 struct SpaceText; /* DNA_space_types.h */
 struct SpaceScript; /* DNA_space_types.h */
@@ -110,13 +109,7 @@ extern "C" {
 	int BPY_run_script(struct Script *script);
 	void BPY_free_compiled_text( struct Text *text );
 
-	void BPY_clear_bad_scriptlinks( struct Text *byebye );
 	int BPY_has_onload_script( void );
-	void BPY_do_all_scripts( short event, short anim );
-	int BPY_check_all_scriptlinks( struct Text *text );
-	void BPY_do_pyscript( struct ID *id, short event );
-	void BPY_free_scriptlink( struct ScriptLink *slink );
-	void BPY_copy_scriptlink( struct ScriptLink *scriptlink );
 
 	int BPY_is_spacehandler(struct Text *text, char spacetype);
 	int BPY_del_spacehandler(struct Text *text, struct ScrArea *sa);
@@ -145,8 +138,6 @@ extern "C" {
 	void BPY_DECREF(void *pyob_ptr);	/* Py_DECREF() */
 
 /* void BPY_Err_Handle(struct Text *text); */
-/* void BPY_clear_bad_scriptlink(struct ID *id, struct Text *byebye); */
-/* void BPY_clear_bad_scriptlist(struct ListBase *, struct Text *byebye); */
 /* int BPY_spacetext_is_pywin(struct SpaceText *st); */
 
 #ifdef __cplusplus

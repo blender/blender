@@ -617,7 +617,7 @@ void shade_input_calc_viewco(ShadeInput *shi, float x, float y, float z, float *
 	/* returns not normalized, so is in viewplane coords */
 	calc_view_vector(view, x, y);
 	
-	if(shi->mat->mode & MA_WIRE) {
+	if(shi->mat->material_type == MA_TYPE_WIRE) {
 		/* wire cannot use normal for calculating shi->co, so
 		 * we reconstruct the coordinate less accurate */
 		if(R.r.mode & R_ORTHO)

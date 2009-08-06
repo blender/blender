@@ -66,6 +66,7 @@ typedef unsigned long uint_ptr;
 #include "KX_PythonInit.h"
 #include "KX_PyMath.h"
 #include "KX_PythonSeq.h"
+#include "KX_ConvertPhysicsObject.h"
 #include "SCA_IActuator.h"
 #include "SCA_ISensor.h"
 #include "SCA_IController.h"
@@ -100,7 +101,6 @@ KX_GameObject::KX_GameObject(
 	m_bOccluder(false),
 	m_pPhysicsController1(NULL),
 	m_pGraphicController(NULL),
-	m_pPhysicsEnvironment(NULL),
 	m_xray(false),
 	m_pHitObject(NULL),
 	m_isDeformable(false),
@@ -1387,8 +1387,9 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"getChildrenRecursive", (PyCFunction)KX_GameObject::sPyGetChildrenRecursive,METH_NOARGS},
 	{"getPhysicsId", (PyCFunction)KX_GameObject::sPyGetPhysicsId,METH_NOARGS},
 	{"getPropertyNames", (PyCFunction)KX_GameObject::sPyGetPropertyNames,METH_NOARGS},
-	{"replaceMesh",(PyCFunction) KX_GameObject::sPyReplaceMesh, METH_O},
+	{"replaceMesh",(PyCFunction) KX_GameObject::sPyReplaceMesh, METH_VARARGS},
 	{"endObject",(PyCFunction) KX_GameObject::sPyEndObject, METH_NOARGS},
+	{"reinstancePhysicsMesh", (PyCFunction)KX_GameObject::sPyReinstancePhysicsMesh,METH_VARARGS},
 	
 	KX_PYMETHODTABLE(KX_GameObject, rayCastTo),
 	KX_PYMETHODTABLE(KX_GameObject, rayCast),
@@ -1464,15 +1465,21 @@ bool KX_GameObject::ConvertPythonVectorArgs(PyObject* args,
 }
 */
 
-PyObject* KX_GameObject::PyReplaceMesh(PyObject* value)
+PyObject* KX_GameObject::PyReplaceMesh(PyObject* args)
 {
 	KX_Scene *scene = KX_GetActiveScene();
-	RAS_MeshObject* new_mesh;
+	
+	PyObject *value;
+	int use_gfx= 1, use_phys= 0;
+	RAS_MeshObject *new_mesh;
+	
+	if (!PyArg_ParseTuple(args,"O|ii:replaceMesh", &value, &use_gfx, &use_phys))
+		return NULL;
 	
 	if (!ConvertPythonToMesh(value, &new_mesh, false, "gameOb.replaceMesh(value): KX_GameObject"))
 		return NULL;
 	
-	scene->ReplaceMesh(this, new_mesh);
+	scene->ReplaceMesh(this, new_mesh, (bool)use_gfx, (bool)use_phys);
 	Py_RETURN_NONE;
 }
 
@@ -1484,6 +1491,28 @@ PyObject* KX_GameObject::PyEndObject()
 	
 	Py_RETURN_NONE;
 
+}
+
+PyObject* KX_GameObject::PyReinstancePhysicsMesh(PyObject* args)
+{
+	KX_GameObject *gameobj= NULL;
+	RAS_MeshObject *mesh= NULL;
+	
+	PyObject *gameobj_py= NULL;
+	PyObject *mesh_py= NULL;
+
+	if (	!PyArg_ParseTuple(args,"|OO:reinstancePhysicsMesh",&gameobj_py, &mesh_py) ||
+			(gameobj_py && !ConvertPythonToGameObject(gameobj_py, &gameobj, true, "gameOb.reinstancePhysicsMesh(obj, mesh): KX_GameObject")) || 
+			(mesh_py && !ConvertPythonToMesh(mesh_py, &mesh, true, "gameOb.reinstancePhysicsMesh(obj, mesh): KX_GameObject"))
+		) {
+		return NULL;
+	}
+	
+	/* gameobj and mesh can be NULL */
+	if(KX_ReInstanceBulletShapeFromMesh(this, gameobj, mesh))
+		Py_RETURN_TRUE;
+
+	Py_RETURN_FALSE;
 }
 
 
@@ -2663,8 +2692,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 		toDir.normalize();
 		toPoint = fromPoint + (dist) * toDir;
 	}
-
-	PHY_IPhysicsEnvironment* pe = GetPhysicsEnvironment();
+	PHY_IPhysicsEnvironment* pe = KX_GetActiveScene()->GetPhysicsEnvironment();
 	KX_IPhysicsController *spc = GetPhysicsController();
 	KX_GameObject *parent = GetParent();
 	if (!spc && parent)
@@ -2791,7 +2819,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 		return none_tuple_3();
 	}
 	
-	PHY_IPhysicsEnvironment* pe = GetPhysicsEnvironment();
+	PHY_IPhysicsEnvironment* pe = KX_GetActiveScene()->GetPhysicsEnvironment();
 	KX_IPhysicsController *spc = GetPhysicsController();
 	KX_GameObject *parent = GetParent();
 	if (!spc && parent)

@@ -33,6 +33,7 @@
 #include "DNA_modifier_types.h"		/* needed for all enum typdefs */
 #include "BKE_customdata.h"
 
+struct ID;
 struct EditMesh;
 struct DerivedMesh;
 struct DagForest;

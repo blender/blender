@@ -74,6 +74,12 @@ void WM_operator_free(wmOperator *op)
 		MEM_freeN(op->reports);
 	}
 
+	if(op->macro.first) {
+		wmOperator *opm;
+		for(opm= op->macro.first; opm; opm= opm->next) 
+			WM_operator_free(opm);
+	}
+	
 	MEM_freeN(op);
 }
 
@@ -97,7 +103,7 @@ void wm_operator_register(bContext *C, wmOperator *op)
 	
 	
 	/* Report the string representation of the operator */
-	buf = WM_operator_pystring(op);
+	buf = WM_operator_pystring(op->type, op->ptr, 1);
 	BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
 	MEM_freeN(buf);
 	
@@ -124,7 +130,7 @@ void WM_keymap_init(bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 
-	if(CTX_py_init_get(C) && (wm->initialized & WM_INIT_KEYMAP) == 0) {
+	if(wm && CTX_py_init_get(C) && (wm->initialized & WM_INIT_KEYMAP) == 0) {
 		wm_window_keymap(wm);
 		ED_spacetypes_keymap(wm);
 

@@ -34,9 +34,11 @@
 #include "DNA_armature_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_bmesh.h" /* For BevelModifierData */
+#include "BKE_smoke.h" /* For smokeModifier_free & smokeModifier_createType */
 
 #include "WM_types.h"
 
@@ -60,14 +62,15 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Mask, "MASK", ICON_MOD_MASK, "Mask", ""},
 	{eModifierType_MeshDeform, "MESH_DEFORM", ICON_MOD_MESHDEFORM, "Mesh Deform", ""},
 	{eModifierType_Mirror, "MIRROR", ICON_MOD_MIRROR, "Mirror", ""},
-	{eModifierType_Multires, "MULTIRES", ICON_MOD_MULTIRES, "Multires", ""},
+	{eModifierType_Multires, "MULTIRES", ICON_MOD_MULTIRES, "Multiresolution", ""},
 	{eModifierType_ParticleInstance, "PARTICLE_INSTANCE", ICON_MOD_PARTICLES, "Particle Instance", ""},
 	{eModifierType_ParticleSystem, "PARTICLE_SYSTEM", ICON_MOD_PARTICLES, "Particle System", ""},
 	{eModifierType_Shrinkwrap, "SHRINKWRAP", ICON_MOD_SHRINKWRAP, "Shrinkwrap", ""},
 	{eModifierType_SimpleDeform, "SIMPLE_DEFORM", ICON_MOD_SIMPLEDEFORM, "Simple Deform", ""},
+	{eModifierType_Smoke, "SMOKE", 0, "Smoke", ""},
 	{eModifierType_Smooth, "SMOOTH", ICON_MOD_SMOOTH, "Smooth", ""},
 	{eModifierType_Softbody, "SOFTBODY", ICON_MOD_SOFT, "Soft Body", ""},
-	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subsurf", ""},
+	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
 	{eModifierType_Surface, "SURFACE", ICON_MOD_PHYSICS, "Surface", ""},
 	{eModifierType_UVProject, "UV_PROJECT", ICON_MOD_UVPROJECT, "UV Project", ""},
 	{eModifierType_Wave, "WAVE", ICON_MOD_WAVE, "Wave", ""},
@@ -151,6 +154,8 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_MultiresModifier;
 		case eModifierType_Surface:
 			return &RNA_SurfaceModifier;
+		case eModifierType_Smoke:
+			return &RNA_SmokeModifier;
 		default:
 			return &RNA_Modifier;
 	}
@@ -170,6 +175,23 @@ static void rna_Modifier_dependency_update(bContext *C, PointerRNA *ptr)
 {
 	rna_Modifier_update(C, ptr);
     DAG_scene_sort(CTX_data_scene(C));
+}
+
+static void rna_Smoke_set_type(bContext *C, PointerRNA *ptr)
+{
+	SmokeModifierData *smd= (SmokeModifierData *)ptr->data;
+	Object *ob= (Object*)ptr->id.data;
+		
+	smokeModifier_free(smd); // XXX TODO: completely free all 3 pointers
+	smokeModifier_createType(smd); // create regarding of selected type
+	// particle_system_slot_add_exec(C, NULL);
+	// particle_system_slot_remove_exec(C, NULL);
+
+	if(smd->type == MOD_SMOKE_TYPE_DOMAIN)
+		ob->dt = OB_WIRE;
+	
+	// update dependancy since a domain - other type switch could have happened
+	rna_Modifier_dependency_update(C, ptr);
 }
 
 static void rna_ExplodeModifier_vgroup_get(PointerRNA *ptr, char *value)
@@ -311,6 +333,11 @@ static void rna_CurveModifier_object_set(PointerRNA *ptr, PointerRNA value)
 	modifier_object_set(&((CurveModifierData*)ptr->data)->object, OB_CURVE, value);
 }
 
+static void rna_CastModifier_object_set(PointerRNA *ptr, PointerRNA value)
+{
+	modifier_object_set(&((CastModifierData*)ptr->data)->object, OB_MESH, value);
+}
+
 static void rna_ArmatureModifier_object_set(PointerRNA *ptr, PointerRNA value)
 {
 	modifier_object_set(&((ArmatureModifierData*)ptr->data)->object, OB_ARMATURE, value);
@@ -355,6 +382,12 @@ static PointerRNA rna_SoftBodyModifier_settings_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 	return rna_pointer_inherit_refine(ptr, &RNA_SoftBodySettings, ob->soft);
+}
+
+static PointerRNA rna_SoftBodyModifier_point_cache_get(PointerRNA *ptr)
+{
+	Object *ob= (Object*)ptr->id.data;
+	return rna_pointer_inherit_refine(ptr, &RNA_PointCache, ob->soft->pointcache);
 }
 
 static PointerRNA rna_CollisionModifier_settings_get(PointerRNA *ptr)
@@ -857,6 +890,11 @@ static void rna_def_modifier_softbody(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "SoftBodySettings");
 	RNA_def_property_pointer_funcs(prop, "rna_SoftBodyModifier_settings_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Soft Body Settings", "");
+
+	prop= RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "PointCache");
+	RNA_def_property_pointer_funcs(prop, "rna_SoftBodyModifier_point_cache_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Soft Body Point Cache", "");
 }
 
 static void rna_def_modifier_boolean(BlenderRNA *brna)
@@ -1203,6 +1241,12 @@ static void rna_def_modifier_cast(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, prop_cast_type_items);
 	RNA_def_property_ui_text(prop, "Cast Type", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
+	
+	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Object", "Control object: if available, its location determines the center of the effect");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_CastModifier_object_set", NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_dependency_update");
 
 	prop= RNA_def_property(srna, "x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_CAST_X);
@@ -1217,6 +1261,16 @@ static void rna_def_modifier_cast(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_CAST_Z);
 	RNA_def_property_ui_text(prop, "Z", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
+	
+	prop= RNA_def_property(srna, "from_radius", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_CAST_SIZE_FROM_RADIUS);
+	RNA_def_property_ui_text(prop, "From Radius", "Use radius as size of projection shape (0 = auto)");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
+	
+	prop= RNA_def_property(srna, "use_transform", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_CAST_USE_OB_TRANSFORM);
+	RNA_def_property_ui_text(prop, "Use transform", "Use object transform to control projection shape");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 	
 	prop= RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
@@ -1443,6 +1497,41 @@ static void rna_def_modifier_cloth(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_ui_text(prop, "Point Cache", "");
+}
+
+static void rna_def_modifier_smoke(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	static EnumPropertyItem prop_smoke_type_items[] = {
+			{0, "NONE", 0, "None", ""},
+			{MOD_SMOKE_TYPE_DOMAIN, "TYPE_DOMAIN", 0, "Domain", ""},
+			{MOD_SMOKE_TYPE_FLOW, "TYPE_FLOW", 0, "Flow", "Inflow/Outflow"},
+			{MOD_SMOKE_TYPE_COLL, "TYPE_COLL", 0, "Collision", ""},
+			{0, NULL, 0, NULL, NULL}};
+	
+	srna= RNA_def_struct(brna, "SmokeModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "Smoke Modifier", "Smoke simulation modifier.");
+	RNA_def_struct_sdna(srna, "SmokeModifierData");
+	
+	prop= RNA_def_property(srna, "domain_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "domain");
+	RNA_def_property_ui_text(prop, "Domain Settings", "");
+	
+	prop= RNA_def_property(srna, "flow_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "flow");
+	RNA_def_property_ui_text(prop, "Flow Settings", "");
+	
+	prop= RNA_def_property(srna, "coll_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "coll");
+	RNA_def_property_ui_text(prop, "Collision Settings", "");
+	
+	prop= RNA_def_property(srna, "smoke_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, prop_smoke_type_items);
+	RNA_def_property_ui_text(prop, "Type", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_set_type");
 }
 
 static void rna_def_modifier_collision(BlenderRNA *brna)
@@ -1742,7 +1831,6 @@ static void rna_def_modifier_surface(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "SurfaceModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_PHYSICS);
 }
-
 void RNA_def_modifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1826,6 +1914,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_simpledeform(brna);
 	rna_def_modifier_multires(brna);
 	rna_def_modifier_surface(brna);
+	rna_def_modifier_smoke(brna);
 }
 
 #endif

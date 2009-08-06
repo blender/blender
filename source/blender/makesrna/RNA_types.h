@@ -85,6 +85,11 @@ typedef enum PropertyFlag {
 	 * for pointers and collections. */
 	PROP_EDITABLE = 1,
 
+	/* this property is editable even if it is lib linked,
+	 * meaning it will get lost on reload, but it's useful
+	 * for editing. */
+	PROP_LIB_EXCEPTION = 65536,
+
 	/* animateable means the property can be driven by some
 	 * other input, be it animation curves, expressions, ..
 	 * properties are animateable by default except for pointers

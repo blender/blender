@@ -178,6 +178,7 @@ extern wchar_t *copybufinfo;
 
 	// XXX copy/paste buffer stuff...
 extern void free_anim_copybuf(); 
+extern void free_posebuf(); 
 
 /* called in creator.c even... tsk, split this! */
 void WM_exit(bContext *C)
@@ -231,6 +232,7 @@ void WM_exit(bContext *C)
 	free_blender();				/* blender.c, does entire library and spacetypes */
 //	free_matcopybuf();
 	free_anim_copybuf();
+	free_posebuf();
 //	free_vertexpaint();
 //	free_imagepaint();
 	
@@ -239,7 +241,7 @@ void WM_exit(bContext *C)
 	BLF_exit();
 
 	RE_FreeAllRender();
-	RE_engines_free();
+	RE_engines_exit();
 	
 //	free_txt_data();
 	
@@ -272,6 +274,8 @@ void WM_exit(bContext *C)
 
 	RNA_exit();
 	
+	wm_ghost_exit();
+
 	CTX_free(C);
 	
 	if(MEM_get_memory_blocks_in_use()!=0) {

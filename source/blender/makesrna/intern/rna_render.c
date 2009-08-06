@@ -48,6 +48,41 @@
 
 /* RenderEngine */
 
+static RenderEngineType internal_render_type = {
+	NULL, NULL, "BLENDER_RENDER", "Blender Render", RE_INTERNAL, NULL, {NULL, NULL, NULL, NULL}};
+#if GAMEBLENDER == 1
+static RenderEngineType internal_game_type = {
+	NULL, NULL, "BLENDER_GAME", "Blender Game", RE_INTERNAL|RE_GAME, NULL, {NULL, NULL, NULL, NULL}};
+#endif
+
+ListBase R_engines = {NULL, NULL};
+
+void RE_engines_init()
+{
+	BLI_addtail(&R_engines, &internal_render_type);
+#if GAMEBLENDER == 1
+	BLI_addtail(&R_engines, &internal_game_type);
+#endif
+}
+
+void RE_engines_exit()
+{
+	RenderEngineType *type, *next;
+
+	for(type=R_engines.first; type; type=next) {
+		next= type->next;
+
+		BLI_remlink(&R_engines, type);
+
+		if(!(type->flag & RE_INTERNAL)) {
+			if(type->ext.free)
+				type->ext.free(type->ext.data);
+
+			MEM_freeN(type);
+		}
+	}
+}
+
 static void engine_render(RenderEngine *engine, struct Scene *scene)
 {
 	PointerRNA ptr;
@@ -262,10 +297,21 @@ static void rna_def_render_layer(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	FunctionRNA *func;
 	
 	srna= RNA_def_struct(brna, "RenderLayer", NULL);
 	RNA_def_struct_ui_text(srna, "Render Layer", "");
 
+	func= RNA_def_function(srna, "rect_from_file", "RE_layer_rect_from_file");
+	RNA_def_function_ui_description(func, "Copies the pixels of this renderlayer from an image file.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	prop= RNA_def_string(func, "filename", "", 0, "Filename", "Filename to load into this render tile, must be no smaller then the renderlayer");
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+	prop= RNA_def_int(func, "x", 0, 0, INT_MAX, "Offset X", "Offset the position to copy from if the image is larger then the render layer", 0, INT_MAX);
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+	prop= RNA_def_int(func, "y", 0, 0, INT_MAX, "Offset Y", "Offset the position to copy from if the image is larger then the render layer", 0, INT_MAX);
+	RNA_def_property_flag(prop, PROP_REQUIRED);
+	
 	RNA_define_verify_sdna(0);
 
 	rna_def_render_layer_common(srna, 0);

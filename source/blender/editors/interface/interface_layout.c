@@ -486,13 +486,43 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, i
 	if(subtype == PROP_FILEPATH || subtype == PROP_DIRPATH) {
 		uiBlockSetCurLayout(block, uiLayoutRow(sub, 1));
 		uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, w-UI_UNIT_X, h);
-		but= uiDefIconBut(block, BUT, 0, ICON_FILESEL, x, y, UI_UNIT_X, h, NULL, 0.0f, 0.0f, 0.0f, 0.0f, "DUMMY file select button"); /* XXX */
+
+		/* BUTTONS_OT_file_browse calls uiFileBrowseContextProperty */
+		but= uiDefIconButO(block, BUT, "BUTTONS_OT_file_browse", WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, "Browse for file or directory.");
 	}
 	else
 		but= uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, w, h);
 
 	uiBlockSetCurLayout(block, layout);
 	return but;
+}
+
+void uiFileBrowseContextProperty(const bContext *C, PointerRNA *ptr, PropertyRNA **prop)
+{
+	ARegion *ar= CTX_wm_region(C);
+	uiBlock *block;
+	uiBut *but, *prevbut;
+
+	memset(ptr, 0, sizeof(*ptr));
+	*prop= NULL;
+
+	if(!ar)
+		return;
+
+	for(block=ar->uiblocks.first; block; block=block->next) {
+		for(but=block->buttons.first; but; but= but->next) {
+			prevbut= but->prev;
+
+			/* find the button before the active one */
+			if((but->flag & UI_BUT_LAST_ACTIVE) && prevbut && prevbut->rnapoin.id.data) {
+				if(RNA_property_type(prevbut->rnaprop) == PROP_STRING) {
+					*ptr= prevbut->rnapoin;
+					*prop= prevbut->rnaprop;
+					return;
+				}
+			}
+		}
+	}
 }
 
 /********************* Button Items *************************/
@@ -724,8 +754,8 @@ static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PropertyRNA
 	subtype= RNA_property_subtype(prop);
 	len= RNA_property_array_length(prop);
 
-	if(ELEM(type, PROP_STRING, PROP_POINTER) && !name[0])
-		name= "non-empty";
+	if(ELEM3(type, PROP_STRING, PROP_POINTER, PROP_ENUM) && !name[0])
+		name= "non-empty text";
 	else if(type == PROP_BOOLEAN && !name[0])
 		icon= ICON_DOT;
 

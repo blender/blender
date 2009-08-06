@@ -417,7 +417,7 @@ static void do_image_buttons(bContext *C, void *arg, int event)
 
 static int toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Object *obedit= CTX_data_edit_object(C);
 	uiPopupMenu *pup;
 	uiLayout *layout;

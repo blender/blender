@@ -118,6 +118,9 @@ extern "C" {
 #ifndef expf
 #define expf(a) ((float)exp(a))
 #endif
+#ifndef fmodf
+#define fmodf(a, b) ((float)fmod(a, b))
+#endif
 
 #ifdef WIN32
 	#ifndef FREE_WINDOWS

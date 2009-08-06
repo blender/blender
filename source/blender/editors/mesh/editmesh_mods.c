@@ -93,7 +93,7 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BLO_sys_types.h" // for intptr_t support
 
 /* XXX */
-static void waitcursor() {}
+static void waitcursor(int val) {}
 static int pupmenu() {return 0;}
 
 /* ****************************** MIRROR **************** */

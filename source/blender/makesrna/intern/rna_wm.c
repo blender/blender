@@ -40,8 +40,28 @@ EnumPropertyItem event_value_items[] = {
 	{KM_RELEASE, "RELEASE", 0, "Release", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-/* not returned: CAPSLOCKKEY, UNKNOWNKEY, COMMANDKEY, GRLESSKEY */
+/* not returned: CAPSLOCKKEY, UNKNOWNKEY, GRLESSKEY */
 EnumPropertyItem event_type_items[] = {
+
+	{LEFTMOUSE, "LEFTMOUSE", 0, "Left Mouse", ""},
+	{MIDDLEMOUSE, "MIDDLEMOUSE", 0, "Middle Mouse", ""},
+	{RIGHTMOUSE, "RIGHTMOUSE", 0, "Right Mouse", ""},
+	{ACTIONMOUSE, "ACTIONMOUSE", 0, "Action Mouse", ""},
+	{SELECTMOUSE, "SELECTMOUSE", 0, "Select Mouse", ""},
+
+	{MOUSEMOVE, "MOUSEMOVE", 0, "Mouse Move", ""},
+
+	{WHEELUPMOUSE, "WHEELUPMOUSE", 0, "Wheel Up", ""},
+	{WHEELDOWNMOUSE, "WHEELDOWNMOUSE", 0, "Wheel Down", ""},
+	{WHEELINMOUSE, "WHEELINMOUSE", 0, "Wheel In", ""},
+	{WHEELOUTMOUSE, "WHEELOUTMOUSE", 0, "Wheel Out", ""},
+
+	{EVT_TWEAK_L, "EVT_TWEAK_L", 0, "Tweak Left", ""},
+	{EVT_TWEAK_M, "EVT_TWEAK_M", 0, "Tweak Middle", ""},
+	{EVT_TWEAK_R, "EVT_TWEAK_R", 0, "Tweak Right", ""},
+	{EVT_TWEAK_A, "EVT_TWEAK_A", 0, "Tweak Action", ""},
+	{EVT_TWEAK_S, "EVT_TWEAK_S", 0, "Tweak Select", ""},
+
 	{AKEY, "A", 0, "A", ""},
 	{BKEY, "B", 0, "B", ""},
 	{CKEY, "C", 0, "C", ""},
@@ -86,6 +106,8 @@ EnumPropertyItem event_type_items[] = {
 	{RIGHTALTKEY,	"RIGHT_ALT",	0, "Right Alt", ""},
 	{RIGHTCTRLKEY,	"RIGHT_CTRL",	0, "Right Ctrl", ""},
 	{RIGHTSHIFTKEY,	"RIGHT_SHIFT",	0, "Right Shift", ""},
+
+	{COMMANDKEY,	"COMMAND",	0, "Command", ""},
 	
 	{ESCKEY, "ESC", 0, "Esc", ""},
 	{TABKEY, "TAB", 0, "Tab", ""},

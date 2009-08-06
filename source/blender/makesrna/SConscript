@@ -34,4 +34,7 @@ if env['WITH_BF_QUICKTIME']:
 if env['WITH_BF_LCMS']:
 	defs.append('WITH_LCMS')
 
+if env['WITH_BF_GAMEENGINE']:
+	defs.append('GAMEBLENDER=1')
+
 env.BlenderLib ( 'bf_rna', objs, Split(incs), defines=defs, libtype=['core'], priority = [195] )

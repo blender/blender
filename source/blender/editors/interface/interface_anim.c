@@ -144,7 +144,7 @@ void ui_but_anim_autokey(uiBut *but, Scene *scene, float cfra)
 
 	if(fcu && !driven) {
 		id= but->rnapoin.id.data;
-
+		
 		if(autokeyframe_cfra_can_key(scene, id)) {
 			short flag = 0;
 			
@@ -164,6 +164,10 @@ void uiAnimContextProperty(const bContext *C, struct PointerRNA *ptr, struct Pro
 	ARegion *ar= CTX_wm_region(C);
 	uiBlock *block;
 	uiBut *but;
+
+	memset(ptr, 0, sizeof(*ptr));
+	*prop= NULL;
+	*index= 0;
 
 	if(ar) {
 		for(block=ar->uiblocks.first; block; block=block->next) {

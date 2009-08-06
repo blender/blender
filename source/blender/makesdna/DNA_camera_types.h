@@ -32,7 +32,6 @@
 #define DNA_CAMERA_TYPES_H
 
 #include "DNA_ID.h"
-#include "DNA_scriptlink_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,7 +60,6 @@ typedef struct Camera {
 
 	struct Ipo *ipo;			// XXX depreceated... old animation system
 	
-	ScriptLink scriptlink;
 	struct Object *dof_ob;
 } Camera;
 

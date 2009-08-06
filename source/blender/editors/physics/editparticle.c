@@ -271,6 +271,7 @@ typedef struct PEData {
 	float smoothfac;
 	float weightfac;
 	float growfac;
+	int totrekey;
 
 	int invert;
 	int tot;
@@ -1748,7 +1749,6 @@ static void rekey_particle(PEData *data, int pa_index)
 	ParticleSystem *psys= data->psys;
 	ParticleData *pa= &psys->particles[pa_index];
 	ParticleEdit *edit= psys->edit;
-	ParticleEditSettings *pset= PE_settings(data->scene);
 	ParticleKey state;
 	HairKey *key, *new_keys;
 	ParticleEditKey *ekey;
@@ -1757,19 +1757,19 @@ static void rekey_particle(PEData *data, int pa_index)
 
 	pa->flag |= PARS_REKEY;
 
-	key= new_keys= MEM_callocN(pset->totrekey * sizeof(HairKey),"Hair re-key keys");
+	key= new_keys= MEM_callocN(data->totrekey * sizeof(HairKey),"Hair re-key keys");
 
 	/* root and tip stay the same */
 	VECCOPY(key->co, pa->hair->co);
-	VECCOPY((key + pset->totrekey - 1)->co, (pa->hair + pa->totkey - 1)->co);
+	VECCOPY((key + data->totrekey - 1)->co, (pa->hair + pa->totkey - 1)->co);
 
 	sta= key->time= pa->hair->time;
-	end= (key + pset->totrekey - 1)->time= (pa->hair + pa->totkey - 1)->time;
-	dval= (end - sta) / (float)(pset->totrekey - 1);
+	end= (key + data->totrekey - 1)->time= (pa->hair + pa->totkey - 1)->time;
+	dval= (end - sta) / (float)(data->totrekey - 1);
 
 	/* interpolate new keys from old ones */
-	for(k=1,key++; k<pset->totrekey-1; k++,key++) {
-		state.time= (float)k / (float)(pset->totrekey-1);
+	for(k=1,key++; k<data->totrekey-1; k++,key++) {
+		state.time= (float)k / (float)(data->totrekey-1);
 		psys_get_particle_on_path(data->scene, data->ob, psys, pa_index, &state, 0);
 		VECCOPY(key->co, state.co);
 		key->time= sta + k * dval;
@@ -1780,7 +1780,7 @@ static void rekey_particle(PEData *data, int pa_index)
 		MEM_freeN(pa->hair);
 	pa->hair= new_keys;
 
-	pa->totkey=pset->totrekey;
+	pa->totkey=data->totrekey;
 
 	if(edit->keys[pa_index])
 		MEM_freeN(edit->keys[pa_index]);
@@ -1798,14 +1798,11 @@ static void rekey_particle(PEData *data, int pa_index)
 static int rekey_exec(bContext *C, wmOperator *op)
 {
 	PEData data;
-	ParticleEditSettings *pset;
 
 	PE_set_data(C, &data);
 
-	pset= PE_settings(data.scene);
-	pset->totrekey= RNA_int_get(op->ptr, "keys");
-
-	data.dval= 1.0f / (float)(pset->totrekey-1);
+	data.dval= 1.0f / (float)(data.totrekey-1);
+	data.totrekey= RNA_int_get(op->ptr, "keys");
 
 	foreach_selected_particle(&data, rekey_particle);
 	

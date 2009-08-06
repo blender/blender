@@ -161,11 +161,11 @@ def setup_syslibs(lenv):
 
 	syslibs += Split(lenv['BF_FREETYPE_LIB'])
 	if lenv['WITH_BF_PYTHON'] and not lenv['WITH_BF_STATICPYTHON']:
-		#if not lenv['BF_NO_PYDEBUG'] and lenv['BF_DEBUG'] and lenv['OURPLATFORM'] in ('win32-vc'):
-		#	print "using debug py"
-		#	syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
-		#else:
-			#print "not using debug py"
+		if not lenv['BF_NO_PYDEBUG'] and lenv['BF_DEBUG'] and lenv['OURPLATFORM'] in ('win32-vc'):
+			print "using debug py"
+			syslibs.append(lenv['BF_PYTHON_LIB']+'_d')
+		else:
+			print "not using debug py"
 		syslibs.append(lenv['BF_PYTHON_LIB'])
 	if lenv['WITH_BF_INTERNATIONAL']:
 		syslibs += Split(lenv['BF_GETTEXT_LIB'])
@@ -326,6 +326,7 @@ def AppIt(target=None, source=None, env=None):
 	
 	a = '%s' % (target[0])
 	builddir, b = os.path.split(a)
+	libdir = env['LCGDIR'][1:]
 
 	bldroot = env.Dir('.').abspath
 	binary = env['BINARYKIND']
@@ -358,9 +359,15 @@ def AppIt(target=None, source=None, env=None):
 	commands.getoutput(cmd) 
 	cmd = 'cp %s/bin/.blender/.Blanguages %s/%s.app/Contents/Resources/'%(bldroot,builddir,binary)
 	commands.getoutput(cmd) 
+	cmd = 'mkdir %s/%s.app/Contents/MacOS/.blender/python/'%(builddir,binary)
+	commands.getoutput(cmd) 
+	cmd = 'unzip -q %s/release/python.zip -d %s/%s.app/Contents/MacOS/.blender/python/'%(libdir,builddir,binary)
+	commands.getoutput(cmd) 
 	cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
 	commands.getoutput(cmd)
 	cmd = 'cp -R %s/release/ui %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
+	commands.getoutput(cmd)
+	cmd = 'cp -R %s/release/io %s/%s.app/Contents/MacOS/.blender/'%(bldroot,builddir,binary)
 	commands.getoutput(cmd)
 	cmd = 'chmod +x  %s/%s.app/Contents/MacOS/%s'%(builddir,binary, binary)
 	commands.getoutput(cmd)

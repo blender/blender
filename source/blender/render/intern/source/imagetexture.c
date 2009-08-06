@@ -1342,7 +1342,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, 
 			b *= ff;
 		}
 		maxd = MAX2(b, 1e-8f);
-		levf = logf(maxd)*(float)M_LOG2E;
+		levf = ((float)M_LOG2E)*logf(maxd);
 
 		curmap = 0;
 		maxlev = 1;
@@ -1503,7 +1503,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 	VECCOPY(dyt, DYT);
 
 	// anisotropic filtering
-	if (!SAT && (tex->texfilter != TXF_DEFAULT))
+	if (!SAT && (tex->texfilter != TXF_BOX))
 		return imagewraposa_aniso(tex, ima, ibuf, texvec, dxt, dyt, texres);
 
 	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0f;

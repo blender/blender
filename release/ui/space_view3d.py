@@ -1,6 +1,25 @@
 
 import bpy
 
+# ********** Header ****************
+
+class VIEW3D_HT_header(bpy.types.Header):
+	__space_type__ = "VIEW_3D"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.template_header()
+
+		# menus
+		if context.area.show_menus:
+			row = layout.row()
+			row.itemM("VIEW3D_MT_view")
+
+		layout.template_header_3D()
+
+# ********** Menu ****************
+
 class VIEW3D_MT_view_navigation(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
 	__label__ = "Navigation"
@@ -73,22 +92,10 @@ class VIEW3D_MT_view(bpy.types.Menu):
 		
 		layout.itemS()
 		
-		layout.itemO("screen.screen_full_area")
+		layout.itemO("screen.region_foursplit", text="Toggle Quad View")
+		layout.itemO("screen.screen_full_area", text="Toggle Full Screen")
 
-class VIEW3D_HT_header(bpy.types.Header):
-	__space_type__ = "VIEW_3D"
-
-	def draw(self, context):
-		layout = self.layout
-
-		layout.template_header()
-
-		# menus
-		if context.area.show_menus:
-			row = layout.row()
-			row.itemM("VIEW3D_MT_view")
-
-		layout.template_header_3D()
+# ********** Panel ****************
 
 class VIEW3D_PT_3dview_properties(bpy.types.Panel):
 	__space_type__ = "VIEW_3D"
@@ -100,19 +107,27 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
 		return (view)
 
 	def draw(self, context):
-		view = context.space_data
 		layout = self.layout
 		
-		split = layout.split()
-		col = split.column()
+		view = context.space_data
+		scene = context.scene
+		
+		col = layout.column()
 		col.itemR(view, "camera")
 		col.itemR(view, "lens")
-		col.itemL(text="Clip:")
+		
+		layout.itemL(text="Clip:")
+		col = layout.column(align=True)
 		col.itemR(view, "clip_start", text="Start")
 		col.itemR(view, "clip_end", text="End")
-		col.itemL(text="Grid:")
+		
+		layout.itemL(text="Grid:")
+		col = layout.column(align=True)
+		col.itemR(view, "grid_lines", text="Lines")
 		col.itemR(view, "grid_spacing", text="Spacing")
 		col.itemR(view, "grid_subdivisions", text="Subdivisions")
+		
+		layout.column().itemR(scene, "cursor_location", text="3D Cursor:")
 		
 class VIEW3D_PT_3dview_display(bpy.types.Panel):
 	__space_type__ = "VIEW_3D"
@@ -124,11 +139,10 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
 		return (view)
 
 	def draw(self, context):
-		view = context.space_data
 		layout = self.layout
+		view = context.space_data
 		
-		split = layout.split()
-		col = split.column()
+		col = layout.column()
 		col.itemR(view, "display_floor", text="Grid Floor")
 		col.itemR(view, "display_x_axis", text="X Axis")
 		col.itemR(view, "display_y_axis", text="Y Axis")
@@ -137,11 +151,21 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
 		col.itemR(view, "all_object_centers")
 		col.itemR(view, "relationship_lines")
 		col.itemR(view, "textured_solid")
-			
+		
+		layout.itemS()
+		
+		layout.itemO("screen.region_foursplit")
+		
+		col = layout.column()
+		col.itemR(view, "lock_rotation")
+		col.itemR(view, "box_preview")
+		col.itemR(view, "box_clip")
+	
 class VIEW3D_PT_background_image(bpy.types.Panel):
 	__space_type__ = "VIEW_3D"
 	__region_type__ = "UI"
 	__label__ = "Background Image"
+	__default_closed__ = True
 
 	def poll(self, context):
 		view = context.space_data
@@ -155,20 +179,24 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
 		layout.itemR(view, "display_background_image", text="")
 
 	def draw(self, context):
-		view = context.space_data
-		bg = context.space_data.background_image
 		layout = self.layout
 		
-		layout.active = view.display_background_image
-		split = layout.split()
-		col = split.column()
-		col.itemR(bg, "image")
-#		col.itemR(bg, "image_user")
-		col.itemR(bg, "size")
-		col.itemR(bg, "transparency", slider=True)
-		col.itemL(text="Offset:")
-		col.itemR(bg, "x_offset", text="X")
-		col.itemR(bg, "y_offset", text="Y")
+		view = context.space_data
+		bg = view.background_image
+
+		if bg:
+			layout.active = view.display_background_image
+
+			col = layout.column()
+			col.itemR(bg, "image", text="")
+			#col.itemR(bg, "image_user")
+			col.itemR(bg, "size")
+			col.itemR(bg, "transparency", slider=True)
+			col.itemL(text="Offset:")
+			
+			col = layout.column(align=True)
+			col.itemR(bg, "x_offset", text="X")
+			col.itemR(bg, "y_offset", text="Y")
 
 bpy.types.register(VIEW3D_MT_view_navigation)
 bpy.types.register(VIEW3D_MT_view)
@@ -176,5 +204,3 @@ bpy.types.register(VIEW3D_HT_header)
 bpy.types.register(VIEW3D_PT_3dview_properties)
 bpy.types.register(VIEW3D_PT_3dview_display)
 bpy.types.register(VIEW3D_PT_background_image)
-
-

@@ -71,7 +71,7 @@ static short id_has_animdata (ID *id)
 	switch (GS(id->name)) {
 			/* has AnimData */
 		case ID_OB:
-		case ID_CU:
+		case ID_MB: case ID_CU:
 		case ID_KE:
 		case ID_PA:
 		case ID_MA: case ID_TE: case ID_NT:
@@ -120,8 +120,15 @@ AnimData *BKE_id_add_animdata (ID *id)
 		IdAdtTemplate *iat= (IdAdtTemplate *)id;
 		
 		/* check if there's already AnimData, in which case, don't add */
-		if (iat->adt == NULL)
-			iat->adt= MEM_callocN(sizeof(AnimData), "AnimData");
+		if (iat->adt == NULL) {
+			AnimData *adt;
+			
+			/* add animdata */
+			adt= iat->adt= MEM_callocN(sizeof(AnimData), "AnimData");
+			
+			/* set default settings */
+			adt->act_influence= 1.0f;
+		}
 		
 		return iat->adt;
 	}
@@ -1190,8 +1197,12 @@ void nladata_flush_channels (ListBase *channels)
  */
 static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 {
+	ListBase dummy_trackslist = {NULL, NULL};
+	NlaStrip dummy_strip;
+	
 	NlaTrack *nlt;
 	short track_index=0;
+	short has_strips = 0;
 	
 	ListBase estrips= {NULL, NULL};
 	ListBase echannels= {NULL, NULL};
@@ -1213,9 +1224,48 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 		if (nlt->flag & NLATRACK_MUTED) 
 			continue;
 			
+		/* if this track has strips (but maybe they won't be suitable), set has_strips 
+		 *	- used for mainly for still allowing normal action evaluation...
+		 */
+		if (nlt->strips.first)
+			has_strips= 1;
+			
 		/* otherwise, get strip to evaluate for this channel */
 		nes= nlastrips_ctime_get_strip(&estrips, &nlt->strips, track_index, ctime);
 		if (nes) nes->track= nlt;
+	}
+	
+	/* add 'active' Action (may be tweaking track) as last strip to evaluate in NLA stack
+	 *	- only do this if we're not exclusively evaluating the 'solo' NLA-track
+	 */
+	if ((adt->action) && !(adt->flag & ADT_NLA_SOLO_TRACK)) {
+		/* if there are strips, evaluate action as per NLA rules */
+		if (has_strips) {
+			/* make dummy NLA strip, and add that to the stack */
+			memset(&dummy_strip, 0, sizeof(NlaStrip));
+			dummy_trackslist.first= dummy_trackslist.last= &dummy_strip;
+			
+			dummy_strip.act= adt->action;
+			dummy_strip.remap= adt->remap;
+			
+				// FIXME: what happens when we want to included F-Modifier access?
+			calc_action_range(dummy_strip.act, &dummy_strip.actstart, &dummy_strip.actend, 1);
+			dummy_strip.start = dummy_strip.actstart;
+			dummy_strip.end = (IS_EQ(dummy_strip.actstart, dummy_strip.actend)) ?  (dummy_strip.actstart + 1.0f): (dummy_strip.actend);
+			
+			dummy_strip.blendmode= adt->act_blendmode;
+			dummy_strip.extendmode= adt->act_extendmode;
+			dummy_strip.influence= adt->act_influence;
+			
+			/* add this to our list of evaluation strips */
+			nlastrips_ctime_get_strip(&estrips, &dummy_trackslist, -1, ctime);
+		}
+		else {
+			/* special case - evaluate as if there isn't any NLA data */
+			// TODO: this is really just a stop-gap measure...
+			animsys_evaluate_action(ptr, adt->action, adt->remap, ctime);
+			return;
+		}
 	}
 	
 	/* only continue if there are strips to evaluate */
@@ -1316,14 +1366,10 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
 		/* evaluate NLA data */
 		if ((adt->nla_tracks.first) && !(adt->flag & ADT_NLA_EVAL_OFF))
 		{
-			/* evaluate NLA-stack */
-			animsys_evaluate_nla(&id_ptr, adt, ctime);
-			
-			/* evaluate 'active' Action (may be tweaking track) on top of results of NLA-evaluation 
-			 *	- only do this if we're not exclusively evaluating the 'solo' NLA-track
+			/* evaluate NLA-stack 
+			 *	- active action is evaluated as part of the NLA stack as the last item
 			 */
-			if ((adt->action) && !(adt->flag & ADT_NLA_SOLO_TRACK))
-				animsys_evaluate_action(&id_ptr, adt->action, adt->remap, ctime);
+			animsys_evaluate_nla(&id_ptr, adt, ctime);
 		}
 		/* evaluate Active Action only */
 		else if (adt->action)
@@ -1362,19 +1408,36 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
  * 'local' (i.e. belonging in the nearest ID-block that setting is related to, not a
  * standard 'root') block are overridden by a larger 'user'
  */
-// TODO: we currently go over entire 'main' database...
+// FIXME?: we currently go over entire 'main' database...
 void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 {
 	ID *id;
 	
 	if (G.f & G_DEBUG)
 		printf("Evaluate all animation - %f \n", ctime);
-
-	/* macro for less typing */
-#define EVAL_ANIM_IDS(first, flag) \
+	
+	/* macro for less typing 
+	 *	- only evaluate animation data for id if it has users (and not just fake ones)
+	 *	- whether animdata exists is checked for by the evaluation function, though taking 
+	 *	  this outside of the function may make things slightly faster?
+	 */
+#define EVAL_ANIM_IDS(first, aflag) \
 	for (id= first; id; id= id->next) { \
 		AnimData *adt= BKE_animdata_from_id(id); \
-		BKE_animsys_evaluate_animdata(id, adt, ctime, flag); \
+		if ( (id->us > 1) || (id->us && !(id->flag & LIB_FAKEUSER)) ) \
+			BKE_animsys_evaluate_animdata(id, adt, ctime, aflag); \
+	}
+	
+	/* optimisation: 
+	 * when there are no actions, don't go over database and loop over heaps of datablocks, 
+	 * which should ultimately be empty, since it is not possible for now to have any animation 
+	 * without some actions, and drivers wouldn't get affected by any state changes
+	 */
+	if (main->action.first == NULL) {
+		if (G.f & G_DEBUG)
+			printf("\tNo Actions, so no animation needs to be evaluated...\n");
+			
+		return;
 	}
 	
 	/* nodes */
@@ -1395,6 +1458,9 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	/* shapekeys */
 		// TODO: we probably need the same hack as for curves (ctime-hack)
 	EVAL_ANIM_IDS(main->key.first, ADT_RECALC_ANIM);
+	
+	/* metaballs */
+	EVAL_ANIM_IDS(main->mball.first, ADT_RECALC_ANIM);
 	
 	/* curves */
 		/* we need to perform a special hack here to ensure that the ctime 

@@ -43,6 +43,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_editVert.h"
+#include "BLI_arithb.h"
 
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
@@ -113,6 +114,17 @@ static void rna_MEdge_crease_set(PointerRNA *ptr, float value)
 {
 	MEdge *medge= (MEdge*)ptr->data;
 	medge->crease= (char)(CLAMPIS(value*255.0f, 0, 255));
+}
+
+static void rna_MeshFace_normal_get(PointerRNA *ptr, float *values)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	MFace *mface= (MFace*)ptr->data;
+	
+	if(mface->v4)
+		CalcNormFloat4(me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co, me->mvert[mface->v4].co, values);
+	else
+		CalcNormFloat(me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co, values);
 }
 
 /* notice red and blue are swapped */
@@ -854,6 +866,13 @@ static void rna_def_mface(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "smooth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SMOOTH);
 	RNA_def_property_ui_text(prop, "Smooth", "");
+	
+	prop= RNA_def_property(srna, "normal", PROP_FLOAT, PROP_VECTOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_range(prop, -1.0f, 1.0f);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_float_funcs(prop, "rna_MeshFace_normal_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "face normal", "local space unit length normal vector for this face");
 }
 
 static void rna_def_mtexpoly(BlenderRNA *brna)

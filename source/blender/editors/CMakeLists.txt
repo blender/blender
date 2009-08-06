@@ -35,7 +35,7 @@ SET(INC ../windowmanager
   ../../../intern/decimation/extern ../blenloader ../python
   ../../kernel/gen_system ../../../intern/SoundSystem ../readstreamglue
   ../quicktime ../../../intern/elbeem/extern
-  ../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include
+  ../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include ../../../intern/smoke/extern
   ../nodes
   ../gpu
   ../blenfont

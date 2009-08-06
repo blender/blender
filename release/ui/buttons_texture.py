@@ -19,6 +19,7 @@ class TEXTURE_PT_preview(TextureButtonsPanel):
 		ma = context.material
 		la = context.lamp
 		wo = context.world
+		br = context.brush
 		
 		if ma:
 			layout.template_preview(tex, parent=ma)
@@ -26,15 +27,17 @@ class TEXTURE_PT_preview(TextureButtonsPanel):
 			layout.template_preview(tex, parent=la)
 		elif wo:
 			layout.template_preview(tex, parent=wo)
+		elif br:
+			layout.template_preview(tex, parent=br)
 		else:
 			layout.template_preview(tex)
 
 class TEXTURE_PT_context_texture(TextureButtonsPanel):
 	__idname__= "TEXTURE_PT_context_texture"
-	__no_header__ = True
+	__show_header__ = False
 
 	def poll(self, context):
-		return (context.material or context.world or context.lamp or context.texture)
+		return (context.material or context.world or context.lamp or context.brush or context.texture)
 
 	def draw(self, context):
 		layout = self.layout
@@ -43,32 +46,38 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 		ma = context.material
 		la = context.lamp
 		wo = context.world
+		br = context.brush
 		space = context.space_data
-		slot = context.texture_slot
 
-		if ma or la or wo:
+		if ma:
+			id = ma
+		elif la:
+			id = la
+		elif wo:
+			id = wo
+		elif br:
+			id = br
+		else:
+			id = None
+
+		if id:
 			row = layout.row()
-			if ma:
-				row.template_list(ma, "textures", ma, "active_texture_index", type="ICONS")
-			elif la:
-				row.template_list(la, "textures", la, "active_texture_index", type="ICONS")
-			elif wo:
-				row.template_list(wo, "textures", wo, "active_texture_index", type="ICONS")
-
+			row.template_list(id, "textures", id, "active_texture_index", rows=2)
+			
 		split = layout.split(percentage=0.65)
 
-		if ma or la or wo:
-			if slot:
-				split.template_ID(slot, "texture", new="texture.new")
-			else:
-				split.itemS()
-
+		if id:
+			split.template_ID(id, "active_texture", new="texture.new")
 		elif tex:
 			split.template_ID(space, "pin_id")
-			split.itemS()
-			
-			layout.itemS()
+
+		if not space.pin_id and \
+		   (context.sculpt_object or context.vertex_paint_object or \
+		   context.weight_paint_object or context.texture_paint_object):
+			split.itemR(space, "brush_texture", text="Brush", toggle=True)
 		
+		layout.itemS()
+
 		if tex:
 			split = layout.split(percentage=0.2)
 		
@@ -89,32 +98,34 @@ class TEXTURE_PT_mapping(TextureButtonsPanel):
 		ma = context.material
 		la = context.lamp
 		wo = context.world
+		br = context.brush
 		tex = context.texture_slot
 		textype = context.texture
 
-		split = layout.split(percentage=0.3)
-		col = split.column()
-		col.itemL(text="Coordinates:")
-		col = split.column()
-		col.itemR(tex, "texture_coordinates", text="")
+		if not br:
+			split = layout.split(percentage=0.3)
+			col = split.column()
+			col.itemL(text="Coordinates:")
+			col = split.column()
+			col.itemR(tex, "texture_coordinates", text="")
 
-		if tex.texture_coordinates == 'ORCO':
-			"""
-			ob = context.object
-			if ob and ob.type == 'MESH':
+			if tex.texture_coordinates == 'ORCO':
+				"""
+				ob = context.object
+				if ob and ob.type == 'MESH':
+					split = layout.split(percentage=0.3)
+					split.itemL(text="Mesh:")
+					split.itemR(ob.data, "texco_mesh", text="")
+				"""
+			elif tex.texture_coordinates == 'UV':
 				split = layout.split(percentage=0.3)
-				split.itemL(text="Mesh:")
-				split.itemR(ob.data, "texco_mesh", text="")
-			"""
-		elif tex.texture_coordinates == 'UV':
-			split = layout.split(percentage=0.3)
-			split.itemL(text="Layer:")
-			split.itemR(tex, "uv_layer", text="")
-		elif tex.texture_coordinates == 'OBJECT':
-			split = layout.split(percentage=0.3)
-			split.itemL(text="Object:")
-			split.itemR(tex, "object", text="")
-		
+				split.itemL(text="Layer:")
+				split.itemR(tex, "uv_layer", text="")
+			elif tex.texture_coordinates == 'OBJECT':
+				split = layout.split(percentage=0.3)
+				split.itemL(text="Object:")
+				split.itemR(tex, "object", text="")
+			
 		if ma:
 			split = layout.split(percentage=0.3)
 			col = split.column()
@@ -147,7 +158,7 @@ class TEXTURE_PT_influence(TextureButtonsPanel):
 	__label__ = "Influence"
 	
 	def poll(self, context):
-		return (context.texture_slot and context.texture and context.texture.type != 'NONE')
+		return (context.texture_slot and context.texture and context.texture.type != 'NONE' and (not context.brush))
 
 	def draw(self, context):
 		layout = self.layout
@@ -155,6 +166,7 @@ class TEXTURE_PT_influence(TextureButtonsPanel):
 		ma = context.material
 		la = context.lamp
 		wo = context.world
+		br = context.brush
 		textype = context.texture
 		tex = context.texture_slot
 

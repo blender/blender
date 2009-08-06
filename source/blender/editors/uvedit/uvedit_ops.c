@@ -1363,7 +1363,7 @@ static int stitch_exec(bContext *C, wmOperator *op)
 	MTexPoly *tf;
 	MLoopUV *luv;
 	
-	sima= (SpaceImage*)CTX_wm_space_data(C);
+	sima= CTX_wm_space_image(C);
 	scene= CTX_data_scene(C);
 	obedit= CTX_data_edit_object(C);
 	em= ((Mesh*)obedit->data)->edit_btmesh;
@@ -1669,7 +1669,7 @@ static int sticky_select(float *limit, int hitv[4], int v, float *hituv[4], floa
 
 static int mouse_select(bContext *C, float co[2], int extend, int loop)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Scene *scene= CTX_data_scene(C);
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -2042,7 +2042,7 @@ void UV_OT_select_loop(wmOperatorType *ot)
 
 static int select_linked_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Scene *scene= CTX_data_scene(C);
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -2282,7 +2282,7 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 
 static int border_select_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Scene *scene= CTX_data_scene(C);
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *obedit= CTX_data_edit_object(C);
@@ -2438,7 +2438,7 @@ static void select_uv_inside_ellipse(BMEditMesh *em, SpaceImage *sima,
 
 int circle_select_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
@@ -2529,7 +2529,7 @@ static int snap_cursor_to_selection(Scene *scene, Image *ima, Object *obedit, Vi
 
 static int snap_cursor_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima= CTX_data_edit_image(C);
@@ -2733,7 +2733,7 @@ static int snap_uvs_to_pixels(SpaceImage *sima, Scene *scene, Object *obedit)
 
 static int snap_selection_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Image *ima= CTX_data_edit_image(C);
@@ -2883,7 +2883,7 @@ void UV_OT_select_pinned(wmOperatorType *ot)
 
 static int hide_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
@@ -2953,7 +2953,7 @@ void UV_OT_hide(wmOperatorType *ot)
 
 static int reveal_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *obedit= CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
@@ -3077,7 +3077,7 @@ static int set_tile_exec(bContext *C, wmOperator *op)
 
 static int set_tile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceImage *sima= (SpaceImage*)CTX_wm_space_data(C);
+	SpaceImage *sima= CTX_wm_space_image(C);
 	Image *ima= CTX_data_edit_image(C);
 	ARegion *ar= CTX_wm_region(C);
 	float fx, fy;

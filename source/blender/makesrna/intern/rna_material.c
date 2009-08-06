@@ -85,28 +85,31 @@ static void rna_Material_mtex_begin(CollectionPropertyIterator *iter, PointerRNA
 static PointerRNA rna_Material_active_texture_get(PointerRNA *ptr)
 {
 	Material *ma= (Material*)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_TextureSlot, ma->mtex[(int)ma->texact]);
+	Tex *tex;
+
+	tex= (ma->mtex[(int)ma->texact])? ma->mtex[(int)ma->texact]->tex: NULL;
+	return rna_pointer_inherit_refine(ptr, &RNA_Texture, tex);
 }
 
-static void rna_Material_active_texture_index_set(PointerRNA *ptr, int value)
+static void rna_Material_active_texture_set(PointerRNA *ptr, PointerRNA value)
 {
 	Material *ma= (Material*)ptr->data;
 	int act= ma->texact;
 
-	if(value == act || value < 0 || value >= MAX_MTEX)
-		return;
+	if(ma->mtex[act] && ma->mtex[act]->tex)
+		id_us_min(&ma->mtex[act]->tex->id);
 
-	/* auto create/free mtex on activate/deactive, so we can edit
-	 * the texture pointer in the buttons UI. */
-	if(ma->mtex[act] && !ma->mtex[act]->tex) {
+	if(value.data) {
+		if(!ma->mtex[act])
+			ma->mtex[act]= add_mtex();
+		
+		ma->mtex[act]->tex= value.data;
+		id_us_plus(&ma->mtex[act]->tex->id);
+	}
+	else if(ma->mtex[act]) {
 		MEM_freeN(ma->mtex[act]);
 		ma->mtex[act]= NULL;
 	}
-
-	ma->texact= value;
-
-	if(!ma->mtex[value])
-		ma->mtex[value]= add_mtex();
 }
 
 static void rna_MaterialStrand_start_size_range(PointerRNA *ptr, float *min, float *max)
@@ -164,6 +167,28 @@ static void rna_MaterialTextureSlot_enabled_set(PointerRNA *ptr, int value)
 				ma->septex |= (1<<a);
 		}
 	}
+}
+
+static void rna_Material_use_diffuse_ramp_set(PointerRNA *ptr, int value)
+{
+	Material *ma= (Material*)ptr->data;
+
+	if(value) ma->mode |= MA_RAMP_COL;
+	else ma->mode &= ~MA_RAMP_COL;
+
+	if((ma->mode & MA_RAMP_COL) && ma->ramp_col == NULL)
+		ma->ramp_col= add_colorband(0);
+}
+
+static void rna_Material_use_specular_ramp_set(PointerRNA *ptr, int value)
+{
+	Material *ma= (Material*)ptr->data;
+
+	if(value) ma->mode |= MA_RAMP_SPEC;
+	else ma->mode &= ~MA_RAMP_SPEC;
+
+	if((ma->mode & MA_RAMP_SPEC) && ma->ramp_spec == NULL)
+		ma->ramp_spec= add_colorband(0);
 }
 
 #else
@@ -452,6 +477,32 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 static void rna_def_material_colors(StructRNA *srna)
 {
 	PropertyRNA *prop;
+	
+	static EnumPropertyItem prop_ramp_blend_diffuse_items[] = {
+		{MA_RAMP_BLEND, "MIX", 0, "Mix", ""},
+		{MA_RAMP_ADD, "ADD", 0, "Add", ""},
+		{MA_RAMP_MULT, "MULTIPLY", 0, "Multiply", ""},
+		{MA_RAMP_SUB, "SUBTRACT", 0, "Subtract", ""},
+		{MA_RAMP_SCREEN, "SCREEN", 0, "Screen", ""},
+		{MA_RAMP_DIV, "DIVIDE", 0, "Divide", ""},
+		{MA_RAMP_DIFF, "DIFFERENCE", 0, "Difference", ""},
+		{MA_RAMP_DARK, "DARKEN", 0, "Darken", ""},
+		{MA_RAMP_LIGHT, "LIGHTEN", 0, "Lighten", ""},
+		{MA_RAMP_OVERLAY, "OVERLAY", 0, "Overlay", ""},
+		{MA_RAMP_DODGE, "DODGE", 0, "Dodge", ""},
+		{MA_RAMP_BURN, "BURN", 0, "Burn", ""},
+		{MA_RAMP_HUE, "HUE", 0, "Hue", ""},
+		{MA_RAMP_SAT, "SATURATION", 0, "Saturation", ""},
+		{MA_RAMP_VAL, "VALUE", 0, "Value", ""},
+		{MA_RAMP_COLOR, "COLOR", 0, "Color", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem prop_ramp_input_items[] = {
+		{MA_RAMP_IN_SHADER, "SHADER", 0, "Shader", ""},
+		{MA_RAMP_IN_ENERGY, "ENERGY", 0, "Energy", ""},
+		{MA_RAMP_IN_NOR, "NORMAL", 0, "Normal", ""},
+		{MA_RAMP_IN_RESULT, "RESULT", 0, "Result", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	prop= RNA_def_property(srna, "diffuse_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "r");
@@ -477,15 +528,52 @@ static void rna_def_material_colors(StructRNA *srna)
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW, NULL);
 	
 	/* Color bands */
+	prop= RNA_def_property(srna, "use_diffuse_ramp", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_RAMP_COL);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Material_use_diffuse_ramp_set");
+	RNA_def_property_ui_text(prop, "Use Diffuse Ramp", "Toggle diffuse ramp operations.");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW, NULL);
+
 	prop= RNA_def_property(srna, "diffuse_ramp", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ramp_col");
 	RNA_def_property_struct_type(prop, "ColorRamp");
 	RNA_def_property_ui_text(prop, "Diffuse Ramp", "Color ramp used to affect diffuse shading.");
 
+	prop= RNA_def_property(srna, "use_specular_ramp", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_RAMP_SPEC);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Material_use_specular_ramp_set");
+	RNA_def_property_ui_text(prop, "Use Specular Ramp", "Toggle specular ramp operations.");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW, NULL);
+
 	prop= RNA_def_property(srna, "specular_ramp", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ramp_spec");
 	RNA_def_property_struct_type(prop, "ColorRamp");
 	RNA_def_property_ui_text(prop, "Specular Ramp", "Color ramp used to affect specular shading.");
+	
+	prop= RNA_def_property(srna, "diffuse_ramp_blend", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "rampblend_col");
+	RNA_def_property_enum_items(prop, prop_ramp_blend_diffuse_items);
+	RNA_def_property_ui_text(prop, "Diffuse Ramp Blend", "");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW, NULL);
+	
+	prop= RNA_def_property(srna, "specular_ramp_blend", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "rampblend_spec");
+	RNA_def_property_enum_items(prop, prop_ramp_blend_diffuse_items);
+	RNA_def_property_ui_text(prop, "Diffuse Ramp Blend", "");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW, NULL);
+
+	prop= RNA_def_property(srna, "diffuse_ramp_input", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "rampin_col");
+	RNA_def_property_enum_items(prop, prop_ramp_input_items);
+	RNA_def_property_ui_text(prop, "Diffuse Ramp Input", "");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
+	
+	prop= RNA_def_property(srna, "specular_ramp_input", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "rampin_spec");
+	RNA_def_property_enum_items(prop, prop_ramp_input_items);
+	RNA_def_property_ui_text(prop, "Specular Ramp Input", "");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
+
 }
 
 static void rna_def_material_diffuse(StructRNA *srna)
@@ -553,8 +641,8 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_fadeto_mir_items[] = {
-		{MA_RAYMIR_FADETOSKY, "FADE_TO_SKY", 0, "Fade to Sky Color", ""},
-		{MA_RAYMIR_FADETOMAT, "FADE_TO_MATERIAL", 0, "Fade to Material Color", ""},
+		{MA_RAYMIR_FADETOSKY, "FADE_TO_SKY", 0, "Sky", ""},
+		{MA_RAYMIR_FADETOMAT, "FADE_TO_MATERIAL", 0, "Material", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "MaterialRaytraceMirror", NULL);
@@ -912,7 +1000,7 @@ void rna_def_material_specularity(StructRNA *srna)
 {
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem prop_spec_shader_items[] = {
+	static EnumPropertyItem prop_specular_shader_items[] = {
 		{MA_SPEC_COOKTORR, "COOKTORR", 0, "CookTorr", ""},
 		{MA_SPEC_PHONG, "PHONG", 0, "Phong", ""},
 		{MA_SPEC_BLINN, "BLINN", 0, "Blinn", ""},
@@ -920,9 +1008,9 @@ void rna_def_material_specularity(StructRNA *srna)
 		{MA_SPEC_WARDISO, "WARDISO", 0, "WardIso", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
-	prop= RNA_def_property(srna, "spec_shader", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "specular_shader", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "spec_shader");
-	RNA_def_property_enum_items(prop, prop_spec_shader_items);
+	RNA_def_property_enum_items(prop, prop_specular_shader_items);
 	RNA_def_property_ui_text(prop, "Specular Shader Model", "");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
@@ -1042,7 +1130,8 @@ void RNA_def_material(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_type_items[] = {
 		{MA_TYPE_SURFACE, "SURFACE", 0, "Surface", "Render object as a surface."},
-		{MA_TYPE_VOLUME, "VOLUME", 0, "Volume", "Render object as a volume."},
+		{MA_TYPE_WIRE, "WIRE", 0, "Wire", "Render the edges of faces as wires (not supported in ray tracing)."},
+		// {MA_TYPE_VOLUME, "VOLUME", 0, "Volume", "Render object as a volume."},
 		{MA_TYPE_HALO, "HALO", 0, "Halo", "Render object as halo particles."},
 		{0, NULL, 0, NULL, NULL}};
 
@@ -1128,9 +1217,9 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Shadeless", "Makes this material insensitive to light or shadow.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "wireframe", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_WIRE);
-	RNA_def_property_ui_text(prop, "Wireframe", "Render the edges of faces as wires (not supported in ray tracing).");
+	prop= RNA_def_property(srna, "z_transparency", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_ZTRA);
+	RNA_def_property_ui_text(prop, "Z Transparency", "Enable alpha buffer for transparent faces.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
 	prop= RNA_def_property(srna, "vertex_color_light", PROP_BOOLEAN, PROP_NONE);
@@ -1241,12 +1330,8 @@ void RNA_def_material(BlenderRNA *brna)
 
 	/* common */
 	rna_def_animdata_common(srna);
-	rna_def_mtex_common(srna, "rna_Material_mtex_begin", "rna_Material_active_texture_get", "rna_Material_active_texture_index_set", "MaterialTextureSlot");
-
-	prop= RNA_def_property(srna, "script_link", PROP_POINTER, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "scriptlink");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Script Link", "Scripts linked to this material.");
+	rna_def_mtex_common(srna, "rna_Material_mtex_begin", "rna_Material_active_texture_get",
+		"rna_Material_active_texture_set", "MaterialTextureSlot");
 	
 	rna_def_material_colors(srna);
 	rna_def_material_diffuse(srna);
@@ -1272,14 +1357,13 @@ void rna_def_mtex_common(StructRNA *srna, const char *begin, const char *activeg
 	RNA_def_property_ui_text(prop, "Textures", "Texture slots defining the mapping and influence of textures.");
 
 	prop= RNA_def_property(srna, "active_texture", PROP_POINTER, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_struct_type(prop, structname);
-	RNA_def_property_pointer_funcs(prop, activeget, NULL, NULL);
+	RNA_def_property_struct_type(prop, "Texture");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, activeget, activeset, NULL);
 	RNA_def_property_ui_text(prop, "Active Texture", "Active texture slot being displayed.");
 
 	prop= RNA_def_property(srna, "active_texture_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "texact");
-	RNA_def_property_int_funcs(prop, NULL, activeset, NULL);
 	RNA_def_property_range(prop, 0, MAX_MTEX-1);
 	RNA_def_property_ui_text(prop, "Active Texture Index", "Index of active texture slot.");
 }

@@ -233,13 +233,6 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	struct KDTree *tree;					/* used for interactions with self and other systems */
 }ParticleSystem;
 
-/* general particle maximums */
-/* no special why's, just seem reasonable */
-/* changing these (atleast upwards) should not cause any major problems */
-#define MAX_PARTS			100000	/* real particles/system */
-#define MAX_PART_CHILDREN	10000	/* child particles/real particles */
-#define MAX_BOIDNEIGHBOURS	10		/* neigbours considered/boid */
-
 /* part->type */
 /* hair is allways baked static in object/geometry space */
 /* other types (normal particles) are in global space and not static baked */
@@ -253,7 +246,8 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_REACT_MULTIPLE	2
 
 #define PART_LOOP			4
-//#define PART_LOOP_INSTANT	8
+		/* for dopesheet */
+#define PART_DS_EXPAND		8
 
 #define PART_HAIR_GEOMETRY	16
 

@@ -7,21 +7,18 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 	
 	def poll(self, context):
-		return (context.lamp != None)
+		return (context.lamp)
 		
 class DATA_PT_preview(DataButtonsPanel):
-	__idname__= "DATA_PT_preview"
 	__label__ = "Preview"
 
 	def draw(self, context):
 		layout = self.layout
 
-		lamp = context.lamp
-		layout.template_preview(lamp)
+		layout.template_preview(context.lamp)
 	
 class DATA_PT_context_lamp(DataButtonsPanel):
-	__idname__ = "DATA_PT_context_lamp"
-	__no_header__ = True
+	__show_header__ = False
 	
 	def draw(self, context):
 		layout = self.layout
@@ -40,7 +37,6 @@ class DATA_PT_context_lamp(DataButtonsPanel):
 			split.itemS()
 
 class DATA_PT_lamp(DataButtonsPanel):
-	__idname__ = "DATA_PT_lamp"
 	__label__ = "Lamp"
 
 	def draw(self, context):
@@ -51,60 +47,37 @@ class DATA_PT_lamp(DataButtonsPanel):
 		layout.itemR(lamp, "type", expand=True)
 		
 		split = layout.split()
+		
 		col = split.column()
-		#col.itemL(text="Type:")
-		#col.itemR(lamp, "type", text="")
-		colsub = col.column(align=True)
-		colsub.itemR(lamp, "color", text="")
-		colsub.itemR(lamp, "energy")
-		
-		col.itemR(lamp, "negative")
-		#col.itemR(lamp, "distance")
-	
-		sub = split.column()
-		#sub.itemL(text="Influence:")
-		sub.itemR(lamp, "layer", text="This Layer Only")
-		sub.itemR(lamp, "specular")
-		sub.itemR(lamp, "diffuse")
-		#sub.itemR(lamp, "negative")
-		
+		sub = col.column()
+		sub.itemR(lamp, "color", text="")
+		sub.itemR(lamp, "energy")
+
 		if lamp.type in ('POINT', 'SPOT'):
-			split = layout.split()
-			col = split.column()
-			col.itemL(text="Falloff:")
-			col = col.column(align=True)
-			col.itemR(lamp, "falloff_type", text="")
-			col.itemR(lamp, "distance")
-			col.itemR(lamp, "sphere")
-			
-			if lamp.falloff_type != 'LINEAR_QUADRATIC_WEIGHTED':
-				col = split.column()
-			
-			else:
-				sub = split.column()
-				sub.itemL(text="Attenuation Distance:")
-				sub = sub.column(align=True)
+			sub.itemL(text="Falloff:")
+			sub.itemR(lamp, "falloff_type", text="")
+			sub.itemR(lamp, "distance")
+
+			if lamp.falloff_type == 'LINEAR_QUADRATIC_WEIGHTED':
+				col.itemL(text="Attenuation Factors:")
+				sub = col.column(align=True)
 				sub.itemR(lamp, "linear_attenuation", slider=True, text="Linear")
 				sub.itemR(lamp, "quadratic_attenuation", slider=True, text="Quadratic")
 			
-		if lamp.type == 'AREA':
-			split = layout.split()
-			col = split.column()
-			col.itemL(text="Shape:")
-			col = col.column(align=True)
-			col.itemR(lamp, "shape", text="")
-			if (lamp.shape == 'SQUARE'):
-				col.itemR(lamp, "size")
-			if (lamp.shape == 'RECTANGLE'):
-				col.itemR(lamp, "size", text="Size X")
-				col.itemR(lamp, "size_y", text="Size Y")
+			col.itemR(lamp, "sphere")
 			
-			sub = split.column()
-			sub.itemL(text="Gamma:")
-			sub.itemR(lamp, "gamma", text="Value")
-				
+		if lamp.type == 'AREA':
+			col.itemR(lamp, "distance")
+			col.itemR(lamp, "gamma")
+
+			
+		col = split.column()
+		col.itemR(lamp, "negative")
+		col.itemR(lamp, "layer", text="This Layer Only")
+		col.itemR(lamp, "specular")
+		col.itemR(lamp, "diffuse")	
+
 class DATA_PT_sunsky(DataButtonsPanel):
-	__idname__ = "DATA_PT_sunsky"
 	__label__ = "Sun/Sky"
 	
 	def poll(self, context):
@@ -113,6 +86,7 @@ class DATA_PT_sunsky(DataButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		lamp = context.lamp.sky
 
 		row = layout.row()
@@ -128,30 +102,29 @@ class DATA_PT_sunsky(DataButtonsPanel):
 		col = split.column()
 		col.active = lamp.sky
 		col.itemL(text="Blend Mode:")
-		colsub = col.column(align=True)
-		colsub.itemR(lamp, "sky_blend_type", text="")
-		colsub.itemR(lamp, "sky_blend", text="Factor")
+		sub = col.column(align=True)
+		sub.itemR(lamp, "sky_blend_type", text="")
+		sub.itemR(lamp, "sky_blend", text="Factor")
 		
 		col.itemL(text="Color Space:")
-		colsub = col.column(align=True)
-		colsub.itemR(lamp, "sky_color_space", text="")
-		colsub.itemR(lamp, "sky_exposure", text="Exposure")
+		sub = col.column(align=True)
+		sub.itemR(lamp, "sky_color_space", text="")
+		sub.itemR(lamp, "sky_exposure", text="Exposure")
 			
 		col = split.column()
 		col.active = lamp.sky
 		col.itemL(text="Horizon:")
-		colsub = col.column(align=True)
-		colsub.itemR(lamp, "horizon_brightness", text="Brightness")
-		colsub.itemR(lamp, "spread", text="Spread")
+		sub = col.column(align=True)
+		sub.itemR(lamp, "horizon_brightness", text="Brightness")
+		sub.itemR(lamp, "spread", text="Spread")
 		
 		col.itemL(text="Sun:")
-		colsub = col.column(align=True)
-		colsub.itemR(lamp, "sun_brightness", text="Brightness")
-		colsub.itemR(lamp, "sun_size", text="Size")
-		colsub.itemR(lamp, "backscattered_light", slider=True,text="Back Light")
+		sub = col.column(align=True)
+		sub.itemR(lamp, "sun_brightness", text="Brightness")
+		sub.itemR(lamp, "sun_size", text="Size")
+		sub.itemR(lamp, "backscattered_light", slider=True,text="Back Light")
 		
-		row = layout.row()
-		row.itemS()
+		layout.itemS()
 		
 		split = layout.split()
 		
@@ -170,7 +143,6 @@ class DATA_PT_sunsky(DataButtonsPanel):
 		sub.itemR(lamp, "atmosphere_extinction", slider=True ,text="Extinction")
 		
 class DATA_PT_shadow(DataButtonsPanel):
-	__idname__ = "DATA_PT_shadow"
 	__label__ = "Shadow"
 	
 	def poll(self, context):
@@ -179,92 +151,121 @@ class DATA_PT_shadow(DataButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		lamp = context.lamp
 
 		layout.itemR(lamp, "shadow_method", expand=True)
 		
 		if lamp.shadow_method != 'NOSHADOW':
-		
 			split = layout.split()
 			
 			col = split.column()
-			col.itemR(lamp, "shadow_color")
+			col.itemR(lamp, "shadow_color", text="")
 			
-			sub = split.column()
-			sub.itemR(lamp, "shadow_layer", text="This Layer Only")
-			sub.itemR(lamp, "only_shadow")
+			col = split.column()
+			col.itemR(lamp, "shadow_layer", text="This Layer Only")
+			col.itemR(lamp, "only_shadow")
 		
 		if lamp.shadow_method == 'RAY_SHADOW':
-		
 			col = layout.column()
 			col.itemL(text="Sampling:")
 			col.row().itemR(lamp, "shadow_ray_sampling_method", expand=True)
 				
 			if lamp.type in ('POINT', 'SUN', 'SPOT'):
 				split = layout.split()
-				col = split.column(align=True)
+				
+				col = split.column()
 				col.itemR(lamp, "shadow_soft_size", text="Soft Size")
-				col = split.column(align=True)
+				
 				col.itemR(lamp, "shadow_ray_samples", text="Samples")
 				if lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC':
 					col.itemR(lamp, "shadow_adaptive_threshold", text="Threshold")
-						
-			if lamp.type == 'AREA':
-				split = layout.split()
 				col = split.column()
-
-				if lamp.shadow_ray_sampling_method == 'CONSTANT_JITTERED':
-					col.itemR(lamp, "umbra")
-					col.itemR(lamp, "dither")
-					col.itemR(lamp, "jitter")	
-				else:
-					col.itemL()
-
-				col = split.column(align=True)
-				col.itemR(lamp, "shadow_ray_samples_x", text="Samples")
+						
+			elif lamp.type == 'AREA':
+				split = layout.split()
+				
+				col = split.column()
+				sub = split.column(align=True)
+				if lamp.shape == 'SQUARE':
+					col.itemR(lamp, "shadow_ray_samples_x", text="Samples")
+				elif lamp.shape == 'RECTANGLE':
+					col.itemR(lamp, "shadow_ray_samples_x", text="Samples X")
+					col.itemR(lamp, "shadow_ray_samples_y", text="Samples Y")
+					
 				if lamp.shadow_ray_sampling_method == 'ADAPTIVE_QMC':
 					col.itemR(lamp, "shadow_adaptive_threshold", text="Threshold")
-	
+					
+				elif lamp.shadow_ray_sampling_method == 'CONSTANT_JITTERED':
+					sub.itemR(lamp, "umbra")
+					sub.itemR(lamp, "dither")
+					sub.itemR(lamp, "jitter")	
+
 		if lamp.shadow_method == 'BUFFER_SHADOW':
 			col = layout.column()
 			col.itemL(text="Buffer Type:")
 			col.row().itemR(lamp, "shadow_buffer_type", expand=True)
 
 			if lamp.shadow_buffer_type in ('REGULAR', 'HALFWAY'):
-				
 				split = layout.split()
+				
 				col = split.column()
 				col.itemL(text="Filter Type:")
 				col.itemR(lamp, "shadow_filter_type", text="")
-				
-				colsub = col.column(align=True)
-				colsub.itemR(lamp, "shadow_buffer_soft", text="Soft")
-				colsub.itemR(lamp, "shadow_buffer_bias", text="Bias")
+				sub = col.column(align=True)
+				sub.itemR(lamp, "shadow_buffer_soft", text="Soft")
+				sub.itemR(lamp, "shadow_buffer_bias", text="Bias")
 				
 				col = split.column()
 				col.itemL(text="Sample Buffers:")
 				col.itemR(lamp, "shadow_sample_buffers", text="")
+				sub = col.column(align=True)
+				sub.itemR(lamp, "shadow_buffer_size", text="Size")
+				sub.itemR(lamp, "shadow_buffer_samples", text="Samples")
 				
-				colsub = col.column(align=True)
-				colsub.itemR(lamp, "shadow_buffer_size", text="Size")
-				colsub.itemR(lamp, "shadow_buffer_samples", text="Samples")
-				
-			if (lamp.shadow_buffer_type == 'IRREGULAR'):
-				row = layout.row()
-				row.itemR(lamp, "shadow_buffer_bias", text="Bias")
+			elif lamp.shadow_buffer_type == 'IRREGULAR':
+				layout.itemR(lamp, "shadow_buffer_bias", text="Bias")
 			
 			row = layout.row()
 			row.itemR(lamp, "auto_clip_start", text="Autoclip Start")
-			if not (lamp.auto_clip_start):
-				row.itemR(lamp, "shadow_buffer_clip_start", text="Clip Start")
+			sub = row.row()
+			sub.active = not lamp.auto_clip_start
+			sub.itemR(lamp, "shadow_buffer_clip_start", text="Clip Start")
+
 			row = layout.row()
 			row.itemR(lamp, "auto_clip_end", text="Autoclip End")
-			if not (lamp.auto_clip_end):
-				row.itemR(lamp, "shadow_buffer_clip_end", text=" Clip End")
+			sub = row.row()
+			sub.active = not lamp.auto_clip_end
+			sub.itemR(lamp, "shadow_buffer_clip_end", text=" Clip End")
+
+class DATA_PT_area(DataButtonsPanel):
+	__label__ = "Area Shape"
+	
+	def poll(self, context):
+		lamp = context.lamp
+		return (lamp and lamp.type == 'AREA')
+
+	def draw(self, context):
+		layout = self.layout
+		
+		lamp = context.lamp
+
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(lamp, "shape", text="")
+		
+		sub = col.column(align=True)
+		if (lamp.shape == 'SQUARE'):
+			sub.itemR(lamp, "size")
+		elif (lamp.shape == 'RECTANGLE'):
+			sub.itemR(lamp, "size", text="Size X")
+			sub.itemR(lamp, "size_y", text="Size Y")
+		
+		col = split.column()
 
 class DATA_PT_spot(DataButtonsPanel):
-	__idname__ = "DATA_PT_spot"
-	__label__ = "Spot"
+	__label__ = "Spot Shape"
 	
 	def poll(self, context):
 		lamp = context.lamp
@@ -272,9 +273,11 @@ class DATA_PT_spot(DataButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		lamp = context.lamp
 
 		split = layout.split()
+		
 		col = split.column()
 		sub = col.column(align=True)
 		sub.itemR(lamp, "spot_size", text="Size")
@@ -283,14 +286,13 @@ class DATA_PT_spot(DataButtonsPanel):
 		
 		col = split.column()
 		col.itemR(lamp, "halo")
-		colsub = col.column(align=True)
-		colsub.active = lamp.halo
-		colsub.itemR(lamp, "halo_intensity", text="Intensity")
+		sub = col.column(align=True)
+		sub.active = lamp.halo
+		sub.itemR(lamp, "halo_intensity", text="Intensity")
 		if lamp.shadow_method == 'BUFFER_SHADOW':
-			colsub.itemR(lamp, "halo_step", text="Step")
+			sub.itemR(lamp, "halo_step", text="Step")
 
 class DATA_PT_falloff_curve(DataButtonsPanel):
-	__idname__ = "DATA_PT_falloff_curve"
 	__label__ = "Falloff Curve"
 	__default_closed__ = True
 	
@@ -305,6 +307,7 @@ class DATA_PT_falloff_curve(DataButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		lamp = context.lamp
 
 		layout.template_curve_mapping(lamp.falloff_curve)
@@ -313,7 +316,7 @@ bpy.types.register(DATA_PT_context_lamp)
 bpy.types.register(DATA_PT_preview)
 bpy.types.register(DATA_PT_lamp)
 bpy.types.register(DATA_PT_falloff_curve)
+bpy.types.register(DATA_PT_area)
 bpy.types.register(DATA_PT_spot)
 bpy.types.register(DATA_PT_shadow)
 bpy.types.register(DATA_PT_sunsky)
-

@@ -95,7 +95,7 @@
 //static int _last_seq_init=0;
 /* XXX */
 static void error() {}
-static void waitcursor() {}
+static void waitcursor(int val) {}
 static void activate_fileselect() {}
 static int pupmenu() {return 0;}
 static int okee() {return 0;}
@@ -1694,7 +1694,7 @@ static int sequencer_refresh_all_exec(bContext *C, wmOperator *op)
 	if(ed==NULL)
 		return OPERATOR_CANCELLED;
 
-	free_imbuf_seq(&ed->seqbase);
+	free_imbuf_seq(&ed->seqbase, FALSE);
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 

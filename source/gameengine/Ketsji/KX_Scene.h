@@ -119,10 +119,6 @@ protected:
 										// the Qlist is for objects that needs to be rescheduled
 										// for updates after udpate is over (slow parent, bone parent)
 
-	/**
-	 *  The tree of objects in the scene.
-	 */
-	SG_Tree*			m_objecttree;
 
 	/**
 	 * The set of cameras for this scene
@@ -323,7 +319,7 @@ public:
 	
 	int NewRemoveObject(CValue* gameobj);
 	void ReplaceMesh(CValue* gameobj,
-					 void* meshobj);
+					 void* meshob, bool use_gfx, bool use_phys);
 	/**
 	 * @section Logic stuff
 	 * Initiate an update of the logic system.

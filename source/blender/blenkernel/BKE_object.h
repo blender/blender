@@ -98,11 +98,6 @@ void object_to_mat4(struct Object *ob, float mat[][4]);
 
 void set_no_parent_ipo(int val);
 
-void disable_where_script(short on);
-int during_script(void);
-void disable_where_scriptlink(short on);
-int during_scriptlink(void);
-
 void where_is_object_time(struct Scene *scene, struct Object *ob, float ctime);
 void where_is_object(struct Scene *scene, struct Object *ob);
 void where_is_object_simul(struct Scene *scene, struct Object *ob);

@@ -73,6 +73,7 @@ BF_GETTEXT_LIB = 'gettextpo intl'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
 WITH_BF_GAMEENGINE='false'
+WITH_BF_PLAYER = 'false'
 
 WITH_BF_BULLET = 'true'
 BF_BULLET = '#extern/bullet2/src'

@@ -70,7 +70,6 @@ static SpaceLink *buttons_new(const bContext *C)
 	
 	sbuts= MEM_callocN(sizeof(SpaceButs), "initbuts");
 	sbuts->spacetype= SPACE_BUTS;
-	sbuts->scaflag= BUTS_SENS_LINK|BUTS_SENS_ACT|BUTS_CONT_ACT|BUTS_ACT_ACT|BUTS_ACT_LINK;
 	sbuts->align= BUT_AUTO;
 
 	/* header */
@@ -139,41 +138,44 @@ static SpaceLink *buttons_duplicate(SpaceLink *sl)
 /* add handlers, stuff you only do once or on area/region changes */
 static void buttons_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
+	ListBase *keymap;
+
 	ED_region_panels_init(wm, ar);
+
+	keymap= WM_keymap_listbase(wm, "Buttons Generic", SPACE_BUTS, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
 static void buttons_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	SpaceButs *sbuts= CTX_wm_space_buts(C);
 	int vertical= (sbuts->align == BUT_VERTICAL);
 
 	buttons_context_compute(C, sbuts);
 
 	if(sbuts->mainb == BCONTEXT_SCENE)
-		ED_region_panels(C, ar, vertical, "scene");
+		ED_region_panels(C, ar, vertical, "scene", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_WORLD)
-		ED_region_panels(C, ar, vertical, "world");
+		ED_region_panels(C, ar, vertical, "world", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_OBJECT)
-		ED_region_panels(C, ar, vertical, "object");
+		ED_region_panels(C, ar, vertical, "object", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_DATA)
-		ED_region_panels(C, ar, vertical, "data");
+		ED_region_panels(C, ar, vertical, "data", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_MATERIAL)
-		ED_region_panels(C, ar, vertical, "material");
+		ED_region_panels(C, ar, vertical, "material", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_TEXTURE)
-		ED_region_panels(C, ar, vertical, "texture");
+		ED_region_panels(C, ar, vertical, "texture", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_PARTICLE)
-		ED_region_panels(C, ar, vertical, "particle");
+		ED_region_panels(C, ar, vertical, "particle", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_PHYSICS)
-		ED_region_panels(C, ar, vertical, "physics");
+		ED_region_panels(C, ar, vertical, "physics", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_BONE)
-		ED_region_panels(C, ar, vertical, "bone");
+		ED_region_panels(C, ar, vertical, "bone", sbuts->mainb);
 	else if(sbuts->mainb == BCONTEXT_MODIFIER)
-		ED_region_panels(C, ar, vertical, "modifier");
+		ED_region_panels(C, ar, vertical, "modifier", sbuts->mainb);
 	else if (sbuts->mainb == BCONTEXT_CONSTRAINT)
-		ED_region_panels(C, ar, vertical, "constraint");
-	else if (sbuts->mainb == BCONTEXT_GAME)
-		ED_region_panels(C, ar, vertical, "game");
+		ED_region_panels(C, ar, vertical, "constraint", sbuts->mainb);
 
     sbuts->re_align= 0;
 	sbuts->mainbo= sbuts->mainb;
@@ -205,11 +207,16 @@ void buttons_operatortypes(void)
 
 	WM_operatortype_append(SCENE_OT_render_layer_add);
 	WM_operatortype_append(SCENE_OT_render_layer_remove);
+
+	WM_operatortype_append(BUTTONS_OT_toolbox);
+	WM_operatortype_append(BUTTONS_OT_file_browse);
 }
 
 void buttons_keymap(struct wmWindowManager *wm)
 {
+	ListBase *keymap= WM_keymap_listbase(wm, "Buttons Generic", SPACE_BUTS, 0);
 	
+	WM_keymap_add_item(keymap, "BUTTONS_OT_toolbox", RIGHTMOUSE, KM_PRESS, 0, 0);
 }
 
 //#define PY_HEADER
@@ -261,7 +268,7 @@ static void buttons_context_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void buttons_context_area_draw(const bContext *C, ARegion *ar)
 {
-	SpaceButs *sbuts= (SpaceButs*)CTX_wm_space_data(C);
+	SpaceButs *sbuts= CTX_wm_space_buts(C);
 	uiStyle *style= U.uistyles.first;
 	uiBlock *block;
 	uiLayout *layout;
@@ -313,6 +320,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_FRAME:
 				case ND_MODE:
+				case ND_RENDER_OPTIONS:
 					ED_area_tag_redraw(sa);
 					break;
 					
@@ -394,7 +402,7 @@ void ED_spacetype_buttons(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype buttons region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->minsizey= BUTS_HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
 	
 	art->init= buttons_header_area_init;

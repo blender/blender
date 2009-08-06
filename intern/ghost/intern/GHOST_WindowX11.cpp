@@ -187,6 +187,8 @@ GHOST_WindowX11(
 		printf("%s:%d: X11 glxChooseVisual() failed for OpenGL, verify working openGL system!\n", __FILE__, __LINE__);
 		return;
 	}
+	
+	memset(&m_xtablet, 0, sizeof(m_xtablet));
 
 	// Create a bunch of attributes needed to create an X window.
 
@@ -1323,13 +1325,12 @@ setWindowCustomCursorShape(
 	int fg_color, 
 	int bg_color
 ){
+	Colormap colormap= DefaultColormap(m_display, DefaultScreen(m_display));
 	Pixmap bitmap_pix, mask_pix;
 	XColor fg, bg;
 	
-	if(XAllocNamedColor(m_display, DefaultColormap(m_display, DefaultScreen(m_display)),
-		"White", &fg, &fg) == 0) return GHOST_kFailure;
-	if(XAllocNamedColor(m_display, DefaultColormap(m_display, DefaultScreen(m_display)),
-		"Black", &bg, &bg) == 0) return GHOST_kFailure;
+	if(XAllocNamedColor(m_display, colormap, "White", &fg, &fg) == 0) return GHOST_kFailure;
+	if(XAllocNamedColor(m_display, colormap, "Black", &bg, &bg) == 0) return GHOST_kFailure;
 
 	if (m_custom_cursor) {
 		XFreeCursor(m_display, m_custom_cursor);
@@ -1344,6 +1345,9 @@ setWindowCustomCursorShape(
 	
 	XFreePixmap(m_display, bitmap_pix);
 	XFreePixmap(m_display, mask_pix);
+
+    XFreeColors(m_display, colormap, &fg.pixel, 1, 0L);
+    XFreeColors(m_display, colormap, &bg.pixel, 1, 0L);
 
 	return GHOST_kSuccess;
 }

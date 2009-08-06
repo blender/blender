@@ -40,6 +40,7 @@ DIRS = armature \
   transform \
   screen \
   curve \
+  metaball \
   gpencil \
   physics \
   preview \

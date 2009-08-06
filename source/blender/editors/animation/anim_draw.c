@@ -242,40 +242,10 @@ AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 		return NULL;
 	
 	/* handling depends on the type of animation-context we've got */
-	if (ale && ale->id)
-		return BKE_animdata_from_id(ale->id);
-	
-	/* no appropriate object found */
-	return NULL;
-}
-
-/* Set/clear temporary mapping of coordinates from 'local-action' time to 'global-nla-scaled' time
- *	- the old mapping is stored in a static var, but that shouldn't be too bad as UI drawing
- *	  (where this is called) is single-threaded anyway
- */
-// XXX was called: map_active_strip()
-// TODO: should this be depreceated?
-void ANIM_nla_mapping_draw(gla2DDrawInfo *di, AnimData *adt, short restore)
-{
-	static rctf stored;
-	
-	if (restore) {
-		/* restore un-mapped coordinates */
-		gla2DSetMap(di, &stored);
-	}
-	else {
-		/* set mapped coordinates */
-		rctf map;
-		
-		gla2DGetMap(di, &stored);
-		map= stored;
-		
-		map.xmin= BKE_nla_tweakedit_remap(adt, map.xmin, NLATIME_CONVERT_MAP);
-		map.xmax= BKE_nla_tweakedit_remap(adt, map.xmax, NLATIME_CONVERT_MAP);
-		
-		if (map.xmin == map.xmax) map.xmax += 1.0f;
-		gla2DSetMap(di, &map);
-	}
+	if (ale)
+		return ale->adt;
+	else
+		return NULL;
 }
 
 /* ------------------- */

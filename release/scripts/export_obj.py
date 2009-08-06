@@ -2,14 +2,14 @@
 
 """
 Name: 'Wavefront (.obj)...'
-Blender: 248
+Blender: 249
 Group: 'Export'
 Tooltip: 'Save a Wavefront OBJ File'
 """
 
 __author__ = "Campbell Barton, Jiri Hnidek, Paolo Ciccone"
 __url__ = ['http://wiki.blender.org/index.php/Scripts/Manual/Export/wavefront_obj', 'www.blender.org', 'blenderartists.org']
-__version__ = "1.21"
+__version__ = "1.22"
 
 __bpydoc__ = """\
 This script is an exporter to OBJ file format.
@@ -23,10 +23,10 @@ will be exported as mesh data.
 """
 
 
-# --------------------------------------------------------------------------
-# OBJ Export v1.1 by Campbell Barton (AKA Ideasman)
-# --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
+#
+# Script copyright (C) Campbell J Barton 2007-2009
+# - V1.22- bspline import/export added (funded by PolyDimensions GmbH)
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License

@@ -64,13 +64,13 @@ typedef struct FileLayout
 	short width;
 	short height;
 	short flag;
+	short dirty;
 	float column_widths[MAX_FILE_COLUMN];
 } FileLayout;
 
 struct FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile);
 
-short ED_fileselect_set_params(struct SpaceFile *sfile, const char *title, const char *dir, const char *path, 
-						   short flag, short display, short filter, short sort);
+short ED_fileselect_set_params(struct SpaceFile *sfile);
 
 void ED_fileselect_reset_params(struct SpaceFile *sfile);
 
@@ -80,6 +80,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar);
 
 FileLayout* ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar);
 
+int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar);
 int ED_fileselect_layout_offset(FileLayout* layout, int x, int y);
 
 void ED_fileselect_layout_tilepos(FileLayout* layout, int tile, short *x, short *y);

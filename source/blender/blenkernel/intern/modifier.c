@@ -59,6 +59,7 @@
 #include "DNA_cloth_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
+#include "DNA_group_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -68,6 +69,7 @@
 #include "DNA_object_force.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_smoke_types.h"
 #include "DNA_texture_types.h"
 
 #include "BLI_editVert.h"
@@ -97,6 +99,7 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
+#include "BKE_smoke.h"
 #include "BKE_softbody.h"
 #include "BKE_subsurf.h"
 #include "BKE_texture.h"
@@ -5809,6 +5812,100 @@ static int softbodyModifier_dependsOnTime(ModifierData *md)
 	return 1;
 }
 
+/* Smoke */
+
+static void smokeModifier_initData(ModifierData *md) 
+{
+	SmokeModifierData *smd = (SmokeModifierData*) md;
+	
+	smd->domain = NULL;
+	smd->flow = NULL;
+	smd->coll = NULL;
+	smd->type = 0;
+	smd->time = -1;
+	
+	/*
+	smd->fluid = NULL;
+	smd->maxres = 48;
+	smd->amplify = 4;
+	smd->omega = 0.5;
+	smd->time = 0;
+	smd->flags = 0;
+	smd->noise = MOD_SMOKE_NOISEWAVE;
+	smd->visibility = 1;
+	
+	// init 3dview buffer
+	smd->tvox = NULL;
+	smd->tray = NULL;
+	smd->tvoxbig = NULL;
+	smd->traybig = NULL;
+	smd->viewsettings = 0;
+	smd->bind = NULL;
+	smd->max_textures = 0;
+	*/
+}
+
+static void smokeModifier_freeData(ModifierData *md)
+{
+	SmokeModifierData *smd = (SmokeModifierData*) md;
+	
+	smokeModifier_free (smd);
+}
+
+static void smokeModifier_deformVerts(
+					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
+      float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+{
+	SmokeModifierData *smd = (SmokeModifierData*) md;
+	DerivedMesh *dm = NULL;
+
+	if(derivedData) dm = derivedData;
+	else if(ob->type == OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
+	else return;
+
+	CDDM_apply_vert_coords(dm, vertexCos);
+	CDDM_calc_normals(dm);
+
+	smokeModifier_do(smd, md->scene, ob, dm, useRenderParams, isFinalCalc);
+
+	if(dm != derivedData) dm->release(dm);
+}
+
+static int smokeModifier_dependsOnTime(ModifierData *md)
+{
+	return 1;
+}
+
+static void smokeModifier_updateDepgraph(
+					 ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
+      DagNode *obNode)
+{
+	SmokeModifierData *smd = (SmokeModifierData *) md;
+	/*
+	if(smd && (smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
+	{
+		if(smd->domain->fluid_group)
+		{
+			GroupObject *go = NULL;
+			
+			for(go = smd->domain->fluid_group->gobject.first; go; go = go->next) 
+			{
+				if(go->ob)
+				{
+					SmokeModifierData *smd2 = (SmokeModifierData *)modifiers_findByType(go->ob, eModifierType_Smoke);
+					
+					// check for initialized smoke object
+					if(smd2 && (smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow)
+					{
+						DagNode *curNode = dag_get_node(forest, go->ob);
+						dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Smoke Flow");
+					}
+				}
+			}
+		}
+	}
+	*/
+}
 
 /* Cloth */
 
@@ -8501,6 +8598,15 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 				| eModifierTypeFlag_Single;
 		mti->deformVerts = softbodyModifier_deformVerts;
 		mti->dependsOnTime = softbodyModifier_dependsOnTime;
+		
+		mti = INIT_TYPE(Smoke);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->initData = smokeModifier_initData;
+		mti->freeData = smokeModifier_freeData; 
+		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->deformVerts = smokeModifier_deformVerts;
+		mti->dependsOnTime = smokeModifier_dependsOnTime;
+		mti->updateDepgraph = smokeModifier_updateDepgraph;
 	
 		mti = INIT_TYPE(Cloth);
 		mti->type = eModifierTypeType_Nonconstructive;

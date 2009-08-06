@@ -473,7 +473,7 @@ static void socket_vector_menu_cb(bContext *C, void *node_v, void *ntree_v)
 /* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
 static uiBlock *socket_vector_menu(bContext *C, ARegion *ar, void *socket_v)
 {
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	ScrArea *sa= CTX_wm_area(C);
 	bNode *node;
 	bNodeSocket *sock= socket_v;
@@ -577,7 +577,7 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 
 static void do_node_internal_buttons(bContext *C, void *node_v, int event)
 {
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	
 	if(event==B_NODE_EXEC) {
 		if(snode->treetype==NTREE_SHADER) {
@@ -1050,7 +1050,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 {
 	float col[3];
 	View2DScrollers *scrollers;
-	SpaceNode *snode= (SpaceNode*)CTX_wm_space_data(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
 	
 	UI_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0);

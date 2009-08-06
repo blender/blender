@@ -69,11 +69,11 @@ def write_func(rna, ident, out, func_type):
 	# Operators and functions work differently
 	if func_type=='OPERATOR':
 		rna_func_name = rna_struct.identifier
-		rna_func_desc = rna_struct.description
+		rna_func_desc = rna_struct.description.strip()
 		items = rna_struct.properties.items()
 	else:
 		rna_func_name = rna.identifier
-		rna_func_desc = rna.description
+		rna_func_desc = rna.description.strip()
 		items = rna.parameters.items()
 	
 	for rna_prop_identifier, rna_prop in items:
@@ -94,7 +94,7 @@ def write_func(rna, ident, out, func_type):
 		array_str = get_array_str(length)
 		
 		kw_type_str= "@type %s: %s%s" % (rna_prop_identifier, rna_prop_type, array_str)
-		kw_param_str= "@param %s: %s" % (rna_prop_identifier, rna_prop.description)
+		kw_param_str= "@param %s: %s" % (rna_prop_identifier, rna_prop.description.strip())
 		kw_param_set = False
 		
 		if func_type=='OPERATOR':
@@ -205,7 +205,7 @@ def rna2epy(target_path):
 		out.write(ident+ '\t"""\n')
 		
 		title = 'The %s Object' % rna_struct.name
-		description = rna_struct.description
+		description = rna_struct.description.strip()
 		out.write(ident+ '\t%s\n' %  title)
 		out.write(ident+ '\t%s\n' %  ('=' * len(title)))
 		out.write(ident+ '\t\t%s\n' %  description)
@@ -238,7 +238,7 @@ def rna2epy(target_path):
 			if rna_prop_identifier=='rna_type':
 				continue
 			
-			rna_desc = rna_prop.description
+			rna_desc = rna_prop.description.strip()
 			
 			if rna_desc: rna_words.update(rna_desc.split())
 			if not rna_desc: rna_desc = rna_prop.name
@@ -503,20 +503,21 @@ def rna2epy(target_path):
 def op2epy(target_path):
 	out = open(target_path, 'w')
 	
-	operators = dir(bpy.ops)
-	operators.remove('add')
-	operators.remove('remove')
-	operators.sort()
+	op_mods = dir(bpy.ops)
+	op_mods.remove('add')
+	op_mods.remove('remove')
 	
-	for op in operators:
-		
-		if op.startswith('__'):
+	for op_mod_name in sorted(op_mods):
+		if op_mod_name.startswith('__'):
 			continue
+
+		op_mod = getattr(bpy.ops, op_mod_name)
 		
-		# rna = getattr(bpy.types, op).__rna__
-		rna = bpy.ops.__rna__(op)
-		
-		write_func(rna, '', out, 'OPERATOR')
+		operators = dir(op_mod)
+		for op in sorted(operators):
+			# rna = getattr(bpy.types, op).__rna__
+			rna = getattr(op_mod, op).get_rna()
+			write_func(rna, '', out, 'OPERATOR')
 	
 	out.write('\n')
 	out.close()

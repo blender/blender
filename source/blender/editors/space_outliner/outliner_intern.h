@@ -95,6 +95,8 @@ typedef struct TreeElement {
 #define TSE_RNA_PROPERTY	31
 #define TSE_RNA_ARRAY_ELEM	32
 #define TSE_NLA_TRACK		33
+#define TSE_KEYMAP			34
+#define TSE_KEYMAP_ITEM		35
 
 /* outliner search flags */
 #define OL_FIND					0
@@ -115,11 +117,17 @@ void outliner_header_buttons(const struct bContext *C, struct ARegion *ar);
 
 /* outliner.c */
 void outliner_free_tree(struct ListBase *lb);
-void outliner_operation_menu(struct Scene *scene, struct ARegion *ar, struct SpaceOops *soops);
 void outliner_select(struct SpaceOops *soops, struct ListBase *lb, int *index, short *selecting);
 void draw_outliner(const struct bContext *C);
 
-void OUTLINER_OT_activate_click(struct wmOperatorType *ot);
+void OUTLINER_OT_item_activate(struct wmOperatorType *ot);
+void OUTLINER_OT_item_openclose(struct wmOperatorType *ot);
+void OUTLINER_OT_item_rename(struct wmOperatorType *ot);
+void OUTLINER_OT_operation(struct wmOperatorType *ot);
+void OUTLINER_OT_object_operation(struct wmOperatorType *ot);
+void OUTLINER_OT_group_operation(struct wmOperatorType *ot);
+void OUTLINER_OT_id_operation(struct wmOperatorType *ot);
+void OUTLINER_OT_data_operation(struct wmOperatorType *ot);
 
 void OUTLINER_OT_show_one_level(struct wmOperatorType *ot);
 void OUTLINER_OT_show_active(struct wmOperatorType *ot);

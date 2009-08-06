@@ -91,6 +91,7 @@
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_fcurve.h"
 #include "BKE_group.h"
 #include "BKE_icons.h"
 #include "BKE_key.h"
@@ -267,10 +268,6 @@ void free_object(Object *ob)
 	free_actuators(&ob->actuators);
 	
 	free_constraints(&ob->constraints);
-
-#ifndef DISABLE_PYTHON	
-	BPY_free_scriptlink(&ob->scriptlink);
-#endif
 	
 	if(ob->pd){
 		if(ob->pd->tex)
@@ -646,10 +643,7 @@ Camera *copy_camera(Camera *cam)
 	
 	camn= copy_libblock(cam);
 	camn->adt= BKE_copy_animdata(cam->adt);
-
-#ifndef DISABLE_PYTHON
-	BPY_copy_scriptlink(&camn->scriptlink);
-#endif	
+	
 	return camn;
 }
 
@@ -798,9 +792,7 @@ Lamp *copy_lamp(Lamp *la)
 #endif // XXX old animation system
 
 	if (la->preview) lan->preview = BKE_previewimg_copy(la->preview);
-#ifndef DISABLE_PYTHON
-	BPY_copy_scriptlink(&la->scriptlink);
-#endif
+	
 	return lan;
 }
 
@@ -858,9 +850,6 @@ void make_local_lamp(Lamp *la)
 
 void free_camera(Camera *ca)
 {
-#ifndef DISABLE_PYTHON
-	BPY_free_scriptlink(&ca->scriptlink);
-#endif
 	BKE_free_animdata((ID *)ca);
 }
 
@@ -868,11 +857,6 @@ void free_lamp(Lamp *la)
 {
 	MTex *mtex;
 	int a;
-
-	/* scriptlinks */
-#ifndef DISABLE_PYTHON
-	BPY_free_scriptlink(&la->scriptlink);
-#endif
 
 	for(a=0; a<MAX_MTEX; a++) {
 		mtex= la->mtex[a];
@@ -1211,9 +1195,7 @@ Object *copy_object(Object *ob)
 		modifier_copyData(md, nmd);
 		BLI_addtail(&obn->modifiers, nmd);
 	}
-#ifndef DISABLE_PYTHON	
-	BPY_copy_scriptlink(&ob->scriptlink);
-#endif
+
 	obn->prop.first = obn->prop.last = NULL;
 	copy_properties(&obn->prop, &ob->prop);
 	
@@ -1422,11 +1404,32 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	
 	ob->parent= target->parent;	/* libdata */
 	Mat4CpyMat4(ob->parentinv, target->parentinv);
-#if 0 // XXX old animation system
-	ob->ipo= target->ipo;		/* libdata */
-#endif // XXX old animation system
 	
-	/* skip constraints, constraintchannels, nla? */
+	/* copy animdata stuff - drivers only for now... */
+	if ((target->adt) && (target->adt->drivers.first)) {
+		FCurve *fcu;
+		
+		/* add new animdata block */
+		ob->adt= BKE_id_add_animdata(&ob->id);
+		
+		/* make a copy of all the drivers (for now), then correct any links that need fixing */
+		copy_fcurves(&ob->adt->drivers, &target->adt->drivers);
+		
+		for (fcu= ob->adt->drivers.first; fcu; fcu= fcu->next) {
+			ChannelDriver *driver= fcu->driver;
+			DriverTarget *dtar;
+			
+			for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
+				if ((Object *)dtar->id == target)
+					dtar->id= (ID *)ob;
+				else
+					id_lib_extern((ID *)dtar->id);
+			}
+		}
+	}
+	
+	/* skip constraints? */
+	// FIXME: this is considered by many as a bug
 	
 	/* set object type and link to data */
 	ob->type= target->type;
@@ -1462,6 +1465,9 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 		
 		armature_set_id_extern(ob);
 	}
+	
+	/* copy drawtype info */
+	ob->dt= target->dt;
 }
 
 
@@ -1844,26 +1850,6 @@ void set_no_parent_ipo(int val)
 	no_parent_ipo= val;
 }
 
-static int during_script_flag=0;
-void disable_where_script(short on)
-{
-	during_script_flag= on;
-}
-
-int during_script(void) {
-	return during_script_flag;
-}
-
-static int during_scriptlink_flag=0;
-void disable_where_scriptlink(short on)
-{
-	during_scriptlink_flag= on;
-}
-
-int during_scriptlink(void) {
-	return during_scriptlink_flag;
-}
-
 void where_is_object_time(Scene *scene, Object *ob, float ctime)
 {
 	float *fp1, *fp2, slowmat[4][4] = MAT4_UNITY;
@@ -1963,11 +1949,6 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 		
 		constraints_clear_evalob(cob);
 	}
-#ifndef DISABLE_PYTHON
-	if(ob->scriptlink.totscript && !during_script()) {
-		if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript((ID *)ob, SCRIPT_REDRAW);
-	}
-#endif
 	
 	/* set negative scale flag in object */
 	Crossf(vec, ob->obmat[0], ob->obmat[1]);
@@ -2339,9 +2320,6 @@ void object_handle_update(Scene *scene, Object *ob)
 			}
 			else
 				where_is_object(scene, ob);
-#ifndef DISABLE_PYTHON
-			if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript((ID *)ob, SCRIPT_OBJECTUPDATE);
-#endif
 		}
 		
 		if(ob->recalc & OB_RECALC_DATA) {
@@ -2429,9 +2407,6 @@ void object_handle_update(Scene *scene, Object *ob)
 						psys_get_modifier(ob, psys)->flag &= ~eParticleSystemFlag_psys_updated;
 				}
 			}
-#ifndef DISABLE_PYTHON
-			if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript((ID *)ob, SCRIPT_OBDATAUPDATE);
-#endif
 		}
 
 		/* the no-group proxy case, we call update */

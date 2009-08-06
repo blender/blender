@@ -71,6 +71,7 @@ void pushpop_test(void);
 /* global undo */
 extern void BKE_write_undo(struct bContext *C, char *name);
 extern void BKE_undo_step(struct bContext *C, int step);
+extern void BKE_undo_name(struct bContext *C, const char *name);
 extern void BKE_reset_undo(void);
 extern char *BKE_undo_menu_string(void);
 extern void BKE_undo_number(struct bContext *C, int nr);

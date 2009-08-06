@@ -539,7 +539,7 @@ static void do_history(char *name, ReportList *reports)
 		BKE_report(reports, RPT_ERROR, "Unable to make version backup");
 }
 
-void WM_write_file(bContext *C, char *target, ReportList *reports)
+void WM_write_file(bContext *C, char *target, int compress, ReportList *reports)
 {
 	Library *li;
 	int writeflags, len;
@@ -554,8 +554,6 @@ void WM_write_file(bContext *C, char *target, ReportList *reports)
 	}
  
 	/* send the OnSave event */
-// XXX	if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript(&CTX_data_scene(C)->id, SCRIPT_ONSAVE);
-
 	for (li= G.main->library.first; li; li= li->id.next) {
 		if (BLI_streq(li->name, target)) {
 			BKE_report(reports, RPT_ERROR, "Cannot overwrite used library");
@@ -582,10 +580,11 @@ void WM_write_file(bContext *C, char *target, ReportList *reports)
 
 	do_history(di, reports);
 	
-	/* we use the UserDef to define compression flag */
-	writeflags= G.fileflags & ~G_FILE_COMPRESS;
-	if(U.flag & USER_FILECOMPRESS)
-		writeflags |= G_FILE_COMPRESS;
+	writeflags= G.fileflags;
+
+	/* set compression flag */
+	if(compress) writeflags |= G_FILE_COMPRESS;
+	else writeflags &= ~G_FILE_COMPRESS;
 	
 	if (BLO_write_file(CTX_data_main(C), di, writeflags, reports)) {
 		strcpy(G.sce, di);
@@ -593,6 +592,9 @@ void WM_write_file(bContext *C, char *target, ReportList *reports)
 		strcpy(G.main->name, di);	/* is guaranteed current file */
 
 		G.save_over = 1; /* disable untitled.blend convention */
+
+		if(compress) G.fileflags |= G_FILE_COMPRESS;
+		else G.fileflags &= ~G_FILE_COMPRESS;
 		
 		writeBlog();
 	}
@@ -603,11 +605,17 @@ void WM_write_file(bContext *C, char *target, ReportList *reports)
 /* operator entry */
 int WM_write_homefile(bContext *C, wmOperator *op)
 {
+	wmWindow *win= CTX_wm_window(C);
 	char tstr[FILE_MAXDIR+FILE_MAXFILE];
 	int write_flags;
 	
+	/* check current window and close it if temp */
+	if(win->screen->full == SCREENTEMP) {
+		wm_window_close(C, win);
+	}
+	
 	BLI_make_file_string("/", tstr, BLI_gethome(), ".B25.blend");
-		
+	
 	/*  force save as regular blend file */
 	write_flags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);
 

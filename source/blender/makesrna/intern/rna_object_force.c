@@ -105,6 +105,7 @@ static void rna_Cache_toggle_disk_cache(bContext *C, PointerRNA *ptr)
 
 static void rna_Cache_idname_change(bContext *C, PointerRNA *ptr)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	PointCache *cache = (PointCache*)ptr->data;
 	PTCacheID *pid = NULL, *pid2= NULL;
@@ -119,33 +120,50 @@ static void rna_Cache_idname_change(bContext *C, PointerRNA *ptr)
 
 	BKE_ptcache_ids_from_object(&pidlist, ob);
 
-	for(pid=pidlist.first; pid; pid=pid->next) {
-		if(pid->cache==cache)
-			pid2 = pid;
-		else if(strcmp(cache->name, "") && strcmp(cache->name,pid->cache->name)==0) {
-			/*TODO: report "name exists" to user */
-			strcpy(cache->name, cache->prev_name);
-			new_name = 0;
+	if(cache->flag & PTCACHE_EXTERNAL) {
+		for(pid=pidlist.first; pid; pid=pid->next) {
+			if(pid->cache==cache)
+				break;
 		}
+
+		if(!pid)
+			return;
+
+		cache->flag |= (PTCACHE_BAKED|PTCACHE_DISK_CACHE|PTCACHE_SIMULATION_VALID);
+		cache->flag &= ~(PTCACHE_OUTDATED|PTCACHE_FRAMES_SKIPPED);
+
+		BKE_ptcache_load_external(pid);
+		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	}
-
-	if(new_name) {
-		if(pid2 && cache->flag & PTCACHE_DISK_CACHE) {
-			strcpy(name, cache->name);
-			strcpy(cache->name, cache->prev_name);
-
-			cache->flag &= ~PTCACHE_DISK_CACHE;
-
-			BKE_ptcache_toggle_disk_cache(pid2);
-
-			strcpy(cache->name, name);
-
-			cache->flag |= PTCACHE_DISK_CACHE;
-
-			BKE_ptcache_toggle_disk_cache(pid2);
+	else {
+		for(pid=pidlist.first; pid; pid=pid->next) {
+			if(pid->cache==cache)
+				pid2 = pid;
+			else if(strcmp(cache->name, "") && strcmp(cache->name,pid->cache->name)==0) {
+				/*TODO: report "name exists" to user */
+				strcpy(cache->name, cache->prev_name);
+				new_name = 0;
+			}
 		}
 
-		strcpy(cache->prev_name, cache->name);
+		if(new_name) {
+			if(pid2 && cache->flag & PTCACHE_DISK_CACHE) {
+				strcpy(name, cache->name);
+				strcpy(cache->name, cache->prev_name);
+
+				cache->flag &= ~PTCACHE_DISK_CACHE;
+
+				BKE_ptcache_toggle_disk_cache(pid2);
+
+				strcpy(cache->name, name);
+
+				cache->flag |= PTCACHE_DISK_CACHE;
+
+				BKE_ptcache_toggle_disk_cache(pid2);
+			}
+
+			strcpy(cache->prev_name, cache->name);
+		}
 	}
 
 	BLI_freelistN(&pidlist);
@@ -153,91 +171,91 @@ static void rna_Cache_idname_change(bContext *C, PointerRNA *ptr)
 
 static int rna_SoftBodySettings_use_edges_get(PointerRNA *ptr)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	return (((data->softflag) & OB_SB_EDGES) != 0);
 }
 
 static void rna_SoftBodySettings_use_edges_set(PointerRNA *ptr, int value)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	if(value) data->softflag |= OB_SB_EDGES;
 	else data->softflag &= ~OB_SB_EDGES;
 }
 
 static int rna_SoftBodySettings_use_goal_get(PointerRNA *ptr)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	return (((data->softflag) & OB_SB_GOAL) != 0);
 }
 
 static void rna_SoftBodySettings_use_goal_set(PointerRNA *ptr, int value)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	if(value) data->softflag |= OB_SB_GOAL;
 	else data->softflag &= ~OB_SB_GOAL;
 }
 
 static int rna_SoftBodySettings_stiff_quads_get(PointerRNA *ptr)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	return (((data->softflag) & OB_SB_QUADS) != 0);
 }
 
 static void rna_SoftBodySettings_stiff_quads_set(PointerRNA *ptr, int value)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	if(value) data->softflag |= OB_SB_QUADS;
 	else data->softflag &= ~OB_SB_QUADS;
 }
 
 static int rna_SoftBodySettings_self_collision_get(PointerRNA *ptr)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	return (((data->softflag) & OB_SB_SELF) != 0);
 }
 
 static void rna_SoftBodySettings_self_collision_set(PointerRNA *ptr, int value)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	if(value) data->softflag |= OB_SB_SELF;
 	else data->softflag &= ~OB_SB_SELF;
 }
 
 static int rna_SoftBodySettings_new_aero_get(PointerRNA *ptr)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	return (((data->softflag) & OB_SB_AERO_ANGLE) != 0);
 }
 
 static void rna_SoftBodySettings_new_aero_set(PointerRNA *ptr, int value)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	if(value) data->softflag |= OB_SB_AERO_ANGLE;
 	else data->softflag &= ~OB_SB_AERO_ANGLE;
 }
 
 static int rna_SoftBodySettings_face_collision_get(PointerRNA *ptr)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	return (((data->softflag) & OB_SB_FACECOLL) != 0);
 }
 
 static void rna_SoftBodySettings_face_collision_set(PointerRNA *ptr, int value)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	if(value) data->softflag |= OB_SB_FACECOLL;
 	else data->softflag &= ~OB_SB_FACECOLL;
 }
 
 static int rna_SoftBodySettings_edge_collision_get(PointerRNA *ptr)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	return (((data->softflag) & OB_SB_EDGECOLL) != 0);
 }
 
 static void rna_SoftBodySettings_edge_collision_set(PointerRNA *ptr, int value)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	if(value) data->softflag |= OB_SB_EDGECOLL;
 	else data->softflag &= ~OB_SB_EDGECOLL;
 }
@@ -365,10 +383,15 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "End", "Frame on which the simulation stops.");
 
 	prop= RNA_def_property(srna, "step", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "step");
 	RNA_def_property_range(prop, 1, 20);
 	RNA_def_property_ui_text(prop, "Cache Step", "Number of frames between cached frames.");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_change");
+
+	prop= RNA_def_property(srna, "index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "index");
+	RNA_def_property_range(prop, -1, 100);
+	RNA_def_property_ui_text(prop, "Cache Index", "Index number of cache files.");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
 
 	/* flags */
 	prop= RNA_def_property(srna, "baked", PROP_BOOLEAN, PROP_NONE);
@@ -398,6 +421,11 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "Cache name");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
 
+	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_sdna(prop, NULL, "path");
+	RNA_def_property_ui_text(prop, "File Path", "Cache file path.");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
+
 	prop= RNA_def_property(srna, "quick_cache", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_QUICK_CACHE);
 	RNA_def_property_ui_text(prop, "Quick Cache", "Update simulation with cache steps");
@@ -407,6 +435,11 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "info");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Cache Info", "Info on current cache status.");
+
+	prop= RNA_def_property(srna, "external", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_EXTERNAL);
+	RNA_def_property_ui_text(prop, "External", "Read cache from an external location");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
 }
 
 static void rna_def_collision(BlenderRNA *brna)
@@ -682,10 +715,68 @@ static void rna_def_field(BlenderRNA *brna)
 static void rna_def_game_softbody(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "GameSoftBodySettings", NULL);
 	RNA_def_struct_sdna(srna, "BulletSoftBody");
 	RNA_def_struct_ui_text(srna, "Game Soft Body Settings", "Soft body simulation settings for an object in the game engine.");
+	
+	/* Floats */
+	
+	prop= RNA_def_property(srna, "linstiff", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "linStiff");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Linear Stiffness", "Linear stiffness of the soft body links");
+	
+	prop= RNA_def_property(srna, "dynamic_friction", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "kDF");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Friction", "Dynamic Friction");
+	
+	prop= RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "kMT");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Threshold", "Shape matching threshold");
+	
+	prop= RNA_def_property(srna, "margin", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "margin");
+	RNA_def_property_range(prop, 0.01f, 1.0f);
+	RNA_def_property_ui_text(prop, "Margin", "Collision margin for soft body. Small value makes the algorithm unstable");
+	
+	prop= RNA_def_property(srna, "welding", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "welding");
+	RNA_def_property_range(prop, 0.0f, 0.01f);
+	RNA_def_property_ui_text(prop, "Welding", "Welding threshold: distance between nearby vertices to be considered equal => set to 0.0 to disable welding test and speed up scene loading (ok if the mesh has no duplicates)");
+
+	/* Integers */
+	
+	prop= RNA_def_property(srna, "position_iterations", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "piterations");
+	RNA_def_property_range(prop, 0, 10);
+	RNA_def_property_ui_text(prop, "Position Iterations", "Position solver iterations");
+	
+	prop= RNA_def_property(srna, "cluster_iterations", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "numclusteriterations");
+	RNA_def_property_range(prop, 1, 128);
+	RNA_def_property_ui_text(prop, "Cluster Iterations", "Specify the number of cluster iterations");
+	
+	/* Booleans */
+	
+	prop= RNA_def_property(srna, "shape_match", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_BSB_SHAPE_MATCHING);
+	RNA_def_property_ui_text(prop, "Shape Match", "Enable soft body shape matching goal");
+	
+	prop= RNA_def_property(srna, "bending_const", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_BSB_BENDING_CONSTRAINTS);
+	RNA_def_property_ui_text(prop, "Bending Const", "Enable bending constraints");
+	
+	prop= RNA_def_property(srna, "enable_rs_collision", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "collisionflags", OB_BSB_COL_CL_RS);
+	RNA_def_property_ui_text(prop, "Cluster Collision RS", "Enable cluster collision between soft and rigid body");
+	
+	prop= RNA_def_property(srna, "enable_ss_collision", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "collisionflags", OB_BSB_COL_CL_SS);
+	RNA_def_property_ui_text(prop, "Cluster Collision SS", "Enable cluster collision between soft and soft body");
 }
 
 static void rna_def_softbody(BlenderRNA *brna)

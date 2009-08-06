@@ -46,8 +46,8 @@
 #include "BL_SkinMeshObject.h"
 #include "BL_DeformableGameObject.h"
 
-BL_SkinMeshObject::BL_SkinMeshObject(Mesh* mesh, int lightlayer)
- : RAS_MeshObject (mesh, lightlayer)
+BL_SkinMeshObject::BL_SkinMeshObject(Mesh* mesh)
+ : RAS_MeshObject (mesh)
 { 
 	m_bDeformed = true;
 

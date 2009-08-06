@@ -402,6 +402,8 @@ void	KX_BulletPhysicsController::RestoreDynamics()
 	btRigidBody *body = GetRigidBody();
 	if (body && m_suspended)
 	{
+		// before make sure any position change that was done in this logic frame are accounted for
+		SetTransform();
 		GetPhysicsEnvironment()->updateCcdPhysicsController(this, 
 			m_savedMass,
 			m_savedCollisionFlags,

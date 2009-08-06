@@ -115,6 +115,7 @@
 #include "ED_curve.h"
 #include "ED_particle.h"
 #include "ED_mesh.h"
+#include "ED_mball.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
@@ -138,10 +139,10 @@
 
 /* ************* XXX **************** */
 static void error() {}
-static void waitcursor() {}
-static int pupmenu() {return 0;}
-static int pupmenu_col() {return 0;}
-static int okee() {return 0;}
+static void waitcursor(int val) {}
+static int pupmenu(const char *msg) {return 0;}
+static int pupmenu_col(const char *msg, int val) {return 0;}
+static int okee(const char *msg) {return 0;}
 
 /* port over here */
 static bContext *C;
@@ -539,6 +540,78 @@ void OBJECT_OT_surface_add(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_surface_types, 0, "Primitive", "");
 }
 
+static EnumPropertyItem prop_metaball_types[]= {
+	{MB_BALL, "MBALL_BALL", ICON_META_BALL, "Meta Ball", ""},
+	{MB_TUBE, "MBALL_TUBE", ICON_META_TUBE, "Meta Tube", ""},
+	{MB_PLANE, "MBALL_PLANE", ICON_META_PLANE, "Meta Plane", ""},
+	{MB_CUBE, "MBALL_CUBE", ICON_META_CUBE, "Meta Cube", ""},
+	{MB_ELIPSOID, "MBALL_ELLIPSOID", ICON_META_ELLIPSOID, "Meta Ellipsoid", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static int object_metaball_add_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	MetaBall *mball;
+	MetaElem *elem;
+	int newob= 0;
+	
+	if(obedit==NULL || obedit->type!=OB_MBALL) {
+		object_add_type(C, OB_MBALL);
+		ED_object_enter_editmode(C, 0);
+		newob = 1;
+	}
+	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	
+	obedit= CTX_data_edit_object(C);
+	elem= (MetaElem*)add_metaball_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
+	mball= (MetaBall*)obedit->data;
+	BLI_addtail(mball->editelems, elem);
+	
+	/* userdef */
+	if (newob && (U.flag & USER_ADD_EDITMODE)==0) {
+		ED_object_exit_editmode(C, EM_FREEDATA);
+	}
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int object_metaball_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	uiPopupMenu *pup;
+	uiLayout *layout;
+
+	pup= uiPupMenuBegin(C, op->type->name, 0);
+	layout= uiPupMenuLayout(pup);
+	if(!obedit || obedit->type == OB_MBALL)
+		uiItemsEnumO(layout, op->type->idname, "type");
+	else
+		uiItemsEnumO(layout, "OBJECT_OT_metaball_add", "type");
+	uiPupMenuEnd(C, pup);
+
+	return OPERATOR_CANCELLED;
+}
+
+void OBJECT_OT_metaball_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Metaball";
+	ot->description= "Add an metaball object to the scene.";
+	ot->idname= "OBJECT_OT_metaball_add";
+
+	/* api callbacks */
+	ot->invoke= object_metaball_add_invoke;
+	ot->exec= object_metaball_add_exec;
+	ot->poll= ED_operator_scene_editable;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "type", prop_metaball_types, 0, "Primitive", "");
+}
 static int object_add_text_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -617,7 +690,6 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-
 static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	uiPopupMenu *pup= uiPupMenuBegin(C, "Add Object", 0);
@@ -626,7 +698,7 @@ static int object_primitive_add_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	uiItemMenuEnumO(layout, "Mesh", ICON_OUTLINER_OB_MESH, "OBJECT_OT_mesh_add", "type");
 	uiItemMenuEnumO(layout, "Curve", ICON_OUTLINER_OB_CURVE, "OBJECT_OT_curve_add", "type");
 	uiItemMenuEnumO(layout, "Surface", ICON_OUTLINER_OB_SURFACE, "OBJECT_OT_surface_add", "type");
-	uiItemEnumO(layout, NULL, ICON_OUTLINER_OB_META, "OBJECT_OT_object_add", "type", OB_MBALL);
+	uiItemMenuEnumO(layout, NULL, ICON_OUTLINER_OB_META, "OBJECT_OT_metaball_add", "type");
 	uiItemO(layout, "Text", ICON_OUTLINER_OB_FONT, "OBJECT_OT_text_add");
 	uiItemS(layout);
 	uiItemO(layout, "Armature", ICON_OUTLINER_OB_ARMATURE, "OBJECT_OT_armature_add");
@@ -2661,68 +2733,128 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 	DAG_scene_sort(scene);
 }
 
-static Object *group_objects_menu(Group *group)
+
+/* ******************** make proxy operator *********************** */
+
+/* present menu listing the possible objects within the group to proxify */
+static void proxy_group_objects_menu (bContext *C, wmOperator *op, Object *ob, Group *group)
 {
+	uiPopupMenu *pup;
+	uiLayout *layout;
 	GroupObject *go;
-	int len= 0;
-	short a, nr;
-	char *str;
-		
-	for(go= group->gobject.first; go; go= go->next) {
-		if(go->ob)
-			len++;
-	}
-	if(len==0) return NULL;
+	int len=0;
 	
-	str= MEM_callocN(40+32*len, "menu");
+	/* check if there are any objects within the group to assign for */
+	for (go= group->gobject.first; go; go= go->next) {
+		if (go->ob) len++;
+	}
+	if (len==0) return;
 	
-	strcpy(str, "Make Proxy for: %t");
-	a= strlen(str);
-	for(nr=1, go= group->gobject.first; go; go= go->next, nr++) {
-		a+= sprintf(str+a, "|%s %%x%d", go->ob->id.name+2, nr);
+	/* now create the menu to draw */
+	pup= uiPupMenuBegin(C, "Make Proxy For:", 0);
+	layout= uiPupMenuLayout(pup);
+	
+	for (go= group->gobject.first; go; go= go->next) {
+		if (go->ob) {
+			PointerRNA props_ptr;
+			
+			/* create operator properties, and assign the relevant pointers to that, 
+			 * and add a menu entry which uses these props 
+			 */
+			WM_operator_properties_create(&props_ptr, op->idname);
+				RNA_string_set(&props_ptr, "object", go->ob->id.name+2);
+				RNA_string_set(&props_ptr, "group_object", go->ob->id.name+2);
+			uiItemFullO(layout, go->ob->id.name+2, 0, op->idname, props_ptr.data, WM_OP_EXEC_REGION_WIN);
+		}
 	}
 	
-	a= pupmenu_col(str, 20);
-	MEM_freeN(str);
-	if(a>0) {
-		go= BLI_findlink(&group->gobject, a-1);
-		return go->ob;
-	}
-	return NULL;
+	/* display the menu, and be done */
+	uiPupMenuEnd(C, pup);
 }
 
-
-/* adds empty object to become local replacement data of a library-linked object */
-void make_proxy(Scene *scene)
+/* set the object to proxify */
+static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
-	Object *ob= OBACT;
-	Object *gob= NULL;
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
 	
-	if(scene->id.lib) return;
-	if(ob==NULL) return;
-	
-	
-	if(ob->dup_group && ob->dup_group->id.lib) {
-		gob= ob;
+	/* sanity checks */
+	if (!scene || scene->id.lib || !ob)
+		return OPERATOR_CANCELLED;
+		
+	/* Get object to work on - use a menu if we need to... */
+	if (ob->dup_group && ob->dup_group->id.lib) {
 		/* gives menu with list of objects in group */
-		ob= group_objects_menu(ob->dup_group);
+		proxy_group_objects_menu(C, op, ob, ob->dup_group);
 	}
-	else if(ob->id.lib) {
-		if(okee("Make Proxy Object")==0)
-		return;
+	else if (ob->id.lib) {
+		uiPopupMenu *pup= uiPupMenuBegin(C, "OK?", ICON_QUESTION);
+		uiLayout *layout= uiPupMenuLayout(pup);
+		PointerRNA props_ptr;
+		
+		/* create operator properties, and assign the relevant pointers to that, 
+		 * and add a menu entry which uses these props 
+		 */
+		WM_operator_properties_create(&props_ptr, op->idname);
+			RNA_string_set(&props_ptr, "object", ob->id.name+2);
+		uiItemFullO(layout, op->type->name, 0, op->idname, props_ptr.data, WM_OP_EXEC_REGION_WIN);
+		
+		/* present the menu and be done... */
+		uiPupMenuEnd(C, pup);
 	}
 	else {
-		error("Can only make proxy for a referenced object or group");
-		return;
+		/* error.. cannot continue */
+		BKE_report(op->reports, RPT_ERROR, "Can only make proxy for a referenced object or group");
 	}
 	
-	if(ob) {
+	/* this invoke just calls another instance of this operator... */
+	return OPERATOR_CANCELLED;
+}
+
+static int make_proxy_exec (bContext *C, wmOperator *op)
+{
+	Object *ob=NULL, *gob=NULL;
+	Scene *scene= CTX_data_scene(C);
+	char ob_name[21], gob_name[21];
+	
+	/* get object and group object
+	 *	- firstly names
+	 *	- then pointers from context 
+	 */
+	RNA_string_get(op->ptr, "object", ob_name);
+	RNA_string_get(op->ptr, "group_object", gob_name);
+	
+	if (gob_name[0]) {
+		Group *group;
+		GroupObject *go;
+		
+		/* active object is group object... */
+		// FIXME: we should get the nominated name instead
+		gob= CTX_data_active_object(C);
+		group= gob->dup_group;
+		
+		/* find the object to affect */
+		for (go= group->gobject.first; go; go= go->next) {
+			if ((go->ob) && strcmp(go->ob->id.name+2, gob_name)==0) {
+				ob= go->ob;
+				break;
+			}
+		}
+	}
+	else {
+		/* just use the active object for now */
+		// FIXME: we should get the nominated name instead
+		ob= CTX_data_active_object(C);
+	}
+	
+	if (ob) {
 		Object *newob;
 		Base *newbase, *oldbase= BASACT;
 		char name[32];
 		
+		/* Add new object for the proxy */
 		newob= add_object(scene, OB_EMPTY);
-		if(gob)
+		if (gob)
 			strcpy(name, gob->id.name+2);
 		else
 			strcpy(name, ob->id.name+2);
@@ -2735,32 +2867,68 @@ void make_proxy(Scene *scene)
 		newob->lay= newbase->lay;
 		
 		/* remove base, leave user count of object, it gets linked in object_make_proxy */
-		if(gob==NULL) {
+		if (gob==NULL) {
 			BLI_remlink(&scene->base, oldbase);
 			MEM_freeN(oldbase);
-		}		
+		}
+		
 		object_make_proxy(newob, ob, gob);
 		
+		/* depsgraph flushes are needed for the new data */
 		DAG_scene_sort(scene);
 		DAG_object_flush_update(scene, newob, OB_RECALC);
+		
+		WM_event_add_notifier(C, NC_OBJECT, NULL);
 	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "No object to make proxy for");
+		return OPERATOR_CANCELLED;
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_proxy_make (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Make Proxy";
+	ot->idname= "OBJECT_OT_proxy_make";
+	ot->description= "Add empty object to become local replacement data of a library-linked object";
+	
+	/* callbacks */
+	ot->invoke= make_proxy_invoke;
+	ot->exec= make_proxy_exec;
+	ot->poll= ED_operator_object_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_string(ot->srna, "object", "", 19, "Proxy Object", "Name of lib-linked/grouped object to make a proxy for.");
+	RNA_def_string(ot->srna, "group_object", "", 19, "Group Object", "Name of group instancer (if applicable).");
 }
 
 /* ******************** make parent operator *********************** */
 
-#define PAR_OBJECT		0
-#define PAR_ARMATURE	1
-#define PAR_BONE		2
-#define PAR_CURVE		3
-#define PAR_FOLLOW		4
-#define PAR_PATH_CONST	5
-#define PAR_LATTICE		6
-#define PAR_VERTEX		7
-#define PAR_TRIA		8
+#define PAR_OBJECT				0
+#define PAR_ARMATURE			1
+#define PAR_ARMATURE_NAME		2
+#define PAR_ARMATURE_ENVELOPE	3
+#define PAR_ARMATURE_AUTO		4
+#define PAR_BONE				5
+#define PAR_CURVE				6
+#define PAR_FOLLOW				7
+#define PAR_PATH_CONST			8
+#define PAR_LATTICE				9
+#define PAR_VERTEX				10
+#define PAR_TRIA				11
 
 static EnumPropertyItem prop_make_parent_types[] = {
 	{PAR_OBJECT, "OBJECT", 0, "Object", ""},
 	{PAR_ARMATURE, "ARMATURE", 0, "Armature Deform", ""},
+	{PAR_ARMATURE_NAME, "ARMATURE_NAME", 0, "   With Empty Groups", ""},
+	{PAR_ARMATURE_AUTO, "ARMATURE_AUTO", 0, "   With Automatic Weights", ""},
+	{PAR_ARMATURE_ENVELOPE, "ARMATURE_ENVELOPE", 0, "   With Envelope Weights", ""},
 	{PAR_BONE, "BONE", 0, "Bone", ""},
 	{PAR_CURVE, "CURVE", 0, "Curve Deform", ""},
 	{PAR_FOLLOW, "FOLLOW", 0, "Follow Path", ""},
@@ -2804,6 +2972,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 	Object *par= CTX_data_active_object(C);
 	bPoseChannel *pchan= NULL;
 	int partype= RNA_enum_get(op->ptr, "type");
+	int pararm= ELEM4(partype, PAR_ARMATURE, PAR_ARMATURE_NAME, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO);
 	
 	par->recalc |= OB_RECALC_OB;
 	
@@ -2875,24 +3044,20 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 					ob->loc[0] = vec[0];
 					ob->loc[1] = vec[1];
 				}
-				else if(partype==PAR_ARMATURE && ob->type==OB_MESH && par->type == OB_ARMATURE) {
+				else if(pararm && ob->type==OB_MESH && par->type == OB_ARMATURE) {
+					if(partype == PAR_ARMATURE_NAME)
+						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_NAME);
+					else if(partype == PAR_ARMATURE_ENVELOPE)
+						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_ENVELOPE);
+					else if(partype == PAR_ARMATURE_AUTO)
+						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_AUTO);
 					
-					if(1) {
-						/* Prompt the user as to whether he wants to
-						* add some vertex groups based on the bones
-						* in the parent armature.
-						*/
-						create_vgroups_from_armature(scene, ob, par);
-						
-						/* get corrected inverse */
-						ob->partype= PAROBJECT;
-						what_does_parent(scene, ob, &workob);
-						
-						ob->partype= PARSKEL;
-					}
-					else
-						what_does_parent(scene, ob, &workob);
+					/* get corrected inverse */
+					ob->partype= PAROBJECT;
+					what_does_parent(scene, ob, &workob);
 					
+					ob->partype= PARSKEL;
+
 					Mat4Invert(ob->parentinv, workob.obmat);
 				}
 				else {
@@ -2903,7 +3068,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 				
 				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
 				
-				if( ELEM3(partype, PAR_CURVE, PAR_ARMATURE, PAR_LATTICE) )
+				if( ELEM(partype, PAR_CURVE, PAR_LATTICE) || pararm )
 					ob->partype= PARSKEL; /* note, dna define, not operator property */
 				else
 					ob->partype= PAROBJECT;	/* note, dna define, not operator property */
@@ -2931,6 +3096,9 @@ static int parent_set_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* ob becomes parent, make the associated menus */
 	if(ob->type==OB_ARMATURE) {
 		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE_NAME);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE_ENVELOPE);
+		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_ARMATURE_AUTO);
 		uiItemEnumO(layout, NULL, 0, "OBJECT_OT_parent_set", "type", PAR_BONE);
 	}
 	else if(ob->type==OB_CURVE) {
@@ -3549,9 +3717,8 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		if(freedata) free_editLatt(obedit);
 	}
 	else if(obedit->type==OB_MBALL) {
-//		extern ListBase editelems;
-//		load_editMball();
-//		if(freedata) BLI_freelistN(&editelems);
+		load_editMball(obedit);
+		if(freedata) free_editMball(obedit);
 	}
 	
 	/* freedata only 0 now on file saves */
@@ -3583,10 +3750,11 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	if(scene->id.lib) return;
 	if(base==NULL) return;
 	
-	if(sa->spacetype==SPACE_VIEW3D)
+	if(sa && sa->spacetype==SPACE_VIEW3D)
 		v3d= sa->spacedata.first;
 	
-	if((v3d==NULL || (base->lay & v3d->lay))==0) return;
+	if(v3d && (base->lay & v3d->lay)==0) return;
+	else if(!v3d && (base->lay & scene->lay)==0) return;
 
 	ob = base->object;
 
@@ -3640,14 +3808,15 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		scene->obedit= ob; // XXX for context
 		ok= 1;
  		make_editText(ob);
+
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_TEXT, scene);
 	}
 	else if(ob->type==OB_MBALL) {
 		scene->obedit= ob; // XXX for context
-//		ok= 1;
-// XXX		make_editMball();
+		ok= 1;
+		make_editMball(ob);
+
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_MBALL, scene);
-		
 	}
 	else if(ob->type==OB_LATTICE) {
 		scene->obedit= ob; // XXX for context
@@ -3706,6 +3875,42 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 
 /* *************************** */
 
+static int posemode_exec(bContext *C, wmOperator *op)
+{
+	Base *base= CTX_data_active_base(C);
+	
+	if(base->object->type==OB_ARMATURE) {
+		if(base->object==CTX_data_edit_object(C)) {
+			ED_object_exit_editmode(C, EM_FREEDATA);
+			ED_armature_enter_posemode(C, base);
+		}
+		else if(base->object->flag & OB_POSEMODE)
+			ED_armature_exit_posemode(C, base);
+		else
+			ED_armature_enter_posemode(C, base);
+		
+		return OPERATOR_FINISHED;
+	}
+	
+	return OPERATOR_PASS_THROUGH;
+}
+
+void OBJECT_OT_posemode_toggle(wmOperatorType *ot) 
+{
+	/* identifiers */
+	ot->name= "Toggle Pose Mode";
+	ot->idname= "OBJECT_OT_posemode_toggle";
+	ot->description= "Enables or disables posing/selecting bones";
+	
+	/* api callbacks */
+	ot->exec= posemode_exec;
+	ot->poll= ED_operator_object_active;
+	
+	/* flag */
+	ot->flag= OPTYPE_REGISTER;
+}
+
+/* *********************** */
 
 void check_editmode(int type)
 {
@@ -6254,12 +6459,11 @@ static Base *object_add_duplicate_internal(Scene *scene, Base *base, int dupflag
 	return basen;
 }
 
-/* single object duplicate, if dupflag==0, fully linked, else it uses U.dupflag */
+/* single object duplicate, if dupflag==0, fully linked, else it uses the flags given */
 /* leaves selection of base/object unaltered */
-Base *ED_object_add_duplicate(Scene *scene, Base *base, int usedupflag)
+Base *ED_object_add_duplicate(Scene *scene, Base *base, int dupflag)
 {
 	Base *basen;
-	int dupflag= usedupflag?U.dupflag:0;
 
 	clear_id_newpoins();
 	clear_sca_new_poins();	/* sensor/contr/act */
@@ -6309,8 +6513,8 @@ static int duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	duplicate_exec(C, op);
 	
-	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
-	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+//	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
+//	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;
 }

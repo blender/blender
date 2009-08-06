@@ -83,6 +83,7 @@
 #include "ED_types.h"
 #include "ED_util.h"
 #include "ED_retopo.h"
+#include "ED_mball.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -127,7 +128,7 @@ void view3d_get_transformation(ViewContext *vc, Object *ob, bglMats *mats)
 	float cpy[4][4];
 	int i, j;
 
-	Mat4MulMat4(cpy, vc->rv3d->viewmat, ob->obmat);
+	Mat4MulMat4(cpy, ob->obmat, vc->rv3d->viewmat);
 
 	for(i = 0; i < 4; ++i) {
 		for(j = 0; j < 4; ++j) {
@@ -1377,9 +1378,10 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			do_nurbs_box_select(&vc, &rect, val==LEFTMOUSE);
 		}
 		else if(obedit->type==OB_MBALL) {
+			MetaBall *mb = (MetaBall*)obedit->data;
 			hits= view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
 			
-			ml= NULL; // XXX editelems.first;
+			ml= mb->editelems->first;
 			
 			while(ml) {
 				for(a=0; a<hits; a++) {
@@ -1589,6 +1591,8 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			mouse_lattice(C, event->mval, extend);
 		else if(ELEM(obedit->type, OB_CURVE, OB_SURF))
 			mouse_nurb(C, event->mval, extend);
+		else if(obedit->type==OB_MBALL)
+			mouse_mball(C, event->mval, extend);
 			
 	}
 	else if(G.f & G_PARTICLEEDIT)

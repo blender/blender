@@ -36,7 +36,6 @@
 
 #include "DNA_world_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_scriptlink_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_camera_types.h"
@@ -66,10 +65,7 @@ void free_world(World *wrld)
 {
 	MTex *mtex;
 	int a;
-
-#ifndef DISABLE_PYTHON
-	BPY_free_scriptlink(&wrld->scriptlink);
-#endif
+	
 	for(a=0; a<MAX_MTEX; a++) {
 		mtex= wrld->mtex[a];
 		if(mtex && mtex->tex) mtex->tex->id.us--;
@@ -126,9 +122,6 @@ World *copy_world(World *wrld)
 	}
 	
 	if (wrld->preview) wrldn->preview = BKE_previewimg_copy(wrld->preview);
-#ifndef DISABLE_PYTHON
-	BPY_copy_scriptlink(&wrld->scriptlink);
-#endif
 
 #if 0 // XXX old animation system
 	id_us_plus((ID *)wrldn->ipo);

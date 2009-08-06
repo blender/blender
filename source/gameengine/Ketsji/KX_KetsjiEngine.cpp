@@ -1599,10 +1599,8 @@ KX_Scene* KX_KetsjiEngine::CreateScene(const STR_String& scenename)
 									  scenename,
 									  scene);
 
-	m_sceneconverter->ConvertScene(scenename,
-							  tmpscene,
+	m_sceneconverter->ConvertScene(tmpscene,
 							  m_pythondictionary,
-							  m_keyboarddevice,
 							  m_rendertools,
 							  m_canvas);
 
