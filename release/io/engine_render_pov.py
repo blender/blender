@@ -442,6 +442,7 @@ def write_pov(filename, scene=None, info_callback = None):
 			file.write("\t\terror_bound %.4g\n" % scene.pov_radio_error_bound)
 			file.write("\t\tgray_threshold %.4g\n" % scene.pov_radio_gray_threshold)
 			file.write("\t\tlow_error_factor %.4g\n" % scene.pov_radio_low_error_factor)
+			file.write("\t\tmedia %d\n" % scene.pov_radio_media)
 			file.write("\t\tminimum_reuse %.4g\n" % scene.pov_radio_minimum_reuse)
 			file.write("\t\tnearest_count %d\n" % scene.pov_radio_nearest_count)
 			file.write("\t\tnormal %d\n" % scene.pov_radio_normal)
@@ -449,9 +450,7 @@ def write_pov(filename, scene=None, info_callback = None):
 			file.write('\t}\n')
 		
 		file.write('}\n')
-			
-
-		
+	
 	
 	exportCamera()
 	#exportMaterials()
@@ -699,6 +698,7 @@ class SCENE_PT_povray_radiosity(RenderButtonsPanel):
 			col.itemR(scene, "pov_radio_gray_threshold")
 			col.itemR(scene, "pov_radio_low_error_factor")
 			col.itemR(scene, "pov_radio_minimum_reuse")
+			col.itemR(scene, "pov_radio_media")
 			col.itemR(scene, "pov_radio_nearest_count")
 			col.itemR(scene, "pov_radio_normal")
 			col.itemR(scene, "pov_radio_always_sample")
@@ -758,6 +758,11 @@ FloatProperty(	attr="pov_radio_low_error_factor",
 				min=0.0, max=1.0, default= 0.5)
 
 # max_sample - not available yet
+
+BoolProperty(	attr="pov_radio_media",
+				name="Use Media",
+				description="Radiosity estimation can be affected by media.",
+				default= False)
 
 FloatProperty(	attr="pov_radio_minimum_reuse",
 				name="Minimum Reuse",

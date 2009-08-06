@@ -17,8 +17,6 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		row = layout.row()
 		row.item_menu_enumO("object.modifier_add", "type")
 		row.itemL()
-		
-		class_dict = self.__class__.__dict__
 
 		for md in ob.modifiers:
 			box = layout.template_modifier(md)

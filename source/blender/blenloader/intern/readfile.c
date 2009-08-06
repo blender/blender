@@ -9205,7 +9205,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			/* move to cameras */
 			if(sce->r.scemode & R_PANORAMA) {
-				for(base=scene->base.first; base; base=base->next) {
+				for(base=sce->base.first; base; base=base->next) {
 					ob= newlibadr(fd, lib, base->object);
 
 					if(ob->type == OB_CAMERA && !ob->id.lib) {
