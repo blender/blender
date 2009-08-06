@@ -407,7 +407,9 @@ void FLUID_3D::project()
 						xright - xleft +
 						yup - ydown +
 						ztop - zbottom );
-				_pressure[index] = 0.0f;
+
+				// DG: commenting this helps CG to get a better start, 10-20% speed improvement
+				// _pressure[index] = 0.0f;
 			}
 	copyBorderAll(_pressure);
 
