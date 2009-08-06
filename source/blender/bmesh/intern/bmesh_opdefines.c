@@ -61,8 +61,19 @@ next to them, e.g.
 the doc generator would automatically detect the presence of "output slot"
 and flag the slot as an output.  the same happens for "input slot".  also
 note that "edges", "faces", "verts", "loops", and "geometry" are valid 
-substitutions for "slot".
+substitutions for "slot". 
+
+note that slots default to being input slots.
 */
+
+BMOpDefine def_righthandfaces = {
+	"righthandfaces",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"},
+	{0} /*null-terminating sentinel*/,
+	},
+	bmesh_righthandfaces_exec,
+	0
+};
 
 /*
   Region Extend
@@ -156,60 +167,89 @@ BMOpDefine def_mirror = {
 	0,
 };
 
+/*
+  Find Doubles
+
+  Takes input verts and find vertices they should weld to.  Outputs a
+  mapping slot suitable for use with the weld verts bmop.
+*/
 BMOpDefine def_finddoubles = {
 	"finddoubles",
-	/*maps welded vertices to verts they should weld to.*/
-	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
-	 //list of verts to keep
-	 {BMOP_OPSLOT_ELEMENT_BUF, "keepverts"},
-	 {BMOP_OPSLOT_FLT,         "dist"},
+	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
+	 {BMOP_OPSLOT_ELEMENT_BUF, "keepverts"}, //list of verts to keep
+	 {BMOP_OPSLOT_FLT,         "dist"}, //minimum distance
 	 {BMOP_OPSLOT_MAPPING, "targetmapout"},
 	 {0, /*null-terminating sentinel*/}},
 	bmesh_finddoubles_exec,
 	0,
 };
 
+/*
+  Remove Doubles
+
+  Finds groups of vertices closer then dist and merges them together,
+  using the weld verts bmop.
+*/
 BMOpDefine def_removedoubles = {
 	"removedoubles",
-	/*maps welded vertices to verts they should weld to.*/
-	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
-	 {BMOP_OPSLOT_FLT,         "dist"},
+	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input verts
+	 {BMOP_OPSLOT_FLT,         "dist"}, //minimum distance
 	 {0, /*null-terminating sentinel*/}},
 	bmesh_removedoubles_exec,
 	0,
 };
 
+/*
+  Weld Verts
+
+  Welds verts together (kindof like remove doubles, merge, etc, all of which
+  use or will use this bmop).  You pass in mappings from vertices to the vertices
+  they weld with.
+*/
 BMOpDefine def_weldverts = {
 	"weldverts",
-	/*maps welded vertices to verts they should weld to.*/
-	{{BMOP_OPSLOT_MAPPING, "targetmap"},
+	{{BMOP_OPSLOT_MAPPING, "targetmap"}, /*maps welded vertices to verts they should weld to.*/
 	 {0, /*null-terminating sentinel*/}},
 	bmesh_weldverts_exec,
 	0,
 };
 
+/*
+  Make Vertex
+
+  Creates a single vertex; this bmop was necassary
+  for click-create-vertex.
+*/
 BMOpDefine def_makevert = {
 	"makevert",
-	{{BMOP_OPSLOT_VEC, "co"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "newvertout"},
+	{{BMOP_OPSLOT_VEC, "co"}, //the coordinate of the new vert
+	{BMOP_OPSLOT_ELEMENT_BUF, "newvertout"}, //the new vert
 	{0, /*null-terminating sentinel*/}},
 	bmesh_makevert_exec,
 	0,
 };
 
-/*contextual_create is fkey, it creates
-  new faces, makes stuff from edge nets,
-  makes wire edges, etc.  it also dissolves
-  faces.*/
+/*
+  Contextual Create
+
+  This is basically fkey, it creates
+  new faces from vertices, makes stuff from edge nets,
+  makes wire edges, etc.  It also dissolves
+  faces.
+  
+  Three verts become a triangle, four become a quad.  Two
+  become a wire edge.
+  */
 BMOpDefine def_contextual_create= {
 	"contextual_create",
-	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"},
-	 {BMOP_OPSLOT_ELEMENT_BUF, "faceout"},
+	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"}, //input geometry.
+	 {BMOP_OPSLOT_ELEMENT_BUF, "faceout"}, //newly-made face(s)
 	 {0, /*null-terminating sentinel*/}},
 	bmesh_contextual_create_exec,
 	0,
 };
 
+/*this may be unimplemented*/
 BMOpDefine def_edgenet_fill= {
 	"edgenet_fill",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"},
@@ -219,37 +259,59 @@ BMOpDefine def_edgenet_fill= {
 	0,
 };
 
+/*
+  Rotate
+
+  Rotate vertices around a center, using a 3x3 rotation
+  matrix.  Equivilent of the old rotateflag function.
+*/
 BMOpDefine def_rotate = {
 	"rotate",
-	{{BMOP_OPSLOT_VEC, "cent"},
-	 {BMOP_OPSLOT_MAT, "mat"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
+	{{BMOP_OPSLOT_VEC, "cent"}, //center of rotation
+	 {BMOP_OPSLOT_MAT, "mat"}, //matrix defining rotation
+	{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
 	{0, /*null-terminating sentinel*/}},
 	bmesh_rotate_exec,
 	0,
 };
 
+/*
+  Translate
+
+  Translate vertices by an offset.  Equivelent of the
+  old translateflag function.
+*/
 BMOpDefine def_translate= {
 	"translate",
-	{{BMOP_OPSLOT_VEC, "vec"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
+	{{BMOP_OPSLOT_VEC, "vec"}, //translation offset
+	{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
 	{0, /*null-terminating sentinel*/}},
 	bmesh_translate_exec,
 	0,
 };
 
 
-/*applies a transform to vertices*/
+/*
+  Transform
+
+  Transforms a set of vertices by a matrix.  Multiplies
+  the vertex coordinates with the matrix.
+*/
 BMOpDefine def_transform = {
 	"transform",
-	{{BMOP_OPSLOT_MAT, "mat"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
+	{{BMOP_OPSLOT_MAT, "mat"}, //transform matrix
+	{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
 	{0, /*null-terminating sentinel*/}},
 	bmesh_transform_exec,
 	0,
 };
 
-/*loads a bmesh into an object*/
+/*
+  Object Load BMesh
+
+  Loads a bmesh into an object/mesh.  This is a "private"
+  bmop.
+*/
 BMOpDefine def_object_load_bmesh = {
 	"object_load_bmesh",
 	{{BMOP_OPSLOT_PNT, "scene"},
@@ -260,19 +322,29 @@ BMOpDefine def_object_load_bmesh = {
 };
 
 
+/*
+  Mesh to BMesh
+
+  Load the contents of a mesh into the bmesh.
+*/
 BMOpDefine def_mesh_to_bmesh = {
 	"mesh_to_bmesh",
-	{{BMOP_OPSLOT_PNT, "mesh"},
+	{{BMOP_OPSLOT_PNT, "mesh"}, //pointer to a Mesh structure
 	 {0, /*null-terminating sentinel*/}},
 	mesh_to_bmesh_exec,
 	0
 };
 
+/*
+  Individual Vertex Extrude
+
+  Extrudes wire edges from vertices.
+*/
 BMOpDefine def_extrudeverts_indiv = {
 	"extrude_vert_indiv",
-	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "edgeout"},
-	{BMOP_OPSLOT_ELEMENT_BUF, "vertout"},
+	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, //input vertices
+	{BMOP_OPSLOT_ELEMENT_BUF, "edgeout"}, //output wire edges
+	{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output vertices
 	{0} /*null-terminating sentinel*/},
 	extrude_vert_indiv_exec,
 	0
@@ -474,6 +546,7 @@ BMOpDefine *opdefines[] = {
 	&def_reversefaces,
 	&def_edgerotate,
 	&def_regionextend,
+	&def_righthandfaces,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

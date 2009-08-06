@@ -1655,3 +1655,38 @@ void MESH_OT_reveal(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+
+static int normals_make_consistent_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	
+	if (!EDBM_CallOpf(em, op, "righthandfaces faces=%hf", BM_SELECT))
+		return OPERATOR_CANCELLED;
+	
+	if (RNA_boolean_get(op->ptr, "inside"))
+		EDBM_CallOpf(em, op, "reversefaces faces=%hf", BM_SELECT);
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit); //TODO is this needed ?
+
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_normals_make_consistent(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Make Normals Consistent";
+	ot->idname= "MESH_OT_normals_make_consistent";
+	
+	/* api callbacks */
+	ot->exec= normals_make_consistent_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_boolean(ot->srna, "inside", 0, "Inside", "");
+}
+

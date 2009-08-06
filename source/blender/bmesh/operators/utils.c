@@ -210,3 +210,110 @@ void bmesh_regionextend_exec(BMesh *bm, BMOperator *op)
 
 	BMO_Flag_To_Slot(bm, op, "geomout", SEL_FLAG, BM_ALL);
 }
+
+/********* righthand faces implementation ********/
+
+#define FACE_VIS	1
+#define FACE_FLAG	2
+#define FACE_MARK	4
+
+/* NOTE: these are the original righthandfaces comment in editmesh_mods.c,
+         copied here for reference.
+*/
+       /* based at a select-connected to witness loose objects */
+
+	/* count per edge the amount of faces */
+
+	/* find the ultimate left, front, upper face (not manhattan dist!!) */
+	/* also evaluate both triangle cases in quad, since these can be non-flat */
+
+	/* put normal to the outside, and set the first direction flags in edges */
+
+	/* then check the object, and set directions / direction-flags: but only for edges with 1 or 2 faces */
+	/* this is in fact the 'select connected' */
+	
+	/* in case (selected) faces were not done: start over with 'find the ultimate ...' */
+
+/*note: this function uses recursion, which is a little unusual for a bmop
+        function, but acceptable I think.*/
+void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
+{
+	BMIter liter, liter2;
+	BMOIter siter;
+	BMFace *f, *startf, **fstack = NULL;
+	V_DECLARE(fstack);
+	BMLoop *l, *l2;
+	float maxx, cent[3];
+	int i, maxi;
+
+	startf= NULL;
+	maxx= -1.0e10;
+	
+	BMO_Flag_Buffer(bm, op, "faces", FACE_FLAG);
+
+	/*find a starting face*/
+	BMO_ITER(f, &siter, bm, op, "faces", BM_FACE) {
+		if (BMO_TestFlag(bm, f, FACE_VIS))
+			continue;
+
+		if (!startf) startf = f;
+
+		BM_Compute_Face_Center(bm, f, cent);
+
+		cent[0] = cent[0]*cent[0] + cent[1]*cent[1] + cent[2]*cent[2];
+		if (cent[0] > maxx) {
+			maxx = cent[0];
+			startf = f;
+		}
+	}
+
+	if (!startf) return;
+
+	BM_Compute_Face_Center(bm, startf, cent);
+
+	if (cent[0]*startf->no[0] + cent[1]*startf->no[1] + cent[2]*startf->no[2] < 0.0)
+		BM_flip_normal(bm, startf);
+	
+	V_GROW(fstack);
+	fstack[0] = startf;
+	BMO_SetFlag(bm, startf, FACE_VIS);
+
+	i = 0;
+	maxi = 1;
+	while (i >= 0) {
+		f = fstack[i];
+		i--;
+
+		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+			BM_ITER(l2, &liter2, bm, BM_LOOPS_OF_LOOP, l) {
+				if (!BMO_TestFlag(bm, l2->f, FACE_FLAG) || l2 == l)
+					continue;
+
+				if (!BMO_TestFlag(bm, l2->f, FACE_VIS)) {
+					BMO_SetFlag(bm, l2->f, FACE_VIS);
+					i++;
+					
+					if (l2->v == l->v)
+						BM_flip_normal(bm, l2->f);
+
+					if (i == maxi) {
+						V_GROW(fstack);
+						maxi++;
+					}
+
+					fstack[i] = l2->f;
+				}
+			}
+		}
+	}
+
+	V_FREE(fstack);
+
+	/*check if we have faces yet to do.  if so, recurse.*/
+	BMO_ITER(f, &siter, bm, op, "faces", BM_FACE) {
+		if (!BMO_TestFlag(bm, f, FACE_VIS)) {
+			bmesh_righthandfaces_exec(bm, op);
+			break;
+		}
+	}
+}

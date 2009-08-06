@@ -2700,46 +2700,7 @@ void righthandfaces(EditMesh *em, int select)	/* makes faces righthand turning *
 	waitcursor(0);
 }
 
-
-static int righthandfaces_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene = CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-
-	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
-	
-	/* 'standard' behaviour - check if selected, then apply relevant selection */
-	
-	// XXX  need other args
-	righthandfaces(em, RNA_boolean_get(op->ptr, "inside"));
-	
-	BKE_mesh_end_editmesh(obedit->data, em);
-
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit); //TODO is this needed ?
-
-	return OPERATOR_FINISHED;	
-}
-
-void MESH_OT_normals_make_consistent(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Make Normals Consistent";
-	ot->idname= "MESH_OT_normals_make_consistent";
-	
-	/* api callbacks */
-	ot->exec= righthandfaces_exec;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	RNA_def_boolean(ot->srna, "inside", 0, "Inside", "");
-}
-
 /* ********** ALIGN WITH VIEW **************** */
-
-
 static void editmesh_calc_selvert_center(EditMesh *em, float cent_r[3])
 {
 	EditVert *eve;
