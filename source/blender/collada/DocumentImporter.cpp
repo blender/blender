@@ -1181,7 +1181,7 @@ private:
 				for(int j = 0; j < vca.getCount(); j++){
 					int count = vca[j];
 					if (count < 3) {
-						fprintf(stderr, "Primitive %s in %s has at least one face with vertex count < 3 or > 4\n",
+						fprintf(stderr, "Primitive %s in %s has at least one face with vertex count < 3\n",
 								type_str, name);
 						return false;
 					}
@@ -2499,12 +2499,17 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeCamera( const COLLADAFW::Camera* camera ) 
 	{
-		std::string name = camera->getOriginalId();
-		Camera *cam = (Camera*)add_camera((char*)name.c_str());
+		Camera *cam;
+		std::string cam_id = camera->getOriginalId();
+		std::string cam_name = camera->getName();
+		if (cam_name.size()) cam = (Camera*)add_camera((char*)cam_name.c_str());
+		else cam = (Camera*)add_camera((char*)cam_id.c_str());
+		
 		if (!cam) {
 			fprintf(stderr, "Cannot create camera. \n");
 			return true;
 		}
+		
 		COLLADAFW::Camera::CameraType type = camera->getCameraType();
 		switch(type) {
 		case COLLADAFW::Camera::ORTHOGRAPHIC:
@@ -2555,11 +2560,21 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeLight( const COLLADAFW::Light* light ) 
 	{
-		std::string name = light->getOriginalId();
-		Lamp *lamp = (Lamp*)add_lamp((char*)name.c_str());
+		Lamp *lamp;
+		std::string la_id = light->getOriginalId();
+		std::string la_name = light->getName();
+		if (la_name.size()) lamp = (Lamp*)add_lamp((char*)la_name.c_str());
+		else lamp = (Lamp*)add_lamp((char*)la_id.c_str());
+		
 		if (!lamp) {
 			fprintf(stderr, "Cannot create lamp. \n");
 			return true;
+		}
+		if (light->getColor().isValid()) {
+			COLLADAFW::Color col = light->getColor();
+			lamp->r = col.getRed();
+			lamp->g = col.getGreen();
+			lamp->b = col.getBlue();
 		}
 		COLLADAFW::Light::LightType type = light->getLightType();
 		switch(type) {
@@ -2571,6 +2586,9 @@ public:
 		case COLLADAFW::Light::SPOT_LIGHT:
 			{
 				lamp->type = LA_SPOT;
+				lamp->att1 = light->getLinearAttenuation().getValue();
+				lamp->att2 = light->getQuadraticAttenuation().getValue();
+				lamp->spotsize = light->getFallOffAngle().getValue();
 			}
 			break;
 		case COLLADAFW::Light::DIRECTIONAL_LIGHT:
@@ -2580,7 +2598,9 @@ public:
 			break;
 		case COLLADAFW::Light::POINT_LIGHT:
 			{
-				lamp->type = LA_AREA;
+				lamp->type = LA_LOCAL;
+				lamp->att1 = light->getLinearAttenuation().getValue();
+				lamp->att2 = light->getQuadraticAttenuation().getValue();
 			}
 			break;
 		case COLLADAFW::Light::UNDEFINED:
@@ -2592,8 +2612,6 @@ public:
 		}
 			
 		this->uid_lamp_map[light->getUniqueId()] = lamp;
-		
-		// XXX import light options*/
 		return true;
 	}
 	

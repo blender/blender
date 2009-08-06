@@ -184,7 +184,7 @@ void forEachCameraObjectInScene(Scene *sce, Functor &f)
 		Object *ob = base->object;
 			
 		if (ob->type == OB_CAMERA && ob->data) {
-			f(ob);
+			f(ob, sce);
 		}
 		base= base->next;
 	}
@@ -1561,29 +1561,29 @@ public:
 		
 		closeLibrary();
 	}
-	void operator()(Object *ob)
+	void operator()(Object *ob, Scene *sce)
 	{
 		// XXX add other params later
 		Camera *cam = (Camera*)ob->data;
-		std::string cam_name(id_name(ob));
+		std::string cam_id(id_name(ob));
+		char *name = cam->id.name;
+		
 		if (cam->type == CAM_PERSP) {
 			COLLADASW::PerspectiveOptic persp(mSW);
 			persp.setXFov(1.0);
-			//persp.setYFov(1.0);
-			persp.setAspectRatio(1.0);
+			persp.setAspectRatio(0.1);
 			persp.setZFar(cam->clipend);
 			persp.setZNear(cam->clipsta);
-			COLLADASW::Camera ccam(mSW, &persp, cam_name);
+			COLLADASW::Camera ccam(mSW, &persp, cam_id, name);
 			addCamera(ccam);
 		}
 		else {
 			COLLADASW::OrthographicOptic ortho(mSW);
 			ortho.setXMag(1.0);
-			//ortho.setYMag(1.0, true);
-			ortho.setAspectRatio(1.0);
+			ortho.setAspectRatio(0.1);
 			ortho.setZFar(cam->clipend);
 			ortho.setZNear(cam->clipsta);
-			COLLADASW::Camera ccam(mSW, &ortho, cam_name);
+			COLLADASW::Camera ccam(mSW, &ortho, cam_id, name);
 			addCamera(ccam);
 		}
 	}	
@@ -1604,37 +1604,49 @@ public:
 	void operator()(Object *ob)
 	{
 		Lamp *la = (Lamp*)ob->data;
-		std::string la_name(id_name(ob));
+		std::string la_id(id_name(ob));
+		char *la_name = la->id.name;
 		COLLADASW::Color col(la->r, la->g, la->b);
+		float e = la->energy;
 		
 		// sun
 		if (la->type == LA_SUN) {
-			COLLADASW::DirectionalLight cla(mSW, la_name, "", la->energy);
+			COLLADASW::DirectionalLight cla(mSW, la_id, la_name, e);
 			cla.setColor(col);
 			addLight(cla);
 		}
 		// hemi
 		else if (la->type == LA_HEMI) {
-			COLLADASW::AmbientLight cla(mSW, la_name, "", la->energy);
+			COLLADASW::AmbientLight cla(mSW, la_id, la_name, e);
 			cla.setColor(col);
 			addLight(cla);
 		}
 		// spot
 		// XXX add other params later
 		else if (la->type == LA_SPOT) {
-			COLLADASW::SpotLight cla(mSW, la_name, "", la->energy);
+			COLLADASW::SpotLight cla(mSW, la_id, la_name, e);
 			cla.setColor(col);
+			cla.setFallOffAngle(la->spotsize);
+			cla.setLinearAttenuation(la->att1);
+			cla.setQuadraticAttenuation(la->att2);
 			addLight(cla);
 		}
 		// lamp
-		else if (la->type != LA_AREA) {
-			COLLADASW::PointLight cla(mSW, la_name, "", la->energy);
+		else if (la->type == LA_LOCAL) {
+			COLLADASW::PointLight cla(mSW, la_id, la_name, e);
 			cla.setColor(col);
+			cla.setLinearAttenuation(la->att1);
+			cla.setQuadraticAttenuation(la->att2);
 			addLight(cla);
 		}
+		// area lamp is not supported
+		// it will be exported as a local lamp
 		else {
-			// XXX write error
-			return;
+			COLLADASW::PointLight cla(mSW, la_id, la_name, e);
+			cla.setColor(col);
+			cla.setLinearAttenuation(la->att1);
+			cla.setQuadraticAttenuation(la->att2);
+			addLight(cla);
 		}
 	}
 };
