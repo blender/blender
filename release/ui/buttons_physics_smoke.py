@@ -59,7 +59,10 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 				sub = split.column()
 				sub.itemL(text="Display:")
 				sub.itemR(md.domain_settings, "visibility")
-				sub.itemR(md.domain_settings, "color")
+				sub.itemR(md.domain_settings, "color", slider=True)
+				mysub = sub.column()
+				mysub.active = md.domain_settings.highres
+				mysub.itemR(md.domain_settings, "viewhighres")
 				
 				layout.itemL(text="Noise Type:")
 				layout.itemR(md.domain_settings, "noise_type", expand=True)
@@ -79,21 +82,20 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 				
 			elif md.smoke_type == 'TYPE_FLOW':
 				
-				layout.itemR(md.flow_settings, "outflow")
-				
 				split = layout.split()
+				
+				col = split.column()
+				col.itemR(md.flow_settings, "outflow")
+				col.itemL(text="Particle System:")
+				col.item_pointerR(md.flow_settings, "psys", ob, "particle_systems", text="")
 				
 				if md.flow_settings.outflow:				
 					col = split.column()
 				else:
-					col = split.column()
-					col.itemL(text="Behavior:")
-					col.itemR(md.flow_settings, "temperature")
-					col.itemR(md.flow_settings, "density")
-				
 					sub = split.column()
-					sub.itemL(text="particle System:")
-					sub.item_pointerR(md.flow_settings, "psys", ob, "particle_systems", text="")
+					sub.itemL(text="Behavior:")
+					sub.itemR(md.flow_settings, "temperature")
+					sub.itemR(md.flow_settings, "density")
 					
 			elif md.smoke_type == 'TYPE_COLL':
 				layout.itemS()

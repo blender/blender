@@ -150,8 +150,13 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "highres", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_HIGHRES);
-	RNA_def_property_ui_text(prop, "High res", "Show high resolution (using amplification).");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	RNA_def_property_ui_text(prop, "High res", "Enable high resolution (using amplification).");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
+
+	prop= RNA_def_property(srna, "viewhighres", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "viewsettings", MOD_SMOKE_VIEW_USEBIG);
+	RNA_def_property_ui_text(prop, "Show high res", "Show high resolution (using amplification).");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
 
 	prop= RNA_def_property(srna, "noise_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noise");
@@ -171,14 +176,14 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, -5.0, 5.0);
 	RNA_def_property_ui_range(prop, -5.0, 5.0, 0.02, 5);
 	RNA_def_property_ui_text(prop, "Gravity", "Higher value results in sinking smoke");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop= RNA_def_property(srna, "beta", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "beta");
 	RNA_def_property_range(prop, -5.0, 5.0);
 	RNA_def_property_ui_range(prop, -5.0, 5.0, 0.02, 5);
 	RNA_def_property_ui_text(prop, "Heat", "Higher value results in faster rising smoke.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop= RNA_def_property(srna, "coll_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "coll_group");

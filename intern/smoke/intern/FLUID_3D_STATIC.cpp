@@ -80,7 +80,7 @@ void FLUID_3D::addSmokeTestCase(float* field, Vec3Int res, float value)
 void FLUID_3D::setNeumannX(float* field, Vec3Int res)
 {
 	const int slabSize = res[0] * res[1];
-	int index;
+	size_t index;
 	for (int z = 0; z < res[2]; z++)
 		for (int y = 0; y < res[1]; y++)
 		{
@@ -100,7 +100,7 @@ void FLUID_3D::setNeumannX(float* field, Vec3Int res)
 void FLUID_3D::setNeumannY(float* field, Vec3Int res)
 {
 	const int slabSize = res[0] * res[1];
-	int index;
+	size_t index;
 	for (int z = 0; z < res[2]; z++)
 		for (int x = 0; x < res[0]; x++)
 		{
@@ -121,7 +121,7 @@ void FLUID_3D::setNeumannZ(float* field, Vec3Int res)
 {
 	const int slabSize = res[0] * res[1];
 	const int totalCells = res[0] * res[1] * res[2];
-	int index;
+	size_t index;
 	for (int y = 0; y < res[1]; y++)
 		for (int x = 0; x < res[0]; x++)
 		{
@@ -141,10 +141,11 @@ void FLUID_3D::setNeumannZ(float* field, Vec3Int res)
 			// top slab
 			index = x + y * res[0];
 			index += totalCells - slabSize;
-			if(field[index]<0.) field[index] = 0.;
+			if(field[index]<0.) field[index] = 0.0f;
 			index -= slabSize;
-			if(field[index]<0.) field[index] = 0.;
+			if(field[index]<0.) field[index] = 0.0f;
 		}
+		
 }
 
 //////////////////////////////////////////////////////////////////////

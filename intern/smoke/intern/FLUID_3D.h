@@ -132,6 +132,7 @@ class FLUID_3D
 
 		// handle obstacle boundaries
 		void setObstacleBoundaries();
+		void setObstaclePressure();
 
 	public:
 		// advection, accessed e.g. by WTURBULENCE class

@@ -44,6 +44,7 @@
 #define MOD_SMOKE_VIEW_CHANGETOBIG (1<<5)
 #define MOD_SMOKE_VIEW_REDRAWNICE (1<<6)
 #define MOD_SMOKE_VIEW_REDRAWALL (1<<7)
+#define MOD_SMOKE_VIEW_USEBIG (1<<8)
 
 typedef struct SmokeDomainSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
@@ -103,6 +104,7 @@ typedef struct SmokeFlowSettings {
 typedef struct SmokeCollSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
 	struct BVHTree *bvhtree; /* bounding volume hierarchy for this cloth object */
+	struct DerivedMesh *dm;
 	float *points;
 	float *points_old;
 	float *vel;

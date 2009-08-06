@@ -59,7 +59,10 @@ FLUID_3D::FLUID_3D(int *res, int amplify, float *p0, float dt) :
 	_maxRes = MAX3(_xRes, _yRes, _zRes);
 	
 	// initialize wavelet turbulence
-	_wTurbulence = new WTURBULENCE(_res[0],_res[1],_res[2], amplify);
+	if(amplify)
+		_wTurbulence = new WTURBULENCE(_res[0],_res[1],_res[2], amplify);
+	else
+		_wTurbulence = NULL;
 	
 	// scale the constants according to the refinement of the grid
 	_dx = 1.0f / (float)_maxRes;
@@ -215,11 +218,11 @@ void FLUID_3D::step()
 	wipeBoundaries();
 
 	// run the solvers
-  addVorticity();
-  addBuoyancy(_heat, _density);
+	addVorticity();
+	addBuoyancy(_heat, _density);
 	addForce();
 	project();
-  diffuseHeat();
+	diffuseHeat();
 
 	// advect everything
 	advectMacCormack();
@@ -249,6 +252,19 @@ void FLUID_3D::step()
   */
 	_totalTime += _dt;
 	_totalSteps++;
+
+	// clear obstacles
+	for (int i = 0; i < _totalCells; i++)
+	{
+		if(_obstacles[i])
+		{
+			_xVelocity[i] =
+			_yVelocity[i] =
+			_zVelocity[i] = 0.0f;
+			_pressure[i] = 0.0f;
+		}
+		_obstacles[i] = 0;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -354,6 +370,7 @@ void FLUID_3D::addForce()
 void FLUID_3D::project()
 {
 	int index, x, y, z;
+
 	setObstacleBoundaries();
 
 	// copy out the boundaries
@@ -397,6 +414,8 @@ void FLUID_3D::project()
 	// solve Poisson equation
 	solvePressure(_pressure, _divergence, _obstacles);
 
+	setObstaclePressure();
+
 	// project out solution
 	float invDx = 1.0f / _dx;
 	index = _slabSize + _xRes + 1;
@@ -404,9 +423,12 @@ void FLUID_3D::project()
 		for (y = 1; y < _yRes - 1; y++, index += 2)
 			for (x = 1; x < _xRes - 1; x++, index++)
 			{
-				_xVelocity[index] -= 0.5f * (_pressure[index + 1]     - _pressure[index - 1])     * invDx;
-				_yVelocity[index] -= 0.5f * (_pressure[index + _xRes]  - _pressure[index - _xRes]) * invDx;
-				_zVelocity[index] -= 0.5f * (_pressure[index + _slabSize] - _pressure[index - _slabSize]) * invDx;
+				if(!_obstacles[index])
+				{
+					_xVelocity[index] -= 0.5f * (_pressure[index + 1]     - _pressure[index - 1]) * invDx;
+					_yVelocity[index] -= 0.5f * (_pressure[index + _xRes]  - _pressure[index - _xRes]) * invDx;
+					_zVelocity[index] -= 0.5f * (_pressure[index + _slabSize] - _pressure[index - _slabSize]) * invDx;
+				}
 			}
 }
 
@@ -443,6 +465,80 @@ void FLUID_3D::addObstacle(OBSTACLE* obstacle)
 //////////////////////////////////////////////////////////////////////
 // calculate the obstacle directional types
 //////////////////////////////////////////////////////////////////////
+void FLUID_3D::setObstaclePressure()
+{
+	// tag remaining obstacle blocks
+	for (int z = 1, index = _slabSize + _xRes + 1;
+			z < _zRes - 1; z++, index += 2 * _xRes)
+		for (int y = 1; y < _yRes - 1; y++, index += 2)
+			for (int x = 1; x < _xRes - 1; x++, index++)
+		{
+			// could do cascade of ifs, but they are a pain
+			if (_obstacles[index])
+			{
+				const int top   = _obstacles[index + _slabSize];
+				const int bottom= _obstacles[index - _slabSize];
+				const int up    = _obstacles[index + _xRes];
+				const int down  = _obstacles[index - _xRes];
+				const int left  = _obstacles[index - 1];
+				const int right = _obstacles[index + 1];
+
+				// unused
+				// const bool fullz = (top && bottom);
+				// const bool fully = (up && down);
+				//const bool fullx = (left && right);
+
+				_xVelocity[index] =
+				_yVelocity[index] =
+				_zVelocity[index] = 0.0f;
+				_pressure[index] = 0.0f;
+
+				// average pressure neighbors
+				float pcnt = 0., vp = 0.;
+				if (left && !right) {
+					_pressure[index] += _pressure[index + 1];
+					pcnt += 1.;
+				}
+				if (!left && right) {
+					_pressure[index] += _pressure[index - 1];
+					pcnt += 1.;
+				}
+				if (up && !down) {
+					_pressure[index] += _pressure[index - _xRes];
+					pcnt += 1.;
+				}
+				if (!up && down) {
+					_pressure[index] += _pressure[index + _xRes];
+					pcnt += 1.;
+				}
+				if (top && !bottom) {
+					_pressure[index] += _pressure[index - _slabSize];
+					pcnt += 1.;
+					// _zVelocity[index] +=  - _zVelocity[index - _slabSize];
+					// vp += 1.0;
+				}
+				if (!top && bottom) {
+					_pressure[index] += _pressure[index + _slabSize];
+					pcnt += 1.;
+					// _zVelocity[index] +=  - _zVelocity[index + _slabSize];
+					// vp += 1.0;
+				}
+				
+				if(pcnt > 0.000001f)
+				 	_pressure[index] /= pcnt;
+
+				// test - dg
+				// if(vp > 0.000001f)
+				//  	_zVelocity[index] /= vp;
+
+				// TODO? set correct velocity bc's
+				// velocities are only set to zero right now
+				// this means it's not a full no-slip boundary condition
+				// but a "half-slip" - still looks ok right now
+			}
+		}
+}
+
 void FLUID_3D::setObstacleBoundaries()
 {
 	// cull degenerate obstacles , move to addObstacle?
@@ -450,6 +546,7 @@ void FLUID_3D::setObstacleBoundaries()
 			z < _zRes - 1; z++, index += 2 * _xRes)
 		for (int y = 1; y < _yRes - 1; y++, index += 2)
 			for (int x = 1; x < _xRes - 1; x++, index++)
+			{
 				if (_obstacles[index] != EMPTY)
 				{
 					const int top   = _obstacles[index + _slabSize];
@@ -470,67 +567,14 @@ void FLUID_3D::setObstacleBoundaries()
 					if (counter < 3)
 						_obstacles[index] = EMPTY;
 				}
-
-	// tag remaining obstacle blocks
-	for (int z = 1, index = _slabSize + _xRes + 1;
-			z < _zRes - 1; z++, index += 2 * _xRes)
-		for (int y = 1; y < _yRes - 1; y++, index += 2)
-			for (int x = 1; x < _xRes - 1; x++, index++)
-		{
-			// could do cascade of ifs, but they are a pain
-			if (_obstacles[index] != EMPTY)
-			{
-				const int top   = _obstacles[index + _slabSize];
-				const int bottom= _obstacles[index - _slabSize];
-				const int up    = _obstacles[index + _xRes];
-				const int down  = _obstacles[index - _xRes];
-				const int left  = _obstacles[index - 1];
-				const int right = _obstacles[index + 1];
-
-				// unused
-				// const bool fullz = (top && bottom);
-				// const bool fully = (up && down);
-				//const bool fullx = (left && right);
-
-				_xVelocity[index] =
-				_yVelocity[index] =
-				_zVelocity[index] = 0.0f;
-				_pressure[index] = 0.0f;
-
-				// average pressure neighbors
-				float pcnt = 0.;
-				if (left && !right) {
-					_pressure[index] += _pressure[index + 1];
-					pcnt += 1.;
+				if (_obstacles[index])
+				{
+					_xVelocity[index] =
+					_yVelocity[index] =
+					_zVelocity[index] = 0.0f;
+					_pressure[index] = 0.0f;
 				}
-				if (!left && right) {
-					_pressure[index] += _pressure[index - 1];
-					pcnt += 1.;
-				}
-				if (up && !down) {
-					_pressure[index] += _pressure[index - _xRes];
-					pcnt += 1.;
-				}
-				if (!up && down) {
-					_pressure[index] += _pressure[index + _xRes];
-					pcnt += 1.;
-				}
-				if (top && !bottom) {
-					_pressure[index] += _pressure[index - _xRes];
-					pcnt += 1.;
-				}
-				if (!top && bottom) {
-					_pressure[index] += _pressure[index + _xRes];
-					pcnt += 1.;
-				}
-				_pressure[index] /= pcnt;
-
-				// TODO? set correct velocity bc's
-				// velocities are only set to zero right now
-				// this means it's not a full no-slip boundary condition
-				// but a "half-slip" - still looks ok right now
 			}
-		}
 }
 
 //////////////////////////////////////////////////////////////////////

@@ -88,15 +88,18 @@ extern "C" float *smoke_get_velocity_z(FLUID_3D *fluid)
 
 extern "C" float *smoke_get_bigdensity(FLUID_3D *fluid)
 {
-	return fluid->_wTurbulence->getDensityBig();
+	return fluid->_wTurbulence ? fluid->_wTurbulence->getDensityBig() : NULL;
 }
 
 extern "C" void smoke_get_bigres(FLUID_3D *fluid, int *res)
 {
-	Vec3Int r = fluid->_wTurbulence->getResBig();
-	res[0] = r[0];
-	res[1] = r[1];
-	res[2] = r[2];
+	if(fluid->_wTurbulence)
+	{
+		Vec3Int r = fluid->_wTurbulence->getResBig();
+		res[0] = r[0];
+		res[1] = r[1];
+		res[2] = r[2];
+	}
 }
 
 extern "C" unsigned char *smoke_get_obstacle(FLUID_3D *fluid)

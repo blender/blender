@@ -5349,7 +5349,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			float *buffer = NULL;
 			int res[3];
 			float bigfactor = 1.0;
-			int big = smd->domain->flags & MOD_SMOKE_HIGHRES;
+			int big = (smd->domain->flags & MOD_SMOKE_HIGHRES) && (smd->domain->viewsettings & MOD_SMOKE_VIEW_USEBIG);
 			int new = 0;
 			
 			// GUI sent redraw event
