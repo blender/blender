@@ -176,21 +176,38 @@ class SCENE_PT_game_stereo(SceneButtonsPanel):
 		# stereo:
 		if stereo_mode == 'STEREO':
 			layout.itemR(gs, "stereo_mode")
+			layout.itemL(text="To do: Focal Length")
+			layout.itemL(text="To do: Eye Separation")
 
 		# dome:
-		if stereo_mode == 'DOME':
+		elif stereo_mode == 'DOME':
 			layout.itemR(gs, "dome_mode", text="Dome Type")
 
+			dome_type = gs.dome_mode
+
 			split=layout.split()
-			
-			col=split.column()
-			col.itemR(gs, "dome_angle", slider=True)
-			col.itemR(gs, "dome_tesselation", text="Tesselation")
-			
-			col=split.column()
-			col.itemR(gs, "dome_tilt")
-			col.itemR(gs, "dome_buffer_resolution", text="Resolution", slider=True)
-			
+
+			if dome_type == 'FISHEYE' or \
+			   dome_type == 'TRUNCATED_REAR' or \
+			   dome_type == 'TRUNCATED_FRONT':
+				
+				col=split.column()
+				col.itemR(gs, "dome_angle", slider=True)
+				col.itemR(gs, "dome_tilt")
+
+				col=split.column()
+				col.itemR(gs, "dome_tesselation", text="Tesselation")
+				col.itemR(gs, "dome_buffer_resolution", text="Resolution", slider=True)
+
+			elif dome_type == 'PANORAM_SPH':
+				col=split.column()
+				col.itemR(gs, "dome_tesselation", text="Tesselation")
+				col.itemR(gs, "dome_buffer_resolution", text="Resolution", slider=True)
+
+			else: # cube map
+				col=split.column()
+				col.itemR(gs, "dome_buffer_resolution", text="Resolution", slider=True)
+		
 			layout.itemR(gs, "dome_text")
 
 bpy.types.register(SCENE_PT_game)
@@ -245,30 +262,6 @@ class WORLD_PT_game_world(WorldButtonsPanel):
 		row.active = world.mist.enabled
 		row.itemR(world.mist, "start")
 		row.itemR(world.mist, "depth")
-
-
-"""
-class WORLD_PT_game(WorldButtonsPanel):
-	__space_type__ = "LOGIC_EDITOR"
-	__region_type__ = "UI"
-	__label__ = "Game Settings"
-
-	def draw(self, context):
-		layout = self.layout
-		world = context.world
-		
-		flow = layout.column_flow()
-		flow.itemR(world, "physics_engine")
-		flow.itemR(world, "physics_gravity")
-		
-		flow.itemR(world, "game_fps")
-		flow.itemR(world, "game_logic_step_max")
-		flow.itemR(world, "game_physics_substep")
-		flow.itemR(world, "game_physics_step_max")
-		
-		flow.itemR(world, "game_use_occlusion_culling", text="Enable Occlusion Culling")
-		flow.itemR(world, "game_occlusion_culling_resolution")
-"""
 
 class WORLD_PT_game_physics(WorldButtonsPanel):
 	__label__ = "Physics"

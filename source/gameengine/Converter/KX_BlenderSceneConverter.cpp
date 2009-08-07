@@ -260,38 +260,34 @@ void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
 	if (blenderscene)
 	{
 	
-		if (blenderscene->world)
+		switch (blenderscene->gm.physicsEngine)
 		{
-			switch (blenderscene->world->physicsEngine)
+		case WOPHY_BULLET:
 			{
-			case WOPHY_BULLET:
-				{
-					physics_engine = UseBullet;
-					useDbvtCulling = (blenderscene->world->mode & WO_DBVT_CULLING) != 0;
-					break;
-				}
-                                
-				case WOPHY_ODE:
-				{
-					physics_engine = UseODE;
-					break;
-				}
-				case WOPHY_DYNAMO:
-				{
-					physics_engine = UseDynamo;
-					break;
-				}
-				case WOPHY_SUMO:
-				{
-					physics_engine = UseSumo; 
-					break;
-				}
-				case WOPHY_NONE:
-				{
-					physics_engine = UseNone;
-				}
+				physics_engine = UseBullet;
+				useDbvtCulling = (blenderscene->gm.mode & WO_DBVT_CULLING) != 0;
+				break;
 			}
-		  
+							
+			case WOPHY_ODE:
+			{
+				physics_engine = UseODE;
+				break;
+			}
+			case WOPHY_DYNAMO:
+			{
+				physics_engine = UseDynamo;
+				break;
+			}
+			case WOPHY_SUMO:
+			{
+				physics_engine = UseSumo; 
+				break;
+			}
+			case WOPHY_NONE:
+			{
+				physics_engine = UseNone;
+			}
 		}
 	}
 
