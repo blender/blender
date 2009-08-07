@@ -96,6 +96,8 @@ class FLUID_3D
 		float* _yVorticity;
 		float* _zVorticity;
 		float* _vorticity;
+		float* _h;
+		float* _Precond;
 		unsigned char*  _obstacles;
 
 		// CG fields
@@ -128,6 +130,7 @@ class FLUID_3D
 		void project();
 		void diffuseHeat();
 		void solvePressure(float* field, float* b, unsigned char* skip);
+		void solvePressurePre(float* field, float* b, unsigned char* skip);
 		void solveHeat(float* field, float* b, unsigned char* skip);
 
 		// handle obstacle boundaries

@@ -96,6 +96,8 @@ FLUID_3D::FLUID_3D(int *res, int amplify, float *p0, float dt) :
 	_xVorticity   = new float[_totalCells];
 	_yVorticity   = new float[_totalCells];
 	_zVorticity   = new float[_totalCells];
+	_h			  = new float[_totalCells];
+	_Precond	  = new float[_totalCells];
 
 	for (int x = 0; x < _totalCells; x++)
 	{
@@ -118,6 +120,8 @@ FLUID_3D::FLUID_3D(int *res, int amplify, float *p0, float dt) :
 		_yVorticity[x]   = 0.0f;
 		_zVorticity[x]   = 0.0f;
 		_residual[x]     = 0.0f;
+		_h[x]			 = 0.0f;
+		_Precond[x]		 = 0.0f;
 		_obstacles[x]    = false;
 	}
 
@@ -189,6 +193,8 @@ FLUID_3D::~FLUID_3D()
 	if (_yVorticity) delete[] _yVorticity;
 	if (_zVorticity) delete[] _zVorticity;
 	if (_vorticity) delete[] _vorticity;
+	if (_h) delete[] _h;
+	if (_Precond) delete[] _Precond;
 	if (_obstacles) delete[] _obstacles;
     if (_wTurbulence) delete _wTurbulence;
 
@@ -414,7 +420,7 @@ void FLUID_3D::project()
 	copyBorderAll(_pressure);
 
 	// solve Poisson equation
-	solvePressure(_pressure, _divergence, _obstacles);
+	solvePressurePre(_pressure, _divergence, _obstacles);
 
 	setObstaclePressure();
 
