@@ -1008,8 +1008,12 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 	// in case this is a camera
 	m_cameras.remove((KX_Camera*)newobj);
 
+	/* currently does nothing, keep incase we need to Unregister something */
+#if 0
 	if (m_sceneConverter)
 		m_sceneConverter->UnregisterGameObject(newobj);
+#endif
+	
 	// return value will be 0 if the object is actually deleted (all reference gone)
 	
 	return ret;

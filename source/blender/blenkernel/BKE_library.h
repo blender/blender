@@ -55,6 +55,7 @@ int set_listbasepointers(struct Main *main, struct ListBase **lb);
 void free_libblock(struct ListBase *lb, void *idv);
 void free_libblock_us(struct ListBase *lb, void *idv);
 void free_main(struct Main *mainvar);
+void tag_main(struct Main *mainvar, int tag);
 
 void splitIDname(char *name, char *left, int *nr);
 void rename_id(struct ID *id, char *name);
