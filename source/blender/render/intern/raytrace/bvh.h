@@ -28,7 +28,7 @@
  */
 #include <xmmintrin.h>
 
-inline int test_bb_group4(__m128 *bb_group, __m128 *start, __m128 *idot_axis, const Isect *isec)
+inline int test_bb_group4(__m128 *bb_group, const Isect *isec)
 {
 	
 	const __m128 tmin0 = _mm_setzero_ps();
@@ -151,9 +151,6 @@ static int bvh_node_stack_raycast(Node *root, Isect *isec)
 template<class Node,int MAX_STACK_SIZE,bool TEST_ROOT>
 static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 {
-	__m128 idot_axis[3] = { _mm_load1_ps(&isec->idot_axis[0]), 	_mm_load1_ps(&isec->idot_axis[1]),	_mm_load1_ps(&isec->idot_axis[2])	};
-	__m128 start[3] 	= { _mm_load1_ps(&isec->start[0]),		_mm_load1_ps(&isec->start[1]),		_mm_load1_ps(&isec->start[2])		};
-
 	Node *stack[MAX_STACK_SIZE];
 
 	int hit = 0, stack_pos = 0;
@@ -187,7 +184,8 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 			Node * t_node[4];
 			
 			stack_pos -= 4;
-			
+
+			/* prepare the 4BB for SIMD */
 			t_node[0] = stack[stack_pos+0]->child;
 			t_node[1] = stack[stack_pos+1]->child;
 			t_node[2] = stack[stack_pos+2]->child;
@@ -198,22 +196,22 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 			const float *bb2 = stack[stack_pos+2]->bb;
 			const float *bb3 = stack[stack_pos+3]->bb;
 			
-			const __m128 x0y0x1y1 = _mm_shuffle_ps( _mm_loadu_ps(bb0), _mm_loadu_ps(bb1), _MM_SHUFFLE(0,1,0,1) );
-			const __m128 x2y2x3y3 = _mm_shuffle_ps( _mm_loadu_ps(bb2), _mm_loadu_ps(bb3), _MM_SHUFFLE(0,1,0,1) );
-			t_bb[0] = _mm_shuffle_ps( x0y0x1y1, x2y2x3y3, _MM_SHUFFLE(0,2,0,2) );
-			t_bb[1] = _mm_shuffle_ps( x0y0x1y1, x2y2x3y3, _MM_SHUFFLE(1,3,1,3) );
+			const __m128 x0y0x1y1 = _mm_shuffle_ps( _mm_loadu_ps(bb0), _mm_loadu_ps(bb1), _MM_SHUFFLE(1,0,1,0) );
+			const __m128 x2y2x3y3 = _mm_shuffle_ps( _mm_loadu_ps(bb2), _mm_loadu_ps(bb3), _MM_SHUFFLE(1,0,1,0) );
+			t_bb[0] = _mm_shuffle_ps( x0y0x1y1, x2y2x3y3, _MM_SHUFFLE(2,0,2,0) );
+			t_bb[1] = _mm_shuffle_ps( x0y0x1y1, x2y2x3y3, _MM_SHUFFLE(3,1,3,1) );
 
-			const __m128 z0X0z1X1 = _mm_shuffle_ps( _mm_loadu_ps(bb0+2), _mm_loadu_ps(bb1+2), _MM_SHUFFLE(0,1,0,1) );
-			const __m128 z2X2z3X3 = _mm_shuffle_ps( _mm_loadu_ps(bb2+2), _mm_loadu_ps(bb3+2), _MM_SHUFFLE(0,1,0,1) );
-			t_bb[2] = _mm_shuffle_ps( z0X0z1X1, z2X2z3X3, _MM_SHUFFLE(0,2,0,2) );
-			t_bb[3] = _mm_shuffle_ps( z0X0z1X1, z2X2z3X3, _MM_SHUFFLE(1,3,1,3) );
+			const __m128 z0X0z1X1 = _mm_shuffle_ps( _mm_loadu_ps(bb0+2), _mm_loadu_ps(bb1+2), _MM_SHUFFLE(1,0,1,0) );
+			const __m128 z2X2z3X3 = _mm_shuffle_ps( _mm_loadu_ps(bb2+2), _mm_loadu_ps(bb3+2), _MM_SHUFFLE(1,0,1,0) );
+			t_bb[2] = _mm_shuffle_ps( z0X0z1X1, z2X2z3X3, _MM_SHUFFLE(2,0,2,0) );
+			t_bb[3] = _mm_shuffle_ps( z0X0z1X1, z2X2z3X3, _MM_SHUFFLE(3,1,3,1) );
 
-			const __m128 Y0Z0Y1Z1 = _mm_shuffle_ps( _mm_loadu_ps(bb0+4), _mm_loadu_ps(bb1+4), _MM_SHUFFLE(0,1,0,1) );
-			const __m128 Y2Z2Y3Z3 = _mm_shuffle_ps( _mm_loadu_ps(bb2+4), _mm_loadu_ps(bb3+4), _MM_SHUFFLE(0,1,0,1) );
-			t_bb[4] = _mm_shuffle_ps( Y0Z0Y1Z1, Y2Z2Y3Z3, _MM_SHUFFLE(0,2,0,2) );
-			t_bb[5] = _mm_shuffle_ps( Y0Z0Y1Z1, Y2Z2Y3Z3, _MM_SHUFFLE(1,3,1,3) );
-			
-/*			for(int i=0; i<4; i++)
+			const __m128 Y0Z0Y1Z1 = _mm_shuffle_ps( _mm_loadu_ps(bb0+4), _mm_loadu_ps(bb1+4), _MM_SHUFFLE(1,0,1,0) );
+			const __m128 Y2Z2Y3Z3 = _mm_shuffle_ps( _mm_loadu_ps(bb2+4), _mm_loadu_ps(bb3+4), _MM_SHUFFLE(1,0,1,0) );
+			t_bb[4] = _mm_shuffle_ps( Y0Z0Y1Z1, Y2Z2Y3Z3, _MM_SHUFFLE(2,0,2,0) );
+			t_bb[5] = _mm_shuffle_ps( Y0Z0Y1Z1, Y2Z2Y3Z3, _MM_SHUFFLE(3,1,3,1) );
+/*			
+			for(int i=0; i<4; i++)
 			{
 				Node *t = stack[stack_pos+i];
 				assert(RayObject_isAligned(t));
@@ -227,12 +225,18 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 				bb[4*5] = t->bb[5];
 				t_node[i] = t->child;
 			}
- */
-			int res = test_bb_group4( t_bb, start, idot_axis, isec );
+*/
+			RE_RC_COUNT(isec->raycounter->bb.test);
+			RE_RC_COUNT(isec->raycounter->bb.test);
+			RE_RC_COUNT(isec->raycounter->bb.test);
+			RE_RC_COUNT(isec->raycounter->bb.test);
+			
+			int res = test_bb_group4( t_bb, isec );
 
 			for(int i=0; i<4; i++)
 			if(res & (1<<i))
 			{
+				RE_RC_COUNT(isec->raycounter->bb.hit);
 				if(RayObject_isAligned(t_node[i]))
 				{
 					for(Node *t=t_node[i]; t; t=t->sibling)
