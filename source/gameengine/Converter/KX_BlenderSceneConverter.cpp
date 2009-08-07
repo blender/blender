@@ -345,10 +345,6 @@ void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
 	//This cache mecanism is buggy so I leave it disable and the memory leak
 	//that would result from this is fixed in RemoveScene()
 	m_map_mesh_to_gamemesh.clear();
-	//Don't clear this lookup, it is needed for the baking physics into ipo animation
-	//To avoid it's infinite grows, object will be unregister when they are deleted 
-	//see KX_Scene::NewRemoveObject
-	//m_map_gameobject_to_blender.clear();
 }
 
 // This function removes all entities stored in the converter for that scene
@@ -462,26 +458,27 @@ void KX_BlenderSceneConverter::RegisterGameObject(
 									KX_GameObject *gameobject, 
 									struct Object *for_blenderobject) 
 {
-	m_map_gameobject_to_blender.insert(CHashedPtr(gameobject),for_blenderobject);
+	/* only maintained while converting, freed during game runtime */
 	m_map_blender_to_gameobject.insert(CHashedPtr(for_blenderobject),gameobject);
 }
 
 void KX_BlenderSceneConverter::UnregisterGameObject(
 									KX_GameObject *gameobject) 
 {
-	CHashedPtr gptr(gameobject);
-	struct Object **bobp= m_map_gameobject_to_blender[gptr];
+#if 0
+	struct Object *bobp= gameobject->GetBlenderObject();
 	if (bobp) {
-		CHashedPtr bptr(*bobp);
+		CHashedPtr bptr(bobp);
 		KX_GameObject **gobp= m_map_blender_to_gameobject[bptr];
 		if (gobp && *gobp == gameobject)
+		{
 			// also maintain m_map_blender_to_gameobject if the gameobject
 			// being removed is matching the blender object
 			m_map_blender_to_gameobject.remove(bptr);
-		m_map_gameobject_to_blender.remove(gptr);
+		}
 	}
+#endif
 }
-
 
 KX_GameObject *KX_BlenderSceneConverter::FindGameObject(
 									struct Object *for_blenderobject) 
@@ -490,18 +487,6 @@ KX_GameObject *KX_BlenderSceneConverter::FindGameObject(
 	
 	return obp?*obp:NULL;
 }
-
-
-
-struct Object *KX_BlenderSceneConverter::FindBlenderObject(
-									KX_GameObject *for_gameobject) 
-{
-	struct Object **obp= m_map_gameobject_to_blender[CHashedPtr(for_gameobject)];
-	
-	return obp?*obp:NULL;
-}
-
-	
 
 void KX_BlenderSceneConverter::RegisterGameMesh(
 									RAS_MeshObject *gamemesh,
@@ -689,7 +674,7 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 			{
 				//KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
 				
-				Object* blenderObject = FindBlenderObject(gameObj);
+				Object* blenderObject = gameObj->GetBlenderObject();
 				if (blenderObject)
 				{
 					//erase existing ipo's
@@ -753,7 +738,7 @@ void	KX_BlenderSceneConverter::resetNoneDynamicObjectToIpo(){
 			for (int ix=0;ix<parentList->GetCount();ix++){
 				KX_GameObject* gameobj = (KX_GameObject*)parentList->GetValue(ix);
 				if (!gameobj->IsDynamic()){
-					Object* blenderobject = FindBlenderObject(gameobj);
+					Object* blenderobject = gameobj->GetBlenderObject();
 					if (!blenderobject)
 						continue;
 					if (blenderobject->type==OB_ARMATURE)
@@ -807,7 +792,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 			{
 				//KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
 				
-				Object* blenderObject = FindBlenderObject(gameObj);
+				Object* blenderObject = gameObj->GetBlenderObject();
 				if (blenderObject && blenderObject->ipo)
 				{
 					const MT_Point3& position = gameObj->NodeGetWorldPosition();
@@ -908,7 +893,7 @@ void	KX_BlenderSceneConverter::TestHandlesPhysicsObjectToAnimationIpo()
 			{
 				//KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
 				
-				Object* blenderObject = FindBlenderObject(gameObj);
+				Object* blenderObject = gameObj->GetBlenderObject();
 				if (blenderObject && blenderObject->ipo)
 				{
 					// XXX animato
