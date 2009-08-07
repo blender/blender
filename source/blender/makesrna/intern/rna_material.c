@@ -66,6 +66,11 @@ static PointerRNA rna_Material_strand_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_MaterialStrand, ptr->id.data);
 }
 
+static PointerRNA rna_Material_physics_get(PointerRNA *ptr)
+{
+	return rna_pointer_inherit_refine(ptr, &RNA_MaterialPhysics, ptr->id.data);
+}
+
 static void rna_Material_type_set(PointerRNA *ptr, int value)
 {
 	Material *ma= (Material*)ptr->data;
@@ -1123,6 +1128,46 @@ void rna_def_material_strand(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 }
 
+void rna_def_material_physics(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna= RNA_def_struct(brna, "MaterialPhysics", NULL);
+	RNA_def_struct_sdna(srna, "Material");
+	RNA_def_struct_nested(brna, srna, "Material");
+	RNA_def_struct_ui_text(srna, "Material Physics", "Physics settings for a Material datablock.");
+	
+	prop= RNA_def_property(srna, "align_to_normal", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_FH_NOR);
+	RNA_def_property_ui_text(prop, "Align to Normal", "Align dynamic game objects along the surface normal, when inside the physics distance area");
+	
+	prop= RNA_def_property(srna, "friction", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "friction");
+	RNA_def_property_range(prop, 0, 100);
+	RNA_def_property_ui_text(prop, "Friction", "Coulomb friction coeffecient, when inside the physics distance area");
+
+	prop= RNA_def_property(srna, "force", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "fh");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Force", "Upward spring force, when inside the physics distance area");
+	
+	prop= RNA_def_property(srna, "elasticity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "reflect");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Elasticity", "Elasticity of collisions");
+	
+	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "fhdist");
+	RNA_def_property_range(prop, 0, 20);
+	RNA_def_property_ui_text(prop, "Distance", "Distance of the physics area");
+	
+	prop= RNA_def_property(srna, "damp", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "xyfrict");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Damping", "Damping of the spring force, when inside the physics distance area");
+}
+
 void RNA_def_material(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1322,6 +1367,11 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MaterialStrand");
 	RNA_def_property_pointer_funcs(prop, "rna_Material_strand_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Strand", "Strand settings for the material.");
+	
+	prop= RNA_def_property(srna, "physics", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "MaterialPhysics");
+	RNA_def_property_pointer_funcs(prop, "rna_Material_physics_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Physics", "Game physics settings.");
 
 	/* nodetree */
 	prop= RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
@@ -1344,6 +1394,7 @@ void RNA_def_material(BlenderRNA *brna)
 	rna_def_material_sss(brna);
 	rna_def_material_mtex(brna);
 	rna_def_material_strand(brna);
+	rna_def_material_physics(brna);
 }
 
 void rna_def_mtex_common(StructRNA *srna, const char *begin, const char *activeget, const char *activeset, const char *structname)

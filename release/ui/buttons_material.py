@@ -141,6 +141,28 @@ class MATERIAL_PT_strand(MaterialButtonsPanel):
 		sub.active = tan.surface_diffuse
 		sub.itemR(tan, "blend_distance", text="Distance")
 		
+class MATERIAL_PT_physics(MaterialButtonsPanel):
+	__label__ = "Physics"
+	COMPAT_ENGINES = set(['BLENDER_GAME'])
+	
+	def draw(self, context):
+		layout = self.layout
+		
+		mat = context.material
+		phys = mat.physics
+		
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(phys, "distance")
+		col.itemR(phys, "friction")
+		col.itemR(phys, "align_to_normal")
+		
+		col = split.column()
+		col.itemR(phys, "force", slider=True)
+		col.itemR(phys, "elasticity", slider=True)
+		col.itemR(phys, "damp", slider=True)
+		
 class MATERIAL_PT_options(MaterialButtonsPanel):
 	__label__ = "Options"
 	COMPAT_ENGINES = set(['BLENDER_RENDER', 'BLENDER_GAME'])
@@ -515,6 +537,7 @@ bpy.types.register(MATERIAL_PT_raymir)
 bpy.types.register(MATERIAL_PT_raytransp)
 bpy.types.register(MATERIAL_PT_sss)
 bpy.types.register(MATERIAL_PT_halo)
+bpy.types.register(MATERIAL_PT_physics)
 bpy.types.register(MATERIAL_PT_strand)
 bpy.types.register(MATERIAL_PT_options)
 bpy.types.register(MATERIAL_PT_shadows)
