@@ -28,20 +28,20 @@
  */
 #include <xmmintrin.h>
 
-inline int test_bb_group4(__m128 *bb_group, __m128 *start, __m128 *idot_axis, Isect *isec)
+inline int test_bb_group4(__m128 *bb_group, __m128 *start, __m128 *idot_axis, const Isect *isec)
 {
 	
-	__m128 tmin = _mm_setzero_ps();
-	__m128 tmax = _mm_load1_ps(&isec->labda);
+	const __m128 tmin0 = _mm_setzero_ps();
+	const __m128 tmax0 = _mm_load1_ps(&isec->labda);
 
-	tmin = _mm_max_ps(tmin, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[0]], start[0] ), idot_axis[0]) );
-	tmax = _mm_min_ps(tmax, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[1]], start[0] ), idot_axis[0]) );	
-	tmin = _mm_max_ps(tmin, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[2]], start[1] ), idot_axis[1]) );
-	tmax = _mm_min_ps(tmax, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[3]], start[1] ), idot_axis[1]) );
-	tmin = _mm_max_ps(tmin, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[4]], start[2] ), idot_axis[2]) );
-	tmax = _mm_min_ps(tmax, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[5]], start[2] ), idot_axis[2]) );
+	const __m128 tmin1 = _mm_max_ps(tmin0, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[0]], _mm_load1_ps(&isec->start[0]) ), _mm_load1_ps(&isec->idot_axis[0])) );
+	const __m128 tmax1 = _mm_min_ps(tmax0, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[1]], _mm_load1_ps(&isec->start[0]) ), _mm_load1_ps(&isec->idot_axis[0])) );
+	const __m128 tmin2 = _mm_max_ps(tmin1, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[2]], _mm_load1_ps(&isec->start[1]) ), _mm_load1_ps(&isec->idot_axis[1])) );
+	const __m128 tmax2 = _mm_min_ps(tmax1, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[3]], _mm_load1_ps(&isec->start[1]) ), _mm_load1_ps(&isec->idot_axis[1])) );
+	const __m128 tmin3 = _mm_max_ps(tmin2, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[4]], _mm_load1_ps(&isec->start[2]) ), _mm_load1_ps(&isec->idot_axis[2])) );
+	const __m128 tmax3 = _mm_min_ps(tmax2, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[5]], _mm_load1_ps(&isec->start[2]) ), _mm_load1_ps(&isec->idot_axis[2])) );
 	
-	return _mm_movemask_ps(_mm_cmpge_ps(tmax, tmin));
+	return _mm_movemask_ps(_mm_cmpge_ps(tmax3, tmin3));
 }
 
 
@@ -155,8 +155,6 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 	__m128 start[3] 	= { _mm_load1_ps(&isec->start[0]),		_mm_load1_ps(&isec->start[1]),		_mm_load1_ps(&isec->start[2])		};
 
 	Node *stack[MAX_STACK_SIZE];
-	__m128 t_bb[6];
-	Node * t_node[4];
 
 	int hit = 0, stack_pos = 0;
 		
@@ -185,8 +183,37 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 		//Use SIMD 4
 		if(stack_pos >= 4)
 		{
+			__m128 t_bb[6];
+			Node * t_node[4];
+			
 			stack_pos -= 4;
-			for(int i=0; i<4; i++)
+			
+			t_node[0] = stack[stack_pos+0]->child;
+			t_node[1] = stack[stack_pos+1]->child;
+			t_node[2] = stack[stack_pos+2]->child;
+			t_node[3] = stack[stack_pos+3]->child;
+			
+			const float *bb0 = stack[stack_pos+0]->bb;
+			const float *bb1 = stack[stack_pos+1]->bb;
+			const float *bb2 = stack[stack_pos+2]->bb;
+			const float *bb3 = stack[stack_pos+3]->bb;
+			
+			const __m128 x0y0x1y1 = _mm_shuffle_ps( _mm_loadu_ps(bb0), _mm_loadu_ps(bb1), _MM_SHUFFLE(0,1,0,1) );
+			const __m128 x2y2x3y3 = _mm_shuffle_ps( _mm_loadu_ps(bb2), _mm_loadu_ps(bb3), _MM_SHUFFLE(0,1,0,1) );
+			t_bb[0] = _mm_shuffle_ps( x0y0x1y1, x2y2x3y3, _MM_SHUFFLE(0,2,0,2) );
+			t_bb[1] = _mm_shuffle_ps( x0y0x1y1, x2y2x3y3, _MM_SHUFFLE(1,3,1,3) );
+
+			const __m128 z0X0z1X1 = _mm_shuffle_ps( _mm_loadu_ps(bb0+2), _mm_loadu_ps(bb1+2), _MM_SHUFFLE(0,1,0,1) );
+			const __m128 z2X2z3X3 = _mm_shuffle_ps( _mm_loadu_ps(bb2+2), _mm_loadu_ps(bb3+2), _MM_SHUFFLE(0,1,0,1) );
+			t_bb[2] = _mm_shuffle_ps( z0X0z1X1, z2X2z3X3, _MM_SHUFFLE(0,2,0,2) );
+			t_bb[3] = _mm_shuffle_ps( z0X0z1X1, z2X2z3X3, _MM_SHUFFLE(1,3,1,3) );
+
+			const __m128 Y0Z0Y1Z1 = _mm_shuffle_ps( _mm_loadu_ps(bb0+4), _mm_loadu_ps(bb1+4), _MM_SHUFFLE(0,1,0,1) );
+			const __m128 Y2Z2Y3Z3 = _mm_shuffle_ps( _mm_loadu_ps(bb2+4), _mm_loadu_ps(bb3+4), _MM_SHUFFLE(0,1,0,1) );
+			t_bb[4] = _mm_shuffle_ps( Y0Z0Y1Z1, Y2Z2Y3Z3, _MM_SHUFFLE(0,2,0,2) );
+			t_bb[5] = _mm_shuffle_ps( Y0Z0Y1Z1, Y2Z2Y3Z3, _MM_SHUFFLE(1,3,1,3) );
+			
+/*			for(int i=0; i<4; i++)
 			{
 				Node *t = stack[stack_pos+i];
 				assert(RayObject_isAligned(t));
@@ -200,6 +227,7 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 				bb[4*5] = t->bb[5];
 				t_node[i] = t->child;
 			}
+ */
 			int res = test_bb_group4( t_bb, start, idot_axis, isec );
 
 			for(int i=0; i<4; i++)
