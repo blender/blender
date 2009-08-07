@@ -126,82 +126,6 @@ void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *tris, int n
 
 #define TRI_UVOFFSET (1./4.)
 
-
-BVHTree *bvhtree_build_from_smoke ( float mat[4][4], MFace *mfaces, unsigned int numfaces, MVert *x, unsigned int numverts, float epsilon )
-{
-	BVHTree *tree;
-	float co[12];
-	int i;
-	MFace *tface = mfaces;
-
-	// calc quads 
-	// todo
-
-	tree = BLI_bvhtree_new ( numfaces, epsilon, 2, 6 );
-
-	// fill tree
-	for ( i = 0; i < numfaces; i++, tface++ )
-	{
-		VECCOPY ( &co[0*3], x[tface->v1].co );
-		Mat4MulVecfl (mat, &co[0*3]);
-		VECCOPY ( &co[1*3], x[tface->v2].co );
-		Mat4MulVecfl (mat, &co[1*3]);
-		VECCOPY ( &co[2*3], x[tface->v3].co );
-		Mat4MulVecfl (mat, &co[2*3]);
-
-		if ( tface->v4 )
-		{
-			VECCOPY ( &co[3*3], x[tface->v4].co );
-			Mat4MulVecfl (mat, &co[3*3]);
-		}
-
-		BLI_bvhtree_insert ( tree, i, co, ( mfaces->v4 ? 4 : 3 ) );
-	}
-
-	// balance tree
-	BLI_bvhtree_balance ( tree );
-
-	return tree;
-}
-
-void bvhtree_update_from_smoke ( float mat[4][4], BVHTree * bvhtree, MFace *faces, int numfaces, MVert *x, int numverts)
-{
-	int i;
-	MFace *mfaces = faces;
-	float co[12];
-	int ret = 0;
-
-	if ( !bvhtree )
-		return;
-
-	if ( x )
-	{
-		for ( i = 0; i < numfaces; i++, mfaces++ )
-		{
-			VECCOPY ( &co[0*3], x[mfaces->v1].co );
-			Mat4MulVecfl (mat, &co[0*3]);
-			VECCOPY ( &co[1*3], x[mfaces->v2].co );
-			Mat4MulVecfl (mat, &co[1*3]);
-			VECCOPY ( &co[2*3], x[mfaces->v3].co );
-			Mat4MulVecfl (mat, &co[2*3]);
-
-			if ( mfaces->v4 )
-			{
-				VECCOPY ( &co[3*3], x[mfaces->v4].co );
-				Mat4MulVecfl (mat, &co[3*3]);
-			}
-
-			ret = BLI_bvhtree_update_node ( bvhtree, i, co, NULL, ( mfaces->v4 ? 4 : 3 ) );
-
-			// check if tree is already full
-			if ( !ret )
-				break;
-		}
-
-		BLI_bvhtree_update_tree ( bvhtree );
-	}
-}
-
 int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, DerivedMesh *dm)
 {
 	if((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain && !smd->domain->fluid)
@@ -641,7 +565,14 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 				smd->domain->bind = NULL;
 			}
 			smd->domain->max_textures = 0;
-			smd->domain->viewsettings = 0; // reset view for new frame
+			if(smd->domain->viewsettings < MOD_SMOKE_VIEW_USEBIG)
+			{
+				smd->domain->viewsettings = 0;
+			}
+			else
+			{
+				smd->domain->viewsettings = MOD_SMOKE_VIEW_USEBIG;
+			}
 
 			if(smd->domain->tray)
 				MEM_freeN(smd->domain->tray);
@@ -795,11 +726,6 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			// XXX TODO
 			smd->time = scene->r.cfra;
 			
-			if(smd->coll->bvhtree)
-				bvhtree_update_from_smoke ( ob->obmat, smd->coll->bvhtree, dm->getFaceArray(dm), dm->getNumFaces(dm), dm->getVertArray(dm), dm->getNumVerts(dm));
-			else
-				printf("smoke coll with no bvh\n");
-
 			if(smd->coll->dm)
 				smd->coll->dm->release(smd->coll->dm);
 

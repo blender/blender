@@ -85,7 +85,7 @@ void FLUID_3D::solvePressurePre(float* field, float* b, unsigned char* skip)
   //while ((i < _iterations) && (deltaNew > eps*delta0))
   float maxR = 2.0f * eps;
   // while (i < _iterations)
-  while ((i < _iterations) && (maxR > eps))
+  while ((i < _iterations) && (maxR > 0.001*eps))
   {
     // (s) q = Ad (p)
     index = _slabSize + _xRes + 1;
@@ -183,7 +183,7 @@ void FLUID_3D::solvePressurePre(float* field, float* b, unsigned char* skip)
     // i = i + 1
     i++;
   }
-  cout << i << " iterations converged to " << maxR << endl;
+  // cout << i << " iterations converged to " << sqrt(maxR) << endl;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -330,7 +330,7 @@ void FLUID_3D::solvePressure(float* field, float* b, unsigned char* skip)
     // i = i + 1
     i++;
   }
-  cout << i << " iterations converged to " << maxR << endl;
+  // cout << i << " iterations converged to " << maxR << endl;
 }
 
 //////////////////////////////////////////////////////////////////////
