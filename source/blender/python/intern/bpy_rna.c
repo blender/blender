@@ -2918,9 +2918,10 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 	void *retdata= NULL;
 	int err= 0, i, flag;
 
-	PyGILState_STATE gilstate = PyGILState_Ensure();
+	PyGILState_STATE gilstate;
 
-	BPY_update_modules(); // XXX - the RNA pointers can change so update before running, would like a nicer solution for this.
+	bContext *C= BPy_GetContext(); // XXX - NEEDS FIXING, QUITE BAD.
+	bpy_context_set(C, &gilstate);
 
 	py_class= RNA_struct_py_type_get(ptr->type);
 	
@@ -2996,7 +2997,7 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 		PyErr_Clear();
 	}
 
-	PyGILState_Release(gilstate);
+	bpy_context_clear(C, &gilstate);
 	
 	return err;
 }

@@ -93,11 +93,9 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 	PointerRNA ptr_event;
 	PyObject *py_operator;
 
-	PyGILState_STATE gilstate = PyGILState_Ensure();
+	PyGILState_STATE gilstate;
 
-	bpy_import_main_set(CTX_data_main(C));
-	
-	BPY_update_modules(); // XXX - the RNA pointers can change so update before running, would like a nicer solutuon for this.
+	bpy_context_set(C, &gilstate);
 
 	args = PyTuple_New(1);
 	PyTuple_SET_ITEM(args, 0, PyObject_GetAttrString(py_class, "__rna__")); // need to use an rna instance as the first arg
@@ -221,8 +219,7 @@ static int PYTHON_OT_generic(int mode, bContext *C, wmOperator *op, wmEvent *eve
 	}
 #endif
 
-	PyGILState_Release(gilstate);
-	bpy_import_main_set(NULL);
+	bpy_context_clear(C, &gilstate);
 
 	return ret_flag;
 }

@@ -45,6 +45,50 @@
 #include "../generic/BGL.h"
 
 
+/* for internal use, when starting and ending python scripts */
+
+/* incase a python script triggers another python call, stop bpy_context_clear from invalidating */
+static int py_call_level= 0;
+
+void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
+{
+	py_call_level++;
+
+	if(gilstate)
+		*gilstate = PyGILState_Ensure();
+
+	if(py_call_level==1) {
+
+		BPY_update_modules(); /* can give really bad results if this isnt here */
+
+		if(C) { // XXX - should always be true.
+			BPy_SetContext(C);
+			bpy_import_main_set(CTX_data_main(C));
+		}
+		else {
+			fprintf(stderr, "ERROR: Python context called with a NULL Context. this should not happen!\n");
+		}
+	}
+}
+
+void bpy_context_clear(bContext *C, PyGILState_STATE *gilstate)
+{
+	py_call_level--;
+
+	if(gilstate)
+		PyGILState_Release(*gilstate);
+
+	if(py_call_level < 0) {
+		fprintf(stderr, "ERROR: Python context internal state bug. this should not happen!\n");
+	}
+	else if(py_call_level==0) {
+		// XXX - Calling classes currently wont store the context :\, cant set NULL because of this. but this is very flakey still.
+		//BPy_SetContext(NULL);
+		//bpy_import_main_set(NULL);
+	}
+}
+
+
 void BPY_free_compiled_text( struct Text *text )
 {
 	if( text->compiled ) {
@@ -105,9 +149,6 @@ static PyObject *CreateGlobalDictionary( bContext *C )
 	PyDict_SetItemString( dict, "__builtins__", PyEval_GetBuiltins(  ) );
 	PyDict_SetItemString( dict, "__name__", item );
 	Py_DECREF(item);
-	
-	// XXX - evil, need to access context
-	BPy_SetContext(C);
 	
 	// XXX - put somewhere more logical
 	{
@@ -224,19 +265,14 @@ void BPY_end_python( void )
 /* Can run a file or text block */
 int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struct ReportList *reports)
 {
-	PyObject *py_dict, *py_result;
+	PyObject *py_dict, *py_result= NULL;
 	PyGILState_STATE gilstate;
 	
 	if (fn==NULL && text==NULL) {
 		return 0;
 	}
 	
-	//BPY_start_python();
-	
-	gilstate = PyGILState_Ensure();
-
-	BPY_update_modules(); /* can give really bad results if this isnt here */
-	bpy_import_main_set(CTX_data_main(C));
+	bpy_context_set(C, &gilstate);
 	
 	py_dict = CreateGlobalDictionary(C);
 
@@ -251,13 +287,11 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 			MEM_freeN( buf );
 
 			if( PyErr_Occurred(  ) ) {
-				BPy_errors_to_report(reports);
 				BPY_free_compiled_text( text );
-				PyGILState_Release(gilstate);
-				return 0;
 			}
 		}
-		py_result =  PyEval_EvalCode( text->compiled, py_dict, py_dict );
+		if(text->compiled)
+			py_result =  PyEval_EvalCode( text->compiled, py_dict, py_dict );
 		
 	} else {
 #if 0
@@ -287,10 +321,9 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 	}
 	
 	Py_DECREF(py_dict);
-	PyGILState_Release(gilstate);
-	bpy_import_main_set(NULL);
 	
-	//BPY_end_python();
+	bpy_context_clear(C, &gilstate);
+
 	return py_result ? 1:0;
 }
 
@@ -473,12 +506,7 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	PyGILState_STATE gilstate;
 	PyObject *sys_path;
 
-	gilstate = PyGILState_Ensure();
-	
-	// XXX - evil, need to access context
-	BPy_SetContext(C);
-	bpy_import_main_set(CTX_data_main(C));
-
+	bpy_context_set(C, &gilstate);
 
 	sys_path= PySys_GetObject("path"); /* borrow */
 	PyList_Insert(sys_path, 0, Py_None); /* place holder, resizes the list */
@@ -537,9 +565,8 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 	
 	PyList_SetSlice(sys_path, 0, 1, NULL); /* remove the first item */
 
-	bpy_import_main_set(NULL);
+	bpy_context_clear(C, &gilstate);
 	
-	PyGILState_Release(gilstate);
 #ifdef TIME_REGISTRATION
 	printf("script time %f\n", (PIL_check_seconds_timer()-time));
 #endif
