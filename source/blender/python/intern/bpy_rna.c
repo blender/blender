@@ -33,6 +33,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h" /* for defining our own rna */
+#include "rna_internal_types.h"
 
 #include "MEM_guardedalloc.h"
 #include "BKE_utildefines.h"
@@ -239,6 +240,27 @@ static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 		MEM_freeN(item);
 	
 	return result;
+}
+
+static int pyrna_string_to_enum(PyObject *item, PointerRNA *ptr, PropertyRNA *prop, int *val, const char *error_prefix)
+{
+	char *param= _PyUnicode_AsString(item);
+
+	if (param==NULL) {
+		char *enum_str= pyrna_enum_as_string(ptr, prop);
+		PyErr_Format(PyExc_TypeError, "%.200s expected a string enum type in (%.200s)", error_prefix, enum_str);
+		MEM_freeN(enum_str);
+		return 0;
+	} else {
+		if (!RNA_property_enum_value(BPy_GetContext(), ptr, prop, param, val)) {
+			char *enum_str= pyrna_enum_as_string(ptr, prop);
+			PyErr_Format(PyExc_TypeError, "%.200s enum \"%.200s\" not found in (%.200s)", error_prefix, param, enum_str);
+			MEM_freeN(enum_str);
+			return 0;
+		}
+	}
+
+	return 1;
 }
 
 PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
@@ -641,25 +663,34 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 		}
 		case PROP_ENUM:
 		{
-			char *param = _PyUnicode_AsString(value);
-			
-			if (param==NULL) {
-				char *enum_str= pyrna_enum_as_string(ptr, prop);
-				PyErr_Format(PyExc_TypeError, "%.200s expected a string enum type in (%.200s)", error_prefix, enum_str);
-				MEM_freeN(enum_str);
-				return -1;
-			} else {
-				int val;
-				if (RNA_property_enum_value(BPy_GetContext(), ptr, prop, param, &val)) {
-					if(data)	*((int*)data)= val;
-					else		RNA_property_enum_set(ptr, prop, val);
-				} else {
-					char *enum_str= pyrna_enum_as_string(ptr, prop);
-					PyErr_Format(PyExc_TypeError, "%.200s enum \"%.200s\" not found in (%.200s)", error_prefix, param, enum_str);
-					MEM_freeN(enum_str);
+			int val, i;
+
+			if (PyUnicode_Check(value)) {
+				if (!pyrna_string_to_enum(value, ptr, prop, &val, error_prefix))
 					return -1;
+			}
+			else if (PyTuple_Check(value)) {
+				/* tuple of enum items, concatenate all values with OR */
+				val= 0;
+				for (i= 0; i < PyTuple_Size(value); i++) {
+					int tmpval;
+
+					/* PyTuple_GET_ITEM returns a borrowed reference */
+					if (!pyrna_string_to_enum(PyTuple_GET_ITEM(value, i), ptr, prop, &tmpval, error_prefix))
+						return -1;
+
+					val |= tmpval;
 				}
 			}
+			else {
+				char *enum_str= pyrna_enum_as_string(ptr, prop);
+				PyErr_Format(PyExc_TypeError, "%.200s expected a string enum or a tuple of strings in (%.200s)", error_prefix, enum_str);
+				MEM_freeN(enum_str);
+				return -1;
+			}
+
+			if(data)	*((int*)data)= val;
+			else		RNA_property_enum_set(ptr, prop, val);
 			
 			break;
 		}
@@ -1803,7 +1834,7 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 
 		/* for return values, data is a pointer to an array, not first element pointer */
 		if (prop->flag & PROP_DYNAMIC_ARRAY)
-			data = *((char**)data)
+			data = *(char**)(char*)data;
 
 		switch (type) {
 		case PROP_BOOLEAN:
