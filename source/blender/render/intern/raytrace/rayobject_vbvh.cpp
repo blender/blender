@@ -56,14 +56,14 @@ extern "C"
 
 struct BVHNode
 {
-	BVHNode *child;
-	BVHNode *sibling;
-
 #ifdef DYNAMIC_ALLOC_BB
 	float *bb;
 #else
 	float	bb[6];
 #endif
+
+	BVHNode *child;
+	BVHNode *sibling;
 };
 
 struct BVHTree
@@ -114,6 +114,12 @@ inline static void bvh_node_push_childs(Node *node, Isect *isec, Node **stack, i
 static BVHNode *bvh_new_node(BVHTree *tree)
 {
 	BVHNode *node = (BVHNode*)BLI_memarena_alloc(tree->node_arena, sizeof(BVHNode));
+	
+	if( (((intptr_t)node) & (0x0f)) != 0 )
+	{
+		puts("WRONG!");
+		printf("%08x\n", (intptr_t)node);
+	}
 	node->sibling = NULL;
 	node->child   = NULL;
 
@@ -317,6 +323,7 @@ void bvh_done<BVHTree>(BVHTree *obj)
 
 	obj->node_arena = BLI_memarena_new(needed_nodes);
 	BLI_memarena_use_malloc(obj->node_arena);
+	BLI_memarena_use_align(obj->node_arena, 16);
 
 	
 	obj->root = bvh_rearrange<BVHTree,BVHNode,RTBuilder>( obj, obj->builder );
