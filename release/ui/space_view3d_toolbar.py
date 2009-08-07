@@ -324,6 +324,8 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 		
 		settings = self.paint_settings(context)
 		brush = settings.brush
+		
+		# Particle Mode #
 
 		# XXX This needs a check if psys is editable.
 		if context.particle_edit_object:
@@ -361,18 +363,19 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 					col.item_enumR(settings, "tool", 'SMEAR')
 			
 			col = layout.column()
+			if context.vertex_paint_object or context.texture_paint_object:
+				col.itemR(brush, "color", text="")
+			elif context.weight_paint_object:
+				col.itemR(context.tool_settings, "vertex_group_weight", text="Weight", slider=True)
+				
 			row = col.row(align=True)
 			row.itemR(brush, "size", slider=True)
 			row.itemR(brush, "size_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
-			if context.weight_paint_object:
-				col.itemR(context.tool_settings, "vertex_group_weight", text="Weight", slider=True)
-				
 			col.itemR(brush, "strength", slider=True)
+			
 			row = col.row(align=True)
 			row.itemR(brush, "falloff", slider=True)
 			row.itemR(brush, "falloff_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
-			if context.vertex_paint_object or context.texture_paint_object:
-				col.itemR(brush, "color", text="")
 			if context.texture_paint_object:
 				row = col.row(align=True)
 				row.itemR(brush, "clone_opacity", slider=True, text="Opacity")
@@ -389,6 +392,8 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			col.itemR(brush, "airbrush")
 			col.itemR(brush, "anchored")
 			col.itemR(brush, "rake")
+			if context.sculpt_object and brush.sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
+				col.itemR(brush, "flip_direction")
 
 class VIEW3D_PT_tools_brush_curve(PaintPanel):
 	__label__ = "Curve"
@@ -503,19 +508,26 @@ class VIEW3D_PT_tools_texture_paint(View3DPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		ipaint = context.tool_settings.image_paint
+		settings = context.tool_settings.image_paint
 		
 		col = layout.column()
 		col.itemR(ipaint, "use_projection")
-		col.itemR(ipaint, "use_occlude")
-		col.itemR(ipaint, "use_backface_cull")
-		col.itemR(ipaint, "use_normal_falloff")
-		col.itemR(ipaint, "invert_stencil")
-		col.itemR(ipaint, "use_clone_layer")
-		col.itemR(ipaint, "use_stencil_layer")
+		sub = col.column()
+		sub.active = ipaint.use_projection
+		sub.itemR(ipaint, "use_occlude")
+		sub.itemR(ipaint, "use_backface_cull")
+		sub.itemR(ipaint, "use_normal_falloff")
+		sub.itemR(ipaint, "use_stencil_layer")
+		subsub = sub.column()
+		subsub.active = ipaint.use_stencil_layer
+		subsub.itemR(ipaint, "invert_stencil")
+		if settings.tool == 'CLONE':
+			sub.itemR(ipaint, "use_clone_layer")
 		
-		col.itemR(ipaint, "seam_bleed")
-		col.itemR(ipaint, "normal_angle")
+		sub.itemR(ipaint, "seam_bleed")
+		sub.itemR(ipaint, "normal_angle")
 		
 # ********** default tools for particle mode ****************
 
