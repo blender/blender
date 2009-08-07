@@ -325,11 +325,16 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 		settings = self.paint_settings(context)
 		brush = settings.brush
 		
+		if not context.particle_edit_object:
+			layout.split().row().template_ID(settings, "brush")
+		
 		# Particle Mode #
 
 		# XXX This needs a check if psys is editable.
 		if context.particle_edit_object:
+			# XXX Select Particle System
 			layout.column().itemR(settings, "tool", expand=True)
+			
 			if settings.tool != 'NONE':
 				col = layout.column(align=True)
 				col.itemR(brush, "size", slider=True)
@@ -345,41 +350,53 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 				layout.itemR(brush, "length_mode", expand=True)
 			elif settings.tool == 'PUFF':
 				layout.itemR(brush, "puff_mode", expand=True)
+
+		# Sculpt Mode #
+		
+		elif context.sculpt_object:
+			layout.column().itemR(brush, "sculpt_tool", expand=True)
 				
-		else:
-			layout.split().row().template_ID(settings, "brush")
-
-		if brush and not context.particle_edit_object:
-			if context.sculpt_object:
-				layout.column().itemR(brush, "sculpt_tool", expand=True)
-
-			elif context.texture_paint_object:
-				col = layout.column(align=True)
-				col.item_enumR(settings, "tool", 'DRAW')
-				col.item_enumR(settings, "tool", 'SOFTEN')
-				if settings.use_projection:
-					col.item_enumR(settings, "tool", 'CLONE')
-				else:
-					col.item_enumR(settings, "tool", 'SMEAR')
-			
 			col = layout.column()
-			if context.vertex_paint_object or context.texture_paint_object:
-				col.itemR(brush, "color", text="")
-			elif context.weight_paint_object:
-				col.itemR(context.tool_settings, "vertex_group_weight", text="Weight", slider=True)
 				
 			row = col.row(align=True)
 			row.itemR(brush, "size", slider=True)
 			row.itemR(brush, "size_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
-			col.itemR(brush, "strength", slider=True)
+			
+			if brush.sculpt_tool != 'GRAB':
+				row = col.row(align=True)
+				row.itemR(brush, "strength", slider=True)
+				row.itemR(brush, "strength_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			
+				col = layout.column()
+				col.itemR(brush, "airbrush")
+				if brush.sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
+					col.itemR(brush, "flip_direction")
+				
+		# Texture Paint Mode #
+		
+		elif context.texture_paint_object:
+			col = layout.column(align=True)
+			col.item_enumR(settings, "tool", 'DRAW')
+			col.item_enumR(settings, "tool", 'SOFTEN')
+			if settings.use_projection:
+				col.item_enumR(settings, "tool", 'CLONE')
+			else:
+				col.item_enumR(settings, "tool", 'SMEAR')
+				
+			col = layout.column()
+			col.itemR(brush, "color", text="")
+				
+			row = col.row(align=True)
+			row.itemR(brush, "size", slider=True)
+			row.itemR(brush, "size_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			
+			row = col.row(align=True)
+			row.itemR(brush, "strength", slider=True)
+			row.itemR(brush, "strength_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
 			
 			row = col.row(align=True)
 			row.itemR(brush, "falloff", slider=True)
 			row.itemR(brush, "falloff_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
-			if context.texture_paint_object:
-				row = col.row(align=True)
-				row.itemR(brush, "clone_opacity", slider=True, text="Opacity")
-				row.itemR(brush, "opacity_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
 			
 			row = col.row(align=True)
 			row.itemR(brush, "space", text="")
@@ -387,13 +404,40 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			rowsub.active = brush.space
 			rowsub.itemR(brush, "spacing", text="Spacing", slider=True)
 			rowsub.itemR(brush, "spacing_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
-
+			
 			col = layout.column()
 			col.itemR(brush, "airbrush")
-			col.itemR(brush, "anchored")
-			col.itemR(brush, "rake")
-			if context.sculpt_object and brush.sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
-				col.itemR(brush, "flip_direction")
+			sub = col.column()
+			sub.active = brush.airbrush
+			sub.itemR(brush, "rate")
+		
+		# Weight Paint Mode #
+	
+		elif context.weight_paint_object:
+			layout.itemR(context.tool_settings, "vertex_group_weight", text="Weight", slider=True)
+			
+			col = layout.column()
+			row = col.row(align=True)
+			row.itemR(brush, "size", slider=True)
+			row.itemR(brush, "size_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			
+			row = col.row(align=True)
+			row.itemR(brush, "strength", slider=True)
+			row.itemR(brush, "strength_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+		
+		# Vertex Paint Mode #
+		
+		elif context.vertex_paint_object:
+			col = layout.column()
+			col.itemR(brush, "color", text="")
+			
+			row = col.row(align=True)
+			row.itemR(brush, "size", slider=True)
+			row.itemR(brush, "size_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			
+			row = col.row(align=True)
+			row.itemR(brush, "strength", slider=True)
+			row.itemR(brush, "strength_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
 
 class VIEW3D_PT_tools_brush_curve(PaintPanel):
 	__label__ = "Curve"
