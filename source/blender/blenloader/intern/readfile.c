@@ -9363,10 +9363,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			/* set new bump for unused slots */
 			for(a=0; a<MAX_MTEX; a++) {
 				if(ma->mtex[a]) {
-					if(!ma->mtex[a]->tex)
+					tex= ma->mtex[a]->tex;
+					if(!tex)
 						ma->mtex[a]->texflag |= MTEX_NEW_BUMP;
-					else if(((Tex*)newlibadr(fd, ma->id.lib, ma->mtex[a]->tex))->type == 0)
-						ma->mtex[a]->texflag |= MTEX_NEW_BUMP;
+					else {
+						tex= (Tex*)newlibadr(fd, ma->id.lib, tex);
+						if(tex && tex->type == 0) /* invalid type */
+							ma->mtex[a]->texflag |= MTEX_NEW_BUMP;
+					}
 				}
 			}
 		}
