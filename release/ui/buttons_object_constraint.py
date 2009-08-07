@@ -10,7 +10,6 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		layout = self.layout
 		
 		box = layout.template_constraint(con)
-		class_dict = self.__class__.__dict__
 
 		if box:
 			# match enum type to our functions, avoids a lookup table.
@@ -18,7 +17,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 	
 			# show/key buttons here are most likely obsolete now, with
 			# keyframing functionality being part of every button
-			if con.type not in ("RIGID_BODY_JOINT", "NULL"):
+			if con.type not in ('RIGID_BODY_JOINT', 'NULL'):
 				box.itemR(con, "influence")
 	
 	def space_template(self, layout, con, target=True, owner=True):
@@ -31,7 +30,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 				row.itemR(con, "target_space", text="")
 
 			if target and owner:
-				row.itemL(icon="ICON_ARROW_LEFTRIGHT")
+				row.itemL(icon='ICON_ARROW_LEFTRIGHT')
 
 			if owner:
 				row.itemR(con, "owner_space", text="")
@@ -47,7 +46,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 					row = layout.row()
 					row.itemL(text="Head/Tail:")
 					row.itemR(con, "head_tail", text="")
-			elif con.target.type in ("MESH", "LATTICE"):
+			elif con.target.type in ('MESH', 'LATTICE'):
 				layout.item_pointerR(con, "subtarget", con.target, "vertex_groups", text="Vertex Group")
 	
 	def CHILD_OF(self, layout, con):
@@ -95,7 +94,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		self.target_template(layout, con)
 		
 		layout.itemR(con, "pole_target")
-		if con.pole_target and con.pole_target.type == "ARMATURE":
+		if con.pole_target and con.pole_target.type == 'ARMATURE':
 			layout.item_pointerR(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
 		
 		flow = layout.column_flow()
@@ -499,7 +498,7 @@ class BONE_PT_constraints(ConstraintButtonsPanel):
 
 	def poll(self, context):
 		ob = context.object
-		return (ob and ob.type == "ARMATURE" and context.bone)
+		return (ob and ob.type == 'ARMATURE' and context.bone)
 		
 	def draw(self, context):
 		layout = self.layout

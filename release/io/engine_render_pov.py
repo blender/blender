@@ -19,8 +19,9 @@ def write_pov(filename, scene=None, info_callback = None):
 	# Only for testing
 	if not scene:
 		scene = bpy.data.scenes[0]
-		
+	
 	render = scene.render_data
+	world = scene.world
 	materialTable = {}
 	
 	def saneName(name):
@@ -32,6 +33,39 @@ def write_pov(filename, scene=None, info_callback = None):
 	def writeMatrix(matrix):
 		file.write('\tmatrix <%.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, %.6f>\n' %\
 		(matrix[0][0], matrix[0][1], matrix[0][2],  matrix[1][0], matrix[1][1], matrix[1][2],  matrix[2][0], matrix[2][1], matrix[2][2],  matrix[3][0], matrix[3][1], matrix[3][2]) )
+	
+	def blenderMaterialToPovString(material):
+		povstring = 'finish {'
+		if world != None:
+			povstring += 'ambient <%.6f, %.6f, %.6f> ' % tuple([c*material.ambient for c in world.ambient_color])
+		
+		povstring += 'diffuse %.6f ' % material.diffuse_reflection
+		povstring += 'specular %.6f ' % material.specular_reflection
+		
+		
+		if material.raytrace_mirror.enabled:
+			#povstring += 'interior { ior %.6f } ' % material.IOR
+			raytrace_mirror= material.raytrace_mirror
+			if raytrace_mirror.reflect:
+				povstring += 'reflection {'
+				povstring += '<%.6f, %.6f, %.6f>' % tuple(material.mirror_color) # Should ask for ray mirror flag
+				povstring += 'fresnel 1 falloff %.6f exponent %.6f metallic %.6f} ' % (raytrace_mirror.fresnel, raytrace_mirror.fresnel_fac, raytrace_mirror.reflect)
+			
+			
+				
+		if material.raytrace_transparency.enabled:
+			#povstring += 'interior { ior %.6f } ' % material.IOR
+			pass
+		
+		#file.write('\t\troughness %.6f\n' % (material.hard*0.5))
+		#file.write('\t\t\tcrand 0.0\n') # Sand granyness
+		#file.write('\t\t\tmetallic %.6f\n' % material.spec)
+		#file.write('\t\t\tphong %.6f\n' % material.spec)
+		#file.write('\t\t\tphong_size %.6f\n' % material.spec)
+		povstring += 'brilliance %.6f ' % (material.specular_hardness/256.0) # Like hardness
+		povstring += '}'
+		#file.write('\t}\n')
+		return povstring
 	
 	def exportCamera():
 		camera = scene.camera
@@ -79,6 +113,10 @@ def write_pov(filename, scene=None, info_callback = None):
 				file.write('\ttightness 0\n') # 0:10f
 				
 				file.write('\tpoint_at  <0, 0, -1>\n')
+			elif lamp.type == 'SUN':
+				file.write('\tparallel\n')
+				file.write('\tpoint_at  <0, 0, -1>\n') # *must* be after 'parallel'
+				
 			elif lamp.type == 'AREA':
 				
 				size_x = lamp.size
@@ -109,47 +147,68 @@ def write_pov(filename, scene=None, info_callback = None):
 			
 			file.write('}\n')
 	
-	def exportMeshs(sel):
-		def bMat2PovString(material):
-			povstring = 'finish {'
-			if world != None:
-				povstring += 'ambient <%.6f, %.6f, %.6f> ' % tuple([c*material.ambient for c in world.ambient_color])
+	def exportMeta(metas):
+		
+		# TODO - blenders 'motherball' naming is not supported.
+		
+		for ob in metas:
+			meta = ob.data
 			
-			povstring += 'diffuse %.6f ' % material.diffuse_reflection
-			povstring += 'specular %.6f ' % material.specular_reflection
+			file.write('blob {\n')
+			file.write('\t\tthreshold %.4g\n' % meta.threshold)
 			
+			try:
+				material= meta.materials[0] # lame! - blender cant do enything else.
+			except:
+				material= None
 			
-			if material.raytrace_mirror.enabled:
-				#povstring += 'interior { ior %.6f } ' % material.IOR
-				raytrace_mirror= material.raytrace_mirror
-				if raytrace_mirror.reflect:
-					povstring += 'reflection {'
-					povstring += '<%.6f, %.6f, %.6f>' % tuple(material.mirror_color) # Should ask for ray mirror flag
-					povstring += 'fresnel 1 falloff %.6f exponent %.6f metallic %.6f} ' % (raytrace_mirror.fresnel, raytrace_mirror.fresnel_fac, raytrace_mirror.reflect)
+			for elem in meta.elements:
 				
+				if elem.type not in ('BALL', 'ELLIPSOID'):
+					continue # Not supported
 				
+				loc = elem.location
+				
+				stiffness= elem.stiffness
+				if elem.negative:
+					stiffness = -stiffness
+				
+				if elem.type == 'BALL':
 					
-			if material.raytrace_transparency.enabled:
-				#povstring += 'interior { ior %.6f } ' % material.IOR
-				pass
+					file.write('\tsphere { <%.6g, %.6g, %.6g>, %.4g, %.4g ' % (loc.x, loc.y, loc.z, elem.radius, stiffness))
+					
+					# After this wecould do something simple like...
+					# 	"pigment {Blue} }"
+					# except we'll write the color
+				
+				elif elem.type == 'ELLIPSOID':
+					# location is modified by scale
+					file.write('\tsphere { <%.6g, %.6g, %.6g>, %.4g, %.4g ' % (loc.x/elem.size_x, loc.y/elem.size_y, loc.z/elem.size_z, elem.radius, stiffness))
+					file.write(	'scale <%.6g, %.6g, %.6g> ' % (elem.size_x, elem.size_y, elem.size_z))
+				
+				if material:
+					# materialString = materialTable[material.name]
+					diffuse_color = material.diffuse_color
+					
+					file.write(
+						'pigment {rgbf<%.3g, %.3g, %.3g, %.3g>} }\n' % \
+						(diffuse_color[0], diffuse_color[1], diffuse_color[2], 1-material.alpha)
+					)
+				else:
+					file.write('}\n')
 			
-			#file.write('\t\troughness %.6f\n' % (material.hard*0.5))
-			#file.write('\t\t\tcrand 0.0\n') # Sand granyness
-			#file.write('\t\t\tmetallic %.6f\n' % material.spec)
-			#file.write('\t\t\tphong %.6f\n' % material.spec)
-			#file.write('\t\t\tphong_size %.6f\n' % material.spec)
-			povstring += 'brilliance %.6f ' % (material.specular_hardness/256.0) # Like hardness
-			povstring += '}'
-			#file.write('\t}\n')
-			return povstring
+			# Write the finish last.
+			if material:
+				file.write('\t%s\n' % materialTable[material.name])
+
+			writeMatrix(ob.matrix)
 			
+			file.write('}\n')
 		
-		world = scene.world
 		
-		# Convert all materials to strings we can access directly per vertex.
-		for material in bpy.data.materials:
-			materialTable[material.name] = bMat2PovString(material)
-		
+	
+	
+	def exportMeshs(sel):
 		
 		ob_num = 0
 		
@@ -452,11 +511,15 @@ def write_pov(filename, scene=None, info_callback = None):
 		file.write('}\n')
 	
 	
+	# Convert all materials to strings we can access directly per vertex.
+	for material in bpy.data.materials:
+		materialTable[material.name] = blenderMaterialToPovString(material)
+	
 	exportCamera()
 	#exportMaterials()
 	sel = scene.objects
-	lamps = [l for l in sel if l.type == 'LAMP']
-	exportLamps(lamps)
+	exportLamps([l for l in sel if l.type == 'LAMP'])
+	exportMeta([l for l in sel if l.type == 'META'])
 	exportMeshs(sel)
 	exportWorld(scene.world)
 	exportGlobalSettings(scene)
