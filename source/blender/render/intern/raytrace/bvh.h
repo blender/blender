@@ -201,8 +201,8 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 			t_bb[0] = _mm_shuffle_ps( x0y0x1y1, x2y2x3y3, _MM_SHUFFLE(2,0,2,0) );
 			t_bb[1] = _mm_shuffle_ps( x0y0x1y1, x2y2x3y3, _MM_SHUFFLE(3,1,3,1) );
 
-			const __m128 z0X0z1X1 = _mm_shuffle_ps( _mm_load_ps(bb0), _mm_load_ps(bb1), _MM_SHUFFLE(3,1,3,1) );
-			const __m128 z2X2z3X3 = _mm_shuffle_ps( _mm_load_ps(bb2), _mm_load_ps(bb3), _MM_SHUFFLE(3,1,3,1) );
+			const __m128 z0X0z1X1 = _mm_shuffle_ps( _mm_load_ps(bb0), _mm_load_ps(bb1), _MM_SHUFFLE(3,2,3,2) );
+			const __m128 z2X2z3X3 = _mm_shuffle_ps( _mm_load_ps(bb2), _mm_load_ps(bb3), _MM_SHUFFLE(3,2,3,2) );
 			t_bb[2] = _mm_shuffle_ps( z0X0z1X1, z2X2z3X3, _MM_SHUFFLE(2,0,2,0) );
 			t_bb[3] = _mm_shuffle_ps( z0X0z1X1, z2X2z3X3, _MM_SHUFFLE(3,1,3,1) );
 
