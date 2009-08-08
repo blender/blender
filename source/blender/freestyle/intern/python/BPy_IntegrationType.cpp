@@ -171,6 +171,7 @@ PyMODINIT_FUNC IntegrationType_Init( PyObject *module )
 	m = Py_InitModule3("Blender.Freestyle.Integrator", module_functions, module_docstring);
 	if (m == NULL)
 		return;
+	Py_INCREF(m);
 	PyModule_AddObject(module, "Integrator", m);
 
 	// from Integrator import *

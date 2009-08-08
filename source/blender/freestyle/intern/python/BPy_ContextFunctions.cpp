@@ -50,6 +50,7 @@ void ContextFunctions_Init( PyObject *module )
   m = Py_InitModule3("Blender.Freestyle.ContextFunctions", module_functions, module_docstring);
   if (m == NULL)
     return;
+  Py_INCREF(m);
   PyModule_AddObject(module, "ContextFunctions", m);
 
   // from ContextFunctions import *
