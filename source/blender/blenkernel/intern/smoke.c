@@ -566,13 +566,9 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 			}
 			smd->domain->max_textures = 0;
 			if(smd->domain->viewsettings < MOD_SMOKE_VIEW_USEBIG)
-			{
 				smd->domain->viewsettings = 0;
-			}
 			else
-			{
 				smd->domain->viewsettings = MOD_SMOKE_VIEW_USEBIG;
-			}
 
 			if(smd->domain->tray)
 				MEM_freeN(smd->domain->tray);
@@ -753,9 +749,13 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			
 			tstart();
 
-			sds->viewsettings = 0; // reset view for new frame
+			/* reset view for new frame */
+			if(sds->viewsettings < MOD_SMOKE_VIEW_USEBIG)
+				sds->viewsettings = 0;
+			else
+				sds->viewsettings = MOD_SMOKE_VIEW_USEBIG;
 
-			// check for 2nd domain, if not there -> no groups are necessary
+			/* check for 2nd domain, if not there -> no groups are necessary */
 			for(base = scene->base.first; base; base= base->next) 
 			{
 				Object *ob1= base->object;
@@ -889,11 +889,11 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 											smoke_get_bigres(smd->domain->fluid, bigres);
 
-											for(i = 0; i < smd->domain->amplify; i++)
-												for(j = 0; j < smd->domain->amplify; j++)
-													for(k = 0; k < smd->domain->amplify; k++)
+											for(i = 0; i < smd->domain->amplify + 1; i++)
+												for(j = 0; j < smd->domain->amplify + 1; j++)
+													for(k = 0; k < smd->domain->amplify + 1; k++)
 													{
-														index = smoke_get_index(smd->domain->amplify * cell[0] + i, bigres[0], smd->domain->amplify * cell[1] + j, bigres[1], smd->domain->amplify * cell[2] + k);
+														index = smoke_get_index((smd->domain->amplify + 1)* cell[0] + i, bigres[0], (smd->domain->amplify + 1)* cell[1] + j, bigres[1], (smd->domain->amplify + 1)* cell[2] + k);
 														bigdensity[index] = sfs->density;
 													}
 										}
@@ -914,11 +914,11 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 											smoke_get_bigres(smd->domain->fluid, bigres);
 
-											for(i = 0; i < smd->domain->amplify; i++)
-												for(j = 0; j < smd->domain->amplify; j++)
-													for(k = 0; k < smd->domain->amplify; k++)
+											for(i = 0; i < smd->domain->amplify + 1; i++)
+												for(j = 0; j < smd->domain->amplify + 1; j++)
+													for(k = 0; k < smd->domain->amplify + 1; k++)
 													{
-														index = smoke_get_index(smd->domain->amplify * cell[0] + i, bigres[0], smd->domain->amplify * cell[1] + j, bigres[1], smd->domain->amplify * cell[2] + k);
+														index = smoke_get_index((smd->domain->amplify + 1)* cell[0] + i, bigres[0], (smd->domain->amplify + 1)* cell[1] + j, bigres[1], (smd->domain->amplify + 1)* cell[2] + k);
 														bigdensity[index] = 0.f;
 													}
 										}
@@ -1138,7 +1138,7 @@ void smoke_prepare_bigView(SmokeModifierData *smd, float *light)
 		// formula taken from "Visual Simulation of Smoke" / Fedkiw et al. pg. 4
 		// T_vox = exp(-C_ext * h)
 		// C_ext/sigma_t = density * C_ext
-		smoke_set_bigtvox(smd, i, exp(-density[i] * 7.0 * smd->domain->dx / smd->domain->amplify) );
+		smoke_set_bigtvox(smd, i, exp(-density[i] * 7.0 * smd->domain->dx / (smd->domain->amplify + 1)) );
 	}
 	smoke_calc_transparency(smd, light, 1);
 }
@@ -1353,7 +1353,7 @@ static void get_bigcell(struct SmokeModifierData *smd, float *pos, int *cell, in
 
 	VECSUB(tmp, pos, smd->domain->p0);
 
-	VecMulf(tmp, smd->domain->amplify / smd->domain->dx );
+	VecMulf(tmp, (smd->domain->amplify + 1)/ smd->domain->dx );
 
 	if(correct)
 	{
@@ -1402,7 +1402,7 @@ void smoke_calc_transparency(struct SmokeModifierData *smd, float *light, int bi
 	else
 	{
 		smoke_get_bigres(smd->domain->fluid, res);
-		bigfactor = 1.0 / smd->domain->amplify;
+		bigfactor = 1.0 / (smd->domain->amplify + 1);
 	}
 
 #pragma omp parallel for schedule(static) private(y, z) shared(big, smd, light, res, bigfactor)

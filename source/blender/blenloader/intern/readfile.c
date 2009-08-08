@@ -3665,7 +3665,11 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->domain->traybig = NULL;
 				smd->domain->bind = NULL;
 				smd->domain->max_textures = 0;
-				smd->domain->viewsettings = 0; // reset view for new frame
+				// reset 3dview
+				if(smd->domain->viewsettings < MOD_SMOKE_VIEW_USEBIG)
+					smd->domain->viewsettings = 0;
+				else
+					smd->domain->viewsettings = MOD_SMOKE_VIEW_USEBIG;
 			}
 			else if(smd->type==MOD_SMOKE_TYPE_FLOW)
 			{
