@@ -118,26 +118,6 @@ def copy_images(dest_dir, textures):
 	
 	print('\tCopied %d images' % copyCount)
 
-def BPyObject_getObjectArmature(ob):
-	'''
-	This returns the first armature the mesh uses.
-	remember there can be more then 1 armature but most people dont do that.
-	'''
-	if ob.type != 'MESH':
-		return None
-	
-	arm = ob.parent
-	if arm and arm.type == 'ARMATURE' and ob.parent_type == 'ARMATURE':
-		return arm
-	
-	for m in ob.modifiers:
-		if m.type== 'ARMATURE':
-			arm = m.object
-			if arm:
-				return arm
-	
-	return None
-
 # I guess FBX uses degrees instead of radians (Arystan).
 # Call this function just before writing to FBX.
 def eulerRadToDeg(eul):
@@ -297,30 +277,6 @@ def BPyMesh_meshWeight2List(ob):
 			vWeightList[i][g.group] = g.weight
 
 	return groupNames, vWeightList
-
-
-def BPyMesh_meshWeight2Dict(me, ob):
-	''' Takes a mesh and return its group names and a list of dicts, one dict per vertex.
-	using the group as a key and a float value for the weight.
-	These 2 lists can be modified and then used with dict2MeshWeight to apply the changes.
-	'''
-	
-	vWeightDict= [dict() for i in range(len(me.verts))] # Sync with vertlist.
-	
-	# Clear the vert group.
-	groupNames= [g.name for g in ob.vertex_groups]
-# 	groupNames= me.getVertGroupNames()
-	
-	for group in groupNames:
-		for vert_index, weight in me.getVertsFromGroup(group, 1): # (i,w)  tuples.
-			vWeightDict[vert_index][group]= weight
-	
-	# removed this because me may be copying teh vertex groups.
-	#for group in groupNames:
-	#	me.removeVertGroup(group)
-	
-	return groupNames, vWeightDict
-
 
 def meshNormalizedWeights(me):
 	try: # account for old bad BPyMesh
@@ -2199,7 +2155,7 @@ def write(filename, batch_objects = None, \
 							materials[None, None] = None
 					
 					if EXP_ARMATURE:
-						armob = BPyObject_getObjectArmature(ob)
+						armob = ob.find_armature()
 						blenParentBoneName = None
 						
 						# parent bone - special case
@@ -3482,7 +3438,7 @@ bpy.ops.add(EXPORT_OT_fbx)
 # - Draw.PupMenu alternative in 2.5?, temporarily replaced PupMenu with print
 # - get rid of cleanName somehow
 # + fixed: isinstance(inst, bpy.types.*) doesn't work on RNA objects: line 565
-# - get rid of BPyObject_getObjectArmature, move it in RNA?
+# + get rid of BPyObject_getObjectArmature, move it in RNA?
 # - BATCH_ENABLE and BATCH_GROUP options: line 327
 # - implement all BPyMesh_* used here with RNA
 # - getDerivedObjects is not fully replicated with .dupli* funcs

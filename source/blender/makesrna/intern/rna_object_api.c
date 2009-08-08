@@ -63,6 +63,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_modifier_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -309,6 +310,29 @@ static void rna_Object_make_display_list(Object *ob, bContext *C)
 	DAG_object_flush_update(sce, ob, OB_RECALC_DATA);
 }
 
+static Object *rna_Object_find_armature(Object *ob)
+{
+	Object *ob_arm = NULL;
+
+	if (ob->type != OB_MESH) return NULL;
+
+	if (ob->parent && ob->partype == PARSKEL && ob->parent->type == OB_ARMATURE) {
+		ob_arm = ob->parent;
+	}
+	else {
+		ModifierData *mod = (ModifierData*)ob->modifiers.first;
+		while (mod) {
+			if (mod->type == eModifierType_Armature) {
+				ob_arm = ((ArmatureModifierData*)mod)->object;
+			}
+
+			mod = mod->next;
+		}
+	}
+
+	return ob_arm;
+}
+
 /*
 static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int *indices, int totindex, float weight, int assignmode)
 {
@@ -408,6 +432,12 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_enum(func, "type", assign_mode_items, 0, "", "Vertex assign mode.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	/* Armature */
+	func= RNA_def_function(srna, "find_armature", "rna_Object_find_armature");
+	RNA_def_function_ui_description(func, "Find armature influencing this object as a parent or via a modifier.");
+	parm= RNA_def_pointer(func, "ob_arm", "Object", "", "Armature object influencing this object or NULL.");
+	RNA_def_function_return(func, parm);
 
 	/* DAG */
 	func= RNA_def_function(srna, "make_display_list", "rna_Object_make_display_list");

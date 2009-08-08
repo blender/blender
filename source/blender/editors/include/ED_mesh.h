@@ -154,6 +154,9 @@ void		EM_reveal_mesh(struct EditMesh *em);
 void		EM_select_by_material(struct EditMesh *em, int index);
 void		EM_deselect_by_material(struct EditMesh *em, int index); 
 
+/* editmesh_tools.c */
+void convert_to_triface(struct EditMesh *em, int direction);
+
 /* editface.c */
 struct MTFace	*EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_efa, struct MCol **mcol, int sloppy);
 
