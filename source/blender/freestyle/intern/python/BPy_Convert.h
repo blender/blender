@@ -1,6 +1,7 @@
 #ifndef FREESTYLE_PYTHON_CONVERT_H
 #define FREESTYLE_PYTHON_CONVERT_H
 
+#include <typeinfo>
 
 #include "../geometry/Geom.h"
 using namespace Geometry;
