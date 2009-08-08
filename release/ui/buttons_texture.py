@@ -565,19 +565,25 @@ class TEXTURE_PT_voronoi(TextureButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		tex = context.texture
-	
-		layout.itemR(tex, "distance_metric")
-		layout.itemR(tex, "coloring")
 		
 		split = layout.split()
 		
 		sub = split.column()   
-		
+		sub.itemL(text="Distance Metric:")
+		sub.itemR(tex, "distance_metric", text="")
+		subsub = sub.column()
+		subsub.active = tex.distance_metric == 'MINKOVSKY'
+		subsub.itemR(tex, "minkovsky_exponent", text="Exponent")
+		sub.itemL(text="Coloring:")
+		sub.itemR(tex, "coloring", text="")
 		sub.itemR(tex, "noise_intensity", text="Intensity")
-		if tex.distance_metric == 'MINKOVSKY':
-			sub.itemR(tex, "minkovsky_exponent", text="Exponent")
-		sub = split.column()
-		sub.itemR(tex, "feature_weights", slider=True)
+		
+		sub = split.column(align=True) 
+		sub.itemL(text="Feature Weights:")
+		sub.itemR(tex, "weight_1", text="1", slider=True)
+		sub.itemR(tex, "weight_2", text="2", slider=True)
+		sub.itemR(tex, "weight_3", text="3", slider=True)
+		sub.itemR(tex, "weight_4", text="4", slider=True)
 		
 		layout.itemL(text="Noise:")
 		

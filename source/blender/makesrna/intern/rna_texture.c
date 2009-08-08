@@ -1085,17 +1085,34 @@ static void rna_def_texture_voronoi(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Voronoi", "Procedural voronoi texture.");
 	RNA_def_struct_sdna(srna, "Tex");
 
-	prop= RNA_def_property(srna, "feature_weights", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "weight_1", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "vn_w1");
-	RNA_def_property_array(prop, 4);
 	RNA_def_property_range(prop, -2, 2);
-	RNA_def_property_ui_text(prop, "Feature Weights", "");
+	RNA_def_property_ui_text(prop, "Weight 1", "Voronoi feature weight 1");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	
+	prop= RNA_def_property(srna, "weight_2", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "vn_w2");
+	RNA_def_property_range(prop, -2, 2);
+	RNA_def_property_ui_text(prop, "Weight 2", "Voronoi feature weight 2");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	
+	prop= RNA_def_property(srna, "weight_3", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "vn_w3");
+	RNA_def_property_range(prop, -2, 2);
+	RNA_def_property_ui_text(prop, "Weight 3", "Voronoi feature weight 3");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	
+	prop= RNA_def_property(srna, "weight_4", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "vn_w4");
+	RNA_def_property_range(prop, -2, 2);
+	RNA_def_property_ui_text(prop, "Weight 4", "Voronoi feature weight 4");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	prop= RNA_def_property(srna, "minkovsky_exponent", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "vn_mexp");
 	RNA_def_property_range(prop, 0.01, 10);
-	RNA_def_property_ui_text(prop, "Minkovsky Exponent", "");
+	RNA_def_property_ui_text(prop, "Minkovsky Exponent", "Minkovsky exponent");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	prop= RNA_def_property(srna, "distance_metric", PROP_ENUM, PROP_NONE);
