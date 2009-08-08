@@ -441,6 +441,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 
 class VIEW3D_PT_tools_brush_curve(PaintPanel):
 	__label__ = "Curve"
+	__default_closed__ = True
 
 	def poll(self, context):
 		settings = self.paint_settings(context)

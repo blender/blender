@@ -41,7 +41,6 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 			layout.itemR(md, "smoke_type")
 		
 			if md.smoke_type == 'TYPE_DOMAIN':
-				
 				split = layout.split()
 				
 				col = split.column()
@@ -56,13 +55,13 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 				sub.itemR(md.domain_settings, "amplify", text="High")
 				col.itemR(md.domain_settings, "highres", text="Use High Resolution")
 				
-				sub = split.column()
-				sub.itemL(text="Display:")
-				sub.itemR(md.domain_settings, "visibility")
-				sub.itemR(md.domain_settings, "color", slider=True)
-				mysub = sub.column()
-				mysub.active = md.domain_settings.highres
-				mysub.itemR(md.domain_settings, "viewhighres")
+				col = split.column()
+				col.itemL(text="Display:")
+				col.itemR(md.domain_settings, "visibility")
+				col.itemR(md.domain_settings, "color", slider=True)
+				sub = col.column()
+				sub.active = md.domain_settings.highres
+				sub.itemR(md.domain_settings, "viewhighres")
 				
 				layout.itemL(text="Noise Type:")
 				layout.itemR(md.domain_settings, "noise_type", expand=True)
@@ -81,7 +80,6 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 				col.itemR(md.domain_settings, "coll_group", text="")
 				
 			elif md.smoke_type == 'TYPE_FLOW':
-				
 				split = layout.split()
 				
 				col = split.column()
@@ -92,12 +90,12 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 				if md.flow_settings.outflow:				
 					col = split.column()
 				else:
-					sub = split.column()
-					sub.itemL(text="Behavior:")
-					sub.itemR(md.flow_settings, "temperature")
-					sub.itemR(md.flow_settings, "density")
+					col = split.column()
+					col.itemL(text="Behavior:")
+					col.itemR(md.flow_settings, "temperature")
+					col.itemR(md.flow_settings, "density")
 					
-			elif md.smoke_type == 'TYPE_COLL':
-				layout.itemS()
+			#elif md.smoke_type == 'TYPE_COLL':
+			#	layout.itemS()
 
 bpy.types.register(PHYSICS_PT_smoke)
