@@ -186,19 +186,8 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 		// create a networkdevice
 		NG_NetworkDeviceInterface* networkdevice = new
 			NG_LoopBackNetworkDeviceInterface();
-		
+
 		//
-		SYS_SystemHandle hSystem = SYS_GetSystem();
-		bool noaudio = SYS_GetCommandLineInt(hSystem,"noaudio",0);
-
-		if (noaudio)/*(noaudio) intrr: disable game engine audio (openal) */
-			SND_DeviceManager::SetDeviceType(snd_e_dummydevice);
-
-		// get an audiodevice
-		SND_DeviceManager::Subscribe();
-		SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
-		audiodevice->UseCD();
-		
 		// create a ketsji/blendersystem (only needed for timing and stuff)
 		KX_BlenderSystem* kxsystem = new KX_BlenderSystem();
 		
@@ -213,7 +202,6 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 		ketsjiengine->SetRenderTools(rendertools);
 		ketsjiengine->SetRasterizer(rasterizer);
 		ketsjiengine->SetNetworkDevice(networkdevice);
-		ketsjiengine->SetAudioDevice(audiodevice);
 		ketsjiengine->SetUseFixedTime(usefixed);
 		ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
 
@@ -374,7 +362,6 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 			KX_Scene* startscene = new KX_Scene(keyboarddevice,
 				mousedevice,
 				networkdevice,
-				audiodevice,
 				startscenename,
 				blscene);
 			
@@ -519,8 +506,6 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 		canvas->SetMouseState(RAS_ICanvas::MOUSE_NORMAL);
 		
 		// clean up some stuff
-		audiodevice->StopCD();
-		
 		if (ketsjiengine)
 		{
 			delete ketsjiengine;
@@ -637,11 +622,6 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 		NG_NetworkDeviceInterface* networkdevice = new
 			NG_LoopBackNetworkDeviceInterface();
 
-		// get an audiodevice
-		SND_DeviceManager::Subscribe();
-		SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
-		audiodevice->UseCD();
-
 		// create a ketsji/blendersystem (only needed for timing and stuff)
 		KX_BlenderSystem* kxsystem = new KX_BlenderSystem();
 
@@ -692,7 +672,6 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 			KX_Scene* startscene = new KX_Scene(keyboarddevice,
 				mousedevice,
 				networkdevice,
-				audiodevice,
 				startscenename,
 				blscene);
 
@@ -756,7 +735,6 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 		canvas->SetMouseState(RAS_ICanvas::MOUSE_NORMAL);
 
 		// clean up some stuff
-		audiodevice->StopCD();
 		if (ketsjiengine)
 		{
 			delete ketsjiengine;

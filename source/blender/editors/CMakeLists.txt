@@ -36,6 +36,7 @@ SET(INC ../windowmanager
   ../../kernel/gen_system ../../../intern/SoundSystem ../readstreamglue
   ../quicktime ../../../intern/elbeem/extern
   ../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include ../../../intern/smoke/extern
+  ../../../intern/audaspace
   ../nodes
   ../gpu
   ../blenfont

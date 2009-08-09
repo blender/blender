@@ -86,11 +86,6 @@ else:
 BF_QUIET = '1'
 WITH_BF_OPENMP = '0'
 
-# Note : should be true, but openal simply dont work on intel
-if MAC_PROC == 'i386':
-	WITH_BF_OPENAL = False
-else:
-	WITH_BF_OPENAL = True
 #different lib must be used  following version of gcc
 # for gcc 3.3
 #BF_OPENAL = LIBDIR + '/openal'
@@ -112,7 +107,7 @@ BF_CXX = '/usr'
 WITH_BF_STATICCXX = False
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 
-BF_LIBSAMPLERATE = LIBDIR + '/SRC'
+BF_LIBSAMPLERATE = LIBDIR + '/samplerate'
 BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
 BF_LIBSAMPLERATE_LIB = 'samplerate'
 BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
@@ -205,11 +200,6 @@ BF_ICONV = LIBDIR + "/iconv"
 BF_ICONV_INC = '${BF_ICONV}/include'
 BF_ICONV_LIB = 'iconv'
 #BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
-
-BF_LIBSAMPLERATE = LIBDIR + '/samplerate'
-BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
-BF_LIBSAMPLERATE_LIB = 'samplerate'
-BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
 
 # Mesa Libs should go here if your using them as well....
 WITH_BF_STATICOPENGL = True

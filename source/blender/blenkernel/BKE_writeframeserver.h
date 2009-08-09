@@ -33,8 +33,9 @@ extern "C" {
 #endif
 
 struct RenderData;	
+struct Scene;
 
-extern void start_frameserver(struct RenderData *rd, int rectx, int recty);
+extern void start_frameserver(struct Scene *scene, struct RenderData *rd, int rectx, int recty);
 extern void end_frameserver(void);
 extern void append_frameserver(struct RenderData *rd, int frame, int *pixels, int rectx, int recty);
 extern int frameserver_loop(struct RenderData *rd);

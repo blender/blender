@@ -140,7 +140,7 @@ void free_scene(Scene *sce)
 	/* do not free objects! */
 
 	BLI_freelistN(&sce->base);
-	seq_free_editing(sce->ed);
+	seq_free_editing(sce);
 
 	BKE_free_animdata((ID *)sce);
 	BKE_keyingsets_free(&sce->keyingsets);

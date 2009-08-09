@@ -11,6 +11,7 @@ incs = '. #source/blender/python/generic' # Only for Mathutils! and bpy_internal
 incs += ' #source/kernel/gen_system #intern/string #intern/guardedalloc'
 incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer'
 incs += ' #intern/SoundSystem #intern/SoundSystem/include #intern/SoundSystem/openal'
+incs += ' #intern/audaspace'
 incs += ' #intern/SoundSystem/dummy #intern/SoundSystem/intern #source/gameengine/Converter'
 incs += ' #source/gameengine/BlenderRoutines #source/blender/imbuf #intern/moto/include'
 incs += ' #source/gameengine/Ketsji #source/gameengine/Ketsji/KXNetwork #source/blender/blenlib'

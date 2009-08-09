@@ -149,6 +149,8 @@
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 #include "BKE_idprop.h"
 
+#include "BKE_sound.h"
+
 //XXX #include "BIF_butspace.h" // badlevel, for do_versions, patching event codes
 //XXX #include "BIF_filelist.h" // badlevel too, where to move this? - elubie
 //XXX #include "BIF_previewrender.h" // bedlelvel, for struct RenderInfo
@@ -4052,14 +4054,16 @@ static void lib_link_scene(FileData *fd, Main *main)
 				if(seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
 				if(seq->scene) seq->scene= newlibadr(fd, sce->id.lib, seq->scene);
 				if(seq->sound) {
-					seq->sound= newlibadr(fd, sce->id.lib, seq->sound);
+					if(seq->type == SEQ_HD_SOUND)
+						seq->type = SEQ_SOUND;
+					else
+						seq->sound= newlibadr(fd, sce->id.lib, seq->sound);
 					if (seq->sound) {
 						seq->sound->id.us++;
-						seq->sound->flags |= SOUND_FLAGS_SEQUENCE;
+						seq->sound_handle= sound_new_handle(sce, seq->sound, seq->startdisp, seq->enddisp, seq->startofs);
 					}
 				}
 				seq->anim= 0;
-				seq->hdaudio = 0;
 			}
 			SEQ_END
 			
@@ -4103,7 +4107,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->theDag = NULL;
 	sce->dagisvalid = 0;
 	sce->obedit= NULL;
-	
+
+	memset(&sce->sound_handles, 0, sizeof(sce->sound_handles));
+
 	/* set users to one by default, not in lib-link, this will increase it for compo nodes */
 	sce->id.us= 1;
 
@@ -5041,6 +5047,8 @@ static void lib_link_sound(FileData *fd, Main *main)
 			sound->id.flag -= LIB_NEEDLINK;
 			sound->ipo= newlibadr_us(fd, sound->id.lib, sound->ipo); // XXX depreceated - old animation system
 			sound->stream = 0;
+
+			sound_load(sound);
 		}
 		sound= sound->id.next;
 	}
@@ -9186,7 +9194,67 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 		PTCacheID *pid;
 		ListBase pidlist;
-		
+
+		bSound *sound;
+		Sequence *seq;
+		bActuator *act;
+
+		for(sound = main->sound.first; sound; sound = sound->id.next)
+		{
+			if(sound->newpackedfile)
+			{
+				sound->packedfile = sound->newpackedfile;
+				sound->newpackedfile = NULL;
+			}
+		}
+
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			for(act= ob->actuators.first; act; act= act->next) {
+				if (act->type == ACT_SOUND) {
+					bSoundActuator *sAct = (bSoundActuator*) act->data;
+					if(sAct->sound)
+					{
+						sound = newlibadr(fd, lib, sAct->sound);
+						sAct->flag = sound->flags | SOUND_FLAGS_3D ? ACT_SND_3D_SOUND : 0;
+						sAct->pitch = sound->pitch;
+						sAct->volume = sound->volume;
+						sAct->sound3D.reference_distance = sound->distance;
+						sAct->sound3D.max_gain = sound->max_gain;
+						sAct->sound3D.min_gain = sound->min_gain;
+						sAct->sound3D.rolloff_factor = sound->attenuation;
+					}
+					else
+					{
+						sAct->sound3D.reference_distance = 1.0f;
+						sAct->volume = 1.0f;
+						sAct->sound3D.max_gain = 1.0f;
+						sAct->sound3D.rolloff_factor = 1.0f;
+					}
+					sAct->sound3D.cone_inner_angle = 360.0f;
+					sAct->sound3D.cone_outer_angle = 360.0f;
+					sAct->sound3D.max_distance = FLT_MAX;
+				}
+			}
+		}
+
+		for(scene = main->scene.first; scene; scene = scene->id.next)
+		{
+			if(scene->ed && scene->ed->seqbasep)
+			{
+				for(seq = scene->ed->seqbasep->first; seq; seq = seq->next)
+				{
+					if(seq->type == SEQ_HD_SOUND)
+					{
+						char str[FILE_MAX];
+						BLI_join_dirfile(str, seq->strip->dir, seq->strip->stripdata->name);
+						BLI_convertstringcode(str, G.sce);
+						BLI_convertstringframe(str, scene->r.cfra);
+						seq->sound = sound_new_file(main, str);
+					}
+				}
+			}
+		}
+
 		for(screen= main->screen.first; screen; screen= screen->id.next) {
 			do_versions_windowmanager_2_50(screen);
 			do_versions_gpencil_2_50(main, screen);
@@ -9504,7 +9572,17 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	// XXX
 	bfd->user->uifonts.first= bfd->user->uifonts.last= NULL;
 	bfd->user->uistyles.first= bfd->user->uistyles.last= NULL;
-	
+
+	// AUD_XXX
+	if(bfd->user->audiochannels == 0)
+		bfd->user->audiochannels = 2;
+	if(bfd->user->audiodevice == 0)
+		bfd->user->audiodevice = 1;
+	if(bfd->user->audioformat == 0)
+		bfd->user->audioformat = 0x12;
+	if(bfd->user->audiorate == 0)
+		bfd->user->audiorate = 44100;
+
 	bhead = blo_nextbhead(fd, bhead);
 
 		/* read all attached data */

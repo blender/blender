@@ -174,6 +174,7 @@ IF(WIN32)
     COMMAND copy /Y \"${WIN_LIBDIR}\\python\\lib\\python26.dll\" \"${TARGETDIR}\\\"
     COMMAND copy /Y \"${WIN_LIBDIR}\\python\\lib\\python26_d.dll\" \"${TARGETDIR}\\\"
     COMMAND copy /Y \"${WIN_LIBDIR}\\pthreads\\lib\\pthreadVC2.dll\" \"${TARGETDIR}\\\"
+    COMMAND copy /Y \"${WIN_LIBDIR}\\samplerate\\lib\\libsamplerate-0.dll\" \"${TARGETDIR}\\\"
   )
 
   IF(WITH_INTERNATIONAL)
@@ -284,6 +285,7 @@ IF(UNIX)
     bf_dna
     bf_blenfont
     bf_soundsystem 
+    bf_audaspace
   )
 
   FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})

@@ -2692,7 +2692,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 	re->result_ok= 0;
 	
 	if(BKE_imtype_is_movie(scene->r.imtype))
-		mh->start_movie(&re->r, re->rectx, re->recty);
+		mh->start_movie(scene, &re->r, re->rectx, re->recty);
 	
 	if (mh->get_next_frame) {
 		while (!(G.afbreek == 1)) {

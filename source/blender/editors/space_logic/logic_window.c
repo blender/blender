@@ -1984,11 +1984,14 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 		}
     case ACT_SOUND:
 		{
-			ysize = 70;
-			
 			sa = act->data;
 			sa->sndnr = 0;
 			
+			if(sa->flag & ACT_SND_3D_SOUND)
+				ysize = 114;
+			else
+				ysize = 92;
+
 			wval = (width-20)/2;
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
@@ -2003,8 +2006,14 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 					char dummy_str[] = "Sound mode %t|Play Stop %x0|Play End %x1|Loop Stop %x2|Loop End %x3|Loop Ping Pong Stop %x5|Loop Ping Pong %x4";
 					uiDefBut(block, TEX, B_IDNAME, "SO:",xco+30,yco-22,width-40,19, sa->sound->id.name+2,    0.0, 21.0, 0, 0, "");
 					uiDefButS(block, MENU, 1, dummy_str,xco+10,yco-44,width-20, 19, &sa->type, 0.0, 0.0, 0, 0, "");
-					uiDefButF(block, NUM, 0, "Volume:", xco+10,yco-66,wval, 19, &sa->sound->volume, 0.0,  1.0, 0, 0, "Sets the volume of this sound");
-					uiDefButF(block, NUM, 0, "Pitch:",xco+wval+10,yco-66,wval, 19, &sa->sound->pitch,-12.0, 12.0, 0, 0, "Sets the pitch of this sound");
+					uiDefButF(block, NUM, 0, "Volume:", xco+10,yco-66,wval, 19, &sa->volume, 0.0,  1.0, 0, 0, "Sets the volume of this sound");
+					uiDefButF(block, NUM, 0, "Pitch:",xco+wval+10,yco-66,wval, 19, &sa->pitch,-12.0, 12.0, 0, 0, "Sets the pitch of this sound");
+					uiDefButS(block, TOG | BIT, 0, "3D Sound", xco+10, yco-88, width-20, 19, &sa->flag, 0.0, 1.0, 0.0, 0.0, "Plays the sound positioned in 3D space.");
+					if(sa->flag & ACT_SND_3D_SOUND)
+					{
+						uiDefButF(block, NUM, 0, "Rolloff: ", xco+10, yco-110, wval, 19, &sa->sound3D.rolloff_factor, 0.0, 5.0, 0.0, 0.0, "The rolloff factor defines the influence factor on volume depending on distance.");
+						uiDefButF(block, NUM, 0, "Reference distance: ", xco+wval+10, yco-110, wval, 19, &sa->sound3D.reference_distance, 0.0, 1000.0, 0.0, 0.0, "The reference distance is the distance where the sound has a gain of 1.0.");
+					}
 				}
 				MEM_freeN(str);
 			} 

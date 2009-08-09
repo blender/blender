@@ -4178,13 +4178,13 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 			case TSE_POSEGRP_BASE:
 				UI_icon_draw(x, y, ICON_VERTEXSEL); break;
 			case TSE_SEQUENCE:
-				if((te->idcode==SEQ_MOVIE) || (te->idcode==SEQ_MOVIE_AND_HD_SOUND))
+				if(te->idcode==SEQ_MOVIE)
 					UI_icon_draw(x, y, ICON_SEQUENCE);
 				else if(te->idcode==SEQ_META)
 					UI_icon_draw(x, y, ICON_DOT);
 				else if(te->idcode==SEQ_SCENE)
 					UI_icon_draw(x, y, ICON_SCENE);
-				else if((te->idcode==SEQ_RAM_SOUND) || (te->idcode==SEQ_HD_SOUND))
+				else if(te->idcode==SEQ_SOUND)
 					UI_icon_draw(x, y, ICON_SOUND);
 				else if(te->idcode==SEQ_IMAGE)
 					UI_icon_draw(x, y, ICON_IMAGE_COL);

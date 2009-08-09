@@ -64,18 +64,43 @@ typedef struct bSample {
 	short us;
 } bSample;
 
+// runtime only - no saving
+typedef struct SoundHandle {
+	struct SoundHandle *next, *prev;
+	struct bSound *source;
+	void *handle;
+	int state;
+	int startframe;
+	int endframe;
+	int frameskip;
+	int mute;
+	int changed;
+	float volume;
+	float pad;
+} SoundHandle;
 
+typedef struct Sound3D
+{
+	float min_gain;
+	float max_gain;
+	float reference_distance;
+	float max_distance;
+	float rolloff_factor;
+	float cone_inner_angle;
+	float cone_outer_angle;
+	float cone_outer_gain;
+} Sound3D;
 
 typedef struct bSound {
 	ID id;
 	char name[160];
-	struct bSample *sample;
-	void *stream;
+	struct bSample *sample; // AUD_XXX deprecated
+	void *stream; // AUD_XXX deprecated
 	struct PackedFile *packedfile;
-	struct PackedFile *newpackedfile;
-	void *snd_sound;
-	struct Ipo *ipo;
-	float volume, panning;
+	struct PackedFile *newpackedfile; // AUD_XXX deprecated
+	void *snd_sound; // AUD_XXX used for AUD_Sound now
+	struct Ipo *ipo; // AUD_XXX deprecated
+	float volume, panning; // AUD_XXX deprecated
 	/**
 	 * Sets the rollofffactor. The	rollofffactor is a per-Source parameter
 	 * the application can use to increase or decrease	the range of a source
@@ -84,26 +109,42 @@ typedef struct bSound {
 	 * value of 0, which indicates that the application does not wish any
 	 * distance attenuation on the respective Source.
 	 */
-	float attenuation;
-	float pitch;
+	float attenuation; // AUD_XXX deprecated
+	float pitch; // AUD_XXX deprecated
 	/**
 	 * min_gain indicates the minimal gain which is always guaranteed for this sound
 	 */
-	float min_gain;
+	float min_gain; // AUD_XXX deprecated
 	/**
 	 * max_gain indicates the maximal gain which is always guaranteed for this sound
 	 */
-	float max_gain;
+	float max_gain; // AUD_XXX deprecated
 	/**
 	 * Sets the referencedistance at which the listener will experience gain.
 	 */
-	float distance;
-	int flags;
-	int streamlen;
-	char channels;
-	char highprio;
-	char pad[10];
+	float distance; // AUD_XXX deprecated
+	int flags; // AUD_XXX deprecated
+	int streamlen; // AUD_XXX deprecated
+	char channels; // AUD_XXX deprecated
+	char highprio; // AUD_XXX deprecated
+	char pad[10]; // AUD_XXX deprecated
+
+	// AUD_XXX NEW
+	int type;
+	int changed;
+	struct bSound *child_sound;
+	void *cache;
+
+	// SOUND_TYPE_LIMITER
+	float start, end;
 } bSound;
+
+typedef enum eSound_Type {
+	SOUND_TYPE_INVALID = -1,
+	SOUND_TYPE_FILE = 0,
+	SOUND_TYPE_BUFFER,
+	SOUND_TYPE_LIMITER
+} eSound_Type;
 
 typedef struct bSoundListener {
 	ID id;

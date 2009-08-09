@@ -30,6 +30,7 @@ def validate_arguments(args, bc):
 			'WITH_BF_PYTHON', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC',
 			'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH', 'WITH_BF_STATICOPENAL', 'BF_OPENAL_LIB_STATIC',
 			'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
+			'BF_LIBSAMPLERATE', 'BF_LIBSAMPLERATE_INC', 'BF_LIBSAMPLERATE_LIB', 'BF_LIBSAMPLERATE_LIBPATH',
 			'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
 			'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH', 'WITH_BF_STATICOPENEXR', 'BF_OPENEXR_LIB_STATIC',
 			'WITH_BF_DDS',
@@ -172,6 +173,11 @@ def read_opts(cfg, args):
 		('BF_SDL_INC', 'SDL include path', ''),	 #$(shell $(BF_SDL)/bin/sdl-config --cflags)
 		('BF_SDL_LIB', 'SDL library', ''),	  #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
 		('BF_SDL_LIBPATH', 'SDL library path', ''),
+
+		('BF_LIBSAMPLERATE', 'libsamplerate aka SRC base path', ''),
+		('BF_LIBSAMPLERATE_INC', 'libsamplerate aka SRC include path', ''),	 #$(shell $(BF_SDL)/bin/sdl-config --cflags)
+		('BF_LIBSAMPLERATE_LIB', 'libsamplerate aka SRC library', ''),	  #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
+		('BF_LIBSAMPLERATE_LIBPATH', 'libsamplerate aka SRC library path', ''),
 
 		('BF_PTHREADS', 'Pthreads base path', ''),
 		('BF_PTHREADS_INC', 'Pthreads include path', ''),

@@ -37,6 +37,9 @@ struct Scene;
 struct Group;
 struct Text;
 
+// for Sound3D
+#include "DNA_sound_types.h"
+
 /* ****************** ACTUATORS ********************* */
 
 /* unused now, moved to editobjectactuator in 2.02. Still needed for dna */
@@ -62,7 +65,9 @@ typedef struct bSoundActuator {
 	short flag, sndnr;
 	int sta, end;
 	short pad1[2];
+	float volume, pitch;
 	struct bSound *sound;
+	struct Sound3D sound3D;
 	short type, makecopy;
 	short copymade, pad2[1];
 } bSoundActuator;
@@ -431,6 +436,9 @@ typedef struct FreeCamera {
 #define ACT_RANDOM_FLOAT_UNIFORM               7
 #define ACT_RANDOM_FLOAT_NORMAL                8
 #define ACT_RANDOM_FLOAT_NEGATIVE_EXPONENTIAL  9
+
+/* SoundActuator->flag */
+#define ACT_SND_3D_SOUND		1
 
 /*  SoundActuator->type */
 #define ACT_SND_PLAY_STOP_SOUND		0
