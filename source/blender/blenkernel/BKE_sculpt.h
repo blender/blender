@@ -59,6 +59,10 @@ typedef struct SculptSession {
 	/* Used to cache the render of the active texture */
 	unsigned int texcache_side, *texcache, texcache_actual;
 
+	/* Layer brush persistence between strokes */
+ 	float (*mesh_co_orig)[3]; /* Copy of the mesh vertices' locations */
+	float *layer_disps; /* Displacements for each vertex */
+
 	void *cursor; /* wm handle */
 
 	struct SculptStroke *stroke;

@@ -369,8 +369,15 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			
 				col = layout.column()
 				col.itemR(brush, "airbrush")
+				if brush.sculpt_tool != 'LAYER':
+					col.itemR(brush, "anchored")
+
 				if brush.sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
 					col.itemR(brush, "flip_direction")
+
+				if brush.sculpt_tool == 'LAYER':
+					col.itemR(brush, "persistent")
+					col.itemO("sculpt.set_persistent_base")
 				
 		# Texture Paint Mode #
 		

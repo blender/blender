@@ -689,6 +689,13 @@ void sculptsession_free(Sculpt *sculpt)
 
 		if(ss->texcache)
 			MEM_freeN(ss->texcache);
+
+		if(ss->layer_disps)
+			MEM_freeN(ss->layer_disps);
+
+		if(ss->mesh_co_orig)
+			MEM_freeN(ss->mesh_co_orig);
+
 		MEM_freeN(ss);
 		sculpt->session= NULL;
 	}
