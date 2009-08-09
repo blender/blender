@@ -1,7 +1,7 @@
 # -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
 # vim: tabstop=8
 #
-# $Id: Makefile 19820 2009-04-20 15:06:46Z blendix $
+# $Id$
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
