@@ -176,13 +176,13 @@ WTURBULENCE::~WTURBULENCE() {
 //////////////////////////////////////////////////////////////////////
 // Change noise type
 //
-// type (1<<1) = wavelet / 2
-// type (1<<2) = FFT / 4
-// type (1<<3) = curl / 8
+// type (1<<0) = wavelet / 2
+// type (1<<1) = FFT / 4
+// type (1<<2) = curl / 8
 //////////////////////////////////////////////////////////////////////
 void WTURBULENCE::setNoise(int type)
 {
-	if(type == 4) // FFT
+	if(type == (1<<1)) // FFT
 	{
 		// needs fft
 		#if FFTW3==1
@@ -190,7 +190,7 @@ void WTURBULENCE::setNoise(int type)
 		generatTile_FFT(_noiseTile, noiseTileFilename);
 		#endif
 	}
-	else if(type == 8) // curl
+	else if(type == (1<<2)) // curl
 	{
 		// TODO: not supported yet
 	}
