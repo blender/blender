@@ -172,7 +172,7 @@ BF_BULLET_LIB = 'extern_bullet'
 WITH_BF_FFTW3 = False
 BF_FFTW3 = LIBDIR + '/fftw3'
 BF_FFTW3_INC = '${BF_FFTW3}/include'
-BF_FFTW3_LIB = 'libfftw'
+BF_FFTW3_LIB = 'libfftw3'
 BF_FFTW3_LIBPATH = '${BF_FFTW3}/lib'
 
 #WITH_BF_NSPR = True
