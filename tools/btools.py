@@ -48,6 +48,7 @@ def validate_arguments(args, bc):
 			'BF_WINTAB', 'BF_WINTAB_INC',
 			'WITH_BF_FREETYPE', 'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH',
 			'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
+			'WITH_BF_FFTW3', 'BF_FFTW3', 'BF_FFTW3_INC', 'BF_FFTW3_LIB', 'BF_FFTW3_LIBPATH',
 			'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC',
 			'WITH_BF_PLAYER',
 			'WITH_BF_NOBLENDER',
@@ -291,6 +292,12 @@ def read_opts(cfg, args):
 		('BF_QUICKTIME_INC', 'QuickTime include path', ''),
 		('BF_QUICKTIME_LIB', 'QuickTime library', ''),
 		('BF_QUICKTIME_LIBPATH', 'QuickTime library path', ''),
+		
+		(BoolVariable('WITH_BF_FFTW3', 'Use FFTW3 if true', False)),
+		('BF_FFTW3', 'FFTW3 base path', ''),
+		('BF_FFTW3_INC', 'FFTW3 include path', ''),
+		('BF_FFTW3_LIB', 'FFTW3 library', ''),
+		('BF_FFTW3_LIBPATH', 'FFTW3 library path', ''),
 
 		(BoolVariable('WITH_BF_STATICOPENGL', 'Use MESA if true', True)),
 		('BF_OPENGL', 'OpenGL base path', ''),

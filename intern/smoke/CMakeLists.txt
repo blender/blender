@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC ${PNG_INC} ${ZLIB_INC} intern ../../extern/bullet2/src ../memutil ../guardealloc ${FFTW3_INC})
+SET(INC ${PNG_INC} ${ZLIB_INC} intern ../../extern/bullet2/src ../memutil ../guardealloc)
 
 FILE(GLOB SRC intern/*.cpp)
 
@@ -34,6 +34,7 @@ ENDIF(WITH_OPENMP)
 
 IF(WITH_FFTW3)
   ADD_DEFINITIONS(-DFFTW3=1)
+  SET(INC ${INC} ${FFTW3_INC})
 ENDIF(WITH_FFTW3)
 
 
