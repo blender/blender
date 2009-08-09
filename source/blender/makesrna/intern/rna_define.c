@@ -77,6 +77,20 @@ void rna_remlink(ListBase *listbase, void *vlink)
 	if (listbase->first == link) listbase->first = link->next;
 }
 
+PropertyDefRNA *rna_findlink(ListBase *listbase, const char *identifier)
+{
+	Link *link;
+
+	for(link=listbase->first; link; link=link->next) {
+		PropertyRNA *prop= ((PropertyDefRNA *)link)->prop;
+		if(prop && (strcmp(prop->identifier, identifier)==0)) {
+			return (PropertyDefRNA *)link;
+		}
+	}
+
+	return NULL;
+}
+
 void rna_freelinkN(ListBase *listbase, void *vlink)
 {
 	rna_remlink(listbase, vlink);
@@ -821,6 +835,13 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 		}
 		
 		dcont= rna_find_container_def(cont);
+
+		/* XXX - toto, detect supertype collisions */
+		if(rna_findlink(&dcont->properties, identifier)) {
+			fprintf(stderr, "RNA_def_property: duplicate identifier \"%s\"\n", identifier);
+			DefRNA.error= 1;
+		}
+
 		dprop= MEM_callocN(sizeof(PropertyDefRNA), "PropertyDefRNA");
 		rna_addtail(&dcont->properties, dprop);
 	}
