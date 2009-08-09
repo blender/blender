@@ -22,7 +22,7 @@
 #ifndef FFT_NOISE_H_
 #define FFT_NOISE_H_
 
-#if 0
+#if FFTW3==1
 #include <iostream>
 #include <fftw3.h>
 #include <MERSENNETWISTER.h>

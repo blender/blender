@@ -54,6 +54,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 				sub.active = md.domain_settings.highres
 				sub.itemR(md.domain_settings, "amplify", text="High")
 				col.itemR(md.domain_settings, "highres", text="Use High Resolution")
+				col.itemR(md.domain_settings, "strength")
 				
 				col = split.column()
 				col.itemL(text="Display:")

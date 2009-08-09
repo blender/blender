@@ -59,10 +59,12 @@ FLUID_3D::FLUID_3D(int *res, int amplify, float *p0, float dt) :
 	_maxRes = MAX3(_xRes, _yRes, _zRes);
 	
 	// initialize wavelet turbulence
+	/*
 	if(amplify)
-		_wTurbulence = new WTURBULENCE(_res[0],_res[1],_res[2], amplify);
+		_wTurbulence = new WTURBULENCE(_res[0],_res[1],_res[2], amplify, noisetype);
 	else
 		_wTurbulence = NULL;
+	*/
 	
 	// scale the constants according to the refinement of the grid
 	_dx = 1.0f / (float)_maxRes;
@@ -196,7 +198,7 @@ FLUID_3D::~FLUID_3D()
 	if (_h) delete[] _h;
 	if (_Precond) delete[] _Precond;
 	if (_obstacles) delete[] _obstacles;
-    if (_wTurbulence) delete _wTurbulence;
+    // if (_wTurbulence) delete _wTurbulence;
 
     printf("deleted fluid\n");
 }
@@ -206,10 +208,6 @@ void FLUID_3D::initBlenderRNA(float *alpha, float *beta)
 {
 	_alpha = alpha;
 	_beta = beta;
-	
-	// XXX TODO DEBUG
-	// *_alpha = 0;
-	// *_beta = 0;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -233,12 +231,12 @@ void FLUID_3D::step()
 	// advect everything
 	advectMacCormack();
 
-	if(_wTurbulence) {
-		_wTurbulence->stepTurbulenceFull(_dt/_dx,
-				_xVelocity, _yVelocity, _zVelocity, _obstacles);
+	// if(_wTurbulence) {
+	// 	_wTurbulence->stepTurbulenceFull(_dt/_dx,
+	//			_xVelocity, _yVelocity, _zVelocity, _obstacles);
 		// _wTurbulence->stepTurbulenceReadable(_dt/_dx,
 		//  _xVelocity, _yVelocity, _zVelocity, _obstacles);
-	}
+	// }
 /*
  // no file output
   float *src = _density;
@@ -257,20 +255,7 @@ void FLUID_3D::step()
   IMAGE::dumpPBRT(_totalSteps, pbrtPrefix, _density, _res[0],_res[1],_res[2]);
   */
 	_totalTime += _dt;
-	_totalSteps++;
-
-	// clear obstacles
-	for (int i = 0; i < _totalCells; i++)
-	{
-		if(_obstacles[i])
-		{
-			_xVelocity[i] =
-			_yVelocity[i] =
-			_zVelocity[i] = 0.0f;
-			_pressure[i] = 0.0f;
-		}
-		_obstacles[i] = 0;
-	}
+	_totalSteps++;	
 }
 
 //////////////////////////////////////////////////////////////////////

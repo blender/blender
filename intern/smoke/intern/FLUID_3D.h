@@ -27,7 +27,7 @@
 #include <cmath>
 #include <iostream>
 #include "OBSTACLE.h"
-#include "WTURBULENCE.h"
+// #include "WTURBULENCE.h"
 #include "VEC3.h"
 
 using namespace std;
@@ -115,7 +115,7 @@ class FLUID_3D
 		float _tempAmb; /* ambient temperature */
 
 		// WTURBULENCE object, if active
-		WTURBULENCE* _wTurbulence;
+		// WTURBULENCE* _wTurbulence;
 
 		// boundary setting functions
 		void copyBorderAll(float* field);

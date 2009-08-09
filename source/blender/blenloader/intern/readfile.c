@@ -3659,12 +3659,18 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->domain->smd = smd;
 
 				smd->domain->fluid = NULL;
+				smd->domain->wt = NULL;
 				smd->domain->tvox = NULL;
 				smd->domain->tray = NULL;
 				smd->domain->tvoxbig = NULL;
 				smd->domain->traybig = NULL;
 				smd->domain->bind = NULL;
-				smd->domain->max_textures = 0;
+				smd->domain->max_textures= 0;
+
+				// do_versions trick
+				if(smd->domain->strength < 1.0)
+					smd->domain->strength = 2.0;
+
 				// reset 3dview
 				if(smd->domain->viewsettings < MOD_SMOKE_VIEW_USEBIG)
 					smd->domain->viewsettings = 0;

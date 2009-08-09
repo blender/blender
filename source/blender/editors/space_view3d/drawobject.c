@@ -5367,7 +5367,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			}
 			else
 			{
-				smoke_get_bigres(smd->domain->fluid, res);
+				smoke_turbulence_get_res(smd->domain->wt, res);
 				bigfactor = 1.0 / (smd->domain->amplify + 1);
 			}
 

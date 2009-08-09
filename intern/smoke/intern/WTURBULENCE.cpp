@@ -43,7 +43,7 @@ static const float persistence = 0.56123f;
 //////////////////////////////////////////////////////////////////////
 // constructor
 //////////////////////////////////////////////////////////////////////
-WTURBULENCE::WTURBULENCE(int xResSm, int yResSm, int zResSm, int amplify)
+WTURBULENCE::WTURBULENCE(int xResSm, int yResSm, int zResSm, int amplify, int noisetype)
 {
 	// if noise magnitude is below this threshold, its contribution
 	// is negilgible, so stop evaluating new octaves
@@ -53,10 +53,10 @@ WTURBULENCE::WTURBULENCE(int xResSm, int yResSm, int zResSm, int amplify)
 	_amplify = amplify;
 	
 	// manually adjust the overall amount of turbulence
-	_strength = 2.;
+	// DG - RNA-fied _strength = 2.;
 	
 	// add the corresponding octaves of noise
-	_octaves = (int)log((float)_amplify) / log(2.0f); // XXX DEBUG/ TODO: int casting correct? - dg
+	_octaves = (int)(log((float)_amplify) / log(2.0f) + 0.5); // XXX DEBUG/ TODO: int casting correct? - dg
 	
 	// noise resolution
 	_xResBig = _amplify * xResSm;
@@ -136,8 +136,11 @@ WTURBULENCE::WTURBULENCE(int xResSm, int yResSm, int zResSm, int amplify)
 	
 	// noise tiles
 	_noiseTile = new float[noiseTileSize * noiseTileSize * noiseTileSize];
+	/*
 	std::string noiseTileFilename = std::string("noise.wavelets");
 	generateTile_WAVELET(_noiseTile, noiseTileFilename);
+	*/
+	setNoise(noisetype);
 	/*
 	std::string noiseTileFilename = std::string("noise.fft");
 	generatTile_FFT(_noiseTile, noiseTileFilename);
@@ -182,8 +185,10 @@ void WTURBULENCE::setNoise(int type)
 	if(type == 4) // FFT
 	{
 		// needs fft
-		// std::string noiseTileFilename = std::string("noise.fft");
-		// generatTile_FFT(_noiseTile, noiseTileFilename);
+		#if FFTW3==1
+		std::string noiseTileFilename = std::string("noise.fft");
+		generatTile_FFT(_noiseTile, noiseTileFilename);
+		#endif
 	}
 	else if(type == 8) // curl
 	{
@@ -194,6 +199,12 @@ void WTURBULENCE::setNoise(int type)
 		std::string noiseTileFilename = std::string("noise.wavelets");
 		generateTile_WAVELET(_noiseTile, noiseTileFilename);
 	}
+}
+
+// init direct access functions from blender
+void WTURBULENCE::initBlenderRNA(float *strength)
+{
+	_strength = strength;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -642,7 +653,7 @@ void WTURBULENCE::stepTurbulenceReadable(float dtOrg, float* xvel, float* yvel, 
 
         // base amplitude for octave 0
         float coefficient = sqrtf(2.0f * fabs(energy));
-        const float amplitude = _strength * fabs(0.5 * coefficient) * persistence;
+        const float amplitude = *_strength * fabs(0.5 * coefficient) * persistence;
 
         // add noise to velocity, but only if the turbulence is
         // sufficiently undeformed, and the energy is large enough
@@ -854,7 +865,7 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
 
       // base amplitude for octave 0
       float coefficient = sqrtf(2.0f * fabs(energy));
-      const float amplitude = _strength * fabs(0.5 * coefficient) * persistence;
+      const float amplitude = *_strength * fabs(0.5 * coefficient) * persistence;
 
       // add noise to velocity, but only if the turbulence is
       // sufficiently undeformed, and the energy is large enough
@@ -925,7 +936,7 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
   maxVelMag = sqrt(maxVelMag) * dt;
   int totalSubsteps = (int)(maxVelMag / (float)maxVel);
   totalSubsteps = (totalSubsteps < 1) ? 1 : totalSubsteps;
-  
+  // printf("totalSubsteps: %d\n", totalSubsteps);
   totalSubsteps = (totalSubsteps > maxSubSteps) ? maxSubSteps : totalSubsteps;
   const float dtSubdiv = dt / (float)totalSubsteps;
 

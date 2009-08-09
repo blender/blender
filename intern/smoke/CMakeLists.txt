@@ -24,14 +24,17 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC ${PNG_INC} ${ZLIB_INC} intern ../../extern/bullet2/src ../memutil ../guardealloc)
-# ${FFTW3_INC}
+SET(INC ${PNG_INC} ${ZLIB_INC} intern ../../extern/bullet2/src ../memutil ../guardealloc ${FFTW3_INC})
 
 FILE(GLOB SRC intern/*.cpp)
 
 IF(WITH_OPENMP)
     ADD_DEFINITIONS(-DPARALLEL=1)
 ENDIF(WITH_OPENMP)
+
+IF(WITH_FFTW3)
+  ADD_DEFINITIONS(-DFFTW3=1)
+ENDIF(WITH_FFTW3)
 
 
 BLENDERLIB(bf_smoke "${SRC}" "${INC}")

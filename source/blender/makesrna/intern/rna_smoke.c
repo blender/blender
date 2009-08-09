@@ -118,7 +118,9 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_noise_type_items[] = {
 				{MOD_SMOKE_NOISEWAVE, "NOISEWAVE", 0, "Wavelet", ""},
-			/*  {MOD_SMOKE_NOISEFFT, "NOISEFFT", 0, "FFT", ""}, */
+#if FFTW3 == 1
+				{MOD_SMOKE_NOISEFFT, "NOISEFFT", 0, "FFT", ""}, 
+#endif
 			/* 	{MOD_SMOKE_NOISECURL, "NOISECURL", 0, "Curl", ""}, */
 				{0, NULL, 0, NULL, NULL}};
 
@@ -205,6 +207,13 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Effector Group", "Limit effectors to this group.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset_dependancy");
+
+	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "strength");
+	RNA_def_property_range(prop, -5.0, 5.0);
+	RNA_def_property_ui_range(prop, 1.0, 10.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Strength", "Strength of wavelet noise");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 }
 
 static void rna_def_smoke_flow_settings(BlenderRNA *brna)

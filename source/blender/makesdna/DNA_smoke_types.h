@@ -77,7 +77,8 @@ typedef struct SmokeDomainSettings {
 	short noise; /* noise type: wave, curl, anisotropic */
 	short pad2;
 	int pad;
-	int pad3;
+	float strength;
+	struct WTURBULENCE *wt; // WTURBULENCE object, if active
 } SmokeDomainSettings;
 
 
