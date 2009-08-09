@@ -50,6 +50,18 @@
 /* incase a python script triggers another python call, stop bpy_context_clear from invalidating */
 static int py_call_level= 0;
 
+
+// only for tests
+#define TIME_PY_RUN
+
+#ifdef TIME_PY_RUN
+#include "PIL_time.h"
+static int		bpy_timer_count = 0;
+static double	bpy_timer; /* time since python starts */
+static double	bpy_timer_run; /* time for each python script run */
+static double	bpy_timer_run_tot; /* accumulate python runs */
+#endif
+
 void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 {
 	py_call_level++;
@@ -68,6 +80,18 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 		else {
 			fprintf(stderr, "ERROR: Python context called with a NULL Context. this should not happen!\n");
 		}
+
+#ifdef TIME_PY_RUN
+		if(bpy_timer_count==0) {
+			/* record time from the beginning */
+			bpy_timer= PIL_check_seconds_timer();
+			bpy_timer_run = bpy_timer_run_tot = 0.0;
+		}
+		bpy_timer_run= PIL_check_seconds_timer();
+
+
+		bpy_timer_count++;
+#endif
 	}
 }
 
@@ -85,6 +109,12 @@ void bpy_context_clear(bContext *C, PyGILState_STATE *gilstate)
 		// XXX - Calling classes currently wont store the context :\, cant set NULL because of this. but this is very flakey still.
 		//BPy_SetContext(NULL);
 		//bpy_import_main_set(NULL);
+
+#ifdef TIME_PY_RUN
+		bpy_timer_run_tot += PIL_check_seconds_timer() - bpy_timer_run;
+		bpy_timer_count++;
+#endif
+
 	}
 }
 
@@ -259,7 +289,23 @@ void BPY_end_python( void )
 	
 	Py_Finalize(  );
 	
-	return;
+#ifdef TIME_PY_RUN
+	// measure time since py started
+	bpy_timer = PIL_check_seconds_timer() - bpy_timer;
+
+	printf("*bpy stats* - ");
+	printf("tot exec: %d,  ", bpy_timer_count);
+	printf("tot run: %.4fsec,  ", bpy_timer_run_tot);
+	if(bpy_timer_count>0)
+		printf("average run: %.6fsec,  ", (bpy_timer_run_tot/bpy_timer_count));
+
+	if(bpy_timer>0.0)
+		printf("tot usage %.4f%%", (bpy_timer_run_tot/bpy_timer)*100.0);
+
+	printf("\n");
+
+#endif
+
 }
 
 /* Can run a file or text block */
@@ -570,6 +616,9 @@ void BPY_run_ui_scripts(bContext *C, int reload)
 #ifdef TIME_REGISTRATION
 	printf("script time %f\n", (PIL_check_seconds_timer()-time));
 #endif
+
+	/* reset the timer so as not to take loading into the stats */
+	bpy_timer_count = 0;
 }
 
 /* ****************************************** */

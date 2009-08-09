@@ -296,7 +296,7 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 			PyObject *py_func_ptr, *py_kw, *py_srna_cobject, *py_ret;
 			item = PyList_GET_ITEM(props, i);
 			
-			if (PyArg_ParseTuple(item, "O!O!", &PyCObject_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
+			if (PyArg_ParseTuple(item, "O!O!:PYTHON_OT_wrapper", &PyCObject_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
 				
 				PyObject *(*pyfunc)(PyObject *, PyObject *, PyObject *);
 				pyfunc = PyCObject_AsVoidPtr(py_func_ptr);
@@ -306,6 +306,8 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 				if (py_ret) {
 					Py_DECREF(py_ret);
 				} else {
+					fprintf(stderr, "BPy Operator \"%s\" registration error: %s item %d could not run\n", ot->idname, PYOP_ATTR_PROP, i);
+					PyLineSpit();
 					PyErr_Print();
 					PyErr_Clear();
 				}

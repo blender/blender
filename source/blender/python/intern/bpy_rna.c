@@ -2642,7 +2642,7 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 	
-	if(PyCObject_Check(self) || PyType_Check(self) == 0) {
+	if(((self && (PyCObject_Check(self))) || (self && BPy_StructRNA_Check(self))) == 0) {
 		PyObject *ret = PyTuple_New(2);
 		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_FloatProperty, NULL));
 		PyTuple_SET_ITEM(ret, 1, kw);
@@ -2675,7 +2675,7 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 	
-	if(PyCObject_Check(self) || PyType_Check(self) == 0) {
+	if(((self && (PyCObject_Check(self))) || (self && BPy_StructRNA_Check(self))) == 0) {
 		PyObject *ret = PyTuple_New(2);
 		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_IntProperty, NULL));
 		PyTuple_SET_ITEM(ret, 1, kw);
@@ -2708,7 +2708,7 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 
-	if(PyCObject_Check(self) || PyType_Check(self) == 0) {
+	if(((self && (PyCObject_Check(self))) || (self && BPy_StructRNA_Check(self))) == 0) {
 		PyObject *ret = PyTuple_New(2);
 		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_BoolProperty, NULL));
 		PyTuple_SET_ITEM(ret, 1, kw);
@@ -2741,9 +2741,9 @@ PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 
-	if(PyCObject_Check(self) || PyType_Check(self) == 0) {
+	if(((self && (PyCObject_Check(self))) || (self && BPy_StructRNA_Check(self))) == 0) {
 		PyObject *ret = PyTuple_New(2);
-		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_BoolProperty, NULL));
+		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_StringProperty, NULL));
 		PyTuple_SET_ITEM(ret, 1, kw);
 		Py_INCREF(kw);
 		return ret;
