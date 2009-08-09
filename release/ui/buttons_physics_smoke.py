@@ -38,7 +38,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 			split.itemL()
 
 		if md:
-			layout.itemR(md, "smoke_type")
+			layout.itemR(md, "smoke_type", expand=True)
 		
 			if md.smoke_type == 'TYPE_DOMAIN':
 				split = layout.split()
@@ -54,7 +54,6 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 				sub.active = md.domain_settings.highres
 				sub.itemR(md.domain_settings, "amplify", text="High")
 				col.itemR(md.domain_settings, "highres", text="Use High Resolution")
-				col.itemR(md.domain_settings, "strength")
 				
 				col = split.column()
 				col.itemL(text="Display:")
@@ -66,6 +65,11 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 				
 				layout.itemL(text="Noise Type:")
 				layout.itemR(md.domain_settings, "noise_type", expand=True)
+				
+				split = layout.split()
+				col = split.column()
+				col.itemR(md.domain_settings, "strength")
+				sub = split.column()
 				
 				split = layout.split()
 				
