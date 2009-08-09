@@ -36,6 +36,8 @@ include nan_compile.mk
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
 CPPFLAGS += -I../ffmpeg
+CPPFLAGS += -I../FX
 CPPFLAGS += -I../SDL
+CPPFLAGS += -I../SRC
 CPPFLAGS += -I..
 CPPFLAGS += -I.
