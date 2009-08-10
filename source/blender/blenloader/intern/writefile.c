@@ -771,9 +771,6 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 		case ACT_SOUND:
 			writestruct(wd, DATA, "bSoundActuator", 1, act->data);
 			break;
-		case ACT_CD:
-			writestruct(wd, DATA, "bCDActuator", 1, act->data);
-			break;
 		case ACT_OBJECT:
 			writestruct(wd, DATA, "bObjectActuator", 1, act->data);
 			break;

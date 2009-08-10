@@ -56,7 +56,6 @@ CPPFLAGS += -I../../../../gameengine/Rasterizer
 CPPFLAGS += -I../../../../gameengine/Rasterizer/RAS_OpenGLRasterizer
 CPPFLAGS += -I../../../../gameengine/SceneGraph
 
-CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include
 CPPFLAGS += -I$(NAN_MOTO)/include
 
 # Blender stuff

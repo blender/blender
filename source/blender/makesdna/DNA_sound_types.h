@@ -37,32 +37,9 @@
 /* stupid... could easily be solved */
 #include "DNA_view2d_types.h"
 
-/* extern int noaudio; * defined in sound.c . also not very nice */
-/*  extern ListBase *samples; don't do this in DNA, but in BKE_... instead */
-
-struct bSample;
 struct Ipo;
 struct PackedFile;
 struct SpaceLink;
-
-/* should not be here! */
-#
-#
-typedef struct bSample {
-	ID id;
-	void *data;
-	void *snd_sample;
-	short type, bits;
-	short channels;
-	int len, rate;
-//	int buffer;
-	int alindex;
-	char fakedata[16];
-	int flags;
-	char name[160];
-	struct PackedFile * packedfile;
-	short us;
-} bSample;
 
 // runtime only - no saving
 typedef struct SoundHandle {
@@ -94,7 +71,6 @@ typedef struct Sound3D
 typedef struct bSound {
 	ID id;
 	char name[160];
-	struct bSample *sample; // AUD_XXX deprecated
 	void *stream; // AUD_XXX deprecated
 	struct PackedFile *packedfile;
 	struct PackedFile *newpackedfile; // AUD_XXX deprecated
@@ -146,27 +122,6 @@ typedef enum eSound_Type {
 	SOUND_TYPE_LIMITER
 } eSound_Type;
 
-typedef struct bSoundListener {
-	ID id;
-	/**
-	 * Overall gain
-	 */
-	float gain;
-	/**
-	 * Sets a scaling to exaggerate or deemphasize the Doppler (pitch) shift
-	 * resulting from the calculation.
-	 */
-	float dopplerfactor;
-	/**
-	 * Sets the value of the propagation speed relative to which the source
-	 * velocities are interpreted.
-	 */
-	float dopplervelocity;
-	short numsoundsblender;
-	short numsoundsgameengine;
-	
-} bSoundListener;
-
 /* spacesound->flag */
 #define SND_DRAWFRAMES	1
 #define SND_CFRA_NUM	2
@@ -188,20 +143,6 @@ typedef struct SpaceSound {
 } SpaceSound;
 
 
-enum SAMPLE_FileTypes {
-	SAMPLE_INVALID = -1,		// must be negative
-	SAMPLE_UNKNOWN = 0,
-	SAMPLE_RAW,
-	SAMPLE_WAV,
-	SAMPLE_MP2,
-	SAMPLE_MP3,
-	SAMPLE_OGG_VORBIS,
-	SAMPLE_WMA,
-	SAMPLE_ASF,
-	SAMPLE_AIFF
-};
-
-
 #define SOUND_CHANNELS_STEREO	0
 #define SOUND_CHANNELS_LEFT		1
 #define SOUND_CHANNELS_RIGHT	2
@@ -213,8 +154,6 @@ enum SAMPLE_FileTypes {
 #define SOUND_FLAGS_BIDIRECTIONAL_LOOP	(1 << 4)
 #define SOUND_FLAGS_PRIORITY			(1 << 5)
 #define SOUND_FLAGS_SEQUENCE			(1 << 6)
-
-#define SAMPLE_NEEDS_SAVE		(1 << 0)
 
 /* to DNA_sound_types.h*/
 

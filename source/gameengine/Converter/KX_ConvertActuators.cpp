@@ -50,7 +50,6 @@
 #include "KX_SceneActuator.h"
 #include "KX_IpoActuator.h"
 #include "KX_SoundActuator.h"
-#include "KX_CDActuator.h"
 #include "KX_ObjectActuator.h"
 #include "KX_TrackToActuator.h"
 #include "KX_ConstraintActuator.h"
@@ -409,44 +408,6 @@ void BL_ConvertActuators(char* maggiename,
 
 					tmpsoundact->SetName(bact->name);
 					baseact = tmpsoundact;
-				}
-				break;
-			}
-		case ACT_CD:
-			{
-				bCDActuator* cdact = (bCDActuator*) bact->data;
-				/* get type, and possibly a start and end frame */
-				short startFrame = cdact->sta, stopFrame = cdact->end;
-				KX_CDActuator::KX_CDACT_TYPE 
-					cdActuatorType = KX_CDActuator::KX_CDACT_NODEF;
-				
-				switch(cdact->type)
-				{
-				case ACT_CD_PLAY_ALL:
-					cdActuatorType = KX_CDActuator::KX_CDACT_PLAY_ALL;
-					break;
-				case ACT_CD_PLAY_TRACK:
-					cdActuatorType = KX_CDActuator::KX_CDACT_PLAY_TRACK;
-					break;
-				case ACT_CD_LOOP_TRACK:
-					cdActuatorType = KX_CDActuator::KX_CDACT_LOOP_TRACK;
-					break;
-				case ACT_CD_VOLUME:
-					cdActuatorType = KX_CDActuator::KX_CDACT_VOLUME;
-					break;
-				case ACT_CD_STOP:
-					cdActuatorType = KX_CDActuator::KX_CDACT_STOP;
-					break;
-				case ACT_CD_PAUSE:
-					cdActuatorType = KX_CDActuator::KX_CDACT_PAUSE;
-					break;
-				case ACT_CD_RESUME:
-					cdActuatorType = KX_CDActuator::KX_CDACT_RESUME;
-					break;
-					
-				default:
-					/* This is an error!!! */
-					cdActuatorType = KX_CDActuator::KX_CDACT_NODEF;
 				}
 				break;
 			}

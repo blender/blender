@@ -33,11 +33,6 @@ SET(INC
   ../../../intern/guardedalloc
   ../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
   ../../../intern/audaspace
-  ../../../intern/SoundSystem
-  ../../../intern/SoundSystem/include
-  ../../../intern/SoundSystem/openal
-  ../../../intern/SoundSystem/dummy
-  ../../../intern/SoundSystem/intern
   ../../../source/gameengine/Converter
   ../../../source/gameengine/BlenderRoutines
   ../../../source/blender/imbuf

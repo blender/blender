@@ -38,7 +38,6 @@
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_sound_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -92,16 +91,6 @@
 
 #include "BKE_sound.h"
 
-/* XXX */
-static void sound_init_listener(void)
-{
-	G.listener = MEM_callocN(sizeof(bSoundListener), "soundlistener");
-	G.listener->gain = 1.0;
-	G.listener->dopplerfactor = 1.0;
-	G.listener->dopplervelocity = 340.29f;
-}
-
-
 static void wm_init_reports(bContext *C)
 {
 	BKE_reports_init(CTX_wm_reports(C), RPT_STORE);
@@ -145,7 +134,6 @@ void WM_init(bContext *C)
 	
 	//	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	
-	sound_init_listener();
 //	init_node_butfuncs();
 	
 	ED_preview_init_dbase();
@@ -220,10 +208,6 @@ void WM_exit(bContext *C)
 	
 	BKE_freecubetable();
 	
-//	if (G.background == 0)
-//		sound_end_all_sounds();
-	
-	
 	/* before free_blender so py's gc happens while library still exists */
 	/* needed at least for a rare sigsegv that can happen in pydrivers */
 #ifndef DISABLE_PYTHON
@@ -248,10 +232,6 @@ void WM_exit(bContext *C)
 	RE_engines_exit();
 	
 //	free_txt_data();
-	
-//	sound_exit_audio();
-	if(G.listener) MEM_freeN(G.listener);
-	
 	
 	libtiff_exit();
 	

@@ -708,8 +708,6 @@ static char *actuator_name(int type)
 		return "Material";
 	case ACT_SOUND:
 		return "Sound";
-	case ACT_CD:
-		return "CD";
 	case ACT_PROPERTY:
 		return "Property";
 	case ACT_EDIT_OBJECT:
@@ -748,21 +746,21 @@ static char *actuator_pup(Object *owner)
 	case OB_ARMATURE:
 		return "Actuators  %t|Action %x15|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
-			"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
+                        "|Scene %x11|Random %x13|Message %x14|Game %x17"
 			"|Visibility %x18|2D Filter %x19|Parent %x20|State %x22";
 		break;
 
 	case OB_MESH:
 		return "Actuators  %t|Shape Action %x21|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
-			"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
+                        "|Scene %x11|Random %x13|Message %x14|Game %x17"
 			"|Visibility %x18|2D Filter %x19|Parent %x20|State %x22";
 		break;
 
 	default:
 		return "Actuators  %t|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
-			"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
+                        "|Scene %x11|Random %x13|Message %x14|Game %x17"
 			"|Visibility %x18|2D Filter %x19|Parent %x20|State %x22";
 	}
 }
@@ -1581,7 +1579,6 @@ static int get_col_actuator(int type)
 	case ACT_IPO:			return TH_PANEL;
 	case ACT_PROPERTY:		return TH_PANEL;
 	case ACT_SOUND:			return TH_PANEL;
-	case ACT_CD:			return TH_PANEL;
 	case ACT_CAMERA: 		return TH_PANEL;
 	case ACT_EDIT_OBJECT: 		return TH_PANEL;
 	case ACT_GROUP:			return TH_PANEL;
@@ -1674,7 +1671,6 @@ static void check_state_mask(bContext *C, void *arg1_but, void *arg2_mask)
 static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, short xco, short yco, short width)
 {
 	bSoundActuator      *sa      = NULL;
-	bCDActuator			*cda	 = NULL;
 	bObjectActuator     *oa      = NULL;
 	bIpoActuator        *ia      = NULL;
 	bPropertyActuator   *pa      = NULL;
@@ -2023,41 +2019,6 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 					
 			yco-= ysize;
 			
-			break;
-		}
-	case ACT_CD:
-		{
-			char cd_type_str[] = "Sound mode %t|Play all tracks %x0|Play one track %x1|"
-				"Volume %x3|Stop %x4|Pause %x5|Resume %x6";
-			cda = act->data;
-
-			if (cda) {
-				if (cda->track == 0) {
-					cda->track = 1;
-					cda->volume = 1;
-					cda->type = ACT_CD_PLAY_ALL;
-				}
-				
-				if (cda->type == ACT_CD_PLAY_TRACK || cda->type == ACT_CD_LOOP_TRACK) {
-					ysize = 48;
-					glRects(xco, yco-ysize, xco+width, yco);
-					uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
-					uiDefButS(block, NUM, 0, "Track:", xco+10,yco-44,width-20, 19, &cda->track, 1, 99, 0, 0, "Select the track to be played");
-				}
-				else if (cda->type == ACT_CD_VOLUME) {
-					ysize = 48;
-					glRects(xco, yco-ysize, xco+width, yco);
-					uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
-					uiDefButF(block, NUM, 0, "Volume:", xco+10,yco-44,width-20, 19, &cda->volume, 0, 1, 0, 0, "Set the volume for CD playback");
-				}
-				else {
-					ysize = 28;
-					glRects(xco, yco-ysize, xco+width, yco);
-					uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
-				}
-				uiDefButS(block, MENU, B_REDR, cd_type_str,xco+10,yco-22,width-20, 19, &cda->type, 0.0, 0.0, 0, 0, "");
-			}
-			yco-= ysize;
 			break;
 		}
 	case ACT_CAMERA:

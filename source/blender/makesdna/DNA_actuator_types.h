@@ -72,13 +72,6 @@ typedef struct bSoundActuator {
 	short copymade, pad2[1];
 } bSoundActuator;
 
-typedef struct bCDActuator {
-	short flag, sndnr;
-	int sta, end;
-	short type, track;
-	float volume;
-} bCDActuator;
-
 typedef struct bEditObjectActuator {
 	int time;
 	short type, flag;
@@ -296,7 +289,6 @@ typedef struct FreeCamera {
 #define ACT_RANDOM      13
 #define ACT_MESSAGE     14
 #define ACT_ACTION		15	/* __ NLA */
-#define ACT_CD			16
 #define ACT_GAME		17
 #define ACT_VISIBILITY          18
 #define ACT_2DFILTER	19
@@ -451,15 +443,6 @@ typedef struct FreeCamera {
 /* messageactuator->type */
 #define ACT_MESG_MESG		0
 #define ACT_MESG_PROP		1
-
-/* cdactuator->type */
-#define ACT_CD_PLAY_ALL		0
-#define ACT_CD_PLAY_TRACK	1
-#define ACT_CD_LOOP_TRACK	2
-#define ACT_CD_VOLUME		3
-#define ACT_CD_STOP			4
-#define ACT_CD_PAUSE		5
-#define ACT_CD_RESUME		6
 
 /* gameactuator->type */
 #define ACT_GAME_LOAD		0

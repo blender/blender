@@ -31,10 +31,7 @@
  */
 
 #include "KX_SoundActuator.h"
-#include "SND_SoundObject.h"
 #include "KX_GameObject.h"
-#include "SND_SoundObject.h"
-#include "SND_Scene.h" // needed for replication
 #include "KX_PyMath.h" // needed for PyObjectFrom()
 #include <iostream>
 

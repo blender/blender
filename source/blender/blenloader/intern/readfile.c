@@ -3467,9 +3467,6 @@ static void lib_link_object(FileData *fd, Main *main)
 					bSoundActuator *sa= act->data;
 					sa->sound= newlibadr_us(fd, ob->id.lib, sa->sound);
 				}
-				else if(act->type==ACT_CD) {
-					/* bCDActuator *cda= act->data; */
-				}
 				else if(act->type==ACT_GAME) {
 					/* bGameActuator *ga= act->data; */
 				}
@@ -5030,7 +5027,6 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 
 static void direct_link_sound(FileData *fd, bSound *sound)
 {
-	sound->sample = NULL;
 	sound->snd_sound = NULL;
 
 	sound->packedfile = direct_link_packedfile(fd, sound->packedfile);

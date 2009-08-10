@@ -43,7 +43,6 @@ SET(INC
   ../../../../intern/ghost
   ../../../../intern/guardedalloc
   ../../../../intern/moto/include
-  ../../../../intern/SoundSystem
   ../../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
   ../../../../source/kernel/gen_system
   ../../../../source/kernel/gen_messaging

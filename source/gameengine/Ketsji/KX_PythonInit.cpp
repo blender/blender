@@ -79,7 +79,6 @@ extern "C" {
 #include "ListValue.h"
 #include "InputParser.h"
 #include "KX_Scene.h"
-#include "SND_DeviceManager.h"
 
 #include "NG_NetworkScene.h" //Needed for sendMessage()
 
@@ -212,69 +211,21 @@ static bool usedsp = false;
 // this gets a pointer to an array filled with floats
 static PyObject* gPyGetSpectrum(PyObject*)
 {
-	SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
-
 	PyObject* resultlist = PyList_New(512);
 
-	if (audiodevice)
-	{
-		if (!usedsp)
-		{
-			audiodevice->StartUsingDSP();
-			usedsp = true;
-		}
-			
-		float* spectrum = audiodevice->GetSpectrum();
-
-		for (int index = 0; index < 512; index++)
-		{
-			PyList_SET_ITEM(resultlist, index, PyFloat_FromDouble(spectrum[index]));
-		}
-	}
-	else {
-		for (int index = 0; index < 512; index++)
-		{
-			PyList_SET_ITEM(resultlist, index, PyFloat_FromDouble(0.0));
-		}
-	}
+        for (int index = 0; index < 512; index++)
+        {
+                PyList_SET_ITEM(resultlist, index, PyFloat_FromDouble(0.0));
+        }
 
 	return resultlist;
 }
 
 
-#if 0 // unused
-static PyObject* gPyStartDSP(PyObject*, PyObject* args)
-{
-	SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
-
-	if (!audiodevice) {
-		PyErr_SetString(PyExc_RuntimeError, "no audio device available");
-		return NULL;
-	}
-	
-	if (!usedsp) {
-		audiodevice->StartUsingDSP();
-		usedsp = true;
-	}
-	
-	Py_RETURN_NONE;
-}
-#endif
-
-
 static PyObject* gPyStopDSP(PyObject*, PyObject* args)
 {
-	SND_IAudioDevice* audiodevice = SND_DeviceManager::Instance();
-
-	if (!audiodevice) {
-		PyErr_SetString(PyExc_RuntimeError, "no audio device available");
-		return NULL;
-	}
-	
-	if (usedsp) {
-		audiodevice->StopUsingDSP();
-		usedsp = true;
-	}
+        PyErr_SetString(PyExc_RuntimeError, "no audio device available");
+        return NULL;
 	
 	Py_RETURN_NONE;
 }

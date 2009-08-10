@@ -26,6 +26,8 @@
 #include "AUD_SDLMixerReader.h"
 #include "AUD_Buffer.h"
 
+#include <cstring>
+
 inline Uint16 AUD_TO_SDL(AUD_SampleFormat format)
 {
 	// SDL only supports 8 and 16 bit audio

@@ -12,7 +12,7 @@ Documentation for the GameTypes Module.
 
 @group Sensors: SCA_ActuatorSensor, SCA_AlwaysSensor, SCA_DelaySensor, SCA_JoystickSensor, SCA_KeyboardSensor, KX_MouseFocusSensor, SCA_MouseSensor, KX_NearSensor, KX_NetworkMessageSensor, SCA_PropertySensor, KX_RadarSensor, SCA_RandomSensor, KX_RaySensor, KX_TouchSensor
 
-@group Actuators: SCA_2DFilterActuator, BL_ActionActuator, KX_SCA_AddObjectActuator, KX_CameraActuator, KX_CDActuator, KX_ConstraintActuator, KX_SCA_DynamicActuator, KX_SCA_EndObjectActuator, KX_GameActuator, KX_IpoActuator, KX_NetworkMessageActuator, KX_ObjectActuator, KX_ParentActuator, SCA_PropertyActuator, SCA_RandomActuator, KX_SCA_ReplaceMeshActuator, KX_SceneActuator, BL_ShapeActionActuator, KX_SoundActuator, KX_StateActuator, KX_TrackToActuator, KX_VisibilityActuator
+@group Actuators: SCA_2DFilterActuator, BL_ActionActuator, KX_SCA_AddObjectActuator, KX_CameraActuator, KX_ConstraintActuator, KX_SCA_DynamicActuator, KX_SCA_EndObjectActuator, KX_GameActuator, KX_IpoActuator, KX_NetworkMessageActuator, KX_ObjectActuator, KX_ParentActuator, SCA_PropertyActuator, SCA_RandomActuator, KX_SCA_ReplaceMeshActuator, KX_SceneActuator, BL_ShapeActionActuator, KX_SoundActuator, KX_StateActuator, KX_TrackToActuator, KX_VisibilityActuator
 
 @group Controllers: SCA_ANDController, SCA_NANDController, SCA_NORController, SCA_ORController, SCA_PythonController, SCA_XNORController, SCA_XORController
 """
@@ -1105,59 +1105,6 @@ class KX_BlenderMaterial(PyObjectPlus): # , RAS_IPolyMaterial)
 		@rtype: integer
 		@return: the material's index
 		"""
-
-class KX_CDActuator(SCA_IActuator):
-	"""
-	CD Controller actuator.
-	@ivar volume: controls the volume to set the CD to. 0.0 = silent, 1.0 = max volume.
-	@type volume: float
-	@ivar track: the track selected to be played
-	@type track: integer
-	@ivar gain: the gain (volume) of the CD between 0.0 and 1.0.
-	@type gain: float
-	"""
-	def startCD():
-		"""
-		Starts the CD playing.
-		"""
-	def stopCD():
-		"""
-		Stops the CD playing.
-		"""
-	def pauseCD():
-		"""
-		Pauses the CD.
-		"""
-	def resumeCD():
-		"""
-		Resumes the CD after a pause.
-		"""
-	def playAll():
-		"""
-		Plays the CD from the beginning.
-		"""
-	def playTrack(trackNumber):
-		"""
-		Plays the track selected.
-		"""
-#{ Deprecated
-	def setGain(gain):
-		"""
-		Sets the gain (volume) of the CD.
-		
-		@deprecated: Use the L{volume} property.
-		@type gain: float
-		@param gain: the gain to set the CD to. 0.0 = silent, 1.0 = max volume.
-		"""
-	def getGain():
-		"""
-		Gets the current gain (volume) of the CD.
-		
-		@deprecated: Use the L{volume} property.
-		@rtype: float
-		@return: Between 0.0 (silent) and 1.0 (max volume)
-		"""
-#}
 
 class KX_CameraActuator(SCA_IActuator):
 	"""

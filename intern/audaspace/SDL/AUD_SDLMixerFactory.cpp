@@ -26,6 +26,8 @@
 #include "AUD_SDLMixerFactory.h"
 #include "AUD_SDLMixerReader.h"
 
+#include <cstring>
+
 AUD_SDLMixerFactory::AUD_SDLMixerFactory(AUD_IReader* reader, AUD_Specs specs) :
 		AUD_MixerFactory(reader, specs) {}
 

@@ -38,7 +38,6 @@ CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_MOTO)/include
-CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include
 CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 # because of kernel dependency on makesdna

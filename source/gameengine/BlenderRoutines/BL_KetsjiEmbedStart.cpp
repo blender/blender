@@ -61,7 +61,6 @@
 #include "RAS_ListRasterizer.h"
 
 #include "NG_LoopBackNetworkDeviceInterface.h"
-#include "SND_DeviceManager.h"
 
 #include "SYS_System.h"
 
@@ -545,8 +544,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int alw
 		{
 			delete canvas;
 			canvas = NULL;
-		}
-		SND_DeviceManager::Unsubscribe();
+                }
 	
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
 	
@@ -769,8 +767,7 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 		{
 			delete rendertools;
 			rendertools = NULL;
-		}
-		SND_DeviceManager::Unsubscribe();
+                }
 
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
 

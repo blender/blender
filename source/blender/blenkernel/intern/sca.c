@@ -434,9 +434,6 @@ void init_actuator(bActuator *act)
 		sa->sound3D.cone_outer_angle = 360.0f;
 		sa->sound3D.max_distance = FLT_MAX;
 		break;
-	case ACT_CD:
-		act->data= MEM_callocN(sizeof(bCDActuator), "cdact");
-		break;
 	case ACT_OBJECT:
 		act->data= MEM_callocN(sizeof(bObjectActuator), "objectact");
 		oa= act->data;
