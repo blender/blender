@@ -295,7 +295,8 @@ ifndef CONFIG_GUESS
     export NAN_PYTHON ?= /usr
     export NAN_PYTHON_VERSION ?= 3.1
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-    export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+    # Next line if for static python, nan_link.mk uses -lpython$(NAN_PYTHON_VERSION)
+    #export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= /usr
     export NAN_JPEG ?= /usr
     export NAN_PNG ?= /usr
