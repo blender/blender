@@ -34,7 +34,7 @@ SET(INC
   ../../../extern/bullet2/src
   ../nodes ../../../extern/glew/include ../gpu ../makesrna ../../../intern/smoke/extern
   ../../../intern/bsp/extern
-  ../../../intern/audaspace
+  ../../../intern/audaspace/intern
   ${ZLIB_INC}
 )
 

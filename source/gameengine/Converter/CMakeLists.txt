@@ -32,7 +32,7 @@ SET(INC
   ../../../intern/string
   ../../../intern/guardedalloc
   ../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
-  ../../../intern/audaspace
+  ../../../intern/audaspace/intern
   ../../../source/gameengine/Converter
   ../../../source/gameengine/BlenderRoutines
   ../../../source/blender/imbuf

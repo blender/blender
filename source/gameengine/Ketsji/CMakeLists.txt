@@ -55,7 +55,7 @@ SET(INC
   ../../../source/gameengine/Physics/Sumo
   ../../../source/gameengine/Physics/Sumo/Fuzzics/include 
   ../../../source/gameengine/Network/LoopBackNetwork
-  ../../../intern/audaspace
+  ../../../intern/audaspace/intern
   ../../../source/blender/misc 
   ../../../source/blender/blenloader
   ../../../source/blender/gpu
