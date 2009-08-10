@@ -21,7 +21,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "FLUID_3D.h"
-
+#include <cstring>
 #define SOLVER_ACCURACY 1e-06
 
 void FLUID_3D::solvePressurePre(float* field, float* b, unsigned char* skip)

@@ -808,7 +808,7 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 int BPY_button_eval(bContext *C, char *expr, double *value)
 {
 	PyGILState_STATE gilstate;
-	PyObject *dict, *retval, *expr_conv;
+	PyObject *dict, *retval, *expr_conv= NULL;
 	int error_ret = 0;
 	
 	if (!value || !expr || expr[0]=='\0') return -1;
