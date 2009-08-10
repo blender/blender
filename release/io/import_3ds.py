@@ -125,26 +125,29 @@ Loader is based on 3ds loader from www.gametutorials.com (Thanks DigiBen).
 
 # Importing modules
 
-import Blender
+from struct import calcsize, unpack
+
 import bpy
-from Blender import Mesh, Object, Material, Image, Texture, Lamp, Mathutils
-from Blender.Mathutils import Vector
-import BPyImage
 
-import BPyMessages
+# import Blender
+# from Blender import Mesh, Object, Material, Image, Texture, Lamp, Mathutils
+# from Blender.Mathutils import Vector
+# import BPyImage
 
-try:
-	from struct import calcsize, unpack
-except:
-	calcsize= unpack= None
+# import BPyMessages
+
+# try:
+# 	from struct import calcsize, unpack
+# except:
+# 	calcsize= unpack= None
 
 
 
-# If python version is less than 2.4, try to get set stuff from module
-try:
-	set
-except:
-	from sets import Set as set
+# # If python version is less than 2.4, try to get set stuff from module
+# try:
+# 	set
+# except:
+# 	from sets import Set as set
 
 BOUNDS_3DS= []
 
@@ -167,12 +170,12 @@ def createBlenderTexture(material, name, image):
 
 #Some of the chunks that we will see
 #----- Primary Chunk, at the beginning of each file
-PRIMARY= long('0x4D4D',16)
+PRIMARY= int('0x4D4D',16)
 
 #------ Main Chunks
-OBJECTINFO   =      long('0x3D3D',16);      #This gives the version of the mesh and is found right before the material and object information
-VERSION      =      long('0x0002',16);      #This gives the version of the .3ds file
-EDITKEYFRAME=      long('0xB000',16);      #This is the header for all of the key frame info
+OBJECTINFO   =      int('0x3D3D',16);      #This gives the version of the mesh and is found right before the material and object information
+VERSION      =      int('0x0002',16);      #This gives the version of the .3ds file
+EDITKEYFRAME=      int('0xB000',16);      #This is the header for all of the key frame info
 
 #------ sub defines of OBJECTINFO
 MATERIAL=45055		#0xAFFF				// This stored the texture info
@@ -180,62 +183,62 @@ OBJECT=16384		#0x4000				// This stores the faces, vertices, etc...
 
 #>------ sub defines of MATERIAL
 #------ sub defines of MATERIAL_BLOCK
-MAT_NAME		=	long('0xA000',16)	# This holds the material name
-MAT_AMBIENT		=	long('0xA010',16)	# Ambient color of the object/material
-MAT_DIFFUSE		=	long('0xA020',16)	# This holds the color of the object/material
-MAT_SPECULAR	=	long('0xA030',16)	# SPecular color of the object/material
-MAT_SHINESS		=	long('0xA040',16)	# ??
-MAT_TRANSPARENCY=	long('0xA050',16)	# Transparency value of material
-MAT_SELF_ILLUM	=	long('0xA080',16)	# Self Illumination value of material
-MAT_WIRE		=	long('0xA085',16)	# Only render's wireframe
+MAT_NAME		=	int('0xA000',16)	# This holds the material name
+MAT_AMBIENT		=	int('0xA010',16)	# Ambient color of the object/material
+MAT_DIFFUSE		=	int('0xA020',16)	# This holds the color of the object/material
+MAT_SPECULAR	=	int('0xA030',16)	# SPecular color of the object/material
+MAT_SHINESS		=	int('0xA040',16)	# ??
+MAT_TRANSPARENCY=	int('0xA050',16)	# Transparency value of material
+MAT_SELF_ILLUM	=	int('0xA080',16)	# Self Illumination value of material
+MAT_WIRE		=	int('0xA085',16)	# Only render's wireframe
 
-MAT_TEXTURE_MAP	=	long('0xA200',16)	# This is a header for a new texture map
-MAT_SPECULAR_MAP=	long('0xA204',16)	# This is a header for a new specular map
-MAT_OPACITY_MAP	=	long('0xA210',16)	# This is a header for a new opacity map
-MAT_REFLECTION_MAP=	long('0xA220',16)	# This is a header for a new reflection map
-MAT_BUMP_MAP	=	long('0xA230',16)	# This is a header for a new bump map
-MAT_MAP_FILENAME =      long('0xA300',16)      # This holds the file name of the texture
+MAT_TEXTURE_MAP	=	int('0xA200',16)	# This is a header for a new texture map
+MAT_SPECULAR_MAP=	int('0xA204',16)	# This is a header for a new specular map
+MAT_OPACITY_MAP	=	int('0xA210',16)	# This is a header for a new opacity map
+MAT_REFLECTION_MAP=	int('0xA220',16)	# This is a header for a new reflection map
+MAT_BUMP_MAP	=	int('0xA230',16)	# This is a header for a new bump map
+MAT_MAP_FILENAME =      int('0xA300',16)      # This holds the file name of the texture
 
-MAT_FLOAT_COLOR = long ('0x0010', 16) #color defined as 3 floats
-MAT_24BIT_COLOR	= long ('0x0011', 16) #color defined as 3 bytes
+MAT_FLOAT_COLOR = int ('0x0010', 16) #color defined as 3 floats
+MAT_24BIT_COLOR	= int ('0x0011', 16) #color defined as 3 bytes
 
 #>------ sub defines of OBJECT
-OBJECT_MESH  =      long('0x4100',16);      # This lets us know that we are reading a new object
-OBJECT_LAMP =      long('0x4600',16);      # This lets un know we are reading a light object
-OBJECT_LAMP_SPOT = long('0x4610',16);		# The light is a spotloght.
-OBJECT_LAMP_OFF = long('0x4620',16);		# The light off.
-OBJECT_LAMP_ATTENUATE = long('0x4625',16);	
-OBJECT_LAMP_RAYSHADE = long('0x4627',16);	
-OBJECT_LAMP_SHADOWED = long('0x4630',16);	
-OBJECT_LAMP_LOCAL_SHADOW = long('0x4640',16);	
-OBJECT_LAMP_LOCAL_SHADOW2 = long('0x4641',16);	
-OBJECT_LAMP_SEE_CONE = long('0x4650',16);	
-OBJECT_LAMP_SPOT_RECTANGULAR= long('0x4651',16);
-OBJECT_LAMP_SPOT_OVERSHOOT= long('0x4652',16);
-OBJECT_LAMP_SPOT_PROJECTOR= long('0x4653',16);
-OBJECT_LAMP_EXCLUDE= long('0x4654',16);
-OBJECT_LAMP_RANGE= long('0x4655',16);
-OBJECT_LAMP_ROLL= long('0x4656',16);
-OBJECT_LAMP_SPOT_ASPECT= long('0x4657',16);
-OBJECT_LAMP_RAY_BIAS= long('0x4658',16);
-OBJECT_LAMP_INNER_RANGE= long('0x4659',16);
-OBJECT_LAMP_OUTER_RANGE= long('0x465A',16);
-OBJECT_LAMP_MULTIPLIER = long('0x465B',16);
-OBJECT_LAMP_AMBIENT_LIGHT = long('0x4680',16);
+OBJECT_MESH  =      int('0x4100',16);      # This lets us know that we are reading a new object
+OBJECT_LAMP =      int('0x4600',16);      # This lets un know we are reading a light object
+OBJECT_LAMP_SPOT = int('0x4610',16);		# The light is a spotloght.
+OBJECT_LAMP_OFF = int('0x4620',16);		# The light off.
+OBJECT_LAMP_ATTENUATE = int('0x4625',16);	
+OBJECT_LAMP_RAYSHADE = int('0x4627',16);	
+OBJECT_LAMP_SHADOWED = int('0x4630',16);	
+OBJECT_LAMP_LOCAL_SHADOW = int('0x4640',16);	
+OBJECT_LAMP_LOCAL_SHADOW2 = int('0x4641',16);	
+OBJECT_LAMP_SEE_CONE = int('0x4650',16);	
+OBJECT_LAMP_SPOT_RECTANGULAR= int('0x4651',16);
+OBJECT_LAMP_SPOT_OVERSHOOT= int('0x4652',16);
+OBJECT_LAMP_SPOT_PROJECTOR= int('0x4653',16);
+OBJECT_LAMP_EXCLUDE= int('0x4654',16);
+OBJECT_LAMP_RANGE= int('0x4655',16);
+OBJECT_LAMP_ROLL= int('0x4656',16);
+OBJECT_LAMP_SPOT_ASPECT= int('0x4657',16);
+OBJECT_LAMP_RAY_BIAS= int('0x4658',16);
+OBJECT_LAMP_INNER_RANGE= int('0x4659',16);
+OBJECT_LAMP_OUTER_RANGE= int('0x465A',16);
+OBJECT_LAMP_MULTIPLIER = int('0x465B',16);
+OBJECT_LAMP_AMBIENT_LIGHT = int('0x4680',16);
 
 
 
-OBJECT_CAMERA=      long('0x4700',16);      # This lets un know we are reading a camera object
+OBJECT_CAMERA=      int('0x4700',16);      # This lets un know we are reading a camera object
 
 #>------ sub defines of CAMERA
-OBJECT_CAM_RANGES=   long('0x4720',16);      # The camera range values
+OBJECT_CAM_RANGES=   int('0x4720',16);      # The camera range values
 
 #>------ sub defines of OBJECT_MESH
-OBJECT_VERTICES =   long('0x4110',16);      # The objects vertices
-OBJECT_FACES    =   long('0x4120',16);      # The objects faces
-OBJECT_MATERIAL =   long('0x4130',16);      # This is found if the object has a material, either texture map or color
-OBJECT_UV       =   long('0x4140',16);      # The UV texture coordinates
-OBJECT_TRANS_MATRIX  =   long('0x4160',16); # The Object Matrix
+OBJECT_VERTICES =   int('0x4110',16);      # The objects vertices
+OBJECT_FACES    =   int('0x4120',16);      # The objects faces
+OBJECT_MATERIAL =   int('0x4130',16);      # This is found if the object has a material, either texture map or color
+OBJECT_UV       =   int('0x4140',16);      # The UV texture coordinates
+OBJECT_TRANS_MATRIX  =   int('0x4160',16); # The Object Matrix
 
 global scn
 scn= None
@@ -255,10 +258,10 @@ class chunk:
 		self.bytes_read=0
 
 	def dump(self):
-		print 'ID: ', self.ID
-		print 'ID in hex: ', hex(self.ID)
-		print 'length: ', self.length
-		print 'bytes_read: ', self.bytes_read
+		print('ID: ', self.ID)
+		print('ID in hex: ', hex(self.ID))
+		print('length: ', self.length)
+		print('bytes_read: ', self.bytes_read)
 
 def read_chunk(file, chunk):
 	temp_data=file.read(calcsize(chunk.binary_format))
@@ -309,13 +312,13 @@ def add_texture_to_material(image, texture, material, mapto):
 	elif mapto=='BUMP':
 		map=Texture.MapTo.NOR
 	else:
-		print '/tError:  Cannot map to "%s"\n\tassuming diffuse color. modify material "%s" later.' % (mapto, material.name)
+		print('/tError:  Cannot map to "%s"\n\tassuming diffuse color. modify material "%s" later.' % (mapto, material.name))
 		map=Texture.MapTo.COL
 
 	if image: texture.setImage(image) # double check its an image.
 	free_tex_slots= [i for i, tex in enumerate( material.getTextures() ) if tex==None]
 	if not free_tex_slots:
-		print '/tError: Cannot add "%s" map. 10 Texture slots alredy used.' % mapto
+		print('/tError: Cannot add "%s" map. 10 Texture slots alredy used.' % mapto)
 	else:
 		material.setTexture(free_tex_slots[0],texture,Texture.TexCo.UV,map)
 
@@ -374,7 +377,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			myVertMapping = {}
 			vertMappingIndex = 0
 			
-			vertsToUse = [i for i in xrange(len(myContextMesh_vertls)) if faceVertUsers[i]]
+			vertsToUse = [i for i in range(len(myContextMesh_vertls)) if faceVertUsers[i]]
 			myVertMapping = dict( [ (ii, i) for i, ii in enumerate(vertsToUse) ] )
 			
 			tempName= '%s_%s' % (contextObName, matName) # matName may be None.
@@ -423,7 +426,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			importedObjects.append(ob)
 			bmesh.calcNormals()
 		
-		for matName, faces in myContextMeshMaterials.iteritems():
+		for matName, faces in myContextMeshMaterials.items():
 			makeMeshMaterialCopy(matName, faces)
 			
 		if len(materialFaces)!=len(myContextMesh_facels):
@@ -455,7 +458,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			new_chunk.bytes_read+= 4 #read the 4 bytes for the version number
 			#this loader works with version 3 and below, but may not with 4 and above
 			if (version>3):
-				print '\tNon-Fatal Error:  Version greater than 3, may not load correctly: ', version
+				print('\tNon-Fatal Error:  Version greater than 3, may not load correctly: ', version)
 
 		#is it an object info chunk?
 		elif (new_chunk.ID==OBJECTINFO):
@@ -684,7 +687,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 				return temp_data
 			
 			#contextMesh.verts.extend( [Vector(),] ) # DUMMYVERT! - remove when blenders internals are fixed.
-			contextMesh_vertls= [getvert() for i in xrange(num_verts)]
+			contextMesh_vertls= [getvert() for i in range(num_verts)]
 			
 			#print 'object verts: bytes read: ', new_chunk.bytes_read
 
@@ -702,7 +705,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 				v1,v2,v3,dummy= unpack('<4H', temp_data)
 				return v1, v2, v3
 			
-			contextMesh_facels= [ getface() for i in xrange(num_faces) ]
+			contextMesh_facels= [ getface() for i in range(num_faces) ]
 
 
 		elif (new_chunk.ID==OBJECT_MATERIAL):
@@ -719,7 +722,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 				new_chunk.bytes_read+= STRUCT_SIZE_UNSIGNED_SHORT
 				return unpack('<H', temp_data)[0]
 			
-			contextMeshMaterials[material_name]= [ getmat() for i in xrange(num_faces_using_mat) ]
+			contextMeshMaterials[material_name]= [ getmat() for i in range(num_faces_using_mat) ]
 			
 			#look up the material in all the materials
 
@@ -733,7 +736,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 				new_chunk.bytes_read += STRUCT_SIZE_2FLOAT #2 float x 4 bytes each
 				return Vector( unpack('<2f', temp_data) )
 				
-			contextMeshUV= [ getuv() for i in xrange(num_uv) ]
+			contextMeshUV= [ getuv() for i in range(num_uv) ]
 		
 		elif (new_chunk.ID== OBJECT_TRANS_MATRIX):
 			# How do we know the matrix size? 54 == 4x4 48 == 4x3
@@ -825,7 +828,7 @@ def load_3ds(filename, PREF_UI= True):
 	if BPyMessages.Error_NoFile(filename):
 		return
 	
-	print '\n\nImporting 3DS: "%s"' % (Blender.sys.expandpath(filename))
+	print('\n\nImporting 3DS: "%s"' % (Blender.sys.expandpath(filename)))
 	
 	time1= Blender.sys.time()
 	
@@ -838,7 +841,7 @@ def load_3ds(filename, PREF_UI= True):
 	# print 'reading the first chunk'
 	read_chunk(file, current_chunk)
 	if (current_chunk.ID!=PRIMARY):
-		print '\tFatal Error:  Not a valid 3ds file: ', filename
+		print('\tFatal Error:  Not a valid 3ds file: ', filename)
 		file.close()
 		return
 	
@@ -953,17 +956,17 @@ def load_3ds(filename, PREF_UI= True):
 		# Done constraining to bounds.
 	
 	# Select all new objects.
-	print 'finished importing: "%s" in %.4f sec.' % (filename, (Blender.sys.time()-time1))
+	print('finished importing: "%s" in %.4f sec.' % (filename, (Blender.sys.time()-time1)))
 	file.close()
 	Blender.Window.WaitCursor(0)
 	
 
 DEBUG= False
-if __name__=='__main__' and not DEBUG:
-	if calcsize==None:
-		Blender.Draw.PupMenu('Error%t|a full python installation not found') 
-	else:
-		Blender.Window.FileSelector(load_3ds, 'Import 3DS', '*.3ds')
+# if __name__=='__main__' and not DEBUG:
+# 	if calcsize==None:
+# 		Blender.Draw.PupMenu('Error%t|a full python installation not found') 
+# 	else:
+# 		Blender.Window.FileSelector(load_3ds, 'Import 3DS', '*.3ds')
 
 # For testing compatibility
 #load_3ds('/metavr/convert/vehicle/truck_002/TruckTanker1.3DS', False)
@@ -1005,3 +1008,32 @@ else:
 	print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
 
 '''
+
+class IMPORT_OT_3ds(bpy.types.Operator):
+	'''
+	3DS Importer
+	'''
+	__idname__ = "import.3ds"
+	__label__ = 'Import 3DS'
+	
+	# List of operator properties, the attributes will be assigned
+	# to the class instance from the operator settings before calling.
+
+	__props__ = [
+		bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for importing the 3DS file", maxlen= 1024, default= ""),
+	]
+	
+	def execute(self, context):
+		raise Exception("Not doing anything yet.")
+		return ('FINISHED',)
+	
+	def invoke(self, context, event):
+		wm = context.manager
+		wm.add_fileselect(self.__operator__)
+		return ('RUNNING_MODAL',)
+	
+	def poll(self, context): # Poll isnt working yet
+		print("Poll")
+		return context.active_object != None
+
+bpy.ops.add(IMPORT_OT_3ds)

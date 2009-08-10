@@ -53,22 +53,27 @@ Known issues:<br>
 # Library dependancies
 ####################################
 
-import Blender
-from Blender import Object, Lamp, Draw, Image, Text, sys, Mesh
-from Blender.Scene import Render
 import math
-import BPyObject
-import BPyMesh
+
+import bpy
+import Mathutils
+
+# import Blender
+# from Blender import Object, Lamp, Draw, Image, Text, sys, Mesh
+# from Blender.Scene import Render
+# import BPyObject
+# import BPyMesh
 
 # 
 DEG2RAD=0.017453292519943295
-MATWORLD= Blender.Mathutils.RotationMatrix(-90, 4, 'x')
+MATWORLD= Mathutils.RotationMatrix(-90, 4, 'x')
 
 ####################################
 # Global Variables
 ####################################
 
-filename = Blender.Get('filename')
+filename = ""
+# filename = Blender.Get('filename')
 _safeOverwrite = True
 
 extension = ''
@@ -109,7 +114,7 @@ class x3d_class:
 				import gzip
 				self.file = gzip.open(filename, "w")				
 			except:
-				print "failed to import compression modules, exporting uncompressed"
+				print("failed to import compression modules, exporting uncompressed")
 				self.filename = filename[:-1] # remove trailing z
 		
 		if self.file == None:
@@ -383,7 +388,7 @@ class x3d_class:
 		if nIFSCnt > 1:
 			self.writeIndented("<Group DEF=\"%s%s\">\n" % ("G_", meshName),1)
 		
-		if sided.has_key('two') and sided['two'] > 0:
+		if 'two' in sided and sided['two'] > 0:
 			bTwoSided=1
 		else:
 			bTwoSided=0
@@ -414,8 +419,8 @@ class x3d_class:
 				if not matFlags & Blender.Material.Modes['TEXFACE']:
 					self.writeMaterial(mat, self.cleanStr(maters[0].name,''), world)
 					if len(maters) > 1:
-						print "Warning: mesh named %s has multiple materials" % meshName
-						print "Warning: only one material per object handled"
+						print("Warning: mesh named %s has multiple materials" % meshName)
+						print("Warning: only one material per object handled")
 			
 				#-- textures
 				if mesh.faceUV:
@@ -433,7 +438,7 @@ class x3d_class:
 		# user selected BOUNDS=1, SOLID=3, SHARED=4, or TEXTURE=5
 		ifStyle="IndexedFaceSet"
 		# look up mesh name, use it if available
-		if self.meshNames.has_key(meshME):
+		if meshME in self.meshNames:
 			self.writeIndented("<%s USE=\"ME_%s\">" % (ifStyle, meshME), 1)
 			self.meshNames[meshME]+=1
 		else:
@@ -547,7 +552,7 @@ class x3d_class:
 		if self.writingtexture == 0:
 			self.file.write("\n\t\t\ttexCoordIndex=\"")
 			texIndxStr=""
-			for i in xrange(len(texIndexList)):
+			for i in range(len(texIndexList)):
 				texIndxStr = texIndxStr + "%d, " % texIndexList[i]
 				if texIndexList[i]==-1:
 					self.file.write(texIndxStr)
@@ -555,7 +560,7 @@ class x3d_class:
 			self.file.write("\"\n\t\t\t")
 		else:
 			self.writeIndented("<TextureCoordinate point=\"", 1)
-			for i in xrange(len(texCoordList)):
+			for i in range(len(texCoordList)):
 				self.file.write("%s %s, " % (round(texCoordList[i][0],self.tp), round(texCoordList[i][1],self.tp)))
 			self.file.write("\" />")
 			self.writeIndented("\n", -1)
@@ -569,7 +574,7 @@ class x3d_class:
 				if face.col:
 					c=face.col[0]
 					if self.verbose > 2:
-						print "Debug: face.col r=%d g=%d b=%d" % (c.r, c.g, c.b)
+						print("Debug: face.col r=%d g=%d b=%d" % (c.r, c.g, c.b))
 					aColor = self.rgbToFS(c)
 					self.file.write("%s, " % aColor)
 			self.file.write("\" />")
@@ -577,7 +582,7 @@ class x3d_class:
 	
 	def writeMaterial(self, mat, matName, world):
 		# look up material name, use it if available
-		if self.matNames.has_key(matName):
+		if matName in self.matNames:
 			self.writeIndented("<Material USE=\"MA_%s\" />\n" % matName)
 			self.matNames[matName]+=1
 			return;
@@ -617,7 +622,7 @@ class x3d_class:
 	def writeImageTexture(self, image):
 		name = image.name
 		filename = image.filename.split('/')[-1].split('\\')[-1]
-		if self.texNames.has_key(name):
+		if name in self.texNames:
 			self.writeIndented("<ImageTexture USE=\"%s\" />\n" % self.cleanStr(name))
 			self.texNames[name] += 1
 			return
@@ -671,7 +676,7 @@ class x3d_class:
 			self.file.write("groundColor=\"%s %s %s\" " % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
 			self.file.write("skyColor=\"%s %s %s\" " % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)))
 		alltexture = len(alltextures)
-		for i in xrange(alltexture):
+		for i in range(alltexture):
 			namemat = alltextures[i].name
 			pic = alltextures[i].getImage()
 			if (namemat == "back") and (pic != None):
@@ -697,7 +702,7 @@ class x3d_class:
 			EXPORT_TRI=				False,\
 		):
 		
-		print "Info: starting X3D export to " + self.filename + "..."
+		print("Info: starting X3D export to " + self.filename + "...")
 		self.writeHeader()
 		# self.writeScript()
 		self.writeNavigationInfo(scene)
@@ -771,7 +776,7 @@ class x3d_class:
 		self.texNames={}
 		self.matNames={}
 		self.indentLevel=0
-		print "Info: finished X3D export to %s\n" % self.filename
+		print("Info: finished X3D export to %s\n" % self.filename)
 
 	def cleanStr(self, name, prefix='rsvd_'):
 		"""cleanStr(name,prefix) - try to create a valid VRML DEF name from object name"""
@@ -815,7 +820,7 @@ class x3d_class:
 				else:
 					sidename='one'
 				
-				if sided.has_key(sidename):
+				if sidename in sided:
 					sided[sidename]+=1
 				else:
 					sided[sidename]=1
@@ -829,30 +834,30 @@ class x3d_class:
 						imageMap[faceName]=[face.image.name,sidename,face]
 
 			if self.verbose > 2:
-				for faceName in imageMap.iterkeys():
+				for faceName in imageMap.keys():
 					ifs=imageMap[faceName]
-					print "Debug: faceName=%s image=%s, solid=%s facecnt=%d" % \
-						  (faceName, ifs[0], ifs[1], len(ifs)-2)
+					print("Debug: faceName=%s image=%s, solid=%s facecnt=%d" % \
+						  (faceName, ifs[0], ifs[1], len(ifs)-2))
 
 		return len(imageMap)
 	
 	def faceToString(self,face):
 
-		print "Debug: face.flag=0x%x (bitflags)" % face.flag
+		print("Debug: face.flag=0x%x (bitflags)" % face.flag)
 		if face.sel:
-			print "Debug: face.sel=true"
+			print("Debug: face.sel=true")
 
-		print "Debug: face.mode=0x%x (bitflags)" % face.mode
+		print("Debug: face.mode=0x%x (bitflags)" % face.mode)
 		if face.mode & Mesh.FaceModes.TWOSIDE:
-			print "Debug: face.mode twosided"
+			print("Debug: face.mode twosided")
 
-		print "Debug: face.transp=0x%x (enum)" % face.transp
+		print("Debug: face.transp=0x%x (enum)" % face.transp)
 		if face.transp == Mesh.FaceTranspModes.SOLID:
-			print "Debug: face.transp.SOLID"
+			print("Debug: face.transp.SOLID")
 
 		if face.image:
-			print "Debug: face.image=%s" % face.image.name
-		print "Debug: face.materialIndex=%d" % face.materialIndex 
+			print("Debug: face.image=%s" % face.image.name)
+		print("Debug: face.materialIndex=%d" % face.materialIndex) 
 
 	def getVertexColorByIndx(self, mesh, indx):
 		c = None
@@ -867,12 +872,12 @@ class x3d_class:
 		return c
 
 	def meshToString(self,mesh):
-		print "Debug: mesh.hasVertexUV=%d" % mesh.vertexColors
-		print "Debug: mesh.faceUV=%d" % mesh.faceUV
-		print "Debug: mesh.hasVertexColours=%d" % mesh.hasVertexColours()
-		print "Debug: mesh.verts=%d" % len(mesh.verts)
-		print "Debug: mesh.faces=%d" % len(mesh.faces)
-		print "Debug: mesh.materials=%d" % len(mesh.materials)
+		print("Debug: mesh.hasVertexUV=%d" % mesh.vertexColors)
+		print("Debug: mesh.faceUV=%d" % mesh.faceUV)
+		print("Debug: mesh.hasVertexColours=%d" % mesh.hasVertexColours())
+		print("Debug: mesh.verts=%d" % len(mesh.verts))
+		print("Debug: mesh.faces=%d" % len(mesh.faces))
+		print("Debug: mesh.materials=%d" % len(mesh.materials))
 
 	def rgbToFS(self, c):
 		s="%s %s %s" % (
@@ -924,7 +929,7 @@ class x3d_class:
 			self.indentLevel = self.indentLevel + inc
 
 		spaces=""
-		for x in xrange(self.indentLevel):
+		for x in range(self.indentLevel):
 			spaces = spaces + "\t"
 		self.file.write(spaces + s)
 
@@ -1045,7 +1050,34 @@ def x3d_export_ui(filename):
 #########################################################
 
 
-if __name__ == '__main__':
-	Blender.Window.FileSelector(x3d_export_ui,"Export X3D", Blender.Get('filename').replace('.blend', '.x3d'))
+# if __name__ == '__main__':
+# 	Blender.Window.FileSelector(x3d_export_ui,"Export X3D", Blender.Get('filename').replace('.blend', '.x3d'))
 
+class EXPORT_OT_x3d(bpy.types.Operator):
+	'''
+	X3D Exporter
+	'''
+	__idname__ = "export.x3d"
+	__label__ = 'Export X3D'
+	
+	# List of operator properties, the attributes will be assigned
+	# to the class instance from the operator settings before calling.
 
+	__props__ = [
+		bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for exporting the X3D file", maxlen= 1024, default= ""),
+	]
+	
+	def execute(self, context):
+		raise Exception("Not doing anything yet.")
+		return ('FINISHED',)
+	
+	def invoke(self, context, event):
+		wm = context.manager
+		wm.add_fileselect(self.__operator__)
+		return ('RUNNING_MODAL',)
+	
+	def poll(self, context): # Poll isnt working yet
+		print("Poll")
+		return context.active_object != None
+
+bpy.ops.add(EXPORT_OT_x3d)

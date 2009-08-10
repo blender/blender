@@ -46,14 +46,17 @@ from the lib3ds project (http://lib3ds.sourceforge.net/) sourcecode.
 # Importing modules
 ######################################################
 
-import Blender
+import struct
+
 import bpy
-from BPyMesh import getMeshFromObject
-from BPyObject import getDerivedObjects
-try: 
-    import struct
-except: 
-    struct = None
+
+# import Blender
+# from BPyMesh import getMeshFromObject
+# from BPyObject import getDerivedObjects
+# try: 
+#     import struct
+# except: 
+#     struct = None
 
 # So 3ds max can open files, limit names to 12 in length
 # this is verry annoying for filenames!
@@ -85,58 +88,58 @@ def sane_name(name):
 
 #Some of the chunks that we will export
 #----- Primary Chunk, at the beginning of each file
-PRIMARY= long("0x4D4D",16)
+PRIMARY= int("0x4D4D",16)
 
 #------ Main Chunks
-OBJECTINFO   =      long("0x3D3D",16);      #This gives the version of the mesh and is found right before the material and object information
-VERSION      =      long("0x0002",16);      #This gives the version of the .3ds file
-KFDATA       =      long("0xB000",16);      #This is the header for all of the key frame info
+OBJECTINFO   =      int("0x3D3D",16);      #This gives the version of the mesh and is found right before the material and object information
+VERSION      =      int("0x0002",16);      #This gives the version of the .3ds file
+KFDATA       =      int("0xB000",16);      #This is the header for all of the key frame info
 
 #------ sub defines of OBJECTINFO
 MATERIAL=45055		#0xAFFF				// This stored the texture info
 OBJECT=16384		#0x4000				// This stores the faces, vertices, etc...
 
 #>------ sub defines of MATERIAL
-MATNAME    =      long("0xA000",16);      # This holds the material name
-MATAMBIENT   =      long("0xA010",16);      # Ambient color of the object/material
-MATDIFFUSE   =      long("0xA020",16);      # This holds the color of the object/material
-MATSPECULAR   =      long("0xA030",16);      # SPecular color of the object/material
-MATSHINESS   =      long("0xA040",16);      # ??
-MATMAP       =      long("0xA200",16);      # This is a header for a new material
-MATMAPFILE    =      long("0xA300",16);      # This holds the file name of the texture
+MATNAME    =      int("0xA000",16);      # This holds the material name
+MATAMBIENT   =      int("0xA010",16);      # Ambient color of the object/material
+MATDIFFUSE   =      int("0xA020",16);      # This holds the color of the object/material
+MATSPECULAR   =      int("0xA030",16);      # SPecular color of the object/material
+MATSHINESS   =      int("0xA040",16);      # ??
+MATMAP       =      int("0xA200",16);      # This is a header for a new material
+MATMAPFILE    =      int("0xA300",16);      # This holds the file name of the texture
 
-RGB1=	long("0x0011",16)
-RGB2=	long("0x0012",16)
+RGB1=	int("0x0011",16)
+RGB2=	int("0x0012",16)
 
 #>------ sub defines of OBJECT
-OBJECT_MESH  =      long("0x4100",16);      # This lets us know that we are reading a new object
-OBJECT_LIGHT =      long("0x4600",16);      # This lets un know we are reading a light object
-OBJECT_CAMERA=      long("0x4700",16);      # This lets un know we are reading a camera object
+OBJECT_MESH  =      int("0x4100",16);      # This lets us know that we are reading a new object
+OBJECT_LIGHT =      int("0x4600",16);      # This lets un know we are reading a light object
+OBJECT_CAMERA=      int("0x4700",16);      # This lets un know we are reading a camera object
 
 #>------ sub defines of CAMERA
-OBJECT_CAM_RANGES=   long("0x4720",16);      # The camera range values
+OBJECT_CAM_RANGES=   int("0x4720",16);      # The camera range values
 
 #>------ sub defines of OBJECT_MESH
-OBJECT_VERTICES =   long("0x4110",16);      # The objects vertices
-OBJECT_FACES    =   long("0x4120",16);      # The objects faces
-OBJECT_MATERIAL =   long("0x4130",16);      # This is found if the object has a material, either texture map or color
-OBJECT_UV       =   long("0x4140",16);      # The UV texture coordinates
-OBJECT_TRANS_MATRIX  =   long("0x4160",16); # The Object Matrix
+OBJECT_VERTICES =   int("0x4110",16);      # The objects vertices
+OBJECT_FACES    =   int("0x4120",16);      # The objects faces
+OBJECT_MATERIAL =   int("0x4130",16);      # This is found if the object has a material, either texture map or color
+OBJECT_UV       =   int("0x4140",16);      # The UV texture coordinates
+OBJECT_TRANS_MATRIX  =   int("0x4160",16); # The Object Matrix
 
 #>------ sub defines of KFDATA
-KFDATA_KFHDR            = long("0xB00A",16);
-KFDATA_KFSEG            = long("0xB008",16);
-KFDATA_KFCURTIME        = long("0xB009",16);
-KFDATA_OBJECT_NODE_TAG  = long("0xB002",16);
+KFDATA_KFHDR            = int("0xB00A",16);
+KFDATA_KFSEG            = int("0xB008",16);
+KFDATA_KFCURTIME        = int("0xB009",16);
+KFDATA_OBJECT_NODE_TAG  = int("0xB002",16);
 
 #>------ sub defines of OBJECT_NODE_TAG
-OBJECT_NODE_ID          = long("0xB030",16);
-OBJECT_NODE_HDR         = long("0xB010",16);
-OBJECT_PIVOT            = long("0xB013",16);
-OBJECT_INSTANCE_NAME    = long("0xB011",16);
-POS_TRACK_TAG			= long("0xB020",16);
-ROT_TRACK_TAG			= long("0xB021",16);
-SCL_TRACK_TAG			= long("0xB022",16);
+OBJECT_NODE_ID          = int("0xB030",16);
+OBJECT_NODE_HDR         = int("0xB010",16);
+OBJECT_PIVOT            = int("0xB013",16);
+OBJECT_INSTANCE_NAME    = int("0xB011",16);
+POS_TRACK_TAG			= int("0xB020",16);
+ROT_TRACK_TAG			= int("0xB021",16);
+SCL_TRACK_TAG			= int("0xB022",16);
 
 def uv_key(uv):
 	return round(uv.x, 6), round(uv.y, 6)
@@ -343,12 +346,12 @@ class _3ds_named_variable(object):
 	def dump(self,indent):
 		if (self.value!=None):
 			spaces=""
-			for i in xrange(indent):
+			for i in range(indent):
 				spaces+="  ";
 			if (self.name!=""):
-				print spaces, self.name, " = ", self.value
+				print(spaces, self.name, " = ", self.value)
 			else:
-				print spaces, "[unnamed]", " = ", self.value
+				print(spaces, "[unnamed]", " = ", self.value)
 
 
 #the chunk class
@@ -408,9 +411,9 @@ class _3ds_chunk(object):
 		Dump is used for debugging purposes, to dump the contents of a chunk to the standard output. 
 		Uses the dump function of the named variables and the subchunks to do the actual work.'''
 		spaces=""
-		for i in xrange(indent):
+		for i in range(indent):
 			spaces+="  ";
-		print spaces, "ID=", hex(self.ID.value), "size=", self.get_size()
+		print(spaces, "ID=", hex(self.ID.value), "size=", self.get_size())
 		for variable in self.variables:
 			variable.dump(indent+1)
 		for subchunk in self.subchunks:
@@ -555,11 +558,11 @@ def remove_face_uv(verts, tri_list):
 	
 	# initialize a list of UniqueLists, one per vertex:
 	#uv_list = [UniqueList() for i in xrange(len(verts))]
-	unique_uvs= [{} for i in xrange(len(verts))]
+	unique_uvs= [{} for i in range(len(verts))]
 	
 	# for each face uv coordinate, add it to the UniqueList of the vertex
 	for tri in tri_list:
-		for i in xrange(3):
+		for i in range(3):
 			# store the index into the UniqueList for future reference:
 			# offset.append(uv_list[tri.vertex_index[i]].add(_3ds_point_uv(tri.faceuvs[i])))
 			
@@ -589,7 +592,7 @@ def remove_face_uv(verts, tri_list):
 		
 		pt = _3ds_point_3d(vert.co) # reuse, should be ok
 		uvmap = [None] * len(unique_uvs[i])
-		for ii, uv_3ds in unique_uvs[i].itervalues():
+		for ii, uv_3ds in unique_uvs[i].values():
 			# add a vertex duplicate to the vertex_array for every uv associated with this vertex:
 			vert_array.add(pt)
 			# add the uv coordinate to the uv array:
@@ -607,7 +610,7 @@ def remove_face_uv(verts, tri_list):
 	
 	# Make sure the triangle vertex indices now refer to the new vertex list:
 	for tri in tri_list:
-		for i in xrange(3):
+		for i in range(3):
 			tri.offset[i]+=index_list[tri.vertex_index[i]]
 		tri.vertex_index= tri.offset
 	
@@ -655,7 +658,7 @@ def make_faces_chunk(tri_list, mesh, materialDict):
 			# obj_material_faces[tri.mat].add(_3ds_short(i))
 		
 		face_chunk.add_variable("faces", face_list)
-		for mat_name, mat_faces in unique_mats.itervalues():
+		for mat_name, mat_faces in unique_mats.values():
 			obj_material_chunk=_3ds_chunk(OBJECT_MATERIAL)
 			obj_material_chunk.add_variable("name", mat_name)
 			obj_material_chunk.add_variable("face_list", mat_faces)
@@ -677,7 +680,7 @@ def make_faces_chunk(tri_list, mesh, materialDict):
 				obj_material_faces[tri.mat].add(_3ds_short(i))
 		
 		face_chunk.add_variable("faces", face_list)
-		for i in xrange(n_materials):
+		for i in range(n_materials):
 			obj_material_chunk=_3ds_chunk(OBJECT_MATERIAL)
 			obj_material_chunk.add_variable("name", obj_material_names[i])
 			obj_material_chunk.add_variable("face_list", obj_material_faces[i])
@@ -862,7 +865,7 @@ def make_kf_obj_node(obj, name_to_id):
 	return kf_obj_node
 """
 
-import BPyMessages
+# import BPyMessages
 def save_3ds(filename, context):
 	'''Save the Blender scene to a 3ds file.'''
 	# Time the export
@@ -871,16 +874,16 @@ def save_3ds(filename, context):
 		filename += '.3ds'
 
 	# XXX
-# 	if not BPyMessages.Warning_SaveOver(filename):
-# 		return
+#	if not BPyMessages.Warning_SaveOver(filename):
+#		return
 
 	# XXX
-    time1 = bpy.sys.time()
-# 	time1= Blender.sys.time()
-# 	Blender.Window.WaitCursor(1)
+	time1 = bpy.sys.time()
+#	time1= Blender.sys.time()
+#	Blender.Window.WaitCursor(1)
 
 	sce = context.scene
-# 	sce= bpy.data.scenes.active
+#	sce= bpy.data.scenes.active
 	
 	# Initialize the main chunk (primary):
 	primary = _3ds_chunk(PRIMARY)
@@ -948,7 +951,7 @@ def save_3ds(filename, context):
 							f.mat = 0 
 	
 	# Make material chunks for all materials used in the meshes:
-	for mat_and_image in materialDict.itervalues():
+	for mat_and_image in materialDict.values():
 		object_info.add_subchunk(make_material_chunk(mat_and_image[0], mat_and_image[1]))
 	
 	# Give all objects a unique ID and build a dictionary from object name to object id:
@@ -1011,15 +1014,44 @@ def save_3ds(filename, context):
 	
 	# Debugging only: report the exporting time:
 	Blender.Window.WaitCursor(0)
-	print "3ds export time: %.2f" % (Blender.sys.time() - time1)
+	print("3ds export time: %.2f" % (Blender.sys.time() - time1))
 	
 	# Debugging only: dump the chunk hierarchy:
 	#primary.dump()
 
 
-if __name__=='__main__':
-    if struct:
-        Blender.Window.FileSelector(save_3ds, "Export 3DS", Blender.sys.makename(ext='.3ds'))
-    else:
-        Blender.Draw.PupMenu("Error%t|This script requires a full python installation")
-# save_3ds('/test_b.3ds')
+# if __name__=='__main__':
+#     if struct:
+#         Blender.Window.FileSelector(save_3ds, "Export 3DS", Blender.sys.makename(ext='.3ds'))
+#     else:
+#         Blender.Draw.PupMenu("Error%t|This script requires a full python installation")
+# # save_3ds('/test_b.3ds')
+
+class EXPORT_OT_3ds(bpy.types.Operator):
+	'''
+	3DS Exporter
+	'''
+	__idname__ = "export.3ds"
+	__label__ = 'Export 3DS'
+	
+	# List of operator properties, the attributes will be assigned
+	# to the class instance from the operator settings before calling.
+
+	__props__ = [
+		bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for exporting the 3DS file", maxlen= 1024, default= ""),
+	]
+	
+	def execute(self, context):
+		raise Exception("Not doing anything yet.")
+		return ('FINISHED',)
+	
+	def invoke(self, context, event):
+		wm = context.manager
+		wm.add_fileselect(self.__operator__)
+		return ('RUNNING_MODAL',)
+	
+	def poll(self, context): # Poll isnt working yet
+		print("Poll")
+		return context.active_object != None
+
+bpy.ops.add(EXPORT_OT_3ds)

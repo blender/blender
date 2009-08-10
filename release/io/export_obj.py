@@ -913,7 +913,7 @@ class EXPORT_OT_obj(bpy.types.Operator):
 	# to the class instance from the operator settings before calling.
 
 	__props__ = [
-		bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for exporting the PLY file", maxlen= 1024, default= ""),
+		bpy.props.StringProperty(attr="filename", name="File Name", description="File name used for exporting the OBJ file", maxlen= 1024, default= ""),
 
 		# context group
 		bpy.props.BoolProperty(attr="use_selection", name="Selection Only", description="", default= False),
