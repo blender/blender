@@ -38,7 +38,7 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-FLUID_3D::FLUID_3D(int *res, int amplify, float *p0, float dt) :
+FLUID_3D::FLUID_3D(int *res, float *p0, float dt) :
 	_xRes(res[0]), _yRes(res[1]), _zRes(res[2]), _res(0.0f), _dt(dt)
 {
 	// set simulation consts
@@ -122,6 +122,8 @@ FLUID_3D::FLUID_3D(int *res, int amplify, float *p0, float dt) :
 		_yVorticity[x]   = 0.0f;
 		_zVorticity[x]   = 0.0f;
 		_residual[x]     = 0.0f;
+		_q[x]			 = 0.0f;
+		_direction[x]    = 0.0f;
 		_h[x]			 = 0.0f;
 		_Precond[x]		 = 0.0f;
 		_obstacles[x]    = false;
@@ -487,7 +489,7 @@ void FLUID_3D::setObstaclePressure()
 				_pressure[index] = 0.0f;
 
 				// average pressure neighbors
-				float pcnt = 0., vp = 0.;
+				float pcnt = 0.;
 				if (left && !right) {
 					_pressure[index] += _pressure[index + 1];
 					pcnt += 1.;

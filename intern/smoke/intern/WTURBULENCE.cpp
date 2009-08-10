@@ -774,7 +774,7 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
 #endif
   { float maxVelMag1 = 0.;
 #if PARALLEL==1
-    const int id  = omp_get_thread_num(), num = omp_get_num_threads();
+    const int id  = omp_get_thread_num(); /*, num = omp_get_num_threads(); */
 #endif
 
   // vector noise main loop

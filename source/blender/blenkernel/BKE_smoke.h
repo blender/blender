@@ -1,5 +1,5 @@
 /**
- * BKE_cloth.h
+ * BKE_smoke.h
  *
  * $Id$
  *

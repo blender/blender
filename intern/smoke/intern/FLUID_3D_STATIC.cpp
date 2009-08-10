@@ -600,6 +600,7 @@ void FLUID_3D::writeImageSliceXZ(const float *field, Vec3Int res, int slice, str
 //////////////////////////////////////////////////////////////////////
 // Helper function for projecting densities along a dimension
 //////////////////////////////////////////////////////////////////////
+/*
 static int getOtherDir(int dir1, int dir2) {
 	switch(dir1) {
 		case 0:
@@ -622,6 +623,7 @@ static int getOtherDir(int dir1, int dir2) {
 	}
 	return 0;
 }
+*/
 
 //////////////////////////////////////////////////////////////////////
 // average densities along third spatial direction

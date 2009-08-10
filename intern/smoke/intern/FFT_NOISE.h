@@ -41,7 +41,7 @@ static void shift3D(float*& field, int xRes, int yRes, int zRes)
   int xHalf = xRes / 2;
   int yHalf = yRes / 2;
   int zHalf = zRes / 2;
-  int slabSize = xRes * yRes;
+ // int slabSize = xRes * yRes;
   for (int z = 0; z < zHalf; z++)
     for (int y = 0; y < yHalf; y++)
       for (int x = 0; x < xHalf; x++)

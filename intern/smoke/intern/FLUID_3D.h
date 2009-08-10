@@ -37,7 +37,7 @@ class WTURBULENCE;
 class FLUID_3D  
 {
 	public:
-		FLUID_3D(int *res, int amplify, float *p0, float dt);
+		FLUID_3D(int *res, /* int amplify, */ float *p0, float dt);
 		FLUID_3D() {};
 		virtual ~FLUID_3D();
 

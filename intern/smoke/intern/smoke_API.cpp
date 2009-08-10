@@ -32,10 +32,10 @@
 #include <stdlib.h>
 
 // y in smoke is z in blender
-extern "C" FLUID_3D *smoke_init(int *res, int amplify, float *p0, float *p1, float dt)
+extern "C" FLUID_3D *smoke_init(int *res, float *p0, float dt)
 {
 	// smoke lib uses y as top-bottom/vertical axis where blender uses z
-	FLUID_3D *fluid = new FLUID_3D(res, amplify, p0, dt);
+	FLUID_3D *fluid = new FLUID_3D(res, p0, dt);
 
 	// printf("xres: %d, yres: %d, zres: %d\n", res[0], res[1], res[2]);
 

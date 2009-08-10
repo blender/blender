@@ -1,5 +1,5 @@
 /**
- * BKE_cloth.h
+ * smoke.c
  *
  * $Id$
  *
@@ -207,7 +207,7 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 		// printf("res[0]: %d, res[1]: %d, res[2]: %d\n", smd->domain->res[0], smd->domain->res[1], smd->domain->res[2]);
 
 		// dt max is 0.1
-		smd->domain->fluid = smoke_init(smd->domain->res, 0, smd->domain->p0, smd->domain->p1, 2.5 / FPS);
+		smd->domain->fluid = smoke_init(smd->domain->res, smd->domain->p0, 2.5 / FPS);
 		smd->domain->wt = smoke_turbulence_init(smd->domain->res,  (smd->domain->flags & MOD_SMOKE_HIGHRES) ? (smd->domain->amplify + 1) : 0, smd->domain->noise);
 		smd->time = scene->r.cfra;
 		smd->domain->firstframe = smd->time;
