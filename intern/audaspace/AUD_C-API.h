@@ -30,7 +30,7 @@
 extern "C" {
 #endif
 
-#include "AUD_Space.h"
+#include "./intern/AUD_Space.h"
 
 typedef enum
 {

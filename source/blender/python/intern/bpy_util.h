@@ -50,6 +50,8 @@ void PyObSpit(char *name, PyObject *var);
 void PyLineSpit(void);
 void BPY_getFileAndNum(char **filename, int *lineno);
 
+PyObject *Py_CmpToRich(int op, int cmp);
+
 PyObject *BPY_exception_buffer(void);
 
 /* own python like utility function */
@@ -75,7 +77,7 @@ int BPY_class_validate(const char *class_type, PyObject *class, PyObject *base_c
 char *BPy_enum_as_string(struct EnumPropertyItem *item);
 
 
-#define BLANK_PYTHON_TYPE {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+#define BLANK_PYTHON_TYPE {PyVarObject_HEAD_INIT(NULL, 0) 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
 
 /* error reporting */
 int BPy_reports_to_error(struct ReportList *reports);

@@ -124,7 +124,6 @@ int BPY_flag_from_seq(BPY_flag_def *flagdef, PyObject *seq, int *flag)
 
 
 /* Copied from pythons 3's Object.c */
-#ifndef Py_CmpToRich
 PyObject *
 Py_CmpToRich(int op, int cmp)
 {
@@ -160,7 +159,6 @@ Py_CmpToRich(int op, int cmp)
 	Py_INCREF(res);
 	return res;
 }
-#endif
 
 /* for debugging */
 void PyObSpit(char *name, PyObject *var) {
