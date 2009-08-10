@@ -36,7 +36,9 @@ LIBNAME = audaspace
 SOURCEDIR = intern/audaspace
 DIR = $(OCGDIR)/$(SOURCEDIR)
 DIRS = intern
+DIRS += FX
 DIRS += SDL
+DIRS += SRC
 
 ifeq ($(WITH_FFMPEG),true)
   DIRS += ffmpeg
@@ -48,10 +50,10 @@ install: $(ALL_OR_DEBUG)
 	@[ -d $(NAN_AUDASPACE) ] || mkdir $(NAN_AUDASPACE)
 	@[ -d $(NAN_AUDASPACE)/include ] || mkdir $(NAN_AUDASPACE)/include
 	@[ -d $(NAN_AUDASPACE)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
-	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libaudaspace.a $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libaudaspace.a $(DIR)/$(DEBUG_DIR)libaud_fx.a $(DIR)/$(DEBUG_DIR)libaud_src.a $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
 ifeq ($(OS),darwin)
 	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaudaspace.a
 endif
-	@../tools/cpifdiff.sh *.h $(NAN_AUDASPACE)/include/
+	@../tools/cpifdiff.sh *.h intern/AUD_Space.h $(NAN_AUDASPACE)/include/
 
 

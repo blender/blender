@@ -106,6 +106,9 @@ COMLIB += $(NAN_JPEG)/lib/libjpeg.a
 COMLIB += $(OCGDIR)/blender/gpu/$(DEBUG_DIR)libgpu.a
 COMLIB += $(NAN_GLEW)/lib/$(DEBUG_DIR)libglew.a
 COMLIB += $(OCGDIR)/blender/blenfont/$(DEBUG_DIR)libblenfont.a
+COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaudaspace.a
+COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_src.a
+COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_fx.a
 
 ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/bloutines/$(DEBUG_DIR)libbloutines.a
