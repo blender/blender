@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic;..\..\..\..\source\gameengine\Scenegraph"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\lib\windows\python\include\python3.1;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic;..\..\..\..\source\gameengine\Scenegraph"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -118,7 +118,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic;..\..\..\..\source\gameengine\Scenegraph"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\lib\windows\python\include\python3.1;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic;..\..\..\..\source\gameengine\Scenegraph"
 				PreprocessorDefinitions="WIN32,_LIB,_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -193,7 +193,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic;..\..\..\..\source\gameengine\Scenegraph"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\lib\windows\python\include\python3.1;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic;..\..\..\..\source\gameengine\Scenegraph"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -268,7 +268,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic;..\..\..\..\source\gameengine\Scenegraph"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\lib\windows\python\include\python3.1;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic;..\..\..\..\source\gameengine\Scenegraph"
 				PreprocessorDefinitions="WIN32,_LIB,_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -343,7 +343,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic;..\..\..\..\source\gameengine\Scenegraph"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\lib\windows\python\include\python3.1;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic;..\..\..\..\source\gameengine\Scenegraph"
 				PreprocessorDefinitions="WIN32,_LIB,_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -418,7 +418,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic;..\..\..\..\source\gameengine\Scenegraph"
+				AdditionalIncludeDirectories="..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\build\msvc_9\intern\moto\include;..\..\..\..\..\lib\windows\python\include\python3.1;..\..\..\..\source\kernel\gen_system;..\..\..\..\source\gameengine\ketsji;..\..\..\..\source\gameengine\Network;..\..\..\..\source\gameengine\expressions;..\..\..\..\source\gameengine\GameLogic;..\..\..\..\source\gameengine\Scenegraph"
 				PreprocessorDefinitions="NDEBUG,WIN32,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="0"
