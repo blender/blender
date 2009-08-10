@@ -165,13 +165,7 @@ bool KX_NetworkMessageSensor::IsPositiveTrigger()
 
 /* Integration hooks --------------------------------------------------- */
 PyTypeObject KX_NetworkMessageSensor::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"KX_NetworkMessageSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -196,19 +190,19 @@ PyMethodDef KX_NetworkMessageSensor::Methods[] = {
 	// Deprecated ----->
 	{"setSubjectFilterText", (PyCFunction)
 		KX_NetworkMessageSensor::sPySetSubjectFilterText, METH_O,
-		(PY_METHODCHAR)SetSubjectFilterText_doc},
+		(const char *)SetSubjectFilterText_doc},
 	{"getFrameMessageCount", (PyCFunction)
 		KX_NetworkMessageSensor::sPyGetFrameMessageCount, METH_NOARGS,
-		(PY_METHODCHAR)GetFrameMessageCount_doc},
+		(const char *)GetFrameMessageCount_doc},
 	{"getBodies", (PyCFunction)
 		KX_NetworkMessageSensor::sPyGetBodies, METH_NOARGS,
-		(PY_METHODCHAR)GetBodies_doc},
+		(const char *)GetBodies_doc},
 	{"getSubject", (PyCFunction)
 		KX_NetworkMessageSensor::sPyGetSubject, METH_NOARGS,
-		(PY_METHODCHAR)GetSubject_doc},
+		(const char *)GetSubject_doc},
 	{"getSubjects", (PyCFunction)
 		KX_NetworkMessageSensor::sPyGetSubjects, METH_NOARGS,
-		(PY_METHODCHAR)GetSubjects_doc},
+		(const char *)GetSubjects_doc},
 	// <-----
 	{NULL,NULL} //Sentinel
 };

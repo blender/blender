@@ -547,13 +547,7 @@ static PyGetSetDef Euler_getseters[] = {
 
 //------------------PY_OBECT DEFINITION--------------------------
 PyTypeObject euler_Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"euler",						//tp_name
 	sizeof(EulerObject),			//tp_basicsize
 	0,								//tp_itemsize

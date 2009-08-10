@@ -565,13 +565,7 @@ bool KX_ConstraintActuator::IsValidMode(KX_ConstraintActuator::KX_CONSTRAINTTYPE
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_ConstraintActuator::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"KX_ConstraintActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -594,28 +588,28 @@ PyTypeObject KX_ConstraintActuator::Type = {
 
 PyMethodDef KX_ConstraintActuator::Methods[] = {
 	// Deprecated -->
-	{"setDamp", (PyCFunction) KX_ConstraintActuator::sPySetDamp, METH_VARARGS, (PY_METHODCHAR)SetDamp_doc},
-	{"getDamp", (PyCFunction) KX_ConstraintActuator::sPyGetDamp, METH_NOARGS, (PY_METHODCHAR)GetDamp_doc},
-	{"setRotDamp", (PyCFunction) KX_ConstraintActuator::sPySetRotDamp, METH_VARARGS, (PY_METHODCHAR)SetRotDamp_doc},
-	{"getRotDamp", (PyCFunction) KX_ConstraintActuator::sPyGetRotDamp, METH_NOARGS, (PY_METHODCHAR)GetRotDamp_doc},
-	{"setDirection", (PyCFunction) KX_ConstraintActuator::sPySetDirection, METH_VARARGS, (PY_METHODCHAR)SetDirection_doc},
-	{"getDirection", (PyCFunction) KX_ConstraintActuator::sPyGetDirection, METH_NOARGS, (PY_METHODCHAR)GetDirection_doc},
-	{"setOption", (PyCFunction) KX_ConstraintActuator::sPySetOption, METH_VARARGS, (PY_METHODCHAR)SetOption_doc},
-	{"getOption", (PyCFunction) KX_ConstraintActuator::sPyGetOption, METH_NOARGS, (PY_METHODCHAR)GetOption_doc},
-	{"setTime", (PyCFunction) KX_ConstraintActuator::sPySetTime, METH_VARARGS, (PY_METHODCHAR)SetTime_doc},
-	{"getTime", (PyCFunction) KX_ConstraintActuator::sPyGetTime, METH_NOARGS, (PY_METHODCHAR)GetTime_doc},
-	{"setProperty", (PyCFunction) KX_ConstraintActuator::sPySetProperty, METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
-	{"getProperty", (PyCFunction) KX_ConstraintActuator::sPyGetProperty, METH_NOARGS, (PY_METHODCHAR)GetProperty_doc},
-	{"setMin", (PyCFunction) KX_ConstraintActuator::sPySetMin, METH_VARARGS, (PY_METHODCHAR)SetMin_doc},
-	{"getMin", (PyCFunction) KX_ConstraintActuator::sPyGetMin, METH_NOARGS, (PY_METHODCHAR)GetMin_doc},
-	{"setDistance", (PyCFunction) KX_ConstraintActuator::sPySetMin, METH_VARARGS, (PY_METHODCHAR)SetDistance_doc},
-	{"getDistance", (PyCFunction) KX_ConstraintActuator::sPyGetMin, METH_NOARGS, (PY_METHODCHAR)GetDistance_doc},
-	{"setMax", (PyCFunction) KX_ConstraintActuator::sPySetMax, METH_VARARGS, (PY_METHODCHAR)SetMax_doc},
-	{"getMax", (PyCFunction) KX_ConstraintActuator::sPyGetMax, METH_NOARGS, (PY_METHODCHAR)GetMax_doc},
-	{"setRayLength", (PyCFunction) KX_ConstraintActuator::sPySetMax, METH_VARARGS, (PY_METHODCHAR)SetRayLength_doc},
-	{"getRayLength", (PyCFunction) KX_ConstraintActuator::sPyGetMax, METH_NOARGS, (PY_METHODCHAR)GetRayLength_doc},
-	{"setLimit", (PyCFunction) KX_ConstraintActuator::sPySetLimit, METH_VARARGS, (PY_METHODCHAR)SetLimit_doc},
-	{"getLimit", (PyCFunction) KX_ConstraintActuator::sPyGetLimit, METH_NOARGS, (PY_METHODCHAR)GetLimit_doc},
+	{"setDamp", (PyCFunction) KX_ConstraintActuator::sPySetDamp, METH_VARARGS, (const char *)SetDamp_doc},
+	{"getDamp", (PyCFunction) KX_ConstraintActuator::sPyGetDamp, METH_NOARGS, (const char *)GetDamp_doc},
+	{"setRotDamp", (PyCFunction) KX_ConstraintActuator::sPySetRotDamp, METH_VARARGS, (const char *)SetRotDamp_doc},
+	{"getRotDamp", (PyCFunction) KX_ConstraintActuator::sPyGetRotDamp, METH_NOARGS, (const char *)GetRotDamp_doc},
+	{"setDirection", (PyCFunction) KX_ConstraintActuator::sPySetDirection, METH_VARARGS, (const char *)SetDirection_doc},
+	{"getDirection", (PyCFunction) KX_ConstraintActuator::sPyGetDirection, METH_NOARGS, (const char *)GetDirection_doc},
+	{"setOption", (PyCFunction) KX_ConstraintActuator::sPySetOption, METH_VARARGS, (const char *)SetOption_doc},
+	{"getOption", (PyCFunction) KX_ConstraintActuator::sPyGetOption, METH_NOARGS, (const char *)GetOption_doc},
+	{"setTime", (PyCFunction) KX_ConstraintActuator::sPySetTime, METH_VARARGS, (const char *)SetTime_doc},
+	{"getTime", (PyCFunction) KX_ConstraintActuator::sPyGetTime, METH_NOARGS, (const char *)GetTime_doc},
+	{"setProperty", (PyCFunction) KX_ConstraintActuator::sPySetProperty, METH_VARARGS, (const char *)SetProperty_doc},
+	{"getProperty", (PyCFunction) KX_ConstraintActuator::sPyGetProperty, METH_NOARGS, (const char *)GetProperty_doc},
+	{"setMin", (PyCFunction) KX_ConstraintActuator::sPySetMin, METH_VARARGS, (const char *)SetMin_doc},
+	{"getMin", (PyCFunction) KX_ConstraintActuator::sPyGetMin, METH_NOARGS, (const char *)GetMin_doc},
+	{"setDistance", (PyCFunction) KX_ConstraintActuator::sPySetMin, METH_VARARGS, (const char *)SetDistance_doc},
+	{"getDistance", (PyCFunction) KX_ConstraintActuator::sPyGetMin, METH_NOARGS, (const char *)GetDistance_doc},
+	{"setMax", (PyCFunction) KX_ConstraintActuator::sPySetMax, METH_VARARGS, (const char *)SetMax_doc},
+	{"getMax", (PyCFunction) KX_ConstraintActuator::sPyGetMax, METH_NOARGS, (const char *)GetMax_doc},
+	{"setRayLength", (PyCFunction) KX_ConstraintActuator::sPySetMax, METH_VARARGS, (const char *)SetRayLength_doc},
+	{"getRayLength", (PyCFunction) KX_ConstraintActuator::sPyGetMax, METH_NOARGS, (const char *)GetRayLength_doc},
+	{"setLimit", (PyCFunction) KX_ConstraintActuator::sPySetLimit, METH_VARARGS, (const char *)SetLimit_doc},
+	{"getLimit", (PyCFunction) KX_ConstraintActuator::sPyGetLimit, METH_NOARGS, (const char *)GetLimit_doc},
 	// <--
 	{NULL,NULL} //Sentinel
 };

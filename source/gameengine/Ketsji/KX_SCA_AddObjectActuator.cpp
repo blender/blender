@@ -170,13 +170,7 @@ void KX_SCA_AddObjectActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_SCA_AddObjectActuator::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"KX_SCA_AddObjectActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -199,16 +193,16 @@ PyTypeObject KX_SCA_AddObjectActuator::Type = {
 
 PyMethodDef KX_SCA_AddObjectActuator::Methods[] = {
   // ---> deprecated
-  {"setTime", (PyCFunction) KX_SCA_AddObjectActuator::sPySetTime, METH_O, (PY_METHODCHAR)SetTime_doc},
-  {"getTime", (PyCFunction) KX_SCA_AddObjectActuator::sPyGetTime, METH_NOARGS, (PY_METHODCHAR)GetTime_doc},
-  {"getLinearVelocity", (PyCFunction) KX_SCA_AddObjectActuator::sPyGetLinearVelocity, METH_NOARGS, (PY_METHODCHAR)GetLinearVelocity_doc},
-  {"setLinearVelocity", (PyCFunction) KX_SCA_AddObjectActuator::sPySetLinearVelocity, METH_VARARGS, (PY_METHODCHAR)SetLinearVelocity_doc},
-  {"getAngularVelocity", (PyCFunction) KX_SCA_AddObjectActuator::sPyGetAngularVelocity, METH_NOARGS, (PY_METHODCHAR)GetAngularVelocity_doc},
-  {"setAngularVelocity", (PyCFunction) KX_SCA_AddObjectActuator::sPySetAngularVelocity, METH_VARARGS, (PY_METHODCHAR)SetAngularVelocity_doc},
+  {"setTime", (PyCFunction) KX_SCA_AddObjectActuator::sPySetTime, METH_O, (const char *)SetTime_doc},
+  {"getTime", (PyCFunction) KX_SCA_AddObjectActuator::sPyGetTime, METH_NOARGS, (const char *)GetTime_doc},
+  {"getLinearVelocity", (PyCFunction) KX_SCA_AddObjectActuator::sPyGetLinearVelocity, METH_NOARGS, (const char *)GetLinearVelocity_doc},
+  {"setLinearVelocity", (PyCFunction) KX_SCA_AddObjectActuator::sPySetLinearVelocity, METH_VARARGS, (const char *)SetLinearVelocity_doc},
+  {"getAngularVelocity", (PyCFunction) KX_SCA_AddObjectActuator::sPyGetAngularVelocity, METH_NOARGS, (const char *)GetAngularVelocity_doc},
+  {"setAngularVelocity", (PyCFunction) KX_SCA_AddObjectActuator::sPySetAngularVelocity, METH_VARARGS, (const char *)SetAngularVelocity_doc},
   {"getLastCreatedObject", (PyCFunction) KX_SCA_AddObjectActuator::sPyGetLastCreatedObject, METH_NOARGS,"getLastCreatedObject() : get the object handle to the last created object\n"},
   {"instantAddObject", (PyCFunction) KX_SCA_AddObjectActuator::sPyInstantAddObject, METH_NOARGS,"instantAddObject() : immediately add object without delay\n"},
-  {"setObject", (PyCFunction) KX_SCA_AddObjectActuator::sPySetObject, METH_O, (PY_METHODCHAR)SetObject_doc},
-  {"getObject", (PyCFunction) KX_SCA_AddObjectActuator::sPyGetObject, METH_VARARGS, (PY_METHODCHAR)GetObject_doc},
+  {"setObject", (PyCFunction) KX_SCA_AddObjectActuator::sPySetObject, METH_O, (const char *)SetObject_doc},
+  {"getObject", (PyCFunction) KX_SCA_AddObjectActuator::sPyGetObject, METH_VARARGS, (const char *)GetObject_doc},
   
   {NULL,NULL} //Sentinel
 };

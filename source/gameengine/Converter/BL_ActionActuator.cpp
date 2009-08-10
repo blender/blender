@@ -1006,56 +1006,50 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 /* ------------------------------------------------------------------------- */
 
 PyTypeObject BL_ActionActuator::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
-		"BL_ActionActuator",
-		sizeof(PyObjectPlus_Proxy),
-		0,
-		py_base_dealloc,
-		0,
-		0,
-		0,
-		0,
-		py_base_repr,
-		0,0,0,0,0,0,0,0,0,
-		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-		0,0,0,0,0,0,0,
-		Methods,
-		0,
-		0,
-		&SCA_IActuator::Type,
-		0,0,0,0,0,0,
-		py_base_new
+	"BL_ActionActuator",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_IActuator::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef BL_ActionActuator::Methods[] = {
 	//Deprecated ----->
-	{"setAction", (PyCFunction) BL_ActionActuator::sPySetAction, METH_VARARGS, (PY_METHODCHAR)SetAction_doc},
-	{"setStart", (PyCFunction) BL_ActionActuator::sPySetStart, METH_VARARGS, (PY_METHODCHAR)SetStart_doc},
-	{"setEnd", (PyCFunction) BL_ActionActuator::sPySetEnd, METH_VARARGS, (PY_METHODCHAR)SetEnd_doc},
-	{"setBlendin", (PyCFunction) BL_ActionActuator::sPySetBlendin, METH_VARARGS, (PY_METHODCHAR)SetBlendin_doc},
-	{"setPriority", (PyCFunction) BL_ActionActuator::sPySetPriority, METH_VARARGS, (PY_METHODCHAR)SetPriority_doc},
-	{"setFrame", (PyCFunction) BL_ActionActuator::sPySetFrame, METH_VARARGS, (PY_METHODCHAR)SetFrame_doc},
-	{"setProperty", (PyCFunction) BL_ActionActuator::sPySetProperty, METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
-	{"setFrameProperty", (PyCFunction) BL_ActionActuator::sPySetFrameProperty, METH_VARARGS, (PY_METHODCHAR)SetFrameProperty_doc},
-	{"setBlendtime", (PyCFunction) BL_ActionActuator::sPySetBlendtime, METH_VARARGS, (PY_METHODCHAR)SetBlendtime_doc},
+	{"setAction", (PyCFunction) BL_ActionActuator::sPySetAction, METH_VARARGS, (const char *)SetAction_doc},
+	{"setStart", (PyCFunction) BL_ActionActuator::sPySetStart, METH_VARARGS, (const char *)SetStart_doc},
+	{"setEnd", (PyCFunction) BL_ActionActuator::sPySetEnd, METH_VARARGS, (const char *)SetEnd_doc},
+	{"setBlendin", (PyCFunction) BL_ActionActuator::sPySetBlendin, METH_VARARGS, (const char *)SetBlendin_doc},
+	{"setPriority", (PyCFunction) BL_ActionActuator::sPySetPriority, METH_VARARGS, (const char *)SetPriority_doc},
+	{"setFrame", (PyCFunction) BL_ActionActuator::sPySetFrame, METH_VARARGS, (const char *)SetFrame_doc},
+	{"setProperty", (PyCFunction) BL_ActionActuator::sPySetProperty, METH_VARARGS, (const char *)SetProperty_doc},
+	{"setFrameProperty", (PyCFunction) BL_ActionActuator::sPySetFrameProperty, METH_VARARGS, (const char *)SetFrameProperty_doc},
+	{"setBlendtime", (PyCFunction) BL_ActionActuator::sPySetBlendtime, METH_VARARGS, (const char *)SetBlendtime_doc},
 
-	{"getAction", (PyCFunction) BL_ActionActuator::sPyGetAction, METH_VARARGS, (PY_METHODCHAR)GetAction_doc},
-	{"getStart", (PyCFunction) BL_ActionActuator::sPyGetStart, METH_VARARGS, (PY_METHODCHAR)GetStart_doc},
-	{"getEnd", (PyCFunction) BL_ActionActuator::sPyGetEnd, METH_VARARGS, (PY_METHODCHAR)GetEnd_doc},
-	{"getBlendin", (PyCFunction) BL_ActionActuator::sPyGetBlendin, METH_VARARGS, (PY_METHODCHAR)GetBlendin_doc},
-	{"getPriority", (PyCFunction) BL_ActionActuator::sPyGetPriority, METH_VARARGS, (PY_METHODCHAR)GetPriority_doc},
-	{"getFrame", (PyCFunction) BL_ActionActuator::sPyGetFrame, METH_VARARGS, (PY_METHODCHAR)GetFrame_doc},
-	{"getProperty", (PyCFunction) BL_ActionActuator::sPyGetProperty, METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
-	{"getFrameProperty", (PyCFunction) BL_ActionActuator::sPyGetFrameProperty, METH_VARARGS, (PY_METHODCHAR)GetFrameProperty_doc},
+	{"getAction", (PyCFunction) BL_ActionActuator::sPyGetAction, METH_VARARGS, (const char *)GetAction_doc},
+	{"getStart", (PyCFunction) BL_ActionActuator::sPyGetStart, METH_VARARGS, (const char *)GetStart_doc},
+	{"getEnd", (PyCFunction) BL_ActionActuator::sPyGetEnd, METH_VARARGS, (const char *)GetEnd_doc},
+	{"getBlendin", (PyCFunction) BL_ActionActuator::sPyGetBlendin, METH_VARARGS, (const char *)GetBlendin_doc},
+	{"getPriority", (PyCFunction) BL_ActionActuator::sPyGetPriority, METH_VARARGS, (const char *)GetPriority_doc},
+	{"getFrame", (PyCFunction) BL_ActionActuator::sPyGetFrame, METH_VARARGS, (const char *)GetFrame_doc},
+	{"getProperty", (PyCFunction) BL_ActionActuator::sPyGetProperty, METH_VARARGS, (const char *)GetProperty_doc},
+	{"getFrameProperty", (PyCFunction) BL_ActionActuator::sPyGetFrameProperty, METH_VARARGS, (const char *)GetFrameProperty_doc},
 	{"getChannel", (PyCFunction) BL_ActionActuator::sPyGetChannel, METH_O},
-	{"getType", (PyCFunction) BL_ActionActuator::sPyGetType, METH_VARARGS, (PY_METHODCHAR)GetType_doc},
-	{"setType", (PyCFunction) BL_ActionActuator::sPySetType, METH_VARARGS, (PY_METHODCHAR)SetType_doc},
+	{"getType", (PyCFunction) BL_ActionActuator::sPyGetType, METH_VARARGS, (const char *)GetType_doc},
+	{"setType", (PyCFunction) BL_ActionActuator::sPySetType, METH_VARARGS, (const char *)SetType_doc},
 	{"getContinue", (PyCFunction) BL_ActionActuator::sPyGetContinue, METH_NOARGS, 0},	
 	{"setContinue", (PyCFunction) BL_ActionActuator::sPySetContinue, METH_O, 0},
 	//<------

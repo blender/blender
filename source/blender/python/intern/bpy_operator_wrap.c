@@ -37,7 +37,6 @@
 #include "RNA_define.h"
 
 #include "bpy_rna.h"
-#include "bpy_compat.h"
 #include "bpy_util.h"
 
 #include "../generic/bpy_internal_import.h" // our own imports

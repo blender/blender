@@ -614,13 +614,7 @@ KX_PYMETHODDEF_DOC_O(SCA_KeyboardSensor, getKeyStatus,
 /* ------------------------------------------------------------------------- */
 
 PyTypeObject SCA_KeyboardSensor::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"SCA_KeyboardSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -643,14 +637,14 @@ PyTypeObject SCA_KeyboardSensor::Type = {
 
 PyMethodDef SCA_KeyboardSensor::Methods[] = {
 	//Deprecated functions ------>
-	{"getKey", (PyCFunction) SCA_KeyboardSensor::sPyGetKey, METH_NOARGS, (PY_METHODCHAR)GetKey_doc},
-	{"setKey", (PyCFunction) SCA_KeyboardSensor::sPySetKey, METH_VARARGS, (PY_METHODCHAR)SetKey_doc},
-	{"getHold1", (PyCFunction) SCA_KeyboardSensor::sPyGetHold1, METH_NOARGS, (PY_METHODCHAR)GetHold1_doc},
-	{"setHold1", (PyCFunction) SCA_KeyboardSensor::sPySetHold1, METH_VARARGS, (PY_METHODCHAR)SetHold1_doc},
-	{"getHold2", (PyCFunction) SCA_KeyboardSensor::sPyGetHold2, METH_NOARGS, (PY_METHODCHAR)GetHold2_doc},
-	{"setHold2", (PyCFunction) SCA_KeyboardSensor::sPySetHold2, METH_VARARGS, (PY_METHODCHAR)SetHold2_doc},
-	{"getPressedKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetPressedKeys, METH_NOARGS, (PY_METHODCHAR)GetPressedKeys_doc},
-	{"getCurrentlyPressedKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetCurrentlyPressedKeys, METH_NOARGS, (PY_METHODCHAR)GetCurrentlyPressedKeys_doc},
+	{"getKey", (PyCFunction) SCA_KeyboardSensor::sPyGetKey, METH_NOARGS, (const char *)GetKey_doc},
+	{"setKey", (PyCFunction) SCA_KeyboardSensor::sPySetKey, METH_VARARGS, (const char *)SetKey_doc},
+	{"getHold1", (PyCFunction) SCA_KeyboardSensor::sPyGetHold1, METH_NOARGS, (const char *)GetHold1_doc},
+	{"setHold1", (PyCFunction) SCA_KeyboardSensor::sPySetHold1, METH_VARARGS, (const char *)SetHold1_doc},
+	{"getHold2", (PyCFunction) SCA_KeyboardSensor::sPyGetHold2, METH_NOARGS, (const char *)GetHold2_doc},
+	{"setHold2", (PyCFunction) SCA_KeyboardSensor::sPySetHold2, METH_VARARGS, (const char *)SetHold2_doc},
+	{"getPressedKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetPressedKeys, METH_NOARGS, (const char *)GetPressedKeys_doc},
+	{"getCurrentlyPressedKeys", (PyCFunction) SCA_KeyboardSensor::sPyGetCurrentlyPressedKeys, METH_NOARGS, (const char *)GetCurrentlyPressedKeys_doc},
 	//<----- Deprecated
 	KX_PYMETHODTABLE_O(SCA_KeyboardSensor, getKeyStatus),
 	{NULL,NULL} //Sentinel

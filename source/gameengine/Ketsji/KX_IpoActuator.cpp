@@ -412,13 +412,7 @@ int KX_IpoActuator::string2mode(char* modename) {
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_IpoActuator::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"KX_IpoActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -441,20 +435,20 @@ PyTypeObject KX_IpoActuator::Type = {
 
 PyMethodDef KX_IpoActuator::Methods[] = {
 	// deprecated 
-	{"set", (PyCFunction) KX_IpoActuator::sPySet, METH_VARARGS, (PY_METHODCHAR)Set_doc},
-	{"setProperty", (PyCFunction) KX_IpoActuator::sPySetProperty, METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
-	{"setStart", (PyCFunction) KX_IpoActuator::sPySetStart, METH_VARARGS, (PY_METHODCHAR)SetStart_doc},
-	{"getStart", (PyCFunction) KX_IpoActuator::sPyGetStart, METH_NOARGS, (PY_METHODCHAR)GetStart_doc},
-	{"setEnd", (PyCFunction) KX_IpoActuator::sPySetEnd, METH_VARARGS, (PY_METHODCHAR)SetEnd_doc},
-	{"getEnd", (PyCFunction) KX_IpoActuator::sPyGetEnd, METH_NOARGS, (PY_METHODCHAR)GetEnd_doc},
-	{"setIpoAsForce", (PyCFunction) KX_IpoActuator::sPySetIpoAsForce, METH_VARARGS, (PY_METHODCHAR)SetIpoAsForce_doc},
-	{"getIpoAsForce", (PyCFunction) KX_IpoActuator::sPyGetIpoAsForce, METH_NOARGS, (PY_METHODCHAR)GetIpoAsForce_doc},
-	{"setIpoAdd", (PyCFunction) KX_IpoActuator::sPySetIpoAdd, METH_VARARGS, (PY_METHODCHAR)SetIpoAdd_doc},
-	{"getIpoAdd", (PyCFunction) KX_IpoActuator::sPyGetIpoAdd, METH_NOARGS, (PY_METHODCHAR)GetIpoAdd_doc},
-	{"setForceIpoActsLocal", (PyCFunction) KX_IpoActuator::sPySetForceIpoActsLocal, METH_VARARGS, (PY_METHODCHAR)SetForceIpoActsLocal_doc},
-	{"getForceIpoActsLocal", (PyCFunction) KX_IpoActuator::sPyGetForceIpoActsLocal,	METH_NOARGS, (PY_METHODCHAR)GetForceIpoActsLocal_doc},
-	{"setType", (PyCFunction) KX_IpoActuator::sPySetType, METH_VARARGS, (PY_METHODCHAR)SetType_doc},
-	{"getType", (PyCFunction) KX_IpoActuator::sPyGetType, METH_NOARGS, (PY_METHODCHAR)GetType_doc},	
+	{"set", (PyCFunction) KX_IpoActuator::sPySet, METH_VARARGS, (const char *)Set_doc},
+	{"setProperty", (PyCFunction) KX_IpoActuator::sPySetProperty, METH_VARARGS, (const char *)SetProperty_doc},
+	{"setStart", (PyCFunction) KX_IpoActuator::sPySetStart, METH_VARARGS, (const char *)SetStart_doc},
+	{"getStart", (PyCFunction) KX_IpoActuator::sPyGetStart, METH_NOARGS, (const char *)GetStart_doc},
+	{"setEnd", (PyCFunction) KX_IpoActuator::sPySetEnd, METH_VARARGS, (const char *)SetEnd_doc},
+	{"getEnd", (PyCFunction) KX_IpoActuator::sPyGetEnd, METH_NOARGS, (const char *)GetEnd_doc},
+	{"setIpoAsForce", (PyCFunction) KX_IpoActuator::sPySetIpoAsForce, METH_VARARGS, (const char *)SetIpoAsForce_doc},
+	{"getIpoAsForce", (PyCFunction) KX_IpoActuator::sPyGetIpoAsForce, METH_NOARGS, (const char *)GetIpoAsForce_doc},
+	{"setIpoAdd", (PyCFunction) KX_IpoActuator::sPySetIpoAdd, METH_VARARGS, (const char *)SetIpoAdd_doc},
+	{"getIpoAdd", (PyCFunction) KX_IpoActuator::sPyGetIpoAdd, METH_NOARGS, (const char *)GetIpoAdd_doc},
+	{"setForceIpoActsLocal", (PyCFunction) KX_IpoActuator::sPySetForceIpoActsLocal, METH_VARARGS, (const char *)SetForceIpoActsLocal_doc},
+	{"getForceIpoActsLocal", (PyCFunction) KX_IpoActuator::sPyGetForceIpoActsLocal,	METH_NOARGS, (const char *)GetForceIpoActsLocal_doc},
+	{"setType", (PyCFunction) KX_IpoActuator::sPySetType, METH_VARARGS, (const char *)SetType_doc},
+	{"getType", (PyCFunction) KX_IpoActuator::sPyGetType, METH_NOARGS, (const char *)GetType_doc},	
 	{NULL,NULL} //Sentinel
 };
 

@@ -252,54 +252,48 @@ bool SCA_JoystickSensor::isValid(SCA_JoystickSensor::KX_JOYSENSORMODE m)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_JoystickSensor::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
-		"SCA_JoystickSensor",
-		sizeof(PyObjectPlus_Proxy),
-		0,
-		py_base_dealloc,
-		0,
-		0,
-		0,
-		0,
-		py_base_repr,
-		0,0,0,0,0,0,0,0,0,
-		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-		0,0,0,0,0,0,0,
-		Methods,
-		0,
-		0,
-		&SCA_ISensor::Type,
-		0,0,0,0,0,0,
-		py_base_new
+	"SCA_JoystickSensor",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_ISensor::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef SCA_JoystickSensor::Methods[] = {
 	//Deprecated functions ------>
-	{"getIndex", 	 (PyCFunction) SCA_JoystickSensor::sPyGetIndex,		METH_NOARGS,	(PY_METHODCHAR)GetIndex_doc},
-	{"setIndex",	 (PyCFunction) SCA_JoystickSensor::sPySetIndex,		METH_O,			(PY_METHODCHAR)SetIndex_doc},
-	{"getAxis", 	 (PyCFunction) SCA_JoystickSensor::sPyGetAxis,		METH_NOARGS,	(PY_METHODCHAR)GetAxis_doc},
-	{"setAxis", 	 (PyCFunction) SCA_JoystickSensor::sPySetAxis,		METH_VARARGS,	(PY_METHODCHAR)SetAxis_doc},
-	{"getAxisValue", (PyCFunction) SCA_JoystickSensor::sPyGetAxisValue,	METH_NOARGS,	(PY_METHODCHAR)GetAxisValue_doc},
-	{"getThreshold", (PyCFunction) SCA_JoystickSensor::sPyGetThreshold, METH_NOARGS,	(PY_METHODCHAR)GetThreshold_doc},
-	{"setThreshold", (PyCFunction) SCA_JoystickSensor::sPySetThreshold, METH_VARARGS,	(PY_METHODCHAR)SetThreshold_doc},
-	{"getButton",	 (PyCFunction) SCA_JoystickSensor::sPyGetButton,	METH_NOARGS,	(PY_METHODCHAR)GetButton_doc},
-	{"setButton",	 (PyCFunction) SCA_JoystickSensor::sPySetButton,	METH_O,			(PY_METHODCHAR)SetButton_doc},
-	{"getHat",		 (PyCFunction) SCA_JoystickSensor::sPyGetHat,		METH_NOARGS,	(PY_METHODCHAR)GetHat_doc},
-	{"setHat",		 (PyCFunction) SCA_JoystickSensor::sPySetHat,		METH_VARARGS,	(PY_METHODCHAR)SetHat_doc},
-	{"getNumAxes",	 (PyCFunction) SCA_JoystickSensor::sPyNumberOfAxes,	METH_NOARGS,	(PY_METHODCHAR)NumberOfAxes_doc},
-	{"getNumButtons",(PyCFunction) SCA_JoystickSensor::sPyNumberOfButtons,METH_NOARGS,	(PY_METHODCHAR)NumberOfButtons_doc},
-	{"getNumHats",	 (PyCFunction) SCA_JoystickSensor::sPyNumberOfHats,	METH_NOARGS,	(PY_METHODCHAR)NumberOfHats_doc},
-	{"isConnected", (PyCFunction) SCA_JoystickSensor::sPyConnected,		METH_NOARGS,	(PY_METHODCHAR)Connected_doc},
-	{"getButtonValue",(PyCFunction) SCA_JoystickSensor::sPyGetButtonValue,	METH_NOARGS,(PY_METHODCHAR)GetButtonValue_doc},
+	{"getIndex", 	 (PyCFunction) SCA_JoystickSensor::sPyGetIndex,		METH_NOARGS,	(const char *)GetIndex_doc},
+	{"setIndex",	 (PyCFunction) SCA_JoystickSensor::sPySetIndex,		METH_O,			(const char *)SetIndex_doc},
+	{"getAxis", 	 (PyCFunction) SCA_JoystickSensor::sPyGetAxis,		METH_NOARGS,	(const char *)GetAxis_doc},
+	{"setAxis", 	 (PyCFunction) SCA_JoystickSensor::sPySetAxis,		METH_VARARGS,	(const char *)SetAxis_doc},
+	{"getAxisValue", (PyCFunction) SCA_JoystickSensor::sPyGetAxisValue,	METH_NOARGS,	(const char *)GetAxisValue_doc},
+	{"getThreshold", (PyCFunction) SCA_JoystickSensor::sPyGetThreshold, METH_NOARGS,	(const char *)GetThreshold_doc},
+	{"setThreshold", (PyCFunction) SCA_JoystickSensor::sPySetThreshold, METH_VARARGS,	(const char *)SetThreshold_doc},
+	{"getButton",	 (PyCFunction) SCA_JoystickSensor::sPyGetButton,	METH_NOARGS,	(const char *)GetButton_doc},
+	{"setButton",	 (PyCFunction) SCA_JoystickSensor::sPySetButton,	METH_O,			(const char *)SetButton_doc},
+	{"getHat",		 (PyCFunction) SCA_JoystickSensor::sPyGetHat,		METH_NOARGS,	(const char *)GetHat_doc},
+	{"setHat",		 (PyCFunction) SCA_JoystickSensor::sPySetHat,		METH_VARARGS,	(const char *)SetHat_doc},
+	{"getNumAxes",	 (PyCFunction) SCA_JoystickSensor::sPyNumberOfAxes,	METH_NOARGS,	(const char *)NumberOfAxes_doc},
+	{"getNumButtons",(PyCFunction) SCA_JoystickSensor::sPyNumberOfButtons,METH_NOARGS,	(const char *)NumberOfButtons_doc},
+	{"getNumHats",	 (PyCFunction) SCA_JoystickSensor::sPyNumberOfHats,	METH_NOARGS,	(const char *)NumberOfHats_doc},
+	{"isConnected", (PyCFunction) SCA_JoystickSensor::sPyConnected,		METH_NOARGS,	(const char *)Connected_doc},
+	{"getButtonValue",(PyCFunction) SCA_JoystickSensor::sPyGetButtonValue,	METH_NOARGS,(const char *)GetButtonValue_doc},
 	//<----- Deprecated
-	{"getButtonActiveList",(PyCFunction) SCA_JoystickSensor::sPyGetButtonActiveList,	METH_NOARGS,(PY_METHODCHAR)GetButtonActiveList_doc},
-	{"getButtonStatus",(PyCFunction) SCA_JoystickSensor::sPyGetButtonStatus,	METH_VARARGS,(PY_METHODCHAR)GetButtonStatus_doc},
+	{"getButtonActiveList",(PyCFunction) SCA_JoystickSensor::sPyGetButtonActiveList,	METH_NOARGS,(const char *)GetButtonActiveList_doc},
+	{"getButtonStatus",(PyCFunction) SCA_JoystickSensor::sPyGetButtonStatus,	METH_VARARGS,(const char *)GetButtonStatus_doc},
 	{NULL,NULL} //Sentinel
 };
 

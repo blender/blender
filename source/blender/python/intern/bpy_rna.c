@@ -23,7 +23,6 @@
  */
 
 #include "bpy_rna.h"
-#include "bpy_compat.h"
 #include "bpy_util.h"
 //#include "blendef.h"
 #include "BLI_dynstr.h"
@@ -904,10 +903,6 @@ static PyObject *prop_subscript_collection_str(BPy_PropertyRNA * self, char *key
 }
 /* static PyObject *prop_subscript_array_str(BPy_PropertyRNA * self, char *keyname) */
 
-
-
-
-#if PY_VERSION_HEX >= 0x03000000
 static PyObject *prop_subscript_collection_slice(BPy_PropertyRNA * self, int start, int stop)
 {
 	PointerRNA newptr;
@@ -942,7 +937,6 @@ static PyObject *prop_subscript_array_slice(BPy_PropertyRNA * self, int start, i
 
 	return list;
 }
-#endif
 
 static PyObject *prop_subscript_collection(BPy_PropertyRNA * self, PyObject *key)
 {
@@ -956,7 +950,6 @@ static PyObject *prop_subscript_collection(BPy_PropertyRNA * self, PyObject *key
 
 		return prop_subscript_collection_int(self, i);
 	}
-#if PY_VERSION_HEX >= 0x03000000
 	else if (PySlice_Check(key)) {
 		int len= RNA_property_collection_length(&self->ptr, self->prop);
 		Py_ssize_t start, stop, step, slicelength;
@@ -975,7 +968,6 @@ static PyObject *prop_subscript_collection(BPy_PropertyRNA * self, PyObject *key
 			return NULL;
 		}
 	}
-#endif
 	else {
 		PyErr_Format(PyExc_TypeError, "invalid rna key, key must be a string or an int instead of %.200s instance.", Py_TYPE(key)->tp_name);
 		return NULL;
@@ -993,7 +985,6 @@ static PyObject *prop_subscript_array(BPy_PropertyRNA * self, PyObject *key)
 			return NULL;
 		return prop_subscript_array_int(self, PyLong_AsSsize_t(key));
 	}
-#if PY_VERSION_HEX >= 0x03000000
 	else if (PySlice_Check(key)) {
 		int len= RNA_property_array_length(self->prop);
 		Py_ssize_t start, stop, step, slicelength;
@@ -1012,7 +1003,6 @@ static PyObject *prop_subscript_array(BPy_PropertyRNA * self, PyObject *key)
 			return NULL;
 		}
 	}
-#endif
 	else {
 		PyErr_SetString(PyExc_AttributeError, "invalid key, key must be an int");
 		return NULL;
@@ -1032,7 +1022,6 @@ static PyObject *pyrna_prop_subscript( BPy_PropertyRNA * self, PyObject *key )
 
 }
 
-#if PY_VERSION_HEX >= 0x03000000
 static int prop_subscript_ass_array_slice(BPy_PropertyRNA * self, int begin, int end, PyObject *value)
 {
 	int count;
@@ -1049,7 +1038,6 @@ static int prop_subscript_ass_array_slice(BPy_PropertyRNA * self, int begin, int
 
 	return 0;
 }
-#endif
 
 static int prop_subscript_ass_array_int(BPy_PropertyRNA * self, int keynum, PyObject *value)
 {
@@ -1087,7 +1075,6 @@ static int pyrna_prop_ass_subscript( BPy_PropertyRNA * self, PyObject *key, PyOb
 
 		return prop_subscript_ass_array_int(self, i, value);
 	}
-#if PY_VERSION_HEX >= 0x03000000
 	else if (PySlice_Check(key)) {
 		int len= RNA_property_array_length(self->prop);
 		Py_ssize_t start, stop, step, slicelength;
@@ -1106,7 +1093,6 @@ static int pyrna_prop_ass_subscript( BPy_PropertyRNA * self, PyObject *key, PyOb
 			return -1;
 		}
 	}
-#endif
 	else {
 		PyErr_SetString(PyExc_AttributeError, "invalid key, key must be an int");
 		return -1;
@@ -1458,7 +1444,7 @@ static PyObject *pyrna_prop_get(BPy_PropertyRNA *self, PyObject *args)
 }
 
 
-#if (PY_VERSION_HEX >= 0x03000000) /* foreach needs py3 */
+
 static void foreach_attr_type(	BPy_PropertyRNA *self, char *attr,
 									/* values to assign */
 									RawPropertyType *raw_type, int *attr_tot, int *attr_signed )
@@ -1693,7 +1679,6 @@ static  PyObject *pyrna_prop_foreach_set(BPy_PropertyRNA *self, PyObject *args)
 {
 	return foreach_getset(self, args, 1);
 }
-#endif /* #if (PY_VERSION_HEX >= 0x03000000) */
 
 /* A bit of a kludge, make a list out of a collection or array,
  * then return the lists iter function, not especially fast but convenient for now */
@@ -1744,11 +1729,10 @@ static struct PyMethodDef pyrna_prop_methods[] = {
 	
 	{"get", (PyCFunction)pyrna_prop_get, METH_VARARGS, NULL},
 
-#if (PY_VERSION_HEX >= 0x03000000)
 	/* array accessor function */
 	{"foreach_get", (PyCFunction)pyrna_prop_foreach_get, METH_VARARGS, NULL},
 	{"foreach_set", (PyCFunction)pyrna_prop_foreach_set, METH_VARARGS, NULL},
-#endif
+
 	{NULL, NULL, 0, NULL}
 };
 
@@ -2112,13 +2096,7 @@ static PyObject * pyrna_func_call(PyObject * self, PyObject *args, PyObject *kw)
 
 /*-----------------------BPy_StructRNA method def------------------------------*/
 PyTypeObject pyrna_struct_Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"StructRNA",			/* tp_name */
 	sizeof( BPy_StructRNA ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
@@ -2197,14 +2175,7 @@ PyTypeObject pyrna_struct_Type = {
 
 /*-----------------------BPy_PropertyRNA method def------------------------------*/
 PyTypeObject pyrna_prop_Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
-	
 	"PropertyRNA",		/* tp_name */
 	sizeof( BPy_PropertyRNA ),			/* tp_basicsize */
 	0,			/* tp_itemsize */
@@ -2555,7 +2526,6 @@ static struct PyMethodDef props_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-#if PY_VERSION_HEX >= 0x03000000
 static struct PyModuleDef props_module = {
 	PyModuleDef_HEAD_INIT,
 	"bpy.props",
@@ -2564,16 +2534,11 @@ static struct PyModuleDef props_module = {
 	props_methods,
 	NULL, NULL, NULL, NULL
 };
-#endif
 
 PyObject *BPY_rna_props( void )
 {
 	PyObject *submodule;
-#if PY_VERSION_HEX >= 0x03000000
 	submodule= PyModule_Create(&props_module);
-#else /* Py2.x */
-	submodule= Py_InitModule3( "bpy.props", props_methods, "" );
-#endif
 	
 	/* INCREF since its its assumed that all these functions return the
 	 * module with a new ref like PyDict_New, since they are passed to

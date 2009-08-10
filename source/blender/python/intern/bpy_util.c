@@ -373,11 +373,7 @@ PyObject *BPY_exception_buffer(void)
 	 * string_io = StringIO.StringIO()
 	 */
 	
-#if PY_VERSION_HEX < 0x03000000
-	if(! (string_io_mod= PyImport_ImportModule("StringIO")) ) {
-#else
 	if(! (string_io_mod= PyImport_ImportModule("io")) ) {
-#endif
 		goto error_cleanup;
 	} else if (! (string_io = PyObject_CallMethod(string_io_mod, "StringIO", NULL))) {
 		goto error_cleanup;

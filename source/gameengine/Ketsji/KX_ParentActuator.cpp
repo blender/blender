@@ -140,13 +140,7 @@ bool KX_ParentActuator::Update()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_ParentActuator::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"KX_ParentActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -169,8 +163,8 @@ PyTypeObject KX_ParentActuator::Type = {
 
 PyMethodDef KX_ParentActuator::Methods[] = {
 	// Deprecated ----->
-	{"setObject", (PyCFunction) KX_ParentActuator::sPySetObject, METH_O, (PY_METHODCHAR)SetObject_doc},
-	{"getObject", (PyCFunction) KX_ParentActuator::sPyGetObject, METH_VARARGS, (PY_METHODCHAR)GetObject_doc},
+	{"setObject", (PyCFunction) KX_ParentActuator::sPySetObject, METH_O, (const char *)SetObject_doc},
+	{"getObject", (PyCFunction) KX_ParentActuator::sPyGetObject, METH_VARARGS, (const char *)GetObject_doc},
 	// <-----
 	{NULL,NULL} //Sentinel
 };

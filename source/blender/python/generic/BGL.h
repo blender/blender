@@ -42,9 +42,8 @@
 
 #include <Python.h>
 #include <GL/glew.h>
-#include "../intern/bpy_compat.h"
 
-PyObject *BGL_Init( const char *from );
+PyObject *BGL_Init(void);
 
 /*@ Buffer Object */
 /*@ For Python access to OpenGL functions requiring a pointer. */

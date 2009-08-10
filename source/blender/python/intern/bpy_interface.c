@@ -14,8 +14,6 @@
 #include "compile.h"		/* for the PyCodeObject */
 #include "eval.h"		/* for PyEval_EvalCode */
 
-#include "bpy_compat.h"
-
 #include "bpy_rna.h"
 #include "bpy_operator.h"
 #include "bpy_ui.h"
@@ -149,17 +147,10 @@ static void bpy_init_modules( void )
 
 
 	/* stand alone utility modules not related to blender directly */
-	Geometry_Init("Geometry");
-	Mathutils_Init("Mathutils");
-	BGL_Init("BGL");
+	Geometry_Init();
+	Mathutils_Init();
+	BGL_Init();
 }
-
-#if (PY_VERSION_HEX < 0x02050000)
-PyObject *PyImport_ImportModuleLevel(char *name, void *a, void *b, void *c, int d)
-{
-	return PyImport_ImportModule(name);
-}
-#endif
 
 void BPY_update_modules( void )
 {
@@ -244,9 +235,7 @@ void BPY_start_python( int argc, char **argv )
 
 	Py_Initialize(  );
 	
-#if (PY_VERSION_HEX < 0x03000000)
-	PySys_SetArgv( argc, argv);
-#else
+	// PySys_SetArgv( argc, argv); // broken in py3, not a huge deal
 	/* sigh, why do python guys not have a char** version anymore? :( */
 	{
 		int i;
@@ -258,7 +247,6 @@ void BPY_start_python( int argc, char **argv )
 		PySys_SetObject("argv", py_argv);
 		Py_DECREF(py_argv);
 	}
-#endif
 	
 	/* Initialize thread support (also acquires lock) */
 	PyEval_InitThreads();

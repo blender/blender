@@ -368,13 +368,7 @@ bool KX_CameraActuator::string2axischoice(const char *axisString)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_CameraActuator::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"KX_CameraActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -397,16 +391,16 @@ PyTypeObject KX_CameraActuator::Type = {
 
 PyMethodDef KX_CameraActuator::Methods[] = {
 	// ---> deprecated (all)
-	{"setObject",(PyCFunction) KX_CameraActuator::sPySetObject, METH_O,			(PY_METHODCHAR)SetObject_doc},
-	{"getObject",(PyCFunction) KX_CameraActuator::sPyGetObject, METH_VARARGS,	(PY_METHODCHAR)GetObject_doc},
-	{"setMin"	,(PyCFunction) KX_CameraActuator::sPySetMin,	METH_VARARGS,	(PY_METHODCHAR)SetMin_doc},
-	{"getMin"	,(PyCFunction) KX_CameraActuator::sPyGetMin,	METH_NOARGS,	(PY_METHODCHAR)GetMin_doc},
-	{"setMax"	,(PyCFunction) KX_CameraActuator::sPySetMax,	METH_VARARGS,	(PY_METHODCHAR)SetMax_doc},
-	{"getMax"	,(PyCFunction) KX_CameraActuator::sPyGetMax,	METH_NOARGS,	(PY_METHODCHAR)GetMax_doc},
-	{"setHeight",(PyCFunction) KX_CameraActuator::sPySetHeight,	METH_VARARGS,	(PY_METHODCHAR)SetHeight_doc},
-	{"getHeight",(PyCFunction) KX_CameraActuator::sPyGetHeight,	METH_NOARGS,	(PY_METHODCHAR)GetHeight_doc},
-	{"setXY"	,(PyCFunction) KX_CameraActuator::sPySetXY,		METH_VARARGS,	(PY_METHODCHAR)SetXY_doc},
-	{"getXY"	,(PyCFunction) KX_CameraActuator::sPyGetXY,		METH_NOARGS,	(PY_METHODCHAR)GetXY_doc},
+	{"setObject",(PyCFunction) KX_CameraActuator::sPySetObject, METH_O,			(const char *)SetObject_doc},
+	{"getObject",(PyCFunction) KX_CameraActuator::sPyGetObject, METH_VARARGS,	(const char *)GetObject_doc},
+	{"setMin"	,(PyCFunction) KX_CameraActuator::sPySetMin,	METH_VARARGS,	(const char *)SetMin_doc},
+	{"getMin"	,(PyCFunction) KX_CameraActuator::sPyGetMin,	METH_NOARGS,	(const char *)GetMin_doc},
+	{"setMax"	,(PyCFunction) KX_CameraActuator::sPySetMax,	METH_VARARGS,	(const char *)SetMax_doc},
+	{"getMax"	,(PyCFunction) KX_CameraActuator::sPyGetMax,	METH_NOARGS,	(const char *)GetMax_doc},
+	{"setHeight",(PyCFunction) KX_CameraActuator::sPySetHeight,	METH_VARARGS,	(const char *)SetHeight_doc},
+	{"getHeight",(PyCFunction) KX_CameraActuator::sPyGetHeight,	METH_NOARGS,	(const char *)GetHeight_doc},
+	{"setXY"	,(PyCFunction) KX_CameraActuator::sPySetXY,		METH_VARARGS,	(const char *)SetXY_doc},
+	{"getXY"	,(PyCFunction) KX_CameraActuator::sPyGetXY,		METH_NOARGS,	(const char *)GetXY_doc},
 	{NULL,NULL,NULL,NULL} //Sentinel
 };
 
