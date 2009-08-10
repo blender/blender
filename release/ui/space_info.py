@@ -335,7 +335,7 @@ class INFO_PT_edit(bpy.types.Panel):
 		colsplitcol.itemR(edit, "grease_pencil_manhattan_distance", text="Manhattan Distance")
 		colsplitcol.itemR(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")
 		colsplitcol.itemR(edit, "grease_pencil_smooth_stroke", text="Smooth Stroke")
-		colsplitcol.itemR(edit, "grease_pencil_simplify_stroke", text="Simplify Stroke")
+		# colsplitcol.itemR(edit, "grease_pencil_simplify_stroke", text="Simplify Stroke")
 		colsplitcol.itemR(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
 		
 		

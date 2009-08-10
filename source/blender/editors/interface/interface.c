@@ -2953,7 +2953,6 @@ uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int 
 	but->flag|= UI_HAS_ICON;
 	
 	but->flag|= UI_ICON_LEFT;
-	but->flag|= UI_ICON_SUBMENU;
 	
 	but->block_create_func= func;
 	ui_check_but(but);

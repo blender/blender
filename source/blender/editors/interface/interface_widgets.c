@@ -889,7 +889,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 			rect->xmin += UI_icon_get_width(but->icon+but->iconadd);
 			
 			if(but->editstr || (but->flag & UI_TEXT_LEFT)) 
-				rect->xmin += 10;
+				rect->xmin += 5;
 		}
 		else if((but->flag & UI_TEXT_LEFT)) 
 			rect->xmin += 5;

@@ -1826,11 +1826,9 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "gp_settings", GP_PAINT_DOSMOOTH);
 	RNA_def_property_ui_text(prop, "Grease Pencil Smooth Stroke", "Smooth the final stroke.");
 
-#if 0
 	prop= RNA_def_property(srna, "grease_pencil_simplify_stroke", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gp_settings", GP_PAINT_DOSIMPLIFY);
 	RNA_def_property_ui_text(prop, "Grease Pencil Simplify Stroke", "Simplify the final stroke.");
-#endif
 
 	prop= RNA_def_property(srna, "grease_pencil_eraser_radius", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gp_eraser");

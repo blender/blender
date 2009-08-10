@@ -222,9 +222,9 @@ static int ui_text_icon_width(uiLayout *layout, char *name, int icon)
 	if(icon && !name[0])
 		return UI_UNIT_X; /* icon only */
 	else if(icon)
-		return (variable)? UI_GetStringWidth(name) + 4 + UI_UNIT_X: 10*UI_UNIT_X; /* icon + text */
+		return (variable)? UI_GetStringWidth(name) + 10 + UI_UNIT_X: 10*UI_UNIT_X; /* icon + text */
 	else
-		return (variable)? UI_GetStringWidth(name) + 4 + UI_UNIT_X: 10*UI_UNIT_X; /* text only */
+		return (variable)? UI_GetStringWidth(name) + 10 + UI_UNIT_X: 10*UI_UNIT_X; /* text only */
 }
 
 static void ui_item_size(uiItem *item, int *r_w, int *r_h)
