@@ -1182,17 +1182,21 @@ void uiTemplateColorRamp(uiLayout *layout, ColorBand *coba, int expand)
 
 #include "DNA_color_types.h"
 
-void uiTemplateCurveMapping(uiLayout *layout, CurveMapping *cumap, int type)
+void uiTemplateCurveMapping(uiLayout *layout, CurveMapping *cumap, int type, int compact)
 {
-	uiBlock *block;
 	rctf rect;
 
 	if(cumap) {
-		rect.xmin= 0; rect.xmax= 200;
-		rect.ymin= 0; rect.ymax= 190;
+		if(compact) {
+			rect.xmin= 0; rect.xmax= 150;
+			rect.ymin= 0; rect.ymax= 140;
+		}
+		else {
+			rect.xmin= 0; rect.xmax= 200;
+			rect.ymin= 0; rect.ymax= 190;
+		}
 		
-		block= uiLayoutFreeBlock(layout);
-		curvemap_buttons(block, cumap, type, 0, 0, &rect);
+		curvemap_layout(layout, cumap, type, 0, 0, &rect);
 	}
 }
 

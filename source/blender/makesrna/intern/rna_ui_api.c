@@ -248,6 +248,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_pointer(func, "curvemap", "CurveMapping", "", "Curve mapping pointer.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_enum(func, "type", curve_type_items, 0, "Type", "Type of curves to display.");
+	RNA_def_boolean(func, "compact", 0, "", "Use more compact curve mapping.");
 
 	func= RNA_def_function(srna, "template_color_ramp", "uiTemplateColorRamp");
 	parm= RNA_def_pointer(func, "ramp", "ColorRamp", "", "Color ramp pointer.");
