@@ -94,21 +94,29 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		self.target_template(layout, con)
 		
 		layout.itemR(con, "pole_target")
+	
 		if con.pole_target and con.pole_target.type == 'ARMATURE':
 			layout.item_pointerR(con, "pole_subtarget", con.pole_target.data, "bones", text="Bone")
 		
-		flow = layout.column_flow()
-		flow.itemR(con, "iterations")
-		flow.itemR(con, "pole_angle")
-		flow.itemR(con, "weight")
-		flow.itemR(con, "orient_weight")
-		flow.itemR(con, "chain_length")
+		split = layout.split()
+	
+		col = split.column()
+		col.itemR(con, "iterations")
+		col.itemR(con, "chain_length")
+		sub = col.column()
+		sub.active = con.pole_target
+		sub.itemR(con, "pole_angle")
+		col.itemL(text="Weight:")
+		col.itemR(con, "weight", text="Position", slider=True)
+		sub = col.column()
+		sub.active = con.rotation
+		sub.itemR(con, "orient_weight", text="Rotation", slider=True)
 		
-		flow = layout.column_flow()
-		flow.itemR(con, "tail")
-		flow.itemR(con, "rotation")
-		flow.itemR(con, "targetless")
-		flow.itemR(con, "stretch")
+		col = split.column()
+		col.itemR(con, "tail")
+		col.itemR(con, "rotation")
+		col.itemR(con, "targetless")
+		col.itemR(con, "stretch")
 		
 	def FOLLOW_PATH(self, layout, con):
 		self.target_template(layout, con)

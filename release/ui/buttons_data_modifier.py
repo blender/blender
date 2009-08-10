@@ -30,15 +30,27 @@ class DATA_PT_modifiers(DataButtonsPanel):
 	def ARMATURE(self, layout, ob, md):
 		layout.itemR(md, "object")
 		
-		row = layout.row()
-		row.item_pointerR(md, "vertex_group", ob, "vertex_groups")
-		row.itemR(md, "invert")
+		split = layout.split(percentage=0.5)
+		split.itemL(text="Vertex Group:")
+		sub = split.split(percentage=0.7)
+		sub.item_pointerR(md, "vertex_group", ob, "vertex_groups", text="")
+		subsub = sub.row()
+		subsub.active = md.vertex_group
+		subsub.itemR(md, "invert")
 		
-		flow = layout.column_flow()
-		flow.itemR(md, "use_vertex_groups", text="Vertex Groups")
-		flow.itemR(md, "use_bone_envelopes", text="Bone Envelopes")
-		flow.itemR(md, "quaternion")
-		flow.itemR(md, "multi_modifier")
+		layout.itemS()
+		
+		split = layout.split()
+
+		col = split.column()
+		col.itemL(text="Bind To:")
+		col.itemR(md, "use_vertex_groups", text="Vertex Groups")
+		col.itemR(md, "use_bone_envelopes", text="Bone Envelopes")
+		
+		col = split.column()
+		col.itemL(text="Deformation:")
+		col.itemR(md, "quaternion")
+		col.itemR(md, "multi_modifier")
 		
 	def ARRAY(self, layout, ob, md):
 		layout.itemR(md, "fit_type")
