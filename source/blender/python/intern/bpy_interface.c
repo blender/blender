@@ -804,3 +804,65 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 
 	return result;
 }
+
+int BPY_button_eval(bContext *C, char *expr, double *value)
+{
+	PyGILState_STATE gilstate;
+	PyObject *dict, *retval, *expr_conv;
+	int error_ret = 0;
+	
+	if (!value || !expr || expr[0]=='\0') return -1;
+	
+	bpy_context_set(C, &gilstate);
+	
+	// experemental, fun. "button_convert.convert" is currently defined in bpy_ops.py
+	{
+		PyObject *mod= PyDict_GetItemString(PySys_GetObject("modules"), "button_convert");
+		if(mod && PyModule_Check(mod))	{
+			PyObject *mod_dict= PyModule_GetDict(mod);
+			PyObject *func= PyDict_GetItemString(mod_dict, "convert");
+			if(func) {
+				PyObject *expr_conv = PyObject_CallFunction(func, "s", expr);
+				if(expr_conv==NULL) {
+					PyErr_Print();
+					PyErr_Clear();
+				}
+				else {
+					expr= _PyUnicode_AsString(expr_conv); /* TODO, check */
+				}
+			}
+		}
+	}
+	
+	dict= CreateGlobalDictionary(C);
+	retval = PyRun_String(expr, Py_eval_input, dict, dict);
+	
+	if(expr_conv) {
+		Py_DECREF(expr_conv); /* invalidates expr */
+	}
+	
+	if (retval == NULL) {
+		error_ret= -1;
+	}
+	else {
+		double val = PyFloat_AsDouble(retval);
+		Py_DECREF(retval);
+		
+		if(val==-1 && PyErr_Occurred()) {
+			error_ret= -1;
+		}
+		else {
+			*value= val;
+		}
+	}
+	
+	if(error_ret) {
+		BPy_errors_to_report(CTX_wm_reports(C));
+	}
+	
+	Py_DECREF(dict);
+	bpy_context_clear(C, &gilstate);
+	
+	return error_ret;
+}
+

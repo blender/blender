@@ -111,3 +111,48 @@ class bpy_ops_submodule_op(object):
 
 import bpy
 bpy.ops = bpy_ops()
+
+
+
+
+# A bit out of place but add button conversion code here
+module_type = type(__builtins__)
+import types
+mod = types.ModuleType('button_convert')
+
+import sys
+sys.modules['button_convert'] = mod
+
+def convert(expr):
+	
+	def replace(string, unit, scaler):
+		# in need of regex
+		change = True
+		while change:
+			change = False
+			i = string.find(unit)
+			if i != -1:
+				if i>0 and not string[i-1].isalpha():
+					i_end = i+len(unit)
+					if i_end+1 >= len(string) or (not string[i_end+1].isalpha()):
+						string = string.replace(unit, scaler)
+						change = True
+		# print(string)
+		return string
+	
+	#imperial
+	expr = replace(expr, 'mi', '*1609.344')
+	expr = replace(expr, 'yd', '*0.9144')
+	expr = replace(expr, 'ft', '*0.3048')
+	expr = replace(expr, 'in', '*0.0254')
+	
+	# metric
+	expr = replace(expr, 'km', '*1000')
+	expr = replace(expr, 'm', '')
+	expr = replace(expr, 'cm', '*0.01')
+	expr = replace(expr, 'mm', '*0.001')
+	
+	return expr
+
+mod.convert = convert
+

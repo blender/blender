@@ -66,6 +66,8 @@
 #include "RNA_access.h"
 #include "RNA_types.h"
 
+#include "BPY_extern.h"
+
 #include "interface_intern.h"
 
 #define MENU_WIDTH 			120
@@ -1434,10 +1436,9 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		double value;
 
 		/* XXX 2.50 missing python api */
-#if 0
-		if(BPY_button_eval(str, &value)) {
-			BKE_report(CTX_reports(C), RPT_WARNING, "Invalid Python expression, check console");
-			value = 0.0f; /* Zero out value on error */
+#ifndef DISABLE_PYTHON
+		if(BPY_button_eval(C, str, &value)) {
+			value = ui_get_but_val(but); /* use its original value */
 			
 			if(str[0])
 				return 0;
