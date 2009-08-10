@@ -248,7 +248,7 @@ void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Clone Opacity", "Opacity of clone image display.");
 
-	prop= RNA_def_property(srna, "clone_offset", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "clone_offset", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "clone.offset");
 	RNA_def_property_ui_text(prop, "Clone Offset", "");
 	RNA_def_property_ui_range(prop, -1.0f , 1.0f, 10.0f, 3);
@@ -273,12 +273,12 @@ static void rna_def_operator_stroke_element(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "OperatorStrokeElement", "IDPropertyGroup");
 	RNA_def_struct_ui_text(srna, "Operator Stroke Element", "");
 
-	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_flag(prop, PROP_IDPROPERTY);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Location", "");
 
-	prop= RNA_def_property(srna, "mouse", PROP_INT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "mouse", PROP_INT, PROP_XYZ);
 	RNA_def_property_flag(prop, PROP_IDPROPERTY);
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Mouse", "");

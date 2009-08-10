@@ -188,7 +188,7 @@ static void rna_def_bpoint(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	/* Vector value */
-	prop= RNA_def_property(srna, "point", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "point", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_float_sdna(prop, NULL, "vec");
 	RNA_def_property_ui_text(prop, "Point", "Point coordinates");
@@ -265,19 +265,19 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	/* Vector values */
-	prop= RNA_def_property(srna, "handle1", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "handle1", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_BezTriple_handle1_get", "rna_BezTriple_handle1_set", NULL);
 	RNA_def_property_ui_text(prop, "Handle 1", "Coordinates of the first handle");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop= RNA_def_property(srna, "control_point", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "control_point", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_BezTriple_ctrlpoint_get", "rna_BezTriple_ctrlpoint_set", NULL);
 	RNA_def_property_ui_text(prop, "Control Point", "Coordinates of the control point");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop= RNA_def_property(srna, "handle2", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "handle2", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_BezTriple_handle2_get", "rna_BezTriple_handle2_set", NULL);
 	RNA_def_property_ui_text(prop, "Handle 2", "Coordinates of the second handle");

@@ -209,27 +209,27 @@ static void rna_def_texmapping(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "TexMapping", NULL);
 	RNA_def_struct_ui_text(srna, "Texture Mapping", "Mapping settings");
 
-	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "loc");
 	RNA_def_property_ui_text(prop, "Location", "");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
-	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ROTATION);
+	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float_sdna(prop, NULL, "rot");
 	RNA_def_property_ui_text(prop, "Rotation", "");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
-	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "size");
 	RNA_def_property_ui_text(prop, "Scale", "");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
-	prop= RNA_def_property(srna, "minimum", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "minimum", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "min");
 	RNA_def_property_ui_text(prop, "Minimum", "Minimum value for clipping");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
-	prop= RNA_def_property(srna, "maximum", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "maximum", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "max");
 	RNA_def_property_ui_text(prop, "Maximum", "Maximum value for clipping");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
@@ -287,13 +287,13 @@ static void rna_def_mtex(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	/* mapping */
-	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "ofs");
 	RNA_def_property_ui_range(prop, -10, 10, 10, 2);
 	RNA_def_property_ui_text(prop, "Offset", "Fine tunes texture mapping X, Y and Z locations.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
-	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_ui_range(prop, -100, 100, 10, 2);
 	RNA_def_property_ui_text(prop, "Size", "Sets scaling for the texture's X, Y and Z sizes.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
@@ -325,19 +325,19 @@ static void rna_def_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "RGB to Intensity", "Converts texture RGB values to intensity (gray) values.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
-	prop= RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "def_var");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Default Value", "Value to use for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
-	prop= RNA_def_property(srna, "variable_factor", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "variable_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "varfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Variable Factor", "Amount texture affects other values.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
-	prop= RNA_def_property(srna, "normal_factor", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "normal_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "norfac");
 	RNA_def_property_ui_range(prop, 0, 5, 10, 3);
 	RNA_def_property_ui_text(prop, "Normal Factor", "Amount texture affects normal values.");

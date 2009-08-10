@@ -1370,15 +1370,24 @@ static const char *rna_property_subtypename(PropertyType type)
 {
 	switch(type) {
 		case PROP_NONE: return "PROP_NONE";
-		case PROP_UNSIGNED: return "PROP_UNSIGNED";
 		case PROP_FILEPATH: return "PROP_FILEPATH";
 		case PROP_DIRPATH: return "PROP_DIRPATH";
-		case PROP_COLOR: return "PROP_COLOR";
-		case PROP_VECTOR: return "PROP_VECTOR";
-		case PROP_MATRIX: return "PROP_MATRIX";
-		case PROP_ROTATION: return "PROP_ROTATION";
-		case PROP_NEVER_NULL: return "PROP_NEVER_NULL";
+		case PROP_UNSIGNED: return "PROP_UNSIGNED";
 		case PROP_PERCENTAGE: return "PROP_PERCENTAGE";
+		case PROP_ANGLE: return "PROP_ANGLE";
+		case PROP_TIME: return "PROP_TIME";
+		case PROP_DISTANCE: return "PROP_DISTANCE";
+		case PROP_COLOR: return "PROP_COLOR";
+		case PROP_TRANSLATION: return "PROP_TRANSLATION";
+		case PROP_DIRECTION: return "PROP_DIRECTION";
+		case PROP_MATRIX: return "PROP_MATRIX";
+		case PROP_EULER: return "PROP_EULER";
+		case PROP_QUATERNION: return "PROP_QUATERNION";
+		case PROP_VELOCITY: return "PROP_VELOCITY";
+		case PROP_ACCELERATION: return "PROP_ACCELERATION";
+		case PROP_XYZ: return "PROP_XYZ";
+		case PROP_RGB: return "PROP_RGB";
+		case PROP_NEVER_NULL: return "PROP_NEVER_NULL";
 		default: return "PROP_UNKNOWN";
 	}
 }
@@ -2194,7 +2203,7 @@ static void rna_generate_header_cpp(BlenderRNA *brna, FILE *f)
 	fprintf(f, "#include \"RNA_blender.h\"\n");
 	fprintf(f, "#include \"RNA_types.h\"\n");
 
-	fprintf(f, cpp_classes);
+	fprintf(f, "%s", cpp_classes);
 
 	fprintf(f, "/**************** Declarations ****************/\n\n");
 

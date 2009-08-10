@@ -1087,7 +1087,7 @@ void RNA_def_property_struct_type(PropertyRNA *prop, const char *type)
 	StructRNA *srna= DefRNA.laststruct;
 
 	if(!DefRNA.preprocess) {
-		fprintf(stderr, "RNA_def_property_struct_type: only during preprocessing.\n");
+		fprintf(stderr, "RNA_def_property_struct_type %s.%s: only during preprocessing.\n", srna->identifier, prop->identifier);
 		return;
 	}
 
@@ -1898,7 +1898,7 @@ PropertyRNA *RNA_def_boolean_vector(StructOrFunctionRNA *cont_, const char *iden
 	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(cont, identifier, PROP_BOOLEAN, PROP_VECTOR);
+	prop= RNA_def_property(cont, identifier, PROP_BOOLEAN, PROP_XYZ); // XXX
 	if(len != 0) RNA_def_property_array(prop, len);
 	if(default_value) RNA_def_property_boolean_array_default(prop, default_value);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
@@ -1927,7 +1927,7 @@ PropertyRNA *RNA_def_int_vector(StructOrFunctionRNA *cont_, const char *identifi
 	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(cont, identifier, PROP_INT, PROP_VECTOR);
+	prop= RNA_def_property(cont, identifier, PROP_INT, PROP_XYZ); // XXX
 	if(len != 0) RNA_def_property_array(prop, len);
 	if(default_value) RNA_def_property_int_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
@@ -2036,7 +2036,7 @@ PropertyRNA *RNA_def_float_vector(StructOrFunctionRNA *cont_, const char *identi
 	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_XYZ);
 	if(len != 0) RNA_def_property_array(prop, len);
 	if(default_value) RNA_def_property_float_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
@@ -2085,7 +2085,7 @@ PropertyRNA *RNA_def_float_rotation(StructOrFunctionRNA *cont_, const char *iden
 	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_ROTATION);
+	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_EULER); // XXX
 	if(len != 0) RNA_def_property_array(prop, len);
 	if(default_value) RNA_def_property_float_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);

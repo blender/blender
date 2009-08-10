@@ -372,12 +372,12 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "PointCache", NULL);
 	RNA_def_struct_ui_text(srna, "Point Cache", "Point cache for physics simulations.");
 	
-	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "startframe");
 	RNA_def_property_range(prop, 1, 300000);
 	RNA_def_property_ui_text(prop, "Start", "Frame on which the simulation starts.");
 	
-	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "endframe");
 	RNA_def_property_range(prop, 1, 300000);
 	RNA_def_property_ui_text(prop, "End", "Frame on which the simulation stops.");
@@ -810,7 +810,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mass", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
 	
-	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_ACCELERATION);
 	RNA_def_property_float_sdna(prop, NULL, "grav");
 	RNA_def_property_range(prop, -10.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Gravitation", "Apply gravitation to point movement");

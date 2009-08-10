@@ -536,7 +536,7 @@ static void rna_def_particle_hair_key(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "HairKey");
 	RNA_def_struct_ui_text(srna, "Particle Hair Key", "Particle key for hair particle system.");
 
-	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "co");
 	RNA_def_property_ui_text(prop, "Location", "Key location.");
 
@@ -555,19 +555,19 @@ static void rna_def_particle_key(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "ParticleKey", NULL);
 	RNA_def_struct_ui_text(srna, "Particle Key", "Key location for a particle over time.");
 
-	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "co");
 	RNA_def_property_ui_text(prop, "Location", "Key location.");
 
-	prop= RNA_def_property(srna, "velocity", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "velocity", PROP_FLOAT, PROP_VELOCITY);
 	RNA_def_property_float_sdna(prop, NULL, "vel");
 	RNA_def_property_ui_text(prop, "Velocity", "Key velocity");
 
-	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ROTATION);
+	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_float_sdna(prop, NULL, "rot");
 	RNA_def_property_ui_text(prop, "Rotation", "Key rotation quaterion.");
 
-	prop= RNA_def_property(srna, "angular_velocity", PROP_FLOAT, PROP_ROTATION);
+	prop= RNA_def_property(srna, "angular_velocity", PROP_FLOAT, PROP_VELOCITY);
 	RNA_def_property_float_sdna(prop, NULL, "ave");
 	RNA_def_property_ui_text(prop, "Angular Velocity", "Key angular velocity.");
 
@@ -616,35 +616,35 @@ static void rna_def_particle(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Stick Object", "Object that particle sticks to when dead");
 
 	/* Particle State & Previous State */
-	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "state.co");
 	RNA_def_property_ui_text(prop, "Particle Location", "");
 
-	prop= RNA_def_property(srna, "velocity", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "velocity", PROP_FLOAT, PROP_VELOCITY);
 	RNA_def_property_float_sdna(prop, NULL, "state.vel");
 	RNA_def_property_ui_text(prop, "Particle Velocity", "");
 
-	prop= RNA_def_property(srna, "angular_velocity", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "angular_velocity", PROP_FLOAT, PROP_VELOCITY);
 	RNA_def_property_float_sdna(prop, NULL, "state.ave");
 	RNA_def_property_ui_text(prop, "Angular Velocity", "");
 
-	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ROTATION);
+	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_float_sdna(prop, NULL, "state.rot");
 	RNA_def_property_ui_text(prop, "Rotation", "");
 
-	prop= RNA_def_property(srna, "prev_location", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "prev_location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "prev_state.co");
 	RNA_def_property_ui_text(prop, "Previous Particle Location", "");
 
-	prop= RNA_def_property(srna, "prev_velocity", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "prev_velocity", PROP_FLOAT, PROP_VELOCITY);
 	RNA_def_property_float_sdna(prop, NULL, "prev_state.vel");
 	RNA_def_property_ui_text(prop, "Previous Particle Velocity", "");
 
-	prop= RNA_def_property(srna, "prev_angular_velocity", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "prev_angular_velocity", PROP_FLOAT, PROP_VELOCITY);
 	RNA_def_property_float_sdna(prop, NULL, "prev_state.ave");
 	RNA_def_property_ui_text(prop, "Previous Angular Velocity", "");
 
-	prop= RNA_def_property(srna, "prev_rotation", PROP_FLOAT, PROP_ROTATION);
+	prop= RNA_def_property(srna, "prev_rotation", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_float_sdna(prop, NULL, "prev_state.rot");
 	RNA_def_property_ui_text(prop, "Previous Rotation", "");
 
@@ -662,17 +662,17 @@ static void rna_def_particle(BlenderRNA *brna)
 
 	/* Random variables */
 
-	prop= RNA_def_property(srna, "random_rotation", PROP_FLOAT, PROP_ROTATION);
+	prop= RNA_def_property(srna, "random_rotation", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_float_sdna(prop, NULL, "r_rot");
 //	RNA_def_property_range(prop, lowerLimitf, upperLimitf);
 	RNA_def_property_ui_text(prop, "Random Rotation", "");
 
-	prop= RNA_def_property(srna, "random_a_velocity", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "random_a_velocity", PROP_FLOAT, PROP_VELOCITY);
 	RNA_def_property_float_sdna(prop, NULL, "r_ave");
 //	RNA_def_property_range(prop, lowerLimitf, upperLimitf);
 	RNA_def_property_ui_text(prop, "Random Angular Velocity", "");
 
-	prop= RNA_def_property(srna, "random_velocity", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "random_velocity", PROP_FLOAT, PROP_VELOCITY);
 	RNA_def_property_float_sdna(prop, NULL, "r_ve");
 //	RNA_def_property_range(prop, lowerLimitf, upperLimitf);
 	RNA_def_property_ui_text(prop, "Random Velocity", "");
@@ -681,16 +681,16 @@ static void rna_def_particle(BlenderRNA *brna)
 //	float fuv[4], foffset;	/* coordinates on face/edge number "num" and depth along*/
 //							/* face normal for volume emission						*/
 
-	prop= RNA_def_property(srna, "birthtime", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "birthtime", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "time");
 //	RNA_def_property_range(prop, lowerLimitf, upperLimitf);
 	RNA_def_property_ui_text(prop, "Birth Time", "");
 
-	prop= RNA_def_property(srna, "lifetime", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "lifetime", PROP_FLOAT, PROP_TIME);
 //	RNA_def_property_range(prop, lowerLimitf, upperLimitf);
 	RNA_def_property_ui_text(prop, "Lifetime", "");
 
-	prop= RNA_def_property(srna, "die_time", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "die_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "dietime");
 //	RNA_def_property_range(prop, lowerLimitf, upperLimitf);
 	RNA_def_property_ui_text(prop, "Die Time", "");
@@ -1261,7 +1261,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Random Tilt", "Random tilt of the billboards");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
 
-	prop= RNA_def_property(srna, "billboard_offset", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "billboard_offset", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "bb_offset");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_range(prop, -100.0f, 100.0f);
@@ -1312,7 +1312,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "End", "Frame # to stop emitting particles.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "lifetime", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "lifetime", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_range(prop, 1.0f, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Lifetime", "Specify the life span of the particles");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
@@ -1465,14 +1465,14 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 
 	/* global physical properties */
-	prop= RNA_def_property(srna, "acceleration", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "acceleration", PROP_FLOAT, PROP_ACCELERATION);
 	RNA_def_property_float_sdna(prop, NULL, "acc");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, -200.0f, 200.0f);
 	RNA_def_property_ui_text(prop, "Acceleration", "Constant acceleration");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_reset");
 
-	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_ACCELERATION);
 	RNA_def_property_float_sdna(prop, NULL, "acc[2]");
 	RNA_def_property_range(prop, -200.0f, 200.0f);
 	RNA_def_property_ui_text(prop, "Gravity", "Constant acceleration in global Z axis direction");
@@ -1837,7 +1837,7 @@ static void rna_def_particle_target(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Target Particle System", "The index of particle system on the target object.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_target_reset");
 
-	prop= RNA_def_property(srna, "time", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "time");
 	RNA_def_property_range(prop, 0.0, 30000.0f); //TODO: replace 30000 with MAXFRAMEF when available in 2.5
 	RNA_def_property_ui_text(prop, "Time", "");

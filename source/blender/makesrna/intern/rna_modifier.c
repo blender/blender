@@ -697,12 +697,12 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Time Offset", "Either the starting frame (for positive speed) or ending frame (for negative speed.)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "lifetime", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "lifetime", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Lifetime",  "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "damping_time", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "damping_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "damp");
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Damping Time",  "");
@@ -967,22 +967,22 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_dependency_update");
 
 	/* Offset parameters */
-	prop= RNA_def_property(srna, "constant_offset", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "constant_offset", PROP_BOOLEAN, PROP_TRANSLATION);
 	RNA_def_property_boolean_sdna(prop, NULL, "offset_type", MOD_ARR_OFF_CONST);
 	RNA_def_property_ui_text(prop, "Constant Offset", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 	
-	prop= RNA_def_property(srna, "constant_offset_displacement", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "constant_offset_displacement", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "offset");
 	RNA_def_property_ui_text(prop, "Constant Offset Displacement", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "relative_offset", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "relative_offset", PROP_BOOLEAN, PROP_TRANSLATION);
 	RNA_def_property_boolean_sdna(prop, NULL, "offset_type", MOD_ARR_OFF_RELATIVE);
 	RNA_def_property_ui_text(prop, "Relative Offset", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "relative_offset_displacement", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "relative_offset_displacement", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "scale");
 	RNA_def_property_ui_text(prop, "Relative Offset Displacement", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");

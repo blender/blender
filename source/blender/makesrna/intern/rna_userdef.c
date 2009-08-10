@@ -1479,7 +1479,7 @@ static void rna_def_userdef_solidlight(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", 1);
 	RNA_def_property_ui_text(prop, "Enabled", "Enable this OpenGL light in solid draw mode.");
 
-	prop= RNA_def_property(srna, "direction", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "direction", PROP_FLOAT, PROP_DIRECTION);
 	RNA_def_property_float_sdna(prop, NULL, "vec");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Direction", "The direction that the OpenGL light is shining.");

@@ -255,7 +255,11 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 		/* return a mathutils vector where possible */
 		if(RNA_property_type(prop)==PROP_FLOAT) {
 			switch(RNA_property_subtype(prop)) {
-			case PROP_VECTOR:
+			case PROP_TRANSLATION:
+			case PROP_DIRECTION:
+			case PROP_VELOCITY:
+			case PROP_ACCELERATION:
+			case PROP_XYZ:
 				if(len>=2 && len <= 4) {
 					PyObject *vec_cb= newVectorObject_cb(ret, len, mathutils_rna_array_cb_index, FALSE);
 					Py_DECREF(ret); /* the vector owns now */
@@ -274,7 +278,8 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 					ret= mat_cb; /* return the matrix instead */
 				}
 				break;
-			case PROP_ROTATION:
+			case PROP_EULER:
+			case PROP_QUATERNION:
 				if(len==3) { /* euler */
 					PyObject *eul_cb= newEulerObject_cb(ret, mathutils_rna_array_cb_index, FALSE);
 					Py_DECREF(ret); /* the matrix owns now */

@@ -539,6 +539,11 @@ PropertySubType RNA_property_subtype(PropertyRNA *prop)
 	return rna_ensure_property(prop)->subtype;
 }
 
+PropertyUnit RNA_property_unit(PropertyRNA *prop)
+{
+	return RNA_SUBTYPE_UNIT(rna_ensure_property(prop)->subtype);
+}
+
 int RNA_property_flag(PropertyRNA *prop)
 {
 	return rna_ensure_property(prop)->flag;
@@ -547,6 +552,24 @@ int RNA_property_flag(PropertyRNA *prop)
 int RNA_property_array_length(PropertyRNA *prop)
 {
 	return rna_ensure_property_array_length(prop);
+}
+
+char RNA_property_array_item_char(PropertyRNA *prop, int index)
+{
+	const char *vectoritem= "XYZW";
+	const char *quatitem= "WXYZ";
+	const char *coloritem= "RGBA";
+	PropertySubType subtype= rna_ensure_property(prop)->subtype;
+
+	/* get string to use for array index */
+	if ((index < 4) && (subtype == PROP_QUATERNION))
+		return quatitem[index];
+	else if((index < 4) && ELEM6(subtype, PROP_TRANSLATION, PROP_DIRECTION, PROP_XYZ, PROP_EULER, PROP_VELOCITY, PROP_ACCELERATION))
+		return vectoritem[index];
+	else if ((index < 4) && ELEM(subtype, PROP_COLOR, PROP_RGB))
+		return coloritem[index];
+	else
+		return '\0';
 }
 
 void RNA_property_int_range(PointerRNA *ptr, PropertyRNA *prop, int *hardmin, int *hardmax)

@@ -408,7 +408,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Specular Color Factor", "Amount texture affects specular color.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
-	prop= RNA_def_property(srna, "colordiff_factor", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "colordiff_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "colfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Diffuse Color Factor", "Amount texture affects diffuse color.");
@@ -941,7 +941,7 @@ static void rna_def_material_sss(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "Material");
 	RNA_def_struct_ui_text(srna, "Material Subsurface Scattering", "Diffuse subsurface scattering settings for a Material datablock.");
 
-	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_RGB);
 	RNA_def_property_float_sdna(prop, NULL, "sss_radius");
 	RNA_def_property_range(prop, 0.001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.001, 10000, 1, 3);

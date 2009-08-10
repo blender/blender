@@ -379,31 +379,25 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 				but->type= NUMSLI;
 		}
 	}
-	else if(len <= 4 && ELEM3(subtype, PROP_ROTATION, PROP_VECTOR, PROP_COLOR)) {
-		if(subtype == PROP_COLOR)
+	else {
+		if(ELEM(subtype, PROP_COLOR, PROP_RGB))
 			uiDefAutoButR(block, ptr, prop, -1, "", 0, 0, 0, w, UI_UNIT_Y);
 
-		if(subtype != PROP_COLOR || expand) {
+		if(!ELEM(subtype, PROP_COLOR, PROP_RGB) || expand) {
 			/* layout for known array subtypes */
-			static char vectoritem[4]= {'X', 'Y', 'Z', 'W'};
-			static char quatitem[4]= {'W', 'X', 'Y', 'Z'};
-			static char coloritem[4]= {'R', 'G', 'B', 'A'};
 			char str[3];
 
 			for(a=0; a<len; a++) {
-				if(len == 4 && subtype == PROP_ROTATION)
-					str[0]= quatitem[a];
-				else if(subtype == PROP_VECTOR || subtype == PROP_ROTATION)
-					str[0]= vectoritem[a];
-				else
-					str[0]= coloritem[a];
+				str[0]= RNA_property_array_item_char(prop, a);
 
-				if(type == PROP_BOOLEAN) {
-					str[1]= '\0';
-				}
-				else {
-					str[1]= ':';
-					str[2]= '\0';
+				if(str[0]) {
+					if(type == PROP_BOOLEAN) {
+						str[1]= '\0';
+					}
+					else {
+						str[1]= ':';
+						str[2]= '\0';
+					}
 				}
 
 				but= uiDefAutoButR(block, ptr, prop, a, str, 0, 0, 0, w, UI_UNIT_Y);
@@ -411,15 +405,8 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 					but->type= NUMSLI;
 			}
 		}
-		else if(subtype == PROP_COLOR && len == 4) {
+		else if(ELEM(subtype, PROP_COLOR, PROP_RGB) && len == 4) {
 			but= uiDefAutoButR(block, ptr, prop, 3, "A:", 0, 0, 0, w, UI_UNIT_Y);
-			if(slider && but->type==NUM)
-				but->type= NUMSLI;
-		}
-	}
-	else {
-		for(a=0; a<len; a++) {
-			but= uiDefAutoButR(block, ptr, prop, a, "", 0, 0, 0, w, UI_UNIT_Y);
 			if(slider && but->type==NUM)
 				but->type= NUMSLI;
 		}

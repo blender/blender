@@ -93,13 +93,13 @@ void rna_def_metaelement(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 	
 	/* number values */
-	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "x");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Location", "");
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");
 
-	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ROTATION);
+	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_float_sdna(prop, NULL, "quat");
 	RNA_def_property_ui_text(prop, "Rotation", "");
 	RNA_def_property_update(prop, 0, "rna_MetaBall_update_data");

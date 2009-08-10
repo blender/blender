@@ -438,38 +438,38 @@ static void rna_def_sequence(BlenderRNA *brna)
 
 	/* strip positioning */
 
-	prop= RNA_def_property(srna, "length", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "length", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "len");
 	RNA_def_property_range(prop, 1, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Length", "The length of the contents of this strip before the handles are applied");
 	RNA_def_property_int_funcs(prop, "rna_SequenceEditor_length_get", "rna_SequenceEditor_length_set",NULL);
 
-	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "start");
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_int_funcs(prop, NULL, "rna_SequenceEditor_start_frame_set",NULL); // overlap tests and calc_seq_disp
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
-	prop= RNA_def_property(srna, "start_offset", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "start_offset", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "startofs");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
 	RNA_def_property_ui_text(prop, "Start Offset", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
-	prop= RNA_def_property(srna, "end_offset", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "end_offset", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "endofs");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
 	RNA_def_property_ui_text(prop, "End offset", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
-	prop= RNA_def_property(srna, "start_still", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "start_still", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "startstill");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
 	RNA_def_property_range(prop, 0, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Start Still", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
-	prop= RNA_def_property(srna, "end_still", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "end_still", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "endstill");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
 	RNA_def_property_range(prop, 0, MAXFRAME);
