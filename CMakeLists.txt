@@ -413,6 +413,16 @@ IF(APPLE)
   SET(OPENEXR_LIB Iex Half IlmImf Imath IlmThread)
   SET(OPENEXR_LIBPATH ${OPENEXR}/lib)
 
+  SET(FFMPEG ${LIBDIR}/ffmpeg)
+  SET(FFMPEG_INC ${CMAKE_SOURCE_DIR}/extern/ffmpeg)
+  SET(FFMPEG_LIB avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore)
+  SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
+
+  SET(LIBSAMPLERATE ${LIBDIR}/samplerate)
+  SET(LIBSAMPLERATE_INC ${LIBSAMPLERATE}/include)
+  SET(LIBSAMPLERATE_LIB libsamplerate)
+  SET(LIBSAMPLERATE_LIBPATH ${LIBSAMPLERATE}/lib)
+
   SET(LLIBS stdc++ SystemStubs)
 
   SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
