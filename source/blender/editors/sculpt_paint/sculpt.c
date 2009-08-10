@@ -525,46 +525,77 @@ static void calc_flatten_center(SculptSession *ss, ActiveData *node, float co[3]
 	VecMulf(co, 1.0f / FLATTEN_SAMPLE_SIZE);
 }
 
+/* Projects a point onto a plane along the plane's normal */
+static void point_plane_project(float intr[3], float co[3], float plane_normal[3], float plane_center[3])
+{
+	float p1[3], sub1[3], sub2[3];
+
+	/* Find the intersection between squash-plane and vertex (along the area normal) */
+	VecSubf(p1, co, plane_normal);
+	VecSubf(sub1, plane_center, p1);
+	VecSubf(sub2, co, p1);
+	VecSubf(intr, co, p1);
+	VecMulf(intr, Inpf(plane_normal, sub1) / Inpf(plane_normal, sub2));
+	VecAddf(intr, intr, p1);
+}
+
 static void do_flatten_clay_brush(Sculpt *sd, SculptSession *ss, const ListBase *active_verts, int clay)
 {
 	ActiveData *node= active_verts->first;
 	/* area_normal and cntr define the plane towards which vertices are squashed */
 	float area_normal[3];
-	float cntr[3];
+	float cntr[3], cntr2[3], bstr;
 
 	calc_area_normal(sd, area_normal, active_verts);
 	calc_flatten_center(ss, node, cntr);
 
+	if(clay) {
+		bstr= brush_strength(sd, ss->cache);
+		/* Limit clay application to here */
+		cntr2[0]=cntr[0]+area_normal[0]*bstr*ss->cache->scale[0];
+		cntr2[1]=cntr[1]+area_normal[1]*bstr*ss->cache->scale[1];
+		cntr2[2]=cntr[2]+area_normal[2]*bstr*ss->cache->scale[2];
+	}
+	
 	while(node){
 		float *co= ss->mvert[node->Index].co;
-		float p1[3], sub1[3], sub2[3], intr[3], val[3];
-		
-		/* Find the intersection between squash-plane and vertex (along the area normal) */
-		VecSubf(p1, co, area_normal);
-		VecSubf(sub1, cntr, p1);
-		VecSubf(sub2, co, p1);
-		VecSubf(intr, co, p1);
-		VecMulf(intr, Inpf(area_normal, sub1) / Inpf(area_normal, sub2));
-		VecAddf(intr, intr, p1);
-		
-		VecSubf(val, intr, co);
-		VecMulf(val, fabs(node->Fade));
-		VecAddf(val, val, co);
+		float intr[3], val[3], d;
 		
 		if(clay) {
-			/* Clay brush displaces after flattening */
-			float tmp[3];
-			VecCopyf(tmp, area_normal);
-			VecMulf(tmp, ss->cache->radius * node->Fade * 0.1);
-			VecAddf(val, val, tmp);
+			float delta[3];
+
+			VecSubf(delta, co, cntr2);
+			d = Inpf(area_normal, delta);
+
+			/* Check for subtractive mode */
+			if(bstr < 0)
+				d = -d;
 		}
 
-		sculpt_clip(sd, co, val);
+		if(!clay || d <= 0.0f) {
+			/* Find the intersection between squash-plane and vertex (along the area normal) */		
+			point_plane_project(intr, co, area_normal, cntr);
+
+			VecSubf(val, intr, co);
+
+			if(clay) {
+				VecMulf(val, node->Fade / bstr);
+				/* Clay displacement */
+				val[0]+=area_normal[0] * ss->cache->scale[0]*node->Fade;
+				val[1]+=area_normal[1] * ss->cache->scale[1]*node->Fade;
+				val[2]+=area_normal[2] * ss->cache->scale[2]*node->Fade;
+			}
+			else
+				VecMulf(val, fabs(node->Fade));
+
+			VecAddf(val, val, co);
+			sculpt_clip(sd, co, val);
+		}
 		
 		node= node->next;
 	}
 }
- 
+
 /* Uses symm to selectively flip any axis of a coordinate. */
 static void flip_coord(float out[3], float in[3], const char symm)
 {
