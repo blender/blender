@@ -46,6 +46,8 @@ extern "C"
 #define BVHNode VBVHNode
 #define BVHTree VBVHTree
 
+
+#define RE_DO_HINTS	(0)
 #define RAY_BB_TEST_COST (0.2f)
 #define DFS_STACK_SIZE	256
 //#define DYNAMIC_ALLOC_BB
@@ -293,20 +295,20 @@ Node *bvh_rearrange(Tree *tree, Builder *builder)
 template<class Node>
 float bvh_refit(Node *node)
 {
-	if(RayObject_isAligned(node)) return 0;	
-	if(RayObject_isAligned(node->child)) return 0;
+	if(!RayObject_isAligned(node)) return 0;	
+	if(!RayObject_isAligned(node->child)) return 0;
 	
 	float total = 0;
 	
-	for(Node *child = node->child; RayObject_isAligned(child) && child; child = child->sibling)
+	for(Node *child = node->child; child; child = child->sibling)
 		total += bvh_refit(child);
 		
 	float old_area = bb_area(node->bb, node->bb+3);
 	INIT_MINMAX(node->bb, node->bb+3);
-	for(Node *child = node->child; RayObject_isAligned(child) && child; child = child->sibling)
+	for(Node *child = node->child; child; child = child->sibling)
 	{
 		DO_MIN(child->bb, node->bb);
-		DO_MIN(child->bb+3, node->bb+3);
+		DO_MAX(child->bb+3, node->bb+3);
 	}
 	total += old_area - bb_area(node->bb, node->bb+3);
 	return total;
@@ -329,8 +331,8 @@ void bvh_done<BVHTree>(BVHTree *obj)
 	obj->root = bvh_rearrange<BVHTree,BVHNode,RTBuilder>( obj, obj->builder );
 	reorganize(obj->root);
 	remove_useless(obj->root, &obj->root);
-	pushup(obj->root);
 	printf("refit: %f\n", bvh_refit(obj->root) );
+	pushup(obj->root);
 	pushdown(obj->root);
 //	obj->root = memory_rearrange(obj->root);
 	obj->cost = 1.0;
@@ -342,7 +344,7 @@ void bvh_done<BVHTree>(BVHTree *obj)
 template<int StackSize>
 int intersect(BVHTree *obj, Isect* isec)
 {
-	if(isec->hint)
+	if(RE_DO_HINTS && isec->hint)
 	{
 		LCTSHint *lcts = (LCTSHint*)isec->hint;
 		isec->hint = 0;
@@ -423,13 +425,22 @@ void bvh_dfs_make_hint(Node *node, LCTSHint *hint, int reserve_space, HintObject
 template<class Tree>
 void bvh_hint_bb(Tree *tree, LCTSHint *hint, float *min, float *max)
 {
-	HintBB bb;
-	VECCOPY(bb.bb, min);
-	VECCOPY(bb.bb+3, max);
+	if(RE_DO_HINTS)
+	{
+		HintBB bb;
+		VECCOPY(bb.bb, min);
+		VECCOPY(bb.bb+3, max);
 	
-	hint->size = 0;
-	bvh_dfs_make_hint( tree->root, hint, 0, &bb );
-	tot_hints++;
+		hint->size = 0;
+		bvh_dfs_make_hint( tree->root, hint, 0, &bb );
+		tot_hints++;
+	}
+	else
+	{
+		hint->size = 0;
+		hint->stack[hint->size++] = (RayObject*)tree->root;
+		tot_hints++;
+	}
 }
 
 void bfree(BVHTree *tree)
