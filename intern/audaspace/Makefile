@@ -54,6 +54,6 @@ install: $(ALL_OR_DEBUG)
 ifeq ($(OS),darwin)
 	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaudaspace.a
 endif
-	@../tools/cpifdiff.sh intern/AUD_Space.h $(NAN_AUDASPACE)/include/
+	@../tools/cpifdiff.sh intern/*.h $(NAN_AUDASPACE)/include/
 
 
