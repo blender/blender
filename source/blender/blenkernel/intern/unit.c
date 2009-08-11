@@ -37,7 +37,7 @@ typedef struct bUnitDef {
 	char *name_alt;		/* alternative name */
 	
 	double mul;
-	double bias;
+	double bias;		/* not used yet, needed for converting temperature */
 } bUnitDef;
 
 /* define a single unit */
@@ -175,6 +175,7 @@ static int unit_as_string(char *str, double value, int prec, bUnitCollection *us
 	return i;
 }
 
+
 /* Used for drawing number buttons, try keep fast */
 void bUnit_AsString(char *str, double value, int prec, int system, int type, int split, int pad)
 {
@@ -189,13 +190,12 @@ void bUnit_AsString(char *str, double value, int prec, int system, int type, int
 
 		/* check the 2 is a smaller unit */
 		if(unit_b > unit_a) {
-			i= unit_as_string(str, value_a, prec, usys,    unit_a, '\0');
-			i= strlen(str);
+			i= unit_as_string(str, value_a, prec, usys,  unit_a, '\0');
 			str[i++]= ',';
 			str[i++]= ' ';
 
 			/* use low precision since this is a smaller unit */
-			unit_as_string(str+i, value_b, prec?1:0, usys, unit_b, '\0');
+			unit_as_string(str+i, value_b, prec?1:0, usys,  unit_b, '\0');
 			return;
 		}
 	}

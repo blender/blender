@@ -2371,6 +2371,7 @@ PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 		
 		if (tp) {
 			pyrna = (BPy_StructRNA *) tp->tp_alloc(tp, 0);
+			Py_DECREF(tp);
 		}
 		else {
 			fprintf(stderr, "Could not make type\n");
