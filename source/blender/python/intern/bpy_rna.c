@@ -2554,21 +2554,29 @@ PyObject *BPY_rna_props( void )
 }
 
 /* Orphan functions, not sure where they should go */
-
 /* get the srna for methods attached to types */
+/* */
 static StructRNA *srna_from_self(PyObject *self)
 {
 	BPy_StructRNA *py_srna;
-
+	
+	/* a bit sloppy but would cause a very confusing bug if
+	 * an error happened to be set here */
+	PyErr_Clear();
+	
 	if(self==NULL) {
-	 	PyErr_SetString(PyExc_SystemError, "internal error, self was NULL, should never happen.");
 		return NULL;
 	}
-
-	if (PyCObject_Check(self)) {
+	else if (PyCObject_Check(self)) {
 		return PyCObject_AsVoidPtr(self);
 	}
+	else if (PyType_Check(self)==0) {
+		return NULL;
+	}
+	/* These cases above not errors, they just mean the type was not compatible
+	 * After this any errors will be raised in the script */
 
+	
 	py_srna= (BPy_StructRNA *)PyObject_GetAttrString(self, "__rna__");
 
 	if(py_srna==NULL) {
@@ -2594,6 +2602,18 @@ static StructRNA *srna_from_self(PyObject *self)
 	return py_srna->ptr.data;
 }
 
+/* operators use this so it can store the args given but defer running
+ * it until the operator runs where these values are used to setup the 
+ * default args for that operator instance */
+static PyObject *bpy_prop_deferred_return(void *func, PyObject *kw)
+{
+	PyObject *ret = PyTuple_New(2);
+	PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr(func, NULL));
+	PyTuple_SET_ITEM(ret, 1, kw);
+	Py_INCREF(kw);
+	return ret;	
+}
+
 /* Function that sets RNA, NOTE - self is NULL when called from python, but being abused from C so we can pass the srna allong
  * This isnt incorrect since its a python object - but be careful */
 PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
@@ -2612,21 +2632,18 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 	
-	if(((self && (PyCObject_Check(self))) || (self && BPy_StructRNA_Check(self))) == 0) {
-		PyObject *ret = PyTuple_New(2);
-		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_FloatProperty, NULL));
-		PyTuple_SET_ITEM(ret, 1, kw);
-		Py_INCREF(kw);
-		return ret;
-	}
-
 	srna= srna_from_self(self);
-	if(srna==NULL)
-		return NULL;
-
-	prop= RNA_def_float(srna, id, def, min, max, name, description, soft_min, soft_max);
-	RNA_def_property_duplicate_pointers(prop);
-	Py_RETURN_NONE;
+	if(srna==NULL && PyErr_Occurred()) {
+		return NULL; /* self's type was compatible but error getting the srna */
+	}
+	else if(srna) {
+		prop= RNA_def_float(srna, id, def, min, max, name, description, soft_min, soft_max);
+		RNA_def_property_duplicate_pointers(prop);
+		Py_RETURN_NONE;
+	}
+	else { /* operators defer running this function */
+		return bpy_prop_deferred_return((void *)BPy_FloatProperty, kw);
+	}
 }
 
 PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
@@ -2645,21 +2662,18 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 	
-	if(((self && (PyCObject_Check(self))) || (self && BPy_StructRNA_Check(self))) == 0) {
-		PyObject *ret = PyTuple_New(2);
-		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_IntProperty, NULL));
-		PyTuple_SET_ITEM(ret, 1, kw);
-		Py_INCREF(kw);
-		return ret;
-	}
-
 	srna= srna_from_self(self);
-	if(srna==NULL)
-		return NULL;
-
-	prop= RNA_def_int(srna, id, def, min, max, name, description, soft_min, soft_max);
-	RNA_def_property_duplicate_pointers(prop);
-	Py_RETURN_NONE;
+	if(srna==NULL && PyErr_Occurred()) {
+		return NULL; /* self's type was compatible but error getting the srna */
+	}
+	else if(srna) {
+		prop= RNA_def_int(srna, id, def, min, max, name, description, soft_min, soft_max);
+		RNA_def_property_duplicate_pointers(prop);
+		Py_RETURN_NONE;
+	}
+	else { /* operators defer running this function */
+		return bpy_prop_deferred_return((void *)BPy_IntProperty, kw);
+	}
 }
 
 PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
@@ -2677,22 +2691,19 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
 		return NULL;
 	}
-
-	if(((self && (PyCObject_Check(self))) || (self && BPy_StructRNA_Check(self))) == 0) {
-		PyObject *ret = PyTuple_New(2);
-		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_BoolProperty, NULL));
-		PyTuple_SET_ITEM(ret, 1, kw);
-		Py_INCREF(kw);
-		return ret;
-	}
-
+	
 	srna= srna_from_self(self);
-	if(srna==NULL)
-		return NULL;
-
-	prop= RNA_def_boolean(srna, id, def, name, description);
-	RNA_def_property_duplicate_pointers(prop);
-	Py_RETURN_NONE;
+	if(srna==NULL && PyErr_Occurred()) {
+		return NULL; /* self's type was compatible but error getting the srna */
+	}
+	else if(srna) {
+		prop= RNA_def_boolean(srna, id, def, name, description);
+		RNA_def_property_duplicate_pointers(prop);
+		Py_RETURN_NONE;
+	}
+	else { /* operators defer running this function */
+		return bpy_prop_deferred_return((void *)BPy_BoolProperty, kw);
+	}
 }
 
 PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
@@ -2711,21 +2722,18 @@ PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 
-	if(((self && (PyCObject_Check(self))) || (self && BPy_StructRNA_Check(self))) == 0) {
-		PyObject *ret = PyTuple_New(2);
-		PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr((void *)BPy_StringProperty, NULL));
-		PyTuple_SET_ITEM(ret, 1, kw);
-		Py_INCREF(kw);
-		return ret;
-	}
-
 	srna= srna_from_self(self);
-	if(srna==NULL)
-		return NULL;
-
-	prop= RNA_def_string(srna, id, def, maxlen, name, description);
-	RNA_def_property_duplicate_pointers(prop);
-	Py_RETURN_NONE;
+	if(srna==NULL && PyErr_Occurred()) {
+		return NULL; /* self's type was compatible but error getting the srna */
+	}
+	else if(srna) {
+		prop= RNA_def_string(srna, id, def, maxlen, name, description);
+		RNA_def_property_duplicate_pointers(prop);
+		Py_RETURN_NONE;
+	}
+	else { /* operators defer running this function */
+		return bpy_prop_deferred_return((void *)BPy_StringProperty, kw);
+	}
 }
 
 /*-------------------- Type Registration ------------------------*/
