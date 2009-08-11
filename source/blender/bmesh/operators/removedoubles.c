@@ -1,12 +1,19 @@
 #include "MEM_guardedalloc.h"
 
+#include "DNA_meshdata_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+
 #include "BKE_utildefines.h"
+
+#include "BLI_arithb.h"
+#include "BLI_ghash.h"
+#include "BLI_blenlib.h"
 
 #include "bmesh.h"
 #include "mesh_intern.h"
 #include "bmesh_private.h"
-#include "BLI_arithb.h"
-#include "BLI_ghash.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -157,7 +164,7 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 			v2 = BMO_Get_MapPointer(bm, op, "targetmap", v2);
 		
 
-		f2 = BM_Make_Ngon(bm, v2, v, edges, a, 0);
+		f2 = BM_Make_Ngon(bm, v, v2, edges, a, 0);
 		if (f2) {
 			BM_Copy_Attributes(bm, bm, f, f2);
 			BMO_SetFlag(bm, f, ELE_DEL);
@@ -195,6 +202,128 @@ static int vergaverco(const void *e1, const void *e2)
 #define VERT_DOUBLE	2
 #define VERT_TARGET	4
 #define VERT_KEEP	8
+#define VERT_MARK	16
+
+#define EDGE_MARK	1
+
+void bmesh_pointmerge_exec(BMesh *bm, BMOperator *op)
+{
+}
+
+void bmesh_collapse_exec(BMesh *bm, BMOperator *op)
+{
+	BMOperator weldop;
+	BMWalker walker;
+	BMOIter siter;
+	BMIter iter, liter, liter2;
+	BMVert *v;
+	BMEdge *e, **edges = NULL;
+	V_DECLARE(edges);
+	float min[3], max[3];
+	int i, tot;
+	
+	BMO_CallOpf(bm, "collapse_uvs edges=%s", op, "edges");
+	BMO_Init_Op(&weldop, "weldverts");
+
+	BMO_Flag_Buffer(bm, op, "edges", EDGE_MARK, BM_EDGE);	
+	BMW_Init(&walker, bm, BMW_SHELL, EDGE_MARK, 0);
+
+	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		if (!BMO_TestFlag(bm, e, EDGE_MARK))
+			continue;
+
+		e = BMW_Begin(&walker, e->v1);
+		V_RESET(edges);
+
+		INIT_MINMAX(min, max);
+		for (tot=0; e; tot++, e=BMW_Step(&walker)) {
+			V_GROW(edges);
+			edges[tot] = e;
+
+			DO_MINMAX(e->v1->co, min, max);
+			DO_MINMAX(e->v2->co, min, max);
+		}
+
+		VECADD(min, min, max);
+		VECMUL(min, 0.5f);
+
+		/*snap edges to a point.  for initial testing purposes anyway.*/
+		for (i=0; i<tot; i++) {
+			VECCOPY(edges[i]->v1->co, min);
+			VECCOPY(edges[i]->v2->co, min);
+			
+			if (edges[i]->v1 != edges[0]->v1)
+				BMO_Insert_MapPointer(bm, &weldop, "targetmap", edges[i]->v1, edges[0]->v1);			
+			if (edges[i]->v2 != edges[0]->v1)
+				BMO_Insert_MapPointer(bm, &weldop, "targetmap", edges[i]->v2, edges[0]->v1);
+		}
+	}
+	
+	BMO_Exec_Op(bm, &weldop);
+	BMO_Finish_Op(bm, &weldop);
+
+	BMW_End(&walker);
+	V_FREE(edges);
+}
+
+/*uv collapse function*/
+void bmesh_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
+{
+	BMIter iter, liter, liter2;
+	BMFace *f;
+	BMLoop *l, *l2;
+	BMEdge *e;
+	BMVert *v;
+	BMWalker walker;
+	void **blocks = NULL;
+	V_DECLARE(blocks);
+	CDBlockBytes min, max;
+	int i, tot, type = bm->ldata.layers[layer].type;
+
+	BMO_Flag_Buffer(bm, op, "edges", EDGE_MARK, BM_EDGE);
+	
+	BMW_Init(&walker, bm, BMW_UVISLAND, EDGE_MARK, layer);
+
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+			if (BMO_TestFlag(bm, l->e, EDGE_MARK)) {
+				/*walk*/
+				V_RESET(blocks);
+				tot = 0;
+				l2 = BMW_Begin(&walker, l);
+
+				CustomData_data_initminmax(type, &min, &max);
+				for (tot=0; l2; tot++, l2=BMW_Step(&walker)) {
+					V_GROW(blocks);
+					blocks[tot] = CustomData_bmesh_get_layer_n(&bm->ldata, l2->head.data, layer);
+					CustomData_data_dominmax(type, blocks[tot], &min, &max);
+				}
+
+				CustomData_data_multiply(type, &min, 0.5f);
+				CustomData_data_multiply(type, &max, 0.5f);
+				CustomData_data_add(type, &min, &max);
+
+				/*snap CD (uv, vcol) points to their centroid*/
+				for (i=0; i<tot; i++) {
+					CustomData_bmesh_set_layer_n(&bm->ldata, blocks[i], layer, &min);
+				}
+			}
+		}
+	}
+
+	BMW_End(&walker);
+	V_FREE(blocks);
+}
+
+void bmesh_collapsecon_exec(BMesh *bm, BMOperator *op)
+{
+	int i;
+
+	for (i=0; i<bm->ldata.totlayer; i++) {
+		if (CustomData_layer_has_math(&bm->ldata, i))
+			bmesh_collapsecon_do_layer(bm, op, i);
+	}
+}
 
 void bmesh_removedoubles_exec(BMesh *bm, BMOperator *op)
 {
@@ -275,7 +404,7 @@ void bmesh_finddoubles_exec(BMesh *bm, BMOperator *op)
 	/*sort by vertex coordinates added together*/
 	//qsort(verts, V_COUNT(verts), sizeof(void*), vergaverco);
 	
-	BMO_Flag_Buffer(bm, op, "keepverts", VERT_KEEP);
+	BMO_Flag_Buffer(bm, op, "keepverts", VERT_KEEP, BM_VERT);
 
 	len = V_COUNT(verts);
 	for (i=0; i<len; i++) {

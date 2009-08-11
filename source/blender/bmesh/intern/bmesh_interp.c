@@ -69,6 +69,22 @@ void BM_Data_Interp_From_Verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, flo
 	}
 }
 
+/*
+    BM Data Vert Average
+
+    Sets all the customdata (e.g. vert, loop) associated with a vert
+    to the average of the face regions surrounding it.
+*/
+
+//CustomData_bmesh_interp(&bm->ldata, src,w, NULL, 2, vloop->head.data); 				
+
+void BM_Data_Vert_Average(BMesh *bm, BMFace *f)
+{
+	BMIter iter;
+
+
+}
+
 /**
  *			bmesh_data_facevert_edgeinterp
  *

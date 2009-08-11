@@ -315,7 +315,8 @@ void dupeop_exec(BMesh *bm, BMOperator *op)
 	BMOperator *dupeop = op;
 	
 	/*flag input*/
-	BMO_Flag_Buffer(bm, dupeop, "geom", DUPE_INPUT);
+	BMO_Flag_Buffer(bm, dupeop, "geom", DUPE_INPUT, BM_ALL);
+
 	/*use the internal copy function*/
 	copy_mesh(dupeop, bm, bm);
 	
@@ -380,7 +381,7 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 	BMO_CopySlot(splitop, &dupeop, "geom", "geom");
 	BMO_Exec_Op(bm, &dupeop);
 	
-	BMO_Flag_Buffer(bm, splitop, "geom", SPLIT_INPUT);
+	BMO_Flag_Buffer(bm, splitop, "geom", SPLIT_INPUT, BM_ALL);
 
 	/*make sure to remove edges and verts we don't need.*/
 	for (e= BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);e;e=BMIter_Step(&iter)) {
@@ -437,7 +438,7 @@ void delop_exec(BMesh *bm, BMOperator *op)
 	BMOperator *delop = op;
 
 	/*Mark Buffers*/
-	BMO_Flag_Buffer(bm, delop, "geom", DEL_INPUT);
+	BMO_Flag_Buffer(bm, delop, "geom", DEL_INPUT, BM_ALL);
 
 	delete_context(bm, BMO_Get_Int(op, "context"));
 }

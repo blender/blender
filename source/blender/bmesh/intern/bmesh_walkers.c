@@ -1,5 +1,12 @@
 #include <stdio.h>
 #include <string.h>
+
+#include "BKE_utildefines.h"
+#include "BKE_customdata.h"
+
+#include "DNA_meshdata_types.h"
+#include "DNA_mesh_types.h"
+
 #include "BLI_mempool.h"
 
 #include "bmesh_private.h"
@@ -65,6 +72,11 @@ typedef struct edgeringWalker {
 	BMLoop *l;
 } edgeringWalker;
 
+typedef struct uvedgeWalker {
+	struct uvedgeWalker *prev;
+	BMLoop *l;
+} uvedgeWalker;
+
 /*  NOTE: this comment is out of date, update it - joeedh
  *	BMWalker - change this to use the filters functions.
  *	
@@ -117,6 +129,10 @@ static void edgeringWalker_begin(BMWalker *walker, void *data);
 static void *edgeringWalker_yield(BMWalker *walker);
 static void *edgeringWalker_step(BMWalker *walker);
 
+static void uvedgeWalker_begin(BMWalker *walker, void *data);
+static void *uvedgeWalker_yield(BMWalker *walker);
+static void *uvedgeWalker_step(BMWalker *walker);
+
 /* Pointer hiding*/
 typedef struct bmesh_walkerGeneric{
 	struct bmesh_walkerGeneric *prev;
@@ -126,7 +142,7 @@ typedef struct bmesh_walkerGeneric{
 void *BMW_Begin(BMWalker *walker, void *start) {
 	walker->begin(walker, start);
 	
-	return walker->step(walker);
+	return walker->currentstate ? walker->step(walker) : NULL;
 }
 
 /*
@@ -138,11 +154,13 @@ void *BMW_Begin(BMWalker *walker, void *start) {
  *
 */
 
-void BMW_Init(BMWalker *walker, BMesh *bm, int type, int searchmask)
+void BMW_Init(BMWalker *walker, BMesh *bm, int type, int searchmask, int flag)
 {
 	int size = 0;
 	
 	memset(walker, 0, sizeof(BMWalker));
+
+	walker->flag = flag;
 	walker->bm = bm;
 	walker->restrictflag = searchmask;
 	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
@@ -183,6 +201,12 @@ void BMW_Init(BMWalker *walker, BMesh *bm, int type, int searchmask)
 			walker->step = edgeringWalker_step;
 			walker->yield = edgeringWalker_yield;
 			size = sizeof(edgeringWalker);
+			break;
+		case BMW_UVISLAND:
+			walker->begin = uvedgeWalker_begin;
+			walker->step = uvedgeWalker_step;
+			walker->yield = uvedgeWalker_yield;
+			size = sizeof(uvedgeWalker);
 			break;
 		default:
 			break;
@@ -291,27 +315,71 @@ void BMW_reset(BMWalker *walker) {
 */
 
 static void shellWalker_begin(BMWalker *walker, void *data){
+	BMIter eiter;
+	BMEdge *e;
 	BMVert *v = data;
 	shellWalker *shellWalk = NULL;
+
+	if (!v->edge)
+		return;
+
+	if (walker->restrictflag) {
+		BM_ITER(e, &eiter, walker->bm, BM_EDGES_OF_VERT, v) {
+			if (BMO_TestFlag(walker->bm, e, walker->restrictflag))
+				break;
+		}
+	} else {
+		e = v->edge;
+	}
+
+	if (!e) 
+		return;
 
 	BMW_pushstate(walker);
 
 	shellWalk = walker->currentstate;
-	shellWalk->base = NULL;
-	shellWalk->curedge = NULL;
-
-	if(v->edge){
-		shellWalk->base = v;
-		shellWalk->curedge = v->edge;
-		BLI_ghash_insert(walker->visithash, v->edge, NULL);
-	}
+	shellWalk->base = v;
+	shellWalk->curedge = e;
+	BLI_ghash_insert(walker->visithash, e, NULL);
 }
+
 static void *shellWalker_yield(BMWalker *walker)
 {
 	shellWalker *shellWalk = walker->currentstate;
 	return shellWalk->curedge;
 }
 
+static void *shellWalker_step(BMWalker *walker)
+{
+	shellWalker *swalk = walker->currentstate;
+	BMEdge *e, *e2;
+	BMVert *v;
+	BMIter iter;
+	int i;
+
+	BMW_popstate(walker);
+
+	e = swalk->curedge;
+	for (i=0; i<2; i++) {
+		v = i ? e->v2 : e->v1;
+		BM_ITER(e2, &iter, walker->bm, BM_EDGES_OF_VERT, v) {
+			if (walker->restrictflag && !BMO_TestFlag(walker->bm, e2, walker->restrictflag))
+				continue;
+			if (BLI_ghash_haskey(walker->visithash, e2))
+				continue;
+			
+			BMW_pushstate(walker);
+			BLI_ghash_insert(walker->visithash, e2, NULL);
+
+			swalk = walker->currentstate;
+			swalk->curedge = e2;
+		}
+	}
+
+	return e;
+}
+
+#if 0
 static void *shellWalker_step(BMWalker *walker)
 {
 	BMEdge *curedge, *next = NULL;
@@ -324,19 +392,19 @@ static void *shellWalker_step(BMWalker *walker)
 
 	BMW_popstate(walker);
 
+
 	/*find the next edge whose other vertex has not been visited*/
 	curedge = shellWalk.curedge;
 	do{
 		if (!BLI_ghash_haskey(walker->visithash, curedge)) { 
-			BLI_ghash_insert(walker->visithash, curedge, NULL);
-
-			if(!(walker->restrictflag && 
-			     !BMO_TestFlag(walker->bm, curedge, walker->restrictflag)))
+			if(!walker->restrictflag || (walker->restrictflag &&
+			   BMO_TestFlag(walker->bm, curedge, walker->restrictflag)))
 			{
 				ov = BM_OtherEdgeVert(curedge, shellWalk.base);
 				
 				/*push a new state onto the stack*/
 				BMW_pushstate(walker);
+				BLI_ghash_insert(walker->visithash, curedge, NULL);
 				
 				/*populate the new state*/
 
@@ -349,6 +417,7 @@ static void *shellWalker_step(BMWalker *walker)
 	
 	return shellWalk.curedge;
 }
+#endif
 
 /*	Island Boundary Walker:
  *
@@ -755,5 +824,92 @@ static void *edgeringWalker_step(BMWalker *walker)
 	}
 
 	return e;
+}
+
+static void uvedgeWalker_begin(BMWalker *walker, void *data)
+{
+	uvedgeWalker *lwalk;
+	BMLoop *l = data;
+
+	if (BLI_ghash_haskey(walker->visithash, l))
+		return;
+
+	BMW_pushstate(walker);
+	lwalk = walker->currentstate;
+	lwalk->l = l;
+	BLI_ghash_insert(walker->visithash, l, NULL);
+}
+
+static void *uvedgeWalker_yield(BMWalker *walker)
+{
+	uvedgeWalker *lwalk = walker->currentstate;
+	
+	if (!lwalk) return NULL;
+}
+
+static int walker_compare_uv(MLoopUV *luv1, MLoopUV *luv2)
+{
+	float udelta = luv1->uv[0] - luv2->uv[0];
+	float vdelta = luv1->uv[1] - luv2->uv[1];
+
+	/*BMESH_TODO: look up proper threshold value*/
+	return udelta*udelta + vdelta*vdelta < 0.0001f;
+}
+
+static void *uvedgeWalker_step(BMWalker *walker)
+{
+	uvedgeWalker *lwalk = walker->currentstate;
+	BMLoop *l, *l2, *l3, *nl, *cl;
+	BMIter liter;
+	void *d1, *d2;
+	int i, j, rlen, type;
+
+	l = lwalk->l;
+	nl = l->head.next;
+	type = walker->bm->ldata.layers[walker->flag].type;
+
+	BMW_popstate(walker);
+	
+	if (walker->restrictflag && !BMO_TestFlag(walker->bm, l->e, walker->restrictflag))
+		return l;
+
+	/*go over loops around l->v and nl->v and see which ones share l and nl's 
+	  mloopuv's coordinates. in addition, push on l->head.next if necassary.*/
+	for (i=0; i<2; i++) {
+		BM_ITER(l2, &liter, walker->bm, BM_LOOPS_OF_VERT, i?nl->v:l->v) {
+			cl = i ? nl : l;
+
+			d1 = CustomData_bmesh_get_layer_n(&walker->bm->ldata, 
+			             cl->head.data, walker->flag);
+			
+			rlen = BM_Edge_FaceCount(l2->e);
+			for (j=0; j<rlen; j++) {
+				if (BLI_ghash_haskey(walker->visithash, l2))
+					continue;
+				if (walker->restrictflag && !(BMO_TestFlag(walker->bm, l2->e, walker->restrictflag)))
+				{
+					if (l2->v != l->v)
+						continue;
+				}
+				
+				l3 = l2->v != cl->v ? (BMLoop*)l2->head.next : l2;
+				d2 = CustomData_bmesh_get_layer_n(&walker->bm->ldata, 
+					     l3->head.data, walker->flag);
+
+				if (!CustomData_data_equals(type, d1, d2))
+					continue;
+				
+				BMW_pushstate(walker);
+				BLI_ghash_insert(walker->visithash, l2, NULL);
+				lwalk = walker->currentstate;
+
+				lwalk->l = l2;
+
+				l2 = l2->radial.next->data;
+			}
+		}
+	}
+
+	return l;
 }
 

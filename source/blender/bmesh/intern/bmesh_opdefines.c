@@ -224,6 +224,47 @@ BMOpDefine def_removedoubles = {
 };
 
 /*
+  Collapse Connected
+
+  Collapses connected vertices
+*/
+BMOpDefine def_collapse = {
+	"collapse",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, /*input edges*/
+	 {0, /*null-terminating sentinel*/}},
+	bmesh_collapse_exec,
+	0,
+};
+
+
+/*
+  Point Merge
+
+  Merge verts together at a point.
+*/
+BMOpDefine def_pointmerge = {
+	"pointmerge",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, /*input vertices*/
+	 {BMOP_OPSLOT_VEC,         "mergeco"},
+	 {0, /*null-terminating sentinel*/}},
+	bmesh_pointmerge_exec,
+	0,
+};
+
+/*
+  Collapse Connected UVs
+
+  Collapses connected UV vertices.
+*/
+BMOpDefine def_collapse_uvs = {
+	"collapse_uvs",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, /*input edges*/
+	 {0, /*null-terminating sentinel*/}},
+	bmesh_collapsecon_exec,
+	0,
+};
+
+/*
   Weld Verts
 
   Welds verts together (kindof like remove doubles, merge, etc, all of which
@@ -356,6 +397,36 @@ BMOpDefine def_mesh_to_bmesh = {
 	{{BMOP_OPSLOT_PNT, "mesh"}, //pointer to a Mesh structure
 	 {0, /*null-terminating sentinel*/}},
 	mesh_to_bmesh_exec,
+	0
+};
+
+/*
+  Individual Face Extrude
+
+  Extrudes faces individually.
+*/
+BMOpDefine def_extrude_indivface = {
+	"extrude_face_indiv",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, //input faces
+	{BMOP_OPSLOT_ELEMENT_BUF, "faceout"}, //output faces
+	{BMOP_OPSLOT_ELEMENT_BUF, "skirtout"}, //output skirt geometry, faces and edges
+	{0} /*null-terminating sentinel*/},
+	bmesh_extrude_face_indiv_exec,
+	0
+};
+
+/*
+  Extrude Only Edges
+
+  Extrudes Edges into faces, note that this is very simple, there's no fancy
+  winged extrusion.
+*/
+BMOpDefine def_extrude_onlyedge = {
+	"extrude_edge_only",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, //input vertices
+	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"}, //output geometry
+	{0} /*null-terminating sentinel*/},
+	bmesh_extrude_onlyedge_exec,
 	0
 };
 
@@ -572,6 +643,11 @@ BMOpDefine *opdefines[] = {
 	&def_regionextend,
 	&def_righthandfaces,
 	&def_vertexsmooth,
+	&def_extrude_onlyedge,
+	&def_extrude_indivface,
+	&def_collapse_uvs,
+	&def_pointmerge,
+	&def_collapse,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

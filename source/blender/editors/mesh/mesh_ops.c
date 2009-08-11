@@ -78,6 +78,7 @@ static int vertex_specials_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiItemO(layout, "Merge...", 0, "MESH_OT_merge");
 	uiItemO(layout, "Smooth", 0, "MESH_OT_vertices_smooth");
 	uiItemO(layout, "Select Vertex Path", 0, "MESH_OT_select_vertex_path"); 
+	uiItemO(layout, "BMesh Test Operator", 0, "MESH_OT_bm_test"); 
 	//uiItemO(layout, "Blend From Shape", 0, "MESH_OT_blend_from_shape");
 	//uiItemO(layout, "Propagate to All Shapes", 0, "MESH_OT_shape_propagate_to_all");
 
@@ -231,7 +232,9 @@ static void MESH_OT_specials(wmOperatorType *ot)
 void ED_operatortypes_mesh(void)
 {
 	wmOperatorType *ot;
-	
+	wmOperatorTypeMacro *otm;
+	static int constraint_axis[3] = {0, 0, 1};
+
 	WM_operatortype_append(MESH_OT_select_all_toggle);
 	WM_operatortype_append(MESH_OT_select_more);
 	WM_operatortype_append(MESH_OT_select_less);
@@ -317,7 +320,14 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_specials);
 	WM_operatortype_append(MESH_OT_vert_connect);
 	WM_operatortype_append(MESH_OT_edge_split);
+
+	WM_operatortype_append(MESH_OT_extrude_region);
+	WM_operatortype_append(MESH_OT_extrude_verts_indiv);
+	WM_operatortype_append(MESH_OT_extrude_edges_indiv);
+	WM_operatortype_append(MESH_OT_extrude_faces_indiv);
 	
+	WM_operatortype_append(MESH_OT_bm_test);
+
 	/* macros */
 	ot= WM_operatortype_append_macro("MESH_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_duplicate");
@@ -329,7 +339,14 @@ void ED_operatortypes_mesh(void)
 
 	/*ot= WM_operatortype_append_macro("MESH_OT_extrude_move", "Extrude", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_extrude");
-	WM_operatortype_macro_define(ot, "TFM_OT_translate");*/
+	otm = WM_operatortype_macro_define(ot, "TFM_OT_translate");
+
+	RNA_enum_set(otm->ptr, "proportional", 0);
+	RNA_boolean_set(otm->ptr, "mirror", 0);
+
+	RNA_enum_set(otm->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
+	RNA_boolean_set_array(otm->ptr, "constraint_axis", constraint_axis);*/
+	
 }
 
 /* note mesh keymap also for other space? */

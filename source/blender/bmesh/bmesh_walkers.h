@@ -17,11 +17,12 @@ typedef struct BMWalker {
 	void *(*step) (struct BMWalker *walker);
 	int restrictflag;
 	GHash *visithash;
+	int flag;
 } BMWalker;
 
 /*initialize a walker.  searchmask restricts some (not all) walkers to
-  elements with a specific tool flag set.*/
-void BMW_Init(struct BMWalker *walker, BMesh *bm, int type, int searchmask);
+  elements with a specific tool flag set.  flags is specific to each walker.*/
+void BMW_Init(struct BMWalker *walker, BMesh *bm, int type, int searchmask, int flags);
 void *BMW_Begin(BMWalker *walker, void *start);
 void *BMW_Step(struct BMWalker *walker);
 void BMW_End(struct BMWalker *walker);
@@ -42,14 +43,22 @@ BMW_End(&walker);
 
 enum {
 	/*walk over connected geometry.  can restrict to a search flag,
-	or not, it's optional.*/
+	or not, it's optional.
+	
+	takes a vert as an arugment, and spits out edges, restrict flag acts
+	on the edges as well.*/
 	BMW_SHELL,
 	/*walk over an edge loop.  search flag doesn't do anything.*/
 	BMW_LOOP,
 	BMW_FACELOOP,
 	BMW_EDGERING,
-	/*#define BMW_RING	2
-	#define BMW_UVISLANDS	3*/
+	/*#define BMW_RING	2*/
+	//walk over uv islands; takes a loop as input.  restrict flag 
+	//restricts the walking to loops whose vert has restrict flag set as a
+	//tool flag.
+	//
+	//the flag parameter to BMW_Init maps to a loop customdata layer index.
+	BMW_UVISLAND,
 	/*walk over an island of flagged faces.  note, that this doesn't work on
 	  non-manifold geometry.  it might be better to rewrite this to extract
 	  boundary info from the island walker, rather then directly walking

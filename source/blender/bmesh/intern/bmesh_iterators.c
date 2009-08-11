@@ -203,6 +203,46 @@ static void *face_of_vert_step(BMIter *iter)
 	return NULL;
 }
 
+
+/*
+ * LOOP OF VERT CALLBACKS
+ *
+*/
+
+static void loop_of_vert_begin(BMIter *iter)
+{
+	init_iterator(iter);
+	iter->count = 0;
+	if(iter->vdata->edge)
+		iter->count = bmesh_disk_count_facevert(iter->vdata);
+	if(iter->count){
+		iter->firstedge = bmesh_disk_find_first_faceedge(iter->vdata->edge, iter->vdata);
+		iter->nextedge = iter->firstedge;
+		iter->firstloop = bmesh_radial_find_first_facevert(iter->firstedge->loop, iter->vdata);
+		iter->nextloop = iter->firstloop;
+	}
+}
+static void *loop_of_vert_step(BMIter *iter)
+{
+	BMLoop *current = iter->nextloop;
+
+	if(iter->count){
+		iter->count--;
+		iter->nextloop = bmesh_radial_find_next_facevert(iter->nextloop, iter->vdata);
+		if(iter->nextloop == iter->firstloop){
+			iter->nextedge = bmesh_disk_find_next_faceedge(iter->nextedge, iter->vdata);
+			iter->firstloop = bmesh_radial_find_first_facevert(iter->nextedge->loop, iter->vdata);
+			iter->nextloop = iter->firstloop;
+		}
+	}
+	
+	if(!iter->count) iter->nextloop = NULL;
+
+	
+	if(current) return current;
+	return NULL;
+}
+
 static void loops_of_loop_begin(BMIter *iter)
 {
 	BMLoop *l;
@@ -357,6 +397,11 @@ void *BMIter_New(BMIter *iter, BMesh *bm, int type, void *data)
 		case BM_FACES_OF_VERT:
 			iter->begin = face_of_vert_begin;
 			iter->step = face_of_vert_step;
+			iter->vdata = data;
+			break;
+		case BM_LOOPS_OF_VERT:
+			iter->begin = loop_of_vert_begin;
+			iter->step = loop_of_vert_step;
 			iter->vdata = data;
 			break;
 		case BM_FACES_OF_EDGE:

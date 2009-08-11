@@ -26,6 +26,21 @@
 #define BM_EDGES_OF_MESH 			2
 #define BM_FACES_OF_MESH 			3
 
+/*these are topological iterators.*/
+#define BM_EDGES_OF_VERT 			4
+#define BM_FACES_OF_VERT 			5
+#define BM_LOOPS_OF_VERT			6
+#define BM_FACES_OF_EDGE 			7
+#define BM_VERTS_OF_FACE 			8
+#define BM_FACEVERTS_OF_FACE 			9
+#define BM_EDGES_OF_FACE 			10
+#define BM_LOOPS_OF_FACE 			11
+
+/*iterate through loops around this loop, which are fetched
+  from the other faces in the radial cycle surrounding the
+  input loop's edge.*/
+#define BM_LOOPS_OF_LOOP		12
+
 #define BM_ITER(ele, iter, bm, type, data) \
 	ele = BMIter_New(iter, bm, type, data); \
 	for ( ; ele; ele=BMIter_Step(iter))
@@ -37,20 +52,6 @@ for (ele = BMIter_New(iter, bm, type, data); ele; ele=BMIter_Step(iter)) {\
 #define BM_ITER_NOTSELECT(ele, iter, bm, type, data)\
 for (ele = BMIter_New(iter, bm, type, data); ele; ele=BMIter_Step(iter)) {\
 	if (BM_TestHFlag(ele, BM_HIDDEN) || BM_TestHFlag(ele, BM_SELECT)) continue;
-
-/*these are topological iterators.*/
-#define BM_EDGES_OF_VERT 			4
-#define BM_FACES_OF_VERT 			5
-#define BM_FACES_OF_EDGE 			6
-#define BM_VERTS_OF_FACE 			7
-#define BM_FACEVERTS_OF_FACE 			8
-#define BM_EDGES_OF_FACE 			9
-#define BM_LOOPS_OF_FACE 			10
-
-/*iterate through loops around this loop, which are fetched
-  from the other faces in the radial cycle surrounding the
-  input loop's edge.*/
-#define BM_LOOPS_OF_LOOP		11
 
 
 /*Iterator Structure*/

@@ -37,6 +37,9 @@ struct CustomData;
 struct CustomDataLayer;
 typedef unsigned int CustomDataMask;
 
+/*a data type large enough to hold 1 element from any customdata layer type*/
+typedef struct {unsigned char data[64];} CDBlockBytes;
+
 extern const CustomDataMask CD_MASK_BAREMESH;
 extern const CustomDataMask CD_MASK_MESH;
 extern const CustomDataMask CD_MASK_EDITMESH;
@@ -58,6 +61,20 @@ extern const CustomDataMask CD_MASK_FACECORNERS;
 #define CD_REFERENCE 3  /* use data pointers, set layer flag NOFREE */
 #define CD_DUPLICATE 4  /* do a full copy of all layers, only allowed if source
                            has same number of elements */
+
+/* Checks if the layer at physical offset layern (in data->layers) support math
+ * the below operations.
+ */
+int CustomData_layer_has_math(struct CustomData *data, int layern);
+
+/* compares if data1 is equal to data2.  type is a valid CustomData type
+ * enum (e.g. CD_MLOOPUV). the layer type's equal function is used to compare
+ * the data, if it exists, otherwise memcmp is used.*/
+int CustomData_data_equals(int type, void *data1, void *data2);
+void CustomData_data_initminmax(int type, void *min, void *max);
+void CustomData_data_dominmax(int type, void *data, void *min, void *max);
+void CustomData_data_multiply(int type, void *data, float fac);
+void CustomData_data_add(int type, void *data1, void *data2);
 
 /* initialises a CustomData object with the same layer setup as source.
  * mask is a bitfield where (mask & (1 << (layer type))) indicates
@@ -192,6 +209,10 @@ void *CustomData_em_get_n(const struct CustomData *data, void *block, int type, 
 void *CustomData_bmesh_get(const struct CustomData *data, void *block, int type);
 void *CustomData_bmesh_get_n(const struct CustomData *data, void *block, int type, int n);
 
+/* gets the layer at physical index n, with no type checking.
+ */
+void *CustomData_bmesh_get_layer_n(const struct CustomData *data, void *block, int n);
+
 /* gets a pointer to the active or first layer of type
  * returns NULL if there is no layer of type
  */
@@ -226,6 +247,11 @@ void CustomData_bmesh_set(const struct CustomData *data, void *block, int type,
 						  void *source);
 
 void CustomData_bmesh_set_n(struct CustomData *data, void *block, int type, int n, 
+							void *source);
+/*sets the data of the block at physical layer n.  no real type checking 
+ *is performed.
+ */
+void CustomData_bmesh_set_layer_n(struct CustomData *data, void *block, int n,
 							void *source);
 
 /* set the pointer of to the first layer of type. the old data is not freed.

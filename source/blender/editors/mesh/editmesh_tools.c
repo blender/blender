@@ -5499,8 +5499,6 @@ static int merge_exec(bContext *C, wmOperator *op)
 	if(!count)
 		return OPERATOR_CANCELLED;
 
-	BKE_reportf(op->reports, RPT_INFO, "Removed %d vertices.", count);
-
 	BKE_mesh_end_editmesh(obedit->data, em);
 
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);

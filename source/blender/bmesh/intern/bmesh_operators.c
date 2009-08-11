@@ -739,16 +739,19 @@ void BMO_Flag_To_Slot(BMesh *bm, BMOperator *op, char *slotname, int flag, int t
  *
 */
 
-void BMO_HeaderFlag_Buffer(BMesh *bm, BMOperator *op, char *slotname, int flag)
+void BMO_HeaderFlag_Buffer(BMesh *bm, BMOperator *op, char *slotname, int flag, int type)
 {
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
 	BMHeader **data =  slot->data.p;
 	int i;
 	
 	for(i = 0; i < slot->len; i++) {
-		BM_SetHFlag(data[i], flag);
+		if (!(type & data[i]->type))
+			continue;
+
 		if (flag & BM_SELECT)
 			BM_Select(bm, data[i], 1);
+		BM_SetHFlag(data[i], flag);
 	}
 }
 
@@ -761,16 +764,19 @@ void BMO_HeaderFlag_Buffer(BMesh *bm, BMOperator *op, char *slotname, int flag)
  *
 */
 
-void BMO_UnHeaderFlag_Buffer(BMesh *bm, BMOperator *op, char *slotname, int flag)
+void BMO_UnHeaderFlag_Buffer(BMesh *bm, BMOperator *op, char *slotname, int flag, int type)
 {
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
 	BMHeader **data =  slot->data.p;
 	int i;
 	
 	for(i = 0; i < slot->len; i++) {
-		BM_ClearHFlag(data[i], flag);
+		if (!(type & data[i]->type))
+			continue;
+
 		if (flag & BM_SELECT)
 			BM_Select(bm, data[i], 0);
+		BM_ClearHFlag(data[i], flag);
 	}
 }
 
@@ -783,14 +789,18 @@ void BMO_UnHeaderFlag_Buffer(BMesh *bm, BMOperator *op, char *slotname, int flag
  *
 */
 
-void BMO_Flag_Buffer(BMesh *bm, BMOperator *op, char *slotname, int flag)
+void BMO_Flag_Buffer(BMesh *bm, BMOperator *op, char *slotname, int flag, int type)
 {
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
 	BMHeader **data =  slot->data.p;
 	int i;
 	
-	for(i = 0; i < slot->len; i++)
+	for(i = 0; i < slot->len; i++) {
+		if (!(type & data[i]->type))
+			continue;
+
 		BMO_SetFlag(bm, data[i], flag);
+	}
 }
 
 /*
@@ -801,14 +811,18 @@ void BMO_Flag_Buffer(BMesh *bm, BMOperator *op, char *slotname, int flag)
  *
 */
 
-void BMO_Unflag_Buffer(BMesh *bm, BMOperator *op, char *slotname, int flag)
+void BMO_Unflag_Buffer(BMesh *bm, BMOperator *op, char *slotname, int flag, int type)
 {
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
 	BMHeader **data =  slot->data.p;
 	int i;
 	
-	for(i = 0; i < slot->len; i++)
+	for(i = 0; i < slot->len; i++) {
+		if (!(type & data[i]->type))
+			continue;
+
 		BMO_ClearFlag(bm, data[i], flag);
+	}
 }
 
 

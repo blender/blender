@@ -410,7 +410,7 @@ void EDBM_select_more(BMEditMesh *em)
 	            "regionextend geom=%hvef constrict=%d usefaces=%d",
 	            BM_SELECT, 0, usefaces);
 	BMO_Exec_Op(em->bm, &bmop);
-	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT);
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT, BM_ALL);
 	BMO_Finish_Op(em->bm, &bmop);
 
 	EDBM_selectmode_flush(em);
@@ -425,7 +425,7 @@ void EDBM_select_less(BMEditMesh *em)
 	            "regionextend geom=%hvef constrict=%d usefaces=%d",
 	            BM_SELECT, 0, usefaces);
 	BMO_Exec_Op(em->bm, &bmop);
-	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT);
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT, BM_ALL);
 	BMO_Finish_Op(em->bm, &bmop);
 
 	EDBM_selectmode_flush(em);

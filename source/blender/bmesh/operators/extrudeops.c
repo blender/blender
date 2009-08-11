@@ -10,9 +10,128 @@
 #include "bmesh.h"
 #include "bmesh_operators_private.h"
 
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #define EXT_INPUT	1
 #define EXT_KEEP	2
 #define EXT_DEL		4
+
+void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
+{
+	BMOIter siter;
+	BMIter liter, liter2;
+	BMFace *f, *f2, *f3;
+	BMLoop *l, *l2, *l3, *l4;
+	BMEdge **edges = NULL, *e, *laste;
+	BMVert *v, *lastv, *firstv;
+	V_DECLARE(edges);
+	int i;
+
+	BMO_ITER(f, &siter, bm, op, "faces", BM_FACE) {
+		V_RESET(edges);
+		i = 0;
+		firstv = lastv = NULL;
+		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+			V_GROW(edges);
+
+			v = BM_Make_Vert(bm, l->v->co, NULL);
+			BM_Copy_Attributes(bm, bm, l->v, v);
+
+			if (lastv) {
+				e = BM_Make_Edge(bm, lastv, v, l->e, 0);
+				edges[i++] = e;
+			}
+
+			lastv = v;
+			laste = l->e;
+			if (!firstv) firstv = v;
+		}
+
+		V_GROW(edges);
+		e = BM_Make_Edge(bm, v, firstv, laste, 0);
+		edges[i++] = e;
+
+		BMO_SetFlag(bm, f, EXT_DEL);
+
+		f2 = BM_Make_Ngon(bm, edges[0]->v1, edges[0]->v2, edges, f->len, 0);
+		BMO_SetFlag(bm, f2, EXT_KEEP);
+		BM_Copy_Attributes(bm, bm, f, f2);
+
+		l2 = BMIter_New(&liter2, bm, BM_LOOPS_OF_FACE, f2);
+		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+			BM_Copy_Attributes(bm, bm, l, l2);
+			l3 = l->head.next;
+			l4 = l2->head.next;
+
+			f3 = BM_Make_QuadTri(bm, l3->v, l4->v, l2->v, l->v, f, 0);
+			
+			BM_Copy_Attributes(bm, bm, l->head.next, f3->loopbase);
+			BM_Copy_Attributes(bm, bm, l->head.next, f3->loopbase->head.next);
+			BM_Copy_Attributes(bm, bm, l, f3->loopbase->head.next->next);
+			BM_Copy_Attributes(bm, bm, l, f3->loopbase->head.next->next->next);
+
+			l2 = BMIter_Step(&liter2);
+		}
+	}
+
+	BMO_CallOpf(bm, "del geom=%ff context=%d", EXT_DEL, DEL_ONLYFACES);
+
+	BMO_Flag_To_Slot(bm, op, "faceout", EXT_KEEP, BM_FACE);
+}
+
+void bmesh_extrude_onlyedge_exec(BMesh *bm, BMOperator *op)
+{
+	BMOIter siter;
+	BMOperator dupeop;
+	BMVert *v1, *v2, *v3, *v4;
+	BMEdge *e, *e2;
+	BMFace *f;
+	
+	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
+		BMO_SetFlag(bm, e, EXT_INPUT);
+		BMO_SetFlag(bm, e->v1, EXT_INPUT);
+		BMO_SetFlag(bm, e->v2, EXT_INPUT);
+	}
+
+	BMO_InitOpf(bm, &dupeop, "dupe geom=%fve", EXT_INPUT);
+	BMO_Exec_Op(bm, &dupeop);
+
+	e = BMO_IterNew(&siter, bm, &dupeop, "boundarymap", 0);
+	for (; e; e=BMO_IterStep(&siter)) {
+		e2 = BMO_IterMapVal(&siter);
+		e2 = *(BMEdge**)e2;
+
+		if (e->loop && e->v1 != e->loop->v) {
+			v1 = e->v1;
+			v2 = e->v2;
+			v3 = e2->v2;
+			v4 = e2->v1;
+		} else {
+			v1 = e2->v1;
+			v2 = e2->v2;
+			v3 = e->v2;
+			v4 = e->v1;
+		}
+			/*not sure what to do about example face, pass	 NULL for now.*/
+		f = BM_Make_QuadTri(bm, v1, v2, v3, v4, NULL, 0);		
+		
+		if (BMO_TestFlag(bm, e, EXT_INPUT))
+			e = e2;
+		
+		BMO_SetFlag(bm, f, EXT_KEEP);
+		BMO_SetFlag(bm, e, EXT_KEEP);
+		BMO_SetFlag(bm, e->v1, EXT_KEEP);
+		BMO_SetFlag(bm, e->v2, EXT_KEEP);
+		
+	}
+
+	BMO_Finish_Op(bm, &dupeop);
+
+	BMO_Flag_To_Slot(bm, op, "geomout", EXT_KEEP, BM_ALL);
+}
 
 void extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 {
@@ -45,12 +164,12 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 	BMLoop *l, *l2;
 	BMVert *verts[4], *v, *v2;
 	BMFace *f;
-	int rlen, found, delorig=0, i, reverse;
+	int rlen, found, delorig=0, i;
 
 	/*initialize our sub-operators*/
 	BMO_Init_Op(&dupeop, "dupe");
 	
-	BMO_Flag_Buffer(bm, op, "edgefacein", EXT_INPUT);
+	BMO_Flag_Buffer(bm, op, "edgefacein", EXT_INPUT, BM_EDGE|BM_FACE);
 	
 	/*if one flagged face is bordered by an unflagged face, then we delete
 	  original geometry.*/

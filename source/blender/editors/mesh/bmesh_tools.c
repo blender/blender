@@ -334,10 +334,37 @@ void MESH_OT_subdivs(wmOperatorType *ot)
 
 /* individual face extrude */
 /* will use vertex normals for extrusion directions, so *nor is unaffected */
-short EDBM_Extrude_face_indiv(BMEditMesh *em, short flag, float *nor)
+short EDBM_Extrude_face_indiv(BMEditMesh *em, wmOperator *op, short flag, float *nor) 
 {
-	return 'g';
+	BMOIter siter;
+	BMIter liter;
+	BMFace *f;
+	BMLoop *l;
+	BMOperator bmop;
+
+	EDBM_InitOpf(em, &bmop, op, "extrude_face_indiv faces=%hf", flag);
+
+	/*deselect original verts*/
+	EDBM_clear_flag_all(em, BM_SELECT);
+
+	BMO_Exec_Op(em->bm, &bmop);
+	
+	BMO_ITER(f, &siter, em->bm, &bmop, "faceout", BM_FACE) {
+		BM_Select(em->bm, f, 1);
+
+		/*set face vertex normals to face normal*/
+		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, f) {
+			VECCOPY(l->v->no, f->no);
+		}
+	}
+
+	if (!EDBM_FinishOp(em, &bmop, op, 1)) return 0;
+
+	return 's'; // s is shrink/fatten
+}
+
 #if 0
+short EDBM_Extrude_face_indiv(BMEditMesh *em, wmOperator *op, short flag, float *nor) 
 	EditVert *eve, *v1, *v2, *v3, *v4;
 	EditEdge *eed;
 	EditFace *efa, *nextfa;
@@ -421,15 +448,31 @@ short EDBM_Extrude_face_indiv(BMEditMesh *em, short flag, float *nor)
 	EM_select_flush(em);
 	
 	return 'n';
-#endif
 }
-
+#endif
 
 /* extrudes individual edges */
+short EDBM_Extrude_edges_indiv(BMEditMesh *em, wmOperator *op, short flag, float *nor) 
+{
+	BMOperator bmop;
+
+	EDBM_InitOpf(em, &bmop, op, "extrude_edge_only edges=%he", flag);
+
+	/*deselect original verts*/
+	EDBM_clear_flag_all(em, BM_SELECT);
+
+	BMO_Exec_Op(em->bm, &bmop);
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT, BM_VERT|BM_EDGE);
+
+	if (!EDBM_FinishOp(em, &bmop, op, 1)) return 0;
+
+	return 'n'; // n is normal grab
+}
+
+#if 0
 /* nor is filled with constraint vector */
 short EDBM_Extrude_edges_indiv(BMEditMesh *em, short flag, float *nor) 
 {
-#if 0
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
@@ -488,25 +531,23 @@ short EDBM_Extrude_edges_indiv(BMEditMesh *em, short flag, float *nor)
 	}
 	
 	if(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) return 'g'; // g is grab
-#endif
 	return 'n';  // n is for normal constraint
 }
+#endif
 
 /* extrudes individual vertices */
 short EDBM_Extrude_verts_indiv(BMEditMesh *em, wmOperator *op, short flag, float *nor) 
 {
 	BMOperator bmop;
-	BMOIter siter;
-	BMVert *v;
 
 	EDBM_InitOpf(em, &bmop, op, "extrude_vert_indiv verts=%hv", flag);
 
 	/*deselect original verts*/
-	BMO_UnHeaderFlag_Buffer(em->bm, &bmop, "verts", BM_SELECT);
+	BMO_UnHeaderFlag_Buffer(em->bm, &bmop, "verts", BM_SELECT, BM_VERT);
 
 	BMO_Exec_Op(em->bm, &bmop);
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "vertout", BM_SELECT, BM_VERT);
 
-	BMO_HeaderFlag_Buffer(em->bm, &bmop, "vertout", BM_SELECT);
 	if (!EDBM_FinishOp(em, &bmop, op, 1)) return 0;
 
 	return 'g'; // g is grab
@@ -650,7 +691,6 @@ static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 	int steps = RNA_int_get(op->ptr,"steps");
 	
 	float offs = RNA_float_get(op->ptr,"offset");
-
 	float dvec[3], tmat[3][3], bmat[3][3], nor[3]= {0.0, 0.0, 0.0};
 	short a;
 
@@ -711,6 +751,7 @@ int EDBM_Extrude_Mesh(Object *obedit, BMEditMesh *em, wmOperator *op, float *nor
 	float *nor = norin ? norin : stacknor;
 
 	nor[0] = nor[1] = nor[2] = 0.0f;
+
 	if(em->selectmode & SCE_SELECT_VERTEX) {
 		if(em->bm->totvertsel==0) nr= 0;
 		else if(em->bm->totvertsel==1) nr= 4;
@@ -740,15 +781,15 @@ int EDBM_Extrude_Mesh(Object *obedit, BMEditMesh *em, wmOperator *op, float *nor
 		else
 			nr= 1; // pupmenu("Extrude %t|Region %x1||Individual Faces %x2");
 	}
-		
+
 	if(nr<1) return 'g';
 
 	if(nr==1 && em->selectmode & SCE_SELECT_VERTEX)	
 		transmode= EDBM_Extrude_vert(obedit, em, SELECT, nor);
 	else if (nr == 1) transmode= EDBM_Extrude_edge(obedit, em, SELECT, nor);
 	else if(nr==4) transmode= EDBM_Extrude_verts_indiv(em, op, SELECT, nor);
-	else if(nr==3) transmode= EDBM_Extrude_edges_indiv(em, SELECT, nor);
-	else transmode= EDBM_Extrude_face_indiv(em, SELECT, nor);
+	else if(nr==3) transmode= EDBM_Extrude_edges_indiv(em, op, SELECT, nor);
+	else transmode= EDBM_Extrude_face_indiv(em, op, SELECT, nor);
 	
 	if(transmode==0) {
 		BKE_report(op->reports, RPT_ERROR, "Not a valid selection for extrude");
@@ -784,15 +825,29 @@ int EDBM_Extrude_Mesh(Object *obedit, BMEditMesh *em, wmOperator *op, float *nor
 	return transmode;
 }
 
-static int mesh_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
+/* extrude without transform */
+static int mesh_extrude_region_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
+	
+	EDBM_Extrude_Mesh(obedit, em, op, NULL);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+static int mesh_extrude_region_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
+	float nor[3];
 	int constraint_axis[3] = {0, 0, 1};
 	int tmode;
 
-	tmode = EDBM_Extrude_Mesh(obedit, em, op, NULL);
+	tmode = EDBM_Extrude_edge(obedit, em, BM_SELECT, nor);
 
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
@@ -809,29 +864,15 @@ static int mesh_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-/* extrude without transform */
-static int mesh_extrude_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
-	
-	EDBM_Extrude_Mesh(obedit, em, op, NULL);
-	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-	
-	return OPERATOR_FINISHED;	
-}
-
-
-void MESH_OT_extrude(wmOperatorType *ot)
+void MESH_OT_extrude_region(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Extrude";
-	ot->idname= "MESH_OT_extrude";
+	ot->name= "Extrude Region";
+	ot->idname= "MESH_OT_extrude_region";
 	
 	/* api callbacks */
-	ot->invoke= mesh_extrude_invoke;
-	ot->exec= mesh_extrude_exec;
+	ot->invoke= mesh_extrude_region_invoke;
+	ot->exec= mesh_extrude_region_exec;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
@@ -841,6 +882,296 @@ void MESH_OT_extrude(wmOperatorType *ot)
 	Properties_Proportional(ot);
 	Properties_Constraints(ot);
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+}
+
+static int mesh_extrude_verts_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
+	float nor[3];
+
+	EDBM_Extrude_verts_indiv(em, op, BM_SELECT, nor);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+static int mesh_extrude_verts_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
+	float nor[3];
+	int constraint_axis[3] = {0, 0, 1};
+	int tmode;
+
+	tmode = EDBM_Extrude_verts_indiv(em, op, BM_SELECT, nor);
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	RNA_enum_set(op->ptr, "proportional", 0);
+	RNA_boolean_set(op->ptr, "mirror", 0);
+
+	if (tmode == 'n') {
+		RNA_enum_set(op->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
+		RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
+	}
+	WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_extrude_verts_indiv(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Extrude Only Vertices";
+	ot->idname= "MESH_OT_extrude_verts_indiv";
+	
+	/* api callbacks */
+	ot->invoke= mesh_extrude_verts_invoke;
+	ot->exec= mesh_extrude_verts_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* to give to transform */
+	Properties_Proportional(ot);
+	Properties_Constraints(ot);
+	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+}
+
+static int mesh_extrude_edges_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
+	float nor[3];
+
+	EDBM_Extrude_edges_indiv(em, op, BM_SELECT, nor);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+static int mesh_extrude_edges_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
+	float nor[3];
+	int constraint_axis[3] = {0, 0, 1};
+	int tmode;
+
+	tmode = EDBM_Extrude_edges_indiv(em, op, BM_SELECT, nor);
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	RNA_enum_set(op->ptr, "proportional", 0);
+	RNA_boolean_set(op->ptr, "mirror", 0);
+
+	/*if (tmode == 'n') {
+		RNA_enum_set(op->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
+		RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
+	}*/
+	WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_extrude_edges_indiv(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Extrude Only Edges";
+	ot->idname= "MESH_OT_extrude_edges_indiv";
+	
+	/* api callbacks */
+	ot->invoke= mesh_extrude_edges_invoke;
+	ot->exec= mesh_extrude_edges_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* to give to transform */
+	Properties_Proportional(ot);
+	Properties_Constraints(ot);
+	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+}
+
+static int mesh_extrude_faces_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
+	float nor[3];
+
+	EDBM_Extrude_face_indiv(em, op, BM_SELECT, nor);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	
+	return OPERATOR_FINISHED;	
+}
+
+static int mesh_extrude_faces_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
+	float nor[3];
+	int constraint_axis[3] = {0, 0, 1};
+	int tmode;
+
+	tmode = EDBM_Extrude_face_indiv(em, op, BM_SELECT, nor);
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	RNA_enum_set(op->ptr, "proportional", 0);
+	RNA_boolean_set(op->ptr, "mirror", 0);
+	
+	if (tmode == 's') {
+		WM_operator_name_call(C, "TFM_OT_shrink_fatten", WM_OP_INVOKE_REGION_WIN, op->ptr);
+	} else {
+		if (tmode == 'n') {
+			RNA_enum_set(op->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
+			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
+		}
+		WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
+	}
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_extrude_faces_indiv(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Extrude Individual Faces";
+	ot->idname= "MESH_OT_extrude_faces_indiv";
+	
+	/* api callbacks */
+	ot->invoke= mesh_extrude_faces_invoke;
+	ot->exec= mesh_extrude_faces_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* to give to transform */
+	Properties_Proportional(ot);
+	Properties_Constraints(ot);
+	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
+}
+
+int extrude_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
+	uiPopupMenu *pup;
+	uiLayout *layout;
+
+	if(em->selectmode & SCE_SELECT_VERTEX) {
+		if(em->bm->totvertsel==0) {
+			return OPERATOR_CANCELLED;
+		} else if(em->bm->totvertsel==1) {
+			WM_operator_name_call(C, "MESH_OT_extrude_verts_indiv", WM_OP_INVOKE_REGION_WIN, op->ptr);
+		} else if(em->bm->totedgesel==0) {
+			WM_operator_name_call(C, "MESH_OT_extrude_verts_indiv", WM_OP_INVOKE_REGION_WIN, op->ptr);
+		} else if(em->bm->totfacesel==0) {
+			// pupmenu("Extrude %t|Only Edges%x3|Only Vertices%x4");
+			pup= uiPupMenuBegin(C, "Extrude", 0);
+			layout= uiPupMenuLayout(pup);
+			uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
+			
+			uiItemO(layout, "Only Edges", 0, "MESH_OT_extrude_edges_indiv");
+			uiItemO(layout, "Only Verts", 0, "MESH_OT_extrude_verts_indiv");
+			
+			uiPupMenuEnd(C, pup);
+		} else if(em->bm->totfacesel==1) {
+			// pupmenu("Extrude %t|Region %x1|Only Edges%x3|Only Vertices%x4");
+			pup= uiPupMenuBegin(C, "Extrude", 0);
+			layout= uiPupMenuLayout(pup);
+			uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
+			
+			uiItemO(layout, "Region", 0, "MESH_OT_extrude_region");
+			uiItemO(layout, "Only Edges", 0, "MESH_OT_extrude_edges_indiv");
+			uiItemO(layout, "Only Verts", 0, "MESH_OT_extrude_verts_indiv");
+			
+			uiPupMenuEnd(C, pup);
+		} else  {
+			// pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3|Only Vertices%x4");
+			pup= uiPupMenuBegin(C, "Extrude", 0);
+			layout= uiPupMenuLayout(pup);
+			uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
+			
+			uiItemO(layout, "Region", 0, "MESH_OT_extrude_region");
+			uiItemO(layout, "Individual Faces", 0, "MESH_OT_extrude_faces_indiv");
+			uiItemO(layout, "Only Edges", 0, "MESH_OT_extrude_edges_indiv");
+			uiItemO(layout, "Only Verts", 0, "MESH_OT_extrude_verts_indiv");
+			
+			uiPupMenuEnd(C, pup);
+		}
+	} else if (em->selectmode & SCE_SELECT_EDGE) {
+		if (em->bm->totedge==0)
+			return OPERATOR_CANCELLED;
+		else if (em->bm->totedgesel==1)
+			WM_operator_name_call(C, "MESH_OT_extrude_edges_indiv", WM_OP_INVOKE_REGION_WIN, op->ptr);
+		else if (em->bm->totfacesel==0) {
+			WM_operator_name_call(C, "MESH_OT_extrude_edges_indiv", WM_OP_INVOKE_REGION_WIN, op->ptr);
+		} else if (em->bm->totfacesel==1) {
+			// pupmenu("Extrude %t|Region %x1|Only Edges%x3");
+			pup= uiPupMenuBegin(C, "Extrude", 0);
+			layout= uiPupMenuLayout(pup);
+			uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
+			
+			uiItemO(layout, "Region", 0, "MESH_OT_extrude_region");
+			uiItemO(layout, "Only Edges", 0, "MESH_OT_extrude_edges_indiv");
+			
+			uiPupMenuEnd(C, pup);
+		} else {
+			// pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3");
+			pup= uiPupMenuBegin(C, "Extrude", 0);
+			layout= uiPupMenuLayout(pup);
+			uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
+			
+			uiItemO(layout, "Region", 0, "MESH_OT_extrude_region");
+			uiItemO(layout, "Individual Faces", 0, "MESH_OT_extrude_faces_indiv");
+			uiItemO(layout, "Only Edges", 0, "MESH_OT_extrude_edges_indiv");
+			
+			uiPupMenuEnd(C, pup);
+		}
+
+	} else if (em->selectmode & SCE_SELECT_FACE) {
+		if (em->bm->totfacesel==0)
+			return OPERATOR_CANCELLED;
+		else if (em->bm->totfacesel==1)
+			WM_operator_name_call(C, "MESH_OT_extrude_region", WM_OP_INVOKE_REGION_WIN, op->ptr);
+		else {
+			// pupmenu("Extrude %t|Region %x1||Individual Faces %x2");
+			pup= uiPupMenuBegin(C, "Extrude", 0);
+			layout= uiPupMenuLayout(pup);
+			uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
+			
+			uiItemO(layout, "Region", 0, "MESH_OT_extrude_region");
+			uiItemO(layout, "Individual Faces", 0, "MESH_OT_extrude_faces_indiv");
+			
+			uiPupMenuEnd(C, pup);
+		}
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+void MESH_OT_extrude(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Extrude";
+	ot->idname= "MESH_OT_extrude";
+	
+	/* api callbacks */
+	ot->invoke= extrude_menu_invoke;
+	ot->poll= ED_operator_editmesh;
 }
 
 /* ******************** (de)select all operator **************** */
@@ -1116,7 +1447,7 @@ static int addedgeface_mesh_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	BMO_Exec_Op(em->bm, &bmop);
-	BMO_HeaderFlag_Buffer(em->bm, &bmop, "faceout", BM_SELECT);
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "faceout", BM_SELECT, BM_FACE);
 
 	if (!EDBM_FinishOp(em, &bmop, op, 1))
 		return OPERATOR_CANCELLED;
@@ -1383,7 +1714,7 @@ static int mesh_duplicate_exec(bContext *C, wmOperator *op)
 	BMO_Exec_Op(em->bm, &bmop);
 	EDBM_clear_flag_all(em, BM_SELECT);
 
-	BMO_HeaderFlag_Buffer(em->bm, &bmop, "newout", BM_SELECT);
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "newout", BM_SELECT, BM_ALL);
 
 	if (!EDBM_FinishOp(em, &bmop, op, 1))
 		return OPERATOR_CANCELLED;
@@ -1506,7 +1837,7 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 	EDBM_InitOpf(em, &bmop, op, "edgerotate edges=%e ccw=%d", eed, ccw);
 	BMO_Exec_Op(em->bm, &bmop);
 
-	BMO_HeaderFlag_Buffer(em->bm, &bmop, "edgeout", BM_SELECT);
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "edgeout", BM_SELECT, BM_EDGE);
 
 	if (!EDBM_FinishOp(em, &bmop, op, 1))
 		return OPERATOR_CANCELLED;
@@ -1744,4 +2075,67 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_int(ot->srna, "repeat", 1, 1, 100, "Number of times to smooth the mesh", "", 1, INT_MAX);
+}
+
+
+static int bm_test_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+#if 1
+	if (!EDBM_CallOpf(em, op, "collapse edges=%he", BM_SELECT))
+		return OPERATOR_CANCELLED;
+
+#else //uv island walker test
+	BMIter iter, liter;
+	BMFace *f;
+	BMLoop *l, *l2;
+	MLoopUV *luv;
+	BMWalker walker;
+	int i=0;
+
+	BM_ITER(f, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, f) {
+			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+		}
+	}
+
+	BMW_Init(&walker, em->bm, BMW_UVISLAND, 0);
+
+	BM_ITER(f, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, f) {
+			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+			if (luv->flag & MLOOPUV_VERTSEL) {
+				l2 = BMW_Begin(&walker, l);
+				for (; l2; l2=BMW_Step(&walker)) {
+					luv = CustomData_bmesh_get(&em->bm->ldata, l2->head.data, CD_MLOOPUV);
+					luv->flag |= MLOOPUV_VERTSEL;
+				}				
+			}
+		}
+	}
+
+	BMW_End(&walker);
+#endif
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit); //TODO is this needed ?
+
+	return OPERATOR_FINISHED;
+}	
+	
+void MESH_OT_bm_test(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "BMesh Test Operator";
+	ot->idname= "MESH_OT_bm_test";
+	
+	/* api callbacks */
+	ot->exec= bm_test_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	//RNA_def_int(ot->srna, "repeat", 1, 1, 100, "Number of times to smooth the mesh", "", 1, INT_MAX);
 }

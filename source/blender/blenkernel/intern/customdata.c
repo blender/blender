@@ -91,6 +91,13 @@ typedef struct LayerTypeInfo {
     /* a function to set a layer's data to default values. if NULL, the
 	   default is assumed to be all zeros */
 	void (*set_default)(void *data, int count);
+
+    /* functions necassary for geometry collapse*/
+	int (*equal)(void *data1, void *data2);
+	void (*multiply)(void *data, float fac);
+	void (*initminmax)(void *min, void *max);
+	void (*add)(void *data1, void *data2);
+	void (*dominmax)(void *data1, void *min, void *max);
 } LayerTypeInfo;
 
 static void layerCopy_mdeformvert(const void *source, void *dest,
@@ -535,11 +542,76 @@ static void layerFree_mdisps(void *data, int count, int size)
 
 /* --------- */
 
+static int layerEqual_mloopcol(void *data1, void *data2)
+{
+	MLoopCol *m1 = data1, *m2 = data2;
+	float r, g, b, a;
+
+	r = m1->r - m2->r;
+	g = m1->g - m2->g;
+	b = m1->b - m2->b;
+	a = m1->a - m2->a;
+
+	return r*r + g*g + b*b + a*a < 0.001;
+}
+
+static void layerMultiply_mloopcol(void *data, float fac)
+{
+	MLoopCol *m = data;
+
+	m->r = (float)m->r * fac;
+	m->g = (float)m->g * fac;
+	m->b = (float)m->b * fac;
+	m->a = (float)m->a * fac;
+}
+
+static void layerAdd_mloopcol(void *data1, void *data2)
+{
+	MLoopCol *m = data1, *m2 = data2;
+
+	m->r += m2->r;
+	m->g += m2->g;
+	m->b += m2->b;
+	m->a += m2->a;
+}
+
+static void layerDoMinMax_mloopcol(void *data, void *vmin, void *vmax)
+{
+	MLoopCol *m = data;
+	MLoopCol *min = vmin, *max = vmax;
+
+	if (m->r < min->r) min->r = m->r;
+	if (m->g < min->g) min->g = m->g;
+	if (m->b < min->b) min->b = m->b;
+	if (m->a < min->a) min->a = m->a;
+	
+	if (m->r > max->r) max->r = m->r;
+	if (m->g > max->g) max->g = m->g;
+	if (m->b > max->b) max->b = m->b;
+	if (m->a > max->a) max->a = m->a;
+}
+
+static void layerInitMinMax_mloopcol(void *vmin, void *vmax)
+{
+	MLoopCol *min = vmin, *max = vmax;
+
+	min->r = 255;
+	min->g = 255;
+	min->b = 255;
+	min->a = 255;
+
+	max->r = 0;
+	max->g = 0;
+	max->b = 0;
+	max->a = 0;
+}
+
 static void layerDefault_mloopcol(void *data, int count)
 {
-	static MLoopCol default_mloopcol = {255,255,255,255};
+	MLoopCol default_mloopcol = {255,255,255,255};
 	MLoopCol *mlcol = (MLoopCol*)data;
 	int i;
+
 	for(i = 0; i < count; i++)
 		mlcol[i] = default_mloopcol;
 
@@ -589,6 +661,48 @@ static void layerInterp_mloopcol(void **sources, float *weights,
 	mc->g = (int)col.g;
 	mc->b = (int)col.b;
 }
+
+static int layerEqual_mloopuv(void *data1, void *data2)
+{
+	MLoopUV *luv1 = data1, *luv2 = data2;
+	float u, v;
+
+	u = luv1->uv[0] - luv2->uv[0];
+	v = luv1->uv[1] - luv2->uv[1];
+
+	return u*u + v*v < 0.00001;
+}
+
+static void layerMultiply_mloopuv(void *data, float fac)
+{
+	MLoopUV *luv = data;
+
+	luv->uv[0] *= fac;
+	luv->uv[1] *= fac;
+}
+
+static void layerInitMinMax_mloopuv(void *vmin, void *vmax)
+{
+	MLoopUV *min = vmin, *max = vmax;
+
+	INIT_MINMAX2(min->uv, max->uv);
+}
+
+static void layerDoMinMax_mloopuv(void *data, void *vmin, void *vmax)
+{
+	MLoopUV *min = vmin, *max = vmax, *luv = data;
+
+	DO_MINMAX2(luv->uv, min->uv, max->uv);
+}
+
+static void layerAdd_mloopuv(void *data1, void *data2)
+{
+	MLoopUV *l1 = data1, *l2 = data2;
+
+	l1->uv[0] += l2->uv[0];
+	l1->uv[1] += l2->uv[1];
+}
+
 static void layerInterp_mloopuv(void **sources, float *weights,
 				float *sub_weights, int count, void *dest)
 {
@@ -722,8 +836,12 @@ const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	 layerInterp_origspace_face, layerSwap_origspace_face, layerDefault_origspace_face},
 	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	{sizeof(MTexPoly), "MTexPoly", 1, "Face Texture", NULL, NULL, NULL, NULL, NULL},
-	{sizeof(MLoopUV), "MLoopUV", 1, "UV coord", NULL, NULL, layerInterp_mloopuv, NULL, NULL},
-	{sizeof(MLoopCol), "MLoopCol", 1, "Col", NULL, NULL, layerInterp_mloopcol, NULL, layerDefault_mloopcol},
+	{sizeof(MLoopUV), "MLoopUV", 1, "UV coord", NULL, NULL, layerInterp_mloopuv, NULL, NULL,
+	 layerEqual_mloopuv, layerMultiply_mloopuv, layerInitMinMax_mloopuv, 
+	 layerAdd_mloopuv, layerDoMinMax_mloopuv},
+	{sizeof(MLoopCol), "MLoopCol", 1, "Col", NULL, NULL, layerInterp_mloopcol, NULL, 
+	 layerDefault_mloopcol, layerEqual_mloopcol, layerMultiply_mloopcol, layerInitMinMax_mloopcol, 
+	 layerAdd_mloopcol, layerDoMinMax_mloopcol},
 	{sizeof(float)*3*4, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	{sizeof(MDisps), "MDisps", 1, NULL, layerCopy_mdisps,
 	 layerFree_mdisps, layerInterp_mdisps, layerSwap_mdisps, NULL},
@@ -1872,7 +1990,7 @@ void CustomData_bmesh_merge(CustomData *source, CustomData *dest,
 	BMIter iter;
 	CustomData destold = *dest;
 	void *tmp;
-	int i, t;
+	int t;
 	
 	CustomData_merge(source, dest, mask, alloctype, 0);
 	CustomData_bmesh_init_pool(dest, 512);
@@ -2014,6 +2132,68 @@ void *CustomData_bmesh_get_n(const CustomData *data, void *block, int type, int 
 	return (char *)block + data->layers[layer_index+n].offset;
 }
 
+/*gets from the layer at physical index n, note: doesn't check type.*/
+void *CustomData_bmesh_get_layer_n(const CustomData *data, void *block, int n)
+{
+	if(n < 0 || n >= data->totlayer) return NULL;
+
+	return (char *)block + data->layers[n].offset;
+}
+
+int CustomData_layer_has_math(struct CustomData *data, int layern)
+{
+	const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[layern].type);
+	
+	if (typeInfo->equal && typeInfo->add && typeInfo->multiply && 
+	    typeInfo->initminmax && typeInfo->dominmax) return 1;
+	
+	return 0;
+}
+
+int CustomData_data_equals(int type, void *data1, void *data2)
+{
+	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
+
+	if (typeInfo->equal)
+		return typeInfo->equal(data1, data2);
+	else return !memcmp(data1, data2, typeInfo->size);
+}
+
+void CustomData_data_initminmax(int type, void *min, void *max)
+{
+	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
+
+	if (typeInfo->equal)
+		typeInfo->initminmax(min, max);
+}
+
+
+void CustomData_data_dominmax(int type, void *data, void *min, void *max)
+{
+	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
+
+	if (typeInfo->equal)
+		typeInfo->dominmax(data, min, max);
+}
+
+
+void CustomData_data_multiply(int type, void *data, float fac)
+{
+	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
+
+	if (typeInfo->equal)
+		typeInfo->multiply(data, fac);
+}
+
+
+void CustomData_data_add(int type, void *data1, void *data2)
+{
+	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
+
+	if (typeInfo->equal)
+		typeInfo->add(data1, data2);
+}
+
 void CustomData_bmesh_set(const CustomData *data, void *block, int type, void *source)
 {
 	void *dest = CustomData_bmesh_get(data, block, type);
@@ -2031,6 +2211,19 @@ void CustomData_bmesh_set_n(CustomData *data, void *block, int type, int n, void
 {
 	void *dest = CustomData_bmesh_get_n(data, block, type, n);
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
+
+	if(!dest) return;
+
+	if(typeInfo->copy)
+		typeInfo->copy(source, dest, 1);
+	else
+		memcpy(dest, source, typeInfo->size);
+}
+
+void CustomData_bmesh_set_layer_n(CustomData *data, void *block, int n, void *source)
+{
+	void *dest = CustomData_bmesh_get_layer_n(data, block, n);
+	const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[n].type);
 
 	if(!dest) return;
 

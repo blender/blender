@@ -224,14 +224,14 @@ void BMO_Get_Mat3(struct BMOperator *op, char *slotname, float mat[3][3]);
 void BMO_Flag_To_Slot(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag, int type);
 
 /*tool-flags all elements inside an element slot array with flag flag.*/
-void BMO_Flag_Buffer(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag);
+void BMO_Flag_Buffer(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag, int type);
 /*clears tool-flag flag from all elements inside a slot array.*/
-void BMO_Unflag_Buffer(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag);
+void BMO_Unflag_Buffer(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag, int type);
 
 /*tool-flags all elements inside an element slot array with flag flag.*/
-void BMO_HeaderFlag_Buffer(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag);
+void BMO_HeaderFlag_Buffer(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag, int type);
 /*clears tool-flag flag from all elements inside a slot array.*/
-void BMO_UnHeaderFlag_Buffer(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag);
+void BMO_UnHeaderFlag_Buffer(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag, int type);
 
 /*puts every element of type type (which is a bitmask) with header flag 
   flag, into a slot.  note: ignores hidden elements (e.g. elements with

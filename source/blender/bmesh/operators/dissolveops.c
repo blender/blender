@@ -26,7 +26,7 @@ static int check_hole_in_region(BMesh *bm, BMFace *f) {
 	
 	/*checks if there are any unmarked boundary edges in the face region*/
 
-	BMW_Init(&regwalker, bm, BMW_ISLAND, FACE_MARK);
+	BMW_Init(&regwalker, bm, BMW_ISLAND, FACE_MARK, 0);
 	f2 = BMW_Begin(&regwalker, f);
 	for (; f2; f2=BMW_Step(&regwalker)) {
 		l2 = BMIter_New(&liter2, bm, BM_LOOPS_OF_FACE, f2);
@@ -59,7 +59,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 	BMWalker regwalker;
 	int i, j, fcopied;
 
-	BMO_Flag_Buffer(bm, op, "faces", FACE_MARK);
+	BMO_Flag_Buffer(bm, op, "faces", FACE_MARK, BM_FACE);
 	
 	/*collect regions*/
 	f = BMO_IterNew(&oiter, bm, op, "faces", BM_FACE);
@@ -70,7 +70,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 		region = NULL; /*forces different allocation*/
 
 		/*yay, walk!*/
-		BMW_Init(&regwalker, bm, BMW_ISLAND, FACE_MARK);
+		BMW_Init(&regwalker, bm, BMW_ISLAND, FACE_MARK, 0);
 		f2 = BMW_Begin(&regwalker, f);
 		for (; f2; f2=BMW_Step(&regwalker)) {
 			l2 = BMIter_New(&liter2, bm, BM_LOOPS_OF_FACE, f2);
@@ -91,7 +91,7 @@ void dissolvefaces_exec(BMesh *bm, BMOperator *op)
 		}				
 		BMW_End(&regwalker);
 
-		BMW_Init(&regwalker, bm, BMW_ISLAND, FACE_MARK);
+		BMW_Init(&regwalker, bm, BMW_ISLAND, FACE_MARK, 0);
 		f2 = BMW_Begin(&regwalker, f);
 		for (; f2; f2=BMW_Step(&regwalker)) {
 			BMO_ClearFlag(bm, f2, FACE_MARK);
@@ -313,7 +313,7 @@ void dissolveverts_exec(BMesh *bm, BMOperator *op)
 	int i;
 	
 	vinput = BMO_GetSlot(op, "verts");
-	BMO_Flag_Buffer(bm, op, "verts", VERT_MARK);
+	BMO_Flag_Buffer(bm, op, "verts", VERT_MARK, BM_VERT);
 	
 	for (v=BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL); v; v=BMIter_Step(&iter)) {
 		if (BMO_TestFlag(bm, v, VERT_MARK)) {

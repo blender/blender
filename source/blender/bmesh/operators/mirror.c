@@ -56,7 +56,7 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op) {
 	BMO_InitOpf(bm, &dupeop, "dupe geom=%s", op, "geom");
 	BMO_Exec_Op(bm, &dupeop);
 	
-	BMO_Flag_Buffer(bm, &dupeop, "newout", ELE_NEW);
+	BMO_Flag_Buffer(bm, &dupeop, "newout", ELE_NEW, BM_ALL);
 
 	/*create old -> new mapping*/
 	i = 0;

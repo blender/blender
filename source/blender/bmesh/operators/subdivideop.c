@@ -631,7 +631,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	int beauty;
 	int i, j, matched, a, b, numcuts, totesel;
 	
-	BMO_Flag_Buffer(bmesh, op, "edges", SUBD_SPLIT);
+	BMO_Flag_Buffer(bmesh, op, "edges", SUBD_SPLIT, BM_EDGE);
 	
 	numcuts = BMO_GetSlot(op, "numcuts")->data.i;
 	smooth = BMO_GetSlot(op, "smooth")->data.f;

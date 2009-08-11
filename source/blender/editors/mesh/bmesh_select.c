@@ -815,7 +815,7 @@ static void walker_select(BMEditMesh *em, int walkercode, void *start, int selec
 	BMHeader *h;
 	BMWalker walker;
 
-	BMW_Init(&walker, bm, walkercode, 0);
+	BMW_Init(&walker, bm, walkercode, 0, 0);
 	h = BMW_Begin(&walker, start);
 	for (; h; h=BMW_Step(&walker)) {
 		BM_Select(bm, h, select);
@@ -1536,7 +1536,7 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 		eed = eve->edge;
 	}
 
-	BMW_Init(&walker, em->bm, BMW_SHELL, 0);
+	BMW_Init(&walker, em->bm, BMW_SHELL, 0, 0);
 	e = BMW_Begin(&walker, eed->v1);
 	for (; e; e=BMW_Step(&walker)) {
 			BM_Select(em->bm, e->v1, sel);
@@ -1587,7 +1587,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	BMW_Init(&walker, em->bm, BMW_SHELL, 0);
+	BMW_Init(&walker, em->bm, BMW_SHELL, 0, 0);
 	for (i=0; i<tot; i++) {
 		e = BMW_Begin(&walker, verts[i]);
 		for (; e; e=BMW_Step(&walker)) {
@@ -1633,7 +1633,7 @@ static int select_more(bContext *C, wmOperator *op)
 	             BM_SELECT, 0, usefaces);
 
 	BMO_Exec_Op(em->bm, &bmop);
-	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT);
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT, BM_ALL);
 
 	EDBM_selectmode_flush(em);
 
@@ -1669,7 +1669,7 @@ static int select_less(bContext *C, wmOperator *op)
 	             BM_SELECT, 1, usefaces);
 
 	BMO_Exec_Op(em->bm, &bmop);
-	BMO_UnHeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT);
+	BMO_UnHeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT, BM_ALL);
 
 	EDBM_selectmode_flush(em);
 
