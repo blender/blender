@@ -40,6 +40,7 @@ CPPFLAGS += -I$(NAN_STRING)/include
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_BULLET2)/include
+CPPFLAGS += -I$(NAN_AUDASPACE)/include
 
 CPPFLAGS += -I../../blender
 # these two needed because of blenkernel
