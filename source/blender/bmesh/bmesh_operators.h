@@ -14,6 +14,14 @@ enum {
 	DEL_ONLYTAGGED,
 };
 
+/*quad innervert values*/
+enum {
+	SUBD_INNERVERT,
+	SUBD_PATH,
+	SUBD_FAN,
+	SUBD_STRAIGHT_CUT,
+};
+
 extern BMOpDefine *opdefines[];
 extern int bmesh_total_ops;
 
@@ -28,7 +36,8 @@ struct EditMesh;
 
 void BMOP_DupeFromFlag(struct BMesh *bm, int etypeflag, int flag);
 void BM_esubdivideflag(struct Object *obedit, BMesh *bm, int flag, float smooth, 
-		       float fractal, int beauty, int numcuts, int seltype);
+		       float fractal, int beauty, int numcuts, int seltype,
+		       int cornertype, int singleedge, int gridfill);
 void BM_extrudefaceflag(BMesh *bm, int flag);
 
 /*this next one return 1 if they did anything, or zero otherwise.

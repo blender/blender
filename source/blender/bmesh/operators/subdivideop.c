@@ -19,6 +19,15 @@
 #include <string.h>
 #include <math.h>
 
+/*subdivide future development notes:
+  each pattern should be able to be disabled
+  by the client code, and the client code 
+  should be able to pass in custom patterns.
+
+  so you can configure it anywhere from a simple
+  edge connect tool, to what's in 2.49a.
+ */
+
 /*flags for all elements share a common bitfield space*/
 #define SUBD_SPLIT	1
 
@@ -264,31 +273,30 @@ subdpattern q_1edge = {
 
 
 /*
- 
-v4---v3---v2
-|     s    |
+v6--------v5
 |          |
-|          |
-|     s    |
-v5---v0---v1
+|          |v4s
+|          |v3s
+|   s  s   |
+v7-v0--v1-v2
 
 */
-
-static void q_2edge_op_split(BMesh *bm, BMFace *face, BMVert **verts, 
-                             subdparams *params)
+static void q_2edge_split_tess(BMesh *bm, BMFace *face, BMVert **verts, 
+                          subdparams *params)
 {
 	BMFace *nf;
 	int i, numcuts = params->numcuts;
 	
 	for (i=0; i<numcuts; i++) {
-		connect_smallest_face(bm, verts[i],verts[(numcuts-i-1)+numcuts+2],
+		connect_smallest_face(bm, verts[i], verts[numcuts+(numcuts-i)],
 			           &nf);
 	}
+	connect_smallest_face(bm, verts[numcuts*2+3], verts[numcuts*2+1], &nf);
 }
 
-subdpattern q_2edge_op = {
-	{1, 0, 1, 0},
-	q_2edge_op_split,
+subdpattern q_2edge_path = {
+	{1, 1, 0, 0},
+	q_2edge_split_tess,
 	4,
 };
 
@@ -301,22 +309,63 @@ v6--------v5
 v7-v0--v1-v2
 
 */
-static void q_2edge_split(BMesh *bm, BMFace *face, BMVert **verts, 
+static void q_2edge_split_innervert(BMesh *bm, BMFace *face, BMVert **verts, 
                           subdparams *params)
 {
 	BMFace *nf;
+	BMVert *v, *lastv;
+	BMEdge *e, *ne;
 	int i, numcuts = params->numcuts;
 	
-	for (i=0; i<numcuts; i++) {
-		connect_smallest_face(bm, verts[i], verts[numcuts+(numcuts-i)],
+	lastv = verts[numcuts];
+
+	for (i=numcuts-1; i>=0; i--) {
+		e = connect_smallest_face(bm, verts[i], verts[numcuts+(numcuts-i)],
 			           &nf);
+		
+		v = BM_Split_Edge(bm, e->v1, e, &ne, 0.5f);
+		connect_smallest_face(bm, lastv, v, &nf);
+		lastv = v;
 	}
-	//experimentally disabled -> connect_smallest_face(bm, verts[numcuts*2+3], verts[numcuts*2+1], &nf);
+
+	connect_smallest_face(bm, lastv, verts[numcuts*2+2], &nf);	
 }
 
-subdpattern q_2edge = {
+subdpattern q_2edge_innervert = {
 	{1, 1, 0, 0},
-	q_2edge_split,
+	q_2edge_split_innervert,
+	4,
+};
+
+/*
+v6--------v5
+|          |
+|          |v4s
+|          |v3s
+|   s  s   |
+v7-v0--v1-v2
+
+*/
+static void q_2edge_split_fan(BMesh *bm, BMFace *face, BMVert **verts, 
+                          subdparams *params)
+{
+	BMFace *nf;
+	BMVert *v, *lastv;
+	BMEdge *e, *ne;
+	int i, numcuts = params->numcuts;
+	
+	lastv = verts[2];
+
+	for (i=0; i<numcuts; i++) {
+		connect_smallest_face(bm, verts[i], verts[numcuts*2+2], &nf);
+		connect_smallest_face(bm, verts[numcuts+(numcuts-i)], 
+			verts[numcuts*2+2], &nf);
+	}
+}
+
+subdpattern q_2edge_fan = {
+	{1, 1, 0, 0},
+	q_2edge_split_fan,
 	4,
 };
 
@@ -462,33 +511,6 @@ subdpattern t_1edge = {
 	3,
 };
 
-/*    v5
-     / \
-    /   \ v4 s
-   /     \
-  /       \ v3 s
- /         \
-v6--v0--v1--v2
-    s   s
-*/
-static void t_2edge_split(BMesh *bm, BMFace *face, BMVert **verts, 
-                          subdparams *params)
-{
-	BMFace *nf;
-	int i, numcuts = params->numcuts;
-	
-	for (i=0; i<numcuts; i++) {
-		connect_smallest_face(bm, verts[i], verts[numcuts+numcuts-i], &nf);
-	}
-}
-
-subdpattern t_2edge = {
-	{1, 1, 0},
-	t_2edge_split,
-	3,
-};
-
-
 /*     v5
       / \
  s v6/---\ v4 s
@@ -593,14 +615,12 @@ subdpattern q_4edge = {
 };
 
 subdpattern *patterns[] = {
-	//&q_1edge,
-	//&q_2edge_op,
-	&q_4edge,
+	NULL, //quad single edge pattern is inserted here
+	NULL, //quad corner vert pattern is inserted here
+	NULL, //tri single edge pattern is inserted here
+	NULL,
 	&q_3edge,
-	//&q_2edge,
-	//&t_1edge,
-	&t_2edge,
-	&t_3edge,
+	NULL,
 };
 
 #define PLEN	(sizeof(patterns) / sizeof(void*))
@@ -628,17 +648,48 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	V_DECLARE(splits);
 	V_DECLARE(loops);
 	float smooth, fractal;
-	int beauty;
+	int beauty, cornertype, singleedge, gridfill;
 	int i, j, matched, a, b, numcuts, totesel;
 	
 	BMO_Flag_Buffer(bmesh, op, "edges", SUBD_SPLIT, BM_EDGE);
 	
-	numcuts = BMO_GetSlot(op, "numcuts")->data.i;
-	smooth = BMO_GetSlot(op, "smooth")->data.f;
-	fractal = BMO_GetSlot(op, "fractal")->data.f;
-	beauty = BMO_GetSlot(op, "beauty")->data.i;
+	numcuts = BMO_Get_Int(op, "numcuts");
+	smooth = BMO_Get_Float(op, "smooth");
+	fractal = BMO_Get_Float(op, "fractal");
+	beauty = BMO_Get_Int(op, "beauty");
+	cornertype = BMO_Get_Int(op, "quadcornertype");
+	singleedge = BMO_Get_Int(op, "singleedge");
+	gridfill = BMO_Get_Int(op, "gridfill");
+	
+	patterns[1] = NULL;
+	//straight cut is patterns[1] == NULL
+	switch (cornertype) {
+		case SUBD_PATH:
+			patterns[1] = &q_2edge_path;
+			break;
+		case SUBD_INNERVERT:
+			patterns[1] = &q_2edge_innervert;
+			break;
+		case SUBD_FAN:
+			patterns[1] = &q_2edge_fan;
+			break;
+	}
+	
+	if (singleedge) {
+		patterns[0] = &q_1edge;
+		patterns[2] = &t_1edge;
+	} else {
+		patterns[0] = NULL;
+		patterns[2] = NULL;
+	}
 
-	einput = BMO_GetSlot(op, "edges");
+	if (gridfill) {
+		patterns[3] = &q_4edge;
+		patterns[5] = &t_3edge;
+	} else {
+		patterns[3] = NULL;
+		patterns[5] = NULL;
+	}
 	
 	/*first go through and tag edges*/
 	BMO_Flag_To_Slot(bmesh, op, "edges",
@@ -735,6 +786,8 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 
 		for (i=0; i<PLEN; i++) {
 			pat = patterns[i];
+			if (!pat) continue;
+
  			if (pat->len == face->len) {
 				for (a=0; a<pat->len; a++) {
 					matched = 1;
@@ -896,12 +949,16 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 
 /*editmesh-emulating function*/
 void BM_esubdivideflag(Object *obedit, BMesh *bm, int flag, float smooth, 
-		       float fractal, int beauty, int numcuts, int seltype) {
+		       float fractal, int beauty, int numcuts, 
+		       int seltype, int cornertype, int singleedge, int gridfill)
+{
 	BMOperator op;
 	
 	BMO_InitOpf(bm, &op, "esubd edges=%he smooth=%f fractal=%f "
-		             "beauty=%d numcuts=%d", flag, smooth, fractal,
-			     beauty, numcuts);
+		             "beauty=%d numcuts=%d quadcornertype=%d singleedge=%d "
+			     "gridfill=%d",
+			     flag, smooth, fractal, beauty, numcuts,
+			     cornertype, singleedge, gridfill);
 	
 	BMO_Exec_Op(bm, &op);
 	

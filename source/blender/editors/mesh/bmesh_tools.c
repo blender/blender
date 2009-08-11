@@ -112,13 +112,27 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 	if(fractal != 0.0f)
 		flag |= B_FRACTAL;
 
-	BM_esubdivideflag(obedit, em->bm, BM_SELECT, smooth, fractal, scene->toolsettings->editbutflag|flag, cuts, 0);
+	BM_esubdivideflag(obedit, em->bm, BM_SELECT, 
+	                  smooth, fractal, 
+	                  scene->toolsettings->editbutflag|flag, 
+	                  cuts, 0, RNA_enum_get(op->ptr, "quadcorner"), 
+	                  RNA_boolean_get(op->ptr, "tess_single_edge"),
+	                  RNA_boolean_get(op->ptr, "gridfill"));
 
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
 
 	return OPERATOR_FINISHED;
 }
+
+/* Note, these values must match delete_mesh() event values */
+static EnumPropertyItem prop_mesh_cornervert_types[] = {
+	{SUBD_INNERVERT,     "INNERVERT", 0,      "Inner Vert", ""},
+	{SUBD_PATH,          "PATH", 0,           "Path", ""},
+	{SUBD_STRAIGHT_CUT,  "STRAIGHT_CUT", 0,   "Straight Cut", ""},
+	{SUBD_FAN,           "FAN", 0,            "Fan", ""},
+	{0, NULL, 0, NULL, NULL}
+};
 
 void MESH_OT_subdivide(wmOperatorType *ot)
 {
@@ -137,200 +151,12 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "number_cuts", 1, 1, 20, "Number of Cuts", "", 1, INT_MAX);
 	RNA_def_float(ot->srna, "fractal", 0.0, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor.", 0.0f, 1000.0f);
 	RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, 1000.0f, "Smoothness", "Smoothness factor.", 0.0f, FLT_MAX);
-}
 
-#if 0
-static int subdivide_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
-	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
-	
-	BM_esubdivideflag(obedit, em->bm, 1, 0.0, scene->toolsettings->editbutflag, 1, 0);
-		
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-
-	return OPERATOR_FINISHED;	
-}
-
-void MESH_OT_subdivide(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Subdivide";
-	ot->idname= "MESH_OT_subdivide";
-	
-	/* api callbacks */
-	ot->exec= subdivide_exec;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-static int subdivide_multi_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
-	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
-	
-	BM_esubdivideflag(obedit, em->bm, 1, 0.0, scene->toolsettings->editbutflag, RNA_int_get(op->ptr,"number_cuts"), 0);
-		
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-	
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-
-	return OPERATOR_FINISHED;	
-}
-
-void MESH_OT_subdivide_multi(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Subdivide Multi";
-	ot->idname= "MESH_OT_subdivide_multi";
-	
-	/* api callbacks */
-	ot->exec= subdivide_multi_exec;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* props */
-	RNA_def_int(ot->srna, "number_cuts", 4, 1, 100, "Number of Cuts", "", 1, INT_MAX);
-}
-
-static int subdivide_multi_fractal_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
-	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
-
-	BM_esubdivideflag(obedit, em->bm, 1, -(RNA_float_get(op->ptr, "random_factor")/100), scene->toolsettings->editbutflag, RNA_int_get(op->ptr, "number_cuts"), 0);
-		
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-	
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-
-	return OPERATOR_FINISHED;	
-}
-
-void MESH_OT_subdivide_multi_fractal(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Subdivide Multi Fractal";
-	ot->idname= "MESH_OT_subdivide_multi_fractal";
-	
-	/* api callbacks */
-	ot->exec= subdivide_multi_fractal_exec;
-	ot->poll= ED_operator_editmesh;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* properties */
-	RNA_def_int(ot->srna, "number_cuts", 4, 1, 100, "Number of Cuts", "", 1, INT_MAX);
-	RNA_def_float(ot->srna, "random_factor", 5.0, 0.0f, FLT_MAX, "Random Factor", "", 0.0f, 1000.0f);
-}
-
-static int subdivide_smooth_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
-	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
-
-	BM_esubdivideflag(obedit, em->bm, 1, 0.292f*RNA_float_get(op->ptr, "smoothness"), scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
-		
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-	
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-
-	return OPERATOR_FINISHED;	
-}
-
-void MESH_OT_subdivide_smooth(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Subdivide Smooth";
-	ot->idname= "MESH_OT_subdivide_smooth";
-	
-	/* api callbacks */
-	ot->exec= subdivide_smooth_exec;
-	ot->poll= ED_operator_editmesh;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* props */
-	RNA_def_float(ot->srna, "smoothness", 1.0f, 0.0f, 1000.0f, "Smoothness", "", 0.0f, FLT_MAX);
-}
-
-static int subdivs_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	uiPopupMenu *pup;
-	uiLayout *layout;
-
-	pup= uiPupMenuBegin(C, "Subdivision Type", 0);
-	layout= uiPupMenuLayout(pup);
-	uiItemsEnumO(layout, "MESH_OT_subdivs", "type");
-	uiPupMenuEnd(C, pup);
-	
-	return OPERATOR_CANCELLED;
-}
-
-static int subdivs_exec(bContext *C, wmOperator *op)
-{	
-	switch(RNA_int_get(op->ptr, "type"))
-	{
-		case 0: // simple
-			subdivide_exec(C,op);
-			break;
-		case 1: // multi
-			subdivide_multi_exec(C,op);
-			break;
-		case 2: // fractal;
-			subdivide_multi_fractal_exec(C,op);
-			break;
-		case 3: //smooth
-			subdivide_smooth_exec(C,op);
-			break;
-	}
-					 
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_subdivs(wmOperatorType *ot)
-{
-	static EnumPropertyItem type_items[]= {
-		{0, "SIMPLE", 0, "Simple", ""},
-		{1, "MULTI", 0, "Multi", ""},
-		{2, "FRACTAL", 0, "Fractal", ""},
-		{3, "SMOOTH", 0, "Smooth", ""},
-		{0, NULL, NULL}};
-
-	/* identifiers */
-	ot->name= "subdivs";
-	ot->idname= "MESH_OT_subdivs";
-	
-	/* api callbacks */
-	ot->invoke= subdivs_invoke;
-	ot->exec= subdivs_exec;
-	
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
 	/*props */
-	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
-	
-	/* this is temp, the ops are different, but they are called from subdivs, so all the possible props should be here as well*/
-	RNA_def_int(ot->srna, "number_cuts", 4, 1, 10, "Number of Cuts", "", 1, INT_MAX);
-	RNA_def_float(ot->srna, "random_factor", 5.0, 0.0f, FLT_MAX, "Random Factor", "", 0.0f, 1000.0f);
-	RNA_def_float(ot->srna, "smoothness", 1.0f, 0.0f, 1000.0f, "Smoothness", "", 0.0f, FLT_MAX);		
+	RNA_def_enum(ot->srna, "quadcorner", prop_mesh_cornervert_types, SUBD_INNERVERT, "Quad Corner Type", "Method used for subdividing two adjacent edges in a quad");
+	RNA_def_boolean(ot->srna, "tess_single_edge", 1, "Tesselate Single Edge", "Adds triangles to single edges belonging to triangles or quads");
+	RNA_def_boolean(ot->srna, "gridfill", 1, "Grid Fill", "Fill Fully Selected Triangles and Quads With A Grid");
 }
-#endif
 
 /* individual face extrude */
 /* will use vertex normals for extrusion directions, so *nor is unaffected */

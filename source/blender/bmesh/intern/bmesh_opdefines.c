@@ -552,6 +552,11 @@ BMOpDefine def_subdop = {
 	/*these next two can have multiple types of elements in them.*/
 	{BMOP_OPSLOT_ELEMENT_BUF, "outinner"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "outsplit"},
+
+	{BMOP_OPSLOT_INT, "quadcornertype"}, //quad corner type, see bmesh_operators.h
+	{BMOP_OPSLOT_INT, "gridfill"}, //fill in fully-selected faces with a grid
+	{BMOP_OPSLOT_INT, "singleedge"}, //tesselate the case of one edge selected in a quad or triangle
+
 	{0} /*null-terminating sentinel*/,
 	},
 	esubdivide_exec,
