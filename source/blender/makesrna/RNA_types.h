@@ -66,6 +66,7 @@ typedef enum PropertyType {
 	PROP_COLLECTION = 6
 } PropertyType;
 
+/* also update rna_property_subtype_unit when you change this */
 typedef enum PropertyUnit {
 	PROP_UNIT_NONE = (0<<16),
 	PROP_UNIT_LENGTH = (1<<16),			/* m */

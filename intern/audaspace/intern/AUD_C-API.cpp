@@ -132,10 +132,12 @@ int* AUD_enumDevices()
 
 void AUD_exit()
 {
-	assert(AUD_device);
-	delete AUD_device;
-	AUD_device = NULL;
-	AUD_3ddevice = NULL;
+	if(AUD_device)
+	{
+		delete AUD_device;
+		AUD_device = NULL;
+		AUD_3ddevice = NULL;
+	}
 }
 
 void AUD_lock()
