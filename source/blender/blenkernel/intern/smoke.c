@@ -662,10 +662,11 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->domain->omega = 1.0;
 			smd->domain->alpha = -0.001;
 			smd->domain->beta = 0.1;
-			smd->domain->flags = 0;
+			smd->domain->flags = 0; // MOD_SMOKE_DISSOLVE_INV;
 			smd->domain->strength = 2.0;
 			smd->domain->noise = MOD_SMOKE_NOISEWAVE;
 			smd->domain->visibility = 1;
+			// smd->domain->diss_speed = 50;
 
 			// init 3dview buffer
 			smd->domain->tvox = NULL;
@@ -759,9 +760,11 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		{
 			GroupObject *go = NULL;
 			Base *base = NULL;
-			int cnt_domain = 0;
 			
 			tstart();
+			
+			// if(sds->flags & MOD_SMOKE_DISSOLVE)
+			// 	smoke_dissolve(sds->fluid, sds->diss_speed, sds->flags & MOD_SMOKE_DISSOLVE_LOG, sds->flags & MOD_SMOKE_DISSOLVE_INV);
 
 			/* reset view for new frame */
 			if(sds->viewsettings < MOD_SMOKE_VIEW_USEBIG)
@@ -769,34 +772,13 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			else
 				sds->viewsettings = MOD_SMOKE_VIEW_USEBIG;
 
-			/* check for 2nd domain, if not there -> no groups are necessary */
-			for(base = scene->base.first; base; base= base->next) 
-			{
-				Object *ob1= base->object;
-				
-				if(ob1 && ob1 != ob)
-				{
-					ModifierData *tmd = modifiers_findByType(ob1, eModifierType_Smoke);
-
-					if(tmd && tmd->mode & (eModifierMode_Realtime | eModifierMode_Render))
-					{
-						SmokeModifierData *tsmd = (SmokeModifierData *)tmd;
-
-						if((tsmd->type & MOD_SMOKE_TYPE_DOMAIN))
-						{
-							cnt_domain++;
-						}
-					}
-				}
-			}
-
 			// do flows and fluids
-			if(sds->fluid_group || !cnt_domain)
+			if(1)
 			{
 				Object *otherobj = NULL;
 				ModifierData *md = NULL;
 
-				if(cnt_domain && !sds->fluid_group) // we use groups since we have 2 domains
+				if(sds->fluid_group) // we use groups since we have 2 domains
 					go = sds->fluid_group->gobject.first;
 				else
 					base = scene->base.first;
@@ -805,7 +787,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 				{
 					otherobj = NULL;
 
-					if(cnt_domain && !sds->fluid_group) 
+					if(sds->fluid_group) 
 					{
 						if(go->ob)
 							otherobj = go->ob;
@@ -815,7 +797,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 					if(!otherobj)
 					{
-						if(cnt_domain && !sds->fluid_group)
+						if(sds->fluid_group)
 							go = go->next;
 						else
 							base= base->next;
@@ -942,7 +924,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 						}	
 					}
 
-					if(cnt_domain && !sds->fluid_group)
+					if(sds->fluid_group)
 						go = go->next;
 					else
 						base= base->next;
@@ -967,12 +949,12 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			*/
 
 			// do collisions	
-			if(sds->coll_group || !cnt_domain)
+			if(1)
 			{
 				Object *otherobj = NULL;
 				ModifierData *md = NULL;
 
-				if(cnt_domain && !sds->coll_group) // we use groups since we have 2 domains
+				if(sds->coll_group) // we use groups since we have 2 domains
 					go = sds->coll_group->gobject.first;
 				else
 					base = scene->base.first;
@@ -981,7 +963,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 				{
 					otherobj = NULL;
 
-					if(cnt_domain && !sds->coll_group) 
+					if(sds->coll_group) 
 					{
 						if(go->ob)
 							otherobj = go->ob;
@@ -991,7 +973,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 					if(!otherobj)
 					{
-						if(cnt_domain && !sds->coll_group)
+						if(sds->coll_group)
 							go = go->next;
 						else
 							base= base->next;
@@ -1065,7 +1047,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 						}
 					}
 
-					if(cnt_domain && !sds->coll_group)
+					if(sds->coll_group)
 						go = go->next;
 					else
 						base= base->next;
