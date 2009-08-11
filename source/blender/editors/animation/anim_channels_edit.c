@@ -17,10 +17,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
- *
- * The Original Code is: all of this file.
  *
  * Contributor(s): Joshua Leung
  *
@@ -884,14 +882,6 @@ void ANIM_OT_channels_visibility_toggle (wmOperatorType *ot)
 
 /* ********************** Set Flags Operator *********************** */
 
-enum {
-// 	ACHANNEL_SETTING_SELECT = 0,
-	ACHANNEL_SETTING_PROTECT = 1,
-	ACHANNEL_SETTING_MUTE,
-	ACHANNEL_SETTING_VISIBLE,
-	ACHANNEL_SETTING_EXPAND,
-} eAnimChannel_Settings;
-
 /* defines for setting animation-channel flags */
 EnumPropertyItem prop_animchannel_setflag_types[] = {
 	{ACHANNEL_SETFLAG_CLEAR, "DISABLE", 0, "Disable", ""},
@@ -901,6 +891,7 @@ EnumPropertyItem prop_animchannel_setflag_types[] = {
 };
 
 /* defines for set animation-channel settings */
+// TODO: could add some more types, but those are really quite dependent on the mode...
 EnumPropertyItem prop_animchannel_settings_types[] = {
 	{ACHANNEL_SETTING_PROTECT, "PROTECT", 0, "Protect", ""},
 	{ACHANNEL_SETTING_MUTE, "MUTE", 0, "Mute", ""},
@@ -932,213 +923,8 @@ static void setflag_anim_channels (bAnimContext *ac, short setting, short mode, 
 	
 	/* affect selected channels */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		switch (ale->type) {
-			case ANIMTYPE_OBJECT:
-			{
-				Base *base= (Base *)ale->data;
-				Object *ob= base->object;
-				
-				if (setting == ACHANNEL_SETTING_EXPAND) {
-					// XXX - settings should really be moved out of ob->nlaflag
-					if (mode == ACHANNEL_SETFLAG_TOGGLE) 	ob->nlaflag ^= OB_ADS_COLLAPSED;
-					else if (mode == ACHANNEL_SETFLAG_ADD) 	ob->nlaflag &= ~OB_ADS_COLLAPSED;
-					else 									ob->nlaflag |= OB_ADS_COLLAPSED;
-				}
-			}
-				break;
-			
-			case ANIMTYPE_FILLACTD:
-			{
-				bAction *act= (bAction *)ale->data;
-				
-				if (ASUBCHANNEL_SEL_OK(ale)) {
-					if (setting == ACHANNEL_SETTING_EXPAND) {
-						ACHANNEL_SET_FLAG_NEG(act, mode, ACT_COLLAPSED);
-					}
-				}
-			}
-				break;
-			case ANIMTYPE_FILLDRIVERS:
-			{
-				AnimData *adt= (AnimData *)ale->data;
-				
-				if (ASUBCHANNEL_SEL_OK(ale)) {
-					if (setting == ACHANNEL_SETTING_EXPAND) {
-						ACHANNEL_SET_FLAG_NEG(adt, mode, ADT_DRIVERS_COLLAPSED);
-					}
-				}
-			}
-				break;
-			case ANIMTYPE_FILLMATD:
-			{
-				Object *ob= (Object *)ale->data;
-				
-				// XXX - settings should really be moved out of ob->nlaflag
-				if ((onlysel == 0) || (ob->flag & SELECT)) {
-					if (setting == ACHANNEL_SETTING_EXPAND) {
-						if (mode == ACHANNEL_SETFLAG_TOGGLE) 	ob->nlaflag ^= OB_ADS_SHOWMATS;
-						else if (mode == ACHANNEL_SETFLAG_ADD) 	ob->nlaflag |= OB_ADS_SHOWMATS;
-						else 									ob->nlaflag &= ~OB_ADS_SHOWMATS;
-					}
-				}
-			}
-				break;
-			case ANIMTYPE_FILLPARTD:
-			{
-				Object *ob= (Object *)ale->data;
-				
-				// XXX - settings should really be moved out of ob->nlaflag
-				if ((onlysel == 0) || (ob->flag & SELECT)) {
-					if (setting == ACHANNEL_SETTING_EXPAND) {
-						if (mode == ACHANNEL_SETFLAG_TOGGLE) 	ob->nlaflag ^= OB_ADS_SHOWPARTS;
-						else if (mode == ACHANNEL_SETFLAG_ADD) 	ob->nlaflag |= OB_ADS_SHOWPARTS;
-						else 									ob->nlaflag &= ~OB_ADS_SHOWPARTS;
-					}
-				}
-			}
-				break;
-					
-			case ANIMTYPE_DSMAT:
-			{
-				Material *ma= (Material *)ale->data;
-				
-				if (ASUBCHANNEL_SEL_OK(ale)) {
-					if (setting == ACHANNEL_SETTING_EXPAND) {
-						ACHANNEL_SET_FLAG(ma, mode, MA_DS_EXPAND);
-					}
-				}
-			}
-				break;
-			case ANIMTYPE_DSLAM:
-			{
-				Lamp *la= (Lamp *)ale->data;
-				
-				if (ASUBCHANNEL_SEL_OK(ale)) {
-					if (setting == ACHANNEL_SETTING_EXPAND) {
-						ACHANNEL_SET_FLAG(la, mode, LA_DS_EXPAND);
-					}
-				}
-			}
-				break;
-			case ANIMTYPE_DSCAM:
-			{
-				Camera *ca= (Camera *)ale->data;
-				
-				if (ASUBCHANNEL_SEL_OK(ale)) {
-					if (setting == ACHANNEL_SETTING_EXPAND) {
-						ACHANNEL_SET_FLAG(ca, mode, CAM_DS_EXPAND);
-					}
-				}
-			}
-				break;
-			case ANIMTYPE_DSCUR:
-			{
-				Curve *cu= (Curve *)ale->data;
-				
-				if (ASUBCHANNEL_SEL_OK(ale)) {
-					if (setting == ACHANNEL_SETTING_EXPAND) {
-						ACHANNEL_SET_FLAG(cu, mode, CU_DS_EXPAND);
-					}
-				}
-			}
-				break;
-			case ANIMTYPE_DSSKEY:
-			{
-				Key *key= (Key *)ale->data;
-				
-				if (ASUBCHANNEL_SEL_OK(ale)) {
-					if (setting == ACHANNEL_SETTING_EXPAND) {
-						ACHANNEL_SET_FLAG(key, mode, KEYBLOCK_DS_EXPAND);
-					}
-				}
-			}
-				break;
-			case ANIMTYPE_DSWOR:
-			{
-				World *wo= (World *)ale->data;
-				
-				if (ASUBCHANNEL_SEL_OK(ale)) {
-					if (setting == ACHANNEL_SETTING_EXPAND) {
-						ACHANNEL_SET_FLAG(wo, mode, WO_DS_EXPAND);
-					}
-				}
-			}
-				break;
-			case ANIMTYPE_DSPART:
-			{
-				ParticleSettings *part= (ParticleSettings*)ale->data;
-				
-				if (ASUBCHANNEL_SEL_OK(ale)) {
-					if (setting == ACHANNEL_SETTING_EXPAND) {
-						ACHANNEL_SET_FLAG(part, mode, PART_DS_EXPAND);
-					}
-				}
-			}
-				break;
-			case ANIMTYPE_DSMBALL:
-			{
-				MetaBall *mb= (MetaBall *)ale->data;
-				
-				if (ASUBCHANNEL_SEL_OK(ale)) {
-					if (setting == ACHANNEL_SETTING_EXPAND) {
-						ACHANNEL_SET_FLAG(mb, mode, MB_DS_EXPAND);
-					}
-				}
-			}
-				break;
-				
-			case ANIMTYPE_GROUP:
-			{
-				bActionGroup *agrp= (bActionGroup *)ale->data;
-				
-				switch (setting) {
-					case ACHANNEL_SETTING_PROTECT:
-						ACHANNEL_SET_FLAG(agrp, mode, AGRP_PROTECTED);
-						break;
-					case ACHANNEL_SETTING_EXPAND:
-						ACHANNEL_SET_FLAG(agrp, mode, AGRP_EXPANDED);
-						break;
-					case ACHANNEL_SETTING_MUTE:
-						ACHANNEL_SET_FLAG(agrp, mode, AGRP_MUTED);
-						break;
-					case ACHANNEL_SETTING_VISIBLE:
-						ACHANNEL_SET_FLAG_NEG(agrp, mode, AGRP_NOTVISIBLE);
-						break;
-				}
-			}
-				break;
-			case ANIMTYPE_FCURVE:
-			{
-				FCurve *fcu= (FCurve *)ale->data;
-				
-				switch (setting) {
-					case ACHANNEL_SETTING_MUTE:
-						ACHANNEL_SET_FLAG(fcu, mode, FCURVE_MUTED);
-						break;
-					case ACHANNEL_SETTING_PROTECT:
-						ACHANNEL_SET_FLAG(fcu, mode, FCURVE_PROTECTED);
-						break;
-					case ACHANNEL_SETTING_VISIBLE:
-						ACHANNEL_SET_FLAG(fcu, mode, FCURVE_VISIBLE);
-						break;
-				}
-			}
-				break;
-			case ANIMTYPE_GPLAYER:
-			{
-				bGPDlayer *gpl= (bGPDlayer *)ale->data;
-				
-				switch (setting) {
-					case ACHANNEL_SETTING_MUTE:
-						ACHANNEL_SET_FLAG(gpl, mode, GP_LAYER_HIDE);
-						break;
-					case ACHANNEL_SETTING_PROTECT:
-						ACHANNEL_SET_FLAG(gpl, mode, GP_LAYER_LOCKED);
-						break;
-				}
-			}
-				break;
-		}
+		/* set the setting in the appropriate way (if available) */
+		ANIM_channel_setting_set(ac, ale, setting, mode);
 	}
 	
 	BLI_freelistN(&anim_data);
