@@ -31,6 +31,7 @@
 
 import platform as pltfrm
 
+# Need a better way to do this. Automagical maybe is not the best thing, maybe it is.
 if pltfrm.architecture()[0] == '64bit':
 	bitness = 64
 else:
@@ -573,8 +574,8 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc'):
 	if env['WITH_BF_PYTHON']:
 		ver = env["BF_PYTHON_VERSION"].replace(".", "")
 		
-		dllsources.append('#release/windows/extra/python' + ver + '.zip')
-		dllsources.append('#release/windows/extra/zlib.pyd')
+		dllsources.append('${LCGDIR}/release/python' + ver + '.zip')
+		dllsources.append('${LCGDIR}/release/zlib.pyd')
 		if env['BF_DEBUG']:
 			dllsources.append('${BF_PYTHON_LIBPATH}/${BF_PYTHON_LIB}_d.dll')
 		else:
@@ -584,6 +585,9 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc'):
 			pass # we link statically to iconv on win64
 		else:
 			dllsources += ['${BF_ICONV_LIBPATH}/iconv.dll']
+	if env['WITH_BF_OPENAL']:
+		dllsources.append('${LCGDIR}/openal/lib/OpenAL32.dll')
+		dllsources.append('${LCGDIR}/openal/lib/wrap_oal.dll')
 	if env['WITH_BF_FFMPEG']:
 		dllsources += ['${LCGDIR}/ffmpeg/lib/avcodec-52.dll',
 						'${LCGDIR}/ffmpeg/lib/avformat-52.dll',

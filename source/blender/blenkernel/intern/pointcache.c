@@ -310,7 +310,7 @@ int BKE_ptcache_file_write_floats(PTCacheFile *pf, float *f, int tot)
 static int ptcache_pid_elemsize(PTCacheID *pid)
 {
 	if(pid->type==PTCACHE_TYPE_SOFTBODY)
-		return 0; // TODO
+		return 6 * sizeof(float);
 	else if(pid->type==PTCACHE_TYPE_PARTICLES)
 		return sizeof(ParticleKey);
 	else if(pid->type==PTCACHE_TYPE_CLOTH)
@@ -320,8 +320,10 @@ static int ptcache_pid_elemsize(PTCacheID *pid)
 }
 static int ptcache_pid_totelem(PTCacheID *pid)
 {
-	if(pid->type==PTCACHE_TYPE_SOFTBODY)
-		return 0; // TODO
+	if(pid->type==PTCACHE_TYPE_SOFTBODY) {
+		SoftBody *soft = pid->data;
+		return soft->totpoint;
+	}
 	else if(pid->type==PTCACHE_TYPE_PARTICLES) {
 		ParticleSystem *psys = pid->data;
 		return psys->totpart;

@@ -149,25 +149,13 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			
 			/* Array Index - only if applicable */
 			if (RNA_property_array_length(prop)) {
-				static char *vectoritem[4]= {"X ", "Y ", "Z ", "W "};
-				static char *quatitem[4]= {"W ", "X ", "Y ", "Z "};
-				static char *coloritem[4]= {"R ", "G ", "B ", "A "};
+				char c= RNA_property_array_item_char(prop, fcu->array_index);
 				
-				int tot= RNA_property_array_length(prop);
-				int propsubtype= RNA_property_subtype(prop);
-				
-				/* get string to use for array index */
-				if ((tot == 4) && (propsubtype == PROP_ROTATION))
-					arrayname= quatitem[fcu->array_index];
-				else if ( (tot <= 4) && ((propsubtype == PROP_VECTOR) || (propsubtype == PROP_ROTATION)) )
-					arrayname= vectoritem[fcu->array_index];
-				else if ((tot <= 4) && (propsubtype == PROP_COLOR))
-					arrayname= coloritem[fcu->array_index];
-				else {
-					/* we need to write the index to a temp buffer (in py syntax), as it is a number... */
-					sprintf(arrayindbuf, "[%d]", fcu->array_index);
-					arrayname= &arrayindbuf[0];
-				}
+				/* we need to write the index to a temp buffer (in py syntax) */
+				if(c) sprintf(arrayindbuf, "%c ", c);
+				else sprintf(arrayindbuf, "[%d]", fcu->array_index);
+
+				arrayname= &arrayindbuf[0];
 			}
 			else {
 				/* no array index */

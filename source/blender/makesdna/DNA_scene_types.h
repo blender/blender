@@ -667,6 +667,7 @@ typedef struct Scene {
 	ListBase markers;
 	ListBase transform_spaces;
 	
+	ListBase sound_handles;
 	
 	/* none of the dependancy graph  vars is mean to be saved */
 	struct  DagForest *theDag;

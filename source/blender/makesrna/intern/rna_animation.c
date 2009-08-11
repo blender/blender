@@ -38,6 +38,17 @@
 
 #ifdef RNA_RUNTIME
 
+static int rna_AnimData_action_editable(PointerRNA *ptr)
+{
+	AnimData *adt= (AnimData *)ptr->data;
+	
+	/* active action is only editable when it is not a tweaking strip */
+	if ((adt->flag & ADT_NLA_EDIT_ON) || (adt->actstrip) || (adt->tmpact))
+		return 0;
+	else
+		return 1;
+}
+
 static void rna_ksPath_RnaPath_get(PointerRNA *ptr, char *value)
 {
 	KS_Path *ksp= (KS_Path *)ptr->data;
@@ -191,6 +202,7 @@ void rna_def_animdata(BlenderRNA *brna)
 	/* Active Action */
 	prop= RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Action", "Active Action for this datablock.");
+	RNA_def_property_editable_func(prop, "rna_AnimData_action_editable");
 	
 	/* Active Action Settings */
 	prop= RNA_def_property(srna, "action_extrapolation", PROP_ENUM, PROP_NONE);

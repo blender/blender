@@ -1503,7 +1503,6 @@ unsigned int ED_screen_view3d_layers(bScreen *screen)
 
 
 /* results in fully updated anim system */
-/* in future sound should be on WM level, only 1 sound can play! */
 void ED_update_for_newframe(const bContext *C, int mute)
 {
 	bScreen *screen= CTX_wm_screen(C);

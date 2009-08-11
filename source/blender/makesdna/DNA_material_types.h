@@ -224,7 +224,7 @@ typedef struct Material {
 #define MA_SPEC_WARDISO		4
 
 /* dynamode */
-#define MA_DRAW_DYNABUTS    1
+#define MA_DRAW_DYNABUTS    1		/* deprecated */
 #define MA_FH_NOR	        2
 
 /* ramps */

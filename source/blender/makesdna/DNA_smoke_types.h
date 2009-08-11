@@ -44,6 +44,7 @@
 #define MOD_SMOKE_VIEW_CHANGETOBIG (1<<5)
 #define MOD_SMOKE_VIEW_REDRAWNICE (1<<6)
 #define MOD_SMOKE_VIEW_REDRAWALL (1<<7)
+#define MOD_SMOKE_VIEW_USEBIG (1<<8)
 
 typedef struct SmokeDomainSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
@@ -75,17 +76,23 @@ typedef struct SmokeDomainSettings {
 	int max_textures;
 	short noise; /* noise type: wave, curl, anisotropic */
 	short pad2;
-	int pad3;
-	int pad4;
+	int pad;
+	float strength;
+	struct WTURBULENCE *wt; // WTURBULENCE object, if active
 } SmokeDomainSettings;
 
+
 /* inflow / outflow */
+
+/* type */
+#define MOD_SMOKE_FLOW_TYPE_OUTFLOW (1<<1)
+
 typedef struct SmokeFlowSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
 	struct ParticleSystem *psys;
 	float density;
 	float temp; /* delta temperature (temp - ambient temp) */
-	float velocity[3];
+	float velocity[3]; /* UNUSED, velocity taken from particles */
 	float vgrp_heat_scale[2]; /* min and max scaling for vgroup_heat */
 	short vgroup_flow; /* where inflow/outflow happens - red=1=action */
 	short vgroup_density;
@@ -97,6 +104,8 @@ typedef struct SmokeFlowSettings {
 /* collision objects (filled with smoke) */
 typedef struct SmokeCollSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
+	struct BVHTree *bvhtree; /* bounding volume hierarchy for this cloth object */
+	struct DerivedMesh *dm;
 	float *points;
 	float *points_old;
 	float *vel;

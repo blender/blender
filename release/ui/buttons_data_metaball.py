@@ -54,12 +54,12 @@ class DATA_PT_metaball_element(DataButtonsPanel):
 	__label__ = "Active Element"
 	
 	def poll(self, context):
-		return (context.meta_ball and context.meta_ball.last_selected_element)
+		return (context.meta_ball and context.meta_ball.active_element)
 
 	def draw(self, context):
 		layout = self.layout
 		
-		metaelem = context.meta_ball.last_selected_element
+		metaelem = context.meta_ball.active_element
 		
 		split = layout.split(percentage=0.3)
 		split.itemL(text="Type:")	
@@ -81,30 +81,30 @@ class DATA_PT_metaball_element(DataButtonsPanel):
 		
 			col = split.column(align=True)
 			col.itemL(text="Size:")	
-			col.itemR(metaelem, "sizex", text="X")
-			col.itemR(metaelem, "sizey", text="Y")
-			col.itemR(metaelem, "sizez", text="Z")
+			col.itemR(metaelem, "size_x", text="X")
+			col.itemR(metaelem, "size_y", text="Y")
+			col.itemR(metaelem, "size_z", text="Z")
 			
 		elif metaelem.type == 'TUBE':
 		
 			col = split.column(align=True)
 			col.itemL(text="Size:")	
-			col.itemR(metaelem, "sizex", text="X")
+			col.itemR(metaelem, "size_x", text="X")
 			
 		elif metaelem.type == 'PLANE':
 			
 			col = split.column(align=True)
 			col.itemL(text="Size:")	
-			col.itemR(metaelem, "sizex", text="X")
-			col.itemR(metaelem, "sizey", text="Y")
+			col.itemR(metaelem, "size_x", text="X")
+			col.itemR(metaelem, "size_y", text="Y")
 			
 		elif metaelem.type == 'ELLIPSOID':
 			
 			col = split.column(align=True)
 			col.itemL(text="Size:")	
-			col.itemR(metaelem, "sizex", text="X")
-			col.itemR(metaelem, "sizey", text="Y")
-			col.itemR(metaelem, "sizez", text="Z")
+			col.itemR(metaelem, "size_x", text="X")
+			col.itemR(metaelem, "size_y", text="Y")
+			col.itemR(metaelem, "size_z", text="Z")
 		
 
 bpy.types.register(DATA_PT_context_metaball)

@@ -151,13 +151,13 @@ static void rna_def_lamp_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Shadow", "Lets the texture affect the shadow color of the lamp.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
-	prop= RNA_def_property(srna, "color_factor", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "color_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "colfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Color Factor", "Amount texture affects color values.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
-	prop= RNA_def_property(srna, "shadow_factor", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "shadow_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "colfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Shadow Factor", "Amount texture affects shadow.");

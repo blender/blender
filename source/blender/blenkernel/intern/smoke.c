@@ -1,5 +1,5 @@
 /**
- * BKE_cloth.h
+ * smoke.c
  *
  * $Id$
  *
@@ -48,6 +48,7 @@
 #include "BLI_kdtree.h"
 #include "BLI_kdopbvh.h"
 
+#include "BKE_bvhutils.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
@@ -134,7 +135,9 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 		float size[3];
 		MVert *verts = dm->getVertArray(dm);
 		float scale = 0.0;
-		int res = smd->domain->maxres;
+		int res;		
+
+		res = smd->domain->maxres;
 
 		// get BB of domain
 		for(i = 0; i < dm->getNumVerts(dm); i++)
@@ -199,14 +202,20 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 			}
 		}
 
-		printf("res[0]: %d, res[1]: %d, res[2]: %d\n", smd->domain->res[0], smd->domain->res[1], smd->domain->res[2]);
+		// TODO: put in failsafe if res<=0 - dg
+
+		// printf("res[0]: %d, res[1]: %d, res[2]: %d\n", smd->domain->res[0], smd->domain->res[1], smd->domain->res[2]);
 
 		// dt max is 0.1
-		smd->domain->fluid = smoke_init(smd->domain->res, smd->domain->amplify, smd->domain->p0, smd->domain->p1, 2.5 / FPS);
+		smd->domain->fluid = smoke_init(smd->domain->res, smd->domain->p0, 2.5 / FPS);
+		smd->domain->wt = smoke_turbulence_init(smd->domain->res,  (smd->domain->flags & MOD_SMOKE_HIGHRES) ? (smd->domain->amplify + 1) : 0, smd->domain->noise);
 		smd->time = scene->r.cfra;
 		smd->domain->firstframe = smd->time;
 		
 		smoke_initBlenderRNA(smd->domain->fluid, &(smd->domain->alpha), &(smd->domain->beta));
+
+		if(smd->domain->wt)
+			smoke_initWaveletBlenderRNA(smd->domain->wt, &(smd->domain->strength));
 
 		return 1;
 	}
@@ -222,9 +231,13 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 
 		return 1;
 	}
-	else if((smd->type & MOD_SMOKE_TYPE_COLL) && smd->coll)
+	else if((smd->type & MOD_SMOKE_TYPE_COLL))
 	{
 		smd->time = scene->r.cfra;
+
+		// todo: delete this when loading colls work -dg
+		if(!smd->coll)
+			smokeModifier_createType(smd);
 
 		if(!smd->coll->points)
 		{
@@ -238,6 +251,10 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 			size_t newdivs = 0;
 			size_t max_points = 0;
 			size_t quads = 0, facecounter = 0;
+
+			// copy obmat
+			Mat4CpyMat4(scs->mat, ob->obmat);
+			Mat4CpyMat4(scs->mat_old, ob->obmat);
 
 			// count quads
 			for(i = 0; i < dm->getNumFaces(dm); i++)
@@ -364,6 +381,11 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 			MEM_freeN(tridivs);
 		}
 
+		if(!smd->coll->bvhtree)
+		{
+			smd->coll->bvhtree = NULL; // bvhtree_build_from_smoke ( ob->obmat, dm->getFaceArray(dm), dm->getNumFaces(dm), dm->getVertArray(dm), dm->getNumVerts(dm), 0.0 );
+		}
+
 	}
 
 	return 0;
@@ -414,12 +436,12 @@ void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *faces, int 
 		if(INPR(side1, side1) > fsTri*fsTri) 
 		{ 
 			float tmp = Normalize(side1);
-			divs1 = (int)(tmp/fsTri); 
+			divs1 = (int)ceil(tmp/fsTri); 
 		}
 		if(INPR(side2, side2) > fsTri*fsTri) 
 		{ 
 			float tmp = Normalize(side2);
-			divs2 = (int)(tmp/fsTri); 
+			divs2 = (int)ceil(tmp/fsTri); 
 			
 			/*
 			// debug
@@ -439,9 +461,11 @@ void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *faces, int 
 
 			facecounter++;
 			
-			VECCOPY(p1, verts[faces[i].v3].co);
+			VECCOPY(p0, verts[faces[i].v3].co);
+			Mat4MulVecfl (ob->obmat, p0);
+			VECCOPY(p1, verts[faces[i].v4].co);
 			Mat4MulVecfl (ob->obmat, p1);
-			VECCOPY(p2, verts[faces[i].v4].co);
+			VECCOPY(p2, verts[faces[i].v1].co);
 			Mat4MulVecfl (ob->obmat, p2);
 
 			VECSUB(side1, p1, p0);
@@ -451,12 +475,12 @@ void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *faces, int 
 			if(INPR(side1, side1) > fsTri*fsTri) 
 			{ 
 				float tmp = Normalize(side1);
-				divs1 = (int)(tmp/fsTri); 
+				divs1 = (int)ceil(tmp/fsTri); 
 			}
 			if(INPR(side2, side2) > fsTri*fsTri) 
 			{ 
 				float tmp = Normalize(side2);
-				divs2 = (int)(tmp/fsTri); 
+				divs2 = (int)ceil(tmp/fsTri); 
 			}
 
 			(*tridivs)[3 * facecounter + 0] = divs1;
@@ -489,9 +513,11 @@ void smokeModifier_freeDomain(SmokeModifierData *smd)
 			MEM_freeN(smd->domain->tvoxbig);
 
 		if(smd->domain->fluid)
-		{
 			smoke_free(smd->domain->fluid);
-		}
+
+		if(smd->domain->wt)
+			smoke_turbulence_free(smd->domain->wt);
+
 		MEM_freeN(smd->domain);
 		smd->domain = NULL;
 	}
@@ -516,6 +542,16 @@ void smokeModifier_freeCollision(SmokeModifierData *smd)
 			smd->coll->points = NULL;
 		}
 
+		if(smd->coll->bvhtree)
+		{
+			BLI_bvhtree_free(smd->coll->bvhtree);
+			smd->coll->bvhtree = NULL;
+		}
+
+		if(smd->coll->dm)
+			smd->coll->dm->release(smd->coll->dm);
+		smd->coll->dm = NULL;
+
 		MEM_freeN(smd->coll);
 		smd->coll = NULL;
 	}
@@ -535,7 +571,10 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 				smd->domain->bind = NULL;
 			}
 			smd->domain->max_textures = 0;
-			smd->domain->viewsettings = 0; // reset view for new frame
+			if(smd->domain->viewsettings < MOD_SMOKE_VIEW_USEBIG)
+				smd->domain->viewsettings = 0;
+			else
+				smd->domain->viewsettings = MOD_SMOKE_VIEW_USEBIG;
 
 			if(smd->domain->tray)
 				MEM_freeN(smd->domain->tray);
@@ -556,6 +595,12 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 				smoke_free(smd->domain->fluid);
 				smd->domain->fluid = NULL;
 			}
+			
+			if(smd->domain->wt)
+			{
+				smoke_turbulence_free(smd->domain->wt);
+				smd->domain->wt = NULL;
+			}
 		}
 		else if(smd->flow)
 		{
@@ -568,6 +613,17 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 				MEM_freeN(smd->coll->points);
 				smd->coll->points = NULL;
 			}
+
+			if(smd->coll->bvhtree)
+			{
+				BLI_bvhtree_free(smd->coll->bvhtree);
+				smd->coll->bvhtree = NULL;
+			}
+
+			if(smd->coll->dm)
+				smd->coll->dm->release(smd->coll->dm);
+			smd->coll->dm = NULL;
+
 		}
 	}
 }
@@ -597,15 +653,17 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 
 			/* set some standard values */
 			smd->domain->fluid = NULL;
+			smd->domain->wt = NULL;
 			smd->domain->eff_group = NULL;
 			smd->domain->fluid_group = NULL;
 			smd->domain->coll_group = NULL;
-			smd->domain->maxres = 48;
-			smd->domain->amplify = 2;
-			smd->domain->omega = 0.5;
+			smd->domain->maxres = 32;
+			smd->domain->amplify = 1;
+			smd->domain->omega = 1.0;
 			smd->domain->alpha = -0.001;
 			smd->domain->beta = 0.1;
 			smd->domain->flags = 0;
+			smd->domain->strength = 2.0;
 			smd->domain->noise = MOD_SMOKE_NOISEWAVE;
 			smd->domain->visibility = 1;
 
@@ -644,6 +702,8 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->coll->smd = smd;
 			smd->coll->points = NULL;
 			smd->coll->numpoints = 0;
+			smd->coll->bvhtree = NULL;
+			smd->coll->dm = NULL;
 		}
 	}
 }
@@ -651,8 +711,8 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 // forward declaration
 void smoke_calc_transparency(struct SmokeModifierData *smd, float *light, int big);
 
-void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm)
-{
+void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
+{	
 	if(scene->r.cfra >= smd->time)
 		smokeModifier_init(smd, ob, scene, dm);
 
@@ -661,6 +721,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		if(scene->r.cfra > smd->time)
 		{
 			// XXX TODO
+			smd->time = scene->r.cfra;
 		}
 		else if(scene->r.cfra < smd->time)
 		{
@@ -668,7 +729,29 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			smokeModifier_reset(smd);
 		}
 	}
-	else if((smd->type & MOD_SMOKE_TYPE_DOMAIN))
+	else if(smd->type & MOD_SMOKE_TYPE_COLL)
+	{
+		if(scene->r.cfra > smd->time)
+		{
+			// XXX TODO
+			smd->time = scene->r.cfra;
+			
+			if(smd->coll->dm)
+				smd->coll->dm->release(smd->coll->dm);
+
+			smd->coll->dm = CDDM_copy(dm);
+
+			// rigid movement support
+			Mat4CpyMat4(smd->coll->mat_old, smd->coll->mat);
+			Mat4CpyMat4(smd->coll->mat, ob->obmat);
+		}
+		else if(scene->r.cfra < smd->time)
+		{
+			smd->time = scene->r.cfra;
+			smokeModifier_reset(smd);
+		}
+	}
+	else if(smd->type & MOD_SMOKE_TYPE_DOMAIN)
 	{
 		SmokeDomainSettings *sds = smd->domain;
 		
@@ -680,9 +763,13 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			
 			tstart();
 
-			sds->viewsettings = 0; // reset view for new frame
+			/* reset view for new frame */
+			if(sds->viewsettings < MOD_SMOKE_VIEW_USEBIG)
+				sds->viewsettings = 0;
+			else
+				sds->viewsettings = MOD_SMOKE_VIEW_USEBIG;
 
-			// check for 2nd domain, if not there -> no groups are necessary
+			/* check for 2nd domain, if not there -> no groups are necessary */
 			for(base = scene->base.first; base; base= base->next) 
 			{
 				Object *ob1= base->object;
@@ -756,22 +843,20 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 								ParticleData *pa = NULL;
 								int p = 0;
 								float *density = smoke_get_density(sds->fluid);
-								float *bigdensity = smoke_get_bigdensity(sds->fluid);
+								float *bigdensity = smoke_turbulence_get_density(sds->wt);
 								float *heat = smoke_get_heat(sds->fluid);
 								float *velocity_x = smoke_get_velocity_x(sds->fluid);
 								float *velocity_y = smoke_get_velocity_y(sds->fluid);
 								float *velocity_z = smoke_get_velocity_z(sds->fluid);
-								int bigres[3];
-
-								smoke_get_bigres(smd->domain->fluid, bigres);
+								int bigres[3];								
 								
 								// mostly copied from particle code
 								for(p=0, pa=psys->particles; p<psys->totpart; p++, pa++)
 								{
 									int cell[3];
-									int valid = 1;
 									size_t i = 0;
 									size_t index = 0;
+									int badcell = 0;
 									
 									if(pa->alive == PARS_KILLED) continue;
 									else if(pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN)==0) continue;
@@ -786,33 +871,71 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 								
 									// check if cell is valid (in the domain boundary)
 									for(i = 0; i < 3; i++)
+									{
 										if((cell[i] > sds->res[i] - 1) || (cell[i] < 0))
-											valid = 0;
-									
-									if(!valid)
+										{
+											badcell = 1;
+											break;
+										}
+									}
+										
+									if(badcell)
 										continue;
 									
 									// 2. set cell values (heat, density and velocity)
 									index = smoke_get_index(cell[0], sds->res[0], cell[1], sds->res[1], cell[2]);
 									
-									heat[index] = sfs->temp;
-									density[index] = sfs->density;
-									velocity_x[index] = pa->state.vel[0];
-									velocity_y[index] = pa->state.vel[1];
-									velocity_z[index] = pa->state.vel[2];
-
-									// we need different handling for the high-res feature
-									if(bigdensity)
+									if(!(sfs->type & MOD_SMOKE_FLOW_TYPE_OUTFLOW)) // this is inflow
 									{
-										// init all surrounding cells according to amplification, too
-										int i, j, k;
-										for(i = 0; i < smd->domain->amplify; i++)
-											for(j = 0; j < smd->domain->amplify; j++)
-												for(k = 0; k < smd->domain->amplify; k++)
-												{
-													index = smoke_get_index(smd->domain->amplify * cell[0] + i, bigres[0], smd->domain->amplify * cell[1] + j, bigres[1], smd->domain->amplify * cell[2] + k);
-													bigdensity[index] = sfs->density;
-												}
+										heat[index] = sfs->temp;
+										density[index] = sfs->density;
+										/*
+										velocity_x[index] = pa->state.vel[0];
+										velocity_y[index] = pa->state.vel[1];
+										velocity_z[index] = pa->state.vel[2];
+										*/
+
+										// we need different handling for the high-res feature
+										if(bigdensity)
+										{
+											// init all surrounding cells according to amplification, too
+											int i, j, k;
+
+											smoke_turbulence_get_res(smd->domain->wt, bigres);
+
+											for(i = 0; i < smd->domain->amplify + 1; i++)
+												for(j = 0; j < smd->domain->amplify + 1; j++)
+													for(k = 0; k < smd->domain->amplify + 1; k++)
+													{
+														index = smoke_get_index((smd->domain->amplify + 1)* cell[0] + i, bigres[0], (smd->domain->amplify + 1)* cell[1] + j, bigres[1], (smd->domain->amplify + 1)* cell[2] + k);
+														bigdensity[index] = sfs->density;
+													}
+										}
+									}
+									else // outflow
+									{
+										heat[index] = 0.f;
+										density[index] = 0.f;
+										velocity_x[index] = 0.f;
+										velocity_y[index] = 0.f;
+										velocity_z[index] = 0.f;
+
+										// we need different handling for the high-res feature
+										if(bigdensity)
+										{
+											// init all surrounding cells according to amplification, too
+											int i, j, k;
+
+											smoke_turbulence_get_res(smd->domain->wt, bigres);
+
+											for(i = 0; i < smd->domain->amplify + 1; i++)
+												for(j = 0; j < smd->domain->amplify + 1; j++)
+													for(k = 0; k < smd->domain->amplify + 1; k++)
+													{
+														index = smoke_get_index((smd->domain->amplify + 1)* cell[0] + i, bigres[0], (smd->domain->amplify + 1)* cell[1] + j, bigres[1], (smd->domain->amplify + 1)* cell[2] + k);
+														bigdensity[index] = 0.f;
+													}
+										}
 									}
 								}
 							}	
@@ -887,27 +1010,34 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 						{
 							// we got nice collision object
 							SmokeCollSettings *scs = smd2->coll;
-							int cell[3];
-							int valid = 1;
-							size_t index = 0;
 							size_t i, j;
 							unsigned char *obstacles = smoke_get_obstacle(smd->domain->fluid);
 
 							for(i = 0; i < scs->numpoints; i++)
 							{
+								int badcell = 0;
+								size_t index = 0;
+								int cell[3];
+
 								// 1. get corresponding cell
 								get_cell(smd, &scs->points[3 * i], cell, 0);
 							
 								// check if cell is valid (in the domain boundary)
 								for(j = 0; j < 3; j++)
 									if((cell[j] > sds->res[j] - 1) || (cell[j] < 0))
-										valid = 0;
-								
-								if(!valid)
+									{
+										badcell = 1;
+										break;
+									}
+										
+								if(badcell)
 									continue;
-								
+
 								// 2. set cell values (heat, density and velocity)
 								index = smoke_get_index(cell[0], sds->res[0], cell[1], sds->res[1], cell[2]);
+								
+								// printf("cell[0]: %d, cell[1]: %d, cell[2]: %d\n", cell[0], cell[1], cell[2]);
+								// printf("res[0]: %d, res[1]: %d, res[2]: %d, index: %d\n\n", sds->res[0], sds->res[1], sds->res[2], index);
 									
 								obstacles[index] = 1;
 
@@ -947,6 +1077,8 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 			// simulate the actual smoke (c++ code in intern/smoke)
 			smoke_step(sds->fluid);
+			if(sds->wt)
+				smoke_turbulence_step(sds->wt, sds->fluid);
 
 			tend();
 			printf ( "Frame: %d, Time: %f\n", (int)smd->time, ( float ) tval() );
@@ -990,7 +1122,7 @@ void smoke_prepare_View(SmokeModifierData *smd, float *light)
 					// formula taken from "Visual Simulation of Smoke" / Fedkiw et al. pg. 4
 					// T_vox = exp(-C_ext * h)
 					// C_ext/sigma_t = density * C_ext
-					smoke_set_tvox(smd, index, exp(-density[index] * 4.0 * smd->domain->dx));
+					smoke_set_tvox(smd, index, exp(-density[index] * 7.0 * smd->domain->dx));
 	}
 	smoke_calc_transparency(smd, light, 0);
 }
@@ -1002,7 +1134,7 @@ void smoke_prepare_bigView(SmokeModifierData *smd, float *light)
 	size_t i = 0;
 	int bigres[3];
 
-	smoke_get_bigres(smd->domain->fluid, bigres);
+	smoke_turbulence_get_res(smd->domain->wt, bigres);
 
 	if(!smd->domain->traybig)
 	{
@@ -1015,14 +1147,14 @@ void smoke_prepare_bigView(SmokeModifierData *smd, float *light)
 		smd->domain->tvoxbig = MEM_callocN(sizeof(float)*bigres[0]*bigres[1]*bigres[2], "Smoke_tVoxBig");
 	}
 
-	density = smoke_get_bigdensity(smd->domain->fluid);
+	density = smoke_turbulence_get_density(smd->domain->wt);
 	for (i = 0; i < bigres[0] * bigres[1] * bigres[2]; i++)
 	{
 		// Transparency computation
 		// formula taken from "Visual Simulation of Smoke" / Fedkiw et al. pg. 4
 		// T_vox = exp(-C_ext * h)
 		// C_ext/sigma_t = density * C_ext
-		smoke_set_bigtvox(smd, i, exp(-density[i] * 4.0 * smd->domain->dx / smd->domain->amplify) );
+		smoke_set_bigtvox(smd, i, exp(-density[i] * 7.0 * smd->domain->dx / (smd->domain->amplify + 1)) );
 	}
 	smoke_calc_transparency(smd, light, 1);
 }
@@ -1101,7 +1233,7 @@ static void calc_voxel_transp_big(SmokeModifierData *smd, int *pixel, float *tRa
 	int bigres[3];
 	size_t index;
 
-	smoke_get_bigres(smd->domain->fluid, bigres);
+	smoke_turbulence_get_res(smd->domain->wt, bigres);
 	index = smoke_get_index(pixel[0], bigres[0], pixel[1], bigres[1], pixel[2]);
 
 	/*
@@ -1218,38 +1350,38 @@ static void get_cell(struct SmokeModifierData *smd, float *pos, int *cell, int c
 
 	if(correct)
 	{
-		cell[0] = MIN2(smd->domain->res[0] - 1, MAX2(0, (int)(tmp[0] + 0.5)));
-		cell[1] = MIN2(smd->domain->res[1] - 1, MAX2(0, (int)(tmp[1] + 0.5)));
-		cell[2] = MIN2(smd->domain->res[2] - 1, MAX2(0, (int)(tmp[2] + 0.5)));
+		cell[0] = MIN2(smd->domain->res[0] - 1, MAX2(0, (int)floor(tmp[0])));
+		cell[1] = MIN2(smd->domain->res[1] - 1, MAX2(0, (int)floor(tmp[1])));
+		cell[2] = MIN2(smd->domain->res[2] - 1, MAX2(0, (int)floor(tmp[2])));
 	}
 	else
 	{
-		cell[0] = (int)(tmp[0] + 0.5);
-		cell[1] = (int)(tmp[1] + 0.5);
-		cell[2] = (int)(tmp[2] + 0.5);
+		cell[0] = (int)floor(tmp[0]);
+		cell[1] = (int)floor(tmp[1]);
+		cell[2] = (int)floor(tmp[2]);
 	}
 }
 static void get_bigcell(struct SmokeModifierData *smd, float *pos, int *cell, int correct)
 {
 	float tmp[3];
 	int res[3];
-	smoke_get_bigres(smd->domain->fluid, res);
+	smoke_turbulence_get_res(smd->domain->wt, res);
 
 	VECSUB(tmp, pos, smd->domain->p0);
 
-	VecMulf(tmp, smd->domain->amplify / smd->domain->dx );
+	VecMulf(tmp, (smd->domain->amplify + 1)/ smd->domain->dx );
 
 	if(correct)
 	{
-		cell[0] = MIN2(res[0] - 1, MAX2(0, (int)(tmp[0] + 0.5)));
-		cell[1] = MIN2(res[1] - 1, MAX2(0, (int)(tmp[1] + 0.5)));
-		cell[2] = MIN2(res[2] - 1, MAX2(0, (int)(tmp[2] + 0.5)));
+		cell[0] = MIN2(res[0] - 1, MAX2(0, (int)floor(tmp[0])));
+		cell[1] = MIN2(res[1] - 1, MAX2(0, (int)floor(tmp[1])));
+		cell[2] = MIN2(res[2] - 1, MAX2(0, (int)floor(tmp[2])));
 	}
 	else
 	{
-		cell[0] = (int)(tmp[0] + 0.5);
-		cell[1] = (int)(tmp[1] + 0.5);
-		cell[2] = (int)(tmp[2] + 0.5);
+		cell[0] = (int)floor(tmp[0]);
+		cell[1] = (int)floor(tmp[1]);
+		cell[2] = (int)floor(tmp[2]);
 	}
 }
 
@@ -1285,8 +1417,8 @@ void smoke_calc_transparency(struct SmokeModifierData *smd, float *light, int bi
 	}
 	else
 	{
-		smoke_get_bigres(smd->domain->fluid, res);
-		bigfactor = 1.0 / smd->domain->amplify;
+		smoke_turbulence_get_res(smd->domain->wt, res);
+		bigfactor = 1.0 / (smd->domain->amplify + 1);
 	}
 
 #pragma omp parallel for schedule(static) private(y, z) shared(big, smd, light, res, bigfactor)

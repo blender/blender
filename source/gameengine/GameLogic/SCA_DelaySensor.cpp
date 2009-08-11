@@ -130,13 +130,7 @@ bool SCA_DelaySensor::Evaluate()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_DelaySensor::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"SCA_DelaySensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -160,13 +154,13 @@ PyTypeObject SCA_DelaySensor::Type = {
 PyMethodDef SCA_DelaySensor::Methods[] = {
 	//Deprecated functions ------>
 	/* setProperty */
-	{"setDelay", (PyCFunction) SCA_DelaySensor::sPySetDelay, METH_VARARGS, (PY_METHODCHAR)SetDelay_doc},
-	{"setDuration", (PyCFunction) SCA_DelaySensor::sPySetDuration, METH_VARARGS, (PY_METHODCHAR)SetDuration_doc},
-	{"setRepeat", (PyCFunction) SCA_DelaySensor::sPySetRepeat, METH_VARARGS, (PY_METHODCHAR)SetRepeat_doc},
+	{"setDelay", (PyCFunction) SCA_DelaySensor::sPySetDelay, METH_VARARGS, (const char *)SetDelay_doc},
+	{"setDuration", (PyCFunction) SCA_DelaySensor::sPySetDuration, METH_VARARGS, (const char *)SetDuration_doc},
+	{"setRepeat", (PyCFunction) SCA_DelaySensor::sPySetRepeat, METH_VARARGS, (const char *)SetRepeat_doc},
 	/* getProperty */
-	{"getDelay", (PyCFunction) SCA_DelaySensor::sPyGetDelay, METH_NOARGS, (PY_METHODCHAR)GetDelay_doc},
-	{"getDuration", (PyCFunction) SCA_DelaySensor::sPyGetDuration, METH_NOARGS, (PY_METHODCHAR)GetDuration_doc},
-	{"getRepeat", (PyCFunction) SCA_DelaySensor::sPyGetRepeat, METH_NOARGS, (PY_METHODCHAR)GetRepeat_doc},
+	{"getDelay", (PyCFunction) SCA_DelaySensor::sPyGetDelay, METH_NOARGS, (const char *)GetDelay_doc},
+	{"getDuration", (PyCFunction) SCA_DelaySensor::sPyGetDuration, METH_NOARGS, (const char *)GetDuration_doc},
+	{"getRepeat", (PyCFunction) SCA_DelaySensor::sPyGetRepeat, METH_NOARGS, (const char *)GetRepeat_doc},
 	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };

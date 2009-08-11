@@ -302,13 +302,7 @@ int SCA_PropertySensor::validValueForProperty(void *self, const PyAttributeDef*)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_PropertySensor::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"SCA_PropertySensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -331,12 +325,12 @@ PyTypeObject SCA_PropertySensor::Type = {
 
 PyMethodDef SCA_PropertySensor::Methods[] = {
 	//Deprecated functions ------>
-	{"getType", (PyCFunction) SCA_PropertySensor::sPyGetType, METH_NOARGS, (PY_METHODCHAR)GetType_doc},
-	{"setType", (PyCFunction) SCA_PropertySensor::sPySetType, METH_VARARGS, (PY_METHODCHAR)SetType_doc},
-	{"getProperty", (PyCFunction) SCA_PropertySensor::sPyGetProperty, METH_NOARGS, (PY_METHODCHAR)GetProperty_doc},
-	{"setProperty", (PyCFunction) SCA_PropertySensor::sPySetProperty, METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
-	{"getValue", (PyCFunction) SCA_PropertySensor::sPyGetValue, METH_NOARGS, (PY_METHODCHAR)GetValue_doc},
-	{"setValue", (PyCFunction) SCA_PropertySensor::sPySetValue, METH_VARARGS, (PY_METHODCHAR)SetValue_doc},
+	{"getType", (PyCFunction) SCA_PropertySensor::sPyGetType, METH_NOARGS, (const char *)GetType_doc},
+	{"setType", (PyCFunction) SCA_PropertySensor::sPySetType, METH_VARARGS, (const char *)SetType_doc},
+	{"getProperty", (PyCFunction) SCA_PropertySensor::sPyGetProperty, METH_NOARGS, (const char *)GetProperty_doc},
+	{"setProperty", (PyCFunction) SCA_PropertySensor::sPySetProperty, METH_VARARGS, (const char *)SetProperty_doc},
+	{"getValue", (PyCFunction) SCA_PropertySensor::sPyGetValue, METH_NOARGS, (const char *)GetValue_doc},
+	{"setValue", (PyCFunction) SCA_PropertySensor::sPySetValue, METH_VARARGS, (const char *)SetValue_doc},
 	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };

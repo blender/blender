@@ -315,6 +315,7 @@ static void ui_apply_autokey_undo(bContext *C, uiBut *but)
 static void ui_apply_but_funcs_after(bContext *C)
 {
 	uiAfterFunc *afterf, after;
+	PointerRNA opptr;
 	ListBase funcs;
 
 	/* copy to avoid recursive calls */
@@ -328,12 +329,17 @@ static void ui_apply_but_funcs_after(bContext *C)
 		if(after.context)
 			CTX_store_set(C, after.context);
 
-		if(after.optype)
-			WM_operator_name_call(C, after.optype->idname, after.opcontext, after.opptr);
 		if(after.opptr) {
-			WM_operator_properties_free(after.opptr);
+			/* free in advance to avoid leak on exit */
+			opptr= *after.opptr,
 			MEM_freeN(after.opptr);
 		}
+
+		if(after.optype)
+			WM_operator_name_call(C, after.optype->idname, after.opcontext, (after.opptr)? &opptr: NULL);
+
+		if(after.opptr)
+			WM_operator_properties_free(&opptr);
 
 		if(after.rnapoin.data)
 			RNA_property_update(C, &after.rnapoin, after.rnaprop);

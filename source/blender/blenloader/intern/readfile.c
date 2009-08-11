@@ -149,6 +149,8 @@
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 #include "BKE_idprop.h"
 
+#include "BKE_sound.h"
+
 //XXX #include "BIF_butspace.h" // badlevel, for do_versions, patching event codes
 //XXX #include "BIF_filelist.h" // badlevel too, where to move this? - elubie
 //XXX #include "BIF_previewrender.h" // bedlelvel, for struct RenderInfo
@@ -2488,7 +2490,8 @@ static void lib_link_mball(FileData *fd, Main *main)
 	mb= main->mball.first;
 	while(mb) {
 		if(mb->id.flag & LIB_NEEDLINK) {
-
+			if (mb->adt) lib_link_animdata(fd, &mb->id, mb->adt);
+			
 			for(a=0; a<mb->totcol; a++) mb->mat[a]= newlibadr_us(fd, mb->id.lib, mb->mat[a]);
 
 			mb->ipo= newlibadr_us(fd, mb->id.lib, mb->ipo); // XXX depreceated - old animation system
@@ -2501,6 +2504,9 @@ static void lib_link_mball(FileData *fd, Main *main)
 
 static void direct_link_mball(FileData *fd, MetaBall *mb)
 {
+	mb->adt= newdataadr(fd, mb->adt);
+	direct_link_animdata(fd, mb->adt);
+	
 	mb->mat= newdataadr(fd, mb->mat);
 	test_pointer_array(fd, (void **)&mb->mat);
 
@@ -3461,9 +3467,6 @@ static void lib_link_object(FileData *fd, Main *main)
 					bSoundActuator *sa= act->data;
 					sa->sound= newlibadr_us(fd, ob->id.lib, sa->sound);
 				}
-				else if(act->type==ACT_CD) {
-					/* bCDActuator *cda= act->data; */
-				}
 				else if(act->type==ACT_GAME) {
 					/* bGameActuator *ga= act->data; */
 				}
@@ -3655,13 +3658,23 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->domain->smd = smd;
 
 				smd->domain->fluid = NULL;
+				smd->domain->wt = NULL;
 				smd->domain->tvox = NULL;
 				smd->domain->tray = NULL;
 				smd->domain->tvoxbig = NULL;
 				smd->domain->traybig = NULL;
 				smd->domain->bind = NULL;
-				smd->domain->max_textures = 0;
-				smd->domain->viewsettings = 0; // reset view for new frame
+				smd->domain->max_textures= 0;
+
+				// do_versions trick
+				if(smd->domain->strength < 1.0)
+					smd->domain->strength = 2.0;
+
+				// reset 3dview
+				if(smd->domain->viewsettings < MOD_SMOKE_VIEW_USEBIG)
+					smd->domain->viewsettings = 0;
+				else
+					smd->domain->viewsettings = MOD_SMOKE_VIEW_USEBIG;
 			}
 			else if(smd->type==MOD_SMOKE_TYPE_FLOW)
 			{
@@ -4038,14 +4051,16 @@ static void lib_link_scene(FileData *fd, Main *main)
 				if(seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
 				if(seq->scene) seq->scene= newlibadr(fd, sce->id.lib, seq->scene);
 				if(seq->sound) {
-					seq->sound= newlibadr(fd, sce->id.lib, seq->sound);
+					if(seq->type == SEQ_HD_SOUND)
+						seq->type = SEQ_SOUND;
+					else
+						seq->sound= newlibadr(fd, sce->id.lib, seq->sound);
 					if (seq->sound) {
 						seq->sound->id.us++;
-						seq->sound->flags |= SOUND_FLAGS_SEQUENCE;
+						seq->sound_handle= sound_new_handle(sce, seq->sound, seq->startdisp, seq->enddisp, seq->startofs);
 					}
 				}
 				seq->anim= 0;
-				seq->hdaudio = 0;
 			}
 			SEQ_END
 			
@@ -4089,7 +4104,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->theDag = NULL;
 	sce->dagisvalid = 0;
 	sce->obedit= NULL;
-	
+
+	memset(&sce->sound_handles, 0, sizeof(sce->sound_handles));
+
 	/* set users to one by default, not in lib-link, this will increase it for compo nodes */
 	sce->id.us= 1;
 
@@ -5010,7 +5027,6 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 
 static void direct_link_sound(FileData *fd, bSound *sound)
 {
-	sound->sample = NULL;
 	sound->snd_sound = NULL;
 
 	sound->packedfile = direct_link_packedfile(fd, sound->packedfile);
@@ -5027,6 +5043,8 @@ static void lib_link_sound(FileData *fd, Main *main)
 			sound->id.flag -= LIB_NEEDLINK;
 			sound->ipo= newlibadr_us(fd, sound->id.lib, sound->ipo); // XXX depreceated - old animation system
 			sound->stream = 0;
+
+			sound_load(sound);
 		}
 		sound= sound->id.next;
 	}
@@ -5731,6 +5749,14 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->regiontype= RGN_TYPE_CHANNELS;
 				ar->alignment= RGN_ALIGN_LEFT; 
 				ar->v2d.scroll= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
+				
+					// for some reason, this doesn't seem to go auto like for NLA...
+				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
+				BLI_addtail(lb, ar);
+				ar->regiontype= RGN_TYPE_UI;
+				ar->alignment= RGN_ALIGN_RIGHT;
+				ar->v2d.scroll= V2D_SCROLL_RIGHT;
+				ar->v2d.flag = RGN_FLAG_HIDDEN;
 				break;
 				
 			case SPACE_ACTION:
@@ -9164,7 +9190,67 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 		PTCacheID *pid;
 		ListBase pidlist;
-		
+
+		bSound *sound;
+		Sequence *seq;
+		bActuator *act;
+
+		for(sound = main->sound.first; sound; sound = sound->id.next)
+		{
+			if(sound->newpackedfile)
+			{
+				sound->packedfile = sound->newpackedfile;
+				sound->newpackedfile = NULL;
+			}
+		}
+
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			for(act= ob->actuators.first; act; act= act->next) {
+				if (act->type == ACT_SOUND) {
+					bSoundActuator *sAct = (bSoundActuator*) act->data;
+					if(sAct->sound)
+					{
+						sound = newlibadr(fd, lib, sAct->sound);
+						sAct->flag = sound->flags | SOUND_FLAGS_3D ? ACT_SND_3D_SOUND : 0;
+						sAct->pitch = sound->pitch;
+						sAct->volume = sound->volume;
+						sAct->sound3D.reference_distance = sound->distance;
+						sAct->sound3D.max_gain = sound->max_gain;
+						sAct->sound3D.min_gain = sound->min_gain;
+						sAct->sound3D.rolloff_factor = sound->attenuation;
+					}
+					else
+					{
+						sAct->sound3D.reference_distance = 1.0f;
+						sAct->volume = 1.0f;
+						sAct->sound3D.max_gain = 1.0f;
+						sAct->sound3D.rolloff_factor = 1.0f;
+					}
+					sAct->sound3D.cone_inner_angle = 360.0f;
+					sAct->sound3D.cone_outer_angle = 360.0f;
+					sAct->sound3D.max_distance = FLT_MAX;
+				}
+			}
+		}
+
+		for(scene = main->scene.first; scene; scene = scene->id.next)
+		{
+			if(scene->ed && scene->ed->seqbasep)
+			{
+				for(seq = scene->ed->seqbasep->first; seq; seq = seq->next)
+				{
+					if(seq->type == SEQ_HD_SOUND)
+					{
+						char str[FILE_MAX];
+						BLI_join_dirfile(str, seq->strip->dir, seq->strip->stripdata->name);
+						BLI_convertstringcode(str, G.sce);
+						BLI_convertstringframe(str, scene->r.cfra);
+						seq->sound = sound_new_file(main, str);
+					}
+				}
+			}
+		}
+
 		for(screen= main->screen.first; screen; screen= screen->id.next) {
 			do_versions_windowmanager_2_50(screen);
 			do_versions_gpencil_2_50(main, screen);
@@ -9193,7 +9279,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			/* move to cameras */
 			if(sce->r.scemode & R_PANORAMA) {
-				for(base=scene->base.first; base; base=base->next) {
+				for(base=sce->base.first; base; base=base->next) {
 					ob= newlibadr(fd, lib, base->object);
 
 					if(ob->type == OB_CAMERA && !ob->id.lib) {
@@ -9351,10 +9437,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			/* set new bump for unused slots */
 			for(a=0; a<MAX_MTEX; a++) {
 				if(ma->mtex[a]) {
-					if(!ma->mtex[a]->tex)
+					tex= ma->mtex[a]->tex;
+					if(!tex)
 						ma->mtex[a]->texflag |= MTEX_NEW_BUMP;
-					else if(((Tex*)newlibadr(fd, ma->id.lib, ma->mtex[a]->tex))->type == 0)
-						ma->mtex[a]->texflag |= MTEX_NEW_BUMP;
+					else {
+						tex= (Tex*)newlibadr(fd, ma->id.lib, tex);
+						if(tex && tex->type == 0) /* invalid type */
+							ma->mtex[a]->texflag |= MTEX_NEW_BUMP;
+					}
 				}
 			}
 		}
@@ -9417,28 +9507,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->gm.depth= sce->r.depth;
 
 			//Physic (previously stored in world)
-			//temporarily getting the correct world address
-			wo = newlibadr(fd, sce->id.lib, sce->world);
-			if (wo){
-				sce->gm.gravity = wo->gravity;
-				sce->gm.physicsEngine= wo->physicsEngine;
-				sce->gm.mode = wo->mode;
-				sce->gm.occlusionRes = wo->occlusionRes;
-				sce->gm.ticrate = wo->ticrate;
-				sce->gm.maxlogicstep = wo->maxlogicstep;
-				sce->gm.physubstep = wo->physubstep;
-				sce->gm.maxphystep = wo->maxphystep;
-			}
-			else{
-				sce->gm.gravity =9.8f;
-				sce->gm.physicsEngine= WOPHY_BULLET;// Bullet by default
-				sce->gm.mode = WO_DBVT_CULLING;	// DBVT culling by default
-				sce->gm.occlusionRes = 128;
-				sce->gm.ticrate = 60;
-				sce->gm.maxlogicstep = 5;
-				sce->gm.physubstep = 1;
-				sce->gm.maxphystep = 5;
-			}
+			sce->gm.gravity =9.8f;
+			sce->gm.physicsEngine= WOPHY_BULLET;// Bullet by default
+			sce->gm.mode = WO_DBVT_CULLING;	// DBVT culling by default
+			sce->gm.occlusionRes = 128;
+			sce->gm.ticrate = 60;
+			sce->gm.maxlogicstep = 5;
+			sce->gm.physubstep = 1;
+			sce->gm.maxphystep = 5;
 		}
 	}
 
@@ -9492,7 +9568,17 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	// XXX
 	bfd->user->uifonts.first= bfd->user->uifonts.last= NULL;
 	bfd->user->uistyles.first= bfd->user->uistyles.last= NULL;
-	
+
+	// AUD_XXX
+	if(bfd->user->audiochannels == 0)
+		bfd->user->audiochannels = 2;
+	if(bfd->user->audiodevice == 0)
+		bfd->user->audiodevice = 1;
+	if(bfd->user->audioformat == 0)
+		bfd->user->audioformat = 0x12;
+	if(bfd->user->audiorate == 0)
+		bfd->user->audiorate = 44100;
+
 	bhead = blo_nextbhead(fd, bhead);
 
 		/* read all attached data */
@@ -9938,6 +10024,9 @@ static void expand_mball(FileData *fd, Main *mainvar, MetaBall *mb)
 	for(a=0; a<mb->totcol; a++) {
 		expand_doit(fd, mainvar, mb->mat[a]);
 	}
+	
+	if(mb->adt)
+		expand_animdata(fd, mainvar, mb->adt);
 }
 
 static void expand_curve(FileData *fd, Main *mainvar, Curve *cu)
@@ -10542,7 +10631,7 @@ static void append_named_part(FileData *fd, Main *mainvar, Scene *scene, char *n
 					}
 				}
 
-				if(idcode==ID_OB) {	/* loose object: give a base */
+				if(idcode==ID_OB && scene) {	/* loose object: give a base */
 					base= MEM_callocN( sizeof(Base), "app_nam_part");
 					BLI_addtail(&scene->base, base);
 
@@ -10682,7 +10771,8 @@ void BLO_script_library_append(BlendHandle **bh, char *dir, char *name,
 	if(fd) fd->reports= NULL;
 
 	/* do we need to do this? */
-	DAG_scene_sort(scene);
+	if(scene)
+		DAG_scene_sort(scene);
 
 	*bh= (BlendHandle*)fd;
 }

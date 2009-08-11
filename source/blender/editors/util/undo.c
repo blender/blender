@@ -75,10 +75,6 @@
 
 /* ***************** generic undo system ********************* */
 
-/* ********* XXX **************** */
-static void sound_initialize_sounds() {}
-/* ********* XXX **************** */
-
 void ED_undo_push(bContext *C, char *str)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -167,7 +163,6 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 					BKE_undo_name(C, undoname);
 				else
 					BKE_undo_step(C, step);
-				sound_initialize_sounds();
 			}
 			
 		}
@@ -229,7 +224,6 @@ void ED_undo_menu(bContext *C)
 				MEM_freeN(menu);
 				if(event>0) {
 					BKE_undo_number(C, event);
-					sound_initialize_sounds();
 				}
 			}
 		}

@@ -293,6 +293,11 @@ typedef struct UserDef {
 	short userpref, viewzoom;
 	
 	int mixbufsize;
+	int audiodevice;
+	int audiorate;
+	int audioformat;
+	int audiochannels;
+
 	int scrollback; /* console scrollback limit */
 	int dpi;		/* range 48-128? */
 	short encoding;

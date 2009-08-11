@@ -209,27 +209,27 @@ static void rna_def_texmapping(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "TexMapping", NULL);
 	RNA_def_struct_ui_text(srna, "Texture Mapping", "Mapping settings");
 
-	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "loc");
 	RNA_def_property_ui_text(prop, "Location", "");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
-	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ROTATION);
+	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float_sdna(prop, NULL, "rot");
 	RNA_def_property_ui_text(prop, "Rotation", "");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
-	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "size");
 	RNA_def_property_ui_text(prop, "Scale", "");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
-	prop= RNA_def_property(srna, "minimum", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "minimum", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "min");
 	RNA_def_property_ui_text(prop, "Minimum", "Minimum value for clipping");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
-	prop= RNA_def_property(srna, "maximum", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "maximum", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "max");
 	RNA_def_property_ui_text(prop, "Maximum", "Maximum value for clipping");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
@@ -287,13 +287,13 @@ static void rna_def_mtex(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	/* mapping */
-	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "ofs");
 	RNA_def_property_ui_range(prop, -10, 10, 10, 2);
 	RNA_def_property_ui_text(prop, "Offset", "Fine tunes texture mapping X, Y and Z locations.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
-	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "size", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_ui_range(prop, -100, 100, 10, 2);
 	RNA_def_property_ui_text(prop, "Size", "Sets scaling for the texture's X, Y and Z sizes.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
@@ -325,19 +325,19 @@ static void rna_def_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "RGB to Intensity", "Converts texture RGB values to intensity (gray) values.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
-	prop= RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "def_var");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Default Value", "Value to use for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
-	prop= RNA_def_property(srna, "variable_factor", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "variable_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "varfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Variable Factor", "Amount texture affects other values.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
-	prop= RNA_def_property(srna, "normal_factor", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "normal_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "norfac");
 	RNA_def_property_ui_range(prop, 0, 5, 10, 3);
 	RNA_def_property_ui_text(prop, "Normal Factor", "Amount texture affects normal values.");
@@ -1085,17 +1085,34 @@ static void rna_def_texture_voronoi(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Voronoi", "Procedural voronoi texture.");
 	RNA_def_struct_sdna(srna, "Tex");
 
-	prop= RNA_def_property(srna, "feature_weights", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "weight_1", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "vn_w1");
-	RNA_def_property_array(prop, 4);
 	RNA_def_property_range(prop, -2, 2);
-	RNA_def_property_ui_text(prop, "Feature Weights", "");
+	RNA_def_property_ui_text(prop, "Weight 1", "Voronoi feature weight 1");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	
+	prop= RNA_def_property(srna, "weight_2", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "vn_w2");
+	RNA_def_property_range(prop, -2, 2);
+	RNA_def_property_ui_text(prop, "Weight 2", "Voronoi feature weight 2");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	
+	prop= RNA_def_property(srna, "weight_3", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "vn_w3");
+	RNA_def_property_range(prop, -2, 2);
+	RNA_def_property_ui_text(prop, "Weight 3", "Voronoi feature weight 3");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	
+	prop= RNA_def_property(srna, "weight_4", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "vn_w4");
+	RNA_def_property_range(prop, -2, 2);
+	RNA_def_property_ui_text(prop, "Weight 4", "Voronoi feature weight 4");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	prop= RNA_def_property(srna, "minkovsky_exponent", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "vn_mexp");
 	RNA_def_property_range(prop, 0.01, 10);
-	RNA_def_property_ui_text(prop, "Minkovsky Exponent", "");
+	RNA_def_property_ui_text(prop, "Minkovsky Exponent", "Minkovsky exponent");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	prop= RNA_def_property(srna, "distance_metric", PROP_ENUM, PROP_NONE);
@@ -1178,19 +1195,19 @@ static void rna_def_texture(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_type_items[] = {
 		{0, "NONE", 0, "None", ""},
-		{TEX_CLOUDS, "CLOUDS", 0, "Clouds", ""},
-		{TEX_WOOD, "WOOD", 0, "Wood", ""},
-		{TEX_MARBLE, "MARBLE", 0, "Marble", ""},
-		{TEX_MAGIC, "MAGIC", 0, "Magic", ""},
-		{TEX_BLEND, "BLEND", 0, "Blend", ""},
-		{TEX_STUCCI, "STUCCI", 0, "Stucci", ""},
-		{TEX_NOISE, "NOISE", 0, "Noise", ""},
-		{TEX_IMAGE, "IMAGE", 0, "Image or Movie", ""},
-		{TEX_PLUGIN, "PLUGIN", 0, "Plugin", ""},
-		{TEX_ENVMAP, "ENVIRONMENT_MAP", 0, "Environment Map", ""},
-		{TEX_MUSGRAVE, "MUSGRAVE", 0, "Musgrave", ""},
-		{TEX_VORONOI, "VORONOI", 0, "Voronoi", ""},
-		{TEX_DISTNOISE, "DISTORTED_NOISE", 0, "Distorted Noise", ""},
+		{TEX_PLUGIN, "PLUGIN", ICON_CONSTRAINT, "Plugin", ""},
+		{TEX_IMAGE, "IMAGE", ICON_RENDER_RESULT, "Image or Movie", ""},
+		{TEX_ENVMAP, "ENVIRONMENT_MAP", ICON_RENDER_RESULT, "Environment Map", ""},
+		{TEX_CLOUDS, "CLOUDS", ICON_TEXTURE, "Clouds", ""},
+		{TEX_WOOD, "WOOD", ICON_TEXTURE, "Wood", ""},
+		{TEX_MARBLE, "MARBLE", ICON_TEXTURE, "Marble", ""},
+		{TEX_MAGIC, "MAGIC", ICON_TEXTURE, "Magic", ""},
+		{TEX_BLEND, "BLEND", ICON_TEXTURE, "Blend", ""},
+		{TEX_STUCCI, "STUCCI", ICON_TEXTURE, "Stucci", ""},
+		{TEX_NOISE, "NOISE", ICON_TEXTURE, "Noise", ""},
+		{TEX_MUSGRAVE, "MUSGRAVE", ICON_TEXTURE, "Musgrave", ""},
+		{TEX_VORONOI, "VORONOI", ICON_TEXTURE, "Voronoi", ""},
+		{TEX_DISTNOISE, "DISTORTED_NOISE", ICON_TEXTURE, "Distorted Noise", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Texture", "ID");
@@ -1200,10 +1217,12 @@ static void rna_def_texture(BlenderRNA *brna)
 	RNA_def_struct_refine_func(srna, "rna_Texture_refine");
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	//RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
 	RNA_def_property_enum_items(prop, prop_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
-
+	
 	prop= RNA_def_property(srna, "use_color_ramp", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEX_COLORBAND);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Texture_use_color_ramp_set");

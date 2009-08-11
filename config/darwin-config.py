@@ -27,27 +27,33 @@ else :
 	LCGDIR = '#../lib/darwin-8.x.i386'
 LIBDIR = '${LCGDIR}'
 
+BF_PYTHON_VERSION = '3.1'
+
 if MAC_PROC== 'powerpc' and BF_PYTHON_VERSION == '2.3':
 	MAC_MIN_VERS = '10.3'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.3.9.sdk'
-elif MAC_CUR_VER=='10.4':
+else:
 	MAC_MIN_VERS = '10.4'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.4u.sdk'
-else:
-	MAC_MIN_VERS = '10.5'
-	MACOSX_SDK='/Developer/SDKs/MacOSX10.5.sdk'
 
 
 # enable ffmpeg  support
 WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
-BF_FFMPEG = "#extern/ffmpeg"
-BF_FFMPEG_INC = '${BF_FFMPEG}'
-if USE_SDK==True:
-	BF_FFMPEG_EXTRA = '-isysroot '+MACOSX_SDK+' -mmacosx-version-min='+MAC_MIN_VERS
-#BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
-#BF_FFMPEG_LIB = 'avformat.a avcodec.a avutil.a'
-
-BF_PYTHON_VERSION = '3.1'
+FFMPEG_PRECOMPILED = False
+if FFMPEG_PRECOMPILED:
+	# use precompiled ffmpeg in /lib
+	BF_FFMPEG = LIBDIR + '/ffmpeg'
+	BF_FFMPEG_INC = "#extern/ffmpeg"
+	BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
+	BF_FFMPEG_LIB = 'avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore'
+else:
+	# use ffmpeg in extern
+	BF_FFMPEG = "#extern/ffmpeg"
+	BF_FFMPEG_INC = '${BF_FFMPEG}'
+	if USE_SDK==True:
+		BF_FFMPEG_EXTRA = '-isysroot '+MACOSX_SDK+' -mmacosx-version-min='+MAC_MIN_VERS
+	BF_XVIDCORE_CONFIG = '--disable-assembly'	# currently causes errors, even with yasm installed
+	BF_X264_CONFIG = '--disable-pthread'
 
 if BF_PYTHON_VERSION=='3.1':
 	# python 3.1 uses precompiled libraries in bf svn /lib by default
@@ -80,11 +86,6 @@ else:
 BF_QUIET = '1'
 WITH_BF_OPENMP = '0'
 
-# Note : should be true, but openal simply dont work on intel
-if MAC_PROC == 'i386':
-	WITH_BF_OPENAL = False
-else:
-	WITH_BF_OPENAL = True
 #different lib must be used  following version of gcc
 # for gcc 3.3
 #BF_OPENAL = LIBDIR + '/openal'
@@ -105,6 +106,11 @@ BF_OPENAL_LIB_STATIC = '${BF_OPENAL}/lib/libopenal.a'
 BF_CXX = '/usr'
 WITH_BF_STATICCXX = False
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
+
+BF_LIBSAMPLERATE = LIBDIR + '/samplerate'
+BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
+BF_LIBSAMPLERATE_LIB = 'samplerate'
+BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
 
 WITH_BF_SDL = True
 BF_SDL = LIBDIR + '/sdl' #$(shell sdl-config --prefix)
@@ -157,6 +163,12 @@ WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
+
+WITH_BF_FFTW3 = False
+BF_FFTW3 = LIBDIR + '/fftw3'
+BF_FFTW3_INC = '${BF_FFTW3}/include'
+BF_FFTW3_LIB = 'libfftw3'
+BF_FFTW3_LIBPATH = '${BF_FFTW3}/lib'
 
 #WITH_BF_NSPR = True
 #BF_NSPR = $(LIBDIR)/nspr

@@ -294,13 +294,7 @@ bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_Coll
 /* ------------------------------------------------------------------------- */
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_TouchSensor::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"KX_TouchSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -324,13 +318,13 @@ PyTypeObject KX_TouchSensor::Type = {
 PyMethodDef KX_TouchSensor::Methods[] = {
 	//Deprecated ----->
 	{"setProperty", 
-	 (PyCFunction) KX_TouchSensor::sPySetProperty,      METH_O, (PY_METHODCHAR)SetProperty_doc},
+	 (PyCFunction) KX_TouchSensor::sPySetProperty,      METH_O, (const char *)SetProperty_doc},
 	{"getProperty", 
-	 (PyCFunction) KX_TouchSensor::sPyGetProperty,      METH_NOARGS, (PY_METHODCHAR)GetProperty_doc},
+	 (PyCFunction) KX_TouchSensor::sPyGetProperty,      METH_NOARGS, (const char *)GetProperty_doc},
 	{"getHitObject", 
-	 (PyCFunction) KX_TouchSensor::sPyGetHitObject,     METH_NOARGS, (PY_METHODCHAR)GetHitObject_doc},
+	 (PyCFunction) KX_TouchSensor::sPyGetHitObject,     METH_NOARGS, (const char *)GetHitObject_doc},
 	{"getHitObjectList", 
-	 (PyCFunction) KX_TouchSensor::sPyGetHitObjectList, METH_NOARGS, (PY_METHODCHAR)GetHitObjectList_doc},
+	 (PyCFunction) KX_TouchSensor::sPyGetHitObjectList, METH_NOARGS, (const char *)GetHitObjectList_doc},
 	 //<-----
 	{NULL,NULL} //Sentinel
 };

@@ -21,7 +21,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 		ob = context.object
 
 		split = layout.split()
-		split.operator_context = "EXEC_DEFAULT"
+		split.operator_context = 'EXEC_DEFAULT'
 
 		if md:
 			# remove modifier + settings
@@ -36,7 +36,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 			
 		else:
 			# add modifier
-			split.item_enumO("object.modifier_add", "type", "FLUID_SIMULATION", text="Add")
+			split.item_enumO("object.modifier_add", "type", 'FLUID_SIMULATION', text="Add")
 			split.itemL()
 			
 			fluid = None

@@ -16,7 +16,6 @@ incs += ' #source/gameengine/SceneGraph'
 incs += ' #source/blender/makesdna'
 incs += ' #source/blender/blenkernel'
 incs += ' #source/blender/blenlib'
-incs += ' #intern/SoundSystem'
 incs += ' #intern/guardedalloc'
 
 incs += ' ' + env['BF_BULLET_INC']

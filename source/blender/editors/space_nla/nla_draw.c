@@ -46,6 +46,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
@@ -906,6 +907,31 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					}
 					
 					strcpy(name, part->id.name+2);
+				}
+					break;
+				case ANIMTYPE_DSMBALL: /* metaball (dopesheet) expand widget */
+				{
+					MetaBall *mb = (MetaBall *)ale->data;
+					AnimData *adt= ale->adt;
+					
+					group = 4;
+					indent = 1;
+					special = ICON_META_DATA;
+					
+					if (FILTER_MBALL_OBJD(mb))
+						expand = ICON_TRIA_DOWN;
+					else
+						expand = ICON_TRIA_RIGHT;
+						
+					/* NLA evaluation on/off button */
+					if (adt) {
+						if (adt->flag & ADT_NLA_EVAL_OFF)
+							mute = ICON_MUTE_IPO_ON;
+						else	
+							mute = ICON_MUTE_IPO_OFF;
+					}
+					
+					strcpy(name, mb->id.name+2);
 				}
 					break;
 				

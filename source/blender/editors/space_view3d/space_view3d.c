@@ -889,7 +889,7 @@ void ED_spacetype_view3d(void)
 	/* regions: tool(bar) */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_TOOLS;
-	art->minsizex= 120; // XXX
+	art->minsizex= 160; // XXX
 	art->minsizey= 50; // XXX
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= view3d_buttons_area_listener;

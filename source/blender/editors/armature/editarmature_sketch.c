@@ -2466,8 +2466,10 @@ static int sketch_delete(bContext *C, wmOperator *op, wmEvent *event)
 
 void BIF_sk_selectStroke(bContext *C, short mval[2], short extend)
 {
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	SK_Sketch *sketch = contextSketch(C, 0);
-	if (sketch)
+
+	if (sketch != NULL && ts->bone_sketching & BONE_SKETCHING)
 	{
 		sk_selectStroke(C, sketch, mval, extend);
 	}

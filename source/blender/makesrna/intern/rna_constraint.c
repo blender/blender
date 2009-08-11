@@ -141,7 +141,21 @@ StructRNA *rna_ConstraintType_refine(struct PointerRNA *ptr)
 
 static char *rna_Constraint_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("constraints[%s]", ((bConstraint*)ptr->data)->name);
+	Object *ob= ptr->id.data;
+	bConstraint *con= ptr->data;
+	bPoseChannel *pchan= get_active_posechannel(ob);
+	ListBase *actlist= get_active_constraints(ob);
+	short inList = 0;
+	
+	/* check if constraint is in the given list */
+	if (actlist)
+		inList= (BLI_findindex(actlist, con) != -1);
+	
+	/* if constraint is in the list, the list is for the active bone... */
+	if ((inList) && (actlist != &ob->constraints) && (pchan))
+		return BLI_sprintfN("pose.pose_channels[\"%s\"].constraints[\"%s\"]", pchan->name, con->name);
+	else
+		return BLI_sprintfN("constraints[\"%s\"]", con->name);
 }
 
 static void rna_Constraint_update(bContext *C, PointerRNA *ptr)
@@ -754,13 +768,13 @@ static void rna_def_constraint_action(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "start");
 	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Start Frame", "First frame of the Action to use.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "end");
 	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "End Frame", "Last frame of the Action to use.");
@@ -905,6 +919,11 @@ static void rna_def_constraint_stretch_to(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "tar");
 	RNA_def_property_ui_text(prop, "Target", "Target Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+	
+	prop= RNA_def_property(srna, "subtarget", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "subtarget");
+	RNA_def_property_ui_text(prop, "Sub-Target", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
 	prop= RNA_def_property(srna, "volume", PROP_ENUM, PROP_NONE);

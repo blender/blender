@@ -542,62 +542,60 @@ static PyObject* gPyRemoveConstraint(PyObject* self,
 
 static struct PyMethodDef physicsconstraints_methods[] = {
   {"setGravity",(PyCFunction) gPySetGravity,
-   METH_VARARGS, (PY_METHODCHAR)gPySetGravity__doc__},
+   METH_VARARGS, (const char *)gPySetGravity__doc__},
   {"setDebugMode",(PyCFunction) gPySetDebugMode,
-   METH_VARARGS, (PY_METHODCHAR)gPySetDebugMode__doc__},
+   METH_VARARGS, (const char *)gPySetDebugMode__doc__},
 
    /// settings that influence quality of the rigidbody dynamics
   {"setNumIterations",(PyCFunction) gPySetNumIterations,
-   METH_VARARGS, (PY_METHODCHAR)gPySetNumIterations__doc__},
+   METH_VARARGS, (const char *)gPySetNumIterations__doc__},
 
    {"setNumTimeSubSteps",(PyCFunction) gPySetNumTimeSubSteps,
-   METH_VARARGS, (PY_METHODCHAR)gPySetNumTimeSubSteps__doc__},
+   METH_VARARGS, (const char *)gPySetNumTimeSubSteps__doc__},
 
   {"setDeactivationTime",(PyCFunction) gPySetDeactivationTime,
-   METH_VARARGS, (PY_METHODCHAR)gPySetDeactivationTime__doc__},
+   METH_VARARGS, (const char *)gPySetDeactivationTime__doc__},
 
   {"setDeactivationLinearTreshold",(PyCFunction) gPySetDeactivationLinearTreshold,
-   METH_VARARGS, (PY_METHODCHAR)gPySetDeactivationLinearTreshold__doc__},
+   METH_VARARGS, (const char *)gPySetDeactivationLinearTreshold__doc__},
   {"setDeactivationAngularTreshold",(PyCFunction) gPySetDeactivationAngularTreshold,
-   METH_VARARGS, (PY_METHODCHAR)gPySetDeactivationAngularTreshold__doc__},
+   METH_VARARGS, (const char *)gPySetDeactivationAngularTreshold__doc__},
 
    {"setContactBreakingTreshold",(PyCFunction) gPySetContactBreakingTreshold,
-   METH_VARARGS, (PY_METHODCHAR)gPySetContactBreakingTreshold__doc__},
+   METH_VARARGS, (const char *)gPySetContactBreakingTreshold__doc__},
      {"setCcdMode",(PyCFunction) gPySetCcdMode,
-   METH_VARARGS, (PY_METHODCHAR)gPySetCcdMode__doc__},
+   METH_VARARGS, (const char *)gPySetCcdMode__doc__},
      {"setSorConstant",(PyCFunction) gPySetSorConstant,
-   METH_VARARGS, (PY_METHODCHAR)gPySetSorConstant__doc__},
+   METH_VARARGS, (const char *)gPySetSorConstant__doc__},
        {"setSolverTau",(PyCFunction) gPySetSolverTau,
-   METH_VARARGS, (PY_METHODCHAR)gPySetSolverTau__doc__},
+   METH_VARARGS, (const char *)gPySetSolverTau__doc__},
         {"setSolverDamping",(PyCFunction) gPySetSolverDamping,
-   METH_VARARGS, (PY_METHODCHAR)gPySetSolverDamping__doc__},
+   METH_VARARGS, (const char *)gPySetSolverDamping__doc__},
 
          {"setLinearAirDamping",(PyCFunction) gPySetLinearAirDamping,
-   METH_VARARGS, (PY_METHODCHAR)gPySetLinearAirDamping__doc__},
+   METH_VARARGS, (const char *)gPySetLinearAirDamping__doc__},
 
     {"setUseEpa",(PyCFunction) gPySetUseEpa,
-   METH_VARARGS, (PY_METHODCHAR)gPySetUseEpa__doc__},
+   METH_VARARGS, (const char *)gPySetUseEpa__doc__},
 	{"setSolverType",(PyCFunction) gPySetSolverType,
-   METH_VARARGS, (PY_METHODCHAR)gPySetSolverType__doc__},
+   METH_VARARGS, (const char *)gPySetSolverType__doc__},
 
 
   {"createConstraint",(PyCFunction) gPyCreateConstraint,
-   METH_VARARGS, (PY_METHODCHAR)gPyCreateConstraint__doc__},
+   METH_VARARGS, (const char *)gPyCreateConstraint__doc__},
      {"getVehicleConstraint",(PyCFunction) gPyGetVehicleConstraint,
-   METH_VARARGS, (PY_METHODCHAR)gPyGetVehicleConstraint__doc__},
+   METH_VARARGS, (const char *)gPyGetVehicleConstraint__doc__},
 
   {"removeConstraint",(PyCFunction) gPyRemoveConstraint,
-   METH_VARARGS, (PY_METHODCHAR)gPyRemoveConstraint__doc__},
+   METH_VARARGS, (const char *)gPyRemoveConstraint__doc__},
 	{"getAppliedImpulse",(PyCFunction) gPyGetAppliedImpulse,
-   METH_VARARGS, (PY_METHODCHAR)gPyGetAppliedImpulse__doc__},
+   METH_VARARGS, (const char *)gPyGetAppliedImpulse__doc__},
 
 
    //sentinel
   { NULL, (PyCFunction) NULL, 0, NULL }
 };
 
-
-#if (PY_VERSION_HEX >= 0x03000000)
 static struct PyModuleDef PhysicsConstraints_module_def = {
 	{}, /* m_base */
 	"PhysicsConstraints",  /* m_name */
@@ -609,7 +607,6 @@ static struct PyModuleDef PhysicsConstraints_module_def = {
 	0,  /* m_clear */
 	0,  /* m_free */
 };
-#endif
 
 PyObject*	initPythonConstraintBinding()
 {
@@ -627,15 +624,9 @@ PyObject*	initPythonConstraintBinding()
 	}
 	else {
 		PyErr_Clear();
-	
-#if (PY_VERSION_HEX >= 0x03000000)
+		
 		m = PyModule_Create(&PhysicsConstraints_module_def);
 		PyDict_SetItemString(PySys_GetObject("modules"), PhysicsConstraints_module_def.m_name, m);
-#else
-		m = Py_InitModule4("PhysicsConstraints", physicsconstraints_methods,
-		     PhysicsConstraints_module_documentation,
-		     (PyObject*)NULL,PYTHON_API_VERSION);
-#endif
 	}
 
   // Add some symbolic constants to the module

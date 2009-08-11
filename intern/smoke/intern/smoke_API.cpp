@@ -26,19 +26,29 @@
  */
 
 #include "FLUID_3D.h"
+#include "WTURBULENCE.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
 // y in smoke is z in blender
-extern "C" FLUID_3D *smoke_init(int *res, int amplify, float *p0, float *p1, float dt)
+extern "C" FLUID_3D *smoke_init(int *res, float *p0, float dt)
 {
 	// smoke lib uses y as top-bottom/vertical axis where blender uses z
-	FLUID_3D *fluid = new FLUID_3D(res, amplify, p0, dt);
+	FLUID_3D *fluid = new FLUID_3D(res, p0, dt);
 
 	// printf("xres: %d, yres: %d, zres: %d\n", res[0], res[1], res[2]);
 
 	return fluid;
+}
+
+extern "C" WTURBULENCE *smoke_turbulence_init(int *res, int amplify, int noisetype)
+{
+	// initialize wavelet turbulence
+	if(amplify)
+		return new WTURBULENCE(res[0],res[1],res[2], amplify, noisetype);
+	else 
+		return NULL;
 }
 
 extern "C" void smoke_free(FLUID_3D *fluid)
@@ -47,14 +57,31 @@ extern "C" void smoke_free(FLUID_3D *fluid)
 	fluid = NULL;
 }
 
+extern "C" void smoke_turbulence_free(WTURBULENCE *wt)
+{
+	 delete wt;
+	 wt = NULL;
+}
+
 extern "C" void smoke_step(FLUID_3D *fluid)
 {
 	fluid->step();
 }
 
+extern "C" void smoke_turbulence_step(WTURBULENCE *wt, FLUID_3D *fluid)
+{
+	if(wt) 
+		wt->stepTurbulenceFull(fluid->_dt/fluid->_dx, fluid->_xVelocity, fluid->_yVelocity, fluid->_zVelocity, fluid->_obstacles); 
+}
+
 extern "C" void smoke_initBlenderRNA(FLUID_3D *fluid, float *alpha, float *beta)
 {
 	fluid->initBlenderRNA(alpha, beta);
+}
+
+extern "C" void smoke_initWaveletBlenderRNA(WTURBULENCE *wt, float *strength)
+{
+	wt->initBlenderRNA(strength);
 }
 
 template < class T > inline T ABS( T a ) {
@@ -86,17 +113,20 @@ extern "C" float *smoke_get_velocity_z(FLUID_3D *fluid)
 	return fluid->_zVorticity;
 }
 
-extern "C" float *smoke_get_bigdensity(FLUID_3D *fluid)
+extern "C" float *smoke_turbulence_get_density(WTURBULENCE *wt)
 {
-	return fluid->_wTurbulence->getDensityBig();
+	return wt ? wt->getDensityBig() : NULL;
 }
 
-extern "C" void smoke_get_bigres(FLUID_3D *fluid, int *res)
+extern "C" void smoke_turbulence_get_res(WTURBULENCE *wt, int *res)
 {
-	Vec3Int r = fluid->_wTurbulence->getResBig();
-	res[0] = r[0];
-	res[1] = r[1];
-	res[2] = r[2];
+	if(wt)
+	{
+		Vec3Int r = wt->getResBig();
+		res[0] = r[0];
+		res[1] = r[1];
+		res[2] = r[2];
+	}
 }
 
 extern "C" unsigned char *smoke_get_obstacle(FLUID_3D *fluid)
@@ -115,7 +145,7 @@ extern "C" size_t smoke_get_index2d(int x, int max_x, int y /*, int max_y, int z
 	return x + y * max_x;
 }
 
-extern "C" void smoke_set_noise(FLUID_3D *fluid, int type)
+extern "C" void smoke_turbulence_set_noise(WTURBULENCE *wt, int type)
 {
-	fluid->_wTurbulence->setNoise(type);
+	wt->setNoise(type);
 }

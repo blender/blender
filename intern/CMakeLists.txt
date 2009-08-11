@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-ADD_SUBDIRECTORY(SoundSystem)
+ADD_SUBDIRECTORY(audaspace)
 ADD_SUBDIRECTORY(string)
 ADD_SUBDIRECTORY(ghost)
 ADD_SUBDIRECTORY(guardedalloc)

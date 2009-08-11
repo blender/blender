@@ -94,17 +94,17 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	style->paneltitle.uifont_id= UIFONT_DEFAULT;
 	style->paneltitle.points= 12;
 	style->paneltitle.kerning= 1;
-	style->paneltitle.shadow= 5;
-	style->paneltitle.shadx= 2;
-	style->paneltitle.shady= -2;
-	style->paneltitle.shadowalpha= 0.25f;
-	style->paneltitle.shadowcolor= 0.0f;
+	style->paneltitle.shadow= 1;
+	style->paneltitle.shadx= 0;
+	style->paneltitle.shady= -1;
+	style->paneltitle.shadowalpha= 0.15f;
+	style->paneltitle.shadowcolor= 1.0f;
 	
 	style->grouplabel.uifont_id= UIFONT_DEFAULT;
 	style->grouplabel.points= 12;
 	style->grouplabel.kerning= 1;
 	style->grouplabel.shadow= 3;
-	style->grouplabel.shadx= 1;
+	style->grouplabel.shadx= 0;
 	style->grouplabel.shady= -1;
 	style->grouplabel.shadowalpha= 0.25f;
 	
@@ -112,9 +112,9 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	style->widgetlabel.points= 11;
 	style->widgetlabel.kerning= 1;
 	style->widgetlabel.shadow= 3;
-	style->widgetlabel.shadx= 1;
+	style->widgetlabel.shadx= 0;
 	style->widgetlabel.shady= -1;
-	style->widgetlabel.shadowalpha= 0.3f;
+	style->widgetlabel.shadowalpha= 0.15f;
 	style->widgetlabel.shadowcolor= 1.0f;
 	
 	style->widget.uifont_id= UIFONT_DEFAULT;
@@ -248,9 +248,6 @@ void uiStyleInit(void)
 			BLF_size(11, U.dpi);
 			BLF_size(12, U.dpi);
 			BLF_size(14, U.dpi);
-
-			if (!(U.transopts & USER_USETEXTUREFONT))
-				BLF_mode(BLF_MODE_BITMAP);
 		}
 	}
 	

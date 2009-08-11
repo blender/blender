@@ -27,7 +27,7 @@
 #include <cmath>
 #include <iostream>
 #include "OBSTACLE.h"
-#include "WTURBULENCE.h"
+// #include "WTURBULENCE.h"
 #include "VEC3.h"
 
 using namespace std;
@@ -37,7 +37,7 @@ class WTURBULENCE;
 class FLUID_3D  
 {
 	public:
-		FLUID_3D(int *res, int amplify, float *p0, float dt);
+		FLUID_3D(int *res, /* int amplify, */ float *p0, float dt);
 		FLUID_3D() {};
 		virtual ~FLUID_3D();
 
@@ -96,6 +96,8 @@ class FLUID_3D
 		float* _yVorticity;
 		float* _zVorticity;
 		float* _vorticity;
+		float* _h;
+		float* _Precond;
 		unsigned char*  _obstacles;
 
 		// CG fields
@@ -113,7 +115,7 @@ class FLUID_3D
 		float _tempAmb; /* ambient temperature */
 
 		// WTURBULENCE object, if active
-		WTURBULENCE* _wTurbulence;
+		// WTURBULENCE* _wTurbulence;
 
 		// boundary setting functions
 		void copyBorderAll(float* field);
@@ -128,10 +130,12 @@ class FLUID_3D
 		void project();
 		void diffuseHeat();
 		void solvePressure(float* field, float* b, unsigned char* skip);
+		void solvePressurePre(float* field, float* b, unsigned char* skip);
 		void solveHeat(float* field, float* b, unsigned char* skip);
 
 		// handle obstacle boundaries
 		void setObstacleBoundaries();
+		void setObstaclePressure();
 
 	public:
 		// advection, accessed e.g. by WTURBULENCE class

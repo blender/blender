@@ -38,7 +38,7 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-FLUID_3D::FLUID_3D(int *res, int amplify, float *p0, float dt) :
+FLUID_3D::FLUID_3D(int *res, float *p0, float dt) :
 	_xRes(res[0]), _yRes(res[1]), _zRes(res[2]), _res(0.0f), _dt(dt)
 {
 	// set simulation consts
@@ -59,7 +59,12 @@ FLUID_3D::FLUID_3D(int *res, int amplify, float *p0, float dt) :
 	_maxRes = MAX3(_xRes, _yRes, _zRes);
 	
 	// initialize wavelet turbulence
-	_wTurbulence = new WTURBULENCE(_res[0],_res[1],_res[2], amplify);
+	/*
+	if(amplify)
+		_wTurbulence = new WTURBULENCE(_res[0],_res[1],_res[2], amplify, noisetype);
+	else
+		_wTurbulence = NULL;
+	*/
 	
 	// scale the constants according to the refinement of the grid
 	_dx = 1.0f / (float)_maxRes;
@@ -93,6 +98,8 @@ FLUID_3D::FLUID_3D(int *res, int amplify, float *p0, float dt) :
 	_xVorticity   = new float[_totalCells];
 	_yVorticity   = new float[_totalCells];
 	_zVorticity   = new float[_totalCells];
+	_h			  = new float[_totalCells];
+	_Precond	  = new float[_totalCells];
 
 	for (int x = 0; x < _totalCells; x++)
 	{
@@ -115,34 +122,38 @@ FLUID_3D::FLUID_3D(int *res, int amplify, float *p0, float dt) :
 		_yVorticity[x]   = 0.0f;
 		_zVorticity[x]   = 0.0f;
 		_residual[x]     = 0.0f;
+		_q[x]			 = 0.0f;
+		_direction[x]    = 0.0f;
+		_h[x]			 = 0.0f;
+		_Precond[x]		 = 0.0f;
 		_obstacles[x]    = false;
 	}
 
 	// set side obstacles
   int index;
-  for (int y = 0; y < _yRes; y++)
+  for (int y = 0; y < _yRes; y++) // z
     for (int x = 0; x < _xRes; x++)
     {
       // front slab
       index = x + y * _xRes;
-      if(DOMAIN_BC_FRONT==1) _obstacles[index] = 1;
+      if(DOMAIN_BC_BOTTOM==1) _obstacles[index] = 1;
 
       // back slab
       index += _totalCells - _slabSize;
-      if(DOMAIN_BC_BACK==1) _obstacles[index] = 1;
+      if(DOMAIN_BC_TOP==1) _obstacles[index] = 1;
     }
-  for (int z = 0; z < _zRes; z++)
+  for (int z = 0; z < _zRes; z++) // y
     for (int x = 0; x < _xRes; x++)
     {
       // bottom slab
       index = x + z * _slabSize;
-      if(DOMAIN_BC_BOTTOM==1) _obstacles[index] = 1;
+      if(DOMAIN_BC_FRONT==1) _obstacles[index] = 1;
 
       // top slab
       index += _slabSize - _xRes;
-      if(DOMAIN_BC_TOP==1) _obstacles[index] = 1;
+      if(DOMAIN_BC_BACK==1) _obstacles[index] = 1;
     }
-  for (int z = 0; z < _zRes; z++)
+  for (int z = 0; z < _zRes; z++) // x
     for (int y = 0; y < _yRes; y++)
     {
       // left slab
@@ -186,8 +197,10 @@ FLUID_3D::~FLUID_3D()
 	if (_yVorticity) delete[] _yVorticity;
 	if (_zVorticity) delete[] _zVorticity;
 	if (_vorticity) delete[] _vorticity;
+	if (_h) delete[] _h;
+	if (_Precond) delete[] _Precond;
 	if (_obstacles) delete[] _obstacles;
-    if (_wTurbulence) delete _wTurbulence;
+    // if (_wTurbulence) delete _wTurbulence;
 
     printf("deleted fluid\n");
 }
@@ -197,10 +210,6 @@ void FLUID_3D::initBlenderRNA(float *alpha, float *beta)
 {
 	_alpha = alpha;
 	_beta = beta;
-	
-	// XXX TODO DEBUG
-	// *_alpha = 0;
-	// *_beta = 0;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -215,21 +224,21 @@ void FLUID_3D::step()
 	wipeBoundaries();
 
 	// run the solvers
-  addVorticity();
-  addBuoyancy(_heat, _density);
+	addVorticity();
+	addBuoyancy(_heat, _density);
 	addForce();
 	project();
-  diffuseHeat();
+	diffuseHeat();
 
 	// advect everything
 	advectMacCormack();
 
-	if(_wTurbulence) {
-		_wTurbulence->stepTurbulenceFull(_dt/_dx,
-				_xVelocity, _yVelocity, _zVelocity, _obstacles);
+	// if(_wTurbulence) {
+	// 	_wTurbulence->stepTurbulenceFull(_dt/_dx,
+	//			_xVelocity, _yVelocity, _zVelocity, _obstacles);
 		// _wTurbulence->stepTurbulenceReadable(_dt/_dx,
 		//  _xVelocity, _yVelocity, _zVelocity, _obstacles);
-	}
+	// }
 /*
  // no file output
   float *src = _density;
@@ -248,7 +257,7 @@ void FLUID_3D::step()
   IMAGE::dumpPBRT(_totalSteps, pbrtPrefix, _density, _res[0],_res[1],_res[2]);
   */
 	_totalTime += _dt;
-	_totalSteps++;
+	_totalSteps++;	
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -354,17 +363,18 @@ void FLUID_3D::addForce()
 void FLUID_3D::project()
 {
 	int index, x, y, z;
+
 	setObstacleBoundaries();
 
 	// copy out the boundaries
 	if(DOMAIN_BC_LEFT == 0)  setNeumannX(_xVelocity, _res);
 	else setZeroX(_xVelocity, _res);
 
-	if(DOMAIN_BC_TOP == 0)   setNeumannY(_yVelocity, _res);
-	else setZeroY(_yVelocity, _res);
-
-	if(DOMAIN_BC_FRONT == 0) setNeumannZ(_zVelocity, _res);
+	if(DOMAIN_BC_TOP == 0)   setNeumannZ(_zVelocity, _res);
 	else setZeroZ(_zVelocity, _res);
+
+	if(DOMAIN_BC_FRONT == 0) setNeumannY(_yVelocity, _res);
+	else setZeroY(_yVelocity, _res);
 
 	// calculate divergence
 	index = _slabSize + _xRes + 1;
@@ -390,12 +400,16 @@ void FLUID_3D::project()
 						xright - xleft +
 						yup - ydown +
 						ztop - zbottom );
-				_pressure[index] = 0.0f;
+
+				// DG: commenting this helps CG to get a better start, 10-20% speed improvement
+				// _pressure[index] = 0.0f;
 			}
 	copyBorderAll(_pressure);
 
 	// solve Poisson equation
-	solvePressure(_pressure, _divergence, _obstacles);
+	solvePressurePre(_pressure, _divergence, _obstacles);
+
+	setObstaclePressure();
 
 	// project out solution
 	float invDx = 1.0f / _dx;
@@ -404,9 +418,12 @@ void FLUID_3D::project()
 		for (y = 1; y < _yRes - 1; y++, index += 2)
 			for (x = 1; x < _xRes - 1; x++, index++)
 			{
-				_xVelocity[index] -= 0.5f * (_pressure[index + 1]     - _pressure[index - 1])     * invDx;
-				_yVelocity[index] -= 0.5f * (_pressure[index + _xRes]  - _pressure[index - _xRes]) * invDx;
-				_zVelocity[index] -= 0.5f * (_pressure[index + _slabSize] - _pressure[index - _slabSize]) * invDx;
+				if(!_obstacles[index])
+				{
+					_xVelocity[index] -= 0.5f * (_pressure[index + 1]     - _pressure[index - 1]) * invDx;
+					_yVelocity[index] -= 0.5f * (_pressure[index + _xRes]  - _pressure[index - _xRes]) * invDx;
+					_zVelocity[index] -= 0.5f * (_pressure[index + _slabSize] - _pressure[index - _slabSize]) * invDx;
+				}
 			}
 }
 
@@ -443,34 +460,8 @@ void FLUID_3D::addObstacle(OBSTACLE* obstacle)
 //////////////////////////////////////////////////////////////////////
 // calculate the obstacle directional types
 //////////////////////////////////////////////////////////////////////
-void FLUID_3D::setObstacleBoundaries()
+void FLUID_3D::setObstaclePressure()
 {
-	// cull degenerate obstacles , move to addObstacle?
-	for (int z = 1, index = _slabSize + _xRes + 1;
-			z < _zRes - 1; z++, index += 2 * _xRes)
-		for (int y = 1; y < _yRes - 1; y++, index += 2)
-			for (int x = 1; x < _xRes - 1; x++, index++)
-				if (_obstacles[index] != EMPTY)
-				{
-					const int top   = _obstacles[index + _slabSize];
-					const int bottom= _obstacles[index - _slabSize];
-					const int up    = _obstacles[index + _xRes];
-					const int down  = _obstacles[index - _xRes];
-					const int left  = _obstacles[index - 1];
-					const int right = _obstacles[index + 1];
-
-					int counter = 0;
-					if (up)    counter++;
-					if (down)  counter++;
-					if (left)  counter++;
-					if (right) counter++;
-					if (top)  counter++;
-					if (bottom) counter++;
-
-					if (counter < 3)
-						_obstacles[index] = EMPTY;
-				}
-
 	// tag remaining obstacle blocks
 	for (int z = 1, index = _slabSize + _xRes + 1;
 			z < _zRes - 1; z++, index += 2 * _xRes)
@@ -478,7 +469,7 @@ void FLUID_3D::setObstacleBoundaries()
 			for (int x = 1; x < _xRes - 1; x++, index++)
 		{
 			// could do cascade of ifs, but they are a pain
-			if (_obstacles[index] != EMPTY)
+			if (_obstacles[index])
 			{
 				const int top   = _obstacles[index + _slabSize];
 				const int bottom= _obstacles[index - _slabSize];
@@ -516,14 +507,24 @@ void FLUID_3D::setObstacleBoundaries()
 					pcnt += 1.;
 				}
 				if (top && !bottom) {
-					_pressure[index] += _pressure[index - _xRes];
+					_pressure[index] += _pressure[index - _slabSize];
 					pcnt += 1.;
+					// _zVelocity[index] +=  - _zVelocity[index - _slabSize];
+					// vp += 1.0;
 				}
 				if (!top && bottom) {
-					_pressure[index] += _pressure[index + _xRes];
+					_pressure[index] += _pressure[index + _slabSize];
 					pcnt += 1.;
+					// _zVelocity[index] +=  - _zVelocity[index + _slabSize];
+					// vp += 1.0;
 				}
-				_pressure[index] /= pcnt;
+				
+				if(pcnt > 0.000001f)
+				 	_pressure[index] /= pcnt;
+
+				// test - dg
+				// if(vp > 0.000001f)
+				//  	_zVelocity[index] /= vp;
 
 				// TODO? set correct velocity bc's
 				// velocities are only set to zero right now
@@ -531,6 +532,44 @@ void FLUID_3D::setObstacleBoundaries()
 				// but a "half-slip" - still looks ok right now
 			}
 		}
+}
+
+void FLUID_3D::setObstacleBoundaries()
+{
+	// cull degenerate obstacles , move to addObstacle?
+	for (int z = 1, index = _slabSize + _xRes + 1;
+			z < _zRes - 1; z++, index += 2 * _xRes)
+		for (int y = 1; y < _yRes - 1; y++, index += 2)
+			for (int x = 1; x < _xRes - 1; x++, index++)
+			{
+				if (_obstacles[index] != EMPTY)
+				{
+					const int top   = _obstacles[index + _slabSize];
+					const int bottom= _obstacles[index - _slabSize];
+					const int up    = _obstacles[index + _xRes];
+					const int down  = _obstacles[index - _xRes];
+					const int left  = _obstacles[index - 1];
+					const int right = _obstacles[index + 1];
+
+					int counter = 0;
+					if (up)    counter++;
+					if (down)  counter++;
+					if (left)  counter++;
+					if (right) counter++;
+					if (top)  counter++;
+					if (bottom) counter++;
+
+					if (counter < 3)
+						_obstacles[index] = EMPTY;
+				}
+				if (_obstacles[index])
+				{
+					_xVelocity[index] =
+					_yVelocity[index] =
+					_zVelocity[index] = 0.0f;
+					_pressure[index] = 0.0f;
+				}
+			}
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -630,11 +669,11 @@ void FLUID_3D::advectMacCormack()
 	if(DOMAIN_BC_LEFT == 0) copyBorderX(_xVelocity, res);
 	else setZeroX(_xVelocity, res);
 
-	if(DOMAIN_BC_TOP == 0) copyBorderY(_yVelocity, res);
-	else setZeroY(_yVelocity, res);
-
-	if(DOMAIN_BC_FRONT == 0) copyBorderZ(_zVelocity, res);
+	if(DOMAIN_BC_TOP == 0) copyBorderZ(_zVelocity, res);
 	else setZeroZ(_zVelocity, res);
+
+	if(DOMAIN_BC_FRONT == 0) copyBorderY(_yVelocity, res);
+	else setZeroY(_yVelocity, res);
 
 	SWAP_POINTERS(_xVelocity, _xVelocityOld);
 	SWAP_POINTERS(_yVelocity, _yVelocityOld);
@@ -658,11 +697,11 @@ void FLUID_3D::advectMacCormack()
 	if(DOMAIN_BC_LEFT == 0) copyBorderX(_xVelocity, res);
 	else setZeroX(_xVelocity, res);
 
-	if(DOMAIN_BC_TOP == 0) copyBorderY(_yVelocity, res);
-	else setZeroY(_yVelocity, res);
-
-	if(DOMAIN_BC_FRONT == 0) copyBorderZ(_zVelocity, res);
+	if(DOMAIN_BC_TOP == 0) copyBorderZ(_zVelocity, res);
 	else setZeroZ(_zVelocity, res);
+
+	if(DOMAIN_BC_FRONT == 0) copyBorderY(_yVelocity, res);
+	else setZeroY(_yVelocity, res);
 
 	setZeroBorder(_density, res);
 	setZeroBorder(_heat, res);

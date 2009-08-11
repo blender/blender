@@ -3,7 +3,7 @@ Import ('env')
 
 sources = env.Glob('intern/*.c')
 
-incs = '. #/intern/guardedalloc ../editors/include ../blenlib ../makesdna'
+incs = '. #/intern/guardedalloc #/intern/memutil ../editors/include ../blenlib ../makesdna'
 incs += ' ../render/extern/include #/intern/decimation/extern ../makesrna'
 incs += ' ../imbuf ../avi #/intern/elbeem/extern ../nodes'
 incs += ' #/intern/iksolver/extern ../blenloader'
@@ -11,6 +11,7 @@ incs += ' #/extern/bullet2/src'
 incs += ' #/intern/opennl/extern #/intern/bsp/extern'
 incs += ' ../gpu #/extern/glew/include'
 incs += ' #/intern/smoke/extern'
+incs += ' #/intern/audaspace/intern'
 
 incs += ' ' + env['BF_OPENGL_INC']
 incs += ' ' + env['BF_ZLIB_INC']

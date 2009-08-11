@@ -192,10 +192,8 @@ static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)
 		case SEQ_SCENE:
 			return &RNA_SceneSequence;
 		case SEQ_MOVIE:
-		case SEQ_MOVIE_AND_HD_SOUND:
 			return &RNA_MovieSequence;
-		case SEQ_RAM_SOUND:
-		case SEQ_HD_SOUND:
+		case SEQ_SOUND:
 			return &RNA_SoundSequence;
 		case SEQ_CROSS:
 		case SEQ_ADD:
@@ -362,9 +360,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 		{SEQ_META, "META", 0, "Meta", ""}, 
 		{SEQ_SCENE, "SCENE", 0, "Scene", ""}, 
 		{SEQ_MOVIE, "MOVIE", 0, "Movie", ""}, 
-		{SEQ_RAM_SOUND, "RAM_SOUND", 0, "Ram Sound", ""}, 
-		{SEQ_HD_SOUND, "HD_SOUND", 0, "HD Sound", ""}, 
-		{SEQ_MOVIE_AND_HD_SOUND, "MOVIE_AND_HD_SOUND", 0, "Movie and HD Sound", ""}, 
+		{SEQ_SOUND, "_SOUND", 0, "Sound", ""},
 		{SEQ_EFFECT, "REPLACE", 0, "Replace", ""}, 
 		{SEQ_CROSS, "CROSS", 0, "Cross", ""}, 
 		{SEQ_ADD, "ADD", 0, "Add", ""}, 
@@ -442,38 +438,38 @@ static void rna_def_sequence(BlenderRNA *brna)
 
 	/* strip positioning */
 
-	prop= RNA_def_property(srna, "length", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "length", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "len");
 	RNA_def_property_range(prop, 1, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Length", "The length of the contents of this strip before the handles are applied");
 	RNA_def_property_int_funcs(prop, "rna_SequenceEditor_length_get", "rna_SequenceEditor_length_set",NULL);
 
-	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "start");
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_int_funcs(prop, NULL, "rna_SequenceEditor_start_frame_set",NULL); // overlap tests and calc_seq_disp
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
-	prop= RNA_def_property(srna, "start_offset", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "start_offset", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "startofs");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
 	RNA_def_property_ui_text(prop, "Start Offset", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
-	prop= RNA_def_property(srna, "end_offset", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "end_offset", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "endofs");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
 	RNA_def_property_ui_text(prop, "End offset", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
-	prop= RNA_def_property(srna, "start_still", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "start_still", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "startstill");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
 	RNA_def_property_range(prop, 0, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Start Still", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
-	prop= RNA_def_property(srna, "end_still", PROP_INT, PROP_UNSIGNED);
+	prop= RNA_def_property(srna, "end_still", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "endstill");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap tests
 	RNA_def_property_range(prop, 0, MAXFRAME);
@@ -614,21 +610,6 @@ static void rna_def_filter_video(StructRNA *srna)
 	RNA_def_property_pointer_sdna(prop, NULL, "strip->crop");
 	RNA_def_property_ui_text(prop, "Crop", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
-}
-
-static void rna_def_filter_sound(StructRNA *srna)
-{
-	PropertyRNA *prop;
-
-	prop= RNA_def_property(srna, "sound_gain", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "level");
-	RNA_def_property_range(prop, -96.0f, 6.0f);
-	RNA_def_property_ui_text(prop, "Sound Gain", "Sound level in dB (0 = full volume).");
-	
-	prop= RNA_def_property(srna, "sound_pan", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "pan");
-	RNA_def_property_range(prop, -1.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Sound Pan", "Stereo sound balance.");
 }
 
 static void rna_def_proxy(StructRNA *srna)
@@ -772,7 +753,6 @@ static void rna_def_sound(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "strip->dir");
 	RNA_def_property_ui_text(prop, "Directory", "");
 
-	rna_def_filter_sound(srna);
 	rna_def_input(srna);
 }
 

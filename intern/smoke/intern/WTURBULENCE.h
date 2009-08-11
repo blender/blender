@@ -33,12 +33,13 @@ class WTURBULENCE
 {
 	public:
 		// both config files can be NULL, altCfg might override values from noiseCfg
-		WTURBULENCE(int xResSm, int yResSm, int zResSm, int amplify);
+		WTURBULENCE(int xResSm, int yResSm, int zResSm, int amplify, int noisetype);
 
 		/// destructor
 		virtual ~WTURBULENCE();
 		
 		void setNoise(int type);
+		void initBlenderRNA(float *strength);
 
 		// step more readable version -- no rotation correction
 		void stepTurbulenceReadable(float dt, float* xvel, float* yvel, float* zvel, unsigned char *obstacles);
@@ -69,13 +70,15 @@ class WTURBULENCE
 		inline Vec3Int getResBig() { return _resBig; }
 		inline int getOctaves() { return _octaves; }
 
+		// is accessed on through rna gui
+		float *_strength;
+
 	protected:
 		// enlargement factor from original velocity field / simulation
 		// _Big = _amplify * _Sm
 		int _amplify;
 		int _octaves;
-		float _strength;
-
+		
 		// noise settings
 		float _cullingThreshold;
 		float _noiseStrength;

@@ -1096,31 +1096,20 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			}
 		}
 		else if(type == TSE_RNA_ARRAY_ELEM) {
-			/* array property element */
-			static char *vectoritem[4]= {"  x", "  y", "  z", "  w"};
-			static char *quatitem[4]= {"  w", "  x", "  y", "  z"};
-			static char *coloritem[4]= {"  r", "  g", "  b", "  a"};
+			char c;
 
 			prop= parent->directdata;
-			proptype= RNA_property_type(prop);
-			propsubtype= RNA_property_subtype(prop);
-			tot= RNA_property_array_length(prop);
 
 			te->directdata= prop;
 			te->rnaptr= *ptr;
 			te->index= index;
 
-			if(tot == 4 && propsubtype == PROP_ROTATION)
-				te->name= quatitem[index];
-			else if(tot <= 4 && (propsubtype == PROP_VECTOR || propsubtype == PROP_ROTATION))
-				te->name= vectoritem[index];
-			else if(tot <= 4 && propsubtype == PROP_COLOR)
-				te->name= coloritem[index];
-			else {
-				te->name= MEM_callocN(sizeof(char)*20, "OutlinerRNAArrayName");
-				sprintf(te->name, "  %d", index+1);
-				te->flag |= TE_FREE_NAME;
-			}
+			c= RNA_property_array_item_char(prop, index);
+
+			te->name= MEM_callocN(sizeof(char)*20, "OutlinerRNAArrayName");
+			if(c) sprintf(te->name, "  %c", c);
+			else sprintf(te->name, "  %d", index+1);
+			te->flag |= TE_FREE_NAME;
 		}
 	}
 	else if(type == TSE_KEYMAP) {
@@ -4178,13 +4167,13 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 			case TSE_POSEGRP_BASE:
 				UI_icon_draw(x, y, ICON_VERTEXSEL); break;
 			case TSE_SEQUENCE:
-				if((te->idcode==SEQ_MOVIE) || (te->idcode==SEQ_MOVIE_AND_HD_SOUND))
+				if(te->idcode==SEQ_MOVIE)
 					UI_icon_draw(x, y, ICON_SEQUENCE);
 				else if(te->idcode==SEQ_META)
 					UI_icon_draw(x, y, ICON_DOT);
 				else if(te->idcode==SEQ_SCENE)
 					UI_icon_draw(x, y, ICON_SCENE);
-				else if((te->idcode==SEQ_RAM_SOUND) || (te->idcode==SEQ_HD_SOUND))
+				else if(te->idcode==SEQ_SOUND)
 					UI_icon_draw(x, y, ICON_SOUND);
 				else if(te->idcode==SEQ_IMAGE)
 					UI_icon_draw(x, y, ICON_IMAGE_COL);

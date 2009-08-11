@@ -80,7 +80,7 @@ void FLUID_3D::addSmokeTestCase(float* field, Vec3Int res, float value)
 void FLUID_3D::setNeumannX(float* field, Vec3Int res)
 {
 	const int slabSize = res[0] * res[1];
-	int index;
+	size_t index;
 	for (int z = 0; z < res[2]; z++)
 		for (int y = 0; y < res[1]; y++)
 		{
@@ -100,29 +100,17 @@ void FLUID_3D::setNeumannX(float* field, Vec3Int res)
 void FLUID_3D::setNeumannY(float* field, Vec3Int res)
 {
 	const int slabSize = res[0] * res[1];
-	int index;
+	size_t index;
 	for (int z = 0; z < res[2]; z++)
 		for (int x = 0; x < res[0]; x++)
 		{
-			// bottom slab
+			// front slab
 			index = x + z * slabSize;
 			field[index] = field[index + 2 * res[0]];
 
-			// top slab
+			// back slab
 			index += slabSize - res[0];
 			field[index] = field[index - 2 * res[0]];
-		}
-
-	// fix, force top slab to only allow outwards flux
-	for (int z = 0; z < res[2]; z++)
-		for (int x = 0; x < res[0]; x++)
-		{
-			// top slab
-			index = x + z * slabSize;
-			index += slabSize - res[0];
-			if(field[index]<0.) field[index] = 0.;
-			index -= res[0];
-			if(field[index]<0.) field[index] = 0.;
 		}
 }
 
@@ -133,18 +121,31 @@ void FLUID_3D::setNeumannZ(float* field, Vec3Int res)
 {
 	const int slabSize = res[0] * res[1];
 	const int totalCells = res[0] * res[1] * res[2];
-	int index;
+	size_t index;
 	for (int y = 0; y < res[1]; y++)
 		for (int x = 0; x < res[0]; x++)
 		{
-			// front slab
+			// bottom slab
 			index = x + y * res[0];
 			field[index] = field[index + 2 * slabSize];
 
-			// back slab
+			// top slab
 			index += totalCells - slabSize;
 			field[index] = field[index - 2 * slabSize];
 		}
+
+	// fix, force top slab to only allow outwards flux
+	for (int y = 0; y < res[1]; y++)
+		for (int x = 0; x < res[0]; x++)
+		{
+			// top slab
+			index = x + y * res[0];
+			index += totalCells - slabSize;
+			if(field[index]<0.) field[index] = 0.0f;
+			index -= slabSize;
+			if(field[index]<0.) field[index] = 0.0f;
+		}
+		
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -599,6 +600,7 @@ void FLUID_3D::writeImageSliceXZ(const float *field, Vec3Int res, int slice, str
 //////////////////////////////////////////////////////////////////////
 // Helper function for projecting densities along a dimension
 //////////////////////////////////////////////////////////////////////
+/*
 static int getOtherDir(int dir1, int dir2) {
 	switch(dir1) {
 		case 0:
@@ -621,6 +623,7 @@ static int getOtherDir(int dir1, int dir2) {
 	}
 	return 0;
 }
+*/
 
 //////////////////////////////////////////////////////////////////////
 // average densities along third spatial direction

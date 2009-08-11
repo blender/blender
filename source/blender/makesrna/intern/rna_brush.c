@@ -94,6 +94,7 @@ void rna_def_brush(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	
 	static EnumPropertyItem prop_blend_items[] = {
 		{BRUSH_BLEND_MIX, "MIX", 0, "Mix", "Use mix blending mode while painting."},
 		{BRUSH_BLEND_ADD, "ADD", 0, "Add", "Use add blending mode while painting."},
@@ -104,11 +105,13 @@ void rna_def_brush(BlenderRNA *brna)
 		{BRUSH_BLEND_ERASE_ALPHA, "ERASE_ALPHA", 0, "Erase Alpha", "Erase alpha while painting."},
 		{BRUSH_BLEND_ADD_ALPHA, "ADD_ALPHA", 0, "Add Alpha", "Add alpha while painting."},
 		{0, NULL, 0, NULL, NULL}};
+		
 	static EnumPropertyItem prop_texture_mode_items[] = {
 		{BRUSH_TEX_DRAG, "TEX_DRAG", 0, "Drag", ""},
 		{BRUSH_TEX_TILE, "TEX_TILE", 0, "Tile", ""},
 		{BRUSH_TEX_3D, "TEX_3D", 0, "3D", ""},
 		{0, NULL, 0, NULL, NULL}};
+		
 	static EnumPropertyItem prop_sculpt_tool_items[] = {
 		{SCULPT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
 		{SCULPT_TOOL_SMOOTH, "SMOOTH", 0, "Smooth", ""},
@@ -182,9 +185,9 @@ void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_TORUS);
 	RNA_def_property_ui_text(prop, "Wrap", "Enable torus wrapping while painting.");
 	
-	prop= RNA_def_property(srna, "opacity_pressure", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "strength_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ALPHA_PRESSURE);
-	RNA_def_property_ui_text(prop, "Opacity Pressure", "Enable tablet pressure sensitivity for opacity.");
+	RNA_def_property_ui_text(prop, "Strength Pressure", "Enable tablet pressure sensitivity for strength.");
 	
 	prop= RNA_def_property(srna, "size_pressure", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SIZE_PRESSURE);
@@ -217,6 +220,10 @@ void rna_def_brush(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "smooth_stroke", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_SMOOTH_STROKE);
 	RNA_def_property_ui_text(prop, "Smooth Stroke", "Brush lags behind mouse and follows a smoother path.");
+
+	prop= RNA_def_property(srna, "persistent", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_PERSISTENT);
+	RNA_def_property_ui_text(prop, "Persistent", "Sculpts on a persistent layer of the mesh.");
 	
 	/* not exposed in the interface yet
 	prop= RNA_def_property(srna, "fixed_tex", PROP_BOOLEAN, PROP_NONE);
@@ -241,7 +248,7 @@ void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Clone Opacity", "Opacity of clone image display.");
 
-	prop= RNA_def_property(srna, "clone_offset", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "clone_offset", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "clone.offset");
 	RNA_def_property_ui_text(prop, "Clone Offset", "");
 	RNA_def_property_ui_range(prop, -1.0f , 1.0f, 10.0f, 3);
@@ -266,12 +273,12 @@ static void rna_def_operator_stroke_element(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "OperatorStrokeElement", "IDPropertyGroup");
 	RNA_def_struct_ui_text(srna, "Operator Stroke Element", "");
 
-	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_flag(prop, PROP_IDPROPERTY);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Location", "");
 
-	prop= RNA_def_property(srna, "mouse", PROP_INT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "mouse", PROP_INT, PROP_XYZ);
 	RNA_def_property_flag(prop, PROP_IDPROPERTY);
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Mouse", "");

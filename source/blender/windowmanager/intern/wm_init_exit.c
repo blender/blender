@@ -38,7 +38,6 @@
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_sound_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -90,17 +89,7 @@
 #include "GPU_extensions.h"
 #include "GPU_draw.h"
 
-
-
-/* XXX */
-static void sound_init_listener(void)
-{
-	G.listener = MEM_callocN(sizeof(bSoundListener), "soundlistener");
-	G.listener->gain = 1.0;
-	G.listener->dopplerfactor = 1.0;
-	G.listener->dopplervelocity = 340.29f;
-}
-
+#include "BKE_sound.h"
 
 static void wm_init_reports(bContext *C)
 {
@@ -145,7 +134,6 @@ void WM_init(bContext *C)
 	
 	//	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	
-	sound_init_listener();
 //	init_node_butfuncs();
 	
 	ED_preview_init_dbase();
@@ -156,6 +144,8 @@ void WM_init(bContext *C)
 	
 	read_Blog();
 	BLI_strncpy(G.lib, G.sce, FILE_MAX);
+
+	sound_init();
 }
 
 /* free strings of open recent files */
@@ -184,7 +174,9 @@ extern void free_posebuf();
 void WM_exit(bContext *C)
 {
 	wmWindow *win;
-	
+
+	sound_exit();
+
 	/* first wrap up running stuff, we assume only the active WM is running */
 	/* modal handlers are on window level freed, others too? */
 	/* note; same code copied in wm_files.c */
@@ -216,10 +208,6 @@ void WM_exit(bContext *C)
 	
 	BKE_freecubetable();
 	
-//	if (G.background == 0)
-//		sound_end_all_sounds();
-	
-	
 	/* before free_blender so py's gc happens while library still exists */
 	/* needed at least for a rare sigsegv that can happen in pydrivers */
 #ifndef DISABLE_PYTHON
@@ -248,10 +236,6 @@ void WM_exit(bContext *C)
 	
 //	free_txt_data();
 	
-//	sound_exit_audio();
-	if(G.listener) MEM_freeN(G.listener);
-	
-	
 	libtiff_exit();
 	
 #ifdef WITH_QUICKTIME
@@ -277,6 +261,8 @@ void WM_exit(bContext *C)
 
 	RNA_exit();
 	
+	wm_ghost_exit();
+
 	CTX_free(C);
 	
 	if(MEM_get_memory_blocks_in_use()!=0) {

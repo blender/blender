@@ -158,6 +158,7 @@ static void graph_edit_transformmenu(bContext *C, uiLayout *layout, void *arg_un
 
 static void graph_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
 	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_CFRA);
 	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_NEAREST_FRAME);
 	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_NEAREST_SECOND);
@@ -166,6 +167,7 @@ static void graph_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void graph_edit_mirrormenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
 	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_mirror", "type", GRAPHKEYS_MIRROR_CFRA);
 	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_mirror", "type", GRAPHKEYS_MIRROR_YAXIS);
 	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_mirror", "type", GRAPHKEYS_MIRROR_XAXIS);
@@ -174,6 +176,7 @@ static void graph_edit_mirrormenu(bContext *C, uiLayout *layout, void *arg_unuse
 
 static void graph_edit_handlesmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
 	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_handle_type", "type", HD_FREE);
 	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_handle_type", "type", HD_AUTO);
 	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_handle_type", "type", HD_VECT);
@@ -183,6 +186,7 @@ static void graph_edit_handlesmenu(bContext *C, uiLayout *layout, void *arg_unus
 
 static void graph_edit_ipomenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
 	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_interpolation_type", "type", BEZT_IPO_CONST);
 	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_interpolation_type", "type", BEZT_IPO_LIN);
 	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_interpolation_type", "type", BEZT_IPO_BEZ);
@@ -190,6 +194,7 @@ static void graph_edit_ipomenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void graph_edit_expomenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT); // xxx?
 	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_extrapolation_type", "type", FCURVE_EXTRAPOLATE_CONSTANT);
 	uiItemEnumO(layout, NULL, 0, "GRAPH_OT_extrapolation_type", "type", FCURVE_EXTRAPOLATE_LINEAR);
 }
@@ -305,13 +310,14 @@ void graph_header_buttons(const bContext *C, ARegion *ar)
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOLAM, B_REDR, ICON_LAMP_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Lamps");
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCAM, B_REDR, ICON_CAMERA_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Cameras");
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOCUR, B_REDR, ICON_CURVE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Curves");
+			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOMBA, B_REDR, ICON_META_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display MetaBalls");
 			uiDefIconButBitI(block, TOGN, ADS_FILTER_NOPART, B_REDR, ICON_PARTICLE_DATA,	(short)(xco+=XIC),yco,XIC,YIC, &(sipo->ads->filterflag), 0, 0, 0, 0, "Display Particles");
 		uiBlockEndAlign(block);
 		xco += 30;
 	}
 	else {
 		// XXX this case shouldn't happen at all... for now, just pad out same amount of space
-		xco += 9*XIC + 30;
+		xco += 10*XIC + 30;
 	}
 	
 	/* auto-snap selector */

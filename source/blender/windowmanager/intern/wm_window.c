@@ -756,6 +756,14 @@ void wm_ghost_init(bContext *C)
 	}	
 }
 
+void wm_ghost_exit(void)
+{
+	if(g_system)
+		GHOST_DisposeSystem(g_system);
+
+	g_system= NULL;
+}
+
 /* **************** timer ********************** */
 
 /* to (de)activate running timers temporary */

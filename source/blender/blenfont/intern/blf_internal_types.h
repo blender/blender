@@ -78,13 +78,30 @@ typedef struct GlyphCacheBLF {
 	float descender;
 } GlyphCacheBLF;
 
-typedef struct GlyphTextureBLF {
+typedef struct GlyphBLF {
+	struct GlyphBLF *next;
+	struct GlyphBLF *prev;
+
+	/* and the character, as UTF8 */
+	unsigned int c;
+
+	/* glyph box. */
+	rctf box;
+
+	/* advance size. */
+	float advance;
+
 	/* texture id where this glyph is store. */
 	GLuint tex;
 
 	/* position inside the texture where this glyph is store. */
 	int xoff;
 	int yoff;
+
+	/* Bitmap data, from freetype. Take care that this
+	 * can be NULL.
+	 */
+	unsigned char *bitmap;
 
 	/* glyph width and height. */
 	int width;
@@ -99,38 +116,9 @@ typedef struct GlyphTextureBLF {
 	 */
 	float pos_x;
 	float pos_y;
-} GlyphTextureBLF;
 
-typedef struct GlyphBitmapBLF {
-	/* image data. */
-	unsigned char *image;
-
-	int width;
-	int height;
-	int pitch;
-
-	float pos_x;
-	float pos_y;
-} GlyphBitmapBLF;
-
-typedef struct GlyphBLF {
-	struct GlyphBLF *next;
-	struct GlyphBLF *prev;
-
-	/* and the character, as UTF8 */
-	unsigned int c;
-
-	/* glyph box. */
-	rctf box;
-
-	/* advance size. */
-	float advance;
-
-	/* texture information. */
-	GlyphTextureBLF *tex_data;
-
-	/* bitmap information. */
-	GlyphBitmapBLF *bitmap_data;
+	/* with value of zero mean that we need build the texture. */
+	short build_tex;
 } GlyphBLF;
 
 typedef struct FontBLF {
@@ -139,9 +127,6 @@ typedef struct FontBLF {
 
 	/* filename or NULL. */
 	char *filename;
-
-	/* draw mode, texture or bitmap. */
-	int mode;
 
 	/* aspect ratio or scale. */
 	float aspect;

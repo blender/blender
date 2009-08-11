@@ -53,10 +53,10 @@ class VIEW3D_MT_view(bpy.types.Menu):
 		
 		layout.itemS()
 		
-		layout.item_enumO("view3d.viewnumpad", "type", "CAMERA")
-		layout.item_enumO("view3d.viewnumpad", "type", "TOP")
-		layout.item_enumO("view3d.viewnumpad", "type", "FRONT")
-		layout.item_enumO("view3d.viewnumpad", "type", "RIGHT")
+		layout.item_enumO("view3d.viewnumpad", "type", 'CAMERA')
+		layout.item_enumO("view3d.viewnumpad", "type", 'TOP')
+		layout.item_enumO("view3d.viewnumpad", "type", 'FRONT')
+		layout.item_enumO("view3d.viewnumpad", "type", 'RIGHT')
 		
 		# layout.itemM("VIEW3D_MT_view_cameras", text="Cameras")
 		

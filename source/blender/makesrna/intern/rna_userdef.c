@@ -37,6 +37,8 @@
 
 #include "BKE_utildefines.h"
 
+#include "BKE_sound.h"
+
 #ifdef RNA_RUNTIME
 
 static void rna_userdef_lmb_select_set(struct PointerRNA *ptr,int value)
@@ -114,6 +116,11 @@ static PointerRNA rna_UserDef_filepaths_get(PointerRNA *ptr)
 static PointerRNA rna_UserDef_system_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesSystem, ptr->data);
+}
+
+static void rna_UserDef_audio_update(bContext *C, PointerRNA *ptr)
+{
+	sound_reinit(C);
 }
 
 #else
@@ -1472,7 +1479,7 @@ static void rna_def_userdef_solidlight(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", 1);
 	RNA_def_property_ui_text(prop, "Enabled", "Enable this OpenGL light in solid draw mode.");
 
-	prop= RNA_def_property(srna, "direction", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "direction", PROP_FLOAT, PROP_DIRECTION);
 	RNA_def_property_float_sdna(prop, NULL, "vec");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Direction", "The direction that the OpenGL light is shining.");
@@ -1819,11 +1826,9 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "gp_settings", GP_PAINT_DOSMOOTH);
 	RNA_def_property_ui_text(prop, "Grease Pencil Smooth Stroke", "Smooth the final stroke.");
 
-#if 0
 	prop= RNA_def_property(srna, "grease_pencil_simplify_stroke", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gp_settings", GP_PAINT_DOSIMPLIFY);
 	RNA_def_property_ui_text(prop, "Grease Pencil Simplify Stroke", "Simplify the final stroke.");
-#endif
 
 	prop= RNA_def_property(srna, "grease_pencil_eraser_radius", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gp_eraser");
@@ -1977,6 +1982,46 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{512, "AUDIO_SAMPLES_512", 0, "512", "Set audio mixing buffer size to 512 samples"},
 		{1024, "AUDIO_SAMPLES_1024", 0, "1024", "Set audio mixing buffer size to 1024 samples"},
 		{2048, "AUDIO_SAMPLES_2048", 0, "2048", "Set audio mixing buffer size to 2048 samples"},
+		{4096, "AUDIO_SAMPLES_4096", 0, "4096", "Set audio mixing buffer size to 4096 samples"},
+		{8192, "AUDIO_SAMPLES_8192", 0, "8192", "Set audio mixing buffer size to 8192 samples"},
+		{16384, "AUDIO_SAMPLES_16384", 0, "16384", "Set audio mixing buffer size to 16384 samples"},
+		{32768, "AUDIO_SAMPLES_32768", 0, "32768", "Set audio mixing buffer size to 32768 samples"},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem audio_device_items[] = {
+		{0, "AUDIO_DEVICE_NULL", 0, "No Audio", "Null device - there will be no audio output."},
+		{1, "AUDIO_DEVICE_SDL", 0, "SDL", "SDL device - simple direct media layer, recommended for sequencer usage."},
+		{2, "AUDIO_DEVICE_OPENAL", 0, "OpenAL", "OpenAL device - supports 3D audio, recommended for game engine usage."},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem audio_rate_items[] = {
+//		{8000, "AUDIO_RATE_8000", 0, "8 kHz", "Set audio sampling rate to 8000 samples per second."},
+//		{11025, "AUDIO_RATE_11025", 0, "11.025 kHz", "Set audio sampling rate to 11025 samples per second."},
+//		{16000, "AUDIO_RATE_16000", 0, "16 kHz", "Set audio sampling rate to 16000 samples per second."},
+//		{22050, "AUDIO_RATE_22050", 0, "22.05 kHz", "Set audio sampling rate to 22050 samples per second."},
+//		{32000, "AUDIO_RATE_32000", 0, "32 kHz", "Set audio sampling rate to 32000 samples per second."},
+		{44100, "AUDIO_RATE_44100", 0, "44.1 kHz", "Set audio sampling rate to 44100 samples per second."},
+		{48000, "AUDIO_RATE_48000", 0, "48 kHz", "Set audio sampling rate to 48000 samples per second."},
+//		{88200, "AUDIO_RATE_88200", 0, "88.2 kHz", "Set audio sampling rate to 88200 samples per second."},
+		{96000, "AUDIO_RATE_96000", 0, "96 kHz", "Set audio sampling rate to 96000 samples per second."},
+		{192000, "AUDIO_RATE_192000", 0, "192 kHz", "Set audio sampling rate to 192000 samples per second."},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem audio_format_items[] = {
+		{0x01, "AUDIO_FORMAT_U8", 0, "8-bit Unsigned", "Set audio sample format to 8 bit unsigned integer."},
+		{0x12, "AUDIO_FORMAT_S16", 0, "16-bit Signed", "Set audio sample format to 16 bit signed integer."},
+		{0x13, "AUDIO_FORMAT_S24", 0, "24-bit Signed", "Set audio sample format to 24 bit signed integer."},
+		{0x14, "AUDIO_FORMAT_S32", 0, "32-bit Signed", "Set audio sample format to 32 bit signed integer."},
+		{0x24, "AUDIO_FORMAT_FLOAT", 0, "32-bit Float", "Set audio sample format to 32 bit float."},
+		{0x28, "AUDIO_FORMAT_DOUBLE", 0, "64-bit Float", "Set audio sample format to 64 bit float."},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem audio_channel_items[] = {
+		{1, "AUDIO_CHANNELS_MONO", 0, "Mono", "Set audio channels to mono."},
+		{2, "AUDIO_CHANNELS_STEREO", 0, "Stereo", "Set audio channels to stereo."},
+		{4, "AUDIO_CHANNELS_SURROUND4", 0, "4 Channels", "Set audio channels to 4 channels."},
+		{6, "AUDIO_CHANNELS_SURROUND51", 0, "5.1 Surround", "Set audio channels to 5.1 surround sound."},
+		{8, "AUDIO_CHANNELS_SURROUND71", 0, "7.1 Surround", "Set audio channels to 7.1 surround sound."},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem draw_method_items[] = {
@@ -2078,6 +2123,31 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "mixbufsize");
 	RNA_def_property_enum_items(prop, audio_mixing_samples_items);
 	RNA_def_property_ui_text(prop, "Audio Mixing Buffer", "Sets the number of samples used by the audio mixing buffer.");
+	RNA_def_property_update(prop, 0, "rna_UserDef_audio_update");
+
+	prop= RNA_def_property(srna, "audio_device", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "audiodevice");
+	RNA_def_property_enum_items(prop, audio_device_items);
+	RNA_def_property_ui_text(prop, "Audio Device", "Sets the audio output device.");
+	RNA_def_property_update(prop, 0, "rna_UserDef_audio_update");
+
+	prop= RNA_def_property(srna, "audio_sample_rate", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "audiorate");
+	RNA_def_property_enum_items(prop, audio_rate_items);
+	RNA_def_property_ui_text(prop, "Audio Sample Rate", "Sets the audio sample rate.");
+	RNA_def_property_update(prop, 0, "rna_UserDef_audio_update");
+
+	prop= RNA_def_property(srna, "audio_sample_format", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "audioformat");
+	RNA_def_property_enum_items(prop, audio_format_items);
+	RNA_def_property_ui_text(prop, "Audio Sample Format", "Sets the audio sample format.");
+	RNA_def_property_update(prop, 0, "rna_UserDef_audio_update");
+
+	prop= RNA_def_property(srna, "audio_channels", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "audiochannels");
+	RNA_def_property_enum_items(prop, audio_channel_items);
+	RNA_def_property_ui_text(prop, "Audio Channels", "Sets the audio channel count.");
+	RNA_def_property_update(prop, 0, "rna_UserDef_audio_update");
 
 #if 0
 	prop= RNA_def_property(srna, "verse_master", PROP_STRING, PROP_NONE);

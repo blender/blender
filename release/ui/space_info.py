@@ -110,22 +110,22 @@ class INFO_MT_add(bpy.types.Menu):
 
 		layout.operator_context = "EXEC_SCREEN"
 
-		layout.item_menu_enumO( "OBJECT_OT_mesh_add", "type", text="Mesh", icon="ICON_OUTLINER_OB_MESH")
-		layout.item_menu_enumO( "OBJECT_OT_curve_add", "type", text="Curve", icon="ICON_OUTLINER_OB_CURVE")
-		layout.item_menu_enumO( "OBJECT_OT_surface_add", "type", text="Surface", icon="ICON_OUTLINER_OB_SURFACE")
-		layout.item_menu_enumO( "OBJECT_OT_metaball_add", "type", "META", icon="ICON_OUTLINER_OB_META")
-		layout.itemO("OBJECT_OT_text_add", text="Text", icon="ICON_OUTLINER_OB_FONT")
+		layout.item_menu_enumO( "OBJECT_OT_mesh_add", "type", text="Mesh", icon='ICON_OUTLINER_OB_MESH')
+		layout.item_menu_enumO( "OBJECT_OT_curve_add", "type", text="Curve", icon='ICON_OUTLINER_OB_CURVE')
+		layout.item_menu_enumO( "OBJECT_OT_surface_add", "type", text="Surface", icon='ICON_OUTLINER_OB_SURFACE')
+		layout.item_menu_enumO( "OBJECT_OT_metaball_add", "type", 'META', icon='ICON_OUTLINER_OB_META')
+		layout.itemO("OBJECT_OT_text_add", text="Text", icon='ICON_OUTLINER_OB_FONT')
 
 		layout.itemS()
 
-		layout.itemO("OBJECT_OT_armature_add", text="Armature", icon="ICON_OUTLINER_OB_ARMATURE")
-		layout.item_enumO("OBJECT_OT_object_add", "type", "LATTICE", icon="ICON_OUTLINER_OB_LATTICE")
-		layout.item_enumO("OBJECT_OT_object_add", "type", "EMPTY", icon="ICON_OUTLINER_OB_EMPTY")
+		layout.itemO("OBJECT_OT_armature_add", text="Armature", icon='ICON_OUTLINER_OB_ARMATURE')
+		layout.item_enumO("OBJECT_OT_object_add", "type", 'LATTICE', icon='ICON_OUTLINER_OB_LATTICE')
+		layout.item_enumO("OBJECT_OT_object_add", "type", 'EMPTY', icon='ICON_OUTLINER_OB_EMPTY')
 
 		layout.itemS()
 
-		layout.item_enumO("OBJECT_OT_object_add", "type", "CAMERA", icon="ICON_OUTLINER_OB_CAMERA")
-		layout.item_enumO("OBJECT_OT_object_add", "type", "LAMP", icon="ICON_OUTLINER_OB_LAMP")
+		layout.item_enumO("OBJECT_OT_object_add", "type", 'CAMERA', icon='ICON_OUTLINER_OB_CAMERA')
+		layout.item_enumO("OBJECT_OT_object_add", "type", 'LAMP', icon='ICON_OUTLINER_OB_LAMP')
 
 class INFO_MT_game(bpy.types.Menu):
 	__space_type__ = "USER_PREFERENCES"
@@ -335,7 +335,7 @@ class INFO_PT_edit(bpy.types.Panel):
 		colsplitcol.itemR(edit, "grease_pencil_manhattan_distance", text="Manhattan Distance")
 		colsplitcol.itemR(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")
 		colsplitcol.itemR(edit, "grease_pencil_smooth_stroke", text="Smooth Stroke")
-		colsplitcol.itemR(edit, "grease_pencil_simplify_stroke", text="Simplify Stroke")
+		# colsplitcol.itemR(edit, "grease_pencil_simplify_stroke", text="Simplify Stroke")
 		colsplitcol.itemR(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
 		
 		

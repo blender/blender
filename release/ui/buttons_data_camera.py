@@ -7,7 +7,7 @@ class DataButtonsPanel(bpy.types.Panel):
 	__context__ = "data"
 
 	def poll(self, context):
-		return (context.camera)
+		return (context.camera != None)
 		
 class DATA_PT_context_camera(DataButtonsPanel):
 	__show_header__ = False

@@ -735,7 +735,7 @@ static bBuiltinKeyingSet def_builtin_keyingsets_v3d[] =
 	/* Keying Set - "Rotation" ---------- */
 	BI_KS_DEFINE_BEGIN("Rotation", 0)
 		BI_KS_PATHS_BEGIN(1)
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_PCHAN_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
 		BI_KS_PATHS_END
 	BI_KS_DEFINE_END,
 	
@@ -751,7 +751,7 @@ static bBuiltinKeyingSet def_builtin_keyingsets_v3d[] =
 	BI_KS_DEFINE_BEGIN("LocRot", 0)
 		BI_KS_PATHS_BEGIN(2)
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_PCHAN_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
 		BI_KS_PATHS_END
 	BI_KS_DEFINE_END,
 	
@@ -759,7 +759,7 @@ static bBuiltinKeyingSet def_builtin_keyingsets_v3d[] =
 	BI_KS_DEFINE_BEGIN("LocRotScale", 0)
 		BI_KS_PATHS_BEGIN(3)
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_PCHAN_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "scale", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
 		BI_KS_PATHS_END
 	BI_KS_DEFINE_END,
@@ -775,7 +775,7 @@ static bBuiltinKeyingSet def_builtin_keyingsets_v3d[] =
 	/* Keying Set - "Rotation" ---------- */
 	BI_KS_DEFINE_BEGIN("VisualRot", 0)
 		BI_KS_PATHS_BEGIN(1)
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "rotation", INSERTKEY_MATRIX, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_PCHAN_ROT, "rotation", INSERTKEY_MATRIX, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
 		BI_KS_PATHS_END
 	BI_KS_DEFINE_END,
 	
@@ -783,7 +783,7 @@ static bBuiltinKeyingSet def_builtin_keyingsets_v3d[] =
 	BI_KS_DEFINE_BEGIN("VisualLocRot", 0)
 		BI_KS_PATHS_BEGIN(2)
 			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", INSERTKEY_MATRIX, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "rotation", INSERTKEY_MATRIX, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
+			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_PCHAN_ROT, "rotation", INSERTKEY_MATRIX, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
 		BI_KS_PATHS_END
 	BI_KS_DEFINE_END
 };
@@ -1131,7 +1131,21 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 					/* add property stored in KeyingSet Path */
 					if (BLI_dynstr_get_len(pathds))
 						BLI_dynstr_append(pathds, ".");
-					BLI_dynstr_append(pathds, ksp->rna_path);
+						
+					/* apply some further templates? */
+					if ((ksp->templates & KSP_TEMPLATE_PCHAN_ROT) && (cks->pchan)) {
+						/* if this path is exactly "rotation", and the rotation mode is set to eulers,
+						 * use "euler_rotation" instead so that rotations will be keyed correctly
+						 */
+						if (strcmp(ksp->rna_path, "rotation")==0 && (cks->pchan->rotmode))
+							BLI_dynstr_append(pathds, "euler_rotation");
+						else
+							BLI_dynstr_append(pathds, ksp->rna_path);
+					}
+					else {
+						/* just directly use the path */
+						BLI_dynstr_append(pathds, ksp->rna_path);
+					}
 					
 					/* convert to C-string */
 					path= BLI_dynstr_get_cstring(pathds);

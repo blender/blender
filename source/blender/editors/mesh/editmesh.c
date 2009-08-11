@@ -1160,7 +1160,7 @@ void load_editMesh(Scene *scene, Object *ob)
 		if(pid.type == PTCACHE_TYPE_CLOTH)
 			cloth_write_cache(ob, pid.data, pid.cache->editframe);
 		else if(pid.type == PTCACHE_TYPE_SOFTBODY)
-			sbWriteCache(ob, pid.cache->editframe);
+			softbody_write_cache(ob, pid.data, pid.cache->editframe);
 	}
 
 	/* the edges */

@@ -45,6 +45,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
@@ -316,6 +317,22 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 			else {
 				/* toggle expand */
 				part->flag ^= PART_DS_EXPAND;
+			}
+			notifierFlags |= ND_ANIMCHAN_EDIT;
+		}
+			break;
+		case ANIMTYPE_DSMBALL:
+		{
+			MetaBall *mb= (MetaBall *)ale->data;
+			AnimData *adt= ale->adt;
+			
+			if ( (adt) && (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) ) {
+				/* toggle mute */
+				adt->flag ^= ADT_NLA_EVAL_OFF;
+			} 
+			else {
+				/* toggle expand */
+				mb->flag2 ^= MB_DS_EXPAND;
 			}
 			notifierFlags |= ND_ANIMCHAN_EDIT;
 		}

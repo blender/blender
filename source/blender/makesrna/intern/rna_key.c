@@ -282,7 +282,7 @@ static void rna_def_keydata(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ShapeKeyPoint", NULL);
 	RNA_def_struct_ui_text(srna, "Shape Key Point", "Point in a shape key.");
 
-	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_ShapeKeyPoint_co_get", "rna_ShapeKeyPoint_co_set", NULL);
 	RNA_def_property_ui_text(prop, "Location", "");
@@ -291,7 +291,7 @@ static void rna_def_keydata(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ShapeKeyCurvePoint", NULL);
 	RNA_def_struct_ui_text(srna, "Shape Key Curve Point", "Point in a shape key for curves.");
 
-	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_ShapeKeyPoint_co_get", "rna_ShapeKeyPoint_co_set", NULL);
 	RNA_def_property_ui_text(prop, "Location", "");
@@ -305,19 +305,19 @@ static void rna_def_keydata(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "ShapeKeyBezierPoint", NULL);
 	RNA_def_struct_ui_text(srna, "Shape Key Bezier Point", "Point in a shape key for bezier curves.");
 
-	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_ShapeKeyBezierPoint_co_get", "rna_ShapeKeyBezierPoint_co_set", NULL);
 	RNA_def_property_ui_text(prop, "Location", "");
 	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
-	prop= RNA_def_property(srna, "handle_1_co", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "handle_1_co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_ShapeKeyBezierPoint_handle_1_co_get", "rna_ShapeKeyBezierPoint_handle_1_co_set", NULL);
 	RNA_def_property_ui_text(prop, "Handle 1 Location", "");
 	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
-	prop= RNA_def_property(srna, "handle_2_co", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "handle_2_co", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_ShapeKeyBezierPoint_handle_2_co_get", "rna_ShapeKeyBezierPoint_handle_2_co_set", NULL);
 	RNA_def_property_ui_text(prop, "Handle 2 Location", "");
@@ -351,7 +351,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	RNA_def_struct_name_property(srna, prop);
 
 	/* keys need to be sorted to edit this */
-	prop= RNA_def_property(srna, "frame", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "frame", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_float_sdna(prop, NULL, "pos");
 	RNA_def_property_ui_text(prop, "Frame", "Frame for absolute keys.");

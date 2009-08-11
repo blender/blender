@@ -26,7 +26,6 @@
 #include "bpy_util.h"
 #include "bpy_rna.h" /* for rna buttons */
 #include "bpy_operator.h" /* for setting button operator properties */
-#include "bpy_compat.h"
 
 #include "WM_types.h" /* for WM_OP_INVOKE_DEFAULT & friends */
 
@@ -47,7 +46,6 @@ static struct PyMethodDef ui_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-#if PY_VERSION_HEX >= 0x03000000
 static struct PyModuleDef ui_module = {
 	PyModuleDef_HEAD_INIT,
 	"bpy.ui",
@@ -56,16 +54,11 @@ static struct PyModuleDef ui_module = {
 	ui_methods,
 	NULL, NULL, NULL, NULL
 };
-#endif
 
 PyObject *BPY_ui_module( void )
 {
 	PyObject *submodule, *mod;
-#if PY_VERSION_HEX >= 0x03000000
 	submodule= PyModule_Create(&ui_module);
-#else /* Py2.x */
-	submodule= Py_InitModule3( "bpy.ui", ui_methods, "" );
-#endif
 	
 	/* INCREF since its its assumed that all these functions return the
 	 * module with a new ref like PyDict_New, since they are passed to

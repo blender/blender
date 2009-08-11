@@ -118,8 +118,10 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_noise_type_items[] = {
 				{MOD_SMOKE_NOISEWAVE, "NOISEWAVE", 0, "Wavelet", ""},
-				{MOD_SMOKE_NOISEFFT, "NOISEFFT", 0, "FFT", ""},
-				{MOD_SMOKE_NOISECURL, "NOISECURL", 0, "Curl", ""},
+#if FFTW3 == 1
+				{MOD_SMOKE_NOISEFFT, "NOISEFFT", 0, "FFT", ""}, 
+#endif
+			/* 	{MOD_SMOKE_NOISECURL, "NOISECURL", 0, "Curl", ""}, */
 				{0, NULL, 0, NULL, NULL}};
 
 	srna = RNA_def_struct(brna, "SmokeDomainSettings", NULL);
@@ -129,8 +131,8 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "maxres", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "maxres");
-	RNA_def_property_range(prop, 32, 512);
-	RNA_def_property_ui_range(prop, 32, 512, 2, 0);
+	RNA_def_property_range(prop, 24, 512);
+	RNA_def_property_ui_range(prop, 24, 512, 2, 0);
 	RNA_def_property_ui_text(prop, "Max Res", "Maximal resolution used in the fluid domain.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
@@ -150,8 +152,13 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "highres", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_HIGHRES);
-	RNA_def_property_ui_text(prop, "High res", "Show high resolution (using amplification).");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+	RNA_def_property_ui_text(prop, "High res", "Enable high resolution (using amplification).");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
+
+	prop= RNA_def_property(srna, "viewhighres", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "viewsettings", MOD_SMOKE_VIEW_USEBIG);
+	RNA_def_property_ui_text(prop, "Show High Resolution", "Show high resolution (using amplification).");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_redraw");
 
 	prop= RNA_def_property(srna, "noise_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noise");
@@ -171,14 +178,14 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, -5.0, 5.0);
 	RNA_def_property_ui_range(prop, -5.0, 5.0, 0.02, 5);
 	RNA_def_property_ui_text(prop, "Gravity", "Higher value results in sinking smoke");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop= RNA_def_property(srna, "beta", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "beta");
 	RNA_def_property_range(prop, -5.0, 5.0);
 	RNA_def_property_ui_range(prop, -5.0, 5.0, 0.02, 5);
 	RNA_def_property_ui_text(prop, "Heat", "Higher value results in faster rising smoke.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop= RNA_def_property(srna, "coll_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "coll_group");
@@ -200,6 +207,13 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Effector Group", "Limit effectors to this group.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset_dependancy");
+
+	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "strength");
+	RNA_def_property_range(prop, -5.0, 5.0);
+	RNA_def_property_ui_range(prop, 1.0, 10.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Strength", "Strength of wavelet noise");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 }
 
 static void rna_def_smoke_flow_settings(BlenderRNA *brna)
@@ -233,13 +247,10 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Particle Systems", "Particle systems emitted from the object.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset_dependancy");
 
-	prop= RNA_def_property(srna, "velocity", PROP_FLOAT, PROP_VECTOR);
-	RNA_def_property_float_sdna(prop, NULL, "velocity");
-	RNA_def_property_range(prop, -10, 10);
-	RNA_def_property_ui_range(prop, -10, 10, 1, 1);
-	RNA_def_property_ui_text(prop, "Velocity", "");
+	prop= RNA_def_property(srna, "outflow", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "type", MOD_SMOKE_FLOW_TYPE_OUTFLOW);
+	RNA_def_property_ui_text(prop, "Outflow", "Deletes smoke from simulation");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
-
 }
 
 static void rna_def_smoke_coll_settings(BlenderRNA *brna)

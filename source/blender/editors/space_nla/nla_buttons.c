@@ -210,7 +210,6 @@ static void nla_panel_animdata (const bContext *C, Panel *pa)
 	/* Active Action Properties ------------------------------------- */
 	/* action */
 	row= uiLayoutRow(layout, 1);
-		uiLayoutSetEnabled(row, (adt->flag & ADT_NLA_EDIT_ON)==0); 
 		uiItemR(row, NULL, 0, &adt_ptr, "action", 0, 0, 0);
 	
 	/* extrapolation */

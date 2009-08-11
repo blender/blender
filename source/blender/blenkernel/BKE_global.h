@@ -44,7 +44,6 @@ extern "C" {
 /* forwards */
 struct Main;
 struct Object;
-struct bSoundListener;
 struct BME_Glob;
 
 typedef struct Global {
@@ -92,9 +91,6 @@ typedef struct Global {
     
 	/* save the allowed windowstate of blender when using -W or -w */
 	int windowstate;
-
-	/* Janco's playing ground */
-	struct bSoundListener* listener;
 
 	/* ndof device found ? */
 	int ndofdevice;

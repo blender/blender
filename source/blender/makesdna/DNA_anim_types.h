@@ -631,6 +631,8 @@ typedef enum eKSP_TemplateTypes {
 	KSP_TEMPLATE_PCHAN 			= (1<<1),	/* #pch - selected posechannel */
 	KSP_TEMPLATE_CONSTRAINT 	= (1<<2),	/* #con - active only */
 	KSP_TEMPLATE_NODE		 	= (1<<3),	/* #nod - selected node */
+	
+	KSP_TEMPLATE_PCHAN_ROT		= (1<<16),	/* modify rotation paths based on rotation mode of Pose Channel */
 } eKSP_TemplateTypes;
 
 /* ---------------- */

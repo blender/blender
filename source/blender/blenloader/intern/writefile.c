@@ -771,9 +771,6 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 		case ACT_SOUND:
 			writestruct(wd, DATA, "bSoundActuator", 1, act->data);
 			break;
-		case ACT_CD:
-			writestruct(wd, DATA, "bCDActuator", 1, act->data);
-			break;
 		case ACT_OBJECT:
 			writestruct(wd, DATA, "bObjectActuator", 1, act->data);
 			break;
@@ -1297,6 +1294,7 @@ static void write_mballs(WriteData *wd, ListBase *idbase)
 
 			/* direct data */
 			writedata(wd, DATA, sizeof(void *)*mb->totcol, mb->mat);
+			if (mb->adt) write_animdata(wd, mb->adt);
 
 			ml= mb->elems.first;
 			while(ml) {
@@ -2136,44 +2134,20 @@ static void write_texts(WriteData *wd, ListBase *idbase)
 static void write_sounds(WriteData *wd, ListBase *idbase)
 {
 	bSound *sound;
-	bSample *sample;
 
 	PackedFile * pf;
-
-	// set all samples to unsaved status
-
-	sample = samples->first; // samples is a global defined in sound.c
-	while (sample) {
-		sample->flags |= SAMPLE_NEEDS_SAVE;
-		sample = sample->id.next;
-	}
 
 	sound= idbase->first;
 	while(sound) {
 		if(sound->id.us>0 || wd->current) {
-			// do we need to save the packedfile as well ?
-			sample = sound->sample;
-			if (sample) {
-				if (sample->flags & SAMPLE_NEEDS_SAVE) {
-					sound->newpackedfile = sample->packedfile;
-					sample->flags &= ~SAMPLE_NEEDS_SAVE;
-				} else {
-					sound->newpackedfile = NULL;
-				}
-			}
-
 			/* write LibData */
 			writestruct(wd, ID_SO, "bSound", 1, sound);
 			if (sound->id.properties) IDP_WriteProperty(sound->id.properties, wd);
 
-			if (sound->newpackedfile) {
-				pf = sound->newpackedfile;
+			if (sound->packedfile) {
+				pf = sound->packedfile;
 				writestruct(wd, DATA, "PackedFile", 1, pf);
 				writedata(wd, DATA, pf->size, pf->data);
-			}
-
-			if (sample) {
-				sound->newpackedfile = sample->packedfile;
 			}
 		}
 		sound= sound->id.next;

@@ -407,6 +407,13 @@ static int rna_Property_subtype_get(PointerRNA *ptr)
 	return prop->subtype;
 }
 
+static int rna_Property_unit_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+	rna_idproperty_check(&prop, ptr);
+	return RNA_SUBTYPE_UNIT(prop->subtype);
+}
+
 static int rna_Property_editable_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
@@ -769,15 +776,32 @@ static void rna_def_property(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem subtype_items[] = {
 		{PROP_NONE, "NONE", 0, "None", ""},
-		{PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned Number", ""},
 		{PROP_FILEPATH, "FILE_PATH", 0, "File Path", ""},
 		{PROP_DIRPATH, "DIRECTORY_PATH", 0, "Directory Path", ""},
-		{PROP_COLOR, "COLOR", 0, "Color", ""},
-		{PROP_VECTOR, "VECTOR", 0, "Vector", ""},
-		{PROP_MATRIX, "MATRIX", 0, "Matrix", ""},
-		{PROP_ROTATION, "ROTATION", 0, "Rotation", ""},
-		{PROP_NEVER_NULL, "NEVER_NULL", 0, "Never Null", ""},
+		{PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned Number", ""},
 		{PROP_PERCENTAGE, "PERCENTAGE", 0, "Percentage", ""},
+		{PROP_ANGLE, "ANGLE", 0, "Angle", ""},
+		{PROP_TIME, "TIME", 0, "Time", ""},
+		{PROP_DISTANCE, "DISTANCE", 0, "Distance", ""},
+		{PROP_COLOR, "COLOR", 0, "Color", ""},
+		{PROP_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
+		{PROP_DIRECTION, "DIRECTION", 0, "Direction", ""},
+		{PROP_MATRIX, "MATRIX", 0, "Matrix", ""},
+		{PROP_EULER, "EULER", 0, "Euler", ""},
+		{PROP_QUATERNION, "QUATERNION", 0, "Quaternion", ""},
+		{PROP_XYZ, "XYZ", 0, "XYZ", ""},
+		{PROP_RGB, "RGB", 0, "RGB", ""},
+		{PROP_NEVER_NULL, "NEVER_NULL", 0, "Never Null", ""},
+		{0, NULL, 0, NULL, NULL}};
+	static EnumPropertyItem unit_items[] = {
+		{PROP_UNIT_NONE, "NONE", 0, "None", ""},
+		{PROP_UNIT_LENGTH, "LENGTH", 0, "Length", ""},
+		{PROP_UNIT_AREA, "AREA", 0, "Area", ""},
+		{PROP_UNIT_VOLUME, "VOLUME", 0, "Volume", ""},
+		{PROP_UNIT_ROTATION, "ROTATION", 0, "Rotation", ""},
+		{PROP_UNIT_TIME, "TIME", 0, "Time", ""},
+		{PROP_UNIT_VELOCITY, "VELOCITY", 0, "Velocity", ""},
+		{PROP_UNIT_ACCELERATION, "ACCELERATION", 0, "Acceleration", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Property", NULL);
@@ -812,6 +836,12 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, subtype_items);
 	RNA_def_property_enum_funcs(prop, "rna_Property_subtype_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Subtype", "Semantic interpretation of the property.");
+
+	prop= RNA_def_property(srna, "unit", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_enum_items(prop, unit_items);
+	RNA_def_property_enum_funcs(prop, "rna_Property_unit_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Unit", "Type of units for this property.");
 
 	prop= RNA_def_property(srna, "editable", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -875,15 +905,17 @@ static void rna_def_number_property(StructRNA *srna, PropertyType type)
 	RNA_def_property_ui_text(prop, "Default", "Default value for this number");
 
 	switch(type) {
-	case PROP_BOOLEAN:
-		RNA_def_property_boolean_funcs(prop, "rna_BoolProperty_default_get", NULL);
-		break;
-	case PROP_INT:
-		RNA_def_property_int_funcs(prop, "rna_IntProperty_default_get", NULL, NULL);
-		break;
-	case PROP_FLOAT:
-		RNA_def_property_float_funcs(prop, "rna_FloatProperty_default_get", NULL, NULL);
-		break;
+		case PROP_BOOLEAN:
+			RNA_def_property_boolean_funcs(prop, "rna_BoolProperty_default_get", NULL);
+			break;
+		case PROP_INT:
+			RNA_def_property_int_funcs(prop, "rna_IntProperty_default_get", NULL, NULL);
+			break;
+		case PROP_FLOAT:
+			RNA_def_property_float_funcs(prop, "rna_FloatProperty_default_get", NULL, NULL);
+			break;
+		default:
+			break;
 	}
 
 

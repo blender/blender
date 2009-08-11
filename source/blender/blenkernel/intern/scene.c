@@ -140,7 +140,7 @@ void free_scene(Scene *sce)
 	/* do not free objects! */
 
 	BLI_freelistN(&sce->base);
-	seq_free_editing(sce->ed);
+	seq_free_editing(sce);
 
 	BKE_free_animdata((ID *)sce);
 	BKE_keyingsets_free(&sce->keyingsets);
@@ -689,6 +689,13 @@ void sculptsession_free(Sculpt *sculpt)
 
 		if(ss->texcache)
 			MEM_freeN(ss->texcache);
+
+		if(ss->layer_disps)
+			MEM_freeN(ss->layer_disps);
+
+		if(ss->mesh_co_orig)
+			MEM_freeN(ss->mesh_co_orig);
+
 		MEM_freeN(ss);
 		sculpt->session= NULL;
 	}

@@ -37,6 +37,9 @@ struct Scene;
 struct Group;
 struct Text;
 
+// for Sound3D
+#include "DNA_sound_types.h"
+
 /* ****************** ACTUATORS ********************* */
 
 /* unused now, moved to editobjectactuator in 2.02. Still needed for dna */
@@ -62,17 +65,12 @@ typedef struct bSoundActuator {
 	short flag, sndnr;
 	int sta, end;
 	short pad1[2];
+	float volume, pitch;
 	struct bSound *sound;
+	struct Sound3D sound3D;
 	short type, makecopy;
 	short copymade, pad2[1];
 } bSoundActuator;
-
-typedef struct bCDActuator {
-	short flag, sndnr;
-	int sta, end;
-	short type, track;
-	float volume;
-} bCDActuator;
 
 typedef struct bEditObjectActuator {
 	int time;
@@ -291,7 +289,6 @@ typedef struct FreeCamera {
 #define ACT_RANDOM      13
 #define ACT_MESSAGE     14
 #define ACT_ACTION		15	/* __ NLA */
-#define ACT_CD			16
 #define ACT_GAME		17
 #define ACT_VISIBILITY          18
 #define ACT_2DFILTER	19
@@ -432,6 +429,9 @@ typedef struct FreeCamera {
 #define ACT_RANDOM_FLOAT_NORMAL                8
 #define ACT_RANDOM_FLOAT_NEGATIVE_EXPONENTIAL  9
 
+/* SoundActuator->flag */
+#define ACT_SND_3D_SOUND		1
+
 /*  SoundActuator->type */
 #define ACT_SND_PLAY_STOP_SOUND		0
 #define ACT_SND_PLAY_END_SOUND		1
@@ -443,15 +443,6 @@ typedef struct FreeCamera {
 /* messageactuator->type */
 #define ACT_MESG_MESG		0
 #define ACT_MESG_PROP		1
-
-/* cdactuator->type */
-#define ACT_CD_PLAY_ALL		0
-#define ACT_CD_PLAY_TRACK	1
-#define ACT_CD_LOOP_TRACK	2
-#define ACT_CD_VOLUME		3
-#define ACT_CD_STOP			4
-#define ACT_CD_PAUSE		5
-#define ACT_CD_RESUME		6
 
 /* gameactuator->type */
 #define ACT_GAME_LOAD		0

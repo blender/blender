@@ -171,91 +171,91 @@ static void rna_Cache_idname_change(bContext *C, PointerRNA *ptr)
 
 static int rna_SoftBodySettings_use_edges_get(PointerRNA *ptr)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	return (((data->softflag) & OB_SB_EDGES) != 0);
 }
 
 static void rna_SoftBodySettings_use_edges_set(PointerRNA *ptr, int value)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	if(value) data->softflag |= OB_SB_EDGES;
 	else data->softflag &= ~OB_SB_EDGES;
 }
 
 static int rna_SoftBodySettings_use_goal_get(PointerRNA *ptr)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	return (((data->softflag) & OB_SB_GOAL) != 0);
 }
 
 static void rna_SoftBodySettings_use_goal_set(PointerRNA *ptr, int value)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	if(value) data->softflag |= OB_SB_GOAL;
 	else data->softflag &= ~OB_SB_GOAL;
 }
 
 static int rna_SoftBodySettings_stiff_quads_get(PointerRNA *ptr)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	return (((data->softflag) & OB_SB_QUADS) != 0);
 }
 
 static void rna_SoftBodySettings_stiff_quads_set(PointerRNA *ptr, int value)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	if(value) data->softflag |= OB_SB_QUADS;
 	else data->softflag &= ~OB_SB_QUADS;
 }
 
 static int rna_SoftBodySettings_self_collision_get(PointerRNA *ptr)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	return (((data->softflag) & OB_SB_SELF) != 0);
 }
 
 static void rna_SoftBodySettings_self_collision_set(PointerRNA *ptr, int value)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	if(value) data->softflag |= OB_SB_SELF;
 	else data->softflag &= ~OB_SB_SELF;
 }
 
 static int rna_SoftBodySettings_new_aero_get(PointerRNA *ptr)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	return (((data->softflag) & OB_SB_AERO_ANGLE) != 0);
 }
 
 static void rna_SoftBodySettings_new_aero_set(PointerRNA *ptr, int value)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	if(value) data->softflag |= OB_SB_AERO_ANGLE;
 	else data->softflag &= ~OB_SB_AERO_ANGLE;
 }
 
 static int rna_SoftBodySettings_face_collision_get(PointerRNA *ptr)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	return (((data->softflag) & OB_SB_FACECOLL) != 0);
 }
 
 static void rna_SoftBodySettings_face_collision_set(PointerRNA *ptr, int value)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	if(value) data->softflag |= OB_SB_FACECOLL;
 	else data->softflag &= ~OB_SB_FACECOLL;
 }
 
 static int rna_SoftBodySettings_edge_collision_get(PointerRNA *ptr)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	return (((data->softflag) & OB_SB_EDGECOLL) != 0);
 }
 
 static void rna_SoftBodySettings_edge_collision_set(PointerRNA *ptr, int value)
 {
-	Object *data= (Object*)(ptr->data);
+	Object *data= (Object*)(ptr->id.data);
 	if(value) data->softflag |= OB_SB_EDGECOLL;
 	else data->softflag &= ~OB_SB_EDGECOLL;
 }
@@ -372,12 +372,12 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "PointCache", NULL);
 	RNA_def_struct_ui_text(srna, "Point Cache", "Point cache for physics simulations.");
 	
-	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "startframe");
 	RNA_def_property_range(prop, 1, 300000);
 	RNA_def_property_ui_text(prop, "Start", "Frame on which the simulation starts.");
 	
-	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "endframe");
 	RNA_def_property_range(prop, 1, 300000);
 	RNA_def_property_ui_text(prop, "End", "Frame on which the simulation stops.");
@@ -810,7 +810,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mass", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
 	
-	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_ACCELERATION);
 	RNA_def_property_float_sdna(prop, NULL, "grav");
 	RNA_def_property_range(prop, -10.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Gravitation", "Apply gravitation to point movement");

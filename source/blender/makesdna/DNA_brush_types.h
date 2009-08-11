@@ -85,6 +85,7 @@ typedef struct Brush {
 #define BRUSH_DIR_IN		512
 #define BRUSH_SPACE		1024
 #define BRUSH_SMOOTH_STROKE	2048
+#define BRUSH_PERSISTENT	4096
 
 /* Brush.blend */
 #define BRUSH_BLEND_MIX 		0

@@ -1058,21 +1058,11 @@ static PySequenceMethods Vector_SeqMethods = {
 	(binaryfunc) 0,								/* sq_concat */
 	(ssizeargfunc) 0,							/* sq_repeat */
 	(ssizeargfunc) Vector_item,					/* sq_item */
-#if (PY_VERSION_HEX < 0x03000000)
-	(ssizessizeargfunc) Vector_slice,			/* sq_slice */ /* PY2 ONLY */
-#else
-	NULL,
-#endif
+	NULL,										/* py3 deprecated slice func */
 	(ssizeobjargproc) Vector_ass_item,			/* sq_ass_item */
-#if (PY_VERSION_HEX < 0x03000000)
-	(ssizessizeobjargproc) Vector_ass_slice,	/* sq_ass_slice */ /* PY2 ONLY */
-#else
-	NULL,
-#endif
+	NULL,										/* py3 deprecated slice assign func */
 };
 
-
-#if (PY_VERSION_HEX >= 0x03000000)
 static PyObject *Vector_subscript(VectorObject* self, PyObject* item)
 {
 	if (PyIndex_Check(item)) {
@@ -1144,9 +1134,8 @@ static PyMappingMethods Vector_AsMapping = {
 	(binaryfunc)Vector_subscript,
 	(objobjargproc)Vector_ass_subscript
 };
-#endif /*  (PY_VERSION_HEX >= 0x03000000) */
- 
-#if (PY_VERSION_HEX >= 0x03000000)
+
+
 static PyNumberMethods Vector_NumMethods = {
 		(binaryfunc)	Vector_add,	/*nb_add*/
 		(binaryfunc)	Vector_sub,	/*nb_subtract*/
@@ -1183,53 +1172,6 @@ static PyNumberMethods Vector_NumMethods = {
 		Vector_idiv,	/* nb_inplace_true_divide */
 		0,			/* nb_index */
 };
-#else
-static PyNumberMethods Vector_NumMethods = {
-	(binaryfunc) Vector_add,					/* __add__ */
-	(binaryfunc) Vector_sub,					/* __sub__ */
-	(binaryfunc) Vector_mul,					/* __mul__ */
-	(binaryfunc) Vector_div,					/* __div__ */
-	(binaryfunc) NULL,							/* __mod__ */
-	(binaryfunc) NULL,							/* __divmod__ */
-	(ternaryfunc) NULL,							/* __pow__ */
-	(unaryfunc) Vector_neg,						/* __neg__ */
-	(unaryfunc) NULL,							/* __pos__ */
-	(unaryfunc) NULL,							/* __abs__ */
-	(inquiry) NULL,								/* __nonzero__ */
-	(unaryfunc) NULL,							/* __invert__ */
-	(binaryfunc) NULL,							/* __lshift__ */
-	(binaryfunc) NULL,							/* __rshift__ */
-	(binaryfunc) NULL,							/* __and__ */
-	(binaryfunc) NULL,							/* __xor__ */
-	(binaryfunc) NULL,							/* __or__ */
-	/*(coercion)*/ NULL,							/* __coerce__ */
-	(unaryfunc) NULL,							/* __int__ */
-	(unaryfunc) NULL,							/* __long__ */
-	(unaryfunc) NULL,							/* __float__ */
-	(unaryfunc) NULL,							/* __oct__ */
-	(unaryfunc) NULL,							/* __hex__ */
-	
-	/* Added in release 2.0 */
-	(binaryfunc) Vector_iadd,					/*__iadd__*/
-	(binaryfunc) Vector_isub,					/*__isub__*/
-	(binaryfunc) Vector_imul,					/*__imul__*/
-	(binaryfunc) Vector_idiv,					/*__idiv__*/
-	(binaryfunc) NULL,							/*__imod__*/
-	(ternaryfunc) NULL,							/*__ipow__*/
-	(binaryfunc) NULL,							/*__ilshift__*/
-	(binaryfunc) NULL,							/*__irshift__*/
-	(binaryfunc) NULL,							/*__iand__*/
-	(binaryfunc) NULL,							/*__ixor__*/
-	(binaryfunc) NULL,							/*__ior__*/
- 
-	/* Added in release 2.2 */
-	/* The following require the Py_TPFLAGS_HAVE_CLASS flag */
-	(binaryfunc) NULL,							/*__floordiv__  __rfloordiv__*/
-	(binaryfunc) NULL,							/*__truediv__ __rfloordiv__*/
-	(binaryfunc) NULL,							/*__ifloordiv__*/
-	(binaryfunc) NULL,							/*__itruediv__*/
-};
-#endif
 
 /*------------------PY_OBECT DEFINITION--------------------------*/
 
@@ -1872,13 +1814,7 @@ if len(unique) != len(items):
 */
 
 PyTypeObject vector_Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	/*  For printing, in format "<module>.<name>" */
 	"vector",             /* char *tp_name; */
 	sizeof( VectorObject ),         /* int tp_basicsize; */
@@ -1897,11 +1833,7 @@ PyTypeObject vector_Type = {
 
 	&Vector_NumMethods,                       /* PyNumberMethods *tp_as_number; */
 	&Vector_SeqMethods,                       /* PySequenceMethods *tp_as_sequence; */
-#if (PY_VERSION_HEX >= 0x03000000)
 	&Vector_AsMapping,                       /* PyMappingMethods *tp_as_mapping; */
-#else
-	NULL,
-#endif
 
 	/* More standard operations (here for binary compatibility) */
 

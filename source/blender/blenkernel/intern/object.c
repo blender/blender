@@ -91,6 +91,7 @@
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_fcurve.h"
 #include "BKE_group.h"
 #include "BKE_icons.h"
 #include "BKE_key.h"
@@ -1402,11 +1403,32 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	
 	ob->parent= target->parent;	/* libdata */
 	Mat4CpyMat4(ob->parentinv, target->parentinv);
-#if 0 // XXX old animation system
-	ob->ipo= target->ipo;		/* libdata */
-#endif // XXX old animation system
 	
-	/* skip constraints, constraintchannels, nla? */
+	/* copy animdata stuff - drivers only for now... */
+	if ((target->adt) && (target->adt->drivers.first)) {
+		FCurve *fcu;
+		
+		/* add new animdata block */
+		ob->adt= BKE_id_add_animdata(&ob->id);
+		
+		/* make a copy of all the drivers (for now), then correct any links that need fixing */
+		copy_fcurves(&ob->adt->drivers, &target->adt->drivers);
+		
+		for (fcu= ob->adt->drivers.first; fcu; fcu= fcu->next) {
+			ChannelDriver *driver= fcu->driver;
+			DriverTarget *dtar;
+			
+			for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
+				if ((Object *)dtar->id == target)
+					dtar->id= (ID *)ob;
+				else
+					id_lib_extern((ID *)dtar->id);
+			}
+		}
+	}
+	
+	/* skip constraints? */
+	// FIXME: this is considered by many as a bug
 	
 	/* set object type and link to data */
 	ob->type= target->type;
@@ -1442,6 +1464,9 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 		
 		armature_set_id_extern(ob);
 	}
+	
+	/* copy drawtype info */
+	ob->dt= target->dt;
 }
 
 

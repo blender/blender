@@ -56,6 +56,7 @@
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_windowmanager_types.h"
@@ -1066,10 +1067,21 @@ static void setflag_anim_channels (bAnimContext *ac, short setting, short mode, 
 			case ANIMTYPE_DSPART:
 			{
 				ParticleSettings *part= (ParticleSettings*)ale->data;
-
+				
 				if (ASUBCHANNEL_SEL_OK(ale)) {
 					if (setting == ACHANNEL_SETTING_EXPAND) {
 						ACHANNEL_SET_FLAG(part, mode, PART_DS_EXPAND);
+					}
+				}
+			}
+				break;
+			case ANIMTYPE_DSMBALL:
+			{
+				MetaBall *mb= (MetaBall *)ale->data;
+				
+				if (ASUBCHANNEL_SEL_OK(ale)) {
+					if (setting == ACHANNEL_SETTING_EXPAND) {
+						ACHANNEL_SET_FLAG(mb, mode, MB_DS_EXPAND);
 					}
 				}
 			}
@@ -1685,6 +1697,13 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 		{
 			ParticleSettings *part= (ParticleSettings *)ale->data;
 			part->flag ^= PART_DS_EXPAND;
+			notifierFlags |= ND_ANIMCHAN_EDIT;
+		}
+			break;
+		case ANIMTYPE_DSMBALL:
+		{
+			MetaBall *mb= (MetaBall *)ale->data;
+			mb->flag2 ^= MB_DS_EXPAND;
 			notifierFlags |= ND_ANIMCHAN_EDIT;
 		}
 			break;

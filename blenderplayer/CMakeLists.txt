@@ -87,7 +87,6 @@ IF(UNIX)
     bf_scenegraph 
 	bf_IK
     bf_moto 
-    bf_soundsystem 
     bf_kernel 
     bf_nodes
 	bf_gpu

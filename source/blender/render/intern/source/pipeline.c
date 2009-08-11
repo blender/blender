@@ -48,6 +48,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_writeavi.h"	/* <------ should be replaced once with generic movie module */
+#include "BKE_sequence.h"
 #include "BKE_pointcache.h"
 
 #include "MEM_guardedalloc.h"
@@ -2314,6 +2315,63 @@ static void renderresult_stampinfo(Scene *scene)
 	BKE_stamp_buf(scene, (unsigned char *)rres.rect32, rres.rectf, rres.rectx, rres.recty, 4);
 }
 
+static void do_render_seq(Render * re)
+{
+	static int recurs_depth = 0;
+	struct ImBuf *ibuf;
+	RenderResult *rr = re->result;
+	int cfra = re->r.cfra;
+
+	recurs_depth++;
+
+	ibuf= give_ibuf_seq(re->scene, rr->rectx, rr->recty, cfra, 0, 100.0);
+
+	recurs_depth--;
+	
+	if(ibuf) {
+		if(ibuf->rect_float) {
+			if (!rr->rectf)
+				rr->rectf= MEM_mallocN(4*sizeof(float)*rr->rectx*rr->recty, "render_seq rectf");
+			
+			memcpy(rr->rectf, ibuf->rect_float, 4*sizeof(float)*rr->rectx*rr->recty);
+			
+			/* TSK! Since sequence render doesn't free the *rr render result, the old rect32
+			   can hang around when sequence render has rendered a 32 bits one before */
+			if(rr->rect32) {
+				MEM_freeN(rr->rect32);
+				rr->rect32= NULL;
+			}
+		}
+		else if(ibuf->rect) {
+			if (!rr->rect32)
+				rr->rect32= MEM_mallocN(sizeof(int)*rr->rectx*rr->recty, "render_seq rect");
+
+			memcpy(rr->rect32, ibuf->rect, 4*rr->rectx*rr->recty);
+
+			/* if (ibuf->zbuf) { */
+			/* 	if (R.rectz) freeN(R.rectz); */
+			/* 	R.rectz = BLI_dupallocN(ibuf->zbuf); */
+			/* } */
+		}
+		
+		if (recurs_depth == 0) { /* with nested scenes, only free on toplevel... */
+			Editing * ed = re->scene->ed;
+			if (ed) {
+				free_imbuf_seq(&ed->seqbase, TRUE);
+			}
+		}
+	}
+	else {
+		/* render result is delivered empty in most cases, nevertheless we handle all cases */
+		if (rr->rectf)
+			memset(rr->rectf, 0, 4*sizeof(float)*rr->rectx*rr->recty);
+		else if (rr->rect32)
+			memset(rr->rect32, 0, 4*rr->rectx*rr->recty);
+		else
+			rr->rect32= MEM_callocN(sizeof(int)*rr->rectx*rr->recty, "render_seq rect");
+	}
+}
+
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /* main loop: doing sequence + fields + blur + 3d render + compositing */
@@ -2327,7 +2385,7 @@ static void do_render_all_options(Render *re)
 	if((re->r.scemode & R_DOSEQ) && re->scene->ed && re->scene->ed->seqbase.first) {
 		/* note: do_render_seq() frees rect32 when sequencer returns float images */
 		if(!re->test_break(re->tbh)) 
-			{}; //XXX do_render_seq(re->result, re->r.cfra);
+			do_render_seq(re);
 		
 		re->stats_draw(re->sdh, &re->i);
 		re->display_draw(re->ddh, re->result, NULL);
@@ -2645,7 +2703,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 	re->result_ok= 0;
 	
 	if(BKE_imtype_is_movie(scene->r.imtype))
-		mh->start_movie(&re->r, re->rectx, re->recty);
+		mh->start_movie(scene, &re->r, re->rectx, re->recty);
 	
 	if (mh->get_next_frame) {
 		while (!(G.afbreek == 1)) {
