@@ -1467,6 +1467,7 @@ static void ray_trace_shadow_tra(Isect *is, ShadeInput *origshi, int depth, int 
 	   if it has col[3]>0.0f  continue. so exit when alpha is full */
 	ShadeInput shi;
 	ShadeResult shr;
+	float initial_labda = is->labda;
 	
 	if(RE_rayobject_raycast(R.raytree, is)) {
 		float d= 1.0f;
@@ -1499,7 +1500,7 @@ static void ray_trace_shadow_tra(Isect *is, ShadeInput *origshi, int depth, int 
 			
 			/* adapt isect struct */
 			VECCOPY(is->start, shi.co);
-
+			is->labda = initial_labda-is->labda;
 			is->orig.ob   = shi.obi;
 			is->orig.face = shi.vlr;
 
