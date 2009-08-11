@@ -28,6 +28,9 @@
  */
 #include <xmmintrin.h>
 
+#ifndef RE_RAYTRACE_BVH_H
+#define RE_RAYTRACE_BVH_H
+
 inline int test_bb_group4(__m128 *bb_group, const Isect *isec)
 {
 	
@@ -51,6 +54,12 @@ template<class Tree> static int bvh_intersect(Tree *obj, Isect *isec);
 template<class Tree> static void bvh_add(Tree *obj, RayObject *ob)
 {
 	rtbuild_add( obj->builder, ob );
+}
+
+template<class Node>
+inline bool is_leaf(Node *node)
+{
+	return !RayObject_isAligned(node);
 }
 
 template<class Tree> static void bvh_done(Tree *obj);
@@ -93,14 +102,14 @@ template<class Node> static inline int bvh_node_hit_test(Node *node, Isect *isec
 template<class Node>
 static void bvh_node_merge_bb(Node *node, float *min, float *max)
 {
-	if(RayObject_isAligned(node))
+	if(is_leaf(node))
 	{
-		DO_MIN(node->bb  , min);
-		DO_MAX(node->bb+3, max);
+		RE_rayobject_merge_bb( (RayObject*)node, min, max);
 	}
 	else
 	{
-		RE_rayobject_merge_bb( (RayObject*)node, min, max);
+		DO_MIN(node->bb  , min);
+		DO_MAX(node->bb+3, max);
 	}
 }
 
@@ -117,7 +126,7 @@ static int bvh_node_stack_raycast(Node *root, Isect *isec)
 	Node *stack[MAX_STACK_SIZE];
 	int hit = 0, stack_pos = 0;
 		
-	if(!TEST_ROOT && RayObject_isAligned(root))
+	if(!TEST_ROOT && !is_leaf(root))
 		bvh_node_push_childs(root, isec, stack, stack_pos);
 	else
 		stack[stack_pos++] = root;
@@ -125,7 +134,7 @@ static int bvh_node_stack_raycast(Node *root, Isect *isec)
 	while(stack_pos)
 	{
 		Node *node = stack[--stack_pos];
-		if(RayObject_isAligned(node))
+		if(!is_leaf(node))
 		{
 			if(bvh_node_hit_test(node,isec))
 			{
@@ -157,9 +166,9 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 		
 	if(!TEST_ROOT)
 	{
-		if(RayObject_isAligned(root))
+		if(!is_leaf(root))
 		{
-			if(RayObject_isAligned(root->child))
+			if(!is_leaf(root->child))
 				bvh_node_push_childs(root, isec, stack, stack_pos);
 			else
 				return RE_rayobject_intersect( (RayObject*)root->child, isec);
@@ -169,7 +178,7 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 	}
 	else
 	{
-		if(RayObject_isAligned(root))
+		if(!is_leaf(root))
 			stack[stack_pos++] = root;
 		else
 			return RE_rayobject_intersect( (RayObject*)root, isec);
@@ -214,7 +223,7 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 			for(int i=0; i<4; i++)
 			{
 				Node *t = stack[stack_pos+i];
-				assert(RayObject_isAligned(t));
+				assert(!is_leaf(t));
 				
 				float *bb = ((float*)t_bb)+i;
 				bb[4*0] = t->bb[0];
@@ -237,7 +246,7 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 			if(res & (1<<i))
 			{
 				RE_RC_COUNT(isec->raycounter->bb.hit);
-				if(RayObject_isAligned(t_node[i]))
+				if(!is_leaf(t_node[i]))
 				{
 					for(Node *t=t_node[i]; t; t=t->sibling)
 					{
@@ -255,11 +264,11 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 		else if(stack_pos > 0)
 		{	
 			Node *node = stack[--stack_pos];
-			assert(RayObject_isAligned(node));
+			assert(!is_leaf(node));
 			
 			if(bvh_node_hit_test(node,isec))
 			{
-				if(RayObject_isAligned(node->child))
+				if(!is_leaf(node->child))
 				{
 					bvh_node_push_childs(node, isec, stack, stack_pos);
 					assert(stack_pos <= MAX_STACK_SIZE);
@@ -291,7 +300,7 @@ static int bvh_node_raycast(Node *node, Isect *isec)
 		{
 			int i;
 			for(i=0; i<BVH_NCHILDS; i++)
-				if(RayObject_isAligned(node->child[i]))
+				if(!is_leaf(node->child[i]))
 				{
 					if(node->child[i] == 0) break;
 					
@@ -308,7 +317,7 @@ static int bvh_node_raycast(Node *node, Isect *isec)
 		{
 			int i;
 			for(i=BVH_NCHILDS-1; i>=0; i--)
-				if(RayObject_isAligned(node->child[i]))
+				if(!is_leaf(node->child[i]))
 				{
 					if(node->child[i])
 					{
@@ -326,3 +335,5 @@ static int bvh_node_raycast(Node *node, Isect *isec)
 	return hit;
 }
 */
+
+#endif

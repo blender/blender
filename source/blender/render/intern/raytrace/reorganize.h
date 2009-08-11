@@ -130,9 +130,115 @@ void remove_useless(Node *node, Node **new_node)
 	}
 	if(node->child)
 	{
-		if(RayObject_isAligned(node->child) && node->child->child == 0)
+		if(RayObject_isAligned(node->child) && node->child->sibling == 0)
 			*new_node = node->child;
 	}
 	else if(node->child == 0)
 		*new_node = 0;	
+}
+
+/*
+ * Minimizes expected number of BBtest by colapsing nodes
+ * it uses surface area heuristic for determining whether a node should be colapsed
+ */
+template<class Node>
+void pushup(Node *parent)
+{
+	float p_area = bb_area(parent->bb, parent->bb+3);
+	Node **prev = &parent->child;
+	for(Node *child = parent->child; RayObject_isAligned(child) && child; )
+	{
+		float c_area = bb_area(child->bb, child->bb+3) ;
+		int nchilds = count_childs(child);
+		float original_cost = (c_area / p_area)*nchilds + 1;
+		float flatten_cost = nchilds;
+		if(flatten_cost < original_cost && nchilds >= 2)
+		{
+			append_sibling(child, child->child);
+			child = child->sibling;
+			*prev = child;
+
+//			*prev = child->child;
+//			append_sibling( *prev, child->sibling );
+//			child = *prev;
+			tot_pushup++;
+		}
+		else
+		{
+			*prev = child;
+			prev = &(*prev)->sibling;
+			child = *prev;
+		}		
+	}
+	
+	for(Node *child = parent->child; RayObject_isAligned(child) && child; child = child->sibling)
+		pushup(child);
+}
+
+
+
+/*
+ * Pushdown
+ *	makes sure no child fits inside any of its sibling
+ */
+template<class Node>
+void pushdown(Node *parent)
+{
+	Node **s_child = &parent->child;
+	Node * child = parent->child;
+	
+	while(child && RayObject_isAligned(child))
+	{
+		Node *next = child->sibling;
+		Node **next_s_child = &child->sibling;
+		
+		//assert(bb_fits_inside(parent->bb, parent->bb+3, child->bb, child->bb+3));
+		
+		for(Node *i = parent->child; RayObject_isAligned(i) && i; i = i->sibling)
+		if(child != i && bb_fits_inside(i->bb, i->bb+3, child->bb, child->bb+3) && RayObject_isAligned(i->child))
+		{
+//			todo optimize (should the one with the smallest area?)
+//			float ia = bb_area(i->bb, i->bb+3)
+//			if(child->i)
+			*s_child = child->sibling;
+			child->sibling = i->child;
+			i->child = child;
+			next_s_child = s_child;
+			
+			tot_pushdown++;
+			break;
+		}
+		child = next;
+		s_child = next_s_child;
+	}
+	
+	for(Node *i = parent->child; RayObject_isAligned(i) && i; i = i->sibling)
+		pushdown( i );	
+}
+
+
+/*
+ * BVH refit
+ * reajust nodes BB (useful if nodes childs where modified)
+ */
+template<class Node>
+float bvh_refit(Node *node)
+{
+	if(is_leaf(node)) return 0;	
+	if(is_leaf(node->child)) return 0;
+	
+	float total = 0;
+	
+	for(Node *child = node->child; child; child = child->sibling)
+		total += bvh_refit(child);
+		
+	float old_area = bb_area(node->bb, node->bb+3);
+	INIT_MINMAX(node->bb, node->bb+3);
+	for(Node *child = node->child; child; child = child->sibling)
+	{
+		DO_MIN(child->bb, node->bb);
+		DO_MAX(child->bb+3, node->bb+3);
+	}
+	total += old_area - bb_area(node->bb, node->bb+3);
+	return total;
 }
