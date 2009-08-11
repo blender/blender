@@ -642,7 +642,7 @@ typedef struct Scene {
 	float twmin[3], twmax[3];	/* boundbox of selection for transform widget */
 	unsigned int lay;
 	
-	
+
 	short flag;								/* various settings */
 	
 	short use_nodes;

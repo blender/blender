@@ -708,7 +708,7 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Depth", "Maximum allowed number of light inter-reflections.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "dist_mir");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Maximum Distance", "Maximum distance of reflected rays. Reflections further than this range fade to sky color or material color.");
@@ -784,7 +784,7 @@ static void rna_def_material_raytra(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Filter", "Amount to blend in the material's diffuse color in raytraced transparency (simulating absorption).");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "limit", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "limit", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "tx_limit");
 	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_text(prop, "Limit", "Maximum depth for light to travel through the transparent material before becoming fully filtered (0.0 is disabled).");
@@ -941,7 +941,7 @@ static void rna_def_material_sss(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "Material");
 	RNA_def_struct_ui_text(srna, "Material Subsurface Scattering", "Diffuse subsurface scattering settings for a Material datablock.");
 
-	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_RGB);
+	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_RGB|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "sss_radius");
 	RNA_def_property_range(prop, 0.001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.001, 10000, 1, 3);
@@ -1081,10 +1081,10 @@ void rna_def_material_strand(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Surface Diffuse", "Make diffuse shading more similar to shading the surface.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
-	prop= RNA_def_property(srna, "blend_distance", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "blend_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "strand_surfnor");
 	RNA_def_property_range(prop, 0, 10);
-	RNA_def_property_ui_text(prop, "Blend Distance", "Distance in Blender units over which to blend in the surface normal.");
+	RNA_def_property_ui_text(prop, "Blend Distance", "Worldspace distance over which to blend in the surface normal.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
 	prop= RNA_def_property(srna, "blender_units", PROP_BOOLEAN, PROP_NONE);

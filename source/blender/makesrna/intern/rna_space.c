@@ -564,19 +564,19 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1.0f, 250.0f);
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
-	prop= RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "near");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Clip Start", "3D View near clipping distance.");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
-	prop= RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "far");
 	RNA_def_property_range(prop, 1.0f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Clip End", "3D View far clipping distance.");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
-	prop= RNA_def_property(srna, "grid_spacing", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "grid_spacing", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "grid");
 	RNA_def_property_ui_text(prop, "Grid Spacing", "The distance between 3D View grid lines.");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);

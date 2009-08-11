@@ -48,6 +48,7 @@
 #include "BKE_screen.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_unit.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -1362,7 +1363,15 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 		value= ui_get_but_val(but);
 
 		if(ui_is_but_float(but)) {
-			if(but->a2) { /* amount of digits defined */
+
+			if(but->rnaprop && (RNA_property_subtype(but->rnaprop) & PROP_UNIT_LENGTH && U.unit_type != USER_UNIT_NONE)) {
+				int prec = but->a2;
+				if(prec>4)			prec= 4;
+				else if(prec==0)	prec= 2;
+
+				bUnit_AsString(str, value*U.unit_scale_length, prec, U.unit_type, PROP_UNIT_LENGTH>>16, U.unit_flag&USER_UNIT_OPT_SPLIT, 0);
+			}
+			else if(but->a2) { /* amount of digits defined */
 				if(but->a2==1) BLI_snprintf(str, maxlen, "%.1f", value);
 				else if(but->a2==2) BLI_snprintf(str, maxlen, "%.2f", value);
 				else if(but->a2==3) BLI_snprintf(str, maxlen, "%.3f", value);
@@ -1437,11 +1446,17 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 
 		/* XXX 2.50 missing python api */
 #ifndef DISABLE_PYTHON
-		if(BPY_button_eval(C, str, &value)) {
-			value = ui_get_but_val(but); /* use its original value */
+		{
+			char str_unit_convert[256];
 			
-			if(str[0])
-				return 0;
+			bUnit_ReplaceString(str_unit_convert, str, U.unit_scale_length, U.unit_type, PROP_UNIT_LENGTH>>16);
+
+			if(BPY_button_eval(C, str_unit_convert, &value)) {
+				value = ui_get_but_val(but); /* use its original value */
+
+				if(str[0])
+					return 0;
+			}
 		}
 #else
 		value= atof(str);
@@ -1787,6 +1802,19 @@ void ui_check_but(uiBut *but)
 		if(ui_is_but_float(but)) {
 			if(value == FLT_MAX) sprintf(but->drawstr, "%sinf", but->str);
 			else if(value == -FLT_MAX) sprintf(but->drawstr, "%s-inf", but->str);
+			/* support length type buttons */
+			else if(but->rnaprop && (RNA_property_subtype(but->rnaprop) & PROP_UNIT_LENGTH && U.unit_type != USER_UNIT_NONE)) {
+				char new_str[256];
+				int prec = but->a2;
+				if(prec>4)			prec= 4;
+				else if(prec==0)	prec= 2;
+
+				if(U.unit_scale_length==0.0) U.unit_scale_length= 1.0; // XXX do_versions
+
+				bUnit_AsString(new_str, value*U.unit_scale_length, prec, U.unit_type, PROP_UNIT_LENGTH>>16, U.unit_flag&USER_UNIT_OPT_SPLIT, 1);
+
+				sprintf(but->drawstr, "%s%s", but->str, new_str);
+			}
 			else if(but->a2) { /* amount of digits defined */
 				if(but->a2==1) sprintf(but->drawstr, "%s%.1f", but->str, value);
 				else if(but->a2==2) sprintf(but->drawstr, "%s%.2f", but->str, value);

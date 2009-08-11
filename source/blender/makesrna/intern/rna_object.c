@@ -824,7 +824,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.01, 10000.0);
 	RNA_def_property_ui_text(prop, "Mass", "Mass of the object.");
 
-	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "inertia");
 	RNA_def_property_range(prop, 0.01, 10.0);
 	RNA_def_property_ui_text(prop, "Radius", "Radius for Bounding sphere and Fh/Fh Rot.");
@@ -922,7 +922,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_CHILD);
 	RNA_def_property_ui_text(prop, "Collison Compound", "Add children to form a compound collision object.");
 
-	prop= RNA_def_property(srna, "collision_margin", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "collision_margin", PROP_FLOAT, PROP_NONE|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "margin");
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Collision Margin", "Extra margin around object for collision detection, small amount required for stability.");
@@ -1218,7 +1218,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Empty Draw Type", "Viewport display style for empties.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "empty_draw_size", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "empty_draw_size", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "empty_drawsize");
 	RNA_def_property_range(prop, 0.01, 10.0);
 	RNA_def_property_ui_text(prop, "Empty Draw Size", "Size of of display for empties in the viewport.");
@@ -1344,25 +1344,25 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Dupli Group", "Instance an existing group.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_dependency_update");
 
-	prop= RNA_def_property(srna, "dupli_frames_start", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "dupli_frames_start", PROP_INT, PROP_NONE|PROP_UNIT_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "dupsta");
 	RNA_def_property_range(prop, 1, 32767);
 	RNA_def_property_ui_text(prop, "Dupli Frames Start", "Start frame for DupliFrames.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
-	prop= RNA_def_property(srna, "dupli_frames_end", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "dupli_frames_end", PROP_INT, PROP_NONE|PROP_UNIT_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "dupend");
 	RNA_def_property_range(prop, 1, 32767);
 	RNA_def_property_ui_text(prop, "Dupli Frames End", "End frame for DupliFrames.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
-	prop= RNA_def_property(srna, "dupli_frames_on", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "dupli_frames_on", PROP_INT, PROP_NONE|PROP_UNIT_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "dupon");
 	RNA_def_property_range(prop, 1, 1500);
 	RNA_def_property_ui_text(prop, "Dupli Frames On", "Number of frames to use between DupOff frames.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
-	prop= RNA_def_property(srna, "dupli_frames_off", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "dupli_frames_off", PROP_INT, PROP_NONE|PROP_UNIT_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "dupoff");
 	RNA_def_property_range(prop, 0, 1500);
 	RNA_def_property_ui_text(prop, "Dupli Frames Off", "Recurring frames to exclude from the Dupliframes.");
@@ -1370,7 +1370,7 @@ static void rna_def_object(BlenderRNA *brna)
 
 	/* time offset */
 
-	prop= RNA_def_property(srna, "time_offset", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "time_offset", PROP_FLOAT, PROP_NONE|PROP_UNIT_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "sf");
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Time Offset", "Animation offset in frames for IPO's and dupligroup instances.");

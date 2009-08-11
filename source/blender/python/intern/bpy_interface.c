@@ -808,44 +808,35 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 int BPY_button_eval(bContext *C, char *expr, double *value)
 {
 	PyGILState_STATE gilstate;
-	PyObject *dict, *retval, *expr_conv= NULL;
+	PyObject *dict, *retval;
 	int error_ret = 0;
 	
 	if (!value || !expr || expr[0]=='\0') return -1;
 	
 	bpy_context_set(C, &gilstate);
 	
-	// experemental, fun. "button_convert.convert" is currently defined in bpy_ops.py
-	{
-		PyObject *mod= PyDict_GetItemString(PySys_GetObject("modules"), "button_convert");
-		if(mod && PyModule_Check(mod))	{
-			PyObject *mod_dict= PyModule_GetDict(mod);
-			PyObject *func= PyDict_GetItemString(mod_dict, "convert");
-			if(func) {
-				PyObject *expr_conv = PyObject_CallFunction(func, "s", expr);
-				if(expr_conv==NULL) {
-					PyErr_Print();
-					PyErr_Clear();
-				}
-				else {
-					expr= _PyUnicode_AsString(expr_conv); /* TODO, check */
-				}
-			}
-		}
-	}
-	
 	dict= CreateGlobalDictionary(C);
 	retval = PyRun_String(expr, Py_eval_input, dict, dict);
-	
-	if(expr_conv) {
-		Py_DECREF(expr_conv); /* invalidates expr */
-	}
 	
 	if (retval == NULL) {
 		error_ret= -1;
 	}
 	else {
-		double val = PyFloat_AsDouble(retval);
+		double val;
+
+		if(PyTuple_Check(retval)) {
+			/* Users my have typed in 10km, 2m
+			 * add up all values */
+			int i;
+			val= 0.0;
+
+			for(i=0; i<PyTuple_GET_SIZE(retval); i++) {
+				val+= PyFloat_AsDouble(PyTuple_GET_ITEM(retval, i));
+			}
+		}
+		else {
+			val = PyFloat_AsDouble(retval);
+		}
 		Py_DECREF(retval);
 		
 		if(val==-1 && PyErr_Occurred()) {
