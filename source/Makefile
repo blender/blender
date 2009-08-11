@@ -75,6 +75,7 @@ endif
 # PLUGAPPLIB libs that form the application to be plugged in
 # Note: the order is important here
 
+
 GRPLIB = $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
 GRPLIB += $(OCGDIR)/blender/windowmanager/$(DEBUG_DIR)libwindowmanager.a
 GRPLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
@@ -108,6 +109,7 @@ COMLIB += $(OCGDIR)/blender/blenfont/$(DEBUG_DIR)libblenfont.a
 COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaudaspace.a
 COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_src.a
 COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_fx.a
+COMLIB += $(LCGDIR)/samplerate/lib/libsamplerate.a
 
 ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/bloutines/$(DEBUG_DIR)libbloutines.a
