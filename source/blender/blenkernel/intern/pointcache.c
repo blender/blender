@@ -443,21 +443,18 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 
 	pid->data_types= (1<<BPHYS_DATA_LOCATION) | (1<<BPHYS_DATA_VELOCITY);
 
-	if(psys->part)
-	{
-		/* TODO for later */
-		//if((psys->part->flag & (PART_UNBORN|PART_DIED))==0)
-		//	pid->data_types|= (1<<BPHYS_DATA_INDEX);
+	/* TODO for later */
+	//if((psys->part->flag & (PART_UNBORN|PART_DIED))==0)
+	//	pid->data_types|= (1<<BPHYS_DATA_INDEX);
 
-		if(psys->part->phystype == PART_PHYS_BOIDS)
-			pid->data_types|= (1<<BPHYS_DATA_AVELOCITY) | (1<<BPHYS_DATA_ROTATION) | (1<<BPHYS_DATA_BOIDS);
+	if(psys->part->phystype == PART_PHYS_BOIDS)
+		pid->data_types|= (1<<BPHYS_DATA_AVELOCITY) | (1<<BPHYS_DATA_ROTATION) | (1<<BPHYS_DATA_BOIDS);
 
-		if(psys->part->rotmode || psys->part->avemode)
-			pid->data_types|= (1<<BPHYS_DATA_AVELOCITY) | (1<<BPHYS_DATA_ROTATION);
+	if(psys->part->rotmode || psys->part->avemode)
+		pid->data_types|= (1<<BPHYS_DATA_AVELOCITY) | (1<<BPHYS_DATA_ROTATION);
 
-		if(psys->part->flag & PART_ROT_DYN)
-			pid->data_types|= (1<<BPHYS_DATA_ROTATION);
-	}
+	if(psys->part->flag & PART_ROT_DYN)
+		pid->data_types|= (1<<BPHYS_DATA_ROTATION);
 
 	pid->info_types= (1<<BPHYS_DATA_TIMES);
 }
