@@ -1142,6 +1142,20 @@ int ui_is_but_float(uiBut *but)
 	return 0;
 }
 
+int ui_is_but_unit(uiBut *but)
+{
+	if(U.unit_system == USER_UNIT_NONE)
+		return 0;
+
+	if(but->rnaprop==NULL)
+		return 0;
+
+	if(RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop))==0)
+		return 0;
+
+	return 1;
+}
+
 double ui_get_but_val(uiBut *but)
 {
 	PropertyRNA *prop;
@@ -1337,6 +1351,21 @@ static void ui_get_but_string_unit(uiBut *but, char *str, double value, int pad)
 	bUnit_AsString(str, ui_get_but_scale_unit(but, value), precission, U.unit_system, unit_type, do_split, pad);
 }
 
+static float ui_get_but_step_unit(uiBut *but, double value, float step_default)
+{
+	int unit_type=  RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop));
+	float step;
+
+	step = bUnit_Size(ui_get_but_scale_unit(but, value), U.unit_system, unit_type);
+
+	if(step > 0.0) { /* -1 is an error value */
+		return (step/ui_get_but_scale_unit(but, 1.0))*100;
+	}
+	else {
+		return step_default;
+	}
+}
+
 
 void ui_get_but_string(uiBut *but, char *str, int maxlen)
 {
@@ -1393,8 +1422,7 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 		value= ui_get_but_val(but);
 
 		if(ui_is_but_float(but)) {
-
-			if(U.unit_system != USER_UNIT_NONE && but->rnaprop && RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop))) {
+			if(ui_is_but_unit(but)) {
 				ui_get_but_string_unit(but, str, value, 0);
 			}
 			else if(but->a2) { /* amount of digits defined */
@@ -1835,7 +1863,7 @@ void ui_check_but(uiBut *but)
 			if(value == FLT_MAX) sprintf(but->drawstr, "%sinf", but->str);
 			else if(value == -FLT_MAX) sprintf(but->drawstr, "%s-inf", but->str);
 			/* support length type buttons */
-			else if(U.unit_system != USER_UNIT_NONE && but->rnaprop && RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop))) {
+			else if(ui_is_but_unit(but)) {
 				char new_str[256];
 
 				if(U.unit_scale_length<0.0001) U.unit_scale_length= 1.0; // XXX do_versions
@@ -2381,6 +2409,10 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 		but->lock = 1;
 		but->lockstr = "";
 	}
+
+	/* If this button uses units, calculate the step from this */
+	if(ui_is_but_unit(but))
+		but->a1= ui_get_but_step_unit(but, ui_get_but_val(but), but->a1);
 
 	if(freestr)
 		MEM_freeN(str);

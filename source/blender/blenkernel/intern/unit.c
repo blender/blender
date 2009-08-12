@@ -347,3 +347,19 @@ int bUnit_ReplaceString(char *str, char *str_orig, char *str_prev, double scale_
 	// printf("replace %s\n", str);
 	return change;
 }
+
+
+double bUnit_Size(double value, int system, int type)
+{
+	bUnitCollection *usys = unit_get_system(system, type);
+	bUnitDef *unit;
+
+	if(usys==NULL)
+		return -1;
+
+	unit= unit_best_fit(value, usys, NULL);
+	if(unit==NULL)
+		return -1;
+
+	return unit->mul;
+}

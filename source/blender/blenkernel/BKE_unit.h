@@ -36,6 +36,9 @@ void	bUnit_AsString(char *str, double value, int prec, int system, int type, int
 /* replace units with values, used before python button evaluation */
 int		bUnit_ReplaceString(char *str, char *str_orig, char *str_prev, double scale_pref, int system, int type);
 
+/* the size of the unit used for this value (used for calculating the ckickstep) */
+double bUnit_Size(double value, int system, int type);
+
 #ifdef __cplusplus
 }
 #endif
