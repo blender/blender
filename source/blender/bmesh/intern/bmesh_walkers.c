@@ -202,7 +202,7 @@ void BMW_Init(BMWalker *walker, BMesh *bm, int type, int searchmask, int flag)
 			walker->yield = edgeringWalker_yield;
 			size = sizeof(edgeringWalker);
 			break;
-		case BMW_UVISLAND:
+		case BMW_LOOPDATA_ISLAND:
 			walker->begin = uvedgeWalker_begin;
 			walker->step = uvedgeWalker_step;
 			walker->yield = uvedgeWalker_yield;
@@ -333,6 +333,9 @@ static void shellWalker_begin(BMWalker *walker, void *data){
 	}
 
 	if (!e) 
+		return;
+
+	if (BLI_ghash_haskey(walker->visithash, e))
 		return;
 
 	BMW_pushstate(walker);

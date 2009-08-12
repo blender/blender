@@ -219,6 +219,8 @@ void BMO_Set_Mat(struct BMOperator *op, char *slotname, float *mat, int size);
 void BMO_Get_Mat4(struct BMOperator *op, char *slotname, float mat[4][4]);
 void BMO_Get_Mat3(struct BMOperator *op, char *slotname, float mat[3][3]);
 
+void BMO_Clear_Flag_All(BMesh *bm, BMOperator *op, int type, int flag);
+
 /*puts every element of type type (which is a bitmask) with tool flag flag,
   into a slot.*/
 void BMO_Flag_To_Slot(struct BMesh *bm, struct BMOperator *op, char *slotname, int flag, int type);

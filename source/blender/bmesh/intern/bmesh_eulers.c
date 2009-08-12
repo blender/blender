@@ -207,7 +207,25 @@ BMFace *bmesh_mf(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **elist, int len)
 		return NULL;
 	
 	/*clear euler flags*/
-	for(i=0;i<len;i++) elist[i]->head.eflag1=elist[i]->head.eflag2 = 0;
+	for(i=0;i<len;i++) {
+		BMNode *diskbase;
+		BMEdge *curedge;
+		BMVert *v1;
+		int j;
+
+		for (j=0; j<2; j++) {
+			int a, len=0;
+			
+			v1 = j ? elist[i]->v2 : elist[i]->v1;
+			diskbase = bmesh_disk_getpointer(v1->edge, v1);
+			len = bmesh_cycle_length(diskbase);
+
+			for(a=0,curedge=v1->edge;a<len;a++,curedge = bmesh_disk_nextedge(curedge,v1)){
+				curedge->head.eflag1 = curedge->head.eflag2 = 0;
+			}
+		}
+	}
+
 	for(i=0;i<len;i++){
 		elist[i]->head.eflag1 |= MF_CANDIDATE;
 		

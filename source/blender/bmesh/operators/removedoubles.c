@@ -89,7 +89,7 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 	BMLoop *l, *l2, **loops = NULL;
 	V_DECLARE(loops);
 	BMFace *f, *f2;
-	int a;
+	int a, b;
 
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		if (BMO_Get_MapPointer(bm, op, "targetmap", v))
@@ -101,15 +101,17 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 	}
 	
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		v = BMO_Get_MapPointer(bm, op, "targetmap", e->v1);
-		v2 = BMO_Get_MapPointer(bm, op, "targetmap", e->v2);
-		
-		if (!v) v = e->v1;
-		if (!v2) v2 = e->v2;
+		if (BMO_TestFlag(bm, e->v1, ELE_DEL) || BMO_TestFlag(bm, e->v2, ELE_DEL)) {
+			v = BMO_Get_MapPointer(bm, op, "targetmap", e->v1);
+			v2 = BMO_Get_MapPointer(bm, op, "targetmap", e->v2);
+			
+			if (!v) v = e->v1;
+			if (!v2) v2 = e->v2;
 
-		if ((e->v1 != v) || (e->v2 != v2)) {
-			if (v == v2) BMO_SetFlag(bm, e, EDGE_COL);
-			else BM_Make_Edge(bm, v, v2, e, 1);
+			if (v == v2)
+				BMO_SetFlag(bm, e, EDGE_COL);
+			else if (!BM_Edge_Exist(v, v2))
+				BM_Make_Edge(bm, v, v2, e, 1);
 
 			BMO_SetFlag(bm, e, ELE_DEL);
 		}
@@ -119,14 +121,16 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 		BMINDEX_SET(f, 0);
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			if (BMO_TestFlag(bm, l->v, ELE_DEL))
-				BMO_SetFlag(bm, f, FACE_MARK);
+				BMO_SetFlag(bm, f, FACE_MARK|ELE_DEL);
 			if (BMO_TestFlag(bm, l->e, EDGE_COL)) 
 				BMINDEX_SET(f, BMINDEX_GET(f)+1);
 		}
 	}
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		if (!BMO_TestFlag(bm, f, FACE_MARK)) continue;
+		if (!BMO_TestFlag(bm, f, FACE_MARK))
+			continue;
+
 		if (f->len - BMINDEX_GET(f) < 3) {
 			BMO_SetFlag(bm, f, ELE_DEL);
 			continue;
@@ -141,10 +145,17 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 			if (BMO_TestFlag(bm, v, ELE_DEL)) 
 				v = BMO_Get_MapPointer(bm, op, "targetmap", v);
 			if (BMO_TestFlag(bm, v2, ELE_DEL)) 
-					v2 = BMO_Get_MapPointer(bm, op, "targetmap", v2);
+				v2 = BMO_Get_MapPointer(bm, op, "targetmap", v2);
 			
 			e2 = v != v2 ? BM_Edge_Exist(v, v2) : NULL;
 			if (e2) {
+				for (b=0; b<a; b++) {
+					if (edges[b] == e2)
+						break;
+				}
+				if (b != a)
+					continue;
+
 				V_GROW(edges);
 				V_GROW(loops);
 
@@ -163,11 +174,9 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 		if (BMO_TestFlag(bm, v2, ELE_DEL)) 
 			v2 = BMO_Get_MapPointer(bm, op, "targetmap", v2);
 		
-
 		f2 = BM_Make_Ngon(bm, v, v2, edges, a, 0);
 		if (f2) {
 			BM_Copy_Attributes(bm, bm, f, f2);
-			BMO_SetFlag(bm, f, ELE_DEL);
 
 			a = 0;
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f2) {
@@ -177,8 +186,6 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 				a++;
 			}
 		}
-
-		/*need to still copy customdata stuff here, will do later*/
 	}
 
 	BMO_CallOpf(bm, "del geom=%fvef context=%i", ELE_DEL, DEL_ONLYTAGGED);
@@ -280,9 +287,10 @@ void bmesh_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 	CDBlockBytes min, max;
 	int i, tot, type = bm->ldata.layers[layer].type;
 
+	BMO_Clear_Flag_All(bm, op, BM_ALL, 65535);
+
 	BMO_Flag_Buffer(bm, op, "edges", EDGE_MARK, BM_EDGE);
-	
-	BMW_Init(&walker, bm, BMW_UVISLAND, EDGE_MARK, layer);
+	BMW_Init(&walker, bm, BMW_LOOPDATA_ISLAND, EDGE_MARK, layer);
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
@@ -299,13 +307,15 @@ void bmesh_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 					CustomData_data_dominmax(type, blocks[tot], &min, &max);
 				}
 
-				CustomData_data_multiply(type, &min, 0.5f);
-				CustomData_data_multiply(type, &max, 0.5f);
-				CustomData_data_add(type, &min, &max);
+				if (tot) {
+					CustomData_data_multiply(type, &min, 0.5f);
+					CustomData_data_multiply(type, &max, 0.5f);
+					CustomData_data_add(type, &min, &max);
 
-				/*snap CD (uv, vcol) points to their centroid*/
-				for (i=0; i<tot; i++) {
-					CustomData_bmesh_set_layer_n(&bm->ldata, blocks[i], layer, &min);
+					/*snap CD (uv, vcol) points to their centroid*/
+					for (i=0; i<tot; i++) {
+						CustomData_data_copy_value(type, &min, blocks[i]);
+					}
 				}
 			}
 		}

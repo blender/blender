@@ -67,6 +67,11 @@ extern const CustomDataMask CD_MASK_FACECORNERS;
  */
 int CustomData_layer_has_math(struct CustomData *data, int layern);
 
+/*copies the "value" (e.g. mloopuv uv or mloopcol colors) from one block to
+  another, while not overwriting anything else (e.g. flags).  probably only
+  implemented for mloopuv/mloopcol, for now.*/
+void CustomData_data_copy_value(int type, void *source, void *dest);
+
 /* compares if data1 is equal to data2.  type is a valid CustomData type
  * enum (e.g. CD_MLOOPUV). the layer type's equal function is used to compare
  * the data, if it exists, otherwise memcmp is used.*/

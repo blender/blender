@@ -58,7 +58,7 @@ enum {
 	//tool flag.
 	//
 	//the flag parameter to BMW_Init maps to a loop customdata layer index.
-	BMW_UVISLAND,
+	BMW_LOOPDATA_ISLAND,
 	/*walk over an island of flagged faces.  note, that this doesn't work on
 	  non-manifold geometry.  it might be better to rewrite this to extract
 	  boundary info from the island walker, rather then directly walking

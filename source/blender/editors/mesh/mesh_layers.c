@@ -60,14 +60,21 @@
 #include "mesh_intern.h"
 #include "bmesh.h"
 
-static void delete_customdata_layer(Mesh *me, CustomDataLayer *layer)
+static void delete_customdata_layer(Mesh *me, CustomDataLayer *layer, int loop)
 {
-	CustomData *data= (me->edit_btmesh)? &me->edit_btmesh->bm->pdata: &me->pdata;
+	CustomData *data;
 	void *actlayerdata, *rndlayerdata, *clonelayerdata, *masklayerdata, *layerdata=layer->data;
 	int type= layer->type;
-	int index= CustomData_get_layer_index(data, type);
+	int index;
 	int i, actindex, rndindex, cloneindex, maskindex;
 	
+	if (loop)
+		data = (me->edit_btmesh)? &me->edit_btmesh->bm->ldata: &me->ldata;
+	else
+		data = (me->edit_btmesh)? &me->edit_btmesh->bm->pdata: &me->pdata;
+	
+	index = CustomData_get_layer_index(data, type);
+
 	/* ok, deleting a non-active layer needs to preserve the active layer indices.
 	  to do this, we store a pointer to the .data member of both layer and the active layer,
 	  (to detect if we're deleting the active layer or not), then use the active
@@ -85,7 +92,7 @@ static void delete_customdata_layer(Mesh *me, CustomDataLayer *layer)
 		BM_free_data_layer(me->edit_btmesh->bm, data, type);
 	}
 	else {
-		CustomData_free_layer_active(data, type, me->totface);
+		CustomData_free_layer_active(data, type, loop ? me->totloop : me->totpoly);
 		mesh_update_customdata_pointers(me);
 	}
 
@@ -234,8 +241,8 @@ static int uv_texture_remove_exec(bContext *C, wmOperator *op)
 	if(!cdl)
 		return OPERATOR_CANCELLED;
 
-	delete_customdata_layer(me, cdl);
-	delete_customdata_layer(me, cdl2);
+	delete_customdata_layer(me, cdl, 0);
+	delete_customdata_layer(me, cdl2, 1);
 
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
@@ -338,7 +345,7 @@ static int vertex_color_remove_exec(bContext *C, wmOperator *op)
 	if(!cdl)
 		return OPERATOR_CANCELLED;
 
-	delete_customdata_layer(me, cdl);
+	delete_customdata_layer(me, cdl, 1);
 
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);

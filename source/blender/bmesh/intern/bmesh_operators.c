@@ -433,6 +433,25 @@ int BMO_CountFlag(BMesh *bm, int flag, int type)
 	return count;	
 }
 
+void BMO_Clear_Flag_All(BMesh *bm, BMOperator *op, int type, int flag) {
+	BMIter iter;
+	BMHeader *ele;
+	int i=0, types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
+
+	for (i=0; i<3; i++) {
+		if (i==0 && !(type & BM_VERT))
+			continue;
+		if (i==1 && !(type & BM_EDGE))
+			continue;
+		if (i==2 && !(type & BM_FACE))
+			continue;
+
+		BM_ITER(ele, &iter, bm, types[i], NULL) {
+			BMO_ClearFlag(bm, ele, flag);
+		}
+	}
+}
+
 int BMO_CountSlotBuf(struct BMesh *bm, struct BMOperator *op, char *slotname)
 {
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);

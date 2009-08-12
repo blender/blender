@@ -410,8 +410,8 @@ static int rna_vertex_color_check(CollectionPropertyIterator *iter, void *data)
 static void rna_Mesh_vertex_colors_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Mesh *me= (Mesh*)ptr->data;
-	CustomData *fdata= rna_mesh_ldata(me);
-	rna_iterator_array_begin(iter, (void*)fdata->layers, sizeof(CustomDataLayer), fdata->totlayer, 0, rna_vertex_color_check);
+	CustomData *ldata= rna_mesh_ldata(me);
+	rna_iterator_array_begin(iter, (void*)ldata->layers, sizeof(CustomDataLayer), ldata->totlayer, 0, rna_vertex_color_check);
 }
 
 static int rna_Mesh_vertex_colors_length(PointerRNA *ptr)
@@ -422,9 +422,9 @@ static int rna_Mesh_vertex_colors_length(PointerRNA *ptr)
 static PointerRNA rna_Mesh_active_vertex_color_get(PointerRNA *ptr)
 {
 	Mesh *me= (Mesh*)ptr->data;
-	CustomData *fdata= rna_mesh_ldata(me);
-	int index= CustomData_get_active_layer_index(fdata, CD_MLOOPCOL);
-	CustomDataLayer *cdl= (index == -1)? NULL: &fdata->layers[index];
+	CustomData *ldata= rna_mesh_ldata(me);
+	int index= CustomData_get_active_layer_index(ldata, CD_MLOOPCOL);
+	CustomDataLayer *cdl= (index == -1)? NULL: &ldata->layers[index];
 
 	return rna_pointer_inherit_refine(ptr, &RNA_MeshColorLayer, cdl);
 }
@@ -432,13 +432,13 @@ static PointerRNA rna_Mesh_active_vertex_color_get(PointerRNA *ptr)
 static void rna_Mesh_active_vertex_color_set(PointerRNA *ptr, PointerRNA value)
 {
 	Mesh *me= (Mesh*)ptr->data;
-	CustomData *fdata= rna_mesh_ldata(me);
+	CustomData *ldata= rna_mesh_ldata(me);
 	CustomDataLayer *cdl;
 	int a;
 
-	for(cdl=fdata->layers, a=0; a<fdata->totlayer; cdl++, a++) {
+	for(cdl=ldata->layers, a=0; a<ldata->totlayer; cdl++, a++) {
 		if(value.data == cdl) {
-			CustomData_set_layer_active_index(fdata, CD_MLOOPCOL, a);
+			CustomData_set_layer_active_index(ldata, CD_MLOOPCOL, a);
 			mesh_update_customdata_pointers(me);
 			return;
 		}
@@ -448,26 +448,26 @@ static void rna_Mesh_active_vertex_color_set(PointerRNA *ptr, PointerRNA value)
 static int rna_Mesh_active_vertex_color_index_get(PointerRNA *ptr)
 {
 	Mesh *me= (Mesh*)ptr->data;
-	CustomData *fdata= rna_mesh_ldata(me);
-	return CustomData_get_active_layer(fdata, CD_MLOOPCOL);
+	CustomData *ldata= rna_mesh_ldata(me);
+	return CustomData_get_active_layer(ldata, CD_MLOOPCOL);
 }
 
 static void rna_Mesh_active_vertex_color_index_set(PointerRNA *ptr, int value)
 {
 	Mesh *me= (Mesh*)ptr->data;
-	CustomData *fdata= rna_mesh_ldata(me);
+	CustomData *ldata= rna_mesh_ldata(me);
 
-	CustomData_set_layer_active(fdata, CD_MLOOPCOL, value);
+	CustomData_set_layer_active(ldata, CD_MLOOPCOL, value);
 	mesh_update_customdata_pointers(me);
 }
 
 static void rna_Mesh_active_vertex_color_index_range(PointerRNA *ptr, int *min, int *max)
 {
 	Mesh *me= (Mesh*)ptr->data;
-	CustomData *fdata= rna_mesh_ldata(me);
+	CustomData *ldata= rna_mesh_ldata(me);
 
 	*min= 0;
-	*max= CustomData_number_of_layers(fdata, CD_MLOOPCOL)-1;
+	*max= CustomData_number_of_layers(ldata, CD_MLOOPCOL)-1;
 	*max= MAX2(0, *max);
 }
 
@@ -475,33 +475,33 @@ static void rna_MeshColorLayer_data_begin(CollectionPropertyIterator *iter, Poin
 {
 	Mesh *me= (Mesh*)ptr->id.data;
 	CustomDataLayer *layer= (CustomDataLayer*)ptr->data;
-	rna_iterator_array_begin(iter, layer->data, sizeof(MCol)*4, me->totface, 0, NULL);
+	rna_iterator_array_begin(iter, layer->data, sizeof(CD_MLOOPCOL), me->totloop, 0, NULL);
 }
 
 static int rna_MeshColorLayer_data_length(PointerRNA *ptr)
 {
 	Mesh *me= (Mesh*)ptr->id.data;
-	return me->totface;
+	return me->totloop;
 }
 
 static int rna_MeshColorLayer_active_render_get(PointerRNA *ptr)
 {
-	return rna_CustomDataLayer_active_get(ptr, CD_MCOL, 1);
+	return rna_CustomDataLayer_active_get(ptr, CD_MLOOPCOL, 1);
 }
 
 static int rna_MeshColorLayer_active_get(PointerRNA *ptr)
 {
-	return rna_CustomDataLayer_active_get(ptr, CD_MCOL, 0);
+	return rna_CustomDataLayer_active_get(ptr, CD_MLOOPCOL, 0);
 }
 
 static void rna_MeshColorLayer_active_render_set(PointerRNA *ptr, int value)
 {
-	rna_CustomDataLayer_active_set(ptr, value, CD_MCOL, 1);
+	rna_CustomDataLayer_active_set(ptr, value, CD_MLOOPCOL, 1);
 }
 
 static void rna_MeshColorLayer_active_set(PointerRNA *ptr, int value)
 {
-	rna_CustomDataLayer_active_set(ptr, value, CD_MCOL, 0);
+	rna_CustomDataLayer_active_set(ptr, value, CD_MLOOPCOL, 0);
 }
 
 static void rna_MeshColorLayer_name_set(PointerRNA *ptr, const char *value)
@@ -509,7 +509,7 @@ static void rna_MeshColorLayer_name_set(PointerRNA *ptr, const char *value)
 	Mesh *me= (Mesh*)ptr->id.data;
 	CustomDataLayer *cdl= (CustomDataLayer*)ptr->data;
 	BLI_strncpy(cdl->name, value, sizeof(cdl->name));
-	CustomData_set_layer_unique_name(&me->fdata, cdl - me->fdata.layers);
+	CustomData_set_layer_unique_name(&me->ldata, cdl - me->ldata.layers);
 }
 
 static void rna_MeshFloatPropertyLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)

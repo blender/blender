@@ -98,6 +98,7 @@ typedef struct LayerTypeInfo {
 	void (*initminmax)(void *min, void *max);
 	void (*add)(void *data1, void *data2);
 	void (*dominmax)(void *data1, void *min, void *max);
+	void (*copyvalue)(void *source, void *dest);
 } LayerTypeInfo;
 
 static void layerCopy_mdeformvert(const void *source, void *dest,
@@ -541,6 +542,15 @@ static void layerFree_mdisps(void *data, int count, int size)
 }
 
 /* --------- */
+static void layerCopyValue_mloopcol(void *source, void *dest)
+{
+	MLoopCol *m1 = source, *m2 = dest;
+	
+	m2->r = m1->r;
+	m2->g = m1->g;
+	m2->b = m1->b;
+	m2->a = m1->a;
+}
 
 static int layerEqual_mloopcol(void *data1, void *data2)
 {
@@ -660,6 +670,14 @@ static void layerInterp_mloopcol(void **sources, float *weights,
 	mc->r = (int)col.r;
 	mc->g = (int)col.g;
 	mc->b = (int)col.b;
+}
+
+static void layerCopyValue_mloopuv(void *source, void *dest)
+{
+	MLoopUV *luv1 = source, *luv2 = dest;
+	
+	luv2->uv[0] = luv1->uv[0];
+	luv2->uv[1] = luv1->uv[1];
 }
 
 static int layerEqual_mloopuv(void *data1, void *data2)
@@ -838,10 +856,10 @@ const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(MTexPoly), "MTexPoly", 1, "Face Texture", NULL, NULL, NULL, NULL, NULL},
 	{sizeof(MLoopUV), "MLoopUV", 1, "UV coord", NULL, NULL, layerInterp_mloopuv, NULL, NULL,
 	 layerEqual_mloopuv, layerMultiply_mloopuv, layerInitMinMax_mloopuv, 
-	 layerAdd_mloopuv, layerDoMinMax_mloopuv},
+	 layerAdd_mloopuv, layerDoMinMax_mloopuv, layerCopyValue_mloopuv},
 	{sizeof(MLoopCol), "MLoopCol", 1, "Col", NULL, NULL, layerInterp_mloopcol, NULL, 
 	 layerDefault_mloopcol, layerEqual_mloopcol, layerMultiply_mloopcol, layerInitMinMax_mloopcol, 
-	 layerAdd_mloopcol, layerDoMinMax_mloopcol},
+	 layerAdd_mloopcol, layerDoMinMax_mloopcol, layerCopyValue_mloopcol},
 	{sizeof(float)*3*4, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	{sizeof(MDisps), "MDisps", 1, NULL, layerCopy_mdisps,
 	 layerFree_mdisps, layerInterp_mdisps, layerSwap_mdisps, NULL},
@@ -2021,9 +2039,9 @@ void CustomData_bmesh_merge(CustomData *source, CustomData *dest,
 		/*ensure all current elements follow new customdata layout*/
 		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 			BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-				CustomData_bmesh_copy_data(&destold, dest, h->data, &tmp);
-				CustomData_bmesh_free_block(&destold, &h->data);
-				h->data = tmp;
+				CustomData_bmesh_copy_data(&destold, dest, l->head.data, &tmp);
+				CustomData_bmesh_free_block(&destold, &l->head.data);
+				l->head.data = tmp;
 			}
 		}
 	}
@@ -2150,6 +2168,20 @@ int CustomData_layer_has_math(struct CustomData *data, int layern)
 	return 0;
 }
 
+/*copies the "value" (e.g. mloopuv uv or mloopcol colors) from one block to
+  another, while not overwriting anything else (e.g. flags)*/
+void CustomData_data_copy_value(int type, void *source, void *dest)
+{
+	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
+
+	if(!dest) return;
+
+	if(typeInfo->copyvalue)
+		typeInfo->copyvalue(source, dest);
+	else
+		memcpy(dest, source, typeInfo->size);
+}
+
 int CustomData_data_equals(int type, void *data1, void *data2)
 {
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
@@ -2163,7 +2195,7 @@ void CustomData_data_initminmax(int type, void *min, void *max)
 {
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
 
-	if (typeInfo->equal)
+	if (typeInfo->initminmax)
 		typeInfo->initminmax(min, max);
 }
 
@@ -2172,7 +2204,7 @@ void CustomData_data_dominmax(int type, void *data, void *min, void *max)
 {
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
 
-	if (typeInfo->equal)
+	if (typeInfo->dominmax)
 		typeInfo->dominmax(data, min, max);
 }
 
@@ -2181,7 +2213,7 @@ void CustomData_data_multiply(int type, void *data, float fac)
 {
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
 
-	if (typeInfo->equal)
+	if (typeInfo->multiply)
 		typeInfo->multiply(data, fac);
 }
 
@@ -2190,7 +2222,7 @@ void CustomData_data_add(int type, void *data1, void *data2)
 {
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
 
-	if (typeInfo->equal)
+	if (typeInfo->add)
 		typeInfo->add(data1, data2);
 }
 
