@@ -430,14 +430,16 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
-	uiBlockBeginAlign(block);
+	
 	
 	uiDefButI(block, TOG, B_TL_PREVIEWON,"PR",	
 			  xco,yco, XIC*2, YIC,
 			  &scene->r.psfra,0, 1, 0, 0,
 			  "Show settings for frame range of animation preview");
 	
-	xco += XIC*2;
+	xco += XIC*2.5;
+	
+	uiBlockBeginAlign(block);
 	
 	if (scene->r.psfra) {
 		uiDefButI(block, NUM, B_REDRAWALL,"Start:",	
@@ -473,11 +475,11 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	 * to facilitate easier keyframing in some situations
 	 */
 	uiDefButI(block, NUM, B_NEWFRAME, "",
-			  xco,yco, (int)3.5*XIC,YIC,
+			  xco,yco, (int)4.5*XIC,YIC,
 			  &(scene->r.cfra), MINAFRAMEF, MAXFRAMEF, 0, 0,
 			  "Displays Current Frame of animation");
 	
-	xco += (short)(3.5 * XIC);
+	xco += (short)(4.5 * XIC);
 	
 	uiBlockBeginAlign(block);
 	
@@ -514,32 +516,35 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	xco+= XIC;
 	uiBlockEndAlign(block);
 
-	xco+= 1.5*XIC;
+	xco+= 0.5*XIC;
 	
 	uiBlockBeginAlign(block);
 	uiDefIconButBitS(block, TOG, AUTOKEY_ON, B_REDRAWALL, ICON_REC,
 					 xco, yco, XIC, YIC, &(scene->toolsettings->autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
-	xco+= XIC;
-	
+	xco+= 1*XIC;
 	if (IS_AUTOKEY_ON(scene)) {
-		uiDefButS(block, MENU, B_REDRAWALL, 
-				  "Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
-				  xco, yco, (int)5.5*XIC, YIC, &(scene->toolsettings->autokey_mode), 0, 1, 0, 0, 
-				  "Mode of automatic keyframe insertion for Objects and Bones");
-		xco+= (5.5*XIC);
+//		uiDefButS(block, MENU, B_REDRAWALL, 
+//				  "Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
+//				  xco, yco, (int)5.5*XIC, YIC, &(scene->toolsettings->autokey_mode), 0, 1, 0, 0, 
+//				  "Mode of automatic keyframe insertion for Objects and Bones");
 		
 		if (animtimer) {
 			uiDefButBitS(block, TOG, ANIMRECORD_FLAG_WITHNLA, B_REDRAWALL, "Layered",	
-				  xco,yco, XIC*2.5, YIC,
+				  xco,yco, 70, YIC,
 				  &(scene->toolsettings->autokey_flag),0, 1, 0, 0,
 				  "Add a new NLA Track + Strip for every loop/pass made over the animation to allow non-destructive tweaking.");
-			xco+= (3*XIC);
+			uiBlockEndAlign(block);
 		}
+	
+		uiBlockEndAlign(block);
 	}
 	else
-		xco+= 6;
 
+	
+	
 	uiBlockEndAlign(block);
+	
+	xco+= (4.5*XIC);
 	
 	menustr= ANIM_build_keyingsets_menu(&scene->keyingsets, 0);
 	uiDefButI(block, MENU, B_DIFF, 
@@ -550,9 +555,9 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	xco+= (5.5*XIC);
 	
 	uiBlockBeginAlign(block);
-	uiDefIconButO(block, BUT, "ANIM_OT_delete_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_DEHLT, xco,yco,XIC,YIC, "Delete Keyframes for the Active Keying Set (Alt-I)");
-	xco += XIC;
 	uiDefIconButO(block, BUT, "ANIM_OT_insert_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_HLT, xco,yco,XIC,YIC, "Insert Keyframes for the Active Keying Set (I)");
+	xco += XIC;
+	uiDefIconButO(block, BUT, "ANIM_OT_delete_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_DEHLT, xco,yco,XIC,YIC, "Delete Keyframes for the Active Keying Set (Alt-I)");
 	xco += XIC;
 	uiBlockEndAlign(block);
 	
