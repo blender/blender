@@ -188,6 +188,7 @@ static int intersect_rayface(RayFace *face, Isect *is)
 #ifdef RE_RAYFACE_COORDS_VLAKREN
 	{
 		VlakRen	*vlr = (VlakRen*)face->face;
+		
 		VECCOPY(co1, vlr->v1->co);
 		VECCOPY(co2, vlr->v2->co);
 		if(vlr->v4)

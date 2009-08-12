@@ -78,9 +78,11 @@ extern "C" {
  */
 
 /* defines where coordinates of rayface primitives are stored */
-//#define RE_RAYFACE_COORDS_LOCAL
+#define RE_RAYFACE_COORDS_LOCAL
+
+//(ATM this won't work good with all types of instances)
 //#define RE_RAYFACE_COORDS_POINTER
-#define RE_RAYFACE_COORDS_VLAKREN
+//#define RE_RAYFACE_COORDS_VLAKREN
  
 typedef struct RayFace
 {

@@ -180,6 +180,7 @@ static int is_raytraceable(Render *re, ObjectInstanceRen *obi)
 	return 0;
 }
 
+
 RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 {
 	//TODO
@@ -283,6 +284,26 @@ static void makeraytree_hier(Render *re)
 	re->stats_draw(re->sdh, &re->i);
 }
 
+static int has_special_rayobject(Render *re, ObjectInstanceRen *obi)
+{
+	if( (obi->flag & R_TRANSFORMED) )
+	{
+		ObjectRen *obr = obi->obr;
+		int v, faces = 0;
+		
+		for(v=0;v<obr->totvlak;v++)
+		{
+			VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
+			if(is_raytraceable_vlr(re, vlr))
+			{
+				faces++;
+				if(faces > 4)
+					return 1;
+			}
+		}
+	}
+	return 0;
+}
 /*
  * create a single raytrace structure with all faces
  */
@@ -300,7 +321,7 @@ static void makeraytree_single(Render *re)
 		ObjectRen *obr = obi->obr;
 		obs++;
 		
-		if(obi->flag & R_TRANSFORMED)
+		if(has_special_rayobject(re, obi))
 		{
 			faces++;
 		}
@@ -326,7 +347,7 @@ static void makeraytree_single(Render *re)
 	for(obi=re->instancetable.first; obi; obi=obi->next)
 	if(is_raytraceable(re, obi))
 	{
-		if(obi->flag & R_TRANSFORMED)
+		if(has_special_rayobject(re, obi))
 		{
 			RayObject *obj = makeraytree_object(re, obi);
 			RE_rayobject_add( re->raytree, obj );
@@ -342,6 +363,15 @@ static void makeraytree_single(Render *re)
 				if(is_raytraceable_vlr(re, vlr))
 				{
 					RE_rayface_from_vlak(face, obi, vlr);
+					if((obi->flag & R_TRANSFORMED))
+					{
+						Mat4MulVecfl(obi->mat, face->v1);
+						Mat4MulVecfl(obi->mat, face->v2);
+						Mat4MulVecfl(obi->mat, face->v3);
+						if(RE_rayface_isQuad(face))
+							Mat4MulVecfl(obi->mat, face->v4);
+					}
+
 					RE_rayobject_add( raytree, RayObject_unalignRayFace(face) );
 					face++;
 				}
