@@ -75,10 +75,10 @@ typedef struct PartDeflect {
 } PartDeflect;
 
 /* Point cache file data types:
-/* - used as (1<<flag) so poke jahka if you reach the limit of 15
-/* - to add new data types update:
-/*		* BKE_ptcache_data_size()
-/*		* ptcache_file_init_pointers()
+ * - used as (1<<flag) so poke jahka if you reach the limit of 15
+ * - to add new data types update:
+ *		* BKE_ptcache_data_size()
+ *		* ptcache_file_init_pointers()
 */
 #define BPHYS_DATA_INDEX		0
 #define BPHYS_DATA_LOCATION		1
