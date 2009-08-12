@@ -105,19 +105,27 @@ typedef struct PTCacheID {
 	void *calldata;
 	int type;
 	int stack_index;
+
+	/* flags defined in DNA_object_force.h */
 	unsigned int data_types, info_types;
 
+	/* copies point data to cache data */
 	int (*write_elem)(int index, void *calldata, void **data);
+	/* copies cache cata to point data */
 	void (*read_elem)(int index, void *calldata, void **data, float frs_sec, float cfra, float *old_data);
+	/* interpolated between previously read point data and cache data */
 	void (*interpolate_elem)(int index, void *calldata, void **data, float frs_sec, float cfra, float cfra1, float cfra2, float *old_data);
 
+	/* total number of simulated points */
 	int (*totpoint)(void *calldata);
+	/* number of points written for current cache frame (currently not used) */
 	int (*totwrite)(void *calldata);
 
 	int (*write_header)(PTCacheFile *pf);
 	int (*read_header)(PTCacheFile *pf);
 
 	struct PointCache *cache;
+	/* used for setting the current cache from ptcaches list */
 	struct PointCache **cache_ptr;
 	struct ListBase *ptcaches;
 } PTCacheID;
@@ -138,17 +146,17 @@ typedef struct PTCacheBaker {
 /* Particle functions */
 void BKE_ptcache_make_particle_key(struct ParticleKey *key, int index, void **data, float time);
 
-/* Creating ID's */
+/**************** Creating ID's ****************************/
 void BKE_ptcache_id_from_softbody(PTCacheID *pid, struct Object *ob, struct SoftBody *sb);
 void BKE_ptcache_id_from_particles(PTCacheID *pid, struct Object *ob, struct ParticleSystem *psys);
 void BKE_ptcache_id_from_cloth(PTCacheID *pid, struct Object *ob, struct ClothModifierData *clmd);
 
 void BKE_ptcache_ids_from_object(struct ListBase *lb, struct Object *ob);
 
-/* Global funcs */
+/***************** Global funcs ****************************/
 void BKE_ptcache_remove(void);
 
-/* ID specific functions */
+/************ ID specific functions ************************/
 void	BKE_ptcache_id_clear(PTCacheID *id, int mode, int cfra);
 int		BKE_ptcache_id_exist(PTCacheID *id, int cfra);
 int		BKE_ptcache_id_reset(struct Scene *scene, PTCacheID *id, int mode);
@@ -157,30 +165,52 @@ int		BKE_ptcache_object_reset(struct Scene *scene, struct Object *ob, int mode);
 
 void BKE_ptcache_update_info(PTCacheID *pid);
 
-/* General cache reading/writing */
+/*********** General cache reading/writing ******************/
+
+/* Size of cache data type. */
 int		BKE_ptcache_data_size(int data_type);
+
+/* Copy a specific data type from cache data to point data. */
 void	BKE_ptcache_data_get(void **data, int type, int index, void *to);
+
+/* Copy a specific data type from point data to cache data. */
 void	BKE_ptcache_data_set(void **data, int type, void *from);
+
+/* Main cache reading call. */
 int		BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec);
+
+/* Main cache writing call. */
 int		BKE_ptcache_write_cache(PTCacheID *pid, int cfra);
 
-/* Continue physics */
+/****************** Continue physics ***************/
 void BKE_ptcache_set_continue_physics(struct Scene *scene, int enable);
 int BKE_ptcache_get_continue_physics(void);
 
-/* Point Cache */
+/******************* Allocate & free ***************/
 struct PointCache *BKE_ptcache_add(struct ListBase *ptcaches);
 void BKE_ptache_free_mem(struct PointCache *cache);
 void BKE_ptcache_free(struct PointCache *cache);
 void BKE_ptcache_free_list(struct ListBase *ptcaches);
 struct PointCache *BKE_ptcache_copy(struct PointCache *cache);
 
-/* Baking */
+/********************** Baking *********************/
+
+/* Bakes cache with cache_step sized jumps in time, not accurate but very fast. */
 void BKE_ptcache_quick_cache_all(struct Scene *scene);
+
+/* Bake cache or simulate to current frame with settings defined in the baker. */
 void BKE_ptcache_make_cache(struct PTCacheBaker* baker);
+
+/* Convert disk cache to memory cache. */
 void BKE_ptcache_disk_to_mem(struct PTCacheID *pid);
+
+/* Convert memory cache to disk cache. */
+void BKE_ptcache_mem_to_disk(struct PTCacheID *pid);
+
+/* Convert disk cache to memory cache and vice versa. Clears the cache that was converted. */
 void BKE_ptcache_toggle_disk_cache(struct PTCacheID *pid);
 
+/* Loads simulation from external (disk) cache files. */
 void BKE_ptcache_load_external(struct PTCacheID *pid);
 
 #endif

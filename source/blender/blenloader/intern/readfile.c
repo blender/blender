@@ -2964,9 +2964,11 @@ static void direct_link_pointcache_list(FileData *fd, ListBase *ptcaches, PointC
 		*ocache = newdataadr(fd, *ocache);
 	}
 	else if(*ocache) {
-		/* old "single" caches need to be linked too for do-versions */
+		/* old "single" caches need to be linked too */
 		*ocache = newdataadr(fd, *ocache);
 		direct_link_pointcache(fd, *ocache);
+
+		ptcaches->first = ptcaches->last = *ocache;
 	}
 }
 
@@ -3650,7 +3652,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			
 			clmd->sim_parms= newdataadr(fd, clmd->sim_parms);
 			clmd->coll_parms= newdataadr(fd, clmd->coll_parms);
-			clmd->point_cache= newdataadr(fd, clmd->point_cache);
 
 			direct_link_pointcache_list(fd, &clmd->ptcaches, &clmd->point_cache);
 			
@@ -3907,9 +3908,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 			}
 		}
 
-		sb->pointcache= newdataadr(fd, sb->pointcache);
-		if(sb->pointcache)
-			direct_link_pointcache_list(fd, &sb->ptcaches, &sb->pointcache);
+		direct_link_pointcache_list(fd, &sb->ptcaches, &sb->pointcache);
 	}
 	ob->bsoft= newdataadr(fd, ob->bsoft);
 	ob->fluidsimSettings= newdataadr(fd, ob->fluidsimSettings); /* NT */

@@ -2560,8 +2560,16 @@ static int render_initialize_from_scene(Render *re, Scene *scene, int anim, int 
 	/* check all scenes involved */
 	tag_scenes_for_render(re);
 
+#ifdef 0
+	/*
+	 * Disabled completely for now,
+	 * can be later set as render profile option
+	 * and default for background render.
+	*/
+
 	/* make sure dynamics are up to date */
 	update_physics_cache(re, scene, anim_init);
+#endif
 	
 	if(scene->r.scemode & R_SINGLE_LAYER)
 		push_render_result(re);
