@@ -9344,12 +9344,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* set old pointcaches to have disk cache flag */
 		for(ob = main->object.first; ob; ob= ob->id.next) {
 
-			BKE_ptcache_ids_from_object(&pidlist, ob);
+			//BKE_ptcache_ids_from_object(&pidlist, ob);
 
-			for(pid=pidlist.first; pid; pid=pid->next)
-				pid->cache->flag |= PTCACHE_DISK_CACHE;
+			//for(pid=pidlist.first; pid; pid=pid->next)
+			//	pid->cache->flag |= PTCACHE_DISK_CACHE;
 
-			BLI_freelistN(&pidlist);
+			//BLI_freelistN(&pidlist);
 		}
 	}
 
@@ -9370,14 +9370,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		int i, a;
 
 		for(ob = main->object.first; ob; ob = ob->id.next) {
-			BKE_ptcache_ids_from_object(&pidlist, ob);
+			//BKE_ptcache_ids_from_object(&pidlist, ob);
 
-			for(pid=pidlist.first; pid; pid=pid->next) {
-				if(pid->ptcaches->first == NULL)
-					pid->ptcaches->first = pid->ptcaches->last = pid->cache;
-			}
+			//for(pid=pidlist.first; pid; pid=pid->next) {
+			//	if(pid->ptcaches->first == NULL)
+			//		pid->ptcaches->first = pid->ptcaches->last = pid->cache;
+			//}
 
-			BLI_freelistN(&pidlist);
+			//BLI_freelistN(&pidlist);
 
 			if(ob->type == OB_MESH) {
 				Mesh *me = newlibadr(fd, lib, ob->data);
