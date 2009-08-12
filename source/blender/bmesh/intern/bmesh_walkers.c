@@ -850,15 +850,6 @@ static void *uvedgeWalker_yield(BMWalker *walker)
 	if (!lwalk) return NULL;
 }
 
-static int walker_compare_uv(MLoopUV *luv1, MLoopUV *luv2)
-{
-	float udelta = luv1->uv[0] - luv2->uv[0];
-	float vdelta = luv1->uv[1] - luv2->uv[1];
-
-	/*BMESH_TODO: look up proper threshold value*/
-	return udelta*udelta + vdelta*vdelta < 0.0001f;
-}
-
 static void *uvedgeWalker_step(BMWalker *walker)
 {
 	uvedgeWalker *lwalk = walker->currentstate;
@@ -879,9 +870,8 @@ static void *uvedgeWalker_step(BMWalker *walker)
 	/*go over loops around l->v and nl->v and see which ones share l and nl's 
 	  mloopuv's coordinates. in addition, push on l->head.next if necassary.*/
 	for (i=0; i<2; i++) {
-		BM_ITER(l2, &liter, walker->bm, BM_LOOPS_OF_VERT, i?nl->v:l->v) {
-			cl = i ? nl : l;
-
+		cl = i ? nl : l;
+		BM_ITER(l2, &liter, walker->bm, BM_LOOPS_OF_VERT, cl->v) {
 			d1 = CustomData_bmesh_get_layer_n(&walker->bm->ldata, 
 			             cl->head.data, walker->flag);
 			
@@ -891,7 +881,7 @@ static void *uvedgeWalker_step(BMWalker *walker)
 					continue;
 				if (walker->restrictflag && !(BMO_TestFlag(walker->bm, l2->e, walker->restrictflag)))
 				{
-					if (l2->v != l->v)
+					if (l2->v != cl->v)
 						continue;
 				}
 				
