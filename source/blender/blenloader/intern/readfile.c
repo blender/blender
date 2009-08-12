@@ -2929,19 +2929,45 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 {
 	if((cache->flag & PTCACHE_DISK_CACHE)==0) {
 		PTCacheMem *pm;
+		int i;
 
 		link_list(fd, &cache->mem_cache);
 
 		pm = cache->mem_cache.first;
 
-		for(; pm; pm=pm->next)
-			pm->data = newdataadr(fd, pm->data);
+		for(; pm; pm=pm->next) {
+			if(pm->index_array)
+				pm->index_array = newdataadr(fd, pm->index_array);
+			
+			for(i=0; i<BPHYS_TOT_DATA; i++) {
+				if(pm->data[i] && pm->data_types & (1<<i))
+					pm->data[i] = newdataadr(fd, pm->data[i]);
+			}
+		}
 	}
 	else
 		cache->mem_cache.first = cache->mem_cache.last = NULL;
 
 	cache->flag &= ~(PTCACHE_SIMULATION_VALID|PTCACHE_BAKE_EDIT_ACTIVE);
 	cache->simframe= 0;
+}
+
+static void direct_link_pointcache_list(FileData *fd, ListBase *ptcaches, PointCache **ocache)
+{
+	PointCache *cache;
+
+	if(ptcaches->first) {
+		link_list(fd, ptcaches);
+		for(cache=ptcaches->first; cache; cache=cache->next)
+			direct_link_pointcache(fd, cache);
+
+		*ocache = newdataadr(fd, *ocache);
+	}
+	else if(*ocache) {
+		/* old "single" caches need to be linked too for do-versions */
+		*ocache = newdataadr(fd, *ocache);
+		direct_link_pointcache(fd, *ocache);
+	}
 }
 
 static void lib_link_particlesettings(FileData *fd, Main *main)
@@ -3089,9 +3115,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 			sb->bspring= NULL;
 			sb->scratch= NULL;
 
-			sb->pointcache= newdataadr(fd, sb->pointcache);
-			if(sb->pointcache)
-				direct_link_pointcache(fd, sb->pointcache);
+			direct_link_pointcache_list(fd, &sb->ptcaches, &sb->pointcache);
 		}
 
 		link_list(fd, &psys->targets);
@@ -3104,9 +3128,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		psys->childcachebufs.first = psys->childcachebufs.last = 0;
 		psys->reactevents.first = psys->reactevents.last = 0;
 
-		psys->pointcache= newdataadr(fd, psys->pointcache);
-		if(psys->pointcache)
-			direct_link_pointcache(fd, psys->pointcache);
+		direct_link_pointcache_list(fd, &psys->ptcaches, &psys->pointcache);
 
 		psys->tree = NULL;
 	}
@@ -3630,8 +3652,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			clmd->coll_parms= newdataadr(fd, clmd->coll_parms);
 			clmd->point_cache= newdataadr(fd, clmd->point_cache);
 
-			if(clmd->point_cache)
-				direct_link_pointcache(fd, clmd->point_cache);
+			direct_link_pointcache_list(fd, &clmd->ptcaches, &clmd->point_cache);
 			
 			if(clmd->sim_parms) {
 				if(clmd->sim_parms->presets > 10)
@@ -3888,7 +3909,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 
 		sb->pointcache= newdataadr(fd, sb->pointcache);
 		if(sb->pointcache)
-			direct_link_pointcache(fd, sb->pointcache);
+			direct_link_pointcache_list(fd, &sb->ptcaches, &sb->pointcache);
 	}
 	ob->bsoft= newdataadr(fd, ob->bsoft);
 	ob->fluidsimSettings= newdataadr(fd, ob->fluidsimSettings); /* NT */
@@ -8301,20 +8322,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* add point caches */
 		for(ob=main->object.first; ob; ob=ob->id.next) {
 			if(ob->soft && !ob->soft->pointcache)
-				ob->soft->pointcache= BKE_ptcache_add();
+				ob->soft->pointcache= BKE_ptcache_add(&ob->soft->ptcaches);
 
 			for(psys=ob->particlesystem.first; psys; psys=psys->next) {
 				if(psys->soft && !psys->soft->pointcache)
-					psys->soft->pointcache= BKE_ptcache_add();
+					psys->soft->pointcache= BKE_ptcache_add(&psys->soft->ptcaches);
 				if(!psys->pointcache)
-					psys->pointcache= BKE_ptcache_add();
+					psys->pointcache= BKE_ptcache_add(&psys->ptcaches);
 			}
 
 			for(md=ob->modifiers.first; md; md=md->next) {
 				if(md->type==eModifierType_Cloth) {
 					ClothModifierData *clmd = (ClothModifierData*) md;
 					if(!clmd->point_cache)
-						clmd->point_cache= BKE_ptcache_add();
+						clmd->point_cache= BKE_ptcache_add(&clmd->ptcaches);
 				}
 			}
 		}
@@ -8602,7 +8623,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 				/* create new particle system */
 				psys = MEM_callocN(sizeof(ParticleSystem), "particle_system");
-				psys->pointcache = BKE_ptcache_add();
+				psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
 
 				part = psys->part = psys_new_settings("ParticleSettings", main);
 				
@@ -9344,9 +9365,19 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Tex *tex;
 		Scene *sce;
 		ToolSettings *ts;
+		PTCacheID *pid;
+		ListBase pidlist;
 		int i, a;
 
 		for(ob = main->object.first; ob; ob = ob->id.next) {
+			BKE_ptcache_ids_from_object(&pidlist, ob);
+
+			for(pid=pidlist.first; pid; pid=pid->next) {
+				if(pid->ptcaches->first == NULL)
+					pid->ptcaches->first = pid->ptcaches->last = pid->cache;
+			}
+
+			BLI_freelistN(&pidlist);
 
 			if(ob->type == OB_MESH) {
 				Mesh *me = newlibadr(fd, lib, ob->data);

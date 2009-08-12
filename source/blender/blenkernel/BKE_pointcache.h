@@ -30,6 +30,8 @@
 #define BKE_POINTCACHE_H
 
 #include "DNA_ID.h"
+#include "DNA_object_force.h"
+#include "DNA_boid_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -73,42 +75,52 @@ struct ClothModifierData;
 struct PointCache;
 struct ListBase;
 
+/* temp structure for read/write */
+typedef struct PTCacheData {
+	int index;
+	float loc[3];
+	float vel[3];
+	float rot[4];
+	float ave[3];
+	float size;
+	float times[3];
+	struct BoidData boids;
+} PTCacheData;
+
 typedef struct PTCacheFile {
 	FILE *fp;
+
+	int totpoint, type;
+	unsigned int data_types;
+
+	struct PTCacheData data;
+	void *cur[BPHYS_TOT_DATA];
 } PTCacheFile;
 
 typedef struct PTCacheID {
 	struct PTCacheID *next, *prev;
 
+	struct Scene *scene;
 	struct Object *ob;
-	void *data;
+	void *calldata;
 	int type;
 	int stack_index;
+	unsigned int data_types, info_types;
+
+	int (*write_elem)(int index, void *calldata, void **data);
+	void (*read_elem)(int index, void *calldata, void **data, float frs_sec, float cfra, float *old_data);
+	void (*interpolate_elem)(int index, void *calldata, void **data, float frs_sec, float cfra, float cfra1, float cfra2, float *old_data);
+
+	int (*totpoint)(void *calldata);
+	int (*totwrite)(void *calldata);
+
+	int (*write_header)(PTCacheFile *pf);
+	int (*read_header)(PTCacheFile *pf);
 
 	struct PointCache *cache;
+	struct PointCache **cache_ptr;
+	struct ListBase *ptcaches;
 } PTCacheID;
-
-typedef struct PTCacheWriter {
-	struct PTCacheID *pid;
-	int cfra;
-	int totelem;
-
-	void (*set_elem)(int index, void *calldata, float *data);
-	void *calldata;
-} PTCacheWriter;
-
-typedef struct PTCacheReader {
-	struct Scene *scene;
-	struct PTCacheID *pid;
-	float cfra;
-	int totelem;
-
-	void (*set_elem)(int elem_index, void *calldata, float *data);
-	void (*interpolate_elem)(int index, void *calldata, float frs_sec, float cfra, float cfra1, float cfra2, float *data1, float *data2);
-	void *calldata;
-
-	int *old_frame;
-} PTCacheReader;
 
 typedef struct PTCacheBaker {
 	struct Scene *scene;
@@ -122,6 +134,9 @@ typedef struct PTCacheBaker {
 	void (*progressbar)(void *data, int num);
 	void *progresscontext;
 } PTCacheBaker;
+
+/* Particle functions */
+void BKE_ptcache_make_particle_key(struct ParticleKey *key, int index, void **data, float time);
 
 /* Creating ID's */
 void BKE_ptcache_id_from_softbody(PTCacheID *pid, struct Object *ob, struct SoftBody *sb);
@@ -140,30 +155,30 @@ int		BKE_ptcache_id_reset(struct Scene *scene, PTCacheID *id, int mode);
 void	BKE_ptcache_id_time(PTCacheID *pid, struct Scene *scene, float cfra, int *startframe, int *endframe, float *timescale);
 int		BKE_ptcache_object_reset(struct Scene *scene, struct Object *ob, int mode);
 
-/* File reading/writing */
-PTCacheFile	*BKE_ptcache_file_open(PTCacheID *id, int mode, int cfra);
-void         BKE_ptcache_file_close(PTCacheFile *pf);
-int          BKE_ptcache_file_read_floats(PTCacheFile *pf, float *f, int tot);
-int          BKE_ptcache_file_write_floats(PTCacheFile *pf, float *f, int tot);
-
 void BKE_ptcache_update_info(PTCacheID *pid);
 
 /* General cache reading/writing */
-int			 BKE_ptcache_read_cache(PTCacheReader *reader);
-int			 BKE_ptcache_write_cache(PTCacheWriter *writer);
+int		BKE_ptcache_data_size(int data_type);
+void	BKE_ptcache_data_get(void **data, int type, int index, void *to);
+void	BKE_ptcache_data_set(void **data, int type, void *from);
+int		BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec);
+int		BKE_ptcache_write_cache(PTCacheID *pid, int cfra);
 
 /* Continue physics */
 void BKE_ptcache_set_continue_physics(struct Scene *scene, int enable);
 int BKE_ptcache_get_continue_physics(void);
 
 /* Point Cache */
-struct PointCache *BKE_ptcache_add(void);
+struct PointCache *BKE_ptcache_add(struct ListBase *ptcaches);
+void BKE_ptache_free_mem(struct PointCache *cache);
 void BKE_ptcache_free(struct PointCache *cache);
+void BKE_ptcache_free_list(struct ListBase *ptcaches);
 struct PointCache *BKE_ptcache_copy(struct PointCache *cache);
 
 /* Baking */
 void BKE_ptcache_quick_cache_all(struct Scene *scene);
 void BKE_ptcache_make_cache(struct PTCacheBaker* baker);
+void BKE_ptcache_disk_to_mem(struct PTCacheID *pid);
 void BKE_ptcache_toggle_disk_cache(struct PTCacheID *pid);
 
 void BKE_ptcache_load_external(struct PTCacheID *pid);

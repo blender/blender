@@ -340,92 +340,6 @@ void bvhselftree_update_from_cloth(ClothModifierData *clmd, int moving)
 	}
 }
 
-int modifiers_indexInObject(Object *ob, ModifierData *md_seek);
-static void cloth_write_state(int index, void *cloth_v, float *data)
-{
-	Cloth *cloth= cloth_v;
-	ClothVertex *vert = cloth->verts + index;
-
-	memcpy(data, vert->x, 3 * sizeof(float));
-	memcpy(data + 3, vert->xconst, 3 * sizeof(float));
-	memcpy(data + 6, vert->v, 3 * sizeof(float));
-}
-static void cloth_read_state(int index, void *cloth_v, float *data)
-{
-	Cloth *cloth= cloth_v;
-	ClothVertex *vert = cloth->verts + index;
-	
-	memcpy(vert->x, data, 3 * sizeof(float));
-	memcpy(vert->xconst, data + 3, 3 * sizeof(float));
-	memcpy(vert->v, data + 6, 3 * sizeof(float));
-}
-static void cloth_cache_interpolate(int index, void *cloth_v, float frs_sec, float cfra, float cfra1, float cfra2, float *data1, float *data2)
-{
-	Cloth *cloth= cloth_v;
-	ClothVertex *vert = cloth->verts + index;
-	ParticleKey keys[4];
-	float dfra;
-
-	if(cfra1 == cfra2) {
-		cloth_read_state(index, cloth, data1);
-		return;
-	}
-
-	memcpy(keys[1].co, data1, 3 * sizeof(float));
-	memcpy(keys[1].vel, data1 + 6, 3 * sizeof(float));
-
-	memcpy(keys[2].co, data2, 3 * sizeof(float));
-	memcpy(keys[2].vel, data2 + 6, 3 * sizeof(float));
-
-	dfra = cfra2 - cfra1;
-
-	VecMulf(keys[1].vel, dfra);
-	VecMulf(keys[2].vel, dfra);
-
-	psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, keys, 1);
-
-	VecMulf(keys->vel, 1.0f / dfra);
-
-	memcpy(vert->x, keys->co, 3 * sizeof(float));
-	memcpy(vert->v, keys->vel, 3 * sizeof(float));
-
-	/* not sure what to do with this - jahka */
-	memcpy(vert->xconst, data1 + 3, 3 * sizeof(float));
-}
-void cloth_write_cache(Object *ob, ClothModifierData *clmd, int cfra)
-{
-	PTCacheWriter writer;
-	PTCacheID pid;
-
-	BKE_ptcache_id_from_cloth(&pid, ob, clmd);
-
-	writer.calldata = clmd->clothObject;
-	writer.cfra = cfra;
-	writer.set_elem = cloth_write_state;
-	writer.pid = &pid;
-	writer.totelem = clmd->clothObject->numverts;
-
-	BKE_ptcache_write_cache(&writer);
-}
-
-int cloth_read_cache(Scene *scene, Object *ob, ClothModifierData *clmd, float cfra, int *old_framenr)
-{
-	PTCacheReader reader;
-	PTCacheID pid;
-	
-	BKE_ptcache_id_from_cloth(&pid, ob, clmd);
-
-	reader.calldata = clmd->clothObject;
-	reader.cfra = cfra;
-	reader.interpolate_elem = cloth_cache_interpolate;
-	reader.old_frame = old_framenr;
-	reader.pid = &pid;
-	reader.scene = scene;
-	reader.set_elem = cloth_read_state;
-	reader.totelem = clmd->clothObject->numverts;
-
-	return BKE_ptcache_read_cache(&reader);
-}
 void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr)
 {
 	PTCacheID pid;
@@ -512,7 +426,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	PTCacheID pid;
 	float timescale;
 	int framedelta, framenr, startframe, endframe;
-	int cache_result, old_framenr;
+	int cache_result;
 
 	clmd->scene= scene;	/* nice to pass on later :) */
 	framenr= (int)scene->r.cfra;
@@ -583,7 +497,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		return result;
 
 	/* try to read from cache */
-	cache_result = cloth_read_cache(scene, ob, clmd, framenr, &old_framenr);
+	cache_result = BKE_ptcache_read_cache(&pid, (float)framenr, scene->r.frs_sec);
 
 	if(cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED) {
 		cache->flag |= PTCACHE_SIMULATION_VALID;
@@ -600,7 +514,6 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		implicit_set_positions(clmd);
 
 		cache->flag |= PTCACHE_SIMULATION_VALID;
-		cache->simframe= old_framenr;
 	}
 	else if(ob->id.lib || (cache->flag & PTCACHE_BAKED)) {
 		/* if baked and nothing in cache, do nothing */
@@ -624,7 +537,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	else {
 		/* if on second frame, write cache for first frame */
 		if(cache->simframe == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0))
-			cloth_write_cache(ob, clmd, startframe);
+			BKE_ptcache_write_cache(&pid, startframe);
 
 		clmd->sim_parms->timescale *= framenr - cache->simframe;
 
@@ -638,7 +551,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 			cache->last_exact= 0;
 		}
 		else
-			cloth_write_cache(ob, clmd, framenr);
+			BKE_ptcache_write_cache(&pid, framenr);
 
 		cloth_to_object (ob, clmd, result);
 	}

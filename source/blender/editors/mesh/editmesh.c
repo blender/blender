@@ -873,11 +873,11 @@ void make_editMesh(Scene *scene, Object *ob)
 		
 		if(cacheedit) {
 			if(pid.type == PTCACHE_TYPE_CLOTH) {
-				cloth= ((ClothModifierData*)pid.data)->clothObject;
+				cloth= ((ClothModifierData*)pid.calldata)->clothObject;
 				VECCOPY(cacheco, cloth->verts[a].x)
 			}
 			else if(pid.type == PTCACHE_TYPE_SOFTBODY) {
-				sb= (SoftBody*)pid.data;
+				sb= (SoftBody*)pid.calldata;
 				VECCOPY(cacheco, sb->bpoint[a].pos)
 			}
 
@@ -1095,7 +1095,7 @@ void load_editMesh(Scene *scene, Object *ob)
 	while(eve) {
 		if(cacheedit) {
 			if(pid.type == PTCACHE_TYPE_CLOTH) {
-				clmd= (ClothModifierData*)pid.data;
+				clmd= (ClothModifierData*)pid.calldata;
 				cloth= clmd->clothObject;
 
 				/* assign position */
@@ -1110,7 +1110,7 @@ void load_editMesh(Scene *scene, Object *ob)
 				VECADD(cloth->verts[a].v, cloth->verts[a].v, cacheco);
 			}
 			else if(pid.type == PTCACHE_TYPE_SOFTBODY) {
-				sb= (SoftBody*)pid.data;
+				sb= (SoftBody*)pid.calldata;
 
 				/* assign position */
 				VECCOPY(cacheco, sb->bpoint[a].pos)
@@ -1156,12 +1156,8 @@ void load_editMesh(Scene *scene, Object *ob)
 	}
 	
 	/* write changes to cache */
-	if(cacheedit) {
-		if(pid.type == PTCACHE_TYPE_CLOTH)
-			cloth_write_cache(ob, pid.data, pid.cache->editframe);
-		else if(pid.type == PTCACHE_TYPE_SOFTBODY)
-			softbody_write_cache(ob, pid.data, pid.cache->editframe);
-	}
+	if(cacheedit)
+		BKE_ptcache_write_cache(&pid, pid.cache->editframe);
 
 	/* the edges */
 	a= 0;

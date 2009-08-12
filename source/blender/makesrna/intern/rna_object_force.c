@@ -148,6 +148,7 @@ static void rna_Cache_idname_change(bContext *C, PointerRNA *ptr)
 
 		if(new_name) {
 			if(pid2 && cache->flag & PTCACHE_DISK_CACHE) {
+				/* TODO: change to simple file rename */
 				strcpy(name, cache->name);
 				strcpy(cache->name, cache->prev_name);
 
@@ -169,6 +170,87 @@ static void rna_Cache_idname_change(bContext *C, PointerRNA *ptr)
 	BLI_freelistN(&pidlist);
 }
 
+static void rna_Cache_list_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Object *ob = ptr->id.data;
+	PointCache *cache= ptr->data;
+	PTCacheID *pid;
+	ListBase pidlist;
+
+	BKE_ptcache_ids_from_object(&pidlist, ob);
+
+	for(pid=pidlist.first; pid; pid=pid->next) {
+		if(pid->cache == cache) {
+			rna_iterator_listbase_begin(iter, pid->ptcaches, NULL);
+			break;
+		}
+	}
+
+	BLI_freelistN(&pidlist);
+}
+static void rna_Cache_active_point_cache_index_range(PointerRNA *ptr, int *min, int *max)
+{
+	Object *ob = ptr->id.data;
+	PointCache *cache= ptr->data;
+	PTCacheID *pid;
+	ListBase pidlist;
+
+	BKE_ptcache_ids_from_object(&pidlist, ob);
+	
+	*min= 0;
+	*max= 0;
+
+	for(pid=pidlist.first; pid; pid=pid->next) {
+		if(pid->cache == cache) {
+			*max= BLI_countlist(pid->ptcaches)-1;
+			*max= MAX2(0, *max);
+			break;
+		}
+	}
+
+	BLI_freelistN(&pidlist);
+}
+
+static int rna_Cache_active_point_cache_index_get(PointerRNA *ptr)
+{
+	Object *ob = ptr->id.data;
+	PointCache *cache= ptr->data;
+	PTCacheID *pid;
+	ListBase pidlist;
+	int num = 0;
+
+	BKE_ptcache_ids_from_object(&pidlist, ob);
+	
+	for(pid=pidlist.first; pid; pid=pid->next) {
+		if(pid->cache == cache) {
+			num = BLI_findindex(pid->ptcaches, cache);
+			break;
+		}
+	}
+
+	BLI_freelistN(&pidlist);
+
+	return num;
+}
+
+static void rna_Cache_active_point_cache_index_set(struct PointerRNA *ptr, int value)
+{
+	Object *ob = ptr->id.data;
+	PointCache *cache= ptr->data;
+	PTCacheID *pid;
+	ListBase pidlist;
+
+	BKE_ptcache_ids_from_object(&pidlist, ob);
+	
+	for(pid=pidlist.first; pid; pid=pid->next) {
+		if(pid->cache == cache) {
+			*(pid->cache_ptr) = BLI_findlink(pid->ptcaches, value);
+			break;
+		}
+	}
+
+	BLI_freelistN(&pidlist);
+}
 static int rna_SoftBodySettings_use_edges_get(PointerRNA *ptr)
 {
 	Object *data= (Object*)(ptr->id.data);
@@ -371,6 +453,7 @@ static void rna_def_pointcache(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "PointCache", NULL);
 	RNA_def_struct_ui_text(srna, "Point Cache", "Point cache for physics simulations.");
+	RNA_def_struct_ui_icon(srna, ICON_PHYSICS);
 	
 	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "startframe");
@@ -420,6 +503,7 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Name", "Cache name");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
+	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "path");
@@ -440,6 +524,16 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTCACHE_EXTERNAL);
 	RNA_def_property_ui_text(prop, "External", "Read cache from an external location");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
+
+	prop= RNA_def_property(srna, "point_cache_list", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_funcs(prop, "rna_Cache_list_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0, 0);
+	RNA_def_property_struct_type(prop, "PointCache");
+	RNA_def_property_ui_text(prop, "Point Cache List", "Point cache list");
+
+	prop= RNA_def_property(srna, "active_point_cache_index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_funcs(prop, "rna_Cache_active_point_cache_index_get", "rna_Cache_active_point_cache_index_set", "rna_Cache_active_point_cache_index_range");
+	RNA_def_property_ui_text(prop, "Active Point Cache Index", "");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_change");
 }
 
 static void rna_def_collision(BlenderRNA *brna)

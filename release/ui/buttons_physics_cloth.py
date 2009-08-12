@@ -85,6 +85,13 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
 		layout = self.layout
 
 		cache = context.cloth.point_cache
+		layout.set_context_pointer("PointCache", cache)
+		
+		row = layout.row()
+		row.template_list(cache, "point_cache_list", cache, "active_point_cache_index")
+		col = row.column(align=True)
+		col.itemO("ptcache.add_new", icon="ICON_ZOOMIN", text="")
+		col.itemO("ptcache.remove", icon="ICON_ZOOMOUT", text="")
 		
 		row = layout.row()
 		row.itemR(cache, "name")
@@ -96,17 +103,17 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
 		row = layout.row()
 		
 		if cache.baked == True:
-			row.itemO("ptcache.free_bake_cloth", text="Free Bake")
+			row.itemO("ptcache.free_bake", text="Free Bake")
 		else:
-			row.item_booleanO("ptcache.cache_cloth", "bake", True, text="Bake")
+			row.item_booleanO("ptcache.bake", "bake", True, text="Bake")
 		
 		subrow = row.row()
 		subrow.enabled = cache.frames_skipped or cache.outdated
-		subrow.itemO("ptcache.cache_cloth", text="Calculate to Current Frame")
+		subrow.itemO("ptcache.bake", "bake", False, text="Calculate to Current Frame")
 			
 		row = layout.row()
 		#row.enabled = particle_panel_enabled(psys)
-		row.itemO("ptcache.bake_from_cloth_cache", text="Current Cache to Bake")
+		row.itemO("ptcache.bake_from_cache", text="Current Cache to Bake")
 		row.itemR(cache, "step");
 	
 		row = layout.row()
@@ -121,7 +128,7 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
 		row = layout.row()
 		row.itemO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
 		row.itemO("ptcache.free_bake_all", text="Free All Bakes")
-		layout.itemO("ptcache.bake_all", text="Update All Dynamics to current frame")
+		layout.itemO("ptcache.bake_all", "bake", False, text="Update All Dynamics to current frame")
 		
 class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
 	__label__ = "Cloth Collision"
