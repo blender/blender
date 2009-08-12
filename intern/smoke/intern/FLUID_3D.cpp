@@ -101,6 +101,11 @@ FLUID_3D::FLUID_3D(int *res, float *p0, float dt) :
 	_h			  = new float[_totalCells];
 	_Precond	  = new float[_totalCells];
 
+	_spectrum = new unsigned char[256*4*16*16];
+
+
+	// DG TODO: check if alloc went fine
+
 	for (int x = 0; x < _totalCells; x++)
 	{
 		_density[x]      = 0.0f;
@@ -202,6 +207,8 @@ FLUID_3D::~FLUID_3D()
 	if (_obstacles) delete[] _obstacles;
     // if (_wTurbulence) delete _wTurbulence;
 
+	if(_spectrum) delete[] _spectrum;
+
     printf("deleted fluid\n");
 }
 
@@ -219,7 +226,10 @@ void FLUID_3D::step()
 {
 	// wipe forces
 	for (int i = 0; i < _totalCells; i++)
+	{
 		_xForce[i] = _yForce[i] = _zForce[i] = 0.0f;
+		_obstacles[i] &= ~2;
+	}
 
 	wipeBoundaries();
 
@@ -683,16 +693,17 @@ void FLUID_3D::advectMacCormack()
 
 	const float dt0 = _dt / _dx;
 	// use force arrays as temp arrays
-  for (int x = 0; x < _totalCells; x++)
-    _xForce[x] = _yForce[x] = 0.0;
+	for (int x = 0; x < _totalCells; x++)
+		_xForce[x] = _yForce[x] = 0.0;
+
 	float* t1 = _xForce;
 	float* t2 = _yForce;
 
-	advectFieldMacCormack(dt0, _xVelocityOld, _yVelocityOld, _zVelocityOld, _densityOld, _density, t1,t2, res, NULL);
-	advectFieldMacCormack(dt0, _xVelocityOld, _yVelocityOld, _zVelocityOld, _heatOld, _heat, t1,t2, res, NULL);
-	advectFieldMacCormack(dt0, _xVelocityOld, _yVelocityOld, _zVelocityOld, _xVelocityOld, _xVelocity, t1,t2, res, NULL);
-	advectFieldMacCormack(dt0, _xVelocityOld, _yVelocityOld, _zVelocityOld, _yVelocityOld, _yVelocity, t1,t2, res, NULL);
-	advectFieldMacCormack(dt0, _xVelocityOld, _yVelocityOld, _zVelocityOld, _zVelocityOld, _zVelocity, t1,t2, res, NULL);
+	advectFieldMacCormack(dt0, _xVelocityOld, _yVelocityOld, _zVelocityOld, _densityOld, _density, t1,t2, res, _obstacles);
+	advectFieldMacCormack(dt0, _xVelocityOld, _yVelocityOld, _zVelocityOld, _heatOld, _heat, t1,t2, res, _obstacles);
+	advectFieldMacCormack(dt0, _xVelocityOld, _yVelocityOld, _zVelocityOld, _xVelocityOld, _xVelocity, t1,t2, res, _obstacles);
+	advectFieldMacCormack(dt0, _xVelocityOld, _yVelocityOld, _zVelocityOld, _yVelocityOld, _yVelocity, t1,t2, res, _obstacles);
+	advectFieldMacCormack(dt0, _xVelocityOld, _yVelocityOld, _zVelocityOld, _zVelocityOld, _zVelocity, t1,t2, res, _obstacles);
 
 	if(DOMAIN_BC_LEFT == 0) copyBorderX(_xVelocity, res);
 	else setZeroX(_xVelocity, res);

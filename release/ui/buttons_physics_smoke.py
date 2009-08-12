@@ -72,6 +72,14 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
 				sub = split.column()
 				
 				split = layout.split()
+				col = split.column()
+				col.itemR(md.domain_settings, "dissolve_smoke")
+				sub = col.column()
+				sub.active = md.domain_settings.dissolve_smoke
+				sub.itemR(md.domain_settings, "dissolve_speed")
+				sub.itemR(md.domain_settings, "dissolve_smoke_log")
+				
+				split = layout.split()
 				
 				col = split.column()
 				col.itemL(text="Flow Group:")

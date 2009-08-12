@@ -30,7 +30,10 @@
 #define DNA_SMOKE_TYPES_H
 
 /* flags */
-#define MOD_SMOKE_HIGHRES (1<<1)
+#define MOD_SMOKE_HIGHRES (1<<1) /* compute high resolution */
+#define MOD_SMOKE_DISSOLVE (1<<2) /* let smoke dissolve */
+#define MOD_SMOKE_DISSOLVE_LOG (1<<3) /* using 1/x for dissolve */
+
 /* noise */
 #define MOD_SMOKE_NOISEWAVE (1<<0)
 #define MOD_SMOKE_NOISEFFT (1<<1)
@@ -75,8 +78,8 @@ typedef struct SmokeDomainSettings {
 	int viewsettings;
 	int max_textures;
 	short noise; /* noise type: wave, curl, anisotropic */
-	short pad2;
-	int pad;
+	short diss_percent; 
+	int diss_speed;/* in frames */
 	float strength;
 	struct WTURBULENCE *wt; // WTURBULENCE object, if active
 } SmokeDomainSettings;
@@ -100,6 +103,12 @@ typedef struct SmokeFlowSettings {
 	short type; /* inflow =0 or outflow = 1 */
 	int pad;
 } SmokeFlowSettings;
+
+/*
+	struct BVHTreeFromMesh *bvh;
+	float mat[4][4];
+	float mat_old[4][4];
+	*/
 
 /* collision objects (filled with smoke) */
 typedef struct SmokeCollSettings {

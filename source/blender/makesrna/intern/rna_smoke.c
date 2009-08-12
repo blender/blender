@@ -210,10 +210,27 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "strength");
-	RNA_def_property_range(prop, -5.0, 5.0);
+	RNA_def_property_range(prop, 1.0, 10.0);
 	RNA_def_property_ui_range(prop, 1.0, 10.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Strength", "Strength of wavelet noise");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
+
+	prop= RNA_def_property(srna, "dissolve_speed", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "diss_speed");
+	RNA_def_property_range(prop, 1.0, 100.0);
+	RNA_def_property_ui_range(prop, 1.0, 1000.0, 1, 0);
+	RNA_def_property_ui_text(prop, "Dissolve Speed", "Dissolve Speed");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
+
+	prop= RNA_def_property(srna, "dissolve_smoke", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_DISSOLVE);
+	RNA_def_property_ui_text(prop, "Dissolve Smoke", "Enable smoke to disappear over time.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
+
+	prop= RNA_def_property(srna, "dissolve_smoke_log", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_DISSOLVE_LOG);
+	RNA_def_property_ui_text(prop, "Logarithmic dissolve", "Using 1/x ");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
 }
 
 static void rna_def_smoke_flow_settings(BlenderRNA *brna)

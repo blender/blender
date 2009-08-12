@@ -338,7 +338,7 @@ void FLUID_3D::advectFieldSemiLagrange(const float dt, const float* velx, const 
 // comments are the pseudocode from selle's paper
 //////////////////////////////////////////////////////////////////////
 void FLUID_3D::advectFieldMacCormack(const float dt, const float* xVelocity, const float* yVelocity, const float* zVelocity,
-		float* oldField, float* newField, float* temp1, float* temp2, Vec3Int res, const float* obstacles)
+		float* oldField, float* newField, float* temp1, float* temp2, Vec3Int res, const unsigned char* obstacles)
 {
 	float* phiHatN  = temp1;
 	float* phiHatN1 = temp2;
@@ -459,7 +459,7 @@ void FLUID_3D::clampExtrema(const float dt, const float* velx, const float* vely
 // incorrect
 //////////////////////////////////////////////////////////////////////
 void FLUID_3D::clampOutsideRays(const float dt, const float* velx, const float* vely, const float* velz,
-		float* oldField, float* newField, Vec3Int res, const float* obstacles, const float *oldAdvection)
+		float* oldField, float* newField, Vec3Int res, const unsigned char* obstacles, const float *oldAdvection)
 {
 	const int sx= res[0];
 	const int sy= res[1];

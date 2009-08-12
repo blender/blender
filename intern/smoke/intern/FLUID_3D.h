@@ -99,6 +99,7 @@ class FLUID_3D
 		float* _h;
 		float* _Precond;
 		unsigned char*  _obstacles;
+		unsigned char *_spectrum;
 
 		// CG fields
 		float* _residual;
@@ -161,13 +162,13 @@ class FLUID_3D
 		static void advectFieldSemiLagrange(const float dt, const float* velx, const float* vely,  const float* velz,
 				float* oldField, float* newField, Vec3Int res);
 		static void advectFieldMacCormack(const float dt, const float* xVelocity, const float* yVelocity, const float* zVelocity, 
-				float* oldField, float* newField, float* temp1, float* temp2, Vec3Int res, const float* obstacles);
+				float* oldField, float* newField, float* temp1, float* temp2, Vec3Int res, const unsigned char* obstacles);
 
 		// maccormack helper functions
 		static void clampExtrema(const float dt, const float* xVelocity, const float* yVelocity,  const float* zVelocity,
 				float* oldField, float* newField, Vec3Int res);
 		static void clampOutsideRays(const float dt, const float* xVelocity, const float* yVelocity,  const float* zVelocity,
-				float* oldField, float* newField, Vec3Int res, const float* obstacles, const float *oldAdvection);
+				float* oldField, float* newField, Vec3Int res, const unsigned char* obstacles, const float *oldAdvection);
 
 		// output helper functions
 		// static void writeImageSliceXY(const float *field, Vec3Int res, int slice, string prefix, int picCnt, float scale=1.);
