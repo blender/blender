@@ -18,9 +18,8 @@ class SEQUENCER_HT_header(bpy.types.Header):
 		
 		if context.area.show_menus:
 			row = layout.row()
+			row.itemR(st, "display_mode", text="")
 			row.itemM("SEQUENCER_MT_view")
-			
-			row.itemR(st, "display_mode")
 			
 			layout.itemS()
 			
@@ -32,11 +31,11 @@ class SEQUENCER_HT_header(bpy.types.Header):
 				layout.itemS()
 				row.itemO("sequencer.reload")
 			else:
-				row.itemR(st, "display_channel") # text="Chan"
+				row.itemR(st, "display_channel", text="        Channel")
 
 class SEQUENCER_MT_view(bpy.types.Menu):
 	__space_type__ = "SEQUENCE_EDITOR"
-	__label__ = "View (TODO)"
+	__label__ = "View"
 	
 	def draw(self, context):
 		layout = self.layout
@@ -76,6 +75,7 @@ class SEQUENCER_MT_view(bpy.types.Menu):
 		layout.itemO("sequencer.view_all")
 		layout.itemO("sequencer.view_selected")
 		layout.itemS()
+		layout.itemO("screen.screen_full_area", text="Toggle Full Screen")
 		"""
 	
 

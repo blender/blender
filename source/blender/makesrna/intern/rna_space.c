@@ -836,11 +836,11 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem display_mode_items[] = {
-		{SEQ_DRAW_SEQUENCE, "SEQUENCER", 0, "Sequencer", ""},
-		{SEQ_DRAW_IMG_IMBUF, "IMAGE", 0, "Image Preview", ""},
-		{SEQ_DRAW_IMG_WAVEFORM, "WAVEFORM", 0, "Luma Waveform", ""},
-		{SEQ_DRAW_IMG_VECTORSCOPE, "VECTOR_SCOPE", 0, "Chroma Vectorscope", ""},
-		{SEQ_DRAW_IMG_HISTOGRAM, "HISTOGRAM", 0, "Histogram", ""},
+		{SEQ_DRAW_SEQUENCE, "SEQUENCER", ICON_SEQ_SEQUENCER, "Sequencer", ""},
+		{SEQ_DRAW_IMG_IMBUF, "IMAGE", ICON_SEQ_PREVIEW, "Image Preview", ""},
+		{SEQ_DRAW_IMG_WAVEFORM, "WAVEFORM", ICON_SEQ_LUMA_WAVEFORM, "Luma Waveform", ""},
+		{SEQ_DRAW_IMG_VECTORSCOPE, "VECTOR_SCOPE", ICON_SEQ_CHROMA_SCOPE, "Chroma Vectorscope", ""},
+		{SEQ_DRAW_IMG_HISTOGRAM, "HISTOGRAM", ICON_SEQ_HISTOGRAM, "Histogram", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "SpaceSequenceEditor", "Space");
