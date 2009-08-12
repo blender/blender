@@ -333,7 +333,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemL(text="See Soft Body panel.")
 	
 	def SUBSURF(self, layout, ob, md):
-		layout.itemR(md, "subdivision_type")
+		layout.row().itemR(md, "subdivision_type", expand=True)
 		
 		flow = layout.column_flow()
 		flow.itemR(md, "levels", text="Preview")
@@ -349,9 +349,12 @@ class DATA_PT_modifiers(DataButtonsPanel):
 			layout.item_pointerR(md, "uv_layer", ob.data, "uv_layers")
 			#layout.itemR(md, "projectors")
 			layout.itemR(md, "image")
-			layout.itemR(md, "horizontal_aspect_ratio")
-			layout.itemR(md, "vertical_aspect_ratio")
 			layout.itemR(md, "override_image")
+			layout.itemL(text="Aspect Ratio:")
+			col = layout.column(align=True)
+			col.itemR(md, "horizontal_aspect_ratio", text="Horizontal")
+			col.itemR(md, "vertical_aspect_ratio", text="Vertical")
+			
 			#"Projectors" don't work.
 		
 	def WAVE(self, layout, ob, md):

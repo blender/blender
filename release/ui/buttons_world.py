@@ -55,8 +55,8 @@ class WORLD_PT_world(WorldButtonsPanel):
 		if world:
 		
 			row = layout.row()
-			row.itemR(world, "blend_sky")
 			row.itemR(world, "paper_sky")
+			row.itemR(world, "blend_sky")
 			row.itemR(world, "real_sky")
 			
 			row = layout.row()
@@ -83,10 +83,11 @@ class WORLD_PT_mist(WorldButtonsPanel):
 		layout.active = world.mist.enabled
 
 		flow = layout.column_flow()
+		flow.itemR(world.mist, "intensity", slider=True)
 		flow.itemR(world.mist, "start")
 		flow.itemR(world.mist, "depth")
 		flow.itemR(world.mist, "height")
-		flow.itemR(world.mist, "intensity", slider=True)
+		
 
 		layout.itemR(world.mist, "falloff")
 		
@@ -146,12 +147,12 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
 			col.itemL(text="Sampling:")
 			col.itemR(ao, "sample_method", text="")
 
-			sub = col.column(align=True)
+			sub = col.column()
 			sub.itemR(ao, "samples")
 
 			if ao.sample_method == 'ADAPTIVE_QMC':
 				sub.itemR(ao, "threshold")
-				sub.itemR(ao, "adapt_to_speed")
+				sub.itemR(ao, "adapt_to_speed", slider=True)
 			elif ao.sample_method == 'CONSTANT_JITTERED':
 				sub.itemR(ao, "bias")
 						

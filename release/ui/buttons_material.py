@@ -210,13 +210,15 @@ class MATERIAL_PT_shadows(MaterialButtonsPanel):
 		col.itemR(mat, "shadow_casting_alpha", text="Casting Alpha", slider=True)
 		
 		col = split.column()
+		col.itemR(mat, "cast_buffer_shadows")
+		sub = col.column()
+		sub.active = mat.cast_buffer_shadows
+		sub.itemR(mat, "shadow_buffer_bias", text="Buffer Bias")
 		col.itemR(mat, "ray_shadow_bias", text="Auto Ray Bias")
 		sub = col.column()
-		subsub = sub.column()
-		subsub.active = (not mat.ray_shadow_bias)
-		subsub.itemR(mat, "shadow_ray_bias", text="Ray Shadow Bias")
-		sub.itemR(mat, "cast_buffer_shadows")
-		sub.itemR(mat, "shadow_buffer_bias", text="Buffer Bias")
+		sub.active = (not mat.ray_shadow_bias)
+		sub.itemR(mat, "shadow_ray_bias", text="Ray Bias")
+		
 
 class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 	__label__ = "Diffuse"
