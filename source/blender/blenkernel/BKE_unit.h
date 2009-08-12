@@ -39,6 +39,9 @@ int		bUnit_ReplaceString(char *str, char *str_orig, char *str_prev, double scale
 /* the size of the unit used for this value (used for calculating the ckickstep) */
 double bUnit_ClosestScalar(double value, int system, int type);
 
+/* base scale for these units */
+double bUnit_BaseScalar(int system, int type);
+
 /* loop over scales, coudl add names later */
 //double bUnit_Iter(void **unit, char **name, int system, int type);
 

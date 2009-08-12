@@ -244,7 +244,6 @@ static void drawgrid(ARegion *ar, View3D *v3d, char **grid_unit)
 	float wx, wy, x, y, fw, fx, fy, dx;
 	float vec4[4];
 	char col[3], col2[3];
-	short sublines = v3d->gridsubdiv;
 	
 	*grid_unit= NULL;
 
@@ -261,7 +260,8 @@ static void drawgrid(ARegion *ar, View3D *v3d, char **grid_unit)
 	x= (wx)*fx/fw;
 	y= (wy)*fy/fw;
 
-	vec4[0]=vec4[1]=v3d->grid; 
+	vec4[0]=vec4[1]= (U.unit_system) ? 1.0 : v3d->grid;
+
 	vec4[2]= 0.0;
 	vec4[3]= 1.0;
 	Mat4MulVec4fl(rv3d->persmat, vec4);
@@ -278,6 +278,8 @@ static void drawgrid(ARegion *ar, View3D *v3d, char **grid_unit)
 	UI_ThemeColor(TH_GRID);
 	
 	if(U.unit_system) {
+		/* Use GRID_MIN_PX*2 for units because very very small grid
+		 * items are less useful when dealing with units */
 		void *usys;
 		int len, i;
 		double scalar;
@@ -292,14 +294,15 @@ static void drawgrid(ARegion *ar, View3D *v3d, char **grid_unit)
 				scalar= bUnit_GetScaler(usys, i);
 
 				dx_scalar = dx * scalar * U.unit_scale_length;
-				if (dx_scalar < GRID_MIN_PX)
+				if (dx_scalar < (GRID_MIN_PX*2))
 					continue;
 
-				/* Store the smallest drawn grid size units name so users know how bit each grid cell is */
-				if(*grid_unit==NULL)
+				/* Store the smallest drawn grid size units name so users know how big each grid cell is */
+				if(*grid_unit==NULL) {
 					*grid_unit= bUnit_GetNamePlural(usys, i);
-
-				blend_fac= 1-(GRID_MIN_PX/dx_scalar);
+					v3d->gridview= (scalar * U.unit_scale_length);
+				}
+				blend_fac= 1-((GRID_MIN_PX*2)/dx_scalar);
 
 				/* tweak to have the fade a bit nicer */
 				blend_fac= (blend_fac * blend_fac) * 2.0f;
@@ -313,6 +316,8 @@ static void drawgrid(ARegion *ar, View3D *v3d, char **grid_unit)
 		}
 	}
 	else {
+		short sublines = v3d->gridsubdiv;
+
 		if(dx<GRID_MIN_PX) {
 			v3d->gridview*= sublines;
 			dx*= sublines;

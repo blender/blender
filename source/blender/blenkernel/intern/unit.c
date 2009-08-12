@@ -68,11 +68,16 @@ static struct bUnitDef buMetricLenDef[] = {
 	{"centimeter", "Centimeters",	"cm", NULL,	0.01, 0.0,			B_UNIT_DEF_NONE},
 	{"millimeter", "Millimeters",	"mm", NULL,	0.001, 0.0,			B_UNIT_DEF_NONE},
 	{"micrometer", "Micrometers",	"um", "µm",	0.000001, 0.0,		B_UNIT_DEF_NONE}, // micron too?
+
+	/* These get displayed because of float precision problems in the transform header,
+	 * could work around, but for now probably people wont use these */
+	/*
 	{"nanometer", "Nanometers",		"nm", NULL,	0.000000001, 0.0,	B_UNIT_DEF_NONE},
 	{"picometer", "Picometers",		"pm", NULL,	0.000000000001, 0.0,B_UNIT_DEF_NONE},
+	*/
 	{NULL, NULL, NULL,	NULL, 0.0, 0.0}
 };
-static struct bUnitCollection buMetricLenCollecton = {buMetricLenDef, 1, 0, sizeof(buMetricLenDef)/sizeof(bUnitDef)};
+static struct bUnitCollection buMetricLenCollecton = {buMetricLenDef, 3, 0, sizeof(buMetricLenDef)/sizeof(bUnitDef)};
 
 static struct bUnitDef buImperialLenDef[] = {
 	{"mile", "Miles",				"mi", "m",	1609.344, 0.0,	B_UNIT_DEF_NONE},
@@ -83,7 +88,7 @@ static struct bUnitDef buImperialLenDef[] = {
 	{"thou", "Thous",				"mil", NULL,0.0000254, 0.0,	B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL, NULL, 0.0, 0.0}
 };
-static struct bUnitCollection buImperialLenCollecton = {buImperialLenDef, 2, 0, sizeof(buImperialLenDef)/sizeof(bUnitDef)};
+static struct bUnitCollection buImperialLenCollecton = {buImperialLenDef, 3, 0, sizeof(buImperialLenDef)/sizeof(bUnitDef)};
 
 
 /* Time */
@@ -388,6 +393,12 @@ double bUnit_ClosestScalar(double value, int system, int type)
 		return -1;
 
 	return unit->scalar;
+}
+
+double bUnit_BaseScalar(int system, int type)
+{
+	bUnitCollection *usys = unit_get_system(system, type);
+	return unit_default(usys)->scalar;
 }
 
 /* external access */

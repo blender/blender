@@ -89,6 +89,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
+#include "BKE_unit.h"
 
 //#include "BSE_view.h"
 
@@ -3039,12 +3040,22 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 		applyAspectRatio(t, dvec);
 
 		dist = VecLength(vec);
-		sprintf(&tvec[0], "%.4f", dvec[0]);
-		sprintf(&tvec[20], "%.4f", dvec[1]);
-		sprintf(&tvec[40], "%.4f", dvec[2]);
+		if(U.unit_system) {
+			int i, do_split= U.unit_flag & USER_UNIT_OPT_SPLIT ? 1:0;
+
+			for(i=0; i<3; i++)
+				bUnit_AsString(&tvec[i*20], dvec[i]*U.unit_scale_length, 4, U.unit_system, B_UNIT_LENGTH, do_split, 1);
+		}
+		else {
+			sprintf(&tvec[0], "%.4f", dvec[0]);
+			sprintf(&tvec[20], "%.4f", dvec[1]);
+			sprintf(&tvec[40], "%.4f", dvec[2]);
+		}
 	}
 
-	if( dist > 1e10 || dist < -1e10 )	/* prevent string buffer overflow */
+	if(U.unit_system)
+		bUnit_AsString(distvec, dist*U.unit_scale_length, 4, U.unit_system, B_UNIT_LENGTH, U.unit_flag & USER_UNIT_OPT_SPLIT, 0);
+	else if( dist > 1e10 || dist < -1e10 )	/* prevent string buffer overflow */
 		sprintf(distvec, "%.4e", dist);
 	else
 		sprintf(distvec, "%.4f", dist);
