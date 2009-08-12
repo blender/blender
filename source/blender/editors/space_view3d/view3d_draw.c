@@ -62,6 +62,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
+#include "BKE_unit.h"
 
 #include "RE_pipeline.h"	// make_stars
 
@@ -234,7 +235,9 @@ static void drawgrid_draw(ARegion *ar, float wx, float wy, float x, float y, flo
 
 }
 
-static void drawgrid(ARegion *ar, View3D *v3d)
+#define GRID_MIN_PX 6.0f
+
+static void drawgrid(ARegion *ar, View3D *v3d, char **grid_unit)
 {
 	/* extern short bgpicmode; */
 	RegionView3D *rv3d= ar->regiondata;
@@ -243,6 +246,8 @@ static void drawgrid(ARegion *ar, View3D *v3d)
 	char col[3], col2[3];
 	short sublines = v3d->gridsubdiv;
 	
+	*grid_unit= NULL;
+
 	vec4[0]=vec4[1]=vec4[2]=0.0; 
 	vec4[3]= 1.0;
 	Mat4MulVec4fl(rv3d->persmat, vec4);
@@ -272,71 +277,109 @@ static void drawgrid(ARegion *ar, View3D *v3d)
 	/* check zoom out */
 	UI_ThemeColor(TH_GRID);
 	
-	if(dx<6.0) {
-		v3d->gridview*= sublines;
-		dx*= sublines;
-		
-		if(dx<6.0) {	
+	if(U.unit_system) {
+		void *usys;
+		int len, i;
+		double scalar;
+		float dx_scalar;
+		float blend_fac;
+
+		bUnit_GetSystem(&usys, &len, U.unit_system, B_UNIT_LENGTH);
+
+		if(usys) {
+			i= len;
+			while(i--) {
+				scalar= bUnit_GetScaler(usys, i);
+
+				dx_scalar = dx * scalar * U.unit_scale_length;
+				if (dx_scalar < GRID_MIN_PX)
+					continue;
+
+				/* Store the smallest drawn grid size units name so users know how bit each grid cell is */
+				if(*grid_unit==NULL)
+					*grid_unit= bUnit_GetNamePlural(usys, i);
+
+				blend_fac= 1-(GRID_MIN_PX/dx_scalar);
+
+				/* tweak to have the fade a bit nicer */
+				blend_fac= (blend_fac * blend_fac) * 2.0f;
+				CLAMP(blend_fac, 0.3f, 1.0f);
+
+
+				UI_ThemeColorBlend(TH_BACK, TH_GRID, blend_fac);
+
+				drawgrid_draw(ar, wx, wy, x, y, dx_scalar);
+			}
+		}
+	}
+	else {
+		if(dx<GRID_MIN_PX) {
 			v3d->gridview*= sublines;
 			dx*= sublines;
 			
-			if(dx<6.0) {
+			if(dx<GRID_MIN_PX) {
 				v3d->gridview*= sublines;
-				dx*=sublines;
-				if(dx<6.0);
-				else {
-					UI_ThemeColor(TH_GRID);
+				dx*= sublines;
+
+				if(dx<GRID_MIN_PX) {
+					v3d->gridview*= sublines;
+					dx*=sublines;
+					if(dx<GRID_MIN_PX);
+					else {
+						UI_ThemeColor(TH_GRID);
+						drawgrid_draw(ar, wx, wy, x, y, dx);
+					}
+				}
+				else {	// start blending out
+					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/(GRID_MIN_PX*10));
 					drawgrid_draw(ar, wx, wy, x, y, dx);
+
+					UI_ThemeColor(TH_GRID);
+					drawgrid_draw(ar, wx, wy, x, y, sublines*dx);
 				}
 			}
-			else {	// start blending out
-				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/60.0);
+			else {	// start blending out (GRID_MIN_PX < dx < (GRID_MIN_PX*10))
+				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/(GRID_MIN_PX*10));
 				drawgrid_draw(ar, wx, wy, x, y, dx);
-			
+
 				UI_ThemeColor(TH_GRID);
 				drawgrid_draw(ar, wx, wy, x, y, sublines*dx);
 			}
 		}
-		else {	// start blending out (6 < dx < 60)
-			UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/60.0);
-			drawgrid_draw(ar, wx, wy, x, y, dx);
-			
-			UI_ThemeColor(TH_GRID);
-			drawgrid_draw(ar, wx, wy, x, y, sublines*dx);
-		}
-	}
-	else {
-		if(dx>60.0) {		// start blending in
-			v3d->gridview/= sublines;
-			dx/= sublines;			
-			if(dx>60.0) {		// start blending in
+		else {
+			if(dx>(GRID_MIN_PX*10)) {		// start blending in
 				v3d->gridview/= sublines;
 				dx/= sublines;
-				if(dx>60.0) {
-					UI_ThemeColor(TH_GRID);
-					drawgrid_draw(ar, wx, wy, x, y, dx);
+				if(dx>(GRID_MIN_PX*10)) {		// start blending in
+					v3d->gridview/= sublines;
+					dx/= sublines;
+					if(dx>(GRID_MIN_PX*10)) {
+						UI_ThemeColor(TH_GRID);
+						drawgrid_draw(ar, wx, wy, x, y, dx);
+					}
+					else {
+						UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/(GRID_MIN_PX*10));
+						drawgrid_draw(ar, wx, wy, x, y, dx);
+						UI_ThemeColor(TH_GRID);
+						drawgrid_draw(ar, wx, wy, x, y, dx*sublines);
+					}
 				}
 				else {
-					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/60.0);
+					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/(GRID_MIN_PX*10));
 					drawgrid_draw(ar, wx, wy, x, y, dx);
 					UI_ThemeColor(TH_GRID);
 					drawgrid_draw(ar, wx, wy, x, y, dx*sublines);
 				}
 			}
 			else {
-				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/60.0);
+				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/(GRID_MIN_PX*10));
 				drawgrid_draw(ar, wx, wy, x, y, dx);
-				UI_ThemeColor(TH_GRID);				
+				UI_ThemeColor(TH_GRID);
 				drawgrid_draw(ar, wx, wy, x, y, dx*sublines);
 			}
 		}
-		else {
-			UI_ThemeColorBlend(TH_BACK, TH_GRID, dx/60.0);
-			drawgrid_draw(ar, wx, wy, x, y, dx);
-			UI_ThemeColor(TH_GRID);
-			drawgrid_draw(ar, wx, wy, x, y, dx*sublines);
-		}
 	}
+
 
 	x+= (wx); 
 	y+= (wy);
@@ -361,7 +404,7 @@ static void drawgrid(ARegion *ar, View3D *v3d)
 
 	glDepthMask(1);		// enable write in zbuffer
 }
-
+#undef GRID_MIN_PX
 
 static void drawfloor(Scene *scene, View3D *v3d)
 {
@@ -1855,6 +1898,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	Object *ob;
 	int retopo= 0, sculptparticle= 0;
 	Object *obact = OBACT;
+	char *grid_unit= NULL;
 	
 	/* from now on all object derived meshes check this */
 	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C));
@@ -1929,7 +1973,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	else {
 		ED_region_pixelspace(ar);
-		drawgrid(ar, v3d);
+		drawgrid(ar, v3d, &grid_unit);
 		/* XXX make function? replaces persp(1) */
 		glMatrixMode(GL_PROJECTION);
 		wmLoadMatrix(rv3d->winmat);
@@ -2060,7 +2104,11 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	if(U.uiflag & USER_SHOW_VIEWPORTNAME) {
 		draw_viewport_name(ar, v3d);
 	}
-	
+	if (grid_unit) { /* draw below the viewport name */
+		UI_ThemeColor(TH_TEXT_HI);
+		BLF_draw_default(10,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, grid_unit);
+	}
+
 	ob= OBACT;
 	if(U.uiflag & USER_DRAWVIEWINFO) 
 		draw_selected_name(scene, ob, v3d);

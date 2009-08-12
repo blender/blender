@@ -37,7 +37,26 @@ void	bUnit_AsString(char *str, double value, int prec, int system, int type, int
 int		bUnit_ReplaceString(char *str, char *str_orig, char *str_prev, double scale_pref, int system, int type);
 
 /* the size of the unit used for this value (used for calculating the ckickstep) */
-double bUnit_Size(double value, int system, int type);
+double bUnit_ClosestScalar(double value, int system, int type);
+
+/* loop over scales, coudl add names later */
+//double bUnit_Iter(void **unit, char **name, int system, int type);
+
+void	bUnit_GetSystem(void **usys_pt, int *len, int system, int type);
+char*	bUnit_GetName(void *usys_pt, int index);
+char*	bUnit_GetNamePlural(void *usys_pt, int index);
+double	bUnit_GetScaler(void *usys_pt, int index);
+
+/* aligned with PropertyUnit */
+#define		B_UNIT_NONE 0
+#define 	B_UNIT_LENGTH 1
+#define 	B_UNIT_AREA 2
+#define 	B_UNIT_VOLUME 3
+#define 	B_UNIT_MASS 4
+#define 	B_UNIT_ROTATION 5
+#define 	B_UNIT_TIME 6
+#define 	B_UNIT_VELOCITY 7
+#define 	B_UNIT_ACCELERATION 8
 
 #ifdef __cplusplus
 }

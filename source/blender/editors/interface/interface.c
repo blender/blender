@@ -1356,7 +1356,7 @@ static float ui_get_but_step_unit(uiBut *but, double value, float step_default)
 	int unit_type=  RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop));
 	float step;
 
-	step = bUnit_Size(ui_get_but_scale_unit(but, value), U.unit_system, unit_type);
+	step = bUnit_ClosestScalar(ui_get_but_scale_unit(but, value), U.unit_system, unit_type);
 
 	if(step > 0.0) { /* -1 is an error value */
 		return (step/ui_get_but_scale_unit(but, 1.0))*100;
