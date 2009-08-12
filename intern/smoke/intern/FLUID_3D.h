@@ -99,7 +99,6 @@ class FLUID_3D
 		float* _h;
 		float* _Precond;
 		unsigned char*  _obstacles;
-		unsigned char *_spectrum;
 
 		// CG fields
 		float* _residual;

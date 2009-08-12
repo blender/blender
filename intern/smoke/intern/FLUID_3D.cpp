@@ -101,9 +101,6 @@ FLUID_3D::FLUID_3D(int *res, float *p0, float dt) :
 	_h			  = new float[_totalCells];
 	_Precond	  = new float[_totalCells];
 
-	_spectrum = new unsigned char[256*4*16*16];
-
-
 	// DG TODO: check if alloc went fine
 
 	for (int x = 0; x < _totalCells; x++)
@@ -206,8 +203,6 @@ FLUID_3D::~FLUID_3D()
 	if (_Precond) delete[] _Precond;
 	if (_obstacles) delete[] _obstacles;
     // if (_wTurbulence) delete _wTurbulence;
-
-	if(_spectrum) delete[] _spectrum;
 
     printf("deleted fluid\n");
 }
