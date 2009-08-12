@@ -34,7 +34,7 @@ extern "C" {
 void	bUnit_AsString(char *str, double value, int prec, int system, int type, int split, int pad);
 
 /* replace units with values, used before python button evaluation */
-int		bUnit_ReplaceString(char *str, char *str_orig, double scale_pref, int system, int type);
+int		bUnit_ReplaceString(char *str, char *str_orig, char *str_prev, double scale_pref, int system, int type);
 
 #ifdef __cplusplus
 }

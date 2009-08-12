@@ -90,6 +90,7 @@ static struct bUnitDef buNaturalTimeDef[] = {
 };
 static struct bUnitCollection buNaturalTimeCollecton = {buNaturalTimeDef, 3, 0};
 
+#define UNIT_SYSTEM_MAX 3
 static struct bUnitCollection *bUnitSystems[][8] = {
 	{0,0,0,0,0,0,0,0},
 	{0,&buMetricLenCollecton, 0,0,0,0, &buNaturalTimeCollecton,0}, /* metric */
@@ -103,17 +104,24 @@ static bUnitCollection *unit_get_system(int system, int type)
 	return bUnitSystems[system][type]; /* select system to use, metric/imperial/other? */
 }
 
+static bUnitDef *unit_default(bUnitCollection *usys)
+{
+	return &usys->units[usys->base_unit];
+}
+
 static bUnitDef *unit_best_fit(double value, bUnitCollection *usys, bUnitDef *unit_start)
 {
 	bUnitDef *unit;
 	double value_abs= value>0.0?value:-value;
 
 	for(unit= unit_start ? unit_start:usys->units; unit->name; unit++)
-		if (value_abs >= unit->mul)
+		if (value_abs >= unit->mul*0.9999) /* scale down mul so 1cm doesnt convert to 10mm because of float error */
 			return unit;
 
-	return &usys->units[usys->base_unit];
+	return unit_default(usys);
 }
+
+
 
 /* convert into 2 units and 2 values for "2ft, 3inch" syntax */
 static void unit_dual_convert(double value, bUnitCollection *usys,
@@ -140,7 +148,7 @@ static int unit_as_string(char *str, double value, int prec, bUnitCollection *us
 	}
 	else if(value == 0.0) {
 		/* use the default units since there is no way to convert */
-		unit= &usys->units[usys->base_unit];
+		unit= unit_default(usys);
 	}
 	else {
 		unit= unit_best_fit(value, usys, NULL);
@@ -244,7 +252,7 @@ static int unit_scale_str(char *str, char *str_tmp, double scale_pref, bUnitDef 
 			/* next char cannot be alphanum */
 			if (!isalpha(*(str_found+len_name))) {
 				int len= strlen(str);
-				int len_num= sprintf(str_tmp, "*%g", scale_pref*unit->mul);
+				int len_num= sprintf(str_tmp, "*%g", unit->mul/scale_pref);
 				memmove(str_found+len_num, str_found+len_name, (len+1)-(int)((str_found+len_name)-str)); /* may grow or shrink the string, 1+ to copy the string terminator */
 				memcpy(str_found, str_tmp, len_num); /* without the string terminator */
 				change= 1;
@@ -256,7 +264,6 @@ static int unit_scale_str(char *str, char *str_tmp, double scale_pref, bUnitDef 
 
 static int unit_replace(char *str, char *str_tmp, double scale_pref, bUnitDef *unit)
 {	
-	//unit_replace_delimit(str, str_tmp);
 	int change= 0;
 	change |= unit_scale_str(str, str_tmp, scale_pref, unit, unit->name_short);
 	change |= unit_scale_str(str, str_tmp, scale_pref, unit, unit->name_plural);
@@ -273,11 +280,14 @@ static int unit_replace(char *str, char *str_tmp, double scale_pref, bUnitDef *u
  * 10.1km -> 10.1*1000.0
  * ...will be resolved by python.
  * 
+ * str_prev is optional, when valid it is used to get a base unit when none is set.
+ *
  * return true of a change was made.
  */
-int bUnit_ReplaceString(char *str, char *str_orig, double scale_pref, int system, int type)
+int bUnit_ReplaceString(char *str, char *str_orig, char *str_prev, double scale_pref, int system, int type)
 {
 	bUnitCollection *usys = unit_get_system(system, type);
+
 	bUnitDef *unit;
 	char str_tmp[256];
 	int change= 0;
@@ -287,14 +297,53 @@ int bUnit_ReplaceString(char *str, char *str_orig, double scale_pref, int system
 	if(usys==NULL || usys->units[0].name==NULL) {
 		return 0;
 	}
-
-	scale_pref= 1.0/scale_pref;
 	
 	for(unit= usys->units; unit->name; unit++) {
 		/* incase there are multiple instances */
 		while(unit_replace(str, str_tmp, scale_pref, unit))
 			change= 1;
 	}
+	unit= NULL;
+
+	{
+		/* try other unit systems now, so we can evaluate imperial when metric is set for eg. */
+		bUnitCollection *usys_iter;
+		int system_iter;
+
+		for(system_iter= 1; system_iter<UNIT_SYSTEM_MAX; system_iter++) {
+			if (system_iter != system) {
+				usys_iter= unit_get_system(system_iter, type);
+				for(unit= usys_iter->units; unit->name; unit++) {
+					/* incase there are multiple instances */
+					while(unit_replace(str, str_tmp, scale_pref, unit))
+						change= 1;
+				}
+			}
+		}
+	}
+	unit= NULL;
+
+	if(change==0) {
+		/* no units given so infer a unit from the previous string or default */
+		if(str_prev) {
+			/* see which units the original value had */
+			strcpy(str, str_prev); /* temp overwrite */
+			for(unit= usys->units; unit->name; unit++) {
+				if (unit_replace(str, str_tmp, scale_pref, unit))
+					break;
+			}
+			strcpy(str, str_orig); /* temp overwrite */
+		}
+
+		if(unit==NULL)
+			unit= unit_default(usys);
+
+		/* add the unit prefic and re-run */
+		sprintf(str_tmp, "%s %s", str, unit->name);
+
+		return bUnit_ReplaceString(str, str_tmp, NULL, scale_pref, system, type);
+	}
+
 	// printf("replace %s\n", str);
 	return change;
 }

@@ -1327,14 +1327,14 @@ static double ui_get_but_scale_unit(uiBut *but, double value)
 static void ui_get_but_string_unit(uiBut *but, char *str, double value, int pad)
 {
 	int do_split= U.unit_flag & USER_UNIT_OPT_SPLIT ? 1:0;
-	int unit_system=  RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop));
+	int unit_type=  RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop));
 	int precission= but->a2;
 
 	/* Sanity checks */
 	if(precission>4)		precission= 4;
 	else if(precission==0)	precission= 2;
 
-	bUnit_AsString(str, ui_get_but_scale_unit(but, value), precission, U.unit_system, unit_system, do_split, pad);
+	bUnit_AsString(str, ui_get_but_scale_unit(but, value), precission, U.unit_system, unit_type, do_split, pad);
 }
 
 
@@ -1473,9 +1473,11 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 #ifndef DISABLE_PYTHON
 		{
 			char str_unit_convert[256];
-			int change= -1;
-			if(U.unit_system != USER_UNIT_NONE) {
-				bUnit_ReplaceString(str_unit_convert, str, ui_get_but_scale_unit(but, 1.0), U.unit_system, RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop)));
+			int unit_type=  RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop));
+
+			if(U.unit_system != USER_UNIT_NONE && unit_type) {
+				/* ugly, use the draw string to get the value, this could cause problems if it includes some text which resolves to a unit */
+				bUnit_ReplaceString(str_unit_convert, str, but->drawstr, ui_get_but_scale_unit(but, 1.0), U.unit_system, unit_type);
 			}
 			else {
 				strcpy(str_unit_convert, str);
