@@ -47,6 +47,8 @@ from the lib3ds project (http://lib3ds.sourceforge.net/) sourcecode.
 ######################################################
 
 import struct
+import os
+import time
 
 import bpy
 
@@ -142,7 +144,8 @@ ROT_TRACK_TAG			= int("0xB021",16);
 SCL_TRACK_TAG			= int("0xB022",16);
 
 def uv_key(uv):
-	return round(uv.x, 6), round(uv.y, 6)
+	return round(uv[0], 6), round(uv[1], 6)
+# 	return round(uv.x, 6), round(uv.y, 6)
 
 # size defines:	
 SZ_SHORT = 2
@@ -275,7 +278,8 @@ class _3ds_rgb_color(object):
 		return 3
 	
 	def write(self,file):
-		file.write( struct.pack('<3c', chr(int(255*self.r)), chr(int(255*self.g)), chr(int(255*self.b)) ) )
+		file.write( struct.pack('<3B', int(255*self.r), int(255*self.g), int(255*self.b) ) )
+# 		file.write( struct.pack('<3c', chr(int(255*self.r)), chr(int(255*self.g)), chr(int(255*self.b)) ) )
 	
 	def __str__(self):
 		return '{%f, %f, %f}' % (self.r, self.g, self.b)
@@ -427,14 +431,19 @@ class _3ds_chunk(object):
 
 def get_material_images(material):
 	# blender utility func.
-	images = []
 	if material:
-		for mtex in material.getTextures():
-			if mtex and mtex.tex.type == Blender.Texture.Types.IMAGE:
-				image = mtex.tex.image
-				if image:
-					images.append(image) # maye want to include info like diffuse, spec here.
-	return images
+		return [s.texture.image for s in material.textures if s and s.texture.type == 'IMAGE' and s.texture.image]
+
+	return []
+# 	images = []
+# 	if material:
+# 		for mtex in material.getTextures():
+# 			if mtex and mtex.tex.type == Blender.Texture.Types.IMAGE:
+# 				image = mtex.tex.image
+# 				if image:
+# 					images.append(image) # maye want to include info like diffuse, spec here.
+# 	return images
+
 
 def make_material_subchunk(id, color):
 	'''Make a material subchunk.
@@ -457,7 +466,8 @@ def make_material_texture_chunk(id, images):
 	mat_sub = _3ds_chunk(id)
 	
 	def add_image(img):
-		filename = image.filename.split('\\')[-1].split('/')[-1]
+		filename = os.path.basename(image.filename)
+# 		filename = image.filename.split('\\')[-1].split('/')[-1]
 		mat_sub_file = _3ds_chunk(MATMAPFILE)
 		mat_sub_file.add_variable("mapfile", _3ds_string(sane_name(filename)))
 		mat_sub.add_subchunk(mat_sub_file)
@@ -485,9 +495,12 @@ def make_material_chunk(material, image):
 		material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, (1,1,1) ))
 	
 	else:
-		material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, [a*material.amb for a in material.rgbCol] ))
-		material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, material.rgbCol))
-		material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, material.specCol))
+		material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, [a*material.ambient for a in material.diffuse_color] ))
+# 		material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, [a*material.amb for a in material.rgbCol] ))
+		material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, material.diffuse_color))
+# 		material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, material.rgbCol))
+		material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, material.specular_color))
+# 		material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, material.specCol))
 		
 		images = get_material_images(material) # can be None
 		if image: images.append(image)
@@ -516,28 +529,38 @@ def extract_triangles(mesh):
 	
 	If the mesh contains quads, they will be split into triangles.'''
 	tri_list = []
-	do_uv = mesh.faceUV
+	do_uv = len(mesh.uv_textures)
+# 	do_uv = mesh.faceUV
 	
-	if not do_uv:
-		face_uv = None
+# 	if not do_uv:
+# 		face_uv = None
 	
 	img = None
-	for face in mesh.faces:
-		f_v = face.v
+	for i, face in enumerate(mesh.faces):
+		f_v = face.verts
+# 		f_v = face.v
+
+		uf = mesh.active_uv_texture.data[i] if do_uv else None
 		
 		if do_uv:
-			f_uv = face.uv
-			img = face.image
+			f_uv =  (uf.uv1, uf.uv2, uf.uv3, uf.uv4) if face.verts[3] else (uf.uv1, uf.uv2, uf.uv3)
+# 			f_uv = face.uv
+			img = uf.image if uf else None
+# 			img = face.image
 			if img: img = img.name
-		
-		if len(f_v)==3:
-			new_tri = tri_wrapper((f_v[0].index, f_v[1].index, f_v[2].index), face.mat, img)
+
+		if f_v[3] == 0:
+		# if len(f_v)==3:
+			new_tri = tri_wrapper((f_v[0], f_v[1], f_v[2]), face.material_index, img)
+# 			new_tri = tri_wrapper((f_v[0].index, f_v[1].index, f_v[2].index), face.mat, img)
 			if (do_uv): new_tri.faceuvs= uv_key(f_uv[0]), uv_key(f_uv[1]), uv_key(f_uv[2])
 			tri_list.append(new_tri)
 		
 		else: #it's a quad
-			new_tri = tri_wrapper((f_v[0].index, f_v[1].index, f_v[2].index), face.mat, img)
-			new_tri_2 = tri_wrapper((f_v[0].index, f_v[2].index, f_v[3].index), face.mat, img)
+			new_tri = tri_wrapper((f_v[0], f_v[1], f_v[2]), face.material_index, img)
+# 			new_tri = tri_wrapper((f_v[0].index, f_v[1].index, f_v[2].index), face.mat, img)
+			new_tri_2 = tri_wrapper((f_v[0], f_v[2], f_v[3]), face.material_index, img)
+# 			new_tri_2 = tri_wrapper((f_v[0].index, f_v[2].index, f_v[3].index), face.mat, img)
 			
 			if (do_uv):
 				new_tri.faceuvs= uv_key(f_uv[0]), uv_key(f_uv[1]), uv_key(f_uv[2])
@@ -629,7 +652,8 @@ def make_faces_chunk(tri_list, mesh, materialDict):
 	face_list = _3ds_array()
 	
 	
-	if mesh.faceUV:
+	if len(mesh.uv_textures):
+# 	if mesh.faceUV:
 		# Gather materials used in this mesh - mat/image pairs
 		unique_mats = {}
 		for i,tri in enumerate(tri_list):
@@ -706,7 +730,8 @@ def make_mesh_chunk(mesh, materialDict):
 	# Extract the triangles from the mesh:
 	tri_list = extract_triangles(mesh)
 	
-	if mesh.faceUV:
+	if len(mesh.uv_textures):
+# 	if mesh.faceUV:
 		# Remove the face UVs and convert it to vertex UV:
 		vert_array, uv_array, tri_list = remove_face_uv(mesh.verts, tri_list)
 	else:
@@ -715,10 +740,13 @@ def make_mesh_chunk(mesh, materialDict):
 		for vert in mesh.verts:
 			vert_array.add(_3ds_point_3d(vert.co))
 		# If the mesh has vertex UVs, create an array of UVs:
-		if mesh.vertexUV:
+		if len(mesh.sticky):
+# 		if mesh.vertexUV:
 			uv_array = _3ds_array()
-			for vert in mesh.verts:
-				uv_array.add(_3ds_point_uv(vert.uvco))
+			for uv in mesh.sticky:
+# 			for vert in mesh.verts:
+				uv_array.add(_3ds_point_uv(uv.co))
+# 				uv_array.add(_3ds_point_uv(vert.uvco))
 		else:
 			# no UV at all:
 			uv_array = None
@@ -878,7 +906,7 @@ def save_3ds(filename, context):
 #		return
 
 	# XXX
-	time1 = bpy.sys.time()
+	time1 = time.clock()
 #	time1= Blender.sys.time()
 #	Blender.Window.WaitCursor(1)
 
@@ -909,31 +937,56 @@ def save_3ds(filename, context):
 	# each material is added once):
 	materialDict = {}
 	mesh_objects = []
-	for ob in context.selected_objects:
+	for ob in [ob for ob in context.scene.objects if ob.is_visible()]:
 # 	for ob in sce.objects.context:
-		for ob_derived, mat in getDerivedObjects(ob, False):
-			data = getMeshFromObject(ob_derived, None, True, False, sce)
+
+		# get derived objects
+		derived = []
+
+		# ignore dupli children
+		if ob.parent and ob.parent.dupli_type != 'NONE':
+			continue
+
+		if ob.dupli_type != 'NONE':
+			ob.create_dupli_list()
+			derived = [(dob.object, dob.matrix) for dob in ob.dupli_list]
+		else:
+			derived = [(ob, ob.matrix)]
+
+		for ob_derived, mat in derived:
+# 		for ob_derived, mat in getDerivedObjects(ob, False):
+
+			if ob.type not in ('MESH', 'CURVE', 'SURFACE', 'TEXT', 'META'):
+				continue
+
+			data = ob_derived.create_mesh(True, 'PREVIEW')
+# 			data = getMeshFromObject(ob_derived, None, True, False, sce)
 			if data:
-				data.transform(mat, recalc_normals=False)
+				data.transform(mat)
+# 				data.transform(mat, recalc_normals=False)
 				mesh_objects.append((ob_derived, data))
 				mat_ls = data.materials
 				mat_ls_len = len(mat_ls)
+
 				# get material/image tuples.
-				if data.faceUV:
+				if len(data.uv_textures):
+# 				if data.faceUV:
 					if not mat_ls:
 						mat = mat_name = None
 					
-					for f in data.faces:
+					for f, uf in zip(data.faces, data.active_uv_texture.data):
 						if mat_ls:
-							mat_index = f.mat
+							mat_index = f.material_index
+# 							mat_index = f.mat
 							if mat_index >= mat_ls_len:
 								mat_index = f.mat = 0
 							mat = mat_ls[mat_index]
 							if mat:	mat_name = mat.name
 							else:	mat_name = None
 						# else there alredy set to none
-							
-						img = f.image
+
+						img = uf.image
+# 						img = f.image
 						if img:	img_name = img.name
 						else:	img_name = None
 						
@@ -947,8 +1000,10 @@ def save_3ds(filename, context):
 					
 					# Why 0 Why!
 					for f in data.faces:
-						if f.mat >= mat_ls_len:
-							f.mat = 0 
+						if f.material_index >= mat_ls_len:
+# 						if f.mat >= mat_ls_len:
+							f.material_index = 0
+# 							f.mat = 0
 	
 	# Make material chunks for all materials used in the meshes:
 	for mat_and_image in materialDict.values():
@@ -980,7 +1035,10 @@ def save_3ds(filename, context):
 		# make a kf object node for the object:
 		kfdata.add_subchunk(make_kf_obj_node(ob, name_to_id))
 		'''
-		blender_mesh.verts = None
+# 		if not blender_mesh.users:
+		bpy.data.remove_mesh(blender_mesh)
+# 		blender_mesh.verts = None
+
 		i+=i
 
 	# Create chunks for all empties:
@@ -1013,8 +1071,9 @@ def save_3ds(filename, context):
 	file.close()
 	
 	# Debugging only: report the exporting time:
-	Blender.Window.WaitCursor(0)
-	print("3ds export time: %.2f" % (Blender.sys.time() - time1))
+# 	Blender.Window.WaitCursor(0)
+	print("3ds export time: %.2f" % (time.clock() - time1))
+# 	print("3ds export time: %.2f" % (Blender.sys.time() - time1))
 	
 	# Debugging only: dump the chunk hierarchy:
 	#primary.dump()
@@ -1042,7 +1101,7 @@ class EXPORT_OT_3ds(bpy.types.Operator):
 	]
 	
 	def execute(self, context):
-		raise Exception("Not doing anything yet.")
+		save_3ds(self.filename, context)
 		return ('FINISHED',)
 	
 	def invoke(self, context, event):

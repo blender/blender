@@ -333,6 +333,11 @@ static Object *rna_Object_find_armature(Object *ob)
 	return ob_arm;
 }
 
+int rna_Object_is_visible(Object *ob, bContext *C)
+{
+	return ob->lay & CTX_data_scene(C)->lay;
+}
+
 /*
 static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int *indices, int totindex, float weight, int assignmode)
 {
@@ -443,6 +448,13 @@ void RNA_api_object(StructRNA *srna)
 	func= RNA_def_function(srna, "make_display_list", "rna_Object_make_display_list");
 	RNA_def_function_ui_description(func, "Update object's display data."); /* XXX describe better */
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+
+	/* View */
+	func= RNA_def_function(srna, "is_visible", "rna_Object_is_visible");
+	RNA_def_function_ui_description(func, "Determine if object is visible in active scene.");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm= RNA_def_boolean(func, "is_visible", 0, "", "Object visibility.");
+	RNA_def_function_return(func, parm);
 }
 
 #endif
