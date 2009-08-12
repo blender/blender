@@ -1470,12 +1470,16 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		/* number editing */
 		double value;
 
-		/* XXX 2.50 missing python api */
 #ifndef DISABLE_PYTHON
 		{
 			char str_unit_convert[256];
-			
-			bUnit_ReplaceString(str_unit_convert, str, 1.0/ui_get_but_scale_unit(but, 1.0), U.unit_system, RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop)));
+			int change= -1;
+			if(U.unit_system != USER_UNIT_NONE) {
+				bUnit_ReplaceString(str_unit_convert, str, ui_get_but_scale_unit(but, 1.0), U.unit_system, RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop)));
+			}
+			else {
+				strcpy(str_unit_convert, str);
+			}
 
 			if(BPY_button_eval(C, str_unit_convert, &value)) {
 				value = ui_get_but_val(but); /* use its original value */
@@ -1832,7 +1836,7 @@ void ui_check_but(uiBut *but)
 			else if(U.unit_system != USER_UNIT_NONE && but->rnaprop && RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop))) {
 				char new_str[256];
 
-				if(U.unit_scale_length==0.0) U.unit_scale_length= 1.0; // XXX do_versions
+				if(U.unit_scale_length<0.0001) U.unit_scale_length= 1.0; // XXX do_versions
 
 				ui_get_but_string_unit(but, new_str, value, TRUE);
 				sprintf(but->drawstr, "%s%s", but->str, new_str);

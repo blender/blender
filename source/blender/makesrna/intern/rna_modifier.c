@@ -538,12 +538,12 @@ static void rna_def_modifier_build(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "BuildModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_BUILD);
 
-	prop= RNA_def_property(srna, "start", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "start", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Start", "Specify the start frame of the effect.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "length", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "length", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_range(prop, 1, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Length", "Specify the total time the build effect requires");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
@@ -708,21 +708,21 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Damping Time",  "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "falloff_radius", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "falloff_radius", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "falloff");
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 100, 100, 2);
 	RNA_def_property_ui_text(prop, "Falloff Radius",  "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "start_position_x", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "start_position_x", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "startx");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -100, 100, 100, 2);
 	RNA_def_property_ui_text(prop, "Start Position X",  "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "start_position_y", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "start_position_y", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "starty");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -100, 100, 100, 2);
@@ -853,7 +853,7 @@ static void rna_def_modifier_hook(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "HookModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_HOOK);
 
-	prop= RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 100, 100, 2);
 	RNA_def_property_ui_text(prop, "Falloff",  "If not zero, the distance from the hook where influence ends.");
@@ -953,7 +953,7 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Count",  "Number of duplicates to make.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "length", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "length", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_ui_range(prop, 0, 10000, 10, 2);
 	RNA_def_property_ui_text(prop, "Length", "Length to fit array within.");
@@ -998,7 +998,7 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Merge Vertices", "Merge vertices in first and last duplicates.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "merge_distance", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "merge_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "merge_dist");
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 1, 1, 4);
@@ -1280,7 +1280,7 @@ static void rna_def_modifier_cast(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Factor", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 100, 10, 2);
 	RNA_def_property_ui_text(prop, "Radius", "Only deform vertices within this distance from the center of the effect (leave as 0 for infinite.)");

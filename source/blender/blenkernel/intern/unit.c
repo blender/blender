@@ -282,10 +282,13 @@ int bUnit_ReplaceString(char *str, char *str_orig, double scale_pref, int system
 	char str_tmp[256];
 	int change= 0;
 	
-	if(usys==NULL || usys->units[0].name==NULL)
-		return 0;
-
 	strcpy(str, str_orig);
+
+	if(usys==NULL || usys->units[0].name==NULL) {
+		return 0;
+	}
+
+	scale_pref= 1.0/scale_pref;
 	
 	for(unit= usys->units; unit->name; unit++) {
 		/* incase there are multiple instances */
