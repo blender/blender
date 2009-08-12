@@ -266,35 +266,49 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 		
 		strip = act_strip(context)
 		
-		layout.itemR(strip, "name")
+		split = layout.split(percentage=0.3)
+		split.itemL(text="Name:")
+		split.itemR(strip, "name", text="")
 		
-		layout.itemR(strip, "type")
+		split = layout.split(percentage=0.3)
+		split.itemL(text="Type:")
+		split.itemR(strip, "type", text="")
 		
-		layout.itemR(strip, "blend_mode")
+		split = layout.split(percentage=0.3)
+		split.itemL(text="Blend:")
+		split.itemR(strip, "blend_mode", text="")
 		
-		layout.itemR(strip, "blend_opacity", text="Opacity", slider=True)
+		row = layout.row()
 		
-		split = layout.split()
 		
-		col = split.column()
-		col.itemR(strip, "mute")
-		col.itemR(strip, "lock")
-		col.itemR(strip, "frame_locked")
+		if strip.mute == True:
+			row.itemR(strip, "mute", toggle=True, icon='ICON_RESTRICT_VIEW_ON', text="")
+		elif strip.mute == False:
+			row.itemR(strip, "mute", toggle=True, icon='ICON_RESTRICT_VIEW_OFF', text="")
 		
-		col = split.column()
+		sub = row.row()
+		sub.active = (not strip.mute)
+		
+		sub.itemR(strip, "blend_opacity", text="Opacity", slider=True)
+		
+		row = layout.row()
+		row.itemR(strip, "lock")
+		row.itemR(strip, "frame_locked", text="Frame Lock")
+		
+		col = layout.column()
 		col.itemR(strip, "channel")
 		col.itemR(strip, "start_frame")
 		col.itemR(strip, "length")
 		
-		split = layout.split()
+		col = layout.column(align=True)
+		col.itemL(text="Offset:")
+		col.itemR(strip, "start_offset", text="Start")
+		col.itemR(strip, "end_offset", text="End")
 		
-		col = split.column()
-		col.itemR(strip, "start_offset")
-		col.itemR(strip, "start_still")
-		
-		col = split.column()
-		col.itemR(strip, "end_offset")
-		col.itemR(strip, "end_still")
+		col = layout.column(align=True)
+		col.itemL(text="Still:")
+		col.itemR(strip, "start_still", text="Start")
+		col.itemR(strip, "end_still", text="End")
 		
 class SEQUENCER_PT_effect(SequencerButtonsPanel):
 	__label__ = "Effect Strip"
@@ -318,23 +332,21 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
 			layout.itemR(strip, "color")
 			
 		elif strip.type == 'WIPE':
-			row = layout.row()
-			row.itemL(text="Transition Type:")
-			row.itemL(text="Direction:")
 			
-			row = layout.row()
-			row.itemR(strip, "transition_type", text="")
-			row.itemR(strip, "direction", text="")
+			col = layout.column()
+			col.itemR(strip, "transition_type")
+			col.itemL(text="Direction:")
+			col.row().itemR(strip, "direction", expand=True)
 			
-			row = layout.row()
-			row.itemR(strip, "blur_width")
+			col = layout.column()
+			col.itemR(strip, "blur_width", slider=True)
 			if strip.transition_type in ('SINGLE', 'DOUBLE'):
-				row.itemR(strip, "angle")
+				col.itemR(strip, "angle")
 				
 		elif strip.type == 'GLOW':
 			flow = layout.column_flow()
-			flow.itemR(strip, "threshold")
-			flow.itemR(strip, "clamp")
+			flow.itemR(strip, "threshold", slider=True)
+			flow.itemR(strip, "clamp", slider=True)
 			flow.itemR(strip, "boost_factor")
 			flow.itemR(strip, "blur_distance")
 			
@@ -351,42 +363,40 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel):
 			flow.itemR(strip, "frame_blending")
 			
 		elif strip.type == 'TRANSFORM':
-			row = layout.row()
-			row.itemL(text="Interpolation:")
-			row.itemL(text="Translation Unit:")
 			
-			row = layout.row()
-			row.itemR(strip, "interpolation", text="")
-			row.itemR(strip, "translation_unit", text="")
+			col = layout.column()
+			col.itemR(strip, "interpolation")
+			col.itemR(strip, "translation_unit")
 			
-			split = layout.split()
+			col = layout.column(align=True)
+			col.itemL(text="Position X:")
+			col.itemR(strip, "translate_start_x", text="Start")
+			col.itemR(strip, "translate_end_x", text="End")
 			
-			col = split.column()
-			sub = col.column(align=True) 
-			sub.itemL(text="Position X:")
-			sub.itemR(strip, "translate_start_x", text="Start")
-			sub.itemR(strip, "translate_end_x", text="End")
+			col = layout.column(align=True)
+			col.itemL(text="Position Y:")
+			col.itemR(strip, "translate_start_y", text="Start")
+			col.itemR(strip, "translate_end_y", text="End")
 			
-			sub = col.column(align=True) 
-			sub.itemL(text="Scale X:")
-			sub.itemR(strip, "scale_start_x", text="Start")
-			sub.itemR(strip, "scale_end_x", text="End")
+			layout.itemS()
 			
-			sub = col.column(align=True) 
-			sub.itemL(text="Rotation:")
-			sub.itemR(strip, "rotation_start", text="Start")
-			sub.itemR(strip, "rotation_end", text="End")
+			col = layout.column(align=True)
+			col.itemL(text="Scale X:")
+			col.itemR(strip, "scale_start_x", text="Start")
+			col.itemR(strip, "scale_end_x", text="End")
 			
-			col = split.column()
-			sub = col.column(align=True) 
-			sub.itemL(text="Position Y:")
-			sub.itemR(strip, "translate_start_y", text="Start")
-			sub.itemR(strip, "translate_end_y", text="End")
+			col = layout.column(align=True)
+			col.itemL(text="Scale Y:")
+			col.itemR(strip, "scale_start_y", text="Start")
+			col.itemR(strip, "scale_end_y", text="End")
 			
-			sub = col.column(align=True) 
-			sub.itemL(text="Scale Y:")
-			sub.itemR(strip, "scale_start_y", text="Start")
-			sub.itemR(strip, "scale_end_y", text="End")
+			layout.itemS()
+			
+			col = layout.column(align=True)
+			col.itemL(text="Rotation:")
+			col.itemR(strip, "rotation_start", text="Start")
+			col.itemR(strip, "rotation_end", text="End")
+			
 
 class SEQUENCER_PT_input(SequencerButtonsPanel):
 	__label__ = "Strip Input"
@@ -422,25 +432,27 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 		if elem:
 			sub.itemR(elem, "filename", text="") # strip.elements[0] could be a fallback
 		
-		layout.itemR(strip, "use_translation")
+		layout.itemR(strip, "use_translation", text="Image Offset:")
 		if strip.transform:
-			flow = layout.column_flow()
-			flow.active = strip.use_translation
-			flow.itemR(strip.transform, "offset_x")
-			flow.itemR(strip.transform, "offset_y")
+			col = layout.column(align=True)
+			col.active = strip.use_translation
+			col.itemR(strip.transform, "offset_x", text="X")
+			col.itemR(strip.transform, "offset_y", text="Y")
 			
 			
-		layout.itemR(strip, "use_crop")
+		layout.itemR(strip, "use_crop", text="Image Crop:")
 		if strip.crop:
-			flow = layout.column_flow()
-			flow.active = strip.use_crop
-			flow.itemR(strip.crop, "top")
-			flow.itemR(strip.crop, "left")
-			flow.itemR(strip.crop, "bottom")
-			flow.itemR(strip.crop, "right")
-			
-		layout.itemR(strip, "animation_start_offset")
-		layout.itemR(strip, "animation_end_offset")
+			col = layout.column(align=True)
+			col.active = strip.use_crop
+			col.itemR(strip.crop, "top")
+			col.itemR(strip.crop, "left")
+			col.itemR(strip.crop, "bottom")
+			col.itemR(strip.crop, "right")
+		
+		col = layout.column(align=True)
+		col.itemL(text="Trim Duration:")
+		col.itemR(strip, "animation_start_offset", text="Start")
+		col.itemR(strip, "animation_end_offset", text="End")
 		
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel):
@@ -461,16 +473,19 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
 		
 		strip = act_strip(context)
 		
-		split = layout.split()
 		
-		col = split.column()
+		col = layout.column()
+		col.itemL(text="Video:")
+		col.itemR(strip, "strobe")
+		col.itemR(strip, "de_interlace")
+		
+		col = layout.column()
+		col.itemL(text="Colors:")
+		col.itemR(strip, "multiply_colors", text="Multiply")
 		col.itemR(strip, "premultiply")
 		col.itemR(strip, "convert_float")
-		col.itemR(strip, "de_interlace")
-		col.itemR(strip, "multiply_colors")
-		col.itemR(strip, "strobe")
-		
-		col = split.column()
+
+		col = layout.column()
 		col.itemL(text="Flip:")
 		col.itemR(strip, "flip_x", text="X")
 		col.itemR(strip, "flip_y", text="Y")
@@ -482,13 +497,13 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
 			row.active = strip.use_color_balance
 			col = row.column()
 			col.itemR(strip.color_balance, "lift")
-			col.itemR(strip.color_balance, "inverse_lift")
+			col.itemR(strip.color_balance, "inverse_lift", text="Inverse")
 			col = row.column()
 			col.itemR(strip.color_balance, "gamma")
-			col.itemR(strip.color_balance, "inverse_gamma")
+			col.itemR(strip.color_balance, "inverse_gamma", text="Inverse")
 			col = row.column()
 			col.itemR(strip.color_balance, "gain")
-			col.itemR(strip.color_balance, "inverse_gain")
+			col.itemR(strip.color_balance, "inverse_gain", text="Inverse")
 			
 
 class SEQUENCER_PT_proxy(SequencerButtonsPanel):
