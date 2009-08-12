@@ -300,7 +300,7 @@ typedef struct UserDef {
 
 	int scrollback; /* console scrollback limit */
 	float unit_scale_length, pad1; /* maybe have other unit conversions? */
-	char unit_type, unit_flag; /* imperial, metric etc */
+	char unit_system, unit_flag; /* imperial, metric etc */
 	short dpi;		/* range 48-128? */
 	short encoding;
 	short transopts;

@@ -30,11 +30,9 @@
 /* define a single unit */
 typedef struct bUnitDef {
 	char *name;
-
-	/* optional, can be null */
-	char *name_plural;
+	char *name_plural;	/* can be NULL */
 	char *name_short;	/* this is used for display*/
-	char *name_alt;		/* alternative name */
+	char *name_alt;		/* can be NULL */
 	
 	double mul;
 	double bias;		/* not used yet, needed for converting temperature */
@@ -43,13 +41,22 @@ typedef struct bUnitDef {
 /* define a single unit */
 typedef struct bUnitCollection {
 	struct bUnitDef *units;
-	int def;					/* default unit, use for 0.0, or none given */
+	int base_unit;				/* use for 0.0, or none given */
 	int flag;					/* options for this system */
 } bUnitCollection;
 
+/* Dummy */
+static struct bUnitDef buDummyDef[] = {
+	{"", NULL, "", NULL,	1.0, 0.0},
+	{NULL, NULL, NULL,	NULL, 0.0, 0.0}
+};
+static struct bUnitCollection buDummyCollecton = {buDummyDef, 0, 0};
+
+
+/* Lengths */
 static struct bUnitDef buMetricLenDef[] = {
 	{"kilometer", "kilometers",		"km", NULL,	1000.0, 0.0},
-	{"meter", "meters",				"m",  NULL,	1.0, 0.0},
+	{"meter", "meters",				"m",  NULL,	1.0, 0.0}, /* base unit */
 	{"centimeter", "centimeters",	"cm", NULL,	0.01, 0.0},
 	{"millimeter", "millimeters",	"mm", NULL,	0.001, 0.0},
 	{"micrometer", "micrometers",	"um", "µm",	0.000001, 0.0}, // micron too?
@@ -59,27 +66,41 @@ static struct bUnitDef buMetricLenDef[] = {
 };
 static struct bUnitCollection buMetricLenCollecton = {buMetricLenDef, 1, 0};
 
-#define IMPERIAL_DEFAULT 3 /* inch */
 static struct bUnitDef buImperialLenDef[] = {
 	{"mile", "miles",				"mi", "m",	1609.344, 0.0},
 	{"yard", "yards",				"yd", NULL,	0.9144, 0.0},
 	{"foot", "feet",				"'", "ft",	0.3048, 0.0},
-	{"inch", "inches",				"\"", "in",	0.0254, 0.0},
+	{"inch", "inches",				"\"", "in",	0.0254, 0.0}, /* base unit */
 	{"thou", "thous",				"mil", NULL,0.0000254, 0.0},
 	{NULL, NULL, NULL, NULL, 0.0, 0.0}
 };
 static struct bUnitCollection buImperialLenCollecton = {buImperialLenDef, 2, 0};
 
+
+/* Time */
+static struct bUnitDef buNaturalTimeDef[] = {
+	/* weeks? - probably not needed for blender */
+	{"day", "days",					"d", NULL,	90000.0, 0.0},
+	{"hour", "hours",				"hr", "h",	3600.0, 0.0},
+	{"minute", "minutes",			"min", "m",	60.0, 0.0},
+	{"second", "seconds",			"sec", "s",	1.0, 0.0}, /* base unit */
+	{"millisecond", "milliseconds",	"ms", NULL,	0.001, 0.0},
+	{"microsecond", "microseconds",	"us", NULL,	0.000001, 0.0},
+	{NULL, NULL, NULL, NULL, 0.0, 0.0}
+};
+static struct bUnitCollection buNaturalTimeCollecton = {buNaturalTimeDef, 3, 0};
+
 static struct bUnitCollection *bUnitSystems[][8] = {
-	{0,&buMetricLenCollecton, 0,0,0,0,0,0}, /* metric */
-	{0,&buImperialLenCollecton, 0,0,0,0,0,0}, /* imperial */
+	{0,0,0,0,0,0,0,0},
+	{0,&buMetricLenCollecton, 0,0,0,0, &buNaturalTimeCollecton,0}, /* metric */
+	{0,&buImperialLenCollecton, 0,0,0,0, &buNaturalTimeCollecton,0}, /* imperial */
 	{0,0,0,0,0,0,0,0}
 };
 
 /* internal, has some option not exposed */
 static bUnitCollection *unit_get_system(int system, int type)
 {
-	return bUnitSystems[system-1][type];
+	return bUnitSystems[system][type]; /* select system to use, metric/imperial/other? */
 }
 
 static bUnitDef *unit_best_fit(double value, bUnitCollection *usys, bUnitDef *unit_start)
@@ -91,7 +112,7 @@ static bUnitDef *unit_best_fit(double value, bUnitCollection *usys, bUnitDef *un
 		if (value_abs >= unit->mul)
 			return unit;
 
-	return &usys->units[usys->def];
+	return &usys->units[usys->base_unit];
 }
 
 /* convert into 2 units and 2 values for "2ft, 3inch" syntax */
@@ -119,7 +140,7 @@ static int unit_as_string(char *str, double value, int prec, bUnitCollection *us
 	}
 	else if(value == 0.0) {
 		/* use the default units since there is no way to convert */
-		unit= &usys->units[usys->def];
+		unit= &usys->units[usys->base_unit];
 	}
 	else {
 		unit= unit_best_fit(value, usys, NULL);
@@ -181,6 +202,9 @@ void bUnit_AsString(char *str, double value, int prec, int system, int type, int
 {
 	bUnitCollection *usys = unit_get_system(system, type);
 
+	if(usys==NULL || usys->units[0].name==NULL)
+		usys= &buDummyCollecton;
+
 	if(split) {
 		int i;
 		bUnitDef *unit_a, *unit_b;
@@ -209,7 +233,10 @@ static int unit_scale_str(char *str, char *str_tmp, double scale_pref, bUnitDef 
 	char *str_found;
 	int change= 0;
 
-	if(replace_str && (str_found= strstr(str, replace_str))) {
+	if(replace_str==NULL || replace_str[0] == '\0')
+		return 0;
+
+	if((str_found= strstr(str, replace_str))) {
 		/* previous char cannot be a letter */
 		if (str_found == str || isalpha(*(str_found-1))==0) {
 			int len_name = strlen(replace_str);
@@ -255,6 +282,9 @@ int bUnit_ReplaceString(char *str, char *str_orig, double scale_pref, int system
 	char str_tmp[256];
 	int change= 0;
 	
+	if(usys==NULL || usys->units[0].name==NULL)
+		return 0;
+
 	strcpy(str, str_orig);
 	
 	for(unit= usys->units; unit->name; unit++) {
@@ -262,6 +292,6 @@ int bUnit_ReplaceString(char *str, char *str_orig, double scale_pref, int system
 		while(unit_replace(str, str_tmp, scale_pref, unit))
 			change= 1;
 	}
-
+	// printf("replace %s\n", str);
 	return change;
 }

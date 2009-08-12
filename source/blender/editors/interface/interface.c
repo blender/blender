@@ -1308,6 +1308,36 @@ int ui_get_but_string_max_length(uiBut *but)
 		return UI_MAX_DRAW_STR;
 }
 
+static double ui_get_but_scale_unit(uiBut *but, double value)
+{
+	int subtype= RNA_property_subtype(but->rnaprop);
+
+	if(subtype & PROP_UNIT_LENGTH) {
+		return value * U.unit_scale_length;
+	}
+	else if(subtype & PROP_UNIT_TIME) { /* WARNING - using evil_C :| */
+		Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
+		return FRA2TIME(value);
+	}
+	else {
+		return value;
+	}
+}
+
+static void ui_get_but_string_unit(uiBut *but, char *str, double value, int pad)
+{
+	int do_split= U.unit_flag & USER_UNIT_OPT_SPLIT ? 1:0;
+	int unit_system=  RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop));
+	int precission= but->a2;
+
+	/* Sanity checks */
+	if(precission>4)		precission= 4;
+	else if(precission==0)	precission= 2;
+
+	bUnit_AsString(str, ui_get_but_scale_unit(but, value), precission, U.unit_system, unit_system, do_split, pad);
+}
+
+
 void ui_get_but_string(uiBut *but, char *str, int maxlen)
 {
 	if(but->rnaprop && ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
@@ -1364,12 +1394,8 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 
 		if(ui_is_but_float(but)) {
 
-			if(but->rnaprop && (RNA_property_subtype(but->rnaprop) & PROP_UNIT_LENGTH && U.unit_type != USER_UNIT_NONE)) {
-				int prec = but->a2;
-				if(prec>4)			prec= 4;
-				else if(prec==0)	prec= 2;
-
-				bUnit_AsString(str, value*U.unit_scale_length, prec, U.unit_type, PROP_UNIT_LENGTH>>16, U.unit_flag&USER_UNIT_OPT_SPLIT, 0);
+			if(U.unit_system != USER_UNIT_NONE && but->rnaprop && RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop))) {
+				ui_get_but_string_unit(but, str, value, 0);
 			}
 			else if(but->a2) { /* amount of digits defined */
 				if(but->a2==1) BLI_snprintf(str, maxlen, "%.1f", value);
@@ -1449,7 +1475,7 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		{
 			char str_unit_convert[256];
 			
-			bUnit_ReplaceString(str_unit_convert, str, U.unit_scale_length, U.unit_type, PROP_UNIT_LENGTH>>16);
+			bUnit_ReplaceString(str_unit_convert, str, 1.0/ui_get_but_scale_unit(but, 1.0), U.unit_system, RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop)));
 
 			if(BPY_button_eval(C, str_unit_convert, &value)) {
 				value = ui_get_but_val(but); /* use its original value */
@@ -1803,16 +1829,12 @@ void ui_check_but(uiBut *but)
 			if(value == FLT_MAX) sprintf(but->drawstr, "%sinf", but->str);
 			else if(value == -FLT_MAX) sprintf(but->drawstr, "%s-inf", but->str);
 			/* support length type buttons */
-			else if(but->rnaprop && (RNA_property_subtype(but->rnaprop) & PROP_UNIT_LENGTH && U.unit_type != USER_UNIT_NONE)) {
+			else if(U.unit_system != USER_UNIT_NONE && but->rnaprop && RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop))) {
 				char new_str[256];
-				int prec = but->a2;
-				if(prec>4)			prec= 4;
-				else if(prec==0)	prec= 2;
 
 				if(U.unit_scale_length==0.0) U.unit_scale_length= 1.0; // XXX do_versions
 
-				bUnit_AsString(new_str, value*U.unit_scale_length, prec, U.unit_type, PROP_UNIT_LENGTH>>16, U.unit_flag&USER_UNIT_OPT_SPLIT, 1);
-
+				ui_get_but_string_unit(but, new_str, value, TRUE);
 				sprintf(but->drawstr, "%s%s", but->str, new_str);
 			}
 			else if(but->a2) { /* amount of digits defined */

@@ -1733,7 +1733,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 		{BEZT_IPO_BEZ, "BEZIER", 0, "Bezier", ""},
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem unit_types[] = {
+	static EnumPropertyItem unit_systems[] = {
 		{USER_UNIT_NONE, "NONE", 0, "None", ""},
 		{USER_UNIT_METRIC, "METRIC", 0, "Metric", ""},
 		{USER_UNIT_IMPERIAL, "IMPERIAL", 0, "Imperial", ""},
@@ -1780,9 +1780,9 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Global Undo", "Global undo works by keeping a full copy of the file itself in memory, so takes extra memory.");
 
 	/* Units */
-	prop= RNA_def_property(srna, "unit_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, unit_types);
-	RNA_def_property_ui_text(prop, "Unit Type", "The unit system to use for button display.");
+	prop= RNA_def_property(srna, "unit_system", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, unit_systems);
+	RNA_def_property_ui_text(prop, "Unit System", "The unit system to use for button display.");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop= RNA_def_property(srna, "unit_scale_length", PROP_FLOAT, PROP_UNSIGNED);

@@ -80,6 +80,7 @@ typedef enum PropertyUnit {
 } PropertyUnit;
 
 #define RNA_SUBTYPE_UNIT(subtype) (subtype & 0x00FF0000)
+#define RNA_SUBTYPE_UNIT_VALUE(subtype) (subtype>>16)
 
 /* also update rna_property_subtypename when you change this */
 typedef enum PropertySubType {
