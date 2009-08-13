@@ -31,10 +31,10 @@ extern "C" {
 /* in all cases the value is assumed to be scaled by the user preference */
 
 /* humanly readable representation of a value in units (used for button drawing) */
-void	bUnit_AsString(char *str, double value, int prec, int system, int type, int split, int pad);
+void	bUnit_AsString(char *str, int len_max, double value, int prec, int system, int type, int split, int pad);
 
 /* replace units with values, used before python button evaluation */
-int		bUnit_ReplaceString(char *str, char *str_orig, char *str_prev, double scale_pref, int system, int type);
+int		bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pref, int system, int type);
 
 /* the size of the unit used for this value (used for calculating the ckickstep) */
 double bUnit_ClosestScalar(double value, int system, int type);
