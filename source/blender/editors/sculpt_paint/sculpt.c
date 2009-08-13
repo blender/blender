@@ -655,31 +655,26 @@ static float tex_strength(Sculpt *sd, float *point, const float len)
 {
 	SculptSession *ss= sd->session;
 	Brush *br = sd->brush;
+	MTex *tex = NULL;
 	float avg= 1;
 
-	if(br->texact==-1 || !br->mtex[br->texact])
+	if(br->texact >= 0)
+		tex = br->mtex[br->texact];
+
+	if(!tex) {
 		avg= 1;
-	else if(br->tex_mode==BRUSH_TEX_3D) {
-		/* Get strength by feeding the vertex location directly
-		   into a texture */
+	}
+	else if(tex->brush_map_mode == MTEX_MAP_MODE_3D) {
 		float jnk;
-		const float factor= 0.01;
-		MTex mtex;
-		memset(&mtex,0,sizeof(MTex));
-		mtex.tex= br->mtex[br->texact]->tex;
-		mtex.projx= 1;
-		mtex.projy= 2;
-		mtex.projz= 3;
-		VecCopyf(mtex.size, br->mtex[br->texact]->size);
-		VecMulf(mtex.size, factor);
-		if(!sd->texsep)
-			mtex.size[1]= mtex.size[2]= mtex.size[0];
-		
-		externtex(&mtex,point,&avg,&jnk,&jnk,&jnk,&jnk);
+
+		/* Get strength by feeding the vertex 
+		   location directly into a texture */
+		externtex(tex, point, &avg,
+			  &jnk, &jnk, &jnk, &jnk);
 	}
 	else if(ss->texcache) {
 		const float bsize= ss->cache->pixel_radius * 2;
-		const float rot= sd->brush->rot + ss->cache->rotation;
+		const float rot= tex->rot + ss->cache->rotation;
 		int px, py;
 		float flip[3], point_2d[2];
 
@@ -692,9 +687,9 @@ static float tex_strength(Sculpt *sd, float *point, const float len)
 
 		/* For Tile and Drag modes, get the 2D screen coordinates of the
 		   and scale them up or down to the texture size. */
-		if(br->tex_mode==BRUSH_TEX_TILE) {
-			const int sx= (const int)br->mtex[br->texact]->size[0];
-			const int sy= (const int)sd->texsep ? br->mtex[br->texact]->size[1] : sx;
+		if(tex->brush_map_mode == MTEX_MAP_MODE_TILED) {
+			const int sx= (const int)tex->size[0];
+			const int sy= (const int)tex->size[1];
 			
 			float fx= point_2d[0];
 			float fy= point_2d[1];
@@ -714,7 +709,8 @@ static float tex_strength(Sculpt *sd, float *point, const float len)
 			if(sy != 1)
 				py %= sy-1;
 			avg= get_texcache_pixel_bilinear(ss, ss->texcache_side*px/sx, ss->texcache_side*py/sy);
-		} else {
+		}
+		else if(tex->brush_map_mode == MTEX_MAP_MODE_FIXED) {
 			float fx= (point_2d[0] - ss->cache->mouse[0]) / bsize;
 			float fy= (point_2d[1] - ss->cache->mouse[1]) / bsize;
 

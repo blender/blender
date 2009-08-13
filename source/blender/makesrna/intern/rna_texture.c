@@ -147,6 +147,20 @@ static EnumPropertyItem *rna_ImageTexture_filter_itemf(bContext *C, PointerRNA *
 	return item;
 }
 
+static float rna_TextureSlot_angle_get(PointerRNA *ptr)
+{
+	MTex *tex= (MTex*)ptr->data;
+	const float conv = 57.295779506;
+	return tex->rot * conv;
+}
+
+static void rna_TextureSlot_angle_set(PointerRNA *ptr, float v)
+{
+	MTex *tex= (MTex*)ptr->data;
+	const float conv = 0.017453293;
+	tex->rot = v * conv;
+}
+
 #else
 
 static void rna_def_color_ramp_element(BlenderRNA *brna)
@@ -267,6 +281,12 @@ static void rna_def_mtex(BlenderRNA *brna)
 		{MTEX_BLEND_COLOR, "COLOR", 0, "Color", ""},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem prop_map_mode_items[] = {
+		{MTEX_MAP_MODE_FIXED, "FIXED", 0, "Fixed", ""},
+		{MTEX_MAP_MODE_TILED, "TILED", 0, "Tiled", ""},
+		{MTEX_MAP_MODE_3D, "3D", 0, "3D", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "TextureSlot", NULL);
 	RNA_def_struct_sdna(srna, "MTex");
 	RNA_def_struct_ui_text(srna, "Texture Slot", "Texture slot defining the mapping and influence of a texture.");
@@ -324,6 +344,17 @@ static void rna_def_mtex(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_RGBTOINT);
 	RNA_def_property_ui_text(prop, "RGB to Intensity", "Converts texture RGB values to intensity (gray) values.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "rot");
+	RNA_def_property_range(prop, 0, 360);
+	RNA_def_property_float_funcs(prop, "rna_TextureSlot_angle_get", "rna_TextureSlot_angle_set", NULL);
+	RNA_def_property_ui_text(prop, "Angle", "Defines brush texture rotation.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+
+	prop= RNA_def_property(srna, "brush_map_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_map_mode_items);
+	RNA_def_property_ui_text(prop, "Mode", "");
 
 	prop= RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "def_var");

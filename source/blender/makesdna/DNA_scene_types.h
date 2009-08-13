@@ -476,11 +476,10 @@ typedef struct Sculpt
 	/* For rotating around a pivot point */
 	float pivot[3];
 	int flags;
-	/* For the Brush Shape */
-	char texsep;
+
 	/* Control tablet input */
 	char tablet_size, tablet_strength;
-	char pad[5];
+	char pad[6];
 } Sculpt;
 
 typedef struct VPaint {
