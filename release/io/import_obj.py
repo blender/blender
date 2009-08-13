@@ -294,18 +294,21 @@ def line_value(line_split):
 		return ' '.join( line_split[1:] )
 
 # limited replacement for BPyImage.comprehensiveImageLoad
-def load_image(imagepath, direc):
+def load_image(imagepath, dirname):
 
 	if os.path.exists(imagepath):
 		return bpy.data.add_image(imagepath)
 
-	im_base = os.path.basename(imagepath)
+	variants = [os.path.join(dirname, imagepath), os.path.join(dirname, os.path.basename(imagepath))]
 
-	tmp = os.path.join(direc, im_base)
-	if os.path.exists(tmp):
-		return bpy.data.add_image(tmp)
+	for path in variants:
+		if os.path.exists(path):
+			return bpy.data.add_image(path)
+		else:
+			print(path, "doesn't exist")
 
 	# TODO comprehensiveImageLoad also searched in bpy.config.textureDir
+	return None
 
 def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
 
@@ -387,7 +390,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 # 			blender_material.setTexture(1, texture, Texture.TexCo.UV, Texture.MapTo.CMIR) # TODO- Add AMB to BPY API
 			
 		elif type == 'Ks':
-			blender_material.add_texture(texture, "UV", "SPECULAR")
+			blender_material.add_texture(texture, "UV", "SPECULARITY")
 # 			blender_material.setTexture(2, texture, Texture.TexCo.UV, Texture.MapTo.SPEC)
 		
 		elif type == 'Bump':

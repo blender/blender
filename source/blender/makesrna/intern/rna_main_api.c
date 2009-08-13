@@ -44,6 +44,9 @@
 #include "BKE_object.h"
 #include "BKE_material.h"
 #include "BKE_image.h"
+#include "BKE_texture.h"
+
+#include "DNA_lamp_types.h"
 
 static Mesh *rna_Main_add_mesh(Main *main, char *name)
 {
@@ -61,6 +64,23 @@ static void rna_Main_remove_mesh(Main *main, ReportList *reports, Mesh *me)
 	
 	/* XXX python now has invalid pointer? */
 }
+
+static Lamp *rna_Main_add_lamp(Main *main, char *name)
+{
+	Lamp *la= add_lamp(name);
+	la->id.us--;
+	return la;
+}
+
+/*
+static void rna_Main_remove_lamp(Main *main, ReportList *reports, Lamp *la)
+{
+	if(la->id.us == 0)
+		free_libblock(&main->lamp, la);
+	else
+		BKE_report(reports, RPT_ERROR, "Lamp must have zero users to be removed.");
+}
+*/
 
 static Object* rna_Main_add_object(Main *main, int type, char *name)
 {
@@ -157,6 +177,13 @@ void RNA_api_main(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Remove a mesh if it has zero users.");
 	parm= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh to remove.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "add_lamp", "rna_Main_add_lamp");
+	RNA_def_function_ui_description(func, "Add a new lamp.");
+	parm= RNA_def_string(func, "name", "Lamp", 0, "", "New name for the datablock.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "mesh", "Lamp", "", "New lamp.");
+	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "add_material", "rna_Main_add_material");
 	RNA_def_function_ui_description(func, "Add a new material.");

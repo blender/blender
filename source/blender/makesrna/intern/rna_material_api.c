@@ -101,7 +101,7 @@ void RNA_api_material(StructRNA *srna)
 	static EnumPropertyItem prop_texture_mapto_items[] = {
 		{MAP_COL, "COLOR", 0, "Color", "Causes the texture to affect basic color of the material"},
 		{MAP_NORM, "NORMAL", 0, "Normal", "Causes the texture to affect the rendered normal"},
-		{MAP_COLSPEC, "SPEC_COLOR", 0, "Specularity Color", "Causes the texture to affect the specularity color"},
+		{MAP_COLSPEC, "SPECULAR_COLOR", 0, "Specularity Color", "Causes the texture to affect the specularity color"},
 		{MAP_COLMIR, "MIRROR", 0, "Mirror", "Causes the texture to affect the mirror color"},
 		{MAP_REF, "REFLECTION", 0, "Reflection", "Causes the texture to affect the value of the materials reflectivity"},
 		{MAP_SPEC, "SPECULARITY", 0, "Specularity", "Causes the texture to affect the value of specularity"},

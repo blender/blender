@@ -248,7 +248,7 @@ static void rna_Mesh_add_geometry(Mesh *mesh, int verts, int edges, int faces)
 		rna_Mesh_add_faces(mesh, faces);
 }
 
-static void rna_Mesh_add_uv_layer(Mesh *me)
+static void rna_Mesh_add_uv_texture(Mesh *me)
 {
 	me->mtface= CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DEFAULT, NULL, me->totface);
 }
@@ -306,8 +306,8 @@ void RNA_api_mesh(StructRNA *srna)
 	parm= RNA_def_pointer(func, "mesh", "Mesh", "", "Mesh, remove it if it is only used for export.");
 	RNA_def_function_return(func, parm);
 
-	func= RNA_def_function(srna, "add_uv_layer", "rna_Mesh_add_uv_layer");
-	RNA_def_function_ui_description(func, "Add new UV layer to Mesh.");
+	func= RNA_def_function(srna, "add_uv_texture", "rna_Mesh_add_uv_texture");
+	RNA_def_function_ui_description(func, "Add a UV texture layer to Mesh.");
 
 	func= RNA_def_function(srna, "calc_normals", "rna_Mesh_calc_normals");
 	RNA_def_function_ui_description(func, "Calculate vertex normals.");

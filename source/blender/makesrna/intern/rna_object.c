@@ -74,6 +74,12 @@ void rna_Object_update(bContext *C, PointerRNA *ptr)
 	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_OB);
 }
 
+void rna_Object_matrix_update(bContext *C, PointerRNA *ptr)
+{
+	ED_object_apply_obmat(ptr->id.data);
+	rna_Object_update(C, ptr);
+}
+
 void rna_Object_update_data(bContext *C, PointerRNA *ptr)
 {
 	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_DATA);
@@ -1101,6 +1107,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "obmat");
 	RNA_def_property_array(prop, 16);
 	RNA_def_property_ui_text(prop, "Matrix", "Transformation matrix.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_matrix_update");
 
 	/* collections */
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
