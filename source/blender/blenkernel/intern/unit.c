@@ -27,6 +27,10 @@
 #include <string.h>
 #include <math.h>
 
+#if defined(WIN32) && (!(defined snprintf))
+#define snprintf _snprintf
+#endif
+
 #define TEMP_STR_SIZE 256
 
 /* define a single unit */

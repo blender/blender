@@ -1876,7 +1876,7 @@ void ui_check_but(uiBut *but)
 			else if(ui_is_but_unit(but)) {
 				char new_str[sizeof(but->drawstr)];
 				ui_get_but_string_unit(but, new_str, sizeof(new_str), value, TRUE);
-				snprintf(but->drawstr, sizeof(but->drawstr), "%s%s", but->str, new_str);
+				BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%s", but->str, new_str);
 			}
 			else if(but->a2) { /* amount of digits defined */
 				if(but->a2==1) sprintf(but->drawstr, "%s%.1f", but->str, value);
