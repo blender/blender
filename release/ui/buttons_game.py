@@ -143,7 +143,8 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel):
 	def poll(self, context):
 		ob = context.active_object
 		game = ob.game
-		return (game.physics_type in ('DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC'))
+		rd = context.scene.render_data
+		return (game.physics_type in ('DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC')) and (rd.engine == 'BLENDER_GAME')
 
 	def draw_header(self, context):
 		layout = self.layout
