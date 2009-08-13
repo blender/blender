@@ -1505,14 +1505,18 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 
 #ifndef DISABLE_PYTHON
 		{
-			char str_unit_convert[256];
-			int unit_type=  RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop));
 			Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
-
-
+			char str_unit_convert[256];
+			int unit_type;
+				
+			if (but->rnaprop)
+				RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop));
+			else
+				unit_type= 0;
+			
 			if(scene->unit.system != USER_UNIT_NONE && unit_type) {
 				/* ugly, use the draw string to get the value, this could cause problems if it includes some text which resolves to a unit */
-				bUnit_ReplaceString(str_unit_convert, str, but->drawstr, ui_get_but_scale_unit(but, 1.0), scene->unit.system, unit_type);
+				bUnit_ReplaceString(str_unit_convert, (char *)str, but->drawstr, ui_get_but_scale_unit(but, 1.0), scene->unit.system, unit_type);
 			}
 			else {
 				strcpy(str_unit_convert, str);
