@@ -174,6 +174,11 @@ static void rna_Scene_frame_update(bContext *C, PointerRNA *ptr)
 	//ED_update_for_newframe(C);
 }
 
+static char *rna_SceneRenderData_path(PointerRNA *ptr)
+{
+	return BLI_sprintfN("render_data");
+}
+
 static int rna_SceneRenderData_threads_get(PointerRNA *ptr)
 {
 	RenderData *rd= (RenderData*)ptr->data;
@@ -1081,6 +1086,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "SceneRenderData", NULL);
 	RNA_def_struct_sdna(srna, "RenderData");
 	RNA_def_struct_nested(brna, srna, "Scene");
+	RNA_def_struct_path_func(srna, "rna_SceneRenderData_path");
 	RNA_def_struct_ui_text(srna, "Render Data", "Rendering settings for a Scene datablock.");
 	
 	prop= RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);

@@ -1193,45 +1193,17 @@ static void borderselect_anim_channels (bAnimContext *ac, rcti *rect, short sele
 		
 		/* if channel is within border-select region, alter it */
 		if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
-			/* only the following types can be selected */
+			/* set selection flags only */
+			ANIM_channel_setting_set(ac, ale, ACHANNEL_SETTING_SELECT, selectmode);
+			
+			/* type specific actions */
 			switch (ale->type) {
-				case ANIMTYPE_OBJECT: /* object */
-				{
-					Base *base= (Base *)ale->data;
-					Object *ob= base->object;
-					
-					ACHANNEL_SET_FLAG(base, selectmode, SELECT);
-					ACHANNEL_SET_FLAG(ob, selectmode, SELECT);
-				}
-					break;
-				case ANIMTYPE_GROUP: /* action group */
+				case ANIMTYPE_GROUP:
 				{
 					bActionGroup *agrp= (bActionGroup *)ale->data;
 					
-					ACHANNEL_SET_FLAG(agrp, selectmode, AGRP_SELECTED);
+					/* always clear active flag after doing this */
 					agrp->flag &= ~AGRP_ACTIVE;
-				}
-					break;
-				case ANIMTYPE_FCURVE: /* F-Curve channel */
-				{
-					FCurve *fcu = (FCurve *)ale->data;
-					
-					ACHANNEL_SET_FLAG(fcu, selectmode, FCURVE_SELECTED);
-				}
-					break;
-				case ANIMTYPE_GPLAYER: /* grease-pencil layer */
-				{
-					bGPDlayer *gpl = (bGPDlayer *)ale->data;
-					
-					ACHANNEL_SET_FLAG(gpl, selectmode, GP_LAYER_SELECT);
-				}
-					break;
-					
-				case ANIMTYPE_NLATRACK: /* nla-track */
-				{
-					NlaTrack *nlt= (NlaTrack *)ale->data;
-					
-					ACHANNEL_SET_FLAG(nlt, selectmode, NLATRACK_SELECTED);
 				}
 					break;
 			}
