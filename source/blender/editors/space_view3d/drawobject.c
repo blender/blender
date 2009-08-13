@@ -5558,7 +5558,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 								}
 
 								if(!have_lamp)
-									tvox = 1.0;
+									tray = 1.0;
 								
 								// fill buffer with luminance and alpha
 								// 1 - T_vox
