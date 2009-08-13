@@ -1558,3 +1558,90 @@ float BLI_bvhtree_bb_raycast(float *bv, float *light_start, float *light_end, fl
 
 }
 
+/*
+ * Range Query - as request by broken :P
+ *
+ * Allocs and fills an array with the indexs of node that are on the given spherical range (center, radius) 
+ * Returns the size of the array.
+ */
+typedef struct RangeQueryData
+{
+	BVHTree *tree;
+	const float *center;
+	float radius;			//squared radius
+
+	int hits;
+
+	BVHTree_RangeQuery callback;
+	void *userdata;
+
+
+} RangeQueryData;
+
+
+static void dfs_range_query(RangeQueryData *data, BVHNode *node)
+{
+	if(node->totnode == 0)
+	{
+
+		//Calculate the node min-coords (if the node was a point then this is the point coordinates)
+		float co[3];
+		co[0] = node->bv[0];
+		co[1] = node->bv[2];
+		co[2] = node->bv[4];
+
+	}
+	else
+	{
+		int i;
+		for(i=0; i != node->totnode; i++)
+		{
+			float nearest[3];
+			float dist = calc_nearest_point(data->center, node->children[i], nearest);
+			if(dist < data->radius)
+			{
+				//Its a leaf.. call the callback
+				if(node->children[i]->totnode == 0)
+				{
+					data->hits++;
+					data->callback( data->userdata, node->children[i]->index, dist );
+				}
+				else
+					dfs_range_query( data, node->children[i] );
+			}
+		}
+	}
+}
+
+int BLI_bvhtree_range_query(BVHTree *tree, const float *co, float radius, BVHTree_RangeQuery callback, void *userdata)
+{
+	BVHNode * root = tree->nodes[tree->totleaf];
+
+	RangeQueryData data;
+	data.tree = tree;
+	data.center = co;
+	data.radius = radius*radius;
+	data.hits = 0;
+
+	data.callback = callback;
+	data.userdata = userdata;
+
+	if(root != NULL)
+	{
+		float nearest[3];
+		float dist = calc_nearest_point(data.center, root, nearest);
+		if(dist < data.radius)
+		{
+			//Its a leaf.. call the callback
+			if(root->totnode == 0)
+			{
+				data.hits++;
+				data.callback( data.userdata, root->index, dist );
+			}
+			else
+				dfs_range_query( &data, root );
+		}
+	}
+
+	return data.hits;
+}

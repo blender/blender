@@ -100,6 +100,8 @@
 
 #include "envmap.h"
 #include "occlusion.h"
+#include "pointdensity.h"
+#include "voxeldata.h"
 #include "render_types.h"
 #include "rendercore.h"
 #include "renderdatabase.h"
@@ -108,6 +110,7 @@
 #include "shading.h"
 #include "strand.h"
 #include "texture.h"
+#include "volume_precache.h"
 #include "sss.h"
 #include "strand.h"
 #include "zbuf.h"
@@ -2976,6 +2979,53 @@ static void use_mesh_edge_lookup(ObjectRen *obr, DerivedMesh *dm, MEdge *medge, 
 	}
 }
 
+static void free_camera_inside_volumes(Render *re)
+{
+	BLI_freelistN(&re->render_volumes_inside);
+}
+
+static void init_camera_inside_volumes(Render *re)
+{
+	ObjectInstanceRen *obi;
+	VolumeOb *vo;
+	float co[3] = {0.f, 0.f, 0.f};
+
+	for(vo= re->volumes.first; vo; vo= vo->next) {
+		for(obi= re->instancetable.first; obi; obi= obi->next) {
+			if (obi->obr == vo->obr) {
+				if (point_inside_volume_objectinstance(obi, co)) {
+					MatInside *mi;
+					
+					mi = MEM_mallocN(sizeof(MatInside), "camera inside material");
+					mi->ma = vo->ma;
+					
+					BLI_addtail(&(re->render_volumes_inside), mi);
+				}
+			}
+		}
+	}
+	
+	{
+	MatInside *m;
+	for (m=re->render_volumes_inside.first; m; m=m->next) {
+		printf("matinside: ma: %s \n", m->ma->id.name+2);
+	}
+	
+	}
+}
+
+static void add_volume(Render *re, ObjectRen *obr, Material *ma)
+{
+	struct VolumeOb *vo;
+	
+	vo = MEM_mallocN(sizeof(VolumeOb), "volume object");
+	
+	vo->ma = ma;
+	vo->obr = obr;
+	
+	BLI_addtail(&re->volumes, vo);
+}
+
 static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 {
 	Object *ob= obr->ob;
@@ -3030,6 +3080,9 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			if(re->r.mode & R_RADIO)
 				if(ma->mode & MA_RADIO) 
 					do_autosmooth= 1;
+			
+			if (ma->material_type == MA_TYPE_VOLUME)
+				add_volume(re, obr, ma);
 		}
 	}
 
@@ -4338,6 +4391,8 @@ void RE_Database_Free(Render *re)
 		curvemapping_free(lar->curfalloff);
 	}
 	
+	free_volume_precache(re);
+	
 	BLI_freelistN(&re->lampren);
 	BLI_freelistN(&re->lights);
 
@@ -4363,6 +4418,11 @@ void RE_Database_Free(Render *re)
 #endif
 	end_render_materials();
 	end_render_textures();
+	
+	free_pointdensities(re);
+	free_voxeldata(re);
+	
+	free_camera_inside_volumes(re);
 	
 	if(re->wrld.aosphere) {
 		MEM_freeN(re->wrld.aosphere);
@@ -4756,6 +4816,8 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 
 	/* MAKE RENDER DATA */
 	database_init_objects(re, lay, 0, 0, 0, 0);
+	
+	init_camera_inside_volumes(re);
 
 	if(!re->test_break(re->tbh)) {
 		int tothalo;
@@ -4804,6 +4866,13 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 			/* ENVIRONMENT MAPS */
 			if(!re->test_break(re->tbh))
 				make_envmaps(re);
+				
+			/* point density texture */
+			if(!re->test_break(re->tbh))
+				make_pointdensities(re);
+			/* voxel data texture */
+			if(!re->test_break(re->tbh))
+				make_voxeldata(re);
 		}
 		
 		if(!re->test_break(re->tbh))
@@ -4820,6 +4889,11 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		if((re->r.mode & R_SSS) && !re->test_break(re->tbh))
 			if(re->r.renderer==R_INTERN)
 				make_sss_tree(re);
+		
+		if(!re->test_break(re->tbh))
+			if(re->r.mode & R_RAYTRACE)
+				volume_precache(re);
+		
 	}
 	
 	if(re->test_break(re->tbh))

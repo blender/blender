@@ -47,6 +47,25 @@ struct Ipo;
 
 /* WATCH IT: change type? also make changes in ipo.h  */
 
+typedef struct VolumeSettings {
+	short stepsize_type;
+	short precache_resolution;
+	float stepsize, shade_stepsize;
+	float depth_cutoff;
+	short shade_type;
+	short vpad;
+	float density_scale;
+	float absorption, scattering;
+	float absorption_col[3];
+	short shadeflag;
+	short phasefunc_type;
+	float phasefunc_g;
+	float vpad2[2];
+	
+	float ms_diff, ms_intensity;
+	int ms_steps;
+} VolumeSettings;
+
 typedef struct Material {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
@@ -62,6 +81,8 @@ typedef struct Material {
 	float translucency;
 	/* end synced with render_types.h */
 	
+	struct VolumeSettings vol;
+
 	float fresnel_mir, fresnel_mir_i;
 	float fresnel_tra, fresnel_tra_i;
 	float filter;		/* filter added, for raytrace transparency and transmissivity */
@@ -329,6 +350,31 @@ typedef struct Material {
 
 /* sss_flag */
 #define MA_DIFF_SSS		1
+
+/* vol_stepsize_type */
+#define MA_VOL_STEP_RANDOMIZED	0
+#define MA_VOL_STEP_CONSTANT	1
+#define MA_VOL_STEP_ADAPTIVE	2
+
+/* vol_shadeflag */
+#define MA_VOL_SHADED		1
+#define MA_VOL_RECVSHADOW	4
+#define MA_VOL_PRECACHESHADING	8
+#define MA_VOL_USEALPHA		16
+
+/* vol_shading_type */
+#define MA_VOL_SHADE_NONE					0
+#define MA_VOL_SHADE_SINGLE					1
+#define MA_VOL_SHADE_MULTIPLE				2
+#define MA_VOL_SHADE_SINGLEPLUSMULTIPLE		3
+
+/* vol_phasefunc_type */
+#define MA_VOL_PH_ISOTROPIC		0
+#define MA_VOL_PH_MIEHAZY		1
+#define MA_VOL_PH_MIEMURKY		2
+#define MA_VOL_PH_RAYLEIGH		3
+#define MA_VOL_PH_HG			4
+#define MA_VOL_PH_SCHLICK		5
 
 #endif
 

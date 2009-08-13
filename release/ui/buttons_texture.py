@@ -1,4 +1,4 @@
-
+	
 import bpy
 
 class TextureButtonsPanel(bpy.types.Panel):
@@ -610,6 +610,52 @@ class TEXTURE_PT_distortednoise(TextureButtonsPanel):
 		flow.itemR(tex, "distortion_amount", text="Distortion")
 		flow.itemR(tex, "noise_size", text="Size")
 		flow.itemR(tex, "nabla")	
+		
+class TEXTURE_PT_voxeldata(TextureButtonsPanel):
+	__idname__= "TEXTURE_PT_voxeldata"
+	__label__ = "Voxel Data"
+	
+	def poll(self, context):
+		tex = context.texture
+		return (tex and tex.type == 'VOXEL_DATA')
+
+	def draw(self, context):
+		layout = self.layout
+		tex = context.texture
+		vd = tex.voxeldata
+
+		layout.itemR(vd, "file_format")
+		if vd.file_format in ['BLENDER_VOXEL', 'RAW_8BIT']:
+			layout.itemR(vd, "source_path")
+		if vd.file_format == 'RAW_8BIT':
+			layout.itemR(vd, "resolution")
+		if vd.file_format == 'SMOKE':
+			layout.itemR(vd, "object")
+		
+		layout.itemR(vd, "still")
+		if vd.still:
+			layout.itemR(vd, "still_frame_number")
+		
+		layout.itemR(vd, "interpolation")
+		layout.itemR(vd, "intensity")
+		
+class TEXTURE_PT_pointdensity(TextureButtonsPanel):
+	__idname__= "TEXTURE_PT_pointdensity"
+	__label__ = "Point Density"
+	
+	def poll(self, context):
+		tex = context.texture
+		return (tex and tex.type == 'POINT_DENSITY')
+
+	def draw(self, context):
+		layout = self.layout
+		tex = context.texture
+		pd = tex.pointdensity
+
+		layout.itemR(pd, "point_source")
+
+		layout.itemR(pd, "falloff")
+		
 
 bpy.types.register(TEXTURE_PT_context_texture)
 bpy.types.register(TEXTURE_PT_preview)
@@ -627,6 +673,8 @@ bpy.types.register(TEXTURE_PT_envmap)
 bpy.types.register(TEXTURE_PT_musgrave)
 bpy.types.register(TEXTURE_PT_voronoi)
 bpy.types.register(TEXTURE_PT_distortednoise)
+bpy.types.register(TEXTURE_PT_voxeldata)
+bpy.types.register(TEXTURE_PT_pointdensity)
 bpy.types.register(TEXTURE_PT_colors)
 bpy.types.register(TEXTURE_PT_mapping)
 bpy.types.register(TEXTURE_PT_influence)

@@ -170,6 +170,14 @@ void init_material(Material *ma)
 	ma->sss_front= 1.0f;
 	ma->sss_back= 1.0f;
 
+	ma->vol.density_scale = 1.0f;
+	ma->vol.stepsize = 0.2f;
+	ma->vol.shade_stepsize = 0.2f;
+	ma->vol.absorption = 1.0f;
+	ma->vol.scattering = 1.0f;
+	ma->vol.absorption_col[0] = ma->vol.absorption_col[1] = ma->vol.absorption_col[2] = 0.0f;
+	ma->vol.precache_resolution = 50;
+	
 	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RADIO|MA_RAYBIAS|MA_TANGENT_STR;
 
 	ma->preview = NULL;

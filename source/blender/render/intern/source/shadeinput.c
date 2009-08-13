@@ -52,6 +52,7 @@
 #include "shading.h"
 #include "strand.h"
 #include "texture.h"
+#include "volumetric.h"
 #include "zbuf.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -166,6 +167,10 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 			if((shi->layflag & SCE_LAY_SKY) && (R.r.alphamode==R_ADDSKY))
 				shr->alpha= 1.0f;
 	}	
+	
+	if(R.r.mode & R_RAYTRACE) {
+		shade_volume_inside(shi, shr);
+	}
 }
 
 
@@ -183,7 +188,12 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 		/* copy all relevant material vars, note, keep this synced with render_types.h */
 		shade_input_init_material(shi);
 		
-		shade_material_loop(shi, shr);
+		if (shi->mat->material_type == MA_TYPE_SURFACE) {
+			shade_material_loop(shi, shr);
+		} else if (shi->mat->material_type == MA_TYPE_VOLUME) {
+			if(R.r.mode & R_RAYTRACE)
+				shade_volume_outside(shi, shr);
+		}
 	}
 	
 	/* copy additional passes */
@@ -704,6 +714,10 @@ void shade_input_calc_viewco(ShadeInput *shi, float x, float y, float z, float *
 			}
 		}
 	}
+	
+	/* set camera coords - for scanline, it's always 0.0,0.0,0.0 (render is in camera space)
+	 * however for raytrace it can be different - the position of the last intersection */
+	shi->camera_co[0] = shi->camera_co[1] = shi->camera_co[2] = 0.0f;
 	
 	/* cannot normalize earlier, code above needs it at viewplane level */
 	Normalize(view);

@@ -325,6 +325,7 @@ void printvec4f(char *str, float v[4]);
 
 void VecAddf(float *v, float *v1, float *v2);
 void VecSubf(float *v, float *v1, float *v2);
+void VecMulVecf(float *v, float *v1, float *v2);
 void VecLerpf(float *target, float *a, float *b, float t);
 void VecMidf(float *v, float *v1, float *v2);
 

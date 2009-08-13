@@ -2820,6 +2820,8 @@ static void lib_link_texture(FileData *fd, Main *main)
 			tex->ima= newlibadr_us(fd, tex->id.lib, tex->ima);
 			tex->ipo= newlibadr_us(fd, tex->id.lib, tex->ipo);
 			if(tex->env) tex->env->object= newlibadr(fd, tex->id.lib, tex->env->object);
+			if(tex->pd) tex->pd->object= newlibadr(fd, tex->id.lib, tex->pd->object);
+			if(tex->vd) tex->vd->object= newlibadr(fd, tex->id.lib, tex->vd->object);
 
 			if(tex->nodetree)
 				lib_link_ntree(fd, &tex->id, tex->nodetree);
@@ -2851,6 +2853,16 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 		tex->env->ima= NULL;
 		memset(tex->env->cube, 0, 6*sizeof(void *));
 		tex->env->ok= 0;
+	}
+	tex->pd= newdataadr(fd, tex->pd);
+	if(tex->pd) {
+		tex->pd->point_tree = NULL;
+		tex->pd->coba= newdataadr(fd, tex->pd->coba);
+	}
+	
+	tex->vd= newdataadr(fd, tex->vd);
+	if(tex->vd) {
+		tex->vd->dataset = NULL;
 	}
 	
 	tex->nodetree= newdataadr(fd, tex->nodetree);
@@ -9477,6 +9489,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
+			
+			/* volume rendering settings */
+			ma->vol.density_scale = 1.0f;
+			ma->vol.stepsize = 0.2f;
+			ma->vol.shade_stepsize = 0.2f;
+			ma->vol.absorption = 1.0f;
+			ma->vol.scattering = 1.0f;
+			ma->vol.absorption_col[0] = ma->vol.absorption_col[1] = ma->vol.absorption_col[2] = 0.0f;
+			ma->vol.precache_resolution = 50;
 		}
 
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
