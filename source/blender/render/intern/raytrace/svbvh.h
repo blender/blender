@@ -147,6 +147,7 @@ struct Reorganize_SVBVH
 
 	float childs_per_node;
 	int nodes_with_childs[16];
+	int useless_bb;
 	int nodes;
 
 	Reorganize_SVBVH(Tree *t)
@@ -154,6 +155,7 @@ struct Reorganize_SVBVH
 		tree = t;
 		nodes = 0;
 		childs_per_node = 0;
+		useless_bb = 0;
 		
 		for(int i=0; i<16; i++)
 			nodes_with_childs[i] = 0;
@@ -161,7 +163,8 @@ struct Reorganize_SVBVH
 	
 	~Reorganize_SVBVH()
 	{
-		printf("%f childs per node\n", childs_per_node / nodes);		
+		printf("%f childs per node\n", childs_per_node / nodes);
+		printf("%d childs BB are useless\n", useless_bb);
 		for(int i=0; i<16; i++)
 			printf("%i childs per node: %d/%d = %f\n", i, nodes_with_childs[i], nodes,  nodes_with_childs[i]/float(nodes));
 	}
@@ -176,7 +179,7 @@ struct Reorganize_SVBVH
 		return node;
 	}
 	
-	void copy_bb(float *bb, float *old_bb)
+	void copy_bb(float *bb, const float *old_bb)
 	{
 		std::copy( old_bb, old_bb+6, bb );
 	}
@@ -224,6 +227,12 @@ struct Reorganize_SVBVH
 		}
 	}
 
+	/* amt must be power of two */
+	inline int padup(int num, int amt)
+	{
+		return ((num+(amt-1))&~(amt-1));
+	}
+	
 	SVBVHNode *transform(OldNode *old)
 	{
 		if(is_leaf(old))
@@ -232,12 +241,25 @@ struct Reorganize_SVBVH
 			return (SVBVHNode*)old->child;
 
 		int nchilds = count_childs(old);
-		SVBVHNode *node = create_node(nchilds);
+		int alloc_childs = nchilds;
+		if(nchilds % 4 > 2)
+			alloc_childs = padup(nchilds, 4);
+		
+		SVBVHNode *node = create_node(alloc_childs);
 
 		childs_per_node += nchilds;
 		nodes++;
 		if(nchilds < 16)
 			nodes_with_childs[nchilds]++;
+		
+		useless_bb += alloc_childs-nchilds;
+		while(alloc_childs > nchilds)
+		{
+			const static float def_bb[6] = { FLT_MAX, FLT_MAX, FLT_MAX, FLT_MIN, FLT_MIN, FLT_MIN };
+			alloc_childs--;
+			node->child[alloc_childs] = 0;
+			copy_bb(node->child_bb+alloc_childs*6, def_bb);
+		}
 		
 		int i=nchilds;
 		for(OldNode *o_child = old->child; o_child; o_child = o_child->sibling)
@@ -258,6 +280,7 @@ struct Reorganize_SVBVH
 			}
 		}
 		assert( i == 0 );
+		
 
 		if(SVBVH_SIMD)
 			prepare_for_simd(node);
