@@ -270,6 +270,7 @@ void bvh_done<VBVHTree>(VBVHTree *obj)
 	
 	pushup(root);
 	pushdown(root);
+	pushup_simd<VBVHNode,4>(root);
 
 	//Memory re-organize
 	if(0)

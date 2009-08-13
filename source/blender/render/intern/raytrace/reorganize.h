@@ -144,6 +144,8 @@ void remove_useless(Node *node, Node **new_node)
 template<class Node>
 void pushup(Node *parent)
 {
+	if(is_leaf(parent)) return;
+	
 	float p_area = bb_area(parent->bb, parent->bb+3);
 	Node **prev = &parent->child;
 	for(Node *child = parent->child; RayObject_isAligned(child) && child; )
@@ -175,6 +177,38 @@ void pushup(Node *parent)
 		pushup(child);
 }
 
+/*
+ * try to optimize number of childs to be a multiple of SSize
+ */
+template<class Node, int SSize>
+void pushup_simd(Node *parent)
+{
+	if(is_leaf(parent)) return;
+	
+	int n = count_childs(parent);
+		
+	Node **prev = &parent->child;
+	for(Node *child = parent->child; RayObject_isAligned(child) && child; )
+	{
+		int cn = count_childs(child);
+		if(cn-1 <= (SSize - (n%SSize) ) % SSize && RayObject_isAligned(child->child) )
+		{
+			n += (cn - 1);
+			append_sibling(child, child->child);
+			child = child->sibling;
+			*prev = child;	
+		}
+		else
+		{
+			*prev = child;
+			prev = &(*prev)->sibling;
+			child = *prev;
+		}		
+	}
+		
+	for(Node *child = parent->child; RayObject_isAligned(child) && child; child = child->sibling)
+		pushup_simd<Node,SSize>(child);
+}
 
 
 /*
