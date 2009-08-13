@@ -320,17 +320,6 @@ class INFO_PT_edit(bpy.types.Panel):
 		sub1.itemS()
 		sub1.itemL(text="Transform:")
 		sub1.itemR(edit, "drag_immediately")
-		sub1.itemS()
-		sub1.itemS()
-		sub1.itemS()
-		
-		sub1.itemL(text="Units:")
-		sub1.itemR(edit, "unit_system")
-		
-		sub2 = sub1.column()
-		sub2.active = (edit.unit_system != 'NONE')
-		sub2.itemR(edit, "unit_scale_length")
-		sub2.itemR(edit, "use_unit_split")
 
 		col = split.column()
 		sub = col.split(percentage=0.85)

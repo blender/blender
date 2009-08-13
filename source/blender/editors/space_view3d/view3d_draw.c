@@ -237,7 +237,7 @@ static void drawgrid_draw(ARegion *ar, float wx, float wy, float x, float y, flo
 
 #define GRID_MIN_PX 6.0f
 
-static void drawgrid(ARegion *ar, View3D *v3d, char **grid_unit)
+static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, char **grid_unit)
 {
 	/* extern short bgpicmode; */
 	RegionView3D *rv3d= ar->regiondata;
@@ -260,7 +260,7 @@ static void drawgrid(ARegion *ar, View3D *v3d, char **grid_unit)
 	x= (wx)*fx/fw;
 	y= (wy)*fy/fw;
 
-	vec4[0]=vec4[1]= (U.unit_system) ? 1.0 : v3d->grid;
+	vec4[0]=vec4[1]= (unit->system) ? 1.0 : v3d->grid;
 
 	vec4[2]= 0.0;
 	vec4[3]= 1.0;
@@ -277,7 +277,7 @@ static void drawgrid(ARegion *ar, View3D *v3d, char **grid_unit)
 	/* check zoom out */
 	UI_ThemeColor(TH_GRID);
 	
-	if(U.unit_system) {
+	if(unit->system) {
 		/* Use GRID_MIN_PX*2 for units because very very small grid
 		 * items are less useful when dealing with units */
 		void *usys;
@@ -286,21 +286,21 @@ static void drawgrid(ARegion *ar, View3D *v3d, char **grid_unit)
 		float dx_scalar;
 		float blend_fac;
 
-		bUnit_GetSystem(&usys, &len, U.unit_system, B_UNIT_LENGTH);
+		bUnit_GetSystem(&usys, &len, unit->system, B_UNIT_LENGTH);
 
 		if(usys) {
 			i= len;
 			while(i--) {
 				scalar= bUnit_GetScaler(usys, i);
 
-				dx_scalar = dx * scalar * U.unit_scale_length;
+				dx_scalar = dx * scalar * unit->scale_length;
 				if (dx_scalar < (GRID_MIN_PX*2))
 					continue;
 
 				/* Store the smallest drawn grid size units name so users know how big each grid cell is */
 				if(*grid_unit==NULL) {
 					*grid_unit= bUnit_GetNamePlural(usys, i);
-					v3d->gridview= (scalar * U.unit_scale_length);
+					v3d->gridview= (scalar * unit->scale_length);
 				}
 				blend_fac= 1-((GRID_MIN_PX*2)/dx_scalar);
 
@@ -1978,7 +1978,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	else {
 		ED_region_pixelspace(ar);
-		drawgrid(ar, v3d, &grid_unit);
+		drawgrid(&scene->unit, ar, v3d, &grid_unit);
 		/* XXX make function? replaces persp(1) */
 		glMatrixMode(GL_PROJECTION);
 		wmLoadMatrix(rv3d->winmat);

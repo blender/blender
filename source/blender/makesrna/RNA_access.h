@@ -470,6 +470,7 @@ extern StructRNA RNA_TransformSequence;
 extern StructRNA RNA_UILayout;
 extern StructRNA RNA_UIListItem;
 extern StructRNA RNA_UVProjectModifier;
+extern StructRNA RNA_UnitSettings;
 extern StructRNA RNA_UnknownType;
 extern StructRNA RNA_UserPreferences;
 extern StructRNA RNA_UserPreferencesAutosave;

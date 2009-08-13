@@ -622,6 +622,12 @@ typedef struct bStats {
 	int totvert, totface;
 } bStats;
 
+typedef struct UnitSettings {
+	/* Display/Editing unit options for each scene */
+	float scale_length; /* maybe have other unit conversions? */
+	short system;
+	short flag; /* imperial, metric etc */
+} UnitSettings;
 
 typedef struct Scene {
 	ID id;
@@ -681,6 +687,10 @@ typedef struct Scene {
 	/* Game Settings */
 	struct GameFraming framing; // XXX  deprecated since 2.5
 	struct GameData gm;
+
+	/* Units */
+	struct UnitSettings unit;
+
 } Scene;
 
 
@@ -1071,6 +1081,15 @@ typedef enum SculptFlags {
 /* toolsettings->skgen_retarget_roll */
 #define	SK_RETARGET_ROLL_VIEW			1
 #define	SK_RETARGET_ROLL_JOINT			2
+
+/* UnitSettings */
+
+/* UnitSettings->system */
+#define	USER_UNIT_NONE			0
+#define	USER_UNIT_METRIC		1
+#define	USER_UNIT_IMPERIAL		2
+/* UnitSettings->flag */
+#define	USER_UNIT_OPT_SPLIT		1
 
 
 #ifdef __cplusplus

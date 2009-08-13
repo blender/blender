@@ -82,6 +82,7 @@ static struct bUnitCollection buMetricLenCollecton = {buMetricLenDef, 3, 0, size
 static struct bUnitDef buImperialLenDef[] = {
 	{"mile", "Miles",				"mi", "m",	1609.344, 0.0,	B_UNIT_DEF_NONE},
 	{"furlong", "Furlongs",			"fur", NULL,201.168, 0.0,	B_UNIT_DEF_SUPPRESS},
+	{"chain", "Chains",				"ch", NULL,	0.9144*22.0, 0.0,	B_UNIT_DEF_SUPPRESS},
 	{"yard", "Yards",				"yd", NULL,	0.9144, 0.0,	B_UNIT_DEF_NONE},
 	{"foot", "Feet",				"'", "ft",	0.3048, 0.0,	B_UNIT_DEF_NONE},
 	{"inch", "Inches",				"\"", "in",	0.0254, 0.0,	B_UNIT_DEF_NONE}, /* base unit */

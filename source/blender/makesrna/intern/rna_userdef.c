@@ -1733,12 +1733,6 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 		{BEZT_IPO_BEZ, "BEZIER", 0, "Bezier", ""},
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem unit_systems[] = {
-		{USER_UNIT_NONE, "NONE", 0, "None", ""},
-		{USER_UNIT_METRIC, "METRIC", 0, "Metric", ""},
-		{USER_UNIT_IMPERIAL, "IMPERIAL", 0, "Imperial", ""},
-		{0, NULL, 0, NULL, NULL}};
-
 	srna= RNA_def_struct(brna, "UserPreferencesEdit", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
@@ -1778,23 +1772,6 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "global_undo", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_GLOBALUNDO);
 	RNA_def_property_ui_text(prop, "Global Undo", "Global undo works by keeping a full copy of the file itself in memory, so takes extra memory.");
-
-	/* Units */
-	prop= RNA_def_property(srna, "unit_system", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, unit_systems);
-	RNA_def_property_ui_text(prop, "Unit System", "The unit system to use for button display.");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
-
-	prop= RNA_def_property(srna, "unit_scale_length", PROP_FLOAT, PROP_UNSIGNED);
-	RNA_def_property_ui_text(prop, "Unit Scale", "Scale to use when converting between blender units and dimensions.");
-	RNA_def_property_range(prop, 0.00001, 100000.0);
-	RNA_def_property_ui_range(prop, 0.001, 100.0, 0.1, 3);
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
-
-	prop= RNA_def_property(srna, "use_unit_split", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "unit_flag", USER_UNIT_OPT_SPLIT);
-	RNA_def_property_ui_text(prop, "Separate Units", "Display units in pairs.");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	/* snap to grid */
 	prop= RNA_def_property(srna, "snap_translate", PROP_BOOLEAN, PROP_NONE);

@@ -299,9 +299,7 @@ typedef struct UserDef {
 	int audiochannels;
 
 	int scrollback; /* console scrollback limit */
-	float unit_scale_length, pad1; /* maybe have other unit conversions? */
-	char unit_system, unit_flag; /* imperial, metric etc */
-	short dpi;		/* range 48-128? */
+	int dpi;		/* range 48-128? */
 	short encoding;
 	short transopts;
 	short menuthreshold1, menuthreshold2;
@@ -417,13 +415,6 @@ extern UserDef U; /* from blenkernel blender.c */
 #define		AUTOKEY_FLAG_AUTOMATKEY		(1<<2)
 	/* toolsettings->autokey_flag */
 #define 	ANIMRECORD_FLAG_WITHNLA		(1<<10)
-
-/* unit_type */
-#define	USER_UNIT_NONE			0
-#define	USER_UNIT_METRIC		1
-#define	USER_UNIT_IMPERIAL		2
-/* unit_flag */
-#define	USER_UNIT_OPT_SPLIT		1
 
 /* transopts */
 #define	USER_TR_TOOLTIPS		(1 << 0)
