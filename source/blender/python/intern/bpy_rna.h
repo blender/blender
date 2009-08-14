@@ -83,4 +83,7 @@ PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw);
 PyObject *pyrna_basetype_register(PyObject *self, PyObject *args);
 PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *args);
 
+/* called before stopping python */
+void pyrna_free_types(void);
+
 #endif

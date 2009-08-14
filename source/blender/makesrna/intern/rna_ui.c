@@ -138,6 +138,9 @@ static void rna_Panel_unregister(const bContext *C, StructRNA *type)
 	if(!(art=region_type_find(NULL, pt->space_type, pt->region_type)))
 		return;
 	
+	pt->ext.free(pt->ext.data);			/* decref's the PyObject that the srna owns */
+	RNA_struct_py_type_set(type, NULL);	/* NULL the srna's value so RNA_struct_free wont complain of a leak */
+
 	BLI_freelinkN(&art->paneltypes, pt);
 	RNA_struct_free(&BLENDER_RNA, type);
 
@@ -233,6 +236,9 @@ static void rna_Header_unregister(const bContext *C, StructRNA *type)
 	if(!(art=region_type_find(NULL, ht->space_type, RGN_TYPE_HEADER)))
 		return;
 	
+	ht->ext.free(ht->ext.data);			/* decref's the PyObject that the srna owns */
+	RNA_struct_py_type_set(type, NULL);	/* NULL the srna's value so RNA_struct_free wont complain of a leak */
+
 	BLI_freelinkN(&art->headertypes, ht);
 	RNA_struct_free(&BLENDER_RNA, type);
 
@@ -347,6 +353,9 @@ static void rna_Menu_unregister(const bContext *C, StructRNA *type)
 	if(!(art=region_type_find(NULL, mt->space_type, RGN_TYPE_HEADER)))
 		return;
 	
+	mt->ext.free(mt->ext.data);			/* decref's the PyObject that the srna owns */
+	RNA_struct_py_type_set(type, NULL);	/* NULL the srna's value so RNA_struct_free wont complain of a leak */
+
 	BLI_freelinkN(&art->menutypes, mt);
 	RNA_struct_free(&BLENDER_RNA, type);
 

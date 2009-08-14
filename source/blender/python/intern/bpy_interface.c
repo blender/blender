@@ -270,10 +270,14 @@ void BPY_start_python( int argc, char **argv )
 
 void BPY_end_python( void )
 {
+	fprintf(stderr, "Ending Python!\n");
+
 	PyGILState_Ensure(); /* finalizing, no need to grab the state */
 	
 	// free other python data.
-	//BPY_rna_free_types();
+	pyrna_free_types();
+
+	/* clear all python data from structs */
 	
 	Py_Finalize(  );
 	
@@ -291,6 +295,8 @@ void BPY_end_python( void )
 		printf("tot usage %.4f%%", (bpy_timer_run_tot/bpy_timer)*100.0);
 
 	printf("\n");
+
+	fprintf(stderr, "Ending Python Done!\n");
 
 #endif
 

@@ -294,9 +294,9 @@ static char *unit_find_str(char *str, char *substr)
 
 static int unit_scale_str(char *str, int len_max, char *str_tmp, double scale_pref, bUnitDef *unit, char *replace_str)
 {
-	char *str_found= unit_find_str(str, replace_str);
+	char *str_found;
 
-	if(str_found) { /* XXX - investigate, does not respect len_max properly  */
+	if((len_max>0) && (str_found= unit_find_str(str, replace_str))) { /* XXX - investigate, does not respect len_max properly  */
 		int len, len_num, len_name, len_move, found_ofs;
 
 		found_ofs = (int)(str_found-str);
@@ -330,20 +330,22 @@ static int unit_scale_str(char *str, int len_max, char *str_tmp, double scale_pr
 			memcpy(str_found, str_tmp, len_num); /* without the string terminator */
 		}
 
-		str[len_max-1]= '\0'; /* since the null terminator wont be moved */
-		return 1;
+		/* since the null terminator wont be moved if the stringlen_max
+		 * was not long enough to fit everything in it */
+		str[len_max-1]= '\0';
+		return found_ofs + len_num;
 	}
 	return 0;
 }
 
 static int unit_replace(char *str, int len_max, char *str_tmp, double scale_pref, bUnitDef *unit)
 {	
-	int change= 0;
-	change |= unit_scale_str(str, len_max, str_tmp, scale_pref, unit, unit->name_short);
-	change |= unit_scale_str(str, len_max, str_tmp, scale_pref, unit, unit->name_plural);
-	change |= unit_scale_str(str, len_max, str_tmp, scale_pref, unit, unit->name_alt);
-	change |= unit_scale_str(str, len_max, str_tmp, scale_pref, unit, unit->name);
-	return change;
+	int ofs= 0;
+	ofs += unit_scale_str(str+ofs, len_max-ofs, str_tmp, scale_pref, unit, unit->name_short);
+	ofs += unit_scale_str(str+ofs, len_max-ofs, str_tmp, scale_pref, unit, unit->name_plural);
+	ofs += unit_scale_str(str+ofs, len_max-ofs, str_tmp, scale_pref, unit, unit->name_alt);
+	ofs += unit_scale_str(str+ofs, len_max-ofs, str_tmp, scale_pref, unit, unit->name);
+	return ofs;
 }
 
 static int unit_find(char *str, bUnitDef *unit)
@@ -401,12 +403,12 @@ int bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pre
 				usys_iter= unit_get_system(system_iter, type);
 				for(unit= usys_iter->units; unit->name; unit++) {
 
-					if(unit->flag & B_UNIT_DEF_SUPPRESS)
-						continue;
-
-					/* incase there are multiple instances */
-					while(unit_replace(str, len_max, str_tmp, scale_pref, unit))
-						change= 1;
+					if((unit->flag & B_UNIT_DEF_SUPPRESS) == 0) {
+						int ofs = 0;
+						/* incase there are multiple instances */
+						while((ofs=unit_replace(str+ofs, len_max-ofs, str_tmp, scale_pref, unit)))
+							change= 1;
+					}
 				}
 			}
 		}

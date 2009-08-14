@@ -2319,17 +2319,22 @@ PyObject* pyrna_srna_Subtype(StructRNA *srna)
 		if(base && base != srna) {
 			/*/printf("debug subtype %s %p\n", RNA_struct_identifier(srna), srna); */
 			py_base= pyrna_srna_Subtype(base);
+			Py_DECREF(py_base); /* srna owns, this is only to pass as an arg */
 		}
 		
 		if(py_base==NULL) {
 			py_base= (PyObject *)&pyrna_struct_Type;
-			Py_INCREF(py_base);
 		}
 		
-		newclass = PyObject_CallFunction(	(PyObject*)&PyType_Type, "s(N){ssss}", idname, py_base, "__module__","bpy.types", "__doc__",descr);
+		/* always use O not N when calling, N causes refcount errors */
+		newclass = PyObject_CallFunction(	(PyObject*)&PyType_Type, "s(O){ssss}", idname, py_base, "__module__","bpy.types", "__doc__",descr);
 
 		if (newclass) {
+
+			/* incref's the new class (has 2 now)
+			 * srna owns one, and the other is owned by the caller */
 			pyrna_subtype_set_rna(newclass, srna);
+
 			// PyObSpit("NewStructRNA Type: ", (PyObject *)newclass);
 
 			/* attach functions into the class
@@ -2353,9 +2358,21 @@ PyObject* pyrna_srna_Subtype(StructRNA *srna)
 	return newclass;
 }
 
+/* use for subtyping so we know which srna is used for a PointerRNA */
+static StructRNA *srna_from_ptr(PointerRNA *ptr)
+{
+	if(ptr->type == &RNA_Struct) {
+		return ptr->data;
+	}
+	else {
+		return ptr->type;
+	}
+}
+
+/* always returns a new ref, be sure to decref when done */
 PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 {
-	return pyrna_srna_Subtype((ptr->type == &RNA_Struct) ? ptr->data : ptr->type);
+	return pyrna_srna_Subtype(srna_from_ptr(ptr));
 }
 
 /*-----------------------CreatePyObject---------------------------------*/
@@ -2371,7 +2388,7 @@ PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 		
 		if (tp) {
 			pyrna = (BPy_StructRNA *) tp->tp_alloc(tp, 0);
-			Py_DECREF(tp);
+			Py_DECREF(tp); /* srna owns, cant hold a ref */
 		}
 		else {
 			fprintf(stderr, "Could not make type\n");
@@ -2970,11 +2987,46 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 
 static void bpy_class_free(void *pyob_ptr)
 {
+	PyObject *self= (PyObject *)pyob_ptr;
+	PyGILState_STATE gilstate;
+
+	gilstate = PyGILState_Ensure();
+
+	PyDict_Clear(((PyTypeObject*)self)->tp_dict);
+
 	if(G.f&G_DEBUG) {
-		if(((PyObject *)pyob_ptr)->ob_refcnt > 1)
-			PyObSpit("zombie class - ref should be 1", (PyObject *)pyob_ptr);
+		if(self->ob_refcnt > 1) {
+			PyObSpit("zombie class - ref should be 1", self);
+		}
 	}
+
 	Py_DECREF((PyObject *)pyob_ptr);
+
+	PyGILState_Release(gilstate);
+}
+
+void pyrna_free_types(void)
+{
+	PointerRNA ptr;
+	PropertyRNA *prop;
+
+	/* avoid doing this lookup for every getattr */
+	RNA_blender_rna_pointer_create(&ptr);
+	prop = RNA_struct_find_property(&ptr, "structs");
+
+
+	RNA_PROP_BEGIN(&ptr, itemptr, prop) {
+		StructRNA *srna= srna_from_ptr(&itemptr);
+		void *py_ptr= RNA_struct_py_type_get(srna);
+
+		if(py_ptr) {
+#if 0	// XXX - should be able to do this but makes python crash on exit
+			bpy_class_free(py_ptr);
+#endif
+			RNA_struct_py_type_set(srna, NULL);
+		}
+	}
+	RNA_PROP_END;
 }
 
 PyObject *pyrna_basetype_register(PyObject *self, PyObject *args)

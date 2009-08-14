@@ -465,6 +465,12 @@ void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
 	PropertyRNA *prop, *nextprop;
 	PropertyRNA *parm, *nextparm;
 
+	if(srna->flag & STRUCT_RUNTIME) {
+		if(RNA_struct_py_type_get(srna)) {
+			fprintf(stderr, "StructRNA \"%s\" freed while holdng a python reference\n", srna->name);
+		}
+	}
+
 	for(prop=srna->cont.properties.first; prop; prop=nextprop) {
 		nextprop= prop->next;
 
@@ -496,6 +502,7 @@ void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
 
 	if(srna->flag & STRUCT_RUNTIME)
 		rna_freelinkN(&brna->structs, srna);
+
 #endif
 }
 

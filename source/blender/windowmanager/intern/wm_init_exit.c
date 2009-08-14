@@ -208,12 +208,6 @@ void WM_exit(bContext *C)
 	
 	BKE_freecubetable();
 	
-	/* before free_blender so py's gc happens while library still exists */
-	/* needed at least for a rare sigsegv that can happen in pydrivers */
-#ifndef DISABLE_PYTHON
-	BPY_end_python();
-#endif
-	
 	fastshade_free_render();	/* shaded view */
 	ED_preview_free_dbase();	/* frees a Main dbase, before free_blender! */
 	wm_free_reports(C);			/* before free_blender! - since the ListBases get freed there */
@@ -233,6 +227,18 @@ void WM_exit(bContext *C)
 	
 //	free_txt_data();
 	
+
+#ifndef DISABLE_PYTHON
+	/* XXX - old note */
+	/* before free_blender so py's gc happens while library still exists */
+	/* needed at least for a rare sigsegv that can happen in pydrivers */
+
+	/* Update for blender 2.5, move after free_blender because blender now holds references to PyObject's
+	 * so decref'ing them after python ends causes bad problems every time
+	 * the pyDriver bug can be fixed if it happens again we can deal with it then */
+	BPY_end_python();
+#endif
+
 	libtiff_exit();
 	
 #ifdef WITH_QUICKTIME
@@ -256,7 +262,7 @@ void WM_exit(bContext *C)
 	UI_exit();
 	BKE_userdef_free();
 
-	RNA_exit();
+	RNA_exit(); /* should be after BPY_end_python so struct python slots are cleared */
 	
 	wm_ghost_exit();
 
