@@ -3724,7 +3724,7 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		load_editMball(obedit);
 		if(freedata) free_editMball(obedit);
 	}
-	
+
 	/* freedata only 0 now on file saves */
 	if(freedata) {
 		/* for example; displist make is different in editmode */
@@ -3739,6 +3739,8 @@ void ED_object_exit_editmode(bContext *C, int flag)
 	
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, scene);
 	}
+
+	ED_view3d_restore_paint_modes(C, obedit->restore_mode);
 }
 
 
@@ -3772,7 +3774,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	
 	if(flag & EM_WAITCURSOR) waitcursor(1);
 
-	ED_view3d_exit_paint_modes(C);
+	ob->restore_mode = ED_view3d_exit_paint_modes(C);
 	
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;

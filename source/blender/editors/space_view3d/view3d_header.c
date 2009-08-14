@@ -134,28 +134,37 @@ static int retopo_mesh_paint_check() {return 0;}
 
 /* end XXX ************* */
 
-
-/* well... in this file a lot of view mode manipulation happens, so let's have it defined here */
-void ED_view3d_exit_paint_modes(bContext *C)
+static int ED_toggle_paint_modes(bContext *C, int mode)
 {
-	if(G.f & G_TEXTUREPAINT)
+	if(mode & G_TEXTUREPAINT)
 		WM_operator_name_call(C, "PAINT_OT_texture_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if(G.f & G_VERTEXPAINT)
+	if(mode & G_VERTEXPAINT)
 		WM_operator_name_call(C, "PAINT_OT_vertex_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	else if(G.f & G_WEIGHTPAINT)
+	else if(mode & G_WEIGHTPAINT)
 		WM_operator_name_call(C, "PAINT_OT_weight_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 
-	if(G.f & G_SCULPTMODE)
+	if(mode & G_SCULPTMODE)
 		WM_operator_name_call(C, "SCULPT_OT_sculptmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if(G.f & G_PARTICLEEDIT)
+	if(mode & G_PARTICLEEDIT)
 		WM_operator_name_call(C, "PARTICLE_OT_particle_edit_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	
-	G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE+G_PARTICLEEDIT);
 }
 
+/* well... in this file a lot of view mode manipulation happens, so let's have it defined here */
+int ED_view3d_exit_paint_modes(bContext *C)
+{
+	int restore = G.f;
 
+	ED_toggle_paint_modes(C, G.f);
+	
+	G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE+G_PARTICLEEDIT);
 
+	return restore;
+}
 
+void ED_view3d_restore_paint_modes(struct bContext *C, int mode)
+{
+	ED_toggle_paint_modes(C, mode);
+}
 
 static void do_view3d_header_buttons(bContext *C, void *arg, int event);
 

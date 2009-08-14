@@ -131,7 +131,8 @@ int lasso_inside(short mcords[][2], short moves, short sx, short sy);
 int lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int x1, int y1);
 
 /* modes */
-void ED_view3d_exit_paint_modes(struct bContext *C);
+int ED_view3d_exit_paint_modes(struct bContext *C);
+void ED_view3d_restore_paint_modes(struct bContext *C, int);
 /* get 3d region from context, also if mouse is in header or toolbar */
 struct RegionView3D *ED_view3d_context_rv3d(struct bContext *C);
 
