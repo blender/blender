@@ -280,7 +280,7 @@ public:
 		std::string geom_id = get_geometry_id(ob);
 		
 		// openMesh(geoId, geoName, meshId)
-		openMesh(geom_id, "", "");
+		openMesh(geom_id);
 		
 		// writes <source> for vertex coords
 		createVertsSource(geom_id, me);
@@ -1129,7 +1129,7 @@ public:
 	
 	void exportScene(Scene *sce) {
  		// <library_visual_scenes> <visual_scene>
-		openVisualScene(id_name(sce), "");
+		openVisualScene(id_name(sce));
 
 		// write <node>s
 		//forEachMeshObjectInScene(sce, *this);
@@ -1307,7 +1307,7 @@ public:
 				} 
 				
 				if (find(mImages.begin(), mImages.end(), name) == mImages.end()) {
-					COLLADASW::Image img(COLLADABU::URI(COLLADABU::URI::nativePathToUri(rel)), name, "");
+					COLLADASW::Image img(COLLADABU::URI(COLLADABU::URI::nativePathToUri(rel)), name);
 					img.add(mSW);
 
 					mImages.push_back(name);
@@ -1351,7 +1351,7 @@ public:
 		else if (ma->spec_shader == MA_SPEC_PHONG) {
 			ep.setShaderType(COLLADASW::EffectProfile::PHONG);
 			// shininess
-			// XXX not sure about this
+			// XXX not sure, stolen this from previous Collada plugin
 			ep.setShininess(ma->har / 4);
 		}
 		else {
@@ -1370,6 +1370,7 @@ public:
 		// emission
 		COLLADASW::ColorOrTexture cot = getcol(0.0f, 0.0f, 0.0f, 1.0f);
 		ep.setEmission(cot);
+		ep.setTransparent(cot);
 		// diffuse 
 		cot = getcol(ma->r, ma->g, ma->b, 1.0f);
 		ep.setDiffuse(cot);
@@ -1477,6 +1478,9 @@ public:
 			// reflective
 			if (t->mapto & MAP_REF) {
 				ep.setReflective(createTexture(ima, uvname, sampler));
+			}
+			if (t->mapto & MAP_ALPHA) {
+				ep.setTransparent(createTexture(ima, uvname, sampler));
 			}
 		}
 		// performs the actual writing
@@ -1622,11 +1626,11 @@ public:
 			addLight(cla);
 		}
 		// spot
-		// XXX add other params later
 		else if (la->type == LA_SPOT) {
 			COLLADASW::SpotLight cla(mSW, la_id, la_name, e);
 			cla.setColor(col);
 			cla.setFallOffAngle(la->spotsize);
+			cla.setFallOffExponent(la->spotblend);
 			cla.setLinearAttenuation(la->att1);
 			cla.setQuadraticAttenuation(la->att2);
 			addLight(cla);

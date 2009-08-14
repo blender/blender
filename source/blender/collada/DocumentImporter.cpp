@@ -50,6 +50,7 @@ extern "C"
 #include "BKE_depsgraph.h"
 #include "BLI_util.h"
 #include "BKE_displist.h"
+#include "BLI_arithb.h"
 }
 #include "BKE_armature.h"
 #include "BKE_mesh.h"
@@ -160,13 +161,6 @@ float get_float_value(const COLLADAFW::FloatOrDoubleArray& array, int index)
 
 typedef std::map<COLLADAFW::TextureMapId, std::vector<MTex*> > TexIndexTextureArrayMap;
 
-// this is only for ArmatureImporter to "see" MeshImporter::get_object_by_geom_uid
-class MeshImporterBase
-{
-public:
-	virtual Object *get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid) = 0;
-};
-
 class TransformReader : public TransformBase
 {
 protected:
@@ -255,6 +249,20 @@ public:
 	}
 };
 
+// only for ArmatureImporter to "see" MeshImporter::get_object_by_geom_uid
+class MeshImporterBase
+{
+public:
+	virtual Object *get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid) = 0;
+};
+
+// ditto as above
+class AnimationImporterBase
+{
+public:
+	virtual void change_eul_to_quat(Object *ob, bAction *act) = 0;
+};
+
 class ArmatureImporter : private TransformReader
 {
 private:
@@ -290,6 +298,11 @@ private:
 	std::map<COLLADAFW::UniqueId, COLLADAFW::UniqueId> geom_uid_by_controller_uid;
 	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> joint_by_uid; // contains all joints
 	std::vector<COLLADAFW::Node*> root_joints;
+
+	std::vector<Object*> armature_objects;
+
+	MeshImporterBase *mesh_importer;
+	AnimationImporterBase *anim_importer;
 
 	// This is used to store data passed in write_controller_data.
 	// Arrays from COLLADAFW::SkinControllerData lose ownership, so do this class members
@@ -395,7 +408,7 @@ private:
 		}
 
 		// called from write_controller
-		void create_armature(const COLLADAFW::SkinController* co, Scene *scene)
+		Object *create_armature(const COLLADAFW::SkinController* co, Scene *scene)
 		{
 			ob_arm = add_object(scene, OB_ARMATURE);
 
@@ -412,6 +425,8 @@ private:
 				// now we'll be able to get inv bind matrix from joint id
 				// joint_id_to_joint_index_map[joint_ids[i]] = i;
 			}
+
+			return ob_arm;
 		}
 
 		bool get_joint_inv_bind_matrix(float inv_bind_mat[][4], COLLADAFW::Node *node)
@@ -528,8 +543,6 @@ private:
 	};
 
 	std::map<COLLADAFW::UniqueId, SkinInfo> skin_by_data_uid; // data UID = skin controller data UID
-	MeshImporterBase *mesh_importer;
-
 #if 0
 	JointData *get_joint_data(COLLADAFW::Node *node)
 	{
@@ -809,8 +822,8 @@ private:
 
 public:
 
-	ArmatureImporter(UnitConverter *conv, MeshImporterBase *imp, Scene *sce) :
-		TransformReader(conv), scene(sce), empty(NULL), mesh_importer(imp) {}
+	ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, AnimationImporterBase *anim, Scene *sce) :
+		TransformReader(conv), scene(sce), empty(NULL), mesh_importer(mesh), anim_importer(anim) {}
 
 	~ArmatureImporter()
 	{
@@ -936,7 +949,9 @@ public:
 				return true;
 			}
 
-			skin_by_data_uid[data_uid].create_armature(co, scene);
+			Object *ob_arm = skin_by_data_uid[data_uid].create_armature(co, scene);
+
+			armature_objects.push_back(ob_arm);
 		}
 		// morph controller
 		else {
@@ -971,6 +986,17 @@ public:
 	void get_rna_path_for_joint(COLLADAFW::Node *node, char *joint_path, size_t count)
 	{
 		BLI_snprintf(joint_path, count, "pose.pose_channels[\"%s\"]", get_joint_name(node));
+	}
+	
+	void fix_animation()
+	{
+		/* Change Euler rotation to Quaternion for bone animation */
+		std::vector<Object*>::iterator it;
+		for (it = armature_objects.begin(); it != armature_objects.end(); it++) {
+			Object *ob = *it;
+			if (!ob || !ob->adt || !ob->adt->action) continue;
+			anim_importer->change_eul_to_quat(ob, ob->adt->action);
+		}
 	}
 };
 
@@ -1506,7 +1532,7 @@ public:
 		if (texindex_texarray_map.find(texture_index) == texindex_texarray_map.end()) {
 			
 			fprintf(stderr, "Cannot find texture array by texture index.\n");
-			return NULL;
+			return color_texture;
 		}
 		
 		std::vector<MTex*> textures = texindex_texarray_map[texture_index];
@@ -1555,15 +1581,14 @@ public:
 														*color_texture);
 		}
 		
-		// if material has color texture
-		if (*color_texture && strlen((*color_texture)->uvname)) {
-			// set tface
-			if (strcmp(layername, (*color_texture)->uvname) != 0) {
-				
-				texture_face = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE,
-																   (*color_texture)->uvname);
-				strcpy(layername, (*color_texture)->uvname);
-			}
+		// set texture face
+		if (*color_texture &&
+			strlen((*color_texture)->uvname) &&
+			strcmp(layername, (*color_texture)->uvname) != 0) {
+			
+			texture_face = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE,
+															   (*color_texture)->uvname);
+			strcpy(layername, (*color_texture)->uvname);
 		}
 		
 		MaterialIdPrimitiveArrayMap& mat_prim_map = geom_uid_mat_mapping_map[*geom_uid];
@@ -1582,7 +1607,7 @@ public:
 				while (i++ < prim.totface) {
 					prim.mface->mat_nr = mat_index;
 					prim.mface++;
-					// bind image to tface
+					// bind texture images to faces
 					if (texture_face && (*color_texture)) {
 						texture_face->mode = TF_TEX;
 						texture_face->tpage = (Image*)(*color_texture)->tex->ima;
@@ -1694,14 +1719,14 @@ public:
 		
 		read_faces(mesh, me, new_tris);
 		
- 		//mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+ 		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 
 		return true;
 	}
 
 };
 
-class AnimationImporter : private TransformReader
+class AnimationImporter : private TransformReader, public AnimationImporterBase
 {
 private:
 
@@ -1710,6 +1735,30 @@ private:
 
 	std::map<COLLADAFW::UniqueId, std::vector<FCurve*> > uid_fcurve_map;
 	std::map<COLLADAFW::UniqueId, TransformReader::Animation> uid_animated_map;
+	std::map<bActionGroup*, std::vector<FCurve*> > fcurves_actionGroup_map;
+	
+	FCurve *create_fcurve(int array_index, char *rna_path)
+	{
+		FCurve *fcu = (FCurve*)MEM_callocN(sizeof(FCurve), "FCurve");
+		
+		fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
+		fcu->rna_path = BLI_strdupn(rna_path, strlen(rna_path));
+		fcu->array_index = array_index;
+		return fcu;
+	}
+	
+	void create_bezt(FCurve *fcu, float frame, float output)
+	{
+		BezTriple bez;
+		memset(&bez, 0, sizeof(BezTriple));
+		bez.vec[1][0] = frame;
+		bez.vec[1][1] = output;
+		bez.ipo = U.ipo_new; /* use default interpolation mode here... */
+		bez.f1 = bez.f2 = bez.f3 = SELECT;
+		bez.h1 = bez.h2 = HD_AUTO;
+		insert_bezt_fcurve(fcu, &bez);
+		calchandles_fcurve(fcu);
+	}
 
 	void make_fcurves_from_animation(COLLADAFW::AnimationCurve *curve,
 									 COLLADAFW::FloatOrDoubleArray& input,
@@ -1728,7 +1777,7 @@ private:
 			fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
 			// fcu->rna_path = BLI_strdupn(path, strlen(path));
 			fcu->array_index = 0;
-			fcu->totvert = curve->getKeyCount();
+			//fcu->totvert = curve->getKeyCount();
 			
 			// create beztriple for each key
 			for (i = 0; i < curve->getKeyCount(); i++) {
@@ -1761,7 +1810,7 @@ private:
 				fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
 				// fcu->rna_path = BLI_strdupn(path, strlen(path));
 				fcu->array_index = 0;
-				fcu->totvert = curve->getKeyCount();
+				//fcu->totvert = curve->getKeyCount();
 				
 				// create beztriple for each key
 				for (int j = 0; j < curve->getKeyCount(); j++) {
@@ -1789,32 +1838,30 @@ private:
 		}
 	}
 	
-	void add_fcurves_to_object(Object *ob, std::vector<FCurve*>& curves, char *rna_path, int array_index)
+	void add_fcurves_to_object(Object *ob, std::vector<FCurve*>& curves, char *rna_path, int array_index, Animation *animated)
 	{
 		ID *id = &ob->id;
 		bAction *act;
-
-		if (!ob->adt || !ob->adt->action)
-			act = verify_adt_action(id, 1);
-		else 
-			act = verify_adt_action(id, 0);
+		bActionGroup *grp = NULL;
+		
+		if (!ob->adt || !ob->adt->action) act = verify_adt_action(id, 1);
+		else act = verify_adt_action(id, 0);
 
 		if (!ob->adt || !ob->adt->action) {
 			fprintf(stderr, "Cannot create anim data or action for this object. \n");
 			return;
 		}
-
+		
 		FCurve *fcu;
 		std::vector<FCurve*>::iterator it;
 		int i = 0;
+		
 		for (it = curves.begin(); it != curves.end(); it++) {
 			fcu = *it;
 			fcu->rna_path = BLI_strdupn(rna_path, strlen(rna_path));
-
-			if (array_index == -1)
-				fcu->array_index = i;
-			else
-				fcu->array_index = array_index;
+			
+			if (array_index == -1) fcu->array_index = i;
+			else fcu->array_index = array_index;
 
 			// convert degrees to radians for rotation
 			char *p = strstr(rna_path, "rotation");
@@ -1828,9 +1875,40 @@ private:
 					fcu->bezt[j].vec[2][1] = rot_outtan * M_PI / 180.0f;
 				}
 			}
+			
+			if (ob->type == OB_ARMATURE) {
+				bAction *act = ob->adt->action;
+				const char *bone_name = get_joint_name(animated->node);
+				
+				if (bone_name) {
+					/* try to find group */
+					grp = action_groups_find_named(act, bone_name);
+					
+					/* no matching groups, so add one */
+					if (grp == NULL) {
+						/* Add a new group, and make it active */
+						grp = (bActionGroup*)MEM_callocN(sizeof(bActionGroup), "bActionGroup");
+						
+						grp->flag = AGRP_SELECTED;
+						BLI_snprintf(grp->name, sizeof(grp->name), bone_name);
+						
+						BLI_addtail(&act->groups, grp);
+						BLI_uniquename(&act->groups, grp, "Group", '.', offsetof(bActionGroup, name), 64);
+					}
+					
+					/* add F-Curve to group */
+					action_groups_add_channel(act, grp, fcu);
+					
+				}
+				if (p && *(p + strlen("rotation")) == '\0') {
+					fcurves_actionGroup_map[grp].push_back(fcu);
+				}
+			}
+			else {
+				BLI_addtail(&act->curves, fcu);
+			}
 
 			i++;
-			BLI_addtail(&act->curves, fcu);
 		}
 	}
 public:
@@ -1949,16 +2027,16 @@ public:
 					
 					switch (binding.animationClass) {
 					case COLLADAFW::AnimationList::POSITION_X:
-						add_fcurves_to_object(ob, fcurves, rna_path, 0);
+						add_fcurves_to_object(ob, fcurves, rna_path, 0, &animated);
 						break;
 					case COLLADAFW::AnimationList::POSITION_Y:
-						add_fcurves_to_object(ob, fcurves, rna_path, 1);
+						add_fcurves_to_object(ob, fcurves, rna_path, 1, &animated);
 						break;
 					case COLLADAFW::AnimationList::POSITION_Z:
-						add_fcurves_to_object(ob, fcurves, rna_path, 2);
+						add_fcurves_to_object(ob, fcurves, rna_path, 2, &animated);
 						break;
 					case COLLADAFW::AnimationList::POSITION_XYZ:
-						add_fcurves_to_object(ob, fcurves, rna_path, -1);
+						add_fcurves_to_object(ob, fcurves, rna_path, -1, &animated);
 						break;
 					default:
 						fprintf(stderr, "AnimationClass %d is not supported for TRANSLATE transformation.\n",
@@ -1991,13 +2069,13 @@ public:
 					switch (binding.animationClass) {
 					case COLLADAFW::AnimationList::ANGLE:
 						if (COLLADABU::Math::Vector3::UNIT_X == axis) {
-							add_fcurves_to_object(ob, fcurves, rna_path, 0);
+							add_fcurves_to_object(ob, fcurves, rna_path, 0, &animated);
 						}
 						else if (COLLADABU::Math::Vector3::UNIT_Y == axis) {
-							add_fcurves_to_object(ob, fcurves, rna_path, 1);
+							add_fcurves_to_object(ob, fcurves, rna_path, 1, &animated);
 						}
 						else if (COLLADABU::Math::Vector3::UNIT_Z == axis) {
-							add_fcurves_to_object(ob, fcurves, rna_path, 2);
+							add_fcurves_to_object(ob, fcurves, rna_path, 2, &animated);
 						}
 						break;
 					case COLLADAFW::AnimationList::AXISANGLE:
@@ -2031,16 +2109,16 @@ public:
 					
 					switch (binding.animationClass) {
 					case COLLADAFW::AnimationList::POSITION_X:
-						add_fcurves_to_object(ob, fcurves, rna_path, 0);
+						add_fcurves_to_object(ob, fcurves, rna_path, 0, &animated);
 						break;
 					case COLLADAFW::AnimationList::POSITION_Y:
-						add_fcurves_to_object(ob, fcurves, rna_path, 1);
+						add_fcurves_to_object(ob, fcurves, rna_path, 1, &animated);
 						break;
 					case COLLADAFW::AnimationList::POSITION_Z:
-						add_fcurves_to_object(ob, fcurves, rna_path, 2);
+						add_fcurves_to_object(ob, fcurves, rna_path, 2, &animated);
 						break;
 					case COLLADAFW::AnimationList::POSITION_XYZ:
-						add_fcurves_to_object(ob, fcurves, rna_path, -1);
+						add_fcurves_to_object(ob, fcurves, rna_path, -1, &animated);
 						break;
 					default:
 						fprintf(stderr, "AnimationClass %d is not supported for TRANSLATE transformation.\n",
@@ -2066,6 +2144,83 @@ public:
 		if (ob)
 			TransformReader::decompose(mat, ob->loc, ob->rot, ob->size);
 	}
+	
+	virtual void change_eul_to_quat(Object *ob, bAction *act)
+	{
+		bActionGroup *grp;
+		int i;
+		
+		for (grp = (bActionGroup*)act->groups.first; grp; grp = grp->next) {
+
+			FCurve *eulcu[3] = {NULL, NULL, NULL};
+			
+			if (fcurves_actionGroup_map.find(grp) == fcurves_actionGroup_map.end())
+				continue;
+
+			std::vector<FCurve*> &rot_fcurves = fcurves_actionGroup_map[grp];
+			
+			if (rot_fcurves.size() > 3) continue;
+
+			for (i = 0; i < rot_fcurves.size(); i++)
+				eulcu[rot_fcurves[i]->array_index] = rot_fcurves[i];
+
+			char joint_path[100];
+			char rna_path[100];
+
+			BLI_snprintf(joint_path, sizeof(joint_path), "pose.pose_channels[\"%s\"]", grp->name);
+			BLI_snprintf(rna_path, sizeof(rna_path), "%s.rotation", joint_path);
+
+			FCurve *quatcu[4] = {
+				create_fcurve(0, rna_path),
+				create_fcurve(1, rna_path),
+				create_fcurve(2, rna_path),
+				create_fcurve(3, rna_path),
+			};
+
+			for (i = 0; i < 3; i++) {
+
+				FCurve *cu = eulcu[i];
+
+				if (!cu) continue;
+
+				for (int j = 0; j < cu->totvert; j++) {
+					float frame = cu->bezt[j].vec[1][0];
+
+					float eul[3] = {
+						eulcu[0] ? evaluate_fcurve(eulcu[0], frame) : 0.0f,
+						eulcu[1] ? evaluate_fcurve(eulcu[1], frame) : 0.0f,
+						eulcu[2] ? evaluate_fcurve(eulcu[2], frame) : 0.0f,
+					};
+
+					float quat[4];
+
+					EulToQuat(eul, quat);
+
+					for (int k = 0; k < 4; k++)
+						create_bezt(quatcu[k], frame, quat[k]);
+				}
+			}
+
+			// now replace old Euler curves
+
+			for (i = 0; i < 3; i++) {
+				if (!eulcu[i]) continue;
+
+				action_groups_remove_channel(act, eulcu[i]);
+				free_fcurve(eulcu[i]);
+			}
+
+			get_pose_channel(ob->pose, grp->name)->rotmode = PCHAN_ROT_QUAT;
+
+			for (i = 0; i < 4; i++)
+				action_groups_add_channel(act, grp, quatcu[i]);
+		}
+
+		bPoseChannel *pchan;
+		for (pchan = (bPoseChannel*)ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+			pchan->rotmode = PCHAN_ROT_QUAT;
+		}
+	}	
 };
 
 /*
@@ -2104,7 +2259,7 @@ public:
 
 	/** Constructor. */
 	Writer(bContext *C, const char *filename) : mContext(C), mFilename(filename),
-												armature_importer(&unit_converter, &mesh_importer, CTX_data_scene(C)),
+												armature_importer(&unit_converter, &mesh_importer, &anim_importer, CTX_data_scene(C)),
 												mesh_importer(&armature_importer, CTX_data_scene(C)),
 												anim_importer(&unit_converter, &armature_importer, CTX_data_scene(C)) {}
 
@@ -2145,6 +2300,7 @@ public:
 	/** This method is called after the last write* method. No other methods will be called after this.*/
 	virtual void finish()
 	{
+		armature_importer.fix_animation();
 	}
 
 	/** When this method is called, the writer must write the global document asset.
@@ -2165,6 +2321,37 @@ public:
 	{
 		// XXX could store the scene id, but do nothing for now
 		return true;
+	}
+	Object *create_camera_object(COLLADAFW::InstanceCamera *camera, Object *ob, Scene *sce)
+	{
+		const COLLADAFW::UniqueId& cam_uid = camera->getInstanciatedObjectId();
+		if (uid_camera_map.find(cam_uid) == uid_camera_map.end()) {	
+			fprintf(stderr, "Couldn't find camera by UID. \n");
+			return NULL;
+		}
+		ob = add_object(sce, OB_CAMERA);
+		Camera *cam = uid_camera_map[cam_uid];
+		Camera *old_cam = (Camera*)ob->data;
+		old_cam->id.us--;
+		ob->data = cam;
+		if (old_cam->id.us == 0) free_libblock(&G.main->camera, old_cam);
+		return ob;
+	}
+	
+	Object *create_lamp_object(COLLADAFW::InstanceLight *lamp, Object *ob, Scene *sce)
+	{
+		const COLLADAFW::UniqueId& lamp_uid = lamp->getInstanciatedObjectId();
+		if (uid_lamp_map.find(lamp_uid) == uid_lamp_map.end()) {	
+			fprintf(stderr, "Couldn't find lamp by UID. \n");
+			return NULL;
+		}
+		ob = add_object(sce, OB_LAMP);
+		Lamp *la = uid_lamp_map[lamp_uid];
+		Lamp *old_lamp = (Lamp*)ob->data;
+		old_lamp->id.us--;
+		ob->data = la;
+		if (old_lamp->id.us == 0) free_libblock(&G.main->lamp, old_lamp);
+		return ob;
 	}
 	
 	void write_node (COLLADAFW::Node *node, COLLADAFW::Node *parent_node, Scene *sce, Object *par)
@@ -2189,33 +2376,14 @@ public:
 			// maybe join multiple <instance_...> meshes into 1, and link object with it? not sure...
 			// <instance_geometry>
 			if (geom.getCount() != 0) {
-				ob = mesh_importer.create_mesh_object(node, geom[0], false, uid_material_map, material_texture_mapping_map);
+				ob = mesh_importer.create_mesh_object(node, geom[0], false, uid_material_map,
+													  material_texture_mapping_map);
 			}
 			else if (camera.getCount() != 0) {
-				const COLLADAFW::UniqueId& cam_uid = camera[0]->getInstanciatedObjectId();
-				if (uid_camera_map.find(cam_uid) == uid_camera_map.end()) {	
-					fprintf(stderr, "Couldn't find camera by UID. \n");
-					return;
-				}
-				ob = add_object(sce, OB_CAMERA);
-				Camera *cam = uid_camera_map[cam_uid];
-				Camera *old_cam = (Camera*)ob->data;
-				old_cam->id.us--;
-				ob->data = cam;
-				if (old_cam->id.us == 0) free_libblock(&G.main->camera, old_cam);
+				ob = create_camera_object(camera[0], ob, sce);
 			}
 			else if (lamp.getCount() != 0) {
-				const COLLADAFW::UniqueId& lamp_uid = lamp[0]->getInstanciatedObjectId();
-				if (uid_lamp_map.find(lamp_uid) == uid_lamp_map.end()) {	
-					fprintf(stderr, "Couldn't find lamp by UID. \n");
-					return;
-				}
-				ob = add_object(sce, OB_LAMP);
-				Lamp *la = uid_lamp_map[lamp_uid];
-				Lamp *old_lamp = (Lamp*)ob->data;
-				old_lamp->id.us--;
-				ob->data = la;
-				if (old_lamp->id.us == 0) free_libblock(&G.main->lamp, old_lamp);
+				ob = create_lamp_object(lamp[0], ob, sce);
 			}
 			else if (controller.getCount() != 0) {
 				COLLADAFW::InstanceController *geom = (COLLADAFW::InstanceController*)controller[0];
@@ -2230,7 +2398,10 @@ public:
 			else {
 				ob = add_object(sce, OB_EMPTY);
 			}
-
+			
+			// check if object is not NULL
+			if (!ob) return;
+			
 			// if par was given make this object child of the previous 
 			if (par && ob) {
 				Object workob;
@@ -2242,13 +2413,6 @@ public:
 				ob->parsubstr[0] = 0;
 			
 				DAG_scene_sort(sce);
-				// since ob->obmat is identity, this is not needed?
-				/*what_does_parent(sce, ob, &workob);
-				  Mat4Invert(ob->parentinv, workob.obmat);
-
-				  ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
-				  ob->partype = PAROBJECT;
-				  DAG_scene_sort(sce);*/
 			}
 		}
 
@@ -2464,6 +2628,20 @@ public:
 				i++;
 			}
 		}
+		// TRANSPARENT
+		// color
+	// 	if (ef->getOpacity().isColor()) {
+// 			// XXX don't know what to do here
+// 		}
+// 		// texture
+// 		else if (ef->getOpacity().isTexture()) {
+// 			ctex = ef->getOpacity().getTexture();
+// 			if (mtex != NULL) mtex->mapto &= MAP_ALPHA;
+// 			else {
+// 				mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
+// 				if (mtex != NULL) mtex->mapto = MAP_ALPHA;
+// 			}
+// 		}
 		material_texture_mapping_map[ma] = texindex_texarray_map;
 	}
 	
@@ -2483,7 +2661,7 @@ public:
 		
 		COLLADAFW::CommonEffectPointerArray common_efs = effect->getCommonEffects();
 		if (common_efs.getCount() < 1) {
-			fprintf(stderr, "<effect> hasn't got any <profile_COMMON>.\n");
+			fprintf(stderr, "Couldn't find <profile_COMMON>.\n");
 			return true;
 		}
 		// XXX TODO: Take all <profile_common>s
@@ -2499,9 +2677,11 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeCamera( const COLLADAFW::Camera* camera ) 
 	{
-		Camera *cam;
-		std::string cam_id = camera->getOriginalId();
-		std::string cam_name = camera->getName();
+		Camera *cam = NULL;
+		std::string cam_id, cam_name;
+		
+		cam_id = camera->getOriginalId();
+		cam_name = camera->getName();
 		if (cam_name.size()) cam = (Camera*)add_camera((char*)cam_name.c_str());
 		else cam = (Camera*)add_camera((char*)cam_id.c_str());
 		
@@ -2509,6 +2689,8 @@ public:
 			fprintf(stderr, "Cannot create camera. \n");
 			return true;
 		}
+		cam->clipsta = camera->getNearClippingPlane().getValue();
+		cam->clipend = camera->getFarClippingPlane().getValue();
 		
 		COLLADAFW::Camera::CameraType type = camera->getCameraType();
 		switch(type) {
@@ -2543,7 +2725,7 @@ public:
 		const char *filename = (const char*)mFilename.c_str();
 		char dir[FILE_MAX];
 		char full_path[FILE_MAX];
-
+		
 		BLI_split_dirfile_basic(filename, dir, NULL);
 		BLI_join_dirfile(full_path, dir, filepath.c_str());
 		Image *ima = BKE_add_image_file(full_path, 0);
@@ -2560,9 +2742,11 @@ public:
 		@return The writer should return true, if writing succeeded, false otherwise.*/
 	virtual bool writeLight( const COLLADAFW::Light* light ) 
 	{
-		Lamp *lamp;
-		std::string la_id = light->getOriginalId();
-		std::string la_name = light->getName();
+		Lamp *lamp = NULL;
+		std::string la_id, la_name;
+		
+		la_id = light->getOriginalId();
+		la_name = light->getName();
 		if (la_name.size()) lamp = (Lamp*)add_lamp((char*)la_name.c_str());
 		else lamp = (Lamp*)add_lamp((char*)la_id.c_str());
 		
@@ -2586,9 +2770,11 @@ public:
 		case COLLADAFW::Light::SPOT_LIGHT:
 			{
 				lamp->type = LA_SPOT;
+				lamp->falloff_type = LA_FALLOFF_SLIDERS;
 				lamp->att1 = light->getLinearAttenuation().getValue();
 				lamp->att2 = light->getQuadraticAttenuation().getValue();
 				lamp->spotsize = light->getFallOffAngle().getValue();
+				lamp->spotblend = light->getFallOffExponent().getValue();
 			}
 			break;
 		case COLLADAFW::Light::DIRECTIONAL_LIGHT:
