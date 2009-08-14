@@ -191,6 +191,9 @@ ifndef CONFIG_GUESS
     # enable l10n
     export INTERNATIONAL ?= true
 
+    export NAN_SAMPLERATE ?= $(LCGDIR)/samplerate
+		export NAN_SAMPLERATE_LIBS ?= $(NAN_SAMPLERATE)/lib/libsamplerate.a 
+
   else
   ifeq ($(OS),freebsd)
 
@@ -309,6 +312,7 @@ ifndef CONFIG_GUESS
     export NAN_SDL ?= $(shell sdl-config --prefix)
     export NAN_SDLLIBS ?= $(shell sdl-config --libs)
     export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
+    export NAN_SAMPLERATE ?= /usr
 
 ifneq ($(NAN_USE_FFMPEG_CONFIG), true)
     export NAN_FFMPEG ?= /usr
