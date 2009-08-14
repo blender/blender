@@ -5978,7 +5978,7 @@ static void clothModifier_copyData(ModifierData *md, ModifierData *target)
 	
 	tclmd->sim_parms = MEM_dupallocN(clmd->sim_parms);
 	tclmd->coll_parms = MEM_dupallocN(clmd->coll_parms);
-	tclmd->point_cache = BKE_ptcache_copy(clmd->point_cache);
+	tclmd->point_cache = BKE_ptcache_copy_list(&tclmd->ptcaches, &clmd->ptcaches);
 	tclmd->clothObject = NULL;
 }
 

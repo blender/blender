@@ -1630,7 +1630,7 @@ void BKE_ptcache_free_list(ListBase *ptcaches)
 	BLI_freelistN(ptcaches);
 }
 
-PointCache *BKE_ptcache_copy(PointCache *cache)
+static PointCache *ptcache_copy(PointCache *cache)
 {
 	PointCache *ncache;
 
@@ -1645,7 +1645,18 @@ PointCache *BKE_ptcache_copy(PointCache *cache)
 
 	return ncache;
 }
+/* returns first point cache */
+PointCache *BKE_ptcache_copy_list(ListBase *ptcaches_new, ListBase *ptcaches_old)
+{
+	PointCache *cache = ptcaches_old->first;
 
+	ptcaches_new->first = ptcaches_new->last = NULL;
+
+	for(; cache; cache=cache->next)
+		BLI_addtail(ptcaches_new, ptcache_copy(cache));
+
+	return ptcaches_new->first;
+}
 
 
 /* Baking */

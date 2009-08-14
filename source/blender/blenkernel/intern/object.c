@@ -1026,7 +1026,7 @@ SoftBody *copy_softbody(SoftBody *sb)
 	
 	sbn->scratch= NULL;
 
-	sbn->pointcache= BKE_ptcache_copy(sb->pointcache);
+	sbn->pointcache= BKE_ptcache_copy_list(&sbn->ptcaches, &sb->ptcaches);
 
 	return sbn;
 }
@@ -1085,7 +1085,7 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->reactevents.first = psysn->reactevents.last = NULL;
 	psysn->renderdata = NULL;
 	
-	psysn->pointcache= BKE_ptcache_copy(psys->pointcache);
+	psysn->pointcache= BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches);
 
 	id_us_plus((ID *)psysn->part);
 
