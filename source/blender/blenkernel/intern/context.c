@@ -217,7 +217,10 @@ struct ARegion *CTX_wm_menu(const bContext *C)
 
 struct ReportList *CTX_wm_reports(const bContext *C)
 {
-	return &(C->wm.manager->reports);
+	if (C->wm.manager)
+		return &(C->wm.manager->reports);
+
+	return NULL;
 }
 
 View3D *CTX_wm_view3d(const bContext *C)
