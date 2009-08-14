@@ -40,6 +40,7 @@ SET(INC .
   ../gpu
   ../blenfont
   ${SDL_INC}
+  ${OPENGL_INCLUDE_DIR}
 )
 
 IF(WITH_INTERNATIONAL)

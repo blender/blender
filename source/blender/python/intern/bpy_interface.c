@@ -270,7 +270,7 @@ void BPY_start_python( int argc, char **argv )
 
 void BPY_end_python( void )
 {
-	fprintf(stderr, "Ending Python!\n");
+	// fprintf(stderr, "Ending Python!\n");
 
 	PyGILState_Ensure(); /* finalizing, no need to grab the state */
 	
@@ -296,7 +296,7 @@ void BPY_end_python( void )
 
 	printf("\n");
 
-	fprintf(stderr, "Ending Python Done!\n");
+	// fprintf(stderr, "Ending Python Done!\n");
 
 #endif
 

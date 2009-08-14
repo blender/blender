@@ -114,19 +114,10 @@ IF(UNIX AND NOT APPLE)
   IF(INTL_LIBRARY AND ICONV_LIBRARY)
     SET(GETTEXT_LIB ${INTL_LIBRARY} ${ICONV_LIBRARY})
   ENDIF(INTL_LIBRARY AND ICONV_LIBRARY)
-  
-  FIND_PATH(FREETYPE_INC
-    freetype
-    PATHS
-    /usr/local/include/freetype2
-    /usr/include/freetype2
-    /sw/include/freetype2
-    /opt/local/include/freetype2
-    /opt/csw/include/freetype2
-    /opt/include/freetype2
-    NO_DEFAULT_PATH
-  )
-  SET(FREETYPE_LIB freetype)
+
+  FIND_PACKAGE(Freetype)
+  SET(FREETYPE_INC "${FREETYPE_INCLUDE_DIR_freetype2}" CACHE STRING "")
+  SET(FREETYPE_LIB "${FREETYPE_LIBRARY}" CACHE STRING "")
 
   FIND_PACKAGE(PythonLibs)
   SET(PYTHON_INC "${PYTHON_INCLUDE_PATH}" CACHE STRING "")
@@ -159,10 +150,10 @@ IF(UNIX AND NOT APPLE)
   SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
   
   IF(WITH_FFTW3)
-	  SET(FFTW3 /usr)
-	  SET(FFTW3_INC ${FFTW3}/include)
-	  SET(FFTW3_LIB fftw3)
-	  SET(FFTW3_LIBPATH ${FFTW3}/lib)
+    SET(FFTW3 /usr)
+    SET(FFTW3_INC ${FFTW3}/include)
+    SET(FFTW3_LIB fftw3)
+    SET(FFTW3_LIBPATH ${FFTW3}/lib)
   ENDIF(WITH_FFTW3)
 
   SET(LIBSAMPLERATE /usr)
@@ -176,7 +167,13 @@ IF(UNIX AND NOT APPLE)
 
   FIND_PACKAGE(ZLIB REQUIRED)
 
-  SET(LLIBS "-lXi -lutil -lc -lm -lpthread -lstdc++ -lX11 -ldl")
+  # Could use ${X11_Xinput_LIB} ${X11_X11_LIB} too
+  SET(LLIBS "-lXi -lutil -lc -lm -lpthread -lstdc++ -lX11")
+
+  IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    # BSD's dont use libdl.so
+    SET(LLIBS "${LLIBS} -ldl")
+  ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
   IF(WITH_OPENMP)
     SET(LLIBS "${LLIBS} -lgomp")
