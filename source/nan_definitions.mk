@@ -131,7 +131,7 @@ ifndef CONFIG_GUESS
 
     ifeq ($(NAN_PYTHON_VERSION),3.1)
       export PY_FRAMEWORK ?= 0
-	  export NAN_PYTHON ?= $(LCGDIR)/python
+      export NAN_PYTHON ?= $(LCGDIR)/python
       export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/libpython$(NAN_PYTHON_VERSION).a
     else
       export PY_FRAMEWORK ?= 1
@@ -192,7 +192,7 @@ ifndef CONFIG_GUESS
     export INTERNATIONAL ?= true
 
     export NAN_SAMPLERATE ?= $(LCGDIR)/samplerate
-		export NAN_SAMPLERATE_LIBS ?= $(NAN_SAMPLERATE)/lib/libsamplerate.a 
+    export NAN_SAMPLERATE_LIBS ?= $(NAN_SAMPLERATE)/lib/libsamplerate.a 
 
   else
   ifeq ($(OS),freebsd)
@@ -327,7 +327,7 @@ endif
     endif
 
     # Uncomment the following line to use Mozilla inplace of netscape
-	
+
     # Location of MOZILLA/Netscape header files...
     export NAN_MOZILLA_INC ?= /usr/include/mozilla
     export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
