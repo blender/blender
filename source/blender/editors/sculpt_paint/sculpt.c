@@ -1118,31 +1118,6 @@ static void sculpt_undo_push(bContext *C, Sculpt *sd)
 	}
 }
 
-static int sculpt_brush_curve_preset_exec(bContext *C, wmOperator *op)
-{
-	brush_curve_preset(CTX_data_scene(C)->toolsettings->sculpt->brush, RNA_enum_get(op->ptr, "mode"));
-	return OPERATOR_FINISHED;
-}
-
-static void SCULPT_OT_brush_curve_preset(wmOperatorType *ot)
-{
-	static EnumPropertyItem prop_mode_items[] = {
-		{BRUSH_PRESET_SHARP, "SHARP", 0, "Sharp Curve", ""},
-		{BRUSH_PRESET_SMOOTH, "SMOOTH", 0, "Smooth Curve", ""},
-		{BRUSH_PRESET_MAX, "MAX", 0, "Max Curve", ""},
-		{0, NULL, 0, NULL, NULL}};
-
-	ot->name= "Preset";
-	ot->idname= "SCULPT_OT_brush_curve_preset";
-
-	ot->exec= sculpt_brush_curve_preset_exec;
-	ot->poll= sculpt_mode_poll;
-
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	RNA_def_enum(ot->srna, "mode", prop_mode_items, BRUSH_PRESET_SHARP, "Mode", "");
-}
-
 /**** Radial control ****/
 static int sculpt_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -1732,6 +1707,5 @@ void ED_operatortypes_sculpt()
 	WM_operatortype_append(SCULPT_OT_radial_control);
 	WM_operatortype_append(SCULPT_OT_brush_stroke);
 	WM_operatortype_append(SCULPT_OT_sculptmode_toggle);
-	WM_operatortype_append(SCULPT_OT_brush_curve_preset);
 	WM_operatortype_append(SCULPT_OT_set_persistent_base);
 }

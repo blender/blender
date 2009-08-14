@@ -10,6 +10,9 @@
 
 void ED_operatortypes_paint(void)
 {
+	/* brush */
+	WM_operatortype_append(BRUSH_OT_curve_preset);
+
 	/* image */
 	WM_operatortype_append(PAINT_OT_texture_paint_toggle);
 	WM_operatortype_append(PAINT_OT_texture_paint_radial_control);

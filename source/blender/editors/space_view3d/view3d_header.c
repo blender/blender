@@ -3173,9 +3173,9 @@ static void view3d_sculpt_menu(bContext *C, uiLayout *layout, void *arg_unused)
 
 	/* Curve */
 	uiItemS(layout);
-	uiItemEnumO(layout, NULL, 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_SHARP);
-	uiItemEnumO(layout, NULL, 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_SMOOTH);
-	uiItemEnumO(layout, NULL, 0, "SCULPT_OT_brush_curve_preset", "mode", BRUSH_PRESET_MAX);
+	uiItemEnumO(layout, NULL, 0, "BRUSH_OT_curve_preset", "shape", BRUSH_PRESET_SHARP);
+	uiItemEnumO(layout, NULL, 0, "BRUSH_OT_curve_preset", "shape", BRUSH_PRESET_SMOOTH);
+	uiItemEnumO(layout, NULL, 0, "BRUSH_OT_curve_preset", "shape", BRUSH_PRESET_MAX);
 
 	uiItemS(layout);
 
