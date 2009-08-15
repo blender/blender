@@ -5239,7 +5239,7 @@ void createTransData(bContext *C, TransInfo *t)
 		// XXX active-layer checking isn't done as that should probably be checked through context instead
 		createTransPose(C, t, ob);
 	}
-	else if (G.f & G_WEIGHTPAINT) {
+	else if (ob && (ob->mode & OB_MODE_WEIGHT_PAINT)) {
 		/* exception, we look for the one selected armature */
 		CTX_DATA_BEGIN(C, Object*, ob_armature, selected_objects)
 		{

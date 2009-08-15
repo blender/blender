@@ -128,7 +128,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		return 1;
 	}
 	else if(CTX_data_equals(member, "weight_paint_object")) {
-		if(G.f & G_WEIGHTPAINT && scene->basact)
+		if(ob && (ob->mode & OB_MODE_WEIGHT_PAINT))
 			CTX_data_id_pointer_set(result, &scene->basact->object->id);
 
 		return 1;

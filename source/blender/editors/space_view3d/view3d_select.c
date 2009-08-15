@@ -699,7 +699,7 @@ void view3d_lasso_select(bContext *C, ViewContext *vc, short mcords[][2], short 
 	if(vc->obedit==NULL) {
 		if(paint_facesel_test(ob))
 			do_lasso_select_facemode(vc, mcords, moves, select);
-		else if(G.f & (G_TEXTUREPAINT|G_WEIGHTPAINT) || (ob && ob->mode & OB_MODE_VERTEX_PAINT))
+		else if(G.f & G_TEXTUREPAINT || (ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT)))
 			;
 		else if(G.f & G_PARTICLEEDIT)
 			PE_lasso_select(C, mcords, moves, select);
@@ -1112,7 +1112,7 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter)
 					WM_event_add_notifier(C, NC_OBJECT|ND_BONE_ACTIVE, basact->object);
 					
 					/* in weightpaint, we use selected bone to select vertexgroup, so no switch to new active object */
-					if(G.f & G_WEIGHTPAINT) {
+					if(basact->object->mode & OB_MODE_WEIGHT_PAINT) {
 						/* prevent activating */
 						basact= NULL;
 					}

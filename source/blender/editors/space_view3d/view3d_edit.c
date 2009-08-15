@@ -951,7 +951,7 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 
 	INIT_MINMAX(min, max);
 
-	if (G.f & G_WEIGHTPAINT) {
+	if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
 		/* hardcoded exception, we look for the one selected armature */
 		/* this is weak code this way, we should make a generic active/selection callback interface once... */
 		Base *base;

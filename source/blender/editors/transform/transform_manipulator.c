@@ -358,10 +358,10 @@ int calc_manipulator_stats(const bContext *C)
 			Mat4MulVecfl(ob->obmat, scene->twmax);
 		}
 	}
-	else if(G.f & (G_TEXTUREPAINT + G_WEIGHTPAINT)) {
+	else if(G.f & G_TEXTUREPAINT) {
 		;
 	}
-	else if(ob && (ob->mode & (OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT))) {
+	else if(ob && (ob->mode & (OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT))) {
 		;
 	}
 	else if(G.f & G_PARTICLEEDIT) {

@@ -195,9 +195,9 @@ Brush **current_brush_source(Scene *sce)
 			return &sce->toolsettings->sculpt->brush;
 		else if(ob->mode & OB_MODE_VERTEX_PAINT)
 			return &sce->toolsettings->vpaint->brush;
+		else if(ob->mode & OB_MODE_WEIGHT_PAINT)
+			return &sce->toolsettings->wpaint->brush;
 	}
-	else if(G.f & G_WEIGHTPAINT)
-		return &sce->toolsettings->wpaint->brush;
 	else if(G.f & G_TEXTUREPAINT)
 		return &sce->toolsettings->imapaint.brush;
 	return NULL;

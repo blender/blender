@@ -123,7 +123,9 @@ static int vp_poll(bContext *C)
 
 static int wp_poll(bContext *C)
 {
-	if(G.f & G_WEIGHTPAINT) {
+	Object *ob = CTX_data_active_object(C);
+
+	if(ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
 		ScrArea *sa= CTX_wm_area(C);
 		if(sa->spacetype==SPACE_VIEW3D) {
 			ARegion *ar= CTX_wm_region(C);
@@ -1094,12 +1096,12 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 	
 	if(me && me->totface>=MAXINDEX) {
 		error("Maximum number of faces: %d", MAXINDEX-1);
-		G.f &= ~G_WEIGHTPAINT;
+		ob->mode &= ~OB_MODE_WEIGHT_PAINT;
 		return OPERATOR_CANCELLED;
 	}
 	
-	if(G.f & G_WEIGHTPAINT) G.f &= ~G_WEIGHTPAINT;
-	else G.f |= G_WEIGHTPAINT;
+	if(ob->mode & OB_MODE_WEIGHT_PAINT) ob->mode &= ~OB_MODE_WEIGHT_PAINT;
+	else ob->mode |= OB_MODE_WEIGHT_PAINT;
 	
 	
 	/* Weightpaint works by overriding colors in mesh,
@@ -1109,7 +1111,7 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 		*/
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	
-	if(G.f & G_WEIGHTPAINT) {
+	if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 		Object *par;
 		
 		if(wp==NULL)
@@ -1612,7 +1614,7 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 		
 		ob->mode |= OB_MODE_VERTEX_PAINT;
 		/* Turn off weight painting */
-		if (G.f & G_WEIGHTPAINT)
+		if (ob->mode & OB_MODE_WEIGHT_PAINT)
 			set_wpaint(C, op);
 		
 		if(vp==NULL)

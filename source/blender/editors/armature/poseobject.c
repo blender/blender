@@ -1647,7 +1647,7 @@ void pose_activate_flipped_bone(Scene *scene)
 	
 	if(ob==NULL) return;
 
-	if(G.f & G_WEIGHTPAINT) {
+	if(ob->mode && OB_MODE_WEIGHT_PAINT) {
 		ob= modifiers_isDeformedByArmature(ob);
 	}
 	if(ob && (ob->flag & OB_POSEMODE)) {
@@ -1671,7 +1671,7 @@ void pose_activate_flipped_bone(Scene *scene)
 				pchanf->bone->flag |= (BONE_SELECTED|BONE_ACTIVE);
 			
 				/* in weightpaint we select the associated vertex group too */
-				if(G.f & G_WEIGHTPAINT) {
+				if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 					vertexgroup_select_by_name(OBACT, name);
 					DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
 				}

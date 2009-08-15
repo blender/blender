@@ -2247,7 +2247,7 @@ static int object_location_clear_exec(bContext *C, wmOperator *op)
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if((G.f & G_WEIGHTPAINT)==0) {
+		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 			if ((ob->protectflag & OB_LOCK_LOCX)==0)
 				ob->loc[0]= ob->dloc[0]= 0.0f;
 			if ((ob->protectflag & OB_LOCK_LOCY)==0)
@@ -2290,7 +2290,7 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if((G.f & G_WEIGHTPAINT)==0) {
+		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 			/* eulers can only get cleared if they are not protected */
 			if ((ob->protectflag & OB_LOCK_ROTX)==0)
 				ob->rot[0]= ob->drot[0]= 0.0f;
@@ -2334,7 +2334,7 @@ static int object_scale_clear_exec(bContext *C, wmOperator *op)
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if((G.f & G_WEIGHTPAINT)==0) {
+		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 			if ((ob->protectflag & OB_LOCK_SCALEX)==0) {
 				ob->dsize[0]= 0.0f;
 				ob->size[0]= 1.0f;
@@ -3701,7 +3701,7 @@ void ED_object_exit_editmode(bContext *C, int flag)
 			me->edit_mesh= NULL;
 		}
 		
-		if(G.f & G_WEIGHTPAINT)
+		if(obedit->restore_mode & OB_MODE_WEIGHT_PAINT)
 			mesh_octree_table(obedit, NULL, NULL, 'e');
 	}
 	else if (obedit->type==OB_ARMATURE) {	
@@ -4178,7 +4178,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 				DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 			}
 		}
-		else if(G.f & G_WEIGHTPAINT) {
+		else if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 			Object *par= modifiers_isDeformedByArmature(ob);
 
 			if(par && (par->flag & OB_POSEMODE)) {
@@ -7043,5 +7043,7 @@ void ED_object_toggle_modes(bContext *C, int mode)
 	if(mode & OB_MODE_SCULPT)
 		WM_operator_name_call(C, "SCULPT_OT_sculptmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 	if(mode & OB_MODE_VERTEX_PAINT)
-		WM_operator_name_call(C, "SCULPT_OT_vertex_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+		WM_operator_name_call(C, "PAINT_OT_vertex_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if(mode & OB_MODE_WEIGHT_PAINT)
+		WM_operator_name_call(C, "PAINT_OT_weight_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 }

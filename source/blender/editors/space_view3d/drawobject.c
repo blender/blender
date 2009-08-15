@@ -212,7 +212,7 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt)
 		return 0;
 	if(!CHECK_OB_DRAWTEXTURE(v3d, dt))
 		return 0;
-	if(ob==OBACT && (G.f & G_WEIGHTPAINT))
+	if(ob==OBACT && (ob && ob->mode & OB_MODE_WEIGHT_PAINT))
 		return 0;
 	
 	return ((G.fileflags & G_FILE_GAME_MAT) &&
@@ -2328,7 +2328,7 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 		
 		if(ob==OBACT) {
 			do_draw= 0;
-			if( (G.f & G_WEIGHTPAINT)) {
+			if(ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
 				/* enforce default material settings */
 				GPU_enable_material(0, NULL);
 				
@@ -5073,7 +5073,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	dtx= 0;
 
 	/* faceselect exception: also draw solid when dt==wire, except in editmode */
-	if(ob==OBACT && (G.f & (G_TEXTUREPAINT+G_WEIGHTPAINT) || ob->mode & OB_MODE_VERTEX_PAINT)) {
+	if(ob==OBACT && (G.f & G_TEXTUREPAINT || ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT))) {
 		if(ob->type==OB_MESH) {
 
 			if(ob==scene->obedit);
@@ -5711,7 +5711,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	if(G.f & G_RENDER_SHADOW) return;
 
 	/* object centers, need to be drawn in viewmat space for speed, but OK for picking select */
-	if(ob!=OBACT || ((G.f & (G_TEXTUREPAINT|G_WEIGHTPAINT))==0) || ob->mode & OB_MODE_VERTEX_PAINT) {
+	if(ob!=OBACT || ((G.f & G_TEXTUREPAINT)==0) || !(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT))) {
 		int do_draw_center= -1;	/* defines below are zero or positive... */
 
 		if((scene->basact)==base) 

@@ -563,7 +563,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 	if(ob == scene->obedit) {
 		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, me->edit_mesh);
 	} else if(faceselect) {
-		if(G.f & G_WEIGHTPAINT)
+		if(ob->mode & OB_MODE_WEIGHT_PAINT)
 			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me, 1);
 		else
 			dm->drawMappedFacesTex(dm, draw_tface_mapped__set_draw, me);

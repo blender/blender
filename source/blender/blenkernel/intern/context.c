@@ -688,7 +688,7 @@ char *CTX_data_mode_string(const bContext *C)
 		
 		if(ob && (ob->flag & OB_POSEMODE)) return "posemode";
 		else if (ob && ob->mode & OB_MODE_SCULPT)  return "sculpt_mode";
-		else if (G.f & G_WEIGHTPAINT) return "weightpaint";
+		else if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) return "weightpaint";
 		else if (ob && ob->mode & OB_MODE_VERTEX_PAINT) return "vertexpaint";
 		else if (G.f & G_TEXTUREPAINT) return "texturepaint";
 		else if(G.f & G_PARTICLEEDIT) return "particlemode";

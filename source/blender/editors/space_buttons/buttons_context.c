@@ -325,7 +325,7 @@ static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
 			br= ts->sculpt->brush;
 		else if(obact && obact->mode & OB_MODE_VERTEX_PAINT)
 			br= ts->vpaint->brush;
-		else if(G.f & G_WEIGHTPAINT)
+		else if(obact && obact->mode & OB_MODE_WEIGHT_PAINT)
 			br= ts->wpaint->brush;
 		else if(G.f & G_TEXTUREPAINT)
 			br= ts->imapaint.brush;

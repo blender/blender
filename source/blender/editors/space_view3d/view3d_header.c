@@ -139,8 +139,6 @@ static void ED_toggle_paint_modes(bContext *C, int mode)
 {
 	if(mode & G_TEXTUREPAINT)
 		WM_operator_name_call(C, "PAINT_OT_texture_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	else if(mode & G_WEIGHTPAINT)
-		WM_operator_name_call(C, "PAINT_OT_weight_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 
 	if(mode & G_PARTICLEEDIT)
 		WM_operator_name_call(C, "PARTICLE_OT_particle_edit_toggle", WM_OP_EXEC_REGION_WIN, NULL);
@@ -153,7 +151,7 @@ int ED_view3d_exit_paint_modes(bContext *C)
 
 	ED_toggle_paint_modes(C, G.f);
 	
-	G.f &= ~(G_TEXTUREPAINT+G_WEIGHTPAINT+G_PARTICLEEDIT);
+	G.f &= ~(G_TEXTUREPAINT+G_PARTICLEEDIT);
 
 	return restore;
 }
@@ -3467,7 +3465,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 				v3d->flag &= ~V3D_MODE;
 				ED_view3d_exit_paint_modes(C);
 				ED_object_toggle_modes(C, ob->mode);
-				if(obedit) ED_object_exit_editmode(C, EM_FREEUNDO|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
+				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 					
 				WM_operator_name_call(C, "SCULPT_OT_sculptmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 			}
@@ -3493,7 +3491,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 			}
 		} 
 		else if (v3d->modeselect == V3D_WEIGHTPAINTMODE_SEL) {
-			if (!(G.f & G_WEIGHTPAINT) && (ob && ob->type == OB_MESH) ) {
+			if (ob && ob->type == OB_MESH && !(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 				v3d->flag &= ~V3D_MODE;
 				ED_view3d_exit_paint_modes(C);
 				ED_object_toggle_modes(C, ob->mode);
@@ -3702,7 +3700,7 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 		}
 		
 	}
-	else if (G.f & G_WEIGHTPAINT) {
+	else if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
 		xmax= GetButStringLength("Paint");
 		uiDefPulldownBut(block, view3d_wpaintmenu, NULL, "Paint", xco,yco, xmax-3, 20, "");
 		xco+= xmax;
@@ -3800,7 +3798,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	if (obedit) v3d->modeselect = V3D_EDITMODE_SEL;
 	else if(ob && (ob->flag & OB_POSEMODE)) v3d->modeselect = V3D_POSEMODE_SEL;
 	else if (ob && (ob->mode & OB_MODE_SCULPT))  v3d->modeselect = V3D_SCULPTMODE_SEL;
-	else if (G.f & G_WEIGHTPAINT) v3d->modeselect = V3D_WEIGHTPAINTMODE_SEL;
+	else if (ob && (ob->mode & OB_MODE_WEIGHT_PAINT)) v3d->modeselect = V3D_WEIGHTPAINTMODE_SEL;
 	else if (ob && (ob->mode & OB_MODE_VERTEX_PAINT)) v3d->modeselect = V3D_VERTEXPAINTMODE_SEL;
 	else if (G.f & G_TEXTUREPAINT) v3d->modeselect = V3D_TEXTUREPAINTMODE_SEL;
 	/*else if(G.f & G_FACESELECT) v3d->modeselect = V3D_FACESELECTMODE_SEL;*/
@@ -3812,7 +3810,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	if(obedit) v3d->flag |= V3D_EDITMODE;
 	if(ob && (ob->flag & OB_POSEMODE)) v3d->flag |= V3D_POSEMODE;
 	if(ob && (ob->mode & OB_MODE_VERTEX_PAINT)) v3d->flag |= V3D_VERTEXPAINT;
-	if(G.f & G_WEIGHTPAINT) v3d->flag |= V3D_WEIGHTPAINT;
+	if(ob && (ob->mode & OB_MODE_WEIGHT_PAINT)) v3d->flag |= V3D_WEIGHTPAINT;
 	if (G.f & G_TEXTUREPAINT) v3d->flag |= V3D_TEXTUREPAINT;
 	if(paint_facesel_test(ob)) v3d->flag |= V3D_FACESELECT;
 	
@@ -3857,7 +3855,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
  			uiBlockEndAlign(block);
  		}
  	} else {
- 		if (obedit==NULL && ((ob && ob->mode & OB_MODE_VERTEX_PAINT) || G.f & (G_WEIGHTPAINT|G_TEXTUREPAINT))) {
+ 		if (obedit==NULL && ((ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT)) || G.f & G_TEXTUREPAINT)) {
  			uiDefIconButBitI(block, TOG, G_FACESELECT, B_VIEW_BUTSEDIT, ICON_FACESEL_HLT,xco,yco,XIC,YIC, &G.f, 0, 0, 0, 0, "Painting Mask (FKey)");
 			header_xco_step(ar, &xco, &yco, &maxco, XIC+10);
  		} else {

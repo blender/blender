@@ -2530,7 +2530,7 @@ int draw_armature(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int
 					if ((flag & DRAW_SCENESET)==0) {
 						if(ob==OBACT) 
 							arm->flag |= ARM_POSEMODE;
-						else if(G.f & G_WEIGHTPAINT) {
+						else if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 							if(OBACT && ob==modifiers_isDeformedByArmature(OBACT))
 								arm->flag |= ARM_POSEMODE;
 						}
