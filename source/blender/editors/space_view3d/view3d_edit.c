@@ -904,6 +904,9 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 			rv3d->persp= V3D_PERSP;
 			smooth_view(C, NULL, v3d->camera, new_ofs, NULL, &new_dist, NULL);
 		}
+        else {
+            smooth_view(C, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
+        }
 	}
 // XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
 
