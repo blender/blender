@@ -3042,10 +3042,11 @@ static void bpy_class_free(void *pyob_ptr)
 void pyrna_alloc_types(void)
 {
 	PyGILState_STATE gilstate;
-	gilstate = PyGILState_Ensure();
 
 	PointerRNA ptr;
 	PropertyRNA *prop;
+	
+	gilstate = PyGILState_Ensure();
 
 	/* avoid doing this lookup for every getattr */
 	RNA_blender_rna_pointer_create(&ptr);
