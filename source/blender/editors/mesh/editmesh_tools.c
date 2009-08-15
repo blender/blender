@@ -6668,7 +6668,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 	esubdivideflag(obedit, em, 1, smooth, fractal, scene->toolsettings->editbutflag|flag, cuts, 0);
 
 	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
 
 	return OPERATOR_FINISHED;
 }

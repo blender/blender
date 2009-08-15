@@ -374,7 +374,7 @@ int BLI_kdtree_range_search(KDTree *tree, float range, float *co, float *nor, KD
 	KDTreeNode **stack, *defaultstack[100];
 	KDTreeNearest *foundstack=NULL;
 	float range2 = range*range, dist2;
-	int i, totstack, cur=0, found=0, totfoundstack=0;
+	int totstack, cur=0, found=0, totfoundstack=0;
 
 	if(!tree || !tree->root)
 		return 0;

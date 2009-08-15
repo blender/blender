@@ -134,7 +134,7 @@ static int retopo_mesh_paint_check() {return 0;}
 
 /* end XXX ************* */
 
-static int ED_toggle_paint_modes(bContext *C, int mode)
+static void ED_toggle_paint_modes(bContext *C, int mode)
 {
 	if(mode & G_TEXTUREPAINT)
 		WM_operator_name_call(C, "PAINT_OT_texture_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
@@ -1237,6 +1237,7 @@ static void view3d_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused
 	uiItemO(layout, NULL, 0, "VIEW3D_OT_snap_cursor_to_active");
 }
 
+#if 0
 void do_view3d_transform_moveaxismenu(bContext *C, void *arg, int event)
 {
 #if 0
@@ -1437,7 +1438,9 @@ static uiBlock *view3d_transform_scaleaxismenu(bContext *C, ARegion *ar, void *a
 	uiTextBoundsBlock(block, 60);
 	return block;
 }
+#endif
 
+#if 0
 static void do_view3d_transformmenu(bContext *C, void *arg, int event)
 {
 #if 0
@@ -1672,6 +1675,7 @@ static uiBlock *view3d_object_mirrormenu(bContext *C, ARegion *ar, void *arg_unu
 	uiTextBoundsBlock(block, 60);
 	return block;
 }
+#endif
 #endif
 
 static void view3d_edit_object_transformmenu(bContext *C, uiLayout *layout, void *arg_unused)
@@ -2243,9 +2247,9 @@ static void view3d_edit_mesh_normalsmenu(bContext *C, uiLayout *layout, void *ar
 	uiItemO(layout, NULL, 0, "MESH_OT_flip_normals");
 }
 
+#if 0
 void do_view3d_edit_mirrormenu(bContext *C, void *arg, int event)
 {
-#if 0
 	float mat[3][3];
 	
 	Mat3One(mat);
@@ -2286,7 +2290,6 @@ void do_view3d_edit_mirrormenu(bContext *C, void *arg, int event)
 			Transform();
 			break;
 	}
-#endif
 }
 
 static uiBlock *view3d_edit_mirrormenu(bContext *C, ARegion *ar, void *arg_unused)
@@ -2315,6 +2318,7 @@ static uiBlock *view3d_edit_mirrormenu(bContext *C, ARegion *ar, void *arg_unuse
 	uiTextBoundsBlock(block, 60);
 	return block;
 }
+#endif
 
 static void view3d_edit_mesh_showhidemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {

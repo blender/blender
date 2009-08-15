@@ -1002,6 +1002,7 @@ static void view3d_panel_transform_spaces(const bContext *C, Panel *pa)
 }
 #endif // XXX not used
 
+#if 0
 static void brush_idpoin_handle(bContext *C, ID *id, int event)
 {
 	Brush **br = current_brush_source(CTX_data_scene(C));
@@ -1032,6 +1033,7 @@ static void brush_idpoin_handle(bContext *C, ID *id, int event)
 		break;
 	}
 }
+#endif
 
 static void view3d_panel_object(const bContext *C, Panel *pa)
 {
@@ -1043,7 +1045,6 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	Object *ob= OBACT;
 	TransformProperties *tfp;
 	float lim;
-	static char hexcol[128];
 	
 	if(ob==NULL) return;
 

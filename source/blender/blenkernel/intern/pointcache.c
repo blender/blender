@@ -972,7 +972,7 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 	float old_data1[14], old_data2[14];
 	int cfrai = (int)cfra;
 	int old_elemsize = ptcache_pid_old_elemsize(pid);
-	int i, incr = old_elemsize / sizeof(float);
+	int i;
 
 	int cfra1 = 0, cfra2 = 0;
 	int totpoint = 0, totpoint2 = 0;
@@ -1265,8 +1265,7 @@ int BKE_ptcache_write_cache(PTCacheID *pid, int cfra)
 {
 	PointCache *cache = pid->cache;
 	PTCacheFile *pf= NULL;
-	int elemsize = ptcache_pid_old_elemsize(pid);
-	int i, incr = elemsize / sizeof(float);
+	int i;
 	int totpoint = pid->totpoint(pid->calldata);
 	int add = 0, overwrite = 0;
 

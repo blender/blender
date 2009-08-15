@@ -69,6 +69,8 @@ void ED_object_enter_editmode(struct bContext *C, int flag);
 
 void ED_object_base_init_from_view(struct bContext *C, struct Base *base);
 
+void ED_object_single_users(struct Scene *scene, int full);
+
 /* cleanup */
 int object_is_libdata(struct Object *ob);
 int object_data_is_libdata(struct Object *ob);
@@ -88,6 +90,9 @@ void ED_object_constraint_set_active(struct Object *ob, struct bConstraint *con)
 /* editlattice.c */
 void mouse_lattice(struct bContext *C, short mval[2], int extend);
 void undo_push_lattice(struct bContext *C, char *name);
+
+/* editmball.c */
+void undo_push_mball(struct bContext *C, char *name);
 
 /* editkey.c */
 void insert_shapekey(struct Scene *scene, struct Object *ob);

@@ -765,7 +765,7 @@ void recalcData(TransInfo *t)
 		 */
 		// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
 		if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
-			short targetless_ik= (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
+			int targetless_ik= (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
 			
 			animrecord_check_state(t->scene, &ob->id, t->animtimer);
 			autokeyframe_pose_cb_func(t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);

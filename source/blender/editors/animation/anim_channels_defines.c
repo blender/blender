@@ -274,7 +274,7 @@ static void acf_generic_idblock_name(bAnimListElem *ale, char *name)
 	
 	/* just copy the name... */
 	if (id && name)
-		sprintf(name, id->name+2);
+		strcpy(name, id->name+2);
 }
 
 /* Settings ------------------------------------------- */
@@ -441,7 +441,7 @@ static void acf_object_name(bAnimListElem *ale, char *name)
 	
 	/* just copy the name... */
 	if (ob && name)
-		sprintf(name, ob->id.name+2);
+		strcpy(name, ob->id.name+2);
 }
 
 /* check if some setting exists for this channel */
@@ -554,7 +554,7 @@ static void acf_group_name(bAnimListElem *ale, char *name)
 	
 	/* just copy the name... */
 	if (agrp && name)
-		sprintf(name, agrp->name);
+		strcpy(name, agrp->name);
 }
 
 /* check if some setting exists for this channel */
@@ -783,7 +783,7 @@ static int acf_filldrivers_icon(bAnimListElem *ale)
 
 static void acf_filldrivers_name(bAnimListElem *ale, char *name)
 {
-	sprintf(name, "Drivers");
+	strcpy(name, "Drivers");
 }
 
 /* check if some setting exists for this channel */
@@ -858,7 +858,7 @@ static int acf_fillmatd_icon(bAnimListElem *ale)
 
 static void acf_fillmatd_name(bAnimListElem *ale, char *name)
 {
-	sprintf(name, "Materials");
+	strcpy(name, "Materials");
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
@@ -902,7 +902,7 @@ static int acf_fillpartd_icon(bAnimListElem *ale)
 
 static void acf_fillpartd_name(bAnimListElem *ale, char *name)
 {
-	sprintf(name, "Particles");
+	strcpy(name, "Particles");
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */

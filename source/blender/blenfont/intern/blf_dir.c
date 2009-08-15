@@ -153,7 +153,8 @@ char *blf_dir_search(char *file)
 
 int blf_dir_split(const char *str, char *file, int *size)
 {
-	char *s, i, len;
+	int i, len;
+	char *s;
 	
 	/* Window, Linux or Mac, this is always / */
 	s= strrchr(str, '/');

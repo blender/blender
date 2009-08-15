@@ -2271,8 +2271,6 @@ void psys_make_temp_pointcache(Object *ob, ParticleSystem *psys)
 }
 void psys_clear_temp_pointcache(ParticleSystem *psys)
 {
-	PTCacheMem *pm = psys->pointcache->mem_cache.first;
-
 	if((psys->pointcache->flag & PTCACHE_DISK_CACHE)==0)
 		return;
 

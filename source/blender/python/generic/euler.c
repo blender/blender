@@ -508,7 +508,7 @@ static int Euler_ass_slice(EulerObject * self, int begin, int end,
 }
 //-----------------PROTCOL DECLARATIONS--------------------------
 static PySequenceMethods Euler_SeqMethods = {
-	(inquiry) Euler_len,						/* sq_length */
+	(lenfunc) Euler_len,						/* sq_length */
 	(binaryfunc) 0,								/* sq_concat */
 	(ssizeargfunc) 0,								/* sq_repeat */
 	(ssizeargfunc) Euler_item,					/* sq_item */

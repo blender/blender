@@ -5298,15 +5298,14 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	}
 
 	/* draw code for smoke */
-	if(md = modifiers_findByType(ob, eModifierType_Smoke))
+	if((md = modifiers_findByType(ob, eModifierType_Smoke)))
 	{
 		SmokeModifierData *smd = (SmokeModifierData *)md;
 
 		// draw collision objects
 		if((smd->type & MOD_SMOKE_TYPE_COLL) && smd->coll)
 		{
-			SmokeCollSettings *scs = smd->coll;
-			/*
+			/*SmokeCollSettings *scs = smd->coll;
 			if(scs->points)
 			{
 				size_t i;

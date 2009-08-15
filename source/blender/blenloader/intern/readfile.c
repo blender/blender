@@ -9208,8 +9208,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Tex *tx;
 		ParticleSettings *part;
 		Object *ob;
-		PTCacheID *pid;
-		ListBase pidlist;
+		//PTCacheID *pid;
+		//ListBase pidlist;
 
 		bSound *sound;
 		Sequence *seq;
@@ -9358,14 +9358,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* TODO: should be moved into one of the version blocks once this branch moves to trunk and we can
 	   bump the version (or sub-version.) */
 	{
-		World *wo;
 		Object *ob;
 		Material *ma;
 		Tex *tex;
 		Scene *sce;
 		ToolSettings *ts;
-		PTCacheID *pid;
-		ListBase pidlist;
+		//PTCacheID *pid;
+		//ListBase pidlist;
 		int i, a;
 
 		for(ob = main->object.first; ob; ob = ob->id.next) {

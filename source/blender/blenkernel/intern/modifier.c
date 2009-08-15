@@ -5858,8 +5858,7 @@ static void smokeModifier_updateDepgraph(
 					 ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
       DagNode *obNode)
 {
-	SmokeModifierData *smd = (SmokeModifierData *) md;
-	/*
+	/*SmokeModifierData *smd = (SmokeModifierData *) md;
 	if(smd && (smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
 	{
 		if(smd->domain->fluid_group)

@@ -4309,6 +4309,8 @@ static int smooth_vertex_exec(bContext *C, wmOperator *op)
 	for (i=0; i<repeat; i++) {
 		smooth_vertex(C, op);
 	}
+
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_vertices_smooth(wmOperatorType *ot)

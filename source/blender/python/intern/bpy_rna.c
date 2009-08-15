@@ -2612,7 +2612,7 @@ PyObject *BPY_rna_props( void )
 
 static StructRNA *pyrna_struct_as_srna(PyObject *self)
 {
-	PyObject *py_srna= (BPy_StructRNA *)PyObject_GetAttrString(self, "__rna__");
+	PyObject *py_srna= (PyObject*)PyObject_GetAttrString(self, "__rna__");
 
 	if(py_srna==NULL) {
 	 	PyErr_SetString(PyExc_SystemError, "internal error, self had no __rna__ attribute, should never happen.");

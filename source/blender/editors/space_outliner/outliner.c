@@ -1016,7 +1016,6 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		PointerRNA pptr, propptr, *ptr= (PointerRNA*)idv;
 		PropertyRNA *prop, *iterprop;
 		PropertyType proptype;
-		PropertySubType propsubtype;
 		int a, tot;
 
 		/* we do lazy build, for speed and to avoid infinite recusion */

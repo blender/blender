@@ -67,7 +67,7 @@ static int Buffer_ass_slice( PyObject * self, int begin, int end,
 			     PyObject * seq );
 
 static PySequenceMethods Buffer_SeqMethods = {
-	( inquiry ) Buffer_len,	/*sq_length */
+	( lenfunc ) Buffer_len,	/*sq_length */
 	( binaryfunc ) 0,	/*sq_concat */
 	( ssizeargfunc ) 0,	/*sq_repeat */
 	( ssizeargfunc ) Buffer_item,	/*sq_item */

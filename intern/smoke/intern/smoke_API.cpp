@@ -93,15 +93,16 @@ extern "C" void smoke_initBlenderRNA(FLUID_3D *fluid, float *alpha, float *beta)
 extern "C" void smoke_dissolve(FLUID_3D *fluid, int speed, int log)
 {
 	float *density = fluid->_density;
-	float *densityOld = fluid->_densityOld;
+	//float *densityOld = fluid->_densityOld;
 	float *heat = fluid->_heat;
 
 	if(log)
 	{
 		/* max density/speed = dydx */
 		float dydx = 1.0 / (float)speed;
+		size_t size= fluid->_xRes * fluid->_yRes * fluid->_zRes;
 
-		for(size_t i = 0; i < fluid->_xRes * fluid->_yRes * fluid->_zRes; i++)
+		for(size_t i = 0; i < size; i++)
 		{
 			density[i] *= (1.0 - dydx);
 
@@ -118,8 +119,9 @@ extern "C" void smoke_dissolve(FLUID_3D *fluid, int speed, int log)
 	{
 		/* max density/speed = dydx */
 		float dydx = 1.0 / (float)speed;
+		size_t size= fluid->_xRes * fluid->_yRes * fluid->_zRes;
 
-		for(size_t i = 0; i < fluid->_xRes * fluid->_yRes * fluid->_zRes; i++)
+		for(size_t i = 0; i < size; i++)
 		{
 			density[i] -= dydx;
 
@@ -144,8 +146,9 @@ extern "C" void smoke_dissolve_wavelet(WTURBULENCE *wt, int speed, int log)
 	{
 		/* max density/speed = dydx */
 		float dydx = 1.0 / (float)speed;
+		size_t size= r[0] * r[1] * r[2];
 
-		for(size_t i = 0; i < r[0] * r[1] * r[2]; i++)
+		for(size_t i = 0; i < size; i++)
 		{
 			density[i] *= (1.0 - dydx);
 
@@ -157,8 +160,9 @@ extern "C" void smoke_dissolve_wavelet(WTURBULENCE *wt, int speed, int log)
 	{
 		/* max density/speed = dydx */
 		float dydx = 1.0 / (float)speed;
+		size_t size= r[0] * r[1] * r[2];
 
-		for(size_t i = 0; i < r[0] * r[1] * r[2]; i++)
+		for(size_t i = 0; i < size; i++)
 		{
 			density[i] -= dydx;
 

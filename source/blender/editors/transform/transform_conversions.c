@@ -4957,9 +4957,9 @@ static void createTransObject(bContext *C, TransInfo *t)
 	set_trans_object_base_flags(C, t);
 
 	/* count */
+#if 0 // TRANSFORM_FIX_ME
 	CTX_DATA_BEGIN(C, Object*, ob, selected_objects)
 	{
-#if 0 // TRANSFORM_FIX_ME
 		/* store ipo keys? */
 		if ((ob->id.lib == 0) && (ob->ipo) && (ob->ipo->showkey) && (ob->ipoflag & OB_DRAWKEY)) {
 			elems.first= elems.last= NULL;
@@ -4973,12 +4973,14 @@ static void createTransObject(bContext *C, TransInfo *t)
 			if(elems.first==NULL)
 				t->total++;
 		}
-#endif
 //		else {
 			t->total++;
 //		}
 	}
 	CTX_DATA_END;
+#else
+	t->total= CTX_DATA_COUNT(C, selected_objects);
+#endif
 
 	if(!t->total) {
 		/* clear here, main transform function escapes too */

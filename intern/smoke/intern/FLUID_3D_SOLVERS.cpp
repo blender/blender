@@ -26,7 +26,8 @@
 
 void FLUID_3D::solvePressurePre(float* field, float* b, unsigned char* skip)
 {
-	size_t x, y, z, index;
+	int x, y, z;
+	size_t index;
 
 	// i = 0
 	int i = 0;
@@ -197,7 +198,8 @@ void FLUID_3D::solvePressurePre(float* field, float* b, unsigned char* skip)
 //////////////////////////////////////////////////////////////////////
 void FLUID_3D::solvePressure(float* field, float* b, unsigned char* skip)
 {
-	size_t x, y, z, index;
+	int x, y, z;
+	size_t index;
 
 	// i = 0
 	int i = 0;
@@ -348,7 +350,8 @@ void FLUID_3D::solvePressure(float* field, float* b, unsigned char* skip)
 //////////////////////////////////////////////////////////////////////
 void FLUID_3D::solveHeat(float* field, float* b, unsigned char* skip)
 {
-	size_t x, y, z, index;
+	int x, y, z;
+	size_t index;
 	const float heatConst = _dt * _heatDiffusion / (_dx * _dx);
 
 	// i = 0
