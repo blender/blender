@@ -2265,7 +2265,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 	PyObject *item;
 	
 	Py_INCREF(newclass);
-	
+
 	if (RNA_struct_py_type_get(srna))
 		PyObSpit("RNA WAS SET - ", RNA_struct_py_type_get(srna));
 	
@@ -2354,14 +2354,17 @@ PyObject* pyrna_srna_Subtype(StructRNA *srna)
 		
 		/* always use O not N when calling, N causes refcount errors */
 		newclass = PyObject_CallFunction(	(PyObject*)&PyType_Type, "s(O){ssss}", idname, py_base, "__module__","bpy.types", "__doc__",descr);
+		/* newclass will now have 2 ref's, ???, probably 1 is internal since decrefing here segfaults */
+
+		/* PyObSpit("new class ref", newclass); */
 
 		if (newclass) {
 
-			/* incref's the new class (has 2 now)
-			 * srna owns one, and the other is owned by the caller */
+			/* srna owns one, and the other is owned by the caller */
 			pyrna_subtype_set_rna(newclass, srna);
 
-			// PyObSpit("NewStructRNA Type: ", (PyObject *)newclass);
+			Py_DECREF(newclass); /* let srna own */
+
 
 			/* attach functions into the class
 			 * so you can do... bpy.types.Scene.SomeFunction()
@@ -2452,8 +2455,11 @@ PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop )
 	return ( PyObject * ) pyrna;
 }
 
+/* bpy.data from python */
+static PointerRNA *rna_module_ptr= NULL;
 PyObject *BPY_rna_module( void )
 {
+	BPy_StructRNA *pyrna;
 	PointerRNA ptr;
 	
 #ifdef USE_MATHUTILS // register mathutils callbacks, ok to run more then once.
@@ -2473,8 +2479,15 @@ PyObject *BPY_rna_module( void )
 
 	/* for now, return the base RNA type rather then a real module */
 	RNA_main_pointer_create(G.main, &ptr);
+	pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
 	
-	return pyrna_struct_CreatePyObject(&ptr);
+	rna_module_ptr= &pyrna->ptr;
+	return (PyObject *)pyrna;
+}
+
+void BPY_update_rna_module(void)
+{
+	RNA_main_pointer_create(G.main, rna_module_ptr);
 }
 
 #if 0
@@ -3026,6 +3039,27 @@ static void bpy_class_free(void *pyob_ptr)
 	PyGILState_Release(gilstate);
 }
 
+void pyrna_alloc_types(void)
+{
+	PyGILState_STATE gilstate;
+	gilstate = PyGILState_Ensure();
+
+	PointerRNA ptr;
+	PropertyRNA *prop;
+
+	/* avoid doing this lookup for every getattr */
+	RNA_blender_rna_pointer_create(&ptr);
+	prop = RNA_struct_find_property(&ptr, "structs");
+
+	RNA_PROP_BEGIN(&ptr, itemptr, prop) {
+		Py_DECREF(pyrna_struct_Subtype(&itemptr));
+	}
+	RNA_PROP_END;
+
+	PyGILState_Release(gilstate);
+}
+
+
 void pyrna_free_types(void)
 {
 	PointerRNA ptr;
@@ -3056,6 +3090,7 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
 	ReportList reports;
 	StructRegisterFunc reg;
 	StructRNA *srna;
+	StructRNA *srna_new;
 
 	srna= pyrna_struct_as_srna(py_class);
 	if(srna==NULL)
@@ -3074,9 +3109,9 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
 
 	/* call the register callback */
 	BKE_reports_init(&reports, RPT_STORE);
-	srna= reg(C, &reports, py_class, bpy_class_validate, bpy_class_call, bpy_class_free);
+	srna_new= reg(C, &reports, py_class, bpy_class_validate, bpy_class_call, bpy_class_free);
 
-	if(!srna) {
+	if(!srna_new) {
 		BPy_reports_to_error(&reports);
 		BKE_reports_clear(&reports);
 		return NULL;
@@ -3084,7 +3119,13 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
 
 	BKE_reports_clear(&reports);
 
-	pyrna_subtype_set_rna(py_class, srna); /* takes a ref to py_class */
+	pyrna_subtype_set_rna(py_class, srna_new); /* takes a ref to py_class */
+
+	/* old srna still references us, keep the check incase registering somehow can free it  */
+	if(RNA_struct_py_type_get(srna)) {
+		RNA_struct_py_type_set(srna, NULL);
+		// Py_DECREF(py_class); // shuld be able to do this XXX since the old rna adds a new ref.
+	}
 
 	Py_RETURN_NONE;
 }
@@ -3112,10 +3153,7 @@ PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *py_class)
 	
 
 	/* call unregister */
-	unreg(C, srna);
-
-	/* remove reference to old type */
-	Py_DECREF(py_class);
+	unreg(C, srna); /* calls bpy_class_free, this decref's py_class */
 
 	Py_RETURN_NONE;
 }
