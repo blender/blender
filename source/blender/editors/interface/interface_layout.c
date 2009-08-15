@@ -766,6 +766,8 @@ static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PropertyRNA
 			w += UI_UNIT_X;
 		else if(type == PROP_ENUM)
 			w += UI_UNIT_X/2;
+		else if(type == PROP_FLOAT || type == PROP_INT)
+			w += UI_UNIT_X*2;
 	}
 
 	*r_w= w;
