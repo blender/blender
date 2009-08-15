@@ -16,6 +16,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		md = context.cloth
 		ob = context.object
 
@@ -41,27 +42,29 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
 			split = layout.split()
 			
 			col = split.column()
-			col.itemR(cloth, "quality", slider=True)
+			col.itemL(text="Quality:")
+			col.itemR(cloth, "quality", text="Steps",slider=True)
 			col.itemL(text="Gravity:")
 			col.itemR(cloth, "gravity", text="")
 
 			col.itemR(cloth, "pin_cloth", text="Pin")
-			colsub = col.column(align=True)
-			colsub.active = cloth.pin_cloth
-			colsub.itemR(cloth, "pin_stiffness", text="Stiffness")
-			colsub.item_pointerR(cloth, "mass_vertex_group", ob, "vertex_groups", text="")
+			sub = col.column(align=True)
+			sub.active = cloth.pin_cloth
+			sub.itemR(cloth, "pin_stiffness", text="Stiffness")
+			sub.item_pointerR(cloth, "mass_vertex_group", ob, "vertex_groups", text="")
 			
 			col = split.column()
 			col.itemL(text="Presets...")
+			col.itemL(text="TODO!")
 			col.itemL(text="Material:")
-			colsub = col.column(align=True)
-			colsub.itemR(cloth, "mass")
-			colsub.itemR(cloth, "structural_stiffness", text="Structural")
-			colsub.itemR(cloth, "bending_stiffness", text="Bending")
+			sub = col.column(align=True)
+			sub.itemR(cloth, "mass")
+			sub.itemR(cloth, "structural_stiffness", text="Structural")
+			sub.itemR(cloth, "bending_stiffness", text="Bending")
 			col.itemL(text="Damping:")
-			colsub = col.column(align=True)
-			colsub.itemR(cloth, "spring_damping", text="Spring")
-			colsub.itemR(cloth, "air_damping", text="Air")
+			sub = col.column(align=True)
+			sub.itemR(cloth, "spring_damping", text="Spring")
+			sub.itemR(cloth, "air_damping", text="Air")
 			
 			# Disabled for now
 			"""
@@ -150,14 +153,14 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
 		
 		layout.active = cloth.enable_collision
 		
-		col = split.column(align=True)
+		col = split.column()
 		col.itemR(cloth, "collision_quality", slider=True, text="Quality")
 		col.itemR(cloth, "min_distance", slider=True, text="Distance")
 		col.itemR(cloth, "friction")
 		
-		col = split.column(align=True)
+		col = split.column()
 		col.itemR(cloth, "enable_self_collision", text="Self Collision")
-		col = col.column(align=True)
+		col = col.column()
 		col.active = cloth.enable_self_collision
 		col.itemR(cloth, "self_collision_quality", slider=True, text="Quality")
 		col.itemR(cloth, "self_min_distance", slider=True, text="Distance")
@@ -186,15 +189,15 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
 		
 		col = split.column()
 		col.itemL(text="Structural Stiffness:")
-		colsub = col.column(align=True)
-		colsub.itemR(cloth, "structural_stiffness_max", text="Max")
-		colsub.item_pointerR(cloth, "structural_stiffness_vertex_group", ob, "vertex_groups", text="")
+		sub = col.column(align=True)
+		sub.itemR(cloth, "structural_stiffness_max", text="Max")
+		sub.item_pointerR(cloth, "structural_stiffness_vertex_group", ob, "vertex_groups", text="")
 		
 		col = split.column()
 		col.itemL(text="Bending Stiffness:")
-		colsub = col.column(align=True)
-		colsub.itemR(cloth, "bending_stiffness_max", text="Max")
-		colsub.item_pointerR(cloth, "bending_vertex_group", ob, "vertex_groups", text="")
+		sub = col.column(align=True)
+		sub.itemR(cloth, "bending_stiffness_max", text="Max")
+		sub.item_pointerR(cloth, "bending_vertex_group", ob, "vertex_groups", text="")
 		
 bpy.types.register(PHYSICS_PT_cloth)
 bpy.types.register(PHYSICS_PT_cloth_cache)
