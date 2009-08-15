@@ -1834,42 +1834,6 @@ static uiBlock *view3d_edit_object_copyattrmenu(bContext *C, ARegion *ar, void *
 }
 #endif
 
-static void view3d_edit_object_parentmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, "Make Parent...", 0, "OBJECT_OT_parent_set");
-	uiItemO(layout, "Clear Parent...", 0, "OBJECT_OT_parent_clear");
-}
-
-static void view3d_edit_object_groupmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "GROUP_OT_group_create");
-	uiItemO(layout, NULL, 0, "GROUP_OT_objects_remove");
-
-	uiItemS(layout);
-
-	uiItemO(layout, NULL, 0, "GROUP_OT_objects_add_active");
-	uiItemO(layout, NULL, 0, "GROUP_OT_objects_remove_active");
-}
-
-static void view3d_edit_object_trackmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, "Make Track...", 0, "OBJECT_OT_track_set");
-	uiItemO(layout, "Clear Track...", 0, "OBJECT_OT_track_clear");
-}
-
-static void view3d_edit_object_constraintsmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "OBJECT_OT_constraint_add_with_targets");
-	uiItemO(layout, NULL, 0, "OBJECT_OT_constraints_clear");
-}
-
-static void view3d_edit_object_showhidemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, "Show Hidden", 0, "OBJECT_OT_restrictview_clear");
-	uiItemO(layout, "Hide Selected", 0, "OBJECT_OT_restrictview_set");
-	uiItemBooleanO(layout, "Hide Unselected", 0, "OBJECT_OT_restrictview_set", "unselected", 1);
-}
-
 #if 0
 #ifndef DISABLE_PYTHON
 static void do_view3d_edit_object_scriptsmenu(bContext *C, void *arg, int event)
@@ -1942,74 +1906,6 @@ static void do_view3d_edit_objectmenu(bContext *C, void *arg, int event)
 	}
 }
 #endif
-
-static void view3d_edit_objectmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-#if 0
-	Object *ob= CTX_data_active_object(C);
-
-	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
-	uiDefIconTextBlockBut(block, view3d_object_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");
-#endif
-
-	uiItemMenuF(layout, "Clear/Apply", 0, view3d_edit_object_transformmenu);
-	uiItemMenuF(layout, "Snap", 0, view3d_edit_snapmenu);
-
-	uiItemS(layout);
-
-	// TODO: these operators may get renamed
-	uiItemO(layout, NULL, 0, "ANIM_OT_insert_keyframe_menu");
-	uiItemO(layout, NULL, 0, "ANIM_OT_delete_keyframe_v3d");
-	
-	uiItemS(layout);
-	
-	uiItemO(layout, NULL, 0, "OBJECT_OT_duplicate");
-	uiItemBooleanO(layout, "Duplicate Linked", 0, "OBJECT_OT_duplicate", "linked", 1);
-	uiItemO(layout, NULL, 0, "OBJECT_OT_delete");
-	
-	uiItemO(layout, NULL, 0, "OBJECT_OT_proxy_make");
-#if 0
-	uiDefIconTextBlockBut(block, view3d_edit_object_makelinksmenu, NULL, ICON_RIGHTARROW_THIN, "Make Links", 0, yco-=20, 120, 19, "");
-	uiDefIconTextBlockBut(block, view3d_edit_object_singleusermenu, NULL, ICON_RIGHTARROW_THIN, "Make Single User", 0, yco-=20, 120, 19, "");
-	uiDefIconTextBlockBut(block, view3d_edit_object_makelocalmenu, NULL, ICON_RIGHTARROW_THIN, "Make Local", 0, yco-=20, 120, 19, "");
-	uiDefIconTextBlockBut(block, view3d_edit_object_copyattrmenu, NULL, ICON_RIGHTARROW_THIN, "Copy Attributes", 0, yco-=20, 120, 19, "");
-#endif
-	
-	uiItemS(layout);
-	
-	uiItemMenuF(layout, "Parent", 0, view3d_edit_object_parentmenu);
-	uiItemMenuF(layout, "Track", 0, view3d_edit_object_trackmenu);
-	uiItemMenuF(layout, "Group", 0, view3d_edit_object_groupmenu);
-	uiItemMenuF(layout, "Constraints", 0, view3d_edit_object_constraintsmenu);
-
-#if 0
-	if(ob && ob->type == OB_MESH) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Boolean Operation...|W",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
-	}
-	
-	// join... (added already)
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Convert Object Type...|Alt C",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
-#endif
-	uiItemS(layout);
-	
-	uiItemO(layout, NULL, 0, "OBJECT_OT_join");
-
-	uiItemS(layout);
-	
-#if 0
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move to Layer...|M",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
-#endif
-
-	uiItemMenuF(layout, "Show/Hide", 0, view3d_edit_object_showhidemenu);
-	
-#if 0
-#ifndef DISABLE_PYTHON
-	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBlockBut(block, view3d_edit_object_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Scripts", 0, yco-=20, 120, 19, "");
-#endif
-#endif
-}
 
 static void view3d_edit_mesh_verticesmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
@@ -3736,11 +3632,6 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 		if (ob && (ob->flag & OB_POSEMODE)) {
 			xmax= GetButStringLength("Pose");
 			uiDefMenuBut(block, view3d_pose_armaturemenu, NULL, "Pose",	xco,yco, xmax-3, 20, "");
-			xco+= xmax;
-		}
-		else {
-			xmax= GetButStringLength("Object");
-			uiDefMenuBut(block, view3d_edit_objectmenu, NULL, "Object",	xco,yco, xmax-3, 20, "");
 			xco+= xmax;
 		}
 	}

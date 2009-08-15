@@ -23,7 +23,10 @@ class VIEW3D_HT_header(bpy.types.Header):
 			# Select Menu
 			selectmenu = "VIEW3D_MT_select_%s" % mode_string
 			if selectmenu in dir(bpy.types):
-				layout.itemM(selectmenu)
+				row.itemM(selectmenu)
+			
+			if mode_string == 'objectmode':
+				row.itemM("VIEW3D_MT_object")
 
 		layout.template_header_3D()
 
@@ -334,6 +337,130 @@ class VIEW3D_MT_select_facesel(bpy.types.Menu):
 
 		layout.view3d_select_faceselmenu()
 
+# ********** Object menu **********
+
+class VIEW3D_MT_object(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__context__ = "objectmode"
+	__label__ = "Object"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemM("VIEW3D_MT_object_clear")
+		layout.itemM("VIEW3D_MT_object_snap")
+		
+		layout.itemS()
+		
+		layout.itemO("anim.insert_keyframe_menu")
+		layout.itemO("anim.delete_keyframe_v3d")
+		
+		layout.itemS()
+		
+		layout.itemO("object.duplicate")
+		layout.item_booleanO("object.duplicate", "linked", True, text="Duplicate Linked")
+		layout.itemO("object.delete")
+		layout.itemO("object.proxy_make")
+		
+		layout.itemS()
+		
+		layout.itemM("VIEW3D_MT_object_parent")
+		layout.itemM("VIEW3D_MT_object_track")
+		layout.itemM("VIEW3D_MT_object_group")
+		layout.itemM("VIEW3D_MT_object_constraints")
+		
+		layout.itemS()
+		
+		layout.itemO("object.join")
+		
+		layout.itemS()
+		
+		layout.itemM("VIEW3D_MT_object_show")
+		
+class VIEW3D_MT_object_clear(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Clear"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		layout.itemO("object.location_clear")
+		layout.itemO("object.rotation_clear")
+		layout.itemO("object.scale_clear")
+		layout.itemO("object.origin_clear")
+		
+class VIEW3D_MT_object_snap(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Snap"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		layout.itemO("view3d.snap_selected_to_grid")
+		layout.itemO("view3d.snap_selected_to_cursor")
+		layout.itemO("view3d.snap_selected_to_center")
+		
+		layout.itemS()
+		
+		layout.itemO("view3d.snap_cursor_to_selected")
+		layout.itemO("view3d.snap_cursor_to_grid")
+		layout.itemO("view3d.snap_cursor_to_active")
+		
+class VIEW3D_MT_object_parent(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Parent"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		layout.itemO("object.parent_set")
+		layout.itemO("object.parent_clear")
+		
+class VIEW3D_MT_object_track(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Track"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		layout.itemO("object.track_set")
+		layout.itemO("object.track_clear")
+		
+class VIEW3D_MT_object_group(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Group"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		layout.itemO("group.group_create")
+		layout.itemO("group.objects_remove")
+		
+		layout.itemS()
+		
+		layout.itemO("group.objects_add_active")
+		layout.itemO("group.objects_remove_active")
+		
+class VIEW3D_MT_object_constraints(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Constraints"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		layout.itemO("object.constraint_add_with_targets")
+		layout.itemO("object.constraints_clear")
+		
+class VIEW3D_MT_object_show(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Show/Hide"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		layout.itemO("object.restrictview_clear")
+		layout.itemO("object.restrictview_set")
+		layout.item_booleanO("object.restrictview_set", "unselected", True, text="Hide Unselected")
 
 # ********** Panel **********
 
@@ -453,6 +580,15 @@ bpy.types.register(VIEW3D_MT_select_mball_edit)
 bpy.types.register(VIEW3D_MT_select_lattice_edit)
 bpy.types.register(VIEW3D_MT_select_armature_edit)
 bpy.types.register(VIEW3D_MT_select_facesel)
+
+bpy.types.register(VIEW3D_MT_object) # Object Menu
+bpy.types.register(VIEW3D_MT_object_clear)
+bpy.types.register(VIEW3D_MT_object_snap)
+bpy.types.register(VIEW3D_MT_object_parent)
+bpy.types.register(VIEW3D_MT_object_track)
+bpy.types.register(VIEW3D_MT_object_group)
+bpy.types.register(VIEW3D_MT_object_constraints)
+bpy.types.register(VIEW3D_MT_object_show)
 
 bpy.types.register(VIEW3D_PT_3dview_properties) # Panels
 bpy.types.register(VIEW3D_PT_3dview_display)
