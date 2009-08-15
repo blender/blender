@@ -34,6 +34,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_object_types.h"
 
 #include "RNA_access.h"
 
@@ -43,6 +44,7 @@
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
+#include "BKE_global.h"
 
 #include <string.h>
 
@@ -657,6 +659,42 @@ Scene *CTX_data_scene(const bContext *C)
 		return scene;
 	else
 		return C->data.scene;
+}
+
+char *CTX_data_mode_string(const bContext *C)
+{
+	Object *obedit= CTX_data_edit_object(C);
+
+	if(obedit) {
+		switch(obedit->type) {
+			case OB_MESH:
+				return "meshedit";
+			case OB_CURVE:
+				return "curveedit";
+			case OB_SURF:
+				return "surfaceedit";
+			case OB_FONT:
+				return "textedit";
+			case OB_ARMATURE:
+				return "armatureedit";
+			case OB_MBALL:
+				return "mballedit";
+			case OB_LATTICE:
+				return "latticeedit";
+		}
+	}
+	else {
+		Object *ob = CTX_data_active_object(C);
+		
+		if(ob && (ob->flag & OB_POSEMODE)) return "posemode";
+		else if (ob && ob->mode & OB_MODE_SCULPT)  return "sculpt_mode";
+		else if (G.f & G_WEIGHTPAINT) return "weightpaint";
+		else if (G.f & G_VERTEXPAINT) return "vertexpaint";
+		else if (G.f & G_TEXTUREPAINT) return "texturepaint";
+		else if(G.f & G_PARTICLEEDIT) return "particlemode";
+	}
+	
+	return "objectmode";
 }
 
 void CTX_data_scene_set(bContext *C, Scene *scene)

@@ -595,7 +595,7 @@ static void view3d_tools_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void view3d_tools_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, view3d_context_string(C), -1);
+	ED_region_panels(C, ar, 1, CTX_data_mode_string(C), -1);
 }
 
 static int view3d_context(const bContext *C, const char *member, bContextDataResult *result)

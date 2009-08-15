@@ -95,6 +95,256 @@ class VIEW3D_MT_view(bpy.types.Menu):
 		layout.itemO("screen.region_foursplit", text="Toggle Quad View")
 		layout.itemO("screen.screen_full_area", text="Toggle Full Screen")
 
+# ********** Select menus ****************
+
+class VIEW3D_MT_select_objectmode(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Select"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemO("view3d.select_border")
+
+		layout.itemS()
+
+		layout.itemO("object.select_all_toggle", text="Select/Deselect All")
+		layout.itemO("object.select_inverse", text="Inverse")
+		layout.itemO("object.select_random", text="Random")
+		layout.itemO("object.select_by_layer", text="Select All by Layer")
+		layout.item_enumO("object.select_by_type", "type", "", text="Select All by Type")
+		layout.item_enumO("object.select_grouped", "type", "", text="Select Grouped")
+
+class VIEW3D_MT_select_posemode(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Select"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemO("view3d.select_border")
+
+		layout.itemS()
+		
+		layout.itemO("pose.select_all_toggle", text="Select/Deselect All")
+		layout.itemO("pose.select_inverse", text="Inverse")
+		layout.itemO("pose.select_constraint_target", text="Constraint Target")
+		
+		layout.itemS()
+		
+		layout.item_enumO("pose.select_hierarchy", "direction", "PARENT")
+		layout.item_enumO("pose.select_hierarchy", "direction", "CHILD")
+		
+		layout.itemS()
+		
+		layout.view3d_select_posemenu()
+
+class VIEW3D_MT_select_particlemode(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Select"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemO("view3d.select_border")
+
+		layout.itemS()
+		
+		layout.itemO("particle.select_all_toggle", text="Select/Deselect All")
+		layout.itemO("particle.select_linked")
+		
+		layout.itemS()
+		
+		#layout.itemO("particle.select_last")
+		#layout.itemO("particle.select_first")
+		
+		layout.itemO("particle.select_more")
+		layout.itemO("particle.select_less")
+
+class VIEW3D_MT_select_meshedit(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Select"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemO("view3d.select_border")
+
+		layout.itemS()
+
+		layout.itemO("mesh.select_all_toggle", text="Select/Deselect All")
+		layout.itemO("mesh.select_inverse", text="Inverse")
+
+		layout.itemS()
+
+		layout.itemO("mesh.select_random", text="Random...")
+		layout.itemO("mesh.edges_select_sharp", text="Sharp Edges")
+		layout.itemO("mesh.faces_select_linked_flat", text="Linked Flat Faces")
+
+		layout.itemS()
+
+		layout.item_enumO("mesh.select_by_number_vertices", "type", "TRIANGLES", text="Triangles")
+		layout.item_enumO("mesh.select_by_number_vertices", "type", "QUADS", text="Quads")
+		layout.item_enumO("mesh.select_by_number_vertices", "type", "OTHER", text="Loose Verts/Edges")
+		layout.itemO("mesh.select_similar", text="Similar...")
+
+		layout.itemS()
+
+		layout.itemO("mesh.select_less", text="Less")
+		layout.itemO("mesh.select_more", text="More")
+
+		layout.itemS()
+
+		layout.itemO("mesh.select_linked", text="Linked")
+		layout.itemO("mesh.select_vertex_path", text="Vertex Path")
+		layout.itemO("mesh.loop_multi_select", text="Edge Loop")
+		layout.item_booleanO("mesh.loop_multi_select", "ring", True, text="Edge Ring")
+
+		layout.itemS()
+
+		layout.itemO("mesh.loop_to_region")
+		layout.itemO("mesh.region_to_loop")
+
+class VIEW3D_MT_select_curveedit(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Select"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemO("view3d.select_border")
+		layout.itemO("view3d.select_circle")
+
+		layout.itemS()
+		
+		layout.itemO("curve.select_all_toggle", text="Select/Deselect All")
+		layout.itemO("curve.select_inverse")
+		layout.itemO("curve.select_random")
+		layout.itemO("curve.select_every_nth")
+
+		layout.itemS()
+		
+		layout.itemO("curve.de_select_first")
+		layout.itemO("curve.de_select_last")
+		layout.itemO("curve.select_next")
+		layout.itemO("curve.select_previous")
+
+		layout.itemS()
+		
+		layout.itemO("curve.select_more")
+		layout.itemO("curve.select_less")
+
+class VIEW3D_MT_select_surfaceedit(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Select"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemO("view3d.select_border")
+		layout.itemO("view3d.select_circle")
+
+		layout.itemS()
+		
+		layout.itemO("curve.select_all_toggle", text="Select/Deselect All")
+		layout.itemO("curve.select_inverse")
+		layout.itemO("curve.select_random")
+		layout.itemO("curve.select_every_nth")
+
+		layout.itemS()
+		
+		layout.itemO("curve.select_row")
+
+		layout.itemS()
+		
+		layout.itemO("curve.select_more")
+		layout.itemO("curve.select_less")
+
+class VIEW3D_MT_select_mballedit(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Select"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemO("view3d.select_border")
+		
+		layout.itemS()
+		
+		layout.itemL(text="Select/Deselect All")
+		layout.itemL(text="Inverse")
+		
+		layout.itemS()
+		
+		layout.itemL(text="Random")
+
+class VIEW3D_MT_select_latticeedit(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Select"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemO("view3d.select_border")
+
+		layout.itemS()
+		
+		layout.itemO("lattice.select_all_toggle", text="Select/Deselect All")
+
+class VIEW3D_MT_select_armatureedit(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Select"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemO("view3d.select_border")
+
+		layout.itemS()
+		
+		layout.itemO("armature.select_all_toggle", text="Select/Deselect All")
+		layout.itemO("armature.select_inverse", text="Inverse")
+
+		layout.itemS()
+		
+		layout.item_enumO("armature.select_hierarchy", "direction", "PARENT")
+		layout.item_enumO("armature.select_hierarchy", "direction", "CHILD")
+		
+		layout.itemS()
+		
+		layout.view3d_select_armaturemenu()
+
+class VIEW3D_MT_select_facesel(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Select"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.view3d_select_faceselmenu()
+
+class VIEW3D_HT_header(bpy.types.Header):
+	__space_type__ = "VIEW_3D"
+
+	def draw(self, context):
+		view = context.space_data
+		mode_string = context.mode_string
+		layout = self.layout
+
+		layout.template_header()
+		
+		# menus
+		if context.area.show_menus:
+			row = layout.row()
+
+			row.itemM("VIEW3D_MT_view")
+			
+			selectmenu = "VIEW3D_MT_select_%s" % mode_string
+			if selectmenu in dir(bpy.types):
+				layout.itemM(selectmenu)
+
+		layout.template_header_3D()
+
 # ********** Panel ****************
 
 class VIEW3D_PT_3dview_properties(bpy.types.Panel):
@@ -200,6 +450,16 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
 
 bpy.types.register(VIEW3D_MT_view_navigation)
 bpy.types.register(VIEW3D_MT_view)
+bpy.types.register(VIEW3D_MT_select_objectmode)
+bpy.types.register(VIEW3D_MT_select_posemode)
+bpy.types.register(VIEW3D_MT_select_particlemode)
+bpy.types.register(VIEW3D_MT_select_meshedit)
+bpy.types.register(VIEW3D_MT_select_curveedit)
+bpy.types.register(VIEW3D_MT_select_surfaceedit)
+bpy.types.register(VIEW3D_MT_select_mballedit)
+bpy.types.register(VIEW3D_MT_select_latticeedit)
+bpy.types.register(VIEW3D_MT_select_armatureedit)
+bpy.types.register(VIEW3D_MT_select_facesel)
 bpy.types.register(VIEW3D_HT_header)
 bpy.types.register(VIEW3D_PT_3dview_properties)
 bpy.types.register(VIEW3D_PT_3dview_display)

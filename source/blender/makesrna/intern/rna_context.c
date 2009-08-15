@@ -110,6 +110,18 @@ static PointerRNA rna_Context_user_preferences_get(PointerRNA *ptr)
 	return newptr;
 }
 
+static void rna_Context_mode_string_get(PointerRNA *ptr, char *value)
+{
+	bContext *C= (bContext*)ptr->data;
+	strcpy(value, CTX_data_mode_string(C));
+}
+
+static int rna_Context_mode_string_length(PointerRNA *ptr)
+{
+	bContext *C= (bContext*)ptr->data;
+	return strlen(CTX_data_mode_string(C));
+}
+
 #else
 
 void RNA_def_context(BlenderRNA *brna)
@@ -177,6 +189,10 @@ void RNA_def_context(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "UserPreferences");
 	RNA_def_property_pointer_funcs(prop, "rna_Context_user_preferences_get", NULL, NULL);
+
+	prop= RNA_def_property(srna, "mode_string", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_string_funcs(prop, "rna_Context_mode_string_get", "rna_Context_mode_string_length", NULL);
 }
 
 #endif

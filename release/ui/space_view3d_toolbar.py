@@ -1,14 +1,15 @@
 
 import bpy
 
-# ********** default tools for objectmode ****************
 
 class View3DPanel(bpy.types.Panel):
 	__space_type__ = "VIEW_3D"
 	__region_type__ = "TOOLS"
-	__context__ = "objectmode"
+
+# ********** default tools for objectmode ****************
 
 class VIEW3D_PT_tools_objectmode(View3DPanel):
+	__context__ = "objectmode"
 	__label__ = "Object Tools"
 
 	def draw(self, context):
@@ -43,12 +44,8 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 
 # ********** default tools for editmode_mesh ****************
 
-class View3DPanel(bpy.types.Panel):
-	__space_type__ = "VIEW_3D"
-	__region_type__ = "TOOLS"
-	__context__ = "editmode_mesh"
-
-class VIEW3D_PT_tools_editmode_mesh(View3DPanel):
+class VIEW3D_PT_tools_meshedit(View3DPanel):
+	__context__ = "meshedit"
 	__label__ = "Mesh Tools"
 
 	def draw(self, context):
@@ -90,12 +87,8 @@ class VIEW3D_PT_tools_editmode_mesh(View3DPanel):
 
 # ********** default tools for editmode_curve ****************
 
-class View3DPanel(bpy.types.Panel):
-	__space_type__ = "VIEW_3D"
-	__region_type__ = "TOOLS"
-	__context__ = "editmode_curve"
-
-class VIEW3D_PT_tools_editmode_curve(View3DPanel):
+class VIEW3D_PT_tools_curveedit(View3DPanel):
+	__context__ = "curveedit"
 	__label__ = "Curve Tools"
 
 	def draw(self, context):
@@ -124,12 +117,8 @@ class VIEW3D_PT_tools_editmode_curve(View3DPanel):
 
 # ********** default tools for editmode_surface ****************
 
-class View3DPanel(bpy.types.Panel):
-	__space_type__ = "VIEW_3D"
-	__region_type__ = "TOOLS"
-	__context__ = "editmode_surface"
-
-class VIEW3D_PT_tools_editmode_surface(View3DPanel):
+class VIEW3D_PT_tools_surfaceedit(View3DPanel):
+	__context__ = "surfaceedit"
 	__label__ = "Surface Tools"
 
 	def draw(self, context):
@@ -158,12 +147,8 @@ class VIEW3D_PT_tools_editmode_surface(View3DPanel):
 
 # ********** default tools for editmode_text ****************
 
-class View3DPanel(bpy.types.Panel):
-	__space_type__ = "VIEW_3D"
-	__region_type__ = "TOOLS"
-	__context__ = "editmode_text"
-
-class VIEW3D_PT_tools_editmode_text(View3DPanel):
+class VIEW3D_PT_tools_textedit(View3DPanel):
+	__context__ = "textedit"
 	__label__ = "Text Tools"
 
 	def draw(self, context):
@@ -179,12 +164,8 @@ class VIEW3D_PT_tools_editmode_text(View3DPanel):
 
 # ********** default tools for editmode_armature ****************
 
-class View3DPanel(bpy.types.Panel):
-	__space_type__ = "VIEW_3D"
-	__region_type__ = "TOOLS"
-	__context__ = "editmode_armature"
-
-class VIEW3D_PT_tools_editmode_armature(View3DPanel):
+class VIEW3D_PT_tools_armatureedit(View3DPanel):
+	__context__ = "armatureedit"
 	__label__ = "Armature Tools"
 
 	def draw(self, context):
@@ -209,12 +190,8 @@ class VIEW3D_PT_tools_editmode_armature(View3DPanel):
 
 # ********** default tools for editmode_mball ****************
 
-class View3DPanel(bpy.types.Panel):
-	__space_type__ = "VIEW_3D"
-	__region_type__ = "TOOLS"
-	__context__ = "editmode_mball"
-
-class VIEW3D_PT_tools_editmode_mball(View3DPanel):
+class VIEW3D_PT_tools_mballedit(View3DPanel):
+	__context__ = "mballedit"
 	__label__ = "Meta Tools"
 
 	def draw(self, context):
@@ -229,12 +206,8 @@ class VIEW3D_PT_tools_editmode_mball(View3DPanel):
 
 # ********** default tools for editmode_lattice ****************
 
-class View3DPanel(bpy.types.Panel):
-	__space_type__ = "VIEW_3D"
-	__region_type__ = "TOOLS"
-	__context__ = "editmode_lattice"
-
-class VIEW3D_PT_tools_editmode_lattice(View3DPanel):
+class VIEW3D_PT_tools_latticeedit(View3DPanel):
+	__context__ = "latticeedit"
 	__label__ = "Lattice Tools"
 
 	def draw(self, context):
@@ -249,12 +222,8 @@ class VIEW3D_PT_tools_editmode_lattice(View3DPanel):
 
 # ********** default tools for posemode ****************
 
-class View3DPanel(bpy.types.Panel):
-	__space_type__ = "VIEW_3D"
-	__region_type__ = "TOOLS"
-	__context__ = "pose_mode"
-
 class VIEW3D_PT_tools_posemode(View3DPanel):
+	__context__ = "posemode"
 	__label__ = "Pose Tools"
 
 	def draw(self, context):
@@ -492,12 +461,8 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
 
 # ********** default tools for weightpaint ****************
 
-class View3DPanel(bpy.types.Panel):
-	__space_type__ = "VIEW_3D"
-	__region_type__ = "TOOLS"
-	__context__ = "weight_paint"
-
-class VIEW3D_PT_weight_paint_options(View3DPanel):
+class VIEW3D_PT_tools_weightpaint(View3DPanel):
+	__context__ = "weightpaint"
 	__label__ = "Options"
 
 	def draw(self, context):
@@ -523,12 +488,8 @@ class VIEW3D_PT_weight_paint_options(View3DPanel):
 
 # ********** default tools for vertexpaint ****************
 
-class View3DPanel(bpy.types.Panel):
-	__space_type__ = "VIEW_3D"
-	__region_type__ = "TOOLS"
-
-class VIEW3D_PT_vertex_paint_options(View3DPanel):
-	__context__ = "vertex_paint"
+class VIEW3D_PT_tools_vertexpaint(View3DPanel):
+	__context__ = "vertexpaint"
 	__label__ = "Options"
 
 	def draw(self, context):
@@ -551,12 +512,8 @@ class VIEW3D_PT_vertex_paint_options(View3DPanel):
 
 # ********** default tools for texturepaint ****************
 
-class View3DPanel(bpy.types.Panel):
-	__space_type__ = "VIEW_3D"
-	__region_type__ = "TOOLS"
-	__context__ = "texture_paint"
-
-class VIEW3D_PT_tools_texture_paint(View3DPanel):
+class VIEW3D_PT_tools_texturepaint(View3DPanel):
+	__context__ = "texturepaint"
 	__label__ = "Options"
 
 	def draw(self, context):
@@ -584,12 +541,8 @@ class VIEW3D_PT_tools_texture_paint(View3DPanel):
 		
 # ********** default tools for particle mode ****************
 
-class View3DPanel(bpy.types.Panel):
-	__space_type__ = "VIEW_3D"
-	__region_type__ = "TOOLS"
-	__context__ = "particle_mode"
-
-class VIEW3D_PT_tools_particle_edit(View3DPanel):
+class VIEW3D_PT_tools_particlemode(View3DPanel):
+	__context__ = "particlemode"
 	__label__ = "Options"
 
 	def draw(self, context):
@@ -613,18 +566,18 @@ class VIEW3D_PT_tools_particle_edit(View3DPanel):
 		col.itemR(pe, "show_children", text="Children")
 
 bpy.types.register(VIEW3D_PT_tools_objectmode)
-bpy.types.register(VIEW3D_PT_tools_editmode_mesh)
-bpy.types.register(VIEW3D_PT_tools_editmode_curve)
-bpy.types.register(VIEW3D_PT_tools_editmode_surface)
-bpy.types.register(VIEW3D_PT_tools_editmode_text)
-bpy.types.register(VIEW3D_PT_tools_editmode_armature)
-bpy.types.register(VIEW3D_PT_tools_editmode_mball)
-bpy.types.register(VIEW3D_PT_tools_editmode_lattice)
+bpy.types.register(VIEW3D_PT_tools_meshedit)
+bpy.types.register(VIEW3D_PT_tools_curveedit)
+bpy.types.register(VIEW3D_PT_tools_surfaceedit)
+bpy.types.register(VIEW3D_PT_tools_textedit)
+bpy.types.register(VIEW3D_PT_tools_armatureedit)
+bpy.types.register(VIEW3D_PT_tools_mballedit)
+bpy.types.register(VIEW3D_PT_tools_latticeedit)
 bpy.types.register(VIEW3D_PT_tools_posemode)
 bpy.types.register(VIEW3D_PT_tools_brush)
 bpy.types.register(VIEW3D_PT_tools_brush_curve)
 bpy.types.register(VIEW3D_PT_sculpt_options)
-bpy.types.register(VIEW3D_PT_vertex_paint_options)
-bpy.types.register(VIEW3D_PT_weight_paint_options)
-bpy.types.register(VIEW3D_PT_tools_texture_paint)
-bpy.types.register(VIEW3D_PT_tools_particle_edit)
+bpy.types.register(VIEW3D_PT_tools_vertexpaint)
+bpy.types.register(VIEW3D_PT_tools_weightpaint)
+bpy.types.register(VIEW3D_PT_tools_texturepaint)
+bpy.types.register(VIEW3D_PT_tools_particlemode)

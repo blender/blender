@@ -164,42 +164,6 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 
 /* ******************* */
 
-char *view3d_context_string(const bContext *C)
-{
-	Object *obedit= CTX_data_edit_object(C);
-
-	if(obedit) {
-		switch(obedit->type) {
-			case OB_MESH:
-				return "editmode_mesh";
-			case OB_CURVE:
-				return "editmode_curve";
-			case OB_SURF:
-				return "editmode_surface";
-			case OB_FONT:
-				return "editmode_text";
-			case OB_ARMATURE:
-				return "editmode_armature";
-			case OB_MBALL:
-				return "editmode_mball";
-			case OB_LATTICE:
-				return "editmode_lattice";
-		}
-	}
-	else {
-		Object *ob = CTX_data_active_object(C);
-		
-		if(ob && (ob->flag & OB_POSEMODE)) return "pose_mode";
-		else if (ob && ob->mode & OB_MODE_SCULPT)  return "sculpt_mode";
-		else if (G.f & G_WEIGHTPAINT) return "weight_paint";
-		else if (G.f & G_VERTEXPAINT) return "vertex_paint";
-		else if (G.f & G_TEXTUREPAINT) return "texture_paint";
-		else if(G.f & G_PARTICLEEDIT) return "particle_mode";
-	}
-	
-	return "objectmode";
-}
-
 typedef struct CustomTool {
 	struct CustomTool *next, *prev;
 	char opname[OP_MAX_TYPENAME];
@@ -215,7 +179,7 @@ static void operator_call_cb(struct bContext *C, void *arg_listbase, void *arg2)
 		
 		BLI_addtail(arg_listbase, ct);
 		BLI_strncpy(ct->opname, ot->idname, OP_MAX_TYPENAME);
-		BLI_strncpy(ct->context, view3d_context_string(C), OP_MAX_TYPENAME);
+		BLI_strncpy(ct->context, CTX_data_mode_string(C), OP_MAX_TYPENAME);
 	}
 		
 }
@@ -278,7 +242,7 @@ static void view3d_panel_tool_shelf(const bContext *C, Panel *pa)
 	SpaceLink *sl= CTX_wm_space_data(C);
 	SpaceType *st= NULL;
 	uiLayout *col;
-	const char *context= view3d_context_string(C);
+	const char *context= CTX_data_mode_string(C);
 	
 	if(sl)
 		st= BKE_spacetype_from_id(sl->spacetype);

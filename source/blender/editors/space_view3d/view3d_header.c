@@ -970,112 +970,6 @@ static uiBlock *view3d_select_object_groupedmenu(bContext *C, ARegion *ar, void 
 
 #endif
 
-static void view3d_select_objectmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_select_border");
-
-	uiItemS(layout);
-
-	uiItemO(layout, "Select/Deselect All", 0, "OBJECT_OT_select_all_toggle");
-	uiItemO(layout, "Inverse", 0, "OBJECT_OT_select_inverse");
-	uiItemO(layout, "Random", 0, "OBJECT_OT_select_random");
-	uiItemO(layout, "Select All by Layer", 0, "OBJECT_OT_select_by_layer");
-	uiItemMenuEnumO(layout, "Select All by Type", 0, "OBJECT_OT_select_by_type", "type");
-	uiItemMenuEnumO(layout, "Select Grouped", 0, "OBJECT_OT_select_grouped", "type");
-
-#if 0
-	uiDefIconTextBlockBut(block, view3d_select_object_layermenu, NULL, ICON_RIGHTARROW_THIN, "Select All by Layer", 0, yco-=20, 120, 19, "");
-	uiDefIconTextBlockBut(block, view3d_select_object_typemenu, NULL, ICON_RIGHTARROW_THIN, "Select All by Type", 0, yco-=20, 120, 19, "");
-
-	uiItemS(layout);
-
-	uiDefIconTextBlockBut(block, view3d_select_object_linkedmenu, NULL, ICON_RIGHTARROW_THIN, "Linked", 0, yco-=20, 120, 19, "");
-	uiDefIconTextBlockBut(block, view3d_select_object_groupedmenu, NULL, ICON_RIGHTARROW_THIN, "Grouped", 0, yco-=20, 120, 19, "");
-#endif
-}
-
-static void view3d_select_meshmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_select_border");
-
-	uiItemS(layout);
-
-	uiItemO(layout, "Select/Deselect All", 0, "MESH_OT_select_all_toggle");
-	uiItemO(layout, "Inverse", 0, "MESH_OT_select_inverse");
-
-	uiItemS(layout);
-
-	uiItemO(layout, "Random...", 0, "MESH_OT_select_random"); // Random...
-	uiItemO(layout, "Sharp Edges", 0, "MESH_OT_edges_select_sharp");
-	uiItemO(layout, "Linked Flat Faces", 0, "MESH_OT_faces_select_linked_flat");
-
-	uiItemS(layout);
-
-	uiItemEnumO(layout, "Triangles", 0, "MESH_OT_select_by_number_vertices", "type", 3); // Ctrl Alt Shift 3
-	uiItemEnumO(layout, "Quads", 0, "MESH_OT_select_by_number_vertices", "type", 4); // Ctrl Alt Shift 4
-	uiItemEnumO(layout, "Loose Verts/Edges", 0, "MESH_OT_select_by_number_vertices", "type", 5); // Ctrl Alt Shift 5
-	uiItemO(layout, "Similar...", 0, "MESH_OT_select_similar");
-
-	uiItemS(layout);
-
-	uiItemO(layout, "Less", 0, "MESH_OT_select_more");
-	uiItemO(layout, "More", 0, "MESH_OT_select_less");
-
-	uiItemS(layout);
-
-	uiItemO(layout, "Linked", 0, "MESH_OT_select_linked");
-	uiItemO(layout, "Vertex Path", 0, "MESH_OT_select_vertex_path"); // W, Alt 7
-	uiItemO(layout, "Edge Loop", 0, "MESH_OT_loop_multi_select");
-	uiItemBooleanO(layout, "Edge Ring", 0, "MESH_OT_loop_multi_select", "ring", 1);
-
-	uiItemS(layout);
-
-	uiItemO(layout, NULL, 0, "MESH_OT_loop_to_region"); // Ctrl E 8
-	uiItemO(layout, NULL, 0, "MESH_OT_region_to_loop"); // Ctrl E 9
-}
-
-static void view3d_select_curvemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	Object *obedit= CTX_data_edit_object(C);
-
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_select_border");
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_select_circle");
-
-	uiItemS(layout);
-
-	uiItemO(layout, NULL, 0, "CURVE_OT_select_all_toggle");
-	uiItemO(layout, NULL, 0, "CURVE_OT_select_inverse");
-	uiItemO(layout, NULL, 0, "CURVE_OT_select_random"); // Random...
-	uiItemO(layout, NULL, 0, "CURVE_OT_select_every_nth"); // Every Nth..
-
-	uiItemS(layout);
-
-	if(obedit->type == OB_SURF) {
-		uiItemO(layout, NULL, 0, "CURVE_OT_select_row");
-	}
-	else {
-		uiItemO(layout, NULL, 0, "CURVE_OT_de_select_first");
-		uiItemO(layout, NULL, 0, "CURVE_OT_de_select_last");
-		uiItemO(layout, NULL, 0, "CURVE_OT_select_next");
-		uiItemO(layout, NULL, 0, "CURVE_OT_select_previous");
-	}
-
-	uiItemS(layout);
-
-	uiItemO(layout, NULL, 0, "CURVE_OT_select_more");
-	uiItemO(layout, NULL, 0, "CURVE_OT_select_less");
-
-	/* commented out because it seems to only like the LKEY method - based on mouse pointer position :( */
-	/* uiItemO(layout, NULL, 0, "CURVE_OT_select_linked"); */
-
-#if 0
-	G.qual |= LR_CTRLKEY;
-	select_connected_nurb();
-	G.qual &= ~LR_CTRLKEY;
-	break;*/
-#endif
-}
-
 static void view3d_select_metaballmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	uiItemO(layout, NULL, 0, "VIEW3D_OT_select_border");
@@ -1086,18 +980,20 @@ static void view3d_select_metaballmenu(bContext *C, uiLayout *layout, void *arg_
 	uiItemO(layout, NULL, 0, "MBALL_OT_select_random_metaelems");
 }
 
-static void view3d_select_latticemenu(bContext *C, uiLayout *layout, void *arg_unused)
+/* wrapper for python layouts */
+void uiTemplate_view3d_select_metaballmenu(uiLayout *layout, bContext *C)
 {
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_select_border");
-	uiItemS(layout);
-	uiItemO(layout, NULL, 0, "LATTICE_OT_select_all_toggle");
+	void *arg_unused = NULL;
+	ARegion *ar= CTX_wm_region(C);
+	view3d_select_metaballmenu(C, ar, arg_unused);
 }
 
 static void view3d_select_armaturemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	PointerRNA ptr;
 
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_select_border");
+	/* this part of the menu has been moved to python */
+	/*uiItemO(layout, NULL, 0, "VIEW3D_OT_select_border");
 
 	uiItemS(layout);
 
@@ -1109,7 +1005,7 @@ static void view3d_select_armaturemenu(bContext *C, uiLayout *layout, void *arg_
 	uiItemEnumO(layout, "Parent", 0, "ARMATURE_OT_select_hierarchy", "direction", BONE_SELECT_PARENT);
 	uiItemEnumO(layout, "Child", 0, "ARMATURE_OT_select_hierarchy", "direction", BONE_SELECT_CHILD);
 
-	uiItemS(layout);
+	uiItemS(layout);*/
 
 	WM_operator_properties_create(&ptr, "ARMATURE_OT_select_hierarchy");
 	RNA_boolean_set(&ptr, "extend", 1);
@@ -1122,24 +1018,16 @@ static void view3d_select_armaturemenu(bContext *C, uiLayout *layout, void *arg_
 	uiItemFullO(layout, "Extend Child", 0, "ARMATURE_OT_select_hierarchy", ptr.data, WM_OP_EXEC_REGION_WIN);
 }
 
+/* wrapper for python layouts */
+void uiTemplate_view3d_select_armaturemenu(uiLayout *layout, bContext *C)
+{
+	void *arg_unused = NULL;
+	view3d_select_armaturemenu(C, layout, arg_unused);
+}
+
 static void view3d_select_posemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	PointerRNA ptr;
-
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_select_border");
-
-	uiItemS(layout);
-
-	uiItemO(layout, "Select/Deselect All", 0, "POSE_OT_select_all_toggle");
-	uiItemO(layout, "Inverse", 0, "POSE_OT_select_inverse");
-	uiItemO(layout, "Constraint Target", 0, "POSE_OT_select_constraint_target");
-
-	uiItemS(layout);
-
-	uiItemEnumO(layout, "Parent", 0, "POSE_OT_select_hierarchy", "direction", BONE_SELECT_PARENT);
-	uiItemEnumO(layout, "Child", 0, "POSE_OT_select_hierarchy", "direction", BONE_SELECT_CHILD);
-
-	uiItemS(layout);
 
 	WM_operator_properties_create(&ptr, "POSE_OT_select_hierarchy");
 	RNA_boolean_set(&ptr, "extend", 1);
@@ -1150,6 +1038,13 @@ static void view3d_select_posemenu(bContext *C, uiLayout *layout, void *arg_unus
 	RNA_boolean_set(&ptr, "extend", 1);
 	RNA_enum_set(&ptr, "direction", BONE_SELECT_CHILD);
 	uiItemFullO(layout, "Extend Child", 0, "POSE_OT_select_hierarchy", ptr.data, WM_OP_EXEC_REGION_WIN);
+}
+
+/* wrapper for python layouts */
+void uiTemplate_view3d_select_posemenu(uiLayout *layout, bContext *C)
+{
+	void *arg_unused = NULL;
+	view3d_select_posemenu(C, layout, arg_unused);
 }
 
 void do_view3d_select_faceselmenu(bContext *C, void *arg, int event)
@@ -1220,6 +1115,14 @@ static uiBlock *view3d_select_faceselmenu(bContext *C, ARegion *ar, void *arg_un
 
 	uiTextBoundsBlock(block, 50);
 	return block;
+}
+
+/* wrapper for python layouts */
+void uiTemplate_view3d_select_faceselmenu(uiLayout *layout, bContext *C)
+{
+	void *arg_unused = NULL;
+	ARegion *ar= CTX_wm_region(C);
+	view3d_select_faceselmenu(C, ar, arg_unused);
 }
 
 static void view3d_edit_snapmenu(bContext *C, uiLayout *layout, void *arg_unused)
@@ -3333,28 +3236,6 @@ static uiBlock *view3d_faceselmenu(bContext *C, ARegion *ar, void *arg_unused)
 	return block;
 }
 
-static void view3d_select_particlemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	ToolSettings *ts= CTX_data_tool_settings(C);
-
-	uiItemO(layout, NULL, 0, "VIEW3D_OT_select_border");
-
-	uiItemS(layout);
-
-	uiItemO(layout, NULL, 0, "PARTICLE_OT_select_all_toggle");
-	uiItemO(layout, NULL, 0, "PARTICLE_OT_select_linked");
-
-	if(ts->particle.selectmode & SCE_SELECT_POINT) {
-		uiItemO(layout, NULL, 0, "PARTICLE_OT_select_last"); // |W, 4
-		uiItemO(layout, NULL, 0, "PARTICLE_OT_select_first"); // |W, 3
-	}
-
-	uiItemS(layout);
-
-	uiItemO(layout, NULL, 0, "PARTICLE_OT_select_more");
-	uiItemO(layout, NULL, 0, "PARTICLE_OT_select_less");
-}
-
 static void view3d_particle_showhidemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	uiItemO(layout, NULL, 0, "PARTICLE_OT_reveal");
@@ -3788,35 +3669,7 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 	 * height of the header */
 	
 	xmax= GetButStringLength("Select");
-	if (obedit) {
-		if (ob && ob->type == OB_MESH) {
-			uiDefMenuBut(block, view3d_select_meshmenu, NULL, "Select",	xco,yco, xmax-3, 20, "");
-		} else if (ob && (ob->type == OB_CURVE || ob->type == OB_SURF)) {
-			uiDefMenuBut(block, view3d_select_curvemenu, NULL, "Select", xco, yco, xmax-3, 20, "");
-		} else if (ob && ob->type == OB_FONT) {
-			xmax= 0;
-		} else if (ob && ob->type == OB_MBALL) {
-			uiDefMenuBut(block, view3d_select_metaballmenu, NULL, "Select",	xco,yco, xmax-3, 20, "");
-		} else if (ob && ob->type == OB_LATTICE) {
-			uiDefMenuBut(block, view3d_select_latticemenu, NULL, "Select", xco, yco, xmax-3, 20, "");
-		} else if (ob && ob->type == OB_ARMATURE) {
-			uiDefMenuBut(block, view3d_select_armaturemenu, NULL, "Select",	xco,yco, xmax-3, 20, "");
-		}
-	} else if (FACESEL_PAINT_TEST) {
-		if (ob && ob->type == OB_MESH) {
-			uiDefPulldownBut(block, view3d_select_faceselmenu, NULL, "Select", xco,yco, xmax-3, 20, "");
-		}
-	} else if ((G.f & G_VERTEXPAINT) || (G.f & G_TEXTUREPAINT) || (G.f & G_WEIGHTPAINT)) {
-		uiDefBut(block, LABEL,0,"", xco, 0, xmax, 20, 0, 0, 0, 0, 0, "");
-	} else if (G.f & G_PARTICLEEDIT) {
-		uiDefMenuBut(block, view3d_select_particlemenu, NULL, "Select", xco,yco, xmax-3, 20, "");
-	} else {
-		
-		if (ob && (ob->flag & OB_POSEMODE))
-			uiDefMenuBut(block, view3d_select_posemenu, NULL, "Select", xco,yco, xmax-3, 20, "");
-		else
-			uiDefMenuBut(block, view3d_select_objectmenu, NULL, "Select",	xco,yco, xmax-3, 20, "");
-	}
+
 	xco+= xmax;
 	
 	if (obedit) {
