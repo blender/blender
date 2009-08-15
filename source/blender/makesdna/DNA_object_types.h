@@ -512,8 +512,9 @@ extern Object workob;
 #define OB_LOCK_SCALE	448
 
 /* ob->mode */
-#define OB_MODE_NONE      0
-#define OB_MODE_SCULPT    1
+#define OB_MODE_NONE           0
+#define OB_MODE_SCULPT         1
+#define OB_MODE_VERTEX_PAINT   2
 
 /* ob->softflag in DNA_object_force.h */
 

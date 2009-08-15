@@ -108,7 +108,9 @@ static void error() {}
 
 static int vp_poll(bContext *C)
 {
-	if(G.f & G_VERTEXPAINT) {
+	Object *ob = CTX_data_active_object(C);
+
+	if(ob && ob->mode & OB_MODE_VERTEX_PAINT) {
 		ScrArea *sa= CTX_wm_area(C);
 		if(sa->spacetype==SPACE_VIEW3D) {
 			ARegion *ar= CTX_wm_region(C);
@@ -369,11 +371,11 @@ void clear_vpaint(Scene *scene)
 	unsigned int *to, paintcol;
 	int a;
 	
-	if((G.f & G_VERTEXPAINT)==0) return;
-
 	ob= OBACT;
 	me= get_mesh(ob);
 	if(!ob || ob->id.lib) return;
+
+	if(!(ob->mode & OB_MODE_VERTEX_PAINT)) return;
 
 	if(me==0 || me->mcol==0 || me->totface==0) return;
 
@@ -540,10 +542,10 @@ void vpaint_dogamma(Scene *scene)
 	int a, temp;
 	unsigned char *cp, gamtab[256];
 
-	if((G.f & G_VERTEXPAINT)==0) return;
-
 	ob= OBACT;
 	me= get_mesh(ob);
+
+	if(!(ob->mode & OB_MODE_VERTEX_PAINT)) return;
 	if(me==0 || me->mcol==0 || me->totface==0) return;
 
 	igam= 1.0/vp->gamma;
@@ -1584,22 +1586,22 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 	me= get_mesh(ob);
 	
 	if(me==NULL || object_data_is_libdata(ob)) {
-		G.f &= ~G_VERTEXPAINT;
+		ob->mode &= ~OB_MODE_VERTEX_PAINT;
 		return OPERATOR_PASS_THROUGH;
 	}
 	
 	if(me && me->totface>=MAXINDEX) {
 		error("Maximum number of faces: %d", MAXINDEX-1);
-		G.f &= ~G_VERTEXPAINT;
+		ob->mode &= ~OB_MODE_VERTEX_PAINT;
 		return OPERATOR_FINISHED;
 	}
 	
 	if(me && me->mcol==NULL) make_vertexcol(scene, 0);
 	
 	/* toggle: end vpaint */
-	if(G.f & G_VERTEXPAINT) {
+	if(ob->mode & OB_MODE_VERTEX_PAINT) {
 		
-		G.f &= ~G_VERTEXPAINT;
+		ob->mode &= ~OB_MODE_VERTEX_PAINT;
 		
 		if(vp) {
 			toggle_paint_cursor(C, 0);
@@ -1608,7 +1610,7 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 	}
 	else {
 		
-		G.f |= G_VERTEXPAINT;
+		ob->mode |= OB_MODE_VERTEX_PAINT;
 		/* Turn off weight painting */
 		if (G.f & G_WEIGHTPAINT)
 			set_wpaint(C, op);

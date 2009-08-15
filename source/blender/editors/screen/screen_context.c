@@ -44,6 +44,10 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	bScreen *sc= CTX_wm_screen(C);
 	Scene *scene= sc->scene;
 	Base *base;
+	Object *ob = NULL;
+
+	if(scene && scene->basact)
+		ob = scene->basact->object;
 
 	if(CTX_data_dir(member)) {
 		static const char *dir[] = {
@@ -112,14 +116,14 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		return 1;
 	}
 	else if(CTX_data_equals(member, "sculpt_object")) {
-		if(scene->basact && (scene->basact->object->mode & OB_MODE_SCULPT))
-			CTX_data_id_pointer_set(result, &scene->basact->object->id);
+		if(ob && (ob->mode & OB_MODE_SCULPT))
+			CTX_data_id_pointer_set(result, &ob->id);
 
 		return 1;
 	}
 	else if(CTX_data_equals(member, "vertex_paint_object")) {
-		if(G.f & G_VERTEXPAINT && scene->basact)
-			CTX_data_id_pointer_set(result, &scene->basact->object->id);
+		if(ob && (ob->mode & OB_MODE_VERTEX_PAINT))
+			CTX_data_id_pointer_set(result, &ob->id);
 
 		return 1;
 	}

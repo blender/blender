@@ -112,8 +112,6 @@ typedef struct Global {
 
 #define G_FACESELECT	(1 <<  8)
 
-#define G_VERTEXPAINT	(1 << 10)
-
 #define G_DEBUG			(1 << 12)
 #define G_DOSCRIPTLINKS (1 << 13)
 

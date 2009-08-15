@@ -4165,7 +4165,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 			}
 			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 		}
-		else if(G.f & G_VERTEXPAINT) {
+		else if(ob->mode & OB_MODE_VERTEX_PAINT) {
 			Mesh *me= get_mesh(ob);
 			
 			if(me==0 || (me->mcol==NULL && me->mtface==NULL) ) return;
@@ -7042,4 +7042,6 @@ void ED_object_toggle_modes(bContext *C, int mode)
 {
 	if(mode & OB_MODE_SCULPT)
 		WM_operator_name_call(C, "SCULPT_OT_sculptmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if(mode & OB_MODE_VERTEX_PAINT)
+		WM_operator_name_call(C, "SCULPT_OT_vertex_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 }

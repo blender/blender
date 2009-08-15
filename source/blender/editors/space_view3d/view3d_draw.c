@@ -1091,7 +1091,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	RegionView3D *rv3d= ar->regiondata;
-	struct Base *base;
+	struct Base *base = scene->basact;
 
 /*for 2.43 release, don't use glext and just define the constant.
   this to avoid possibly breaking platforms before release.*/
@@ -1103,7 +1103,9 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	int m;
 #endif
 
-	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT || (scene->basact && paint_facesel_test(scene->basact->object)));
+	if(G.f & G_WEIGHTPAINT ||
+	   (base && (base->object->mode & OB_MODE_VERTEX_PAINT ||
+		     paint_facesel_test(base->object))));
 	else if((G.f & G_TEXTUREPAINT) && scene->toolsettings && (scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE));
 	else if((G.f & G_PARTICLEEDIT) && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
 	else if(scene->obedit && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
@@ -1150,7 +1152,6 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	
 	G.f |= G_BACKBUFSEL;
 	
-	base= (scene->basact);
 	if(base && (base->lay & v3d->lay)) {
 		draw_object_backbufsel(scene, v3d, rv3d, base->object);
 	}
@@ -1883,7 +1884,7 @@ static CustomDataMask get_viewedit_datamask(bScreen *screen, Object *ob)
 	}
 	
 	/* check if we need mcols due to vertex paint or weightpaint */
-	if(G.f & G_VERTEXPAINT)
+	if(ob && ob->mode & OB_MODE_VERTEX_PAINT)
 		mask |= CD_MASK_MCOL;
 	if(G.f & G_WEIGHTPAINT)
 		mask |= CD_MASK_WEIGHT_MCOL;
@@ -2121,7 +2122,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* XXX here was the blockhandlers for floating panels */
 
-	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT || G.f & G_TEXTUREPAINT) {
+	if((ob && ob->mode & OB_MODE_VERTEX_PAINT) || G.f & G_WEIGHTPAINT || G.f & G_TEXTUREPAINT) {
 		v3d->flag |= V3D_NEEDBACKBUFDRAW;
 		// XXX addafterqueue(ar->win, BACKBUFDRAW, 1);
 	}

@@ -54,12 +54,14 @@
 #include "WM_types.h"
 
 #include "ED_mesh.h"
+#include "ED_object.h"
 #include "ED_view3d.h"
 
 #include "mesh_intern.h"
 
-static void delete_customdata_layer(Mesh *me, CustomDataLayer *layer)
+static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *layer)
 {
+	Mesh *me = ob->data;
 	CustomData *data= (me->edit_mesh)? &me->edit_mesh->fdata: &me->fdata;
 	void *actlayerdata, *rndlayerdata, *clonelayerdata, *masklayerdata, *layerdata=layer->data;
 	int type= layer->type;
@@ -87,9 +89,8 @@ static void delete_customdata_layer(Mesh *me, CustomDataLayer *layer)
 		mesh_update_customdata_pointers(me);
 	}
 
-	if(!CustomData_has_layer(data, type))
-		if(type == CD_MCOL && (G.f & G_VERTEXPAINT))
-			G.f &= ~G_VERTEXPAINT; /* get out of vertexpaint mode */
+	if(!CustomData_has_layer(data, type) && (type == CD_MCOL && (ob->mode & OB_MODE_VERTEX_PAINT)))
+		ED_object_toggle_modes(C, OB_MODE_VERTEX_PAINT);
 
 	/* reconstruct active layer */
 	if (actlayerdata != layerdata) {
@@ -225,7 +226,7 @@ static int uv_texture_remove_exec(bContext *C, wmOperator *op)
 	if(!cdl)
 		return OPERATOR_CANCELLED;
 
-	delete_customdata_layer(me, cdl);
+	delete_customdata_layer(C, ob, cdl);
 
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
@@ -328,7 +329,7 @@ static int vertex_color_remove_exec(bContext *C, wmOperator *op)
 	if(!cdl)
 		return OPERATOR_CANCELLED;
 
-	delete_customdata_layer(me, cdl);
+	delete_customdata_layer(C, ob, cdl);
 
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);

@@ -2348,12 +2348,13 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 
 				GPU_disable_material();
 			}
-			else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->mcol) {
-				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 1);
-			}
-			else if(G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) {
-				glColor3f(1.0f, 1.0f, 1.0f);
-				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 0);
+			else if((G.f & G_TEXTUREPAINT || ob->mode & OB_MODE_VERTEX_PAINT)) {
+				if(me->mcol)
+					dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 1);
+				else {
+					glColor3f(1.0f, 1.0f, 1.0f);
+					dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 0);
+				}
 			}
 			else do_draw= 1;
 		}
@@ -5072,7 +5073,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	dtx= 0;
 
 	/* faceselect exception: also draw solid when dt==wire, except in editmode */
-	if(ob==OBACT && (G.f & (G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT))) {
+	if(ob==OBACT && (G.f & (G_TEXTUREPAINT+G_WEIGHTPAINT) || ob->mode & OB_MODE_VERTEX_PAINT)) {
 		if(ob->type==OB_MESH) {
 
 			if(ob==scene->obedit);
@@ -5710,7 +5711,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	if(G.f & G_RENDER_SHADOW) return;
 
 	/* object centers, need to be drawn in viewmat space for speed, but OK for picking select */
-	if(ob!=OBACT || (G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0) {
+	if(ob!=OBACT || ((G.f & (G_TEXTUREPAINT|G_WEIGHTPAINT))==0) || ob->mode & OB_MODE_VERTEX_PAINT) {
 		int do_draw_center= -1;	/* defines below are zero or positive... */
 
 		if((scene->basact)==base) 

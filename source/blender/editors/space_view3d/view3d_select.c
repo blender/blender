@@ -694,10 +694,12 @@ static void do_lasso_select_node(short mcords[][2], short moves, short select)
 
 void view3d_lasso_select(bContext *C, ViewContext *vc, short mcords[][2], short moves, short select)
 {
+	Object *ob = CTX_data_active_object(C);
+
 	if(vc->obedit==NULL) {
-		if(paint_facesel_test(CTX_data_active_object(C)))
+		if(paint_facesel_test(ob))
 			do_lasso_select_facemode(vc, mcords, moves, select);
-		else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))
+		else if(G.f & (G_TEXTUREPAINT|G_WEIGHTPAINT) || (ob && ob->mode & OB_MODE_VERTEX_PAINT))
 			;
 		else if(G.f & G_PARTICLEEDIT)
 			PE_lasso_select(C, mcords, moves, select);

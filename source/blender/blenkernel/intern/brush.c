@@ -188,10 +188,14 @@ void make_local_brush(Brush *brush)
 
 Brush **current_brush_source(Scene *sce)
 {
-	if(sce->basact && sce->basact->object->mode & OB_MODE_SCULPT)
-		return &sce->toolsettings->sculpt->brush;
-	else if(G.f & G_VERTEXPAINT)
-		return &sce->toolsettings->vpaint->brush;
+	Object *ob = sce->basact ? sce->basact->object : NULL;
+
+	if(ob) {
+		if(ob->mode & OB_MODE_SCULPT)
+			return &sce->toolsettings->sculpt->brush;
+		else if(ob->mode & OB_MODE_VERTEX_PAINT)
+			return &sce->toolsettings->vpaint->brush;
+	}
 	else if(G.f & G_WEIGHTPAINT)
 		return &sce->toolsettings->wpaint->brush;
 	else if(G.f & G_TEXTUREPAINT)
