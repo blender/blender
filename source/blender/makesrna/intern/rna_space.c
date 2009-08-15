@@ -118,10 +118,10 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 		case SPACE_NLA:
 			return &RNA_SpaceNLA;
 		/*case SPACE_SCRIPT:
-			return &RNA_SpaceScriptsWindow;
+			return &RNA_SpaceScriptsWindow;*/
 		case SPACE_TIME:
 			return &RNA_SpaceTimeline;
-		case SPACE_NODE:
+		/*case SPACE_NODE:
 			return &RNA_SpaceNodeEditor;
 		case SPACE_LOGIC:
 			return &RNA_SpaceLogicEditor;*/
@@ -1104,6 +1104,48 @@ static void rna_def_space_nla(BlenderRNA *brna)
 	// TODO... autosnap, dopesheet?
 }
 
+static void rna_def_space_time(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna= RNA_def_struct(brna, "SpaceTimeline", "Space");
+	RNA_def_struct_sdna(srna, "SpaceTime");
+	RNA_def_struct_ui_text(srna, "Space Timeline Editor", "Timeline editor space data.");
+	
+	/* Define Anim Playback Areas */
+	
+	prop= RNA_def_property(srna, "play_top_left", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_REGION);
+	RNA_def_property_ui_text(prop, "Top-Left 3D Window", "");
+	
+	prop= RNA_def_property(srna, "play_all_3d", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_ALL_3D_WIN);
+	RNA_def_property_ui_text(prop, "All 3D Windows", "");
+	
+	prop= RNA_def_property(srna, "play_anim", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_ALL_ANIM_WIN);
+	RNA_def_property_ui_text(prop, "Animation Windows", "");
+	
+	prop= RNA_def_property(srna, "play_buttons", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_ALL_BUTS_WIN);
+	RNA_def_property_ui_text(prop, "Buttons Windows", "");
+	
+	prop= RNA_def_property(srna, "play_image", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_ALL_IMAGE_WIN);
+	RNA_def_property_ui_text(prop, "Image Windows", "");
+	
+	prop= RNA_def_property(srna, "play_sequencer", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_SEQ);
+	RNA_def_property_ui_text(prop, "Sequencer Windows", "");
+	
+	/* Other options */
+	
+	prop= RNA_def_property(srna, "continue_physics", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_CONTINUE_PHYSICS);
+	RNA_def_property_ui_text(prop, "Continue Physics", "During playblack, continue physics simulations regardless of the frame number");	
+}
+
 static void rna_def_console_line(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1332,6 +1374,7 @@ void RNA_def_space(BlenderRNA *brna)
 	rna_def_space_dopesheet(brna);
 	rna_def_space_graph(brna);
 	rna_def_space_nla(brna);
+	rna_def_space_time(brna);
 	rna_def_space_console(brna);
 	rna_def_console_line(brna);
 }

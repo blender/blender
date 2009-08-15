@@ -71,6 +71,7 @@ struct Object;
 struct Scene;
 struct SoftBody;
 struct ParticleSystem;
+struct ParticleKey;
 struct ClothModifierData;
 struct PointCache;
 struct ListBase;

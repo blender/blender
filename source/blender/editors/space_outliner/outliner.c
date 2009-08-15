@@ -3663,7 +3663,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 				}
 				else if(RNA_property_type(prop) == PROP_COLLECTION) {
 					char buf[128], *name;
-
+					
 					temnext= (TreeElement*)(ld->next->data);
 					tsenext= TREESTORE(temnext);
 					

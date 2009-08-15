@@ -877,10 +877,6 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 /* ************************************************************************* */
 /* Channel List */
 
-// XXX quite a few of these need to be kept in sync with their counterparts in Action Editor
-// as they're the same. We have 2 separate copies of this for now to make it easier to develop
-// the diffences between the two editors, but one day these should be merged!
-
 /* left hand part */
 void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar) 
 {
@@ -903,17 +899,6 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	 *	  start of list offset, and the second is as a correction for the scrollers.
 	 */
 	height= (float)((items*ACHANNEL_STEP) + (ACHANNEL_HEIGHT*2));
-	
-#if 0
-	if (height > (v2d->mask.ymax - v2d->mask.ymin)) {
-		/* don't use totrect set, as the width stays the same 
-		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
-		 */
-		v2d->tot.ymin= (float)(-height);
-	}
-	
-	/* XXX I would call the below line! (ton) */
-#endif
 	UI_view2d_totRect_set(v2d, ar->winx, height);
 	
 	/* loop through channels, and set up drawing depending on their type  */	

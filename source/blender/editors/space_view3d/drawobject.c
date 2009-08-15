@@ -5351,6 +5351,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			float bigfactor = 1.0;
 			int big = (smd->domain->flags & MOD_SMOKE_HIGHRES) && (smd->domain->viewsettings & MOD_SMOKE_VIEW_USEBIG);
 			int new = 0;
+			int have_lamp = 0;
 			
 			// GUI sent redraw event
 			if(smd->domain->flags & MOD_SMOKE_VIEW_REDRAWNICE)
@@ -5439,7 +5440,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			
 			if(new > 1)
 			{
-				float light[3] = {0.0,0.0,2.0}; // TODO: take real LAMP coordinates - dg
+				float light[3] = {0.0,0.0,0.0}; // TODO: take real LAMP coordinates - dg
 				Base *base_tmp = NULL;
 
 				for(base_tmp = scene->base.first; base_tmp; base_tmp= base_tmp->next) 
@@ -5451,6 +5452,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 						if(la->type == LA_LOCAL)
 						{
 							VECCOPY(light, base_tmp->object->obmat[3]);
+							have_lamp = 1;
 							break;
 						}
 					}
@@ -5554,6 +5556,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 									tvox =  smoke_get_bigtvox(smd, index);
 									tray = smoke_get_bigtray(smd, index);
 								}
+
+								if(!have_lamp)
+									tray = 1.0;
 								
 								// fill buffer with luminance and alpha
 								// 1 - T_vox

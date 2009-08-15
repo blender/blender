@@ -280,6 +280,9 @@ Scene *add_scene(char *name)
 
 	sce->toolsettings->proportional_size = 1.0f;
 
+
+	sce->unit.scale_length = 1.0f;
+
 	pset= &sce->toolsettings->particle;
 	pset->flag= PE_KEEP_LENGTHS|PE_LOCK_FIRST|PE_DEFLECT_EMITTER;
 	pset->emitterdist= 0.25f;

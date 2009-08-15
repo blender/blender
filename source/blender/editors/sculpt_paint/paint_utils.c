@@ -5,13 +5,18 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+
 #include "BLI_arithb.h"
 
 #include "BKE_brush.h"
+#include "BKE_context.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
@@ -19,6 +24,9 @@
 #include "BIF_gl.h"
 
 #include "ED_view3d.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
 
 #include "paint_intern.h"
 
@@ -180,3 +188,36 @@ void paint_sample_color(Scene *scene, ARegion *ar, int x, int y)	/* frontbuf */
 	}
 }
 
+static int brush_curve_preset_exec(bContext *C, wmOperator *op)
+{
+	Brush *br = *current_brush_source(CTX_data_scene(C));
+	brush_curve_preset(br, RNA_enum_get(op->ptr, "shape"));
+
+	return OPERATOR_FINISHED;
+}
+
+static int brush_curve_preset_poll(bContext *C)
+{
+	Brush **br = current_brush_source(CTX_data_scene(C));
+
+	return br && *br && (*br)->curve;
+}
+
+void BRUSH_OT_curve_preset(wmOperatorType *ot)
+{
+	static EnumPropertyItem prop_shape_items[] = {
+		{BRUSH_PRESET_SHARP, "SHARP", 0, "Sharp", ""},
+		{BRUSH_PRESET_SMOOTH, "SMOOTH", 0, "Smooth", ""},
+		{BRUSH_PRESET_MAX, "MAX", 0, "Max", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	ot->name= "Preset";
+	ot->idname= "BRUSH_OT_curve_preset";
+
+	ot->exec= brush_curve_preset_exec;
+	ot->poll= brush_curve_preset_poll;
+
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_enum(ot->srna, "shape", prop_shape_items, BRUSH_PRESET_SHARP, "Mode", "");
+}

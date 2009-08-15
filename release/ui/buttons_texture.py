@@ -137,9 +137,20 @@ class TEXTURE_PT_mapping(TextureButtonsPanel):
 			row.itemR(tex, "y_mapping", text="")
 			row.itemR(tex, "z_mapping", text="")
 
-		row = layout.row()
-		row.column().itemR(tex, "offset")
-		row.column().itemR(tex, "size")
+		if br:
+			layout.itemR(tex, "brush_map_mode", expand=True)
+			
+			row = layout.row()
+			row.active = tex.brush_map_mode in ('FIXED', 'TILED')
+			row.itemR(tex, "angle")
+
+			row = layout.row()
+			row.active = tex.brush_map_mode in ('TILED', '3D')
+			row.column().itemR(tex, "size")
+		else:
+			row = layout.row()
+			row.column().itemR(tex, "offset")
+			row.column().itemR(tex, "size")
 
 class TEXTURE_PT_influence(TextureButtonsPanel):
 	__label__ = "Influence"

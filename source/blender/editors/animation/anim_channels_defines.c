@@ -1874,10 +1874,10 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 				glColor3fv(fcu->color);
 				
 				/* just a solid color rect
-				 * 	hardcoded 18 pixels width is slightly wider than icon width, so that 
+				 * 	hardcoded 17 pixels width is slightly wider than icon width, so that 
 				 *	there's a slight border around it 
 				 */
-				glRectf(offset, yminc, offset+18, ymaxc);
+				glRectf(offset, yminc, offset+17, ymaxc);
 			}
 			
 			/* finally the icon itself */
@@ -1913,34 +1913,35 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 		UI_DrawString(offset, ytext, name);
 	}
 	
-	/* step 6) draw mute+protection toggles ............................. */
+	/* step 6) draw mute+protection toggles + (sliders) ....................... */
 	/* reset offset - now goes from RHS of panel */
 	offset = 0;
 	
 	// TODO: we need a mechanism of drawing over (and hiding) stuff from here...
+	// TODO: when drawing sliders, make those draw instead of these toggles if not enough space
 	
-	/* set blending again, as text drawing may clear it */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-	
-	/* protect... */
-	// XXX v2d might not be valid
-	if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT)) {
-		enabled= ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_PROTECT);
+	if (v2d) {
+		/* set blending again, as text drawing may clear it */
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
 		
-		offset += ICON_WIDTH;
-		UI_icon_draw(v2d->cur.xmax-(float)offset, ymid, ((enabled)? ICON_LOCKED : ICON_UNLOCKED));
-	}
-	/* mute... */
-	// XXX v2d might not be valid
-	if (acf->has_setting(ac, ale, ACHANNEL_SETTING_MUTE)) {
-		enabled= ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_MUTE);
+		/* protect... */
+		if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT)) {
+			enabled= ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_PROTECT);
+			
+			offset += ICON_WIDTH;
+			UI_icon_draw(v2d->cur.xmax-(float)offset, ymid, ((enabled)? ICON_LOCKED : ICON_UNLOCKED));
+		}
+		/* mute... */
+		if (acf->has_setting(ac, ale, ACHANNEL_SETTING_MUTE)) {
+			enabled= ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_MUTE);
+			
+			offset += ICON_WIDTH; 
+			UI_icon_draw(v2d->cur.xmax-(float)offset, ymid, ((enabled)? ICON_MUTE_IPO_ON : ICON_MUTE_IPO_OFF));
+		}
 		
-		offset += ICON_WIDTH; 
-		UI_icon_draw(v2d->cur.xmax-(float)offset, ymid, ((enabled)? ICON_MUTE_IPO_ON : ICON_MUTE_IPO_OFF));
+		glDisable(GL_BLEND); /* End of blending with background */
 	}
-	
-	glDisable(GL_BLEND); /* End of blending with background */
 }
 
 /* *********************************************** */

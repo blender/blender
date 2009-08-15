@@ -460,6 +460,7 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel):
 		layout = self.layout
 
 		layout.template_curve_mapping(brush.curve)
+		layout.item_menu_enumO("brush.curve_preset", property="shape")
 		
 class VIEW3D_PT_sculpt_options(PaintPanel):
 	__label__ = "Options"

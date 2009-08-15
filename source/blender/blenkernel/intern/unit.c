@@ -27,6 +27,12 @@
 #include <string.h>
 #include <math.h>
 
+#if defined(WIN32) && (!(defined snprintf))
+#define snprintf _snprintf
+#endif
+
+#define TEMP_STR_SIZE 256
+
 /* define a single unit */
 typedef struct bUnitDef {
 	char *name;
@@ -82,13 +88,14 @@ static struct bUnitCollection buMetricLenCollecton = {buMetricLenDef, 3, 0, size
 static struct bUnitDef buImperialLenDef[] = {
 	{"mile", "Miles",				"mi", "m",	1609.344, 0.0,	B_UNIT_DEF_NONE},
 	{"furlong", "Furlongs",			"fur", NULL,201.168, 0.0,	B_UNIT_DEF_SUPPRESS},
+	{"chain", "Chains",				"ch", NULL,	0.9144*22.0, 0.0,	B_UNIT_DEF_SUPPRESS},
 	{"yard", "Yards",				"yd", NULL,	0.9144, 0.0,	B_UNIT_DEF_NONE},
 	{"foot", "Feet",				"'", "ft",	0.3048, 0.0,	B_UNIT_DEF_NONE},
 	{"inch", "Inches",				"\"", "in",	0.0254, 0.0,	B_UNIT_DEF_NONE}, /* base unit */
 	{"thou", "Thous",				"mil", NULL,0.0000254, 0.0,	B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL, NULL, 0.0, 0.0}
 };
-static struct bUnitCollection buImperialLenCollecton = {buImperialLenDef, 3, 0, sizeof(buImperialLenDef)/sizeof(bUnitDef)};
+static struct bUnitCollection buImperialLenCollecton = {buImperialLenDef, 4, 0, sizeof(buImperialLenDef)/sizeof(bUnitDef)};
 
 
 /* Time */
@@ -155,7 +162,7 @@ static void unit_dual_convert(double value, bUnitCollection *usys,
 	*unit_b=	unit_best_fit(*value_b, usys, *unit_a, 1);
 }
 
-static int unit_as_string(char *str, double value, int prec, bUnitCollection *usys,
+static int unit_as_string(char *str, int len_max, double value, int prec, bUnitCollection *usys,
 		/* non exposed options */
 		bUnitDef *unit, char pad)
 {
@@ -177,32 +184,33 @@ static int unit_as_string(char *str, double value, int prec, bUnitCollection *us
 
 	/* Convert to a string */
 	{
-		char conv_str[5] = {'%', '.', '0'+prec, 'f', '\0'}; /* "%.2f" when prec is 2, must be under 10 */
-		len= sprintf(str, conv_str, (float)value_conv);
+		char conv_str[6] = {'%', '.', '0'+prec, 'l', 'f', '\0'}; /* "%.2lf" when prec is 2, must be under 10 */
+		len= snprintf(str, len_max, conv_str, (float)value_conv);
+
+		if(len >= len_max)
+			len= len_max;
 	}
 	
-	
 	/* Add unit prefix and strip zeros */
-	{
-		/* replace trailing zero's with spaces 
-		 * so the number is less complicated but allignment in a button wont
-		 * jump about while dragging */
-		int j;
-		i= len-1;
 
+	/* replace trailing zero's with spaces
+	 * so the number is less complicated but allignment in a button wont
+	 * jump about while dragging */
+	i= len-1;
+
+	while(i>0 && str[i]=='0') { /* 4.300 -> 4.3 */
+		str[i--]= pad;
+	}
+
+	if(i>0 && str[i]=='.') { /* 10. -> 10 */
+		str[i--]= pad;
+	}
 	
-		while(i>0 && str[i]=='0') { /* 4.300 -> 4.3 */
-			str[i--]= pad;
-		}
-		
-		if(i>0 && str[i]=='.') { /* 10. -> 10 */
-			str[i--]= pad;
-		}
-		
-		/* Now add the suffix */
+	/* Now add the suffix */
+	if(i<len_max) {
+		int j=0;
 		i++;
-		j=0;
-		while(unit->name_short[j]) {
+		while(unit->name_short[j] && (i < len_max)) {
 			str[i++]= unit->name_short[j++];
 		}
 
@@ -211,21 +219,23 @@ static int unit_as_string(char *str, double value, int prec, bUnitCollection *us
 			 * the unit name only used padded chars,
 			 * In that case add padding for the name. */
 
-			while(i<=len+j) {
+			while(i<=len+j && (i < len_max)) {
 				str[i++]= pad;
 			}
 		}
-		
-		/* terminate no matter whats done with padding above */
-		str[i] = '\0';
 	}
 
+	/* terminate no matter whats done with padding above */
+	if(i >= len_max)
+		i= len_max-1;
+
+	str[i] = '\0';
 	return i;
 }
 
 
 /* Used for drawing number buttons, try keep fast */
-void bUnit_AsString(char *str, double value, int prec, int system, int type, int split, int pad)
+void bUnit_AsString(char *str, int len_max, double value, int prec, int system, int type, int split, int pad)
 {
 	bUnitCollection *usys = unit_get_system(system, type);
 
@@ -241,54 +251,109 @@ void bUnit_AsString(char *str, double value, int prec, int system, int type, int
 
 		/* check the 2 is a smaller unit */
 		if(unit_b > unit_a) {
-			i= unit_as_string(str, value_a, prec, usys,  unit_a, '\0');
-			str[i++]= ',';
-			str[i++]= ' ';
+			i= unit_as_string(str, len_max, value_a, prec, usys,  unit_a, '\0');
 
-			/* use low precision since this is a smaller unit */
-			unit_as_string(str+i, value_b, prec?1:0, usys,  unit_b, '\0');
+			/* is there enough space for at least 1 char of the next unit? */
+			if(i+3 < len_max) {
+				str[i++]= ',';
+				str[i++]= ' ';
+
+				/* use low precision since this is a smaller unit */
+				unit_as_string(str+i, len_max-i, value_b, prec?1:0, usys,  unit_b, '\0');
+			}
 			return;
 		}
 	}
 
-	unit_as_string(str, value, prec, usys,    NULL, pad?' ':'\0');
+	unit_as_string(str, len_max, value, prec, usys,    NULL, pad?' ':'\0');
 }
 
 
-static int unit_scale_str(char *str, char *str_tmp, double scale_pref, bUnitDef *unit, char *replace_str)
+static char *unit_find_str(char *str, char *substr)
 {
 	char *str_found;
-	int change= 0;
 
-	if(replace_str==NULL || replace_str[0] == '\0')
-		return 0;
+	if(substr && substr[0] != '\0') {
+		str_found= strstr(str, substr);
+		if(str_found) {
+			/* previous char cannot be a letter */
+			if (str_found == str || isalpha(*(str_found-1))==0) {
+				/* next char cannot be alphanum */
+				int len_name = strlen(substr);
 
-	if((str_found= strstr(str, replace_str))) {
-		/* previous char cannot be a letter */
-		if (str_found == str || isalpha(*(str_found-1))==0) {
-			int len_name = strlen(replace_str);
-
-			/* next char cannot be alphanum */
-			if (!isalpha(*(str_found+len_name))) {
-				int len= strlen(str);
-				int len_num= sprintf(str_tmp, "*%g", unit->scalar/scale_pref);
-				memmove(str_found+len_num, str_found+len_name, (len+1)-(int)((str_found+len_name)-str)); /* may grow or shrink the string, 1+ to copy the string terminator */
-				memcpy(str_found, str_tmp, len_num); /* without the string terminator */
-				change= 1;
+				if (!isalpha(*(str_found+len_name))) {
+					return str_found;
+				}
 			}
 		}
+
 	}
+	return NULL;
+
+}
+
+static int unit_scale_str(char *str, int len_max, char *str_tmp, double scale_pref, bUnitDef *unit, char *replace_str)
+{
+	char *str_found= unit_find_str(str, replace_str);
+
+	if(str_found) { /* XXX - investigate, does not respect len_max properly  */
+		int len, len_num, len_name, len_move, found_ofs;
+
+		found_ofs = (int)(str_found-str);
+
+		len= strlen(str);
+
+		len_name = strlen(replace_str);
+		len_move= (len - (found_ofs+len_name)) + 1; /* 1+ to copy the string terminator */
+		len_num= snprintf(str_tmp, TEMP_STR_SIZE, "*%lg", unit->scalar/scale_pref);
+
+		if(len_num > len_max)
+			len_num= len_max;
+
+		if(found_ofs+len_num+len_move > len_max) {
+			/* can't move the whole string, move just as much as will fit */
+			len_move -= (found_ofs+len_num+len_move) - len_max;
+		}
+
+		if(len_move>0) {
+			/* resize the last part of the string */
+			memmove(str_found+len_num, str_found+len_name, len_move); /* may grow or shrink the string */
+		}
+
+		if(found_ofs+len_num > len_max) {
+			/* not even the number will fit into the string, only copy part of it */
+			len_num -= (found_ofs+len_num) - len_max;
+		}
+
+		if(len_num > 0) {
+			/* its possible none of the number could be copied in */
+			memcpy(str_found, str_tmp, len_num); /* without the string terminator */
+		}
+
+		str[len_max-1]= '\0'; /* since the null terminator wont be moved */
+		return 1;
+	}
+	return 0;
+}
+
+static int unit_replace(char *str, int len_max, char *str_tmp, double scale_pref, bUnitDef *unit)
+{	
+	int change= 0;
+	change |= unit_scale_str(str, len_max, str_tmp, scale_pref, unit, unit->name_short);
+	change |= unit_scale_str(str, len_max, str_tmp, scale_pref, unit, unit->name_plural);
+	change |= unit_scale_str(str, len_max, str_tmp, scale_pref, unit, unit->name_alt);
+	change |= unit_scale_str(str, len_max, str_tmp, scale_pref, unit, unit->name);
 	return change;
 }
 
-static int unit_replace(char *str, char *str_tmp, double scale_pref, bUnitDef *unit)
-{	
-	int change= 0;
-	change |= unit_scale_str(str, str_tmp, scale_pref, unit, unit->name_short);
-	change |= unit_scale_str(str, str_tmp, scale_pref, unit, unit->name_plural);
-	change |= unit_scale_str(str, str_tmp, scale_pref, unit, unit->name_alt);
-	change |= unit_scale_str(str, str_tmp, scale_pref, unit, unit->name);
-	return change;
+static int unit_find(char *str, bUnitDef *unit)
+{
+	if (unit_find_str(str, unit->name_short))	return 1;
+	if (unit_find_str(str, unit->name_plural))	return 1;
+	if (unit_find_str(str, unit->name_alt))		return 1;
+	if (unit_find_str(str, unit->name))			return 1;
+
+	return 0;
 }
 
 /* make a copy of the string that replaces the units with numbers
@@ -303,15 +368,13 @@ static int unit_replace(char *str, char *str_tmp, double scale_pref, bUnitDef *u
  *
  * return true of a change was made.
  */
-int bUnit_ReplaceString(char *str, char *str_orig, char *str_prev, double scale_pref, int system, int type)
+int bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pref, int system, int type)
 {
 	bUnitCollection *usys = unit_get_system(system, type);
 
 	bUnitDef *unit;
-	char str_tmp[256];
+	char str_tmp[TEMP_STR_SIZE];
 	int change= 0;
-	
-	strcpy(str, str_orig);
 
 	if(usys==NULL || usys->units[0].name==NULL) {
 		return 0;
@@ -323,7 +386,7 @@ int bUnit_ReplaceString(char *str, char *str_orig, char *str_prev, double scale_
 			continue;
 
 		/* incase there are multiple instances */
-		while(unit_replace(str, str_tmp, scale_pref, unit))
+		while(unit_replace(str, len_max, str_tmp, scale_pref, unit))
 			change= 1;
 	}
 	unit= NULL;
@@ -342,7 +405,7 @@ int bUnit_ReplaceString(char *str, char *str_orig, char *str_prev, double scale_
 						continue;
 
 					/* incase there are multiple instances */
-					while(unit_replace(str, str_tmp, scale_pref, unit))
+					while(unit_replace(str, len_max, str_tmp, scale_pref, unit))
 						change= 1;
 				}
 			}
@@ -354,25 +417,24 @@ int bUnit_ReplaceString(char *str, char *str_orig, char *str_prev, double scale_
 		/* no units given so infer a unit from the previous string or default */
 		if(str_prev) {
 			/* see which units the original value had */
-			strcpy(str, str_prev); /* temp overwrite */
 			for(unit= usys->units; unit->name; unit++) {
 
 				if(unit->flag & B_UNIT_DEF_SUPPRESS)
 					continue;
 
-				if (unit_replace(str, str_tmp, scale_pref, unit))
+				if (unit_find(str_prev, unit))
 					break;
 			}
-			strcpy(str, str_orig); /* temp overwrite */
 		}
 
 		if(unit==NULL)
 			unit= unit_default(usys);
 
 		/* add the unit prefic and re-run */
-		sprintf(str_tmp, "%s %s", str, unit->name);
+		snprintf(str_tmp, sizeof(str_tmp), "%s %s", str, unit->name);
+		strncpy(str, str_tmp, len_max);
 
-		return bUnit_ReplaceString(str, str_tmp, NULL, scale_pref, system, type);
+		return bUnit_ReplaceString(str, len_max, NULL, scale_pref, system, type);
 	}
 
 	// printf("replace %s\n", str);

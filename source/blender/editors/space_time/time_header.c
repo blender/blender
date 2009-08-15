@@ -437,7 +437,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 			  &scene->r.psfra,0, 1, 0, 0,
 			  "Show settings for frame range of animation preview");
 	
-	xco += XIC*2.5;
+	xco += XIC*2;
 	
 	uiBlockBeginAlign(block);
 	
@@ -516,35 +516,37 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	xco+= XIC;
 	uiBlockEndAlign(block);
 
-	xco+= 0.5*XIC;
+	xco+= (short)(0.5*XIC);
 	
 	uiBlockBeginAlign(block);
 	uiDefIconButBitS(block, TOG, AUTOKEY_ON, B_REDRAWALL, ICON_REC,
 					 xco, yco, XIC, YIC, &(scene->toolsettings->autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
 	xco+= 1*XIC;
 	if (IS_AUTOKEY_ON(scene)) {
-//		uiDefButS(block, MENU, B_REDRAWALL, 
-//				  "Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
-//				  xco, yco, (int)5.5*XIC, YIC, &(scene->toolsettings->autokey_mode), 0, 1, 0, 0, 
-//				  "Mode of automatic keyframe insertion for Objects and Bones");
+		uiDefButS(block, MENU, B_REDRAWALL, 
+				  "Auto-Keying Mode %t|Add/Replace%x3|Replace%x5", 
+				  xco, yco, (int)(4.25*XIC), YIC, &(scene->toolsettings->autokey_mode), 0, 1, 0, 0, 
+				  "Mode of automatic keyframe insertion for Objects and Bones");
+		xco+= (short)(4.25*XIC);
 		
 		if (animtimer) {
 			uiDefButBitS(block, TOG, ANIMRECORD_FLAG_WITHNLA, B_REDRAWALL, "Layered",	
-				  xco,yco, 70, YIC,
+				  xco,yco, (int)(3.5*XIC), YIC,
 				  &(scene->toolsettings->autokey_flag),0, 1, 0, 0,
 				  "Add a new NLA Track + Strip for every loop/pass made over the animation to allow non-destructive tweaking.");
 			uiBlockEndAlign(block);
+			
+			xco+= (short)(3.5*XIC);
 		}
-	
+		
+		xco += XIC;
+		
 		uiBlockEndAlign(block);
 	}
-	else
-
-	
-	
-	uiBlockEndAlign(block);
-	
-	xco+= (4.5*XIC);
+	else {
+		xco+= (short)(5.25*XIC);
+		uiBlockEndAlign(block);
+	}
 	
 	menustr= ANIM_build_keyingsets_menu(&scene->keyingsets, 0);
 	uiDefButI(block, MENU, B_DIFF, 
@@ -554,10 +556,13 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	MEM_freeN(menustr);
 	xco+= (5.5*XIC);
 	
+	/* NOTE: order of these buttons needs to be kept in sync with other occurances 
+	 * (see Outliner header for instance, also +/- stuff for filebrowser) 
+	 */
 	uiBlockBeginAlign(block);
-	uiDefIconButO(block, BUT, "ANIM_OT_insert_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_HLT, xco,yco,XIC,YIC, "Insert Keyframes for the Active Keying Set (I)");
-	xco += XIC;
 	uiDefIconButO(block, BUT, "ANIM_OT_delete_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_DEHLT, xco,yco,XIC,YIC, "Delete Keyframes for the Active Keying Set (Alt-I)");
+	xco += XIC;
+	uiDefIconButO(block, BUT, "ANIM_OT_insert_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_HLT, xco,yco,XIC,YIC, "Insert Keyframes for the Active Keying Set (I)");
 	xco += XIC;
 	uiBlockEndAlign(block);
 	

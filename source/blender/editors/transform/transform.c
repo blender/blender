@@ -3040,11 +3040,11 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 		applyAspectRatio(t, dvec);
 
 		dist = VecLength(vec);
-		if(U.unit_system) {
-			int i, do_split= U.unit_flag & USER_UNIT_OPT_SPLIT ? 1:0;
+		if(t->scene->unit.system) {
+			int i, do_split= t->scene->unit.flag & USER_UNIT_OPT_SPLIT ? 1:0;
 
 			for(i=0; i<3; i++)
-				bUnit_AsString(&tvec[i*20], dvec[i]*U.unit_scale_length, 4, U.unit_system, B_UNIT_LENGTH, do_split, 1);
+				bUnit_AsString(&tvec[i*20], 20, dvec[i]*t->scene->unit.scale_length, 4, t->scene->unit.system, B_UNIT_LENGTH, do_split, 1);
 		}
 		else {
 			sprintf(&tvec[0], "%.4f", dvec[0]);
@@ -3053,8 +3053,8 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 		}
 	}
 
-	if(U.unit_system)
-		bUnit_AsString(distvec, dist*U.unit_scale_length, 4, U.unit_system, B_UNIT_LENGTH, U.unit_flag & USER_UNIT_OPT_SPLIT, 0);
+	if(t->scene->unit.system)
+		bUnit_AsString(distvec, sizeof(distvec), dist*t->scene->unit.scale_length, 4, t->scene->unit.system, B_UNIT_LENGTH, t->scene->unit.flag & USER_UNIT_OPT_SPLIT, 0);
 	else if( dist > 1e10 || dist < -1e10 )	/* prevent string buffer overflow */
 		sprintf(distvec, "%.4e", dist);
 	else

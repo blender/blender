@@ -640,14 +640,19 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int multires_subdivide_poll(bContext *C)
+{
+	return NULL != CTX_data_active_object(C) && NULL == CTX_data_edit_object(C);
+}
+
 void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
 {
 	ot->name= "Multires Subdivide";
 	ot->description= "Add a new level of subdivision.";
 	ot->idname= "OBJECT_OT_multires_subdivide";
-	ot->poll= ED_operator_object_active;
 
 	ot->exec= multires_subdivide_exec;
+	ot->poll= multires_subdivide_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

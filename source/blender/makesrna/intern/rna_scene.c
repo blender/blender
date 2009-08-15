@@ -174,6 +174,11 @@ static void rna_Scene_frame_update(bContext *C, PointerRNA *ptr)
 	//ED_update_for_newframe(C);
 }
 
+static char *rna_SceneRenderData_path(PointerRNA *ptr)
+{
+	return BLI_sprintfN("render_data");
+}
+
 static int rna_SceneRenderData_threads_get(PointerRNA *ptr)
 {
 	RenderData *rd= (RenderData*)ptr->data;
@@ -442,6 +447,40 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_float_sdna(prop, NULL, "vgroup_weight");
 	RNA_def_property_ui_text(prop, "Vertex Group Weight", "Weight to assign in vertex groups.");
 }
+
+
+static void rna_def_unit_settings(BlenderRNA  *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem unit_systems[] = {
+		{USER_UNIT_NONE, "NONE", 0, "None", ""},
+		{USER_UNIT_METRIC, "METRIC", 0, "Metric", ""},
+		{USER_UNIT_IMPERIAL, "IMPERIAL", 0, "Imperial", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "UnitSettings", NULL);
+	RNA_def_struct_ui_text(srna, "Unit Settings", "");
+
+	/* Units */
+	prop= RNA_def_property(srna, "system", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, unit_systems);
+	RNA_def_property_ui_text(prop, "Unit System", "The unit system to use for button display.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "scale_length", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_ui_text(prop, "Unit Scale", "Scale to use when converting between blender units and dimensions.");
+	RNA_def_property_range(prop, 0.00001, 100000.0);
+	RNA_def_property_ui_range(prop, 0.001, 100.0, 0.1, 3);
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "use_separate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_UNIT_OPT_SPLIT);
+	RNA_def_property_ui_text(prop, "Separate Units", "Display units in pairs.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+}
+
 
 void rna_def_render_layer_common(StructRNA *srna, int scene)
 {
@@ -1081,6 +1120,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "SceneRenderData", NULL);
 	RNA_def_struct_sdna(srna, "RenderData");
 	RNA_def_struct_nested(brna, srna, "Scene");
+	RNA_def_struct_path_func(srna, "rna_SceneRenderData_path");
 	RNA_def_struct_ui_text(srna, "Render Data", "Rendering settings for a Scene datablock.");
 	
 	prop= RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);
@@ -1743,6 +1783,12 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "toolsettings");
 	RNA_def_property_struct_type(prop, "ToolSettings");
 	RNA_def_property_ui_text(prop, "Tool Settings", "");
+
+	/* Unit Settings */
+	prop= RNA_def_property(srna, "unit_settings", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "unit");
+	RNA_def_property_struct_type(prop, "UnitSettings");
+	RNA_def_property_ui_text(prop, "Unit Settings", "Unit editing settings");
 	
 	/* Render Data */
 	prop= RNA_def_property(srna, "render_data", PROP_POINTER, PROP_NEVER_NULL);
@@ -1763,6 +1809,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Game Data", "");
 	
 	rna_def_tool_settings(brna);
+	rna_def_unit_settings(brna);
 	rna_def_scene_render_data(brna);
 	rna_def_scene_game_data(brna);
 	rna_def_scene_render_layer(brna);

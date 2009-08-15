@@ -300,6 +300,13 @@ void brush_curve_preset(Brush *b, BrushCurvePreset preset)
 	curvemapping_changed(b->curve, 0);
 }
 
+static MTex *brush_active_texture(Brush *brush)
+{
+	if(brush && brush->texact >= 0)
+		return brush->mtex[brush->texact];
+	return NULL;
+}
+
 int brush_texture_set_nr(Brush *brush, int nr)
 {
 	ID *idtest, *id=NULL;
@@ -1077,8 +1084,11 @@ void brush_radial_control_invoke(wmOperator *op, Brush *br, float size_weight)
 		original_value = br->size * size_weight;
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
 		original_value = br->alpha;
-	else if(mode == WM_RADIALCONTROL_ANGLE)
-		original_value = br->rot;
+	else if(mode == WM_RADIALCONTROL_ANGLE) {
+		MTex *mtex = brush_active_texture(br);
+		if(mtex)
+			original_value = mtex->rot;
+	}
 
 	RNA_float_set(op->ptr, "initial_value", original_value);
 	op->customdata = brush_gen_radial_control_imbuf(br);
@@ -1094,8 +1104,11 @@ int brush_radial_control_exec(wmOperator *op, Brush *br, float size_weight)
 		br->size = new_value * size_weight;
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
 		br->alpha = new_value;
-	else if(mode == WM_RADIALCONTROL_ANGLE)
-		br->rot = new_value * conv;
+	else if(mode == WM_RADIALCONTROL_ANGLE) {
+		MTex *mtex = brush_active_texture(br);
+		if(mtex)
+			mtex->rot = new_value * conv;
+	}
 
 	return OPERATOR_FINISHED;
 }
