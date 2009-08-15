@@ -124,6 +124,19 @@ typedef struct DMLoopIter {
 	  loop refers to per-face-vertex data.*/
 	void *(*getLoopCDData)(void *self, int type, int layer);
 	void *(*getVertCDData)(void *self, int type, int layer);
+	
+/* derivedmesh 2.0 interface ideas (will likely never be implemented ;):
+        void (*interpLoopData)(void *self, void **src_blocks, 
+	                       float *weights, float *sub_weights, int count);
+
+        //a generic handle for a loop
+	intptr_t lhandle;
+
+	inside DerivedMesh itself:
+	//
+	//void (*interpLoopData)(DerivedMesh *dm, DMLoopIter *destloop, 
+	//                       intptr_t *loop_handles, int totloop);
+*/
 } DMLoopIter;
 
 typedef struct DMFaceIter {
@@ -227,7 +240,7 @@ struct DerivedMesh {
 	void (*copyFromVertCData)(DerivedMesh *dm, int source, CustomData *dst, int dest);
 	void (*copyFromEdgeCData)(DerivedMesh *dm, int source, CustomData *dst, int dest);
 	void (*copyFromFaceCData)(DerivedMesh *dm, int source, CustomData *dst, int dest);
-
+	
 	/* Iterate over each mapped vertex in the derived mesh, calling the
 	 * given function with the original vert and the mapped vert's new
 	 * coordinate and normal. For historical reasons the normal can be
@@ -431,6 +444,8 @@ void DM_add_vert_layer(struct DerivedMesh *dm, int type, int alloctype,
                        void *layer);
 void DM_add_edge_layer(struct DerivedMesh *dm, int type, int alloctype,
                        void *layer);
+void DM_add_tessface_layer(struct DerivedMesh *dm, int type, int alloctype,
+                       void *layer);
 void DM_add_face_layer(struct DerivedMesh *dm, int type, int alloctype,
                        void *layer);
 
@@ -450,6 +465,7 @@ void *DM_get_face_data(struct DerivedMesh *dm, int index, int type);
  */
 void *DM_get_vert_data_layer(struct DerivedMesh *dm, int type);
 void *DM_get_edge_data_layer(struct DerivedMesh *dm, int type);
+void *DM_get_tessface_data_layer(struct DerivedMesh *dm, int type);
 void *DM_get_face_data_layer(struct DerivedMesh *dm, int type);
 
 /* custom data setting functions

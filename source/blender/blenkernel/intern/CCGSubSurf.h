@@ -1,31 +1,30 @@
 /* $Id$ */
 
 typedef void* CCGMeshHDL;
-typedef void* CCGVertHDL;
-typedef void* CCGEdgeHDL;
-typedef void* CCGFaceHDL;
+typedef void* CCVertHDL;
+typedef void* CCEdgeHDL;
+typedef void* CCFaceHDL;
 
-typedef struct _CCGVert CCGVert;
-typedef struct _CCGEdge CCGEdge;
-typedef struct _CCGFace CCGFace;
+typedef struct _CCVert CCVert;
+typedef struct _CCEdge CCEdge;
+typedef struct _CCFace CCFace;
 
 typedef struct _CCGMeshIFC CCGMeshIFC;
 struct _CCGMeshIFC {
-	int			vertUserSize, edgeUserSize, faceUserSize;
-
-	int			vertDataSize;
+	int vertUserSize, edgeUserSize, faceUserSize;
+	int vertDataSize;
 };
 
 /***/
 
-typedef void* CCGAllocatorHDL;
+typedef void* CCAllocHDL;
 
 typedef struct _CCGAllocatorIFC CCGAllocatorIFC;
 struct _CCGAllocatorIFC {
-	void*		(*alloc)			(CCGAllocatorHDL a, int numBytes);
-	void*		(*realloc)			(CCGAllocatorHDL a, void *ptr, int newSize, int oldSize);
-	void		(*free)				(CCGAllocatorHDL a, void *ptr);
-	void		(*release)			(CCGAllocatorHDL a);
+	void*		(*alloc)	(CCAllocHDL a, int numBytes);
+	void*		(*realloc)	(CCAllocHDL a, void *ptr, int newSize, int oldSize);
+	void		(*free)		(CCAllocHDL a, void *ptr);
+	void		(*release)	(CCAllocHDL a);
 };
 
 /***/
@@ -39,114 +38,114 @@ typedef enum {
 
 /***/
 
-typedef struct _CCGSubSurf CCGSubSurf;
+typedef struct _CSubSurf CSubSurf;
 
-CCGSubSurf*	ccgSubSurf_new	(CCGMeshIFC *ifc, int subdivisionLevels, CCGAllocatorIFC *allocatorIFC, CCGAllocatorHDL allocator);
-void		ccgSubSurf_free	(CCGSubSurf *ss);
+CSubSurf*	CCS_new			(CCGMeshIFC *ifc, int subdivisionLevels, CCGAllocatorIFC *allocatorIFC, CCAllocHDL allocator);
+void		CCS_free		(CSubSurf *ss);
 
-CCGError	ccgSubSurf_sync	(CCGSubSurf *ss);
+CCGError	CCS_sync		(CSubSurf *ss);
 
-CCGError	ccgSubSurf_initFullSync		(CCGSubSurf *ss);
-CCGError	ccgSubSurf_initPartialSync	(CCGSubSurf *ss);
+CCGError	CCS_initFullSync	(CSubSurf *ss);
+CCGError	CCS_initPartialSync	(CSubSurf *ss);
 
-CCGError	ccgSubSurf_syncVert		(CCGSubSurf *ss, CCGVertHDL vHDL, void *vertData, int seam, CCGVert **v_r);
-CCGError	ccgSubSurf_syncEdge		(CCGSubSurf *ss, CCGEdgeHDL eHDL, CCGVertHDL e_vHDL0, CCGVertHDL e_vHDL1, float crease, CCGEdge **e_r);
-CCGError	ccgSubSurf_syncFace		(CCGSubSurf *ss, CCGFaceHDL fHDL, int numVerts, CCGVertHDL *vHDLs, CCGFace **f_r);
+CCGError	CCS_syncVert		(CSubSurf *ss, CCVertHDL vHDL, void *vertData, int seam, CCVert **v_r);
+CCGError	CCS_syncEdge		(CSubSurf *ss, CCEdgeHDL eHDL, CCVertHDL e_vHDL0, CCVertHDL e_vHDL1, float crease, CCEdge **e_r);
+CCGError	CCS_syncFace		(CSubSurf *ss, CCFaceHDL fHDL, int numVerts, CCVertHDL *vHDLs, CCFace **f_r);
 
-CCGError	ccgSubSurf_syncVertDel	(CCGSubSurf *ss, CCGVertHDL vHDL);
-CCGError	ccgSubSurf_syncEdgeDel	(CCGSubSurf *ss, CCGEdgeHDL eHDL);
-CCGError	ccgSubSurf_syncFaceDel	(CCGSubSurf *ss, CCGFaceHDL fHDL);
+CCGError	CCS_syncVertDel		(CSubSurf *ss, CCVertHDL vHDL);
+CCGError	CCS_syncEdgeDel		(CSubSurf *ss, CCEdgeHDL eHDL);
+CCGError	CCS_syncFaceDel		(CSubSurf *ss, CCFaceHDL fHDL);
 
-CCGError	ccgSubSurf_processSync	(CCGSubSurf *ss);
+CCGError	CCS_processSync		(CSubSurf *ss);
 
-CCGError	ccgSubSurf_setSubdivisionLevels		(CCGSubSurf *ss, int subdivisionLevels);
+CCGError	CCS_setSubdivisionLevels(CSubSurf *ss, int subdivisionLevels);
 
-CCGError	ccgSubSurf_setAllowEdgeCreation		(CCGSubSurf *ss, int allowEdgeCreation, float defaultCreaseValue, void *defaultUserData);
-void		ccgSubSurf_getAllowEdgeCreation		(CCGSubSurf *ss, int *allowEdgeCreation_r, float *defaultCreaseValue_r, void *defaultUserData_r);
+CCGError	CCS_setAllowEdgeCreation(CSubSurf *ss, int allowEdgeCreation, float defaultCreaseValue, void *defaultUserData);
+void		CCS_getAllowEdgeCreation(CSubSurf *ss, int *allowEdgeCreation_r, float *defaultCreaseValue_r, void *defaultUserData_r);
 
-void		ccgSubSurf_getUseAgeCounts			(CCGSubSurf *ss, int *useAgeCounts_r, int *vertUserOffset_r, int *edgeUserOffset_r, int *faceUserOffset_r);
-CCGError	ccgSubSurf_setUseAgeCounts			(CCGSubSurf *ss, int useAgeCounts, int vertUserOffset, int edgeUserOffset, int faceUserOffset);
+void		CCS_getUseAgeCounts	(CSubSurf *ss, int *useAgeCounts_r, int *vertUserOffset_r, int *edgeUserOffset_r, int *faceUserOffset_r);
+CCGError	CCS_setUseAgeCounts	(CSubSurf *ss, int useAgeCounts, int vertUserOffset, int edgeUserOffset, int faceUserOffset);
 
-CCGError	ccgSubSurf_setCalcVertexNormals		(CCGSubSurf *ss, int useVertNormals, int normalDataOffset);
-
-/***/
-
-int			ccgSubSurf_getNumVerts				(CCGSubSurf *ss);
-int			ccgSubSurf_getNumEdges				(CCGSubSurf *ss);
-int			ccgSubSurf_getNumTessFaces				(CCGSubSurf *ss);
-
-int			ccgSubSurf_getSubdivisionLevels		(CCGSubSurf *ss);
-int			ccgSubSurf_getEdgeSize				(CCGSubSurf *ss);
-int			ccgSubSurf_getEdgeLevelSize			(CCGSubSurf *ss, int level);
-int			ccgSubSurf_getGridSize				(CCGSubSurf *ss);
-int			ccgSubSurf_getGridLevelSize			(CCGSubSurf *ss, int level);
-
-CCGVert*	ccgSubSurf_getVert					(CCGSubSurf *ss, CCGVertHDL v);
-CCGVertHDL	ccgSubSurf_getVertVertHandle		(CCGVert *v);
-int			ccgSubSurf_getVertNumFaces			(CCGVert *v);
-CCGFace*	ccgSubSurf_getVertFace				(CCGVert *v, int index);
-int			ccgSubSurf_getVertNumEdges			(CCGVert *v);
-CCGEdge*	ccgSubSurf_getVertEdge				(CCGVert *v, int index);
-
-int			ccgSubSurf_getVertAge				(CCGSubSurf *ss, CCGVert *v);
-void*		ccgSubSurf_getVertUserData			(CCGSubSurf *ss, CCGVert *v);
-void*		ccgSubSurf_getVertData				(CCGSubSurf *ss, CCGVert *v);
-void*		ccgSubSurf_getVertLevelData			(CCGSubSurf *ss, CCGVert *v, int level);
-
-CCGEdge*	ccgSubSurf_getEdge					(CCGSubSurf *ss, CCGEdgeHDL e);
-CCGEdgeHDL	ccgSubSurf_getEdgeEdgeHandle		(CCGEdge *e);
-int			ccgSubSurf_getEdgeNumFaces			(CCGEdge *e);
-CCGFace*	ccgSubSurf_getEdgeFace				(CCGEdge *e, int index);
-CCGVert*	ccgSubSurf_getEdgeVert0				(CCGEdge *e);
-CCGVert*	ccgSubSurf_getEdgeVert1				(CCGEdge *e);
-float		ccgSubSurf_getEdgeCrease			(CCGEdge *e);
-
-int			ccgSubSurf_getEdgeAge				(CCGSubSurf *ss, CCGEdge *e);
-void*		ccgSubSurf_getEdgeUserData			(CCGSubSurf *ss, CCGEdge *e);
-void*		ccgSubSurf_getEdgeDataArray			(CCGSubSurf *ss, CCGEdge *e);
-void*		ccgSubSurf_getEdgeData				(CCGSubSurf *ss, CCGEdge *e, int x);
-void*		ccgSubSurf_getEdgeLevelData			(CCGSubSurf *ss, CCGEdge *e, int x, int level);
-
-CCGFace*	ccgSubSurf_getFace					(CCGSubSurf *ss, CCGFaceHDL f);
-CCGFaceHDL	ccgSubSurf_getFaceFaceHandle		(CCGSubSurf *ss, CCGFace *f);
-int			ccgSubSurf_getFaceNumVerts			(CCGFace *f);
-CCGVert*	ccgSubSurf_getFaceVert				(CCGSubSurf *ss, CCGFace *f, int index);
-CCGEdge*	ccgSubSurf_getFaceEdge				(CCGSubSurf *ss, CCGFace *f, int index);
-int			ccgSubSurf_getFaceEdgeIndex			(CCGFace *f, CCGEdge *e);
-
-int			ccgSubSurf_getFaceAge				(CCGSubSurf *ss, CCGFace *f);
-void*		ccgSubSurf_getFaceUserData			(CCGSubSurf *ss, CCGFace *f);
-void*		ccgSubSurf_getFaceCenterData		(CCGFace *f);
-void*		ccgSubSurf_getFaceGridEdgeDataArray	(CCGSubSurf *ss, CCGFace *f, int gridIndex);
-void*		ccgSubSurf_getFaceGridEdgeData		(CCGSubSurf *ss, CCGFace *f, int gridIndex, int x);
-void*		ccgSubSurf_getFaceGridDataArray		(CCGSubSurf *ss, CCGFace *f, int gridIndex);
-void*		ccgSubSurf_getFaceGridData			(CCGSubSurf *ss, CCGFace *f, int gridIndex, int x, int y);
-
-int			ccgSubSurf_getNumFinalVerts		(CCGSubSurf *ss);
-int			ccgSubSurf_getNumFinalEdges		(CCGSubSurf *ss);
-int			ccgSubSurf_getNumFinalFaces		(CCGSubSurf *ss);
+CCGError	CCS_setCalcVertexNormals(CSubSurf *ss, int useVertNormals, int normalDataOffset);
 
 /***/
 
-typedef struct _CCGVertIterator CCGVertIterator;
-typedef struct _CCGEdgeIterator CCGEdgeIterator;
-typedef struct _CCGFaceIterator CCGFaceIterator;
+int		CCS_getNumVerts		(CSubSurf *ss);
+int		CCS_getNumEdges		(CSubSurf *ss);
+int		CCS_getNumFaces	(CSubSurf *ss);
 
-CCGVertIterator*	ccgSubSurf_getVertIterator	(CCGSubSurf *ss);
-CCGEdgeIterator*	ccgSubSurf_getEdgeIterator	(CCGSubSurf *ss);
-CCGFaceIterator*	ccgSubSurf_getFaceIterator	(CCGSubSurf *ss);
+int		CCS_getSubdivisionLevels(CSubSurf *ss);
+int		CCS_getEdgeSize		(CSubSurf *ss);
+int		CCS_getEdgeLevelSize	(CSubSurf *ss, int level);
+int		CCS_getGridSize		(CSubSurf *ss);
+int		CCS_getGridLevelSize	(CSubSurf *ss, int level);
 
-CCGVert*			ccgVertIterator_getCurrent	(CCGVertIterator *vi);
-int					ccgVertIterator_isStopped	(CCGVertIterator *vi);
-void				ccgVertIterator_next		(CCGVertIterator *vi);
-void				ccgVertIterator_free		(CCGVertIterator *vi);
+CCVert*		CCS_getVert		(CSubSurf *ss, CCVertHDL v);
+CCVertHDL	CCS_getVertVertHandle	(CCVert *v);
+int		CCS_getVertNumFaces	(CCVert *v);
+CCFace*		CCS_getVertFace		(CCVert *v, int index);
+int		CCS_getVertNumEdges	(CCVert *v);
+CCEdge*		CCS_getVertEdge		(CCVert *v, int index);
 
-CCGEdge*			ccgEdgeIterator_getCurrent	(CCGEdgeIterator *ei);
-int					ccgEdgeIterator_isStopped	(CCGEdgeIterator *ei);
-void				ccgEdgeIterator_next		(CCGEdgeIterator *ei);
-void				ccgEdgeIterator_free		(CCGEdgeIterator *ei);
+int		CCS_getVertAge		(CSubSurf *ss, CCVert *v);
+void*		CCS_getVertUserData	(CSubSurf *ss, CCVert *v);
+void*		CCS_getVertData		(CSubSurf *ss, CCVert *v);
+void*		CCS_getVertLevelData	(CSubSurf *ss, CCVert *v, int level);
 
-CCGFace*			ccgFaceIterator_getCurrent	(CCGFaceIterator *fi);
-int					ccgFaceIterator_isStopped	(CCGFaceIterator *fi);
-void				ccgFaceIterator_next		(CCGFaceIterator *fi);
-void				ccgFaceIterator_free		(CCGFaceIterator *fi);
+CCEdge*		CCS_getEdge		(CSubSurf *ss, CCEdgeHDL e);
+CCEdgeHDL	CCS_getEdgeEdgeHandle	(CCEdge *e);
+int		CCS_getEdgeNumFaces	(CCEdge *e);
+CCFace*		CCS_getEdgeFace		(CCEdge *e, int index);
+CCVert*		CCS_getEdgeVert0	(CCEdge *e);
+CCVert*		CCS_getEdgeVert1	(CCEdge *e);
+float		CCS_getEdgeCrease	(CCEdge *e);
+
+int		CCS_getEdgeAge		(CSubSurf *ss, CCEdge *e);
+void*		CCS_getEdgeUserData	(CSubSurf *ss, CCEdge *e);
+void*		CCS_getEdgeDataArray	(CSubSurf *ss, CCEdge *e);
+void*		CCS_getEdgeData		(CSubSurf *ss, CCEdge *e, int x);
+void*		CCS_getEdgeLevelData	(CSubSurf *ss, CCEdge *e, int x, int level);
+
+CCFace*		CCS_getFace		(CSubSurf *ss, CCFaceHDL f);
+CCFaceHDL	CCS_getFaceFaceHandle	(CSubSurf *ss, CCFace *f);
+int		CCS_getFaceNumVerts	(CCFace *f);
+CCVert*		CCS_getFaceVert		(CSubSurf *ss, CCFace *f, int index);
+CCEdge*		CCS_getFaceEdge		(CSubSurf *ss, CCFace *f, int index);
+int		CCS_getFaceEdgeIndex	(CCFace *f, CCEdge *e);
+
+int		CCS_getFaceAge		(CSubSurf *ss, CCFace *f);
+void*		CCS_getFaceUserData	(CSubSurf *ss, CCFace *f);
+void*		CCS_getFaceCenterData	(CCFace *f);
+void*		CCS_getFaceGridEdgeDataArray	(CSubSurf *ss, CCFace *f, int gridIndex);
+void*		CCS_getFaceGridEdgeData		(CSubSurf *ss, CCFace *f, int gridIndex, int x);
+void*		CCS_getFaceGridDataArray	(CSubSurf *ss, CCFace *f, int gridIndex);
+void*		CCS_getFaceGridData		(CSubSurf *ss, CCFace *f, int gridIndex, int x, int y);
+
+int		CCS_getNumFinalVerts		(CSubSurf *ss);
+int		CCS_getNumFinalEdges		(CSubSurf *ss);
+int		CCS_getNumFinalFaces		(CSubSurf *ss);
+
+/***/
+
+typedef struct _CCVertIterator CCVertIterator;
+typedef struct _CCEdgeIterator CCEdgeIterator;
+typedef struct _CCFaceIterator CCFaceIterator;
+
+CCVertIterator*	CCS_getVertIterator		(CSubSurf *ss);
+CCEdgeIterator*	CCS_getEdgeIterator		(CSubSurf *ss);
+CCFaceIterator*	CCS_getFaceIterator		(CSubSurf *ss);
+
+CCVert*		CCVIter_getCurrent		(CCVertIterator *vi);
+int		CCVIter_isStopped		(CCVertIterator *vi);
+void		CCVIter_next			(CCVertIterator *vi);
+void		CCVIter_free			(CCVertIterator *vi);
+
+CCEdge*		CCEIter_getCurrent		(CCEdgeIterator *ei);
+int		CCEIter_isStopped		(CCEdgeIterator *ei);
+void		CCEIter_next			(CCEdgeIterator *ei);
+void		CCEIter_free			(CCEdgeIterator *ei);
+
+CCFace*		CCFIter_getCurrent		(CCFaceIterator *fi);
+int		CCFIter_isStopped		(CCFaceIterator *fi);
+void		CCFIter_next			(CCFaceIterator *fi);
+void		CCFIter_free			(CCFaceIterator *fi);

@@ -196,7 +196,7 @@ static void cdDM_drawUVEdges(DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	MFace *mf = cddm->mface;
-	MTFace *tf = DM_get_face_data_layer(dm, CD_MTFACE);
+	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
 	int i;
 
 	if(mf) {
@@ -403,8 +403,8 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	MFace *mf = cddm->mface;
 	MCol *mcol = dm->getTessFaceDataArray(dm, CD_MCOL);
 	float *nors= dm->getTessFaceDataArray(dm, CD_NORMAL);
-	MTFace *tf = DM_get_face_data_layer(dm, CD_MTFACE);
-	int i, orig, *index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
+	MTFace *tf = DM_get_tessface_data_layer(dm, CD_MTFACE);
+	int i, orig, *index = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
 
 	for(i = 0; i < dm->numFaceData; i++, mf++) {
 		MVert *mvert;
@@ -494,11 +494,11 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	MFace *mf = cddm->mface;
 	MCol *mc;
 	float *nors= dm->getTessFaceDataArray(dm, CD_NORMAL);
-	int i, orig, *index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
+	int i, orig, *index = DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
 
-	mc = DM_get_face_data_layer(dm, CD_WEIGHT_MCOL);
+	mc = DM_get_tessface_data_layer(dm, CD_WEIGHT_MCOL);
 	if(!mc)
-		mc = DM_get_face_data_layer(dm, CD_MCOL);
+		mc = DM_get_tessface_data_layer(dm, CD_MCOL);
 
 	for(i = 0; i < dm->numFaceData; i++, mf++) {
 		int drawSmooth = (mf->flag & ME_SMOOTH);
@@ -857,7 +857,7 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 	dm->getTessFaceData = DM_get_face_data;
 	dm->getVertDataArray = DM_get_vert_data_layer;
 	dm->getEdgeDataArray = DM_get_edge_data_layer;
-	dm->getTessFaceDataArray = DM_get_face_data_layer;
+	dm->getTessFaceDataArray = DM_get_tessface_data_layer;
 
 	dm->getVertCos = cdDM_getVertCos;
 	dm->getVertCo = cdDM_getVertCo;

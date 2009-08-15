@@ -153,8 +153,8 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, 1000.0f, "Smoothness", "Smoothness factor.", 0.0f, FLT_MAX);
 
 	/*props */
-	RNA_def_enum(ot->srna, "quadcorner", prop_mesh_cornervert_types, SUBD_INNERVERT, "Quad Corner Type", "Method used for subdividing two adjacent edges in a quad");
-	RNA_def_boolean(ot->srna, "tess_single_edge", 1, "Tesselate Single Edge", "Adds triangles to single edges belonging to triangles or quads");
+	RNA_def_enum(ot->srna, "quadcorner", prop_mesh_cornervert_types, SUBD_STRAIGHT_CUT, "Quad Corner Type", "Method used for subdividing two adjacent edges in a quad");
+	RNA_def_boolean(ot->srna, "tess_single_edge", 0, "Tesselate Single Edge", "Adds triangles to single edges belonging to triangles or quads");
 	RNA_def_boolean(ot->srna, "gridfill", 1, "Grid Fill", "Fill Fully Selected Triangles and Quads With A Grid");
 }
 

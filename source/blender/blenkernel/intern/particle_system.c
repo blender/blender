@@ -302,7 +302,7 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 		else { /* FROM_FACE/FROM_VOLUME */
 			totdmelem= dm->getNumTessFaces(dm);
 			totelem= me->totface;
-			origindex= DM_get_face_data_layer(dm, CD_ORIGINDEX);
+			origindex= DM_get_tessface_data_layer(dm, CD_ORIGINDEX);
 		}
 	
 		nodedmelem= MEM_callocN(sizeof(LinkNode)*totdmelem, "psys node elems");

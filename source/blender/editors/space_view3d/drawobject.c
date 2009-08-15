@@ -1370,12 +1370,14 @@ void mesh_foreachScreenEdge(ViewContext *vc, void (*func)(void *userData, BMEdge
 static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *cent, float *no)
 {
 	struct { void (*func)(void *userData, BMFace *efa, int x, int y, int index); void *userData; ViewContext vc; float pmat[4][4], vmat[4][4]; } *data = userData;
+	float cent2[3];
 	BMFace *efa = EDBM_get_face_for_index(data->vc.em, index);
 	short s[2];
 
+	VECCOPY(cent2, cent);
 	if (efa && !BM_TestHFlag(efa, BM_HIDDEN)) {
-		MTC_Mat4MulVecfl(data->vc.obedit->obmat, cent);
-		project_short(data->vc.ar, cent, s);
+		MTC_Mat4MulVecfl(data->vc.obedit->obmat, cent2);
+		project_short(data->vc.ar, cent2, s);
 
 		data->func(data->userData, efa, s[0], s[1], index);
 	}

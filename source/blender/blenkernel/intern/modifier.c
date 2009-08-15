@@ -399,10 +399,10 @@ static void subsurfModifier_freeData(ModifierData *md)
 	SubsurfModifierData *smd = (SubsurfModifierData*) md;
 
 	if(smd->mCache) {
-		ccgSubSurf_free(smd->mCache);
+		CCS_free(smd->mCache);
 	}
 	if(smd->emCache) {
-		ccgSubSurf_free(smd->emCache);
+		CCS_free(smd->emCache);
 	}
 }
 

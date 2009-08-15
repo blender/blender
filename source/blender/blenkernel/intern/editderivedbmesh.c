@@ -1252,7 +1252,7 @@ static void *bmDM_getFaceDataArray(DerivedMesh *dm, int type)
 	void *datalayer;
 	int index, offset, size, i;
 
-	datalayer = DM_get_face_data_layer(dm, type);
+	datalayer = DM_get_tessface_data_layer(dm, type);
 	if(datalayer)
 		return datalayer;
 
@@ -1265,11 +1265,11 @@ static void *bmDM_getFaceDataArray(DerivedMesh *dm, int type)
 			offset = bm->pdata.layers[index].offset;
 			size = CustomData_sizeof(type);
 
-			DM_add_face_layer(dm, type, CD_CALLOC, NULL);
+			DM_add_tessface_layer(dm, type, CD_CALLOC, NULL);
 			index = CustomData_get_layer_index(&dm->faceData, type);
 			dm->faceData.layers[index].flag |= CD_FLAG_TEMPORARY;
 
-			data = datalayer = DM_get_face_data_layer(dm, type);
+			data = datalayer = DM_get_tessface_data_layer(dm, type);
 			for (i=0; i<bmdm->tc->tottri; i++, data+=size) {
 				efa = bmdm->tc->looptris[i][0]->f;
 				/*BMESH_TODO: need to still add tface data,

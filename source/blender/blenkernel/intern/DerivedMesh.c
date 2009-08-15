@@ -209,7 +209,7 @@ void DM_init_funcs(DerivedMesh *dm)
 	dm->getTessFaceData = DM_get_face_data;
 	dm->getVertDataArray = DM_get_vert_data_layer;
 	dm->getEdgeDataArray = DM_get_edge_data_layer;
-	dm->getTessFaceDataArray = DM_get_face_data_layer;
+	dm->getTessFaceDataArray = DM_get_tessface_data_layer;
 
 	bvhcache_init(&dm->bvhCache);
 }
@@ -417,9 +417,19 @@ void DM_add_edge_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
 	CustomData_add_layer(&dm->edgeData, type, alloctype, layer, dm->numEdgeData);
 }
 
-void DM_add_face_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
+void DM_add_tessface_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
 {
 	CustomData_add_layer(&dm->faceData, type, alloctype, layer, dm->numFaceData);
+}
+
+void DM_add_loop_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
+{
+	CustomData_add_layer(&dm->loopData, type, alloctype, layer, dm->numLoopData);
+}
+
+void DM_add_face_layer(DerivedMesh *dm, int type, int alloctype, void *layer)
+{
+	CustomData_add_layer(&dm->polyData, type, alloctype, layer, dm->numPolyData);
 }
 
 void *DM_get_vert_data(DerivedMesh *dm, int index, int type)
@@ -447,9 +457,14 @@ void *DM_get_edge_data_layer(DerivedMesh *dm, int type)
 	return CustomData_get_layer(&dm->edgeData, type);
 }
 
-void *DM_get_face_data_layer(DerivedMesh *dm, int type)
+void *DM_get_tessface_data_layer(DerivedMesh *dm, int type)
 {
 	return CustomData_get_layer(&dm->faceData, type);
+}
+
+void *DM_get_face_data_layer(DerivedMesh *dm, int type)
+{
+	return CustomData_get_layer(&dm->polyData, type);
 }
 
 void DM_set_vert_data(DerivedMesh *dm, int index, int type, void *data)
@@ -1410,7 +1425,7 @@ static void *emDM_getFaceDataArray(void *dm, int type)
 	void *datalayer;
 	int index, offset, size;
 
-	datalayer = DM_get_face_data_layer(dm, type);
+	datalayer = DM_get_tessface_data_layer(dm, type);
 	if(datalayer)
 		return datalayer;
 
@@ -1423,11 +1438,11 @@ static void *emDM_getFaceDataArray(void *dm, int type)
 			offset = em->fdata.layers[index].offset;
 			size = CustomData_sizeof(type);
 
-			DM_add_face_layer(dm, type, CD_CALLOC, NULL);
+			DM_add_tessface_layer(dm, type, CD_CALLOC, NULL);
 			index = CustomData_get_layer_index(&emdm->dm.faceData, type);
 			emdm->dm.faceData.layers[index].flag |= CD_FLAG_TEMPORARY;
 
-			data = datalayer = DM_get_face_data_layer(dm, type);
+			data = datalayer = DM_get_tessface_data_layer(dm, type);
 			for(efa=em->faces.first; efa; efa=efa->next, data+=size) {
 				emdata = CustomData_em_get(&em->fdata, efa->data, type);
 				memcpy(data, emdata, size);
@@ -1931,7 +1946,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			/* add an origspace layer if needed */
 			if(((CustomDataMask)GET_INT_FROM_POINTER(curr->link)) & CD_MASK_ORIGSPACE)
 				if(!CustomData_has_layer(&dm->faceData, CD_ORIGSPACE))
-					DM_add_face_layer(dm, CD_ORIGSPACE, CD_DEFAULT, NULL);
+					DM_add_tessface_layer(dm, CD_ORIGSPACE, CD_DEFAULT, NULL);
 
 			ndm = mti->applyModifier(md, ob, dm, useRenderParams, !inputVertexCos);
 
@@ -2150,7 +2165,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 
 			if(((CustomDataMask)GET_INT_FROM_POINTER(curr->link)) & CD_MASK_ORIGSPACE)
 				if(!CustomData_has_layer(&dm->faceData, CD_ORIGSPACE))
-					DM_add_face_layer(dm, CD_ORIGSPACE, CD_DEFAULT, NULL);
+					DM_add_tessface_layer(dm, CD_ORIGSPACE, CD_DEFAULT, NULL);
 			
 			ndm = mti->applyModifierEM(md, ob, em, dm);
 
@@ -2571,8 +2586,8 @@ void DM_add_tangent_layer(DerivedMesh *dm)
 	}
 	
 	/* create tangent layer */
-	DM_add_face_layer(dm, CD_TANGENT, CD_CALLOC, NULL);
-	tangent= DM_get_face_data_layer(dm, CD_TANGENT);
+	DM_add_tessface_layer(dm, CD_TANGENT, CD_CALLOC, NULL);
+	tangent= DM_get_tessface_data_layer(dm, CD_TANGENT);
 	
 	/* allocate some space */
 	arena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);

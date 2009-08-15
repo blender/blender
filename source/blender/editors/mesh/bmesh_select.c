@@ -1253,7 +1253,7 @@ void mouse_mesh(bContext *C, short mval[2], short extend)
 			}
 			else if(extend) {
 				EDBM_remove_selection(vc.em, efa);
-				BM_Select(vc.em->bm, efa, 1);
+				BM_Select(vc.em->bm, efa, 0);
 			}
 		}
 		else if(eed) {
