@@ -3697,20 +3697,20 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 	case B_MAN_TRANS:
 		if( shift==0 || v3d->twtype==0) {
 			v3d->twtype= V3D_MANIP_TRANSLATE;
-			ED_area_tag_redraw(sa);
 		}
-		break;
+        ED_area_tag_redraw(sa);
+        break;
 	case B_MAN_ROT:
 		if( shift==0 || v3d->twtype==0) {
-			v3d->twtype= V3D_MANIP_ROTATE;
-			ED_area_tag_redraw(sa);
+            v3d->twtype= V3D_MANIP_ROTATE;
 		}
+        ED_area_tag_redraw(sa);
 		break;
 	case B_MAN_SCALE:
 		if( shift==0 || v3d->twtype==0) {
-			v3d->twtype= V3D_MANIP_SCALE;
-			ED_area_tag_redraw(sa);
+            v3d->twtype= V3D_MANIP_SCALE;
 		}
+        ED_area_tag_redraw(sa);
 		break;
 	case B_NDOF:
 		break;
