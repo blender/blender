@@ -98,6 +98,7 @@
 #include "BKE_mesh.h"
 #include "BKE_nla.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_property.h"
 #include "BKE_report.h"
@@ -4118,7 +4119,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 		if(ob->flag & OB_POSEMODE) {
 // XXX			pose_special_editmenu();
 		}
-		else if(FACESEL_PAINT_TEST) {
+		else if(paint_facesel_test(ob)) {
 			Mesh *me= get_mesh(ob);
 			MTFace *tface;
 			MFace *mface;

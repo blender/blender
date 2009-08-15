@@ -65,6 +65,7 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_material.h"
+#include "BKE_paint.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_report.h"
@@ -242,7 +243,7 @@ int EM_mask_init_backbuf_border(ViewContext *vc, short mcords[][2], short tot, s
 	
 	/* method in use for face selecting too */
 	if(vc->obedit==NULL) {
-		if(FACESEL_PAINT_TEST);
+		if(paint_facesel_test(vc->obact));
 		else return 0;
 	}
 	else if(vc->v3d->drawtype<OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT)==0) return 0;
@@ -297,7 +298,7 @@ int EM_init_backbuf_circle(ViewContext *vc, short xs, short ys, short rads)
 	
 	/* method in use for face selecting too */
 	if(vc->obedit==NULL) {
-		if(FACESEL_PAINT_TEST);
+		if(paint_facesel_test(vc->obact));
 		else return 0;
 	}
 	else if(vc->v3d->drawtype<OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT)==0) return 0;

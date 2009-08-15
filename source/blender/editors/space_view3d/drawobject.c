@@ -87,6 +87,7 @@
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_property.h"
 #include "BKE_smoke.h"
@@ -2096,7 +2097,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 		}
 	}
 	
-	if((me->drawflag & (ME_DRAWFACES)) || FACESEL_PAINT_TEST) {	/* transp faces */
+	if((me->drawflag & (ME_DRAWFACES)) || paint_facesel_test(ob)) {	/* transp faces */
 		unsigned char col1[4], col2[4], col3[4];
 			
 		UI_GetThemeColor4ubv(TH_FACE, (char *)col1);
@@ -2255,7 +2256,7 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 		// Unwanted combination.
-	if (ob==OBACT && FACESEL_PAINT_TEST) draw_wire = 0;
+	if (ob==OBACT && paint_facesel_test(ob)) draw_wire = 0;
 
 	if(dt==OB_BOUNDBOX) {
 		draw_bounding_volume(scene, ob);
@@ -2268,12 +2269,12 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 	else if(dt==OB_WIRE || totface==0) {
 		draw_wire = 1; /* draw wire only, no depth buffer stuff  */
 	}
-	else if(	(ob==OBACT && (G.f & G_TEXTUREPAINT || FACESEL_PAINT_TEST)) ||
+	else if(	(ob==OBACT && (G.f & G_TEXTUREPAINT || paint_facesel_test(ob))) ||
 				CHECK_OB_DRAWTEXTURE(v3d, dt))
 	{
-		int faceselect= (ob==OBACT && FACESEL_PAINT_TEST);
+		int faceselect= (ob==OBACT && paint_facesel_test(ob));
 
-		if ((v3d->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !(G.f&G_PICKSEL || FACESEL_PAINT_TEST) && !draw_wire) {
+		if ((v3d->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !(G.f&G_PICKSEL || paint_facesel_test(ob)) && !draw_wire) {
 			draw_mesh_object_outline(v3d, ob, dm);
 		}
 

@@ -58,6 +58,7 @@
 #include "BKE_mesh.h"
 #include "BKE_node.h"
 #include "BKE_packedFile.h"
+#include "BKE_paint.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
@@ -1318,7 +1319,7 @@ void ED_image_uiblock_panel(const bContext *C, uiBlock *block, Image **ima_pp, I
 		 }
 		 
 		 /* exception, let's do because we only use this panel 3 times in blender... but not real good code! */
-		 if( (FACESEL_PAINT_TEST) && sima && &sima->iuser==iuser)
+		 if( (paint_facesel_test(CTX_data_active_object(C))) && sima && &sima->iuser==iuser)
 			 return;
 		 /* left side default per-image options, right half the additional options */
 		 

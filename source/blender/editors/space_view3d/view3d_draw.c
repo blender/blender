@@ -59,6 +59,7 @@
 #include "BKE_key.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
+#include "BKE_paint.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
@@ -1102,7 +1103,7 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	int m;
 #endif
 
-	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT || (FACESEL_PAINT_TEST));
+	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT || (scene->basact && paint_facesel_test(scene->basact->object)));
 	else if((G.f & G_TEXTUREPAINT) && scene->toolsettings && (scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE));
 	else if((G.f & G_PARTICLEEDIT) && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
 	else if(scene->obedit && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
@@ -1853,13 +1854,13 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 /* *********************** customdata **************** */
 
 /* goes over all modes and view3d settings */
-static CustomDataMask get_viewedit_datamask(bScreen *screen)
+static CustomDataMask get_viewedit_datamask(bScreen *screen, Object *ob)
 {
 	CustomDataMask mask = CD_MASK_BAREMESH;
 	ScrArea *sa;
 	
 	/* check if we need tfaces & mcols due to face select or texture paint */
-	if(FACESEL_PAINT_TEST || G.f & G_TEXTUREPAINT)
+	if(paint_facesel_test(ob) || G.f & G_TEXTUREPAINT)
 		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 	
 	/* check if we need tfaces & mcols due to view mode */
@@ -1887,12 +1888,9 @@ static CustomDataMask get_viewedit_datamask(bScreen *screen)
 	if(G.f & G_WEIGHTPAINT)
 		mask |= CD_MASK_WEIGHT_MCOL;
 	
-	/* XXX: is this even needed?
-	if(G.f & G_SCULPTMODE)
+	if(ob && ob->mode & OB_MODE_SCULPT)
 		mask |= CD_MASK_MDISPS;
 
-	*/
-	
 	return mask;
 }
 
@@ -1909,7 +1907,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	char *grid_unit= NULL;
 	
 	/* from now on all object derived meshes check this */
-	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C));
+	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C), obact);
 	
 	/* shadow buffers, before we setup matrices */
 	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))

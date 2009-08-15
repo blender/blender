@@ -54,6 +54,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
+#include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -990,7 +991,7 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 			}
 		}
 	}
-	else if (FACESEL_PAINT_TEST) {
+	else if (paint_facesel_test(ob)) {
 // XXX		ok= minmax_tface(min, max);
 	}
 	else if (G.f & G_PARTICLEEDIT) {

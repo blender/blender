@@ -59,6 +59,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
+#include "BKE_paint.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
@@ -694,7 +695,7 @@ static void do_lasso_select_node(short mcords[][2], short moves, short select)
 void view3d_lasso_select(bContext *C, ViewContext *vc, short mcords[][2], short moves, short select)
 {
 	if(vc->obedit==NULL) {
-		if(FACESEL_PAINT_TEST)
+		if(paint_facesel_test(CTX_data_active_object(C)))
 			do_lasso_select_facemode(vc, mcords, moves, select);
 		else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))
 			;
@@ -1341,7 +1342,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 	
-	if(obedit==NULL && (FACESEL_PAINT_TEST)) {
+	if(obedit==NULL && (paint_facesel_test(OBACT))) {
 // XXX		face_borderselect();
 		return OPERATOR_FINISHED;
 	}
@@ -1637,9 +1638,9 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 {
 	ToolSettings *ts= vc->scene->toolsettings;
 	int bbsel;
+	Object *ob= vc->obact;
 	
-	if(vc->obedit==NULL && (FACESEL_PAINT_TEST)) {
-		Object *ob= vc->obact;
+	if(vc->obedit==NULL && paint_facesel_test(ob)) {
 		Mesh *me = ob?ob->data:NULL;
 
 		if (me) {

@@ -61,6 +61,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h" /* for VECCOPY */
@@ -526,7 +527,7 @@ static void do_view3d_view_alignviewmenu(bContext *C, void *arg, int event)
 		if ((obedit) && (obedit->type == OB_MESH)) {
 			editmesh_align_view_to_selected(v3d, event + 1);
 		} 
-		else if (FACESEL_PAINT_TEST) {
+		else if (paint_facesel_test(CTX_data_active_object(C))) {
 			Object *obact= OBACT;
 			if (obact && obact->type==OB_MESH) {
 				Mesh *me= obact->data;
@@ -578,7 +579,7 @@ static uiBlock *view3d_view_alignviewmenu(bContext *C, ARegion *ar, void *arg_un
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center Cursor and View All|Shift C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align Active Camera to View|Ctrl Alt NumPad 0",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");	
 
-	if (((obedit) && (obedit->type == OB_MESH)) || (FACESEL_PAINT_TEST)) {
+	if (((obedit) && (obedit->type == OB_MESH)) || (paint_facesel_test(CTX_data_active_object(C)))) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align View to Selected (Top)|Shift V",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align View to Selected (Front)|Shift V",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Align View to Selected (Side)|Shift V",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
@@ -2810,7 +2811,7 @@ static void do_view3d_vpaintmenu(bContext *C, void *arg, int event)
 		BIF_undo();
 		break;
 	case 1: /* set vertex colors/weight */
-		if(FACESEL_PAINT_TEST)
+		if(paint_facesel_test(CTX_data_active_object(C)))
 			clear_vpaint_selectedfaces();
 		else /* we know were in vertex paint mode */
 			clear_vpaint();
@@ -2945,7 +2946,7 @@ static uiBlock *view3d_wpaintmenu(bContext *C, ARegion *ar, void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	if (FACESEL_PAINT_TEST) {
+	if (paint_facesel_test(CTX_data_active_object(C))) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Weight|Shift K",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
 		uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		menunr++;
@@ -3724,7 +3725,7 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 		uiDefMenuBut(block, view3d_sculpt_menu, NULL, "Sculpt", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 	}
-	else if (FACESEL_PAINT_TEST) {
+	else if (paint_facesel_test(ob)) {
 		if (ob && ob->type == OB_MESH) {
 			xmax= GetButStringLength("Face");
 			uiDefPulldownBut(block, view3d_faceselmenu, NULL, "Face",	xco,yco, xmax-3, 20, "");
@@ -3816,7 +3817,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	if(G.f & G_VERTEXPAINT) v3d->flag |= V3D_VERTEXPAINT;
 	if(G.f & G_WEIGHTPAINT) v3d->flag |= V3D_WEIGHTPAINT;
 	if (G.f & G_TEXTUREPAINT) v3d->flag |= V3D_TEXTUREPAINT;
-	if(FACESEL_PAINT_TEST) v3d->flag |= V3D_FACESELECT;
+	if(paint_facesel_test(ob)) v3d->flag |= V3D_FACESELECT;
 	
 	uiDefIconTextButS(block, MENU, B_MODESELECT, (v3d->modeselect),view3d_modeselect_pup(scene) , 
 																xco,yco,126,20, &(v3d->modeselect), 0, 0, 0, 0, "Mode (Hotkeys: Tab, V, Ctrl Tab)");

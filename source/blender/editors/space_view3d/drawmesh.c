@@ -60,6 +60,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_property.h"
 #include "BKE_utildefines.h"
 
@@ -482,7 +483,7 @@ void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 	if(ob == scene->obedit)
 		return;
 	else if(ob==OBACT)
-		if(FACESEL_PAINT_TEST)
+		if(paint_facesel_test(ob))
 			return;
 
 	ddm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);

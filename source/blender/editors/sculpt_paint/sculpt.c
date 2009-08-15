@@ -1663,8 +1663,6 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		/* Leave sculptmode */
 		ob->mode &= ~OB_MODE_SCULPT;
 
-		toggle_paint_cursor(C);
-
 		free_sculptsession(&ob->sculpt);
 	}
 	else {
