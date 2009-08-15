@@ -469,6 +469,7 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 	pid->info_types= (1<<BPHYS_DATA_TIMES);
 }
 
+#if 0 // XXX smoke pointcache stuff breaks compiling now
 /* Smoke functions */
 static int ptcache_totpoint_smoke(void *smoke_v)
 {
@@ -572,6 +573,7 @@ void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeMo
 	pid->data_types= (1<<BPHYS_DATA_LOCATION); // bogus values tot make pointcache happy
 	pid->info_types= 0;
 }
+#endif // XXX smoke poitcache stuff breaks compiling
 
 void BKE_ptcache_id_from_cloth(PTCacheID *pid, Object *ob, ClothModifierData *clmd)
 {

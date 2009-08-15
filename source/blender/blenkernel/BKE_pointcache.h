@@ -75,6 +75,7 @@ struct SoftBody;
 struct ParticleSystem;
 struct ParticleKey;
 struct ClothModifierData;
+struct SmokeModifierData;
 struct PointCache;
 struct ListBase;
 
