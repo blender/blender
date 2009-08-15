@@ -22,8 +22,8 @@ class INFO_HT_header(bpy.types.Header):
 				row.itemM("INFO_MT_render")
 			row.itemM("INFO_MT_help")
 
-		layout.template_ID(context.window, "screen") #, new="screen.new", open="scene.unlink")
-		layout.template_ID(context.screen, "scene") #, new="screen.new", unlink="scene.unlink")
+		layout.template_ID(context.window, "screen", new="screen.new", unlink="screen.delete")
+		layout.template_ID(context.screen, "scene", new="scene.new", unlink="scene.delete")
 
 		if rd.multiple_engines:
 			layout.itemR(rd, "engine", text="")

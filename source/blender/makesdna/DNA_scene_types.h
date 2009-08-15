@@ -468,7 +468,7 @@ typedef struct TransformOrientation {
 struct SculptSession;
 typedef struct Sculpt
 {
-	/* Note! a deep copy of this struct must be done header_info.c's copy_scene function */	
+	/* Note! a deep copy of this struct must be done scene.c's copy_scene function */	
 	/* Data stored only from entering sculptmode until exiting sculptmode */
 	struct SculptSession *session;
 	struct Brush *brush;

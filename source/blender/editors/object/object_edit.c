@@ -5727,7 +5727,7 @@ void new_id_matar(Material **matar, int totcol)
 	}
 }
 
-void single_obdata_users(Scene *scene, View3D *v3d, int flag)
+void single_obdata_users(Scene *scene, int flag)
 {
 	Object *ob;
 	Lamp *la;
@@ -5850,7 +5850,7 @@ void single_obdata_users(Scene *scene, View3D *v3d, int flag)
 	}
 }
 
-void single_ipo_users(Scene *scene, View3D *v3d, int flag)
+void single_ipo_users(Scene *scene, int flag)
 {
 #if 0 // XXX old animation system
 	Object *ob;
@@ -5873,7 +5873,7 @@ void single_ipo_users(Scene *scene, View3D *v3d, int flag)
 #endif // XXX old animation system
 }
 
-void single_mat_users(Scene *scene, View3D *v3d, int flag)
+void single_mat_users(Scene *scene, int flag)
 {
 	Object *ob;
 	Base *base;
@@ -6059,25 +6059,39 @@ void single_user(Scene *scene, View3D *v3d)
 	
 		else if(nr==2) {
 			single_object_users(scene, v3d, 1);
-			single_obdata_users(scene, v3d, 1);
+			single_obdata_users(scene, 1);
 		}
 		else if(nr==3) {
 			single_object_users(scene, v3d, 1);
-			single_obdata_users(scene, v3d, 1);
-			single_mat_users(scene, v3d, 1); /* also tex */
+			single_obdata_users(scene, 1);
+			single_mat_users(scene, 1); /* also tex */
 			
 		}
 		else if(nr==4) {
-			single_mat_users(scene, v3d, 1);
+			single_mat_users(scene, 1);
 		}
 		else if(nr==5) {
-			single_ipo_users(scene, v3d, 1);
+			single_ipo_users(scene, 1);
 		}
 		
 		
 		clear_id_newpoins();
 
 	}
+}
+
+/* used for copying scenes */
+void ED_object_single_users(Scene *scene, int full)
+{
+    single_object_users(scene, NULL, 0);
+
+    if(full) {
+        single_obdata_users(scene, 0);
+        single_mat_users_expand();
+        single_tex_users_expand();
+    }
+
+	clear_id_newpoins();
 }
 
 /* ************************************************************* */

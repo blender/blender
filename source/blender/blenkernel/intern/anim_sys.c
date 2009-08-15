@@ -342,6 +342,21 @@ void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name
 	BLI_addtail(&ks->paths, ksp);
 }	
 
+/* Copy all KeyingSets in the given list */
+void BKE_keyingsets_copy(ListBase *newlist, ListBase *list)
+{
+	KeyingSet *ksn;
+	KS_Path *kspn;
+
+	BLI_duplicatelist(newlist, list);
+
+	for(ksn=newlist->first; ksn; ksn=ksn->next) {
+		BLI_duplicatelist(&ksn->paths, &ksn->paths);
+
+		for(kspn=ksn->paths.first; kspn; kspn=kspn->next)
+			kspn->rna_path= MEM_dupallocN(kspn->rna_path);
+	}
+}
 
 /* Freeing Tools --------------------------- */
 

@@ -144,8 +144,9 @@ typedef struct wmNotifier {
 
 	/* NC_SCREEN screen */
 #define ND_SCREENBROWSE		(1<<16)
-#define ND_SCREENCAST		(2<<16)
-#define ND_ANIMPLAY			(3<<16)
+#define ND_SCREENDELETE		(2<<16)
+#define ND_SCREENCAST		(3<<16)
+#define ND_ANIMPLAY			(4<<16)
 
 	/* NC_SCENE Scene */
 #define ND_SCENEBROWSE		(1<<16)
@@ -160,6 +161,7 @@ typedef struct wmNotifier {
 #define ND_RENDER_RESULT	(10<<16)
 #define ND_COMPO_RESULT		(11<<16)
 #define ND_KEYINGSET		(12<<16)
+#define ND_SCENEDELETE		(13<<16)
 
 	/* NC_OBJECT Object */
 #define	ND_TRANSFORM		(16<<16)

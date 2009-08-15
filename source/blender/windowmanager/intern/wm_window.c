@@ -207,7 +207,10 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 	win->sizey= winorig->sizey;
 	
 	/* duplicate assigns to window */
-	ED_screen_duplicate(win, winorig->screen);
+	win->screen= ED_screen_duplicate(win, winorig->screen);
+	BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
+	win->screen->winid= win->winid;
+
 	win->screen->do_refresh= 1;
 	win->screen->do_draw= 1;
 

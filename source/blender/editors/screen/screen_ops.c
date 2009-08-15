@@ -54,6 +54,7 @@
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 #include "BKE_sound.h"
@@ -3087,7 +3088,124 @@ static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
 	ot->poll= ED_operator_screenactive;
 }
 
+/********************* new screen operator *********************/
 
+static int screen_new_exec(bContext *C, wmOperator *op)
+{
+	wmWindow *win= CTX_wm_window(C);
+	bScreen *sc= CTX_wm_screen(C);
+
+	sc= ED_screen_duplicate(win, sc);
+	WM_event_add_notifier(C, NC_SCREEN|ND_SCREENBROWSE, sc);
+
+	return OPERATOR_FINISHED;
+}
+
+void SCREEN_OT_new(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "New Screen";
+	ot->idname= "SCREEN_OT_new";
+	
+	/* api callbacks */
+	ot->exec= screen_new_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************* delete screen operator *********************/
+
+static int screen_delete_exec(bContext *C, wmOperator *op)
+{
+	bScreen *sc= CTX_wm_screen(C);
+
+	WM_event_add_notifier(C, NC_SCREEN|ND_SCREENDELETE, sc);
+
+	return OPERATOR_FINISHED;
+}
+
+void SCREEN_OT_delete(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete Scene";
+	ot->idname= "SCREEN_OT_delete";
+	
+	/* api callbacks */
+	ot->exec= screen_delete_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************* new scene operator *********************/
+
+static int scene_new_exec(bContext *C, wmOperator *op)
+{
+	Scene *newscene, *scene= CTX_data_scene(C);
+	Main *bmain= CTX_data_main(C);
+	int type= RNA_enum_get(op->ptr, "type");
+
+	newscene= copy_scene(bmain, scene, type);
+
+	/* these can't be handled in blenkernel curently, so do them here */
+	if(type == SCE_COPY_LINK_DATA)
+		ED_object_single_users(newscene, 0);
+	else if(type == SCE_COPY_FULL)
+		ED_object_single_users(newscene, 1);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SCENEBROWSE, newscene);
+
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_new(wmOperatorType *ot)
+{
+	static EnumPropertyItem type_items[]= {
+		{SCE_COPY_EMPTY, "EMPTY", 0, "Empty", "Add empty scene."},
+		{SCE_COPY_LINK_OB, "LINK_OBJECTS", 0, "Link Objects", "Link to the objects from the current scene."},
+		{SCE_COPY_LINK_DATA, "LINK_OBJECT_DATA", 0, "Link Object Data", "Copy objects linked to data from the current scene."},
+		{SCE_COPY_FULL, "FULL_COPY", 0, "Full Copy", "Make a full copy of the current scene."},
+		{0, NULL, 0, NULL, NULL}};
+
+	/* identifiers */
+	ot->name= "New Scene";
+	ot->idname= "SCENE_OT_new";
+	
+	/* api callbacks */
+	ot->exec= scene_new_exec;
+	ot->invoke= WM_menu_invoke;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
+}
+
+/********************* delete scene operator *********************/
+
+static int scene_delete_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SCENEDELETE, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_delete(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete Scene";
+	ot->idname= "SCENE_OT_delete";
+	
+	/* api callbacks */
+	ot->exec= scene_delete_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 /* ****************  Assigning operatortypes to global list, adding handlers **************** */
 
@@ -3128,6 +3246,12 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_render);
 	WM_operatortype_append(SCREEN_OT_render_view_cancel);
 	WM_operatortype_append(SCREEN_OT_render_view_show);
+
+	/* new/delete */
+	WM_operatortype_append(SCREEN_OT_new);
+	WM_operatortype_append(SCREEN_OT_delete);
+	WM_operatortype_append(SCENE_OT_new);
+	WM_operatortype_append(SCENE_OT_delete);
 
 	/* tools shared by more space types */
 	WM_operatortype_append(ED_OT_undo);

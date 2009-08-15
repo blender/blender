@@ -66,6 +66,9 @@ void BKE_keyingset_add_destination(struct KeyingSet *ks, struct ID *id, const ch
 
 struct KS_Path *BKE_keyingset_find_destination(struct KeyingSet *ks, struct ID *id, const char group_name[], const char rna_path[], int array_index, int group_mode);
 
+/* Copy all KeyingSets in the given list */
+void BKE_keyingsets_copy(struct ListBase *newlist, struct ListBase *list);
+
 /* Free data for KeyingSet but not set itself */
 void BKE_keyingset_free(struct KeyingSet *ks);
 

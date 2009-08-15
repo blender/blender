@@ -923,12 +923,6 @@ bScreen *ED_screen_duplicate(wmWindow *win, bScreen *sc)
 	newsc= ED_screen_add(win, sc->scene, sc->id.name+2);
 	/* copy all data */
 	screen_copy(newsc, sc);
-	/* set in window */
-	win->screen= newsc;
-	
-	/* store identifier */
-	win->screen->winid= win->winid;
-	BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
 
 	return newsc;
 }
@@ -1289,6 +1283,49 @@ void ED_screen_set(bContext *C, bScreen *sc)
 	}
 }
 
+static int ed_screen_used(wmWindowManager *wm, bScreen *sc)
+{
+	wmWindow *win;
+
+	for(win=wm->windows.first; win; win=win->next)
+		if(win->screen == sc)
+			return 1;
+	
+	return 0;
+}
+
+/* only call outside of area/region loops */
+void ED_screen_delete(bContext *C, bScreen *sc)
+{
+	Main *bmain= CTX_data_main(C);
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmWindow *win= CTX_wm_window(C);
+	bScreen *newsc;
+	int delete= 1;
+
+	/* screen can only be in use by one window at a time, so as
+	   long as we are able to find a screen that is unused, we
+	   can safely assume ours is not in use anywhere an delete it */
+
+	for(newsc= sc->id.prev; newsc; newsc=newsc->id.prev)
+		if(!ed_screen_used(wm, newsc))
+			break;
+	
+	if(!newsc) {
+		for(newsc= sc->id.next; newsc; newsc=newsc->id.next)
+			if(!ed_screen_used(wm, newsc))
+				break;
+	}
+
+	if(!newsc)
+		return;
+
+	ED_screen_set(C, newsc);
+
+	if(delete && win->screen != sc)
+		free_libblock(&bmain->screen, sc);
+}
+
 /* only call outside of area/region loops */
 void ED_screen_set_scene(bContext *C, Scene *scene)
 {
@@ -1344,6 +1381,24 @@ void ED_screen_set_scene(bContext *C, Scene *scene)
 	/* complete redraw */
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	
+}
+
+/* only call outside of area/region loops */
+void ED_screen_delete_scene(bContext *C, Scene *scene)
+{
+	Main *bmain= CTX_data_main(C);
+	Scene *newscene;
+
+	if(scene->id.prev)
+		newscene= scene->id.prev;
+	else if(scene->id.next)
+		newscene= scene->id.next;
+	else
+		return;
+
+	ED_screen_set_scene(C, newscene);
+
+	unlink_scene(bmain, scene, newscene);
 }
 
 /* this function toggles: if area is full then the parent will be restored */

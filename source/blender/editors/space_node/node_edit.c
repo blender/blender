@@ -2270,34 +2270,6 @@ void node_read_fullsamplelayers(SpaceNode *snode)
 	WM_cursor_wait(0);
 }
 
-/* called from header_info, when deleting a scene
- * goes over all scenes other than the input, checks if they have
- * render layer nodes referencing the to-be-deleted scene, and
- * resets them to NULL. */
-
-/* XXX needs to get current scene then! */
-void clear_scene_in_nodes(Scene *sce)
-{
-	Scene *sce1;
-	bNode *node;
-
-	sce1= G.main->scene.first;
-	while(sce1) {
-		if(sce1!=sce) {
-			if (sce1->nodetree) {
-				for(node= sce1->nodetree->nodes.first; node; node= node->next) {
-					if(node->type==CMP_NODE_R_LAYERS) {
-						Scene *nodesce= (Scene *)node->id;
-						
-						if (nodesce==sce) node->id = NULL;
-					}
-				}
-			}
-		}
-		sce1= sce1->id.next;
-	}
-}
-
 void imagepaint_composite_tags(bNodeTree *ntree, Image *image, ImageUser *iuser)
 {
 	bNode *node;

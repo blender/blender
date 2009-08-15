@@ -54,6 +54,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 
@@ -125,7 +126,113 @@ void free_qtcodecdata(QuicktimeCodecData *qcd)
 	}
 }
 
-/* copy_scene moved to src/header_info.c... should be back */
+Scene *copy_scene(Main *bmain, Scene *sce, int type)
+{
+	Scene *scen;
+	ToolSettings *ts;
+	Base *base, *obase;
+	
+	if(type == SCE_COPY_EMPTY) {
+		ListBase lb;
+		scen= add_scene(sce->id.name+2);
+		
+		lb= scen->r.layers;
+		scen->r= sce->r;
+		scen->r.layers= lb;
+	}
+	else {
+		scen= copy_libblock(sce);
+		BLI_duplicatelist(&(scen->base), &(sce->base));
+		
+		clear_id_newpoins();
+		
+		id_us_plus((ID *)scen->world);
+		id_us_plus((ID *)scen->set);
+		id_us_plus((ID *)scen->ima);
+		id_us_plus((ID *)scen->gm.dome.warptext);
+
+		scen->ed= NULL;
+		scen->theDag= NULL;
+		scen->obedit= NULL;
+		scen->toolsettings= MEM_dupallocN(sce->toolsettings);
+
+		ts= scen->toolsettings;
+		if(ts) {
+			if(ts->vpaint) {
+				ts->vpaint= MEM_dupallocN(ts->vpaint);
+				ts->vpaint->paintcursor= NULL;
+				ts->vpaint->vpaint_prev= NULL;
+				ts->vpaint->wpaint_prev= NULL;
+				id_us_plus((ID *)ts->vpaint->brush);
+			}
+			if(ts->wpaint) {
+				ts->wpaint= MEM_dupallocN(ts->wpaint);
+				ts->wpaint->paintcursor= NULL;
+				ts->wpaint->vpaint_prev= NULL;
+				ts->wpaint->wpaint_prev= NULL;
+				id_us_plus((ID *)ts->wpaint->brush);
+			}
+			if(ts->sculpt) {
+				ts->sculpt= MEM_dupallocN(ts->sculpt);
+				ts->sculpt->session= NULL;
+				id_us_plus((ID *)ts->sculpt->brush);
+			}
+
+			id_us_plus((ID *)ts->imapaint.brush);
+			ts->imapaint.paintcursor= NULL;
+
+			ts->particle.paintcursor= NULL;
+		}
+		
+		BLI_duplicatelist(&(scen->markers), &(sce->markers));
+		BLI_duplicatelist(&(scen->transform_spaces), &(sce->transform_spaces));
+		BLI_duplicatelist(&(scen->r.layers), &(sce->r.layers));
+		BKE_keyingsets_copy(&(scen->keyingsets), &(sce->keyingsets));
+		
+		scen->nodetree= ntreeCopyTree(sce->nodetree, 0);
+		
+		obase= sce->base.first;
+		base= scen->base.first;
+		while(base) {
+			id_us_plus(&base->object->id);
+			if(obase==sce->basact) scen->basact= base;
+	
+			obase= obase->next;
+			base= base->next;
+		}
+	}
+	
+	/* make a private copy of the avicodecdata */
+	if(sce->r.avicodecdata) {
+		scen->r.avicodecdata = MEM_dupallocN(sce->r.avicodecdata);
+		scen->r.avicodecdata->lpFormat = MEM_dupallocN(scen->r.avicodecdata->lpFormat);
+		scen->r.avicodecdata->lpParms = MEM_dupallocN(scen->r.avicodecdata->lpParms);
+	}
+	
+	/* make a private copy of the qtcodecdata */
+	if(sce->r.qtcodecdata) {
+		scen->r.qtcodecdata = MEM_dupallocN(sce->r.qtcodecdata);
+		scen->r.qtcodecdata->cdParms = MEM_dupallocN(scen->r.qtcodecdata->cdParms);
+	}
+	
+	/* NOTE: part of SCE_COPY_LINK_DATA and SCE_COPY_FULL operations
+	 * are done outside of blenkernel with ED_objects_single_users! */
+
+    /*  camera */
+	if(type == SCE_COPY_LINK_DATA || type == SCE_COPY_FULL) {
+	    ID_NEW(scen->camera);
+	}
+
+	/* world */
+	if(type == SCE_COPY_FULL) {
+        if(scen->world) {
+            id_us_plus((ID *)scen->world);
+            scen->world= copy_world(scen->world);
+        }
+	}
+
+	return scen;
+}
 
 /* do not free scene itself */
 void free_scene(Scene *sce)
@@ -411,6 +518,30 @@ void set_scene_name(char *name)
 	}
 	
 	//XXX error("Can't find scene: %s", name);
+}
+
+void unlink_scene(Main *bmain, Scene *sce, Scene *newsce)
+{
+	Scene *sce1;
+	bScreen *sc;
+
+	/* check all sets */
+	for(sce1= bmain->scene.first; sce1; sce1= sce1->id.next)
+		if(sce1->set == sce)
+			sce1->set= NULL;
+	
+	/* check all sequences */
+	clear_scene_in_allseqs(sce);
+
+	/* check render layer nodes in other scenes */
+	clear_scene_in_nodes(bmain, sce);
+	
+	/* al screens */
+	for(sc= bmain->screen.first; sc; sc= sc->id.next)
+		if(sc->scene == sce)
+			sc->scene= newsce;
+
+	free_libblock(&bmain->scene, sce);
 }
 
 /* used by metaballs
