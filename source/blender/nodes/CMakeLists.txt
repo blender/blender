@@ -31,7 +31,6 @@ SET(INC
   ../imbuf ../avi ../../../intern/elbeem/extern
   ../../../intern/iksolver/extern ../blenloader ../quicktime
   ../blenkernel ../../../extern/glew/include ../gpu
-  ${SDL_INC}
   ${ZLIB_INC}
 )
 

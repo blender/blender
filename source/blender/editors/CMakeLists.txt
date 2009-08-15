@@ -40,7 +40,6 @@ SET(INC ../windowmanager
   ../nodes
   ../gpu
   ../blenfont
-  ${SDL_INC}
 )
 
 IF(WITH_INTERNATIONAL)

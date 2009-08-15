@@ -27,8 +27,7 @@ FILE(GLOB SRC intern/*.c)
 SET(INC 
   ../../../intern/guardedalloc ../blenlib ../makesdna ../editors/include
   ../blenkernel ../../../extern/glew/include .
-  ${FTGL_INC}
-  ${FREETYPE_INC}
+  ${FREETYPE_INCLUDE_DIRS}
 )
 
 IF(WITH_INTERNATIONAL)

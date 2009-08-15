@@ -41,7 +41,6 @@ SET(INC ../../windowmanager
   ../../quicktime ../../../../intern/elbeem/extern
   ../../../../intern/ghost ../../../../intern/opennl/extern
   ../../nodes
-  ${SDL_INC}
 )
 
 IF(WITH_INTERNATIONAL)

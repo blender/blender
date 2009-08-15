@@ -39,7 +39,6 @@ SET(INC .
   ../nodes
   ../gpu
   ../blenfont
-  ${SDL_INC}
   ${OPENGL_INCLUDE_DIR}
 )
 
