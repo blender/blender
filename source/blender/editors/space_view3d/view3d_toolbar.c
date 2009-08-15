@@ -190,7 +190,7 @@ char *view3d_context_string(const bContext *C)
 		Object *ob = CTX_data_active_object(C);
 		
 		if(ob && (ob->flag & OB_POSEMODE)) return "pose_mode";
-		else if (G.f & G_SCULPTMODE)  return "sculpt_mode";
+		else if (ob && ob->mode & OB_MODE_SCULPT)  return "sculpt_mode";
 		else if (G.f & G_WEIGHTPAINT) return "weight_paint";
 		else if (G.f & G_VERTEXPAINT) return "vertex_paint";
 		else if (G.f & G_TEXTUREPAINT) return "texture_paint";

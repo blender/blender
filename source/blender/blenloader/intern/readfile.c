@@ -3994,6 +3994,9 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->derivedDeform= NULL;
 	ob->derivedFinal= NULL;
 	ob->gpulamp.first= ob->gpulamp.last= NULL;
+
+	if(ob->sculpt)
+		ob->sculpt= MEM_callocN(sizeof(SculptSession), "reload sculpt session");
 }
 
 /* ************ READ SCENE ***************** */
@@ -4147,9 +4150,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		sce->toolsettings->sculpt= newdataadr(fd, sce->toolsettings->sculpt);
 		sce->toolsettings->imapaint.paintcursor= NULL;
 		sce->toolsettings->particle.paintcursor= NULL;
-
-		if(sce->toolsettings->sculpt)
-			sce->toolsettings->sculpt->session= MEM_callocN(sizeof(SculptSession), "reload sculpt session");
 	}
 
 	if(sce->ed) {

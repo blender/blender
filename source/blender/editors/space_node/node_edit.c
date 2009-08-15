@@ -624,7 +624,7 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 		else {
 			MTex *mtex= NULL;
 			
-			if(G.f & G_SCULPTMODE) {
+			if(ob && ob->mode & OB_MODE_SCULPT) {
 				Sculpt *sd= scene->toolsettings->sculpt;
 				if(sd && sd->brush)
 					if(sd->brush->texact != -1)

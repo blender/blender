@@ -77,7 +77,6 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
-#include "BKE_sculpt.h"
 #include "BKE_sequence.h"
 #include "BKE_world.h"
 #include "BKE_utildefines.h"
@@ -174,7 +173,6 @@ Scene *copy_scene(Main *bmain, Scene *sce, int type)
 			}
 			if(ts->sculpt) {
 				ts->sculpt= MEM_dupallocN(ts->sculpt);
-				ts->sculpt->session= NULL;
 				id_us_plus((ID *)ts->sculpt->brush);
 			}
 
@@ -277,10 +275,8 @@ void free_scene(Scene *sce)
 			MEM_freeN(sce->toolsettings->vpaint);
 		if(sce->toolsettings->wpaint)
 			MEM_freeN(sce->toolsettings->wpaint);
-		if(sce->toolsettings->sculpt) {
-			sculptsession_free(sce->toolsettings->sculpt);
+		if(sce->toolsettings->sculpt)
 			MEM_freeN(sce->toolsettings->sculpt);
-		}
 		
 		MEM_freeN(sce->toolsettings);
 		sce->toolsettings = NULL;	
@@ -806,33 +802,6 @@ void scene_add_render_layer(Scene *sce)
 	srl->lay= (1<<20) -1;
 	srl->layflag= 0x7FFF;	/* solid ztra halo edge strand */
 	srl->passflag= SCE_PASS_COMBINED|SCE_PASS_Z;
-}
-
-void sculptsession_free(Sculpt *sculpt)
-{
-	SculptSession *ss= sculpt->session;
-	if(ss) {
-		if(ss->projverts)
-			MEM_freeN(ss->projverts);
-
-		if(ss->fmap)
-			MEM_freeN(ss->fmap);
-
-		if(ss->fmap_mem)
-			MEM_freeN(ss->fmap_mem);
-
-		if(ss->texcache)
-			MEM_freeN(ss->texcache);
-
-		if(ss->layer_disps)
-			MEM_freeN(ss->layer_disps);
-
-		if(ss->mesh_co_orig)
-			MEM_freeN(ss->mesh_co_orig);
-
-		MEM_freeN(ss);
-		sculpt->session= NULL;
-	}
 }
 
 /* render simplification */

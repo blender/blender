@@ -53,6 +53,7 @@ struct SoftBody;
 struct FluidsimSettings;
 struct ParticleSystem;
 struct DerivedMesh;
+struct SculptSession;
 
 typedef struct bDeformGroup {
 	struct bDeformGroup *next, *prev;
@@ -91,6 +92,8 @@ typedef struct BoundBox {
 typedef struct Object {
 	ID id;
 	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */ 
+
+	struct SculptSession *sculpt;
 	
 	short type, partype;
 	int par1, par2, par3;	/* can be vertexnrs */
@@ -112,6 +115,9 @@ typedef struct Object {
 	ListBase disp;
 	ListBase defbase;
 	ListBase modifiers; /* list of ModifierData structures */
+
+	/* For now just a flag for sculpt mode, eventually we make the other modes local too */
+	int mode, pad2;
 
 	/* materials */
 	struct Material **mat;	/* material slots */
@@ -504,6 +510,10 @@ extern Object workob;
 #define OB_LOCK_SCALEY	128
 #define OB_LOCK_SCALEZ	256
 #define OB_LOCK_SCALE	448
+
+/* ob->mode */
+#define OB_MODE_NONE      0
+#define OB_MODE_SCULPT    1
 
 /* ob->softflag in DNA_object_force.h */
 

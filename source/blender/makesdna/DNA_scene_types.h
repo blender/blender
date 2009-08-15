@@ -465,13 +465,14 @@ typedef struct TransformOrientation {
 	float mat[3][3];
 } TransformOrientation;
 
-struct SculptSession;
 typedef struct Sculpt
 {
 	/* Note! a deep copy of this struct must be done scene.c's copy_scene function */	
-	/* Data stored only from entering sculptmode until exiting sculptmode */
-	struct SculptSession *session;
+
 	struct Brush *brush;
+
+	/* WM handle */
+	void *cursor;
 
 	/* For rotating around a pivot point */
 	float pivot[3];

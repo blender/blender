@@ -122,7 +122,6 @@ typedef struct Global {
 /* #define G_NOFROZEN	(1 << 17) also removed */
 #define G_GREASEPENCIL 	(1 << 17)
 
-#define G_SCULPTMODE    (1 << 29)
 #define G_PARTICLEEDIT	(1 << 30)
 
 /* #define G_AUTOMATKEYS	(1 << 30)   also removed */

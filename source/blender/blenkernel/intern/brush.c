@@ -35,6 +35,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_color_types.h"
 #include "DNA_image_types.h"
+#include "DNA_object_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
@@ -187,7 +188,7 @@ void make_local_brush(Brush *brush)
 
 Brush **current_brush_source(Scene *sce)
 {
-	if(G.f & G_SCULPTMODE)
+	if(sce->basact && sce->basact->object->mode & OB_MODE_SCULPT)
 		return &sce->toolsettings->sculpt->brush;
 	else if(G.f & G_VERTEXPAINT)
 		return &sce->toolsettings->vpaint->brush;

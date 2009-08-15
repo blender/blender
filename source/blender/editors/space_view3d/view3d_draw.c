@@ -1887,8 +1887,11 @@ static CustomDataMask get_viewedit_datamask(bScreen *screen)
 	if(G.f & G_WEIGHTPAINT)
 		mask |= CD_MASK_WEIGHT_MCOL;
 	
+	/* XXX: is this even needed?
 	if(G.f & G_SCULPTMODE)
 		mask |= CD_MASK_MDISPS;
+
+	*/
 	
 	return mask;
 }
@@ -2032,7 +2035,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 
 //	retopo= retopo_mesh_check() || retopo_curve_check();
-	sculptparticle= (G.f & (G_SCULPTMODE|G_PARTICLEEDIT)) && !scene->obedit;
+	sculptparticle= (G.f & G_PARTICLEEDIT || (obact && obact->mode & OB_MODE_SCULPT)) && !scene->obedit;
 	if(retopo)
 		view3d_update_depths(ar, v3d);
 	
@@ -2045,7 +2048,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	
 	if(!retopo && sculptparticle && !(obact && (obact->dtx & OB_DRAWXRAY))) {
-		if(G.f & G_SCULPTMODE)
+		if(obact && obact->mode & OB_MODE_SCULPT)
 			draw_sculpt_depths(scene, ar, v3d);
 		view3d_update_depths(ar, v3d);
 	}
@@ -2061,7 +2064,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
 	
 	if(!retopo && sculptparticle && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
-		if(G.f & G_SCULPTMODE)
+		if(obact && obact->mode & OB_MODE_SCULPT)
 			draw_sculpt_depths(scene, ar, v3d);
 		view3d_update_depths(ar, v3d);
 	}

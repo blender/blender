@@ -59,6 +59,8 @@ struct Base *ED_object_add_duplicate(struct Scene *scene, struct Base *base, int
 
 void ED_object_parent(struct Object *ob, struct Object *parent, int type, const char *substr);
 
+void ED_object_toggle_modes(struct bContext *C, int mode);
+
 /* bitflags for enter/exit editmode */
 #define EM_FREEDATA		1
 #define EM_FREEUNDO		2

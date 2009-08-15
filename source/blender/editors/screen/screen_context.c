@@ -112,7 +112,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		return 1;
 	}
 	else if(CTX_data_equals(member, "sculpt_object")) {
-		if(G.f & G_SCULPTMODE && scene->basact)
+		if(scene->basact && (scene->basact->object->mode & OB_MODE_SCULPT))
 			CTX_data_id_pointer_set(result, &scene->basact->object->id);
 
 		return 1;

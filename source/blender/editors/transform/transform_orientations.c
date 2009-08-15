@@ -894,7 +894,10 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			result = ORIENTATION_EDGE;
 		}
 	}
-	else if(G.f & (G_VERTEXPAINT + G_TEXTUREPAINT + G_WEIGHTPAINT + G_SCULPTMODE))
+	else if(ob && (ob->mode & OB_MODE_SCULPT))
+	{
+	}
+	else if(G.f & (G_VERTEXPAINT + G_TEXTUREPAINT + G_WEIGHTPAINT))
 	{
 	}
 	else if(G.f & G_PARTICLEEDIT)

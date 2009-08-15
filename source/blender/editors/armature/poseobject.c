@@ -136,6 +136,7 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 			return;
 	}
 	ED_view3d_exit_paint_modes(C);
+	ED_object_toggle_modes(C, ob->mode);
 }
 
 void ED_armature_exit_posemode(bContext *C, Base *base)

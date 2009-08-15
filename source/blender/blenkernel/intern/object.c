@@ -107,6 +107,7 @@
 #include "BKE_sca.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_sculpt.h"
 #include "BKE_softbody.h"
 
 #include "LBM_fluidsim.h"
@@ -222,6 +223,34 @@ void object_free_display(Object *ob)
 	freedisplist(&ob->disp);
 }
 
+void free_sculptsession(SculptSession **ssp)
+{
+	if(ssp && *ssp) {
+		SculptSession *ss = *ssp;
+		if(ss->projverts)
+			MEM_freeN(ss->projverts);
+
+		if(ss->fmap)
+			MEM_freeN(ss->fmap);
+
+		if(ss->fmap_mem)
+			MEM_freeN(ss->fmap_mem);
+
+		if(ss->texcache)
+			MEM_freeN(ss->texcache);
+
+		if(ss->layer_disps)
+			MEM_freeN(ss->layer_disps);
+
+		if(ss->mesh_co_orig)
+			MEM_freeN(ss->mesh_co_orig);
+
+		MEM_freeN(ss);
+
+		*ssp = NULL;
+	}
+}
+
 /* do not free object itself */
 void free_object(Object *ob)
 {
@@ -276,6 +305,8 @@ void free_object(Object *ob)
 	if(ob->soft) sbFree(ob->soft);
 	if(ob->bsoft) bsbFree(ob->bsoft);
 	if(ob->gpulamp.first) GPU_lamp_free(ob);
+
+	free_sculptsession(&ob->sculpt);
 }
 
 static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Object **obpoin)
@@ -1210,6 +1241,9 @@ Object *copy_object(Object *ob)
 	}
 	copy_defgroups(&obn->defbase, &ob->defbase);
 	copy_constraints(&obn->constraints, &ob->constraints);
+
+	obn->mode = 0;
+	obn->sculpt = NULL;
 
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);

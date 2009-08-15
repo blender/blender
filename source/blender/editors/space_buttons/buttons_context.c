@@ -304,12 +304,13 @@ static int buttons_context_path_particle(ButsContextPath *path)
 	return 0;
 }
 
-static int buttons_context_path_brush(ButsContextPath *path)
+static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
 {
 	Scene *scene;
 	ToolSettings *ts;
 	Brush *br= NULL;
 	PointerRNA *ptr= &path->ptr[path->len-1];
+	const Object *obact = CTX_data_active_object(C);
 
 	/* if we already have a (pinned) brush, we're done */
 	if(RNA_struct_is_a(ptr->type, &RNA_Brush)) {
@@ -320,7 +321,7 @@ static int buttons_context_path_brush(ButsContextPath *path)
 		scene= path->ptr[path->len-1].data;
 		ts= scene->toolsettings;
 
-		if(G.f & G_SCULPTMODE)
+		if(obact && obact->mode & OB_MODE_SCULPT)
 			br= ts->sculpt->brush;
 		else if(G.f & G_VERTEXPAINT)
 			br= ts->vpaint->brush;
@@ -341,7 +342,7 @@ static int buttons_context_path_brush(ButsContextPath *path)
 	return 0;
 }
 
-static int buttons_context_path_texture(ButsContextPath *path)
+static int buttons_context_path_texture(const bContext *C, ButsContextPath *path)
 {
 	Material *ma;
 	Lamp *la;
@@ -356,7 +357,7 @@ static int buttons_context_path_texture(ButsContextPath *path)
 		return 1;
 	}
 	/* try brush */
-	else if((path->flag & SB_BRUSH_TEX) && buttons_context_path_brush(path)) {
+	else if((path->flag & SB_BRUSH_TEX) && buttons_context_path_brush(C, path)) {
 		br= path->ptr[path->len-1].data;
 
 		if(br) {
@@ -465,7 +466,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			found= buttons_context_path_material(path);
 			break;
 		case BCONTEXT_TEXTURE:
-			found= buttons_context_path_texture(path);
+			found= buttons_context_path_texture(C, path);
 			break;
 		case BCONTEXT_BONE:
 			found= buttons_context_path_bone(path);
