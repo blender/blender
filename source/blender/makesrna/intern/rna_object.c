@@ -968,6 +968,12 @@ static void rna_def_object(BlenderRNA *brna)
 		{OB_ARMATURE, "ARMATURE", 0, "Armature", ""},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem mode_items[] = {
+		{OB_MODE_SCULPT, "SCULPT", 0, "Sculpt", ""},
+		{OB_MODE_VERTEX_PAINT, "VERTEX_PAINT", 0, "Vertex Paint", ""},
+		{OB_MODE_WEIGHT_PAINT, "WEIGHT_PAINT", 0, "Weight Paint", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	static EnumPropertyItem empty_drawtype_items[] = {
 		{OB_ARROWS, "ARROWS", 0, "Arrows", ""},
 		{OB_SINGLE_ARROW, "SINGLE_ARROW", 0, "Single Arrow", ""},
@@ -1035,6 +1041,11 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, object_type_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Type", "Type of Object.");
+
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mode");
+	RNA_def_property_enum_items(prop, mode_items);
+	RNA_def_property_ui_text(prop, "Mode", "Object interaction mode.");
 
 	prop= RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
