@@ -1,7 +1,6 @@
 
 import bpy
 
-
 class View3DPanel(bpy.types.Panel):
 	__space_type__ = "VIEW_3D"
 	__region_type__ = "TOOLS"
@@ -45,7 +44,7 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 # ********** default tools for editmode_mesh ****************
 
 class VIEW3D_PT_tools_meshedit(View3DPanel):
-	__context__ = "meshedit"
+	__context__ = "mesh_edit"
 	__label__ = "Mesh Tools"
 
 	def draw(self, context):
@@ -88,7 +87,7 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 # ********** default tools for editmode_curve ****************
 
 class VIEW3D_PT_tools_curveedit(View3DPanel):
-	__context__ = "curveedit"
+	__context__ = "curve_edit"
 	__label__ = "Curve Tools"
 
 	def draw(self, context):
@@ -118,7 +117,7 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
 # ********** default tools for editmode_surface ****************
 
 class VIEW3D_PT_tools_surfaceedit(View3DPanel):
-	__context__ = "surfaceedit"
+	__context__ = "surface_edit"
 	__label__ = "Surface Tools"
 
 	def draw(self, context):
@@ -148,7 +147,7 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel):
 # ********** default tools for editmode_text ****************
 
 class VIEW3D_PT_tools_textedit(View3DPanel):
-	__context__ = "textedit"
+	__context__ = "text_edit"
 	__label__ = "Text Tools"
 
 	def draw(self, context):
@@ -165,7 +164,7 @@ class VIEW3D_PT_tools_textedit(View3DPanel):
 # ********** default tools for editmode_armature ****************
 
 class VIEW3D_PT_tools_armatureedit(View3DPanel):
-	__context__ = "armatureedit"
+	__context__ = "armature_edit"
 	__label__ = "Armature Tools"
 
 	def draw(self, context):
@@ -191,7 +190,7 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel):
 # ********** default tools for editmode_mball ****************
 
 class VIEW3D_PT_tools_mballedit(View3DPanel):
-	__context__ = "mballedit"
+	__context__ = "mball_edit"
 	__label__ = "Meta Tools"
 
 	def draw(self, context):
@@ -207,7 +206,7 @@ class VIEW3D_PT_tools_mballedit(View3DPanel):
 # ********** default tools for editmode_lattice ****************
 
 class VIEW3D_PT_tools_latticeedit(View3DPanel):
-	__context__ = "latticeedit"
+	__context__ = "lattice_edit"
 	__label__ = "Lattice Tools"
 
 	def draw(self, context):

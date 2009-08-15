@@ -668,19 +668,19 @@ char *CTX_data_mode_string(const bContext *C)
 	if(obedit) {
 		switch(obedit->type) {
 			case OB_MESH:
-				return "meshedit";
+				return "mesh_edit";
 			case OB_CURVE:
-				return "curveedit";
+				return "curve_edit";
 			case OB_SURF:
-				return "surfaceedit";
+				return "surface_edit";
 			case OB_FONT:
-				return "textedit";
+				return "text_edit";
 			case OB_ARMATURE:
-				return "armatureedit";
+				return "armature_edit";
 			case OB_MBALL:
-				return "mballedit";
+				return "mball_edit";
 			case OB_LATTICE:
-				return "latticeedit";
+				return "lattice_edit";
 		}
 	}
 	else {

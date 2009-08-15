@@ -1,45 +1,35 @@
 
 import bpy
 
-# ********** Header ****************
+# ********** Header **********
 
 class VIEW3D_HT_header(bpy.types.Header):
 	__space_type__ = "VIEW_3D"
 
 	def draw(self, context):
 		layout = self.layout
+		
+		view = context.space_data
+		mode_string = context.mode_string
 
 		layout.template_header()
-
-		# menus
+		
+		# Menus
 		if context.area.show_menus:
 			row = layout.row()
+
 			row.itemM("VIEW3D_MT_view")
+			
+			# Select Menu
+			selectmenu = "VIEW3D_MT_select_%s" % mode_string
+			if selectmenu in dir(bpy.types):
+				layout.itemM(selectmenu)
 
 		layout.template_header_3D()
 
-# ********** Menu ****************
+# ********** Menu **********
 
-class VIEW3D_MT_view_navigation(bpy.types.Menu):
-	__space_type__ = "VIEW_3D"
-	__label__ = "Navigation"
-
-	def draw(self, context):
-		layout = self.layout
-
-		# layout.itemO("view3d.view_fly_mode")
-		# layout.itemS()
-		
-		layout.items_enumO("view3d.view_orbit", "type")
-		
-		layout.itemS()
-		
-		layout.items_enumO("view3d.view_pan", "type")
-		
-		layout.itemS()
-		
-		layout.item_floatO("view3d.zoom", "delta", 1.0, text="Zoom In")
-		layout.item_floatO("view3d.zoom", "delta", -1.0, text="Zoom Out")
+# ********** View menus **********
 
 class VIEW3D_MT_view(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
@@ -94,8 +84,29 @@ class VIEW3D_MT_view(bpy.types.Menu):
 		
 		layout.itemO("screen.region_foursplit", text="Toggle Quad View")
 		layout.itemO("screen.screen_full_area", text="Toggle Full Screen")
+		
+class VIEW3D_MT_view_navigation(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Navigation"
 
-# ********** Select menus ****************
+	def draw(self, context):
+		layout = self.layout
+
+		# layout.itemO("view3d.view_fly_mode")
+		# layout.itemS()
+		
+		layout.items_enumO("view3d.view_orbit", "type")
+		
+		layout.itemS()
+		
+		layout.items_enumO("view3d.view_pan", "type")
+		
+		layout.itemS()
+		
+		layout.item_floatO("view3d.zoom", "delta", 1.0, text="Zoom In")
+		layout.item_floatO("view3d.zoom", "delta", -1.0, text="Zoom Out")
+
+# ********** Select menus **********
 
 class VIEW3D_MT_select_objectmode(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
@@ -161,7 +172,7 @@ class VIEW3D_MT_select_particlemode(bpy.types.Menu):
 		layout.itemO("particle.select_more")
 		layout.itemO("particle.select_less")
 
-class VIEW3D_MT_select_meshedit(bpy.types.Menu):
+class VIEW3D_MT_select_mesh_edit(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
 	__label__ = "Select"
 
@@ -205,7 +216,7 @@ class VIEW3D_MT_select_meshedit(bpy.types.Menu):
 		layout.itemO("mesh.loop_to_region")
 		layout.itemO("mesh.region_to_loop")
 
-class VIEW3D_MT_select_curveedit(bpy.types.Menu):
+class VIEW3D_MT_select_curve_edit(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
 	__label__ = "Select"
 
@@ -234,7 +245,7 @@ class VIEW3D_MT_select_curveedit(bpy.types.Menu):
 		layout.itemO("curve.select_more")
 		layout.itemO("curve.select_less")
 
-class VIEW3D_MT_select_surfaceedit(bpy.types.Menu):
+class VIEW3D_MT_select_surface_edit(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
 	__label__ = "Select"
 
@@ -260,7 +271,7 @@ class VIEW3D_MT_select_surfaceedit(bpy.types.Menu):
 		layout.itemO("curve.select_more")
 		layout.itemO("curve.select_less")
 
-class VIEW3D_MT_select_mballedit(bpy.types.Menu):
+class VIEW3D_MT_select_mball_edit(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
 	__label__ = "Select"
 
@@ -278,7 +289,7 @@ class VIEW3D_MT_select_mballedit(bpy.types.Menu):
 		
 		layout.itemL(text="Random")
 
-class VIEW3D_MT_select_latticeedit(bpy.types.Menu):
+class VIEW3D_MT_select_lattice_edit(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
 	__label__ = "Select"
 
@@ -291,7 +302,7 @@ class VIEW3D_MT_select_latticeedit(bpy.types.Menu):
 		
 		layout.itemO("lattice.select_all_toggle", text="Select/Deselect All")
 
-class VIEW3D_MT_select_armatureedit(bpy.types.Menu):
+class VIEW3D_MT_select_armature_edit(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
 	__label__ = "Select"
 
@@ -323,29 +334,8 @@ class VIEW3D_MT_select_facesel(bpy.types.Menu):
 
 		layout.view3d_select_faceselmenu()
 
-class VIEW3D_HT_header(bpy.types.Header):
-	__space_type__ = "VIEW_3D"
 
-	def draw(self, context):
-		view = context.space_data
-		mode_string = context.mode_string
-		layout = self.layout
-
-		layout.template_header()
-		
-		# menus
-		if context.area.show_menus:
-			row = layout.row()
-
-			row.itemM("VIEW3D_MT_view")
-			
-			selectmenu = "VIEW3D_MT_select_%s" % mode_string
-			if selectmenu in dir(bpy.types):
-				layout.itemM(selectmenu)
-
-		layout.template_header_3D()
-
-# ********** Panel ****************
+# ********** Panel **********
 
 class VIEW3D_PT_3dview_properties(bpy.types.Panel):
 	__space_type__ = "VIEW_3D"
@@ -448,19 +438,22 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
 			col.itemR(bg, "x_offset", text="X")
 			col.itemR(bg, "y_offset", text="Y")
 
+bpy.types.register(VIEW3D_HT_header) # Header
+
+bpy.types.register(VIEW3D_MT_view) #View Menus
 bpy.types.register(VIEW3D_MT_view_navigation)
-bpy.types.register(VIEW3D_MT_view)
-bpy.types.register(VIEW3D_MT_select_objectmode)
+
+bpy.types.register(VIEW3D_MT_select_objectmode) # Select Menus
 bpy.types.register(VIEW3D_MT_select_posemode)
 bpy.types.register(VIEW3D_MT_select_particlemode)
-bpy.types.register(VIEW3D_MT_select_meshedit)
-bpy.types.register(VIEW3D_MT_select_curveedit)
-bpy.types.register(VIEW3D_MT_select_surfaceedit)
-bpy.types.register(VIEW3D_MT_select_mballedit)
-bpy.types.register(VIEW3D_MT_select_latticeedit)
-bpy.types.register(VIEW3D_MT_select_armatureedit)
+bpy.types.register(VIEW3D_MT_select_mesh_edit)
+bpy.types.register(VIEW3D_MT_select_curve_edit)
+bpy.types.register(VIEW3D_MT_select_surface_edit)
+bpy.types.register(VIEW3D_MT_select_mball_edit)
+bpy.types.register(VIEW3D_MT_select_lattice_edit)
+bpy.types.register(VIEW3D_MT_select_armature_edit)
 bpy.types.register(VIEW3D_MT_select_facesel)
-bpy.types.register(VIEW3D_HT_header)
-bpy.types.register(VIEW3D_PT_3dview_properties)
+
+bpy.types.register(VIEW3D_PT_3dview_properties) # Panels
 bpy.types.register(VIEW3D_PT_3dview_display)
 bpy.types.register(VIEW3D_PT_background_image)
