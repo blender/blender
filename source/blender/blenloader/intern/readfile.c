@@ -5726,7 +5726,7 @@ static void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
 				tf = ((MTFace*)me->fdata.layers[b].data) + a;
 
 				tf->mode &= ~TF_ALPHASORT;
-				if(ma && (ma->mode & MA_ZTRA))
+				if(ma && (ma->mode & MA_ZTRANSP))
 					if(ELEM(tf->transp, TF_ALPHA, TF_ADD) || (texalpha && (tf->transp != TF_CLIP)))
 						tf->mode |= TF_ALPHASORT;
 			}
@@ -9461,6 +9461,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(ma->mode & MA_HALO) {
 				ma->material_type= MA_TYPE_HALO;
 				ma->mode &= ~MA_HALO;
+			}
+
+			if(ma->mode & (MA_ZTRANSP|MA_RAYTRANSP)) {
+				ma->mode |= MA_TRANSP;
+			}
+			else {
+				ma->mode |= MA_ZTRANSP;
+				ma->mode &= ~MA_TRANSP;
 			}
 
 			/* set new bump for unused slots */

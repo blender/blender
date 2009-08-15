@@ -67,8 +67,6 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 									context.texture_paint_object \
 									):
 			split.itemR(space, "brush_texture", text="Brush", toggle=True)
-		
-		layout.itemS()
 
 		if tex:
 			split = layout.split(percentage=0.2)

@@ -623,7 +623,7 @@ bool ConvertMaterial(
 	}
 
 	// with ztransp enabled, enforce alpha blending mode
-	if(validmat && (mat->mode & MA_ZTRA) && (material->transp == TF_SOLID))
+	if(validmat && (mat->mode & MA_TRANSP) && (mat->mode & MA_ZTRANSP) && (material->transp == TF_SOLID))
 		material->transp = TF_ALPHA;
 
   	// always zsort alpha + add

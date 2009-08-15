@@ -361,7 +361,7 @@ static float shade_by_transmission(Isect *is, ShadeInput *shi, ShadeResult *shr)
 {
 	float dx, dy, dz, d, p;
 
-	if (0 == (shi->mat->mode & (MA_RAYTRANSP|MA_ZTRA)))
+	if (0 == (shi->mat->mode & MA_TRANSP))
 		return -1;
 	   
 	if (shi->mat->tx_limit <= 0.0f) {
@@ -468,7 +468,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 		
 		if(depth>0) {
 
-			if(shi.mat->mode_l & (MA_RAYTRANSP|MA_ZTRA) && shr.alpha < 1.0f) {
+			if((shi.mat->mode_l & MA_TRANSP) && shr.alpha < 1.0f) {
 				float nf, f, f1, refract[3], tracol[4];
 				
 				tracol[0]= shi.r;
@@ -476,7 +476,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 				tracol[2]= shi.b;
 				tracol[3]= col[3];	// we pass on and accumulate alpha
 				
-				if(shi.mat->mode & MA_RAYTRANSP) {
+				if((shi.mat->mode & MA_TRANSP) && (shi.mat->mode & MA_RAYTRANSP)) {
 					/* odd depths: use normal facing viewer, otherwise flip */
 					if(traflag & RAY_TRAFLIP) {
 						float norm[3];
@@ -1183,7 +1183,7 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 	float diff[3];
 	int do_tra, do_mir;
 	
-	do_tra= ((shi->mat->mode & (MA_RAYTRANSP)) && shr->alpha!=1.0f);
+	do_tra= ((shi->mat->mode & MA_TRANSP) && (shi->mat->mode & MA_RAYTRANSP) && shr->alpha!=1.0f);
 	do_mir= ((shi->mat->mode & MA_RAYMIRROR) && shi->ray_mirror!=0.0f);
 
 	
