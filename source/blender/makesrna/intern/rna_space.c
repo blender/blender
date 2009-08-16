@@ -83,6 +83,7 @@ static EnumPropertyItem dc_all_items[] = {DC_RGB, DC_RGBA, DC_ALPHA, DC_Z, DC_LC
 #include "BKE_context.h"
 
 #include "ED_image.h"
+#include "ED_screen.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -301,6 +302,13 @@ static void rna_View3D_display_background_image_set(PointerRNA *ptr, int value)
 		vd->bgpic->iuser.fie_ima= 2;
 		vd->bgpic->iuser.ok= 1;
 	}
+}
+
+/* Space Time */
+static void rna_SpaceTime_redraw_update(bContext *C, PointerRNA *ptr)
+{
+	SpaceTime *st= (SpaceTime*)ptr->data;
+	ED_screen_animation_timer_update(C, st->redraws);
 }
 
 #else
@@ -1116,33 +1124,39 @@ static void rna_def_space_time(BlenderRNA *brna)
 	/* Define Anim Playback Areas */
 	
 	prop= RNA_def_property(srna, "play_top_left", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_REGION);
+	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_REGION);
 	RNA_def_property_ui_text(prop, "Top-Left 3D Window", "");
+	RNA_def_property_update(prop, 0, "rna_SpaceTime_redraw_update");
 	
 	prop= RNA_def_property(srna, "play_all_3d", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_ALL_3D_WIN);
+	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_3D_WIN);
 	RNA_def_property_ui_text(prop, "All 3D Windows", "");
+	RNA_def_property_update(prop, 0, "rna_SpaceTime_redraw_update");
 	
 	prop= RNA_def_property(srna, "play_anim", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_ALL_ANIM_WIN);
+	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_ANIM_WIN);
 	RNA_def_property_ui_text(prop, "Animation Windows", "");
+	RNA_def_property_update(prop, 0, "rna_SpaceTime_redraw_update");
 	
 	prop= RNA_def_property(srna, "play_buttons", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_ALL_BUTS_WIN);
+	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_BUTS_WIN);
 	RNA_def_property_ui_text(prop, "Buttons Windows", "");
+	RNA_def_property_update(prop, 0, "rna_SpaceTime_redraw_update");
 	
 	prop= RNA_def_property(srna, "play_image", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_ALL_IMAGE_WIN);
+	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_IMAGE_WIN);
 	RNA_def_property_ui_text(prop, "Image Windows", "");
+	RNA_def_property_update(prop, 0, "rna_SpaceTime_redraw_update");
 	
 	prop= RNA_def_property(srna, "play_sequencer", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_SEQ);
+	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_SEQ);
 	RNA_def_property_ui_text(prop, "Sequencer Windows", "");
+	RNA_def_property_update(prop, 0, "rna_SpaceTime_redraw_update");
 	
 	/* Other options */
 	
 	prop= RNA_def_property(srna, "continue_physics", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_CONTINUE_PHYSICS);
+	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_CONTINUE_PHYSICS);
 	RNA_def_property_ui_text(prop, "Continue Physics", "During playblack, continue physics simulations regardless of the frame number");	
 }
 

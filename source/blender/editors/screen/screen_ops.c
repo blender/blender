@@ -2323,30 +2323,6 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
 
 /* ****************** anim player, starts or ends timer ***************** */
 
-/* helper for screen_animation_play() - only to be used for TimeLine */
-ARegion *time_top_left_3dwindow(bScreen *screen)
-{
-	ARegion *aret= NULL;
-	ScrArea *sa;
-	int min= 10000;
-	
-	for(sa= screen->areabase.first; sa; sa= sa->next) {
-		if(sa->spacetype==SPACE_VIEW3D) {
-			ARegion *ar;
-			for(ar= sa->regionbase.first; ar; ar= ar->next) {
-				if(ar->regiontype==RGN_TYPE_WINDOW) {
-					if(ar->winrct.xmin - ar->winrct.ymin < min) {
-						aret= ar;
-						min= ar->winrct.xmin - ar->winrct.ymin;
-					}
-				}
-			}
-		}
-	}
-
-	return aret;
-}
-
 /* toggle operator */
 static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -2371,12 +2347,7 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 			ED_screen_animation_timer(C, stime->redraws, sync, mode);
 			
 			/* update region if TIME_REGION was set, to leftmost 3d window */
-			if(screen->animtimer && (stime->redraws & TIME_REGION)) {
-				wmTimer *wt= screen->animtimer;
-				ScreenAnimData *sad= wt->customdata;
-				
-				sad->ar= time_top_left_3dwindow(screen);
-			}
+			ED_screen_animation_timer_update(C, stime->redraws);
 		}
 		else {
 			ED_screen_animation_timer(C, TIME_REGION|TIME_ALL_3D_WIN, sync, mode);

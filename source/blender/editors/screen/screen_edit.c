@@ -1541,6 +1541,45 @@ void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
 	WM_event_add_notifier(C, NC_SCREEN|ND_ANIMPLAY, screen);
 }
 
+/* helper for screen_animation_play() - only to be used for TimeLine */
+static ARegion *time_top_left_3dwindow(bScreen *screen)
+{
+	ARegion *aret= NULL;
+	ScrArea *sa;
+	int min= 10000;
+	
+	for(sa= screen->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype==SPACE_VIEW3D) {
+			ARegion *ar;
+			for(ar= sa->regionbase.first; ar; ar= ar->next) {
+				if(ar->regiontype==RGN_TYPE_WINDOW) {
+					if(ar->winrct.xmin - ar->winrct.ymin < min) {
+						aret= ar;
+						min= ar->winrct.xmin - ar->winrct.ymin;
+					}
+				}
+			}
+		}
+	}
+
+	return aret;
+}
+
+void ED_screen_animation_timer_update(bContext *C, int redraws)
+{
+	bScreen *screen= CTX_wm_screen(C);
+	
+	if(screen && screen->animtimer) {
+		wmTimer *wt= screen->animtimer;
+		ScreenAnimData *sad= wt->customdata;
+		
+		sad->redraws= redraws;
+		sad->ar= NULL;
+		if(redraws & TIME_REGION)
+			sad->ar= time_top_left_3dwindow(screen);
+	}
+}
+
 unsigned int ED_screen_view3d_layers(bScreen *screen)
 {
 	if(screen) {
