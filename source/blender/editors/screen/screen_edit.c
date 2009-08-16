@@ -1570,7 +1570,7 @@ void ED_update_for_newframe(const bContext *C, int mute)
 	/* XXX future: do all windows */
 	scene_update_for_newframe(scene, ED_screen_view3d_layers(screen)); /* BKE_scene.h */
 	
-	//if ( (CFRA>1) && (!mute) && (scene->audio.flag & AUDIO_SCRUB)) 
+	//if ( (CFRA>1) && (!mute) && (scene->r.audio.flag & AUDIO_SCRUB)) 
 	//	audiostream_scrub( CFRA );
 	
 	/* 3d window, preview */

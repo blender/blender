@@ -416,7 +416,7 @@ void sound_scrub(struct bContext *C)
 	int cfra = CFRA;
 	float fps = FPS;
 
-	if(scene->audio.flag & AUDIO_SCRUB && !CTX_wm_screen(C)->animtimer)
+	if(scene->r.audio.flag & AUDIO_SCRUB && !CTX_wm_screen(C)->animtimer)
 	{
 		AUD_lock();
 

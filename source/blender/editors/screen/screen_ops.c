@@ -2230,9 +2230,9 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		int sync;
 
 		/* sync, don't sync, or follow scene setting */
-		if(scene->audio.flag & ANIMPLAY_FLAG_SYNC) sync= 1;
-		else if(scene->audio.flag & ANIMPLAY_FLAG_NO_SYNC) sync= 0;
-		else sync= (scene->audio.flag & AUDIO_SYNC);
+		if(sad->flag & ANIMPLAY_FLAG_SYNC) sync= 1;
+		else if(sad->flag & ANIMPLAY_FLAG_NO_SYNC) sync= 0;
+		else sync= (scene->r.audio.flag & AUDIO_SYNC);
 		
 		if(sync) {
 			/* skip frames */
@@ -2324,8 +2324,28 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
 /* ****************** anim player, starts or ends timer ***************** */
 
 /* helper for screen_animation_play() - only to be used for TimeLine */
-// NOTE: defined in time_header.c for now...
-extern ARegion *time_top_left_3dwindow(bScreen *screen);
+ARegion *time_top_left_3dwindow(bScreen *screen)
+{
+	ARegion *aret= NULL;
+	ScrArea *sa;
+	int min= 10000;
+	
+	for(sa= screen->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype==SPACE_VIEW3D) {
+			ARegion *ar;
+			for(ar= sa->regionbase.first; ar; ar= ar->next) {
+				if(ar->regiontype==RGN_TYPE_WINDOW) {
+					if(ar->winrct.xmin - ar->winrct.ymin < min) {
+						aret= ar;
+						min= ar->winrct.xmin - ar->winrct.ymin;
+					}
+				}
+			}
+		}
+	}
+
+	return aret;
+}
 
 /* toggle operator */
 static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)

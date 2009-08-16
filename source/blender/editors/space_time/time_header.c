@@ -568,7 +568,7 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	xco+= XIC;
 	
 	uiDefIconButBitS(block, TOG, AUDIO_SYNC, B_DIFF, ICON_SPEAKER,
-					 xco, yco, XIC, YIC, &(scene->audio.flag), 0, 0, 0, 0, "Play back and sync with audio from Sequence Editor");
+					 xco, yco, XIC, YIC, &(scene->r.audio.flag), 0, 0, 0, 0, "Play back and sync with audio from Sequence Editor");
 	
 	
 	/* always as last  */
