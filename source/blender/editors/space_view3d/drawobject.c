@@ -91,6 +91,7 @@
 #include "BKE_particle.h"
 #include "BKE_property.h"
 #include "BKE_smoke.h"
+#include "BKE_unit.h"
 #include "BKE_utildefines.h"
 #include "smoke_API.h"
 
@@ -1850,7 +1851,7 @@ static void draw_em_fancy_edges(Scene *scene, View3D *v3d, Mesh *me, DerivedMesh
 	}
 }	
 
-static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, EditMesh *em)
+static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, EditMesh *em, UnitSettings *unit)
 {
 	Mesh *me= ob->data;
 	EditEdge *eed;
@@ -1860,18 +1861,20 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 	char val[32]; /* Stores the measurement display text here */
 	char conv_float[5]; /* Use a float conversion matching the grid size */
 	float area, col[3]; /* area of the face,  color of the text to draw */
-	
+	float grid= unit->system ? unit->scale_length : v3d->grid;
+	int do_split= unit->flag & USER_UNIT_OPT_SPLIT;
 	if(G.f & (G_RENDER_OGL|G_RENDER_SHADOW))
 		return;
 
 	/* make the precission of the pronted value proportionate to the gridsize */
-	if ((v3d->grid) < 0.01)
+
+	if (grid < 0.01f)
 		strcpy(conv_float, "%.6f");
-	else if ((v3d->grid) < 0.1)
+	else if (grid < 0.1f)
 		strcpy(conv_float, "%.5f");
-	else if ((v3d->grid) < 1.0)
+	else if (grid < 1.0f)
 		strcpy(conv_float, "%.4f");
-	else if ((v3d->grid) < 10.0)
+	else if (grid < 10.0f)
 		strcpy(conv_float, "%.3f");
 	else
 		strcpy(conv_float, "%.2f");
@@ -1880,13 +1883,13 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 	if(v3d->zbuf && (v3d->flag & V3D_ZBUF_SELECT)==0)
 		glDisable(GL_DEPTH_TEST);
 
-	if(v3d->zbuf) bglPolygonOffset(rv3d->dist, 5.0);
+	if(v3d->zbuf) bglPolygonOffset(rv3d->dist, 5.0f);
 	
 	if(me->drawflag & ME_DRAW_EDGELEN) {
 		UI_GetThemeColor3fv(TH_TEXT, col);
 		/* make color a bit more red */
-		if(col[0]> 0.5) {col[1]*=0.7; col[2]*= 0.7;}
-		else col[0]= col[0]*0.7 + 0.3;
+		if(col[0]> 0.5f) {col[1]*=0.7f; col[2]*= 0.7f;}
+		else col[0]= col[0]*0.7f + 0.3f;
 		glColor3fv(col);
 		
 		for(eed= em->edges.first; eed; eed= eed->next) {
@@ -1895,16 +1898,19 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				VECCOPY(v1, eed->v1->co);
 				VECCOPY(v2, eed->v2->co);
 				
-				x= 0.5*(v1[0]+v2[0]);
-				y= 0.5*(v1[1]+v2[1]);
-				z= 0.5*(v1[2]+v2[2]);
+				x= 0.5f*(v1[0]+v2[0]);
+				y= 0.5f*(v1[1]+v2[1]);
+				z= 0.5f*(v1[2]+v2[2]);
 				
 				if(v3d->flag & V3D_GLOBAL_STATS) {
 					Mat4MulVecfl(ob->obmat, v1);
 					Mat4MulVecfl(ob->obmat, v2);
 				}
+				if(unit->system)
+					bUnit_AsString(val, sizeof(val), VecLenf(v1, v2)*unit->scale_length, 3, unit->system, B_UNIT_LENGTH, do_split, FALSE);
+				else
+					sprintf(val, conv_float, VecLenf(v1, v2));
 				
-				sprintf(val, conv_float, VecLenf(v1, v2));
 				view3d_object_text_draw_add(x, y, z, val, 0);
 			}
 		}
@@ -1915,8 +1921,8 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 		
 		UI_GetThemeColor3fv(TH_TEXT, col);
 		/* make color a bit more green */
-		if(col[1]> 0.5) {col[0]*=0.7; col[2]*= 0.7;}
-		else col[1]= col[1]*0.7 + 0.3;
+		if(col[1]> 0.5f) {col[0]*=0.7f; col[2]*= 0.7f;}
+		else col[1]= col[1]*0.7f + 0.3f;
 		glColor3fv(col);
 		
 		for(efa= em->faces.first; efa; efa= efa->next) {
@@ -1939,7 +1945,11 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				else
 					area = AreaT3Dfl(v1, v2, v3);
 
-				sprintf(val, conv_float, area);
+				if(unit->system)
+					bUnit_AsString(val, sizeof(val), area*unit->scale_length, 3, unit->system, B_UNIT_LENGTH, do_split, FALSE); // XXX should be B_UNIT_AREA
+				else
+					sprintf(val, conv_float, area);
+
 				view3d_object_text_draw_add(efa->cent[0], efa->cent[1], efa->cent[2], val, 0);
 			}
 		}
@@ -1950,8 +1960,8 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 		
 		UI_GetThemeColor3fv(TH_TEXT, col);
 		/* make color a bit more blue */
-		if(col[2]> 0.5) {col[0]*=0.7; col[1]*= 0.7;}
-		else col[2]= col[2]*0.7 + 0.3;
+		if(col[2]> 0.5f) {col[0]*=0.7f; col[1]*= 0.7f;}
+		else col[2]= col[2]*0.7f + 0.3f;
 		glColor3fv(col);
 		
 		for(efa= em->faces.first; efa; efa= efa->next) {
@@ -1981,13 +1991,13 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 			if( (e4->f & e1->f & SELECT) || (G.moving && (efa->v1->f & SELECT)) ) {
 				/* Vec 1 */
 				sprintf(val,"%.3f", VecAngle3(v4, v1, v2));
-				VecLerpf(fvec, efa->cent, efa->v1->co, 0.8);
+				VecLerpf(fvec, efa->cent, efa->v1->co, 0.8f);
 				view3d_object_text_draw_add(efa->cent[0], efa->cent[1], efa->cent[2], val, 0);
 			}
 			if( (e1->f & e2->f & SELECT) || (G.moving && (efa->v2->f & SELECT)) ) {
 				/* Vec 2 */
 				sprintf(val,"%.3f", VecAngle3(v1, v2, v3));
-				VecLerpf(fvec, efa->cent, efa->v2->co, 0.8);
+				VecLerpf(fvec, efa->cent, efa->v2->co, 0.8f);
 				view3d_object_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 			}
 			if( (e2->f & e3->f & SELECT) || (G.moving && (efa->v3->f & SELECT)) ) {
@@ -1996,14 +2006,14 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 					sprintf(val,"%.3f", VecAngle3(v2, v3, v4));
 				else
 					sprintf(val,"%.3f", VecAngle3(v2, v3, v1));
-				VecLerpf(fvec, efa->cent, efa->v3->co, 0.8);
+				VecLerpf(fvec, efa->cent, efa->v3->co, 0.8f);
 				view3d_object_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 			}
 				/* Vec 4 */
 			if(efa->v4) {
 				if( (e3->f & e4->f & SELECT) || (G.moving && (efa->v4->f & SELECT)) ) {
 					sprintf(val,"%.3f", VecAngle3(v3, v4, v1));
-					VecLerpf(fvec, efa->cent, efa->v4->co, 0.8);
+					VecLerpf(fvec, efa->cent, efa->v4->co, 0.8f);
 					view3d_object_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 				}
 			}
@@ -2012,7 +2022,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 	
 	if(v3d->zbuf) {
 		glEnable(GL_DEPTH_TEST);
-		bglPolygonOffset(rv3d->dist, 0.0);
+		bglPolygonOffset(rv3d->dist, 0.0f);
 	}
 }
 
@@ -2185,7 +2195,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 		}
 
 		if(me->drawflag & (ME_DRAW_EDGELEN|ME_DRAW_FACEAREA|ME_DRAW_EDGEANG))
-			draw_em_measure_stats(v3d, rv3d, ob, em);
+			draw_em_measure_stats(v3d, rv3d, ob, em, &scene->unit);
 	}
 
 	if(dt>OB_WIRE) {
@@ -3514,7 +3524,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					}
 
 					if((part->draw&PART_DRAW_NUM || part->draw&PART_DRAW_HEALTH) && !(G.f & G_RENDER_SHADOW)){
-						strcpy(val, "");
+						val[0]= '\0';
 						
 						if(part->draw&PART_DRAW_NUM)
 							sprintf(val, " %i", a);
