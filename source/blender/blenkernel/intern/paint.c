@@ -25,13 +25,126 @@
  * ***** END GPL LICENSE BLOCK *****
  */ 
 
-#include "DNA_object_types.h"
+#include "MEM_guardedalloc.h"
 
+#include "DNA_brush_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+
+#include "BKE_brush.h"
 #include "BKE_global.h"
 #include "BKE_paint.h"
+
+#include <stdlib.h>
+#include <string.h>
+
+Paint *paint_get_active(Scene *sce)
+{
+	if(sce && sce->basact && sce->basact->object) {
+		switch(sce->basact->object->mode) {
+		case OB_MODE_SCULPT:
+			return &sce->toolsettings->sculpt->paint;
+		}
+	}
+	/*else if(G.f & G_VERTEXPAINT)
+		return &sce->toolsettings->vpaint->paint;
+	else if(G.f & G_WEIGHTPAINT)
+		return &sce->toolsettings->wpaint->paint;
+	else if(G.f & G_TEXTUREPAINT)
+	return &sce->toolsettings->imapaint.paint;*/
+
+	return NULL;
+}
+
+Brush *paint_brush(Paint *p)
+{
+	return p && p->brushes ? p->brushes[p->active_brush_index] : NULL;
+}
+
+void paint_brush_set(Paint *p, Brush *br)
+{
+	if(p && p->brushes) {
+		int i;
+
+		/* See if there's already a slot with the brush */
+		for(i = 0; i < p->brush_count; ++i) {
+			if(p->brushes[i] == br) {
+				p->active_brush_index = i;
+				break;
+			}
+		}
+		
+	}
+	else
+		paint_brush_slot_add(p);
+
+	/* Make sure the current slot is the new brush */
+	p->brushes[p->active_brush_index] = br;
+}
+
+static void paint_brush_slots_alloc(Paint *p, const int count)
+{
+	p->brush_count = count;
+	if(count == 0)
+		p->brushes = NULL;
+	else
+		p->brushes = MEM_callocN(sizeof(Brush*) * count, "Brush slots");
+}
+
+void paint_brush_slot_add(Paint *p)
+{
+	Brush **orig = p->brushes;
+	int orig_count = p->brushes ? p->brush_count : 0;
+
+	/* Increase size of brush slot array */
+	paint_brush_slots_alloc(p, orig_count + 1);
+	if(orig) {
+		memcpy(p->brushes, orig, sizeof(Brush*) * orig_count);
+		MEM_freeN(orig);
+	}
+
+	p->active_brush_index = orig_count;
+}
+
+void paint_brush_slot_remove(Paint *p)
+{
+	if(p->brushes) {
+		Brush **orig = p->brushes;
+		int src, dst;
+		
+		/* Decrease size of brush slot array */
+		paint_brush_slots_alloc(p, p->brush_count - 1);
+		if(p->brushes) {
+			for(src = 0, dst = 0; dst < p->brush_count; ++src) {
+				if(src != p->active_brush_index) {
+					p->brushes[dst] = orig[src];
+					++dst;
+				}
+			}
+		}
+		MEM_freeN(orig);
+
+		if(p->active_brush_index >= p->brush_count)
+			p->active_brush_index = p->brush_count - 1;
+		if(p->active_brush_index < 0)
+			p->active_brush_index = 0;
+	}
+}
 
 int paint_facesel_test(Object *ob)
 {
 	return (G.f&G_FACESELECT) && (ob && (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)));
 
+}
+
+void free_paint(Paint *paint)
+{
+	if(paint->brushes)
+		MEM_freeN(paint->brushes);
+}
+
+void copy_paint(Paint *orig, Paint *new)
+{
+	if(orig->brushes)
+		new->brushes = MEM_dupallocN(orig->brushes);
 }

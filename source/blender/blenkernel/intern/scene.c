@@ -76,6 +76,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_scene.h"
 #include "BKE_sequence.h"
 #include "BKE_world.h"
@@ -173,7 +174,7 @@ Scene *copy_scene(Main *bmain, Scene *sce, int type)
 			}
 			if(ts->sculpt) {
 				ts->sculpt= MEM_dupallocN(ts->sculpt);
-				id_us_plus((ID *)ts->sculpt->brush);
+				copy_paint(&ts->sculpt->paint, &ts->sculpt->paint);
 			}
 
 			id_us_plus((ID *)ts->imapaint.brush);
@@ -275,8 +276,10 @@ void free_scene(Scene *sce)
 			MEM_freeN(sce->toolsettings->vpaint);
 		if(sce->toolsettings->wpaint)
 			MEM_freeN(sce->toolsettings->wpaint);
-		if(sce->toolsettings->sculpt)
+		if(sce->toolsettings->sculpt) {
+			free_paint(&sce->toolsettings->sculpt->paint);
 			MEM_freeN(sce->toolsettings->sculpt);
+		}
 		
 		MEM_freeN(sce->toolsettings);
 		sce->toolsettings = NULL;	

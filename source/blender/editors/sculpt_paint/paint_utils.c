@@ -19,6 +19,8 @@
 #include "BKE_context.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
+#include "BKE_paint.h"
+
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
@@ -168,7 +170,7 @@ int imapaint_pick_face(ViewContext *vc, Mesh *me, int *mval, unsigned int *index
 /* used for both 3d view and image window */
 void paint_sample_color(Scene *scene, ARegion *ar, int x, int y)	/* frontbuf */
 {
-	Brush **br = current_brush_source(scene);
+	Brush *br = paint_brush(paint_get_active(scene));
 	unsigned int col;
 	char *cp;
 
@@ -181,16 +183,16 @@ void paint_sample_color(Scene *scene, ARegion *ar, int x, int y)	/* frontbuf */
 
 	cp = (char *)&col;
 	
-	if(br && *br) {
-		(*br)->rgb[0]= cp[0]/255.0f;
-		(*br)->rgb[1]= cp[1]/255.0f;
-		(*br)->rgb[2]= cp[2]/255.0f;
+	if(br) {
+		br->rgb[0]= cp[0]/255.0f;
+		br->rgb[1]= cp[1]/255.0f;
+		br->rgb[2]= cp[2]/255.0f;
 	}
 }
 
 static int brush_curve_preset_exec(bContext *C, wmOperator *op)
 {
-	Brush *br = *current_brush_source(CTX_data_scene(C));
+	Brush *br = paint_brush(paint_get_active(CTX_data_scene(C)));
 	brush_curve_preset(br, RNA_enum_get(op->ptr, "shape"));
 
 	return OPERATOR_FINISHED;
@@ -198,9 +200,9 @@ static int brush_curve_preset_exec(bContext *C, wmOperator *op)
 
 static int brush_curve_preset_poll(bContext *C)
 {
-	Brush **br = current_brush_source(CTX_data_scene(C));
+	Brush *br = paint_brush(paint_get_active(CTX_data_scene(C)));
 
-	return br && *br && (*br)->curve;
+	return br && br->curve;
 }
 
 void BRUSH_OT_curve_preset(wmOperatorType *ot)

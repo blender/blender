@@ -28,7 +28,19 @@
 #ifndef BKE_PAINT_H
 #define BKE_PAINT_H
 
+struct Brush;
 struct Object;
+struct Paint;
+struct Scene;
+
+void free_paint(Paint *p);
+void copy_paint(Paint *orig, Paint *new);
+
+struct Paint *paint_get_active(struct Scene *sce);
+struct Brush *paint_brush(struct Paint *paint);
+void paint_brush_set(struct Paint *paint, struct Brush *br);
+void paint_brush_slot_add(struct Paint *p);
+void paint_brush_slot_remove(struct Paint *p);
 
 /* testing face select mode
  * Texture paint could be removed since selected faces are not used

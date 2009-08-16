@@ -49,6 +49,7 @@
 #include "BKE_global.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
+#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
@@ -323,7 +324,7 @@ static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
 
 		if(obact) {
 			if(obact->mode & OB_MODE_SCULPT)
-				br= ts->sculpt->brush;
+				paint_brush(&ts->sculpt->paint);
 			else if(obact->mode & OB_MODE_VERTEX_PAINT)
 				br= ts->vpaint->brush;
 			else if(obact->mode & OB_MODE_WEIGHT_PAINT)

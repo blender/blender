@@ -292,10 +292,22 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 		
 		settings = self.paint_settings(context)
 		brush = settings.brush
-		
+
 		if not context.particle_edit_object:
-			layout.split().row().template_ID(settings, "brush")
-		
+			col = layout.split().column()
+			if context.sculpt_object:
+				row = col.row()
+				row.template_list(settings, "brushes", settings, "active_brush_index", rows=2)
+				
+				sub_col = row.column(align=True)
+				sub_col.itemO("paint.brush_slot_add", icon="ICON_ZOOMIN", text="")
+				sub_col.itemO("paint.brush_slot_remove", icon="ICON_ZOOMOUT", text="")
+
+		col.template_ID(settings, "brush")
+
+		if(context.sculpt_object):
+			col.item_menu_enumO("brush.new", "sculpt_tool");
+                
 		# Particle Mode #
 
 		# XXX This needs a check if psys is editable.
@@ -323,9 +335,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 
 		# Sculpt Mode #
 		
-		elif context.sculpt_object:
-			layout.column().itemR(brush, "sculpt_tool", expand=True)
-				
+		elif context.sculpt_object and settings.brush:
 			col = layout.column()
 				
 			row = col.row(align=True)
@@ -348,6 +358,8 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 				if brush.sculpt_tool == 'LAYER':
 					col.itemR(brush, "persistent")
 					col.itemO("sculpt.set_persistent_base")
+
+			col.itemR(brush, "sculpt_tool")
 				
 		# Texture Paint Mode #
 		

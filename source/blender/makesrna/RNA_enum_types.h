@@ -49,6 +49,8 @@ extern EnumPropertyItem nla_mode_blend_items[];
 extern EnumPropertyItem event_value_items[];
 extern EnumPropertyItem event_type_items[];
 
+extern EnumPropertyItem brush_sculpt_tool_items[];
+
 #endif /* RNA_ENUM_TYPES */
 
 

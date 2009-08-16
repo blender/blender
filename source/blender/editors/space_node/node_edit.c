@@ -56,6 +56,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_material.h"
+#include "BKE_paint.h"
 #include "BKE_texture.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
@@ -625,10 +626,9 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 			MTex *mtex= NULL;
 			
 			if(ob && ob->mode & OB_MODE_SCULPT) {
-				Sculpt *sd= scene->toolsettings->sculpt;
-				if(sd && sd->brush)
-					if(sd->brush->texact != -1)
-						mtex= sd->brush->mtex[sd->brush->texact];
+				Brush *brush = paint_brush(&scene->toolsettings->sculpt->paint);
+				if(brush && brush->texact != -1)
+					mtex= brush->mtex[brush->texact];
 			}
 			else {
 				Brush *br= scene->toolsettings->imapaint.brush;

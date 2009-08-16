@@ -4036,9 +4036,12 @@ static void lib_link_scene(FileData *fd, Main *main)
 			
 			sce->toolsettings->imapaint.brush=
 				newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.brush);
-			if(sce->toolsettings->sculpt)
-				sce->toolsettings->sculpt->brush=
-					newlibadr_us(fd, sce->id.lib, sce->toolsettings->sculpt->brush);
+			if(sce->toolsettings->sculpt && sce->toolsettings->sculpt->paint.brushes) {
+				int i;
+				for(i = 0; i < sce->toolsettings->sculpt->paint.brush_count; ++i)
+					sce->toolsettings->sculpt->paint.brushes[i]=
+						newlibadr_us(fd, sce->id.lib, sce->toolsettings->sculpt->paint.brushes[i]);
+			}
 			if(sce->toolsettings->vpaint)
 				sce->toolsettings->vpaint->brush=
 					newlibadr_us(fd, sce->id.lib, sce->toolsettings->vpaint->brush);
@@ -4148,6 +4151,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		sce->toolsettings->vpaint= newdataadr(fd, sce->toolsettings->vpaint);
 		sce->toolsettings->wpaint= newdataadr(fd, sce->toolsettings->wpaint);
 		sce->toolsettings->sculpt= newdataadr(fd, sce->toolsettings->sculpt);
+		if(sce->toolsettings->sculpt)
+			sce->toolsettings->sculpt->paint.brushes= newdataadr(fd, sce->toolsettings->sculpt->paint.brushes);
 		sce->toolsettings->imapaint.paintcursor= NULL;
 		sce->toolsettings->particle.paintcursor= NULL;
 	}

@@ -465,12 +465,19 @@ typedef struct TransformOrientation {
 	float mat[3][3];
 } TransformOrientation;
 
+typedef struct Paint {
+	/* Array of brushes selected for use in this paint mode */
+	Brush **brushes;
+	int active_brush_index, brush_count;
+	
+	/* WM handle */
+	void *paint_cursor;
+} Paint;
+
 typedef struct Sculpt
 {
-	/* Note! a deep copy of this struct must be done scene.c's copy_scene function */	
-
-	struct Brush *brush;
-
+	Paint paint;
+	
 	/* WM handle */
 	void *cursor;
 

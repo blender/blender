@@ -31,6 +31,8 @@
 
 #include "DNA_scene_types.h"
 
+#include "BKE_paint.h"
+
 #ifdef RNA_RUNTIME
 
 static PointerRNA rna_ParticleEdit_brush_get(PointerRNA *ptr)
@@ -49,20 +51,67 @@ static PointerRNA rna_ParticleBrush_curve_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_CurveMapping, NULL);
 }
 
+static void rna_Paint_brushes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Paint *p= (Paint*)ptr->data;
+	rna_iterator_array_begin(iter, (void*)p->brushes, sizeof(Brush*), p->brush_count, 0, NULL);
+}
+
+static int rna_Paint_brushes_length(PointerRNA *ptr)
+{
+	Paint *p= (Paint*)ptr->data;
+
+	return p->brush_count;
+}
+
+static PointerRNA rna_Paint_active_brush_get(PointerRNA *ptr)
+{
+	return rna_pointer_inherit_refine(ptr, &RNA_Brush, paint_brush(ptr->data));
+}
+
+static void rna_Paint_active_brush_set(PointerRNA *ptr, PointerRNA value)
+{
+	paint_brush_set(ptr->data, value.data);
+}
+
 #else
+
+static void rna_def_paint(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "Paint", NULL);
+	RNA_def_struct_ui_text(srna, "Paint", "");
+
+	prop= RNA_def_property(srna, "brushes", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Brush");
+	RNA_def_property_collection_funcs(prop, "rna_Paint_brushes_begin",
+					  "rna_iterator_array_next",
+					  "rna_iterator_array_end",
+					  "rna_iterator_array_dereference_get", 
+					  "rna_Paint_brushes_length", 0, 0, 0, 0);
+	RNA_def_property_ui_text(prop, "Brushes", "Brushes selected for this paint mode.");
+
+	prop= RNA_def_property(srna, "active_brush_index", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 0, INT_MAX);       
+
+	/* Fake property to get active brush directly, rather than integer index */
+	prop= RNA_def_property(srna, "brush", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Brush");
+	RNA_def_property_pointer_funcs(prop, "rna_Paint_active_brush_get", "rna_Paint_active_brush_set", NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Brush", "Active paint brush.");
+}
 
 static void rna_def_sculpt(BlenderRNA  *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "Sculpt", NULL);
+	srna= RNA_def_struct(brna, "Sculpt", "Paint");
 	RNA_def_struct_ui_text(srna, "Sculpt", "");
 	
-	prop= RNA_def_property(srna, "brush", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Brush");
-	RNA_def_property_ui_text(prop, "Brush", "");
-
 	prop= RNA_def_property(srna, "symmetry_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_SYMM_X);
 	RNA_def_property_ui_text(prop, "Symmetry X", "Mirror brush across the X axis.");
@@ -353,6 +402,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 
 void RNA_def_sculpt_paint(BlenderRNA *brna)
 {
+	rna_def_paint(brna);
 	rna_def_sculpt(brna);
 	rna_def_vertex_paint(brna);
 	rna_def_image_paint(brna);

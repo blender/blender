@@ -62,7 +62,7 @@
 
 /* Datablock add/copy/free/make_local */
 
-Brush *add_brush(char *name)
+Brush *add_brush(const char *name)
 {
 	Brush *brush;
 
@@ -185,23 +185,6 @@ void make_local_brush(Brush *brush)
 }
 
 /* Library Operations */
-
-Brush **current_brush_source(Scene *sce)
-{
-	Object *ob = sce->basact ? sce->basact->object : NULL;
-
-	if(ob) {
-		if(ob->mode & OB_MODE_SCULPT)
-			return &sce->toolsettings->sculpt->brush;
-		else if(ob->mode & OB_MODE_VERTEX_PAINT)
-			return &sce->toolsettings->vpaint->brush;
-		else if(ob->mode & OB_MODE_WEIGHT_PAINT)
-			return &sce->toolsettings->wpaint->brush;
-		else if(ob->mode & OB_MODE_TEXTURE_PAINT)
-			return &sce->toolsettings->imapaint.brush;
-	}
-	return NULL;
-}
 
 int brush_set_nr(Brush **current_brush, int nr)
 {
