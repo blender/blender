@@ -499,7 +499,7 @@ static void region_azone_initialize(ScrArea *sa, ARegion *ar, char edge)
 	/* if more azones on 1 spot, set offset */
 	for(azt= sa->actionzones.first; azt; azt= azt->next) {
 		if(az!=azt) {
-			if(az->x1==azt->x1 && az->y1==azt->y1) {
+			if( ABS(az->x1-azt->x1) < 2 && ABS(az->y1-azt->y1) < 2) {
 				if(edge=='t' || edge=='b') {
 					az->x1+= AZONESPOT;
 					az->x2+= AZONESPOT;
