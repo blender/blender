@@ -35,8 +35,8 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 			col.itemR(ob, "restrict_render", text="Invisible") # out of place but useful
 			
 			col = split.column()
-			col.itemR(game, "do_fh", text="Use Material Physics")
-			col.itemR(game, "rotation_fh", text="Rotate From Normal")
+			col.itemR(game, "material_physics")
+			col.itemR(game, "rotate_from_normal")
 			col.itemR(game, "no_sleeping")
 			
 			layout.itemS()
@@ -50,12 +50,15 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 			sub.itemR(game, "radius")
 			sub.itemR(game, "form_factor")
 			
-			col.itemS()
+			col = split.column()
+			sub = col.column()
+			sub.active = (game.physics_type == 'RIGID_BODY')
+			sub.itemR(game, "anisotropic_friction")
+			subsub = sub.column()
+			subsub.active = game.anisotropic_friction
+			subsub.itemR(game, "friction_coefficients", text="", slider=True)
 			
-			col.itemL(text="Damping:")
-			sub = col.column(align=True)
-			sub.itemR(game, "damping", text="Translation", slider=True)
-			sub.itemR(game, "rotation_damping", text="Rotation", slider=True)
+			split = layout.split()
 			
 			col = split.column()
 			col.itemL(text="Velocity:")
@@ -63,14 +66,11 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 			sub.itemR(game, "minimum_velocity", text="Minimum")
 			sub.itemR(game, "maximum_velocity", text="Maximum")
 			
-			col.itemS()
-			
-			sub = col.column()
-			sub.active = (game.physics_type == 'RIGID_BODY')
-			sub.itemR(game, "anisotropic_friction")
-			subsub = sub.column()
-			subsub.active = game.anisotropic_friction
-			subsub.itemR(game, "friction_coefficients", text="", slider=True)
+			col = split.column()
+			col.itemL(text="Damping:")
+			sub = col.column(align=True)
+			sub.itemR(game, "damping", text="Translation", slider=True)
+			sub.itemR(game, "rotation_damping", text="Rotation", slider=True)
 			
 			layout.itemS()
 			
@@ -119,10 +119,10 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 			col.itemS()
 			
 			col.itemL(text="Cluster Collision:")
-			col.itemR(soft, "enable_rs_collision", text="Rigid to Soft Body")
-			col.itemR(soft, "enable_ss_collision", text="Soft to Soft Body")
+			col.itemR(soft, "cluster_rigid_to_softbody")
+			col.itemR(soft, "cluster_soft_to_softbody")
 			sub  = col.column()
-			sub.active = (soft.enable_rs_collision or soft.enable_ss_collision)
+			sub.active = (soft.cluster_rigid_to_softbody or soft.cluster_soft_to_softbody)
 			sub.itemR(soft, "cluster_iterations", text="Iterations")
 		
 		elif game.physics_type == 'STATIC':

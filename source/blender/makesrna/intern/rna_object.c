@@ -839,7 +839,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "inertia");
 	RNA_def_property_range(prop, 0.01, 10.0);
-	RNA_def_property_ui_text(prop, "Radius", "Radius for Bounding sphere and Fh/Fh Rot.");
+	RNA_def_property_ui_text(prop, "Radius", "Radius of bounding sphere and material physics");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "no_sleeping", PROP_BOOLEAN, PROP_NONE);
@@ -899,13 +899,13 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Lock Z Rotation Axis", "Disable simulation of angular  motion along the Z axis.");	
 	
 
-	prop= RNA_def_property(srna, "do_fh", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "material_physics", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_DO_FH);
-	RNA_def_property_ui_text(prop, "Do Fh", "Use Fh settings in materials.");
+	RNA_def_property_ui_text(prop, "Use Material Physics", "Use physics settings in materials.");
 
-	prop= RNA_def_property(srna, "rotation_fh", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "rotate_from_normal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_ROT_FH);
-	RNA_def_property_ui_text(prop, "Rotation Fh", "Use face normal to rotate Object");
+	RNA_def_property_ui_text(prop, "Rotate From Normal", "Use face normal to rotate object, so that it points away from the surface");
 
 	prop= RNA_def_property(srna, "form_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "formfactor");
