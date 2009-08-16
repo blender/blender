@@ -7036,12 +7036,13 @@ static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *ptr, in
 {	
 	EnumPropertyItem *input = object_mode_items;
 	EnumPropertyItem *item= NULL;
-	Object *ob = CTX_data_active_object(C);
+	Object *ob;
 	int totitem= 0;
 	
 	if(!C) /* needed for docs */
 		return object_mode_items;
 
+	ob = CTX_data_active_object(C);
 	while(ob && input->identifier) {
 		if((input->value == OB_MODE_EDIT && ((ob->type == OB_MESH) || (ob->type == OB_ARMATURE) ||
 						    (ob->type == OB_CURVE) || (ob->type == OB_SURF) ||
