@@ -591,7 +591,6 @@ void DM_interp_face_data(DerivedMesh *source, DerivedMesh *dest,
 }
 
 ///
-
 static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3])
 {
 	DerivedMesh *dm = CDDM_from_mesh(me, ob);

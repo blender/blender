@@ -477,6 +477,7 @@ static void calc_ss_weights(int gridFaces,
 /* face weighting */
 typedef struct FaceVertWeightEntry {
 	FaceVertWeight *weight;
+	float *w;
 	int valid;
 } FaceVertWeightEntry;
 
@@ -485,10 +486,56 @@ typedef struct WeightTable {
 	int len;
 } WeightTable;
 
-static FaceVertWeight *get_ss_weights(WeightTable *wtable, int gridFaces, int faceLen)
+static float *get_ss_weights(WeightTable *wtable, int gridCuts, int faceLen)
 {
-	int i;
+	int x, y, i, j;
+	float *w, w1, w2, w4, fac, fac2, fx, fy;
 
+	if (wtable->len <= faceLen) {
+		void *tmp = MEM_callocN(sizeof(FaceVertWeightEntry)*(faceLen+1), "weight table alloc 2");
+		
+		if (wtable->len) {
+			memcpy(tmp, wtable->weight_table, sizeof(FaceVertWeightEntry)*wtable->len);
+			MEM_freeN(wtable->weight_table);
+		}
+		
+		wtable->weight_table = tmp;
+		wtable->len = faceLen+1;
+	}
+
+	if (!wtable->weight_table[faceLen].valid) {
+		wtable->weight_table[faceLen].valid = 1;
+		wtable->weight_table[faceLen].w = w = MEM_callocN(sizeof(float)*faceLen*faceLen*(gridCuts+2)*(gridCuts+2), "weight table alloc");
+		fac = 1.0 / (float)faceLen;
+
+		for (i=0; i<faceLen; i++) {
+			for (x=0; x<gridCuts+2; x++) {
+				for (y=0; y<gridCuts+2; y++) {
+					fx = 0.5f - (float)x / (float)(gridCuts+1) / 2.0f;
+					fy = 0.5f - (float)y / (float)(gridCuts+1) / 2.0f;
+				
+					fac2 = faceLen - 4;
+					w1 = (1.0f - fx) * (1.0f - fy) + (-fac2*fx*fy*fac);
+					w2 = (1.0f - fx + fac2*fx*-fac) * (fy);
+					w4 = (fx) * (1.0 - fy + -fac2*fy*fac);
+					
+					fac2 = 1.0 - (w1+w2+w4);
+					fac2 = fac2 / (float)(faceLen-3);
+					for (j=0; j<faceLen; j++)
+						w[j] = fac2;
+					
+					w[i] = w1;
+					w[(i-1+faceLen)%faceLen] = w2;
+					w[(i+1)%faceLen] = w4;
+
+					w += faceLen;
+				}
+			}
+		}
+	}
+
+	return wtable->weight_table[faceLen].w;
+#if 0
 	/*ensure we have at least the triangle and quad weights*/
 	if (wtable->len < 4) {
 		wtable->weight_table = MEM_callocN(sizeof(FaceVertWeightEntry)*5, "weight table alloc");
@@ -508,16 +555,8 @@ static FaceVertWeight *get_ss_weights(WeightTable *wtable, int gridFaces, int fa
 		wtable->len = faceLen+1;
 	}
 
-	if (!wtable->weight_table[faceLen].valid) {
-		wtable->weight_table[faceLen].weight =
-			MEM_callocN(sizeof(FaceVertWeight)*gridFaces*gridFaces, 
-			            "vert face weight");
-		wtable->weight_table[faceLen].valid = 1;
-
-		/*ok, need to calculate weights here*/
-	}
-
 	return wtable->weight_table[faceLen].weight;
+#endif
 }
 
 void free_ss_weights(WeightTable *wtable)
@@ -526,7 +565,7 @@ void free_ss_weights(WeightTable *wtable)
 
 	for (i=0; i<wtable->len; i++) {
 		if (wtable->weight_table[i].valid)
-			MEM_freeN(wtable->weight_table[i].weight);
+			MEM_freeN(wtable->weight_table[i].w);
 	}
 }
 
@@ -614,7 +653,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CSubSurf *ss, int ssFromEditmesh,
 	for(index = 0; index < totface; index++) {
 		CCFace *f = faceMap2[index];
 		int x, y, S, numVerts = CCS_getFaceNumVerts(f);
-		FaceVertWeight *weight = get_ss_weights(&wtable, gridFaces, numVerts);
+		FaceVertWeight *weight = 0;//get_ss_weights(&wtable, gridFaces-1, numVerts);
 
 		V_RESET(vertIdx);
 
@@ -625,7 +664,9 @@ static DerivedMesh *ss_to_cdderivedmesh(CSubSurf *ss, int ssFromEditmesh,
 			vertIdx[S] = GET_INT_FROM_POINTER(CCS_getVertVertHandle(v));
 		}
 
+#if 0
 		DM_interp_vert_data(dm, result, vertIdx, weight[0][0], numVerts, i);
+#endif
 		VecCopyf(mvert->co, CCS_getFaceCenterData(f));
 		*origIndex = ORIGINDEX_NONE;
 		++mvert;
@@ -643,12 +684,14 @@ static DerivedMesh *ss_to_cdderivedmesh(CSubSurf *ss, int ssFromEditmesh,
 			int otherS = (numVerts >= 4) ? (S + 2) % numVerts : 3;
 
 			for(x = 1; x < gridFaces; x++) {
+#if 0
 				w[prevS]  = weight[x][0][0];
 				w[S]      = weight[x][0][1];
 				w[nextS]  = weight[x][0][2];
 				w[otherS] = weight[x][0][3];
 
 				DM_interp_vert_data(dm, result, vertIdx, w, numVerts, i);
+#endif
 				VecCopyf(mvert->co,
 				         CCS_getFaceGridEdgeData(ss, f, S, x));
 
@@ -671,11 +714,13 @@ static DerivedMesh *ss_to_cdderivedmesh(CSubSurf *ss, int ssFromEditmesh,
 			
 			for(y = 1; y < gridFaces; y++) {
 				for(x = 1; x < gridFaces; x++) {
+#if 0
 					w[prevS]  = weight[y * gridFaces + x][0][0];
 					w[S]      = weight[y * gridFaces + x][0][1];
 					w[nextS]  = weight[y * gridFaces + x][0][2];
 					w[otherS] = weight[y * gridFaces + x][0][3];
 					DM_interp_vert_data(dm, result, vertIdx, w, numVerts, i);
+#endif
 
 					VecCopyf(mvert->co,
 					         CCS_getFaceGridData(ss, f, S, x, y));
@@ -837,7 +882,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CSubSurf *ss, int ssFromEditmesh,
 		}
 
 		for(S = 0; S < numVerts; S++) {
-			FaceVertWeight *weight = get_ss_weights(&wtable, gridFaces, numVerts);
+			FaceVertWeight *weight = 0;//get_ss_weights(&wtable, gridFaces-1, numVerts);
 			
 			for(y = 0; y < gridFaces; y++) {
 				for(x = 0; x < gridFaces; x++) {
@@ -851,7 +896,7 @@ static DerivedMesh *ss_to_cdderivedmesh(CSubSurf *ss, int ssFromEditmesh,
 					                      edgeSize, gridSize);
 					mf->mat_nr = mat_nr;
 					mf->flag = flag;
-#if 1 //BMESH_TODO
+#if 0 //BMESH_TODO
 					if(dm) {
 						int prevS = (S - 1 + numVerts) % numVerts;
 						int nextS = (S + 1) % numVerts;
@@ -2475,6 +2520,49 @@ static void cgdm_release(DerivedMesh *dm) {
 	}
 }
 
+
+void ccg_loops_to_corners(CustomData *fdata, CustomData *ldata, 
+			  CustomData *pdata, int loopstart, int findex, 
+			  int polyindex, int numTex, int numCol) 
+{
+	MTFace *texface;
+	MTexPoly *texpoly;
+	MCol *mcol;
+	MLoopCol *mloopcol;
+	MLoopUV *mloopuv;
+	int i, j;
+
+	for(i=0; i < numTex; i++){
+		texface = CustomData_get_n(fdata, CD_MTFACE, findex, i);
+		texpoly = CustomData_get_n(pdata, CD_MTEXPOLY, polyindex, i);
+		
+		texface->tpage = texpoly->tpage;
+		texface->flag = texpoly->flag;
+		texface->transp = texpoly->transp;
+		texface->mode = texpoly->mode;
+		texface->tile = texpoly->tile;
+		texface->unwrap = texpoly->unwrap;
+
+		mloopuv = CustomData_get_n(ldata, CD_MLOOPUV, loopstart, i);
+		for (j=0; j<4; j++, mloopuv++) {
+			texface->uv[j][0] = mloopuv->uv[0];
+			texface->uv[j][1] = mloopuv->uv[1];
+		}
+	}
+
+	for(i=0; i < numCol; i++){
+		mloopcol = CustomData_get_n(ldata, CD_MLOOPCOL, loopstart, i);
+		mcol = CustomData_get_n(fdata, CD_MCOL, findex, i);
+
+		for (j=0; j<4; j++, mloopcol++) {
+			mcol[j].r = mloopcol->r;
+			mcol[j].g = mloopcol->g;
+			mcol[j].b = mloopcol->b;
+			mcol[j].a = mloopcol->a;
+		}
+	}
+}
+
 static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
                                          int drawInteriorEdges,
                                          int useSubsurfUv,
@@ -2495,17 +2583,20 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 	int loopindex, loopindex2;
 	int edgeSize;
 	int gridSize;
-	int gridFaces;
+	int gridFaces, gridCuts;
 	int gridSideVerts;
 	/*int gridInternalVerts; - as yet unused */
 	int gridSideEdges;
+	int numTex, numCol;
 	int gridInternalEdges;
 	int index2;
 	float *w = NULL;
 	DMFaceIter *dfiter, *dfiter2;
 	DMLoopIter *dliter, *dliter2;
+	WeightTable wtable = {0};
 	V_DECLARE(w);
 	/* MVert *mvert = NULL; - as yet unused */
+	MCol *mcol;
 	MEdge *medge = NULL;
 	MFace *mface = NULL;
 	/*a spare loop that's not used by anything*/
@@ -2520,6 +2611,14 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 	DM_add_tessface_layer(&cgdm->dm, CD_FLAGS, CD_CALLOC, NULL);
 	DM_add_face_layer(&cgdm->dm, CD_FLAGS, CD_CALLOC, NULL);
 	DM_add_edge_layer(&cgdm->dm, CD_FLAGS, CD_CALLOC, NULL);
+	
+	numTex = CustomData_number_of_layers(&cgdm->dm.loopData, CD_MLOOPUV);
+	numCol = CustomData_number_of_layers(&cgdm->dm.loopData, CD_MLOOPCOL);
+	
+	if (numTex && CustomData_number_of_layers(&cgdm->dm.faceData, CD_MTFACE)==0)
+		CustomData_from_bmeshpoly(&cgdm->dm.faceData, &cgdm->dm.polyData, &cgdm->dm.loopData, CCS_getNumFinalFaces(ss));
+	else if (numCol && CustomData_number_of_layers(&cgdm->dm.faceData, CD_MCOL)==0)
+		CustomData_from_bmeshpoly(&cgdm->dm.faceData, &cgdm->dm.polyData, &cgdm->dm.loopData, CCS_getNumFinalFaces(ss));
 
 	CustomData_set_layer_flag(&cgdm->dm.faceData, CD_FLAGS, CD_FLAG_NOCOPY);
 	CustomData_set_layer_flag(&cgdm->dm.edgeData, CD_FLAGS, CD_FLAG_NOCOPY);
@@ -2604,6 +2703,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 	gridSize = CCS_getGridSize(ss);
 	gridFaces = gridSize - 1;
 	gridSideVerts = gridSize - 2;
+	gridCuts = gridSize - 2;
 	/*gridInternalVerts = gridSideVerts * gridSideVerts; - as yet, unused */
 	gridSideEdges = gridSize - 1;
 	gridInternalEdges = (gridSideEdges - 1) * gridSideEdges * 2; 
@@ -2626,6 +2726,11 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 	polyOrigIndex = DM_get_face_data_layer(&cgdm->dm, CD_ORIGINDEX);
 	polyFlags = DM_get_face_data_layer(&cgdm->dm, CD_FLAGS);
 
+	if (!CustomData_has_layer(&cgdm->dm.faceData, CD_MCOL))
+		DM_add_tessface_layer(&cgdm->dm, CD_MCOL, CD_CALLOC, NULL);
+
+	mcol = DM_get_tessface_data_layer(&cgdm->dm, CD_MCOL);
+
 	index2 = 0;
 	dfiter = dm->newFaceIter(dm);
 	dfiter2 = cgdm->dm.newFaceIter(cgdm);
@@ -2636,6 +2741,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 		int numFinalEdges = numVerts * (gridSideEdges + gridInternalEdges);
 		int mapIndex = cgdm_getFaceMapIndex(ss, f);
 		int origIndex = GET_INT_FROM_POINTER(CCS_getFaceFaceHandle(ss, f));
+		int g2_wid = gridCuts+2;
 		int s, x, y;
 
 		cgdm->faceMap[index].startVert = vertNum;
@@ -2646,30 +2752,58 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 		V_RESET(loopidx);
 
 		for (s=0; s<numVerts; s++) {
-			V_GROW(w);
-			if (s % 2==0) {
-				V_GROW(loopidx);
-				loopidx[s/2] = loopindex++;
-			}
-
-			w[s] = 1.0f / ((float)numVerts);
+			V_GROW(loopidx);
+			loopidx[s] = loopindex++;
 		}
+
+		w = get_ss_weights(&wtable, gridCuts, numVerts);
 
 		/* set the face base vert */
 		*((int*)CCS_getFaceUserData(ss, f)) = vertNum;
 		for (s=0; s<numVerts; s++) {
-			for (y=0; y<gridFaces; y++) {
-				for (x=0; x<gridFaces; x++) {
-					for (i=0; i<4; i++) {
-						float f1, f2;
+			int x1, y1;
 
-						//CustomData_interp(&dm->loopData, &cgdm->dm.loopData, 
-						//                  loopidx, w, NULL, numVerts/2, loopindex2);
+			for (y1=0; y1<gridFaces; y1++) {
+				for (x1=0; x1<gridFaces; x1++) {
+					float *w2;
 
-						loopindex2++;
-					}
+					x = x1; //gridFaces - x1 - 1;
+					y = y1; //gridFaces - y1 - 1;
+					//for (i=0; i<4; i++) {
+						/*float f1, f2;
+						f1 = (float)x / ((float)gridFaces-1.0f);
+						f2 = (float)y / ((float)gridFaces-1.0f);
 
+						mcol->r = f1*255.0f;
+						mcol->g = f2*255.0f;
+						mcol->b = 0;*/
+
+					w2 = w + s*numVerts*g2_wid*g2_wid + (y*g2_wid+x)*numVerts;
+					CustomData_interp(&dm->loopData, &cgdm->dm.loopData, 
+					                  loopidx, w2, NULL, numVerts, loopindex2);
+					loopindex2++;
+
+					w2 = w + s*numVerts*g2_wid*g2_wid + ((y+1)*g2_wid+(x))*numVerts;
+					CustomData_interp(&dm->loopData, &cgdm->dm.loopData, 
+					                  loopidx, w2, NULL, numVerts, loopindex2);
+					loopindex2++;
+
+					w2 = w + s*numVerts*g2_wid*g2_wid + ((y+1)*g2_wid+(x+1))*numVerts;
+					CustomData_interp(&dm->loopData, &cgdm->dm.loopData, 
+					                  loopidx, w2, NULL, numVerts, loopindex2);
+					loopindex2++;
+					
+					w2 = w + s*numVerts*g2_wid*g2_wid + ((y)*g2_wid+(x+1))*numVerts;
+					CustomData_interp(&dm->loopData, &cgdm->dm.loopData, 
+					                  loopidx, w2, NULL, numVerts, loopindex2);
+					loopindex2++;
+																			
+					//}
 					CustomData_interp(&dm->polyData, &cgdm->dm.polyData, &origIndex, w, NULL, 1, index2);
+
+					ccg_loops_to_corners(&cgdm->dm.faceData, &cgdm->dm.loopData, 
+						&cgdm->dm.polyData, loopindex2-4, index2, index2, numTex, numCol);
+					
 					index2++;
 				}
 			}
