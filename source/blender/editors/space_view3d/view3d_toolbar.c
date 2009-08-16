@@ -118,6 +118,19 @@ static void redo_cb(bContext *C, void *arg_op, void *arg2)
 	}
 }
 
+static wmOperator *view3d_last_operator(const bContext *C)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmOperator *op;
+
+	/* only for operators that are registered and did an undo push */
+	for(op= wm->operators.last; op; op= op->prev)
+		if((op->type->flag & OPTYPE_REGISTER) && (op->type->flag & OPTYPE_UNDO))
+			break;
+
+	return op;
+}
+
 static void view3d_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOperator *op)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -129,28 +142,32 @@ static void view3d_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOper
 	}
 	
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	uiDefAutoButsRNA(C, pa->layout, &ptr, 1);
-	
+	if(op->type->ui)
+		op->type->ui((bContext*)C, &ptr, pa->layout);
+	else
+		uiDefAutoButsRNA(C, pa->layout, &ptr, 1);
+}
+
+static void view3d_panel_operator_redo_header(const bContext *C, Panel *pa)
+{
+	wmOperator *op= view3d_last_operator(C);
+
+	if(op) BLI_strncpy(pa->drawname, op->type->name, sizeof(pa->drawname));
+	else BLI_strncpy(pa->drawname, "Operator", sizeof(pa->drawname));
 }
 
 static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
-	wmOperator *op;
+	wmOperator *op= view3d_last_operator(C);
 	uiBlock *block;
-	
-	block= uiLayoutGetBlock(pa->layout);
-
-	/* only for operators that are registered and did an undo push */
-	for(op= wm->operators.last; op; op= op->prev)
-		if((op->type->flag & OPTYPE_REGISTER) && (op->type->flag & OPTYPE_UNDO))
-			break;
 	
 	if(op==NULL)
 		return;
 	if(op->type->poll && op->type->poll((bContext *)C)==0)
 		return;
 	
+	block= uiLayoutGetBlock(pa->layout);
+
 	uiBlockSetFunc(block, redo_cb, op, NULL);
 	
 	if(op->macro.first) {
@@ -279,7 +296,8 @@ void view3d_tool_props_register(ARegionType *art)
 	
 	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel last operator");
 	strcpy(pt->idname, "VIEW3D_PT_last_operator");
-	strcpy(pt->label, "Last Operator");
+	strcpy(pt->label, "Operator");
+	pt->draw_header= view3d_panel_operator_redo_header;
 	pt->draw= view3d_panel_operator_redo;
 	BLI_addtail(&art->paneltypes, pt);
 }

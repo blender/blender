@@ -543,7 +543,12 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
-	uiDefAutoButsRNA(C, layout, &ptr, 2);
+	uiItemL(layout, op->type->name, 0);
+
+	if(op->type->ui)
+		op->type->ui((bContext*)C, &ptr, layout);
+	else
+		uiDefAutoButsRNA(C, layout, &ptr, 2);
 
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);
@@ -585,7 +590,12 @@ static uiBlock *wm_block_create_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
 	
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
-	uiDefAutoButsRNA(C, layout, op->ptr, 2);
+	uiItemL(layout, op->type->name, 0);
+
+	if(op->type->ui)
+		op->type->ui(C, op->ptr, layout);
+	else
+		uiDefAutoButsRNA(C, layout, op->ptr, 2);
 	
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);

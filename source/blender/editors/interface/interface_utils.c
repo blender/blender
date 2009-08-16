@@ -152,8 +152,6 @@ void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr, int 
 	uiLayout *split, *col;
 	char *name;
 
-	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
-
 	RNA_STRUCT_BEGIN(ptr, prop) {
 		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
 			continue;

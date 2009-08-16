@@ -756,11 +756,6 @@ void MESH_OT_extrude(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	/* to give to transform */
-	Properties_Proportional(ot);
-	Properties_Constraints(ot);
-	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }
 
 static int split_mesh(bContext *C, wmOperator *op)
