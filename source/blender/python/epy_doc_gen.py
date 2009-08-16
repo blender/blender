@@ -313,9 +313,9 @@ def rna2epy(target_path):
 	structs = []
 	for rna_type_name in dir(bpy.types):
 		rna_type = getattr(bpy.types, rna_type_name)
-		if hasattr(rna_type, '__get_rna'):
+		if hasattr(rna_type, '__rna__'):
 			#if not rna_type_name.startswith('__'):
-			rna_struct = rna_type.__get_rna()
+			rna_struct = rna_type.__rna__
 			identifier = rna_struct.identifier
 			structs.append( (base_id(rna_struct), identifier, rna_struct) )	
 			

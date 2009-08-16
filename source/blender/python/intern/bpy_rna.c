@@ -2261,7 +2261,7 @@ PyTypeObject pyrna_prop_Type = {
 
 static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 {
-	//PointerRNA ptr;
+	PointerRNA ptr;
 	PyObject *item;
 	
 	Py_INCREF(newclass);
@@ -2276,16 +2276,17 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 	/* Not 100% needed but useful,
 	 * having an instance within a type looks wrong however this instance IS an rna type */
 
-	/* cant use the real pytype because it makes a usercount deadlock */
-	//RNA_pointer_create(NULL, &RNA_Struct, srna, &ptr);
-	//item = pyrna_struct_CreatePyObject(&ptr);
+	/* python deals with the curcular ref */
+	RNA_pointer_create(NULL, &RNA_Struct, srna, &ptr);
+	item = pyrna_struct_CreatePyObject(&ptr);
 
-	item = PyCObject_FromVoidPtr(srna, NULL);
+	//item = PyCObject_FromVoidPtr(srna, NULL);
 	PyDict_SetItemString(((PyTypeObject *)newclass)->tp_dict, "__rna__", item);
 	Py_DECREF(item);
 	/* done with rna instance */
 }
 
+/*
 static StructRNA *srna_from_self(PyObject *self);
 PyObject *BPy_GetStructRNA(PyObject *self)
 {
@@ -2303,6 +2304,7 @@ PyObject *BPy_GetStructRNA(PyObject *self)
 		Py_RETURN_NONE;
 	}
 }
+*/
 
 static struct PyMethodDef pyrna_struct_subtype_methods[] = {
 	{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, ""},
@@ -2310,7 +2312,7 @@ static struct PyMethodDef pyrna_struct_subtype_methods[] = {
 	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, ""},
 	{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, ""},
 
-	{"__get_rna", (PyCFunction)BPy_GetStructRNA, METH_NOARGS, ""},
+//	{"__get_rna", (PyCFunction)BPy_GetStructRNA, METH_NOARGS, ""},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -2612,21 +2614,30 @@ PyObject *BPY_rna_props( void )
 
 static StructRNA *pyrna_struct_as_srna(PyObject *self)
 {
-	PyObject *py_srna= (PyObject*)PyObject_GetAttrString(self, "__rna__");
+	BPy_StructRNA *py_srna= (BPy_StructRNA*)PyObject_GetAttrString(self, "__rna__");
+	StructRNA *srna;
 
 	if(py_srna==NULL) {
 	 	PyErr_SetString(PyExc_SystemError, "internal error, self had no __rna__ attribute, should never happen.");
 		return NULL;
 	}
 
-	if(!PyCObject_Check(py_srna)) {
-	 	PyErr_SetString(PyExc_SystemError, "internal error, self had no __rna__ attribute, should never happen.");
+	if(!BPy_StructRNA_Check(py_srna)) {
+	 	PyErr_Format(PyExc_SystemError, "internal error, __rna__ was of type %.200s, instead of %.200s instance.", Py_TYPE(py_srna)->tp_name, pyrna_struct_Type.tp_name);
 	 	Py_DECREF(py_srna);
 		return NULL;
 	}
 
+	if(py_srna->ptr.type != &RNA_Struct) {
+	 	PyErr_SetString(PyExc_SystemError, "internal error, __rna__ was not a RNA_Struct type of rna struct.");
+	 	Py_DECREF(py_srna);
+		return NULL;
+	}
+
+	srna= py_srna->ptr.data;
 	Py_DECREF(py_srna);
-	return (StructRNA *)PyCObject_AsVoidPtr(py_srna);
+
+	return srna;
 }
 
 
