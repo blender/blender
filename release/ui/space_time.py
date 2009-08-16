@@ -9,6 +9,7 @@ class TIME_HT_header(bpy.types.Header):
 		
 		st = context.space_data
 		scene = context.scene
+		rd = context.scene.render_data
 		tools = context.tool_settings
 		screen = context.screen
 
@@ -47,15 +48,20 @@ class TIME_HT_header(bpy.types.Header):
 			sub = row.row()
 			sub.scale_x = 2.0
 			sub.itemO("screen.animation_play", text="", icon='ICON_PAUSE')
-		
 		row.item_booleanO("screen.keyframe_jump", "next", True, text="", icon='ICON_NEXT_KEYFRAME')
 		row.item_booleanO("screen.frame_jump", "end", True, text="", icon='ICON_FF')
+		
+		layout.itemS()
 		
 		row = layout.row(align=True)
 		row.itemR(tools, "enable_auto_key", text="", toggle=True, icon='ICON_REC')
 		sub = row.row()
 		sub.active = tools.enable_auto_key
 		sub.itemR(tools, "autokey_mode", text="")
+		
+		layout.itemS()
+		
+		layout.itemR(rd, "sync_audio", text="", toggle=True, icon='ICON_SPEAKER')
 		
 		layout.itemS()
 		

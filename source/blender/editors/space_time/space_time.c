@@ -270,7 +270,7 @@ static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 
 /* ************************ header time area region *********************** */
 
-//#define PY_HEADER
+#define PY_HEADER
 /* add handlers, stuff you only do once or on area/region changes */
 static void time_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
