@@ -106,9 +106,7 @@ static void rna_RenderEngine_unregister(const bContext *C, StructRNA *type)
 	if(!et)
 		return;
 	
-	et->ext.free(et->ext.data);			/* decref's the PyObject that the srna owns */
-	RNA_struct_py_type_set(type, NULL);	/* NULL the srna's value so RNA_struct_free wont complain of a leak */
-
+	RNA_struct_free_extension(type, &et->ext);
 	BLI_freelinkN(&R_engines, et);
 	RNA_struct_free(&BLENDER_RNA, type);
 }
