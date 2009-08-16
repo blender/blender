@@ -34,7 +34,7 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
-// This function transforms a FFMPEG SampleFormat to or own sample format
+// This function transforms a FFMPEG SampleFormat to our own sample format
 static inline AUD_SampleFormat FFMPEG_TO_AUD(SampleFormat fmt)
 {
 	switch(fmt)

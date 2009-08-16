@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: AUD_SDLDevice.h 22328 2009-08-09 23:23:19Z gsrb3d $
  *
  * ***** BEGIN LGPL LICENSE BLOCK *****
  *
@@ -23,44 +23,69 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#ifndef AUD_SDLDEVICE
-#define AUD_SDLDEVICE
+#ifndef AUD_JACKDEVICE
+#define AUD_JACKDEVICE
 
 #include "AUD_SoftwareDevice.h"
+class AUD_Buffer;
 
-#include <SDL.h>
+#include <jack.h>
 
 /**
- * This device plays back through SDL, the simple direct media layer.
+ * This device plays back through Jack.
  */
-class AUD_SDLDevice : public AUD_SoftwareDevice
+class AUD_JackDevice : public AUD_SoftwareDevice
 {
 private:
 	/**
-	 * Mixes the next bytes into the buffer.
-	 * \param data The SDL device.
-	 * \param buffer The target buffer.
-	 * \param length The length in bytes to be filled.
+	 * The output ports of jack.
 	 */
-	static void SDL_mix(void *data, Uint8* buffer, int length);
+	jack_port_t** m_ports;
+
+	/**
+	 * The jack client.
+	 */
+	jack_client_t* m_client;
+
+	/**
+	 * The output buffer.
+	 */
+	AUD_Buffer* m_buffer;
+
+	/**
+	 * Whether the device is valid.
+	 */
+	bool m_valid;
+
+	/**
+	 * Invalidates the jack device.
+	 * \param data The jack device that gets invalidet by jack.
+	 */
+	static void jack_shutdown(void *data);
+
+	/**
+	 * Mixes the next bytes into the buffer.
+	 * \param length The length in samples to be filled.
+	 * \param data A pointer to the jack device.
+	 * \return 0 what shows success.
+	 */
+	static int jack_mix(jack_nframes_t length, void *data);
 
 protected:
 	virtual void playing(bool playing);
 
 public:
 	/**
-	 * Opens the SDL audio device for playback.
-	 * \param specs The wanted audio specification.
-	 * \param buffersize The size of the internal buffer.
-	 * \note The specification really used for opening the device may differ.
+	 * Creates a Jack client for audio output.
+	 * \param specs The wanted audio specification, where only the channel count is important.
 	 * \exception AUD_Exception Thrown if the audio device cannot be opened.
 	 */
-	AUD_SDLDevice(AUD_Specs specs, int buffersize = AUD_DEFAULT_BUFFER_SIZE);
+	AUD_JackDevice(AUD_Specs specs);
 
 	/**
-	 * Closes the SDL audio device.
+	 * Closes the Jack client.
 	 */
-	virtual ~AUD_SDLDevice();
+	virtual ~AUD_JackDevice();
 };
 
-#endif //AUD_SDLDEVICE
+#endif //AUD_JACKDEVICE

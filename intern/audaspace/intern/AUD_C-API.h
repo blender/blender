@@ -36,7 +36,8 @@ typedef enum
 {
 	AUD_NULL_DEVICE = 0,
 	AUD_SDL_DEVICE,
-	AUD_OPENAL_DEVICE
+	AUD_OPENAL_DEVICE,
+	AUD_JACK_DEVICE
 } AUD_DeviceType;
 
 typedef struct

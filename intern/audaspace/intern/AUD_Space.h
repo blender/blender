@@ -180,7 +180,8 @@ typedef enum
 	AUD_ERROR_FILE,
 	AUD_ERROR_FFMPEG,
 	AUD_ERROR_SDL,
-	AUD_ERROR_OPENAL
+	AUD_ERROR_OPENAL,
+	AUD_ERROR_JACK
 } AUD_Error;
 
 /// Message codes.

@@ -69,6 +69,7 @@ OPTION(WITH_OPENAL		"Enable OpenAL Support (http://www.openal.org)"		ON)
 OPTION(WITH_OPENMP		"Enable OpenMP (has to be supported by the compiler)"	OFF)
 OPTION(WITH_WEBPLUGIN		"Enable Web Plugin (Unix only)"				OFF)
 OPTION(WITH_FFTW3		"Enable FFTW3 support"				OFF)
+OPTION(WITH_JACK		"Enable Jack Support (http://www.jackaudio.org)"		OFF)
 OPTION(WITH_INSTALL "Install accompanying scripts and language files needed to run blender" ON)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
@@ -99,6 +100,13 @@ IF(UNIX AND NOT APPLE)
       SET(WITH_OPENAL OFF)
     ENDIF(OPENAL_FOUND)
   ENDIF(WITH_OPENAL)
+
+  IF(WITH_JACK)
+	SET(JACK /usr)
+	SET(JACK_INC ${JACK}/include/jack)
+	SET(JACK_LIB jack)
+	SET(JACK_LIBPATH ${JACK}/lib)
+  ENDIF(WITH_JACK)
 
   FIND_LIBRARY(INTL_LIBRARY
     NAMES intl
@@ -229,6 +237,13 @@ IF(WIN32)
     SET(OPENAL_LIBRARY wrap_oal)
     SET(OPENAL_LIBPATH ${OPENAL}/lib)
   ENDIF(CMAKE_CL_64)
+
+  IF(WITH_JACK)
+	SET(JACK ${LIBDIR}/jack)
+	SET(JACK_INC ${JACK}/include/jack)
+	SET(JACK_LIB jack)
+	SET(JACK_LIBPATH ${JACK}/lib)
+  ENDIF(WITH_JACK)
 
   IF(CMAKE_CL_64)
     SET(PNG_LIBRARIES libpng)
@@ -363,6 +378,12 @@ IF(APPLE)
     ENDIF(OPENAL_FOUND)
   ENDIF(WITH_OPENAL)
 
+  IF(WITH_JACK)
+	SET(JACK /usr)
+	SET(JACK_INC ${JACK}/include/jack)
+	SET(JACK_LIB jack)
+	SET(JACK_LIBPATH ${JACK}/lib)
+  ENDIF(WITH_JACK)
 
   SET(PYTHON_VERSION 3.1)
 

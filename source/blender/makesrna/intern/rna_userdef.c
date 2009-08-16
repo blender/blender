@@ -1992,6 +1992,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{0, "AUDIO_DEVICE_NULL", 0, "No Audio", "Null device - there will be no audio output."},
 		{1, "AUDIO_DEVICE_SDL", 0, "SDL", "SDL device - simple direct media layer, recommended for sequencer usage."},
 		{2, "AUDIO_DEVICE_OPENAL", 0, "OpenAL", "OpenAL device - supports 3D audio, recommended for game engine usage."},
+		{3, "AUDIO_DEVICE_JACK", 0, "Jack", "Jack device - open source pro audio, recommended for pro audio users."},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem audio_rate_items[] = {
