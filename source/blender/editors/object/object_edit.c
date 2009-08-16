@@ -127,6 +127,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 /* for menu/popup icons etc etc*/
 #include "UI_interface.h"
@@ -7030,6 +7031,85 @@ void hookmenu(Scene *scene, View3D *v3d)
 	if (changed) {
 	}	
 }
+
+static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *ptr, int *free)
+{	
+	EnumPropertyItem *input = object_mode_items;
+	EnumPropertyItem *item= NULL;
+	Object *ob = CTX_data_active_object(C);
+	int totitem= 0;
+	
+	if(!C) /* needed for docs */
+		return object_mode_items;
+
+	while(ob && input->identifier) {
+		if((input->value == OB_MODE_EDIT && ((ob->type == OB_MESH) || (ob->type == OB_ARMATURE) ||
+						    (ob->type == OB_CURVE) || (ob->type == OB_SURF) ||
+						     (ob->type == OB_FONT) || (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) ||
+		   (input->value == OB_MODE_POSE && (ob->type == OB_ARMATURE)) ||
+		   (input->value == OB_MODE_PARTICLE_EDIT && ob->particlesystem.first) ||
+		   ((input->value == OB_MODE_SCULPT || input->value == OB_MODE_VERTEX_PAINT ||
+		     input->value == OB_MODE_WEIGHT_PAINT || input->value == OB_MODE_TEXTURE_PAINT) && (ob->type == OB_MESH)) ||
+		   (input->value == OB_MODE_OBJECT))
+			RNA_enum_item_add(&item, &totitem, input);
+		++input;
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+
+	*free= 1;
+
+	return item;
+}
+
+static int object_mode_set_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	int mode = RNA_enum_get(op->ptr, "mode");
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	if((mode == OB_MODE_EDIT) == !(ob->mode & OB_MODE_EDIT))
+		WM_operator_name_call(C, "OBJECT_OT_editmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if((mode == OB_MODE_SCULPT) == !(ob->mode & OB_MODE_SCULPT))
+		WM_operator_name_call(C, "SCULPT_OT_sculptmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if((mode == OB_MODE_VERTEX_PAINT) == !(ob->mode & OB_MODE_VERTEX_PAINT))
+		WM_operator_name_call(C, "PAINT_OT_vertex_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if((mode == OB_MODE_WEIGHT_PAINT) == !(ob->mode & OB_MODE_WEIGHT_PAINT))
+		WM_operator_name_call(C, "PAINT_OT_weight_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if((mode == OB_MODE_TEXTURE_PAINT) == !(ob->mode & OB_MODE_TEXTURE_PAINT))
+		WM_operator_name_call(C, "PAINT_OT_texture_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if((mode == OB_MODE_PARTICLE_EDIT) == !(ob->mode & OB_MODE_PARTICLE_EDIT))
+		WM_operator_name_call(C, "PARTICLE_OT_particle_edit_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if((mode == OB_MODE_POSE) == !(ob->mode & OB_MODE_POSE))
+		WM_operator_name_call(C, "OBJECT_OT_posemode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_mode_set(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name= "Set Object Mode";
+	ot->description = "Sets the object interaction mode.";
+	ot->idname= "OBJECT_OT_mode_set";
+	
+	/* api callbacks */
+	ot->exec= object_mode_set_exec;
+	
+	ot->poll= ED_operator_object_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	prop= RNA_def_enum(ot->srna, "mode", object_mode_items, 0, "Mode", "");
+	RNA_def_enum_funcs(prop, object_mode_set_itemsf);
+}
+
+
 
 void ED_object_toggle_modes(bContext *C, int mode)
 {

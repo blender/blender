@@ -39,6 +39,7 @@ struct Mesh;
 
 
 /* object_edit.c */
+void OBJECT_OT_mode_set(struct wmOperatorType *ot);
 void OBJECT_OT_editmode_toggle(struct wmOperatorType *ot);
 void OBJECT_OT_posemode_toggle(struct wmOperatorType *ot);
 void OBJECT_OT_parent_set(struct wmOperatorType *ot);
