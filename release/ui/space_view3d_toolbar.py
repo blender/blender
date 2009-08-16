@@ -304,16 +304,18 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			layout.column().itemR(settings, "tool", expand=True)
 			
 			if settings.tool != 'NONE':
-				col = layout.column(align=True)
+				col = layout.column()
 				col.itemR(brush, "size", slider=True)
 				col.itemR(brush, "strength", slider=True)
 				
 			if settings.tool == 'ADD':
-				layout.itemR(settings, "add_interpolate")
 				
 				col = layout.column()
-				col.itemR(brush, "steps", slider=True)
-				col.itemR(settings, "add_keys", slider=True)
+				col.itemR(settings, "add_interpolate")
+				sub = col.column(align=True)
+				sub.active = settings.add_interpolate
+				sub.itemR(brush, "steps", slider=True)
+				sub.itemR(settings, "add_keys", slider=True)
 			elif settings.tool == 'LENGTH':
 				layout.itemR(brush, "length_mode", expand=True)
 			elif settings.tool == 'PUFF':
@@ -560,7 +562,7 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
 		col.itemR(pe, "keep_root", text="Root")
 		
 		col = layout.column(align=True)
-		col.itemL(text="Draw:")
+		col.itemL(text="Display:")
 		col.itemR(pe, "show_time", text="Time")
 		col.itemR(pe, "show_children", text="Children")
 

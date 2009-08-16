@@ -32,7 +32,7 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 		if ob:
 			row = layout.row()
 
-			row.template_list(ob, "particle_systems", ob, "active_particle_system_index")
+			row.template_list(ob, "particle_systems", ob, "active_particle_system_index", rows=2)
 
 			col = row.column(align=True)
 			col.itemO("object.particle_system_add", icon="ICON_ZOOMIN", text="")
@@ -154,7 +154,7 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 		layout.set_context_pointer("PointCache", cache)
 		
 		row = layout.row()
-		row.template_list(cache, "point_cache_list", cache, "active_point_cache_index")
+		row.template_list(cache, "point_cache_list", cache, "active_point_cache_index", rows=2 )
 		col = row.column(align=True)
 		col.itemO("ptcache.add_new", icon="ICON_ZOOMIN", text="")
 		col.itemO("ptcache.remove", icon="ICON_ZOOMOUT", text="")
@@ -711,9 +711,8 @@ class PARTICLE_PT_draw(ParticleButtonsPanel):
 		col = row.column()
 		col.itemR(part, "material_color", text="Use material color")
 		
-		if (path):
-			box = col.box()				
-			box.itemR(part, "draw_step")
+		if (path):			
+			col.itemR(part, "draw_step")
 		else:
 			subcol = col.column()
 			subcol.active = part.material_color==False
