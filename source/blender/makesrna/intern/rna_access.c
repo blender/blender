@@ -1989,9 +1989,10 @@ void rna_iterator_array_end(CollectionPropertyIterator *iter)
 {
 	ArrayIterator *internal= iter->internal;
 	
-	if(internal->free_ptr)
+	if(internal->free_ptr) {
 		MEM_freeN(internal->free_ptr);
-
+		internal->free_ptr= NULL;
+	}
 	MEM_freeN(iter->internal);
 	iter->internal= NULL;
 }

@@ -76,6 +76,7 @@ def write_func(rna, ident, out, func_type):
 		rna_func_desc = rna.description.strip()
 		items = rna.parameters.items()
 	
+	
 	for rna_prop_identifier, rna_prop in items:
 		if rna_prop_identifier=='rna_type':
 			continue
@@ -88,13 +89,25 @@ def write_func(rna, ident, out, func_type):
 		rna_prop_type = rna_prop.type.lower() # enum, float, int, boolean
 		
 		
+		# only for rna funcions, operators should not get pointers as args
+		if rna_prop_type=='pointer':
+			rna_prop_type_refine = "L{%s}" % rna_prop.fixed_type.identifier
+		else:
+			rna_prop_type_refine = rna_prop_type
+		
+		
 		try:		length = rna_prop.array_length
 		except:	length = 0
 		
 		array_str = get_array_str(length)
 		
-		kw_type_str= "@type %s: %s%s" % (rna_prop_identifier, rna_prop_type, array_str)
-		kw_param_str= "@param %s: %s" % (rna_prop_identifier, rna_prop.description.strip())
+		if rna_prop.use_return:
+			kw_type_str= "@rtype: %s%s" % (rna_prop_type_refine, array_str)
+			kw_param_str= "@return: %s" % (rna_prop.description.strip())
+		else:
+			kw_type_str= "@type %s: %s%s" % (rna_prop_identifier, rna_prop_type_refine, array_str)
+			kw_param_str= "@param %s: %s" % (rna_prop_identifier, rna_prop.description.strip())
+		
 		kw_param_set = False
 		
 		if func_type=='OPERATOR':
@@ -159,8 +172,11 @@ def write_func(rna, ident, out, func_type):
 			# stora 
 		else:
 			# currently functions dont have a default value
-			kw_args.append('%s' % (rna_prop_identifier))
-		
+			if not rna_prop.use_return:
+				kw_args.append('%s' % (rna_prop_identifier))
+			else:
+				kw_param_set = True
+
 		
 		# Same for operators and functions
 		kw_arg_attrs.append(kw_type_str)
@@ -174,7 +190,8 @@ def write_func(rna, ident, out, func_type):
 	out.write(ident+'\t%s\n' % rna_func_desc)
 	for desc in kw_arg_attrs:
 		out.write(ident+'\t%s\n' % desc)
-	out.write(ident+'\t@rtype: None\n')
+		
+	# out.write(ident+'\t@rtype: None\n') # implicit
 	out.write(ident+'\t"""\n')
 	
 
@@ -269,7 +286,8 @@ def rna2epy(target_path):
 						out.write(ident+ '\t@ivar %s: %s in (%s)\n' %  (rna_prop_identifier, rna_desc, ', '.join(rna_prop.items.keys())))
 					else:
 						out.write(ident+ '\t@ivar %s: %s in...\n' %  (rna_prop_identifier, rna_desc))
-						for e in rna_prop.items.keys():
+						for e, e_rna_prop in rna_prop.items.items():
+							#out.write(ident+ '\t\t- %s: %s\n' % (e, e_rna_prop.description)) # XXX - segfaults, FIXME
 							out.write(ident+ '\t\t- %s\n' % e)
 						
 					out.write(ident+ '\t@type %s: %s%s%s\n' %  (rna_prop_identifier, rna_prop_type,  array_str, readonly_str))
