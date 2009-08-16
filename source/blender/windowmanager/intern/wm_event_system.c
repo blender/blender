@@ -370,7 +370,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 
 static void wm_operator_print(wmOperator *op)
 {
-	char *buf = WM_operator_pystring(op->type, op->ptr, 1);
+	char *buf = WM_operator_pystring(NULL, op->type, op->ptr, 1);
 	printf("%s\n", buf);
 	MEM_freeN(buf);
 }

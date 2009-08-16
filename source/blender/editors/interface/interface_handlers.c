@@ -974,7 +974,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 			char *str;
 			opptr= uiButGetOperatorPtrRNA(but); /* allocated when needed, the button owns it */
 
-			str= WM_operator_pystring(but->optype, opptr, 0);
+			str= WM_operator_pystring(C, but->optype, opptr, 0);
 
 			WM_clipboard_text_set(str, 0);
 
