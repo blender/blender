@@ -5081,6 +5081,28 @@ static char *keymap_tweak_menu(void)
 	return string;
 }
 
+static char *keymap_tweak_dir_menu(void)
+{
+	static char string[500];
+	static char formatstr[] = "|%s %%x%d";
+	char *str= string;
+	
+	str += sprintf(str, "Tweak Direction %%t");
+	
+	str += sprintf(str, formatstr, "Any", KM_ANY);
+	str += sprintf(str, formatstr, "North", EVT_GESTURE_N);
+	str += sprintf(str, formatstr, "North-East", EVT_GESTURE_NE);
+	str += sprintf(str, formatstr, "East", EVT_GESTURE_E);
+	str += sprintf(str, formatstr, "Sout-East", EVT_GESTURE_SE);
+	str += sprintf(str, formatstr, "South", EVT_GESTURE_S);
+	str += sprintf(str, formatstr, "South-West", EVT_GESTURE_SW);
+	str += sprintf(str, formatstr, "West", EVT_GESTURE_W);
+	str += sprintf(str, formatstr, "North-West", EVT_GESTURE_NW);
+	
+	return string;
+}
+
+
 static void keymap_type_cb(bContext *C, void *kmi_v, void *unused_v)
 {
 	wmKeymapItem *kmi= kmi_v;
@@ -5157,6 +5179,9 @@ static void outliner_draw_keymapbuts(uiBlock *block, ARegion *ar, SpaceOops *soo
 					case OL_KM_TWEAK:
 						str= keymap_tweak_menu();
 						uiDefButS(block, MENU, 0, str, xstart, (int)te->ys+1, butw2, OL_H-1, &kmi->type, 0, 0, 0, 0,  "Tweak gesture");	
+						xstart+= butw2+5;
+						str= keymap_tweak_dir_menu();
+						uiDefButS(block, MENU, 0, str, xstart, (int)te->ys+1, butw2, OL_H-1, &kmi->val, 0, 0, 0, 0,  "Tweak gesture direction");	
 						xstart+= butw2+5;
 						break;
 				}

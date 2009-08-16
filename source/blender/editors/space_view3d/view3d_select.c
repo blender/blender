@@ -1800,8 +1800,10 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 		mval[1]= y;
 		selecting= LEFTMOUSE==RNA_int_get(op->ptr, "event_type"); // XXX solve
 
-		if(CTX_data_edit_object(C))
+		if(CTX_data_edit_object(C)) {
 			obedit_circle_select(&vc, selecting, mval, (float)radius);
+			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obact);
+		}
 		else
 			return PE_circle_select(C, selecting, mval, (float)radius);
 	}
