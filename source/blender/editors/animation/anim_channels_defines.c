@@ -1903,10 +1903,6 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 	else
 		selected= 0;
 	
-	/* enable correct blending mode for icons to work... */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-	
 	/* step 1) draw backdrop ...........................................  */
 	if (acf->draw_backdrop)
 		acf->draw_backdrop(ac, ale, yminc, ymaxc);
@@ -1954,8 +1950,6 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 		}
 	}
 	
-	glDisable(GL_BLEND); /* End of blending with background (text now gets drawn) */
-	
 	/* step 5) draw name ............................................... */
 	if (acf->name) {
 		char name[256]; /* hopefully this will be enough! */
@@ -1981,10 +1975,6 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 	// TODO: when drawing sliders, make those draw instead of these toggles if not enough space
 	
 	if (v2d) {
-		/* set blending again, as text drawing may clear it */
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_BLEND);
-		
 		/* protect... */
 		if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT)) {
 			/* just skip - drawn as widget now */
@@ -1995,8 +1985,6 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 			/* just skip - drawn as widget now */
 			offset += ICON_WIDTH;
 		}
-		
-		glDisable(GL_BLEND); /* End of blending with background */
 	}
 }
 
@@ -2058,7 +2046,11 @@ static void draw_setting_widget (bAnimContext *ac, bAnimListElem *ale, bAnimChan
 		case ACHANNEL_SETTING_MUTE: /* muted eye */
 			//icon= ((enabled)? ICON_MUTE_IPO_ON : ICON_MUTE_IPO_OFF);
 			icon= ICON_MUTE_IPO_OFF;
-			tooltip= "Do channel(s) contribute to result."; // XXX
+			
+			if (ale->type == ALE_FCURVE) 
+				tooltip= "Does F-Curve contribute to result.";
+			else
+				tooltip= "Do channels contribute to result.";
 			break;
 			
 		default:
