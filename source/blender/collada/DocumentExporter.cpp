@@ -1570,7 +1570,6 @@ public:
 		// XXX add other params later
 		Camera *cam = (Camera*)ob->data;
 		std::string cam_id(id_name(ob));
-		char *name = cam->id.name;
 		
 		if (cam->type == CAM_PERSP) {
 			COLLADASW::PerspectiveOptic persp(mSW);
@@ -1578,7 +1577,7 @@ public:
 			persp.setAspectRatio(0.1);
 			persp.setZFar(cam->clipend);
 			persp.setZNear(cam->clipsta);
-			COLLADASW::Camera ccam(mSW, &persp, cam_id, name);
+			COLLADASW::Camera ccam(mSW, &persp, cam_id, cam_id);
 			addCamera(ccam);
 		}
 		else {
@@ -1587,7 +1586,7 @@ public:
 			ortho.setAspectRatio(0.1);
 			ortho.setZFar(cam->clipend);
 			ortho.setZNear(cam->clipsta);
-			COLLADASW::Camera ccam(mSW, &ortho, cam_id, name);
+			COLLADASW::Camera ccam(mSW, &ortho, cam_id, cam_id);
 			addCamera(ccam);
 		}
 	}	
@@ -1609,25 +1608,24 @@ public:
 	{
 		Lamp *la = (Lamp*)ob->data;
 		std::string la_id(id_name(ob));
-		char *la_name = la->id.name;
 		COLLADASW::Color col(la->r, la->g, la->b);
 		float e = la->energy;
 		
 		// sun
 		if (la->type == LA_SUN) {
-			COLLADASW::DirectionalLight cla(mSW, la_id, la_name, e);
+			COLLADASW::DirectionalLight cla(mSW, la_id, la_id, e);
 			cla.setColor(col);
 			addLight(cla);
 		}
 		// hemi
 		else if (la->type == LA_HEMI) {
-			COLLADASW::AmbientLight cla(mSW, la_id, la_name, e);
+			COLLADASW::AmbientLight cla(mSW, la_id, la_id, e);
 			cla.setColor(col);
 			addLight(cla);
 		}
 		// spot
 		else if (la->type == LA_SPOT) {
-			COLLADASW::SpotLight cla(mSW, la_id, la_name, e);
+			COLLADASW::SpotLight cla(mSW, la_id, la_id, e);
 			cla.setColor(col);
 			cla.setFallOffAngle(la->spotsize);
 			cla.setFallOffExponent(la->spotblend);
@@ -1637,7 +1635,7 @@ public:
 		}
 		// lamp
 		else if (la->type == LA_LOCAL) {
-			COLLADASW::PointLight cla(mSW, la_id, la_name, e);
+			COLLADASW::PointLight cla(mSW, la_id, la_id, e);
 			cla.setColor(col);
 			cla.setLinearAttenuation(la->att1);
 			cla.setQuadraticAttenuation(la->att2);
@@ -1646,7 +1644,7 @@ public:
 		// area lamp is not supported
 		// it will be exported as a local lamp
 		else {
-			COLLADASW::PointLight cla(mSW, la_id, la_name, e);
+			COLLADASW::PointLight cla(mSW, la_id, la_id, e);
 			cla.setColor(col);
 			cla.setLinearAttenuation(la->att1);
 			cla.setQuadraticAttenuation(la->att2);
@@ -1813,7 +1811,7 @@ public:
 		return std::string(rna_path) + "." + axis_name;
 	}
 
-	void add_animation(FCurve *fcu, const char *ob_name)
+	void add_animation(FCurve *fcu, std::string ob_name/*const char *ob_name*/)
 	{
 		const char *axis_names[] = {"X", "Y", "Z"};
 		const char *axis_name = NULL;
@@ -1822,7 +1820,7 @@ public:
 		if (fcu->array_index < 3)
 			axis_name = axis_names[fcu->array_index];
 
-		BLI_snprintf(c_anim_id, sizeof(c_anim_id), "%s.%s.%s", ob_name, fcu->rna_path, axis_names[fcu->array_index]);
+		BLI_snprintf(c_anim_id, sizeof(c_anim_id), "%s.%s.%s", (char*)ob_name.c_str(), fcu->rna_path, axis_names[fcu->array_index]);
 		std::string anim_id(c_anim_id);
 
 		// check rna_path is one of: rotation, scale, location
@@ -1849,7 +1847,8 @@ public:
 
 		addSampler(sampler);
 
-		std::string target = std::string(ob_name) + "/" + get_transform_sid(fcu->rna_path, axis_name);
+		//std::string target = std::string(ob_name) + "/" + get_transform_sid(fcu->rna_path, axis_name);
+		std::string target = ob_name + "/" + get_transform_sid(fcu->rna_path, axis_name);
 		addChannel(COLLADABU::URI(empty, sampler_id), target);
 
 		closeAnimation();
@@ -1870,7 +1869,7 @@ public:
 				!strcmp(fcu->rna_path, "scale") ||
 				!strcmp(fcu->rna_path, "rotation")) {
 
-				add_animation(fcu, ob->id.name);
+				add_animation(fcu, id_name(ob)/*ob->id.name*/);
 			}
 
 			fcu = fcu->next;
