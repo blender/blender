@@ -2933,91 +2933,6 @@ uiBlock *view3d_sculpt_inputmenu(bContext *C, ARegion *ar, void *arg_unused)
 	return block;
 }
 
-static void view3d_sculpt_menu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	bScreen *sc= CTX_wm_screen(C);
-	Sculpt *s = CTX_data_tool_settings(C)->sculpt;
-	PointerRNA rna;
-
-	RNA_pointer_create(&sc->id, &RNA_Sculpt, s, &rna);
-
-	uiItemR(layout, NULL, 0, &rna, "symmetry_x", 0, 0, 0);
-	uiItemR(layout, NULL, 0, &rna, "symmetry_y", 0, 0, 0);
-	uiItemR(layout, NULL, 0, &rna, "symmetry_z", 0, 0, 0);
-	uiItemR(layout, NULL, 0, &rna, "lock_x", 0, 0, 0);
-	uiItemR(layout, NULL, 0, &rna, "lock_y", 0, 0, 0);
-	uiItemR(layout, NULL, 0, &rna, "lock_z", 0, 0, 0);
-
-	/* Brush settings */
-	RNA_pointer_create(&sc->id, &RNA_Brush, s->brush, &rna);
-
-	/* Curve */
-	uiItemS(layout);
-	uiItemEnumO(layout, NULL, 0, "BRUSH_OT_curve_preset", "shape", BRUSH_PRESET_SHARP);
-	uiItemEnumO(layout, NULL, 0, "BRUSH_OT_curve_preset", "shape", BRUSH_PRESET_SMOOTH);
-	uiItemEnumO(layout, NULL, 0, "BRUSH_OT_curve_preset", "shape", BRUSH_PRESET_MAX);
-
-	uiItemS(layout);
-
-	uiItemR(layout, NULL, 0, &rna, "airbrush", 0, 0, 0);
-	uiItemR(layout, NULL, 0, &rna, "rake", 0, 0, 0);
-	uiItemR(layout, NULL, 0, &rna, "anchored", 0, 0, 0);
-	uiItemR(layout, NULL, 0, &rna, "space", 0, 0, 0);
-	uiItemR(layout, NULL, 0, &rna, "smooth_stroke", 0, 0, 0);
-
-	uiItemR(layout, NULL, 0, &rna, "flip_direction", 0, 0, 0);
-}
-
-uiBlock *view3d_sculptmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	ScrArea *sa= CTX_wm_area(C);
-	View3D *v3d= sa->spacedata.first;
-	uiBlock *block;
-	Sculpt *sd= CTX_data_tool_settings(C)->sculpt;
-// XXX	const BrushData *br= sculptmode_brush();
-	short yco= 0, menuwidth= 120;
-	
-	block= uiBeginBlock(C, ar, "view3d_sculptmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_sculptmenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Sculpt Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBlockBut(block, view3d_sculpt_inputmenu, NULL, ICON_RIGHTARROW_THIN, "Input Settings", 0, yco-=20, 120, 19, "");
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ((sd->flags & SCULPT_DRAW_BRUSH) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Display Brush", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
-	uiDefIconTextBut(block, BUTM, 1, ((sd->flags & SCULPT_DRAW_FAST) ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Partial Redraw", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
-	if(v3d)
-		uiDefIconTextBut(block, BUTM, 1, (v3d->pivot_last ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Pivot Last", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
-
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale Brush|F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Strengthen Brush|Shift F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate Brush|Ctrl F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
-	
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	/* XXX uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==FLATTEN_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Flatten|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==LAYER_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Layer|L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==GRAB_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Grab|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==INFLATE_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Inflate|I", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==PINCH_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Pinch|P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==SMOOTH_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Smooth|S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==DRAW_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Draw|D", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");*/
-	
-
-	if(ar->alignment==RGN_ALIGN_TOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-
-	uiTextBoundsBlock(block, 50);
-
-	return block;
-}
-
 static void do_view3d_facesel_showhidemenu(bContext *C, void *arg, int event)
 {
 #if 0
@@ -3577,11 +3492,6 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 	else if (ob && ob->mode & OB_MODE_TEXTURE_PAINT) {
 		xmax= GetButStringLength("Paint");
 		uiDefPulldownBut(block, view3d_tpaintmenu, NULL, "Paint", xco,yco, xmax-3, 20, "");
-		xco+= xmax;
-	}
-	else if (ob && ob->mode & OB_MODE_SCULPT) {
-		xmax= GetButStringLength("Sculpt");
-		uiDefMenuBut(block, view3d_sculpt_menu, NULL, "Sculpt", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
 	}
 	else if (paint_facesel_test(ob)) {

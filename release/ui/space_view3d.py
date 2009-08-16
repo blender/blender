@@ -21,11 +21,14 @@ class VIEW3D_HT_header(bpy.types.Header):
 			row.itemM("VIEW3D_MT_view")
 			
 			# Select Menu
-			if mode_string not in ('EDIT_TEXT', ):
+			if mode_string not in ('EDIT_TEXT', 'SCULPT', 'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE', 'PARTICLE'):
+				# XXX: Particle Mode has Select Menu.
 				row.itemM("VIEW3D_MT_select_%s" % mode_string)
 			
 			if mode_string == 'OBJECT':
 				row.itemM("VIEW3D_MT_object")
+			elif mode_string == 'SCULPT':
+				row.itemM("VIEW3D_MT_sculpt")
 
 		layout.template_header_3D()
 
@@ -461,6 +464,42 @@ class VIEW3D_MT_object_show(bpy.types.Menu):
 		layout.itemO("object.restrictview_set")
 		layout.item_booleanO("object.restrictview_set", "unselected", True, text="Hide Unselected")
 
+# ********** Sculpt menu **********	
+	
+class VIEW3D_MT_sculpt(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Sculpt"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		sculpt = context.tool_settings.sculpt
+		brush = context.tool_settings.sculpt.brush
+		
+		layout.itemR(sculpt, "symmetry_x")
+		layout.itemR(sculpt, "symmetry_y")
+		layout.itemR(sculpt, "symmetry_z")
+		layout.itemS()
+		layout.itemR(sculpt, "lock_x")
+		layout.itemR(sculpt, "lock_y")
+		layout.itemR(sculpt, "lock_z")
+		layout.itemS()
+		layout.item_menu_enumO("brush.curve_preset", property="shape")
+		layout.itemS()
+		
+		if brush.sculpt_tool != 'GRAB':
+			layout.itemR(brush, "airbrush")
+			
+			if brush.sculpt_tool != 'LAYER':
+				layout.itemR(brush, "anchored")
+			
+			if brush.sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
+				layout.itemR(brush, "flip_direction")
+
+			if brush.sculpt_tool == 'LAYER':
+				layout.itemR(brush, "persistent")
+				layout.itemO("sculpt.set_persistent_base")
+
 # ********** Panel **********
 
 class VIEW3D_PT_3dview_properties(bpy.types.Panel):
@@ -588,6 +627,8 @@ bpy.types.register(VIEW3D_MT_object_track)
 bpy.types.register(VIEW3D_MT_object_group)
 bpy.types.register(VIEW3D_MT_object_constraints)
 bpy.types.register(VIEW3D_MT_object_show)
+
+bpy.types.register(VIEW3D_MT_sculpt) # Sculpt Menu
 
 bpy.types.register(VIEW3D_PT_3dview_properties) # Panels
 bpy.types.register(VIEW3D_PT_3dview_display)
