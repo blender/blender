@@ -235,7 +235,7 @@ void KX_BlenderMaterial::OnExit()
 	}
 
 	if( mMaterial->tface ) 
-		GPU_set_tpage(mMaterial->tface);
+		GPU_set_tpage(mMaterial->tface, 1);
 }
 
 

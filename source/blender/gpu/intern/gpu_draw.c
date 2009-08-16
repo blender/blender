@@ -253,9 +253,7 @@ void GPU_set_linear_mipmap(int linear)
 
 static int gpu_get_mipmap(void)
 {
-	return GTS.domipmap 
-		/* XXX: texturepaint not global!
-		   && (!(G.f & G_TEXTUREPAINT))*/;
+	return GTS.domipmap;
 }
 
 static GLenum gpu_get_mipmap_filter(int mag)
@@ -388,7 +386,7 @@ static void gpu_verify_reflection(Image *ima)
 	}
 }
 
-int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare)
+int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare, int mipmap)
 {
 	ImBuf *ibuf = NULL;
 	unsigned int *bind = NULL;
@@ -513,7 +511,7 @@ int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare)
 	}
 
 	/* scale if not a power of two */
-	if (!is_pow2_limit(rectw) || !is_pow2_limit(recth)) {
+	if (!mipmap && (!is_pow2_limit(rectw) || !is_pow2_limit(recth))) {
 		rectw= smaller_pow2_limit(rectw);
 		recth= smaller_pow2_limit(recth);
 		
@@ -526,7 +524,7 @@ int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare)
 	glGenTextures(1, (GLuint *)bind);
 	glBindTexture( GL_TEXTURE_2D, *bind);
 
-	if (!gpu_get_mipmap()) {
+	if (!(gpu_get_mipmap() && mipmap)) {
 		glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
@@ -565,7 +563,7 @@ static void gpu_verify_repeat(Image *ima)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
-int GPU_set_tpage(MTFace *tface)
+int GPU_set_tpage(MTFace *tface, int mipmap)
 {
 	Image *ima;
 	
@@ -581,7 +579,7 @@ int GPU_set_tpage(MTFace *tface)
 	gpu_verify_alpha_mode(tface);
 	gpu_verify_reflection(ima);
 
-	if(GPU_verify_image(ima, tface->tile, tface->mode, 1)) {
+	if(GPU_verify_image(ima, tface->tile, tface->mode, 1, mipmap)) {
 		GTS.curtile= GTS.tile;
 		GTS.curima= GTS.ima;
 		GTS.curtilemode= GTS.tilemode;
@@ -646,13 +644,13 @@ void GPU_paint_set_mipmap(int mipmap)
 	}
 }
 
-void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
+void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
 {
 	ImBuf *ibuf;
 	
 	ibuf = BKE_image_get_ibuf(ima, NULL);
 	
-	if (ima->repbind || gpu_get_mipmap() || !ima->bindcode || !ibuf ||
+	if (ima->repbind || (gpu_get_mipmap() && mipmap) || !ima->bindcode || !ibuf ||
 		(!is_pow2(ibuf->x) || !is_pow2(ibuf->y)) ||
 		(w == 0) || (h == 0)) {
 		/* these cases require full reload still */
@@ -994,7 +992,7 @@ int GPU_enable_material(int nr, void *attribs)
 
 			gpumat = GPU_material_from_blender(GMS.gscene, mat);
 			GPU_material_vertex_attributes(gpumat, gattribs);
-			GPU_material_bind(gpumat, GMS.gob->lay, GMS.glay, 1.0);
+			GPU_material_bind(gpumat, GMS.gob->lay, GMS.glay, 1.0, !(GMS.gob->mode & OB_MODE_TEXTURE_PAINT));
 			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, GMS.gviewmat, GMS.gviewinv, GMS.gob->col);
 			GMS.gboundmat= mat;
 

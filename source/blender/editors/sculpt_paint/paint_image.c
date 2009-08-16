@@ -4023,7 +4023,7 @@ static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, s
 	if(texpaint || (sima && sima->lock)) {
 		int w = imapaintpartial.x2 - imapaintpartial.x1;
 		int h = imapaintpartial.y2 - imapaintpartial.y1;
-		GPU_paint_update_image(image, imapaintpartial.x1, imapaintpartial.y1, w, h);
+		GPU_paint_update_image(image, imapaintpartial.x1, imapaintpartial.y1, w, h, !texpaint);
 	}
 }
 

@@ -246,7 +246,7 @@ void GPU_material_free(Material *ma)
 	BLI_freelistN(&ma->gpumaterial);
 }
 
-void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double time)
+void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double time, int mipmap)
 {
 	if(material->pass) {
 		LinkData *nlink;
@@ -266,7 +266,7 @@ void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double tim
 			}
 		}
 
-		GPU_pass_bind(material->pass, time);
+		GPU_pass_bind(material->pass, time, mipmap);
 		material->bound = 1;
 	}
 }

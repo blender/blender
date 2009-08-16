@@ -298,9 +298,9 @@ static int set_draw_settings_cached(int clearcache, int textured, MTFace *texfac
 
 	if (textured!=c_textured || texface!=c_texface) {
 		if (textured ) {
-			c_badtex= !GPU_set_tpage(texface);
+			c_badtex= !GPU_set_tpage(texface, !(litob->mode & OB_MODE_TEXTURE_PAINT));
 		} else {
-			GPU_set_tpage(0);
+			GPU_set_tpage(NULL, 0);
 			c_badtex= 0;
 		}
 		c_textured= textured;
@@ -378,7 +378,7 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 static void draw_textured_end()
 {
 	/* switch off textures */
-	GPU_set_tpage(0);
+	GPU_set_tpage(NULL, 0);
 
 	glShadeModel(GL_FLAT);
 	glDisable(GL_CULL_FACE);
