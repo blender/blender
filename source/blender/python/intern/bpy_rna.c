@@ -3085,6 +3085,16 @@ void pyrna_free_types(void)
 	RNA_PROP_END;
 }
 
+/* Note! MemLeak XXX
+ *
+ * There is currently a bug where moving registering a python class does
+ * not properly manage refcounts from the python class, since the srna owns
+ * the python class this should not be so tricky but changing the references as
+ * youd expect when changing ownership crashes blender on exit so I had to comment out
+ * the decref. This is not so bad because the leak only happens when re-registering (hold F8)
+ * - Should still be fixed - Campbell
+ * */
+
 PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
 {
 	bContext *C= NULL;
