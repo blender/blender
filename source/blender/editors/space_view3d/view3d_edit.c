@@ -958,7 +958,7 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 		for(base=scene->base.first; base; base= base->next) {
 			if(TESTBASELIB(v3d, base)) {
 				if(base->object->type==OB_ARMATURE)
-					if(base->object->flag & OB_POSEMODE)
+					if(base->object->mode & OB_MODE_POSE)
 						break;
 			}
 		}
@@ -970,7 +970,7 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 	if(obedit) {
 		ok = minmax_verts(obedit, min, max);	/* only selected */
 	}
-	else if(ob && (ob->flag & OB_POSEMODE)) {
+	else if(ob && (ob->mode & OB_MODE_POSE)) {
 		if(ob->pose) {
 			bArmature *arm= ob->data;
 			bPoseChannel *pchan;
@@ -2200,7 +2200,7 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 	rv3d->view = 0;
 //printf("passing here \n");
 //
-	if (scene->obedit==NULL && ob && !(ob->flag & OB_POSEMODE)) {
+	if (scene->obedit==NULL && ob && !(ob->mode & OB_MODE_POSE)) {
 		use_sel = 1;
 	}
 

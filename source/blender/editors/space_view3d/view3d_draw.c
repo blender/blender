@@ -798,7 +798,7 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 					}
 				}
 			}
-			else if(ob->pose && (ob->flag & OB_POSEMODE)) {
+			else if(ob->pose && (ob->mode & OB_MODE_POSE)) {
 				bPoseChannel *pchan;
 				for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 					if((pchan->bone->flag & BONE_ACTIVE) && (pchan->bone->layer & arm->layer)) {

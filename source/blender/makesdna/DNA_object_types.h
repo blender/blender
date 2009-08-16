@@ -402,7 +402,6 @@ extern Object workob;
 #define OB_DONE				1024
 #define OB_RADIO			2048
 #define OB_FROMGROUP		4096
-#define OB_POSEMODE			8192
 
 /* ob->recalc (flag bits!) */
 #define OB_RECALC_OB		1
@@ -519,6 +518,7 @@ extern Object workob;
 #define OB_MODE_WEIGHT_PAINT    8
 #define OB_MODE_TEXTURE_PAINT  16
 #define OB_MODE_PARTICLE_EDIT  32
+#define OB_MODE_POSE           64
 
 /* ob->softflag in DNA_object_force.h */
 

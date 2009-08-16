@@ -1125,7 +1125,7 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 		
 		/* verify if active weight group is also active bone */
 		par= modifiers_isDeformedByArmature(ob);
-		if(par && (par->flag & OB_POSEMODE)) {
+		if(par && (par->mode & OB_MODE_POSE)) {
 			bPoseChannel *pchan;
 			for(pchan= par->pose->chanbase.first; pchan; pchan= pchan->next)
 				if(pchan->bone->flag & BONE_ACTIVE)

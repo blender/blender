@@ -4778,7 +4778,7 @@ static void drawSolidSelect(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 			drawDispListwire(&ob->disp);
 	}
 	else if(ob->type==OB_ARMATURE) {
-		if(!(ob->flag & OB_POSEMODE))
+		if(!(ob->mode & OB_MODE_POSE))
 			draw_armature(scene, v3d, rv3d, base, OB_WIRE, 0);
 	}
 

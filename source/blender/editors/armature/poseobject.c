@@ -126,7 +126,7 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 	switch (ob->type){
 		case OB_ARMATURE:
 			
-			ob->flag |= OB_POSEMODE;
+			ob->mode |= OB_MODE_POSE;
 			base->flag= ob->flag;
 			
 			WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_POSE, NULL);
@@ -144,7 +144,7 @@ void ED_armature_exit_posemode(bContext *C, Base *base)
 	if(base) {
 		Object *ob= base->object;
 		
-		ob->flag &= ~OB_POSEMODE;
+		ob->mode &= ~OB_MODE_POSE;
 		base->flag= ob->flag;
 		
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, NULL);
@@ -528,7 +528,7 @@ void pose_select_constraint_target(Scene *scene)
 	
 	/* paranoia checks */
 	if (!ob && !ob->pose) return;
-	if (ob==obedit || (ob->flag & OB_POSEMODE)==0) return;
+	if (ob==obedit || (ob->mode & OB_MODE_POSE)==0) return;
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if (arm->layer & pchan->bone->layer) {
@@ -716,7 +716,7 @@ void pose_copy_menu(Scene *scene)
 	
 	/* paranoia checks */
 	if (ELEM(NULL, ob, ob->pose)) return;
-	if ((ob==obedit) || (ob->flag & OB_POSEMODE)==0) return;
+	if ((ob==obedit) || (ob->mode & OB_MODE_POSE)==0) return;
 	
 	/* find active */
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
@@ -1106,7 +1106,7 @@ void pose_adds_vgroups(Scene *scene, Object *meshobj, int heatweights)
 // XXX	extern VPaint Gwp;         /* from vpaint */
 	Object *poseobj= modifiers_isDeformedByArmature(meshobj);
 
-	if(poseobj==NULL || (poseobj->flag & OB_POSEMODE)==0) {
+	if(poseobj==NULL || (poseobj->mode & OB_MODE_POSE)==0) {
 		error("The active object must have a deforming armature in pose mode");
 		return;
 	}
@@ -1650,7 +1650,7 @@ void pose_activate_flipped_bone(Scene *scene)
 	if(ob->mode && OB_MODE_WEIGHT_PAINT) {
 		ob= modifiers_isDeformedByArmature(ob);
 	}
-	if(ob && (ob->flag & OB_POSEMODE)) {
+	if(ob && (ob->mode & OB_MODE_POSE)) {
 		bPoseChannel *pchan, *pchanf;
 		
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
@@ -2151,7 +2151,7 @@ void pose_special_editmenu(Scene *scene)
 	
 	/* paranoia checks */
 	if(!ob && !ob->pose) return;
-	if(ob==obedit || (ob->flag & OB_POSEMODE)==0) return;
+	if(ob==obedit || (ob->mode & OB_MODE_POSE)==0) return;
 	
 	nr= pupmenu("Specials%t|Select Constraint Target%x1|Flip Left-Right Names%x2|Calculate Paths%x3|Clear Paths%x4|Clear User Transform %x5|Relax Pose %x6|%l|AutoName Left-Right%x7|AutoName Front-Back%x8|AutoName Top-Bottom%x9");
 	if(nr==1) {

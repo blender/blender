@@ -3597,7 +3597,7 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 		xco+= xmax;
 	}
 	else {
-		if (ob && (ob->flag & OB_POSEMODE)) {
+		if (ob && (ob->mode & OB_MODE_POSE)) {
 			xmax= GetButStringLength("Pose");
 			uiDefMenuBut(block, view3d_pose_armaturemenu, NULL, "Pose",	xco,yco, xmax-3, 20, "");
 			xco+= xmax;
@@ -3655,7 +3655,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	v3d->modeselect = V3D_OBJECTMODE_SEL;
 	
 	if (obedit) v3d->modeselect = V3D_EDITMODE_SEL;
-	else if(ob && (ob->flag & OB_POSEMODE)) v3d->modeselect = V3D_POSEMODE_SEL;
+	else if(ob && (ob->mode & OB_MODE_POSE)) v3d->modeselect = V3D_POSEMODE_SEL;
 	else if (ob && (ob->mode & OB_MODE_SCULPT))  v3d->modeselect = V3D_SCULPTMODE_SEL;
 	else if (ob && (ob->mode & OB_MODE_WEIGHT_PAINT)) v3d->modeselect = V3D_WEIGHTPAINTMODE_SEL;
 	else if (ob && (ob->mode & OB_MODE_VERTEX_PAINT)) v3d->modeselect = V3D_VERTEXPAINTMODE_SEL;
@@ -3667,7 +3667,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	
 	/* not sure what the v3d->flag is useful for now... modeselect is confusing */
 	if(obedit) v3d->flag |= V3D_EDITMODE;
-	if(ob && (ob->flag & OB_POSEMODE)) v3d->flag |= V3D_POSEMODE;
+	if(ob && (ob->mode & OB_MODE_POSE)) v3d->flag |= V3D_POSEMODE;
 	if(ob && (ob->mode & OB_MODE_VERTEX_PAINT)) v3d->flag |= V3D_VERTEXPAINT;
 	if(ob && (ob->mode & OB_MODE_WEIGHT_PAINT)) v3d->flag |= V3D_WEIGHTPAINT;
 	if(ob && (ob->mode & OB_MODE_TEXTURE_PAINT)) v3d->flag |= V3D_TEXTUREPAINT;
@@ -3882,7 +3882,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 		uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE, xco,yco,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (Ctrl Click for anim)");
 		
-		if (ob && (ob->flag & OB_POSEMODE)) {
+		if (ob && (ob->mode & OB_MODE_POSE)) {
 			xco+= XIC;
 			uiBlockBeginAlign(block);
 			

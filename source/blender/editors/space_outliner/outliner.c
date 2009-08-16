@@ -620,7 +620,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					
 					tenla->name= "Pose";
 					
-					if(arm->edbo==NULL && (ob->flag & OB_POSEMODE)) {	// channels undefined in editmode, but we want the 'tenla' pose icon itself
+					if(arm->edbo==NULL && (ob->mode & OB_MODE_POSE)) {	// channels undefined in editmode, but we want the 'tenla' pose icon itself
 						int a= 0, const_index= 1000;	/* ensure unique id for bone constraints */
 						
 						for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next, a++) {
@@ -887,7 +887,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				else {
 					/* do not extend Armature when we have posemode */
 					tselem= TREESTORE(te->parent);
-					if( GS(tselem->id->name)==ID_OB && ((Object *)tselem->id)->flag & OB_POSEMODE);
+					if( GS(tselem->id->name)==ID_OB && ((Object *)tselem->id)->mode & OB_MODE_POSE);
 					else {
 						Bone *curBone;
 						for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
@@ -2177,13 +2177,13 @@ static int tree_element_active_pose(bContext *C, Scene *scene, TreeElement *te, 
 		if(scene->obedit) 
 			ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 		
-		if(ob->flag & OB_POSEMODE) 
+		if(ob->mode & OB_MODE_POSE) 
 			ED_armature_exit_posemode(C, base);
 		else 
 			ED_armature_enter_posemode(C, base);
 	}
 	else {
-		if(ob->flag & OB_POSEMODE) return 1;
+		if(ob->mode & OB_MODE_POSE) return 1;
 	}
 	return 0;
 }

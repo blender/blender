@@ -1085,7 +1085,7 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 		if(ob->type==OB_MBALL) v3d_editmetaball_buts(block, ob, lim);
 		else v3d_editvertex_buts(C, block, v3d, ob, lim);
 	}
-	else if(ob->flag & OB_POSEMODE) {
+	else if(ob->mode & OB_MODE_POSE) {
 		v3d_posearmature_buts(block, v3d, ob, lim);
 	}
 	else {

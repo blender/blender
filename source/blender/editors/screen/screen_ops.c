@@ -232,7 +232,7 @@ int ED_operator_posemode(bContext *C)
 	Object *obedit= CTX_data_edit_object(C);
 	
 	if ((obact != obedit) && (obact) && (obact->type==OB_ARMATURE))
-		return (obact->flag & OB_POSEMODE)!=0;
+		return (obact->mode & OB_MODE_POSE)!=0;
 		
 	return 0;
 }

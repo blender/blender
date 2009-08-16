@@ -917,7 +917,7 @@ static short pose_grab_with_ik(Object *ob)
 	Bone *bonec;
 	short tot_ik= 0;
 
-	if ((ob==NULL) || (ob->pose==NULL) || (ob->flag & OB_POSEMODE)==0)
+	if ((ob==NULL) || (ob->pose==NULL) || (ob->mode & OB_MODE_POSE)==0)
 		return 0;
 
 	arm = ob->data;
@@ -5234,7 +5234,7 @@ void createTransData(bContext *C, TransInfo *t)
 			t->poseobj = ob;	/* <- tsk tsk, this is going to give issues one day */
 		}
 	}
-	else if (ob && (ob->flag & OB_POSEMODE)) {
+	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		// XXX this is currently limited to active armature only...
 		// XXX active-layer checking isn't done as that should probably be checked through context instead
 		createTransPose(C, t, ob);
@@ -5245,7 +5245,7 @@ void createTransData(bContext *C, TransInfo *t)
 		{
 			if(ob_armature->type==OB_ARMATURE)
 			{
-				if(ob_armature->flag & OB_POSEMODE)
+				if(ob_armature->mode & OB_MODE_POSE)
 				{
 					createTransPose(C, t, ob_armature);
 					break;

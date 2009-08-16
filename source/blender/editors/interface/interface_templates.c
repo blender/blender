@@ -628,7 +628,7 @@ static void verify_constraint_name_func (bContext *C, void *con_v, void *name_v)
 
 /* some commonly used macros in the constraints drawing code */
 #define is_armature_target(target) (target && target->type==OB_ARMATURE)
-#define is_armature_owner(ob) ((ob->type == OB_ARMATURE) && (ob->flag & OB_POSEMODE))
+#define is_armature_owner(ob) ((ob->type == OB_ARMATURE) && (ob->mode & OB_MODE_POSE))
 #define is_geom_target(target) (target && (ELEM(target->type, OB_MESH, OB_LATTICE)) )
 
 /* Helper function for draw constraint - draws constraint space stuff 

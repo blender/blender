@@ -87,7 +87,7 @@ void BIF_manageTransformOrientation(bContext *C, int confirm, int set) {
 		else if (obedit->type == OB_ARMATURE)
 			index = manageBoneSpace(C, confirm, set);
 	}
-	else if (ob && (ob->flag & OB_POSEMODE)) {
+	else if (ob && (ob->mode & OB_MODE_POSE)) {
 			index = manageBoneSpace(C, confirm, set);
 	}
 	else {
@@ -487,7 +487,7 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 		break;
 		
 	case V3D_MANIP_NORMAL:
-		if(obedit || ob->flag & OB_POSEMODE) {
+		if(obedit || ob->mode & OB_MODE_POSE) {
 			float mat[3][3];
 			int type;
 			
@@ -864,7 +864,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			Mat3MulVecfl(mat, plane);
 		}
 	}
-	else if(ob && (ob->flag & OB_POSEMODE))
+	else if(ob && (ob->mode & OB_MODE_POSE))
 	{
 		bArmature *arm= ob->data;
 		bPoseChannel *pchan;

@@ -3886,7 +3886,7 @@ static int posemode_exec(bContext *C, wmOperator *op)
 			ED_object_exit_editmode(C, EM_FREEDATA);
 			ED_armature_enter_posemode(C, base);
 		}
-		else if(base->object->flag & OB_POSEMODE)
+		else if(base->object->mode & OB_MODE_POSE)
 			ED_armature_exit_posemode(C, base);
 		else
 			ED_armature_enter_posemode(C, base);
@@ -4109,7 +4109,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 	
 	if(obedit==NULL) {
 		
-		if(ob->flag & OB_POSEMODE) {
+		if(ob->mode & OB_MODE_POSE) {
 // XXX			pose_special_editmenu();
 		}
 		else if(paint_facesel_test(ob)) {
@@ -4174,7 +4174,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 		else if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 			Object *par= modifiers_isDeformedByArmature(ob);
 
-			if(par && (par->flag & OB_POSEMODE)) {
+			if(par && (par->mode & OB_MODE_POSE)) {
 				nr= pupmenu("Specials%t|Apply Bone Envelopes to Vertex Groups %x1|Apply Bone Heat Weights to Vertex Groups %x2");
 
 // XXX				if(nr==1 || nr==2)
@@ -6294,7 +6294,7 @@ static Base *object_add_duplicate_internal(Scene *scene, Base *base, int dupflag
 	int a, didit;
 
 	ob= base->object;
-	if(ob->flag & OB_POSEMODE) {
+	if(ob->mode & OB_MODE_POSE) {
 		; /* nothing? */
 	}
 	else {

@@ -493,7 +493,7 @@ void set_scene_bg(Scene *scene)
 		base->flag |= flag;
 		
 		/* not too nice... for recovering objects with lost data */
-		if(ob->pose==NULL) base->flag &= ~OB_POSEMODE;
+		//if(ob->pose==NULL) base->flag &= ~OB_POSEMODE;
 		ob->flag= base->flag;
 		
 		ob->ctime= -1234567.0;	/* force ipo to be calculated later */

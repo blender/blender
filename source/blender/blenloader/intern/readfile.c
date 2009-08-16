@@ -3430,7 +3430,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				if(ob->pose) {
 					free_pose(ob->pose);
 					ob->pose= NULL;
-					ob->flag &= ~OB_POSEMODE;
+					ob->mode &= ~OB_MODE_POSE;
 				}
 			}
 			for(a=0; a<ob->totcol; a++) ob->mat[a]= newlibadr_us(fd, ob->id.lib, ob->mat[a]);

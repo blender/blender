@@ -976,6 +976,7 @@ static void rna_def_object(BlenderRNA *brna)
 		{OB_MODE_WEIGHT_PAINT, "WEIGHT_PAINT", 0, "Weight Paint", ""},
 		{OB_MODE_WEIGHT_PAINT, "TEXTURE_PAINT", 0, "Texture Paint", ""},
 		{OB_MODE_PARTICLE_EDIT, "PARTICLE_EDIT", 0, "Particle Edit", ""},
+		{OB_MODE_POSE, "POSE", 0, "Pose", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem empty_drawtype_items[] = {
@@ -1469,11 +1470,6 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "pose");
 	RNA_def_property_struct_type(prop, "Pose");
 	RNA_def_property_ui_text(prop, "Pose", "Current pose for armatures.");
-
-	prop= RNA_def_property(srna, "pose_mode", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_POSEMODE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Pose Mode", "Object with armature data is in pose mode.");
 
 	/* shape keys */
 

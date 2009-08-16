@@ -687,7 +687,7 @@ char *CTX_data_mode_string(const bContext *C)
 		Object *ob = CTX_data_active_object(C);
 		
 		if(ob) {
-			if(ob->flag & OB_POSEMODE) return "posemode";
+			if(ob->mode & OB_MODE_POSE) return "posemode";
 			else if(ob->mode & OB_MODE_SCULPT)  return "sculpt_mode";
 			else if(ob->mode & OB_MODE_WEIGHT_PAINT) return "weightpaint";
 			else if(ob->mode & OB_MODE_VERTEX_PAINT) return "vertexpaint";

@@ -379,7 +379,7 @@ static void do_lasso_select_objects(ViewContext *vc, short mcords[][2], short mo
 				else ED_base_object_select(base, BA_DESELECT);
 				base->object->flag= base->flag;
 			}
-			if(base->object->flag & OB_POSEMODE) {
+			if(base->object->mode & OB_MODE_POSE) {
 				do_lasso_select_pose(vc, mcords, moves, select);
 			}
 		}
@@ -1457,7 +1457,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 		int bone_only;
 		int totobj= MAXPICKBUF;	// XXX solve later
 		
-		if((ob) && (ob->flag & OB_POSEMODE))
+		if((ob) && (ob->mode & OB_MODE_POSE))
 			bone_only= 1;
 		else
 			bone_only= 0;
