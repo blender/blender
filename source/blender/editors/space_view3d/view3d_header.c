@@ -80,6 +80,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -104,16 +105,6 @@
  *
  * This can be cleaned when I make some new 'mode' icons.
  */
-
-#define V3D_OBJECTMODE_SEL			ICON_OBJECT_DATA
-#define V3D_EDITMODE_SEL			ICON_EDITMODE_HLT
-#define V3D_SCULPTMODE_SEL			ICON_SCULPTMODE_HLT
-#define V3D_FACESELECT_SEL			ICON_FACESEL_HLT	/* this is not a mode anymore - just a switch */
-#define V3D_VERTEXPAINTMODE_SEL		ICON_VPAINT_HLT
-#define V3D_TEXTUREPAINTMODE_SEL	ICON_TPAINT_HLT
-#define V3D_WEIGHTPAINTMODE_SEL		ICON_WPAINT_HLT
-#define V3D_POSEMODE_SEL			ICON_POSE_HLT
-#define V3D_PARTICLEEDITMODE_SEL	ICON_ANIM
 
 #define TEST_EDITMESH	if(obedit==0) return; \
 						if( (v3d->lay & obedit->lay)==0 ) return;
@@ -2965,10 +2956,7 @@ static char *view3d_modeselect_pup(Scene *scene)
 
 	str += sprintf(str, "Mode: %%t");
 	
-	if(ob)
-		str += sprintf(str, formatstr, "Object Mode", V3D_OBJECTMODE_SEL, ICON_OBJECT_DATA);
-	else
-		str += sprintf(str, formatstr, "Object Mode", V3D_OBJECTMODE_SEL, ICON_OBJECT_DATA);
+	str += sprintf(str, formatstr, "Object Mode", OB_MODE_OBJECT, ICON_OBJECT_DATA);
 	
 	if(ob==NULL) return string;
 	
@@ -2977,26 +2965,25 @@ static char *view3d_modeselect_pup(Scene *scene)
 		|| (ob->type == OB_CURVE) || (ob->type == OB_SURF) || (ob->type == OB_FONT)
 		|| (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) {
 		
-		str += sprintf(str, formatstr, "Edit Mode", V3D_EDITMODE_SEL, ICON_EDITMODE_HLT);
+		str += sprintf(str, formatstr, "Edit Mode", OB_MODE_EDIT, ICON_EDITMODE_HLT);
 	}
 
 	if (ob->type == OB_MESH) {
 
-		str += sprintf(str, formatstr, "Sculpt Mode", V3D_SCULPTMODE_SEL, ICON_SCULPTMODE_HLT);
-		/*str += sprintf(str, formatstr, "Face Select", V3D_FACESELECTMODE_SEL, ICON_FACESEL_HLT);*/
-		str += sprintf(str, formatstr, "Vertex Paint", V3D_VERTEXPAINTMODE_SEL, ICON_VPAINT_HLT);
-		str += sprintf(str, formatstr, "Texture Paint", V3D_TEXTUREPAINTMODE_SEL, ICON_TPAINT_HLT);
-		str += sprintf(str, formatstr, "Weight Paint", V3D_WEIGHTPAINTMODE_SEL, ICON_WPAINT_HLT);
+		str += sprintf(str, formatstr, "Sculpt Mode", OB_MODE_SCULPT, ICON_SCULPTMODE_HLT);
+		str += sprintf(str, formatstr, "Vertex Paint", OB_MODE_VERTEX_PAINT, ICON_VPAINT_HLT);
+		str += sprintf(str, formatstr, "Texture Paint", OB_MODE_TEXTURE_PAINT, ICON_TPAINT_HLT);
+		str += sprintf(str, formatstr, "Weight Paint", OB_MODE_WEIGHT_PAINT, ICON_WPAINT_HLT);
 	}
 
 	
 	/* if active object is an armature */
 	if (ob->type==OB_ARMATURE) {
-		str += sprintf(str, formatstr, "Pose Mode", V3D_POSEMODE_SEL, ICON_POSE_HLT);
+		str += sprintf(str, formatstr, "Pose Mode", OB_MODE_POSE, ICON_POSE_HLT);
 	}
 
 	if (ob->particlesystem.first) {
-		str += sprintf(str, formatstr, "Particle Mode", V3D_PARTICLEEDITMODE_SEL, ICON_PARTICLEMODE);
+		str += sprintf(str, formatstr, "Particle Mode", OB_MODE_PARTICLE_EDIT, ICON_PARTICLEMODE);
 	}
 
 	return (string);
@@ -3084,11 +3071,10 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
-	Base *basact= CTX_data_active_base(C);
-	Object *ob= CTX_data_active_object(C);
 	Object *obedit = CTX_data_edit_object(C);
 	EditMesh *em= NULL;
 	int bit, ctrl= win->eventstate->ctrl, shift= win->eventstate->shift;
+	PointerRNA props_ptr;
 	
 	if(obedit && obedit->type==OB_MESH) {
 		em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
@@ -3135,79 +3121,10 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 // XXX		start_game();
 		break;
 	case B_MODESELECT:
-		if (v3d->modeselect == V3D_OBJECTMODE_SEL) {
-			
-			v3d->flag &= ~V3D_MODE;
-			ED_object_toggle_modes(C, ob->mode);
-			ED_armature_exit_posemode(C, basact);
-			if(obedit) 
-				ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
-		} 
-		else if (v3d->modeselect == V3D_EDITMODE_SEL) {
-			if(!obedit) {
-				v3d->flag &= ~V3D_MODE;
-				ED_object_enter_editmode(C, EM_WAITCURSOR);
-				ED_undo_push(C, "Original");	/* here, because all over code enter_editmode is abused */
-			}
-		} 
-		else if (v3d->modeselect == V3D_SCULPTMODE_SEL) {
-			if (ob && !(ob->mode & OB_MODE_SCULPT)) {
-				v3d->flag &= ~V3D_MODE;
-				ED_object_toggle_modes(C, ob->mode);
-				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
-					
-				WM_operator_name_call(C, "SCULPT_OT_sculptmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-			}
-		}
-		else if (v3d->modeselect == V3D_VERTEXPAINTMODE_SEL) {
-			if (ob && !(ob->mode & OB_MODE_VERTEX_PAINT)) {
-				v3d->flag &= ~V3D_MODE;
-				ED_object_toggle_modes(C, ob->mode);
-				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
-				
-				WM_operator_name_call(C, "PAINT_OT_vertex_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-			}
-		} 
-		else if (v3d->modeselect == V3D_TEXTUREPAINTMODE_SEL) {
-			if (ob && !(ob->mode & OB_MODE_TEXTURE_PAINT)) {
-				v3d->flag &= ~V3D_MODE;
-				ED_object_toggle_modes(C, ob->mode);
-				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
-
-				WM_operator_name_call(C, "PAINT_OT_texture_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-			}
-		} 
-		else if (v3d->modeselect == V3D_WEIGHTPAINTMODE_SEL) {
-			if (ob && ob->type == OB_MESH && !(ob->mode & OB_MODE_WEIGHT_PAINT)) {
-				v3d->flag &= ~V3D_MODE;
-				ED_object_toggle_modes(C, ob->mode);
-				if(obedit) 
-					ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
-				
-				WM_operator_name_call(C, "PAINT_OT_weight_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-			}
-		} 
-		else if (v3d->modeselect == V3D_POSEMODE_SEL) {
-			
-			if (ob) {
-				v3d->flag &= ~V3D_MODE;
-				if(obedit) 
-					ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
-				
-				ED_armature_enter_posemode(C, basact);
-			}
-		}
-		else if(v3d->modeselect == V3D_PARTICLEEDITMODE_SEL){
-			if (ob && !(ob->mode & OB_MODE_PARTICLE_EDIT)) {
-				v3d->flag &= ~V3D_MODE;
-				ED_object_toggle_modes(C, ob->mode);
-				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
-
-				WM_operator_name_call(C, "PARTICLE_OT_particle_edit_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-			}
-		}
-		break;
-		
+		WM_operator_properties_create(&props_ptr, "OBJECT_OT_mode_set");
+		RNA_enum_set(&props_ptr, "mode", v3d->modeselect);
+		WM_operator_name_call(C, "OBJECT_OT_mode_set", WM_OP_EXEC_REGION_WIN, &props_ptr);
+		break;		
 	case B_AROUND:
 // XXX		handle_view3d_around(); /* copies to other 3d windows */
 		break;
@@ -3446,6 +3363,20 @@ static void header_xco_step(ARegion *ar, int *xco, int *yco, int *maxco, int ste
 	}
 }
 
+/* Returns the icon associated with an object mode */
+static int object_mode_icon(int mode)
+{
+	EnumPropertyItem *item = object_mode_items;
+	
+	while(item->name != NULL) {
+		if(item->value == mode)
+			return item->icon;
+		++item;
+	}
+
+	return ICON_OBJECT_DATAMODE;
+}
+
 void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 {
 	ARegion *ar= CTX_wm_region(C);
@@ -3468,16 +3399,10 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	/* mode */
-	v3d->modeselect = V3D_OBJECTMODE_SEL;
-	
-	if (obedit) v3d->modeselect = V3D_EDITMODE_SEL;
-	else if(ob && (ob->mode & OB_MODE_POSE)) v3d->modeselect = V3D_POSEMODE_SEL;
-	else if (ob && (ob->mode & OB_MODE_SCULPT))  v3d->modeselect = V3D_SCULPTMODE_SEL;
-	else if (ob && (ob->mode & OB_MODE_WEIGHT_PAINT)) v3d->modeselect = V3D_WEIGHTPAINTMODE_SEL;
-	else if (ob && (ob->mode & OB_MODE_VERTEX_PAINT)) v3d->modeselect = V3D_VERTEXPAINTMODE_SEL;
-	else if (ob && (ob->mode & OB_MODE_TEXTURE_PAINT)) v3d->modeselect = V3D_TEXTUREPAINTMODE_SEL;
-	/*else if(G.f & G_FACESELECT) v3d->modeselect = V3D_FACESELECTMODE_SEL;*/
-	else if(ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) v3d->modeselect = V3D_PARTICLEEDITMODE_SEL;
+	if(ob)
+		v3d->modeselect = ob->mode;
+	else
+		v3d->modeselect = OB_MODE_OBJECT;
 		
 	v3d->flag &= ~V3D_MODE;
 	
@@ -3488,9 +3413,9 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	if(ob && (ob->mode & OB_MODE_WEIGHT_PAINT)) v3d->flag |= V3D_WEIGHTPAINT;
 	if(ob && (ob->mode & OB_MODE_TEXTURE_PAINT)) v3d->flag |= V3D_TEXTUREPAINT;
 	if(paint_facesel_test(ob)) v3d->flag |= V3D_FACESELECT;
-	
-	uiDefIconTextButS(block, MENU, B_MODESELECT, (v3d->modeselect),view3d_modeselect_pup(scene) , 
-																xco,yco,126,20, &(v3d->modeselect), 0, 0, 0, 0, "Mode (Hotkeys: Tab, V, Ctrl Tab)");
+
+	uiDefIconTextButS(block, MENU, B_MODESELECT, object_mode_icon(v3d->modeselect), view3d_modeselect_pup(scene) , 
+			  xco,yco,126,20, &(v3d->modeselect), 0, 0, 0, 0, "Mode (Hotkeys: Tab, V, Ctrl Tab)");
 	header_xco_step(ar, &xco, &yco, &maxco, 126+8);
 	
 	/* DRAWTYPE */
