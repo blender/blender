@@ -1208,7 +1208,8 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
 	prop= RNA_def_property(srna, "emit", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0, 2);
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 2.0f);
 	RNA_def_property_ui_text(prop, "Emit", "Amount of light to emit.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
