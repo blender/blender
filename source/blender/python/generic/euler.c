@@ -242,7 +242,7 @@ static PyObject *Euler_Rotate(EulerObject * self, PyObject *args)
 		PyErr_SetString(PyExc_TypeError, "euler.rotate():expected angle (float) and axis (x,y,z)");
 		return NULL;
 	}
-	if(!STREQ3(axis,"x","y","z")){
+	if(ELEM3(*axis, 'x', 'y', 'z') && axis[1]=='\0'){
 		PyErr_SetString(PyExc_TypeError, "euler.rotate(): expected axis to be 'x', 'y' or 'z'");
 		return NULL;
 	}
