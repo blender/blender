@@ -1453,7 +1453,8 @@ ListBase uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 		/* init numbers */
 		RNA_property_int_range(activeptr, activeprop, &min, &max);
 
-		len= RNA_property_collection_length(ptr, prop);
+		if(prop)
+			len= RNA_property_collection_length(ptr, prop);
 		items= CLAMPIS(len, rows, 5);
 
 		pa->list_scroll= MIN2(pa->list_scroll, len-items);
