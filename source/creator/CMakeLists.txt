@@ -114,10 +114,36 @@ IF(WITH_INSTALL)
     IF(WITH_PYTHON)
       ADD_CUSTOM_COMMAND(
         TARGET blender POST_BUILD MAIN_DEPENDENCY blender
+        COMMENT "copying blender scripts..."
         COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/ui ${TARGETDIR}/.blender/
         COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/io ${TARGETDIR}/.blender/
         COMMAND find ${TARGETDIR} -name "*.py?" -prune -exec rm -rf {} "\;"
       )
+      
+      # Copy the systems python into the install directory
+      ADD_CUSTOM_COMMAND(
+        TARGET blender POST_BUILD MAIN_DEPENDENCY blender
+        COMMENT "copying a subset of the systems python..."
+        
+        COMMAND mkdir ${TARGETDIR}/.blender/python # PYTHONPATH and PYTHONHOME is set here
+        COMMAND mkdir ${TARGETDIR}/.blender/python/lib/
+        COMMAND cp -R ${PYTHON_LIBPATH}/python${PYTHON_VERSION} ${TARGETDIR}/.blender/python/lib/
+        
+        COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/distutils
+        COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/lib2to3
+        COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/idlelib
+        COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/tkinter
+        COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/config
+        
+        COMMAND rm -rf ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/site-packages
+        COMMAND mkdir ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/site-packages    # python needs it.
+
+        COMMAND rm ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION}/lib-dynload/_tkinter.so
+        COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "test" -prune -exec rm -rf {} "\;"
+        COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "*.py?" -exec rm -rf {} "\;"
+        COMMAND find ${TARGETDIR}/.blender/python/lib/python${PYTHON_VERSION} -name "*.so"-exec strip -s {} "\;"
+      )
+     
     ENDIF(WITH_PYTHON)
       
     ADD_CUSTOM_COMMAND(
