@@ -727,7 +727,7 @@ class PovrayRender(bpy.types.RenderEngine):
 				result = self.begin_result(0, 0, x, y)
 				lay = result.layers[0]
 				# possible the image wont load early on.
-				try:		lay.rect_from_file(self.temp_file_out, 0, 0)
+				try:		lay.load_from_file(self.temp_file_out)
 				except:	pass
 				self.end_result(result)
 			
