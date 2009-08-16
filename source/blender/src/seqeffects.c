@@ -2791,7 +2791,7 @@ void sequence_effect_speed_rebuild_map(struct Sequence * seq, int force)
 	if (!(force || seq->len != v->length || !v->frameMap)) {
 		return;
 	}
-	if (!seq->seq1) { /* make coverity happy and check for 
+	if (!seq->seq1) { /* make coverity happy and check for (CID 598)
 			     input strip ... */
 		return;
 	}
