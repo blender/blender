@@ -1826,7 +1826,8 @@ ListBase *get_active_constraints2(Object *ob)
 	if (!ob)
 		return NULL;
 
-	if (ob->flag & OB_POSEMODE) {
+  // XXX - shouldnt we care about the pose data and not the mode???
+	if (ob->mode & OB_MODE_POSE) { 
 		bPoseChannel *pchan;
 
 		pchan = get_active_posechannel2(ob);
