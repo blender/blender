@@ -845,7 +845,7 @@ void draw_nla_channel_list (bContext *C, bAnimContext *ac, SpaceNla *snla, ARegi
 	int filter;
 	
 	View2D *v2d= &ar->v2d;
-	float x= 0.0f, y= 0.0f;
+	float y= 0.0f;
 	int items, height;
 	
 	/* build list of channels to draw */
@@ -879,7 +879,6 @@ void draw_nla_channel_list (bContext *C, bAnimContext *ac, SpaceNla *snla, ARegi
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF);
 			const float ymaxc= (float)(y + NLACHANNEL_HEIGHT_HALF);
-			const float ydatac= (float)(y - 7);
 			
 			/* check if visible */
 			if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||

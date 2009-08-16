@@ -46,6 +46,8 @@ struct bActionGroup;
 struct FCurve;
 struct FModifier;
 
+struct uiBlock;
+
 /* ************************************************ */
 /* ANIMATION CHANNEL FILTERING */
 /* anim_filter.c */
