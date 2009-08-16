@@ -1107,7 +1107,7 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 		     paint_facesel_test(base->object)));
 	else if((base && (base->object->mode & OB_MODE_TEXTURE_PAINT)) &&
 		scene->toolsettings && (scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE));
-	else if((G.f & G_PARTICLEEDIT) && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
+	else if((base && (base->object->mode & OB_MODE_PARTICLE_EDIT)) && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
 	else if(scene->obedit && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
 	else {
 		v3d->flag &= ~V3D_NEEDBACKBUFDRAW;
@@ -2035,7 +2035,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 
 //	retopo= retopo_mesh_check() || retopo_curve_check();
-	sculptparticle= (G.f & G_PARTICLEEDIT || (obact && obact->mode & OB_MODE_SCULPT)) && !scene->obedit;
+	sculptparticle= (obact && obact->mode & (OB_MODE_SCULPT|OB_MODE_PARTICLE_EDIT)) && !scene->obedit;
 	if(retopo)
 		view3d_update_depths(ar, v3d);
 	
@@ -2128,7 +2128,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		// XXX addafterqueue(ar->win, BACKBUFDRAW, 1);
 	}
 
-	if((G.f & G_PARTICLEEDIT) && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT)) {
+	if((ob && ob->mode & OB_MODE_PARTICLE_EDIT) && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT)) {
 		v3d->flag |= V3D_NEEDBACKBUFDRAW;
 		// XXX addafterqueue(ar->win, BACKBUFDRAW, 1);
 	}

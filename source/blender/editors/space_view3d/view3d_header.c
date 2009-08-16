@@ -135,29 +135,6 @@ static int retopo_mesh_paint_check() {return 0;}
 
 /* end XXX ************* */
 
-static void ED_toggle_paint_modes(bContext *C, int mode)
-{
-	if(mode & G_PARTICLEEDIT)
-		WM_operator_name_call(C, "PARTICLE_OT_particle_edit_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-}
-
-/* well... in this file a lot of view mode manipulation happens, so let's have it defined here */
-int ED_view3d_exit_paint_modes(bContext *C)
-{
-	int restore = G.f;
-
-	ED_toggle_paint_modes(C, G.f);
-	
-	G.f &= ~G_PARTICLEEDIT;
-
-	return restore;
-}
-
-void ED_view3d_restore_paint_modes(struct bContext *C, int mode)
-{
-	ED_toggle_paint_modes(C, mode);
-}
-
 static void do_view3d_header_buttons(bContext *C, void *arg, int event);
 
 #define B_SCENELOCK 101
@@ -3340,7 +3317,6 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		if (v3d->modeselect == V3D_OBJECTMODE_SEL) {
 			
 			v3d->flag &= ~V3D_MODE;
-			ED_view3d_exit_paint_modes(C);
 			ED_object_toggle_modes(C, ob->mode);
 			ED_armature_exit_posemode(C, basact);
 			if(obedit) 
@@ -3356,7 +3332,6 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		else if (v3d->modeselect == V3D_SCULPTMODE_SEL) {
 			if (ob && !(ob->mode & OB_MODE_SCULPT)) {
 				v3d->flag &= ~V3D_MODE;
-				ED_view3d_exit_paint_modes(C);
 				ED_object_toggle_modes(C, ob->mode);
 				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 					
@@ -3366,7 +3341,6 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		else if (v3d->modeselect == V3D_VERTEXPAINTMODE_SEL) {
 			if (ob && !(ob->mode & OB_MODE_VERTEX_PAINT)) {
 				v3d->flag &= ~V3D_MODE;
-				ED_view3d_exit_paint_modes(C);
 				ED_object_toggle_modes(C, ob->mode);
 				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 				
@@ -3376,7 +3350,6 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		else if (v3d->modeselect == V3D_TEXTUREPAINTMODE_SEL) {
 			if (ob && !(ob->mode & OB_MODE_TEXTURE_PAINT)) {
 				v3d->flag &= ~V3D_MODE;
-				ED_view3d_exit_paint_modes(C);
 				ED_object_toggle_modes(C, ob->mode);
 				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 
@@ -3386,7 +3359,6 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		else if (v3d->modeselect == V3D_WEIGHTPAINTMODE_SEL) {
 			if (ob && ob->type == OB_MESH && !(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 				v3d->flag &= ~V3D_MODE;
-				ED_view3d_exit_paint_modes(C);
 				ED_object_toggle_modes(C, ob->mode);
 				if(obedit) 
 					ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
@@ -3405,9 +3377,8 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 			}
 		}
 		else if(v3d->modeselect == V3D_PARTICLEEDITMODE_SEL){
-			if (!(G.f & G_PARTICLEEDIT)) {
+			if (ob && !(ob->mode & OB_MODE_PARTICLE_EDIT)) {
 				v3d->flag &= ~V3D_MODE;
-				ED_view3d_exit_paint_modes(C);
 				ED_object_toggle_modes(C, ob->mode);
 				if(obedit) ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);	/* exit editmode and undo */
 
@@ -3620,7 +3591,7 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 			xco+= xmax;
 		}
 	}
-	else if(G.f & G_PARTICLEEDIT) {
+	else if(ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
 		xmax= GetButStringLength("Particle");
 		uiDefMenuBut(block, view3d_particlemenu, NULL, "Particle",	xco,yco, xmax-3, 20, "");
 		xco+= xmax;
@@ -3690,7 +3661,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	else if (ob && (ob->mode & OB_MODE_VERTEX_PAINT)) v3d->modeselect = V3D_VERTEXPAINTMODE_SEL;
 	else if (ob && (ob->mode & OB_MODE_TEXTURE_PAINT)) v3d->modeselect = V3D_TEXTUREPAINTMODE_SEL;
 	/*else if(G.f & G_FACESELECT) v3d->modeselect = V3D_FACESELECTMODE_SEL;*/
-	else if(G.f & G_PARTICLEEDIT) v3d->modeselect = V3D_PARTICLEEDITMODE_SEL;
+	else if(ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) v3d->modeselect = V3D_PARTICLEEDITMODE_SEL;
 		
 	v3d->flag &= ~V3D_MODE;
 	
@@ -3830,7 +3801,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		}
 	
 		/* proportional falloff */
-		if((obedit && (obedit->type == OB_MESH || obedit->type == OB_CURVE || obedit->type == OB_SURF || obedit->type == OB_LATTICE)) || G.f & G_PARTICLEEDIT) {
+		if((obedit && (obedit->type == OB_MESH || obedit->type == OB_CURVE || obedit->type == OB_SURF || obedit->type == OB_LATTICE)) || (ob && ob->mode & OB_MODE_PARTICLE_EDIT)) {
 		
 			uiBlockBeginAlign(block);
 			uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_PROP_OFF, "Proportional %t|Off %x0|On %x1|Connected %x2", xco,yco,XIC+10,YIC, &(ts->proportional), 0, 1.0, 0, 0, "Proportional Edit Falloff (Hotkeys: O, Alt O) ");
@@ -3891,7 +3862,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 			BKE_mesh_end_editmesh(obedit->data, em);
 		}
-		else if(G.f & G_PARTICLEEDIT) {
+		else if(ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
 			uiBlockBeginAlign(block);
 			uiDefIconButBitI(block, TOG, SCE_SELECT_PATH, B_SEL_PATH, ICON_EDGESEL, xco,yco,XIC,YIC, &ts->particle.selectmode, 1.0, 0.0, 0, 0, "Path edit mode");
 			xco+= XIC;

@@ -104,21 +104,12 @@ static int PE_poll(bContext *C)
 	
 	psys= PE_get_current(scene, ob);
 
-	return (psys && psys->edit && (G.f & G_PARTICLEEDIT));
+	return (psys && psys->edit && (ob && ob->mode & OB_MODE_PARTICLE_EDIT));
 }
 
 static int PE_poll_3dview(bContext *C)
 {
-	Scene *scene= CTX_data_scene(C);
-	Object *ob= CTX_data_active_object(C);
-	ParticleSystem *psys;
-
-	if(!scene || !ob || !CTX_wm_region_view3d(C))
-		return 0;
-	
-	psys= PE_get_current(scene, ob);
-
-	return (psys && psys->edit && (G.f & G_PARTICLEEDIT));
+	return PE_poll(C) && CTX_wm_region_view3d(C);
 }
 
 static void PE_free_particle_edit(ParticleSystem *psys)
@@ -164,7 +155,7 @@ static void PE_free_particle_edit(ParticleSystem *psys)
 
 int PE_can_edit(ParticleSystem *psys)
 {
-	return (psys && psys->edit && (G.f & G_PARTICLEEDIT));
+	return (psys && psys->edit);
 }
 
 ParticleEditSettings *PE_settings(Scene *scene)
@@ -194,7 +185,7 @@ ParticleSystem *PE_get_current(Scene *scene, Object *ob)
 
 	/* this happens when Blender is started with particle
 	 * edit mode enabled XXX there's a draw error then? */
-	if(psys && psys_check_enabled(ob, psys) && (ob == OBACT) && (G.f & G_PARTICLEEDIT))
+	if(psys && psys_check_enabled(ob, psys) && (ob == OBACT) && (ob->mode & OB_MODE_PARTICLE_EDIT))
 		if(psys->part->type == PART_HAIR && psys->flag & PSYS_EDITED)
 			if(psys->edit == NULL)
 				PE_create_particle_edit(scene, ob, psys);
@@ -3710,7 +3701,7 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 		psys->flag |= PSYS_CURRENT;
 	}
 
-	if(!(G.f & G_PARTICLEEDIT)) {
+	if(!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
 		if(psys && psys->part->type == PART_HAIR && psys->flag & PSYS_EDITED) {
 			if(psys_check_enabled(ob, psys)) {
 				if(psys->edit==NULL)
@@ -3720,12 +3711,12 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 			}
 		}
 
-		G.f |= G_PARTICLEEDIT;
+		ob->mode |= OB_MODE_PARTICLE_EDIT;
 		toggle_particle_cursor(C, 1);
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_PARTICLE, NULL);
 	}
 	else {
-		G.f &= ~G_PARTICLEEDIT;
+		ob->mode &= ~OB_MODE_PARTICLE_EDIT;
 		toggle_particle_cursor(C, 0);
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, NULL);
 	}
@@ -3773,7 +3764,7 @@ static int set_editable_exec(bContext *C, wmOperator *op)
 		if(psys_check_enabled(ob, psys)) {
 			psys->flag |= PSYS_EDITED;
 
-			if(G.f & G_PARTICLEEDIT)
+			if(ob->mode & OB_MODE_PARTICLE_EDIT)
 				PE_create_particle_edit(scene, ob, psys);
 		}
 		else
@@ -3814,7 +3805,7 @@ void PE_change_act(void *ob_v, void *act_v)
 			psys->flag |= PSYS_CURRENT;
 
 			if(psys_check_enabled(ob, psys)) {
-				if(G.f & G_PARTICLEEDIT && !psys->edit)
+				if(ob->mode & OB_MODE_PARTICLE_EDIT && !psys->edit)
 					PE_create_particle_edit(scene, ob, psys);
 				psys_update_world_cos(ob, psys);
 			}
@@ -3832,7 +3823,7 @@ void PE_change_act_psys(Scene *scene, Object *ob, ParticleSystem *psys)
 	psys->flag |= PSYS_CURRENT;
 	
 	if(psys_check_enabled(ob, psys)) {
-		if(G.f & G_PARTICLEEDIT && !psys->edit)
+		if(ob->mode & OB_MODE_PARTICLE_EDIT && !psys->edit)
 			PE_create_particle_edit(scene, ob, psys);
 
 		psys_update_world_cos(ob, psys);

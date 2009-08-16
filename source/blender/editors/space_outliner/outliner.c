@@ -3061,10 +3061,6 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeSto
 		if(scene->obedit==base->object) 
 			ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 		
-		if(base==BASACT) {
-			ED_view3d_exit_paint_modes(C);
-		}
-		
 		ED_base_object_free_and_unlink(scene, base);
 		te->directdata= NULL;
 		tselem->id= NULL;

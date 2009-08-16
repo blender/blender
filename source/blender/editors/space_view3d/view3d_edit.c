@@ -994,7 +994,7 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 	else if (paint_facesel_test(ob)) {
 // XXX		ok= minmax_tface(min, max);
 	}
-	else if (G.f & G_PARTICLEEDIT) {
+	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
 		ok= PE_minmax(scene, min, max);
 	}
 	else {

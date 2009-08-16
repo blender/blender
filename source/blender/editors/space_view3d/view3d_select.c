@@ -701,7 +701,7 @@ void view3d_lasso_select(bContext *C, ViewContext *vc, short mcords[][2], short 
 			do_lasso_select_facemode(vc, mcords, moves, select);
 		else if(ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))
 			;
-		else if(G.f & G_PARTICLEEDIT)
+		else if(ob && ob->mode & OB_MODE_PARTICLE_EDIT)
 			PE_lasso_select(C, mcords, moves, select);
 		else  
 			do_lasso_select_objects(vc, mcords, moves, select);
@@ -1326,6 +1326,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	Object *obedit= CTX_data_edit_object(C);
+	Object *obact= CTX_data_active_object(C);
 	rcti rect;
 	Base *base;
 	MetaElem *ml;
@@ -1348,7 +1349,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 // XXX		face_borderselect();
 		return OPERATOR_FINISHED;
 	}
-	else if(obedit==NULL && (G.f & G_PARTICLEEDIT)) {
+	else if(obedit==NULL && (obact && obact->mode & OB_MODE_PARTICLE_EDIT)) {
 		return PE_border_select(C, &rect, (val==LEFTMOUSE));
 	}
 	
@@ -1561,6 +1562,7 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit= CTX_data_edit_object(C);
+	Object *obact= CTX_data_active_object(C);
 	short extend= RNA_boolean_get(op->ptr, "extend");
 
 	view3d_operator_needs_opengl(C);
@@ -1578,7 +1580,7 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			mouse_mball(C, event->mval, extend);
 			
 	}
-	else if(G.f & G_PARTICLEEDIT)
+	else if(obact && obact->mode & OB_MODE_PARTICLE_EDIT)
 		PE_mouse_particles(C, event->mval, extend);
 	else 
 		mouse_select(C, event->mval, extend, 0);
@@ -1781,12 +1783,13 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
 	Scene *scene= CTX_data_scene(C);
+	Object *obact= CTX_data_active_object(C);
 	View3D *v3d= sa->spacedata.first;
 	int x= RNA_int_get(op->ptr, "x");
 	int y= RNA_int_get(op->ptr, "y");
 	int radius= RNA_int_get(op->ptr, "radius");
 	
-	if(CTX_data_edit_object(C) || (G.f & G_PARTICLEEDIT)) {
+	if(CTX_data_edit_object(C) || (obact && obact->mode & OB_MODE_PARTICLE_EDIT)) {
 		ViewContext vc;
 		short mval[2], selecting;
 		

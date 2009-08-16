@@ -118,8 +118,6 @@ typedef struct Global {
 /* #define G_NOFROZEN	(1 << 17) also removed */
 #define G_GREASEPENCIL 	(1 << 17)
 
-#define G_PARTICLEEDIT	(1 << 30)
-
 /* #define G_AUTOMATKEYS	(1 << 30)   also removed */
 #define G_HIDDENHANDLES (1 << 31) /* used for curves only */
 

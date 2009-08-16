@@ -483,7 +483,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 			if(md->type==eModifierType_ParticleSystem) {
 		    	ParticleSystem *psys= ((ParticleSystemModifierData *)md)->psys;
 
-	    		if(!(G.f & G_PARTICLEEDIT))
+	    		if(!(ob->mode & OB_MODE_PARTICLE_EDIT))
 					if(ELEM3(psys->part->ren_as, PART_DRAW_PATH, PART_DRAW_GR, PART_DRAW_OB) && psys->pathcache)
 						uiItemO(row, "Convert", 0, "OBJECT_OT_modifier_convert");
 			}

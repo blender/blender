@@ -4898,7 +4898,7 @@ void special_aftertrans_update(TransInfo *t)
 		//	allqueue(REDRAWBUTSEDIT, 0);
 
 	}
-	else if(G.f & G_PARTICLEEDIT) {
+	else if(t->scene->basact && (ob = t->scene->basact->object) && ob->mode & OB_MODE_PARTICLE_EDIT) {
 		;
 	}
 	else {
@@ -5254,7 +5254,7 @@ void createTransData(bContext *C, TransInfo *t)
 		}
 		CTX_DATA_END;
 	}
-	else if (G.f & G_PARTICLEEDIT && PE_can_edit(PE_get_current(scene, ob))) {
+	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) && PE_can_edit(PE_get_current(scene, ob))) {
 		createTransParticleVerts(C, t);
 
 		if(t->data && t->flag & T_PROP_EDIT) {

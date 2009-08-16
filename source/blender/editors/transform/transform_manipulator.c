@@ -361,7 +361,7 @@ int calc_manipulator_stats(const bContext *C)
 	else if(ob && (ob->mode & (OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {
 		;
 	}
-	else if(G.f & G_PARTICLEEDIT) {
+	else if(ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
 		ParticleSystem *psys= PE_get_current(scene, ob);
 		ParticleData *pa = psys->particles;
 		ParticleEditKey *ek;

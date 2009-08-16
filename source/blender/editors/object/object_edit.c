@@ -178,10 +178,6 @@ void ED_base_object_activate(bContext *C, Base *base)
 	Scene *scene= CTX_data_scene(C);
 	Base *tbase;
 	
-	/* activating a non-mesh, should end a couple of modes... */
-	if(base && base->object->type!=OB_MESH)
-		ED_view3d_exit_paint_modes(C);
-	
 	/* sets scene->basact */
 	BASACT= base;
 	
@@ -272,9 +268,6 @@ static Object *object_add_type(bContext *C, int type)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
-	
-	/* XXX hrms, this is editor level operator, remove? */
-	ED_view3d_exit_paint_modes(C);
 	
 	/* for as long scene has editmode... */
 	if (CTX_data_edit_object(C)) 
@@ -752,8 +745,6 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	if(CTX_data_edit_object(C)) 
 		return OPERATOR_CANCELLED;
 	
-	ED_view3d_exit_paint_modes(C);
-
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 
 		if(base->object->type==OB_LAMP) islamp= 1;
@@ -3776,7 +3767,6 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	if(flag & EM_WAITCURSOR) waitcursor(1);
 
 	ob->restore_mode = ob->mode;
-	ED_view3d_exit_paint_modes(C);
 	ED_object_toggle_modes(C, ob->mode);
 	
 	if(ob->type==OB_MESH) {
@@ -4188,7 +4178,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 // XXX					pose_adds_vgroups(ob, (nr == 2));
 			}
 		}
-		else if(G.f & G_PARTICLEEDIT) {
+		else if(ob->mode & OB_MODE_PARTICLE_EDIT) {
 #if 0
 			// XXX
 			ParticleSystem *psys = PE_get_current(ob);
@@ -7048,4 +7038,6 @@ void ED_object_toggle_modes(bContext *C, int mode)
 		WM_operator_name_call(C, "PAINT_OT_weight_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 	if(mode & OB_MODE_TEXTURE_PAINT)
 		WM_operator_name_call(C, "PAINT_OT_texture_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if(mode & OB_MODE_PARTICLE_EDIT)
+		WM_operator_name_call(C, "PARTICLE_OT_particle_edit_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 }

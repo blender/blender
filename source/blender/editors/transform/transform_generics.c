@@ -343,11 +343,11 @@ static void animrecord_check_state (Scene *scene, ID *id, wmTimer *animtimer)
 void recalcData(TransInfo *t)
 {
 	Scene *scene = t->scene;
-	Base *base;
+	Base *base = scene->basact;
 
 	if (t->obedit) {
 	}
-	else if(G.f & G_PARTICLEEDIT) {
+	else if(base && base->object->mode & OB_MODE_PARTICLE_EDIT) {
 		flushTransParticles(t);
 	}
 	if (t->spacetype==SPACE_NODE) {

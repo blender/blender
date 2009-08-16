@@ -4927,7 +4927,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	/* xray delay? */
 	if((flag & DRAW_PICKING)==0 && (base->flag & OB_FROMDUPLI)==0) {
 		/* don't do xray in particle mode, need the z-buffer */
-		if(!(G.f & G_PARTICLEEDIT)) {
+		if(!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
 			/* xray and transp are set when it is drawing the 2nd/3rd pass */
 			if(!v3d->xray && !v3d->transp && (ob->dtx & OB_DRAWXRAY) && !(ob->dtx & OB_DRAWTRANSP)) {
 				add_view3d_after(v3d, base, V3D_XRAY, flag);
@@ -5286,7 +5286,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		for(psys=ob->particlesystem.first; psys; psys=psys->next)
 			draw_new_particle_system(scene, v3d, rv3d, base, psys, dt);
 		
-		if(G.f & G_PARTICLEEDIT && ob==OBACT) {
+		if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT) {
 			psys= PE_get_current(scene, ob);
 			if(psys && !scene->obedit && psys_in_edit_mode(scene, psys))
 				draw_particle_edit(scene, v3d, rv3d, ob, psys, dt);

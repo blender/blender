@@ -1064,7 +1064,7 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 		//bt= uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,140,20, ob->id.name+2, 0.0, 21.0, 0, 0, "");
 		//uiButSetFunc(bt, test_idbutton_cb, ob->id.name, NULL);
 
-		if((G.f & G_PARTICLEEDIT)==0) {
+		if((ob->mode & OB_MODE_PARTICLE_EDIT)==0) {
 		//	uiBlockBeginAlign(block);
 		//	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
 			if((ob->parent) && (ob->partype == PARBONE)) {

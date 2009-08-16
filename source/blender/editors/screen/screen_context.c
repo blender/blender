@@ -140,8 +140,8 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		return 1;
 	}
 	else if(CTX_data_equals(member, "particle_edit_object")) {
-		if(G.f & G_PARTICLEEDIT && scene->basact)
-			CTX_data_id_pointer_set(result, &scene->basact->object->id);
+		if(ob && (ob->mode & OB_MODE_PARTICLE_EDIT))
+			CTX_data_id_pointer_set(result, &ob->id);
 
 		return 1;
 	}

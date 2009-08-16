@@ -226,7 +226,7 @@ int ED_object_modifier_convert(ReportList *reports, Scene *scene, Object *ob, Mo
 	int totpart=0, totchild=0;
 
 	if(md->type != eModifierType_ParticleSystem) return 0;
-	if(G.f & G_PARTICLEEDIT) return 0;
+	if(ob && ob->mode & OB_MODE_PARTICLE_EDIT) return 0;
 
 	psys=((ParticleSystemModifierData *)md)->psys;
 	part= psys->part;
