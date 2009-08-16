@@ -28,7 +28,7 @@
 #
 #
 
-LIBNAME = SDLaudaspace
+LIBNAME = aud_sdl
 DIR = $(OCGDIR)/intern/$(LIBNAME)
 
 include nan_compile.mk

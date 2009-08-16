@@ -22,20 +22,19 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s): GSR
 #
 # ***** END GPL LICENSE BLOCK *****
 #
 #
 
-LIBNAME = aud_ffmpeg
-DIR = $(OCGDIR)/intern/$(LIBNAME)
+LIBNAME = aud_jack
+DIR = $(OCGDIR)/intern/audaspace
 
 include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
-CPPFLAGS += $(NAN_FFMPEGCFLAGS)
 CPPFLAGS += -I../intern
 CPPFLAGS += -I..
 CPPFLAGS += -I.
