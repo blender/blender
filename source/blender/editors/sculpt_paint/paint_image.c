@@ -4380,10 +4380,12 @@ static Brush *image_paint_brush(bContext *C)
 
 static int image_paint_poll(bContext *C)
 {
+	Object *obact = CTX_data_active_object(C);
+
 	if(!image_paint_brush(C))
 		return 0;
 
-	if((G.f & G_TEXTUREPAINT) && CTX_wm_region_view3d(C)) {
+	if((obact && obact->mode & OB_MODE_TEXTURE_PAINT) && CTX_wm_region_view3d(C)) {
 		return 1;
 	}
 	else {
@@ -5144,13 +5146,13 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 
 	me= get_mesh(ob);
 
-	if(!(G.f & G_TEXTUREPAINT) && !me) {
+	if(!(ob->mode & OB_MODE_TEXTURE_PAINT) && !me) {
 		BKE_report(op->reports, RPT_ERROR, "Can only enter texture paint mode for mesh objects.");
 		return OPERATOR_CANCELLED;
 	}
 
-	if(G.f & G_TEXTUREPAINT) {
-		G.f &= ~G_TEXTUREPAINT;
+	if(ob->mode & OB_MODE_TEXTURE_PAINT) {
+		ob->mode &= ~OB_MODE_TEXTURE_PAINT;
 
 		if(U.glreslimit != 0)
 			GPU_free_images();
@@ -5159,7 +5161,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 		toggle_paint_cursor(C, 0);
 	}
 	else {
-		G.f |= G_TEXTUREPAINT;
+		ob->mode |= OB_MODE_TEXTURE_PAINT;
 
 		if(me->mtface==NULL)
 			me->mtface= CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DEFAULT,
@@ -5216,7 +5218,7 @@ static int texture_paint_radial_control_exec(bContext *C, wmOperator *op)
 static int texture_paint_poll(bContext *C)
 {
 	if(texture_paint_toggle_poll(C))
-		if(G.f & G_TEXTUREPAINT)
+		if(CTX_data_active_object(C)->mode & OB_MODE_TEXTURE_PAINT)
 			return 1;
 	
 	return 0;

@@ -686,11 +686,13 @@ char *CTX_data_mode_string(const bContext *C)
 	else {
 		Object *ob = CTX_data_active_object(C);
 		
-		if(ob && (ob->flag & OB_POSEMODE)) return "posemode";
-		else if (ob && ob->mode & OB_MODE_SCULPT)  return "sculpt_mode";
-		else if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) return "weightpaint";
-		else if (ob && ob->mode & OB_MODE_VERTEX_PAINT) return "vertexpaint";
-		else if (G.f & G_TEXTUREPAINT) return "texturepaint";
+		if(ob) {
+			if(ob->flag & OB_POSEMODE) return "posemode";
+			else if(ob->mode & OB_MODE_SCULPT)  return "sculpt_mode";
+			else if(ob->mode & OB_MODE_WEIGHT_PAINT) return "weightpaint";
+			else if(ob->mode & OB_MODE_VERTEX_PAINT) return "vertexpaint";
+			else if(ob->mode & OB_MODE_TEXTURE_PAINT) return "texturepaint";
+		}
 		else if(G.f & G_PARTICLEEDIT) return "particlemode";
 	}
 	

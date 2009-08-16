@@ -32,6 +32,6 @@
 
 int paint_facesel_test(Object *ob)
 {
-	return (G.f&G_FACESELECT) && ((G.f & G_TEXTUREPAINT) || (ob && (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT))));
+	return (G.f&G_FACESELECT) && (ob && (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)));
 
 }

@@ -699,7 +699,7 @@ void view3d_lasso_select(bContext *C, ViewContext *vc, short mcords[][2], short 
 	if(vc->obedit==NULL) {
 		if(paint_facesel_test(ob))
 			do_lasso_select_facemode(vc, mcords, moves, select);
-		else if(G.f & G_TEXTUREPAINT || (ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT)))
+		else if(ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))
 			;
 		else if(G.f & G_PARTICLEEDIT)
 			PE_lasso_select(C, mcords, moves, select);

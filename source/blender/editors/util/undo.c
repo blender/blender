@@ -115,12 +115,13 @@ void ED_undo_push(bContext *C, char *str)
 static int ed_undo_step(bContext *C, int step, const char *undoname)
 {	
 	Object *obedit= CTX_data_edit_object(C);
+	Object *obact= CTX_data_active_object(C);
 	ScrArea *sa= CTX_wm_area(C);
 
 	if(sa && sa->spacetype==SPACE_IMAGE) {
 		SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
 		
-		if(G.f & G_TEXTUREPAINT || sima->flag & SI_DRAWTOOL) {
+		if((obact && obact->mode & OB_MODE_TEXTURE_PAINT) || sima->flag & SI_DRAWTOOL) {
 			undo_imagepaint_step(step);
 
 			WM_event_add_notifier(C, NC_WINDOW, NULL);
@@ -142,7 +143,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 	else {
 		int do_glob_undo= 0;
 		
-		if(G.f & G_TEXTUREPAINT)
+		if(obact && obact->mode & OB_MODE_TEXTURE_PAINT)
 			undo_imagepaint_step(step);
 		else if(G.f & G_PARTICLEEDIT) {
 			if(step==1)

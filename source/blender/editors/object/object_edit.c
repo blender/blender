@@ -7046,4 +7046,6 @@ void ED_object_toggle_modes(bContext *C, int mode)
 		WM_operator_name_call(C, "PAINT_OT_vertex_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 	if(mode & OB_MODE_WEIGHT_PAINT)
 		WM_operator_name_call(C, "PAINT_OT_weight_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if(mode & OB_MODE_TEXTURE_PAINT)
+		WM_operator_name_call(C, "PAINT_OT_texture_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 }

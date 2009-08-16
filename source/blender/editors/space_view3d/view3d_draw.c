@@ -1105,7 +1105,8 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 
 	if(base && (base->object->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT) ||
 		     paint_facesel_test(base->object)));
-	else if((G.f & G_TEXTUREPAINT) && scene->toolsettings && (scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE));
+	else if((base && (base->object->mode & OB_MODE_TEXTURE_PAINT)) &&
+		scene->toolsettings && (scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE));
 	else if((G.f & G_PARTICLEEDIT) && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
 	else if(scene->obedit && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
 	else {
@@ -1860,7 +1861,7 @@ static CustomDataMask get_viewedit_datamask(bScreen *screen, Object *ob)
 	ScrArea *sa;
 	
 	/* check if we need tfaces & mcols due to face select or texture paint */
-	if(paint_facesel_test(ob) || G.f & G_TEXTUREPAINT)
+	if(paint_facesel_test(ob) || (ob && ob->mode & OB_MODE_TEXTURE_PAINT))
 		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 	
 	/* check if we need tfaces & mcols due to view mode */
@@ -2122,7 +2123,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* XXX here was the blockhandlers for floating panels */
 
-	if((ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT)) || G.f & G_TEXTUREPAINT) {
+	if(ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)) {
 		v3d->flag |= V3D_NEEDBACKBUFDRAW;
 		// XXX addafterqueue(ar->win, BACKBUFDRAW, 1);
 	}

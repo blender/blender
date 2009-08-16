@@ -321,14 +321,16 @@ static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
 		scene= path->ptr[path->len-1].data;
 		ts= scene->toolsettings;
 
-		if(obact && obact->mode & OB_MODE_SCULPT)
-			br= ts->sculpt->brush;
-		else if(obact && obact->mode & OB_MODE_VERTEX_PAINT)
-			br= ts->vpaint->brush;
-		else if(obact && obact->mode & OB_MODE_WEIGHT_PAINT)
-			br= ts->wpaint->brush;
-		else if(G.f & G_TEXTUREPAINT)
-			br= ts->imapaint.brush;
+		if(obact) {
+			if(obact->mode & OB_MODE_SCULPT)
+				br= ts->sculpt->brush;
+			else if(obact->mode & OB_MODE_VERTEX_PAINT)
+				br= ts->vpaint->brush;
+			else if(obact->mode & OB_MODE_WEIGHT_PAINT)
+				br= ts->wpaint->brush;
+			else if(obact->mode & OB_MODE_TEXTURE_PAINT)
+				br= ts->imapaint.brush;
+		}
 
 		if(br) {
 			RNA_id_pointer_create(&br->id, &path->ptr[path->len]);

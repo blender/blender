@@ -194,8 +194,11 @@ static int smaller_pow2(int num)
 static int is_pow2_limit(int num)
 {
 	/* take texture clamping into account */
-	if (G.f & G_TEXTUREPAINT)
-		return 1;
+
+	/* XXX: texturepaint not global!
+	   if (G.f & G_TEXTUREPAINT)
+	   return 1;*/
+
 	if (U.glreslimit != 0 && num > U.glreslimit)
 		return 0;
 
@@ -204,8 +207,9 @@ static int is_pow2_limit(int num)
 
 static int smaller_pow2_limit(int num)
 {
-	if (G.f & G_TEXTUREPAINT)
-		return 1;
+	/* XXX: texturepaint not global!
+	   if (G.f & G_TEXTUREPAINT)
+	   return 1;*/
 	
 	/* take texture clamping into account */
 	if (U.glreslimit != 0 && num > U.glreslimit)
@@ -249,7 +253,9 @@ void GPU_set_linear_mipmap(int linear)
 
 static int gpu_get_mipmap(void)
 {
-	return GTS.domipmap && (!(G.f & G_TEXTUREPAINT));
+	return GTS.domipmap 
+		/* XXX: texturepaint not global!
+		   && (!(G.f & G_TEXTUREPAINT))*/;
 }
 
 static GLenum gpu_get_mipmap_filter(int mag)

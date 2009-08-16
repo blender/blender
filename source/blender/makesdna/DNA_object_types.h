@@ -516,6 +516,7 @@ extern Object workob;
 #define OB_MODE_SCULPT         1
 #define OB_MODE_VERTEX_PAINT   2
 #define OB_MODE_WEIGHT_PAINT   4
+#define OB_MODE_TEXTURE_PAINT  8
 
 /* ob->softflag in DNA_object_force.h */
 
