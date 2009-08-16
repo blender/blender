@@ -165,36 +165,53 @@ static void vol_get_precached_scattering(ShadeInput *shi, float *scatter_col, fl
 
 float vol_get_density(struct ShadeInput *shi, float *co)
 {
-	float density = shi->mat->alpha;
+	float density = shi->mat->vol.density;
 	float density_scale = shi->mat->vol.density_scale;
 	float col[3] = {0.0, 0.0, 0.0};
 	
-	do_volume_tex(shi, co, MAP_ALPHA, col, &density);
+	do_volume_tex(shi, co, MAP_DENSITY, col, &density);
 	
 	return density * density_scale;
 }
 
-/* compute emission component, amount of radiance to add per segment
- * can be textured with 'emit' */
-void vol_get_emission(ShadeInput *shi, float *em, float *co, float density)
-{
-	float emission = shi->mat->emit;
-	float col[3] = {0.0, 0.0, 0.0};
-	
-	VECCOPY(col, &shi->mat->r);
-	
-	do_volume_tex(shi, co, MAP_EMIT+MAP_COL, col, &emission);
-	
-	em[0] = em[1] = em[2] = emission * density;
-	VecMulVecf(em, em, col);
-}
-
 /* scattering multiplier, values above 1.0 are non-physical, 
  * but can be useful to tweak lighting */
-void vol_get_scattering_fac(ShadeInput *shi, float *scatter_fac, float *co, float density)
+float vol_get_scattering_fac(ShadeInput *shi, float *co)
 {
-	*scatter_fac = shi->mat->vol.scattering;
+	float scatter = shi->mat->vol.scattering;
+	float col[3] = {0.0, 0.0, 0.0};
+	
+	do_volume_tex(shi, co, MAP_SCATTERING, col, &scatter);
+	
+	return scatter;
 }
+
+/* compute emission component, amount of radiance to add per segment
+ * can be textured with 'emit' */
+void vol_get_emission(ShadeInput *shi, float *emission_col, float *co, float density)
+{
+	float emission = shi->mat->vol.emission;
+	VECCOPY(emission_col, shi->mat->vol.emission_col);
+	
+	do_volume_tex(shi, co, MAP_EMISSION+MAP_EMISSION_COL, emission_col, &emission);
+	
+	emission_col[0] = emission_col[0] * emission * density;
+	emission_col[1] = emission_col[1] * emission * density;
+	emission_col[2] = emission_col[2] * emission * density;
+}
+
+void vol_get_absorption(ShadeInput *shi, float *absorb_col, float *co)
+{
+	float absorption = shi->mat->vol.absorption;
+	VECCOPY(absorb_col, shi->mat->vol.absorption_col);
+	
+	do_volume_tex(shi, co, MAP_ABSORPTION+MAP_ABSORPTION_COL, absorb_col, &absorption);
+	
+	absorb_col[0] = (1.0f - absorb_col[0]) * absorption;
+	absorb_col[1] = (1.0f - absorb_col[1]) * absorption;
+	absorb_col[2] = (1.0f - absorb_col[2]) * absorption;
+}
+
 
 /* phase function - determines in which directions the light 
  * is scattered in the volume relative to incoming direction 
@@ -202,43 +219,35 @@ void vol_get_scattering_fac(ShadeInput *shi, float *scatter_fac, float *co, floa
 float vol_get_phasefunc(ShadeInput *shi, short phasefunc_type, float g, float *w, float *wp)
 {
 	const float costheta = Inpf(w, wp);
+	const float scale = M_PI;
 	
-	if (phasefunc_type == MA_VOL_PH_ISOTROPIC) {
-		return 1.f / (4.f * M_PI);
-	}
-	else if (phasefunc_type == MA_VOL_PH_MIEHAZY) {
-		return (0.5f + 4.5f * powf(0.5 * (1.f + costheta), 8.f)) / (4.f*M_PI);
-	}
-	else if (phasefunc_type == MA_VOL_PH_MIEMURKY) {
-		return (0.5f + 16.5f * powf(0.5 * (1.f + costheta), 32.f)) / (4.f*M_PI);
-	}
-	else if (phasefunc_type == MA_VOL_PH_RAYLEIGH) {
-		return 3.f/(16.f*M_PI) * (1 + costheta * costheta);
-	}
-	else if (phasefunc_type == MA_VOL_PH_HG) {
-		return 1.f / (4.f * M_PI) * (1.f - g*g) / powf(1.f + g*g - 2.f * g * costheta, 1.5f);
-	}
-	else if (phasefunc_type == MA_VOL_PH_SCHLICK) {
-		const float k = 1.55f * g - .55f * g * g * g;
-		const float kcostheta = k * costheta;
-		return 1.f / (4.f * M_PI) * (1.f - k*k) / ((1.f - kcostheta) * (1.f - kcostheta));
-	} else {
-		return 1.0f;
-	}
-}
-
-void vol_get_absorption(ShadeInput *shi, float *absorb_col, float *co)
-{
-	float dummy = 1.0f;
-	const float absorption = shi->mat->vol.absorption;
+	/*
+	 * Scale constant is required, since Blender's shading system doesn't normalise for
+	 * energy conservation - eg. scaling by 1/pi for a lambert shader.
+	 * This makes volumes darker than other solid objects, for the same lighting intensity.
+	 * To correct this, scale up the phase function values
+	 * until Blender's shading system supports this better. --matt
+	 */
 	
-	VECCOPY(absorb_col, shi->mat->vol.absorption_col);
-	
-	do_volume_tex(shi, co, MAP_COLMIR, absorb_col, &dummy);
-	
-	absorb_col[0] = (1.0f - absorb_col[0]) * absorption;
-	absorb_col[1] = (1.0f - absorb_col[1]) * absorption;
-	absorb_col[2] = (1.0f - absorb_col[2]) * absorption;
+	switch (phasefunc_type) {
+		case MA_VOL_PH_MIEHAZY:
+			return scale * (0.5f + 4.5f * powf(0.5 * (1.f + costheta), 8.f)) / (4.f*M_PI);
+		case MA_VOL_PH_MIEMURKY:
+			return scale * (0.5f + 16.5f * powf(0.5 * (1.f + costheta), 32.f)) / (4.f*M_PI);
+		case MA_VOL_PH_RAYLEIGH:
+			return scale * 3.f/(16.f*M_PI) * (1 + costheta * costheta);
+		case MA_VOL_PH_HG:
+			return scale * (1.f / (4.f * M_PI) * (1.f - g*g) / powf(1.f + g*g - 2.f * g * costheta, 1.5f));
+		case MA_VOL_PH_SCHLICK:
+		{
+			const float k = 1.55f * g - .55f * g * g * g;
+			const float kcostheta = k * costheta;
+			return scale * (1.f / (4.f * M_PI) * (1.f - k*k) / ((1.f - kcostheta) * (1.f - kcostheta)));
+		}
+		case MA_VOL_PH_ISOTROPIC:
+		default:
+			return scale * (1.f / (4.f * M_PI));
+	}
 }
 
 /* Compute attenuation, otherwise known as 'optical thickness', extinction, or tau.
@@ -360,7 +369,7 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 		}
 	}
 	
-	vol_get_scattering_fac(shi, &scatter_fac, co, density);
+	scatter_fac = vol_get_scattering_fac(shi, co);
 	VecMulf(lacol, scatter_fac);
 }
 
@@ -371,16 +380,13 @@ void vol_get_scattering(ShadeInput *shi, float *scatter, float *co, float stepsi
 	GroupObject *go;
 	LampRen *lar;
 	float col[3] = {0.f, 0.f, 0.f};
-	int i=0;
-
+	
 	lights= get_lights(shi);
 	for(go=lights->first; go; go= go->next)
 	{
 		float lacol[3] = {0.f, 0.f, 0.f};
-	
-		i++;
-	
 		lar= go->lampren;
+		
 		if (lar) {
 			vol_shade_one_lamp(shi, co, lar, lacol, stepsize, density);
 			VecAddf(col, col, lacol);
@@ -575,9 +581,7 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 		/* shade volume from 'camera' to 1st hit point */
 		volumeintegrate(shi, col, shi->camera_co, shi->co);
 		
-		shr->combined[0] = col[0];
-		shr->combined[1] = col[1];
-		shr->combined[2] = col[2];
+		VecCopyf(shr->combined, col);
 		
 		if (shi->mat->vol.shadeflag & MA_VOL_USEALPHA) {
 			if (col[3] > 1.0f)
@@ -606,9 +610,7 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 		/* shade volume from 1st hit point to 2nd hit point */
 		volumeintegrate(shi, col, shi->co, hitco);
 		
-		shr->combined[0] = col[0];
-		shr->combined[1] = col[1];
-		shr->combined[2] = col[2];
+		VecCopyf(shr->combined, col);
 		
 		if (shi->mat->vol.shadeflag & MA_VOL_USEALPHA) {
 			if (col[3] > 1.0f)
@@ -650,9 +652,8 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 		tr[1] = exp(-tau[1]);
 		tr[2] = exp(-tau[2]);
 		
-		shr->combined[0] = tr[0];
-		shr->combined[1] = tr[1];
-		shr->combined[2] = tr[2];
+		
+		VecCopyf(shr->combined, tr);
 		
 		shr->combined[3] = 1.0f -(tr[0] + tr[1] + tr[2]) * 0.333f;
 		shr->alpha = shr->combined[3];
@@ -666,9 +667,7 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 		tr[1] = exp(-tau[1]);
 		tr[2] = exp(-tau[2]);
 		
-		shr->combined[0] = tr[0];
-		shr->combined[1] = tr[1];
-		shr->combined[2] = tr[2];
+		VecCopyf(shr->combined, tr);
 		
 		shr->combined[3] = 1.0f -(tr[0] + tr[1] + tr[2]) * 0.333f;
 		shr->alpha = shr->combined[3];

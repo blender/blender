@@ -2362,7 +2362,7 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 			}
 			
 			
-			if((mapto_flag & (MAP_COL+MAP_COLMIR)) && (mtex->mapto & (MAP_COL+MAP_COLMIR))) {
+			if((mapto_flag & (MAP_EMISSION_COL+MAP_ABSORPTION_COL)) && (mtex->mapto & (MAP_EMISSION_COL+MAP_ABSORPTION_COL))) {
 				float tcol[3], colfac;
 				
 				/* stencil maps on the texture control slider, not texture intensity value */
@@ -2386,12 +2386,12 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 				}
 				
 				/* used for emit */
-				if((mapto_flag & MAP_COL) && (mtex->mapto & MAP_COL)) {
+				if((mapto_flag & MAP_EMISSION_COL) && (mtex->mapto & MAP_EMISSION_COL)) {
 					texture_rgb_blend(col, tcol, col, texres.tin, colfac, mtex->blendtype);
 				}
 				
 				/* MAP_COLMIR is abused for absorption colour at the moment */
-				if((mapto_flag & MAP_COLMIR) && (mtex->mapto & MAP_COLMIR)) {
+				if((mapto_flag & MAP_ABSORPTION_COL) && (mtex->mapto & MAP_ABSORPTION_COL)) {
 					texture_rgb_blend(col, tcol, col, texres.tin, colfac, mtex->blendtype);
 				}
 			}
@@ -2408,15 +2408,27 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 					}
 				}
 				
-				if((mapto_flag & MAP_EMIT) && (mtex->mapto & MAP_EMIT)) {
-					int flip= mtex->maptoneg & MAP_EMIT;
+				if((mapto_flag & MAP_EMISSION) && (mtex->mapto & MAP_EMISSION)) {
+					int flip= mtex->maptoneg & MAP_EMISSION;
 
 					*val = texture_value_blend(mtex->def_var, *val, texres.tin, varfac, mtex->blendtype, flip);
 					if(*val<0.0) *val= 0.0;
 				}
-				if((mapto_flag & MAP_ALPHA) && (mtex->mapto & MAP_ALPHA)) {
-					int flip= mtex->maptoneg & MAP_ALPHA;
+				if((mapto_flag & MAP_DENSITY) && (mtex->mapto & MAP_DENSITY)) {
+					int flip= mtex->maptoneg & MAP_DENSITY;
 
+					*val = texture_value_blend(mtex->def_var, *val, texres.tin, varfac, mtex->blendtype, flip);
+					CLAMP(*val, 0.0, 1.0);
+				}
+				if((mapto_flag & MAP_ABSORPTION) && (mtex->mapto & MAP_ABSORPTION)) {
+					int flip= mtex->maptoneg & MAP_ABSORPTION;
+					
+					*val = texture_value_blend(mtex->def_var, *val, texres.tin, varfac, mtex->blendtype, flip);
+					CLAMP(*val, 0.0, 1.0);
+				}
+				if((mapto_flag & MAP_SCATTERING) && (mtex->mapto & MAP_SCATTERING)) {
+					int flip= mtex->maptoneg & MAP_SCATTERING;
+					
 					*val = texture_value_blend(mtex->def_var, *val, texres.tin, varfac, mtex->blendtype, flip);
 					CLAMP(*val, 0.0, 1.0);
 				}

@@ -496,7 +496,8 @@ void default_tex(Tex *tex)
 	
 	if (tex->vd) {
 		tex->vd->resol[0] = tex->vd->resol[1] = tex->vd->resol[2] = 0;
-		tex->vd->interp_type=0;
+		tex->vd->interp_type=TEX_VD_LINEAR;
+		tex->vd->file_format=TEX_VD_SMOKE;
 	}
 	pit = tex->plugin;
 	if (pit) {
@@ -978,7 +979,8 @@ struct VoxelData *BKE_add_voxeldata(void)
 	vd= MEM_callocN(sizeof(struct VoxelData), "voxeldata");
 	vd->dataset = NULL;
 	vd->resol[0] = vd->resol[1] = vd->resol[2] = 1;
-	vd->interp_type= TEX_VD_NEARESTNEIGHBOR;
+	vd->interp_type= TEX_VD_LINEAR;
+	vd->file_format= TEX_VD_SMOKE;
 	vd->int_multiplier = 1.0;
 	
 	return vd;

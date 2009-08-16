@@ -176,35 +176,51 @@ class TEXTURE_PT_influence(TextureButtonsPanel):
 			sub.itemR(tex, factor, text=name, slider=True)
 		
 		if ma:
-			split = layout.split()
-			
-			col = split.column()
-			col.itemL(text="Diffuse:")
-			factor_but(col, tex.map_diffuse, "map_diffuse", "diffuse_factor", "Intensity")
-			factor_but(col, tex.map_colordiff, "map_colordiff", "colordiff_factor", "Color")
-			factor_but(col, tex.map_alpha, "map_alpha", "alpha_factor", "Alpha")
-			factor_but(col, tex.map_translucency, "map_translucency", "translucency_factor", "Translucency")
+			if ma.type in ['SURFACE', 'HALO', 'WIRE']:
+				split = layout.split()
+				
+				col = split.column()
+				col.itemL(text="Diffuse:")
+				factor_but(col, tex.map_diffuse, "map_diffuse", "diffuse_factor", "Intensity")
+				factor_but(col, tex.map_colordiff, "map_colordiff", "colordiff_factor", "Color")
+				factor_but(col, tex.map_alpha, "map_alpha", "alpha_factor", "Alpha")
+				factor_but(col, tex.map_translucency, "map_translucency", "translucency_factor", "Translucency")
 
-			col.itemL(text="Specular:")
-			factor_but(col, tex.map_specular, "map_specular", "specular_factor", "Intensity")
-			factor_but(col, tex.map_colorspec, "map_colorspec", "colorspec_factor", "Color")
-			factor_but(col, tex.map_hardness, "map_hardness", "hardness_factor", "Hardness")
+				col.itemL(text="Specular:")
+				factor_but(col, tex.map_specular, "map_specular", "specular_factor", "Intensity")
+				factor_but(col, tex.map_colorspec, "map_colorspec", "colorspec_factor", "Color")
+				factor_but(col, tex.map_hardness, "map_hardness", "hardness_factor", "Hardness")
 
-			col = split.column()
-			col.itemL(text="Shading:")
-			factor_but(col, tex.map_ambient, "map_ambient", "ambient_factor", "Ambient")
-			factor_but(col, tex.map_emit, "map_emit", "emit_factor", "Emit")
-			factor_but(col, tex.map_mirror, "map_mirror", "mirror_factor", "Mirror")
-			factor_but(col, tex.map_raymir, "map_raymir", "raymir_factor", "Ray Mirror")
+				col = split.column()
+				col.itemL(text="Shading:")
+				factor_but(col, tex.map_ambient, "map_ambient", "ambient_factor", "Ambient")
+				factor_but(col, tex.map_emit, "map_emit", "emit_factor", "Emit")
+				factor_but(col, tex.map_mirror, "map_mirror", "mirror_factor", "Mirror")
+				factor_but(col, tex.map_raymir, "map_raymir", "raymir_factor", "Ray Mirror")
 
-			col.itemL(text="Geometry:")
-			factor_but(col, tex.map_normal, "map_normal", "normal_factor", "Normal")
-			factor_but(col, tex.map_warp, "map_warp", "warp_factor", "Warp")
-			factor_but(col, tex.map_displacement, "map_displacement", "displacement_factor", "Displace")
+				col.itemL(text="Geometry:")
+				factor_but(col, tex.map_normal, "map_normal", "normal_factor", "Normal")
+				factor_but(col, tex.map_warp, "map_warp", "warp_factor", "Warp")
+				factor_but(col, tex.map_displacement, "map_displacement", "displacement_factor", "Displace")
 
-			#sub = col.column()
-			#sub.active = tex.map_translucency or tex.map_emit or tex.map_alpha or tex.map_raymir or tex.map_hardness or tex.map_ambient or tex.map_specularity or tex.map_reflection or tex.map_mirror
-			#sub.itemR(tex, "default_value", text="Amount", slider=True)
+				#sub = col.column()
+				#sub.active = tex.map_translucency or tex.map_emit or tex.map_alpha or tex.map_raymir or tex.map_hardness or tex.map_ambient or tex.map_specularity or tex.map_reflection or tex.map_mirror
+				#sub.itemR(tex, "default_value", text="Amount", slider=True)
+			elif ma.type == 'VOLUME':
+				split = layout.split()
+				
+				col = split.column()
+				factor_but(col, tex.map_density, "map_density", "density_factor", "Density")
+				factor_but(col, tex.map_emission, "map_emission", "emission_factor", "Emission")
+				factor_but(col, tex.map_absorption, "map_absorption", "absorption_factor", "Absorption")
+				factor_but(col, tex.map_scattering, "map_scattering", "scattering_factor", "Scattering")
+				
+				col = split.column()
+				col.itemL(text=" ")
+				factor_but(col, tex.map_alpha, "map_coloremission", "coloremission_factor", "Emission Color")
+				factor_but(col, tex.map_colorabsorption, "map_colorabsorption", "colorabsorption_factor", "Absorption Color")
+				
+
 		elif la:
 			row = layout.row()
 			factor_but(row, tex.map_color, "map_color", "color_factor", "Color")
@@ -641,7 +657,7 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel):
 		if vd.file_format == 'RAW_8BIT':
 			layout.itemR(vd, "resolution")
 		if vd.file_format == 'SMOKE':
-			layout.itemR(vd, "object")
+			layout.itemR(vd, "domain_object")
 		
 		layout.itemR(vd, "still")
 		if vd.still:

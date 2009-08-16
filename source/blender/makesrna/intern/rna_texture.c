@@ -1448,9 +1448,9 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Still Frame Number", "The frame number to always use");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 	
-	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "domain_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object");
-	RNA_def_property_ui_text(prop, "Object", "Object to use for smoke simulations");
+	RNA_def_property_ui_text(prop, "Domain Object", "Object used as the smoke simulation domain");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 

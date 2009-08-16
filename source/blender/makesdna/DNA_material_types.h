@@ -48,21 +48,30 @@ struct Ipo;
 /* WATCH IT: change type? also make changes in ipo.h  */
 
 typedef struct VolumeSettings {
-	short stepsize_type;
-	short precache_resolution;
-	float stepsize, shade_stepsize;
-	float depth_cutoff;
-	short shade_type;
-	short vpad;
-	float density_scale;
-	float absorption, scattering;
+	float density;
+	float emission;
+	float absorption;
+	float scattering;
+
+	float emission_col[3];
 	float absorption_col[3];
-	short shadeflag;
+	float density_scale;
+	float depth_cutoff;
+
 	short phasefunc_type;
+	short vpad[3];
 	float phasefunc_g;
-	float vpad2[2];
 	
-	float ms_diff, ms_intensity;
+	float stepsize;
+	float shade_stepsize;
+	
+	short stepsize_type;
+	short shadeflag;
+	short shade_type;
+	short precache_resolution;
+	
+	float ms_diff;
+	float ms_intensity;
 	int ms_steps;
 } VolumeSettings;
 
@@ -307,6 +316,14 @@ typedef struct Material {
 #define MAP_DISPLACE	4096
 #define MAP_WARP		8192
 #define MAP_LAYER		16384
+
+/* volume mapto - reuse definitions for now - a bit naughty! */
+#define MAP_DENSITY			128
+#define MAP_EMISSION		64
+#define MAP_EMISSION_COL	1
+#define MAP_ABSORPTION		512
+#define MAP_ABSORPTION_COL	8
+#define MAP_SCATTERING		16
 
 /* mapto for halo */
 //#define MAP_HA_COL		1
