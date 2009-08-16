@@ -1579,7 +1579,7 @@ static void do_running_jobs(bContext *C, void *arg, int event)
 			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_screen(C));
 			break;
 		case B_STOPANIM:
-			ED_screen_animation_timer(C, 0, 0);
+			WM_operator_name_call(C, "SCREEN_OT_animation_play", WM_OP_INVOKE_SCREEN, NULL);
 			break;
 	}
 }

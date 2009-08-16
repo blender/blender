@@ -144,8 +144,6 @@ void WM_init(bContext *C)
 	
 	read_Blog();
 	BLI_strncpy(G.lib, G.sce, FILE_MAX);
-
-	sound_init();
 }
 
 /* free strings of open recent files */

@@ -397,7 +397,6 @@ void do_time_buttons(bContext *C, void *arg, int event)
 void time_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
-	SpaceTime *stime= CTX_wm_space_time(C);
 	Scene *scene= CTX_data_scene(C);
 	wmTimer *animtimer= CTX_wm_screen(C)->animtimer;
 	uiBlock *block;
@@ -568,8 +567,8 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	
 	xco+= XIC;
 	
-	uiDefIconButBitI(block, TOG, TIME_WITH_SEQ_AUDIO, B_DIFF, ICON_SPEAKER,
-					 xco, yco, XIC, YIC, &(stime->redraws), 0, 0, 0, 0, "Play back and sync with audio from Sequence Editor");
+	uiDefIconButBitS(block, TOG, AUDIO_SYNC, B_DIFF, ICON_SPEAKER,
+					 xco, yco, XIC, YIC, &(scene->audio.flag), 0, 0, 0, 0, "Play back and sync with audio from Sequence Editor");
 	
 	
 	/* always as last  */

@@ -2227,17 +2227,25 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		wmTimer *wt= screen->animtimer;
 		ScreenAnimData *sad= wt->customdata;
 		ScrArea *sa;
+		int sync;
+
+		/* sync, don't sync, or follow scene setting */
+		if(scene->audio.flag & ANIMPLAY_FLAG_SYNC) sync= 1;
+		else if(scene->audio.flag & ANIMPLAY_FLAG_NO_SYNC) sync= 0;
+		else sync= (scene->audio.flag & AUDIO_SYNC);
 		
-		if(scene->audio.flag & AUDIO_SYNC) {
+		if(sync) {
+			/* skip frames */
 			int step = floor(wt->duration * FPS);
-			if (sad->flag & ANIMPLAY_FLAG_REVERSE) // XXX does this option work with audio?
+			if(sad->flag & ANIMPLAY_FLAG_REVERSE) // XXX does this option work with audio?
 				scene->r.cfra -= step;
 			else
 				scene->r.cfra += step;
 			wt->duration -= ((float)step)/FPS;
 		}
 		else {
-			if (sad->flag & ANIMPLAY_FLAG_REVERSE)
+			/* one frame +/- */
+			if(sad->flag & ANIMPLAY_FLAG_REVERSE)
 				scene->r.cfra--;
 			else
 				scene->r.cfra++;
@@ -2325,18 +2333,22 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 	bScreen *screen= CTX_wm_screen(C);
 	
 	if(screen->animtimer) {
-		ED_screen_animation_timer(C, 0, 0);
+		ED_screen_animation_timer(C, 0, 0, 0);
 		sound_stop_all(C);
 	}
 	else {
 		ScrArea *sa= CTX_wm_area(C);
 		int mode= (RNA_boolean_get(op->ptr, "reverse")) ? -1 : 1;
+		int sync= -1;
+
+		if(RNA_property_is_set(op->ptr, "sync"))
+			sync= (RNA_boolean_get(op->ptr, "sync"));
 		
 		/* timeline gets special treatment since it has it's own menu for determining redraws */
 		if ((sa) && (sa->spacetype == SPACE_TIME)) {
 			SpaceTime *stime= (SpaceTime *)sa->spacedata.first;
 			
-			ED_screen_animation_timer(C, stime->redraws, mode);
+			ED_screen_animation_timer(C, stime->redraws, sync, mode);
 			
 			/* update region if TIME_REGION was set, to leftmost 3d window */
 			if(screen->animtimer && (stime->redraws & TIME_REGION)) {
@@ -2347,7 +2359,7 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 			}
 		}
 		else {
-			ED_screen_animation_timer(C, TIME_REGION|TIME_ALL_3D_WIN, mode);
+			ED_screen_animation_timer(C, TIME_REGION|TIME_ALL_3D_WIN, sync, mode);
 			
 			if(screen->animtimer) {
 				wmTimer *wt= screen->animtimer;
@@ -2373,6 +2385,7 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 	ot->poll= ED_operator_screenactive;
 	
 	RNA_def_boolean(ot->srna, "reverse", 0, "Play in Reverse", "Animation is played backwards");
+	RNA_def_boolean(ot->srna, "sync", 0, "Sync", "Drop frames to maintain framerate and stay in sync with audio.");
 }
 
 /* ************** border select operator (template) ***************************** */

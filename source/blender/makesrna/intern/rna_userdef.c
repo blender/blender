@@ -120,7 +120,7 @@ static PointerRNA rna_UserDef_system_get(PointerRNA *ptr)
 
 static void rna_UserDef_audio_update(bContext *C, PointerRNA *ptr)
 {
-	sound_reinit(C);
+	sound_init(C);
 }
 
 #else
