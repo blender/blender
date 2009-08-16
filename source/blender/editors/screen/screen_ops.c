@@ -3363,6 +3363,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	
 	/* play (forward and backwards) */
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", KKEY, KM_PRESS, 0, LKEY);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0)->ptr, "reverse", 1);
 
 	keymap_modal_set(wm);

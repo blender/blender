@@ -588,6 +588,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 					kdata.key= GHOST_kKeyCommand;
 					wm_event_add_ghostevent(win, GHOST_kEventKeyUp, &kdata);
 				}
+				/* keymodifier zero, it hangs on hotkeys that open windows otherwise */
+				win->eventstate->keymodifier= 0;
 				
 				/* entering window, update mouse pos. but no event */
 				GHOST_GetCursorPosition(g_system, &wx, &wy);

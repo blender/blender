@@ -691,8 +691,15 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 		if(winevent->alt != kmi->alt && !(winevent->alt & kmi->alt)) return 0;
 	if(kmi->oskey!=KM_ANY)
 		if(winevent->oskey != kmi->oskey && !(winevent->oskey & kmi->oskey)) return 0;
+	
 	if(kmi->keymodifier)
 		if(winevent->keymodifier!=kmi->keymodifier) return 0;
+		
+	/* key modifiers always check when event has it */
+	/* otherwise regular keypresses with keymodifier still work */
+	if(winevent->keymodifier)
+		if(ISKEYBOARD(winevent->type)) 
+			if(winevent->keymodifier!=kmi->keymodifier) return 0;
 	
 	return 1;
 }
@@ -1509,11 +1516,6 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			else
 				event.type= MIDDLEMOUSE;
 			
-			if(event.val)
-				event.keymodifier= evt->keymodifier= event.type;
-			else
-				event.keymodifier= evt->keymodifier= 0;
-			
 			update_tablet_data(win, &event);
 			wm_event_add(win, &event);
 			
@@ -1551,6 +1553,12 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 				event.oskey= evt->oskey= (event.val==KM_PRESS);
 				if(event.val==KM_PRESS && (evt->ctrl || evt->alt || evt->shift))
 				   event.oskey= evt->oskey = 3;		// define?
+			}
+			else {
+				if(event.val==KM_PRESS && event.keymodifier==0)
+					evt->keymodifier= event.type; /* only set in eventstate, for next event */
+				else if(event.val==KM_RELEASE && event.keymodifier==event.type)
+					event.keymodifier= evt->keymodifier= 0;
 			}
 			
 			/* if test_break set, it catches this. XXX Keep global for now? */

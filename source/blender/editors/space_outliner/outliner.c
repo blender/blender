@@ -5162,13 +5162,13 @@ static void outliner_draw_keymapbuts(uiBlock *block, ARegion *ar, SpaceOops *soo
 				}
 				
 				/* modifiers */
-				uiBlockBeginAlign(block);
 				uiDefButS(block, OPTION, 0, "Shift",	xstart, (int)te->ys+1, butw3+5, OL_H-1, &kmi->shift, 0, 0, 0, 0, "Modifier"); xstart+= butw3+5;
 				uiDefButS(block, OPTION, 0, "Ctrl",	xstart, (int)te->ys+1, butw3, OL_H-1, &kmi->ctrl, 0, 0, 0, 0, "Modifier"); xstart+= butw3;
 				uiDefButS(block, OPTION, 0, "Alt",	xstart, (int)te->ys+1, butw3, OL_H-1, &kmi->alt, 0, 0, 0, 0, "Modifier"); xstart+= butw3;
 				uiDefButS(block, OPTION, 0, "Cmd",	xstart, (int)te->ys+1, butw3, OL_H-1, &kmi->oskey, 0, 0, 0, 0, "Modifier"); xstart+= butw3;
 				xstart+= 5;
-				uiBlockEndAlign(block);
+				uiDefKeyevtButS(block, 0, "", xstart, (int)te->ys+1, butw3, OL_H-1, &kmi->keymodifier, "Key Modifier code");
+				xstart+= butw3+5;
 				
 				/* rna property */
 				if(kmi->ptr && kmi->ptr->data)
