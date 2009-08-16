@@ -30,6 +30,7 @@
 #include "rna_internal.h"
 
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 
 #ifdef WITH_FFMPEG
 #include "BKE_writeffmpeg.h"
@@ -359,6 +360,11 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{SCE_SNAP_TARGET_MEDIAN, "MEDIAN", 0, "Median", "Snap median onto target."},
 		{SCE_SNAP_TARGET_ACTIVE, "ACTIVE", 0, "Active", "Snap active onto target."},
 		{0, NULL, 0, NULL, NULL}};
+		
+	static EnumPropertyItem auto_key_items[] = {
+		{AUTOKEY_MODE_NORMAL, "ADD_REPLACE_KEYS", 0, "Add/Replace", ""},
+		{AUTOKEY_MODE_EDITKEYS, "REPLACE_KEYS", 0, "Replace", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ToolSettings", NULL);
 	RNA_def_struct_ui_text(srna, "Tool Settings", "");
@@ -421,6 +427,16 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_PEEL_OBJECT);
 	RNA_def_property_ui_text(prop, "Snap Peel Object", "Consider objects as whole when finding volume center.");
 	RNA_def_property_ui_icon(prop, ICON_SNAP_PEEL_OBJECT, 0);
+	
+	/* Auto Keying */
+	prop= RNA_def_property(srna, "enable_auto_key", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "autokey_mode", AUTOKEY_ON);
+	RNA_def_property_ui_text(prop, "Auto Keying", "Automatic keyframe insertion for Objects and Bones");
+	
+	prop= RNA_def_property(srna, "autokey_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "autokey_mode");
+	RNA_def_property_enum_items(prop, auto_key_items);
+	RNA_def_property_ui_text(prop, "Auto-Keying Mode", "Mode of automatic keyframe insertion for Objects and Bones");
 
 	/* UV */
 	prop= RNA_def_property(srna, "uv_selection_mode", PROP_ENUM, PROP_NONE);
