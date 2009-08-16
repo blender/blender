@@ -503,11 +503,13 @@ int main(int argc, char **argv)
 	 */
 	BPY_post_start_python();
 
-	BPY_run_ui_scripts(C, 0); /* dont need to reload the first time */
+	if(!G.background)
+		BPY_run_ui_scripts(C, 0); /* dont need to reload the first time */
 #endif
 	
 	CTX_py_init_set(C, 1);
-	WM_keymap_init(C); /* after BPY_run_ui_scripts() */
+	if(!G.background)
+		WM_keymap_init(C); /* after BPY_run_ui_scripts() */
 
 #ifdef WITH_QUICKTIME
 
