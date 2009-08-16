@@ -31,7 +31,7 @@ class SEQUENCER_HT_header(bpy.types.Header):
 				layout.itemS()
 				row.itemO("sequencer.reload")
 			else:
-				row.itemR(st, "display_channel", text="				Channel") #XXX Ugly, should be fixed in Layout Engine itself.
+				row.itemR(st, "display_channel", text="Channel")
 
 class SEQUENCER_MT_view(bpy.types.Menu):
 	__space_type__ = "SEQUENCE_EDITOR"
