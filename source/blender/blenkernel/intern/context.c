@@ -661,42 +661,67 @@ Scene *CTX_data_scene(const bContext *C)
 		return C->data.scene;
 }
 
-char *CTX_data_mode_string(const bContext *C)
+int CTX_data_mode_enum(const bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);
 
 	if(obedit) {
 		switch(obedit->type) {
 			case OB_MESH:
-				return "mesh_edit";
+				return CTX_MODE_EDIT_MESH;
 			case OB_CURVE:
-				return "curve_edit";
+				return CTX_MODE_EDIT_CURVE;
 			case OB_SURF:
-				return "surface_edit";
+				return CTX_MODE_EDIT_SURFACE;
 			case OB_FONT:
-				return "text_edit";
+				return CTX_MODE_EDIT_TEXT;
 			case OB_ARMATURE:
-				return "armature_edit";
+				return CTX_MODE_EDIT_ARMATURE;
 			case OB_MBALL:
-				return "mball_edit";
+				return CTX_MODE_EDIT_METABALL;
 			case OB_LATTICE:
-				return "lattice_edit";
+				return CTX_MODE_EDIT_LATTICE;
 		}
 	}
 	else {
 		Object *ob = CTX_data_active_object(C);
-		
+
 		if(ob) {
-			if(ob->mode & OB_MODE_POSE) return "posemode";
-			else if(ob->mode & OB_MODE_SCULPT)  return "sculpt_mode";
-			else if(ob->mode & OB_MODE_WEIGHT_PAINT) return "weightpaint";
-			else if(ob->mode & OB_MODE_VERTEX_PAINT) return "vertexpaint";
-			else if(ob->mode & OB_MODE_TEXTURE_PAINT) return "texturepaint";
-			else if(ob->mode & OB_MODE_PARTICLE_EDIT) return "particlemode";
+			if(ob->mode & OB_MODE_POSE) return CTX_MODE_POSE;
+			else if(ob->mode & OB_MODE_SCULPT)  return CTX_MODE_SCULPT;
+			else if(ob->mode & OB_MODE_WEIGHT_PAINT) return CTX_MODE_PAINT_WEIGHT;
+			else if(ob->mode & OB_MODE_VERTEX_PAINT) return CTX_MODE_PAINT_VERTEX;
+			else if(ob->mode & OB_MODE_TEXTURE_PAINT) return CTX_MODE_PAINT_TEXTURE;
+			else if(ob->mode & OB_MODE_PARTICLE_EDIT) return CTX_MODE_PARTICLE;
 		}
 	}
-	
-	return "objectmode";
+
+	return CTX_MODE_OBJECT;
+}
+
+
+/* would prefer if we can use the enum version below over this one - Campbell */
+/* must be aligned with above enum  */
+static char *data_mode_strings[] = {
+	"mesh_edit",
+	"curve_edit",
+	"surface_edit",
+	"text_edit",
+	"armature_edit",
+	"mball_edit",
+	"lattice_edit",
+	"posemode",
+	"sculpt_mode",
+	"weightpaint",
+	"vertexpaint",
+	"texturepaint",
+	"particlemode",
+	"objectmode",
+	0
+};
+char *CTX_data_mode_string(const bContext *C)
+{
+	return data_mode_strings[CTX_data_mode_enum(C)];
 }
 
 void CTX_data_scene_set(bContext *C, Scene *scene)

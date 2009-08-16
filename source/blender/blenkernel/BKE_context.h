@@ -86,6 +86,25 @@ typedef struct bContextStore {
 	int used;
 } bContextStore;
 
+/* for the conrtext's rna mode enum
+ * keep aligned with data_mode_strings in context.c */
+enum {
+	CTX_MODE_EDIT_MESH = 0,
+	CTX_MODE_EDIT_CURVE,
+	CTX_MODE_EDIT_SURFACE,
+	CTX_MODE_EDIT_TEXT,
+	CTX_MODE_EDIT_ARMATURE,
+	CTX_MODE_EDIT_METABALL,
+	CTX_MODE_EDIT_LATTICE,
+	CTX_MODE_POSE,
+	CTX_MODE_SCULPT,
+	CTX_MODE_PAINT_WEIGHT,
+	CTX_MODE_PAINT_VERTEX,
+	CTX_MODE_PAINT_TEXTURE,
+	CTX_MODE_PARTICLE,
+	CTX_MODE_OBJECT
+};
+
 /* Context */
 
 bContext *CTX_create(void);
@@ -192,6 +211,7 @@ struct Scene *CTX_data_scene(const bContext *C);
 struct ToolSettings *CTX_data_tool_settings(const bContext *C);
 
 char *CTX_data_mode_string(const bContext *C);
+int CTX_data_mode_enum(const bContext *C);
 
 void CTX_data_main_set(bContext *C, struct Main *bmain);
 void CTX_data_scene_set(bContext *C, struct Scene *bmain);

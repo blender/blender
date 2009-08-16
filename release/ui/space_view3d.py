@@ -10,7 +10,7 @@ class VIEW3D_HT_header(bpy.types.Header):
 		layout = self.layout
 		
 		view = context.space_data
-		mode_string = context.mode_string
+		mode_string = context.mode
 
 		layout.template_header()
 		
@@ -21,11 +21,10 @@ class VIEW3D_HT_header(bpy.types.Header):
 			row.itemM("VIEW3D_MT_view")
 			
 			# Select Menu
-			selectmenu = "VIEW3D_MT_select_%s" % mode_string
-			if selectmenu in dir(bpy.types):
-				row.itemM(selectmenu)
+			if mode_string not in ('EDIT_TEXT', ):
+				row.itemM("VIEW3D_MT_select_%s" % mode_string)
 			
-			if mode_string == 'objectmode':
+			if mode_string == 'OBJECT':
 				row.itemM("VIEW3D_MT_object")
 
 		layout.template_header_3D()
@@ -109,9 +108,9 @@ class VIEW3D_MT_view_navigation(bpy.types.Menu):
 		layout.item_floatO("view3d.zoom", "delta", 1.0, text="Zoom In")
 		layout.item_floatO("view3d.zoom", "delta", -1.0, text="Zoom Out")
 
-# ********** Select menus **********
+# ********** Select menus, suffix from context.mode **********
 
-class VIEW3D_MT_select_objectmode(bpy.types.Menu):
+class VIEW3D_MT_select_OBJECT(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
 	__label__ = "Select"
 
@@ -127,9 +126,9 @@ class VIEW3D_MT_select_objectmode(bpy.types.Menu):
 		layout.itemO("object.select_random", text="Random")
 		layout.itemO("object.select_by_layer", text="Select All by Layer")
 		layout.item_enumO("object.select_by_type", "type", "", text="Select All by Type")
-		layout.item_enumO("object.select_grouped", "type", "", text="Select Grouped")
+		layout.itemO("object.select_grouped", text="Select Grouped")
 
-class VIEW3D_MT_select_posemode(bpy.types.Menu):
+class VIEW3D_MT_select_POSE(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
 	__label__ = "Select"
 
@@ -146,14 +145,14 @@ class VIEW3D_MT_select_posemode(bpy.types.Menu):
 		
 		layout.itemS()
 		
-		layout.item_enumO("pose.select_hierarchy", "direction", "PARENT")
-		layout.item_enumO("pose.select_hierarchy", "direction", "CHILD")
+		layout.item_enumO("pose.select_hierarchy", "direction", 'PARENT')
+		layout.item_enumO("pose.select_hierarchy", "direction", 'CHILD')
 		
 		layout.itemS()
 		
 		layout.view3d_select_posemenu()
 
-class VIEW3D_MT_select_particlemode(bpy.types.Menu):
+class VIEW3D_MT_select_PARTICLE(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
 	__label__ = "Select"
 
@@ -175,7 +174,7 @@ class VIEW3D_MT_select_particlemode(bpy.types.Menu):
 		layout.itemO("particle.select_more")
 		layout.itemO("particle.select_less")
 
-class VIEW3D_MT_select_mesh_edit(bpy.types.Menu):
+class VIEW3D_MT_select_EDIT_MESH(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
 	__label__ = "Select"
 
@@ -197,9 +196,9 @@ class VIEW3D_MT_select_mesh_edit(bpy.types.Menu):
 
 		layout.itemS()
 
-		layout.item_enumO("mesh.select_by_number_vertices", "type", "TRIANGLES", text="Triangles")
-		layout.item_enumO("mesh.select_by_number_vertices", "type", "QUADS", text="Quads")
-		layout.item_enumO("mesh.select_by_number_vertices", "type", "OTHER", text="Loose Verts/Edges")
+		layout.item_enumO("mesh.select_by_number_vertices", "type", 'TRIANGLES', text="Triangles")
+		layout.item_enumO("mesh.select_by_number_vertices", "type", 'QUADS', text="Quads")
+		layout.item_enumO("mesh.select_by_number_vertices", "type", 'OTHER', text="Loose Verts/Edges")
 		layout.itemO("mesh.select_similar", text="Similar...")
 
 		layout.itemS()
@@ -219,7 +218,7 @@ class VIEW3D_MT_select_mesh_edit(bpy.types.Menu):
 		layout.itemO("mesh.loop_to_region")
 		layout.itemO("mesh.region_to_loop")
 
-class VIEW3D_MT_select_curve_edit(bpy.types.Menu):
+class VIEW3D_MT_select_EDIT_CURVE(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
 	__label__ = "Select"
 
@@ -248,7 +247,7 @@ class VIEW3D_MT_select_curve_edit(bpy.types.Menu):
 		layout.itemO("curve.select_more")
 		layout.itemO("curve.select_less")
 
-class VIEW3D_MT_select_surface_edit(bpy.types.Menu):
+class VIEW3D_MT_select_EDIT_SURFACE(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
 	__label__ = "Select"
 
@@ -274,7 +273,7 @@ class VIEW3D_MT_select_surface_edit(bpy.types.Menu):
 		layout.itemO("curve.select_more")
 		layout.itemO("curve.select_less")
 
-class VIEW3D_MT_select_mball_edit(bpy.types.Menu):
+class VIEW3D_MT_select_EDIT_METABALL(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
 	__label__ = "Select"
 
@@ -292,7 +291,7 @@ class VIEW3D_MT_select_mball_edit(bpy.types.Menu):
 		
 		layout.itemL(text="Random")
 
-class VIEW3D_MT_select_lattice_edit(bpy.types.Menu):
+class VIEW3D_MT_select_EDIT_LATTICE(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
 	__label__ = "Select"
 
@@ -305,7 +304,7 @@ class VIEW3D_MT_select_lattice_edit(bpy.types.Menu):
 		
 		layout.itemO("lattice.select_all_toggle", text="Select/Deselect All")
 
-class VIEW3D_MT_select_armature_edit(bpy.types.Menu):
+class VIEW3D_MT_select_EDIT_ARMATURE(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
 	__label__ = "Select"
 
@@ -321,14 +320,14 @@ class VIEW3D_MT_select_armature_edit(bpy.types.Menu):
 
 		layout.itemS()
 		
-		layout.item_enumO("armature.select_hierarchy", "direction", "PARENT")
-		layout.item_enumO("armature.select_hierarchy", "direction", "CHILD")
+		layout.item_enumO("armature.select_hierarchy", "direction", 'PARENT')
+		layout.item_enumO("armature.select_hierarchy", "direction", 'CHILD')
 		
 		layout.itemS()
 		
 		layout.view3d_select_armaturemenu()
 
-class VIEW3D_MT_select_facesel(bpy.types.Menu):
+class VIEW3D_MT_select_FACE(bpy.types.Menu):# XXX no matching enum
 	__space_type__ = "VIEW_3D"
 	__label__ = "Select"
 
@@ -570,16 +569,16 @@ bpy.types.register(VIEW3D_HT_header) # Header
 bpy.types.register(VIEW3D_MT_view) #View Menus
 bpy.types.register(VIEW3D_MT_view_navigation)
 
-bpy.types.register(VIEW3D_MT_select_objectmode) # Select Menus
-bpy.types.register(VIEW3D_MT_select_posemode)
-bpy.types.register(VIEW3D_MT_select_particlemode)
-bpy.types.register(VIEW3D_MT_select_mesh_edit)
-bpy.types.register(VIEW3D_MT_select_curve_edit)
-bpy.types.register(VIEW3D_MT_select_surface_edit)
-bpy.types.register(VIEW3D_MT_select_mball_edit)
-bpy.types.register(VIEW3D_MT_select_lattice_edit)
-bpy.types.register(VIEW3D_MT_select_armature_edit)
-bpy.types.register(VIEW3D_MT_select_facesel)
+bpy.types.register(VIEW3D_MT_select_OBJECT) # Select Menus
+bpy.types.register(VIEW3D_MT_select_POSE)
+bpy.types.register(VIEW3D_MT_select_PARTICLE)
+bpy.types.register(VIEW3D_MT_select_EDIT_MESH)
+bpy.types.register(VIEW3D_MT_select_EDIT_CURVE)
+bpy.types.register(VIEW3D_MT_select_EDIT_SURFACE)
+bpy.types.register(VIEW3D_MT_select_EDIT_METABALL)
+bpy.types.register(VIEW3D_MT_select_EDIT_LATTICE)
+bpy.types.register(VIEW3D_MT_select_EDIT_ARMATURE)
+bpy.types.register(VIEW3D_MT_select_FACE) # XXX todo
 
 bpy.types.register(VIEW3D_MT_object) # Object Menu
 bpy.types.register(VIEW3D_MT_object_clear)
