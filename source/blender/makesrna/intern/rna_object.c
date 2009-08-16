@@ -969,9 +969,13 @@ static void rna_def_object(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem mode_items[] = {
+		{OB_MODE_OBJECT, "OBJECT", 0, "Object", ""},
+		{OB_MODE_EDIT, "EDIT", 0, "Edit", ""},
 		{OB_MODE_SCULPT, "SCULPT", 0, "Sculpt", ""},
 		{OB_MODE_VERTEX_PAINT, "VERTEX_PAINT", 0, "Vertex Paint", ""},
 		{OB_MODE_WEIGHT_PAINT, "WEIGHT_PAINT", 0, "Weight Paint", ""},
+		{OB_MODE_WEIGHT_PAINT, "TEXTURE_PAINT", 0, "Texture Paint", ""},
+		{OB_MODE_PARTICLE_EDIT, "PARTICLE_EDIT", 0, "Particle Edit", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem empty_drawtype_items[] = {
