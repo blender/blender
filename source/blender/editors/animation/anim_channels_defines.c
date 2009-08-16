@@ -287,6 +287,10 @@ static short acf_generic_dsexpand_setting_valid(bAnimContext *ac, bAnimListElem 
 		case ACHANNEL_SETTING_EXPAND:
 			return 1;
 			
+		 /* visible - only available in Graph Editor */
+		case ACHANNEL_SETTING_VISIBLE: 
+			return ((ac) && (ac->spacetype == SPACE_IPO));
+			
 		default:
 			return 0;
 	}
@@ -345,6 +349,10 @@ static short acf_scene_setting_valid(bAnimContext *ac, bAnimListElem *ale, int s
 		/* muted only in NLA */
 		case ACHANNEL_SETTING_MUTE: 
 			return ((ac) && (ac->spacetype == SPACE_NLA));
+			
+		/* visible only in Graph Editor */
+		case ACHANNEL_SETTING_VISIBLE: 
+			return ((ac) && (ac->spacetype == SPACE_IPO));
 		
 		/* only select and expand supported otherwise */
 		case ACHANNEL_SETTING_SELECT:
@@ -373,6 +381,10 @@ static int acf_scene_setting_flag(int setting, short *neg)
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
 			return ADT_NLA_EVAL_OFF;
 			
+		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+			*neg= 1;
+			return ADT_CURVES_NOT_VISIBLE;
+			
 		default: /* unsupported */
 			return 0;
 	}
@@ -394,6 +406,7 @@ static void *acf_scene_setting_ptr(bAnimListElem *ale, int setting, short *type)
 			GET_ACF_FLAG_PTR(scene->flag);
 			
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
+		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (scene->adt)
 				GET_ACF_FLAG_PTR(scene->adt->flag)
 			else
@@ -451,6 +464,10 @@ static short acf_object_setting_valid(bAnimContext *ac, bAnimListElem *ale, int 
 		/* muted only in NLA */
 		case ACHANNEL_SETTING_MUTE: 
 			return ((ac) && (ac->spacetype == SPACE_NLA));
+			
+		/* visible only in Graph Editor */
+		case ACHANNEL_SETTING_VISIBLE: 
+			return ((ac) && (ac->spacetype == SPACE_IPO));
 		
 		/* only select and expand supported otherwise */
 		case ACHANNEL_SETTING_SELECT:
@@ -479,6 +496,10 @@ static int acf_object_setting_flag(int setting, short *neg)
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
 			return ADT_NLA_EVAL_OFF;
 			
+		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+			*neg= 1;
+			return ADT_CURVES_NOT_VISIBLE;
+			
 		default: /* unsupported */
 			return 0;
 	}
@@ -501,6 +522,7 @@ static void *acf_object_setting_ptr(bAnimListElem *ale, int setting, short *type
 			GET_ACF_FLAG_PTR(ob->nlaflag); // xxx
 			
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
+		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (ob->adt)
 				GET_ACF_FLAG_PTR(ob->adt->flag)
 			else
@@ -560,8 +582,14 @@ static void acf_group_name(bAnimListElem *ale, char *name)
 /* check if some setting exists for this channel */
 static short acf_group_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
 {
-	/* for now, all settings are supported */
-	return 1;
+	/* for now, all settings are supported, though some are only conditionally */
+	switch (setting) {
+		case ACHANNEL_SETTING_VISIBLE: /* Only available in Graph Editor */
+			return ((ac->sa) && (ac->sa->spacetype==SPACE_IPO));
+			
+		default: /* always supported */
+			return 1;
+	}
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
@@ -641,6 +669,9 @@ static short acf_fcurve_setting_valid(bAnimContext *ac, bAnimListElem *ale, int 
 				return 1;
 			else
 				return 0; // NOTE: in this special case, we need to draw ICON_ZOOMOUT
+				
+		case ACHANNEL_SETTING_VISIBLE: /* Only available in Graph Editor */
+			return ((ac->sa) && (ac->sa->spacetype==SPACE_IPO));
 			
 		/* always available */
 		default:
@@ -962,6 +993,10 @@ static int acf_dsmat_setting_flag(int setting, short *neg)
 			
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
 			return ADT_NLA_EVAL_OFF;
+			
+		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+			*neg= 1;
+			return ADT_CURVES_NOT_VISIBLE;
 		
 		default: /* unsupported */
 			return 0;
@@ -981,10 +1016,11 @@ static void *acf_dsmat_setting_ptr(bAnimListElem *ale, int setting, short *type)
 			GET_ACF_FLAG_PTR(ma->flag);
 			
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
+		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (ma->adt)
 				GET_ACF_FLAG_PTR(ma->adt->flag)
 			else
-				return NULL;
+				return NULL;	
 		
 		default: /* unsupported */
 			return NULL;
@@ -1026,6 +1062,10 @@ static int acf_dslam_setting_flag(int setting, short *neg)
 			
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
 			return ADT_NLA_EVAL_OFF;
+			
+		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+			*neg= 1;
+			return ADT_CURVES_NOT_VISIBLE;
 		
 		default: /* unsupported */
 			return 0;
@@ -1045,10 +1085,11 @@ static void *acf_dslam_setting_ptr(bAnimListElem *ale, int setting, short *type)
 			GET_ACF_FLAG_PTR(la->flag);
 			
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
+		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (la->adt)
 				GET_ACF_FLAG_PTR(la->adt->flag)
 			else
-				return NULL;
+				return NULL;	
 		
 		default: /* unsupported */
 			return NULL;
@@ -1090,6 +1131,10 @@ static int acf_dscam_setting_flag(int setting, short *neg)
 			
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
 			return ADT_NLA_EVAL_OFF;
+			
+		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+			*neg= 1;
+			return ADT_CURVES_NOT_VISIBLE;
 		
 		default: /* unsupported */
 			return 0;
@@ -1109,6 +1154,7 @@ static void *acf_dscam_setting_ptr(bAnimListElem *ale, int setting, short *type)
 			GET_ACF_FLAG_PTR(ca->flag);
 			
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
+		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (ca->adt)
 				GET_ACF_FLAG_PTR(ca->adt->flag)
 			else
@@ -1154,6 +1200,10 @@ static int acf_dscur_setting_flag(int setting, short *neg)
 			
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
 			return ADT_NLA_EVAL_OFF;
+			
+		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+			*neg= 1;
+			return ADT_CURVES_NOT_VISIBLE;
 		
 		default: /* unsupported */
 			return 0;
@@ -1173,6 +1223,7 @@ static void *acf_dscur_setting_ptr(bAnimListElem *ale, int setting, short *type)
 			GET_ACF_FLAG_PTR(cu->flag);
 			
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
+		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (cu->adt)
 				GET_ACF_FLAG_PTR(cu->adt->flag)
 			else
@@ -1218,6 +1269,10 @@ static int acf_dsskey_setting_flag(int setting, short *neg)
 			
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
 			return ADT_NLA_EVAL_OFF;
+			
+		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+			*neg= 1;
+			return ADT_CURVES_NOT_VISIBLE;
 		
 		default: /* unsupported */
 			return 0;
@@ -1237,6 +1292,7 @@ static void *acf_dsskey_setting_ptr(bAnimListElem *ale, int setting, short *type
 			GET_ACF_FLAG_PTR(key->flag);
 			
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
+		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (key->adt)
 				GET_ACF_FLAG_PTR(key->adt->flag)
 			else
@@ -1282,6 +1338,10 @@ static int acf_dswor_setting_flag(int setting, short *neg)
 			
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
 			return ADT_NLA_EVAL_OFF;
+			
+		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+			*neg= 1;
+			return ADT_CURVES_NOT_VISIBLE;
 		
 		default: /* unsupported */
 			return 0;
@@ -1301,6 +1361,7 @@ static void *acf_dswor_setting_ptr(bAnimListElem *ale, int setting, short *type)
 			GET_ACF_FLAG_PTR(wo->flag);
 			
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
+		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (wo->adt)
 				GET_ACF_FLAG_PTR(wo->adt->flag)
 			else
@@ -1346,6 +1407,10 @@ static int acf_dspart_setting_flag(int setting, short *neg)
 			
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
 			return ADT_NLA_EVAL_OFF;
+			
+		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+			*neg= 1;
+			return ADT_CURVES_NOT_VISIBLE;
 		
 		default: /* unsupported */
 			return 0;
@@ -1365,6 +1430,7 @@ static void *acf_dspart_setting_ptr(bAnimListElem *ale, int setting, short *type
 			GET_ACF_FLAG_PTR(part->flag);
 			
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
+		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (part->adt)
 				GET_ACF_FLAG_PTR(part->adt->flag)
 			else
@@ -1410,6 +1476,10 @@ static int acf_dsmball_setting_flag(int setting, short *neg)
 			
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
 			return ADT_NLA_EVAL_OFF;
+			
+		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+			*neg= 1;
+			return ADT_CURVES_NOT_VISIBLE;
 		
 		default: /* unsupported */
 			return 0;
@@ -1429,6 +1499,7 @@ static void *acf_dsmball_setting_ptr(bAnimListElem *ale, int setting, short *typ
 			GET_ACF_FLAG_PTR(mb->flag);
 			
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
+		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
 			if (mb->adt)
 				GET_ACF_FLAG_PTR(mb->adt->flag)
 			else
@@ -1805,7 +1876,7 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 {
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	View2D *v2d= &ac->ar->v2d;
-	short selected, offset, enabled;
+	short selected, offset;
 	float y, ymid, ytext;
 	
 	/* sanity checks - don't draw anything */
@@ -1815,8 +1886,6 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 	/* get initial offset */
 	if (acf->get_offset)
 		offset= acf->get_offset(ac, ale);
-	else if (acf->get_indent_level)
-		offset= acf->get_indent_level(ac, ale) * INDENT_STEP_SIZE;
 	else
 		offset= 0;
 		
@@ -1844,9 +1913,7 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 		
 	/* step 2) draw expand widget ....................................... */
 	if (acf->has_setting(ac, ale, ACHANNEL_SETTING_EXPAND)) {
-		enabled= ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_EXPAND);
-		
-		UI_icon_draw(offset, ymid, ((enabled)? ICON_TRIA_DOWN : ICON_TRIA_RIGHT));
+		/* just skip - drawn as widget now */
 		offset += ICON_WIDTH; 
 	}
 		
@@ -1862,8 +1929,6 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 	 */
 	if (ac->sa) {
 		if ((ac->spacetype == SPACE_IPO) && acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE)) {
-			enabled= ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_VISIBLE);
-			
 			/* for F-Curves, draw color-preview of curve behind checkbox */
 			if (ale->type == ANIMTYPE_FCURVE) {
 				FCurve *fcu= (FCurve *)ale->data;
@@ -1880,16 +1945,11 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 				glRectf(offset, yminc, offset+17, ymaxc);
 			}
 			
-			/* finally the icon itself */
-			UI_icon_draw(offset, ymid, ((enabled)? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT));
+			/* icon is drawn as widget now... */
 			offset += ICON_WIDTH; 
 		}
 		else if ((ac->spacetype == SPACE_NLA) && acf->has_setting(ac, ale, ACHANNEL_SETTING_SOLO)) {
-			/* simply draw glowing dot in NLA for whether the track is enabled or not... */
-			// NOTE: assumed to be for NLA track only for now...
-			enabled= ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_SOLO);
-			
-			UI_icon_draw(offset, ymid, ((enabled)? ICON_LAYER_ACTIVE : ICON_LAYER_USED));
+			/* just skip - drawn as widget now */
 			offset += ICON_WIDTH; 
 		}
 	}
@@ -1927,20 +1987,197 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 		
 		/* protect... */
 		if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT)) {
-			enabled= ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_PROTECT);
-			
+			/* just skip - drawn as widget now */
 			offset += ICON_WIDTH;
-			UI_icon_draw(v2d->cur.xmax-(float)offset, ymid, ((enabled)? ICON_LOCKED : ICON_UNLOCKED));
 		}
 		/* mute... */
 		if (acf->has_setting(ac, ale, ACHANNEL_SETTING_MUTE)) {
-			enabled= ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_MUTE);
-			
-			offset += ICON_WIDTH; 
-			UI_icon_draw(v2d->cur.xmax-(float)offset, ymid, ((enabled)? ICON_MUTE_IPO_ON : ICON_MUTE_IPO_OFF));
+			/* just skip - drawn as widget now */
+			offset += ICON_WIDTH;
 		}
 		
 		glDisable(GL_BLEND); /* End of blending with background */
+	}
+}
+
+/* ------------------ */
+
+/* callback for widget settings - send notifiers */
+static void achannel_setting_widget_cb(bContext *C, void *poin, void *poin2)
+{
+	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+}
+
+/* Draw a widget for some setting */
+static void draw_setting_widget (bAnimContext *ac, bAnimListElem *ale, bAnimChannelType *acf, uiBlock *block, int xpos, int ypos, int setting)
+{
+	short negflag, ptrsize, enabled, butType;
+	int flag, icon;
+	void *ptr;
+	char *tooltip;
+	uiBut *but = NULL;
+	
+	/* get the flag and the pointer to that flag */
+	flag= acf->setting_flag(setting, &negflag);
+	ptr= acf->setting_ptr(ale, setting, &ptrsize);
+	enabled= ANIM_channel_setting_get(ac, ale, setting);
+	
+	/* get the base icon for the setting */
+	switch (setting) {
+		case ACHANNEL_SETTING_VISIBLE:	/* visibility checkboxes */
+			//icon= ((enabled)? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT);
+			icon= ICON_CHECKBOX_DEHLT;
+			
+			if (ale->type == ANIMTYPE_FCURVE)
+				tooltip= "F-Curve is visible in Graph Editor for editing.";
+			else
+				tooltip= "F-Curve(s) are visible in Graph Editor for editing.";
+			break;
+			
+		case ACHANNEL_SETTING_EXPAND: /* expanded triangle */
+			//icon= ((enabled)? ICON_TRIA_DOWN : ICON_TRIA_RIGHT);
+			icon= ICON_TRIA_RIGHT;
+			tooltip= "Make channels grouped under this channel visible.";
+			break;
+			
+		case ACHANNEL_SETTING_SOLO: /* NLA Tracks only */
+			//icon= ((enabled)? ICON_LAYER_ACTIVE : ICON_LAYER_USED);
+			icon= ICON_LAYER_USED;
+			tooltip= "NLA Track is the only one evaluated for the AnimData block it belongs to.";
+			break;
+		
+		/* --- */
+		
+		case ACHANNEL_SETTING_PROTECT: /* protected lock */
+			// TODO: what about when there's no protect needed?
+			//icon= ((enabled)? ICON_LOCKED : ICON_UNLOCKED);
+			icon= ICON_UNLOCKED;
+			tooltip= "Editability of keyframes for this channel.";
+			break;
+			
+		case ACHANNEL_SETTING_MUTE: /* muted eye */
+			//icon= ((enabled)? ICON_MUTE_IPO_ON : ICON_MUTE_IPO_OFF);
+			icon= ICON_MUTE_IPO_OFF;
+			tooltip= "Do channel(s) contribute to result."; // XXX
+			break;
+			
+		default:
+			tooltip= NULL;
+			icon= 0;
+			break;
+	}
+	
+	/* type of button */
+	if (negflag)
+		butType= ICONTOGN;
+	else
+		butType= ICONTOG;
+	
+	/* draw button for setting */
+	if (ptr && flag) {
+		switch (ptrsize) {
+			case sizeof(int):	/* integer pointer for setting */
+				but= uiDefIconButBitI(block, butType, flag, 0, icon, 
+						xpos, ypos, ICON_WIDTH, ICON_WIDTH, ptr, 0, 0, 0, 0, tooltip);
+				break;
+				
+			case sizeof(short):	/* short pointer for setting */
+				but= uiDefIconButBitS(block, butType, flag, 0, icon, 
+						xpos, ypos, ICON_WIDTH, ICON_WIDTH, ptr, 0, 0, 0, 0, tooltip);
+				break;
+				
+			case sizeof(char):	/* char pointer for setting */
+				but= uiDefIconButBitC(block, butType, flag, 0, icon, 
+						xpos, ypos, ICON_WIDTH, ICON_WIDTH, ptr, 0, 0, 0, 0, tooltip);
+				break;
+		}
+		
+		/* set call to send relevant notifiers */
+		// NOTE: for now, we only need to send 'edited' 
+		if (but)
+			uiButSetFunc(but, achannel_setting_widget_cb, NULL, NULL);
+	}
+}
+
+/* Draw UI widgets the given channel */
+// TODO: make this use UI controls for the buttons
+void ANIM_channel_draw_widgets (bAnimContext *ac, bAnimListElem *ale, uiBlock *block, float yminc, float ymaxc)
+{
+	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
+	View2D *v2d= &ac->ar->v2d;
+	float y, ymid, ytext;
+	short offset;
+	
+	/* sanity checks - don't draw anything */
+	if ELEM3(NULL, acf, ale, block)
+		return;
+	
+	/* get initial offset */
+	if (acf->get_offset)
+		offset= acf->get_offset(ac, ale);
+	else
+		offset= 0;
+		
+	/* calculate appropriate y-coordinates for icon buttons 
+	 *	7 is hardcoded factor for half-height of icons
+	 */
+	y= (ymaxc - yminc)/2 + yminc;
+	ymid= y - 7;
+	/* y-coordinates for text is only 4 down from middle */
+	ytext= y - 4;
+	
+	/* no button backdrop behind icons */
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	
+	/* step 1) draw expand widget ....................................... */
+	if (acf->has_setting(ac, ale, ACHANNEL_SETTING_EXPAND)) {
+		draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_EXPAND);
+		offset += ICON_WIDTH; 
+	}
+		
+	/* step 2) draw icon ............................................... */
+	if (acf->icon) {
+		/* icon is not drawn here (not a widget) */
+		offset += ICON_WIDTH; 
+	}
+		
+	/* step 3) draw special toggles  .................................
+	 *	- in Graph Editor, checkboxes for visibility in curves area
+	 *	- in NLA Editor, glowing dots for solo/not solo...
+	 */
+	if (ac->sa) {
+		if ((ac->spacetype == SPACE_IPO) && acf->has_setting(ac, ale, ACHANNEL_SETTING_VISIBLE)) {
+			/* visibility toggle  */
+			draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_VISIBLE);
+			offset += ICON_WIDTH; 
+		}
+		else if ((ac->spacetype == SPACE_NLA) && acf->has_setting(ac, ale, ACHANNEL_SETTING_SOLO)) {
+			/* 'solo' setting for NLA Tracks */
+			draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_SOLO);
+			offset += ICON_WIDTH; 
+		}
+	}
+	
+	/* step 4) draw text... */
+	/* NOTE: this is not done here, since nothing to be clicked on... */
+	
+	/* step 5) draw mute+protection toggles + (sliders) ....................... */
+	/* reset offset - now goes from RHS of panel */
+	offset = 0;
+	
+	// TODO: when drawing sliders, make those draw instead of these toggles if not enough space
+	
+	if (v2d) {
+		/* protect... */
+		if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT)) {
+			offset += ICON_WIDTH; 
+			draw_setting_widget(ac, ale, acf, block, (int)v2d->cur.xmax-offset, ymid, ACHANNEL_SETTING_PROTECT);
+		}
+		/* mute... */
+		if (acf->has_setting(ac, ale, ACHANNEL_SETTING_MUTE)) {
+			offset += ICON_WIDTH;
+			draw_setting_widget(ac, ale, acf, block, (int)v2d->cur.xmax-offset, ymid, ACHANNEL_SETTING_MUTE);
+		}
 	}
 }
 

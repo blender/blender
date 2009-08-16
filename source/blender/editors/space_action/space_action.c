@@ -243,7 +243,7 @@ static void action_channel_area_draw(const bContext *C, ARegion *ar)
 	
 	/* data */
 	if (ANIM_animdata_get_context(C, &ac)) {
-		draw_channel_names(&ac, saction, ar);
+		draw_channel_names(C, &ac, saction, ar);
 	}
 	
 	/* reset view matrix */

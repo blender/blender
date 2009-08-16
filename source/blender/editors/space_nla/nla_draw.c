@@ -592,36 +592,15 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 /* *********************************************** */
 /* Channel List */
 
-void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
+/* old code for drawing NLA channels using GL only */
+// TODO: depreceate this code...
+static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, View2D *v2d, float y)
 {
-	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
-	int filter;
-	
-	View2D *v2d= &ar->v2d;
-	float x= 0.0f, y= 0.0f;
-	int items, height;
-	
-	/* build list of channels to draw */
-	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
-	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
-	
-	/* Update max-extent of channels here (taking into account scrollers):
-	 * 	- this is done to allow the channel list to be scrollable, but must be done here
-	 * 	  to avoid regenerating the list again and/or also because channels list is drawn first
-	 *	- offset of NLACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for 
-	 *	  start of list offset, and the second is as a correction for the scrollers.
-	 */
-	height= ((items*NLACHANNEL_STEP) + (NLACHANNEL_HEIGHT*2));
-	/* don't use totrect set, as the width stays the same 
-	 * (NOTE: this is ok here, the configuration is pretty straightforward) 
-	 */
-	v2d->tot.ymin= (float)(-height);
+	float x = 0.0f;
 	
 	/* loop through channels, and set up drawing depending on their type  */	
-	y= (float)(-NLACHANNEL_HEIGHT);
-	
-	for (ale= anim_data.first; ale; ale= ale->next) {
+	for (ale= anim_data->first; ale; ale= ale->next) {
 		const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF);
 		const float ymaxc= (float)(y + NLACHANNEL_HEIGHT_HALF);
 		const float ydatac= (float)(y - 7);
@@ -716,6 +695,7 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					break;
 					
 				default: /* handled by standard channel-drawing API */
+					// draw backdrops only...
 					ANIM_channel_draw(ac, ale, yminc, ymaxc);
 					break;
 			}	
@@ -855,6 +835,66 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 		
 		/* adjust y-position for next one */
 		y -= NLACHANNEL_STEP;
+	}
+}
+
+void draw_nla_channel_list (bContext *C, bAnimContext *ac, SpaceNla *snla, ARegion *ar)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	View2D *v2d= &ar->v2d;
+	float x= 0.0f, y= 0.0f;
+	int items, height;
+	
+	/* build list of channels to draw */
+	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
+	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* Update max-extent of channels here (taking into account scrollers):
+	 * 	- this is done to allow the channel list to be scrollable, but must be done here
+	 * 	  to avoid regenerating the list again and/or also because channels list is drawn first
+	 *	- offset of NLACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for 
+	 *	  start of list offset, and the second is as a correction for the scrollers.
+	 */
+	height= ((items*NLACHANNEL_STEP) + (NLACHANNEL_HEIGHT*2));
+	/* don't use totrect set, as the width stays the same 
+	 * (NOTE: this is ok here, the configuration is pretty straightforward) 
+	 */
+	v2d->tot.ymin= (float)(-height);
+	
+	/* draw channels */
+	{	/* first pass: backdrops + oldstyle drawing */
+		y= (float)(-NLACHANNEL_HEIGHT);
+		
+		draw_nla_channel_list_gl(ac, &anim_data, v2d, y);
+	}
+	{	/* second pass: UI widgets */
+		uiBlock *block= uiBeginBlock(C, ar, "NLA channel buttons", UI_EMBOSS);
+		
+		y= (float)(-NLACHANNEL_HEIGHT);
+		
+		/* loop through channels, and set up drawing depending on their type  */	
+		for (ale= anim_data.first; ale; ale= ale->next) {
+			const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF);
+			const float ymaxc= (float)(y + NLACHANNEL_HEIGHT_HALF);
+			const float ydatac= (float)(y - 7);
+			
+			/* check if visible */
+			if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
+				 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
+			{
+				/* draw all channels using standard channel-drawing API */
+				ANIM_channel_draw_widgets(ac, ale, block, yminc, ymaxc);
+			}
+			
+			/* adjust y-position for next one */
+			y -= NLACHANNEL_STEP;
+		}
+		
+		uiEndBlock(C, block);
+		uiDrawBlock(C, block);
 	}
 	
 	/* free tempolary channels */

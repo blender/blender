@@ -338,6 +338,8 @@ bAnimChannelType *ANIM_channel_get_typeinfo(bAnimListElem *ale);
 
 /* Draw the given channel */
 void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc);
+/* Draw the widgets for the given channel */
+void ANIM_channel_draw_widgets(bAnimContext *ac, bAnimListElem *ale, struct uiBlock *block, float yminc, float ymaxc);
 
 
 /* ------------------------ Editing API -------------------------- */

@@ -1277,11 +1277,7 @@ void ANIM_OT_channels_select_border(wmOperatorType *ot)
 }
 
 /* ******************** Mouse-Click Operator *********************** */
-/* Depending on the channel that was clicked on, the mouse click will activate whichever
- * part of the channel is relevant.
- *
- * NOTE: eventually, this should probably be phased out when many of these things are replaced with buttons
- */
+/* Handle selection changes due to clicking on channels. Settings will get caught by UI code... */
 
 static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, short selectmode)
 {
@@ -1319,24 +1315,16 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 		{
 			Scene *sce= (Scene *)ale->data;
 			
-			if (x < 16) {
-				/* toggle expand */
-				sce->flag ^= SCE_DS_COLLAPSED;
-				
-				notifierFlags |= ND_ANIMCHAN_EDIT;
+			/* set selection status */
+			if (selectmode == SELECT_INVERT) {
+				/* swap select */
+				sce->flag ^= SCE_DS_SELECTED;
 			}
 			else {
-				/* set selection status */
-				if (selectmode == SELECT_INVERT) {
-					/* swap select */
-					sce->flag ^= SCE_DS_SELECTED;
-				}
-				else {
-					sce->flag |= SCE_DS_SELECTED;
-				}
-				
-				notifierFlags |= ND_ANIMCHAN_SELECT;
+				sce->flag |= SCE_DS_SELECTED;
 			}
+			
+			notifierFlags |= ND_ANIMCHAN_SELECT;
 		}
 			break;
 		case ANIMTYPE_OBJECT:
@@ -1346,233 +1334,87 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 			Base *base= (Base *)ale->data;
 			Object *ob= base->object;
 			
-			if (x < 16) {
-				/* toggle expand */
-				ob->nlaflag ^= OB_ADS_COLLAPSED; // XXX 
-				
-				notifierFlags |= ND_ANIMCHAN_EDIT;
+			/* set selection status */
+			if (selectmode == SELECT_INVERT) {
+				/* swap select */
+				base->flag ^= SELECT;
+				ob->flag= base->flag;
 			}
 			else {
-				/* set selection status */
-				if (selectmode == SELECT_INVERT) {
-					/* swap select */
-					base->flag ^= SELECT;
-					ob->flag= base->flag;
-				}
-				else {
-					Base *b;
-					
-					/* deleselect all */
-					for (b= sce->base.first; b; b= b->next) {
-						b->flag &= ~SELECT;
-						b->object->flag= b->flag;
-					}
-					
-					/* select object now */
-					base->flag |= SELECT;
-					ob->flag |= SELECT;
+				Base *b;
+				
+				/* deleselect all */
+				for (b= sce->base.first; b; b= b->next) {
+					b->flag &= ~SELECT;
+					b->object->flag= b->flag;
 				}
 				
-				/* xxx should be ED_base_object_activate(), but we need context pointer for that... */
-				//set_active_base(base);
-				
-				notifierFlags |= ND_ANIMCHAN_SELECT;
+				/* select object now */
+				base->flag |= SELECT;
+				ob->flag |= SELECT;
 			}
-		}
-			break;
-		case ANIMTYPE_FILLACTD:
-		{
-			bAction *act= (bAction *)ale->data;
-			act->flag ^= ACT_COLLAPSED;
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
-		case ANIMTYPE_FILLDRIVERS:
-		{
-			AnimData *adt= (AnimData* )ale->data;
-			adt->flag ^= ADT_DRIVERS_COLLAPSED;
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
-		case ANIMTYPE_FILLMATD:
-		{
-			Object *ob= (Object *)ale->data;
-			ob->nlaflag ^= OB_ADS_SHOWMATS;	// XXX 
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
-		case ANIMTYPE_FILLPARTD:
-		{
-			Object *ob= (Object *)ale->data;
-			ob->nlaflag ^= OB_ADS_SHOWPARTS;	// XXX 
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
-				
-		case ANIMTYPE_DSMAT:
-		{
-			Material *ma= (Material *)ale->data;
-			ma->flag ^= MA_DS_EXPAND;
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
-		case ANIMTYPE_DSLAM:
-		{
-			Lamp *la= (Lamp *)ale->data;
-			la->flag ^= LA_DS_EXPAND;
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
-		case ANIMTYPE_DSCAM:
-		{
-			Camera *ca= (Camera *)ale->data;
-			ca->flag ^= CAM_DS_EXPAND;
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
-		case ANIMTYPE_DSCUR:
-		{
-			Curve *cu= (Curve *)ale->data;
-			cu->flag ^= CU_DS_EXPAND;
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
-		case ANIMTYPE_DSSKEY:
-		{
-			Key *key= (Key *)ale->data;
-			key->flag ^= KEYBLOCK_DS_EXPAND;
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
-		case ANIMTYPE_DSWOR:
-		{
-			World *wo= (World *)ale->data;
-			wo->flag ^= WO_DS_EXPAND;
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
-		case ANIMTYPE_DSPART:
-		{
-			ParticleSettings *part= (ParticleSettings *)ale->data;
-			part->flag ^= PART_DS_EXPAND;
-			notifierFlags |= ND_ANIMCHAN_EDIT;
-		}
-			break;
-		case ANIMTYPE_DSMBALL:
-		{
-			MetaBall *mb= (MetaBall *)ale->data;
-			mb->flag2 ^= MB_DS_EXPAND;
-			notifierFlags |= ND_ANIMCHAN_EDIT;
+			
+			/* xxx should be ED_base_object_activate(), but we need context pointer for that... */
+			//set_active_base(base);
+			
+			notifierFlags |= ND_ANIMCHAN_SELECT;
 		}
 			break;
 			
 		case ANIMTYPE_GROUP: 
 		{
 			bActionGroup *agrp= (bActionGroup *)ale->data;
-			short offset= (ELEM3(ac->datatype, ANIMCONT_DOPESHEET, ANIMCONT_FCURVES, ANIMCONT_DRIVERS))? 18 : 0;
 			
-			if ((x < (offset+17)) && (agrp->channels.first)) {
-				/* toggle expand */
-				agrp->flag ^= AGRP_EXPANDED;
-				notifierFlags |= ND_ANIMCHAN_EDIT;
+			/* select/deselect group */
+			if (selectmode == SELECT_INVERT) {
+				/* inverse selection status of this group only */
+				agrp->flag ^= AGRP_SELECTED;
 			}
-			else if ((x < (offset+32)) && (ac->spacetype==SPACE_IPO)) {
-				/* toggle visibility (of grouped F-Curves in Graph editor) */
-				agrp->flag ^= AGRP_NOTVISIBLE;
-				notifierFlags |= ND_ANIMCHAN_EDIT;
-			}
-			else if (x >= (ACHANNEL_NAMEWIDTH-ACHANNEL_BUTTON_WIDTH)) {
-				/* toggle protection/locking */
-				agrp->flag ^= AGRP_PROTECTED;
-				notifierFlags |= ND_ANIMCHAN_EDIT;
-			}
-			else if (x >= (ACHANNEL_NAMEWIDTH-2*ACHANNEL_BUTTON_WIDTH)) {
-				/* toggle mute */
-				agrp->flag ^= AGRP_MUTED;
-				notifierFlags |= ND_ANIMCHAN_EDIT;
+			else if (selectmode == -1) {
+				/* select all in group (and deselect everthing else) */	
+				FCurve *fcu;
+				
+				/* deselect all other channels */
+				ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+				
+				/* only select channels in group and group itself */
+				for (fcu= agrp->channels.first; fcu && fcu->grp==agrp; fcu= fcu->next)
+					fcu->flag |= FCURVE_SELECTED;
+				agrp->flag |= AGRP_SELECTED;					
 			}
 			else {
-				/* select/deselect group */
-				if (selectmode == SELECT_INVERT) {
-					/* inverse selection status of this group only */
-					agrp->flag ^= AGRP_SELECTED;
-				}
-				else if (selectmode == -1) {
-					/* select all in group (and deselect everthing else) */	
-					FCurve *fcu;
-					
-					/* deselect all other channels */
-					ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
-					
-					/* only select channels in group and group itself */
-					for (fcu= agrp->channels.first; fcu && fcu->grp==agrp; fcu= fcu->next)
-						fcu->flag |= FCURVE_SELECTED;
-					agrp->flag |= AGRP_SELECTED;					
-				}
-				else {
-					/* select group by itself */
-					ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
-					agrp->flag |= AGRP_SELECTED;
-				}
-				
-				/* if group is selected now, make group the 'active' one in the visible list */
-				if (agrp->flag & AGRP_SELECTED)
-					ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, agrp, ANIMTYPE_GROUP);
-					
-				notifierFlags |= ND_ANIMCHAN_SELECT;
+				/* select group by itself */
+				ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+				agrp->flag |= AGRP_SELECTED;
 			}
+			
+			/* if group is selected now, make group the 'active' one in the visible list */
+			if (agrp->flag & AGRP_SELECTED)
+				ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, agrp, ANIMTYPE_GROUP);
+				
+			notifierFlags |= ND_ANIMCHAN_SELECT;
 		}
 			break;
 		case ANIMTYPE_FCURVE: 
 		{
 			FCurve *fcu= (FCurve *)ale->data;
-			short offset;
 			
-			if (ac->datatype != ANIMCONT_ACTION) {
-				/* for now, special case for materials */
-				if (ale->ownertype == ANIMTYPE_DSMAT)
-					offset= 21;
-				else
-					offset= 18;
-			}
-			else
-				offset = 0;
-			
-			if (x >= (ACHANNEL_NAMEWIDTH-ACHANNEL_BUTTON_WIDTH)) {
-				/* toggle protection (only if there's a toggle there) */
-				if (fcu->bezt) {
-					fcu->flag ^= FCURVE_PROTECTED;
-					notifierFlags |= ND_ANIMCHAN_EDIT;
-				}
-			}
-			else if (x >= (ACHANNEL_NAMEWIDTH-2*ACHANNEL_BUTTON_WIDTH)) {
-				/* toggle mute */
-				fcu->flag ^= FCURVE_MUTED;
-				notifierFlags |= ND_ANIMCHAN_EDIT;
-			}
-			else if ((x < (offset+17)) && (ac->spacetype==SPACE_IPO)) {
-				/* toggle visibility */
-				fcu->flag ^= FCURVE_VISIBLE;
-				notifierFlags |= ND_ANIMCHAN_EDIT;
+			/* select/deselect */
+			if (selectmode == SELECT_INVERT) {
+				/* inverse selection status of this F-Curve only */
+				fcu->flag ^= FCURVE_SELECTED;
 			}
 			else {
-				/* select/deselect */
-				if (selectmode == SELECT_INVERT) {
-					/* inverse selection status of this F-Curve only */
-					fcu->flag ^= FCURVE_SELECTED;
-				}
-				else {
-					/* select F-Curve by itself */
-					ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
-					fcu->flag |= FCURVE_SELECTED;
-				}
-				
-				/* if F-Curve is selected now, make F-Curve the 'active' one in the visible list */
-				if (fcu->flag & FCURVE_SELECTED)
-					ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
-					
-				notifierFlags |= ND_ANIMCHAN_SELECT;
+				/* select F-Curve by itself */
+				ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+				fcu->flag |= FCURVE_SELECTED;
 			}
+			
+			/* if F-Curve is selected now, make F-Curve the 'active' one in the visible list */
+			if (fcu->flag & FCURVE_SELECTED)
+				ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
+				
+			notifierFlags |= ND_ANIMCHAN_SELECT;
 		}
 			break;
 		case ANIMTYPE_GPDATABLOCK:
