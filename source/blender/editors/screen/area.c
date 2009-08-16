@@ -1309,7 +1309,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	HeaderType *ht;
 	Header header = {0};
 	float col[3];
-	int xco, yco;
+	int maxco, xco, yco;
 
 	/* clear */
 	if(ED_screen_area_active(C))
@@ -1323,7 +1323,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	/* set view2d view matrix for scrolling (without scrollers) */
 	UI_view2d_view_ortho(C, &ar->v2d);
 
-	xco= 8;
+	xco= maxco= 8;
 	yco= HEADERY-3;
 
 	/* draw all headers types */
@@ -1335,15 +1335,25 @@ void ED_region_header(const bContext *C, ARegion *ar)
 			header.type= ht;
 			header.layout= layout;
 			ht->draw(C, &header);
+			
+			/* for view2d */
+			xco= uiLayoutGetWidth(layout);
+			if(xco > maxco)
+				maxco= xco;
 		}
 
 		uiBlockLayoutResolve(C, block, &xco, &yco);
+		
+		/* for view2d */
+		if(xco > maxco)
+			maxco= xco;
+		
 		uiEndBlock(C, block);
 		uiDrawBlock(C, block);
 	}
 
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
+	UI_view2d_totRect_set(&ar->v2d, maxco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
 
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);

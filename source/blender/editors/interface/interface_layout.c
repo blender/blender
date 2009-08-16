@@ -1973,6 +1973,11 @@ int uiLayoutGetAlignment(uiLayout *layout)
 	return layout->alignment;
 }
 
+int uiLayoutGetWidth(uiLayout *layout)
+{
+	return layout->w;
+}
+
 float uiLayoutGetScaleX(uiLayout *layout)
 {
 	return layout->scale[0];

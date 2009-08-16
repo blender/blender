@@ -608,6 +608,7 @@ int uiLayoutGetEnabled(uiLayout *layout);
 int uiLayoutGetRedAlert(uiLayout *layout);
 int uiLayoutGetAlignment(uiLayout *layout);
 int uiLayoutGetKeepAspect(uiLayout *layout);
+int uiLayoutGetWidth(uiLayout *layout);
 float uiLayoutGetScaleX(uiLayout *layout);
 float uiLayoutGetScaleY(uiLayout *layout);
 ListBase *uiLayoutBoxGetList(uiLayout *layout);

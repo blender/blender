@@ -3809,9 +3809,8 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 		}
 	}
-
-	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, maxco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
+	
+	/* do not do view2d totrect set here, it's now a template */
 	
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);
