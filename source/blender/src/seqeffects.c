@@ -2791,6 +2791,10 @@ void sequence_effect_speed_rebuild_map(struct Sequence * seq, int force)
 	if (!(force || seq->len != v->length || !v->frameMap)) {
 		return;
 	}
+	if (!seq->seq1) { /* make coverity happy and check for 
+			     input strip ... */
+		return;
+	}
 
 	if (!v->frameMap || v->length != seq->len) {
 		if (v->frameMap) MEM_freeN(v->frameMap);
@@ -2807,7 +2811,7 @@ void sequence_effect_speed_rebuild_map(struct Sequence * seq, int force)
 	   strip */
 
 	if ((!seq->ipo || !seq->ipo->curve.first) && 
-	    seq->seq1 && seq->seq1->enddisp != seq->seq1->start
+	    seq->seq1->enddisp != seq->seq1->start
 	    && seq->seq1->len != 0) {
 		fallback_fac = (float) seq->seq1->len / 
 			(float) (seq->seq1->enddisp - seq->seq1->start);
