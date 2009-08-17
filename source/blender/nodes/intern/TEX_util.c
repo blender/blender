@@ -149,7 +149,7 @@ void tex_do_preview(bNode *node, bNodeStack *ns, TexCallData *cdata)
 	
 	params.dxt = 0;
 	params.dyt = 0;
-	params.cfra = 0; /* XXX Use current? */
+	params.cfra = cdata->cfra;
 	params.coord = coord;
 	
 	for(x=0; x<preview->xsize; x++)
