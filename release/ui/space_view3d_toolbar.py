@@ -304,10 +304,6 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 				sub_col.itemO("paint.brush_slot_add", icon="ICON_ZOOMIN", text="")
 				sub_col.itemO("paint.brush_slot_remove", icon="ICON_ZOOMOUT", text="")
 
-		if context.sculpt_object:
-			col.template_ID(settings, "brush")
-			col.item_menu_enumO("sculpt.brush_add", "sculpt_tool");
-		else:
 			col.template_ID(settings, "brush", new="brush.add")
                 
 		# Particle Mode #
@@ -336,9 +332,10 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 				layout.itemR(brush, "puff_mode", expand=True)
 
 		# Sculpt Mode #
-		
+
 		elif context.sculpt_object and settings.brush:
 			col = layout.column()
+			col.itemS()
 				
 			row = col.row(align=True)
 			row.itemR(brush, "size", slider=True)
