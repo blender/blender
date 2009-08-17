@@ -141,12 +141,11 @@ typedef struct PointDensity {
 	int pdpad;
 
 	struct Object *object;	/* for 'Object' or 'Particle system' type - source object */
+	struct ParticleSystem *psys;
 	short psys_cache_space;		/* cache points in worldspace, object space, ... ? */
-	short psysindex;		/* for 'Particle system' type - object's psys number */
-	
 	short ob_cache_space;		/* cache points in worldspace, object space, ... ? */
 	
-	short pdpad2;
+	short pdpad2[2];
 	
 	void *point_tree;		/* the acceleration tree containing points */
 	float *point_data;		/* dynamically allocated extra for extra information, like particle age */

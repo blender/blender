@@ -680,8 +680,18 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel):
 		pd = tex.pointdensity
 
 		layout.itemR(pd, "point_source")
-
+		layout.itemR(pd, "object")
+		if pd.point_source == 'PARTICLE_SYSTEM':
+			layout.item_pointerR(pd, "particle_system", pd.object, "particle_systems", text="")
+		layout.itemR(pd, "radius")
 		layout.itemR(pd, "falloff")
+		if pd.falloff == 'SOFT':
+			layout.itemR(pd, "falloff_softness")
+		layout.itemR(pd, "color_source")
+		layout.itemR(pd, "turbulence")
+		layout.itemR(pd, "turbulence_size")
+		layout.itemR(pd, "turbulence_depth")
+		layout.itemR(pd, "turbulence_influence")
 		
 
 bpy.types.register(TEXTURE_PT_context_texture)

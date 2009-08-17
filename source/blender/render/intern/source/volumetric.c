@@ -93,10 +93,7 @@ static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, 
 	if (intersect_type == VOL_BOUNDS_DEPTH) isect->faceorig= (RayFace*)shi->vlr;
 	else if (intersect_type == VOL_BOUNDS_SS) isect->faceorig= NULL;
 	
-	if (checkfunc==VOL_IS_BACKFACE)
-		intersected = RE_ray_tree_intersect_check(R.raytree, isect, vol_backface_intersect_check);
-	else
-		intersected = RE_ray_tree_intersect(R.raytree, isect);
+	intersected = RE_ray_tree_intersect(R.raytree, isect);
 	
 	if(intersected)
 	{

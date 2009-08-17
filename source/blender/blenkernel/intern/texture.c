@@ -922,6 +922,8 @@ PointDensity *BKE_add_pointdensity(void)
 	pd->speed_scale = 1.0f;
 	pd->totpoints = 0;
 	pd->coba = add_colorband(1);
+	pd->object = NULL;
+	pd->psys = NULL;
 	return pd;
 } 
 
@@ -982,6 +984,7 @@ struct VoxelData *BKE_add_voxeldata(void)
 	vd->interp_type= TEX_VD_LINEAR;
 	vd->file_format= TEX_VD_SMOKE;
 	vd->int_multiplier = 1.0;
+	vd->object = NULL;
 	
 	return vd;
  }
