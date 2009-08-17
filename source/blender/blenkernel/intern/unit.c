@@ -317,11 +317,14 @@ static int ch_is_op(char op)
 	case '*':
 	case '/':
 	case '|':
+	case '&':
+	case '~':
 	case '<':
 	case '>':
 	case '^':
 	case '!':
 	case '=':
+	case '%':
 		return 1;
 	default:
 		return 0;
