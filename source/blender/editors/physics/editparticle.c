@@ -109,7 +109,8 @@ static int PE_poll(bContext *C)
 
 static int PE_poll_3dview(bContext *C)
 {
-	return PE_poll(C) && CTX_wm_region_view3d(C);
+	return PE_poll(C) && CTX_wm_area(C)->spacetype == SPACE_VIEW3D &&
+		CTX_wm_region(C)->regiontype == RGN_TYPE_WINDOW;
 }
 
 static void PE_free_particle_edit(ParticleSystem *psys)
@@ -2260,7 +2261,7 @@ static void toggle_particle_cursor(bContext *C, int enable)
 		pset->paintcursor = NULL;
 	}
 	else if(enable)
-		pset->paintcursor= WM_paint_cursor_activate(CTX_wm_manager(C), PE_poll, brush_drawcursor, NULL);
+		pset->paintcursor= WM_paint_cursor_activate(CTX_wm_manager(C), PE_poll_3dview, brush_drawcursor, NULL);
 }
 
 /********************* radial control operator *********************/
