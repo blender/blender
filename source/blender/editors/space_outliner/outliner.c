@@ -3926,7 +3926,7 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 			short groupmode= KSP_GROUP_KSNAME;
 			
 			/* check if RNA-property described by this selected element is an animateable prop */
-			if ((tselem->type == TSE_RNA_PROPERTY) && RNA_property_animateable(&te->rnaptr, te->directdata)) {
+			if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM) && RNA_property_animateable(&te->rnaptr, te->directdata)) {
 				/* get id + path + index info from the selected element */
 				tree_element_to_path(soops, te, tselem, 
 						&id, &path, &array_index, &flag, &groupmode);
@@ -3963,8 +3963,6 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 				/* free path, since it had to be generated */
 				MEM_freeN(path);
 			}
-			
-			
 		}
 		
 		/* go over sub-tree */

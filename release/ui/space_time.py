@@ -39,7 +39,7 @@ class TIME_HT_header(bpy.types.Header):
 		layout.itemS()
 
 		row = layout.row(align=True)
-		row.itemO("screen.frame_jump", text="", icon='ICON_REW')
+		row.item_booleanO("screen.frame_jump", "end", False, text="", icon='ICON_REW')
 		row.item_booleanO("screen.keyframe_jump", "next", False, text="", icon='ICON_PREV_KEYFRAME')
 		if not screen.animation_playing:
 			row.item_booleanO("screen.animation_play", "reverse", True, text="", icon='ICON_PLAY_REVERSE')
@@ -67,9 +67,9 @@ class TIME_HT_header(bpy.types.Header):
 			subsub.itemR(tools, "record_with_nla", toggle=True)
 		
 		layout.itemS()
-
+		
 		row = layout.row(align=True)
-		row.itemR(scene, "active_keyingset")
+		row.itemR(scene, "active_keying_set", text="")
 		row.itemO("anim.insert_keyframe", text="", icon="ICON_KEY_HLT")
 		row.itemO("anim.delete_keyframe", text="", icon="ICON_KEY_DEHLT")
 
