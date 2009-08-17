@@ -292,7 +292,6 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 		
 		settings = self.paint_settings(context)
 		brush = settings.brush
-		paint = context.sculpt_object or context.vertex_paint_object
 
 		if not context.particle_edit_object:
 			col = layout.split().column()

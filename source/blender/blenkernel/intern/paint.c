@@ -52,8 +52,7 @@ Paint *paint_get_active(Scene *sce)
 		case OB_MODE_WEIGHT_PAINT:
 			return &ts->wpaint->paint;
 		case OB_MODE_TEXTURE_PAINT:
-			break;
-			//return &ts->imapaint->paint;
+			return &ts->imapaint.paint;
 		}
 	}
 
@@ -67,14 +66,14 @@ Brush *paint_brush(Paint *p)
 
 void paint_brush_set(Paint *p, Brush *br)
 {
-	if(!br) {
+	if(p && !br) {
 		/* Setting to NULL removes the current slot */
 		paint_brush_slot_remove(p);
 	}
-	else {
+	else if(p) {
 		int found = 0;
 	
-		if(p && p->brushes) {
+		if(p->brushes) {
 			int i;
 			
 			/* See if there's already a slot with the brush */
