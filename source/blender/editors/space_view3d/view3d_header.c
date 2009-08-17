@@ -1872,6 +1872,8 @@ static void do_view3d_edit_objectmenu(bContext *C, void *arg, int event)
 }
 #endif
 
+#if 0
+/* visible buttons ported to python, check ifedout buttons */
 static void view3d_edit_mesh_verticesmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	uiItemO(layout, "Merge...", 0, "MESH_OT_merge");
@@ -1891,45 +1893,10 @@ static void view3d_edit_mesh_verticesmenu(bContext *C, uiLayout *layout, void *a
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Hook|Ctrl H",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, ""); // make_parent();
 #endif
 }
-
-void do_view3d_edit_mesh_edgesmenu(bContext *C, void *arg, int event)
-{
-#if 0
-	Scene *scene= CTX_data_scene(C);
-	float fac;
-	short randfac;
-
-	switch(event) {
-	case 9: /* Crease SubSurf */
-		if(!multires_level1_test()) {
-			initTransform(TFM_CREASE, CTX_EDGE);
-			Transform();
-		}
-		break;
-	case 12: /* Edgeslide */
-		EdgeSlide(0,0.0);
-		break;
-	case 13: /* Edge Loop Delete */
-		if(EdgeLoopDelete()) {
-			countall();
-			ED_undo_push(C, "Erase Edge Loop");
-			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		}
-		break;
-	case 14: /*Collapse Edges*/
-		collapseEdges();
-		ED_undo_push(C, "Collapse");
-		break;
-	case 17: /* Adjust Bevel Weight */
-		if(!multires_level1_test()) {
-			initTransform(TFM_BWEIGHT, CTX_EDGE);
-			Transform();
-		}
-		break;
-	}
 #endif
-}
 
+#if 0
+/* visible buttons ported to python, check ifedout buttons */
 static void view3d_edit_mesh_edgesmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	uiItemO(layout, NULL, 0, "MESH_OT_edge_face_add");
@@ -1976,34 +1943,7 @@ static void view3d_edit_mesh_edgesmenu(bContext *C, uiLayout *layout, void *arg_
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Collapse",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");	
 #endif
 }
-
-static void view3d_edit_mesh_facesmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "MESH_OT_edge_face_add");
-	uiItemO(layout, NULL, 0, "MESH_OT_fill");
-	uiItemO(layout, NULL, 0, "MESH_OT_beauty_fill");
-
-	uiItemS(layout);
-
-	uiItemO(layout, NULL, 0, "MESH_OT_quads_convert_to_tris");
-	uiItemO(layout, NULL, 0, "MESH_OT_tris_convert_to_quads");
-	uiItemO(layout, NULL, 0, "MESH_OT_edge_flip");
-
-	uiItemS(layout);
-
-	uiItemO(layout, NULL, 0, "MESH_OT_faces_shade_smooth");
-	uiItemO(layout, NULL, 0, "MESH_OT_faces_shade_flat");
-}
-
-static void view3d_edit_mesh_normalsmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, "Recalculate Outside", 0, "MESH_OT_normals_make_consistent");
-	uiItemBooleanO(layout, "Recalculate Inside", 0, "MESH_OT_normals_make_consistent", "inside", 1);
-
-	uiItemS(layout);
-
-	uiItemO(layout, NULL, 0, "MESH_OT_flip_normals");
-}
+#endif
 
 #if 0
 void do_view3d_edit_mirrormenu(bContext *C, void *arg, int event)
@@ -2078,13 +2018,6 @@ static uiBlock *view3d_edit_mirrormenu(bContext *C, ARegion *ar, void *arg_unuse
 }
 #endif
 
-static void view3d_edit_mesh_showhidemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "MESH_OT_reveal");
-	uiItemO(layout, NULL, 0, "MESH_OT_hide");
-	uiItemBooleanO(layout, "Hide Unselected", 0, "MESH_OT_hide", "unselected", 1);
-}
-
 #ifndef DISABLE_PYTHON
 #if 0
 static void do_view3d_edit_mesh_scriptsmenu(bContext *C, void *arg, int event)
@@ -2134,6 +2067,8 @@ static void do_view3d_edit_meshmenu(bContext *C, void *arg, int event)
 }
 #endif
 
+#if 0
+/* visible buttons ported to python, check ifedout buttons */
 static void view3d_edit_meshmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -2200,7 +2135,10 @@ static void view3d_edit_meshmenu(bContext *C, uiLayout *layout, void *arg_unused
 #endif
 #endif
 }
+#endif
 
+#if 0
+/* visible buttons ported to python, check ifedout buttons */
 static void view3d_edit_curve_controlpointsmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -2224,20 +2162,10 @@ static void view3d_edit_curve_controlpointsmenu(bContext *C, uiLayout *layout, v
 	// XXX uiItemO(layout, NULL, 0, "OBJECT_OT_add_hook"); Add Hook| Ctrl H
 	// add_hook_menu()
 }
+#endif
 
-static void view3d_edit_curve_segmentsmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "CURVE_OT_subdivide");
-	uiItemO(layout, NULL, 0, "CURVE_OT_switch_direction");
-}
-
-static void view3d_edit_curve_showhidemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "CURVE_OT_reveal");
-	uiItemO(layout, NULL, 0, "CURVE_OT_hide");
-	uiItemBooleanO(layout, "Hide Unselected", 0, "CURVE_OT_hide", "unselected", 1);
-}
-
+#if 0
+/* visible buttons ported to python, check ifedout buttons */
 static void view3d_edit_curvemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -2283,83 +2211,10 @@ static void view3d_edit_curvemenu(bContext *C, uiLayout *layout, void *arg_unuse
 
 	uiItemMenuF(layout, "Show/Hide Control Points", 0, view3d_edit_curve_showhidemenu);
 }
+#endif
 
-static void view3d_edit_metaball_showhidemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "MBALL_OT_hide_metaelems");
-	uiItemO(layout, NULL, 0, "MBALL_OT_reveal_metaelems");
-	uiItemBooleanO(layout, "Hide Unselected", 0, "MBALL_OT_hide_metaelems", "unselected", 1);
-}
-
-static void view3d_edit_metaballmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	Scene *scene= CTX_data_scene(C);
-	ToolSettings *ts= CTX_data_tool_settings(C);
-	PointerRNA tsptr;
-	
-	RNA_pointer_create(&scene->id, &RNA_ToolSettings, ts, &tsptr);
-
-	uiItemO(layout, "Undo Editing", 0, "ED_OT_undo");
-	uiItemO(layout, "Redo Editing", 0, "ED_OT_redo");
-
-	uiItemS(layout);
-
-	uiItemMenuF(layout, "Snap", 0, view3d_edit_snapmenu);
-	
-	uiItemS(layout);
-	
-	uiItemO(layout, NULL, 0, "MBALL_OT_delete_metaelems");
-	uiItemO(layout, NULL, 0, "MBALL_OT_duplicate_metaelems");
-	
-	uiItemS(layout);
-	
-	uiItemR(layout, NULL, 0, &tsptr, "proportional_editing", 0, 0, 0); // |O
-	uiItemMenuEnumR(layout, NULL, 0, &tsptr, "proportional_editing_falloff"); // |Shift O
-	
-	uiItemS(layout);
-	
-	uiItemMenuF(layout, "Show/Hide Control Points", 0, view3d_edit_metaball_showhidemenu);
-}
-
-static void view3d_edit_text_charsmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	/* the character codes are specified in UTF-8 */
-
-	uiItemStringO(layout, "Copyright|Alt C", 0, "FONT_OT_text_insert", "text", "\xC2\xA9");
-	uiItemStringO(layout, "Registered Trademark|Alt R", 0, "FONT_OT_text_insert", "text", "\xC2\xAE");
-
-	uiItemS(layout);
-
-	uiItemStringO(layout, "Degree Sign|Alt G", 0, "FONT_OT_text_insert", "text", "\xC2\xB0");
-	uiItemStringO(layout, "Multiplication Sign|Alt x", 0, "FONT_OT_text_insert", "text", "\xC3\x97");
-	uiItemStringO(layout, "Circle|Alt .", 0, "FONT_OT_text_insert", "text", "\xC2\x8A");
-	uiItemStringO(layout, "Superscript 1|Alt 1", 0, "FONT_OT_text_insert", "text", "\xC2\xB9");
-	uiItemStringO(layout, "Superscript 2|Alt 2", 0, "FONT_OT_text_insert", "text", "\xC2\xB2");
-	uiItemStringO(layout, "Superscript 3|Alt 3", 0, "FONT_OT_text_insert", "text", "\xC2\xB3");
-	uiItemStringO(layout, "Double >>|Alt >", 0, "FONT_OT_text_insert", "text", "\xC2\xBB");
-	uiItemStringO(layout, "Double <<|Alt <", 0, "FONT_OT_text_insert", "text", "\xC2\xAB");
-	uiItemStringO(layout, "Promillage|Alt %", 0, "FONT_OT_text_insert", "text", "\xE2\x80\xB0");
-	
-	uiItemS(layout);
-	
-	uiItemStringO(layout, "Dutch Florin|Alt F", 0, "FONT_OT_text_insert", "text", "\xC2\xA4");
-	uiItemStringO(layout, "British Pound|Alt L", 0, "FONT_OT_text_insert", "text", "\xC2\xA3");
-	uiItemStringO(layout, "Japanese Yen|Alt Y", 0, "FONT_OT_text_insert", "text", "\xC2\xA5");
-	
-	uiItemS(layout);
-	
-	uiItemStringO(layout, "German S|Alt S", 0, "FONT_OT_text_insert", "text", "\xC3\x9F");
-	uiItemStringO(layout, "Spanish Question Mark|Alt ?", 0, "FONT_OT_text_insert", "text", "\xC2\xBF");
-	uiItemStringO(layout, "Spanish Exclamation Mark|Alt !", 0, "FONT_OT_text_insert", "text", "\xC2\xA1");
-}
-
-static void view3d_edit_textmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "FONT_OT_file_paste");
-	uiItemS(layout);
-	uiItemMenuF(layout, "Special Characters", 0, view3d_edit_text_charsmenu);
-}
-
+#if 0
+/* visible buttons ported to python, check ifedout buttons */
 static void view3d_edit_latticemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -2393,32 +2248,7 @@ static void view3d_edit_latticemenu(bContext *C, uiLayout *layout, void *arg_unu
 	uiItemR(layout, NULL, 0, &tsptr, "proportional_editing", 0, 0, 0); // |O
 	uiItemMenuEnumR(layout, NULL, 0, &tsptr, "proportional_editing_falloff"); // |Shift O
 }
-
-
-static void view3d_edit_armature_parentmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemO(layout, NULL, 0, "ARMATURE_OT_parent_set");
-	uiItemO(layout, NULL, 0, "ARMATURE_OT_parent_clear");
-}
-
-static void view3d_edit_armature_rollmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	/* 0 = 'Global', 1 = 'Cursor' */
-	// TODO: keep these in sync...
-	uiItemEnumO(layout, "Clear Roll (Z-Axis Up)", 0, "ARMATURE_OT_calculate_roll", "type", 0);
-	uiItemEnumO(layout, "Roll to Cursor", 0, "ARMATURE_OT_calculate_roll", "type", 1);
-	
-	uiItemS(layout);
-	
-	uiItemEnumO(layout, "Set Roll", 0, "TFM_OT_transform", "mode", TFM_BONE_ROLL);
-}
-
-static void view3d_edit_armature_settingsmenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	uiItemEnumO(layout, "Toggle a Setting", 0, "ARMATURE_OT_flags_set", "mode", 2);
-	uiItemEnumO(layout, "Enable a Setting", 0, "ARMATURE_OT_flags_set", "mode", 1);
-	uiItemEnumO(layout, "Disable a Setting", 0, "ARMATURE_OT_flags_set", "mode", 0);
-}
+#endif
 
 #if 0
 static void do_view3d_edit_armaturemenu(bContext *C, void *arg, int event)
@@ -2444,6 +2274,8 @@ static void do_view3d_edit_armaturemenu(bContext *C, void *arg, int event)
 }
 #endif
 
+#if 0
+/* visible buttons ported to python, check ifedout buttons */
 static void view3d_edit_armaturemenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -2499,7 +2331,7 @@ static void view3d_edit_armaturemenu(bContext *C, uiLayout *layout, void *arg_un
 	
 	uiItemMenuF(layout, "Bone Settings ", 0, view3d_edit_armature_settingsmenu);
 }
-
+#endif
 
 static void view3d_pose_armature_transformmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
@@ -3271,36 +3103,6 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 	xco+= xmax;
 	
 	if (obedit) {
-		if (ob && ob->type == OB_MESH) {
-			xmax= GetButStringLength("Mesh");
-			uiDefMenuBut(block, view3d_edit_meshmenu, NULL, "Mesh",	xco,yco, xmax-3, 20, "");
-			xco+= xmax;
-		} else if (ob && ob->type == OB_CURVE) {
-			xmax= GetButStringLength("Curve");
-			uiDefMenuBut(block, view3d_edit_curvemenu, NULL, "Curve", xco, yco, xmax-3, 20, "");
-			xco+= xmax;
-		} else if (ob && ob->type == OB_SURF) {
-			xmax= GetButStringLength("Surface");
-			uiDefMenuBut(block, view3d_edit_curvemenu, NULL, "Surface", xco, yco, xmax-3, 20, "");
-			xco+= xmax;
-		} else if (ob && ob->type == OB_FONT) {
-			xmax= GetButStringLength("Text");
-			uiDefMenuBut(block, view3d_edit_textmenu, NULL, "Text", xco, yco, xmax-3, 20, "");
-			xco+= xmax;
-		} else if (ob && ob->type == OB_MBALL) {
-			xmax= GetButStringLength("Metaball");
-			uiDefMenuBut(block, view3d_edit_metaballmenu, NULL, "Metaball",	xco,yco, xmax-3, 20, "");
-			xco+= xmax;
-		} else if (ob && ob->type == OB_LATTICE) {
-			xmax= GetButStringLength("Lattice");
-			uiDefMenuBut(block, view3d_edit_latticemenu, NULL, "Lattice", xco, yco, xmax-3, 20, "");
-			xco+= xmax;
-		} else if (ob && ob->type == OB_ARMATURE) {
-			xmax= GetButStringLength("Armature");
-			uiDefMenuBut(block, view3d_edit_armaturemenu, NULL, "Armature",	xco,yco, xmax-3, 20, "");
-			xco+= xmax;
-		}
-		
 	}
 	else if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
 		xmax= GetButStringLength("Paint");

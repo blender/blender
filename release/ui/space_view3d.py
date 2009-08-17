@@ -11,7 +11,8 @@ class VIEW3D_HT_header(bpy.types.Header):
 		
 		view = context.space_data
 		mode_string = context.mode
-
+		edit_object = context.edit_object
+		
 		layout.template_header()
 		
 		# Menus
@@ -29,6 +30,8 @@ class VIEW3D_HT_header(bpy.types.Header):
 				row.itemM("VIEW3D_MT_object")
 			elif mode_string == 'SCULPT':
 				row.itemM("VIEW3D_MT_sculpt")
+			elif edit_object:
+				row.itemM("VIEW3D_MT_edit_%s" % edit_object.type)
 
 		layout.template_header_3D()
 
@@ -500,6 +503,436 @@ class VIEW3D_MT_sculpt(bpy.types.Menu):
 				layout.itemR(brush, "persistent")
 				layout.itemO("sculpt.set_persistent_base")
 
+# ********** Edit Menus, suffix from ob.type **********
+
+class VIEW3D_MT_edit_snap(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Snap"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		layout.itemO("view3d.snap_selected_to_grid")
+		layout.itemO("view3d.snap_selected_to_cursor")
+		layout.itemO("view3d.snap_selected_to_center")
+		
+		layout.itemS()
+		
+		layout.itemO("view3d.snap_cursor_to_selected")
+		layout.itemO("view3d.snap_cursor_to_grid")
+		layout.itemO("view3d.snap_cursor_to_active")
+
+# Edit MESH
+class VIEW3D_MT_edit_MESH(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Mesh"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		settings = context.tool_settings
+
+		layout.itemO("ed.undo")
+		layout.itemO("ed.redo")
+		
+		layout.itemS()
+		
+		layout.itemM("VIEW3D_MT_edit_snap")
+		
+		layout.itemS()
+		
+		layout.itemO("uv.mapping_menu")
+		
+		layout.itemS()
+		
+		layout.itemO("mesh.extrude")
+		layout.itemO("mesh.duplicate")
+		layout.itemO("mesh.delete")
+		
+		layout.itemS()
+		
+		layout.itemM("VIEW3D_MT_edit_MESH_vertices")
+		layout.itemM("VIEW3D_MT_edit_MESH_edges")
+		layout.itemM("VIEW3D_MT_edit_MESH_faces")
+		layout.itemM("VIEW3D_MT_edit_MESH_normals")
+		
+		layout.itemS()
+		
+		layout.itemR(settings, "automerge_editing")
+		layout.itemR(settings, "proportional_editing")
+		layout.item_menu_enumR(settings, "proportional_editing_falloff")
+		
+		layout.itemS()
+		
+		layout.itemM("VIEW3D_MT_edit_MESH_showhide")
+
+class VIEW3D_MT_edit_MESH_vertices(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Vertices"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		layout.itemO("mesh.merge")
+		layout.itemO("mesh.rip")
+		layout.itemO("mesh.split")
+		layout.itemO("mesh.separate")
+
+		layout.itemS()
+		
+		layout.itemO("mesh.vertices_smooth")
+		layout.itemO("mesh.remove_doubles")
+		
+class VIEW3D_MT_edit_MESH_edges(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Edges"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemO("mesh.edge_face_add")
+		layout.itemO("mesh.subdivide")
+		layout.item_floatO("mesh.subdivide", "smoothness", 1.0, text="Subdivide Smooth")
+
+		layout.itemS()
+		
+		layout.itemO("mesh.mark_seam")
+		layout.item_booleanO("mesh.mark_seam", "clear", True, text="Clear Seam")
+		
+		layout.itemS()
+		
+		layout.itemO("mesh.mark_sharp")
+		layout.item_booleanO("mesh.mark_sharp", "clear", True, text="Clear Sharp")
+		
+		layout.itemS()
+		
+		layout.item_enumO("mesh.edge_rotate", "direction", 'CW', text="Rotate Edge CW")
+		layout.item_enumO("mesh.edge_rotate", "direction", 'CCW', text="Rotate Edge CCW")
+		
+class VIEW3D_MT_edit_MESH_faces(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Faces"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemO("mesh.edge_face_add")
+		layout.itemO("mesh.fill")
+		layout.itemO("mesh.beauty_fill")
+
+		layout.itemS()
+		
+		layout.itemO("mesh.quads_convert_to_tris")
+		layout.itemO("mesh.tris_convert_to_quads")
+		layout.itemO("mesh.edge_flip")
+		
+		layout.itemS()
+		
+		layout.itemO("mesh.faces_shade_smooth")
+		layout.itemO("mesh.faces_shade_flat")
+
+class VIEW3D_MT_edit_MESH_normals(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Normals"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemO("mesh.normals_make_consistent", text="Recalculate Outside")
+		layout.item_booleanO("mesh.normals_make_consistent", "inside", True, text="Recalculate Inside")
+
+		layout.itemS()
+		
+		layout.itemO("mesh.flip_normals")
+		
+class VIEW3D_MT_edit_MESH_showhide(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Show/Hide"
+
+	def draw(self, context):
+		layout = self.layout
+
+		layout.itemO("mesh.reveal")
+		layout.itemO("mesh.hide")
+		layout.item_booleanO("mesh.hide", "unselected", True, text="Hide Unselected")
+
+# Edit CURVE
+
+# draw_CURVE is used by VIEW3D_MT_edit_CURVE and VIEW3D_MT_edit_SURFACE
+def draw_CURVE(self, context):
+	layout = self.layout
+	
+	settings = context.tool_settings
+
+	layout.itemM("VIEW3D_MT_edit_snap")
+	
+	layout.itemS()
+	
+	layout.itemO("curve.extrude")
+	layout.itemO("curve.duplicate")
+	layout.itemO("curve.separate")
+	layout.itemO("curve.make_segment")
+	layout.itemO("curve.cyclic_toggle")
+	layout.itemO("curve.delete")
+	
+	layout.itemS()
+	
+	layout.itemM("VIEW3D_MT_edit_CURVE_ctrlpoints")
+	layout.itemM("VIEW3D_MT_edit_CURVE_segments")
+	
+	layout.itemS()
+	
+	layout.itemR(settings, "proportional_editing")
+	layout.item_menu_enumR(settings, "proportional_editing_falloff")
+	
+	layout.itemS()
+	
+	layout.itemM("VIEW3D_MT_edit_CURVE_showhide")
+
+class VIEW3D_MT_edit_CURVE(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Curve"
+
+	draw = draw_CURVE
+	
+class VIEW3D_MT_edit_CURVE_ctrlpoints(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Control Points"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		edit_object = context.edit_object
+		
+		if edit_object.type == 'CURVE':
+			layout.item_enumO("tfm.transform", "mode", 'TILT')
+			layout.itemO("curve.tilt_clear")
+			layout.itemO("curve.separate")
+			
+			layout.itemS()
+			
+			layout.item_menu_enumO("curve.handle_type_set", "type")
+		
+class VIEW3D_MT_edit_CURVE_segments(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Segments"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		layout.itemO("curve.subdivide")
+		layout.itemO("curve.switch_direction")
+
+class VIEW3D_MT_edit_CURVE_showhide(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Show/Hide"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		layout.itemO("curve.reveal")
+		layout.itemO("curve.hide")
+		layout.item_booleanO("curve.hide", "unselected", True, text="Hide Unselected")
+
+# Edit SURFACE
+class VIEW3D_MT_edit_SURFACE(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Surface"
+
+	draw = draw_CURVE
+
+# Edit TEXT
+class VIEW3D_MT_edit_TEXT(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Text"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		layout.itemO("font.file_paste")
+		
+		layout.itemS()
+		
+		layout.itemM("VIEW3D_MT_edit_TEXT_chars")
+
+class VIEW3D_MT_edit_TEXT_chars(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Special Characters"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		layout.item_stringO("font.text_insert", "text", b'\xC2\xA9'.decode(), text="Copyright|Alt C")
+		layout.item_stringO("font.text_insert", "text", b'\xC2\xAE'.decode(), text="Registered Trademark|Alt R")
+		
+		layout.itemS()
+		
+		layout.item_stringO("font.text_insert", "text", b'\xC2\xB0'.decode(), text="Degree Sign|Alt G")
+		layout.item_stringO("font.text_insert", "text", b'\xC3\x97'.decode(), text="Multiplication Sign|Alt x")
+		layout.item_stringO("font.text_insert", "text", b'\xC2\x8A'.decode(), text="Circle|Alt .")
+		layout.item_stringO("font.text_insert", "text", b'\xC2\xB9'.decode(), text="Superscript 1|Alt 1")
+		layout.item_stringO("font.text_insert", "text", b'\xC2\xB2'.decode(), text="Superscript 2|Alt 2")
+		layout.item_stringO("font.text_insert", "text", b'\xC2\xB3'.decode(), text="Superscript 3|Alt 3")
+		layout.item_stringO("font.text_insert", "text", b'\xC2\xBB'.decode(), text="Double >>|Alt >")
+		layout.item_stringO("font.text_insert", "text", b'\xC2\xAB'.decode(), text="Double <<|Alt <")
+		layout.item_stringO("font.text_insert", "text", b'\xE2\x80\xB0'.decode(), text="Promillage|Alt %")
+		
+		layout.itemS()
+		
+		layout.item_stringO("font.text_insert", "text", b'\xC2\xA4'.decode(), text="Dutch Florin|Alt F")
+		layout.item_stringO("font.text_insert", "text", b'\xC2\xA3'.decode(), text="British Pound|Alt L")
+		layout.item_stringO("font.text_insert", "text", b'\xC2\xA5'.decode(), text="Japanese Yen|Alt Y")
+		
+		layout.itemS()
+		
+		layout.item_stringO("font.text_insert", "text", b'\xC3\x9F'.decode(), text="German S|Alt S")
+		layout.item_stringO("font.text_insert", "text", b'\xC2\xBF'.decode(), text="Spanish Question Mark|Alt ?")
+		layout.item_stringO("font.text_insert", "text", b'\xC2\xA1'.decode(), text="Spanish Exclamation Mark|Alt !")
+
+# Edit META
+class VIEW3D_MT_edit_META(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Metaball"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		settings = context.tool_settings
+
+		layout.itemO("ed.undo")
+		layout.itemO("ed.redo")
+		
+		layout.itemS()
+		
+		layout.itemM("VIEW3D_MT_edit_snap")
+		
+		layout.itemS()
+		
+		layout.itemO("mball.delete_metaelems")
+		layout.itemO("mball.duplicate_metaelems")
+		
+		layout.itemS()
+		
+		layout.itemR(settings, "proportional_editing")
+		layout.item_menu_enumR(settings, "proportional_editing_falloff")
+		
+		layout.itemS()
+		
+		layout.itemM("VIEW3D_MT_edit_META_showhide")
+
+class VIEW3D_MT_edit_META_showhide(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Show/Hide"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		layout.itemO("mball.reveal_metaelems")
+		layout.itemO("mball.hide_metaelems")
+		layout.item_booleanO("mball.hide_metaelems", "unselected", True, text="Hide Unselected")
+
+# Edit LATTICE
+class VIEW3D_MT_edit_LATTICE(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Lattice"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		settings = context.tool_settings
+
+		layout.itemM("VIEW3D_MT_edit_snap")
+		
+		layout.itemS()
+		
+		layout.itemO("lattice.make_regular")
+		
+		layout.itemS()
+		
+		layout.itemR(settings, "proportional_editing")
+		layout.item_menu_enumR(settings, "proportional_editing_falloff")
+
+# Edit ARMATURE
+class VIEW3D_MT_edit_ARMATURE(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Armature"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		edit_object = context.edit_object
+		arm = edit_object.data
+		
+		layout.itemM("VIEW3D_MT_edit_snap")
+		layout.itemM("VIEW3D_MT_edit_ARMATURE_roll")
+		
+		if arm.drawtype == 'ENVELOPE':
+			layout.item_enumO("tfm.transform", "mode", 'BONESIZE', text="Scale Envelope Distance")
+		else:
+			layout.item_enumO("tfm.transform", "mode", 'BONESIZE', text="Scale B-Bone Width")
+				
+		layout.itemS()
+		
+		layout.itemO("armature.extrude")
+		
+		if arm.x_axis_mirror:
+			layout.item_booleanO("armature.extrude", "forked", True, text="Extrude Forked")
+		
+		layout.itemO("armature.duplicate")
+		layout.itemO("armature.merge")
+		layout.itemO("armature.fill")
+		layout.itemO("armature.delete")
+		layout.itemO("armature.separate")
+
+		layout.itemS()
+
+		layout.itemO("armature.subdivide_simple")
+		layout.itemO("armature.subdivide_multi")
+		
+		layout.itemS()
+
+		layout.item_enumO("armature.autoside_names", "axis", 'XAXIS', text="AutoName Left/Right")
+		layout.item_enumO("armature.autoside_names", "axis", 'YAXIS', text="AutoName Front/Back")
+		layout.item_enumO("armature.autoside_names", "axis", 'ZAXIS', text="AutoName Top/Bottom")
+		layout.itemO("armature.flip_names")
+
+		layout.itemS()
+
+		layout.itemO("armature.armature_layers")
+		layout.itemO("armature.bone_layers")
+
+		layout.itemS()
+
+		layout.itemM("VIEW3D_MT_edit_ARMATURE_parent")
+
+		layout.itemS()
+
+		layout.item_menu_enumO("armature.flags_set", "mode", text="Bone Settings")
+
+class VIEW3D_MT_edit_ARMATURE_parent(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Parent"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		layout.itemO("armature.parent_set")
+		layout.itemO("armature.parent_clear")
+
+class VIEW3D_MT_edit_ARMATURE_roll(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Bone Roll"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		layout.item_enumO("armature.calculate_roll", "type", 'GLOBALUP', text="Clear Roll (Z-Axis Up)")
+		layout.item_enumO("armature.calculate_roll", "type", 'CURSOR', text="Roll to Cursor")
+		
+		layout.itemS()
+		
+		layout.item_enumO("tfm.transform", "mode", 'BONE_ROLL', text="Set Roll")
+
 # ********** Panel **********
 
 class VIEW3D_PT_3dview_properties(bpy.types.Panel):
@@ -629,6 +1062,34 @@ bpy.types.register(VIEW3D_MT_object_constraints)
 bpy.types.register(VIEW3D_MT_object_show)
 
 bpy.types.register(VIEW3D_MT_sculpt) # Sculpt Menu
+
+bpy.types.register(VIEW3D_MT_edit_snap) # Edit Menus
+
+bpy.types.register(VIEW3D_MT_edit_MESH)
+bpy.types.register(VIEW3D_MT_edit_MESH_vertices)
+bpy.types.register(VIEW3D_MT_edit_MESH_edges)
+bpy.types.register(VIEW3D_MT_edit_MESH_faces)
+bpy.types.register(VIEW3D_MT_edit_MESH_normals)
+bpy.types.register(VIEW3D_MT_edit_MESH_showhide)
+
+bpy.types.register(VIEW3D_MT_edit_CURVE)
+bpy.types.register(VIEW3D_MT_edit_CURVE_ctrlpoints)
+bpy.types.register(VIEW3D_MT_edit_CURVE_segments)
+bpy.types.register(VIEW3D_MT_edit_CURVE_showhide)
+
+bpy.types.register(VIEW3D_MT_edit_SURFACE)
+
+bpy.types.register(VIEW3D_MT_edit_TEXT)
+bpy.types.register(VIEW3D_MT_edit_TEXT_chars)
+
+bpy.types.register(VIEW3D_MT_edit_META)
+bpy.types.register(VIEW3D_MT_edit_META_showhide)
+
+bpy.types.register(VIEW3D_MT_edit_LATTICE)
+
+bpy.types.register(VIEW3D_MT_edit_ARMATURE)
+bpy.types.register(VIEW3D_MT_edit_ARMATURE_parent)
+bpy.types.register(VIEW3D_MT_edit_ARMATURE_roll)
 
 bpy.types.register(VIEW3D_PT_3dview_properties) # Panels
 bpy.types.register(VIEW3D_PT_3dview_display)
