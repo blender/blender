@@ -542,12 +542,27 @@ static void point_plane_project(float intr[3], float co[3], float plane_normal[3
 	VecAddf(intr, intr, p1);
 }
 
+static int plane_point_side(float co[3], float plane_normal[3], float plane_center[3], int flip)
+{
+	float delta[3];
+	float d;
+
+	VecSubf(delta, co, plane_center);
+	d = Inpf(plane_normal, delta);
+
+	if(flip)
+		d = -d;
+
+	return d <= 0.0f;
+}
+
 static void do_flatten_clay_brush(Sculpt *sd, SculptSession *ss, const ListBase *active_verts, int clay)
 {
 	ActiveData *node= active_verts->first;
 	/* area_normal and cntr define the plane towards which vertices are squashed */
 	float area_normal[3];
 	float cntr[3], cntr2[3], bstr;
+	int flip = 0;
 
 	calc_area_normal(sd, ss, area_normal, active_verts);
 	calc_flatten_center(ss, node, cntr);
@@ -558,31 +573,24 @@ static void do_flatten_clay_brush(Sculpt *sd, SculptSession *ss, const ListBase 
 		cntr2[0]=cntr[0]+area_normal[0]*bstr*ss->cache->scale[0];
 		cntr2[1]=cntr[1]+area_normal[1]*bstr*ss->cache->scale[1];
 		cntr2[2]=cntr[2]+area_normal[2]*bstr*ss->cache->scale[2];
+		flip = bstr < 0;
 	}
 	
 	while(node){
 		float *co= ss->mvert[node->Index].co;
-		float intr[3], val[3], d;
+		float intr[3], val[3];
 		
-		if(clay) {
-			float delta[3];
-
-			VecSubf(delta, co, cntr2);
-			d = Inpf(area_normal, delta);
-
-			/* Check for subtractive mode */
-			if(bstr < 0)
-				d = -d;
-		}
-
-		if(!clay || d <= 0.0f) {
+		if(!clay || plane_point_side(co, area_normal, cntr2, flip)) {
 			/* Find the intersection between squash-plane and vertex (along the area normal) */		
 			point_plane_project(intr, co, area_normal, cntr);
 
 			VecSubf(val, intr, co);
 
 			if(clay) {
-				VecMulf(val, node->Fade / bstr);
+				if(bstr > FLT_EPSILON)
+					VecMulf(val, node->Fade / bstr);
+				else
+					VecMulf(val, node->Fade);
 				/* Clay displacement */
 				val[0]+=area_normal[0] * ss->cache->scale[0]*node->Fade;
 				val[1]+=area_normal[1] * ss->cache->scale[1]*node->Fade;
@@ -592,6 +600,7 @@ static void do_flatten_clay_brush(Sculpt *sd, SculptSession *ss, const ListBase 
 				VecMulf(val, fabs(node->Fade));
 
 			VecAddf(val, val, co);
+
 			sculpt_clip(sd, ss, co, val);
 		}
 		
