@@ -197,6 +197,10 @@ void ntreeTexExecTree(bNodeTree *nodes, TexResult *texres, float *coord, char do
 	TexResult dummy_texres;
 	TexCallData data;
 	
+	/* 0 means don't care, so just use first */
+	if(which_output == 0)
+		which_output = 1;
+	
 	if(!texres) texres = &dummy_texres;
 	data.coord = coord;
 	data.target = texres;
@@ -270,10 +274,17 @@ char* ntreeTexOutputMenu(bNodeTree *ntree)
 void ntreeTexAssignIndex(struct bNodeTree *ntree, struct bNode *node)
 {
 	bNode *tnode;
-	int index = 0;
+	int index = 1;
+	
+	if(ntree) 
+		tnode = ntree->nodes.first;
+	else {
+		tnode = node;
+		while(tnode->prev) tnode = tnode->prev;
+	}
 	
 	check_index:
-	for(tnode= ntree->nodes.first; tnode; tnode= tnode->next)
+	for(; tnode; tnode= tnode->next)
 		if(tnode->type == TEX_NODE_OUTPUT && tnode != node)
 			if(tnode->custom1 == index) {
 				index ++;

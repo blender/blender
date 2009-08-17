@@ -64,11 +64,64 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 	}
 }
 
-static void init(bNode* node)
+static void unique_name(bNode *node)
 {
-   TexNodeOutput *tno = MEM_callocN(sizeof(TexNodeOutput), "TEX_output");
-   strcpy(tno->name, "Default");
-   node->storage= tno;
+	TexNodeOutput *tno = (TexNodeOutput *)node->storage;
+	char *new_name = 0;
+	int new_len;
+	int suffix;
+	bNode *i;
+	char *name = tno->name;
+	
+	i = node;
+	while(i->prev) i = i->prev;
+	for(; i; i=i->next) {
+		if(
+			i == node ||
+			i->type != TEX_NODE_OUTPUT ||
+			strcmp(name, ((TexNodeOutput*)(i->storage))->name)
+		)
+			continue;
+		
+		if(!new_name) {
+			int len = strlen(name);
+			if(len >= 4 && sscanf(name + len - 4, ".%03d", &suffix) == 1) {
+				new_len = len;
+			} else {
+				suffix = 0;
+				new_len = len + 4;
+				if(new_len > 31)
+					new_len = 31;
+			}
+			
+			new_name = malloc(new_len + 1);
+			strcpy(new_name, name);
+			name = new_name;
+		}
+		sprintf(new_name + new_len - 4, ".%03d", ++suffix);
+	}
+	
+	if(new_name) {
+		strcpy(tno->name, new_name);
+		free(new_name);
+	}
+}
+
+static void init(bNode *node)
+{
+	TexNodeOutput *tno = MEM_callocN(sizeof(TexNodeOutput), "TEX_output");
+	node->storage= tno;
+	
+	strcpy(tno->name, "Default");
+	unique_name(node);
+	ntreeTexAssignIndex(0, node);
+}
+
+static void copy(bNode *orig, bNode *new)
+{
+	node_copy_standard_storage(orig, new);
+	unique_name(new);
+	ntreeTexAssignIndex(0, new);
 }
 
 
@@ -85,6 +138,6 @@ bNodeType tex_node_output= {
 	/* butfunc         */  NULL,
 	/* initfunc        */  init,
 	/* freestoragefunc */  node_free_standard_storage,
-	/* copystoragefunc */  node_copy_standard_storage,  
+	/* copystoragefunc */  copy,  
 	/* id              */  NULL
 };
