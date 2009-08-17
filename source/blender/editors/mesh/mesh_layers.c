@@ -199,6 +199,7 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add UV Texture";
+	ot->description= "Add UV texture layer.";
 	ot->idname= "MESH_OT_uv_texture_add";
 	
 	/* api callbacks */
@@ -238,6 +239,7 @@ void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove UV Texture";
+	ot->description= "Remove UV texture layer.";
 	ot->idname= "MESH_OT_uv_texture_remove";
 	
 	/* api callbacks */
@@ -302,6 +304,7 @@ void MESH_OT_vertex_color_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Vertex Color";
+	ot->description= "Add vertex color layer.";
 	ot->idname= "MESH_OT_vertex_color_add";
 	
 	/* api callbacks */
@@ -341,6 +344,7 @@ void MESH_OT_vertex_color_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Vertex Color";
+	ot->description= "Remove vertex color layer.";
 	ot->idname= "MESH_OT_vertex_color_remove";
 	
 	/* api callbacks */
@@ -378,6 +382,7 @@ void MESH_OT_sticky_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Sticky";
+	ot->description= "Add sticky UV texture layer.";
 	ot->idname= "MESH_OT_sticky_add";
 	
 	/* api callbacks */
@@ -414,6 +419,7 @@ void MESH_OT_sticky_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Sticky";
+	ot->description= "Remove sticky UV texture layer.";
 	ot->idname= "MESH_OT_sticky_remove";
 	
 	/* api callbacks */

@@ -1272,6 +1272,7 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Select Similar";
+	ot->description= "Select similar vertices, edges or faces by property types.";
 	ot->idname= "MESH_OT_select_similar";
 	
 	/* api callbacks */
@@ -2000,6 +2001,7 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Multi Select Loops";
+	ot->description= "Select a loop of connected edges by connection type.";
 	ot->idname= "MESH_OT_loop_multi_select";
 	
 	/* api callbacks */
@@ -2078,6 +2080,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Loop Select";
+	ot->description= "Select a loop of connected edges.";
 	ot->idname= "MESH_OT_loop_select";
 	
 	/* api callbacks */
@@ -2177,6 +2180,7 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Shortest Path Select";
+	ot->description= "Select shortest path between two selections.";
 	ot->idname= "MESH_OT_select_shortest_path";
 	
 	/* api callbacks */
@@ -2468,6 +2472,7 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Linked";
+	ot->description= "(un)select all vertices linked to the active mesh.";
 	ot->idname= "MESH_OT_select_linked_pick";
 	
 	/* api callbacks */
@@ -2550,6 +2555,7 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Linked All";
+	ot->description= "Select all vertices linked to the active mesh.";
 	ot->idname= "MESH_OT_select_linked";
 	
 	/* api callbacks */
@@ -2685,6 +2691,7 @@ void MESH_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Hide Selection";
+	ot->description= "Hide (un)selected vertices, edges or faces.";
 	ot->idname= "MESH_OT_hide";
 	
 	/* api callbacks */
@@ -2751,6 +2758,7 @@ void MESH_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Reveal Hidden";
+	ot->description= "Reveal all hidden vertices, edges and faces.";
 	ot->idname= "MESH_OT_reveal";
 	
 	/* api callbacks */
@@ -2805,6 +2813,7 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Select by Number of Vertices";
+	ot->description= "Select vertices or faces by vertex count.";
 	ot->idname= "MESH_OT_select_by_number_vertices";
 	
 	/* api callbacks */
@@ -2925,6 +2934,7 @@ void MESH_OT_edges_select_sharp(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Sharp Edges";
+	ot->description= "Marked selected edges as sharp.";
 	ot->idname= "MESH_OT_edges_select_sharp";
 	
 	/* api callbacks */
@@ -3092,6 +3102,7 @@ void MESH_OT_faces_select_linked_flat(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Linked Flat Faces";
+	ot->description= "Select linked faces by angle.";
 	ot->idname= "MESH_OT_faces_select_linked_flat";
 	
 	/* api callbacks */
@@ -3192,6 +3203,7 @@ void MESH_OT_select_non_manifold(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Non Manifold";
+	ot->description= "Select all non-manifold vertices or edges.";
 	ot->idname= "MESH_OT_select_non_manifold";
 	
 	/* api callbacks */
@@ -3255,6 +3267,7 @@ void MESH_OT_select_inverse(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Inverse";
+	ot->description= "Select inverse of (un)selected vertices, edges or faces.";
 	ot->idname= "MESH_OT_select_inverse";
 	
 	/* api callbacks */
@@ -3292,6 +3305,7 @@ void MESH_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select/Deselect All";
+	ot->description= "(de)select all vertices, edges or faces.";
 	ot->idname= "MESH_OT_select_all_toggle";
 	
 	/* api callbacks */
@@ -3362,6 +3376,7 @@ void MESH_OT_select_more(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select More";
+	ot->description= "Select more vertices, edges or faces connected to initial selection.";
 	ot->idname= "MESH_OT_select_more";
 
 	/* api callbacks */
@@ -3451,6 +3466,7 @@ void MESH_OT_select_less(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Less";
+	ot->description= "Select less vertices, edges or faces connected to initial selection.";
 	ot->idname= "MESH_OT_select_less";
 
 	/* api callbacks */
@@ -3520,6 +3536,7 @@ void MESH_OT_select_random(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Random";
+	ot->description= "Randomly select vertices.";
 	ot->idname= "MESH_OT_select_random";
 
 	/* api callbacks */
@@ -3611,6 +3628,7 @@ void MESH_OT_selection_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Selection Mode";
+	ot->description= "Set the selection mode type.";
 	ot->idname= "MESH_OT_selection_type";
 	
 	/* api callbacks */
@@ -3673,6 +3691,7 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mark Seam";
+	ot->description= "(un)mark selected edges as a seam.";
 	ot->idname= "MESH_OT_mark_seam";
 	
 	/* api callbacks */
@@ -3725,6 +3744,7 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mark Sharp";
+	ot->description= "(un)mark selected edges as sharp.";
 	ot->idname= "MESH_OT_mark_sharp";
 	
 	/* api callbacks */
@@ -3974,6 +3994,7 @@ void MESH_OT_normals_make_consistent(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Normals Consistent";
+	ot->description= "Flip all selected vertex and face normals in a consistent direction.";
 	ot->idname= "MESH_OT_normals_make_consistent";
 	
 	/* api callbacks */
@@ -4318,6 +4339,7 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Smooth Vertex";
+	ot->description= "Flatten angles of selected vertices.";
 	ot->idname= "MESH_OT_vertices_smooth";
 	
 	/* api callbacks */
@@ -4453,6 +4475,7 @@ void MESH_OT_vertices_transform_to_sphere(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Vertices to Sphere";
+	ot->description= "Move selected vertices outward in a spherical shape.";
 	ot->idname= "MESH_OT_vertices_transform_to_sphere";
 	
 	/* api callbacks */
@@ -4516,6 +4539,7 @@ void MESH_OT_flip_normals(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Flip Normals";
+	ot->description= "Toggle the direction of selected face's vertex and face normals.";
 	ot->idname= "MESH_OT_flip_normals";
 	
 	/* api callbacks */

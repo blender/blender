@@ -507,6 +507,7 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Doubles";
+	ot->description= "Remove duplicate vertices.";
 	ot->idname= "MESH_OT_remove_doubles";
 
 	/* api callbacks */
@@ -747,6 +748,7 @@ void MESH_OT_extrude(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Extrude";
+	ot->description= "Extrude selected vertices, edges or faces.";
 	ot->idname= "MESH_OT_extrude";
 
 	/* api callbacks */
@@ -785,6 +787,7 @@ void MESH_OT_split(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Split";
+	ot->description= "Split selected geometry into separate disconnected mesh.";
 	ot->idname= "MESH_OT_split";
 
 	/* api callbacks */
@@ -845,6 +848,7 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Extrude Repeat Mesh";
+	ot->description= "Extrude selected vertices, edges or faces repeatedly.";
 	ot->idname= "MESH_OT_extrude_repeat";
 
 	/* api callbacks */
@@ -979,6 +983,7 @@ void MESH_OT_spin(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Spin";
+	ot->description= "Extrude selected vertices in a circle around the cursor in indicated viewport.";
 	ot->idname= "MESH_OT_spin";
 
 	/* api callbacks */
@@ -1087,6 +1092,7 @@ void MESH_OT_screw(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Screw";
+	ot->description= "Extrude selected vertices in screw-shaped rotation around the cursor in indicated viewport.";
 	ot->idname= "MESH_OT_screw";
 
 	/* api callbacks */
@@ -1319,6 +1325,7 @@ void MESH_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete";
+	ot->description= "Delete selected vertices, edges or faces.";
 	ot->idname= "MESH_OT_delete";
 
 	/* api callbacks */
@@ -3763,6 +3770,7 @@ void MESH_OT_edge_rotate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Rotate Selected Edge";
+	ot->description= "Rotate selected edge or adjoining faces.";
 	ot->idname= "MESH_OT_edge_rotate";
 
 	/* api callbacks */
@@ -4997,6 +5005,7 @@ void MESH_OT_rip(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Rip";
+	ot->description= "Rip selection from mesh (quads only).";
 	ot->idname= "MESH_OT_rip";
 
 	/* api callbacks */
@@ -5843,6 +5852,7 @@ void MESH_OT_merge(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Merge";
+	ot->description= "Merge selected vertices.";
 	ot->idname= "MESH_OT_merge";
 
 	/* api callbacks */
@@ -6045,6 +6055,7 @@ void MESH_OT_select_vertex_path(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Select Vertex Path";
+	ot->description= "Select shortest path between two vertices by distance type.";
 	ot->idname= "MESH_OT_select_vertex_path";
 
 	/* api callbacks */
@@ -6106,6 +6117,7 @@ void MESH_OT_region_to_loop(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Region to Loop";
+	ot->description= "Select a region as a loop of connected edges.";
 	ot->idname= "MESH_OT_region_to_loop";
 
 	/* api callbacks */
@@ -6281,6 +6293,7 @@ void MESH_OT_loop_to_region(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Loop to Region";
+	ot->description= "Select a loop of connected edges as a region.";
 	ot->idname= "MESH_OT_loop_to_region";
 
 	/* api callbacks */
@@ -6579,6 +6592,7 @@ void MESH_OT_uvs_rotate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Rotate UVs";
+	ot->description= "Rotate selected UVs.";
 	ot->idname= "MESH_OT_uvs_rotate";
 
 	/* api callbacks */
@@ -6596,6 +6610,7 @@ void MESH_OT_uvs_mirror(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mirror UVs";
+	ot->description= "Mirror selected UVs.";
 	ot->idname= "MESH_OT_uvs_mirror";
 
 	/* api callbacks */
@@ -6613,6 +6628,7 @@ void MESH_OT_colors_rotate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Rotate Colors";
+	ot->description= "Rotate UV/image color layer.";
 	ot->idname= "MESH_OT_colors_rotate";
 
 	/* api callbacks */
@@ -6630,6 +6646,7 @@ void MESH_OT_colors_mirror(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mirror Colors";
+	ot->description= "Mirror UV/image color layer.";
 	ot->idname= "MESH_OT_colors_mirror";
 
 	/* api callbacks */
@@ -6672,6 +6689,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Subdivide";
+	ot->description= "Subdivide selected edges.";
 	ot->idname= "MESH_OT_subdivide";
 
 	/* api callbacks */
@@ -6954,6 +6972,7 @@ void MESH_OT_fill(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Fill";
+	ot->description= "Create a segment, edge or face.";
 	ot->idname= "MESH_OT_fill";
 
 	/* api callbacks */
@@ -6984,6 +7003,7 @@ void MESH_OT_beauty_fill(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Beauty Fill";
+	ot->description= "Arrange geometry on a selected surface to avoid skinny faces.";
 	ot->idname= "MESH_OT_beauty_fill";
 
 	/* api callbacks */
@@ -7015,6 +7035,7 @@ void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Quads to Tris";
+	ot->description= "Convert selected quads to triangles.";
 	ot->idname= "MESH_OT_quads_convert_to_tris";
 
 	/* api callbacks */
@@ -7044,6 +7065,7 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Tris to Quads";
+	ot->description= "Convert selected triangles to quads.";
 	ot->idname= "MESH_OT_tris_convert_to_quads";
 
 	/* api callbacks */
@@ -7073,6 +7095,7 @@ void MESH_OT_edge_flip(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Edge Flip";
+	ot->description= "Flip selected edge or adjoining faces.";
 	ot->idname= "MESH_OT_edge_flip";
 
 	/* api callbacks */
@@ -7119,6 +7142,7 @@ void MESH_OT_faces_shade_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Shade Smooth";
+	ot->description= "Display faces 'smooth' (using vertex normals).";
 	ot->idname= "MESH_OT_faces_shade_smooth";
 
 	/* api callbacks */
@@ -7147,6 +7171,7 @@ void MESH_OT_faces_shade_flat(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Shade Flat";
+	ot->description= "Display faces 'flat'.";
 	ot->idname= "MESH_OT_faces_shade_flat";
 
 	/* api callbacks */
