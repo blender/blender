@@ -40,7 +40,7 @@ class TIME_HT_header(bpy.types.Header):
 
 		row = layout.row(align=True)
 		row.itemO("screen.frame_jump", text="", icon='ICON_REW')
-		row.itemO("screen.keyframe_jump", text="", icon='ICON_PREV_KEYFRAME')
+		row.item_booleanO("screen.keyframe_jump", "next", False, text="", icon='ICON_PREV_KEYFRAME')
 		if not screen.animation_playing:
 			row.item_booleanO("screen.animation_play", "reverse", True, text="", icon='ICON_PLAY_REVERSE')
 			row.itemO("screen.animation_play", text="", icon='ICON_PLAY')
@@ -53,18 +53,21 @@ class TIME_HT_header(bpy.types.Header):
 		
 		layout.itemS()
 		
+		layout.itemR(rd, "sync_audio", text="", toggle=True, icon='ICON_SPEAKER')
+		
+		layout.itemS()
+		
 		row = layout.row(align=True)
 		row.itemR(tools, "enable_auto_key", text="", toggle=True, icon='ICON_REC')
 		sub = row.row()
 		sub.active = tools.enable_auto_key
 		sub.itemR(tools, "autokey_mode", text="")
+		if screen.animation_playing and tools.enable_auto_key:
+			subsub = row.row()
+			subsub.itemR(tools, "record_with_nla", toggle=True)
 		
 		layout.itemS()
-		
-		layout.itemR(rd, "sync_audio", text="", toggle=True, icon='ICON_SPEAKER')
-		
-		layout.itemS()
-		
+
 		row = layout.row(align=True)
 		row.itemR(scene, "active_keyingset")
 		row.itemO("anim.insert_keyframe", text="", icon="ICON_KEY_HLT")

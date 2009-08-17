@@ -437,6 +437,10 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "autokey_mode");
 	RNA_def_property_enum_items(prop, auto_key_items);
 	RNA_def_property_ui_text(prop, "Auto-Keying Mode", "Mode of automatic keyframe insertion for Objects and Bones");
+	
+	prop= RNA_def_property(srna, "record_with_nla", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "autokey_flag", ANIMRECORD_FLAG_WITHNLA);
+	RNA_def_property_ui_text(prop, "Layered", "Add a new NLA Track + Strip for every loop/pass made over the animation to allow non-destructive tweaking.");
 
 	/* UV */
 	prop= RNA_def_property(srna, "uv_selection_mode", PROP_ENUM, PROP_NONE);
