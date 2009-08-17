@@ -533,23 +533,44 @@ class VIEW3D_PT_tools_texturepaint(View3DPanel):
 		
 		ipaint = context.tool_settings.image_paint
 		settings = context.tool_settings.image_paint
+		use_projection= ipaint.use_projection
 		
 		col = layout.column()
 		col.itemR(ipaint, "use_projection")
 		sub = col.column()
-		sub.active = ipaint.use_projection
+		sub.active = use_projection
 		sub.itemR(ipaint, "use_occlude")
 		sub.itemR(ipaint, "use_backface_cull")
-		sub.itemR(ipaint, "use_normal_falloff")
-		sub.itemR(ipaint, "use_stencil_layer")
-		subsub = sub.column()
-		subsub.active = ipaint.use_stencil_layer
-		subsub.itemR(ipaint, "invert_stencil")
-		if settings.tool == 'CLONE':
-			sub.itemR(ipaint, "use_clone_layer")
 		
+		split = layout.split()
+		
+		col = split.column()
+		col.active = (use_projection)
+		col.itemR(ipaint, "use_normal_falloff")
+		
+		col = split.column()
+		col.active = (ipaint.use_normal_falloff and use_projection)
+		col.itemR(ipaint, "normal_angle", text="")
+		
+		
+		split = layout.split(percentage=0.7)
+		
+		col = split.column(align=False)
+		col.active = (use_projection)
+		col.itemR(ipaint, "use_stencil_layer")
+		
+		col = split.column(align=False)
+		col.active = (use_projection and ipaint.use_stencil_layer)
+		col.itemR(ipaint, "invert_stencil", text="Inv")
+		
+		
+		col = layout.column()
+		sub = col.column()
+		sub.active = (settings.tool == 'CLONE')
+		sub.itemR(ipaint, "use_clone_layer")
+		
+		sub = col.column()
 		sub.itemR(ipaint, "seam_bleed")
-		sub.itemR(ipaint, "normal_angle")
 		
 # ********** default tools for particle mode ****************
 
