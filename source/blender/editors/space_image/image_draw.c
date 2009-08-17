@@ -47,6 +47,7 @@
 #include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_paint.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
@@ -577,7 +578,7 @@ static void draw_image_view_tool(Scene *scene)
 
 static unsigned char *get_alpha_clone_image(Scene *scene, int *width, int *height)
 {
-	Brush *brush = scene->toolsettings->imapaint.brush;
+	Brush *brush = paint_brush(&scene->toolsettings->imapaint.paint);
 	ImBuf *ibuf;
 	unsigned int size, alpha;
 	unsigned char *rect, *cp;
@@ -615,7 +616,7 @@ static void draw_image_paint_helpers(SpaceImage *sima, ARegion *ar, Scene *scene
 	int x, y, w, h;
 	unsigned char *clonerect;
 
-	brush= scene->toolsettings->imapaint.brush;
+	brush= paint_brush(&scene->toolsettings->imapaint.paint);
 
 	if(brush && (scene->toolsettings->imapaint.tool == PAINT_TOOL_CLONE)) {
 		/* this is not very efficient, but glDrawPixels doesn't allow

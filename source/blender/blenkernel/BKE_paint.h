@@ -33,9 +33,9 @@ struct Object;
 struct Paint;
 struct Scene;
 
-void paint_init(Paint *p, const char *brush_name);
-void free_paint(Paint *p);
-void copy_paint(Paint *orig, Paint *new);
+void paint_init(struct Paint *p, const char *brush_name);
+void free_paint(struct Paint *p);
+void copy_paint(struct Paint *orig, struct Paint *new);
 
 struct Paint *paint_get_active(struct Scene *sce);
 struct Brush *paint_brush(struct Paint *paint);

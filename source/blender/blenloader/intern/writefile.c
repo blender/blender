@@ -1726,6 +1726,8 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			write_paint(wd, &tos->sculpt->paint);
 		}
 
+		write_paint(wd, &tos->imapaint.paint);
+
 		ed= sce->ed;
 		if(ed) {
 			writestruct(wd, DATA, "Editing", 1, ed);

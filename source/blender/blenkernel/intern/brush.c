@@ -51,6 +51,7 @@
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_paint.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -153,7 +154,7 @@ void make_local_brush(Brush *brush)
 	}
 
 	for(scene= G.main->scene.first; scene; scene=scene->id.next)
-		if(scene->toolsettings->imapaint.brush==brush) {
+		if(paint_brush(&scene->toolsettings->imapaint.paint)==brush) {
 			if(scene->id.lib) lib= 1;
 			else local= 1;
 		}
@@ -175,9 +176,9 @@ void make_local_brush(Brush *brush)
 		brushn->id.flag |= LIB_FAKEUSER;
 		
 		for(scene= G.main->scene.first; scene; scene=scene->id.next)
-			if(scene->toolsettings->imapaint.brush==brush)
+			if(paint_brush(&scene->toolsettings->imapaint.paint)==brush)
 				if(scene->id.lib==0) {
-					scene->toolsettings->imapaint.brush= brushn;
+					paint_brush_set(&scene->toolsettings->imapaint.paint, brushn);
 					brushn->id.us++;
 					brush->id.us--;
 				}

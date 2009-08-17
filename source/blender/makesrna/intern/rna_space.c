@@ -37,6 +37,8 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_paint.h"
+
 #include "WM_types.h"
 
 EnumPropertyItem space_type_items[] = {
@@ -145,7 +147,7 @@ static void rna_SpaceImageEditor_paint_update(bContext *C, PointerRNA *ptr)
 	Scene *scene= CTX_data_scene(C);
 
 	if(scene)
-		brush_check_exists(&scene->toolsettings->imapaint.brush, "Brush");
+		paint_init(&scene->toolsettings->imapaint.paint, "Brush");
 }
 
 static int rna_SpaceImageEditor_show_render_get(PointerRNA *ptr)

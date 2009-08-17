@@ -71,6 +71,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
+#include "BKE_paint.h"
 #include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_report.h"
@@ -4375,7 +4376,7 @@ static Brush *image_paint_brush(bContext *C)
 	Scene *scene= CTX_data_scene(C);
 	ToolSettings *settings= scene->toolsettings;
 
-	return settings->imapaint.brush;
+	return paint_brush(&settings->imapaint.paint);
 }
 
 static int image_paint_poll(bContext *C)
@@ -4486,11 +4487,12 @@ static void paint_redraw(bContext *C, ImagePaintState *s, int final)
 	}
 }
 
-static int paint_init(bContext *C, wmOperator *op)
+static int texture_paint_init(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	ToolSettings *settings= scene->toolsettings;
 	PaintOperation *pop;
+	Brush *brush;
 
 	pop= MEM_callocN(sizeof(PaintOperation), "PaintOperation");
 	pop->first= 1;
@@ -4518,10 +4520,11 @@ static int paint_init(bContext *C, wmOperator *op)
 	pop->ps.ar= CTX_wm_region(C);
 
 	/* intialize brush */
-	if(!settings->imapaint.brush)
+	brush= paint_brush(&settings->imapaint.paint);
+	if(!brush)
 		return 0;
 
-	pop->s.brush = settings->imapaint.brush;
+	pop->s.brush = brush;
 	pop->s.tool = settings->imapaint.tool;
 	if(pop->mode == PAINT_MODE_3D && (pop->s.tool == PAINT_TOOL_CLONE))
 		pop->s.tool = PAINT_TOOL_DRAW;
@@ -4672,7 +4675,7 @@ static void paint_exit(bContext *C, wmOperator *op)
 
 static int paint_exec(bContext *C, wmOperator *op)
 {
-	if(!paint_init(C, op)) {
+	if(!texture_paint_init(C, op)) {
 		MEM_freeN(op->customdata);
 		return OPERATOR_CANCELLED;
 	}
@@ -4746,7 +4749,7 @@ static int paint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	PaintOperation *pop;
 
-	if(!paint_init(C, op)) {
+	if(!texture_paint_init(C, op)) {
 		MEM_freeN(op->customdata);
 		return OPERATOR_CANCELLED;
 	}
@@ -4874,7 +4877,7 @@ static int paint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *eve
 	ToolSettings *ts = CTX_data_scene(C)->toolsettings;
 	get_imapaint_zoom(C, &zoom, &zoom);
 	toggle_paint_cursor(C, !ts->imapaint.paintcursor);
-	brush_radial_control_invoke(op, ts->imapaint.brush, 0.5 * zoom);
+	brush_radial_control_invoke(op, paint_brush(&ts->imapaint.paint), 0.5 * zoom);
 	return WM_radial_control_invoke(C, op, event);
 }
 
@@ -4893,7 +4896,7 @@ static int paint_radial_control_exec(bContext *C, wmOperator *op)
 	int ret;
 	char str[256];
 	get_imapaint_zoom(C, &zoom, &zoom);
-	ret = brush_radial_control_exec(op, CTX_data_scene(C)->toolsettings->imapaint.brush, 2.0 / zoom);
+	ret = brush_radial_control_exec(op, paint_brush(&CTX_data_scene(C)->toolsettings->imapaint.paint), 2.0 / zoom);
 	WM_radial_control_string(op, str, 256);
 
 	return ret;
@@ -5167,7 +5170,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 			me->mtface= CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DEFAULT,
 							 NULL, me->totface);
 
-		brush_check_exists(&scene->toolsettings->imapaint.brush, "Brush");
+		paint_init(&scene->toolsettings->imapaint.paint, "Brush");
 
 		if(U.glreslimit != 0)
 			GPU_free_images();
@@ -5202,13 +5205,13 @@ static int texture_paint_radial_control_invoke(bContext *C, wmOperator *op, wmEv
 {
 	ToolSettings *ts = CTX_data_scene(C)->toolsettings;
 	toggle_paint_cursor(C, !ts->imapaint.paintcursor);
-	brush_radial_control_invoke(op, ts->imapaint.brush, 0.5);
+	brush_radial_control_invoke(op, paint_brush(&ts->imapaint.paint), 0.5);
 	return WM_radial_control_invoke(C, op, event);
 }
 
 static int texture_paint_radial_control_exec(bContext *C, wmOperator *op)
 {
-	int ret = brush_radial_control_exec(op, CTX_data_scene(C)->toolsettings->imapaint.brush, 2);
+	int ret = brush_radial_control_exec(op, paint_brush(&CTX_data_scene(C)->toolsettings->imapaint.paint), 2);
 	char str[256];
 	WM_radial_control_string(op, str, 256);
 

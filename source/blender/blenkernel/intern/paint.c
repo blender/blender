@@ -158,6 +158,10 @@ void free_paint(Paint *paint)
 
 void copy_paint(Paint *orig, Paint *new)
 {
-	if(orig->brushes)
+	if(orig->brushes) {
+		int i;
 		new->brushes = MEM_dupallocN(orig->brushes);
+		for(i = 0; i < orig->brush_count; ++i)
+			id_us_plus((ID *)new->brushes[i]);
+	}
 }

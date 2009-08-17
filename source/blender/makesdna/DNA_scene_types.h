@@ -429,8 +429,18 @@ typedef struct TimeMarker {
 	unsigned int flag;
 } TimeMarker;
 
+typedef struct Paint {
+	/* Array of brushes selected for use in this paint mode */
+	Brush **brushes;
+	int active_brush_index, brush_count;
+	
+	/* WM handle */
+	void *paint_cursor;
+} Paint;
+
 typedef struct ImagePaintSettings {
-	struct Brush *brush;
+	Paint paint;
+
 	short flag, tool;
 	
 	/* for projection painting only */
@@ -464,15 +474,6 @@ typedef struct TransformOrientation {
 	char name[36];
 	float mat[3][3];
 } TransformOrientation;
-
-typedef struct Paint {
-	/* Array of brushes selected for use in this paint mode */
-	Brush **brushes;
-	int active_brush_index, brush_count;
-	
-	/* WM handle */
-	void *paint_cursor;
-} Paint;
 
 typedef struct Sculpt {
 	Paint paint;

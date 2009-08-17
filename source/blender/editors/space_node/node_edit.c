@@ -624,16 +624,17 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 		}
 		else {
 			MTex *mtex= NULL;
+			Brush *brush= NULL;
 			
 			if(ob && ob->mode & OB_MODE_SCULPT) {
-				Brush *brush = paint_brush(&scene->toolsettings->sculpt->paint);
+				brush= paint_brush(&scene->toolsettings->sculpt->paint);
+			}
+			else
+				brush= paint_brush(&scene->toolsettings->imapaint.paint);
+
+			if(brush) {
 				if(brush && brush->texact != -1)
 					mtex= brush->mtex[brush->texact];
-			}
-			else {
-				Brush *br= scene->toolsettings->imapaint.brush;
-				if(br) 
-					mtex= br->mtex[br->texact];
 			}
 			
 			if(mtex) {

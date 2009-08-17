@@ -204,14 +204,10 @@ static void rna_def_image_paint(BlenderRNA *brna)
 		{PAINT_TOOL_CLONE, "CLONE", 0, "Clone", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
-	srna= RNA_def_struct(brna, "ImagePaint", NULL);
+	srna= RNA_def_struct(brna, "ImagePaint", "Paint");
 	RNA_def_struct_sdna(srna, "ImagePaintSettings");
 	RNA_def_struct_ui_text(srna, "Image Paint", "Properties of image and texture painting mode.");
  
-	prop= RNA_def_property(srna, "brush", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Brush");
-	RNA_def_property_ui_text(prop, "Brush", "");
-   
 	prop= RNA_def_property(srna, "tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, tool_items);
 	RNA_def_property_ui_text(prop, "Tool", "");

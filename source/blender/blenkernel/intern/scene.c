@@ -177,7 +177,7 @@ Scene *copy_scene(Main *bmain, Scene *sce, int type)
 				copy_paint(&ts->sculpt->paint, &ts->sculpt->paint);
 			}
 
-			id_us_plus((ID *)ts->imapaint.brush);
+			copy_paint(&ts->imapaint.paint, &ts->imapaint.paint);
 			ts->imapaint.paintcursor= NULL;
 
 			ts->particle.paintcursor= NULL;
@@ -284,7 +284,8 @@ void free_scene(Scene *sce)
 			free_paint(&sce->toolsettings->sculpt->paint);
 			MEM_freeN(sce->toolsettings->sculpt);
 		}
-		
+		free_paint(&sce->toolsettings->imapaint.paint);
+
 		MEM_freeN(sce->toolsettings);
 		sce->toolsettings = NULL;	
 	}
