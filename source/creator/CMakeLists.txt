@@ -121,6 +121,7 @@ IF(WITH_INSTALL)
       )
       
       # Copy the systems python into the install directory
+      # Scons copy in tools/Blender.py
       ADD_CUSTOM_COMMAND(
         TARGET blender POST_BUILD MAIN_DEPENDENCY blender
         COMMENT "copying a subset of the systems python..."
