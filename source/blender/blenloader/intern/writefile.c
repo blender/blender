@@ -1676,6 +1676,11 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 	}
 }
 
+static void write_paint(WriteData *wd, Paint *p)
+{
+	if(p && p->brushes)
+		writedata(wd, DATA, p->brush_count * sizeof(Brush*), p->brushes);
+}
 
 static void write_scenes(WriteData *wd, ListBase *scebase)
 {
@@ -1688,6 +1693,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	TimeMarker *marker;
 	TransformOrientation *ts;
 	SceneRenderLayer *srl;
+	ToolSettings *tos;
 	
 	sce= scebase->first;
 	while(sce) {
@@ -1705,17 +1711,15 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			base= base->next;
 		}
 		
-		writestruct(wd, DATA, "ToolSettings", 1, sce->toolsettings);
-		if(sce->toolsettings->vpaint)
-			writestruct(wd, DATA, "VPaint", 1, sce->toolsettings->vpaint);
-		if(sce->toolsettings->wpaint)
-			writestruct(wd, DATA, "VPaint", 1, sce->toolsettings->wpaint);
-		if(sce->toolsettings->sculpt) {
-			writestruct(wd, DATA, "Sculpt", 1, sce->toolsettings->sculpt);
-			if(sce->toolsettings->sculpt->paint.brushes) {
-				Paint *p = &sce->toolsettings->sculpt->paint;
-				writedata(wd, DATA, p->brush_count * sizeof(Brush*), p->brushes);
-			}
+		tos = sce->toolsettings;
+		writestruct(wd, DATA, "ToolSettings", 1, tos);
+		if(tos->vpaint)
+			writestruct(wd, DATA, "VPaint", 1, tos->vpaint);
+		if(tos->wpaint)
+			writestruct(wd, DATA, "VPaint", 1, tos->wpaint);
+		if(tos->sculpt) {
+			writestruct(wd, DATA, "Sculpt", 1, tos->sculpt);
+			write_paint(wd, &tos->sculpt->paint);
 		}
 
 		ed= sce->ed;

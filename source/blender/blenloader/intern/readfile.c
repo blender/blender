@@ -4011,6 +4011,14 @@ static void composite_patch(bNodeTree *ntree, Scene *scene)
 			node->id= &scene->id;
 }
 
+static void link_paint(FileData *fd, Scene *sce, Paint *p)
+{
+	if(p && p->brushes) {
+		int i;
+		for(i = 0; i < p->brush_count; ++i)
+			p->brushes[i]= newlibadr_us(fd, sce->id.lib, p->brushes[i]);
+	}
+}
 
 static void lib_link_scene(FileData *fd, Main *main)
 {
@@ -4036,12 +4044,9 @@ static void lib_link_scene(FileData *fd, Main *main)
 			
 			sce->toolsettings->imapaint.brush=
 				newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.brush);
-			if(sce->toolsettings->sculpt && sce->toolsettings->sculpt->paint.brushes) {
-				int i;
-				for(i = 0; i < sce->toolsettings->sculpt->paint.brush_count; ++i)
-					sce->toolsettings->sculpt->paint.brushes[i]=
-						newlibadr_us(fd, sce->id.lib, sce->toolsettings->sculpt->paint.brushes[i]);
-			}
+
+			link_paint(fd, sce, &sce->toolsettings->sculpt->paint);
+
 			if(sce->toolsettings->vpaint)
 				sce->toolsettings->vpaint->brush=
 					newlibadr_us(fd, sce->id.lib, sce->toolsettings->vpaint->brush);
@@ -4121,6 +4126,13 @@ static void link_recurs_seq(FileData *fd, ListBase *lb)
 			link_recurs_seq(fd, &seq->seqbase);
 }
 
+static void direct_link_paint(FileData *fd, Paint **paint)
+{
+	(*paint)= newdataadr(fd, (*paint));
+	if(*paint)
+		(*paint)->brushes= newdataadr(fd, (*paint)->brushes);
+}
+
 static void direct_link_scene(FileData *fd, Scene *sce)
 {
 	Editing *ed;
@@ -4150,9 +4162,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	if(sce->toolsettings) {
 		sce->toolsettings->vpaint= newdataadr(fd, sce->toolsettings->vpaint);
 		sce->toolsettings->wpaint= newdataadr(fd, sce->toolsettings->wpaint);
-		sce->toolsettings->sculpt= newdataadr(fd, sce->toolsettings->sculpt);
-		if(sce->toolsettings->sculpt)
-			sce->toolsettings->sculpt->paint.brushes= newdataadr(fd, sce->toolsettings->sculpt->paint.brushes);
+		direct_link_paint(fd, (Paint**)&sce->toolsettings->sculpt);
+
 		sce->toolsettings->imapaint.paintcursor= NULL;
 		sce->toolsettings->particle.paintcursor= NULL;
 	}
