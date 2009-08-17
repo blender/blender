@@ -3859,6 +3859,16 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int editmode_toggle_poll(bContext *C)
+{
+	Object *ob = CTX_data_active_object(C);
+
+	return ob && (ob->type == OB_MESH || ob->type == OB_ARMATURE ||
+		      ob->type == OB_FONT || ob->type == OB_MBALL ||
+		      ob->type == OB_LATTICE || ob->type == OB_SURF ||
+		      ob->type == OB_CURVE);
+}
+
 void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 {
 	
@@ -3870,7 +3880,7 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= editmode_toggle_exec;
 	
-	ot->poll= ED_operator_object_active;
+	ot->poll= editmode_toggle_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
