@@ -60,6 +60,22 @@ import bpy
 # except: 
 #     struct = None
 
+# also used by X3D exporter
+# return a tuple (free, object list), free is True if memory should be freed later with free_derived_objects()
+def create_derived_objects(ob):
+	if ob.parent and ob.parent.dupli_type != 'NONE':
+		return False, None
+
+	if ob.dupli_type != 'NONE':
+		ob.create_dupli_list()
+		return True, [(dob.object, dob.matrix) for dob in ob.dupli_list]
+	else:
+		return False, [(ob, ob.matrix)]
+
+# also used by X3D exporter
+def free_derived_objects(ob):
+	ob.free_dupli_list()
+
 # So 3ds max can open files, limit names to 12 in length
 # this is verry annoying for filenames!
 name_unique = []
@@ -941,17 +957,9 @@ def save_3ds(filename, context):
 # 	for ob in sce.objects.context:
 
 		# get derived objects
-		derived = []
+		free, derived = create_derived_objects(ob)
 
-		# ignore dupli children
-		if ob.parent and ob.parent.dupli_type != 'NONE':
-			continue
-
-		if ob.dupli_type != 'NONE':
-			ob.create_dupli_list()
-			derived = [(dob.object, dob.matrix) for dob in ob.dupli_list]
-		else:
-			derived = [(ob, ob.matrix)]
+		if derived == None: continue
 
 		for ob_derived, mat in derived:
 # 		for ob_derived, mat in getDerivedObjects(ob, False):
@@ -1003,8 +1011,12 @@ def save_3ds(filename, context):
 						if f.material_index >= mat_ls_len:
 # 						if f.mat >= mat_ls_len:
 							f.material_index = 0
-# 							f.mat = 0
-	
+							# f.mat = 0
+
+		if free:
+			free_derived_objects(ob)
+
+
 	# Make material chunks for all materials used in the meshes:
 	for mat_and_image in materialDict.values():
 		object_info.add_subchunk(make_material_chunk(mat_and_image[0], mat_and_image[1]))
