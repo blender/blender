@@ -125,7 +125,7 @@ typedef enum StrokeFlags {
 */
 typedef struct StrokeCache {
 	/* Invariants */
-	float radius;
+	float initial_radius;
 	float scale[3];
 	int flag;
 	float clip_tolerance[3];
@@ -133,6 +133,7 @@ typedef struct StrokeCache {
 	float depth;
 
 	/* Variants */
+	float radius;
 	float true_location[3];
 	float location[3];
 	float flip;
@@ -213,21 +214,6 @@ static void project(bglMats *mats, const float v[3], short p[2])
 /* ===== Sculpting =====
  *
  */
-
-/* Return modified brush size. Uses current tablet pressure (if available) to
-   shrink the brush. Skipped for grab brush because only the first mouse down
-   size is used, which is small if the user has just touched the pen to the
-   tablet */
-static char brush_size(Sculpt *sd, SculptSession *ss)
-{
-	Brush *brush = paint_brush(&sd->paint);
-	float size= brush->size;
-	
-	if((brush->sculpt_tool != SCULPT_TOOL_GRAB) && (brush->flag & BRUSH_SIZE_PRESSURE))
-		size *= ss->cache->pressure;
-
-	return size;
-}
 
 /* Return modified brush strength. Includes the direction of the brush, positive
    values pull vertices, negative values push. Uses tablet pressure and a
@@ -1267,7 +1253,7 @@ static void sculpt_update_cache_invariants(Sculpt *sd, SculptSession *ss, bConte
 	}
 
 	unproject(cache->mats, cache->true_location, cache->initial_mouse[0], cache->initial_mouse[1], cache->depth);
-	cache->radius = unproject_brush_radius(ss, brush_size(sd, ss));
+	cache->initial_radius = unproject_brush_radius(ss, brush->size);
 	cache->rotation = 0;
 	cache->first_time = 1;
 }
@@ -1289,7 +1275,14 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, PointerR
 	/* Truly temporary data that isn't stored in properties */
 
 	cache->previous_pixel_radius = cache->pixel_radius;
-	cache->pixel_radius = brush_size(sd, ss);
+	cache->pixel_radius = brush->size;
+
+	if(brush->flag & BRUSH_SIZE_PRESSURE) {
+		cache->pixel_radius *= cache->pressure;
+		cache->radius = cache->initial_radius * cache->pressure;
+	}
+	else
+		cache->radius = cache->initial_radius;
 
 	if(brush->flag & BRUSH_ANCHORED) {
 		dx = cache->mouse[0] - cache->initial_mouse[0];
