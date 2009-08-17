@@ -176,6 +176,14 @@ static void rna_Scene_frame_update(bContext *C, PointerRNA *ptr)
 	//ED_update_for_newframe(C);
 }
 
+static int rna_Scene_active_keying_set_editable(PointerRNA *ptr)
+{
+	Scene *scene= (Scene *)ptr->data;
+	
+	/* only editable if there are some Keying Sets to change to */
+	return (scene->keyingsets.first != NULL);
+}
+
 static PointerRNA rna_Scene_active_keying_set_get(PointerRNA *ptr)
 {
 	Scene *scene= (Scene *)ptr->data;
@@ -1837,7 +1845,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "active_keying_set", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "KeyingSet");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_editable_func(prop, "rna_Scene_active_keying_set_editable");
 	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_keying_set_get", "rna_Scene_active_keying_set_set", NULL);
 	RNA_def_property_ui_text(prop, "Active Keying Set", "Active Keying Set used to insert/delete keyframes.");
 	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET, NULL);
@@ -1845,7 +1853,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "active_keying_set_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "active_keyingset");
 	RNA_def_property_int_funcs(prop, "rna_Scene_active_keying_set_index_get", "rna_Scene_active_keying_set_index_set", "rna_Scene_active_keying_set_index_range");
-	RNA_def_property_ui_text(prop, "Active Keying Set", "Current Keying Set index.");
+	RNA_def_property_ui_text(prop, "Active Keying Set Index", "Current Keying Set index.");
 	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET, NULL);
 	
 	/* Tool Settings */

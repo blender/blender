@@ -3234,7 +3234,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	SpaceOops *soops= CTX_wm_space_outliner(C);
 	int event;
-	char *str;
+	char *str= NULL;
 	
 	/* check for invalid states */
 	if (soops == NULL)
