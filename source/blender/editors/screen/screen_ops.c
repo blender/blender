@@ -2885,9 +2885,12 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	RenderJob *rj;
 	Image *ima;
 	
-	/* only one job at a time */
+	/* only one render job at a time */
 	if(WM_jobs_test(CTX_wm_manager(C), scene))
 		return OPERATOR_CANCELLED;
+	
+	/* stop all running jobs, currently previews frustrate Render */
+	WM_jobs_stop_all(CTX_wm_manager(C));
 	
 	/* handle UI stuff */
 	WM_cursor_wait(1);
