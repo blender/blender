@@ -1272,6 +1272,7 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, PointerR
 		RNA_float_get_array(ptr, "location", cache->true_location);
 	cache->flip = RNA_boolean_get(ptr, "flip");
 	RNA_int_get_array(ptr, "mouse", cache->mouse);
+	cache->pressure = RNA_float_get(ptr, "pressure");
 	
 	/* Truly temporary data that isn't stored in properties */
 
@@ -1467,17 +1468,25 @@ static void sculpt_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *e
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
 	StrokeCache *cache = ss->cache;
 	PointerRNA itemptr;
-	float cur_depth;
+	float cur_depth, pressure = 1;
 	float center[3];
 
 	cur_depth = read_cached_depth(&cache->vc, mouse[0], mouse[1]);
 	unproject(ss->cache->mats, center, mouse[0], mouse[1], cur_depth);
+
+	/* Tablet */
+	if(event->custom == EVT_DATA_TABLET) {
+		wmTabletData *wmtab= event->customdata;
+		if(wmtab->Active != EVT_TABLET_NONE)
+			pressure= wmtab->Pressure;
+	}
 				
 	/* Add to stroke */
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
 	RNA_float_set_array(&itemptr, "location", center);
 	RNA_int_set_array(&itemptr, "mouse", mouse);
 	RNA_boolean_set(&itemptr, "flip", event->shift);
+	RNA_float_set(&itemptr, "pressure", pressure);
 	sculpt_update_cache_variants(sd, ss, &itemptr);
 				
 	sculpt_restore_mesh(sd, ss);

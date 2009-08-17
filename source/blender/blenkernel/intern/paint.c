@@ -87,8 +87,10 @@ void paint_brush_set(Paint *p, Brush *br)
 			
 		}
 		
-		if(!found)
+		if(!found) {
 			paint_brush_slot_add(p);
+			id_us_plus(&br->id);
+		}
 		
 		/* Make sure the current slot is the new brush */
 		p->brushes[p->active_brush_index] = br;
