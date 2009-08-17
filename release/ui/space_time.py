@@ -80,7 +80,13 @@ class TIME_MT_view(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 		
+		st = context.space_data
+		
 		layout.itemO("anim.time_toggle")
+		
+		layout.itemS()
+		
+		layout.itemR(st, "only_selected")
 
 class TIME_MT_frame(bpy.types.Menu):
 	__space_type__ = "TIMELINE"
