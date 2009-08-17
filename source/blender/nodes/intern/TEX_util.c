@@ -47,17 +47,17 @@
 
 #define PREV_RES 128 /* default preview resolution */
 
-void tex_call_delegate(TexDelegate *dg, float *out, float *coord, short thread)
+void tex_call_delegate(TexDelegate *dg, float *out, TexParams *params, short thread)
 {
 	if(dg->node->need_exec)
-		dg->fn(out, coord, dg->node, dg->in, thread);
+		dg->fn(out, params, dg->node, dg->in, thread);
 }
 
-void tex_input(float *out, int sz, bNodeStack *in, float *coord, short thread)
+void tex_input(float *out, int sz, bNodeStack *in, TexParams *params, short thread)
 {
 	TexDelegate *dg = in->data;
 	if(dg) {
-		tex_call_delegate(dg, in->vec, coord, thread);
+		tex_call_delegate(dg, in->vec, params, thread);
 	
 		if(in->hasoutput && in->sockettype == SOCK_VALUE)
 			in->vec[1] = in->vec[2] = in->vec[0];
@@ -65,14 +65,14 @@ void tex_input(float *out, int sz, bNodeStack *in, float *coord, short thread)
 	memcpy(out, in->vec, sz * sizeof(float));
 }
 
-void tex_input_vec(float *out, bNodeStack *in, float *coord, short thread)
+void tex_input_vec(float *out, bNodeStack *in, TexParams *params, short thread)
 {
-	tex_input(out, 3, in, coord, thread);
+	tex_input(out, 3, in, params, thread);
 }
 
-void tex_input_rgba(float *out, bNodeStack *in, float *coord, short thread)
+void tex_input_rgba(float *out, bNodeStack *in, TexParams *params, short thread)
 {
-	tex_input(out, 4, in, coord, thread);
+	tex_input(out, 4, in, params, thread);
 	
 	if(in->hasoutput && in->sockettype == SOCK_VALUE)
 	{
@@ -88,10 +88,10 @@ void tex_input_rgba(float *out, bNodeStack *in, float *coord, short thread)
 	}
 }
 
-float tex_input_value(bNodeStack *in, float *coord, short thread)
+float tex_input_value(bNodeStack *in, TexParams *params, short thread)
 {
 	float out[4];
-	tex_input_vec(out, in, coord, thread);
+	tex_input_vec(out, in, params, thread);
 	return out[0];
 }
 
@@ -121,11 +121,21 @@ static void init_preview(bNode *node)
 	}
 }
 
+void params_from_cdata(TexParams *out, TexCallData *in)
+{
+	out->coord = in->coord;
+	out->dxt = in->dxt;
+	out->dyt = in->dyt;
+	out->cfra = in->cfra;
+}
+
 void tex_do_preview(bNode *node, bNodeStack *ns, TexCallData *cdata)
 {
 	int x, y;
 	float *result;
 	bNodePreview *preview;
+	float coord[3] = {0, 0, 0};
+	TexParams params;
 	
 	if(!cdata->do_preview)
 		return;
@@ -137,15 +147,20 @@ void tex_do_preview(bNode *node, bNodeStack *ns, TexCallData *cdata)
 	
 	preview = node->preview;
 	
+	params.dxt = 0;
+	params.dyt = 0;
+	params.cfra = 0; /* XXX Use current? */
+	params.coord = coord;
+	
 	for(x=0; x<preview->xsize; x++)
 	for(y=0; y<preview->ysize; y++)
 	{
-		cdata->coord[0] = ((float) x / preview->xsize) * 2 - 1;
-		cdata->coord[1] = ((float) y / preview->ysize) * 2 - 1;
+		params.coord[0] = ((float) x / preview->xsize) * 2 - 1;
+		params.coord[1] = ((float) y / preview->ysize) * 2 - 1;
 		
 		result = preview->rect + 4 * (preview->xsize*y + x);
 		
-		tex_input_rgba(result, ns, cdata->coord, cdata->thread);
+		tex_input_rgba(result, ns, &params, cdata->thread);
 	}
 }
 
@@ -192,8 +207,17 @@ void ntreeTexCheckCyclics(struct bNodeTree *ntree)
 	}
 }
 
-void ntreeTexExecTree(bNodeTree *nodes, TexResult *texres, float *coord, char do_preview, short thread, Tex *tex, short which_output, int cfra)
-{
+void ntreeTexExecTree(
+	bNodeTree *nodes,
+	TexResult *texres,
+	float *coord,
+	float *dxt, float *dyt,
+	char do_preview, 
+	short thread, 
+	Tex *tex, 
+	short which_output, 
+	int cfra
+){
 	TexResult dummy_texres;
 	TexCallData data;
 	
@@ -203,6 +227,8 @@ void ntreeTexExecTree(bNodeTree *nodes, TexResult *texres, float *coord, char do
 	
 	if(!texres) texres = &dummy_texres;
 	data.coord = coord;
+	data.dxt = dxt;
+	data.dyt = dyt;
 	data.target = texres;
 	data.do_preview = do_preview;
 	data.thread = thread;
@@ -225,7 +251,7 @@ void ntreeTexUpdatePreviews(bNodeTree* nodetree)
 	dummy_texres.nor = 0;
 	
 	ntreeBeginExecTree(nodetree);
-	ntreeTexExecTree(nodetree, &dummy_texres, coord, 1, 0, tex, 0, 0);
+	ntreeTexExecTree(nodetree, &dummy_texres, coord, 0, 0, 1, 0, tex, 0, 0);
 	ntreeEndExecTree(nodetree);
 	
 }

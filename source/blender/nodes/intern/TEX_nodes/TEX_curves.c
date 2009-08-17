@@ -21,7 +21,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Robin Allen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -36,14 +36,13 @@ static bNodeSocketType time_outputs[]= {
 	{ -1, 0, "" }
 };
 
-static void time_colorfn(float *out, float *coord, bNode *node, bNodeStack **in, short thread)
+static void time_colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
 	/* stack order output: fac */
 	float fac= 0.0f;
 	
-	// XXX SOLVE! these functions should get the TexCallData pointer
-//	if(node->custom1 < node->custom2)
-//		fac = (scene->r.cfra - node->custom1)/(float)(node->custom2-node->custom1);
+	if(node->custom1 < node->custom2)
+		fac = (p->cfra - node->custom1)/(float)(node->custom2-node->custom1);
 	
 	fac = curvemapping_evaluateF(node->storage, 0, fac);
 	out[0] = CLAMPIS(fac, 0.0f, 1.0f);
@@ -90,10 +89,10 @@ static bNodeSocketType rgb_outputs[]= {
 	{	-1, 0, ""	}
 };
 
-static void rgb_colorfn(float *out, float *coord, bNode *node, bNodeStack **in, short thread)
+static void rgb_colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
 	float cin[4];
-	tex_input_rgba(cin, in[0], coord, thread);
+	tex_input_rgba(cin, in[0], p, thread);
 	
 	curvemapping_evaluateRGBF(node->storage, out, cin);
 	out[3] = cin[3];

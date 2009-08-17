@@ -21,7 +21,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Robin Allen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -49,14 +49,17 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 	if(!cdata->do_preview) {
 		if(cdata->which_output == node->custom1)
 		{
-			tex_input_rgba(&target->tr, in[0], cdata->coord, cdata->thread);
+			TexParams params;
+			params_from_cdata(&params, cdata);
+			
+			tex_input_rgba(&target->tr, in[0], &params, cdata->thread);
 		
 			target->tin = (target->tr + target->tg + target->tb) / 3.0f;
 			target->talpha = 1.0f;
 		
 			if(target->nor) {
 				if(in[1]->hasinput)
-					tex_input_vec(target->nor, in[1], cdata->coord, cdata->thread);
+					tex_input_vec(target->nor, in[1], &params, cdata->thread);
 				else
 					target->nor = 0;
 			}
