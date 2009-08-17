@@ -177,6 +177,8 @@ static void print_help(void)
 	printf ("        When the filename has no #, The suffix #### is added to the filename\n");
 	printf ("      The frame number will be added at the end of the filename.\n");
 	printf ("      eg: blender -b foobar.blend -o //render_ -F PNG -x 1 -a\n");
+	printf ("    -E <engine>\tSpecify the render engine.\n");
+	printf ("      use -E help to list available engines.\n");
 	printf ("\nFormat options:\n");
 	printf ("    -F <format>\tSet the render format, Valid options are...\n");
 	printf ("    \tTGA IRIS HAMX JPEG MOVIE IRIZ RAWTGA\n");
@@ -690,6 +692,47 @@ int main(int argc, char **argv)
 					}
 				} else {
 					printf("\nError: you must specify a path after '-o '.\n");
+				}
+				break;
+			case 'E':
+				a++;
+				if (a < argc)
+				{
+					if (!strcmp(argv[a],"help"))
+					{
+						RenderEngineType *type = NULL;
+
+						for( type = R_engines.first; type; type = type->next )
+						{
+							printf("\t%s\n", type->idname);
+						}
+						exit(0);
+					}
+					else 
+					{
+						if (CTX_data_scene(C)==NULL)
+						{
+							printf("\nError: no blend loaded. order the arguments so '-E ' is after the blend is loaded.\n");
+						}
+						else 
+						{
+							Scene *scene= CTX_data_scene(C);
+							RenderData *rd = &scene->r;
+							RenderEngineType *type = NULL;
+							
+							for( type = R_engines.first; type; type = type->next )
+							{
+								if (!strcmp(argv[a],type->idname))
+								{
+									BLI_strncpy(rd->engine, type->idname, sizeof(rd->engine));
+								}
+							}
+						}
+					}
+				}
+				else
+				{
+					printf("\nEngine not specified.\n");
 				}
 				break;
 			case 'F':
