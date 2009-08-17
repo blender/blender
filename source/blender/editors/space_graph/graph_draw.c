@@ -877,12 +877,8 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 /* ************************************************************************* */
 /* Channel List */
 
-// XXX quite a few of these need to be kept in sync with their counterparts in Action Editor
-// as they're the same. We have 2 separate copies of this for now to make it easier to develop
-// the diffences between the two editors, but one day these should be merged!
-
 /* left hand part */
-void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar) 
+void graph_draw_channel_names(bContext *C, bAnimContext *ac, SpaceIpo *sipo, ARegion *ar) 
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -903,36 +899,51 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	 *	  start of list offset, and the second is as a correction for the scrollers.
 	 */
 	height= (float)((items*ACHANNEL_STEP) + (ACHANNEL_HEIGHT*2));
-	
-#if 0
-	if (height > (v2d->mask.ymax - v2d->mask.ymin)) {
-		/* don't use totrect set, as the width stays the same 
-		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
-		 */
-		v2d->tot.ymin= (float)(-height);
-	}
-	
-	/* XXX I would call the below line! (ton) */
-#endif
 	UI_view2d_totRect_set(v2d, ar->winx, height);
 	
 	/* loop through channels, and set up drawing depending on their type  */	
-	y= (float)ACHANNEL_FIRST;
-	
-	for (ale= anim_data.first, i=0; ale; ale= ale->next, i++) {
-		const float yminc= (float)(y - ACHANNEL_HEIGHT_HALF);
-		const float ymaxc= (float)(y + ACHANNEL_HEIGHT_HALF);
+	{	/* first pass: just the standard GL-drawing for backdrop + text */
+		y= (float)ACHANNEL_FIRST;
 		
-		/* check if visible */
-		if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
-			 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
-		{
-			/* draw all channels using standard channel-drawing API */
-			ANIM_channel_draw(ac, ale, yminc, ymaxc);
+		for (ale= anim_data.first, i=0; ale; ale= ale->next, i++) {
+			const float yminc= (float)(y - ACHANNEL_HEIGHT_HALF);
+			const float ymaxc= (float)(y + ACHANNEL_HEIGHT_HALF);
+			
+			/* check if visible */
+			if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
+				 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
+			{
+				/* draw all channels using standard channel-drawing API */
+				ANIM_channel_draw(ac, ale, yminc, ymaxc);
+			}
+			
+			/* adjust y-position for next one */
+			y -= ACHANNEL_STEP;
+		}
+	}
+	{	/* second pass: widgets */
+		uiBlock *block= uiBeginBlock(C, ar, "graph channel buttons", UI_EMBOSS);
+		
+		y= (float)ACHANNEL_FIRST;
+		
+		for (ale= anim_data.first, i=0; ale; ale= ale->next, i++) {
+			const float yminc= (float)(y - ACHANNEL_HEIGHT_HALF);
+			const float ymaxc= (float)(y + ACHANNEL_HEIGHT_HALF);
+			
+			/* check if visible */
+			if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
+				 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
+			{
+				/* draw all channels using standard channel-drawing API */
+				ANIM_channel_draw_widgets(ac, ale, block, yminc, ymaxc);
+			}
+			
+			/* adjust y-position for next one */
+			y -= ACHANNEL_STEP;
 		}
 		
-		/* adjust y-position for next one */
-		y -= ACHANNEL_STEP;
+		uiEndBlock(C, block);
+		uiDrawBlock(C, block);
 	}
 	
 	/* free tempolary channels */

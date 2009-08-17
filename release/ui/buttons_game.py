@@ -19,71 +19,132 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 		
 		ob = context.active_object
 		game = ob.game
+		soft = ob.game.soft_body
 
 		layout.itemR(game, "physics_type")
 		layout.itemS()
 		
-		split = layout.split()
-		
-		col = split.column()
-		col.itemR(game, "actor")
-		col.itemR(game, "ghost")
-		col.itemR(ob, "restrict_render", text="Invisible") # out of place but useful
-		
-		col = split.column()
-		col.itemR(game, "do_fh", text="Use Material Physics")
-		col.itemR(game, "rotation_fh", text="Rotate From Normal")
-		col.itemR(game, "no_sleeping")
-		
-		layout.itemS()
-		
-		split = layout.split()
-		
-		col = split.column()
-		col.itemL(text="Attributes:")
-		sub = col.column(align=True)
-		sub.itemR(game, "mass")
-		sub.itemR(game, "radius")
-		sub.itemR(game, "form_factor")
-		
-		col.itemS()
-		
-		col.itemL(text="Damping:")
-		sub = col.column(align=True)
-		sub.itemR(game, "damping", text="Translation", slider=True)
-		sub.itemR(game, "rotation_damping", text="Rotation", slider=True)
-		
-		col = split.column()
-		col.itemL(text="Velocity:")
-		sub = col.column(align=True)
-		sub.itemR(game, "minimum_velocity", text="Minimum")
-		sub.itemR(game, "maximum_velocity", text="Maximum")
-		
-		col.itemS()
-		
-		col.itemR(game, "anisotropic_friction")
-		sub = col.column()
-		sub.active = game.anisotropic_friction
-		sub.itemR(game, "friction_coefficients", text="", slider=True)
-		
-		layout.itemS()
-		
-		split = layout.split()
-		
-		col = split.column()
-		col.itemL(text="Lock Translation:")
-		col.itemR(game, "lock_x_axis", text="X")
-		col.itemR(game, "lock_y_axis", text="Y")
-		col.itemR(game, "lock_z_axis", text="Z")
-		
-		col = split.column()
-		col.itemL(text="Lock Rotation:")
-		col.itemR(game, "lock_x_rot_axis", text="X")
-		col.itemR(game, "lock_y_rot_axis", text="Y")
-		col.itemR(game, "lock_z_rot_axis", text="Z")
+		#if game.physics_type == 'DYNAMIC':
+		if game.physics_type in ('DYNAMIC', 'RIGID_BODY'):
 
+			split = layout.split()
+			
+			col = split.column()
+			col.itemR(game, "actor")
+			col.itemR(game, "ghost")
+			col.itemR(ob, "restrict_render", text="Invisible") # out of place but useful
+			
+			col = split.column()
+			col.itemR(game, "material_physics")
+			col.itemR(game, "rotate_from_normal")
+			col.itemR(game, "no_sleeping")
+			
+			layout.itemS()
+			
+			split = layout.split()
+			
+			col = split.column()
+			col.itemL(text="Attributes:")
+			sub = col.column()
+			sub.itemR(game, "mass")
+			sub.itemR(game, "radius")
+			sub.itemR(game, "form_factor")
+			
+			col = split.column()
+			sub = col.column()
+			sub.active = (game.physics_type == 'RIGID_BODY')
+			sub.itemR(game, "anisotropic_friction")
+			subsub = sub.column()
+			subsub.active = game.anisotropic_friction
+			subsub.itemR(game, "friction_coefficients", text="", slider=True)
+			
+			split = layout.split()
+			
+			col = split.column()
+			col.itemL(text="Velocity:")
+			sub = col.column(align=True)
+			sub.itemR(game, "minimum_velocity", text="Minimum")
+			sub.itemR(game, "maximum_velocity", text="Maximum")
+			
+			col = split.column()
+			col.itemL(text="Damping:")
+			sub = col.column(align=True)
+			sub.itemR(game, "damping", text="Translation", slider=True)
+			sub.itemR(game, "rotation_damping", text="Rotation", slider=True)
+			
+			layout.itemS()
+			
+			split = layout.split()
+			
+			col = split.column()
+			col.itemL(text="Lock Translation:")
+			col.itemR(game, "lock_x_axis", text="X")
+			col.itemR(game, "lock_y_axis", text="Y")
+			col.itemR(game, "lock_z_axis", text="Z")
+			
+			col = split.column()
+			col.itemL(text="Lock Rotation:")
+			col.itemR(game, "lock_x_rot_axis", text="X")
+			col.itemR(game, "lock_y_rot_axis", text="Y")
+			col.itemR(game, "lock_z_rot_axis", text="Z")
+		
+		elif game.physics_type == 'SOFT_BODY':
+
+			col = layout.column()
+			col.itemR(game, "actor")
+			col.itemR(game, "ghost")
+			col.itemR(ob, "restrict_render", text="Invisible")
+			
+			layout.itemS()
+			
+			split = layout.split()
+			
+			col = split.column()
+			col.itemL(text="Attributes:")
+			col.itemR(game, "mass")
+			col.itemR(soft, "welding")
+			col.itemR(soft, "position_iterations")
+			col.itemR(soft, "linstiff", slider=True)
+			col.itemR(soft, "dynamic_friction", slider=True)
+			col.itemR(soft, "margin", slider=True)
+			col.itemR(soft, "bending_const", text="Bending Constraints")
+			
+			
+			col = split.column()
+			col.itemR(soft, "shape_match")
+			sub = col.column()
+			sub.active = soft.shape_match
+			sub.itemR(soft, "threshold", slider=True)
+			
+			col.itemS()
+			
+			col.itemL(text="Cluster Collision:")
+			col.itemR(soft, "cluster_rigid_to_softbody")
+			col.itemR(soft, "cluster_soft_to_softbody")
+			sub  = col.column()
+			sub.active = (soft.cluster_rigid_to_softbody or soft.cluster_soft_to_softbody)
+			sub.itemR(soft, "cluster_iterations", text="Iterations")
+		
+		elif game.physics_type == 'STATIC':
+			
+			col = layout.column()
+			col.itemR(game, "actor")
+			col.itemR(game, "ghost")
+			col.itemR(ob, "restrict_render", text="Invisible")
+			
+		elif game.physics_type in ('SENSOR', 'INVISIBLE', 'NO_COLLISION', 'OCCLUDE'):
+			
+			col = layout.column()
+			col.itemR(ob, "restrict_render", text="Invisible")
+			
 class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel):
 	__label__ = "Collision Bounds"
+
+	def poll(self, context):
+		ob = context.active_object
+		game = ob.game
+		rd = context.scene.render_data
+		return (game.physics_type in ('DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC')) and (rd.engine == 'BLENDER_GAME')
 
 	def draw_header(self, context):
 		layout = self.layout

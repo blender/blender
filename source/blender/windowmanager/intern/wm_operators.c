@@ -322,7 +322,7 @@ void WM_operator_py_idname(char *to, const char *from)
 /* some.op -> SOME_OT_op */
 void WM_operator_bl_idname(char *to, const char *from)
 {
-	char *sep= strstr(from, ".");
+	char *sep= strchr(from, '.');
 
 	if(sep) {
 		int i, ofs= (sep-from);
@@ -345,7 +345,7 @@ void WM_operator_bl_idname(char *to, const char *from)
  * When calling from an existing wmOperator do.
  * WM_operator_pystring(op->type, op->ptr);
  */
-char *WM_operator_pystring(wmOperatorType *ot, PointerRNA *opptr, int all_args)
+char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, int all_args)
 {
 	const char *arg_name= NULL;
 	char idname_py[OP_MAX_TYPENAME];
@@ -378,7 +378,7 @@ char *WM_operator_pystring(wmOperatorType *ot, PointerRNA *opptr, int all_args)
 
 		if (strcmp(arg_name, "rna_type")==0) continue;
 
-		buf= RNA_property_as_string(opptr, prop);
+		buf= RNA_property_as_string(C, opptr, prop);
 		
 		ok= 1;
 
@@ -388,7 +388,7 @@ char *WM_operator_pystring(wmOperatorType *ot, PointerRNA *opptr, int all_args)
 			prop_default= RNA_struct_find_property(&opptr_default, arg_name);
 
 			if(prop_default) {
-				buf_default= RNA_property_as_string(&opptr_default, prop_default);
+				buf_default= RNA_property_as_string(C, &opptr_default, prop_default);
 
 				if(strcmp(buf, buf_default)==0)
 					ok= 0; /* values match, dont bother printing */
@@ -543,7 +543,12 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
-	uiDefAutoButsRNA(C, layout, &ptr, 2);
+	uiItemL(layout, op->type->name, 0);
+
+	if(op->type->ui)
+		op->type->ui((bContext*)C, &ptr, layout);
+	else
+		uiDefAutoButsRNA(C, layout, &ptr, 2);
 
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);
@@ -585,7 +590,12 @@ static uiBlock *wm_block_create_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
 	
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
-	uiDefAutoButsRNA(C, layout, op->ptr, 2);
+	uiItemL(layout, op->type->name, 0);
+
+	if(op->type->ui)
+		op->type->ui(C, op->ptr, layout);
+	else
+		uiDefAutoButsRNA(C, layout, op->ptr, 2);
 	
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);

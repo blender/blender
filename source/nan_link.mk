@@ -36,7 +36,7 @@ ifdef NAN_DEBUG
     LDFLAGS += $(NAN_DEBUG)
 endif
 
-DBG_LDFLAGS	+= -g
+DBG_LDFLAGS += -g
 
 ifneq (x$(DEBUG_DIR), x)
     LDFLAGS+=$(DBG_LDFLAGS)
@@ -97,7 +97,6 @@ ifeq ($(OS),linux)
     COMMENT = "MESA 3.1"
     LLIBS = -L$(NAN_MESA)/lib -L/usr/X11R6/lib -lXmu -lXext -lX11 -lXi
     LLIBS += -lutil -lc -lm -ldl -lpthread
-    LLIBS += -lsamplerate
     LLIBS += -lpython$(NAN_PYTHON_VERSION)
     LOPTS = -export-dynamic
     DADD = -lGL -lGLU
@@ -127,28 +126,28 @@ endif
 
 ifeq ($(OS),windows)
     EXT = .exe
-	SOEXT = .dll
-	ifeq ($(FREE_WINDOWS),true)
-		MINGWLIB = /usr/lib/w32api
-		LDFLAGS += -mwindows -mno-cygwin -mconsole
-		DADD += -L/usr/lib/w32api -lnetapi32 -lopengl32 -lglu32 -lshfolder
-		DADD += -L/usr/lib/w32api -lwinmm -lwsock32
+    SOEXT = .dll
+    ifeq ($(FREE_WINDOWS),true)
+        MINGWLIB = /usr/lib/w32api
+        LDFLAGS += -mwindows -mno-cygwin -mconsole
+        DADD += -L/usr/lib/w32api -lnetapi32 -lopengl32 -lglu32 -lshfolder
+        DADD += -L/usr/lib/w32api -lwinmm -lwsock32
     else
-	    DADD = kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib
-		DADD += advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
-	    DADD += vfw32.lib winmm.lib opengl32.lib glu32.lib largeint.lib dxguid.lib
-		DADD += libcmt.lib
-		LOPTS = /link
-		LOPTS += /NODEFAULTLIB:"libc" 
-		LOPTS += /NODEFAULTLIB:"libcd" 
-		LOPTS += /NODEFAULTLIB:"libcp" 
-		LOPTS += /NODEFAULTLIB:"libcpd" 
-		LOPTS += /NODEFAULTLIB:"python20" 
-		LOPTS += /NODEFAULTLIB:"msvcrt" 
-		LOPTS += /SUBSYSTEM:CONSOLE
-		LDFLAGS += /MT
-		DYNLDFLAGS = /LD
-	endif
+        DADD = kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib
+        DADD += advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
+        DADD += vfw32.lib winmm.lib opengl32.lib glu32.lib largeint.lib dxguid.lib
+        DADD += libcmt.lib
+        LOPTS = /link
+        LOPTS += /NODEFAULTLIB:"libc" 
+        LOPTS += /NODEFAULTLIB:"libcd" 
+        LOPTS += /NODEFAULTLIB:"libcp" 
+        LOPTS += /NODEFAULTLIB:"libcpd" 
+        LOPTS += /NODEFAULTLIB:"python20" 
+        LOPTS += /NODEFAULTLIB:"msvcrt" 
+        LOPTS += /SUBSYSTEM:CONSOLE
+        LDFLAGS += /MT
+        DYNLDFLAGS = /LD
+    endif
 endif
 
 ifneq ($(OS), irix)

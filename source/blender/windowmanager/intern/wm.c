@@ -103,7 +103,7 @@ void wm_operator_register(bContext *C, wmOperator *op)
 	
 	
 	/* Report the string representation of the operator */
-	buf = WM_operator_pystring(op->type, op->ptr, 1);
+	buf = WM_operator_pystring(C, op->type, op->ptr, 1);
 	BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
 	MEM_freeN(buf);
 	

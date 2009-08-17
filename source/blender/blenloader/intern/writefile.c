@@ -157,6 +157,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_packedFile.h" // for packAll
+#include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_screen.h" // for waitcursor
 #include "BKE_sequence.h"
@@ -582,19 +583,27 @@ static void write_boid_state(WriteData *wd, BoidState *state)
 /* TODO: replace *cache with *cachelist once it's coded */
 #define PTCACHE_WRITE_PSYS	0
 #define PTCACHE_WRITE_CLOTH	1
-static void write_pointcaches(WriteData *wd, PointCache *cache, int type)
+static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
 {
-	writestruct(wd, DATA, "PointCache", 1, cache);
+	PointCache *cache = ptcaches->first;
+	int i;
 
-	if((cache->flag & PTCACHE_DISK_CACHE)==0) {
-		PTCacheMem *pm = cache->mem_cache.first;
+	for(; cache; cache=cache->next) {
+		writestruct(wd, DATA, "PointCache", 1, cache);
 
-		for(; pm; pm=pm->next) {
-			writestruct(wd, DATA, "PTCacheMem", 1, pm);
-			if(type==PTCACHE_WRITE_PSYS)
-				writestruct(wd, DATA, "ParticleKey", pm->totpoint, pm->data);
-			else if(type==PTCACHE_WRITE_CLOTH)
-				writedata(wd, DATA, 9 * sizeof(float) * pm->totpoint, pm->data);
+		if((cache->flag & PTCACHE_DISK_CACHE)==0) {
+			PTCacheMem *pm = cache->mem_cache.first;
+
+			for(; pm; pm=pm->next) {
+				writestruct(wd, DATA, "PTCacheMem", 1, pm);
+				if(pm->index_array)
+					writedata(wd, DATA, sizeof(int) * pm->totpoint, pm->index_array);
+				
+				for(i=0; i<BPHYS_TOT_DATA; i++) {
+					if(pm->data[i] && pm->data_types & (1<<i))
+						writedata(wd, DATA, BKE_ptcache_data_size(i) * pm->totpoint, pm->data[i]);
+				}
+			}
 		}
 	}
 }
@@ -652,8 +661,8 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 
 		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
 		writestruct(wd, DATA, "SoftBody", 1, psys->soft);
-		if(psys->soft) write_pointcaches(wd, psys->soft->pointcache, PTCACHE_WRITE_PSYS);
-		write_pointcaches(wd, psys->pointcache, PTCACHE_WRITE_PSYS);
+		if(psys->soft) write_pointcaches(wd, &psys->soft->ptcaches);
+		write_pointcaches(wd, &psys->ptcaches);
 	}
 }
 
@@ -1112,7 +1121,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase, int write_undo)
 			
 			writestruct(wd, DATA, "ClothSimSettings", 1, clmd->sim_parms);
 			writestruct(wd, DATA, "ClothCollSettings", 1, clmd->coll_parms);
-			write_pointcaches(wd, clmd->point_cache, PTCACHE_WRITE_CLOTH);
+			write_pointcaches(wd, &clmd->ptcaches);
 		} 
 		else if(md->type==eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData*) md;
@@ -1667,6 +1676,11 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 	}
 }
 
+static void write_paint(WriteData *wd, Paint *p)
+{
+	if(p && p->brushes)
+		writedata(wd, DATA, p->brush_count * sizeof(Brush*), p->brushes);
+}
 
 static void write_scenes(WriteData *wd, ListBase *scebase)
 {
@@ -1679,6 +1693,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	TimeMarker *marker;
 	TransformOrientation *ts;
 	SceneRenderLayer *srl;
+	ToolSettings *tos;
 	
 	sce= scebase->first;
 	while(sce) {
@@ -1696,13 +1711,22 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			base= base->next;
 		}
 		
-		writestruct(wd, DATA, "ToolSettings", 1, sce->toolsettings);
-		if(sce->toolsettings->vpaint)
-			writestruct(wd, DATA, "VPaint", 1, sce->toolsettings->vpaint);
-		if(sce->toolsettings->wpaint)
-			writestruct(wd, DATA, "VPaint", 1, sce->toolsettings->wpaint);
-		if(sce->toolsettings->sculpt)
-			writestruct(wd, DATA, "Sculpt", 1, sce->toolsettings->sculpt);
+		tos = sce->toolsettings;
+		writestruct(wd, DATA, "ToolSettings", 1, tos);
+		if(tos->vpaint) {
+			writestruct(wd, DATA, "VPaint", 1, tos->vpaint);
+			write_paint(wd, &tos->vpaint->paint);
+		}
+		if(tos->wpaint) {
+			writestruct(wd, DATA, "VPaint", 1, tos->wpaint);
+			write_paint(wd, &tos->wpaint->paint);
+		}
+		if(tos->sculpt) {
+			writestruct(wd, DATA, "Sculpt", 1, tos->sculpt);
+			write_paint(wd, &tos->sculpt->paint);
+		}
+
+		write_paint(wd, &tos->imapaint.paint);
 
 		ed= sce->ed;
 		if(ed) {

@@ -21,4 +21,9 @@ if env['WITH_BF_OPENAL']:
 	incs += ' OpenAL ' + env['BF_OPENAL_INC']
 	defs.append('WITH_OPENAL')
 
+if env['WITH_BF_JACK']:
+	sources += env.Glob('jack/*.cpp')
+	incs += ' jack ' + env['BF_JACK_INC']
+	defs.append('WITH_JACK')
+
 env.BlenderLib ('bf_audaspace', sources, Split(incs), defs, libtype=['intern'], priority = [25] )

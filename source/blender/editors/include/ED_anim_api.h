@@ -46,6 +46,8 @@ struct bActionGroup;
 struct FCurve;
 struct FModifier;
 
+struct uiBlock;
+
 /* ************************************************ */
 /* ANIMATION CHANNEL FILTERING */
 /* anim_filter.c */
@@ -338,6 +340,8 @@ bAnimChannelType *ANIM_channel_get_typeinfo(bAnimListElem *ale);
 
 /* Draw the given channel */
 void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc);
+/* Draw the widgets for the given channel */
+void ANIM_channel_draw_widgets(bAnimContext *ac, bAnimListElem *ale, struct uiBlock *block, float yminc, float ymaxc);
 
 
 /* ------------------------ Editing API -------------------------- */
@@ -402,13 +406,15 @@ void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, struct ID *id, List
 /* ------------ Animation F-Curves <-> Icons/Names Mapping ------------ */
 /* anim_ipo_utils.c */
 
+/* Get icon for type of setting F-Curve is for */
+// XXX include this in the getname() method via RNA?
 int geticon_anim_blocktype(short blocktype);
 
+/* Get name for channel-list displays for F-Curve */
 void getname_anim_fcurve(char *name, struct ID *id, struct FCurve *fcu);
 
-
+/* Automatically determine a color for the nth F-Curve */
 void ipo_rainbow(int cur, int tot, float *out);
-
 
 /* ------------- NLA-Mapping ----------------------- */
 /* anim_draw.c */

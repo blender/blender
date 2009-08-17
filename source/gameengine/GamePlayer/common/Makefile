@@ -52,6 +52,7 @@ CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_PNG)/include
 CPPFLAGS += -I$(NAN_ZLIB)/include
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
+CPPFLAGS += -I$(NAN_AUDASPACE)/include
 
 CPPFLAGS += -I../../../gameengine/Converter
 CPPFLAGS += -I../../../gameengine/Expressions

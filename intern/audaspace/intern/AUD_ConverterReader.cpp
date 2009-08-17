@@ -60,6 +60,8 @@ AUD_ConverterReader::AUD_ConverterReader(AUD_IReader* reader, AUD_Specs specs) :
 		case AUD_FORMAT_FLOAT64:
 			m_convert = AUD_convert_u8_double;
 			break;
+		default:
+			break;
 		}
 		break;
 	case AUD_FORMAT_S16:
@@ -86,6 +88,8 @@ AUD_ConverterReader::AUD_ConverterReader(AUD_IReader* reader, AUD_Specs specs) :
 		case AUD_FORMAT_FLOAT64:
 			m_convert = AUD_convert_s16_double;
 			break;
+		default:
+			break;
 		}
 		break;
 	case AUD_FORMAT_S24:
@@ -110,6 +114,8 @@ AUD_ConverterReader::AUD_ConverterReader(AUD_IReader* reader, AUD_Specs specs) :
 			case AUD_FORMAT_FLOAT64:
 				m_convert = AUD_convert_double_s24_be;
 				break;
+			default:
+				break;
 			}
 		else
 			switch(specs.format)
@@ -131,6 +137,8 @@ AUD_ConverterReader::AUD_ConverterReader(AUD_IReader* reader, AUD_Specs specs) :
 				break;
 			case AUD_FORMAT_FLOAT64:
 				m_convert = AUD_convert_double_s24_le;
+				break;
+			default:
 				break;
 			}
 		break;
@@ -158,6 +166,8 @@ AUD_ConverterReader::AUD_ConverterReader(AUD_IReader* reader, AUD_Specs specs) :
 		case AUD_FORMAT_FLOAT64:
 			m_convert = AUD_convert_s32_double;
 			break;
+		default:
+			break;
 		}
 		break;
 	case AUD_FORMAT_FLOAT32:
@@ -183,6 +193,8 @@ AUD_ConverterReader::AUD_ConverterReader(AUD_IReader* reader, AUD_Specs specs) :
 			break;
 		case AUD_FORMAT_FLOAT64:
 			m_convert = AUD_convert_float_double;
+			break;
+		default:
 			break;
 		}
 		break;
@@ -210,7 +222,11 @@ AUD_ConverterReader::AUD_ConverterReader(AUD_IReader* reader, AUD_Specs specs) :
 		case AUD_FORMAT_FLOAT64:
 			m_convert = AUD_convert_copy<double>;
 			break;
+		default:
+			break;
 		}
+		break;
+	default:
 		break;
 	}
 

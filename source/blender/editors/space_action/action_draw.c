@@ -397,7 +397,7 @@ static void action_icu_buts(SpaceAction *saction)
 /* Channel List */
 
 /* left hand part */
-void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar) 
+void draw_channel_names(bContext *C, bAnimContext *ac, SpaceAction *saction, ARegion *ar) 
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -428,22 +428,48 @@ void draw_channel_names(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	UI_view2d_sync(NULL, ac->sa, v2d, V2D_VIEWSYNC_AREA_VERTICAL);
 	
 	/* loop through channels, and set up drawing depending on their type  */	
-	y= (float)ACHANNEL_FIRST;
-	
-	for (ale= anim_data.first; ale; ale= ale->next) {
-		float yminc= (float)(y - ACHANNEL_HEIGHT_HALF);
-		float ymaxc= (float)(y + ACHANNEL_HEIGHT_HALF);
+	{ 	/* first pass: just the standard GL-drawing for backdrop + text */
+		y= (float)ACHANNEL_FIRST;
 		
-		/* check if visible */
-		if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
-			 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
-		{
-			/* draw all channels using standard channel-drawing API */
-			ANIM_channel_draw(ac, ale, yminc, ymaxc);
+		for (ale= anim_data.first; ale; ale= ale->next) {
+			float yminc= (float)(y - ACHANNEL_HEIGHT_HALF);
+			float ymaxc= (float)(y + ACHANNEL_HEIGHT_HALF);
+			
+			/* check if visible */
+			if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
+				 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
+			{
+				/* draw all channels using standard channel-drawing API */
+				ANIM_channel_draw(ac, ale, yminc, ymaxc);
+			}
+			
+			/* adjust y-position for next one */
+			y -= ACHANNEL_STEP;
+		}
+	}
+	{	/* second pass: widgets */
+		uiBlock *block= uiBeginBlock(C, ar, "dopesheet channel buttons", UI_EMBOSS);
+		
+		y= (float)ACHANNEL_FIRST;
+		
+		for (ale= anim_data.first; ale; ale= ale->next) {
+			float yminc= (float)(y - ACHANNEL_HEIGHT_HALF);
+			float ymaxc= (float)(y + ACHANNEL_HEIGHT_HALF);
+			
+			/* check if visible */
+			if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
+				 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
+			{
+				/* draw all channels using standard channel-drawing API */
+				ANIM_channel_draw_widgets(ac, ale, block, yminc, ymaxc);
+			}
+			
+			/* adjust y-position for next one */
+			y -= ACHANNEL_STEP;
 		}
 		
-		/* adjust y-position for next one */
-		y -= ACHANNEL_STEP;
+		uiEndBlock(C, block);
+		uiDrawBlock(C, block);
 	}
 	
 	/* free tempolary channels */

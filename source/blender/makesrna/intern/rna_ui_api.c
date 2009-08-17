@@ -288,6 +288,15 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func= RNA_def_function(srna, "template_header_3D", "uiTemplateHeader3D");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
+	func= RNA_def_function(srna, "view3d_select_metaballmenu", "uiTemplate_view3d_select_metaballmenu");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	func= RNA_def_function(srna, "view3d_select_armaturemenu", "uiTemplate_view3d_select_armaturemenu");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	func= RNA_def_function(srna, "view3d_select_posemenu", "uiTemplate_view3d_select_posemenu");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	func= RNA_def_function(srna, "view3d_select_faceselmenu", "uiTemplate_view3d_select_faceselmenu");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+
 	func= RNA_def_function(srna, "template_texture_image", "uiTemplateTextureImage");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm= RNA_def_pointer(func, "texture", "Texture", "", "");

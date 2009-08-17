@@ -170,7 +170,7 @@ void init_material(Material *ma)
 	ma->sss_front= 1.0f;
 	ma->sss_back= 1.0f;
 
-	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RADIO|MA_RAYBIAS|MA_TANGENT_STR;
+	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RAYBIAS|MA_TANGENT_STR;
 
 	ma->preview = NULL;
 }
@@ -678,9 +678,6 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 	if(needtang) ma->mode |= MA_NORMAP_TANG;
 	else ma->mode &= ~MA_NORMAP_TANG;
 	
-	if(r_mode & R_RADIO)
-		if(ma->mode & MA_RADIO) needuv= 1;
-	
 	if(ma->mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)) {
 		needuv= 1;
 		if(r_mode & R_OSA) ma->texco |= TEXCO_OSA;		/* for texfaces */
@@ -689,7 +686,7 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 	
 	/* since the raytracer doesnt recalc O structs for each ray, we have to preset them all */
 	if(r_mode & R_RAYTRACE) {
-		if(ma->mode & (MA_RAYMIRROR|MA_RAYTRANSP|MA_SHADOW_TRA)) { 
+		if((ma->mode & (MA_RAYMIRROR|MA_SHADOW_TRA)) || ((ma->mode && MA_TRANSP) && (ma->mode & MA_RAYTRANSP))) { 
 			ma->texco |= NEED_UV|TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM;
 			if(r_mode & R_OSA) ma->texco |= TEXCO_OSA;
 		}

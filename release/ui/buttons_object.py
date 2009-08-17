@@ -51,7 +51,9 @@ class OBJECT_PT_relations(ObjectButtonsPanel):
 		col.itemR(ob, "parent", text="")
 
 		sub = col.column()
-		sub.itemR(ob, "parent_type", text="Type")
+		split = sub.split(percentage=0.3)
+		split.itemL(text="Type:")
+		split.itemR(ob, "parent_type", text="")
 		parent = ob.parent
 		if parent and ob.parent_type == 'BONE' and parent.type == 'ARMATURE':
 			sub.item_pointerR(ob, "parent_bone", parent.data, "bones", text="")

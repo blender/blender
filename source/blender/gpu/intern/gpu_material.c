@@ -246,7 +246,7 @@ void GPU_material_free(Material *ma)
 	BLI_freelistN(&ma->gpumaterial);
 }
 
-void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double time)
+void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double time, int mipmap)
 {
 	if(material->pass) {
 		LinkData *nlink;
@@ -266,7 +266,7 @@ void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double tim
 			}
 		}
 
-		GPU_pass_bind(material->pass, time);
+		GPU_pass_bind(material->pass, time, mipmap);
 		material->bound = 1;
 	}
 }
@@ -1139,7 +1139,7 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 
 	do_material_tex(shi);
 
-	if(ma->mode & MA_ZTRA)
+	if((ma->mode & MA_TRANSP) && (ma->mode & MA_ZTRANSP))
 		GPU_material_enable_alpha(mat);
 
 	if((G.fileflags & G_FILE_GLSL_NO_LIGHTS) || (ma->mode & MA_SHLESS)) {
@@ -1213,7 +1213,7 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 			GPU_uniform(&world->horr), &shr->combined);
 	}
 
-	if(!(ma->mode & MA_ZTRA)) {
+	if(!((ma->mode & MA_TRANSP) && (ma->mode & MA_ZTRANSP))) {
 		if(world && (GPU_link_changed(shr->alpha) || ma->alpha != 1.0f))
 			GPU_link(mat, "shade_world_mix", GPU_uniform(&world->horr),
 				shr->combined, &shr->combined);

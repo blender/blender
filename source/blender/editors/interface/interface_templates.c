@@ -236,7 +236,7 @@ static void template_ID(bContext *C, uiBlock *block, TemplateID *template, Struc
 		int w= idptr.data?UI_UNIT_X:UI_UNIT_X*6;
 		
 		if(newop) {
-			but= uiDefIconTextButO(block, BUT, newop, WM_OP_EXEC_REGION_WIN, ICON_ZOOMIN, "Add New", 0, 0, w, UI_UNIT_Y, NULL);
+			but= uiDefIconTextButO(block, BUT, newop, WM_OP_INVOKE_REGION_WIN, ICON_ZOOMIN, "Add New", 0, 0, w, UI_UNIT_Y, NULL);
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
 		}
 		else {
@@ -248,7 +248,7 @@ static void template_ID(bContext *C, uiBlock *block, TemplateID *template, Struc
 	/* delete button */
 	if(idptr.data && (flag & UI_ID_DELETE)) {
 		if(unlinkop) {
-			but= uiDefIconButO(block, BUT, unlinkop, WM_OP_EXEC_REGION_WIN, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
+			but= uiDefIconButO(block, BUT, unlinkop, WM_OP_INVOKE_REGION_WIN, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
 		}
 		else {
 			but= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
@@ -483,7 +483,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 			if(md->type==eModifierType_ParticleSystem) {
 		    	ParticleSystem *psys= ((ParticleSystemModifierData *)md)->psys;
 
-	    		if(!(G.f & G_PARTICLEEDIT))
+	    		if(!(ob->mode & OB_MODE_PARTICLE_EDIT))
 					if(ELEM3(psys->part->ren_as, PART_DRAW_PATH, PART_DRAW_GR, PART_DRAW_OB) && psys->pathcache)
 						uiItemO(row, "Convert", 0, "OBJECT_OT_modifier_convert");
 			}
@@ -628,7 +628,7 @@ static void verify_constraint_name_func (bContext *C, void *con_v, void *name_v)
 
 /* some commonly used macros in the constraints drawing code */
 #define is_armature_target(target) (target && target->type==OB_ARMATURE)
-#define is_armature_owner(ob) ((ob->type == OB_ARMATURE) && (ob->flag & OB_POSEMODE))
+#define is_armature_owner(ob) ((ob->type == OB_ARMATURE) && (ob->mode & OB_MODE_POSE))
 #define is_geom_target(target) (target && (ELEM(target->type, OB_MESH, OB_LATTICE)) )
 
 /* Helper function for draw constraint - draws constraint space stuff 
@@ -1453,7 +1453,8 @@ ListBase uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 		/* init numbers */
 		RNA_property_int_range(activeptr, activeprop, &min, &max);
 
-		len= max - min + 1;
+		if(prop)
+			len= RNA_property_collection_length(ptr, prop);
 		items= CLAMPIS(len, rows, 5);
 
 		pa->list_scroll= MIN2(pa->list_scroll, len-items);
@@ -1579,7 +1580,7 @@ static void do_running_jobs(bContext *C, void *arg, int event)
 			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_screen(C));
 			break;
 		case B_STOPANIM:
-			ED_screen_animation_timer(C, 0, 0);
+			WM_operator_name_call(C, "SCREEN_OT_animation_play", WM_OP_INVOKE_SCREEN, NULL);
 			break;
 	}
 }

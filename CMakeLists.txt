@@ -69,6 +69,8 @@ OPTION(WITH_OPENAL		"Enable OpenAL Support (http://www.openal.org)"		ON)
 OPTION(WITH_OPENMP		"Enable OpenMP (has to be supported by the compiler)"	OFF)
 OPTION(WITH_WEBPLUGIN		"Enable Web Plugin (Unix only)"				OFF)
 OPTION(WITH_FFTW3		"Enable FFTW3 support"				OFF)
+OPTION(WITH_JACK		"Enable Jack Support (http://www.jackaudio.org)"		OFF)
+OPTION(WITH_INSTALL "Install accompanying scripts and language files needed to run blender" ON)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
   MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
@@ -94,12 +96,17 @@ IF(UNIX AND NOT APPLE)
     FIND_PACKAGE(OpenAL)
     IF(OPENAL_FOUND)
       SET(WITH_OPENAL ON)
-      SET(OPENAL_LIB ${OPENAL_LIBRARY})
-      SET(OPENAL_INC ${OPENAL_INCLUDE_DIR})
     ELSE(OPENAL_FOUND)
       SET(WITH_OPENAL OFF)
     ENDIF(OPENAL_FOUND)
   ENDIF(WITH_OPENAL)
+
+  IF(WITH_JACK)
+	SET(JACK /usr)
+	SET(JACK_INC ${JACK}/include/jack)
+	SET(JACK_LIB jack)
+	SET(JACK_LIBPATH ${JACK}/lib)
+  ENDIF(WITH_JACK)
 
   FIND_LIBRARY(INTL_LIBRARY
     NAMES intl
@@ -111,34 +118,34 @@ IF(UNIX AND NOT APPLE)
     PATHS
     /sw/lib
   )
+  
   IF(INTL_LIBRARY AND ICONV_LIBRARY)
     SET(GETTEXT_LIB ${INTL_LIBRARY} ${ICONV_LIBRARY})
   ENDIF(INTL_LIBRARY AND ICONV_LIBRARY)
-  
-  FIND_PATH(FREETYPE_INC
-    freetype
-    PATHS
-    /usr/local/include/freetype2
-    /usr/include/freetype2
-    /sw/include/freetype2
-    /opt/local/include/freetype2
-    /opt/csw/include/freetype2
-    /opt/include/freetype2
-    NO_DEFAULT_PATH
-  )
-  SET(FREETYPE_LIB freetype)
 
-  FIND_PACKAGE(PythonLibs)
-  SET(PYTHON_INC "${PYTHON_INCLUDE_PATH}" CACHE STRING "")
-  SET(PYTHON_LIB "${PYTHON_LIBRARIES}" CACHE STRING "")
-  FIND_PACKAGE(PythonInterp)
-  SET(PYTHON_BINARY ${PYTHON_EXECUTABLE} CACHE STRING "")
+  FIND_PACKAGE(Freetype)
+  # UNSET(FREETYPE_INCLUDE_DIRS CACHE) # cant use
+
+  # No way to set py31. remove for now.
+  # FIND_PACKAGE(PythonLibs)
+  SET(PYTHON /usr)
+  SET(PYTHON_VERSION 3.1)
+  SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}" CACHE STRING "")
+  # SET(PYTHON_BINARY python) # not used yet
+  SET(PYTHON_LIB python${PYTHON_VERSION} CACHE STRING "")
+  SET(PYTHON_LIBPATH ${PYTHON}/lib CACHE STRING "")
+  
+  # FIND_PACKAGE(PythonInterp) # not used yet
+  # SET(PYTHON_BINARY ${PYTHON_EXECUTABLE} CACHE STRING "")
+  
   SET(PYTHON_LINKFLAGS "-Xlinker -export-dynamic")
 
   IF(WITH_SDL)
     FIND_PACKAGE(SDL)
-    SET(SDL_INC ${SDL_INCLUDE_DIR})
-    SET(SDL_LIB ${SDL_LIBRARY})
+    # UNSET(SDLMAIN_LIBRARY CACHE)
+    IF(NOT SDL_FOUND)
+      SET(WITH_SDL OFF)
+    ENDIF(NOT SDL_FOUND)
   ENDIF(WITH_SDL)
 
   FIND_PATH(OPENEXR_INC
@@ -159,10 +166,10 @@ IF(UNIX AND NOT APPLE)
   SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
   
   IF(WITH_FFTW3)
-	  SET(FFTW3 /usr)
-	  SET(FFTW3_INC ${FFTW3}/include)
-	  SET(FFTW3_LIB fftw3)
-	  SET(FFTW3_LIBPATH ${FFTW3}/lib)
+    SET(FFTW3 /usr)
+    SET(FFTW3_INC ${FFTW3}/include)
+    SET(FFTW3_LIB fftw3)
+    SET(FFTW3_LIBPATH ${FFTW3}/lib)
   ENDIF(WITH_FFTW3)
 
   SET(LIBSAMPLERATE /usr)
@@ -176,7 +183,13 @@ IF(UNIX AND NOT APPLE)
 
   FIND_PACKAGE(ZLIB REQUIRED)
 
-  SET(LLIBS "-lXi -lutil -lc -lm -lpthread -lstdc++ -lX11 -ldl")
+  # Could use ${X11_Xinput_LIB} ${X11_X11_LIB} too
+  SET(LLIBS "-lXi -lutil -lc -lm -lpthread -lstdc++ -lX11")
+
+  IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    # BSD's dont use libdl.so
+    SET(LLIBS "${LLIBS} -ldl")
+  ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
   IF(WITH_OPENMP)
     SET(LLIBS "${LLIBS} -lgomp")
@@ -211,22 +224,29 @@ IF(WIN32)
   SET(PYTHON ${LIBDIR}/python)
   SET(PYTHON_VERSION 3.1)
   SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}")
-  SET(PYTHON_BINARY python)
+  # SET(PYTHON_BINARY python) # not used yet
   SET(PYTHON_LIB python31)
   SET(PYTHON_LIBPATH ${PYTHON}/lib)
 
   IF(CMAKE_CL_64)
     SET(WITH_OPENAL OFF)
   ELSE(CMAKE_CL_64)
-	#SET(WITH_OPENAL ON)
-	SET(OPENAL ${LIBDIR}/openal)
-	SET(OPENAL_INC ${OPENAL}/include)
-	SET(OPENAL_LIB wrap_oal)
-	SET(OPENAL_LIBPATH ${OPENAL}/lib)
+    #SET(WITH_OPENAL ON)
+    SET(OPENAL ${LIBDIR}/openal)
+    SET(OPENAL_INCLUDE_DIR ${OPENAL}/include)
+    SET(OPENAL_LIBRARY wrap_oal)
+    SET(OPENAL_LIBPATH ${OPENAL}/lib)
   ENDIF(CMAKE_CL_64)
 
+  IF(WITH_JACK)
+	SET(JACK ${LIBDIR}/jack)
+	SET(JACK_INC ${JACK}/include/jack)
+	SET(JACK_LIB jack)
+	SET(JACK_LIBPATH ${JACK}/lib)
+  ENDIF(WITH_JACK)
+
   IF(CMAKE_CL_64)
-	SET(PNG_LIBRARIES libpng)
+    SET(PNG_LIBRARIES libpng)
   ELSE(CMAKE_CL_64)
     SET(PNG_LIBRARIES libpng_st)
   ENDIF(CMAKE_CL_64)
@@ -248,25 +268,25 @@ IF(WIN32)
   SET(ICONV_LIBPATH ${ICONV}/lib)
   
   IF(WITH_FFTW3)
-	  SET(FFTW3 ${LIBDIR}/fftw3)
-	  SET(FFTW3_INC ${FFTW3}/include)
-	  SET(FFTW3_LIB libfftw)
-	  SET(FFTW3_LIBPATH ${FFTW3}/lib)
+      SET(FFTW3 ${LIBDIR}/fftw3)
+      SET(FFTW3_INC ${FFTW3}/include)
+      SET(FFTW3_LIB libfftw)
+      SET(FFTW3_LIBPATH ${FFTW3}/lib)
   ENDIF(WITH_FFTW3)
   
   SET(GETTEXT ${LIBDIR}/gettext)
   SET(GETTEXT_INC ${GETTEXT}/include)
   IF(CMAKE_CL_64)
-  	SET(GETTEXT_LIB gettextlib)
+    SET(GETTEXT_LIB gettextlib)
   ELSE(CMAKE_CL_64)
-  	SET(GETTEXT_LIB gnu_gettext)
+    SET(GETTEXT_LIB gnu_gettext)
   ENDIF(CMAKE_CL_64)
   SET(GETTEXT_LIBPATH ${GETTEXT}/lib)
 
   SET(FREETYPE ${LIBDIR}/freetype)
-  SET(FREETYPE_INC ${FREETYPE}/include ${FREETYPE}/include/freetype2)
+  SET(FREETYPE_INCLUDE_DIRS ${FREETYPE}/include ${FREETYPE}/include/freetype2)
   SET(FREETYPE_LIBPATH ${FREETYPE}/lib)
-  SET(FREETYPE_LIB freetype2ST)
+  SET(FREETYPE_LIBRARY freetype2ST)
   
   SET(OPENEXR ${LIBDIR}/openexr)
   SET(OPENEXR_INC ${OPENEXR}/include ${OPENEXR}/include/IlmImf ${OPENEXR}/include/Iex ${OPENEXR}/include/Imath)
@@ -317,8 +337,8 @@ IF(WIN32)
   ENDIF(WITH_OPENMP)
 
   SET(SDL ${LIBDIR}/sdl)
-  SET(SDL_INC ${SDL}/include)
-  SET(SDL_LIB SDL)
+  SET(SDL_INCLUDE_DIR ${SDL}/include)
+  SET(SDL_LIBRARY SDL)
   SET(SDL_LIBPATH ${SDL}/lib)
 
   SET(PNG "${LIBDIR}/png")
@@ -353,13 +373,17 @@ IF(APPLE)
     FIND_PACKAGE(OpenAL)
     IF(OPENAL_FOUND)
       SET(WITH_OPENAL ON)
-      SET(OPENAL_LIB ${OPENAL_LIBRARY})
-      SET(OPENAL_INC ${OPENAL_INCLUDE_DIR})
     ELSE(OPENAL_FOUND)
       SET(WITH_OPENAL OFF)
     ENDIF(OPENAL_FOUND)
   ENDIF(WITH_OPENAL)
 
+  IF(WITH_JACK)
+	SET(JACK /usr)
+	SET(JACK_INC ${JACK}/include/jack)
+	SET(JACK_LIB jack)
+	SET(JACK_LIBPATH ${JACK}/lib)
+  ENDIF(WITH_JACK)
 
   SET(PYTHON_VERSION 3.1)
 
@@ -368,7 +392,7 @@ IF(APPLE)
 
     SET(PYTHON ${LIBDIR}/python)
     SET(PYTHON_INC "${PYTHON}/include/python${PYTHON_VERSION}" CACHE STRING "")
-    SET(PYTHON_BINARY "${PYTHON}/bin/python${PYTHON_VERSION}" CACHE STRING "")
+    # SET(PYTHON_BINARY "${PYTHON}/bin/python${PYTHON_VERSION}" CACHE STRING "") # not used yet
     SET(PYTHON_LIB python${PYTHON_VERSION})
     SET(PYTHON_LIBPATH "${PYTHON}/lib/python${PYTHON_VERSION}" CACHE STRING "")
     #    SET(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
@@ -378,7 +402,7 @@ IF(APPLE)
     SET(PYTHON /System/Library/Frameworks/Python.framework/Versions/)
     SET(PYTHON_VERSION 2.5)
     SET(PYTHON_INC "${PYTHON}${PYTHON_VERSION}/include/python${PYTHON_VERSION}" CACHE STRING "")
-    SET(PYTHON_BINARY ${PYTHON}${PYTHON_VERSION}/bin/python${PYTHON_VERSION} CACHE STRING "")
+    # SET(PYTHON_BINARY ${PYTHON}${PYTHON_VERSION}/bin/python${PYTHON_VERSION} CACHE STRING "") # not used yet
     SET(PYTHON_LIB "")
     SET(PYTHON_LIBPATH ${PYTHON}${PYTHON_VERSION}/lib/python${PYTHON_VERSION}/config CACHE STRING "")
     SET(PYTHON_LINKFLAGS "-u _PyMac_Error -framework System -framework Python")
@@ -391,9 +415,9 @@ IF(APPLE)
   
   IF(WITH_FFTW3)
     SET(FFTW3 ${LIBDIR}/fftw3)
-	SET(FFTW3_INC ${FFTW3}/include)
-	SET(FFTW3_LIB libfftw)
-	SET(FFTW3_LIBPATH ${FFTW3}/lib)
+    SET(FFTW3_INC ${FFTW3}/include)
+    SET(FFTW3_LIB libfftw)
+    SET(FFTW3_LIBPATH ${FFTW3}/lib)
   ENDIF(WITH_FFTW3)
 
   SET(PNG_LIBRARIES png)
@@ -404,9 +428,9 @@ IF(APPLE)
   SET(ZLIB_LIBRARIES z)
 
   SET(FREETYPE ${LIBDIR}/freetype)
-  SET(FREETYPE_INC ${FREETYPE}/include ${FREETYPE}/include/freetype2)
+  SET(FREETYPE_INCLUDE_DIRS ${FREETYPE}/include ${FREETYPE}/include/freetype2)
   SET(FREETYPE_LIBPATH ${FREETYPE}/lib)
-  SET(FREETYPE_LIB freetype)
+  SET(FREETYPE_LIBRARY freetype)
 
   SET(OPENEXR ${LIBDIR}/openexr)
   SET(OPENEXR_INC ${OPENEXR}/include/OpenEXR ${OPENEXR}/include)
@@ -420,7 +444,7 @@ IF(APPLE)
 
   SET(LIBSAMPLERATE ${LIBDIR}/samplerate)
   SET(LIBSAMPLERATE_INC ${LIBSAMPLERATE}/include)
-  SET(LIBSAMPLERATE_LIB libsamplerate)
+  SET(LIBSAMPLERATE_LIB samplerate)
   SET(LIBSAMPLERATE_LIBPATH ${LIBSAMPLERATE}/lib)
 
   SET(LLIBS stdc++ SystemStubs)
@@ -435,8 +459,8 @@ IF(APPLE)
   ENDIF(WITH_OPENMP)
 
   SET(SDL ${LIBDIR}/sdl)
-  SET(SDL_INC ${SDL}/include)
-  SET(SDL_LIB SDL)
+  SET(SDL_INCLUDE_DIR ${SDL}/include)
+  SET(SDL_LIBRARY SDL)
   SET(SDL_LIBPATH ${SDL}/lib)
 
   SET(PNG "${LIBDIR}/png")
@@ -480,6 +504,9 @@ ENDIF(WITH_WEBPLUGIN)
 # Configure OpenGL.
 FIND_PACKAGE(OpenGL)
 INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
+# UNSET(OPENGL_LIBRARIES CACHE) # not compat with older cmake 
+# UNSET(OPENGL_xmesa_INCLUDE_DIR CACHE) # not compat with older cmake 
+
 #-----------------------------------------------------------------------------
 # Extra compile flags
 IF(WITH_GAMEENGINE)

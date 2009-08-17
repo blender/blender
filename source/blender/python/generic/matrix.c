@@ -37,14 +37,17 @@ static PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* 
 /* matrix vector callbacks */
 int mathutils_matrix_vector_cb_index= -1;
 
-static int mathutils_matrix_vector_check(MatrixObject *self)
+static int mathutils_matrix_vector_check(PyObject *self_p)
 {
+	MatrixObject *self= (MatrixObject*)self_p;
 	return BaseMath_ReadCallback(self);
 }
 
-static int mathutils_matrix_vector_get(MatrixObject *self, int subtype, float *vec_from)
+static int mathutils_matrix_vector_get(PyObject *self_p, int subtype, float *vec_from)
 {
+	MatrixObject *self= (MatrixObject*)self_p;
 	int i;
+
 	if(!BaseMath_ReadCallback(self))
 		return 0;
 
@@ -54,9 +57,11 @@ static int mathutils_matrix_vector_get(MatrixObject *self, int subtype, float *v
 	return 1;
 }
 
-static int mathutils_matrix_vector_set(MatrixObject *self, int subtype, float *vec_to)
+static int mathutils_matrix_vector_set(PyObject *self_p, int subtype, float *vec_to)
 {
+	MatrixObject *self= (MatrixObject*)self_p;
 	int i;
+
 	if(!BaseMath_ReadCallback(self))
 		return 0;
 
@@ -67,8 +72,10 @@ static int mathutils_matrix_vector_set(MatrixObject *self, int subtype, float *v
 	return 1;
 }
 
-static int mathutils_matrix_vector_get_index(MatrixObject *self, int subtype, float *vec_from, int index)
+static int mathutils_matrix_vector_get_index(PyObject *self_p, int subtype, float *vec_from, int index)
 {
+	MatrixObject *self= (MatrixObject*)self_p;
+
 	if(!BaseMath_ReadCallback(self))
 		return 0;
 
@@ -76,8 +83,10 @@ static int mathutils_matrix_vector_get_index(MatrixObject *self, int subtype, fl
 	return 1;
 }
 
-static int mathutils_matrix_vector_set_index(MatrixObject *self, int subtype, float *vec_to, int index)
+static int mathutils_matrix_vector_set_index(PyObject *self_p, int subtype, float *vec_to, int index)
 {
+	MatrixObject *self= (MatrixObject*)self_p;
+
 	if(!BaseMath_ReadCallback(self))
 		return 0;
 
@@ -988,7 +997,7 @@ static PyObject* Matrix_inv(MatrixObject *self)
 
 /*-----------------PROTOCOL DECLARATIONS--------------------------*/
 static PySequenceMethods Matrix_SeqMethods = {
-	(inquiry) Matrix_len,					/* sq_length */
+	(lenfunc) Matrix_len,					/* sq_length */
 	(binaryfunc) 0,							/* sq_concat */
 	(ssizeargfunc) 0,							/* sq_repeat */
 	(ssizeargfunc) Matrix_item,				/* sq_item */

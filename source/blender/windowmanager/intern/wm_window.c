@@ -207,7 +207,10 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 	win->sizey= winorig->sizey;
 	
 	/* duplicate assigns to window */
-	ED_screen_duplicate(win, winorig->screen);
+	win->screen= ED_screen_duplicate(win, winorig->screen);
+	BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
+	win->screen->winid= win->winid;
+
 	win->screen->do_refresh= 1;
 	win->screen->do_draw= 1;
 
@@ -585,6 +588,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 					kdata.key= GHOST_kKeyCommand;
 					wm_event_add_ghostevent(win, GHOST_kEventKeyUp, &kdata);
 				}
+				/* keymodifier zero, it hangs on hotkeys that open windows otherwise */
+				win->eventstate->keymodifier= 0;
 				
 				/* entering window, update mouse pos. but no event */
 				GHOST_GetCursorPosition(g_system, &wx, &wy);

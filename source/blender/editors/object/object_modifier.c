@@ -226,7 +226,7 @@ int ED_object_modifier_convert(ReportList *reports, Scene *scene, Object *ob, Mo
 	int totpart=0, totchild=0;
 
 	if(md->type != eModifierType_ParticleSystem) return 0;
-	if(G.f & G_PARTICLEEDIT) return 0;
+	if(ob && ob->mode & OB_MODE_PARTICLE_EDIT) return 0;
 
 	psys=((ParticleSystemModifierData *)md)->psys;
 	part= psys->part;
@@ -640,14 +640,19 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int multires_subdivide_poll(bContext *C)
+{
+	return NULL != CTX_data_active_object(C) && NULL == CTX_data_edit_object(C);
+}
+
 void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
 {
 	ot->name= "Multires Subdivide";
 	ot->description= "Add a new level of subdivision.";
 	ot->idname= "OBJECT_OT_multires_subdivide";
-	ot->poll= ED_operator_object_active;
 
 	ot->exec= multires_subdivide_exec;
+	ot->poll= multires_subdivide_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

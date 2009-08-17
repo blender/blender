@@ -87,7 +87,7 @@ ListBase *get_active_constraints (Object *ob)
 	if (ob == NULL)
 		return NULL;
 
-	if (ob->flag & OB_POSEMODE) {
+	if (ob->mode & OB_MODE_POSE) {
 		bPoseChannel *pchan;
 		
 		pchan = get_active_posechannel(ob);
@@ -1065,7 +1065,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 		{
 			/* if this constraint is being added to a posechannel, make sure
 			 * the constraint gets evaluated in pose-space */
-			if (ob->flag & OB_POSEMODE) {
+			if (ob->mode & OB_MODE_POSE) {
 				con->ownspace = CONSTRAINT_SPACE_POSE;
 				con->flag |= CONSTRAINT_SPACEONCE;
 			}

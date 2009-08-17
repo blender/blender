@@ -361,9 +361,9 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 	def STRETCH_TO(self, layout, con):
 		self.target_template(layout, con)
 		
-		col = layout.column(align=True)
-		col.itemR(con, "original_length", text="Rest Length")
-		col.itemO("constraint.stretchto_reset")
+		row = layout.row()
+		row.itemR(con, "original_length", text="Rest Length")
+		row.itemO("constraint.stretchto_reset", text="Reset")
 		
 		col = layout.column()
 		col.itemR(con, "bulge", text="Volume Variation")
@@ -395,19 +395,21 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		
 		row = layout.row()
 		row.itemR(con, "disable_linked_collision", text="No Collision")
-		row.itemR(con, "draw_pivot")
+		row.itemR(con, "draw_pivot", text="Display Pivot")
 		
 		split = layout.split()
 		
-		col = split.column()
-		col.itemR(con, "pivot_x")
-		col.itemR(con, "pivot_y")
-		col.itemR(con, "pivot_z")
+		col = split.column(align=True)
+		col.itemL(text="Pivot:")
+		col.itemR(con, "pivot_x", text="X")
+		col.itemR(con, "pivot_y", text="Y")
+		col.itemR(con, "pivot_z", text="Z")
 		
-		col = split.column()
-		col.itemR(con, "axis_x")
-		col.itemR(con, "axis_y")
-		col.itemR(con, "axis_z")
+		col = split.column(align=True)
+		col.itemL(text="Axis:")
+		col.itemR(con, "axis_x", text="X")
+		col.itemR(con, "axis_y", text="Y")
+		col.itemR(con, "axis_z", text="Z")
 		
 		#Missing: Limit arrays (not wrapped in RNA yet) 
 	

@@ -34,19 +34,7 @@
 void sound_init()
 {
 	AUD_Specs specs;
-	specs.channels = AUD_CHANNELS_STEREO;
-	specs.format = AUD_FORMAT_S16;
-	specs.rate = AUD_RATE_44100;
-
-	if(!AUD_init(AUD_SDL_DEVICE, specs, AUD_DEFAULT_BUFFER_SIZE))
-		if(!AUD_init(AUD_OPENAL_DEVICE, specs, AUD_DEFAULT_BUFFER_SIZE*4))
-			AUD_init(AUD_NULL_DEVICE, specs, AUD_DEFAULT_BUFFER_SIZE);
-}
-
-void sound_reinit(struct bContext *C)
-{
-	AUD_Specs specs;
-	int device, buffersize;
+	int device, buffersize, success;
 
 	device = U.audiodevice;
 	buffersize = U.mixbufsize;
@@ -66,8 +54,15 @@ void sound_reinit(struct bContext *C)
 	if(specs.channels <= AUD_CHANNELS_INVALID)
 		specs.channels = AUD_CHANNELS_STEREO;
 
-	if(!AUD_init(device, specs, buffersize))
-		AUD_init(AUD_NULL_DEVICE, specs, buffersize);
+	if(!AUD_init(device, specs, buffersize)) {
+		if(device == AUD_SDL_DEVICE)
+			success= AUD_init(AUD_OPENAL_DEVICE, specs, AUD_DEFAULT_BUFFER_SIZE*4);
+		else
+			success= AUD_init(AUD_SDL_DEVICE, specs, AUD_DEFAULT_BUFFER_SIZE*4);
+
+		if(!success)
+			AUD_init(AUD_NULL_DEVICE, specs, buffersize);
+	}
 }
 
 void sound_exit()
@@ -421,7 +416,7 @@ void sound_scrub(struct bContext *C)
 	int cfra = CFRA;
 	float fps = FPS;
 
-	if(scene->audio.flag & AUDIO_SCRUB && !CTX_wm_screen(C)->animtimer)
+	if(scene->r.audio.flag & AUDIO_SCRUB && !CTX_wm_screen(C)->animtimer)
 	{
 		AUD_lock();
 

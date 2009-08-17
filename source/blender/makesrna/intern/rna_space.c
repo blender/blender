@@ -37,6 +37,8 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_paint.h"
+
 #include "WM_types.h"
 
 EnumPropertyItem space_type_items[] = {
@@ -83,6 +85,7 @@ static EnumPropertyItem dc_all_items[] = {DC_RGB, DC_RGBA, DC_ALPHA, DC_Z, DC_LC
 #include "BKE_context.h"
 
 #include "ED_image.h"
+#include "ED_screen.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -118,10 +121,10 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 		case SPACE_NLA:
 			return &RNA_SpaceNLA;
 		/*case SPACE_SCRIPT:
-			return &RNA_SpaceScriptsWindow;
+			return &RNA_SpaceScriptsWindow;*/
 		case SPACE_TIME:
 			return &RNA_SpaceTimeline;
-		case SPACE_NODE:
+		/*case SPACE_NODE:
 			return &RNA_SpaceNodeEditor;
 		case SPACE_LOGIC:
 			return &RNA_SpaceLogicEditor;*/
@@ -144,7 +147,7 @@ static void rna_SpaceImageEditor_paint_update(bContext *C, PointerRNA *ptr)
 	Scene *scene= CTX_data_scene(C);
 
 	if(scene)
-		brush_check_exists(&scene->toolsettings->imapaint.brush);
+		paint_init(&scene->toolsettings->imapaint.paint, "Brush");
 }
 
 static int rna_SpaceImageEditor_show_render_get(PointerRNA *ptr)
@@ -301,6 +304,13 @@ static void rna_View3D_display_background_image_set(PointerRNA *ptr, int value)
 		vd->bgpic->iuser.fie_ima= 2;
 		vd->bgpic->iuser.ok= 1;
 	}
+}
+
+/* Space Time */
+static void rna_SpaceTime_redraw_update(bContext *C, PointerRNA *ptr)
+{
+	SpaceTime *st= (SpaceTime*)ptr->data;
+	ED_screen_animation_timer_update(C, st->redraws);
 }
 
 #else
@@ -564,19 +574,19 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1.0f, 250.0f);
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
-	prop= RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "near");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Clip Start", "3D View near clipping distance.");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
-	prop= RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "far");
 	RNA_def_property_range(prop, 1.0f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Clip End", "3D View far clipping distance.");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
-	prop= RNA_def_property(srna, "grid_spacing", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "grid_spacing", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "grid");
 	RNA_def_property_ui_text(prop, "Grid Spacing", "The distance between 3D View grid lines.");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
@@ -836,11 +846,11 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem display_mode_items[] = {
-		{SEQ_DRAW_SEQUENCE, "SEQUENCER", 0, "Sequencer", ""},
-		{SEQ_DRAW_IMG_IMBUF, "IMAGE", 0, "Image Preview", ""},
-		{SEQ_DRAW_IMG_WAVEFORM, "WAVEFORM", 0, "Luma Waveform", ""},
-		{SEQ_DRAW_IMG_VECTORSCOPE, "VECTOR_SCOPE", 0, "Chroma Vectorscope", ""},
-		{SEQ_DRAW_IMG_HISTOGRAM, "HISTOGRAM", 0, "Histogram", ""},
+		{SEQ_DRAW_SEQUENCE, "SEQUENCER", ICON_SEQ_SEQUENCER, "Sequencer", ""},
+		{SEQ_DRAW_IMG_IMBUF, "IMAGE", ICON_SEQ_PREVIEW, "Image Preview", ""},
+		{SEQ_DRAW_IMG_WAVEFORM, "WAVEFORM", ICON_SEQ_LUMA_WAVEFORM, "Luma Waveform", ""},
+		{SEQ_DRAW_IMG_VECTORSCOPE, "VECTOR_SCOPE", ICON_SEQ_CHROMA_SCOPE, "Chroma Vectorscope", ""},
+		{SEQ_DRAW_IMG_HISTOGRAM, "HISTOGRAM", ICON_SEQ_HISTOGRAM, "Histogram", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "SpaceSequenceEditor", "Space");
@@ -1104,6 +1114,59 @@ static void rna_def_space_nla(BlenderRNA *brna)
 	// TODO... autosnap, dopesheet?
 }
 
+static void rna_def_space_time(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna= RNA_def_struct(brna, "SpaceTimeline", "Space");
+	RNA_def_struct_sdna(srna, "SpaceTime");
+	RNA_def_struct_ui_text(srna, "Space Timeline Editor", "Timeline editor space data.");
+	
+	/* Define Anim Playback Areas */
+	
+	prop= RNA_def_property(srna, "play_top_left", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_REGION);
+	RNA_def_property_ui_text(prop, "Top-Left 3D Window", "");
+	RNA_def_property_update(prop, 0, "rna_SpaceTime_redraw_update");
+	
+	prop= RNA_def_property(srna, "play_all_3d", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_3D_WIN);
+	RNA_def_property_ui_text(prop, "All 3D Windows", "");
+	RNA_def_property_update(prop, 0, "rna_SpaceTime_redraw_update");
+	
+	prop= RNA_def_property(srna, "play_anim", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_ANIM_WIN);
+	RNA_def_property_ui_text(prop, "Animation Windows", "");
+	RNA_def_property_update(prop, 0, "rna_SpaceTime_redraw_update");
+	
+	prop= RNA_def_property(srna, "play_buttons", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_BUTS_WIN);
+	RNA_def_property_ui_text(prop, "Buttons Windows", "");
+	RNA_def_property_update(prop, 0, "rna_SpaceTime_redraw_update");
+	
+	prop= RNA_def_property(srna, "play_image", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_IMAGE_WIN);
+	RNA_def_property_ui_text(prop, "Image Windows", "");
+	RNA_def_property_update(prop, 0, "rna_SpaceTime_redraw_update");
+	
+	prop= RNA_def_property(srna, "play_sequencer", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_SEQ);
+	RNA_def_property_ui_text(prop, "Sequencer Windows", "");
+	RNA_def_property_update(prop, 0, "rna_SpaceTime_redraw_update");
+	
+	/* Other options */
+	
+	prop= RNA_def_property(srna, "continue_physics", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_CONTINUE_PHYSICS);
+	RNA_def_property_ui_text(prop, "Continue Physics", "During playblack, continue physics simulations regardless of the frame number");	
+	
+	prop= RNA_def_property(srna, "only_selected", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_ONLYACTSEL);
+	RNA_def_property_ui_text(prop, "Only Selected channels", "Show keyframes only from active/selected channels.");	
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+}
+
 static void rna_def_console_line(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1332,6 +1395,7 @@ void RNA_def_space(BlenderRNA *brna)
 	rna_def_space_dopesheet(brna);
 	rna_def_space_graph(brna);
 	rna_def_space_nla(brna);
+	rna_def_space_time(brna);
 	rna_def_space_console(brna);
 	rna_def_console_line(brna);
 }

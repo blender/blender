@@ -430,6 +430,25 @@ class SCENE_PT_stamp(RenderButtonsPanel):
 		sub.active = rd.stamp_note
 		sub.itemR(rd, "stamp_note_text", text="")
 
+class SCENE_PT_unit(RenderButtonsPanel):
+	__label__ = "Units"
+	__default_closed__ = True
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
+
+	def draw(self, context):
+		layout = self.layout
+		
+		unit = context.scene.unit_settings
+		
+		col = layout.column()
+		col.row().itemR(unit, "system", expand=True)
+		
+		row = layout.row()
+		row.active = (unit.system != 'NONE')
+		row.itemR(unit, "scale_length", text="Scale")
+		row.itemR(unit, "use_separate")
+
+
 bpy.types.register(SCENE_PT_render)
 bpy.types.register(SCENE_PT_layers)
 bpy.types.register(SCENE_PT_dimensions)
@@ -440,3 +459,4 @@ bpy.types.register(SCENE_PT_encoding)
 bpy.types.register(SCENE_PT_performance)
 bpy.types.register(SCENE_PT_post_processing)
 bpy.types.register(SCENE_PT_stamp)
+bpy.types.register(SCENE_PT_unit)

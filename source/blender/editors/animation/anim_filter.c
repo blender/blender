@@ -374,27 +374,29 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
  */
 #define ANIMDATA_FILTER_CASES(id, adtOk, nlaOk, driversOk, keysOk) \
 	{\
-		if (filter_mode & ANIMFILTER_ANIMDATA) {\
-			if ((id)->adt) {\
-				adtOk\
-			}\
-		}\
-		else if (ads->filterflag & ADS_FILTER_ONLYNLA) {\
-			if (ANIMDATA_HAS_NLA(id)) {\
-				nlaOk\
-			}\
-			else if (!(ads->filterflag & ADS_FILTER_NLA_NOACT) && ANIMDATA_HAS_KEYS(id)) {\
-				nlaOk\
-			}\
-		}\
-		else if (ads->filterflag & ADS_FILTER_ONLYDRIVERS) {\
-			if (ANIMDATA_HAS_DRIVERS(id)) {\
-				driversOk\
-			}\
-		}\
-		else {\
-			if (ANIMDATA_HAS_KEYS(id)) {\
-				keysOk\
+		if ((id)->adt) {\
+			if (!(filter_mode & ANIMFILTER_CURVEVISIBLE) || !((id)->adt->flag & ADT_CURVES_NOT_VISIBLE)) {\
+				if (filter_mode & ANIMFILTER_ANIMDATA) {\
+					adtOk\
+				}\
+				else if (ads->filterflag & ADS_FILTER_ONLYNLA) {\
+					if (ANIMDATA_HAS_NLA(id)) {\
+						nlaOk\
+					}\
+					else if (!(ads->filterflag & ADS_FILTER_NLA_NOACT) && ANIMDATA_HAS_KEYS(id)) {\
+						nlaOk\
+					}\
+				}\
+				else if (ads->filterflag & ADS_FILTER_ONLYDRIVERS) {\
+					if (ANIMDATA_HAS_DRIVERS(id)) {\
+						driversOk\
+					}\
+				}\
+				else {\
+					if (ANIMDATA_HAS_KEYS(id)) {\
+						keysOk\
+					}\
+				}\
 			}\
 		}\
 	}
@@ -1465,6 +1467,14 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 				worOk= !(ads->filterflag & ADS_FILTER_NOWOR);)
 		}
 		
+		/* if only F-Curves with visible flags set can be shown, check that 
+		 * datablocks haven't been set to invisible 
+		 */
+		if (filter_mode & ANIMFILTER_CURVEVISIBLE) {
+			if ((sce->adt) && (sce->adt->flag & ADT_CURVES_NOT_VISIBLE))
+				sceOk= worOk= 0;
+		}
+		
 		/* check if not all bad (i.e. so there is something to show) */
 		if ( !(!sceOk && !worOk) ) {
 			/* add scene data to the list of filtered channels */
@@ -1481,7 +1491,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 			Key *key= ob_get_key(ob);
 			short actOk=1, keyOk=1, dataOk=1, matOk=1, partOk=1;
 			
-			/* firstly, check if object can be included, by the following fanimors:
+			/* firstly, check if object can be included, by the following factors:
 			 *	- if only visible, must check for layer and also viewport visibility
 			 *	- if only selected, must check if object is selected 
 			 *	- there must be animation data to edit
@@ -1493,6 +1503,14 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 				
 				/* outliner restrict-flag */
 				if (ob->restrictflag & OB_RESTRICT_VIEW) continue;
+			}
+			
+			/* if only F-Curves with visible flags set can be shown, check that 
+			 * datablock hasn't been set to invisible 
+			 */
+			if (filter_mode & ANIMFILTER_CURVEVISIBLE) {
+				if ((ob->adt) && (ob->adt->flag & ADT_CURVES_NOT_VISIBLE))
+					continue;
 			}
 			
 			/* additionally, dopesheet filtering also affects what objects to consider */

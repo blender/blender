@@ -63,7 +63,7 @@ if BF_PYTHON_VERSION=='3.1':
 	# BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
 	BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}'
 	BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/python${BF_PYTHON_VERSION}'
-	# BF_PYTHON_LINKFLAGS = '-u _PyMac_Error -framework System'
+	# BF_PYTHON_LINKFLAGS = ['-u', '_PyMac_Error', '-framework', 'System']
 else:
 	# python 2.5 etc. uses built-in framework
 
@@ -79,9 +79,9 @@ else:
 	BF_PYTHON_BINARY = '${BF_PYTHON}${BF_PYTHON_VERSION}/bin/python${BF_PYTHON_VERSION}'
 	BF_PYTHON_LIB = ''
 	BF_PYTHON_LIBPATH = '${BF_PYTHON}${BF_PYTHON_VERSION}/lib/python${BF_PYTHON_VERSION}/config'
-	BF_PYTHON_LINKFLAGS = '-u _PyMac_Error -framework System -framework Python'
+	BF_PYTHON_LINKFLAGS = ['-u','_PyMac_Error','-framework','System','-framework','Python']
 	if MAC_CUR_VER=='10.3' or  MAC_CUR_VER=='10.4':
-		BF_PYTHON_LINKFLAGS ='-u __dummy '+BF_PYTHON_LINKFLAGS
+		BF_PYTHON_LINKFLAGS = ['-u', '__dummy']+BF_PYTHON_LINKFLAGS
 	
 BF_QUIET = '1'
 WITH_BF_OPENMP = '0'
@@ -111,6 +111,13 @@ BF_LIBSAMPLERATE = LIBDIR + '/samplerate'
 BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
 BF_LIBSAMPLERATE_LIB = 'samplerate'
 BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
+
+# TODO - set proper paths here (add precompiled to lib/ ? )
+WITH_BF_JACK = False
+BF_JACK = '/usr'
+BF_JACK_INC = '${BF_JACK}/include/jack'
+BF_JACK_LIB = 'jack'
+BF_JACK_LIBPATH = '${BF_JACK}/lib'
 
 WITH_BF_SDL = True
 BF_SDL = LIBDIR + '/sdl' #$(shell sdl-config --prefix)
@@ -205,14 +212,14 @@ BF_ICONV_LIB = 'iconv'
 WITH_BF_STATICOPENGL = True
 BF_OPENGL_LIB = 'GL GLU'
 BF_OPENGL_LIBPATH = '/System/Library/Frameworks/OpenGL.framework/Libraries'
-BF_OPENGL_LINKFLAGS = '-framework OpenGL'
+BF_OPENGL_LINKFLAGS = ['-framework', 'OpenGL']
 
 CFLAGS = ['-pipe','-fPIC','-funsigned-char']
 
 CPPFLAGS = ['-fpascal-strings']
 CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fpascal-strings']
 CXXFLAGS = [ '-pipe','-fPIC','-funsigned-char', '-fpascal-strings']
-PLATFORM_LINKFLAGS = '-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime'
+PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Carbon','-framework','AGL','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','QuickTime']
 
 #note to build succesfully on 10.3.9 SDK you need to patch  10.3.9 by adding the SystemStubs.a lib from 10.4
 LLIBS = ['stdc++', 'SystemStubs']
@@ -221,12 +228,12 @@ LLIBS = ['stdc++', 'SystemStubs']
 if MAC_MIN_VERS == '10.3':
 	CFLAGS = ['-fuse-cxa-atexit']+CFLAGS
 	CXXFLAGS = ['-fuse-cxa-atexit']+CXXFLAGS
-	PLATFORM_LINKFLAGS = '-fuse-cxa-atexit '+PLATFORM_LINKFLAGS
+	PLATFORM_LINKFLAGS = ['-fuse-cxa-atexit']+PLATFORM_LINKFLAGS
 	LLIBS.append('crt3.o')
 	
 if USE_SDK==True:
 	SDK_FLAGS=['-isysroot', MACOSX_SDK,'-mmacosx-version-min='+MAC_MIN_VERS]	
-	PLATFORM_LINKFLAGS = '-mmacosx-version-min='+MAC_MIN_VERS+ ' -Wl,-syslibroot,' + MACOSX_SDK+" "+PLATFORM_LINKFLAGS
+	PLATFORM_LINKFLAGS = ['-mmacosx-version-min='+MAC_MIN_VERS, '-Wl,-syslibroot,' + MACOSX_SDK]+PLATFORM_LINKFLAGS
 	CCFLAGS=SDK_FLAGS+CCFLAGS
 	CXXFLAGS=SDK_FLAGS+CXXFLAGS
 	

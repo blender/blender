@@ -32,6 +32,17 @@
 #include "DNA_brush_types.h"
 #include "DNA_texture_types.h"
 
+EnumPropertyItem brush_sculpt_tool_items[] = {
+	{SCULPT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
+	{SCULPT_TOOL_SMOOTH, "SMOOTH", 0, "Smooth", ""},
+	{SCULPT_TOOL_PINCH, "PINCH", 0, "Pinch", ""},
+	{SCULPT_TOOL_INFLATE, "INFLATE", 0, "Inflate", ""},
+	{SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", ""},
+	{SCULPT_TOOL_LAYER, "LAYER", 0, "Layer", ""},
+	{SCULPT_TOOL_FLATTEN, "FLATTEN", 0, "Flatten", ""},
+	{SCULPT_TOOL_CLAY, "CLAY", 0, "Clay", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "MEM_guardedalloc.h"
@@ -74,20 +85,6 @@ static void rna_Brush_active_texture_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
-static float rna_Brush_rotation_get(PointerRNA *ptr)
-{
-	Brush *brush= (Brush*)ptr->data;
-	const float conv = 57.295779506;
-	return brush->rot * conv;
-}
-
-static void rna_Brush_rotation_set(PointerRNA *ptr, float v)
-{
-	Brush *brush= (Brush*)ptr->data;
-	const float conv = 0.017453293;
-	brush->rot = v * conv;
-}
-
 #else
 
 void rna_def_brush(BlenderRNA *brna)
@@ -106,23 +103,6 @@ void rna_def_brush(BlenderRNA *brna)
 		{BRUSH_BLEND_ADD_ALPHA, "ADD_ALPHA", 0, "Add Alpha", "Add alpha while painting."},
 		{0, NULL, 0, NULL, NULL}};
 		
-	static EnumPropertyItem prop_texture_mode_items[] = {
-		{BRUSH_TEX_DRAG, "TEX_DRAG", 0, "Drag", ""},
-		{BRUSH_TEX_TILE, "TEX_TILE", 0, "Tile", ""},
-		{BRUSH_TEX_3D, "TEX_3D", 0, "3D", ""},
-		{0, NULL, 0, NULL, NULL}};
-		
-	static EnumPropertyItem prop_sculpt_tool_items[] = {
-		{SCULPT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
-		{SCULPT_TOOL_SMOOTH, "SMOOTH", 0, "Smooth", ""},
-		{SCULPT_TOOL_PINCH, "PINCH", 0, "Pinch", ""},
-		{SCULPT_TOOL_INFLATE, "INFLATE", 0, "Inflate", ""},
-		{SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", ""},
-		{SCULPT_TOOL_LAYER, "LAYER", 0, "Layer", ""},
-		{SCULPT_TOOL_FLATTEN, "FLATTEN", 0, "Flatten", ""},
-		{SCULPT_TOOL_CLAY, "CLAY", 0, "Clay", ""},
- 		{0, NULL, 0, NULL, NULL}};
-	
 	srna= RNA_def_struct(brna, "Brush", "ID");
 	RNA_def_struct_ui_text(srna, "Brush", "Brush datablock for storing brush settings for painting and sculpting.");
 	RNA_def_struct_ui_icon(srna, ICON_BRUSH_DATA);
@@ -132,13 +112,8 @@ void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, prop_blend_items);
 	RNA_def_property_ui_text(prop, "Blending mode", "Brush blending mode.");
 
-	prop= RNA_def_property(srna, "texture_mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "tex_mode");
-	RNA_def_property_enum_items(prop, prop_texture_mode_items);
-	RNA_def_property_ui_text(prop, "Texture Mode", "");
-
 	prop= RNA_def_property(srna, "sculpt_tool", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_sculpt_tool_items);
+	RNA_def_property_enum_items(prop, brush_sculpt_tool_items);
 	RNA_def_property_ui_text(prop, "Sculpt Tool", "");
 	
 	/* number values */
@@ -170,12 +145,6 @@ void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Strength", "The amount of pressure on the brush.");
 
-	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "rot");
-	RNA_def_property_range(prop, 0, 360);
-	RNA_def_property_float_funcs(prop, "rna_Brush_rotation_get", "rna_Brush_rotation_set", NULL);
-	RNA_def_property_ui_text(prop, "Rotation", "Angle of the brush texture.");
-	
 	/* flag */
 	prop= RNA_def_property(srna, "airbrush", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_AIRBRUSH);

@@ -226,7 +226,7 @@ static void clear_global(void)
 
 	G.main= NULL;
 	
-	G.f &= ~(G_WEIGHTPAINT + G_VERTEXPAINT + G_FACESELECT + G_PARTICLEEDIT);
+	G.f &= ~(G_FACESELECT);
 }
 
 /* make sure path names are correct for OS */

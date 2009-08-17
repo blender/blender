@@ -393,6 +393,7 @@ extern StructRNA RNA_SpaceFileBrowser;
 extern StructRNA RNA_SpaceGraphEditor;
 extern StructRNA RNA_SpaceImageEditor;
 extern StructRNA RNA_SpaceNLA;
+extern StructRNA RNA_SpaceTimeline;
 extern StructRNA RNA_SpaceOutliner;
 extern StructRNA RNA_SpaceSequenceEditor;
 extern StructRNA RNA_SpaceTextEditor;
@@ -470,6 +471,7 @@ extern StructRNA RNA_TransformSequence;
 extern StructRNA RNA_UILayout;
 extern StructRNA RNA_UIListItem;
 extern StructRNA RNA_UVProjectModifier;
+extern StructRNA RNA_UnitSettings;
 extern StructRNA RNA_UnknownType;
 extern StructRNA RNA_UserPreferences;
 extern StructRNA RNA_UserPreferencesAutosave;
@@ -765,7 +767,7 @@ void RNA_collection_clear(PointerRNA *ptr, const char *name);
 int RNA_property_is_set(PointerRNA *ptr, const char *name);
 
 /* python compatible string representation of this property, (must be freed!) */
-char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop);
+char *RNA_property_as_string(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop);
 char *RNA_pointer_as_string(PointerRNA *ptr);
 
 /* Function */

@@ -65,6 +65,7 @@ void ED_operatortypes_object(void)
 {
 	wmOperatorType *ot;
 	
+	WM_operatortype_append(OBJECT_OT_mode_set);
 	WM_operatortype_append(OBJECT_OT_editmode_toggle);
 	WM_operatortype_append(OBJECT_OT_posemode_toggle);
 	WM_operatortype_append(OBJECT_OT_parent_set);

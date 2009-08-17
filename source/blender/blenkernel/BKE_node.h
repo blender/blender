@@ -47,6 +47,7 @@ struct rctf;
 struct ListBase;
 struct RenderData;
 struct Scene;
+struct Main;
 struct Tex;
 struct GPUMaterial;
 struct GPUNode;
@@ -431,5 +432,9 @@ char* ntreeTexOutputMenu(struct bNodeTree *ntree);
 
 void init_nodesystem(void);
 void free_nodesystem(void);
+
+/**/
+
+void clear_scene_in_nodes(struct Main *bmain, struct Scene *sce);
 
 #endif

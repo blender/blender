@@ -54,6 +54,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 
@@ -75,8 +76,8 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_scene.h"
-#include "BKE_sculpt.h"
 #include "BKE_sequence.h"
 #include "BKE_world.h"
 #include "BKE_utildefines.h"
@@ -125,7 +126,112 @@ void free_qtcodecdata(QuicktimeCodecData *qcd)
 	}
 }
 
-/* copy_scene moved to src/header_info.c... should be back */
+Scene *copy_scene(Main *bmain, Scene *sce, int type)
+{
+	Scene *scen;
+	ToolSettings *ts;
+	Base *base, *obase;
+	
+	if(type == SCE_COPY_EMPTY) {
+		ListBase lb;
+		scen= add_scene(sce->id.name+2);
+		
+		lb= scen->r.layers;
+		scen->r= sce->r;
+		scen->r.layers= lb;
+	}
+	else {
+		scen= copy_libblock(sce);
+		BLI_duplicatelist(&(scen->base), &(sce->base));
+		
+		clear_id_newpoins();
+		
+		id_us_plus((ID *)scen->world);
+		id_us_plus((ID *)scen->set);
+		id_us_plus((ID *)scen->ima);
+		id_us_plus((ID *)scen->gm.dome.warptext);
+
+		scen->ed= NULL;
+		scen->theDag= NULL;
+		scen->obedit= NULL;
+		scen->toolsettings= MEM_dupallocN(sce->toolsettings);
+
+		ts= scen->toolsettings;
+		if(ts) {
+			if(ts->vpaint) {
+				ts->vpaint= MEM_dupallocN(ts->vpaint);
+				ts->vpaint->paintcursor= NULL;
+				ts->vpaint->vpaint_prev= NULL;
+				ts->vpaint->wpaint_prev= NULL;
+				copy_paint(&ts->vpaint->paint, &ts->vpaint->paint);
+			}
+			if(ts->wpaint) {
+				ts->wpaint= MEM_dupallocN(ts->wpaint);
+				ts->wpaint->paintcursor= NULL;
+				ts->wpaint->vpaint_prev= NULL;
+				ts->wpaint->wpaint_prev= NULL;
+				copy_paint(&ts->wpaint->paint, &ts->wpaint->paint);
+			}
+			if(ts->sculpt) {
+				ts->sculpt= MEM_dupallocN(ts->sculpt);
+				copy_paint(&ts->sculpt->paint, &ts->sculpt->paint);
+			}
+
+			copy_paint(&ts->imapaint.paint, &ts->imapaint.paint);
+			ts->imapaint.paintcursor= NULL;
+
+			ts->particle.paintcursor= NULL;
+		}
+		
+		BLI_duplicatelist(&(scen->markers), &(sce->markers));
+		BLI_duplicatelist(&(scen->transform_spaces), &(sce->transform_spaces));
+		BLI_duplicatelist(&(scen->r.layers), &(sce->r.layers));
+		BKE_keyingsets_copy(&(scen->keyingsets), &(sce->keyingsets));
+		
+		scen->nodetree= ntreeCopyTree(sce->nodetree, 0);
+		
+		obase= sce->base.first;
+		base= scen->base.first;
+		while(base) {
+			id_us_plus(&base->object->id);
+			if(obase==sce->basact) scen->basact= base;
+	
+			obase= obase->next;
+			base= base->next;
+		}
+	}
+	
+	/* make a private copy of the avicodecdata */
+	if(sce->r.avicodecdata) {
+		scen->r.avicodecdata = MEM_dupallocN(sce->r.avicodecdata);
+		scen->r.avicodecdata->lpFormat = MEM_dupallocN(scen->r.avicodecdata->lpFormat);
+		scen->r.avicodecdata->lpParms = MEM_dupallocN(scen->r.avicodecdata->lpParms);
+	}
+	
+	/* make a private copy of the qtcodecdata */
+	if(sce->r.qtcodecdata) {
+		scen->r.qtcodecdata = MEM_dupallocN(sce->r.qtcodecdata);
+		scen->r.qtcodecdata->cdParms = MEM_dupallocN(scen->r.qtcodecdata->cdParms);
+	}
+	
+	/* NOTE: part of SCE_COPY_LINK_DATA and SCE_COPY_FULL operations
+	 * are done outside of blenkernel with ED_objects_single_users! */
+
+    /*  camera */
+	if(type == SCE_COPY_LINK_DATA || type == SCE_COPY_FULL) {
+	    ID_NEW(scen->camera);
+	}
+
+	/* world */
+	if(type == SCE_COPY_FULL) {
+        if(scen->world) {
+            id_us_plus((ID *)scen->world);
+            scen->world= copy_world(scen->world);
+        }
+	}
+
+	return scen;
+}
 
 /* do not free scene itself */
 void free_scene(Scene *sce)
@@ -166,15 +272,20 @@ void free_scene(Scene *sce)
 	BLI_freelistN(&sce->r.layers);
 	
 	if(sce->toolsettings) {
-		if(sce->toolsettings->vpaint)
+		if(sce->toolsettings->vpaint) {
+			free_paint(&sce->toolsettings->vpaint->paint);
 			MEM_freeN(sce->toolsettings->vpaint);
-		if(sce->toolsettings->wpaint)
+		}
+		if(sce->toolsettings->wpaint) {
+			free_paint(&sce->toolsettings->wpaint->paint);
 			MEM_freeN(sce->toolsettings->wpaint);
+		}
 		if(sce->toolsettings->sculpt) {
-			sculptsession_free(sce->toolsettings->sculpt);
+			free_paint(&sce->toolsettings->sculpt->paint);
 			MEM_freeN(sce->toolsettings->sculpt);
 		}
-		
+		free_paint(&sce->toolsettings->imapaint.paint);
+
 		MEM_freeN(sce->toolsettings);
 		sce->toolsettings = NULL;	
 	}
@@ -280,6 +391,9 @@ Scene *add_scene(char *name)
 
 	sce->toolsettings->proportional_size = 1.0f;
 
+
+	sce->unit.scale_length = 1.0f;
+
 	pset= &sce->toolsettings->particle;
 	pset->flag= PE_KEEP_LENGTHS|PE_LOCK_FIRST|PE_DEFLECT_EMITTER;
 	pset->emitterdist= 0.25f;
@@ -294,7 +408,7 @@ Scene *add_scene(char *name)
 	pset->brush[PE_BRUSH_CUT].strength= 100;
 	
 	sce->jumpframe = 10;
-	sce->audio.mixrate = 44100;
+	sce->r.audio.mixrate = 44100;
 
 	strcpy(sce->r.backbuf, "//backbuf");
 	strcpy(sce->r.pic, U.renderdir);
@@ -387,7 +501,7 @@ void set_scene_bg(Scene *scene)
 		base->flag |= flag;
 		
 		/* not too nice... for recovering objects with lost data */
-		if(ob->pose==NULL) base->flag &= ~OB_POSEMODE;
+		//if(ob->pose==NULL) base->flag &= ~OB_POSEMODE;
 		ob->flag= base->flag;
 		
 		ob->ctime= -1234567.0;	/* force ipo to be calculated later */
@@ -408,6 +522,30 @@ void set_scene_name(char *name)
 	}
 	
 	//XXX error("Can't find scene: %s", name);
+}
+
+void unlink_scene(Main *bmain, Scene *sce, Scene *newsce)
+{
+	Scene *sce1;
+	bScreen *sc;
+
+	/* check all sets */
+	for(sce1= bmain->scene.first; sce1; sce1= sce1->id.next)
+		if(sce1->set == sce)
+			sce1->set= NULL;
+	
+	/* check all sequences */
+	clear_scene_in_allseqs(sce);
+
+	/* check render layer nodes in other scenes */
+	clear_scene_in_nodes(bmain, sce);
+	
+	/* al screens */
+	for(sc= bmain->screen.first; sc; sc= sc->id.next)
+		if(sc->scene == sce)
+			sc->scene= newsce;
+
+	free_libblock(&bmain->scene, sce);
 }
 
 /* used by metaballs
@@ -672,33 +810,6 @@ void scene_add_render_layer(Scene *sce)
 	srl->lay= (1<<20) -1;
 	srl->layflag= 0x7FFF;	/* solid ztra halo edge strand */
 	srl->passflag= SCE_PASS_COMBINED|SCE_PASS_Z;
-}
-
-void sculptsession_free(Sculpt *sculpt)
-{
-	SculptSession *ss= sculpt->session;
-	if(ss) {
-		if(ss->projverts)
-			MEM_freeN(ss->projverts);
-
-		if(ss->fmap)
-			MEM_freeN(ss->fmap);
-
-		if(ss->fmap_mem)
-			MEM_freeN(ss->fmap_mem);
-
-		if(ss->texcache)
-			MEM_freeN(ss->texcache);
-
-		if(ss->layer_disps)
-			MEM_freeN(ss->layer_disps);
-
-		if(ss->mesh_co_orig)
-			MEM_freeN(ss->mesh_co_orig);
-
-		MEM_freeN(ss);
-		sculpt->session= NULL;
-	}
 }
 
 /* render simplification */

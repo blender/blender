@@ -51,8 +51,11 @@ install: $(ALL_OR_DEBUG)
 	@[ -d $(NAN_AUDASPACE)/include ] || mkdir $(NAN_AUDASPACE)/include
 	@[ -d $(NAN_AUDASPACE)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
 	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libaudaspace.a $(DIR)/$(DEBUG_DIR)libaud_fx.a $(DIR)/$(DEBUG_DIR)libaud_src.a $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
+
 ifeq ($(OS),darwin)
 	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaudaspace.a
+	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_src.a
+	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_fx.a
 endif
 	@../tools/cpifdiff.sh intern/*.h $(NAN_AUDASPACE)/include/
 

@@ -416,7 +416,6 @@ extern UserDef U; /* from blenkernel blender.c */
 	/* toolsettings->autokey_flag */
 #define 	ANIMRECORD_FLAG_WITHNLA		(1<<10)
 
-
 /* transopts */
 #define	USER_TR_TOOLTIPS		(1 << 0)
 #define	USER_TR_BUTTONS			(1 << 1)

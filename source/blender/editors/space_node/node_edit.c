@@ -56,6 +56,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_material.h"
+#include "BKE_paint.h"
 #include "BKE_texture.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
@@ -623,17 +624,17 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 		}
 		else {
 			MTex *mtex= NULL;
+			Brush *brush= NULL;
 			
-			if(G.f & G_SCULPTMODE) {
-				Sculpt *sd= scene->toolsettings->sculpt;
-				if(sd && sd->brush)
-					if(sd->brush->texact != -1)
-						mtex= sd->brush->mtex[sd->brush->texact];
+			if(ob && ob->mode & OB_MODE_SCULPT) {
+				brush= paint_brush(&scene->toolsettings->sculpt->paint);
 			}
-			else {
-				Brush *br= scene->toolsettings->imapaint.brush;
-				if(br) 
-					mtex= br->mtex[br->texact];
+			else
+				brush= paint_brush(&scene->toolsettings->imapaint.paint);
+
+			if(brush) {
+				if(brush && brush->texact != -1)
+					mtex= brush->mtex[brush->texact];
 			}
 			
 			if(mtex) {
@@ -2268,34 +2269,6 @@ void node_read_fullsamplelayers(SpaceNode *snode)
 	// allqueue(REDRAWIMAGE, 1);
 	
 	WM_cursor_wait(0);
-}
-
-/* called from header_info, when deleting a scene
- * goes over all scenes other than the input, checks if they have
- * render layer nodes referencing the to-be-deleted scene, and
- * resets them to NULL. */
-
-/* XXX needs to get current scene then! */
-void clear_scene_in_nodes(Scene *sce)
-{
-	Scene *sce1;
-	bNode *node;
-
-	sce1= G.main->scene.first;
-	while(sce1) {
-		if(sce1!=sce) {
-			if (sce1->nodetree) {
-				for(node= sce1->nodetree->nodes.first; node; node= node->next) {
-					if(node->type==CMP_NODE_R_LAYERS) {
-						Scene *nodesce= (Scene *)node->id;
-						
-						if (nodesce==sce) node->id = NULL;
-					}
-				}
-			}
-		}
-		sce1= sce1->id.next;
-	}
 }
 
 void imagepaint_composite_tags(bNodeTree *ntree, Image *image, ImageUser *iuser)

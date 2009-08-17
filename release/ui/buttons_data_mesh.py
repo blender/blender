@@ -106,12 +106,15 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
 			row.itemR(group, "name")
 
 		if context.edit_object:
-			row = layout.row(align=True)
-
-			row.itemO("object.vertex_group_assign", text="Assign")
-			row.itemO("object.vertex_group_remove_from", text="Remove")
-			row.itemO("object.vertex_group_select", text="Select")
-			row.itemO("object.vertex_group_deselect", text="Deselect")
+			row = layout.row()
+			
+			sub = row.row(align=True)
+			sub.itemO("object.vertex_group_assign", text="Assign")
+			sub.itemO("object.vertex_group_remove_from", text="Remove")
+			
+			sub = row.row(align=True)
+			sub.itemO("object.vertex_group_select", text="Select")
+			sub.itemO("object.vertex_group_deselect", text="Deselect")
 
 			layout.itemR(context.tool_settings, "vertex_group_weight", text="Weight")
 
@@ -159,7 +162,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 					row.itemR(kb, "value", slider=True)
 					
 					split = layout.split()
-					sub = split.column()
+					sub = split.column(align=True)
 					sub.enabled = ob.shape_key_lock == False
 					sub.itemL(text="Range:")
 					sub.itemR(kb, "slider_min", text="Min")

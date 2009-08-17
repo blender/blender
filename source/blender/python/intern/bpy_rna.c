@@ -132,6 +132,8 @@ Mathutils_Callback mathutils_rna_matrix_cb = {
 
 #endif
 
+static StructRNA *pyrna_struct_as_srna(PyObject *self);
+
 static int pyrna_struct_compare( BPy_StructRNA * a, BPy_StructRNA * b )
 {
 	return (a->ptr.data==b->ptr.data) ? 0 : -1;
@@ -2263,7 +2265,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 	PyObject *item;
 	
 	Py_INCREF(newclass);
-	
+
 	if (RNA_struct_py_type_get(srna))
 		PyObSpit("RNA WAS SET - ", RNA_struct_py_type_get(srna));
 	
@@ -2273,18 +2275,44 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 
 	/* Not 100% needed but useful,
 	 * having an instance within a type looks wrong however this instance IS an rna type */
+
+	/* python deals with the curcular ref */
 	RNA_pointer_create(NULL, &RNA_Struct, srna, &ptr);
 	item = pyrna_struct_CreatePyObject(&ptr);
+
+	//item = PyCObject_FromVoidPtr(srna, NULL);
 	PyDict_SetItemString(((PyTypeObject *)newclass)->tp_dict, "__rna__", item);
 	Py_DECREF(item);
 	/* done with rna instance */
 }
+
+/*
+static StructRNA *srna_from_self(PyObject *self);
+PyObject *BPy_GetStructRNA(PyObject *self)
+{
+	StructRNA *srna= pyrna_struct_as_srna(self);
+	PointerRNA ptr;
+	PyObject *ret;
+
+	RNA_pointer_create(NULL, &RNA_Struct, srna, &ptr);
+	ret= pyrna_struct_CreatePyObject(&ptr);
+
+	if(ret) {
+		return ret;
+	}
+	else {
+		Py_RETURN_NONE;
+	}
+}
+*/
 
 static struct PyMethodDef pyrna_struct_subtype_methods[] = {
 	{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, ""},
 	{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, ""},
 	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, ""},
 	{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, ""},
+
+//	{"__get_rna", (PyCFunction)BPy_GetStructRNA, METH_NOARGS, ""},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -2319,18 +2347,26 @@ PyObject* pyrna_srna_Subtype(StructRNA *srna)
 		if(base && base != srna) {
 			/*/printf("debug subtype %s %p\n", RNA_struct_identifier(srna), srna); */
 			py_base= pyrna_srna_Subtype(base);
+			Py_DECREF(py_base); /* srna owns, this is only to pass as an arg */
 		}
 		
 		if(py_base==NULL) {
 			py_base= (PyObject *)&pyrna_struct_Type;
-			Py_INCREF(py_base);
 		}
 		
-		newclass = PyObject_CallFunction(	(PyObject*)&PyType_Type, "s(N){ssss}", idname, py_base, "__module__","bpy.types", "__doc__",descr);
+		/* always use O not N when calling, N causes refcount errors */
+		newclass = PyObject_CallFunction(	(PyObject*)&PyType_Type, "s(O){ssss}", idname, py_base, "__module__","bpy.types", "__doc__",descr);
+		/* newclass will now have 2 ref's, ???, probably 1 is internal since decrefing here segfaults */
+
+		/* PyObSpit("new class ref", newclass); */
 
 		if (newclass) {
+
+			/* srna owns one, and the other is owned by the caller */
 			pyrna_subtype_set_rna(newclass, srna);
-			// PyObSpit("NewStructRNA Type: ", (PyObject *)newclass);
+
+			Py_DECREF(newclass); /* let srna own */
+
 
 			/* attach functions into the class
 			 * so you can do... bpy.types.Scene.SomeFunction()
@@ -2353,9 +2389,21 @@ PyObject* pyrna_srna_Subtype(StructRNA *srna)
 	return newclass;
 }
 
+/* use for subtyping so we know which srna is used for a PointerRNA */
+static StructRNA *srna_from_ptr(PointerRNA *ptr)
+{
+	if(ptr->type == &RNA_Struct) {
+		return ptr->data;
+	}
+	else {
+		return ptr->type;
+	}
+}
+
+/* always returns a new ref, be sure to decref when done */
 PyObject* pyrna_struct_Subtype(PointerRNA *ptr)
 {
-	return pyrna_srna_Subtype((ptr->type == &RNA_Struct) ? ptr->data : ptr->type);
+	return pyrna_srna_Subtype(srna_from_ptr(ptr));
 }
 
 /*-----------------------CreatePyObject---------------------------------*/
@@ -2371,6 +2419,7 @@ PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr )
 		
 		if (tp) {
 			pyrna = (BPy_StructRNA *) tp->tp_alloc(tp, 0);
+			Py_DECREF(tp); /* srna owns, cant hold a ref */
 		}
 		else {
 			fprintf(stderr, "Could not make type\n");
@@ -2408,8 +2457,11 @@ PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop )
 	return ( PyObject * ) pyrna;
 }
 
+/* bpy.data from python */
+static PointerRNA *rna_module_ptr= NULL;
 PyObject *BPY_rna_module( void )
 {
+	BPy_StructRNA *pyrna;
 	PointerRNA ptr;
 	
 #ifdef USE_MATHUTILS // register mathutils callbacks, ok to run more then once.
@@ -2429,8 +2481,15 @@ PyObject *BPY_rna_module( void )
 
 	/* for now, return the base RNA type rather then a real module */
 	RNA_main_pointer_create(G.main, &ptr);
+	pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
 	
-	return pyrna_struct_CreatePyObject(&ptr);
+	rna_module_ptr= &pyrna->ptr;
+	return (PyObject *)pyrna;
+}
+
+void BPY_update_rna_module(void)
+{
+	RNA_main_pointer_create(G.main, rna_module_ptr);
 }
 
 #if 0
@@ -2476,8 +2535,8 @@ static PyObject *pyrna_basetype_getattro( BPy_BaseTypeRNA * self, PyObject *pyna
 static PyObject *pyrna_basetype_dir(BPy_BaseTypeRNA *self);
 static struct PyMethodDef pyrna_basetype_methods[] = {
 	{"__dir__", (PyCFunction)pyrna_basetype_dir, METH_NOARGS, ""},
-	{"register", (PyCFunction)pyrna_basetype_register, METH_VARARGS, ""},
-	{"unregister", (PyCFunction)pyrna_basetype_unregister, METH_VARARGS, ""},
+	{"register", (PyCFunction)pyrna_basetype_register, METH_O, ""},
+	{"unregister", (PyCFunction)pyrna_basetype_unregister, METH_O, ""},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -2553,13 +2612,40 @@ PyObject *BPY_rna_props( void )
 	return submodule;
 }
 
+static StructRNA *pyrna_struct_as_srna(PyObject *self)
+{
+	BPy_StructRNA *py_srna= (BPy_StructRNA*)PyObject_GetAttrString(self, "__rna__");
+	StructRNA *srna;
+
+	if(py_srna==NULL) {
+	 	PyErr_SetString(PyExc_SystemError, "internal error, self had no __rna__ attribute, should never happen.");
+		return NULL;
+	}
+
+	if(!BPy_StructRNA_Check(py_srna)) {
+	 	PyErr_Format(PyExc_SystemError, "internal error, __rna__ was of type %.200s, instead of %.200s instance.", Py_TYPE(py_srna)->tp_name, pyrna_struct_Type.tp_name);
+	 	Py_DECREF(py_srna);
+		return NULL;
+	}
+
+	if(py_srna->ptr.type != &RNA_Struct) {
+	 	PyErr_SetString(PyExc_SystemError, "internal error, __rna__ was not a RNA_Struct type of rna struct.");
+	 	Py_DECREF(py_srna);
+		return NULL;
+	}
+
+	srna= py_srna->ptr.data;
+	Py_DECREF(py_srna);
+
+	return srna;
+}
+
+
 /* Orphan functions, not sure where they should go */
 /* get the srna for methods attached to types */
 /* */
 static StructRNA *srna_from_self(PyObject *self)
 {
-	BPy_StructRNA *py_srna;
-	
 	/* a bit sloppy but would cause a very confusing bug if
 	 * an error happened to be set here */
 	PyErr_Clear();
@@ -2576,30 +2662,7 @@ static StructRNA *srna_from_self(PyObject *self)
 	/* These cases above not errors, they just mean the type was not compatible
 	 * After this any errors will be raised in the script */
 
-	
-	py_srna= (BPy_StructRNA *)PyObject_GetAttrString(self, "__rna__");
-
-	if(py_srna==NULL) {
-	 	PyErr_SetString(PyExc_SystemError, "internal error, self had no __rna__ attribute, should never happen.");
-		return NULL;
-	}
-
-	if(!BPy_StructRNA_Check(py_srna)) {
-	 	PyErr_SetString(PyExc_SystemError, "internal error, self's __rna__ attribute isnt a StructRNA type, should never happen.");
-		return NULL;
-	}
-
-	if((py_srna->ptr.data && py_srna->ptr.type == &RNA_Struct) == 0) {
-	 	PyErr_SetString(PyExc_SystemError, "internal error, self's __rna__ attribute wasnt an RNA_Struct, should never happen.");
-		return NULL;
-	}
-
-	if(!RNA_struct_is_ID(py_srna->ptr.data)) {
-		PyErr_SetString(PyExc_TypeError, "only ID types support python defined properties");
-		return NULL;
-	}
-
-	return py_srna->ptr.data;
+	return pyrna_struct_as_srna(self);
 }
 
 /* operators use this so it can store the args given but defer running
@@ -2969,50 +3032,94 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 
 static void bpy_class_free(void *pyob_ptr)
 {
+	PyObject *self= (PyObject *)pyob_ptr;
+	PyGILState_STATE gilstate;
+
+	gilstate = PyGILState_Ensure();
+
+	PyDict_Clear(((PyTypeObject*)self)->tp_dict);
+
 	if(G.f&G_DEBUG) {
-		if(((PyObject *)pyob_ptr)->ob_refcnt > 1)
-			PyObSpit("zombie class - ref should be 1", (PyObject *)pyob_ptr);
+		if(self->ob_refcnt > 1) {
+			PyObSpit("zombie class - ref should be 1", self);
+		}
 	}
+
 	Py_DECREF((PyObject *)pyob_ptr);
+
+	PyGILState_Release(gilstate);
 }
 
-PyObject *pyrna_basetype_register(PyObject *self, PyObject *args)
+void pyrna_alloc_types(void)
+{
+	PyGILState_STATE gilstate;
+
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	
+	gilstate = PyGILState_Ensure();
+
+	/* avoid doing this lookup for every getattr */
+	RNA_blender_rna_pointer_create(&ptr);
+	prop = RNA_struct_find_property(&ptr, "structs");
+
+	RNA_PROP_BEGIN(&ptr, itemptr, prop) {
+		Py_DECREF(pyrna_struct_Subtype(&itemptr));
+	}
+	RNA_PROP_END;
+
+	PyGILState_Release(gilstate);
+}
+
+
+void pyrna_free_types(void)
+{
+	PointerRNA ptr;
+	PropertyRNA *prop;
+
+	/* avoid doing this lookup for every getattr */
+	RNA_blender_rna_pointer_create(&ptr);
+	prop = RNA_struct_find_property(&ptr, "structs");
+
+
+	RNA_PROP_BEGIN(&ptr, itemptr, prop) {
+		StructRNA *srna= srna_from_ptr(&itemptr);
+		void *py_ptr= RNA_struct_py_type_get(srna);
+
+		if(py_ptr) {
+#if 0	// XXX - should be able to do this but makes python crash on exit
+			bpy_class_free(py_ptr);
+#endif
+			RNA_struct_py_type_set(srna, NULL);
+		}
+	}
+	RNA_PROP_END;
+}
+
+/* Note! MemLeak XXX
+ *
+ * There is currently a bug where moving registering a python class does
+ * not properly manage refcounts from the python class, since the srna owns
+ * the python class this should not be so tricky but changing the references as
+ * youd expect when changing ownership crashes blender on exit so I had to comment out
+ * the decref. This is not so bad because the leak only happens when re-registering (hold F8)
+ * - Should still be fixed - Campbell
+ * */
+
+PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
 {
 	bContext *C= NULL;
-	PyObject *py_class, *item;
 	ReportList reports;
 	StructRegisterFunc reg;
-	BPy_StructRNA *py_srna;
 	StructRNA *srna;
+	StructRNA *srna_new;
 
-	if(!PyArg_ParseTuple(args, "O:register", &py_class))
+	srna= pyrna_struct_as_srna(py_class);
+	if(srna==NULL)
 		return NULL;
-	
-	if(!PyType_Check(py_class)) {
-		PyErr_SetString(PyExc_AttributeError, "expected a Type subclassed from a registerable rna type (no a Type object).");
-		return NULL;
-	}
-
-	/* check we got an __rna__ attribute */
-	item= PyObject_GetAttrString(py_class, "__rna__");
-
-	if(!item || !BPy_StructRNA_Check(item)) {
-		Py_XDECREF(item);
-		PyErr_SetString(PyExc_AttributeError, "expected a Type subclassed from a registerable rna type (no __rna__ property).");
-		return NULL;
-	}
-
-	/* check the __rna__ attribute has the right type */
-	Py_DECREF(item);
-	py_srna= (BPy_StructRNA*)item;
-
-	if(py_srna->ptr.type != &RNA_Struct) {
-		PyErr_SetString(PyExc_AttributeError, "expected a Type subclassed from a registerable rna type (not a Struct).");
-		return NULL;
-	}
 	
 	/* check that we have a register callback for this type */
-	reg= RNA_struct_register(py_srna->ptr.data);
+	reg= RNA_struct_register(srna);
 
 	if(!reg) {
 		PyErr_SetString(PyExc_AttributeError, "expected a Type subclassed from a registerable rna type (no register supported).");
@@ -3024,9 +3131,9 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *args)
 
 	/* call the register callback */
 	BKE_reports_init(&reports, RPT_STORE);
-	srna= reg(C, &reports, py_class, bpy_class_validate, bpy_class_call, bpy_class_free);
+	srna_new= reg(C, &reports, py_class, bpy_class_validate, bpy_class_call, bpy_class_free);
 
-	if(!srna) {
+	if(!srna_new) {
 		BPy_reports_to_error(&reports);
 		BKE_reports_clear(&reports);
 		return NULL;
@@ -3034,44 +3141,29 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *args)
 
 	BKE_reports_clear(&reports);
 
-	pyrna_subtype_set_rna(py_class, srna); /* takes a ref to py_class */
+	pyrna_subtype_set_rna(py_class, srna_new); /* takes a ref to py_class */
+
+	/* old srna still references us, keep the check incase registering somehow can free it  */
+	if(RNA_struct_py_type_get(srna)) {
+		RNA_struct_py_type_set(srna, NULL);
+		// Py_DECREF(py_class); // shuld be able to do this XXX since the old rna adds a new ref.
+	}
 
 	Py_RETURN_NONE;
 }
 
-PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *args)
+PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *py_class)
 {
 	bContext *C= NULL;
-	PyObject *py_class, *item;
-	BPy_StructRNA *py_srna;
 	StructUnregisterFunc unreg;
+	StructRNA *srna;
 
-	if(!PyArg_ParseTuple(args, "O:unregister", &py_class))
+	srna= pyrna_struct_as_srna(py_class);
+	if(srna==NULL)
 		return NULL;
-
-	if(!PyType_Check(py_class)) {
-		PyErr_SetString(PyExc_AttributeError, "expected a Type subclassed from a registerable rna type (no a Type object).");
-		return NULL;
-	}
-
-	/* check we got an __rna__ attribute */
-	item= PyDict_GetItemString(((PyTypeObject*)py_class)->tp_dict, "__rna__");  /* borrow ref */
-
-	if(!item || !BPy_StructRNA_Check(item)) {
-		PyErr_SetString(PyExc_AttributeError, "expected a Type subclassed from a registerable rna type (no __rna__ property).");
-		return NULL;
-	}
-
-	/* check the __rna__ attribute has the right type */
-	py_srna= (BPy_StructRNA*)item;
-
-	if(py_srna->ptr.type != &RNA_Struct) {
-		PyErr_SetString(PyExc_AttributeError, "expected a Type subclassed from a registerable rna type (not a Struct).");
-		return NULL;
-	}
 	
 	/* check that we have a unregister callback for this type */
-	unreg= RNA_struct_unregister(py_srna->ptr.data);
+	unreg= RNA_struct_unregister(srna);
 
 	if(!unreg) {
 		PyErr_SetString(PyExc_AttributeError, "expected a Type subclassed from a registerable rna type (no unregister supported).");
@@ -3083,10 +3175,7 @@ PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *args)
 	
 
 	/* call unregister */
-	unreg(C, py_srna->ptr.data);
-
-	/* remove reference to old type */
-	Py_DECREF(py_class);
+	unreg(C, srna); /* calls bpy_class_free, this decref's py_class */
 
 	Py_RETURN_NONE;
 }

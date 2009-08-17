@@ -160,7 +160,7 @@ static AdrBit2Path ma_mode_bits[]= {
 // 	{MA_SHADOW, "shadow", 0},
 //	{MA_SHLESS, "shadeless", 0},
 // 	...
-	{MA_RAYTRANSP, "raytrace_transparency.enabled", 0},
+	{MA_RAYTRANSP, "transparency", 0},
 	{MA_RAYMIRROR, "raytrace_mirror.enabled", 0},
 //	{MA_HALO, "type", MA_TYPE_HALO}
 };

@@ -304,7 +304,9 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				end_render_material(mat);
 				
 				/* turn on raytracing if needed */
-				if(mat->mode_l & (MA_RAYTRANSP|MA_RAYMIRROR))
+				if(mat->mode_l & MA_RAYMIRROR)
+					sce->r.mode |= R_RAYTRACE;
+				if((mat->mode_l & MA_RAYTRANSP) && (mat->mode_l & MA_TRANSP))
 					sce->r.mode |= R_RAYTRACE;
 				if(mat->sss_flag & MA_DIFF_SSS)
 					sce->r.mode |= R_SSS;

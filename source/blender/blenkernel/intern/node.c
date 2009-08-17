@@ -3112,3 +3112,29 @@ void free_nodesystem(void)
 	BLI_freelistN(&node_all_shaders);
 	BLI_freelistN(&node_all_textures);
 }
+
+/* called from unlink_scene, when deleting a scene goes over all scenes
+ * other than the input, checks if they have render layer nodes referencing
+ * the to-be-deleted scene, and resets them to NULL. */
+
+/* XXX needs to get current scene then! */
+void clear_scene_in_nodes(Main *bmain, Scene *sce)
+{
+	Scene *sce1;
+	bNode *node;
+
+	for(sce1= bmain->scene.first; sce1; sce1=sce1->id.next) {
+		if(sce1!=sce) {
+			if(sce1->nodetree) {
+				for(node= sce1->nodetree->nodes.first; node; node= node->next) {
+					if(node->type==CMP_NODE_R_LAYERS) {
+						Scene *nodesce= (Scene *)node->id;
+						
+						if (nodesce==sce) node->id = NULL;
+					}
+				}
+			}
+		}
+	}
+}
+

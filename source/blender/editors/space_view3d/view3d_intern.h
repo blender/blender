@@ -140,7 +140,6 @@ void view3d_buttons_register(struct ARegionType *art);
 void VIEW3D_OT_toolbar(struct wmOperatorType *ot);
 void view3d_toolbar_register(struct ARegionType *art);
 void view3d_tool_props_register(struct ARegionType *art);
-char *view3d_context_string(const struct bContext *C);
 
 /* view3d_snap.c */
 int minmax_verts(Object *obedit, float *min, float *max);

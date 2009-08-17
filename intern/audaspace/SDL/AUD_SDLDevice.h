@@ -28,11 +28,22 @@
 
 #include "AUD_SoftwareDevice.h"
 
+#include <SDL.h>
+
 /**
  * This device plays back through SDL, the simple direct media layer.
  */
 class AUD_SDLDevice : public AUD_SoftwareDevice
 {
+private:
+	/**
+	 * Mixes the next bytes into the buffer.
+	 * \param data The SDL device.
+	 * \param buffer The target buffer.
+	 * \param length The length in bytes to be filled.
+	 */
+	static void SDL_mix(void *data, Uint8* buffer, int length);
+
 protected:
 	virtual void playing(bool playing);
 
@@ -50,14 +61,6 @@ public:
 	 * Closes the SDL audio device.
 	 */
 	virtual ~AUD_SDLDevice();
-
-	/**
-	 * Mixes the next bytes into the buffer.
-	 * \param buffer The target buffer.
-	 * \param length The length in bytes to be filled.
-	 * \warning This function shall not be called from outside!
-	 */
-	void SDLmix(sample_t* buffer, int length);
 };
 
 #endif //AUD_SDLDEVICE

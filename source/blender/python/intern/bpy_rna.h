@@ -61,6 +61,7 @@ typedef struct {
 #define BPy_BaseTypeRNA BPy_PropertyRNA
 
 PyObject *BPY_rna_module( void );
+void	  BPY_update_rna_module( void );
 /*PyObject *BPY_rna_doc( void );*/
 PyObject *BPY_rna_types( void );
 PyObject *BPY_rna_props( void );
@@ -82,5 +83,9 @@ PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw);
 /* function for registering types */
 PyObject *pyrna_basetype_register(PyObject *self, PyObject *args);
 PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *args);
+
+/* called before stopping python */
+void pyrna_alloc_types(void);
+void pyrna_free_types(void);
 
 #endif

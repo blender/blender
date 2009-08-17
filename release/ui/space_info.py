@@ -5,9 +5,10 @@ class INFO_HT_header(bpy.types.Header):
 	__space_type__ = "USER_PREFERENCES"
 
 	def draw(self, context):
+		layout = self.layout
+		
 		st = context.space_data
 		rd = context.scene.render_data
-		layout = self.layout
 		
 		layout.template_header()
 
@@ -21,8 +22,8 @@ class INFO_HT_header(bpy.types.Header):
 				row.itemM("INFO_MT_render")
 			row.itemM("INFO_MT_help")
 
-		layout.template_ID(context.window, "screen") #, new="screen.new", open="scene.unlink")
-		layout.template_ID(context.screen, "scene") #, new="screen.new", unlink="scene.unlink")
+		layout.template_ID(context.window, "screen", new="screen.new", unlink="screen.delete")
+		layout.template_ID(context.screen, "scene", new="scene.new", unlink="scene.delete")
 
 		if rd.multiple_engines:
 			layout.itemR(rd, "engine", text="")
@@ -142,6 +143,7 @@ class INFO_MT_render(bpy.types.Menu):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		rd = context.scene.render_data
 
 		layout.itemO("screen.render", text="Render Image")
@@ -174,6 +176,7 @@ class INFO_PT_tabs(bpy.types.Panel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		userpref = context.user_preferences
 
 		layout.itemR(userpref, "active_section", expand=True)
@@ -189,100 +192,98 @@ class INFO_PT_view(bpy.types.Panel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		userpref = context.user_preferences
 		view = userpref.view
 
 		split = layout.split()
+		
 		col = split.column()
-		colsplit = col.split(percentage=0.85)
-		colsplitcol = colsplit.column()
-		colsplitcol.itemL(text="Display:")
-		colsplitcol.itemR(view, "tooltips")
-		colsplitcol.itemR(view, "display_object_info", text="Object Info")
-		colsplitcol.itemR(view, "use_large_cursors")
-		colsplitcol.itemR(view, "show_view_name", text="View Name")
-		colsplitcol.itemR(view, "show_playback_fps", text="Playback FPS")
-		colsplitcol.itemR(view, "global_scene")
-		colsplitcol.itemR(view, "pin_floating_panels")
-		colsplitcol.itemR(view, "object_center_size")
-		colsplitcol.itemS()
-		colsplitcol.itemS()
-		colsplitcol.itemS()
+		sub = col.split(percentage=0.85)
 		
-		colsplitcol.itemR(view, "show_mini_axis")
-		colsub = colsplitcol.column()
-		colsub.enabled = view.show_mini_axis
-		colsub.itemR(view, "mini_axis_size")
-		colsub.itemR(view, "mini_axis_brightness")
+		sub1 = sub.column()
+		sub1.itemL(text="Display:")
+		sub1.itemR(view, "tooltips")
+		sub1.itemR(view, "display_object_info", text="Object Info")
+		sub1.itemR(view, "use_large_cursors")
+		sub1.itemR(view, "show_view_name", text="View Name")
+		sub1.itemR(view, "show_playback_fps", text="Playback FPS")
+		sub1.itemR(view, "global_scene")
+		sub1.itemR(view, "pin_floating_panels")
+		sub1.itemR(view, "object_center_size")
+		sub1.itemS()
+		sub1.itemS()
+		sub1.itemS()
+		sub1.itemR(view, "show_mini_axis")
+		sub2 = sub1.column()
+		sub2.enabled = view.show_mini_axis
+		sub2.itemR(view, "mini_axis_size")
+		sub2.itemR(view, "mini_axis_brightness")
 		
+		col = split.column()
+		sub = col.split(percentage=0.85)
+		
+		sub1 = sub.column()
+		sub1.itemL(text="View Manipulation:")
+		sub1.itemR(view, "auto_depth")
+		sub1.itemR(view, "global_pivot")
+		sub1.itemR(view, "zoom_to_mouse")
+		sub1.itemR(view, "rotate_around_selection")
+		sub1.itemS()
+		sub1.itemL(text="Zoom Style:")
+		sub1.row().itemR(view, "viewport_zoom_style", expand=True)
+		sub1.itemL(text="Orbit Style:")
+		sub1.row().itemR(view, "view_rotation", expand=True)
+		sub1.itemR(view, "perspective_orthographic_switch")
+		sub1.itemR(view, "smooth_view")
+		sub1.itemR(view, "rotation_angle")
+		sub1.itemS()
+		sub1.itemL(text="NDOF Device:")
+		sub1.itemR(view, "ndof_pan_speed", text="Pan Speed")
+		sub1.itemR(view, "ndof_rotate_speed", text="Orbit Speed")
+		
+		col = split.column()
+		sub = col.split(percentage=0.85)
+		
+		sub1 = sub.column()
+		sub1.itemL(text="Mouse Buttons:")
+		sub1.itemR(view, "left_mouse_button_select")
+		sub1.itemR(view, "right_mouse_button_select")
+		sub1.itemR(view, "emulate_3_button_mouse")
+		sub1.itemR(view, "use_middle_mouse_paste")
+		sub1.itemR(view, "middle_mouse_rotate")
+		sub1.itemR(view, "middle_mouse_pan")
+		sub1.itemR(view, "wheel_invert_zoom")
+		sub1.itemR(view, "wheel_scroll_lines")
+		sub1.itemS()
+		sub1.itemS()
+		sub1.itemS()
+		sub1.itemL(text="Menus:")
+		sub1.itemR(view, "open_mouse_over")
+		sub1.itemL(text="Menu Open Delay:")
+		sub1.itemR(view, "open_toplevel_delay", text="Top Level")
+		sub1.itemR(view, "open_sublevel_delay", text="Sub Level")
 
-		
-		
 		col = split.column()
-		colsplit = col.split(percentage=0.85)
-		colsplitcol = colsplit.column()
-		colsplitcol.itemL(text="View Manipulation:")
-		colsplitcol.itemR(view, "auto_depth")
-		colsplitcol.itemR(view, "global_pivot")
-		colsplitcol.itemR(view, "zoom_to_mouse")
-		colsplitcol.itemR(view, "rotate_around_selection")
-		colsplitcol.itemL(text="Zoom Style:")
-		row = colsplitcol.row()
-		row.itemR(view, "viewport_zoom_style", expand=True)
-		colsplitcol.itemL(text="Orbit Style:")
-		row = colsplitcol.row()
-		row.itemR(view, "view_rotation", expand=True)
-		colsplitcol.itemR(view, "perspective_orthographic_switch")
-		colsplitcol.itemR(view, "smooth_view")
-		colsplitcol.itemR(view, "rotation_angle")
-		colsplitcol.itemL(text="NDOF Device:")
-		colsplitcol.itemR(view, "ndof_pan_speed", text="Pan Speed")
-		colsplitcol.itemR(view, "ndof_rotate_speed", text="Orbit Speed")
+		sub = col.split(percentage=0.85)
 		
-		col = split.column()
-		colsplit = col.split(percentage=0.85)
-		colsplitcol = colsplit.column()
-		colsplitcol.itemL(text="Mouse Buttons:")
-		colsplitcol.itemR(view, "left_mouse_button_select")
-		colsplitcol.itemR(view, "right_mouse_button_select")
-		colsplitcol.itemR(view, "emulate_3_button_mouse")
-		colsplitcol.itemR(view, "use_middle_mouse_paste")
-		colsplitcol.itemR(view, "middle_mouse_rotate")
-		colsplitcol.itemR(view, "middle_mouse_pan")
-		colsplitcol.itemR(view, "wheel_invert_zoom")
-		colsplitcol.itemR(view, "wheel_scroll_lines")
-		colsplitcol.itemS()
-		colsplitcol.itemS()
-		colsplitcol.itemS()
-		
-		colsplitcol.itemL(text="Menus:")
-		colsplitcol.itemR(view, "open_mouse_over")
-		colsplitcol.itemL(text="Menu Open Delay:")
-		colsplitcol.itemR(view, "open_toplevel_delay", text="Top Level")
-		colsplitcol.itemR(view, "open_sublevel_delay", text="Sub Level")
-
-		
-		col = split.column()
-		colsplit = col.split(percentage=0.85)
-		colsplitcol = colsplit.column()
+		sub1 = sub.column()
 		#manipulator
-		colsplitcol.itemR(view, "use_manipulator")
-		colsub = colsplitcol.column()
-		colsub.enabled = view.use_manipulator
-		colsub.itemR(view, "manipulator_size", text="Size")
-		colsub.itemR(view, "manipulator_handle_size", text="Handle Size")
-		colsub.itemR(view, "manipulator_hotspot", text="Hotspot")	
-		colsplitcol.itemS()
-		colsplitcol.itemS()
-		colsplitcol.itemS()
-				
-		colsplitcol.itemL(text="Toolbox:")
-		colsplitcol.itemR(view, "use_column_layout")
-		colsplitcol.itemL(text="Open Toolbox Delay:")
-		colsplitcol.itemR(view, "open_left_mouse_delay", text="Hold LMB")
-		colsplitcol.itemR(view, "open_right_mouse_delay", text="Hold RMB")
+		sub1.itemR(view, "use_manipulator")
+		sub2 = sub1.column()
+		sub2.enabled = view.use_manipulator
+		sub2.itemR(view, "manipulator_size", text="Size")
+		sub2.itemR(view, "manipulator_handle_size", text="Handle Size")
+		sub2.itemR(view, "manipulator_hotspot", text="Hotspot")	
+		sub1.itemS()
+		sub1.itemS()
+		sub1.itemS()			
+		sub1.itemL(text="Toolbox:")
+		sub1.itemR(view, "use_column_layout")
+		sub1.itemL(text="Open Toolbox Delay:")
+		sub1.itemR(view, "open_left_mouse_delay", text="Hold LMB")
+		sub1.itemR(view, "open_right_mouse_delay", text="Hold RMB")
 
-		
 class INFO_PT_edit(bpy.types.Panel):
 	__space_type__ = "USER_PREFERENCES"
 	__label__ = "Edit"
@@ -294,92 +295,91 @@ class INFO_PT_edit(bpy.types.Panel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		userpref = context.user_preferences
 		edit = userpref.edit
 		view = userpref.view
 		
 		split = layout.split()
-		col = split.column()
-		colsplit = col.split(percentage=0.85)
-		colsplitcol = colsplit.column()
-
-		colsplitcol.itemL(text="Materials:")
-		colsplitcol.itemR(edit, "material_linked_object", text="Linked to Object")
-		colsplitcol.itemR(edit, "material_linked_obdata", text="Linked to ObData")
-		colsplitcol.itemS()
-		colsplitcol.itemS()
-		colsplitcol.itemS()
-		
-		colsplitcol.itemL(text="New Objects:")
-		colsplitcol.itemR(edit, "enter_edit_mode")
-		colsplitcol.itemR(edit, "align_to_view")
-		colsplitcol.itemS()
-		colsplitcol.itemS()
-		colsplitcol.itemS()
-		
-		colsplitcol.itemL(text="Transform:")
-		colsplitcol.itemR(edit, "drag_immediately")
 		
 		col = split.column()
-		colsplit = col.split(percentage=0.85)
-		colsplitcol = colsplit.column()
-		colsplitcol.itemL(text="Snap:")
-		colsplitcol.itemR(edit, "snap_translate", text="Translate")
-		colsplitcol.itemR(edit, "snap_rotate", text="Rotate")
-		colsplitcol.itemR(edit, "snap_scale", text="Scale")
-		colsplitcol.itemS()
-		colsplitcol.itemS()
-		colsplitcol.itemS()
+		sub = col.split(percentage=0.85)
 		
-		colsplitcol.itemL(text="Grease Pencil:")
-		colsplitcol.itemR(edit, "grease_pencil_manhattan_distance", text="Manhattan Distance")
-		colsplitcol.itemR(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")
-		colsplitcol.itemR(edit, "grease_pencil_smooth_stroke", text="Smooth Stroke")
-		# colsplitcol.itemR(edit, "grease_pencil_simplify_stroke", text="Simplify Stroke")
-		colsplitcol.itemR(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
-		
-		
-		col = split.column()
-		colsplit = col.split(percentage=0.85)
-		colsplitcol = colsplit.column()
-
-		colsplitcol.itemL(text="Keyframing:")
-		colsplitcol.itemR(edit, "use_visual_keying")
-		colsplitcol.itemR(edit, "new_interpolation_type")
-		colsplitcol.itemR(edit, "auto_keying_enable", text="Auto Keyframing")
-		colsub = colsplitcol.column()
-		colsub.enabled = edit.auto_keying_enable
-		row = colsub.row()
-		row.itemR(edit, "auto_keying_mode", expand=True)
-		colsub.itemR(edit, "auto_keyframe_insert_available", text="Only Insert Available")
-		colsub.itemR(edit, "auto_keyframe_insert_needed", text="Only Insert Needed")
-		colsplitcol.itemS()
-		colsplitcol.itemS()
-		colsplitcol.itemS()
-		
-		colsplitcol.itemL(text="Undo:")
-		colsplitcol.itemR(edit, "global_undo")
-		colsplitcol.itemR(edit, "undo_steps", text="Steps")
-		colsplitcol.itemR(edit, "undo_memory_limit", text="Memory Limit")
-		colsplitcol.itemS()
-		colsplitcol.itemS()
-		colsplitcol.itemS()
+		sub1 = sub.column()
+		sub1.itemL(text="Materials:")
+		sub1.itemR(edit, "material_linked_object", text="Linked to Object")
+		sub1.itemR(edit, "material_linked_obdata", text="Linked to ObData")
+		sub1.itemS()
+		sub1.itemS()
+		sub1.itemS()
+		sub1.itemL(text="New Objects:")
+		sub1.itemR(edit, "enter_edit_mode")
+		sub1.itemR(edit, "align_to_view")
+		sub1.itemS()
+		sub1.itemS()
+		sub1.itemS()
+		sub1.itemL(text="Transform:")
+		sub1.itemR(edit, "drag_immediately")
 
 		col = split.column()
-		colsplit = col.split(percentage=0.85)
-		colsplitcol = colsplit.column()
-		colsplitcol.itemL(text="Duplicate:")
-		colsplitcol.itemR(edit, "duplicate_mesh", text="Mesh")
-		colsplitcol.itemR(edit, "duplicate_surface", text="Surface")
-		colsplitcol.itemR(edit, "duplicate_curve", text="Curve")
-		colsplitcol.itemR(edit, "duplicate_text", text="Text")
-		colsplitcol.itemR(edit, "duplicate_metaball", text="Metaball")
-		colsplitcol.itemR(edit, "duplicate_armature", text="Armature")
-		colsplitcol.itemR(edit, "duplicate_lamp", text="Lamp")
-		colsplitcol.itemR(edit, "duplicate_material", text="Material")
-		colsplitcol.itemR(edit, "duplicate_texture", text="Texture")
-		colsplitcol.itemR(edit, "duplicate_ipo", text="F-Curve")
-		colsplitcol.itemR(edit, "duplicate_action", text="Action")
+		sub = col.split(percentage=0.85)
+		
+		sub1 = sub.column()
+		sub1.itemL(text="Snap:")
+		sub1.itemR(edit, "snap_translate", text="Translate")
+		sub1.itemR(edit, "snap_rotate", text="Rotate")
+		sub1.itemR(edit, "snap_scale", text="Scale")
+		sub1.itemS()
+		sub1.itemS()
+		sub1.itemS()
+		sub1.itemL(text="Grease Pencil:")
+		sub1.itemR(edit, "grease_pencil_manhattan_distance", text="Manhattan Distance")
+		sub1.itemR(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")
+		sub1.itemR(edit, "grease_pencil_smooth_stroke", text="Smooth Stroke")
+		# sub1.itemR(edit, "grease_pencil_simplify_stroke", text="Simplify Stroke")
+		sub1.itemR(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
+		
+		col = split.column()
+		sub = col.split(percentage=0.85)
+		
+		sub1 = sub.column()
+		sub1.itemL(text="Keyframing:")
+		sub1.itemR(edit, "use_visual_keying")
+		sub1.itemR(edit, "new_interpolation_type")
+		sub1.itemS()
+		sub1.itemR(edit, "auto_keying_enable", text="Auto Keyframing")
+		sub2 = sub1.column()
+		sub2.enabled = edit.auto_keying_enable
+		sub2.row().itemR(edit, "auto_keying_mode", expand=True)
+		sub2.itemR(edit, "auto_keyframe_insert_available", text="Only Insert Available")
+		sub2.itemR(edit, "auto_keyframe_insert_needed", text="Only Insert Needed")
+		sub1.itemS()
+		sub1.itemS()
+		sub1.itemS()
+		sub1.itemL(text="Undo:")
+		sub1.itemR(edit, "global_undo")
+		sub1.itemR(edit, "undo_steps", text="Steps")
+		sub1.itemR(edit, "undo_memory_limit", text="Memory Limit")
+		sub1.itemS()
+		sub1.itemS()
+		sub1.itemS()
+
+		col = split.column()
+		sub = col.split(percentage=0.85)
+		
+		sub1 = sub.column()
+		sub1.itemL(text="Duplicate:")
+		sub1.itemR(edit, "duplicate_mesh", text="Mesh")
+		sub1.itemR(edit, "duplicate_surface", text="Surface")
+		sub1.itemR(edit, "duplicate_curve", text="Curve")
+		sub1.itemR(edit, "duplicate_text", text="Text")
+		sub1.itemR(edit, "duplicate_metaball", text="Metaball")
+		sub1.itemR(edit, "duplicate_armature", text="Armature")
+		sub1.itemR(edit, "duplicate_lamp", text="Lamp")
+		sub1.itemR(edit, "duplicate_material", text="Material")
+		sub1.itemR(edit, "duplicate_texture", text="Texture")
+		sub1.itemR(edit, "duplicate_ipo", text="F-Curve")
+		sub1.itemR(edit, "duplicate_action", text="Action")
 		
 class INFO_PT_system(bpy.types.Panel):
 	__space_type__ = "USER_PREFERENCES"
@@ -392,61 +392,75 @@ class INFO_PT_system(bpy.types.Panel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		userpref = context.user_preferences
 		system = userpref.system
 		lan = userpref.language
 		
 		split = layout.split()
-		col = split.column()
-		colsplit = col.split(percentage=0.85)
-		colsplitcol = colsplit.column()
-		colsplitcol.itemR(system, "emulate_numpad")	
-		colsplitcol.itemS()
-		colsplitcol.itemS()
-		#Weight Colors
-		colsplitcol.itemL(text="Weight Colors:")
-		colsplitcol.itemR(system, "use_weight_color_range", text="Use Custom Range")
 		
-		colsub = colsplitcol.column()
-		colsub.active = system.use_weight_color_range
-		colsub.template_color_ramp(system.weight_color_range, expand=True)
-		colsplitcol.itemS()
-		colsplitcol.itemS()
+		col = split.column()
+		sub = col.split(percentage=0.85)
+		
+		sub1 = sub.column()
+		sub1.itemR(system, "emulate_numpad")	
+		sub1.itemS()
+		sub1.itemS()
+		
+		#Weight Colors
+		sub1.itemL(text="Weight Colors:")
+		sub1.itemR(system, "use_weight_color_range", text="Use Custom Range")
+		
+		sub2 = sub1.column()
+		sub2.active = system.use_weight_color_range
+		sub2.template_color_ramp(system.weight_color_range, expand=True)
+		sub1.itemS()
+		sub1.itemS()
 		
 		#sequencer
-		colsplitcol.itemL(text="Sequencer:")
-		colsplitcol.itemR(system, "prefetch_frames")
-		colsplitcol.itemR(system, "memory_cache_limit")
+		sub1.itemL(text="Sequencer:")
+		sub1.itemR(system, "prefetch_frames")
+		sub1.itemR(system, "memory_cache_limit")
 		
 		col = split.column()	
-		colsplit = col.split(percentage=0.85)
-		colsplitcol = colsplit.column()
+		sub = col.split(percentage=0.85)
+		
+		sub1 = sub .column()
 		#System
-		colsplitcol.itemL(text="System:")
-		colsplitcol.itemR(lan, "dpi")
-		colsplitcol.itemR(system, "enable_all_codecs")
-		colsplitcol.itemR(system, "auto_run_python_scripts")
-		colsplitcol.itemR(system, "frame_server_port")
-		colsplitcol.itemR(system, "game_sound")
-		colsplitcol.itemR(system, "filter_file_extensions")
-		colsplitcol.itemR(system, "hide_dot_files_datablocks")
-		colsplitcol.itemR(system, "audio_mixing_buffer")
-		colsplitcol.itemR(lan, "scrollback", text="Console Scrollback")
+		sub1.itemL(text="System:")
+		sub1.itemR(lan, "dpi")
+		sub1.itemR(system, "auto_run_python_scripts")
+		sub1.itemR(system, "frame_server_port")
+		sub1.itemR(system, "filter_file_extensions")
+		sub1.itemR(system, "hide_dot_files_datablocks")
+		sub1.itemR(lan, "scrollback", text="Console Scrollback")
+		sub1.itemS()
+		sub1.itemS()
+		sub1.itemL(text="Sound:")
+		sub1.itemR(system, "audio_device")
+		sub2 = sub1.column()
+		sub2.active = system.audio_device != 'AUDIO_DEVICE_NULL'
+		sub2.itemR(system, "enable_all_codecs")
+		sub2.itemR(system, "game_sound")
+		sub2.itemR(system, "audio_channels")
+		sub2.itemR(system, "audio_mixing_buffer")
+		sub2.itemR(system, "audio_sample_rate")
+		sub2.itemR(system, "audio_sample_format")
 		
 		col = split.column()
-		colsplit = col.split(percentage=0.85)
-		colsplitcol = colsplit.column()
+		sub = col.split(percentage=0.85)
+		
+		sub1 = sub.column()
 		#OpenGL
-		colsplitcol.itemL(text="OpenGL:")
-		colsplitcol.itemR(system, "clip_alpha", slider=True)
-		colsplitcol.itemR(system, "use_mipmaps")
-		colsplitcol.itemL(text="Window Draw Method:")
-		row = colsplitcol.row()
-		row.itemR(system, "window_draw_method", expand=True)
-		colsplitcol.itemL(text="Textures:")
-		colsplitcol.itemR(system, "gl_texture_limit", text="Limit Size")
-		colsplitcol.itemR(system, "texture_time_out", text="Time Out")
-		colsplitcol.itemR(system, "texture_collection_rate", text="Collection Rate")		
+		sub1.itemL(text="OpenGL:")
+		sub1.itemR(system, "clip_alpha", slider=True)
+		sub1.itemR(system, "use_mipmaps")
+		sub1.itemL(text="Window Draw Method:")
+		sub1.row().itemR(system, "window_draw_method", expand=True)
+		sub1.itemL(text="Textures:")
+		sub1.itemR(system, "gl_texture_limit", text="Limit Size")
+		sub1.itemR(system, "texture_time_out", text="Time Out")
+		sub1.itemR(system, "texture_collection_rate", text="Collection Rate")		
 		
 class INFO_PT_filepaths(bpy.types.Panel):
 	__space_type__ = "USER_PREFERENCES"
@@ -459,53 +473,55 @@ class INFO_PT_filepaths(bpy.types.Panel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		userpref = context.user_preferences
 		paths = userpref.filepaths
 		
 		split = layout.split()
+		
 		col = split.column()
 		col.itemL(text="File Paths:")
-		splitcol = col.split(percentage=0.3)
+		sub = col.split(percentage=0.3)
 		
-		splitcol.itemL(text="Fonts:")
-		splitcol.itemR(paths, "fonts_directory", text="")
-		splitcol = col.split(percentage=0.3)
-		splitcol.itemL(text="Textures:")
-		splitcol.itemR(paths, "textures_directory", text="")
-		splitcol = col.split(percentage=0.3)
-		splitcol.itemL(text="Texture Plugins:")
-		splitcol.itemR(paths, "texture_plugin_directory", text="")
-		splitcol = col.split(percentage=0.3)
-		splitcol.itemL(text="Sequence Plugins:")
-		splitcol.itemR(paths, "sequence_plugin_directory", text="")
-		splitcol = col.split(percentage=0.3)
-		splitcol.itemL(text="Render Output:")
-		splitcol.itemR(paths, "render_output_directory", text="")
-		splitcol = col.split(percentage=0.3)
-		splitcol.itemL(text="Scripts:")
-		splitcol.itemR(paths, "python_scripts_directory", text="")
-		splitcol = col.split(percentage=0.3)
-		splitcol.itemL(text="Sounds:")
-		splitcol.itemR(paths, "sounds_directory", text="")
-		splitcol = col.split(percentage=0.3)
-		splitcol.itemL(text="Temp:")
-		splitcol.itemR(paths, "temporary_directory", text="")
+		sub.itemL(text="Fonts:")
+		sub.itemR(paths, "fonts_directory", text="")
+		sub = col.split(percentage=0.3)
+		sub.itemL(text="Textures:")
+		sub.itemR(paths, "textures_directory", text="")
+		sub = col.split(percentage=0.3)
+		sub.itemL(text="Texture Plugins:")
+		sub.itemR(paths, "texture_plugin_directory", text="")
+		sub = col.split(percentage=0.3)
+		sub.itemL(text="Sequence Plugins:")
+		sub.itemR(paths, "sequence_plugin_directory", text="")
+		sub = col.split(percentage=0.3)
+		sub.itemL(text="Render Output:")
+		sub.itemR(paths, "render_output_directory", text="")
+		sub = col.split(percentage=0.3)
+		sub.itemL(text="Scripts:")
+		sub.itemR(paths, "python_scripts_directory", text="")
+		sub = col.split(percentage=0.3)
+		sub.itemL(text="Sounds:")
+		sub.itemR(paths, "sounds_directory", text="")
+		sub = col.split(percentage=0.3)
+		sub.itemL(text="Temp:")
+		sub.itemR(paths, "temporary_directory", text="")
 		
 		col = split.column()
-		colsplit = col.split(percentage=0.2)
-		colsplitcol = colsplit.column()
-		colsplitcol = colsplit.column()
-		colsplitcol.itemL(text="Save & Load:")
-		colsplitcol.itemR(paths, "use_relative_paths")
-		colsplitcol.itemR(paths, "compress_file")
-		colsplitcol.itemL(text="Auto Save:")
-		colsplitcol.itemR(paths, "save_version")
-		colsplitcol.itemR(paths, "recent_files")
-		colsplitcol.itemR(paths, "save_preview_images")
-		colsplitcol.itemR(paths, "auto_save_temporary_files")
-		colsub = colsplitcol.column()
-		colsub.enabled = paths.auto_save_temporary_files
-		colsub.itemR(paths, "auto_save_time")
+		sub = col.split(percentage=0.2)
+		sub1 = sub.column()
+		sub2 = sub.column()
+		sub2.itemL(text="Save & Load:")
+		sub2.itemR(paths, "use_relative_paths")
+		sub2.itemR(paths, "compress_file")
+		sub2.itemL(text="Auto Save:")
+		sub2.itemR(paths, "save_version")
+		sub2.itemR(paths, "recent_files")
+		sub2.itemR(paths, "save_preview_images")
+		sub2.itemR(paths, "auto_save_temporary_files")
+		sub3 = sub2.column()
+		sub3.enabled = paths.auto_save_temporary_files
+		sub3.itemR(paths, "auto_save_time")
 
 class INFO_PT_language(bpy.types.Panel):
 	__space_type__ = "USER_PREFERENCES"
@@ -518,6 +534,7 @@ class INFO_PT_language(bpy.types.Panel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		userpref = context.user_preferences
 		lan = userpref.language
 		
@@ -614,4 +631,3 @@ bpy.ops.add(HELP_OT_blender_website)
 bpy.ops.add(HELP_OT_blender_eshop)
 bpy.ops.add(HELP_OT_developer_community)
 bpy.ops.add(HELP_OT_user_community)
-

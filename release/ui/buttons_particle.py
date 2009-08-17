@@ -32,7 +32,7 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 		if ob:
 			row = layout.row()
 
-			row.template_list(ob, "particle_systems", ob, "active_particle_system_index")
+			row.template_list(ob, "particle_systems", ob, "active_particle_system_index", rows=2)
 
 			col = row.column(align=True)
 			col.itemO("object.particle_system_add", icon="ICON_ZOOMIN", text="")
@@ -151,6 +151,13 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 		psys = context.particle_system
 		part = psys.settings
 		cache = psys.point_cache
+		layout.set_context_pointer("PointCache", cache)
+		
+		row = layout.row()
+		row.template_list(cache, "point_cache_list", cache, "active_point_cache_index", rows=2 )
+		col = row.column(align=True)
+		col.itemO("ptcache.add_new", icon="ICON_ZOOMIN", text="")
+		col.itemO("ptcache.remove", icon="ICON_ZOOMOUT", text="")
 		
 		row = layout.row()
 		row.itemL(text="File Name:")
@@ -166,37 +173,38 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 			
 			layout.itemL(text=cache.info)
 			
-			split = layout.split()
+			#split = layout.split()
 			
-			col = split.column(align=True)
-			col.itemR(part, "start")
-			col.itemR(part, "end")
+			#col = split.column(align=True)
+			#col.itemR(part, "start")
+			#col.itemR(part, "end")
 
-			col = split.column(align=True)
-			col.itemR(part, "lifetime")
-			col.itemR(part, "random_lifetime", slider=True)
+			#col = split.column(align=True)
+			#col.itemR(part, "lifetime")
+			#col.itemR(part, "random_lifetime", slider=True)
 		else:
 			layout.itemR(cache, "name", text="")
 			
 			row = layout.row()
 		
 			if cache.baked == True:
-				row.itemO("ptcache.free_bake_particle_system", text="Free Bake")
+				row.itemO("ptcache.free_bake", text="Free Bake")
 			else:
-				row.item_booleanO("ptcache.cache_particle_system", "bake", True, text="Bake")
+				row.item_booleanO("ptcache.bake", "bake", True, text="Bake")
 		
 			subrow = row.row()
 			subrow.enabled = (cache.frames_skipped or cache.outdated) and particle_panel_enabled(psys)
-			subrow.itemO("ptcache.cache_particle_system", text="Calculate to Current Frame")
+			subrow.itemO("ptcache.bake", "bake", False, text="Calculate to Current Frame")
 			
 			row = layout.row()
 			row.enabled = particle_panel_enabled(psys)
-			row.itemO("ptcache.bake_from_particles_cache", text="Current Cache to Bake")
+			row.itemO("ptcache.bake_from_cache", text="Current Cache to Bake")
 			row.itemR(cache, "step");
 		
 			row = layout.row()
-			row.enabled = particle_panel_enabled(psys)
-			row.itemR(cache, "quick_cache")
+			subrow = row.row()
+			subrow.enabled = particle_panel_enabled(psys)
+			subrow.itemR(cache, "quick_cache")
 			row.itemR(cache, "disk_cache")
 		
 			layout.itemL(text=cache.info)
@@ -206,7 +214,7 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 			row = layout.row()
 			row.item_booleanO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
 			row.itemO("ptcache.free_bake_all", text="Free All Bakes")
-			layout.itemO("ptcache.bake_all", text="Update All Dynamics to current frame")
+			layout.itemO("ptcache.bake_all", "bake", False, text="Update All Dynamics to current frame")
 		
 		# for particles these are figured out automatically
 		#row.itemR(cache, "start_frame")
@@ -703,9 +711,8 @@ class PARTICLE_PT_draw(ParticleButtonsPanel):
 		col = row.column()
 		col.itemR(part, "material_color", text="Use material color")
 		
-		if (path):
-			box = col.box()				
-			box.itemR(part, "draw_step")
+		if (path):			
+			col.itemR(part, "draw_step")
 		else:
 			subcol = col.column()
 			subcol.active = part.material_color==False

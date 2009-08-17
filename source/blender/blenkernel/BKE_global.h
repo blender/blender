@@ -112,26 +112,14 @@ typedef struct Global {
 
 #define G_FACESELECT	(1 <<  8)
 
-#define G_VERTEXPAINT	(1 << 10)
-
 #define G_DEBUG			(1 << 12)
 #define G_DOSCRIPTLINKS (1 << 13)
 
-#define G_WEIGHTPAINT	(1 << 15)	
-#define G_TEXTUREPAINT	(1 << 16)
 /* #define G_NOFROZEN	(1 << 17) also removed */
 #define G_GREASEPENCIL 	(1 << 17)
 
-#define G_SCULPTMODE    (1 << 29)
-#define G_PARTICLEEDIT	(1 << 30)
-
 /* #define G_AUTOMATKEYS	(1 << 30)   also removed */
 #define G_HIDDENHANDLES (1 << 31) /* used for curves only */
-
-/* macro for testing face select mode
- * Texture paint could be removed since selected faces are not used
- * however hiding faces is useful */
-#define FACESEL_PAINT_TEST ((G.f&G_FACESELECT) && (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) 
 
 /* G.fileflags */
 

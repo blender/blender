@@ -59,6 +59,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
+#include "BKE_paint.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
@@ -378,7 +379,7 @@ static void do_lasso_select_objects(ViewContext *vc, short mcords[][2], short mo
 				else ED_base_object_select(base, BA_DESELECT);
 				base->object->flag= base->flag;
 			}
-			if(base->object->flag & OB_POSEMODE) {
+			if(base->object->mode & OB_MODE_POSE) {
 				do_lasso_select_pose(vc, mcords, moves, select);
 			}
 		}
@@ -693,12 +694,14 @@ static void do_lasso_select_node(short mcords[][2], short moves, short select)
 
 void view3d_lasso_select(bContext *C, ViewContext *vc, short mcords[][2], short moves, short select)
 {
+	Object *ob = CTX_data_active_object(C);
+
 	if(vc->obedit==NULL) {
-		if(FACESEL_PAINT_TEST)
+		if(paint_facesel_test(ob))
 			do_lasso_select_facemode(vc, mcords, moves, select);
-		else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))
+		else if(ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))
 			;
-		else if(G.f & G_PARTICLEEDIT)
+		else if(ob && ob->mode & OB_MODE_PARTICLE_EDIT)
 			PE_lasso_select(C, mcords, moves, select);
 		else  
 			do_lasso_select_objects(vc, mcords, moves, select);
@@ -1109,7 +1112,7 @@ static void mouse_select(bContext *C, short *mval, short extend, short obcenter)
 					WM_event_add_notifier(C, NC_OBJECT|ND_BONE_ACTIVE, basact->object);
 					
 					/* in weightpaint, we use selected bone to select vertexgroup, so no switch to new active object */
-					if(G.f & G_WEIGHTPAINT) {
+					if(basact->object->mode & OB_MODE_WEIGHT_PAINT) {
 						/* prevent activating */
 						basact= NULL;
 					}
@@ -1323,6 +1326,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	Object *obedit= CTX_data_edit_object(C);
+	Object *obact= CTX_data_active_object(C);
 	rcti rect;
 	Base *base;
 	MetaElem *ml;
@@ -1341,11 +1345,11 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 	
-	if(obedit==NULL && (FACESEL_PAINT_TEST)) {
+	if(obedit==NULL && (paint_facesel_test(OBACT))) {
 // XXX		face_borderselect();
 		return OPERATOR_FINISHED;
 	}
-	else if(obedit==NULL && (G.f & G_PARTICLEEDIT)) {
+	else if(obedit==NULL && (obact && obact->mode & OB_MODE_PARTICLE_EDIT)) {
 		return PE_border_select(C, &rect, (val==LEFTMOUSE));
 	}
 	
@@ -1453,7 +1457,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 		int bone_only;
 		int totobj= MAXPICKBUF;	// XXX solve later
 		
-		if((ob) && (ob->flag & OB_POSEMODE))
+		if((ob) && (ob->mode & OB_MODE_POSE))
 			bone_only= 1;
 		else
 			bone_only= 0;
@@ -1558,6 +1562,7 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit= CTX_data_edit_object(C);
+	Object *obact= CTX_data_active_object(C);
 	short extend= RNA_boolean_get(op->ptr, "extend");
 
 	view3d_operator_needs_opengl(C);
@@ -1575,7 +1580,7 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			mouse_mball(C, event->mval, extend);
 			
 	}
-	else if(G.f & G_PARTICLEEDIT)
+	else if(obact && obact->mode & OB_MODE_PARTICLE_EDIT)
 		PE_mouse_particles(C, event->mval, extend);
 	else 
 		mouse_select(C, event->mval, extend, 0);
@@ -1637,9 +1642,9 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 {
 	ToolSettings *ts= vc->scene->toolsettings;
 	int bbsel;
+	Object *ob= vc->obact;
 	
-	if(vc->obedit==NULL && (FACESEL_PAINT_TEST)) {
-		Object *ob= vc->obact;
+	if(vc->obedit==NULL && paint_facesel_test(ob)) {
 		Mesh *me = ob?ob->data:NULL;
 
 		if (me) {
@@ -1778,12 +1783,13 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
 	Scene *scene= CTX_data_scene(C);
+	Object *obact= CTX_data_active_object(C);
 	View3D *v3d= sa->spacedata.first;
 	int x= RNA_int_get(op->ptr, "x");
 	int y= RNA_int_get(op->ptr, "y");
 	int radius= RNA_int_get(op->ptr, "radius");
 	
-	if(CTX_data_edit_object(C) || (G.f & G_PARTICLEEDIT)) {
+	if(CTX_data_edit_object(C) || (obact && obact->mode & OB_MODE_PARTICLE_EDIT)) {
 		ViewContext vc;
 		short mval[2], selecting;
 		
@@ -1794,8 +1800,10 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 		mval[1]= y;
 		selecting= LEFTMOUSE==RNA_int_get(op->ptr, "event_type"); // XXX solve
 
-		if(CTX_data_edit_object(C))
+		if(CTX_data_edit_object(C)) {
 			obedit_circle_select(&vc, selecting, mval, (float)radius);
+			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obact);
+		}
 		else
 			return PE_circle_select(C, selecting, mval, (float)radius);
 	}

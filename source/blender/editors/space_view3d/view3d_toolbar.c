@@ -118,6 +118,19 @@ static void redo_cb(bContext *C, void *arg_op, void *arg2)
 	}
 }
 
+static wmOperator *view3d_last_operator(const bContext *C)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmOperator *op;
+
+	/* only for operators that are registered and did an undo push */
+	for(op= wm->operators.last; op; op= op->prev)
+		if((op->type->flag & OPTYPE_REGISTER) && (op->type->flag & OPTYPE_UNDO))
+			break;
+
+	return op;
+}
+
 static void view3d_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOperator *op)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -129,28 +142,32 @@ static void view3d_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOper
 	}
 	
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	uiDefAutoButsRNA(C, pa->layout, &ptr, 1);
-	
+	if(op->type->ui)
+		op->type->ui((bContext*)C, &ptr, pa->layout);
+	else
+		uiDefAutoButsRNA(C, pa->layout, &ptr, 1);
+}
+
+static void view3d_panel_operator_redo_header(const bContext *C, Panel *pa)
+{
+	wmOperator *op= view3d_last_operator(C);
+
+	if(op) BLI_strncpy(pa->drawname, op->type->name, sizeof(pa->drawname));
+	else BLI_strncpy(pa->drawname, "Operator", sizeof(pa->drawname));
 }
 
 static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
-	wmOperator *op;
+	wmOperator *op= view3d_last_operator(C);
 	uiBlock *block;
-	
-	block= uiLayoutGetBlock(pa->layout);
-
-	/* only for operators that are registered and did an undo push */
-	for(op= wm->operators.last; op; op= op->prev)
-		if((op->type->flag & OPTYPE_REGISTER) && (op->type->flag & OPTYPE_UNDO))
-			break;
 	
 	if(op==NULL)
 		return;
 	if(op->type->poll && op->type->poll((bContext *)C)==0)
 		return;
 	
+	block= uiLayoutGetBlock(pa->layout);
+
 	uiBlockSetFunc(block, redo_cb, op, NULL);
 	
 	if(op->macro.first) {
@@ -163,42 +180,6 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 }
 
 /* ******************* */
-
-char *view3d_context_string(const bContext *C)
-{
-	Object *obedit= CTX_data_edit_object(C);
-
-	if(obedit) {
-		switch(obedit->type) {
-			case OB_MESH:
-				return "editmode_mesh";
-			case OB_CURVE:
-				return "editmode_curve";
-			case OB_SURF:
-				return "editmode_surface";
-			case OB_FONT:
-				return "editmode_text";
-			case OB_ARMATURE:
-				return "editmode_armature";
-			case OB_MBALL:
-				return "editmode_mball";
-			case OB_LATTICE:
-				return "editmode_lattice";
-		}
-	}
-	else {
-		Object *ob = CTX_data_active_object(C);
-		
-		if(ob && (ob->flag & OB_POSEMODE)) return "pose_mode";
-		else if (G.f & G_SCULPTMODE)  return "sculpt_mode";
-		else if (G.f & G_WEIGHTPAINT) return "weight_paint";
-		else if (G.f & G_VERTEXPAINT) return "vertex_paint";
-		else if (G.f & G_TEXTUREPAINT) return "texture_paint";
-		else if(G.f & G_PARTICLEEDIT) return "particle_mode";
-	}
-	
-	return "objectmode";
-}
 
 typedef struct CustomTool {
 	struct CustomTool *next, *prev;
@@ -215,7 +196,7 @@ static void operator_call_cb(struct bContext *C, void *arg_listbase, void *arg2)
 		
 		BLI_addtail(arg_listbase, ct);
 		BLI_strncpy(ct->opname, ot->idname, OP_MAX_TYPENAME);
-		BLI_strncpy(ct->context, view3d_context_string(C), OP_MAX_TYPENAME);
+		BLI_strncpy(ct->context, CTX_data_mode_string(C), OP_MAX_TYPENAME);
 	}
 		
 }
@@ -278,7 +259,7 @@ static void view3d_panel_tool_shelf(const bContext *C, Panel *pa)
 	SpaceLink *sl= CTX_wm_space_data(C);
 	SpaceType *st= NULL;
 	uiLayout *col;
-	const char *context= view3d_context_string(C);
+	const char *context= CTX_data_mode_string(C);
 	
 	if(sl)
 		st= BKE_spacetype_from_id(sl->spacetype);
@@ -315,7 +296,8 @@ void view3d_tool_props_register(ARegionType *art)
 	
 	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel last operator");
 	strcpy(pt->idname, "VIEW3D_PT_last_operator");
-	strcpy(pt->label, "Last Operator");
+	strcpy(pt->label, "Operator");
+	pt->draw_header= view3d_panel_operator_redo_header;
 	pt->draw= view3d_panel_operator_redo;
 	BLI_addtail(&art->paneltypes, pt);
 }

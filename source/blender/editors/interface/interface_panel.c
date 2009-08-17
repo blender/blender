@@ -1247,7 +1247,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 
 		if(!pa || pa->paneltab!=NULL)
 			continue;
-		if(pa->type && pa->type->flag & PNL_NO_HEADER)
+		if(pa->type && pa->type->flag & PNL_NO_HEADER) // XXX - accessed freed panels when scripts reload, need to fix.
 			continue;
 
 		if(block->minx <= mx && block->maxx >= mx)

@@ -138,6 +138,8 @@ static void rna_Panel_unregister(const bContext *C, StructRNA *type)
 	if(!(art=region_type_find(NULL, pt->space_type, pt->region_type)))
 		return;
 	
+	RNA_struct_free_extension(type, &pt->ext);
+
 	BLI_freelinkN(&art->paneltypes, pt);
 	RNA_struct_free(&BLENDER_RNA, type);
 
@@ -233,6 +235,8 @@ static void rna_Header_unregister(const bContext *C, StructRNA *type)
 	if(!(art=region_type_find(NULL, ht->space_type, RGN_TYPE_HEADER)))
 		return;
 	
+	RNA_struct_free_extension(type, &ht->ext);
+
 	BLI_freelinkN(&art->headertypes, ht);
 	RNA_struct_free(&BLENDER_RNA, type);
 
@@ -347,6 +351,8 @@ static void rna_Menu_unregister(const bContext *C, StructRNA *type)
 	if(!(art=region_type_find(NULL, mt->space_type, RGN_TYPE_HEADER)))
 		return;
 	
+	RNA_struct_free_extension(type, &mt->ext);
+
 	BLI_freelinkN(&art->menutypes, mt);
 	RNA_struct_free(&BLENDER_RNA, type);
 

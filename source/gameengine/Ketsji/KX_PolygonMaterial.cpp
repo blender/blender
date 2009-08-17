@@ -148,7 +148,7 @@ void KX_PolygonMaterial::DefaultActivate(RAS_IRasterizer* rasty, TCachingInfo& c
 	if (GetCachingInfo() != cachingInfo)
 	{
 		if (!cachingInfo)
-			GPU_set_tpage(NULL);
+			GPU_set_tpage(NULL, 0);
 
 		cachingInfo = GetCachingInfo();
 
@@ -156,10 +156,10 @@ void KX_PolygonMaterial::DefaultActivate(RAS_IRasterizer* rasty, TCachingInfo& c
 		{
 			Image *ima = (Image*)m_tface->tpage;
 			GPU_update_image_time(ima, rasty->GetTime());
-			GPU_set_tpage(m_tface);
+			GPU_set_tpage(m_tface, 1);
 		}
 		else
-			GPU_set_tpage(NULL);
+			GPU_set_tpage(NULL, 0);
 		
 		if(m_drawingmode & RAS_IRasterizer::KX_TWOSIDE)
 			rasty->SetCullFace(false);
@@ -297,7 +297,7 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, setTexture, "setTexture(tface)")
 	if (PyArg_ParseTuple(args, "O!:setTexture", &PyCObject_Type, &pytface))
 	{
 		MTFace *tface = (MTFace*) PyCObject_AsVoidPtr(pytface);
-		GPU_set_tpage(tface);
+		GPU_set_tpage(tface, 1);
 		Py_RETURN_NONE;
 	}
 	

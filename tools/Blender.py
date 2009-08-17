@@ -128,6 +128,8 @@ def setup_staticlibs(lenv):
 		libincs += Split(lenv['BF_SDL_LIBPATH'])
 	if lenv['WITH_BF_FFMPEG']:
 		libincs += Split(lenv['BF_FFMPEG_LIBPATH'])
+	if lenv['WITH_BF_JACK']:
+		libincs += Split(lenv['BF_JACK_LIBPATH'])
 	if lenv['WITH_BF_OPENEXR']:
 		libincs += Split(lenv['BF_OPENEXR_LIBPATH'])
 		if lenv['WITH_BF_STATICOPENEXR']:
@@ -187,6 +189,8 @@ def setup_syslibs(lenv):
 		syslibs += Split(lenv['BF_FFMPEG_LIB'])
 		if lenv['WITH_BF_OGG']:
 			syslibs += Split(lenv['BF_OGG_LIB'])
+	if lenv['WITH_BF_JACK']:
+			syslibs += Split(lenv['BF_JACK_LIB'])
 	if lenv['WITH_BF_FFTW3']:
 		syslibs += Split(lenv['BF_FFTW3_LIB'])
 	if lenv['WITH_BF_SDL']:
@@ -379,6 +383,48 @@ def AppIt(target=None, source=None, env=None):
 	cmd = 'find %s/%s.app -name .DS_Store -exec rm -rf {} \;'%(builddir, binary)
 	commands.getoutput(cmd)
 
+# extract copy system python, be sure to update other build systems
+# when making changes to the files that are copied.
+def my_pyinst_print(target, source, env):
+	pass
+
+def PyInstall(target=None, source=None, env=None):
+	# Any Unix except osx
+	#-- .blender/python/lib/python3.1
+	
+	import commands
+	
+	def run(cmd):
+		print 'Install command:', cmd
+		commands.getoutput(cmd)
+	
+	py_src =	env.subst( env['BF_PYTHON_LIBPATH'] + '/python'+env['BF_PYTHON_VERSION'] )
+	py_target =	env.subst( env['BF_INSTALLDIR'] + '/.blender/python/lib/python'+env['BF_PYTHON_VERSION'] )
+	
+	# Copied from source/creator/CMakeLists.txt, keep in sync.
+	print 'Install python from:'
+	print '\t"%s" into...' %	py_src
+	print '\t"%s"\n' %			py_target
+	
+	run('rm -rf "%s"' % py_target)
+	try:	os.makedirs(os.path.dirname(py_target)) # the final part is copied
+	except:pass
+	
+	run('cp -R "%s" "%s"' % (py_src, os.path.dirname(py_target)))
+	run('rm -rf "%s/distutils"' % py_target)
+	run('rm -rf "%s/lib2to3"' % py_target)
+	run('rm -rf "%s/idlelib"' % py_target)
+	run('rm -rf "%s/tkinter"' % py_target)
+	run('rm -rf "%s/config"' % py_target)
+
+	run('rm -rf "%s/site-packages"' % py_target)
+	run('mkdir "%s/site-packages"' % py_target)    # python needs it.'
+
+	run('rm "%s/lib-dynload/_tkinter.so"' % py_target)
+	run('find "%s" -name "test" -prune -exec rm -rf {} \;' % py_target)
+	run('find "%s" -name "*.py?" -exec rm -rf {} \;' % py_target)
+	run('find "%s" -name "*.so"-exec strip -s {} \;' % py_target)
+
 #### END ACTION STUFF #########
 
 def bsc(env, target, source):
@@ -539,6 +585,11 @@ class BlenderEnvironment(SConsEnvironment):
 		if  lenv['OURPLATFORM']=='darwin':
 			lenv['BINARYKIND'] = binarykind
 			lenv.AddPostAction(prog,Action(AppIt,strfunction=my_appit_print))
+		elif os.sep == '/': # any unix
+			if lenv['WITH_BF_PYTHON']:
+				if not lenv['WITHOUT_BF_INSTALL']:
+					lenv.AddPostAction(prog,Action(PyInstall,strfunction=my_pyinst_print))
+		
 		return prog
 
 	def Glob(lenv, pattern):

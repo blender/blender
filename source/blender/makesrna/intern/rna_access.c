@@ -1989,9 +1989,10 @@ void rna_iterator_array_end(CollectionPropertyIterator *iter)
 {
 	ArrayIterator *internal= iter->internal;
 	
-	if(internal->free_ptr)
+	if(internal->free_ptr) {
 		MEM_freeN(internal->free_ptr);
-
+		internal->free_ptr= NULL;
+	}
 	MEM_freeN(iter->internal);
 	iter->internal= NULL;
 }
@@ -2647,7 +2648,7 @@ char *RNA_pointer_as_string(PointerRNA *ptr)
 			BLI_dynstr_append(dynstr, ", ");
 		first_time= 0;
 		
-		cstring = RNA_property_as_string(ptr, prop);
+		cstring = RNA_property_as_string(NULL, ptr, prop);
 		BLI_dynstr_appendf(dynstr, "\"%s\":%s", propname, cstring);
 		MEM_freeN(cstring);
 	}
@@ -2661,7 +2662,7 @@ char *RNA_pointer_as_string(PointerRNA *ptr)
 	return cstring;
 }
 
-char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
+char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 {
 	int type = RNA_property_type(prop);
 	int len = RNA_property_array_length(prop);
@@ -2730,7 +2731,7 @@ char *RNA_property_as_string(PointerRNA *ptr, PropertyRNA *prop)
 		const char *identifier;
 		int val = RNA_property_enum_get(ptr, prop);
 
-		if(RNA_property_enum_identifier(NULL, ptr, prop, val, &identifier)) {
+		if(RNA_property_enum_identifier(C, ptr, prop, val, &identifier)) {
 			BLI_dynstr_appendf(dynstr, "'%s'", identifier);
 		}
 		else {

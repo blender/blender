@@ -63,6 +63,7 @@ void RNA_def_struct_path_func(StructRNA *srna, const char *path);
 void RNA_def_struct_identifier(StructRNA *srna, const char *identifier);
 void RNA_def_struct_ui_text(StructRNA *srna, const char *name, const char *description);
 void RNA_def_struct_ui_icon(StructRNA *srna, int icon);
+void RNA_struct_free_extension(StructRNA *srna, ExtensionRNA *ext);
 void RNA_struct_free(BlenderRNA *brna, StructRNA *srna);
 
 /* Compact Property Definitions */

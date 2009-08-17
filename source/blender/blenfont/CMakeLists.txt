@@ -27,10 +27,12 @@ FILE(GLOB SRC intern/*.c)
 SET(INC 
   ../../../intern/guardedalloc ../blenlib ../makesdna ../editors/include
   ../blenkernel ../../../extern/glew/include .
-  ${FTGL_INC}
-  ${FREETYPE_INC}
-  ${GETTEXT_INC}
+  ${FREETYPE_INCLUDE_DIRS}
 )
+
+IF(WITH_INTERNATIONAL)
+  SET(INC ${INC} ${GETTEXT_INC})
+ENDIF(WITH_INTERNATIONAL)
 
 IF(WIN32)
   ADD_DEFINITIONS(-D_WIN32 -DUSE_GETTEXT_DLL)

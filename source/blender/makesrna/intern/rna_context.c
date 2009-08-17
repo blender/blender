@@ -31,9 +31,9 @@
 #include "RNA_define.h"
 #include "RNA_types.h"
 
-#ifdef RNA_RUNTIME
-
 #include "BKE_context.h"
+
+#ifdef RNA_RUNTIME
 
 static PointerRNA rna_Context_manager_get(PointerRNA *ptr)
 {
@@ -110,12 +110,35 @@ static PointerRNA rna_Context_user_preferences_get(PointerRNA *ptr)
 	return newptr;
 }
 
+static int rna_Context_mode_get(PointerRNA *ptr)
+{
+	bContext *C= (bContext*)ptr->data;
+	return CTX_data_mode_enum(C);
+}
+
 #else
 
 void RNA_def_context(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+
+	static EnumPropertyItem mode_items[] = {
+		{CTX_MODE_EDIT_MESH, "EDIT_MESH", 0, "Mesh Edit", ""},
+		{CTX_MODE_EDIT_CURVE, "EDIT_CURVE", 0, "Curve Edit", ""},
+		{CTX_MODE_EDIT_SURFACE, "EDIT_SURFACE", 0, "Surface Edit", ""},
+		{CTX_MODE_EDIT_TEXT, "EDIT_TEXT", 0, "Edit Edit", ""},
+		{CTX_MODE_EDIT_ARMATURE, "EDIT_ARMATURE", 0, "Armature Edit", ""}, // PARSKEL reuse will give issues
+		{CTX_MODE_EDIT_METABALL, "EDIT_METABALL", 0, "Metaball Edit", ""},
+		{CTX_MODE_EDIT_LATTICE, "EDIT_LATTICE", 0, "Lattice Edit", ""},
+		{CTX_MODE_POSE, "POSE", 0, "Pose ", ""},
+		{CTX_MODE_SCULPT, "SCULPT", 0, "Sculpt", ""},
+		{CTX_MODE_PAINT_WEIGHT, "PAINT_WEIGHT", 0, "Weight Paint", ""},
+		{CTX_MODE_PAINT_VERTEX, "PAINT_VERTEX", 0, "Vertex Paint", ""},
+		{CTX_MODE_PAINT_TEXTURE, "PAINT_TEXTURE", 0, "Texture Paint", ""},
+		{CTX_MODE_PARTICLE, "PARTICLE", 0, "Particle", ""},
+		{CTX_MODE_OBJECT, "OBJECT", 0, "Object", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Context", NULL);
 	RNA_def_struct_ui_text(srna, "Context", "Current windowmanager and data context.");
@@ -177,6 +200,11 @@ void RNA_def_context(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "UserPreferences");
 	RNA_def_property_pointer_funcs(prop, "rna_Context_user_preferences_get", NULL, NULL);
+
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, mode_items);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_enum_funcs(prop, "rna_Context_mode_get", NULL, NULL);
 }
 
 #endif

@@ -164,7 +164,7 @@ typedef struct Material {
 #define MA_VERTEXCOL	16
 #define MA_HALO_SOFT	16
 #define MA_HALO			32			/* deprecated */
-#define MA_ZTRA			64
+#define MA_ZTRANSP		64
 #define MA_VERTEXCOLP	128
 #define MA_ZINV			256
 #define MA_HALO_RINGS	256
@@ -180,7 +180,7 @@ typedef struct Material {
 #define MA_NOMIST		0x4000
 #define MA_HALO_SHADE	0x4000
 #define MA_HALO_FLARE	0x8000
-#define MA_RADIO		0x10000
+#define MA_TRANSP		0x10000
 #define MA_RAYTRANSP	0x20000
 #define MA_RAYMIRROR	0x40000
 #define MA_SHADOW_TRA	0x80000

@@ -917,7 +917,7 @@ static short pose_grab_with_ik(Object *ob)
 	Bone *bonec;
 	short tot_ik= 0;
 
-	if ((ob==NULL) || (ob->pose==NULL) || (ob->flag & OB_POSEMODE)==0)
+	if ((ob==NULL) || (ob->pose==NULL) || (ob->mode & OB_MODE_POSE)==0)
 		return 0;
 
 	arm = ob->data;
@@ -4898,7 +4898,7 @@ void special_aftertrans_update(TransInfo *t)
 		//	allqueue(REDRAWBUTSEDIT, 0);
 
 	}
-	else if(G.f & G_PARTICLEEDIT) {
+	else if(t->scene->basact && (ob = t->scene->basact->object) && ob->mode & OB_MODE_PARTICLE_EDIT) {
 		;
 	}
 	else {
@@ -4957,9 +4957,9 @@ static void createTransObject(bContext *C, TransInfo *t)
 	set_trans_object_base_flags(C, t);
 
 	/* count */
+#if 0 // TRANSFORM_FIX_ME
 	CTX_DATA_BEGIN(C, Object*, ob, selected_objects)
 	{
-#if 0 // TRANSFORM_FIX_ME
 		/* store ipo keys? */
 		if ((ob->id.lib == 0) && (ob->ipo) && (ob->ipo->showkey) && (ob->ipoflag & OB_DRAWKEY)) {
 			elems.first= elems.last= NULL;
@@ -4973,12 +4973,14 @@ static void createTransObject(bContext *C, TransInfo *t)
 			if(elems.first==NULL)
 				t->total++;
 		}
-#endif
 //		else {
 			t->total++;
 //		}
 	}
 	CTX_DATA_END;
+#else
+	t->total= CTX_DATA_COUNT(C, selected_objects);
+#endif
 
 	if(!t->total) {
 		/* clear here, main transform function escapes too */
@@ -5232,18 +5234,18 @@ void createTransData(bContext *C, TransInfo *t)
 			t->poseobj = ob;	/* <- tsk tsk, this is going to give issues one day */
 		}
 	}
-	else if (ob && (ob->flag & OB_POSEMODE)) {
+	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		// XXX this is currently limited to active armature only...
 		// XXX active-layer checking isn't done as that should probably be checked through context instead
 		createTransPose(C, t, ob);
 	}
-	else if (G.f & G_WEIGHTPAINT) {
+	else if (ob && (ob->mode & OB_MODE_WEIGHT_PAINT)) {
 		/* exception, we look for the one selected armature */
 		CTX_DATA_BEGIN(C, Object*, ob_armature, selected_objects)
 		{
 			if(ob_armature->type==OB_ARMATURE)
 			{
-				if(ob_armature->flag & OB_POSEMODE)
+				if(ob_armature->mode & OB_MODE_POSE)
 				{
 					createTransPose(C, t, ob_armature);
 					break;
@@ -5252,7 +5254,7 @@ void createTransData(bContext *C, TransInfo *t)
 		}
 		CTX_DATA_END;
 	}
-	else if (G.f & G_PARTICLEEDIT && PE_can_edit(PE_get_current(scene, ob))) {
+	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) && PE_can_edit(PE_get_current(scene, ob))) {
 		createTransParticleVerts(C, t);
 
 		if(t->data && t->flag & T_PROP_EDIT) {

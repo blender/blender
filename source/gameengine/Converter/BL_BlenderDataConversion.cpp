@@ -623,7 +623,7 @@ bool ConvertMaterial(
 	}
 
 	// with ztransp enabled, enforce alpha blending mode
-	if(validmat && (mat->mode & MA_ZTRA) && (material->transp == TF_SOLID))
+	if(validmat && (mat->mode & MA_TRANSP) && (mat->mode & MA_ZTRANSP) && (material->transp == TF_SOLID))
 		material->transp = TF_ALPHA;
 
   	// always zsort alpha + add
@@ -1826,7 +1826,8 @@ ListBase *get_active_constraints2(Object *ob)
 	if (!ob)
 		return NULL;
 
-	if (ob->flag & OB_POSEMODE) {
+  // XXX - shouldnt we care about the pose data and not the mode???
+	if (ob->mode & OB_MODE_POSE) { 
 		bPoseChannel *pchan;
 
 		pchan = get_active_posechannel2(ob);

@@ -75,7 +75,7 @@ GPUTexture *GPU_texture_create_1D(int w, float *pixels);
 GPUTexture *GPU_texture_create_2D(int w, int h, float *pixels);
 GPUTexture *GPU_texture_create_depth(int w, int h);
 GPUTexture *GPU_texture_from_blender(struct Image *ima,
-	struct ImageUser *iuser, double time);
+	struct ImageUser *iuser, double time, int mipmap);
 void GPU_texture_free(GPUTexture *tex);
 
 void GPU_texture_ref(GPUTexture *tex);

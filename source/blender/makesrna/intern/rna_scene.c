@@ -30,6 +30,7 @@
 #include "rna_internal.h"
 
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 
 #ifdef WITH_FFMPEG
 #include "BKE_writeffmpeg.h"
@@ -52,6 +53,7 @@ EnumPropertyItem prop_mode_items[] ={
 
 #ifdef RNA_RUNTIME
 
+#include "DNA_anim_types.h"
 #include "DNA_node_types.h"
 
 #include "BKE_context.h"
@@ -172,6 +174,54 @@ static void rna_Scene_frame_update(bContext *C, PointerRNA *ptr)
 {
 	//Scene *scene= ptr->id.data;
 	//ED_update_for_newframe(C);
+}
+
+static int rna_Scene_active_keying_set_editable(PointerRNA *ptr)
+{
+	Scene *scene= (Scene *)ptr->data;
+	
+	/* only editable if there are some Keying Sets to change to */
+	return (scene->keyingsets.first != NULL);
+}
+
+static PointerRNA rna_Scene_active_keying_set_get(PointerRNA *ptr)
+{
+	Scene *scene= (Scene *)ptr->data;
+	return rna_pointer_inherit_refine(ptr, &RNA_KeyingSet, BLI_findlink(&scene->keyingsets, scene->active_keyingset-1));
+}
+
+static void rna_Scene_active_keying_set_set(PointerRNA *ptr, PointerRNA value)
+{
+	Scene *scene= (Scene *)ptr->data;
+	KeyingSet *ks= (KeyingSet*)value.data;
+	scene->active_keyingset= BLI_findindex(&scene->keyingsets, ks) + 1;
+}
+
+static int rna_Scene_active_keying_set_index_get(PointerRNA *ptr)
+{
+	Scene *scene= (Scene *)ptr->data;
+	return MAX2(scene->active_keyingset-1, 0);
+}
+
+static void rna_Scene_active_keying_set_index_set(PointerRNA *ptr, int value)
+{
+	Scene *scene= (Scene *)ptr->data;
+	scene->active_keyingset= value+1;
+}
+
+static void rna_Scene_active_keying_set_index_range(PointerRNA *ptr, int *min, int *max)
+{
+	Scene *scene= (Scene *)ptr->data;
+
+	*min= 0;
+	*max= BLI_countlist(&scene->keyingsets)-1;
+	*max= MAX2(0, *max);
+}
+
+
+static char *rna_SceneRenderData_path(PointerRNA *ptr)
+{
+	return BLI_sprintfN("render_data");
 }
 
 static int rna_SceneRenderData_threads_get(PointerRNA *ptr)
@@ -354,6 +404,11 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{SCE_SNAP_TARGET_MEDIAN, "MEDIAN", 0, "Median", "Snap median onto target."},
 		{SCE_SNAP_TARGET_ACTIVE, "ACTIVE", 0, "Active", "Snap active onto target."},
 		{0, NULL, 0, NULL, NULL}};
+		
+	static EnumPropertyItem auto_key_items[] = {
+		{AUTOKEY_MODE_NORMAL, "ADD_REPLACE_KEYS", 0, "Add/Replace", ""},
+		{AUTOKEY_MODE_EDITKEYS, "REPLACE_KEYS", 0, "Replace", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ToolSettings", NULL);
 	RNA_def_struct_ui_text(srna, "Tool Settings", "");
@@ -416,6 +471,20 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_PEEL_OBJECT);
 	RNA_def_property_ui_text(prop, "Snap Peel Object", "Consider objects as whole when finding volume center.");
 	RNA_def_property_ui_icon(prop, ICON_SNAP_PEEL_OBJECT, 0);
+	
+	/* Auto Keying */
+	prop= RNA_def_property(srna, "enable_auto_key", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "autokey_mode", AUTOKEY_ON);
+	RNA_def_property_ui_text(prop, "Auto Keying", "Automatic keyframe insertion for Objects and Bones");
+	
+	prop= RNA_def_property(srna, "autokey_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "autokey_mode");
+	RNA_def_property_enum_items(prop, auto_key_items);
+	RNA_def_property_ui_text(prop, "Auto-Keying Mode", "Mode of automatic keyframe insertion for Objects and Bones");
+	
+	prop= RNA_def_property(srna, "record_with_nla", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "autokey_flag", ANIMRECORD_FLAG_WITHNLA);
+	RNA_def_property_ui_text(prop, "Layered", "Add a new NLA Track + Strip for every loop/pass made over the animation to allow non-destructive tweaking.");
 
 	/* UV */
 	prop= RNA_def_property(srna, "uv_selection_mode", PROP_ENUM, PROP_NONE);
@@ -442,6 +511,40 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_float_sdna(prop, NULL, "vgroup_weight");
 	RNA_def_property_ui_text(prop, "Vertex Group Weight", "Weight to assign in vertex groups.");
 }
+
+
+static void rna_def_unit_settings(BlenderRNA  *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem unit_systems[] = {
+		{USER_UNIT_NONE, "NONE", 0, "None", ""},
+		{USER_UNIT_METRIC, "METRIC", 0, "Metric", ""},
+		{USER_UNIT_IMPERIAL, "IMPERIAL", 0, "Imperial", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "UnitSettings", NULL);
+	RNA_def_struct_ui_text(srna, "Unit Settings", "");
+
+	/* Units */
+	prop= RNA_def_property(srna, "system", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, unit_systems);
+	RNA_def_property_ui_text(prop, "Unit System", "The unit system to use for button display.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "scale_length", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_ui_text(prop, "Unit Scale", "Scale to use when converting between blender units and dimensions.");
+	RNA_def_property_range(prop, 0.00001, 100000.0);
+	RNA_def_property_ui_range(prop, 0.001, 100.0, 0.1, 3);
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop= RNA_def_property(srna, "use_separate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_UNIT_OPT_SPLIT);
+	RNA_def_property_ui_text(prop, "Separate Units", "Display units in pairs.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+}
+
 
 void rna_def_render_layer_common(StructRNA *srna, int scene)
 {
@@ -1094,6 +1197,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "SceneRenderData", NULL);
 	RNA_def_struct_sdna(srna, "RenderData");
 	RNA_def_struct_nested(brna, srna, "Scene");
+	RNA_def_struct_path_func(srna, "rna_SceneRenderData_path");
 	RNA_def_struct_ui_text(srna, "Render Data", "Rendering settings for a Scene datablock.");
 	
 	prop= RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);
@@ -1390,6 +1494,11 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Fields Still", "Disable the time difference between fields.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
+	prop= RNA_def_property(srna, "sync_audio", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "audio.flag", AUDIO_SYNC);
+	RNA_def_property_ui_text(prop, "Sync Audio", "Play back and sync with audio from Sequence Editor");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+	
 	prop= RNA_def_property(srna, "render_shadows", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_SHADOW);
 	RNA_def_property_ui_text(prop, "Render Shadows", "Calculate shadows while rendering.");
@@ -1666,7 +1775,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "World", "World used for rendering the scene.");
 	RNA_def_property_update(prop, NC_WORLD, NULL);
 
-	prop= RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ);
+	prop= RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "cursor");
 	RNA_def_property_ui_text(prop, "Cursor Location", "3D cursor location.");
 	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);
@@ -1753,21 +1862,36 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sequence Editor", "");
 	
 	/* Keying Sets */
-		// TODO: hide the fact that active keyingset is an int?
-	prop= RNA_def_property(srna, "keyingsets", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "keying_sets", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "keyingsets", NULL);
 	RNA_def_property_struct_type(prop, "KeyingSet");
 	RNA_def_property_ui_text(prop, "Keying Sets", "Keying Sets for this Scene.");
+	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET, NULL);
 	
-	prop= RNA_def_property(srna, "active_keyingset", PROP_INT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Active Keying Set", "Current Keying Set index.");
+	prop= RNA_def_property(srna, "active_keying_set", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "KeyingSet");
+	RNA_def_property_editable_func(prop, "rna_Scene_active_keying_set_editable");
+	RNA_def_property_pointer_funcs(prop, "rna_Scene_active_keying_set_get", "rna_Scene_active_keying_set_set", NULL);
+	RNA_def_property_ui_text(prop, "Active Keying Set", "Active Keying Set used to insert/delete keyframes.");
+	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET, NULL);
+	
+	prop= RNA_def_property(srna, "active_keying_set_index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "active_keyingset");
+	RNA_def_property_int_funcs(prop, "rna_Scene_active_keying_set_index_get", "rna_Scene_active_keying_set_index_set", "rna_Scene_active_keying_set_index_range");
+	RNA_def_property_ui_text(prop, "Active Keying Set Index", "Current Keying Set index.");
+	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET, NULL);
 	
 	/* Tool Settings */
 	prop= RNA_def_property(srna, "tool_settings", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "toolsettings");
 	RNA_def_property_struct_type(prop, "ToolSettings");
 	RNA_def_property_ui_text(prop, "Tool Settings", "");
+
+	/* Unit Settings */
+	prop= RNA_def_property(srna, "unit_settings", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "unit");
+	RNA_def_property_struct_type(prop, "UnitSettings");
+	RNA_def_property_ui_text(prop, "Unit Settings", "Unit editing settings");
 	
 	/* Render Data */
 	prop= RNA_def_property(srna, "render_data", PROP_POINTER, PROP_NEVER_NULL);
@@ -1788,6 +1912,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Game Data", "");
 	
 	rna_def_tool_settings(brna);
+	rna_def_unit_settings(brna);
 	rna_def_scene_render_data(brna);
 	rna_def_scene_game_data(brna);
 	rna_def_scene_render_layer(brna);

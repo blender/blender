@@ -220,7 +220,7 @@ static bool loadTile(float* const noiseTileData, std::string filename)
 	}
 
 	// dimensions
-	int gridSize = noiseTileSize * noiseTileSize * noiseTileSize;
+	size_t gridSize = noiseTileSize * noiseTileSize * noiseTileSize;
 
 	// noiseTileData memory is managed by caller
 	size_t bread = fread((void*)noiseTileData, sizeof(float), gridSize, file);
@@ -228,7 +228,7 @@ static bool loadTile(float* const noiseTileData, std::string filename)
 	printf("Noise tile file '%s' loaded.\n", filename.c_str());
 
 	if (bread != gridSize) {
-		printf("loadTile: Noise tile '%s' is wrong size %d.\n", filename.c_str(), bread);
+		printf("loadTile: Noise tile '%s' is wrong size %d.\n", filename.c_str(), (int)bread);
 		return false;
 	} 
 	return true;

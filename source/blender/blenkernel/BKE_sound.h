@@ -39,8 +39,6 @@ struct Main;
 
 void sound_init();
 
-void sound_reinit(struct bContext *C);
-
 void sound_exit();
 
 struct bSound* sound_new_file(struct Main *main, char* filename);
