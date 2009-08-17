@@ -2516,7 +2516,7 @@ int draw_armature(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int
 					if(ob->mode & OB_MODE_POSE) 
 						arm->flag |= ARM_POSEMODE;
 				}
-				else if(ob->flag & OB_MODE_POSE) {
+				else if(ob->mode & OB_MODE_POSE) {
 					if (arm->ghosttype == ARM_GHOST_RANGE) {
 						draw_ghost_poses_range(scene, v3d, rv3d, base);
 					}
