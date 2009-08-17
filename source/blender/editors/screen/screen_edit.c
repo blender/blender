@@ -1527,7 +1527,7 @@ void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
 	screen->animtimer= NULL;
 	
 	if(enable) {
-		struct ScreenAnimData *sad= MEM_mallocN(sizeof(ScreenAnimData), "ScreenAnimData");
+		struct ScreenAnimData *sad= MEM_callocN(sizeof(ScreenAnimData), "ScreenAnimData");
 		
 		screen->animtimer= WM_event_add_window_timer(win, TIMER0, (1.0/FPS));
 		sad->ar= CTX_wm_region(C);
