@@ -474,8 +474,7 @@ typedef struct Paint {
 	void *paint_cursor;
 } Paint;
 
-typedef struct Sculpt
-{
+typedef struct Sculpt {
 	Paint paint;
 	
 	/* WM handle */
@@ -491,7 +490,7 @@ typedef struct Sculpt
 } Sculpt;
 
 typedef struct VPaint {
-	struct Brush *brush;
+	Paint paint;
 
 	float gamma, mul;			/* should become part of struct Brush? */
 	short mode, flag;

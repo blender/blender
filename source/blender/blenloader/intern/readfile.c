@@ -4046,14 +4046,9 @@ static void lib_link_scene(FileData *fd, Main *main)
 				newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.brush);
 
 			link_paint(fd, sce, &sce->toolsettings->sculpt->paint);
+			link_paint(fd, sce, &sce->toolsettings->vpaint->paint);
+			link_paint(fd, sce, &sce->toolsettings->wpaint->paint);
 
-			if(sce->toolsettings->vpaint)
-				sce->toolsettings->vpaint->brush=
-					newlibadr_us(fd, sce->id.lib, sce->toolsettings->vpaint->brush);
-			if(sce->toolsettings->wpaint)
-				sce->toolsettings->wpaint->brush=
-					newlibadr_us(fd, sce->id.lib, sce->toolsettings->wpaint->brush);
-			
 			sce->toolsettings->skgen_template = newlibadr(fd, sce->id.lib, sce->toolsettings->skgen_template);
 
 			for(base= sce->base.first; base; base= next) {
@@ -4160,9 +4155,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	
 	sce->toolsettings= newdataadr(fd, sce->toolsettings);
 	if(sce->toolsettings) {
-		sce->toolsettings->vpaint= newdataadr(fd, sce->toolsettings->vpaint);
-		sce->toolsettings->wpaint= newdataadr(fd, sce->toolsettings->wpaint);
 		direct_link_paint(fd, (Paint**)&sce->toolsettings->sculpt);
+		direct_link_paint(fd, (Paint**)&sce->toolsettings->vpaint);
+		direct_link_paint(fd, (Paint**)&sce->toolsettings->wpaint);
 
 		sce->toolsettings->imapaint.paintcursor= NULL;
 		sce->toolsettings->particle.paintcursor= NULL;

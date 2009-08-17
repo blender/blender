@@ -163,14 +163,14 @@ Scene *copy_scene(Main *bmain, Scene *sce, int type)
 				ts->vpaint->paintcursor= NULL;
 				ts->vpaint->vpaint_prev= NULL;
 				ts->vpaint->wpaint_prev= NULL;
-				id_us_plus((ID *)ts->vpaint->brush);
+				copy_paint(&ts->vpaint->paint, &ts->vpaint->paint);
 			}
 			if(ts->wpaint) {
 				ts->wpaint= MEM_dupallocN(ts->wpaint);
 				ts->wpaint->paintcursor= NULL;
 				ts->wpaint->vpaint_prev= NULL;
 				ts->wpaint->wpaint_prev= NULL;
-				id_us_plus((ID *)ts->wpaint->brush);
+				copy_paint(&ts->wpaint->paint, &ts->wpaint->paint);
 			}
 			if(ts->sculpt) {
 				ts->sculpt= MEM_dupallocN(ts->sculpt);
@@ -272,10 +272,14 @@ void free_scene(Scene *sce)
 	BLI_freelistN(&sce->r.layers);
 	
 	if(sce->toolsettings) {
-		if(sce->toolsettings->vpaint)
+		if(sce->toolsettings->vpaint) {
+			free_paint(&sce->toolsettings->vpaint->paint);
 			MEM_freeN(sce->toolsettings->vpaint);
-		if(sce->toolsettings->wpaint)
+		}
+		if(sce->toolsettings->wpaint) {
+			free_paint(&sce->toolsettings->wpaint->paint);
 			MEM_freeN(sce->toolsettings->wpaint);
+		}
 		if(sce->toolsettings->sculpt) {
 			free_paint(&sce->toolsettings->sculpt->paint);
 			MEM_freeN(sce->toolsettings->sculpt);

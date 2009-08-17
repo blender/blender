@@ -292,10 +292,11 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 		
 		settings = self.paint_settings(context)
 		brush = settings.brush
+		paint = context.sculpt_object or context.vertex_paint_object
 
 		if not context.particle_edit_object:
 			col = layout.split().column()
-			if context.sculpt_object:
+			if paint:
 				row = col.row()
 				row.template_list(settings, "brushes", settings, "active_brush_index", rows=2)
 				
@@ -303,10 +304,11 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 				sub_col.itemO("paint.brush_slot_add", icon="ICON_ZOOMIN", text="")
 				sub_col.itemO("paint.brush_slot_remove", icon="ICON_ZOOMOUT", text="")
 
-		col.template_ID(settings, "brush")
-
-		if(context.sculpt_object):
-			col.item_menu_enumO("brush.new", "sculpt_tool");
+		if context.sculpt_object:
+			col.template_ID(settings, "brush")
+			col.item_menu_enumO("sculpt.brush_add", "sculpt_tool");
+		else:
+			col.template_ID(settings, "brush", new="brush.add")
                 
 		# Particle Mode #
 

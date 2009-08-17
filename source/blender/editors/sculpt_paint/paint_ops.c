@@ -19,6 +19,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "DNA_brush_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_brush.h"
@@ -26,6 +28,7 @@
 #include "BKE_paint.h"
 
 #include "ED_sculpt.h"
+#include "UI_resources.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -39,13 +42,18 @@
 #include <string.h>
 
 /* Brush operators */
-static int new_brush_exec(bContext *C, wmOperator *op)
+static int brush_add_exec(bContext *C, wmOperator *op)
 {
-	int sculpt_tool = RNA_enum_get(op->ptr, "sculpt_tool");
-	const char *name = NULL;
+	int type = RNA_enum_get(op->ptr, "type");
+	int sculpt_tool = SCULPT_TOOL_DRAW;
+	const char *name = "Brush";
 	Brush *br = NULL;
 
-	RNA_enum_name(brush_sculpt_tool_items, sculpt_tool, &name);
+	if(type == OB_MODE_SCULPT) {
+		sculpt_tool = RNA_enum_get(op->ptr, "sculpt_tool");
+		RNA_enum_name(brush_sculpt_tool_items, sculpt_tool, &name);
+	}
+
 	br = add_brush(name);
 
 	if(br) {
@@ -56,20 +64,43 @@ static int new_brush_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void BRUSH_OT_new(wmOperatorType *ot)
+static EnumPropertyItem brush_type_items[] = {
+	{OB_MODE_SCULPT, "SCULPT", ICON_SCULPTMODE_HLT, "Sculpt", ""},
+	{OB_MODE_VERTEX_PAINT, "VERTEX_PAINT", ICON_VPAINT_HLT, "Vertex Paint", ""},
+	{OB_MODE_WEIGHT_PAINT, "WEIGHT_PAINT", ICON_WPAINT_HLT, "Weight Paint", ""},
+	{OB_MODE_TEXTURE_PAINT, "TEXTURE_PAINT", ICON_TPAINT_HLT, "Texture Paint", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+void SCULPT_OT_brush_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Brush";
-	ot->idname= "BRUSH_OT_new";
+	ot->idname= "SCULPT_OT_brush_add";
 	
 	/* api callbacks */
-	ot->exec= new_brush_exec;
+	ot->exec= brush_add_exec;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	/* TODO: add enum props for other paint modes */
-	RNA_def_enum(ot->srna, "sculpt_tool", brush_sculpt_tool_items, 0, "Sculpt Tool", "");
+	RNA_def_enum(ot->srna, "sculpt_tool", brush_sculpt_tool_items, SCULPT_TOOL_DRAW, "Sculpt Tool", "");
+
+	RNA_def_enum(ot->srna, "type", brush_type_items, OB_MODE_SCULPT, "Type", "Which paint mode to create the brush for.");
+}
+
+void BRUSH_OT_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Brush";
+	ot->idname= "BRUSH_OT_add";
+	
+	/* api callbacks */
+	ot->exec= brush_add_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_enum(ot->srna, "type", brush_type_items, OB_MODE_VERTEX_PAINT, "Type", "Which paint mode to create the brush for.");
 }
 
 /* Paint operators */
@@ -133,8 +164,11 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(PAINT_OT_brush_slot_remove);
 
 	/* brush */
-	WM_operatortype_append(BRUSH_OT_new);
+	WM_operatortype_append(BRUSH_OT_add);
 	WM_operatortype_append(BRUSH_OT_curve_preset);
+
+	/* sculpt */
+	WM_operatortype_append(SCULPT_OT_brush_add);
 
 	/* image */
 	WM_operatortype_append(PAINT_OT_texture_paint_toggle);

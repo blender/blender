@@ -1713,10 +1713,14 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		
 		tos = sce->toolsettings;
 		writestruct(wd, DATA, "ToolSettings", 1, tos);
-		if(tos->vpaint)
+		if(tos->vpaint) {
 			writestruct(wd, DATA, "VPaint", 1, tos->vpaint);
-		if(tos->wpaint)
+			write_paint(wd, &tos->vpaint->paint);
+		}
+		if(tos->wpaint) {
 			writestruct(wd, DATA, "VPaint", 1, tos->wpaint);
+			write_paint(wd, &tos->wpaint->paint);
+		}
 		if(tos->sculpt) {
 			writestruct(wd, DATA, "Sculpt", 1, tos->sculpt);
 			write_paint(wd, &tos->sculpt->paint);

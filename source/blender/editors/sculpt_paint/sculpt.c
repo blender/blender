@@ -1686,8 +1686,6 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		free_sculptsession(&ob->sculpt);
 	}
 	else {
-		Brush *brush;
-
 		/* Enter sculptmode */
 
 		ob->mode |= OB_MODE_SCULPT;
@@ -1704,10 +1702,7 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		if(!ts->sculpt->cursor)
 			toggle_paint_cursor(C);
 
-		/* If there's no brush, create one */
-		brush = paint_brush(&ts->sculpt->paint);
-		brush_check_exists(&brush);
-		paint_brush_set(&ts->sculpt->paint, brush);
+		paint_init(&ts->sculpt->paint, "Draw");
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE, CTX_data_scene(C));
 	}

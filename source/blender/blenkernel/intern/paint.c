@@ -41,17 +41,20 @@
 Paint *paint_get_active(Scene *sce)
 {
 	if(sce && sce->basact && sce->basact->object) {
+		ToolSettings *ts = sce->toolsettings;
+
 		switch(sce->basact->object->mode) {
 		case OB_MODE_SCULPT:
-			return &sce->toolsettings->sculpt->paint;
+			return &ts->sculpt->paint;
+		case OB_MODE_VERTEX_PAINT:
+			return &ts->vpaint->paint;
+		case OB_MODE_WEIGHT_PAINT:
+			return &ts->wpaint->paint;
+		case OB_MODE_TEXTURE_PAINT:
+			break;
+			//return &ts->imapaint->paint;
 		}
 	}
-	/*else if(G.f & G_VERTEXPAINT)
-		return &sce->toolsettings->vpaint->paint;
-	else if(G.f & G_WEIGHTPAINT)
-		return &sce->toolsettings->wpaint->paint;
-	else if(G.f & G_TEXTUREPAINT)
-	return &sce->toolsettings->imapaint.paint;*/
 
 	return NULL;
 }
@@ -135,6 +138,16 @@ int paint_facesel_test(Object *ob)
 {
 	return (G.f&G_FACESELECT) && (ob && (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)));
 
+}
+
+void paint_init(Paint *p, const char *name)
+{
+	Brush *brush;
+
+	/* If there's no brush, create one */
+	brush = paint_brush(p);
+	brush_check_exists(&brush, name);
+	paint_brush_set(p, brush);
 }
 
 void free_paint(Paint *paint)

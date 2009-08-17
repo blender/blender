@@ -145,7 +145,7 @@ static void rna_SpaceImageEditor_paint_update(bContext *C, PointerRNA *ptr)
 	Scene *scene= CTX_data_scene(C);
 
 	if(scene)
-		brush_check_exists(&scene->toolsettings->imapaint.brush);
+		brush_check_exists(&scene->toolsettings->imapaint.brush, "Brush");
 }
 
 static int rna_SpaceImageEditor_show_render_get(PointerRNA *ptr)

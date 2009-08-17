@@ -186,7 +186,7 @@ void make_local_brush(Brush *brush)
 
 /* Library Operations */
 
-int brush_set_nr(Brush **current_brush, int nr)
+int brush_set_nr(Brush **current_brush, int nr, const char *name)
 {
 	ID *idtest, *id;
 	
@@ -195,7 +195,7 @@ int brush_set_nr(Brush **current_brush, int nr)
 	
 	if(idtest==0) { /* new brush */
 		if(id) idtest= (ID *)copy_brush((Brush *)id);
-		else idtest= (ID *)add_brush("Brush");
+		else idtest= (ID *)add_brush(name);
 		idtest->us--;
 	}
 	if(idtest!=id) {
@@ -369,10 +369,10 @@ int brush_clone_image_delete(Brush *brush)
 	return 0;
 }
 
-void brush_check_exists(Brush **brush)
+void brush_check_exists(Brush **brush, const char *name)
 {
 	if(*brush==NULL)
-		brush_set_nr(brush, 1);
+		brush_set_nr(brush, 1, name);
 }
 
 /* Brush Sampling */

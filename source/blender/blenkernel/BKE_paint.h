@@ -33,6 +33,7 @@ struct Object;
 struct Paint;
 struct Scene;
 
+void paint_init(Paint *p, const char *brush_name);
 void free_paint(Paint *p);
 void copy_paint(Paint *orig, Paint *new);
 
