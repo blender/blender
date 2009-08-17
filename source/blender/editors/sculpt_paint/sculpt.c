@@ -1191,12 +1191,15 @@ static float unproject_brush_radius(SculptSession *ss, float offset)
 
 static void sculpt_cache_free(StrokeCache *cache)
 {
+	int i;
 	if(cache->orig_norms)
 		MEM_freeN(cache->orig_norms);
 	if(cache->face_norms)
 		MEM_freeN(cache->face_norms);
 	if(cache->mats)
 		MEM_freeN(cache->mats);
+	for(i = 0; i < 8; ++i) 
+		BLI_freelistN(&cache->grab_active_verts[i]);
 	MEM_freeN(cache);
 }
 
