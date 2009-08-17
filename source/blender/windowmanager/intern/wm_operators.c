@@ -322,7 +322,7 @@ void WM_operator_py_idname(char *to, const char *from)
 /* some.op -> SOME_OT_op */
 void WM_operator_bl_idname(char *to, const char *from)
 {
-	char *sep= strstr(from, ".");
+	char *sep= strchr(from, '.');
 
 	if(sep) {
 		int i, ofs= (sep-from);

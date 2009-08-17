@@ -47,7 +47,7 @@ double bUnit_BaseScalar(int system, int type);
 
 void	bUnit_GetSystem(void **usys_pt, int *len, int system, int type);
 char*	bUnit_GetName(void *usys_pt, int index);
-char*	bUnit_GetNamePlural(void *usys_pt, int index);
+char*	bUnit_GetNameDisplay(void *usys_pt, int index);
 double	bUnit_GetScaler(void *usys_pt, int index);
 
 /* aligned with PropertyUnit */
