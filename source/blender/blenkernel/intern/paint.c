@@ -33,6 +33,7 @@
 
 #include "BKE_brush.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_paint.h"
 
 #include <stdlib.h>
@@ -66,23 +67,33 @@ Brush *paint_brush(Paint *p)
 
 void paint_brush_set(Paint *p, Brush *br)
 {
-	if(p && p->brushes) {
-		int i;
-
-		/* See if there's already a slot with the brush */
-		for(i = 0; i < p->brush_count; ++i) {
-			if(p->brushes[i] == br) {
-				p->active_brush_index = i;
-				break;
+	if(!br) {
+		/* Setting to NULL removes the current slot */
+		paint_brush_slot_remove(p);
+	}
+	else {
+		int found = 0;
+	
+		if(p && p->brushes) {
+			int i;
+			
+			/* See if there's already a slot with the brush */
+			for(i = 0; i < p->brush_count; ++i) {
+				if(p->brushes[i] == br) {
+					p->active_brush_index = i;
+					found = 1;
+					break;
+				}
 			}
+			
 		}
 		
+		if(!found)
+			paint_brush_slot_add(p);
+		
+		/* Make sure the current slot is the new brush */
+		p->brushes[p->active_brush_index] = br;
 	}
-	else
-		paint_brush_slot_add(p);
-
-	/* Make sure the current slot is the new brush */
-	p->brushes[p->active_brush_index] = br;
 }
 
 static void paint_brush_slots_alloc(Paint *p, const int count)
@@ -96,22 +107,24 @@ static void paint_brush_slots_alloc(Paint *p, const int count)
 
 void paint_brush_slot_add(Paint *p)
 {
-	Brush **orig = p->brushes;
-	int orig_count = p->brushes ? p->brush_count : 0;
+	if(p) {
+		Brush **orig = p->brushes;
+		int orig_count = p->brushes ? p->brush_count : 0;
 
-	/* Increase size of brush slot array */
-	paint_brush_slots_alloc(p, orig_count + 1);
-	if(orig) {
-		memcpy(p->brushes, orig, sizeof(Brush*) * orig_count);
-		MEM_freeN(orig);
+		/* Increase size of brush slot array */
+		paint_brush_slots_alloc(p, orig_count + 1);
+		if(orig) {
+			memcpy(p->brushes, orig, sizeof(Brush*) * orig_count);
+			MEM_freeN(orig);
+		}
+
+		p->active_brush_index = orig_count;
 	}
-
-	p->active_brush_index = orig_count;
 }
 
 void paint_brush_slot_remove(Paint *p)
 {
-	if(p->brushes) {
+	if(p && p->brushes) {
 		Brush **orig = p->brushes;
 		int src, dst;
 		

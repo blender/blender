@@ -1702,7 +1702,7 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		if(!ts->sculpt->cursor)
 			toggle_paint_cursor(C);
 
-		paint_init(&ts->sculpt->paint, "Draw");
+		paint_init(&ts->sculpt->paint, "Brush");
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE, CTX_data_scene(C));
 	}

@@ -296,14 +296,9 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 
 		if not context.particle_edit_object:
 			col = layout.split().column()
-			if paint:
-				row = col.row()
-				row.template_list(settings, "brushes", settings, "active_brush_index", rows=2)
+			row = col.row()
+			row.template_list(settings, "brushes", settings, "active_brush_index", rows=2)
 				
-				sub_col = row.column(align=True)
-				sub_col.itemO("paint.brush_slot_add", icon="ICON_ZOOMIN", text="")
-				sub_col.itemO("paint.brush_slot_remove", icon="ICON_ZOOMOUT", text="")
-
 			col.template_ID(settings, "brush", new="brush.add")
                 
 		# Particle Mode #
