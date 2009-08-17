@@ -785,6 +785,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 	else {
 		ray_fadeout_endcolor(col, origshi, &shi, origshr, &isec, vec);
 	}
+	RE_RC_MERGE(&origshi->raycounter, &shi.raycounter);
 }
 
 /* **************** jitter blocks ********** */
@@ -1536,6 +1537,8 @@ static void ray_trace_shadow_tra(Isect *is, ShadeInput *origshi, int depth, int 
 
 			ray_trace_shadow_tra(is, origshi, depth-1, traflag | RAY_TRA);
 		}
+		
+		RE_RC_MERGE(&origshi->raycounter, &shi.raycounter);
 	}
 }
 
