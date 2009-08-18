@@ -352,6 +352,8 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 					col.itemR(brush, "persistent")
 					col.itemO("sculpt.set_persistent_base")
 
+				col.itemR(brush, "rake")
+
 			col.itemR(brush, "sculpt_tool")
 				
 		# Texture Paint Mode #
