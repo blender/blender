@@ -446,14 +446,14 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 		ED_area_newspace(C, sa, SPACE_IMAGE);
 	}
 	else {
-		ED_area_newspace(C, sa, SPACE_INFO);
+		ED_area_newspace(C, sa, SPACE_USERPREF);
 	}
 	
 	ED_screen_set(C, win->screen);
 	
 	if(sa->spacetype==SPACE_IMAGE)
 		GHOST_SetTitle(win->ghostwin, "Blender Render");
-	else if(ELEM(sa->spacetype, SPACE_OUTLINER, SPACE_INFO))
+	else if(ELEM(sa->spacetype, SPACE_OUTLINER, SPACE_USERPREF))
 		GHOST_SetTitle(win->ghostwin, "Blender User Preferences");
 	else if(sa->spacetype==SPACE_FILE)
 		GHOST_SetTitle(win->ghostwin, "Blender File View");

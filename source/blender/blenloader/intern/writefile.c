@@ -2023,6 +2023,10 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				else if(sl->spacetype==SPACE_CONSOLE) {
 					writestruct(wd, DATA, "SpaceConsole", 1, sl);
 				}
+				else if(sl->spacetype==SPACE_USERPREF) {
+					writestruct(wd, DATA, "SpaceUserPref", 1, sl);
+				}
+
 				sl= sl->next;
 			}
 		}

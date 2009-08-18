@@ -2,7 +2,7 @@
 import bpy
  
 class PhysicsButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
+	__space_type__ = "PROPERTIES"
 	__region_type__ = "WINDOW"
 	__context__ = "physics"
 
@@ -171,7 +171,7 @@ bpy.types.register(PHYSICS_PT_game_physics)
 bpy.types.register(PHYSICS_PT_game_collision_bounds)
 
 class SceneButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
+	__space_type__ = "PROPERTIES"
 	__region_type__ = "WINDOW"
 	__context__ = "scene"
 
@@ -276,7 +276,7 @@ bpy.types.register(SCENE_PT_game_player)
 bpy.types.register(SCENE_PT_game_stereo)
 
 class WorldButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
+	__space_type__ = "PROPERTIES"
 	__region_type__ = "WINDOW"
 	__context__ = "world"
 

@@ -508,6 +508,13 @@ typedef struct SpaceConsole {
 	
 } SpaceConsole;
 
+typedef struct SpaceUserPref {
+	SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
+	int spacetype;
+
+	int pad;
+} SpaceUserPref;
 
 /* view3d  Now in DNA_view3d_types.h */
 
@@ -861,7 +868,8 @@ enum {
 	SPACE_NODE,
 	SPACE_LOGIC,
 	SPACE_CONSOLE,
-	SPACEICONMAX = SPACE_CONSOLE
+	SPACE_USERPREF,
+	SPACEICONMAX = SPACE_USERPREF
 };
 
 #endif

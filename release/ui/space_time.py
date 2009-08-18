@@ -23,8 +23,6 @@ class TIME_HT_header(bpy.types.Header):
 
 		layout.itemR(scene, "use_preview_range", text="PR", toggle=True)
 		
-		layout.itemS()
-		
 		row = layout.row(align=True)
 		if not scene.use_preview_range:
 			row.itemR(scene, "start_frame", text="Start")
@@ -33,10 +31,7 @@ class TIME_HT_header(bpy.types.Header):
 			row.itemR(scene, "preview_range_start_frame", text="Start")
 			row.itemR(scene, "preview_range_end_frame", text="End")
 		
-		layout.itemS()
 		layout.itemR(scene, "current_frame", text="")
-		
-		layout.itemS()
 
 		row = layout.row(align=True)
 		row.item_booleanO("screen.frame_jump", "end", False, text="", icon='ICON_REW')
@@ -50,8 +45,6 @@ class TIME_HT_header(bpy.types.Header):
 			sub.itemO("screen.animation_play", text="", icon='ICON_PAUSE')
 		row.item_booleanO("screen.keyframe_jump", "next", True, text="", icon='ICON_NEXT_KEYFRAME')
 		row.item_booleanO("screen.frame_jump", "end", True, text="", icon='ICON_FF')
-		
-		layout.itemS()
 		
 		layout.itemR(rd, "sync_audio", text="", toggle=True, icon='ICON_SPEAKER')
 		

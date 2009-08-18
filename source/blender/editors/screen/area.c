@@ -1066,8 +1066,9 @@ static char *windowtype_pup(void)
 		   "|%l"
 		   
 		   "|Properties %x4"
-		   "|User Preferences %x7"
 		   "|Outliner %x3"
+		   "|User Preferences %x19"
+		   "|Info%x7"
 		    		   
 		   "|%l"
 		   "|%l"

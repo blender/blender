@@ -338,6 +338,13 @@ struct SpaceInfo *CTX_wm_space_info(const bContext *C)
 	return NULL;
 }
 
+struct SpaceUserPref *CTX_wm_space_userpref(const bContext *C)
+{
+	if(C->wm.area && C->wm.area->spacetype==SPACE_USERPREF)
+		return C->wm.area->spacedata.first;
+	return NULL;
+}
+
 void CTX_wm_manager_set(bContext *C, wmWindowManager *wm)
 {
 	C->wm.manager= wm;

@@ -791,7 +791,7 @@ for member in dir(buttons_material):
 del buttons_material
 
 class RenderButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
+	__space_type__ = "PROPERTIES"
 	__region_type__ = "WINDOW"
 	__context__ = "scene"
 	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here

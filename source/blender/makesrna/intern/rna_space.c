@@ -49,7 +49,7 @@ EnumPropertyItem space_type_items[] = {
 	{SPACE_BUTS, "PROPERTIES", 0, "Properties", ""},
 	{SPACE_FILE, "FILE_BROWSER", 0, "File Browser", ""},
 	{SPACE_IMAGE, "IMAGE_EDITOR", 0, "Image Editor", ""},
-	{SPACE_INFO, "USER_PREFERENCES", 0, "User Preferences", ""},
+	{SPACE_INFO, "INFO", 0, "Info", ""},
 	{SPACE_SEQ, "SEQUENCE_EDITOR", 0, "Sequence Editor", ""},
 	{SPACE_TEXT, "TEXT_EDITOR", 0, "Text Editor", ""},
 	//{SPACE_IMASEL, "IMAGE_BROWSER", 0, "Image Browser", ""},
@@ -61,6 +61,7 @@ EnumPropertyItem space_type_items[] = {
 	{SPACE_NODE, "NODE_EDITOR", 0, "Node Editor", ""},
 	{SPACE_LOGIC, "LOGIC_EDITOR", 0, "Logic Editor", ""},
 	{SPACE_CONSOLE, "CONSOLE", 0, "Console", ""},
+	{SPACE_USERPREF, "USER_PREFERENCES", 0, "User Preferences", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #define DC_RGB {0, "COLOR", ICON_IMAGE_RGB, "Color", "Draw image with RGB colors."}
@@ -101,13 +102,13 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 		case SPACE_OUTLINER:
 			return &RNA_SpaceOutliner;
 		case SPACE_BUTS:
-			return &RNA_SpaceButtonsWindow;
+			return &RNA_SpaceProperties;
 		case SPACE_FILE:
 			return &RNA_SpaceFileBrowser;
 		case SPACE_IMAGE:
 			return &RNA_SpaceImageEditor;
-		/*case SPACE_INFO:
-			return &RNA_SpaceUserPreferences;*/
+		case SPACE_INFO:
+			return &RNA_SpaceInfo;
 		case SPACE_SEQ:
 			return &RNA_SpaceSequenceEditor;
 		case SPACE_TEXT:
@@ -124,12 +125,14 @@ static StructRNA* rna_Space_refine(struct PointerRNA *ptr)
 			return &RNA_SpaceScriptsWindow;*/
 		case SPACE_TIME:
 			return &RNA_SpaceTimeline;
-		/*case SPACE_NODE:
+		case SPACE_NODE:
 			return &RNA_SpaceNodeEditor;
 		case SPACE_LOGIC:
-			return &RNA_SpaceLogicEditor;*/
+			return &RNA_SpaceLogicEditor;
 		case SPACE_CONSOLE:
 			return &RNA_SpaceConsole;
+		case SPACE_USERPREF:
+			return &RNA_SpaceUserPreferences;
 		default:
 			return &RNA_Space;
 	}
@@ -230,9 +233,9 @@ void rna_SpaceFileBrowser_params_set(PointerRNA *ptr, PointerRNA value)
 	sfile->params= value.data;
 }
 
-/* Space Buttons */
+/* Space Properties */
 
-StructRNA *rna_SpaceButtonsWindow_pin_id_typef(PointerRNA *ptr)
+StructRNA *rna_SpaceProperties_pin_id_typef(PointerRNA *ptr)
 {
 	SpaceButs *sbuts= (SpaceButs*)(ptr->data);
 
@@ -242,7 +245,7 @@ StructRNA *rna_SpaceButtonsWindow_pin_id_typef(PointerRNA *ptr)
 	return &RNA_ID;
 }
 
-void rna_SpaceButtonsWindow_align_set(PointerRNA *ptr, int value)
+void rna_SpaceProperties_align_set(PointerRNA *ptr, int value)
 {
 	SpaceButs *sbuts= (SpaceButs*)(ptr->data);
 
@@ -718,9 +721,9 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 		{BUT_VERTICAL, "VERTICAL", 0, "Vertical", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
-	srna= RNA_def_struct(brna, "SpaceButtonsWindow", "Space");
+	srna= RNA_def_struct(brna, "SpaceProperties", "Space");
 	RNA_def_struct_sdna(srna, "SpaceButs");
-	RNA_def_struct_ui_text(srna, "Buttons Space", "Buttons Window space data");
+	RNA_def_struct_ui_text(srna, "Properties Space", "Properties space data");
 	
 	prop= RNA_def_property(srna, "context", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mainb");
@@ -731,7 +734,7 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "align", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "align");
 	RNA_def_property_enum_items(prop, align_items);
-	RNA_def_property_enum_funcs(prop, NULL, "rna_SpaceButtonsWindow_align_set", NULL);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_SpaceProperties_align_set", NULL);
 	RNA_def_property_ui_text(prop, "Align", "Arrangement of the panels.");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
@@ -744,7 +747,7 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "pin_id", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "pinid");
 	RNA_def_property_struct_type(prop, "ID");
-	RNA_def_property_pointer_funcs(prop, NULL, NULL, "rna_SpaceButtonsWindow_pin_id_typef");
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, "rna_SpaceProperties_pin_id_typef");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 }
 
@@ -1377,7 +1380,42 @@ static void rna_def_space_filebrowser(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "params");
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceFileBrowser_params_set", NULL);
 	RNA_def_property_ui_text(prop, "Filebrowser Parameter", "Parameters and Settings for the Filebrowser.");
+}
 
+static void rna_def_space_info(BlenderRNA *brna)
+{
+	StructRNA *srna;
+
+	srna= RNA_def_struct(brna, "SpaceInfo", "Space");
+	RNA_def_struct_sdna(srna, "SpaceInfo");
+	RNA_def_struct_ui_text(srna, "Space Info", "Info space data.");
+}
+
+static void rna_def_space_userpref(BlenderRNA *brna)
+{
+	StructRNA *srna;
+
+	srna= RNA_def_struct(brna, "SpaceUserPreferences", "Space");
+	RNA_def_struct_sdna(srna, "SpaceUserPref");
+	RNA_def_struct_ui_text(srna, "Space User Preferences", "User preferences space data.");
+}
+
+static void rna_def_space_node(BlenderRNA *brna)
+{
+	StructRNA *srna;
+
+	srna= RNA_def_struct(brna, "SpaceNodeEditor", "Space");
+	RNA_def_struct_sdna(srna, "SpaceNode");
+	RNA_def_struct_ui_text(srna, "Space Node Editor", "Node editor space data.");
+}
+
+static void rna_def_space_logic(BlenderRNA *brna)
+{
+	StructRNA *srna;
+
+	srna= RNA_def_struct(brna, "SpaceLogicEditor", "Space");
+	RNA_def_struct_sdna(srna, "SpaceLogic");
+	RNA_def_struct_ui_text(srna, "Space Logic Editor", "Logic editor space data.");
 }
 
 void RNA_def_space(BlenderRNA *brna)
@@ -1398,6 +1436,10 @@ void RNA_def_space(BlenderRNA *brna)
 	rna_def_space_time(brna);
 	rna_def_space_console(brna);
 	rna_def_console_line(brna);
+	rna_def_space_info(brna);
+	rna_def_space_userpref(brna);
+	rna_def_space_node(brna);
+	rna_def_space_logic(brna);
 }
 
 #endif

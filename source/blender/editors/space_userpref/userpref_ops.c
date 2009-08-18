@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -25,19 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef ED_INFO_INTERN_H
-#define ED_INFO_INTERN_H
 
-/* internal exports only */
+#include <string.h>
+#include <stdio.h>
 
-struct wmOperatorType;
-
-void FILE_OT_pack_all(struct wmOperatorType *ot);
-void FILE_OT_unpack_all(struct wmOperatorType *ot);
-void FILE_OT_make_paths_relative(struct wmOperatorType *ot);
-void FILE_OT_make_paths_absolute(struct wmOperatorType *ot);
-void FILE_OT_report_missing_files(struct wmOperatorType *ot);
-void FILE_OT_find_missing_files(struct wmOperatorType *ot);
-
-#endif /* ED_INFO_INTERN_H */
+#include "userpref_intern.h"
 
