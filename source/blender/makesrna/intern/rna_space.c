@@ -46,7 +46,7 @@ EnumPropertyItem space_type_items[] = {
 	{SPACE_VIEW3D, "VIEW_3D", 0, "3D View", ""},
 	{SPACE_IPO, "GRAPH_EDITOR", 0, "Graph Editor", ""},
 	{SPACE_OUTLINER, "OUTLINER", 0, "Outliner", ""},
-	{SPACE_BUTS, "BUTTONS_WINDOW", 0, "Buttons Window", ""},
+	{SPACE_BUTS, "PROPERTIES", 0, "Properties", ""},
 	{SPACE_FILE, "FILE_BROWSER", 0, "File Browser", ""},
 	{SPACE_IMAGE, "IMAGE_EDITOR", 0, "Image Editor", ""},
 	{SPACE_INFO, "USER_PREFERENCES", 0, "User Preferences", ""},
@@ -1142,7 +1142,7 @@ static void rna_def_space_time(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "play_buttons", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_BUTS_WIN);
-	RNA_def_property_ui_text(prop, "Buttons Windows", "");
+	RNA_def_property_ui_text(prop, "Properties Windows", "");
 	RNA_def_property_update(prop, 0, "rna_SpaceTime_redraw_update");
 	
 	prop= RNA_def_property(srna, "play_image", PROP_BOOLEAN, PROP_NONE);

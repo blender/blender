@@ -999,7 +999,7 @@ static void rna_def_userdef_theme_space_buts(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeButtonsWindow", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
-	RNA_def_struct_ui_text(srna, "Theme Buttons Window", "Theme settings for the Buttons Window.");
+	RNA_def_struct_ui_text(srna, "Theme Properties", "Theme settings for the Properties.");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_BUTS);
 
@@ -1400,10 +1400,10 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ThemeSequenceEditor");
 	RNA_def_property_ui_text(prop, "Sequence Editor", "");
 
-	prop= RNA_def_property(srna, "buttons_window", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "tbuts");
 	RNA_def_property_struct_type(prop, "ThemeButtonsWindow");
-	RNA_def_property_ui_text(prop, "Buttons Window", "");
+	RNA_def_property_ui_text(prop, "Properties", "");
 
 	prop= RNA_def_property(srna, "text_editor", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "text");

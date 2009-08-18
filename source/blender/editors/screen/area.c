@@ -1041,39 +1041,42 @@ void ED_area_prevspace(bContext *C)
 static char *windowtype_pup(void)
 {
 	return(
-		   "Window type:%t" //14
-		   "|3D View %x1" //30
+		   "Window type:%t"
+		   "|3D View %x1"
+
+		   "|%l"
+		   "|%l"
 		   
-		   "|%l" // 33
+		   "|Timeline %x15"
+		   "|Graph Editor %x2"
+		   "|DopeSheet %x12"
+		   "|NLA Editor %x13"
 		   
-		   "|Graph Editor %x2" //54
-		   "|DopeSheet %x12" //73
-		   "|NLA Editor %x13" //94
+		   "|%l"
+		   "|%l"
 		   
-		   "|%l" //97
+		   "|UV/Image Editor %x6"
 		   
-		   "|UV/Image Editor %x6" //117
-		   
-		   "|Video Sequence Editor %x8" //143
-		   "|Timeline %x15" //163
-		   // "|Audio Window %x11" //163
-		   "|Text Editor %x9" //179
-		   
-		   "|%l" //192
-		   
-		   
-		   "|User Preferences %x7" //213
-		   "|Outliner %x3" //232
-		   "|Buttons Window %x4" //251
+		   "|Video Sequence Editor %x8"
+		   "|Text Editor %x9" 
 		   "|Node Editor %x16"
 		   "|Logic Editor %x17"
-		   "|%l" //254
 		   
-		   "|File Browser %x5" //290
+		   "|%l"
+		   "|%l"
 		   
-		   "|%l" //293
+		   "|Properties %x4"
+		   "|User Preferences %x7"
+		   "|Outliner %x3"
+		    		   
+		   "|%l"
+		   "|%l"
 		   
-		   // "|Scripts Window %x14"//313
+		   "|File Browser %x5"
+		   
+		   "|%l"
+		   "|%l"
+		   
 		   "|Console %x18"
 		   );
 }

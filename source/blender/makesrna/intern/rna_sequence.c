@@ -443,7 +443,8 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Length", "The length of the contents of this strip before the handles are applied");
 	RNA_def_property_int_funcs(prop, "rna_SequenceEditor_length_get", "rna_SequenceEditor_length_set",NULL);
-
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
+	
 	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "start");
 	RNA_def_property_ui_text(prop, "Start Frame", "");
@@ -638,11 +639,13 @@ static void rna_def_input(StructRNA *srna)
 	RNA_def_property_int_sdna(prop, NULL, "anim_startofs");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap test
 	RNA_def_property_ui_text(prop, "Animation Start Offset", "Animation start offset (trim start).");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
 	prop= RNA_def_property(srna, "animation_end_offset", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "anim_endofs");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // overlap test
 	RNA_def_property_ui_text(prop, "Animation End Offset", "Animation end offset (trim end).");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 }
 
 static void rna_def_image(BlenderRNA *brna)
@@ -813,21 +816,25 @@ static void rna_def_wipe(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "edgeWidth");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Blur Width", "Width of the blur edge, in percentage relative to the image size.");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
 	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "angle");
 	RNA_def_property_range(prop, -90.0f, 90.0f);
 	RNA_def_property_ui_text(prop, "Angle", "Edge angle.");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
 	prop= RNA_def_property(srna, "direction", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "forward");
 	RNA_def_property_enum_items(prop, wipe_direction_items);
 	RNA_def_property_ui_text(prop, "Direction", "Wipe direction.");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
 	prop= RNA_def_property(srna, "transition_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "wipetype");
 	RNA_def_property_enum_items(prop, wipe_type_items);
 	RNA_def_property_ui_text(prop, "Transition Type", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 }
 
 static void rna_def_glow(BlenderRNA *brna)
@@ -843,30 +850,36 @@ static void rna_def_glow(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "fMini");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Threshold", "Minimum intensity to trigger a glow");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
 	prop= RNA_def_property(srna, "clamp", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fClamp");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Clamp", "rightness limit of intensity.");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
 	prop= RNA_def_property(srna, "boost_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fBoost");
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Boost Factor", "Brightness multiplier.");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
 	prop= RNA_def_property(srna, "blur_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dDist");
 	RNA_def_property_range(prop, 0.5f, 20.0f);
 	RNA_def_property_ui_text(prop, "Blur Distance", "Radius of glow effect.");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
 	prop= RNA_def_property(srna, "quality", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "dQuality");
 	RNA_def_property_range(prop, 1, 5);
 	RNA_def_property_ui_text(prop, "Quality", "Accuracy of the blur effect.");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
 	prop= RNA_def_property(srna, "only_boost", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bNoComp", 0);
 	RNA_def_property_ui_text(prop, "Only Boost", "Show the glow buffer only.");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 }
 
 static void rna_def_transform(BlenderRNA *brna)
@@ -895,60 +908,72 @@ static void rna_def_transform(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "ScalexIni");
 	RNA_def_property_ui_text(prop, "Scale Start X", "");
 	RNA_def_property_ui_range(prop, 0, 10, 3, 10);
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
 	prop= RNA_def_property(srna, "scale_start_y", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "ScaleyIni");
 	RNA_def_property_ui_text(prop, "Scale Start Y", "");
 	RNA_def_property_ui_range(prop, 0, 10, 3, 10);
-
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
+	
 	prop= RNA_def_property(srna, "scale_end_x", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "ScalexFin");
 	RNA_def_property_ui_text(prop, "Scale End X", "");
 	RNA_def_property_ui_range(prop, 0, 10, 3, 10);
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
 	prop= RNA_def_property(srna, "scale_end_y", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "ScaleyFin");
 	RNA_def_property_ui_text(prop, "Scale End Y", "");
 	RNA_def_property_ui_range(prop, 0, 10, 3, 10);
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
 	prop= RNA_def_property(srna, "translate_start_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xIni");
 	RNA_def_property_ui_text(prop, "Translate Start X", "");
 	RNA_def_property_ui_range(prop, -500.0f, 500.0f, 3, 10);
-
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
+	
 	prop= RNA_def_property(srna, "translate_start_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "yIni");
 	RNA_def_property_ui_text(prop, "Translate Start Y", "");
 	RNA_def_property_ui_range(prop, -500.0f, 500.0f, 3, 10);
-
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
+	
 	prop= RNA_def_property(srna, "translate_end_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xFin");
 	RNA_def_property_ui_text(prop, "Translate End X", "");
 	RNA_def_property_ui_range(prop, -500.0f, 500.0f, 3, 10);
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 
 	prop= RNA_def_property(srna, "translate_end_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "yFin");
 	RNA_def_property_ui_text(prop, "Translate End Y", "");
 	RNA_def_property_ui_range(prop, -500.0f, 500.0f, 3, 10);
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
 	prop= RNA_def_property(srna, "rotation_start", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rotIni");
 	RNA_def_property_range(prop, 0.0f, 360.0f);
 	RNA_def_property_ui_text(prop, "Rotation Start", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
 	prop= RNA_def_property(srna, "rotation_end", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rotFin");
 	RNA_def_property_range(prop, 0.0f, 360.0f);
 	RNA_def_property_ui_text(prop, "Rotation End", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
 	prop= RNA_def_property(srna, "translation_unit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "percent");
 	RNA_def_property_enum_items(prop, translation_unit_items);
 	RNA_def_property_ui_text(prop, "Translation Unit", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
 	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, interpolation_items);
 	RNA_def_property_ui_text(prop, "Interpolation", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 }
 
 static void rna_def_solid_color(BlenderRNA *brna)
