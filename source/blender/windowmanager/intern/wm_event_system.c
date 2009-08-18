@@ -672,7 +672,19 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 	int kmitype= wm_userdef_event_map(kmi->type);
 
 	if(kmi->inactive) return 0;
-	
+
+	/* exception for middlemouse emulation */
+	if((U.flag & USER_TWOBUTTONMOUSE) && (kmi->type == MIDDLEMOUSE)) {
+		if(winevent->type == LEFTMOUSE && winevent->alt) {
+			wmKeymapItem tmp= *kmi;
+
+			tmp.type= winevent->type;
+			tmp.alt= winevent->alt;
+			if(wm_eventmatch(winevent, &tmp))
+				return 1;
+		}
+	}
+
 	/* the matching rules */
 	if(kmitype==KM_TEXTINPUT)
 		if(ISKEYBOARD(winevent->type)) return 1;
