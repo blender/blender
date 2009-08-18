@@ -152,6 +152,26 @@ static void unique_name(bNode *node)
 	}
 }
 
+static void assign_index(struct bNode *node)
+{
+	bNode *tnode;
+	int index = 1;
+	
+	tnode = node;
+	while(tnode->prev)
+		tnode = tnode->prev;
+	
+	check_index:
+	for(; tnode; tnode= tnode->next)
+		if(tnode->type == TEX_NODE_OUTPUT && tnode != node)
+			if(tnode->custom1 == index) {
+				index ++;
+				goto check_index;
+			}
+			
+	node->custom1 = index;
+}
+
 static void init(bNode *node)
 {
 	TexNodeOutput *tno = MEM_callocN(sizeof(TexNodeOutput), "TEX_output");
@@ -159,16 +179,15 @@ static void init(bNode *node)
 	
 	strcpy(tno->name, "Default");
 	unique_name(node);
-	ntreeTexAssignIndex(0, node);
+	assign_index(node);
 }
 
 static void copy(bNode *orig, bNode *new)
 {
 	node_copy_standard_storage(orig, new);
 	unique_name(new);
-	ntreeTexAssignIndex(0, new);
+	assign_index(new);
 }
-
 
 bNodeType tex_node_output= {
 	/* *next,*prev     */  NULL, NULL,

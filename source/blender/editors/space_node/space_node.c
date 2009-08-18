@@ -152,10 +152,14 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 			if(wmn->data==ND_FILEREAD)
 				ED_area_tag_refresh(sa);
 			break;
-				
+			
+		/* future: add ID checks? */
 		case NC_MATERIAL:
-			/* future: add ID check? */
 			if(wmn->data==ND_SHADING)
+				ED_area_tag_refresh(sa);
+			break;
+		case NC_TEXTURE:
+			if(wmn->data==ND_NODES)
 				ED_area_tag_refresh(sa);
 			break;
 	}
@@ -278,6 +282,9 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 			ED_region_tag_redraw(ar);
 			break;
 		case NC_MATERIAL:
+			ED_region_tag_redraw(ar);
+			break;
+		case NC_TEXTURE:
 			ED_region_tag_redraw(ar);
 			break;
 	}

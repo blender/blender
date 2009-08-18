@@ -950,9 +950,6 @@ bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup, ID *id)
 	if(ntype->initfunc!=NULL)
 		ntype->initfunc(node);
 	
-	if(type==TEX_NODE_OUTPUT)
-		ntreeTexAssignIndex(ntree, node);
-
 	nodeAddSockets(node, ntype);
 	
 	return node;
@@ -1021,9 +1018,6 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node, int internal)
 	nnode->new_node= NULL;
 	nnode->preview= NULL;
 	
-	if(node->type==TEX_NODE_OUTPUT)
-		ntreeTexAssignIndex(ntree, node);
-
 	return nnode;
 }
 

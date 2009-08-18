@@ -297,26 +297,3 @@ char* ntreeTexOutputMenu(bNodeTree *ntree)
 	return str;
 }
 
-void ntreeTexAssignIndex(struct bNodeTree *ntree, struct bNode *node)
-{
-	bNode *tnode;
-	int index = 1;
-	
-	if(ntree) 
-		tnode = ntree->nodes.first;
-	else {
-		tnode = node;
-		while(tnode->prev) tnode = tnode->prev;
-	}
-	
-	check_index:
-	for(; tnode; tnode= tnode->next)
-		if(tnode->type == TEX_NODE_OUTPUT && tnode != node)
-			if(tnode->custom1 == index) {
-				index ++;
-				goto check_index;
-			}
-			
-	node->custom1 = index;
-}
-

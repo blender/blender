@@ -213,10 +213,8 @@ void snode_handle_recalc(bContext *C, SpaceNode *snode)
 		WM_event_add_notifier(C, NC_MATERIAL|ND_NODES, snode->id);
 	else if(snode->treetype==NTREE_COMPOSIT)
 		WM_event_add_notifier(C, NC_SCENE|ND_NODES, snode->id);
-	else if(snode->treetype==NTREE_TEXTURE) {
-		// ntreeTexUpdatePreviews(snode->nodetree); /* XXX texture nodes should follow shader node methods (ton) */
-		// XXX BIF_preview_changed(ID_TE);
-	}
+	else if(snode->treetype==NTREE_TEXTURE)
+		WM_event_add_notifier(C, NC_TEXTURE|ND_NODES, snode->id);
 }
 
 #if 0
