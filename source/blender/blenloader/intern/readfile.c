@@ -1366,7 +1366,7 @@ void IDP_LibLinkProperty(IDProperty *prop, int switch_endian, FileData *fd);
 
 static void IDP_DirectLinkIDPArray(IDProperty *prop, int switch_endian, FileData *fd)
 {
-	IDProperty **array;
+	IDProperty *array;
 	int i;
 
 	/*since we didn't save the extra buffer, set totallen to len.*/
@@ -1374,11 +1374,10 @@ static void IDP_DirectLinkIDPArray(IDProperty *prop, int switch_endian, FileData
 	prop->data.pointer = newdataadr(fd, prop->data.pointer);
 
 	if (switch_endian) {
-		test_pointer_array(fd, prop->data.pointer);
-		array= (IDProperty**) prop->data.pointer;
+		array= (IDProperty*) prop->data.pointer;
 
 		for(i=0; i<prop->len; i++)
-			IDP_DirectLinkProperty(array[i], switch_endian, fd);
+			IDP_DirectLinkProperty(&array[i], switch_endian, fd);
 	}
 }
 

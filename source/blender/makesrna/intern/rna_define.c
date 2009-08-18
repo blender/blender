@@ -2419,6 +2419,7 @@ void RNA_def_property_duplicate_pointers(PropertyRNA *prop)
 	EnumPropertyItem *earray;
 	float *farray;
 	int *iarray;
+	int a;
 
 	if(prop->identifier) prop->identifier= BLI_strdup(prop->identifier);
 	if(prop->name) prop->name= BLI_strdup(prop->name);
@@ -2452,7 +2453,14 @@ void RNA_def_property_duplicate_pointers(PropertyRNA *prop)
 				earray= MEM_callocN(sizeof(EnumPropertyItem)*(eprop->totitem+1), "RNA_def_property_store"),
 				memcpy(earray, eprop->item, sizeof(EnumPropertyItem)*(eprop->totitem+1));
 				eprop->item= earray;
+
+				for(a=0; a<eprop->totitem; a++) {
+					if(eprop->item[a].identifier) eprop->item[a].identifier= BLI_strdup(eprop->item[a].identifier);
+					if(eprop->item[a].name) eprop->item[a].name= BLI_strdup(eprop->item[a].name);
+					if(eprop->item[a].description) eprop->item[a].description= BLI_strdup(eprop->item[a].description);
+				}
 			}
+			break;
 		}
 		case PROP_FLOAT: {
 			FloatPropertyRNA *fprop= (FloatPropertyRNA*)prop;
@@ -2479,6 +2487,8 @@ void RNA_def_property_duplicate_pointers(PropertyRNA *prop)
 void RNA_def_property_free_pointers(PropertyRNA *prop)
 {
 	if(prop->flag & PROP_FREE_POINTERS) {
+		int a;
+
 		if(prop->identifier) MEM_freeN((void*)prop->identifier);
 		if(prop->name) MEM_freeN((void*)prop->name);
 		if(prop->description) MEM_freeN((void*)prop->description);
@@ -2502,6 +2512,13 @@ void RNA_def_property_free_pointers(PropertyRNA *prop)
 			case PROP_ENUM: {
 				EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
 				if(eprop->item) MEM_freeN((void*)eprop->item);
+
+				for(a=0; a<eprop->totitem; a++) {
+					if(eprop->item[a].identifier) MEM_freeN((void*)eprop->item[a].identifier);
+					if(eprop->item[a].name) MEM_freeN((void*)eprop->item[a].name);
+					if(eprop->item[a].description) MEM_freeN((void*)eprop->item[a].description);
+				}
+				break;
 			}
 			case PROP_STRING: {
 				StringPropertyRNA *sprop= (StringPropertyRNA*)prop;

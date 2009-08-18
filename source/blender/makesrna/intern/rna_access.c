@@ -1259,8 +1259,15 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
 	else if(pprop->get) {
 		return pprop->get(ptr);
 	}
+	else if(prop->flag & PROP_IDPROPERTY) {
+		/* XXX temporary hack to add it automatically, reading should
+		   never do any write ops, to ensure thread safety etc .. */
+		RNA_property_pointer_add(ptr, prop);
+		return RNA_property_pointer_get(ptr, prop);
+	}
 	else {
 		PointerRNA result;
+
 		memset(&result, 0, sizeof(result));
 		return result;
 	}
@@ -1398,7 +1405,7 @@ int RNA_property_collection_length(PointerRNA *ptr, PropertyRNA *prop)
 void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr)
 {
 	IDProperty *idprop;
-	//CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		IDPropertyTemplate val = {0};
@@ -1424,7 +1431,6 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 			MEM_freeN(item);
 		}
 	}
-#if 0
 	else if(cprop->add){
 		if(!(cprop->add->flag & FUNC_USE_CONTEXT)) { /* XXX check for this somewhere else */
 			ParameterList params;
@@ -1433,9 +1439,8 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 			RNA_parameter_list_free(&params);
 		}
 	}
-#endif
-	else
-		printf("RNA_property_collection_add %s.%s: not implemented for this property.\n", ptr->type->identifier, prop->identifier);
+	/*else
+		printf("RNA_property_collection_add %s.%s: not implemented for this property.\n", ptr->type->identifier, prop->identifier);*/
 
 	if(r_ptr) {
 		if(idprop) {
@@ -1450,10 +1455,10 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 	}
 }
 
-void RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
+int RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
 {
 	IDProperty *idprop;
-	//CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		IDProperty tmp, *array;
@@ -1472,20 +1477,25 @@ void RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
 
 			IDP_ResizeIDPArray(idprop, len-1);
 		}
+
+		return 1;
 	}
-	else if(prop->flag & PROP_IDPROPERTY);
-#if 0
+	else if(prop->flag & PROP_IDPROPERTY)
+		return 1;
 	else if(cprop->remove){
 		if(!(cprop->remove->flag & FUNC_USE_CONTEXT)) { /* XXX check for this somewhere else */
 			ParameterList params;
-			RNA_parameter_list_create(&ptr, cprop->remove);
+			RNA_parameter_list_create(&params, ptr, cprop->remove);
 			RNA_function_call(NULL, NULL, ptr, cprop->remove, &params);
 			RNA_parameter_list_free(&params);
 		}
+
+		return 0;
 	}
-#endif
-	else
-		printf("RNA_property_collection_remove %s.%s: only supported for id properties.\n", ptr->type->identifier, prop->identifier);
+	/*else
+		printf("RNA_property_collection_remove %s.%s: only supported for id properties.\n", ptr->type->identifier, prop->identifier);*/
+	
+	return 0;
 }
 
 void RNA_property_collection_clear(PointerRNA *ptr, PropertyRNA *prop)

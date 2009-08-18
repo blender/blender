@@ -75,10 +75,13 @@ int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, int all_args, const cha
 PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
 
 /* functions for setting up new props - experemental */
-PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw);
-PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw);
 PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw);
+PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw);
+PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw);
 PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw);
+PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw);
+PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw);
+PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw);
 
 /* function for registering types */
 PyObject *pyrna_basetype_register(PyObject *self, PyObject *args);

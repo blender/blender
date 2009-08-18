@@ -407,13 +407,13 @@ static void IDP_WriteIDPArray(IDProperty *prop, void *wd)
 {
 	/*REMEMBER to set totalen to len in the linking code!!*/
 	if (prop->data.pointer) {
-		IDProperty **array = prop->data.pointer;
+		IDProperty *array = prop->data.pointer;
 		int a;
 
-		writedata(wd, DATA, MEM_allocN_len(prop->data.pointer), prop->data.pointer);
+		writestruct(wd, DATA, "IDProperty", prop->len, array);
 
 		for(a=0; a<prop->len; a++)
-			IDP_WriteProperty(array[a], wd);
+			IDP_WriteProperty_OnlyData(&array[a], wd);
 	}
 }
 

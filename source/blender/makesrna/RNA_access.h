@@ -649,7 +649,7 @@ RawPropertyType RNA_property_raw_type(PropertyRNA *prop);
 void RNA_property_pointer_add(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_pointer_remove(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr);
-void RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key);
+int RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key);
 void RNA_property_collection_clear(PointerRNA *ptr, PropertyRNA *prop);
 
 /* Path
