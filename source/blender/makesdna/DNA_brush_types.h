@@ -58,6 +58,8 @@ typedef struct Brush {
 	int size;					/* brush diameter */
 	float innerradius;			/* inner radius after which the falloff starts */
 	float spacing;				/* spacing of paint operations */
+	int smooth_stroke_radius;		/* turning radius (in pixels) for smooth stroke */
+	float smooth_stroke_factor;		/* higher values limit fast changes in the stroke direction */
 	float rate;					/* paint operations / second (airbrush) */
 
 	float rgb[3];				/* color */
@@ -66,7 +68,7 @@ typedef struct Brush {
 	short texact;				/* active texture */
 	char sculpt_tool;			/* active tool */
 	
-	char pad;
+	char pad[1];
 } Brush;
 
 /* Brush.flag */

@@ -130,6 +130,14 @@ void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "spacing");
 	RNA_def_property_range(prop, 1.0f, 100.0f);
 	RNA_def_property_ui_text(prop, "Spacing", "Spacing between brush stamps.");
+
+	prop= RNA_def_property(srna, "smooth_stroke_radius", PROP_INT, PROP_NONE);
+	RNA_def_property_range(prop, 10, 200);
+	RNA_def_property_ui_text(prop, "Smooth Stroke Radius", "Minimum distance from last point before stroke continues.");
+
+	prop= RNA_def_property(srna, "smooth_stroke_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.5, 0.99);
+	RNA_def_property_ui_text(prop, "Smooth Stroke Factor", "Higher values give a smoother stroke.");
 	
 	prop= RNA_def_property(srna, "rate", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rate");
@@ -247,7 +255,7 @@ static void rna_def_operator_stroke_element(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Location", "");
 
-	prop= RNA_def_property(srna, "mouse", PROP_INT, PROP_XYZ);
+	prop= RNA_def_property(srna, "mouse", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_flag(prop, PROP_IDPROPERTY);
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Mouse", "");

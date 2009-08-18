@@ -129,7 +129,7 @@ typedef struct StrokeCache {
 	float scale[3];
 	int flag;
 	float clip_tolerance[3];
-	int initial_mouse[2];
+	float initial_mouse[2];
 	float depth;
 
 	/* Variants */
@@ -138,7 +138,7 @@ typedef struct StrokeCache {
 	float location[3];
 	float flip;
 	float pressure;
-	int mouse[2];
+	float mouse[2];
 
 	/* The rest is temporary storage that isn't saved as a property */
 
@@ -1077,7 +1077,7 @@ static void draw_paint_cursor(bContext *C, int x, int y, void *customdata)
 
 	if(ss && ss->cache && brush && (brush->flag & BRUSH_SMOOTH_STROKE)) {
 		ARegion *ar = CTX_wm_region(C);
-		sdrawline(x, y, ss->cache->mouse[0] - ar->winrct.xmin, ss->cache->mouse[1] - ar->winrct.ymin);
+		sdrawline(x, y, (int)ss->cache->mouse[0] - ar->winrct.xmin, (int)ss->cache->mouse[1] - ar->winrct.ymin);
 	}
 
 	glDisable(GL_BLEND);
@@ -1201,7 +1201,7 @@ static void sculpt_update_cache_invariants(Sculpt *sd, SculptSession *ss, bConte
 	RNA_float_get_array(op->ptr, "scale", cache->scale);
 	cache->flag = RNA_int_get(op->ptr, "flag");
 	RNA_float_get_array(op->ptr, "clip_tolerance", cache->clip_tolerance);
-	RNA_int_get_array(op->ptr, "initial_mouse", cache->initial_mouse);
+	RNA_float_get_array(op->ptr, "initial_mouse", cache->initial_mouse);
 	cache->depth = RNA_float_get(op->ptr, "depth");
 
 	cache->mouse[0] = cache->initial_mouse[0];
@@ -1264,12 +1264,13 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, PointerR
 	StrokeCache *cache = ss->cache;
 	Brush *brush = paint_brush(&sd->paint);
 	float grab_location[3];
+	
 	int dx, dy;
 
 	if(!(brush->flag & BRUSH_ANCHORED))
 		RNA_float_get_array(ptr, "location", cache->true_location);
 	cache->flip = RNA_boolean_get(ptr, "flip");
-	RNA_int_get_array(ptr, "mouse", cache->mouse);
+	RNA_float_get_array(ptr, "mouse", cache->mouse);
 	cache->pressure = RNA_float_get(ptr, "pressure");
 	
 	/* Truly temporary data that isn't stored in properties */
@@ -1326,7 +1327,8 @@ static void sculpt_brush_stroke_init_properties(bContext *C, wmOperator *op, wmE
 	ModifierData *md;
 	ViewContext vc;
 	float scale[3], clip_tolerance[3] = {0,0,0};
-	int mouse[2], flag = 0;
+	float mouse[2];
+	int flag = 0;
 
 	/* Set scaling adjustment */
 	scale[0] = 1.0f / ob->size[0];
@@ -1353,7 +1355,7 @@ static void sculpt_brush_stroke_init_properties(bContext *C, wmOperator *op, wmE
 	/* Initial mouse location */
 	mouse[0] = event->x;
 	mouse[1] = event->y;
-	RNA_int_set_array(op->ptr, "initial_mouse", mouse);
+	RNA_float_set_array(op->ptr, "initial_mouse", mouse);
 
 	/* Initial screen depth under the mouse */
 	view3d_set_viewcontext(C, &vc);
@@ -1434,7 +1436,7 @@ static void sculpt_flush_update(bContext *C)
 }
 
 /* Returns zero if no sculpt changes should be made, non-zero otherwise */
-static int sculpt_smooth_stroke(Sculpt *s, SculptSession *ss, int output[2], wmEvent *event)
+static int sculpt_smooth_stroke(Sculpt *s, SculptSession *ss, float output[2], wmEvent *event)
 {
 	Brush *brush = paint_brush(&s->paint);
 
@@ -1443,13 +1445,12 @@ static int sculpt_smooth_stroke(Sculpt *s, SculptSession *ss, int output[2], wmE
 
 	if(brush->flag & BRUSH_SMOOTH_STROKE && brush->sculpt_tool != SCULPT_TOOL_GRAB) {
 		StrokeCache *cache = ss->cache;
-		float u = .9, v = 1.0 - u;
-		int dx = cache->mouse[0] - event->x, dy = cache->mouse[1] - event->y;
-		int radius = 50;
+		float u = brush->smooth_stroke_factor, v = 1.0 - u;
+		float dx = cache->mouse[0] - event->x, dy = cache->mouse[1] - event->y;
 
 		/* If the mouse is moving within the radius of the last move,
 		   don't update the mouse position. This allows sharp turns. */
-		if(dx*dx + dy*dy < radius*radius)
+		if(dx*dx + dy*dy < brush->smooth_stroke_radius * brush->smooth_stroke_radius)
 			return 0;
 
 		output[0] = event->x * v + cache->mouse[0] * u;
@@ -1467,7 +1468,7 @@ int sculpt_space_stroke_enabled(Sculpt *s)
 }
 
 /* Put the location of the next sculpt stroke dot into the stroke RNA and apply it to the mesh */
-static void sculpt_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *event, int mouse[2])
+static void sculpt_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *event, float mouse[2])
 {
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
@@ -1489,7 +1490,7 @@ static void sculpt_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *e
 	/* Add to stroke */
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
 	RNA_float_set_array(&itemptr, "location", center);
-	RNA_int_set_array(&itemptr, "mouse", mouse);
+	RNA_float_set_array(&itemptr, "mouse", mouse);
 	RNA_boolean_set(&itemptr, "flip", event->shift);
 	RNA_float_set(&itemptr, "pressure", pressure);
 	sculpt_update_cache_variants(sd, ss, &itemptr);
@@ -1500,7 +1501,7 @@ static void sculpt_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *e
 
 /* For brushes with stroke spacing enabled, moves mouse in steps
    towards the final mouse location. */
-static int sculpt_space_stroke(bContext *C, wmOperator *op, wmEvent *event, Sculpt *s, SculptSession *ss, const int final_mouse[2])
+static int sculpt_space_stroke(bContext *C, wmOperator *op, wmEvent *event, Sculpt *s, SculptSession *ss, const float final_mouse[2])
 {
 	StrokeCache *cache = ss->cache;
 	Brush *brush = paint_brush(&s->paint);
@@ -1508,7 +1509,7 @@ static int sculpt_space_stroke(bContext *C, wmOperator *op, wmEvent *event, Scul
 
 	if(sculpt_space_stroke_enabled(s)) {
 		float vec[2] = {final_mouse[0] - cache->mouse[0], final_mouse[1] - cache->mouse[1]};
-		int mouse[2] = {cache->mouse[0], cache->mouse[1]};
+		float mouse[2] = {cache->mouse[0], cache->mouse[1]};
 		float length, scale;
 		int steps = 0, i;
 
@@ -1556,7 +1557,7 @@ static int sculpt_brush_stroke_modal(bContext *C, wmOperator *op, wmEvent *event
 	}
 
 	if(ss->cache) {
-		int mouse[2];
+		float mouse[2];
 
 		if(sculpt_smooth_stroke(sd, ss, mouse, event)) {
 			if(sculpt_space_stroke_enabled(sd)) {
@@ -1646,7 +1647,7 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	RNA_def_float_vector(ot->srna, "clip_tolerance", 3, NULL, 0.0f, FLT_MAX, "clip_tolerance", "", 0.0f, 1000.0f);
 
 	/* The initial 2D location of the mouse */
-	RNA_def_int_vector(ot->srna, "initial_mouse", 2, NULL, INT_MIN, INT_MAX, "initial_mouse", "", INT_MIN, INT_MAX);
+	RNA_def_float_vector(ot->srna, "initial_mouse", 2, NULL, INT_MIN, INT_MAX, "initial_mouse", "", INT_MIN, INT_MAX);
 
 	/* The initial screen depth of the mouse */
 	RNA_def_float(ot->srna, "depth", 0.0f, 0.0f, FLT_MAX, "depth", "", 0.0f, FLT_MAX);

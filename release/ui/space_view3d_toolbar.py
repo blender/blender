@@ -341,7 +341,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 				row.itemR(brush, "strength_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
 			
 				col = layout.column()
-				col.itemR(brush, "airbrush")
+
 				if brush.sculpt_tool != 'LAYER':
 					col.itemR(brush, "anchored")
 
@@ -420,6 +420,31 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			row = col.row(align=True)
 			row.itemR(brush, "strength", slider=True)
 			row.itemR(brush, "strength_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+
+class VIEW3D_PT_tools_brush_stroke(PaintPanel):
+	__label__ = "Stroke"
+	__default_closed__ = True
+
+	def poll(self, context):
+		settings = self.paint_settings(context)
+		return (settings and settings.brush and context.sculpt_object)
+
+	def draw(self, context):
+		settings = self.paint_settings(context)
+		brush = settings.brush
+		layout = self.layout
+
+		layout.itemR(brush, "smooth_stroke")
+		col = layout.column()
+		col.active = brush.smooth_stroke
+		col.itemR(brush, "smooth_stroke_radius", text="Radius", slider=True)
+		col.itemR(brush, "smooth_stroke_factor", text="Factor", slider=True)
+
+		layout.itemR(brush, "space")
+		col = layout.column()
+		col.active = brush.space
+		col.itemR(brush, "spacing", text="Distance", slider=True)
+
 
 class VIEW3D_PT_tools_brush_curve(PaintPanel):
 	__label__ = "Curve"
@@ -602,6 +627,7 @@ bpy.types.register(VIEW3D_PT_tools_mballedit)
 bpy.types.register(VIEW3D_PT_tools_latticeedit)
 bpy.types.register(VIEW3D_PT_tools_posemode)
 bpy.types.register(VIEW3D_PT_tools_brush)
+bpy.types.register(VIEW3D_PT_tools_brush_stroke)
 bpy.types.register(VIEW3D_PT_tools_brush_curve)
 bpy.types.register(VIEW3D_PT_sculpt_options)
 bpy.types.register(VIEW3D_PT_tools_vertexpaint)
