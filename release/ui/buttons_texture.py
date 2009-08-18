@@ -17,21 +17,22 @@ class TEXTURE_PT_preview(TextureButtonsPanel):
 		layout = self.layout
 		
 		tex = context.texture
+		slot = context.texture_slot
 		ma = context.material
 		la = context.lamp
 		wo = context.world
 		br = context.brush
 		
 		if ma:
-			layout.template_preview(tex, parent=ma)
+			layout.template_preview(tex, parent=ma, slot=slot)
 		elif la:
-			layout.template_preview(tex, parent=la)
+			layout.template_preview(tex, parent=la, slot=slot)
 		elif wo:
-			layout.template_preview(tex, parent=wo)
+			layout.template_preview(tex, parent=wo, slot=slot)
 		elif br:
-			layout.template_preview(tex, parent=br)
+			layout.template_preview(tex, parent=br, slot=slot)
 		else:
-			layout.template_preview(tex)
+			layout.template_preview(tex, slot=slot)
 			
 class TEXTURE_PT_context_texture(TextureButtonsPanel):
 	__show_header__ = False

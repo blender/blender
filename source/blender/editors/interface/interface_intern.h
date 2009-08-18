@@ -273,8 +273,9 @@ struct uiBlock {
 	int (*block_event_func)(const struct bContext *C, struct uiBlock *, struct wmEvent *);
 	
 	/* extra draw function for custom blocks */
-	void (*drawextra)(const struct bContext *C, void *idv, void *argv, rcti *rect);
-	void *drawextra_arg;
+	void (*drawextra)(const struct bContext *C, void *idv, void *arg1, void *arg2, rcti *rect);
+	void *drawextra_arg1;
+	void *drawextra_arg2;
 
 	int afterval, flag;
 	

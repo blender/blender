@@ -1088,7 +1088,7 @@ static void do_preview_buttons(bContext *C, void *arg, int event)
 	}
 }
 
-void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent)
+void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent, MTex *slot)
 {
 	uiLayout *row, *col;
 	uiBlock *block;
@@ -1129,7 +1129,7 @@ void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent)
 	
 	/* add preview */
 	uiDefBut(block, BUT_EXTRA, 0, "", 0, 0, UI_UNIT_X*6, UI_UNIT_Y*6, pid, 0.0, 0.0, 0, 0, "");
-	uiBlockSetDrawExtraFunc(block, ED_preview_draw, pparent);
+	uiBlockSetDrawExtraFunc(block, ED_preview_draw, pparent, slot);
 	uiBlockSetHandleFunc(block, do_preview_buttons, NULL);
 	
 	/* add buttons */

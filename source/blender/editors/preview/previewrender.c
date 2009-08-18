@@ -113,6 +113,7 @@ typedef struct ShaderPreview {
 	Scene *scene;
 	ID *id;
 	ID *parent;
+	MTex *slot;
 	
 	int sizex, sizey;
 	int *pr_rect;
@@ -364,6 +365,10 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 					Material *mat= give_current_material(base->object, base->object->actcol);
 					if(mat && mat->mtex[0]) {
 						mat->mtex[0]->tex= tex;
+						
+						if(sp && sp->slot)
+							mat->mtex[0]->which_output = sp->slot->which_output;
+						
 						/* show alpha in this case */
 						if(tex==NULL || (tex->flag & TEX_PRV_ALPHA)) {
 							mat->mtex[0]->mapto |= MAP_ALPHA;
@@ -457,13 +462,14 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 	return 0;
 }
 
-void ED_preview_draw(const bContext *C, void *idp, void *parentp, rcti *rect)
+void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, rcti *rect)
 {
 	if(idp) {
 		ScrArea *sa= CTX_wm_area(C);
 		Scene *sce = CTX_data_scene(C);
 		ID *id = (ID *)idp;
 		ID *parent= (ID *)parentp;
+		MTex *slot= (MTex *)slotp;
 		SpaceButs *sbuts= sa->spacedata.first;
 		rcti newrect;
 		int ok;
@@ -491,7 +497,7 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, rcti *rect)
 		}
 		
 		if(ok==0) {
-			ED_preview_shader_job(C, sa, id, parent, newx, newy);
+			ED_preview_shader_job(C, sa, id, parent, slot, newx, newy);
 		}
 	}	
 }
@@ -932,7 +938,7 @@ static void shader_preview_free(void *customdata)
 	MEM_freeN(sp);
 }
 
-void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, int sizex, int sizey)
+void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, MTex *slot, int sizex, int sizey)
 {
 	wmJob *steve;
 	ShaderPreview *sp;
@@ -952,6 +958,7 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, i
 	sp->pr_method= PR_DO_RENDER;
 	sp->id = id;
 	sp->parent= parent;
+	sp->slot= slot;
 	
 	/* setup job */
 	WM_jobs_customdata(steve, sp, shader_preview_free);

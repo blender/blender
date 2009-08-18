@@ -110,6 +110,30 @@ static void rna_TextureSlot_name_get(PointerRNA *ptr, char *str)
 		strcpy(str, "");
 }
 
+static int rna_TextureSlot_output_node_get(PointerRNA *ptr)
+{
+	MTex *mtex= ptr->data;
+	Tex *tex= mtex->tex;
+	int cur= mtex->which_output;
+	
+	if(tex) {
+		bNodeTree *ntree= tex->nodetree;
+		bNode *node;
+		if(ntree) {
+			for(node= ntree->nodes.first; node; node= node->next) {
+				if(node->type == TEX_NODE_OUTPUT) {
+					if(cur == node->custom1)
+						return cur;
+				}
+			}
+		}
+	}
+	
+	mtex->which_output= 0;
+	return 0;
+}
+
+
 static EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	MTex *mtex= ptr->data;
@@ -117,11 +141,9 @@ static EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext *C, PointerR
 	EnumPropertyItem *item= NULL;
 	int totitem= 0;
 	
-	if(tex)
-	{
+	if(tex) {
 		bNodeTree *ntree= tex->nodetree;
-		if(ntree)
-		{
+		if(ntree) {
 			EnumPropertyItem tmp= {0, "", 0, "", ""};
 			bNode *node;
 			
@@ -433,7 +455,7 @@ static void rna_def_mtex(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "output_node", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "which_output");
 	RNA_def_property_enum_items(prop, output_node_items);
-	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_TextureSlot_output_node_itemf");
+	RNA_def_property_enum_funcs(prop, "rna_TextureSlot_output_node_get", NULL, "rna_TextureSlot_output_node_itemf");
 	RNA_def_property_ui_text(prop, "Output Node", "Which output node to use, for node-based textures.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 }
