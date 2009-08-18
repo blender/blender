@@ -411,7 +411,7 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStr
 			
 			/* don't draw if line would end up on or after the end of the strip */
 			if (repeatPos < strip->end)
-				fdrawline(repeatPos, yminc, repeatPos, ymaxc);
+				fdrawline(repeatPos, yminc+4, repeatPos, ymaxc-4);
 		}
 	}
 	/* or if meta-strip, draw lines delimiting extents of sub-strips (in same color as outline, if more than 1 exists) */
@@ -875,6 +875,10 @@ void draw_nla_channel_list (bContext *C, bAnimContext *ac, SpaceNla *snla, ARegi
 		
 		y= (float)(-NLACHANNEL_HEIGHT);
 		
+		/* set blending again, as may not be set in previous step */
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
+		
 		/* loop through channels, and set up drawing depending on their type  */	
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF);
@@ -894,6 +898,8 @@ void draw_nla_channel_list (bContext *C, bAnimContext *ac, SpaceNla *snla, ARegi
 		
 		uiEndBlock(C, block);
 		uiDrawBlock(C, block);
+		
+		glDisable(GL_BLEND);
 	}
 	
 	/* free tempolary channels */

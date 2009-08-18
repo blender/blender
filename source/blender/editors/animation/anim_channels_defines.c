@@ -1902,6 +1902,10 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 		selected= ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_SELECT);
 	else
 		selected= 0;
+		
+	/* set blending again, as may not be set in previous step */
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
 	
 	/* step 1) draw backdrop ...........................................  */
 	if (acf->draw_backdrop)
