@@ -40,7 +40,6 @@ typedef std::vector<SG_Node*> NodeList;
 class SG_Node : public SG_Spatial
 {
 public:
-
 	SG_Node(
 		void* clientobj,
 		void* clientinfo,
@@ -260,6 +259,12 @@ private:
 	 */
 	SG_Node* m_SGparent;
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SG_Node"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__SG_NODE_H

@@ -41,6 +41,13 @@ public:
 
 private:
 	CValue* m_value;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CConstExpr"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif // !defined(AFX_CONSTEXPR_H__061ECFC3_BE87_11D1_A51C_00A02472FC58__INCLUDED_)

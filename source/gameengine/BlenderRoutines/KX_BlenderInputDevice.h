@@ -39,7 +39,9 @@
 #include "WM_types.h"
 #include "SCA_IInputDevice.h"
 
-
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
 
 /**
  Base Class for Blender specific inputdevices. Blender specific inputdevices are used when the gameengine is running in embedded mode instead of standalone mode.
@@ -222,6 +224,12 @@ public:
 //	virtual const SCA_InputEvent&	GetEventValue(SCA_IInputDevice::KX_EnumInputs inputcode)=0;
 	virtual bool	ConvertBlenderEvent(unsigned short incode,short val)=0;
 
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_BlenderInputDevice"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };                                                                                                                 
 #endif //__KX_BLENDERINPUTDEVICE
 

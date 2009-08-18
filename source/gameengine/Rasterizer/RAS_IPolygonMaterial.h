@@ -38,6 +38,10 @@
 #include "MT_Vector3.h"
 #include "STR_HashedString.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class RAS_IRasterizer;
 struct MTFace;
 struct Material;
@@ -82,7 +86,6 @@ protected:
 	unsigned int			m_flag;//MaterialProps
 	int						m_multimode; // sum of values
 public:
-
 	MT_Vector3			m_diffuse;
 	float				m_shininess;
 	MT_Vector3			m_specular;
@@ -165,6 +168,13 @@ public:
 	 * PreCalculate texture gen
 	 */
 	virtual void OnConstruction(int layer){}
+		
+		
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_IPolyMaterial"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 inline  bool operator ==( const RAS_IPolyMaterial & rhs,const RAS_IPolyMaterial & lhs)

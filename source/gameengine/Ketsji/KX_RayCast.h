@@ -89,6 +89,12 @@ public:
 		const MT_Point3& topoint, 
 		KX_RayCast& callback);
 	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_RayCast"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 template<class T> class KX_RayCast::Callback : public KX_RayCast
@@ -121,7 +127,13 @@ public:
 		}
 		return self->NeedRayCast(info);
 	}
-
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_RayCast::Callback"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 	
 

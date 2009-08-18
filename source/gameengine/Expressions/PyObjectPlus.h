@@ -102,7 +102,7 @@ typedef struct {
 
 								// This must be the first line of each 
 								// PyC++ class
-#define Py_Header \
+#define __Py_Header \
  public: \
   static PyTypeObject   Type; \
   static PyMethodDef    Methods[]; \
@@ -110,6 +110,16 @@ typedef struct {
   virtual PyTypeObject *GetType(void) {return &Type;}; \
   virtual PyObject *GetProxy() {return GetProxy_Ext(this, &Type);}; \
   virtual PyObject *NewProxy(bool py_owns) {return NewProxy_Ext(this, &Type, py_owns);}; \
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+#define Py_Header __Py_Header \
+  void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, Type.tp_name); } \
+  void operator delete( void *mem ) { MEM_freeN(mem); } \
+
+#else
+#define Py_Header __Py_Header
+#endif
 
 /*
  * nonzero values are an error for setattr

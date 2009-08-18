@@ -59,7 +59,6 @@ class KX_BoneParentRelation : public SG_ParentRelation
 {
 
 public :
-
 	/**
 	 * Allocate and construct a new KX_SG_BoneParentRelation
 	 * on the heap.
@@ -101,6 +100,12 @@ private :
 	KX_BoneParentRelation(Bone* bone
 	);
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_BoneParentRelation"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

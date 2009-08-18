@@ -37,6 +37,10 @@
 #include <stdlib.h>
 #include "GEN_Map.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 struct DerivedMesh;
 class RAS_MeshObject;
 
@@ -82,6 +86,12 @@ public:
 protected:
 	class RAS_MeshObject	*m_pMesh;
 	bool  m_bDynamic;	
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_Deformer"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

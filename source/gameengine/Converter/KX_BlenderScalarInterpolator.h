@@ -49,6 +49,13 @@ public:
 
 private:
 	struct FCurve *m_fcu;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_ScalarInterpolator"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 
@@ -58,6 +65,13 @@ public:
 	~BL_InterpolatorList();
 
 	KX_IScalarInterpolator *GetScalarInterpolator(char *rna_path, int array_index);	
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_InterpolatorList"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_SCALARINTERPOLATOR_H

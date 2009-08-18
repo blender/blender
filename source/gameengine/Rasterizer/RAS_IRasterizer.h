@@ -43,6 +43,10 @@
 #include <vector>
 using namespace std;
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class RAS_ICanvas;
 class RAS_IPolyMaterial;
 
@@ -57,7 +61,6 @@ typedef vector< KX_IndexArray* > vecIndexArrays;
 class RAS_IRasterizer
 {
 public:
-
 	RAS_IRasterizer(RAS_ICanvas* canv){};
 	virtual ~RAS_IRasterizer(){};
 	/**
@@ -407,6 +410,13 @@ public:
 
 	virtual void	SetBlendingMode(int blendmode)=0;
 	virtual void	SetFrontFace(bool ccw)=0;
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_IRasterizer"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__RAS_IRASTERIZER
