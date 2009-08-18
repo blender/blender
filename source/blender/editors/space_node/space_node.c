@@ -181,9 +181,6 @@ static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
 			if(scene->use_nodes)
 				snode_composite_job(C, sa);
 		}
-		else if(snode->treetype==NTREE_TEXTURE) {
-			ntreeTexUpdatePreviews(snode->nodetree);
-		}
 	}
 }
 
