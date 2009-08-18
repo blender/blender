@@ -56,12 +56,13 @@ void ui_template_fix_linking()
 
 /********************** Header Template *************************/
 
-void uiTemplateHeader(uiLayout *layout, bContext *C)
+void uiTemplateHeader(uiLayout *layout, bContext *C, int menus)
 {
 	uiBlock *block;
 	
 	block= uiLayoutFreeBlock(layout);
-	ED_area_header_standardbuttons(C, block, 0);
+	if(menus) ED_area_header_standardbuttons(C, block, 0);
+	else ED_area_header_switchbutton(C, block, 0);
 }
 
 /********************** Search Callbacks *************************/

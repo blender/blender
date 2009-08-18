@@ -2844,14 +2844,54 @@ const struct ListBase *RNA_function_defined_parameters(FunctionRNA *func)
 ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *ptr, FunctionRNA *func)
 {
 	PropertyRNA *parm;
-	int tot= 0;
+	void *data;
+	int tot= 0, size;
 
+	/* allocate data */
 	for(parm= func->cont.properties.first; parm; parm= parm->next)
 		tot+= rna_parameter_size(parm);
 
 	parms->data= MEM_callocN(tot, "RNA_parameter_list_create");
 	parms->func= func;
 	parms->tot= tot;
+
+	/* set default values */
+	data= parms->data;
+
+	for(parm= func->cont.properties.first; parm; parm= parm->next) {
+		size= rna_parameter_size(parm);
+
+		if(!(parm->flag & PROP_REQUIRED)) {
+			switch(parm->type) {
+				case PROP_BOOLEAN:
+					if(parm->arraylength) memcpy(data, &((BooleanPropertyRNA*)parm)->defaultarray, size);
+					else memcpy(data, &((BooleanPropertyRNA*)parm)->defaultvalue, size);
+					break;
+				case PROP_INT:
+					if(parm->arraylength) memcpy(data, &((IntPropertyRNA*)parm)->defaultarray, size);
+					else memcpy(data, &((IntPropertyRNA*)parm)->defaultvalue, size);
+					break;
+				case PROP_FLOAT:
+					if(parm->arraylength) memcpy(data, &((FloatPropertyRNA*)parm)->defaultarray, size);
+					else memcpy(data, &((FloatPropertyRNA*)parm)->defaultvalue, size);
+					break;
+				case PROP_ENUM:
+					memcpy(data, &((EnumPropertyRNA*)parm)->defaultvalue, size);
+					break;
+				case PROP_STRING: {
+					const char *defvalue= ((StringPropertyRNA*)parm)->defaultvalue;
+					if(defvalue && defvalue[0])
+						memcpy(data, &defvalue, size);
+					break;
+				}
+				case PROP_POINTER:
+				case PROP_COLLECTION:
+					break;
+			}
+		}
+
+		data= ((char*)data) + size;
+	}
 
 	return parms;
 }

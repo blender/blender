@@ -119,7 +119,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func= RNA_def_function(srna, "split", "uiLayoutSplit");
 	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
 	RNA_def_function_return(func, parm);
-	RNA_def_float(func, "percentage", 0.5f, 0.0f, 1.0f, "Percentage", "Percentage of width to split at.", 0.0f, 1.0f);
+	RNA_def_float(func, "percentage", 0.0f, 0.0f, 1.0f, "Percentage", "Percentage of width to split at.", 0.0f, 1.0f);
 
 	/* items */
 	func= RNA_def_function(srna, "itemR", "uiItemR");
@@ -220,6 +220,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	/* templates */
 	func= RNA_def_function(srna, "template_header", "uiTemplateHeader");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_boolean(func, "menus", 1, "", "The header has menus, and should show menu expander.");
 
 	func= RNA_def_function(srna, "template_ID", "uiTemplateID");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);

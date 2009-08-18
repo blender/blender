@@ -625,7 +625,7 @@ uiLayout *uiLayoutSplit(uiLayout *layout, float percentage);
 uiBlock *uiLayoutFreeBlock(uiLayout *layout);
 
 /* templates */
-void uiTemplateHeader(uiLayout *layout, struct bContext *C);
+void uiTemplateHeader(uiLayout *layout, struct bContext *C, int menus);
 void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
 	char *newop, char *unlinkop);
 uiLayout *uiTemplateModifier(uiLayout *layout, struct PointerRNA *ptr);
