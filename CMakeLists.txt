@@ -204,6 +204,7 @@ IF(UNIX AND NOT APPLE)
 
   # Better warnings
   SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wnested-externs -Wdeclaration-after-statement")
+  SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
 
   INCLUDE_DIRECTORIES(${JPEG_INCLUDE_DIR} ${PNG_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} )
 ENDIF(UNIX AND NOT APPLE)
@@ -510,14 +511,8 @@ INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
 
 #-----------------------------------------------------------------------------
 # Extra compile flags
-IF(WITH_GAMEENGINE)
-  SET(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -DGAMEBLENDER ")
-ENDIF(WITH_GAMEENGINE)
-IF(WITH_BULLET)
-  SET(PLATFORM_CFLAGS "${PLATFORM_CFLAGS} -DWITH_BULLET ")
-ENDIF(WITH_BULLET)
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ${C_WARNINGS}")
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ${CXX_WARNINGS}")
 
 #-----------------------------------------------------------------------------
 # Libraries
@@ -537,3 +532,4 @@ ADD_SUBDIRECTORY(source/creator)
 IF(WITH_PLAYER)
   ADD_SUBDIRECTORY(blenderplayer)
 ENDIF(WITH_PLAYER)
+

@@ -591,7 +591,7 @@ CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTreeOverlap
 	ClothModifierData *clmd = ( ClothModifierData * ) md1;
 	CollisionModifierData *collmd = ( CollisionModifierData * ) md2;
 	MFace *face1=NULL, *face2 = NULL;
-#ifdef WITH_BULLET
+#ifdef USE_BULLET
 	ClothVertex *verts1 = clmd->clothObject->verts;
 #endif
 	double distance = 0;
@@ -669,7 +669,7 @@ CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTreeOverlap
 				break;
 		}
 
-#ifdef WITH_BULLET
+#ifdef USE_BULLET
 		// calc distance + normal
 		distance = plNearestPoints (
 			verts1[collpair->ap1].txold, verts1[collpair->ap2].txold, verts1[collpair->ap3].txold, collmd->current_x[collpair->bp1].co, collmd->current_x[collpair->bp2].co, collmd->current_x[collpair->bp3].co, collpair->pa,collpair->pb,collpair->vector );

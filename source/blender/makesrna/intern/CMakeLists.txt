@@ -42,6 +42,10 @@ SET(SRC
 INCLUDE_DIRECTORIES(../../../../intern/guardedalloc .. ../../makesdna ../../blenkernel ../../blenlib ../../windowmanager ../../editors/include ../../imbuf ../../render/extern/include .)
 FILE(GLOB INC_FILES ../*.h ../../makesdna/*.h)
 
+IF(WITH_GAMEENGINE)
+  ADD_DEFINITIONS(-DGAMEBLENDER)
+ENDIF(WITH_GAMEENGINE)
+
 IF(WITH_OPENEXR)
   ADD_DEFINITIONS(-DWITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
