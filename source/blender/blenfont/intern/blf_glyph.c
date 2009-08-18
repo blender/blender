@@ -217,6 +217,7 @@ GlyphBLF *blf_glyph_add(FontBLF *font, FT_UInt index, unsigned int c)
 	g->next= NULL;
 	g->prev= NULL;
 	g->c= c;
+	g->idx= index;
 	g->tex= 0;
 	g->build_tex= 0;
 	g->bitmap= NULL;
@@ -238,6 +239,7 @@ GlyphBLF *blf_glyph_add(FontBLF *font, FT_UInt index, unsigned int c)
 	g->advance= ((float)slot->advance.x) / 64.0f;
 	g->pos_x= slot->bitmap_left;
 	g->pos_y= slot->bitmap_top;
+	g->pitch= slot->bitmap.pitch;
 
 	FT_Outline_Get_CBox(&(slot->outline), &bbox);
 	g->box.xmin= ((float)bbox.xMin) / 64.0f;
