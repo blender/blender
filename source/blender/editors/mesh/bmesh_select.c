@@ -643,28 +643,26 @@ static int unified_findnearest(ViewContext *vc, BMVert **eve, BMEdge **eed, BMFa
 	return (*eve || *eed || *efa);
 }
 
-
 /* ****************  SIMILAR "group" SELECTS. FACE, EDGE AND VERTEX ************** */
 
-/* selects new faces/edges/verts based on the
- existing selection
+/* selects new faces/edges/verts based on the existing selection */
 
-FACES GROUP
- mode 1: same material
- mode 2: same image
- mode 3: same area
- mode 4: same perimeter
- mode 5: same normal
- mode 6: same co-planer
-*/
+/* FACES GROUP */
+
+#define SIMFACE_MATERIAL	201
+#define SIMFACE_IMAGE		202
+#define SIMFACE_AREA		203
+#define SIMFACE_PERIMETER	204
+#define SIMFACE_NORMAL		205
+#define SIMFACE_COPLANAR	206
 
 static EnumPropertyItem prop_simface_types[] = {
-	{1, "MATERIAL", 0, "Material", ""},
-	{2, "IMAGE", 0, "Image", ""},
-	{3, "AREA", 0, "Area", ""},
-	{4, "PERIMETER", 0, "Perimeter", ""},
-	{5, "NORMAL", 0, "Normal", ""},
-	{6, "COPLANAR", 0, "Co-planar", ""},
+	{SIMFACE_MATERIAL, "MATERIAL", 0, "Material", ""},
+	{SIMFACE_IMAGE, "IMAGE", 0, "Image", ""},
+	{SIMFACE_AREA, "AREA", 0, "Area", ""},
+	{SIMFACE_PERIMETER, "PERIMETER", 0, "Perimeter", ""},
+	{SIMFACE_NORMAL, "NORMAL", 0, "Normal", ""},
+	{SIMFACE_COPLANAR, "COPLANAR", 0, "Co-planar", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -673,10 +671,10 @@ static EnumPropertyItem prop_simface_types[] = {
 *0.5 so smaller faces arnt ALWAYS selected with a thresh of 1.0 */
 #define SCALE_CMP(a,b) ((a+a*thresh >= b) && (a-(a*thresh*0.5) <= b))
 
-static int similar_face_select__internal(Scene *scene, BMEditMesh *em, int mode)
+static int similar_face_select__internal(Scene *scene, EditMesh *em, int mode)
 {
-#if 0 //BMESH_TODO
-	BMFace *efa, *base_efa=NULL;
+#if 0
+	EditFace *efa, *base_efa=NULL;
 	unsigned int selcount=0; /*count how many new faces we select*/
 	
 	/*deselcount, count how many deselected faces are left, so we can bail out early
@@ -700,12 +698,11 @@ static int similar_face_select__internal(Scene *scene, BMEditMesh *em, int mode)
 	if (!ok || !deselcount) /* no data selected OR no more data to select */
 		return 0;
 	
-	/*if mode is 3 then record face areas, 4 record perimeter */
-	if (mode==3) {
+	if (mode==SIMFACE_AREA) {
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			efa->tmp.fp= EM_face_area(efa);
 		}
-	} else if (mode==4) {
+	} else if (mode==SIMFACE_PERIMETER) {
 		for(efa= em->faces.first; efa; efa= efa->next) {
 			efa->tmp.fp= EM_face_perimeter(efa);
 		}
@@ -713,7 +710,7 @@ static int similar_face_select__internal(Scene *scene, BMEditMesh *em, int mode)
 	
 	for(base_efa= em->faces.first; base_efa; base_efa= base_efa->next) {
 		if (base_efa->f1) { /* This was one of the faces originaly selected */
-			if (mode==1) { /* same material */
+			if (mode==SIMFACE_MATERIAL) { /* same material */
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if (
 						!(efa->f & SELECT) &&
@@ -727,7 +724,7 @@ static int similar_face_select__internal(Scene *scene, BMEditMesh *em, int mode)
 							return selcount;
 					}
 				}
-			} else if (mode==2) { /* same image */
+			} else if (mode==SIMFACE_IMAGE) { /* same image */
 				MTFace *tf, *base_tf;
 
 				base_tf = (MTFace*)CustomData_em_get(&em->fdata, base_efa->data,
@@ -750,7 +747,7 @@ static int similar_face_select__internal(Scene *scene, BMEditMesh *em, int mode)
 						}
 					}
 				}
-			} else if (mode==3 || mode==4) { /* same area OR same perimeter, both use the same temp var */
+			} else if (mode==SIMFACE_AREA || mode==SIMFACE_PERIMETER) { /* same area OR same perimeter, both use the same temp var */
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if (
 						(!(efa->f & SELECT) && !efa->h) &&
@@ -763,7 +760,7 @@ static int similar_face_select__internal(Scene *scene, BMEditMesh *em, int mode)
 							return selcount;
 					}
 				}
-			} else if (mode==5) { /* same normal */
+			} else if (mode==SIMFACE_NORMAL) {
 				float angle;
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if (!(efa->f & SELECT) && !efa->h) {
@@ -777,7 +774,7 @@ static int similar_face_select__internal(Scene *scene, BMEditMesh *em, int mode)
 						}
 					}
 				}
-			} else if (mode==6) { /* same planer */
+			} else if (mode==SIMFACE_COPLANAR) { /* same planer */
 				float angle, base_dot, dot;
 				base_dot= Inpf(base_efa->cent, base_efa->n);
 				for(efa= em->faces.first; efa; efa= efa->next) {
@@ -800,6 +797,506 @@ static int similar_face_select__internal(Scene *scene, BMEditMesh *em, int mode)
 	} /* end base_efa loop */
 	return selcount;
 #endif
+}
+
+static int similar_face_select_exec(bContext *C, wmOperator *op)
+{
+#if 0
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	Mesh *me= obedit->data;
+	EditMesh *em= BKE_mesh_get_editmesh(me); 
+
+	int selcount = similar_face_select__internal(scene, em, RNA_int_get(op->ptr, "type"));
+	
+	if (selcount) {
+		/* here was an edge-mode only select flush case, has to be generalized */
+		EM_selectmode_flush(em);
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+		BKE_mesh_end_editmesh(me, em);
+		return OPERATOR_FINISHED;
+	}
+	
+	BKE_mesh_end_editmesh(me, em);
+#endif
+	return OPERATOR_CANCELLED;
+}	
+
+/* ***************************************************** */
+
+/* EDGE GROUP */
+
+#define SIMEDGE_LENGTH		101
+#define SIMEDGE_DIR			102
+#define SIMEDGE_FACE		103
+#define SIMEDGE_FACE_ANGLE	104
+#define SIMEDGE_CREASE		105
+#define SIMEDGE_SEAM		106
+#define SIMEDGE_SHARP		107
+
+static EnumPropertyItem prop_simedge_types[] = {
+	{SIMEDGE_LENGTH, "LENGTH", 0, "Length", ""},
+	{SIMEDGE_DIR, "DIR", 0, "Direction", ""},
+	{SIMEDGE_FACE, "FACE", 0, "Amount of Vertices in Face", ""},
+	{SIMEDGE_FACE_ANGLE, "FACE_ANGLE", 0, "Face Angles", ""},
+	{SIMEDGE_CREASE, "CREASE", 0, "Crease", ""},
+	{SIMEDGE_SEAM, "SEAM", 0, "Seam", ""},
+	{SIMEDGE_SHARP, "SHARP", 0, "Sharpness", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static int similar_edge_select__internal(Scene *scene, EditMesh *em, int mode)
+{
+#if 0
+	EditEdge *eed, *base_eed=NULL;
+	unsigned int selcount=0; /* count how many new edges we select*/
+	
+	/*count how many visible selected edges there are,
+	so we can return when there are none left */
+	unsigned int deselcount=0;
+	
+	short ok=0;
+	float thresh= scene->toolsettings->select_thresh;
+	
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		if (!eed->h) {
+			if (eed->f & SELECT) {
+				eed->f1=1;
+				ok=1;
+			} else {
+				eed->f1=0;
+				deselcount++;
+			}
+			/* set all eed->tmp.l to 0 we use it later.
+			for counting face users*/
+			eed->tmp.l=0;
+			eed->f2=0; /* only for mode SIMEDGE_FACE_ANGLE, edge animations */
+		}
+	}
+	
+	if (!ok || !deselcount) /* no data selected OR no more data to select*/
+		return 0;
+	
+	if (mode==SIMEDGE_LENGTH) { /*store length*/
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if (!eed->h) /* dont calc data for hidden edges*/
+				eed->tmp.fp= VecLenf(eed->v1->co, eed->v2->co);
+		}
+	} else if (mode==SIMEDGE_FACE) { /*store face users*/
+		EditFace *efa;
+		/* cound how many faces each edge uses use tmp->l */
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			efa->e1->tmp.l++;
+			efa->e2->tmp.l++;
+			efa->e3->tmp.l++;
+			if (efa->e4) efa->e4->tmp.l++;
+		}
+	} else if (mode==SIMEDGE_FACE_ANGLE) { /*store edge angles */
+		EditFace *efa;
+		int j;
+		/* cound how many faces each edge uses use tmp.l */
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			/* here we use the edges temp data to assign a face
+			if a face has alredy been assigned (eed->f2==1)
+			we calculate the angle between the current face and
+			the edges previously found face.
+			store the angle in eed->tmp.fp (loosing the face eed->tmp.f)
+			but tagging eed->f2==2, so we know not to look at it again.
+			This only works for edges that connect to 2 faces. but its good enough
+			*/
+			
+			/* se we can loop through face edges*/
+			j=0;
+			eed= efa->e1;
+			while (j<4) {
+				if (j==1) eed= efa->e2;
+				else if (j==2) eed= efa->e3;
+				else if (j==3) {
+					eed= efa->e4;
+					if (!eed)
+						break;
+				} /* done looping */
+				
+				if (!eed->h) { /* dont calc data for hidden edges*/
+					if (eed->f2==2)
+						break;
+					else if (eed->f2==0) /* first access, assign the face */
+						eed->tmp.f= efa;
+					else if (eed->f2==1) /* second, we assign the angle*/
+						eed->tmp.fp= VecAngle2(eed->tmp.f->n, efa->n)/180;
+					eed->f2++; /* f2==0 no face assigned. f2==1 one face found. f2==2 angle calculated.*/
+				}
+				j++;
+			}
+		}
+	}
+	
+	for(base_eed= em->edges.first; base_eed; base_eed= base_eed->next) {
+		if (base_eed->f1) {
+			if (mode==SIMEDGE_LENGTH) { /* same length */
+				for(eed= em->edges.first; eed; eed= eed->next) {
+					if (
+						!(eed->f & SELECT) &&
+						!eed->h &&
+						SCALE_CMP(base_eed->tmp.fp, eed->tmp.fp)
+					) {
+						EM_select_edge(eed, 1);
+						selcount++;
+						deselcount--;
+						if (!deselcount) /*have we selected all posible faces?, if so return*/
+							return selcount;
+					}
+				}
+			} else if (mode==SIMEDGE_DIR) { /* same direction */
+				float base_dir[3], dir[3], angle;
+				VecSubf(base_dir, base_eed->v1->co, base_eed->v2->co);
+				for(eed= em->edges.first; eed; eed= eed->next) {
+					if (!(eed->f & SELECT) && !eed->h) {
+						VecSubf(dir, eed->v1->co, eed->v2->co);
+						angle= VecAngle2(base_dir, dir);
+						
+						if (angle>90) /* use the smallest angle between the edges */
+							angle= fabs(angle-180.0f);
+						
+						if (angle/90.0<=thresh) {
+							EM_select_edge(eed, 1);
+							selcount++;
+							deselcount--;
+							if (!deselcount) /*have we selected all posible faces?, if so return*/
+								return selcount;
+						}
+					}
+				}
+			} else if (mode==SIMEDGE_FACE) { /* face users */				
+				for(eed= em->edges.first; eed; eed= eed->next) {
+					if (
+						!(eed->f & SELECT) &&
+						!eed->h &&
+						base_eed->tmp.l==eed->tmp.l
+					) {
+						EM_select_edge(eed, 1);
+						selcount++;
+						deselcount--;
+						if (!deselcount) /*have we selected all posible faces?, if so return*/
+							return selcount;
+					}
+				}
+			} else if (mode==SIMEDGE_FACE_ANGLE && base_eed->f2==2) { /* edge angles, f2==2 means the edge has an angle. */				
+				for(eed= em->edges.first; eed; eed= eed->next) {
+					if (
+						!(eed->f & SELECT) &&
+						!eed->h &&
+						eed->f2==2 &&
+						(fabs(base_eed->tmp.fp-eed->tmp.fp)<=thresh)
+					) {
+						EM_select_edge(eed, 1);
+						selcount++;
+						deselcount--;
+						if (!deselcount) /*have we selected all posible faces?, if so return*/
+							return selcount;
+					}
+				}
+			} else if (mode==SIMEDGE_CREASE) { /* edge crease */
+				for(eed= em->edges.first; eed; eed= eed->next) {
+					if (
+						!(eed->f & SELECT) &&
+						!eed->h &&
+						(fabs(base_eed->crease-eed->crease) <= thresh)
+					) {
+						EM_select_edge(eed, 1);
+						selcount++;
+						deselcount--;
+						if (!deselcount) /*have we selected all posible faces?, if so return*/
+							return selcount;
+					}
+				}
+			} else if (mode==SIMEDGE_SEAM) { /* edge seam */
+				for(eed= em->edges.first; eed; eed= eed->next) {
+					if (
+						!(eed->f & SELECT) &&
+						!eed->h &&
+						(eed->seam == base_eed->seam)
+					) {
+						EM_select_edge(eed, 1);
+						selcount++;
+						deselcount--;
+						if (!deselcount) /*have we selected all posible faces?, if so return*/
+							return selcount;
+					}
+				}
+			} else if (mode==SIMEDGE_SHARP) { /* edge sharp */
+				for(eed= em->edges.first; eed; eed= eed->next) {
+					if (
+						!(eed->f & SELECT) &&
+						!eed->h &&
+						(eed->sharp == base_eed->sharp)
+					) {
+						EM_select_edge(eed, 1);
+						selcount++;
+						deselcount--;
+						if (!deselcount) /*have we selected all posible faces?, if so return*/
+							return selcount;
+					}
+				}
+			}
+		}
+	}	
+	return selcount;
+#endif
+}
+/* wrap the above function but do selection flushing edge to face */
+static int similar_edge_select_exec(bContext *C, wmOperator *op)
+{
+#if 0
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	Mesh *me= obedit->data;
+	EditMesh *em= BKE_mesh_get_editmesh(me); 
+
+	int selcount = similar_edge_select__internal(scene, em, RNA_int_get(op->ptr, "type"));
+	
+	if (selcount) {
+		/* here was an edge-mode only select flush case, has to be generalized */
+		EM_selectmode_flush(em);
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+		BKE_mesh_end_editmesh(me, em);
+		return OPERATOR_FINISHED;
+	}
+	
+	BKE_mesh_end_editmesh(me, em);
+	return OPERATOR_CANCELLED;
+#endif
+}
+
+/* ********************************* */
+
+/*
+VERT GROUP
+ mode 1: same normal
+ mode 2: same number of face users
+ mode 3: same vertex groups
+*/
+
+#define SIMVERT_NORMAL	0
+#define SIMVERT_FACE	1
+#define SIMVERT_VGROUP	2
+
+static EnumPropertyItem prop_simvertex_types[] = {
+	{SIMVERT_NORMAL, "NORMAL", 0, "Normal", ""},
+	{SIMVERT_FACE, "FACE", 0, "Amount of Vertices in Face", ""},
+	{SIMVERT_VGROUP, "VGROUP", 0, "Vertex Groups", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+
+static int similar_vert_select_exec(bContext *C, wmOperator *op)
+{
+#if 0
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	Mesh *me= obedit->data;
+	EditMesh *em= BKE_mesh_get_editmesh(me); 
+	EditVert *eve, *base_eve=NULL;
+	unsigned int selcount=0; /* count how many new edges we select*/
+	
+	/*count how many visible selected edges there are,
+	so we can return when there are none left */
+	unsigned int deselcount=0;
+	int mode= RNA_enum_get(op->ptr, "type");
+	
+	short ok=0;
+	float thresh= scene->toolsettings->select_thresh;
+	
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		if (!eve->h) {
+			if (eve->f & SELECT) {
+				eve->f1=1;
+				ok=1;
+			} else {
+				eve->f1=0;
+				deselcount++;
+			}
+			/* set all eve->tmp.l to 0 we use them later.*/
+			eve->tmp.l=0;
+		}
+		
+	}
+	
+	if (!ok || !deselcount) { /* no data selected OR no more data to select*/
+		BKE_mesh_end_editmesh(me, em);
+		return 0;
+	}
+	
+	if(mode == SIMVERT_FACE) {
+		/* store face users */
+		EditFace *efa;
+		
+		/* count how many faces each edge uses use tmp->l */
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			efa->v1->tmp.l++;
+			efa->v2->tmp.l++;
+			efa->v3->tmp.l++;
+			if (efa->v4) efa->v4->tmp.l++;
+		}
+	}
+	
+	
+	for(base_eve= em->verts.first; base_eve; base_eve= base_eve->next) {
+		if (base_eve->f1) {
+				
+			if(mode == SIMVERT_NORMAL) {
+				float angle;
+				for(eve= em->verts.first; eve; eve= eve->next) {
+					if (!(eve->f & SELECT) && !eve->h) {
+						angle= VecAngle2(base_eve->no, eve->no);
+						if (angle/180.0<=thresh) {
+							eve->f |= SELECT;
+							selcount++;
+							deselcount--;
+							if (!deselcount) {/*have we selected all posible faces?, if so return*/
+								BKE_mesh_end_editmesh(me, em);
+								return selcount;
+							}
+						}
+					}
+				}
+			}
+			else if(mode == SIMVERT_FACE) {
+				for(eve= em->verts.first; eve; eve= eve->next) {
+					if (
+						!(eve->f & SELECT) &&
+						!eve->h &&
+						base_eve->tmp.l==eve->tmp.l
+					) {
+						eve->f |= SELECT;
+						selcount++;
+						deselcount--;
+						if (!deselcount) {/*have we selected all posible faces?, if so return*/
+							BKE_mesh_end_editmesh(me, em);
+							return selcount;
+						}
+					}
+				}
+			} 
+			else if(mode == SIMVERT_VGROUP) {
+				MDeformVert *dvert, *base_dvert;
+				short i, j; /* weight index */
+
+				base_dvert= CustomData_em_get(&em->vdata, base_eve->data,
+					CD_MDEFORMVERT);
+
+				if (!base_dvert || base_dvert->totweight == 0) {
+					BKE_mesh_end_editmesh(me, em);
+					return selcount;
+				}
+				
+				for(eve= em->verts.first; eve; eve= eve->next) {
+					dvert= CustomData_em_get(&em->vdata, eve->data,
+						CD_MDEFORMVERT);
+
+					if (dvert && !(eve->f & SELECT) && !eve->h && dvert->totweight) {
+						/* do the extra check for selection in the following if, so were not
+						checking verts that may be alredy selected */
+						for (i=0; base_dvert->totweight >i && !(eve->f & SELECT); i++) { 
+							for (j=0; dvert->totweight >j; j++) {
+								if (base_dvert->dw[i].def_nr==dvert->dw[j].def_nr) {
+									eve->f |= SELECT;
+									selcount++;
+									deselcount--;
+									if (!deselcount) { /*have we selected all posible faces?, if so return*/
+										BKE_mesh_end_editmesh(me, em);
+										return selcount;
+									}
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	} /* end basevert loop */
+
+	if(selcount) {
+		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+		BKE_mesh_end_editmesh(me, em);
+		return OPERATOR_FINISHED;
+	}
+
+	BKE_mesh_end_editmesh(me, em);
+#endif
+	return OPERATOR_CANCELLED;
+}
+
+static int select_similar_exec(bContext *C, wmOperator *op)
+{
+	int type= RNA_enum_get(op->ptr, "type");
+
+	if(type < 100)
+		return similar_vert_select_exec(C, op);
+	else if(type < 200)
+		return similar_edge_select_exec(C, op);
+	else
+		return similar_face_select_exec(C, op);
+}
+
+static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	Object *obedit;
+	EnumPropertyItem *item= NULL;
+	int totitem= 0;
+	
+	if(C==NULL) {
+		/* needed for doc generation */
+		RNA_enum_items_add(&item, &totitem, prop_simvertex_types);
+		RNA_enum_items_add(&item, &totitem, prop_simedge_types);
+		RNA_enum_items_add(&item, &totitem, prop_simface_types);
+		RNA_enum_item_end(&item, &totitem);
+		*free= 1;
+		
+		return item;
+	}
+	
+	obedit= CTX_data_edit_object(C);
+	
+	if(obedit && obedit->type == OB_MESH) {
+		EditMesh *em= BKE_mesh_get_editmesh(obedit->data); 
+
+		if(em->selectmode & SCE_SELECT_VERTEX)
+			RNA_enum_items_add(&item, &totitem, prop_simvertex_types);
+		else if(em->selectmode & SCE_SELECT_EDGE)
+			RNA_enum_items_add(&item, &totitem, prop_simedge_types);
+		else if(em->selectmode & SCE_SELECT_FACE)
+			RNA_enum_items_add(&item, &totitem, prop_simface_types);
+		RNA_enum_item_end(&item, &totitem);
+
+		*free= 1;
+
+		return item;
+	}
+	
+	return NULL;
+}
+
+void MESH_OT_select_similar(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name= "Select Similar";
+	ot->idname= "MESH_OT_select_similar";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= select_similar_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "type", prop_simvertex_types, 0, "Type", "");
+	RNA_def_enum_funcs(prop, select_similar_type_itemf);
 }
 
 /* ***************************************************** */

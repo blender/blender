@@ -1311,7 +1311,7 @@ void *cddm_faceiter_getcddata(void *self, int type, int layer)
 
 void *cddm_loopiter_getcddata(void *self, int type, int layer)
 {
-	CDDM_FaceIter *iter = self;
+	CDDM_LoopIter *iter = self;
 
 	if (layer == -1) return CustomData_get(&iter->cddm->dm.loopData, 
 		                               iter->head.index, type);
@@ -1321,13 +1321,13 @@ void *cddm_loopiter_getcddata(void *self, int type, int layer)
 
 void *cddm_loopiter_getvertcddata(void *self, int type, int layer)
 {
-	CDDM_FaceIter *iter = self;
+	CDDM_LoopIter *iter = self;
 
 	if (layer == -1) return CustomData_get(&iter->cddm->dm.vertData, 
-		                               iter->cddm->mloop[iter->head.index].v,
+		                               iter->cddm->mloop[iter->head.vindex].v,
 					       type);
 	else return CustomData_get_n(&iter->cddm->dm.vertData, type, 
-	                             iter->cddm->mloop[iter->head.index].v, layer);
+	                             iter->cddm->mloop[iter->head.vindex].v, layer);
 }
 
 DMLoopIter *cddmiter_get_loopiter(void *self)
@@ -1406,8 +1406,6 @@ DerivedMesh *CDDM_copy(DerivedMesh *source)
 	CustomData_copy_data(&source->vertData, &dm->vertData, 0, 0, numVerts);
 	CustomData_copy_data(&source->edgeData, &dm->edgeData, 0, 0, numEdges);
 	CustomData_copy_data(&source->faceData, &dm->faceData, 0, 0, numFaces);
-	CustomData_copy_data(&source->loopData, &dm->loopData, 0, 0, numLoops);
-	CustomData_copy_data(&source->polyData, &dm->polyData, 0, 0, numPolys);
 
 	/* now add mvert/medge/mface layers */
 	cddm->mvert = source->dupVertArray(source);

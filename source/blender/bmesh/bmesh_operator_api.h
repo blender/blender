@@ -195,6 +195,10 @@ BMOpSlot *BMO_GetSlot(struct BMOperator *op, char *slotname);
 void BMO_CopySlot(struct BMOperator *source_op, struct BMOperator *dest_op, 
                   char *src, char *dst);
 
+/*remove tool flagged elements*/
+void BM_remove_tagged_faces(struct BMesh *bm, int flag);
+void BM_remove_tagged_edges(struct BMesh *bm, int flag);
+void BM_remove_tagged_verts(struct BMesh *bm, int flag);
 
 void BMO_Set_Float(struct BMOperator *op, char *slotname, float f);
 float BMO_Get_Float(BMOperator *op, char *slotname);

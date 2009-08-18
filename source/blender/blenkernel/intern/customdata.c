@@ -1465,6 +1465,16 @@ void CustomData_set_only_copy(const struct CustomData *data,
 			data->layers[i].flag |= CD_FLAG_NOCOPY;
 }
 
+void CustomData_copy_elements(int type, void *source, void *dest, int count)
+{
+	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
+
+	if (typeInfo->copy)
+		typeInfo->copy(source, dest, count);
+	else
+		memcpy(dest, source, typeInfo->size*count);
+}
+
 void CustomData_copy_data(const CustomData *source, CustomData *dest,
                           int source_index, int dest_index, int count)
 {

@@ -282,27 +282,75 @@ void dm_add_polys_from_iter(CustomData *ldata, CustomData *pdata, DerivedMesh *d
 {
 	DMFaceIter *iter = dm->newFaceIter(dm);
 	DMLoopIter *liter;
+	CustomData *oldata, *opdata;
 	MPoly *mpoly;
 	MLoop *mloop;
-	int i;
+	int l, i, j, lasttype;
+
+	oldata = dm->getLoopDataLayout(dm);
+	opdata = dm->getFaceDataLayout(dm);
+
+	CustomData_copy(oldata, ldata, CD_MASK_DERIVEDMESH, CD_CALLOC, totloop);
+	CustomData_copy(opdata, pdata, CD_MASK_DERIVEDMESH, CD_CALLOC, dm->getNumFaces(dm));
 
 	mloop = MEM_callocN(sizeof(MLoop)*totloop, "MLoop from dm_add_polys_from_iter");
-	mpoly = MEM_callocN(sizeof(MPoly)*dm->getNumFaces(dm), "MPoly from dm_add_polys_from_iter");
-	
 	CustomData_add_layer(ldata, CD_MLOOP, CD_ASSIGN, mloop, totloop);
+	mpoly = MEM_callocN(sizeof(MPoly)*dm->getNumFaces(dm), "MPoly from dm_add_polys_from_iter");
 	CustomData_add_layer(pdata, CD_MPOLY, CD_ASSIGN, mpoly, dm->getNumFaces(dm));
 
-	i = 0;
+	l = 0;
 	for (; !iter->done; iter->step(iter), mpoly++) {
 		mpoly->flag = iter->flags;
-		mpoly->loopstart = i;
+		mpoly->loopstart = l;
 		mpoly->totloop = iter->len;
 		mpoly->mat_nr = iter->mat_nr;
 		
+		j = 0;
+		lasttype = -1;
+		for (i=0; i<opdata->totlayer; i++) {
+			void *e1, *e2;
+
+			if (opdata->layers[i].type == CD_MPOLY)
+				continue;
+			
+			e1 = iter->getCDData(iter, opdata->layers[i].type, j);
+			e2 = CustomData_get_layer_n(pdata, opdata->layers[i].type, j);
+
+			CustomData_copy_elements(opdata->layers[i].type, e1, e2, 1);
+			
+			if (opdata->layers[i].type == lasttype)
+				j++;
+			else
+				j = 0;
+
+			lasttype = opdata->layers[i].type;				
+		}
+
 		liter = iter->getLoopsIter(iter);
-		for (; !liter->done; liter->step(liter), mloop++, i++) {
+		for (; !liter->done; liter->step(liter), mloop++, l++) {
 			mloop->v = liter->vindex;
 			mloop->e = liter->eindex;
+
+			j = 0;
+			lasttype = -1;
+			for (i=0; i<oldata->totlayer; i++) {
+				void *e1, *e2;
+
+				if (oldata->layers[i].type == CD_MLOOP)
+					continue;
+				
+				e1 = liter->getLoopCDData(liter, oldata->layers[i].type, j);
+				e2 = CustomData_get_layer_n(ldata, oldata->layers[i].type, j);
+
+				CustomData_copy_elements(oldata->layers[i].type, e1, e2, 1);
+				
+				if (oldata->layers[i].type == lasttype)
+					j++;
+				else
+					j = 0;
+
+				lasttype = oldata->layers[i].type;				
+			}
 		}
 	}
 	iter->free(iter);
@@ -312,33 +360,21 @@ void DM_DupPolys(DerivedMesh *source, DerivedMesh *target)
 {
 	DMFaceIter *iter = source->newFaceIter(source);
 	DMLoopIter *liter;
-	MPoly *mpoly;
-	MLoop *mloop;
-	int i;
+	int totloop = 0;
 
-	mloop = MEM_callocN(sizeof(MLoop)*source->numLoopData, "MLoop from dm_add_polys_from_iter");
-	mpoly = MEM_callocN(sizeof(MPoly)*source->getNumFaces(source), "MPoly from dm_add_polys_from_iter");
-	
-	CustomData_add_layer(&target->loopData, CD_MLOOP, CD_ASSIGN, mloop, source->numLoopData);
-	CustomData_add_layer(&target->polyData, CD_MPOLY, CD_ASSIGN, mpoly, source->getNumFaces(source));
-	
-	target->numLoopData = source->numLoopData;
-	target->numPolyData = source->numPolyData;
-
-	i = 0;
-	for (; !iter->done; iter->step(iter), mpoly++) {
-		mpoly->flag = iter->flags;
-		mpoly->loopstart = i;
-		mpoly->totloop = iter->len;
-		mpoly->mat_nr = iter->mat_nr;
-		
+	for (; !iter->done; iter->step(iter)) {
 		liter = iter->getLoopsIter(iter);
-		for (; !liter->done; liter->step(liter), mloop++, i++) {
-			mloop->v = liter->vindex;
-			mloop->e = liter->eindex;
+		for (; !liter->done; liter->step(liter)) {
+			totloop++;
 		}
 	}
+
 	iter->free(iter);
+
+	dm_add_polys_from_iter(&target->loopData, &target->polyData, source, totloop);
+
+	target->numLoopData = totloop;
+	target->numPolyData = source->getNumFaces(source);
 }
 
 void DM_to_mesh(DerivedMesh *dm, Mesh *me)
@@ -1044,7 +1080,7 @@ static void emDM_drawFacesTex_common(void *dm,
 	}
 }
 
-static void emDM_drawFacesTex(void *dm, int (*setDrawOptions)(MTFace *tface, MCol *mcol, int matnr))
+static void emDM_drawFacesTex(void *dm, int (*setDrawOptions)(MTFace *tface, int has_vcol, int matnr))
 {
 	emDM_drawFacesTex_common(dm, setDrawOptions, NULL, NULL);
 }

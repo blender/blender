@@ -275,6 +275,9 @@ typedef struct EditDerivedBMesh {
 	/*private variables, for number of verts/edges/faces
 	  within the above hash/table members*/
 	int tv, te, tf;
+
+	/*customdata layout of the tesselated faces*/
+	CustomData tessface_layout;
 } EditDerivedBMesh;
 
 static void bmdm_recalc_lookups(EditDerivedBMesh *bmdm)
@@ -1312,6 +1315,8 @@ void bmDM_faceIterStep(void *self)
 	iter->head.flags = BMFlags_To_MEFlags(iter->f);
 	iter->head.index++;
 
+	iter->head.len = iter->f->len;
+
 	iter->nextf = BMIter_Step(&iter->iter);
 
 	if (!iter->nextf) iter->head.done = 1;
@@ -1330,16 +1335,16 @@ void bmDM_loopIterStep(void *self)
 {
 	bmDM_loopIter *iter = self;
 
-	iter->l = iter->nextl;
+	iter->l = BMIter_Step(&iter->iter);
+	if (!iter->l) {
+		iter->head.done = 1;
+		return;
+	}
 
 	bmvert_to_mvert(iter->l->v, &iter->head.v);
 	iter->head.index++;
 	iter->head.vindex = BMINDEX_GET(iter->l->v);
 	iter->head.eindex = BMINDEX_GET(iter->l->e);
-
-	iter->nextl = BMIter_Step(&iter->iter);
-
-	if (!iter->nextl) iter->head.done = 1;
 }
 
 void *bmDM_getLoopCDData(void *self, int type, int layer)
@@ -1378,15 +1383,15 @@ DMLoopIter *bmDM_newLoopsIter(void *faceiter)
 
 	iter->bm = fiter->bm;
 	iter->f = fiter->f;
-	iter->nextl = BMIter_New(&iter->iter, iter->bm, BM_LOOPS_OF_FACE, iter->f);
+	iter->l = BMIter_New(&iter->iter, iter->bm, BM_LOOPS_OF_FACE, iter->f);
 
 	iter->head.step = bmDM_loopIterStep;
 	iter->head.getLoopCDData = bmDM_getLoopCDData;
 	iter->head.getVertCDData = bmDM_getVertCDData;
 
-	bmvert_to_mvert(iter->nextl->v, &iter->head.v);
-	iter->head.vindex = BMINDEX_GET(iter->nextl->v);
-	iter->head.eindex = BMINDEX_GET(iter->nextl->e);
+	bmvert_to_mvert(iter->l->v, &iter->head.v);
+	iter->head.vindex = BMINDEX_GET(iter->l->v);
+	iter->head.eindex = BMINDEX_GET(iter->l->e);
 
 	return (DMLoopIter*) iter;
 }
@@ -1450,18 +1455,75 @@ static void bmDM_release(void *dm)
 	}
 }
 
+CustomData *bmDm_getVertDataLayout(DerivedMesh *dm)
+{
+	EditDerivedBMesh *bmdm = (EditDerivedBMesh*)dm;
+
+	return &bmdm->tc->bm->vdata;
+}
+
+CustomData *bmDm_getEdgeDataLayout(DerivedMesh *dm)
+{
+	EditDerivedBMesh *bmdm = (EditDerivedBMesh*)dm;
+
+	return &bmdm->tc->bm->edata;
+}
+
+CustomData *bmDm_getTessFaceDataLayout(DerivedMesh *dm)
+{
+	EditDerivedBMesh *bmdm = (EditDerivedBMesh*)dm;
+
+	return &bmdm->tessface_layout;
+}
+
+CustomData *bmDm_getLoopDataLayout(DerivedMesh *dm)
+{
+	EditDerivedBMesh *bmdm = (EditDerivedBMesh*)dm;
+
+	return &bmdm->tc->bm->ldata;
+}
+
+CustomData *bmDm_getFaceDataLayout(DerivedMesh *dm)
+{
+	EditDerivedBMesh *bmdm = (EditDerivedBMesh*)dm;
+
+	return &bmdm->tc->bm->pdata;
+}
+
+
 DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *ob,
                                            float (*vertexCos)[3])
 {
 	EditDerivedBMesh *bmdm = MEM_callocN(sizeof(*bmdm), "bmdm");
 	BMesh *bm = em->bm;
-
+	int i;
+	
 	bmdm->tc = em;
 
 	DM_init((DerivedMesh*)bmdm, em->bm->totvert, em->bm->totedge, em->tottri,
 		 em->bm->totloop, em->bm->totface);
+	
+	for (i=0; i<bm->ldata.totlayer; i++) {
+		if (bm->ldata.layers[i].type == CD_MLOOPCOL) {
+			CustomData_add_layer(&bmdm->tessface_layout, CD_MCOL, CD_ASSIGN, NULL, 0);
+		} else if (bm->ldata.layers[i].type == CD_MLOOPUV) {
+			CustomData_add_layer(&bmdm->tessface_layout, CD_MTFACE, CD_ASSIGN, NULL, 0);
+		}
+	}
+
+	bmdm->dm.numVertData = bm->totvert;
+	bmdm->dm.numEdgeData = bm->totedge;
+	bmdm->dm.numFaceData = em->tottri;
+	bmdm->dm.numLoopData = bm->totloop;
+	bmdm->dm.numPolyData = bm->totface;
 
 	bmdm->dm.getMinMax = bmDM_getMinMax;
+
+	bmdm->dm.getVertDataLayout = bmDm_getVertDataLayout;
+	bmdm->dm.getEdgeDataLayout = bmDm_getEdgeDataLayout;
+	bmdm->dm.getTessFaceDataLayout = bmDm_getTessFaceDataLayout;
+	bmdm->dm.getLoopDataLayout = bmDm_getLoopDataLayout;
+	bmdm->dm.getFaceDataLayout = bmDm_getFaceDataLayout;
 
 	bmdm->dm.getNumVerts = bmDM_getNumVerts;
 	bmdm->dm.getNumEdges = bmDM_getNumEdges;

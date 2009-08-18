@@ -162,12 +162,13 @@ void CustomData_set_only_copy(const struct CustomData *data,
 void CustomData_copy_data(const struct CustomData *source,
                           struct CustomData *dest, int source_index,
                           int dest_index, int count);
+void CustomData_copy_elements(int type, void *source, void *dest, int count);
 void CustomData_em_copy_data(const struct CustomData *source,
                             struct CustomData *dest, void *src_block,
                             void **dest_block);
 void CustomData_bmesh_copy_data(const struct CustomData *source, 
-							struct CustomData *dest,void *src_block, 
-							void **dest_block);
+				struct CustomData *dest, void *src_block, 
+				void **dest_block);
 
 /* frees data in a CustomData object
  * return 1 on success, 0 on failure

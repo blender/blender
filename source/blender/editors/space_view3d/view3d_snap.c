@@ -217,7 +217,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 
 			eed = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
 			for (; eed; eed=BMIter_Step(&iter)) {
-				if(!BM_TestHFlag(eve, BM_HIDDEN) && BM_TestHFlag(eve, BM_SELECT))
+				if(!BM_TestHFlag(eed, BM_HIDDEN) && BM_TestHFlag(eed, BM_SELECT))
 					BMINDEX_SET(eed->v1, 0), BMINDEX_SET(eed->v2, 0);
 			}
 			eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
@@ -233,7 +233,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 
 			efa = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
 			for (; efa; efa=BMIter_Step(&iter)) {
-				if(!BM_TestHFlag(eve, BM_HIDDEN) && BM_TestHFlag(eve, BM_SELECT)) {
+				if(!BM_TestHFlag(efa, BM_HIDDEN) && BM_TestHFlag(efa, BM_SELECT)) {
 					BMIter liter;
 					BMLoop *l;
 					

@@ -95,9 +95,9 @@ struct EditMesh;
 /*BMHeader->type*/
 #define BM_VERT 	1
 #define BM_EDGE 	2
-#define BM_FACE 	4
-#define BM_LOOP 	8
-#define BM_ALL		(BM_VERT | BM_EDGE | BM_FACE | BM_LOOP)
+#define BM_LOOP 	4
+#define BM_FACE 	8
+#define BM_ALL		(BM_VERT | BM_EDGE | BM_LOOP | BM_FACE)
 
 /*BMHeader->flag*/
 #define BM_SELECT	(1<<0)
@@ -117,14 +117,15 @@ typedef struct BMHeader {
 	/*don't confuse this with tool flags.  this flag
 	  member is what "header flag" means.*/
 	int		flag;
-	int		type;
+	int		type; /*the element type, can be BM_VERT, BM_EDGE, BM_LOOP, or BM_FACE*/
 	int		eflag1, eflag2;	/*Flags used by eulers. Try and get rid of/minimize some of these*/
 	
-	//this can only be used to store a temporary index.  don't use it for anything else.
-	//use the BMINDEX_GET and BMINDEX_SET macros!!
+	/*this is only used to store temporary integers.  
+	  don't use it for anything else.
+	  use the BMINDEX_GET and BMINDEX_SET macros to access it*/
 	int index;
 	struct BMFlagLayer *flags; /*Dynamically allocated block of flag layers for operators to use*/
-	void *data; /*customdata*/
+	void *data; /*customdata block*/
 } BMHeader;
 
 typedef struct BMFlagLayer {
@@ -132,7 +133,7 @@ typedef struct BMFlagLayer {
 	short mask, pflag;
 } BMFlagLayer;
 
-#define BM_OVERLAP		(1<<14)			/*used by bmesh_verts_in_face*/
+#define BM_OVERLAP	(1<<14)			/*used by bmesh_verts_in_face*/
 #define BM_EDGEVERT 	(1<<15) 		/*used by bmesh_make_ngon*/
 
 /*
@@ -182,8 +183,7 @@ typedef struct BMVert {
 	float co[3];									
 	float no[3];									
 	struct BMEdge *edge;
-	void *tmp;													/*what?*/
-	float bweight;												/*please, someone just get rid of me...*/
+	float bweight;			/*please, someone just get rid of me...*/
 } BMVert;
 
 typedef struct BMEdge {
@@ -254,12 +254,6 @@ void BM_Face_CopyShared(BMesh *bm, BMFace *f);
   to another of the same type.*/
 void BM_Copy_Attributes(struct BMesh *source_mesh, struct BMesh *target_mesh, void *source, void *target);
 
-/*remove tool flagged elements*/
-void BM_remove_tagged_faces(struct BMesh *bm, int flag);
-void BM_remove_tagged_edges(struct BMesh *bm, int flag);
-void BM_remove_tagged_verts(struct BMesh *bm, int flag);
-
-
 /*Modification*/
 /*join two adjacent faces together along an edge.  note that
   the faces must only be joined by on edge.  e is the edge you
@@ -323,6 +317,7 @@ void BM_free_data_layer(BMesh *em, CustomData *data, int type);
 
 /*computes the centroid of a face, using the center of the bounding box*/
 int BM_Compute_Face_Center(BMesh *bm, BMFace *f, float center[3]);
+
 void BM_SelectMode_Flush(BMesh *bm);
 
 /*convert an editmesh to a bmesh*/
