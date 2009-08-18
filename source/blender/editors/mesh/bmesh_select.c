@@ -1260,7 +1260,7 @@ static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *ptr,
 	obedit= CTX_data_edit_object(C);
 	
 	if(obedit && obedit->type == OB_MESH) {
-		EditMesh *em= BKE_mesh_get_editmesh(obedit->data); 
+		BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh; 
 
 		if(em->selectmode & SCE_SELECT_VERTEX)
 			RNA_enum_items_add(&item, &totitem, prop_simvertex_types);
