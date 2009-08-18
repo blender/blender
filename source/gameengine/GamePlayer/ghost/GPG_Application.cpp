@@ -524,16 +524,17 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		
 		// SYS_WriteCommandLineInt(syshandle, "fixedtime", 0);
 		// SYS_WriteCommandLineInt(syshandle, "vertexarrays",1);		
+		GameData *gm= &m_startScene->gm;
 		bool properties	= (SYS_GetCommandLineInt(syshandle, "show_properties", 0) != 0);
 		bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
-		bool fixedFr = (G.fileflags & G_FILE_ENABLE_ALL_FRAMES);
+		bool fixedFr = (gm->flag & GAME_ENABLE_ALL_FRAMES);
 
-		bool showPhysics = (G.fileflags & G_FILE_SHOW_PHYSICS);
+		bool showPhysics = (gm->flag & GAME_SHOW_PHYSICS);
 		SYS_WriteCommandLineInt(syshandle, "show_physics", showPhysics);
 
 		bool fixed_framerate= (SYS_GetCommandLineInt(syshandle, "fixed_framerate", fixedFr) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
-		bool useLists = (SYS_GetCommandLineInt(syshandle, "displaylists", G.fileflags & G_FILE_DISPLAY_LISTS) != 0);
+		bool useLists = (SYS_GetCommandLineInt(syshandle, "displaylists", gm->flag & GAME_DISPLAY_LISTS) != 0);
 		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 1) != 0);
 
 		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
@@ -541,7 +542,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 
 		if(GPU_extensions_minimum_support())
 			m_blenderglslmat = (SYS_GetCommandLineInt(syshandle, "blender_glsl_material", 1) != 0);
-		else if(G.fileflags & G_FILE_GAME_MAT_GLSL)
+		else if(gm->matmode == GAME_MAT_GLSL)
 			m_blendermat = false;
 
 		// create the canvas, rasterizer and rendertools
@@ -671,9 +672,9 @@ bool GPG_Application::startEngine(void)
 
 		//	if (always_use_expand_framing)
 		//		sceneconverter->SetAlwaysUseExpandFraming(true);
-		if(m_blendermat && (G.fileflags & G_FILE_GAME_MAT))
+		if(m_blendermat && (m_startScene->gm.matmode != GAME_MAT_TEXFACE))
 			m_sceneconverter->SetMaterials(true);
-		if(m_blenderglslmat && (G.fileflags & G_FILE_GAME_MAT_GLSL))
+		if(m_blenderglslmat && (m_startScene->gm.matmode == GAME_MAT_GLSL))
 			m_sceneconverter->SetGLSLMaterials(true);
 
 		KX_Scene* startscene = new KX_Scene(m_keyboard,

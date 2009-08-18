@@ -5345,6 +5345,9 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	bfd->curscene= fg->curscene;
 	
 	MEM_freeN(fg);
+
+	fd->globalf= bfd->globalf;
+	fd->fileflags= bfd->fileflags;
 	
 	return blo_nextbhead(fd, bhead);
 }
@@ -9557,6 +9560,42 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->gm.maxlogicstep = 5;
 			sce->gm.physubstep = 1;
 			sce->gm.maxphystep = 5;
+		}
+	}
+
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 2)) {
+		Scene *sce;
+
+		for(sce = main->scene.first; sce; sce = sce->id.next) {
+			if(fd->fileflags & G_FILE_ENABLE_ALL_FRAMES)
+				sce->gm.flag |= GAME_ENABLE_ALL_FRAMES;
+			if(fd->fileflags & G_FILE_SHOW_DEBUG_PROPS)
+				sce->gm.flag |= GAME_SHOW_DEBUG_PROPS;
+			if(fd->fileflags & G_FILE_SHOW_FRAMERATE)
+				sce->gm.flag |= GAME_SHOW_FRAMERATE;
+			if(fd->fileflags & G_FILE_SHOW_PHYSICS)
+				sce->gm.flag |= GAME_SHOW_PHYSICS;
+			if(fd->fileflags & G_FILE_GLSL_NO_SHADOWS)
+				sce->gm.flag |= GAME_GLSL_NO_SHADOWS;
+			if(fd->fileflags & G_FILE_GLSL_NO_SHADERS)
+				sce->gm.flag |= GAME_GLSL_NO_SHADERS;
+			if(fd->fileflags & G_FILE_GLSL_NO_RAMPS)
+				sce->gm.flag |= GAME_GLSL_NO_RAMPS;
+			if(fd->fileflags & G_FILE_GLSL_NO_NODES)
+				sce->gm.flag |= GAME_GLSL_NO_NODES;
+			if(fd->fileflags & G_FILE_GLSL_NO_EXTRA_TEX)
+				sce->gm.flag |= GAME_GLSL_NO_EXTRA_TEX;
+			if(fd->fileflags & G_FILE_IGNORE_DEPRECATION_WARNINGS)
+				sce->gm.flag |= GAME_IGNORE_DEPRECATION_WARNINGS;
+
+			if(fd->fileflags & G_FILE_GAME_MAT_GLSL)
+				sce->gm.matmode= GAME_MAT_GLSL;
+			else if(fd->fileflags & G_FILE_GAME_MAT)
+				sce->gm.matmode= GAME_MAT_MULTITEX;
+			else
+				sce->gm.matmode= GAME_MAT_TEXFACE;
+
+			sce->gm.flag |= GAME_DISPLAY_LISTS;
 		}
 	}
 

@@ -126,26 +126,26 @@ typedef struct Global {
 #define G_AUTOPACK               (1 << 0)
 #define G_FILE_COMPRESS          (1 << 1)
 #define G_FILE_AUTOPLAY          (1 << 2)
-#define G_FILE_ENABLE_ALL_FRAMES (1 << 3)
-#define G_FILE_SHOW_DEBUG_PROPS  (1 << 4)
-#define G_FILE_SHOW_FRAMERATE    (1 << 5)
-#define G_FILE_SHOW_PROFILE      (1 << 6)
+#define G_FILE_ENABLE_ALL_FRAMES (1 << 3)				/* deprecated */
+#define G_FILE_SHOW_DEBUG_PROPS  (1 << 4)				/* deprecated */
+#define G_FILE_SHOW_FRAMERATE    (1 << 5)				/* deprecated */
+#define G_FILE_SHOW_PROFILE      (1 << 6)				/* deprecated */
 #define G_FILE_LOCK              (1 << 7)
 #define G_FILE_SIGN              (1 << 8)
 #define G_FIle_PUBLISH			 (1 << 9)
 #define G_FILE_NO_UI			 (1 << 10)
-#define G_FILE_GAME_TO_IPO		 (1 << 11)
-#define G_FILE_GAME_MAT			 (1 << 12)
-#define G_FILE_DISPLAY_LISTS	 (1 << 13)
-#define G_FILE_SHOW_PHYSICS		 (1 << 14)
-#define G_FILE_GAME_MAT_GLSL	 (1 << 15)
-#define G_FILE_GLSL_NO_LIGHTS	 (1 << 16)
-#define G_FILE_GLSL_NO_SHADERS	 (1 << 17)
-#define G_FILE_GLSL_NO_SHADOWS	 (1 << 18)
-#define G_FILE_GLSL_NO_RAMPS	 (1 << 19)
-#define G_FILE_GLSL_NO_NODES	 (1 << 20)
-#define G_FILE_GLSL_NO_EXTRA_TEX (1 << 21)
-#define G_FILE_IGNORE_DEPRECATION_WARNINGS	(1 << 22)
+#define G_FILE_GAME_TO_IPO		 (1 << 11)				/* deprecated */
+#define G_FILE_GAME_MAT			 (1 << 12)				/* deprecated */
+#define G_FILE_DISPLAY_LISTS	 (1 << 13)				/* deprecated */
+#define G_FILE_SHOW_PHYSICS		 (1 << 14)				/* deprecated */
+#define G_FILE_GAME_MAT_GLSL	 (1 << 15)				/* deprecated */
+#define G_FILE_GLSL_NO_LIGHTS	 (1 << 16)				/* deprecated */
+#define G_FILE_GLSL_NO_SHADERS	 (1 << 17)				/* deprecated */
+#define G_FILE_GLSL_NO_SHADOWS	 (1 << 18)				/* deprecated */
+#define G_FILE_GLSL_NO_RAMPS	 (1 << 19)				/* deprecated */
+#define G_FILE_GLSL_NO_NODES	 (1 << 20)				/* deprecated */
+#define G_FILE_GLSL_NO_EXTRA_TEX (1 << 21)				/* deprecated */
+#define G_FILE_IGNORE_DEPRECATION_WARNINGS	(1 << 22)	/* deprecated */
 
 /* G.windowstate */
 #define G_WINDOWSTATE_USERDEF		0

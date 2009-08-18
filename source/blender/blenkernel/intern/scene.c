@@ -442,6 +442,9 @@ Scene *add_scene(char *name)
 	sce->gm.physubstep = 1;
 	sce->gm.maxphystep = 5;
 
+	sce->gm.flag = GAME_DISPLAY_LISTS;
+	sce->gm.matmode = GAME_MAT_MULTITEX;
+
 	return sce;
 }
 

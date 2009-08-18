@@ -192,7 +192,7 @@ class SCENE_PT_game(SceneButtonsPanel):
 		row.itemL()
 
 class SCENE_PT_game_player(SceneButtonsPanel):
-	__label__ = "Player"
+	__label__ = "Standalone Player"
 
 	def draw(self, context):
 		layout = self.layout
@@ -219,8 +219,8 @@ class SCENE_PT_game_player(SceneButtonsPanel):
 		col = layout.column()
 		col.itemL(text="Framing:")
 		col.row().itemR(gs, "framing_type", expand=True)
-		sub = col.column()
-		sub.itemR(gs, "framing_color", text="")
+		if gs.framing_type == 'LETTERBOX':
+			col.itemR(gs, "framing_color", text="")
 
 class SCENE_PT_game_stereo(SceneButtonsPanel):
 	__label__ = "Stereo"
@@ -271,9 +271,55 @@ class SCENE_PT_game_stereo(SceneButtonsPanel):
 		
 			layout.itemR(gs, "dome_text")
 
+class SCENE_PT_game_shading(SceneButtonsPanel):
+	__label__ = "Shading"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		gs = context.scene.game_data
+		layout.itemR(gs, "material_mode", expand=True)
+ 
+		if gs.material_mode == 'GLSL':
+			split = layout.split()
+
+			col = split.column()
+			col.itemR(gs, "glsl_lights", text="Lights")
+			col.itemR(gs, "glsl_shaders", text="Shaders")
+			col.itemR(gs, "glsl_shadows", text="Shadows")
+
+			col = split.column()
+			col.itemR(gs, "glsl_ramps", text="Ramps")
+			col.itemR(gs, "glsl_nodes", text="Nodes")
+			col.itemR(gs, "glsl_extra_textures", text="Extra Textures")
+
+class SCENE_PT_game_performance(SceneButtonsPanel):
+	__label__ = "Performance"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		gs = context.scene.game_data
+
+		split = layout.split()
+
+		col = split.column()
+		col.itemL(text="Show:")
+		col.itemR(gs, "show_debug_properties", text="Debug Properties")
+		col.itemR(gs, "show_framerate_profile", text="Framerate and Profile")
+		col.itemR(gs, "show_physics_visualization", text="Physics Visualization")
+		col.itemR(gs, "deprecation_warnings")
+ 
+		col = split.column()
+		col.itemL(text="Render:")
+		col.itemR(gs, "all_frames")
+		col.itemR(gs, "display_lists")
+
 bpy.types.register(SCENE_PT_game)
 bpy.types.register(SCENE_PT_game_player)
 bpy.types.register(SCENE_PT_game_stereo)
+bpy.types.register(SCENE_PT_game_shading)
+bpy.types.register(SCENE_PT_game_performance)
 
 class WorldButtonsPanel(bpy.types.Panel):
 	__space_type__ = "PROPERTIES"

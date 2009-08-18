@@ -1855,7 +1855,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 /* *********************** customdata **************** */
 
 /* goes over all modes and view3d settings */
-static CustomDataMask get_viewedit_datamask(bScreen *screen, Object *ob)
+static CustomDataMask get_viewedit_datamask(bScreen *screen, Scene *scene, Object *ob)
 {
 	CustomDataMask mask = CD_MASK_BAREMESH;
 	ScrArea *sa;
@@ -1875,10 +1875,8 @@ static CustomDataMask get_viewedit_datamask(bScreen *screen, Object *ob)
 			if((view->drawtype == OB_TEXTURE) || ((view->drawtype == OB_SOLID) && (view->flag2 & V3D_SOLID_TEX))) {
 				mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 				
-				if((G.fileflags & G_FILE_GAME_MAT) &&
-				   (G.fileflags & G_FILE_GAME_MAT_GLSL)) {
+				if(scene->gm.matmode == GAME_MAT_GLSL)
 					mask |= CD_MASK_ORCO;
-				}
 			}
 		}
 	}
@@ -1909,7 +1907,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	char *grid_unit= NULL;
 	
 	/* from now on all object derived meshes check this */
-	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C), obact);
+	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C), scene, obact);
 	
 	/* shadow buffers, before we setup matrices */
 	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))

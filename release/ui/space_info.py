@@ -135,7 +135,16 @@ class INFO_MT_game(bpy.types.Menu):
 	def draw(self, context):
 		layout = self.layout
 
+		gs = context.scene.game_data
+
 		layout.itemO("view3d.game_start")
+
+		layout.itemS()
+
+		layout.itemR(gs, "show_debug_properties")
+		layout.itemR(gs, "show_framerate_profile")
+		layout.itemR(gs, "show_physics_visualization")
+		layout.itemR(gs, "deprecation_warnings")
 
 class INFO_MT_render(bpy.types.Menu):
 	__space_type__ = "INFO"

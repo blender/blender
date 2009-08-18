@@ -216,8 +216,7 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt)
 	if(ob==OBACT && (ob && ob->mode & OB_MODE_WEIGHT_PAINT))
 		return 0;
 	
-	return ((G.fileflags & G_FILE_GAME_MAT) &&
-	   (G.fileflags & G_FILE_GAME_MAT_GLSL) && (dt >= OB_SHADED));
+	return (scene->gm.matmode == GAME_MAT_GLSL) && (dt >= OB_SHADED);
 }
 
 static int check_material_alpha(Base *base, Mesh *me, int glsl)

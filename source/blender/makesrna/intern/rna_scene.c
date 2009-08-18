@@ -776,9 +776,9 @@ void rna_def_scene_game_data(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem framing_types_items[] ={
-		{SCE_GAMEFRAMING_BARS, "BARS", 0, "Stretch", ""},
-		{SCE_GAMEFRAMING_EXTEND, "EXTEND", 0, "Extend", ""},
-		{SCE_GAMEFRAMING_SCALE, "SCALE", 0, "Scale", ""},
+		{SCE_GAMEFRAMING_BARS, "LETTERBOX", 0, "Letterbox", "Show the entire viewport in the display window, using bar horizontally or vertically"},
+		{SCE_GAMEFRAMING_EXTEND, "EXTEND", 0, "Extend", "Show the entire viewport in the display window, viewing more horizontally or vertically"},
+		{SCE_GAMEFRAMING_SCALE, "SCALE", 0, "Scale", "Stretch or squeeze the viewport to fill the display window"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem dome_modes_items[] ={
@@ -801,7 +801,7 @@ void rna_def_scene_game_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 		
  	static EnumPropertyItem stereo_items[] ={
-		{STEREO_NOSTEREO, "NO_STEREO", 0, "No Stereo", ""},
+		{STEREO_NOSTEREO, "NONE", 0, "None", ""},
 		{STEREO_ENABLED, "STEREO", 0, "Stereo", ""},
 		{STEREO_DOME, "DOME", 0, "Dome", ""},
 		{0, NULL, 0, NULL, NULL}};
@@ -813,6 +813,12 @@ void rna_def_scene_game_data(BlenderRNA *brna)
 		//{WOPHY_DYNAMO, "DYNAMO", 0, "Dynamo", ""},
 		//{WOPHY_ODE, "ODE", 0, "ODE", ""},
 		{WOPHY_BULLET, "BULLET", 0, "Bullet", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem material_items[] ={
+		{GAME_MAT_TEXFACE, "TEXTURE_FACE", 0, "Texture Face", "Single texture face materials."},
+		{GAME_MAT_MULTITEX, "MULTITEXTURE", 0, "Multitexture", "Multitexture materials."},
+		{GAME_MAT_GLSL, "GLSL", 0, "GLSL", "OpenGL shading language shaders."},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SceneGameData", NULL);
@@ -978,6 +984,74 @@ void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "activityBoxRadius");
 	RNA_def_property_range(prop, 0.0, 1000.0);
 	RNA_def_property_ui_text(prop, "box radius", "Radius of the activity bubble, in Manhattan length. Objects outside the box are activity-culled");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	/* booleans */
+	prop= RNA_def_property(srna, "all_frames", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GAME_ENABLE_ALL_FRAMES);
+	RNA_def_property_ui_text(prop, "All Frames", "Render as many frames as possible, rather than respecting framerate.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "show_debug_properties", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GAME_SHOW_DEBUG_PROPS);
+	RNA_def_property_ui_text(prop, "Show Debug Properties", "Show properties marked for debugging while the game runs.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "show_framerate_profile", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GAME_SHOW_FRAMERATE);
+	RNA_def_property_ui_text(prop, "Show Framerate and Profile", "Show framerate and profiling information while the game runs.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "show_physics_visualization", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GAME_SHOW_PHYSICS);
+	RNA_def_property_ui_text(prop, "Show Physics Visualization", "Show a visualization of physics bounds and interactions.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "display_lists", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GAME_DISPLAY_LISTS);
+	RNA_def_property_ui_text(prop, "Display Lists", "Use display lists to speed up rendering by keeping geometry on the GPU.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "deprecation_warnings", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_IGNORE_DEPRECATION_WARNINGS);
+	RNA_def_property_ui_text(prop, "Deprecation Warnings", "Print warnings when using deprecated features in the python API.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	/* materials */
+	prop= RNA_def_property(srna, "material_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "matmode");
+	RNA_def_property_enum_items(prop, material_items);
+	RNA_def_property_ui_text(prop, "Material Mode", "Material mode to use for rendering.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "glsl_lights", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_GLSL_NO_LIGHTS);
+	RNA_def_property_ui_text(prop, "GLSL Lights", "Use lights for GLSL rendering.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "glsl_shaders", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_GLSL_NO_SHADERS);
+	RNA_def_property_ui_text(prop, "GLSL Shaders", "Use shaders for GLSL rendering.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "glsl_shadows", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_GLSL_NO_SHADOWS);
+	RNA_def_property_ui_text(prop, "GLSL Shadows", "Use shadows for GLSL rendering.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "glsl_ramps", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_GLSL_NO_RAMPS);
+	RNA_def_property_ui_text(prop, "GLSL Ramps", "Use ramps for GLSL rendering.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "glsl_nodes", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_GLSL_NO_NODES);
+	RNA_def_property_ui_text(prop, "GLSL Nodes", "Use nodes for GLSL rendering.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "glsl_extra_textures", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_GLSL_NO_EXTRA_TEX);
+	RNA_def_property_ui_text(prop, "GLSL Extra Textures", "Use extra textures like normal or specular maps for GLSL rendering.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 }
 
