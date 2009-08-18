@@ -70,6 +70,7 @@ OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" 
 OPTION(WITH_WEBPLUGIN     "Enable Web Plugin (Unix only)" OFF)
 OPTION(WITH_FFTW3         "Enable FFTW3 support" OFF)
 OPTION(WITH_JACK          "Enable Jack Support (http://www.jackaudio.org)" OFF)
+OPTION(WITH_CXX_GUARDEDALLOC "" OFF)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
@@ -513,6 +514,11 @@ INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
 # Extra compile flags
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ${C_WARNINGS}")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ${CXX_WARNINGS}")
+
+# better not define flags here but this is a debugging option thats off by default.
+IF(WITH_CXX_GUARDEDALLOC)
+  SET(CMAKE_CXX_FLAGS " -DWITH_CXX_GUARDEDALLOC -I${CMAKE_SOURCE_DIR}/intern/guardedalloc ${CMAKE_CXX_FLAGS}")
+ENDIF(WITH_CXX_GUARDEDALLOC)
 
 #-----------------------------------------------------------------------------
 # Libraries
