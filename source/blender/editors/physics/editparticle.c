@@ -3068,11 +3068,13 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 	ParticleSystemModifierData *psmd= psys_get_modifier(ob, psys);
 	ParticleBrushData *brush= &pset->brush[pset->brushtype];
 	ARegion *ar= CTX_wm_region(C);
-	float vec1[3], vec2[3];
+	float vec1[3], vec2[3], mousef[2];
 	short mval[2], mvalo[2];
 	int flip, mouse[2], dx, dy, removed= 0, selected= 0;
 
-	RNA_int_get_array(itemptr, "mouse", mouse);
+	RNA_float_get_array(itemptr, "mouse", mousef);
+	mouse[0] = mousef[0];
+	mouse[1] = mousef[1];
 	flip= RNA_boolean_get(itemptr, "flip");
 
 	if(bedit->first) {
@@ -3283,7 +3285,7 @@ static void brush_edit_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
 	PointerRNA itemptr;
-	int mouse[2];
+	float mouse[2];
 
 	mouse[0]= event->x - ar->winrct.xmin;
 	mouse[1]= event->y - ar->winrct.ymin;
@@ -3291,7 +3293,7 @@ static void brush_edit_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 	/* fill in stroke */
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
 
-	RNA_int_set_array(&itemptr, "mouse", mouse);
+	RNA_float_set_array(&itemptr, "mouse", mouse);
 	RNA_boolean_set(&itemptr, "flip", event->shift != 0); // XXX hardcoded
 
 	/* apply */

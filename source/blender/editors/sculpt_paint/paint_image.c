@@ -4612,11 +4612,13 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 static void paint_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 {
 	PaintOperation *pop= op->customdata;
-	float time;
+	float time, mousef[2];
 	float pressure;
 	int mouse[2], redraw;
 
-	RNA_int_get_array(itemptr, "mouse", mouse);
+	RNA_float_get_array(itemptr, "mouse", mousef);
+	mouse[0] = mousef[0];
+	mouse[1] = mousef[1];
 	time= RNA_float_get(itemptr, "time");
 	pressure= RNA_float_get(itemptr, "pressure");
 
@@ -4696,7 +4698,7 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 	PaintOperation *pop= op->customdata;
 	wmTabletData *wmtab;
 	PointerRNA itemptr;
-	float pressure;
+	float pressure, mousef[2];
 	double time;
 	int tablet, mouse[2];
 
@@ -4737,7 +4739,9 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 	/* fill in stroke */
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
 
-	RNA_int_set_array(&itemptr, "mouse", mouse);
+	mousef[0] = mouse[0];
+	mousef[1] = mouse[1];
+	RNA_float_set_array(&itemptr, "mouse", mousef);
 	RNA_float_set(&itemptr, "time", (float)(time - pop->starttime));
 	RNA_float_set(&itemptr, "pressure", pressure);
 
