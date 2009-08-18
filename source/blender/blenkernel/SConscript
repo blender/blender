@@ -52,7 +52,7 @@ if env['WITH_BF_QUICKTIME']:
 	incs += ' ' + env['BF_QUICKTIME_INC']
 
 if env['WITH_BF_BULLET']:
-	defs.append('WITH_BULLET')
+	defs.append('USE_BULLET')
 
 if env['BF_NO_ELBEEM']:
 	defs.append('DISABLE_ELBEEM')
