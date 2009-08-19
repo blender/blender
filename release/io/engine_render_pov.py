@@ -56,7 +56,7 @@ def write_pov(filename, scene=None, info_callback = None):
 		(matrix[0][0], matrix[0][1], matrix[0][2],  matrix[1][0], matrix[1][1], matrix[1][2],  matrix[2][0], matrix[2][1], matrix[2][2],  matrix[3][0], matrix[3][1], matrix[3][2]) )
 	
 	def writeObjectMaterial(material):
-		if material and material.raytrace_transparency.enabled:
+		if material and material.transparency_method=='RAYTRACE':
 			file.write('\tinterior { ior %.6f }\n' % material.raytrace_transparency.ior)
 			
 			# Other interior args
@@ -114,7 +114,7 @@ def write_pov(filename, scene=None, info_callback = None):
 		
 		# This is written into the object
 		'''
-		if material.raytrace_transparency.enabled:
+		if material and material.transparency_method=='RAYTRACE':
 			'interior { ior %.3g} ' % material.raytrace_transparency.ior
 		'''
 		
@@ -248,8 +248,8 @@ def write_pov(filename, scene=None, info_callback = None):
 				if material:
 					diffuse_color = material.diffuse_color
 					
-					if material.raytrace_transparency.enabled:	trans = 1-material.raytrace_transparency.filter
-					else:										trans = 0.0
+					if material.transparency and material.transparency_method=='RAYTRACE':	trans = 1-material.raytrace_transparency.filter
+					else:																	trans = 0.0
 					
 					file.write(
 						'pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} finish {%s} }\n' % \
@@ -425,8 +425,8 @@ def write_pov(filename, scene=None, info_callback = None):
 					material = me_materials[col[3]]
 					material_finish = materialNames[material.name]
 					
-					if material.raytrace_transparency.enabled:	trans = 1-material.raytrace_transparency.filter
-					else:										trans = 0.0
+					if material.transparency and material.transparency_method=='RAYTRACE':	trans = 1-material.raytrace_transparency.filter
+					else:																	trans = 0.0
 					
 				else:
 					material_finish = DEF_MAT_NAME # not working properly,
