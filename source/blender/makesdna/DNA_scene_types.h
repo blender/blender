@@ -387,7 +387,7 @@ typedef struct GameData {
 	 * bit 3: (gameengine): Activity culling is enabled.
 	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustrum culling
 	*/
-	short mode, pad11;
+	short mode, flag, matmode, pad[3];
 	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */
 	short physicsEngine;
 	short ticrate, maxlogicstep, physubstep, maxphystep;
@@ -401,6 +401,7 @@ typedef struct GameData {
 	struct GameDome dome;
 	short stereoflag, stereomode, xsch, ysch; //xsch and ysch can be deleted !!!
 } GameData;
+
 #define STEREO_NOSTEREO		1
 #define STEREO_ENABLED 		2
 #define STEREO_DOME	 		3
@@ -422,6 +423,25 @@ typedef struct GameData {
 #define WOPHY_ODE		4
 #define WOPHY_BULLET	5
 
+/* GameData.flag */
+#define GAME_ENABLE_ALL_FRAMES				(1 << 1)
+#define GAME_SHOW_DEBUG_PROPS				(1 << 2)
+#define GAME_SHOW_FRAMERATE					(1 << 3)
+#define GAME_SHOW_PHYSICS					(1 << 4)
+#define GAME_DISPLAY_LISTS					(1 << 5)
+#define GAME_GLSL_NO_LIGHTS					(1 << 6)
+#define GAME_GLSL_NO_SHADERS				(1 << 7)
+#define GAME_GLSL_NO_SHADOWS				(1 << 8)
+#define GAME_GLSL_NO_RAMPS					(1 << 9)
+#define GAME_GLSL_NO_NODES					(1 << 10)
+#define GAME_GLSL_NO_EXTRA_TEX				(1 << 11)
+#define GAME_IGNORE_DEPRECATION_WARNINGS	(1 << 12)
+
+/* GameData.matmode */
+#define GAME_MAT_TEXFACE	0
+#define GAME_MAT_MULTITEX	1
+#define GAME_MAT_GLSL		2
+
 typedef struct TimeMarker {
 	struct TimeMarker *next, *prev;
 	int frame;
@@ -429,8 +449,18 @@ typedef struct TimeMarker {
 	unsigned int flag;
 } TimeMarker;
 
+typedef struct Paint {
+	/* Array of brushes selected for use in this paint mode */
+	Brush **brushes;
+	int active_brush_index, brush_count;
+	
+	/* WM handle */
+	void *paint_cursor;
+} Paint;
+
 typedef struct ImagePaintSettings {
-	struct Brush *brush;
+	Paint paint;
+
 	short flag, tool;
 	
 	/* for projection painting only */
@@ -465,26 +495,23 @@ typedef struct TransformOrientation {
 	float mat[3][3];
 } TransformOrientation;
 
-struct SculptSession;
-typedef struct Sculpt
-{
-	/* Note! a deep copy of this struct must be done header_info.c's copy_scene function */	
-	/* Data stored only from entering sculptmode until exiting sculptmode */
-	struct SculptSession *session;
-	struct Brush *brush;
+typedef struct Sculpt {
+	Paint paint;
+	
+	/* WM handle */
+	void *cursor;
 
 	/* For rotating around a pivot point */
 	float pivot[3];
 	int flags;
-	/* For the Brush Shape */
-	char texsep;
+
 	/* Control tablet input */
 	char tablet_size, tablet_strength;
-	char pad[5];
+	char pad[6];
 } Sculpt;
 
 typedef struct VPaint {
-	struct Brush *brush;
+	Paint paint;
 
 	float gamma, mul;			/* should become part of struct Brush? */
 	short mode, flag;
@@ -622,6 +649,12 @@ typedef struct bStats {
 	int totvert, totface;
 } bStats;
 
+typedef struct UnitSettings {
+	/* Display/Editing unit options for each scene */
+	float scale_length; /* maybe have other unit conversions? */
+	short system;
+	short flag; /* imperial, metric etc */
+} UnitSettings;
 
 typedef struct Scene {
 	ID id;
@@ -642,7 +675,7 @@ typedef struct Scene {
 	float twmin[3], twmax[3];	/* boundbox of selection for transform widget */
 	unsigned int lay;
 	
-	
+
 	short flag;								/* various settings */
 	
 	short use_nodes;
@@ -662,6 +695,7 @@ typedef struct Scene {
 	ListBase markers;
 	ListBase transform_spaces;
 	
+	ListBase sound_handles;
 	
 	/* none of the dependancy graph  vars is mean to be saved */
 	struct  DagForest *theDag;
@@ -680,6 +714,10 @@ typedef struct Scene {
 	/* Game Settings */
 	struct GameFraming framing; // XXX  deprecated since 2.5
 	struct GameData gm;
+
+	/* Units */
+	struct UnitSettings unit;
+
 } Scene;
 
 
@@ -1070,6 +1108,15 @@ typedef enum SculptFlags {
 /* toolsettings->skgen_retarget_roll */
 #define	SK_RETARGET_ROLL_VIEW			1
 #define	SK_RETARGET_ROLL_JOINT			2
+
+/* UnitSettings */
+
+/* UnitSettings->system */
+#define	USER_UNIT_NONE			0
+#define	USER_UNIT_METRIC		1
+#define	USER_UNIT_IMPERIAL		2
+/* UnitSettings->flag */
+#define	USER_UNIT_OPT_SPLIT		1
 
 
 #ifdef __cplusplus

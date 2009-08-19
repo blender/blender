@@ -297,12 +297,12 @@ void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Blending", "Method used for combining strip's result with accumulated result.");
 	
 	/* Strip extents */
-	prop= RNA_def_property(srna, "start_frame", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "start_frame", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "start");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	
-	prop= RNA_def_property(srna, "end_frame", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "end_frame", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "end");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "End Frame", "");
@@ -328,12 +328,12 @@ void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Action", "Action referenced by this strip.");
 	
 	/* Action extents */
-	prop= RNA_def_property(srna, "action_start_frame", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "action_start_frame", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "actstart");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_action_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Action Start Frame", "");
 	
-	prop= RNA_def_property(srna, "action_end_frame", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "action_end_frame", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "actend");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_action_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Action End Frame", "");
@@ -371,7 +371,7 @@ void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Influence", "Amount the strip contributes to the current result.");
 	
-	prop= RNA_def_property(srna, "strip_time", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "strip_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_ui_text(prop, "Strip Time", "Frame of referenced Action to evaluate.");
 	
 		// TODO: should the animated_influence/time settings be animatable themselves?

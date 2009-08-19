@@ -69,6 +69,7 @@ typedef struct FileData {
 	
 	int fileversion;
 	int id_name_offs;		/* used to retrieve ID names from (bhead+1) */
+	int globalf, fileflags;	/* for do_versions patching */
 	
 	struct OldNewMap *datamap;
 	struct OldNewMap *globmap;

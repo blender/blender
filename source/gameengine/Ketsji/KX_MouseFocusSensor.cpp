@@ -339,13 +339,7 @@ const MT_Vector3& KX_MouseFocusSensor::HitNormal() const
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_MouseFocusSensor::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"KX_MouseFocusSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -367,12 +361,12 @@ PyTypeObject KX_MouseFocusSensor::Type = {
 };
 
 PyMethodDef KX_MouseFocusSensor::Methods[] = {
-	{"getRayTarget", (PyCFunction) KX_MouseFocusSensor::sPyGetRayTarget, METH_NOARGS, (PY_METHODCHAR)GetRayTarget_doc},
-	{"getRaySource", (PyCFunction) KX_MouseFocusSensor::sPyGetRaySource, METH_NOARGS, (PY_METHODCHAR)GetRaySource_doc},
-	{"getHitObject",(PyCFunction) KX_MouseFocusSensor::sPyGetHitObject,METH_NOARGS, (PY_METHODCHAR)GetHitObject_doc},
-	{"getHitPosition",(PyCFunction) KX_MouseFocusSensor::sPyGetHitPosition,METH_NOARGS, (PY_METHODCHAR)GetHitPosition_doc},
-	{"getHitNormal",(PyCFunction) KX_MouseFocusSensor::sPyGetHitNormal,METH_NOARGS, (PY_METHODCHAR)GetHitNormal_doc},
-	{"getRayDirection",(PyCFunction) KX_MouseFocusSensor::sPyGetRayDirection,METH_NOARGS, (PY_METHODCHAR)GetRayDirection_doc},
+	{"getRayTarget", (PyCFunction) KX_MouseFocusSensor::sPyGetRayTarget, METH_NOARGS, (const char *)GetRayTarget_doc},
+	{"getRaySource", (PyCFunction) KX_MouseFocusSensor::sPyGetRaySource, METH_NOARGS, (const char *)GetRaySource_doc},
+	{"getHitObject",(PyCFunction) KX_MouseFocusSensor::sPyGetHitObject,METH_NOARGS, (const char *)GetHitObject_doc},
+	{"getHitPosition",(PyCFunction) KX_MouseFocusSensor::sPyGetHitPosition,METH_NOARGS, (const char *)GetHitPosition_doc},
+	{"getHitNormal",(PyCFunction) KX_MouseFocusSensor::sPyGetHitNormal,METH_NOARGS, (const char *)GetHitNormal_doc},
+	{"getRayDirection",(PyCFunction) KX_MouseFocusSensor::sPyGetRayDirection,METH_NOARGS, (const char *)GetRayDirection_doc},
 
 	{NULL,NULL} //Sentinel
 };

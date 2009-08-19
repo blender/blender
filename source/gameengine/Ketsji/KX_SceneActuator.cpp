@@ -222,42 +222,36 @@ KX_Scene* KX_SceneActuator::FindScene(char * sceneName)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_SceneActuator::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
-		"KX_SceneActuator",
-		sizeof(PyObjectPlus_Proxy),
-		0,
-		py_base_dealloc,
-		0,
-		0,
-		0,
-		0,
-		py_base_repr,
-		0,0,0,0,0,0,0,0,0,
-		Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-		0,0,0,0,0,0,0,
-		Methods,
-		0,
-		0,
-		&SCA_IActuator::Type,
-		0,0,0,0,0,0,
-		py_base_new
+	"KX_SceneActuator",
+	sizeof(PyObjectPlus_Proxy),
+	0,
+	py_base_dealloc,
+	0,
+	0,
+	0,
+	0,
+	py_base_repr,
+	0,0,0,0,0,0,0,0,0,
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+	0,0,0,0,0,0,0,
+	Methods,
+	0,
+	0,
+	&SCA_IActuator::Type,
+	0,0,0,0,0,0,
+	py_base_new
 };
 
 PyMethodDef KX_SceneActuator::Methods[] =
 {
 	//Deprecated functions ------>
-	{"setUseRestart", (PyCFunction) KX_SceneActuator::sPySetUseRestart, METH_VARARGS, (PY_METHODCHAR)SetUseRestart_doc},
-	{"setScene",      (PyCFunction) KX_SceneActuator::sPySetScene, METH_VARARGS, (PY_METHODCHAR)SetScene_doc},
-	{"setCamera",     (PyCFunction) KX_SceneActuator::sPySetCamera, METH_O, (PY_METHODCHAR)SetCamera_doc},
-	{"getUseRestart", (PyCFunction) KX_SceneActuator::sPyGetUseRestart, METH_NOARGS, (PY_METHODCHAR)GetUseRestart_doc},
-	{"getScene",      (PyCFunction) KX_SceneActuator::sPyGetScene, METH_NOARGS, (PY_METHODCHAR)GetScene_doc},
-	{"getCamera",     (PyCFunction) KX_SceneActuator::sPyGetCamera, METH_NOARGS, (PY_METHODCHAR)GetCamera_doc},
+	{"setUseRestart", (PyCFunction) KX_SceneActuator::sPySetUseRestart, METH_VARARGS, (const char *)SetUseRestart_doc},
+	{"setScene",      (PyCFunction) KX_SceneActuator::sPySetScene, METH_VARARGS, (const char *)SetScene_doc},
+	{"setCamera",     (PyCFunction) KX_SceneActuator::sPySetCamera, METH_O, (const char *)SetCamera_doc},
+	{"getUseRestart", (PyCFunction) KX_SceneActuator::sPyGetUseRestart, METH_NOARGS, (const char *)GetUseRestart_doc},
+	{"getScene",      (PyCFunction) KX_SceneActuator::sPyGetScene, METH_NOARGS, (const char *)GetScene_doc},
+	{"getCamera",     (PyCFunction) KX_SceneActuator::sPyGetCamera, METH_NOARGS, (const char *)GetCamera_doc},
 	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };

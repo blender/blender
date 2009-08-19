@@ -338,7 +338,7 @@ int calc_manipulator_stats(const bContext *C)
 			Mat4MulVecfl(obedit->obmat, scene->twmax);
 		}
 	}
-	else if(ob && (ob->flag & OB_POSEMODE)) {
+	else if(ob && (ob->mode & OB_MODE_POSE)) {
 		bPoseChannel *pchan;
 		int mode = TFM_ROTATION; // mislead counting bones... bah. We don't know the manipulator mode, could be mixed
 
@@ -358,10 +358,10 @@ int calc_manipulator_stats(const bContext *C)
 			Mat4MulVecfl(ob->obmat, scene->twmax);
 		}
 	}
-	else if(G.f & (G_VERTEXPAINT + G_TEXTUREPAINT + G_WEIGHTPAINT + G_SCULPTMODE)) {
+	else if(ob && (ob->mode & (OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {
 		;
 	}
-	else if(G.f & G_PARTICLEEDIT) {
+	else if(ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
 		ParticleSystem *psys= PE_get_current(scene, ob);
 		ParticleData *pa = psys->particles;
 		ParticleEditKey *ek;
@@ -412,7 +412,7 @@ int calc_manipulator_stats(const bContext *C)
 		switch(v3d->twmode) {
 
 		case V3D_MANIP_NORMAL:
-			if(obedit || ob->flag & OB_POSEMODE) {
+			if(obedit || ob->mode & OB_MODE_POSE) {
 				float mat[3][3];
 				int type;
 
@@ -1415,7 +1415,7 @@ void BIF_draw_manipulator(const bContext *C)
 			rv3d->twmat[3][2]= (scene->twmin[2] + scene->twmax[2])/2.0f;
 			if(v3d->around==V3D_ACTIVE && scene->obedit==NULL) {
 				Object *ob= OBACT;
-				if(ob && !(ob->flag & OB_POSEMODE))
+				if(ob && !(ob->mode & OB_MODE_POSE))
 					VECCOPY(rv3d->twmat[3], ob->obmat[3]);
 			}
 			break;

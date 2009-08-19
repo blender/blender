@@ -31,6 +31,10 @@
 
 #include "PHY_IMotionState.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class KX_MotionState : public PHY_IMotionState
 {
 	class	SG_Spatial*		m_node;
@@ -48,6 +52,12 @@ public:
 	virtual void	setWorldOrientation(const float* ori);
 
 	virtual	void	calculateWorldTransformations();
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_MotionState"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_MOTIONSTATE

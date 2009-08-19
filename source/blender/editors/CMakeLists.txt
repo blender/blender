@@ -33,14 +33,18 @@ SET(INC ../windowmanager
   ../include ../imbuf ../render/extern/include
   ../../../intern/bsp/extern ../radiosity/extern/include
   ../../../intern/decimation/extern ../blenloader ../python
-  ../../kernel/gen_system ../../../intern/SoundSystem ../readstreamglue
+  ../../kernel/gen_system ../readstreamglue
   ../quicktime ../../../intern/elbeem/extern
   ../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include ../../../intern/smoke/extern
+  ../../../intern/audaspace/intern
   ../nodes
   ../gpu
   ../blenfont
-  ${SDL_INC}
 )
+
+IF(WITH_GAMEENGINE)
+  ADD_DEFINITIONS(-DGAMEBLENDER)
+ENDIF(WITH_GAMEENGINE)
 
 IF(WITH_INTERNATIONAL)
   ADD_DEFINITIONS(-DINTERNATIONAL)

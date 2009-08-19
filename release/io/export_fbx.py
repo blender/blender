@@ -598,7 +598,7 @@ def write(filename, batch_objects = None, \
 	
 	
 	print('\nFBX export starting...', filename)
-	start_time = bpy.sys.time()
+	start_time = time.clock()
 # 	start_time = Blender.sys.time()
 	try:
 		file = open(filename, 'w')
@@ -3050,7 +3050,7 @@ Takes:  {''')
 # # 		copy_images( basepath,  [ tex[1] for tex in textures if tex[1] != None ])
 # 		bpy.util.copy_images( [ tex[1] for tex in textures if tex[1] != None ], basepath)	
 	
-	print('export finished in %.4f sec.' % (bpy.sys.time() - start_time))
+	print('export finished in %.4f sec.' % (time.clock() - start_time))
 # 	print 'export finished in %.4f sec.' % (Blender.sys.time() - start_time)
 	return True
 	

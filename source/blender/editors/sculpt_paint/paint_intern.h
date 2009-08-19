@@ -59,6 +59,7 @@ int imapaint_pick_face(struct ViewContext *vc, struct Mesh *me, int *mval, unsig
 void imapaint_pick_uv(struct Scene *scene, struct Object *ob, struct Mesh *mesh, unsigned int faceindex, int *xy, float *uv);
 
 void paint_sample_color(struct Scene *scene, struct ARegion *ar, int x, int y);
+void BRUSH_OT_curve_preset(struct wmOperatorType *ot);
 
 #endif /* ED_PAINT_INTERN_H */
 

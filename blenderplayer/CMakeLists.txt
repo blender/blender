@@ -87,7 +87,6 @@ IF(UNIX)
     bf_scenegraph 
 	bf_IK
     bf_moto 
-    bf_soundsystem 
     bf_kernel 
     bf_nodes
 	bf_gpu
@@ -110,6 +109,10 @@ IF(UNIX)
     extern_binreloc
 	extern_glew
   ) 
+
+  IF(WITH_CXX_GUARDEDALLOC)
+    SET(BLENDER_SORTED_LIBS ${BLENDER_SORTED_LIBS} bf_guardedalloc_cpp)
+  ENDIF(WITH_CXX_GUARDEDALLOC)
 
   FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})
     SET(REMLIB ${SORTLIB})

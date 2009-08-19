@@ -41,6 +41,8 @@
 
 #include "BKE_texture.h"
 
+#include "ED_node.h"
+
 static PointerRNA rna_Material_mirror_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_MaterialRaytraceMirror, ptr->id.data);
@@ -64,6 +66,11 @@ static PointerRNA rna_Material_sss_get(PointerRNA *ptr)
 static PointerRNA rna_Material_strand_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_MaterialStrand, ptr->id.data);
+}
+
+static PointerRNA rna_Material_physics_get(PointerRNA *ptr)
+{
+	return rna_pointer_inherit_refine(ptr, &RNA_MaterialPhysics, ptr->id.data);
 }
 
 static void rna_Material_type_set(PointerRNA *ptr, int value)
@@ -189,6 +196,15 @@ static void rna_Material_use_specular_ramp_set(PointerRNA *ptr, int value)
 
 	if((ma->mode & MA_RAMP_SPEC) && ma->ramp_spec == NULL)
 		ma->ramp_spec= add_colorband(0);
+}
+
+void rna_Material_use_nodes_set(PointerRNA *ptr, int value)
+{
+	Material *ma= (Material*)ptr->data;
+
+	ma->use_nodes= value;
+	if(ma->use_nodes && ma->nodetree==NULL)
+		ED_node_shader_default(ma);
 }
 
 #else
@@ -403,7 +419,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Specular Color Factor", "Amount texture affects specular color.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
-	prop= RNA_def_property(srna, "colordiff_factor", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "colordiff_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "colfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Diffuse Color Factor", "Amount texture affects diffuse color.");
@@ -522,10 +538,16 @@ static void rna_def_material_colors(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Mirror Color", "Mirror color of the material.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Alpha", "Alpha transparency of the material.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW, NULL);
+
+	prop= RNA_def_property(srna, "specular_alpha", PROP_FLOAT, PROP_PERCENTAGE);
+	RNA_def_property_float_sdna(prop, NULL, "spectra");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Specular Alpha", "Alpha transparency for specular areas.");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
 	/* Color bands */
 	prop= RNA_def_property(srna, "use_diffuse_ramp", PROP_BOOLEAN, PROP_NONE);
@@ -594,7 +616,7 @@ static void rna_def_material_diffuse(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Diffuse Shader Model", "");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "diffuse_reflection", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "diffuse_reflection", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "ref");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Diffuse Reflection", "Amount of diffuse reflection.");
@@ -611,7 +633,7 @@ static void rna_def_material_diffuse(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Diffuse Toon Size", "Size of diffuse toon area.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
-	prop= RNA_def_property(srna, "diffuse_toon_smooth", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "diffuse_toon_smooth", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "param[1]");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Diffuse Toon Smooth", "Smoothness of diffuse toon area.");
@@ -655,7 +677,7 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Enabled", "Enable raytraced reflections.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 		
-	prop= RNA_def_property(srna, "reflect", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "reflect", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "ray_mirror");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Reflect", "Sets the amount mirror reflection for raytrace.");
@@ -667,19 +689,19 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Fresnel", "Power of Fresnel for mirror reflection.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "fresnel_fac", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "fresnel_factor", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "fresnel_mir_i");
 	RNA_def_property_range(prop, 0.0f, 5.0f);
 	RNA_def_property_ui_text(prop, "Fresnel Factor", "Blending factor for Fresnel.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "gloss", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "gloss", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "gloss_mir");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Gloss", "The shininess of the reflection. Values < 1.0 give diffuse, blurry reflections.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "gloss_anisotropic", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "gloss_anisotropic", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "aniso_gloss_mir");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Gloss Anisotropy", "The shape of the reflection, from 0.0 (circular) to 1.0 (fully stretched along the tangent.");
@@ -691,7 +713,7 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Gloss Samples", "Number of cone samples averaged for blurry reflections.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "gloss_threshold", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "gloss_threshold", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "adapt_thresh_mir");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Gloss Threshold", "Threshold for adaptive sampling. If a sample contributes less than this amount (as a percentage), sampling is stopped.");
@@ -703,7 +725,7 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Depth", "Maximum allowed number of light inter-reflections.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "dist_mir");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Maximum Distance", "Maximum distance of reflected rays. Reflections further than this range fade to sky color or material color.");
@@ -726,11 +748,6 @@ static void rna_def_material_raytra(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "Material");
 	RNA_def_struct_ui_text(srna, "Material Raytrace Transparency", "Raytraced refraction settings for a Material datablock.");
 
-	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_RAYTRANSP); /* use bitflags */
-	RNA_def_property_ui_text(prop, "Enabled", "Enables raytracing for transparent refraction rendering.");
-	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
-	
 	prop= RNA_def_property(srna, "ior", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ang");
 	RNA_def_property_range(prop, 1.0f, 3.0f);
@@ -743,13 +760,13 @@ static void rna_def_material_raytra(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Fresnel", "Power of Fresnel for transparency (Ray or ZTransp).");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "fresnel_fac", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "fresnel_factor", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "fresnel_tra_i");
 	RNA_def_property_range(prop, 1.0f, 5.0f);
 	RNA_def_property_ui_text(prop, "Fresnel Factor", "Blending factor for Fresnel.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "gloss", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "gloss", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "gloss_tra");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Gloss", "The clarity of the refraction. Values < 1.0 give diffuse, blurry refractions.");
@@ -761,7 +778,7 @@ static void rna_def_material_raytra(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Gloss Samples", "Number of cone samples averaged for blurry refractions.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "gloss_threshold", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "gloss_threshold", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "adapt_thresh_tra");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Gloss Threshold", "Threshold for adaptive sampling. If a sample contributes less than this amount (as a percentage), sampling is stopped.");
@@ -773,13 +790,13 @@ static void rna_def_material_raytra(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Depth", "Maximum allowed number of light inter-refractions.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "filter", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "filter", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "filter");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Filter", "Amount to blend in the material's diffuse color in raytraced transparency (simulating absorption).");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "limit", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "limit", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "tx_limit");
 	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_text(prop, "Limit", "Maximum depth for light to travel through the transparent material before becoming fully filtered (0.0 is disabled).");
@@ -789,12 +806,6 @@ static void rna_def_material_raytra(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "tx_falloff");
 	RNA_def_property_range(prop, 0.1f, 10.0f);
 	RNA_def_property_ui_text(prop, "Falloff", "Falloff power for transmissivity filter effect (1.0 is linear).");
-	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
-	
-	prop= RNA_def_property(srna, "specular_opacity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "spectra");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Specular Opacity", "Makes specular areas opaque on transparent materials.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 }
 
@@ -820,7 +831,7 @@ static void rna_def_material_halo(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Hardness", "Sets the hardness of the halo.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "add", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "add", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "add");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Add", "Sets the strength of the add effect.");
@@ -936,7 +947,7 @@ static void rna_def_material_sss(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "Material");
 	RNA_def_struct_ui_text(srna, "Material Subsurface Scattering", "Diffuse subsurface scattering settings for a Material datablock.");
 
-	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_RGB|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "sss_radius");
 	RNA_def_property_range(prop, 0.001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.001, 10000, 1, 3);
@@ -966,13 +977,13 @@ static void rna_def_material_sss(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "IOR", "Index of refraction (higher values are denser).");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
-	prop= RNA_def_property(srna, "color_factor", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "color_factor", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "sss_colfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Color Factor", "Blend factor for SSS colors.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
-	prop= RNA_def_property(srna, "texture_factor", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "texture_factor", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "sss_texfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Texture Factor", "Texture scatting blend factor.");
@@ -1014,7 +1025,7 @@ void rna_def_material_specularity(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Specular Shader Model", "");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "specular_reflection", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "specular_reflection", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "spec");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Specularity Intensity", "");
@@ -1043,7 +1054,7 @@ void rna_def_material_specularity(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Specular Toon Size", "Size of specular toon area.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
-	prop= RNA_def_property(srna, "specular_toon_smooth", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "specular_toon_smooth", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "param[3]");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Specular Toon Smooth", "Ssmoothness of specular toon area.");
@@ -1076,10 +1087,10 @@ void rna_def_material_strand(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Surface Diffuse", "Make diffuse shading more similar to shading the surface.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
-	prop= RNA_def_property(srna, "blend_distance", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "blend_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "strand_surfnor");
 	RNA_def_property_range(prop, 0, 10);
-	RNA_def_property_ui_text(prop, "Blend Distance", "Distance in Blender units over which to blend in the surface normal.");
+	RNA_def_property_ui_text(prop, "Blend Distance", "Worldspace distance over which to blend in the surface normal.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
 	prop= RNA_def_property(srna, "blender_units", PROP_BOOLEAN, PROP_NONE);
@@ -1123,6 +1134,46 @@ void rna_def_material_strand(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 }
 
+void rna_def_material_physics(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna= RNA_def_struct(brna, "MaterialPhysics", NULL);
+	RNA_def_struct_sdna(srna, "Material");
+	RNA_def_struct_nested(brna, srna, "Material");
+	RNA_def_struct_ui_text(srna, "Material Physics", "Physics settings for a Material datablock.");
+	
+	prop= RNA_def_property(srna, "align_to_normal", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_FH_NOR);
+	RNA_def_property_ui_text(prop, "Align to Normal", "Align dynamic game objects along the surface normal, when inside the physics distance area");
+	
+	prop= RNA_def_property(srna, "friction", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "friction");
+	RNA_def_property_range(prop, 0, 100);
+	RNA_def_property_ui_text(prop, "Friction", "Coulomb friction coeffecient, when inside the physics distance area");
+
+	prop= RNA_def_property(srna, "force", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "fh");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Force", "Upward spring force, when inside the physics distance area");
+	
+	prop= RNA_def_property(srna, "elasticity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "reflect");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Elasticity", "Elasticity of collisions");
+	
+	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "fhdist");
+	RNA_def_property_range(prop, 0, 20);
+	RNA_def_property_ui_text(prop, "Distance", "Distance of the physics area");
+	
+	prop= RNA_def_property(srna, "damp", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "xyfrict");
+	RNA_def_property_range(prop, 0, 1);
+	RNA_def_property_ui_text(prop, "Damping", "Damping of the spring force, when inside the physics distance area");
+}
+
 void RNA_def_material(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1133,6 +1184,10 @@ void RNA_def_material(BlenderRNA *brna)
 		{MA_TYPE_WIRE, "WIRE", 0, "Wire", "Render the edges of faces as wires (not supported in ray tracing)."},
 		// {MA_TYPE_VOLUME, "VOLUME", 0, "Volume", "Render object as a volume."},
 		{MA_TYPE_HALO, "HALO", 0, "Halo", "Render object as halo particles."},
+		{0, NULL, 0, NULL, NULL}};
+	static EnumPropertyItem transparency_items[] = {
+		{MA_ZTRANSP, "Z_TRANSPARENCY", 0, "Z Transparency", "Use alpha buffer for transparent faces."},
+		{MA_RAYTRANSP, "RAYTRACE", 0, "Raytrace", "Use raytracing for transparent refraction rendering."},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Material", "ID");
@@ -1145,19 +1200,31 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Type", "Material type defining how the object is rendered.");
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Material_type_set", NULL);
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW, NULL);
+
+	prop= RNA_def_property(srna, "transparency", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_TRANSP);
+	RNA_def_property_ui_text(prop, "Transparency", "Render material as transparent.");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
+
+	prop= RNA_def_property(srna, "transparency_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "mode");
+	RNA_def_property_enum_items(prop, transparency_items);
+	RNA_def_property_ui_text(prop, "Transparency Method", "Method to use for rendering transparency.");
+	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "ambient", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "ambient", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "amb");
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Ambient", "Amount of global ambient color the material receives.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
 	prop= RNA_def_property(srna, "emit", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0, 2);
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0, 2.0f, 10, 2);
 	RNA_def_property_ui_text(prop, "Emit", "Amount of light to emit.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 
-	prop= RNA_def_property(srna, "translucency", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "translucency", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_range(prop, 0, 1);
 	RNA_def_property_ui_text(prop, "Translucency", "Amount of diffuse shading on the back side.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
@@ -1182,7 +1249,7 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 10);
 	RNA_def_property_ui_text(prop, "Shadow Buffer Bias", "Factor to multiply shadow buffer bias with (0 is ignore.)");
 
-	prop= RNA_def_property(srna, "shadow_casting_alpha", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "shadow_casting_alpha", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "shad_alpha");
 	RNA_def_property_range(prop, 0.001, 1);
 	RNA_def_property_ui_text(prop, "Shadow Casting Alpha", "Shadow casting alpha, only in use for Irregular Shadowbuffer.");
@@ -1215,11 +1282,6 @@ void RNA_def_material(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "shadeless", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_SHLESS);
 	RNA_def_property_ui_text(prop, "Shadeless", "Makes this material insensitive to light or shadow.");
-	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
-	
-	prop= RNA_def_property(srna, "z_transparency", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_ZTRA);
-	RNA_def_property_ui_text(prop, "Z Transparency", "Enable alpha buffer for transparent faces.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
 	prop= RNA_def_property(srna, "vertex_color_light", PROP_BOOLEAN, PROP_NONE);
@@ -1265,11 +1327,6 @@ void RNA_def_material(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "exclude_mist", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_NOMIST);
 	RNA_def_property_ui_text(prop, "Exclude Mist", "Excludes this material from mist effects (in world settings)");
-	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
-	
-	prop= RNA_def_property(srna, "radiosity", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_RADIO);
-	RNA_def_property_ui_text(prop, "Radiosity", "Include this material in radiosity calculations");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
 	prop= RNA_def_property(srna, "transparent_shadows", PROP_BOOLEAN, PROP_NONE);
@@ -1322,11 +1379,22 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MaterialStrand");
 	RNA_def_property_pointer_funcs(prop, "rna_Material_strand_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Strand", "Strand settings for the material.");
+	
+	prop= RNA_def_property(srna, "physics", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "MaterialPhysics");
+	RNA_def_property_pointer_funcs(prop, "rna_Material_physics_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Physics", "Game physics settings.");
 
 	/* nodetree */
 	prop= RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
 	RNA_def_property_ui_text(prop, "Node Tree", "Node tree for node based materials.");
+
+	prop= RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Material_use_nodes_set");
+	RNA_def_property_ui_text(prop, "Use Nodes", "Use shader nodes to render the material.");
+	RNA_def_property_update(prop, NC_MATERIAL, NULL);
 
 	/* common */
 	rna_def_animdata_common(srna);
@@ -1344,6 +1412,7 @@ void RNA_def_material(BlenderRNA *brna)
 	rna_def_material_sss(brna);
 	rna_def_material_mtex(brna);
 	rna_def_material_strand(brna);
+	rna_def_material_physics(brna);
 
 	RNA_api_material(srna);
 }

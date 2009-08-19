@@ -51,13 +51,7 @@
 /* Integration hooks ------------------------------------------------------- */
 
 PyTypeObject KX_SCA_ReplaceMeshActuator::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"KX_SCA_ReplaceMeshActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -81,7 +75,7 @@ PyTypeObject KX_SCA_ReplaceMeshActuator::Type = {
 PyMethodDef KX_SCA_ReplaceMeshActuator::Methods[] = {
 	KX_PYMETHODTABLE(KX_SCA_ReplaceMeshActuator, instantReplaceMesh),
 	// Deprecated ----->
-	{"setMesh", (PyCFunction) KX_SCA_ReplaceMeshActuator::sPySetMesh, METH_O, (PY_METHODCHAR)SetMesh_doc},
+	{"setMesh", (PyCFunction) KX_SCA_ReplaceMeshActuator::sPySetMesh, METH_O, (const char *)SetMesh_doc},
    	KX_PYMETHODTABLE(KX_SCA_ReplaceMeshActuator, getMesh),
 	{NULL,NULL} //Sentinel
 };

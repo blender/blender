@@ -22,6 +22,11 @@ BF_CXX = '/usr'
 WITH_BF_STATICCXX = False
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 
+BF_LIBSAMPLERATE = '/usr/local'
+BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
+BF_LIBSAMPLERATE_LIB = 'samplerate'
+BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
+
 WITH_BF_SDL = True
 BF_SDL = '/usr/local' #$(shell sdl-config --prefix)
 BF_SDL_INC = '${BF_SDL}/include/SDL' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
@@ -109,7 +114,7 @@ BF_ICONV_LIB = 'iconv'
 BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
 
 # enable ffmpeg  support
-WITH_BF_FFMPEG = False  # -DWITH_FFMPEG
+WITH_BF_FFMPEG = True # -DWITH_FFMPEG
 BF_FFMPEG = '/usr/local'
 BF_FFMPEG_INC = '${BF_FFMPEG}/include'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'

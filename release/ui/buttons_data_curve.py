@@ -2,7 +2,7 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
+	__space_type__ = "PROPERTIES"
 	__region_type__ = "WINDOW"
 	__context__ = "data"
 	

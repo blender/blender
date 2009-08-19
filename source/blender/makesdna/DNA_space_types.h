@@ -508,6 +508,13 @@ typedef struct SpaceConsole {
 	
 } SpaceConsole;
 
+typedef struct SpaceUserPref {
+	SpaceLink *next, *prev;
+	ListBase regionbase;		/* storage of regions for inactive spaces */
+	int spacetype;
+
+	int pad;
+} SpaceUserPref;
 
 /* view3d  Now in DNA_view3d_types.h */
 
@@ -821,7 +828,7 @@ enum {
 #define TIME_ALL_3D_WIN			2
 #define TIME_ALL_ANIM_WIN		4
 #define TIME_ALL_BUTS_WIN		8
-#define TIME_WITH_SEQ_AUDIO		16
+#define TIME_WITH_SEQ_AUDIO		16		// deprecated
 #define TIME_SEQ				32
 #define TIME_ALL_IMAGE_WIN		64
 #define TIME_CONTINUE_PHYSICS	128
@@ -861,7 +868,8 @@ enum {
 	SPACE_NODE,
 	SPACE_LOGIC,
 	SPACE_CONSOLE,
-	SPACEICONMAX = SPACE_CONSOLE
+	SPACE_USERPREF,
+	SPACEICONMAX = SPACE_USERPREF
 };
 
 #endif

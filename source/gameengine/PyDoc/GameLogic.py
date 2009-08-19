@@ -52,7 +52,6 @@ Documentation for the GameLogic Module.
 		- L{ActionActuator<GameTypes.BL_ActionActuator>}
 		- L{AddObjectActuator<GameTypes.KX_SCA_AddObjectActuator>}
 		- L{CameraActuator<GameTypes.KX_CameraActuator>}
-		- L{CDActuator<GameTypes.KX_CDActuator>}
 		- L{ConstraintActuator<GameTypes.KX_ConstraintActuator>}
 		- L{DynamicActuator<GameTypes.KX_SCA_DynamicActuator>}
 		- L{EndObjectActuator<GameTypes.KX_SCA_EndObjectActuator>}

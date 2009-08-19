@@ -21,7 +21,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Robin Allen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -42,9 +42,10 @@ static bNodeSocketType outputs[]= {
 	{ -1, 0, "" } 
 };
 
-static void colorfn(float *out, float *coord, bNode *node, bNodeStack **in, short thread)
+static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
 	float new_coord[3];
+	float *coord = p->coord;
 	
 	float ax[4];
 	float para[3];
@@ -53,13 +54,13 @@ static void colorfn(float *out, float *coord, bNode *node, bNodeStack **in, shor
 	
 	float magsq, ndx;
 	
-	float a = tex_input_value(in[1], coord, thread);
+	float a = tex_input_value(in[1], p, thread);
 	float cos_a = cos(a * 2 * M_PI);
 	float sin_a = sin(a * 2 * M_PI);
 	
 	// x' = xcosa + n(n.x)(1-cosa)+(x*n)sina
 	
-	tex_input_vec(ax, in[2], coord, thread);
+	tex_input_vec(ax, in[2], p, thread);
 	magsq = ax[0]*ax[0] + ax[1]*ax[1] + ax[2]*ax[2];
 	
 	if(magsq == 0) magsq = 1;
@@ -86,7 +87,11 @@ static void colorfn(float *out, float *coord, bNode *node, bNodeStack **in, shor
 	new_coord[1] = para[1] + perp[1] + cp[1];
 	new_coord[2] = para[2] + perp[2] + cp[2];
 	
-	tex_input_rgba(out, in[0], new_coord, thread);
+	{
+		TexParams np = *p;
+		np.coord = new_coord;
+		tex_input_rgba(out, in[0], &np, thread);
+	}
 }
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out) 
 {

@@ -129,7 +129,6 @@ int BPY_flag_from_seq(BPY_flag_def *flagdef, PyObject *seq, int *flag)
 
 
 /* Copied from pythons 3's Object.c */
-#ifndef Py_CmpToRich
 PyObject *
 Py_CmpToRich(int op, int cmp)
 {
@@ -165,7 +164,6 @@ Py_CmpToRich(int op, int cmp)
 	Py_INCREF(res);
 	return res;
 }
-#endif
 
 /* for debugging */
 void PyObSpit(char *name, PyObject *var) {
@@ -175,7 +173,7 @@ void PyObSpit(char *name, PyObject *var) {
 	}
 	else {
 		PyObject_Print(var, stderr, 0);
-		fprintf(stderr, " ref:%d ", var->ob_refcnt);
+		fprintf(stderr, " ref:%d ", (int)var->ob_refcnt);
 		fprintf(stderr, " ptr:%p", (void *)var);
 		
 		fprintf(stderr, " type:");
@@ -378,11 +376,7 @@ PyObject *BPY_exception_buffer(void)
 	 * string_io = StringIO.StringIO()
 	 */
 	
-#if PY_VERSION_HEX < 0x03000000
-	if(! (string_io_mod= PyImport_ImportModule("StringIO")) ) {
-#else
 	if(! (string_io_mod= PyImport_ImportModule("io")) ) {
-#endif
 		goto error_cleanup;
 	} else if (! (string_io = PyObject_CallMethod(string_io_mod, "StringIO", NULL))) {
 		goto error_cleanup;

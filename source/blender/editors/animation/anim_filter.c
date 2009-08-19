@@ -62,6 +62,7 @@
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_space_types.h"
@@ -373,27 +374,29 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
  */
 #define ANIMDATA_FILTER_CASES(id, adtOk, nlaOk, driversOk, keysOk) \
 	{\
-		if (filter_mode & ANIMFILTER_ANIMDATA) {\
-			if ((id)->adt) {\
-				adtOk\
-			}\
-		}\
-		else if (ads->filterflag & ADS_FILTER_ONLYNLA) {\
-			if (ANIMDATA_HAS_NLA(id)) {\
-				nlaOk\
-			}\
-			else if (!(ads->filterflag & ADS_FILTER_NLA_NOACT) && ANIMDATA_HAS_KEYS(id)) {\
-				nlaOk\
-			}\
-		}\
-		else if (ads->filterflag & ADS_FILTER_ONLYDRIVERS) {\
-			if (ANIMDATA_HAS_DRIVERS(id)) {\
-				driversOk\
-			}\
-		}\
-		else {\
-			if (ANIMDATA_HAS_KEYS(id)) {\
-				keysOk\
+		if ((id)->adt) {\
+			if (!(filter_mode & ANIMFILTER_CURVEVISIBLE) || !((id)->adt->flag & ADT_CURVES_NOT_VISIBLE)) {\
+				if (filter_mode & ANIMFILTER_ANIMDATA) {\
+					adtOk\
+				}\
+				else if (ads->filterflag & ADS_FILTER_ONLYNLA) {\
+					if (ANIMDATA_HAS_NLA(id)) {\
+						nlaOk\
+					}\
+					else if (!(ads->filterflag & ADS_FILTER_NLA_NOACT) && ANIMDATA_HAS_KEYS(id)) {\
+						nlaOk\
+					}\
+				}\
+				else if (ads->filterflag & ADS_FILTER_ONLYDRIVERS) {\
+					if (ANIMDATA_HAS_DRIVERS(id)) {\
+						driversOk\
+					}\
+				}\
+				else {\
+					if (ANIMDATA_HAS_KEYS(id)) {\
+						keysOk\
+					}\
+				}\
 			}\
 		}\
 	}
@@ -1090,6 +1093,14 @@ static int animdata_filter_dopesheet_obdata (ListBase *anim_data, bDopeSheet *ad
 			expanded= FILTER_CUR_OBJD(cu);
 		}
 			break;
+		case OB_MBALL: /* ------- MetaBall ---------- */
+		{
+			MetaBall *mb= (MetaBall *)ob->data;
+			
+			type= ANIMTYPE_DSMBALL;
+			expanded= FILTER_MBALL_OBJD(mb);
+		}
+			break;
 	}
 	
 	/* special exception for drivers instead of action */
@@ -1273,12 +1284,25 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 			}
 		}
 			break;
+		case OB_MBALL: /* ------- MetaBall ---------- */
+		{
+			MetaBall *mb= (MetaBall *)ob->data;
+			
+			if ((ads->filterflag & ADS_FILTER_NOMBA) == 0) {
+				ANIMDATA_FILTER_CASES(mb,
+					{ /* AnimData blocks - do nothing... */ },
+					obdata_ok= 1;,
+					obdata_ok= 1;,
+					obdata_ok= 1;)
+			}
+		}
+			break;
 	}
 	if (obdata_ok) 
 		items += animdata_filter_dopesheet_obdata(anim_data, ads, base, filter_mode);
 
 	/* particles */
-	if(ob->particlesystem.first && !(ads->filterflag & ADS_FILTER_NOPART))
+	if (ob->particlesystem.first && !(ads->filterflag & ADS_FILTER_NOPART))
 		items += animdata_filter_dopesheet_particles(anim_data, ads, base, filter_mode);
 	
 	/* return the number of items added to the list */
@@ -1443,6 +1467,14 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 				worOk= !(ads->filterflag & ADS_FILTER_NOWOR);)
 		}
 		
+		/* if only F-Curves with visible flags set can be shown, check that 
+		 * datablocks haven't been set to invisible 
+		 */
+		if (filter_mode & ANIMFILTER_CURVEVISIBLE) {
+			if ((sce->adt) && (sce->adt->flag & ADT_CURVES_NOT_VISIBLE))
+				sceOk= worOk= 0;
+		}
+		
 		/* check if not all bad (i.e. so there is something to show) */
 		if ( !(!sceOk && !worOk) ) {
 			/* add scene data to the list of filtered channels */
@@ -1459,7 +1491,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 			Key *key= ob_get_key(ob);
 			short actOk=1, keyOk=1, dataOk=1, matOk=1, partOk=1;
 			
-			/* firstly, check if object can be included, by the following fanimors:
+			/* firstly, check if object can be included, by the following factors:
 			 *	- if only visible, must check for layer and also viewport visibility
 			 *	- if only selected, must check if object is selected 
 			 *	- there must be animation data to edit
@@ -1471,6 +1503,14 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 				
 				/* outliner restrict-flag */
 				if (ob->restrictflag & OB_RESTRICT_VIEW) continue;
+			}
+			
+			/* if only F-Curves with visible flags set can be shown, check that 
+			 * datablock hasn't been set to invisible 
+			 */
+			if (filter_mode & ANIMFILTER_CURVEVISIBLE) {
+				if ((ob->adt) && (ob->adt->flag & ADT_CURVES_NOT_VISIBLE))
+					continue;
 			}
 			
 			/* additionally, dopesheet filtering also affects what objects to consider */
@@ -1595,6 +1635,23 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 							dataOk= !(ads->filterflag & ADS_FILTER_NOCUR);)
 					}
 						break;
+					case OB_MBALL: /* ------- MetaBall ---------- */
+					{
+						MetaBall *mb= (MetaBall *)ob->data;
+						dataOk= 0;
+						ANIMDATA_FILTER_CASES(mb, 
+							if ((ads->filterflag & ADS_FILTER_NOMBA)==0) {
+								/* for the special AnimData blocks only case, we only need to add
+								 * the block if it is valid... then other cases just get skipped (hence ok=0)
+								 */
+								ANIMDATA_ADD_ANIMDATA(mb);
+								dataOk=0;
+							},
+							dataOk= !(ads->filterflag & ADS_FILTER_NOMBA);, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOMBA);, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOMBA);)
+					}
+						break;
 					default: /* --- other --- */
 						dataOk= 0;
 						break;
@@ -1669,6 +1726,12 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bDopeSheet *ads, int 
 					{
 						Curve *cu= (Curve *)ob->data;
 						dataOk= ANIMDATA_HAS_KEYS(cu);	
+					}
+						break;
+					case OB_MBALL: /* -------- Metas ---------- */
+					{
+						MetaBall *mb= (MetaBall *)ob->data;
+						dataOk= ANIMDATA_HAS_KEYS(mb);	
 					}
 						break;
 					default: /* --- other --- */

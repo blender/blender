@@ -30,7 +30,10 @@
 #define DNA_SMOKE_TYPES_H
 
 /* flags */
-#define MOD_SMOKE_HIGHRES (1<<1)
+#define MOD_SMOKE_HIGHRES (1<<1) /* compute high resolution */
+#define MOD_SMOKE_DISSOLVE (1<<2) /* let smoke dissolve */
+#define MOD_SMOKE_DISSOLVE_LOG (1<<3) /* using 1/x for dissolve */
+
 /* noise */
 #define MOD_SMOKE_NOISEWAVE (1<<0)
 #define MOD_SMOKE_NOISEFFT (1<<1)
@@ -44,6 +47,7 @@
 #define MOD_SMOKE_VIEW_CHANGETOBIG (1<<5)
 #define MOD_SMOKE_VIEW_REDRAWNICE (1<<6)
 #define MOD_SMOKE_VIEW_REDRAWALL (1<<7)
+#define MOD_SMOKE_VIEW_USEBIG (1<<8)
 
 typedef struct SmokeDomainSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
@@ -74,11 +78,10 @@ typedef struct SmokeDomainSettings {
 	int viewsettings;
 	int max_textures;
 	short noise; /* noise type: wave, curl, anisotropic */
-	short pad2;
-	int prev_res[3];
-	int prev_maxres;
-	int render_res[3];
-	int render_maxres;
+	short diss_percent; 
+	int diss_speed;/* in frames */
+	float strength;
+	struct WTURBULENCE *wt; // WTURBULENCE object, if active
 } SmokeDomainSettings;
 
 
@@ -101,9 +104,17 @@ typedef struct SmokeFlowSettings {
 	int pad;
 } SmokeFlowSettings;
 
+/*
+	struct BVHTreeFromMesh *bvh;
+	float mat[4][4];
+	float mat_old[4][4];
+	*/
+
 /* collision objects (filled with smoke) */
 typedef struct SmokeCollSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
+	struct BVHTree *bvhtree; /* bounding volume hierarchy for this cloth object */
+	struct DerivedMesh *dm;
 	float *points;
 	float *points_old;
 	float *vel;

@@ -55,7 +55,7 @@ SET(INC
   ../../../source/gameengine/Physics/Sumo
   ../../../source/gameengine/Physics/Sumo/Fuzzics/include 
   ../../../source/gameengine/Network/LoopBackNetwork
-  ../../../intern/SoundSystem
+  ../../../intern/audaspace/intern
   ../../../source/blender/misc 
   ../../../source/blender/blenloader
   ../../../source/blender/gpu
@@ -66,7 +66,7 @@ SET(INC
 )
 
 IF(WITH_SDL)
-  SET(INC ${INC} ${SDL_INC})  
+  SET(INC ${INC} ${SDL_INCLUDE_DIR})  
 ELSE(WITH_SDL)
   ADD_DEFINITIONS(-DDISABLE_SDL)
 ENDIF(WITH_SDL)

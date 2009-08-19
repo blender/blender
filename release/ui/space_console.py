@@ -12,17 +12,22 @@ class CONSOLE_HT_header(bpy.types.Header):
 		# text = sc.text
 		layout = self.layout
 
-		layout.template_header()
+		row= layout.row(align=True)
+		row.template_header()
 
-		row = layout.row()
-		row.itemR(sc, "console_type", expand=True)
+		if context.area.show_menus:
+			sub = row.row(align=True)
+
+			if sc.console_type == 'REPORT':
+				sub.itemM("CONSOLE_MT_report")
+			else:
+				sub.itemM("CONSOLE_MT_console")
+
+		layout.itemS()
+		layout.itemR(sc, "console_type", expand=True)
 
 		if sc.console_type == 'REPORT':
-			
-			if context.area.show_menus:
-				row = layout.row()
-				row.itemM("CONSOLE_MT_report")
-			
+			row = layout.row(align=True)
 			row.itemR(sc, "show_report_debug", text="Debug")
 			row.itemR(sc, "show_report_info", text="Info")
 			row.itemR(sc, "show_report_operator", text="Operators")
@@ -32,12 +37,6 @@ class CONSOLE_HT_header(bpy.types.Header):
 			row = layout.row()
 			row.enabled = sc.show_report_operator
 			row.itemO("console.report_replay")
-		
-		else:
-			if context.area.show_menus:
-				row = layout.row()
-				row.itemM("CONSOLE_MT_console")
-
 
 class CONSOLE_MT_console(bpy.types.Menu):
 	__space_type__ = "CONSOLE"
@@ -99,19 +98,9 @@ def get_console(console_id):
 		
 		console = code.InteractiveConsole(namespace)
 		
-		if sys.version.startswith('3'):
-			import io
-			stdout = io.StringIO()
-			stderr = io.StringIO()
-		elif sys.version.startswith('2.6'):
-			import io
-			stdout = io.BytesIO()  # Py2x support
-			stderr = io.BytesIO()
-		else:
-			import cStringIO
-			stdout = cStringIO.StringIO()
-			stderr = cStringIO.StringIO()
-
+		import io
+		stdout = io.StringIO()
+		stderr = io.StringIO()
 	
 		consoles[console_id]= namespace, console, stdout, stderr
 		

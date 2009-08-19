@@ -2271,7 +2271,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, RegionView3D *rv3d
 	range= (float)(end - start);
 	
 	/* store values */
-	ob->flag &= ~OB_POSEMODE;
+	ob->mode &= ~OB_MODE_POSE;
 	cfrao= CFRA;
 	flago= arm->flag;
 	arm->flag &= ~(ARM_DRAWNAMES|ARM_DRAWAXES);
@@ -2308,7 +2308,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, RegionView3D *rv3d
 	ob->pose= poseo;
 	arm->flag= flago;
 	armature_rebuild_pose(ob, ob->data);
-	ob->flag |= OB_POSEMODE;
+	ob->mode |= OB_MODE_POSE;
 	ob->ipoflag= ipoflago; 
 }
 
@@ -2349,7 +2349,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	if (range == 0) return;
 	
 	/* store values */
-	ob->flag &= ~OB_POSEMODE;
+	ob->mode &= ~OB_MODE_POSE;
 	cfrao= CFRA;
 	flago= arm->flag;
 	arm->flag &= ~(ARM_DRAWNAMES|ARM_DRAWAXES);
@@ -2388,7 +2388,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 	ob->pose= poseo;
 	arm->flag= flago;
 	armature_rebuild_pose(ob, ob->data);
-	ob->flag |= OB_POSEMODE;
+	ob->mode |= OB_MODE_POSE;
 }
 
 /* draw ghosts around current frame
@@ -2415,7 +2415,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base
 	range= (float)(arm->ghostep)*stepsize + 0.5f;	/* plus half to make the for loop end correct */
 	
 	/* store values */
-	ob->flag &= ~OB_POSEMODE;
+	ob->mode &= ~OB_MODE_POSE;
 	cfrao= CFRA;
 	actframe= BKE_nla_tweakedit_remap(adt, (float)CFRA, 0);
 	flago= arm->flag;
@@ -2474,7 +2474,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base
 	ob->pose= poseo;
 	arm->flag= flago;
 	armature_rebuild_pose(ob, ob->data);
-	ob->flag |= OB_POSEMODE;
+	ob->mode |= OB_MODE_POSE;
 }
 
 /* ********************************** Armature Drawing - Main ************************* */
@@ -2513,10 +2513,10 @@ int draw_armature(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int
 			/* drawing posemode selection indices or colors only in these cases */
 			if(!(base->flag & OB_FROMDUPLI)) {
 				if(G.f & G_PICKSEL) {
-					if(ob->flag & OB_POSEMODE) 
+					if(ob->mode & OB_MODE_POSE) 
 						arm->flag |= ARM_POSEMODE;
 				}
-				else if(ob->flag & OB_POSEMODE) {
+				else if(ob->mode & OB_MODE_POSE) {
 					if (arm->ghosttype == ARM_GHOST_RANGE) {
 						draw_ghost_poses_range(scene, v3d, rv3d, base);
 					}
@@ -2530,7 +2530,7 @@ int draw_armature(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int
 					if ((flag & DRAW_SCENESET)==0) {
 						if(ob==OBACT) 
 							arm->flag |= ARM_POSEMODE;
-						else if(G.f & G_WEIGHTPAINT) {
+						else if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 							if(OBACT && ob==modifiers_isDeformedByArmature(OBACT))
 								arm->flag |= ARM_POSEMODE;
 						}
@@ -2541,7 +2541,7 @@ int draw_armature(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int
 			draw_pose_channels(scene, v3d, rv3d, base, dt);
 			arm->flag &= ~ARM_POSEMODE; 
 			
-			if(ob->flag & OB_POSEMODE)
+			if(ob->mode & OB_MODE_POSE)
 				UI_ThemeColor(TH_WIRE);	/* restore, for extra draw stuff */
 		}
 		else retval= 1;

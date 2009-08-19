@@ -595,7 +595,7 @@ static void view3d_tools_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void view3d_tools_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, view3d_context_string(C), -1);
+	ED_region_panels(C, ar, 1, CTX_data_mode_string(C), -1);
 }
 
 static int view3d_context(const bContext *C, const char *member, bContextDataResult *result)
@@ -889,7 +889,7 @@ void ED_spacetype_view3d(void)
 	/* regions: tool(bar) */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_TOOLS;
-	art->minsizex= 120; // XXX
+	art->minsizex= 160; // XXX
 	art->minsizey= 50; // XXX
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= view3d_buttons_area_listener;

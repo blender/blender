@@ -312,7 +312,7 @@ static GPUTexture *GPU_texture_create_nD(int w, int h, int n, float *fpixels, in
 	return tex;
 }
 
-GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, double time)
+GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, double time, int mipmap)
 {
 	GPUTexture *tex;
 	GLint w, h, border, lastbindcode, bindcode;
@@ -320,7 +320,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, double time)
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &lastbindcode);
 
 	GPU_update_image_time(ima, time);
-	bindcode = GPU_verify_image(ima, 0, 0, 0);
+	bindcode = GPU_verify_image(ima, 0, 0, 0, mipmap);
 
 	if(ima->gputexture) {
 		ima->gputexture->bindcode = bindcode;

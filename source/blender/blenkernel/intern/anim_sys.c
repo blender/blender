@@ -71,7 +71,7 @@ static short id_has_animdata (ID *id)
 	switch (GS(id->name)) {
 			/* has AnimData */
 		case ID_OB:
-		case ID_CU:
+		case ID_MB: case ID_CU:
 		case ID_KE:
 		case ID_PA:
 		case ID_MA: case ID_TE: case ID_NT:
@@ -276,7 +276,7 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 	if (name)
 		BLI_snprintf(ks->name, 64, name);
 	else
-		strcpy(ks->name, "Keying Set");
+		strcpy(ks->name, "KeyingSet");
 	
 	ks->flag= flag;
 	ks->keyingflag= keyingflag;
@@ -285,7 +285,7 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 	BLI_addtail(list, ks);
 	
 	/* make sure KeyingSet has a unique name (this helps with identification) */
-	BLI_uniquename(list, ks, "Keying Set", ' ', offsetof(KeyingSet, name), 64);
+	BLI_uniquename(list, ks, "KeyingSet", '.', offsetof(KeyingSet, name), 64);
 	
 	/* return new KeyingSet for further editing */
 	return ks;
@@ -342,6 +342,21 @@ void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name
 	BLI_addtail(&ks->paths, ksp);
 }	
 
+/* Copy all KeyingSets in the given list */
+void BKE_keyingsets_copy(ListBase *newlist, ListBase *list)
+{
+	KeyingSet *ksn;
+	KS_Path *kspn;
+
+	BLI_duplicatelist(newlist, list);
+
+	for(ksn=newlist->first; ksn; ksn=ksn->next) {
+		BLI_duplicatelist(&ksn->paths, &ksn->paths);
+
+		for(kspn=ksn->paths.first; kspn; kspn=kspn->next)
+			kspn->rna_path= MEM_dupallocN(kspn->rna_path);
+	}
+}
 
 /* Freeing Tools --------------------------- */
 
@@ -1202,6 +1217,7 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 	
 	NlaTrack *nlt;
 	short track_index=0;
+	short has_strips = 0;
 	
 	ListBase estrips= {NULL, NULL};
 	ListBase echannels= {NULL, NULL};
@@ -1223,6 +1239,12 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 		if (nlt->flag & NLATRACK_MUTED) 
 			continue;
 			
+		/* if this track has strips (but maybe they won't be suitable), set has_strips 
+		 *	- used for mainly for still allowing normal action evaluation...
+		 */
+		if (nlt->strips.first)
+			has_strips= 1;
+			
 		/* otherwise, get strip to evaluate for this channel */
 		nes= nlastrips_ctime_get_strip(&estrips, &nlt->strips, track_index, ctime);
 		if (nes) nes->track= nlt;
@@ -1232,23 +1254,33 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 	 *	- only do this if we're not exclusively evaluating the 'solo' NLA-track
 	 */
 	if ((adt->action) && !(adt->flag & ADT_NLA_SOLO_TRACK)) {
-		/* make dummy NLA strip, and add that to the stack */
-		memset(&dummy_strip, 0, sizeof(NlaStrip));
-		dummy_trackslist.first= dummy_trackslist.last= &dummy_strip;
-		
-		dummy_strip.act= adt->action;
-		dummy_strip.remap= adt->remap;
-		
-		calc_action_range(dummy_strip.act, &dummy_strip.actstart, &dummy_strip.actend, 1);
-		dummy_strip.start = dummy_strip.actstart;
-		dummy_strip.end = (IS_EQ(dummy_strip.actstart, dummy_strip.actend)) ?  (dummy_strip.actstart + 1.0f): (dummy_strip.actend);
-		
-		dummy_strip.blendmode= adt->act_blendmode;
-		dummy_strip.extendmode= adt->act_extendmode;
-		dummy_strip.influence= adt->act_influence;
-		
-		/* add this to our list of evaluation strips */
-		nlastrips_ctime_get_strip(&estrips, &dummy_trackslist, -1, ctime);
+		/* if there are strips, evaluate action as per NLA rules */
+		if (has_strips) {
+			/* make dummy NLA strip, and add that to the stack */
+			memset(&dummy_strip, 0, sizeof(NlaStrip));
+			dummy_trackslist.first= dummy_trackslist.last= &dummy_strip;
+			
+			dummy_strip.act= adt->action;
+			dummy_strip.remap= adt->remap;
+			
+				// FIXME: what happens when we want to included F-Modifier access?
+			calc_action_range(dummy_strip.act, &dummy_strip.actstart, &dummy_strip.actend, 1);
+			dummy_strip.start = dummy_strip.actstart;
+			dummy_strip.end = (IS_EQ(dummy_strip.actstart, dummy_strip.actend)) ?  (dummy_strip.actstart + 1.0f): (dummy_strip.actend);
+			
+			dummy_strip.blendmode= adt->act_blendmode;
+			dummy_strip.extendmode= adt->act_extendmode;
+			dummy_strip.influence= adt->act_influence;
+			
+			/* add this to our list of evaluation strips */
+			nlastrips_ctime_get_strip(&estrips, &dummy_trackslist, -1, ctime);
+		}
+		else {
+			/* special case - evaluate as if there isn't any NLA data */
+			// TODO: this is really just a stop-gap measure...
+			animsys_evaluate_action(ptr, adt->action, adt->remap, ctime);
+			return;
+		}
 	}
 	
 	/* only continue if there are strips to evaluate */
@@ -1441,6 +1473,9 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	/* shapekeys */
 		// TODO: we probably need the same hack as for curves (ctime-hack)
 	EVAL_ANIM_IDS(main->key.first, ADT_RECALC_ANIM);
+	
+	/* metaballs */
+	EVAL_ANIM_IDS(main->mball.first, ADT_RECALC_ANIM);
 	
 	/* curves */
 		/* we need to perform a special hack here to ensure that the ctime 

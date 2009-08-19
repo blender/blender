@@ -472,13 +472,7 @@ KX_PYMETHODDEF_DOC_NOARGS(SCA_ISensor, reset,
 /* ----------------------------------------------- */
 
 PyTypeObject SCA_ISensor::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"SCA_ISensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -502,29 +496,29 @@ PyTypeObject SCA_ISensor::Type = {
 PyMethodDef SCA_ISensor::Methods[] = {
 	//Deprecated functions ----->
 	{"isPositive", (PyCFunction) SCA_ISensor::sPyIsPositive, 
-	 METH_NOARGS, (PY_METHODCHAR)IsPositive_doc},
+	 METH_NOARGS, (const char *)IsPositive_doc},
 	{"isTriggered", (PyCFunction) SCA_ISensor::sPyIsTriggered, 
-	 METH_VARARGS, (PY_METHODCHAR)IsTriggered_doc},
+	 METH_VARARGS, (const char *)IsTriggered_doc},
 	{"getUsePosPulseMode", (PyCFunction) SCA_ISensor::sPyGetUsePosPulseMode, 
-	 METH_NOARGS, (PY_METHODCHAR)GetUsePosPulseMode_doc},
+	 METH_NOARGS, (const char *)GetUsePosPulseMode_doc},
 	{"setUsePosPulseMode", (PyCFunction) SCA_ISensor::sPySetUsePosPulseMode, 
-	 METH_VARARGS, (PY_METHODCHAR)SetUsePosPulseMode_doc},
+	 METH_VARARGS, (const char *)SetUsePosPulseMode_doc},
 	{"getFrequency", (PyCFunction) SCA_ISensor::sPyGetFrequency, 
-	 METH_NOARGS, (PY_METHODCHAR)GetFrequency_doc},
+	 METH_NOARGS, (const char *)GetFrequency_doc},
 	{"setFrequency", (PyCFunction) SCA_ISensor::sPySetFrequency, 
-	 METH_VARARGS, (PY_METHODCHAR)SetFrequency_doc},
+	 METH_VARARGS, (const char *)SetFrequency_doc},
 	{"getUseNegPulseMode", (PyCFunction) SCA_ISensor::sPyGetUseNegPulseMode, 
-	 METH_NOARGS, (PY_METHODCHAR)GetUseNegPulseMode_doc},
+	 METH_NOARGS, (const char *)GetUseNegPulseMode_doc},
 	{"setUseNegPulseMode", (PyCFunction) SCA_ISensor::sPySetUseNegPulseMode, 
-	 METH_VARARGS, (PY_METHODCHAR)SetUseNegPulseMode_doc},
+	 METH_VARARGS, (const char *)SetUseNegPulseMode_doc},
 	{"getInvert", (PyCFunction) SCA_ISensor::sPyGetInvert, 
-	 METH_NOARGS, (PY_METHODCHAR)GetInvert_doc},
+	 METH_NOARGS, (const char *)GetInvert_doc},
 	{"setInvert", (PyCFunction) SCA_ISensor::sPySetInvert, 
-	 METH_VARARGS, (PY_METHODCHAR)SetInvert_doc},
+	 METH_VARARGS, (const char *)SetInvert_doc},
 	{"getLevel", (PyCFunction) SCA_ISensor::sPyGetLevel, 
-	 METH_NOARGS, (PY_METHODCHAR)GetLevel_doc},
+	 METH_NOARGS, (const char *)GetLevel_doc},
 	{"setLevel", (PyCFunction) SCA_ISensor::sPySetLevel, 
-	 METH_VARARGS, (PY_METHODCHAR)SetLevel_doc},
+	 METH_VARARGS, (const char *)SetLevel_doc},
 	 //<----- Deprecated
 	KX_PYMETHODTABLE_NOARGS(SCA_ISensor, reset),
 	{NULL,NULL} //Sentinel

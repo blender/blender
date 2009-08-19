@@ -228,7 +228,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update)
 	rd.frs_sec_base= 1.0f;
 	
 	if(BKE_imtype_is_movie(rd.imtype))
-		mh->start_movie(&rd, sj->dumpsx, sj->dumpsy);
+		mh->start_movie(sj->scene, &rd, sj->dumpsx, sj->dumpsy);
 	else
 		mh= NULL;
 	

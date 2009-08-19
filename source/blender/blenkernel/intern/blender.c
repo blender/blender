@@ -176,8 +176,6 @@ void pushpop_test()
 void free_blender(void)
 {
 	/* samples are in a global list..., also sets G.main->sound->sample NULL */
-	sound_free_all_samples();
-	
 	free_main(G.main);
 	G.main= NULL;
 
@@ -228,7 +226,7 @@ static void clear_global(void)
 
 	G.main= NULL;
 	
-	G.f &= ~(G_WEIGHTPAINT + G_VERTEXPAINT + G_FACESELECT + G_PARTICLEEDIT);
+	G.f &= ~(G_FACESELECT);
 }
 
 /* make sure path names are correct for OS */
@@ -329,9 +327,6 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 		U= *bfd->user;
 		MEM_freeN(bfd->user);
 	}
-	
-	/* samples is a global list... */
-	sound_free_all_samples();
 	
 	/* case G_FILE_NO_UI or no screens in file */
 	if(mode) {

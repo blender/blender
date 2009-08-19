@@ -69,106 +69,6 @@
 
 /* ************************ header time area region *********************** */
 
-/* exported for use in screen_ops.c */
-ARegion *time_top_left_3dwindow(bScreen *screen)
-{
-	ARegion *aret= NULL;
-	ScrArea *sa;
-	int min= 10000;
-	
-	for(sa= screen->areabase.first; sa; sa= sa->next) {
-		if(sa->spacetype==SPACE_VIEW3D) {
-			ARegion *ar;
-			for(ar= sa->regionbase.first; ar; ar= ar->next) {
-				if(ar->regiontype==RGN_TYPE_WINDOW) {
-					if(ar->winrct.xmin - ar->winrct.ymin < min) {
-						aret= ar;
-						min= ar->winrct.xmin - ar->winrct.ymin;
-					}
-				}
-			}
-		}
-	}
-	return aret;
-}
-
-static void do_time_redrawmenu(bContext *C, void *arg, int event)
-{
-	
-	if(event < 1001) {
-		bScreen *screen= CTX_wm_screen(C);
-		SpaceTime *stime= CTX_wm_space_time(C);
-		
-		stime->redraws ^= event;
-		
-		if(screen->animtimer) {
-			wmTimer *wt= screen->animtimer;
-			ScreenAnimData *sad= wt->customdata;
-			
-			sad->redraws= stime->redraws;
-			sad->ar= NULL;
-			if(stime->redraws & TIME_REGION)
-				sad->ar= time_top_left_3dwindow(screen);
-		}
-	}
-}
-
-
-static uiBlock *time_redrawmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	ScrArea *curarea= CTX_wm_area(C);
-	SpaceTime *stime= CTX_wm_space_time(C);
-	uiBlock *block;
-	short yco= 0, menuwidth=120, icon;
-	
-	block= uiBeginBlock(C, ar, "header time_redrawmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_time_redrawmenu, NULL);
-	
-	if(stime->redraws & TIME_REGION) icon= ICON_CHECKBOX_HLT;
-	else icon= ICON_CHECKBOX_DEHLT;
-	uiDefIconTextBut(block, BUTM, 1, icon, "Top-Left 3D Window",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_REGION, "");
-	
-	if(stime->redraws & TIME_ALL_3D_WIN) icon= ICON_CHECKBOX_HLT;
-	else icon= ICON_CHECKBOX_DEHLT;
-	uiDefIconTextBut(block, BUTM, 1, icon, "All 3D Windows",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_ALL_3D_WIN, "");
-	
-	if(stime->redraws & TIME_ALL_ANIM_WIN) icon= ICON_CHECKBOX_HLT;
-	else icon= ICON_CHECKBOX_DEHLT;
-	uiDefIconTextBut(block, BUTM, 1, icon, "Animation Windows",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_ALL_ANIM_WIN, "");
-	
-	if(stime->redraws & TIME_ALL_BUTS_WIN) icon= ICON_CHECKBOX_HLT;
-	else icon= ICON_CHECKBOX_DEHLT;
-	uiDefIconTextBut(block, BUTM, 1, icon, "Buttons Windows",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_ALL_BUTS_WIN, "");
-	
-	if(stime->redraws & TIME_ALL_IMAGE_WIN) icon= ICON_CHECKBOX_HLT;
-	else icon= ICON_CHECKBOX_DEHLT;
-	uiDefIconTextBut(block, BUTM, 1, icon, "Image Windows",      0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_ALL_IMAGE_WIN, "");
-	
-	/* Add sequencer only redraw*/
-	if(stime->redraws & TIME_SEQ) icon= ICON_CHECKBOX_HLT;
-	else icon= ICON_CHECKBOX_DEHLT;
-	uiDefIconTextBut(block, BUTM, 1, icon, "Sequencer Windows",      0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_SEQ, "");
-	
-	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	if(stime->redraws & TIME_CONTINUE_PHYSICS) icon= ICON_CHECKBOX_HLT;
-	else icon= ICON_CHECKBOX_DEHLT;
-	uiDefIconTextBut(block, BUTM, 1, icon, "Continue Physics",      0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_CONTINUE_PHYSICS, "During playblack, continue physics simulations regardless of the frame number");
-	
-	if(curarea->headertype==HEADERTOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-	
-	uiTextBoundsBlock(block, 50);
-	uiEndBlock(C, block);
-	
-	return block;
-}
-
 static void do_time_viewmenu(bContext *C, void *arg, int event)
 {
 	ScrArea *curarea= CTX_wm_area(C);
@@ -397,7 +297,6 @@ void do_time_buttons(bContext *C, void *arg, int event)
 void time_header_buttons(const bContext *C, ARegion *ar)
 {
 	ScrArea *sa= CTX_wm_area(C);
-	SpaceTime *stime= CTX_wm_space_time(C);
 	Scene *scene= CTX_data_scene(C);
 	wmTimer *animtimer= CTX_wm_screen(C)->animtimer;
 	uiBlock *block;
@@ -421,16 +320,11 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 		uiDefPulldownBut(block, time_framemenu, sa, 
 						 "Frame", xco, yco, xmax-3, 20, "");
 		xco+= xmax;
-		
-		xmax= GetButStringLength("Playback");
-		uiDefPulldownBut(block, time_redrawmenu, sa, 
-						 "Playback", xco, yco, xmax-3, 20, "");
-		xco+= xmax;
 	}
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
-	uiBlockBeginAlign(block);
+	
 	
 	uiDefButI(block, TOG, B_TL_PREVIEWON,"PR",	
 			  xco,yco, XIC*2, YIC,
@@ -438,6 +332,8 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 			  "Show settings for frame range of animation preview");
 	
 	xco += XIC*2;
+	
+	uiBlockBeginAlign(block);
 	
 	if (scene->r.psfra) {
 		uiDefButI(block, NUM, B_REDRAWALL,"Start:",	
@@ -473,11 +369,11 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	 * to facilitate easier keyframing in some situations
 	 */
 	uiDefButI(block, NUM, B_NEWFRAME, "",
-			  xco,yco, (int)3.5*XIC,YIC,
+			  xco,yco, (int)4.5*XIC,YIC,
 			  &(scene->r.cfra), MINAFRAMEF, MAXFRAMEF, 0, 0,
 			  "Displays Current Frame of animation");
 	
-	xco += (short)(3.5 * XIC);
+	xco += (short)(4.5 * XIC);
 	
 	uiBlockBeginAlign(block);
 	
@@ -514,32 +410,37 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	xco+= XIC;
 	uiBlockEndAlign(block);
 
-	xco+= 1.5*XIC;
+	xco+= (short)(0.5*XIC);
 	
 	uiBlockBeginAlign(block);
 	uiDefIconButBitS(block, TOG, AUTOKEY_ON, B_REDRAWALL, ICON_REC,
 					 xco, yco, XIC, YIC, &(scene->toolsettings->autokey_mode), 0, 0, 0, 0, "Automatic keyframe insertion for Objects and Bones");
-	xco+= XIC;
-	
+	xco+= 1*XIC;
 	if (IS_AUTOKEY_ON(scene)) {
 		uiDefButS(block, MENU, B_REDRAWALL, 
-				  "Auto-Keying Mode %t|Add/Replace Keys%x3|Replace Keys %x5", 
-				  xco, yco, (int)5.5*XIC, YIC, &(scene->toolsettings->autokey_mode), 0, 1, 0, 0, 
+				  "Auto-Keying Mode %t|Add/Replace%x3|Replace%x5", 
+				  xco, yco, (int)(4.25*XIC), YIC, &(scene->toolsettings->autokey_mode), 0, 1, 0, 0, 
 				  "Mode of automatic keyframe insertion for Objects and Bones");
-		xco+= (5.5*XIC);
+		xco+= (short)(4.25*XIC);
 		
 		if (animtimer) {
 			uiDefButBitS(block, TOG, ANIMRECORD_FLAG_WITHNLA, B_REDRAWALL, "Layered",	
-				  xco,yco, XIC*2.5, YIC,
+				  xco,yco, (int)(3.5*XIC), YIC,
 				  &(scene->toolsettings->autokey_flag),0, 1, 0, 0,
 				  "Add a new NLA Track + Strip for every loop/pass made over the animation to allow non-destructive tweaking.");
-			xco+= (3*XIC);
+			uiBlockEndAlign(block);
+			
+			xco+= (short)(3.5*XIC);
 		}
+		
+		xco += XIC;
+		
+		uiBlockEndAlign(block);
 	}
-	else
-		xco+= 6;
-
-	uiBlockEndAlign(block);
+	else {
+		xco+= (short)(5.25*XIC);
+		uiBlockEndAlign(block);
+	}
 	
 	menustr= ANIM_build_keyingsets_menu(&scene->keyingsets, 0);
 	uiDefButI(block, MENU, B_DIFF, 
@@ -549,6 +450,9 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	MEM_freeN(menustr);
 	xco+= (5.5*XIC);
 	
+	/* NOTE: order of these buttons needs to be kept in sync with other occurances 
+	 * (see Outliner header for instance, also +/- stuff for filebrowser) 
+	 */
 	uiBlockBeginAlign(block);
 	uiDefIconButO(block, BUT, "ANIM_OT_delete_keyframe", WM_OP_INVOKE_REGION_WIN, ICON_KEY_DEHLT, xco,yco,XIC,YIC, "Delete Keyframes for the Active Keying Set (Alt-I)");
 	xco += XIC;
@@ -558,8 +462,8 @@ void time_header_buttons(const bContext *C, ARegion *ar)
 	
 	xco+= XIC;
 	
-	uiDefIconButBitI(block, TOG, TIME_WITH_SEQ_AUDIO, B_DIFF, ICON_SPEAKER,
-					 xco, yco, XIC, YIC, &(stime->redraws), 0, 0, 0, 0, "Play back and sync with audio from Sequence Editor");
+	uiDefIconButBitS(block, TOG, AUDIO_SYNC, B_DIFF, ICON_SPEAKER,
+					 xco, yco, XIC, YIC, &(scene->r.audio.flag), 0, 0, 0, 0, "Play back and sync with audio from Sequence Editor");
 	
 	
 	/* always as last  */

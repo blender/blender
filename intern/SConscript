@@ -1,7 +1,7 @@
 #!/usr/bin/python
 Import ('env')
 
-SConscript(['SoundSystem/SConscript',
+SConscript(['audaspace/SConscript',
             'string/SConscript',
             'ghost/SConscript',
             'guardedalloc/SConscript',

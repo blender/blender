@@ -1354,7 +1354,7 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "bNode");
 	RNA_def_struct_refine_func(srna, "rna_Node_refine");
 	
-	prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
+	prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "locx");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_range(prop, -10000.0f, 10000.0f);

@@ -255,7 +255,7 @@ static void rna_def_fmodifier_envelope_ctrl(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Maximum Value", "Upper bound of envelope at this control-point.");
 	
 	/* Frame */
-	prop= RNA_def_property(srna, "frame", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "frame", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "time");
 	RNA_def_property_ui_text(prop, "Frame", "Frame this control-point occurs on.");
 	
@@ -548,7 +548,7 @@ static void rna_def_fpoint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Selected", "Selection status");
 	
 	/* Vector value */
-	prop= RNA_def_property(srna, "point", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "point", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_float_sdna(prop, NULL, "vec");
 	RNA_def_property_ui_text(prop, "Point", "Point coordinates");

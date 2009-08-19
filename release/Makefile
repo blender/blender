@@ -35,16 +35,6 @@ BLENDNAME=blender-$(VERSION)-$(CONFIG_GUESS)-py$(NAN_PYTHON_VERSION)$(TYPE)
 export DISTDIR=$(NAN_OBJDIR)/$(BLENDNAME)
 export CONFDIR=$(DISTDIR)/.blender
 
-ifeq ($(OS),beos)
-   TAR="zip"
-   TARFLAGS="-ry9"
-   EXT0=""
-   EXT1=".zip"
-   COMPRESS=""
-   EXT2=""
-   NOPLUGINS?=true
-endif
-
 ifeq ($(OS),$(findstring $(OS), "freebsd irix linux openbsd solaris"))
    TAR="tar"
    TARFLAGS="cf"

@@ -74,14 +74,36 @@ typedef struct PartDeflect {
 	int seed; /* wind noise random seed */
 } PartDeflect;
 
+/* Point cache file data types:
+ * - used as (1<<flag) so poke jahka if you reach the limit of 15
+ * - to add new data types update:
+ *		* BKE_ptcache_data_size()
+ *		* ptcache_file_init_pointers()
+*/
+#define BPHYS_DATA_INDEX		0
+#define BPHYS_DATA_LOCATION		1
+#define BPHYS_DATA_VELOCITY		2
+#define BPHYS_DATA_ROTATION		3
+#define BPHYS_DATA_AVELOCITY	4	/* used for particles */
+#define BPHYS_DATA_XCONST		4	/* used for cloth */
+#define BPHYS_DATA_SIZE			5
+#define BPHYS_DATA_TIMES		6
+#define BPHYS_DATA_BOIDS		7
+
+#define BPHYS_TOT_DATA			8
+
 typedef struct PTCacheMem {
 	struct PTCacheMem *next, *prev;
 	int frame, totpoint;
-	float *data;	/* data points */
-	void *xdata;	/* extra data */
+	unsigned int data_types, rt;
+	int *index_array; /* quick access to stored points with index */
+
+	void *data[8]; /* BPHYS_TOT_DATA */
+	void *cur[8]; /* BPHYS_TOT_DATA */
 } PTCacheMem;
 
 typedef struct PointCache {
+	struct PointCache *next, *prev;
 	int flag;		/* generic flag */
 	int step;		/* frames between cached frames */
 	int simframe;	/* current frame of simulation (only if SIMULATION_VALID) */
@@ -229,6 +251,7 @@ typedef struct SoftBody {
 	float inpush;
 
 	struct PointCache *pointcache;
+	struct ListBase ptcaches;
 
 } SoftBody;
 
@@ -283,6 +306,7 @@ typedef struct SoftBody {
 #define PTCACHE_QUICK_CACHE			128
 #define PTCACHE_FRAMES_SKIPPED		256
 #define PTCACHE_EXTERNAL			512
+#define PTCACHE_READ_INFO			1024
 
 /* PTCACHE_OUTDATED + PTCACHE_FRAMES_SKIPPED */
 #define PTCACHE_REDO_NEEDED			258

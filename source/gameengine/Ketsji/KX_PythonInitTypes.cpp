@@ -36,7 +36,6 @@
 #include "BL_BlenderShader.h"
 #include "BL_ShapeActionActuator.h"
 #include "KX_BlenderMaterial.h"
-#include "KX_CDActuator.h"
 #include "KX_CameraActuator.h"
 #include "KX_ConstraintActuator.h"
 #include "KX_ConstraintWrapper.h"
@@ -158,7 +157,6 @@ void initPyTypes(void)
 		PyType_Ready_Attr(dict, CListValue, init_getset);
 		PyType_Ready_Attr(dict, CValue, init_getset);
 		PyType_Ready_Attr(dict, KX_BlenderMaterial, init_getset);
-		PyType_Ready_Attr(dict, KX_CDActuator, init_getset);
 		PyType_Ready_Attr(dict, KX_Camera, init_getset);
 		PyType_Ready_Attr(dict, KX_CameraActuator, init_getset);
 		PyType_Ready_Attr(dict, KX_ConstraintActuator, init_getset);

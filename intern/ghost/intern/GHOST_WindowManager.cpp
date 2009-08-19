@@ -54,6 +54,7 @@ GHOST_WindowManager::GHOST_WindowManager() :
 
 GHOST_WindowManager::~GHOST_WindowManager()
 {
+	/* m_windows is freed by GHOST_System::disposeWindow */
 }
 
 

@@ -1,5 +1,5 @@
 /**
- * BKE_cloth.h
+ * BKE_smoke.h
  *
  * $Id$
  *
@@ -32,7 +32,7 @@
 #ifndef BKE_SMOKE_H_
 #define BKE_SMOKE_H_
 
-void smokeModifier_do(struct SmokeModifierData *smd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm);
+void smokeModifier_do(struct SmokeModifierData *smd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm, int useRenderParams, int isFinalCalc);
 
 void smokeModifier_free (struct SmokeModifierData *smd);
 void smokeModifier_reset(struct SmokeModifierData *smd);

@@ -75,14 +75,11 @@
 
 /* ***************** generic undo system ********************* */
 
-/* ********* XXX **************** */
-static void sound_initialize_sounds() {}
-/* ********* XXX **************** */
-
 void ED_undo_push(bContext *C, char *str)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	Object *obedit= CTX_data_edit_object(C);
+	Object *obact= CTX_data_active_object(C);
 
 	if(obedit) {
 		if (U.undosteps == 0) return;
@@ -100,7 +97,7 @@ void ED_undo_push(bContext *C, char *str)
 		else if (obedit->type==OB_ARMATURE)
 			undo_push_armature(C, str);
 	}
-	else if(G.f & G_PARTICLEEDIT) {
+	else if(obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
 		if (U.undosteps == 0) return;
 		
 		PE_undo_push(CTX_data_scene(C), str);
@@ -119,12 +116,13 @@ void ED_undo_push(bContext *C, char *str)
 static int ed_undo_step(bContext *C, int step, const char *undoname)
 {	
 	Object *obedit= CTX_data_edit_object(C);
+	Object *obact= CTX_data_active_object(C);
 	ScrArea *sa= CTX_wm_area(C);
 
 	if(sa && sa->spacetype==SPACE_IMAGE) {
 		SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
 		
-		if(G.f & G_TEXTUREPAINT || sima->flag & SI_DRAWTOOL) {
+		if((obact && obact->mode & OB_MODE_TEXTURE_PAINT) || sima->flag & SI_DRAWTOOL) {
 			undo_imagepaint_step(step);
 
 			WM_event_add_notifier(C, NC_WINDOW, NULL);
@@ -146,9 +144,9 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 	else {
 		int do_glob_undo= 0;
 		
-		if(G.f & G_TEXTUREPAINT)
+		if(obact && obact->mode & OB_MODE_TEXTURE_PAINT)
 			undo_imagepaint_step(step);
-		else if(G.f & G_PARTICLEEDIT) {
+		else if(obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
 			if(step==1)
 				PE_undo(CTX_data_scene(C));
 			else
@@ -167,7 +165,6 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 					BKE_undo_name(C, undoname);
 				else
 					BKE_undo_step(C, step);
-				sound_initialize_sounds();
 			}
 			
 		}
@@ -214,13 +211,14 @@ static int ed_redo_exec(bContext *C, wmOperator *op)
 void ED_undo_menu(bContext *C)
 {
 	Object *obedit= CTX_data_edit_object(C);
+	Object *obact= CTX_data_active_object(C);
 	
 	if(obedit) {
 		//if ELEM7(obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE)
 		//	undo_editmode_menu();
 	}
 	else {
-		if(G.f & G_PARTICLEEDIT)
+		if(obact && obact->mode & OB_MODE_PARTICLE_EDIT)
 			PE_undo_menu(CTX_data_scene(C), CTX_data_active_object(C));
 		else if(U.uiflag & USER_GLOBALUNDO) {
 			char *menu= BKE_undo_menu_string();
@@ -229,7 +227,6 @@ void ED_undo_menu(bContext *C)
 				MEM_freeN(menu);
 				if(event>0) {
 					BKE_undo_number(C, event);
-					sound_initialize_sounds();
 				}
 			}
 		}

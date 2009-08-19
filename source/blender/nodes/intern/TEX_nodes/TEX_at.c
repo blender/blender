@@ -38,12 +38,14 @@ static bNodeSocketType outputs[]= {
 	{ -1, 0, "" }
 };
 
-static void colorfn(float *out, float *coord, bNode *node, bNodeStack **in, short thread)
+static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
+	TexParams np = *p;
 	float new_coord[3];
+	np.coord = new_coord;
 	
-	tex_input_vec(new_coord, in[1], coord, thread);
-	tex_input_rgba(out, in[0], new_coord, thread);
+	tex_input_vec(new_coord, in[1], p, thread);
+	tex_input_rgba(out, in[0], &np, thread);
 }
 
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)

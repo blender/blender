@@ -53,7 +53,6 @@ class KX_NormalParentRelation : public SG_ParentRelation
 {
 
 public :
-
 	/**
 	 * Allocate and construct a new KX_NormalParentRelation
 	 * on the heap.
@@ -91,6 +90,12 @@ private :
 	KX_NormalParentRelation(
 	);
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_NormalParentRelation"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 
@@ -142,6 +147,12 @@ private :
 	KX_VertexParentRelation(
 	);
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_VertexParentRelation"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 
@@ -219,6 +230,12 @@ private :
 
 	bool m_initialized;
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_SlowParentRelation"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

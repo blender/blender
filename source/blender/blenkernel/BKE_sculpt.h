@@ -33,7 +33,7 @@
 struct MFace;
 struct MultireModifierData;
 struct MVert;
-struct Sculpt;
+struct Object;
 struct StrokeCache;
 
 typedef struct SculptSession {
@@ -59,13 +59,14 @@ typedef struct SculptSession {
 	/* Used to cache the render of the active texture */
 	unsigned int texcache_side, *texcache, texcache_actual;
 
-	void *cursor; /* wm handle */
+	/* Layer brush persistence between strokes */
+ 	float (*mesh_co_orig)[3]; /* Copy of the mesh vertices' locations */
+	float *layer_disps; /* Displacements for each vertex */
 
 	struct SculptStroke *stroke;
-
 	struct StrokeCache *cache;
 } SculptSession;
 
-void sculptsession_free(struct Sculpt *sculpt);
+void free_sculptsession(SculptSession **);
 
 #endif

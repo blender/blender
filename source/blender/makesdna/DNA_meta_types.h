@@ -35,6 +35,7 @@
 #include "DNA_ID.h"
 
 struct BoundBox;
+struct AnimData;
 struct Ipo;
 struct Material;
 
@@ -62,18 +63,20 @@ typedef struct MetaElem {
 
 typedef struct MetaBall {
 	ID id;
+	struct AnimData *adt;
 	
 	struct BoundBox *bb;
 
 	ListBase elems;
 	ListBase disp;
 	ListBase *editelems;		/* not saved in files, note we use pointer for editmode check */
-	struct Ipo *ipo;
+	struct Ipo *ipo;			// XXX... depreceated (old animation system)
 
 	/* material of the mother ball will define the material used of all others */
 	struct Material **mat; 
 
-	short flag, totcol;
+	char flag, flag2;			/* flag is enum for updates, flag2 is bitflags for settings */
+	short totcol;
 	int texflag; /* used to store MB_AUTOSPACE */
 	
 	/* texture space, copied as one block in editobject.c */
@@ -103,6 +106,10 @@ typedef struct MetaBall {
 #define MB_UPDATE_HALFRES	1
 #define MB_UPDATE_FAST		2
 #define MB_UPDATE_NEVER		3
+
+/* mb->flag2 */
+#define MB_DS_EXPAND 	(1<<0)
+
 
 /* ml->type */
 #define MB_BALL		0

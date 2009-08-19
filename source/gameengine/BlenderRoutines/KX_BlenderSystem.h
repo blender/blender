@@ -34,6 +34,10 @@
  */
 #include "KX_ISystem.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class KX_BlenderSystem : public KX_ISystem
 {
 	double	m_starttime;
@@ -42,6 +46,14 @@ public:
 	KX_BlenderSystem();
 	virtual ~KX_BlenderSystem() {};
 	virtual double GetTimeInSeconds();
+
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_BlenderSystem"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_BLENDERSYSTEM

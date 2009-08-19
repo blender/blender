@@ -137,13 +137,7 @@ void KX_StateActuator::Activate(SG_DList& head)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_StateActuator::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"KX_StateActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -167,9 +161,9 @@ PyTypeObject KX_StateActuator::Type = {
 PyMethodDef KX_StateActuator::Methods[] = {
 	// deprecated -->
 	{"setOperation", (PyCFunction) KX_StateActuator::sPySetOperation, 
-	 METH_VARARGS, (PY_METHODCHAR)SetOperation_doc},
+	 METH_VARARGS, (const char *)SetOperation_doc},
 	{"setMask", (PyCFunction) KX_StateActuator::sPySetMask, 
-	 METH_VARARGS, (PY_METHODCHAR)SetMask_doc},
+	 METH_VARARGS, (const char *)SetMask_doc},
 	 // <--
 	{NULL,NULL} //Sentinel
 };

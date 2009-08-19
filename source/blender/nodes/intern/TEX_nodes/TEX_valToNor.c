@@ -39,28 +39,32 @@ static bNodeSocketType outputs[]= {
 	{ -1, 0, "" } 
 };
 
-static void normalfn(float *out, float *coord, bNode *node, bNodeStack **in, short thread)
+static void normalfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
 	float new_coord[3];
+	float *coord = p->coord;
 
-	float nabla = tex_input_value(in[1], coord, thread);	
+	float nabla = tex_input_value(in[1], p, thread);	
 	float val;
 	float nor[3];
+	
+	TexParams np = *p;
+	np.coord = new_coord;
 
-	val = tex_input_value(in[0], coord, thread);
+	val = tex_input_value(in[0], p, thread);
 
 	new_coord[0] = coord[0] + nabla;
 	new_coord[1] = coord[1];
 	new_coord[2] = coord[2];
-	nor[0] = tex_input_value(in[0], new_coord, thread);
+	nor[0] = tex_input_value(in[0], &np, thread);
 
 	new_coord[0] = coord[0];
 	new_coord[1] = coord[1] + nabla;
-	nor[1] = tex_input_value(in[0], new_coord, thread);
+	nor[1] = tex_input_value(in[0], &np, thread);
 	
 	new_coord[1] = coord[1];
 	new_coord[2] = coord[2] + nabla;
-	nor[2] = tex_input_value(in[0], new_coord, thread);
+	nor[2] = tex_input_value(in[0], &np, thread);
 
 	out[0] = val-nor[0];
 	out[1] = val-nor[1];

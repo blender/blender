@@ -37,11 +37,10 @@ SET(INC ../../windowmanager
   ../../render/extern/include ../../../../intern/bsp/extern 
   ../../radiosity/extern/include
   ../../../intern/decimation/extern ../../blenloader
-  ../../../kernel/gen_system ../../../../intern/SoundSystem ../../readstreamglue
+  ../../../kernel/gen_system ../../readstreamglue
   ../../quicktime ../../../../intern/elbeem/extern
   ../../../../intern/ghost ../../../../intern/opennl/extern
   ../../nodes
-  ${SDL_INC}
 )
 
 IF(WITH_INTERNATIONAL)

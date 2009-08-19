@@ -51,44 +51,6 @@ extern "C" {
 }
 #endif
 
-extern "C" {
-#include "../../blender/python/intern/bpy_compat.h"
-}
-
-
-/*
-   Py_RETURN_NONE
-   Python 2.4 macro.
-   defined here until we switch to 2.4
-   also in api2_2x/gen_utils.h 
-*/
-#ifndef Py_RETURN_NONE
-#define Py_RETURN_NONE  return Py_INCREF(Py_None), Py_None
-#endif
-#ifndef Py_RETURN_FALSE
-#define Py_RETURN_FALSE  return Py_INCREF(Py_False), Py_False
-#endif
-#ifndef Py_RETURN_TRUE
-#define Py_RETURN_TRUE  return Py_INCREF(Py_True), Py_True
-#endif
-
-/*  for pre Py 2.5 */
-#if PY_VERSION_HEX < 0x02050000
-typedef int Py_ssize_t;
-typedef Py_ssize_t (*lenfunc)(PyObject *);
-#define PY_SSIZE_T_MAX INT_MAX
-#define PY_SSIZE_T_MIN INT_MIN
-#define PY_METHODCHAR char *
-#else
-/* Py 2.5 and later */
-#define  intargfunc  ssizeargfunc
-#define intintargfunc  ssizessizeargfunc
-#define PY_METHODCHAR const char *
-#endif
-
-#include "descrobject.h"
-
-
 static inline void Py_Fatal(const char *M) {
 	fprintf(stderr, "%s\n", M);
 	exit(-1);
@@ -140,7 +102,7 @@ typedef struct {
 
 								// This must be the first line of each 
 								// PyC++ class
-#define Py_Header \
+#define __Py_Header \
  public: \
   static PyTypeObject   Type; \
   static PyMethodDef    Methods[]; \
@@ -148,6 +110,16 @@ typedef struct {
   virtual PyTypeObject *GetType(void) {return &Type;}; \
   virtual PyObject *GetProxy() {return GetProxy_Ext(this, &Type);}; \
   virtual PyObject *NewProxy(bool py_owns) {return NewProxy_Ext(this, &Type, py_owns);}; \
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+#define Py_Header __Py_Header \
+  void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, Type.tp_name); } \
+  void operator delete( void *mem ) { MEM_freeN(mem); } \
+
+#else
+#define Py_Header __Py_Header
+#endif
 
 /*
  * nonzero values are an error for setattr
@@ -230,13 +202,13 @@ typedef struct {
  * Method table macro (with doc)
  */
 #define KX_PYMETHODTABLE(class_name, method_name) \
-	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_VARARGS, (PY_METHODCHAR)class_name::method_name##_doc}
+	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_VARARGS, (const char *)class_name::method_name##_doc}
 
 #define KX_PYMETHODTABLE_O(class_name, method_name) \
-	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_O, (PY_METHODCHAR)class_name::method_name##_doc}
+	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_O, (const char *)class_name::method_name##_doc}
 
 #define KX_PYMETHODTABLE_NOARGS(class_name, method_name) \
-	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_NOARGS, (PY_METHODCHAR)class_name::method_name##_doc}
+	{#method_name , (PyCFunction) class_name::sPy##method_name, METH_NOARGS, (const char *)class_name::method_name##_doc}
 
 /**
  * Function implementation macro

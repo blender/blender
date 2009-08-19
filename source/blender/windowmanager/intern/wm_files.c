@@ -68,6 +68,7 @@
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
+#include "BKE_sound.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -224,7 +225,7 @@ static void wm_init_userdef()
 {
 	UI_init_userdef();
 	MEM_CacheLimiter_set_maximum(U.memcachelimit * 1024 * 1024);
-	
+	sound_init();
 }
 
 void WM_read_file(bContext *C, char *name, ReportList *reports)
@@ -252,7 +253,6 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		wm_check(C); /* opens window(s), checks keymaps */
 		
 // XXX		mainwindow_set_filename_to_title(G.main->name);
-// XXX		sound_initialize_sounds();
 
 		if(retval==2) wm_init_userdef();	// in case a userdef is read from regular .blend
 		

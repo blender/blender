@@ -57,13 +57,7 @@
 
 
 PyTypeObject PyObjectPlus::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,				/*ob_size*/
-#endif
 	"PyObjectPlus",			/*tp_name*/
 	sizeof(PyObjectPlus_Proxy),		/*tp_basicsize*/
 	0,				/*tp_itemsize*/
@@ -87,8 +81,8 @@ PyTypeObject PyObjectPlus::Type = {
 PyObjectPlus::~PyObjectPlus()
 {
 	if(m_proxy) {
-		Py_DECREF(m_proxy);			/* Remove own reference, python may still have 1 */
 		BGE_PROXY_REF(m_proxy)= NULL;
+		Py_DECREF(m_proxy);			/* Remove own reference, python may still have 1 */
 	}
 //	assert(ob_refcnt==0);
 }

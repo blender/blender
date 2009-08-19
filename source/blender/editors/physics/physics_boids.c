@@ -249,7 +249,6 @@ void BOID_OT_boidrule_move_down(wmOperatorType *ot)
 /************************ add/del boid state operators *********************/
 static int boidstate_add_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
 	Object *ob= ptr.id.data;
@@ -344,7 +343,6 @@ void BOID_OT_boidstate_del(wmOperatorType *ot)
 /************************ move up/down boid state operators *********************/
 static int boidstate_move_up_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
 	Object *ob = ptr.id.data;
@@ -385,7 +383,6 @@ static int boidstate_move_down_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
-	Object *ob = ptr.id.data;
 	BoidSettings *boids;
 	BoidState *state;
 

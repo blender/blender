@@ -48,6 +48,7 @@
 #include "BKE_screen.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_unit.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -65,6 +66,8 @@
 
 #include "RNA_access.h"
 #include "RNA_types.h"
+
+#include "BPY_extern.h"
 
 #include "interface_intern.h"
 
@@ -1139,6 +1142,21 @@ int ui_is_but_float(uiBut *but)
 	return 0;
 }
 
+int ui_is_but_unit(uiBut *but)
+{
+	Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
+	if(scene->unit.system == USER_UNIT_NONE)
+		return 0;
+
+	if(but->rnaprop==NULL)
+		return 0;
+
+	if(RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop))==0)
+		return 0;
+
+	return 1;
+}
+
 double ui_get_but_val(uiBut *but)
 {
 	PropertyRNA *prop;
@@ -1305,6 +1323,55 @@ int ui_get_but_string_max_length(uiBut *but)
 		return UI_MAX_DRAW_STR;
 }
 
+static double ui_get_but_scale_unit(uiBut *but, double value)
+{
+	Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
+	int subtype= RNA_property_subtype(but->rnaprop);
+
+	if(subtype & PROP_UNIT_LENGTH) {
+		return value * scene->unit.scale_length;
+	}
+	else if(subtype & PROP_UNIT_TIME) { /* WARNING - using evil_C :| */
+		return FRA2TIME(value);
+	}
+	else {
+		return value;
+	}
+}
+
+static void ui_get_but_string_unit(uiBut *but, char *str, int len_max, double value, int pad)
+{
+	Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
+	int do_split= scene->unit.flag & USER_UNIT_OPT_SPLIT;
+	int unit_type=  RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop));
+	int precission= but->a2;
+
+	if(scene->unit.scale_length<0.0001) scene->unit.scale_length= 1.0; // XXX do_versions
+
+	/* Sanity checks */
+	if(precission>4)		precission= 4;
+	else if(precission==0)	precission= 2;
+
+	bUnit_AsString(str, len_max, ui_get_but_scale_unit(but, value), precission, scene->unit.system, unit_type, do_split, pad);
+}
+
+static float ui_get_but_step_unit(uiBut *but, double value, float step_default)
+{
+	Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
+	int unit_type=  RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop));
+	float step;
+
+	step = bUnit_ClosestScalar(ui_get_but_scale_unit(but, value), scene->unit.system, unit_type);
+
+	if(step > 0.0) { /* -1 is an error value */
+		return (step/ui_get_but_scale_unit(but, 1.0))*100;
+	}
+	else {
+		return step_default;
+	}
+}
+
+
 void ui_get_but_string(uiBut *but, char *str, int maxlen)
 {
 	if(but->rnaprop && ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
@@ -1360,7 +1427,10 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 		value= ui_get_but_val(but);
 
 		if(ui_is_but_float(but)) {
-			if(but->a2) { /* amount of digits defined */
+			if(ui_is_but_unit(but)) {
+				ui_get_but_string_unit(but, str, maxlen, value, 0);
+			}
+			else if(but->a2) { /* amount of digits defined */
 				if(but->a2==1) BLI_snprintf(str, maxlen, "%.1f", value);
 				else if(but->a2==2) BLI_snprintf(str, maxlen, "%.2f", value);
 				else if(but->a2==3) BLI_snprintf(str, maxlen, "%.3f", value);
@@ -1433,14 +1503,30 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		/* number editing */
 		double value;
 
-		/* XXX 2.50 missing python api */
-#if 0
-		if(BPY_button_eval(str, &value)) {
-			BKE_report(CTX_reports(C), RPT_WARNING, "Invalid Python expression, check console");
-			value = 0.0f; /* Zero out value on error */
-			
-			if(str[0])
-				return 0;
+#ifndef DISABLE_PYTHON
+		{
+			char str_unit_convert[256];
+			int unit_type;
+			Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
+
+			if(but->rnaprop)
+				unit_type= RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop));
+			else
+				unit_type= 0;
+
+			BLI_strncpy(str_unit_convert, str, sizeof(str_unit_convert));
+
+			if(scene->unit.system != USER_UNIT_NONE && unit_type) {
+				/* ugly, use the draw string to get the value, this could cause problems if it includes some text which resolves to a unit */
+				bUnit_ReplaceString(str_unit_convert, sizeof(str_unit_convert), but->drawstr, ui_get_but_scale_unit(but, 1.0), scene->unit.system, unit_type);
+			}
+
+			if(BPY_button_eval(C, str_unit_convert, &value)) {
+				value = ui_get_but_val(but); /* use its original value */
+
+				if(str[0])
+					return 0;
+			}
 		}
 #else
 		value= atof(str);
@@ -1786,6 +1872,12 @@ void ui_check_but(uiBut *but)
 		if(ui_is_but_float(but)) {
 			if(value == FLT_MAX) sprintf(but->drawstr, "%sinf", but->str);
 			else if(value == -FLT_MAX) sprintf(but->drawstr, "%s-inf", but->str);
+			/* support length type buttons */
+			else if(ui_is_but_unit(but)) {
+				char new_str[sizeof(but->drawstr)];
+				ui_get_but_string_unit(but, new_str, sizeof(new_str), value, TRUE);
+				BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%s", but->str, new_str);
+			}
 			else if(but->a2) { /* amount of digits defined */
 				if(but->a2==1) sprintf(but->drawstr, "%s%.1f", but->str, value);
 				else if(but->a2==2) sprintf(but->drawstr, "%s%.2f", but->str, value);
@@ -2325,6 +2417,10 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 		but->lockstr = "";
 	}
 
+	/* If this button uses units, calculate the step from this */
+	if(ui_is_but_unit(but))
+		but->a1= ui_get_but_step_unit(but, ui_get_but_val(but), but->a1);
+
 	if(freestr)
 		MEM_freeN(str);
 	
@@ -2835,10 +2931,11 @@ void uiButSetRenameFunc(uiBut *but, uiButHandleRenameFunc func, void *arg1)
 	but->rename_arg1= arg1;
 }
 
-void uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(const bContext *C, void *idv, void *argv, rcti *rect), void *arg)
+void uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(const bContext *C, void *idv, void *arg1, void *arg2, rcti *rect), void *arg1, void *arg2)
 {
 	block->drawextra= func;
-	block->drawextra_arg= arg;
+	block->drawextra_arg1= arg1;
+	block->drawextra_arg2= arg2;
 }
 
 void uiButSetFunc(uiBut *but, uiButHandleFunc func, void *arg1, void *arg2)
@@ -2952,7 +3049,6 @@ uiBut *uiDefIconBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, int 
 	but->flag|= UI_HAS_ICON;
 	
 	but->flag|= UI_ICON_LEFT;
-	but->flag|= UI_ICON_SUBMENU;
 	
 	but->block_create_func= func;
 	ui_check_but(but);

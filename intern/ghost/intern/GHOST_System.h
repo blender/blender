@@ -335,7 +335,7 @@ protected:
 
 	/** Prints all the events. */
 #ifdef GHOST_DEBUG
-	GHOST_EventPrinter m_eventPrinter;
+	GHOST_EventPrinter* m_eventPrinter;
 #endif // GHOST_DEBUG
 
 	/** Settings of the display before the display went fullscreen. */

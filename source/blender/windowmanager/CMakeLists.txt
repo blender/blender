@@ -33,13 +33,13 @@ SET(INC .
   ../include ../imbuf ../render/extern/include
   ../../../intern/bsp/extern ../radiosity/extern/include
   ../../../intern/decimation/extern ../blenloader
-  ../../kernel/gen_system ../../../intern/SoundSystem ../readstreamglue
+  ../../kernel/gen_system ../readstreamglue
   ../quicktime ../../../intern/elbeem/extern
   ../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include
   ../nodes
   ../gpu
   ../blenfont
-  ${SDL_INC}
+  ${OPENGL_INCLUDE_DIR}
 )
 
 IF(WITH_INTERNATIONAL)

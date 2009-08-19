@@ -81,24 +81,15 @@ ifndef CONFIG_GUESS
     endif
 
     export NAN_MOTO ?= $(LCGDIR)/moto
-ifeq ($(FREE_WINDOWS), true)
-    export NAN_SOLID ?= $(LCGDIR)/gcc/solid
-    export NAN_QHULL ?= $(LCGDIR)/gcc/qhull
-else
-    export NAN_SOLID ?= $(LCGDIR)/solid
-    export NAN_QHULL ?= $(LCGDIR)/qhull
-endif
     export BF_PROFILE ?= false
     export NAN_USE_BULLET ?= true
     export NAN_BULLET2 ?= $(LCGDIR)/bullet2
-    export NAN_FUZZICS ?= $(SRCHOME)/gameengine/Physics/Sumo/Fuzzics
-    export NAN_BLENKEY ?= $(LCGDIR)/blenkey
     export NAN_DECIMATION ?= $(LCGDIR)/decimation
     export NAN_GUARDEDALLOC ?= $(LCGDIR)/guardedalloc
     export NAN_IKSOLVER ?= $(LCGDIR)/iksolver
     export NAN_BSP ?= $(LCGDIR)/bsp
     export NAN_BOOLOP ?= $(LCGDIR)/boolop
-    export NAN_SOUNDSYSTEM ?= $(LCGDIR)/SoundSystem
+    export NAN_AUDASPACE ?= $(LCGDIR)/audaspace
     export NAN_STRING ?= $(LCGDIR)/string
     export NAN_MEMUTIL ?= $(LCGDIR)/memutil
     export NAN_CONTAINER ?= $(LCGDIR)/container
@@ -140,7 +131,7 @@ endif
 
     ifeq ($(NAN_PYTHON_VERSION),3.1)
       export PY_FRAMEWORK ?= 0
-	  export NAN_PYTHON ?= $(LCGDIR)/python
+      export NAN_PYTHON ?= $(LCGDIR)/python
       export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/libpython$(NAN_PYTHON_VERSION).a
     else
       export PY_FRAMEWORK ?= 1
@@ -160,7 +151,6 @@ endif
     export NAN_JPEG ?= $(LCGDIR)/jpeg
     export NAN_PNG ?= $(LCGDIR)/png
     export NAN_TIFF ?= $(LCGDIR)/tiff
-    export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= $(LCGDIR)/zlib
@@ -185,8 +175,6 @@ endif
       export NAN_NO_OPENAL=true
     endif
 
-    # Uncomment the following line to use Mozilla inplace of netscape
-    # CPPFLAGS +=-DMOZ_NOT_NET
     # Location of MOZILLA/Netscape header files...
     export NAN_MOZILLA_INC ?= $(LCGDIR)/mozilla/include
     export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
@@ -203,6 +191,9 @@ endif
     # enable l10n
     export INTERNATIONAL ?= true
 
+    export NAN_SAMPLERATE ?= $(LCGDIR)/samplerate
+    export NAN_SAMPLERATE_LIBS ?= $(NAN_SAMPLERATE)/lib/libsamplerate.a 
+
   else
   ifeq ($(OS),freebsd)
 
@@ -218,7 +209,6 @@ endif
     export NAN_JPEG ?= /usr/local
     export NAN_PNG ?= /usr/local
     export NAN_TIFF ?= /usr/local
-    export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= /usr
@@ -229,8 +219,6 @@ endif
     export NAN_SDLLIBS ?= $(shell sdl-config --libs)
     export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
 
-    # Uncomment the following line to use Mozilla inplace of netscape
-    # CPPFLAGS +=-DMOZ_NOT_NET
     # Location of MOZILLA/Netscape header files...
     export NAN_MOZILLA_INC ?= $(LCGDIR)/mozilla/include
     export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
@@ -263,7 +251,6 @@ endif
     export NAN_JPEG ?= $(LCGDIR)/jpeg
     export NAN_PNG ?= $(LCGDIR)/png
     export NAN_TIFF ?= $(LCGDIR)/tiff
-    export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= $(LCGDIR)/zlib
@@ -287,8 +274,6 @@ endif
     export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
     export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a
 
-    # Uncomment the following line to use Mozilla inplace of netscape
-    # CPPFLAGS +=-DMOZ_NOT_NET
     # Location of MOZILLA/Netscape header files...
     export NAN_MOZILLA_INC ?= $(LCGDIR)/mozilla/include
     export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
@@ -312,12 +297,12 @@ endif
     export NAN_PYTHON ?= /usr
     export NAN_PYTHON_VERSION ?= 3.1
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-    export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+    # Next line if for static python, nan_link.mk uses -lpython$(NAN_PYTHON_VERSION)
+    #export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= /usr
     export NAN_JPEG ?= /usr
     export NAN_PNG ?= /usr
     export NAN_TIFF ?= /usr
-    export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr
     export NAN_ZLIB ?= /usr
@@ -327,6 +312,7 @@ endif
     export NAN_SDL ?= $(shell sdl-config --prefix)
     export NAN_SDLLIBS ?= $(shell sdl-config --libs)
     export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
+    export NAN_SAMPLERATE ?= /usr
 
 ifneq ($(NAN_USE_FFMPEG_CONFIG), true)
     export NAN_FFMPEG ?= /usr
@@ -341,7 +327,7 @@ endif
     endif
 
     # Uncomment the following line to use Mozilla inplace of netscape
-    export CPPFLAGS += -DMOZ_NOT_NET
+
     # Location of MOZILLA/Netscape header files...
     export NAN_MOZILLA_INC ?= /usr/include/mozilla
     export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
@@ -377,7 +363,6 @@ endif
     export NAN_JPEG ?= $(LCGDIR)/jpeg
     export NAN_PNG ?= $(LCGDIR)/png
     export NAN_TIFF ?= $(LCGDIR)/tiff
-    export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= $(LCGDIR)/zlib
@@ -388,8 +373,6 @@ endif
     export NAN_SDLLIBS ?= $(shell sdl-config --libs)
     export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
 
-    # Uncomment the following line to use Mozilla inplace of netscape
-    # CPPFLAGS +=-DMOZ_NOT_NET
     # Location of MOZILLA/Netscape header files...
     export NAN_MOZILLA_INC ?= $(LCGDIR)/mozilla/include
     export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
@@ -416,7 +399,6 @@ endif
     export NAN_JPEG ?= $(LCGDIR)/jpeg
     export NAN_PNG ?= $(LCGDIR)/png
     export NAN_TIFF ?= /usr
-    export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?=
     export NAN_MESA ?= /usr/X11
     export NAN_ZLIB ?= $(LCGDIR)/zlib
@@ -433,8 +415,6 @@ endif
     export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
     export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a -lrt
 
-    # Uncomment the following line to use Mozilla inplace of netscape
-    # CPPFLAGS +=-DMOZ_NOT_NET
     # Location of MOZILLA/Netscape header files...
     export NAN_MOZILLA_INC ?= $(LCGDIR)/mozilla/include
     export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
@@ -469,7 +449,6 @@ endif
       export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
       export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/lib25_vs2005/libpython25.a
       export NAN_FREETYPE ?= $(LCGDIR)/gcc/freetype
-      export NAN_ODE ?= $(LCGDIR)/gcc/ode
       export NAN_SDL ?= $(LCGDIR)/gcc/sdl
       export NAN_OPENEXR ?= $(LCGDIR)/gcc/openexr
       export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
@@ -480,7 +459,6 @@ endif
       export NAN_PYTHON_BINARY ?= python
       export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python23.lib
       export NAN_FREETYPE ?= $(LCGDIR)/freetype
-      export NAN_ODE ?= $(LCGDIR)/ode
       export NAN_SDL ?= $(LCGDIR)/sdl
       export NAN_OPENEXR ?= $(LCGDIR)/openexr
       export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/IlmImf -I$(NAN_OPENEXR)/include/Imath -I$(NAN_OPENEXR)/include/Iex
@@ -489,8 +467,7 @@ endif
     export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
 
     export NAN_WINTAB ?= $(LCGDIR)/wintab
-    # Uncomment the following line to use Mozilla inplace of netscape
-    # CPPFLAGS +=-DMOZ_NOT_NET
+
     # Location of MOZILLA/Netscape header files...
     export NAN_MOZILLA_INC ?= $(LCGDIR)/mozilla/include
     export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
@@ -519,7 +496,6 @@ endif
     export NAN_PNG ?= $(LCGDIR)/png
     export NAN_TIFF ?= $(LCGDIR)/tiff
     export NAN_SDL ?= $(LCGDIR)/sdl
-    export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= $(LCGDIR)/zlib
@@ -530,8 +506,6 @@ endif
     export NAN_SDLLIBS ?= $(shell sdl-config --libs)
     export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
 
-    # Uncomment the following line to use Mozilla inplace of netscape
-    # CPPFLAGS +=-DMOZ_NOT_NET
     # Location of MOZILLA/Netscape header files...
     export NAN_MOZILLA_INC ?= $(LCGDIR)/mozilla/include
     export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/

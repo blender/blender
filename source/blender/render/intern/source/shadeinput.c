@@ -156,13 +156,13 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 	/* depth >= 1 when ray-shading */
 	if(shi->depth==0) {
 		if(R.r.mode & R_RAYTRACE) {
-			if(shi->ray_mirror!=0.0f || ((shi->mat->mode & MA_RAYTRANSP) && shr->alpha!=1.0f)) {
+			if(shi->ray_mirror!=0.0f || ((shi->mat->mode & MA_TRANSP) && (shi->mat->mode & MA_RAYTRANSP) && shr->alpha!=1.0f)) {
 				/* ray trace works on combined, but gives pass info */
 				ray_trace(shi, shr);
 			}
 		}
 		/* disable adding of sky for raytransp */
-		if(shi->mat->mode & MA_RAYTRANSP) 
+		if((shi->mat->mode & MA_TRANSP) && (shi->mat->mode & MA_RAYTRANSP))
 			if((shi->layflag & SCE_LAY_SKY) && (R.r.alphamode==R_ADDSKY))
 				shr->alpha= 1.0f;
 	}	
@@ -190,7 +190,6 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	if(shi->passflag & (SCE_PASS_VECTOR|SCE_PASS_NORMAL|SCE_PASS_RADIO)) {
 		QUATCOPY(shr->winspeed, shi->winspeed);
 		VECCOPY(shr->nor, shi->vn);
-		VECCOPY(shr->rad, shi->rad);
 	}
 	
 	/* MIST */
@@ -558,10 +557,6 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 			shi->orn[2]= -shi->vn[2];
 		}
 
-		if(mode & MA_RADIO) {
-			/* not supported */
-		}
-
 		if(texco & TEXCO_REFL) {
 			/* mirror reflection color textures (and envmap) */
 			calc_R_ref(shi);    /* wrong location for normal maps! XXXXXXXXXXXXXX */
@@ -579,8 +574,6 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 			}
 		}
 	}
-
-	shi->rad[0]= shi->rad[1]= shi->rad[2]= 0.0f;
 
 	/* this only avalailable for scanline renders */
 	if(shi->depth==0) {
@@ -1154,24 +1147,6 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			shi->orn[2]= -shi->vn[2];
 		}
 		
-		if(mode & MA_RADIO) {
-			float *r1, *r2, *r3;
-			
-			r1= RE_vertren_get_rad(obr, v1, 0);
-			r2= RE_vertren_get_rad(obr, v2, 0);
-			r3= RE_vertren_get_rad(obr, v3, 0);
-			
-			if(r1 && r2 && r3) {
-				shi->rad[0]= (l*r3[0] - u*r1[0] - v*r2[0]);
-				shi->rad[1]= (l*r3[1] - u*r1[1] - v*r2[1]);
-				shi->rad[2]= (l*r3[2] - u*r1[2] - v*r2[2]);
-			}
-			else
-				shi->rad[0]= shi->rad[1]= shi->rad[2]= 0.0f;
-		}
-		else
-			shi->rad[0]= shi->rad[1]= shi->rad[2]= 0.0f;
-		
 		if(texco & TEXCO_REFL) {
 			/* mirror reflection color textures (and envmap) */
 			calc_R_ref(shi);	/* wrong location for normal maps! XXXXXXXXXXXXXX */
@@ -1199,8 +1174,6 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			}
 		}
 	}
-	else
-		shi->rad[0]= shi->rad[1]= shi->rad[2]= 0.0f;
 	
 	/* this only avalailable for scanline renders */
 	if(shi->depth==0) {

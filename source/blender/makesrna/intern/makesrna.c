@@ -1381,15 +1381,48 @@ static const char *rna_property_subtypename(PropertyType type)
 {
 	switch(type) {
 		case PROP_NONE: return "PROP_NONE";
-		case PROP_UNSIGNED: return "PROP_UNSIGNED";
 		case PROP_FILEPATH: return "PROP_FILEPATH";
 		case PROP_DIRPATH: return "PROP_DIRPATH";
-		case PROP_COLOR: return "PROP_COLOR";
-		case PROP_VECTOR: return "PROP_VECTOR";
-		case PROP_MATRIX: return "PROP_MATRIX";
-		case PROP_ROTATION: return "PROP_ROTATION";
-		case PROP_NEVER_NULL: return "PROP_NEVER_NULL";
+		case PROP_UNSIGNED: return "PROP_UNSIGNED";
 		case PROP_PERCENTAGE: return "PROP_PERCENTAGE";
+		case PROP_ANGLE: return "PROP_ANGLE";
+		case PROP_TIME: return "PROP_TIME";
+		case PROP_DISTANCE: return "PROP_DISTANCE";
+		case PROP_COLOR: return "PROP_COLOR";
+		case PROP_TRANSLATION: return "PROP_TRANSLATION";
+		case PROP_DIRECTION: return "PROP_DIRECTION";
+		case PROP_MATRIX: return "PROP_MATRIX";
+		case PROP_EULER: return "PROP_EULER";
+		case PROP_QUATERNION: return "PROP_QUATERNION";
+		case PROP_VELOCITY: return "PROP_VELOCITY";
+		case PROP_ACCELERATION: return "PROP_ACCELERATION";
+		case PROP_XYZ: return "PROP_XYZ";
+		case PROP_RGB: return "PROP_RGB";
+		case PROP_NEVER_NULL: return "PROP_NEVER_NULL";
+		default: {
+			/* incase we dont have a type preset that includes the subtype */
+			if(RNA_SUBTYPE_UNIT(type)) {
+				return rna_property_subtypename(type & ~RNA_SUBTYPE_UNIT(type));
+			}
+			else {
+				return "PROP_SUBTYPE_UNKNOWN";
+			}
+		}
+	}
+}
+
+static const char *rna_property_subtype_unit(PropertyType type)
+{
+	switch(RNA_SUBTYPE_UNIT(type)) {
+		case PROP_UNIT_NONE:		return "PROP_UNIT_NONE";
+		case PROP_UNIT_LENGTH:		return "PROP_UNIT_LENGTH";
+		case PROP_UNIT_AREA:		return "PROP_UNIT_AREA";
+		case PROP_UNIT_VOLUME:		return "PROP_UNIT_VOLUME";
+		case PROP_UNIT_MASS:		return "PROP_UNIT_MASS";
+		case PROP_UNIT_ROTATION:	return "PROP_UNIT_ROTATION";
+		case PROP_UNIT_TIME:		return "PROP_UNIT_TIME";
+		case PROP_UNIT_VELOCITY:	return "PROP_UNIT_VELOCITY";
+		case PROP_UNIT_ACCELERATION:return "PROP_UNIT_ACCELERATION";
 		default: return "PROP_UNKNOWN";
 	}
 }
@@ -1702,7 +1735,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 	rna_print_c_string(f, prop->name); fprintf(f, ",\n\t");
 	rna_print_c_string(f, prop->description); fprintf(f, ",\n\t");
 	fprintf(f, "%d,\n", prop->icon);
-	fprintf(f, "\t%s, %s, %d,\n", rna_property_typename(prop->type), rna_property_subtypename(prop->subtype), prop->arraylength);
+	fprintf(f, "\t%s, %s|%s, %d,\n", rna_property_typename(prop->type), rna_property_subtypename(prop->subtype), rna_property_subtype_unit(prop->subtype), prop->arraylength);
 	fprintf(f, "\t%s, %d, %s,\n", rna_function_string(prop->update), prop->noteflag, rna_function_string(prop->editable));
 
 	if(prop->flag & PROP_RAW_ACCESS) rna_set_raw_offset(f, srna, prop);
@@ -2212,7 +2245,7 @@ static void rna_generate_header_cpp(BlenderRNA *brna, FILE *f)
 	fprintf(f, "#include \"RNA_blender.h\"\n");
 	fprintf(f, "#include \"RNA_types.h\"\n");
 
-	fprintf(f, cpp_classes);
+	fprintf(f, "%s", cpp_classes);
 
 	fprintf(f, "/**************** Declarations ****************/\n\n");
 

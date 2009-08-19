@@ -916,7 +916,7 @@ static int toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
-	RNA_pointer_create(&sc->id, &RNA_SpaceButtonsWindow, sbuts, &ptr);
+	RNA_pointer_create(&sc->id, &RNA_SpaceProperties, sbuts, &ptr);
 
 	pup= uiPupMenuBegin(C, "Align", 0);
 	layout= uiPupMenuLayout(pup);

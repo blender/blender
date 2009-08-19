@@ -295,13 +295,7 @@ KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
 /* ------------------------------------------------------------------------- */
 
 PyTypeObject SCA_MouseSensor::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"SCA_MouseSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -324,8 +318,8 @@ PyTypeObject SCA_MouseSensor::Type = {
 
 PyMethodDef SCA_MouseSensor::Methods[] = {
 	//Deprecated functions ------>
-	{"getXPosition", (PyCFunction) SCA_MouseSensor::sPyGetXPosition, METH_VARARGS, (PY_METHODCHAR)GetXPosition_doc},
-	{"getYPosition", (PyCFunction) SCA_MouseSensor::sPyGetYPosition, METH_VARARGS, (PY_METHODCHAR)GetYPosition_doc},
+	{"getXPosition", (PyCFunction) SCA_MouseSensor::sPyGetXPosition, METH_VARARGS, (const char *)GetXPosition_doc},
+	{"getYPosition", (PyCFunction) SCA_MouseSensor::sPyGetYPosition, METH_VARARGS, (const char *)GetYPosition_doc},
 	//<----- Deprecated
 	KX_PYMETHODTABLE_O(SCA_MouseSensor, getButtonStatus),
 	{NULL,NULL} //Sentinel

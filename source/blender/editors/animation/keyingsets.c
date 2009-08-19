@@ -899,7 +899,7 @@ short keyingset_context_ok_poll (bContext *C, KeyingSet *ks)
 			Object *obact= CTX_data_active_object(C);
 			
 			/* if in posemode, check if 'pose-channels' requested for in KeyingSet */
-			if ((obact && obact->pose) && (obact->flag & OB_POSEMODE)) {
+			if ((obact && obact->pose) && (obact->mode & OB_MODE_POSE)) {
 				/* check for posechannels */
 				
 			}
@@ -930,7 +930,7 @@ static short modifykey_get_context_v3d_data (bContext *C, ListBase *dsources, Ke
 	
 	/* check if the active object is in PoseMode (i.e. only deal with bones) */
 	// TODO: check with the templates to see what we really need to store 
-	if ((obact && obact->pose) && (obact->flag & OB_POSEMODE)) {
+	if ((obact && obact->pose) && (obact->mode & OB_MODE_POSE)) {
 		/* Pose Mode: Selected bones */
 #if 0
 		//set_pose_keys(ob);  /* sets pchan->flag to POSE_KEY if bone selected, and clears if not */

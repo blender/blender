@@ -22,6 +22,17 @@ BF_CXX = '/usr'
 WITH_BF_STATICCXX = False
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 
+BF_LIBSAMPLERATE = '/usr'
+BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
+BF_LIBSAMPLERATE_LIB = 'samplerate'
+BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
+
+WITH_BF_JACK = False
+BF_JACK = '/usr'
+BF_JACK_INC = '${BF_JACK}/include/jack'
+BF_JACK_LIB = 'jack'
+BF_JACK_LIBPATH = '${BF_JACK}/lib'
+
 WITH_BF_SDL = True
 BF_SDL = '/usr' #$(shell sdl-config --prefix)
 BF_SDL_INC = '${BF_SDL}/include/SDL' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
@@ -129,6 +140,12 @@ BF_OPENJPEG = '#extern/libopenjpeg'
 BF_OPENJPEG_LIB = ''
 BF_OPENJPEG_INC = '${BF_OPENJPEG}'
 BF_OPENJPEG_LIBPATH='${BF_OPENJPEG}/lib'
+
+WITH_BF_FFTW3 = False
+BF_FFTW3 = LIBDIR + '/usr'
+BF_FFTW3_INC = '${BF_FFTW3}/include'
+BF_FFTW3_LIB = 'fftw3'
+BF_FFTW3_LIBPATH = '${BF_FFTW3}/lib'
 
 WITH_BF_REDCODE = False  
 BF_REDCODE = '#extern/libredcode'

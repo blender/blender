@@ -420,6 +420,7 @@ typedef struct ClothModifierData {
 	struct ClothSimSettings *sim_parms; /* definition is in DNA_cloth_types.h */
 	struct ClothCollSettings *coll_parms; /* definition is in DNA_cloth_types.h */
 	struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
+	struct ListBase ptcaches;
 } ClothModifierData;
 
 typedef struct CollisionModifierData {

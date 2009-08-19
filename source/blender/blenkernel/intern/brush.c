@@ -35,6 +35,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_color_types.h"
 #include "DNA_image_types.h"
+#include "DNA_object_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
@@ -50,6 +51,7 @@
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_paint.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -61,7 +63,7 @@
 
 /* Datablock add/copy/free/make_local */
 
-Brush *add_brush(char *name)
+Brush *add_brush(const char *name)
 {
 	Brush *brush;
 
@@ -73,6 +75,8 @@ Brush *add_brush(char *name)
 	brush->alpha= 0.2f;
 	brush->size= 25;
 	brush->spacing= 10.0f;
+	brush->smooth_stroke_radius= 75;
+	brush->smooth_stroke_factor= 0.9;
 	brush->rate= 0.1f;
 	brush->innerradius= 0.5f;
 	brush->clone.alpha= 0.5;
@@ -152,7 +156,7 @@ void make_local_brush(Brush *brush)
 	}
 
 	for(scene= G.main->scene.first; scene; scene=scene->id.next)
-		if(scene->toolsettings->imapaint.brush==brush) {
+		if(paint_brush(&scene->toolsettings->imapaint.paint)==brush) {
 			if(scene->id.lib) lib= 1;
 			else local= 1;
 		}
@@ -174,9 +178,9 @@ void make_local_brush(Brush *brush)
 		brushn->id.flag |= LIB_FAKEUSER;
 		
 		for(scene= G.main->scene.first; scene; scene=scene->id.next)
-			if(scene->toolsettings->imapaint.brush==brush)
+			if(paint_brush(&scene->toolsettings->imapaint.paint)==brush)
 				if(scene->id.lib==0) {
-					scene->toolsettings->imapaint.brush= brushn;
+					paint_brush_set(&scene->toolsettings->imapaint.paint, brushn);
 					brushn->id.us++;
 					brush->id.us--;
 				}
@@ -185,20 +189,7 @@ void make_local_brush(Brush *brush)
 
 /* Library Operations */
 
-Brush **current_brush_source(Scene *sce)
-{
-	if(G.f & G_SCULPTMODE)
-		return &sce->toolsettings->sculpt->brush;
-	else if(G.f & G_VERTEXPAINT)
-		return &sce->toolsettings->vpaint->brush;
-	else if(G.f & G_WEIGHTPAINT)
-		return &sce->toolsettings->wpaint->brush;
-	else if(G.f & G_TEXTUREPAINT)
-		return &sce->toolsettings->imapaint.brush;
-	return NULL;
-}
-
-int brush_set_nr(Brush **current_brush, int nr)
+int brush_set_nr(Brush **current_brush, int nr, const char *name)
 {
 	ID *idtest, *id;
 	
@@ -207,7 +198,7 @@ int brush_set_nr(Brush **current_brush, int nr)
 	
 	if(idtest==0) { /* new brush */
 		if(id) idtest= (ID *)copy_brush((Brush *)id);
-		else idtest= (ID *)add_brush("Brush");
+		else idtest= (ID *)add_brush(name);
 		idtest->us--;
 	}
 	if(idtest!=id) {
@@ -300,6 +291,13 @@ void brush_curve_preset(Brush *b, BrushCurvePreset preset)
 	curvemapping_changed(b->curve, 0);
 }
 
+static MTex *brush_active_texture(Brush *brush)
+{
+	if(brush && brush->texact >= 0)
+		return brush->mtex[brush->texact];
+	return NULL;
+}
+
 int brush_texture_set_nr(Brush *brush, int nr)
 {
 	ID *idtest, *id=NULL;
@@ -374,10 +372,10 @@ int brush_clone_image_delete(Brush *brush)
 	return 0;
 }
 
-void brush_check_exists(Brush **brush)
+void brush_check_exists(Brush **brush, const char *name)
 {
 	if(*brush==NULL)
-		brush_set_nr(brush, 1);
+		brush_set_nr(brush, 1, name);
 }
 
 /* Brush Sampling */
@@ -1077,8 +1075,11 @@ void brush_radial_control_invoke(wmOperator *op, Brush *br, float size_weight)
 		original_value = br->size * size_weight;
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
 		original_value = br->alpha;
-	else if(mode == WM_RADIALCONTROL_ANGLE)
-		original_value = br->rot;
+	else if(mode == WM_RADIALCONTROL_ANGLE) {
+		MTex *mtex = brush_active_texture(br);
+		if(mtex)
+			original_value = mtex->rot;
+	}
 
 	RNA_float_set(op->ptr, "initial_value", original_value);
 	op->customdata = brush_gen_radial_control_imbuf(br);
@@ -1094,8 +1095,11 @@ int brush_radial_control_exec(wmOperator *op, Brush *br, float size_weight)
 		br->size = new_value * size_weight;
 	else if(mode == WM_RADIALCONTROL_STRENGTH)
 		br->alpha = new_value;
-	else if(mode == WM_RADIALCONTROL_ANGLE)
-		br->rot = new_value * conv;
+	else if(mode == WM_RADIALCONTROL_ANGLE) {
+		MTex *mtex = brush_active_texture(br);
+		if(mtex)
+			mtex->rot = new_value * conv;
+	}
 
 	return OPERATOR_FINISHED;
 }

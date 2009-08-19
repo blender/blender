@@ -575,10 +575,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenlib\intern\psfont.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\rand.c"
 				>
 			</File>

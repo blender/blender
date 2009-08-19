@@ -714,12 +714,12 @@ static float voronoiTex(Tex *tex, float *texvec, TexResult *texres)
 
 /* ------------------------------------------------------------------------- */
 
-static int evalnodes(Tex *tex, float *texvec, TexResult *texres, short thread, short which_output)
+static int evalnodes(Tex *tex, float *texvec, float *dxt, float *dyt, TexResult *texres, short thread, short which_output)
 {
 	short rv = TEX_INT;
 	bNodeTree *nodes = tex->nodetree;
 	
-	ntreeTexExecTree(nodes, texres, texvec, 0, thread, tex, which_output, R.r.cfra);
+	ntreeTexExecTree(nodes, texres, texvec, dxt, dyt, 0, thread, tex, which_output, R.r.cfra);
 	
 	if(texres->nor) rv |= TEX_NOR;
 	rv |= TEX_RGB;
@@ -1180,7 +1180,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	texres->talpha= 0;	/* is set when image texture returns alpha (considered premul) */
 	
 	if(tex->use_nodes && tex->nodetree) {
-		retval = evalnodes(tex, texvec, texres, thread, which_output);
+		retval = evalnodes(tex, texvec, dxt, dyt, texres, thread, which_output);
 	}
 	else
 	switch(tex->type) {

@@ -6,10 +6,13 @@
 class PHY_IMotionState;
 #include "PHY_DynamicTypes.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class PHY_IVehicle
 {
 public:
-
 	virtual ~PHY_IVehicle();
 	
 	virtual void	AddWheel(
@@ -52,6 +55,12 @@ public:
 
 	virtual void	SetCoordinateSystem(int rightIndex,int upIndex,int forwardIndex) =0;
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:PHY_IVehicle"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //PHY_IVEHICLE_H

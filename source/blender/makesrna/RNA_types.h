@@ -66,17 +66,51 @@ typedef enum PropertyType {
 	PROP_COLLECTION = 6
 } PropertyType;
 
+/* also update rna_property_subtype_unit when you change this */
+typedef enum PropertyUnit {
+	PROP_UNIT_NONE = (0<<16),
+	PROP_UNIT_LENGTH = (1<<16),			/* m */
+	PROP_UNIT_AREA = (2<<16),			/* m^2 */
+	PROP_UNIT_VOLUME = (3<<16),			/* m^3 */
+	PROP_UNIT_MASS = (4<<16),			/* kg */
+	PROP_UNIT_ROTATION = (5<<16),		/* rad */
+	PROP_UNIT_TIME = (6<<16),			/* frame */
+	PROP_UNIT_VELOCITY = (7<<16),		/* m/s */
+	PROP_UNIT_ACCELERATION = (8<<16)	/* m/(s^2) */
+} PropertyUnit;
+
+#define RNA_SUBTYPE_UNIT(subtype) (subtype & 0x00FF0000)
+#define RNA_SUBTYPE_UNIT_VALUE(subtype) (subtype>>16)
+
+/* also update rna_property_subtypename when you change this */
 typedef enum PropertySubType {
 	PROP_NONE = 0,
-	PROP_UNSIGNED = 1,
-	PROP_FILEPATH = 2,
-	PROP_DIRPATH = 3,
-	PROP_COLOR = 4,
-	PROP_VECTOR = 5,
-	PROP_MATRIX = 6,
-	PROP_ROTATION = 7,
-	PROP_NEVER_NULL = 8,
-	PROP_PERCENTAGE = 9
+
+	/* strings */
+	PROP_FILEPATH = 1,
+	PROP_DIRPATH = 2,
+
+	/* numbers */
+	PROP_UNSIGNED = 13,
+	PROP_PERCENTAGE = 14,
+	PROP_ANGLE = 15|PROP_UNIT_ROTATION,
+	PROP_TIME = 16|PROP_UNIT_TIME,
+	PROP_DISTANCE = 17|PROP_UNIT_LENGTH,
+
+	/* number arrays */
+	PROP_COLOR = 20,
+	PROP_TRANSLATION = 21|PROP_UNIT_LENGTH,
+	PROP_DIRECTION = 22,
+	PROP_VELOCITY = 23|PROP_UNIT_VELOCITY,
+	PROP_ACCELERATION = 24|PROP_UNIT_ACCELERATION,
+	PROP_MATRIX = 25,
+	PROP_EULER = 26|PROP_UNIT_ROTATION,
+	PROP_QUATERNION = 27,
+	PROP_XYZ = 28,
+	PROP_RGB = 29,
+
+	/* pointers */
+	PROP_NEVER_NULL = 30,
 } PropertySubType;
 
 typedef enum PropertyFlag {
@@ -232,7 +266,7 @@ typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_
 typedef int (*StructCallbackFunc)(struct PointerRNA *ptr, struct FunctionRNA *func, ParameterList *list);
 typedef void (*StructFreeFunc)(void *data);
 typedef struct StructRNA *(*StructRegisterFunc)(const struct bContext *C, struct ReportList *reports, void *data,
-	StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);
+	const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);
 typedef void (*StructUnregisterFunc)(const struct bContext *C, struct StructRNA *type);
 
 typedef struct StructRNA StructRNA;

@@ -62,15 +62,15 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Mask, "MASK", ICON_MOD_MASK, "Mask", ""},
 	{eModifierType_MeshDeform, "MESH_DEFORM", ICON_MOD_MESHDEFORM, "Mesh Deform", ""},
 	{eModifierType_Mirror, "MIRROR", ICON_MOD_MIRROR, "Mirror", ""},
-	{eModifierType_Multires, "MULTIRES", ICON_MOD_MULTIRES, "Multires", ""},
+	{eModifierType_Multires, "MULTIRES", ICON_MOD_MULTIRES, "Multiresolution", ""},
 	{eModifierType_ParticleInstance, "PARTICLE_INSTANCE", ICON_MOD_PARTICLES, "Particle Instance", ""},
 	{eModifierType_ParticleSystem, "PARTICLE_SYSTEM", ICON_MOD_PARTICLES, "Particle System", ""},
 	{eModifierType_Shrinkwrap, "SHRINKWRAP", ICON_MOD_SHRINKWRAP, "Shrinkwrap", ""},
 	{eModifierType_SimpleDeform, "SIMPLE_DEFORM", ICON_MOD_SIMPLEDEFORM, "Simple Deform", ""},
 	{eModifierType_Smoke, "SMOKE", 0, "Smoke", ""},
 	{eModifierType_Smooth, "SMOOTH", ICON_MOD_SMOOTH, "Smooth", ""},
-	{eModifierType_Softbody, "SOFTBODY", ICON_MOD_SOFT, "Soft Body", ""},
-	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subsurf", ""},
+	{eModifierType_Softbody, "SOFT_BODY", ICON_MOD_SOFT, "Soft Body", ""},
+	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
 	{eModifierType_Surface, "SURFACE", ICON_MOD_PHYSICS, "Surface", ""},
 	{eModifierType_UVProject, "UV_PROJECT", ICON_MOD_UVPROJECT, "UV Project", ""},
 	{eModifierType_Wave, "WAVE", ICON_MOD_WAVE, "Wave", ""},
@@ -538,12 +538,12 @@ static void rna_def_modifier_build(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "BuildModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_BUILD);
 
-	prop= RNA_def_property(srna, "start", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "start", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Start", "Specify the start frame of the effect.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "length", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "length", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_range(prop, 1, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Length", "Specify the total time the build effect requires");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
@@ -697,32 +697,32 @@ static void rna_def_modifier_wave(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Time Offset", "Either the starting frame (for positive speed) or ending frame (for negative speed.)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "lifetime", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "lifetime", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Lifetime",  "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "damping_time", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "damping_time", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "damp");
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Damping Time",  "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "falloff_radius", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "falloff_radius", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "falloff");
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 100, 100, 2);
 	RNA_def_property_ui_text(prop, "Falloff Radius",  "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "start_position_x", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "start_position_x", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "startx");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -100, 100, 100, 2);
 	RNA_def_property_ui_text(prop, "Start Position X",  "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "start_position_y", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "start_position_y", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "starty");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -100, 100, 100, 2);
@@ -853,7 +853,7 @@ static void rna_def_modifier_hook(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "HookModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_HOOK);
 
-	prop= RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 100, 100, 2);
 	RNA_def_property_ui_text(prop, "Falloff",  "If not zero, the distance from the hook where influence ends.");
@@ -953,7 +953,7 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Count",  "Number of duplicates to make.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "length", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "length", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_ui_range(prop, 0, 10000, 10, 2);
 	RNA_def_property_ui_text(prop, "Length", "Length to fit array within.");
@@ -967,22 +967,22 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_dependency_update");
 
 	/* Offset parameters */
-	prop= RNA_def_property(srna, "constant_offset", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "constant_offset", PROP_BOOLEAN, PROP_TRANSLATION);
 	RNA_def_property_boolean_sdna(prop, NULL, "offset_type", MOD_ARR_OFF_CONST);
 	RNA_def_property_ui_text(prop, "Constant Offset", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 	
-	prop= RNA_def_property(srna, "constant_offset_displacement", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "constant_offset_displacement", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "offset");
 	RNA_def_property_ui_text(prop, "Constant Offset Displacement", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "relative_offset", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "relative_offset", PROP_BOOLEAN, PROP_TRANSLATION);
 	RNA_def_property_boolean_sdna(prop, NULL, "offset_type", MOD_ARR_OFF_RELATIVE);
 	RNA_def_property_ui_text(prop, "Relative Offset", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "relative_offset_displacement", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "relative_offset_displacement", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "scale");
 	RNA_def_property_ui_text(prop, "Relative Offset Displacement", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
@@ -998,7 +998,7 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Merge Vertices", "Merge vertices in first and last duplicates.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "merge_distance", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "merge_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "merge_dist");
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 1, 1, 4);
@@ -1280,7 +1280,7 @@ static void rna_def_modifier_cast(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Factor", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 100, 10, 2);
 	RNA_def_property_ui_text(prop, "Radius", "Only deform vertices within this distance from the center of the effect (leave as 0 for infinite.)");
@@ -1860,7 +1860,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Realtime);
 	RNA_def_property_ui_text(prop, "Realtime", "Realtime display of a modifier.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
-	RNA_def_property_ui_icon(prop, ICON_VIEW3D, 0);
+	RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, 0);
 	
 	prop= RNA_def_property(srna, "render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Render);

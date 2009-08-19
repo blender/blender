@@ -12,5 +12,7 @@ defs = []
 
 if env['WITH_BF_OPENJPEG']:
     defs.append('WITH_OPENJPEG')
+if env['WITH_BF_OPENEXR']:
+	defs.append('WITH_OPENEXR')
 
 env.BlenderLib ( 'bf_editors_space_file', sources, Split(incs), defs, libtype=['core'], priority=[115] )

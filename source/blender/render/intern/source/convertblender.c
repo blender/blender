@@ -895,7 +895,7 @@ static void flag_render_node_material(Render *re, bNodeTree *ntree)
 			if(GS(node->id->name)==ID_MA) {
 				Material *ma= (Material *)node->id;
 
-				if(ma->mode & MA_ZTRA)
+				if((ma->mode & MA_TRANSP) && (ma->mode & MA_ZTRANSP))
 					re->flag |= R_ZTRA;
 
 				ma->flag |= MA_IS_USED;
@@ -917,7 +917,7 @@ static Material *give_render_material(Render *re, Object *ob, int nr)
 	
 	if(re->r.mode & R_SPEED) ma->texco |= NEED_UV;
 	
-	if(ma->mode & MA_ZTRA)
+	if((ma->mode & MA_TRANSP) && (ma->mode & MA_ZTRANSP))
 		re->flag |= R_ZTRA;
 	
 	/* for light groups */
@@ -3025,11 +3025,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				}
 				need_nmap_tangent= 1;
 			}
-
-			/* radio faces need autosmooth, to separate shared vertices in corners */
-			if(re->r.mode & R_RADIO)
-				if(ma->mode & MA_RADIO) 
-					do_autosmooth= 1;
 		}
 	}
 
@@ -3799,7 +3794,7 @@ static void set_phong_threshold(ObjectRen *obr)
 static void set_fullsample_flag(Render *re, ObjectRen *obr)
 {
 	VlakRen *vlr;
-	int a, trace;
+	int a, trace, mode;
 
 	if(re->osa==0)
 		return;
@@ -3808,12 +3803,13 @@ static void set_fullsample_flag(Render *re, ObjectRen *obr)
 	
 	for(a=obr->totvlak-1; a>=0; a--) {
 		vlr= RE_findOrAddVlak(obr, a);
+		mode= vlr->mat->mode;
 		
-		if(vlr->mat->mode & MA_FULL_OSA) 
+		if(mode & MA_FULL_OSA) 
 			vlr->flag |= R_FULL_OSA;
 		else if(trace) {
-			if(vlr->mat->mode & MA_SHLESS);
-			else if(vlr->mat->mode & (MA_RAYTRANSP|MA_RAYMIRROR))
+			if(mode & MA_SHLESS);
+			else if((mode & MA_RAYMIRROR) || ((mode & MA_TRANSP) && (mode & MA_RAYTRANSP)))
 				/* for blurry reflect/refract, better to take more samples 
 				 * inside the raytrace than as OSA samples */
 				if ((vlr->mat->gloss_mir == 1.0) && (vlr->mat->gloss_tra == 1.0)) 

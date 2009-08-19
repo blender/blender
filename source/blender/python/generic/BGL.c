@@ -67,7 +67,7 @@ static int Buffer_ass_slice( PyObject * self, int begin, int end,
 			     PyObject * seq );
 
 static PySequenceMethods Buffer_SeqMethods = {
-	( inquiry ) Buffer_len,	/*sq_length */
+	( lenfunc ) Buffer_len,	/*sq_length */
 	( binaryfunc ) 0,	/*sq_concat */
 	( ssizeargfunc ) 0,	/*sq_repeat */
 	( ssizeargfunc ) Buffer_item,	/*sq_item */
@@ -83,13 +83,7 @@ static PyObject *Buffer_getattr( PyObject * self, char *name );
 static PyObject *Buffer_repr( PyObject * self );
 
 PyTypeObject buffer_Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"buffer",		/*tp_name */
 	sizeof( Buffer ),	/*tp_basicsize */
 	0,			/*tp_itemsize */
@@ -1090,7 +1084,6 @@ static struct PyMethodDef BGL_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-#if (PY_VERSION_HEX >= 0x03000000)
 static struct PyModuleDef BGL_module_def = {
 	PyModuleDef_HEAD_INIT,
 	"BGL",  /* m_name */
@@ -1102,17 +1095,13 @@ static struct PyModuleDef BGL_module_def = {
 	0,  /* m_clear */
 	0,  /* m_free */
 };
-#endif
 
-PyObject *BGL_Init(const char *from) 
+
+PyObject *BGL_Init(void)
 {
 	PyObject *mod, *dict, *item;
-#if (PY_VERSION_HEX >= 0x03000000)
 	mod = PyModule_Create(&BGL_module_def);
 	PyDict_SetItemString(PySys_GetObject("modules"), BGL_module_def.m_name, mod);
-#else
-	mod= Py_InitModule(from, BGL_methods);
-#endif
 	dict= PyModule_GetDict(mod);
 	
 	if( PyType_Ready( &buffer_Type) < 0)

@@ -321,7 +321,7 @@ int psys_ob_has_hair(Object *ob)
 }
 int psys_in_edit_mode(Scene *scene, ParticleSystem *psys)
 {
-	return ((G.f & G_PARTICLEEDIT) && psys==psys_get_current((scene->basact)->object) && psys->edit);
+	return ((scene->basact->object->mode & OB_MODE_PARTICLE_EDIT) && psys==psys_get_current((scene->basact)->object) && psys->edit);
 }
 int psys_check_enabled(Object *ob, ParticleSystem *psys)
 {
@@ -431,9 +431,6 @@ void psys_free(Object *ob, ParticleSystem * psys)
 		int nr = 0;
 		ParticleSystem * tpsys;
 		
-		if(ob->particlesystem.first == NULL && G.f & G_PARTICLEEDIT)
-			G.f &= ~G_PARTICLEEDIT;
-
 		psys_free_path_cache(psys);
 
 		free_hair(psys, 1);
@@ -484,8 +481,8 @@ void psys_free(Object *ob, ParticleSystem * psys)
 		if(psys->reactevents.first)
 			BLI_freelistN(&psys->reactevents);
 
-		if(psys->pointcache)
-			BKE_ptcache_free(psys->pointcache);
+		BKE_ptcache_free_list(&psys->ptcaches);
+		psys->pointcache = NULL;
 		
 		if(psys->targets.first)
 			BLI_freelistN(&psys->targets);
@@ -980,13 +977,13 @@ static void get_pointcache_keys_for_time(Object *ob, ParticleSystem *psys, int i
 			while(pm && pm->next && (float)pm->frame < t)
 				pm = pm->next;
 
-			copy_particle_key(key2, ((ParticleKey *)pm->data) + index, 1);
-			copy_particle_key(key1, ((ParticleKey *)(pm->prev)->data) + index, 1);
+			BKE_ptcache_make_particle_key(key2, pm->index_array ? pm->index_array[index] : index, pm->data, (float)pm->frame);
+			BKE_ptcache_make_particle_key(key1, pm->prev->index_array ? pm->prev->index_array[index] : index, pm->prev->data, (float)pm->prev->frame);
 		}
 		else if(cache->mem_cache.first) {
 			PTCacheMem *pm2 = cache->mem_cache.first;
-			copy_particle_key(key2, ((ParticleKey *)pm2->data) + index, 1);
-			copy_particle_key(key1, ((ParticleKey *)pm2->data) + index, 1);
+			BKE_ptcache_make_particle_key(key2, pm2->index_array ? pm2->index_array[index] : index, pm2->data, (float)pm2->frame);
+			copy_particle_key(key1, key2, 1);
 		}
 	}
 }
@@ -3038,7 +3035,7 @@ void object_add_particle_system(Scene *scene, Object *ob)
 		psys->flag &= ~PSYS_CURRENT;
 
 	psys = MEM_callocN(sizeof(ParticleSystem), "particle_system");
-	psys->pointcache = BKE_ptcache_add();
+	psys->pointcache = BKE_ptcache_add(&psys->ptcaches);
 	BLI_addtail(&ob->particlesystem, psys);
 
 	psys->part = psys_new_settings("ParticleSettings", NULL);

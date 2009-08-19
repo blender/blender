@@ -611,7 +611,7 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 
 //-----------------PROTOCOL DECLARATIONS--------------------------
 static PySequenceMethods Quaternion_SeqMethods = {
-	(inquiry) Quaternion_len,					/* sq_length */
+	(lenfunc) Quaternion_len,					/* sq_length */
 	(binaryfunc) 0,								/* sq_concat */
 	(ssizeargfunc) 0,								/* sq_repeat */
 	(ssizeargfunc) Quaternion_item,				/* sq_item */
@@ -620,7 +620,6 @@ static PySequenceMethods Quaternion_SeqMethods = {
 	(ssizessizeobjargproc) Quaternion_ass_slice,	/* sq_ass_slice */
 };
 
-#if (PY_VERSION_HEX >= 0x03000000)
 static PyNumberMethods Quaternion_NumMethods = {
 		(binaryfunc)	Quaternion_add,	/*nb_add*/
 		(binaryfunc)	Quaternion_sub,	/*nb_subtract*/
@@ -657,33 +656,6 @@ static PyNumberMethods Quaternion_NumMethods = {
 		0,				/* nb_inplace_true_divide */
 		0,				/* nb_index */
 };
-#else
-static PyNumberMethods Quaternion_NumMethods = {
-	(binaryfunc) Quaternion_add,				/* __add__ */
-	(binaryfunc) Quaternion_sub,				/* __sub__ */
-	(binaryfunc) Quaternion_mul,				/* __mul__ */
-	(binaryfunc) 0,								/* __div__ */
-	(binaryfunc) 0,								/* __mod__ */
-	(binaryfunc) 0,								/* __divmod__ */
-	(ternaryfunc) 0,							/* __pow__ */
-	(unaryfunc) 0,								/* __neg__ */
-	(unaryfunc) 0,								/* __pos__ */
-	(unaryfunc) 0,								/* __abs__ */
-	(inquiry) 0,								/* __nonzero__ */
-	(unaryfunc) 0,								/* __invert__ */
-	(binaryfunc) 0,								/* __lshift__ */
-	(binaryfunc) 0,								/* __rshift__ */
-	(binaryfunc) 0,								/* __and__ */
-	(binaryfunc) 0,								/* __xor__ */
-	(binaryfunc) 0,								/* __or__ */
-	/*(coercion)*/  0,								/* __coerce__ */
-	(unaryfunc) 0,								/* __int__ */
-	(unaryfunc) 0,								/* __long__ */
-	(unaryfunc) 0,								/* __float__ */
-	(unaryfunc) 0,								/* __oct__ */
-	(unaryfunc) 0,								/* __hex__ */
-};
-#endif
 
 static PyObject *Quaternion_getAxis( QuaternionObject * self, void *type )
 {
@@ -778,13 +750,7 @@ static PyGetSetDef Quaternion_getseters[] = {
 
 //------------------PY_OBECT DEFINITION--------------------------
 PyTypeObject quaternion_Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"quaternion",						//tp_name
 	sizeof(QuaternionObject),			//tp_basicsize
 	0,								//tp_itemsize

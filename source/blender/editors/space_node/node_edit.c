@@ -56,6 +56,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_material.h"
+#include "BKE_paint.h"
 #include "BKE_texture.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
@@ -212,10 +213,8 @@ void snode_handle_recalc(bContext *C, SpaceNode *snode)
 		WM_event_add_notifier(C, NC_MATERIAL|ND_NODES, snode->id);
 	else if(snode->treetype==NTREE_COMPOSIT)
 		WM_event_add_notifier(C, NC_SCENE|ND_NODES, snode->id);
-	else if(snode->treetype==NTREE_TEXTURE) {
-		// ntreeTexUpdatePreviews(snode->nodetree); /* XXX texture nodes should follow shader node methods (ton) */
-		// XXX BIF_preview_changed(ID_TE);
-	}
+	else if(snode->treetype==NTREE_TEXTURE)
+		WM_event_add_notifier(C, NC_TEXTURE|ND_NODES, snode->id);
 }
 
 #if 0
@@ -486,7 +485,7 @@ static void texture_node_event(SpaceNode *snode, short event)
 #endif /* 0  */
 /* assumes nothing being done in ntree yet, sets the default in/out node */
 /* called from shading buttons or header */
-void node_shader_default(Material *ma)
+void ED_node_shader_default(Material *ma)
 {
 	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock;
@@ -516,7 +515,7 @@ void node_shader_default(Material *ma)
 
 /* assumes nothing being done in ntree yet, sets the default in/out node */
 /* called from shading buttons or header */
-void node_composit_default(Scene *sce)
+void ED_node_composit_default(Scene *sce)
 {
 	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock;
@@ -550,7 +549,7 @@ void node_composit_default(Scene *sce)
 
 /* assumes nothing being done in ntree yet, sets the default in/out node */
 /* called from shading buttons or header */
-void node_texture_default(Tex *tx)
+void ED_node_texture_default(Tex *tx)
 {
 	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock;
@@ -592,7 +591,7 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 		if(ob) {
 			Material *ma= give_current_material(ob, ob->actcol);
 			if(ma) {
-				snode->from= material_from(ob, ob->actcol);
+				snode->from= &ob->id;
 				snode->id= &ma->id;
 				snode->nodetree= ma->nodetree;
 			}
@@ -614,7 +613,13 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 		if(snode->texfrom==SNODE_TEX_OBJECT) {
 			if(ob) {
 				tx= give_current_texture(ob, ob->actcol);
-				snode->from= (ID *)ob;
+
+				if(ob->type == OB_LAMP)
+					snode->from= (ID*)ob->data;
+				else
+					snode->from= (ID*)give_current_material(ob, ob->actcol);
+
+				/* from is not set fully for material nodes, should be ID + Node then */
 			}
 		}
 		else if(snode->texfrom==SNODE_TEX_WORLD) {
@@ -623,23 +628,20 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 		}
 		else {
 			MTex *mtex= NULL;
+			Brush *brush= NULL;
 			
-			if(G.f & G_SCULPTMODE) {
-				Sculpt *sd= scene->toolsettings->sculpt;
-				if(sd && sd->brush)
-					if(sd->brush->texact != -1)
-						mtex= sd->brush->mtex[sd->brush->texact];
-			}
-			else {
-				Brush *br= scene->toolsettings->imapaint.brush;
-				if(br) 
-					mtex= br->mtex[br->texact];
-			}
-			
-			if(mtex) {
-				snode->from= (ID *)scene;
+			if(ob && (ob->mode & OB_MODE_SCULPT))
+				brush= paint_brush(&scene->toolsettings->sculpt->paint);
+			else
+				brush= paint_brush(&scene->toolsettings->imapaint.paint);
+
+			if(brush && brush->texact != -1)
+				mtex= brush->mtex[brush->texact];
+
+			snode->from= (ID *)brush;
+
+			if(mtex)
 				tx= mtex->tex;
-			}
 		}
 		
 		if(tx) {
@@ -2268,34 +2270,6 @@ void node_read_fullsamplelayers(SpaceNode *snode)
 	// allqueue(REDRAWIMAGE, 1);
 	
 	WM_cursor_wait(0);
-}
-
-/* called from header_info, when deleting a scene
- * goes over all scenes other than the input, checks if they have
- * render layer nodes referencing the to-be-deleted scene, and
- * resets them to NULL. */
-
-/* XXX needs to get current scene then! */
-void clear_scene_in_nodes(Scene *sce)
-{
-	Scene *sce1;
-	bNode *node;
-
-	sce1= G.main->scene.first;
-	while(sce1) {
-		if(sce1!=sce) {
-			if (sce1->nodetree) {
-				for(node= sce1->nodetree->nodes.first; node; node= node->next) {
-					if(node->type==CMP_NODE_R_LAYERS) {
-						Scene *nodesce= (Scene *)node->id;
-						
-						if (nodesce==sce) node->id = NULL;
-					}
-				}
-			}
-		}
-		sce1= sce1->id.next;
-	}
 }
 
 void imagepaint_composite_tags(bNodeTree *ntree, Image *image, ImageUser *iuser)

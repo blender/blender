@@ -713,7 +713,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 	
 	/* get pose of active object and move it out of posemode */
 	pose= ob->pose;
-	ob->flag &= ~OB_POSEMODE;
+	ob->mode &= ~OB_MODE_POSE;
 
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 		if ((base->object->type==OB_ARMATURE) && (base->object!=ob)) {
@@ -724,8 +724,8 @@ int join_armature_exec(bContext *C, wmOperator *op)
 			
 			/* Get Pose of current armature */
 			opose= base->object->pose;
-			base->object->flag &= ~OB_POSEMODE;
-			BASACT->flag &= ~OB_POSEMODE;
+			base->object->mode &= ~OB_MODE_POSE;
+			//BASACT->flag &= ~OB_MODE_POSE;
 			
 			/* Find the difference matrix */
 			Mat4Invert(oimat, ob->obmat);
@@ -1034,8 +1034,8 @@ static int separate_armature_exec (bContext *C, wmOperator *op)
 	/* 1) store starting settings and exit editmode */
 	oldob= obedit;
 	oldbase= BASACT;
-	oldob->flag &= ~OB_POSEMODE;
-	oldbase->flag &= ~OB_POSEMODE;
+	oldob->mode &= ~OB_MODE_POSE;
+	//oldbase->flag &= ~OB_POSEMODE;
 	
 	ED_armature_from_edit(scene, obedit);
 	ED_armature_edit_free(obedit);
@@ -4332,7 +4332,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 		}
 		
 		/* in weightpaint we select the associated vertex group too */
-		if (G.f & G_WEIGHTPAINT) {
+		if (ob->mode & OB_MODE_WEIGHT_PAINT) {
 			if (nearBone->flag & BONE_ACTIVE) {
 				vertexgroup_select_by_name(OBACT, nearBone->name);
 				DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
@@ -4424,7 +4424,7 @@ static int bone_skinnable(Object *ob, Bone *bone, void *datap)
 	int a, segments;
 	struct { Object *armob; void *list; int heat; } *data = datap;
 
-	if(!(G.f & G_WEIGHTPAINT) || !(bone->flag & BONE_HIDDEN_P)) {
+	if(!(ob->mode & OB_MODE_WEIGHT_PAINT) || !(bone->flag & BONE_HIDDEN_P)) {
 		if (!(bone->flag & BONE_NO_DEFORM)) {
 			if (data->heat && data->armob->pose && get_pose_channel(data->armob->pose, bone->name))
 				segments = bone->segments;
@@ -4489,7 +4489,7 @@ static int dgroup_skinnable(Object *ob, Bone *bone, void *datap)
 	int a, segments;
 	struct { Object *armob; void *list; int heat; } *data= datap;
 
-	if (!(G.f & G_WEIGHTPAINT) || !(bone->flag & BONE_HIDDEN_P)) {
+	if (!(ob->mode & OB_MODE_WEIGHT_PAINT) || !(bone->flag & BONE_HIDDEN_P)) {
 	   if (!(bone->flag & BONE_NO_DEFORM)) {
 			if (data->heat && data->armob->pose && get_pose_channel(data->armob->pose, bone->name))
 				segments = bone->segments;
@@ -4588,7 +4588,7 @@ void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int m
 	float (*root)[3], (*tip)[3], (*verts)[3];
 	int *selected;
 	int numbones, vertsfilled = 0, i, j, segments = 0;
-	int wpmode = (G.f & G_WEIGHTPAINT);
+	int wpmode = (ob->mode & OB_MODE_WEIGHT_PAINT);
 	struct { Object *armob; void *list; int heat; } looper_data;
 
 	looper_data.armob = par;

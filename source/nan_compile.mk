@@ -39,11 +39,9 @@ CPPFLAGS ?= $(NAN_CPPFLAGS)
 # Uncomment next lines to enable integrated game engine
 ifneq ($(NAN_NO_KETSJI), true)
     CFLAGS  += -DGAMEBLENDER=1
-    CFLAGS  += -DUSE_SUMO_SOLID
-    CCFLAGS += -DUSE_SUMO_SOLID
     ifeq ($(NAN_USE_BULLET), true)
-      CFLAGS  += -DUSE_BULLET -DWITH_BULLET
-      CCFLAGS += -DUSE_BULLET -DWITH_BULLET
+      CFLAGS  += -DUSE_BULLET
+      CCFLAGS += -DUSE_BULLET
     endif
 else
    CPPFLAGS += -DNO_KETSJI

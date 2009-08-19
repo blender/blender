@@ -53,17 +53,17 @@ typedef struct MTex {
 	char uvname[32];
 	
 	char projx, projy, projz, mapping;
-	float ofs[3], size[3];
+	float ofs[3], size[3], rot;
 	
 	short texflag, colormodel, pmapto, pmaptoneg;
-	short normapspace, which_output, pad[2];
+	short normapspace, which_output;
+	char brush_map_mode, pad[7];
 	float r, g, b, k;
 	float def_var, rt;
 	
 	float colfac, norfac, varfac;
 	float dispfac; 
 	float warpfac;
-	
 } MTex;
 
 #ifndef DNA_USHORT_FIX
@@ -143,7 +143,11 @@ typedef struct Tex {
 	float dist_amount, ns_outscale;
 
 	/* newnoise: voronoi nearest neighbour weights, minkovsky exponent, distance metric & color type */
-	float vn_w1, vn_w2, vn_w3, vn_w4, vn_mexp;
+	float vn_w1;
+	float vn_w2;
+	float vn_w3;
+	float vn_w4;
+	float vn_mexp;
 	short vn_distm, vn_coltype;
 
 	short noisedepth, noisetype;
@@ -391,6 +395,11 @@ typedef struct TexMapping {
 #define MTEX_BLEND_VAL		12
 #define MTEX_BLEND_COLOR	13
 #define MTEX_NUM_BLENDTYPES	14
+
+/* brush_map_mode */
+#define MTEX_MAP_MODE_FIXED    0
+#define MTEX_MAP_MODE_TILED    1
+#define MTEX_MAP_MODE_3D       2
 
 /* **************** EnvMap ********************* */
 

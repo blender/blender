@@ -36,13 +36,7 @@ double CValue::m_sZeroVec[3] = {0.0,0.0,0.0};
 #ifndef NO_EXP_PYTHON_EMBEDDING
 
 PyTypeObject CValue::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"CValue",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -594,12 +588,6 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
 	{
 		vallie = new CFloatValue( (float)PyFloat_AsDouble(pyobj) );
 	} else
-#if PY_VERSION_HEX < 0x03000000
-	if (PyInt_Check(pyobj))
-	{
-		vallie = new CIntValue( (cInt)PyInt_AS_LONG(pyobj) );
-	} else
-#endif
 	if (PyLong_Check(pyobj))
 	{
 		vallie = new CIntValue( (cInt)PyLong_AsLongLong(pyobj) );

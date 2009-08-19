@@ -226,13 +226,7 @@ PyObject* KX_RadarSensor::PyGetConeHeight() {
 /* Python Integration Hooks                                                  */
 /* ------------------------------------------------------------------------- */
 PyTypeObject KX_RadarSensor::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"KX_RadarSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -256,11 +250,11 @@ PyTypeObject KX_RadarSensor::Type = {
 PyMethodDef KX_RadarSensor::Methods[] = {
 	//Deprecated ----->
 	{"getConeOrigin", (PyCFunction) KX_RadarSensor::sPyGetConeOrigin, 
-	 METH_VARARGS, (PY_METHODCHAR)GetConeOrigin_doc},
+	 METH_VARARGS, (const char *)GetConeOrigin_doc},
 	{"getConeTarget", (PyCFunction) KX_RadarSensor::sPyGetConeTarget, 
-	 METH_VARARGS, (PY_METHODCHAR)GetConeTarget_doc},
+	 METH_VARARGS, (const char *)GetConeTarget_doc},
 	{"getConeHeight", (PyCFunction) KX_RadarSensor::sPyGetConeHeight, 
-	 METH_VARARGS, (PY_METHODCHAR)GetConeHeight_doc},
+	 METH_VARARGS, (const char *)GetConeHeight_doc},
 	 //<-----
 	{NULL} //Sentinel
 };

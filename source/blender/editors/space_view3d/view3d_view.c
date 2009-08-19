@@ -1389,12 +1389,13 @@ static ListBase queue_back;
 static void SaveState(bContext *C)
 {
 	wmWindow *win= CTX_wm_window(C);
+	Object *obact = CTX_data_active_object(C);
 	
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 	GPU_state_init();
 
-	if(G.f & G_TEXTUREPAINT)
+	if(obact && obact->mode & OB_MODE_TEXTURE_PAINT)
 		GPU_paint_set_mipmap(1);
 	
 	queue_back= win->queue;
@@ -1407,8 +1408,9 @@ static void SaveState(bContext *C)
 static void RestoreState(bContext *C)
 {
 	wmWindow *win= CTX_wm_window(C);
+	Object *obact = CTX_data_active_object(C);
 	
-	if(G.f & G_TEXTUREPAINT)
+	if(obact && obact->mode & OB_MODE_TEXTURE_PAINT)
 		GPU_paint_set_mipmap(0);
 
 	//XXX curarea->win_swap = 0;

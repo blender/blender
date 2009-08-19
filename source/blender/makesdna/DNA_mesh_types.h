@@ -139,7 +139,7 @@ typedef struct TFace {
 #define ME_DRAWCREASES	(1 << 6)
 #define ME_DRAWSEAMS    (1 << 7)
 #define ME_DRAWSHARP    (1 << 8)
-#define ME_DRAWBWEIGHTS	(1 << 8)
+#define ME_DRAWBWEIGHTS	(1 << 9)
 
 #define ME_DRAW_EDGELEN  (1 << 10) 
 #define ME_DRAW_FACEAREA (1 << 11)

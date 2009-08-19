@@ -220,6 +220,7 @@ static void multires_subdisp(DerivedMesh *orig, Mesh *me, DerivedMesh *final, in
 	int skip = multires_side_tot[totlvl - lvl] - 1;
 	int i, j, k;
 
+	memset(&mmd_sub, 0, sizeof(MultiresModifierData));
 	mmd_sub.lvl = mmd_sub.totlvl = totlvl;
 	mrdm = multires_dm_create_from_derived(&mmd_sub, orig, me, 0, 0);
 		
@@ -465,6 +466,7 @@ void multiresModifier_subdivide(MultiresModifierData *mmd, Object *ob, int dista
 		MultiresModifierData mmd_sub;
 
 		orig = CDDM_from_mesh(me, NULL);
+		memset(&mmd_sub, 0, sizeof(MultiresModifierData));
 		mmd_sub.lvl = mmd_sub.totlvl = mmd->lvl;
 		mrdm = multires_dm_create_from_derived(&mmd_sub, orig, me, 0, 0);
 		totsubvert = mrdm->getNumVerts(mrdm);

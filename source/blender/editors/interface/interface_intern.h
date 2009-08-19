@@ -273,8 +273,9 @@ struct uiBlock {
 	int (*block_event_func)(const struct bContext *C, struct uiBlock *, struct wmEvent *);
 	
 	/* extra draw function for custom blocks */
-	void (*drawextra)(const struct bContext *C, void *idv, void *argv, rcti *rect);
-	void *drawextra_arg;
+	void (*drawextra)(const struct bContext *C, void *idv, void *arg1, void *arg2, rcti *rect);
+	void *drawextra_arg1;
+	void *drawextra_arg2;
 
 	int afterval, flag;
 	
@@ -337,6 +338,7 @@ extern void ui_set_but_soft_range(uiBut *but, double value);
 
 extern void ui_check_but(uiBut *but);
 extern int  ui_is_but_float(uiBut *but);
+extern int  ui_is_but_unit(uiBut *but);
 extern void ui_update_block_buts_hsv(uiBlock *block, float *hsv);
 
 extern void ui_bounds_block(uiBlock *block);

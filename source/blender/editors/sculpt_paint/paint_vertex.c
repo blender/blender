@@ -76,6 +76,7 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_utildefines.h"
 
 #include "WM_api.h"
@@ -108,7 +109,10 @@ static void error() {}
 
 static int vp_poll(bContext *C)
 {
-	if(G.f & G_VERTEXPAINT) {
+	Object *ob = CTX_data_active_object(C);
+
+	if(ob && ob->mode & OB_MODE_VERTEX_PAINT &&
+	   paint_brush(&CTX_data_tool_settings(C)->vpaint->paint)) {
 		ScrArea *sa= CTX_wm_area(C);
 		if(sa->spacetype==SPACE_VIEW3D) {
 			ARegion *ar= CTX_wm_region(C);
@@ -121,7 +125,10 @@ static int vp_poll(bContext *C)
 
 static int wp_poll(bContext *C)
 {
-	if(G.f & G_WEIGHTPAINT) {
+	Object *ob = CTX_data_active_object(C);
+
+	if(ob && ob->mode & OB_MODE_WEIGHT_PAINT &&
+	   paint_brush(&CTX_data_tool_settings(C)->wpaint->paint)) {
 		ScrArea *sa= CTX_wm_area(C);
 		if(sa->spacetype==SPACE_VIEW3D) {
 			ARegion *ar= CTX_wm_region(C);
@@ -136,14 +143,14 @@ static int wp_poll(bContext *C)
 /* Cursors */
 static void vp_drawcursor(bContext *C, int x, int y, void *customdata)
 {
-	ToolSettings *ts= CTX_data_tool_settings(C);
+	Brush *brush = paint_brush(&CTX_data_tool_settings(C)->vpaint->paint);
 	
 	glTranslatef((float)x, (float)y, 0.0f);
 	
 	glColor4ub(255, 255, 255, 128);
 	glEnable( GL_LINE_SMOOTH );
 	glEnable(GL_BLEND);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, ts->vpaint->brush->size, 40);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, brush->size, 40);
 	glDisable(GL_BLEND);
 	glDisable( GL_LINE_SMOOTH );
 	
@@ -152,14 +159,14 @@ static void vp_drawcursor(bContext *C, int x, int y, void *customdata)
 
 static void wp_drawcursor(bContext *C, int x, int y, void *customdata)
 {
-	ToolSettings *ts= CTX_data_tool_settings(C);
-	
+	Brush *brush = paint_brush(&CTX_data_tool_settings(C)->wpaint->paint);
+
 	glTranslatef((float)x, (float)y, 0.0f);
 	
 	glColor4ub(200, 200, 255, 128);
 	glEnable( GL_LINE_SMOOTH );
 	glEnable(GL_BLEND);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, ts->wpaint->brush->size, 40);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, brush->size, 40);
 	glDisable(GL_BLEND);
 	glDisable( GL_LINE_SMOOTH );
 	
@@ -232,7 +239,8 @@ unsigned int rgba_to_mcol(float r, float g, float b, float a)
 
 static unsigned int vpaint_get_current_col(VPaint *vp)
 {
-	return rgba_to_mcol(vp->brush->rgb[0], vp->brush->rgb[1], vp->brush->rgb[2], 1.0f);
+	Brush *brush = paint_brush(&vp->paint);
+	return rgba_to_mcol(brush->rgb[0], brush->rgb[1], brush->rgb[2], 1.0f);
 }
 
 void do_shared_vertexcol(Mesh *me)
@@ -369,11 +377,11 @@ void clear_vpaint(Scene *scene)
 	unsigned int *to, paintcol;
 	int a;
 	
-	if((G.f & G_VERTEXPAINT)==0) return;
-
 	ob= OBACT;
 	me= get_mesh(ob);
 	if(!ob || ob->id.lib) return;
+
+	if(!(ob->mode & OB_MODE_VERTEX_PAINT)) return;
 
 	if(me==0 || me->mcol==0 || me->totface==0) return;
 
@@ -540,10 +548,10 @@ void vpaint_dogamma(Scene *scene)
 	int a, temp;
 	unsigned char *cp, gamtab[256];
 
-	if((G.f & G_VERTEXPAINT)==0) return;
-
 	ob= OBACT;
 	me= get_mesh(ob);
+
+	if(!(ob->mode & OB_MODE_VERTEX_PAINT)) return;
 	if(me==0 || me->mcol==0 || me->totface==0) return;
 
 	igam= 1.0/vp->gamma;
@@ -721,6 +729,7 @@ static unsigned int mcol_darken(unsigned int col1, unsigned int col2, int fac)
 
 static void vpaint_blend(VPaint *vp, unsigned int *col, unsigned int *colorig, unsigned int paintcol, int alpha)
 {
+	Brush *brush = paint_brush(&vp->paint);
 
 	if(vp->mode==VP_MIX || vp->mode==VP_BLUR) *col= mcol_blend( *col, paintcol, alpha);
 	else if(vp->mode==VP_ADD) *col= mcol_add( *col, paintcol, alpha);
@@ -734,7 +743,7 @@ static void vpaint_blend(VPaint *vp, unsigned int *col, unsigned int *colorig, u
 		unsigned int testcol=0, a;
 		char *cp, *ct, *co;
 		
-		alpha= (int)(255.0*vp->brush->alpha);
+		alpha= (int)(255.0*brush->alpha);
 		
 		if(vp->mode==VP_MIX || vp->mode==VP_BLUR) testcol= mcol_blend( *colorig, paintcol, alpha);
 		else if(vp->mode==VP_ADD) testcol= mcol_add( *colorig, paintcol, alpha);
@@ -800,6 +809,7 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 
 static int calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], float *vert_nor, short *mval)
 {
+	Brush *brush = paint_brush(&vp->paint);
 	float fac, dx, dy;
 	int alpha;
 	short vertco[2];
@@ -810,14 +820,14 @@ static int calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], floa
 		dy= mval[1]-vertco[1];
 		
 		fac= sqrt(dx*dx + dy*dy);
-		if(fac > vp->brush->size) return 0;
+		if(fac > brush->size) return 0;
 		if(vp->flag & VP_HARD)
 			alpha= 255;
 		else
-			alpha= 255.0*vp->brush->alpha*(1.0-fac/vp->brush->size);
+			alpha= 255.0*brush->alpha*(1.0-fac/brush->size);
 	}
 	else {
-		alpha= 255.0*vp->brush->alpha;
+		alpha= 255.0*brush->alpha;
 	}
 
 	if(vp->flag & VP_NORMALS) {
@@ -839,6 +849,7 @@ static int calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], floa
 
 static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float alpha, float paintval)
 {
+	Brush *brush = paint_brush(&wp->paint);
 	
 	if(dw==NULL || uw==NULL) return;
 	
@@ -864,7 +875,7 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 	if((wp->flag & VP_SPRAY)==0) {
 		float testw=0.0f;
 		
-		alpha= wp->brush->alpha;
+		alpha= brush->alpha;
 		if(wp->mode==VP_MIX || wp->mode==VP_BLUR)
 			testw = paintval*alpha + uw->weight*(1.0-alpha);
 		else if(wp->mode==VP_ADD)
@@ -1092,12 +1103,12 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 	
 	if(me && me->totface>=MAXINDEX) {
 		error("Maximum number of faces: %d", MAXINDEX-1);
-		G.f &= ~G_WEIGHTPAINT;
+		ob->mode &= ~OB_MODE_WEIGHT_PAINT;
 		return OPERATOR_CANCELLED;
 	}
 	
-	if(G.f & G_WEIGHTPAINT) G.f &= ~G_WEIGHTPAINT;
-	else G.f |= G_WEIGHTPAINT;
+	if(ob->mode & OB_MODE_WEIGHT_PAINT) ob->mode &= ~OB_MODE_WEIGHT_PAINT;
+	else ob->mode |= OB_MODE_WEIGHT_PAINT;
 	
 	
 	/* Weightpaint works by overriding colors in mesh,
@@ -1107,21 +1118,21 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 		*/
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	
-	if(G.f & G_WEIGHTPAINT) {
+	if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 		Object *par;
 		
 		if(wp==NULL)
 			wp= scene->toolsettings->wpaint= new_vpaint(1);
 
-		brush_check_exists(&wp->brush);
-		
+		paint_init(&wp->paint, "Brush");
+
 		toggle_paint_cursor(C, 1);
 		
 		mesh_octree_table(ob, NULL, NULL, 's');
 		
 		/* verify if active weight group is also active bone */
 		par= modifiers_isDeformedByArmature(ob);
-		if(par && (par->flag & OB_POSEMODE)) {
+		if(par && (par->mode & OB_MODE_POSE)) {
 			bPoseChannel *pchan;
 			for(pchan= par->pose->chanbase.first; pchan; pchan= pchan->next)
 				if(pchan->bone->flag & BONE_ACTIVE)
@@ -1174,8 +1185,10 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 
 static int vpaint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->vpaint->paint);
+
 	toggle_paint_cursor(C, 0);
-	brush_radial_control_invoke(op, CTX_data_scene(C)->toolsettings->vpaint->brush, 1);
+	brush_radial_control_invoke(op, brush, 1);
 	return WM_radial_control_invoke(C, op, event);
 }
 
@@ -1189,13 +1202,15 @@ static int vpaint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 
 static int vpaint_radial_control_exec(bContext *C, wmOperator *op)
 {
-	return brush_radial_control_exec(op, CTX_data_scene(C)->toolsettings->vpaint->brush, 1);
+	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->vpaint->paint);
+	return brush_radial_control_exec(op, brush, 1);
 }
 
 static int wpaint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->wpaint->paint);
 	toggle_paint_cursor(C, 1);
-	brush_radial_control_invoke(op, CTX_data_scene(C)->toolsettings->wpaint->brush, 1);
+	brush_radial_control_invoke(op, brush, 1);
 	return WM_radial_control_invoke(C, op, event);
 }
 
@@ -1209,7 +1224,8 @@ static int wpaint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 
 static int wpaint_radial_control_exec(bContext *C, wmOperator *op)
 {
-	return brush_radial_control_exec(op, CTX_data_scene(C)->toolsettings->wpaint->brush, 1);
+	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->wpaint->paint);
+	return brush_radial_control_exec(op, brush, 1);
 }
 
 void PAINT_OT_weight_paint_radial_control(wmOperatorType *ot)
@@ -1293,6 +1309,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	VPaint *wp= ts->wpaint;
+	Brush *brush = paint_brush(&wp->paint);
 	
 	switch(event->type) {
 		case LEFTMOUSE:
@@ -1328,7 +1345,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			/* which faces are involved */
 			if(wp->flag & VP_AREA) {
-				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], wp->brush->size);
+				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush->size);
 			}
 			else {
 				indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
@@ -1584,22 +1601,22 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 	me= get_mesh(ob);
 	
 	if(me==NULL || object_data_is_libdata(ob)) {
-		G.f &= ~G_VERTEXPAINT;
+		ob->mode &= ~OB_MODE_VERTEX_PAINT;
 		return OPERATOR_PASS_THROUGH;
 	}
 	
 	if(me && me->totface>=MAXINDEX) {
 		error("Maximum number of faces: %d", MAXINDEX-1);
-		G.f &= ~G_VERTEXPAINT;
+		ob->mode &= ~OB_MODE_VERTEX_PAINT;
 		return OPERATOR_FINISHED;
 	}
 	
 	if(me && me->mcol==NULL) make_vertexcol(scene, 0);
 	
 	/* toggle: end vpaint */
-	if(G.f & G_VERTEXPAINT) {
+	if(ob->mode & OB_MODE_VERTEX_PAINT) {
 		
-		G.f &= ~G_VERTEXPAINT;
+		ob->mode &= ~OB_MODE_VERTEX_PAINT;
 		
 		if(vp) {
 			toggle_paint_cursor(C, 0);
@@ -1607,17 +1624,17 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 		}
 	}
 	else {
-		
-		G.f |= G_VERTEXPAINT;
+		ob->mode |= OB_MODE_VERTEX_PAINT;
 		/* Turn off weight painting */
-		if (G.f & G_WEIGHTPAINT)
+		if (ob->mode & OB_MODE_WEIGHT_PAINT)
 			set_wpaint(C, op);
 		
 		if(vp==NULL)
 			vp= scene->toolsettings->vpaint= new_vpaint(0);
 		
 		toggle_paint_cursor(C, 0);
-		brush_check_exists(&scene->toolsettings->vpaint->brush);
+
+		paint_init(&vp->paint, "Brush");
 	}
 	
 	if (me)
@@ -1696,6 +1713,7 @@ static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	VPaint *vp= ts->vpaint;
+	Brush *brush = paint_brush(&vp->paint);
 	
 	switch(event->type) {
 		case LEFTMOUSE:
@@ -1728,7 +1746,7 @@ static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 				
 			/* which faces are involved */
 			if(vp->flag & VP_AREA) {
-				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], vp->brush->size);
+				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush->size);
 			}
 			else {
 				indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);

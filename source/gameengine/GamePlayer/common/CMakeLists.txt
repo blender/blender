@@ -43,7 +43,6 @@ SET(INC
   ../../../../intern/ghost
   ../../../../intern/guardedalloc
   ../../../../intern/moto/include
-  ../../../../intern/SoundSystem
   ../../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
   ../../../../source/kernel/gen_system
   ../../../../source/kernel/gen_messaging
@@ -70,7 +69,6 @@ SET(INC
   ../../../../source/blender/gpu
   ../../../../extern/glew/include
   ${PYTHON_INC}
-  ${SOLID_INC}
   ${PNG_INC}
   ${ZLIB_INC}
 )

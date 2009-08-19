@@ -309,7 +309,7 @@ static void graph_channel_area_draw(const bContext *C, ARegion *ar)
 	
 	/* draw channels */
 	if (ANIM_animdata_get_context(C, &ac)) {
-		graph_draw_channel_names(&ac, sipo, ar);
+		graph_draw_channel_names((bContext*)C, &ac, sipo, ar);
 	}
 	
 	/* reset view matrix */

@@ -130,13 +130,7 @@ bool SCA_RandomSensor::Evaluate()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_RandomSensor::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"SCA_RandomSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -159,9 +153,9 @@ PyTypeObject SCA_RandomSensor::Type = {
 
 PyMethodDef SCA_RandomSensor::Methods[] = {
 	//Deprecated functions ----->
-	{"setSeed",     (PyCFunction) SCA_RandomSensor::sPySetSeed, METH_VARARGS, (PY_METHODCHAR)SetSeed_doc},
-	{"getSeed",     (PyCFunction) SCA_RandomSensor::sPyGetSeed, METH_NOARGS, (PY_METHODCHAR)GetSeed_doc},
-	{"getLastDraw", (PyCFunction) SCA_RandomSensor::sPyGetLastDraw, METH_NOARGS, (PY_METHODCHAR)GetLastDraw_doc},
+	{"setSeed",     (PyCFunction) SCA_RandomSensor::sPySetSeed, METH_VARARGS, (const char *)SetSeed_doc},
+	{"getSeed",     (PyCFunction) SCA_RandomSensor::sPyGetSeed, METH_NOARGS, (const char *)GetSeed_doc},
+	{"getLastDraw", (PyCFunction) SCA_RandomSensor::sPyGetLastDraw, METH_NOARGS, (const char *)GetLastDraw_doc},
 	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };

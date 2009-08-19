@@ -889,7 +889,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 			rect->xmin += UI_icon_get_width(but->icon+but->iconadd);
 			
 			if(but->editstr || (but->flag & UI_TEXT_LEFT)) 
-				rect->xmin += 10;
+				rect->xmin += 5;
 		}
 		else if((but->flag & UI_TEXT_LEFT)) 
 			rect->xmin += 5;
@@ -1949,7 +1949,7 @@ static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int 
 		widget_init(&wtb);
 		
 		/* fully rounded */
-		round_box_edges(&wtb, roundboxalign, rect, rad);
+		round_box_edges(&wtb, 15, rect, rad);
 		
 		widgetbase_draw(&wtb, wcol);
 	}
@@ -2065,7 +2065,7 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
 	
 	if(but->block->drawextra) {
 		/* note: drawextra can change rect +1 or -1, to match round errors of existing previews */
-		but->block->drawextra(C, but->poin, but->block->drawextra_arg, rect);
+		but->block->drawextra(C, but->poin, but->block->drawextra_arg1, but->block->drawextra_arg2, rect);
 		
 		/* make mask to draw over image */
 		UI_GetThemeColor3ubv(TH_BACK, col);

@@ -60,6 +60,7 @@ struct Image;
 struct ImageUser;
 struct uiWidgetColors;
 struct Tex;
+struct MTex;
 
 typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
@@ -490,7 +491,7 @@ void	uiButSetNFunc		(uiBut *but,		uiButHandleNFunc func, void *argN, void *arg2)
 
 void	uiButSetCompleteFunc(uiBut *but,		uiButCompleteFunc func, void *arg);
 
-void 	uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(const struct bContext *C, void *, void *, struct rcti *rect), void *arg);
+void 	uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(const struct bContext *C, void *, void *, void *, struct rcti *rect), void *arg1, void *arg2);
 
 /* Autocomplete
  *
@@ -545,6 +546,7 @@ void autocomplete_vgroup(struct bContext *C, char *str, void *arg_v);
 
 struct rctf;
 void curvemap_buttons(uiBlock *block, struct CurveMapping *cumap, char labeltype, short event, short redraw, struct rctf *rect);
+void curvemap_layout(uiLayout *layout, struct CurveMapping *cumap, char labeltype, short event, short redraw, struct rctf *rect);
 void colorband_buttons(uiBlock *block, struct ColorBand *coba, struct rctf *rect, int small);
 
 
@@ -607,6 +609,7 @@ int uiLayoutGetEnabled(uiLayout *layout);
 int uiLayoutGetRedAlert(uiLayout *layout);
 int uiLayoutGetAlignment(uiLayout *layout);
 int uiLayoutGetKeepAspect(uiLayout *layout);
+int uiLayoutGetWidth(uiLayout *layout);
 float uiLayoutGetScaleX(uiLayout *layout);
 float uiLayoutGetScaleY(uiLayout *layout);
 ListBase *uiLayoutBoxGetList(uiLayout *layout);
@@ -623,20 +626,24 @@ uiLayout *uiLayoutSplit(uiLayout *layout, float percentage);
 uiBlock *uiLayoutFreeBlock(uiLayout *layout);
 
 /* templates */
-void uiTemplateHeader(uiLayout *layout, struct bContext *C);
+void uiTemplateHeader(uiLayout *layout, struct bContext *C, int menus);
 void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
 	char *newop, char *unlinkop);
 uiLayout *uiTemplateModifier(uiLayout *layout, struct PointerRNA *ptr);
 uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
-void uiTemplatePreview(uiLayout *layout, struct ID *id, struct ID *parent);
+void uiTemplatePreview(uiLayout *layout, struct ID *id, struct ID *parent, struct MTex *slot);
 void uiTemplateColorRamp(uiLayout *layout, struct ColorBand *coba, int expand);
-void uiTemplateCurveMapping(uiLayout *layout, struct CurveMapping *cumap, int type);
+void uiTemplateCurveMapping(uiLayout *layout, struct CurveMapping *cumap, int type, int compact);
 void uiTemplateTriColorSet(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
 void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);
 void uiTemplateOperatorSearch(uiLayout *layout);
 void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);
+void uiTemplate_view3d_select_metaballmenu(uiLayout *layout, struct bContext *C);
+void uiTemplate_view3d_select_armaturemenu(uiLayout *layout, struct bContext *C);
+void uiTemplate_view3d_select_posemenu(uiLayout *layout, struct bContext *C);
+void uiTemplate_view3d_select_faceselmenu(uiLayout *layout, struct bContext *C);
 void uiTemplateTextureImage(uiLayout *layout, struct bContext *C, struct Tex *tex);
 
 typedef struct uiListItem {
@@ -671,7 +678,7 @@ void uiItemM(uiLayout *layout, struct bContext *C, char *name, int icon, char *m
 void uiItemV(uiLayout *layout, char *name, int icon, int argval); /* value */
 void uiItemS(uiLayout *layout); /* separator */
 
-void uiItemMenuF(uiLayout *layout, char *name, int icon, uiMenuCreateFunc func);
+void uiItemMenuF(uiLayout *layout, char *name, int icon, uiMenuCreateFunc func, void *arg);
 void uiItemMenuEnumO(uiLayout *layout, char *name, int icon, char *opname, char *propname);
 void uiItemMenuEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname);
 

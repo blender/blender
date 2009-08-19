@@ -119,7 +119,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func= RNA_def_function(srna, "split", "uiLayoutSplit");
 	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
 	RNA_def_function_return(func, parm);
-	RNA_def_float(func, "percentage", 0.5f, 0.0f, 1.0f, "Percentage", "Percentage of width to split at.", 0.0f, 1.0f);
+	RNA_def_float(func, "percentage", 0.0f, 0.0f, 1.0f, "Percentage", "Percentage of width to split at.", 0.0f, 1.0f);
 
 	/* items */
 	func= RNA_def_function(srna, "itemR", "uiItemR");
@@ -220,6 +220,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	/* templates */
 	func= RNA_def_function(srna, "template_header", "uiTemplateHeader");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_boolean(func, "menus", 1, "", "The header has menus, and should show menu expander.");
 
 	func= RNA_def_function(srna, "template_ID", "uiTemplateID");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
@@ -243,11 +244,13 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_pointer(func, "id", "ID", "", "ID datablock.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "parent", "ID", "", "ID datablock.");
+	parm= RNA_def_pointer(func, "slot", "TextureSlot", "", "Texture slot.");
 
 	func= RNA_def_function(srna, "template_curve_mapping", "uiTemplateCurveMapping");
 	parm= RNA_def_pointer(func, "curvemap", "CurveMapping", "", "Curve mapping pointer.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_enum(func, "type", curve_type_items, 0, "Type", "Type of curves to display.");
+	RNA_def_boolean(func, "compact", 0, "", "Use more compact curve mapping.");
 
 	func= RNA_def_function(srna, "template_color_ramp", "uiTemplateColorRamp");
 	parm= RNA_def_pointer(func, "ramp", "ColorRamp", "", "Color ramp pointer.");
@@ -285,6 +288,15 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func= RNA_def_function(srna, "template_operator_search", "uiTemplateOperatorSearch");
 
 	func= RNA_def_function(srna, "template_header_3D", "uiTemplateHeader3D");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+
+	func= RNA_def_function(srna, "view3d_select_metaballmenu", "uiTemplate_view3d_select_metaballmenu");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	func= RNA_def_function(srna, "view3d_select_armaturemenu", "uiTemplate_view3d_select_armaturemenu");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	func= RNA_def_function(srna, "view3d_select_posemenu", "uiTemplate_view3d_select_posemenu");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	func= RNA_def_function(srna, "view3d_select_faceselmenu", "uiTemplate_view3d_select_faceselmenu");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
 	func= RNA_def_function(srna, "template_texture_image", "uiTemplateTextureImage");

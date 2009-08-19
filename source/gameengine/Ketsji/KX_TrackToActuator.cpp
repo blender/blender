@@ -431,13 +431,7 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject KX_TrackToActuator::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"KX_TrackToActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -460,12 +454,12 @@ PyTypeObject KX_TrackToActuator::Type = {
 
 PyMethodDef KX_TrackToActuator::Methods[] = {
 	// ---> deprecated
-	{"setTime", (PyCFunction) KX_TrackToActuator::sPySetTime, METH_VARARGS, (PY_METHODCHAR)SetTime_doc},
-	{"getTime", (PyCFunction) KX_TrackToActuator::sPyGetTime, METH_NOARGS, (PY_METHODCHAR)GetTime_doc},
-	{"setUse3D", (PyCFunction) KX_TrackToActuator::sPySetUse3D, METH_VARARGS, (PY_METHODCHAR)SetUse3D_doc},
-	{"getUse3D", (PyCFunction) KX_TrackToActuator::sPyGetUse3D, METH_NOARGS, (PY_METHODCHAR)GetUse3D_doc},
-	{"setObject", (PyCFunction) KX_TrackToActuator::sPySetObject, METH_O, (PY_METHODCHAR)SetObject_doc},
-	{"getObject", (PyCFunction) KX_TrackToActuator::sPyGetObject, METH_VARARGS, (PY_METHODCHAR)GetObject_doc},
+	{"setTime", (PyCFunction) KX_TrackToActuator::sPySetTime, METH_VARARGS, (const char *)SetTime_doc},
+	{"getTime", (PyCFunction) KX_TrackToActuator::sPyGetTime, METH_NOARGS, (const char *)GetTime_doc},
+	{"setUse3D", (PyCFunction) KX_TrackToActuator::sPySetUse3D, METH_VARARGS, (const char *)SetUse3D_doc},
+	{"getUse3D", (PyCFunction) KX_TrackToActuator::sPyGetUse3D, METH_NOARGS, (const char *)GetUse3D_doc},
+	{"setObject", (PyCFunction) KX_TrackToActuator::sPySetObject, METH_O, (const char *)SetObject_doc},
+	{"getObject", (PyCFunction) KX_TrackToActuator::sPyGetObject, METH_VARARGS, (const char *)GetObject_doc},
 	
 	{NULL,NULL} //Sentinel
 };

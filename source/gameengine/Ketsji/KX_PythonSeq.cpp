@@ -362,13 +362,7 @@ static PyObject *KX_PythonSeq_repr( KX_PythonSeq * self )
 /* Python KX_PythonSeq_Type structure definition:                               */
 /*****************************************************************************/
 PyTypeObject KX_PythonSeq_Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	/*  For printing, in format "<module>.<name>" */
 	"KX_PythonSeq",           /* char *tp_name; */
 	sizeof( KX_PythonSeq ),       /* int tp_basicsize; */
@@ -380,11 +374,8 @@ PyTypeObject KX_PythonSeq_Type = {
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
-#if PY_VERSION_HEX >= 0x03000000 // TODO - richcmp
-	NULL,
-#else
-	( cmpfunc ) KX_PythonSeq_compare, /* cmpfunc tp_compare; */
-#endif
+	/* TODO, richcmp */
+	NULL, /* ( cmpfunc ) KX_PythonSeq_compare, /* cmpfunc tp_compare; */
 	( reprfunc ) KX_PythonSeq_repr,   /* reprfunc tp_repr; */
 
 	/* Method suites for standard classes */

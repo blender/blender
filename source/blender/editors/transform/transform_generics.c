@@ -343,11 +343,11 @@ static void animrecord_check_state (Scene *scene, ID *id, wmTimer *animtimer)
 void recalcData(TransInfo *t)
 {
 	Scene *scene = t->scene;
-	Base *base;
+	Base *base = scene->basact;
 
 	if (t->obedit) {
 	}
-	else if(G.f & G_PARTICLEEDIT) {
+	else if(base && base->object->mode & OB_MODE_PARTICLE_EDIT) {
 		flushTransParticles(t);
 	}
 	if (t->spacetype==SPACE_NODE) {
@@ -765,7 +765,7 @@ void recalcData(TransInfo *t)
 		 */
 		// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
 		if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
-			short targetless_ik= (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
+			int targetless_ik= (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
 			
 			animrecord_check_state(t->scene, &ob->id, t->animtimer);
 			autokeyframe_pose_cb_func(t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);

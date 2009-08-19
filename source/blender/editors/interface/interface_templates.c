@@ -56,12 +56,13 @@ void ui_template_fix_linking()
 
 /********************** Header Template *************************/
 
-void uiTemplateHeader(uiLayout *layout, bContext *C)
+void uiTemplateHeader(uiLayout *layout, bContext *C, int menus)
 {
 	uiBlock *block;
 	
 	block= uiLayoutFreeBlock(layout);
-	ED_area_header_standardbuttons(C, block, 0);
+	if(menus) ED_area_header_standardbuttons(C, block, 0);
+	else ED_area_header_switchbutton(C, block, 0);
 }
 
 /********************** Search Callbacks *************************/
@@ -236,7 +237,7 @@ static void template_ID(bContext *C, uiBlock *block, TemplateID *template, Struc
 		int w= idptr.data?UI_UNIT_X:UI_UNIT_X*6;
 		
 		if(newop) {
-			but= uiDefIconTextButO(block, BUT, newop, WM_OP_EXEC_REGION_WIN, ICON_ZOOMIN, "Add New", 0, 0, w, UI_UNIT_Y, NULL);
+			but= uiDefIconTextButO(block, BUT, newop, WM_OP_INVOKE_REGION_WIN, ICON_ZOOMIN, "Add New", 0, 0, w, UI_UNIT_Y, NULL);
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
 		}
 		else {
@@ -248,7 +249,7 @@ static void template_ID(bContext *C, uiBlock *block, TemplateID *template, Struc
 	/* delete button */
 	if(idptr.data && (flag & UI_ID_DELETE)) {
 		if(unlinkop) {
-			but= uiDefIconButO(block, BUT, unlinkop, WM_OP_EXEC_REGION_WIN, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
+			but= uiDefIconButO(block, BUT, unlinkop, WM_OP_INVOKE_REGION_WIN, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
 		}
 		else {
 			but= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
@@ -483,7 +484,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 			if(md->type==eModifierType_ParticleSystem) {
 		    	ParticleSystem *psys= ((ParticleSystemModifierData *)md)->psys;
 
-	    		if(!(G.f & G_PARTICLEEDIT))
+	    		if(!(ob->mode & OB_MODE_PARTICLE_EDIT))
 					if(ELEM3(psys->part->ren_as, PART_DRAW_PATH, PART_DRAW_GR, PART_DRAW_OB) && psys->pathcache)
 						uiItemO(row, "Convert", 0, "OBJECT_OT_modifier_convert");
 			}
@@ -628,7 +629,7 @@ static void verify_constraint_name_func (bContext *C, void *con_v, void *name_v)
 
 /* some commonly used macros in the constraints drawing code */
 #define is_armature_target(target) (target && target->type==OB_ARMATURE)
-#define is_armature_owner(ob) ((ob->type == OB_ARMATURE) && (ob->flag & OB_POSEMODE))
+#define is_armature_owner(ob) ((ob->type == OB_ARMATURE) && (ob->mode & OB_MODE_POSE))
 #define is_geom_target(target) (target && (ELEM(target->type, OB_MESH, OB_LATTICE)) )
 
 /* Helper function for draw constraint - draws constraint space stuff 
@@ -911,82 +912,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 				draw_constraint_spaceselect(block, con, xco, yco-(73+theight), is_armature_owner(ob), -1);
 			}
 			break;
-#endif /* DISABLE_PYTHON */
-		
-		/*case CONSTRAINT_TYPE_RIGIDBODYJOINT:
-			{
-				if (data->type==CONSTRAINT_RB_GENERIC6DOF) {
-					// Draw Pairs of LimitToggle+LimitValue 
-					uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 1, B_CONSTRAINT_TEST, "LinMinX", xco, yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+togButWidth, yco-offsetY, (textButWidth-5), 18, &(data->minLimit[0]), -extremeLin, extremeLin, 0.1,0.5,"min x limit"); 
-					uiBlockEndAlign(block);
-					
-					uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 1, B_CONSTRAINT_TEST, "LinMaxX", xco+(width-(textButWidth-5)-togButWidth), yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum x limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+(width-textButWidth-5), yco-offsetY, (textButWidth), 18, &(data->maxLimit[0]), -extremeLin, extremeLin, 0.1,0.5,"max x limit"); 
-					uiBlockEndAlign(block);
-					
-					offsetY += 20;
-					uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 2, B_CONSTRAINT_TEST, "LinMinY", xco, yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+togButWidth, yco-offsetY, (textButWidth-5), 18, &(data->minLimit[1]), -extremeLin, extremeLin, 0.1,0.5,"min y limit"); 
-					uiBlockEndAlign(block);
-					
-					uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 2, B_CONSTRAINT_TEST, "LinMaxY", xco+(width-(textButWidth-5)-togButWidth), yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum y limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+(width-textButWidth-5), yco-offsetY, (textButWidth), 18, &(data->maxLimit[1]), -extremeLin, extremeLin, 0.1,0.5,"max y limit"); 
-					uiBlockEndAlign(block);
-					
-					offsetY += 20;
-					uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 4, B_CONSTRAINT_TEST, "LinMinZ", xco, yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum z limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+togButWidth, yco-offsetY, (textButWidth-5), 18, &(data->minLimit[2]), -extremeLin, extremeLin, 0.1,0.5,"min z limit"); 
-					uiBlockEndAlign(block);
-					
-					uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 4, B_CONSTRAINT_TEST, "LinMaxZ", xco+(width-(textButWidth-5)-togButWidth), yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum z limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+(width-textButWidth-5), yco-offsetY, (textButWidth), 18, &(data->maxLimit[2]), -extremeLin, extremeLin, 0.1,0.5,"max z limit"); 
-					uiBlockEndAlign(block);
-					offsetY += 20;
-				}
-				if ((data->type==CONSTRAINT_RB_GENERIC6DOF) || (data->type==CONSTRAINT_RB_CONETWIST)) {
-					// Draw Pairs of LimitToggle+LimitValue /
-					uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 8, B_CONSTRAINT_TEST, "AngMinX", xco, yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+togButWidth, yco-offsetY, (textButWidth-5), 18, &(data->minLimit[3]), -extremeAngX, extremeAngX, 0.1,0.5,"min x limit"); 
-					uiBlockEndAlign(block);
-					uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 8, B_CONSTRAINT_TEST, "AngMaxX", xco+(width-(textButWidth-5)-togButWidth), yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum x limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+(width-textButWidth-5), yco-offsetY, (textButWidth), 18, &(data->maxLimit[3]), -extremeAngX, extremeAngX, 0.1,0.5,"max x limit"); 
-					uiBlockEndAlign(block);
-					
-					offsetY += 20;
-					uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 16, B_CONSTRAINT_TEST, "AngMinY", xco, yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+togButWidth, yco-offsetY, (textButWidth-5), 18, &(data->minLimit[4]), -extremeAngY, extremeAngY, 0.1,0.5,"min y limit"); 
-					uiBlockEndAlign(block);
-					
-					uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 16, B_CONSTRAINT_TEST, "AngMaxY", xco+(width-(textButWidth-5)-togButWidth), yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum y limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+(width-textButWidth-5), yco-offsetY, (textButWidth), 18, &(data->maxLimit[4]), -extremeAngY, extremeAngY, 0.1,0.5,"max y limit"); 
-					uiBlockEndAlign(block);
-					
-					offsetY += 20;
-					uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 32, B_CONSTRAINT_TEST, "AngMinZ", xco, yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum z limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+togButWidth, yco-offsetY, (textButWidth-5), 18, &(data->minLimit[5]), -extremeAngZ, extremeAngZ, 0.1,0.5,"min z limit"); 
-					uiBlockEndAlign(block);
-					
-					uiBlockBeginAlign(block); 
-						uiDefButBitS(block, TOG, 32, B_CONSTRAINT_TEST, "AngMaxZ", xco+(width-(textButWidth-5)-togButWidth), yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum z limit"); 
-						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", xco+(width-textButWidth-5), yco-offsetY, (textButWidth), 18, &(data->maxLimit[5]), -extremeAngZ, extremeAngZ, 0.1,0.5,"max z limit"); 
-					uiBlockEndAlign(block);
-				}
-				
-			}
-			break;
-			*/
+#endif 
 
 		case CONSTRAINT_TYPE_NULL:
 			{
@@ -1162,7 +1088,7 @@ static void do_preview_buttons(bContext *C, void *arg, int event)
 	}
 }
 
-void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent)
+void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent, MTex *slot)
 {
 	uiLayout *row, *col;
 	uiBlock *block;
@@ -1203,7 +1129,7 @@ void uiTemplatePreview(uiLayout *layout, ID *id, ID *parent)
 	
 	/* add preview */
 	uiDefBut(block, BUT_EXTRA, 0, "", 0, 0, UI_UNIT_X*6, UI_UNIT_Y*6, pid, 0.0, 0.0, 0, 0, "");
-	uiBlockSetDrawExtraFunc(block, ED_preview_draw, pparent);
+	uiBlockSetDrawExtraFunc(block, ED_preview_draw, pparent, slot);
 	uiBlockSetHandleFunc(block, do_preview_buttons, NULL);
 	
 	/* add buttons */
@@ -1257,17 +1183,21 @@ void uiTemplateColorRamp(uiLayout *layout, ColorBand *coba, int expand)
 
 #include "DNA_color_types.h"
 
-void uiTemplateCurveMapping(uiLayout *layout, CurveMapping *cumap, int type)
+void uiTemplateCurveMapping(uiLayout *layout, CurveMapping *cumap, int type, int compact)
 {
-	uiBlock *block;
 	rctf rect;
 
 	if(cumap) {
-		rect.xmin= 0; rect.xmax= 200;
-		rect.ymin= 0; rect.ymax= 190;
+		if(compact) {
+			rect.xmin= 0; rect.xmax= 150;
+			rect.ymin= 0; rect.ymax= 140;
+		}
+		else {
+			rect.xmin= 0; rect.xmax= 200;
+			rect.ymin= 0; rect.ymax= 190;
+		}
 		
-		block= uiLayoutFreeBlock(layout);
-		curvemap_buttons(block, cumap, type, 0, 0, &rect);
+		curvemap_layout(layout, cumap, type, 0, 0, &rect);
 	}
 }
 
@@ -1524,7 +1454,8 @@ ListBase uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 		/* init numbers */
 		RNA_property_int_range(activeptr, activeprop, &min, &max);
 
-		len= max - min + 1;
+		if(prop)
+			len= RNA_property_collection_length(ptr, prop);
 		items= CLAMPIS(len, rows, 5);
 
 		pa->list_scroll= MIN2(pa->list_scroll, len-items);
@@ -1650,7 +1581,7 @@ static void do_running_jobs(bContext *C, void *arg, int event)
 			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_screen(C));
 			break;
 		case B_STOPANIM:
-			ED_screen_animation_timer(C, 0, 0);
+			WM_operator_name_call(C, "SCREEN_OT_animation_play", WM_OP_INVOKE_SCREEN, NULL);
 			break;
 	}
 }

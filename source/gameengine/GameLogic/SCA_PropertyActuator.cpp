@@ -228,13 +228,7 @@ void SCA_PropertyActuator::Relink(GEN_Map<GEN_HashedPtr, void*> *obj_map)
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_PropertyActuator::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"SCA_PropertyActuator",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -257,10 +251,10 @@ PyTypeObject SCA_PropertyActuator::Type = {
 
 PyMethodDef SCA_PropertyActuator::Methods[] = {
 	//Deprecated functions ------>
-	{"setProperty", (PyCFunction) SCA_PropertyActuator::sPySetProperty, METH_VARARGS, (PY_METHODCHAR)SetProperty_doc},
-	{"getProperty", (PyCFunction) SCA_PropertyActuator::sPyGetProperty, METH_VARARGS, (PY_METHODCHAR)GetProperty_doc},
-	{"setValue", (PyCFunction) SCA_PropertyActuator::sPySetValue, METH_VARARGS, (PY_METHODCHAR)SetValue_doc},
-	{"getValue", (PyCFunction) SCA_PropertyActuator::sPyGetValue, METH_VARARGS, (PY_METHODCHAR)GetValue_doc},
+	{"setProperty", (PyCFunction) SCA_PropertyActuator::sPySetProperty, METH_VARARGS, (const char *)SetProperty_doc},
+	{"getProperty", (PyCFunction) SCA_PropertyActuator::sPyGetProperty, METH_VARARGS, (const char *)GetProperty_doc},
+	{"setValue", (PyCFunction) SCA_PropertyActuator::sPySetValue, METH_VARARGS, (const char *)SetValue_doc},
+	{"getValue", (PyCFunction) SCA_PropertyActuator::sPyGetValue, METH_VARARGS, (const char *)GetValue_doc},
 	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };

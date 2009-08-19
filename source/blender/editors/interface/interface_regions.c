@@ -396,7 +396,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		char *str;
 		opptr= uiButGetOperatorPtrRNA(but); /* allocated when needed, the button owns it */
 
-		str= WM_operator_pystring(but->optype, opptr, 0);
+		str= WM_operator_pystring(C, but->optype, opptr, 0);
 
 		/* operator info */
 		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Python: %s", str);

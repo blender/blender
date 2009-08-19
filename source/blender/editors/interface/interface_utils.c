@@ -152,8 +152,6 @@ void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr, int 
 	uiLayout *split, *col;
 	char *name;
 
-	uiItemL(layout, (char*)RNA_struct_ui_name(ptr->type), 0);
-
 	RNA_STRUCT_BEGIN(ptr, prop) {
 		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
 			continue;
@@ -944,6 +942,72 @@ void curvemap_buttons(uiBlock *block, CurveMapping *cumap, char labeltype, short
 			  rect->xmin, rect->ymin, rect->xmax-rect->xmin, fy-rect->ymin, 
 			  cumap, 0.0f, 1.0f, 0, 0, "");
 }
+
+/* still unsure how this call evolves... we use labeltype for defining what curve-channels to show */
+void curvemap_layout(uiLayout *layout, CurveMapping *cumap, char labeltype, short event, short redraw, rctf *rect)
+{
+	uiLayout *row;
+	uiBlock *block;
+	uiBut *bt;
+	float dx, fy= rect->ymax-18.0f;
+	int icon;
+	
+	block= uiLayoutGetBlock(layout);
+	
+	/* curve choice options + tools/settings, 8 icons + spacer */
+	dx= UI_UNIT_X;
+	
+	row= uiLayoutRow(layout, 0);
+	uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
+
+	if(labeltype=='v') {	/* vector */
+		row= uiLayoutRow(layout, 1);
+
+		if(cumap->cm[0].curve)
+			uiDefButI(block, ROW, redraw, "X", 0, 0, dx, 16, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
+		if(cumap->cm[1].curve)
+			uiDefButI(block, ROW, redraw, "Y", 0, 0, dx, 16, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
+		if(cumap->cm[2].curve)
+			uiDefButI(block, ROW, redraw, "Z", 0, 0, dx, 16, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
+	}
+	else if(labeltype=='c') { /* color */
+		row= uiLayoutRow(layout, 1);
+
+		if(cumap->cm[3].curve)
+			uiDefButI(block, ROW, redraw, "C", 0, 0, dx, 16, &cumap->cur, 0.0, 3.0, 0.0, 0.0, "");
+		if(cumap->cm[0].curve)
+			uiDefButI(block, ROW, redraw, "R", 0, 0, dx, 16, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
+		if(cumap->cm[1].curve)
+			uiDefButI(block, ROW, redraw, "G", 0, 0, dx, 16, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
+		if(cumap->cm[2].curve)
+			uiDefButI(block, ROW, redraw, "B", 0, 0, dx, 16, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
+	}
+
+	row= uiLayoutRow(row, 1);
+
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	bt= uiDefIconBut(block, BUT, redraw, ICON_ZOOMIN, 0, 0, dx, 14, NULL, 0.0, 0.0, 0.0, 0.0, "Zoom in");
+	uiButSetFunc(bt, curvemap_buttons_zoom_in, cumap, NULL);
+	
+	bt= uiDefIconBut(block, BUT, redraw, ICON_ZOOMOUT, 0, 0, dx, 14, NULL, 0.0, 0.0, 0.0, 0.0, "Zoom out");
+	uiButSetFunc(bt, curvemap_buttons_zoom_out, cumap, NULL);
+	
+	bt= uiDefIconBlockBut(block, curvemap_tools_func, cumap, event, ICON_MODIFIER, 0, 0, dx, 18, "Tools");
+	
+	if(cumap->flag & CUMA_DO_CLIP) icon= ICON_CLIPUV_HLT; else icon= ICON_CLIPUV_DEHLT;
+	bt= uiDefIconBlockBut(block, curvemap_clipping_func, cumap, event, icon, 0, 0, dx, 18, "Clipping Options");
+	
+	bt= uiDefIconBut(block, BUT, event, ICON_X, 0, 0, dx, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Delete points");
+	uiButSetFunc(bt, curvemap_buttons_delete, cumap, NULL);
+	
+	uiBlockSetEmboss(block, UI_EMBOSS);
+	
+	row= uiLayoutRow(layout, 0);
+	uiDefBut(block, BUT_CURVE, event, "", 
+			  rect->xmin, rect->ymin, rect->xmax-rect->xmin, fy-rect->ymin, 
+			  cumap, 0.0f, 1.0f, 0, 0, "");
+}
+
 
 #define B_BANDCOL 1
 

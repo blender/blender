@@ -923,12 +923,6 @@ bScreen *ED_screen_duplicate(wmWindow *win, bScreen *sc)
 	newsc= ED_screen_add(win, sc->scene, sc->id.name+2);
 	/* copy all data */
 	screen_copy(newsc, sc);
-	/* set in window */
-	win->screen= newsc;
-	
-	/* store identifier */
-	win->screen->winid= win->winid;
-	BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
 
 	return newsc;
 }
@@ -1289,6 +1283,49 @@ void ED_screen_set(bContext *C, bScreen *sc)
 	}
 }
 
+static int ed_screen_used(wmWindowManager *wm, bScreen *sc)
+{
+	wmWindow *win;
+
+	for(win=wm->windows.first; win; win=win->next)
+		if(win->screen == sc)
+			return 1;
+	
+	return 0;
+}
+
+/* only call outside of area/region loops */
+void ED_screen_delete(bContext *C, bScreen *sc)
+{
+	Main *bmain= CTX_data_main(C);
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmWindow *win= CTX_wm_window(C);
+	bScreen *newsc;
+	int delete= 1;
+
+	/* screen can only be in use by one window at a time, so as
+	   long as we are able to find a screen that is unused, we
+	   can safely assume ours is not in use anywhere an delete it */
+
+	for(newsc= sc->id.prev; newsc; newsc=newsc->id.prev)
+		if(!ed_screen_used(wm, newsc))
+			break;
+	
+	if(!newsc) {
+		for(newsc= sc->id.next; newsc; newsc=newsc->id.next)
+			if(!ed_screen_used(wm, newsc))
+				break;
+	}
+
+	if(!newsc)
+		return;
+
+	ED_screen_set(C, newsc);
+
+	if(delete && win->screen != sc)
+		free_libblock(&bmain->screen, sc);
+}
+
 /* only call outside of area/region loops */
 void ED_screen_set_scene(bContext *C, Scene *scene)
 {
@@ -1344,6 +1381,24 @@ void ED_screen_set_scene(bContext *C, Scene *scene)
 	/* complete redraw */
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	
+}
+
+/* only call outside of area/region loops */
+void ED_screen_delete_scene(bContext *C, Scene *scene)
+{
+	Main *bmain= CTX_data_main(C);
+	Scene *newscene;
+
+	if(scene->id.prev)
+		newscene= scene->id.prev;
+	else if(scene->id.next)
+		newscene= scene->id.next;
+	else
+		return;
+
+	ED_screen_set_scene(C, newscene);
+
+	unlink_scene(bmain, scene, newscene);
 }
 
 /* this function toggles: if area is full then the parent will be restored */
@@ -1461,7 +1516,7 @@ void ED_screen_full_prevspace(bContext *C)
 /* redraws: uses defines from stime->redraws 
  * enable: 1 - forward on, -1 - backwards on, 0 - off
  */
-void ED_screen_animation_timer(bContext *C, int redraws, int enable)
+void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
 {
 	bScreen *screen= CTX_wm_screen(C);
 	wmWindow *win= CTX_wm_window(C);
@@ -1472,17 +1527,57 @@ void ED_screen_animation_timer(bContext *C, int redraws, int enable)
 	screen->animtimer= NULL;
 	
 	if(enable) {
-		struct ScreenAnimData *sad= MEM_mallocN(sizeof(ScreenAnimData), "ScreenAnimData");
+		struct ScreenAnimData *sad= MEM_callocN(sizeof(ScreenAnimData), "ScreenAnimData");
 		
 		screen->animtimer= WM_event_add_window_timer(win, TIMER0, (1.0/FPS));
 		sad->ar= CTX_wm_region(C);
 		sad->redraws= redraws;
-		sad->flag= (enable < 0) ? ANIMPLAY_FLAG_REVERSE : 0;
+		sad->flag |= (enable < 0)? ANIMPLAY_FLAG_REVERSE: 0;
+		sad->flag |= (sync == 0)? ANIMPLAY_FLAG_NO_SYNC: (sync == 1)? ANIMPLAY_FLAG_SYNC: 0;
 		screen->animtimer->customdata= sad;
 		
 	}
 	/* notifier catched by top header, for button */
 	WM_event_add_notifier(C, NC_SCREEN|ND_ANIMPLAY, screen);
+}
+
+/* helper for screen_animation_play() - only to be used for TimeLine */
+static ARegion *time_top_left_3dwindow(bScreen *screen)
+{
+	ARegion *aret= NULL;
+	ScrArea *sa;
+	int min= 10000;
+	
+	for(sa= screen->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype==SPACE_VIEW3D) {
+			ARegion *ar;
+			for(ar= sa->regionbase.first; ar; ar= ar->next) {
+				if(ar->regiontype==RGN_TYPE_WINDOW) {
+					if(ar->winrct.xmin - ar->winrct.ymin < min) {
+						aret= ar;
+						min= ar->winrct.xmin - ar->winrct.ymin;
+					}
+				}
+			}
+		}
+	}
+
+	return aret;
+}
+
+void ED_screen_animation_timer_update(bContext *C, int redraws)
+{
+	bScreen *screen= CTX_wm_screen(C);
+	
+	if(screen && screen->animtimer) {
+		wmTimer *wt= screen->animtimer;
+		ScreenAnimData *sad= wt->customdata;
+		
+		sad->redraws= redraws;
+		sad->ar= NULL;
+		if(redraws & TIME_REGION)
+			sad->ar= time_top_left_3dwindow(screen);
+	}
 }
 
 unsigned int ED_screen_view3d_layers(bScreen *screen)
@@ -1503,7 +1598,6 @@ unsigned int ED_screen_view3d_layers(bScreen *screen)
 
 
 /* results in fully updated anim system */
-/* in future sound should be on WM level, only 1 sound can play! */
 void ED_update_for_newframe(const bContext *C, int mute)
 {
 	bScreen *screen= CTX_wm_screen(C);
@@ -1515,7 +1609,7 @@ void ED_update_for_newframe(const bContext *C, int mute)
 	/* XXX future: do all windows */
 	scene_update_for_newframe(scene, ED_screen_view3d_layers(screen)); /* BKE_scene.h */
 	
-	//if ( (CFRA>1) && (!mute) && (scene->audio.flag & AUDIO_SCRUB)) 
+	//if ( (CFRA>1) && (!mute) && (scene->r.audio.flag & AUDIO_SCRUB)) 
 	//	audiostream_scrub( CFRA );
 	
 	/* 3d window, preview */
