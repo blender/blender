@@ -63,6 +63,7 @@
 #include "RE_pipeline.h"	// make_stars
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -543,6 +544,18 @@ void view3d_get_object_project_mat(RegionView3D *rv3d, Object *ob, float pmat[4]
 	Mat4MulMat4(pmat, vmat, rv3d->winmat);
 }
 
+/* Uses window coordinates (x,y) and depth component z to find a point in
+   modelspace */
+void view3d_unproject(bglMats *mats, float out[3], const short x, const short y, const float z)
+{
+	double ux, uy, uz;
+
+        gluUnProject(x,y,z, mats->modelview, mats->projection,
+		     (GLint *)mats->viewport, &ux, &uy, &uz );
+	out[0] = ux;
+	out[1] = uy;
+	out[2] = uz;
+}
 
 /* use above call to get projecting mat */
 void view3d_project_float(ARegion *ar, float *vec, float *adr, float mat[4][4])

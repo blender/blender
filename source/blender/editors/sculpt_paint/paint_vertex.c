@@ -1709,122 +1709,123 @@ static void vpaint_exit(bContext *C, wmOperator *op)
 	op->customdata= NULL;
 }
 
-static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
+static void vpaint_dot(bContext *C, struct VPaintData *vpd, wmEvent *event)
 {
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	VPaint *vp= ts->vpaint;
 	Brush *brush = paint_brush(&vp->paint);
-	
-	switch(event->type) {
-		case LEFTMOUSE:
-			if(event->val==0) { /* release */
-				vpaint_exit(C, op);
-				return OPERATOR_FINISHED;
-			}
-			/* pass on, first press gets painted too */
+	ViewContext *vc= &vpd->vc;
+	Object *ob= vc->obact;
+	Mesh *me= ob->data;
+	float mat[4][4];
+	int *indexar= vpd->indexar;
+	int totindex, index;
+	short mval[2];
 			
-		case MOUSEMOVE: 
-		{
-			struct VPaintData *vpd= op->customdata;
-			ViewContext *vc= &vpd->vc;
-			Object *ob= vc->obact;
-			Mesh *me= ob->data;
-			float mat[4][4];
-			int *indexar= vpd->indexar;
-			int totindex, index;
-			short mval[2];
+	view3d_operator_needs_opengl(C);
 			
-			view3d_operator_needs_opengl(C);
+	/* load projection matrix */
+	wmMultMatrix(ob->obmat);
+	wmGetSingleMatrix(mat);
+	wmLoadMatrix(vc->rv3d->viewmat);
 			
-			/* load projection matrix */
-			wmMultMatrix(ob->obmat);
-			wmGetSingleMatrix(mat);
-			wmLoadMatrix(vc->rv3d->viewmat);
-			
-			mval[0]= event->x - vc->ar->winrct.xmin;
-			mval[1]= event->y - vc->ar->winrct.ymin;
+	mval[0]= event->x - vc->ar->winrct.xmin;
+	mval[1]= event->y - vc->ar->winrct.ymin;
 				
-			/* which faces are involved */
-			if(vp->flag & VP_AREA) {
-				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush->size);
-			}
-			else {
-				indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
-				if(indexar[0]) totindex= 1;
-				else totindex= 0;
-			}
+	/* which faces are involved */
+	if(vp->flag & VP_AREA) {
+		totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush->size);
+	}
+	else {
+		indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
+		if(indexar[0]) totindex= 1;
+		else totindex= 0;
+	}
 			
-			MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
+	MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
 			
-			if(vp->flag & VP_COLINDEX) {
-				for(index=0; index<totindex; index++) {
-					if(indexar[index] && indexar[index]<=me->totface) {
-						MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
+	if(vp->flag & VP_COLINDEX) {
+		for(index=0; index<totindex; index++) {
+			if(indexar[index] && indexar[index]<=me->totface) {
+				MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
 						
-						if(mface->mat_nr!=ob->actcol-1) {
-							indexar[index]= 0;
-						}
-					}					
+				if(mface->mat_nr!=ob->actcol-1) {
+					indexar[index]= 0;
 				}
-			}
-			if((G.f & G_FACESELECT) && me->mface) {
-				for(index=0; index<totindex; index++) {
-					if(indexar[index] && indexar[index]<=me->totface) {
-						MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
-						
-						if((mface->flag & ME_FACE_SEL)==0)
-							indexar[index]= 0;
-					}					
-				}
-			}
-			
-			for(index=0; index<totindex; index++) {
-				
-				if(indexar[index] && indexar[index]<=me->totface) {
-					MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
-					unsigned int *mcol=	  ( (unsigned int *)me->mcol) + 4*(indexar[index]-1);
-					unsigned int *mcolorig= ( (unsigned int *)vp->vpaint_prev) + 4*(indexar[index]-1);
-					int alpha;
-					
-					if(vp->mode==VP_BLUR) {
-						unsigned int fcol1= mcol_blend( mcol[0], mcol[1], 128);
-						if(mface->v4) {
-							unsigned int fcol2= mcol_blend( mcol[2], mcol[3], 128);
-							vpd->paintcol= mcol_blend( fcol1, fcol2, 128);
-						}
-						else {
-							vpd->paintcol= mcol_blend( mcol[2], fcol1, 170);
-						}
-						
-					}
-					
-					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v1, mval);
-					if(alpha) vpaint_blend(vp, mcol, mcolorig, vpd->paintcol, alpha);
-					
-					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v2, mval);
-					if(alpha) vpaint_blend(vp, mcol+1, mcolorig+1, vpd->paintcol, alpha);
-					
-					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v3, mval);
-					if(alpha) vpaint_blend(vp, mcol+2, mcolorig+2, vpd->paintcol, alpha);
-					
-					if(mface->v4) {
-						alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v4, mval);
-						if(alpha) vpaint_blend(vp, mcol+3, mcolorig+3, vpd->paintcol, alpha);
-					}
-				}
-			}
-						
-			MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
-			
-			do_shared_vertexcol(me);
-			
-			ED_region_tag_redraw(vc->ar);
-			
-			DAG_object_flush_update(vc->scene, ob, OB_RECALC_DATA);
+			}					
 		}
+	}
+	if((G.f & G_FACESELECT) && me->mface) {
+		for(index=0; index<totindex; index++) {
+			if(indexar[index] && indexar[index]<=me->totface) {
+				MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
+						
+				if((mface->flag & ME_FACE_SEL)==0)
+					indexar[index]= 0;
+			}					
+		}
+	}
+			
+	for(index=0; index<totindex; index++) {
+				
+		if(indexar[index] && indexar[index]<=me->totface) {
+			MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
+			unsigned int *mcol=	  ( (unsigned int *)me->mcol) + 4*(indexar[index]-1);
+			unsigned int *mcolorig= ( (unsigned int *)vp->vpaint_prev) + 4*(indexar[index]-1);
+			int alpha;
+					
+			if(vp->mode==VP_BLUR) {
+				unsigned int fcol1= mcol_blend( mcol[0], mcol[1], 128);
+				if(mface->v4) {
+					unsigned int fcol2= mcol_blend( mcol[2], mcol[3], 128);
+					vpd->paintcol= mcol_blend( fcol1, fcol2, 128);
+				}
+				else {
+					vpd->paintcol= mcol_blend( mcol[2], fcol1, 170);
+				}
+						
+			}
+					
+			alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v1, mval);
+			if(alpha) vpaint_blend(vp, mcol, mcolorig, vpd->paintcol, alpha);
+					
+			alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v2, mval);
+			if(alpha) vpaint_blend(vp, mcol+1, mcolorig+1, vpd->paintcol, alpha);
+					
+			alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v3, mval);
+			if(alpha) vpaint_blend(vp, mcol+2, mcolorig+2, vpd->paintcol, alpha);
+					
+			if(mface->v4) {
+				alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v4, mval);
+				if(alpha) vpaint_blend(vp, mcol+3, mcolorig+3, vpd->paintcol, alpha);
+			}
+		}
+	}
+						
+	MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
+			
+	do_shared_vertexcol(me);
+			
+	ED_region_tag_redraw(vc->ar);
+			
+	DAG_object_flush_update(vc->scene, ob, OB_RECALC_DATA);
+}
+
+static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	switch(event->type) {
+	case LEFTMOUSE:
+		if(event->val==0) { /* release */
+			vpaint_exit(C, op);
+			return OPERATOR_FINISHED;
+		}
+		/* pass on, first press gets painted too */
+		
+	case MOUSEMOVE: 
+		vpaint_dot(C, op->customdata, event);
 		break;
 	}	
-
+	
 	return OPERATOR_RUNNING_MODAL;
 }
 
