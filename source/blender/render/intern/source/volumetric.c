@@ -63,17 +63,9 @@
 extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static int vol_backface_intersect_check(Isect *is, int ob, RayFace *face)
-{
-	VlakRen *vlr = (VlakRen *)face;
-	
-	/* only consider faces away, so overlapping layers
-	 * of foward facing geometry don't cause the ray to stop */
-	return (INPR(is->vec, vlr->n) < 0.0f);
-}
 
 /* TODO: Box or sphere intersection types could speed things up */
-static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, Isect *isect, int intersect_type, int checkfunc)
+static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, Isect *isect, int intersect_type)
 {
 	float maxsize = RE_ray_tree_max_size(R.raytree);
 	int intersected=0;
@@ -130,11 +122,6 @@ float vol_get_stepsize(struct ShadeInput *shi, int context)
 	}
 	
 	return shi->mat->vol.stepsize;
-}
-
-static float vol_get_depth_cutoff(struct ShadeInput *shi)
-{
-	return shi->mat->vol.depth_cutoff;
 }
 
 /* trilinear interpolation */
@@ -335,7 +322,7 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 		Isect is;
 		
 		/* find minimum of volume bounds, or lamp coord */
-		if (vol_get_bounds(shi, co, lv, hitco, &is, VOL_BOUNDS_SS, 0)) {
+		if (vol_get_bounds(shi, co, lv, hitco, &is, VOL_BOUNDS_SS)) {
 			float dist = VecLenf(co, hitco);
 			VlakRen *vlr = (VlakRen *)is.face;
 			
@@ -421,7 +408,7 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 	float tau[3], emit_col[3], scatter_col[3] = {0.0, 0.0, 0.0};
 	float stepvec[3], step_sta[3], step_end[3], step_mid[3];
 	float density = vol_get_density(shi, co);
-	const float depth_cutoff = vol_get_depth_cutoff(shi);
+	const float depth_cutoff = shi->mat->vol.depth_cutoff;
 	
 	/* multiply col_behind with beam transmittance over entire distance */
 	vol_get_attenuation(shi, tau, co, endco, density, stepsize);
@@ -593,7 +580,7 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 	}
 	/* trace to find a backface, the other side bounds of the volume */
 	/* (ray intersect ignores front faces here) */
-	else if (vol_get_bounds(shi, shi->co, shi->view, hitco, &is, VOL_BOUNDS_DEPTH, 0)) {
+	else if (vol_get_bounds(shi, shi->co, shi->view, hitco, &is, VOL_BOUNDS_DEPTH)) {
 		VlakRen *vlr = (VlakRen *)is.face;
 		
 		/* if it's another face in the same material */
@@ -657,7 +644,7 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 	}
 	/* trace to find a backface, the other side bounds of the volume */
 	/* (ray intersect ignores front faces here) */
-	else if (vol_get_bounds(shi, shi->co, shi->view, hitco, &is, VOL_BOUNDS_DEPTH, 0)) {
+	else if (vol_get_bounds(shi, shi->co, shi->view, hitco, &is, VOL_BOUNDS_DEPTH)) {
 		
 		vol_get_attenuation(shi, tau, shi->co, hitco, -1.0f, shade_stepsize);
 		tr[0] = exp(-tau[0]);
