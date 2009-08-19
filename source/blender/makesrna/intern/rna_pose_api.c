@@ -45,8 +45,8 @@
 
 void RNA_api_pose(StructRNA *srna)
 {
-	FunctionRNA *func;
-	PropertyRNA *parm;
+	/* FunctionRNA *func; */
+	/* PropertyRNA *parm; */
 
 }
 

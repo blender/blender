@@ -97,6 +97,10 @@
 #include "binreloc.h"
 #endif
 
+#ifdef WITH_UNIT_TEST
+#include "tests/test.h"
+#endif
+
 // from buildinfo.c
 #ifdef BUILD_DATE
 extern char * build_date;

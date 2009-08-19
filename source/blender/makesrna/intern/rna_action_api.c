@@ -36,6 +36,8 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BKE_action.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 

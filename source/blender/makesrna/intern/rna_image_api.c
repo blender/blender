@@ -41,6 +41,8 @@
 #include "BKE_utildefines.h"
 #include "BKE_image.h"
 
+#include "MEM_guardedalloc.h"
+
 /*
   User should check if returned path exists before copying a file there.
 

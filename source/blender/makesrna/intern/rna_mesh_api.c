@@ -42,6 +42,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_material.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
@@ -51,6 +52,8 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "MEM_guardedalloc.h"
 
 static void rna_Mesh_calc_edges(Mesh *mesh)
 {

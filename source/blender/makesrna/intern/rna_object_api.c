@@ -273,7 +273,7 @@ static void rna_Object_convert_to_triface(Object *ob, bContext *C, ReportList *r
 		make_editMesh(sce, ob);
 
 	/* select all */
-	EM_set_flag_all(me->edit_mesh, SELECT);
+	EM_select_all(me->edit_mesh);
 
 	convert_to_triface(me->edit_mesh, 0);
 

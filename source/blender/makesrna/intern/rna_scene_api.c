@@ -38,7 +38,11 @@
 #ifdef RNA_RUNTIME
 
 #include "BKE_scene.h"
+#include "BKE_depsgraph.h"
+
 #include "ED_object.h"
+
+#include "WM_api.h"
 
 static void rna_Scene_add_object(Scene *sce, ReportList *reports, Object *ob)
 {
