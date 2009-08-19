@@ -587,7 +587,7 @@ class BlenderEnvironment(SConsEnvironment):
 			lenv.AddPostAction(prog,Action(AppIt,strfunction=my_appit_print))
 		elif os.sep == '/': # any unix
 			if lenv['WITH_BF_PYTHON']:
-				if not lenv['WITHOUT_BF_INSTALL']:
+				if not lenv['WITHOUT_BF_INSTALL'] and not lenv['WITHOUT_BF_PYTHON_INSTALL']:
 					lenv.AddPostAction(prog,Action(PyInstall,strfunction=my_pyinst_print))
 		
 		return prog
