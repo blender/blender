@@ -8,7 +8,8 @@ class INFO_HT_header(bpy.types.Header):
 		layout = self.layout
 		
 		st = context.space_data
-		rd = context.scene.render_data
+		scene = context.scene
+		rd = scene.render_data
 
 		row = layout.row(align=True)
 		row.template_header()
@@ -33,6 +34,8 @@ class INFO_HT_header(bpy.types.Header):
 
 		layout.template_operator_search()
 		layout.template_running_jobs()
+
+		layout.itemL(text=scene.statistics())
 			
 class INFO_MT_file(bpy.types.Menu):
 	__space_type__ = "INFO"

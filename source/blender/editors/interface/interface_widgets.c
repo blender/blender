@@ -835,9 +835,11 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 //	else transopts= ui_translate_buttons();
 	
 	/* cut string in 2 parts - only for menu entries */
-	if(ELEM5(but->type, SLI, NUM, TEX, NUMSLI, NUMABS)==0) {
-		cpoin= strchr(but->drawstr, '|');
-		if(cpoin) *cpoin= 0;		
+	if((but->block->flag & UI_BLOCK_LOOP)) {
+		if(ELEM5(but->type, SLI, NUM, TEX, NUMSLI, NUMABS)==0) {
+			cpoin= strchr(but->drawstr, '|');
+			if(cpoin) *cpoin= 0;		
+		}
 	}
 	
 	glColor3ubv((unsigned char*)wcol->text);

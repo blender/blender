@@ -155,6 +155,7 @@ Scene *copy_scene(Main *bmain, Scene *sce, int type)
 		scen->theDag= NULL;
 		scen->obedit= NULL;
 		scen->toolsettings= MEM_dupallocN(sce->toolsettings);
+		scen->stats= NULL;
 
 		ts= scen->toolsettings;
 		if(ts) {
@@ -299,6 +300,9 @@ void free_scene(Scene *sce)
 		ntreeFreeTree(sce->nodetree);
 		MEM_freeN(sce->nodetree);
 	}
+
+	if(sce->stats)
+		MEM_freeN(sce->stats);
 }
 
 Scene *add_scene(char *name)

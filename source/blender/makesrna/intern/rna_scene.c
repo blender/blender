@@ -62,6 +62,7 @@ EnumPropertyItem prop_mode_items[] ={
 
 #include "BLI_threads.h"
 
+#include "ED_info.h"
 #include "ED_node.h"
 
 #include "RE_pipeline.h"
@@ -1823,6 +1824,7 @@ void RNA_def_scene(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	FunctionRNA *func;
 	
 	/* Struct definition */
 	srna= RNA_def_struct(brna, "Scene", "ID");
@@ -1982,6 +1984,11 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "gm");
 	RNA_def_property_struct_type(prop, "SceneGameData");
 	RNA_def_property_ui_text(prop, "Game Data", "");
+
+	/* Statistics */
+	func= RNA_def_function(srna, "statistics", "ED_info_stats_string");
+	prop= RNA_def_string(func, "statistics", "", 0, "Statistics", "");
+	RNA_def_function_return(func, prop);
 	
 	rna_def_tool_settings(brna);
 	rna_def_unit_settings(brna);

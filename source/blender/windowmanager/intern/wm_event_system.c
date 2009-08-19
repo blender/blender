@@ -52,6 +52,7 @@
 #include "BKE_pointcache.h"
 
 #include "ED_fileselect.h"
+#include "ED_info.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_util.h"
@@ -129,7 +130,7 @@ static wmNotifier *wm_notifier_next(wmWindowManager *wm)
 void wm_event_do_notifiers(bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
-	wmNotifier *note;
+	wmNotifier *note, *next;
 	wmWindow *win;
 	
 	if(wm==NULL)
@@ -141,7 +142,9 @@ void wm_event_do_notifiers(bContext *C)
 		
 		CTX_wm_window_set(C, win);
 		
-		for(note= wm->queue.first; note; note= note->next) {
+		for(note= wm->queue.first; note; note= next) {
+			next= note->next;
+
 			if(note->category==NC_WM) {
 				if( ELEM(note->data, ND_FILEREAD, ND_FILESAVE)) {
 					wm->file_saved= 1;
@@ -173,6 +176,10 @@ void wm_event_do_notifiers(bContext *C)
 					else if(note->data==ND_FRAME)
 						do_anim= 1;
 				}
+			}
+			if(note->category == NC_SCENE || note->category == NC_OBJECT) {
+				ED_info_stats_clear(CTX_data_scene(C));
+				WM_event_add_notifier(C, NC_INFO, NULL);
 			}
 		}
 		if(do_anim) {

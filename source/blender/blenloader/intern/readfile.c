@@ -4134,6 +4134,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->theDag = NULL;
 	sce->dagisvalid = 0;
 	sce->obedit= NULL;
+	sce->stats= 0;
 
 	memset(&sce->sound_handles, 0, sizeof(sce->sound_handles));
 
