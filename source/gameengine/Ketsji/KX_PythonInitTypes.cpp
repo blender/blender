@@ -123,9 +123,6 @@ static void PyType_Ready_ADD(PyObject *dict, PyTypeObject *tp, PyAttributeDef *a
 			memset(attr_getset, 0, sizeof(PyGetSetDef));
 		}
 	} else {
-	
-		PyObject *item;
-
 		PyType_Ready(tp);
 		PyDict_SetItemString(dict, tp->tp_name, reinterpret_cast<PyObject *>(tp));
 	}

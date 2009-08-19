@@ -64,7 +64,7 @@ public:
 	BL_InterpolatorList(struct AnimData *adt);
 	~BL_InterpolatorList();
 
-	KX_IScalarInterpolator *GetScalarInterpolator(char *rna_path, int array_index);	
+	KX_IScalarInterpolator *GetScalarInterpolator(const char *rna_path, int array_index);	
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

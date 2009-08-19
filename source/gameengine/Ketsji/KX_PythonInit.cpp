@@ -142,7 +142,7 @@ void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,cons
 // List of methods defined in the module
 
 static PyObject* ErrorObject;
-STR_String gPyGetRandomFloat_doc="getRandomFloat returns a random floating point value in the range [0..1)";
+static const char *gPyGetRandomFloat_doc="getRandomFloat returns a random floating point value in the range [0..1]";
 
 static PyObject* gPyGetRandomFloat(PyObject*)
 {
@@ -346,7 +346,7 @@ static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
     return list;
 }
 
-static STR_String gPyGetCurrentScene_doc =  
+static const char *gPyGetCurrentScene_doc =
 "getCurrentScene()\n"
 "Gets a reference to the current scene.\n";
 static PyObject* gPyGetCurrentScene(PyObject* self)
@@ -354,7 +354,7 @@ static PyObject* gPyGetCurrentScene(PyObject* self)
 	return gp_KetsjiScene->GetProxy();
 }
 
-static STR_String gPyGetSceneList_doc =  
+static const char *gPyGetSceneList_doc =
 "getSceneList()\n"
 "Return a list of converted scenes.\n";
 static PyObject* gPyGetSceneList(PyObject* self)
@@ -479,15 +479,15 @@ static struct PyMethodDef game_methods[] = {
 	{"sendMessage", (PyCFunction)gPySendMessage, METH_VARARGS, (const char *)gPySendMessage_doc},
 	{"getCurrentController",
 	(PyCFunction) SCA_PythonController::sPyGetCurrentController,
-	METH_NOARGS, (const char *)SCA_PythonController::sPyGetCurrentController__doc__},
+	METH_NOARGS, SCA_PythonController::sPyGetCurrentController__doc__},
 	{"getCurrentScene", (PyCFunction) gPyGetCurrentScene,
-	METH_NOARGS, (const char *)gPyGetCurrentScene_doc.Ptr()},
+	METH_NOARGS, gPyGetCurrentScene_doc},
 	{"getSceneList", (PyCFunction) gPyGetSceneList,
-	METH_NOARGS, (const char *)gPyGetSceneList_doc.Ptr()},
+	METH_NOARGS, (const char *)gPyGetSceneList_doc},
 	{"addActiveActuator",(PyCFunction) SCA_PythonController::sPyAddActiveActuator,
 	METH_VARARGS, (const char *)SCA_PythonController::sPyAddActiveActuator__doc__},
 	{"getRandomFloat",(PyCFunction) gPyGetRandomFloat,
-	METH_NOARGS, (const char *)gPyGetRandomFloat_doc.Ptr()},
+	METH_NOARGS, (const char *)gPyGetRandomFloat_doc},
 	{"setGravity",(PyCFunction) gPySetGravity, METH_O, (const char *)"set Gravitation"},
 	{"getSpectrum",(PyCFunction) gPyGetSpectrum, METH_NOARGS, (const char *)"get audio spectrum"},
 	{"stopDSP",(PyCFunction) gPyStopDSP, METH_VARARGS, (const char *)"stop using the audio dsp (for performance reasons)"},

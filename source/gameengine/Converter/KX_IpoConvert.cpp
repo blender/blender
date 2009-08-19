@@ -175,7 +175,7 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 			KX_ObColorIpoSGController* ipocontr_obcol=NULL;
 			
 			for(int i=0; i<4; i++) {
-				if (interp = adtList->GetScalarInterpolator("color", i)) {
+				if ((interp = adtList->GetScalarInterpolator("color", i))) {
 					if (!ipocontr_obcol) {
 						ipocontr_obcol = new KX_ObColorIpoSGController();
 						gameobj->GetSGNode()->AddSGController(ipocontr_obcol);

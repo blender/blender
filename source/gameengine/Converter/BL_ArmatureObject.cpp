@@ -54,8 +54,8 @@ BL_ArmatureObject::BL_ArmatureObject(
 
 :	KX_GameObject(sgReplicationInfo,callbacks),
 	m_objArma(armature),
-	m_scene(scene), // maybe remove later. needed for where_is_pose
 	m_framePose(NULL),
+	m_scene(scene), // maybe remove later. needed for where_is_pose
 	m_lastframe(0.0),
 	m_activeAct(NULL),
 	m_activePriority(999),

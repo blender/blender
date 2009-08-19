@@ -100,13 +100,13 @@ public:
 		KX_ACT_IPO_MAX
 	};
 
-	static STR_String S_KX_ACT_IPO_PLAY_STRING;
-	static STR_String S_KX_ACT_IPO_PINGPONG_STRING;
-	static STR_String S_KX_ACT_IPO_FLIPPER_STRING;
-	static STR_String S_KX_ACT_IPO_LOOPSTOP_STRING;
-	static STR_String S_KX_ACT_IPO_LOOPEND_STRING;
-	static STR_String S_KX_ACT_IPO_KEY2KEY_STRING;
-	static STR_String S_KX_ACT_IPO_FROM_PROP_STRING;
+	static const char *S_KX_ACT_IPO_PLAY_STRING;
+	static const char *S_KX_ACT_IPO_PINGPONG_STRING;
+	static const char *S_KX_ACT_IPO_FLIPPER_STRING;
+	static const char *S_KX_ACT_IPO_LOOPSTOP_STRING;
+	static const char *S_KX_ACT_IPO_LOOPEND_STRING;
+	static const char *S_KX_ACT_IPO_KEY2KEY_STRING;
+	static const char *S_KX_ACT_IPO_FROM_PROP_STRING;
 
 	int string2mode(char* modename);
 	
