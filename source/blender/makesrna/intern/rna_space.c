@@ -33,6 +33,7 @@
 #include "rna_internal.h"
 
 #include "DNA_action_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
@@ -1403,10 +1404,53 @@ static void rna_def_space_userpref(BlenderRNA *brna)
 static void rna_def_space_node(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
+	static EnumPropertyItem tree_type_items[] = {
+		{NTREE_SHADER, "MATERIAL", ICON_MATERIAL, "Material", "Material nodes."},
+		{NTREE_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture nodes."},
+		{NTREE_COMPOSIT, "COMPOSITING", ICON_RENDER_RESULT, "Compositing", "Compositing nodes."},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem texture_type_items[] = {
+		{SNODE_TEX_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Edit texture nodes from Object."},
+		{SNODE_TEX_WORLD, "WORLD", ICON_WORLD_DATA, "World", "Edit texture nodes from World."},
+		{SNODE_TEX_BRUSH, "BRUSH", ICON_BRUSH_DATA, "Brush", "Edit texture nodes from Brush."},
+		{0, NULL, 0, NULL, NULL}};
+	
 	srna= RNA_def_struct(brna, "SpaceNodeEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceNode");
 	RNA_def_struct_ui_text(srna, "Space Node Editor", "Node editor space data.");
+
+	prop= RNA_def_property(srna, "tree_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "treetype");
+	RNA_def_property_enum_items(prop, tree_type_items);
+	RNA_def_property_ui_text(prop, "Tree Type", "Node tree type to display and edit.");
+	RNA_def_property_update(prop, NC_NODE, NULL);
+
+	prop= RNA_def_property(srna, "texture_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "texfrom");
+	RNA_def_property_enum_items(prop, texture_type_items);
+	RNA_def_property_ui_text(prop, "Texture Type", "Type of data to take texture from.");
+	RNA_def_property_update(prop, NC_NODE, NULL);
+
+	prop= RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "ID", "Datablock whose nodes are being edited.");
+
+	prop= RNA_def_property(srna, "id_from", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "from");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "ID From", "Datablock from which the edited datablock is linked.");
+
+	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Node Tree", "Node tree being displayed and edited.");
+
+	prop= RNA_def_property(srna, "backdrop", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_BACKDRAW);
+	RNA_def_property_ui_text(prop, "Backdrop", "Use active Viewer Node output as backdrop for compositing nodes.");
+	RNA_def_property_update(prop, NC_NODE, NULL);
 }
 
 static void rna_def_space_logic(BlenderRNA *brna)

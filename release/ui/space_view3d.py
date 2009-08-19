@@ -13,25 +13,26 @@ class VIEW3D_HT_header(bpy.types.Header):
 		mode_string = context.mode
 		edit_object = context.edit_object
 		
-		layout.template_header()
-		
+		row = layout.row(align=True)
+		row.template_header()
+
 		# Menus
 		if context.area.show_menus:
-			row = layout.row()
+			sub = row.row(align=True)
 
-			row.itemM("VIEW3D_MT_view")
+			sub.itemM("VIEW3D_MT_view")
 			
 			# Select Menu
 			if mode_string not in ('EDIT_TEXT', 'SCULPT', 'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE', 'PARTICLE'):
 				# XXX: Particle Mode has Select Menu.
-				row.itemM("VIEW3D_MT_select_%s" % mode_string)
+				sub.itemM("VIEW3D_MT_select_%s" % mode_string)
 			
 			if mode_string == 'OBJECT':
-				row.itemM("VIEW3D_MT_object")
+				sub.itemM("VIEW3D_MT_object")
 			elif mode_string == 'SCULPT':
-				row.itemM("VIEW3D_MT_sculpt")
+				sub.itemM("VIEW3D_MT_sculpt")
 			elif edit_object:
-				row.itemM("VIEW3D_MT_edit_%s" % edit_object.type)
+				sub.itemM("VIEW3D_MT_edit_%s" % edit_object.type)
 
 		layout.template_header_3D()
 

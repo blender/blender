@@ -13,13 +13,14 @@ class TIME_HT_header(bpy.types.Header):
 		tools = context.tool_settings
 		screen = context.screen
 
-		layout.template_header()
+		row = layout.row(align=True)
+		row.template_header()
 
 		if context.area.show_menus:
-			row = layout.row()
-			row.itemM("TIME_MT_view")
-			row.itemM("TIME_MT_frame")
-			row.itemM("TIME_MT_playback")
+			sub = row.row(align=True)
+			sub.itemM("TIME_MT_view")
+			sub.itemM("TIME_MT_frame")
+			sub.itemM("TIME_MT_playback")
 
 		layout.itemR(scene, "use_preview_range", text="PR", toggle=True)
 		

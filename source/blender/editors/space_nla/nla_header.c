@@ -151,8 +151,8 @@ static void nla_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
 	Scene *scene= CTX_data_scene(C);
 	
-	uiItemMenuF(layout, "Transform", 0, nla_edit_transformmenu);
-	uiItemMenuF(layout, "Snap", 0, nla_edit_snapmenu);
+	uiItemMenuF(layout, "Transform", 0, nla_edit_transformmenu, NULL);
+	uiItemMenuF(layout, "Snap", 0, nla_edit_snapmenu, NULL);
 	
 	uiItemS(layout);
 	

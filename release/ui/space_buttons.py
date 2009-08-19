@@ -10,11 +10,12 @@ class Buttons_HT_header(bpy.types.Header):
 		so = context.space_data
 		scene = context.scene
 
-		layout.template_header()
+		row= layout.row(align=True)
+		row.template_header()
 
 		if context.area.show_menus:
-			row = layout.row(align=True)
-			row.itemM("Buttons_MT_view", text="View")
+			sub = row.row(align=True)
+			sub.itemM("Buttons_MT_view", text="View")
 			
 		row = layout.row()
 		row.itemR(so, "buttons_context", expand=True, text="")

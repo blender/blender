@@ -183,7 +183,7 @@ void NODE_OT_visibility_toggle(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, "Mouse Y", "", INT_MIN, INT_MAX);
 }
 
-static int node_fit_all_exec(bContext *C, wmOperator *op)
+static int node_view_all_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -196,11 +196,11 @@ static int node_fit_all_exec(bContext *C, wmOperator *op)
 void NODE_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Fit All";
+	ot->name= "View All";
 	ot->idname= "NODE_OT_view_all";
 	
 	/* api callbacks */
-	ot->exec= node_fit_all_exec;
+	ot->exec= node_view_all_exec;
 	ot->poll= ED_operator_node_active;
 	
 	/* flags */

@@ -9,26 +9,27 @@ class TEXT_HT_header(bpy.types.Header):
 		text = st.text
 		layout = self.layout
 
-		layout.template_header()
+		row = layout.row(align=True)
+		row.template_header()
 
 		if context.area.show_menus:
-			row = layout.row()
-			row.itemM("TEXT_MT_text")
+			sub = row.row(align=True)
+			sub.itemM("TEXT_MT_text")
 			if text:
-				row.itemM("TEXT_MT_edit")
-				row.itemM("TEXT_MT_format")
+				sub.itemM("TEXT_MT_edit")
+				sub.itemM("TEXT_MT_format")
 
 		if text and text.modified:
 			row = layout.row()
 			# row.color(redalert)
 			row.itemO("text.resolve_conflict", text="", icon='ICON_HELP')
 
+		layout.template_ID(st, "text", new="text.new", unlink="text.unlink")
+
 		row = layout.row(align=True)
 		row.itemR(st, "line_numbers", text="")
 		row.itemR(st, "word_wrap", text="")
 		row.itemR(st, "syntax_highlight", text="")
-
-		layout.template_ID(st, "text", new="text.new", unlink="text.unlink")
 
 		if text:
 			row = layout.row()
@@ -123,6 +124,10 @@ class TEXT_MT_text(bpy.types.Menu):
 			# XXX if(BPY_is_pyconstraint(text))
 			# XXX   uiMenuItemO(head, 0, "text.refresh_pyconstraints");
 			#endif
+
+		layout.itemS()
+
+		layout.itemO("text.properties", icon="ICON_MENU_PANEL")
 		
 		#ifndef DISABLE_PYTHON
 		# XXX layout.column()
@@ -219,7 +224,7 @@ class TEXT_MT_edit(bpy.types.Menu):
 		layout.itemS()
 
 		layout.itemO("text.jump")
-		layout.itemO("text.properties")
+		layout.itemO("text.properties", text="Find...")
 
 		layout.itemS()
 

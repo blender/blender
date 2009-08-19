@@ -9,18 +9,19 @@ class INFO_HT_header(bpy.types.Header):
 		
 		st = context.space_data
 		rd = context.scene.render_data
-		
-		layout.template_header()
+
+		row = layout.row(align=True)
+		row.template_header()
 
 		if context.area.show_menus:
-			row = layout.row()
-			row.itemM("INFO_MT_file")
-			row.itemM("INFO_MT_add")
+			sub = row.row(align=True)
+			sub.itemM("INFO_MT_file")
+			sub.itemM("INFO_MT_add")
 			if rd.use_game_engine:
-				row.itemM("INFO_MT_game")
+				sub.itemM("INFO_MT_game")
 			else:
-				row.itemM("INFO_MT_render")
-			row.itemM("INFO_MT_help")
+				sub.itemM("INFO_MT_render")
+			sub.itemM("INFO_MT_help")
 
 		layout.template_ID(context.window, "screen", new="screen.new", unlink="screen.delete")
 		layout.template_ID(context.screen, "scene", new="scene.new", unlink="scene.delete")

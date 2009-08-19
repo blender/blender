@@ -133,6 +133,7 @@ typedef struct wmNotifier {
 #define NC_FILE				(14<<24)
 #define NC_ANIMATION		(15<<24)
 #define NC_CONSOLE			(16<<24)
+#define NC_NODE				(17<<24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000

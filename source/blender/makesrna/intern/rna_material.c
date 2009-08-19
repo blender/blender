@@ -41,6 +41,8 @@
 
 #include "BKE_texture.h"
 
+#include "ED_node.h"
+
 static PointerRNA rna_Material_mirror_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_MaterialRaytraceMirror, ptr->id.data);
@@ -194,6 +196,15 @@ static void rna_Material_use_specular_ramp_set(PointerRNA *ptr, int value)
 
 	if((ma->mode & MA_RAMP_SPEC) && ma->ramp_spec == NULL)
 		ma->ramp_spec= add_colorband(0);
+}
+
+void rna_Material_use_nodes_set(PointerRNA *ptr, int value)
+{
+	Material *ma= (Material*)ptr->data;
+
+	ma->use_nodes= value;
+	if(ma->use_nodes && ma->nodetree==NULL)
+		ED_node_shader_default(ma);
 }
 
 #else
@@ -1378,6 +1389,12 @@ void RNA_def_material(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
 	RNA_def_property_ui_text(prop, "Node Tree", "Node tree for node based materials.");
+
+	prop= RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Material_use_nodes_set");
+	RNA_def_property_ui_text(prop, "Use Nodes", "Use shader nodes to render the material.");
+	RNA_def_property_update(prop, NC_MATERIAL, NULL);
 
 	/* common */
 	rna_def_animdata_common(srna);

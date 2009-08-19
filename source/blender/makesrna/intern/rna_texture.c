@@ -53,6 +53,7 @@ static EnumPropertyItem texture_filter_items[] = {
 #ifdef RNA_RUNTIME
 
 #include "BKE_texture.h"
+#include "ED_node.h"
 
 StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 {
@@ -187,9 +188,8 @@ void rna_Texture_use_nodes_set(PointerRNA *ptr, int v)
 	tex->use_nodes = v;
 	tex->type = 0;
 	
-	if(v && tex->nodetree==NULL) {
-		node_texture_default(tex);
-	}
+	if(v && tex->nodetree==NULL)
+		ED_node_texture_default(tex);
 }
 
 static void rna_ImageTexture_mipmap_set(PointerRNA *ptr, int value)

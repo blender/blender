@@ -14,24 +14,28 @@ class SEQUENCER_HT_header(bpy.types.Header):
 		
 		st = context.space_data
 
-		layout.template_header()
+		row = layout.row(align=True)
+		row.template_header()
 		
 		if context.area.show_menus:
-			row = layout.row()
-			row.itemR(st, "display_mode", text="")
-			row.itemM("SEQUENCER_MT_view")
+			sub = row.row(align=True)
+			sub.itemM("SEQUENCER_MT_view")
 			
-			layout.itemS()
+			row.itemS()
 			
 			if st.display_mode == 'SEQUENCER':
-				row.itemM("SEQUENCER_MT_select")
-				row.itemM("SEQUENCER_MT_marker")
-				row.itemM("SEQUENCER_MT_add")
-				row.itemM("SEQUENCER_MT_strip")
-				layout.itemS()
-				row.itemO("sequencer.reload")
-			else:
-				row.itemR(st, "display_channel", text="Channel")
+				sub.itemM("SEQUENCER_MT_select")
+				sub.itemM("SEQUENCER_MT_marker")
+				sub.itemM("SEQUENCER_MT_add")
+				sub.itemM("SEQUENCER_MT_strip")
+
+		layout.itemR(st, "display_mode", text="")
+
+		if st.display_mode == 'SEQUENCER':
+			layout.itemS()
+			layout.itemO("sequencer.reload")
+		else:
+			layout.itemR(st, "display_channel", text="Channel")
 
 class SEQUENCER_MT_view(bpy.types.Menu):
 	__space_type__ = "SEQUENCE_EDITOR"

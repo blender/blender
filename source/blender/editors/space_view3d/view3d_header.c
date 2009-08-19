@@ -2092,7 +2092,7 @@ static void view3d_edit_meshmenu(bContext *C, uiLayout *layout, void *arg_unused
 	uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
 #endif
 
-	uiItemMenuF(layout, "Snap", 0, view3d_edit_snapmenu);
+	uiItemMenuF(layout, "Snap", 0, view3d_edit_snapmenu, NULL);
 
 	uiItemS(layout);
 
@@ -2113,10 +2113,10 @@ static void view3d_edit_meshmenu(bContext *C, uiLayout *layout, void *arg_unused
 
 	uiItemS(layout);
 
-	uiItemMenuF(layout, "Vertices", 0, view3d_edit_mesh_verticesmenu);
-	uiItemMenuF(layout, "Edges", 0, view3d_edit_mesh_edgesmenu);
-	uiItemMenuF(layout, "Faces", 0, view3d_edit_mesh_facesmenu);
-	uiItemMenuF(layout, "Normals", 0, view3d_edit_mesh_normalsmenu);
+	uiItemMenuF(layout, "Vertices", 0, view3d_edit_mesh_verticesmenu, NULL);
+	uiItemMenuF(layout, "Edges", 0, view3d_edit_mesh_edgesmenu, NULL);
+	uiItemMenuF(layout, "Faces", 0, view3d_edit_mesh_facesmenu, NULL);
+	uiItemMenuF(layout, "Normals", 0, view3d_edit_mesh_normalsmenu, NULL);
 
 	uiItemS(layout);
 
@@ -2126,7 +2126,7 @@ static void view3d_edit_meshmenu(bContext *C, uiLayout *layout, void *arg_unused
 
 	uiItemS(layout);
 
-	uiItemMenuF(layout, "Show/Hide", 0, view3d_edit_mesh_showhidemenu);
+	uiItemMenuF(layout, "Show/Hide", 0, view3d_edit_mesh_showhidemenu, NULL);
 
 #if 0
 #ifndef DISABLE_PYTHON
@@ -2180,7 +2180,7 @@ static void view3d_edit_curvemenu(bContext *C, uiLayout *layout, void *arg_unuse
 	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");	
 #endif
 
-	uiItemMenuF(layout, "Snap", 0, view3d_edit_snapmenu);
+	uiItemMenuF(layout, "Snap", 0, view3d_edit_snapmenu, NULL);
 
 	uiItemS(layout);
 	
@@ -2199,8 +2199,8 @@ static void view3d_edit_curvemenu(bContext *C, uiLayout *layout, void *arg_unuse
 
 	uiItemS(layout);
 
-	uiItemMenuF(layout, "Control Points", 0, view3d_edit_curve_controlpointsmenu);
-	uiItemMenuF(layout, "Segments", 0, view3d_edit_curve_segmentsmenu);
+	uiItemMenuF(layout, "Control Points", 0, view3d_edit_curve_controlpointsmenu, NULL);
+	uiItemMenuF(layout, "Segments", 0, view3d_edit_curve_segmentsmenu, NULL);
 
 	uiItemS(layout);
 
@@ -2209,7 +2209,7 @@ static void view3d_edit_curvemenu(bContext *C, uiLayout *layout, void *arg_unuse
 
 	uiItemS(layout);
 
-	uiItemMenuF(layout, "Show/Hide Control Points", 0, view3d_edit_curve_showhidemenu);
+	uiItemMenuF(layout, "Show/Hide Control Points", 0, view3d_edit_curve_showhidemenu, NULL);
 }
 #endif
 
@@ -2232,7 +2232,7 @@ static void view3d_edit_latticemenu(bContext *C, uiLayout *layout, void *arg_unu
 	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");		
 #endif
 
-	uiItemMenuF(layout, "Snap", 0, view3d_edit_snapmenu);
+	uiItemMenuF(layout, "Snap", 0, view3d_edit_snapmenu, NULL);
 
 	uiItemS(layout);
 
@@ -2287,8 +2287,8 @@ static void view3d_edit_armaturemenu(bContext *C, uiLayout *layout, void *arg_un
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");
 #endif
-	uiItemMenuF(layout, "Snap", 0, view3d_edit_snapmenu);
-	uiItemMenuF(layout, "Bone Roll", 0, view3d_edit_armature_rollmenu);
+	uiItemMenuF(layout, "Snap", 0, view3d_edit_snapmenu, NULL);
+	uiItemMenuF(layout, "Bone Roll", 0, view3d_edit_armature_rollmenu, NULL);
 	
 	if (arm->drawtype == ARM_ENVELOPE)
 		uiItemEnumO(layout, "Scale Envelope Distance", 0, "TFM_OT_transform", "mode", TFM_BONESIZE);
@@ -2325,11 +2325,11 @@ static void view3d_edit_armaturemenu(bContext *C, uiLayout *layout, void *arg_un
 	
 	uiItemS(layout);
 	
-	uiItemMenuF(layout, "Parent", 0, view3d_edit_armature_parentmenu);
+	uiItemMenuF(layout, "Parent", 0, view3d_edit_armature_parentmenu, NULL);
 	
 	uiItemS(layout);
 	
-	uiItemMenuF(layout, "Bone Settings ", 0, view3d_edit_armature_settingsmenu);
+	uiItemMenuF(layout, "Bone Settings ", 0, view3d_edit_armature_settingsmenu, NULL);
 }
 #endif
 
@@ -2430,7 +2430,7 @@ static void view3d_pose_armaturemenu(bContext *C, uiLayout *layout, void *arg_un
 #endif 
 	if ( (arm) && ((arm->drawtype == ARM_B_BONE) || (arm->drawtype == ARM_ENVELOPE)) )
 		uiItemEnumO(layout, "Scale Envelope Distance", 0, "TFM_OT_transform", "mode", TFM_BONESIZE);
-	uiItemMenuF(layout, "Clear Transform", 0, view3d_pose_armature_transformmenu);
+	uiItemMenuF(layout, "Clear Transform", 0, view3d_pose_armature_transformmenu, NULL);
 	
 	uiItemS(layout);
 	
@@ -2453,14 +2453,14 @@ static void view3d_pose_armaturemenu(bContext *C, uiLayout *layout, void *arg_un
 	
 	uiItemS(layout);
 
-	uiItemMenuF(layout, "Pose Library", 0, view3d_pose_armature_poselibmenu);
-	uiItemMenuF(layout, "Motion Paths", 0, view3d_pose_armature_motionpathsmenu);
-	uiItemMenuF(layout, "Bone Groups", 0, view3d_pose_armature_groupmenu);
+	uiItemMenuF(layout, "Pose Library", 0, view3d_pose_armature_poselibmenu, NULL);
+	uiItemMenuF(layout, "Motion Paths", 0, view3d_pose_armature_motionpathsmenu, NULL);
+	uiItemMenuF(layout, "Bone Groups", 0, view3d_pose_armature_groupmenu, NULL);
 	
 	uiItemS(layout);
 	
-	uiItemMenuF(layout, "Inverse Kinematics", 0, view3d_pose_armature_ikmenu);
-	uiItemMenuF(layout, "Constraints", 0, view3d_pose_armature_constraintsmenu);
+	uiItemMenuF(layout, "Inverse Kinematics", 0, view3d_pose_armature_ikmenu, NULL);
+	uiItemMenuF(layout, "Constraints", 0, view3d_pose_armature_constraintsmenu, NULL);
 	
 	uiItemS(layout);
 	
@@ -2477,8 +2477,8 @@ static void view3d_pose_armaturemenu(bContext *C, uiLayout *layout, void *arg_un
 	
 	uiItemS(layout);
 	
-	uiItemMenuF(layout, "Show/Hide Bones", 0, view3d_pose_armature_showhidemenu);
-	uiItemMenuF(layout, "Bone Settings", 0, view3d_pose_armature_settingsmenu);
+	uiItemMenuF(layout, "Show/Hide Bones", 0, view3d_pose_armature_showhidemenu, NULL);
+	uiItemMenuF(layout, "Bone Settings", 0, view3d_pose_armature_settingsmenu, NULL);
 	
 #if 0
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy Attributes...|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
@@ -2776,7 +2776,7 @@ static void view3d_particlemenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 	uiItemS(layout);
 
-	uiItemMenuF(layout, "Show/Hide Particles", 0, view3d_particle_showhidemenu);
+	uiItemMenuF(layout, "Show/Hide Particles", 0, view3d_particle_showhidemenu, NULL);
 }
 
 static char *view3d_modeselect_pup(Scene *scene)

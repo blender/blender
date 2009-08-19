@@ -678,7 +678,7 @@ void uiItemM(uiLayout *layout, struct bContext *C, char *name, int icon, char *m
 void uiItemV(uiLayout *layout, char *name, int icon, int argval); /* value */
 void uiItemS(uiLayout *layout); /* separator */
 
-void uiItemMenuF(uiLayout *layout, char *name, int icon, uiMenuCreateFunc func);
+void uiItemMenuF(uiLayout *layout, char *name, int icon, uiMenuCreateFunc func, void *arg);
 void uiItemMenuEnumO(uiLayout *layout, char *name, int icon, char *opname, char *propname);
 void uiItemMenuEnumR(uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname);
 

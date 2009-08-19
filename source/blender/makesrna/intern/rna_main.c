@@ -225,7 +225,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"scenes", "Scene", "rna_Main_scene_begin", "Scenes", "Scene datablocks.", NULL, NULL},
 		{"objects", "Object", "rna_Main_object_begin", "Objects", "Object datablocks.", NULL, NULL},
 		{"materials", "Material", "rna_Main_mat_begin", "Materials", "Material datablocks.", NULL, NULL},
-		{"nodetrees", "NodeTree", "rna_Main_nodetree_begin", "Node Trees", "Nodetree datablocks.", NULL, NULL},
+		{"nodegroups", "NodeTree", "rna_Main_nodetree_begin", "Node Groups", "Node group datablocks.", NULL, NULL},
 		{"meshes", "Mesh", "rna_Main_mesh_begin", "Meshes", "Mesh datablocks.", "add_mesh", "remove_mesh"}, 
 		{"lamps", "Lamp", "rna_Main_lamp_begin", "Lamps", "Lamp datablocks.", NULL, NULL},
 		{"libraries", "Library", "rna_Main_library_begin", "Libraries", "Library datablocks.", NULL, NULL},

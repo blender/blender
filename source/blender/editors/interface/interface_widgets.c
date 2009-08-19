@@ -1949,7 +1949,7 @@ static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int 
 		widget_init(&wtb);
 		
 		/* fully rounded */
-		round_box_edges(&wtb, roundboxalign, rect, rad);
+		round_box_edges(&wtb, 15, rect, rad);
 		
 		widgetbase_draw(&wtb, wcol);
 	}

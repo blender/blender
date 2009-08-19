@@ -62,6 +62,8 @@ EnumPropertyItem prop_mode_items[] ={
 
 #include "BLI_threads.h"
 
+#include "ED_node.h"
+
 #include "RE_pipeline.h"
 
 PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
@@ -369,6 +371,15 @@ static void rna_SceneRenderLayer_pass_update(bContext *C, PointerRNA *ptr)
 
 	if(scene->nodetree)
 		ntreeCompositForceHidden(scene->nodetree, scene);
+}
+
+void rna_Scene_use_nodes_set(PointerRNA *ptr, int value)
+{
+	Scene *scene= (Scene*)ptr->data;
+
+	scene->use_nodes= value;
+	if(scene->use_nodes && scene->nodetree==NULL)
+		ED_node_composit_default(scene);
 }
 
 #else
@@ -1663,7 +1674,12 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_FREE_IMAGE);
 	RNA_def_property_ui_text(prop, "Free Image Textures", "Free all image texture from memory after render, to save memory before compositing.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
+
+	prop= RNA_def_property(srna, "free_unused_nodes", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_FREE_IMAGE);
+	RNA_def_property_ui_text(prop, "Free Unused Nodes", "Free Nodes that are not used while compositing, to save memory.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
 	prop= RNA_def_property(srna, "save_buffers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_EXR_TILE_FILE);
 	RNA_def_property_boolean_funcs(prop, "rna_SceneRenderData_save_buffers_get", NULL);
@@ -1903,6 +1919,12 @@ void RNA_def_scene(BlenderRNA *brna)
 	/* Nodes (Compositing) */
 	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Node Tree", "Compositing node tree.");
+
+	prop= RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_use_nodes_set");
+	RNA_def_property_ui_text(prop, "Use Nodes", "Enable the compositing node tree.");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	/* Sequencer */
 	prop= RNA_def_property(srna, "sequence_editor", PROP_POINTER, PROP_NONE);
