@@ -719,7 +719,7 @@ static int evalnodes(Tex *tex, float *texvec, float *dxt, float *dyt, TexResult 
 	short rv = TEX_INT;
 	bNodeTree *nodes = tex->nodetree;
 	
-	ntreeTexExecTree(nodes, texres, texvec, dxt, dyt, 0, thread, tex, which_output, R.r.cfra);
+	ntreeTexExecTree(nodes, texres, texvec, dxt, dyt, thread, tex, which_output, R.r.cfra);
 	
 	if(texres->nor) rv |= TEX_NOR;
 	rv |= TEX_RGB;

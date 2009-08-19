@@ -421,10 +421,9 @@ extern struct ListBase node_all_textures;
 
 /* API */
 int  ntreeTexTagAnimated(struct bNodeTree *ntree);
-void ntreeTexUpdatePreviews( struct bNodeTree* nodetree );
-void ntreeTexExecTree(struct bNodeTree *ntree, struct TexResult *target, float *coord, float *dxt, float *dyt, char do_preview, short thread, struct Tex *tex, short which_output, int cfra);
+void ntreeTexSetPreviewFlag(int);
+void ntreeTexExecTree(struct bNodeTree *ntree, struct TexResult *target, float *coord, float *dxt, float *dyt, short thread, struct Tex *tex, short which_output, int cfra);
 void ntreeTexCheckCyclics(struct bNodeTree *ntree);
-void ntreeTexAssignIndex(struct bNodeTree *ntree, struct bNode *node);
 char* ntreeTexOutputMenu(struct bNodeTree *ntree);
 
 
