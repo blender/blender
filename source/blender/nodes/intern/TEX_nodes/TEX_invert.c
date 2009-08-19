@@ -21,7 +21,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Robin Allen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -39,11 +39,11 @@ static bNodeSocketType outputs[]= {
 	{ -1, 0, "" } 
 };
 
-static void colorfn(float *out, float *coord, bNode *node, bNodeStack **in, short thread)
+static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
 	float col[4];
 	
-	tex_input_rgba(col, in[0], coord, thread);
+	tex_input_rgba(col, in[0], p, thread);
 
 	col[0] = 1.0f - col[0];
 	col[1] = 1.0f - col[1];

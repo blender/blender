@@ -321,7 +321,7 @@ int psys_ob_has_hair(Object *ob)
 }
 int psys_in_edit_mode(Scene *scene, ParticleSystem *psys)
 {
-	return ((G.f & G_PARTICLEEDIT) && psys==psys_get_current((scene->basact)->object) && psys->edit);
+	return ((scene->basact->object->mode & OB_MODE_PARTICLE_EDIT) && psys==psys_get_current((scene->basact)->object) && psys->edit);
 }
 int psys_check_enabled(Object *ob, ParticleSystem *psys)
 {
@@ -431,9 +431,6 @@ void psys_free(Object *ob, ParticleSystem * psys)
 		int nr = 0;
 		ParticleSystem * tpsys;
 		
-		if(ob->particlesystem.first == NULL && G.f & G_PARTICLEEDIT)
-			G.f &= ~G_PARTICLEEDIT;
-
 		psys_free_path_cache(psys);
 
 		free_hair(psys, 1);

@@ -1713,7 +1713,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			shi->alpha*= fresnel_fac(shi->view, shi->vn, ma->fresnel_tra_i, ma->fresnel_tra);
 			
 		/* note: shi->mode! */
-		if(shi->mode & (MA_ZTRA|MA_RAYTRANSP)) {
+		if(shi->mode & MA_TRANSP) {
 			if(shi->spectra!=0.0f) {
 				float t = MAX3(shr->spec[0], shr->spec[1], shr->spec[2]);
 				t *= shi->spectra;
@@ -1730,11 +1730,12 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		shr->combined[1]+= shi->ambg;
 		shr->combined[2]+= shi->ambb;
 
+		/* removed
 		if(shi->combinedflag & SCE_PASS_RADIO) {
 			shr->combined[0]+= shi->r*shi->amb*shi->rad[0];
 			shr->combined[1]+= shi->g*shi->amb*shi->rad[1];
 			shr->combined[2]+= shi->b*shi->amb*shi->rad[2];
-		}
+		}*/
 		
 		/* add AO in combined? */
 		if(R.wrld.mode & WO_AMB_OCC) {

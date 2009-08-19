@@ -1366,7 +1366,7 @@ void IDP_LibLinkProperty(IDProperty *prop, int switch_endian, FileData *fd);
 
 static void IDP_DirectLinkIDPArray(IDProperty *prop, int switch_endian, FileData *fd)
 {
-	IDProperty **array;
+	IDProperty *array;
 	int i;
 
 	/*since we didn't save the extra buffer, set totallen to len.*/
@@ -1374,11 +1374,10 @@ static void IDP_DirectLinkIDPArray(IDProperty *prop, int switch_endian, FileData
 	prop->data.pointer = newdataadr(fd, prop->data.pointer);
 
 	if (switch_endian) {
-		test_pointer_array(fd, prop->data.pointer);
-		array= (IDProperty**) prop->data.pointer;
+		array= (IDProperty*) prop->data.pointer;
 
 		for(i=0; i<prop->len; i++)
-			IDP_DirectLinkProperty(array[i], switch_endian, fd);
+			IDP_DirectLinkProperty(&array[i], switch_endian, fd);
 	}
 }
 
@@ -3445,7 +3444,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				if(ob->pose) {
 					free_pose(ob->pose);
 					ob->pose= NULL;
-					ob->flag &= ~OB_POSEMODE;
+					ob->mode &= ~OB_MODE_POSE;
 				}
 			}
 			for(a=0; a<ob->totcol; a++) ob->mat[a]= newlibadr_us(fd, ob->id.lib, ob->mat[a]);
@@ -4009,6 +4008,9 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->derivedDeform= NULL;
 	ob->derivedFinal= NULL;
 	ob->gpulamp.first= ob->gpulamp.last= NULL;
+
+	if(ob->sculpt)
+		ob->sculpt= MEM_callocN(sizeof(SculptSession), "reload sculpt session");
 }
 
 /* ************ READ SCENE ***************** */
@@ -4023,6 +4025,14 @@ static void composite_patch(bNodeTree *ntree, Scene *scene)
 			node->id= &scene->id;
 }
 
+static void link_paint(FileData *fd, Scene *sce, Paint *p)
+{
+	if(p && p->brushes) {
+		int i;
+		for(i = 0; i < p->brush_count; ++i)
+			p->brushes[i]= newlibadr_us(fd, sce->id.lib, p->brushes[i]);
+	}
+}
 
 static void lib_link_scene(FileData *fd, Main *main)
 {
@@ -4046,18 +4056,11 @@ static void lib_link_scene(FileData *fd, Main *main)
 			sce->set= newlibadr(fd, sce->id.lib, sce->set);
 			sce->ima= newlibadr_us(fd, sce->id.lib, sce->ima);
 			
-			sce->toolsettings->imapaint.brush=
-				newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.brush);
-			if(sce->toolsettings->sculpt)
-				sce->toolsettings->sculpt->brush=
-					newlibadr_us(fd, sce->id.lib, sce->toolsettings->sculpt->brush);
-			if(sce->toolsettings->vpaint)
-				sce->toolsettings->vpaint->brush=
-					newlibadr_us(fd, sce->id.lib, sce->toolsettings->vpaint->brush);
-			if(sce->toolsettings->wpaint)
-				sce->toolsettings->wpaint->brush=
-					newlibadr_us(fd, sce->id.lib, sce->toolsettings->wpaint->brush);
-			
+			link_paint(fd, sce, &sce->toolsettings->sculpt->paint);
+			link_paint(fd, sce, &sce->toolsettings->vpaint->paint);
+			link_paint(fd, sce, &sce->toolsettings->wpaint->paint);
+			link_paint(fd, sce, &sce->toolsettings->imapaint.paint);
+
 			sce->toolsettings->skgen_template = newlibadr(fd, sce->id.lib, sce->toolsettings->skgen_template);
 
 			for(base= sce->base.first; base; base= next) {
@@ -4130,6 +4133,13 @@ static void link_recurs_seq(FileData *fd, ListBase *lb)
 			link_recurs_seq(fd, &seq->seqbase);
 }
 
+static void direct_link_paint(FileData *fd, Paint **paint)
+{
+	(*paint)= newdataadr(fd, (*paint));
+	if(*paint)
+		(*paint)->brushes= newdataadr(fd, (*paint)->brushes);
+}
+
 static void direct_link_scene(FileData *fd, Scene *sce)
 {
 	Editing *ed;
@@ -4157,14 +4167,14 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	
 	sce->toolsettings= newdataadr(fd, sce->toolsettings);
 	if(sce->toolsettings) {
-		sce->toolsettings->vpaint= newdataadr(fd, sce->toolsettings->vpaint);
-		sce->toolsettings->wpaint= newdataadr(fd, sce->toolsettings->wpaint);
-		sce->toolsettings->sculpt= newdataadr(fd, sce->toolsettings->sculpt);
+		direct_link_paint(fd, (Paint**)&sce->toolsettings->sculpt);
+		direct_link_paint(fd, (Paint**)&sce->toolsettings->vpaint);
+		direct_link_paint(fd, (Paint**)&sce->toolsettings->wpaint);
+
+		sce->toolsettings->imapaint.paint.brushes= newdataadr(fd, sce->toolsettings->imapaint.paint.brushes);
+
 		sce->toolsettings->imapaint.paintcursor= NULL;
 		sce->toolsettings->particle.paintcursor= NULL;
-
-		if(sce->toolsettings->sculpt)
-			sce->toolsettings->sculpt->session= MEM_callocN(sizeof(SculptSession), "reload sculpt session");
 	}
 
 	if(sce->ed) {
@@ -5350,6 +5360,9 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	bfd->curscene= fg->curscene;
 	
 	MEM_freeN(fg);
+
+	fd->globalf= bfd->globalf;
+	fd->fileflags= bfd->fileflags;
 	
 	return blo_nextbhead(fd, bhead);
 }
@@ -5741,7 +5754,7 @@ static void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
 				tf = ((MTFace*)me->fdata.layers[b].data) + a;
 
 				tf->mode &= ~TF_ALPHASORT;
-				if(ma && (ma->mode & MA_ZTRA))
+				if(ma && (ma->mode & MA_ZTRANSP))
 					if(ELEM(tf->transp, TF_ALPHA, TF_ADD) || (texalpha && (tf->transp != TF_CLIP)))
 						tf->mode |= TF_ALPHASORT;
 			}
@@ -9223,8 +9236,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Tex *tx;
 		ParticleSettings *part;
 		Object *ob;
-		PTCacheID *pid;
-		ListBase pidlist;
+		//PTCacheID *pid;
+		//ListBase pidlist;
 
 		bSound *sound;
 		Sequence *seq;
@@ -9368,19 +9381,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 1)) {
-	}
-
-	/* TODO: should be moved into one of the version blocks once this branch moves to trunk and we can
-	   bump the version (or sub-version.) */
-	{
-		World *wo;
 		Object *ob;
 		Material *ma;
 		Tex *tex;
 		Scene *sce;
 		ToolSettings *ts;
-		PTCacheID *pid;
-		ListBase pidlist;
+		//PTCacheID *pid;
+		//ListBase pidlist;
 		int i, a;
 
 		for(ob = main->object.first; ob; ob = ob->id.next) {
@@ -9477,6 +9484,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(ma->mode & MA_HALO) {
 				ma->material_type= MA_TYPE_HALO;
 				ma->mode &= ~MA_HALO;
+			}
+
+			if(ma->mode & (MA_ZTRANSP|MA_RAYTRANSP)) {
+				ma->mode |= MA_TRANSP;
+			}
+			else {
+				ma->mode |= MA_ZTRANSP;
+				ma->mode &= ~MA_TRANSP;
 			}
 
 			/* set new bump for unused slots */
@@ -9579,6 +9594,46 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->gm.physubstep = 1;
 			sce->gm.maxphystep = 5;
 		}
+	}
+
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 2)) {
+		Scene *sce;
+
+		for(sce = main->scene.first; sce; sce = sce->id.next) {
+			if(fd->fileflags & G_FILE_ENABLE_ALL_FRAMES)
+				sce->gm.flag |= GAME_ENABLE_ALL_FRAMES;
+			if(fd->fileflags & G_FILE_SHOW_DEBUG_PROPS)
+				sce->gm.flag |= GAME_SHOW_DEBUG_PROPS;
+			if(fd->fileflags & G_FILE_SHOW_FRAMERATE)
+				sce->gm.flag |= GAME_SHOW_FRAMERATE;
+			if(fd->fileflags & G_FILE_SHOW_PHYSICS)
+				sce->gm.flag |= GAME_SHOW_PHYSICS;
+			if(fd->fileflags & G_FILE_GLSL_NO_SHADOWS)
+				sce->gm.flag |= GAME_GLSL_NO_SHADOWS;
+			if(fd->fileflags & G_FILE_GLSL_NO_SHADERS)
+				sce->gm.flag |= GAME_GLSL_NO_SHADERS;
+			if(fd->fileflags & G_FILE_GLSL_NO_RAMPS)
+				sce->gm.flag |= GAME_GLSL_NO_RAMPS;
+			if(fd->fileflags & G_FILE_GLSL_NO_NODES)
+				sce->gm.flag |= GAME_GLSL_NO_NODES;
+			if(fd->fileflags & G_FILE_GLSL_NO_EXTRA_TEX)
+				sce->gm.flag |= GAME_GLSL_NO_EXTRA_TEX;
+			if(fd->fileflags & G_FILE_IGNORE_DEPRECATION_WARNINGS)
+				sce->gm.flag |= GAME_IGNORE_DEPRECATION_WARNINGS;
+
+			if(fd->fileflags & G_FILE_GAME_MAT_GLSL)
+				sce->gm.matmode= GAME_MAT_GLSL;
+			else if(fd->fileflags & G_FILE_GAME_MAT)
+				sce->gm.matmode= GAME_MAT_MULTITEX;
+			else
+				sce->gm.matmode= GAME_MAT_TEXFACE;
+
+			sce->gm.flag |= GAME_DISPLAY_LISTS;
+		}
+	}
+
+	/* put 2.50 compatibility code here until next subversion bump */
+	{
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

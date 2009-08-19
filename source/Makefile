@@ -109,7 +109,7 @@ COMLIB += $(OCGDIR)/blender/blenfont/$(DEBUG_DIR)libblenfont.a
 COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaudaspace.a
 COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_src.a
 COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_fx.a
-COMLIB += $(NAN_SAMPLERATE)/lib/libsamplerate.a
+COMLIB += $(NAN_SAMPLERATE)/lib/$(DEBUG_DIR)libsamplerate.a
 
 ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/bloutines/$(DEBUG_DIR)libbloutines.a
@@ -244,6 +244,7 @@ PULIB += $(OCGDIR)/blender/ed_image/$(DEBUG_DIR)libed_image.a
 PULIB += $(OCGDIR)/blender/ed_uvedit/$(DEBUG_DIR)libed_uvedit.a
 PULIB += $(OCGDIR)/blender/ed_screen/$(DEBUG_DIR)libed_screen.a
 PULIB += $(OCGDIR)/blender/ed_console/$(DEBUG_DIR)libed_console.a
+PULIB += $(OCGDIR)/blender/ed_userpref/$(DEBUG_DIR)libed_userpref.a
 PULIB += $(OCGDIR)/blender/windowmanager/$(DEBUG_DIR)libwindowmanager.a
 PULIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
 PULIB += $(OCGDIR)/blender/makesrna/$(DEBUG_DIR)librna.a

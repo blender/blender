@@ -21,7 +21,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Robin Allen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -51,7 +51,7 @@ static bNodeSocketType outputs_color_only[]= {
 	{ SOCK_RGBA, 1, "Color 2", 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f }
 
 /* Calls multitex and copies the result to the outputs. Called by xxx_exec, which handles inputs. */
-static void do_proc(float *result, float *coord, float *col1, float *col2, char is_normal, Tex *tex, short thread)
+static void do_proc(float *result, TexParams *p, float *col1, float *col2, char is_normal, Tex *tex, short thread)
 {
 	TexResult texres;
 	int textype;
@@ -62,7 +62,7 @@ static void do_proc(float *result, float *coord, float *col1, float *col2, char 
 	else
 		texres.nor = NULL;
 	
-	textype = multitex_thread(tex, coord, 0, 0, 0, &texres, thread, 0);
+	textype = multitex_thread(tex, p->coord, p->dxt, p->dyt, 0, &texres, thread, 0);
 	
 	if(is_normal)
 		return;
@@ -76,11 +76,11 @@ static void do_proc(float *result, float *coord, float *col1, float *col2, char 
 	}
 }
 
-typedef void (*MapFn) (Tex *tex, bNodeStack **in, float *coord, short thread);
+typedef void (*MapFn) (Tex *tex, bNodeStack **in, TexParams *p, short thread);
 
 static void texfn(
 	float *result, 
-	float *coord, 
+	TexParams *p,
 	bNode *node, 
 	bNodeStack **in,
 	char is_normal, 
@@ -89,12 +89,12 @@ static void texfn(
 {
 	Tex tex = *((Tex*)(node->storage));
 	float col1[4], col2[4];
-	tex_input_rgba(col1, in[0], coord, thread);
-	tex_input_rgba(col2, in[1], coord, thread);
+	tex_input_rgba(col1, in[0], p, thread);
+	tex_input_rgba(col2, in[1], p, thread);
 	
-	map_inputs(&tex, in, coord, thread);
+	map_inputs(&tex, in, p, thread);
 	
-	do_proc(result, coord, col1, col2, is_normal, &tex, thread);
+	do_proc(result, p, col1, col2, is_normal, &tex, thread);
 }
 
 static int count_outputs(bNode *node)
@@ -110,17 +110,17 @@ static int count_outputs(bNode *node)
 /* Boilerplate generators */
 
 #define ProcNoInputs(name) \
-        static void name##_map_inputs(Tex *tex, bNodeStack **in, float *coord, short thread) \
+        static void name##_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread) \
         {}
 
 #define ProcDef(name) \
-        static void name##_colorfn(float *result, float *coord, bNode *node, bNodeStack **in, short thread)  \
+        static void name##_colorfn(float *result, TexParams *p, bNode *node, bNodeStack **in, short thread)  \
         {                                                                                                    \
-                texfn(result, coord, node, in, 0, &name##_map_inputs, thread);                               \
+                texfn(result, p, node, in, 0, &name##_map_inputs, thread);                               \
         }                                                                                                    \
-        static void name##_normalfn(float *result, float *coord, bNode *node, bNodeStack **in, short thread) \
+        static void name##_normalfn(float *result, TexParams *p, bNode *node, bNodeStack **in, short thread) \
         {                                                                                                    \
-                texfn(result, coord, node, in, 1, &name##_map_inputs, thread);                               \
+                texfn(result, p, node, in, 1, &name##_map_inputs, thread);                               \
         }                                                                                                    \
         static void name##_exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)                  \
         {                                                                                                    \
@@ -144,15 +144,15 @@ static bNodeSocketType voronoi_inputs[]= {
 	
 	{ -1, 0, "" }
 };
-static void voronoi_map_inputs(Tex *tex, bNodeStack **in, float *coord, short thread)
+static void voronoi_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
-	tex->vn_w1 = tex_input_value(in[I+0], coord, thread);
-	tex->vn_w2 = tex_input_value(in[I+1], coord, thread);
-	tex->vn_w3 = tex_input_value(in[I+2], coord, thread);
-	tex->vn_w4 = tex_input_value(in[I+3], coord, thread);
+	tex->vn_w1 = tex_input_value(in[I+0], p, thread);
+	tex->vn_w2 = tex_input_value(in[I+1], p, thread);
+	tex->vn_w3 = tex_input_value(in[I+2], p, thread);
+	tex->vn_w4 = tex_input_value(in[I+3], p, thread);
 	
-	tex->ns_outscale = tex_input_value(in[I+4], coord, thread);
-	tex->noisesize   = tex_input_value(in[I+5], coord, thread);
+	tex->ns_outscale = tex_input_value(in[I+4], p, thread);
+	tex->noisesize   = tex_input_value(in[I+5], p, thread);
 }
 ProcDef(voronoi)
 
@@ -170,9 +170,9 @@ static bNodeSocketType magic_inputs[]= {
 	{ SOCK_VALUE, 1, "Turbulence", 5.0f, 0.0f, 0.0f, 0.0f,   0.0f, 200.0f },
 	{ -1, 0, "" }
 };
-static void magic_map_inputs(Tex *tex, bNodeStack **in, float *coord, short thread)
+static void magic_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
-	tex->turbul = tex_input_value(in[I+0], coord, thread);
+	tex->turbul = tex_input_value(in[I+0], p, thread);
 }
 ProcDef(magic)
 
@@ -183,10 +183,10 @@ static bNodeSocketType marble_inputs[]= {
 	{ SOCK_VALUE, 1, "Turbulence", 5.0f,  0.0f, 0.0f, 0.0f,   0.0f, 200.0f },
 	{ -1, 0, "" }
 };
-static void marble_map_inputs(Tex *tex, bNodeStack **in, float *coord, short thread)
+static void marble_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
-	tex->noisesize = tex_input_value(in[I+0], coord, thread);
-	tex->turbul    = tex_input_value(in[I+1], coord, thread);
+	tex->noisesize = tex_input_value(in[I+0], p, thread);
+	tex->turbul    = tex_input_value(in[I+1], p, thread);
 }
 ProcDef(marble)
 
@@ -196,9 +196,9 @@ static bNodeSocketType clouds_inputs[]= {
 	{ SOCK_VALUE, 1, "Size",       0.25f, 0.0f, 0.0f, 0.0f,   0.0001f, 2.0f },
 	{ -1, 0, "" }
 };
-static void clouds_map_inputs(Tex *tex, bNodeStack **in, float *coord, short thread)
+static void clouds_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
-	tex->noisesize = tex_input_value(in[I+0], coord, thread);
+	tex->noisesize = tex_input_value(in[I+0], p, thread);
 }
 ProcDef(clouds)
 
@@ -209,10 +209,10 @@ static bNodeSocketType distnoise_inputs[]= {
 	{ SOCK_VALUE, 1, "Distortion", 1.00f, 0.0f, 0.0f, 0.0f,   0.0000f, 10.0f },
 	{ -1, 0, "" }
 };
-static void distnoise_map_inputs(Tex *tex, bNodeStack **in, float *coord, short thread)
+static void distnoise_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
-	tex->noisesize   = tex_input_value(in[I+0], coord, thread);
-	tex->dist_amount = tex_input_value(in[I+1], coord, thread);
+	tex->noisesize   = tex_input_value(in[I+0], p, thread);
+	tex->dist_amount = tex_input_value(in[I+1], p, thread);
 }
 ProcDef(distnoise)
 
@@ -223,10 +223,10 @@ static bNodeSocketType wood_inputs[]= {
 	{ SOCK_VALUE, 1, "Turbulence", 5.0f,  0.0f, 0.0f, 0.0f,   0.0f, 200.0f },
 	{ -1, 0, "" }
 };
-static void wood_map_inputs(Tex *tex, bNodeStack **in, float *coord, short thread)
+static void wood_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
-	tex->noisesize = tex_input_value(in[I+0], coord, thread);
-	tex->turbul    = tex_input_value(in[I+1], coord, thread);
+	tex->noisesize = tex_input_value(in[I+0], p, thread);
+	tex->turbul    = tex_input_value(in[I+1], p, thread);
 }
 ProcDef(wood)
 
@@ -241,13 +241,13 @@ static bNodeSocketType musgrave_inputs[]= {
 	{ SOCK_VALUE, 1, "Size",       0.25f, 0.0f, 0.0f, 0.0f,  0.0001f, 2.0f },
 	{ -1, 0, "" }
 };
-static void musgrave_map_inputs(Tex *tex, bNodeStack **in, float *coord, short thread)
+static void musgrave_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
-	tex->mg_H          = tex_input_value(in[I+0], coord, thread);
-	tex->mg_lacunarity = tex_input_value(in[I+1], coord, thread);
-	tex->mg_octaves    = tex_input_value(in[I+2], coord, thread);
-	tex->ns_outscale   = tex_input_value(in[I+3], coord, thread);
-	tex->noisesize     = tex_input_value(in[I+4], coord, thread);
+	tex->mg_H          = tex_input_value(in[I+0], p, thread);
+	tex->mg_lacunarity = tex_input_value(in[I+1], p, thread);
+	tex->mg_octaves    = tex_input_value(in[I+2], p, thread);
+	tex->ns_outscale   = tex_input_value(in[I+3], p, thread);
+	tex->noisesize     = tex_input_value(in[I+4], p, thread);
 }
 ProcDef(musgrave)
 
@@ -266,10 +266,10 @@ static bNodeSocketType stucci_inputs[]= {
 	{ SOCK_VALUE, 1, "Turbulence", 5.0f,  0.0f, 0.0f, 0.0f,   0.0f, 200.0f },
 	{ -1, 0, "" }
 };
-static void stucci_map_inputs(Tex *tex, bNodeStack **in, float *coord, short thread)
+static void stucci_map_inputs(Tex *tex, bNodeStack **in, TexParams *p, short thread)
 {
-	tex->noisesize = tex_input_value(in[I+0], coord, thread);
-	tex->turbul    = tex_input_value(in[I+1], coord, thread);
+	tex->noisesize = tex_input_value(in[I+0], p, thread);
+	tex->turbul    = tex_input_value(in[I+1], p, thread);
 }
 ProcDef(stucci)
 

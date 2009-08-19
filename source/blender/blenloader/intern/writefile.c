@@ -407,13 +407,13 @@ static void IDP_WriteIDPArray(IDProperty *prop, void *wd)
 {
 	/*REMEMBER to set totalen to len in the linking code!!*/
 	if (prop->data.pointer) {
-		IDProperty **array = prop->data.pointer;
+		IDProperty *array = prop->data.pointer;
 		int a;
 
-		writedata(wd, DATA, MEM_allocN_len(prop->data.pointer), prop->data.pointer);
+		writestruct(wd, DATA, "IDProperty", prop->len, array);
 
 		for(a=0; a<prop->len; a++)
-			IDP_WriteProperty(array[a], wd);
+			IDP_WriteProperty_OnlyData(&array[a], wd);
 	}
 }
 
@@ -1681,6 +1681,11 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 	}
 }
 
+static void write_paint(WriteData *wd, Paint *p)
+{
+	if(p && p->brushes)
+		writedata(wd, DATA, p->brush_count * sizeof(Brush*), p->brushes);
+}
 
 static void write_scenes(WriteData *wd, ListBase *scebase)
 {
@@ -1693,6 +1698,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	TimeMarker *marker;
 	TransformOrientation *ts;
 	SceneRenderLayer *srl;
+	ToolSettings *tos;
 	
 	sce= scebase->first;
 	while(sce) {
@@ -1710,13 +1716,22 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			base= base->next;
 		}
 		
-		writestruct(wd, DATA, "ToolSettings", 1, sce->toolsettings);
-		if(sce->toolsettings->vpaint)
-			writestruct(wd, DATA, "VPaint", 1, sce->toolsettings->vpaint);
-		if(sce->toolsettings->wpaint)
-			writestruct(wd, DATA, "VPaint", 1, sce->toolsettings->wpaint);
-		if(sce->toolsettings->sculpt)
-			writestruct(wd, DATA, "Sculpt", 1, sce->toolsettings->sculpt);
+		tos = sce->toolsettings;
+		writestruct(wd, DATA, "ToolSettings", 1, tos);
+		if(tos->vpaint) {
+			writestruct(wd, DATA, "VPaint", 1, tos->vpaint);
+			write_paint(wd, &tos->vpaint->paint);
+		}
+		if(tos->wpaint) {
+			writestruct(wd, DATA, "VPaint", 1, tos->wpaint);
+			write_paint(wd, &tos->wpaint->paint);
+		}
+		if(tos->sculpt) {
+			writestruct(wd, DATA, "Sculpt", 1, tos->sculpt);
+			write_paint(wd, &tos->sculpt->paint);
+		}
+
+		write_paint(wd, &tos->imapaint.paint);
 
 		ed= sce->ed;
 		if(ed) {
@@ -2013,6 +2028,10 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				else if(sl->spacetype==SPACE_CONSOLE) {
 					writestruct(wd, DATA, "SpaceConsole", 1, sl);
 				}
+				else if(sl->spacetype==SPACE_USERPREF) {
+					writestruct(wd, DATA, "SpaceUserPref", 1, sl);
+				}
+
 				sl= sl->next;
 			}
 		}

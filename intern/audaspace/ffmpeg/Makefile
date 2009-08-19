@@ -28,7 +28,7 @@
 #
 #
 
-LIBNAME = ffmpegaudaspace
+LIBNAME = aud_ffmpeg
 DIR = $(OCGDIR)/intern/$(LIBNAME)
 
 include nan_compile.mk

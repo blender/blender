@@ -2,7 +2,7 @@
 import bpy
 
 class PhysicButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
+	__space_type__ = "PROPERTIES"
 	__region_type__ = "WINDOW"
 	__context__ = "physics"
 
@@ -165,46 +165,66 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
 		ob = context.object
 		rd = context.scene.render_data
 		return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
-
-	def draw_header(self, context):
-		settings = context.object.collision
-		self.layout.itemR(settings, "enabled", text="")
-
+	
 	def draw(self, context):
 		layout = self.layout
 		
 		md = context.collision
-		settings = context.object.collision
 
-		layout.active = settings.enabled
-		
 		split = layout.split()
+		split.operator_context = 'EXEC_DEFAULT'
+
+		if md:
+			# remove modifier + settings
+			split.set_context_pointer("modifier", md)
+			split.itemO("object.modifier_remove", text="Remove")
+			col = split.column()
+			
+			#row = split.row(align=True)
+			#row.itemR(md, "render", text="")
+			#row.itemR(md, "realtime", text="")
+			
+			coll = md.settings
+			
+		else:
+			# add modifier
+			split.item_enumO("object.modifier_add", "type", 'COLLISION', text="Add")
+			split.itemL()
+			
+			coll = None
 		
-		col = split.column()
-		col.itemL(text="Particle:")
-		col.itemR(settings, "permeability", slider=True)
-		col.itemL(text="Particle Damping:")
-		sub = col.column(align=True)
-		sub.itemR(settings, "damping_factor", text="Factor", slider=True)
-		sub.itemR(settings, "random_damping", text="Random", slider=True)
+		if coll:
+			settings = context.object.collision
+
+			layout.active = settings.enabled
 		
-		col.itemL(text="Soft Body and Cloth:")
-		sub = col.column(align=True)
-		sub.itemR(settings, "outer_thickness", text="Outer", slider=True)
-		sub.itemR(settings, "inner_thickness", text="Inner", slider=True)
+			split = layout.split()
 		
-		layout.itemL(text="Force Fields:")
-		layout.itemR(md, "absorption", text="Absorption")
+			col = split.column()
+			col.itemL(text="Particle:")
+			col.itemR(settings, "permeability", slider=True)
+			col.itemL(text="Particle Damping:")
+			sub = col.column(align=True)
+			sub.itemR(settings, "damping_factor", text="Factor", slider=True)
+			sub.itemR(settings, "random_damping", text="Random", slider=True)
 		
-		col = split.column()
-		col.itemL(text="")
-		col.itemR(settings, "kill_particles")
-		col.itemL(text="Particle Friction:")
-		sub = col.column(align=True)
-		sub.itemR(settings, "friction_factor", text="Factor", slider=True)
-		sub.itemR(settings, "random_friction", text="Random", slider=True)
-		col.itemL(text="Soft Body Damping:")
-		col.itemR(settings, "damping", text="Factor", slider=True)
+			col.itemL(text="Soft Body and Cloth:")
+			sub = col.column(align=True)
+			sub.itemR(settings, "outer_thickness", text="Outer", slider=True)
+			sub.itemR(settings, "inner_thickness", text="Inner", slider=True)
+		
+			layout.itemL(text="Force Fields:")
+			layout.itemR(md, "absorption", text="Absorption")
+		
+			col = split.column()
+			col.itemL(text="")
+			col.itemR(settings, "kill_particles")
+			col.itemL(text="Particle Friction:")
+			sub = col.column(align=True)
+			sub.itemR(settings, "friction_factor", text="Factor", slider=True)
+			sub.itemR(settings, "random_friction", text="Random", slider=True)
+			col.itemL(text="Soft Body Damping:")
+			col.itemR(settings, "damping", text="Factor", slider=True)
 		
 bpy.types.register(PHYSICS_PT_field)
 bpy.types.register(PHYSICS_PT_collision)

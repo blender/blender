@@ -30,13 +30,17 @@ SET(INC
   . ../../../intern/guardedalloc ../../../intern/memutil ../editors/include ../blenlib ../makesdna
   ../render/extern/include ../../../intern/decimation/extern
   ../imbuf ../avi ../../../intern/elbeem/extern ../../../intern/opennl/extern
-  ../../../intern/iksolver/extern ../blenloader ../quicktime
-  ../../../extern/bullet2/src
+  ../../../intern/iksolver/extern ../blenloader
   ../nodes ../../../extern/glew/include ../gpu ../makesrna ../../../intern/smoke/extern
-  ../../../intern/bsp/extern
+  ../../../intern/bsp/extern ../blenfont
   ../../../intern/audaspace/intern
   ${ZLIB_INC}
 )
+
+IF(WITH_BULLET)
+  SET(INC ${INC} ../../../extern/bullet2/src)
+  ADD_DEFINITIONS(-DUSE_BULLET)
+ENDIF(WITH_BULLET)
 
 IF(WITH_OPENEXR)
   ADD_DEFINITIONS(-DWITH_OPENEXR)
@@ -51,15 +55,9 @@ IF(WITH_DDS)
 ENDIF(WITH_DDS)
 
 IF(WITH_QUICKTIME)
-  SET(INC ${INC} ${QUICKTIME_INC})
+  SET(INC ${INC} ../quicktime ${QUICKTIME_INC})
   ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
-
-IF(WITH_SDL)
-  SET(INC ${INC} ${SDL_INC})
-ELSE(WITH_SDL)
-  ADD_DEFINITIONS(-DDISABLE_SDL)
-ENDIF(WITH_SDL)
 
 IF(WITH_FFMPEG)
   SET(INC ${INC} ${FFMPEG_INC})

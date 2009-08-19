@@ -57,7 +57,7 @@ static struct PyModuleDef ui_module = {
 
 PyObject *BPY_ui_module( void )
 {
-	PyObject *submodule, *mod;
+	PyObject *submodule;
 	submodule= PyModule_Create(&ui_module);
 	
 	/* INCREF since its its assumed that all these functions return the

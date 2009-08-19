@@ -60,7 +60,6 @@ B = tools.Blender
 platform = sys.platform
 quickie = None
 quickdebug = None
-nsis_build = None
 
 ##### BEGIN SETUP #####
 
@@ -425,8 +424,6 @@ if  env['OURPLATFORM']=='darwin':
 		bundle = '%s.app' % prg[0]
 		bundledir = os.path.dirname(bundle)
 		for dp, dn, df in os.walk(bundle):
-			if 'CVS' in dn:
-				dn.remove('CVS')
 			if '.svn' in dn:
 				dn.remove('.svn')
 			dir=env['BF_INSTALLDIR']+dp[len(bundledir):]
@@ -443,8 +440,6 @@ scriptinstall = []
 
 if  env['OURPLATFORM']!='darwin':
 		for dp, dn, df in os.walk('bin/.blender'):
-			if 'CVS' in dn:
-				dn.remove('CVS')
 			if '.svn' in dn:
 				dn.remove('.svn')
 			
@@ -471,8 +466,6 @@ if  env['OURPLATFORM']!='darwin':
 			scriptpaths=['release/scripts', 'release/ui', 'release/io']
 			for scriptpath in scriptpaths:
 				for dp, dn, df in os.walk(scriptpath):
-					if 'CVS' in dn:
-						dn.remove('CVS')
 					if '.svn' in dn:
 						dn.remove('.svn')
 					dir=env['BF_INSTALLDIR']+'/.blender/'+os.path.basename(scriptpath)+dp[len(scriptpath):]
@@ -485,8 +478,6 @@ if env['OURPLATFORM']=='linux2':
 	icontargetlist = []
 
 	for tp, tn, tf in os.walk('release/freedesktop/icons'):
-		if 'CVS' in tn:
-			tn.remove('CVS')
 		if '.svn' in tn:
 			tn.remove('.svn')
 		for f in tf:
@@ -509,8 +500,6 @@ if env['OURPLATFORM']=='linuxcross':
 pluglist = []
 plugtargetlist = []
 for tp, tn, tf in os.walk('release/plugins'):
-	if 'CVS' in tn:
-		tn.remove('CVS')
 	if '.svn' in tn:
 		tn.remove('.svn')
 	for f in tf:
@@ -541,8 +530,6 @@ for targetdir,srcfile in zip(plugtargetlist, pluglist):
 textlist = []
 texttargetlist = []
 for tp, tn, tf in os.walk('release/text'):
-	if 'CVS' in tn:
-		tn.remove('CVS')
 	if '.svn' in tn:
 		tn.remove('.svn')
 	for f in tf:
@@ -599,6 +586,8 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc'):
 						'${LCGDIR}/ffmpeg/lib/libx264-67.dll',
 						'${LCGDIR}/ffmpeg/lib/xvidcore.dll',
 						'${LCGDIR}/ffmpeg/lib/swscale-0.dll']
+	if env['WITH_BF_JACK']:
+		dllsources += ['${LCGDIR}/jack/lib/libjack.dll']
 	windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
 	allinstall += windlls
 

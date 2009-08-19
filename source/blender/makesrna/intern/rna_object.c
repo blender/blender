@@ -41,6 +41,18 @@
 
 #include "WM_types.h"
 
+
+EnumPropertyItem object_mode_items[] = {
+	{OB_MODE_OBJECT, "OBJECT", ICON_OBJECT_DATAMODE, "Object", ""},
+	{OB_MODE_EDIT, "EDIT", ICON_EDITMODE_HLT, "Edit", ""},
+	{OB_MODE_SCULPT, "SCULPT", ICON_SCULPTMODE_HLT, "Sculpt", ""},
+	{OB_MODE_VERTEX_PAINT, "VERTEX_PAINT", ICON_VPAINT_HLT, "Vertex Paint", ""},
+	{OB_MODE_WEIGHT_PAINT, "WEIGHT_PAINT", ICON_WPAINT_HLT, "Weight Paint", ""},
+	{OB_MODE_TEXTURE_PAINT, "TEXTURE_PAINT", ICON_TPAINT_HLT, "Texture Paint", ""},
+	{OB_MODE_PARTICLE_EDIT, "PARTICLE_EDIT", ICON_PARTICLEMODE, "Particle Edit", ""},
+	{OB_MODE_POSE, "POSE", ICON_POSE_HLT, "Pose", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 static EnumPropertyItem parent_type_items[] = {
 	{PAROBJECT, "OBJECT", 0, "Object", ""},
 	{PARCURVE, "CURVE", 0, "Curve", ""},
@@ -827,7 +839,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "inertia");
 	RNA_def_property_range(prop, 0.01, 10.0);
-	RNA_def_property_ui_text(prop, "Radius", "Radius for Bounding sphere and Fh/Fh Rot.");
+	RNA_def_property_ui_text(prop, "Radius", "Radius of bounding sphere and material physics");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "no_sleeping", PROP_BOOLEAN, PROP_NONE);
@@ -887,13 +899,13 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Lock Z Rotation Axis", "Disable simulation of angular  motion along the Z axis.");	
 	
 
-	prop= RNA_def_property(srna, "do_fh", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "material_physics", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_DO_FH);
-	RNA_def_property_ui_text(prop, "Do Fh", "Use Fh settings in materials.");
+	RNA_def_property_ui_text(prop, "Use Material Physics", "Use physics settings in materials.");
 
-	prop= RNA_def_property(srna, "rotation_fh", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "rotate_from_normal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_ROT_FH);
-	RNA_def_property_ui_text(prop, "Rotation Fh", "Use face normal to rotate Object");
+	RNA_def_property_ui_text(prop, "Rotate From Normal", "Use face normal to rotate object, so that it points away from the surface");
 
 	prop= RNA_def_property(srna, "form_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "formfactor");
@@ -1035,6 +1047,12 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, object_type_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Type", "Type of Object.");
+
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mode");
+	RNA_def_property_enum_items(prop, object_mode_items);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Mode", "Object interaction mode.");
 
 	prop= RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
@@ -1454,11 +1472,6 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "pose");
 	RNA_def_property_struct_type(prop, "Pose");
 	RNA_def_property_ui_text(prop, "Pose", "Current pose for armatures.");
-
-	prop= RNA_def_property(srna, "pose_mode", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_POSEMODE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Pose Mode", "Object with armature data is in pose mode.");
 
 	/* shape keys */
 

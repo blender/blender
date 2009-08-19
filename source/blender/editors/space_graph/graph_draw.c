@@ -878,7 +878,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 /* Channel List */
 
 /* left hand part */
-void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar) 
+void graph_draw_channel_names(bContext *C, bAnimContext *ac, SpaceIpo *sipo, ARegion *ar) 
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -902,22 +902,54 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	UI_view2d_totRect_set(v2d, ar->winx, height);
 	
 	/* loop through channels, and set up drawing depending on their type  */	
-	y= (float)ACHANNEL_FIRST;
-	
-	for (ale= anim_data.first, i=0; ale; ale= ale->next, i++) {
-		const float yminc= (float)(y - ACHANNEL_HEIGHT_HALF);
-		const float ymaxc= (float)(y + ACHANNEL_HEIGHT_HALF);
+	{	/* first pass: just the standard GL-drawing for backdrop + text */
+		y= (float)ACHANNEL_FIRST;
 		
-		/* check if visible */
-		if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
-			 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
-		{
-			/* draw all channels using standard channel-drawing API */
-			ANIM_channel_draw(ac, ale, yminc, ymaxc);
+		for (ale= anim_data.first, i=0; ale; ale= ale->next, i++) {
+			const float yminc= (float)(y - ACHANNEL_HEIGHT_HALF);
+			const float ymaxc= (float)(y + ACHANNEL_HEIGHT_HALF);
+			
+			/* check if visible */
+			if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
+				 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
+			{
+				/* draw all channels using standard channel-drawing API */
+				ANIM_channel_draw(ac, ale, yminc, ymaxc);
+			}
+			
+			/* adjust y-position for next one */
+			y -= ACHANNEL_STEP;
+		}
+	}
+	{	/* second pass: widgets */
+		uiBlock *block= uiBeginBlock(C, ar, "graph channel buttons", UI_EMBOSS);
+		
+		y= (float)ACHANNEL_FIRST;
+		
+		/* set blending again, as may not be set in previous step */
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
+		
+		for (ale= anim_data.first, i=0; ale; ale= ale->next, i++) {
+			const float yminc= (float)(y - ACHANNEL_HEIGHT_HALF);
+			const float ymaxc= (float)(y + ACHANNEL_HEIGHT_HALF);
+			
+			/* check if visible */
+			if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
+				 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
+			{
+				/* draw all channels using standard channel-drawing API */
+				ANIM_channel_draw_widgets(ac, ale, block, yminc, ymaxc);
+			}
+			
+			/* adjust y-position for next one */
+			y -= ACHANNEL_STEP;
 		}
 		
-		/* adjust y-position for next one */
-		y -= ACHANNEL_STEP;
+		uiEndBlock(C, block);
+		uiDrawBlock(C, block);
+		
+		glDisable(GL_BLEND);
 	}
 	
 	/* free tempolary channels */

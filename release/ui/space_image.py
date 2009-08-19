@@ -205,23 +205,24 @@ class IMAGE_HT_header(bpy.types.Header):
 		show_paint = sima.show_paint
 		show_uvedit = sima.show_uvedit
 
-		layout.template_header()
+		row = layout.row(align=True)
+		row.template_header()
 
 		# menus
 		if context.area.show_menus:
-			row = layout.row()
-			row.itemM("IMAGE_MT_view")
+			sub = row.row(align=True)
+			sub.itemM("IMAGE_MT_view")
 
 			if show_uvedit:
-				row.itemM("IMAGE_MT_select")
+				sub.itemM("IMAGE_MT_select")
 
 			if ima and ima.dirty:
-				row.itemM("IMAGE_MT_image", text="Image*")
+				sub.itemM("IMAGE_MT_image", text="Image*")
 			else:
-				row.itemM("IMAGE_MT_image", text="Image")
+				sub.itemM("IMAGE_MT_image", text="Image")
 
 			if show_uvedit:
-				row.itemM("IMAGE_MT_uvs")
+				sub.itemM("IMAGE_MT_uvs")
 
 		layout.template_ID(sima, "image", new="image.new")
 

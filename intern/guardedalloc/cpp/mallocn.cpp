@@ -1,6 +1,5 @@
 /**
  * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -17,20 +16,26 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef KX_PYTHON_H
-#define KX_PYTHON_H
 
-//#define USE_DL_EXPORT
-#include "Python.h"
+#include <new>
+#include "../MEM_guardedalloc.h"
 
-#endif // KX_PYTHON_H
+void* operator new (size_t size)
+{
+	return MEM_mallocN(size, "c++/anonymous");
+}
 
+/* not default but can be used when needing to set a string */
+void* operator new (size_t size, const char *str)
+{
+	return MEM_mallocN(size, str);
+}
+
+void operator delete (void *p)
+{
+	MEM_freeN(p);
+}

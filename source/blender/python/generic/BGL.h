@@ -304,31 +304,30 @@ typedef struct _Buffer {
 
 #define ret_def_void
 #define ret_set_void
-/* would use Py_RETURN_NONE - except for py 2.3 doesnt have it */
-#define ret_ret_void    { Py_INCREF(Py_None); return Py_None; }
+#define ret_ret_void    return Py_INCREF(Py_None), Py_None
 
 #define ret_def_GLint   int ret_int
 #define ret_set_GLint   ret_int=
-#define ret_ret_GLint   return PyLong_FromLong(ret_int);
+#define ret_ret_GLint   return PyLong_FromLong(ret_int)
 
 #define ret_def_GLuint    unsigned int ret_uint
 #define ret_set_GLuint    ret_uint=
-#define ret_ret_GLuint    return PyLong_FromLong((long) ret_uint);
+#define ret_ret_GLuint    return PyLong_FromLong((long) ret_uint)
 
 #define ret_def_GLenum    unsigned int ret_uint
 #define ret_set_GLenum    ret_uint=
-#define ret_ret_GLenum    return PyLong_FromLong((long) ret_uint);
+#define ret_ret_GLenum    return PyLong_FromLong((long) ret_uint)
 
 #define ret_def_GLboolean unsigned char ret_bool
 #define ret_set_GLboolean ret_bool=
-#define ret_ret_GLboolean return PyLong_FromLong((long) ret_bool);
+#define ret_ret_GLboolean return PyLong_FromLong((long) ret_bool)
 
 #define ret_def_GLstring  const unsigned char *ret_str;
 #define ret_set_GLstring  ret_str=
 
 #define ret_ret_GLstring \
 	if (ret_str) {\
-		return PyUnicode_FromString(ret_str);\
+		return PyUnicode_FromString((const char *)ret_str);\
 	} else {\
 		PyErr_SetString(PyExc_AttributeError, "could not get opengl string");\
 		return NULL;\

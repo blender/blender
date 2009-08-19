@@ -45,6 +45,13 @@ public:
 		  m_logicmgr(logicmgr)
 	{}
 	virtual void NextFrame();
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_RayEventManager"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_RAYEVENTMGR

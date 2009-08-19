@@ -190,7 +190,6 @@ private:
 	void					DoSound(KX_Scene* scene);
 
 public:
-
 	KX_KetsjiEngine(class KX_ISystem* system);
 	virtual ~KX_KetsjiEngine();
 
@@ -396,6 +395,13 @@ protected:
 	bool			BeginFrame();
 	void			ClearFrame();
 	void			EndFrame();
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_KetsjiEngine"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_KETSJI_ENGINE

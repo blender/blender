@@ -276,7 +276,7 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 	if (name)
 		BLI_snprintf(ks->name, 64, name);
 	else
-		strcpy(ks->name, "Keying Set");
+		strcpy(ks->name, "KeyingSet");
 	
 	ks->flag= flag;
 	ks->keyingflag= keyingflag;
@@ -285,7 +285,7 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 	BLI_addtail(list, ks);
 	
 	/* make sure KeyingSet has a unique name (this helps with identification) */
-	BLI_uniquename(list, ks, "Keying Set", ' ', offsetof(KeyingSet, name), 64);
+	BLI_uniquename(list, ks, "KeyingSet", '.', offsetof(KeyingSet, name), 64);
 	
 	/* return new KeyingSet for further editing */
 	return ks;
@@ -342,6 +342,21 @@ void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name
 	BLI_addtail(&ks->paths, ksp);
 }	
 
+/* Copy all KeyingSets in the given list */
+void BKE_keyingsets_copy(ListBase *newlist, ListBase *list)
+{
+	KeyingSet *ksn;
+	KS_Path *kspn;
+
+	BLI_duplicatelist(newlist, list);
+
+	for(ksn=newlist->first; ksn; ksn=ksn->next) {
+		BLI_duplicatelist(&ksn->paths, &ksn->paths);
+
+		for(kspn=ksn->paths.first; kspn; kspn=kspn->next)
+			kspn->rna_path= MEM_dupallocN(kspn->rna_path);
+	}
+}
 
 /* Freeing Tools --------------------------- */
 

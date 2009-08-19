@@ -660,9 +660,9 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, SpaceSeq *sseq, Sequence *
 		draw_shadedstrip(seq, background_col, x1, y1, x2, y2);
 	
 	/* draw additional info and controls */
-// XXX
-/*	if (seq->type == SEQ_SOUND)
-		drawseqwave(scene, v2d, seq, x1, y1, x2, y2, ar->winx);*/
+	// XXX
+	if(0) // (seq->type == SEQ_SOUND)
+		drawseqwave(scene, v2d, seq, x1, y1, x2, y2, ar->winx);
 	
 	if (!is_single_image)
 		draw_seq_extensions(scene, sseq, seq);

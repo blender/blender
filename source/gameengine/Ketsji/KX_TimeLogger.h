@@ -36,6 +36,10 @@
 
 #include <deque>
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 /**
  * Stores and manages time measurements.
  */
@@ -98,6 +102,13 @@ protected:
 
 	/** State of logging. */
 	bool m_logging;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_TimeLogger"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif // __KX_TIME_LOGGER_H

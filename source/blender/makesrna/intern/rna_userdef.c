@@ -120,7 +120,7 @@ static PointerRNA rna_UserDef_system_get(PointerRNA *ptr)
 
 static void rna_UserDef_audio_update(bContext *C, PointerRNA *ptr)
 {
-	sound_reinit(C);
+	sound_init(C);
 }
 
 #else
@@ -690,7 +690,7 @@ static void rna_def_userdef_theme_space_graph(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "ThemeGraphEditor", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
-	RNA_def_struct_ui_text(srna, "Theme Graph Editor", "Theme settings for the Ipo Editor.");
+	RNA_def_struct_ui_text(srna, "Theme Graph Editor", "Theme settings for the graph editor.");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_IPO);
 
@@ -827,18 +827,32 @@ static void rna_def_userdef_theme_space_outliner(BlenderRNA *brna)
 	rna_def_userdef_theme_spaces_main(srna, SPACE_OUTLINER);
 }
 
+static void rna_def_userdef_theme_space_userpref(BlenderRNA *brna)
+{
+	StructRNA *srna;
+
+	/* space_userpref */
+
+	srna= RNA_def_struct(brna, "ThemeUserPreferences", NULL);
+	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_ui_text(srna, "Theme User Preferences", "Theme settings for the User Preferences.");
+
+	rna_def_userdef_theme_spaces_main(srna, SPACE_USERPREF);
+}
+
 static void rna_def_userdef_theme_space_info(BlenderRNA *brna)
 {
 	StructRNA *srna;
 
 	/* space_info */
 
-	srna= RNA_def_struct(brna, "ThemeUserPreferences", NULL);
+	srna= RNA_def_struct(brna, "ThemeInfo", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
-	RNA_def_struct_ui_text(srna, "Theme User Preferences", "Theme settings for the User Preferences.");
+	RNA_def_struct_ui_text(srna, "Theme Info", "Theme settings for Info.");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_INFO);
 }
+
 
 static void rna_def_userdef_theme_space_text(BlenderRNA *brna)
 {
@@ -997,9 +1011,9 @@ static void rna_def_userdef_theme_space_buts(BlenderRNA *brna)
 
 	/* space_buts */
 
-	srna= RNA_def_struct(brna, "ThemeButtonsWindow", NULL);
+	srna= RNA_def_struct(brna, "ThemeProperties", NULL);
 	RNA_def_struct_sdna(srna, "ThemeSpace");
-	RNA_def_struct_ui_text(srna, "Theme Buttons Window", "Theme settings for the Buttons Window.");
+	RNA_def_struct_ui_text(srna, "Theme Properties", "Theme settings for the Properties.");
 
 	rna_def_userdef_theme_spaces_main(srna, SPACE_BUTS);
 
@@ -1400,10 +1414,10 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ThemeSequenceEditor");
 	RNA_def_property_ui_text(prop, "Sequence Editor", "");
 
-	prop= RNA_def_property(srna, "buttons_window", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "properties", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "tbuts");
-	RNA_def_property_struct_type(prop, "ThemeButtonsWindow");
-	RNA_def_property_ui_text(prop, "Buttons Window", "");
+	RNA_def_property_struct_type(prop, "ThemeProperties");
+	RNA_def_property_ui_text(prop, "Properties", "");
 
 	prop= RNA_def_property(srna, "text_editor", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "text");
@@ -1430,8 +1444,13 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ThemeOutliner");
 	RNA_def_property_ui_text(prop, "Outliner", "");
 
-	prop= RNA_def_property(srna, "user_preferences", PROP_POINTER, PROP_NEVER_NULL);
+	prop= RNA_def_property(srna, "info", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "tinfo");
+	RNA_def_property_struct_type(prop, "ThemeInfo");
+	RNA_def_property_ui_text(prop, "Info", "");
+
+	prop= RNA_def_property(srna, "user_preferences", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "tuserpref");
 	RNA_def_property_struct_type(prop, "ThemeUserPreferences");
 	RNA_def_property_ui_text(prop, "User Preferences", "");
 
@@ -1460,6 +1479,7 @@ static void rna_def_userdef_dothemes(BlenderRNA *brna)
 	rna_def_userdef_theme_space_node(brna);
 	rna_def_userdef_theme_space_outliner(brna);
 	rna_def_userdef_theme_space_info(brna);
+	rna_def_userdef_theme_space_userpref(brna);
 	rna_def_userdef_theme_space_sound(brna);
 	rna_def_userdef_theme_space_logic(brna);
 	rna_def_userdef_theme_colorset(brna);
@@ -1992,6 +2012,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{0, "AUDIO_DEVICE_NULL", 0, "No Audio", "Null device - there will be no audio output."},
 		{1, "AUDIO_DEVICE_SDL", 0, "SDL", "SDL device - simple direct media layer, recommended for sequencer usage."},
 		{2, "AUDIO_DEVICE_OPENAL", 0, "OpenAL", "OpenAL device - supports 3D audio, recommended for game engine usage."},
+		{3, "AUDIO_DEVICE_JACK", 0, "Jack", "Jack device - open source pro audio, recommended for pro audio users."},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem audio_rate_items[] = {

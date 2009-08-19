@@ -154,9 +154,15 @@ static void bpy_init_modules( void )
 
 void BPY_update_modules( void )
 {
+#if 0 // slow, this runs all the time poll, draw etc 100's of time a sec.
 	PyObject *mod= PyImport_ImportModuleLevel("bpy", NULL, NULL, NULL, 0);
 	PyModule_AddObject( mod, "data", BPY_rna_module() );
-	PyModule_AddObject( mod, "types", BPY_rna_types() );
+	PyModule_AddObject( mod, "types", BPY_rna_types() ); // atm this does not need updating
+#endif
+
+	/* refreshes the main struct */
+	BPY_update_rna_module();
+
 }
 
 /*****************************************************************************
@@ -264,16 +270,22 @@ void BPY_start_python( int argc, char **argv )
 		PyDict_SetItemString(d, "__import__",	item=PyCFunction_New(bpy_import_meth, NULL));	Py_DECREF(item);
 	}
 	
+	pyrna_alloc_types();
+
 	py_tstate = PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(py_tstate);
 }
 
 void BPY_end_python( void )
 {
+	// fprintf(stderr, "Ending Python!\n");
+
 	PyGILState_Ensure(); /* finalizing, no need to grab the state */
 	
 	// free other python data.
-	//BPY_rna_free_types();
+	pyrna_free_types();
+
+	/* clear all python data from structs */
 	
 	Py_Finalize(  );
 	
@@ -291,6 +303,8 @@ void BPY_end_python( void )
 		printf("tot usage %.4f%%", (bpy_timer_run_tot/bpy_timer)*100.0);
 
 	printf("\n");
+
+	// fprintf(stderr, "Ending Python Done!\n");
 
 #endif
 

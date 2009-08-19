@@ -138,6 +138,7 @@ void ANIM_action_to_pose_sync (Object *ob)
  */
 void ANIM_pose_to_action_sync (Object *ob, ScrArea *sa)
 {
+#if 0 // XXX old animation system
 	SpaceAction *saction= (SpaceAction *)sa->spacedata.first;
 	bArmature *arm= (bArmature *)ob->data;
 	bAction *act= (bAction *)ob->action;
@@ -174,4 +175,5 @@ void ANIM_pose_to_action_sync (Object *ob, ScrArea *sa)
 	
 	// XXX step 2 needs to be coded still... currently missing action/bone group API to do any more work here...	
 	// XXX step 3 needs to be coded still... it's a messy case to deal with (we'll use the temp indices for this?)
+#endif // XXX old animation system
 }

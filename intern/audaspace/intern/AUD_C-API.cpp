@@ -23,10 +23,6 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-/*#define WITH_SDL
-#define WITH_FFMPEG
-#define WITH_OPENAL*/
-
 #include "AUD_NULLDevice.h"
 #include "AUD_I3DDevice.h"
 #include "AUD_StreamBufferFactory.h"
@@ -45,6 +41,10 @@
 
 #ifdef WITH_OPENAL
 #include "AUD_OpenALDevice.h"
+#endif
+
+#ifdef WITH_JACK
+#include "AUD_JackDevice.h"
 #endif
 
 #ifdef WITH_FFMPEG
@@ -98,6 +98,11 @@ int AUD_init(AUD_DeviceType device, AUD_Specs specs, int buffersize)
 			dev = new AUD_OpenALDevice(specs, buffersize);
 			break;
 #endif
+#ifdef WITH_JACK
+		case AUD_JACK_DEVICE:
+			dev = new AUD_JackDevice(specs);
+			break;
+#endif
 		default:
 			return false;
 		}
@@ -125,6 +130,9 @@ int* AUD_enumDevices()
 #endif
 #ifdef WITH_OPENAL
 	AUD_available_devices[i++] = AUD_OPENAL_DEVICE;
+#endif
+#ifdef WITH_JACK
+	AUD_available_devices[i++] = AUD_JACK_DEVICE;
 #endif
 	AUD_available_devices[i++] = AUD_NULL_DEVICE;
 	return AUD_available_devices;

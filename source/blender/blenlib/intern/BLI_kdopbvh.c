@@ -1531,7 +1531,7 @@ float BLI_bvhtree_bb_raycast(float *bv, float *light_start, float *light_end, fl
 {
 	BVHRayCastData data;
 	float dist = 0.0;
-	
+
 	data.hit.dist = FLT_MAX;
 	
 	// get light direction

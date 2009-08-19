@@ -98,6 +98,7 @@
 #include "BKE_mesh.h"
 #include "BKE_nla.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_property.h"
 #include "BKE_report.h"
@@ -126,6 +127,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 /* for menu/popup icons etc etc*/
 #include "UI_interface.h"
@@ -176,10 +178,6 @@ void ED_base_object_activate(bContext *C, Base *base)
 {
 	Scene *scene= CTX_data_scene(C);
 	Base *tbase;
-	
-	/* activating a non-mesh, should end a couple of modes... */
-	if(base && base->object->type!=OB_MESH)
-		ED_view3d_exit_paint_modes(C);
 	
 	/* sets scene->basact */
 	BASACT= base;
@@ -271,9 +269,6 @@ static Object *object_add_type(bContext *C, int type)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
-	
-	/* XXX hrms, this is editor level operator, remove? */
-	ED_view3d_exit_paint_modes(C);
 	
 	/* for as long scene has editmode... */
 	if (CTX_data_edit_object(C)) 
@@ -751,8 +746,6 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	if(CTX_data_edit_object(C)) 
 		return OPERATOR_CANCELLED;
 	
-	ED_view3d_exit_paint_modes(C);
-
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 
 		if(base->object->type==OB_LAMP) islamp= 1;
@@ -2246,7 +2239,7 @@ static int object_location_clear_exec(bContext *C, wmOperator *op)
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if((G.f & G_WEIGHTPAINT)==0) {
+		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 			if ((ob->protectflag & OB_LOCK_LOCX)==0)
 				ob->loc[0]= ob->dloc[0]= 0.0f;
 			if ((ob->protectflag & OB_LOCK_LOCY)==0)
@@ -2289,7 +2282,7 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if((G.f & G_WEIGHTPAINT)==0) {
+		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 			/* eulers can only get cleared if they are not protected */
 			if ((ob->protectflag & OB_LOCK_ROTX)==0)
 				ob->rot[0]= ob->drot[0]= 0.0f;
@@ -2333,7 +2326,7 @@ static int object_scale_clear_exec(bContext *C, wmOperator *op)
 	int armature_clear= 0;
 
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if((G.f & G_WEIGHTPAINT)==0) {
+		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 			if ((ob->protectflag & OB_LOCK_SCALEX)==0) {
 				ob->dsize[0]= 0.0f;
 				ob->size[0]= 1.0f;
@@ -3700,7 +3693,7 @@ void ED_object_exit_editmode(bContext *C, int flag)
 			me->edit_mesh= NULL;
 		}
 		
-		if(G.f & G_WEIGHTPAINT)
+		if(obedit->restore_mode & OB_MODE_WEIGHT_PAINT)
 			mesh_octree_table(obedit, NULL, NULL, 'e');
 	}
 	else if (obedit->type==OB_ARMATURE) {	
@@ -3724,7 +3717,7 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		load_editMball(obedit);
 		if(freedata) free_editMball(obedit);
 	}
-	
+
 	/* freedata only 0 now on file saves */
 	if(freedata) {
 		/* for example; displist make is different in editmode */
@@ -3739,6 +3732,9 @@ void ED_object_exit_editmode(bContext *C, int flag)
 	
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, scene);
 	}
+
+	obedit->mode &= ~OB_MODE_EDIT;
+	ED_object_toggle_modes(C, obedit->restore_mode);
 }
 
 
@@ -3772,7 +3768,10 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	
 	if(flag & EM_WAITCURSOR) waitcursor(1);
 
-	ED_view3d_exit_paint_modes(C);
+	ob->restore_mode = ob->mode;
+	ED_object_toggle_modes(C, ob->mode);
+
+	ob->mode |= OB_MODE_EDIT;
 	
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;
@@ -3860,6 +3859,16 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int editmode_toggle_poll(bContext *C)
+{
+	Object *ob = CTX_data_active_object(C);
+
+	return ob && (ob->type == OB_MESH || ob->type == OB_ARMATURE ||
+		      ob->type == OB_FONT || ob->type == OB_MBALL ||
+		      ob->type == OB_LATTICE || ob->type == OB_SURF ||
+		      ob->type == OB_CURVE);
+}
+
 void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 {
 	
@@ -3871,7 +3880,7 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= editmode_toggle_exec;
 	
-	ot->poll= ED_operator_object_active;
+	ot->poll= editmode_toggle_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -3888,7 +3897,7 @@ static int posemode_exec(bContext *C, wmOperator *op)
 			ED_object_exit_editmode(C, EM_FREEDATA);
 			ED_armature_enter_posemode(C, base);
 		}
-		else if(base->object->flag & OB_POSEMODE)
+		else if(base->object->mode & OB_MODE_POSE)
 			ED_armature_exit_posemode(C, base);
 		else
 			ED_armature_enter_posemode(C, base);
@@ -4111,10 +4120,10 @@ void special_editmenu(Scene *scene, View3D *v3d)
 	
 	if(obedit==NULL) {
 		
-		if(ob->flag & OB_POSEMODE) {
+		if(ob->mode & OB_MODE_POSE) {
 // XXX			pose_special_editmenu();
 		}
-		else if(FACESEL_PAINT_TEST) {
+		else if(paint_facesel_test(ob)) {
 			Mesh *me= get_mesh(ob);
 			MTFace *tface;
 			MFace *mface;
@@ -4160,7 +4169,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 			}
 			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 		}
-		else if(G.f & G_VERTEXPAINT) {
+		else if(ob->mode & OB_MODE_VERTEX_PAINT) {
 			Mesh *me= get_mesh(ob);
 			
 			if(me==0 || (me->mcol==NULL && me->mtface==NULL) ) return;
@@ -4173,17 +4182,17 @@ void special_editmenu(Scene *scene, View3D *v3d)
 				DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 			}
 		}
-		else if(G.f & G_WEIGHTPAINT) {
+		else if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 			Object *par= modifiers_isDeformedByArmature(ob);
 
-			if(par && (par->flag & OB_POSEMODE)) {
+			if(par && (par->mode & OB_MODE_POSE)) {
 				nr= pupmenu("Specials%t|Apply Bone Envelopes to Vertex Groups %x1|Apply Bone Heat Weights to Vertex Groups %x2");
 
 // XXX				if(nr==1 || nr==2)
 // XXX					pose_adds_vgroups(ob, (nr == 2));
 			}
 		}
-		else if(G.f & G_PARTICLEEDIT) {
+		else if(ob->mode & OB_MODE_PARTICLE_EDIT) {
 #if 0
 			// XXX
 			ParticleSystem *psys = PE_get_current(ob);
@@ -5725,7 +5734,7 @@ void new_id_matar(Material **matar, int totcol)
 	}
 }
 
-void single_obdata_users(Scene *scene, View3D *v3d, int flag)
+void single_obdata_users(Scene *scene, int flag)
 {
 	Object *ob;
 	Lamp *la;
@@ -5848,7 +5857,7 @@ void single_obdata_users(Scene *scene, View3D *v3d, int flag)
 	}
 }
 
-void single_ipo_users(Scene *scene, View3D *v3d, int flag)
+void single_ipo_users(Scene *scene, int flag)
 {
 #if 0 // XXX old animation system
 	Object *ob;
@@ -5871,7 +5880,7 @@ void single_ipo_users(Scene *scene, View3D *v3d, int flag)
 #endif // XXX old animation system
 }
 
-void single_mat_users(Scene *scene, View3D *v3d, int flag)
+void single_mat_users(Scene *scene, int flag)
 {
 	Object *ob;
 	Base *base;
@@ -6057,25 +6066,39 @@ void single_user(Scene *scene, View3D *v3d)
 	
 		else if(nr==2) {
 			single_object_users(scene, v3d, 1);
-			single_obdata_users(scene, v3d, 1);
+			single_obdata_users(scene, 1);
 		}
 		else if(nr==3) {
 			single_object_users(scene, v3d, 1);
-			single_obdata_users(scene, v3d, 1);
-			single_mat_users(scene, v3d, 1); /* also tex */
+			single_obdata_users(scene, 1);
+			single_mat_users(scene, 1); /* also tex */
 			
 		}
 		else if(nr==4) {
-			single_mat_users(scene, v3d, 1);
+			single_mat_users(scene, 1);
 		}
 		else if(nr==5) {
-			single_ipo_users(scene, v3d, 1);
+			single_ipo_users(scene, 1);
 		}
 		
 		
 		clear_id_newpoins();
 
 	}
+}
+
+/* used for copying scenes */
+void ED_object_single_users(Scene *scene, int full)
+{
+    single_object_users(scene, NULL, 0);
+
+    if(full) {
+        single_obdata_users(scene, 0);
+        single_mat_users_expand();
+        single_tex_users_expand();
+    }
+
+	clear_id_newpoins();
 }
 
 /* ************************************************************* */
@@ -6282,7 +6305,7 @@ static Base *object_add_duplicate_internal(Scene *scene, Base *base, int dupflag
 	int a, didit;
 
 	ob= base->object;
-	if(ob->flag & OB_POSEMODE) {
+	if(ob->mode & OB_MODE_POSE) {
 		; /* nothing? */
 	}
 	else {
@@ -7017,4 +7040,98 @@ void hookmenu(Scene *scene, View3D *v3d)
 	
 	if (changed) {
 	}	
+}
+
+static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *ptr, int *free)
+{	
+	EnumPropertyItem *input = object_mode_items;
+	EnumPropertyItem *item= NULL;
+	Object *ob;
+	int totitem= 0;
+	
+	if(!C) /* needed for docs */
+		return object_mode_items;
+
+	ob = CTX_data_active_object(C);
+	while(ob && input->identifier) {
+		if((input->value == OB_MODE_EDIT && ((ob->type == OB_MESH) || (ob->type == OB_ARMATURE) ||
+						    (ob->type == OB_CURVE) || (ob->type == OB_SURF) ||
+						     (ob->type == OB_FONT) || (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) ||
+		   (input->value == OB_MODE_POSE && (ob->type == OB_ARMATURE)) ||
+		   (input->value == OB_MODE_PARTICLE_EDIT && ob->particlesystem.first) ||
+		   ((input->value == OB_MODE_SCULPT || input->value == OB_MODE_VERTEX_PAINT ||
+		     input->value == OB_MODE_WEIGHT_PAINT || input->value == OB_MODE_TEXTURE_PAINT) && (ob->type == OB_MESH)) ||
+		   (input->value == OB_MODE_OBJECT))
+			RNA_enum_item_add(&item, &totitem, input);
+		++input;
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+
+	*free= 1;
+
+	return item;
+}
+
+static int object_mode_set_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	int mode = RNA_enum_get(op->ptr, "mode");
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	if((mode == OB_MODE_EDIT) == !(ob->mode & OB_MODE_EDIT))
+		WM_operator_name_call(C, "OBJECT_OT_editmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if((mode == OB_MODE_SCULPT) == !(ob->mode & OB_MODE_SCULPT))
+		WM_operator_name_call(C, "SCULPT_OT_sculptmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if((mode == OB_MODE_VERTEX_PAINT) == !(ob->mode & OB_MODE_VERTEX_PAINT))
+		WM_operator_name_call(C, "PAINT_OT_vertex_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if((mode == OB_MODE_WEIGHT_PAINT) == !(ob->mode & OB_MODE_WEIGHT_PAINT))
+		WM_operator_name_call(C, "PAINT_OT_weight_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if((mode == OB_MODE_TEXTURE_PAINT) == !(ob->mode & OB_MODE_TEXTURE_PAINT))
+		WM_operator_name_call(C, "PAINT_OT_texture_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if((mode == OB_MODE_PARTICLE_EDIT) == !(ob->mode & OB_MODE_PARTICLE_EDIT))
+		WM_operator_name_call(C, "PARTICLE_OT_particle_edit_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if((mode == OB_MODE_POSE) == !(ob->mode & OB_MODE_POSE))
+		WM_operator_name_call(C, "OBJECT_OT_posemode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_mode_set(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name= "Set Object Mode";
+	ot->description = "Sets the object interaction mode.";
+	ot->idname= "OBJECT_OT_mode_set";
+	
+	/* api callbacks */
+	ot->exec= object_mode_set_exec;
+	
+	ot->poll= ED_operator_object_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	prop= RNA_def_enum(ot->srna, "mode", object_mode_items, 0, "Mode", "");
+	RNA_def_enum_funcs(prop, object_mode_set_itemsf);
+}
+
+
+
+void ED_object_toggle_modes(bContext *C, int mode)
+{
+	if(mode & OB_MODE_SCULPT)
+		WM_operator_name_call(C, "SCULPT_OT_sculptmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if(mode & OB_MODE_VERTEX_PAINT)
+		WM_operator_name_call(C, "PAINT_OT_vertex_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if(mode & OB_MODE_WEIGHT_PAINT)
+		WM_operator_name_call(C, "PAINT_OT_weight_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if(mode & OB_MODE_TEXTURE_PAINT)
+		WM_operator_name_call(C, "PAINT_OT_texture_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if(mode & OB_MODE_PARTICLE_EDIT)
+		WM_operator_name_call(C, "PARTICLE_OT_particle_edit_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 }

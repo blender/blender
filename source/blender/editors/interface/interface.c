@@ -2931,10 +2931,11 @@ void uiButSetRenameFunc(uiBut *but, uiButHandleRenameFunc func, void *arg1)
 	but->rename_arg1= arg1;
 }
 
-void uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(const bContext *C, void *idv, void *argv, rcti *rect), void *arg)
+void uiBlockSetDrawExtraFunc(uiBlock *block, void (*func)(const bContext *C, void *idv, void *arg1, void *arg2, rcti *rect), void *arg1, void *arg2)
 {
 	block->drawextra= func;
-	block->drawextra_arg= arg;
+	block->drawextra_arg1= arg1;
+	block->drawextra_arg2= arg2;
 }
 
 void uiButSetFunc(uiBut *but, uiButHandleFunc func, void *arg1, void *arg2)

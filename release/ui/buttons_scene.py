@@ -2,7 +2,7 @@
 import bpy
 
 class RenderButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
+	__space_type__ = "PROPERTIES"
 	__region_type__ = "WINDOW"
 	__context__ = "scene"
 	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
@@ -439,12 +439,12 @@ class SCENE_PT_unit(RenderButtonsPanel):
 		unit = context.scene.unit_settings
 		
 		col = layout.column()
-		col.itemR(unit, "system")
+		col.row().itemR(unit, "system", expand=True)
 		
-		col = layout.column()
-		col.active = (unit.system != 'NONE')
-		col.itemR(unit, "scale_length")
-		col.itemR(unit, "use_separate")
+		row = layout.row()
+		row.active = (unit.system != 'NONE')
+		row.itemR(unit, "scale_length", text="Scale")
+		row.itemR(unit, "use_separate")
 
 
 bpy.types.register(SCENE_PT_render)

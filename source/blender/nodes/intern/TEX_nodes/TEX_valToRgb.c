@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Robin Allen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -39,10 +39,10 @@ static bNodeSocketType valtorgb_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void valtorgb_colorfn(float *out, float *coord, bNode *node, bNodeStack **in, short thread)
+static void valtorgb_colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
 	if(node->storage) {
-		float fac = tex_input_value(in[0], coord, thread);
+		float fac = tex_input_value(in[0], p, thread);
 
 		do_colorband(node->storage, fac, out);
 	}
@@ -87,10 +87,10 @@ static bNodeSocketType rgbtobw_out[]= {
 };
 
 
-static void rgbtobw_valuefn(float *out, float *coord, bNode *node, bNodeStack **in, short thread)
+static void rgbtobw_valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
 	float cin[4];
-	tex_input_rgba(cin, in[0], coord, thread);
+	tex_input_rgba(cin, in[0], p, thread);
 	
 	*out = cin[0] * 0.35f + cin[1] * 0.45f + cin[2] * 0.2f;
 }

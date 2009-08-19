@@ -266,7 +266,6 @@ static int ptcache_add_new_exec(bContext *C, wmOperator *op)
 }
 static int ptcache_remove_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "PointCache", &RNA_PointCache);
 	Object *ob= ptr.id.data;
 	PointCache *cache= ptr.data;

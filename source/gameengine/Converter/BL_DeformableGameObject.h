@@ -45,7 +45,6 @@ struct Key;
 class BL_DeformableGameObject : public KX_GameObject  
 {
 public:
-
 	CValue*		GetReplica();
 
 	double GetLastFrame ()
@@ -100,6 +99,12 @@ protected:
 	Object*		m_blendobj;
 	short		m_activePriority;
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_DeformableGameObject"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

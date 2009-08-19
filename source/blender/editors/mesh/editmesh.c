@@ -67,6 +67,7 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_pointcache.h"
 #include "BKE_softbody.h"
 #include "BKE_texture.h"
@@ -891,7 +892,7 @@ void make_editMesh(Scene *scene, Object *ob)
 		evlist[a]= eve;
 		
 		// face select sets selection in next loop
-		if( (FACESEL_PAINT_TEST)==0 )
+		if(!paint_facesel_test(ob))
 			eve->f |= (mvert->flag & 1);
 		
 		if (mvert->flag & ME_HIDE) eve->h= 1;		
@@ -966,7 +967,7 @@ void make_editMesh(Scene *scene, Object *ob)
 					if(mface->flag & ME_FACE_SEL) {
 						efa->f |= SELECT;
 						
-						if(FACESEL_PAINT_TEST) {
+						if(paint_facesel_test(ob)) {
 							EM_select_face(efa, 1); /* flush down */
 						}
 					}
@@ -1622,6 +1623,7 @@ void MESH_OT_separate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Separate";
+	ot->description= "Separate selected geometry into a new mesh.";
 	ot->idname= "MESH_OT_separate";
 	
 	/* api callbacks */

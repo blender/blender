@@ -289,6 +289,13 @@ public:
 
 	virtual void	SetBlendingMode(int blendmode);
 	virtual void	SetFrontFace(bool ccw);
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_OpenGLRasterizer"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__RAS_OPENGLRASTERIZER

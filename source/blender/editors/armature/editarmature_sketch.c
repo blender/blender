@@ -2320,7 +2320,7 @@ void sk_drawSketch(Scene *scene, View3D *v3d, SK_Sketch *sketch, int with_names)
 
 		for (p = sketch->depth_peels.first; p; p = p->next)
 		{
-			int index = (int)(p->ob);
+			int index = GET_INT_FROM_POINTER(p->ob);
 			index = (index >> 5) & 7;
 
 			glColor3fv(colors[index]);

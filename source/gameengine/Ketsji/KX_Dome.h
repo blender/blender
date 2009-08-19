@@ -18,7 +18,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 Contributor(s): Dalai Felinto
 
 This source uses some of the ideas and code from Paul Bourke.
-Developed as part of a Research and Development project for SAT - La Société des arts technologiques.
+Developed as part of a Research and Development project for SAT - La Sociï¿½tï¿½ des arts technologiques.
 -----------------------------------------------------------------------------
 */
 
@@ -78,7 +78,7 @@ public:
 	bool	fboSupported;
 
 	//openGL names:
-	GLuint domefacesId[7];		// ID of the images -- room for 7 images, using only 4 for 180º x 360º dome, 6 for panoramic and +1 for warp mesh
+	GLuint domefacesId[7];		// ID of the images -- room for 7 images, using only 4 for 180ï¿½ x 360ï¿½ dome, 6 for panoramic and +1 for warp mesh
 	GLuint dlistId;				// ID of the Display Lists of the images (used as an offset)
 	
 	typedef struct {
@@ -184,6 +184,13 @@ protected:
     RAS_IRenderTools* m_rendertools;
     /// engine
     KX_KetsjiEngine* m_engine;
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_Dome"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

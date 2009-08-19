@@ -1002,6 +1002,7 @@ static void view3d_panel_transform_spaces(const bContext *C, Panel *pa)
 }
 #endif // XXX not used
 
+#if 0
 static void brush_idpoin_handle(bContext *C, ID *id, int event)
 {
 	Brush **br = current_brush_source(CTX_data_scene(C));
@@ -1032,6 +1033,7 @@ static void brush_idpoin_handle(bContext *C, ID *id, int event)
 		break;
 	}
 }
+#endif
 
 static void view3d_panel_object(const bContext *C, Panel *pa)
 {
@@ -1043,7 +1045,6 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	Object *ob= OBACT;
 	TransformProperties *tfp;
 	float lim;
-	static char hexcol[128];
 	
 	if(ob==NULL) return;
 
@@ -1057,13 +1058,13 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 
 // XXX	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
-	if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
+	if(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)) {
 	}
 	else {
 		//bt= uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,140,20, ob->id.name+2, 0.0, 21.0, 0, 0, "");
 		//uiButSetFunc(bt, test_idbutton_cb, ob->id.name, NULL);
 
-		if((G.f & G_PARTICLEEDIT)==0) {
+		if((ob->mode & OB_MODE_PARTICLE_EDIT)==0) {
 		//	uiBlockBeginAlign(block);
 		//	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
 			if((ob->parent) && (ob->partype == PARBONE)) {
@@ -1084,7 +1085,7 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 		if(ob->type==OB_MBALL) v3d_editmetaball_buts(block, ob, lim);
 		else v3d_editvertex_buts(C, block, v3d, ob, lim);
 	}
-	else if(ob->flag & OB_POSEMODE) {
+	else if(ob->mode & OB_MODE_POSE) {
 		v3d_posearmature_buts(block, v3d, ob, lim);
 	}
 	else {

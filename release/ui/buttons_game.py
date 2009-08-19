@@ -2,7 +2,7 @@
 import bpy
  
 class PhysicsButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
+	__space_type__ = "PROPERTIES"
 	__region_type__ = "WINDOW"
 	__context__ = "physics"
 
@@ -35,8 +35,8 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 			col.itemR(ob, "restrict_render", text="Invisible") # out of place but useful
 			
 			col = split.column()
-			col.itemR(game, "do_fh", text="Use Material Physics")
-			col.itemR(game, "rotation_fh", text="Rotate From Normal")
+			col.itemR(game, "material_physics")
+			col.itemR(game, "rotate_from_normal")
 			col.itemR(game, "no_sleeping")
 			
 			layout.itemS()
@@ -50,12 +50,15 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 			sub.itemR(game, "radius")
 			sub.itemR(game, "form_factor")
 			
-			col.itemS()
+			col = split.column()
+			sub = col.column()
+			sub.active = (game.physics_type == 'RIGID_BODY')
+			sub.itemR(game, "anisotropic_friction")
+			subsub = sub.column()
+			subsub.active = game.anisotropic_friction
+			subsub.itemR(game, "friction_coefficients", text="", slider=True)
 			
-			col.itemL(text="Damping:")
-			sub = col.column(align=True)
-			sub.itemR(game, "damping", text="Translation", slider=True)
-			sub.itemR(game, "rotation_damping", text="Rotation", slider=True)
+			split = layout.split()
 			
 			col = split.column()
 			col.itemL(text="Velocity:")
@@ -63,14 +66,11 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 			sub.itemR(game, "minimum_velocity", text="Minimum")
 			sub.itemR(game, "maximum_velocity", text="Maximum")
 			
-			col.itemS()
-			
-			sub = col.column()
-			sub.active = (game.physics_type == 'RIGID_BODY')
-			sub.itemR(game, "anisotropic_friction")
-			subsub = sub.column()
-			subsub.active = game.anisotropic_friction
-			subsub.itemR(game, "friction_coefficients", text="", slider=True)
+			col = split.column()
+			col.itemL(text="Damping:")
+			sub = col.column(align=True)
+			sub.itemR(game, "damping", text="Translation", slider=True)
+			sub.itemR(game, "rotation_damping", text="Rotation", slider=True)
 			
 			layout.itemS()
 			
@@ -119,10 +119,10 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 			col.itemS()
 			
 			col.itemL(text="Cluster Collision:")
-			col.itemR(soft, "enable_rs_collision", text="Rigid to Soft Body")
-			col.itemR(soft, "enable_ss_collision", text="Soft to Soft Body")
+			col.itemR(soft, "cluster_rigid_to_softbody")
+			col.itemR(soft, "cluster_soft_to_softbody")
 			sub  = col.column()
-			sub.active = (soft.enable_rs_collision or soft.enable_ss_collision)
+			sub.active = (soft.cluster_rigid_to_softbody or soft.cluster_soft_to_softbody)
 			sub.itemR(soft, "cluster_iterations", text="Iterations")
 		
 		elif game.physics_type == 'STATIC':
@@ -171,7 +171,7 @@ bpy.types.register(PHYSICS_PT_game_physics)
 bpy.types.register(PHYSICS_PT_game_collision_bounds)
 
 class SceneButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
+	__space_type__ = "PROPERTIES"
 	__region_type__ = "WINDOW"
 	__context__ = "scene"
 
@@ -192,7 +192,7 @@ class SCENE_PT_game(SceneButtonsPanel):
 		row.itemL()
 
 class SCENE_PT_game_player(SceneButtonsPanel):
-	__label__ = "Player"
+	__label__ = "Standalone Player"
 
 	def draw(self, context):
 		layout = self.layout
@@ -219,8 +219,8 @@ class SCENE_PT_game_player(SceneButtonsPanel):
 		col = layout.column()
 		col.itemL(text="Framing:")
 		col.row().itemR(gs, "framing_type", expand=True)
-		sub = col.column()
-		sub.itemR(gs, "framing_color", text="")
+		if gs.framing_type == 'LETTERBOX':
+			col.itemR(gs, "framing_color", text="")
 
 class SCENE_PT_game_stereo(SceneButtonsPanel):
 	__label__ = "Stereo"
@@ -271,12 +271,58 @@ class SCENE_PT_game_stereo(SceneButtonsPanel):
 		
 			layout.itemR(gs, "dome_text")
 
+class SCENE_PT_game_shading(SceneButtonsPanel):
+	__label__ = "Shading"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		gs = context.scene.game_data
+		layout.itemR(gs, "material_mode", expand=True)
+ 
+		if gs.material_mode == 'GLSL':
+			split = layout.split()
+
+			col = split.column()
+			col.itemR(gs, "glsl_lights", text="Lights")
+			col.itemR(gs, "glsl_shaders", text="Shaders")
+			col.itemR(gs, "glsl_shadows", text="Shadows")
+
+			col = split.column()
+			col.itemR(gs, "glsl_ramps", text="Ramps")
+			col.itemR(gs, "glsl_nodes", text="Nodes")
+			col.itemR(gs, "glsl_extra_textures", text="Extra Textures")
+
+class SCENE_PT_game_performance(SceneButtonsPanel):
+	__label__ = "Performance"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		gs = context.scene.game_data
+
+		split = layout.split()
+
+		col = split.column()
+		col.itemL(text="Show:")
+		col.itemR(gs, "show_debug_properties", text="Debug Properties")
+		col.itemR(gs, "show_framerate_profile", text="Framerate and Profile")
+		col.itemR(gs, "show_physics_visualization", text="Physics Visualization")
+		col.itemR(gs, "deprecation_warnings")
+ 
+		col = split.column()
+		col.itemL(text="Render:")
+		col.itemR(gs, "all_frames")
+		col.itemR(gs, "display_lists")
+
 bpy.types.register(SCENE_PT_game)
 bpy.types.register(SCENE_PT_game_player)
 bpy.types.register(SCENE_PT_game_stereo)
+bpy.types.register(SCENE_PT_game_shading)
+bpy.types.register(SCENE_PT_game_performance)
 
 class WorldButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
+	__space_type__ = "PROPERTIES"
 	__region_type__ = "WINDOW"
 	__context__ = "world"
 

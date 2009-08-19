@@ -27,13 +27,11 @@
 #include "AUD_SDLDevice.h"
 #include "AUD_IReader.h"
 
-#include <SDL.h>
-
-// this is the callback function for SDL, it only calls the class
-void mixAudio(void *data, Uint8* buffer, int length)
+void AUD_SDLDevice::SDL_mix(void *data, Uint8* buffer, int length)
 {
 	AUD_SDLDevice* device = (AUD_SDLDevice*)data;
-	device->SDLmix((sample_t *)buffer, length);
+
+	device->mix((sample_t*)buffer, length/AUD_SAMPLE_SIZE(device->m_specs));
 }
 
 AUD_SDLDevice::AUD_SDLDevice(AUD_Specs specs, int buffersize)
@@ -56,7 +54,7 @@ AUD_SDLDevice::AUD_SDLDevice(AUD_Specs specs, int buffersize)
 		format.format = AUDIO_S16SYS;
 	format.channels = m_specs.channels;
 	format.samples = buffersize;
-	format.callback = &mixAudio;
+	format.callback = AUD_SDLDevice::SDL_mix;
 	format.userdata = this;
 
 	if(SDL_OpenAudio(&format, &obtained) != 0)
@@ -84,11 +82,6 @@ AUD_SDLDevice::~AUD_SDLDevice()
 	unlock();
 
 	destroy();
-}
-
-void AUD_SDLDevice::SDLmix(sample_t* buffer, int length)
-{
-	mix(buffer, length/AUD_SAMPLE_SIZE(m_specs));
 }
 
 void AUD_SDLDevice::playing(bool playing)

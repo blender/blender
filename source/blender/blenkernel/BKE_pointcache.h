@@ -57,9 +57,11 @@
 #define PTCACHE_FILE_WRITE	1
 
 /* PTCacheID types */
-#define PTCACHE_TYPE_SOFTBODY	0
-#define PTCACHE_TYPE_PARTICLES	1
-#define PTCACHE_TYPE_CLOTH		2
+#define PTCACHE_TYPE_SOFTBODY			0
+#define PTCACHE_TYPE_PARTICLES			1
+#define PTCACHE_TYPE_CLOTH				2
+#define PTCACHE_TYPE_SMOKE_DOMAIN_LOW	3
+#define PTCACHE_TYPE_SMOKE_DOMAIN_HIGH	4
 
 /* PTCache read return code */
 #define PTCACHE_READ_EXACT				1
@@ -73,6 +75,7 @@ struct SoftBody;
 struct ParticleSystem;
 struct ParticleKey;
 struct ClothModifierData;
+struct SmokeModifierData;
 struct PointCache;
 struct ListBase;
 
@@ -112,8 +115,12 @@ typedef struct PTCacheID {
 
 	/* copies point data to cache data */
 	int (*write_elem)(int index, void *calldata, void **data);
+	/* copies point data to cache data */
+	int (*write_stream)(PTCacheFile *pf, void *calldata);
 	/* copies cache cata to point data */
 	void (*read_elem)(int index, void *calldata, void **data, float frs_sec, float cfra, float *old_data);
+	/* copies cache cata to point data */
+	void (*read_stream)(PTCacheFile *pf, void *calldata);
 	/* interpolated between previously read point data and cache data */
 	void (*interpolate_elem)(int index, void *calldata, void **data, float frs_sec, float cfra, float cfra1, float cfra2, float *old_data);
 
@@ -151,6 +158,7 @@ void BKE_ptcache_make_particle_key(struct ParticleKey *key, int index, void **da
 void BKE_ptcache_id_from_softbody(PTCacheID *pid, struct Object *ob, struct SoftBody *sb);
 void BKE_ptcache_id_from_particles(PTCacheID *pid, struct Object *ob, struct ParticleSystem *psys);
 void BKE_ptcache_id_from_cloth(PTCacheID *pid, struct Object *ob, struct ClothModifierData *clmd);
+void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeModifierData *smd, int num);
 
 void BKE_ptcache_ids_from_object(struct ListBase *lb, struct Object *ob);
 
@@ -192,7 +200,7 @@ struct PointCache *BKE_ptcache_add(struct ListBase *ptcaches);
 void BKE_ptache_free_mem(struct PointCache *cache);
 void BKE_ptcache_free(struct PointCache *cache);
 void BKE_ptcache_free_list(struct ListBase *ptcaches);
-struct PointCache *BKE_ptcache_copy(struct PointCache *cache);
+struct PointCache *BKE_ptcache_copy_list(struct ListBase *ptcaches_new, struct ListBase *ptcaches_old);
 
 /********************** Baking *********************/
 

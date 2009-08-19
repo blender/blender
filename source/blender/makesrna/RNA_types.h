@@ -263,7 +263,7 @@ typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_
 typedef int (*StructCallbackFunc)(struct PointerRNA *ptr, struct FunctionRNA *func, ParameterList *list);
 typedef void (*StructFreeFunc)(void *data);
 typedef struct StructRNA *(*StructRegisterFunc)(const struct bContext *C, struct ReportList *reports, void *data,
-	StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);
+	const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free);
 typedef void (*StructUnregisterFunc)(const struct bContext *C, struct StructRNA *type);
 
 typedef struct StructRNA StructRNA;

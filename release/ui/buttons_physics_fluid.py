@@ -2,7 +2,7 @@
 import bpy
 
 class PhysicButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
+	__space_type__ = "PROPERTIES"
 	__region_type__ = "WINDOW"
 	__context__ = "physics"
 
@@ -51,10 +51,9 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 				
 				col = split.column()
 				col.itemL(text="Resolution:")
-				sub = col.column()
-				sub.itemR(fluid, "resolution", text="Final")
-				sub.itemL(text="Render Display:")
-				sub.itemR(fluid, "render_display_mode", text="")
+				col.itemR(fluid, "resolution", text="Final")
+				col.itemL(text="Render Display:")
+				col.itemR(fluid, "render_display_mode", text="")
 				col.itemL(text="Time:")
 				sub = col.column(align=True)
 				sub.itemR(fluid, "start_time", text="Start")
@@ -66,8 +65,8 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 				col.itemL(text="Viewport Display:")
 				col.itemR(fluid, "viewport_display_mode", text="")
 				col.itemL()
-				col.itemR(fluid, "reverse_frames")
 				col.itemR(fluid, "generate_speed_vectors")
+				col.itemR(fluid, "reverse_frames")
 				
 				layout.itemR(fluid, "path", text="")
 				
@@ -93,12 +92,12 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 				
 				col = split.column()
 				col.itemL(text="Slip Type:")
-				sub = col.column(align=True)
-				sub.itemR(fluid, "slip_type", text="")
+				col.itemR(fluid, "slip_type", text="")
 				if fluid.slip_type == 'PARTIALSLIP':
-					sub.itemR(fluid, "partial_slip_amount", slider=True, text="Amount")
+					col.itemR(fluid, "partial_slip_amount", slider=True, text="Amount")
 					
-				col.itemR(fluid, "impact_factor")
+				col.itemL(text="Impact:")
+				col.itemR(fluid, "impact_factor", text="Factor")
 				
 			elif fluid.type == 'INFLOW':
 				split = layout.split()
@@ -124,21 +123,22 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 				split.column()
 				
 			elif fluid.type == 'PARTICLE':
-				split = layout.split()
+				split = layout.split(percentage=0.5)
 				
 				col = split.column()
 				col.itemL(text="Influence:")
-				sub = col.column(align=True)
-				sub.itemR(fluid, "particle_influence", text="Size")
-				sub.itemR(fluid, "alpha_influence", text="Alpha")
-				
-				layout.itemR(fluid, "path", text="")
+				col.itemR(fluid, "particle_influence", text="Size")
+				col.itemR(fluid, "alpha_influence", text="Alpha")
 				
 				col = split.column()
 				col.itemL(text="Type:")
 				col.itemR(fluid, "drops")
 				col.itemR(fluid, "floats")
+				col = split.column()
+				col.itemL()
 				col.itemR(fluid, "tracer")
+				
+				layout.itemR(fluid, "path", text="")
 				
 			elif fluid.type == 'CONTROL':
 				split = layout.split()

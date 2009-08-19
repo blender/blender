@@ -42,6 +42,10 @@
 #include <map>		// array functionality for the propertylist
 #include "STR_String.h"	// STR_String class
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 #ifndef GEN_NO_ASSERT
 #undef  assert
 #define	assert(exp)			((void)NULL)
@@ -173,6 +177,13 @@ public:
 	virtual ~CAction(){
 	};
 	virtual void Execute() const =0;
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CAction"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 //
@@ -407,7 +418,6 @@ public:																									\
 class CPropValue : public CValue
 {
 public:
-
 #ifndef NO_EXP_PYTHON_EMBEDDING	
 	CPropValue() :
 	  CValue(),
@@ -436,6 +446,13 @@ public:
 	
 protected:
 	STR_String					m_strNewName;				    // Identification
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CPropValue"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif // !defined _VALUEBASECLASS_H

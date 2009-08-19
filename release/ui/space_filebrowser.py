@@ -10,7 +10,7 @@ class FILEBROWSER_HT_header(bpy.types.Header):
 		layout = self.layout
 		
 		params = st.params 
-		layout.template_header()
+		layout.template_header(menus=False)
 		
 		row = layout.row(align=True)
 		row.itemO("file.parent", text="", icon='ICON_FILE_PARENT')

@@ -59,6 +59,7 @@
 #include "BKE_key.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
+#include "BKE_paint.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
@@ -299,7 +300,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, char **grid_u
 
 				/* Store the smallest drawn grid size units name so users know how big each grid cell is */
 				if(*grid_unit==NULL) {
-					*grid_unit= bUnit_GetNamePlural(usys, i);
+					*grid_unit= bUnit_GetNameDisplay(usys, i);
 					v3d->gridview= (scalar * unit->scale_length);
 				}
 				blend_fac= 1-((GRID_MIN_PX*2)/dx_scalar);
@@ -797,7 +798,7 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 					}
 				}
 			}
-			else if(ob->pose && (ob->flag & OB_POSEMODE)) {
+			else if(ob->pose && (ob->mode & OB_MODE_POSE)) {
 				bPoseChannel *pchan;
 				for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 					if((pchan->bone->flag & BONE_ACTIVE) && (pchan->bone->layer & arm->layer)) {
@@ -1090,7 +1091,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	RegionView3D *rv3d= ar->regiondata;
-	struct Base *base;
+	struct Base *base = scene->basact;
 
 /*for 2.43 release, don't use glext and just define the constant.
   this to avoid possibly breaking platforms before release.*/
@@ -1102,9 +1103,11 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	int m;
 #endif
 
-	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT || (FACESEL_PAINT_TEST));
-	else if((G.f & G_TEXTUREPAINT) && scene->toolsettings && (scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE));
-	else if((G.f & G_PARTICLEEDIT) && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
+	if(base && (base->object->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT) ||
+		     paint_facesel_test(base->object)));
+	else if((base && (base->object->mode & OB_MODE_TEXTURE_PAINT)) &&
+		scene->toolsettings && (scene->toolsettings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE));
+	else if((base && (base->object->mode & OB_MODE_PARTICLE_EDIT)) && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
 	else if(scene->obedit && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT));
 	else {
 		v3d->flag &= ~V3D_NEEDBACKBUFDRAW;
@@ -1149,7 +1152,6 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	
 	G.f |= G_BACKBUFSEL;
 	
-	base= (scene->basact);
 	if(base && (base->lay & v3d->lay)) {
 		draw_object_backbufsel(scene, v3d, rv3d, base->object);
 	}
@@ -1853,13 +1855,13 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 /* *********************** customdata **************** */
 
 /* goes over all modes and view3d settings */
-static CustomDataMask get_viewedit_datamask(bScreen *screen)
+static CustomDataMask get_viewedit_datamask(bScreen *screen, Scene *scene, Object *ob)
 {
 	CustomDataMask mask = CD_MASK_BAREMESH;
 	ScrArea *sa;
 	
 	/* check if we need tfaces & mcols due to face select or texture paint */
-	if(FACESEL_PAINT_TEST || G.f & G_TEXTUREPAINT)
+	if(paint_facesel_test(ob) || (ob && ob->mode & OB_MODE_TEXTURE_PAINT))
 		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 	
 	/* check if we need tfaces & mcols due to view mode */
@@ -1873,23 +1875,22 @@ static CustomDataMask get_viewedit_datamask(bScreen *screen)
 			if((view->drawtype == OB_TEXTURE) || ((view->drawtype == OB_SOLID) && (view->flag2 & V3D_SOLID_TEX))) {
 				mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 				
-				if((G.fileflags & G_FILE_GAME_MAT) &&
-				   (G.fileflags & G_FILE_GAME_MAT_GLSL)) {
+				if(scene->gm.matmode == GAME_MAT_GLSL)
 					mask |= CD_MASK_ORCO;
-				}
 			}
 		}
 	}
 	
 	/* check if we need mcols due to vertex paint or weightpaint */
-	if(G.f & G_VERTEXPAINT)
-		mask |= CD_MASK_MCOL;
-	if(G.f & G_WEIGHTPAINT)
-		mask |= CD_MASK_WEIGHT_MCOL;
-	
-	if(G.f & G_SCULPTMODE)
-		mask |= CD_MASK_MDISPS;
-	
+	if(ob) {
+		if(ob->mode & OB_MODE_VERTEX_PAINT)
+			mask |= CD_MASK_MCOL;
+		if(ob->mode & OB_MODE_WEIGHT_PAINT)
+			mask |= CD_MASK_WEIGHT_MCOL;
+		if(ob->mode & OB_MODE_SCULPT)
+			mask |= CD_MASK_MDISPS;
+	}
+
 	return mask;
 }
 
@@ -1906,7 +1907,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	char *grid_unit= NULL;
 	
 	/* from now on all object derived meshes check this */
-	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C));
+	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C), scene, obact);
 	
 	/* shadow buffers, before we setup matrices */
 	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
@@ -2032,7 +2033,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 
 //	retopo= retopo_mesh_check() || retopo_curve_check();
-	sculptparticle= (G.f & (G_SCULPTMODE|G_PARTICLEEDIT)) && !scene->obedit;
+	sculptparticle= (obact && obact->mode & (OB_MODE_SCULPT|OB_MODE_PARTICLE_EDIT)) && !scene->obedit;
 	if(retopo)
 		view3d_update_depths(ar, v3d);
 	
@@ -2045,7 +2046,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	
 	if(!retopo && sculptparticle && !(obact && (obact->dtx & OB_DRAWXRAY))) {
-		if(G.f & G_SCULPTMODE)
+		if(obact && obact->mode & OB_MODE_SCULPT)
 			draw_sculpt_depths(scene, ar, v3d);
 		view3d_update_depths(ar, v3d);
 	}
@@ -2061,7 +2062,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
 	
 	if(!retopo && sculptparticle && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
-		if(G.f & G_SCULPTMODE)
+		if(obact && obact->mode & OB_MODE_SCULPT)
 			draw_sculpt_depths(scene, ar, v3d);
 		view3d_update_depths(ar, v3d);
 	}
@@ -2120,12 +2121,12 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* XXX here was the blockhandlers for floating panels */
 
-	if(G.f & G_VERTEXPAINT || G.f & G_WEIGHTPAINT || G.f & G_TEXTUREPAINT) {
+	if(ob && ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT)) {
 		v3d->flag |= V3D_NEEDBACKBUFDRAW;
 		// XXX addafterqueue(ar->win, BACKBUFDRAW, 1);
 	}
 
-	if((G.f & G_PARTICLEEDIT) && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT)) {
+	if((ob && ob->mode & OB_MODE_PARTICLE_EDIT) && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT)) {
 		v3d->flag |= V3D_NEEDBACKBUFDRAW;
 		// XXX addafterqueue(ar->win, BACKBUFDRAW, 1);
 	}

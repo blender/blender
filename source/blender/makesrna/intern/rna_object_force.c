@@ -864,13 +864,13 @@ static void rna_def_game_softbody(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_BSB_BENDING_CONSTRAINTS);
 	RNA_def_property_ui_text(prop, "Bending Const", "Enable bending constraints");
 	
-	prop= RNA_def_property(srna, "enable_rs_collision", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "cluster_rigid_to_softbody", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "collisionflags", OB_BSB_COL_CL_RS);
-	RNA_def_property_ui_text(prop, "Cluster Collision RS", "Enable cluster collision between soft and rigid body");
+	RNA_def_property_ui_text(prop, "Rigid to Soft Body", "Enable cluster collision between soft and rigid body");
 	
-	prop= RNA_def_property(srna, "enable_ss_collision", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "cluster_soft_to_softbody", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "collisionflags", OB_BSB_COL_CL_SS);
-	RNA_def_property_ui_text(prop, "Cluster Collision SS", "Enable cluster collision between soft and soft body");
+	RNA_def_property_ui_text(prop, "Soft to Soft Body", "Enable cluster collision between soft and soft body");
 }
 
 static void rna_def_softbody(BlenderRNA *brna)

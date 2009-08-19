@@ -30,6 +30,10 @@
 
 #define MAX_RENDER_PASS	100
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class RAS_2DFilterManager
 {
 private:
@@ -97,5 +101,12 @@ public:
 	void RenderFilters(RAS_ICanvas* canvas);
 
 	void EnableFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFILTER_MODE mode, int pass, STR_String& text);
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_2DFilterManager"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 #endif

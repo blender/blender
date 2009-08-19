@@ -170,23 +170,28 @@ static void file_panel_operator(const bContext *C, Panel *pa)
 	wmOperator *op= sfile->op;
 	int empty= 1;
 
-	RNA_STRUCT_BEGIN(op->ptr, prop) {
-		if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
-			continue;
-		if(strcmp(RNA_property_identifier(prop), "filename") == 0)
-			continue;
-		if(strcmp(RNA_property_identifier(prop), "display") == 0)
-			continue;
-		if(strncmp(RNA_property_identifier(prop), "filter", 6) == 0)
-			continue;
-
-		uiItemFullR(pa->layout, NULL, 0, op->ptr, prop, -1, 0, 0, 0, 0);
-		empty= 0;
+	if(op->type->ui) {
+		op->type->ui((bContext*)C, op->ptr, pa->layout);
 	}
-	RNA_STRUCT_END;
+	else {
+		RNA_STRUCT_BEGIN(op->ptr, prop) {
+			if(strcmp(RNA_property_identifier(prop), "rna_type") == 0)
+				continue;
+			if(strcmp(RNA_property_identifier(prop), "filename") == 0)
+				continue;
+			if(strcmp(RNA_property_identifier(prop), "display") == 0)
+				continue;
+			if(strncmp(RNA_property_identifier(prop), "filter", 6) == 0)
+				continue;
 
-	if(empty)
-		uiItemL(pa->layout, "No properties.", 0);
+			uiItemFullR(pa->layout, NULL, 0, op->ptr, prop, -1, 0, 0, 0, 0);
+			empty= 0;
+		}
+		RNA_STRUCT_END;
+
+		if(empty)
+			uiItemL(pa->layout, "No properties.", 0);
+	}
 }
 
 void file_panels_register(ARegionType *art)

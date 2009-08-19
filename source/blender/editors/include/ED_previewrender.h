@@ -34,6 +34,7 @@ struct Image;
 struct Render;
 struct bContext;
 struct ID;
+struct MTex;
 
 #define PREVIEW_RENDERSIZE 140
 
@@ -70,9 +71,9 @@ pr_method:
 void ED_preview_init_dbase(void);
 void ED_preview_free_dbase(void);
 
-void ED_preview_shader_job(const struct bContext *C, void *owner, struct ID *id, struct ID *parent, int sizex, int sizey);
+void ED_preview_shader_job(const struct bContext *C, void *owner, struct ID *id, struct ID *parent, struct MTex *slot, int sizex, int sizey);
 void ED_preview_iconrender(struct Scene *scene, struct ID *id, unsigned int *rect, int sizex, int sizey);
 
-void ED_preview_draw(const struct bContext *C, void *idp, void *parentp, rcti *rect);
+void ED_preview_draw(const struct bContext *C, void *idp, void *parentp, void *slot, rcti *rect);
 
 #endif

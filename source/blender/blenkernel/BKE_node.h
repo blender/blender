@@ -47,6 +47,7 @@ struct rctf;
 struct ListBase;
 struct RenderData;
 struct Scene;
+struct Main;
 struct Tex;
 struct GPUMaterial;
 struct GPUNode;
@@ -421,7 +422,7 @@ extern struct ListBase node_all_textures;
 /* API */
 int  ntreeTexTagAnimated(struct bNodeTree *ntree);
 void ntreeTexUpdatePreviews( struct bNodeTree* nodetree );
-void ntreeTexExecTree(struct bNodeTree *ntree, struct TexResult *target, float *coord, char do_preview, short thread, struct Tex *tex, short which_output, int cfra);
+void ntreeTexExecTree(struct bNodeTree *ntree, struct TexResult *target, float *coord, float *dxt, float *dyt, char do_preview, short thread, struct Tex *tex, short which_output, int cfra);
 void ntreeTexCheckCyclics(struct bNodeTree *ntree);
 void ntreeTexAssignIndex(struct bNodeTree *ntree, struct bNode *node);
 char* ntreeTexOutputMenu(struct bNodeTree *ntree);
@@ -431,5 +432,9 @@ char* ntreeTexOutputMenu(struct bNodeTree *ntree);
 
 void init_nodesystem(void);
 void free_nodesystem(void);
+
+/**/
+
+void clear_scene_in_nodes(struct Main *bmain, struct Scene *sce);
 
 #endif

@@ -40,6 +40,12 @@ class SCA_PropertyEventManager : public SCA_EventManager
 	class SCA_LogicManager*	m_logicmgr;
 
 public:
+
+#ifdef WITH_CXX_GUARDEDALLOC
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SCA_PropertyEventManager"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
+
 	SCA_PropertyEventManager(class SCA_LogicManager* logicmgr);
 	virtual ~SCA_PropertyEventManager();
 	virtual void NextFrame();

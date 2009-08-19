@@ -36,6 +36,9 @@
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
+#include "DNA_node_types.h"
+
+#include "BKE_node.h"
 
 #include "WM_types.h"
 
@@ -50,6 +53,7 @@ static EnumPropertyItem texture_filter_items[] = {
 #ifdef RNA_RUNTIME
 
 #include "BKE_texture.h"
+#include "ED_node.h"
 
 StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 {
@@ -128,6 +132,65 @@ static void rna_TextureSlot_name_get(PointerRNA *ptr, char *str)
 		strcpy(str, "");
 }
 
+static int rna_TextureSlot_output_node_get(PointerRNA *ptr)
+{
+	MTex *mtex= ptr->data;
+	Tex *tex= mtex->tex;
+	int cur= mtex->which_output;
+	
+	if(tex) {
+		bNodeTree *ntree= tex->nodetree;
+		bNode *node;
+		if(ntree) {
+			for(node= ntree->nodes.first; node; node= node->next) {
+				if(node->type == TEX_NODE_OUTPUT) {
+					if(cur == node->custom1)
+						return cur;
+				}
+			}
+		}
+	}
+	
+	mtex->which_output= 0;
+	return 0;
+}
+
+
+static EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	MTex *mtex= ptr->data;
+	Tex *tex= mtex->tex;
+	EnumPropertyItem *item= NULL;
+	int totitem= 0;
+	
+	if(tex) {
+		bNodeTree *ntree= tex->nodetree;
+		if(ntree) {
+			EnumPropertyItem tmp= {0, "", 0, "", ""};
+			bNode *node;
+			
+			tmp.value = 0;
+			tmp.name = "Not Specified";
+			tmp.identifier = "NOT_SPECIFIED";
+			RNA_enum_item_add(&item, &totitem, &tmp);
+			
+			for(node= ntree->nodes.first; node; node= node->next) {
+				if(node->type == TEX_NODE_OUTPUT) {
+					tmp.value= node->custom1;
+					tmp.name= ((TexNodeOutput*)node->storage)->name;
+					tmp.identifier = tmp.name;
+					RNA_enum_item_add(&item, &totitem, &tmp);
+				}
+			}
+		}
+	}
+	
+	RNA_enum_item_end(&item, &totitem);
+	
+	*free = 1;
+	return item;
+}
+
 static void rna_Texture_use_color_ramp_set(PointerRNA *ptr, int value)
 {
 	Tex *tex= (Tex*)ptr->data;
@@ -137,6 +200,17 @@ static void rna_Texture_use_color_ramp_set(PointerRNA *ptr, int value)
 
 	if((tex->flag & TEX_COLORBAND) && tex->coba == NULL)
 		tex->coba= add_colorband(0);
+}
+
+void rna_Texture_use_nodes_set(PointerRNA *ptr, int v)
+{
+	Tex *tex= (Tex*)ptr->data;
+	
+	tex->use_nodes = v;
+	tex->type = 0;
+	
+	if(v && tex->nodetree==NULL)
+		ED_node_texture_default(tex);
 }
 
 static void rna_ImageTexture_mipmap_set(PointerRNA *ptr, int value)
@@ -308,6 +382,10 @@ static void rna_def_mtex(BlenderRNA *brna)
 		{MTEX_MAP_MODE_3D, "3D", 0, "3D", ""},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem output_node_items[] = {
+		{0, "DUMMY", 0, "Dummy", ""},
+		{0, NULL, 0, NULL, NULL}};
+		
 	srna= RNA_def_struct(brna, "TextureSlot", NULL);
 	RNA_def_struct_sdna(srna, "MTex");
 	RNA_def_struct_ui_text(srna, "Texture Slot", "Texture slot defining the mapping and influence of a texture.");
@@ -393,6 +471,13 @@ static void rna_def_mtex(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "norfac");
 	RNA_def_property_ui_range(prop, 0, 5, 10, 3);
 	RNA_def_property_ui_text(prop, "Normal Factor", "Amount texture affects normal values.");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	
+	prop= RNA_def_property(srna, "output_node", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "which_output");
+	RNA_def_property_enum_items(prop, output_node_items);
+	RNA_def_property_enum_funcs(prop, "rna_TextureSlot_output_node_get", NULL, "rna_TextureSlot_output_node_itemf");
+	RNA_def_property_ui_text(prop, "Output Node", "Which output node to use, for node-based textures.");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 }
 
@@ -1503,7 +1588,19 @@ static void rna_def_texture(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 2);
 	RNA_def_property_ui_text(prop, "RGB Factor", "");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
-
+	
+	/* nodetree */
+	prop= RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "use_nodes", 1);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Texture_use_nodes_set");
+	RNA_def_property_ui_text(prop, "Use Nodes", "Make this a node-based texture");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	
+	prop= RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
+	RNA_def_property_ui_text(prop, "Node Tree", "Node tree for node-based textures");
+	RNA_def_property_update(prop, NC_TEXTURE, NULL);
+	
 	rna_def_animdata_common(srna);
 
 	/* specific types */

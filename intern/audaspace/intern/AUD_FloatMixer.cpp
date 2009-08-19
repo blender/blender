@@ -125,6 +125,8 @@ void AUD_FloatMixer::setSpecs(AUD_Specs specs)
 	case AUD_FORMAT_FLOAT64:
 		m_convert = AUD_convert_float_double;
 		break;
+	default:
+		break;
 	}
 }
 

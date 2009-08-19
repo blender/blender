@@ -35,13 +35,11 @@ SET(INC ../../windowmanager
   ../../blenlib ../../makesdna ../../makesrna ../../blenkernel
   ../../include ../../imbuf 
   ../../render/extern/include ../../../../intern/bsp/extern 
-  ../../radiosity/extern/include
   ../../../intern/decimation/extern ../../blenloader
   ../../../kernel/gen_system ../../readstreamglue
-  ../../quicktime ../../../../intern/elbeem/extern
+  ../../../../intern/elbeem/extern
   ../../../../intern/ghost ../../../../intern/opennl/extern
   ../../nodes
-  ${SDL_INC}
 )
 
 IF(WITH_INTERNATIONAL)
@@ -53,7 +51,7 @@ IF(WITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
 
 IF(WITH_QUICKTIME)
-  SET(INC ${INC} ${QUICKTIME_INC})
+  SET(INC ${INC} ../../quicktime ${QUICKTIME_INC})
   ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 

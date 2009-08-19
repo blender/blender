@@ -260,7 +260,7 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 			int *tridivs = NULL;
 			float cell_len = 1.0 / 50.0; // for res = 50
 			size_t newdivs = 0;
-			size_t max_points = 0;
+			//size_t max_points = 0;
 			size_t quads = 0, facecounter = 0;
 
 			// copy obmat
@@ -302,7 +302,7 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 					size_t j, k;
 					int divs1 = tridivs[3 * facecounter + 0];
 					int divs2 = tridivs[3 * facecounter + 1];
-					int divs3 = tridivs[3 * facecounter + 2];
+					//int divs3 = tridivs[3 * facecounter + 2];
 					float side1[3], side2[3], trinormorg[3], trinorm[3];
 					
 					if(again == 1 && mface[i].v4)

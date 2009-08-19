@@ -54,6 +54,7 @@
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 #include "BKE_sound.h"
@@ -231,7 +232,7 @@ int ED_operator_posemode(bContext *C)
 	Object *obedit= CTX_data_edit_object(C);
 	
 	if ((obact != obedit) && (obact) && (obact->type==OB_ARMATURE))
-		return (obact->flag & OB_POSEMODE)!=0;
+		return (obact->mode & OB_MODE_POSE)!=0;
 		
 	return 0;
 }
@@ -1581,7 +1582,6 @@ static void SCREEN_OT_screen_set(wmOperatorType *ot)
 	ot->poll= ED_operator_screenactive;
 	
 	/* rna */
-	RNA_def_pointer_runtime(ot->srna, "screen", &RNA_Screen, "Screen", "");
 	RNA_def_int(ot->srna, "delta", 0, INT_MIN, INT_MAX, "Delta", "", INT_MIN, INT_MAX);
 }
 
@@ -2226,17 +2226,25 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		wmTimer *wt= screen->animtimer;
 		ScreenAnimData *sad= wt->customdata;
 		ScrArea *sa;
+		int sync;
+
+		/* sync, don't sync, or follow scene setting */
+		if(sad->flag & ANIMPLAY_FLAG_SYNC) sync= 1;
+		else if(sad->flag & ANIMPLAY_FLAG_NO_SYNC) sync= 0;
+		else sync= (scene->r.audio.flag & AUDIO_SYNC);
 		
-		if(scene->audio.flag & AUDIO_SYNC) {
+		if(sync) {
+			/* skip frames */
 			int step = floor(wt->duration * FPS);
-			if (sad->flag & ANIMPLAY_FLAG_REVERSE) // XXX does this option work with audio?
+			if(sad->flag & ANIMPLAY_FLAG_REVERSE) // XXX does this option work with audio?
 				scene->r.cfra -= step;
 			else
 				scene->r.cfra += step;
 			wt->duration -= ((float)step)/FPS;
 		}
 		else {
-			if (sad->flag & ANIMPLAY_FLAG_REVERSE)
+			/* one frame +/- */
+			if(sad->flag & ANIMPLAY_FLAG_REVERSE)
 				scene->r.cfra--;
 			else
 				scene->r.cfra++;
@@ -2314,39 +2322,34 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
 
 /* ****************** anim player, starts or ends timer ***************** */
 
-/* helper for screen_animation_play() - only to be used for TimeLine */
-// NOTE: defined in time_header.c for now...
-extern ARegion *time_top_left_3dwindow(bScreen *screen);
-
 /* toggle operator */
 static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bScreen *screen= CTX_wm_screen(C);
 	
 	if(screen->animtimer) {
-		ED_screen_animation_timer(C, 0, 0);
+		ED_screen_animation_timer(C, 0, 0, 0);
 		sound_stop_all(C);
 	}
 	else {
 		ScrArea *sa= CTX_wm_area(C);
 		int mode= (RNA_boolean_get(op->ptr, "reverse")) ? -1 : 1;
+		int sync= -1;
+
+		if(RNA_property_is_set(op->ptr, "sync"))
+			sync= (RNA_boolean_get(op->ptr, "sync"));
 		
 		/* timeline gets special treatment since it has it's own menu for determining redraws */
 		if ((sa) && (sa->spacetype == SPACE_TIME)) {
 			SpaceTime *stime= (SpaceTime *)sa->spacedata.first;
 			
-			ED_screen_animation_timer(C, stime->redraws, mode);
+			ED_screen_animation_timer(C, stime->redraws, sync, mode);
 			
 			/* update region if TIME_REGION was set, to leftmost 3d window */
-			if(screen->animtimer && (stime->redraws & TIME_REGION)) {
-				wmTimer *wt= screen->animtimer;
-				ScreenAnimData *sad= wt->customdata;
-				
-				sad->ar= time_top_left_3dwindow(screen);
-			}
+			ED_screen_animation_timer_update(C, stime->redraws);
 		}
 		else {
-			ED_screen_animation_timer(C, TIME_REGION|TIME_ALL_3D_WIN, mode);
+			ED_screen_animation_timer(C, TIME_REGION|TIME_ALL_3D_WIN, sync, mode);
 			
 			if(screen->animtimer) {
 				wmTimer *wt= screen->animtimer;
@@ -2372,6 +2375,7 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 	ot->poll= ED_operator_screenactive;
 	
 	RNA_def_boolean(ot->srna, "reverse", 0, "Play in Reverse", "Animation is played backwards");
+	RNA_def_boolean(ot->srna, "sync", 0, "Sync", "Drop frames to maintain framerate and stay in sync with audio.");
 }
 
 /* ************** border select operator (template) ***************************** */
@@ -2880,9 +2884,12 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	RenderJob *rj;
 	Image *ima;
 	
-	/* only one job at a time */
+	/* only one render job at a time */
 	if(WM_jobs_test(CTX_wm_manager(C), scene))
 		return OPERATOR_CANCELLED;
+	
+	/* stop all running jobs, currently previews frustrate Render */
+	WM_jobs_stop_all(CTX_wm_manager(C));
 	
 	/* handle UI stuff */
 	WM_cursor_wait(1);
@@ -3087,7 +3094,124 @@ static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
 	ot->poll= ED_operator_screenactive;
 }
 
+/********************* new screen operator *********************/
 
+static int screen_new_exec(bContext *C, wmOperator *op)
+{
+	wmWindow *win= CTX_wm_window(C);
+	bScreen *sc= CTX_wm_screen(C);
+
+	sc= ED_screen_duplicate(win, sc);
+	WM_event_add_notifier(C, NC_SCREEN|ND_SCREENBROWSE, sc);
+
+	return OPERATOR_FINISHED;
+}
+
+void SCREEN_OT_new(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "New Screen";
+	ot->idname= "SCREEN_OT_new";
+	
+	/* api callbacks */
+	ot->exec= screen_new_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************* delete screen operator *********************/
+
+static int screen_delete_exec(bContext *C, wmOperator *op)
+{
+	bScreen *sc= CTX_wm_screen(C);
+
+	WM_event_add_notifier(C, NC_SCREEN|ND_SCREENDELETE, sc);
+
+	return OPERATOR_FINISHED;
+}
+
+void SCREEN_OT_delete(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete Scene";
+	ot->idname= "SCREEN_OT_delete";
+	
+	/* api callbacks */
+	ot->exec= screen_delete_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************* new scene operator *********************/
+
+static int scene_new_exec(bContext *C, wmOperator *op)
+{
+	Scene *newscene, *scene= CTX_data_scene(C);
+	Main *bmain= CTX_data_main(C);
+	int type= RNA_enum_get(op->ptr, "type");
+
+	newscene= copy_scene(bmain, scene, type);
+
+	/* these can't be handled in blenkernel curently, so do them here */
+	if(type == SCE_COPY_LINK_DATA)
+		ED_object_single_users(newscene, 0);
+	else if(type == SCE_COPY_FULL)
+		ED_object_single_users(newscene, 1);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SCENEBROWSE, newscene);
+
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_new(wmOperatorType *ot)
+{
+	static EnumPropertyItem type_items[]= {
+		{SCE_COPY_EMPTY, "EMPTY", 0, "Empty", "Add empty scene."},
+		{SCE_COPY_LINK_OB, "LINK_OBJECTS", 0, "Link Objects", "Link to the objects from the current scene."},
+		{SCE_COPY_LINK_DATA, "LINK_OBJECT_DATA", 0, "Link Object Data", "Copy objects linked to data from the current scene."},
+		{SCE_COPY_FULL, "FULL_COPY", 0, "Full Copy", "Make a full copy of the current scene."},
+		{0, NULL, 0, NULL, NULL}};
+
+	/* identifiers */
+	ot->name= "New Scene";
+	ot->idname= "SCENE_OT_new";
+	
+	/* api callbacks */
+	ot->exec= scene_new_exec;
+	ot->invoke= WM_menu_invoke;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
+}
+
+/********************* delete scene operator *********************/
+
+static int scene_delete_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SCENEDELETE, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_delete(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete Scene";
+	ot->idname= "SCENE_OT_delete";
+	
+	/* api callbacks */
+	ot->exec= scene_delete_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 
 /* ****************  Assigning operatortypes to global list, adding handlers **************** */
 
@@ -3128,6 +3252,12 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_render);
 	WM_operatortype_append(SCREEN_OT_render_view_cancel);
 	WM_operatortype_append(SCREEN_OT_render_view_show);
+
+	/* new/delete */
+	WM_operatortype_append(SCREEN_OT_new);
+	WM_operatortype_append(SCREEN_OT_delete);
+	WM_operatortype_append(SCENE_OT_new);
+	WM_operatortype_append(SCENE_OT_delete);
 
 	/* tools shared by more space types */
 	WM_operatortype_append(ED_OT_undo);
@@ -3239,6 +3369,7 @@ void ED_keymap_screen(wmWindowManager *wm)
 	
 	/* play (forward and backwards) */
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", KKEY, KM_PRESS, 0, LKEY);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", AKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0)->ptr, "reverse", 1);
 
 	keymap_modal_set(wm);

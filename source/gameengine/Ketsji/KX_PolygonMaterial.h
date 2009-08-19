@@ -35,6 +35,10 @@
 #include "RAS_IRasterizer.h"
 #include "DNA_ID.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 struct MTFace;
 struct Material;
 struct MTex;
@@ -57,6 +61,7 @@ private:
 
 	mutable int		m_pass;
 public:
+
 	KX_PolygonMaterial();
 	void Initialize(const STR_String &texname,
 		Material* ma,

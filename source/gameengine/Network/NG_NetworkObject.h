@@ -32,6 +32,10 @@
 
 #include "STR_String.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class NG_NetworkObject
 {
 	STR_String m_name;
@@ -39,6 +43,13 @@ public:
 	NG_NetworkObject();
 	~NG_NetworkObject();
 	const STR_String& GetName();
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:NG_NetworkObject"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //NG_NETWORKOBJECT_H

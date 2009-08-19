@@ -65,5 +65,6 @@ DIRS = armature \
   space_text \
   space_sequencer \
   space_logic \
+  space_userpref \
 
 include nan_subdirs.mk

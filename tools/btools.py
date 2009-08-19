@@ -31,6 +31,7 @@ def validate_arguments(args, bc):
 			'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH', 'WITH_BF_STATICOPENAL', 'BF_OPENAL_LIB_STATIC',
 			'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
 			'BF_LIBSAMPLERATE', 'BF_LIBSAMPLERATE_INC', 'BF_LIBSAMPLERATE_LIB', 'BF_LIBSAMPLERATE_LIBPATH',
+			'WITH_BF_JACK', 'BF_JACK', 'BF_JACK_INC', 'BF_JACK_LIB', 'BF_JACK_LIBPATH',
 			'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
 			'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH', 'WITH_BF_STATICOPENEXR', 'BF_OPENEXR_LIB_STATIC',
 			'WITH_BF_DDS',
@@ -58,8 +59,8 @@ def validate_arguments(args, bc):
 			'BF_CXX', 'WITH_BF_STATICCXX', 'BF_CXX_LIB_STATIC',
 			'BF_TWEAK_MODE', 'BF_SPLIT_SRC',
 			'WITHOUT_BF_INSTALL',
+			'WITHOUT_BF_PYTHON_INSTALL',
 			'WITH_BF_OPENMP',
-			'WITHOUT_BF_INSTALL',
 			'BF_FANCY', 'BF_QUIET',
 			'BF_X264_CONFIG',
 			'BF_XVIDCORE_CONFIG',
@@ -178,6 +179,12 @@ def read_opts(cfg, args):
 		('BF_LIBSAMPLERATE_INC', 'libsamplerate aka SRC include path', ''),	 #$(shell $(BF_SDL)/bin/sdl-config --cflags)
 		('BF_LIBSAMPLERATE_LIB', 'libsamplerate aka SRC library', ''),	  #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
 		('BF_LIBSAMPLERATE_LIBPATH', 'libsamplerate aka SRC library path', ''),
+
+		(BoolVariable('WITH_BF_JACK', 'Enable jack support if true', True)),
+		('BF_JACK', 'jack base path', ''),
+		('BF_JACK_INC', 'jack include path', ''),
+		('BF_JACK_LIB', 'jack library', ''),
+		('BF_JACK_LIBPATH', 'jack library path', ''),
 
 		('BF_PTHREADS', 'Pthreads base path', ''),
 		('BF_PTHREADS_INC', 'Pthreads include path', ''),
@@ -356,6 +363,7 @@ def read_opts(cfg, args):
 		(BoolVariable('BF_TWEAK_MODE', 'Enable tweak mode if true', False)),
 		(BoolVariable('BF_SPLIT_SRC', 'Split src lib into several chunks if true', False)),
 		(BoolVariable('WITHOUT_BF_INSTALL', 'dont install if true', False)),
+		(BoolVariable('WITHOUT_BF_PYTHON_INSTALL', 'dont install Python modules if true', False)),
 		(BoolVariable('BF_FANCY', 'Enable fancy output if true', True)),
 		(BoolVariable('BF_QUIET', 'Enable silent output if true', True)),
 		(BoolVariable('WITH_BF_BINRELOC', 'Enable relocatable binary (linux only)', False)),

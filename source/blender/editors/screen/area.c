@@ -499,7 +499,7 @@ static void region_azone_initialize(ScrArea *sa, ARegion *ar, char edge)
 	/* if more azones on 1 spot, set offset */
 	for(azt= sa->actionzones.first; azt; azt= azt->next) {
 		if(az!=azt) {
-			if(az->x1==azt->x1 && az->y1==azt->y1) {
+			if( ABS(az->x1-azt->x1) < 2 && ABS(az->y1-azt->y1) < 2) {
 				if(edge=='t' || edge=='b') {
 					az->x1+= AZONESPOT;
 					az->x2+= AZONESPOT;
@@ -1041,39 +1041,43 @@ void ED_area_prevspace(bContext *C)
 static char *windowtype_pup(void)
 {
 	return(
-		   "Window type:%t" //14
-		   "|3D View %x1" //30
+		   "Window type:%t"
+		   "|3D View %x1"
+
+		   "|%l"
+		   "|%l"
 		   
-		   "|%l" // 33
+		   "|Timeline %x15"
+		   "|Graph Editor %x2"
+		   "|DopeSheet %x12"
+		   "|NLA Editor %x13"
 		   
-		   "|Graph Editor %x2" //54
-		   "|DopeSheet %x12" //73
-		   "|NLA Editor %x13" //94
+		   "|%l"
+		   "|%l"
 		   
-		   "|%l" //97
+		   "|UV/Image Editor %x6"
 		   
-		   "|UV/Image Editor %x6" //117
-		   
-		   "|Video Sequence Editor %x8" //143
-		   "|Timeline %x15" //163
-		   // "|Audio Window %x11" //163
-		   "|Text Editor %x9" //179
-		   
-		   "|%l" //192
-		   
-		   
-		   "|User Preferences %x7" //213
-		   "|Outliner %x3" //232
-		   "|Buttons Window %x4" //251
+		   "|Video Sequence Editor %x8"
+		   "|Text Editor %x9" 
 		   "|Node Editor %x16"
 		   "|Logic Editor %x17"
-		   "|%l" //254
 		   
-		   "|File Browser %x5" //290
+		   "|%l"
+		   "|%l"
 		   
-		   "|%l" //293
+		   "|Properties %x4"
+		   "|Outliner %x3"
+		   "|User Preferences %x19"
+		   "|Info%x7"
+		    		   
+		   "|%l"
+		   "|%l"
 		   
-		   // "|Scripts Window %x14"//313
+		   "|File Browser %x5"
+		   
+		   "|%l"
+		   "|%l"
+		   
 		   "|Console %x18"
 		   );
 }
@@ -1309,7 +1313,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	HeaderType *ht;
 	Header header = {0};
 	float col[3];
-	int xco, yco;
+	int maxco, xco, yco;
 
 	/* clear */
 	if(ED_screen_area_active(C))
@@ -1323,7 +1327,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	/* set view2d view matrix for scrolling (without scrollers) */
 	UI_view2d_view_ortho(C, &ar->v2d);
 
-	xco= 8;
+	xco= maxco= 8;
 	yco= HEADERY-3;
 
 	/* draw all headers types */
@@ -1335,15 +1339,25 @@ void ED_region_header(const bContext *C, ARegion *ar)
 			header.type= ht;
 			header.layout= layout;
 			ht->draw(C, &header);
+			
+			/* for view2d */
+			xco= uiLayoutGetWidth(layout);
+			if(xco > maxco)
+				maxco= xco;
 		}
 
 		uiBlockLayoutResolve(C, block, &xco, &yco);
+		
+		/* for view2d */
+		if(xco > maxco)
+			maxco= xco;
+		
 		uiEndBlock(C, block);
 		uiDrawBlock(C, block);
 	}
 
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, xco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
+	UI_view2d_totRect_set(&ar->v2d, maxco+XIC+80, ar->v2d.tot.ymax-ar->v2d.tot.ymin);
 
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);

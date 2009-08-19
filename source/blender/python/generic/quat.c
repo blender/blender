@@ -611,7 +611,7 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 
 //-----------------PROTOCOL DECLARATIONS--------------------------
 static PySequenceMethods Quaternion_SeqMethods = {
-	(inquiry) Quaternion_len,					/* sq_length */
+	(lenfunc) Quaternion_len,					/* sq_length */
 	(binaryfunc) 0,								/* sq_concat */
 	(ssizeargfunc) 0,								/* sq_repeat */
 	(ssizeargfunc) Quaternion_item,				/* sq_item */

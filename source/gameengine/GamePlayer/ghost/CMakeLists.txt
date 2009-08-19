@@ -57,14 +57,11 @@ SET(INC
   ../../../../source/gameengine/Network
   ../../../../source/gameengine/SceneGraph
   ../../../../source/gameengine/Physics/common
-  ../../../../source/gameengine/Physics/Sumo
-  ../../../../source/gameengine/Physics/Sumo/Fuzzics/include
   ../../../../source/gameengine/Network/LoopBackNetwork
   ../../../../source/gameengine/GamePlayer/common
   ../../../../source/blender/misc
   ../../../../source/blender/blenloader
   ../../../../source/blender/gpu
-  ../../../../extern/solid
   ../../../../extern/glew/include
   ${PYTHON_INC}
 )

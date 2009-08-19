@@ -55,7 +55,6 @@ typedef struct ShadeResult
 	float refl[3];
 	float refr[3];
 	float nor[3];
-	float rad[3];
 	float winspeed[4];
 } ShadeResult;
 
@@ -132,7 +131,7 @@ typedef struct ShadeInput
 	float layerfac;
 	
 	/* texture coordinates */
-	float lo[3], gl[3], ref[3], orn[3], winco[3], sticky[3], vcol[4], rad[3];
+	float lo[3], gl[3], ref[3], orn[3], winco[3], sticky[3], vcol[4];
 	float refcol[4], displace[3];
 	float strandco, tang[3], nmaptang[3], stress, winspeed[4];
 	float duplilo[3], dupliuv[3];
