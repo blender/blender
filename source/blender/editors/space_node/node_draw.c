@@ -609,7 +609,6 @@ static void do_node_internal_buttons(bContext *C, void *node_v, int event)
 		}			
 		else if(snode->treetype==NTREE_TEXTURE) {
 			WM_event_add_notifier(C, NC_TEXTURE|ND_NODES, snode->id);
-			ntreeTexUpdatePreviews(snode->nodetree);
 		}
 	}
 	

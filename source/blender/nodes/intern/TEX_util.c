@@ -246,14 +246,12 @@ void ntreeTexUpdatePreviews(bNodeTree* nodetree)
 	
 	for(tex= G.main->tex.first; tex; tex= tex->id.next)
 		if(tex->nodetree == nodetree) break;
-	if(!tex) return;
+	if(tex) {
+		dummy_texres.nor = 0;
 	
-	dummy_texres.nor = 0;
-	
-	ntreeBeginExecTree(nodetree);
-	ntreeTexExecTree(nodetree, &dummy_texres, coord, 0, 0, 1, 0, tex, 0, 0);
-	ntreeEndExecTree(nodetree);
-	
+		ntreeBeginExecTree(nodetree);
+		ntreeTexExecTree(nodetree, &dummy_texres, coord, 0, 0, 1, 0, tex, 0, 0);
+	}
 }
 
 char* ntreeTexOutputMenu(bNodeTree *ntree)

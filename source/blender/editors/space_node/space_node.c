@@ -46,6 +46,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_node.h"
 
 #include "ED_previewrender.h"
 #include "ED_space_api.h"
@@ -180,6 +181,11 @@ static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
 			Scene *scene= (Scene *)snode->id;
 			if(scene->use_nodes)
 				snode_composite_job(C, sa);
+		}
+		else if(snode->treetype==NTREE_TEXTURE) {
+			Tex *tex= (Tex *)snode->id;
+			if(tex->use_nodes)
+				ntreeTexUpdatePreviews(tex->nodetree);
 		}
 	}
 }
