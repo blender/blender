@@ -237,6 +237,23 @@ float vol_get_phasefunc(ShadeInput *shi, short phasefunc_type, float g, float *w
 /* Compute attenuation, otherwise known as 'optical thickness', extinction, or tau.
  * Used in the relationship Transmittance = e^(-attenuation)
  */
+void vol_get_attenuation_seg(ShadeInput *shi, float *tau, float *stepvec, float *co, float density)
+{
+	/* input density = density at co */
+	float absorb_col[3];
+	const float dist = VecLength(stepvec);
+	
+	vol_get_absorption(shi, absorb_col, co);
+	
+	/* homogenous volume within the sampled distance */
+	tau[0] = tau[1] = tau[2] = dist * density;
+		
+	VecMulVecf(tau, tau, absorb_col);
+}
+
+/* Compute attenuation, otherwise known as 'optical thickness', extinction, or tau.
+ * Used in the relationship Transmittance = e^(-attenuation)
+ */
 void vol_get_attenuation(ShadeInput *shi, float *tau, float *co, float *endco, float density, float stepsize)
 {
 	/* input density = density at co */
@@ -249,18 +266,7 @@ void vol_get_attenuation(ShadeInput *shi, float *tau, float *co, float *endco, f
 
 	nsteps = (int)((dist / stepsize) + 0.5);
 	
-	/* trigger for recalculating density */
-	if (density < -0.001f) density = vol_get_density(shi, co);
-	
-	if (nsteps == 1) {
-		/* homogenous volume within the sampled distance */
-		tau[0] = tau[1] = tau[2] = dist * density;
-		
-		VecMulVecf(tau, tau, absorb_col);
-		return;
-	} else {
-		tau[0] = tau[1] = tau[2] = 0.0;
-	}
+	tau[0] = tau[1] = tau[2] = 0.0;
 	
 	VecSubf(step_vec, endco, co);
 	VecMulf(step_vec, 1.0f / nsteps);
@@ -402,22 +408,14 @@ outgoing radiance from behind surface * beam transmittance/attenuation
 static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float *endco)
 {
 	float tr[3] = {1.0f, 1.0f, 1.0f};
-	float radiance[3] = {0.f, 0.f, 0.f}, d_radiance[3] = {0.f, 0.f, 0.f};
+	float radiance[3] = {0.f, 0.f, 0.f}, d_radiance[3] = {0.f, 0.f, 0.f}, radiance_behind[3];
 	float stepsize = vol_get_stepsize(shi, STEPSIZE_VIEW);
 	int nsteps, s;
 	float tau[3], emit_col[3], scatter_col[3] = {0.0, 0.0, 0.0};
 	float stepvec[3], step_sta[3], step_end[3], step_mid[3];
-	float density = vol_get_density(shi, co);
+	float density;
 	const float depth_cutoff = shi->mat->vol.depth_cutoff;
-	
-	/* multiply col_behind with beam transmittance over entire distance */
-	vol_get_attenuation(shi, tau, co, endco, density, stepsize);
-	tr[0] *= exp(-tau[0]);
-	tr[1] *= exp(-tau[1]);
-	tr[2] *= exp(-tau[2]);
-	VecMulVecf(radiance, tr, col);	
-	tr[0] = tr[1] = tr[2] = 1.0f;
-	
+
 	/* ray marching */
 	nsteps = (int)((VecLenf(co, endco) / stepsize) + 0.5);
 	
@@ -429,13 +427,13 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 	/* get radiance from all points along the ray due to participating media */
 	for (s = 0; s < nsteps; s++) {
 
-		if (s > 0) density = vol_get_density(shi, step_sta);
+		density = vol_get_density(shi, step_sta);
 		
 		/* there's only any use in shading here if there's actually some density to shade! */
 		if (density > 0.01f) {
 		
 			/* transmittance component (alpha) */
-			vol_get_attenuation(shi, tau, step_sta, step_end, density, stepsize);
+			vol_get_attenuation_seg(shi, tau, stepvec, co, density);
 			tr[0] *= exp(-tau[0]);
 			tr[1] *= exp(-tau[1]);
 			tr[2] *= exp(-tau[2]);
@@ -468,6 +466,10 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 		/* luminance rec. 709 */
 		if ((0.2126*tr[0] + 0.7152*tr[1] + 0.0722*tr[2]) < depth_cutoff) break;	
 	}
+	
+	/* multiply original color (behind volume) with beam transmittance over entire distance */
+	VecMulVecf(radiance_behind, tr, col);	
+	VecAddf(radiance, radiance, radiance_behind);
 	
 	VecCopyf(col, radiance);
 	col[3] = 1.0f -(tr[0] + tr[1] + tr[2]) * 0.333f;
