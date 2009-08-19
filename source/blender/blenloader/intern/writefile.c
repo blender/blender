@@ -1100,7 +1100,7 @@ static void write_defgroups(WriteData *wd, ListBase *defbase)
 		writestruct(wd, DATA, "bDeformGroup", 1, defgroup);
 }
 
-static void write_modifiers(WriteData *wd, ListBase *modbase, int write_undo)
+static void write_modifiers(WriteData *wd, ListBase *modbase)
 {
 	ModifierData *md;
 
@@ -1166,13 +1166,13 @@ static void write_modifiers(WriteData *wd, ListBase *modbase, int write_undo)
 		else if (md->type==eModifierType_Multires) {
 			MultiresModifierData *mmd = (MultiresModifierData*) md;
 
-			if(mmd->undo_verts && write_undo)
+			if(mmd->undo_verts)
 				writestruct(wd, DATA, "MVert", mmd->undo_verts_tot, mmd->undo_verts);
 		}
 	}
 }
 
-static void write_objects(WriteData *wd, ListBase *idbase, int write_undo)
+static void write_objects(WriteData *wd, ListBase *idbase)
 {
 	Object *ob;
 	
@@ -1206,7 +1206,7 @@ static void write_objects(WriteData *wd, ListBase *idbase, int write_undo)
 			writestruct(wd, DATA, "BulletSoftBody", 1, ob->bsoft);
 			
 			write_particlesystems(wd, &ob->particlesystem);
-			write_modifiers(wd, &ob->modifiers, write_undo);
+			write_modifiers(wd, &ob->modifiers);
 		}
 		ob= ob->id.next;
 	}
@@ -2320,7 +2320,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	write_groups   (wd, &mainvar->group);
 	write_armatures(wd, &mainvar->armature);
 	write_actions  (wd, &mainvar->action);
-	write_objects  (wd, &mainvar->object, (current != NULL));
+	write_objects  (wd, &mainvar->object);
 	write_materials(wd, &mainvar->mat);
 	write_textures (wd, &mainvar->tex);
 	write_meshs    (wd, &mainvar->mesh);
