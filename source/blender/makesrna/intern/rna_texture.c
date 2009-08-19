@@ -142,7 +142,7 @@ static EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext *C, PointerR
 	EnumPropertyItem *item= NULL;
 	int totitem= 0;
 	
-	if(tex) {
+	if(tex && C) { /* Note, tex/mtex/ntree can be invalid of C is NULL, TODO - can this give valid results when C is NULL? */
 		bNodeTree *ntree= tex->nodetree;
 		if(ntree) {
 			EnumPropertyItem tmp= {0, "", 0, "", ""};
