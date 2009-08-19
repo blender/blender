@@ -28,8 +28,8 @@ FILE(GLOB SRC intern/source/*.c)
 
 SET(INC 
   intern/include ../../../intern/guardedalloc ../blenlib ../makesdna
-  extern/include ../blenkernel ../radiosity/extern/include ../imbuf
-  ../quicktime ../include ../../kernel/gen_messaging ../blenloader
+  extern/include ../blenkernel ../imbuf
+  ../include ../../kernel/gen_messaging ../blenloader
   ../makesrna
 )
 
@@ -38,7 +38,7 @@ IF(WITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
 
 IF(WITH_QUICKTIME)
-  SET(INC ${INC} ${QUICKTIME_INC})
+  SET(INC ${INC} ../quicktime ${QUICKTIME_INC})
   ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 

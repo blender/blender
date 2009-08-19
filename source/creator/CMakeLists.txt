@@ -337,7 +337,6 @@ IF(UNIX)
     bf_moto 
     bf_python
     bf_gen_python
-    bf_quicktime
     extern_binreloc
     extern_glew
     extern_libopenjpeg
@@ -351,6 +350,11 @@ IF(UNIX)
   IF(WITH_CXX_GUARDEDALLOC)
     SET(BLENDER_SORTED_LIBS ${BLENDER_SORTED_LIBS} bf_guardedalloc_cpp)
   ENDIF(WITH_CXX_GUARDEDALLOC)
+
+  IF(WITH_QUICKTIME)
+    SET(BLENDER_SORTED_LIBS ${BLENDER_SORTED_LIBS} bf_quicktime)
+  ENDIF(WITH_QUICKTIME)
+
 
   FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})
     SET(REMLIB ${SORTLIB})
