@@ -203,17 +203,14 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 	float *points = NULL;
 	int numpoints = 0;
 	float cor[3] = {1.,1.,1.};
+	int gl_depth = 0, gl_blend = 0;
 
-	/*
-	res[0] = smd->domain->res[0];
-	res[1] = smd->domain->res[1];
-	res[2] = smd->domain->res[2];
-	*/
+	glGetBooleanv(GL_BLEND, (GLboolean *)&gl_blend);
+	glGetBooleanv(GL_DEPTH_TEST, (GLboolean *)&gl_depth);
 
 	wmLoadMatrix(rv3d->viewmat);
 
 	glDepthMask(GL_FALSE);
-	glEnable(GL_TEXTURE_3D);
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -296,9 +293,12 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 
 	wmMultMatrix(ob->obmat);	
 
-	glDisable(GL_TEXTURE_3D);
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
-	glDepthMask(GL_TRUE);	
+	if(gl_blend)
+		glDisable(GL_BLEND);
+	if(gl_depth)
+	{
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);	
+	}
 }
 
