@@ -1410,7 +1410,7 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	do_symmetrical_brush_actions(sd, ss);
 
 	/* Cleanup */
-	sculpt_flush_update(C); // XXX: during exec, shouldn't do this every time
+	sculpt_flush_update(C);
 	sculpt_post_stroke_free(ss);
 }
 
@@ -1448,20 +1448,14 @@ static int sculpt_brush_stroke_exec(bContext *C, wmOperator *op)
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	SculptSession *ss = CTX_data_active_object(C)->sculpt;
 
+	op->customdata = paint_stroke_new(C, sculpt_stroke_test_start, sculpt_stroke_update_step, sculpt_stroke_done);
+
 	sculpt_brush_stroke_init(C);
 
 	sculpt_update_cache_invariants(sd, ss, C, op);
 	sculptmode_update_all_projverts(ss);
 
-	RNA_BEGIN(op->ptr, itemptr, "stroke") {
-		sculpt_update_cache_variants(sd, ss, &itemptr);
-
-		sculpt_restore_mesh(sd, ss);
-		do_symmetrical_brush_actions(sd, ss);
-
-		sculpt_post_stroke_free(ss);
-	}
-	RNA_END;
+	paint_stroke_exec(C, op);
 
 	sculpt_flush_update(C);
 	sculpt_cache_free(ss->cache);

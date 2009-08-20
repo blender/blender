@@ -265,6 +265,21 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_RUNNING_MODAL;
 }
 
+int paint_stroke_exec(bContext *C, wmOperator *op)
+{
+	PaintStroke *stroke = op->customdata;
+
+	RNA_BEGIN(op->ptr, itemptr, "stroke") {
+		stroke->update_step(C, stroke, &itemptr);
+	}
+	RNA_END;
+
+	MEM_freeN(stroke);
+	op->customdata = NULL;
+
+	return OPERATOR_FINISHED;
+}
+
 ViewContext *paint_stroke_view_context(PaintStroke *stroke)
 {
 	return &stroke->vc;
