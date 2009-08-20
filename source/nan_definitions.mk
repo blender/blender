@@ -113,7 +113,10 @@ ifndef CONFIG_GUESS
     export WITH_OPENEXR ?= true
     export WITH_DDS ?= true
     export WITH_OPENJPEG ?= true
-
+    export WITH_LZO ?= true
+    export WITH_LZMA ?= true
+    export NAN_LZO ?= $(LCGDIR)/lzo
+    export NAN_LZMA ?= $(LCGDIR)/lzma
 
   ifeq ($(NAN_USE_FFMPEG_CONFIG), true)
     export NAN_FFMPEG ?= $(shell ffmpeg-config --prefix)
