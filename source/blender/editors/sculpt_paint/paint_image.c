@@ -5174,7 +5174,7 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 			me->mtface= CustomData_add_layer(&me->fdata, CD_MTFACE, CD_DEFAULT,
 							 NULL, me->totface);
 
-		paint_init(&scene->toolsettings->imapaint.paint, NULL);
+		paint_init(&scene->toolsettings->imapaint.paint, PAINT_CURSOR_TEXTURE_PAINT);
 
 		if(U.glreslimit != 0)
 			GPU_free_images();
