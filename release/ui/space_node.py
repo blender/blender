@@ -27,7 +27,7 @@ class NODE_HT_header(bpy.types.Header):
 			if ob:
 				layout.template_ID(ob, "active_material", new="material.new")
 			if id:
-				layout.itemR(id, "use_nodes", toggle=True)
+				layout.itemR(id, "use_nodes")
 
 		elif snode.tree_type == 'TEXTURE':
 			row.itemR(snode, "texture_type", text="", expand=True)
@@ -37,14 +37,14 @@ class NODE_HT_header(bpy.types.Header):
 			if id_from:
 				layout.template_ID(id_from, "active_texture", new="texture.new")
 			if id:
-				layout.itemR(id, "use_nodes", toggle=True)
+				layout.itemR(id, "use_nodes")
 
 		elif snode.tree_type == 'COMPOSITING':
 			id = snode.id
 
-			layout.itemR(id, "use_nodes", toggle=True)
-			layout.itemR(id.render_data, "free_unused_nodes", text="Free Unused", toggle=True)
-			layout.itemR(snode, "backdrop", toggle=True)
+			layout.itemR(id, "use_nodes")
+			layout.itemR(id.render_data, "free_unused_nodes", text="Free Unused")
+			layout.itemR(snode, "backdrop")
 
 class NODE_MT_view(bpy.types.Menu):
 	__space_type__ = "NODE_EDITOR"
