@@ -249,7 +249,7 @@ void ED_area_overdraw(bContext *C)
 }
 
 /* get scissor rect, checking overlapping regions */
-static void region_scissor_winrct(ARegion *ar, rcti *winrct)
+void region_scissor_winrct(ARegion *ar, rcti *winrct)
 {
 	*winrct= ar->winrct;
 	

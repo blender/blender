@@ -1092,6 +1092,7 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	struct Base *base = scene->basact;
+	rcti winrct;
 
 /*for 2.43 release, don't use glext and just define the constant.
   this to avoid possibly breaking platforms before release.*/
@@ -1136,6 +1137,9 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	if(v3d->drawtype > OB_WIRE) v3d->zbuf= TRUE;
 	
 	glDisable(GL_DITHER);
+
+	region_scissor_winrct(ar, &winrct);
+	glScissor(winrct.xmin, winrct.ymin, winrct.xmax - winrct.xmin, winrct.ymax - winrct.ymin);
 
 	glClearColor(0.0, 0.0, 0.0, 0.0); 
 	if(v3d->zbuf) {
