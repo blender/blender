@@ -3669,8 +3669,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		else if (md->type==eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData*) md;
 
-			smd->point_cache = NULL;
-
 			if(smd->type==MOD_SMOKE_TYPE_DOMAIN)
 			{
 				smd->flow = NULL;
@@ -3679,23 +3677,10 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->domain->smd = smd;
 
 				smd->domain->fluid = NULL;
-				smd->domain->wt = NULL;
-				smd->domain->tvox = NULL;
-				smd->domain->tray = NULL;
-				smd->domain->tvoxbig = NULL;
-				smd->domain->traybig = NULL;
-				smd->domain->bind = NULL;
-				smd->domain->max_textures= 0;
+				smd->domain->view3d = NULL;
+				smd->domain->tex = NULL;
 
-				// do_versions trick
-				if(smd->domain->strength < 1.0)
-					smd->domain->strength = 2.0;
-
-				// reset 3dview
-				if(smd->domain->viewsettings < MOD_SMOKE_VIEW_USEBIG)
-					smd->domain->viewsettings = 0;
-				else
-					smd->domain->viewsettings = MOD_SMOKE_VIEW_USEBIG;
+				direct_link_pointcache_list(fd, &smd->domain->ptcaches, &smd->domain->point_cache);
 			}
 			else if(smd->type==MOD_SMOKE_TYPE_FLOW)
 			{

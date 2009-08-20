@@ -112,6 +112,10 @@ int GPU_verify_image(struct Image *ima, int tftile, int tfmode, int compare, int
 void GPU_free_image(struct Image *ima);
 void GPU_free_images(void);
 
+/* smoke drawing functions */
+void GPU_free_smoke(struct SmokeModifierData *smd);
+void GPU_create_smoke(struct SmokeModifierData *smd);
+
 #ifdef __cplusplus
 }
 #endif

@@ -553,7 +553,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			"world", "object", "mesh", "armature", "lattice", "curve",
 			"meta_ball", "lamp", "camera", "material", "material_slot",
 			"texture", "texture_slot", "bone", "edit_bone", "particle_system",
-			"cloth", "soft_body", "fluid", "smoke", "collision", "brush", NULL};
+			"cloth", "soft_body", "fluid", "smoke", "smoke_hr", "collision", "brush", NULL};
 
 		CTX_data_dir_set(result, dir);
 		return 1;
@@ -694,6 +694,16 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			Object *ob= ptr->data;
 			ModifierData *md= modifiers_findByType(ob, eModifierType_Smoke);
 			CTX_data_pointer_set(result, &ob->id, &RNA_SmokeModifier, md);
+			return 1;
+		}
+	}
+	else if(CTX_data_equals(member, "smoke_hr")) {
+		PointerRNA *ptr= get_pointer_type(path, &RNA_Object);
+
+		if(ptr && ptr->data) {
+			Object *ob= ptr->data;
+			ModifierData *md= modifiers_findByType(ob, eModifierType_SmokeHR);
+			CTX_data_pointer_set(result, &ob->id, &RNA_SmokeHRModifier, md);
 			return 1;
 		}
 	}

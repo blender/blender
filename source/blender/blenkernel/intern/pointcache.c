@@ -59,7 +59,12 @@
 
 #include "BLI_blenlib.h"
 
+/* both in intern */
 #include "smoke_API.h"
+#include "minilzo.h"
+
+#include "LzmaLib.h"
+
 
 /* needed for directory lookup */
 #ifndef WIN32
@@ -469,16 +474,31 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 	pid->info_types= (1<<BPHYS_DATA_TIMES);
 }
 
-#if 0 // XXX smoke pointcache stuff breaks compiling now
 /* Smoke functions */
 static int ptcache_totpoint_smoke(void *smoke_v)
 {
 	SmokeModifierData *smd= (SmokeModifierData *)smoke_v;
 	SmokeDomainSettings *sds = smd->domain;
 	
-	if(sds->fluid)
-	{
+	if(sds->fluid) {
 		return sds->res[0]*sds->res[1]*sds->res[2];
+	}
+	else
+		return 0;
+}
+
+static int ptcache_totpoint_smoke_turbulence(void *smoke_v)
+{
+	SmokeHRModifierData *shrmd= (SmokeHRModifierData *)smoke_v;
+	
+	if(shrmd->wt) {
+		/*
+		unsigned int res[3];
+
+		smoke_turbulence_get_res(sds->wt, res);
+		return res[0]*res[1]*res[2];
+		*/
+		return 0;
 	}
 	else
 		return 0;
@@ -487,25 +507,83 @@ static int ptcache_totpoint_smoke(void *smoke_v)
 // forward decleration
 static int ptcache_file_write(PTCacheFile *pf, void *f, size_t tot, int size);
 
+static int ptcache_compress_write(PTCacheFile *pf, unsigned char *in, unsigned int in_len, unsigned char *out, int mode)
+{
+	int r;
+	unsigned char compressed;
+	LZO_HEAP_ALLOC(wrkmem, LZO1X_MEM_COMPRESS);
+	unsigned int out_len = LZO_OUT_LEN(in_len);
+	unsigned char *props = MEM_callocN(16*sizeof(char), "tmp");
+	size_t sizeOfIt = 5;
+
+	if(mode == 1) {
+		r = lzo1x_1_compress(in, (lzo_uint)in_len, out, (lzo_uint *)&out_len, wrkmem);	
+		if (!(r == LZO_E_OK) || (out_len >= in_len))
+			compressed = 0;
+		else
+			compressed = 1;
+	}
+	else if(mode == 2) {
+		
+		r = LzmaCompress(out, (size_t *)&out_len, in, in_len,//assume sizeof(char)==1....
+						props, &sizeOfIt, 5, 1 << 24, 3, 0, 2, 32, 2);
+
+		if(!(r == SZ_OK) || (out_len >= in_len))
+			compressed = 0;
+		else
+			compressed = 2;
+	}
+
+	ptcache_file_write(pf, &compressed, 1, sizeof(unsigned char));
+	if(compressed) {
+		ptcache_file_write(pf, &out_len, 1, sizeof(unsigned int));
+		ptcache_file_write(pf, out, out_len, sizeof(unsigned char));
+	}
+	else
+		ptcache_file_write(pf, in, in_len, sizeof(unsigned char));
+
+	if(compressed == 2)
+	{
+		ptcache_file_write(pf, &sizeOfIt, 1, sizeof(unsigned int));
+		ptcache_file_write(pf, props, sizeOfIt, sizeof(unsigned char));
+	}
+
+	MEM_freeN(props);
+
+	return r;
+}
+
 static int ptcache_write_smoke(PTCacheFile *pf, void *smoke_v)
 {
 	SmokeModifierData *smd= (SmokeModifierData *)smoke_v;
 	SmokeDomainSettings *sds = smd->domain;
 	
-	if(sds->fluid)
-	{
+	if(sds->fluid) {
 		size_t res = sds->res[0]*sds->res[1]*sds->res[2];
-		float *dens, *densold, *heat, *heatold, *vx, *vy, *vz;
-		
-		smoke_export(sds->fluid, &dens, &densold, &heat, &heatold, &vx, &vy, &vz);
-		
-		ptcache_file_write(pf, dens, res, sizeof(float));
-		ptcache_file_write(pf, densold, res, sizeof(float));
-		ptcache_file_write(pf, heat, res, sizeof(float));
-		ptcache_file_write(pf, heatold, res, sizeof(float));
-		ptcache_file_write(pf, vx, res, sizeof(float));
-		ptcache_file_write(pf, vy, res, sizeof(float));
-		ptcache_file_write(pf, vz, res, sizeof(float));
+		float dt, dx, *dens, *densold, *heat, *heatold, *vx, *vy, *vz, *vxold, *vyold, *vzold;
+		unsigned char *obstacles;
+		unsigned int in_len = sizeof(float)*(unsigned int)res;
+		unsigned char *out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len)*4, "pointcache_lzo_buffer");
+		int mode = res >= 1000000 ? 2 : 1;
+
+		smoke_export(sds->fluid, &dt, &dx, &dens, &densold, &heat, &heatold, &vx, &vy, &vz, &vxold, &vyold, &vzold, &obstacles);
+
+		ptcache_compress_write(pf, (unsigned char *)sds->view3d, in_len*4, out, mode);
+		ptcache_compress_write(pf, (unsigned char *)dens, in_len, out, mode);
+		ptcache_compress_write(pf, (unsigned char *)densold, in_len, out, mode);	
+		ptcache_compress_write(pf, (unsigned char *)heat, in_len, out, mode);
+		ptcache_compress_write(pf, (unsigned char *)heatold, in_len, out, mode);
+		ptcache_compress_write(pf, (unsigned char *)vx, in_len, out, mode);
+		ptcache_compress_write(pf, (unsigned char *)vy, in_len, out, mode);
+		ptcache_compress_write(pf, (unsigned char *)vz, in_len, out, mode);
+		ptcache_compress_write(pf, (unsigned char *)vxold, in_len, out, mode);
+		ptcache_compress_write(pf, (unsigned char *)vyold, in_len, out, mode);
+		ptcache_compress_write(pf, (unsigned char *)vzold, in_len, out, mode);
+		ptcache_compress_write(pf, (unsigned char *)obstacles, (unsigned int)res, out, mode);
+		ptcache_file_write(pf, &dt, 1, sizeof(float));
+		ptcache_file_write(pf, &dx, 1, sizeof(float));
+
+		MEM_freeN(out);
 		
 		return 1;
 	}
@@ -513,32 +591,134 @@ static int ptcache_write_smoke(PTCacheFile *pf, void *smoke_v)
 	return 0;
 }
 
+static int ptcache_write_smoke_turbulence(PTCacheFile *pf, void *smoke_v)
+{
+	SmokeModifierData *smd= (SmokeModifierData *)smoke_v;
+	SmokeDomainSettings *sds = smd->domain;
+	/*
+	if(sds->wt) {
+		unsigned int res_big[3];
+		size_t res = sds->res[0]*sds->res[1]*sds->res[2];
+		float *dens, *densold, *tcu, *tcv, *tcw;
+		unsigned int in_len = sizeof(float)*(unsigned int)res;
+		unsigned int in_len_big = sizeof(float) * (unsigned int)res_big;
+		unsigned char *out;
+		int mode;
+
+		smoke_turbulence_get_res(sds->wt, res_big);
+		mode = res_big[0]*res_big[1]*res_big[2] >= 1000000 ? 2 : 1;
+
+		smoke_turbulence_export(sds->wt, &dens, &densold, &tcu, &tcv, &tcw);
+
+		out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len_big), "pointcache_lzo_buffer");
+
+		ptcache_compress_write(pf, (unsigned char *)dens, in_len_big, out, mode);
+		ptcache_compress_write(pf, (unsigned char *)densold, in_len_big, out, mode);	
+
+		MEM_freeN(out);
+		out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len), "pointcache_lzo_buffer");
+		ptcache_compress_write(pf, (unsigned char *)tcu, in_len, out, mode);
+		ptcache_compress_write(pf, (unsigned char *)tcv, in_len, out, mode);
+		ptcache_compress_write(pf, (unsigned char *)tcw, in_len, out, mode);
+		MEM_freeN(out);
+		
+		return 1;
+	}
+*/
+	return 0;
+}
+
 // forward decleration
 static int ptcache_file_read(PTCacheFile *pf, void *f, size_t tot, int size);
+
+static int ptcache_compress_read(PTCacheFile *pf, unsigned char *result, unsigned int len)
+{
+	int r;
+	unsigned char compressed = 0;
+	unsigned int in_len;
+	unsigned int out_len = len;
+	unsigned char *in;
+	unsigned char *props = MEM_callocN(16*sizeof(char), "tmp");
+	size_t sizeOfIt = 5;
+
+	ptcache_file_read(pf, &compressed, 1, sizeof(unsigned char));
+	if(compressed) {
+		ptcache_file_read(pf, &in_len, 1, sizeof(unsigned int));
+		in = (unsigned char *)MEM_callocN(sizeof(unsigned char)*in_len, "pointcache_compressed_buffer");
+		ptcache_file_read(pf, in, in_len, sizeof(unsigned char));
+
+		if(compressed == 1)
+				r = lzo1x_decompress(in, (lzo_uint)in_len, result, (lzo_uint *)&out_len, NULL);
+		else if(compressed == 2)
+		{
+			size_t leni = in_len, leno = out_len;
+			ptcache_file_read(pf, &sizeOfIt, 1, sizeof(unsigned int));
+			ptcache_file_read(pf, props, sizeOfIt, sizeof(unsigned char));
+			r = LzmaUncompress(result, &leno, in, &leni, props, sizeOfIt);
+		}
+
+		MEM_freeN(in);
+	}
+	else {
+		ptcache_file_read(pf, result, len, sizeof(unsigned char));
+	}
+
+	MEM_freeN(props);
+
+	return r;
+}
 
 static void ptcache_read_smoke(PTCacheFile *pf, void *smoke_v)
 {
 	SmokeModifierData *smd= (SmokeModifierData *)smoke_v;
 	SmokeDomainSettings *sds = smd->domain;
 	
-	if(sds->fluid)
-	{
+	if(sds->fluid) {
 		size_t res = sds->res[0]*sds->res[1]*sds->res[2];
-		float *dens, *densold, *heat, *heatold, *vx, *vy, *vz;
+		float dt, dx, *dens, *densold, *heat, *heatold, *vx, *vy, *vz, *vxold, *vyold, *vzold;
+		unsigned char *obstacles;
+		unsigned int out_len = (unsigned int)res * sizeof(float);
 		
-		smoke_export(sds->fluid, &dens, &densold, &heat, &heatold, &vx, &vy, &vz);
+		smoke_export(sds->fluid, &dt, &dx, &dens, &densold, &heat, &heatold, &vx, &vy, &vz, &vxold, &vyold, &vzold, &obstacles);
 
-		ptcache_file_read(pf, dens, res, sizeof(float));
-		ptcache_file_read(pf, densold, res, sizeof(float));
-		ptcache_file_read(pf, heat, res, sizeof(float));
-		ptcache_file_read(pf, heatold, res, sizeof(float));
-		ptcache_file_read(pf, vx, res, sizeof(float));
-		ptcache_file_read(pf, vy, res, sizeof(float));
-		ptcache_file_read(pf, vz, res, sizeof(float));
-		
+		ptcache_compress_read(pf, (unsigned char *)sds->view3d, out_len*4);
+		ptcache_compress_read(pf, (unsigned char*)dens, out_len);
+		ptcache_compress_read(pf, (unsigned char*)densold, out_len);
+		ptcache_compress_read(pf, (unsigned char*)heat, out_len);
+		ptcache_compress_read(pf, (unsigned char*)heatold, out_len);
+		ptcache_compress_read(pf, (unsigned char*)vx, out_len);
+		ptcache_compress_read(pf, (unsigned char*)vy, out_len);
+		ptcache_compress_read(pf, (unsigned char*)vz, out_len);
+		ptcache_compress_read(pf, (unsigned char*)vxold, out_len);
+		ptcache_compress_read(pf, (unsigned char*)vyold, out_len);
+		ptcache_compress_read(pf, (unsigned char*)vzold, out_len);
+		ptcache_compress_read(pf, (unsigned char*)obstacles, (unsigned int)res);
+		ptcache_file_read(pf, &dt, 1, sizeof(float));
+		ptcache_file_read(pf, &dx, 1, sizeof(float));
 	}
 }
-void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeModifierData *smd, int num)
+
+static void ptcache_read_smoke_turbulence(PTCacheFile *pf, void *smoke_v)
+{
+	SmokeModifierData *smd= (SmokeModifierData *)smoke_v;
+	SmokeDomainSettings *sds = smd->domain;
+	/*
+	if(sds->fluid) {
+		unsigned int res[3];
+		float *dens, *densold, *tcu, *tcv, *tcw;
+		unsigned int out_len = sizeof(float)*(unsigned int)res;
+
+		smoke_turbulence_get_res(sds->wt, res);
+
+		smoke_turbulence_export(sds->wt, &dens, &densold, &tcu, &tcv, &tcw);
+
+		ptcache_compress_read(pf, (unsigned char*)dens, out_len);
+		
+	}
+	*/
+}
+
+void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeModifierData *smd)
 {
 	SmokeDomainSettings *sds = smd->domain;
 
@@ -547,24 +727,21 @@ void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeMo
 	pid->ob= ob;
 	pid->calldata= smd;
 	
-	// if(num == 0)
-	pid->type= PTCACHE_TYPE_SMOKE_DOMAIN_LOW;
-	// else if(num == 1)
-	// 	pid->type= PTCACHE_TYPE_SMOKE_DOMAIN_HIGH;
-
+	pid->type= PTCACHE_TYPE_SMOKE_DOMAIN;
 	pid->stack_index= modifiers_indexInObject(ob, (ModifierData *)smd);
 
 	pid->cache= sds->point_cache;
 	pid->cache_ptr= &sds->point_cache;
 	pid->ptcaches= &sds->ptcaches;
 
-	
 	pid->totpoint= pid->totwrite= ptcache_totpoint_smoke;
 
 	pid->write_elem= NULL;
 	pid->read_elem= NULL;
+
 	pid->read_stream = ptcache_read_smoke;
 	pid->write_stream = ptcache_write_smoke;
+	
 	pid->interpolate_elem= NULL;
 
 	pid->write_header= ptcache_write_basic_header;
@@ -573,7 +750,6 @@ void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeMo
 	pid->data_types= (1<<BPHYS_DATA_LOCATION); // bogus values tot make pointcache happy
 	pid->info_types= 0;
 }
-#endif // XXX smoke poitcache stuff breaks compiling
 
 void BKE_ptcache_id_from_cloth(PTCacheID *pid, Object *ob, ClothModifierData *clmd)
 {
@@ -633,18 +809,15 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob)
 			BKE_ptcache_id_from_cloth(pid, ob, (ClothModifierData*)md);
 			BLI_addtail(lb, pid);
 		}
-		/*
-		// enabled on next commit 
 		if(md->type == eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData *)md;
 			if(smd->type & MOD_SMOKE_TYPE_DOMAIN)
 			{
 				pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
-				BKE_ptcache_id_from_smoke(pid, ob, (SmokeModifierData*)md, 0);
+				BKE_ptcache_id_from_smoke(pid, ob, (SmokeModifierData*)md);
 				BLI_addtail(lb, pid);
 			}
 		}
-		*/
 	}
 }
 
@@ -1140,13 +1313,13 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 			if(use_old) {
 				if(pid->read_elem && ptcache_file_read(pf, (void*)old_data1, 1, old_elemsize))
 					pid->read_elem(i, pid->calldata, NULL, frs_sec, cfra, old_data1);
-				else
+				else if(pid->read_elem)
 					{ error = 1; break; }
 			}
 			else {
 				if(pid->read_elem && (pm || ptcache_file_read_data(pf)))
 					pid->read_elem(*index, pid->calldata, pm ? pm->cur : pf->cur, frs_sec, cfra1 ? (float)cfra1 : (float)cfrai, NULL);
-				else
+				else if(pid->read_elem)
 					{ error = 1; break; }
 			}
 
@@ -1185,7 +1358,7 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 					else
 					{ error = 1; break; }
 				}
-				else
+				else if(pid->read_elem)
 					{ error = 1; break; }
 			}
 			else {
@@ -1197,7 +1370,7 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 					else
 					{ error = 1; break; }
 				}
-				else
+				else if(pid->read_elem)
 					{ error = 1; break; }
 			}
 
@@ -1639,8 +1812,11 @@ int BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 			sbFreeSimulation(pid->calldata);
 		else if(pid->type == PTCACHE_TYPE_PARTICLES)
 			psys_reset(pid->calldata, PSYS_RESET_DEPSGRAPH);
-		else if(pid->type == PTCACHE_TYPE_SMOKE_DOMAIN_LOW)
+		else if(pid->type == PTCACHE_TYPE_SMOKE_DOMAIN)
+		{
 			smokeModifier_reset(pid->calldata);
+			printf("reset PTCACHE_TYPE_SMOKE_DOMAIN\n");
+		}
 	}
 	if(clear)
 		BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);
@@ -1689,17 +1865,14 @@ int BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 			BKE_ptcache_id_from_cloth(&pid, ob, (ClothModifierData*)md);
 			reset |= BKE_ptcache_id_reset(scene, &pid, mode);
 		}
-		/*
-		// enabled on next commit 
 		if(md->type == eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData *)md;
 			if(smd->type & MOD_SMOKE_TYPE_DOMAIN)
 			{
-				BKE_ptcache_id_from_smoke(&pid, ob, (SmokeModifierData*)md, 0);
+				BKE_ptcache_id_from_smoke(&pid, ob, (SmokeModifierData*)md);
 				reset |= BKE_ptcache_id_reset(scene, &pid, mode);
 			}
 		}
-		*/
 	}
 
 	return reset;

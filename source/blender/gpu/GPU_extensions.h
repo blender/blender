@@ -73,6 +73,7 @@ int GPU_print_error(char *str);
 
 GPUTexture *GPU_texture_create_1D(int w, float *pixels);
 GPUTexture *GPU_texture_create_2D(int w, int h, float *pixels);
+GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels);
 GPUTexture *GPU_texture_create_depth(int w, int h);
 GPUTexture *GPU_texture_from_blender(struct Image *ima,
 	struct ImageUser *iuser, double time, int mipmap);

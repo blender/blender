@@ -1126,14 +1126,17 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 		else if(md->type==eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData*) md;
 			
-			if(smd->type==MOD_SMOKE_TYPE_DOMAIN)
+			if(smd->type & MOD_SMOKE_TYPE_DOMAIN)
 				writestruct(wd, DATA, "SmokeDomainSettings", 1, smd->domain);
-			else if(smd->type==MOD_SMOKE_TYPE_FLOW)
+			else if(smd->type & MOD_SMOKE_TYPE_FLOW)
 				writestruct(wd, DATA, "SmokeFlowSettings", 1, smd->flow);
 			/*
-			else if(smd->type==MOD_SMOKE_TYPE_COLL)
+			else if(smd->type & MOD_SMOKE_TYPE_COLL)
 				writestruct(wd, DATA, "SmokeCollSettings", 1, smd->coll);
 			*/
+
+			if((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
+				write_pointcaches(wd, &smd->domain->ptcaches);
 		} 
 		else if(md->type==eModifierType_Fluidsim) {
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;

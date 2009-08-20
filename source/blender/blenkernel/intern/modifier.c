@@ -5801,26 +5801,6 @@ static void smokeModifier_initData(ModifierData *md)
 	smd->coll = NULL;
 	smd->type = 0;
 	smd->time = -1;
-	
-	/*
-	smd->fluid = NULL;
-	smd->maxres = 48;
-	smd->amplify = 4;
-	smd->omega = 0.5;
-	smd->time = 0;
-	smd->flags = 0;
-	smd->noise = MOD_SMOKE_NOISEWAVE;
-	smd->visibility = 1;
-	
-	// init 3dview buffer
-	smd->tvox = NULL;
-	smd->tray = NULL;
-	smd->tvoxbig = NULL;
-	smd->traybig = NULL;
-	smd->viewsettings = 0;
-	smd->bind = NULL;
-	smd->max_textures = 0;
-	*/
 }
 
 static void smokeModifier_freeData(ModifierData *md)
@@ -5882,6 +5862,50 @@ static void smokeModifier_updateDepgraph(
 		}
 	}
 	*/
+}
+
+
+/* Smoke High Resolution */
+
+static void smokeHRModifier_initData(ModifierData *md) 
+{
+	SmokeHRModifierData *shrmd = (SmokeHRModifierData*) md;
+	
+	shrmd->wt = NULL;
+	shrmd->time = -1;
+	shrmd->strength = 2.0f;
+	shrmd->amplify = 1;
+	shrmd->noise = MOD_SMOKE_NOISEWAVE;
+	shrmd->point_cache = BKE_ptcache_add(&shrmd->ptcaches);
+	shrmd->point_cache->flag |= PTCACHE_DISK_CACHE;
+	shrmd->point_cache->step = 1;
+}
+
+static void smokeHRModifier_freeData(ModifierData *md)
+{
+	SmokeHRModifierData *shrmd = (SmokeHRModifierData*) md;
+	
+	smokeHRModifier_free (shrmd);
+}
+
+static void smokeHRModifier_deformVerts(
+					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
+      float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+{
+	SmokeHRModifierData *shrmd = (SmokeHRModifierData*) md;
+	smokeHRModifier_do(shrmd, md->scene, ob, useRenderParams, isFinalCalc);
+}
+
+static int smokeHRModifier_dependsOnTime(ModifierData *md)
+{
+	return 1;
+}
+
+static void smokeHRModifier_updateDepgraph(
+					 ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
+      DagNode *obNode)
+{
+	;
 }
 
 /* Cloth */
@@ -8580,10 +8604,23 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->initData = smokeModifier_initData;
 		mti->freeData = smokeModifier_freeData; 
-		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_UsesPointCache
+				| eModifierTypeFlag_Single;
 		mti->deformVerts = smokeModifier_deformVerts;
 		mti->dependsOnTime = smokeModifier_dependsOnTime;
 		mti->updateDepgraph = smokeModifier_updateDepgraph;
+
+		mti = INIT_TYPE(SmokeHR);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->initData = smokeHRModifier_initData;
+		mti->freeData = smokeHRModifier_freeData; 
+		mti->flags = eModifierTypeFlag_AcceptsMesh 
+				| eModifierTypeFlag_UsesPointCache
+				| eModifierTypeFlag_Single;
+		mti->deformVerts = smokeHRModifier_deformVerts;
+		mti->dependsOnTime = smokeHRModifier_dependsOnTime;
+		mti->updateDepgraph = smokeHRModifier_updateDepgraph;
 	
 		mti = INIT_TYPE(Cloth);
 		mti->type = eModifierTypeType_Nonconstructive;

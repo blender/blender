@@ -38,9 +38,11 @@
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_smoke_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
@@ -742,6 +744,23 @@ int GPU_update_image_time(Image *ima, double time)
 	}
 
 	return inc;
+}
+
+
+void GPU_free_smoke(SmokeModifierData *smd)
+{
+	if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain)
+	{
+		if(smd->domain->tex)
+	 		GPU_texture_free(smd->domain->tex);
+		smd->domain->tex = NULL;
+	}
+}
+
+void GPU_create_smoke(SmokeModifierData *smd)
+{
+	if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain && !smd->domain->tex)
+		smd->domain->tex = GPU_texture_create_3D(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2], smd->domain->view3d);
 }
 
 void GPU_free_image(Image *ima)
