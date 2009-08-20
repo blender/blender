@@ -591,7 +591,7 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 			smd->domain->point_cache->simframe= 0;
 			smd->domain->point_cache->last_exact= 0;
 
-			printf("reset_domain\n");
+			// printf("reset_domain\n");
 		}
 		else if(smd->flow)
 		{
@@ -763,7 +763,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		float light[3] = {0.0,0.0,0.0};
 		int have_lamp = 0;
 
-		printf("smd->type & MOD_SMOKE_TYPE_DOMAIN\n");
+		// printf("smd->type & MOD_SMOKE_TYPE_DOMAIN\n");
 
 		framenr = scene->r.cfra;
 
@@ -813,7 +813,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 		/* try to read from cache */
 		cache_result = BKE_ptcache_read_cache(&pid, (float)framenr, scene->r.frs_sec);
-		printf("cache_result: %d\n", cache_result);
+		// printf("cache_result: %d\n", cache_result);
 
 		if(cache_result == PTCACHE_READ_EXACT) 
 		{
@@ -885,7 +885,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 		BKE_ptcache_write_cache(&pid, framenr);
 
-		printf("Writing cache_low\n");
+		// printf("Writing cache_low\n");
 	
 
 		tend();
