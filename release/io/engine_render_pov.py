@@ -821,21 +821,37 @@ class SCENE_PT_povray_radiosity(RenderButtonsPanel):
 		
 		col = split.column()
 		
-		col.itemR(scene, "pov_radio_count")
-		col.itemR(scene, "pov_radio_recursion_limit")
-		col.itemR(scene, "pov_radio_error_bound")
+		col.itemR(scene, "pov_radio_count", text="Rays")
+		col.itemR(scene, "pov_radio_recursion_limit", text="Recursions")
+		col = split.column()
+		col.itemR(scene, "pov_radio_error_bound", text="Error")
 		
-		col.itemR(scene, "pov_radio_display_advanced")
+		layout.itemR(scene, "pov_radio_display_advanced")
 		
 		if scene.pov_radio_display_advanced:
-			col.itemR(scene, "pov_radio_adc_bailout")
+			split = layout.split()
+		
+			col = split.column()
+			col.itemR(scene, "pov_radio_adc_bailout", slider=True)
+			col.itemR(scene, "pov_radio_gray_threshold", slider=True)
+			col.itemR(scene, "pov_radio_low_error_factor", slider=True)
+			
+			
+			
+			col = split.column()
 			col.itemR(scene, "pov_radio_brightness")
-			col.itemR(scene, "pov_radio_gray_threshold")
-			col.itemR(scene, "pov_radio_low_error_factor")
-			col.itemR(scene, "pov_radio_minimum_reuse")
-			col.itemR(scene, "pov_radio_media")
+			col.itemR(scene, "pov_radio_minimum_reuse", text="Min Reuse")
 			col.itemR(scene, "pov_radio_nearest_count")
+			
+			
+			split = layout.split()
+		
+			col = split.column()
+			col.itemL(text="Estimation Influence:")
+			col.itemR(scene, "pov_radio_media")
 			col.itemR(scene, "pov_radio_normal")
+			
+			col = split.column()
 			col.itemR(scene, "pov_radio_always_sample")
 		
 
@@ -885,17 +901,17 @@ FloatProperty(	attr="pov_radio_error_bound",
 FloatProperty(	attr="pov_radio_gray_threshold",
 				name="Gray Threshold",
 				description="one of the two main speed/quality tuning values, lower values are more accurate.",
-				min=0.0, max=1.0, default= 0.0)
+				min=0.0, max=1.0, soft_min=0, soft_max=1, default= 0.0)
 								
 FloatProperty(	attr="pov_radio_low_error_factor",
 				name="Low Error Factor",
 				description="If you calculate just enough samples, but no more, you will get an image which has slightly blotchy lighting.",
-				min=0.0, max=1.0, default= 0.5)
+				min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, default= 0.5)
 
 # max_sample - not available yet
 
 BoolProperty(	attr="pov_radio_media",
-				name="Use Media",
+				name="Media",
 				description="Radiosity estimation can be affected by media.",
 				default= False)
 
