@@ -429,7 +429,7 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel):
 
 	def poll(self, context):
 		settings = self.paint_settings(context)
-		return (settings and settings.brush and context.sculpt_object)
+		return (settings and settings.brush and (context.sculpt_object or context.vertex_paint_object))
 
 	def draw(self, context):
 		settings = self.paint_settings(context)

@@ -43,6 +43,7 @@ struct Object;
 struct Scene;
 struct View3D;
 struct RegionView3D;
+struct SmokeModifierData;
 
 /* OpenGL drawing functions related to shading. These are also
  * shared with the game engine, where there were previously

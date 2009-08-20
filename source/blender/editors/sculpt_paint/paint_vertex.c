@@ -62,6 +62,7 @@
 #include "DNA_userdef_types.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "BKE_armature.h"
 #include "BKE_brush.h"
@@ -90,6 +91,8 @@
 #include "ED_screen.h"
 #include "ED_util.h"
 #include "ED_view3d.h"
+
+#include "paint_intern.h"
 
 	/* vp->mode */
 #define VP_MIX	0
@@ -807,7 +810,7 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 	return tot;
 }
 
-static int calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], float *vert_nor, short *mval)
+static int calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], float *vert_nor, float *mval)
 {
 	Brush *brush = paint_brush(&vp->paint);
 	float fac, dx, dy;
@@ -1124,7 +1127,7 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 		if(wp==NULL)
 			wp= scene->toolsettings->wpaint= new_vpaint(1);
 
-		paint_init(&wp->paint, "Brush");
+		paint_init(&wp->paint, NULL);
 
 		toggle_paint_cursor(C, 1);
 		
@@ -1329,7 +1332,7 @@ static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
 			float paintweight= ts->vgroup_weight;
 			int *indexar= wpd->indexar;
 			int totindex, index, alpha, totw;
-			short mval[2];
+			float mval[2];
 			
 			view3d_operator_needs_opengl(C);
 			
@@ -1634,7 +1637,7 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 		
 		toggle_paint_cursor(C, 0);
 
-		paint_init(&vp->paint, "Brush");
+		paint_init(&vp->paint, NULL);
 	}
 	
 	if (me)
@@ -1693,25 +1696,47 @@ struct VPaintData {
 	float vpimat[3][3];
 };
 
-static void vpaint_exit(bContext *C, wmOperator *op)
+static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent *event)
 {
 	ToolSettings *ts= CTX_data_tool_settings(C);
-	struct VPaintData *vpd= op->customdata;
+	struct PaintStroke *stroke = op->customdata;
+	VPaint *vp= ts->vpaint;
+	struct VPaintData *vpd;
+	Object *ob= CTX_data_active_object(C);
+	Mesh *me;
+	float mat[4][4], imat[4][4];
+
+	/* context checks could be a poll() */
+	me= get_mesh(ob);
+	if(me==NULL || me->totface==0) return OPERATOR_PASS_THROUGH;
 	
-	if(vpd->vertexcosnos)
-		MEM_freeN(vpd->vertexcosnos);
-	MEM_freeN(vpd->indexar);
+	if(me->mcol==NULL) make_vertexcol(CTX_data_scene(C), 0);
+	if(me->mcol==NULL) return OPERATOR_CANCELLED;
 	
-	/* frees prev buffer */
-	copy_vpaint_prev(ts->vpaint, NULL, 0);
+	/* make mode data storage */
+	vpd= MEM_callocN(sizeof(struct VPaintData), "VPaintData");
+	paint_stroke_set_mode_data(stroke, vpd);
+	view3d_set_viewcontext(C, &vpd->vc);
 	
-	MEM_freeN(vpd);
-	op->customdata= NULL;
+	vpd->vertexcosnos= mesh_get_mapped_verts_nors(vpd->vc.scene, ob);
+	vpd->indexar= get_indexarray();
+	vpd->paintcol= vpaint_get_current_col(vp);
+	
+	/* for filtering */
+	copy_vpaint_prev(vp, (unsigned int *)me->mcol, me->totface);
+	
+	/* some old cruft to sort out later */
+	Mat4MulMat4(mat, ob->obmat, vpd->vc.rv3d->viewmat);
+	Mat4Invert(imat, mat);
+	Mat3CpyMat4(vpd->vpimat, imat);
+
+	return 1;
 }
 
-static void vpaint_dot(bContext *C, struct VPaintData *vpd, wmEvent *event)
+static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
 {
 	ToolSettings *ts= CTX_data_tool_settings(C);
+	struct VPaintData *vpd = paint_stroke_mode_data(stroke);
 	VPaint *vp= ts->vpaint;
 	Brush *brush = paint_brush(&vp->paint);
 	ViewContext *vc= &vpd->vc;
@@ -1720,7 +1745,9 @@ static void vpaint_dot(bContext *C, struct VPaintData *vpd, wmEvent *event)
 	float mat[4][4];
 	int *indexar= vpd->indexar;
 	int totindex, index;
-	short mval[2];
+	float mval[2];
+
+	RNA_float_get_array(itemptr, "mouse", mval);
 			
 	view3d_operator_needs_opengl(C);
 			
@@ -1728,10 +1755,11 @@ static void vpaint_dot(bContext *C, struct VPaintData *vpd, wmEvent *event)
 	wmMultMatrix(ob->obmat);
 	wmGetSingleMatrix(mat);
 	wmLoadMatrix(vc->rv3d->viewmat);
+
+	mval[0]-= vc->ar->winrct.xmin;
+	mval[1]-= vc->ar->winrct.ymin;
+
 			
-	mval[0]= event->x - vc->ar->winrct.xmin;
-	mval[1]= event->y - vc->ar->winrct.ymin;
-				
 	/* which faces are involved */
 	if(vp->flag & VP_AREA) {
 		totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush->size);
@@ -1811,58 +1839,27 @@ static void vpaint_dot(bContext *C, struct VPaintData *vpd, wmEvent *event)
 	DAG_object_flush_update(vc->scene, ob, OB_RECALC_DATA);
 }
 
-static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
+static void vpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
 {
-	switch(event->type) {
-	case LEFTMOUSE:
-		if(event->val==0) { /* release */
-			vpaint_exit(C, op);
-			return OPERATOR_FINISHED;
-		}
-		/* pass on, first press gets painted too */
-		
-	case MOUSEMOVE: 
-		vpaint_dot(C, op->customdata, event);
-		break;
-	}	
+	ToolSettings *ts= CTX_data_tool_settings(C);
+	struct VPaintData *vpd= paint_stroke_mode_data(stroke);
 	
-	return OPERATOR_RUNNING_MODAL;
+	if(vpd->vertexcosnos)
+		MEM_freeN(vpd->vertexcosnos);
+	MEM_freeN(vpd->indexar);
+	
+	/* frees prev buffer */
+	copy_vpaint_prev(ts->vpaint, NULL, 0);
+	
+	MEM_freeN(vpd);
 }
 
 static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ToolSettings *ts= CTX_data_tool_settings(C);
-	VPaint *vp= ts->vpaint;
-	struct VPaintData *vpd;
-	Object *ob= CTX_data_active_object(C);
-	Mesh *me;
-	float mat[4][4], imat[4][4];
 	
-	/* context checks could be a poll() */
-	me= get_mesh(ob);
-	if(me==NULL || me->totface==0) return OPERATOR_PASS_THROUGH;
-	
-	if(me->mcol==NULL) make_vertexcol(CTX_data_scene(C), 0);
-	if(me->mcol==NULL) return OPERATOR_CANCELLED;
-	
-	/* make customdata storage */
-	op->customdata= vpd= MEM_callocN(sizeof(struct VPaintData), "VPaintData");
-	view3d_set_viewcontext(C, &vpd->vc);
-	
-	vpd->vertexcosnos= mesh_get_mapped_verts_nors(vpd->vc.scene, ob);
-	vpd->indexar= get_indexarray();
-	vpd->paintcol= vpaint_get_current_col(vp);
-	
-	/* for filtering */
-	copy_vpaint_prev(vp, (unsigned int *)me->mcol, me->totface);
-	
-	/* some old cruft to sort out later */
-	Mat4MulMat4(mat, ob->obmat, vpd->vc.rv3d->viewmat);
-	Mat4Invert(imat, mat);
-	Mat3CpyMat4(vpd->vpimat, imat);
-	
-	/* do paint once for click only paint */
-	vpaint_modal(C, op, event);
+	op->customdata = paint_stroke_new(C, vpaint_stroke_test_start,
+					  vpaint_stroke_update_step,
+					  vpaint_stroke_done);
 	
 	/* add modal handler */
 	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
@@ -1878,11 +1875,13 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= vpaint_invoke;
-	ot->modal= vpaint_modal;
+	ot->modal= paint_stroke_modal;
 	/* ot->exec= vpaint_exec; <-- needs stroke property */
 	ot->poll= vp_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+
+	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
 

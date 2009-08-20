@@ -1042,47 +1042,7 @@ static int sculpt_mode_poll(bContext *C)
 
 static int sculpt_poll(bContext *C)
 {
-	return sculpt_mode_poll(C) && paint_brush(&CTX_data_tool_settings(C)->sculpt->paint) &&
-		CTX_wm_area(C)->spacetype == SPACE_VIEW3D &&
-		CTX_wm_region(C)->regiontype == RGN_TYPE_WINDOW;
-}
-
-/*** Sculpt Cursor ***/
-static void draw_paint_cursor(bContext *C, int x, int y, void *customdata)
-{
-	Sculpt *sd= CTX_data_tool_settings(C)->sculpt;
-	SculptSession *ss= CTX_data_active_object(C)->sculpt;
-	Brush *brush = paint_brush(&sd->paint);
-	
-	glColor4ub(255, 100, 100, 128);
-	glEnable( GL_LINE_SMOOTH );
-	glEnable(GL_BLEND);
-
-	glTranslatef((float)x, (float)y, 0.0f);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, brush->size, 40);
-	glTranslatef((float)-x, (float)-y, 0.0f);
-
-	if(ss && ss->cache && brush && (brush->flag & BRUSH_SMOOTH_STROKE)) {
-		ARegion *ar = CTX_wm_region(C);
-		sdrawline(x, y, (int)ss->cache->mouse[0] - ar->winrct.xmin, (int)ss->cache->mouse[1] - ar->winrct.ymin);
-	}
-
-	glDisable(GL_BLEND);
-	glDisable( GL_LINE_SMOOTH );
-}
-
-static void toggle_paint_cursor(bContext *C)
-{
-	Sculpt *s = CTX_data_scene(C)->toolsettings->sculpt;
-
-	if(s->cursor) {
-		WM_paint_cursor_end(CTX_wm_manager(C), s->cursor);
-		s->cursor = NULL;
-	}
-	else {
-		s->cursor =
-			WM_paint_cursor_activate(CTX_wm_manager(C), sculpt_poll, draw_paint_cursor, NULL);
-	}
+	return sculpt_mode_poll(C) && paint_poll(C);
 }
 
 static void sculpt_undo_push(bContext *C, Sculpt *sd)
@@ -1112,8 +1072,11 @@ static void sculpt_undo_push(bContext *C, Sculpt *sd)
 /**** Radial control ****/
 static int sculpt_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	Brush *brush = paint_brush(&CTX_data_tool_settings(C)->sculpt->paint);
-	toggle_paint_cursor(C);
+	Paint *p = paint_get_active(CTX_data_scene(C));
+	Brush *brush = paint_brush(p);
+
+	WM_paint_cursor_end(CTX_wm_manager(C), p->paint_cursor);
+	p->paint_cursor = NULL;
 	brush_radial_control_invoke(op, brush, 1);
 	return WM_radial_control_invoke(C, op, event);
 }
@@ -1122,7 +1085,7 @@ static int sculpt_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 {
 	int ret = WM_radial_control_modal(C, op, event);
 	if(ret != OPERATOR_RUNNING_MODAL)
-		toggle_paint_cursor(C);
+		paint_cursor_start(C, sculpt_poll);
 	return ret;
 }
 
@@ -1592,6 +1555,8 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		free_sculptsession(&ob->sculpt);
 	}
 	else {
+		const char col[3] = {255, 100, 100};
+		
 		/* Enter sculptmode */
 
 		ob->mode |= OB_MODE_SCULPT;
@@ -1605,10 +1570,9 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 			free_sculptsession(&ob->sculpt);
 		ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
 
-		if(!ts->sculpt->cursor)
-			toggle_paint_cursor(C);
-
-		paint_init(&ts->sculpt->paint, "Brush");
+		paint_init(&ts->sculpt->paint, col);
+		
+		paint_cursor_start(C, sculpt_poll);
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE, CTX_data_scene(C));
 	}

@@ -77,12 +77,6 @@ void BRUSH_OT_add(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", brush_type_items, OB_MODE_VERTEX_PAINT, "Type", "Which paint mode to create the brush for.");
 }
 
-/* Paint operators */
-static int paint_poll(bContext *C)
-{
-	return !!paint_get_active(CTX_data_scene(C));
-}
-
 /**************************** registration **********************************/
 
 void ED_operatortypes_paint(void)

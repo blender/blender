@@ -50,6 +50,10 @@ struct PaintStroke *paint_stroke_new(bContext *C, StrokeTestStart test_start,
 				     StrokeUpdateStep update_step, StrokeDone done);
 int paint_stroke_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 struct ViewContext *paint_stroke_view_context(struct PaintStroke *stroke);
+void *paint_stroke_mode_data(struct PaintStroke *stroke);
+void paint_stroke_set_mode_data(struct PaintStroke *stroke, void *mode_data);
+int paint_poll(bContext *C);
+void paint_cursor_start(struct bContext *C, int (*poll)(struct bContext *C));
 
 /* paint_vertex.c */
 void PAINT_OT_weight_paint_toggle(struct wmOperatorType *ot);

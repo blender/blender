@@ -154,14 +154,23 @@ int paint_facesel_test(Object *ob)
 
 }
 
-void paint_init(Paint *p, const char *name)
+void paint_init(Paint *p, const char *col)
 {
 	Brush *brush;
 
 	/* If there's no brush, create one */
 	brush = paint_brush(p);
-	brush_check_exists(&brush, name);
+	brush_check_exists(&brush, "Brush");
 	paint_brush_set(p, brush);
+
+	if(col)
+		memcpy(p->paint_cursor_col, col, 3);
+	else {
+		p->paint_cursor_col[0] = 255;
+		p->paint_cursor_col[1] = 255;
+		p->paint_cursor_col[2] = 255;
+	}
+	p->paint_cursor_col[3] = 128;
 }
 
 void free_paint(Paint *paint)

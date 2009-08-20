@@ -43,6 +43,7 @@
 
 #include "BLI_arithb.h"
 
+#include "BIF_gl.h"
 #include "BIF_glutil.h"
 
 #include "ED_screen.h"
@@ -54,6 +55,9 @@
 #include <math.h>
 
 typedef struct PaintStroke {
+	void *mode_data;
+	void *smooth_stroke_cursor;
+
 	/* Cached values */
 	ViewContext vc;
 	bglMats mats;
@@ -70,6 +74,42 @@ typedef struct PaintStroke {
 	StrokeUpdateStep update_step;
 	StrokeDone done;
 } PaintStroke;
+
+/*** Cursor ***/
+static void paint_draw_smooth_stroke(bContext *C, int x, int y, void *customdata) 
+{
+	Brush *brush = paint_brush(paint_get_active(CTX_data_scene(C)));
+	PaintStroke *stroke = customdata;
+
+	glColor4ubv(paint_get_active(CTX_data_scene(C))->paint_cursor_col);
+	glEnable(GL_LINE_SMOOTH);
+	glEnable(GL_BLEND);
+
+	if(stroke && brush && (brush->flag & BRUSH_SMOOTH_STROKE)) {
+		ARegion *ar = CTX_wm_region(C);
+		sdrawline(x, y, (int)stroke->last_mouse_position[0] - ar->winrct.xmin,
+			  (int)stroke->last_mouse_position[1] - ar->winrct.ymin);
+	}
+
+	glDisable(GL_BLEND);
+	glDisable(GL_LINE_SMOOTH);
+}
+
+static void paint_draw_cursor(bContext *C, int x, int y, void *customdata)
+{
+	Brush *brush = paint_brush(paint_get_active(CTX_data_scene(C)));
+
+	glColor4ubv(paint_get_active(CTX_data_scene(C))->paint_cursor_col);
+	glEnable(GL_LINE_SMOOTH);
+	glEnable(GL_BLEND);
+
+	glTranslatef((float)x, (float)y, 0.0f);
+	glutil_draw_lined_arc(0.0, M_PI*2.0, brush->size, 40);
+	glTranslatef((float)-x, (float)-y, 0.0f);
+
+	glDisable(GL_BLEND);
+	glDisable(GL_LINE_SMOOTH);
+}
 
 /* Put the location of the next stroke dot into the stroke RNA and apply it to the mesh */
 static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *event, float mouse[2])
@@ -191,6 +231,11 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 		stroke->last_mouse_position[0] = event->x;
 		stroke->last_mouse_position[1] = event->y;
 		stroke->stroke_started = stroke->test_start(C, op, event);
+
+		if(stroke->stroke_started)
+			stroke->smooth_stroke_cursor =
+				WM_paint_cursor_activate(CTX_wm_manager(C), paint_poll, paint_draw_smooth_stroke, stroke);
+
 		ED_region_tag_redraw(ar);
 	}
 
@@ -209,6 +254,9 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* TODO: fix hardcoded event here */
 	if(event->type == LEFTMOUSE && event->val == 0) {
+		if(stroke->smooth_stroke_cursor)
+			WM_paint_cursor_end(CTX_wm_manager(C), stroke->smooth_stroke_cursor);
+
 		stroke->done(C, stroke);
 		MEM_freeN(stroke);
 		return OPERATOR_FINISHED;
@@ -220,5 +268,33 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 ViewContext *paint_stroke_view_context(PaintStroke *stroke)
 {
 	return &stroke->vc;
+}
+
+void *paint_stroke_mode_data(struct PaintStroke *stroke)
+{
+	return stroke->mode_data;
+}
+
+void paint_stroke_set_mode_data(PaintStroke *stroke, void *mode_data)
+{
+	stroke->mode_data = mode_data;
+}
+
+int paint_poll(bContext *C)
+{
+	Paint *p = paint_get_active(CTX_data_scene(C));
+	Object *ob = CTX_data_active_object(C);
+
+	return p && ob && paint_brush(p) &&
+		CTX_wm_area(C)->spacetype == SPACE_VIEW3D &&
+		CTX_wm_region(C)->regiontype == RGN_TYPE_WINDOW;
+}
+
+void paint_cursor_start(bContext *C, int (*poll)(bContext *C))
+{
+	Paint *p = paint_get_active(CTX_data_scene(C));
+
+	if(p && !p->paint_cursor)
+		p->paint_cursor = WM_paint_cursor_activate(CTX_wm_manager(C), poll, paint_draw_cursor, NULL);
 }
 

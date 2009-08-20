@@ -7073,6 +7073,25 @@ static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *ptr, in
 	return item;
 }
 
+static const char *object_mode_op_string(int mode)
+{
+	if(mode == OB_MODE_EDIT)
+		return "OBJECT_OT_editmode_toggle";
+	if(mode == OB_MODE_SCULPT)
+		return "SCULPT_OT_sculptmode_toggle";
+	if(mode == OB_MODE_VERTEX_PAINT)
+		return "PAINT_OT_vertex_paint_toggle";
+	if(mode == OB_MODE_WEIGHT_PAINT)
+		return "PAINT_OT_weight_paint_toggle";
+	if(mode == OB_MODE_TEXTURE_PAINT)
+		return "PAINT_OT_texture_paint_toggle";
+	if(mode == OB_MODE_PARTICLE_EDIT)
+		return "PARTICLE_OT_particle_edit_toggle";
+	if(mode == OB_MODE_POSE)
+		return "OBJECT_OT_posemode_toggle";
+	return NULL;
+}
+
 static int object_mode_set_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
@@ -7081,20 +7100,13 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 	if(!ob)
 		return OPERATOR_CANCELLED;
 
-	if((mode == OB_MODE_EDIT) == !(ob->mode & OB_MODE_EDIT))
-		WM_operator_name_call(C, "OBJECT_OT_editmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if((mode == OB_MODE_SCULPT) == !(ob->mode & OB_MODE_SCULPT))
-		WM_operator_name_call(C, "SCULPT_OT_sculptmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if((mode == OB_MODE_VERTEX_PAINT) == !(ob->mode & OB_MODE_VERTEX_PAINT))
-		WM_operator_name_call(C, "PAINT_OT_vertex_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if((mode == OB_MODE_WEIGHT_PAINT) == !(ob->mode & OB_MODE_WEIGHT_PAINT))
-		WM_operator_name_call(C, "PAINT_OT_weight_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if((mode == OB_MODE_TEXTURE_PAINT) == !(ob->mode & OB_MODE_TEXTURE_PAINT))
-		WM_operator_name_call(C, "PAINT_OT_texture_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if((mode == OB_MODE_PARTICLE_EDIT) == !(ob->mode & OB_MODE_PARTICLE_EDIT))
-		WM_operator_name_call(C, "PARTICLE_OT_particle_edit_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if((mode == OB_MODE_POSE) == !(ob->mode & OB_MODE_POSE))
-		WM_operator_name_call(C, "OBJECT_OT_posemode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	/* Exit off current mode */
+	if(ob->mode != OB_MODE_OBJECT)
+		WM_operator_name_call(C, object_mode_op_string(ob->mode), WM_OP_EXEC_REGION_WIN, NULL);
+
+	/* Enter new mode */
+	if(mode != OB_MODE_OBJECT)
+		WM_operator_name_call(C, object_mode_op_string(mode), WM_OP_EXEC_REGION_WIN, NULL);
 
 	return OPERATOR_FINISHED;
 }

@@ -1067,7 +1067,7 @@ static void WM_OT_exit_blender(wmOperatorType *ot)
 */
 
 void *WM_paint_cursor_activate(wmWindowManager *wm, int (*poll)(bContext *C),
-			       void (*draw)(bContext *C, int, int, void *customdata), void *customdata)
+			       wmPaintCursorDraw draw, void *customdata)
 {
 	wmPaintCursor *pc= MEM_callocN(sizeof(wmPaintCursor), "paint cursor");
 	

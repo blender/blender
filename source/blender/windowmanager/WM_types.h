@@ -287,6 +287,11 @@ typedef struct wmTimer {
 } wmTimer;
 
 
+/* **************** Paint Cursor ******************* */
+
+typedef void (*wmPaintCursorDraw)(struct bContext *C, int, int, void *customdata);
+
+
 /* ****************** Messages ********************* */
 
 enum {
