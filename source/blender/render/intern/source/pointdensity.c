@@ -227,10 +227,8 @@ static void cache_pointdensity(Render *re, Tex *tex)
 	}
 	
 	if (pd->source == TEX_PD_PSYS) {
-		ParticleSystem *psys;
 		Object *ob = pd->object;
-		int i;
-		
+
 		if (!ob) return;
 		if (!pd->psys) return;
 		
