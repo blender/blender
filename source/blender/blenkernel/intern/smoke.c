@@ -123,7 +123,7 @@ struct DerivedMesh;
 struct SmokeModifierData;
 
 // forward declerations
-void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int correct);
+static void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int correct);
 void calcTriangleDivs(Object *ob, MVert *verts, int numverts, MFace *tris, int numfaces, int numtris, int **tridivs, float cell_len);
 void smoke_prepare_View(SmokeModifierData *smd, float framenr, float *light, int have_light);
 
