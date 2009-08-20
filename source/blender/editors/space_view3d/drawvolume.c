@@ -293,7 +293,7 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 
 	wmMultMatrix(ob->obmat);	
 
-	if(gl_blend)
+	if(!gl_blend)
 		glDisable(GL_BLEND);
 	if(gl_depth)
 	{
