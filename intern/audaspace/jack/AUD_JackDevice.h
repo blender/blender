@@ -26,6 +26,8 @@
 #ifndef AUD_JACKDEVICE
 #define AUD_JACKDEVICE
 
+#ifdef WITH_JACK
+
 #include "AUD_SoftwareDevice.h"
 class AUD_Buffer;
 
@@ -87,5 +89,7 @@ public:
 	 */
 	virtual ~AUD_JackDevice();
 };
+
+#endif //WITH_JACK
 
 #endif //AUD_JACKDEVICE

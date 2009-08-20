@@ -717,6 +717,25 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="jack"
+			>
+			<File
+				RelativePath="..\..\jack\AUD_JackDevice.cpp"
+				>
+				<FileConfiguration
+					Name="Blender Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\jack\AUD_JackDevice.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath="..\..\AUD_C-API.h"
 			>
