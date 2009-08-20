@@ -1273,207 +1273,10 @@ struct WPaintData {
 	float wpimat[3][3];
 };
 
-static void wpaint_exit(bContext *C, wmOperator *op)
-{
-	ToolSettings *ts= CTX_data_tool_settings(C);
-	Object *ob= CTX_data_active_object(C);
-	struct WPaintData *wpd= op->customdata;
-	
-	if(wpd->vertexcosnos)
-		MEM_freeN(wpd->vertexcosnos);
-	MEM_freeN(wpd->indexar);
-	
-	/* frees prev buffer */
-	copy_wpaint_prev(ts->wpaint, NULL, 0);
-	
-	/* and particles too */
-	if(ob->particlesystem.first) {
-		ParticleSystem *psys;
-		int i;
-		
-		for(psys= ob->particlesystem.first; psys; psys= psys->next) {
-			for(i=0; i<PSYS_TOT_VG; i++) {
-				if(psys->vgroup[i]==ob->actdef) {
-					psys->recalc |= PSYS_RECALC_RESET;
-					break;
-				}
-			}
-		}
-	}
-	
-	DAG_object_flush_update(CTX_data_scene(C), ob, OB_RECALC_DATA);
-	
-	MEM_freeN(wpd);
-	op->customdata= NULL;
-}
-
-
-static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
-{
-	ToolSettings *ts= CTX_data_tool_settings(C);
-	VPaint *wp= ts->wpaint;
-	Brush *brush = paint_brush(&wp->paint);
-	
-	switch(event->type) {
-		case LEFTMOUSE:
-			if(event->val==0) { /* release */
-				wpaint_exit(C, op);
-				return OPERATOR_FINISHED;
-			}
-			/* pass on, first press gets painted too */
-			
-		case MOUSEMOVE: 
-		{
-			struct WPaintData *wpd= op->customdata;
-			ViewContext *vc= &wpd->vc;
-			Object *ob= vc->obact;
-			Mesh *me= ob->data;
-			float mat[4][4];
-			float paintweight= ts->vgroup_weight;
-			int *indexar= wpd->indexar;
-			int totindex, index, alpha, totw;
-			float mval[2];
-			
-			view3d_operator_needs_opengl(C);
-			
-			/* load projection matrix */
-			wmMultMatrix(ob->obmat);
-			wmGetSingleMatrix(mat);
-			wmLoadMatrix(wpd->vc.rv3d->viewmat);
-			
-			MTC_Mat4SwapMat4(wpd->vc.rv3d->persmat, mat);
-			
-			mval[0]= event->x - vc->ar->winrct.xmin;
-			mval[1]= event->y - vc->ar->winrct.ymin;
-			
-			/* which faces are involved */
-			if(wp->flag & VP_AREA) {
-				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush->size);
-			}
-			else {
-				indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
-				if(indexar[0]) totindex= 1;
-				else totindex= 0;
-			}
-			
-			if(wp->flag & VP_COLINDEX) {
-				for(index=0; index<totindex; index++) {
-					if(indexar[index] && indexar[index]<=me->totface) {
-						MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
-						
-						if(mface->mat_nr!=ob->actcol-1) {
-							indexar[index]= 0;
-						}
-					}					
-				}
-			}
-			
-			if((G.f & G_FACESELECT) && me->mface) {
-				for(index=0; index<totindex; index++) {
-					if(indexar[index] && indexar[index]<=me->totface) {
-						MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
-						
-						if((mface->flag & ME_FACE_SEL)==0) {
-							indexar[index]= 0;
-						}
-					}					
-				}
-			}
-			
-			/* make sure each vertex gets treated only once */
-			/* and calculate filter weight */
-			totw= 0;
-			if(wp->mode==VP_BLUR) 
-				paintweight= 0.0f;
-			else
-				paintweight= ts->vgroup_weight;
-			
-			for(index=0; index<totindex; index++) {
-				if(indexar[index] && indexar[index]<=me->totface) {
-					MFace *mface= me->mface + (indexar[index]-1);
-					
-					(me->dvert+mface->v1)->flag= 1;
-					(me->dvert+mface->v2)->flag= 1;
-					(me->dvert+mface->v3)->flag= 1;
-					if(mface->v4) (me->dvert+mface->v4)->flag= 1;
-					
-					if(wp->mode==VP_BLUR) {
-						MDeformWeight *dw, *(*dw_func)(MDeformVert *, int) = verify_defweight;
-						
-						if(wp->flag & VP_ONLYVGROUP)
-							dw_func= get_defweight;
-						
-						dw= dw_func(me->dvert+mface->v1, ob->actdef-1);
-						if(dw) {paintweight+= dw->weight; totw++;}
-						dw= dw_func(me->dvert+mface->v2, ob->actdef-1);
-						if(dw) {paintweight+= dw->weight; totw++;}
-						dw= dw_func(me->dvert+mface->v3, ob->actdef-1);
-						if(dw) {paintweight+= dw->weight; totw++;}
-						if(mface->v4) {
-							dw= dw_func(me->dvert+mface->v4, ob->actdef-1);
-							if(dw) {paintweight+= dw->weight; totw++;}
-						}
-					}
-				}
-			}
-			
-			if(wp->mode==VP_BLUR) 
-				paintweight/= (float)totw;
-			
-			for(index=0; index<totindex; index++) {
-				
-				if(indexar[index] && indexar[index]<=me->totface) {
-					MFace *mface= me->mface + (indexar[index]-1);
-					
-					if((me->dvert+mface->v1)->flag) {
-						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v1, mval);
-						if(alpha) {
-							do_weight_paint_vertex(wp, ob, mface->v1, alpha, paintweight, wpd->vgroup_mirror);
-						}
-						(me->dvert+mface->v1)->flag= 0;
-					}
-					
-					if((me->dvert+mface->v2)->flag) {
-						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v2, mval);
-						if(alpha) {
-							do_weight_paint_vertex(wp, ob, mface->v2, alpha, paintweight, wpd->vgroup_mirror);
-						}
-						(me->dvert+mface->v2)->flag= 0;
-					}
-					
-					if((me->dvert+mface->v3)->flag) {
-						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v3, mval);
-						if(alpha) {
-							do_weight_paint_vertex(wp, ob, mface->v3, alpha, paintweight, wpd->vgroup_mirror);
-						}
-						(me->dvert+mface->v3)->flag= 0;
-					}
-					
-					if((me->dvert+mface->v4)->flag) {
-						if(mface->v4) {
-							alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v4, mval);
-							if(alpha) {
-								do_weight_paint_vertex(wp, ob, mface->v4, alpha, paintweight, wpd->vgroup_mirror);
-							}
-							(me->dvert+mface->v4)->flag= 0;
-						}
-					}
-				}
-			}
-			
-			MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
-			
-			DAG_object_flush_update(vc->scene, ob, OB_RECALC_DATA);
-			ED_region_tag_redraw(vc->ar);
-		}
-	}
-
-	return OPERATOR_RUNNING_MODAL;
-}
-
-static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Scene *scene= CTX_data_scene(C);
+	struct PaintStroke *stroke = op->customdata;
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	VPaint *wp= ts->wpaint;
 	Object *ob= CTX_data_active_object(C);
@@ -1482,7 +1285,6 @@ static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	float mat[4][4], imat[4][4];
 	
 	if(scene->obedit) return OPERATOR_CANCELLED;
-	// XXX	if(multires_level1_test()) return;
 	
 	me= get_mesh(ob);
 	if(me==NULL || me->totface==0) return OPERATOR_PASS_THROUGH;
@@ -1491,8 +1293,9 @@ static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if (!me->dvert)
 		create_dverts(&me->id);
 	
-	/* make customdata storage */
-	op->customdata= wpd= MEM_callocN(sizeof(struct WPaintData), "WPaintData");
+	/* make mode data storage */
+	wpd= MEM_callocN(sizeof(struct WPaintData), "WPaintData");
+	paint_stroke_set_mode_data(stroke, wpd);
 	view3d_set_viewcontext(C, &wpd->vc);
 	wpd->vgroup_mirror= -1;
 	
@@ -1564,8 +1367,198 @@ static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 	
-	/* do paint once for click only paint */
-	wpaint_modal(C, op, event);
+	return 1;
+}
+
+static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
+{
+	ToolSettings *ts= CTX_data_tool_settings(C);
+	VPaint *wp= ts->wpaint;
+	Brush *brush = paint_brush(&wp->paint);
+	struct WPaintData *wpd= paint_stroke_mode_data(stroke);
+	ViewContext *vc= &wpd->vc;
+	Object *ob= vc->obact;
+	Mesh *me= ob->data;
+	float mat[4][4];
+	float paintweight= ts->vgroup_weight;
+	int *indexar= wpd->indexar;
+	int totindex, index, alpha, totw;
+	float mval[2];
+
+	view3d_operator_needs_opengl(C);
+			
+	/* load projection matrix */
+	wmMultMatrix(ob->obmat);
+	wmGetSingleMatrix(mat);
+	wmLoadMatrix(wpd->vc.rv3d->viewmat);
+
+	RNA_float_get_array(itemptr, "mouse", mval);
+	mval[0]-= vc->ar->winrct.xmin;
+	mval[1]-= vc->ar->winrct.ymin;
+			
+	MTC_Mat4SwapMat4(wpd->vc.rv3d->persmat, mat);
+			
+	/* which faces are involved */
+	if(wp->flag & VP_AREA) {
+		totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush->size);
+	}
+	else {
+		indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
+		if(indexar[0]) totindex= 1;
+		else totindex= 0;
+	}
+			
+	if(wp->flag & VP_COLINDEX) {
+		for(index=0; index<totindex; index++) {
+			if(indexar[index] && indexar[index]<=me->totface) {
+				MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
+						
+				if(mface->mat_nr!=ob->actcol-1) {
+					indexar[index]= 0;
+				}
+			}					
+		}
+	}
+			
+	if((G.f & G_FACESELECT) && me->mface) {
+		for(index=0; index<totindex; index++) {
+			if(indexar[index] && indexar[index]<=me->totface) {
+				MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
+						
+				if((mface->flag & ME_FACE_SEL)==0) {
+					indexar[index]= 0;
+				}
+			}					
+		}
+	}
+			
+	/* make sure each vertex gets treated only once */
+	/* and calculate filter weight */
+	totw= 0;
+	if(wp->mode==VP_BLUR) 
+		paintweight= 0.0f;
+	else
+		paintweight= ts->vgroup_weight;
+			
+	for(index=0; index<totindex; index++) {
+		if(indexar[index] && indexar[index]<=me->totface) {
+			MFace *mface= me->mface + (indexar[index]-1);
+					
+			(me->dvert+mface->v1)->flag= 1;
+			(me->dvert+mface->v2)->flag= 1;
+			(me->dvert+mface->v3)->flag= 1;
+			if(mface->v4) (me->dvert+mface->v4)->flag= 1;
+					
+			if(wp->mode==VP_BLUR) {
+				MDeformWeight *dw, *(*dw_func)(MDeformVert *, int) = verify_defweight;
+						
+				if(wp->flag & VP_ONLYVGROUP)
+					dw_func= get_defweight;
+						
+				dw= dw_func(me->dvert+mface->v1, ob->actdef-1);
+				if(dw) {paintweight+= dw->weight; totw++;}
+				dw= dw_func(me->dvert+mface->v2, ob->actdef-1);
+				if(dw) {paintweight+= dw->weight; totw++;}
+				dw= dw_func(me->dvert+mface->v3, ob->actdef-1);
+				if(dw) {paintweight+= dw->weight; totw++;}
+				if(mface->v4) {
+					dw= dw_func(me->dvert+mface->v4, ob->actdef-1);
+					if(dw) {paintweight+= dw->weight; totw++;}
+				}
+			}
+		}
+	}
+			
+	if(wp->mode==VP_BLUR) 
+		paintweight/= (float)totw;
+			
+	for(index=0; index<totindex; index++) {
+				
+		if(indexar[index] && indexar[index]<=me->totface) {
+			MFace *mface= me->mface + (indexar[index]-1);
+					
+			if((me->dvert+mface->v1)->flag) {
+				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v1, mval);
+				if(alpha) {
+					do_weight_paint_vertex(wp, ob, mface->v1, alpha, paintweight, wpd->vgroup_mirror);
+				}
+				(me->dvert+mface->v1)->flag= 0;
+			}
+					
+			if((me->dvert+mface->v2)->flag) {
+				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v2, mval);
+				if(alpha) {
+					do_weight_paint_vertex(wp, ob, mface->v2, alpha, paintweight, wpd->vgroup_mirror);
+				}
+				(me->dvert+mface->v2)->flag= 0;
+			}
+					
+			if((me->dvert+mface->v3)->flag) {
+				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v3, mval);
+				if(alpha) {
+					do_weight_paint_vertex(wp, ob, mface->v3, alpha, paintweight, wpd->vgroup_mirror);
+				}
+				(me->dvert+mface->v3)->flag= 0;
+			}
+					
+			if((me->dvert+mface->v4)->flag) {
+				if(mface->v4) {
+					alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v4, mval);
+					if(alpha) {
+						do_weight_paint_vertex(wp, ob, mface->v4, alpha, paintweight, wpd->vgroup_mirror);
+					}
+					(me->dvert+mface->v4)->flag= 0;
+				}
+			}
+		}
+	}
+			
+	MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
+			
+	DAG_object_flush_update(vc->scene, ob, OB_RECALC_DATA);
+	ED_region_tag_redraw(vc->ar);
+}
+
+static void wpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
+{
+	ToolSettings *ts= CTX_data_tool_settings(C);
+	Object *ob= CTX_data_active_object(C);
+	struct WPaintData *wpd= paint_stroke_mode_data(stroke);
+	
+	if(wpd->vertexcosnos)
+		MEM_freeN(wpd->vertexcosnos);
+	MEM_freeN(wpd->indexar);
+	
+	/* frees prev buffer */
+	copy_wpaint_prev(ts->wpaint, NULL, 0);
+	
+	/* and particles too */
+	if(ob->particlesystem.first) {
+		ParticleSystem *psys;
+		int i;
+		
+		for(psys= ob->particlesystem.first; psys; psys= psys->next) {
+			for(i=0; i<PSYS_TOT_VG; i++) {
+				if(psys->vgroup[i]==ob->actdef) {
+					psys->recalc |= PSYS_RECALC_RESET;
+					break;
+				}
+			}
+		}
+	}
+	
+	DAG_object_flush_update(CTX_data_scene(C), ob, OB_RECALC_DATA);
+	
+	MEM_freeN(wpd);
+}
+
+
+static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	
+	op->customdata = paint_stroke_new(C, wpaint_stroke_test_start,
+					  wpaint_stroke_update_step,
+					  wpaint_stroke_done);
 	
 	/* add modal handler */
 	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
@@ -1582,13 +1575,14 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= wpaint_invoke;
-	ot->modal= wpaint_modal;
+	ot->modal= paint_stroke_modal;
 	/* ot->exec= vpaint_exec; <-- needs stroke property */
 	ot->poll= wp_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
-	
+
+	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
 
 /* ************ set / clear vertex paint mode ********** */
