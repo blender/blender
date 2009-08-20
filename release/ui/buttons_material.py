@@ -73,6 +73,9 @@ class MATERIAL_PT_shading(MaterialButtonsPanel):
 	__label__ = "Shading"
 	COMPAT_ENGINES = set(['BLENDER_RENDER', 'BLENDER_GAME'])
 
+	def poll(self, context):
+		return (context.material.type in ('SURFACE', 'WIRE', 'HALO'))
+
 	def draw(self, context):
 		layout = self.layout
 		
@@ -83,7 +86,7 @@ class MATERIAL_PT_shading(MaterialButtonsPanel):
 
 		if mat:
 
-			if mat.type in ['SURFACE', 'WIRE']:
+			if mat.type in ('SURFACE', 'WIRE'):
 				split = layout.split()
 	
 				col = split.column()
