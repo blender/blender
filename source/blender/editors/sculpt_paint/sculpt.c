@@ -1549,8 +1549,6 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 		free_sculptsession(&ob->sculpt);
 	}
 	else {
-		const char col[3] = {255, 100, 100};
-		
 		/* Enter sculptmode */
 
 		ob->mode |= OB_MODE_SCULPT;
@@ -1564,7 +1562,7 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *op)
 			free_sculptsession(&ob->sculpt);
 		ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
 
-		paint_init(&ts->sculpt->paint, col);
+		paint_init(&ts->sculpt->paint, PAINT_CURSOR_SCULPT);
 		
 		paint_cursor_start(C, sculpt_poll);
 

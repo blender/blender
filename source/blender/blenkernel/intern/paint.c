@@ -39,6 +39,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+const char PAINT_CURSOR_SCULPT[3] = {255, 100, 100};
+const char PAINT_CURSOR_VERTEX_PAINT[3] = {255, 255, 255};
+const char PAINT_CURSOR_WEIGHT_PAINT[3] = {200, 200, 255};
+const char PAINT_CURSOR_TEXTURE_PAINT[3] = {255, 255, 255};
+
 Paint *paint_get_active(Scene *sce)
 {
 	if(sce && sce->basact && sce->basact->object) {
@@ -154,7 +159,7 @@ int paint_facesel_test(Object *ob)
 
 }
 
-void paint_init(Paint *p, const char *col)
+void paint_init(Paint *p, const char col[3])
 {
 	Brush *brush;
 
@@ -163,13 +168,7 @@ void paint_init(Paint *p, const char *col)
 	brush_check_exists(&brush, "Brush");
 	paint_brush_set(p, brush);
 
-	if(col)
-		memcpy(p->paint_cursor_col, col, 3);
-	else {
-		p->paint_cursor_col[0] = 255;
-		p->paint_cursor_col[1] = 255;
-		p->paint_cursor_col[2] = 255;
-	}
+	memcpy(p->paint_cursor_col, col, 3);
 	p->paint_cursor_col[3] = 128;
 }
 

@@ -142,56 +142,6 @@ static int wp_poll(bContext *C)
 	return 0;
 }
 
-
-/* Cursors */
-static void vp_drawcursor(bContext *C, int x, int y, void *customdata)
-{
-	Brush *brush = paint_brush(&CTX_data_tool_settings(C)->vpaint->paint);
-	
-	glTranslatef((float)x, (float)y, 0.0f);
-	
-	glColor4ub(255, 255, 255, 128);
-	glEnable( GL_LINE_SMOOTH );
-	glEnable(GL_BLEND);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, brush->size, 40);
-	glDisable(GL_BLEND);
-	glDisable( GL_LINE_SMOOTH );
-	
-	glTranslatef((float)-x, (float)-y, 0.0f);
-}
-
-static void wp_drawcursor(bContext *C, int x, int y, void *customdata)
-{
-	Brush *brush = paint_brush(&CTX_data_tool_settings(C)->wpaint->paint);
-
-	glTranslatef((float)x, (float)y, 0.0f);
-	
-	glColor4ub(200, 200, 255, 128);
-	glEnable( GL_LINE_SMOOTH );
-	glEnable(GL_BLEND);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, brush->size, 40);
-	glDisable(GL_BLEND);
-	glDisable( GL_LINE_SMOOTH );
-	
-	glTranslatef((float)-x, (float)-y, 0.0f);
-}
-
-static void toggle_paint_cursor(bContext *C, int wpaint)
-{
-	ToolSettings *ts = CTX_data_scene(C)->toolsettings;
-	VPaint *vp = wpaint ? ts->wpaint : ts->vpaint;
-
-	if(vp->paintcursor) {
-		WM_paint_cursor_end(CTX_wm_manager(C), vp->paintcursor);
-		vp->paintcursor = NULL;
-	}
-	else {
-		vp->paintcursor = wpaint ?
-			WM_paint_cursor_activate(CTX_wm_manager(C), wp_poll, wp_drawcursor, NULL) :
-			WM_paint_cursor_activate(CTX_wm_manager(C), vp_poll, vp_drawcursor, NULL);
-	}
-}
-
 static VPaint *new_vpaint(int wpaint)
 {
 	VPaint *vp= MEM_callocN(sizeof(VPaint), "VPaint");
@@ -1127,9 +1077,8 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 		if(wp==NULL)
 			wp= scene->toolsettings->wpaint= new_vpaint(1);
 
-		paint_init(&wp->paint, NULL);
-
-		toggle_paint_cursor(C, 1);
+		paint_init(&wp->paint, PAINT_CURSOR_WEIGHT_PAINT);
+		paint_cursor_start(C, wp_poll);
 		
 		mesh_octree_table(ob, NULL, NULL, 's');
 		
@@ -1145,9 +1094,6 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 		}
 	}
 	else {
-		if(wp)
-			toggle_paint_cursor(C, 1);
-		
 		mesh_octree_table(ob, NULL, NULL, 'e');
 	}
 	
@@ -1188,9 +1134,11 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 
 static int vpaint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->vpaint->paint);
-
-	toggle_paint_cursor(C, 0);
+	Paint *p = paint_get_active(CTX_data_scene(C));
+	Brush *brush = paint_brush(p);
+	
+	WM_paint_cursor_end(CTX_wm_manager(C), p->paint_cursor);
+	p->paint_cursor = NULL;
 	brush_radial_control_invoke(op, brush, 1);
 	return WM_radial_control_invoke(C, op, event);
 }
@@ -1199,7 +1147,7 @@ static int vpaint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 {
 	int ret = WM_radial_control_modal(C, op, event);
 	if(ret != OPERATOR_RUNNING_MODAL)
-		toggle_paint_cursor(C, 0);
+		paint_cursor_start(C, vp_poll);
 	return ret;
 }
 
@@ -1211,8 +1159,11 @@ static int vpaint_radial_control_exec(bContext *C, wmOperator *op)
 
 static int wpaint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->wpaint->paint);
-	toggle_paint_cursor(C, 1);
+	Paint *p = paint_get_active(CTX_data_scene(C));
+	Brush *brush = paint_brush(p);
+	
+	WM_paint_cursor_end(CTX_wm_manager(C), p->paint_cursor);
+	p->paint_cursor = NULL;
 	brush_radial_control_invoke(op, brush, 1);
 	return WM_radial_control_invoke(C, op, event);
 }
@@ -1221,7 +1172,7 @@ static int wpaint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 {
 	int ret = WM_radial_control_modal(C, op, event);
 	if(ret != OPERATOR_RUNNING_MODAL)
-		toggle_paint_cursor(C, 1);
+		paint_cursor_start(C, wp_poll);
 	return ret;
 }
 
@@ -1614,11 +1565,6 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 	if(ob->mode & OB_MODE_VERTEX_PAINT) {
 		
 		ob->mode &= ~OB_MODE_VERTEX_PAINT;
-		
-		if(vp) {
-			toggle_paint_cursor(C, 0);
-			vp->paintcursor= NULL;
-		}
 	}
 	else {
 		ob->mode |= OB_MODE_VERTEX_PAINT;
@@ -1629,9 +1575,9 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 		if(vp==NULL)
 			vp= scene->toolsettings->vpaint= new_vpaint(0);
 		
-		toggle_paint_cursor(C, 0);
+		paint_cursor_start(C, vp_poll);
 
-		paint_init(&vp->paint, NULL);
+		paint_init(&vp->paint, PAINT_CURSOR_VERTEX_PAINT);
 	}
 	
 	if (me)
