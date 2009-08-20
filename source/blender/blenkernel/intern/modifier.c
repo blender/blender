@@ -8102,14 +8102,13 @@ static DerivedMesh *multiresModifier_applyModifier(ModifierData *md, Object *ob,
 						   int useRenderParams, int isFinalCalc)
 {
 	MultiresModifierData *mmd = (MultiresModifierData*)md;
-	Mesh *me = get_mesh(ob);
 	DerivedMesh *final;
 
 	/* TODO: for now just skip a level1 mesh */
 	if(mmd->lvl == 1)
 		return dm;
 
-	final = multires_dm_create_from_derived(mmd, dm, me, useRenderParams, isFinalCalc);
+	final = multires_dm_create_from_derived(mmd, dm, ob, useRenderParams, isFinalCalc);
 	if(mmd->undo_signal && mmd->undo_verts && mmd->undo_verts_tot == final->getNumVerts(final)) {
 		int i;
 		MVert *dst = CDDM_get_verts(final);

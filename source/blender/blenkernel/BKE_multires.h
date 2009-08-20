@@ -35,10 +35,11 @@ struct Object;
 
 typedef struct MultiresSubsurf {
 	struct MultiresModifierData *mmd;
-	struct Mesh *me;
+	struct Object *ob;
 } MultiresSubsurf;
 
 /* MultiresDM */
+struct Object *MultiresDM_get_object(struct DerivedMesh *dm);
 struct Mesh *MultiresDM_get_mesh(struct DerivedMesh *dm);
 struct DerivedMesh *MultiresDM_new(struct MultiresSubsurf *, struct DerivedMesh*, int, int, int);
 void *MultiresDM_get_vertnorm(struct DerivedMesh *);
@@ -59,7 +60,7 @@ void multires_mark_as_modified(struct Object *ob);
 void multires_force_update(struct Object *ob);
 
 struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*, struct DerivedMesh*,
-						    struct Mesh *, int, int);
+						    struct Object *, int, int);
 
 struct MultiresModifierData *find_multires_modifier(struct Object *ob);
 int multiresModifier_switch_level(struct Object *, const int);

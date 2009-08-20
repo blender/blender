@@ -9416,7 +9416,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 					mmd->lvl = mmd->totlvl;
 					orig = CDDM_from_mesh(me, NULL);
-					dm = multires_dm_create_from_derived(mmd, orig, me, 0, 0);
+					dm = multires_dm_create_from_derived(mmd, orig, ob, 0, 0);
                                        
 					multires_load_old(dm, me->mr);
 
