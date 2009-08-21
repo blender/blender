@@ -867,7 +867,8 @@ static void renew_softbody(Object *ob, int totpoint, int totspring)
 			bp->frozen = 1.0f;
 			bp->colball = 0.0f;
 			bp->flag = 0;
-
+			bp->springweight = 1.0f;
+			bp->mass = sb->nodemass;
 		}
 	}
 }
