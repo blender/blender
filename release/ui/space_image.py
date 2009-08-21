@@ -247,7 +247,7 @@ class IMAGE_HT_header(bpy.types.Header):
 
 			"""
 			mesh = context.edit_object.data
-			row.item_pointerR(mesh, "active_uv_layer", mesh, "uv_layers")
+			row.item_pointerR(mesh, "active_uv_layer", mesh, "uv_textures")
 			"""
 
 		if ima:

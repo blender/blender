@@ -48,7 +48,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
 			col.itemO("object.material_slot_add", icon="ICON_ZOOMIN", text="")
 			col.itemO("object.material_slot_remove", icon="ICON_ZOOMOUT", text="")
 
-			if context.edit_object:
+			if ob.mode == 'EDIT':
 				row = layout.row(align=True)
 				row.itemO("object.material_slot_assign", text="Assign")
 				row.itemO("object.material_slot_select", text="Select")

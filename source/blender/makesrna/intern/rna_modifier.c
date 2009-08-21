@@ -43,40 +43,42 @@
 #include "WM_types.h"
 
 EnumPropertyItem modifier_type_items[] ={
-	{eModifierType_Armature, "ARMATURE", ICON_MOD_ARMATURE, "Armature", ""},
+	{0, "", 0, "Generate", ""},
 	{eModifierType_Array, "ARRAY", ICON_MOD_ARRAY, "Array", ""},
 	{eModifierType_Bevel, "BEVEL", ICON_MOD_BEVEL, "Bevel", ""},
 	{eModifierType_Boolean, "BOOLEAN", ICON_MOD_BOOLEAN, "Boolean", ""},
 	{eModifierType_Build, "BUILD", ICON_MOD_BUILD, "Build", ""},
-	{eModifierType_Cast, "CAST", ICON_MOD_CAST, "Cast", ""},
-	{eModifierType_Cloth, "CLOTH", ICON_MOD_CLOTH, "Cloth", ""},
-	{eModifierType_Collision, "COLLISION", ICON_MOD_PHYSICS, "Collision", ""},
-	{eModifierType_Curve, "CURVE", ICON_MOD_CURVE, "Curve", ""},
 	{eModifierType_Decimate, "DECIMATE", ICON_MOD_DECIM, "Decimate", ""},
-	{eModifierType_Displace, "DISPLACE", ICON_MOD_DISPLACE, "Displace", ""},
 	{eModifierType_EdgeSplit, "EDGE_SPLIT", ICON_MOD_EDGESPLIT, "Edge Split", ""},
-	{eModifierType_Explode, "EXPLODE", ICON_MOD_EXPLODE, "Explode", ""},
-	{eModifierType_Fluidsim, "FLUID_SIMULATION", ICON_MOD_FLUIDSIM, "Fluid Simulation", ""},
-	{eModifierType_Hook, "HOOK", ICON_HOOK, "Hook", ""},
-	{eModifierType_Lattice, "LATTICE", ICON_MOD_LATTICE, "Lattice", ""},
 	{eModifierType_Mask, "MASK", ICON_MOD_MASK, "Mask", ""},
-	{eModifierType_MeshDeform, "MESH_DEFORM", ICON_MOD_MESHDEFORM, "Mesh Deform", ""},
 	{eModifierType_Mirror, "MIRROR", ICON_MOD_MIRROR, "Mirror", ""},
 	{eModifierType_Multires, "MULTIRES", ICON_MOD_MULTIRES, "Multiresolution", ""},
-	{eModifierType_ParticleInstance, "PARTICLE_INSTANCE", ICON_MOD_PARTICLES, "Particle Instance", ""},
-	{eModifierType_ParticleSystem, "PARTICLE_SYSTEM", ICON_MOD_PARTICLES, "Particle System", ""},
+	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
+	{eModifierType_UVProject, "UV_PROJECT", ICON_MOD_UVPROJECT, "UV Project", ""},
+	{0, "", 0, "Deformers", ""},
+	{eModifierType_Armature, "ARMATURE", ICON_MOD_ARMATURE, "Armature", ""},
+	{eModifierType_Cast, "CAST", ICON_MOD_CAST, "Cast", ""},
+	{eModifierType_Curve, "CURVE", ICON_MOD_CURVE, "Curve", ""},
+	{eModifierType_Displace, "DISPLACE", ICON_MOD_DISPLACE, "Displace", ""},
+	{eModifierType_Hook, "HOOK", ICON_HOOK, "Hook", ""},
+	{eModifierType_Lattice, "LATTICE", ICON_MOD_LATTICE, "Lattice", ""},
+	{eModifierType_MeshDeform, "MESH_DEFORM", ICON_MOD_MESHDEFORM, "Mesh Deform", ""},
 	{eModifierType_Shrinkwrap, "SHRINKWRAP", ICON_MOD_SHRINKWRAP, "Shrinkwrap", ""},
 	{eModifierType_SimpleDeform, "SIMPLE_DEFORM", ICON_MOD_SIMPLEDEFORM, "Simple Deform", ""},
+	{eModifierType_Smooth, "SMOOTH", ICON_MOD_SMOOTH, "Smooth", ""},
+	{eModifierType_Wave, "WAVE", ICON_MOD_WAVE, "Wave", ""},
+	{0, "", 0, "Physics", ""},
+	{eModifierType_Cloth, "CLOTH", ICON_MOD_CLOTH, "Cloth", ""},
+	{eModifierType_Collision, "COLLISION", ICON_MOD_PHYSICS, "Collision", ""},
+	{eModifierType_Explode, "EXPLODE", ICON_MOD_EXPLODE, "Explode", ""},
+	{eModifierType_Fluidsim, "FLUID_SIMULATION", ICON_MOD_FLUIDSIM, "Fluid Simulation", ""},
+	{eModifierType_ParticleInstance, "PARTICLE_INSTANCE", ICON_MOD_PARTICLES, "Particle Instance", ""},
+	{eModifierType_ParticleSystem, "PARTICLE_SYSTEM", ICON_MOD_PARTICLES, "Particle System", ""},
 	{eModifierType_Smoke, "SMOKE", 0, "Smoke", ""},
 	{eModifierType_SmokeHR, "SMOKE_HR", 0, "SmokeHR", ""},
-	{eModifierType_Smooth, "SMOOTH", ICON_MOD_SMOOTH, "Smooth", ""},
 	{eModifierType_Softbody, "SOFT_BODY", ICON_MOD_SOFT, "Soft Body", ""},
-	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
 	{eModifierType_Surface, "SURFACE", ICON_MOD_PHYSICS, "Surface", ""},
-	{eModifierType_UVProject, "UV_PROJECT", ICON_MOD_UVPROJECT, "UV Project", ""},
-	{eModifierType_Wave, "WAVE", ICON_MOD_WAVE, "Wave", ""},
 	{0, NULL, 0, NULL, NULL}};
-
 
 #ifdef RNA_RUNTIME
 
@@ -87,7 +89,7 @@ EnumPropertyItem modifier_type_items[] ={
 static void rna_UVProject_projectors_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	UVProjectModifierData *uvp= (UVProjectModifierData*)ptr->data;
-	rna_iterator_array_begin(iter, (void*)uvp->projectors, sizeof(Object*), 10, 0, NULL);
+	rna_iterator_array_begin(iter, (void*)uvp->projectors, sizeof(Object*), uvp->num_projectors, 0, NULL);
 }
 
 static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
@@ -408,6 +410,34 @@ static PointerRNA rna_CollisionModifier_settings_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 	return rna_pointer_inherit_refine(ptr, &RNA_CollisionSettings, ob->pd);
+}
+
+static PointerRNA rna_UVProjector_object_get(PointerRNA *ptr)
+{
+	Object **ob= (Object**)ptr->data;
+	return rna_pointer_inherit_refine(ptr, &RNA_Object, *ob);
+}
+
+static void rna_UVProjector_object_set(PointerRNA *ptr, PointerRNA value)
+{
+	Object **ob= (Object**)ptr->data;
+
+    if(*ob)
+		id_us_min((ID*)*ob);
+	if(value.data)
+		id_us_plus((ID*)value.data);
+
+	*ob= value.data;
+}
+
+static void rna_UVProjectModifier_num_projectors_set(PointerRNA *ptr, int value)
+{
+	UVProjectModifierData *md= (UVProjectModifierData*)ptr->data;
+	int a;
+
+	md->num_projectors= CLAMPIS(value, 1, MOD_UVPROJECT_MAX);
+	for(a=md->num_projectors; a<MOD_UVPROJECT_MAX; a++)
+		md->projectors[a]= NULL;
 }
 
 #else
@@ -1150,7 +1180,7 @@ static void rna_def_modifier_uvproject(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "UVProjectModifier", "Modifier");
-	RNA_def_struct_ui_text(srna, "UVProject Modifier", "UV projection modifier to sets UVs from a projector.");
+	RNA_def_struct_ui_text(srna, "UV Project Modifier", "UV projection modifier to sets UVs from a projector.");
 	RNA_def_struct_sdna(srna, "UVProjectModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_UVPROJECT);
 
@@ -1160,9 +1190,15 @@ static void rna_def_modifier_uvproject(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_UVProjectModifier_uvlayer_set");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
 
+	prop= RNA_def_property(srna, "num_projectors", PROP_INT, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Number of Projectors", "Number of projectors to use.");
+	RNA_def_property_int_funcs(prop, NULL, "rna_UVProjectModifier_num_projectors_set", NULL);
+	RNA_def_property_range(prop, 1, MOD_UVPROJECT_MAX);
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
+
 	prop= RNA_def_property(srna, "projectors", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_collection_funcs(prop, "rna_UVProject_projectors_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_dereference_get", 0, 0, 0, 0, 0);
+	RNA_def_property_struct_type(prop, "UVProjector");
+	RNA_def_property_collection_funcs(prop, "rna_UVProject_projectors_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0, 0, 0);
 	RNA_def_property_ui_text(prop, "Projectors", "");
 
 	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
@@ -1188,6 +1224,15 @@ static void rna_def_modifier_uvproject(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_UVPROJECT_OVERRIDEIMAGE);
 	RNA_def_property_ui_text(prop, "Override Image", "Override faces' current images with the given image.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_update");
+
+	srna= RNA_def_struct(brna, "UVProjector", NULL);
+	RNA_def_struct_ui_text(srna, "UVProjector", "UV projector used by the UV project modifier.");
+
+	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_pointer_funcs(prop, "rna_UVProjector_object_get", "rna_UVProjector_object_set", NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Object", "Object to use as projector transform.");
 }
 
 static void rna_def_modifier_smooth(BlenderRNA *brna)

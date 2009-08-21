@@ -1150,7 +1150,7 @@ void ED_object_apply_obmat(Object *ob)
 	
 }
 
-int hook_getIndexArray(Object *obedit, int *tot, int **indexar, char *name, float *cent_r)
+int object_hook_index_array(Object *obedit, int *tot, int **indexar, char *name, float *cent_r)
 {
 	*indexar= NULL;
 	*tot= 0;
@@ -1232,9 +1232,8 @@ static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
 	}
 }
 
-void obedit_hook_select(Object *ob, HookModifierData *hmd) 
+void object_hook_select(Object *ob, HookModifierData *hmd) 
 {
-	
 	if(ob->type==OB_MESH) select_editmesh_hook(ob, hmd);
 	else if(ob->type==OB_LATTICE) select_editlattice_hook(ob, hmd);
 	else if(ob->type==OB_CURVE) select_editcurve_hook(ob, hmd);
@@ -1318,7 +1317,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 		int tot, ok, *indexar;
 		char name[32];
 		
-		ok = hook_getIndexArray(obedit, &tot, &indexar, name, cent);
+		ok = object_hook_index_array(obedit, &tot, &indexar, name, cent);
 		
 		if(ok==0) {
 			error("Requires selected vertices or active Vertex Group");
@@ -1381,7 +1380,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 		modifier_free(md);
 	}
 	else if(mode==5) { /* select */
-		obedit_hook_select(obedit, hmd);
+		object_hook_select(obedit, hmd);
 	}
 	else if(mode==6) { /* clear offset */
 		where_is_object(scene, ob);	/* ob is hook->parent */

@@ -225,6 +225,7 @@ static void ui_text_bounds_block(uiBlock *block, float offset)
 	uiStyle *style= U.uistyles.first;	// XXX pass on as arg
 	uiBut *bt;
 	int i = 0, j, x1addval= offset, nextcol;
+	int lastcol= 0, col= 0;
 	
 	uiStyleFontSet(&style->widget);
 	
@@ -237,18 +238,26 @@ static void ui_text_bounds_block(uiBlock *block, float offset)
 
 			if(j > i) i = j;
 		}
+
+		if(bt->next && bt->x1 < bt->next->x1)
+			lastcol++;
 	}
 
 	/* cope with multi collumns */
 	bt= block->buttons.first;
 	while(bt) {
-		if(bt->next && bt->x1 < bt->next->x1)
+		if(bt->next && bt->x1 < bt->next->x1) {
 			nextcol= 1;
+			col++;
+		}
 		else nextcol= 0;
 		
 		bt->x1 = x1addval;
 		bt->x2 = bt->x1 + i + block->bounds;
 		
+		if(col == lastcol)
+			bt->x2= MAX2(bt->x2, offset + block->minbounds);
+
 		ui_check_but(bt);	// clips text again
 		
 		if(nextcol)
@@ -281,7 +290,7 @@ void ui_bounds_block(uiBlock *block)
 	
   			if(bt->x2 > block->maxx) block->maxx= bt->x2;
 			if(bt->y2 > block->maxy) block->maxy= bt->y2;
-			
+
 			bt= bt->next;
 		}
 		
@@ -290,6 +299,8 @@ void ui_bounds_block(uiBlock *block)
 		block->maxx += block->bounds;
 		block->maxy += block->bounds;
 	}
+
+	block->maxx= block->minx + MAX2(block->maxx - block->minx, block->minbounds);
 
 	/* hardcoded exception... but that one is annoying with larger safety */ 
 	bt= block->buttons.first;
@@ -2286,8 +2297,12 @@ uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, char *str, short x1,
 				dynstr= BLI_dynstr_new();
 				BLI_dynstr_appendf(dynstr, "%s%%t", RNA_property_ui_name(prop));
 				for(i=0; i<totitem; i++) {
-					if(!item[i].identifier[0])
-						BLI_dynstr_append(dynstr, "|%l");
+					if(!item[i].identifier[0]) {
+						if(item[i].name)
+							BLI_dynstr_appendf(dynstr, "|%s%%l", item[i].name);
+						else
+							BLI_dynstr_append(dynstr, "|%l");
+					}
 					else if(item[i].icon)
 						BLI_dynstr_appendf(dynstr, "|%s %%i%d %%x%d", item[i].name, item[i].icon, item[i].value);
 					else
@@ -2838,6 +2853,8 @@ void uiBlockFlipOrder(uiBlock *block)
 	float centy, miny=10000, maxy= -10000;
 
 	if(U.uiflag & USER_MENUFIXEDORDER)
+		return;
+	else if(block->flag & UI_BLOCK_NO_FLIP)
 		return;
 	
 	for(but= block->buttons.first; but; but= but->next) {

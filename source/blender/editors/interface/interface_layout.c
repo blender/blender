@@ -619,6 +619,8 @@ void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
 	wmOperatorType *ot= WM_operatortype_find(opname, 0);
 	PointerRNA ptr;
 	PropertyRNA *prop;
+	uiBut *bt;
+	uiBlock *block= layout->root->block;
 
 	if(!ot || !ot->srna) {
 		ui_item_disabled(layout, opname);
@@ -631,14 +633,31 @@ void uiItemsEnumO(uiLayout *layout, char *opname, char *propname)
 	if(prop && RNA_property_type(prop) == PROP_ENUM) {
 		EnumPropertyItem *item;
 		int totitem, i, free;
+		uiLayout *split= uiLayoutSplit(layout, 0);
+		uiLayout *column= uiLayoutColumn(split, 0);
 
-		RNA_property_enum_items(layout->root->block->evil_C, &ptr, prop, &item, &totitem, &free);
+		RNA_property_enum_items(block->evil_C, &ptr, prop, &item, &totitem, &free);
 
-		for(i=0; i<totitem; i++)
-			if(item[i].identifier[0])
-				uiItemEnumO(layout, (char*)item[i].name, item[i].icon, opname, propname, item[i].value);
-			else
-				uiItemS(layout);
+		for(i=0; i<totitem; i++) {
+			if(item[i].identifier[0]) {
+				uiItemEnumO(column, (char*)item[i].name, item[i].icon, opname, propname, item[i].value);
+			}
+			else {
+				if(item[i].name) {
+					if(i != 0) {
+						column= uiLayoutColumn(split, 0);
+						/* inconsistent, but menus with labels do not look good flipped */
+						block->flag |= UI_BLOCK_NO_FLIP;
+					}
+
+					uiItemL(column, (char*)item[i].name, 0);
+					bt= block->buttons.last;
+					bt->flag= UI_TEXT_LEFT;
+				}
+				else
+					uiItemS(column);
+			}
+		}
 
 		if(free)
 			MEM_freeN(item);
@@ -924,6 +943,8 @@ void uiItemEnumR_string(uiLayout *layout, char *name, int icon, struct PointerRN
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname)
 {
 	PropertyRNA *prop;
+	uiBlock *block= layout->root->block;
+	uiBut *bt;
 
 	prop= RNA_struct_find_property(ptr, propname);
 
@@ -935,14 +956,31 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, char *propname)
 	if(RNA_property_type(prop) == PROP_ENUM) {
 		EnumPropertyItem *item;
 		int totitem, i, free;
+		uiLayout *split= uiLayoutSplit(layout, 0);
+		uiLayout *column= uiLayoutColumn(split, 0);
 
-		RNA_property_enum_items(layout->root->block->evil_C, ptr, prop, &item, &totitem, &free);
+		RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
 
-		for(i=0; i<totitem; i++)
-			if(item[i].identifier[0])
-				uiItemEnumR(layout, (char*)item[i].name, 0, ptr, propname, item[i].value);
-			else
-				uiItemS(layout);
+		for(i=0; i<totitem; i++) {
+			if(item[i].identifier[0]) {
+				uiItemEnumR(column, (char*)item[i].name, 0, ptr, propname, item[i].value);
+			}
+			else {
+				if(item[i].name) {
+					if(i != 0) {
+						column= uiLayoutColumn(split, 0);
+						/* inconsistent, but menus with labels do not look good flipped */
+						block->flag |= UI_BLOCK_NO_FLIP;
+					}
+
+					uiItemL(column, (char*)item[i].name, 0);
+					bt= block->buttons.last;
+					bt->flag= UI_TEXT_LEFT;
+				}
+				else
+					uiItemS(column);
+			}
+		}
 
 		if(free)
 			MEM_freeN(item);

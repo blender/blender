@@ -105,7 +105,7 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
 			row = layout.row()
 			row.itemR(group, "name")
 
-		if context.edit_object:
+		if ob.mode == 'EDIT':
 			row = layout.row()
 			
 			sub = row.row(align=True)
@@ -180,7 +180,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 
 				layout.itemR(kb, "name")
 
-		if context.edit_object:
+		if ob.mode == 'EDIT':
 			layout.enabled = False
 
 class DATA_PT_uv_texture(DataButtonsPanel):

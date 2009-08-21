@@ -100,6 +100,8 @@ typedef struct uiLayout uiLayout;
 #define UI_BLOCK_KEEP_OPEN		256
 #define UI_BLOCK_POPUP			512
 #define UI_BLOCK_OUT_1			1024
+#define UI_BLOCK_NO_FLIP		2048
+#define UI_BLOCK_POPUP_MEMORY	4096
 
 /* uiPopupBlockHandle->menuretval */
 #define UI_RETURN_CANCEL	1       /* cancel all menus cascading */
@@ -253,8 +255,6 @@ void uiPupMenuSaveOver(struct bContext *C, struct wmOperator *op, char *filename
 void uiPupMenuNotice(struct bContext *C, char *str, ...);
 void uiPupMenuError(struct bContext *C, char *str, ...);
 void uiPupMenuReports(struct bContext *C, struct ReportList *reports);
-
-void uiPupMenuSetActive(int val);
 
 /* Popup Blocks
  *

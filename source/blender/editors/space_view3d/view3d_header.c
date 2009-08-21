@@ -3442,10 +3442,5 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 		}
 	}
-	
-	/* do not do view2d totrect set here, it's now a template */
-	
-	uiEndBlock(C, block);
-	uiDrawBlock(C, block);
 }
 

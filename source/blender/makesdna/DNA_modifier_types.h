@@ -318,7 +318,7 @@ typedef struct UVProjectModifierData {
 	ModifierData modifier;
 
 	/* the objects which do the projecting */
-	struct Object *projectors[10];
+	struct Object *projectors[10]; /* MOD_UVPROJECT_MAX */
 	struct Image *image;      /* the image to project */
 	int flags;
 	int num_projectors;
@@ -668,5 +668,7 @@ typedef struct SimpleDeformModifierData {
 /* indicates whether simple deform should use the local
    coordinates or global coordinates of origin */
 #define MOD_SIMPLEDEFORM_ORIGIN_LOCAL			(1<<0)
+
+#define MOD_UVPROJECT_MAX				10
 
 #endif

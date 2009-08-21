@@ -8616,7 +8616,8 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->freeData = smokeHRModifier_freeData; 
 		mti->flags = eModifierTypeFlag_AcceptsMesh 
 				| eModifierTypeFlag_UsesPointCache
-				| eModifierTypeFlag_Single;
+				| eModifierTypeFlag_Single
+				| eModifierTypeFlag_NoUserAdd;
 		mti->deformVerts = smokeHRModifier_deformVerts;
 		mti->dependsOnTime = smokeHRModifier_dependsOnTime;
 		mti->updateDepgraph = smokeHRModifier_updateDepgraph;
@@ -8647,7 +8648,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(Surface);
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->initData = surfaceModifier_initData;
-		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->flags = eModifierTypeFlag_AcceptsMesh|eModifierTypeFlag_NoUserAdd;
 		mti->dependsOnTime = surfaceModifier_dependsOnTime;
 		mti->freeData = surfaceModifier_freeData; 
 		mti->deformVerts = surfaceModifier_deformVerts;

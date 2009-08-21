@@ -741,7 +741,6 @@ static void WM_OT_window_duplicate(wmOperatorType *ot)
 	ot->name= "Duplicate Window";
 	ot->idname= "WM_OT_window_duplicate";
 	
-	ot->invoke= WM_operator_confirm;
 	ot->exec= wm_window_duplicate_op;
 	ot->poll= WM_operator_winactive;
 }
@@ -1035,7 +1034,6 @@ static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
     ot->name= "Toggle Fullscreen";
     ot->idname= "WM_OT_window_fullscreen_toggle";
 
-    ot->invoke= WM_operator_confirm;
     ot->exec= wm_window_fullscreen_toggle_op;
     ot->poll= WM_operator_winactive;
 }
