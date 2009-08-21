@@ -5023,6 +5023,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 	/* patch? children objects with a timeoffs change the parents. How to solve! */
 	/* if( ((int)ob->ctime) != F_(scene->r.cfra)) where_is_object(scene, ob); */
+	
+	/* draw paths... */
+	// TODO...
 
 	/* multiply view with object matrix */
 	wmMultMatrix(ob->obmat);

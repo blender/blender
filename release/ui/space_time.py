@@ -63,7 +63,7 @@ class TIME_HT_header(bpy.types.Header):
 		layout.itemS()
 		
 		row = layout.row(align=True)
-		row.itemR(scene, "active_keying_set", text="")
+		row.item_pointerR(scene, "active_keying_set", scene, "keying_sets", text="")
 		row.itemO("anim.insert_keyframe", text="", icon="ICON_KEY_HLT")
 		row.itemO("anim.delete_keyframe", text="", icon="ICON_KEY_DEHLT")
 
