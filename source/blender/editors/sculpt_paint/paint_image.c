@@ -4719,7 +4719,7 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 		tablet= (wmtab->Active != EVT_TABLET_NONE);
 		pressure= wmtab->Pressure;
 		if(wmtab->Active == EVT_TABLET_ERASER)
-			pop->s.blend= BRUSH_BLEND_ERASE_ALPHA;
+			pop->s.blend= IMB_BLEND_ERASE_ALPHA;
 	}
 	else
 		pressure= 1.0f;
