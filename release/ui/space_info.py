@@ -115,22 +115,22 @@ class INFO_MT_add(bpy.types.Menu):
 
 		layout.operator_context = "EXEC_SCREEN"
 
-		layout.item_menu_enumO( "OBJECT_OT_mesh_add", "type", text="Mesh", icon='ICON_OUTLINER_OB_MESH')
-		layout.item_menu_enumO( "OBJECT_OT_curve_add", "type", text="Curve", icon='ICON_OUTLINER_OB_CURVE')
-		layout.item_menu_enumO( "OBJECT_OT_surface_add", "type", text="Surface", icon='ICON_OUTLINER_OB_SURFACE')
-		layout.item_menu_enumO( "OBJECT_OT_metaball_add", "type", 'META', icon='ICON_OUTLINER_OB_META')
-		layout.itemO("OBJECT_OT_text_add", text="Text", icon='ICON_OUTLINER_OB_FONT')
+		layout.item_menu_enumO( "object.mesh_add", "type", text="Mesh", icon='ICON_OUTLINER_OB_MESH')
+		layout.item_menu_enumO( "object.curve_add", "type", text="Curve", icon='ICON_OUTLINER_OB_CURVE')
+		layout.item_menu_enumO( "object.surface_add", "type", text="Surface", icon='ICON_OUTLINER_OB_SURFACE')
+		layout.item_menu_enumO( "object.metaball_add", "type", 'META', icon='ICON_OUTLINER_OB_META')
+		layout.itemO("object.text_add", text="Text", icon='ICON_OUTLINER_OB_FONT')
 
 		layout.itemS()
 
-		layout.itemO("OBJECT_OT_armature_add", text="Armature", icon='ICON_OUTLINER_OB_ARMATURE')
-		layout.item_enumO("OBJECT_OT_object_add", "type", 'LATTICE', icon='ICON_OUTLINER_OB_LATTICE')
-		layout.item_enumO("OBJECT_OT_object_add", "type", 'EMPTY', icon='ICON_OUTLINER_OB_EMPTY')
+		layout.itemO("object.armature_add", text="Armature", icon='ICON_OUTLINER_OB_ARMATURE')
+		layout.item_enumO("object.object_add", "type", 'LATTICE', icon='ICON_OUTLINER_OB_LATTICE')
+		layout.item_enumO("object.object_add", "type", 'EMPTY', icon='ICON_OUTLINER_OB_EMPTY')
 
 		layout.itemS()
 
-		layout.item_enumO("OBJECT_OT_object_add", "type", 'CAMERA', icon='ICON_OUTLINER_OB_CAMERA')
-		layout.item_enumO("OBJECT_OT_object_add", "type", 'LAMP', icon='ICON_OUTLINER_OB_LAMP')
+		layout.item_enumO("object.object_add", "type", 'CAMERA', icon='ICON_OUTLINER_OB_CAMERA')
+		layout.item_enumO("object.object_add", "type", 'LAMP', icon='ICON_OUTLINER_OB_LAMP')
 
 class INFO_MT_game(bpy.types.Menu):
 	__space_type__ = "INFO"
