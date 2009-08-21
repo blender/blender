@@ -200,7 +200,11 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemL(text="See Fluid panel.")
 		
 	def HOOK(self, layout, ob, md):
-		layout.itemR(md, "object")
+		col = layout.column()
+		col.itemR(md, "object")
+		if md.object and md.object.type == "ARMATURE":
+			layout.item_pointerR(md, "subtarget", md.object.data, "bones", text="Bone")
+		
 		layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
 
 		split = layout.split()

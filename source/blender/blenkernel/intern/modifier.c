@@ -5598,6 +5598,7 @@ static void hookModifier_copyData(ModifierData *md, ModifierData *target)
 	thmd->indexar = MEM_dupallocN(hmd->indexar);
 	memcpy(thmd->parentinv, hmd->parentinv, sizeof(hmd->parentinv));
 	strncpy(thmd->name, hmd->name, 32);
+	strncpy(thmd->subtarget, hmd->subtarget, 32);
 }
 
 CustomDataMask hookModifier_requiredDataMask(Object *ob, ModifierData *md)
@@ -5642,9 +5643,11 @@ static void hookModifier_updateDepgraph(ModifierData *md, DagForest *forest, Sce
 
 	if (hmd->object) {
 		DagNode *curNode = dag_get_node(forest, hmd->object);
-
-		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA,
-			"Hook Modifier");
+		
+		if (hmd->subtarget[0])
+			dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA|DAG_RL_DATA_DATA, "Hook Modifier");
+		else
+			dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA, "Hook Modifier");
 	}
 }
 
@@ -5653,12 +5656,22 @@ static void hookModifier_deformVerts(
 	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	HookModifierData *hmd = (HookModifierData*) md;
-	float vec[3], mat[4][4];
+	bPoseChannel *pchan= get_pose_channel(hmd->object->pose, hmd->subtarget);
+	float vec[3], mat[4][4], dmat[4][4], imat[4][4];
 	int i;
 	DerivedMesh *dm = derivedData;
-
-	Mat4Invert(ob->imat, ob->obmat);
-	Mat4MulSerie(mat, ob->imat, hmd->object->obmat, hmd->parentinv,
+	
+	/* get world-space matrix of target, corrected for the space the verts are in */
+	if (hmd->subtarget[0] && pchan) {
+		/* bone target if there's a matching pose-channel */
+		Mat4MulMat4(dmat, pchan->pose_mat, hmd->object->obmat);
+	}
+	else {
+		/* just object target */
+		Mat4CpyMat4(dmat, hmd->object->obmat);
+	}
+	Mat4Invert(imat, dmat);
+	Mat4MulSerie(mat, imat, dmat, hmd->parentinv,
 		     NULL, NULL, NULL, NULL, NULL);
 
 	/* vertex indices? */

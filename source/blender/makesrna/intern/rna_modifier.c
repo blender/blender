@@ -912,6 +912,11 @@ static void rna_def_modifier_hook(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Object", "Parent Object for hook, also recalculates and clears offset");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_dependency_update");
+	
+	prop= RNA_def_property(srna, "subtarget", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "subtarget");
+	RNA_def_property_ui_text(prop, "Sub-Target", "Name of Parent Bone for hook (if applicable), also recalculates and clears offset");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Modifier_dependency_update");
 
 	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");

@@ -31,6 +31,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_action_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -42,6 +43,7 @@
 #include "BLI_arithb.h"
 #include "BLI_listbase.h"
 
+#include "BKE_action.h"
 #include "BKE_curve.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -853,8 +855,21 @@ static int hook_reset_exec(bContext *C, wmOperator *op)
 	HookModifierData *hmd= ptr.data;
 
 	if(hmd->object) {
-		Mat4Invert(hmd->object->imat, hmd->object->obmat);
-		Mat4MulSerie(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
+		bPoseChannel *pchan= get_pose_channel(hmd->object->pose, hmd->subtarget);
+		
+		if(hmd->subtarget[0] && pchan) {
+			float imat[4][4], mat[4][4];
+			
+			/* calculate the world-space matrix for the pose-channel target first, then carry on as usual */
+			Mat4MulMat4(mat, pchan->pose_mat, hmd->object->obmat);
+			
+			Mat4Invert(imat, mat);
+			Mat4MulSerie(hmd->parentinv, imat, mat, NULL, NULL, NULL, NULL, NULL, NULL);
+		}
+		else {
+			Mat4Invert(hmd->object->imat, hmd->object->obmat);
+			Mat4MulSerie(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
+		}
 	}
 
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);

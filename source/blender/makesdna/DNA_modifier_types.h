@@ -426,6 +426,8 @@ typedef struct HookModifierData {
 	ModifierData modifier;
 
 	struct Object *object;
+	char subtarget[32];		/* optional name of bone target */
+	
 	float parentinv[4][4];	/* matrix making current transform unmodified */
 	float cent[3];			/* visualization of hook */
 	float falloff;			/* if not zero, falloff is distance where influence zero */

@@ -979,6 +979,9 @@ static void select_editmesh_hook(Object *ob, HookModifierData *hmd)
 	EditVert *eve;
 	int index=0, nr=0;
 	
+	if (hmd->indexar == NULL)
+		return;
+	
 	for(eve= em->verts.first; eve; eve= eve->next, nr++) {
 		if(nr==hmd->indexar[index]) {
 			eve->f |= SELECT;
@@ -1361,6 +1364,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 			hmd->totindex= tot;
 			BLI_strncpy(hmd->name, name, 32);
 			
+			// TODO: need to take into account bone targets here too now...
 			if(mode==1 || mode==2) {
 				/* matrix calculus */
 				/* vert x (obmat x hook->imat) x hook->obmat x ob->imat */
