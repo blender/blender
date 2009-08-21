@@ -157,7 +157,13 @@ class VIEW3D_MT_select_POSE(bpy.types.Menu):
 		
 		layout.itemS()
 		
-		layout.view3d_select_posemenu()
+		props = layout.itemO("pose.select_hierarchy", properties=True, text="Extend Parent")
+		props.extend = True
+		props.direction = 'PARENT'
+
+		props = layout.itemO("pose.select_hierarchy", properties=True, text="Extend Child")
+		props.extend = True
+		props.direction = 'CHILD'
 
 class VIEW3D_MT_select_PARTICLE(bpy.types.Menu):
 	__space_type__ = "VIEW_3D"
@@ -327,12 +333,18 @@ class VIEW3D_MT_select_EDIT_ARMATURE(bpy.types.Menu):
 
 		layout.itemS()
 		
-		layout.item_enumO("armature.select_hierarchy", "direction", 'PARENT')
-		layout.item_enumO("armature.select_hierarchy", "direction", 'CHILD')
+		layout.item_enumO("armature.select_hierarchy", "direction", 'PARENT', text="Parent")
+		layout.item_enumO("armature.select_hierarchy", "direction", 'CHILD', text="Child")
 		
 		layout.itemS()
 		
-		layout.view3d_select_armaturemenu()
+		props = layout.itemO("armature.select_hierarchy", properties=True, text="Extend Parent")
+		props.extend = True
+		props.direction = 'PARENT'
+
+		props = layout.itemO("armature.select_hierarchy", properties=True, text="Extend Child")
+		props.extend = True
+		props.direction = 'CHILD'
 
 class VIEW3D_MT_select_FACE(bpy.types.Menu):# XXX no matching enum
 	__space_type__ = "VIEW_3D"

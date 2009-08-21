@@ -2759,13 +2759,10 @@ static void proxy_group_objects_menu (bContext *C, wmOperator *op, Object *ob, G
 		if (go->ob) {
 			PointerRNA props_ptr;
 			
-			/* create operator properties, and assign the relevant pointers to that, 
-			 * and add a menu entry which uses these props 
-			 */
-			WM_operator_properties_create(&props_ptr, op->idname);
-				RNA_string_set(&props_ptr, "object", go->ob->id.name+2);
-				RNA_string_set(&props_ptr, "group_object", go->ob->id.name+2);
-			uiItemFullO(layout, go->ob->id.name+2, 0, op->idname, props_ptr.data, WM_OP_EXEC_REGION_WIN);
+			/* create operator menu item with relevant properties filled in */
+			props_ptr= uiItemFullO(layout, go->ob->id.name+2, 0, op->idname, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+			RNA_string_set(&props_ptr, "object", go->ob->id.name+2);
+			RNA_string_set(&props_ptr, "group_object", go->ob->id.name+2);
 		}
 	}
 	
@@ -2793,12 +2790,9 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 		uiLayout *layout= uiPupMenuLayout(pup);
 		PointerRNA props_ptr;
 		
-		/* create operator properties, and assign the relevant pointers to that, 
-		 * and add a menu entry which uses these props 
-		 */
-		WM_operator_properties_create(&props_ptr, op->idname);
-			RNA_string_set(&props_ptr, "object", ob->id.name+2);
-		uiItemFullO(layout, op->type->name, 0, op->idname, props_ptr.data, WM_OP_EXEC_REGION_WIN);
+		/* create operator menu item with relevant properties filled in */
+		props_ptr= uiItemFullO(layout, op->type->name, 0, op->idname, props_ptr.data, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+		RNA_string_set(&props_ptr, "object", ob->id.name+2);
 		
 		/* present the menu and be done... */
 		uiPupMenuEnd(C, pup);

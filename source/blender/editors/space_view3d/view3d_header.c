@@ -949,65 +949,6 @@ void uiTemplate_view3d_select_metaballmenu(uiLayout *layout, bContext *C)
 	view3d_select_metaballmenu(C, layout, arg_unused);
 }
 
-static void view3d_select_armaturemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	PointerRNA ptr;
-
-	/* this part of the menu has been moved to python */
-	/*uiItemO(layout, NULL, 0, "VIEW3D_OT_select_border");
-
-	uiItemS(layout);
-
-	uiItemO(layout, "Select/Deselect All", 0, "ARMATURE_OT_select_all_toggle");
-	uiItemO(layout, "Inverse", 0, "ARMATURE_OT_select_inverse");
-
-	uiItemS(layout);
-
-	uiItemEnumO(layout, "Parent", 0, "ARMATURE_OT_select_hierarchy", "direction", BONE_SELECT_PARENT);
-	uiItemEnumO(layout, "Child", 0, "ARMATURE_OT_select_hierarchy", "direction", BONE_SELECT_CHILD);
-
-	uiItemS(layout);*/
-
-	WM_operator_properties_create(&ptr, "ARMATURE_OT_select_hierarchy");
-	RNA_boolean_set(&ptr, "extend", 1);
-	RNA_enum_set(&ptr, "direction", BONE_SELECT_PARENT);
-	uiItemFullO(layout, "Extend Parent", 0, "ARMATURE_OT_select_hierarchy", ptr.data, WM_OP_EXEC_REGION_WIN);
-
-	WM_operator_properties_create(&ptr, "ARMATURE_OT_select_hierarchy");
-	RNA_boolean_set(&ptr, "extend", 1);
-	RNA_enum_set(&ptr, "direction", BONE_SELECT_CHILD);
-	uiItemFullO(layout, "Extend Child", 0, "ARMATURE_OT_select_hierarchy", ptr.data, WM_OP_EXEC_REGION_WIN);
-}
-
-/* wrapper for python layouts */
-void uiTemplate_view3d_select_armaturemenu(uiLayout *layout, bContext *C)
-{
-	void *arg_unused = NULL;
-	view3d_select_armaturemenu(C, layout, arg_unused);
-}
-
-static void view3d_select_posemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	PointerRNA ptr;
-
-	WM_operator_properties_create(&ptr, "POSE_OT_select_hierarchy");
-	RNA_boolean_set(&ptr, "extend", 1);
-	RNA_enum_set(&ptr, "direction", BONE_SELECT_PARENT);
-	uiItemFullO(layout, "Extend Parent", 0, "POSE_OT_select_hierarchy", ptr.data, WM_OP_EXEC_REGION_WIN);
-
-	WM_operator_properties_create(&ptr, "POSE_OT_select_hierarchy");
-	RNA_boolean_set(&ptr, "extend", 1);
-	RNA_enum_set(&ptr, "direction", BONE_SELECT_CHILD);
-	uiItemFullO(layout, "Extend Child", 0, "POSE_OT_select_hierarchy", ptr.data, WM_OP_EXEC_REGION_WIN);
-}
-
-/* wrapper for python layouts */
-void uiTemplate_view3d_select_posemenu(uiLayout *layout, bContext *C)
-{
-	void *arg_unused = NULL;
-	view3d_select_posemenu(C, layout, arg_unused);
-}
-
 void do_view3d_select_faceselmenu(bContext *C, void *arg, int event)
 {
 #if 0
@@ -2120,8 +2061,8 @@ static void view3d_edit_meshmenu(bContext *C, uiLayout *layout, void *arg_unused
 
 	uiItemS(layout);
 
-	uiItemR(layout, NULL, 0, &tsptr, "automerge_editing", 0, 0, 0);
-	uiItemR(layout, NULL, 0, &tsptr, "proportional_editing", 0, 0, 0); // |O
+	uiItemR(layout, NULL, 0, &tsptr, "automerge_editing", 0);
+	uiItemR(layout, NULL, 0, &tsptr, "proportional_editing", 0); // |O
 	uiItemMenuEnumR(layout, NULL, 0, &tsptr, "proportional_editing_falloff"); // |Shift O
 
 	uiItemS(layout);
@@ -2204,7 +2145,7 @@ static void view3d_edit_curvemenu(bContext *C, uiLayout *layout, void *arg_unuse
 
 	uiItemS(layout);
 
-	uiItemR(layout, NULL, 0, &tsptr, "proportional_editing", 0, 0, 0); // |O
+	uiItemR(layout, NULL, 0, &tsptr, "proportional_editing", 0); // |O
 	uiItemMenuEnumR(layout, NULL, 0, &tsptr, "proportional_editing_falloff"); // |Shift O
 
 	uiItemS(layout);
@@ -2245,7 +2186,7 @@ static void view3d_edit_latticemenu(bContext *C, uiLayout *layout, void *arg_unu
 
 	uiItemS(layout);
 
-	uiItemR(layout, NULL, 0, &tsptr, "proportional_editing", 0, 0, 0); // |O
+	uiItemR(layout, NULL, 0, &tsptr, "proportional_editing", 0); // |O
 	uiItemMenuEnumR(layout, NULL, 0, &tsptr, "proportional_editing_falloff"); // |Shift O
 }
 #endif

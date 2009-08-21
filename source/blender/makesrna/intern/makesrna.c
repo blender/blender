@@ -1198,7 +1198,13 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 
 	dparm= dfunc->cont.properties.first;
 	for(; dparm; dparm= dparm->next) {
-		ptrstr= (dparm->prop->type == PROP_POINTER || dparm->prop->arraylength > 0)? "*" : "";
+		if(dparm->prop->arraylength > 0)
+			ptrstr= "*";
+		else if(dparm->prop==func->ret)
+			ptrstr= ((dparm->prop->type == PROP_POINTER) && !(dparm->prop->flag & PROP_RNAPTR))? "*": "";
+		else
+			ptrstr= (dparm->prop->type == PROP_POINTER)? "*": "";
+			 
 		fprintf(f, "\t%s%s %s%s;\n", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), ptrstr, dparm->prop->identifier);
 	}
 
@@ -1274,7 +1280,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 
 		if(func->ret) {
 			dparm= rna_find_parameter_def(func->ret);
-			ptrstr= dparm->prop->type == PROP_POINTER || dparm->prop->arraylength > 0 ? "*" : "";
+			ptrstr= (((dparm->prop->type == PROP_POINTER) && !(dparm->prop->flag & PROP_RNAPTR)) || (dparm->prop->arraylength > 0))? "*": "";
 			fprintf(f, "\t*((%s%s%s*)_retdata)= %s;\n", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), ptrstr, func->ret->identifier);
 		}
 	}
@@ -1516,7 +1522,7 @@ static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA
 		if(dparm->prop==func->ret) {
 			if(dparm->prop->arraylength)
 				fprintf(f, "XXX no array return types yet"); /* XXX not supported */
-			else if(dparm->prop->type == PROP_POINTER)
+			else if(dparm->prop->type == PROP_POINTER && !(dparm->prop->flag & PROP_RNAPTR))
 				fprintf(f, "%s%s *", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
 			else
 				fprintf(f, "%s%s ", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));

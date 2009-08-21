@@ -428,15 +428,15 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	else {
 		/* real modifier */
 		uiBlockBeginAlign(block);
-		uiItemR(row, "", 0, &ptr, "name", 0, 0, 0);
+		uiItemR(row, "", 0, &ptr, "name", 0);
 
 		/* Softbody not allowed in this situation, enforce! */
 		if(((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) && (md->type!=eModifierType_Surface)) {
-			uiItemR(row, "", ICON_SCENE, &ptr, "render", 0, 0, 0);
-			uiItemR(row, "", ICON_RESTRICT_VIEW_OFF, &ptr, "realtime", 0, 0, 0);
+			uiItemR(row, "", ICON_SCENE, &ptr, "render", 0);
+			uiItemR(row, "", ICON_RESTRICT_VIEW_OFF, &ptr, "realtime", 0);
 
 			if(mti->flags & eModifierTypeFlag_SupportsEditmode)
-				uiItemR(row, "", ICON_EDITMODE_HLT, &ptr, "editmode", 0, 0, 0);
+				uiItemR(row, "", ICON_EDITMODE_HLT, &ptr, "editmode", 0);
 		}
 		
 
@@ -1224,9 +1224,9 @@ void uiTemplateTriColorSet(uiLayout *layout, PointerRNA *ptr, char *propname)
 	/* nselected, selected, active color swatches */
 	csPtr= RNA_property_pointer_get(ptr, prop);
 	
-	uiItemR(row, "", 0, &csPtr, "normal", 0, 0, 0);
-	uiItemR(row, "", 0, &csPtr, "selected", 0, 0, 0);
-	uiItemR(row, "", 0, &csPtr, "active", 0, 0, 0);
+	uiItemR(row, "", 0, &csPtr, "normal", 0);
+	uiItemR(row, "", 0, &csPtr, "selected", 0);
+	uiItemR(row, "", 0, &csPtr, "active", 0);
 }
 
 /********************* Layer Buttons Template ************************/
@@ -1278,7 +1278,7 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname)
 			/* add layers as toggle buts */
 			for (col= 0; (col < cols) && (layer < layers); col++, layer++) {
 				int icon=0; // XXX - add some way of setting this...
-				uiItemFullR(uRow, "", icon, ptr, prop, layer, 0, 0, 0, 1);
+				uiItemFullR(uRow, "", icon, ptr, prop, layer, 0, UI_ITEM_R_TOGGLE);
 			}
 		}
 	}
