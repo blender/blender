@@ -469,6 +469,7 @@ void multiresModifier_subdivide(MultiresModifierData *mmd, Object *ob, int dista
 		orig = CDDM_from_mesh(me, NULL);
 		memset(&mmd_sub, 0, sizeof(MultiresModifierData));
 		mmd_sub.lvl = mmd_sub.totlvl = mmd->lvl;
+		mmd_sub.simple = simple;
 		mrdm = multires_dm_create_from_derived(&mmd_sub, 1, orig, ob, 0, 0);
 		totsubvert = mrdm->getNumVerts(mrdm);
 		totsubedge = mrdm->getNumEdges(mrdm);
