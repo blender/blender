@@ -378,10 +378,6 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			row.itemR(brush, "strength", slider=True)
 			row.itemR(brush, "strength_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
 			
-			row = col.row(align=True)
-			row.itemR(brush, "falloff", slider=True)
-			row.itemR(brush, "falloff_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
-			
 			col.itemR(brush, "blend")
 		
 		# Weight Paint Mode #
