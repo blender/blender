@@ -28,14 +28,12 @@
 #
 #
 
-LIBNAME = aud_sdl
+LIBNAME = aud_openal
 DIR = $(OCGDIR)/intern/audaspace
 
 include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
-CPPFLAGS += $(NAN_SDLCFLAGS)
 CPPFLAGS += -I../intern
-CPPFLAGS += -I..
 CPPFLAGS += -I.

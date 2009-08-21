@@ -22,20 +22,19 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): none yet.
+# Contributor(s):
 #
 # ***** END GPL LICENSE BLOCK *****
 #
 #
 
-LIBNAME = aud_sdl
+LIBNAME = aud_sndfile
 DIR = $(OCGDIR)/intern/audaspace
 
 include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
-CPPFLAGS += $(NAN_SDLCFLAGS)
 CPPFLAGS += -I../intern
 CPPFLAGS += -I..
 CPPFLAGS += -I.
