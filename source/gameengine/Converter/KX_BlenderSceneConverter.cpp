@@ -462,10 +462,11 @@ void KX_BlenderSceneConverter::RegisterGameObject(
 	m_map_blender_to_gameobject.insert(CHashedPtr(for_blenderobject),gameobject);
 }
 
+/* only need to run this during conversion since
+ * m_map_blender_to_gameobject is freed after conversion */
 void KX_BlenderSceneConverter::UnregisterGameObject(
 									KX_GameObject *gameobject) 
 {
-#if 0
 	struct Object *bobp= gameobject->GetBlenderObject();
 	if (bobp) {
 		CHashedPtr bptr(bobp);
@@ -477,7 +478,6 @@ void KX_BlenderSceneConverter::UnregisterGameObject(
 			m_map_blender_to_gameobject.remove(bptr);
 		}
 	}
-#endif
 }
 
 KX_GameObject *KX_BlenderSceneConverter::FindGameObject(
