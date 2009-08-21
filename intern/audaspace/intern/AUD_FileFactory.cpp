@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: AUD_FFMPEGFactory.cpp 22328 2009-08-09 23:23:19Z gsrb3d $
  *
  * ***** BEGIN LGPL LICENSE BLOCK *****
  *
@@ -23,11 +23,19 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#include "AUD_FFMPEGFactory.h"
-#include "AUD_FFMPEGReader.h"
+#include "AUD_FileFactory.h"
 #include "AUD_Buffer.h"
 
-AUD_FFMPEGFactory::AUD_FFMPEGFactory(const char* filename)
+#include <cstring>
+
+#ifdef WITH_FFMPEG
+#include "AUD_FFMPEGReader.h"
+#endif
+#ifdef WITH_SNDFILE
+#include "AUD_SndFileReader.h"
+#endif
+
+AUD_FileFactory::AUD_FileFactory(const char* filename)
 {
 	if(filename != NULL)
 	{
@@ -38,14 +46,14 @@ AUD_FFMPEGFactory::AUD_FFMPEGFactory(const char* filename)
 		m_filename = NULL;
 }
 
-AUD_FFMPEGFactory::AUD_FFMPEGFactory(unsigned char* buffer, int size)
+AUD_FileFactory::AUD_FileFactory(unsigned char* buffer, int size)
 {
 	m_filename = NULL;
 	m_buffer = AUD_Reference<AUD_Buffer>(new AUD_Buffer(size));
 	memcpy(m_buffer.get()->getBuffer(), buffer, size);
 }
 
-AUD_FFMPEGFactory::~AUD_FFMPEGFactory()
+AUD_FileFactory::~AUD_FileFactory()
 {
 	if(m_filename)
 	{
@@ -53,13 +61,35 @@ AUD_FFMPEGFactory::~AUD_FFMPEGFactory()
 	}
 }
 
-AUD_IReader* AUD_FFMPEGFactory::createReader()
+AUD_IReader* AUD_FileFactory::createReader()
 {
-	AUD_IReader* reader;
-	if(m_filename)
-		reader = new AUD_FFMPEGReader(m_filename);
-	else
-		reader = new AUD_FFMPEGReader(m_buffer);
-	AUD_NEW("reader")
+	AUD_IReader* reader = 0;
+
+#ifdef WITH_SNDFILE
+	try
+	{
+		if(m_filename)
+			reader = new AUD_SndFileReader(m_filename);
+		else
+			reader = new AUD_SndFileReader(m_buffer);
+		AUD_NEW("reader")
+		return reader;
+	}
+	catch(AUD_Exception e) {}
+#endif
+
+#ifdef WITH_FFMPEG
+	try
+	{
+		if(m_filename)
+			reader = new AUD_FFMPEGReader(m_filename);
+		else
+			reader = new AUD_FFMPEGReader(m_buffer);
+		AUD_NEW("reader")
+		return reader;
+	}
+	catch(AUD_Exception e) {}
+#endif
+
 	return reader;
 }

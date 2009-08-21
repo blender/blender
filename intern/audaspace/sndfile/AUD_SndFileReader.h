@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: AUD_FFMPEGReader.h 22328 2009-08-09 23:23:19Z gsrb3d $
  *
  * ***** BEGIN LGPL LICENSE BLOCK *****
  *
@@ -23,27 +23,21 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#ifndef AUD_FFMPEGREADER
-#define AUD_FFMPEGREADER
+#ifndef AUD_SNDFILEREADER
+#define AUD_SNDFILEREADER
 
 #include "AUD_IReader.h"
 #include "AUD_Reference.h"
 class AUD_Buffer;
 
-struct AVCodecContext;
-extern "C" {
-#include <libavformat/avformat.h>
-}
+#include <sndfile.h>
+
+typedef sf_count_t (*sf_read_f)(SNDFILE *sndfile, void *ptr, sf_count_t frames);
 
 /**
- * This class reads a sound file via ffmpeg.
- * \warning Seeking may not be accurate! Moreover the position is updated after
- *          a buffer reading call. So calling getPosition right after seek
- *          normally results in a wrong value.
- * \warning Playback of an ogg with some outdated ffmpeg versions results in a
- *          segfault on windows.
+ * This class reads a sound file via libsndfile.
  */
-class AUD_FFMPEGReader : public AUD_IReader
+class AUD_SndFileReader : public AUD_IReader
 {
 private:
 	/**
@@ -52,9 +46,14 @@ private:
 	int m_position;
 
 	/**
-	 * The playback buffer.
+	 * The sample count in the file.
 	 */
-	AUD_Buffer *m_buffer;
+	int m_length;
+
+	/**
+	 * Whether the file is seekable.
+	 */
+	bool m_seekable;
 
 	/**
 	 * The specification of the audio data.
@@ -62,69 +61,62 @@ private:
 	AUD_Specs m_specs;
 
 	/**
-	 * The buffer for package reading.
+	 * The playback buffer.
 	 */
-	AUD_Buffer *m_pkgbuf;
+	AUD_Buffer* m_buffer;
 
 	/**
-	 * The count of samples still available from the last read package.
+	 * The sndfile.
 	 */
-	int m_pkgbuf_left;
+	SNDFILE* m_sndfile;
 
 	/**
-	 * The AVFormatContext structure for using ffmpeg.
+	 * The reading function.
 	 */
-	AVFormatContext* m_formatCtx;
+	sf_read_f m_read;
 
 	/**
-	 * The AVCodecContext structure for using ffmpeg.
+	 * The virtual IO structure for memory file reading.
 	 */
-	AVCodecContext* m_codecCtx;
+	SF_VIRTUAL_IO m_vio;
 
 	/**
-	 * The ByteIOContext to read the data from.
-	 */
-	ByteIOContext* m_byteiocontext;
-
-	/**
-	 * The stream ID in the file.
-	 */
-	int m_stream;
-
-	/**
-	 * The memory file to read from, only saved to keep the buffer alive.
+	 * The pointer to the memory file.
 	 */
 	AUD_Reference<AUD_Buffer> m_membuffer;
 
 	/**
-	 * Decodes a packet into the given buffer.
-	 * \param packet The AVPacket to decode.
-	 * \param buffer The target buffer.
-	 * \return The count of read bytes.
+	 * The current reading pointer of the memory file.
 	 */
-	int decode(AVPacket* packet, AUD_Buffer* buffer);
+	int m_memoffset;
+
+	// Functions for libsndfile virtual IO functionality
+	static sf_count_t vio_get_filelen(void *user_data);
+	static sf_count_t vio_seek(sf_count_t offset, int whence, void *user_data);
+	static sf_count_t vio_read(void *ptr, sf_count_t count, void *user_data);
+	static sf_count_t vio_tell(void *user_data);
 
 public:
 	/**
 	 * Creates a new reader.
 	 * \param filename The path to the file to be read.
 	 * \exception AUD_Exception Thrown if the file specified does not exist or
-	 *            cannot be read with ffmpeg.
+	 *            cannot be read with libsndfile.
 	 */
-	AUD_FFMPEGReader(const char* filename);
+	AUD_SndFileReader(const char* filename);
 
 	/**
 	 * Creates a new reader.
 	 * \param buffer The buffer to read from.
 	 * \exception AUD_Exception Thrown if the buffer specified cannot be read
-	 *                          with ffmpeg.
+	 *                          with libsndfile.
 	 */
-	AUD_FFMPEGReader(AUD_Reference<AUD_Buffer> buffer);
+	AUD_SndFileReader(AUD_Reference<AUD_Buffer> buffer);
 
 	/**
 	 * Destroys the reader and closes the file.
 	 */
-	virtual ~AUD_FFMPEGReader();
+	virtual ~AUD_SndFileReader();
 
 	virtual bool isSeekable();
 	virtual void seek(int position);
@@ -136,4 +128,4 @@ public:
 	virtual void read(int & length, sample_t* & buffer);
 };
 
-#endif //AUD_FFMPEGREADER
+#endif //AUD_SNDFILEREADER

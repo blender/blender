@@ -158,21 +158,22 @@ AUD_FFMPEGReader::AUD_FFMPEGReader(const char* filename)
 	AUD_NEW("buffer")
 }
 
-AUD_FFMPEGReader::AUD_FFMPEGReader(unsigned char* buffer, int size)
+AUD_FFMPEGReader::AUD_FFMPEGReader(AUD_Reference<AUD_Buffer> buffer)
 {
 	m_position = 0;
 	m_pkgbuf_left = 0;
 	m_byteiocontext = (ByteIOContext*)av_mallocz(sizeof(ByteIOContext));
 	AUD_NEW("byteiocontext")
+	m_membuffer = buffer;
 
-	if(init_put_byte(m_byteiocontext, buffer, size, 0,
+	if(init_put_byte(m_byteiocontext, buffer.get()->getBuffer(), buffer.get()->getSize(), 0,
 					 NULL, NULL, NULL, NULL) != 0)
 		AUD_THROW(AUD_ERROR_FILE);
 
 	AVProbeData probe_data;
 	probe_data.filename = "";
-	probe_data.buf = buffer;
-	probe_data.buf_size = size;
+	probe_data.buf = buffer.get()->getBuffer();
+	probe_data.buf_size = buffer.get()->getSize();
 	AVInputFormat* fmt = av_probe_input_format(&probe_data, 1);
 
 	// open stream

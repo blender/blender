@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: AUD_FFMPEGFactory.h 22328 2009-08-09 23:23:19Z gsrb3d $
  *
  * ***** BEGIN LGPL LICENSE BLOCK *****
  *
@@ -23,19 +23,17 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#ifndef AUD_FFMPEGFACTORY
-#define AUD_FFMPEGFACTORY
+#ifndef AUD_FILEFACTORY
+#define AUD_FILEFACTORY
 
 #include "AUD_IFactory.h"
 #include "AUD_Reference.h"
 class AUD_Buffer;
 
 /**
- * This factory reads a sound file via ffmpeg.
- * \warning Notice that the needed formats and codecs have to be registered
- * for ffmpeg before this class can be used.
+ * This factory tries to read a sound file via all available file readers.
  */
-class AUD_FFMPEGFactory : public AUD_IFactory
+class AUD_FileFactory : public AUD_IFactory
 {
 private:
 	/**
@@ -53,21 +51,21 @@ public:
 	 * Creates a new factory.
 	 * \param filename The sound file path.
 	 */
-	AUD_FFMPEGFactory(const char* filename);
+	AUD_FileFactory(const char* filename);
 
 	/**
 	 * Creates a new factory.
 	 * \param buffer The buffer to read from.
 	 * \param size The size of the buffer.
 	 */
-	AUD_FFMPEGFactory(unsigned char* buffer, int size);
+	AUD_FileFactory(unsigned char* buffer, int size);
 
 	/**
 	 * Destroys the factory.
 	 */
-	~AUD_FFMPEGFactory();
+	~AUD_FileFactory();
 
 	virtual AUD_IReader* createReader();
 };
 
-#endif //AUD_FFMPEGFACTORY
+#endif //AUD_FILEFACTORY

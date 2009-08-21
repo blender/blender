@@ -70,6 +70,7 @@ OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" 
 OPTION(WITH_WEBPLUGIN     "Enable Web Plugin (Unix only)" OFF)
 OPTION(WITH_FFTW3         "Enable FFTW3 support" OFF)
 OPTION(WITH_JACK          "Enable Jack Support (http://www.jackaudio.org)" OFF)
+OPTION(WITH_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
 OPTION(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation" OFF)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
 
@@ -108,6 +109,13 @@ IF(UNIX AND NOT APPLE)
     SET(JACK_LIB jack)
     SET(JACK_LIBPATH ${JACK}/lib)
   ENDIF(WITH_JACK)
+
+  IF(WITH_SNDFILE)
+	SET(SNDFILE /usr)
+	SET(SNDFILE_INC ${SNDFILE}/include)
+	SET(SNDFILE_LIB sndfile)
+	SET(SNDFILE_LIBPATH ${SNDFILE}/lib)
+  ENDIF(WITH_SNDFILE)
 
   FIND_LIBRARY(INTL_LIBRARY
     NAMES intl
@@ -246,6 +254,13 @@ IF(WIN32)
     SET(JACK_LIB jack)
     SET(JACK_LIBPATH ${JACK}/lib)
   ENDIF(WITH_JACK)
+
+  IF(WITH_SNDFILE)
+	SET(SNDFILE ${LIBDIR}/sndfile)
+	SET(SNDFILE_INC ${SNDFILE}/include)
+	SET(SNDFILE_LIB sndfile)
+	SET(SNDFILE_LIBPATH ${SNDFILE}/lib)
+  ENDIF(WITH_SNDFILE)
 
   IF(CMAKE_CL_64)
     SET(PNG_LIBRARIES libpng)
@@ -391,6 +406,13 @@ IF(APPLE)
     SET(JACK_LIB jack)
     SET(JACK_LIBPATH ${JACK}/lib)
   ENDIF(WITH_JACK)
+
+  IF(WITH_SNDFILE)
+	SET(SNDFILE /usr)
+	SET(SNDFILE_INC ${SNDFILE}/include)
+	SET(SNDFILE_LIB sndfile)
+	SET(SNDFILE_LIBPATH ${SNDFILE}/lib)
+  ENDIF(WITH_SNDFILE)
 
   SET(PYTHON_VERSION 3.1)
 

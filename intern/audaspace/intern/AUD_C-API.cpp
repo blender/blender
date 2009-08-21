@@ -25,6 +25,7 @@
 
 #include "AUD_NULLDevice.h"
 #include "AUD_I3DDevice.h"
+#include "AUD_FileFactory.h"
 #include "AUD_StreamBufferFactory.h"
 #include "AUD_DelayFactory.h"
 #include "AUD_LimiterFactory.h"
@@ -48,7 +49,6 @@
 #endif
 
 #ifdef WITH_FFMPEG
-#include "AUD_FFMPEGFactory.h"
 extern "C" {
 #include <libavformat/avformat.h>
 }
@@ -187,21 +187,13 @@ AUD_SoundInfo AUD_getInfo(AUD_Sound* sound)
 AUD_Sound* AUD_load(const char* filename)
 {
 	assert(filename);
-#ifdef WITH_FFMPEG
-	return new AUD_FFMPEGFactory(filename);
-#else
-	return NULL;
-#endif
+	return new AUD_FileFactory(filename);
 }
 
 AUD_Sound* AUD_loadBuffer(unsigned char* buffer, int size)
 {
 	assert(buffer);
-#ifdef WITH_FFMPEG
-	return new AUD_FFMPEGFactory(buffer, size);
-#else
-	return NULL;
-#endif
+	return new AUD_FileFactory(buffer, size);
 }
 
 AUD_Sound* AUD_bufferSound(AUD_Sound* sound)
