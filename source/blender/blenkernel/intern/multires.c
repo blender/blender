@@ -223,7 +223,7 @@ static void multires_subdisp(DerivedMesh *orig, Object *ob, DerivedMesh *final, 
 
 	memset(&mmd_sub, 0, sizeof(MultiresModifierData));
 	mmd_sub.lvl = mmd_sub.totlvl = totlvl;
-	mrdm = multires_dm_create_from_derived(&mmd_sub, orig, ob, 0, 0);
+	mrdm = multires_dm_create_from_derived(&mmd_sub, 1, orig, ob, 0, 0);
 		
 	mvd = CDDM_get_verts(mrdm);
 	/* Need to map from ccg to mrdm */
@@ -469,7 +469,7 @@ void multiresModifier_subdivide(MultiresModifierData *mmd, Object *ob, int dista
 		orig = CDDM_from_mesh(me, NULL);
 		memset(&mmd_sub, 0, sizeof(MultiresModifierData));
 		mmd_sub.lvl = mmd_sub.totlvl = mmd->lvl;
-		mrdm = multires_dm_create_from_derived(&mmd_sub, orig, ob, 0, 0);
+		mrdm = multires_dm_create_from_derived(&mmd_sub, 1, orig, ob, 0, 0);
 		totsubvert = mrdm->getNumVerts(mrdm);
 		totsubedge = mrdm->getNumEdges(mrdm);
 		totsubface = mrdm->getNumFaces(mrdm);
@@ -1192,7 +1192,7 @@ static void multiresModifier_update(DerivedMesh *dm)
 			   (includes older displacements but not new sculpts) */
 			mmd.totlvl = totlvl;
 			mmd.lvl = lvl;
-			subco_dm = multires_dm_create_from_derived(&mmd, orig, ob, 0, 0);
+			subco_dm = multires_dm_create_from_derived(&mmd, 1, orig, ob, 0, 0);
 			cur_lvl_orig_verts = CDDM_get_verts(subco_dm);
 
 			/* Subtract the original vertex cos from the new vertex cos */
@@ -1229,7 +1229,7 @@ void multires_force_update(Object *ob)
 	}
 }
 
-struct DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, DerivedMesh *dm, Object *ob,
+struct DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, int local_mmd, DerivedMesh *dm, Object *ob,
 						    int useRenderParams, int isFinalCalc)
 {
 	SubsurfModifierData smd;
@@ -1239,6 +1239,7 @@ struct DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd, D
 
 	ms.mmd = mmd;
 	ms.ob = ob;
+	ms.local_mmd = local_mmd;
 
 	memset(&smd, 0, sizeof(SubsurfModifierData));
 	smd.levels = smd.renderLevels = mmd->lvl - 1;

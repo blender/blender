@@ -1288,6 +1288,7 @@ typedef struct MultiresDM {
 	CDDerivedMesh cddm;
 
 	MultiresModifierData *mmd;
+	int local_mmd;
 
 	int lvl, totlvl;
 	float (*orco)[3];
@@ -1308,13 +1309,14 @@ static void MultiresDM_release(DerivedMesh *dm)
 	MultiresDM *mrdm = (MultiresDM*)dm;
 	int mvert_layer;
 
-	/* Check that mmd still exists */
-	if(BLI_findindex(&mrdm->ob->modifiers, mrdm->mmd) < 0)
-		mrdm->mmd = NULL;
-
 	/* Before freeing, need to update the displacement map */
-	if(dm->needsFree && mrdm->modified && mrdm->mmd)
-		mrdm->update(dm);
+	if(dm->needsFree && mrdm->modified) {
+		/* Check that mmd still exists */
+		if(!mrdm->local_mmd && BLI_findindex(&mrdm->ob->modifiers, mrdm->mmd) < 0)
+			mrdm->mmd = NULL;
+		if(mrdm->mmd)
+			mrdm->update(dm);
+	}
 
 	/* If the MVert data is being used as the sculpt undo store, don't free it */
 	mvert_layer = CustomData_get_layer_index(&dm->vertData, CD_MVERT);
@@ -1353,6 +1355,7 @@ DerivedMesh *MultiresDM_new(MultiresSubsurf *ms, DerivedMesh *orig, int numVerts
 
 	mrdm->mmd = ms->mmd;
 	mrdm->ob = ms->ob;
+	mrdm->local_mmd = ms->local_mmd;
 
 	if(dm) {
 		MDisps *disps;

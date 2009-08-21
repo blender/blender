@@ -36,6 +36,7 @@ struct Object;
 typedef struct MultiresSubsurf {
 	struct MultiresModifierData *mmd;
 	struct Object *ob;
+	int local_mmd;
 } MultiresSubsurf;
 
 /* MultiresDM */
@@ -59,7 +60,7 @@ void multires_mark_as_modified(struct Object *ob);
 
 void multires_force_update(struct Object *ob);
 
-struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*, struct DerivedMesh*,
+struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*, int local_mmd, struct DerivedMesh*,
 						    struct Object *, int, int);
 
 struct MultiresModifierData *find_multires_modifier(struct Object *ob);
