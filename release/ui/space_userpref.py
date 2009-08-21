@@ -359,6 +359,7 @@ class USERPREF_PT_filepaths(bpy.types.Panel):
 		sub2.itemL(text="Save & Load:")
 		sub2.itemR(paths, "use_relative_paths")
 		sub2.itemR(paths, "compress_file")
+		sub2.itemR(paths, "load_ui")
 		sub2.itemL(text="Auto Save:")
 		sub2.itemR(paths, "save_version")
 		sub2.itemR(paths, "recent_files")

@@ -868,10 +868,17 @@ static void untitled(char *name)
 	}
 }
 
+static void load_set_load_ui(wmOperator *op)
+{
+	if(!RNA_property_is_set(op->ptr, "load_ui"))
+		RNA_boolean_set(op->ptr, "load_ui", !(U.flag & USER_FILENOUI));
+}
 
 static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	RNA_string_set(op->ptr, "filename", G.sce);
+	load_set_load_ui(op);
+
 	WM_event_add_fileselect(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
@@ -880,7 +887,14 @@ static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
+
 	RNA_string_get(op->ptr, "filename", filename);
+	load_set_load_ui(op);
+
+	if(RNA_boolean_get(op->ptr, "load_ui"))
+		G.fileflags &= ~G_FILE_NO_UI;
+	else
+		G.fileflags |= G_FILE_NO_UI;
 	
 	// XXX wm in context is not set correctly after WM_read_file -> crash
 	// do it before for now, but is this correct with multiple windows?
@@ -901,6 +915,8 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	ot->poll= WM_operator_winactive;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE);
+
+	RNA_def_boolean(ot->srna, "load_ui", 1, "Load UI", "Load user interface setup in the .blend file.");
 }
 
 static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
