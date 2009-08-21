@@ -106,8 +106,12 @@ void view3d_keymap(wmWindowManager *wm)
 	ListBase *keymap= WM_keymap_listbase(wm, "View3D Generic", SPACE_VIEW3D, 0);
 	wmKeymapItem *km;
 	
-	WM_keymap_add_item(keymap, "PAINT_OT_vertex_paint_toggle", VKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "PAINT_OT_weight_paint_toggle", TABKEY, KM_PRESS, KM_CTRL, 0);
+	km = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", VKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(km->ptr, "mode", OB_MODE_VERTEX_PAINT);
+	RNA_boolean_set(km->ptr, "toggle", 1);
+	km = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(km->ptr, "mode", OB_MODE_WEIGHT_PAINT);
+	RNA_boolean_set(km->ptr, "toggle", 1);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_properties", NKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_toolbar", TKEY, KM_PRESS, 0, 0);

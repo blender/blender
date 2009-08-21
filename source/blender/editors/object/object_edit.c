@@ -7092,18 +7092,31 @@ static const char *object_mode_op_string(int mode)
 static int object_mode_set_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
-	int mode = RNA_enum_get(op->ptr, "mode");
+	ObjectMode mode = RNA_enum_get(op->ptr, "mode");
+	ObjectMode restore_mode = ob->mode;
+	int toggle = RNA_boolean_get(op->ptr, "toggle");
 
 	if(!ob)
 		return OPERATOR_CANCELLED;
 
-	/* Exit off current mode */
-	if(ob->mode != OB_MODE_OBJECT)
+	/* Exit current mode if it's not the mode we're setting */
+	if(ob->mode != OB_MODE_OBJECT && ob->mode != mode)
 		WM_operator_name_call(C, object_mode_op_string(ob->mode), WM_OP_EXEC_REGION_WIN, NULL);
 
-	/* Enter new mode */
-	if(mode != OB_MODE_OBJECT)
-		WM_operator_name_call(C, object_mode_op_string(mode), WM_OP_EXEC_REGION_WIN, NULL);
+	if(mode != OB_MODE_OBJECT) {
+		/* Enter new mode */
+		if(ob->mode != mode || toggle)
+			WM_operator_name_call(C, object_mode_op_string(mode), WM_OP_EXEC_REGION_WIN, NULL);
+
+		if(toggle) {
+			if(ob->mode == mode)
+				/* For toggling, store old mode so we know what to go back to */
+				ob->restore_mode = restore_mode;
+			else if(ob->restore_mode != OB_MODE_OBJECT && ob->restore_mode != mode) {
+				WM_operator_name_call(C, object_mode_op_string(ob->restore_mode), WM_OP_EXEC_REGION_WIN, NULL);
+			}
+		}
+	}
 
 	return OPERATOR_FINISHED;
 }
@@ -7127,6 +7140,8 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 	
 	prop= RNA_def_enum(ot->srna, "mode", object_mode_items, 0, "Mode", "");
 	RNA_def_enum_funcs(prop, object_mode_set_itemsf);
+
+	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
 }
 
 

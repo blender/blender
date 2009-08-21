@@ -116,8 +116,8 @@ typedef struct Object {
 	ListBase defbase;
 	ListBase modifiers; /* list of ModifierData structures */
 
-	/* For now just a flag for sculpt mode, eventually we make the other modes local too */
-	int mode, pad2;
+	int mode;           /* Local object mode */
+	int restore_mode;   /* Keep track of what mode to return to after toggling a mode */
 
 	/* materials */
 	struct Material **mat;	/* material slots */
@@ -234,7 +234,7 @@ typedef struct Object {
 	unsigned int state;			/* bit masks of game controllers that are active */
 	unsigned int init_state;	/* bit masks of initial state as recorded by the users */
 
-	int restore_mode;		/* Keep track of what mode to return to after edit mode exits */
+	int pad2;
 
 	ListBase gpulamp;		/* runtime, for lamps only */
 } Object;
@@ -511,16 +511,16 @@ extern Object workob;
 #define OB_LOCK_SCALE	448
 
 /* ob->mode */
-#define OB_MODE_OBJECT          0
-#define OB_MODE_EDIT            1
-#define OB_MODE_SCULPT          2
-#define OB_MODE_VERTEX_PAINT    4
-#define OB_MODE_WEIGHT_PAINT    8
-#define OB_MODE_TEXTURE_PAINT  16
-#define OB_MODE_PARTICLE_EDIT  32
-#define OB_MODE_POSE           64
-
-/* ob->softflag in DNA_object_force.h */
+typedef enum ObjectMode {
+	OB_MODE_OBJECT = 0,
+	OB_MODE_EDIT = 1,
+	OB_MODE_SCULPT = 2,
+	OB_MODE_VERTEX_PAINT = 4,
+	OB_MODE_WEIGHT_PAINT = 8,
+	OB_MODE_TEXTURE_PAINT = 16,
+	OB_MODE_PARTICLE_EDIT = 32,
+	OB_MODE_POSE = 64
+} ObjectMode;
 
 #ifdef __cplusplus
 }
