@@ -449,6 +449,11 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel):
 		col.active = brush.space
 		col.itemR(brush, "spacing", text="Distance", slider=True)
 
+		layout.itemR(brush, "airbrush")
+		col = layout.column()
+		col.active = brush.airbrush
+		col.itemR(brush, "rate", slider=True)
+
 
 class VIEW3D_PT_tools_brush_curve(PaintPanel):
 	__label__ = "Curve"

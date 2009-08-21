@@ -1439,6 +1439,8 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *even
 
 	/* add modal handler */
 	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+
+	op->type->modal(C, op, event);
 	
 	return OPERATOR_RUNNING_MODAL;
 }

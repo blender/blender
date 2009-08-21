@@ -43,6 +43,8 @@
 
 #include "BLI_arithb.h"
 
+#include "PIL_time.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -57,6 +59,7 @@
 typedef struct PaintStroke {
 	void *mode_data;
 	void *smooth_stroke_cursor;
+	wmTimer *timer;
 
 	/* Cached values */
 	ViewContext vc;
@@ -227,14 +230,21 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 	PaintStroke *stroke = op->customdata;
 	float mouse[2];
 
+	if(event->type == TIMER && (event->customdata != stroke->timer))
+		return OPERATOR_RUNNING_MODAL;
+
 	if(!stroke->stroke_started) {
 		stroke->last_mouse_position[0] = event->x;
 		stroke->last_mouse_position[1] = event->y;
 		stroke->stroke_started = stroke->test_start(C, op, event);
 
-		if(stroke->stroke_started)
+		if(stroke->stroke_started) {
 			stroke->smooth_stroke_cursor =
 				WM_paint_cursor_activate(CTX_wm_manager(C), paint_poll, paint_draw_smooth_stroke, stroke);
+
+			if(stroke->brush->flag & BRUSH_AIRBRUSH)
+				stroke->timer = WM_event_add_window_timer(CTX_wm_window(C), TIMER, stroke->brush->rate);
+		}
 
 		ED_region_tag_redraw(ar);
 	}
@@ -254,8 +264,13 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* TODO: fix hardcoded event here */
 	if(event->type == LEFTMOUSE && event->val == 0) {
+		/* Exit stroke, free data */
+
 		if(stroke->smooth_stroke_cursor)
 			WM_paint_cursor_end(CTX_wm_manager(C), stroke->smooth_stroke_cursor);
+
+		if(stroke->timer)
+			WM_event_remove_window_timer(CTX_wm_window(C), stroke->timer);
 
 		stroke->done(C, stroke);
 		MEM_freeN(stroke);
