@@ -283,6 +283,8 @@ typedef struct wmTimer {
 	double delta;			/* time since previous step in seconds */
 	
 	double ltime;			/* internal, last time timer was activated */
+	double ntime;			/* internal, next time we want to activate the timer */
+	double stime;			/* internal, when the timer started */
 	int sleep;				/* internal, put timers to sleep when needed */
 } wmTimer;
 
