@@ -260,11 +260,15 @@ static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_ANIMATION:
+			ED_region_tag_redraw(ar);
+			break;
 		
 		case NC_SCENE:
 			/* any scene change for now */
 			ED_region_tag_redraw(ar);
 			break;
+		
 	}
 }
 
