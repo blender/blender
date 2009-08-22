@@ -2655,8 +2655,17 @@ PyObject *BPY_rna_props( void )
 
 static StructRNA *pyrna_struct_as_srna(PyObject *self)
 {
-	BPy_StructRNA *py_srna= (BPy_StructRNA*)PyObject_GetAttrString(self, "__rna__");
+	BPy_StructRNA *py_srna;
 	StructRNA *srna;
+	
+	/* ack, PyObject_GetAttrString wont look up this types tp_dict first :/ */
+	if(PyType_Check(self)) {
+		py_srna = (BPy_StructRNA *)PyDict_GetItemString(((PyTypeObject *)self)->tp_dict, "__rna__");
+		Py_XINCREF(py_srna);
+	}
+	
+	if(py_srna==NULL)
+		py_srna = (BPy_StructRNA*)PyObject_GetAttrString(self, "__rna__");
 
 	if(py_srna==NULL) {
 	 	PyErr_SetString(PyExc_SystemError, "internal error, self had no __rna__ attribute, should never happen.");
