@@ -381,6 +381,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\intern\AUD_FileFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\intern\AUD_FileFactory.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\intern\AUD_FloatMixer.cpp"
 				>
 			</File>
@@ -723,13 +731,6 @@
 			<File
 				RelativePath="..\..\jack\AUD_JackDevice.cpp"
 				>
-				<FileConfiguration
-					Name="Blender Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\jack\AUD_JackDevice.h"
