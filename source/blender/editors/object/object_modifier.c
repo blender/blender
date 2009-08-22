@@ -699,7 +699,8 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 
 static int multires_subdivide_poll(bContext *C)
 {
-	return (CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier).data != NULL);
+	return (CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier).data != NULL) &&
+		CTX_data_edit_object(C) == NULL;
 }
 
 void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
