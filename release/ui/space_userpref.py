@@ -7,6 +7,11 @@ class USERPREF_HT_header(bpy.types.Header):
 	def draw(self, context):
 		layout = self.layout
 		layout.template_header(menus=False)
+		
+		userpref = context.user_preferences
+	
+		layout.operator_context = "EXEC_AREA"
+		layout.itemO("wm.save_homefile", text="Save As Default")
 			
 class USERPREF_MT_view(bpy.types.Menu):
 	__space_type__ = 'USER_PREFERENCES'
@@ -59,11 +64,11 @@ class USERPREF_PT_view(bpy.types.Panel):
 		sub1.itemS()
 		sub1.itemS()
 		sub1.itemS()
-		sub1.itemR(view, "show_mini_axis")
+		sub1.itemR(view, "show_mini_axis", text="Display Mini Axis")
 		sub2 = sub1.column()
 		sub2.enabled = view.show_mini_axis
-		sub2.itemR(view, "mini_axis_size")
-		sub2.itemR(view, "mini_axis_brightness")
+		sub2.itemR(view, "mini_axis_size", text="Size")
+		sub2.itemR(view, "mini_axis_brightness", text="Brightness")
 		
 		col = split.column()
 		sub = col.split(percentage=0.85)
@@ -360,6 +365,8 @@ class USERPREF_PT_filepaths(bpy.types.Panel):
 		sub2.itemR(paths, "use_relative_paths")
 		sub2.itemR(paths, "compress_file")
 		sub2.itemR(paths, "load_ui")
+		sub2.itemS()
+		sub2.itemS()
 		sub2.itemL(text="Auto Save:")
 		sub2.itemR(paths, "save_version")
 		sub2.itemR(paths, "recent_files")
@@ -367,7 +374,7 @@ class USERPREF_PT_filepaths(bpy.types.Panel):
 		sub2.itemR(paths, "auto_save_temporary_files")
 		sub3 = sub2.column()
 		sub3.enabled = paths.auto_save_temporary_files
-		sub3.itemR(paths, "auto_save_time")
+		sub3.itemR(paths, "auto_save_time", text="Timer (mins)")
 
 class USERPREF_PT_language(bpy.types.Panel):
 	__space_type__ = 'USER_PREFERENCES'
@@ -388,24 +395,16 @@ class USERPREF_PT_language(bpy.types.Panel):
 		col = split.column()
 		
 		col.itemR(lan, "language")
-		col.itemR(lan, "translate_tooltips")
-		col.itemR(lan, "translate_buttons")
-		col.itemR(lan, "translate_toolbox")
+		col.itemL(text="Translate:")
+		col.itemR(lan, "translate_tooltips", text="Tooltips")
+		col.itemR(lan, "translate_buttons", text="Labels")
+		col.itemR(lan, "translate_toolbox", text="Toolbox")
+		col.itemS()
+		col.itemS()
 		col.itemR(lan, "use_textured_fonts")
 		
-class USERPREF_PT_bottombar(bpy.types.Panel):
-	__space_type__ = 'USER_PREFERENCES'
-	__label__ = " "
-	__show_header__ = False
-
-	def draw(self, context):
-		layout = self.layout
-		userpref = context.user_preferences
-	
-		split = layout.split(percentage=0.8)
-		split.itemL(text="")
-		layout.operator_context = "EXEC_AREA"
-		split.itemO("wm.save_homefile", text="Save As Default")
+		col = split.column()
+		
 
 bpy.types.register(USERPREF_HT_header)
 bpy.types.register(USERPREF_MT_view)
@@ -415,5 +414,4 @@ bpy.types.register(USERPREF_PT_edit)
 bpy.types.register(USERPREF_PT_system)
 bpy.types.register(USERPREF_PT_filepaths)
 bpy.types.register(USERPREF_PT_language)
-bpy.types.register(USERPREF_PT_bottombar)
 
