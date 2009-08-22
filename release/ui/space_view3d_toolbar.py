@@ -2,8 +2,8 @@
 import bpy
 
 class View3DPanel(bpy.types.Panel):
-	__space_type__ = "VIEW_3D"
-	__region_type__ = "TOOLS"
+	__space_type__ = 'VIEW_3D'
+	__region_type__ = 'TOOLS'
 
 # ********** default tools for objectmode ****************
 
@@ -262,8 +262,8 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
 # ********** default tools for paint modes ****************
 
 class PaintPanel(bpy.types.Panel):
-	__space_type__ = "VIEW_3D"
-	__region_type__ = "TOOLS"
+	__space_type__ = 'VIEW_3D'
+	__region_type__ = 'TOOLS'
 
 	def paint_settings(self, context):
 		ts = context.tool_settings

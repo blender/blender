@@ -2,21 +2,21 @@
 import bpy
 
 class USERPREF_HT_header(bpy.types.Header):
-	__space_type__ = "USER_PREFERENCES"
+	__space_type__ = 'USER_PREFERENCES'
 
 	def draw(self, context):
 		layout = self.layout
 		layout.template_header(menus=False)
 			
 class USERPREF_MT_view(bpy.types.Menu):
-	__space_type__ = "USER_PREFERENCES"
+	__space_type__ = 'USER_PREFERENCES'
 	__label__ = "View"
 
 	def draw(self, context):
 		layout = self.layout
 
 class USERPREF_PT_tabs(bpy.types.Panel):
-	__space_type__ = "USER_PREFERENCES"
+	__space_type__ = 'USER_PREFERENCES'
 	__show_header__ = False
 
 	def draw(self, context):
@@ -27,7 +27,7 @@ class USERPREF_PT_tabs(bpy.types.Panel):
 		layout.itemR(userpref, "active_section", expand=True)
 
 class USERPREF_PT_view(bpy.types.Panel):
-	__space_type__ = "USER_PREFERENCES"
+	__space_type__ = 'USER_PREFERENCES'
 	__label__ = "View"
 	__show_header__ = False
 
@@ -130,7 +130,7 @@ class USERPREF_PT_view(bpy.types.Panel):
 		sub1.itemR(view, "open_right_mouse_delay", text="Hold RMB")
 
 class USERPREF_PT_edit(bpy.types.Panel):
-	__space_type__ = "USER_PREFERENCES"
+	__space_type__ = 'USER_PREFERENCES'
 	__label__ = "Edit"
 	__show_header__ = False
 
@@ -227,7 +227,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
 		sub1.itemR(edit, "duplicate_action", text="Action")
 		
 class USERPREF_PT_system(bpy.types.Panel):
-	__space_type__ = "USER_PREFERENCES"
+	__space_type__ = 'USER_PREFERENCES'
 	__label__ = "System"
 	__show_header__ = False
 
@@ -308,7 +308,7 @@ class USERPREF_PT_system(bpy.types.Panel):
 		sub1.itemR(system, "texture_collection_rate", text="Collection Rate")		
 		
 class USERPREF_PT_filepaths(bpy.types.Panel):
-	__space_type__ = "USER_PREFERENCES"
+	__space_type__ = 'USER_PREFERENCES'
 	__label__ = "File Paths"
 	__show_header__ = False
 
@@ -370,7 +370,7 @@ class USERPREF_PT_filepaths(bpy.types.Panel):
 		sub3.itemR(paths, "auto_save_time")
 
 class USERPREF_PT_language(bpy.types.Panel):
-	__space_type__ = "USER_PREFERENCES"
+	__space_type__ = 'USER_PREFERENCES'
 	__label__ = "Language"
 	__show_header__ = False
 
@@ -394,7 +394,7 @@ class USERPREF_PT_language(bpy.types.Panel):
 		col.itemR(lan, "use_textured_fonts")
 		
 class USERPREF_PT_bottombar(bpy.types.Panel):
-	__space_type__ = "USER_PREFERENCES"
+	__space_type__ = 'USER_PREFERENCES'
 	__label__ = " "
 	__show_header__ = False
 

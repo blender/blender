@@ -2,7 +2,7 @@
 import bpy
 
 class OUTLINER_HT_header(bpy.types.Header):
-	__space_type__ = "OUTLINER"
+	__space_type__ = 'OUTLINER'
 
 	def draw(self, context):
 		so = context.space_data
@@ -36,7 +36,7 @@ class OUTLINER_HT_header(bpy.types.Header):
 		
 
 class OUTLINER_MT_view(bpy.types.Menu):
-	__space_type__ = "OUTLINER"
+	__space_type__ = 'OUTLINER'
 	__label__ = "View"
 
 	def draw(self, context):

@@ -7,8 +7,8 @@ def smoke_panel_enabled_low(smd):
 	return True
 
 class PhysicButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "physics"
 
 	def poll(self, context):
@@ -144,8 +144,8 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel):
 			row = layout.row()
 			row.template_list(cache, "point_cache_list", cache, "active_point_cache_index")
 			col = row.column(align=True)
-			col.itemO("ptcache.add_new", icon="ICON_ZOOMIN", text="")
-			col.itemO("ptcache.remove", icon="ICON_ZOOMOUT", text="")
+			col.itemO("ptcache.add_new", icon='ICON_ZOOMIN', text="")
+			col.itemO("ptcache.remove", icon='ICON_ZOOMOUT', text="")
 			
 			row = layout.row()
 			row.itemR(cache, "name")
@@ -239,8 +239,8 @@ class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):
 			row = layout.row()
 			row.template_list(cache, "point_cache_list", cache, "active_point_cache_index")
 			col = row.column(align=True)
-			col.itemO("ptcache.add_new", icon="ICON_ZOOMIN", text="")
-			col.itemO("ptcache.remove", icon="ICON_ZOOMOUT", text="")
+			col.itemO("ptcache.add_new", icon='ICON_ZOOMIN', text="")
+			col.itemO("ptcache.remove", icon='ICON_ZOOMOUT', text="")
 			
 			row = layout.row()
 			row.itemR(cache, "name")

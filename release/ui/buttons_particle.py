@@ -11,8 +11,8 @@ def particle_panel_poll(context):
 	return psys.settings.type in ('EMITTER', 'REACTOR', 'HAIR')
 
 class ParticleButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "particle"
 
 	def poll(self, context):
@@ -35,8 +35,8 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 			row.template_list(ob, "particle_systems", ob, "active_particle_system_index", rows=2)
 
 			col = row.column(align=True)
-			col.itemO("object.particle_system_add", icon="ICON_ZOOMIN", text="")
-			col.itemO("object.particle_system_remove", icon="ICON_ZOOMOUT", text="")
+			col.itemO("object.particle_system_add", icon='ICON_ZOOMIN', text="")
+			col.itemO("object.particle_system_remove", icon='ICON_ZOOMOUT', text="")
 
 		if psys:
 			part = psys.settings
@@ -156,8 +156,8 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 		row = layout.row()
 		row.template_list(cache, "point_cache_list", cache, "active_point_cache_index", rows=2 )
 		col = row.column(align=True)
-		col.itemO("ptcache.add_new", icon="ICON_ZOOMIN", text="")
-		col.itemO("ptcache.remove", icon="ICON_ZOOMOUT", text="")
+		col.itemO("ptcache.add_new", icon='ICON_ZOOMIN', text="")
+		col.itemO("ptcache.remove", icon='ICON_ZOOMOUT', text="")
 		
 		row = layout.row()
 		row.itemL(text="File Name:")
@@ -400,12 +400,12 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
 			col = row.column()
 			subrow = col.row()
 			subcol = subrow.column(align=True)
-			subcol.itemO("particle.new_target", icon="ICON_ZOOMIN", text="")
-			subcol.itemO("particle.remove_target", icon="ICON_ZOOMOUT", text="")
+			subcol.itemO("particle.new_target", icon='ICON_ZOOMIN', text="")
+			subcol.itemO("particle.remove_target", icon='ICON_ZOOMOUT', text="")
 			subrow = col.row()
 			subcol = subrow.column(align=True)
-			subcol.itemO("particle.target_move_up", icon="VICON_MOVE_UP", text="")
-			subcol.itemO("particle.target_move_down", icon="VICON_MOVE_DOWN", text="")
+			subcol.itemO("particle.target_move_up", icon='VICON_MOVE_UP', text="")
+			subcol.itemO("particle.target_move_down", icon='VICON_MOVE_DOWN', text="")
 			
 			key = psys.active_particle_target
 			if key:
@@ -450,11 +450,11 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
 		#row.template_list(boids, "states", boids, "active_boid_state_index", compact="True")
 		#col = row.row()
 		#subrow = col.row(align=True)
-		#subrow.itemO("boid.boidstate_add", icon="ICON_ZOOMIN", text="")
-		#subrow.itemO("boid.boidstate_del", icon="ICON_ZOOMOUT", text="")
+		#subrow.itemO("boid.boidstate_add", icon='ICON_ZOOMIN', text="")
+		#subrow.itemO("boid.boidstate_del", icon='ICON_ZOOMOUT', text="")
 		#subrow = row.row(align=True)
-		#subrow.itemO("boid.boidstate_move_up", icon="VICON_MOVE_UP", text="")
-		#subrow.itemO("boid.boidstate_move_down", icon="VICON_MOVE_DOWN", text="")
+		#subrow.itemO("boid.boidstate_move_up", icon='VICON_MOVE_UP', text="")
+		#subrow.itemO("boid.boidstate_move_down", icon='VICON_MOVE_DOWN', text="")
 		
 		state = boids.active_boid_state
 		
@@ -473,12 +473,12 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
 		col = row.column()
 		subrow = col.row()
 		subcol = subrow.column(align=True)
-		subcol.item_menu_enumO("boid.boidrule_add", "type", icon="ICON_ZOOMIN", text="")
-		subcol.itemO("boid.boidrule_del", icon="ICON_ZOOMOUT", text="")
+		subcol.item_menu_enumO("boid.boidrule_add", "type", icon='ICON_ZOOMIN', text="")
+		subcol.itemO("boid.boidrule_del", icon='ICON_ZOOMOUT', text="")
 		subrow = col.row()
 		subcol = subrow.column(align=True)
-		subcol.itemO("boid.boidrule_move_up", icon="VICON_MOVE_UP", text="")
-		subcol.itemO("boid.boidrule_move_down", icon="VICON_MOVE_DOWN", text="")
+		subcol.itemO("boid.boidrule_move_up", icon='VICON_MOVE_UP', text="")
+		subcol.itemO("boid.boidrule_move_down", icon='VICON_MOVE_DOWN', text="")
 		
 		rule = state.active_boid_rule
 		
@@ -486,8 +486,8 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
 			row = layout.row()
 			row.itemR(rule, "name", text="")
 			#somebody make nice icons for boids here please! -jahka
-			row.itemR(rule, "in_air", icon="VICON_MOVE_UP", text="")
-			row.itemR(rule, "on_land", icon="VICON_MOVE_DOWN", text="")
+			row.itemR(rule, "in_air", icon='VICON_MOVE_UP', text="")
+			row.itemR(rule, "on_land", icon='VICON_MOVE_DOWN', text="")
 			
 			row = layout.row()
 

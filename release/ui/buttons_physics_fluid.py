@@ -2,8 +2,8 @@
 import bpy
 
 class PhysicButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "physics"
 
 	def poll(self, context):

@@ -2,8 +2,8 @@
 import bpy
  
 class BoneButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "bone"
 	
 	def poll(self, context):
@@ -20,7 +20,7 @@ class BONE_PT_context_bone(BoneButtonsPanel):
 			bone = context.edit_bone
 		
 		row = layout.row()
-		row.itemL(text="", icon="ICON_BONE_DATA")
+		row.itemL(text="", icon='ICON_BONE_DATA')
 		row.itemR(bone, "name", text="")
 
 class BONE_PT_transform(BoneButtonsPanel):

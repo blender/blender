@@ -2,8 +2,8 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "modifier"
 	
 class DATA_PT_modifiers(DataButtonsPanel):
@@ -202,7 +202,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 	def HOOK(self, layout, ob, md):
 		col = layout.column()
 		col.itemR(md, "object")
-		if md.object and md.object.type == "ARMATURE":
+		if md.object and md.object.type == 'ARMATURE':
 			layout.item_pointerR(md, "subtarget", md.object.data, "bones", text="Bone")
 		
 		layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")

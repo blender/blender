@@ -2,7 +2,7 @@
 import bpy
 
 class INFO_HT_header(bpy.types.Header):
-	__space_type__ = "INFO"
+	__space_type__ = 'INFO'
 
 	def draw(self, context):
 		layout = self.layout
@@ -38,7 +38,7 @@ class INFO_HT_header(bpy.types.Header):
 		layout.itemL(text=scene.statistics())
 			
 class INFO_MT_file(bpy.types.Menu):
-	__space_type__ = "INFO"
+	__space_type__ = 'INFO'
 	__label__ = "File"
 
 	def draw(self, context):
@@ -74,14 +74,14 @@ class INFO_MT_file(bpy.types.Menu):
 		layout.itemO("wm.exit_blender", text="Quit")
 
 class INFO_MT_file_import(bpy.types.Menu):
-	__space_type__ = "INFO"
+	__space_type__ = 'INFO'
 	__label__ = "Import"
 
 	def draw(self, context):
 		layout = self.layout
 
 class INFO_MT_file_export(bpy.types.Menu):
-	__space_type__ = "INFO"
+	__space_type__ = 'INFO'
 	__label__ = "Export"
 
 	def draw(self, context):
@@ -90,7 +90,7 @@ class INFO_MT_file_export(bpy.types.Menu):
 		layout.itemO("export.ply", text="PLY")
 
 class INFO_MT_file_external_data(bpy.types.Menu):
-	__space_type__ = "INFO"
+	__space_type__ = 'INFO'
 	__label__ = "External Data"
 
 	def draw(self, context):
@@ -107,7 +107,7 @@ class INFO_MT_file_external_data(bpy.types.Menu):
 		layout.itemO("file.find_missing_files")
 
 class INFO_MT_add(bpy.types.Menu):
-	__space_type__ = "INFO"
+	__space_type__ = 'INFO'
 	__label__ = "Add"
 
 	def draw(self, context):
@@ -133,7 +133,7 @@ class INFO_MT_add(bpy.types.Menu):
 		layout.item_enumO("object.object_add", "type", 'LAMP', icon='ICON_OUTLINER_OB_LAMP')
 
 class INFO_MT_game(bpy.types.Menu):
-	__space_type__ = "INFO"
+	__space_type__ = 'INFO'
 	__label__ = "Game"
 
 	def draw(self, context):
@@ -151,7 +151,7 @@ class INFO_MT_game(bpy.types.Menu):
 		layout.itemR(gs, "deprecation_warnings")
 
 class INFO_MT_render(bpy.types.Menu):
-	__space_type__ = "INFO"
+	__space_type__ = 'INFO'
 	__label__ = "Render"
 
 	def draw(self, context):
@@ -167,7 +167,7 @@ class INFO_MT_render(bpy.types.Menu):
 		layout.itemO("screen.render_view_show")
 
 class INFO_MT_help(bpy.types.Menu):
-	__space_type__ = "INFO"
+	__space_type__ = 'INFO'
 	__label__ = "Help"
 
 	def draw(self, context):
