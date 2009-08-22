@@ -91,7 +91,7 @@ static void wm_window_check_position(rcti *rect)
 	wm_get_screensize(&width, &height);
 	
 #ifdef __APPLE__
-	height -= 42;
+	height -= 70;
 #endif
 	
 	if(rect->xmin < 0) {
