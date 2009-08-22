@@ -1032,6 +1032,40 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
 		col.itemR(view, "lock_rotation")
 		col.itemR(view, "box_preview")
 		col.itemR(view, "box_clip")
+
+class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
+	__space_type__ = 'VIEW_3D'
+	__region_type__ = 'UI'
+	__label__ = "Mesh Display"
+
+	def poll(self, context):
+		editmesh = context.mode == 'EDIT_MESH'
+		return (editmesh)
+
+	def draw(self, context):
+		layout = self.layout
+
+		mesh = context.active_object.data
+		
+		col = layout.column()
+		col.itemL(text="Overlays:")
+		col.itemR(mesh, "draw_edges", text="Edges")
+		col.itemR(mesh, "draw_faces", text="Faces")
+		col.itemR(mesh, "draw_creases", text="Creases")
+		col.itemR(mesh, "draw_bevel_weights", text="Bevel Weights")
+		col.itemR(mesh, "draw_seams", text="Seams")
+		col.itemR(mesh, "draw_sharp", text="Sharp")
+		
+		col.itemS()
+		col.itemL(text="Normals:")
+		col.itemR(mesh, "draw_normals", text="Face")
+		col.itemR(mesh, "draw_vertex_normals", text="Vertex")
+		
+		col.itemS()
+		col.itemL(text="Numerics:")
+		col.itemR(mesh, "draw_edge_lenght")
+		col.itemR(mesh, "draw_edge_angle")
+		col.itemR(mesh, "draw_face_area")
 	
 class VIEW3D_PT_background_image(bpy.types.Panel):
 	__space_type__ = 'VIEW_3D'
@@ -1129,4 +1163,5 @@ bpy.types.register(VIEW3D_MT_edit_ARMATURE_roll)
 
 bpy.types.register(VIEW3D_PT_3dview_properties) # Panels
 bpy.types.register(VIEW3D_PT_3dview_display)
+bpy.types.register(VIEW3D_PT_3dview_meshdisplay)
 bpy.types.register(VIEW3D_PT_background_image)
