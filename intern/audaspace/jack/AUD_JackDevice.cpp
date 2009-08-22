@@ -31,8 +31,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifdef WITH_JACK
-
 // AUD_XXX this is not realtime suitable!
 int AUD_JackDevice::jack_mix(jack_nframes_t length, void *data)
 {
@@ -149,5 +147,3 @@ void AUD_JackDevice::playing(bool playing)
 {
 	// Do nothing.
 }
-
-#endif
