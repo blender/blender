@@ -110,11 +110,18 @@ static void error() {}
 
 /* polling - retrieve whether cursor should be set or operator should be done */
 
-static int vp_poll(bContext *C)
+
+/* Returns true if vertex paint mode is active */
+int vertex_paint_mode_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
-	if(ob && ob->mode & OB_MODE_VERTEX_PAINT &&
+	return ob && ob->mode == OB_MODE_VERTEX_PAINT;
+}
+
+static int vp_poll(bContext *C)
+{
+	if(vertex_paint_mode_poll(C) && 
 	   paint_brush(&CTX_data_tool_settings(C)->vpaint->paint)) {
 		ScrArea *sa= CTX_wm_area(C);
 		if(sa->spacetype==SPACE_VIEW3D) {
@@ -323,34 +330,7 @@ static void copy_wpaint_prev (VPaint *wp, MDeformVert *dverts, int dcount)
 }
 
 
-void clear_vpaint(Scene *scene)
-{
-	Mesh *me;
-	Object *ob;
-	unsigned int *to, paintcol;
-	int a;
-	
-	ob= OBACT;
-	me= get_mesh(ob);
-	if(!ob || ob->id.lib) return;
-
-	if(!(ob->mode & OB_MODE_VERTEX_PAINT)) return;
-
-	if(me==0 || me->mcol==0 || me->totface==0) return;
-
-	paintcol= vpaint_get_current_col(scene->toolsettings->vpaint);
-
-	to= (unsigned int *)me->mcol;
-	a= 4*me->totface;
-	while(a--) {
-		*to= paintcol;
-		to++; 
-	}
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	
-}
-
-void clear_vpaint_selectedfaces(Scene *scene)
+void clear_vpaint(Scene *scene, int selected)
 {
 	Mesh *me;
 	MFace *mf;
@@ -370,7 +350,7 @@ void clear_vpaint_selectedfaces(Scene *scene)
 	mf = me->mface;
 	mcol = (unsigned int*)me->mcol;
 	for (i = 0; i < me->totface; i++, mf++, mcol+=4) {
-		if (mf->flag & ME_FACE_SEL) {
+		if (!selected || mf->flag & ME_FACE_SEL) {
 			mcol[0] = paintcol;
 			mcol[1] = paintcol;
 			mcol[2] = paintcol;

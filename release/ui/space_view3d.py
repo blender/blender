@@ -12,6 +12,7 @@ class VIEW3D_HT_header(bpy.types.Header):
 		view = context.space_data
 		mode_string = context.mode
 		edit_object = context.edit_object
+		object = context.active_object
 		
 		row = layout.row(align=True)
 		row.template_header()
@@ -26,12 +27,14 @@ class VIEW3D_HT_header(bpy.types.Header):
 			if mode_string not in ('EDIT_TEXT', 'SCULPT', 'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE', 'PARTICLE'):
 				# XXX: Particle Mode has Select Menu.
 				sub.itemM("VIEW3D_MT_select_%s" % mode_string)
-			
-			if mode_string == 'OBJECT':
+				
+			if object.mode == 'OBJECT':
 				sub.itemM("VIEW3D_MT_object")
-			elif mode_string == 'SCULPT':
+			elif object.mode == 'SCULPT':
 				sub.itemM("VIEW3D_MT_sculpt")
-			elif edit_object:
+			elif object.mode == 'VERTEX_PAINT':
+				sub.itemM("VIEW3D_MT_vertex_paint")
+			elif object.mode:
 				sub.itemM("VIEW3D_MT_edit_%s" % edit_object.type)
 
 		layout.template_header_3D()
@@ -479,6 +482,21 @@ class VIEW3D_MT_object_show(bpy.types.Menu):
 		layout.itemO("object.restrictview_clear")
 		layout.itemO("object.restrictview_set")
 		layout.item_booleanO("object.restrictview_set", "unselected", True, text="Hide Unselected")
+
+# ********** Vertex paint menu **********	
+	
+class VIEW3D_MT_vertex_paint(bpy.types.Menu):
+	__space_type__ = "VIEW_3D"
+	__label__ = "Paint"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		sculpt = context.tool_settings.sculpt
+
+		layout.itemO("paint.vertex_color_set")
+		props = layout.itemO("paint.vertex_color_set", text="Set Selected Vertex Colors", properties=True)
+		props.selected = True
 
 # ********** Sculpt menu **********	
 	
@@ -1075,6 +1093,8 @@ bpy.types.register(VIEW3D_MT_object_constraints)
 bpy.types.register(VIEW3D_MT_object_show)
 
 bpy.types.register(VIEW3D_MT_sculpt) # Sculpt Menu
+
+bpy.types.register(VIEW3D_MT_vertex_paint)
 
 bpy.types.register(VIEW3D_MT_edit_snap) # Edit Menus
 

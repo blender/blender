@@ -57,6 +57,9 @@ int paint_poll(bContext *C);
 void paint_cursor_start(struct bContext *C, int (*poll)(struct bContext *C));
 
 /* paint_vertex.c */
+int vertex_paint_mode_poll(bContext *C);
+void clear_vpaint(Scene *scene, int selected);
+
 void PAINT_OT_weight_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_weight_paint_radial_control(struct wmOperatorType *ot);
 void PAINT_OT_weight_paint(struct wmOperatorType *ot);

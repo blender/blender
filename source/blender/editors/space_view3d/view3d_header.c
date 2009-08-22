@@ -2426,71 +2426,6 @@ static void view3d_pose_armaturemenu(bContext *C, uiLayout *layout, void *arg_un
 #endif
 }
 
-
-/* vertex paint menu */
-static void do_view3d_vpaintmenu(bContext *C, void *arg, int event)
-{
-#if 0
-	/* events >= 3 are registered bpython scripts */
-#ifndef DISABLE_PYTHON
-	if (event >= 3) BPY_menu_do_python(PYMENU_VERTEXPAINT, event - 3);
-#endif
-	switch(event) {
-	case 0: /* undo vertex painting */
-		BIF_undo();
-		break;
-	case 1: /* set vertex colors/weight */
-		if(paint_facesel_test(CTX_data_active_object(C)))
-			clear_vpaint_selectedfaces();
-		else /* we know were in vertex paint mode */
-			clear_vpaint();
-		break;
-	case 2:
-		make_vertexcol(1);
-		break;
-	}
-#endif
-}
-
-static uiBlock *view3d_vpaintmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-#ifndef DISABLE_PYTHON
-// XXX	BPyMenu *pym;
-//	int i=0;
-#endif
-	
-	block= uiBeginBlock(C, ar, "view3d_paintmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_vpaintmenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Vertex Painting|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Vertex Colors|Shift K",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Shaded Vertex Colors",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	
-#ifndef DISABLE_PYTHON
-	/* note that we account for the 3 previous entries with i+3:
-	even if the last item isnt displayed, it dosent matter */
-//	for (pym = BPyMenuTable[PYMENU_VERTEXPAINT]; pym; pym = pym->next, i++) {
-//		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20,
-//			menuwidth, 19, NULL, 0.0, 0.0, 1, i+3,
-//			pym->tooltip?pym->tooltip:pym->filename);
-//	}
-#endif
-
-	if(ar->alignment==RGN_ALIGN_TOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-
-	uiTextBoundsBlock(block, 50);
-	return block;
-}
-
-
 /* texture paint menu (placeholder, no items yet??) */
 static void do_view3d_tpaintmenu(bContext *C, void *arg, int event)
 {
@@ -3050,11 +2985,6 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 		uiDefPulldownBut(block, view3d_wpaintmenu, NULL, "Paint", xco,yco, xmax-3, 20, "");
 		xco+= xmax;
 	}
-	else if (ob && ob->mode & OB_MODE_VERTEX_PAINT) {
-		xmax= GetButStringLength("Paint");
-		uiDefPulldownBut(block, view3d_vpaintmenu, NULL, "Paint", xco,yco, xmax-3, 20, "");
-		xco+= xmax;
-	} 
 	else if (ob && ob->mode & OB_MODE_TEXTURE_PAINT) {
 		xmax= GetButStringLength("Paint");
 		uiDefPulldownBut(block, view3d_tpaintmenu, NULL, "Paint", xco,yco, xmax-3, 20, "");
