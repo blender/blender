@@ -3093,7 +3093,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 			psys->flag &= ~PSYS_KEYED;
 		}
 
-		if(psys->particles->boid) {
+		if(psys->particles && psys->particles->boid) {
 			pa = psys->particles;
 			pa->boid = newdataadr(fd, pa->boid);
 			for(a=1,pa++; a<psys->totpart; a++, pa++)
@@ -10804,14 +10804,16 @@ static Library* library_append(Main *mainvar, Scene *scene, char* file, char *di
 	fix_relpaths_library(G.sce, mainvar); /* make all relative paths, relative to the open blend file */
 
 	/* give a base to loose objects. If group append, do it for objects too */
-	if(idcode==ID_GR) {
-		if (flag & FILE_LINK) {
-			give_base_to_objects(mainvar, scene, NULL, 0);
+	if(scene) {
+		if(idcode==ID_GR) {
+			if (flag & FILE_LINK) {
+				give_base_to_objects(mainvar, scene, NULL, 0);
+			} else {
+				give_base_to_objects(mainvar, scene, curlib, 1);
+			}	
 		} else {
-			give_base_to_objects(mainvar, scene, curlib, 1);
-		}	
-	} else {
-		give_base_to_objects(mainvar, scene, NULL, 0);
+			give_base_to_objects(mainvar, scene, NULL, 0);
+		}
 	}
 	/* has been removed... erm, why? s..ton) */
 	/* 20040907: looks like they are give base already in append_named_part(); -Nathan L */
