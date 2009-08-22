@@ -613,6 +613,22 @@ BMOpDefine def_splitop = {
 	0
 };
 
+/*
+  Similar faces select
+
+  Select similar faces (area/material/perimeter....).
+*/
+BMOpDefine def_similarfaces = {
+	"similarfaces",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, /* input faces */
+	 {BMOP_OPSLOT_ELEMENT_BUF, "faceout"}, /* output faces */
+	 {BMOP_OPSLOT_INT, "type"},			/* type of selection */
+	 {BMOP_OPSLOT_FLT, "thresh"},		/* threshold of selection */
+	 {0} /*null-terminating sentinel*/},
+	bmesh_similarfaces_exec,
+	0
+};
+
 BMOpDefine *opdefines[] = {
 	&def_splitop,
 	&def_dupeop,
@@ -653,6 +669,7 @@ BMOpDefine *opdefines[] = {
 	&def_collapse_uvs,
 	&def_pointmerge,
 	&def_collapse,
+	&def_similarfaces,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

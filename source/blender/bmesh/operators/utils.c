@@ -383,3 +383,264 @@ void bmesh_vertexsmooth_exec(BMesh *bm, BMOperator *op)
 
 	V_FREE(cos);
 }
+
+/*
+** compute the centroid of an ngon
+**
+** NOTE: This should probably go to bmesh_polygon.c and replace the function that compute its center
+** basing on bounding box
+*/
+static void ngon_center(float *v, BMesh *bm, BMFace *f)
+{
+	BMIter	liter;
+	BMLoop	*l;
+	v[0] = v[1] = v[2] = 0;
+
+	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+		VecAddf(v, v, l->v->co);
+	}
+
+	if( f->len )
+	{
+		v[0] /= f->len;
+		v[1] /= f->len;
+		v[2] /= f->len;
+	}
+}
+
+/*
+** compute the perimeter of an ngon
+**
+** NOTE: This should probably go to bmesh_polygon.c
+*/
+static float ngon_perimeter(BMesh *bm, BMFace *f)
+{
+	BMIter	liter;
+	BMLoop	*l;
+	int		num_verts = 0;
+	float	v[3], sv[3];
+	float	perimeter = 0.0f;
+
+	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+		if( num_verts == 0 ) {
+			sv[0] = v[0] = l->v->co[0];
+			sv[1] = v[1] = l->v->co[1];
+			sv[2] = v[2] = l->v->co[2];
+			num_verts++;
+		} else {
+			perimeter += VecLenf(v, l->v->co);
+			v[0] = l->v->co[0];
+			v[1] = l->v->co[1];
+			v[2] = l->v->co[2];
+			num_verts++;
+		}
+	}
+
+	perimeter += VecLenf(v, sv);
+
+	return perimeter;
+}
+
+/*
+** compute the fake surface of an ngon
+** This is done by decomposing the ngon into triangles who share the centroid of the ngon
+** while this method is far from being exact, it should garantee an invariance.
+**
+** NOTE: This should probably go to bmesh_polygon.c
+*/
+static float ngon_fake_area(BMesh *bm, BMFace *f)
+{
+	BMIter	liter;
+	BMLoop	*l;
+	int		num_verts = 0;
+	float	v[3], sv[3], c[3];
+	float	area = 0.0f;
+
+	ngon_center(c, bm, f);
+
+	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+		if( num_verts == 0 ) {
+			sv[0] = v[0] = l->v->co[0];
+			sv[1] = v[1] = l->v->co[1];
+			sv[2] = v[2] = l->v->co[2];
+			num_verts++;
+		} else {
+			area += AreaT3Dfl(v, c, l->v->co);
+			v[0] = l->v->co[0];
+			v[1] = l->v->co[1];
+			v[2] = l->v->co[2];
+			num_verts++;
+		}
+	}
+
+	area += AreaT3Dfl(v, c, sv);
+
+	return area;
+}
+
+/*
+** extra face data (computed data)
+*/
+typedef struct tmp_face_ext {
+	BMFace		*f;			/* the face */
+	float	c[3];			/* center */
+	union {
+		float	area;		/* area */
+		float	perim;		/* perimeter */
+		float	d;			/* 4th component of plane (the first three being the normal) */
+		struct Image	*t;	/* image pointer */
+	};
+} tmp_face_ext;
+
+/*
+** Select similar faces, the choices are in the enum in source/blender/bmesh/bmesh_operators.h
+** We select either similar faces based on material, image, area, perimeter, normal, or the coplanar faces
+*/
+void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
+{
+	BMIter fm_iter;
+	BMFace *fs, *fm;
+	BMOIter fs_iter;
+	int num_tex, num_sels = 0, num_total = 0, i = 0, idx = 0;
+	float angle = 0.0f;
+	tmp_face_ext *f_ext = NULL;
+	int *indices = NULL;
+	float t_no[3];	/* temporary normal */
+	int type = BMO_Get_Int(op, "type");
+	float thresh = BMO_Get_Float(op, "thresh");
+
+	num_total = BM_Count_Element(bm, BM_FACE);
+
+	/*
+	** The first thing to do is to iterate through all the the selected items and mark them since
+	** they will be in the selection anyway.
+	** This will increase performance, (especially when the number of originaly selected faces is high)
+	** so the overall complexity will be less than $O(mn)$ where is the total number of selected faces,
+	** and n is the total number of faces
+	*/
+	BMO_ITER(fs, &fs_iter, bm, op, "faces", BM_FACE) {
+		if (!BMO_TestFlag(bm, fs, FACE_MARK)) {	/* is this really needed ? */
+			BMO_SetFlag(bm, fs, FACE_MARK);
+			num_sels++;
+		}
+	}
+
+	/* allocate memory for the selected faces indices and for all temporary faces */
+	indices	= (int*)malloc(sizeof(int) * num_sels);
+	f_ext = (tmp_face_ext*)malloc(sizeof(tmp_face_ext) * num_total);
+
+	/* loop through all the faces and fill the faces/indices structure */
+	BM_ITER(fm, &fm_iter, bm, BM_FACES_OF_MESH, NULL) {
+		f_ext[i].f = fm;
+		if (BMO_TestFlag(bm, fm, FACE_MARK)) {
+			indices[idx] = i;
+			idx++;
+		}
+		i++;
+	}
+
+	/*
+	** Save us some computation burden: In case of perimeter/area/coplanar selection we compute
+	** only once.
+	*/
+	if( type == SIMFACE_PERIMETER || type == SIMFACE_AREA || type == SIMFACE_COPLANAR || type == SIMFACE_IMAGE )	{
+		for( i = 0; i < num_total; i++ ) {
+			switch( type ) {
+			case SIMFACE_PERIMETER:
+				/* set the perimeter */
+				f_ext[i].perim = ngon_perimeter(bm, f_ext[i].f);
+				break;
+
+			case SIMFACE_COPLANAR:
+				/* compute the center of the polygon */
+				ngon_center(f_ext[i].c, bm, f_ext[i].f);
+
+				/* normalize the polygon normal */
+				VecCopyf(t_no, f_ext[i].f->no);
+				Normalize(t_no);
+
+				/* compute the plane distance */
+				f_ext[i].d = Inpf(t_no, f_ext[i].c);
+				break;
+
+			case SIMFACE_AREA:
+				f_ext[i].area = ngon_fake_area(bm, f_ext[i].f);
+				break;
+
+			case SIMFACE_IMAGE:
+				f_ext[i].t = NULL;
+				if( CustomData_has_layer(&(bm->pdata), CD_MTEXPOLY) ) {
+					MTexPoly *mtpoly = CustomData_bmesh_get(&bm->pdata, f_ext[i].f->head.data, CD_MTEXPOLY);
+					f_ext[i].t = mtpoly->tpage;
+				}
+				break;
+			}
+		}
+	}
+
+	/* now select the rest (if any) */
+	//BM_ITER(fm, &fm_iter, bm, BM_FACES_OF_MESH, NULL) {
+	for( i = 0; i < num_total; i++ ) {
+		fm = f_ext[i].f;
+		if (!BMO_TestFlag(bm, fm, FACE_MARK)) {
+			//BMO_ITER(fs, &fs_iter, bm, op, "faces", BM_FACE) {
+			int cont = 1;
+			for( idx = 0; idx < num_sels && cont == 1; idx++ ) {
+				fs = f_ext[indices[idx]].f;
+				switch( type ) {
+				case SIMFACE_MATERIAL:
+					if( fm->mat_nr == fs->mat_nr ) {
+						BMO_SetFlag(bm, fm, FACE_MARK);
+						cont = 0;
+					}
+					break;
+
+				case SIMFACE_IMAGE:
+					if( f_ext[i].t == f_ext[indices[idx]].t ) {
+						BMO_SetFlag(bm, fm, FACE_MARK);
+						cont = 0;
+					}
+					break;
+
+				case SIMFACE_NORMAL:
+					angle = VecAngle2(fs->no, fm->no);	/* if the angle between the normals -> 0 */
+					if( angle / 180.0 <= thresh ) {
+						BMO_SetFlag(bm, fm, FACE_MARK);
+						cont = 0;
+					}
+					break;
+
+				case SIMFACE_COPLANAR:
+					angle = VecAngle2(fs->no, fm->no); /* angle -> 0 */
+					if( angle / 180.0 <= thresh ) { /* and dot product difference -> 0 */
+						if( fabs(f_ext[i].d - f_ext[indices[idx]].d) <= thresh ) {
+							BMO_SetFlag(bm, fm, FACE_MARK);
+							cont = 0;
+						}
+					}
+					break;
+
+				case SIMFACE_AREA:
+					if( fabs(f_ext[i].area - f_ext[indices[idx]].area) <= thresh ) {
+						BMO_SetFlag(bm, fm, FACE_MARK);
+						cont = 0;
+					}
+					break;
+
+				case SIMFACE_PERIMETER:
+					if( fabs(f_ext[i].perim - f_ext[indices[idx]].perim) <= thresh ) {
+						BMO_SetFlag(bm, fm, FACE_MARK);
+						cont = 0;
+					}
+					break;
+				}
+			}
+		}
+	}
+
+	free(f_ext);
+	free(indices);
+
+	/* transfer all marked faces to the output slot */
+	BMO_Flag_To_Slot(bm, op, "faceout", FACE_MARK, BM_FACE);
+}

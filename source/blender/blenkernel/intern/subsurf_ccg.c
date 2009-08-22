@@ -1460,6 +1460,7 @@ struct cgdm_faceIter;
 typedef struct cgdm_loopIter {
 	DMLoopIter head;
 	int curloop;
+	int lindex; //loop index within the mesh, not the face
 	CCGDerivedMesh *cgdm;
 	struct cgdm_faceIter *fiter;
 } cgdm_loopIter;
@@ -1493,7 +1494,7 @@ void cgdm_faceIterStep(void *self)
 
 	fiter->head.flags = fiter->mface.flag;
 	fiter->head.mat_nr = fiter->mface.mat_nr;
-	fiter->head.len = fiter->mface.v4 ? 4 : 3;
+	fiter->head.len = 4;
 }
 
 void *cgdm_faceIterCData(void *self, int type, int layer)
@@ -1501,9 +1502,9 @@ void *cgdm_faceIterCData(void *self, int type, int layer)
 	cgdm_faceIter *fiter = self;
 	
 	if (layer == -1) 
-		return CustomData_get(&fiter->cgdm->dm.faceData, fiter->head.index, type);
+		return CustomData_get(&fiter->cgdm->dm.polyData, fiter->head.index, type);
 	else
-		return CustomData_get_n(&fiter->cgdm->dm.faceData, type, fiter->head.index, layer);
+		return CustomData_get_n(&fiter->cgdm->dm.polyData, type, fiter->head.index, layer);
 }
 
 void cgdm_loopIterStep(void *self)
@@ -1512,13 +1513,13 @@ void cgdm_loopIterStep(void *self)
 	MFace *mf = &liter->fiter->mface;
 	int i, v1, v2;
 
-	if (liter->head.index >= liter->fiter->head.len) {
+	liter->head.index++;
+	i = liter->head.index;
+
+	if (liter->head.index >= 4) {
 		liter->head.done = 1;
 		return;
 	}
-
-	liter->head.index++;
-	i = liter->head.index;
 
 	switch (i) {
 		case 0:
@@ -1541,6 +1542,7 @@ void cgdm_loopIterStep(void *self)
 
 	liter->head.vindex = v1;
 	liter->head.eindex = GET_INT_FROM_POINTER(BLI_edgehash_lookup(liter->fiter->ehash, v1, v2));
+	liter->lindex += 1;
 	
 	cgdm_getFinalVert((DerivedMesh*)liter->cgdm, v1, &liter->head.v);	
 }
@@ -1557,10 +1559,10 @@ void *cgdm_loopIterGetVCData(void *self, int type, int layer)
 void *cgdm_loopIterGetCData(void *self, int type, int layer)
 {
 	cgdm_loopIter *liter = self;
-	
-	/*BMESH_TODO
-	  yeek, this has to convert mface-style uv/mcols to loop-style*/
-	return NULL;
+
+	if (layer == -1)
+		return CustomData_get(&liter->cgdm->dm.loopData, liter->lindex, type);
+	else return CustomData_get_n(&liter->cgdm->dm.loopData, type, liter->lindex, layer);
 }
 
 DMLoopIter *cgdm_faceIterGetLIter(void *self)
@@ -1587,6 +1589,8 @@ DMFaceIter *cgdm_newFaceIter(DerivedMesh *dm)
 	MEdge medge;
 	int i, totedge = cgdm_getNumEdges(dm);
 
+	fiter->cgdm = dm;
+	fiter->liter.cgdm = dm;
 	fiter->ehash = BLI_edgehash_new();
 	
 	for (i=0; i<totedge; i++) {
@@ -1604,6 +1608,7 @@ DMFaceIter *cgdm_newFaceIter(DerivedMesh *dm)
 	fiter->liter.head.getLoopCDData = cgdm_loopIterGetCData;
 	fiter->liter.head.getVertCDData = cgdm_loopIterGetVCData;
 	fiter->liter.head.step = cgdm_loopIterStep;
+	fiter->liter.lindex = -1;
 
 	fiter->head.step(fiter);
 }
@@ -2627,7 +2632,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 	int numTex, numCol;
 	int gridInternalEdges;
 	int index2;
-	float *w = NULL;
+	float *w = NULL, one = 1.0f;
 	WeightTable wtable = {0};
 	V_DECLARE(w);
 	/* MVert *mvert = NULL; - as yet unused */
@@ -2864,37 +2869,19 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 					loopindex2++;
 																			
 					/*copy over poly data, e.g. mtexpoly*/
-					CustomData_interp(&dm->polyData, &cgdm->dm.polyData, &origIndex, w, NULL, 1, index2);
+					CustomData_interp(&dm->polyData, &cgdm->dm.polyData, &origIndex, &one, NULL, 1, index2);
 
 					/*generate tesselated face data used for drawing*/
 					ccg_loops_to_corners(&cgdm->dm.faceData, &cgdm->dm.loopData, 
 						&cgdm->dm.polyData, loopindex2-4, index2, index2, numTex, numCol);
 					
+					faceNum++;
 					index2++;
 				}
 			}
 		}
 
 		edgeNum += numFinalEdges;
-	}
-
-	for(index = 0; index < totvert; ++index) {
-		CCVert *v = cgdm->vertMap[index].vert;
-		int mapIndex = cgdm_getVertMapIndex(cgdm->ss, v);
-		int vidx;
-
-		vidx = GET_INT_FROM_POINTER(CCS_getVertVertHandle(v));
-
-		cgdm->vertMap[index].startVert = vertNum;
-
-		/* set the vert base vert */
-		*((int*) CCS_getVertUserData(ss, v)) = vertNum;
-
-		DM_copy_vert_data(dm, &cgdm->dm, vidx, vertNum, 1);
-
-		*vertOrigIndex = mapIndex;
-		++vertOrigIndex;
-		++vertNum;
 	}
 
 	edgeFlags = DM_get_edge_data_layer(&cgdm->dm, CD_FLAGS);
@@ -2937,6 +2924,25 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 		}
 
 		edgeNum += numFinalEdges;
+	}
+
+	for(index = 0; index < totvert; ++index) {
+		CCVert *v = cgdm->vertMap[index].vert;
+		int mapIndex = cgdm_getVertMapIndex(cgdm->ss, v);
+		int vidx;
+
+		vidx = GET_INT_FROM_POINTER(CCS_getVertVertHandle(v));
+
+		cgdm->vertMap[index].startVert = vertNum;
+
+		/* set the vert base vert */
+		*((int*) CCS_getVertUserData(ss, v)) = vertNum;
+
+		DM_copy_vert_data(dm, &cgdm->dm, vidx, vertNum, 1);
+
+		*vertOrigIndex = mapIndex;
+		++vertOrigIndex;
+		++vertNum;
 	}
 #if 0
 	for(index = 0; index < totface; ++index) {

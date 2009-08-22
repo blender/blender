@@ -1644,7 +1644,7 @@ void *CustomData_get_n(const CustomData *data, int type, int index, int n)
 	if(layer_index < 0) return NULL;
 	
 	offset = layerType_getInfo(type)->size * index;
-	return (char *)data->layers[layer_index].data + offset;
+	return (char *)data->layers[layer_index+n].data + offset;
 }
 
 void *CustomData_get_layer(const CustomData *data, int type)

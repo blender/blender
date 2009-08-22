@@ -285,7 +285,7 @@ void dm_add_polys_from_iter(CustomData *ldata, CustomData *pdata, DerivedMesh *d
 	CustomData *oldata, *opdata;
 	MPoly *mpoly;
 	MLoop *mloop;
-	int l, i, j, lasttype;
+	int p, l, i, j, lasttype;
 
 	oldata = dm->getLoopDataLayout(dm);
 	opdata = dm->getFaceDataLayout(dm);
@@ -299,7 +299,7 @@ void dm_add_polys_from_iter(CustomData *ldata, CustomData *pdata, DerivedMesh *d
 	CustomData_add_layer(pdata, CD_MPOLY, CD_ASSIGN, mpoly, dm->getNumFaces(dm));
 
 	l = 0;
-	for (; !iter->done; iter->step(iter), mpoly++) {
+	for (p=0; !iter->done; iter->step(iter), mpoly++, p++) {
 		mpoly->flag = iter->flags;
 		mpoly->loopstart = l;
 		mpoly->totloop = iter->len;
@@ -314,7 +314,10 @@ void dm_add_polys_from_iter(CustomData *ldata, CustomData *pdata, DerivedMesh *d
 				continue;
 			
 			e1 = iter->getCDData(iter, opdata->layers[i].type, j);
-			e2 = CustomData_get_layer_n(pdata, opdata->layers[i].type, j);
+			e2 = (char*)CustomData_get_n(pdata, opdata->layers[i].type, p, j);
+			
+			if (!e2)
+				continue;
 
 			CustomData_copy_elements(opdata->layers[i].type, e1, e2, 1);
 			
@@ -340,7 +343,10 @@ void dm_add_polys_from_iter(CustomData *ldata, CustomData *pdata, DerivedMesh *d
 					continue;
 				
 				e1 = liter->getLoopCDData(liter, oldata->layers[i].type, j);
-				e2 = CustomData_get_layer_n(ldata, oldata->layers[i].type, j);
+				e2 = CustomData_get_n(ldata, oldata->layers[i].type, l, j);
+				
+				if (!e2)
+					continue;
 
 				CustomData_copy_elements(oldata->layers[i].type, e1, e2, 1);
 				

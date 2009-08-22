@@ -649,13 +649,6 @@ static int unified_findnearest(ViewContext *vc, BMVert **eve, BMEdge **eed, BMFa
 
 /* FACES GROUP */
 
-#define SIMFACE_MATERIAL	201
-#define SIMFACE_IMAGE		202
-#define SIMFACE_AREA		203
-#define SIMFACE_PERIMETER	204
-#define SIMFACE_NORMAL		205
-#define SIMFACE_COPLANAR	206
-
 static EnumPropertyItem prop_simface_types[] = {
 	{SIMFACE_MATERIAL, "MATERIAL", 0, "Material", ""},
 	{SIMFACE_IMAGE, "IMAGE", 0, "Image", ""},
@@ -666,160 +659,40 @@ static EnumPropertyItem prop_simface_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-
-/* this as a way to compare the ares, perim  of 2 faces thay will scale to different sizes
-*0.5 so smaller faces arnt ALWAYS selected with a thresh of 1.0 */
-#define SCALE_CMP(a,b) ((a+a*thresh >= b) && (a-(a*thresh*0.5) <= b))
-
-static int similar_face_select__internal(Scene *scene, EditMesh *em, int mode)
-{
-#if 0
-	EditFace *efa, *base_efa=NULL;
-	unsigned int selcount=0; /*count how many new faces we select*/
-	
-	/*deselcount, count how many deselected faces are left, so we can bail out early
-	also means that if there are no deselected faces, we can avoid a lot of looping */
-	unsigned int deselcount=0; 
-	float thresh= scene->toolsettings->select_thresh;
-	short ok=0;
-	
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		if (!efa->h) {
-			if (efa->f & SELECT) {
-				efa->f1=1;
-				ok=1;
-			} else {
-				efa->f1=0;
-				deselcount++; /* a deselected face we may select later */
-			}
-		}
-	}
-	
-	if (!ok || !deselcount) /* no data selected OR no more data to select */
-		return 0;
-	
-	if (mode==SIMFACE_AREA) {
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			efa->tmp.fp= EM_face_area(efa);
-		}
-	} else if (mode==SIMFACE_PERIMETER) {
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			efa->tmp.fp= EM_face_perimeter(efa);
-		}
-	}
-	
-	for(base_efa= em->faces.first; base_efa; base_efa= base_efa->next) {
-		if (base_efa->f1) { /* This was one of the faces originaly selected */
-			if (mode==SIMFACE_MATERIAL) { /* same material */
-				for(efa= em->faces.first; efa; efa= efa->next) {
-					if (
-						!(efa->f & SELECT) &&
-						!efa->h &&
-						base_efa->mat_nr == efa->mat_nr
-					) {
-						EM_select_face(efa, 1);
-						selcount++;
-						deselcount--;
-						if (!deselcount) /*have we selected all posible faces?, if so return*/
-							return selcount;
-					}
-				}
-			} else if (mode==SIMFACE_IMAGE) { /* same image */
-				MTFace *tf, *base_tf;
-
-				base_tf = (MTFace*)CustomData_em_get(&em->fdata, base_efa->data,
-				                                     CD_MTFACE);
-
-				if(!base_tf)
-					return selcount;
-
-				for(efa= em->faces.first; efa; efa= efa->next) {
-					if (!(efa->f & SELECT) && !efa->h) {
-						tf = (MTFace*)CustomData_em_get(&em->fdata, efa->data,
-						                                CD_MTFACE);
-
-						if(base_tf->tpage == tf->tpage) {
-							EM_select_face(efa, 1);
-							selcount++;
-							deselcount--;
-							if (!deselcount) /*have we selected all posible faces?, if so return*/
-								return selcount;
-						}
-					}
-				}
-			} else if (mode==SIMFACE_AREA || mode==SIMFACE_PERIMETER) { /* same area OR same perimeter, both use the same temp var */
-				for(efa= em->faces.first; efa; efa= efa->next) {
-					if (
-						(!(efa->f & SELECT) && !efa->h) &&
-						SCALE_CMP(base_efa->tmp.fp, efa->tmp.fp)
-					) {
-						EM_select_face(efa, 1);
-						selcount++;
-						deselcount--;
-						if (!deselcount) /*have we selected all posible faces?, if so return*/
-							return selcount;
-					}
-				}
-			} else if (mode==SIMFACE_NORMAL) {
-				float angle;
-				for(efa= em->faces.first; efa; efa= efa->next) {
-					if (!(efa->f & SELECT) && !efa->h) {
-						angle= VecAngle2(base_efa->n, efa->n);
-						if (angle/180.0<=thresh) {
-							EM_select_face(efa, 1);
-							selcount++;
-							deselcount--;
-							if (!deselcount) /*have we selected all posible faces?, if so return*/
-								return selcount;
-						}
-					}
-				}
-			} else if (mode==SIMFACE_COPLANAR) { /* same planer */
-				float angle, base_dot, dot;
-				base_dot= Inpf(base_efa->cent, base_efa->n);
-				for(efa= em->faces.first; efa; efa= efa->next) {
-					if (!(efa->f & SELECT) && !efa->h) {
-						angle= VecAngle2(base_efa->n, efa->n);
-						if (angle/180.0<=thresh) {
-							dot=Inpf(efa->cent, base_efa->n);
-							if (fabs(base_dot-dot) <= thresh) {
-								EM_select_face(efa, 1);
-								selcount++;
-								deselcount--;
-								if (!deselcount) /*have we selected all posible faces?, if so return*/
-									return selcount;
-							}
-						}
-					}
-				}
-			}
-		}
-	} /* end base_efa loop */
-	return selcount;
-#endif
-}
-
 static int similar_face_select_exec(bContext *C, wmOperator *op)
 {
-#if 0
-	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-	Mesh *me= obedit->data;
-	EditMesh *em= BKE_mesh_get_editmesh(me); 
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_edit_object(C);
+	BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
+	BMOperator bmop;
 
-	int selcount = similar_face_select__internal(scene, em, RNA_int_get(op->ptr, "type"));
-	
-	if (selcount) {
-		/* here was an edge-mode only select flush case, has to be generalized */
-		EM_selectmode_flush(em);
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-		BKE_mesh_end_editmesh(me, em);
-		return OPERATOR_FINISHED;
-	}
-	
-	BKE_mesh_end_editmesh(me, em);
-#endif
-	return OPERATOR_CANCELLED;
+	/* get the type from RNA */
+	int type = RNA_enum_get(op->ptr, "type");
+
+	float thresh = scene->toolsettings->select_thresh;
+
+	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
+	EDBM_InitOpf(em, &bmop, op, "similarfaces faces=%hf type=%d thresh=%f", BM_SELECT, type, thresh);
+
+	/* execute the operator */
+	BMO_Exec_Op(em->bm, &bmop);
+
+	/* clear the existing selection */
+	EDBM_clear_flag_all(em, BM_SELECT);
+
+	/* select the output */
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "faceout", BM_SELECT, BM_ALL);
+
+	/* finish the operator */
+	if( !EDBM_FinishOp(em, &bmop, op, 1) )
+		return OPERATOR_CANCELLED;
+
+	/* dependencies graph and notification stuff */
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT | ND_GEOM_SELECT, ob);
+
+	/* we succeeded */
+	return OPERATOR_FINISHED;
 }	
 
 /* ***************************************************** */

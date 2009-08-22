@@ -22,6 +22,15 @@ enum {
 	SUBD_STRAIGHT_CUT,
 };
 
+enum {
+	SIMFACE_MATERIAL = 201,
+	SIMFACE_IMAGE,
+	SIMFACE_AREA,
+	SIMFACE_PERIMETER,
+	SIMFACE_NORMAL,
+	SIMFACE_COPLANAR,
+};
+
 extern BMOpDefine *opdefines[];
 extern int bmesh_total_ops;
 

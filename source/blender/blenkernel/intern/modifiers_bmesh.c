@@ -193,6 +193,9 @@ BMEditMesh *CDDM_To_BMesh(DerivedMesh *dm, BMEditMesh *existing)
 			verts[j] = vtable[dliter->vindex];
 			edges[j] = etable[dliter->eindex];
 		}
+
+		if (j < 2)
+			break;
 		
 		f = BM_Make_Ngon(bm, verts[0], verts[1], edges, dfiter->len, 0);
 		f->head.flag = MEFlags_To_BMFlags(dfiter->flags, BM_FACE);
