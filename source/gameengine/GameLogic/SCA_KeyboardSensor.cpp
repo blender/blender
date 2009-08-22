@@ -50,7 +50,6 @@ SCA_KeyboardSensor::SCA_KeyboardSensor(SCA_KeyboardManager* keybdmgr,
 									   const STR_String& toggleProp,
 									   SCA_IObject* gameobj)
 	:SCA_ISensor(gameobj,keybdmgr),
-	 m_pKeyboardMgr(keybdmgr),
 	 m_hotkey(hotkey),
 	 m_qual(qual),
 	 m_qual2(qual2),
@@ -125,7 +124,7 @@ bool SCA_KeyboardSensor::Evaluate()
 	bool qual_change = false;
 	short int m_val_orig = m_val;
 	
-	SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
+	SCA_IInputDevice* inputdev = ((SCA_KeyboardManager *)m_eventmgr)->GetInputDevice();
 	//  	cerr << "SCA_KeyboardSensor::Eval event, sensing for "<< m_hotkey << " at device " << inputdev << "\n";
 
 	/* See if we need to do logging: togPropState exists and is
@@ -360,7 +359,7 @@ void SCA_KeyboardSensor::AddToTargetProp(int keyIndex)
  */	
 bool SCA_KeyboardSensor::IsShifted(void)
 {
-	SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
+	SCA_IInputDevice* inputdev = ((SCA_KeyboardManager *)m_eventmgr)->GetInputDevice();
 	
 	if ( (inputdev->GetEventValue(SCA_IInputDevice::KX_RIGHTSHIFTKEY).m_status 
 		  == SCA_InputEvent::KX_ACTIVE)
@@ -379,7 +378,7 @@ bool SCA_KeyboardSensor::IsShifted(void)
 
 void SCA_KeyboardSensor::LogKeystrokes(void) 
 {
-	SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
+	SCA_IInputDevice* inputdev = ((SCA_KeyboardManager *)m_eventmgr)->GetInputDevice();
 	int num = inputdev->GetNumActiveEvents();
 
 	/* weird loop, this one... */
@@ -514,7 +513,7 @@ PyObject* SCA_KeyboardSensor::PyGetPressedKeys()
 {
 	ShowDeprecationWarning("getPressedKeys()", "events");
 
-	SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
+	SCA_IInputDevice* inputdev = ((SCA_KeyboardManager *)m_eventmgr)->GetInputDevice();
 
 	int num = inputdev->GetNumJustEvents();
 	PyObject* resultlist = PyList_New(num);
@@ -555,7 +554,7 @@ PyObject* SCA_KeyboardSensor::PyGetCurrentlyPressedKeys()
 {
 	ShowDeprecationWarning("getCurrentlyPressedKeys()", "events");
 
-	SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
+	SCA_IInputDevice* inputdev = ((SCA_KeyboardManager *)m_eventmgr)->GetInputDevice();
 
 	int num = inputdev->GetNumActiveEvents();
 	PyObject* resultlist = PyList_New(num);
@@ -604,7 +603,7 @@ KX_PYMETHODDEF_DOC_O(SCA_KeyboardSensor, getKeyStatus,
 		return NULL;
 	}
 	
-	SCA_IInputDevice* inputdev = m_pKeyboardMgr->GetInputDevice();
+	SCA_IInputDevice* inputdev = ((SCA_KeyboardManager *)m_eventmgr)->GetInputDevice();
 	const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) keycode);
 	return PyLong_FromSsize_t(inevent.m_status);
 }
@@ -666,7 +665,7 @@ PyObject* SCA_KeyboardSensor::pyattr_get_events(void *self_v, const KX_PYATTRIBU
 {
 	SCA_KeyboardSensor* self= static_cast<SCA_KeyboardSensor*>(self_v);
 	
-	SCA_IInputDevice* inputdev = self->m_pKeyboardMgr->GetInputDevice();
+	SCA_IInputDevice* inputdev = ((SCA_KeyboardManager *)self->m_eventmgr)->GetInputDevice();
 
 	PyObject* resultlist = PyList_New(0);
 	
