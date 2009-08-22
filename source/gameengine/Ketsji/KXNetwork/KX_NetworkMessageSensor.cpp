@@ -54,7 +54,6 @@ KX_NetworkMessageSensor::KX_NetworkMessageSensor(
 	PyTypeObject* T
 ) :
     SCA_ISensor(gameobj,eventmgr,T),
-    m_Networkeventmgr(eventmgr),
     m_NetworkScene(NetworkScene),
     m_subject(subject),
     m_frame_message_count (0),

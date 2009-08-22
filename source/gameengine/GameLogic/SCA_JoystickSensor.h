@@ -35,7 +35,6 @@
 class SCA_JoystickSensor :public SCA_ISensor
 {
 	Py_Header;
-	class SCA_JoystickManager*	m_pJoystickMgr;
 	
 	/**
 	 * Axis 1-JOYAXIS_MAX, MUST be followed by m_axisf

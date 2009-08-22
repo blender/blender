@@ -101,8 +101,7 @@ KX_TouchSensor::KX_TouchSensor(SCA_EventManager* eventmgr,KX_GameObject* gameobj
 :SCA_ISensor(gameobj,eventmgr,T),
 m_touchedpropname(touchedpropname),
 m_bFindMaterial(bFindMaterial),
-m_bTouchPulse(bTouchPulse),
-m_eventmgr(eventmgr)
+m_bTouchPulse(bTouchPulse)
 /*m_sumoObj(sumoObj),*/
 {
 //	KX_TouchEventManager* touchmgr = (KX_TouchEventManager*) eventmgr;

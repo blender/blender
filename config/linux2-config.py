@@ -190,8 +190,9 @@ REL_CCFLAGS = ['-O2']
 ##ARFLAGSQUIET = ru
 ##
 C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement']
-
 CC_WARN = ['-Wall']
+CXX_WARN = ['-Wno-invalid-offsetof', '-Wno-sign-compare']
+
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
 
