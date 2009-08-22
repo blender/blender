@@ -5657,7 +5657,7 @@ static void hookModifier_deformVerts(
 {
 	HookModifierData *hmd = (HookModifierData*) md;
 	bPoseChannel *pchan= get_pose_channel(hmd->object->pose, hmd->subtarget);
-	float vec[3], mat[4][4], dmat[4][4], imat[4][4];
+	float vec[3], mat[4][4], dmat[4][4];
 	int i;
 	DerivedMesh *dm = derivedData;
 	
@@ -5670,8 +5670,8 @@ static void hookModifier_deformVerts(
 		/* just object target */
 		Mat4CpyMat4(dmat, hmd->object->obmat);
 	}
-	Mat4Invert(imat, dmat);
-	Mat4MulSerie(mat, imat, dmat, hmd->parentinv,
+	Mat4Invert(ob->imat, ob->obmat);
+	Mat4MulSerie(mat, ob->imat, dmat, hmd->parentinv,
 		     NULL, NULL, NULL, NULL, NULL);
 
 	/* vertex indices? */
@@ -5728,7 +5728,8 @@ static void hookModifier_deformVerts(
 				}
 			}
 		}
-	} else {	/* vertex group hook */
+	} 
+	else if(hmd->name[0]) {	/* vertex group hook */
 		bDeformGroup *curdef;
 		Mesh *me = ob->data;
 		int index = 0;

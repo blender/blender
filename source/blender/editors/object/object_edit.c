@@ -1384,9 +1384,11 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 		modifier_free(md);
 	}
 	else if(mode==5) { /* select */
+		// FIXME: this is now OBJECT_OT_hook_select
 		object_hook_select(obedit, hmd);
 	}
 	else if(mode==6) { /* clear offset */
+		// FIXME: this is now OBJECT_OT_hook_reset operator
 		where_is_object(scene, ob);	/* ob is hook->parent */
 
 		Mat4Invert(ob->imat, ob->obmat);
@@ -1397,25 +1399,6 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 
 	DAG_scene_sort(scene);
 }
-
-
-/* use this when the loc/size/rot of the parent has changed but the children should stay in the same place
- * apply-size-rot or object center for eg */
-static void ignore_parent_tx(Scene *scene, Object *ob ) 
-{
-	Object workob;
-	Object *ob_child;
-	
-	/* a change was made, adjust the children to compensate */
-	for (ob_child=G.main->object.first; ob_child; ob_child=ob_child->id.next) {
-		if (ob_child->parent == ob) {
-			ED_object_apply_obmat(ob_child);
-			what_does_parent(scene, ob_child, &workob);
-			Mat4Invert(ob_child->parentinv, workob.obmat);
-		}
-	}
-}
-
 
 void add_hook_menu(Scene *scene, View3D *v3d)
 {
@@ -1433,6 +1416,25 @@ void add_hook_menu(Scene *scene, View3D *v3d)
 		
 	/* do operations */
 	add_hook(scene, v3d, mode);
+}
+
+
+
+/* use this when the loc/size/rot of the parent has changed but the children should stay in the same place
+ * apply-size-rot or object center for eg */
+static void ignore_parent_tx(Scene *scene, Object *ob ) 
+{
+	Object workob;
+	Object *ob_child;
+	
+	/* a change was made, adjust the children to compensate */
+	for (ob_child=G.main->object.first; ob_child; ob_child=ob_child->id.next) {
+		if (ob_child->parent == ob) {
+			ED_object_apply_obmat(ob_child);
+			what_does_parent(scene, ob_child, &workob);
+			Mat4Invert(ob_child->parentinv, workob.obmat);
+		}
+	}
 }
 
 /* ******************** clear parent operator ******************* */

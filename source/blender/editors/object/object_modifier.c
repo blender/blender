@@ -865,7 +865,7 @@ static int hook_reset_exec(bContext *C, wmOperator *op)
 			Mat4MulMat4(mat, pchan->pose_mat, hmd->object->obmat);
 			
 			Mat4Invert(imat, mat);
-			Mat4MulSerie(hmd->parentinv, imat, mat, NULL, NULL, NULL, NULL, NULL, NULL);
+			Mat4MulSerie(hmd->parentinv, imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
 		}
 		else {
 			Mat4Invert(hmd->object->imat, hmd->object->obmat);
