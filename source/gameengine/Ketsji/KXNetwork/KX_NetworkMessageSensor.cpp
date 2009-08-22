@@ -53,7 +53,6 @@ KX_NetworkMessageSensor::KX_NetworkMessageSensor(
 	const STR_String &subject
 ) :
     SCA_ISensor(gameobj,eventmgr),
-    m_Networkeventmgr(eventmgr),
     m_NetworkScene(NetworkScene),
     m_subject(subject),
     m_frame_message_count (0),

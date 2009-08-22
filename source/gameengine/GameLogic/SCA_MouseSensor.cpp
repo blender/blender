@@ -51,7 +51,6 @@ SCA_MouseSensor::SCA_MouseSensor(SCA_MouseManager* eventmgr,
 								 short int mousemode,
 								 SCA_IObject* gameobj)
     : SCA_ISensor(gameobj,eventmgr),
-	m_pMouseMgr(eventmgr),
 	m_x(startx),
 	m_y(starty)
 {
@@ -147,7 +146,7 @@ bool SCA_MouseSensor::Evaluate()
 {
 	bool result = false;
 	bool reset = m_reset && m_level;
-	SCA_IInputDevice* mousedev = m_pMouseMgr->GetInputDevice();
+	SCA_IInputDevice* mousedev = ((SCA_MouseManager *)m_eventmgr)->GetInputDevice();
 
 	m_reset = false;
 	switch (m_mousemode) {
@@ -282,7 +281,7 @@ KX_PYMETHODDEF_DOC_O(SCA_MouseSensor, getButtonStatus,
 			return NULL;
 		}
 		
-		SCA_IInputDevice* mousedev = m_pMouseMgr->GetInputDevice();
+		SCA_IInputDevice* mousedev = ((SCA_MouseManager *)m_eventmgr)->GetInputDevice();
 		const SCA_InputEvent& event = mousedev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) button);
 		return PyLong_FromSsize_t(event.m_status);
 	}
