@@ -216,15 +216,17 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	}
 	else alpha= 1.0f;
 	
+	
 	/* add mist and premul color */
 	if(shr->alpha!=1.0f || alpha!=1.0f) {
 		float fac= alpha*(shr->alpha);
 		shr->combined[3]= fac;
-		shr->combined[0]*= fac;
-		shr->combined[1]*= fac;
-		shr->combined[2]*= fac;
+		
+		if (shi->mat->material_type!= MA_TYPE_VOLUME)
+			VecMulf(shr->combined, fac);
 	}
-	else shr->combined[3]= 1.0f;
+	else
+		shr->combined[3]= 1.0f;
 	
 	/* add z */
 	shr->z= -shi->co[2];

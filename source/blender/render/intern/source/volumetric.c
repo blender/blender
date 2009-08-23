@@ -65,12 +65,20 @@ extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 
-/* TODO: Box or sphere intersection types could speed things up */
+/* tracing */
+
 static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, Isect *isect, int intersect_type)
 {
 	float maxsize = RE_ray_tree_max_size(R.raytree);
-
-	/* TODO: use object's bounding box to calculate max size */
+	
+	/* XXX TODO - get raytrace max distance from object instance's bounding box */
+	/* need to account for scaling only, but keep coords in camera space...
+	 * below code is WIP and doesn't work!
+	VecSubf(bb_dim, shi->obi->obr->boundbox[1], shi->obi->obr->boundbox[2]);
+	Mat3MulVecfl(shi->obi->nmat, bb_dim);
+	maxsize = VecLength(bb_dim);
+	*/
+	
 	VECCOPY(isect->start, co);
 	isect->end[0] = co[0] + vec[0] * maxsize;
 	isect->end[1] = co[1] + vec[1] * maxsize;
@@ -95,6 +103,68 @@ static int vol_get_bounds(ShadeInput *shi, float *co, float *vec, float *hitco, 
 		return 0;
 	}
 }
+
+static void shade_intersection(ShadeInput *shi, float *col, Isect *is)
+{
+	ShadeInput shi_new;
+	ShadeResult shr_new;
+	
+	memset(&shi_new, 0, sizeof(ShadeInput)); 
+	
+	shi_new.mask= shi->mask;
+	shi_new.osatex= shi->osatex;
+	shi_new.thread= shi->thread;
+	shi_new.depth = shi->depth + 1;
+	shi_new.volume_depth= shi->volume_depth + 1;
+	shi_new.xs= shi->xs;
+	shi_new.ys= shi->ys;
+	shi_new.lay= shi->lay;
+	shi_new.passflag= SCE_PASS_COMBINED; /* result of tracing needs no pass info */
+	shi_new.combinedflag= 0xFFFFFF;		 /* ray trace does all options */
+	shi_new.light_override= shi->light_override;
+	shi_new.mat_override= shi->mat_override;
+	
+	VECCOPY(shi_new.camera_co, is->start);
+	
+	memset(&shr_new, 0, sizeof(ShadeResult));
+	
+	/* hardcoded limit of 100 for now - prevents problems in weird geometry */
+	if (shi->volume_depth < 100) {
+		shade_ray(is, &shi_new, &shr_new);
+	}
+	
+	VecCopyf(col, shr_new.combined);
+	col[3] = shr_new.alpha;
+}
+
+static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, float *co, float *col)
+{
+	Isect isect;
+	float maxsize = RE_ray_tree_max_size(R.raytree);
+	
+	VECCOPY(isect.start, co);
+	isect.end[0] = isect.start[0] + shi->view[0] * maxsize;
+	isect.end[1] = isect.start[1] + shi->view[1] * maxsize;
+	isect.end[2] = isect.start[2] + shi->view[2] * maxsize;
+	
+	isect.faceorig= (RayFace *)vlr;
+	
+	isect.mode= RE_RAY_MIRROR;
+	isect.oborig= RAY_OBJECT_SET(&R, shi->obi);
+	isect.face_last= NULL;
+	isect.ob_last= 0;
+	isect.lay= -1;
+	
+	/* check to see if there's anything behind the volume, otherwise shade the sky */
+	if(RE_ray_tree_intersect(R.raytree, &isect)) {
+		shade_intersection(shi, col, &isect);
+	} else {
+		shadeSkyView(col, co, shi->view, NULL, shi->thread);
+		shadeSunView(col, shi->view);
+	}
+}
+
+/* input shader data */
 
 float vol_get_stepsize(struct ShadeInput *shi, int context)
 {
@@ -280,7 +350,7 @@ void vol_get_attenuation(ShadeInput *shi, float *transmission, float *co, float 
 		tau[2] += stepsize * density;
 		
 		if (s < nsteps-1) {
-			VECCOPY(step_sta, step_end);
+			VecCopyf(step_sta, step_end);
 			VecAddf(step_end, step_end, step_vec);
 		}
 	}
@@ -319,9 +389,6 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 		VECCOPY(lv, lar->vec);
 	VecMulf(lv, -1.0f);
 	
-	p = vol_get_phasefunc(shi, shi->mat->vol.phasefunc_type, shi->mat->vol.phasefunc_g, shi->view, lv);
-	VecMulf(lacol, p);
-	
 	if (shi->mat->vol.shade_type != MA_VOL_SHADE_NONE) {
 		Isect is;
 		
@@ -337,6 +404,7 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 			}
 
 			if (ELEM(lar->type, LA_SUN, LA_HEMI))
+				/* infinite lights, can never be inside volume */
 				atten_co = hitco;
 			else if ( lampdist < dist ) {
 				atten_co = lar->co;
@@ -353,6 +421,9 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 			 * Radiance from lamp remains unchanged */
 		}
 	}
+	
+	p = vol_get_phasefunc(shi, shi->mat->vol.phasefunc_type, shi->mat->vol.phasefunc_g, shi->view, lv);
+	VecMulf(lacol, p);
 	
 	scatter_fac = vol_get_scattering_fac(shi, co);
 	VecMulf(lacol, scatter_fac);
@@ -390,14 +461,6 @@ outgoing radiance from behind surface * beam transmittance/attenuation
 + added radiance from all points along the ray due to participating media
 	--> radiance for each segment = 
 		(radiance added by scattering + radiance added by emission) * beam transmittance/attenuation
-
--- To find transmittance:
-	compute optical thickness with tau (perhaps involving monte carlo integration)
-	transmittance = exp(-tau)
-	
--- To find radiance from segments along the way:
-	find radiance for one step: 
-	- loop over lights and weight by phase function
 */
 static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float *endco)
 {
@@ -462,150 +525,102 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 	VecMulVecf(col, tr, col);	
 	VecAddf(col, col, radiance);
 	
-	/* alpha - transmission */
-	col[3] = 1.0f -(tr[0] + tr[1] + tr[2]) * 0.333f;
-}
-
-static void shade_intersection(ShadeInput *shi, float *col, Isect *is)
-{
-	ShadeInput shi_new;
-	ShadeResult shr_new;
-	
-	memset(&shi_new, 0, sizeof(ShadeInput)); 
-	
-	shi_new.mask= shi->mask;
-	shi_new.osatex= shi->osatex;
-	shi_new.thread= shi->thread;
-	shi_new.depth = shi->depth + 1;
-	shi_new.volume_depth= shi->volume_depth + 1;
-	shi_new.xs= shi->xs;
-	shi_new.ys= shi->ys;
-	shi_new.lay= shi->lay;
-	shi_new.passflag= SCE_PASS_COMBINED; /* result of tracing needs no pass info */
-	shi_new.combinedflag= 0xFFFFFF;		 /* ray trace does all options */
-	shi_new.light_override= shi->light_override;
-	shi_new.mat_override= shi->mat_override;
-	
-	VECCOPY(shi_new.camera_co, is->start);
-	
-	memset(&shr_new, 0, sizeof(ShadeResult));
-
-	/* hardcoded limit of 100 for now - prevents problems in weird geometry */
-	if (shi->volume_depth < 100) {
-		shade_ray(is, &shi_new, &shr_new);
-	}
-	
-	col[0] = shr_new.combined[0];
-	col[1] = shr_new.combined[1];
-	col[2] = shr_new.combined[2];
-	col[3] = shr_new.alpha;
-}
-
-static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, float *co, float *col)
-{
-	Isect isect;
-	float maxsize = RE_ray_tree_max_size(R.raytree);
-
-	VECCOPY(isect.start, co);
-	isect.end[0] = isect.start[0] + shi->view[0] * maxsize;
-	isect.end[1] = isect.start[1] + shi->view[1] * maxsize;
-	isect.end[2] = isect.start[2] + shi->view[2] * maxsize;
-
-	isect.faceorig= (RayFace *)vlr;
-	
-	isect.mode= RE_RAY_MIRROR;
-	isect.oborig= RAY_OBJECT_SET(&R, shi->obi);
-	isect.face_last= NULL;
-	isect.ob_last= 0;
-	isect.lay= -1;
-	
-	/* check to see if there's anything behind the volume, otherwise shade the sky */
-	if(RE_ray_tree_intersect(R.raytree, &isect)) {
-		shade_intersection(shi, col, &isect);
-	} else {
-		shadeSkyView(col, co, shi->view, NULL, shi->thread);
-		shadeSunView(col, shi->view);
-	}
+	/* alpha <-- transmission luminance */
+	col[3] = 1.0f -(0.2126*tr[0] + 0.7152*tr[1] + 0.0722*tr[2]);
 }
 
 /* the main entry point for volume shading */
 static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int inside_volume)
 {
 	float hitco[3], col[4] = {0.f,0.f,0.f,0.f};
+	float *startco, *endco;
 	int trace_behind = 1;
+	const int ztransp= ((shi->depth==0) && (shi->mat->mode & MA_TRANSP) && (shi->mat->mode & MA_ZTRANSP));
 	Isect is;
 
 	/* check for shading an internal face a volume object directly */
-	if (inside_volume == VOL_SHADE_INSIDE) {
+	if (inside_volume == VOL_SHADE_INSIDE)
 		trace_behind = 0;
-	}
-	if (inside_volume == VOL_SHADE_OUTSIDE) {
+	else if (inside_volume == VOL_SHADE_OUTSIDE) {
 		if (shi->flippednor)
 			inside_volume = VOL_SHADE_INSIDE;
 	}
-
-	if (inside_volume == VOL_SHADE_INSIDE) {
+	
+	if (ztransp && inside_volume == VOL_SHADE_INSIDE) {
+		MatInside *mi;
+		int render_this=0;
 		
-		if (trace_behind) {
-			/* trace behind the volume object */
-			vol_trace_behind(shi, shi->vlr, shi->co, col);
-		} else {
-			/* we're tracing through the volume between the camera 
-			 * and a solid surface, so use that pre-shaded radiance */
-			QUATCOPY(col, shr->combined);
+		/* don't render the backfaces of ztransp volume materials.
+		 
+		 * volume shading renders the internal volume from between the
+		 * near view intersection of the solid volume to the
+		 * intersection on the other side, as part of the shading of
+		 * the front face.
+		 
+		 * Because ztransp renders both front and back faces independently
+		 * this will double up, so here we prevent rendering the backface as well, 
+		 * which would otherwise render the volume in between the camera and the backface
+		 * --matt */
+		
+		for (mi=R.render_volumes_inside.first; mi; mi=mi->next) {
+			/* weak... */
+			if (mi->ma == shi->mat) render_this=1;
+		}
+		if (!render_this) return;
+	}
+	
+
+	if (inside_volume == VOL_SHADE_INSIDE)
+	{
+		startco = shi->camera_co;
+		endco = shi->co;
+		
+		if (!ztransp) {
+			if (trace_behind) {
+				/* trace behind the volume object */
+				vol_trace_behind(shi, shi->vlr, endco, col);
+			} else {
+				/* we're tracing through the volume between the camera 
+				 * and a solid surface, so use that pre-shaded radiance */
+				QUATCOPY(col, shr->combined);
+			}
 		}
 		
 		/* shade volume from 'camera' to 1st hit point */
-		volumeintegrate(shi, col, shi->camera_co, shi->co);
-		
-		VecCopyf(shr->combined, col);
-		
-		if (shi->mat->vol.shadeflag & MA_VOL_USEALPHA) {
-			if (col[3] > 1.0f)
-				col[3] = 1.0f;
-		}
-		else
-			col[3] = 1.0f;
-		shr->combined[3] = col[3];
-		shr->alpha = col[3];
-		
-		VECCOPY(shr->diff, shr->combined);
+		volumeintegrate(shi, col, startco, endco);
 	}
 	/* trace to find a backface, the other side bounds of the volume */
 	/* (ray intersect ignores front faces here) */
-	else if (vol_get_bounds(shi, shi->co, shi->view, hitco, &is, VOL_BOUNDS_DEPTH)) {
+	else if (vol_get_bounds(shi, shi->co, shi->view, hitco, &is, VOL_BOUNDS_DEPTH))
+	{
 		VlakRen *vlr = (VlakRen *)is.face;
 		
-		/* if it's another face in the same material */
-		if (vlr->mat == shi->mat) {
-			/* trace behind the 2nd (raytrace) hit point */
-			vol_trace_behind(shi, (VlakRen *)is.face, hitco, col);
-		} else {
-			shade_intersection(shi, col, &is);
+		startco = shi->co;
+		endco = hitco;
+		
+		if (!ztransp) {
+			/* if it's another face in the same material */
+			if (vlr->mat == shi->mat) {
+				/* trace behind the 2nd (raytrace) hit point */
+				vol_trace_behind(shi, (VlakRen *)is.face, endco, col);
+			} else {
+				shade_intersection(shi, col, &is);
+			}
 		}
-	
+		
 		/* shade volume from 1st hit point to 2nd hit point */
-		volumeintegrate(shi, col, shi->co, hitco);
-		
-		VecCopyf(shr->combined, col);
-		
-		if (shi->mat->vol.shadeflag & MA_VOL_USEALPHA) {
-			if (col[3] > 1.0f)
-				col[3] = 1.0f;
-		}
-		else
-			col[3] = 1.0f;
-		shr->combined[3] = col[3];
-		shr->alpha = col[3];
-		
-		VECCOPY(shr->diff, shr->combined);
+		volumeintegrate(shi, col, startco, endco);
 	}
-	else {
-		shr->combined[0] = 0.0f;
-		shr->combined[1] = 0.0f;
-		shr->combined[2] = 0.0f;
-		shr->combined[3] = shr->alpha =  1.0f;
-	}
+	
+	if (ztransp)
+		col[3] = col[3]>1.f?1.f:col[3];
+	else
+		col[3] = 1.f;
+	
+	VecCopyf(shr->combined, col);
+	shr->alpha = col[3];
+	
+	VECCOPY(shr->diff, shr->combined);
 }
 
 /* Traces a shadow through the object, 
@@ -614,41 +629,37 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 {
 	float hitco[3];
 	float tr[3] = {1.0,1.0,1.0};
-	float tau[3] = {0.0,0.0,0.0};
 	Isect is;
 	float shade_stepsize = vol_get_stepsize(shi, STEPSIZE_SHADE);
+	float *startco, *endco;
+	float density=0.f;
 
 	memset(shr, 0, sizeof(ShadeResult));
 	
 	/* if 1st hit normal is facing away from the camera, 
 	 * then we're inside the volume already. */
 	if (shi->flippednor) {
-	
-		vol_get_attenuation(shi, tr, last_is->start, shi->co, -1.0f, shade_stepsize);
-		
-		VecCopyf(shr->combined, tr);
-		
-		shr->combined[3] = 1.0f -(tr[0] + tr[1] + tr[2]) * 0.333f;
-		shr->alpha = shr->combined[3];
+		startco = last_is->start;
+		endco = shi->co;
 	}
 	/* trace to find a backface, the other side bounds of the volume */
 	/* (ray intersect ignores front faces here) */
 	else if (vol_get_bounds(shi, shi->co, shi->view, hitco, &is, VOL_BOUNDS_DEPTH)) {
-		
-		vol_get_attenuation(shi, tr, shi->co, hitco, -1.0f, shade_stepsize);
-		
-		VecCopyf(shr->combined, tr);
-		
-		shr->combined[3] = 1.0f -(tr[0] + tr[1] + tr[2]) * 0.333f;
-		shr->alpha = shr->combined[3];
-
+		startco = shi->co;
+		endco = hitco;
 	}
 	else {
-		shr->combined[0] = 0.0f;
-		shr->combined[1] = 0.0f;
-		shr->combined[2] = 0.0f;
-		shr->combined[3] = shr->alpha =  0.0f;
+		shr->combined[0] = shr->combined[1] = shr->combined[2] = 0.f;
+		shr->alpha = shr->combined[3] = 1.f;
+		return;
 	}
+	
+	density = vol_get_density(shi, startco);
+	vol_get_attenuation(shi, tr, startco, endco, density, shade_stepsize);
+	
+	VecCopyf(shr->combined, tr);
+	shr->combined[3] = 1.0f -(0.2126*tr[0] + 0.7152*tr[1] + 0.0722*tr[2]);
+	shr->alpha = shr->combined[3];
 }
 
 
@@ -656,7 +667,6 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 void shade_volume_outside(ShadeInput *shi, ShadeResult *shr)
 {
 	memset(shr, 0, sizeof(ShadeResult));
-	
 	volume_trace(shi, shr, VOL_SHADE_OUTSIDE);
 }
 

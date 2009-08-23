@@ -1017,11 +1017,6 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Emission Color", "");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING_DRAW, NULL);
 	
-	prop= RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "shadeflag", MA_VOL_USEALPHA); /* use bitflags */
-	RNA_def_property_ui_text(prop, "Use Alpha", "Temp method for getting a usable alpha channel");
-	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
-	
 	prop= RNA_def_property(srna, "phase_function", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "phasefunc_type");
 	RNA_def_property_enum_items(prop, prop_phasefunction_items);

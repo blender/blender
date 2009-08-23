@@ -568,6 +568,27 @@ class MATERIAL_PT_volume_scattering(MaterialButtonsPanel):
 		col.itemR(vol, "phase_function", text="")
 		if vol.phase_function in ('SCHLICK', 'HENYEY-GREENSTEIN'):
 			col.itemR(vol, "asymmetry")
+
+class MATERIAL_PT_volume_transp(MaterialButtonsPanel):
+	__label__= "Transparency"
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
+		
+	def poll(self, context):
+		mat = context.material
+		return mat and (mat.type == 'VOLUME') and (context.scene.render_data.engine in self.COMPAT_ENGINES)
+
+	def draw_header(self, context):
+		layout = self.layout
+
+	def draw(self, context):
+		layout = self.layout
+		
+		mat = context.material
+		rayt = context.material.raytrace_transparency
+		
+		row= layout.row()
+		row.itemR(mat, "transparency_method", expand=True)
+		row.active = mat.transparency and (not mat.shadeless)
 		
 class MATERIAL_PT_volume_integration(MaterialButtonsPanel):
 	__label__ = "Integration"
@@ -660,6 +681,7 @@ bpy.types.register(MATERIAL_PT_mirror)
 bpy.types.register(MATERIAL_PT_sss)
 bpy.types.register(MATERIAL_PT_volume_shading)
 bpy.types.register(MATERIAL_PT_volume_scattering)
+bpy.types.register(MATERIAL_PT_volume_transp)
 bpy.types.register(MATERIAL_PT_volume_integration)
 bpy.types.register(MATERIAL_PT_halo)
 bpy.types.register(MATERIAL_PT_physics)

@@ -920,6 +920,7 @@ static Material *give_render_material(Render *re, Object *ob, int nr)
 	
 	if(re->r.mode & R_SPEED) ma->texco |= NEED_UV;
 	
+	if(ma->material_type == MA_TYPE_VOLUME) ma->mode |= MA_TRANSP;
 	if((ma->mode & MA_TRANSP) && (ma->mode & MA_ZTRANSP))
 		re->flag |= R_ZTRA;
 	
@@ -3005,13 +3006,12 @@ static void init_camera_inside_volumes(Render *re)
 		}
 	}
 	
-	{
+	/* debug {
 	MatInside *m;
 	for (m=re->render_volumes_inside.first; m; m=m->next) {
 		printf("matinside: ma: %s \n", m->ma->id.name+2);
 	}
-	
-	}
+	}*/
 }
 
 static void add_volume(Render *re, ObjectRen *obr, Material *ma)
@@ -3862,6 +3862,7 @@ static void set_fullsample_flag(Render *re, ObjectRen *obr)
 			vlr->flag |= R_FULL_OSA;
 		else if(trace) {
 			if(mode & MA_SHLESS);
+			else if(vlr->mat->material_type == MA_TYPE_VOLUME);
 			else if((mode & MA_RAYMIRROR) || ((mode & MA_TRANSP) && (mode & MA_RAYTRANSP)))
 				/* for blurry reflect/refract, better to take more samples 
 				 * inside the raytrace than as OSA samples */

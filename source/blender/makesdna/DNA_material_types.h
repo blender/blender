@@ -377,7 +377,6 @@ typedef struct Material {
 #define MA_VOL_SHADED		1
 #define MA_VOL_RECVSHADOW	4
 #define MA_VOL_PRECACHESHADING	8
-#define MA_VOL_USEALPHA		16
 
 /* vol_shading_type */
 #define MA_VOL_SHADE_NONE					0
