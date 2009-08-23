@@ -2825,6 +2825,11 @@ public:
 	{
 		return armature_importer.write_controller(controller);
 	}
+
+	virtual bool writeFormulas( const COLLADAFW::Formulas* formulas )
+	{
+		return true;
+	}
 };
 
 void DocumentImporter::import(bContext *C, const char *filename)
