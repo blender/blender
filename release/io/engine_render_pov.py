@@ -801,9 +801,9 @@ class RenderButtonsPanel(bpy.types.Panel):
 		return (rd.use_game_engine==False) and (rd.engine in self.COMPAT_ENGINES)
 
 # Radiosity panel, use in the scene for now.
-FloatProperty= bpy.types.Scene.FloatProperty
-IntProperty= bpy.types.Scene.IntProperty
-BoolProperty= bpy.types.Scene.BoolProperty
+FloatProperty= bpy.props.FloatProperty
+IntProperty= bpy.props.IntProperty
+BoolProperty= bpy.props.BoolProperty
 		
 class SCENE_PT_povray_radiosity(RenderButtonsPanel):
 	__label__ = "Radiosity"
