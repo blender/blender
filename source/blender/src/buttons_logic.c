@@ -1367,9 +1367,15 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			* proper compatibility with older .blend files. */
 			str= "Type %t|Left button %x1|Middle button %x2|"
 				"Right button %x4|Wheel Up %x5|Wheel Down %x6|Movement %x8|Mouse over %x16|Mouse over any%x32"; 
-			uiDefButS(block, MENU, B_REDR, str, xco+10, yco-44, width-20, 19,
+			uiDefButS(block, MENU, B_REDR, str, xco+10, yco-44, (width*0.8f)-20, 19,
 				&ms->type, 0, 31, 0, 0,
 				"Specify the type of event this mouse sensor should trigger on");
+			
+			if(ms->type==32) {
+				uiDefButBitS(block, TOG, SENS_MOUSE_FOCUS_PULSE, B_REDR, "Pulse",(short)(xco + 10) + (width*0.8f)-20,(short)(yco - 44),
+					(short)(0.20 * (width-20)), 19, &ms->flag, 0.0, 0.0, 0, 0,
+					"Moving the mouse over a different object generates a pulse");	
+			}
 			
 			yco-= ysize;
 			break;

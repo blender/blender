@@ -2472,6 +2472,8 @@ class KX_MouseFocusSensor(SCA_MouseSensor):
 	@type hitPosition: list (vector of 3 floats)
 	@ivar hitNormal: the worldspace normal from the face at point of intersection.
 	@type hitNormal: list (normalized vector of 3 floats)
+	@ivar usePulseFocus: When enabled, moving the mouse over a different object generates a pulse. (only used when the 'Mouse Over Any' sensor option is set)
+	@type usePulseFocus: bool
 	"""
 #{ Deprecated
 	def getHitNormal():
@@ -2533,7 +2535,7 @@ class KX_TouchSensor(SCA_ISensor):
 	@ivar useMaterial: Determines if the sensor is looking for a property or material.
 						KX_True = Find material; KX_False = Find property
 	@type useMaterial: boolean
-	@ivar usePulseCollision: The last collided object.
+	@ivar usePulseCollision: When enabled, changes to the set of colliding objects generate a pulse.
 	@type usePulseCollision: bool
 	@ivar hitObject: The last collided object. (read-only)
 	@type hitObject: L{KX_GameObject} or None
