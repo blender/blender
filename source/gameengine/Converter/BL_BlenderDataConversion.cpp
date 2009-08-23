@@ -2404,8 +2404,11 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 					obj->Release();
 			}
 			childrenlist->Release();
+			
 			// now destroy recursively
+			converter->UnregisterGameObject(childobj); // removing objects during conversion make sure this runs too
 			kxscene->RemoveObject(childobj);
+			
 			continue;
 		}
 

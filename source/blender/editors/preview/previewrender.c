@@ -948,7 +948,11 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	/* XXX ugly global still, but we can't do preview while rendering */
 	if(G.rendering)
 		return;
-
+	
+	if(GS(id->name) == ID_TE) {
+		ntreeTexSetPreviewFlag(1);
+	}
+	
 	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner);
 	sp= MEM_callocN(sizeof(ShaderPreview), "shader preview");
 

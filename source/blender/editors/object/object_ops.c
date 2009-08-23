@@ -118,7 +118,12 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_modifier_convert);
 	WM_operatortype_append(OBJECT_OT_modifier_copy);
 	WM_operatortype_append(OBJECT_OT_multires_subdivide);
-	WM_operatortype_append(OBJECT_OT_modifier_mdef_bind);
+	WM_operatortype_append(OBJECT_OT_meshdeform_bind);
+	WM_operatortype_append(OBJECT_OT_hook_reset);
+	WM_operatortype_append(OBJECT_OT_hook_recenter);
+	WM_operatortype_append(OBJECT_OT_hook_select);
+	WM_operatortype_append(OBJECT_OT_hook_assign);
+	WM_operatortype_append(OBJECT_OT_explode_refresh);
 
 	WM_operatortype_append(OBJECT_OT_constraint_add);
 	WM_operatortype_append(OBJECT_OT_constraint_add_with_targets);
@@ -162,10 +167,19 @@ void ED_operatortypes_object(void)
 void ED_keymap_object(wmWindowManager *wm)
 {
 	ListBase *keymap= WM_keymap_listbase(wm, "Object Non-modal", 0, 0);
+	wmKeymapItem *kmi;
 	
 	/* Note: this keymap works disregarding mode */
 	WM_keymap_add_item(keymap, "OBJECT_OT_editmode_toggle", TABKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_posemode_toggle", TABKEY, KM_PRESS, KM_CTRL, 0);
+	
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", VKEY, KM_PRESS, 0, 0);
+		RNA_enum_set(kmi->ptr, "mode", OB_MODE_VERTEX_PAINT);
+		RNA_boolean_set(kmi->ptr, "toggle", 1);
+	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, KM_CTRL, 0);
+		RNA_enum_set(kmi->ptr, "mode", OB_MODE_WEIGHT_PAINT);
+		RNA_boolean_set(kmi->ptr, "toggle", 1);
+	
 	WM_keymap_add_item(keymap, "OBJECT_OT_center_set", CKEY, KM_PRESS, KM_ALT|KM_SHIFT|KM_CTRL, 0);
 
 	/* Note: this keymap gets disabled in non-objectmode,  */

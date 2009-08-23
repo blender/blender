@@ -2,8 +2,8 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "data"
 	
 	def poll(self, context):
@@ -80,13 +80,13 @@ class DATA_PT_geometry_curve(DataButtonsPanel):
 		sub.itemL(text="Modification:")
 		sub.itemR(curve, "width")
 		sub.itemR(curve, "extrude")
-		sub.itemR(curve, "taper_object", icon="ICON_OUTLINER_OB_CURVE")
+		sub.itemR(curve, "taper_object", icon='ICON_OUTLINER_OB_CURVE')
 		
 		sub = split.column()
 		sub.itemL(text="Bevel:")
 		sub.itemR(curve, "bevel_depth", text="Depth")
 		sub.itemR(curve, "bevel_resolution", text="Resolution")
-		sub.itemR(curve, "bevel_object", icon="ICON_OUTLINER_OB_CURVE")
+		sub.itemR(curve, "bevel_object", icon='ICON_OUTLINER_OB_CURVE')
 	
 class DATA_PT_pathanim(DataButtonsPanel):
 	__label__ = "Path Animation"

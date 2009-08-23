@@ -319,6 +319,8 @@ IF(UNIX)
     bf_dummy 
     bf_bullet 
     bf_smoke
+    bf_minilzo
+    bf_lzma
     bf_common 
     bf_ketsji 
     bf_logic 

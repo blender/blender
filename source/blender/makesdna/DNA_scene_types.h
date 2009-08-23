@@ -47,6 +47,7 @@ struct Text;
 struct bNodeTree;
 struct AnimData;
 struct Editing;
+struct SceneStats;
 
 typedef struct Base {
 	struct Base *next, *prev;
@@ -454,8 +455,11 @@ typedef struct Paint {
 	Brush **brushes;
 	int active_brush_index, brush_count;
 	
-	/* WM handle */
+	/* WM Paint cursor */
 	void *paint_cursor;
+	unsigned char paint_cursor_col[4];
+
+	int pad;
 } Paint;
 
 typedef struct ImagePaintSettings {
@@ -497,9 +501,6 @@ typedef struct TransformOrientation {
 
 typedef struct Sculpt {
 	Paint paint;
-	
-	/* WM handle */
-	void *cursor;
 
 	/* For rotating around a pivot point */
 	float pivot[3];
@@ -717,7 +718,6 @@ typedef struct Scene {
 
 	/* Units */
 	struct UnitSettings unit;
-
 } Scene;
 
 

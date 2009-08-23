@@ -184,7 +184,7 @@ static void file_panel_operator(const bContext *C, Panel *pa)
 			if(strncmp(RNA_property_identifier(prop), "filter", 6) == 0)
 				continue;
 
-			uiItemFullR(pa->layout, NULL, 0, op->ptr, prop, -1, 0, 0, 0, 0);
+			uiItemFullR(pa->layout, NULL, 0, op->ptr, prop, -1, 0, 0);
 			empty= 0;
 		}
 		RNA_STRUCT_END;

@@ -88,9 +88,9 @@ static void act_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	//uiItemS(layout);
 	
-	uiItemR(layout, NULL, 0, &spaceptr, "show_cframe_indicator", 0, 0, 0);
-	uiItemR(layout, NULL, 0, &spaceptr, "show_sliders", 0, 0, 0);
-	uiItemR(layout, NULL, 0, &spaceptr, "automerge_keyframes", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "show_cframe_indicator", 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "show_sliders", 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "automerge_keyframes", 0);
 	
 	if (sact->flag & SACTION_DRAWTIME)
 		uiItemO(layout, "Show Frames", 0, "ANIM_OT_time_toggle");

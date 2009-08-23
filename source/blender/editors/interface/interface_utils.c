@@ -175,7 +175,7 @@ void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr, int 
 		if(strcmp(name, "Axis")==0) {
 			uiDefButR(uiLayoutGetBlock(col), BUT_NORMAL, 0, name, 0, 0, 100, 100, ptr, "axis", -1, 0, 0, -1, -1, NULL);
 		}
-		else uiItemFullR(col, "", 0, ptr, prop, -1, 0, 0, 0, 0);
+		else uiItemFullR(col, "", 0, ptr, prop, -1, 0, 0);
 	}
 	RNA_STRUCT_END;
 }

@@ -34,6 +34,7 @@ struct Lattice;
 struct Curve;
 struct Object;
 struct Mesh;
+struct HookModifierData;
 
 /* internal exports only */
 
@@ -80,6 +81,9 @@ void OBJECT_OT_armature_add(struct wmOperatorType *ot);
 	/* only used as menu */
 void OBJECT_OT_primitive_add(struct wmOperatorType *ot);
 
+int object_hook_index_array(Object *obedit, int *tot, int **indexar, char *name, float *cent_r);
+void object_hook_select(Object *obedit, struct HookModifierData *hmd);
+
 /* editlattice.c */
 void free_editLatt(Object *ob);
 void make_editLatt(Object *obedit);
@@ -104,7 +108,12 @@ void OBJECT_OT_modifier_apply(struct wmOperatorType *ot);
 void OBJECT_OT_modifier_convert(struct wmOperatorType *ot);
 void OBJECT_OT_modifier_copy(struct wmOperatorType *ot);
 void OBJECT_OT_multires_subdivide(struct wmOperatorType *ot);
-void OBJECT_OT_modifier_mdef_bind(struct wmOperatorType *ot);
+void OBJECT_OT_meshdeform_bind(struct wmOperatorType *ot);
+void OBJECT_OT_hook_reset(struct wmOperatorType *ot);
+void OBJECT_OT_hook_recenter(struct wmOperatorType *ot);
+void OBJECT_OT_hook_select(struct wmOperatorType *ot);
+void OBJECT_OT_hook_assign(struct wmOperatorType *ot);
+void OBJECT_OT_explode_refresh(struct wmOperatorType *ot);
 
 /* editconstraint.c */
 void OBJECT_OT_constraint_add(struct wmOperatorType *ot);

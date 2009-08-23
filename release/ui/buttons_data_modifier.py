@@ -2,8 +2,8 @@
 import bpy
 
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "modifier"
 	
 class DATA_PT_modifiers(DataButtonsPanel):
@@ -170,7 +170,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		if md.texture_coordinates == 'OBJECT':
 			layout.itemR(md, "texture_coordinate_object", text="Object")
 		elif md.texture_coordinates == 'UV' and ob.type == 'MESH':
-			layout.item_pointerR(md, "uv_layer", ob.data, "uv_layers")
+			layout.item_pointerR(md, "uv_layer", ob.data, "uv_textures")
 	
 	def EDGE_SPLIT(self, layout, ob, md):
 		split = layout.split()
@@ -187,21 +187,40 @@ class DATA_PT_modifiers(DataButtonsPanel):
 	def EXPLODE(self, layout, ob, md):
 		layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
 		layout.itemR(md, "protect")
-		layout.itemR(md, "split_edges")
-		layout.itemR(md, "unborn")
-		layout.itemR(md, "alive")
-		layout.itemR(md, "dead")
-		# Missing: "Refresh" and "Clear Vertex Group" Operator
+
+		flow = layout.column_flow(2)
+		flow.itemR(md, "split_edges")
+		flow.itemR(md, "unborn")
+		flow.itemR(md, "alive")
+		flow.itemR(md, "dead")
+
+		layout.itemO("object.explode_refresh", text="Refresh");
 		
 	def FLUID_SIMULATION(self, layout, ob, md):
 		layout.itemL(text="See Fluid panel.")
 		
 	def HOOK(self, layout, ob, md):
-		layout.itemR(md, "falloff")
-		layout.itemR(md, "force", slider=True)
-		layout.itemR(md, "object")
+		col = layout.column()
+		col.itemR(md, "object")
+		if md.object and md.object.type == 'ARMATURE':
+			layout.item_pointerR(md, "subtarget", md.object.data, "bones", text="Bone")
+		
 		layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
-		# Missing: "Reset" and "Recenter" Operator
+
+		split = layout.split()
+		split.itemR(md, "falloff")
+		split.itemR(md, "force", slider=True)
+
+		layout.itemS()
+
+		row = layout.row()
+		row.itemO("object.hook_reset", text="Reset")
+		row.itemO("object.hook_recenter", text="Recenter")
+
+		if ob.mode == 'EDIT':
+			row = layout.row()
+			row.itemO("object.hook_select", text="Select")
+			row.itemO("object.hook_assign", text="Assign")
 		
 	def LATTICE(self, layout, ob, md):
 		layout.itemR(md, "object")
@@ -222,7 +241,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
 		layout.itemS()
 		
-		layout.itemO("object.modifier_mdef_bind", text="Bind")
+		layout.itemO("object.meshdeform_bind", text="Bind")
 		row = layout.row()
 		row.itemR(md, "precision")
 		row.itemR(md, "dynamic")
@@ -346,16 +365,26 @@ class DATA_PT_modifiers(DataButtonsPanel):
 	
 	def UV_PROJECT(self, layout, ob, md):
 		if ob.type == 'MESH':
-			layout.item_pointerR(md, "uv_layer", ob.data, "uv_layers")
-			#layout.itemR(md, "projectors")
+			layout.item_pointerR(md, "uv_layer", ob.data, "uv_textures")
 			layout.itemR(md, "image")
 			layout.itemR(md, "override_image")
-			layout.itemL(text="Aspect Ratio:")
-			col = layout.column(align=True)
-			col.itemR(md, "horizontal_aspect_ratio", text="Horizontal")
-			col.itemR(md, "vertical_aspect_ratio", text="Vertical")
-			
-			#"Projectors" don't work.
+
+			split = layout.split()
+
+			col = split.column()
+			col.itemL(text="Aspect Ratio:")
+
+			sub = col.column(align=True)
+			sub.itemR(md, "horizontal_aspect_ratio", text="Horizontal")
+			sub.itemR(md, "vertical_aspect_ratio", text="Vertical")
+
+			col = split.column()
+			col.itemL(text="Projectors:")
+
+			sub = col.column(align=True)
+			sub.itemR(md, "num_projectors", text="Number")
+			for proj in md.projectors:
+				sub.itemR(proj, "object", text="")
 		
 	def WAVE(self, layout, ob, md):
 		split = layout.split()
@@ -387,7 +416,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		layout.itemR(md, "texture")
 		layout.itemR(md, "texture_coordinates")
 		if md.texture_coordinates == 'MAP_UV' and ob.type == 'MESH':
-			layout.item_pointerR(md, "uv_layer", ob.data, "uv_layers")
+			layout.item_pointerR(md, "uv_layer", ob.data, "uv_textures")
 		elif md.texture_coordinates == 'OBJECT':
 			layout.itemR(md, "texture_coordinates_object")
 		

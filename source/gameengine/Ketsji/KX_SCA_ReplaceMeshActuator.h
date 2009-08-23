@@ -50,8 +50,8 @@ class KX_SCA_ReplaceMeshActuator : public SCA_IActuator
 	// mesh reference (mesh to replace)
 	RAS_MeshObject* m_mesh;
 	SCA_IScene*	 m_scene;
-	bool m_use_phys;
 	bool m_use_gfx; 
+	bool m_use_phys;
 
  public:
 	KX_SCA_ReplaceMeshActuator(

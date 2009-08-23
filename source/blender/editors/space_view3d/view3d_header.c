@@ -949,65 +949,6 @@ void uiTemplate_view3d_select_metaballmenu(uiLayout *layout, bContext *C)
 	view3d_select_metaballmenu(C, layout, arg_unused);
 }
 
-static void view3d_select_armaturemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	PointerRNA ptr;
-
-	/* this part of the menu has been moved to python */
-	/*uiItemO(layout, NULL, 0, "VIEW3D_OT_select_border");
-
-	uiItemS(layout);
-
-	uiItemO(layout, "Select/Deselect All", 0, "ARMATURE_OT_select_all_toggle");
-	uiItemO(layout, "Inverse", 0, "ARMATURE_OT_select_inverse");
-
-	uiItemS(layout);
-
-	uiItemEnumO(layout, "Parent", 0, "ARMATURE_OT_select_hierarchy", "direction", BONE_SELECT_PARENT);
-	uiItemEnumO(layout, "Child", 0, "ARMATURE_OT_select_hierarchy", "direction", BONE_SELECT_CHILD);
-
-	uiItemS(layout);*/
-
-	WM_operator_properties_create(&ptr, "ARMATURE_OT_select_hierarchy");
-	RNA_boolean_set(&ptr, "extend", 1);
-	RNA_enum_set(&ptr, "direction", BONE_SELECT_PARENT);
-	uiItemFullO(layout, "Extend Parent", 0, "ARMATURE_OT_select_hierarchy", ptr.data, WM_OP_EXEC_REGION_WIN);
-
-	WM_operator_properties_create(&ptr, "ARMATURE_OT_select_hierarchy");
-	RNA_boolean_set(&ptr, "extend", 1);
-	RNA_enum_set(&ptr, "direction", BONE_SELECT_CHILD);
-	uiItemFullO(layout, "Extend Child", 0, "ARMATURE_OT_select_hierarchy", ptr.data, WM_OP_EXEC_REGION_WIN);
-}
-
-/* wrapper for python layouts */
-void uiTemplate_view3d_select_armaturemenu(uiLayout *layout, bContext *C)
-{
-	void *arg_unused = NULL;
-	view3d_select_armaturemenu(C, layout, arg_unused);
-}
-
-static void view3d_select_posemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	PointerRNA ptr;
-
-	WM_operator_properties_create(&ptr, "POSE_OT_select_hierarchy");
-	RNA_boolean_set(&ptr, "extend", 1);
-	RNA_enum_set(&ptr, "direction", BONE_SELECT_PARENT);
-	uiItemFullO(layout, "Extend Parent", 0, "POSE_OT_select_hierarchy", ptr.data, WM_OP_EXEC_REGION_WIN);
-
-	WM_operator_properties_create(&ptr, "POSE_OT_select_hierarchy");
-	RNA_boolean_set(&ptr, "extend", 1);
-	RNA_enum_set(&ptr, "direction", BONE_SELECT_CHILD);
-	uiItemFullO(layout, "Extend Child", 0, "POSE_OT_select_hierarchy", ptr.data, WM_OP_EXEC_REGION_WIN);
-}
-
-/* wrapper for python layouts */
-void uiTemplate_view3d_select_posemenu(uiLayout *layout, bContext *C)
-{
-	void *arg_unused = NULL;
-	view3d_select_posemenu(C, layout, arg_unused);
-}
-
 void do_view3d_select_faceselmenu(bContext *C, void *arg, int event)
 {
 #if 0
@@ -2120,8 +2061,8 @@ static void view3d_edit_meshmenu(bContext *C, uiLayout *layout, void *arg_unused
 
 	uiItemS(layout);
 
-	uiItemR(layout, NULL, 0, &tsptr, "automerge_editing", 0, 0, 0);
-	uiItemR(layout, NULL, 0, &tsptr, "proportional_editing", 0, 0, 0); // |O
+	uiItemR(layout, NULL, 0, &tsptr, "automerge_editing", 0);
+	uiItemR(layout, NULL, 0, &tsptr, "proportional_editing", 0); // |O
 	uiItemMenuEnumR(layout, NULL, 0, &tsptr, "proportional_editing_falloff"); // |Shift O
 
 	uiItemS(layout);
@@ -2204,7 +2145,7 @@ static void view3d_edit_curvemenu(bContext *C, uiLayout *layout, void *arg_unuse
 
 	uiItemS(layout);
 
-	uiItemR(layout, NULL, 0, &tsptr, "proportional_editing", 0, 0, 0); // |O
+	uiItemR(layout, NULL, 0, &tsptr, "proportional_editing", 0); // |O
 	uiItemMenuEnumR(layout, NULL, 0, &tsptr, "proportional_editing_falloff"); // |Shift O
 
 	uiItemS(layout);
@@ -2245,7 +2186,7 @@ static void view3d_edit_latticemenu(bContext *C, uiLayout *layout, void *arg_unu
 
 	uiItemS(layout);
 
-	uiItemR(layout, NULL, 0, &tsptr, "proportional_editing", 0, 0, 0); // |O
+	uiItemR(layout, NULL, 0, &tsptr, "proportional_editing", 0); // |O
 	uiItemMenuEnumR(layout, NULL, 0, &tsptr, "proportional_editing_falloff"); // |Shift O
 }
 #endif
@@ -2484,71 +2425,6 @@ static void view3d_pose_armaturemenu(bContext *C, uiLayout *layout, void *arg_un
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy Attributes...|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 #endif
 }
-
-
-/* vertex paint menu */
-static void do_view3d_vpaintmenu(bContext *C, void *arg, int event)
-{
-#if 0
-	/* events >= 3 are registered bpython scripts */
-#ifndef DISABLE_PYTHON
-	if (event >= 3) BPY_menu_do_python(PYMENU_VERTEXPAINT, event - 3);
-#endif
-	switch(event) {
-	case 0: /* undo vertex painting */
-		BIF_undo();
-		break;
-	case 1: /* set vertex colors/weight */
-		if(paint_facesel_test(CTX_data_active_object(C)))
-			clear_vpaint_selectedfaces();
-		else /* we know were in vertex paint mode */
-			clear_vpaint();
-		break;
-	case 2:
-		make_vertexcol(1);
-		break;
-	}
-#endif
-}
-
-static uiBlock *view3d_vpaintmenu(bContext *C, ARegion *ar, void *arg_unused)
-{
-	uiBlock *block;
-	short yco= 0, menuwidth=120;
-#ifndef DISABLE_PYTHON
-// XXX	BPyMenu *pym;
-//	int i=0;
-#endif
-	
-	block= uiBeginBlock(C, ar, "view3d_paintmenu", UI_EMBOSSP);
-	uiBlockSetButmFunc(block, do_view3d_vpaintmenu, NULL);
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Vertex Painting|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Vertex Colors|Shift K",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Shaded Vertex Colors",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
-	
-#ifndef DISABLE_PYTHON
-	/* note that we account for the 3 previous entries with i+3:
-	even if the last item isnt displayed, it dosent matter */
-//	for (pym = BPyMenuTable[PYMENU_VERTEXPAINT]; pym; pym = pym->next, i++) {
-//		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20,
-//			menuwidth, 19, NULL, 0.0, 0.0, 1, i+3,
-//			pym->tooltip?pym->tooltip:pym->filename);
-//	}
-#endif
-
-	if(ar->alignment==RGN_ALIGN_TOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-
-	uiTextBoundsBlock(block, 50);
-	return block;
-}
-
 
 /* texture paint menu (placeholder, no items yet??) */
 static void do_view3d_tpaintmenu(bContext *C, void *arg, int event)
@@ -3109,11 +2985,6 @@ static void view3d_header_pulldowns(const bContext *C, uiBlock *block, Object *o
 		uiDefPulldownBut(block, view3d_wpaintmenu, NULL, "Paint", xco,yco, xmax-3, 20, "");
 		xco+= xmax;
 	}
-	else if (ob && ob->mode & OB_MODE_VERTEX_PAINT) {
-		xmax= GetButStringLength("Paint");
-		uiDefPulldownBut(block, view3d_vpaintmenu, NULL, "Paint", xco,yco, xmax-3, 20, "");
-		xco+= xmax;
-	} 
 	else if (ob && ob->mode & OB_MODE_TEXTURE_PAINT) {
 		xmax= GetButStringLength("Paint");
 		uiDefPulldownBut(block, view3d_tpaintmenu, NULL, "Paint", xco,yco, xmax-3, 20, "");
@@ -3442,10 +3313,5 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 		}
 	}
-	
-	/* do not do view2d totrect set here, it's now a template */
-	
-	uiEndBlock(C, block);
-	uiDrawBlock(C, block);
 }
 

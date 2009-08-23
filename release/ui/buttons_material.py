@@ -2,8 +2,8 @@
 import bpy
 
 class MaterialButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "material"
 	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
@@ -45,10 +45,10 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
 			row.template_list(ob, "materials", ob, "active_material_index", rows=2)
 
 			col = row.column(align=True)
-			col.itemO("object.material_slot_add", icon="ICON_ZOOMIN", text="")
-			col.itemO("object.material_slot_remove", icon="ICON_ZOOMOUT", text="")
+			col.itemO("object.material_slot_add", icon='ICON_ZOOMIN', text="")
+			col.itemO("object.material_slot_remove", icon='ICON_ZOOMOUT', text="")
 
-			if context.edit_object:
+			if ob.mode == 'EDIT':
 				row = layout.row(align=True)
 				row.itemO("object.material_slot_assign", text="Assign")
 				row.itemO("object.material_slot_select", text="Select")
@@ -90,10 +90,12 @@ class MATERIAL_PT_shading(MaterialButtonsPanel):
 				split = layout.split()
 	
 				col = split.column()
-				col.active = not mat.shadeless
-				col.itemR(mat, "ambient")
-				col.itemR(mat, "emit")
-				col.itemR(mat, "translucency")
+				sub = col.column()
+				sub.active = not mat.shadeless
+				sub.itemR(mat, "emit")
+				sub.itemR(mat, "ambient")
+				sub = col.column()
+				sub.itemR(mat, "translucency")
 				
 				col = split.column()
 				col.itemR(mat, "shadeless")	
@@ -125,7 +127,7 @@ class MATERIAL_PT_strand(MaterialButtonsPanel):
 		
 		split = layout.split()
 		
-		col = split.column()
+		col = split.column(align=True)
 		col.itemL(text="Size:")
 		col.itemR(tan, "start_size", text="Root")
 		col.itemR(tan, "end_size", text="Tip")
@@ -134,11 +136,13 @@ class MATERIAL_PT_strand(MaterialButtonsPanel):
 		sub = col.column()
 		sub.active = (not mat.shadeless)
 		sub.itemR(tan, "tangent_shading")
+		col.itemR(tan, "shape")
 		
 		col = split.column()
-		col.itemR(tan, "shape")
+		col.itemL(text="Shading:")
 		col.itemR(tan, "width_fade")
 		col.itemR(tan, "uv_layer")
+		col.itemS()
 		sub = col.column()
 		sub.active = (not mat.shadeless)
 		sub.itemR(tan, "surface_diffuse")
@@ -355,7 +359,9 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 	def draw_header(self, context):
 		layout = self.layout
 		sss = context.material.subsurface_scattering
-
+		mat = context.material
+		
+		layout.active = (not mat.shadeless)
 		layout.itemR(sss, "enabled", text="")
 	
 	def draw(self, context):
@@ -369,21 +375,22 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 		split = layout.split()
 		split.active = (not mat.shadeless)
 		
-		col = split.column(align=True)
+		col = split.column()
+		col.itemR(sss, "ior")
+		col.itemR(sss, "scale")
 		col.itemR(sss, "color", text="")
-		col.itemL(text="Blend:")
-		col.itemR(sss, "color_factor", text="Color")
-		col.itemR(sss, "texture_factor", text="Texture")
-		col.itemL(text="Scattering Weight:")
-		col.itemR(sss, "front")
-		col.itemR(sss, "back")
+		col.itemR(sss, "radius", text="RGB Radius")
 		
 		col = split.column()
 		sub = col.column(align=True)
-		sub.itemR(sss, "ior")
-		sub.itemR(sss, "scale")
-		col.itemR(sss, "radius", text="RGB Radius")
-		col.itemR(sss, "error_tolerance")
+		sub.itemL(text="Blend:")
+		sub.itemR(sss, "color_factor", text="Color")
+		sub.itemR(sss, "texture_factor", text="Texture")
+		sub.itemL(text="Scattering Weight:")
+		sub.itemR(sss, "front")
+		sub.itemR(sss, "back")
+		col.itemS()
+		col.itemR(sss, "error_tolerance", text="Error")
 
 class MATERIAL_PT_mirror(MaterialButtonsPanel):
 	__label__ = "Mirror"
@@ -414,20 +421,26 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel):
 		col = split.column()
 		col.itemR(raym, "reflect", text="Reflectivity")
 		col.itemR(mat, "mirror_color", text="")
-		col.itemL(text="Fresnel:")
-		col.itemR(raym, "fresnel", text="Amount")
+		
+		
+		col = split.column()
+		col.itemR(raym, "fresnel")
 		sub = col.column()
 		sub.active = raym.fresnel > 0
 		sub.itemR(raym, "fresnel_factor", text="Blend")
+		
+		split = layout.split()
+		
+		col = split.column()
 		col.itemS()
+		col.itemR(raym, "distance", text="Max Dist")
+		col.itemR(raym, "depth")
 		col.itemS()
 		sub = col.split(percentage=0.4)
 		sub.itemL(text="Fade To:")
 		sub.itemR(raym, "fade_to", text="")
 		
 		col = split.column()
-		col.itemR(raym, "depth")
-		col.itemR(raym, "distance", text="Max Dist")
 		col.itemL(text="Gloss:")
 		col.itemR(raym, "gloss", text="Amount")
 		sub = col.column()
@@ -465,25 +478,24 @@ class MATERIAL_PT_transp(MaterialButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		col.itemL(text="Transparency:")
 		row = col.row()
 		row.itemR(mat, "alpha")
-		row.active = mat.transparency
 		row = col.row()
-		row.itemR(mat, "specular_alpha", text="Specular")
 		row.active = mat.transparency and (not mat.shadeless)
+		row.itemR(mat, "specular_alpha", text="Specular")
+		
 		
 		col = split.column()
-		col.active = mat.transparency and (not mat.shadeless)
-		col.itemL(text="Fresnel:")
-		col.itemR(rayt, "fresnel", text="Amount")
+		col.active = (not mat.shadeless)
+		col.itemR(rayt, "fresnel")
 		sub = col.column()
 		sub.active = rayt.fresnel > 0
 		sub.itemR(rayt, "fresnel_factor", text="Blend")
 
 		if mat.transparency_method == 'RAYTRACE':
+			layout.itemS()
 			split = layout.split()
-			split.active = mat.transparency and (not mat.shadeless)
+			split.active = mat.transparency
 
 			col = split.column()
 			col.itemR(rayt, "ior")
@@ -653,23 +665,50 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
 		sub.active = halo.ring
 		sub.itemR(halo, "rings")
 		sub.itemR(mat, "mirror_color", text="")
+		col.itemS()
 		col.itemR(halo, "lines")
 		sub = col.column()
 		sub.active = halo.lines
 		sub.itemR(halo, "line_number", text="Lines")
 		sub.itemR(mat, "specular_color", text="")
+		col.itemS()
 		col.itemR(halo, "star")
 		sub = col.column()
 		sub.active = halo.star
 		sub.itemR(halo, "star_tips")
-		col.itemR(halo, "flare_mode")
-		sub = col.column()
-		sub.active = halo.flare_mode
-		sub.itemR(halo, "flare_size", text="Size")
-		sub.itemR(halo, "flare_subsize", text="Subsize")
-		sub.itemR(halo, "flare_boost", text="Boost")
-		sub.itemR(halo, "flare_seed", text="Seed")
-		sub.itemR(halo, "flares_sub", text="Sub")
+		
+class MATERIAL_PT_flare(MaterialButtonsPanel):
+	__label__= "Flare"
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
+	
+	def poll(self, context):
+		mat = context.material
+		return mat and (mat.type == 'HALO') and (context.scene.render_data.engine in self.COMPAT_ENGINES)
+	
+	def draw_header(self, context):
+		layout = self.layout
+		
+		mat = context.material
+		halo = mat.halo
+		layout.itemR(halo, "flare_mode", text="")
+	
+	def draw(self, context):
+		layout = self.layout
+		
+		mat = context.material
+		halo = mat.halo
+
+		layout.active = halo.flare_mode
+		
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(halo, "flare_size", text="Size")
+		col.itemR(halo, "flare_boost", text="Boost")
+		col.itemR(halo, "flare_seed", text="Seed")
+		col = split.column()
+		col.itemR(halo, "flares_sub", text="Subflares")
+		col.itemR(halo, "flare_subsize", text="Subsize")
 
 bpy.types.register(MATERIAL_PT_context_material)
 bpy.types.register(MATERIAL_PT_preview)
@@ -684,6 +723,7 @@ bpy.types.register(MATERIAL_PT_volume_scattering)
 bpy.types.register(MATERIAL_PT_volume_transp)
 bpy.types.register(MATERIAL_PT_volume_integration)
 bpy.types.register(MATERIAL_PT_halo)
+bpy.types.register(MATERIAL_PT_flare)
 bpy.types.register(MATERIAL_PT_physics)
 bpy.types.register(MATERIAL_PT_strand)
 bpy.types.register(MATERIAL_PT_options)

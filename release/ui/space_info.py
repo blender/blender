@@ -2,13 +2,14 @@
 import bpy
 
 class INFO_HT_header(bpy.types.Header):
-	__space_type__ = "INFO"
+	__space_type__ = 'INFO'
 
 	def draw(self, context):
 		layout = self.layout
 		
 		st = context.space_data
-		rd = context.scene.render_data
+		scene = context.scene
+		rd = scene.render_data
 
 		row = layout.row(align=True)
 		row.template_header()
@@ -33,9 +34,11 @@ class INFO_HT_header(bpy.types.Header):
 
 		layout.template_operator_search()
 		layout.template_running_jobs()
+
+		layout.itemL(text=scene.statistics())
 			
 class INFO_MT_file(bpy.types.Menu):
-	__space_type__ = "INFO"
+	__space_type__ = 'INFO'
 	__label__ = "File"
 
 	def draw(self, context):
@@ -71,14 +74,14 @@ class INFO_MT_file(bpy.types.Menu):
 		layout.itemO("wm.exit_blender", text="Quit")
 
 class INFO_MT_file_import(bpy.types.Menu):
-	__space_type__ = "INFO"
+	__space_type__ = 'INFO'
 	__label__ = "Import"
 
 	def draw(self, context):
 		layout = self.layout
 
 class INFO_MT_file_export(bpy.types.Menu):
-	__space_type__ = "INFO"
+	__space_type__ = 'INFO'
 	__label__ = "Export"
 
 	def draw(self, context):
@@ -87,7 +90,7 @@ class INFO_MT_file_export(bpy.types.Menu):
 		layout.itemO("export.ply", text="PLY")
 
 class INFO_MT_file_external_data(bpy.types.Menu):
-	__space_type__ = "INFO"
+	__space_type__ = 'INFO'
 	__label__ = "External Data"
 
 	def draw(self, context):
@@ -104,7 +107,7 @@ class INFO_MT_file_external_data(bpy.types.Menu):
 		layout.itemO("file.find_missing_files")
 
 class INFO_MT_add(bpy.types.Menu):
-	__space_type__ = "INFO"
+	__space_type__ = 'INFO'
 	__label__ = "Add"
 
 	def draw(self, context):
@@ -112,25 +115,25 @@ class INFO_MT_add(bpy.types.Menu):
 
 		layout.operator_context = "EXEC_SCREEN"
 
-		layout.item_menu_enumO( "OBJECT_OT_mesh_add", "type", text="Mesh", icon='ICON_OUTLINER_OB_MESH')
-		layout.item_menu_enumO( "OBJECT_OT_curve_add", "type", text="Curve", icon='ICON_OUTLINER_OB_CURVE')
-		layout.item_menu_enumO( "OBJECT_OT_surface_add", "type", text="Surface", icon='ICON_OUTLINER_OB_SURFACE')
-		layout.item_menu_enumO( "OBJECT_OT_metaball_add", "type", 'META', icon='ICON_OUTLINER_OB_META')
-		layout.itemO("OBJECT_OT_text_add", text="Text", icon='ICON_OUTLINER_OB_FONT')
+		layout.item_menu_enumO( "object.mesh_add", "type", text="Mesh", icon='ICON_OUTLINER_OB_MESH')
+		layout.item_menu_enumO( "object.curve_add", "type", text="Curve", icon='ICON_OUTLINER_OB_CURVE')
+		layout.item_menu_enumO( "object.surface_add", "type", text="Surface", icon='ICON_OUTLINER_OB_SURFACE')
+		layout.item_menu_enumO( "object.metaball_add", "type", 'META', icon='ICON_OUTLINER_OB_META')
+		layout.itemO("object.text_add", text="Text", icon='ICON_OUTLINER_OB_FONT')
 
 		layout.itemS()
 
-		layout.itemO("OBJECT_OT_armature_add", text="Armature", icon='ICON_OUTLINER_OB_ARMATURE')
-		layout.item_enumO("OBJECT_OT_object_add", "type", 'LATTICE', icon='ICON_OUTLINER_OB_LATTICE')
-		layout.item_enumO("OBJECT_OT_object_add", "type", 'EMPTY', icon='ICON_OUTLINER_OB_EMPTY')
+		layout.itemO("object.armature_add", text="Armature", icon='ICON_OUTLINER_OB_ARMATURE')
+		layout.item_enumO("object.object_add", "type", 'LATTICE', icon='ICON_OUTLINER_OB_LATTICE')
+		layout.item_enumO("object.object_add", "type", 'EMPTY', icon='ICON_OUTLINER_OB_EMPTY')
 
 		layout.itemS()
 
-		layout.item_enumO("OBJECT_OT_object_add", "type", 'CAMERA', icon='ICON_OUTLINER_OB_CAMERA')
-		layout.item_enumO("OBJECT_OT_object_add", "type", 'LAMP', icon='ICON_OUTLINER_OB_LAMP')
+		layout.item_enumO("object.object_add", "type", 'CAMERA', icon='ICON_OUTLINER_OB_CAMERA')
+		layout.item_enumO("object.object_add", "type", 'LAMP', icon='ICON_OUTLINER_OB_LAMP')
 
 class INFO_MT_game(bpy.types.Menu):
-	__space_type__ = "INFO"
+	__space_type__ = 'INFO'
 	__label__ = "Game"
 
 	def draw(self, context):
@@ -148,7 +151,7 @@ class INFO_MT_game(bpy.types.Menu):
 		layout.itemR(gs, "deprecation_warnings")
 
 class INFO_MT_render(bpy.types.Menu):
-	__space_type__ = "INFO"
+	__space_type__ = 'INFO'
 	__label__ = "Render"
 
 	def draw(self, context):
@@ -164,7 +167,7 @@ class INFO_MT_render(bpy.types.Menu):
 		layout.itemO("screen.render_view_show")
 
 class INFO_MT_help(bpy.types.Menu):
-	__space_type__ = "INFO"
+	__space_type__ = 'INFO'
 	__label__ = "Help"
 
 	def draw(self, context):

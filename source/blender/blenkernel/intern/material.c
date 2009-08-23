@@ -185,7 +185,7 @@ void init_material(Material *ma)
 	ma->vol.shadeflag |= MA_VOL_PRECACHESHADING;
 	ma->vol.precache_resolution = 50;
 	
-	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RAYBIAS|MA_TANGENT_STR;
+	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RAYBIAS|MA_TANGENT_STR|MA_ZTRANSP;
 
 	ma->preview = NULL;
 }

@@ -62,6 +62,7 @@ EnumPropertyItem prop_mode_items[] ={
 
 #include "BLI_threads.h"
 
+#include "ED_info.h"
 #include "ED_node.h"
 
 #include "RE_pipeline.h"
@@ -1143,27 +1144,28 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		
 	
 	static EnumPropertyItem image_type_items[] = {
+		{0, "", 0, "Image", NULL},
 		{R_PNG, "PNG", 0, "PNG", ""},
 		{R_JPEG90, "JPEG", 0, "JPEG", ""},
 #ifdef WITH_OPENJPEG
 		{R_JP2, "JPEG2000", 0, "JPEG 2000", ""},
 #endif		
-		{R_TIFF, "TIFF", 0, "TIFF", ""},	// XXX only with G.have_libtiff
 		{R_BMP, "BMP", 0, "BMP", ""},
 		{R_TARGA, "TARGA", 0, "Targa", ""},
 		{R_RAWTGA, "RAWTARGA", 0, "Targa Raw", ""},
 		//{R_DDS, "DDS", 0, "DDS", ""}, // XXX not yet implemented
 		{R_HAMX, "HAMX", 0, "HamX", ""},
 		{R_IRIS, "IRIS", 0, "Iris", ""},
-		{0, "", 0, NULL, NULL},
+		{0, "", 0, " ", NULL},
 #ifdef WITH_OPENEXR
 		{R_OPENEXR, "OPENEXR", 0, "OpenEXR", ""},
 		{R_MULTILAYER, "MULTILAYER", 0, "MultiLayer", ""},
 #endif
+		{R_TIFF, "TIFF", 0, "TIFF", ""},	// XXX only with G.have_libtiff
 		{R_RADHDR, "RADHDR", 0, "Radiance HDR", ""},
 		{R_CINEON, "CINEON", 0, "Cineon", ""},
 		{R_DPX, "DPX", 0, "DPX", ""},
-		{0, "", 0, NULL, NULL},
+		{0, "", 0, "Movie", NULL},
 		{R_AVIRAW, "AVIRAW", 0, "AVI Raw", ""},
 		{R_AVIJPEG, "AVIJPEG", 0, "AVI JPEG", ""},
 #ifdef _WIN32
@@ -1186,7 +1188,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 #endif
 		{R_FFMPEG, "FFMPEG", 0, "FFMpeg", ""},
 #endif
-		{0, "", 0, NULL, NULL},
 		{R_FRAMESERVER, "FRAMESERVER", 0, "Frame Server", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
@@ -1823,6 +1824,7 @@ void RNA_def_scene(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	FunctionRNA *func;
 	
 	/* Struct definition */
 	srna= RNA_def_struct(brna, "Scene", "ID");
@@ -1982,6 +1984,11 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "gm");
 	RNA_def_property_struct_type(prop, "SceneGameData");
 	RNA_def_property_ui_text(prop, "Game Data", "");
+
+	/* Statistics */
+	func= RNA_def_function(srna, "statistics", "ED_info_stats_string");
+	prop= RNA_def_string(func, "statistics", "", 0, "Statistics", "");
+	RNA_def_function_return(func, prop);
 	
 	rna_def_tool_settings(brna);
 	rna_def_unit_settings(brna);

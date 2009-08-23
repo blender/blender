@@ -39,7 +39,6 @@ class KX_NetworkMessageSensor : public SCA_ISensor
 {
 	// note: Py_Header MUST BE the first listed here
 	Py_Header;
-	KX_NetworkEventManager *m_Networkeventmgr;
 	NG_NetworkScene        *m_NetworkScene;
 
 	// The subject we filter on.

@@ -11,6 +11,8 @@ incs += ' #/extern/bullet2/src'
 incs += ' #/intern/opennl/extern #/intern/bsp/extern'
 incs += ' ../gpu #/extern/glew/include'
 incs += ' #/intern/smoke/extern'
+incs += ' #/extern/lzo/minilzo'
+incs += ' #/extern/lzma'
 incs += ' #/intern/audaspace/intern'
 
 incs += ' ' + env['BF_OPENGL_INC']

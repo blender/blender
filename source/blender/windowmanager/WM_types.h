@@ -134,6 +134,7 @@ typedef struct wmNotifier {
 #define NC_ANIMATION		(15<<24)
 #define NC_CONSOLE			(16<<24)
 #define NC_NODE				(17<<24)
+#define NC_INFO				(18<<24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000
@@ -282,8 +283,15 @@ typedef struct wmTimer {
 	double delta;			/* time since previous step in seconds */
 	
 	double ltime;			/* internal, last time timer was activated */
+	double ntime;			/* internal, next time we want to activate the timer */
+	double stime;			/* internal, when the timer started */
 	int sleep;				/* internal, put timers to sleep when needed */
 } wmTimer;
+
+
+/* **************** Paint Cursor ******************* */
+
+typedef void (*wmPaintCursorDraw)(struct bContext *C, int, int, void *customdata);
 
 
 /* ****************** Messages ********************* */

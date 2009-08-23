@@ -1720,6 +1720,7 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 	uiBlockCreateFunc func= NULL;
 	uiBlockHandleCreateFunc handlefunc= NULL;
 	uiMenuCreateFunc menufunc= NULL;
+	char *menustr= NULL;
 	void *arg= NULL;
 
 	switch(but->type) {
@@ -1744,16 +1745,15 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 				data->value= data->origvalue;
 				but->editval= &data->value;
 
-				handlefunc= ui_block_func_MENU;
-				arg= but;
+				menustr= but->str;
 			}
 			break;
 		case ICONROW:
-			handlefunc= ui_block_func_ICONROW;
+			menufunc= ui_block_func_ICONROW;
 			arg= but;
 			break;
 		case ICONTEXTROW:
-			handlefunc= ui_block_func_ICONTEXTROW;
+			menufunc= ui_block_func_ICONTEXTROW;
 			arg= but;
 			break;
 		case COL:
@@ -1771,8 +1771,8 @@ static void ui_blockopen_begin(bContext *C, uiBut *but, uiHandleButtonData *data
 		if(but->block->handle)
 			data->menu->popup= but->block->handle->popup;
 	}
-	else if(menufunc) {
-		data->menu= ui_popup_menu_create(C, data->region, but, menufunc, arg);
+	else if(menufunc || menustr) {
+		data->menu= ui_popup_menu_create(C, data->region, but, menufunc, arg, menustr);
 		if(but->block->handle)
 			data->menu->popup= but->block->handle->popup;
 	}
@@ -3729,9 +3729,14 @@ static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *b
 		}
 	}
 
-	/* autokey & undo push */
-	if(!data->cancel)
+	if(!data->cancel) {
+		/* autokey & undo push */
 		ui_apply_autokey_undo(C, but);
+
+		/* popup menu memory */
+		if(block->flag & UI_BLOCK_POPUP_MEMORY)
+			ui_popup_menu_memory(block, but);
+	}
 
 	/* disable tooltips until mousemove + last active flag */
 	for(block=data->region->uiblocks.first; block; block=block->next) {

@@ -2,8 +2,8 @@
 import bpy
 
 class TextureButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "texture"
 	
 	def poll(self, context):

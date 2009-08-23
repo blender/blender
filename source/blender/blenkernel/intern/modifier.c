@@ -5598,6 +5598,7 @@ static void hookModifier_copyData(ModifierData *md, ModifierData *target)
 	thmd->indexar = MEM_dupallocN(hmd->indexar);
 	memcpy(thmd->parentinv, hmd->parentinv, sizeof(hmd->parentinv));
 	strncpy(thmd->name, hmd->name, 32);
+	strncpy(thmd->subtarget, hmd->subtarget, 32);
 }
 
 CustomDataMask hookModifier_requiredDataMask(Object *ob, ModifierData *md)
@@ -5642,9 +5643,11 @@ static void hookModifier_updateDepgraph(ModifierData *md, DagForest *forest, Sce
 
 	if (hmd->object) {
 		DagNode *curNode = dag_get_node(forest, hmd->object);
-
-		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA,
-			"Hook Modifier");
+		
+		if (hmd->subtarget[0])
+			dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA|DAG_RL_DATA_DATA, "Hook Modifier");
+		else
+			dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA, "Hook Modifier");
 	}
 }
 
@@ -5653,12 +5656,22 @@ static void hookModifier_deformVerts(
 	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	HookModifierData *hmd = (HookModifierData*) md;
-	float vec[3], mat[4][4];
+	bPoseChannel *pchan= get_pose_channel(hmd->object->pose, hmd->subtarget);
+	float vec[3], mat[4][4], dmat[4][4];
 	int i;
 	DerivedMesh *dm = derivedData;
-
+	
+	/* get world-space matrix of target, corrected for the space the verts are in */
+	if (hmd->subtarget[0] && pchan) {
+		/* bone target if there's a matching pose-channel */
+		Mat4MulMat4(dmat, pchan->pose_mat, hmd->object->obmat);
+	}
+	else {
+		/* just object target */
+		Mat4CpyMat4(dmat, hmd->object->obmat);
+	}
 	Mat4Invert(ob->imat, ob->obmat);
-	Mat4MulSerie(mat, ob->imat, hmd->object->obmat, hmd->parentinv,
+	Mat4MulSerie(mat, ob->imat, dmat, hmd->parentinv,
 		     NULL, NULL, NULL, NULL, NULL);
 
 	/* vertex indices? */
@@ -5715,7 +5728,8 @@ static void hookModifier_deformVerts(
 				}
 			}
 		}
-	} else {	/* vertex group hook */
+	} 
+	else if(hmd->name[0]) {	/* vertex group hook */
 		bDeformGroup *curdef;
 		Mesh *me = ob->data;
 		int index = 0;
@@ -5801,26 +5815,6 @@ static void smokeModifier_initData(ModifierData *md)
 	smd->coll = NULL;
 	smd->type = 0;
 	smd->time = -1;
-	
-	/*
-	smd->fluid = NULL;
-	smd->maxres = 48;
-	smd->amplify = 4;
-	smd->omega = 0.5;
-	smd->time = 0;
-	smd->flags = 0;
-	smd->noise = MOD_SMOKE_NOISEWAVE;
-	smd->visibility = 1;
-	
-	// init 3dview buffer
-	smd->tvox = NULL;
-	smd->tray = NULL;
-	smd->tvoxbig = NULL;
-	smd->traybig = NULL;
-	smd->viewsettings = 0;
-	smd->bind = NULL;
-	smd->max_textures = 0;
-	*/
 }
 
 static void smokeModifier_freeData(ModifierData *md)
@@ -5882,6 +5876,50 @@ static void smokeModifier_updateDepgraph(
 		}
 	}
 	*/
+}
+
+
+/* Smoke High Resolution */
+
+static void smokeHRModifier_initData(ModifierData *md) 
+{
+	SmokeHRModifierData *shrmd = (SmokeHRModifierData*) md;
+	
+	shrmd->wt = NULL;
+	shrmd->time = -1;
+	shrmd->strength = 2.0f;
+	shrmd->amplify = 1;
+	shrmd->noise = MOD_SMOKE_NOISEWAVE;
+	shrmd->point_cache = BKE_ptcache_add(&shrmd->ptcaches);
+	shrmd->point_cache->flag |= PTCACHE_DISK_CACHE;
+	shrmd->point_cache->step = 1;
+}
+
+static void smokeHRModifier_freeData(ModifierData *md)
+{
+	SmokeHRModifierData *shrmd = (SmokeHRModifierData*) md;
+	
+	smokeHRModifier_free (shrmd);
+}
+
+static void smokeHRModifier_deformVerts(
+					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
+      float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
+{
+	SmokeHRModifierData *shrmd = (SmokeHRModifierData*) md;
+	smokeHRModifier_do(shrmd, md->scene, ob, useRenderParams, isFinalCalc);
+}
+
+static int smokeHRModifier_dependsOnTime(ModifierData *md)
+{
+	return 1;
+}
+
+static void smokeHRModifier_updateDepgraph(
+					 ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
+      DagNode *obNode)
+{
+	;
 }
 
 /* Cloth */
@@ -8078,14 +8116,13 @@ static DerivedMesh *multiresModifier_applyModifier(ModifierData *md, Object *ob,
 						   int useRenderParams, int isFinalCalc)
 {
 	MultiresModifierData *mmd = (MultiresModifierData*)md;
-	Mesh *me = get_mesh(ob);
 	DerivedMesh *final;
 
 	/* TODO: for now just skip a level1 mesh */
 	if(mmd->lvl == 1)
 		return dm;
 
-	final = multires_dm_create_from_derived(mmd, dm, me, useRenderParams, isFinalCalc);
+	final = multires_dm_create_from_derived(mmd, 0, dm, ob, useRenderParams, isFinalCalc);
 	if(mmd->undo_signal && mmd->undo_verts && mmd->undo_verts_tot == final->getNumVerts(final)) {
 		int i;
 		MVert *dst = CDDM_get_verts(final);
@@ -8580,10 +8617,24 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->initData = smokeModifier_initData;
 		mti->freeData = smokeModifier_freeData; 
-		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_UsesPointCache
+				| eModifierTypeFlag_Single;
 		mti->deformVerts = smokeModifier_deformVerts;
 		mti->dependsOnTime = smokeModifier_dependsOnTime;
 		mti->updateDepgraph = smokeModifier_updateDepgraph;
+
+		mti = INIT_TYPE(SmokeHR);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->initData = smokeHRModifier_initData;
+		mti->freeData = smokeHRModifier_freeData; 
+		mti->flags = eModifierTypeFlag_AcceptsMesh 
+				| eModifierTypeFlag_UsesPointCache
+				| eModifierTypeFlag_Single
+				| eModifierTypeFlag_NoUserAdd;
+		mti->deformVerts = smokeHRModifier_deformVerts;
+		mti->dependsOnTime = smokeHRModifier_dependsOnTime;
+		mti->updateDepgraph = smokeHRModifier_updateDepgraph;
 	
 		mti = INIT_TYPE(Cloth);
 		mti->type = eModifierTypeType_Nonconstructive;
@@ -8611,7 +8662,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(Surface);
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->initData = surfaceModifier_initData;
-		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->flags = eModifierTypeFlag_AcceptsMesh|eModifierTypeFlag_NoUserAdd;
 		mti->dependsOnTime = surfaceModifier_dependsOnTime;
 		mti->freeData = surfaceModifier_freeData; 
 		mti->deformVerts = surfaceModifier_deformVerts;

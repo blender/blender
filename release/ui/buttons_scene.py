@@ -2,8 +2,8 @@
 import bpy
 
 class RenderButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "scene"
 	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 	
@@ -41,8 +41,8 @@ class SCENE_PT_layers(RenderButtonsPanel):
 		row.template_list(rd, "layers", rd, "active_layer_index", rows=2)
 
 		col = row.column(align=True)
-		col.itemO("scene.render_layer_add", icon="ICON_ZOOMIN", text="")
-		col.itemO("scene.render_layer_remove", icon="ICON_ZOOMOUT", text="")
+		col.itemO("scene.render_layer_add", icon='ICON_ZOOMIN', text="")
+		col.itemO("scene.render_layer_remove", icon='ICON_ZOOMOUT', text="")
 
 		rl = rd.layers[rd.active_layer_index]
 
@@ -103,19 +103,19 @@ class SCENE_PT_layers(RenderButtonsPanel):
 		col.itemR(rl, "pass_diffuse")
 		row = col.row()
 		row.itemR(rl, "pass_specular")
-		row.itemR(rl, "pass_specular_exclude", text="", icon="ICON_X")
+		row.itemR(rl, "pass_specular_exclude", text="", icon='ICON_X')
 		row = col.row()
 		row.itemR(rl, "pass_shadow")
-		row.itemR(rl, "pass_shadow_exclude", text="", icon="ICON_X")
+		row.itemR(rl, "pass_shadow_exclude", text="", icon='ICON_X')
 		row = col.row()
 		row.itemR(rl, "pass_ao")
-		row.itemR(rl, "pass_ao_exclude", text="", icon="ICON_X")
+		row.itemR(rl, "pass_ao_exclude", text="", icon='ICON_X')
 		row = col.row()
 		row.itemR(rl, "pass_reflection")
-		row.itemR(rl, "pass_reflection_exclude", text="", icon="ICON_X")
+		row.itemR(rl, "pass_reflection_exclude", text="", icon='ICON_X')
 		row = col.row()
 		row.itemR(rl, "pass_refraction")
-		row.itemR(rl, "pass_refraction_exclude", text="", icon="ICON_X")
+		row.itemR(rl, "pass_refraction_exclude", text="", icon='ICON_X')
 
 class SCENE_PT_shading(RenderButtonsPanel):
 	__label__ = "Shading"

@@ -979,6 +979,9 @@ static void select_editmesh_hook(Object *ob, HookModifierData *hmd)
 	EditVert *eve;
 	int index=0, nr=0;
 	
+	if (hmd->indexar == NULL)
+		return;
+	
 	for(eve= em->verts.first; eve; eve= eve->next, nr++) {
 		if(nr==hmd->indexar[index]) {
 			eve->f |= SELECT;
@@ -1150,7 +1153,7 @@ void ED_object_apply_obmat(Object *ob)
 	
 }
 
-int hook_getIndexArray(Object *obedit, int *tot, int **indexar, char *name, float *cent_r)
+int object_hook_index_array(Object *obedit, int *tot, int **indexar, char *name, float *cent_r)
 {
 	*indexar= NULL;
 	*tot= 0;
@@ -1232,9 +1235,8 @@ static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
 	}
 }
 
-void obedit_hook_select(Object *ob, HookModifierData *hmd) 
+void object_hook_select(Object *ob, HookModifierData *hmd) 
 {
-	
 	if(ob->type==OB_MESH) select_editmesh_hook(ob, hmd);
 	else if(ob->type==OB_LATTICE) select_editlattice_hook(ob, hmd);
 	else if(ob->type==OB_CURVE) select_editcurve_hook(ob, hmd);
@@ -1318,7 +1320,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 		int tot, ok, *indexar;
 		char name[32];
 		
-		ok = hook_getIndexArray(obedit, &tot, &indexar, name, cent);
+		ok = object_hook_index_array(obedit, &tot, &indexar, name, cent);
 		
 		if(ok==0) {
 			error("Requires selected vertices or active Vertex Group");
@@ -1362,6 +1364,7 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 			hmd->totindex= tot;
 			BLI_strncpy(hmd->name, name, 32);
 			
+			// TODO: need to take into account bone targets here too now...
 			if(mode==1 || mode==2) {
 				/* matrix calculus */
 				/* vert x (obmat x hook->imat) x hook->obmat x ob->imat */
@@ -1381,9 +1384,11 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 		modifier_free(md);
 	}
 	else if(mode==5) { /* select */
-		obedit_hook_select(obedit, hmd);
+		// FIXME: this is now OBJECT_OT_hook_select
+		object_hook_select(obedit, hmd);
 	}
 	else if(mode==6) { /* clear offset */
+		// FIXME: this is now OBJECT_OT_hook_reset operator
 		where_is_object(scene, ob);	/* ob is hook->parent */
 
 		Mat4Invert(ob->imat, ob->obmat);
@@ -1394,25 +1399,6 @@ void add_hook(Scene *scene, View3D *v3d, int mode)
 
 	DAG_scene_sort(scene);
 }
-
-
-/* use this when the loc/size/rot of the parent has changed but the children should stay in the same place
- * apply-size-rot or object center for eg */
-static void ignore_parent_tx(Scene *scene, Object *ob ) 
-{
-	Object workob;
-	Object *ob_child;
-	
-	/* a change was made, adjust the children to compensate */
-	for (ob_child=G.main->object.first; ob_child; ob_child=ob_child->id.next) {
-		if (ob_child->parent == ob) {
-			ED_object_apply_obmat(ob_child);
-			what_does_parent(scene, ob_child, &workob);
-			Mat4Invert(ob_child->parentinv, workob.obmat);
-		}
-	}
-}
-
 
 void add_hook_menu(Scene *scene, View3D *v3d)
 {
@@ -1430,6 +1416,25 @@ void add_hook_menu(Scene *scene, View3D *v3d)
 		
 	/* do operations */
 	add_hook(scene, v3d, mode);
+}
+
+
+
+/* use this when the loc/size/rot of the parent has changed but the children should stay in the same place
+ * apply-size-rot or object center for eg */
+static void ignore_parent_tx(Scene *scene, Object *ob ) 
+{
+	Object workob;
+	Object *ob_child;
+	
+	/* a change was made, adjust the children to compensate */
+	for (ob_child=G.main->object.first; ob_child; ob_child=ob_child->id.next) {
+		if (ob_child->parent == ob) {
+			ED_object_apply_obmat(ob_child);
+			what_does_parent(scene, ob_child, &workob);
+			Mat4Invert(ob_child->parentinv, workob.obmat);
+		}
+	}
 }
 
 /* ******************** clear parent operator ******************* */
@@ -2756,13 +2761,10 @@ static void proxy_group_objects_menu (bContext *C, wmOperator *op, Object *ob, G
 		if (go->ob) {
 			PointerRNA props_ptr;
 			
-			/* create operator properties, and assign the relevant pointers to that, 
-			 * and add a menu entry which uses these props 
-			 */
-			WM_operator_properties_create(&props_ptr, op->idname);
-				RNA_string_set(&props_ptr, "object", go->ob->id.name+2);
-				RNA_string_set(&props_ptr, "group_object", go->ob->id.name+2);
-			uiItemFullO(layout, go->ob->id.name+2, 0, op->idname, props_ptr.data, WM_OP_EXEC_REGION_WIN);
+			/* create operator menu item with relevant properties filled in */
+			props_ptr= uiItemFullO(layout, go->ob->id.name+2, 0, op->idname, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+			RNA_string_set(&props_ptr, "object", go->ob->id.name+2);
+			RNA_string_set(&props_ptr, "group_object", go->ob->id.name+2);
 		}
 	}
 	
@@ -2790,12 +2792,9 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 		uiLayout *layout= uiPupMenuLayout(pup);
 		PointerRNA props_ptr;
 		
-		/* create operator properties, and assign the relevant pointers to that, 
-		 * and add a menu entry which uses these props 
-		 */
-		WM_operator_properties_create(&props_ptr, op->idname);
-			RNA_string_set(&props_ptr, "object", ob->id.name+2);
-		uiItemFullO(layout, op->type->name, 0, op->idname, props_ptr.data, WM_OP_EXEC_REGION_WIN);
+		/* create operator menu item with relevant properties filled in */
+		props_ptr= uiItemFullO(layout, op->type->name, 0, op->idname, props_ptr.data, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
+		RNA_string_set(&props_ptr, "object", ob->id.name+2);
 		
 		/* present the menu and be done... */
 		uiPupMenuEnd(C, pup);
@@ -7073,28 +7072,53 @@ static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *ptr, in
 	return item;
 }
 
+static const char *object_mode_op_string(int mode)
+{
+	if(mode == OB_MODE_EDIT)
+		return "OBJECT_OT_editmode_toggle";
+	if(mode == OB_MODE_SCULPT)
+		return "SCULPT_OT_sculptmode_toggle";
+	if(mode == OB_MODE_VERTEX_PAINT)
+		return "PAINT_OT_vertex_paint_toggle";
+	if(mode == OB_MODE_WEIGHT_PAINT)
+		return "PAINT_OT_weight_paint_toggle";
+	if(mode == OB_MODE_TEXTURE_PAINT)
+		return "PAINT_OT_texture_paint_toggle";
+	if(mode == OB_MODE_PARTICLE_EDIT)
+		return "PARTICLE_OT_particle_edit_toggle";
+	if(mode == OB_MODE_POSE)
+		return "OBJECT_OT_posemode_toggle";
+	return NULL;
+}
+
 static int object_mode_set_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
-	int mode = RNA_enum_get(op->ptr, "mode");
+	ObjectMode mode = RNA_enum_get(op->ptr, "mode");
+	ObjectMode restore_mode = ob->mode;
+	int toggle = RNA_boolean_get(op->ptr, "toggle");
 
 	if(!ob)
 		return OPERATOR_CANCELLED;
 
-	if((mode == OB_MODE_EDIT) == !(ob->mode & OB_MODE_EDIT))
-		WM_operator_name_call(C, "OBJECT_OT_editmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if((mode == OB_MODE_SCULPT) == !(ob->mode & OB_MODE_SCULPT))
-		WM_operator_name_call(C, "SCULPT_OT_sculptmode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if((mode == OB_MODE_VERTEX_PAINT) == !(ob->mode & OB_MODE_VERTEX_PAINT))
-		WM_operator_name_call(C, "PAINT_OT_vertex_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if((mode == OB_MODE_WEIGHT_PAINT) == !(ob->mode & OB_MODE_WEIGHT_PAINT))
-		WM_operator_name_call(C, "PAINT_OT_weight_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if((mode == OB_MODE_TEXTURE_PAINT) == !(ob->mode & OB_MODE_TEXTURE_PAINT))
-		WM_operator_name_call(C, "PAINT_OT_texture_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if((mode == OB_MODE_PARTICLE_EDIT) == !(ob->mode & OB_MODE_PARTICLE_EDIT))
-		WM_operator_name_call(C, "PARTICLE_OT_particle_edit_toggle", WM_OP_EXEC_REGION_WIN, NULL);
-	if((mode == OB_MODE_POSE) == !(ob->mode & OB_MODE_POSE))
-		WM_operator_name_call(C, "OBJECT_OT_posemode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	/* Exit current mode if it's not the mode we're setting */
+	if(ob->mode != OB_MODE_OBJECT && ob->mode != mode)
+		WM_operator_name_call(C, object_mode_op_string(ob->mode), WM_OP_EXEC_REGION_WIN, NULL);
+
+	if(mode != OB_MODE_OBJECT) {
+		/* Enter new mode */
+		if(ob->mode != mode || toggle)
+			WM_operator_name_call(C, object_mode_op_string(mode), WM_OP_EXEC_REGION_WIN, NULL);
+
+		if(toggle) {
+			if(ob->mode == mode)
+				/* For toggling, store old mode so we know what to go back to */
+				ob->restore_mode = restore_mode;
+			else if(ob->restore_mode != OB_MODE_OBJECT && ob->restore_mode != mode) {
+				WM_operator_name_call(C, object_mode_op_string(ob->restore_mode), WM_OP_EXEC_REGION_WIN, NULL);
+			}
+		}
+	}
 
 	return OPERATOR_FINISHED;
 }
@@ -7118,6 +7142,8 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 	
 	prop= RNA_def_enum(ot->srna, "mode", object_mode_items, 0, "Mode", "");
 	RNA_def_enum_funcs(prop, object_mode_set_itemsf);
+
+	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
 }
 
 

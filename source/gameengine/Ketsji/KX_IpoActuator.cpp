@@ -49,13 +49,13 @@
 /* Type strings                                                              */
 /* ------------------------------------------------------------------------- */
 
-STR_String KX_IpoActuator::S_KX_ACT_IPO_PLAY_STRING      = "Play";
-STR_String KX_IpoActuator::S_KX_ACT_IPO_PINGPONG_STRING  = "PingPong";
-STR_String KX_IpoActuator::S_KX_ACT_IPO_FLIPPER_STRING   = "Flipper";
-STR_String KX_IpoActuator::S_KX_ACT_IPO_LOOPSTOP_STRING  = "LoopStop";
-STR_String KX_IpoActuator::S_KX_ACT_IPO_LOOPEND_STRING   = "LoopEnd";
-STR_String KX_IpoActuator::S_KX_ACT_IPO_KEY2KEY_STRING   = "Key2key";
-STR_String KX_IpoActuator::S_KX_ACT_IPO_FROM_PROP_STRING = "FromProp";
+const char *KX_IpoActuator::S_KX_ACT_IPO_PLAY_STRING      = "Play";
+const char *KX_IpoActuator::S_KX_ACT_IPO_PINGPONG_STRING  = "PingPong";
+const char *KX_IpoActuator::S_KX_ACT_IPO_FLIPPER_STRING   = "Flipper";
+const char *KX_IpoActuator::S_KX_ACT_IPO_LOOPSTOP_STRING  = "LoopStop";
+const char *KX_IpoActuator::S_KX_ACT_IPO_LOOPEND_STRING   = "LoopEnd";
+const char *KX_IpoActuator::S_KX_ACT_IPO_KEY2KEY_STRING   = "Key2key";
+const char *KX_IpoActuator::S_KX_ACT_IPO_FROM_PROP_STRING = "FromProp";
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */
@@ -385,19 +385,19 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 int KX_IpoActuator::string2mode(char* modename) {
 	IpoActType res = KX_ACT_IPO_NODEF;
 
-	if (modename == S_KX_ACT_IPO_PLAY_STRING) { 
+	if (strcmp(modename, S_KX_ACT_IPO_PLAY_STRING)==0) { 
 		res = KX_ACT_IPO_PLAY;
-	} else if (modename == S_KX_ACT_IPO_PINGPONG_STRING) {
+	} else if (strcmp(modename, S_KX_ACT_IPO_PINGPONG_STRING)==0) {
 		res = KX_ACT_IPO_PINGPONG;
-	} else if (modename == S_KX_ACT_IPO_FLIPPER_STRING) {
+	} else if (strcmp(modename, S_KX_ACT_IPO_FLIPPER_STRING)==0) {
 		res = KX_ACT_IPO_FLIPPER;
-	} else if (modename == S_KX_ACT_IPO_LOOPSTOP_STRING) {
+	} else if (strcmp(modename, S_KX_ACT_IPO_LOOPSTOP_STRING)==0) {
 		res = KX_ACT_IPO_LOOPSTOP;
-	} else if (modename == S_KX_ACT_IPO_LOOPEND_STRING) {
+	} else if (strcmp(modename, S_KX_ACT_IPO_LOOPEND_STRING)==0) {
 		res = KX_ACT_IPO_LOOPEND;
-	} else if (modename == S_KX_ACT_IPO_KEY2KEY_STRING) {
+	} else if (strcmp(modename, S_KX_ACT_IPO_KEY2KEY_STRING)==0) {
 		res = KX_ACT_IPO_KEY2KEY;
-	} else if (modename == S_KX_ACT_IPO_FROM_PROP_STRING) {
+	} else if (strcmp(modename, S_KX_ACT_IPO_FROM_PROP_STRING)==0) {
 		res = KX_ACT_IPO_FROM_PROP;
 	}
 

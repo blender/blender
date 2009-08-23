@@ -163,7 +163,7 @@ static EnumPropertyItem *rna_TextureSlot_output_node_itemf(bContext *C, PointerR
 	EnumPropertyItem *item= NULL;
 	int totitem= 0;
 	
-	if(tex) {
+	if(tex && C) { /* Note, tex/mtex/ntree can be invalid of C is NULL, TODO - can this give valid results when C is NULL? */
 		bNodeTree *ntree= tex->nodetree;
 		if(ntree) {
 			EnumPropertyItem tmp= {0, "", 0, "", ""};
@@ -1307,13 +1307,13 @@ static void rna_def_texture_distorted_noise(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "noisebasis");
+	RNA_def_property_enum_sdna(prop, NULL, "noisebasis2");
 	RNA_def_property_enum_items(prop, prop_noise_basis_items);
 	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
 
 	prop= RNA_def_property(srna, "noise_distortion", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "noisebasis2");
+	RNA_def_property_enum_sdna(prop, NULL, "noisebasis");
 	RNA_def_property_enum_items(prop, prop_noise_basis_items);
 	RNA_def_property_ui_text(prop, "Noise Distortion", "Sets the noise basis for the distortion");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);

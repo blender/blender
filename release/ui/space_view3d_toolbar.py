@@ -2,8 +2,8 @@
 import bpy
 
 class View3DPanel(bpy.types.Panel):
-	__space_type__ = "VIEW_3D"
-	__region_type__ = "TOOLS"
+	__space_type__ = 'VIEW_3D'
+	__region_type__ = 'TOOLS'
 
 # ********** default tools for objectmode ****************
 
@@ -262,8 +262,8 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
 # ********** default tools for paint modes ****************
 
 class PaintPanel(bpy.types.Panel):
-	__space_type__ = "VIEW_3D"
-	__region_type__ = "TOOLS"
+	__space_type__ = 'VIEW_3D'
+	__region_type__ = 'TOOLS'
 
 	def paint_settings(self, context):
 		ts = context.tool_settings
@@ -369,7 +369,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 				
 			col = layout.column()
 			col.itemR(brush, "color", text="")
-				
+
 			row = col.row(align=True)
 			row.itemR(brush, "size", slider=True)
 			row.itemR(brush, "size_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
@@ -378,22 +378,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			row.itemR(brush, "strength", slider=True)
 			row.itemR(brush, "strength_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
 			
-			row = col.row(align=True)
-			row.itemR(brush, "falloff", slider=True)
-			row.itemR(brush, "falloff_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
-			
-			row = col.row(align=True)
-			row.itemR(brush, "space", text="")
-			rowsub = row.row(align=True)
-			rowsub.active = brush.space
-			rowsub.itemR(brush, "spacing", text="Spacing", slider=True)
-			rowsub.itemR(brush, "spacing_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
-			
-			col = layout.column()
-			col.itemR(brush, "airbrush")
-			sub = col.column()
-			sub.active = brush.airbrush
-			sub.itemR(brush, "rate")
+			col.itemR(brush, "blend")
 		
 		# Weight Paint Mode #
 	
@@ -429,23 +414,35 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel):
 
 	def poll(self, context):
 		settings = self.paint_settings(context)
-		return (settings and settings.brush and context.sculpt_object)
+		return (settings and settings.brush and (context.sculpt_object or
+							 context.vertex_paint_object or
+							 context.weight_paint_object or
+							 context.texture_paint_object))
 
 	def draw(self, context):
 		settings = self.paint_settings(context)
 		brush = settings.brush
+		texture_paint = context.texture_paint_object
 		layout = self.layout
 
-		layout.itemR(brush, "smooth_stroke")
-		col = layout.column()
-		col.active = brush.smooth_stroke
-		col.itemR(brush, "smooth_stroke_radius", text="Radius", slider=True)
-		col.itemR(brush, "smooth_stroke_factor", text="Factor", slider=True)
+		if not texture_paint:
+			layout.itemR(brush, "smooth_stroke")
+			col = layout.column()
+			col.active = brush.smooth_stroke
+			col.itemR(brush, "smooth_stroke_radius", text="Radius", slider=True)
+			col.itemR(brush, "smooth_stroke_factor", text="Factor", slider=True)
 
 		layout.itemR(brush, "space")
+		row = layout.row(align=True)
+		row.active = brush.space
+		row.itemR(brush, "spacing", text="Distance", slider=True)
+		if texture_paint:
+			row.itemR(brush, "spacing_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+
+		layout.itemR(brush, "airbrush")
 		col = layout.column()
-		col.active = brush.space
-		col.itemR(brush, "spacing", text="Distance", slider=True)
+		col.active = brush.airbrush
+		col.itemR(brush, "rate", slider=True)
 
 
 class VIEW3D_PT_tools_brush_curve(PaintPanel):

@@ -310,12 +310,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 		file_hilight_set(sfile, ar, event->x, event->y);
 	}
 	
-	if (params->display == FILE_IMGDISPLAY) {
-		file_draw_previews(C, ar);
-	} else {
-		file_draw_list(C, ar);
-	}
-	
+	file_draw_list(C, ar);
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);

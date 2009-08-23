@@ -2,7 +2,7 @@
 import bpy
 
 class TIME_HT_header(bpy.types.Header):
-	__space_type__ = "TIMELINE"
+	__space_type__ = 'TIMELINE'
 
 	def draw(self, context):
 		layout = self.layout
@@ -63,12 +63,12 @@ class TIME_HT_header(bpy.types.Header):
 		layout.itemS()
 		
 		row = layout.row(align=True)
-		row.itemR(scene, "active_keying_set", text="")
-		row.itemO("anim.insert_keyframe", text="", icon="ICON_KEY_HLT")
-		row.itemO("anim.delete_keyframe", text="", icon="ICON_KEY_DEHLT")
+		row.item_pointerR(scene, "active_keying_set", scene, "keying_sets", text="")
+		row.itemO("anim.insert_keyframe", text="", icon='ICON_KEY_HLT')
+		row.itemO("anim.delete_keyframe", text="", icon='ICON_KEY_DEHLT')
 
 class TIME_MT_view(bpy.types.Menu):
-	__space_type__ = "TIMELINE"
+	__space_type__ = 'TIMELINE'
 	__label__ = "View"
 
 	def draw(self, context):
@@ -83,7 +83,7 @@ class TIME_MT_view(bpy.types.Menu):
 		layout.itemR(st, "only_selected")
 
 class TIME_MT_frame(bpy.types.Menu):
-	__space_type__ = "TIMELINE"
+	__space_type__ = 'TIMELINE'
 	__label__ = "Frame"
 
 	def draw(self, context):
@@ -101,7 +101,7 @@ class TIME_MT_frame(bpy.types.Menu):
 		layout.itemO("time.end_frame_set")
 
 class TIME_MT_playback(bpy.types.Menu):
-	__space_type__ = "TIMELINE"
+	__space_type__ = 'TIMELINE'
 	__label__ = "Playback"
 
 	def draw(self, context):

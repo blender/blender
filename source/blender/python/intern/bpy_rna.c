@@ -2655,8 +2655,17 @@ PyObject *BPY_rna_props( void )
 
 static StructRNA *pyrna_struct_as_srna(PyObject *self)
 {
-	BPy_StructRNA *py_srna= (BPy_StructRNA*)PyObject_GetAttrString(self, "__rna__");
+	BPy_StructRNA *py_srna;
 	StructRNA *srna;
+	
+	/* ack, PyObject_GetAttrString wont look up this types tp_dict first :/ */
+	if(PyType_Check(self)) {
+		py_srna = (BPy_StructRNA *)PyDict_GetItemString(((PyTypeObject *)self)->tp_dict, "__rna__");
+		Py_XINCREF(py_srna);
+	}
+	
+	if(py_srna==NULL)
+		py_srna = (BPy_StructRNA*)PyObject_GetAttrString(self, "__rna__");
 
 	if(py_srna==NULL) {
 	 	PyErr_SetString(PyExc_SystemError, "internal error, self had no __rna__ attribute, should never happen.");
@@ -2931,12 +2940,12 @@ static StructRNA *pointer_type_from_py(PyObject *value)
 
 	srna= srna_from_self(value);
 	if(!srna) {
-	 	PyErr_SetString(PyExc_SystemError, "expected an RNA type derived from IDPropertyGroup (1)");
+	 	PyErr_SetString(PyExc_SystemError, "expected an RNA type derived from IDPropertyGroup");
 		return NULL;
 	}
 
 	if(!RNA_struct_is_a(srna, &RNA_IDPropertyGroup)) {
-	 	PyErr_SetString(PyExc_SystemError, "expected an RNA type derived from IDPropertyGroup (3)");
+	 	PyErr_SetString(PyExc_SystemError, "expected an RNA type derived from IDPropertyGroup");
 		return NULL;
 	}
 
@@ -3011,6 +3020,52 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return bpy_prop_deferred_return((void *)BPy_CollectionProperty, kw);
 	}
 	return NULL;
+}
+
+static int deferred_register_props(PyObject *py_class, StructRNA *srna)
+{
+	PyObject *props, *dummy_args, *item;
+	int i;
+
+	props= PyObject_GetAttrString(py_class, "__props__");
+	
+	if(!props) {
+		PyErr_Clear();
+		return 1;
+	}
+
+	dummy_args = PyTuple_New(0);
+
+	for(i=0; i<PyList_Size(props); i++) {
+		PyObject *py_func_ptr, *py_kw, *py_srna_cobject, *py_ret;
+		item = PyList_GET_ITEM(props, i);
+		
+		if(PyArg_ParseTuple(item, "O!O!", &PyCObject_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
+			PyObject *(*pyfunc)(PyObject *, PyObject *, PyObject *);
+			pyfunc = PyCObject_AsVoidPtr(py_func_ptr);
+			py_srna_cobject = PyCObject_FromVoidPtr(srna, NULL);
+			
+			py_ret = pyfunc(py_srna_cobject, dummy_args, py_kw);
+			Py_DECREF(py_srna_cobject);
+
+			if(py_ret) {
+				Py_DECREF(py_ret);
+			}
+			else {
+				Py_DECREF(dummy_args);
+				return 0;
+			}
+		}
+		else {
+			PyErr_Clear();
+			PyErr_SetString(PyExc_AttributeError, "expected list of dicts for __props__.");
+			Py_DECREF(dummy_args);
+			return 0;
+		}
+	}
+
+	Py_DECREF(dummy_args);
+	return 1;
 }
 
 /*-------------------- Type Registration ------------------------*/
@@ -3373,6 +3428,9 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
 		// Py_DECREF(py_class); // shuld be able to do this XXX since the old rna adds a new ref.
 	}
 
+	if(!deferred_register_props(py_class, srna_new))
+		return NULL;
+
 	Py_RETURN_NONE;
 }
 
@@ -3396,7 +3454,6 @@ PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *py_class)
 	
 	/* get the context, so register callback can do necessary refreshes */
 	C= BPy_GetContext();
-	
 
 	/* call unregister */
 	unreg(C, srna); /* calls bpy_class_free, this decref's py_class */

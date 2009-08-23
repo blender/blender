@@ -2,8 +2,8 @@
 import bpy
 
 class ConstraintButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "constraint"
 
 	def draw_constraint(self, con):
@@ -39,7 +39,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		layout.itemR(con, "target") # XXX limiting settings for only 'curves' or some type of object
 		
 		if con.target and subtargets:
-			if con.target.type == "ARMATURE":
+			if con.target.type == 'ARMATURE':
 				layout.item_pointerR(con, "subtarget", con.target.data, "bones", text="Bone")
 				
 				if con.type == 'COPY_LOCATION':
@@ -478,7 +478,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 		layout.itemR(con, "distance")
 		layout.itemR(con, "shrinkwrap_type")
 		
-		if con.shrinkwrap_type == "PROJECT":
+		if con.shrinkwrap_type == 'PROJECT':
 			row = layout.row(align=True)
 			row.itemR(con, "axis_x")
 			row.itemR(con, "axis_y")

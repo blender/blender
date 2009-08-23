@@ -29,7 +29,7 @@
 #
 
 LIBNAME = aud_sdl
-DIR = $(OCGDIR)/intern/$(LIBNAME)
+DIR = $(OCGDIR)/intern/audaspace
 
 include nan_compile.mk
 

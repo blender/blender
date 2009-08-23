@@ -62,6 +62,7 @@
 #include "DNA_userdef_types.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "BKE_armature.h"
 #include "BKE_brush.h"
@@ -91,6 +92,8 @@
 #include "ED_util.h"
 #include "ED_view3d.h"
 
+#include "paint_intern.h"
+
 	/* vp->mode */
 #define VP_MIX	0
 #define VP_ADD	1
@@ -107,11 +110,18 @@ static void error() {}
 
 /* polling - retrieve whether cursor should be set or operator should be done */
 
-static int vp_poll(bContext *C)
+
+/* Returns true if vertex paint mode is active */
+int vertex_paint_mode_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
-	if(ob && ob->mode & OB_MODE_VERTEX_PAINT &&
+	return ob && ob->mode == OB_MODE_VERTEX_PAINT;
+}
+
+static int vp_poll(bContext *C)
+{
+	if(vertex_paint_mode_poll(C) && 
 	   paint_brush(&CTX_data_tool_settings(C)->vpaint->paint)) {
 		ScrArea *sa= CTX_wm_area(C);
 		if(sa->spacetype==SPACE_VIEW3D) {
@@ -137,56 +147,6 @@ static int wp_poll(bContext *C)
 		}
 	}
 	return 0;
-}
-
-
-/* Cursors */
-static void vp_drawcursor(bContext *C, int x, int y, void *customdata)
-{
-	Brush *brush = paint_brush(&CTX_data_tool_settings(C)->vpaint->paint);
-	
-	glTranslatef((float)x, (float)y, 0.0f);
-	
-	glColor4ub(255, 255, 255, 128);
-	glEnable( GL_LINE_SMOOTH );
-	glEnable(GL_BLEND);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, brush->size, 40);
-	glDisable(GL_BLEND);
-	glDisable( GL_LINE_SMOOTH );
-	
-	glTranslatef((float)-x, (float)-y, 0.0f);
-}
-
-static void wp_drawcursor(bContext *C, int x, int y, void *customdata)
-{
-	Brush *brush = paint_brush(&CTX_data_tool_settings(C)->wpaint->paint);
-
-	glTranslatef((float)x, (float)y, 0.0f);
-	
-	glColor4ub(200, 200, 255, 128);
-	glEnable( GL_LINE_SMOOTH );
-	glEnable(GL_BLEND);
-	glutil_draw_lined_arc(0.0, M_PI*2.0, brush->size, 40);
-	glDisable(GL_BLEND);
-	glDisable( GL_LINE_SMOOTH );
-	
-	glTranslatef((float)-x, (float)-y, 0.0f);
-}
-
-static void toggle_paint_cursor(bContext *C, int wpaint)
-{
-	ToolSettings *ts = CTX_data_scene(C)->toolsettings;
-	VPaint *vp = wpaint ? ts->wpaint : ts->vpaint;
-
-	if(vp->paintcursor) {
-		WM_paint_cursor_end(CTX_wm_manager(C), vp->paintcursor);
-		vp->paintcursor = NULL;
-	}
-	else {
-		vp->paintcursor = wpaint ?
-			WM_paint_cursor_activate(CTX_wm_manager(C), wp_poll, wp_drawcursor, NULL) :
-			WM_paint_cursor_activate(CTX_wm_manager(C), vp_poll, vp_drawcursor, NULL);
-	}
 }
 
 static VPaint *new_vpaint(int wpaint)
@@ -370,34 +330,7 @@ static void copy_wpaint_prev (VPaint *wp, MDeformVert *dverts, int dcount)
 }
 
 
-void clear_vpaint(Scene *scene)
-{
-	Mesh *me;
-	Object *ob;
-	unsigned int *to, paintcol;
-	int a;
-	
-	ob= OBACT;
-	me= get_mesh(ob);
-	if(!ob || ob->id.lib) return;
-
-	if(!(ob->mode & OB_MODE_VERTEX_PAINT)) return;
-
-	if(me==0 || me->mcol==0 || me->totface==0) return;
-
-	paintcol= vpaint_get_current_col(scene->toolsettings->vpaint);
-
-	to= (unsigned int *)me->mcol;
-	a= 4*me->totface;
-	while(a--) {
-		*to= paintcol;
-		to++; 
-	}
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	
-}
-
-void clear_vpaint_selectedfaces(Scene *scene)
+void clear_vpaint(Scene *scene, int selected)
 {
 	Mesh *me;
 	MFace *mf;
@@ -417,7 +350,7 @@ void clear_vpaint_selectedfaces(Scene *scene)
 	mf = me->mface;
 	mcol = (unsigned int*)me->mcol;
 	for (i = 0; i < me->totface; i++, mf++, mcol+=4) {
-		if (mf->flag & ME_FACE_SEL) {
+		if (!selected || mf->flag & ME_FACE_SEL) {
 			mcol[0] = paintcol;
 			mcol[1] = paintcol;
 			mcol[2] = paintcol;
@@ -807,7 +740,7 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 	return tot;
 }
 
-static int calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], float *vert_nor, short *mval)
+static int calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], float *vert_nor, float *mval)
 {
 	Brush *brush = paint_brush(&vp->paint);
 	float fac, dx, dy;
@@ -1124,9 +1057,8 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 		if(wp==NULL)
 			wp= scene->toolsettings->wpaint= new_vpaint(1);
 
-		paint_init(&wp->paint, "Brush");
-
-		toggle_paint_cursor(C, 1);
+		paint_init(&wp->paint, PAINT_CURSOR_WEIGHT_PAINT);
+		paint_cursor_start(C, wp_poll);
 		
 		mesh_octree_table(ob, NULL, NULL, 's');
 		
@@ -1142,9 +1074,6 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 		}
 	}
 	else {
-		if(wp)
-			toggle_paint_cursor(C, 1);
-		
 		mesh_octree_table(ob, NULL, NULL, 'e');
 	}
 	
@@ -1185,9 +1114,11 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 
 static int vpaint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->vpaint->paint);
-
-	toggle_paint_cursor(C, 0);
+	Paint *p = paint_get_active(CTX_data_scene(C));
+	Brush *brush = paint_brush(p);
+	
+	WM_paint_cursor_end(CTX_wm_manager(C), p->paint_cursor);
+	p->paint_cursor = NULL;
 	brush_radial_control_invoke(op, brush, 1);
 	return WM_radial_control_invoke(C, op, event);
 }
@@ -1196,7 +1127,7 @@ static int vpaint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 {
 	int ret = WM_radial_control_modal(C, op, event);
 	if(ret != OPERATOR_RUNNING_MODAL)
-		toggle_paint_cursor(C, 0);
+		paint_cursor_start(C, vp_poll);
 	return ret;
 }
 
@@ -1208,8 +1139,11 @@ static int vpaint_radial_control_exec(bContext *C, wmOperator *op)
 
 static int wpaint_radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	Brush *brush = paint_brush(&CTX_data_scene(C)->toolsettings->wpaint->paint);
-	toggle_paint_cursor(C, 1);
+	Paint *p = paint_get_active(CTX_data_scene(C));
+	Brush *brush = paint_brush(p);
+	
+	WM_paint_cursor_end(CTX_wm_manager(C), p->paint_cursor);
+	p->paint_cursor = NULL;
 	brush_radial_control_invoke(op, brush, 1);
 	return WM_radial_control_invoke(C, op, event);
 }
@@ -1218,7 +1152,7 @@ static int wpaint_radial_control_modal(bContext *C, wmOperator *op, wmEvent *eve
 {
 	int ret = WM_radial_control_modal(C, op, event);
 	if(ret != OPERATOR_RUNNING_MODAL)
-		toggle_paint_cursor(C, 1);
+		paint_cursor_start(C, wp_poll);
 	return ret;
 }
 
@@ -1270,207 +1204,10 @@ struct WPaintData {
 	float wpimat[3][3];
 };
 
-static void wpaint_exit(bContext *C, wmOperator *op)
-{
-	ToolSettings *ts= CTX_data_tool_settings(C);
-	Object *ob= CTX_data_active_object(C);
-	struct WPaintData *wpd= op->customdata;
-	
-	if(wpd->vertexcosnos)
-		MEM_freeN(wpd->vertexcosnos);
-	MEM_freeN(wpd->indexar);
-	
-	/* frees prev buffer */
-	copy_wpaint_prev(ts->wpaint, NULL, 0);
-	
-	/* and particles too */
-	if(ob->particlesystem.first) {
-		ParticleSystem *psys;
-		int i;
-		
-		for(psys= ob->particlesystem.first; psys; psys= psys->next) {
-			for(i=0; i<PSYS_TOT_VG; i++) {
-				if(psys->vgroup[i]==ob->actdef) {
-					psys->recalc |= PSYS_RECALC_RESET;
-					break;
-				}
-			}
-		}
-	}
-	
-	DAG_object_flush_update(CTX_data_scene(C), ob, OB_RECALC_DATA);
-	
-	MEM_freeN(wpd);
-	op->customdata= NULL;
-}
-
-
-static int wpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
-{
-	ToolSettings *ts= CTX_data_tool_settings(C);
-	VPaint *wp= ts->wpaint;
-	Brush *brush = paint_brush(&wp->paint);
-	
-	switch(event->type) {
-		case LEFTMOUSE:
-			if(event->val==0) { /* release */
-				wpaint_exit(C, op);
-				return OPERATOR_FINISHED;
-			}
-			/* pass on, first press gets painted too */
-			
-		case MOUSEMOVE: 
-		{
-			struct WPaintData *wpd= op->customdata;
-			ViewContext *vc= &wpd->vc;
-			Object *ob= vc->obact;
-			Mesh *me= ob->data;
-			float mat[4][4];
-			float paintweight= ts->vgroup_weight;
-			int *indexar= wpd->indexar;
-			int totindex, index, alpha, totw;
-			short mval[2];
-			
-			view3d_operator_needs_opengl(C);
-			
-			/* load projection matrix */
-			wmMultMatrix(ob->obmat);
-			wmGetSingleMatrix(mat);
-			wmLoadMatrix(wpd->vc.rv3d->viewmat);
-			
-			MTC_Mat4SwapMat4(wpd->vc.rv3d->persmat, mat);
-			
-			mval[0]= event->x - vc->ar->winrct.xmin;
-			mval[1]= event->y - vc->ar->winrct.ymin;
-			
-			/* which faces are involved */
-			if(wp->flag & VP_AREA) {
-				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush->size);
-			}
-			else {
-				indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
-				if(indexar[0]) totindex= 1;
-				else totindex= 0;
-			}
-			
-			if(wp->flag & VP_COLINDEX) {
-				for(index=0; index<totindex; index++) {
-					if(indexar[index] && indexar[index]<=me->totface) {
-						MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
-						
-						if(mface->mat_nr!=ob->actcol-1) {
-							indexar[index]= 0;
-						}
-					}					
-				}
-			}
-			
-			if((G.f & G_FACESELECT) && me->mface) {
-				for(index=0; index<totindex; index++) {
-					if(indexar[index] && indexar[index]<=me->totface) {
-						MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
-						
-						if((mface->flag & ME_FACE_SEL)==0) {
-							indexar[index]= 0;
-						}
-					}					
-				}
-			}
-			
-			/* make sure each vertex gets treated only once */
-			/* and calculate filter weight */
-			totw= 0;
-			if(wp->mode==VP_BLUR) 
-				paintweight= 0.0f;
-			else
-				paintweight= ts->vgroup_weight;
-			
-			for(index=0; index<totindex; index++) {
-				if(indexar[index] && indexar[index]<=me->totface) {
-					MFace *mface= me->mface + (indexar[index]-1);
-					
-					(me->dvert+mface->v1)->flag= 1;
-					(me->dvert+mface->v2)->flag= 1;
-					(me->dvert+mface->v3)->flag= 1;
-					if(mface->v4) (me->dvert+mface->v4)->flag= 1;
-					
-					if(wp->mode==VP_BLUR) {
-						MDeformWeight *dw, *(*dw_func)(MDeformVert *, int) = verify_defweight;
-						
-						if(wp->flag & VP_ONLYVGROUP)
-							dw_func= get_defweight;
-						
-						dw= dw_func(me->dvert+mface->v1, ob->actdef-1);
-						if(dw) {paintweight+= dw->weight; totw++;}
-						dw= dw_func(me->dvert+mface->v2, ob->actdef-1);
-						if(dw) {paintweight+= dw->weight; totw++;}
-						dw= dw_func(me->dvert+mface->v3, ob->actdef-1);
-						if(dw) {paintweight+= dw->weight; totw++;}
-						if(mface->v4) {
-							dw= dw_func(me->dvert+mface->v4, ob->actdef-1);
-							if(dw) {paintweight+= dw->weight; totw++;}
-						}
-					}
-				}
-			}
-			
-			if(wp->mode==VP_BLUR) 
-				paintweight/= (float)totw;
-			
-			for(index=0; index<totindex; index++) {
-				
-				if(indexar[index] && indexar[index]<=me->totface) {
-					MFace *mface= me->mface + (indexar[index]-1);
-					
-					if((me->dvert+mface->v1)->flag) {
-						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v1, mval);
-						if(alpha) {
-							do_weight_paint_vertex(wp, ob, mface->v1, alpha, paintweight, wpd->vgroup_mirror);
-						}
-						(me->dvert+mface->v1)->flag= 0;
-					}
-					
-					if((me->dvert+mface->v2)->flag) {
-						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v2, mval);
-						if(alpha) {
-							do_weight_paint_vertex(wp, ob, mface->v2, alpha, paintweight, wpd->vgroup_mirror);
-						}
-						(me->dvert+mface->v2)->flag= 0;
-					}
-					
-					if((me->dvert+mface->v3)->flag) {
-						alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v3, mval);
-						if(alpha) {
-							do_weight_paint_vertex(wp, ob, mface->v3, alpha, paintweight, wpd->vgroup_mirror);
-						}
-						(me->dvert+mface->v3)->flag= 0;
-					}
-					
-					if((me->dvert+mface->v4)->flag) {
-						if(mface->v4) {
-							alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v4, mval);
-							if(alpha) {
-								do_weight_paint_vertex(wp, ob, mface->v4, alpha, paintweight, wpd->vgroup_mirror);
-							}
-							(me->dvert+mface->v4)->flag= 0;
-						}
-					}
-				}
-			}
-			
-			MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
-			
-			DAG_object_flush_update(vc->scene, ob, OB_RECALC_DATA);
-			ED_region_tag_redraw(vc->ar);
-		}
-	}
-
-	return OPERATOR_RUNNING_MODAL;
-}
-
-static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Scene *scene= CTX_data_scene(C);
+	struct PaintStroke *stroke = op->customdata;
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	VPaint *wp= ts->wpaint;
 	Object *ob= CTX_data_active_object(C);
@@ -1479,7 +1216,6 @@ static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	float mat[4][4], imat[4][4];
 	
 	if(scene->obedit) return OPERATOR_CANCELLED;
-	// XXX	if(multires_level1_test()) return;
 	
 	me= get_mesh(ob);
 	if(me==NULL || me->totface==0) return OPERATOR_PASS_THROUGH;
@@ -1488,8 +1224,9 @@ static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if (!me->dvert)
 		create_dverts(&me->id);
 	
-	/* make customdata storage */
-	op->customdata= wpd= MEM_callocN(sizeof(struct WPaintData), "WPaintData");
+	/* make mode data storage */
+	wpd= MEM_callocN(sizeof(struct WPaintData), "WPaintData");
+	paint_stroke_set_mode_data(stroke, wpd);
 	view3d_set_viewcontext(C, &wpd->vc);
 	wpd->vgroup_mirror= -1;
 	
@@ -1561,11 +1298,203 @@ static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 	
-	/* do paint once for click only paint */
-	wpaint_modal(C, op, event);
+	return 1;
+}
+
+static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
+{
+	ToolSettings *ts= CTX_data_tool_settings(C);
+	VPaint *wp= ts->wpaint;
+	Brush *brush = paint_brush(&wp->paint);
+	struct WPaintData *wpd= paint_stroke_mode_data(stroke);
+	ViewContext *vc= &wpd->vc;
+	Object *ob= vc->obact;
+	Mesh *me= ob->data;
+	float mat[4][4];
+	float paintweight= ts->vgroup_weight;
+	int *indexar= wpd->indexar;
+	int totindex, index, alpha, totw;
+	float mval[2];
+
+	view3d_operator_needs_opengl(C);
+			
+	/* load projection matrix */
+	wmMultMatrix(ob->obmat);
+	wmGetSingleMatrix(mat);
+	wmLoadMatrix(wpd->vc.rv3d->viewmat);
+
+	RNA_float_get_array(itemptr, "mouse", mval);
+	mval[0]-= vc->ar->winrct.xmin;
+	mval[1]-= vc->ar->winrct.ymin;
+			
+	MTC_Mat4SwapMat4(wpd->vc.rv3d->persmat, mat);
+			
+	/* which faces are involved */
+	if(wp->flag & VP_AREA) {
+		totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush->size);
+	}
+	else {
+		indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
+		if(indexar[0]) totindex= 1;
+		else totindex= 0;
+	}
+			
+	if(wp->flag & VP_COLINDEX) {
+		for(index=0; index<totindex; index++) {
+			if(indexar[index] && indexar[index]<=me->totface) {
+				MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
+						
+				if(mface->mat_nr!=ob->actcol-1) {
+					indexar[index]= 0;
+				}
+			}					
+		}
+	}
+			
+	if((G.f & G_FACESELECT) && me->mface) {
+		for(index=0; index<totindex; index++) {
+			if(indexar[index] && indexar[index]<=me->totface) {
+				MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
+						
+				if((mface->flag & ME_FACE_SEL)==0) {
+					indexar[index]= 0;
+				}
+			}					
+		}
+	}
+			
+	/* make sure each vertex gets treated only once */
+	/* and calculate filter weight */
+	totw= 0;
+	if(wp->mode==VP_BLUR) 
+		paintweight= 0.0f;
+	else
+		paintweight= ts->vgroup_weight;
+			
+	for(index=0; index<totindex; index++) {
+		if(indexar[index] && indexar[index]<=me->totface) {
+			MFace *mface= me->mface + (indexar[index]-1);
+					
+			(me->dvert+mface->v1)->flag= 1;
+			(me->dvert+mface->v2)->flag= 1;
+			(me->dvert+mface->v3)->flag= 1;
+			if(mface->v4) (me->dvert+mface->v4)->flag= 1;
+					
+			if(wp->mode==VP_BLUR) {
+				MDeformWeight *dw, *(*dw_func)(MDeformVert *, int) = verify_defweight;
+						
+				if(wp->flag & VP_ONLYVGROUP)
+					dw_func= get_defweight;
+						
+				dw= dw_func(me->dvert+mface->v1, ob->actdef-1);
+				if(dw) {paintweight+= dw->weight; totw++;}
+				dw= dw_func(me->dvert+mface->v2, ob->actdef-1);
+				if(dw) {paintweight+= dw->weight; totw++;}
+				dw= dw_func(me->dvert+mface->v3, ob->actdef-1);
+				if(dw) {paintweight+= dw->weight; totw++;}
+				if(mface->v4) {
+					dw= dw_func(me->dvert+mface->v4, ob->actdef-1);
+					if(dw) {paintweight+= dw->weight; totw++;}
+				}
+			}
+		}
+	}
+			
+	if(wp->mode==VP_BLUR) 
+		paintweight/= (float)totw;
+			
+	for(index=0; index<totindex; index++) {
+				
+		if(indexar[index] && indexar[index]<=me->totface) {
+			MFace *mface= me->mface + (indexar[index]-1);
+					
+			if((me->dvert+mface->v1)->flag) {
+				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v1, mval);
+				if(alpha) {
+					do_weight_paint_vertex(wp, ob, mface->v1, alpha, paintweight, wpd->vgroup_mirror);
+				}
+				(me->dvert+mface->v1)->flag= 0;
+			}
+					
+			if((me->dvert+mface->v2)->flag) {
+				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v2, mval);
+				if(alpha) {
+					do_weight_paint_vertex(wp, ob, mface->v2, alpha, paintweight, wpd->vgroup_mirror);
+				}
+				(me->dvert+mface->v2)->flag= 0;
+			}
+					
+			if((me->dvert+mface->v3)->flag) {
+				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v3, mval);
+				if(alpha) {
+					do_weight_paint_vertex(wp, ob, mface->v3, alpha, paintweight, wpd->vgroup_mirror);
+				}
+				(me->dvert+mface->v3)->flag= 0;
+			}
+					
+			if((me->dvert+mface->v4)->flag) {
+				if(mface->v4) {
+					alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v4, mval);
+					if(alpha) {
+						do_weight_paint_vertex(wp, ob, mface->v4, alpha, paintweight, wpd->vgroup_mirror);
+					}
+					(me->dvert+mface->v4)->flag= 0;
+				}
+			}
+		}
+	}
+			
+	MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
+			
+	DAG_object_flush_update(vc->scene, ob, OB_RECALC_DATA);
+	ED_region_tag_redraw(vc->ar);
+}
+
+static void wpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
+{
+	ToolSettings *ts= CTX_data_tool_settings(C);
+	Object *ob= CTX_data_active_object(C);
+	struct WPaintData *wpd= paint_stroke_mode_data(stroke);
+	
+	if(wpd->vertexcosnos)
+		MEM_freeN(wpd->vertexcosnos);
+	MEM_freeN(wpd->indexar);
+	
+	/* frees prev buffer */
+	copy_wpaint_prev(ts->wpaint, NULL, 0);
+	
+	/* and particles too */
+	if(ob->particlesystem.first) {
+		ParticleSystem *psys;
+		int i;
+		
+		for(psys= ob->particlesystem.first; psys; psys= psys->next) {
+			for(i=0; i<PSYS_TOT_VG; i++) {
+				if(psys->vgroup[i]==ob->actdef) {
+					psys->recalc |= PSYS_RECALC_RESET;
+					break;
+				}
+			}
+		}
+	}
+	
+	DAG_object_flush_update(CTX_data_scene(C), ob, OB_RECALC_DATA);
+	
+	MEM_freeN(wpd);
+}
+
+
+static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	
+	op->customdata = paint_stroke_new(C, wpaint_stroke_test_start,
+					  wpaint_stroke_update_step,
+					  wpaint_stroke_done);
 	
 	/* add modal handler */
 	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+
+	op->type->modal(C, op, event);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -1579,13 +1508,14 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= wpaint_invoke;
-	ot->modal= wpaint_modal;
+	ot->modal= paint_stroke_modal;
 	/* ot->exec= vpaint_exec; <-- needs stroke property */
 	ot->poll= wp_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
-	
+
+	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
 
 /* ************ set / clear vertex paint mode ********** */
@@ -1617,11 +1547,6 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 	if(ob->mode & OB_MODE_VERTEX_PAINT) {
 		
 		ob->mode &= ~OB_MODE_VERTEX_PAINT;
-		
-		if(vp) {
-			toggle_paint_cursor(C, 0);
-			vp->paintcursor= NULL;
-		}
 	}
 	else {
 		ob->mode |= OB_MODE_VERTEX_PAINT;
@@ -1632,9 +1557,9 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 		if(vp==NULL)
 			vp= scene->toolsettings->vpaint= new_vpaint(0);
 		
-		toggle_paint_cursor(C, 0);
+		paint_cursor_start(C, vp_poll);
 
-		paint_init(&vp->paint, "Brush");
+		paint_init(&vp->paint, PAINT_CURSOR_VERTEX_PAINT);
 	}
 	
 	if (me)
@@ -1693,150 +1618,16 @@ struct VPaintData {
 	float vpimat[3][3];
 };
 
-static void vpaint_exit(bContext *C, wmOperator *op)
+static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent *event)
 {
 	ToolSettings *ts= CTX_data_tool_settings(C);
-	struct VPaintData *vpd= op->customdata;
-	
-	if(vpd->vertexcosnos)
-		MEM_freeN(vpd->vertexcosnos);
-	MEM_freeN(vpd->indexar);
-	
-	/* frees prev buffer */
-	copy_vpaint_prev(ts->vpaint, NULL, 0);
-	
-	MEM_freeN(vpd);
-	op->customdata= NULL;
-}
-
-static int vpaint_modal(bContext *C, wmOperator *op, wmEvent *event)
-{
-	ToolSettings *ts= CTX_data_tool_settings(C);
-	VPaint *vp= ts->vpaint;
-	Brush *brush = paint_brush(&vp->paint);
-	
-	switch(event->type) {
-		case LEFTMOUSE:
-			if(event->val==0) { /* release */
-				vpaint_exit(C, op);
-				return OPERATOR_FINISHED;
-			}
-			/* pass on, first press gets painted too */
-			
-		case MOUSEMOVE: 
-		{
-			struct VPaintData *vpd= op->customdata;
-			ViewContext *vc= &vpd->vc;
-			Object *ob= vc->obact;
-			Mesh *me= ob->data;
-			float mat[4][4];
-			int *indexar= vpd->indexar;
-			int totindex, index;
-			short mval[2];
-			
-			view3d_operator_needs_opengl(C);
-			
-			/* load projection matrix */
-			wmMultMatrix(ob->obmat);
-			wmGetSingleMatrix(mat);
-			wmLoadMatrix(vc->rv3d->viewmat);
-			
-			mval[0]= event->x - vc->ar->winrct.xmin;
-			mval[1]= event->y - vc->ar->winrct.ymin;
-				
-			/* which faces are involved */
-			if(vp->flag & VP_AREA) {
-				totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush->size);
-			}
-			else {
-				indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
-				if(indexar[0]) totindex= 1;
-				else totindex= 0;
-			}
-			
-			MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
-			
-			if(vp->flag & VP_COLINDEX) {
-				for(index=0; index<totindex; index++) {
-					if(indexar[index] && indexar[index]<=me->totface) {
-						MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
-						
-						if(mface->mat_nr!=ob->actcol-1) {
-							indexar[index]= 0;
-						}
-					}					
-				}
-			}
-			if((G.f & G_FACESELECT) && me->mface) {
-				for(index=0; index<totindex; index++) {
-					if(indexar[index] && indexar[index]<=me->totface) {
-						MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
-						
-						if((mface->flag & ME_FACE_SEL)==0)
-							indexar[index]= 0;
-					}					
-				}
-			}
-			
-			for(index=0; index<totindex; index++) {
-				
-				if(indexar[index] && indexar[index]<=me->totface) {
-					MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
-					unsigned int *mcol=	  ( (unsigned int *)me->mcol) + 4*(indexar[index]-1);
-					unsigned int *mcolorig= ( (unsigned int *)vp->vpaint_prev) + 4*(indexar[index]-1);
-					int alpha;
-					
-					if(vp->mode==VP_BLUR) {
-						unsigned int fcol1= mcol_blend( mcol[0], mcol[1], 128);
-						if(mface->v4) {
-							unsigned int fcol2= mcol_blend( mcol[2], mcol[3], 128);
-							vpd->paintcol= mcol_blend( fcol1, fcol2, 128);
-						}
-						else {
-							vpd->paintcol= mcol_blend( mcol[2], fcol1, 170);
-						}
-						
-					}
-					
-					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v1, mval);
-					if(alpha) vpaint_blend(vp, mcol, mcolorig, vpd->paintcol, alpha);
-					
-					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v2, mval);
-					if(alpha) vpaint_blend(vp, mcol+1, mcolorig+1, vpd->paintcol, alpha);
-					
-					alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v3, mval);
-					if(alpha) vpaint_blend(vp, mcol+2, mcolorig+2, vpd->paintcol, alpha);
-					
-					if(mface->v4) {
-						alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v4, mval);
-						if(alpha) vpaint_blend(vp, mcol+3, mcolorig+3, vpd->paintcol, alpha);
-					}
-				}
-			}
-						
-			MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
-			
-			do_shared_vertexcol(me);
-			
-			ED_region_tag_redraw(vc->ar);
-			
-			DAG_object_flush_update(vc->scene, ob, OB_RECALC_DATA);
-		}
-		break;
-	}	
-
-	return OPERATOR_RUNNING_MODAL;
-}
-
-static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	ToolSettings *ts= CTX_data_tool_settings(C);
+	struct PaintStroke *stroke = op->customdata;
 	VPaint *vp= ts->vpaint;
 	struct VPaintData *vpd;
 	Object *ob= CTX_data_active_object(C);
 	Mesh *me;
 	float mat[4][4], imat[4][4];
-	
+
 	/* context checks could be a poll() */
 	me= get_mesh(ob);
 	if(me==NULL || me->totface==0) return OPERATOR_PASS_THROUGH;
@@ -1844,8 +1635,9 @@ static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	if(me->mcol==NULL) make_vertexcol(CTX_data_scene(C), 0);
 	if(me->mcol==NULL) return OPERATOR_CANCELLED;
 	
-	/* make customdata storage */
-	op->customdata= vpd= MEM_callocN(sizeof(struct VPaintData), "VPaintData");
+	/* make mode data storage */
+	vpd= MEM_callocN(sizeof(struct VPaintData), "VPaintData");
+	paint_stroke_set_mode_data(stroke, vpd);
 	view3d_set_viewcontext(C, &vpd->vc);
 	
 	vpd->vertexcosnos= mesh_get_mapped_verts_nors(vpd->vc.scene, ob);
@@ -1859,12 +1651,142 @@ static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	Mat4MulMat4(mat, ob->obmat, vpd->vc.rv3d->viewmat);
 	Mat4Invert(imat, mat);
 	Mat3CpyMat4(vpd->vpimat, imat);
+
+	return 1;
+}
+
+static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
+{
+	ToolSettings *ts= CTX_data_tool_settings(C);
+	struct VPaintData *vpd = paint_stroke_mode_data(stroke);
+	VPaint *vp= ts->vpaint;
+	Brush *brush = paint_brush(&vp->paint);
+	ViewContext *vc= &vpd->vc;
+	Object *ob= vc->obact;
+	Mesh *me= ob->data;
+	float mat[4][4];
+	int *indexar= vpd->indexar;
+	int totindex, index;
+	float mval[2];
+
+	RNA_float_get_array(itemptr, "mouse", mval);
+			
+	view3d_operator_needs_opengl(C);
+			
+	/* load projection matrix */
+	wmMultMatrix(ob->obmat);
+	wmGetSingleMatrix(mat);
+	wmLoadMatrix(vc->rv3d->viewmat);
+
+	mval[0]-= vc->ar->winrct.xmin;
+	mval[1]-= vc->ar->winrct.ymin;
+
+			
+	/* which faces are involved */
+	if(vp->flag & VP_AREA) {
+		totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush->size);
+	}
+	else {
+		indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
+		if(indexar[0]) totindex= 1;
+		else totindex= 0;
+	}
+			
+	MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
+			
+	if(vp->flag & VP_COLINDEX) {
+		for(index=0; index<totindex; index++) {
+			if(indexar[index] && indexar[index]<=me->totface) {
+				MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
+						
+				if(mface->mat_nr!=ob->actcol-1) {
+					indexar[index]= 0;
+				}
+			}					
+		}
+	}
+	if((G.f & G_FACESELECT) && me->mface) {
+		for(index=0; index<totindex; index++) {
+			if(indexar[index] && indexar[index]<=me->totface) {
+				MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
+						
+				if((mface->flag & ME_FACE_SEL)==0)
+					indexar[index]= 0;
+			}					
+		}
+	}
+			
+	for(index=0; index<totindex; index++) {
+				
+		if(indexar[index] && indexar[index]<=me->totface) {
+			MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
+			unsigned int *mcol=	  ( (unsigned int *)me->mcol) + 4*(indexar[index]-1);
+			unsigned int *mcolorig= ( (unsigned int *)vp->vpaint_prev) + 4*(indexar[index]-1);
+			int alpha;
+					
+			if(vp->mode==VP_BLUR) {
+				unsigned int fcol1= mcol_blend( mcol[0], mcol[1], 128);
+				if(mface->v4) {
+					unsigned int fcol2= mcol_blend( mcol[2], mcol[3], 128);
+					vpd->paintcol= mcol_blend( fcol1, fcol2, 128);
+				}
+				else {
+					vpd->paintcol= mcol_blend( mcol[2], fcol1, 170);
+				}
+						
+			}
+					
+			alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v1, mval);
+			if(alpha) vpaint_blend(vp, mcol, mcolorig, vpd->paintcol, alpha);
+					
+			alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v2, mval);
+			if(alpha) vpaint_blend(vp, mcol+1, mcolorig+1, vpd->paintcol, alpha);
+					
+			alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v3, mval);
+			if(alpha) vpaint_blend(vp, mcol+2, mcolorig+2, vpd->paintcol, alpha);
+					
+			if(mface->v4) {
+				alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v4, mval);
+				if(alpha) vpaint_blend(vp, mcol+3, mcolorig+3, vpd->paintcol, alpha);
+			}
+		}
+	}
+						
+	MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
+			
+	do_shared_vertexcol(me);
+			
+	ED_region_tag_redraw(vc->ar);
+			
+	DAG_object_flush_update(vc->scene, ob, OB_RECALC_DATA);
+}
+
+static void vpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
+{
+	ToolSettings *ts= CTX_data_tool_settings(C);
+	struct VPaintData *vpd= paint_stroke_mode_data(stroke);
 	
-	/* do paint once for click only paint */
-	vpaint_modal(C, op, event);
+	if(vpd->vertexcosnos)
+		MEM_freeN(vpd->vertexcosnos);
+	MEM_freeN(vpd->indexar);
+	
+	/* frees prev buffer */
+	copy_vpaint_prev(ts->vpaint, NULL, 0);
+	
+	MEM_freeN(vpd);
+}
+
+static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	
+	op->customdata = paint_stroke_new(C, vpaint_stroke_test_start,
+					  vpaint_stroke_update_step,
+					  vpaint_stroke_done);
 	
 	/* add modal handler */
 	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
+
+	op->type->modal(C, op, event);
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -1877,11 +1799,13 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= vpaint_invoke;
-	ot->modal= vpaint_modal;
+	ot->modal= paint_stroke_modal;
 	/* ot->exec= vpaint_exec; <-- needs stroke property */
 	ot->poll= vp_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+
+	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
 

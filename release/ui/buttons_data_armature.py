@@ -2,8 +2,8 @@
 import bpy
  
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "data"
 	
 	def poll(self, context):
@@ -90,8 +90,8 @@ class DATA_PT_bone_groups(DataButtonsPanel):
 		
 		col = row.column(align=True)
 		col.active = (ob.proxy == None)
-		col.itemO("pose.group_add", icon="ICON_ZOOMIN", text="")
-		col.itemO("pose.group_remove", icon="ICON_ZOOMOUT", text="")
+		col.itemO("pose.group_add", icon='ICON_ZOOMIN', text="")
+		col.itemO("pose.group_remove", icon='ICON_ZOOMOUT', text="")
 		
 		group = pose.active_bone_group
 		if group:

@@ -70,7 +70,9 @@ OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" 
 OPTION(WITH_WEBPLUGIN     "Enable Web Plugin (Unix only)" OFF)
 OPTION(WITH_FFTW3         "Enable FFTW3 support" OFF)
 OPTION(WITH_JACK          "Enable Jack Support (http://www.jackaudio.org)" OFF)
+OPTION(WITH_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
 OPTION(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation" OFF)
+# OPTION(WITH_BUILDINFO     "Include extra build details" ON)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
@@ -108,6 +110,13 @@ IF(UNIX AND NOT APPLE)
     SET(JACK_LIB jack)
     SET(JACK_LIBPATH ${JACK}/lib)
   ENDIF(WITH_JACK)
+
+  IF(WITH_SNDFILE)
+	SET(SNDFILE /usr)
+	SET(SNDFILE_INC ${SNDFILE}/include)
+	SET(SNDFILE_LIB sndfile)
+	SET(SNDFILE_LIBPATH ${SNDFILE}/lib)
+  ENDIF(WITH_SNDFILE)
 
   FIND_LIBRARY(INTL_LIBRARY
     NAMES intl
@@ -204,7 +213,7 @@ IF(UNIX AND NOT APPLE)
   SET(PLATFORM_LINKFLAGS "-pthread")
 
   # Better warnings
-  SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wnested-externs -Wdeclaration-after-statement")
+  SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement")
   SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
 
   INCLUDE_DIRECTORIES(${JPEG_INCLUDE_DIR} ${PNG_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} )
@@ -247,6 +256,13 @@ IF(WIN32)
     SET(JACK_LIBPATH ${JACK}/lib)
   ENDIF(WITH_JACK)
 
+  IF(WITH_SNDFILE)
+	SET(SNDFILE ${LIBDIR}/sndfile)
+	SET(SNDFILE_INC ${SNDFILE}/include)
+	SET(SNDFILE_LIB sndfile)
+	SET(SNDFILE_LIBPATH ${SNDFILE}/lib)
+  ENDIF(WITH_SNDFILE)
+
   IF(CMAKE_CL_64)
     SET(PNG_LIBRARIES libpng)
   ELSE(CMAKE_CL_64)
@@ -256,7 +272,11 @@ IF(WIN32)
 
   SET(ZLIB ${LIBDIR}/zlib)
   SET(ZLIB_INC ${ZLIB}/include)
-  SET(ZLIB_LIBRARIES zlib)
+  IF(CMAKE_CL_64)
+    SET(ZLIB_LIBRARIES libz)
+  ELSE(CMAKE_CL_64)
+    SET(ZLIB_LIBRARIES zlib)
+  ENDIF(CMAKE_CL_64)
   SET(ZLIB_LIBPATH ${ZLIB}/lib)
   
   SET(PTHREADS ${LIBDIR}/pthreads)
@@ -279,7 +299,7 @@ IF(WIN32)
   SET(GETTEXT ${LIBDIR}/gettext)
   SET(GETTEXT_INC ${GETTEXT}/include)
   IF(CMAKE_CL_64)
-    SET(GETTEXT_LIB gettextlib)
+    SET(GETTEXT_LIB gettext)
   ELSE(CMAKE_CL_64)
     SET(GETTEXT_LIB gnu_gettext)
   ENDIF(CMAKE_CL_64)
@@ -388,6 +408,13 @@ IF(APPLE)
     SET(JACK_LIBPATH ${JACK}/lib)
   ENDIF(WITH_JACK)
 
+  IF(WITH_SNDFILE)
+	SET(SNDFILE /usr)
+	SET(SNDFILE_INC ${SNDFILE}/include)
+	SET(SNDFILE_LIB sndfile)
+	SET(SNDFILE_LIBPATH ${SNDFILE}/lib)
+  ENDIF(WITH_SNDFILE)
+
   SET(PYTHON_VERSION 3.1)
 
   IF(PYTHON_VERSION MATCHES 3.1)
@@ -484,6 +511,17 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
   SET(BINRELOC ${CMAKE_SOURCE_DIR}/extern/binreloc)
   SET(BINRELOC_INC ${BINRELOC}/include)
 ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
+
+
+# TODO - buildinfo
+# IF(UNIX)
+#   IF(WITH_BUILDINFO)
+#     EXEC_PROGRAM("date \"+%Y-%m-%d\"" OUTPUT_VARIABLE BUILD_DATE)
+#     EXEC_PROGRAM("date \"+%H:%M:%S\"" OUTPUT_VARIABLE BUILD_TIME)  
+#     EXEC_PROGRAM("svnversion ${CMAKE_SOURCE_DIR}" OUTPUT_VARIABLE BUILD_REV)
+#     SET(BUILD_TYPE ${CMAKE_BUILD_TYPE})
+#   ENDIF(WITH_BUILDINFO)
+# ENDIF(UNIX)
 
 #-----------------------------------------------------------------------------
 # Common.

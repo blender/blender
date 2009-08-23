@@ -81,25 +81,9 @@ WTURBULENCE::WTURBULENCE(int xResSm, int yResSm, int zResSm, int amplify, int no
 	_densityBig = new float[_totalCellsBig];
 	_densityBigOld = new float[_totalCellsBig]; 
 	
-	// allocate high resolution velocity field. Note that this is only
-	// necessary because we use MacCormack advection. For semi-Lagrangian
-	// advection, these arrays are not necessary.
-	_tempBig1 = _tempBig2 = 
-	_bigUx = _bigUy = _bigUz = NULL;
-	_tempBig1 = new float[_totalCellsBig];
-	_tempBig2 = new float[_totalCellsBig];
-	_bigUx = new float[_totalCellsBig];
-	_bigUy = new float[_totalCellsBig];
-	_bigUz = new float[_totalCellsBig]; 
-	
 	for(int i = 0; i < _totalCellsBig; i++) {
 		_densityBig[i] = 
-		_densityBigOld[i] = 
-		_bigUx[i] =  
-		_bigUy[i] =  
-		_bigUz[i] =  
-		_tempBig1[i] =  
-		_tempBig2[i] = 0.;
+		_densityBigOld[i] = 0.;
 	}
 	
 	// allocate & init texture coordinates
@@ -153,12 +137,6 @@ WTURBULENCE::WTURBULENCE(int xResSm, int yResSm, int zResSm, int amplify, int no
 WTURBULENCE::~WTURBULENCE() {
   delete[] _densityBig;
   delete[] _densityBigOld;
-
-  delete[] _bigUx;
-  delete[] _bigUy;
-  delete[] _bigUz;
-  delete[] _tempBig1;
-  delete[] _tempBig2;
 
   delete[] _tcU;
   delete[] _tcV;
@@ -315,7 +293,7 @@ static float minDz(int x, int y, int z, float* input, Vec3Int res)
 // handle texture coordinates (advection, reset, eigenvalues), 
 // Beware -- uses big density maccormack as temporary arrays
 ////////////////////////////////////////////////////////////////////// 
-void WTURBULENCE::advectTextureCoordinates (float dtOrg, float* xvel, float* yvel, float* zvel) {
+void WTURBULENCE::advectTextureCoordinates (float dtOrg, float* xvel, float* yvel, float* zvel, float *_tempBig1, float *_tempBig2) {
   // advection
   SWAP_POINTERS(_tcTemp, _tcU);
   FLUID_3D::copyBorderX(_tcTemp, _resSm);
@@ -602,12 +580,32 @@ Vec3 WTURBULENCE::WVelocityWithJacobian(Vec3 orgPos, float* xUnwarped, float* yU
 //////////////////////////////////////////////////////////////////////
 void WTURBULENCE::stepTurbulenceReadable(float dtOrg, float* xvel, float* yvel, float* zvel, unsigned char *obstacles) 
 {
+  // big velocity macCormack fields
+	float* _bigUx;
+	float* _bigUy;
+	float* _bigUz;
+
+	// temp arrays for BFECC and MacCormack - they have more convenient
+	// names in the actual implementations
+	float* _tempBig1;
+	float* _tempBig2;
+
+	// allocate high resolution velocity field. Note that this is only
+	// necessary because we use MacCormack advection. For semi-Lagrangian
+	// advection, these arrays are not necessary.
+	_tempBig1 = new float[_totalCellsBig];
+	_tempBig2 = new float[_totalCellsBig];
+
   // enlarge timestep to match grid
   const float dt = dtOrg * _amplify;
   const float invAmp = 1.0f / _amplify;
 
+  _bigUx = new float[_totalCellsBig];
+  _bigUy = new float[_totalCellsBig];
+  _bigUz = new float[_totalCellsBig]; 
+
   // prepare textures
-  advectTextureCoordinates(dtOrg, xvel,yvel,zvel);
+  advectTextureCoordinates(dtOrg, xvel,yvel,zvel, _tempBig1, _tempBig2);
 
   // compute eigenvalues of the texture coordinates
   computeEigenvalues();
@@ -744,6 +742,13 @@ void WTURBULENCE::stepTurbulenceReadable(float dtOrg, float* xvel, float* yvel, 
   IMAGE::dumpPBRT(_totalStepsBig, pbrtPrefix, _densityBig, _resBig[0],_resBig[1],_resBig[2]);
 	*/
   _totalStepsBig++;
+
+  	delete[] _bigUx;
+	delete[] _bigUy;
+	delete[] _bigUz;
+
+	delete[] _tempBig1;
+    delete[] _tempBig2;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -752,225 +757,257 @@ void WTURBULENCE::stepTurbulenceReadable(float dtOrg, float* xvel, float* yvel, 
 //////////////////////////////////////////////////////////////////////
 void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, float* zvel, unsigned char *obstacles)
 {
-  // enlarge timestep to match grid
-  const float dt = dtOrg * _amplify;
-  const float invAmp = 1.0f / _amplify;
+	// big velocity macCormack fields
+	float* _bigUx;
+	float* _bigUy;
+	float* _bigUz;
 
-  // prepare textures
-  advectTextureCoordinates(dtOrg, xvel,yvel,zvel);
+	// temp arrays for BFECC and MacCormack - they have more convenient
+	// names in the actual implementations
+	float* _tempBig1;
+	float* _tempBig2;
 
-  // do wavelet decomposition of energy
-  computeEnergy(xvel, yvel, zvel, obstacles);
-  decomposeEnergy();
+	// allocate high resolution velocity field. Note that this is only
+	// necessary because we use MacCormack advection. For semi-Lagrangian
+	// advection, these arrays are not necessary.
+	_tempBig1 = new float[_totalCellsBig];
+	_tempBig2 = new float[_totalCellsBig];
 
-  // zero out coefficients inside of the obstacle
-  for (int x = 0; x < _totalCellsSm; x++)
-    if (obstacles[x]) _energy[x] = 0.f;
+	// enlarge timestep to match grid
+	const float dt = dtOrg * _amplify;
+	const float invAmp = 1.0f / _amplify;
 
-  // parallel region setup
-  float maxVelMagThreads[8] = { -1., -1., -1., -1., -1., -1., -1., -1. };
-#if PARALLEL==1
-#pragma omp parallel
-#endif
-  { float maxVelMag1 = 0.;
-#if PARALLEL==1
-    const int id  = omp_get_thread_num(); /*, num = omp_get_num_threads(); */
-#endif
+	_bigUx = new float[_totalCellsBig];
+	_bigUy = new float[_totalCellsBig];
+	_bigUz = new float[_totalCellsBig]; 
 
-  // vector noise main loop
-#if PARALLEL==1
-#pragma omp for  schedule(static)
-#endif
-  for (int zSmall = 0; zSmall < _zResSm; zSmall++) 
-  for (int ySmall = 0; ySmall < _yResSm; ySmall++) 
-  for (int xSmall = 0; xSmall < _xResSm; xSmall++)
-  {
-    const int indexSmall = xSmall + ySmall * _xResSm + zSmall * _slabSizeSm;
+	// prepare textures
+	advectTextureCoordinates(dtOrg, xvel,yvel,zvel, _tempBig1, _tempBig2);
 
-    // compute jacobian
-    float jacobian[3][3] = {
-      { minDx(xSmall, ySmall, zSmall, _tcU, _resSm), minDx(xSmall, ySmall, zSmall, _tcV, _resSm), minDx(xSmall, ySmall, zSmall, _tcW, _resSm) } ,
-      { minDy(xSmall, ySmall, zSmall, _tcU, _resSm), minDy(xSmall, ySmall, zSmall, _tcV, _resSm), minDy(xSmall, ySmall, zSmall, _tcW, _resSm) } ,
-      { minDz(xSmall, ySmall, zSmall, _tcU, _resSm), minDz(xSmall, ySmall, zSmall, _tcV, _resSm), minDz(xSmall, ySmall, zSmall, _tcW, _resSm) }
-    };
+	// do wavelet decomposition of energy
+	computeEnergy(xvel, yvel, zvel, obstacles);
+	decomposeEnergy();
 
-    // get LU factorization of texture jacobian and apply 
-    // it to unit vectors
-    JAMA::LU<float> LU = computeLU3x3(jacobian);
-    float xUnwarped[] = {1.0f, 0.0f, 0.0f};
-    float yUnwarped[] = {0.0f, 1.0f, 0.0f};
-    float zUnwarped[] = {0.0f, 0.0f, 1.0f};
-    float xWarped[] = {1.0f, 0.0f, 0.0f};
-    float yWarped[] = {0.0f, 1.0f, 0.0f};
-    float zWarped[] = {0.0f, 0.0f, 1.0f};
-    bool nonSingular = LU.isNonsingular();
-#if 0
-	// UNUSED
-    float eigMax = 10.0f;
-    float eigMin = 0.1f;
-#endif
-    if (nonSingular)
-    {
-      solveLU3x3(LU, xUnwarped, xWarped);
-      solveLU3x3(LU, yUnwarped, yWarped);
-      solveLU3x3(LU, zUnwarped, zWarped);
+	// zero out coefficients inside of the obstacle
+	for (int x = 0; x < _totalCellsSm; x++)
+		if (obstacles[x]) _energy[x] = 0.f;
 
-      // compute the eigenvalues while we have the Jacobian available
-      Vec3 eigenvalues = Vec3(1.);
-      computeEigenvalues3x3( &eigenvalues[0], jacobian);
-      _eigMax[indexSmall] = MAX3V(eigenvalues);
-      _eigMin[indexSmall] = MIN3V(eigenvalues);
-    }
-    
-    // make sure to skip one on the beginning and end
-    int xStart = (xSmall == 0) ? 1 : 0;
-    int xEnd   = (xSmall == _xResSm - 1) ? _amplify - 1 : _amplify;
-    int yStart = (ySmall == 0) ? 1 : 0;
-    int yEnd   = (ySmall == _yResSm - 1) ? _amplify - 1 : _amplify;
-    int zStart = (zSmall == 0) ? 1 : 0;
-    int zEnd   = (zSmall == _zResSm - 1) ? _amplify - 1 : _amplify;
-      
-    for (int zBig = zStart; zBig < zEnd; zBig++) 
-    for (int yBig = yStart; yBig < yEnd; yBig++) 
-    for (int xBig = xStart; xBig < xEnd; xBig++)
-    {
-      const int x = xSmall * _amplify + xBig;
-      const int y = ySmall * _amplify + yBig;
-      const int z = zSmall * _amplify + zBig;
-      
-      // get unit position for both fine and coarse grid
-      const Vec3 pos = Vec3(x,y,z);
-      const Vec3 posSm = pos * invAmp;
-      
-      // get grid index for both fine and coarse grid
-      const int index = x + y *_xResBig + z *_slabSizeBig;
-      
-      // get a linearly interpolated velocity and texcoords
-      // from the coarse grid
-      Vec3 vel = INTERPOLATE::lerp3dVec( xvel,yvel,zvel, 
-          posSm[0], posSm[1], posSm[2], _xResSm,_yResSm,_zResSm);
-      Vec3 uvw = INTERPOLATE::lerp3dVec( _tcU,_tcV,_tcW, 
-          posSm[0], posSm[1], posSm[2], _xResSm,_yResSm,_zResSm);
+	// parallel region setup
+	float maxVelMagThreads[8] = { -1., -1., -1., -1., -1., -1., -1., -1. };
 
-      // multiply the texture coordinate by _resSm so that turbulence
-      // synthesis begins at the first octave that the coarse grid 
-      // cannot capture
-      Vec3 texCoord = Vec3(uvw[0] * _resSm[0], 
-                           uvw[1] * _resSm[1],
-                           uvw[2] * _resSm[2]); 
+	#if PARALLEL==1
+		#pragma omp parallel
+	#endif
+	  { float maxVelMag1 = 0.;
+	#if PARALLEL==1
+		const int id  = omp_get_thread_num(); /*, num = omp_get_num_threads(); */
+	#endif
 
-      // retrieve wavelet energy at highest frequency
-      float energy = INTERPOLATE::lerp3d(
-          _highFreqEnergy, posSm[0],posSm[1],posSm[2], _xResSm, _yResSm, _zResSm);
+	// vector noise main loop
+	#if PARALLEL==1
+	#pragma omp for  schedule(static)
+	#endif
+	for (int zSmall = 0; zSmall < _zResSm; zSmall++) 
+	for (int ySmall = 0; ySmall < _yResSm; ySmall++) 
+	for (int xSmall = 0; xSmall < _xResSm; xSmall++)
+	{
+		const int indexSmall = xSmall + ySmall * _xResSm + zSmall * _slabSizeSm;
 
-      // base amplitude for octave 0
-      float coefficient = sqrtf(2.0f * fabs(energy));
-      const float amplitude = *_strength * fabs(0.5 * coefficient) * persistence;
+		// compute jacobian
+		float jacobian[3][3] = {
+		  { minDx(xSmall, ySmall, zSmall, _tcU, _resSm), minDx(xSmall, ySmall, zSmall, _tcV, _resSm), minDx(xSmall, ySmall, zSmall, _tcW, _resSm) } ,
+		  { minDy(xSmall, ySmall, zSmall, _tcU, _resSm), minDy(xSmall, ySmall, zSmall, _tcV, _resSm), minDy(xSmall, ySmall, zSmall, _tcW, _resSm) } ,
+		  { minDz(xSmall, ySmall, zSmall, _tcU, _resSm), minDz(xSmall, ySmall, zSmall, _tcV, _resSm), minDz(xSmall, ySmall, zSmall, _tcW, _resSm) }
+		};
 
-      // add noise to velocity, but only if the turbulence is
-      // sufficiently undeformed, and the energy is large enough
-      // to make a difference
-      const bool addNoise = _eigMax[indexSmall] < 2. && 
-                            _eigMin[indexSmall] > 0.5;
-      if (addNoise && amplitude > _cullingThreshold) {
-        // base amplitude for octave 0
-        float amplitudeScaled = amplitude;
+		// get LU factorization of texture jacobian and apply 
+		// it to unit vectors
+		JAMA::LU<float> LU = computeLU3x3(jacobian);
+		float xUnwarped[] = {1.0f, 0.0f, 0.0f};
+		float yUnwarped[] = {0.0f, 1.0f, 0.0f};
+		float zUnwarped[] = {0.0f, 0.0f, 1.0f};
+		float xWarped[] = {1.0f, 0.0f, 0.0f};
+		float yWarped[] = {0.0f, 1.0f, 0.0f};
+		float zWarped[] = {0.0f, 0.0f, 1.0f};
+		bool nonSingular = LU.isNonsingular();
 
-        for (int octave = 0; octave < _octaves; octave++)
-        {
-          // multiply the vector noise times the maximum allowed
-          // noise amplitude at this octave, and add it to the total
-          vel += WVelocityWithJacobian(texCoord, &xUnwarped[0], &yUnwarped[0], &zUnwarped[0]) * amplitudeScaled;
+		#if 0
+			// UNUSED
+			float eigMax = 10.0f;
+			float eigMin = 0.1f;
+		#endif
 
-          // scale coefficient for next octave
-          amplitudeScaled *= persistence;
-          texCoord *= 2.0f;
-        }
-      }
+		if (nonSingular)
+		{
+			solveLU3x3(LU, xUnwarped, xWarped);
+			solveLU3x3(LU, yUnwarped, yWarped);
+			solveLU3x3(LU, zUnwarped, zWarped);
 
-      // Store velocity + turbulence in big grid for maccormack step
-      //
-      // If you wanted to save memory, you would instead perform a 
-      // semi-Lagrangian backtrace for the current grid cell here. Then
-      // you could just throw the velocity away.
-      _bigUx[index] = vel[0];
-      _bigUy[index] = vel[1];
-      _bigUz[index] = vel[2];
+			// compute the eigenvalues while we have the Jacobian available
+			Vec3 eigenvalues = Vec3(1.);
+			computeEigenvalues3x3( &eigenvalues[0], jacobian);
+			_eigMax[indexSmall] = MAX3V(eigenvalues);
+			_eigMin[indexSmall] = MIN3V(eigenvalues);
+		}
 
-      // compute the velocity magnitude for substepping later
-      const float velMag = _bigUx[index] * _bigUx[index] + 
-                           _bigUy[index] * _bigUy[index] + 
-                           _bigUz[index] * _bigUz[index];
-      if (velMag > maxVelMag1) maxVelMag1 = velMag;
+		// make sure to skip one on the beginning and end
+		int xStart = (xSmall == 0) ? 1 : 0;
+		int xEnd   = (xSmall == _xResSm - 1) ? _amplify - 1 : _amplify;
+		int yStart = (ySmall == 0) ? 1 : 0;
+		int yEnd   = (ySmall == _yResSm - 1) ? _amplify - 1 : _amplify;
+		int zStart = (zSmall == 0) ? 1 : 0;
+		int zEnd   = (zSmall == _zResSm - 1) ? _amplify - 1 : _amplify;
+		  
+		for (int zBig = zStart; zBig < zEnd; zBig++) 
+		for (int yBig = yStart; yBig < yEnd; yBig++) 
+		for (int xBig = xStart; xBig < xEnd; xBig++)
+		{
+			const int x = xSmall * _amplify + xBig;
+			const int y = ySmall * _amplify + yBig;
+			const int z = zSmall * _amplify + zBig;
 
-      // zero out velocity inside obstacles
-      float obsCheck = INTERPOLATE::lerp3dToFloat(
-          obstacles, posSm[0], posSm[1], posSm[2], _xResSm, _yResSm, _zResSm); 
-      if (obsCheck > 0.95) 
-        _bigUx[index] = _bigUy[index] = _bigUz[index] = 0.;
-    } // xyz
+			// get unit position for both fine and coarse grid
+			const Vec3 pos = Vec3(x,y,z);
+			const Vec3 posSm = pos * invAmp;
 
-#if PARALLEL==1
-    maxVelMagThreads[id] = maxVelMag1;
-#else
-    maxVelMagThreads[0] = maxVelMag1;
-#endif
-  }
-  } // omp
-  
-  // compute maximum over threads
-  float maxVelMag = maxVelMagThreads[0];
-#if PARALLEL==1
-  for (int i = 1; i < 8; i++) 
-    if (maxVelMag < maxVelMagThreads[i]) 
-      maxVelMag = maxVelMagThreads[i];
-#endif
+			// get grid index for both fine and coarse grid
+			const int index = x + y *_xResBig + z *_slabSizeBig;
 
-  // prepare density for an advection
-  SWAP_POINTERS(_densityBig, _densityBigOld);
+			// get a linearly interpolated velocity and texcoords
+			// from the coarse grid
+			Vec3 vel = INTERPOLATE::lerp3dVec( xvel,yvel,zvel, 
+			  posSm[0], posSm[1], posSm[2], _xResSm,_yResSm,_zResSm);
+			Vec3 uvw = INTERPOLATE::lerp3dVec( _tcU,_tcV,_tcW, 
+			  posSm[0], posSm[1], posSm[2], _xResSm,_yResSm,_zResSm);
 
-  // based on the maximum velocity present, see if we need to substep,
-  // but cap the maximum number of substeps to 5
-  const int maxSubSteps = 25;
-  const int maxVel = 5;
-  maxVelMag = sqrt(maxVelMag) * dt;
-  int totalSubsteps = (int)(maxVelMag / (float)maxVel);
-  totalSubsteps = (totalSubsteps < 1) ? 1 : totalSubsteps;
-  // printf("totalSubsteps: %d\n", totalSubsteps);
-  totalSubsteps = (totalSubsteps > maxSubSteps) ? maxSubSteps : totalSubsteps;
-  const float dtSubdiv = dt / (float)totalSubsteps;
+			// multiply the texture coordinate by _resSm so that turbulence
+			// synthesis begins at the first octave that the coarse grid 
+			// cannot capture
+			Vec3 texCoord = Vec3(uvw[0] * _resSm[0], 
+							   uvw[1] * _resSm[1],
+							   uvw[2] * _resSm[2]); 
 
-  // set boundaries of big velocity grid
-  FLUID_3D::setZeroX(_bigUx, _resBig); 
-  FLUID_3D::setZeroY(_bigUy, _resBig); 
-  FLUID_3D::setZeroZ(_bigUz, _resBig);
+			// retrieve wavelet energy at highest frequency
+			float energy = INTERPOLATE::lerp3d(
+			  _highFreqEnergy, posSm[0],posSm[1],posSm[2], _xResSm, _yResSm, _zResSm);
 
-  // do the MacCormack advection, with substepping if necessary
-  for(int substep = 0; substep < totalSubsteps; substep++)
-  {
-    FLUID_3D::advectFieldMacCormack(dtSubdiv, _bigUx, _bigUy, _bigUz, 
-        _densityBigOld, _densityBig, _tempBig1, _tempBig2, _resBig, NULL);
+			// base amplitude for octave 0
+			float coefficient = sqrtf(2.0f * fabs(energy));
+			const float amplitude = *_strength * fabs(0.5 * coefficient) * persistence;
 
-    if (substep < totalSubsteps - 1) 
-      SWAP_POINTERS(_densityBig, _densityBigOld);
-  } // substep
-  
-  // wipe the density borders
-  FLUID_3D::setZeroBorder(_densityBig, _resBig);
-    
-  // reset texture coordinates now in preparation for next timestep
-  // Shouldn't do this before generating the noise because then the 
-  // eigenvalues stored do not reflect the underlying texture coordinates
-  resetTextureCoordinates();
-  
-  // output files
-  // string prefix = string("./amplified.preview/density_bigxy_");
-  // FLUID_3D::writeImageSliceXY(_densityBig, _resBig, _resBig[2]/2, prefix, _totalStepsBig, 1.0f);
-  //string df3prefix = string("./df3/density_big_");
-  //IMAGE::dumpDF3(_totalStepsBig, df3prefix, _densityBig, _resBig[0],_resBig[1],_resBig[2]);
-  // string pbrtPrefix = string("./pbrt/density_big_");
-  // IMAGE::dumpPBRT(_totalStepsBig, pbrtPrefix, _densityBig, _resBig[0],_resBig[1],_resBig[2]);
-  
-  _totalStepsBig++;
+			// add noise to velocity, but only if the turbulence is
+			// sufficiently undeformed, and the energy is large enough
+			// to make a difference
+			const bool addNoise = _eigMax[indexSmall] < 2. && 
+								_eigMin[indexSmall] > 0.5;
+
+			if (addNoise && amplitude > _cullingThreshold) {
+				// base amplitude for octave 0
+				float amplitudeScaled = amplitude;
+
+				for (int octave = 0; octave < _octaves; octave++)
+				{
+					// multiply the vector noise times the maximum allowed
+					// noise amplitude at this octave, and add it to the total
+					vel += WVelocityWithJacobian(texCoord, &xUnwarped[0], &yUnwarped[0], &zUnwarped[0]) * amplitudeScaled;
+
+					// scale coefficient for next octave
+					amplitudeScaled *= persistence;
+					texCoord *= 2.0f;
+				}
+			}
+
+			// Store velocity + turbulence in big grid for maccormack step
+			//
+			// If you wanted to save memory, you would instead perform a 
+			// semi-Lagrangian backtrace for the current grid cell here. Then
+			// you could just throw the velocity away.
+			_bigUx[index] = vel[0];
+			_bigUy[index] = vel[1];
+			_bigUz[index] = vel[2];
+
+			// compute the velocity magnitude for substepping later
+			const float velMag = _bigUx[index] * _bigUx[index] + 
+							   _bigUy[index] * _bigUy[index] + 
+							   _bigUz[index] * _bigUz[index];
+			if (velMag > maxVelMag1) maxVelMag1 = velMag;
+
+			// zero out velocity inside obstacles
+			float obsCheck = INTERPOLATE::lerp3dToFloat(
+			  obstacles, posSm[0], posSm[1], posSm[2], _xResSm, _yResSm, _zResSm); 
+
+			if (obsCheck > 0.95) 
+				_bigUx[index] = _bigUy[index] = _bigUz[index] = 0.;
+		} // xyz
+
+		#if PARALLEL==1
+		maxVelMagThreads[id] = maxVelMag1;
+		#else
+		maxVelMagThreads[0] = maxVelMag1;
+		#endif
+		}
+	} // omp
+
+	// compute maximum over threads
+	float maxVelMag = maxVelMagThreads[0];
+	#if PARALLEL==1
+	for (int i = 1; i < 8; i++) 
+	if (maxVelMag < maxVelMagThreads[i]) 
+	  maxVelMag = maxVelMagThreads[i];
+	#endif
+
+	// prepare density for an advection
+	SWAP_POINTERS(_densityBig, _densityBigOld);
+
+	// based on the maximum velocity present, see if we need to substep,
+	// but cap the maximum number of substeps to 5
+	const int maxSubSteps = 25;
+	const int maxVel = 5;
+	maxVelMag = sqrt(maxVelMag) * dt;
+	int totalSubsteps = (int)(maxVelMag / (float)maxVel);
+	totalSubsteps = (totalSubsteps < 1) ? 1 : totalSubsteps;
+	// printf("totalSubsteps: %d\n", totalSubsteps);
+	totalSubsteps = (totalSubsteps > maxSubSteps) ? maxSubSteps : totalSubsteps;
+	const float dtSubdiv = dt / (float)totalSubsteps;
+
+	// set boundaries of big velocity grid
+	FLUID_3D::setZeroX(_bigUx, _resBig); 
+	FLUID_3D::setZeroY(_bigUy, _resBig); 
+	FLUID_3D::setZeroZ(_bigUz, _resBig);
+
+	// do the MacCormack advection, with substepping if necessary
+	for(int substep = 0; substep < totalSubsteps; substep++)
+	{
+	FLUID_3D::advectFieldMacCormack(dtSubdiv, _bigUx, _bigUy, _bigUz, 
+		_densityBigOld, _densityBig, _tempBig1, _tempBig2, _resBig, NULL);
+
+	if (substep < totalSubsteps - 1) 
+	  SWAP_POINTERS(_densityBig, _densityBigOld);
+	} // substep
+
+	// wipe the density borders
+	FLUID_3D::setZeroBorder(_densityBig, _resBig);
+
+	// reset texture coordinates now in preparation for next timestep
+	// Shouldn't do this before generating the noise because then the 
+	// eigenvalues stored do not reflect the underlying texture coordinates
+	resetTextureCoordinates();
+
+	// output files
+	// string prefix = string("./amplified.preview/density_bigxy_");
+	// FLUID_3D::writeImageSliceXY(_densityBig, _resBig, _resBig[2]/2, prefix, _totalStepsBig, 1.0f);
+	//string df3prefix = string("./df3/density_big_");
+	//IMAGE::dumpDF3(_totalStepsBig, df3prefix, _densityBig, _resBig[0],_resBig[1],_resBig[2]);
+	// string pbrtPrefix = string("./pbrt/density_big_");
+	// IMAGE::dumpPBRT(_totalStepsBig, pbrtPrefix, _densityBig, _resBig[0],_resBig[1],_resBig[2]);
+
+	_totalStepsBig++;
+
+	delete[] _bigUx;
+	delete[] _bigUy;
+	delete[] _bigUz;
+
+	delete[] _tempBig1;
+	delete[] _tempBig2;
 }
 

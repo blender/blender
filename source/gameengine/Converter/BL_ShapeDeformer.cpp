@@ -109,8 +109,8 @@ bool BL_ShapeDeformer::ExecuteShapeDrivers(void)
 {
 	if (!m_shapeDrivers.empty() && PoseUpdated()) {
 		vector<IpoCurve*>::iterator it;
-		void *poin;
-		int type;
+//		void *poin;
+//		int type;
 
 		// the shape drivers use the bone matrix as input. Must 
 		// update the matrix now

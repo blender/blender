@@ -38,9 +38,6 @@
 
 #include "PyObjectPlus.h" 
 
-STR_String KX_CameraActuator::X_AXIS_STRING = "x";
-STR_String KX_CameraActuator::Y_AXIS_STRING = "y";
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -351,15 +348,6 @@ CValue *KX_CameraActuator::findObject(char *obName)
 {
 	/* hook to object system */
 	return NULL;
-}
-
-bool KX_CameraActuator::string2axischoice(const char *axisString) 
-{
-	bool res = true;
-
-	res = !(axisString == Y_AXIS_STRING);
-
-	return res;
 }
 
 /* ------------------------------------------------------------------------- */

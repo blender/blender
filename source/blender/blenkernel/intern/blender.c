@@ -626,8 +626,7 @@ void BKE_write_undo(bContext *C, char *name)
 	}
 }
 
-/* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation
- * Note, ALWAYS call sound_initialize_sounds after BKE_undo_step() */
+/* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
 void BKE_undo_step(bContext *C, int step)
 {
 	

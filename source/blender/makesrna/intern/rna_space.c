@@ -151,7 +151,7 @@ static void rna_SpaceImageEditor_paint_update(bContext *C, PointerRNA *ptr)
 	Scene *scene= CTX_data_scene(C);
 
 	if(scene)
-		paint_init(&scene->toolsettings->imapaint.paint, "Brush");
+		paint_init(&scene->toolsettings->imapaint.paint, PAINT_CURSOR_TEXTURE_PAINT);
 }
 
 static int rna_SpaceImageEditor_show_render_get(PointerRNA *ptr)
@@ -1409,7 +1409,7 @@ static void rna_def_space_node(BlenderRNA *brna)
 	static EnumPropertyItem tree_type_items[] = {
 		{NTREE_SHADER, "MATERIAL", ICON_MATERIAL, "Material", "Material nodes."},
 		{NTREE_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture nodes."},
-		{NTREE_COMPOSIT, "COMPOSITING", ICON_RENDER_RESULT, "Compositing", "Compositing nodes."},
+		{NTREE_COMPOSIT, "COMPOSITING", ICON_RENDERLAYERS, "Compositing", "Compositing nodes."},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem texture_type_items[] = {

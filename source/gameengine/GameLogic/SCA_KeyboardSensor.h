@@ -43,8 +43,6 @@
 class SCA_KeyboardSensor : public SCA_ISensor
 {
 	Py_Header;
-	class SCA_KeyboardManager*	m_pKeyboardMgr;
-
 
 	/**
 	 * the key this sensor is sensing for

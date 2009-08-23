@@ -42,6 +42,7 @@ typedef enum ModifierType {
 	eModifierType_Multires,
 	eModifierType_Surface,
 	eModifierType_Smoke,
+	eModifierType_SmokeHR,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -252,8 +253,35 @@ typedef struct SmokeModifierData {
 	struct SmokeCollSettings *coll; /* collision objects */
 	float time;
 	int type;  /* domain, inflow, outflow, ... */
-	struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
 } SmokeModifierData;
+
+
+/* noise */
+#define MOD_SMOKE_NOISEWAVE (1<<0)
+#define MOD_SMOKE_NOISEFFT (1<<1)
+#define MOD_SMOKE_NOISECURL (1<<2)
+
+/* flags */
+#define MOD_SMOKE_SHOWHIGHRES (1<<0) /* show high resolution */
+
+typedef struct SmokeHRModifierData {
+	ModifierData modifier;
+
+	struct WTURBULENCE *wt; // WTURBULENCE object, if active
+	struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
+	struct ListBase ptcaches;
+	struct GPUTexture *tex;
+	float *view3d; /* voxel data for display */
+	unsigned int v3dnum; /* number of frame in view3d buffer */
+	float time;
+	float strength;
+	int res[3];
+	int maxres;
+	short noise; /* noise type: wave, curl, anisotropic */
+	short pad;
+	int amplify;
+	int flags;
+} SmokeHRModifierData;
 
 typedef struct DisplaceModifierData {
 	ModifierData modifier;
@@ -290,7 +318,7 @@ typedef struct UVProjectModifierData {
 	ModifierData modifier;
 
 	/* the objects which do the projecting */
-	struct Object *projectors[10];
+	struct Object *projectors[10]; /* MOD_UVPROJECT_MAX */
 	struct Image *image;      /* the image to project */
 	int flags;
 	int num_projectors;
@@ -398,6 +426,8 @@ typedef struct HookModifierData {
 	ModifierData modifier;
 
 	struct Object *object;
+	char subtarget[32];		/* optional name of bone target */
+	
 	float parentinv[4][4];	/* matrix making current transform unmodified */
 	float cent[3];			/* visualization of hook */
 	float falloff;			/* if not zero, falloff is distance where influence zero */
@@ -640,5 +670,7 @@ typedef struct SimpleDeformModifierData {
 /* indicates whether simple deform should use the local
    coordinates or global coordinates of origin */
 #define MOD_SIMPLEDEFORM_ORIGIN_LOCAL			(1<<0)
+
+#define MOD_UVPROJECT_MAX				10
 
 #endif

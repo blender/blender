@@ -3108,7 +3108,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 			psys->flag &= ~PSYS_KEYED;
 		}
 
-		if(psys->particles->boid) {
+		if(psys->particles && psys->particles->boid) {
 			pa = psys->particles;
 			pa->boid = newdataadr(fd, pa->boid);
 			for(a=1,pa++; a<psys->totpart; a++, pa++)
@@ -3684,8 +3684,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		else if (md->type==eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData*) md;
 
-			smd->point_cache = NULL;
-
 			if(smd->type==MOD_SMOKE_TYPE_DOMAIN)
 			{
 				smd->flow = NULL;
@@ -3694,23 +3692,10 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->domain->smd = smd;
 
 				smd->domain->fluid = NULL;
-				smd->domain->wt = NULL;
-				smd->domain->tvox = NULL;
-				smd->domain->tray = NULL;
-				smd->domain->tvoxbig = NULL;
-				smd->domain->traybig = NULL;
-				smd->domain->bind = NULL;
-				smd->domain->max_textures= 0;
+				smd->domain->view3d = NULL;
+				smd->domain->tex = NULL;
 
-				// do_versions trick
-				if(smd->domain->strength < 1.0)
-					smd->domain->strength = 2.0;
-
-				// reset 3dview
-				if(smd->domain->viewsettings < MOD_SMOKE_VIEW_USEBIG)
-					smd->domain->viewsettings = 0;
-				else
-					smd->domain->viewsettings = MOD_SMOKE_VIEW_USEBIG;
+				direct_link_pointcache_list(fd, &smd->domain->ptcaches, &smd->domain->point_cache);
 			}
 			else if(smd->type==MOD_SMOKE_TYPE_FLOW)
 			{
@@ -4149,6 +4134,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->theDag = NULL;
 	sce->dagisvalid = 0;
 	sce->obedit= NULL;
+	sce->stats= 0;
 
 	memset(&sce->sound_handles, 0, sizeof(sce->sound_handles));
 
@@ -9445,7 +9431,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 					mmd->lvl = mmd->totlvl;
 					orig = CDDM_from_mesh(me, NULL);
-					dm = multires_dm_create_from_derived(mmd, orig, me, 0, 0);
+					dm = multires_dm_create_from_derived(mmd, 0, orig, ob, 0, 0);
                                        
 					multires_load_old(dm, me->mr);
 
@@ -10851,14 +10837,16 @@ static Library* library_append(Main *mainvar, Scene *scene, char* file, char *di
 	fix_relpaths_library(G.sce, mainvar); /* make all relative paths, relative to the open blend file */
 
 	/* give a base to loose objects. If group append, do it for objects too */
-	if(idcode==ID_GR) {
-		if (flag & FILE_LINK) {
-			give_base_to_objects(mainvar, scene, NULL, 0);
+	if(scene) {
+		if(idcode==ID_GR) {
+			if (flag & FILE_LINK) {
+				give_base_to_objects(mainvar, scene, NULL, 0);
+			} else {
+				give_base_to_objects(mainvar, scene, curlib, 1);
+			}	
 		} else {
-			give_base_to_objects(mainvar, scene, curlib, 1);
-		}	
-	} else {
-		give_base_to_objects(mainvar, scene, NULL, 0);
+			give_base_to_objects(mainvar, scene, NULL, 0);
+		}
 	}
 	/* has been removed... erm, why? s..ton) */
 	/* 20040907: looks like they are give base already in append_named_part(); -Nathan L */

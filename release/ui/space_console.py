@@ -5,7 +5,7 @@ import bpy_ops # XXX - should not need to do this
 del bpy_ops
 
 class CONSOLE_HT_header(bpy.types.Header):
-	__space_type__ = "CONSOLE"
+	__space_type__ = 'CONSOLE'
 
 	def draw(self, context):
 		sc = context.space_data
@@ -39,7 +39,7 @@ class CONSOLE_HT_header(bpy.types.Header):
 			row.itemO("console.report_replay")
 
 class CONSOLE_MT_console(bpy.types.Menu):
-	__space_type__ = "CONSOLE"
+	__space_type__ = 'CONSOLE'
 	__label__ = "Console"
 
 	def draw(self, context):
@@ -52,7 +52,7 @@ class CONSOLE_MT_console(bpy.types.Menu):
 		layout.itemO("console.paste")
 
 class CONSOLE_MT_report(bpy.types.Menu):
-	__space_type__ = "CONSOLE"
+	__space_type__ = 'CONSOLE'
 	__label__ = "Report"
 
 	def draw(self, context):

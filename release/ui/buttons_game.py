@@ -2,8 +2,8 @@
 import bpy
  
 class PhysicsButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "physics"
 
 	def poll(self, context):
@@ -171,8 +171,8 @@ bpy.types.register(PHYSICS_PT_game_physics)
 bpy.types.register(PHYSICS_PT_game_collision_bounds)
 
 class SceneButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "scene"
 
 	def poll(self, context):
@@ -322,8 +322,8 @@ bpy.types.register(SCENE_PT_game_shading)
 bpy.types.register(SCENE_PT_game_performance)
 
 class WorldButtonsPanel(bpy.types.Panel):
-	__space_type__ = "PROPERTIES"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "world"
 
 	def poll(self, context):

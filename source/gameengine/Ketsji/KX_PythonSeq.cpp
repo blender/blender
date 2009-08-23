@@ -375,7 +375,7 @@ PyTypeObject KX_PythonSeq_Type = {
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
 	/* TODO, richcmp */
-	NULL, /* ( cmpfunc ) KX_PythonSeq_compare, /* cmpfunc tp_compare; */
+	NULL, /* ( cmpfunc ) KX_PythonSeq_compare, // cmpfunc tp_compare; */
 	( reprfunc ) KX_PythonSeq_repr,   /* reprfunc tp_repr; */
 
 	/* Method suites for standard classes */

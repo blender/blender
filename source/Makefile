@@ -109,7 +109,27 @@ COMLIB += $(OCGDIR)/blender/blenfont/$(DEBUG_DIR)libblenfont.a
 COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaudaspace.a
 COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_src.a
 COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_fx.a
+COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_sdl.a
 COMLIB += $(NAN_SAMPLERATE)/lib/$(DEBUG_DIR)libsamplerate.a
+COMLIB += $(NAN_LZO)/lib/$(DEBUG_DIR)libminilzo.a
+COMLIB += $(NAN_LZMA)/lib/$(DEBUG_DIR)liblzma.a
+COMLIB += $(NAN_SMOKE)/lib/$(DEBUG_DIR)/libsmoke.a 
+
+ifeq ($(WITH_FFMPEG),true)
+    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_ffmpeg.a
+endif
+
+ifeq ($(WITH_OPENAL),true)
+    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_openal.a
+endif
+
+ifeq ($(WITH_JACK),true)
+    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_jack.a
+endif
+
+ifeq ($(WITH_SNDFILE),true)
+    COMLIB += $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_sndfile.a
+endif
 
 ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/bloutines/$(DEBUG_DIR)libbloutines.a
@@ -353,12 +373,7 @@ ifeq ($(OS),solaris)
     SPLIB += $(NAN_ZLIB)/lib/libz.a
 endif
 
-# OpenAL libs are already compiled as shared code!
-
-# Some kooky logic going on here ...
-ifeq ($(NAN_NO_OPENAL), true)
-#    NAN_SND_LIBS = 
-else
+ifeq ($(WITH_OPENAL),true)
   ifeq ($(OS),$(findstring $(OS), "freebsd linux windows"))
     ifeq ($(CPU),$(findstring $(CPU), "i386 powerpc x86_64 parisc64"))
         NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
@@ -375,6 +390,18 @@ else
         NAN_SND_LIBS += $(NAN_OPENAL)/lib/libopenal.a
       endif
     endif
+  endif
+endif
+
+ifeq ($(WITH_JACK),true)
+  ifeq ($(OS),$(findstring $(OS), "linux"))
+    NAN_SND_LIBS += $(NAN_JACKLIBS)
+  endif
+endif
+
+ifeq ($(WITH_SNDFILE),true)
+  ifeq ($(OS),$(findstring $(OS), "linux"))
+    NAN_SND_LIBS += $(NAN_SNDFILELIBS)
   endif
 endif
 

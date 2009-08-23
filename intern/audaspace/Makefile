@@ -44,19 +44,63 @@ ifeq ($(WITH_FFMPEG),true)
   DIRS += ffmpeg
 endif
 
+ifeq ($(WITH_OPENAL),true)
+  DIRS += OpenAL
+endif
+
+ifeq ($(WITH_JACK),true)
+  DIRS += jack
+endif
+
+ifeq ($(WITH_SNDFILE),true)
+  DIRS += sndfile
+endif
+
 include nan_subdirs.mk
 
 install: $(ALL_OR_DEBUG)
 	@[ -d $(NAN_AUDASPACE) ] || mkdir $(NAN_AUDASPACE)
 	@[ -d $(NAN_AUDASPACE)/include ] || mkdir $(NAN_AUDASPACE)/include
 	@[ -d $(NAN_AUDASPACE)/lib/$(DEBUG_DIR) ] || mkdir $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
-	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libaudaspace.a $(DIR)/$(DEBUG_DIR)libaud_fx.a $(DIR)/$(DEBUG_DIR)libaud_src.a $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libaudaspace.a $(DIR)/$(DEBUG_DIR)libaud_sdl.a $(DIR)/$(DEBUG_DIR)libaud_fx.a $(DIR)/$(DEBUG_DIR)libaud_src.a $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
+
+ifeq ($(WITH_FFMPEG),true)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libaud_ffmpeg.a $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
+endif
+
+ifeq ($(WITH_OPENAL),true)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libaud_openal.a $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
+endif
+
+ifeq ($(WITH_JACK),true)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libaud_jack.a $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
+endif
+
+ifeq ($(WITH_SNDFILE),true)
+	@../tools/cpifdiff.sh $(DIR)/$(DEBUG_DIR)libaud_sndfile.a $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)
+endif
 
 ifeq ($(OS),darwin)
 	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaudaspace.a
 	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_src.a
 	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_fx.a
+	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_sdl.a
+
+ifeq ($(WITH_FFMPEG),true)
+	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_ffmpeg.a
+endif
+
+ifeq ($(WITH_OPENAL),true)
+	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_openal.a
+endif
+
+ifeq ($(WITH_JACK),true)
+	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_jack.a
+endif
+
+ifeq ($(WITH_SNDFILE),true)
+	ranlib $(NAN_AUDASPACE)/lib/$(DEBUG_DIR)libaud_sndfile.a
+endif
+
 endif
 	@../tools/cpifdiff.sh intern/*.h $(NAN_AUDASPACE)/include/
-
-

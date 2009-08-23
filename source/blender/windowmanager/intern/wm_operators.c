@@ -741,7 +741,6 @@ static void WM_OT_window_duplicate(wmOperatorType *ot)
 	ot->name= "Duplicate Window";
 	ot->idname= "WM_OT_window_duplicate";
 	
-	ot->invoke= WM_operator_confirm;
 	ot->exec= wm_window_duplicate_op;
 	ot->poll= WM_operator_winactive;
 }
@@ -869,10 +868,17 @@ static void untitled(char *name)
 	}
 }
 
+static void load_set_load_ui(wmOperator *op)
+{
+	if(!RNA_property_is_set(op->ptr, "load_ui"))
+		RNA_boolean_set(op->ptr, "load_ui", !(U.flag & USER_FILENOUI));
+}
 
 static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	RNA_string_set(op->ptr, "filename", G.sce);
+	load_set_load_ui(op);
+
 	WM_event_add_fileselect(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
@@ -881,7 +887,14 @@ static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
+
 	RNA_string_get(op->ptr, "filename", filename);
+	load_set_load_ui(op);
+
+	if(RNA_boolean_get(op->ptr, "load_ui"))
+		G.fileflags &= ~G_FILE_NO_UI;
+	else
+		G.fileflags |= G_FILE_NO_UI;
 	
 	// XXX wm in context is not set correctly after WM_read_file -> crash
 	// do it before for now, but is this correct with multiple windows?
@@ -902,6 +915,8 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	ot->poll= WM_operator_winactive;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE);
+
+	RNA_def_boolean(ot->srna, "load_ui", 1, "Load UI", "Load user interface setup in the .blend file.");
 }
 
 static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
@@ -1035,7 +1050,6 @@ static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
     ot->name= "Toggle Fullscreen";
     ot->idname= "WM_OT_window_fullscreen_toggle";
 
-    ot->invoke= WM_operator_confirm;
     ot->exec= wm_window_fullscreen_toggle_op;
     ot->poll= WM_operator_winactive;
 }
@@ -1067,7 +1081,7 @@ static void WM_OT_exit_blender(wmOperatorType *ot)
 */
 
 void *WM_paint_cursor_activate(wmWindowManager *wm, int (*poll)(bContext *C),
-			       void (*draw)(bContext *C, int, int, void *customdata), void *customdata)
+			       wmPaintCursorDraw draw, void *customdata)
 {
 	wmPaintCursor *pc= MEM_callocN(sizeof(wmPaintCursor), "paint cursor");
 	
@@ -1894,19 +1908,29 @@ void wm_window_keymap(wmWindowManager *wm)
 	
 	/* note, this doesn't replace existing keymap items */
 	WM_keymap_verify_item(keymap, "WM_OT_window_duplicate", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_read_homefile", XKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_save_mainfile", WKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_save_as_mainfile", F2KEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "WM_OT_read_homefile", NKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_read_homefile", NKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "WM_OT_read_homefile", XKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", OKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", OKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", SKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", SKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", WKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", F2KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* debug/testing */
 	WM_keymap_verify_item(keymap, "WM_OT_ten_timer", TKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_debug_menu", DKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_search_menu", SPACEKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_search_menu", SPACEKEY, KM_PRESS, 0, 0);
 	
 }
 

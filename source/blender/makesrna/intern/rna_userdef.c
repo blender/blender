@@ -2199,6 +2199,10 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_FILECOMPRESS);
 	RNA_def_property_ui_text(prop, "Compress File", "Enable file compression when saving .blend files.");
 
+	prop= RNA_def_property(srna, "load_ui", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", USER_FILENOUI);
+	RNA_def_property_ui_text(prop, "Load UI", "Load user interface setup when loading .blend files.");
+
 	prop= RNA_def_property(srna, "fonts_directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "fontdir");
 	RNA_def_property_ui_text(prop, "Fonts Directory", "The default directory to search for loading fonts.");

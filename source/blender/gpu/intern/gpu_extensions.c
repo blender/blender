@@ -312,6 +312,78 @@ static GPUTexture *GPU_texture_create_nD(int w, int h, int n, float *fpixels, in
 	return tex;
 }
 
+
+GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
+{
+	GPUTexture *tex;
+	GLenum type, format, internalformat;
+	void *pixels = NULL;
+
+	tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
+	tex->w = w;
+	tex->h = h;
+	tex->depth = depth;
+	tex->number = -1;
+	tex->refcount = 1;
+	tex->target = GL_TEXTURE_3D;
+
+	glGenTextures(1, &tex->bindcode);
+
+	if (!tex->bindcode) {
+		fprintf(stderr, "GPUTexture: texture create failed: %d\n",
+			(int)glGetError());
+		GPU_texture_free(tex);
+		return NULL;
+	}
+
+	// if (!GLEW_ARB_texture_non_power_of_two) 
+	{
+		tex->w = larger_pow2(tex->w);
+		tex->h = larger_pow2(tex->h);
+		tex->depth = larger_pow2(tex->depth);
+	}
+
+	tex->number = 0;
+	glBindTexture(tex->target, tex->bindcode);
+
+	type = GL_UNSIGNED_BYTE;
+	format = GL_RGBA;
+	internalformat = GL_RGBA8;
+
+	if (fpixels)
+		pixels = GPU_texture_convert_pixels(w*h*depth, fpixels);
+
+	glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, 0);
+
+	if (fpixels) {
+		glTexSubImage3D(tex->target, 0, 0, 0, 0, w, h, depth, format, type, pixels);
+
+		/*
+		if (tex->w > w)
+			GPU_glTexSubImageEmpty(tex->target, format, w, 0, tex->w-w, tex->h);
+		if (tex->h > h)
+			GPU_glTexSubImageEmpty(tex->target, format, 0, h, w, tex->h-h);
+		*/
+	}
+
+	// glTexImage3D(tex->target, 0, GL_RGBA, w, h, depth, 0, GL_RGBA, GL_FLOAT, fpixels);
+
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S,GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T,GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R,GL_CLAMP_TO_BORDER);
+
+
+	if (pixels)
+		MEM_freeN(pixels);
+
+	if (tex)
+		GPU_texture_unbind(tex);
+
+	return tex;
+}
+
 GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, double time, int mipmap)
 {
 	GPUTexture *tex;

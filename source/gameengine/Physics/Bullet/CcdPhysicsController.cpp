@@ -1829,8 +1829,6 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 			}
 
 			for(mf= mface, i=0; i < numpolys; mf++, i++) {
-				unsigned int *fv = &mf->v1;
-
 				if(mf->v4) {
 					fv_pt= quad_verts;
 					*poly_index_pt++ = *poly_index_pt++ = index[i];

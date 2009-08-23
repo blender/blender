@@ -319,8 +319,6 @@ void sound_stop_all(struct bContext *C)
 	}
 }
 
-#define SOUND_PLAYBACK_LAMBDA 1.0
-
 void sound_update_playing(struct bContext *C)
 {
 	SoundHandle *handle;
@@ -366,12 +364,10 @@ void sound_update_playing(struct bContext *C)
 						action = 3;
 					else
 					{
-						float diff = AUD_getPosition(handle->handle) - (cfra - handle->startframe) / fps;
-// AUD_XXX						float diff = AUD_getPosition(handle->handle) * fps - cfra + handle->startframe
+						float diff = AUD_getPosition(handle->handle) * fps - cfra + handle->startframe;
 						if(diff < 0.0)
 							diff = -diff;
-						if(diff > SOUND_PLAYBACK_LAMBDA)
-// AUD_XXX						if(diff > 5.0f)
+						if(diff > 1.0f)
 						{
 							action = 2;
 						}

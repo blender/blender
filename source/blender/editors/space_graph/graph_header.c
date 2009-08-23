@@ -80,15 +80,15 @@ static void graph_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemS(layout);
 	
-	uiItemR(layout, NULL, 0, &spaceptr, "show_cframe_indicator", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "show_cframe_indicator", 0);
 	
 	if (sipo->flag & SIPO_NOHANDLES)
 		uiItemO(layout, "Show Handles", ICON_CHECKBOX_DEHLT, "GRAPH_OT_handles_view_toggle");
 	else
 		uiItemO(layout, "Show Handles", ICON_CHECKBOX_HLT, "GRAPH_OT_handles_view_toggle");
 	
-	uiItemR(layout, NULL, 0, &spaceptr, "only_selected_curves_handles", 0, 0, 0);
-	uiItemR(layout, NULL, 0, &spaceptr, "automerge_keyframes", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "only_selected_curves_handles", 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "automerge_keyframes", 0);
 	
 	if (sipo->flag & SIPO_DRAWTIME)
 		uiItemO(layout, "Show Frames", 0, "ANIM_OT_time_toggle");

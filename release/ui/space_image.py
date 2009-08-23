@@ -2,7 +2,7 @@
 import bpy
 
 class IMAGE_MT_view(bpy.types.Menu):
-	__space_type__ = "IMAGE_EDITOR"
+	__space_type__ = 'IMAGE_EDITOR'
 	__label__ = "View"
 
 	def draw(self, context):
@@ -13,7 +13,7 @@ class IMAGE_MT_view(bpy.types.Menu):
 
 		show_uvedit = sima.show_uvedit
 
-		layout.itemO("image.properties", icon="ICON_MENU_PANEL")
+		layout.itemO("image.properties", icon='ICON_MENU_PANEL')
 
 		layout.itemS()
 
@@ -43,7 +43,7 @@ class IMAGE_MT_view(bpy.types.Menu):
 		layout.itemO("screen.screen_full_area")
 
 class IMAGE_MT_select(bpy.types.Menu):
-	__space_type__ = "IMAGE_EDITOR"
+	__space_type__ = 'IMAGE_EDITOR'
 	__label__ = "Select"
 
 	def draw(self, context):
@@ -64,7 +64,7 @@ class IMAGE_MT_select(bpy.types.Menu):
 		layout.itemO("uv.select_linked")
 
 class IMAGE_MT_image(bpy.types.Menu):
-	__space_type__ = "IMAGE_EDITOR"
+	__space_type__ = 'IMAGE_EDITOR'
 	__label__ = "Image"
 
 	def draw(self, context):
@@ -85,7 +85,7 @@ class IMAGE_MT_image(bpy.types.Menu):
 			layout.itemO("image.save")
 			layout.itemO("image.save_as")
 
-			if ima.source == "SEQUENCE":
+			if ima.source == 'SEQUENCE':
 				layout.itemO("image.save_sequence")
 
 			if not show_render:
@@ -99,7 +99,7 @@ class IMAGE_MT_image(bpy.types.Menu):
 				# only for dirty && specific image types, perhaps
 				# this could be done in operator poll too
 				if ima.dirty:
-					if ima.source in ("FILE", "GENERATED") and ima.type != "MULTILAYER":
+					if ima.source in ('FILE', 'GENERATED') and ima.type != 'MULTILAYER':
 						layout.item_booleanO("image.pack", "as_png", True, text="Pack As PNG")
 
 			layout.itemS()
@@ -107,7 +107,7 @@ class IMAGE_MT_image(bpy.types.Menu):
 			layout.itemR(sima, "image_painting")
 
 class IMAGE_MT_uvs_showhide(bpy.types.Menu):
-	__space_type__ = "IMAGE_EDITOR"
+	__space_type__ = 'IMAGE_EDITOR'
 	__label__ = "Show/Hide Faces"
 
 	def draw(self, context):
@@ -118,7 +118,7 @@ class IMAGE_MT_uvs_showhide(bpy.types.Menu):
 		layout.item_booleanO("uv.hide", "unselected", True)
 
 class IMAGE_MT_uvs_transform(bpy.types.Menu):
-	__space_type__ = "IMAGE_EDITOR"
+	__space_type__ = 'IMAGE_EDITOR'
 	__label__ = "Transform"
 
 	def draw(self, context):
@@ -129,7 +129,7 @@ class IMAGE_MT_uvs_transform(bpy.types.Menu):
 		layout.item_enumO("tfm.transform", "mode", 'RESIZE')
 
 class IMAGE_MT_uvs_mirror(bpy.types.Menu):
-	__space_type__ = "IMAGE_EDITOR"
+	__space_type__ = 'IMAGE_EDITOR'
 	__label__ = "Mirror"
 
 	def draw(self, context):
@@ -139,7 +139,7 @@ class IMAGE_MT_uvs_mirror(bpy.types.Menu):
 		layout.item_enumO("uv.mirror", "axis", 'MIRROR_Y') # "Y Axis", M, 
 
 class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
-	__space_type__ = "IMAGE_EDITOR"
+	__space_type__ = 'IMAGE_EDITOR'
 	__label__ = "Weld/Align"
 
 	def draw(self, context):
@@ -150,7 +150,7 @@ class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
 
 
 class IMAGE_MT_uvs(bpy.types.Menu):
-	__space_type__ = "IMAGE_EDITOR"
+	__space_type__ = 'IMAGE_EDITOR'
 	__label__ = "UVs"
 
 	def draw(self, context):
@@ -192,7 +192,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 		layout.itemM("IMAGE_MT_uvs_showhide")
 
 class IMAGE_HT_header(bpy.types.Header):
-	__space_type__ = "IMAGE_EDITOR"
+	__space_type__ = 'IMAGE_EDITOR'
 
 	def draw(self, context):
 		sima = context.space_data
@@ -247,7 +247,7 @@ class IMAGE_HT_header(bpy.types.Header):
 
 			"""
 			mesh = context.edit_object.data
-			row.item_pointerR(mesh, "active_uv_layer", mesh, "uv_layers")
+			row.item_pointerR(mesh, "active_uv_layer", mesh, "uv_textures")
 			"""
 
 		if ima:
@@ -262,17 +262,17 @@ class IMAGE_HT_header(bpy.types.Header):
 			row.itemR(sima, "draw_channels", text="", expand=True)
 
 			row = layout.row(align=True)
-			if ima.type == "COMPOSITE":
-				row.itemO("image.record_composite", icon="ICON_REC")
-			if ima.type == "COMPOSITE" and ima.source in ("MOVIE", "SEQUENCE"):
-				row.itemO("image.play_composite", icon="ICON_PLAY")
+			if ima.type == 'COMPOSITE':
+				row.itemO("image.record_composite", icon='ICON_REC')
+			if ima.type == 'COMPOSITE' and ima.source in ('MOVIE', 'SEQUENCE'):
+				row.itemO("image.play_composite", icon='ICON_PLAY')
 		
 		if show_uvedit or sima.image_painting:
 			layout.itemR(sima, "update_automatically", text="")
 
 class IMAGE_PT_game_properties(bpy.types.Panel):
-	__space_type__ = "IMAGE_EDITOR"
-	__region_type__ = "UI"
+	__space_type__ = 'IMAGE_EDITOR'
+	__region_type__ = 'UI'
 	__label__ = "Game Properties"
 
 	def poll(self, context):
@@ -315,8 +315,8 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
 			subrow.active = ima.tiles or ima.animated
 
 class IMAGE_PT_view_properties(bpy.types.Panel):
-	__space_type__ = "IMAGE_EDITOR"
-	__region_type__ = "UI"
+	__space_type__ = 'IMAGE_EDITOR'
+	__region_type__ = 'UI'
 	__label__ = "View Properties"
 
 	def poll(self, context):

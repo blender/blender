@@ -58,7 +58,6 @@ protected:
 	STR_String				m_touchedpropname;	
 	bool					m_bFindMaterial;
 	bool					m_bTouchPulse;		/* changes in the colliding objects trigger pulses */
-	class SCA_EventManager*	m_eventmgr;
 	
 	class PHY_IPhysicsController*	m_physCtrl;
 

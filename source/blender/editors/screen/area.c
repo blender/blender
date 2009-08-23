@@ -249,7 +249,7 @@ void ED_area_overdraw(bContext *C)
 }
 
 /* get scissor rect, checking overlapping regions */
-static void region_scissor_winrct(ARegion *ar, rcti *winrct)
+void region_scissor_winrct(ARegion *ar, rcti *winrct)
 {
 	*winrct= ar->winrct;
 	
@@ -1045,14 +1045,12 @@ static char *windowtype_pup(void)
 		   "|3D View %x1"
 
 		   "|%l"
-		   "|%l"
 		   
 		   "|Timeline %x15"
 		   "|Graph Editor %x2"
 		   "|DopeSheet %x12"
 		   "|NLA Editor %x13"
 		   
-		   "|%l"
 		   "|%l"
 		   
 		   "|UV/Image Editor %x6"
@@ -1063,7 +1061,6 @@ static char *windowtype_pup(void)
 		   "|Logic Editor %x17"
 		   
 		   "|%l"
-		   "|%l"
 		   
 		   "|Properties %x4"
 		   "|Outliner %x3"
@@ -1071,11 +1068,9 @@ static char *windowtype_pup(void)
 		   "|Info%x7"
 		    		   
 		   "|%l"
-		   "|%l"
 		   
 		   "|File Browser %x5"
 		   
-		   "|%l"
 		   "|%l"
 		   
 		   "|Console %x18"
