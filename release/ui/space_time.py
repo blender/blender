@@ -22,7 +22,7 @@ class TIME_HT_header(bpy.types.Header):
 			sub.itemM("TIME_MT_frame")
 			sub.itemM("TIME_MT_playback")
 
-		layout.itemR(scene, "use_preview_range", text="PR", toggle=True)
+		layout.itemR(scene, "use_preview_range", text="PR")
 		
 		row = layout.row(align=True)
 		if not scene.use_preview_range:
