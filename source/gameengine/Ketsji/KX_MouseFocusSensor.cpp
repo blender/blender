@@ -61,11 +61,13 @@ KX_MouseFocusSensor::KX_MouseFocusSensor(SCA_MouseManager* eventmgr,
 										 int starty,
 										 short int mousemode,
 										 int focusmode,
+										 bool bTouchPulse,
 										 KX_Scene* kxscene,
 										 KX_KetsjiEngine *kxengine,
 										 SCA_IObject* gameobj)
 	: SCA_MouseSensor(eventmgr, startx, starty, mousemode, gameobj),
 	  m_focusmode(focusmode),
+	  m_bTouchPulse(bTouchPulse),
 	  m_kxscene(kxscene),
 	  m_kxengine(kxengine)
 {
@@ -77,6 +79,7 @@ void KX_MouseFocusSensor::Init()
 	m_mouse_over_in_previous_frame = (m_invert)?true:false;
 	m_positive_event = false;
 	m_hitObject = 0;
+	m_hitObject_Last = NULL;
 	m_reset = true;
 	
 	m_hitPosition.setValue(0,0,0);
@@ -107,7 +110,10 @@ bool KX_MouseFocusSensor::Evaluate()
 			m_positive_event = true;
 			if (!m_mouse_over_in_previous_frame) {
 				result = true;
-			} 
+			}
+			else if(m_bTouchPulse && (m_hitObject != m_hitObject_Last)) {
+				result = true;
+			}
 		} 
 		if (reset) {
 			// force an event 
@@ -123,7 +129,8 @@ bool KX_MouseFocusSensor::Evaluate()
 	}
 
 	m_mouse_over_in_previous_frame = obHasFocus;
-
+	m_hitObject_Last = (void *)m_hitObject;
+					   
 	return result;
 }
 
@@ -378,6 +385,7 @@ PyAttributeDef KX_MouseFocusSensor::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("hitObject",		KX_MouseFocusSensor, pyattr_get_hit_object),
 	KX_PYATTRIBUTE_RO_FUNCTION("hitPosition",	KX_MouseFocusSensor, pyattr_get_hit_position),
 	KX_PYATTRIBUTE_RO_FUNCTION("hitNormal",		KX_MouseFocusSensor, pyattr_get_hit_normal),
+	KX_PYATTRIBUTE_BOOL_RW("usePulseFocus",	KX_MouseFocusSensor,m_bTouchPulse),
 	{ NULL }	//Sentinel
 };
 
