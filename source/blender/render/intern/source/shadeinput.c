@@ -188,11 +188,11 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 		/* copy all relevant material vars, note, keep this synced with render_types.h */
 		shade_input_init_material(shi);
 		
-		if (shi->mat->material_type == MA_TYPE_SURFACE) {
-			shade_material_loop(shi, shr);
-		} else if (shi->mat->material_type == MA_TYPE_VOLUME) {
+		if (shi->mat->material_type == MA_TYPE_VOLUME) {
 			if(R.r.mode & R_RAYTRACE)
 				shade_volume_outside(shi, shr);
+		} else { /* MA_TYPE_SURFACE, MA_TYPE_WIRE */
+			shade_material_loop(shi, shr);
 		}
 	}
 	
