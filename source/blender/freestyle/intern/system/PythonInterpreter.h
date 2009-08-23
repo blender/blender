@@ -77,15 +77,17 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 		cout << "couldn't create Blender text from" << fn << endl;
 	}
 
-	if (BPY_txt_do_python_Text(text) != 1) {
+	int status = BPY_txt_do_python_Text(text);
+
+	// cleaning up
+	unlink_text(text);
+	free_libblock(&G.main->text, text);
+	
+	if (status != 1) {
 		cout << "\nError executing Python script from PythonInterpreter::interpretFile:" << endl;
 		cout << fn << " (at line " <<  BPY_Err_getLinenumber() << ")" << endl;
 		return BPY_Err_getLinenumber();
 	}
-	
-	// cleaning up
-	unlink_text(text);
-	free_libblock(&G.main->text, text);
 	
 	return 0;
   }
