@@ -1001,9 +1001,10 @@ static PyObject *M_Object_Duplicate( PyObject * self_unused,
 	int material_dupe = 0;
 	int texture_dupe = 0;
 	int ipo_dupe = 0;
+	int psys_dupe = 0;
 	
 	static char *kwlist[] = {"mesh", "surface", "curve",
-			"text", "metaball", "armature", "lamp", "material", "texture", "ipo", NULL};
+			"text", "metaball", "armature", "lamp", "material", "texture", "ipo", "psys", NULL};
 	
 	/* duplicating in background causes segfaults */
 	if( G.background == 1 )
@@ -1011,11 +1012,11 @@ static PyObject *M_Object_Duplicate( PyObject * self_unused,
 					"cannot duplicate objects in background mode" );
 	
 	
-	if (!PyArg_ParseTupleAndKeywords(args, kwd, "|iiiiiiiiii", kwlist,
+	if (!PyArg_ParseTupleAndKeywords(args, kwd, "|iiiiiiiiiii", kwlist,
 		&mesh_dupe, &surface_dupe, &curve_dupe, &text_dupe, &metaball_dupe,
-		&armature_dupe, &lamp_dupe, &material_dupe, &texture_dupe, &ipo_dupe))
+		&armature_dupe, &lamp_dupe, &material_dupe, &texture_dupe, &ipo_dupe, &psys_dupe))
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected nothing or bool keywords 'mesh', 'surface', 'curve', 'text', 'metaball', 'armature', 'lamp' 'material', 'texture' and 'ipo' as arguments" );
+				"expected nothing or bool keywords 'mesh', 'surface', 'curve', 'text', 'metaball', 'armature', 'lamp' 'material', 'texture', 'ipo' and 'psys' as arguments" );
 	
 	/* USER_DUP_ACT for actions is not supported in the UI so dont support it here */
 	if (mesh_dupe)		dupflag |= USER_DUP_MESH;
@@ -1028,6 +1029,7 @@ static PyObject *M_Object_Duplicate( PyObject * self_unused,
 	if (material_dupe)	dupflag |= USER_DUP_MAT;
 	if (texture_dupe)	dupflag |= USER_DUP_TEX;
 	if (ipo_dupe)		dupflag |= USER_DUP_IPO;
+	if (psys_dupe)		dupflag |= USER_DUP_PSYS;
 	adduplicate(2, dupflag); /* 2 is a mode with no transform and no redraw, Duplicate the current selection, context sensitive */
 	Py_RETURN_NONE;
 }

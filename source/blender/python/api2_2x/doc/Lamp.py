@@ -46,6 +46,11 @@ Example::
 	- 'NoDiffuse'
 	- 'NoSpecular'
 	- 'RayShadow'
+@type BufferTypes: read-only dictionary
+@var BufferTypes: The lamp shadowbuffer types.
+	- 'Regular'
+	- 'Irregular'
+	- 'Halfway'
 
 	Example::
 		from Blender import Lamp, Object
@@ -101,6 +106,8 @@ class Lamp:
 	@ivar bufferSize:  Lamp shadow buffer size.
 	Value is clamped to the range [512,5120].
 	@type bufferSize:  int
+	@ivar bufferType:	Lamp shadowbuffer type.  See L{BufferTypes} for values.
+	@type bufferType:	int
 	@ivar clipEnd:  Lamp shadow map clip end.
 	Value is clamped to the range [1.0,5000.0].
 	@type clipEnd:  float

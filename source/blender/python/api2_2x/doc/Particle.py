@@ -69,6 +69,20 @@ This module provides access to the B{Particle} in Blender.
 		- NONE: No particle angular velocity
 		- SPIN: Spin particle angular velocity
 		- RANDOM: Random particle angular velocity
+@type VERTEXGROUPS: readonly dictionary
+@var VERTEXGROUPS: Constant dict used for with L{Particle.VERTEXGROUP}
+		- DENSITY: VertexGroup affect to particles density
+		- VELOCITY: VertexGroup affect to particles velocity
+		- LENGHT: VertexGroup affect to particles lenght
+		- CLUMP: VertexGroup affect to particles clump
+		- KINK: VertexGroup affect to particles kink
+		- ROUGH1: VertexGroup affect to particles rough1
+		- ROUGH2: VertexGroup affect to particles rough2
+		- ROUGHE: VertexGroup affect to particles roughE
+		- SIZE: VertexGroup affect to particles size
+		- TANVEL: VertexGroup affect to particles tangent velocity
+		- TANROT: VertexGroup affect to particles tangent rotation
+		- EFFECTOR: VertexGroup affect to particles effector
 @type CHILDTYPE: readonly dictionary
 @var CHILDTYPE: Constant dict used for with L{Particle.CHILDTYPE}
 		- NONE: set no children
@@ -171,6 +185,10 @@ class Particle:
 	@type renderDied: int
 	@ivar renderMaterial: Specify material used for the particles.
 	@type renderMaterial: int
+	@ivar strandRender: Use the strand primitive to render.
+	@type strandRender: int
+	@ivar strandRenderAngle: How many degrees path has to curve to make another render segment.
+	@type strandRenderAngle: int
 	@ivar displayPercentage: Particle display percentage.
 	@type displayPercentage: int
 	@ivar hairDisplayStep: How many steps paths are drawn with (power of 2) in visu mode.
@@ -179,7 +197,7 @@ class Particle:
 	@type hairRenderStep: int
 	@ivar duplicateObject: Get the duplicate object.
 	@type duplicateObject: Blender Object
-	@ivar drawAs: Get draw type Particle.DRAWAS([ 'NONE' | 'OBJECT' | 'POINT' | ... ]).
+	@ivar drawAs: Draw type Particle.DRAWAS([ 'NONE' | 'OBJECT' | 'POINT' | ... ]).
 	@type drawAs: int
 	@ivar physics: Select particle physics type Particle.PHYSICS([ 'BOIDS' | 'KEYED' | 'NEWTONIAN' | 'NONE' ])
 	@type physics: int
@@ -276,6 +294,18 @@ class Particle:
 	@ivar childBranch: Threshold of branching
 	@type childBranch: float
 	"""
+	def getName():
+		"""
+		Get the name of this Particle System object.
+		@rtype: string
+		"""
+
+	def setName(name):
+		"""
+		Set the name of this Particle System object.
+		@type name: string
+		@param name: The new name.
+		"""
 	
 	def freeEdit():
 		"""

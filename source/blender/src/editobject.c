@@ -5185,6 +5185,7 @@ void adduplicate(int mode, int dupflag)
 	Object *ob, *obn;
 	ID *id;
 	int a, didit;
+	ParticleSystem *psys;
 	
 	if(G.scene->id.lib) return;
 	clear_id_newpoins();
@@ -5256,6 +5257,16 @@ void adduplicate(int mode, int dupflag)
 						if(id) {
 							ID_NEW_US(obn->mat[a])
 							else obn->mat[a]= copy_material(obn->mat[a]);
+							id->us--;
+						}
+					}
+				}
+				if(dupflag & USER_DUP_PSYS) {
+					for(psys=obn->particlesystem.first; psys; psys=psys->next) {
+						id= (ID*) psys->part;
+						if(id) {
+							ID_NEW_US(psys->part)
+							else psys->part= psys_copy_settings(psys->part);
 							id->us--;
 						}
 					}

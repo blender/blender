@@ -125,6 +125,8 @@
 #define EXPP_LAMP_COL_MAX 1.0
 #define EXPP_LAMP_FALLOFF_MIN LA_FALLOFF_CONSTANT
 #define EXPP_LAMP_FALLOFF_MAX LA_FALLOFF_SLIDERS
+#define EXPP_LAMP_BUFFERTYPE_MIN LA_SHADBUF_REGULAR
+#define EXPP_LAMP_BUFFERTYPE_MAX LA_SHADBUF_HALFWAY
 
 /* Raytracing settings */
 #define EXPP_LAMP_RAYSAMPLES_MIN 1
@@ -268,6 +270,8 @@ static PyObject *Lamp_clearScriptLinks( BPy_Lamp * self, PyObject * args );
 static int Lamp_setComponent( BPy_Lamp * self, PyObject * value, void * closure );
 static PyObject *Lamp_getFalloffType( BPy_Lamp * self );
 static int Lamp_setFalloffType( BPy_Lamp * self, PyObject * value );
+static PyObject *Lamp_getBufferType( BPy_Lamp * self );
+static int Lamp_setBufferType( BPy_Lamp * self, PyObject * value );
 
 /*****************************************************************************/
 /* Python BPy_Lamp methods table:                                            */
@@ -488,6 +492,10 @@ static PyGetSetDef BPy_Lamp_getseters[] = {
 	{"falloffType",
 	 (getter)Lamp_getFalloffType, (setter)Lamp_setFalloffType,
 	 "Lamp falloff type",
+	 NULL},
+	{"bufferType",
+	 (getter)Lamp_getBufferType, (setter)Lamp_setBufferType,
+	 "Lamp buffer type",
 	 NULL},
 	{"R",
 	 (getter)Lamp_getComponent, (setter)Lamp_setComponent,
@@ -828,13 +836,31 @@ static PyObject *Lamp_FalloffsDict( void )
 	return Falloffs;
 }
 
+static PyObject *Lamp_BufferTypesDict( void )
+{			/* create the Blender.Lamp.BufferTypes constant dict */
+	PyObject *Types = PyConstant_New(  );
+
+	if( Types ) {
+		BPy_constant *c = ( BPy_constant * ) Types;
+
+		PyConstant_Insert( c, "REGULAR",
+				 PyInt_FromLong( LA_SHADBUF_REGULAR ) );
+		PyConstant_Insert( c, "IRREGULAR",
+				 PyInt_FromLong( LA_SHADBUF_IRREGULAR ) );
+		PyConstant_Insert( c, "HALFWAY",
+				 PyInt_FromLong( LA_SHADBUF_HALFWAY ) );
+	}
+
+	return Types;
+}
+
 /*****************************************************************************/
 /* Function:              Lamp_Init                                          */
 /*****************************************************************************/
 /* Needed by the Blender module, to register the Blender.Lamp submodule */
 PyObject *Lamp_Init( void )
 {
-	PyObject *submodule, *Types, *Modes, *Falloffs;
+	PyObject *submodule, *Types, *Modes, *Falloffs, *BufferTypes;
 
 	if( PyType_Ready( &Lamp_Type ) < 0)
 		return NULL;
@@ -842,6 +868,7 @@ PyObject *Lamp_Init( void )
 	Types = Lamp_TypesDict(  );
 	Modes = Lamp_ModesDict(  );
 	Falloffs = Lamp_FalloffsDict(  );
+	BufferTypes = Lamp_BufferTypesDict(  );
 
 	submodule =
 		Py_InitModule3( "Blender.Lamp", M_Lamp_methods, M_Lamp_doc );
@@ -852,6 +879,8 @@ PyObject *Lamp_Init( void )
 		PyModule_AddObject( submodule, "Modes", Modes );
 	if( Falloffs )
 		PyModule_AddObject( submodule, "Falloffs", Falloffs );
+	if( BufferTypes )
+		PyModule_AddObject( submodule, "BufferTypes", BufferTypes );
 
 	PyModule_AddIntConstant( submodule, "RGB",      IPOKEY_RGB );
 	PyModule_AddIntConstant( submodule, "ENERGY",   IPOKEY_ENERGY );
@@ -1027,6 +1056,11 @@ static PyObject *Lamp_getCol( BPy_Lamp * self )
 static PyObject *Lamp_getFalloffType( BPy_Lamp * self )
 {
 	return PyInt_FromLong( (int)self->lamp->falloff_type );
+}
+
+static PyObject *Lamp_getBufferType( BPy_Lamp * self )
+{
+	return PyInt_FromLong( (int)self->lamp->buftype );
 }
 
 static int Lamp_setType( BPy_Lamp * self, PyObject * value )
@@ -1217,6 +1251,11 @@ static int Lamp_setFalloffType( BPy_Lamp * self, PyObject * value )
 				  				EXPP_LAMP_FALLOFF_MIN, EXPP_LAMP_FALLOFF_MAX, 'h' );
 }
 
+static int Lamp_setBufferType( BPy_Lamp * self, PyObject * value )
+{
+	return EXPP_setIValueRange ( value, &self->lamp->buftype,
+				  				EXPP_LAMP_BUFFERTYPE_MIN, EXPP_LAMP_BUFFERTYPE_MAX, 'h' );
+}
 
 static PyObject *Lamp_getComponent( BPy_Lamp * self, void * closure )
 {

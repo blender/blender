@@ -511,6 +511,8 @@ static int Texture_setNoiseBasis2( BPy_Texture *self, PyObject *args,
 								
 static PyObject *Texture_getColorband( BPy_Texture * self);
 int Texture_setColorband( BPy_Texture * self, PyObject * value);
+static PyObject *Texture_getUseColorband( BPy_Texture * self);
+int Texture_setUseColorband( BPy_Texture * self, PyObject * value);
 static PyObject *Texture_evaluate( BPy_Texture *self, PyObject *value );
 static PyObject *Texture_copy( BPy_Texture *self );
 
@@ -790,6 +792,10 @@ static PyGetSetDef BPy_Texture_getseters[] = {
 	{"colorband",
 	 (getter)Texture_getColorband, (setter)Texture_setColorband,
 	 "The colorband for this texture",
+	 NULL},
+	{"useColorband",
+	 (getter)Texture_getUseColorband, (setter)Texture_setUseColorband,
+	 "Use colorband for this texture",
 	 NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
@@ -2523,6 +2529,29 @@ static PyObject *Texture_getColorband( BPy_Texture * self)
 int Texture_setColorband( BPy_Texture * self, PyObject * value)
 {
 	return EXPP_Colorband_fromPyList( &self->texture->coba, value );
+}
+
+static PyObject *Texture_getUseColorband( BPy_Texture * self)
+{
+	return PyInt_FromLong( ((long)( self->texture->flag & TEX_COLORBAND )) > 0 );
+}
+
+int Texture_setUseColorband( BPy_Texture * self, PyObject * value)
+{
+	int number;
+
+	if( !PyInt_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
+
+	number = PyInt_AS_LONG( value );
+
+	if (number){
+		self->texture->flag |= TEX_COLORBAND;
+	}else{
+		self->texture->flag &= ~TEX_COLORBAND;
+	}
+
+	return 0;
 }
 
 static PyObject *Texture_evaluate( BPy_Texture * self, PyObject * value )

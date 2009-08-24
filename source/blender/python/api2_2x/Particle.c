@@ -42,6 +42,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_pointcache.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_library.h"
 #include "BIF_editparticle.h"
 #include "BIF_space.h"
 #include "blendef.h"
@@ -70,6 +71,9 @@ static PyObject *Part_GetMat( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_GetSize( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_GetVertGroup( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_SetVertGroup( BPy_PartSys * self, PyObject * args );
+static int Part_SetName( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_SetNameWithMethod( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_GetName( BPy_PartSys * self, PyObject * args );
 static int Part_setSeed( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_getSeed( BPy_PartSys * self );
 static int Part_setType( BPy_PartSys * self, PyObject * args );
@@ -141,11 +145,16 @@ static int Part_setRenderDied( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_getRenderDied( BPy_PartSys * self );
 static int Part_setRenderMaterialIndex( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_getRenderMaterialIndex( BPy_PartSys * self );
+static int Part_setStrandRender( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getStrandRender( BPy_PartSys * self );
+static int Part_setStrandRenderAn( BPy_PartSys * self, PyObject * args );
+static PyObject *Part_getStrandRenderAn( BPy_PartSys * self );
 static int Part_setStep( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_getStep( BPy_PartSys * self );
 static int Part_setRenderStep( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_getRenderStep( BPy_PartSys * self );
 static PyObject *Part_getDupOb( BPy_PartSys * self );
+static int Part_setDrawAs( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_getDrawAs( BPy_PartSys * self );
 static int Part_setPhysType( BPy_PartSys * self, PyObject * args );
 static PyObject *Part_getPhysType( BPy_PartSys * self );
@@ -283,6 +292,10 @@ static PyMethodDef BPy_ParticleSys_methods[] = {
 	 METH_VARARGS, "() - Get the vertex group which affects a particles attribute"},
 	{"setVertGroup", ( PyCFunction ) Part_SetVertGroup,
 	 METH_VARARGS, "() - Set the vertex group to affect a particles attribute"},
+	{"getName", ( PyCFunction ) Part_GetName, METH_NOARGS,
+	 "() - Return particle system's name"},
+	{"setName", ( PyCFunction ) Part_SetNameWithMethod, METH_VARARGS,
+	 "(s) - Change particle system's name"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -430,6 +443,14 @@ static PyGetSetDef BPy_ParticleSys_getseters[] = {
 	 (getter)Part_getRenderMaterialIndex, (setter)Part_setRenderMaterialIndex,
 	 "Specify material index used for the particles",
 	 NULL},
+	 {"strandRender",
+	 (getter)Part_getStrandRender, (setter)Part_setStrandRender,
+	 "Use the strand primitive to render",
+	 NULL},
+	 {"strandRenderAngle",
+	 (getter)Part_getStrandRenderAn, (setter)Part_setStrandRenderAn,
+	 "How many degrees path has to curve to make another render segment",
+	 NULL},
      {"displayPercentage",
 	 (getter)Part_getParticleDisp, (setter)Part_setParticleDisp,
 	 "Particle display percentage",
@@ -447,8 +468,8 @@ static PyGetSetDef BPy_ParticleSys_getseters[] = {
 	 "Get the duplicate ob",
 	 NULL},
      {"drawAs",
-	 (getter)Part_getDrawAs, NULL,
-	 "Get draw type Particle.DRAWAS([ 'NONE' | 'OBJECT' | 'POINT' | ... ] )",
+	 (getter)Part_getDrawAs, (setter)Part_setDrawAs,
+	 "Draw type Particle.DRAWAS([ 'NONE' | 'OBJECT' | 'POINT' | ... ] )",
 	 NULL},
 /* Newtonian Physics */
 	{"physics",
@@ -2008,6 +2029,33 @@ static PyObject *Part_SetVertGroup( BPy_PartSys * self, PyObject * args ){
 	Py_RETURN_NONE;
 }
 
+PyObject *Part_GetName( BPy_PartSys * self, PyObject * args )
+{	
+	ID *id = (ID*) self->psys->part;
+	if (!id) return ( EXPP_ReturnPyObjError( PyExc_RuntimeError, "data has been removed" ) );
+	return PyString_FromString( id->name + 2 );
+}
+
+int Part_SetName( BPy_PartSys * self, PyObject * args )
+{
+	ID *id = (ID*) self->psys->part;
+	char *name = NULL;
+	if (!id) return ( EXPP_ReturnIntError( PyExc_RuntimeError, "data has been removed" ) );
+	
+	name = PyString_AsString ( args );
+	if( !name )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					      "expected string argument" );
+
+	rename_id( id, name );
+
+	return 0;
+}
+
+PyObject * Part_SetNameWithMethod( BPy_PartSys *self, PyObject *args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Part_SetName );
+}
 
 /*****************************************************************************/
 /* Function:              Set/Get Seed                                       */
@@ -2714,6 +2762,44 @@ static PyObject *Part_getRenderDied( BPy_PartSys * self )
 	return PyInt_FromLong( ((long)( self->psys->part->flag & PART_DIED )) > 0 );
 }
 
+static int Part_setStrandRender( BPy_PartSys * self, PyObject * args )
+{
+	int number;
+
+	if( !PyInt_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
+
+	number = PyInt_AS_LONG( args );
+
+	if (number){
+		self->psys->part->draw |= PART_DRAW_REN_STRAND;
+	}else{
+		self->psys->part->draw &= ~PART_DRAW_REN_STRAND;
+	}
+
+	return 0;
+}
+
+static PyObject *Part_getStrandRender( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((long)( self->psys->part->draw & PART_DRAW_REN_STRAND )) > 0 );
+}
+
+static int Part_setStrandRenderAn( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setIValueRange( args, &self->psys->part->adapt_angle,
+			0, 45, 'i' );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
+}
+
+static PyObject *Part_getStrandRenderAn( BPy_PartSys * self )
+{
+	return PyInt_FromLong( ((int)( self->psys->part->adapt_angle )) );
+}
+
 static int Part_setParticleDisp( BPy_PartSys * self, PyObject * args )
 {
 	int res = EXPP_setIValueRange( args, &self->psys->part->disp,
@@ -2760,6 +2846,16 @@ static int Part_setRenderStep( BPy_PartSys * self, PyObject * args )
 static PyObject *Part_getRenderStep( BPy_PartSys * self )
 {
 	return PyInt_FromLong( ((short)( self->psys->part->ren_step )) );
+}
+
+static int Part_setDrawAs( BPy_PartSys * self, PyObject * args )
+{
+	int res = EXPP_setIValueRange( args, &self->psys->part->draw_as,
+			0, 9, 'h' );
+
+	psys_flush_settings( self->psys->part, PSYS_ALLOC, 1 );
+
+	return res;
 }
 
 static PyObject *Part_getDrawAs( BPy_PartSys * self )

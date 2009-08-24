@@ -408,6 +408,24 @@ class Material:
 
 	@type textures: a tuple of Blender MTex objects.
 	@ivar textures: the Material's Texture list.  Empty texture channels contains None.
+	@ivar strandTanShad: Uses direction of strands as normal for tangent-shading
+	@type strandTanShad: int
+	@ivar strandSurfDiff: Make diffuse shading more similar to shading the surface
+	@type strandSurfDiff: int
+	@ivar strandDist: Distance in Blender units over which to blend in the surface normal
+	@type strandDist: float
+	@ivar strandBlendUnit: Use actual Blender units for widths instead of pixels
+	@type strandBlendUnit: int
+	@ivar strandStart: Start size of strands
+	@type strandStart: float
+	@ivar strandEnd: End size of strands
+	@type strandEnd: float
+	@ivar strandMin: Minimum size of strands in pixels
+	@type strandMin: float
+	@ivar strandShape: Shape of strands, positive value makes it rounder, negative makes it spiky
+	@type strandShape: float
+	@ivar strandFade: Transparency along the width of the strand
+	@type strandFade: float
 	@ivar enableSSS:  If True, subsurface scattering will be rendered on this material.
 	@type enableSSS:  bool
 	@ivar sssScale:  If True, subsurface scattering will be rendered on this material.

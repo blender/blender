@@ -205,7 +205,7 @@ def GetSelected ():
 	"""
 
 
-def Duplicate (mesh=0, surface=0, curve=0, text=0, metaball=0, armature=0, lamp=0, material=0, texture=0, ipo=0):
+def Duplicate (mesh=0, surface=0, curve=0, text=0, metaball=0, armature=0, lamp=0, material=0, texture=0, ipo=0, psys=0):
 	"""
 	Duplicate selected objects on visible layers from Blenders current scene,
 	de-selecting the currently visible, selected objects and making a copy where all new objects are selected.
@@ -234,6 +234,8 @@ def Duplicate (mesh=0, surface=0, curve=0, text=0, metaball=0, armature=0, lamp=
 	@param texture: When non-zero, texture data used by the object's materials will be duplicated with the objects.
 	@type ipo: bool
 	@param ipo: When non-zero, Ipo data linked to the object will be duplicated with the objects.
+	@type psys: bool
+	@param psys: When non-zero, particle systems used by the object or its object data will be duplicated with the objects.
 
 	I{B{Example:}}
 
@@ -663,6 +665,7 @@ class Object:
 		particle system  with that name exists, it is linked to the object.
 		@type name: string
 		@param name: The name of the requested Particle system (optional).
+		@return: The particle system linked.
 		"""
 		
 	def addVertexGroupsFromArmature(object):

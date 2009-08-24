@@ -393,6 +393,8 @@ class Texture:
 	each color a list of 5 floats [0 - 1], [r,g,b,a,pos].
 	The colorband can have between 1 and 31 colors.
 	@type colorband:  list
+	@ivar useColorband: Use colorband for this texture.
+	@type colorband: int
 	@ivar autoRefresh: Refresh image on frame changes enabled.
 	@type autoRefresh:  boolean
 	"""

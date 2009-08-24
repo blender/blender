@@ -747,6 +747,26 @@ static PyObject *Material_getColorbandSpecularInput( BPy_Material * self );
 static int Material_setColorbandDiffuseInput ( BPy_Material * self, PyObject * value);
 static int Material_setColorbandSpecularInput ( BPy_Material * self, PyObject * value);
 
+static PyObject *Material_getStrandTangentShad( BPy_Material * self );
+static int Material_setStrandTangentShad( BPy_Material * self, PyObject * value);
+static PyObject *Material_getStrandSurfDiff( BPy_Material * self );
+static int Material_setStrandSurfDiff( BPy_Material * self, PyObject * value);
+static PyObject *Material_getStrandDist( BPy_Material * self );
+static int Material_setStrandDist( BPy_Material * self, PyObject * value);
+static PyObject *Material_getStrandBlendUnit( BPy_Material * self );
+static int Material_setStrandBlendUnit( BPy_Material * self, PyObject * value);
+static PyObject *Material_getStrandStart( BPy_Material * self );
+static int Material_setStrandStart( BPy_Material * self, PyObject * value);
+static PyObject *Material_getStrandEnd( BPy_Material * self );
+static int Material_setStrandEnd( BPy_Material * self, PyObject * value);
+static PyObject *Material_getStrandMin( BPy_Material * self );
+static int Material_setStrandMin( BPy_Material * self, PyObject * value);
+static PyObject *Material_getStrandShape( BPy_Material * self );
+static int Material_setStrandShape( BPy_Material * self, PyObject * value);
+static PyObject *Material_getStrandWidthFad( BPy_Material * self );
+static int Material_setStrandWidthFad( BPy_Material * self, PyObject * value);
+static PyObject *Material_getStrandUV( BPy_Material * self );
+static int Material_setStrandUV( BPy_Material * self, PyObject * value);
 
 
 /*****************************************************************************/
@@ -1312,6 +1332,46 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	{"colorbandDiffuseInput",
 	 (getter)Material_getColorbandDiffuseInput, (setter)Material_setColorbandDiffuseInput,
 	 "The diffuse colorband input for this material",
+	 NULL},
+	{"strandTanShad",
+	 (getter)Material_getStrandTangentShad, (setter)Material_setStrandTangentShad,
+	 "Uses direction of strands as normal for tangent-shading",
+	 NULL},
+	{"strandSurfDiff",
+	 (getter)Material_getStrandSurfDiff, (setter)Material_setStrandSurfDiff,
+	 "Make diffuse shading more similar to shading the surface",
+	 NULL},
+	{"strandDist",
+	 (getter)Material_getStrandDist, (setter)Material_setStrandDist,
+	 "Distance in Blender units over which to blend in the surface normal",
+	 NULL},
+	{"strandBlendUnit",
+	 (getter)Material_getStrandBlendUnit, (setter)Material_setStrandBlendUnit,
+	 "Use actual Blender units for widths instead of pixels",
+	 NULL},
+	{"strandStart",
+	 (getter)Material_getStrandStart, (setter)Material_setStrandStart,
+	 "Start size of strands",
+	 NULL},
+	{"strandEnd",
+	 (getter)Material_getStrandEnd, (setter)Material_setStrandEnd,
+	 "End size of strands",
+	 NULL},
+	{"strandMin",
+	 (getter)Material_getStrandMin, (setter)Material_setStrandMin,
+	 "Minimum size of strands in pixels",
+	 NULL},
+	{"strandShape",
+	 (getter)Material_getStrandShape, (setter)Material_setStrandShape,
+	 "Shape of strands, positive value makes it rounder, negative makes it spiky",
+	 NULL},
+	{"strandFade",
+	 (getter)Material_getStrandWidthFad, (setter)Material_setStrandWidthFad,
+	 "Transparency along the width of the strand",
+	 NULL},
+	{"strandUV",
+	 (getter)Material_getStrandUV, (setter)Material_setStrandUV,
+	 "Set name of UV layer to override",
 	 NULL},
 
 	/* SSS settings */
@@ -3581,4 +3641,147 @@ static int Material_setColorbandSpecularInput ( BPy_Material * self, PyObject * 
 {
 	return EXPP_setIValueClamped(value, &self->material->rampin_spec,
 			MA_RAMP_IN_SHADER, MA_RAMP_IN_RESULT, 'b');
+}
+
+/* Strand */
+
+static PyObject *Material_getStrandTangentShad( BPy_Material * self )
+{
+	return PyInt_FromLong( ((long)( self->material->mode & MA_TANGENT_STR )) > 0 );
+}
+
+static int Material_setStrandTangentShad( BPy_Material * self, PyObject * value)
+{
+	int number;
+
+	if( !PyInt_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
+
+	number = PyInt_AS_LONG( value );
+
+	if (number){
+		self->material->mode |= MA_TANGENT_STR;
+	}else{
+		self->material->mode &= ~MA_TANGENT_STR;
+	}
+
+	return 0;
+}
+
+static PyObject *Material_getStrandSurfDiff( BPy_Material * self )
+{
+	return PyInt_FromLong( ((long)( self->material->mode & MA_STR_SURFDIFF )) > 0 );
+}
+
+static int Material_setStrandSurfDiff( BPy_Material * self, PyObject * value)
+{
+	int number;
+
+	if( !PyInt_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
+
+	number = PyInt_AS_LONG( value );
+
+	if (number){
+		self->material->mode |= MA_STR_SURFDIFF;
+	}else{
+		self->material->mode &= ~MA_STR_SURFDIFF;
+	}
+
+	return 0;
+}
+
+static PyObject *Material_getStrandDist( BPy_Material * self )
+{
+	return PyFloat_FromDouble( ((float)( self->material->strand_surfnor )) );
+}
+
+static int Material_setStrandDist( BPy_Material * self, PyObject * value)
+{
+	return EXPP_setFloatRange( value, &self->material->strand_surfnor,	0.0, 10.0 );
+}
+
+static PyObject *Material_getStrandBlendUnit( BPy_Material * self )
+{
+	return PyInt_FromLong( ((long)( self->material->mode & MA_STR_B_UNITS )) > 0 );
+}
+
+static int Material_setStrandBlendUnit( BPy_Material * self, PyObject * value)
+{
+	int number;
+
+	if( !PyInt_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected int argument" );
+
+	number = PyInt_AS_LONG( value );
+
+	if (number){
+		self->material->mode |= MA_STR_B_UNITS;
+	}else{
+		self->material->mode &= ~MA_STR_B_UNITS;
+	}
+
+	return 0;
+}
+
+static PyObject *Material_getStrandStart( BPy_Material * self )
+{
+	return PyFloat_FromDouble( ((float)( self->material->strand_sta )) );
+}
+
+static int Material_setStrandStart( BPy_Material * self, PyObject * value)
+{
+	return EXPP_setFloatRange( value, &self->material->strand_sta,	0.0001, 2.0 );
+}
+
+static PyObject *Material_getStrandEnd( BPy_Material * self )
+{
+	return PyFloat_FromDouble( ((float)( self->material->strand_end )) );
+}
+
+static int Material_setStrandEnd( BPy_Material * self, PyObject * value)
+{
+	return EXPP_setFloatRange( value, &self->material->strand_end,	0.0001, 1.0 );
+}
+
+static PyObject *Material_getStrandMin( BPy_Material * self )
+{
+	return PyFloat_FromDouble( ((float)( self->material->strand_min )) );
+}
+
+static int Material_setStrandMin( BPy_Material * self, PyObject * value)
+{
+	return EXPP_setFloatRange( value, &self->material->strand_min,	0.0001, 10.0 );
+}
+
+static PyObject *Material_getStrandShape( BPy_Material * self )
+{
+	return PyFloat_FromDouble( ((float)( self->material->strand_ease )) );
+}
+
+static int Material_setStrandShape( BPy_Material * self, PyObject * value)
+{
+	return EXPP_setFloatRange( value, &self->material->strand_ease,	-0.9, 0.9 );
+}
+
+static PyObject *Material_getStrandWidthFad( BPy_Material * self )
+{
+	return PyFloat_FromDouble( ((float)( self->material->strand_widthfade )) );
+}
+
+static int Material_setStrandWidthFad( BPy_Material * self, PyObject * value)
+{
+	return EXPP_setFloatRange( value, &self->material->strand_widthfade,	0.0, 2.0 );
+}
+
+static PyObject *Material_getStrandUV( BPy_Material * self )
+{
+	return EXPP_ReturnPyObjError( PyExc_NotImplementedError,
+		"Material.strandUV not implemented" );
+}
+
+static int Material_setStrandUV( BPy_Material * self, PyObject * value)
+{
+	return EXPP_ReturnPyObjError( PyExc_NotImplementedError,
+		"Material.strandUV not implemented" );
 }
