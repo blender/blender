@@ -78,6 +78,7 @@
 
 #include "BKE_main.h"
 #include "BKE_anim.h"
+#include "BKE_action.h"
 #include "BKE_bmesh.h"
 // XXX #include "BKE_booleanops.h"
 #include "BKE_cloth.h"

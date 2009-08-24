@@ -2050,7 +2050,7 @@ static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int state, int rou
 	widget_init(&wtb);
 	
 	/* half rounded */
-	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
+	round_box_edges(&wtb, roundboxalign, rect, 5.0f);
 
 	widgetbase_draw(&wtb, wcol);
 }
