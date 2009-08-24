@@ -318,6 +318,7 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
 	GPUTexture *tex;
 	GLenum type, format, internalformat;
 	void *pixels = NULL;
+	float vfBorderColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
 	tex->w = w;
@@ -326,7 +327,6 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
 	tex->number = -1;
 	tex->refcount = 1;
 	tex->target = GL_TEXTURE_3D;
-	float vfBorderColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	glGenTextures(1, &tex->bindcode);
 
