@@ -251,8 +251,8 @@ IF(WIN32)
 
   IF(WITH_JACK)
     SET(JACK ${LIBDIR}/jack)
-    SET(JACK_INC ${JACK}/include/jack)
-    SET(JACK_LIB jack)
+    SET(JACK_INC ${JACK}/include/jack ${JACK}/include)
+    SET(JACK_LIB libjack)
     SET(JACK_LIBPATH ${JACK}/lib)
   ENDIF(WITH_JACK)
 
