@@ -575,15 +575,14 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 		startco = shi->camera_co;
 		endco = shi->co;
 		
-		if (!ztransp) {
-			if (trace_behind) {
+		if (trace_behind) {
+			if (!ztransp)
 				/* trace behind the volume object */
 				vol_trace_behind(shi, shi->vlr, endco, col);
-			} else {
-				/* we're tracing through the volume between the camera 
-				 * and a solid surface, so use that pre-shaded radiance */
-				QUATCOPY(col, shr->combined);
-			}
+		} else {
+			/* we're tracing through the volume between the camera 
+			 * and a solid surface, so use that pre-shaded radiance */
+			QUATCOPY(col, shr->combined);
 		}
 		
 		/* shade volume from 'camera' to 1st hit point */
@@ -676,8 +675,9 @@ void shade_volume_inside(ShadeInput *shi, ShadeResult *shr)
 	MatInside *m;
 	Material *mat_backup;
 	
-	if (BLI_countlist(&R.render_volumes_inside) == 0) return;
+	//if (BLI_countlist(&R.render_volumes_inside) == 0) return;
 	
+	/* XXX: extend to multiple volumes perhaps later */
 	mat_backup = shi->mat;
 	m = R.render_volumes_inside.first;
 	shi->mat = m->ma;

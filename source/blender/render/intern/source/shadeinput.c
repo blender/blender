@@ -169,7 +169,8 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 	}	
 	
 	if(R.r.mode & R_RAYTRACE) {
-		shade_volume_inside(shi, shr);
+		if (R.render_volumes_inside.first)
+			shade_volume_inside(shi, shr);
 	}
 }
 
