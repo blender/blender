@@ -197,7 +197,6 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 	RegionView3D *rv3d= ar->regiondata;
 
 	float viewnormal[3];
-	// int res[3];
 	int i, j, n;
 	float d, d0, dd;
 	float *points = NULL;
@@ -237,9 +236,12 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 
 	GPU_texture_bind(tex, 0);
 
-	cor[0] = (float)res[0]/(float)larger_pow2(res[0]);
-	cor[1] = (float)res[1]/(float)larger_pow2(res[1]);
-	cor[2] = (float)res[2]/(float)larger_pow2(res[2]);
+	// if (!GLEW_ARB_texture_non_power_of_two) 
+	{
+		cor[0] = (float)res[0]/(float)larger_pow2(res[0]);
+		cor[1] = (float)res[1]/(float)larger_pow2(res[1]);
+		cor[2] = (float)res[2]/(float)larger_pow2(res[2]);
+	}
 
 	// our slices are defined by the plane equation a*x + b*y +c*z + d = 0
 	// (a,b,c), the plane normal, are given by viewdir
