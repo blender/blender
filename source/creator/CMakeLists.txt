@@ -262,6 +262,14 @@ IF(WITH_INSTALL)
       )
     ENDIF(WITH_FFMPEG)
 
+    IF(WITH_SNDFILE)
+      ADD_CUSTOM_COMMAND(TARGET blender
+        POST_BUILD
+        MAIN_DEPENDENCY blender
+        COMMAND copy /Y \"${WIN_LIBDIR}\\sndfile\\lib\\libsndfile-1.dll\" \"${TARGETDIR}\\\"
+      )
+    ENDIF(WITH_SNDFILE)
+
     IF(WITH_JACK)
       ADD_CUSTOM_COMMAND(TARGET blender
         POST_BUILD
