@@ -4475,7 +4475,8 @@ void MESH_OT_vertices_transform_to_sphere(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Vertices to Sphere";
-	ot->description= "Move selected vertices outward in a spherical shape.";
+	//added "around cursor" to differentiate between "TFM_OT_tosphere()"
+	ot->description= "Move selected vertices outward in a spherical shape around cursor.";
 	ot->idname= "MESH_OT_vertices_transform_to_sphere";
 	
 	/* api callbacks */

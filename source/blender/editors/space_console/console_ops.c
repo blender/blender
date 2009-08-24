@@ -280,6 +280,7 @@ void CONSOLE_OT_move(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Move Cursor";
+    ot->description= "Move cursor position.";
 	ot->idname= "CONSOLE_OT_move";
 	
 	/* api callbacks */
@@ -324,6 +325,7 @@ void CONSOLE_OT_insert(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Insert";
+    ot->description= "Insert text at cursor position.";
 	ot->idname= "CONSOLE_OT_insert";
 	
 	/* api callbacks */
@@ -391,6 +393,7 @@ void CONSOLE_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete";
+    ot->description= "Delete text by cursor position.";
 	ot->idname= "CONSOLE_OT_delete";
 	
 	/* api callbacks */
@@ -434,6 +437,7 @@ void CONSOLE_OT_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear";
+    ot->description= "Clear text by type.";
 	ot->idname= "CONSOLE_OT_clear";
 	
 	/* api callbacks */
@@ -478,6 +482,7 @@ void CONSOLE_OT_history_cycle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "History Cycle";
+    ot->description= "Cycle through history.";
 	ot->idname= "CONSOLE_OT_history_cycle";
 	
 	/* api callbacks */
@@ -525,6 +530,7 @@ void CONSOLE_OT_history_append(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "History Append";
+    ot->description= "Append history at cursor position.";
 	ot->idname= "CONSOLE_OT_history_append";
 	
 	/* api callbacks */
@@ -572,6 +578,7 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Scrollback Append";
+    ot->description= "Append scrollback text by type.";
 	ot->idname= "CONSOLE_OT_scrollback_append";
 	
 	/* api callbacks */
@@ -614,6 +621,7 @@ void CONSOLE_OT_copy(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Copy to Clipboard";
+    ot->description= "Copy selected text to clipboard.";
 	ot->idname= "CONSOLE_OT_copy";
 
 	/* api callbacks */
@@ -648,6 +656,7 @@ void CONSOLE_OT_paste(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Paste from Clipboard";
+    ot->description= "Paste text from clipboard.";
 	ot->idname= "CONSOLE_OT_paste";
 
 	/* api callbacks */
@@ -679,6 +688,9 @@ void CONSOLE_OT_zoom(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Console Zoom";
+    /*optionals - 
+      "Zoom view font." */
+    ot->description= "Zoom screen area.";
 	ot->idname= "CONSOLE_OT_zoom";
 	
 	/* api callbacks */
