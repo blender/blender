@@ -66,7 +66,7 @@ class PHYSICS_PT_softbody_cache(PhysicButtonsPanel):
 		layout.set_context_pointer("PointCache", cache)
 		
 		row = layout.row()
-		row.template_list(cache, "point_cache_list", cache, "active_point_cache_index")
+		row.template_list(cache, "point_cache_list", cache, "active_point_cache_index", rows=2)
 		col = row.column(align=True)
 		col.itemO("ptcache.add_new", icon='ICON_ZOOMIN', text="")
 		col.itemO("ptcache.remove", icon='ICON_ZOOMOUT', text="")

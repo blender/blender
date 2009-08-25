@@ -33,6 +33,8 @@ class TIME_HT_header(bpy.types.Header):
 			row.itemR(scene, "preview_range_end_frame", text="End")
 		
 		layout.itemR(scene, "current_frame", text="")
+		
+		layout.itemS()
 
 		row = layout.row(align=True)
 		row.item_booleanO("screen.frame_jump", "end", False, text="", icon='ICON_REW')
@@ -47,18 +49,13 @@ class TIME_HT_header(bpy.types.Header):
 		row.item_booleanO("screen.keyframe_jump", "next", True, text="", icon='ICON_NEXT_KEYFRAME')
 		row.item_booleanO("screen.frame_jump", "end", True, text="", icon='ICON_FF')
 		
-		layout.itemR(rd, "sync_audio", text="", toggle=True, icon='ICON_SPEAKER')
-		
-		layout.itemS()
-		
 		row = layout.row(align=True)
 		row.itemR(tools, "enable_auto_key", text="", toggle=True, icon='ICON_REC')
-		sub = row.row()
-		sub.active = tools.enable_auto_key
-		sub.itemR(tools, "autokey_mode", text="")
 		if screen.animation_playing and tools.enable_auto_key:
 			subsub = row.row()
 			subsub.itemR(tools, "record_with_nla", toggle=True)
+			
+		layout.itemR(rd, "sync_audio", text="", toggle=True, icon='ICON_SPEAKER')
 		
 		layout.itemS()
 		
@@ -88,6 +85,7 @@ class TIME_MT_frame(bpy.types.Menu):
 
 	def draw(self, context):
 		layout = self.layout
+		tools = context.tool_settings
 		
 		layout.itemO("marker.add", text="Add Marker")
 		layout.itemO("marker.duplicate", text="Duplicate Marker")
@@ -99,6 +97,12 @@ class TIME_MT_frame(bpy.types.Menu):
 		
 		layout.itemO("time.start_frame_set")
 		layout.itemO("time.end_frame_set")
+		
+		layout.itemS()
+		
+		sub = layout.row()
+		sub.active = tools.enable_auto_key
+		sub.itemM("TIME_MT_autokey")
 
 class TIME_MT_playback(bpy.types.Menu):
 	__space_type__ = 'TIMELINE'
@@ -108,6 +112,7 @@ class TIME_MT_playback(bpy.types.Menu):
 		layout = self.layout
 		
 		st = context.space_data
+		rd = context.scene.render_data
 		
 		layout.itemR(st, "play_top_left")
 		layout.itemR(st, "play_all_3d")
@@ -115,10 +120,32 @@ class TIME_MT_playback(bpy.types.Menu):
 		layout.itemR(st, "play_buttons")
 		layout.itemR(st, "play_image")
 		layout.itemR(st, "play_sequencer")
+		
 		layout.itemS()
+		
 		layout.itemR(st, "continue_physics")
+		
+		layout.itemS()
+		
+		layout.itemR(rd, "sync_audio", icon='ICON_SPEAKER')
+
+		
+		
+class TIME_MT_autokey(bpy.types.Menu):
+	__space_type__ = 'TIMELINE'
+	__label__ = "Auto-Keyframing Mode"
+
+	def draw(self, context):
+		layout = self.layout
+		tools = context.tool_settings
+		
+		layout.active = tools.enable_auto_key
+		
+		layout.item_enumR(tools, "autokey_mode", "ADD_REPLACE_KEYS")
+		layout.item_enumR(tools, "autokey_mode", "REPLACE_KEYS")
 
 bpy.types.register(TIME_HT_header)
 bpy.types.register(TIME_MT_view)
 bpy.types.register(TIME_MT_frame)
+bpy.types.register(TIME_MT_autokey)
 bpy.types.register(TIME_MT_playback)
