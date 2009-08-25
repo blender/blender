@@ -611,6 +611,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\voxel.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\winstuff.c"
 				>
 			</File>
@@ -721,6 +725,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_util.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_voxel.h"
 				>
 			</File>
 			<File

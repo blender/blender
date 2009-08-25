@@ -1302,10 +1302,6 @@
 				RelativePath="..\..\..\source\blender\editors\sculpt_paint\sculpt_intern.h"
 				>
 			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\sculpt_paint\sculpt_stroke.c"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="uvedit"
