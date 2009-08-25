@@ -1995,6 +1995,9 @@ void RNA_def_scene(BlenderRNA *brna)
 	rna_def_scene_render_data(brna);
 	rna_def_scene_game_data(brna);
 	rna_def_scene_render_layer(brna);
+	
+	/* Scene API */
+	RNA_api_scene(srna);
 }
 
 #endif

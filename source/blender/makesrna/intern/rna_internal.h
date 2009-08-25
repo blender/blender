@@ -197,9 +197,11 @@ void rna_Object_update_data(struct bContext *C, struct PointerRNA *ptr);
 
 /* API functions */
 
+void RNA_api_keyingset(struct StructRNA *srna);
 void RNA_api_main(struct StructRNA *srna);
 void RNA_api_mesh(struct StructRNA *srna);
 void RNA_api_object(struct StructRNA *srna);
+void RNA_api_scene(struct StructRNA *srna);
 void RNA_api_ui_layout(struct StructRNA *srna);
 void RNA_api_wm(struct StructRNA *srna);
 
