@@ -3,14 +3,9 @@ LIBDIR = "${LCGDIR}"
 
 BF_PYTHON = LIBDIR + '/python'
 BF_PYTHON_VERSION = '3.1'
-#BF_PYTHON_VERSION = '2.6'
-#BF_PYTHON_VERSION = '2.6'
 WITH_BF_STATICPYTHON = False
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = 'python'
-#BF_PYTHON_LIB = 'python25'
-#BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/lib25_vs2005'
-#BF_PYTHON_LIB_STATIC = '${BF_PYTHON}/lib/lib25_vs2005/libpython25.a'
 BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION[0]}${BF_PYTHON_VERSION[2]}'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 BF_PYTHON_LIB_STATIC = '${BF_PYTHON}/lib/libpython${BF_PYTHON_VERSION[0]}${BF_PYTHON_VERSION[2]}.a'
@@ -36,6 +31,12 @@ BF_JACK = LIBDIR + '/jack'
 BF_JACK_INC = '${BF_JACK}/include'
 BF_JACK_LIB = 'libjack'
 BF_JACK_LIBPATH = '${BF_JACK}/lib'
+
+WITH_BF_SNDFILE = False
+BF_SNDFILE = LIBDIR + '/sndfile'
+BF_SNDFILE_INC = '${BF_SNDFILE}/include'
+BF_SNDFILE_LIB = 'libsndfile'
+BF_SNDFILE_LIBPATH = '${BF_SNDFILE}/lib'
 
 WITH_BF_SDL = True
 BF_SDL = LIBDIR + '/sdl'
@@ -98,20 +99,6 @@ BF_BULLET_LIB = 'extern_bullet'
 
 BF_WINTAB = LIBDIR + '/wintab'
 BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
-
-#WITH_BF_NSPR = True
-#BF_NSPR = $(LIBDIR)/nspr
-#BF_NSPR_INC = -I$(BF_NSPR)/include -I$(BF_NSPR)/include/nspr
-#BF_NSPR_LIB = 
-
-# Uncomment the following line to use Mozilla inplace of netscape
-#CPPFLAGS += -DMOZ_NOT_NET
-# Location of MOZILLA/Netscape header files...
-#BF_MOZILLA = $(LIBDIR)/mozilla
-#BF_MOZILLA_INC = -I$(BF_MOZILLA)/include/mozilla/nspr -I$(BF_MOZILLA)/include/mozilla -I$(BF_MOZILLA)/include/mozilla/xpcom -I$(BF_MOZILLA)/include/mozilla/idl
-#BF_MOZILLA_LIB =
-# Will fall back to look in BF_MOZILLA_INC/nspr and BF_MOZILLA_LIB
-# if this is not set.
 
 # enable freetype2 support for text objects
 BF_FREETYPE = LIBDIR + '/gcc/freetype'
