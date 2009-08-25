@@ -895,7 +895,7 @@ static int BKE_ptcache_id_filename(PTCacheID *pid, char *filename, int cfra, sho
 	if (do_ext) {
 
 		if(pid->cache->index < 0)
-			pid->cache->index =  pid->stack_index = object_insert_pc(pid->ob);
+			pid->cache->index =  pid->stack_index = object_insert_ptcache(pid->ob);
 
 		if(pid->cache->flag & PTCACHE_EXTERNAL) {
 			if(pid->cache->index >= 0)
