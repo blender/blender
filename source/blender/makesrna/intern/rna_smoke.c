@@ -46,6 +46,7 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 
 #include "ED_object.h"
 
@@ -58,6 +59,21 @@ static void rna_Smoke_dependency_update(bContext *C, PointerRNA *ptr)
 {
 	rna_Smoke_update(C, ptr);
     DAG_scene_sort(CTX_data_scene(C));
+}
+
+static void rna_Smoke_reset_cache(bContext *C, PointerRNA *ptr)
+{
+	SmokeDomainSettings *settings = (SmokeDomainSettings*)ptr->data;
+	PointCache *cache = settings->point_cache;
+
+	printf("rna_Smoke_reset_cache\n");
+
+	cache->flag &= ~PTCACHE_SIMULATION_VALID;
+	cache->flag |= PTCACHE_OUTDATED;
+	cache->simframe= 0;
+	cache->last_exact= 0;
+
+	rna_Smoke_update(C, ptr);
 }
 
 static void rna_Smoke_reset(bContext *C, PointerRNA *ptr)
@@ -150,14 +166,14 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, -5.0, 5.0);
 	RNA_def_property_ui_range(prop, -5.0, 5.0, 0.02, 5);
 	RNA_def_property_ui_text(prop, "Gravity", "Higher value results in sinking smoke");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset_cache");
 
 	prop= RNA_def_property(srna, "beta", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "beta");
 	RNA_def_property_range(prop, -5.0, 5.0);
 	RNA_def_property_ui_range(prop, -5.0, 5.0, 0.02, 5);
 	RNA_def_property_ui_text(prop, "Heat", "Higher value results in faster rising smoke.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset_cache");
 
 	prop= RNA_def_property(srna, "coll_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "coll_group");
