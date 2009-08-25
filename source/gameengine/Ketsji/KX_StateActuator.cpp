@@ -159,12 +159,6 @@ PyTypeObject KX_StateActuator::Type = {
 };
 
 PyMethodDef KX_StateActuator::Methods[] = {
-	// deprecated -->
-	{"setOperation", (PyCFunction) KX_StateActuator::sPySetOperation, 
-	 METH_VARARGS, (const char *)SetOperation_doc},
-	{"setMask", (PyCFunction) KX_StateActuator::sPySetMask, 
-	 METH_VARARGS, (const char *)SetMask_doc},
-	 // <--
 	{NULL,NULL} //Sentinel
 };
 
@@ -173,52 +167,3 @@ PyAttributeDef KX_StateActuator::Attributes[] = {
 	KX_PYATTRIBUTE_INT_RW("mask",0,0x3FFFFFFF,false,KX_StateActuator,m_mask),
 	{ NULL }	//Sentinel
 };
-
-
-/* set operation ---------------------------------------------------------- */
-const char 
-KX_StateActuator::SetOperation_doc[] = 
-"setOperation(op)\n"
-"\t - op : bit operation (0=Copy, 1=Set, 2=Clear, 3=Negate)"
-"\tSet the type of bit operation to be applied on object state mask.\n"
-"\tUse setMask() to specify the bits that will be modified.\n";
-PyObject* 
-
-KX_StateActuator::PySetOperation(PyObject* args) {
-	ShowDeprecationWarning("setOperation()", "the operation property");
-	int oper;
-
-	if(!PyArg_ParseTuple(args, "i:setOperation", &oper)) {
-		return NULL;
-	}
-
-	m_operation = oper;
-
-	Py_RETURN_NONE;
-}
-
-/* set mask ---------------------------------------------------------- */
-const char 
-KX_StateActuator::SetMask_doc[] = 
-"setMask(mask)\n"
-"\t - mask : bits that will be modified"
-"\tSet the value that defines the bits that will be modified by the operation.\n"
-"\tThe bits that are 1 in the value will be updated in the object state,\n"
-"\tthe bits that are 0 are will be left unmodified expect for the Copy operation\n"
-"\twhich copies the value to the object state.\n";
-PyObject* 
-
-KX_StateActuator::PySetMask(PyObject* args) {
-	ShowDeprecationWarning("setMask()", "the mask property");
-	int mask;
-
-	if(!PyArg_ParseTuple(args, "i:setMask", &mask)) {
-		return NULL;
-	}
-
-	m_mask = mask;
-
-	Py_RETURN_NONE;
-}
-
-

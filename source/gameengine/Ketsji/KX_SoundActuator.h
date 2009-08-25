@@ -110,18 +110,6 @@ public:
 	static PyObject* pyattr_get_pitch(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject* pyattr_get_rollOffFactor(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject* pyattr_get_type(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
-
-	// Deprecated ----->
-	KX_PYMETHOD_VARARGS(KX_SoundActuator,SetGain);
-	KX_PYMETHOD_NOARGS(KX_SoundActuator,GetGain);
-	KX_PYMETHOD_VARARGS(KX_SoundActuator,SetPitch);
-	KX_PYMETHOD_NOARGS(KX_SoundActuator,GetPitch);
-	KX_PYMETHOD_VARARGS(KX_SoundActuator,SetRollOffFactor);
-	KX_PYMETHOD_NOARGS(KX_SoundActuator,GetRollOffFactor);
-	KX_PYMETHOD_VARARGS(KX_SoundActuator,SetType);
-	KX_PYMETHOD_NOARGS(KX_SoundActuator,GetType);
-	// <-----
-
 };
 
 #endif //__KX_SOUNDACTUATOR

@@ -60,13 +60,6 @@ public:
 	/* Python interface ------------------------------------------- */
 	/* ------------------------------------------------------------ */
 
-	// Deprecated ----->
-	KX_PYMETHOD(KX_NetworkMessageActuator, SetToPropName);
-	KX_PYMETHOD(KX_NetworkMessageActuator, SetSubject);
-	KX_PYMETHOD(KX_NetworkMessageActuator, SetBodyType);
-	KX_PYMETHOD(KX_NetworkMessageActuator, SetBody);
-	// <-----
-
 };
 
 #endif //__KX_NETWORKMESSAGEACTUATOR_H

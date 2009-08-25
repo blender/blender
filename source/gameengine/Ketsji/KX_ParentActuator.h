@@ -84,11 +84,6 @@ class KX_ParentActuator : public SCA_IActuator
 	/* These are used to get and set m_ob */
 	static PyObject* pyattr_get_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int pyattr_set_object(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
-
-	// Deprecated ----->
-	KX_PYMETHOD_DOC_O(KX_ParentActuator,SetObject);
-	KX_PYMETHOD_DOC_VARARGS(KX_ParentActuator,GetObject);
-	// <-----
 	
 }; /* end of class KX_ParentActuator : public SCA_PropertyActuator */
 

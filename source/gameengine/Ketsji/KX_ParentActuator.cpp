@@ -162,10 +162,6 @@ PyTypeObject KX_ParentActuator::Type = {
 };
 
 PyMethodDef KX_ParentActuator::Methods[] = {
-	// Deprecated ----->
-	{"setObject", (PyCFunction) KX_ParentActuator::sPySetObject, METH_O, (const char *)SetObject_doc},
-	{"getObject", (PyCFunction) KX_ParentActuator::sPyGetObject, METH_VARARGS, (const char *)GetObject_doc},
-	// <-----
 	{NULL,NULL} //Sentinel
 };
 
@@ -204,56 +200,5 @@ int KX_ParentActuator::pyattr_set_object(void *self, const struct KX_PYATTRIBUTE
 		
 	return PY_SET_ATTR_SUCCESS;
 }
-
-
-/* Deprecated -----> */
-/* 1. setObject                                                            */
-const char KX_ParentActuator::SetObject_doc[] = 
-"setObject(object)\n"
-"\t- object: KX_GameObject, string or None\n"
-"\tSet the object to set as parent.\n";
-PyObject* KX_ParentActuator::PySetObject(PyObject* value) {
-	KX_GameObject *gameobj;
-	
-	ShowDeprecationWarning("setObject()", "the object property");
-	
-	if (!ConvertPythonToGameObject(value, &gameobj, true, "actuator.setObject(value): KX_ParentActuator"))
-		return NULL; // ConvertPythonToGameObject sets the error
-	
-	if (m_ob != NULL)
-		m_ob->UnregisterActuator(this);	
-
-	m_ob = (SCA_IObject*)gameobj;
-	if (m_ob)
-		m_ob->RegisterActuator(this);
-	
-	Py_RETURN_NONE;
-}
-
-/* 2. getObject                                                            */
-
-/* get obj  ---------------------------------------------------------- */
-const char KX_ParentActuator::GetObject_doc[] = 
-"getObject(name_only = 1)\n"
-"name_only - optional arg, when true will return the KX_GameObject rather then its name\n"
-"\tReturns the object that is set to.\n";
-PyObject* KX_ParentActuator::PyGetObject(PyObject* args)
-{
-	int ret_name_only = 1;
-	
-	ShowDeprecationWarning("getObject()", "the object property");
-	
-	if (!PyArg_ParseTuple(args, "|i:getObject", &ret_name_only))
-		return NULL;
-	
-	if (!m_ob)
-		Py_RETURN_NONE;
-	
-	if (ret_name_only)
-		return PyUnicode_FromString(m_ob->GetName().ReadPtr());
-	else
-		return m_ob->GetProxy();
-}
-/* <----- */
 
 /* eof */

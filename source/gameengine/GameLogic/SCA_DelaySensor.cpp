@@ -152,16 +152,6 @@ PyTypeObject SCA_DelaySensor::Type = {
 };
 
 PyMethodDef SCA_DelaySensor::Methods[] = {
-	//Deprecated functions ------>
-	/* setProperty */
-	{"setDelay", (PyCFunction) SCA_DelaySensor::sPySetDelay, METH_VARARGS, (const char *)SetDelay_doc},
-	{"setDuration", (PyCFunction) SCA_DelaySensor::sPySetDuration, METH_VARARGS, (const char *)SetDuration_doc},
-	{"setRepeat", (PyCFunction) SCA_DelaySensor::sPySetRepeat, METH_VARARGS, (const char *)SetRepeat_doc},
-	/* getProperty */
-	{"getDelay", (PyCFunction) SCA_DelaySensor::sPyGetDelay, METH_NOARGS, (const char *)GetDelay_doc},
-	{"getDuration", (PyCFunction) SCA_DelaySensor::sPyGetDuration, METH_NOARGS, (const char *)GetDuration_doc},
-	{"getRepeat", (PyCFunction) SCA_DelaySensor::sPyGetRepeat, METH_NOARGS, (const char *)GetRepeat_doc},
-	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };
 
@@ -171,92 +161,5 @@ PyAttributeDef SCA_DelaySensor::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RW("repeat",SCA_DelaySensor,m_repeat),
 	{ NULL }	//Sentinel
 };
-
-const char SCA_DelaySensor::SetDelay_doc[] = 
-"setDelay(delay)\n"
-"\t- delay: length of the initial OFF period as number of frame\n"
-"\t         0 for immediate trigger\n"
-"\tSet the initial delay before the positive trigger\n";
-PyObject* SCA_DelaySensor::PySetDelay(PyObject* args)
-{
-	ShowDeprecationWarning("setDelay()", "the delay property");
-	int delay;
-	
-	if(!PyArg_ParseTuple(args, "i:setDelay", &delay)) {
-		return NULL;
-	}
-	if (delay < 0) {
-		PyErr_SetString(PyExc_ValueError, "Delay cannot be negative");
-		return NULL;
-	}
-	m_delay = delay;
-	Py_RETURN_NONE;
-}
-
-const char SCA_DelaySensor::SetDuration_doc[] = 
-"setDuration(duration)\n"
-"\t- duration: length of the ON period in number of frame after the initial off period\n"
-"\t            0 for no ON period\n"
-"\tSet the duration of the ON pulse after initial delay.\n"
-"\tIf > 0, a negative trigger is fired at the end of the ON pulse.\n";
-PyObject* SCA_DelaySensor::PySetDuration(PyObject* args)
-{
-	ShowDeprecationWarning("setDuration()", "the duration property");
-	int duration;
-	
-	if(!PyArg_ParseTuple(args, "i:setDuration", &duration)) {
-		return NULL;
-	}
-	if (duration < 0) {
-		PyErr_SetString(PyExc_ValueError, "Duration cannot be negative");
-		return NULL;
-	}
-	m_duration = duration;
-	Py_RETURN_NONE;
-}
-
-const char SCA_DelaySensor::SetRepeat_doc[] = 
-"setRepeat(repeat)\n"
-"\t- repeat: 1 if the initial OFF-ON cycle should be repeated indefinately\n"
-"\t          0 if the initial OFF-ON cycle should run only once\n"
-"\tSet the sensor repeat mode\n";
-PyObject* SCA_DelaySensor::PySetRepeat(PyObject* args)
-{
-	ShowDeprecationWarning("setRepeat()", "the repeat property");
-	int repeat;
-	
-	if(!PyArg_ParseTuple(args, "i:setRepeat", &repeat)) {
-		return NULL;
-	}
-	m_repeat = (repeat != 0);
-	Py_RETURN_NONE;
-}
-
-const char SCA_DelaySensor::GetDelay_doc[] = 
-"getDelay()\n"
-"\tReturn the delay parameter value\n";
-PyObject* SCA_DelaySensor::PyGetDelay()
-{
-	ShowDeprecationWarning("getDelay()", "the delay property");
-	return PyLong_FromSsize_t(m_delay);
-}
-
-const char SCA_DelaySensor::GetDuration_doc[] = 
-"getDuration()\n"
-"\tReturn the duration parameter value\n";
-PyObject* SCA_DelaySensor::PyGetDuration()
-{
-	ShowDeprecationWarning("getDuration()", "the duration property");
-	return PyLong_FromSsize_t(m_duration);
-}
-
-const char SCA_DelaySensor::GetRepeat_doc[] = 
-"getRepeat()\n"
-"\tReturn the repeat parameter value\n";
-PyObject* SCA_DelaySensor::PyGetRepeat()
-{
-	ShowDeprecationWarning("getRepeat()", "the repeat property");
-	return BoolToPyArg(m_repeat);
-}
 
 /* eof */

@@ -1383,8 +1383,8 @@ PyMethodDef KX_GameObject::Methods[] = {
 	{"setVisible",(PyCFunction) KX_GameObject::sPySetVisible, METH_VARARGS},
 	{"setOcclusion",(PyCFunction) KX_GameObject::sPySetOcclusion, METH_VARARGS},
 	{"removeParent", (PyCFunction)KX_GameObject::sPyRemoveParent,METH_NOARGS},
-	{"getChildren", (PyCFunction)KX_GameObject::sPyGetChildren,METH_NOARGS},
-	{"getChildrenRecursive", (PyCFunction)KX_GameObject::sPyGetChildrenRecursive,METH_NOARGS},
+
+
 	{"getPhysicsId", (PyCFunction)KX_GameObject::sPyGetPhysicsId,METH_NOARGS},
 	{"getPropertyNames", (PyCFunction)KX_GameObject::sPyGetPropertyNames,METH_NOARGS},
 	{"replaceMesh",(PyCFunction) KX_GameObject::sPyReplaceMesh, METH_VARARGS},
@@ -1400,18 +1400,6 @@ PyMethodDef KX_GameObject::Methods[] = {
 	// dict style access for props
 	{"get",(PyCFunction) KX_GameObject::sPyget, METH_VARARGS},
 	
-	// deprecated
-	{"getPosition", (PyCFunction) KX_GameObject::sPyGetPosition, METH_NOARGS},
-	{"setPosition", (PyCFunction) KX_GameObject::sPySetPosition, METH_O},
-	{"setWorldPosition", (PyCFunction) KX_GameObject::sPySetWorldPosition, METH_O},
-	{"getOrientation", (PyCFunction) KX_GameObject::sPyGetOrientation, METH_NOARGS},
-	{"setOrientation", (PyCFunction) KX_GameObject::sPySetOrientation, METH_O},
-	{"getState",(PyCFunction) KX_GameObject::sPyGetState, METH_NOARGS},
-	{"setState",(PyCFunction) KX_GameObject::sPySetState, METH_O},
-	{"getParent", (PyCFunction)KX_GameObject::sPyGetParent,METH_NOARGS},
-	{"getVisible",(PyCFunction) KX_GameObject::sPyGetVisible, METH_NOARGS},
-	{"getMass", (PyCFunction) KX_GameObject::sPyGetMass, METH_NOARGS},
-	{"getMesh", (PyCFunction)KX_GameObject::sPyGetMesh,METH_VARARGS},
 	{NULL,NULL} //Sentinel
 };
 
@@ -1512,13 +1500,6 @@ PyObject* KX_GameObject::PyReinstancePhysicsMesh(PyObject* args)
 		Py_RETURN_TRUE;
 
 	Py_RETURN_FALSE;
-}
-
-
-PyObject* KX_GameObject::PyGetPosition()
-{
-	ShowDeprecationWarning("getPosition()", "the position property");
-	return PyObjectFrom(NodeGetWorldPosition());
 }
 
 static PyObject *Map_GetItem(PyObject *self_v, PyObject *item)
@@ -2200,41 +2181,6 @@ PyObject* KX_GameObject::PySetOcclusion(PyObject* args)
 	Py_RETURN_NONE;
 }
 
-PyObject* KX_GameObject::PyGetVisible()
-{
-	ShowDeprecationWarning("getVisible()", "the visible property");
-	return PyLong_FromSsize_t(m_bVisible);	
-}
-
-PyObject* KX_GameObject::PyGetState()
-{
-	ShowDeprecationWarning("getState()", "the state property");
-	int state = 0;
-	state |= GetState();
-	return PyLong_FromSsize_t(state);
-}
-
-PyObject* KX_GameObject::PySetState(PyObject* value)
-{
-	ShowDeprecationWarning("setState()", "the state property");
-	int state_i = PyLong_AsSsize_t(value);
-	unsigned int state = 0;
-	
-	if (state_i == -1 && PyErr_Occurred()) {
-		PyErr_SetString(PyExc_TypeError, "expected an int bit field");
-		return NULL;
-	}
-	
-	state |= state_i;
-	if ((state & ((1<<30)-1)) == 0) {
-		PyErr_SetString(PyExc_AttributeError, "The state bitfield was not between 0 and 30 (1<<0 and 1<<29)");
-		return NULL;
-	}
-	SetState(state);
-	
-	Py_RETURN_NONE;
-}
-
 PyObject* KX_GameObject::PyGetVelocity(PyObject* args)
 {
 	// only can get the velocity if we have a physics object connected to us...
@@ -2251,14 +2197,6 @@ PyObject* KX_GameObject::PyGetVelocity(PyObject* args)
 	else {
 		return PyObjectFrom(MT_Vector3(0.0,0.0,0.0));
 	}
-}
-
-
-
-PyObject* KX_GameObject::PyGetMass()
-{
-	ShowDeprecationWarning("getMass()", "the mass property");
-	return PyFloat_FromDouble((GetPhysicsController() != NULL) ? GetPhysicsController()->GetMass() : 0.0f);
 }
 
 PyObject* KX_GameObject::PyGetReactionForce()
@@ -2297,18 +2235,6 @@ PyObject* KX_GameObject::PyDisableRigidBody()
 }
 
 
-
-PyObject* KX_GameObject::PyGetParent()
-{
-	ShowDeprecationWarning("getParent()", "the parent property");
-	KX_GameObject* parent = this->GetParent();
-	if (parent) {
-		parent->Release(); /* self->GetParent() AddRef's */
-		return parent->GetProxy();
-	}
-	Py_RETURN_NONE;
-}
-
 PyObject* KX_GameObject::PySetParent(PyObject* args)
 {
 	KX_Scene *scene = KX_GetActiveScene();
@@ -2333,41 +2259,6 @@ PyObject* KX_GameObject::PyRemoveParent()
 	this->RemoveParent(scene);
 	Py_RETURN_NONE;
 }
-
-PyObject* KX_GameObject::PyGetChildren()
-{
-	ShowDeprecationWarning("getChildren()", "the children property");
-	
-	return GetChildren()->NewProxy(true);
-}
-
-PyObject* KX_GameObject::PyGetChildrenRecursive()
-{
-	ShowDeprecationWarning("getChildrenRecursive()", "the childrenRecursive property");
-	
-	return GetChildrenRecursive()->NewProxy(true);
-}
-
-PyObject* KX_GameObject::PyGetMesh(PyObject* args)
-{
-	ShowDeprecationWarning("getMesh()", "the meshes property (now a list of meshes)");
-	
-	int mesh = 0;
-
-	if (!PyArg_ParseTuple(args, "|i:getMesh", &mesh))
-		return NULL; // python sets a simple error
-	
-	if (((unsigned int)mesh < m_meshes.size()) && mesh >= 0)
-	{
-		KX_MeshProxy* meshproxy = new KX_MeshProxy(m_meshes[mesh]);
-		return meshproxy->NewProxy(true); // XXX Todo Python own.
-	}
-	
-	Py_RETURN_NONE;
-}
-
-
-
 
 
 PyObject* KX_GameObject::PySetCollisionMargin(PyObject* value)
@@ -2432,29 +2323,6 @@ PyObject* KX_GameObject::PyRestoreDynamics()
 }
 
 
-
-PyObject* KX_GameObject::PyGetOrientation() //keywords
-{
-	ShowDeprecationWarning("getOrientation()", "the orientation property");
-	return PyObjectFrom(NodeGetWorldOrientation());
-}
-
-
-
-PyObject* KX_GameObject::PySetOrientation(PyObject* value)
-{
-	ShowDeprecationWarning("setOrientation()", "the orientation property");
-	MT_Matrix3x3 rot;
-	
-	/* if value is not a sequence PyOrientationTo makes an error */
-	if (!PyOrientationTo(value, rot, "gameOb.setOrientation(sequence): KX_GameObject, "))
-		return NULL;
-
-	NodeSetLocalOrientation(rot);
-	NodeUpdateGS(0.f);
-	Py_RETURN_NONE;
-}
-
 PyObject* KX_GameObject::PyAlignAxisToVect(PyObject* args)
 {
 	PyObject* pyvect;
@@ -2487,33 +2355,6 @@ PyObject* KX_GameObject::PyGetAxisVect(PyObject* value)
 	return NULL;
 }
 
-PyObject* KX_GameObject::PySetPosition(PyObject* value)
-{
-	ShowDeprecationWarning("setPosition()", "the localPosition property");
-	MT_Point3 pos;
-	if (PyVecTo(value, pos))
-	{
-		NodeSetLocalPosition(pos);
-		NodeUpdateGS(0.f);
-		Py_RETURN_NONE;
-	}
-
-	return NULL;
-}
-
-PyObject* KX_GameObject::PySetWorldPosition(PyObject* value)
-{
-	ShowDeprecationWarning("setWorldPosition()", "the worldPosition property");
-	MT_Point3 pos;
-	if (PyVecTo(value, pos))
-	{
-		NodeSetWorldPosition(pos);
-		NodeUpdateGS(0.f);
-		Py_RETURN_NONE;
-	}
-
-	return NULL;
-}
 
 PyObject* KX_GameObject::PyGetPhysicsId()
 {

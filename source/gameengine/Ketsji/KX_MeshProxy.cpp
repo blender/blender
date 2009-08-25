@@ -68,18 +68,12 @@ PyTypeObject KX_MeshProxy::Type = {
 };
 
 PyMethodDef KX_MeshProxy::Methods[] = {
-// Deprecated ----->
-{"getNumMaterials", (PyCFunction)KX_MeshProxy::sPyGetNumMaterials,METH_VARARGS},
-{"getNumPolygons", (PyCFunction)KX_MeshProxy::sPyGetNumPolygons,METH_NOARGS},
-// <-----
-
 {"getMaterialName", (PyCFunction)KX_MeshProxy::sPyGetMaterialName,METH_VARARGS},
 {"getTextureName", (PyCFunction)KX_MeshProxy::sPyGetTextureName,METH_VARARGS},
 {"getVertexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetVertexArrayLength,METH_VARARGS},
 {"getVertex", (PyCFunction)KX_MeshProxy::sPyGetVertex,METH_VARARGS},
 {"getPolygon", (PyCFunction)KX_MeshProxy::sPyGetPolygon,METH_VARARGS},
 //{"getIndexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetIndexArrayLength,METH_VARARGS},
-
   {NULL,NULL} //Sentinel
 };
 
@@ -119,20 +113,6 @@ CValue*		KX_MeshProxy::GetReplica() { return NULL;}
 
 
 // stuff for python integration
-	
-PyObject* KX_MeshProxy::PyGetNumMaterials(PyObject* args, PyObject* kwds)
-{
-	int num = m_meshobj->NumMaterials();
-	ShowDeprecationWarning("getNumMaterials()", "the numMaterials property");
-	return PyLong_FromSsize_t(num);
-}
-
-PyObject* KX_MeshProxy::PyGetNumPolygons()
-{
-	int num = m_meshobj->NumPolygons();
-	ShowDeprecationWarning("getNumPolygons()", "the numPolygons property");
-	return PyLong_FromSsize_t(num);
-}
 
 PyObject* KX_MeshProxy::PyGetMaterialName(PyObject* args, PyObject* kwds)
 {

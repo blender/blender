@@ -152,11 +152,6 @@ PyTypeObject SCA_RandomSensor::Type = {
 };
 
 PyMethodDef SCA_RandomSensor::Methods[] = {
-	//Deprecated functions ----->
-	{"setSeed",     (PyCFunction) SCA_RandomSensor::sPySetSeed, METH_VARARGS, (const char *)SetSeed_doc},
-	{"getSeed",     (PyCFunction) SCA_RandomSensor::sPyGetSeed, METH_NOARGS, (const char *)GetSeed_doc},
-	{"getLastDraw", (PyCFunction) SCA_RandomSensor::sPyGetLastDraw, METH_NOARGS, (const char *)GetLastDraw_doc},
-	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };
 
@@ -165,45 +160,6 @@ PyAttributeDef SCA_RandomSensor::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("seed", SCA_RandomSensor, pyattr_get_seed, pyattr_set_seed),
 	{NULL} //Sentinel
 };
-
-/* 1. setSeed                                                            */
-const char SCA_RandomSensor::SetSeed_doc[] = 
-"setSeed(seed)\n"
-"\t- seed: integer\n"
-"\tSet the initial seed of the generator. Equal seeds produce\n"
-"\tequal series. If the seed is 0, the generator will produce\n"
-"\tthe same value on every call.\n";
-PyObject* SCA_RandomSensor::PySetSeed(PyObject* args) {
-	ShowDeprecationWarning("setSeed()", "the seed property");
-	long seedArg;
-	if(!PyArg_ParseTuple(args, "i:setSeed", &seedArg)) {
-		return NULL;
-	}
-	
-	m_basegenerator->SetSeed(seedArg);
-	
-	Py_RETURN_NONE;
-}
-
-/* 2. getSeed                                                            */
-const char SCA_RandomSensor::GetSeed_doc[] = 
-"getSeed()\n"
-"\tReturns the initial seed of the generator. Equal seeds produce\n"
-"\tequal series.\n";
-PyObject* SCA_RandomSensor::PyGetSeed() {
-	ShowDeprecationWarning("getSeed()", "the seed property");
-	return PyLong_FromSsize_t(m_basegenerator->GetSeed());
-}
-
-/* 3. getLastDraw                                                            */
-const char SCA_RandomSensor::GetLastDraw_doc[] = 
-"getLastDraw()\n"
-"\tReturn the last value that was drawn.\n";
-PyObject* SCA_RandomSensor::PyGetLastDraw() {
-	ShowDeprecationWarning("getLastDraw()", "the lastDraw property");
-	return PyLong_FromSsize_t(m_lastdraw);
-}
-
 
 PyObject* SCA_RandomSensor::pyattr_get_seed(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {

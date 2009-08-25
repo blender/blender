@@ -123,16 +123,6 @@ PyTypeObject KX_NetworkMessageActuator::Type = {
 };
 
 PyMethodDef KX_NetworkMessageActuator::Methods[] = {
-	// Deprecated ----->
-	{"setToPropName", (PyCFunction)
-		KX_NetworkMessageActuator::sPySetToPropName, METH_VARARGS},
-	{"setSubject", (PyCFunction)
-		KX_NetworkMessageActuator::sPySetSubject, METH_VARARGS},
-	{"setBodyType", (PyCFunction)
-		KX_NetworkMessageActuator::sPySetBodyType, METH_VARARGS},
-	{"setBody", (PyCFunction)
-		KX_NetworkMessageActuator::sPySetBody, METH_VARARGS},
-	// <-----
 	{NULL,NULL} // Sentinel
 };
 
@@ -143,78 +133,3 @@ PyAttributeDef KX_NetworkMessageActuator::Attributes[] = {
 	KX_PYATTRIBUTE_STRING_RW("body", 0, 16384, false, KX_NetworkMessageActuator, m_body),
 	{ NULL }	//Sentinel
 };
-
-// Deprecated ----->
-// 1. SetToPropName
-PyObject* KX_NetworkMessageActuator::PySetToPropName(
-	PyObject* args,
-	PyObject* kwds)
-{
-	ShowDeprecationWarning("setToProp()", "the propName property");
-    char* ToPropName;
-
-	if (PyArg_ParseTuple(args, "s:setToPropName", &ToPropName)) {
-	     m_toPropName = ToPropName;
-	}
-	else {
-		return NULL;
-	}
-
-	Py_RETURN_NONE;
-}
-
-// 2. SetSubject
-PyObject* KX_NetworkMessageActuator::PySetSubject(
-	PyObject* args,
-	PyObject* kwds)
-{
-	ShowDeprecationWarning("setSubject()", "the subject property");
-    char* Subject;
-
-	if (PyArg_ParseTuple(args, "s:setSubject", &Subject)) {
-	     m_subject = Subject;
-	}
-	else {
-		return NULL;
-	}
-	
-	Py_RETURN_NONE;
-}
-
-// 3. SetBodyType
-PyObject* KX_NetworkMessageActuator::PySetBodyType(
-	PyObject* args,
-	PyObject* kwds)
-{
-	ShowDeprecationWarning("setBodyType()", "the usePropBody property");
-    int BodyType;
-
-	if (PyArg_ParseTuple(args, "i:setBodyType", &BodyType)) {
-		m_bPropBody = (BodyType != 0);
-	}
-	else {
-		return NULL;
-	}
-
-	Py_RETURN_NONE;
-}
-
-// 4. SetBody
-PyObject* KX_NetworkMessageActuator::PySetBody(
-	PyObject* args,
-	PyObject* kwds)
-{
-	ShowDeprecationWarning("setBody()", "the body property");
-    char* Body;
-
-	if (PyArg_ParseTuple(args, "s:setBody", &Body)) {
-	     m_body = Body;
-	}
-	else {
-		return NULL;
-	}
-
-	Py_RETURN_NONE;
-}
-
-// <----- Deprecated

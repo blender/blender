@@ -70,14 +70,6 @@ public:
 	/* Python interface -------------------------------------------- */
 	/* ------------------------------------------------------------- */
 
-	// Deprecated ----->
-	KX_PYMETHOD_DOC_O(KX_NetworkMessageSensor, SetSubjectFilterText);
-	KX_PYMETHOD_DOC_NOARGS(KX_NetworkMessageSensor, GetFrameMessageCount);
-	KX_PYMETHOD_DOC_NOARGS(KX_NetworkMessageSensor, GetBodies);
-	KX_PYMETHOD_DOC_NOARGS(KX_NetworkMessageSensor, GetSubject);
-	KX_PYMETHOD_DOC_NOARGS(KX_NetworkMessageSensor, GetSubjects);
-	// <-----
-
 	/* attributes */
 	static PyObject*	pyattr_get_bodies(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);	
 	static PyObject*	pyattr_get_subjects(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);

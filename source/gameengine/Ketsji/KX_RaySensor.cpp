@@ -342,12 +342,6 @@ PyTypeObject KX_RaySensor::Type = {
 };
 
 PyMethodDef KX_RaySensor::Methods[] = {
-	// Deprecated ----->
-	{"getHitObject",(PyCFunction) KX_RaySensor::sPyGetHitObject,METH_NOARGS, (const char *)GetHitObject_doc},
-	{"getHitPosition",(PyCFunction) KX_RaySensor::sPyGetHitPosition,METH_NOARGS, (const char *)GetHitPosition_doc},
-	{"getHitNormal",(PyCFunction) KX_RaySensor::sPyGetHitNormal,METH_NOARGS, (const char *)GetHitNormal_doc},
-	{"getRayDirection",(PyCFunction) KX_RaySensor::sPyGetRayDirection,METH_NOARGS, (const char *)GetRayDirection_doc},
-	// <-----
 	{NULL,NULL} //Sentinel
 };
 
@@ -372,68 +366,3 @@ PyObject* KX_RaySensor::pyattr_get_hitobject(void *self_v, const KX_PYATTRIBUTE_
 
 	Py_RETURN_NONE;
 }
-
-// Deprecated ----->
-const char KX_RaySensor::GetHitObject_doc[] = 
-"getHitObject()\n"
-"\tReturns the name of the object that was hit by this ray.\n";
-PyObject* KX_RaySensor::PyGetHitObject()
-{
-	ShowDeprecationWarning("getHitObject()", "the hitObject property");
-	if (m_hitObject)
-	{
-		return m_hitObject->GetProxy();
-	}
-	Py_RETURN_NONE;
-}
-
-
-const char KX_RaySensor::GetHitPosition_doc[] = 
-"getHitPosition()\n"
-"\tReturns the position (in worldcoordinates) where the object was hit by this ray.\n";
-PyObject* KX_RaySensor::PyGetHitPosition()
-{
-	ShowDeprecationWarning("getHitPosition()", "the hitPosition property");
-
-	PyObject *retVal = PyList_New(3);
-
-	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_hitPosition[0]));
-	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_hitPosition[1]));
-	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_hitPosition[2]));
-
-	return retVal;
-}
-
-const char KX_RaySensor::GetRayDirection_doc[] = 
-"getRayDirection()\n"
-"\tReturns the direction from the ray (in worldcoordinates) .\n";
-PyObject* KX_RaySensor::PyGetRayDirection()
-{
-	ShowDeprecationWarning("getRayDirection()", "the rayDirection property");
-
-	PyObject *retVal = PyList_New(3);
-	
-	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_rayDirection[0]));
-	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_rayDirection[1]));
-	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_rayDirection[2]));
-
-	return retVal;
-}
-
-const char KX_RaySensor::GetHitNormal_doc[] = 
-"getHitNormal()\n"
-"\tReturns the normal (in worldcoordinates) of the object at the location where the object was hit by this ray.\n";
-PyObject* KX_RaySensor::PyGetHitNormal()
-{
-	ShowDeprecationWarning("getHitNormal()", "the hitNormal property");
-
-	PyObject *retVal = PyList_New(3);
-
-	PyList_SET_ITEM(retVal, 0, PyFloat_FromDouble(m_hitNormal[0]));
-	PyList_SET_ITEM(retVal, 1, PyFloat_FromDouble(m_hitNormal[1]));
-	PyList_SET_ITEM(retVal, 2, PyFloat_FromDouble(m_hitNormal[2]));
-
-	return retVal;
-}
-
-// <----- Deprecated

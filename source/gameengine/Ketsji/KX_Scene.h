@@ -517,25 +517,12 @@ public:
 	 */
 	void SetNodeTree(SG_Tree* root);
 
-	KX_PYMETHOD_DOC_NOARGS(KX_Scene, getLightList);
-	KX_PYMETHOD_DOC_NOARGS(KX_Scene, getObjectList);
-	KX_PYMETHOD_DOC_NOARGS(KX_Scene, getName);
+	/* --------------------------------------------------------------------- */
+	/* Python interface ---------------------------------------------------- */
+	/* --------------------------------------------------------------------- */
+
 	KX_PYMETHOD_DOC(KX_Scene, addObject);
 	KX_PYMETHOD_DOC(KX_Scene, get);
-	
-/*	
-	KX_PYMETHOD_DOC(KX_Scene, getActiveCamera);
-	KX_PYMETHOD_DOC(KX_Scene, getActiveCamera);
-	KX_PYMETHOD_DOC(KX_Scene, findCamera);
-	
-	KX_PYMETHOD_DOC(KX_Scene, getGravity);
-	
-	KX_PYMETHOD_DOC(KX_Scene, setActivityCulling);
-	KX_PYMETHOD_DOC(KX_Scene, setActivityCullingRadius);
-	
-	KX_PYMETHOD_DOC(KX_Scene, setSceneViewport);
-	KX_PYMETHOD_DOC(KX_Scene, setSceneViewport);
-	*/
 
 	/* attributes */
 	static PyObject*	pyattr_get_name(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);

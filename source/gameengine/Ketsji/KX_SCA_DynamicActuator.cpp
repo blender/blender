@@ -70,9 +70,6 @@ PyTypeObject KX_SCA_DynamicActuator::Type = {
 };
 
 PyMethodDef KX_SCA_DynamicActuator::Methods[] = {
-	// ---> deprecated
-	KX_PYMETHODTABLE(KX_SCA_DynamicActuator, setOperation),
-   	KX_PYMETHODTABLE(KX_SCA_DynamicActuator, getOperation),
 	{NULL,NULL} //Sentinel
 };
 
@@ -81,42 +78,6 @@ PyAttributeDef KX_SCA_DynamicActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RW("mass",0.0,FLT_MAX,KX_SCA_DynamicActuator,m_setmass),
 	{ NULL }	//Sentinel
 };
-
-
-/* 1. setOperation */
-KX_PYMETHODDEF_DOC(KX_SCA_DynamicActuator, setOperation,
-"setOperation(operation?)\n"
-"\t - operation? : type of dynamic operation\n"
-"\t                0 = restore dynamics\n"
-"\t                1 = disable dynamics\n"
-"\t                2 = enable rigid body\n"
-"\t                3 = disable rigid body\n"
-"Change the dynamic status of the parent object.\n")
-{
-	ShowDeprecationWarning("setOperation()", "the mode property");
-	int dyn_operation;
-	
-	if (!PyArg_ParseTuple(args, "i:setOperation", &dyn_operation))
-	{
-		return NULL;	
-	}
-	if (dyn_operation <0 || dyn_operation>3) {
-		PyErr_SetString(PyExc_IndexError, "Dynamic Actuator's setOperation() range must be between 0 and 3");
-		return NULL;
-	}
-	m_dyn_operation= dyn_operation;
-	Py_RETURN_NONE;
-}
-
-KX_PYMETHODDEF_DOC(KX_SCA_DynamicActuator, getOperation,
-"getOperation() -> integer\n"
-"Returns the operation type of this actuator.\n"
-)
-{
-	ShowDeprecationWarning("getOperation()", "the mode property");
-	return PyLong_FromSsize_t((long)m_dyn_operation);
-}
-
 
 /* ------------------------------------------------------------------------- */
 /* Native functions                                                          */

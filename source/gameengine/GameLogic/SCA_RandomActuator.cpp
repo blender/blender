@@ -337,15 +337,6 @@ PyTypeObject SCA_RandomActuator::Type = {
 };
 
 PyMethodDef SCA_RandomActuator::Methods[] = {
-	//Deprecated functions ------>
-	{"setSeed",         (PyCFunction) SCA_RandomActuator::sPySetSeed, METH_VARARGS, (const char *)SetSeed_doc},
-	{"getSeed",         (PyCFunction) SCA_RandomActuator::sPyGetSeed, METH_NOARGS, (const char *)GetSeed_doc},
-	{"getPara1",        (PyCFunction) SCA_RandomActuator::sPyGetPara1, METH_NOARGS, (const char *)GetPara1_doc},
-	{"getPara2",        (PyCFunction) SCA_RandomActuator::sPyGetPara2, METH_NOARGS, (const char *)GetPara2_doc},
-	{"getDistribution", (PyCFunction) SCA_RandomActuator::sPyGetDistribution, METH_NOARGS, (const char *)GetDistribution_doc},
-	{"setProperty",     (PyCFunction) SCA_RandomActuator::sPySetProperty, METH_VARARGS, (const char *)SetProperty_doc},
-	{"getProperty",     (PyCFunction) SCA_RandomActuator::sPyGetProperty, METH_NOARGS, (const char *)GetProperty_doc},
-	//<----- Deprecated
 	KX_PYMETHODTABLE(SCA_RandomActuator, setBoolConst),
 	KX_PYMETHODTABLE_NOARGS(SCA_RandomActuator, setBoolUniform),
 	KX_PYMETHODTABLE(SCA_RandomActuator, setBoolBernouilli),
@@ -387,104 +378,6 @@ int SCA_RandomActuator::pyattr_set_seed(void *self, const struct KX_PYATTRIBUTE_
 		PyErr_SetString(PyExc_TypeError, "actuator.seed = int: Random Actuator, expected an integer");
 		return PY_SET_ATTR_FAIL;
 	}
-}
-
-/* 1. setSeed                                                            */
-const char SCA_RandomActuator::SetSeed_doc[] = 
-"setSeed(seed)\n"
-"\t- seed: integer\n"
-"\tSet the initial seed of the generator. Equal seeds produce\n"
-"\tequal series. If the seed is 0, the generator will produce\n"
-"\tthe same value on every call.\n";
-PyObject* SCA_RandomActuator::PySetSeed(PyObject* args) {
-	ShowDeprecationWarning("setSeed()", "the seed property");
-	long seedArg;
-	if(!PyArg_ParseTuple(args, "i:setSeed", &seedArg)) {
-		return NULL;
-	}
-	
-	m_base->SetSeed(seedArg);
-	
-	Py_RETURN_NONE;
-}
-/* 2. getSeed                                                            */
-const char SCA_RandomActuator::GetSeed_doc[] = 
-"getSeed()\n"
-"\tReturns the initial seed of the generator. Equal seeds produce\n"
-"\tequal series.\n";
-PyObject* SCA_RandomActuator::PyGetSeed()
-{
-	ShowDeprecationWarning("getSeed()", "the seed property");
-	return PyLong_FromSsize_t(m_base->GetSeed());
-}
-
-/* 4. getPara1                                                           */
-const char SCA_RandomActuator::GetPara1_doc[] = 
-"getPara1()\n"
-"\tReturns the first parameter of the active distribution. Refer\n"
-"\tto the documentation of the generator types for the meaning\n"
-"\tof this value.";
-PyObject* SCA_RandomActuator::PyGetPara1()
-{
-	ShowDeprecationWarning("getPara1()", "the para1 property");
-	return PyFloat_FromDouble(m_parameter1);
-}
-
-/* 6. getPara2                                                           */
-const char SCA_RandomActuator::GetPara2_doc[] = 
-"getPara2()\n"
-"\tReturns the first parameter of the active distribution. Refer\n"
-"\tto the documentation of the generator types for the meaning\n"
-"\tof this value.";
-PyObject* SCA_RandomActuator::PyGetPara2()
-{
-	ShowDeprecationWarning("getPara2()", "the para2 property");
-	return PyFloat_FromDouble(m_parameter2);
-}
-
-/* 8. getDistribution                                                    */
-const char SCA_RandomActuator::GetDistribution_doc[] = 
-"getDistribution()\n"
-"\tReturns the type of the active distribution.\n";
-PyObject* SCA_RandomActuator::PyGetDistribution()
-{
-	ShowDeprecationWarning("getDistribution()", "the distribution property");
-	return PyLong_FromSsize_t(m_distribution);
-}
-
-/* 9. setProperty                                                        */
-const char SCA_RandomActuator::SetProperty_doc[] = 
-"setProperty(name)\n"
-"\t- name: string\n"
-"\tSet the property to which the random value is assigned. If the \n"
-"\tgenerator and property types do not match, the assignment is ignored.\n";
-PyObject* SCA_RandomActuator::PySetProperty(PyObject* args) {
-	ShowDeprecationWarning("setProperty()", "the 'propName' property");
-	char *nameArg;
-	if (!PyArg_ParseTuple(args, "s:setProperty", &nameArg)) {
-		return NULL;
-	}
-
-	CValue* prop = GetParent()->FindIdentifier(nameArg);
-
-	if (!prop->IsError()) {
-		m_propname = nameArg;
-	} else {
-		; /* not found ... */
-	}
-	prop->Release();
-	
-	Py_RETURN_NONE;
-}
-/* 10. getProperty                                                       */
-const char SCA_RandomActuator::GetProperty_doc[] = 
-"getProperty(name)\n"
-"\tReturn the property to which the random value is assigned. If the \n"
-"\tgenerator and property types do not match, the assignment is ignored.\n";
-PyObject* SCA_RandomActuator::PyGetProperty()
-{
-	ShowDeprecationWarning("getProperty()", "the 'propName' property");
-	return PyUnicode_FromString(m_propname);
 }
 
 /* 11. setBoolConst */

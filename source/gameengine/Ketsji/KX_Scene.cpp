@@ -1630,9 +1630,6 @@ PyTypeObject KX_Scene::Type = {
 };
 
 PyMethodDef KX_Scene::Methods[] = {
-	KX_PYMETHODTABLE_NOARGS(KX_Scene, getLightList),
-	KX_PYMETHODTABLE_NOARGS(KX_Scene, getObjectList),
-	KX_PYMETHODTABLE_NOARGS(KX_Scene, getName),
 	KX_PYMETHODTABLE(KX_Scene, addObject),
 	
 	/* dict style access */
@@ -1823,33 +1820,6 @@ PyAttributeDef KX_Scene::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RO("dbvt_culling",			KX_Scene, m_dbvt_culling),
 	{ NULL }	//Sentinel
 };
-
-KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getLightList,
-"getLightList() -> list [KX_Light]\n"
-"Returns a list of all lights in the scene.\n"
-)
-{
-	ShowDeprecationWarning("getLightList()", "the lights property");
-	return m_lightlist->GetProxy();
-}
-
-KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getObjectList,
-"getObjectList() -> list [KX_GameObject]\n"
-"Returns a list of all game objects in the scene.\n"
-)
-{
-	ShowDeprecationWarning("getObjectList()", "the objects property");
-	return m_objectlist->GetProxy();
-}
-
-KX_PYMETHODDEF_DOC_NOARGS(KX_Scene, getName,
-"getName() -> string\n"
-"Returns the name of the scene.\n"
-)
-{
-	ShowDeprecationWarning("getName()", "the name property");
-	return PyUnicode_FromString(GetName());
-}
 
 KX_PYMETHODDEF_DOC(KX_Scene, addObject,
 "addObject(object, other, time=0)\n"

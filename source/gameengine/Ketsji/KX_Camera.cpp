@@ -496,12 +496,6 @@ PyMethodDef KX_Camera::Methods[] = {
 	KX_PYMETHODTABLE_O(KX_Camera, getScreenPosition),
 	KX_PYMETHODTABLE(KX_Camera, getScreenVect),
 	KX_PYMETHODTABLE(KX_Camera, getScreenRay),
-
-	// DEPRECATED
-	KX_PYMETHODTABLE_O(KX_Camera, enableViewport),
-	KX_PYMETHODTABLE_NOARGS(KX_Camera, getProjectionMatrix),
-	KX_PYMETHODTABLE_O(KX_Camera, setProjectionMatrix),
-	
 	{NULL,NULL} //Sentinel
 };
 
@@ -678,92 +672,6 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_Camera, getWorldToCamera,
 )
 {
 	return PyObjectFrom(GetWorldToCamera()); /* new ref */
-}
-
-KX_PYMETHODDEF_DOC_NOARGS(KX_Camera, getProjectionMatrix,
-"getProjectionMatrix() -> Matrix4x4\n"
-"\treturns this camera's projection matrix, as a list of four lists of four values.\n\n"
-"\tie: [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])\n"
-)
-{
-	ShowDeprecationWarning("getProjectionMatrix()", "the projection_matrix property");
-	return PyObjectFrom(GetProjectionMatrix()); /* new ref */
-}
-
-KX_PYMETHODDEF_DOC_O(KX_Camera, setProjectionMatrix,
-"setProjectionMatrix(MT_Matrix4x4 m) -> None\n"
-"\tSets this camera's projection matrix\n"
-"\n"
-"\tExample:\n"
-"\timport GameLogic\n"
-"\t# Set a perspective projection matrix\n"
-"\tdef Perspective(left, right, bottom, top, near, far):\n"
-"\t\tm = MT_Matrix4x4()\n"
-"\t\tm[0][0] = m[0][2] = right - left\n"
-"\t\tm[1][1] = m[1][2] = top - bottom\n"
-"\t\tm[2][2] = m[2][3] = -far - near\n"
-"\t\tm[3][2] = -1\n"
-"\t\tm[3][3] = 0\n"
-"\t\treturn m\n"
-"\n"
-"\t# Set an orthographic projection matrix\n"
-"\tdef Orthographic(left, right, bottom, top, near, far):\n"
-"\t\tm = MT_Matrix4x4()\n"
-"\t\tm[0][0] = right - left\n"
-"\t\tm[0][3] = -right - left\n"
-"\t\tm[1][1] = top - bottom\n"
-"\t\tm[1][3] = -top - bottom\n"
-"\t\tm[2][2] = far - near\n"
-"\t\tm[2][3] = -far - near\n"
-"\t\tm[3][3] = 1\n"
-"\t\treturn m\n"
-"\n"
-"\t# Set an isometric projection matrix\n"
-"\tdef Isometric(left, right, bottom, top, near, far):\n"
-"\t\tm = MT_Matrix4x4()\n"
-"\t\tm[0][0] = m[0][2] = m[1][1] = 0.8660254037844386\n"
-"\t\tm[1][0] = 0.25\n"
-"\t\tm[1][2] = -0.25\n"
-"\t\tm[3][3] = 1\n"
-"\t\treturn m\n"
-"\n"
-"\t"
-"\tco = GameLogic.getCurrentController()\n"
-"\tcam = co.getOwner()\n"
-"\tcam.setProjectionMatrix(Perspective(-1.0, 1.0, -1.0, 1.0, 0.1, 1))\n")
-{
-	ShowDeprecationWarning("setProjectionMatrix(mat)", "the projection_matrix property");
-	
-	MT_Matrix4x4 mat;
-	if (!PyMatTo(value, mat))
-	{
-		PyErr_SetString(PyExc_TypeError, "camera.setProjectionMatrix(matrix): KX_Camera, expected 4x4 list as matrix argument.");
-		return NULL;
-	}
-	
-	SetProjectionMatrix(mat);
-	Py_RETURN_NONE;
-}
-
-KX_PYMETHODDEF_DOC_O(KX_Camera, enableViewport,
-"enableViewport(viewport)\n"
-"Sets this camera's viewport status\n"
-)
-{
-	ShowDeprecationWarning("enableViewport(bool)", "the useViewport property");
-	
-	int viewport = PyObject_IsTrue(value);
-	if (viewport == -1) {
-		PyErr_SetString(PyExc_ValueError, "camera.enableViewport(bool): KX_Camera, expected True/False or 0/1");
-		return NULL;
-	}
-	
-	if(viewport)
-		EnableViewport(true);
-	else
-		EnableViewport(false);
-	
-	Py_RETURN_NONE;
 }
 
 KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, setViewport,

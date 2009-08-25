@@ -484,8 +484,6 @@ static struct PyMethodDef game_methods[] = {
 	METH_NOARGS, gPyGetCurrentScene_doc},
 	{"getSceneList", (PyCFunction) gPyGetSceneList,
 	METH_NOARGS, (const char *)gPyGetSceneList_doc},
-	{"addActiveActuator",(PyCFunction) SCA_PythonController::sPyAddActiveActuator,
-	METH_VARARGS, (const char *)SCA_PythonController::sPyAddActiveActuator__doc__},
 	{"getRandomFloat",(PyCFunction) gPyGetRandomFloat,
 	METH_NOARGS, (const char *)gPyGetRandomFloat_doc},
 	{"setGravity",(PyCFunction) gPySetGravity, METH_O, (const char *)"set Gravitation"},
