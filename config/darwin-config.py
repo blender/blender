@@ -112,6 +112,12 @@ BF_JACK_INC = '${BF_JACK}/include/jack'
 BF_JACK_LIB = 'jack'
 BF_JACK_LIBPATH = '${BF_JACK}/lib'
 
+WITH_BF_SNDFILE = False
+BF_SNDFILE = LIBDIR + '/sndfile'
+BF_SNDFILE_INC = '${BF_SNDFILE}/include'
+BF_SNDFILE_LIB = 'sndfile'
+BF_SNDFILE_LIBPATH = '${BF_SNDFILE}/lib'
+
 WITH_BF_SDL = True
 BF_SDL = LIBDIR + '/sdl' #$(shell sdl-config --prefix)
 BF_SDL_INC = '${BF_SDL}/include' #$(shell $(BF_SDL)/bin/sdl-config --cflags)
