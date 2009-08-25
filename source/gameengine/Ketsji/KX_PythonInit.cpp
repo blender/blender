@@ -498,33 +498,6 @@ static PyObject *pyPrintExt(PyObject *,PyObject *,PyObject *)
 	Py_RETURN_NONE;
 }
 
-
-static PyObject *gEvalExpression(PyObject*, PyObject* value)
-{
-	char* txt= PyString_AsString(value);
-	
-	if (txt==NULL) {
-		PyErr_SetString(PyExc_TypeError, "Expression.calc(text): expects a single string argument");
-		return NULL;
-	}
-	
-	CParser parser;
-	CExpression* expr = parser.ProcessText(txt);
-	CValue* val = expr->Calculate();
-	expr->Release();
-	
-	if (val) {	
-		PyObject* pyobj = val->ConvertValueToPython();
-		if (pyobj)
-			return pyobj;
-		else
-			return val->GetProxy();
-	}
-	
-	Py_RETURN_NONE;
-}
-
-
 static struct PyMethodDef game_methods[] = {
 	{"expandPath", (PyCFunction)gPyExpandPath, METH_VARARGS, (PY_METHODCHAR)gPyExpandPath_doc},
 	{"sendMessage", (PyCFunction)gPySendMessage, METH_VARARGS, (PY_METHODCHAR)gPySendMessage_doc},
@@ -553,7 +526,6 @@ static struct PyMethodDef game_methods[] = {
 	{"getAverageFrameRate", (PyCFunction) gPyGetAverageFrameRate, METH_NOARGS, (PY_METHODCHAR)"Gets the estimated average frame rate"},
 	{"getBlendFileList", (PyCFunction)gPyGetBlendFileList, METH_VARARGS, (PY_METHODCHAR)"Gets a list of blend files in the same directory as the current blend file"},
 	{"PrintGLInfo", (PyCFunction)pyPrintExt, METH_NOARGS, (PY_METHODCHAR)"Prints GL Extension Info"},
-	{"EvalExpression", (PyCFunction)gEvalExpression, METH_O, (PY_METHODCHAR)"Evaluate a string as a game logic expression"},
 	{NULL, (PyCFunction) NULL, 0, NULL }
 };
 
