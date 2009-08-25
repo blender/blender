@@ -817,12 +817,11 @@ int main(int argc, char **argv)
 			if (G.background) {
 				int retval = BKE_read_file(filename, NULL);
 				sound_initialize_sounds();
+				FRS_initialize();
 				
 				/*we successfully loaded a blend file, get sure that
 				pointcache works */
 				if (retval!=0) G.relbase_valid = 1;
-
-				FRS_initialize();
 
 				/* happens for the UI on file reading too */
 				BKE_reset_undo();

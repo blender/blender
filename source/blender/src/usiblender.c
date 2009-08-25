@@ -598,14 +598,13 @@ void BIF_read_file(char *name)
 		mainwindow_set_filename_to_title(G.main->name);
 		countall();
 		sound_initialize_sounds();
+		FRS_initialize();
 
 		winqueue_break= 1;	/* leave queues everywhere */
 
 		if(retval==2) init_userdef_file();	// in case a userdef is read from regular .blend
 		
 		if (retval!=0) G.relbase_valid = 1;
-
-		FRS_initialize();
 
 		undo_editmode_clear();
 		undo_imagepaint_clear();

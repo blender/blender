@@ -27,7 +27,7 @@ extern "C" {
 	
 	// Rendering
 	void FRS_initialize();
-	void FRS_add_Freestyle(Render* re);
+	void FRS_add_Freestyle(struct Render* re);
 	void FRS_exit();
 	
 	// Panel configuration

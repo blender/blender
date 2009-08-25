@@ -189,6 +189,8 @@
 #include "GPU_extensions.h"
 #include "GPU_draw.h"
 
+#include "FRS_freestyle.h"
+
 #include "BLO_sys_types.h" // for intptr_t support
 
 /* maybe we need this defined somewhere else */
@@ -1086,6 +1088,7 @@ void BIF_undo(void)
 #endif
 				BKE_undo_step(1);
 				sound_initialize_sounds();
+				FRS_initialize();
 			}
 		}
 	}
@@ -1109,6 +1112,7 @@ void BIF_redo(void)
 			if(U.uiflag & USER_GLOBALUNDO) {
 				BKE_undo_step(-1);
 				sound_initialize_sounds();
+				FRS_initialize();
 			}
 		}
 	}
@@ -1132,6 +1136,7 @@ void BIF_undo_menu(void)
 				if(event>0) {
 					BKE_undo_number(event);
 					sound_initialize_sounds();
+					FRS_initialize();
 				}
 			}
 		}

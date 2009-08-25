@@ -108,6 +108,8 @@
 #include "BPY_extern.h"
 #endif
 
+#include "FRS_freestyle.h"
+
 #include "mydevice.h"
 #include "blendef.h"
 
@@ -1380,6 +1382,7 @@ void screenmain(void)
 		else if (event==LOAD_FILE) {
 			BIF_read_file(ext_load_str);
 			sound_initialize_sounds();
+			FRS_initialize();
 		}
 #ifndef DISABLE_PYTHON
 		else if ((event==ONLOAD_SCRIPT) && BPY_has_onload_script()) {
