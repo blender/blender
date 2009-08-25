@@ -65,6 +65,8 @@
 #include "BKE_ipo.h"
 
 #include "envmap.h"
+#include "pointdensity.h"
+#include "voxeldata.h"
 #include "renderpipeline.h"
 #include "render_types.h"
 #include "rendercore.h"
@@ -1262,6 +1264,13 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 		
 		retval= mg_distNoiseTex(tex, tmpvec, texres);
 		break;
+	case TEX_POINTDENSITY:
+		retval= pointdensitytex(tex, texvec, texres);
+		break;
+	case TEX_VOXELDATA:
+		retval= voxeldatatex(tex, texvec, texres);  
+		break;
+
 	}
 
 	if (tex->flag & TEX_COLORBAND) {
@@ -1272,7 +1281,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 			texres->tg= col[1];
 			texres->tb= col[2];
 			texres->ta= col[3];
-			retval |= 1;
+			retval |= TEX_RGB;
 		}
 	}
 	return retval;
@@ -2247,6 +2256,187 @@ void do_material_tex(ShadeInput *shi)
 		}
 	}
 }
+
+
+void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, float *val)
+{
+	MTex *mtex;
+	Tex *tex;
+	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
+	int tex_nr, rgbnor= 0;
+	float co[3], texvec[3];
+	float fact, stencilTin=1.0;
+	
+	if (R.r.scemode & R_NO_TEX) return;
+	/* here: test flag if there's a tex (todo) */
+	
+	for(tex_nr=0; tex_nr<MAX_MTEX; tex_nr++) {
+		/* separate tex switching */
+		if(shi->mat->septex & (1<<tex_nr)) continue;
+		
+		if(shi->mat->mtex[tex_nr]) {
+			mtex= shi->mat->mtex[tex_nr];
+			tex= mtex->tex;
+			if(tex==0) continue;
+			
+			/* only process if this texture is mapped 
+			 * to one that we're interested in */
+			if (!(mtex->mapto & mapto_flag)) continue;
+			
+			/* which coords */
+			if(mtex->texco==TEXCO_OBJECT) { 
+				Object *ob= mtex->object;
+				ob= mtex->object;
+				if(ob) {						
+					VECCOPY(co, xyz);	
+					if(mtex->texflag & MTEX_OB_DUPLI_ORIG) {
+						if(shi->obi && shi->obi->duplitexmat)
+							MTC_Mat4MulVecfl(shi->obi->duplitexmat, co);					
+					} 
+					MTC_Mat4MulVecfl(ob->imat, co);
+				}
+			}
+			/* not really orco, but 'local' */
+			else if(mtex->texco==TEXCO_ORCO) {
+				
+				if(mtex->texflag & MTEX_DUPLI_MAPTO) {
+					VECCOPY(co, shi->duplilo);
+				}
+				else {
+					Object *ob= shi->obi->ob;
+					VECCOPY(co, xyz);
+					MTC_Mat4MulVecfl(ob->imat, co);
+				}
+			}
+			else if(mtex->texco==TEXCO_GLOB) {							
+			   VECCOPY(co, xyz);
+			   MTC_Mat4MulVecfl(R.viewinv, co);
+			}
+			else continue;	// can happen when texco defines disappear and it renders old files
+
+			texres.nor= NULL;
+			
+			if(tex->type==TEX_IMAGE) {
+				continue;	/* not supported yet */				
+				//do_2d_mapping(mtex, texvec, NULL, NULL, dxt, dyt);
+			}
+			else {
+				/* placement */
+				if(mtex->projx) texvec[0]= mtex->size[0]*(co[mtex->projx-1]+mtex->ofs[0]);
+				else texvec[0]= mtex->size[0]*(mtex->ofs[0]);
+
+				if(mtex->projy) texvec[1]= mtex->size[1]*(co[mtex->projy-1]+mtex->ofs[1]);
+				else texvec[1]= mtex->size[1]*(mtex->ofs[1]);
+
+				if(mtex->projz) texvec[2]= mtex->size[2]*(co[mtex->projz-1]+mtex->ofs[2]);
+				else texvec[2]= mtex->size[2]*(mtex->ofs[2]);
+			}
+			
+			rgbnor= multitex(tex, texvec, NULL, NULL, 0, &texres, 0, mtex->which_output);	/* NULL = dxt/dyt, 0 = shi->osatex - not supported */
+			
+			/* texture output */
+
+			if( (rgbnor & TEX_RGB) && (mtex->texflag & MTEX_RGBTOINT)) {
+				texres.tin= (0.35*texres.tr+0.45*texres.tg+0.2*texres.tb);
+				rgbnor-= TEX_RGB;
+			}
+			if(mtex->texflag & MTEX_NEGATIVE) {
+				if(rgbnor & TEX_RGB) {
+					texres.tr= 1.0-texres.tr;
+					texres.tg= 1.0-texres.tg;
+					texres.tb= 1.0-texres.tb;
+				}
+				texres.tin= 1.0-texres.tin;
+			}
+			if(mtex->texflag & MTEX_STENCIL) {
+				if(rgbnor & TEX_RGB) {
+					fact= texres.ta;
+					texres.ta*= stencilTin;
+					stencilTin*= fact;
+				}
+				else {
+					fact= texres.tin;
+					texres.tin*= stencilTin;
+					stencilTin*= fact;
+				}
+			}
+			
+			
+			if((mapto_flag & (MAP_EMISSION_COL+MAP_ABSORPTION_COL)) && (mtex->mapto & (MAP_EMISSION_COL+MAP_ABSORPTION_COL))) {
+				float tcol[3], colfac;
+				
+				/* stencil maps on the texture control slider, not texture intensity value */
+				colfac= mtex->colfac*stencilTin;
+				
+				if((rgbnor & TEX_RGB)==0) {
+					tcol[0]= mtex->r;
+					tcol[1]= mtex->g;
+					tcol[2]= mtex->b;
+				} else {
+					tcol[0]=texres.tr;
+					tcol[1]=texres.tg;
+					tcol[2]=texres.tb;
+					if(texres.talpha)
+						texres.tin= texres.ta;
+				}
+				
+				/* inverse gamma correction */
+				if (R.r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+					color_manage_linearize(tcol, tcol);
+				}
+				
+				/* used for emit */
+				if((mapto_flag & MAP_EMISSION_COL) && (mtex->mapto & MAP_EMISSION_COL)) {
+					texture_rgb_blend(col, tcol, col, texres.tin, colfac, mtex->blendtype);
+				}
+				
+				/* MAP_COLMIR is abused for absorption colour at the moment */
+				if((mapto_flag & MAP_ABSORPTION_COL) && (mtex->mapto & MAP_ABSORPTION_COL)) {
+					texture_rgb_blend(col, tcol, col, texres.tin, colfac, mtex->blendtype);
+				}
+			}
+			
+			if((mapto_flag & MAP_VARS) && (mtex->mapto & MAP_VARS)) {
+				/* stencil maps on the texture control slider, not texture intensity value */
+				float varfac= mtex->varfac*stencilTin;
+				
+				/* convert RGB to intensity if intensity info isn't provided */
+				if (!(rgbnor & TEX_INT)) {
+					if (rgbnor & TEX_RGB) {
+						if(texres.talpha) texres.tin= texres.ta;
+						else texres.tin= (0.35*texres.tr+0.45*texres.tg+0.2*texres.tb);
+					}
+				}
+				
+				if((mapto_flag & MAP_EMISSION) && (mtex->mapto & MAP_EMISSION)) {
+					int flip= mtex->maptoneg & MAP_EMISSION;
+
+					*val = texture_value_blend(mtex->def_var, *val, texres.tin, varfac, mtex->blendtype, flip);
+					if(*val<0.0) *val= 0.0;
+				}
+				if((mapto_flag & MAP_DENSITY) && (mtex->mapto & MAP_DENSITY)) {
+					int flip= mtex->maptoneg & MAP_DENSITY;
+
+					*val = texture_value_blend(mtex->def_var, *val, texres.tin, varfac, mtex->blendtype, flip);
+					CLAMP(*val, 0.0, 1.0);
+				}
+				if((mapto_flag & MAP_ABSORPTION) && (mtex->mapto & MAP_ABSORPTION)) {
+					int flip= mtex->maptoneg & MAP_ABSORPTION;
+					
+					*val = texture_value_blend(mtex->def_var, *val, texres.tin, varfac, mtex->blendtype, flip);
+					CLAMP(*val, 0.0, 1.0);
+				}
+				if((mapto_flag & MAP_SCATTERING) && (mtex->mapto & MAP_SCATTERING)) {
+					int flip= mtex->maptoneg & MAP_SCATTERING;
+					
+					*val = texture_value_blend(mtex->def_var, *val, texres.tin, varfac, mtex->blendtype, flip);
+					CLAMP(*val, 0.0, 1.0);
+				}
+			}
+		}
+	}
+}
+
 
 /* ------------------------------------------------------------------------- */
 

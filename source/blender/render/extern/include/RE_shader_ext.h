@@ -112,7 +112,7 @@ typedef struct ShadeInput
 	
 	/* internal face coordinates */
 	float u, v, dx_u, dx_v, dy_u, dy_v;
-	float co[3], view[3];
+	float co[3], view[3], camera_co[3];
 	
 	/* copy from material, keep synced so we can do memcopy */
 	/* current size: 23*4 */
@@ -160,6 +160,7 @@ typedef struct ShadeInput
 	
 	int samplenr;			/* sample counter, to detect if we should do shadow again */
 	int depth;				/* 1 or larger on raytrace shading */
+	int volume_depth;		/* number of intersections through volumes */
 	
 	/* stored copy of original face normal (facenor) 
 	 * before flipping. Used in Front/back output on geometry node */
