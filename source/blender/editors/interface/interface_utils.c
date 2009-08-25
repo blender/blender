@@ -444,6 +444,20 @@ int uiDefIDPoinButs(uiBlock *block, Main *bmain, ID *parid, ID *id, int id_code,
 			uiBlockClearButLock(block);
 		}
 		
+		/* add button */
+		if(events & UI_ID_ADD_NEW) {
+			uiBlockSetButLock(block, (events & UI_ID_PIN) && *pin_p, "Can't unlink pinned data");
+			if(parid && parid->lib);
+			else {
+				dup_params= MEM_dupallocN(params);
+				but= uiDefIconBut(block, BUT, 0, ICON_ZOOMIN, x,y,DEF_ICON_BUT_WIDTH,DEF_BUT_HEIGHT, &dup_params->browsenr, params->browsenr, 32767.0, 0, 0, "Add new data block");
+				uiButSetNFunc(but, idpoin_cb, MEM_dupallocN(params), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
+				x+= DEF_ICON_BUT_WIDTH;
+			}
+			
+			uiBlockClearButLock(block);
+		}
+		
 		/* delete button */
 		if(events & UI_ID_DELETE) {
 			uiBlockSetButLock(block, (events & UI_ID_PIN) && *pin_p, "Can't unlink pinned data");

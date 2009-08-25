@@ -43,6 +43,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_animsys.h"
+#include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
@@ -272,6 +273,7 @@ static void saction_idpoin_handle(bContext *C, ID *id, int event)
 				/* set action */
 				printf("\tset action \n");
 				adt->action= saction->action;
+				adt->action->id.us++;
 			}
 			
 			ED_area_tag_redraw(CTX_wm_area(C));
@@ -282,7 +284,14 @@ static void saction_idpoin_handle(bContext *C, ID *id, int event)
 			break;
 		case UI_ID_ADD_NEW:
 			printf("actedit addnew \n");
-			/* XXX not implemented */
+			if (saction->pin == 0) {
+				AnimData *adt= BKE_id_add_animdata(&obact->id); /* this only adds if non-existant */
+				
+				/* set new action */
+				// XXX need to restore behaviour to copy old actions...
+				printf("\tset new action \n");
+				adt->action= saction->action= add_empty_action("Action");
+			}
 			break;
 		case UI_ID_OPEN:
 			printf("actedit open \n");
