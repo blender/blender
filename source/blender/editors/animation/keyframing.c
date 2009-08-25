@@ -740,6 +740,12 @@ short insert_keyframe_direct (PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, fl
 		printf("ERROR: no F-Curve to add keyframes to \n");
 		return 0;
 	}
+	/* F-Curve not editable? */
+	if ( (fcu->flag & FCURVE_PROTECTED) || ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ) {
+		if (G.f & G_DEBUG)
+			printf("WARNING: not inserting keyframe for locked F-Curve \n");
+		return 0;
+	}
 	
 	/* if no property given yet, try to validate from F-Curve info */
 	if ((ptr.id.data == NULL) && (ptr.data==NULL)) {
@@ -911,8 +917,19 @@ short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_
 	/* we don't check the validity of the path here yet, but it should be ok... */
 	fcu= verify_fcurve(act, group, rna_path, array_index, 0);
 	
-	/* only continue if we have an F-Curve to remove keyframes from */
-	if (act && fcu) {
+	/* check if F-Curve exists and/or whether it can be edited */
+	if ELEM(NULL, act, fcu) {
+		printf("ERROR: no F-Curve and/or Action to delete keyframe from \n");
+		return 0;
+	}
+	if ( (fcu->flag & FCURVE_PROTECTED) || ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ) {
+		if (G.f & G_DEBUG)
+			printf("WARNING: not inserting keyframe for locked F-Curve \n");
+		return 0;
+	}
+	
+	/* it should be fine to continue now... */
+	{
 		short found = -1;
 		int i;
 		
