@@ -337,8 +337,7 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
 		return NULL;
 	}
 
-	if (!GLEW_ARB_texture_non_power_of_two) 
-	{
+	if (!GLEW_ARB_texture_non_power_of_two) {
 		tex->w = larger_pow2(tex->w);
 		tex->h = larger_pow2(tex->h);
 		tex->depth = larger_pow2(tex->depth);

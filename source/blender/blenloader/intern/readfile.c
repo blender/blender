@@ -3993,6 +3993,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->derivedDeform= NULL;
 	ob->derivedFinal= NULL;
 	ob->gpulamp.first= ob->gpulamp.last= NULL;
+	link_list(fd, &ob->pc_ids);
 
 	if(ob->sculpt)
 		ob->sculpt= MEM_callocN(sizeof(SculptSession), "reload sculpt session");

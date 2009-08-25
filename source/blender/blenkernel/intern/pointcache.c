@@ -391,8 +391,6 @@ static int ptcache_totpoint_cloth(void *cloth_v)
 void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
 {
 	ParticleSystemModifierData *psmd;
-	ModifierData *md;
-	int a;
 
 	memset(pid, 0, sizeof(PTCacheID));
 
@@ -418,16 +416,10 @@ void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
 
 	if(sb->particles) {
 		psmd= psys_get_modifier(ob, sb->particles);
-		pid->stack_index= modifiers_indexInObject(ob, (ModifierData*)psmd);
+		// pid->stack_index= modifiers_indexInObject(ob, (ModifierData*)psmd);  XXX TODO - get other index DG
 	}
-	else {
-		for(a=0, md=ob->modifiers.first; md; md=md->next, a++) {
-			if(md->type == eModifierType_Softbody) {
-				pid->stack_index = a;
-				break;
-			}
-		}
-	}
+	else 
+		pid->stack_index = pid->cache->index;
 }
 
 void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *psys)
@@ -439,7 +431,7 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 	pid->ob= ob;
 	pid->calldata= psys;
 	pid->type= PTCACHE_TYPE_PARTICLES;
-	pid->stack_index= modifiers_indexInObject(ob, (ModifierData *)psmd);
+	pid->stack_index= psys->pointcache->index;
 	pid->cache= psys->pointcache;
 	pid->cache_ptr= &psys->pointcache;
 	pid->ptcaches= &psys->ptcaches;
@@ -728,7 +720,7 @@ void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeMo
 	pid->calldata= smd;
 	
 	pid->type= PTCACHE_TYPE_SMOKE_DOMAIN;
-	pid->stack_index= modifiers_indexInObject(ob, (ModifierData *)smd);
+	pid->stack_index= sds->point_cache->index;
 
 	pid->cache= sds->point_cache;
 	pid->cache_ptr= &sds->point_cache;
@@ -758,7 +750,7 @@ void BKE_ptcache_id_from_cloth(PTCacheID *pid, Object *ob, ClothModifierData *cl
 	pid->ob= ob;
 	pid->calldata= clmd;
 	pid->type= PTCACHE_TYPE_CLOTH;
-	pid->stack_index= modifiers_indexInObject(ob, (ModifierData *)clmd);
+	pid->stack_index= clmd->point_cache->index;
 	pid->cache= clmd->point_cache;
 	pid->cache_ptr= &clmd->point_cache;
 	pid->ptcaches= &clmd->ptcaches;
@@ -901,6 +893,10 @@ static int BKE_ptcache_id_filename(PTCacheID *pid, char *filename, int cfra, sho
 	}
 
 	if (do_ext) {
+
+		if(pid->cache->index < 0)
+			pid->cache->index =  pid->stack_index = object_insert_pc(pid->ob);
+
 		if(pid->cache->flag & PTCACHE_EXTERNAL) {
 			if(pid->cache->index >= 0)
 				snprintf(newname, MAX_PTCACHE_FILE, "_%06d_%02d"PTCACHE_EXT, cfra, pid->stack_index); /* always 6 chars */
@@ -1952,6 +1948,7 @@ PointCache *BKE_ptcache_add(ListBase *ptcaches)
 	cache->startframe= 1;
 	cache->endframe= 250;
 	cache->step= 10;
+	cache->index = -1;
 
 	BLI_addtail(ptcaches, cache);
 

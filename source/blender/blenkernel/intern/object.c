@@ -307,6 +307,8 @@ void free_object(Object *ob)
 	if(ob->gpulamp.first) GPU_lamp_free(ob);
 
 	free_sculptsession(&ob->sculpt);
+
+	if(ob->pc_ids.first) BLI_freelistN(&ob->pc_ids);
 }
 
 static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Object **obpoin)
@@ -1016,6 +1018,8 @@ Object *add_only_object(int type, char *name)
 	ob->fluidsimFlag = 0;
 	ob->fluidsimSettings = NULL;
 
+	ob->pc_ids.first = ob->pc_ids.last = NULL;
+
 	return ob;
 }
 
@@ -1268,7 +1272,8 @@ Object *copy_object(Object *ob)
 	obn->derivedFinal = NULL;
 
 	obn->gpulamp.first = obn->gpulamp.last = NULL;
-
+	obn->pc_ids.first = obn->pc_ids.last = NULL;
+	
 	return obn;
 }
 
@@ -2535,3 +2540,61 @@ int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3
 	
 	return result;
 }
+
+static int pc_cmp(void *a, void *b)
+{
+	LinkData *ad = a, *bd = b;
+	if((int)ad->data > (int)bd->data)
+		return 1;
+	else return 0;
+}
+
+int object_insert_pc(Object *ob) 
+{
+	LinkData *link = NULL;
+	int i = 0;
+
+	BLI_sortlist(&ob->pc_ids, pc_cmp);
+
+	for(link=ob->pc_ids.first, i = 0; link; link=link->next, i++) 
+	{
+		int index =(int)link->data;
+
+		if(i < index)
+			break;
+	}
+
+	link = MEM_callocN(sizeof(LinkData), "PCLink");
+	link->data = (void *)i;
+	BLI_addtail(&ob->pc_ids, link);
+
+	return i;
+}
+
+static int pc_findindex(ListBase *listbase, int index)
+{
+	LinkData *link= NULL;
+	int number= 0;
+	
+	if (listbase == NULL) return -1;
+	
+	link= listbase->first;
+	while (link) {
+		if ((int)link->data == index)
+			return number;
+		
+		number++;
+		link= link->next;
+	}
+	
+	return -1;
+}
+
+#if 0
+void object_delete_pc(Object *ob, int index) 
+{
+	int list_index = pc_findindex(&ob->pc_ids, index);
+	LinkData *link = BLI_findlink(&ob->pc_ids, list_index);
+	BLI_freelinkN(&ob->pc_ids, link);
+}
+#endif

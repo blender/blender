@@ -237,6 +237,7 @@ typedef struct Object {
 	int pad2;
 
 	ListBase gpulamp;		/* runtime, for lamps only */
+	ListBase pc_ids;
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */
