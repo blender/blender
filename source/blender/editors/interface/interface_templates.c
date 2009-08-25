@@ -1258,7 +1258,7 @@ void uiTemplateLayers(uiLayout *layout, PointerRNA *ptr, char *propname)
 	 *	  the 'remainder' is added to this, as it will be ok to have first row slightly wider if need be
 	 *	- for now, only split into groups if if group will have at least 5 items
 	 */
-	layers= RNA_property_array_length(prop);
+	layers= RNA_property_array_length(ptr, prop);
 	cols= (layers / 2) + (layers % 2);
 	groups= ((cols / 2) < 5) ? (1) : (cols / 2);
 	

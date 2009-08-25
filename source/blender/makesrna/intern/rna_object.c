@@ -1029,6 +1029,8 @@ static void rna_def_object(BlenderRNA *brna)
 		{OB_DUPLIGROUP, "GROUP", 0, "Group", "Enable group instancing."},
 		{0, NULL, 0, NULL, NULL}};
 
+	unsigned short matrix_dimsize[]= {4};
+
 	srna= RNA_def_struct(brna, "Object", "ID");
 	RNA_def_struct_ui_text(srna, "Object", "Object datablock defining an object in a scene..");
 	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
@@ -1190,7 +1192,7 @@ static void rna_def_object(BlenderRNA *brna)
 	/* matrix */
 	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "obmat");
-	RNA_def_property_array(prop, 16);
+	RNA_def_property_multidimensional_array(prop, 16, 2, matrix_dimsize);
 	RNA_def_property_ui_text(prop, "Matrix", "Transformation matrix.");
 
 	/* collections */

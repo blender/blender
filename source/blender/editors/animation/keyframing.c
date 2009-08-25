@@ -503,19 +503,19 @@ static float setting_get_rna_value (PointerRNA *ptr, PropertyRNA *prop, int inde
 	
 	switch (RNA_property_type(prop)) {
 		case PROP_BOOLEAN:
-			if (RNA_property_array_length(prop))
+			if (RNA_property_array_length(ptr, prop))
 				value= (float)RNA_property_boolean_get_index(ptr, prop, index);
 			else
 				value= (float)RNA_property_boolean_get(ptr, prop);
 			break;
 		case PROP_INT:
-			if (RNA_property_array_length(prop))
+			if (RNA_property_array_length(ptr, prop))
 				value= (float)RNA_property_int_get_index(ptr, prop, index);
 			else
 				value= (float)RNA_property_int_get(ptr, prop);
 			break;
 		case PROP_FLOAT:
-			if (RNA_property_array_length(prop))
+			if (RNA_property_array_length(ptr, prop))
 				value= RNA_property_float_get_index(ptr, prop, index);
 			else
 				value= RNA_property_float_get(ptr, prop);
@@ -1313,7 +1313,7 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 		
 		if (path) {
 			if (all) {
-				length= RNA_property_array_length(prop);
+				length= RNA_property_array_length(&ptr, prop);
 				
 				if(length) index= 0;
 				else length= 1;
@@ -1396,7 +1396,7 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 		
 		if (path) {
 			if (all) {
-				length= RNA_property_array_length(prop);
+				length= RNA_property_array_length(&ptr, prop);
 				
 				if(length) index= 0;
 				else length= 1;

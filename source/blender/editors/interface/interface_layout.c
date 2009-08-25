@@ -760,7 +760,7 @@ void uiItemO(uiLayout *layout, char *name, int icon, char *opname)
 
 /* RNA property items */
 
-static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PropertyRNA *prop, int index, int *r_w, int *r_h)
+static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int index, int *r_w, int *r_h)
 {
 	PropertyType type;
 	PropertySubType subtype;
@@ -769,7 +769,7 @@ static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PropertyRNA
 	/* arbitrary extended width by type */
 	type= RNA_property_type(prop);
 	subtype= RNA_property_subtype(prop);
-	len= RNA_property_array_length(prop);
+	len= RNA_property_array_length(ptr, prop);
 
 	if(ELEM3(type, PROP_STRING, PROP_POINTER, PROP_ENUM) && !name[0])
 		name= "non-empty text";
@@ -819,7 +819,7 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 
 	/* retrieve info */
 	type= RNA_property_type(prop);
-	len= RNA_property_array_length(prop);
+	len= RNA_property_array_length(ptr, prop);
 
 	/* set name and icon */
 	if(!name)
@@ -846,7 +846,7 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 	expand= (flag & UI_ITEM_R_EXPAND);
 
 	/* get size */
-	ui_item_rna_size(layout, name, icon, prop, index, &w, &h);
+	ui_item_rna_size(layout, name, icon, ptr, prop, index, &w, &h);
 
 	/* array property */
 	if(index == RNA_NO_INDEX && len > 0)
@@ -1132,7 +1132,7 @@ void uiItemPointerR(uiLayout *layout, char *name, int icon, struct PointerRNA *p
 	/* create button */
 	block= uiLayoutGetBlock(layout);
 
-	ui_item_rna_size(layout, name, icon, prop, 0, &w, &h);
+	ui_item_rna_size(layout, name, icon, ptr, prop, 0, &w, &h);
 	but= ui_item_with_label(layout, block, name, icon, ptr, prop, 0, 0, 0, w, h);
 
 	ui_but_add_search(but, ptr, prop, searchptr, searchprop);

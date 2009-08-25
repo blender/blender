@@ -91,4 +91,9 @@ PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *args);
 void pyrna_alloc_types(void);
 void pyrna_free_types(void);
 
+/* primitive type conversion */
+int pyrna_py_to_boolean_array(PyObject *py, PointerRNA *ptr, PropertyRNA *prop, char *param_data, char *error_str, int error_str_size);
+int pyrna_py_to_int_array(PyObject *py, PointerRNA *ptr, PropertyRNA *prop, char *param_data, char *error_str, int error_str_size);
+int pyrna_py_to_float_array(PyObject *py, PointerRNA *ptr, PropertyRNA *prop, char *param_data, char *error_str, int error_str_size);
+
 #endif

@@ -246,7 +246,7 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 {
 	PyObject *ret;
 	int type = RNA_property_type(prop);
-	int len = RNA_property_array_length(prop);
+	int len = RNA_property_array_length(ptr, prop);
 
 	if (len > 0) {
 		/* resolve the array from a new pytype */
@@ -469,128 +469,43 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 {
 	/* XXX hard limits should be checked here */
 	int type = RNA_property_type(prop);
-	int len = RNA_property_array_length(prop);
+	int len = RNA_property_array_length(ptr, prop);
 	
 	if (len > 0) {
-		PyObject *item;
-		int py_len = -1;
-		int i;
-		
+		char error_str[512];
+		int ok= 1;
 
 #ifdef USE_MATHUTILS
 		if(MatrixObject_Check(value)) {
 			MatrixObject *mat = (MatrixObject*)value;
 			if(!BaseMath_ReadCallback(mat))
 				return -1;
-
-			py_len = mat->rowSize * mat->colSize;
 		} else /* continue... */
 #endif
-		if (PySequence_Check(value)) {
-			py_len= (int)PySequence_Length(value);
-		}
-		else {
+		if (!PySequence_Check(value)) {
 			PyErr_Format(PyExc_TypeError, "%.200s RNA array assignment expected a sequence instead of %.200s instance.", error_prefix, Py_TYPE(value)->tp_name);
 			return -1;
 		}
 		/* done getting the length */
 		
-		if (py_len != len) {
-			PyErr_Format(PyExc_TypeError, "%.200s python sequence length %d did not match the RNA array length %d.", error_prefix, py_len, len);
-			return -1;
-		}
-		
 		/* for arrays we have a limited number of types */
 		switch (type) {
 		case PROP_BOOLEAN:
-		{
-			int *param_arr;
-			if(data)	param_arr= (int*)data;
-			else		param_arr= MEM_mallocN(sizeof(int) * len, "pyrna bool array");
-
-			
-			/* collect the variables before assigning, incase one of them is incorrect */
-			for (i=0; i<len; i++) {
-				item = PySequence_GetItem(value, i);
-				param_arr[i] = PyObject_IsTrue( item );
-				Py_DECREF(item);
-				
-				if (param_arr[i] < 0) {
-					if(data==NULL)
-						MEM_freeN(param_arr);
-					PyErr_Format(PyExc_AttributeError, "%.200s one or more of the values in the sequence is not a boolean", error_prefix);
-					return -1;
-				}
-			}
-			if(data==NULL) {
-				RNA_property_boolean_set_array(ptr, prop, param_arr);
-				MEM_freeN(param_arr);
-			}
-
+			ok= pyrna_py_to_boolean_array(value, ptr, prop, data, error_str, sizeof(error_str));
 			break;
-		}
 		case PROP_INT:
-		{
-			int *param_arr;
-			if(data)	param_arr= (int*)data;
-			else		param_arr= MEM_mallocN(sizeof(int) * len, "pyrna int array");
-
-			
-			/* collect the variables */
-			for (i=0; i<len; i++) {
-				item = PySequence_GetItem(value, i);
-				param_arr[i] = (int)PyLong_AsSsize_t(item); /* deal with any errors later */
-				Py_DECREF(item);
-			}
-			
-			if (PyErr_Occurred()) {
-				if(data==NULL)
-					MEM_freeN(param_arr);
-				PyErr_Format(PyExc_AttributeError, "%.200s one or more of the values in the sequence could not be used as an int", error_prefix);
-				return -1;
-			}
-			if(data==NULL) {
-				RNA_property_int_set_array(ptr, prop, param_arr);
-				MEM_freeN(param_arr);
-			}
+			ok= pyrna_py_to_int_array(value, ptr, prop, data, error_str, sizeof(error_str));
 			break;
-		}
 		case PROP_FLOAT:
-		{
-			float *param_arr;
-			if(data)	param_arr = (float*)data;
-			else		param_arr = MEM_mallocN(sizeof(float) * len, "pyrna float array");
-
-
-#ifdef USE_MATHUTILS
-			if(MatrixObject_Check(value) && RNA_property_subtype(prop) == PROP_MATRIX) {
-				MatrixObject *mat = (MatrixObject*)value;
-				memcpy(param_arr, mat->contigPtr, sizeof(float) * len);
-			} else /* continue... */
-#endif
-			{
-				/* collect the variables */
-				for (i=0; i<len; i++) {
-					item = PySequence_GetItem(value, i);
-					param_arr[i] = (float)PyFloat_AsDouble(item); /* deal with any errors later */
-					Py_DECREF(item);
-				}
-			}
-
-			if (PyErr_Occurred()) {
-				if(data==NULL)
-					MEM_freeN(param_arr);
-				PyErr_Format(PyExc_AttributeError, "%.200s one or more of the values in the sequence could not be used as a float", error_prefix);
-				return -1;
-			}
-			if(data==NULL) {
-				RNA_property_float_set_array(ptr, prop, param_arr);				
-				MEM_freeN(param_arr);
-			}
+			ok= pyrna_py_to_float_array(value, ptr, prop, data, error_str, sizeof(error_str));
 			break;
 		}
+		if (!ok) {
+			PyErr_Format(PyExc_AttributeError, "%.200s %s", error_prefix, error_str);
+			return -1;
 		}
-	} else {
+	}
+	else {
 		/* Normal Property (not an array) */
 		
 		/* see if we can coorce into a python type - PropertyType */
@@ -862,7 +777,7 @@ static Py_ssize_t pyrna_prop_len( BPy_PropertyRNA * self )
 	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
 		len = RNA_property_collection_length(&self->ptr, self->prop);
 	} else {
-		len = RNA_property_array_length(self->prop);
+		len = RNA_property_array_length(&self->ptr, self->prop);
 		
 		if (len==0) { /* not an array*/
 			PyErr_SetString(PyExc_AttributeError, "len() only available for collection RNA types");
@@ -888,7 +803,7 @@ static PyObject *prop_subscript_collection_int(BPy_PropertyRNA * self, int keynu
 }
 static PyObject *prop_subscript_array_int(BPy_PropertyRNA * self, int keynum)
 {
-	int len= RNA_property_array_length(self->prop);
+	int len= RNA_property_array_length(&self->ptr, self->prop);
 
 	if(keynum < 0) keynum += len;
 
@@ -993,7 +908,7 @@ static PyObject *prop_subscript_array(BPy_PropertyRNA * self, PyObject *key)
 		return prop_subscript_array_int(self, PyLong_AsSsize_t(key));
 	}
 	else if (PySlice_Check(key)) {
-		int len= RNA_property_array_length(self->prop);
+		int len= RNA_property_array_length(&self->ptr, self->prop);
 		Py_ssize_t start, stop, step, slicelength;
 
 		if (PySlice_GetIndicesEx((PySliceObject*)key, len, &start, &stop, &step, &slicelength) < 0)
@@ -1020,7 +935,7 @@ static PyObject *pyrna_prop_subscript( BPy_PropertyRNA * self, PyObject *key )
 {
 	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
 		return prop_subscript_collection(self, key);
-	} else if (RNA_property_array_length(self->prop)) { /* arrays are currently fixed length, zero length means its not an array */
+	} else if (RNA_property_array_length(&self->ptr, self->prop)) { /* arrays are currently fixed length, zero length means its not an array */
 		return prop_subscript_array(self, key);
 	} else {
 		PyErr_SetString(PyExc_TypeError, "rna type is not an array or a collection");
@@ -1049,7 +964,7 @@ static int prop_subscript_ass_array_slice(BPy_PropertyRNA * self, int begin, int
 static int prop_subscript_ass_array_int(BPy_PropertyRNA * self, int keynum, PyObject *value)
 {
 
-	int len= RNA_property_array_length(self->prop);
+	int len= RNA_property_array_length(&self->ptr, self->prop);
 
 	if(keynum < 0) keynum += len;
 
@@ -1083,7 +998,7 @@ static int pyrna_prop_ass_subscript( BPy_PropertyRNA * self, PyObject *key, PyOb
 		return prop_subscript_ass_array_int(self, i, value);
 	}
 	else if (PySlice_Check(key)) {
-		int len= RNA_property_array_length(self->prop);
+		int len= RNA_property_array_length(&self->ptr, self->prop);
 		Py_ssize_t start, stop, step, slicelength;
 
 		if (PySlice_GetIndicesEx((PySliceObject*)key, len, &start, &stop, &step, &slicelength) < 0)
@@ -1496,7 +1411,7 @@ static void foreach_attr_type(	BPy_PropertyRNA *self, char *attr,
 	RNA_PROP_BEGIN(&self->ptr, itemptr, self->prop) {
 		prop = RNA_struct_find_property(&itemptr, attr);
 		*raw_type= RNA_property_raw_type(prop);
-		*attr_tot = RNA_property_array_length(prop);
+		*attr_tot = RNA_property_array_length(&itemptr, prop);
 		*attr_signed= (RNA_property_subtype(prop)==PROP_UNSIGNED) ? FALSE:TRUE;
 		break;
 	}
@@ -1535,7 +1450,7 @@ static int foreach_parse_args(
 		if (RNA_property_type(self->prop) == PROP_COLLECTION)
 			array_tot = RNA_property_collection_length(&self->ptr, self->prop);
 		else
-			array_tot = RNA_property_array_length(self->prop);
+			array_tot = RNA_property_array_length(&self->ptr, self->prop);
 
 
 		target_tot= array_tot * (*attr_tot);
@@ -1728,7 +1643,7 @@ PyObject *pyrna_prop_iter(BPy_PropertyRNA *self)
 	
 	if (ret==NULL) {
 		/* collection did not work, try array */
-		int len = RNA_property_array_length(self->prop);
+		int len = RNA_property_array_length(&self->ptr, self->prop);
 		
 		if (len) {
 			int i;
@@ -1819,7 +1734,7 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 {
 	PyObject *ret;
 	int type = RNA_property_type(prop);
-	int len = RNA_property_array_length(prop);
+	int len = RNA_property_array_length(ptr, prop);
 
 	int a;
 

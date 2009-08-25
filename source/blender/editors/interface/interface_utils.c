@@ -72,7 +72,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 {
 	uiBut *but=NULL;
 	const char *propname= RNA_property_identifier(prop);
-	int arraylen= RNA_property_array_length(prop);
+	int arraylen= RNA_property_array_length(ptr, prop);
 
 	switch(RNA_property_type(prop)) {
 		case PROP_BOOLEAN: {
@@ -81,7 +81,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 			if(arraylen && index == -1)
 				return NULL;
 
-			length= RNA_property_array_length(prop);
+			length= RNA_property_array_length(ptr, prop);
 
 			if(length)
 				value= RNA_property_boolean_get_index(ptr, prop, index);

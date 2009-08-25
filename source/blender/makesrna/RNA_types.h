@@ -152,7 +152,8 @@ typedef enum PropertyFlag {
 	PROP_IDPROPERTY = 1024,
 	PROP_RAW_ACCESS = 8192,
 	PROP_RAW_ARRAY = 16384,
-	PROP_FREE_POINTERS = 32768
+	PROP_FREE_POINTERS = 32768,
+	PROP_DYNAMIC = 131072 /* for dynamic arrays, and retvals of type string */
 } PropertyFlag;
 
 typedef struct CollectionPropertyIterator {

@@ -1724,6 +1724,14 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 	rna_print_c_string(f, prop->description); fprintf(f, ",\n\t");
 	fprintf(f, "%d,\n", prop->icon);
 	fprintf(f, "\t%s, %s|%s, %d,\n", rna_property_typename(prop->type), rna_property_subtypename(prop->subtype), rna_property_subtype_unit(prop->subtype), prop->arraylength);
+	{
+		int i;
+		int tot= sizeof(prop->dimsize) / sizeof(prop->dimsize[0]);
+		fprintf(f, "\t%s, %s, %d, {", rna_function_string(prop->getlength), rna_function_string(prop->setlength), (int)prop->arraydimension);
+		for(i= 0; i < tot; i++) {
+			fprintf(f, i == tot - 1 ? "%d},\n" : "%d, ", (int)prop->dimsize[i]);
+		}
+	}
 	fprintf(f, "\t%s, %d, %s,\n", rna_function_string(prop->update), prop->noteflag, rna_function_string(prop->editable));
 
 	if(prop->flag & PROP_RAW_ACCESS) rna_set_raw_offset(f, srna, prop);

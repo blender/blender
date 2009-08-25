@@ -1084,7 +1084,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					te->flag |= TE_LAZY_CLOSED;
 			}
 			else if(ELEM3(proptype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
-				tot= RNA_property_array_length(prop);
+				tot= RNA_property_array_length(ptr, prop);
 
 				if(!(tselem->flag & TSE_CLOSED)) {
 					for(a=0; a<tot; a++)
@@ -3721,7 +3721,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 			/* item is part of an array, so must set the array_index */
 			*array_index= te->index;
 		}
-		else if (RNA_property_array_length(prop)) {
+		else if (RNA_property_array_length(ptr, prop)) {
 			/* entire array was selected, so keyframe all */
 			*flag |= KSP_FLAG_WHOLE_ARRAY;
 		}

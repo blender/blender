@@ -343,10 +343,11 @@ const char *rna_ensure_property_name(PropertyRNA *prop)
 		return ((IDProperty*)prop)->name;
 }
 
-int rna_ensure_property_array_length(PropertyRNA *prop)
+int rna_ensure_property_array_length(PointerRNA *ptr, PropertyRNA *prop)
 {
-	if(prop->magic == RNA_MAGIC)
-		return prop->arraylength;
+	if(prop->magic == RNA_MAGIC) {
+		return prop->getlength ? prop->getlength(ptr) : prop->arraylength;
+	}
 	else {
 		IDProperty *idprop= (IDProperty*)prop;
 
@@ -549,9 +550,27 @@ int RNA_property_flag(PropertyRNA *prop)
 	return rna_ensure_property(prop)->flag;
 }
 
-int RNA_property_array_length(PropertyRNA *prop)
+int RNA_property_array_length(PointerRNA *ptr, PropertyRNA *prop)
 {
-	return rna_ensure_property_array_length(prop);
+	return rna_ensure_property_array_length(ptr, prop);
+}
+
+int RNA_property_dynamic_array_set_length(PointerRNA *ptr, PropertyRNA *prop, int length)
+{
+	if (prop->setlength)
+		return prop->setlength(ptr, length);
+	else
+		prop->arraylength= length; /* function parameters only? */
+
+	return 1;
+}
+
+unsigned short RNA_property_array_dimension(PropertyRNA *prop, unsigned short dimsize[])
+{
+	if (dimsize && prop->arraydimension > 1) {
+		memcpy(dimsize, prop->dimsize, sizeof(prop->dimsize[0]) * (prop->arraydimension - 1));
+	}
+	return prop->arraydimension;
 }
 
 char RNA_property_array_item_char(PropertyRNA *prop, int index)
@@ -1684,7 +1703,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 		}
 
 		/* check item array */
-		itemlen= RNA_property_array_length(itemprop);
+		itemlen= RNA_property_array_length(&itemptr, itemprop);
 
 		/* try to access as raw array */
 		if(RNA_property_collection_raw_array(ptr, prop, itemprop, &out)) {
@@ -1736,7 +1755,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 					iprop= RNA_struct_find_property(&itemptr, propname);
 
 					if(iprop) {
-						itemlen= RNA_property_array_length(iprop);
+						itemlen= RNA_property_array_length(&itemptr, iprop);
 						itemtype= RNA_property_type(iprop);
 					}
 					else {
@@ -2675,7 +2694,7 @@ char *RNA_pointer_as_string(PointerRNA *ptr)
 char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 {
 	int type = RNA_property_type(prop);
-	int len = RNA_property_array_length(prop);
+	int len = RNA_property_array_length(ptr, prop);
 	int i;
 
 	DynStr *dynstr= BLI_dynstr_new();
@@ -2905,6 +2924,12 @@ void RNA_parameter_list_free(ParameterList *parms)
 	for(tot= 0; parm; parm= parm->next) {
 		if(parm->type == PROP_COLLECTION)
 			BLI_freelistN((ListBase*)((char*)parms->data+tot));
+		else if (parm->flag & PROP_DYNAMIC) {
+			/* for dynamic arrays and strings, data is a pointer to an array */
+			char *array= *(char**)((char*)parms->data+tot);
+			if(array)
+				MEM_freeN(array);
+		}
 
 		tot+= rna_parameter_size(parm);
 	}
@@ -3277,7 +3302,7 @@ int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *pt
 
 		type= RNA_property_type(parm);
 		ftype= format[ofs++];
-		len= RNA_property_array_length(parm);
+		len= RNA_property_array_length(&funcptr, parm);
 		alen= rna_function_format_array_length(format, ofs, flen);
 
 		if (len!=alen) {
@@ -3342,7 +3367,7 @@ int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *pt
 
 		type= RNA_property_type(parm);
 		ftype= format[ofs++];
-		len= RNA_property_array_length(parm);
+		len= RNA_property_array_length(&funcptr, parm);
 		alen= rna_function_format_array_length(format, ofs, flen);
 
 		if (len!=alen) {

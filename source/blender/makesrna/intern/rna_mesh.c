@@ -398,6 +398,51 @@ static void rna_MeshTextureFace_uv4_set(PointerRNA *ptr, const float *values)
 	mtface->uv[3][1]= values[1];
 }
 
+static int rna_CustomDataData_numverts(PointerRNA *ptr, int type)
+{
+    Mesh *me= (Mesh*)ptr->id.data;
+    CustomData *fdata= rna_mesh_fdata(me);
+    CustomDataLayer *cdl;
+    int a;
+    size_t b;
+
+    for(cdl=fdata->layers, a=0; a<fdata->totlayer; cdl++, a++) {
+        if(cdl->type == type) {
+            b= ((char*)ptr->data - ((char*)cdl->data))/CustomData_sizeof(type);
+            if(b >= 0 && b < me->totface)
+                return (me->mface[b].v4? 4: 3);
+        }
+    }
+
+    return 0;
+}
+
+static int rna_MeshTextureFace_uv_get_length(PointerRNA *ptr)
+{
+    return rna_CustomDataData_numverts(ptr, CD_MTFACE) * 2;
+}
+
+static int rna_MeshTextureFace_uv_set_length(PointerRNA *ptr, int length)
+{
+    return length == rna_MeshTextureFace_uv_get_length(ptr);
+}
+
+static void rna_MeshTextureFace_uv_get(PointerRNA *ptr, float *values)
+{
+	MTFace *mtface= (MTFace*)ptr->data;
+	int totvert= rna_CustomDataData_numverts(ptr, CD_MTFACE);
+
+	memcpy(values, mtface->uv, totvert * 2 * sizeof(float));
+}
+
+static void rna_MeshTextureFace_uv_set(PointerRNA *ptr, const float *values)
+{
+	MTFace *mtface= (MTFace*)ptr->data;
+	int totvert= rna_CustomDataData_numverts(ptr, CD_MTFACE);
+
+	memcpy(mtface->uv, values, totvert * 2 * sizeof(float));
+}
+
 static void rna_MeshTextureFaceLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Mesh *me= (Mesh*)ptr->id.data;
@@ -660,6 +705,40 @@ static void rna_TextureFace_image_set(PointerRNA *ptr, PointerRNA value)
 	tf->tpage= (struct Image*)id;
 }
 
+static int rna_MeshFace_verts_get_length(PointerRNA *ptr)
+{
+	MFace *face= (MFace*)ptr->data;
+	return face->v4 ? 4 : 3;
+}
+
+static int rna_MeshFace_verts_set_length(PointerRNA *ptr, int length)
+{
+	MFace *face= (MFace*)ptr->data;
+	if (length == 3) {
+		face->v4= 0;
+	}
+	else if(length == 4) {
+		face->v4= 1;
+	}
+	else
+		return 0;
+	
+	return 1;
+}
+
+static void rna_MeshFace_verts_get(PointerRNA *ptr, int *values)
+{
+	MFace *face= (MFace*)ptr->data;
+	int verts[4] = {face->v1, face->v2, face->v3, face->v4};
+	memcpy(values, verts, (face->v4 ? 4 : 3) * sizeof(int));
+}
+
+static void rna_MeshFace_verts_set(PointerRNA *ptr, const int *values)
+{
+	MFace *face= (MFace*)ptr->data;
+	memcpy(&face->v1, values, (face->v4 ? 4 : 3) * sizeof(int));
+}
+
 /* path construction */
 
 static char *rna_VertexGroupElement_path(PointerRNA *ptr)
@@ -882,11 +961,21 @@ static void rna_def_mface(BlenderRNA *brna)
 	RNA_def_struct_path_func(srna, "rna_MeshFace_path");
 	RNA_def_struct_ui_icon(srna, ICON_FACESEL);
 
+	/*
+	// XXX allows creating invalid meshes
 	prop= RNA_def_property(srna, "verts", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "v1");
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_ui_text(prop, "Vertices", "Vertex indices");
+	*/
+
 	// XXX allows creating invalid meshes
+	prop= RNA_def_property(srna, "verts", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_flag(prop, PROP_DYNAMIC);
+	RNA_def_property_dynamic_array_funcs(prop, "rna_MeshFace_verts_get_length", "rna_MeshFace_verts_set_length");
+	RNA_def_property_int_funcs(prop, "rna_MeshFace_verts_get", "rna_MeshFace_verts_set", NULL);
+	RNA_def_property_ui_text(prop, "Vertices", "Vertex indices");
 
 	prop= RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "mat_nr");
@@ -923,6 +1012,7 @@ static void rna_def_mtface(BlenderRNA *brna)
 		{TF_ALPHA, "ALPHA", 0, "Alpha", "Render polygon transparent, depending on alpha channel of the texture"},
 		{TF_CLIP, "CLIPALPHA", 0, "Clip Alpha", "Use the images alpha values clipped with no blending (binary alpha)"},
 		{0, NULL, 0, NULL, NULL}};
+	unsigned short uv_dim[1]= {2};
 
 	srna= RNA_def_struct(brna, "MeshTextureFaceLayer", NULL);
 	RNA_def_struct_ui_text(srna, "Mesh Texture Face Layer", "Layer of texture faces in a Mesh datablock.");
@@ -1041,6 +1131,13 @@ static void rna_def_mtface(BlenderRNA *brna)
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_float_funcs(prop, "rna_MeshTextureFace_uv4_get", "rna_MeshTextureFace_uv4_set", NULL);
 	RNA_def_property_ui_text(prop, "UV 4", "");
+
+	prop= RNA_def_property(srna, "uv", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_multidimensional_array(prop, 4 * 2, 2, uv_dim);
+	RNA_def_property_flag(prop, PROP_DYNAMIC);
+	RNA_def_property_dynamic_array_funcs(prop, "rna_MeshTextureFace_uv_get_length", "rna_MeshTextureFace_uv_set_length");
+	RNA_def_property_float_funcs(prop, "rna_MeshTextureFace_uv_get", "rna_MeshTextureFace_uv_set", NULL);
+	RNA_def_property_ui_text(prop, "UV", "");
 }
 
 static void rna_def_msticky(BlenderRNA *brna)

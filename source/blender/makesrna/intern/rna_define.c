@@ -1028,6 +1028,26 @@ void RNA_def_property_array(PropertyRNA *prop, int arraylength)
 			DefRNA.error= 1;
 			break;
 	}
+
+	prop->arraydimension= 1;
+}
+
+void RNA_def_property_multidimensional_array(PropertyRNA *prop, int arraylength, unsigned short dimension, unsigned short dimsize[])
+{
+	StructRNA *srna= DefRNA.laststruct;
+	
+	if (dimension < 1 || dimension > RNA_MAX_ARRAY_DIMENSION) {
+		fprintf(stderr, "RNA_def_property_multidimensional_array: %s.%s, array dimension must be between 1 and %d.\n", srna->identifier, prop->identifier, RNA_MAX_ARRAY_DIMENSION);
+		DefRNA.error= 1;
+		return;
+	}
+
+	RNA_def_property_array(prop, arraylength);
+
+	prop->arraydimension= dimension;
+
+	if (dimension > 1)
+		memcpy(prop->dimsize, dimsize, sizeof(dimsize[0]) * (dimension - 1));
 }
 
 void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *description)
@@ -1688,6 +1708,23 @@ void RNA_def_property_update(PropertyRNA *prop, int noteflag, const char *func)
 	prop->update= (UpdateFunc)func;
 }
 
+void RNA_def_property_dynamic_array_funcs(PropertyRNA *prop, const char *getlength, const char *setlength)
+{
+	if(!DefRNA.preprocess) {
+		fprintf(stderr, "RNA_def_property_*_funcs: only during preprocessing.\n");
+		return;
+	}
+
+	if (!(prop->flag & PROP_DYNAMIC)) {
+		fprintf(stderr, "RNA_def_property_dynamic_array_funcs: property is a not dynamic array.\n");
+		DefRNA.error= 1;
+		return;
+	}
+
+	if(getlength) prop->getlength= (PropArrayLengthGetFunc)getlength;
+	if(setlength) prop->setlength= (PropArrayLengthSetFunc)setlength;
+}
+
 void RNA_def_property_boolean_funcs(PropertyRNA *prop, const char *get, const char *set)
 {
 	StructRNA *srna= DefRNA.laststruct;
@@ -2085,14 +2122,15 @@ PropertyRNA *RNA_def_float_color(StructOrFunctionRNA *cont_, const char *identif
 }
 
 
-PropertyRNA *RNA_def_float_matrix(StructOrFunctionRNA *cont_, const char *identifier, int len, const float *default_value, 
+PropertyRNA *RNA_def_float_matrix(StructOrFunctionRNA *cont_, const char *identifier, int len, int rowsize, const float *default_value, 
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax)
 {
 	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
+	unsigned short dimsize[1]= {rowsize};
 	
 	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_MATRIX);
-	if(len != 0) RNA_def_property_array(prop, len);
+	if(len != 0) RNA_def_property_multidimensional_array(prop, len, 2, dimsize);
 	if(default_value) RNA_def_property_float_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
@@ -2292,6 +2330,10 @@ int rna_parameter_size(PropertyRNA *parm)
 	int len= parm->arraylength;
 
 	if(len > 0) {
+
+		if (parm->flag & PROP_DYNAMIC)
+			return sizeof(void *);
+
 		switch (ptype) {
 			case PROP_BOOLEAN:
 			case PROP_INT:
