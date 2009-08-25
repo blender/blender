@@ -1,10 +1,3 @@
-#
-# Note : if you want to alter this file
-# copy it as a whole in the upper folder
-# as user-config.py
-# dont create a new file with only some
-# vars changed.
-
 import commands
 
 # IMPORTANT NOTE : OFFICIAL BUILDS SHOULD BE DONE WITH SDKs
