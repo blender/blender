@@ -97,6 +97,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
+	View2D *v2d= &ac->ar->v2d;
 	int notifierFlags = 0;
 	
 	/* get the channel that was clicked on */
@@ -186,14 +187,14 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 			else
 				offset= 0;
 			
-			if (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) {
+			if (x >= (v2d->cur.xmax-NLACHANNEL_BUTTON_WIDTH)) {
 				/* toggle protection (only if there's a toggle there) */
 				nlt->flag ^= NLATRACK_PROTECTED;
 				
 				/* notifier flags - channel was edited */
 				notifierFlags |= ND_ANIMCHAN_EDIT;
 			}
-			else if (x >= (NLACHANNEL_NAMEWIDTH-2*NLACHANNEL_BUTTON_WIDTH)) {
+			else if (x >= (v2d->cur.xmax-2*NLACHANNEL_BUTTON_WIDTH)) {
 				/* toggle mute */
 				nlt->flag ^= NLATRACK_MUTED;
 				
@@ -232,7 +233,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 		{
 			AnimData *adt= BKE_animdata_from_id(ale->owner); /* this won't crash, right? */
 			
-			if (x >= (NLACHANNEL_NAMEWIDTH-NLACHANNEL_BUTTON_WIDTH)) {
+			if (x >= (v2d->cur.xmax-NLACHANNEL_BUTTON_WIDTH)) {
 				if (nlaedit_is_tweakmode_on(ac) == 0) {
 					/* 'push-down' action - only usable when not in TweakMode */
 					// TODO: make this use the operator instead of calling the function directly

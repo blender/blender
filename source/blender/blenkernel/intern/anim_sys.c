@@ -1263,7 +1263,6 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 			dummy_strip.act= adt->action;
 			dummy_strip.remap= adt->remap;
 			
-				// FIXME: what happens when we want to included F-Modifier access?
 			calc_action_range(dummy_strip.act, &dummy_strip.actstart, &dummy_strip.actend, 1);
 			dummy_strip.start = dummy_strip.actstart;
 			dummy_strip.end = (IS_EQ(dummy_strip.actstart, dummy_strip.actend)) ?  (dummy_strip.actstart + 1.0f): (dummy_strip.actend);

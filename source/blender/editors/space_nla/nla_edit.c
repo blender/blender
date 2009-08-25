@@ -1249,7 +1249,7 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *op)
 				 * but leave everything else alone 
 				 */
 				strip->scale= 1.0f;
-				calc_action_range(strip->act, &strip->actstart, &strip->actend, 1);
+				calc_action_range(strip->act, &strip->actstart, &strip->actend, 0);
 			}
 		}
 	}
