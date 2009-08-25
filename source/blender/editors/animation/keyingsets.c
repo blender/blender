@@ -916,7 +916,7 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 			 * normal non-array entries get keyframed correctly
 			 */
 			i= ksp->array_index;
-			arraylen= i+1;
+			arraylen= i;
 			
 			/* get length of array if whole array option is enabled */
 			if (ksp->flag & KSP_FLAG_WHOLE_ARRAY) {
@@ -927,6 +927,10 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 				if (RNA_path_resolve(&id_ptr, ksp->rna_path, &ptr, &prop) && prop)
 					arraylen= RNA_property_array_length(prop);
 			}
+			
+			/* we should do at least one step */
+			if (arraylen == i)
+				arraylen++;
 			
 			/* for each possible index, perform operation 
 			 *	- assume that arraylen is greater than index
