@@ -36,19 +36,19 @@
 
 #define RE_COST_INSTANCE (1.0f)
 
-static int  RayObject_instance_intersect(RayObject *o, Isect *isec);
-static void RayObject_instance_free(RayObject *o);
-static void RayObject_instance_bb(RayObject *o, float *min, float *max);
-static float RayObject_instance_cost(RayObject *o);
+static int  RE_rayobject_instance_intersect(RayObject *o, Isect *isec);
+static void RE_rayobject_instance_free(RayObject *o);
+static void RE_rayobject_instance_bb(RayObject *o, float *min, float *max);
+static float RE_rayobject_instance_cost(RayObject *o);
 
 static RayObjectAPI instance_api =
 {
-	RayObject_instance_intersect,
-	NULL, //static void RayObject_instance_add(RayObject *o, RayObject *ob);
-	NULL, //static void RayObject_instance_done(RayObject *o);
-	RayObject_instance_free,
-	RayObject_instance_bb,
-	RayObject_instance_cost
+	RE_rayobject_instance_intersect,
+	NULL, //static void RE_rayobject_instance_add(RayObject *o, RayObject *ob);
+	NULL, //static void RE_rayobject_instance_done(RayObject *o);
+	RE_rayobject_instance_free,
+	RE_rayobject_instance_bb,
+	RE_rayobject_instance_cost
 };
 
 typedef struct InstanceRayObject
@@ -68,7 +68,7 @@ typedef struct InstanceRayObject
 RayObject *RE_rayobject_instance_create(RayObject *target, float transform[][4], void *ob, void *target_ob)
 {
 	InstanceRayObject *obj= (InstanceRayObject*)MEM_callocN(sizeof(InstanceRayObject), "InstanceRayObject");
-	assert( RayObject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	
+	assert( RE_rayobject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	
 	
 	obj->rayobj.api = &instance_api;
 	obj->target = target;
@@ -78,10 +78,10 @@ RayObject *RE_rayobject_instance_create(RayObject *target, float transform[][4],
 	Mat4CpyMat4(obj->target2global, transform);
 	Mat4Invert(obj->global2target, obj->target2global);
 	
-	return RayObject_unalignRayAPI((RayObject*) obj);
+	return RE_rayobject_unalignRayAPI((RayObject*) obj);
 }
 
-static int  RayObject_instance_intersect(RayObject *o, Isect *isec)
+static int  RE_rayobject_instance_intersect(RayObject *o, Isect *isec)
 {
 	//TODO
 	// *there is probably a faster way to convert between coordinates
@@ -162,19 +162,19 @@ static int  RayObject_instance_intersect(RayObject *o, Isect *isec)
 	return res;
 }
 
-static void RayObject_instance_free(RayObject *o)
+static void RE_rayobject_instance_free(RayObject *o)
 {
 	InstanceRayObject *obj = (InstanceRayObject*)o;
 	MEM_freeN(obj);
 }
 
-static float RayObject_instance_cost(RayObject *o)
+static float RE_rayobject_instance_cost(RayObject *o)
 {
 	InstanceRayObject *obj = (InstanceRayObject*)o;
 	return RE_rayobject_cost(obj->target) + RE_COST_INSTANCE;
 }
 
-static void RayObject_instance_bb(RayObject *o, float *min, float *max)
+static void RE_rayobject_instance_bb(RayObject *o, float *min, float *max)
 {
 	//TODO:
 	// *better bb.. calculated without rotations of bb

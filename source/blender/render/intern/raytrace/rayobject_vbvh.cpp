@@ -181,7 +181,7 @@ static VBVHNode *bvh_new_node(VBVHTree *tree)
 #ifdef DYNAMIC_ALLOC_BB
 	node->bb = (float*)BLI_memarena_alloc(tree->node_arena, 6*sizeof(float));
 #endif
-	assert(RayObject_isAligned(node));
+	assert(RE_rayobject_isAligned(node));
 	return node;
 }
 
@@ -319,7 +319,7 @@ int intersect(VBVHTree *obj, Isect* isec)
 		for(int i=0; i<lcts->size; i++)
 		{
 			VBVHNode *node = (VBVHNode*)lcts->stack[i];
-			if(RayObject_isAligned(node))
+			if(RE_rayobject_isAligned(node))
 				hit |= bvh_node_stack_raycast<VBVHNode,StackSize,true>(node, isec);
 			else
 				hit |= RE_rayobject_intersect( (RayObject*)node, isec );
@@ -333,7 +333,7 @@ int intersect(VBVHTree *obj, Isect* isec)
 	else
 */
 	{
-		if(RayObject_isAligned(obj->root))
+		if(RE_rayobject_isAligned(obj->root))
 			return bvh_node_stack_raycast<SVBVHNode,StackSize,false>( obj->root, isec);
 		else
 			return RE_rayobject_intersect( (RayObject*) obj->root, isec );
@@ -346,7 +346,7 @@ void bvh_dfs_make_hint(Node *node, LCTSHint *hint, int reserve_space, HintObject
 template<class Node,class HintObject>
 void bvh_dfs_make_hint_push_siblings(Node *node, LCTSHint *hint, int reserve_space, HintObject *hintObject)
 {
-	if(!RayObject_isAligned(node))
+	if(!RE_rayobject_isAligned(node))
 		hint->stack[hint->size++] = (RayObject*)node;
 	else
 	{
@@ -459,7 +459,7 @@ static RayObjectAPI* get_api(int maxstacksize)
 RayObject *RE_rayobject_vbvh_create(int size)
 {
 	VBVHTree *obj= (VBVHTree*)MEM_callocN(sizeof(VBVHTree), "VBVHTree");
-	assert( RayObject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	
+	assert( RE_rayobject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	
 	
 	obj->rayobj.api = get_api<VBVHTree>(DFS_STACK_SIZE);
 	obj->root = NULL;
@@ -467,7 +467,7 @@ RayObject *RE_rayobject_vbvh_create(int size)
 	obj->node_arena = NULL;
 	obj->builder    = rtbuild_create( size );
 	
-	return RayObject_unalignRayAPI((RayObject*) obj);
+	return RE_rayobject_unalignRayAPI((RayObject*) obj);
 }
 
 
@@ -482,7 +482,7 @@ void bvh_dfs_make_hint(VBVHNode *node, LCTSHint *hint, int reserve_space, HintOb
 RayObject *RE_rayobject_svbvh_create(int size)
 {
 	SVBVHTree *obj= (SVBVHTree*)MEM_callocN(sizeof(SVBVHTree), "SVBVHTree");
-	assert( RayObject_isAligned(obj) ); // RayObject API assumes real data to be 4-byte aligned
+	assert( RE_rayobject_isAligned(obj) ); // RayObject API assumes real data to be 4-byte aligned
 	
 	obj->rayobj.api = get_api<SVBVHTree>(DFS_STACK_SIZE);
 	obj->root = NULL;
@@ -490,6 +490,6 @@ RayObject *RE_rayobject_svbvh_create(int size)
 	obj->node_arena = NULL;
 	obj->builder    = rtbuild_create( size );
 	
-	return RayObject_unalignRayAPI((RayObject*) obj);
+	return RE_rayobject_unalignRayAPI((RayObject*) obj);
 }
 */

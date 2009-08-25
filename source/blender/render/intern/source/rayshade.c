@@ -222,7 +222,7 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 			if(is_raytraceable_vlr(re, vlr))
 			{
 				RE_rayface_from_vlak( face, obi, vlr );				
-				RE_rayobject_add( raytree, RayObject_unalignRayFace(face) );
+				RE_rayobject_add( raytree, RE_rayobject_unalignRayFace(face) );
 				face++;
 			}
 		}
@@ -372,7 +372,7 @@ static void makeraytree_single(Render *re)
 							Mat4MulVecfl(obi->mat, face->v4);
 					}
 
-					RE_rayobject_add( raytree, RayObject_unalignRayFace(face) );
+					RE_rayobject_add( raytree, RE_rayobject_unalignRayFace(face) );
 					face++;
 				}
 			}

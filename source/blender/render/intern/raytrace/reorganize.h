@@ -47,7 +47,7 @@ void reorganize_find_fittest_parent(Node *tree, Node *node, std::pair<float,Node
 		q.pop();
 		
 		if(parent == node) continue;
-		if(node_fits_inside(node, parent) && RayObject_isAligned(parent->child) )
+		if(node_fits_inside(node, parent) && RE_rayobject_isAligned(parent->child) )
 		{
 			float pcost = bb_area(parent->bb, parent->bb+3);
 			cost = std::min( cost, std::make_pair(pcost,parent) );
@@ -69,11 +69,11 @@ void reorganize(Node *root)
 		Node * node = q.front();
 		q.pop();
 		
-		if( RayObject_isAligned(node->child) )
+		if( RE_rayobject_isAligned(node->child) )
 		{
 			for(Node **prev = &node->child; *prev; )
 			{
-				assert( RayObject_isAligned(*prev) ); 
+				assert( RE_rayobject_isAligned(*prev) ); 
 				q.push(*prev);
 
 				std::pair<float,Node*> best(FLT_MAX, root);
@@ -112,7 +112,7 @@ void reorganize(Node *root)
 template<class Node>
 void remove_useless(Node *node, Node **new_node)
 {
-	if( RayObject_isAligned(node->child) )
+	if( RE_rayobject_isAligned(node->child) )
 	{
 
 		for(Node **prev = &node->child; *prev; )
@@ -130,7 +130,7 @@ void remove_useless(Node *node, Node **new_node)
 	}
 	if(node->child)
 	{
-		if(RayObject_isAligned(node->child) && node->child->sibling == 0)
+		if(RE_rayobject_isAligned(node->child) && node->child->sibling == 0)
 			*new_node = node->child;
 	}
 	else if(node->child == 0)
@@ -148,7 +148,7 @@ void pushup(Node *parent)
 	
 	float p_area = bb_area(parent->bb, parent->bb+3);
 	Node **prev = &parent->child;
-	for(Node *child = parent->child; RayObject_isAligned(child) && child; )
+	for(Node *child = parent->child; RE_rayobject_isAligned(child) && child; )
 	{
 		float c_area = bb_area(child->bb, child->bb+3) ;
 		int nchilds = count_childs(child);
@@ -173,7 +173,7 @@ void pushup(Node *parent)
 		}		
 	}
 	
-	for(Node *child = parent->child; RayObject_isAligned(child) && child; child = child->sibling)
+	for(Node *child = parent->child; RE_rayobject_isAligned(child) && child; child = child->sibling)
 		pushup(child);
 }
 
@@ -188,10 +188,10 @@ void pushup_simd(Node *parent)
 	int n = count_childs(parent);
 		
 	Node **prev = &parent->child;
-	for(Node *child = parent->child; RayObject_isAligned(child) && child; )
+	for(Node *child = parent->child; RE_rayobject_isAligned(child) && child; )
 	{
 		int cn = count_childs(child);
-		if(cn-1 <= (SSize - (n%SSize) ) % SSize && RayObject_isAligned(child->child) )
+		if(cn-1 <= (SSize - (n%SSize) ) % SSize && RE_rayobject_isAligned(child->child) )
 		{
 			n += (cn - 1);
 			append_sibling(child, child->child);
@@ -206,7 +206,7 @@ void pushup_simd(Node *parent)
 		}		
 	}
 		
-	for(Node *child = parent->child; RayObject_isAligned(child) && child; child = child->sibling)
+	for(Node *child = parent->child; RE_rayobject_isAligned(child) && child; child = child->sibling)
 		pushup_simd<Node,SSize>(child);
 }
 
@@ -221,15 +221,15 @@ void pushdown(Node *parent)
 	Node **s_child = &parent->child;
 	Node * child = parent->child;
 	
-	while(child && RayObject_isAligned(child))
+	while(child && RE_rayobject_isAligned(child))
 	{
 		Node *next = child->sibling;
 		Node **next_s_child = &child->sibling;
 		
 		//assert(bb_fits_inside(parent->bb, parent->bb+3, child->bb, child->bb+3));
 		
-		for(Node *i = parent->child; RayObject_isAligned(i) && i; i = i->sibling)
-		if(child != i && bb_fits_inside(i->bb, i->bb+3, child->bb, child->bb+3) && RayObject_isAligned(i->child))
+		for(Node *i = parent->child; RE_rayobject_isAligned(i) && i; i = i->sibling)
+		if(child != i && bb_fits_inside(i->bb, i->bb+3, child->bb, child->bb+3) && RE_rayobject_isAligned(i->child))
 		{
 //			todo optimize (should the one with the smallest area?)
 //			float ia = bb_area(i->bb, i->bb+3)
@@ -246,7 +246,7 @@ void pushdown(Node *parent)
 		s_child = next_s_child;
 	}
 	
-	for(Node *i = parent->child; RayObject_isAligned(i) && i; i = i->sibling)
+	for(Node *i = parent->child; RE_rayobject_isAligned(i) && i; i = i->sibling)
 		pushdown( i );	
 }
 

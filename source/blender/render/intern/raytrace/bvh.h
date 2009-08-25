@@ -59,7 +59,7 @@ template<class Tree> static void bvh_add(Tree *obj, RayObject *ob)
 template<class Node>
 inline bool is_leaf(Node *node)
 {
-	return !RayObject_isAligned(node);
+	return !RE_rayobject_isAligned(node);
 }
 
 template<class Tree> static void bvh_done(Tree *obj);

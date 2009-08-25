@@ -77,39 +77,16 @@ extern "C" {
 	described on RE_raytrace.h
  */
 
-/* defines where coordinates of rayface primitives are stored */
-#define RE_RAYFACE_COORDS_LOCAL
-
-//(ATM this won't work good with all types of instances)
-//#define RE_RAYFACE_COORDS_POINTER
-//#define RE_RAYFACE_COORDS_VLAKREN
- 
 typedef struct RayFace
 {
-#ifdef RE_RAYFACE_COORDS_LOCAL
 	float v1[4], v2[4], v3[4], v4[3];
 	int quad;
 	void *ob;
 	void *face;
-#elif defined(RE_RAYFACE_COORDS_POINTER)
-	float *v1, *v2, *v3, *v4;
-	void *ob;
-	void *face;
-#elif defined(RE_RAYFACE_COORDS_VLAKREN)
-	void *ob;
-	void *face;
-#endif
 	
 } RayFace;
 
-#ifdef RE_RAYFACE_COORDS_LOCAL
-#	define RE_rayface_isQuad(a) ((a)->quad)
-#elif defined(RE_RAYFACE_COORDS_POINTER)
-#	define RE_rayface_isQuad(a) ((a)->v4)
-#elif defined(RE_RAYFACE_COORDS_VLAKREN)
-#	define RE_rayface_isQuad(a) ((((VlakRen*)((a)->face))->v4) != NULL)
-#endif
-
+#define RE_rayface_isQuad(a) ((a)->quad)
 
 struct RayObject
 {
@@ -137,13 +114,13 @@ typedef struct RayObjectAPI
 	
 } RayObjectAPI;
 
-#define RayObject_align(o)				((RayObject*)(((intptr_t)o)&(~3)))
-#define RayObject_unalignRayFace(o)		((RayObject*)(((intptr_t)o)|1))
-#define RayObject_unalignRayAPI(o)		((RayObject*)(((intptr_t)o)|2))
+#define RE_rayobject_align(o)				((RayObject*)(((intptr_t)o)&(~3)))
+#define RE_rayobject_unalignRayFace(o)		((RayObject*)(((intptr_t)o)|1))
+#define RE_rayobject_unalignRayAPI(o)		((RayObject*)(((intptr_t)o)|2))
 
-#define RayObject_isAligned(o)	((((intptr_t)o)&3) == 0)
-#define RayObject_isRayFace(o)	((((intptr_t)o)&3) == 1)
-#define RayObject_isRayAPI(o)	((((intptr_t)o)&3) == 2)
+#define RE_rayobject_isAligned(o)	((((intptr_t)o)&3) == 0)
+#define RE_rayobject_isRayFace(o)	((((intptr_t)o)&3) == 1)
+#define RE_rayobject_isRayAPI(o)	((((intptr_t)o)&3) == 2)
 
 /*
  * Loads a VlakRen on a RayFace

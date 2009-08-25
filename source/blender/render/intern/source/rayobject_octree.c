@@ -84,19 +84,19 @@ typedef struct Octree {
 	
 } Octree;
 
-static int  RayObject_octree_intersect(RayObject *o, Isect *isec);
-static void RayObject_octree_add(RayObject *o, RayObject *ob);
-static void RayObject_octree_done(RayObject *o);
-static void RayObject_octree_free(RayObject *o);
-static void RayObject_octree_bb(RayObject *o, float *min, float *max);
+static int  RE_rayobject_octree_intersect(RayObject *o, Isect *isec);
+static void RE_rayobject_octree_add(RayObject *o, RayObject *ob);
+static void RE_rayobject_octree_done(RayObject *o);
+static void RE_rayobject_octree_free(RayObject *o);
+static void RE_rayobject_octree_bb(RayObject *o, float *min, float *max);
 
 static RayObjectAPI octree_api =
 {
-	RayObject_octree_intersect,
-	RayObject_octree_add,
-	RayObject_octree_done,
-	RayObject_octree_free,
-	RayObject_octree_bb
+	RE_rayobject_octree_intersect,
+	RE_rayobject_octree_add,
+	RE_rayobject_octree_done,
+	RE_rayobject_octree_free,
+	RE_rayobject_octree_bb
 };
 
 /* **************** ocval method ******************* */
@@ -294,7 +294,7 @@ static void ocwrite(Octree *oc, RayFace *face, int quad, short x, short y, short
 		while(no->v[a]!=NULL) a++;
 	}
 	
-	no->v[a]= (RayFace*) RayObject_align(face);
+	no->v[a]= (RayFace*) RE_rayobject_align(face);
 	
 	if(quad)
 		calc_ocval_face(rtf[0], rtf[1], rtf[2], rtf[3], x>>2, y>>1, z, &no->ov[a]);
@@ -406,7 +406,7 @@ static void filltriangle(Octree *oc, short c1, short c2, char *ocface, short *oc
 	}
 }
 
-static void RayObject_octree_free(RayObject *tree)
+static void RE_rayobject_octree_free(RayObject *tree)
 {
 	Octree *oc= (Octree*)tree;
 
@@ -450,7 +450,7 @@ static void RayObject_octree_free(RayObject *tree)
 RayObject *RE_rayobject_octree_create(int ocres, int size)
 {
 	Octree *oc= MEM_callocN(sizeof(Octree), "Octree");
-	assert( RayObject_isAligned(oc) ); /* RayObject API assumes real data to be 4-byte aligned */	
+	assert( RE_rayobject_isAligned(oc) ); /* RayObject API assumes real data to be 4-byte aligned */	
 	
 	oc->rayobj.api = &octree_api;
 	
@@ -461,17 +461,17 @@ RayObject *RE_rayobject_octree_create(int ocres, int size)
 	oc->ro_nodes_used = 0;
 
 	
-	return RayObject_unalignRayAPI((RayObject*) oc);
+	return RE_rayobject_unalignRayAPI((RayObject*) oc);
 }
 
 
-static void RayObject_octree_add(RayObject *tree, RayObject *node)
+static void RE_rayobject_octree_add(RayObject *tree, RayObject *node)
 {
 	Octree *oc = (Octree*)tree;
 
-	assert( RayObject_isRayFace(node) );
+	assert( RE_rayobject_isRayFace(node) );
 	assert( oc->ro_nodes_used < oc->ro_nodes_size );
-	oc->ro_nodes[ oc->ro_nodes_used++ ] = (RayFace*)RayObject_align(node);
+	oc->ro_nodes[ oc->ro_nodes_used++ ] = (RayFace*)RE_rayobject_align(node);
 }
 
 static void octree_fill_rayface(Octree *oc, RayFace *face)
@@ -489,22 +489,11 @@ static void octree_fill_rayface(Octree *oc, RayFace *face)
 
 	ocres2= oc->ocres*oc->ocres;
 
-#ifdef RE_RAYFACE_COORDS_VLAKREN
-	{
-		VlakRen *vlr = (VlakRen*)face->face;
-		VECCOPY(co1, vlr->v1->co);
-		VECCOPY(co2, vlr->v2->co);
-		VECCOPY(co3, vlr->v3->co);
-		if(RE_rayface_isQuad(face))
-			VECCOPY(co4, vlr->v4->co);
-	}
-#else
 	VECCOPY(co1, face->v1);
 	VECCOPY(co2, face->v2);
 	VECCOPY(co3, face->v3);
 	if(face->v4)
 		VECCOPY(co4, face->v4);
-#endif
 
 	for(c=0;c<3;c++) {
 		rtf[0][c]= (co1[c]-oc->min[c])*ocfac[c] ;
@@ -602,7 +591,7 @@ static void octree_fill_rayface(Octree *oc, RayFace *face)
 	}
 }
 
-static void RayObject_octree_done(RayObject *tree)
+static void RE_rayobject_octree_done(RayObject *tree)
 {
 	Octree *oc = (Octree*)tree;
 	int c;
@@ -613,7 +602,7 @@ static void RayObject_octree_done(RayObject *tree)
 	
 	/* Calculate Bounding Box */
 	for(c=0; c<oc->ro_nodes_used; c++)
-		RE_rayobject_merge_bb( RayObject_unalignRayFace(oc->ro_nodes[c]), oc->min, oc->max);
+		RE_rayobject_merge_bb( RE_rayobject_unalignRayFace(oc->ro_nodes[c]), oc->min, oc->max);
 		
 	/* Alloc memory */
 	oc->adrbranch= MEM_callocN(sizeof(void *)*BRANCH_ARRAY, "octree branches");
@@ -656,7 +645,7 @@ static void RayObject_octree_done(RayObject *tree)
 	printf("%f %f - %f\n", oc->min[2], oc->max[2], oc->ocfacz );
 }
 
-static void RayObject_octree_bb(RayObject *tree, float *min, float *max)
+static void RE_rayobject_octree_bb(RayObject *tree, float *min, float *max)
 {
 	Octree *oc = (Octree*)tree;
 	DO_MINMAX(oc->min, min, max);
@@ -681,7 +670,7 @@ static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval)
 			
 			if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) )
 			{
-				if( RE_rayobject_intersect( RayObject_unalignRayFace(face),is) )
+				if( RE_rayobject_intersect( RE_rayobject_unalignRayFace(face),is) )
 					return 1;
 			}
 		}
@@ -700,7 +689,7 @@ static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval)
 			
 			if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) )
 			{ 
-				if( RE_rayobject_intersect( RayObject_unalignRayFace(face),is) )
+				if( RE_rayobject_intersect( RE_rayobject_unalignRayFace(face),is) )
 					found= 1;
 			}
 		}
@@ -828,7 +817,7 @@ static int do_coherence_test(int ocx1, int ocx2, int ocy1, int ocy2, int ocz1, i
 
 /* return 1: found valid intersection */
 /* starts with is->orig.face */
-static int RayObject_octree_intersect(RayObject *tree, Isect *is)
+static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 {
 	Octree *oc= (Octree*)tree;
 	Node *no;

@@ -27,7 +27,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 #include <assert.h>
-#include <stdio.h>
 
 #include "BKE_utildefines.h"
 #include "BLI_arithb.h"
@@ -42,33 +41,6 @@
  * Based on Tactical Optimization of Ray/Box Intersection, by Graham Fyffe
  *  [http://tog.acm.org/resources/RTNews/html/rtnv21n1.html#art9]
  */
-/*
-float RE_rayobject_bb_intersect(const Isect *isec, const float *_bb)
-{
-	const float *bb = _bb;
-	float dist;
-	
-	float t1x = (bb[isec->bv_index[0]] - isec->start[0]) * isec->idot_axis[0];
-	float t2x = (bb[isec->bv_index[1]] - isec->start[0]) * isec->idot_axis[0];
-	float t1y = (bb[isec->bv_index[2]] - isec->start[1]) * isec->idot_axis[1];
-	float t2y = (bb[isec->bv_index[3]] - isec->start[1]) * isec->idot_axis[1];
-	float t1z = (bb[isec->bv_index[4]] - isec->start[2]) * isec->idot_axis[2];
-	float t2z = (bb[isec->bv_index[5]] - isec->start[2]) * isec->idot_axis[2];
-
-	RE_RC_COUNT(isec->raycounter->bb.test);
-
-	if(t1x > t2y || t2x < t1y || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) return FLT_MAX;
-	if(t2x < 0.0 || t2y < 0.0 || t2z < 0.0) return FLT_MAX;
-	if(t1x > isec->labda || t1y > isec->labda || t1z > isec->labda) return FLT_MAX;
-
-	RE_RC_COUNT(isec->raycounter->bb.hit);
-
-	dist = t1x;
-	if (t1y > dist) dist = t1y;
-    if (t1z > dist) dist = t1z;
-	return dist;
-}
-*/
 int RE_rayobject_bb_intersect_test(const Isect *isec, const float *_bb)
 {
 	const float *bb = _bb;
@@ -185,23 +157,7 @@ static int intersect_rayface(RayFace *face, Isect *is)
 
 	RE_RC_COUNT(is->raycounter->faces.test);
 
-#ifdef RE_RAYFACE_COORDS_VLAKREN
-	{
-		VlakRen	*vlr = (VlakRen*)face->face;
-		
-		VECCOPY(co1, vlr->v1->co);
-		VECCOPY(co2, vlr->v2->co);
-		if(vlr->v4)
-		{
-			VECCOPY(co3, vlr->v4->co);
-			VECCOPY(co4, vlr->v3->co);
-		}
-		else
-		{
-			VECCOPY(co3, vlr->v3->co);
-		}
-	}
-#else
+	//Load coords
 	VECCOPY(co1, face->v1);
 	VECCOPY(co2, face->v2);
 	if(RE_rayface_isQuad(face))
@@ -213,7 +169,6 @@ static int intersect_rayface(RayFace *face, Isect *is)
 	{
 		VECCOPY(co3, face->v3);
 	}
-#endif
 
 	t00= co3[0]-co1[0];
 	t01= co3[1]-co1[1];
@@ -312,13 +267,6 @@ static int intersect_rayface(RayFace *face, Isect *is)
 				}
 			}
 		}
-#if 0
-		else if(labda < ISECT_EPSILON)
-		{
-			/* too close to origin */
-			return 0;
-		}
-#endif
 
 		RE_RC_COUNT(is->raycounter->faces.hit);
 
@@ -329,7 +277,7 @@ static int intersect_rayface(RayFace *face, Isect *is)
 		is->hit.ob   = face->ob;
 		is->hit.face = face->face;
 #ifdef RT_USE_LAST_HIT
-		is->last_hit = (RayObject*) RayObject_unalignRayFace(face);
+		is->last_hit = (RayObject*) RE_rayobject_unalignRayFace(face);
 #endif
 		return 1;
 	}
@@ -339,7 +287,6 @@ static int intersect_rayface(RayFace *face, Isect *is)
 
 void RE_rayface_from_vlak(RayFace *face, ObjectInstanceRen *obi, VlakRen *vlr)
 {
-#ifdef RE_RAYFACE_COORDS_LOCAL
 	VECCOPY(face->v1, vlr->v1->co);
 	VECCOPY(face->v2, vlr->v2->co);
 	VECCOPY(face->v3, vlr->v3->co);
@@ -352,13 +299,7 @@ void RE_rayface_from_vlak(RayFace *face, ObjectInstanceRen *obi, VlakRen *vlr)
 	{
 		face->quad = 0;
 	}
-#elif defined(RE_RAYFACE_COORDS_POINTER)
-	face->v1 = vlr->v1->co;
-	face->v2 = vlr->v2->co;
-	face->v3 = vlr->v3->co;
-	face->v4 = vlr->v4 ? vlr->v4->co : NULL;
-#elif defined(RE_RAYFACE_COORDS_VLAKREN)
-#endif
+
 	face->ob   = obi;
 	face->face = vlr;
 }
@@ -405,9 +346,7 @@ int RE_rayobject_raycast(RayObject *r, Isect *isec)
 
 	if(RE_rayobject_intersect(r, isec))
 	{
-#ifdef RE_RAYCOUNTER
 		RE_RC_COUNT(isec->raycounter->raycast.hit);
-#endif
 
 #ifdef RT_USE_HINT
 		isec->hint = isec->hit_hint;
@@ -419,13 +358,13 @@ int RE_rayobject_raycast(RayObject *r, Isect *isec)
 
 int RE_rayobject_intersect(RayObject *r, Isect *i)
 {
-	if(RayObject_isRayFace(r))
+	if(RE_rayobject_isRayFace(r))
 	{
-		return intersect_rayface( (RayFace*) RayObject_align(r), i);
+		return intersect_rayface( (RayFace*) RE_rayobject_align(r), i);
 	}
-	else if(RayObject_isRayAPI(r))
+	else if(RE_rayobject_isRayAPI(r))
 	{
-		r = RayObject_align( r );
+		r = RE_rayobject_align( r );
 		return r->api->raycast( r, i );
 	}
 	else assert(0);
@@ -433,44 +372,36 @@ int RE_rayobject_intersect(RayObject *r, Isect *i)
 
 void RE_rayobject_add(RayObject *r, RayObject *o)
 {
-	r = RayObject_align( r );
+	r = RE_rayobject_align( r );
 	return r->api->add( r, o );
 }
 
 void RE_rayobject_done(RayObject *r)
 {
-	r = RayObject_align( r );
+	r = RE_rayobject_align( r );
 	r->api->done( r );
 }
 
 void RE_rayobject_free(RayObject *r)
 {
-	r = RayObject_align( r );
+	r = RE_rayobject_align( r );
 	r->api->free( r );
 }
 
 void RE_rayobject_merge_bb(RayObject *r, float *min, float *max)
 {
-	if(RayObject_isRayFace(r))
+	if(RE_rayobject_isRayFace(r))
 	{
-		RayFace *face = (RayFace*) RayObject_align(r);
+		RayFace *face = (RayFace*) RE_rayobject_align(r);
 		
-#ifdef RE_RAYFACE_COORDS_VLAKREN
-		VlakRen *vlr = (VlakRen*)face->face;
-		DO_MINMAX( vlr->v1->co, min, max );
-		DO_MINMAX( vlr->v2->co, min, max );
-		DO_MINMAX( vlr->v3->co, min, max );
-		if(RE_rayface_isQuad(face)) DO_MINMAX( vlr->v4->co, min, max );
-#else
 		DO_MINMAX( face->v1, min, max );
 		DO_MINMAX( face->v2, min, max );
 		DO_MINMAX( face->v3, min, max );
 		if(RE_rayface_isQuad(face)) DO_MINMAX( face->v4, min, max );
-#endif
 	}
-	else if(RayObject_isRayAPI(r))
+	else if(RE_rayobject_isRayAPI(r))
 	{
-		r = RayObject_align( r );
+		r = RE_rayobject_align( r );
 		r->api->bb( r, min, max );
 	}
 	else assert(0);
@@ -478,13 +409,13 @@ void RE_rayobject_merge_bb(RayObject *r, float *min, float *max)
 
 float RE_rayobject_cost(RayObject *r)
 {
-	if(RayObject_isRayFace(r))
+	if(RE_rayobject_isRayFace(r))
 	{
 		return 1.0;
 	}
-	else if(RayObject_isRayAPI(r))
+	else if(RE_rayobject_isRayAPI(r))
 	{
-		r = RayObject_align( r );
+		r = RE_rayobject_align( r );
 		return r->api->cost( r );
 	}
 	else assert(0);
@@ -492,61 +423,15 @@ float RE_rayobject_cost(RayObject *r)
 
 void RE_rayobject_hint_bb(RayObject *r, RayHint *hint, float *min, float *max)
 {
-	if(RayObject_isRayFace(r))
+	if(RE_rayobject_isRayFace(r))
 	{
 		return;
 	}
-	else if(RayObject_isRayAPI(r))
+	else if(RE_rayobject_isRayAPI(r))
 	{
-		r = RayObject_align( r );
+		r = RE_rayobject_align( r );
 		return r->api->hint_bb( r, hint, min, max );
 	}
 	else assert(0);
 }
 
-#ifdef RE_RAYCOUNTER
-void RE_RC_INFO(RayCounter *info)
-{
-	printf("----------- Raycast counter --------\n");
-	printf("Rays total: %llu\n", info->raycast.test );
-	printf("Rays hit: %llu\n",   info->raycast.hit  );
-	printf("\n");
-	printf("BB tests: %llu\n", info->bb.test );
-	printf("BB hits: %llu\n", info->bb.hit );
-	printf("\n");	
-	printf("Primitives tests: %llu\n", info->faces.test );
-	printf("Primitives hits: %llu\n", info->faces.hit );
-	printf("------------------------------------\n");
-	printf("Shadow last-hit tests per ray: %f\n", info->rayshadow_last_hit.test / ((float)info->raycast.test) );
-	printf("Shadow last-hit hits per ray: %f\n",  info->rayshadow_last_hit.hit  / ((float)info->raycast.test) );
-	printf("\n");
-	printf("Hint tests per ray: %f\n", info->raytrace_hint.test / ((float)info->raycast.test) );
-	printf("Hint hits per ray: %f\n",  info->raytrace_hint.hit  / ((float)info->raycast.test) );
-	printf("\n");
-	printf("BB tests per ray: %f\n", info->bb.test / ((float)info->raycast.test) );
-	printf("BB hits per ray: %f\n", info->bb.hit / ((float)info->raycast.test) );
-	printf("\n");
-	printf("Primitives tests per ray: %f\n", info->faces.test / ((float)info->raycast.test) );
-	printf("Primitives hits per ray: %f\n", info->faces.hit / ((float)info->raycast.test) );
-	printf("------------------------------------\n");
-}
-
-void RE_RC_MERGE(RayCounter *dest, RayCounter *tmp)
-{
-	dest->faces.test += tmp->faces.test;
-	dest->faces.hit  += tmp->faces.hit;
-
-	dest->bb.test += tmp->bb.test;
-	dest->bb.hit  += tmp->bb.hit;
-
-	dest->raycast.test += tmp->raycast.test;
-	dest->raycast.hit  += tmp->raycast.hit;
-	
-	dest->rayshadow_last_hit.test += tmp->rayshadow_last_hit.test;
-	dest->rayshadow_last_hit.hit  += tmp->rayshadow_last_hit.hit;
-
-	dest->raytrace_hint.test += tmp->raytrace_hint.test;
-	dest->raytrace_hint.hit  += tmp->raytrace_hint.hit;
-}
-
-#endif

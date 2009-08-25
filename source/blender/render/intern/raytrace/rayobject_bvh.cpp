@@ -117,7 +117,7 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid, float 
 	{
 		RayObject *child = rtbuild_get_primitive( builder, 0 );
 
-		if(RayObject_isRayFace(child))
+		if(RE_rayobject_isRayFace(child))
 		{
 			int i;
 			BVHNode *parent = bvh_new_node(tree, nid);
@@ -138,7 +138,7 @@ static BVHNode *bvh_rearrange(BVHTree *tree, RTBuilder *builder, int nid, float 
 		}
 		else
 		{
-			assert(!RayObject_isAligned(child));
+			assert(!RE_rayobject_isAligned(child));
 			//Its a sub-raytrace structure, assume it has it own raycast
 			//methods and adding a Bounding Box arround is unnecessary
 
@@ -200,7 +200,7 @@ void bvh_done<BVHTree>(BVHTree *obj)
 template<>
 int bvh_intersect<BVHTree>(BVHTree *obj, Isect* isec)
 {
-	if(RayObject_isAligned(obj->root))
+	if(RE_rayobject_isAligned(obj->root))
 		return bvh_node_stack_raycast<BVHNode,64,true>(obj->root, isec);
 	else
 		return RE_rayobject_intersect( (RayObject*) obj->root, isec );
@@ -222,7 +222,7 @@ static RayObjectAPI bvh_api =
 RayObject *RE_rayobject_bvh_create(int size)
 {
 	BVHTree *obj= (BVHTree*)MEM_callocN(sizeof(BVHTree), "BVHTree");
-	assert( RayObject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	
+	assert( RE_rayobject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	
 	
 	obj->rayobj.api = &bvh_api;
 	obj->root = NULL;
@@ -230,5 +230,5 @@ RayObject *RE_rayobject_bvh_create(int size)
 	obj->node_arena = NULL;
 	obj->builder    = rtbuild_create( size );
 	
-	return RayObject_unalignRayAPI((RayObject*) obj);
+	return RE_rayobject_unalignRayAPI((RayObject*) obj);
 }

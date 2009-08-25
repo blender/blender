@@ -78,7 +78,7 @@ struct BIHTree
 RayObject *RE_rayobject_bih_create(int size)
 {
 	BIHTree *obj= (BIHTree*)MEM_callocN(sizeof(BIHTree), "BIHTree");
-	assert( RayObject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	
+	assert( RE_rayobject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	
 	
 	obj->rayobj.api = &bih_api;
 	obj->root = NULL;
@@ -86,7 +86,7 @@ RayObject *RE_rayobject_bih_create(int size)
 	obj->node_alloc = obj->node_next = NULL;
 	obj->builder    = rtbuild_create( size );
 	
-	return RayObject_unalignRayAPI((RayObject*) obj);
+	return RE_rayobject_unalignRayAPI((RayObject*) obj);
 }
 
 static void bih_free(BIHTree *obj)
@@ -128,7 +128,7 @@ static int dfs_raycast(const BIHNode *const node, Isect *isec, float tmin, float
 
 		if(t1 <= t2)
 		{
-				if(RayObject_isAligned(node->child[i]))
+				if(RE_rayobject_isAligned(node->child[i]))
 				{
 					if(node->child[i] == 0) break;
 					
@@ -151,7 +151,7 @@ static int dfs_raycast(const BIHNode *const node, Isect *isec, float tmin, float
 
 static int bih_intersect(BIHTree *obj, Isect *isec)
 {
-	if(RayObject_isAligned(obj->root))
+	if(RE_rayobject_isAligned(obj->root))
 		return dfs_raycast(obj->root, isec, 0, isec->labda);
 	else
 		return RE_rayobject_intersect( (RayObject*)obj->root, isec);
@@ -169,7 +169,7 @@ static void bih_add(BIHTree *obj, RayObject *ob)
 static BIHNode *bih_new_node(BIHTree *tree, int nid)
 {
 	BIHNode *node = tree->node_alloc + nid - 1;
-	assert(RayObject_isAligned(node));
+	assert(RE_rayobject_isAligned(node));
 	if(node+1 > tree->node_next)
 		tree->node_next = node+1;
 		
@@ -187,7 +187,7 @@ static BIHNode *bih_rearrange(BIHTree *tree, RTBuilder *builder, int nid, float 
 	if(rtbuild_size(builder) == 1)
 	{
 		RayObject *child = rtbuild_get_primitive( builder, 0 );
-		assert(!RayObject_isAligned(child));
+		assert(!RE_rayobject_isAligned(child));
 
 		INIT_MINMAX(bb, bb+3);
 		RE_rayobject_merge_bb( (RayObject*)child, bb, bb+3);
