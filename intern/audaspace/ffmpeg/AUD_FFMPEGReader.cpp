@@ -334,7 +334,6 @@ void AUD_FFMPEGReader::read(int & length, sample_t* & buffer)
 	// read packages and decode them
 	AVPacket packet;
 	int data_size = 0;
-	int pkgbuf_size = m_pkgbuf->getSize();
 	int pkgbuf_pos;
 	int left = length;
 	int sample_size = AUD_SAMPLE_SIZE(m_specs);

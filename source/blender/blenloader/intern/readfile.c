@@ -5075,7 +5075,7 @@ static void lib_link_sound(FileData *fd, Main *main)
 			sound->ipo= newlibadr_us(fd, sound->id.lib, sound->ipo); // XXX depreceated - old animation system
 			sound->stream = 0;
 
-			sound_load(sound);
+			sound_load(main, sound);
 		}
 		sound= sound->id.next;
 	}

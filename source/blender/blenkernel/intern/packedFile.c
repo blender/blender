@@ -473,7 +473,7 @@ int unpackSound(ReportList *reports, bSound *sound, int how)
 			freePackedFile(sound->packedfile);
 			sound->packedfile = 0;
 
-			sound_load(sound);
+			sound_load(NULL, sound);
 
 			ret_value = RET_OK;
 		}

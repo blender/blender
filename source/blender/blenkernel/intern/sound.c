@@ -78,7 +78,7 @@ struct bSound* sound_new_file(struct Main *main, char* filename)
 	int len;
 
 	strcpy(str, filename);
-	BLI_convertstringcode(str, G.sce);
+	BLI_convertstringcode(str, main->name);
 
 	len = strlen(filename);
 	while(len > 0 && filename[len-1] != '/' && filename[len-1] != '\\')
@@ -88,7 +88,7 @@ struct bSound* sound_new_file(struct Main *main, char* filename)
 	strcpy(sound->name, filename);
 	sound->type = SOUND_TYPE_FILE;
 
-	sound_load(sound);
+	sound_load(main, sound);
 
 	if(!sound->snd_sound)
 	{
@@ -114,7 +114,7 @@ struct bSound* sound_new_buffer(struct bContext *C, struct bSound *source)
 	sound->child_sound = source;
 	sound->type = SOUND_TYPE_BUFFER;
 
-	sound_load(sound);
+	sound_load(CTX_data_main(C), sound);
 
 	if(!sound->snd_sound)
 	{
@@ -140,7 +140,7 @@ struct bSound* sound_new_limiter(struct bContext *C, struct bSound *source, floa
 	sound->end = end;
 	sound->type = SOUND_TYPE_LIMITER;
 
-	sound_load(sound);
+	sound_load(CTX_data_main(C), sound);
 
 	if(!sound->snd_sound)
 	{
@@ -172,7 +172,7 @@ void sound_cache(struct bSound* sound, int ignore)
 	sound->cache = AUD_bufferSound(sound->snd_sound);
 }
 
-void sound_load(struct bSound* sound)
+void sound_load(struct Main *main, struct bSound* sound)
 {
 	if(sound)
 	{
@@ -198,7 +198,7 @@ void sound_load(struct bSound* sound)
 			if(sound->id.lib)
 				path = sound->id.lib->filename;
 			else
-				path = G.sce;
+				path = main ? main->name : NULL;
 
 			BLI_convertstringcode(fullpath, path);
 
