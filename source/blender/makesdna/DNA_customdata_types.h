@@ -62,13 +62,13 @@ typedef struct CustomData {
 #define CD_MFACE		4
 #define CD_MTFACE		5
 #define CD_MCOL			6
-#define CD_ORIGINDEX	7
+#define CD_ORIGINDEX		7
 #define CD_NORMAL		8
 #define CD_FLAGS		9
 #define CD_PROP_FLT		10
 #define CD_PROP_INT		11
 #define CD_PROP_STR		12
-#define CD_ORIGSPACE	13 /* for modifier stack face location mapping */
+#define CD_ORIGSPACE		13 /* for modifier stack face location mapping */
 #define CD_ORCO			14
 #define CD_MTEXPOLY		15
 #define CD_MLOOPUV		16

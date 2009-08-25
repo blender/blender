@@ -1417,6 +1417,7 @@ DerivedMesh *CDDM_copy(DerivedMesh *source)
 	CustomData_add_layer(&dm->faceData, CD_MFACE, CD_ASSIGN, cddm->mface, numFaces);
 	
 	DM_DupPolys(source, dm);
+ 	//CDDM_tessfaces_to_faces(dm);
 
 	cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
 	cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
@@ -1662,6 +1663,10 @@ void CDDM_tessfaces_to_faces(DerivedMesh *dm)
 	EdgeHash *eh = BLI_edgehash_new();
 	int i, l, totloop, *index1, *index2;
 	
+	/*ensure we have all the edges we need*/
+	CDDM_calc_edges(dm);
+
+	/*build edge hash*/
 	me = cddm->medge;
 	for (i=0; i<cddm->dm.numEdgeData; i++, me++) {
 		BLI_edgehash_insert(eh, me->v1, me->v2, SET_INT_IN_POINTER(i));
@@ -1687,7 +1692,7 @@ void CDDM_tessfaces_to_faces(DerivedMesh *dm)
 	CustomData_add_layer(&cddm->dm.loopData, CD_MLOOP, CD_ASSIGN, cddm->mloop, totloop);
 	CustomData_add_layer(&cddm->dm.polyData, CD_MPOLY, CD_ASSIGN, cddm->mpoly, cddm->dm.numPolyData);
 	CustomData_merge(&cddm->dm.faceData, &cddm->dm.polyData, 
-		CD_MASK_DERIVEDMESH, CD_DUPLICATE, cddm->dm.numFaceData);
+		CD_MASK_ORIGINDEX, CD_DUPLICATE, cddm->dm.numFaceData);
 
 	index1 = CustomData_get_layer(&cddm->dm.faceData, CD_ORIGINDEX);
 	index2 = CustomData_get_layer(&cddm->dm.polyData, CD_ORIGINDEX);

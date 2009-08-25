@@ -540,28 +540,6 @@ static float *get_ss_weights(WeightTable *wtable, int gridCuts, int faceLen)
 	}
 
 	return wtable->weight_table[faceLen].w;
-#if 0
-	/*ensure we have at least the triangle and quad weights*/
-	if (wtable->len < 4) {
-		wtable->weight_table = MEM_callocN(sizeof(FaceVertWeightEntry)*5, "weight table alloc");
-		wtable->len = 5;
-
-		calc_ss_weights(gridFaces, &wtable->weight_table[4].weight, &wtable->weight_table[3].weight);
-		wtable->weight_table[4].valid = wtable->weight_table[3].valid = 1;
-	}
-	
-	if (wtable->len <= faceLen) {
-		void *tmp = MEM_callocN(sizeof(FaceVertWeightEntry)*(faceLen+1), "weight table alloc 2");
-		
-		memcpy(tmp, wtable->weight_table, sizeof(FaceVertWeightEntry)*wtable->len);
-		MEM_freeN(wtable->weight_table);
-		
-		wtable->weight_table = tmp;
-		wtable->len = faceLen+1;
-	}
-
-	return wtable->weight_table[faceLen].weight;
-#endif
 }
 
 void free_ss_weights(WeightTable *wtable)
@@ -2631,7 +2609,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 	int gridSideEdges;
 	int numTex, numCol;
 	int gridInternalEdges;
-	int index2;
 	float *w = NULL, one = 1.0f;
 	WeightTable wtable = {0};
 	V_DECLARE(w);
@@ -2655,9 +2632,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 	numTex = CustomData_number_of_layers(&cgdm->dm.loopData, CD_MLOOPUV);
 	numCol = CustomData_number_of_layers(&cgdm->dm.loopData, CD_MLOOPCOL);
 	
-	if (numTex && CustomData_number_of_layers(&cgdm->dm.faceData, CD_MTFACE)==0)
+	if (numTex && CustomData_number_of_layers(&cgdm->dm.faceData, CD_MTFACE) != numTex)
 		CustomData_from_bmeshpoly(&cgdm->dm.faceData, &cgdm->dm.polyData, &cgdm->dm.loopData, CCS_getNumFinalFaces(ss));
-	else if (numCol && CustomData_number_of_layers(&cgdm->dm.faceData, CD_MCOL)==0)
+	else if (numCol && CustomData_number_of_layers(&cgdm->dm.faceData, CD_MCOL) != numCol)
 		CustomData_from_bmeshpoly(&cgdm->dm.faceData, &cgdm->dm.polyData, &cgdm->dm.loopData, CCS_getNumFinalFaces(ss));
 
 	CustomData_set_layer_flag(&cgdm->dm.faceData, CD_FLAGS, CD_FLAG_NOCOPY);
@@ -2771,7 +2748,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 
 	mcol = DM_get_tessface_data_layer(&cgdm->dm, CD_MCOL);
 
-	index2 = 0;
+	faceNum = 0;
 	loopindex = loopindex2 = 0; //current loop index
 	for (index = 0; index < totface; index++) {
 		CCFace *f = cgdm->faceMap[index].face;
@@ -2787,10 +2764,12 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 
 		cgdm->faceMap[index].startVert = vertNum;
 		cgdm->faceMap[index].startEdge = edgeNum;
-		cgdm->faceMap[index].startFace = index2;
+		cgdm->faceMap[index].startFace = faceNum;
 		
-		V_RESET(loopidx);
-		
+		/* set the face base vert */
+		*((int*)CCS_getFaceUserData(ss, f)) = vertNum;
+
+		V_RESET(loopidx);		
 		for (s=0; s<numVerts; s++) {
 			V_GROW(loopidx);
 			loopidx[s] = loopindex++;
@@ -2805,7 +2784,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 		}
 		
 
-		w2 = w + s*numVerts*g2_wid*g2_wid;
+		/*I think this is for interpolating the center vert?*/
+		w2 = w; // + numVerts*(g2_wid-1)*(g2_wid-1); //numVerts*((g2_wid-1)*g2_wid+g2_wid-1);
 		DM_interp_vert_data(dm, &cgdm->dm, vertidx, w2,
 		                    numVerts, vertNum);
 		if (vertOrigIndex)
@@ -2827,6 +2807,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 			}
 		}
 
+		/*interpolate per-vert data*/
 		for(s = 0; s < numVerts; s++) {
 			for(y = 1; y < gridFaces; y++) {
 				for(x = 1; x < gridFaces; x++) {
@@ -2842,8 +2823,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 			}
 		}
 
-		/* set the face base vert */
-		*((int*)CCS_getFaceUserData(ss, f)) = vertNum;
+		for(i = 0; i < numFinalEdges; ++i)
+			*(int *)DM_get_edge_data(&cgdm->dm, edgeNum + i,
+			                         CD_ORIGINDEX) = ORIGINDEX_NONE;
 		for (s=0; s<numVerts; s++) {
 			/*interpolate per-face data*/
 			for (y=0; y<gridFaces; y++) {
@@ -2867,16 +2849,16 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 					CustomData_interp(&dm->loopData, &cgdm->dm.loopData, 
 					                  loopidx, w2, NULL, numVerts, loopindex2);
 					loopindex2++;
-																			
+
 					/*copy over poly data, e.g. mtexpoly*/
-					CustomData_interp(&dm->polyData, &cgdm->dm.polyData, &origIndex, &one, NULL, 1, index2);
+					CustomData_copy_data(&dm->polyData, &cgdm->dm.polyData, origIndex, faceNum, 1);
+					//CustomData_interp(&dm->polyData, &cgdm->dm.polyData, &origIndex, &one, NULL, 1, faceNum);
 
 					/*generate tesselated face data used for drawing*/
 					ccg_loops_to_corners(&cgdm->dm.faceData, &cgdm->dm.loopData, 
-						&cgdm->dm.polyData, loopindex2-4, index2, index2, numTex, numCol);
+						&cgdm->dm.polyData, loopindex2-4, faceNum, faceNum, numTex, numCol);
 					
 					faceNum++;
-					index2++;
 				}
 			}
 		}
@@ -2944,6 +2926,12 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 		++vertOrigIndex;
 		++vertNum;
 	}
+
+	cgdm->dm.numVertData = vertNum;
+	cgdm->dm.numEdgeData = edgeNum;
+	cgdm->dm.numFaceData = faceNum;
+	cgdm->dm.numLoopData = loopindex2;
+	cgdm->dm.numPolyData = faceNum;
 #if 0
 	for(index = 0; index < totface; ++index) {
 		CCFace *f = cgdm->faceMap[index].face;
@@ -3182,7 +3170,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived_with_multires(
 		
 		return result;
 	} else {
-		int useIncremental = (smd->flags & eSubsurfModifierFlag_Incremental);
+		int useIncremental = 1; //(smd->flags & eSubsurfModifierFlag_Incremental);
 		int useAging = smd->flags & eSubsurfModifierFlag_DebugIncr;
 		CSubSurf *ss;
 		

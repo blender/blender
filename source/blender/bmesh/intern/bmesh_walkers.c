@@ -659,6 +659,10 @@ static void *loopWalker_step(BMWalker *walker)
 			if (rlen != 1 && i == stopi) break;
 
 			l = BM_OtherFaceLoop(l->e, l->f, v);
+
+			if (!l)
+				break;
+
 			l2 = bmesh_radial_nextloop(l);
 			
 			if (l2 == l) {

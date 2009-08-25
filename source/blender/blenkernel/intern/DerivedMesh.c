@@ -310,6 +310,11 @@ void dm_add_polys_from_iter(CustomData *ldata, CustomData *pdata, DerivedMesh *d
 		for (i=0; i<opdata->totlayer; i++) {
 			void *e1, *e2;
 
+			if (opdata->layers[i].type == lasttype)
+				j++;
+			else
+				j = 0;
+
 			if (opdata->layers[i].type == CD_MPOLY)
 				continue;
 			
@@ -321,11 +326,6 @@ void dm_add_polys_from_iter(CustomData *ldata, CustomData *pdata, DerivedMesh *d
 
 			CustomData_copy_elements(opdata->layers[i].type, e1, e2, 1);
 			
-			if (opdata->layers[i].type == lasttype)
-				j++;
-			else
-				j = 0;
-
 			lasttype = opdata->layers[i].type;				
 		}
 
@@ -342,6 +342,11 @@ void dm_add_polys_from_iter(CustomData *ldata, CustomData *pdata, DerivedMesh *d
 				if (oldata->layers[i].type == CD_MLOOP)
 					continue;
 				
+				if (oldata->layers[i].type == lasttype)
+					j++;
+				else
+					j = 0;
+
 				e1 = liter->getLoopCDData(liter, oldata->layers[i].type, j);
 				e2 = CustomData_get_n(ldata, oldata->layers[i].type, l, j);
 				
@@ -349,12 +354,6 @@ void dm_add_polys_from_iter(CustomData *ldata, CustomData *pdata, DerivedMesh *d
 					continue;
 
 				CustomData_copy_elements(oldata->layers[i].type, e1, e2, 1);
-				
-				if (oldata->layers[i].type == lasttype)
-					j++;
-				else
-					j = 0;
-
 				lasttype = oldata->layers[i].type;				
 			}
 		}

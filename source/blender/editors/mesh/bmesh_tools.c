@@ -1965,3 +1965,78 @@ void MESH_OT_bm_test(wmOperatorType *ot)
 
 	//RNA_def_int(ot->srna, "repeat", 1, 1, 100, "Number of times to smooth the mesh", "", 1, INT_MAX);
 }
+
+/********************** Smooth/Solid Operators *************************/
+
+void mesh_set_smooth_faces(BMEditMesh *em, short smooth)
+{
+	BMIter iter;
+	BMFace *efa;
+
+	if(em==NULL) return;
+	
+	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		if (BM_TestHFlag(efa, BM_SELECT)) {
+			if (smooth)
+				BM_SetHFlag(efa, BM_SMOOTH);
+			else
+				BM_ClearHFlag(efa, BM_SMOOTH);
+		}
+	}
+}
+
+static int mesh_faces_shade_smooth_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+
+	mesh_set_smooth_faces(em, 1);
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_faces_shade_smooth(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Shade Smooth";
+	ot->idname= "MESH_OT_faces_shade_smooth";
+
+	/* api callbacks */
+	ot->exec= mesh_faces_shade_smooth_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int mesh_faces_shade_flat_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+
+	mesh_set_smooth_faces(em, 0);
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_faces_shade_flat(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Shade Flat";
+	ot->idname= "MESH_OT_faces_shade_flat";
+
+	/* api callbacks */
+	ot->exec= mesh_faces_shade_flat_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}

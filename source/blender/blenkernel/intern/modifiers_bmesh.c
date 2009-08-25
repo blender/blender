@@ -198,11 +198,12 @@ BMEditMesh *CDDM_To_BMesh(DerivedMesh *dm, BMEditMesh *existing)
 			break;
 		
 		f = BM_Make_Ngon(bm, verts[0], verts[1], edges, dfiter->len, 0);
-		f->head.flag = MEFlags_To_BMFlags(dfiter->flags, BM_FACE);
-		f->mat_nr = dfiter->mat_nr;
 
 		if (!f) 
 			continue;
+
+		f->head.flag = MEFlags_To_BMFlags(dfiter->flags, BM_FACE);
+		f->mat_nr = dfiter->mat_nr;
 
 		dliter = dfiter->getLoopsIter(dfiter);
 		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
