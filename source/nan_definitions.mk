@@ -134,7 +134,7 @@ ifndef CONFIG_GUESS
   ifeq ($(WITH_SNDFILE),true)
     export NAN_SNDFILE ?= /usr
     export NAN_SNDFILECFLAGS ?= -I$(NAN_SNDFILE)/include
-    export NAN_SNDFILELIBS ?= $(NAN_SNDFILE)/lib/libsndfile.a
+    export NAN_SNDFILELIBS ?= $(NAN_SNDFILE)/lib/libsndfile.a $(NAN_SNDFILE)/lib/libFLAC.a $(NAN_SNDFILE)/lib/libogg.a
   endif
 
   ifeq ($(NAN_USE_FFMPEG_CONFIG), true)

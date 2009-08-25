@@ -47,7 +47,7 @@ endif
 
 ifeq ($(WITH_JACK),true)
 	CPPFLAGS += -DWITH_JACK
-	CPPFLAGS += -I$(NAN_JACKCFLAGS)
+	CPPFLAGS += $(NAN_JACKCFLAGS)
 	CPPFLAGS += -I../jack
 endif
 
@@ -58,6 +58,7 @@ endif
 
 ifeq ($(WITH_SNDFILE),true)
 	CPPFLAGS += -DWITH_SNDFILE
+	CPPFLAGS += -I../sndfile
 endif
 
 CPPFLAGS += -I$(LCGDIR)/samplerate/include/

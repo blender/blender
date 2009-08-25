@@ -50,6 +50,7 @@ CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 # not very neat: the rest of blender..
 CPPFLAGS += -I../../../editors/include 
 CPPFLAGS += $(NAN_SDLCFLAGS)
+CPPFLAGS += -I../../../../../intern/smoke/extern
 
 ifeq ($(WITH_QUICKTIME), true)
 	CPPFLAGS += -DWITH_QUICKTIME

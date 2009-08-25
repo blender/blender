@@ -42,6 +42,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
+#include "BKE_modifier.h"
 
 #include "smoke_API.h"
 
