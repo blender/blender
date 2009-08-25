@@ -75,7 +75,6 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_ParticleInstance, "PARTICLE_INSTANCE", ICON_MOD_PARTICLES, "Particle Instance", ""},
 	{eModifierType_ParticleSystem, "PARTICLE_SYSTEM", ICON_MOD_PARTICLES, "Particle System", ""},
 	{eModifierType_Smoke, "SMOKE", 0, "Smoke", ""},
-	{eModifierType_SmokeHR, "SMOKE_HR", 0, "SmokeHR", ""},
 	{eModifierType_Softbody, "SOFT_BODY", ICON_MOD_SOFT, "Soft Body", ""},
 	{eModifierType_Surface, "SURFACE", ICON_MOD_PHYSICS, "Surface", ""},
 	{0, NULL, 0, NULL, NULL}};
@@ -159,8 +158,6 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_SurfaceModifier;
 		case eModifierType_Smoke:
 			return &RNA_SmokeModifier;
-		case eModifierType_SmokeHR:
-			return &RNA_SmokeHRModifier;
 		default:
 			return &RNA_Modifier;
 	}
@@ -199,15 +196,6 @@ static void rna_Smoke_set_type(bContext *C, PointerRNA *ptr)
 	
 	// update dependancy since a domain - other type switch could have happened
 	rna_Modifier_dependency_update(C, ptr);
-}
-
-static void rna_SmokeHR_reset(bContext *C, PointerRNA *ptr)
-{
-	// SmokeDomainSettings *settings = (SmokeDomainSettings*)ptr->data;
-
-	// smokeModifier_reset(settings->smd);
-
-	// rna_Smoke_update(C, ptr);
 }
 
 static void rna_ExplodeModifier_vgroup_get(PointerRNA *ptr, char *value)
@@ -1563,55 +1551,6 @@ static void rna_def_modifier_cloth(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Point Cache", "");
 }
 
-static void rna_def_modifier_smoke_highresolution(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-		static EnumPropertyItem prop_noise_type_items[] = {
-				{MOD_SMOKE_NOISEWAVE, "NOISEWAVE", 0, "Wavelet", ""},
-#if FFTW3 == 1
-				{MOD_SMOKE_NOISEFFT, "NOISEFFT", 0, "FFT", ""}, 
-#endif
-			/* 	{MOD_SMOKE_NOISECURL, "NOISECURL", 0, "Curl", ""}, */
-				{0, NULL, 0, NULL, NULL}};
-	
-	srna= RNA_def_struct(brna, "SmokeHRModifier", "Modifier");
-	RNA_def_struct_ui_text(srna, "Smoke High Resolution Modifier", "Smoke high resolution simulation modifier.");
-	RNA_def_struct_sdna(srna, "SmokeHRModifierData");
-
-	prop= RNA_def_property(srna, "show_highres", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_SHOWHIGHRES);
-	RNA_def_property_ui_text(prop, "High res", "Show high resolution (using amplification).");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
-
-	prop= RNA_def_property(srna, "noise_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "noise");
-	RNA_def_property_enum_items(prop, prop_noise_type_items);
-	RNA_def_property_ui_text(prop, "Noise Method", "Noise method which is used for creating the high resolution");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_SmokeHR_reset");
-
-	prop= RNA_def_property(srna, "amplify", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "amplify");
-	RNA_def_property_range(prop, 1, 10);
-	RNA_def_property_ui_range(prop, 1, 10, 1, 0);
-	RNA_def_property_ui_text(prop, "Amplification", "Enhance the resolution of smoke by this factor using noise.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_SmokeHR_reset");
-
-	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "strength");
-	RNA_def_property_range(prop, 1.0, 10.0);
-	RNA_def_property_ui_range(prop, 1.0, 10.0, 1, 2);
-	RNA_def_property_ui_text(prop, "Strength", "Strength of wavelet noise");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_SmokeHR_reset");
-
-	prop= RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "point_cache");
-	RNA_def_property_struct_type(prop, "PointCache");
-	RNA_def_property_ui_text(prop, "Point Cache", "");
-
-}
-
 static void rna_def_modifier_smoke(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2028,7 +1967,6 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_multires(brna);
 	rna_def_modifier_surface(brna);
 	rna_def_modifier_smoke(brna);
-	rna_def_modifier_smoke_highresolution(brna);
 }
 
 #endif

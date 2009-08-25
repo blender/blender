@@ -125,7 +125,7 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel):
 	def poll(self, context):
 		md = context.smoke
 		if md:
-				return (md.smoke_type == 'TYPE_DOMAIN')
+			return (md.smoke_type == 'TYPE_DOMAIN')
 		
 		return False
 
@@ -202,7 +202,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		md = context.smoke_hr
+		md = context.smoke.domain_settings
 		
 		if md:
 		
@@ -223,12 +223,12 @@ class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):
 	__default_closed__ = True
 
 	def poll(self, context):
-		return (context.smoke_hr != None)
+		return (context.smoke != None)
 
 	def draw(self, context):
 		layout = self.layout
 
-		md = context.smoke_hr
+		md = context.smoke
 		
 		if md:
 			

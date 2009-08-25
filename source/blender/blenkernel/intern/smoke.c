@@ -213,6 +213,14 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 		smd->time = scene->r.cfra;
 		smd->domain->firstframe = smd->time;
 
+		/*
+		if(!smd->domain->wt)
+		{
+			smd->domain->wt = smoke_turbulence_init(sds->res,  smd->domain->amplify + 1, smd->domain->noise);
+			smoke_turbulence_initBlenderRNA(smd->domain->wt, &smd->domain->strength);
+		}
+		*/
+
 		if(!smd->domain->view3d)
 		{
 			// TVox is for transparency
@@ -518,6 +526,9 @@ void smokeModifier_freeDomain(SmokeModifierData *smd)
 		if(smd->domain->fluid)
 			smoke_free(smd->domain->fluid);
 
+		if(smd->domain->wt)
+			smoke_turbulence_free(smd->domain->wt);
+
 		BKE_ptcache_free_list(&smd->domain->ptcaches);
 		smd->domain->point_cache = NULL;
 
@@ -584,6 +595,12 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 			{
 				smoke_free(smd->domain->fluid);
 				smd->domain->fluid = NULL;
+			}
+
+			if(smd->domain->wt)
+			{
+				smoke_turbulence_free(smd->domain->wt);
+				smd->domain->wt = NULL;
 			}
 		
 			smd->domain->point_cache->flag &= ~PTCACHE_SIMULATION_VALID;
@@ -663,6 +680,10 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->domain->beta = 0.1;
 			smd->domain->flags = MOD_SMOKE_DISSOLVE_LOG;
 			smd->domain->diss_speed = 5;
+			smd->domain->strength = 2.0f;
+			smd->domain->amplify = 1;
+			smd->domain->noise = MOD_SMOKE_NOISEWAVE;
+			smd->domain->wt = NULL;
 
 			// init 3dview buffer
 			smd->domain->view3d = NULL;
@@ -783,6 +804,28 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 			smoke_simulate_domain(smd, scene, ob, dm);
 
+			{
+				// float light[3] = {0.0,0.0,0.0}; // TODO: take real LAMP coordinates - dg
+				Base *base_tmp = NULL;
+
+				for(base_tmp = scene->base.first; base_tmp; base_tmp= base_tmp->next) 
+				{
+					if(base_tmp->object->type == OB_LAMP) 
+					{
+						Lamp *la = (Lamp *)base_tmp->object->data;
+						
+						if(la->type == LA_LOCAL)
+						{
+							VECCOPY(light, base_tmp->object->obmat[3]);
+							have_lamp = 1;
+							break;
+						}
+					}
+				}
+			}
+
+			smoke_prepare_View(smd, (float)framenr, light, have_lamp);
+
 			return;
 		}
 		
@@ -885,11 +928,11 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 		BKE_ptcache_write_cache(&pid, framenr);
 
-		// printf("Writing cache_low\n");
+		// printf("Writing cache_low, %d\n", framenr);
 	
 
 		tend();
-		printf ( "Frame: %d, Time: %f\n", (int)smd->time, ( float ) tval() );
+		// printf ( "Frame: %d, Time: %f\n", (int)smd->time, ( float ) tval() );
 	}
 }
 

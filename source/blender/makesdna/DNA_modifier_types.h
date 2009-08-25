@@ -42,7 +42,6 @@ typedef enum ModifierType {
 	eModifierType_Multires,
 	eModifierType_Surface,
 	eModifierType_Smoke,
-	eModifierType_SmokeHR,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -254,34 +253,6 @@ typedef struct SmokeModifierData {
 	float time;
 	int type;  /* domain, inflow, outflow, ... */
 } SmokeModifierData;
-
-
-/* noise */
-#define MOD_SMOKE_NOISEWAVE (1<<0)
-#define MOD_SMOKE_NOISEFFT (1<<1)
-#define MOD_SMOKE_NOISECURL (1<<2)
-
-/* flags */
-#define MOD_SMOKE_SHOWHIGHRES (1<<0) /* show high resolution */
-
-typedef struct SmokeHRModifierData {
-	ModifierData modifier;
-
-	struct WTURBULENCE *wt; // WTURBULENCE object, if active
-	struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
-	struct ListBase ptcaches;
-	struct GPUTexture *tex;
-	float *view3d; /* voxel data for display */
-	unsigned int v3dnum; /* number of frame in view3d buffer */
-	float time;
-	float strength;
-	int res[3];
-	int maxres;
-	short noise; /* noise type: wave, curl, anisotropic */
-	short pad;
-	int amplify;
-	int flags;
-} SmokeHRModifierData;
 
 typedef struct DisplaceModifierData {
 	ModifierData modifier;

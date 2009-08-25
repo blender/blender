@@ -479,23 +479,6 @@ static int ptcache_totpoint_smoke(void *smoke_v)
 		return 0;
 }
 
-static int ptcache_totpoint_smoke_turbulence(void *smoke_v)
-{
-	SmokeHRModifierData *shrmd= (SmokeHRModifierData *)smoke_v;
-	
-	if(shrmd->wt) {
-		/*
-		unsigned int res[3];
-
-		smoke_turbulence_get_res(sds->wt, res);
-		return res[0]*res[1]*res[2];
-		*/
-		return 0;
-	}
-	else
-		return 0;
-}
-
 // forward decleration
 static int ptcache_file_write(PTCacheFile *pf, void *f, size_t tot, int size);
 

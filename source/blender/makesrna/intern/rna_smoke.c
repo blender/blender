@@ -61,21 +61,6 @@ static void rna_Smoke_dependency_update(bContext *C, PointerRNA *ptr)
     DAG_scene_sort(CTX_data_scene(C));
 }
 
-static void rna_Smoke_reset_cache(bContext *C, PointerRNA *ptr)
-{
-	SmokeDomainSettings *settings = (SmokeDomainSettings*)ptr->data;
-	PointCache *cache = settings->point_cache;
-
-	printf("rna_Smoke_reset_cache\n");
-
-	cache->flag &= ~PTCACHE_SIMULATION_VALID;
-	cache->flag |= PTCACHE_OUTDATED;
-	cache->simframe= 0;
-	cache->last_exact= 0;
-
-	rna_Smoke_update(C, ptr);
-}
-
 static void rna_Smoke_reset(bContext *C, PointerRNA *ptr)
 {
 	SmokeDomainSettings *settings = (SmokeDomainSettings*)ptr->data;
@@ -92,23 +77,6 @@ static void rna_Smoke_reset_dependancy(bContext *C, PointerRNA *ptr)
 	smokeModifier_reset(settings->smd);
 
 	rna_Smoke_dependency_update(C, ptr);
-}
-
-static void rna_Smoke_enable_HR(bContext *C, PointerRNA *ptr)
-{
-	SmokeDomainSettings *settings = (SmokeDomainSettings*)ptr->data;
-	Object *ob = (Object*)ptr->id.data;
-
-	if(settings->flags & MOD_SMOKE_HIGHRES)
-		BLI_addtail(&ob->modifiers, modifier_new(eModifierType_SmokeHR));
-	else
-	{
-		ModifierData *tmd = modifiers_findByType(ob, eModifierType_SmokeHR);
-		if(tmd) {
-			BLI_remlink(&ob->modifiers, tmd);
-			modifier_free(tmd);
-		}
-	}
 }
 
 static void rna_Smoke_redraw(bContext *C, PointerRNA *ptr)
@@ -149,6 +117,14 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static EnumPropertyItem prop_noise_type_items[] = {
+				{MOD_SMOKE_NOISEWAVE, "NOISEWAVE", 0, "Wavelet", ""},
+#if FFTW3 == 1
+				{MOD_SMOKE_NOISEFFT, "NOISEFFT", 0, "FFT", ""}, 
+#endif
+			/* 	{MOD_SMOKE_NOISECURL, "NOISECURL", 0, "Curl", ""}, */
+				{0, NULL, 0, NULL, NULL}};
+
 	srna = RNA_def_struct(brna, "SmokeDomainSettings", NULL);
 	RNA_def_struct_ui_text(srna, "Domain Settings", "Smoke domain settings.");
 	RNA_def_struct_sdna(srna, "SmokeDomainSettings");
@@ -166,14 +142,14 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, -5.0, 5.0);
 	RNA_def_property_ui_range(prop, -5.0, 5.0, 0.02, 5);
 	RNA_def_property_ui_text(prop, "Gravity", "Higher value results in sinking smoke");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset_cache");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop= RNA_def_property(srna, "beta", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "beta");
 	RNA_def_property_range(prop, -5.0, 5.0);
 	RNA_def_property_ui_range(prop, -5.0, 5.0, 0.02, 5);
 	RNA_def_property_ui_text(prop, "Heat", "Higher value results in faster rising smoke.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset_cache");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop= RNA_def_property(srna, "coll_group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "coll_group");
@@ -206,22 +182,54 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "highres", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_HIGHRES);
 	RNA_def_property_ui_text(prop, "High Resolution Smoke", "Enable high resolution smoke");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_enable_HR");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
 
 	prop= RNA_def_property(srna, "dissolve_smoke", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_DISSOLVE);
 	RNA_def_property_ui_text(prop, "Dissolve Smoke", "Enable smoke to disappear over time.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop= RNA_def_property(srna, "dissolve_smoke_log", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_DISSOLVE_LOG);
 	RNA_def_property_ui_text(prop, "Logarithmic dissolve", "Using 1/x ");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop= RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "point_cache");
 	RNA_def_property_struct_type(prop, "PointCache");
 	RNA_def_property_ui_text(prop, "Point Cache", "");
+
+	prop= RNA_def_property(srna, "show_highres", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "viewsettings", MOD_SMOKE_SHOWHIGHRES);
+	RNA_def_property_ui_text(prop, "High res", "Show high resolution (using amplification).");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
+
+	prop= RNA_def_property(srna, "noise_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "noise");
+	RNA_def_property_enum_items(prop, prop_noise_type_items);
+	RNA_def_property_ui_text(prop, "Noise Method", "Noise method which is used for creating the high resolution");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
+
+	prop= RNA_def_property(srna, "amplify", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "amplify");
+	RNA_def_property_range(prop, 1, 10);
+	RNA_def_property_ui_range(prop, 1, 10, 1, 0);
+	RNA_def_property_ui_text(prop, "Amplification", "Enhance the resolution of smoke by this factor using noise.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
+
+	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "strength");
+	RNA_def_property_range(prop, 1.0, 10.0);
+	RNA_def_property_ui_range(prop, 1.0, 10.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Strength", "Strength of wavelet noise");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
+
+	/*
+	prop= RNA_def_property(srna, "point_cache_hr", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "point_cache");
+	RNA_def_property_struct_type(prop, "PointCache");
+	RNA_def_property_ui_text(prop, "Point Cache", "");
+	*/
 }
 
 static void rna_def_smoke_flow_settings(BlenderRNA *brna)

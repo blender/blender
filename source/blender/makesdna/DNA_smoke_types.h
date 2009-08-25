@@ -32,10 +32,15 @@
 /* flags */
 #define MOD_SMOKE_HIGHRES (1<<1) /* enable high resolution */
 #define MOD_SMOKE_DISSOLVE (1<<2) /* let smoke dissolve */
-#define MOD_SMOKE_DISSOLVE_LOG (1<<3) /* using 1/x for dissolve */
+#define MOD_SMOKE_DISSOLVE_LOG (1<<3) /* using 1/x for dissolve *
+
+/* noise */
+#define MOD_SMOKE_NOISEWAVE (1<<0)
+#define MOD_SMOKE_NOISEFFT (1<<1)
+#define MOD_SMOKE_NOISECURL (1<<2)
 
 /* viewsettings */
-/* nothing so far */
+#define MOD_SMOKE_SHOWHIGHRES (1<<0) /* show high resolution */
 
 typedef struct SmokeDomainSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
@@ -64,6 +69,14 @@ typedef struct SmokeDomainSettings {
 	int diss_speed;/* in frames */
 	struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
 	struct ListBase ptcaches;
+	struct WTURBULENCE *wt; // WTURBULENCE object, if active
+	int pad3;
+	float strength;
+	int res_wt[3];
+	int maxres_wt;
+	short noise; /* noise type: wave, curl, anisotropic */
+	short pad2;
+	int amplify;
 } SmokeDomainSettings;
 
 

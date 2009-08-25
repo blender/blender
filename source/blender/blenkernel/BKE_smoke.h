@@ -40,9 +40,5 @@ void smokeModifier_free (struct SmokeModifierData *smd);
 void smokeModifier_reset(struct SmokeModifierData *smd);
 void smokeModifier_createType(struct SmokeModifierData *smd);
 
-// high res modifier
-void smokeHRModifier_do(struct SmokeHRModifierData *shrmd, struct Scene *scene, struct Object *ob, int useRenderParams, int isFinalCalc);
-void smokeHRModifier_free(struct SmokeHRModifierData *shrmd);
-
 
 #endif /* BKE_SMOKE_H_ */

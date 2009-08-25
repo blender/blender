@@ -5312,12 +5312,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	}
 
 	/* draw code for smoke */
-	if(((SmokeHRModifierData *)(md = modifiers_findByType(ob, eModifierType_SmokeHR)) && (((SmokeHRModifierData *)md)->flags & MOD_SMOKE_SHOWHIGHRES))) {
-		// GPU_create_smoke(smd);
-		// draw_volume(scene, ar, v3d, base, smd->domain->tex, smd->domain->res);
-		// GPU_free_smoke(smd);
-	}
-	else {
+	{
 		md = modifiers_findByType(ob, eModifierType_Smoke);
 		if (md) {
 			SmokeModifierData *smd = (SmokeModifierData *)md;
