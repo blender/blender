@@ -1136,7 +1136,10 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			*/
 
 			if((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
-				write_pointcaches(wd, &smd->domain->ptcaches);
+			{
+				write_pointcaches(wd, &(smd->domain->ptcaches[0]));
+				write_pointcaches(wd, &(smd->domain->ptcaches[1]));
+			}
 		} 
 		else if(md->type==eModifierType_Fluidsim) {
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;

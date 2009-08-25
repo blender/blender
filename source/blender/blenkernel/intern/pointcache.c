@@ -703,11 +703,44 @@ void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeMo
 	pid->calldata= smd;
 	
 	pid->type= PTCACHE_TYPE_SMOKE_DOMAIN;
-	pid->stack_index= sds->point_cache->index;
+	pid->stack_index= sds->point_cache[0]->index;
 
-	pid->cache= sds->point_cache;
-	pid->cache_ptr= &sds->point_cache;
-	pid->ptcaches= &sds->ptcaches;
+	pid->cache= sds->point_cache[0];
+	pid->cache_ptr= &(sds->point_cache[0]);
+	pid->ptcaches= &(sds->ptcaches[0]);
+
+	pid->totpoint= pid->totwrite= ptcache_totpoint_smoke;
+
+	pid->write_elem= NULL;
+	pid->read_elem= NULL;
+
+	pid->read_stream = ptcache_read_smoke;
+	pid->write_stream = ptcache_write_smoke;
+	
+	pid->interpolate_elem= NULL;
+
+	pid->write_header= ptcache_write_basic_header;
+	pid->read_header= ptcache_read_basic_header;
+
+	pid->data_types= (1<<BPHYS_DATA_LOCATION); // bogus values tot make pointcache happy
+	pid->info_types= 0;
+}
+
+void BKE_ptcache_id_from_smoke_turbulence(PTCacheID *pid, struct Object *ob, struct SmokeModifierData *smd)
+{
+	SmokeDomainSettings *sds = smd->domain;
+
+	memset(pid, 0, sizeof(PTCacheID));
+
+	pid->ob= ob;
+	pid->calldata= smd;
+	
+	pid->type= PTCACHE_TYPE_SMOKE_HIGHRES;
+	pid->stack_index= sds->point_cache[1]->index;
+
+	pid->cache= sds->point_cache[1];
+	pid->cache_ptr= &sds->point_cache[1];
+	pid->ptcaches= &sds->ptcaches[1];
 
 	pid->totpoint= pid->totwrite= ptcache_totpoint_smoke;
 
@@ -1792,10 +1825,7 @@ int BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 		else if(pid->type == PTCACHE_TYPE_PARTICLES)
 			psys_reset(pid->calldata, PSYS_RESET_DEPSGRAPH);
 		else if(pid->type == PTCACHE_TYPE_SMOKE_DOMAIN)
-		{
 			smokeModifier_reset(pid->calldata);
-			printf("reset PTCACHE_TYPE_SMOKE_DOMAIN\n");
-		}
 	}
 	if(clear)
 		BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);

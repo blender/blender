@@ -5316,7 +5316,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		md = modifiers_findByType(ob, eModifierType_Smoke);
 		if (md) {
 			SmokeModifierData *smd = (SmokeModifierData *)md;
-			if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain) {
+			if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain && smd->domain->fluid) {
 				GPU_create_smoke(smd);
 				draw_volume(scene, ar, v3d, base, smd->domain->tex, smd->domain->res);
 				GPU_free_smoke(smd);

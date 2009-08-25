@@ -67,8 +67,8 @@ typedef struct SmokeDomainSettings {
 	short diss_percent; 
 	short pad;
 	int diss_speed;/* in frames */
-	struct PointCache *point_cache;	/* definition is in DNA_object_force.h */
-	struct ListBase ptcaches;
+	struct PointCache *point_cache[2];	/* definition is in DNA_object_force.h */
+	struct ListBase ptcaches[2];
 	struct WTURBULENCE *wt; // WTURBULENCE object, if active
 	int pad3;
 	float strength;

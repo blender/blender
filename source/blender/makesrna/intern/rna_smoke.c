@@ -177,7 +177,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1.0, 100.0);
 	RNA_def_property_ui_range(prop, 1.0, 1000.0, 1, 0);
 	RNA_def_property_ui_text(prop, "Dissolve Speed", "Dissolve Speed");
-	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, NULL);
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop= RNA_def_property(srna, "highres", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_HIGHRES);
@@ -195,7 +195,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop= RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "point_cache");
+	RNA_def_property_pointer_sdna(prop, NULL, "point_cache[0]");
 	RNA_def_property_struct_type(prop, "PointCache");
 	RNA_def_property_ui_text(prop, "Point Cache", "");
 
@@ -224,12 +224,10 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Strength", "Strength of wavelet noise");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
-	/*
-	prop= RNA_def_property(srna, "point_cache_hr", PROP_POINTER, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "point_cache");
+	prop= RNA_def_property(srna, "point_cache_turbulence", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "point_cache[1]");
 	RNA_def_property_struct_type(prop, "PointCache");
 	RNA_def_property_ui_text(prop, "Point Cache", "");
-	*/
 }
 
 static void rna_def_smoke_flow_settings(BlenderRNA *brna)

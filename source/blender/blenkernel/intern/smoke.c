@@ -166,6 +166,10 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 
 		// calc other res with max_res provided
 		VECSUB(size, max, min);
+
+		if((size[0] < FLT_EPSILON) || (size[1] < FLT_EPSILON) || (size[2] < FLT_EPSILON))
+			return 0;
+
 		if(size[0] > size[1])
 		{
 			if(size[0] > size[1])
@@ -213,13 +217,11 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 		smd->time = scene->r.cfra;
 		smd->domain->firstframe = smd->time;
 
-		/*
-		if(!smd->domain->wt)
+		if(!smd->domain->wt && (smd->domain->flags & MOD_SMOKE_HIGHRES))
 		{
-			smd->domain->wt = smoke_turbulence_init(sds->res,  smd->domain->amplify + 1, smd->domain->noise);
+			smd->domain->wt = smoke_turbulence_init(smd->domain->res,  smd->domain->amplify + 1, smd->domain->noise);
 			smoke_turbulence_initBlenderRNA(smd->domain->wt, &smd->domain->strength);
 		}
-		*/
 
 		if(!smd->domain->view3d)
 		{
@@ -409,10 +411,10 @@ int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene, Derive
 		{
 			smd->coll->bvhtree = NULL; // bvhtree_build_from_smoke ( ob->obmat, dm->getFaceArray(dm), dm->getNumFaces(dm), dm->getVertArray(dm), dm->getNumVerts(dm), 0.0 );
 		}
-
+		return 1;
 	}
 
-	return 0;
+	return 1;
 }
 
 /*! init triangle divisions */
@@ -529,8 +531,10 @@ void smokeModifier_freeDomain(SmokeModifierData *smd)
 		if(smd->domain->wt)
 			smoke_turbulence_free(smd->domain->wt);
 
-		BKE_ptcache_free_list(&smd->domain->ptcaches);
-		smd->domain->point_cache = NULL;
+		BKE_ptcache_free_list(&(smd->domain->ptcaches[0]));
+		smd->domain->point_cache[0] = NULL;
+		BKE_ptcache_free_list(&(smd->domain->ptcaches[1]));
+		smd->domain->point_cache[1] = NULL;
 
 		MEM_freeN(smd->domain);
 		smd->domain = NULL;
@@ -603,10 +607,15 @@ void smokeModifier_reset(struct SmokeModifierData *smd)
 				smd->domain->wt = NULL;
 			}
 		
-			smd->domain->point_cache->flag &= ~PTCACHE_SIMULATION_VALID;
-			smd->domain->point_cache->flag |= PTCACHE_OUTDATED;
-			smd->domain->point_cache->simframe= 0;
-			smd->domain->point_cache->last_exact= 0;
+			smd->domain->point_cache[0]->flag &= ~PTCACHE_SIMULATION_VALID;
+			smd->domain->point_cache[0]->flag |= PTCACHE_OUTDATED;
+			smd->domain->point_cache[0]->simframe= 0;
+			smd->domain->point_cache[0]->last_exact= 0;
+
+			smd->domain->point_cache[1]->flag &= ~PTCACHE_SIMULATION_VALID;
+			smd->domain->point_cache[1]->flag |= PTCACHE_OUTDATED;
+			smd->domain->point_cache[1]->simframe= 0;
+			smd->domain->point_cache[1]->last_exact= 0;
 
 			// printf("reset_domain\n");
 		}
@@ -666,9 +675,13 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 
 			smd->domain->smd = smd;
 
-			smd->domain->point_cache = BKE_ptcache_add(&smd->domain->ptcaches);
-			smd->domain->point_cache->flag |= PTCACHE_DISK_CACHE;
-			smd->domain->point_cache->step = 1;
+			smd->domain->point_cache[0] = BKE_ptcache_add(&(smd->domain->ptcaches[0]));
+			smd->domain->point_cache[0]->flag |= PTCACHE_DISK_CACHE;
+			smd->domain->point_cache[0]->step = 1;
+
+			smd->domain->point_cache[1] = BKE_ptcache_add(&(smd->domain->ptcaches[1]));
+			smd->domain->point_cache[1]->flag |= PTCACHE_DISK_CACHE;
+			smd->domain->point_cache[1]->step = 1;
 
 			/* set some standard values */
 			smd->domain->fluid = NULL;
@@ -775,8 +788,9 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 	}
 	else if(smd->type & MOD_SMOKE_TYPE_DOMAIN)
 	{
-		PointCache *cache;
+		PointCache *cache, *cache_wt;
 		PTCacheID pid;
+		PTCacheID pid_wt;
 		float timescale;
 		int cache_result = 0;
 		int startframe, endframe, framenr;
@@ -788,7 +802,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 		framenr = scene->r.cfra;
 
-		cache = sds->point_cache;
+		cache = sds->point_cache[0];
 
 		BKE_ptcache_id_from_smoke(&pid, ob, smd);
 		BKE_ptcache_id_time(&pid, scene, framenr, &startframe, &endframe, &timescale);
@@ -800,12 +814,15 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			cache->simframe= 0;
 			cache->last_exact= 0;
 
-			smokeModifier_init(smd, ob, scene, dm);
+			if(!smokeModifier_init(smd, ob, scene, dm))
+				return;
+
+			if(!smd->domain->fluid)
+				return;
 
 			smoke_simulate_domain(smd, scene, ob, dm);
 
 			{
-				// float light[3] = {0.0,0.0,0.0}; // TODO: take real LAMP coordinates - dg
 				Base *base_tmp = NULL;
 
 				for(base_tmp = scene->base.first; base_tmp; base_tmp= base_tmp->next) 
@@ -852,7 +869,11 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
 		}
 	
-		smokeModifier_init(smd, ob, scene, dm);
+		if(!smokeModifier_init(smd, ob, scene, dm))
+			return;
+
+		if(!smd->domain->fluid)
+				return;
 
 		/* try to read from cache */
 		cache_result = BKE_ptcache_read_cache(&pid, (float)framenr, scene->r.frs_sec);
@@ -904,8 +925,10 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 		smoke_simulate_domain(smd, scene, ob, dm);
 
+		if(sds->wt)
+			smoke_turbulence_step(sds->wt, sds->fluid);
+
 		{
-			// float light[3] = {0.0,0.0,0.0}; // TODO: take real LAMP coordinates - dg
 			Base *base_tmp = NULL;
 
 			for(base_tmp = scene->base.first; base_tmp; base_tmp= base_tmp->next) 
