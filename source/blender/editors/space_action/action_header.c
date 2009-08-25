@@ -404,13 +404,13 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 			if (saction->flag & SACTION_DRAWTIME) {
 				uiDefButC(block, MENU, B_REDR,
 						"Auto-Snap Keyframes %t|No Snap %x0|Second Step %x1|Nearest Second %x2|Nearest Marker %x3", 
-						xco,yco,70,YIC, &(saction->autosnap), 0, 1, 0, 0, 
+						xco,yco,90,YIC, &(saction->autosnap), 0, 1, 0, 0, 
 						"Auto-snapping mode for keyframes when transforming");
 			}
 			else {
 				uiDefButC(block, MENU, B_REDR, 
 						"Auto-Snap Keyframes %t|No Snap %x0|Frame Step %x1|Nearest Frame %x2|Nearest Marker %x3", 
-						xco,yco,70,YIC, &(saction->autosnap), 0, 1, 0, 0, 
+						xco,yco,90,YIC, &(saction->autosnap), 0, 1, 0, 0, 
 						"Auto-snapping mode for keyframes when transforming");
 			}
 			

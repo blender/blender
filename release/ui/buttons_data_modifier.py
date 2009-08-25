@@ -397,19 +397,29 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		
 		col = split.column()
 		col.itemR(md, "normals")
-		sub = col.row(align=True)
+		sub = col.column()
 		sub.active = md.normals
-		sub.itemR(md, "x_normal", text="X", toggle=True)
-		sub.itemR(md, "y_normal", text="Y", toggle=True)
-		sub.itemR(md, "z_normal", text="Z", toggle=True)
+		sub.itemR(md, "x_normal", text="X")
+		sub.itemR(md, "y_normal", text="Y")
+		sub.itemR(md, "z_normal", text="Z")
 		
-		flow = layout.column_flow()
-		flow.itemR(md, "time_offset")
-		flow.itemR(md, "lifetime")
-		flow.itemR(md, "damping_time")
-		flow.itemR(md, "falloff_radius")
-		flow.itemR(md, "start_position_x")
-		flow.itemR(md, "start_position_y")
+		split = layout.split()
+		
+		col = split.column()
+		col.itemL(text="Time:")
+		sub = col.column(align=True)
+		sub.itemR(md, "time_offset", text="Offset")
+		sub.itemR(md, "lifetime", text="Life")
+		col.itemR(md, "damping_time", text="Damping")
+		
+		col = split.column()
+		col.itemL(text="Position:")
+		sub = col.column(align=True)
+		sub.itemR(md, "start_position_x", text="X")
+		sub.itemR(md, "start_position_y", text="Y")
+		col.itemR(md, "falloff_radius", text="Falloff")
+		
+		layout.itemS()
 		
 		layout.itemR(md, "start_position_object")
 		layout.item_pointerR(md, "vertex_group", ob, "vertex_groups")
@@ -419,6 +429,8 @@ class DATA_PT_modifiers(DataButtonsPanel):
 			layout.item_pointerR(md, "uv_layer", ob.data, "uv_textures")
 		elif md.texture_coordinates == 'OBJECT':
 			layout.itemR(md, "texture_coordinates_object")
+		
+		layout.itemS()
 		
 		flow = layout.column_flow()
 		flow.itemR(md, "speed", slider=True)

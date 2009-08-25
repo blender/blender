@@ -445,6 +445,7 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tv3d.text_hi, 255, 255, 255, 255);
 	
 	SETCOLF(btheme->tv3d.header,	0.45, 0.45, 0.45, 1.0);
+	SETCOLF(btheme->tv3d.button,	0.45, 0.45, 0.45, 1.0);
 	SETCOL(btheme->tv3d.panel,      165, 165, 165, 127);
 	
 	SETCOL(btheme->tv3d.shade1,  160, 160, 160, 100);

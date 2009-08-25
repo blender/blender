@@ -1085,7 +1085,7 @@ static struct uiWidgetColors wcol_tool= {
 	{255, 255, 255, 255},
 	
 	1,
-	25, -25
+	15, -15
 };
 
 static struct uiWidgetColors wcol_box= {
@@ -1897,7 +1897,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	widget_init(&wtb);
 	
 	/* half rounded */
-	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
+	round_box_edges(&wtb, roundboxalign, rect, 5.0f);
 		
 	ui_get_but_vectorf(but, col);
 	wcol->inner[0]= FTOCHAR(col[0]);
@@ -1916,7 +1916,7 @@ static void widget_textbut(uiWidgetColors *wcol, rcti *rect, int state, int roun
 	widget_init(&wtb);
 	
 	/* half rounded */
-	round_box_edges(&wtb, roundboxalign, rect, 5.0f);
+	round_box_edges(&wtb, roundboxalign, rect, 4.0f);
 	
 	widgetbase_draw(&wtb, wcol);
 
@@ -1950,8 +1950,8 @@ static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int 
 		
 		widget_init(&wtb);
 		
-		/* fully rounded */
-		round_box_edges(&wtb, 15, rect, rad);
+		/* half rounded */
+		round_box_edges(&wtb, 15, rect, 4.0f);
 		
 		widgetbase_draw(&wtb, wcol);
 	}
@@ -2049,8 +2049,8 @@ static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int state, int rou
 	
 	widget_init(&wtb);
 	
-	/* fully rounded */
-	round_box_edges(&wtb, roundboxalign, rect, rad);
+	/* half rounded */
+	round_box_edges(&wtb, roundboxalign, rect, 5.0f);
 
 	widgetbase_draw(&wtb, wcol);
 }

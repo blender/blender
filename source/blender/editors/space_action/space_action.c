@@ -243,7 +243,7 @@ static void action_channel_area_draw(const bContext *C, ARegion *ar)
 	
 	/* data */
 	if (ANIM_animdata_get_context(C, &ac)) {
-		draw_channel_names(C, &ac, saction, ar);
+		draw_channel_names((bContext *)C, &ac, saction, ar);
 	}
 	
 	/* reset view matrix */
@@ -294,6 +294,7 @@ static void action_channel_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_SCENE:
 			switch(wmn->data) {
 				case ND_OB_ACTIVE:
+				case ND_FRAME:
 					ED_region_tag_redraw(ar);
 					break;
 			}

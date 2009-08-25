@@ -261,6 +261,34 @@ IF(WITH_INSTALL)
         COMMAND copy /Y \"${WIN_LIBDIR}\\ffmpeg\\lib\\xvidcore.dll\" \"${TARGETDIR}\\\"
       )
     ENDIF(WITH_FFMPEG)
+
+    IF(WITH_SNDFILE)
+      ADD_CUSTOM_COMMAND(TARGET blender
+        POST_BUILD
+        MAIN_DEPENDENCY blender
+        COMMAND copy /Y \"${WIN_LIBDIR}\\sndfile\\lib\\libsndfile-1.dll\" \"${TARGETDIR}\\\"
+      )
+    ENDIF(WITH_SNDFILE)
+
+    IF(WITH_JACK)
+      ADD_CUSTOM_COMMAND(TARGET blender
+        POST_BUILD
+        MAIN_DEPENDENCY blender
+        COMMAND copy /Y \"${WIN_LIBDIR}\\jack\\lib\\libjack.dll\" \"${TARGETDIR}\\\"
+      )
+    ENDIF(WITH_JACK)
+
+    IF(WITH_OPENAL)
+      ADD_CUSTOM_COMMAND(TARGET blender
+        POST_BUILD
+        MAIN_DEPENDENCY blender
+        COMMAND copy /Y \"${WIN_LIBDIR}\\openal\\lib\\OpenAL32.dll\" \"${TARGETDIR}\\\"
+        COMMAND copy /Y \"${WIN_LIBDIR}\\openal\\lib\\wrap_oal.dll\" \"${TARGETDIR}\\\"
+
+      )
+    ENDIF(WITH_OPENAL)
+
+
   ENDIF(WIN32)
 ENDIF(WITH_INSTALL)
 

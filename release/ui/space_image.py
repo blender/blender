@@ -317,7 +317,7 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
 class IMAGE_PT_view_properties(bpy.types.Panel):
 	__space_type__ = 'IMAGE_EDITOR'
 	__region_type__ = 'UI'
-	__label__ = "View Properties"
+	__label__ = "Display"
 
 	def poll(self, context):
 		sima = context.space_data
@@ -335,26 +335,33 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
 
 		col = split.column()
 		if ima:
-			col.itemR(ima, "display_aspect")
+			col.itemR(ima, "display_aspect", text="Aspect Ratio")
 
 			col = split.column()
+			col.itemL(text="Coordinates:")
 			col.itemR(sima, "draw_repeated", text="Repeat")
 			if show_uvedit:
 				col.itemR(uvedit, "normalized_coordinates", text="Normalized")
 		elif show_uvedit:
+			col.itemL(text="Coordinates:")
 			col.itemR(uvedit, "normalized_coordinates", text="Normalized")
 
 		if show_uvedit:
 			col = layout.column()
 			row = col.row()
 			row.itemR(uvedit, "edge_draw_type", expand=True)
-			row = col.row()
-			row.itemR(uvedit, "draw_smooth_edges", text="Smooth")
-			row.itemR(uvedit, "draw_modified_edges", text="Modified")
 
-			row = col.row()
-			row.itemR(uvedit, "draw_stretch", text="Stretch")
-			row.itemR(uvedit, "draw_stretch_type", text="")
+			split = layout.split()
+
+			col = split.column()
+			col.itemR(uvedit, "draw_stretch", text="Stretch")
+			sub = col.column()
+			sub.active = uvedit.draw_stretch
+			sub.row().itemR(uvedit, "draw_stretch_type", expand=True)
+			
+			col = split.column()
+			col.itemR(uvedit, "draw_smooth_edges", text="Smooth")
+			col.itemR(uvedit, "draw_modified_edges", text="Modified")
 			#col.itemR(uvedit, "draw_edges")
 			#col.itemR(uvedit, "draw_faces")
 

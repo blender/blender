@@ -318,6 +318,7 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
 	GPUTexture *tex;
 	GLenum type, format, internalformat;
 	void *pixels = NULL;
+	float vfBorderColor[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
 	tex->w = w;
@@ -336,7 +337,7 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
 		return NULL;
 	}
 
-	// if (!GLEW_ARB_texture_non_power_of_two) 
+	if (!GLEW_ARB_texture_non_power_of_two) 
 	{
 		tex->w = larger_pow2(tex->w);
 		tex->h = larger_pow2(tex->h);
@@ -357,23 +358,14 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
 
 	if (fpixels) {
 		glTexSubImage3D(tex->target, 0, 0, 0, 0, w, h, depth, format, type, pixels);
-
-		/*
-		if (tex->w > w)
-			GPU_glTexSubImageEmpty(tex->target, format, w, 0, tex->w-w, tex->h);
-		if (tex->h > h)
-			GPU_glTexSubImageEmpty(tex->target, format, 0, h, w, tex->h-h);
-		*/
 	}
 
-	// glTexImage3D(tex->target, 0, GL_RGBA, w, h, depth, 0, GL_RGBA, GL_FLOAT, fpixels);
-
+	glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, vfBorderColor);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S,GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T,GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R,GL_CLAMP_TO_BORDER);
-
 
 	if (pixels)
 		MEM_freeN(pixels);

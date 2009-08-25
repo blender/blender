@@ -3329,7 +3329,6 @@ void ED_keymap_screen(wmWindowManager *wm)
 	WM_keymap_verify_item(keymap, "SCREEN_OT_repeat_history", F3KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_repeat_last", RKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_repeat_last", RKEY, KM_PRESS, KM_OSKEY, 0);
-	WM_keymap_add_item(keymap, "SCREEN_OT_repeat_last", F4KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_region_flip", F5KEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_redo_last", F6KEY, KM_PRESS, 0, 0);
 	
@@ -3348,18 +3347,17 @@ void ED_keymap_screen(wmWindowManager *wm)
 						  
 	/* render */
 	WM_keymap_add_item(keymap, "SCREEN_OT_render", F12KEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "SCREEN_OT_render", RETKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "SCREEN_OT_render", RETKEY, KM_PRESS, KM_OSKEY, 0);
+//	WM_keymap_add_item(keymap, "SCREEN_OT_render", RETKEY, KM_PRESS, KM_CTRL, 0);
+//	WM_keymap_add_item(keymap, "SCREEN_OT_render", RETKEY, KM_PRESS, KM_OSKEY, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_render", F12KEY, KM_PRESS, KM_CTRL, 0)->ptr, "animation", 1);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_render", RETKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "animation", 1);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_render", RETKEY, KM_PRESS, KM_OSKEY|KM_SHIFT, 0)->ptr, "animation", 1);
+//	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_render", RETKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "animation", 1);
+//	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_render", RETKEY, KM_PRESS, KM_OSKEY|KM_SHIFT, 0)->ptr, "animation", 1);
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_cancel", ESCKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_render_view_show", F11KEY, KM_PRESS, 0, 0);
 	
 	/* user prefs */
 	WM_keymap_add_item(keymap, "SCREEN_OT_userpref_show", COMMAKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_userpref_show", COMMAKEY, KM_PRESS, KM_OSKEY, 0);
-	WM_keymap_add_item(keymap, "SCREEN_OT_userpref_show", UKEY, KM_PRESS, KM_ALT, 0);
 	
 	/* Anim Playback ------------------------------------------------ */
 	keymap= WM_keymap_listbase(wm, "Frames", 0, 0);

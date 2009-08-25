@@ -793,11 +793,11 @@ static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PropertyRNA
 	}
 	else if(ui_layout_vary_direction(layout) == UI_ITEM_VARY_X) {
 		if(type == PROP_BOOLEAN && strcmp(name, "") != 0)
-			w += UI_UNIT_X;
+			w += UI_UNIT_X/5;
 		else if(type == PROP_ENUM)
 			w += UI_UNIT_X/2;
 		else if(type == PROP_FLOAT || type == PROP_INT)
-			w += UI_UNIT_X*2;
+			w += UI_UNIT_X*3;
 	}
 
 	*r_w= w;

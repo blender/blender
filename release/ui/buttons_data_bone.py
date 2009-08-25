@@ -74,10 +74,13 @@ class BONE_PT_bone(BoneButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		
+		ob = context.object
 		bone = context.bone
 		arm = context.armature
 		if not bone:
 			bone = context.edit_bone
+		else:
+			pchan = ob.pose.pose_channels[context.bone.name]
 
 		split = layout.split()
 
@@ -102,6 +105,17 @@ class BONE_PT_bone(BoneButtonsPanel):
 		col.itemL(text="Display:")
 		col.itemR(bone, "draw_wire", text="Wireframe")
 		col.itemR(bone, "hidden", text="Hide")
+
+		if ob and pchan:
+			split = layout.split()
+			
+			col = split.column()
+			col.itemL(text="Bone Group:")
+			col.item_pointerR(pchan, "bone_group", ob.pose, "bone_groups", text="")
+			
+			col = split.column()
+			col.itemL(text="Custom Shape:")
+			col.itemR(pchan, "custom_shape", text="")
 
 class BONE_PT_inverse_kinematics(BoneButtonsPanel):
 	__label__ = "Inverse Kinematics"
