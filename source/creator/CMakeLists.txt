@@ -38,6 +38,7 @@ INCLUDE_DIRECTORIES(../../intern/guardedalloc
   ../blender/python
   ../blender/makesdna
   ../blender/gpu
+  ../blender/freestyle
   ../kernel/gen_messaging
   ../kernel/gen_system
   ../../extern/glew/include

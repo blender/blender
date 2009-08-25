@@ -81,6 +81,8 @@
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 
+#include "FRS_freestyle.h"
+
 #include "playanim_ext.h"
 #include "mydevice.h"
 #include "nla.h"
@@ -819,6 +821,8 @@ int main(int argc, char **argv)
 				/*we successfully loaded a blend file, get sure that
 				pointcache works */
 				if (retval!=0) G.relbase_valid = 1;
+
+				FRS_initialize();
 
 				/* happens for the UI on file reading too */
 				BKE_reset_undo();
