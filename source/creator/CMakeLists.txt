@@ -29,6 +29,7 @@ SETUP_LIBDIRS()
 INCLUDE_DIRECTORIES(../../intern/guardedalloc
   ../blender/blenlib
   ../blender/blenkernel
+  ../blender/bmesh
   ../blender/editors/include
   ../blender/makesrna
   ../blender/makesrna/intern
@@ -231,6 +232,7 @@ IF(UNIX)
     bf_gen_python 
     bf_blenkernel 
     bf_nodes
+    bf_bmesh
 	bf_gpu
     bf_blenloader 
     bf_blenpluginapi 

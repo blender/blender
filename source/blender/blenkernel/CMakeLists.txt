@@ -33,7 +33,7 @@ SET(INC
   ../../../intern/iksolver/extern ../blenloader ../quicktime
   ../../../extern/bullet2/src
   ../nodes ../../../extern/glew/include ../gpu ../makesrna ../../../intern/smoke/extern
-  ../../../intern/bsp/extern
+  ../../../intern/bsp/extern ../bmesh
   ${ZLIB_INC}
 )
 
