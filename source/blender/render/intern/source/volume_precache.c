@@ -712,6 +712,7 @@ void free_volume_precache(Render *re)
 			MEM_freeN(obi->volume_precache->data_r);
 			MEM_freeN(obi->volume_precache->data_g);
 			MEM_freeN(obi->volume_precache->data_b);
+			obi->volume_precache = NULL;
 		}
 	}
 	
