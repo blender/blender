@@ -3868,6 +3868,12 @@ class KX_Scene(PyObjectPlus):
 		
 		@rtype: L{KX_GameObject}
 		"""
+	
+	def get(key, default=None):
+		"""
+		Return the value matching key, or the default value if its not found.
+		@return: The key value or a default.
+		"""
 
 class KX_SceneActuator(SCA_IActuator):
 	"""
