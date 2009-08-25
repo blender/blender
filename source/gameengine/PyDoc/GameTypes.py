@@ -1023,12 +1023,6 @@ class CListValue(CPropValue):
 		Return the value matching key, or the default value if its not found.
 		@return: The key value or a default.
 		"""
-	def has_key(key):
-		"""
-		Return True if the key is found.
-		@rtype: boolean
-		@return: The key value or a default.
-		"""
 	def from_id(id):
 		"""
 		This is a funtion especially for the game engine to return a value with a spesific id.
@@ -1582,7 +1576,7 @@ class KX_GameObject(SCA_IObject):
 	@ivar childrenRecursive: all children of this object including childrens children, (read-only).
 	@type childrenRecursive: L{CListValue} of L{KX_GameObject}'s
 	@group Deprecated: getPosition, setPosition, setWorldPosition, getOrientation, setOrientation, getState, setState, getParent, getVisible, getMass, getMesh, getChildren, getChildrenRecursive
-	@group Property Access: get, has_key, attrDict, getPropertyNames
+	@group Property Access: get, attrDict, getPropertyNames
 	"""
 	def endObject():
 		"""
@@ -2052,12 +2046,6 @@ class KX_GameObject(SCA_IObject):
 	def get(key, default=None):
 		"""
 		Return the value matching key, or the default value if its not found.
-		@return: The key value or a default.
-		"""
-	def has_key(key):
-		"""
-		Return True if the key is found.
-		@rtype: boolean
 		@return: The key value or a default.
 		"""
 
@@ -5745,7 +5733,7 @@ for name, val in locals().items():
 			
 			# Store the mappings to new attributes in a list (because there
 			# could be collisions).
-			if not depAttrs.has_key(attrName):
+			if attrName not in depAttrs:
 				depAttrs[attrName] = {}
 			mapping = depAttrs[attrName]
 			
@@ -5770,7 +5758,7 @@ for name, val in locals().items():
 					# Another mapping, from a conversion tuple to lists of class
 					# names.
 					conversion = (func, newAttrName)
-					if not mapping.has_key(conversion):
+					if conversion not in mapping:
 						mapping[conversion] = []
 					mapping[conversion].append(name)
 					break

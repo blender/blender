@@ -300,7 +300,6 @@ PyMethodDef CListValue::Methods[] = {
 	
 	/* Dict style access */
 	{"get", (PyCFunction)CListValue::sPyget,METH_VARARGS},
-	{"has_key", (PyCFunction)CListValue::sPyhas_key,METH_O},
 	
 	/* Own cvalue funcs */
 	{"from_id", (PyCFunction)CListValue::sPyfrom_id,METH_O},
@@ -594,14 +593,6 @@ PyObject* CListValue::Pyget(PyObject *args)
 	return def;
 }
 
-/* Matches python dict.has_key() */
-PyObject* CListValue::Pyhas_key(PyObject* value)
-{
-	if (PyUnicode_Check(value) && FindValue((const char *)_PyUnicode_AsString(value)))
-		Py_RETURN_TRUE;
-	
-	Py_RETURN_FALSE;
-}
 
 PyObject* CListValue::Pyfrom_id(PyObject* value)
 {

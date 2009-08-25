@@ -844,7 +844,6 @@ public:
 	
 	/* Dict access */
 	KX_PYMETHOD_VARARGS(KX_GameObject,get);
-	KX_PYMETHOD_O(KX_GameObject,has_key);
 	
 	/* attributes */
 	static PyObject*	pyattr_get_name(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);

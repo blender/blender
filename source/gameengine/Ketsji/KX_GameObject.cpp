@@ -1398,7 +1398,6 @@ PyMethodDef KX_GameObject::Methods[] = {
 	KX_PYMETHODTABLE(KX_GameObject, sendMessage),
 	
 	// dict style access for props
-	{"has_key",(PyCFunction) KX_GameObject::sPyhas_key, METH_O},
 	{"get",(PyCFunction) KX_GameObject::sPyget, METH_VARARGS},
 	
 	// deprecated
@@ -2917,14 +2916,6 @@ PyObject* KX_GameObject::Pyget(PyObject *args)
 	
 	Py_INCREF(def);
 	return def;
-}
-
-/* Matches python dict.has_key() */
-PyObject* KX_GameObject::Pyhas_key(PyObject* value)
-{
-	// the ONLY error case is invalid data, this is checked by the macro'd static function
-	// that calls this one. but make sure Seq_Contains doesnt add extra errors later on.
-	return PyBool_FromLong(Seq_Contains((PyObject *)this, value));
 }
 
 /* --------------------------------------------------------------------- 
