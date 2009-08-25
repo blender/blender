@@ -2549,7 +2549,7 @@ static int pc_cmp(void *a, void *b)
 	else return 0;
 }
 
-int object_insert_pc(Object *ob) 
+int object_insert_ptcache(Object *ob) 
 {
 	LinkData *link = NULL;
 	int i = 0;
@@ -2591,7 +2591,7 @@ static int pc_findindex(ListBase *listbase, int index)
 }
 
 #if 0
-void object_delete_pc(Object *ob, int index) 
+void object_delete_ptcache(Object *ob, int index) 
 {
 	int list_index = pc_findindex(&ob->pc_ids, index);
 	LinkData *link = BLI_findlink(&ob->pc_ids, list_index);
