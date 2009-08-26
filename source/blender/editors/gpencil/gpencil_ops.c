@@ -1,5 +1,5 @@
 /**
- * $Id: gpencil_ops.c 21617 2009-07-16 04:45:52Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
