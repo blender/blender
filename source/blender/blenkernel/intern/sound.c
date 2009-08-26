@@ -79,11 +79,11 @@ struct bSound* sound_new_file(struct Main *main, char* filename)
 
 	sound = alloc_libblock(&main->sound, ID_SO, filename+len);
 	strcpy(sound->name, filename);
-	sound->type = SOUND_TYPE_FILE;
+// XXX unused currently	sound->type = SOUND_TYPE_FILE;
 
 	sound_load(main, sound);
 
-	if(!sound->snd_sound)
+	if(!sound->handle)
 	{
 		free_libblock(&main->sound, sound);
 		sound = NULL;
@@ -109,7 +109,7 @@ struct bSound* sound_new_buffer(struct bContext *C, struct bSound *source)
 
 	sound_load(CTX_data_main(C), sound);
 
-	if(!sound->snd_sound)
+	if(!sound->handle)
 	{
 		free_libblock(&CTX_data_main(C)->sound, sound);
 		sound = NULL;
@@ -135,7 +135,7 @@ struct bSound* sound_new_limiter(struct bContext *C, struct bSound *source, floa
 
 	sound_load(CTX_data_main(C), sound);
 
-	if(!sound->snd_sound)
+	if(!sound->handle)
 	{
 		free_libblock(&CTX_data_main(C)->sound, sound);
 		sound = NULL;
@@ -162,22 +162,25 @@ void sound_cache(struct bSound* sound, int ignore)
 	if(sound->cache && !ignore)
 		AUD_unload(sound->cache);
 
-	sound->cache = AUD_bufferSound(sound->snd_sound);
+	sound->cache = AUD_bufferSound(sound->handle);
 }
 
 void sound_load(struct Main *main, struct bSound* sound)
 {
 	if(sound)
 	{
-		if(sound->snd_sound)
+		if(sound->handle)
 		{
-			AUD_unload(sound->snd_sound);
-			sound->snd_sound = NULL;
+			AUD_unload(sound->handle);
+			sound->handle = NULL;
 		}
 
+// XXX unused currently
+#if 0
 		switch(sound->type)
 		{
 		case SOUND_TYPE_FILE:
+#endif
 		{
 			char fullpath[FILE_MAX];
 			char *path;
@@ -197,26 +200,25 @@ void sound_load(struct Main *main, struct bSound* sound)
 
 			/* but we need a packed file then */
 			if (pf)
-				sound->snd_sound = AUD_loadBuffer((unsigned char*) pf->data, pf->size);
+				sound->handle = AUD_loadBuffer((unsigned char*) pf->data, pf->size);
 			/* or else load it from disk */
 			else
-				sound->snd_sound = AUD_load(fullpath);
+				sound->handle = AUD_load(fullpath);
+		} // XXX
+// XXX unused currently
+#if 0
 			break;
 		}
 		case SOUND_TYPE_BUFFER:
-			if(sound->child_sound && sound->child_sound->snd_sound)
-				sound->snd_sound = AUD_bufferSound(sound->child_sound->snd_sound);
+			if(sound->child_sound && sound->child_sound->handle)
+				sound->handle = AUD_bufferSound(sound->child_sound->handle);
 			break;
 		case SOUND_TYPE_LIMITER:
-			if(sound->child_sound && sound->child_sound->snd_sound)
-				sound->snd_sound = AUD_limitSound(sound->child_sound, sound->start, sound->end);
+			if(sound->child_sound && sound->child_sound->handle)
+				sound->handle = AUD_limitSound(sound->child_sound, sound->start, sound->end);
 			break;
 		}
-
-		if(sound->cache)
-		{
-
-		}
+#endif
 	}
 }
 
@@ -228,10 +230,10 @@ void sound_free(struct bSound* sound)
 		sound->packedfile = NULL;
 	}
 
-	if(sound->snd_sound)
+	if(sound->handle)
 	{
-		AUD_unload(sound->snd_sound);
-		sound->snd_sound = NULL;
+		AUD_unload(sound->handle);
+		sound->handle = NULL;
 	}
 }
 
@@ -241,20 +243,23 @@ void sound_unlink(struct bContext *C, struct bSound* sound)
 	Scene *scene;
 	SoundHandle *handle;
 
+// XXX unused currently
+#if 0
 	for(snd = CTX_data_main(C)->sound.first; snd; snd = snd->id.next)
 	{
 		if(snd->child_sound == sound)
 		{
 			snd->child_sound = NULL;
-			if(snd->snd_sound)
+			if(snd->handle)
 			{
-				AUD_unload(sound->snd_sound);
-				snd->snd_sound = NULL;
+				AUD_unload(sound->handle);
+				snd->handle = NULL;
 			}
 
 			sound_unlink(C, snd);
 		}
 	}
+#endif
 
 	for(scene = CTX_data_main(C)->scene.first; scene; scene = scene->id.next)
 	{
@@ -372,9 +377,9 @@ void sound_update_playing(struct bContext *C)
 			{
 				if(handle->state == AUD_STATUS_INVALID)
 				{
-					if(handle->source && handle->source->snd_sound)
+					if(handle->source && handle->source->handle)
 					{
-						AUD_Sound* limiter = AUD_limitSound(handle->source->cache ? handle->source->cache : handle->source->snd_sound, handle->frameskip / fps, (handle->frameskip + handle->endframe - handle->startframe)/fps);
+						AUD_Sound* limiter = AUD_limitSound(handle->source->cache ? handle->source->cache : handle->source->handle, handle->frameskip / fps, (handle->frameskip + handle->endframe - handle->startframe)/fps);
 						handle->handle = AUD_play(limiter, 1);
 						AUD_unload(limiter);
 						if(handle->handle)
@@ -413,10 +418,10 @@ void sound_scrub(struct bContext *C)
 		{
 			if(cfra >= handle->startframe && cfra < handle->endframe && !handle->mute)
 			{
-				if(handle->source && handle->source->snd_sound)
+				if(handle->source && handle->source->handle)
 				{
 					int frameskip = handle->frameskip + cfra - handle->startframe;
-					AUD_Sound* limiter = AUD_limitSound(handle->source->cache ? handle->source->cache : handle->source->snd_sound, frameskip / fps, (frameskip + 1)/fps);
+					AUD_Sound* limiter = AUD_limitSound(handle->source->cache ? handle->source->cache : handle->source->handle, frameskip / fps, (frameskip + 1)/fps);
 					AUD_play(limiter, 0);
 					AUD_unload(limiter);
 				}
@@ -439,7 +444,7 @@ AUD_Device* sound_mixdown(struct Scene *scene, AUD_Specs specs, int start, int e
 
 	for(handle = scene->sound_handles.first; handle; handle = handle->next)
 	{
-		if(start < handle->endframe && end > handle->startframe && !handle->mute && handle->source && handle->source->snd_sound)
+		if(start < handle->endframe && end > handle->startframe && !handle->mute && handle->source && handle->source->handle)
 		{
 			frameskip = handle->frameskip;
 			s = handle->startframe - start;
@@ -451,7 +456,7 @@ AUD_Device* sound_mixdown(struct Scene *scene, AUD_Specs specs, int start, int e
 				s = 0;
 			}
 
-			limiter = AUD_limitSound(handle->source->snd_sound, frameskip / fps, e / fps);
+			limiter = AUD_limitSound(handle->source->handle, frameskip / fps, e / fps);
 			delayer = AUD_delaySound(limiter, s / fps);
 
 			AUD_playDevice(mixdown, delayer);

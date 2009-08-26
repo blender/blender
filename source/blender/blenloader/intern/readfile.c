@@ -5061,10 +5061,13 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 
 static void direct_link_sound(FileData *fd, bSound *sound)
 {
-	sound->snd_sound = NULL;
+	sound->handle = NULL;
 
 	sound->packedfile = direct_link_packedfile(fd, sound->packedfile);
 	sound->newpackedfile = direct_link_packedfile(fd, sound->newpackedfile);
+
+	if(sound->cache)
+		sound_cache(sound, 1);
 }
 
 static void lib_link_sound(FileData *fd, Main *main)
@@ -5076,8 +5079,7 @@ static void lib_link_sound(FileData *fd, Main *main)
 		if(sound->id.flag & LIB_NEEDLINK) {
 			sound->id.flag -= LIB_NEEDLINK;
 			sound->ipo= newlibadr_us(fd, sound->id.lib, sound->ipo); // XXX depreceated - old animation system
-			sound->stream = 0;
-
+			
 			sound_load(main, sound);
 		}
 		sound= sound->id.next;

@@ -70,57 +70,59 @@ typedef struct Sound3D
 
 typedef struct bSound {
 	ID id;
-	char name[160];
-	void *stream; // AUD_XXX deprecated
-	struct PackedFile *packedfile;
-	struct PackedFile *newpackedfile; // AUD_XXX deprecated
-	void *snd_sound; // AUD_XXX used for AUD_Sound now
-	struct Ipo *ipo; // AUD_XXX deprecated
-	float volume, panning; // AUD_XXX deprecated
-	/**
-	 * Sets the rollofffactor. The	rollofffactor is a per-Source parameter
-	 * the application can use to increase or decrease	the range of a source
-	 * by decreasing or increasing the attenuation, respectively. The default
-	 * value is 1. The implementation is free to optimize for a rollofffactor
-	 * value of 0, which indicates that the application does not wish any
-	 * distance attenuation on the respective Source.
-	 */
-	float attenuation; // AUD_XXX deprecated
-	float pitch; // AUD_XXX deprecated
-	/**
-	 * min_gain indicates the minimal gain which is always guaranteed for this sound
-	 */
-	float min_gain; // AUD_XXX deprecated
-	/**
-	 * max_gain indicates the maximal gain which is always guaranteed for this sound
-	 */
-	float max_gain; // AUD_XXX deprecated
-	/**
-	 * Sets the referencedistance at which the listener will experience gain.
-	 */
-	float distance; // AUD_XXX deprecated
-	int flags; // AUD_XXX deprecated
-	int streamlen; // AUD_XXX deprecated
-	char channels; // AUD_XXX deprecated
-	char highprio; // AUD_XXX deprecated
-	char pad[10]; // AUD_XXX deprecated
 
-	// AUD_XXX NEW
-	int type;
+	/**
+	 * The path to the sound file.
+	 */
+	char name[160];
+
+	/**
+	 * The packed file.
+	 */
+	struct PackedFile *packedfile;
+
+	/**
+	 * The handle for audaspace.
+	 */
+	void *handle;
+
+	/**
+	 * Deprecated; used for loading pre 2.5 files.
+	 */
+	struct PackedFile *newpackedfile;
+	struct Ipo *ipo;
+	float volume;
+	float attenuation;
+	float pitch;
+	float min_gain;
+	float max_gain;
+	float distance;
+	int flags;
+
+/**	currently	int type;
+	struct bSound *child_sound;*/
+
+	/**
+	 * Whether the sound has been changed and must be restarted if playing.
+	 */
 	int changed;
-	struct bSound *child_sound;
+
+	/**
+	 * The audaspace handle for cache.
+	 */
 	void *cache;
 
-	// SOUND_TYPE_LIMITER
-	float start, end;
+/**	XXX unused currently	// SOUND_TYPE_LIMITER
+	float start, end;*/
 } bSound;
 
+/* XXX unused currently
 typedef enum eSound_Type {
 	SOUND_TYPE_INVALID = -1,
 	SOUND_TYPE_FILE = 0,
 	SOUND_TYPE_BUFFER,
 	SOUND_TYPE_LIMITER
-} eSound_Type;
+} eSound_Type;*/
 
 /* spacesound->flag */
 #define SND_DRAWFRAMES	1
@@ -142,18 +144,7 @@ typedef struct SpaceSound {
 	int pad2;
 } SpaceSound;
 
-
-#define SOUND_CHANNELS_STEREO	0
-#define SOUND_CHANNELS_LEFT		1
-#define SOUND_CHANNELS_RIGHT	2
-
-#define SOUND_FLAGS_LOOP 				(1 << 0)
-#define SOUND_FLAGS_FIXED_VOLUME 		(1 << 1)
-#define SOUND_FLAGS_FIXED_PANNING 		(1 << 2)
 #define SOUND_FLAGS_3D					(1 << 3)
-#define SOUND_FLAGS_BIDIRECTIONAL_LOOP	(1 << 4)
-#define SOUND_FLAGS_PRIORITY			(1 << 5)
-#define SOUND_FLAGS_SEQUENCE			(1 << 6)
 
 /* to DNA_sound_types.h*/
 

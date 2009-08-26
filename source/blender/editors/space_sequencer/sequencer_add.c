@@ -242,13 +242,13 @@ static Sequence* sequencer_add_sound_strip(bContext *C, wmOperator *op, int star
 
 	sound = sound_new_file(CTX_data_main(C), filename);
 
-	if (sound==NULL || sound->snd_sound == NULL) {
+	if (sound==NULL || sound->handle == NULL) {
 		if(op)
 			BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return NULL;
 	}
 
-	info = AUD_getInfo(sound->snd_sound);
+	info = AUD_getInfo(sound->handle);
 
 	if (info.specs.format == AUD_FORMAT_INVALID) {
 		sound_delete(C, sound);

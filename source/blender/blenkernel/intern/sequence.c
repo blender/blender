@@ -570,7 +570,7 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq)
 		}
 		seq->strip->len = seq->len;
 	} else if (seq->type == SEQ_SOUND) {
-		seq->len = AUD_getInfo(seq->sound->snd_sound).length * FPS;
+		seq->len = AUD_getInfo(seq->sound->handle).length * FPS;
 		seq->len -= seq->anim_startofs;
 		seq->len -= seq->anim_endofs;
 		if (seq->len < 0) {
