@@ -265,6 +265,7 @@ PULIB += $(OCGDIR)/blender/ed_uvedit/$(DEBUG_DIR)libed_uvedit.a
 PULIB += $(OCGDIR)/blender/ed_screen/$(DEBUG_DIR)libed_screen.a
 PULIB += $(OCGDIR)/blender/ed_console/$(DEBUG_DIR)libed_console.a
 PULIB += $(OCGDIR)/blender/ed_userpref/$(DEBUG_DIR)libed_userpref.a
+PULIB += $(OCGDIR)/blender/ed_gpencil/$(DEBUG_DIR)libed_gpencil.a
 PULIB += $(OCGDIR)/blender/windowmanager/$(DEBUG_DIR)libwindowmanager.a
 PULIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
 PULIB += $(OCGDIR)/blender/makesrna/$(DEBUG_DIR)librna.a
