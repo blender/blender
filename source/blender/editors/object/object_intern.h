@@ -147,6 +147,9 @@ void OBJECT_OT_vertex_group_deselect(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_copy_to_linked(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_copy(struct wmOperatorType *ot);
 
+void OBJECT_OT_game_property_new(struct wmOperatorType *ot);
+void OBJECT_OT_game_property_remove(struct wmOperatorType *ot);
+
 /* editkey.c */
 void OBJECT_OT_shape_key_add(struct wmOperatorType *ot);
 void OBJECT_OT_shape_key_remove(struct wmOperatorType *ot);

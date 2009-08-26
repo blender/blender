@@ -7161,3 +7161,72 @@ void ED_object_toggle_modes(bContext *C, int mode)
 	if(mode & OB_MODE_PARTICLE_EDIT)
 		WM_operator_name_call(C, "PARTICLE_OT_particle_edit_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 }
+
+/* game property ops */
+
+static int game_property_new(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	bProperty *prop;
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	prop= new_property(PROP_FLOAT);
+	BLI_addtail(&ob->prop, prop);
+	unique_property(NULL, prop, 0); // make_unique_prop_names(prop->name);
+
+	return OPERATOR_FINISHED;
+}
+
+
+void OBJECT_OT_game_property_new(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "New Game Property";
+	ot->idname= "OBJECT_OT_game_property_new";
+
+	/* api callbacks */
+	ot->exec= game_property_new;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int game_property_remove(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	bProperty *prop;
+	int index;
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	index = RNA_int_get(op->ptr, "index");
+
+    prop= BLI_findlink(&ob->prop, index);
+
+    if(prop) {
+		BLI_remlink(&ob->prop, prop);
+		free_property(prop);
+		return OPERATOR_FINISHED;
+    }
+    else {
+    	return OPERATOR_CANCELLED;
+    }
+}
+
+void OBJECT_OT_game_property_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Game Property";
+	ot->idname= "OBJECT_OT_game_property_remove";
+
+	/* api callbacks */
+	ot->exec= game_property_remove;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Property index to remove ", 0, INT_MAX);
+}
