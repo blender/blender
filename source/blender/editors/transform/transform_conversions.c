@@ -698,6 +698,8 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 			bone->flag &= ~BONE_HINGE_CHILD_TRANSFORM;
 			bone->flag &= ~BONE_TRANSFORM_CHILD;
 		}
+		else
+			bone->flag &= ~BONE_TRANSFORM;
 	}
 
 	/* make sure no bone can be transformed when a parent is transformed */
