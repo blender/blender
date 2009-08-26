@@ -5274,7 +5274,10 @@ void draw_outliner(const bContext *C)
 		sizex_rna= MAX2(OL_RNA_COLX, sizex_rna+OL_RNA_COL_SPACEX);
 		
 		/* get width of data (for setting 'tot' rect, this is column 1 + column 2 + a bit extra) */
-		sizex= sizex_rna + OL_RNA_COL_SIZEX + 50;
+		if (soops->outlinevis == SO_KEYMAP) 
+			sizex= sizex_rna + OL_RNA_COL_SIZEX*3 + 50; // XXX this is only really a quick hack to make this wide enough...
+		else
+			sizex= sizex_rna + OL_RNA_COL_SIZEX + 50;
 	}
 	else {
 		/* width must take into account restriction columns (if visible) so that entries will still be visible */

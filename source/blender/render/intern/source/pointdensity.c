@@ -324,7 +324,7 @@ void accum_density(void *userdata, int index, float squared_dist)
 {
 	PointDensityRangeData *pdr = (PointDensityRangeData *)userdata;
 	const float dist = (pdr->squared_radius - squared_dist) / pdr->squared_radius * 0.5f;
-	float density;
+	float density = 0.0f;
 	
 	if (pdr->falloff_type == TEX_PD_FALLOFF_STD)
 		density = dist;

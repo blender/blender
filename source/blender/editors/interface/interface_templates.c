@@ -1318,7 +1318,7 @@ ListBase uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *pr
 	Panel *pa;
 	ListBase lb, *itemlb;
 	char *name, str[32];
-	int icon=0, i= 0, activei= 0, len, items, found, min, max;
+	int icon=0, i= 0, activei= 0, len= 0, items, found, min, max;
 
 	lb.first= lb.last= NULL;
 	

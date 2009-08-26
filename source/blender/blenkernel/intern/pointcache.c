@@ -424,8 +424,6 @@ void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
 
 void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *psys)
 {
-	ParticleSystemModifierData *psmd= psys_get_modifier(ob, psys);
-
 	memset(pid, 0, sizeof(PTCacheID));
 
 	pid->ob= ob;
@@ -484,7 +482,7 @@ static int ptcache_file_write(PTCacheFile *pf, void *f, size_t tot, int size);
 
 static int ptcache_compress_write(PTCacheFile *pf, unsigned char *in, unsigned int in_len, unsigned char *out, int mode)
 {
-	int r;
+	int r = 0;
 	unsigned char compressed;
 	LZO_HEAP_ALLOC(wrkmem, LZO1X_MEM_COMPRESS);
 	unsigned int out_len = LZO_OUT_LEN(in_len);
@@ -566,11 +564,12 @@ static int ptcache_write_smoke(PTCacheFile *pf, void *smoke_v)
 	return 0;
 }
 
+/*
 static int ptcache_write_smoke_turbulence(PTCacheFile *pf, void *smoke_v)
 {
 	SmokeModifierData *smd= (SmokeModifierData *)smoke_v;
 	SmokeDomainSettings *sds = smd->domain;
-	/*
+	
 	if(sds->wt) {
 		unsigned int res_big[3];
 		size_t res = sds->res[0]*sds->res[1]*sds->res[2];
@@ -599,16 +598,16 @@ static int ptcache_write_smoke_turbulence(PTCacheFile *pf, void *smoke_v)
 		
 		return 1;
 	}
-*/
 	return 0;
 }
+*/
 
 // forward decleration
 static int ptcache_file_read(PTCacheFile *pf, void *f, size_t tot, int size);
 
 static int ptcache_compress_read(PTCacheFile *pf, unsigned char *result, unsigned int len)
 {
-	int r;
+	int r = 0;
 	unsigned char compressed = 0;
 	unsigned int in_len;
 	unsigned int out_len = len;
@@ -673,11 +672,12 @@ static void ptcache_read_smoke(PTCacheFile *pf, void *smoke_v)
 	}
 }
 
+/*
 static void ptcache_read_smoke_turbulence(PTCacheFile *pf, void *smoke_v)
 {
 	SmokeModifierData *smd= (SmokeModifierData *)smoke_v;
 	SmokeDomainSettings *sds = smd->domain;
-	/*
+	
 	if(sds->fluid) {
 		unsigned int res[3];
 		float *dens, *densold, *tcu, *tcv, *tcw;
@@ -690,8 +690,8 @@ static void ptcache_read_smoke_turbulence(PTCacheFile *pf, void *smoke_v)
 		ptcache_compress_read(pf, (unsigned char*)dens, out_len);
 		
 	}
-	*/
 }
+*/
 
 void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeModifierData *smd)
 {
@@ -1162,7 +1162,7 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 	int cfra1 = 0, cfra2 = 0;
 	int totpoint = 0, totpoint2 = 0;
 	int *index = &i, *index2 = &i;
-	int use_old = 0, old_frame;
+	int use_old = 0, old_frame = 0;
 
 	int ret = 0, error = 0;
 
@@ -2084,7 +2084,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 	Base *base;
 	ListBase pidlist;
 	PTCacheID *pid = baker->pid;
-	PointCache *cache;
+	PointCache *cache = NULL;
 	float frameleno = scene->r.framelen;
 	int cfrao = CFRA;
 	int startframe = MAXFRAME;

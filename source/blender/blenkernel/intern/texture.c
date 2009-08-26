@@ -750,7 +750,7 @@ void make_local_texture(Tex *tex)
 
 void autotexname(Tex *tex)
 {
-	char texstr[20][12]= {"None"  , "Clouds" , "Wood", "Marble", "Magic"  , "Blend",
+	char texstr[20][15]= {"None"  , "Clouds" , "Wood", "Marble", "Magic"  , "Blend",
 		"Stucci", "Noise"  , "Image", "Plugin", "EnvMap" , "Musgrave",
 		"Voronoi", "DistNoise", "Point Density", "Voxel Data", "", "", "", ""};
 	Image *ima;

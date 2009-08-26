@@ -162,7 +162,7 @@ void init_frame_smoke(Render *re, VoxelData *vd, Tex *tex)
 	ob= vd->object;
 	
 	/* draw code for smoke */
-	if(md = (ModifierData *)modifiers_findByType(ob, eModifierType_Smoke))
+	if( (md = (ModifierData *)modifiers_findByType(ob, eModifierType_Smoke)) )
 	{
 		SmokeModifierData *smd = (SmokeModifierData *)md;
 		

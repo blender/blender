@@ -1330,7 +1330,7 @@ static void ui_block_func_MENUSTR(bContext *C, uiLayout *layout, void *arg_str)
 {
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiPopupBlockHandle *handle= block->handle;
-	uiLayout *split, *column;
+	uiLayout *split, *column=NULL;
 	uiBut *bt;
 	MenuData *md;
 	MenuEntry *entry;

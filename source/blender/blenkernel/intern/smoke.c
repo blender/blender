@@ -92,10 +92,10 @@ static void tend ( void )
 {
 	QueryPerformanceCounter ( &liCurrentTime );
 }
-static double tval()
-{
-	return ((double)( (liCurrentTime.QuadPart - liStartTime.QuadPart)* (double)1000.0/(double)liFrequency.QuadPart ));
-}
+//static double tval()
+//{
+//	return ((double)( (liCurrentTime.QuadPart - liStartTime.QuadPart)* (double)1000.0/(double)liFrequency.QuadPart ));
+//}
 #else
 #include <sys/time.h>
 static struct timeval _tstart, _tend;
@@ -788,9 +788,8 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 	}
 	else if(smd->type & MOD_SMOKE_TYPE_DOMAIN)
 	{
-		PointCache *cache, *cache_wt;
+		PointCache *cache;
 		PTCacheID pid;
-		PTCacheID pid_wt;
 		float timescale;
 		int cache_result = 0;
 		int startframe, endframe, framenr;
@@ -1424,7 +1423,6 @@ void smoke_calc_transparency(float *result, float *p0, float *p1, int res[3], fl
 {
 	int x, y, z;
 	float bv[6];
-	float bigfactor = 1.0;
 
 	// x
 	bv[0] = p0[0];

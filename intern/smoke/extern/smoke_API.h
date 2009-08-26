@@ -32,6 +32,8 @@
 extern "C" {
 #endif
 
+struct FLUID_3D;
+
 // export
 void smoke_export(struct FLUID_3D *fluid, float *dt, float *dx, float **dens, float **densold, float **heat, float **heatold, float **vx, float **vy, float **vz, float **vxold, float **vyold, float **vzold, unsigned char **obstacles);
 

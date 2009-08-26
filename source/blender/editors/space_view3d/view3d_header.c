@@ -1005,9 +1005,10 @@ static uiBlock *view3d_object_mirrormenu(bContext *C, ARegion *ar, void *arg_unu
 #endif
 #endif
 
+#if 0
 static void view3d_edit_object_transformmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-#if 0
+#if 0 // XXX not used anymore
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Scale/Rotation to ObData|Ctrl A, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	apply_objects_locrot();
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Visual Transform|Ctrl A, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
@@ -1024,6 +1025,7 @@ static void view3d_edit_object_transformmenu(bContext *C, uiLayout *layout, void
 	uiItemO(layout, NULL, 0, "OBJECT_OT_scale_clear");
 	uiItemO(layout, NULL, 0, "OBJECT_OT_origin_clear");
 }
+#endif 
 
 #if 0
 static void do_view3d_edit_object_makelocalmenu(bContext *C, void *arg, int event)

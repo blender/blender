@@ -291,7 +291,7 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
 	struct anim *an;
 	char filename[FILE_MAX];
 
-	Sequence *seq, *soundseq;	/* generic strip vars */
+	Sequence *seq, *soundseq=NULL;	/* generic strip vars */
 	Strip *strip;
 	StripElem *se;
 

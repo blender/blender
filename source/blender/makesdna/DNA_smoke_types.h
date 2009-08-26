@@ -32,7 +32,7 @@
 /* flags */
 #define MOD_SMOKE_HIGHRES (1<<1) /* enable high resolution */
 #define MOD_SMOKE_DISSOLVE (1<<2) /* let smoke dissolve */
-#define MOD_SMOKE_DISSOLVE_LOG (1<<3) /* using 1/x for dissolve *
+#define MOD_SMOKE_DISSOLVE_LOG (1<<3) /* using 1/x for dissolve */
 
 /* noise */
 #define MOD_SMOKE_NOISEWAVE (1<<0)

@@ -79,12 +79,14 @@ static void rna_Smoke_reset_dependancy(bContext *C, PointerRNA *ptr)
 	rna_Smoke_dependency_update(C, ptr);
 }
 
+#if 0
 static void rna_Smoke_redraw(bContext *C, PointerRNA *ptr)
 {
 	SmokeDomainSettings *settings = (SmokeDomainSettings*)ptr->data;
 
-	// settings->flags |= MOD_SMOKE_VIEW_REDRAWNICE;
+	settings->flags |= MOD_SMOKE_VIEW_REDRAWNICE;
 }
+#endif
 
 static char *rna_SmokeDomainSettings_path(PointerRNA *ptr)
 {

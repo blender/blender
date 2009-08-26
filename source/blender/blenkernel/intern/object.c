@@ -2571,6 +2571,7 @@ int object_insert_ptcache(Object *ob)
 	return i;
 }
 
+#if 0
 static int pc_findindex(ListBase *listbase, int index)
 {
 	LinkData *link= NULL;
@@ -2590,7 +2591,6 @@ static int pc_findindex(ListBase *listbase, int index)
 	return -1;
 }
 
-#if 0
 void object_delete_ptcache(Object *ob, int index) 
 {
 	int list_index = pc_findindex(&ob->pc_ids, index);

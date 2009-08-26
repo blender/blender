@@ -3238,7 +3238,7 @@ static void deflect_particle(Scene *scene, Object *pob, ParticleSystemModifierDa
 	ParticleCollision col;
 	BVHTreeRayHit hit;
 	float ray_dir[3], zerovec[3]={0.0,0.0,0.0};
-	float radius = ((part->flag & PART_SIZE_DEFL)?pa->size:0.0f), boid_z;
+	float radius = ((part->flag & PART_SIZE_DEFL)?pa->size:0.0f), boid_z = 0.0f;
 	int deflections=0, max_deflections=10;
 
 	VECCOPY(col.co1, pa->prev_state.co);

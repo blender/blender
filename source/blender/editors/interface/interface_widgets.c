@@ -1946,12 +1946,12 @@ static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int 
 {
 	if(state & UI_ACTIVE) {
 		uiWidgetBase wtb;
-		float rad= 0.5f*(rect->ymax - rect->ymin);
+		float rad= 0.5f*(rect->ymax - rect->ymin); // 4.0f
 		
 		widget_init(&wtb);
 		
 		/* half rounded */
-		round_box_edges(&wtb, 15, rect, 4.0f);
+		round_box_edges(&wtb, 15, rect, rad);
 		
 		widgetbase_draw(&wtb, wcol);
 	}
@@ -2045,12 +2045,12 @@ static void widget_but(uiWidgetColors *wcol, rcti *rect, int state, int roundbox
 static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	uiWidgetBase wtb;
-	float rad= 0.5f*(rect->ymax - rect->ymin);
+	float rad= 5.0f; //0.5f*(rect->ymax - rect->ymin);
 	
 	widget_init(&wtb);
 	
 	/* half rounded */
-	round_box_edges(&wtb, roundboxalign, rect, 5.0f);
+	round_box_edges(&wtb, roundboxalign, rect, rad);
 
 	widgetbase_draw(&wtb, wcol);
 }
