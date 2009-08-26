@@ -105,6 +105,12 @@ protected:
 	bool					m_poseApplied;
 	bool					m_recalcNormal;
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_SkinDeformer"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

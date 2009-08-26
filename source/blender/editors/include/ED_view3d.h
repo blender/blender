@@ -70,6 +70,7 @@ float *give_cursor(struct Scene *scene, struct View3D *v3d);
 void initgrabz(struct RegionView3D *rv3d, float x, float y, float z);
 void window_to_3d(struct ARegion *ar, float *vec, short mx, short my);
 void window_to_3d_delta(struct ARegion *ar, float *vec, short mx, short my);
+void view3d_unproject(struct bglMats *mats, float out[3], const short x, const short y, const float z);
 
 /* Depth buffer */
 float read_cached_depth(struct ViewContext *vc, int x, int y);
@@ -130,8 +131,6 @@ int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, 
 int lasso_inside(short mcords[][2], short moves, short sx, short sy);
 int lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int x1, int y1);
 
-/* modes */
-void ED_view3d_exit_paint_modes(struct bContext *C);
 /* get 3d region from context, also if mouse is in header or toolbar */
 struct RegionView3D *ED_view3d_context_rv3d(struct bContext *C);
 

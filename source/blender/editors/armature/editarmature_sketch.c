@@ -2320,7 +2320,7 @@ void sk_drawSketch(Scene *scene, View3D *v3d, SK_Sketch *sketch, int with_names)
 
 		for (p = sketch->depth_peels.first; p; p = p->next)
 		{
-			int index = (int)(p->ob);
+			int index = GET_INT_FROM_POINTER(p->ob);
 			index = (index >> 5) & 7;
 
 			glColor3fv(colors[index]);
@@ -2466,8 +2466,10 @@ static int sketch_delete(bContext *C, wmOperator *op, wmEvent *event)
 
 void BIF_sk_selectStroke(bContext *C, short mval[2], short extend)
 {
+	ToolSettings *ts = CTX_data_tool_settings(C);
 	SK_Sketch *sketch = contextSketch(C, 0);
-	if (sketch)
+
+	if (sketch != NULL && ts->bone_sketching & BONE_SKETCHING)
 	{
 		sk_selectStroke(C, sketch, mval, extend);
 	}

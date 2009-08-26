@@ -43,7 +43,6 @@ SET(INC
   ../../../../intern/ghost
   ../../../../intern/guardedalloc
   ../../../../intern/moto/include
-  ../../../../intern/SoundSystem
   ../../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
   ../../../../source/kernel/gen_system
   ../../../../source/kernel/gen_messaging
@@ -61,8 +60,6 @@ SET(INC
   ../../../../source/gameengine/Network
   ../../../../source/gameengine/SceneGraph
   ../../../../source/gameengine/Physics/common
-  ../../../../source/gameengine/Physics/Sumo
-  ../../../../source/gameengine/Physics/Sumo/Fuzzics/include
   ../../../../source/gameengine/Network/LoopBackNetwork
   ../../../../source/gameengine/GamePlayer/ghost
   ../../../../source/blender/misc

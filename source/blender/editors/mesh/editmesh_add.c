@@ -119,7 +119,6 @@ static short icoface[20][3] = {
 	{10,9,11}
 };
 
-
 /* ********************** */
 
 /* selected faces get hidden edges */
@@ -240,6 +239,7 @@ void MESH_OT_fgon_make(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make F-gon";
+	ot->description= "Make fgon from selected faces.";
 	ot->idname= "MESH_OT_fgon_make";
 	
 	/* api callbacks */
@@ -272,6 +272,7 @@ void MESH_OT_fgon_clear(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear F-gon";
+	ot->description= "Clear fgon from selected face.";
 	ot->idname= "MESH_OT_fgon_clear";
 	
 	/* api callbacks */
@@ -710,6 +711,7 @@ static void addedgeface_mesh(Mesh *me, BMEditMesh *bem, wmOperator *op)
 
 	BKE_mesh_end_editmesh(me, em);
 }
+
 
 /* ************************ primitives ******************* */
 
@@ -1226,6 +1228,7 @@ void MESH_OT_primitive_plane_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Plane";
+	ot->description= "Construct a filled planar mesh with 4 vertices.";
 	ot->idname= "MESH_OT_primitive_plane_add";
 	
 	/* api callbacks */
@@ -1258,6 +1261,7 @@ void MESH_OT_primitive_cube_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Cube";
+	ot->description= "Construct a cube mesh.";
 	ot->idname= "MESH_OT_primitive_cube_add";
 	
 	/* api callbacks */
@@ -1290,6 +1294,7 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Circle";
+	ot->description= "Construct a circle mesh.";
 	ot->idname= "MESH_OT_primitive_circle_add";
 	
 	/* api callbacks */
@@ -1327,6 +1332,7 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Cylinder";
+	ot->description= "Construct a cylindrical mesh (ends filled).";
 	ot->idname= "MESH_OT_primitive_cylinder_add";
 	
 	/* api callbacks */
@@ -1364,6 +1370,7 @@ void MESH_OT_primitive_tube_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Tube";
+	ot->description= "Construct a cylindrical mesh (ends not filled).";
 	ot->idname= "MESH_OT_primitive_tube_add";
 	
 	/* api callbacks */
@@ -1401,6 +1408,7 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Cone";
+	ot->description= "Construct a conic mesh (ends filled).";
 	ot->idname= "MESH_OT_primitive_cone_add";
 	
 	/* api callbacks */
@@ -1440,6 +1448,7 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Grid";
+	ot->description= "Construct a grid mesh.";
 	ot->idname= "MESH_OT_primitive_grid_add";
 	
 	/* api callbacks */
@@ -1475,6 +1484,7 @@ void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Monkey";
+	ot->description= "Construct a Suzanne mesh.";
 	ot->idname= "MESH_OT_primitive_monkey_add";
 	
 	/* api callbacks */
@@ -1507,6 +1517,7 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add UV Sphere";
+	ot->description= "Construct a UV sphere mesh.";
 	ot->idname= "MESH_OT_primitive_uv_sphere_add";
 	
 	/* api callbacks */
@@ -1544,6 +1555,7 @@ void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Ico Sphere";
+	ot->description= "Construct an Icosphere mesh.";
 	ot->idname= "MESH_OT_primitive_ico_sphere_add";
 	
 	/* api callbacks */

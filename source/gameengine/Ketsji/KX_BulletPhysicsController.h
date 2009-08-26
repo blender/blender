@@ -18,7 +18,6 @@ private:
 	btCollisionShape* m_bulletChildShape;
 
 public:
-
 	KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna, bool sensor, bool compound);
 	virtual ~KX_BulletPhysicsController ();
 
@@ -81,6 +80,12 @@ public:
 		// intentionally empty
 	};
 
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_BulletPhysicsController"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //KX_BULLET2PHYSICS_CONTROLLER

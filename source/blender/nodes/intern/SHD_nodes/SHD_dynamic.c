@@ -34,9 +34,7 @@
 #endif
 
 /* TODO, support python3.x */
-#if PY_VERSION_HEX >= 0x03000000
 #define DISABLE_PYTHON 1
-#endif
 
 #include "DNA_text_types.h"
 #include "BKE_text.h"

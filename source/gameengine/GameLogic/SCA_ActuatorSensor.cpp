@@ -121,13 +121,7 @@ void SCA_ActuatorSensor::Update()
 
 /* Integration hooks ------------------------------------------------------- */
 PyTypeObject SCA_ActuatorSensor::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,                          /* ob_size */
-#endif
 	"SCA_ActuatorSensor",
 	sizeof(PyObjectPlus_Proxy),
 	0,
@@ -149,10 +143,6 @@ PyTypeObject SCA_ActuatorSensor::Type = {
 };
 
 PyMethodDef SCA_ActuatorSensor::Methods[] = {
-	//Deprecated functions ------>
-	{"getActuator", (PyCFunction) SCA_ActuatorSensor::sPyGetActuator, METH_NOARGS, (PY_METHODCHAR)GetActuator_doc},
-	{"setActuator", (PyCFunction) SCA_ActuatorSensor::sPySetActuator, METH_VARARGS, (PY_METHODCHAR)SetActuator_doc},
-	//<----- Deprecated
 	{NULL,NULL} //Sentinel
 };
 
@@ -171,43 +161,6 @@ int SCA_ActuatorSensor::CheckActuator(void *self, const PyAttributeDef*)
 	}
 	PyErr_SetString(PyExc_AttributeError, "string does not correspond to an actuator");
 	return 1;
-}
-
-/* 3. getActuator */
-const char SCA_ActuatorSensor::GetActuator_doc[] = 
-"getActuator()\n"
-"\tReturn the Actuator with which the sensor operates.\n";
-PyObject* SCA_ActuatorSensor::PyGetActuator() 
-{
-	ShowDeprecationWarning("getActuator()", "the actuator property");
-	return PyUnicode_FromString(m_checkactname);
-}
-
-/* 4. setActuator */
-const char SCA_ActuatorSensor::SetActuator_doc[] = 
-"setActuator(name)\n"
-"\t- name: string\n"
-"\tSets the Actuator with which to operate. If there is no Actuator\n"
-"\tof this name, the call is ignored.\n";
-PyObject* SCA_ActuatorSensor::PySetActuator(PyObject* args) 
-{
-	ShowDeprecationWarning("setActuator()", "the actuator property");
-	/* We should query whether the name exists. Or should we create a prop   */
-	/* on the fly?                                                           */
-	char *actNameArg = NULL;
-
-	if (!PyArg_ParseTuple(args, "s:setActuator", &actNameArg)) {
-		return NULL;
-	}
-
-	SCA_IActuator* act = GetParent()->FindActuator(STR_String(actNameArg));
-	if (act) {
-		m_checkactname = actNameArg;
-		m_actuator = act;
-	} else {
-		; /* error: bad actuator name */
-	}
-	Py_RETURN_NONE;
 }
 
 /* eof */

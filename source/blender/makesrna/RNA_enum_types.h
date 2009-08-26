@@ -29,6 +29,8 @@
 
 /* Types */
 
+extern EnumPropertyItem object_mode_items[];
+
 extern EnumPropertyItem prop_mode_items[];
 extern EnumPropertyItem space_type_items[];
 extern EnumPropertyItem region_type_items[];
@@ -39,6 +41,8 @@ extern EnumPropertyItem boidrule_type_items[];
 extern EnumPropertyItem beztriple_handle_type_items[];
 extern EnumPropertyItem beztriple_interpolation_mode_items[];
 
+extern EnumPropertyItem keyingset_path_grouping_items[];
+
 extern EnumPropertyItem fmodifier_type_items[];
 
 extern EnumPropertyItem nla_mode_extend_items[];
@@ -46,6 +50,8 @@ extern EnumPropertyItem nla_mode_blend_items[];
 
 extern EnumPropertyItem event_value_items[];
 extern EnumPropertyItem event_type_items[];
+
+extern EnumPropertyItem brush_sculpt_tool_items[];
 
 #endif /* RNA_ENUM_TYPES */
 

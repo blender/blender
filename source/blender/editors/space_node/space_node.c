@@ -46,6 +46,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_node.h"
 
 #include "ED_previewrender.h"
 #include "ED_space_api.h"
@@ -152,10 +153,14 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 			if(wmn->data==ND_FILEREAD)
 				ED_area_tag_refresh(sa);
 			break;
-				
+			
+		/* future: add ID checks? */
 		case NC_MATERIAL:
-			/* future: add ID check? */
 			if(wmn->data==ND_SHADING)
+				ED_area_tag_refresh(sa);
+			break;
+		case NC_TEXTURE:
+			if(wmn->data==ND_NODES)
 				ED_area_tag_refresh(sa);
 			break;
 	}
@@ -170,12 +175,18 @@ static void node_area_refresh(const struct bContext *C, struct ScrArea *sa)
 		if(snode->treetype==NTREE_SHADER) {
 			Material *ma= (Material *)snode->id;
 			if(ma->use_nodes)
-				ED_preview_shader_job(C, sa, snode->id, NULL, 100, 100);
+				ED_preview_shader_job(C, sa, snode->id, NULL, NULL, 100, 100);
 		}
 		else if(snode->treetype==NTREE_COMPOSIT) {
 			Scene *scene= (Scene *)snode->id;
 			if(scene->use_nodes)
 				snode_composite_job(C, sa);
+		}
+		else if(snode->treetype==NTREE_TEXTURE) {
+			Tex *tex= (Tex *)snode->id;
+			if(tex->use_nodes) {
+				ED_preview_shader_job(C, sa, snode->id, NULL, NULL, 100, 100);
+			}
 		}
 	}
 }
@@ -244,29 +255,18 @@ static void node_main_area_draw(const bContext *C, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void node_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+	ED_region_header_init(ar);
 }
 
 static void node_header_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
-	/* clear */
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
-	node_header_buttons(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
+	Scene *scene= CTX_data_scene(C);
+
+    /* find and set the context */
+	snode_set_context(snode, scene);
+
+	ED_region_header(C, ar);
 }
 
 /* used for header + main area */
@@ -275,9 +275,9 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 	/* context changes */
 	switch(wmn->category) {
 		case NC_SCENE:
-			ED_region_tag_redraw(ar);
-			break;
 		case NC_MATERIAL:
+		case NC_TEXTURE:
+		case NC_NODE:
 			ED_region_tag_redraw(ar);
 			break;
 	}
@@ -344,6 +344,8 @@ void ED_spacetype_node(void)
 	art->draw= node_header_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
+
+	node_menus_register(art);
 	
 #if 0
 	/* regions: channels */

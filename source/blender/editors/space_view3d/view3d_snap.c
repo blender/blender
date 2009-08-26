@@ -510,7 +510,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 			ob= base->object;
 			
-			if(ob->flag & OB_POSEMODE) {
+			if(ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan;
 				bArmature *arm= ob->data;
 				
@@ -637,7 +637,7 @@ static int snap_sel_to_curs(bContext *C, wmOperator *op)
 	else {
 		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 			ob= base->object;
-			if(ob->flag & OB_POSEMODE) {
+			if(ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan;
 				bArmature *arm= ob->data;
 				float cursp[3];
@@ -803,7 +803,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *op)
 	else {
 		Object *ob= OBACT;
 		
-		if(ob && (ob->flag & OB_POSEMODE)) {
+		if(ob && (ob->mode & OB_MODE_POSE)) {
 			bArmature *arm= ob->data;
 			bPoseChannel *pchan;
 			for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
@@ -963,7 +963,7 @@ static int snap_selected_to_center(bContext *C, wmOperator *op)
 		
 		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 			ob= base->object;
-			if(ob->flag & OB_POSEMODE) {
+			if(ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan;
 				bArmature *arm= ob->data;
 				
@@ -1032,7 +1032,7 @@ static int snap_selected_to_center(bContext *C, wmOperator *op)
 
 		CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 			ob= base->object;
-			if(ob->flag & OB_POSEMODE) {
+			if(ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan;
 				bArmature *arm= ob->data;
 				

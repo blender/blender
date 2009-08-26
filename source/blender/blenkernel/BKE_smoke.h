@@ -1,5 +1,5 @@
 /**
- * BKE_cloth.h
+ * BKE_smoke.h
  *
  * $Id$
  *
@@ -32,24 +32,13 @@
 #ifndef BKE_SMOKE_H_
 #define BKE_SMOKE_H_
 
+typedef int (*bresenham_callback) (float *input, int res[3], int *pixel, float *tRay);
+
 void smokeModifier_do(struct SmokeModifierData *smd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm, int useRenderParams, int isFinalCalc);
 
 void smokeModifier_free (struct SmokeModifierData *smd);
 void smokeModifier_reset(struct SmokeModifierData *smd);
 void smokeModifier_createType(struct SmokeModifierData *smd);
 
-void smoke_set_tray(struct SmokeModifierData *smd, size_t index, float transparency);
-float smoke_get_tray(struct SmokeModifierData *smd, size_t index);
-float smoke_get_tvox(struct SmokeModifierData *smd, size_t index);
-void smoke_set_tvox(struct SmokeModifierData *smd, size_t index, float tvox);
-
-void smoke_set_bigtray(struct SmokeModifierData *smd, size_t index, float transparency);
-float smoke_get_bigtray(struct SmokeModifierData *smd, size_t index);
-float smoke_get_bigtvox(struct SmokeModifierData *smd, size_t index);
-void smoke_set_bigtvox(struct SmokeModifierData *smd, size_t index, float tvox);
-
-long long smoke_get_mem_req(int xres, int yres, int zres, int amplify);
-void smoke_prepare_View(struct SmokeModifierData *smd, float *light);
-void smoke_prepare_bigView(struct SmokeModifierData *smd, float *light);
 
 #endif /* BKE_SMOKE_H_ */

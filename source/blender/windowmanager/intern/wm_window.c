@@ -26,6 +26,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -90,7 +91,7 @@ static void wm_window_check_position(rcti *rect)
 	wm_get_screensize(&width, &height);
 	
 #ifdef __APPLE__
-	height -= 42;
+	height -= 70;
 #endif
 	
 	if(rect->xmin < 0) {
@@ -207,7 +208,10 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 	win->sizey= winorig->sizey;
 	
 	/* duplicate assigns to window */
-	ED_screen_duplicate(win, winorig->screen);
+	win->screen= ED_screen_duplicate(win, winorig->screen);
+	BLI_strncpy(win->screenname, win->screen->id.name+2, 21);
+	win->screen->winid= win->winid;
+
 	win->screen->do_refresh= 1;
 	win->screen->do_draw= 1;
 
@@ -443,14 +447,14 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 		ED_area_newspace(C, sa, SPACE_IMAGE);
 	}
 	else {
-		ED_area_newspace(C, sa, SPACE_INFO);
+		ED_area_newspace(C, sa, SPACE_USERPREF);
 	}
 	
 	ED_screen_set(C, win->screen);
 	
 	if(sa->spacetype==SPACE_IMAGE)
 		GHOST_SetTitle(win->ghostwin, "Blender Render");
-	else if(ELEM(sa->spacetype, SPACE_OUTLINER, SPACE_INFO))
+	else if(ELEM(sa->spacetype, SPACE_OUTLINER, SPACE_USERPREF))
 		GHOST_SetTitle(win->ghostwin, "Blender User Preferences");
 	else if(sa->spacetype==SPACE_FILE)
 		GHOST_SetTitle(win->ghostwin, "Blender File View");
@@ -585,6 +589,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 					kdata.key= GHOST_kKeyCommand;
 					wm_event_add_ghostevent(win, GHOST_kEventKeyUp, &kdata);
 				}
+				/* keymodifier zero, it hangs on hotkeys that open windows otherwise */
+				win->eventstate->keymodifier= 0;
 				
 				/* entering window, update mouse pos. but no event */
 				GHOST_GetCursorPosition(g_system, &wx, &wy);
@@ -685,12 +691,13 @@ static int wm_window_timer(const bContext *C)
 		wmTimer *wt;
 		for(wt= win->timers.first; wt; wt= wt->next) {
 			if(wt->sleep==0) {
-				if(wt->timestep < time - wt->ltime) {
+				if(time > wt->ntime) {
 					wmEvent event= *(win->eventstate);
 					
 					wt->delta= time - wt->ltime;
 					wt->duration += wt->delta;
 					wt->ltime= time;
+					wt->ntime= wt->stime + wt->timestep*ceil(wt->duration/wt->timestep);
 					
 					event.type= wt->event_type;
 					event.custom= EVT_DATA_TIMER;
@@ -785,6 +792,8 @@ wmTimer *WM_event_add_window_timer(wmWindow *win, int event_type, double timeste
 	
 	wt->event_type= event_type;
 	wt->ltime= PIL_check_seconds_timer();
+	wt->ntime= wt->ltime + timestep;
+	wt->stime= wt->ltime;
 	wt->timestep= timestep;
 	
 	BLI_addtail(&win->timers, wt);

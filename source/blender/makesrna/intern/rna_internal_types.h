@@ -40,6 +40,7 @@ struct IDProperty;
 struct GHash;
 
 #define RNA_MAX_ARRAY 32
+#define RNA_MAX_ARRAY_DIMENSION 3
 
 /* Function Callbacks */
 
@@ -49,6 +50,8 @@ typedef struct IDProperty* (*IDPropertiesFunc)(struct PointerRNA *ptr, int creat
 typedef struct StructRNA *(*StructRefineFunc)(struct PointerRNA *ptr);
 typedef char *(*StructPathFunc)(struct PointerRNA *ptr);
 
+typedef int (*PropArrayLengthGetFunc)(struct PointerRNA *ptr);
+typedef int (*PropArrayLengthSetFunc)(struct PointerRNA *ptr, int length);
 typedef int (*PropBooleanGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropBooleanSetFunc)(struct PointerRNA *ptr, int value);
 typedef void (*PropBooleanArrayGetFunc)(struct PointerRNA *ptr, int *values);
@@ -131,6 +134,14 @@ struct PropertyRNA {
 	PropertySubType subtype;
 	/* if an array this is > 0, specifying the length */
 	unsigned int arraylength;
+	/* these, if non-NULL, override arraylength */
+	PropArrayLengthGetFunc getlength;
+	/* if NULL, length cannot be changed by a user */
+	PropArrayLengthSetFunc setlength;
+	/* used only for dynamic arrays for now, default 1 */
+	unsigned short arraydimension;
+	/* dimension sizes for dimensions greater than 1, first dimension size is not specified */
+	unsigned short dimsize[RNA_MAX_ARRAY_DIMENSION - 1];
 	
 	/* callback for updates on change */
 	UpdateFunc update;

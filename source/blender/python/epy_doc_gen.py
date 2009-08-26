@@ -76,6 +76,7 @@ def write_func(rna, ident, out, func_type):
 		rna_func_desc = rna.description.strip()
 		items = rna.parameters.items()
 	
+	
 	for rna_prop_identifier, rna_prop in items:
 		if rna_prop_identifier=='rna_type':
 			continue
@@ -88,13 +89,25 @@ def write_func(rna, ident, out, func_type):
 		rna_prop_type = rna_prop.type.lower() # enum, float, int, boolean
 		
 		
+		# only for rna functions, operators should not get pointers as args
+		if rna_prop_type=='pointer':
+			rna_prop_type_refine = "L{%s}" % rna_prop.fixed_type.identifier
+		else:
+			rna_prop_type_refine = rna_prop_type
+		
+		
 		try:		length = rna_prop.array_length
 		except:	length = 0
 		
 		array_str = get_array_str(length)
 		
-		kw_type_str= "@type %s: %s%s" % (rna_prop_identifier, rna_prop_type, array_str)
-		kw_param_str= "@param %s: %s" % (rna_prop_identifier, rna_prop.description.strip())
+		if rna_prop.use_return:
+			kw_type_str= "@rtype: %s%s" % (rna_prop_type_refine, array_str)
+			kw_param_str= "@return: %s" % (rna_prop.description.strip())
+		else:
+			kw_type_str= "@type %s: %s%s" % (rna_prop_identifier, rna_prop_type_refine, array_str)
+			kw_param_str= "@param %s: %s" % (rna_prop_identifier, rna_prop.description.strip())
+		
 		kw_param_set = False
 		
 		if func_type=='OPERATOR':
@@ -159,8 +172,11 @@ def write_func(rna, ident, out, func_type):
 			# stora 
 		else:
 			# currently functions dont have a default value
-			kw_args.append('%s' % (rna_prop_identifier))
-		
+			if not rna_prop.use_return:
+				kw_args.append('%s' % (rna_prop_identifier))
+			else:
+				kw_param_set = True
+
 		
 		# Same for operators and functions
 		kw_arg_attrs.append(kw_type_str)
@@ -174,7 +190,8 @@ def write_func(rna, ident, out, func_type):
 	out.write(ident+'\t%s\n' % rna_func_desc)
 	for desc in kw_arg_attrs:
 		out.write(ident+'\t%s\n' % desc)
-	out.write(ident+'\t@rtype: None\n')
+		
+	# out.write(ident+'\t@rtype: None\n') # implicit
 	out.write(ident+'\t"""\n')
 	
 
@@ -183,6 +200,7 @@ def rna2epy(target_path):
 	
 	# Use for faster lookups
 	# use rna_struct.identifier as the key for each dict
+	rna_struct_dict =		{}  # store identifier:rna lookups
 	rna_full_path_dict =	{}	# store the result of full_rna_struct_path(rna_struct)
 	rna_children_dict =		{}	# store all rna_structs nested from here
 	rna_references_dict =	{}	# store a list of rna path strings that reference this type
@@ -199,8 +217,12 @@ def rna2epy(target_path):
 		
 		if rna_base:
 			out.write(ident+ 'class %s(%s):\n' % (identifier, rna_base.identifier))
+			rna_base_prop_keys = rna_base.properties.keys() # could be cached
+			rna_base_func_keys = [f.identifier for f in rna_base.functions]
 		else:
 			out.write(ident+ 'class %s:\n' % identifier)
+			rna_base_prop_keys = []
+			rna_base_func_keys = []
 		
 		out.write(ident+ '\t"""\n')
 		
@@ -232,11 +254,9 @@ def rna2epy(target_path):
 		
 		for rna_prop_identifier, rna_prop in rna_struct.properties.items():
 			
-			if rna_prop_identifier=='RNA':
-				continue
-			
-			if rna_prop_identifier=='rna_type':
-				continue
+			if rna_prop_identifier=='RNA':					continue
+			if rna_prop_identifier=='rna_type':				continue
+			if rna_prop_identifier in rna_base_prop_keys:	continue # does this prop exist in our parent class, if so skip
 			
 			rna_desc = rna_prop.description.strip()
 			
@@ -269,7 +289,8 @@ def rna2epy(target_path):
 						out.write(ident+ '\t@ivar %s: %s in (%s)\n' %  (rna_prop_identifier, rna_desc, ', '.join(rna_prop.items.keys())))
 					else:
 						out.write(ident+ '\t@ivar %s: %s in...\n' %  (rna_prop_identifier, rna_desc))
-						for e in rna_prop.items.keys():
+						for e, e_rna_prop in rna_prop.items.items():
+							#out.write(ident+ '\t\t- %s: %s\n' % (e, e_rna_prop.description)) # XXX - segfaults, FIXME
 							out.write(ident+ '\t\t- %s\n' % e)
 						
 					out.write(ident+ '\t@type %s: %s%s%s\n' %  (rna_prop_identifier, rna_prop_type,  array_str, readonly_str))
@@ -290,7 +311,8 @@ def rna2epy(target_path):
 		# Write functions 
 		# for rna_func in rna_struct.functions: # Better ignore inherited (line below)
 		for rna_func in rna_functions_dict[identifier]:
-			write_func(rna_func, ident+'\t', out, 'FUNCTION')
+			if rna_func not in rna_base_func_keys:
+				write_func(rna_func, ident+'\t', out, 'FUNCTION')
 		
 		out.write('\n')
 		
@@ -313,13 +335,18 @@ def rna2epy(target_path):
 	structs = []
 	for rna_type_name in dir(bpy.types):
 		rna_type = getattr(bpy.types, rna_type_name)
-		if hasattr(rna_type, '__rna__'):
+		
+		try:		rna_struct = rna_type.__rna__
+		except:	rna_struct = None
+		
+		if rna_struct:
 			#if not rna_type_name.startswith('__'):
-			rna_struct = rna_type.__rna__
+			
 			identifier = rna_struct.identifier
 			structs.append( (base_id(rna_struct), identifier, rna_struct) )	
 			
-			
+			# Simple lookup
+			rna_struct_dict[identifier] = rna_struct
 			
 			# Store full rna path 'GameObjectSettings' -> 'Object.GameObjectSettings'
 			rna_full_path_dict[identifier] = full_rna_struct_path(rna_struct)
@@ -377,16 +404,21 @@ def rna2epy(target_path):
 	# precalc vars to avoid a lot of looping
 	for (rna_base, identifier, rna_struct) in structs:
 		
+		if rna_base:
+			rna_base_prop_keys = rna_struct_dict[rna_base].properties.keys() # could cache
+			rna_base_func_keys = [f.identifier for f in rna_struct_dict[rna_base].functions]
+		else:
+			rna_base_prop_keys = []
+			rna_base_func_keys= []
 		
 		# rna_struct_path = full_rna_struct_path(rna_struct)
 		rna_struct_path = rna_full_path_dict[identifier]
 		
 		for rna_prop_identifier, rna_prop in rna_struct.properties.items():
-			if rna_prop_identifier=='RNA':
-				continue
 			
-			if rna_prop_identifier=='rna_type':
-				continue
+			if rna_prop_identifier=='RNA':					continue
+			if rna_prop_identifier=='rna_type':				continue
+			if rna_prop_identifier in rna_base_prop_keys:	continue
 			
 			try:		rna_prop_ptr = rna_prop.fixed_type
 			except:	rna_prop_ptr = None
@@ -395,7 +427,21 @@ def rna2epy(target_path):
 			if rna_prop_ptr:
 				rna_references_dict[rna_prop_ptr.identifier].append( "%s.%s" % (rna_struct_path, rna_prop_identifier) )
 		
-		
+		for rna_func in rna_struct.functions:
+			for rna_prop_identifier, rna_prop in rna_func.parameters.items():
+				
+				if rna_prop_identifier=='RNA':					continue
+				if rna_prop_identifier=='rna_type':				continue
+				if rna_prop_identifier in rna_base_func_keys:	continue
+					
+				
+				try:		rna_prop_ptr = rna_prop.fixed_type
+				except:	rna_prop_ptr = None
+				
+				# Does this property point to me?
+				if rna_prop_ptr:
+					rna_references_dict[rna_prop_ptr.identifier].append( "%s.%s" % (rna_struct_path, rna_func.identifier) )
+			
 		
 		# Store nested children
 		nested = rna_struct.nested

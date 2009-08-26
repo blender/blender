@@ -245,7 +245,7 @@ int EDBM_mask_init_backbuf_border(ViewContext *vc, short mcords[][2], short tot,
 	
 	/* method in use for face selecting too */
 	if(vc->obedit==NULL) {
-		if(FACESEL_PAINT_TEST);
+		if(paint_facesel_test(vc->obact));
 		else return 0;
 	}
 	else if(vc->v3d->drawtype<OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT)==0) return 0;
@@ -300,7 +300,7 @@ int EDBM_init_backbuf_circle(ViewContext *vc, short xs, short ys, short rads)
 	
 	/* method in use for face selecting too */
 	if(vc->obedit==NULL) {
-		if(FACESEL_PAINT_TEST);
+		if(paint_facesel_test(vc->obact));
 		else return 0;
 	}
 	else if(vc->v3d->drawtype<OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT)==0) return 0;
@@ -1163,6 +1163,7 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 	ot->invoke= WM_menu_invoke;
 	ot->exec= select_similar_exec;
 	ot->poll= ED_operator_editmesh;
+	ot->description= "Select similar vertices, edges or faces by property types.";
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1406,6 +1407,7 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= loop_multiselect;
 	ot->poll= ED_operator_editmesh;
+	ot->description= "Select a loop of connected edges by connection type.";
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1484,6 +1486,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= mesh_select_loop_invoke;
 	ot->poll= ED_operator_editmesh;
+	ot->description= "Select a loop of connected edges.";
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1585,6 +1588,7 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= mesh_shortest_path_select_invoke;
 	ot->poll= ED_operator_editmesh;
+	ot->description= "Select shortest path between two selections.";
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1705,9 +1709,9 @@ void EDBM_selectmode_set(BMEditMesh *em)
 	EDBM_strip_selections(em); /*strip BMEditSelections from em->selected that are not relevant to new mode*/
 	
 	if(em->selectmode & SCE_SELECT_VERTEX) {
-		BMIter iter;
+		/*BMIter iter;
 		
-		/*eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
+		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
 		for ( ; eed; eed=BMIter_Step(&iter)) BM_Select(em->bm, eed, 0);
 		
 		efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
@@ -1847,6 +1851,7 @@ void MESH_OT_select_inverse(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Inverse";
 	ot->idname= "MESH_OT_select_inverse";
+	ot->description= "Select inverse of (un)selected vertices, edges or faces.";
 	
 	/* api callbacks */
 	ot->exec= select_inverse_mesh_exec;
@@ -1928,6 +1933,7 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= select_linked_pick_invoke;
 	ot->poll= ED_operator_editmesh;
+	ot->description= "select/deselect all vertices linked to the edge under the mouse cursor.";
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1983,6 +1989,7 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= select_linked_exec;
 	ot->poll= ED_operator_editmesh;
+	ot->description= "Select all vertices linked to the active mesh.";
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2019,6 +2026,7 @@ void MESH_OT_select_more(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select More";
 	ot->idname= "MESH_OT_select_more";
+	ot->description= "Select more vertices, edges or faces connected to initial selection.";
 
 	/* api callbacks */
 	ot->exec= select_more;
@@ -2055,6 +2063,7 @@ void MESH_OT_select_less(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Less";
 	ot->idname= "MESH_OT_select_less";
+	ot->description= "Deselect vertices, edges or faces at the boundary of each selection region.";
 
 	/* api callbacks */
 	ot->exec= select_less;

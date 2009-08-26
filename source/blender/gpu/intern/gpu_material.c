@@ -246,7 +246,7 @@ void GPU_material_free(Material *ma)
 	BLI_freelistN(&ma->gpumaterial);
 }
 
-void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double time)
+void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double time, int mipmap)
 {
 	if(material->pass) {
 		LinkData *nlink;
@@ -266,7 +266,7 @@ void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double tim
 			}
 		}
 
-		GPU_pass_bind(material->pass, time);
+		GPU_pass_bind(material->pass, time, mipmap);
 		material->bound = 1;
 	}
 }
@@ -500,7 +500,7 @@ static void ramp_diffuse_result(GPUShadeInput *shi, GPUNodeLink **diff)
 	GPUMaterial *mat= shi->gpumat;
 	GPUNodeLink *fac;
 
-	if(!(G.fileflags & G_FILE_GLSL_NO_RAMPS)) {
+	if(!(mat->scene->gm.flag & GAME_GLSL_NO_RAMPS)) {
 		if(ma->ramp_col) {
 			if(ma->rampin_col==MA_RAMP_IN_RESULT) {
 				GPU_link(mat, "ramp_rgbtobw", *diff, &fac);
@@ -516,7 +516,7 @@ static void add_to_diffuse(GPUMaterial *mat, Material *ma, GPUShadeInput *shi, G
 {
 	GPUNodeLink *fac, *tmp, *addcol;
 	
-	if(!(G.fileflags & G_FILE_GLSL_NO_RAMPS) &&
+	if(!(mat->scene->gm.flag & GAME_GLSL_NO_RAMPS) &&
 	   ma->ramp_col && (ma->mode & MA_RAMP_COL)) {
 		/* MA_RAMP_IN_RESULT is exceptional */
 		if(ma->rampin_col==MA_RAMP_IN_RESULT) {
@@ -556,7 +556,7 @@ static void ramp_spec_result(GPUShadeInput *shi, GPUNodeLink **spec)
 	GPUMaterial *mat= shi->gpumat;
 	GPUNodeLink *fac;
 
-	if(!(G.fileflags & G_FILE_GLSL_NO_RAMPS) &&
+	if(!(mat->scene->gm.flag & GAME_GLSL_NO_RAMPS) &&
 	   ma->ramp_spec && ma->rampin_spec==MA_RAMP_IN_RESULT) {
 		GPU_link(mat, "ramp_rgbtobw", *spec, &fac);
 		
@@ -644,7 +644,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 
 		is= inp; /* Lambert */
 
-		if(!(G.fileflags & G_FILE_GLSL_NO_SHADERS)) {
+		if(!(mat->scene->gm.flag & GAME_GLSL_NO_SHADERS)) {
 			if(ma->diff_shader==MA_DIFF_ORENNAYAR)
 				GPU_link(mat, "shade_diffuse_oren_nayer", inp, vn, lv, view, GPU_uniform(&ma->roughness), &is);
 			else if(ma->diff_shader==MA_DIFF_TOON)
@@ -656,7 +656,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 		}
 	}
 
-	if(!(G.fileflags & G_FILE_GLSL_NO_SHADERS))
+	if(!(mat->scene->gm.flag & GAME_GLSL_NO_SHADERS))
 		if(ma->shade_flag & MA_CUBIC)
 			GPU_link(mat, "shade_cubic", is, &is);
 	
@@ -671,7 +671,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 	// done in shade_visifac now, GPU_link(mat, "mtex_value_clamp_positive", i, &i);
 
 	if((ma->mode & MA_SHADOW) && GPU_lamp_has_shadow_buffer(lamp)) {
-		if(!(G.fileflags & G_FILE_GLSL_NO_SHADOWS)) {
+		if(!(mat->scene->gm.flag & GAME_GLSL_NO_SHADOWS)) {
 			mat->dynproperty |= DYN_LAMP_PERSMAT;
 
 			GPU_link(mat, "test_shadowbuf",
@@ -700,7 +700,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 			GPU_link(mat, "math_multiply", i, shadfac, &i);
 		}
 	}
-	else if((G.fileflags & G_FILE_GLSL_NO_SHADOWS) && (lamp->mode & LA_ONLYSHADOW)) {
+	else if((mat->scene->gm.flag & GAME_GLSL_NO_SHADOWS) && (lamp->mode & LA_ONLYSHADOW)) {
 		add_user_list(&mat->lamps, lamp);
 		add_user_list(&lamp->materials, shi->gpumat->ma);
 		return;
@@ -716,7 +716,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 		}
 	}
 
-	if(G.fileflags & G_FILE_GLSL_NO_SHADERS);
+	if(mat->scene->gm.flag & GAME_GLSL_NO_SHADERS);
 	else if(!(lamp->mode & LA_NO_SPEC) && !(lamp->mode & LA_ONLYSHADOW) &&
 	   (GPU_link_changed(shi->spec) || ma->spec != 0.0f)) {
 		if(lamp->type == LA_HEMI) {
@@ -1015,11 +1015,11 @@ static void do_material_tex(GPUShadeInput *shi)
 				if(mtex->mapto & MAP_COL)
 					texture_rgb_blend(mat, tcol, shi->rgb, tin, colfac, mtex->blendtype, &shi->rgb);
 				
-				if(!(G.fileflags & G_FILE_GLSL_NO_EXTRA_TEX) && (mtex->mapto & MAP_COLSPEC))
+				if(!(mat->scene->gm.flag & GAME_GLSL_NO_EXTRA_TEX) && (mtex->mapto & MAP_COLSPEC))
 					texture_rgb_blend(mat, tcol, shi->specrgb, tin, colfac, mtex->blendtype, &shi->specrgb);
 			}
 
-			if(!(G.fileflags & G_FILE_GLSL_NO_EXTRA_TEX) && (mtex->mapto & MAP_NORM)) {
+			if(!(mat->scene->gm.flag & GAME_GLSL_NO_EXTRA_TEX) && (mtex->mapto & MAP_NORM)) {
 				if(mtex->maptoneg & MAP_NORM) tex->norfac= -mtex->norfac;
 				else tex->norfac= mtex->norfac;
 				
@@ -1065,22 +1065,22 @@ static void do_material_tex(GPUShadeInput *shi)
 						GPU_link(mat, "mtex_rgbtoint", trgb, &tin);
 				}
 
-				if(!(G.fileflags & G_FILE_GLSL_NO_EXTRA_TEX) && mtex->mapto & MAP_REF) {
+				if(!(mat->scene->gm.flag & GAME_GLSL_NO_EXTRA_TEX) && mtex->mapto & MAP_REF) {
 					int flip= mtex->maptoneg & MAP_REF;
 					texture_value_blend(mat, GPU_uniform(&mtex->def_var), shi->refl, tin, varfac, mtex->blendtype, flip, &shi->refl);
 					GPU_link(mat, "mtex_value_clamp_positive", shi->refl, &shi->refl);
 				}
-				if(!(G.fileflags & G_FILE_GLSL_NO_EXTRA_TEX) && mtex->mapto & MAP_SPEC) {
+				if(!(mat->scene->gm.flag & GAME_GLSL_NO_EXTRA_TEX) && mtex->mapto & MAP_SPEC) {
 					int flip= mtex->maptoneg & MAP_SPEC;
 					texture_value_blend(mat, GPU_uniform(&mtex->def_var), shi->spec, tin, varfac, mtex->blendtype, flip, &shi->spec);
 					GPU_link(mat, "mtex_value_clamp_positive", shi->spec, &shi->spec);
 				}
-				if(!(G.fileflags & G_FILE_GLSL_NO_EXTRA_TEX) && mtex->mapto & MAP_EMIT) {
+				if(!(mat->scene->gm.flag & GAME_GLSL_NO_EXTRA_TEX) && mtex->mapto & MAP_EMIT) {
 					int flip= mtex->maptoneg & MAP_EMIT;
 					texture_value_blend(mat, GPU_uniform(&mtex->def_var), shi->emit, tin, varfac, mtex->blendtype, flip, &shi->emit);
 					GPU_link(mat, "mtex_value_clamp_positive", shi->emit, &shi->emit);
 				}
-				if(!(G.fileflags & G_FILE_GLSL_NO_EXTRA_TEX) && mtex->mapto & MAP_HAR) {
+				if(!(mat->scene->gm.flag & GAME_GLSL_NO_EXTRA_TEX) && mtex->mapto & MAP_HAR) {
 					int flip= mtex->maptoneg & MAP_HAR;
 					GPU_link(mat, "mtex_har_divide", shi->har, &shi->har);
 					texture_value_blend(mat, GPU_uniform(&mtex->def_var), shi->har, tin, varfac, mtex->blendtype, flip, &shi->har);
@@ -1091,7 +1091,7 @@ static void do_material_tex(GPUShadeInput *shi)
 					texture_value_blend(mat, GPU_uniform(&mtex->def_var), shi->alpha, tin, varfac, mtex->blendtype, flip, &shi->alpha);
 					GPU_link(mat, "mtex_value_clamp", shi->alpha, &shi->alpha);
 				}
-				if(!(G.fileflags & G_FILE_GLSL_NO_EXTRA_TEX) && mtex->mapto & MAP_AMB) {
+				if(!(mat->scene->gm.flag & GAME_GLSL_NO_EXTRA_TEX) && mtex->mapto & MAP_AMB) {
 					int flip= mtex->maptoneg & MAP_AMB;
 					texture_value_blend(mat, GPU_uniform(&mtex->def_var), shi->amb, tin, varfac, mtex->blendtype, flip, &shi->amb);
 					GPU_link(mat, "mtex_value_clamp", shi->amb, &shi->amb);
@@ -1139,10 +1139,10 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 
 	do_material_tex(shi);
 
-	if(ma->mode & MA_ZTRA)
+	if((ma->mode & MA_TRANSP) && (ma->mode & MA_ZTRANSP))
 		GPU_material_enable_alpha(mat);
 
-	if((G.fileflags & G_FILE_GLSL_NO_LIGHTS) || (ma->mode & MA_SHLESS)) {
+	if((mat->scene->gm.flag & GAME_GLSL_NO_LIGHTS) || (ma->mode & MA_SHLESS)) {
 		shr->combined = shi->rgb;
 		shr->alpha = shi->alpha;
 		GPU_link(mat, "set_rgb", shi->rgb, &shr->diff);
@@ -1213,7 +1213,7 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 			GPU_uniform(&world->horr), &shr->combined);
 	}
 
-	if(!(ma->mode & MA_ZTRA)) {
+	if(!((ma->mode & MA_TRANSP) && (ma->mode & MA_ZTRANSP))) {
 		if(world && (GPU_link_changed(shr->alpha) || ma->alpha != 1.0f))
 			GPU_link(mat, "shade_world_mix", GPU_uniform(&world->horr),
 				shr->combined, &shr->combined);
@@ -1251,7 +1251,7 @@ GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
 	mat = GPU_material_construct_begin(ma);
 	mat->scene = scene;
 
-	if(!(G.fileflags & G_FILE_GLSL_NO_NODES) && ma->nodetree && ma->use_nodes) {
+	if(!(scene->gm.flag & GAME_GLSL_NO_NODES) && ma->nodetree && ma->use_nodes) {
 		ntreeGPUMaterialNodes(ma->nodetree, mat);
 	}
 	else {
@@ -1458,8 +1458,8 @@ void GPU_lamp_free(Object *ob)
 
 int GPU_lamp_has_shadow_buffer(GPULamp *lamp)
 {
-	return (!(G.fileflags & G_FILE_GLSL_NO_SHADOWS) &&
-	        !(G.fileflags & G_FILE_GLSL_NO_LIGHTS) &&
+	return (!(lamp->scene->gm.flag & GAME_GLSL_NO_SHADOWS) &&
+	        !(lamp->scene->gm.flag & GAME_GLSL_NO_LIGHTS) &&
 			lamp->tex && lamp->fb);
 }
 

@@ -66,17 +66,12 @@ IF(UNIX)
     gp_common 
     bf_string 
     bf_ghost 
-    bf_blenkernel 
-    verse 
-    bf_blenkernel 
+    bf_blenkernel
     bf_blenloader 
     bf_blenpluginapi 
     bf_blroutines 
     bf_converter 
-    bf_sumo 
     bf_ketsji 
-    extern_solid 
-    extern_qhull 
     bf_bullet 
     bf_common 
     bf_dummy 
@@ -87,7 +82,6 @@ IF(UNIX)
     bf_scenegraph 
 	bf_IK
     bf_moto 
-    bf_soundsystem 
     bf_kernel 
     bf_nodes
 	bf_gpu
@@ -106,10 +100,17 @@ IF(UNIX)
     bf_dds
     bf_readblenfile 
     blenkernel_blc
-    bf_quicktime
     extern_binreloc
 	extern_glew
-  ) 
+  )
+  
+  IF(WITH_QUICKTIME)
+    SET(BLENDER_SORTED_LIBS ${BLENDER_SORTED_LIBS} quicktime)
+  ENDIF(WITH_QUICKTIME)
+
+  IF(WITH_CXX_GUARDEDALLOC)
+    SET(BLENDER_SORTED_LIBS ${BLENDER_SORTED_LIBS} bf_guardedalloc_cpp)
+  ENDIF(WITH_CXX_GUARDEDALLOC)
 
   FOREACH(SORTLIB ${BLENDER_SORTED_LIBS})
     SET(REMLIB ${SORTLIB})

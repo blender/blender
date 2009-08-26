@@ -322,7 +322,7 @@ void WM_operator_py_idname(char *to, const char *from)
 /* some.op -> SOME_OT_op */
 void WM_operator_bl_idname(char *to, const char *from)
 {
-	char *sep= strstr(from, ".");
+	char *sep= strchr(from, '.');
 
 	if(sep) {
 		int i, ofs= (sep-from);
@@ -345,7 +345,7 @@ void WM_operator_bl_idname(char *to, const char *from)
  * When calling from an existing wmOperator do.
  * WM_operator_pystring(op->type, op->ptr);
  */
-char *WM_operator_pystring(wmOperatorType *ot, PointerRNA *opptr, int all_args)
+char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, int all_args)
 {
 	const char *arg_name= NULL;
 	char idname_py[OP_MAX_TYPENAME];
@@ -378,7 +378,7 @@ char *WM_operator_pystring(wmOperatorType *ot, PointerRNA *opptr, int all_args)
 
 		if (strcmp(arg_name, "rna_type")==0) continue;
 
-		buf= RNA_property_as_string(opptr, prop);
+		buf= RNA_property_as_string(C, opptr, prop);
 		
 		ok= 1;
 
@@ -388,7 +388,7 @@ char *WM_operator_pystring(wmOperatorType *ot, PointerRNA *opptr, int all_args)
 			prop_default= RNA_struct_find_property(&opptr_default, arg_name);
 
 			if(prop_default) {
-				buf_default= RNA_property_as_string(&opptr_default, prop_default);
+				buf_default= RNA_property_as_string(C, &opptr_default, prop_default);
 
 				if(strcmp(buf, buf_default)==0)
 					ok= 0; /* values match, dont bother printing */
@@ -543,7 +543,12 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
-	uiDefAutoButsRNA(C, layout, &ptr, 2);
+	uiItemL(layout, op->type->name, 0);
+
+	if(op->type->ui)
+		op->type->ui((bContext*)C, &ptr, layout);
+	else
+		uiDefAutoButsRNA(C, layout, &ptr, 2);
 
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);
@@ -585,7 +590,12 @@ static uiBlock *wm_block_create_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
 	
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
-	uiDefAutoButsRNA(C, layout, op->ptr, 2);
+	uiItemL(layout, op->type->name, 0);
+
+	if(op->type->ui)
+		op->type->ui(C, op->ptr, layout);
+	else
+		uiDefAutoButsRNA(C, layout, op->ptr, 2);
 	
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);
@@ -710,6 +720,7 @@ int wm_search_menu_poll(bContext *C)
 {
 	if(CTX_wm_window(C)==NULL) return 0;
 	if(CTX_wm_area(C) && CTX_wm_area(C)->spacetype==SPACE_CONSOLE) return 0;  // XXX - so we can use the shortcut in the console
+	if(CTX_wm_area(C) && CTX_wm_area(C)->spacetype==SPACE_TEXT) return 0;  // XXX - so we can use the spacebar in the text editor
 	return 1;
 }
 
@@ -731,7 +742,6 @@ static void WM_OT_window_duplicate(wmOperatorType *ot)
 	ot->name= "Duplicate Window";
 	ot->idname= "WM_OT_window_duplicate";
 	
-	ot->invoke= WM_operator_confirm;
 	ot->exec= wm_window_duplicate_op;
 	ot->poll= WM_operator_winactive;
 }
@@ -859,10 +869,17 @@ static void untitled(char *name)
 	}
 }
 
+static void load_set_load_ui(wmOperator *op)
+{
+	if(!RNA_property_is_set(op->ptr, "load_ui"))
+		RNA_boolean_set(op->ptr, "load_ui", !(U.flag & USER_FILENOUI));
+}
 
 static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	RNA_string_set(op->ptr, "filename", G.sce);
+	load_set_load_ui(op);
+
 	WM_event_add_fileselect(C, op);
 
 	return OPERATOR_RUNNING_MODAL;
@@ -871,7 +888,14 @@ static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
+
 	RNA_string_get(op->ptr, "filename", filename);
+	load_set_load_ui(op);
+
+	if(RNA_boolean_get(op->ptr, "load_ui"))
+		G.fileflags &= ~G_FILE_NO_UI;
+	else
+		G.fileflags |= G_FILE_NO_UI;
 	
 	// XXX wm in context is not set correctly after WM_read_file -> crash
 	// do it before for now, but is this correct with multiple windows?
@@ -892,6 +916,8 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	ot->poll= WM_operator_winactive;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE);
+
+	RNA_def_boolean(ot->srna, "load_ui", 1, "Load UI", "Load user interface setup in the .blend file.");
 }
 
 static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
@@ -1025,7 +1051,6 @@ static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
     ot->name= "Toggle Fullscreen";
     ot->idname= "WM_OT_window_fullscreen_toggle";
 
-    ot->invoke= WM_operator_confirm;
     ot->exec= wm_window_fullscreen_toggle_op;
     ot->poll= WM_operator_winactive;
 }
@@ -1057,7 +1082,7 @@ static void WM_OT_exit_blender(wmOperatorType *ot)
 */
 
 void *WM_paint_cursor_activate(wmWindowManager *wm, int (*poll)(bContext *C),
-			       void (*draw)(bContext *C, int, int, void *customdata), void *customdata)
+			       wmPaintCursorDraw draw, void *customdata)
 {
 	wmPaintCursor *pc= MEM_callocN(sizeof(wmPaintCursor), "paint cursor");
 	
@@ -1884,19 +1909,29 @@ void wm_window_keymap(wmWindowManager *wm)
 	
 	/* note, this doesn't replace existing keymap items */
 	WM_keymap_verify_item(keymap, "WM_OT_window_duplicate", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_read_homefile", XKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_save_mainfile", WKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_save_as_mainfile", F2KEY, KM_PRESS, 0, 0);
+//	WM_keymap_add_item(keymap, "WM_OT_read_homefile", NKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_read_homefile", XKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_read_homefile", NKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_homefile", UKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_open_recentfile", OKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0);
+//	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", OKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", OKEY, KM_PRESS, KM_OSKEY, 0);
+//	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", SKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", WKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", SKEY, KM_PRESS, KM_OSKEY, 0);
+//	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", F2KEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "WM_OT_save_as_mainfile", SKEY, KM_PRESS, KM_SHIFT|KM_OSKEY, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_window_fullscreen_toggle", F11KEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_exit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* debug/testing */
 	WM_keymap_verify_item(keymap, "WM_OT_ten_timer", TKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_debug_menu", DKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_search_menu", SPACEKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "WM_OT_search_menu", SPACEKEY, KM_PRESS, 0, 0);
 	
 }
 

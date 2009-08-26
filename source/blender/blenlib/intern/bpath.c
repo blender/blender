@@ -51,7 +51,7 @@
 /* for sequence */
 //XXX #include "BSE_sequence.h"
 //XXX define below from BSE_sequence.h - otherwise potentially odd behaviour
-#define SEQ_HAS_PATH(seq) (seq->type==SEQ_MOVIE || seq->type==SEQ_HD_SOUND || seq->type==SEQ_RAM_SOUND || seq->type==SEQ_IMAGE)
+#define SEQ_HAS_PATH(seq) (seq->type==SEQ_MOVIE || seq->type==SEQ_IMAGE)
 
 /* path/file handeling stuff */
 #ifndef WIN32

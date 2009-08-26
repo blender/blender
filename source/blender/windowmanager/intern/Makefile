@@ -44,7 +44,7 @@ CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
 CPPFLAGS += -I$(NAN_GHOST)/include
 CPPFLAGS += -I$(NAN_ELBEEM)/include
-CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include $(NAN_SDLCFLAGS)
+CPPFLAGS += $(NAN_SDLCFLAGS)
 
 # modules
 CPPFLAGS += -I../../editors/include
@@ -58,7 +58,6 @@ CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../blenloader
 CPPFLAGS += -I../../gpu
 CPPFLAGS += -I../../render/extern/include
-CPPFLAGS += -I../../radiosity/extern/include
 CPPFLAGS += -I../../../kernel/gen_system
 CPPFLAGS += -I../../blenfont
 

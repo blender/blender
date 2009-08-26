@@ -926,7 +926,9 @@ inline void hsvToRgb( VECTOR_TYPE &V )
 
 //! global string for formatting vector output in utilities.cpp
 //extern const char *globVecFormatStr;
+#if 0
 static const char *globVecFormatStr = "[%6.4f,%6.4f,%6.4f]";
+#endif
 
 /*************************************************************************
   Outputs the object in human readable form using the format

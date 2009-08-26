@@ -179,20 +179,12 @@ static PyObject *blender_import( PyObject * self, PyObject * args,  PyObject * k
 	PyObject *newmodule;
 	
 	//PyObject_Print(args, stderr, 0);
-#if (PY_VERSION_HEX >= 0x02060000)
 	int dummy_val; /* what does this do?*/
 	static char *kwlist[] = {"name", "globals", "locals", "fromlist", "level", 0};
 	
 	if( !PyArg_ParseTupleAndKeywords( args, kw, "s|OOOi:bpy_import_meth", kwlist,
 			       &name, &globals, &locals, &fromlist, &dummy_val) )
 		return NULL;
-#else
-	static char *kwlist[] = {"name", "globals", "locals", "fromlist", 0};
-	
-	if( !PyArg_ParseTupleAndKeywords( args, kw, "s|OOO:bpy_import_meth", kwlist,
-			       &name, &globals, &locals, &fromlist ) )
-		return NULL;
-#endif
 
 	/* import existing builtin modules or modules that have been imported alredy */
 	newmodule = PyImport_ImportModuleEx( name, globals, locals, fromlist );

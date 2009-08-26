@@ -87,9 +87,11 @@
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_property.h"
 #include "BKE_smoke.h"
+#include "BKE_unit.h"
 #include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
 
@@ -213,11 +215,10 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt)
 		return 0;
 	if(!CHECK_OB_DRAWTEXTURE(v3d, dt))
 		return 0;
-	if(ob==OBACT && (G.f & G_WEIGHTPAINT))
+	if(ob==OBACT && (ob && ob->mode & OB_MODE_WEIGHT_PAINT))
 		return 0;
 	
-	return ((G.fileflags & G_FILE_GAME_MAT) &&
-	   (G.fileflags & G_FILE_GAME_MAT_GLSL) && (dt >= OB_SHADED));
+	return (scene->gm.matmode == GAME_MAT_GLSL) && (dt >= OB_SHADED);
 }
 
 static int check_material_alpha(Base *base, Mesh *me, int glsl)
@@ -1893,7 +1894,7 @@ static void draw_em_fancy_edges(BMEditMesh *em, Scene *scene, View3D *v3d,
 }	
 
 static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, 
-				  Object *ob, BMEditMesh *em)
+				  Object *ob, BMEditMesh *em, UnitSettings *unit)
 {
 #if 0
 	Mesh *me= ob->data;
@@ -1904,18 +1905,20 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 	char val[32]; /* Stores the measurement display text here */
 	char conv_float[5]; /* Use a float conversion matching the grid size */
 	float area, col[3]; /* area of the face,  color of the text to draw */
-	
+	float grid= unit->system ? unit->scale_length : v3d->grid;
+	int do_split= unit->flag & USER_UNIT_OPT_SPLIT;
 	if(G.f & (G_RENDER_OGL|G_RENDER_SHADOW))
 		return;
 
 	/* make the precission of the pronted value proportionate to the gridsize */
-	if ((v3d->grid) < 0.01)
+
+	if (grid < 0.01f)
 		strcpy(conv_float, "%.6f");
-	else if ((v3d->grid) < 0.1)
+	else if (grid < 0.1f)
 		strcpy(conv_float, "%.5f");
-	else if ((v3d->grid) < 1.0)
+	else if (grid < 1.0f)
 		strcpy(conv_float, "%.4f");
-	else if ((v3d->grid) < 10.0)
+	else if (grid < 10.0f)
 		strcpy(conv_float, "%.3f");
 	else
 		strcpy(conv_float, "%.2f");
@@ -1924,13 +1927,13 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 	if(v3d->zbuf && (v3d->flag & V3D_ZBUF_SELECT)==0)
 		glDisable(GL_DEPTH_TEST);
 
-	if(v3d->zbuf) bglPolygonOffset(rv3d->dist, 5.0);
+	if(v3d->zbuf) bglPolygonOffset(rv3d->dist, 5.0f);
 	
 	if(me->drawflag & ME_DRAW_EDGELEN) {
 		UI_GetThemeColor3fv(TH_TEXT, col);
 		/* make color a bit more red */
-		if(col[0]> 0.5) {col[1]*=0.7; col[2]*= 0.7;}
-		else col[0]= col[0]*0.7 + 0.3;
+		if(col[0]> 0.5f) {col[1]*=0.7f; col[2]*= 0.7f;}
+		else col[0]= col[0]*0.7f + 0.3f;
 		glColor3fv(col);
 		
 		for(eed= em->edges.first; eed; eed= eed->next) {
@@ -1939,16 +1942,19 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 				VECCOPY(v1, eed->v1->co);
 				VECCOPY(v2, eed->v2->co);
 				
-				x= 0.5*(v1[0]+v2[0]);
-				y= 0.5*(v1[1]+v2[1]);
-				z= 0.5*(v1[2]+v2[2]);
+				x= 0.5f*(v1[0]+v2[0]);
+				y= 0.5f*(v1[1]+v2[1]);
+				z= 0.5f*(v1[2]+v2[2]);
 				
 				if(v3d->flag & V3D_GLOBAL_STATS) {
 					Mat4MulVecfl(ob->obmat, v1);
 					Mat4MulVecfl(ob->obmat, v2);
 				}
+				if(unit->system)
+					bUnit_AsString(val, sizeof(val), VecLenf(v1, v2)*unit->scale_length, 3, unit->system, B_UNIT_LENGTH, do_split, FALSE);
+				else
+					sprintf(val, conv_float, VecLenf(v1, v2));
 				
-				sprintf(val, conv_float, VecLenf(v1, v2));
 				view3d_object_text_draw_add(x, y, z, val, 0);
 			}
 		}
@@ -1959,8 +1965,8 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 		
 		UI_GetThemeColor3fv(TH_TEXT, col);
 		/* make color a bit more green */
-		if(col[1]> 0.5) {col[0]*=0.7; col[2]*= 0.7;}
-		else col[1]= col[1]*0.7 + 0.3;
+		if(col[1]> 0.5f) {col[0]*=0.7f; col[2]*= 0.7f;}
+		else col[1]= col[1]*0.7f + 0.3f;
 		glColor3fv(col);
 		
 		for(efa= em->faces.first; efa; efa= efa->next) {
@@ -1983,7 +1989,11 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 				else
 					area = AreaT3Dfl(v1, v2, v3);
 
-				sprintf(val, conv_float, area);
+				if(unit->system)
+					bUnit_AsString(val, sizeof(val), area*unit->scale_length, 3, unit->system, B_UNIT_LENGTH, do_split, FALSE); // XXX should be B_UNIT_AREA
+				else
+					sprintf(val, conv_float, area);
+
 				view3d_object_text_draw_add(efa->cent[0], efa->cent[1], efa->cent[2], val, 0);
 			}
 		}
@@ -1994,8 +2004,8 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 		
 		UI_GetThemeColor3fv(TH_TEXT, col);
 		/* make color a bit more blue */
-		if(col[2]> 0.5) {col[0]*=0.7; col[1]*= 0.7;}
-		else col[2]= col[2]*0.7 + 0.3;
+		if(col[2]> 0.5f) {col[0]*=0.7f; col[1]*= 0.7f;}
+		else col[2]= col[2]*0.7f + 0.3f;
 		glColor3fv(col);
 		
 		for(efa= em->faces.first; efa; efa= efa->next) {
@@ -2025,13 +2035,13 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 			if( (e4->f & e1->f & SELECT) || (G.moving && (efa->v1->f & SELECT)) ) {
 				/* Vec 1 */
 				sprintf(val,"%.3f", VecAngle3(v4, v1, v2));
-				VecLerpf(fvec, efa->cent, efa->v1->co, 0.8);
+				VecLerpf(fvec, efa->cent, efa->v1->co, 0.8f);
 				view3d_object_text_draw_add(efa->cent[0], efa->cent[1], efa->cent[2], val, 0);
 			}
 			if( (e1->f & e2->f & SELECT) || (G.moving && (efa->v2->f & SELECT)) ) {
 				/* Vec 2 */
 				sprintf(val,"%.3f", VecAngle3(v1, v2, v3));
-				VecLerpf(fvec, efa->cent, efa->v2->co, 0.8);
+				VecLerpf(fvec, efa->cent, efa->v2->co, 0.8f);
 				view3d_object_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 			}
 			if( (e2->f & e3->f & SELECT) || (G.moving && (efa->v3->f & SELECT)) ) {
@@ -2040,14 +2050,14 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 					sprintf(val,"%.3f", VecAngle3(v2, v3, v4));
 				else
 					sprintf(val,"%.3f", VecAngle3(v2, v3, v1));
-				VecLerpf(fvec, efa->cent, efa->v3->co, 0.8);
+				VecLerpf(fvec, efa->cent, efa->v3->co, 0.8f);
 				view3d_object_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 			}
 				/* Vec 4 */
 			if(efa->v4) {
 				if( (e3->f & e4->f & SELECT) || (G.moving && (efa->v4->f & SELECT)) ) {
 					sprintf(val,"%.3f", VecAngle3(v3, v4, v1));
-					VecLerpf(fvec, efa->cent, efa->v4->co, 0.8);
+					VecLerpf(fvec, efa->cent, efa->v4->co, 0.8f);
 					view3d_object_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 				}
 			}
@@ -2056,7 +2066,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 	
 	if(v3d->zbuf) {
 		glEnable(GL_DEPTH_TEST);
-		bglPolygonOffset(rv3d->dist, 0.0);
+		bglPolygonOffset(rv3d->dist, 0.0f);
 	}
 #endif
 }
@@ -2144,7 +2154,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 		}
 	}
 	
-	if((me->drawflag & (ME_DRAWFACES)) || FACESEL_PAINT_TEST) {	/* transp faces */
+	if((me->drawflag & (ME_DRAWFACES)) || paint_facesel_test(ob)) {	/* transp faces */
 		unsigned char col1[4], col2[4], col3[4];
 			
 		UI_GetThemeColor4ubv(TH_FACE, (char *)col1);
@@ -2232,7 +2242,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 		}
 
 		if(me->drawflag & (ME_DRAW_EDGELEN|ME_DRAW_FACEAREA|ME_DRAW_EDGEANG))
-			draw_em_measure_stats(v3d, rv3d, ob, em);
+			draw_em_measure_stats(v3d, rv3d, ob, em, &scene->unit);
 	}
 
 	if(dt>OB_WIRE) {
@@ -2303,7 +2313,7 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 		// Unwanted combination.
-	if (ob==OBACT && FACESEL_PAINT_TEST) draw_wire = 0;
+	if (ob==OBACT && paint_facesel_test(ob)) draw_wire = 0;
 
 	if(dt==OB_BOUNDBOX) {
 		draw_bounding_volume(scene, ob);
@@ -2316,12 +2326,12 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 	else if(dt==OB_WIRE || totface==0) {
 		draw_wire = 1; /* draw wire only, no depth buffer stuff  */
 	}
-	else if(	(ob==OBACT && (G.f & G_TEXTUREPAINT || FACESEL_PAINT_TEST)) ||
+	else if(	(ob==OBACT && (ob->mode & OB_MODE_TEXTURE_PAINT || paint_facesel_test(ob))) ||
 				CHECK_OB_DRAWTEXTURE(v3d, dt))
 	{
-		int faceselect= (ob==OBACT && FACESEL_PAINT_TEST);
+		int faceselect= (ob==OBACT && paint_facesel_test(ob));
 
-		if ((v3d->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !(G.f&G_PICKSEL || FACESEL_PAINT_TEST) && !draw_wire) {
+		if ((v3d->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !(G.f&G_PICKSEL || paint_facesel_test(ob)) && !draw_wire) {
 			draw_mesh_object_outline(v3d, ob, dm);
 		}
 
@@ -2375,7 +2385,7 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 		
 		if(ob==OBACT) {
 			do_draw= 0;
-			if( (G.f & G_WEIGHTPAINT)) {
+			if(ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
 				/* enforce default material settings */
 				GPU_enable_material(0, NULL);
 				
@@ -2395,12 +2405,13 @@ static void draw_mesh_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 
 				GPU_disable_material();
 			}
-			else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->mcol) {
-				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 1);
-			}
-			else if(G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) {
-				glColor3f(1.0f, 1.0f, 1.0f);
-				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 0);
+			else if(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_TEXTURE_PAINT)) {
+				if(me->mcol)
+					dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 1);
+				else {
+					glColor3f(1.0f, 1.0f, 1.0f);
+					dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 0);
+				}
 			}
 			else do_draw= 1;
 		}
@@ -3560,7 +3571,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					}
 
 					if((part->draw&PART_DRAW_NUM || part->draw&PART_DRAW_HEALTH) && !(G.f & G_RENDER_SHADOW)){
-						strcpy(val, "");
+						val[0]= '\0';
 						
 						if(part->draw&PART_DRAW_NUM)
 							sprintf(val, " %i", a);
@@ -4824,7 +4835,7 @@ static void drawSolidSelect(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base 
 			drawDispListwire(&ob->disp);
 	}
 	else if(ob->type==OB_ARMATURE) {
-		if(!(ob->flag & OB_POSEMODE))
+		if(!(ob->mode & OB_MODE_POSE))
 			draw_armature(scene, v3d, rv3d, base, OB_WIRE, 0);
 	}
 
@@ -4973,7 +4984,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	/* xray delay? */
 	if((flag & DRAW_PICKING)==0 && (base->flag & OB_FROMDUPLI)==0) {
 		/* don't do xray in particle mode, need the z-buffer */
-		if(!(G.f & G_PARTICLEEDIT)) {
+		if(!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
 			/* xray and transp are set when it is drawing the 2nd/3rd pass */
 			if(!v3d->xray && !v3d->transp && (ob->dtx & OB_DRAWXRAY) && !(ob->dtx & OB_DRAWTRANSP)) {
 				add_view3d_after(v3d, base, V3D_XRAY, flag);
@@ -5060,6 +5071,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 	/* patch? children objects with a timeoffs change the parents. How to solve! */
 	/* if( ((int)ob->ctime) != F_(scene->r.cfra)) where_is_object(scene, ob); */
+	
+	/* draw paths... */
+	// TODO...
 
 	/* multiply view with object matrix */
 	wmMultMatrix(ob->obmat);
@@ -5119,7 +5133,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	dtx= 0;
 
 	/* faceselect exception: also draw solid when dt==wire, except in editmode */
-	if(ob==OBACT && (G.f & (G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT))) {
+	if(ob==OBACT && (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {
 		if(ob->type==OB_MESH) {
 
 			if(ob==scene->obedit);
@@ -5332,7 +5346,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		for(psys=ob->particlesystem.first; psys; psys=psys->next)
 			draw_new_particle_system(scene, v3d, rv3d, base, psys, dt);
 		
-		if(G.f & G_PARTICLEEDIT && ob==OBACT) {
+		if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT) {
 			psys= PE_get_current(scene, ob);
 			if(psys && !scene->obedit && psys_in_edit_mode(scene, psys))
 				draw_particle_edit(scene, v3d, rv3d, ob, psys, dt);
@@ -5346,352 +5360,15 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	}
 
 	/* draw code for smoke */
-	if(md = modifiers_findByType(ob, eModifierType_Smoke))
 	{
-		SmokeModifierData *smd = (SmokeModifierData *)md;
-
-		// draw collision objects
-		if((smd->type & MOD_SMOKE_TYPE_COLL) && smd->coll)
-		{
-			SmokeCollSettings *scs = smd->coll;
-			/*
-			if(scs->points)
-			{
-				size_t i;
-
-				wmLoadMatrix(rv3d->viewmat);
-
-				if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	
-				glDepthMask(GL_FALSE);
-				glEnable(GL_BLEND);
-				
-
-				// glPointSize(3.0);
-				bglBegin(GL_POINTS);
-
-				for(i = 0; i < scs->numpoints; i++)
-				{
-					bglVertex3fv(&scs->points[3*i]);
-				}
-
-				bglEnd();
-				glPointSize(1.0);
-
-				wmMultMatrix(ob->obmat);
-				glDisable(GL_BLEND);
-				glDepthMask(GL_TRUE);
-				if(col) cpack(col);
-				
+		md = modifiers_findByType(ob, eModifierType_Smoke);
+		if (md) {
+			SmokeModifierData *smd = (SmokeModifierData *)md;
+			if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain && smd->domain->fluid) {
+				GPU_create_smoke(smd);
+				draw_volume(scene, ar, v3d, base, smd->domain->tex, smd->domain->res);
+				GPU_free_smoke(smd);
 			}
-			*/
-		}
-
-		// only draw domains
-		if(smd->domain && smd->domain->fluid)
-		{
-			int x, y, z, i;
-			float viewnormal[3];
-			int mainaxis[3] = {0,0,0};
-			float align = 0, signed_align = 0;
-			int max_textures = 0, counter_textures = 0;
-			float *buffer = NULL;
-			int res[3];
-			float bigfactor = 1.0;
-			int big = smd->domain->flags & MOD_SMOKE_HIGHRES;
-			int new = 0;
-			
-			// GUI sent redraw event
-			if(smd->domain->flags & MOD_SMOKE_VIEW_REDRAWNICE)
-			{
-				new = 1;
-				smd->domain->flags &= ~MOD_SMOKE_VIEW_REDRAWNICE;
-			}
-			
-			if(!big)
-			{
-				res[0] = smd->domain->res[0];
-				res[1] = smd->domain->res[1];
-				res[2] = smd->domain->res[2];
-			}
-			else
-			{
-				smoke_get_bigres(smd->domain->fluid, res);
-				bigfactor = 1.0 / smd->domain->amplify;
-			}
-
-			wmLoadMatrix(rv3d->viewmat);
-
-			if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
-			glDepthMask(GL_FALSE);
-			glEnable(GL_BLEND);
-
-			// get view vector
-			VECCOPY(viewnormal, rv3d->viewinv[2]);
-			Normalize(viewnormal);
-			for(i = 0; i < 3; i++)
-			{
-				if(ABS(viewnormal[i]) > align)
-				{
-					mainaxis[0] = i;
-					align = ABS(viewnormal[i]);
-					signed_align = viewnormal[i];
-				}
-			}
-			mainaxis[1] = (mainaxis[0] + 1) % 3;
-			mainaxis[2] = (mainaxis[0] + 2) % 3;
-			
-			if(!smd->domain->bind)
-			{
-				smd->domain->bind = MEM_callocN(sizeof(GLuint)*256, "Smoke_bind");
-				if(big)
-					smd->domain->viewsettings |= MOD_SMOKE_VIEW_CHANGETOBIG;
-				new = 3;
-			}
-			
-			// check if view axis / mode has been changed
-			if(smd->domain->viewsettings)
-			{
-				if(big)
-				{
-					if(!(smd->domain->viewsettings & MOD_SMOKE_VIEW_BIG))
-						new = 2;
-					else if(!(smd->domain->viewsettings & MOD_SMOKE_VIEW_CHANGETOBIG))
-						new = 1;
-					
-					smd->domain->viewsettings |= MOD_SMOKE_VIEW_CHANGETOBIG;
-				}
-				else
-				{
-					if(!(smd->domain->viewsettings & MOD_SMOKE_VIEW_SMALL))
-						new = 2;
-					else if(smd->domain->viewsettings & MOD_SMOKE_VIEW_CHANGETOBIG)
-						new = 1;
-					
-					smd->domain->viewsettings &= ~MOD_SMOKE_VIEW_CHANGETOBIG;
-				}
-	
-				if(!new)
-				{
-					if((mainaxis[0] == 0) && !(smd->domain->viewsettings & MOD_SMOKE_VIEW_X))
-						new = 1;
-					else if((mainaxis[0] == 1) && !(smd->domain->viewsettings & MOD_SMOKE_VIEW_Y))
-						new = 1;
-					else if((mainaxis[0] == 2) && !(smd->domain->viewsettings & MOD_SMOKE_VIEW_Z))
-						new = 1;
-					
-					// printf("check axis\n");
-				}
-			}
-			else
-				new = 3;
-			
-			if(new > 1)
-			{
-				float light[3] = {0.0,0.0,2.0}; // TODO: take real LAMP coordinates - dg
-				Base *base_tmp = NULL;
-
-				for(base_tmp = scene->base.first; base_tmp; base_tmp= base_tmp->next) 
-				{
-					if(base_tmp->object->type == OB_LAMP) 
-					{
-						Lamp *la = (Lamp *)base_tmp->object->data;
-						
-						if(la->type == LA_LOCAL)
-						{
-							VECCOPY(light, base_tmp->object->obmat[3]);
-							break;
-						}
-					}
-				}
-
-				if(!big && !(smd->domain->viewsettings & MOD_SMOKE_VIEW_SMALL))
-				{
-					smoke_prepare_View(smd, light);
-					// printf("prepared View!\n");
-				}
-				else if(big && !(smd->domain->viewsettings & MOD_SMOKE_VIEW_BIG))
-				{
-					smoke_prepare_bigView(smd, light);
-					// printf("prepared bigView!\n");
-				}
-			}
-			
-			// printf("big: %d, new: %d\n", big, new);
-			
-			// only create buffer if we need to create new textures
-			if(new)	
-				buffer = MEM_mallocN(sizeof(float)*res[mainaxis[1]]*res[mainaxis[2]]*4, "SmokeDrawBuffer");
-			
-			if(buffer || smd->domain->viewsettings)
-			{
-				int mod_texture = 0;
-				
-				// printf("if(buffer || smd->domain->viewsettings)\n");
-				
-				max_textures = (res[mainaxis[0]] > 256) ? 256 : res[mainaxis[0]];
-				
-				if(!smd->domain->viewsettings) // new frame or new start
-				{
-					smd->domain->max_textures = max_textures;
-					glGenTextures(smd->domain->max_textures, (GLuint *)smd->domain->bind);
-					new = 1;
-					// printf("glGenTextures\n");
-				}
-				else
-				{
-					if(new)
-					{
-						// printf("glDeleteTextures\n");
-						glDeleteTextures(smd->domain->max_textures, (GLuint *)smd->domain->bind);
-						smd->domain->max_textures = max_textures;
-						glGenTextures(smd->domain->max_textures, (GLuint *)smd->domain->bind);
-					}
-				}
-
-				mod_texture = MAX3(1, smd->domain->visibility, (int)(res[mainaxis[0]] / smd->domain->max_textures ));
-				
-				// align order of billboards to be front or backview (e.g. +x or -x axis)
-				if(signed_align < 0)
-				{
-					z = res[mainaxis[0]] - 1;
-				}
-				else
-				{
-					z = 0;
-				}
-
-				for (; signed_align > 0 ? (z < res[mainaxis[0]]) : (z >= 0); signed_align > 0 ? z++ : z--) // 2
-				{
-					float quad[4][3];
-
-					if(new)
-					{
-						for (y = 0; y < res[mainaxis[1]]; y++) // 1
-						{
-							for (x = 0; x < res[mainaxis[2]]; x++) // 0
-							{
-								size_t index;
-								size_t image_index;
-								float tray, tvox;
-
-								image_index = smoke_get_index2d(y, res[mainaxis[1]], x);
-		
-								if(mainaxis[0] == 0)
-								{
-									// mainaxis[1] == 1, mainaxis[2] == 2
-									index = smoke_get_index(z, res[mainaxis[0]], y, res[mainaxis[1]], x);
-								}
-								else if(mainaxis[0] == 1)
-								{
-									// mainaxis[1] == 2, mainaxis[2] == 0
-									index = smoke_get_index(x, res[mainaxis[2]], z, res[mainaxis[0]], y);
-								}
-								else // mainaxis[0] == 2
-								{
-									// mainaxis[1] == 0, mainaxis[2] == 1
-									index = smoke_get_index(y, res[mainaxis[1]], x, res[mainaxis[2]], z);
-								}
-								
-								if(!big)
-								{
-									tvox =  smoke_get_tvox(smd, index);
-									tray = smoke_get_tray(smd, index);
-								}
-								else
-								{
-									tvox =  smoke_get_bigtvox(smd, index);
-									tray = smoke_get_bigtray(smd, index);
-								}
-								
-								// fill buffer with luminance and alpha
-								// 1 - T_vox
-								buffer[image_index*4 + 3] = 1.0 - tvox; // 0 = transparent => d.h. tvox = 1
-		
-								// L_vox = Omega * L_light * (1 - T_vox) * T_ray
-								buffer[image_index*4] = buffer[image_index*4 + 1] = buffer[image_index*4 + 2] = smd->domain->omega * 1.0 * tvox * tray; 
-							}
-						}
-					}
-					glBindTexture(GL_TEXTURE_2D, smd->domain->bind[counter_textures]);
-					glEnable(GL_TEXTURE_2D);
-	
-					if(new)
-					{
-						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, res[mainaxis[1]], res[mainaxis[2]], 0, GL_RGBA, GL_FLOAT, buffer);
-						glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);	// Linear Filtering
-						glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);	// Linear Filtering
-					}
-					
-					if((z % mod_texture) == 0 )
-					{
-						// botttom left
-						quad[3][mainaxis[0]] =  smd->domain->p0[mainaxis[0]] + z * smd->domain->dx * bigfactor + smd->domain->dx * bigfactor * 0.5;
-						quad[3][mainaxis[1]] =  smd->domain->p0[mainaxis[1]] + smd->domain->dx * bigfactor * 0.5;
-						quad[3][mainaxis[2]] =  smd->domain->p0[mainaxis[2]] + smd->domain->dx * bigfactor * 0.5;
-		
-						// top right
-						quad[1][mainaxis[0]] =  smd->domain->p0[mainaxis[0]] + z * smd->domain->dx * bigfactor + smd->domain->dx * bigfactor * 0.5;
-						quad[1][mainaxis[1]] =  smd->domain->p0[mainaxis[1]] + (res[mainaxis[1]] - 1) * smd->domain->dx * bigfactor + smd->domain->dx * bigfactor * 0.5;
-						quad[1][mainaxis[2]] =  smd->domain->p0[mainaxis[2]] + (res[mainaxis[2]] - 1) * smd->domain->dx * bigfactor + smd->domain->dx * bigfactor * 0.5;
-		
-						// top left
-						quad[2][mainaxis[0]] =  smd->domain->p0[mainaxis[0]] + z * smd->domain->dx * bigfactor + smd->domain->dx * bigfactor * 0.5;
-						quad[2][mainaxis[1]] =  smd->domain->p0[mainaxis[1]] + smd->domain->dx * bigfactor * 0.5;
-						quad[2][mainaxis[2]] =  smd->domain->p0[mainaxis[2]] + (res[mainaxis[2]] - 1) * smd->domain->dx * bigfactor + smd->domain->dx * bigfactor * 0.5;
-		
-						// bottom right
-						quad[0][mainaxis[0]] =  smd->domain->p0[mainaxis[0]] + z * smd->domain->dx * bigfactor + smd->domain->dx * bigfactor * 0.5;
-						quad[0][mainaxis[1]] =  smd->domain->p0[mainaxis[1]] + (res[mainaxis[1]] - 1) * smd->domain->dx * bigfactor + smd->domain->dx * bigfactor * 0.5;
-						quad[0][mainaxis[2]] =  smd->domain->p0[mainaxis[2]] + smd->domain->dx * bigfactor * 0.5;
-		
-						glBegin(GL_QUADS); // Start Drawing Quads
-		
-						glTexCoord2f(1.0f, 0.0f);
-						glVertex3fv(quad[0]);	// Left And Up 1 Unit (Top Left)
-						glTexCoord2f(1.0f, 1.0f);
-						glVertex3fv(quad[1]);	// Right And Up 1 Unit (Top Right)
-						glTexCoord2f(0.0f, 1.0f);
-						glVertex3fv(quad[2]);	// Right And Down One Unit (Bottom Right)
-						glTexCoord2f(0.0f, 0.0f);
-						glVertex3fv(quad[3]);	// Left And Down One Unit (Bottom Left)
-		
-						glEnd();
-					}
-					counter_textures++;
-				}
-			}
-			if(buffer)
-			{
-				MEM_freeN(buffer);
-				buffer = NULL;
-			}
-			
-			// set correct flag for viewsettings
-			if(1)
-			{
-				// do not clear BIG/SMALL flag
-				smd->domain->viewsettings &= ~MOD_SMOKE_VIEW_X;
-				smd->domain->viewsettings &= ~MOD_SMOKE_VIEW_Y;
-				smd->domain->viewsettings &= ~MOD_SMOKE_VIEW_Z;
-				
-				// set what caches we have
-				if(big)
-					smd->domain->viewsettings |= MOD_SMOKE_VIEW_BIG;
-				else
-					smd->domain->viewsettings |= MOD_SMOKE_VIEW_SMALL;
-	
-				if(mainaxis[0] == 0)
-					smd->domain->viewsettings |= MOD_SMOKE_VIEW_X;
-				else if(mainaxis[0] == 1)
-					smd->domain->viewsettings |= MOD_SMOKE_VIEW_Y;
-				else if(mainaxis[0] == 2)
-					smd->domain->viewsettings |= MOD_SMOKE_VIEW_Z;
-			}
-
-			wmMultMatrix(ob->obmat);
-			glDisable(GL_BLEND);
-			glDepthMask(GL_TRUE);
-			if(col) cpack(col);
 		}
 	}
 
@@ -5753,7 +5430,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	if(G.f & G_RENDER_SHADOW) return;
 
 	/* object centers, need to be drawn in viewmat space for speed, but OK for picking select */
-	if(ob!=OBACT || (G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0) {
+	if(ob!=OBACT || !(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {
 		int do_draw_center= -1;	/* defines below are zero or positive... */
 
 		if((scene->basact)==base) 

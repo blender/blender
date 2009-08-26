@@ -80,7 +80,7 @@ void FLUID_3D::addSmokeTestCase(float* field, Vec3Int res, float value)
 void FLUID_3D::setNeumannX(float* field, Vec3Int res)
 {
 	const int slabSize = res[0] * res[1];
-	int index;
+	size_t index;
 	for (int z = 0; z < res[2]; z++)
 		for (int y = 0; y < res[1]; y++)
 		{
@@ -100,7 +100,7 @@ void FLUID_3D::setNeumannX(float* field, Vec3Int res)
 void FLUID_3D::setNeumannY(float* field, Vec3Int res)
 {
 	const int slabSize = res[0] * res[1];
-	int index;
+	size_t index;
 	for (int z = 0; z < res[2]; z++)
 		for (int x = 0; x < res[0]; x++)
 		{
@@ -121,7 +121,7 @@ void FLUID_3D::setNeumannZ(float* field, Vec3Int res)
 {
 	const int slabSize = res[0] * res[1];
 	const int totalCells = res[0] * res[1] * res[2];
-	int index;
+	size_t index;
 	for (int y = 0; y < res[1]; y++)
 		for (int x = 0; x < res[0]; x++)
 		{
@@ -141,10 +141,11 @@ void FLUID_3D::setNeumannZ(float* field, Vec3Int res)
 			// top slab
 			index = x + y * res[0];
 			index += totalCells - slabSize;
-			if(field[index]<0.) field[index] = 0.;
+			if(field[index]<0.) field[index] = 0.0f;
 			index -= slabSize;
-			if(field[index]<0.) field[index] = 0.;
+			if(field[index]<0.) field[index] = 0.0f;
 		}
+		
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -337,7 +338,7 @@ void FLUID_3D::advectFieldSemiLagrange(const float dt, const float* velx, const 
 // comments are the pseudocode from selle's paper
 //////////////////////////////////////////////////////////////////////
 void FLUID_3D::advectFieldMacCormack(const float dt, const float* xVelocity, const float* yVelocity, const float* zVelocity,
-		float* oldField, float* newField, float* temp1, float* temp2, Vec3Int res, const float* obstacles)
+		float* oldField, float* newField, float* temp1, float* temp2, Vec3Int res, const unsigned char* obstacles)
 {
 	float* phiHatN  = temp1;
 	float* phiHatN1 = temp2;
@@ -458,7 +459,7 @@ void FLUID_3D::clampExtrema(const float dt, const float* velx, const float* vely
 // incorrect
 //////////////////////////////////////////////////////////////////////
 void FLUID_3D::clampOutsideRays(const float dt, const float* velx, const float* vely, const float* velz,
-		float* oldField, float* newField, Vec3Int res, const float* obstacles, const float *oldAdvection)
+		float* oldField, float* newField, Vec3Int res, const unsigned char* obstacles, const float *oldAdvection)
 {
 	const int sx= res[0];
 	const int sy= res[1];
@@ -599,6 +600,7 @@ void FLUID_3D::writeImageSliceXZ(const float *field, Vec3Int res, int slice, str
 //////////////////////////////////////////////////////////////////////
 // Helper function for projecting densities along a dimension
 //////////////////////////////////////////////////////////////////////
+/*
 static int getOtherDir(int dir1, int dir2) {
 	switch(dir1) {
 		case 0:
@@ -621,6 +623,7 @@ static int getOtherDir(int dir1, int dir2) {
 	}
 	return 0;
 }
+*/
 
 //////////////////////////////////////////////////////////////////////
 // average densities along third spatial direction

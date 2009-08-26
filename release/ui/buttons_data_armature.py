@@ -2,8 +2,8 @@
 import bpy
  
 class DataButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "data"
 	
 	def poll(self, context):
@@ -43,7 +43,7 @@ class DATA_PT_skeleton(DataButtonsPanel):
 		col = split.column()
 		col.itemR(arm, "rest_position")
 		col.itemL(text="Deform:")
-		col.itemR(arm, "deform_vertexgroups", text="Vertes Groups")
+		col.itemR(arm, "deform_vertexgroups", text="Vertex Groups")
 		col.itemR(arm, "deform_envelope", text="Envelopes")
 		col.itemR(arm, "deform_quaternion", text="Quaternion")
 		col.itemR(arm, "deform_bbone_rest", text="B-Bones Rest")
@@ -90,8 +90,8 @@ class DATA_PT_bone_groups(DataButtonsPanel):
 		
 		col = row.column(align=True)
 		col.active = (ob.proxy == None)
-		col.itemO("pose.group_add", icon="ICON_ZOOMIN", text="")
-		col.itemO("pose.group_remove", icon="ICON_ZOOMOUT", text="")
+		col.itemO("pose.group_add", icon='ICON_ZOOMIN', text="")
+		col.itemO("pose.group_remove", icon='ICON_ZOOMOUT', text="")
 		
 		group = pose.active_bone_group
 		if group:

@@ -63,6 +63,12 @@ class CBrokenLinkInfo
 	CExpression* m_pExpr;
 	bool		m_bRestored;
 	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CBrokenLinkInfo"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 
@@ -126,6 +132,13 @@ public:
 protected:
 
 	int m_refcount;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:CExpression"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif // !defined _EXPRESSION_H

@@ -186,12 +186,18 @@ ARegion *text_has_properties_region(ScrArea *sa)
 	return arnew;
 }
 
+void text_toggle_properties_region(bContext *C, ScrArea *sa, ARegion *ar)
+{
+	ar->flag ^= RGN_FLAG_HIDDEN;
+	ar->v2d.flag &= ~V2D_IS_INITIALISED; /* XXX should become hide/unhide api? */
+	
+	ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
+	ED_area_tag_redraw(sa);
+}
+
 static int properties_poll(bContext *C)
 {
-	SpaceText *st= CTX_wm_space_text(C);
-	Text *text= CTX_data_edit_text(C);
-
-	return (st && text);
+	return (CTX_wm_space_text(C) != NULL);
 }
 
 static int properties_exec(bContext *C, wmOperator *op)
@@ -199,13 +205,8 @@ static int properties_exec(bContext *C, wmOperator *op)
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= text_has_properties_region(sa);
 	
-	if(ar) {
-		ar->flag ^= RGN_FLAG_HIDDEN;
-		ar->v2d.flag &= ~V2D_IS_INITIALISED; /* XXX should become hide/unhide api? */
-		
-		ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
-		ED_area_tag_redraw(sa);
-	}
+	if(ar)
+		text_toggle_properties_region(C, sa, ar);
 
 	return OPERATOR_FINISHED;
 }
@@ -214,6 +215,7 @@ void TEXT_OT_properties(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Properties";
+    ot->description= "Toggle text properties panel.";
 	ot->idname= "TEXT_OT_properties";
 	
 	/* api callbacks */

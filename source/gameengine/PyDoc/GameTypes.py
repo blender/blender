@@ -12,7 +12,7 @@ Documentation for the GameTypes Module.
 
 @group Sensors: SCA_ActuatorSensor, SCA_AlwaysSensor, SCA_DelaySensor, SCA_JoystickSensor, SCA_KeyboardSensor, KX_MouseFocusSensor, SCA_MouseSensor, KX_NearSensor, KX_NetworkMessageSensor, SCA_PropertySensor, KX_RadarSensor, SCA_RandomSensor, KX_RaySensor, KX_TouchSensor
 
-@group Actuators: SCA_2DFilterActuator, BL_ActionActuator, KX_SCA_AddObjectActuator, KX_CameraActuator, KX_CDActuator, KX_ConstraintActuator, KX_SCA_DynamicActuator, KX_SCA_EndObjectActuator, KX_GameActuator, KX_IpoActuator, KX_NetworkMessageActuator, KX_ObjectActuator, KX_ParentActuator, SCA_PropertyActuator, SCA_RandomActuator, KX_SCA_ReplaceMeshActuator, KX_SceneActuator, BL_ShapeActionActuator, KX_SoundActuator, KX_StateActuator, KX_TrackToActuator, KX_VisibilityActuator
+@group Actuators: SCA_2DFilterActuator, BL_ActionActuator, KX_SCA_AddObjectActuator, KX_CameraActuator, KX_ConstraintActuator, KX_SCA_DynamicActuator, KX_SCA_EndObjectActuator, KX_GameActuator, KX_IpoActuator, KX_NetworkMessageActuator, KX_ObjectActuator, KX_ParentActuator, SCA_PropertyActuator, SCA_RandomActuator, KX_SCA_ReplaceMeshActuator, KX_SceneActuator, BL_ShapeActionActuator, KX_SoundActuator, KX_StateActuator, KX_TrackToActuator, KX_VisibilityActuator
 
 @group Controllers: SCA_ANDController, SCA_NANDController, SCA_NORController, SCA_ORController, SCA_PythonController, SCA_XNORController, SCA_XORController
 """
@@ -1023,12 +1023,6 @@ class CListValue(CPropValue):
 		Return the value matching key, or the default value if its not found.
 		@return: The key value or a default.
 		"""
-	def has_key(key):
-		"""
-		Return True if the key is found.
-		@rtype: boolean
-		@return: The key value or a default.
-		"""
 	def from_id(id):
 		"""
 		This is a funtion especially for the game engine to return a value with a spesific id.
@@ -1105,59 +1099,6 @@ class KX_BlenderMaterial(PyObjectPlus): # , RAS_IPolyMaterial)
 		@rtype: integer
 		@return: the material's index
 		"""
-
-class KX_CDActuator(SCA_IActuator):
-	"""
-	CD Controller actuator.
-	@ivar volume: controls the volume to set the CD to. 0.0 = silent, 1.0 = max volume.
-	@type volume: float
-	@ivar track: the track selected to be played
-	@type track: integer
-	@ivar gain: the gain (volume) of the CD between 0.0 and 1.0.
-	@type gain: float
-	"""
-	def startCD():
-		"""
-		Starts the CD playing.
-		"""
-	def stopCD():
-		"""
-		Stops the CD playing.
-		"""
-	def pauseCD():
-		"""
-		Pauses the CD.
-		"""
-	def resumeCD():
-		"""
-		Resumes the CD after a pause.
-		"""
-	def playAll():
-		"""
-		Plays the CD from the beginning.
-		"""
-	def playTrack(trackNumber):
-		"""
-		Plays the track selected.
-		"""
-#{ Deprecated
-	def setGain(gain):
-		"""
-		Sets the gain (volume) of the CD.
-		
-		@deprecated: Use the L{volume} property.
-		@type gain: float
-		@param gain: the gain to set the CD to. 0.0 = silent, 1.0 = max volume.
-		"""
-	def getGain():
-		"""
-		Gets the current gain (volume) of the CD.
-		
-		@deprecated: Use the L{volume} property.
-		@rtype: float
-		@return: Between 0.0 (silent) and 1.0 (max volume)
-		"""
-#}
 
 class KX_CameraActuator(SCA_IActuator):
 	"""
@@ -1635,7 +1576,7 @@ class KX_GameObject(SCA_IObject):
 	@ivar childrenRecursive: all children of this object including childrens children, (read-only).
 	@type childrenRecursive: L{CListValue} of L{KX_GameObject}'s
 	@group Deprecated: getPosition, setPosition, setWorldPosition, getOrientation, setOrientation, getState, setState, getParent, getVisible, getMass, getMesh, getChildren, getChildrenRecursive
-	@group Property Access: get, has_key, attrDict, getPropertyNames
+	@group Property Access: get, attrDict, getPropertyNames
 	"""
 	def endObject():
 		"""
@@ -2107,12 +2048,6 @@ class KX_GameObject(SCA_IObject):
 		Return the value matching key, or the default value if its not found.
 		@return: The key value or a default.
 		"""
-	def has_key(key):
-		"""
-		Return True if the key is found.
-		@rtype: boolean
-		@return: The key value or a default.
-		"""
 
 
 class KX_IpoActuator(SCA_IActuator):
@@ -2472,6 +2407,8 @@ class KX_MouseFocusSensor(SCA_MouseSensor):
 	@type hitPosition: list (vector of 3 floats)
 	@ivar hitNormal: the worldspace normal from the face at point of intersection.
 	@type hitNormal: list (normalized vector of 3 floats)
+	@ivar usePulseFocus: When enabled, moving the mouse over a different object generates a pulse. (only used when the 'Mouse Over Any' sensor option is set)
+	@type usePulseFocus: bool
 	"""
 #{ Deprecated
 	def getHitNormal():
@@ -2533,7 +2470,7 @@ class KX_TouchSensor(SCA_ISensor):
 	@ivar useMaterial: Determines if the sensor is looking for a property or material.
 						KX_True = Find material; KX_False = Find property
 	@type useMaterial: boolean
-	@ivar usePulseCollision: The last collided object.
+	@ivar usePulseCollision: When enabled, changes to the set of colliding objects generate a pulse.
 	@type usePulseCollision: bool
 	@ivar hitObject: The last collided object. (read-only)
 	@type hitObject: L{KX_GameObject} or None
@@ -3918,6 +3855,12 @@ class KX_Scene(PyObjectPlus):
 		@type time: int
 		
 		@rtype: L{KX_GameObject}
+		"""
+	
+	def get(key, default=None):
+		"""
+		Return the value matching key, or the default value if its not found.
+		@return: The key value or a default.
 		"""
 
 class KX_SceneActuator(SCA_IActuator):
@@ -5790,7 +5733,7 @@ for name, val in locals().items():
 			
 			# Store the mappings to new attributes in a list (because there
 			# could be collisions).
-			if not depAttrs.has_key(attrName):
+			if attrName not in depAttrs:
 				depAttrs[attrName] = {}
 			mapping = depAttrs[attrName]
 			
@@ -5815,7 +5758,7 @@ for name, val in locals().items():
 					# Another mapping, from a conversion tuple to lists of class
 					# names.
 					conversion = (func, newAttrName)
-					if not mapping.has_key(conversion):
+					if conversion not in mapping:
 						mapping[conversion] = []
 					mapping[conversion].append(name)
 					break

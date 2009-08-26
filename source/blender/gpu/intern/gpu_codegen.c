@@ -824,7 +824,7 @@ void GPU_nodes_extract_dynamic_inputs(GPUPass *pass, ListBase *nodes)
 	GPU_shader_unbind(shader);
 }
 
-void GPU_pass_bind(GPUPass *pass, double time)
+void GPU_pass_bind(GPUPass *pass, double time, int mipmap)
 {
 	GPUInput *input;
 	GPUShader *shader = pass->shader;
@@ -838,7 +838,7 @@ void GPU_pass_bind(GPUPass *pass, double time)
 	/* now bind the textures */
 	for (input=inputs->first; input; input=input->next) {
 		if (input->ima)
-			input->tex = GPU_texture_from_blender(input->ima, input->iuser, time);
+			input->tex = GPU_texture_from_blender(input->ima, input->iuser, time, mipmap);
 
 		if(input->tex && input->bindtex) {
 			GPU_texture_bind(input->tex, input->texid);

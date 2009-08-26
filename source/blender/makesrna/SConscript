@@ -7,8 +7,8 @@ o = SConscript('intern/SConscript')
 objs += o
 
 incs = '#/intern/guardedalloc ../blenkernel ../blenlib ../makesdna intern .'
-incs += ' ../windowmanager ../editors/include ../imbuf ../bmesh'
-incs += ' ../render/extern/include'
+incs += ' ../windowmanager ../editors/include ../imbuf'
+incs += ' ../render/extern/include ../bmesh'
 
 defs = []
 

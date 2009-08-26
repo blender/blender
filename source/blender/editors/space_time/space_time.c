@@ -260,11 +260,15 @@ static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_ANIMATION:
+			ED_region_tag_redraw(ar);
+			break;
 		
 		case NC_SCENE:
 			/* any scene change for now */
 			ED_region_tag_redraw(ar);
 			break;
+		
 	}
 }
 
@@ -273,29 +277,12 @@ static void time_main_area_listener(ARegion *ar, wmNotifier *wmn)
 /* add handlers, stuff you only do once or on area/region changes */
 static void time_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+	ED_region_header_init(ar);
 }
 
 static void time_header_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-
-	/* clear */
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-		
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
-	time_header_buttons(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	ED_region_header(C, ar);
 }
 
 static void time_header_area_listener(ARegion *ar, wmNotifier *wmn)
@@ -372,8 +359,6 @@ static SpaceLink *time_new(const bContext *C)
 static void time_free(SpaceLink *sl)
 {
 }
-
-
 /* spacetype; init callback in ED_area_initialize() */
 /* init is called to (re)initialize an existing editor (file read, screen changes) */
 /* validate spacedata, add own area level handlers */

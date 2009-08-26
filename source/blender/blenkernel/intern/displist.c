@@ -315,6 +315,9 @@ static void init_fastshade_shadeinput(Render *re)
 
 static Render *fastshade_get_render(Scene *scene)
 {
+	// XXX 2.5: this crashes combined with previewrender
+	// due to global R so disabled for now
+#if 0
 	/* XXX ugly global still, but we can't do preview while rendering */
 	if(G.rendering==0) {
 		
@@ -326,6 +329,7 @@ static Render *fastshade_get_render(Scene *scene)
 		}
 		return re;
 	}
+#endif
 	
 	return NULL;
 }

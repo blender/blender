@@ -56,6 +56,8 @@
 #include "ED_markers.h"
 #include "ED_screen.h"
 
+#include "BKE_sound.h"
+
 /* ********************** frame change operator ***************************/
 
 /* Set any flags that are necessary to indicate modal time-changing operation */
@@ -91,6 +93,8 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 	if (cfra < MINAFRAME) cfra= MINAFRAME;
 	CFRA= cfra;
 	
+	sound_scrub(C);
+
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 }
 
@@ -121,6 +125,7 @@ static int change_frame_exec(bContext *C, wmOperator *op)
 	
 	change_frame_apply(C, op);
 	change_frame_exit(C, op);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -393,9 +398,6 @@ void ED_operatortypes_anim(void)
 	
 	WM_operatortype_append(ANIM_OT_add_driver_button);
 	WM_operatortype_append(ANIM_OT_remove_driver_button);
-	
-	WM_operatortype_append(ANIM_OT_keyingset_add_new);
-	WM_operatortype_append(ANIM_OT_keyingset_add_destination);
 }
 
 void ED_keymap_anim(wmWindowManager *wm)

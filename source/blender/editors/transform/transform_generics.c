@@ -271,7 +271,7 @@ static void editbmesh_apply_to_mirror(TransInfo *t)
 /* tags the given ID block for refreshes (if applicable) due to 
  * Animation Editor editing
  */
-static void animedit_refresh_id_tags (ID *id)
+static void animedit_refresh_id_tags (Scene *scene, ID *id)
 {
 	if (id) {
 		AnimData *adt= BKE_animdata_from_id(id);
@@ -281,12 +281,11 @@ static void animedit_refresh_id_tags (ID *id)
 			adt->recalc |= ADT_RECALC_ANIM;
 			
 		/* if ID-block is Object, set recalc flags */
-		// TODO: this should probably go through the depsgraph instead... but for now, let's be lazy
 		switch (GS(id->name)) {
 			case ID_OB:
 			{
 				Object *ob= (Object *)id;
-				ob->recalc |= OB_RECALC;
+				DAG_object_flush_update(scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
 			}
 				break;
 		}
@@ -345,11 +344,11 @@ static void animrecord_check_state (Scene *scene, ID *id, wmTimer *animtimer)
 void recalcData(TransInfo *t)
 {
 	Scene *scene = t->scene;
-	Base *base;
+	Base *base = scene->basact;
 
 	if (t->obedit) {
 	}
-	else if(G.f & G_PARTICLEEDIT) {
+	else if(base && base->object->mode & OB_MODE_PARTICLE_EDIT) {
 		flushTransParticles(t);
 	}
 	if (t->spacetype==SPACE_NODE) {
@@ -386,7 +385,7 @@ void recalcData(TransInfo *t)
 		/* just tag these animdata-blocks to recalc, assuming that some data there changed */
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			/* set refresh tags for objects using this animation */
-			animedit_refresh_id_tags(ale->id);
+			animedit_refresh_id_tags(t->scene, ale->id);
 		}
 		
 		/* now free temp channels */
@@ -434,7 +433,7 @@ void recalcData(TransInfo *t)
 				calchandles_fcurve(fcu);
 				
 			/* set refresh tags for objects using this animation */
-			animedit_refresh_id_tags(ale->id);
+			animedit_refresh_id_tags(t->scene, ale->id);
 		}
 		
 		/* do resort and other updates? */
@@ -465,7 +464,7 @@ void recalcData(TransInfo *t)
 				continue;
 			
 			/* set refresh tags for objects using this animation */
-			animedit_refresh_id_tags(tdn->id);
+			animedit_refresh_id_tags(t->scene, tdn->id);
 			
 			/* if cancelling transform, just write the values without validating, then move on */
 			if (t->state == TRANS_CANCEL) {
@@ -768,7 +767,7 @@ void recalcData(TransInfo *t)
 		 */
 		// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
 		if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
-			short targetless_ik= (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
+			int targetless_ik= (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
 			
 			animrecord_check_state(t->scene, &ob->id, t->animtimer);
 			autokeyframe_pose_cb_func(t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);

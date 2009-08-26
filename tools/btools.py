@@ -30,6 +30,9 @@ def validate_arguments(args, bc):
 			'BF_NO_PYDEBUG', 'WITH_BF_PYTHON', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC',
 			'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH', 'WITH_BF_STATICOPENAL', 'BF_OPENAL_LIB_STATIC',
 			'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
+			'BF_LIBSAMPLERATE', 'BF_LIBSAMPLERATE_INC', 'BF_LIBSAMPLERATE_LIB', 'BF_LIBSAMPLERATE_LIBPATH',
+			'WITH_BF_JACK', 'BF_JACK', 'BF_JACK_INC', 'BF_JACK_LIB', 'BF_JACK_LIBPATH',
+			'WITH_BF_SNDFILE', 'BF_SNDFILE', 'BF_SNDFILE_INC', 'BF_SNDFILE_LIB', 'BF_SNDFILE_LIBPATH',
 			'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
 			'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH', 'WITH_BF_STATICOPENEXR', 'BF_OPENEXR_LIB_STATIC',
 			'WITH_BF_DDS',
@@ -48,6 +51,7 @@ def validate_arguments(args, bc):
 			'BF_WINTAB', 'BF_WINTAB_INC',
 			'WITH_BF_FREETYPE', 'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH',
 			'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
+			'WITH_BF_FFTW3', 'BF_FFTW3', 'BF_FFTW3_INC', 'BF_FFTW3_LIB', 'BF_FFTW3_LIBPATH',
 			'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC',
 			'WITH_BF_PLAYER',
 			'WITH_BF_NOBLENDER',
@@ -56,8 +60,8 @@ def validate_arguments(args, bc):
 			'BF_CXX', 'WITH_BF_STATICCXX', 'BF_CXX_LIB_STATIC',
 			'BF_TWEAK_MODE', 'BF_SPLIT_SRC',
 			'WITHOUT_BF_INSTALL',
+			'WITHOUT_BF_PYTHON_INSTALL',
 			'WITH_BF_OPENMP',
-			'WITHOUT_BF_INSTALL',
 			'BF_FANCY', 'BF_QUIET',
 			'BF_X264_CONFIG',
 			'BF_XVIDCORE_CONFIG',
@@ -169,9 +173,26 @@ def read_opts(cfg, args):
 
 		(BoolVariable('WITH_BF_SDL', 'Use SDL if true', False)),
 		('BF_SDL', 'SDL base path', ''),
-		('BF_SDL_INC', 'SDL include path', ''),	 #$(shell $(BF_SDL)/bin/sdl-config --cflags)
-		('BF_SDL_LIB', 'SDL library', ''),	  #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
+		('BF_SDL_INC', 'SDL include path', ''),
+		('BF_SDL_LIB', 'SDL library', ''),
 		('BF_SDL_LIBPATH', 'SDL library path', ''),
+
+		('BF_LIBSAMPLERATE', 'libsamplerate aka SRC base path', ''),
+		('BF_LIBSAMPLERATE_INC', 'libsamplerate aka SRC include path', ''),
+		('BF_LIBSAMPLERATE_LIB', 'libsamplerate aka SRC library', ''),
+		('BF_LIBSAMPLERATE_LIBPATH', 'libsamplerate aka SRC library path', ''),
+
+		(BoolVariable('WITH_BF_JACK', 'Enable jack support if true', True)),
+		('BF_JACK', 'jack base path', ''),
+		('BF_JACK_INC', 'jack include path', ''),
+		('BF_JACK_LIB', 'jack library', ''),
+		('BF_JACK_LIBPATH', 'jack library path', ''),
+
+		(BoolVariable('WITH_BF_SNDFILE', 'Enable sndfile support if true', True)),
+		('BF_SNDFILE', 'sndfile base path', ''),
+		('BF_SNDFILE_INC', 'sndfile include path', ''),
+		('BF_SNDFILE_LIB', 'sndfile library', ''),
+		('BF_SNDFILE_LIBPATH', 'sndfile library path', ''),
 
 		('BF_PTHREADS', 'Pthreads base path', ''),
 		('BF_PTHREADS_INC', 'Pthreads include path', ''),
@@ -292,6 +313,12 @@ def read_opts(cfg, args):
 		('BF_QUICKTIME_INC', 'QuickTime include path', ''),
 		('BF_QUICKTIME_LIB', 'QuickTime library', ''),
 		('BF_QUICKTIME_LIBPATH', 'QuickTime library path', ''),
+		
+		(BoolVariable('WITH_BF_FFTW3', 'Use FFTW3 if true', False)),
+		('BF_FFTW3', 'FFTW3 base path', ''),
+		('BF_FFTW3_INC', 'FFTW3 include path', ''),
+		('BF_FFTW3_LIB', 'FFTW3 library', ''),
+		('BF_FFTW3_LIBPATH', 'FFTW3 library path', ''),
 
 		(BoolVariable('WITH_BF_STATICOPENGL', 'Use MESA if true', True)),
 		('BF_OPENGL', 'OpenGL base path', ''),
@@ -344,6 +371,7 @@ def read_opts(cfg, args):
 		(BoolVariable('BF_TWEAK_MODE', 'Enable tweak mode if true', False)),
 		(BoolVariable('BF_SPLIT_SRC', 'Split src lib into several chunks if true', False)),
 		(BoolVariable('WITHOUT_BF_INSTALL', 'dont install if true', False)),
+		(BoolVariable('WITHOUT_BF_PYTHON_INSTALL', 'dont install Python modules if true', False)),
 		(BoolVariable('BF_FANCY', 'Enable fancy output if true', True)),
 		(BoolVariable('BF_QUIET', 'Enable silent output if true', True)),
 		(BoolVariable('WITH_BF_BINRELOC', 'Enable relocatable binary (linux only)', False)),

@@ -58,6 +58,7 @@ void	ED_region_panels_init(struct wmWindowManager *wm, struct ARegion *ar);
 void	ED_region_panels(const struct bContext *C, struct ARegion *ar, int vertical, char *context, int contextnr);
 void	ED_region_header_init(struct ARegion *ar);
 void	ED_region_header(const struct bContext *C, struct ARegion *ar);
+void	region_scissor_winrct(struct ARegion *ar, struct rcti *winrct);
 
 /* spaces */
 void	ED_spacetypes_init(void);
@@ -89,10 +90,13 @@ void	ED_screen_do_listen(struct wmWindow *win, struct wmNotifier *note);
 bScreen *ED_screen_duplicate(struct wmWindow *win, struct bScreen *sc);
 bScreen *ED_screen_add(struct wmWindow *win, struct Scene *scene, char *name);
 void	ED_screen_set(struct bContext *C, struct bScreen *sc);
+void	ED_screen_delete(struct bContext *C, struct bScreen *sc);
 void	ED_screen_set_scene(struct bContext *C, struct Scene *scene);
+void	ED_screen_delete_scene(struct bContext *C, struct Scene *scene);
 void	ED_screen_set_subwinactive(struct wmWindow *win, struct wmEvent *event);
 void	ED_screen_exit(struct bContext *C, struct wmWindow *window, struct bScreen *screen);
-void	ED_screen_animation_timer(struct bContext *C, int redraws, int enable);
+void	ED_screen_animation_timer(struct bContext *C, int redraws, int sync, int enable);
+void	ED_screen_animation_timer_update(struct bContext *C, int redraws);
 int		ED_screen_full_newspace(struct bContext *C, ScrArea *sa, int type);
 void	ED_screen_full_prevspace(struct bContext *C);
 

@@ -93,9 +93,8 @@ int geticon_anim_blocktype(short blocktype)
 }
 
 /* Write into "name" buffer, the name of the property (retrieved using RNA from the curve's settings) 
- * WARNING: name buffer we're writing to cannot exceed 128 chars (check action_draw.c for details)
+ * WARNING: name buffer we're writing to cannot exceed 256 chars (check anim_channels_defines.c for details)
  */
-// TODO: have an extra var to indicate if prop was valid?
 void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 {
 	/* sanity checks */
@@ -148,26 +147,14 @@ void getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			propname= (char *)RNA_property_ui_name(prop);
 			
 			/* Array Index - only if applicable */
-			if (RNA_property_array_length(prop)) {
-				static char *vectoritem[4]= {"X ", "Y ", "Z ", "W "};
-				static char *quatitem[4]= {"W ", "X ", "Y ", "Z "};
-				static char *coloritem[4]= {"R ", "G ", "B ", "A "};
+			if (RNA_property_array_length(&ptr, prop)) {
+				char c= RNA_property_array_item_char(prop, fcu->array_index);
 				
-				int tot= RNA_property_array_length(prop);
-				int propsubtype= RNA_property_subtype(prop);
-				
-				/* get string to use for array index */
-				if ((tot == 4) && (propsubtype == PROP_ROTATION))
-					arrayname= quatitem[fcu->array_index];
-				else if ( (tot <= 4) && ((propsubtype == PROP_VECTOR) || (propsubtype == PROP_ROTATION)) )
-					arrayname= vectoritem[fcu->array_index];
-				else if ((tot <= 4) && (propsubtype == PROP_COLOR))
-					arrayname= coloritem[fcu->array_index];
-				else {
-					/* we need to write the index to a temp buffer (in py syntax), as it is a number... */
-					sprintf(arrayindbuf, "[%d]", fcu->array_index);
-					arrayname= &arrayindbuf[0];
-				}
+				/* we need to write the index to a temp buffer (in py syntax) */
+				if(c) sprintf(arrayindbuf, "%c ", c);
+				else sprintf(arrayindbuf, "[%d]", fcu->array_index);
+
+				arrayname= &arrayindbuf[0];
 			}
 			else {
 				/* no array index */

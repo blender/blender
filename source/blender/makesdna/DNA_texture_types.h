@@ -53,17 +53,17 @@ typedef struct MTex {
 	char uvname[32];
 	
 	char projx, projy, projz, mapping;
-	float ofs[3], size[3];
+	float ofs[3], size[3], rot;
 	
 	short texflag, colormodel, pmapto, pmaptoneg;
-	short normapspace, which_output, pad[2];
+	short normapspace, which_output;
+	char brush_map_mode, pad[7];
 	float r, g, b, k;
 	float def_var, rt;
 	
 	float colfac, norfac, varfac;
 	float dispfac; 
 	float warpfac;
-	
 } MTex;
 
 #ifndef DNA_USHORT_FIX
@@ -128,6 +128,55 @@ typedef struct EnvMap {
 	short recalc, lastsize;
 } EnvMap;
 
+typedef struct PointDensity {
+	short flag;
+
+	short falloff_type;
+	float falloff_softness;
+	float radius;
+	short source;
+	short color_source;
+	int totpoints;
+	
+	int pdpad;
+
+	struct Object *object;	/* for 'Object' or 'Particle system' type - source object */
+	struct ParticleSystem *psys;
+	short psys_cache_space;		/* cache points in worldspace, object space, ... ? */
+	short ob_cache_space;		/* cache points in worldspace, object space, ... ? */
+	
+	short pdpad2[2];
+	
+	void *point_tree;		/* the acceleration tree containing points */
+	float *point_data;		/* dynamically allocated extra for extra information, like particle age */
+	
+	float noise_size;
+	short noise_depth;
+	short noise_influence;
+	short noise_basis;
+    short pdpad3[3];
+	float noise_fac;
+	
+	float speed_scale;
+	struct ColorBand *coba;	/* for time -> color */
+	
+} PointDensity;
+
+typedef struct VoxelData {
+	int resol[3];
+	int interp_type;
+	short file_format;
+	short flag;
+	int pad;
+	
+	struct Object *object; /* for rendering smoke sims */
+	float int_multiplier;	
+	int still_frame;
+	char source_path[240];
+	float *dataset;
+ 
+} VoxelData;
+
 typedef struct Tex {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
@@ -143,7 +192,11 @@ typedef struct Tex {
 	float dist_amount, ns_outscale;
 
 	/* newnoise: voronoi nearest neighbour weights, minkovsky exponent, distance metric & color type */
-	float vn_w1, vn_w2, vn_w3, vn_w4, vn_mexp;
+	float vn_w1;
+	float vn_w2;
+	float vn_w3;
+	float vn_w4;
+	float vn_mexp;
 	short vn_distm, vn_coltype;
 
 	short noisedepth, noisetype;
@@ -177,6 +230,8 @@ typedef struct Tex {
 	struct ColorBand *coba;
 	struct EnvMap *env;
 	struct PreviewImage * preview;
+	struct PointDensity *pd;
+	struct VoxelData *vd;
 	
 	char use_nodes;
 	char pad[7];
@@ -216,6 +271,8 @@ typedef struct TexMapping {
 #define TEX_MUSGRAVE	11
 #define TEX_VORONOI		12
 #define TEX_DISTNOISE	13
+#define TEX_POINTDENSITY	14
+#define TEX_VOXELDATA		15
 
 /* musgrave stype */
 #define TEX_MFRACTAL		0
@@ -392,6 +449,11 @@ typedef struct TexMapping {
 #define MTEX_BLEND_COLOR	13
 #define MTEX_NUM_BLENDTYPES	14
 
+/* brush_map_mode */
+#define MTEX_MAP_MODE_FIXED    0
+#define MTEX_MAP_MODE_TILED    1
+#define MTEX_MAP_MODE_3D       2
+
 /* **************** EnvMap ********************* */
 
 /* type */
@@ -407,6 +469,60 @@ typedef struct TexMapping {
 /* ok */
 #define ENV_NORMAL	1
 #define ENV_OSA		2
+
+/* **************** PointDensity ********************* */
+
+/* source */
+#define TEX_PD_PSYS			0
+#define TEX_PD_OBJECT		1
+#define TEX_PD_FILE			2
+
+/* falloff_type */
+#define TEX_PD_FALLOFF_STD		0
+#define TEX_PD_FALLOFF_SMOOTH	1
+#define TEX_PD_FALLOFF_SOFT		2
+#define TEX_PD_FALLOFF_CONSTANT	3
+#define TEX_PD_FALLOFF_ROOT		4
+
+/* psys_cache_space */
+#define TEX_PD_OBJECTLOC	0
+#define TEX_PD_OBJECTSPACE	1
+#define TEX_PD_WORLDSPACE	2
+
+/* flag */
+#define TEX_PD_TURBULENCE	1
+
+
+/* noise_influence */
+#define TEX_PD_NOISE_STATIC		0
+#define TEX_PD_NOISE_VEL		1
+#define TEX_PD_NOISE_AGE		2
+#define TEX_PD_NOISE_TIME		3
+
+/* color_source */
+#define TEX_PD_COLOR_CONSTANT	0
+#define TEX_PD_COLOR_PARTAGE	1
+#define TEX_PD_COLOR_PARTSPEED	2
+#define TEX_PD_COLOR_PARTVEL	3
+
+#define POINT_DATA_VEL		1
+#define POINT_DATA_LIFE		2
+
+/******************** Voxel Data *****************************/
+/* flag */
+#define TEX_VD_STILL			1
+
+/* interpolation */
+#define TEX_VD_NEARESTNEIGHBOR		0
+#define TEX_VD_LINEAR				1
+#define TEX_VD_TRICUBIC				2
+
+/* file format */
+#define TEX_VD_BLENDERVOXEL		0
+#define TEX_VD_RAW_8BIT			1
+#define TEX_VD_RAW_16BIT		2
+#define TEX_VD_IMAGE_SEQUENCE	3
+#define TEX_VD_SMOKE			4
 
 #endif
 

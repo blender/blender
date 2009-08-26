@@ -83,6 +83,12 @@ protected:
 	vector<IpoCurve*>		 m_shapeDrivers;
 	double					 m_lastShapeUpdate;
 
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_ShapeDeformer"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

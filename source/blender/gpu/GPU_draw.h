@@ -43,6 +43,7 @@ struct Object;
 struct Scene;
 struct View3D;
 struct RegionView3D;
+struct SmokeModifierData;
 
 /* OpenGL drawing functions related to shading. These are also
  * shared with the game engine, where there were previously
@@ -78,7 +79,7 @@ int GPU_get_material_blend_mode(void);
  *   be drawn using one or the other
  * - passing NULL clears the state again */
 
-int GPU_set_tpage(struct MTFace *tface);
+int GPU_set_tpage(struct MTFace *tface, int mipmap);
 
 /* Lights
  * - returns how many lights were enabled
@@ -105,12 +106,16 @@ void GPU_paint_set_mipmap(int mipmap);
 /* Image updates and free
  * - these deal with images bound as opengl textures */
 
-void GPU_paint_update_image(struct Image *ima, int x, int y, int w, int h);
+void GPU_paint_update_image(struct Image *ima, int x, int y, int w, int h, int mipmap);
 void GPU_update_images_framechange(void);
 int GPU_update_image_time(struct Image *ima, double time);
-int GPU_verify_image(struct Image *ima, int tftile, int tfmode, int compare);
+int GPU_verify_image(struct Image *ima, int tftile, int tfmode, int compare, int mipmap);
 void GPU_free_image(struct Image *ima);
 void GPU_free_images(void);
+
+/* smoke drawing functions */
+void GPU_free_smoke(struct SmokeModifierData *smd);
+void GPU_create_smoke(struct SmokeModifierData *smd);
 
 #ifdef __cplusplus
 }

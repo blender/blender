@@ -248,9 +248,6 @@ void uiStyleInit(void)
 			BLF_size(11, U.dpi);
 			BLF_size(12, U.dpi);
 			BLF_size(14, U.dpi);
-
-			if (!(U.transopts & USER_USETEXTUREFONT))
-				BLF_mode(BLF_MODE_BITMAP);
 		}
 	}
 	

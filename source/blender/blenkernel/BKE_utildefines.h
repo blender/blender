@@ -62,11 +62,6 @@
 #define SHIFT3(type, a, b, c) { type tmp; tmp = a; a = c; c = b; b = tmp; }
 #define SHIFT4(type, a, b, c, d) { type tmp; tmp = a; a = d; d = c; c = b; b = tmp; }
 
-/* string compare */
-#define STREQ(str, a)           ( strcmp((str), (a))==0 )
-#define STREQ2(str, a, b)       ( STREQ(str, a) || STREQ(str, b) )
-#define STREQ3(str, a, b, c)    ( STREQ2(str, a, b) || STREQ(str, c) )
-
 /* min/max */
 #define MIN2(x,y)               ( (x)<(y) ? (x) : (y) )
 #define MIN3(x,y,z)             MIN2( MIN2((x),(y)) , (z) )
@@ -91,8 +86,6 @@
 							  if( (min)[1]>(vec)[1] ) (min)[1]= (vec)[1]; \
 							  if( (max)[0]<(vec)[0] ) (max)[0]= (vec)[0]; \
 							  if( (max)[1]<(vec)[1] ) (max)[1]= (vec)[1]; }
-
-#define MINSIZE(val, size)	( ((val)>=0.0) ? (((val)<(size)) ? (size): (val)) : ( ((val)>(-size)) ? (-size) : (val)))
 
 /* some math and copy defines */
 

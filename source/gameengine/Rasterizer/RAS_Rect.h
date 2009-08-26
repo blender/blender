@@ -30,6 +30,10 @@
 #ifndef _RAS_RECT
 #define _RAS_RECT
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 /** 
  * @section interface class.
  * RAS_Rect just encodes a simple rectangle.
@@ -89,6 +93,12 @@ public:
 	{
 		m_y2 = y2;
 	}
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_Rect"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif // _RAS_RECT

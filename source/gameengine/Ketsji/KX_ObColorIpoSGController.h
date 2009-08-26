@@ -67,6 +67,13 @@ public:
 
 
 	void	AddInterpolator(KX_IInterpolator* interp);
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_ObColorIpoSGController"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif // KX_OBCOLORIPOSGCONTROLLER_H

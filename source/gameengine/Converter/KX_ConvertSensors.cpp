@@ -536,6 +536,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 							starty,
 							keytype,
 							trackfocus,
+							(bmouse->flag & SENS_MOUSE_FOCUS_PULSE) ? true:false,
 							kxscene,
 							kxengine,
 							gameobj); 

@@ -54,6 +54,13 @@ public:
 	
 	// for shape keys, 
 	void CheckWeightCache(struct Object* obj);
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:BL_SkinMeshObject"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif

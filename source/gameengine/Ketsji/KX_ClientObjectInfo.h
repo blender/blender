@@ -74,6 +74,13 @@ public:
 	
 	bool isActor() { return m_type <= ACTOR; }
 	bool isSensor() { return m_type >= SENSOR && m_type <= OBACTORSENSOR; }
+	
+	
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_ClientObjectInfo"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_CLIENTOBJECT_INFO_H

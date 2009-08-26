@@ -280,7 +280,7 @@ static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 	
 	/* copy last mode, then we can re-init the region maps */
 	rv3d->lastmode= stype;
-
+	
 	keymap= WM_keymap_listbase(wm, "Object Mode", 0, 0);
 	if(ELEM(stype, 0, NS_MODE_OBJECT))
 		WM_event_add_keymap_handler(&ar->handlers, keymap);
@@ -304,6 +304,12 @@ static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 		WM_event_add_keymap_handler(&ar->handlers, keymap);
 	else
 		WM_event_remove_keymap_handler(&ar->handlers, keymap);
+		
+	keymap= WM_keymap_listbase(wm, "Pose", 0, 0);
+	if(stype==NS_MODE_POSE)
+		WM_event_add_keymap_handler(&ar->handlers, keymap);
+	else
+		WM_event_remove_keymap_handler(&ar->handlers, keymap);
 
 	keymap= WM_keymap_listbase(wm, "Metaball", 0, 0);
 	if(stype==NS_EDITMODE_MBALL)
@@ -319,7 +325,7 @@ static void view3d_modal_keymaps(wmWindowManager *wm, ARegion *ar, int stype)
 
 	/* armature sketching needs to take over mouse */
 	keymap= WM_keymap_listbase(wm, "Armature_Sketch", 0, 0);
-	if(stype==NS_EDITMODE_TEXT)
+	if(stype==NS_EDITMODE_ARMATURE)
 		WM_event_add_keymap_handler_priority(&ar->handlers, keymap, 10);
 	else
 		WM_event_remove_keymap_handler(&ar->handlers, keymap);
@@ -595,7 +601,7 @@ static void view3d_tools_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void view3d_tools_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, view3d_context_string(C), -1);
+	ED_region_panels(C, ar, 1, CTX_data_mode_string(C), -1);
 }
 
 static int view3d_context(const bContext *C, const char *member, bContextDataResult *result)
@@ -889,7 +895,7 @@ void ED_spacetype_view3d(void)
 	/* regions: tool(bar) */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_TOOLS;
-	art->minsizex= 120; // XXX
+	art->minsizex= 160; // XXX
 	art->minsizey= 50; // XXX
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= view3d_buttons_area_listener;

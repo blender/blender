@@ -65,6 +65,7 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_material.h"
+#include "BKE_paint.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_report.h"
@@ -245,7 +246,7 @@ int EM_mask_init_backbuf_border(ViewContext *vc, short mcords[][2], short tot, s
 	
 	/* method in use for face selecting too */
 	if(vc->obedit==NULL) {
-		if(FACESEL_PAINT_TEST);
+		if(paint_facesel_test(vc->obact));
 		else return 0;
 	}
 	else if(vc->v3d->drawtype<OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT)==0) return 0;
@@ -300,7 +301,7 @@ int EM_init_backbuf_circle(ViewContext *vc, short xs, short ys, short rads)
 	
 	/* method in use for face selecting too */
 	if(vc->obedit==NULL) {
-		if(FACESEL_PAINT_TEST);
+		if(paint_facesel_test(vc->obact));
 		else return 0;
 	}
 	else if(vc->v3d->drawtype<OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT)==0) return 0;
@@ -1044,6 +1045,7 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Multi Select Loops";
+	ot->description= "Select a loop of connected edges by connection type.";
 	ot->idname= "MESH_OT_loop_multi_select";
 	
 	/* api callbacks */
@@ -1060,8 +1062,6 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 		
 /* ***************** MAIN MOUSE SELECTION ************** */
 
-
-/* ******************* mesh shortest path select, uses prev-selected edge ****************** */
 
 /* ************************************************** */
 
@@ -1272,6 +1272,7 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Select by Number of Vertices";
+	ot->description= "Select vertices or faces by vertex count.";
 	ot->idname= "MESH_OT_select_by_number_vertices";
 	
 	/* api callbacks */
@@ -1392,6 +1393,7 @@ void MESH_OT_edges_select_sharp(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Sharp Edges";
+	ot->description= "Marked selected edges as sharp.";
 	ot->idname= "MESH_OT_edges_select_sharp";
 	
 	/* api callbacks */
@@ -1559,6 +1561,7 @@ void MESH_OT_faces_select_linked_flat(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Linked Flat Faces";
+	ot->description= "Select linked faces by angle.";
 	ot->idname= "MESH_OT_faces_select_linked_flat";
 	
 	/* api callbacks */
@@ -1659,6 +1662,7 @@ void MESH_OT_select_non_manifold(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Non Manifold";
+	ot->description= "Select all non-manifold vertices or edges.";
 	ot->idname= "MESH_OT_select_non_manifold";
 	
 	/* api callbacks */
@@ -1686,7 +1690,6 @@ void MESH_OT_bmesh_test(wmOperatorType *ot)
 
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-
 
 static void selectrandom_mesh(EditMesh *em, float perc) /* randomly selects a user-set % of vertices/edges/faces */
 {
@@ -1747,6 +1750,7 @@ void MESH_OT_select_random(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Random";
+	ot->description= "Randomly select vertices.";
 	ot->idname= "MESH_OT_select_random";
 
 	/* api callbacks */
@@ -1814,7 +1818,6 @@ static void mesh_selection_type(Scene *scene, EditMesh *em, int val)
 }
 
 /* **************** NORMALS ************** */
-
 /* XXX value of select is messed up, it means two things */
 void righthandfaces(EditMesh *em, int select)	/* makes faces righthand turning */
 {
@@ -2457,6 +2460,8 @@ void MESH_OT_vertices_transform_to_sphere(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Vertices to Sphere";
+	//added "around cursor" to differentiate between "TFM_OT_tosphere()"
+	ot->description= "Move selected vertices outward in a spherical shape around cursor.";
 	ot->idname= "MESH_OT_vertices_transform_to_sphere";
 	
 	/* api callbacks */

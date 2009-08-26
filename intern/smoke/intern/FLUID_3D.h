@@ -27,7 +27,7 @@
 #include <cmath>
 #include <iostream>
 #include "OBSTACLE.h"
-#include "WTURBULENCE.h"
+// #include "WTURBULENCE.h"
 #include "VEC3.h"
 
 using namespace std;
@@ -37,7 +37,7 @@ class WTURBULENCE;
 class FLUID_3D  
 {
 	public:
-		FLUID_3D(int *res, int amplify, float *p0, float dt);
+		FLUID_3D(int *res, /* int amplify, */ float *p0, float dt);
 		FLUID_3D() {};
 		virtual ~FLUID_3D();
 
@@ -64,7 +64,7 @@ class FLUID_3D
 		// dimensions
 		int _xRes, _yRes, _zRes, _maxRes;
 		Vec3Int _res;
-		int _totalCells;
+		size_t _totalCells;
 		int _slabSize;
 		float _dx;
 		float _p0[3];
@@ -81,7 +81,6 @@ class FLUID_3D
 		float* _densityOld;
 		float* _heat;
 		float* _heatOld;
-		float* _pressure;
 		float* _xVelocity;
 		float* _yVelocity;
 		float* _zVelocity;
@@ -91,17 +90,9 @@ class FLUID_3D
 		float* _xForce;
 		float* _yForce;
 		float* _zForce;
-		float* _divergence;
-		float* _xVorticity;
-		float* _yVorticity;
-		float* _zVorticity;
-		float* _vorticity;
 		unsigned char*  _obstacles;
 
 		// CG fields
-		float* _residual;
-		float* _direction;
-		float* _q;
 		int _iterations;
 
 		// simulation constants
@@ -113,7 +104,7 @@ class FLUID_3D
 		float _tempAmb; /* ambient temperature */
 
 		// WTURBULENCE object, if active
-		WTURBULENCE* _wTurbulence;
+		// WTURBULENCE* _wTurbulence;
 
 		// boundary setting functions
 		void copyBorderAll(float* field);
@@ -128,10 +119,12 @@ class FLUID_3D
 		void project();
 		void diffuseHeat();
 		void solvePressure(float* field, float* b, unsigned char* skip);
+		void solvePressurePre(float* field, float* b, unsigned char* skip);
 		void solveHeat(float* field, float* b, unsigned char* skip);
 
 		// handle obstacle boundaries
-		void setObstacleBoundaries();
+		void setObstacleBoundaries(float *_pressure);
+		void setObstaclePressure(float *_pressure);
 
 	public:
 		// advection, accessed e.g. by WTURBULENCE class
@@ -157,13 +150,13 @@ class FLUID_3D
 		static void advectFieldSemiLagrange(const float dt, const float* velx, const float* vely,  const float* velz,
 				float* oldField, float* newField, Vec3Int res);
 		static void advectFieldMacCormack(const float dt, const float* xVelocity, const float* yVelocity, const float* zVelocity, 
-				float* oldField, float* newField, float* temp1, float* temp2, Vec3Int res, const float* obstacles);
+				float* oldField, float* newField, float* temp1, float* temp2, Vec3Int res, const unsigned char* obstacles);
 
 		// maccormack helper functions
 		static void clampExtrema(const float dt, const float* xVelocity, const float* yVelocity,  const float* zVelocity,
 				float* oldField, float* newField, Vec3Int res);
 		static void clampOutsideRays(const float dt, const float* xVelocity, const float* yVelocity,  const float* zVelocity,
-				float* oldField, float* newField, Vec3Int res, const float* obstacles, const float *oldAdvection);
+				float* oldField, float* newField, Vec3Int res, const unsigned char* obstacles, const float *oldAdvection);
 
 		// output helper functions
 		// static void writeImageSliceXY(const float *field, Vec3Int res, int slice, string prefix, int picCnt, float scale=1.);

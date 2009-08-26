@@ -1,7 +1,7 @@
 /**
  * sound.h (mar-2001 nzc)
- *	
- * $Id$ 
+ *
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -33,20 +33,45 @@
 
 struct PackedFile;
 struct bSound;
-struct bSample;
+struct bContext;
 struct ListBase;
+struct Main;
 
-/* bad bad global... */
-extern struct ListBase *samples;
+void sound_init();
 
-void sound_free_all_samples(void);
+void sound_exit();
 
-/*  void *sound_get_listener(void); implemented in src!also declared there now  */
+struct bSound* sound_new_file(struct Main *main, char* filename);
 
-void sound_set_packedfile(struct bSample* sample, struct PackedFile* pf);
-struct PackedFile* sound_find_packedfile(struct bSound* sound);
-void sound_free_sample(struct bSample* sample);
-void sound_free_sound(struct bSound* sound);
+// XXX unused currently
+#if 0
+struct bSound* sound_new_buffer(struct bContext *C, struct bSound *source);
 
+struct bSound* sound_new_limiter(struct bContext *C, struct bSound *source, float start, float end);
 #endif
 
+void sound_delete(struct bContext *C, struct bSound* sound);
+
+void sound_cache(struct bSound* sound, int ignore);
+
+void sound_load(struct Main *main, struct bSound* sound);
+
+void sound_free(struct bSound* sound);
+
+void sound_unlink(struct bContext *C, struct bSound* sound);
+
+struct SoundHandle* sound_new_handle(struct Scene *scene, struct bSound* sound, int startframe, int endframe, int frameskip);
+
+void sound_delete_handle(struct Scene *scene, struct SoundHandle *handle);
+
+void sound_update_playing(struct bContext *C);
+
+void sound_scrub(struct bContext *C);
+
+#ifdef AUD_CAPI
+AUD_Device* sound_mixdown(struct Scene *scene, AUD_Specs specs, int start, int end);
+#endif
+
+void sound_stop_all(struct bContext *C);
+
+#endif

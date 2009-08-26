@@ -37,13 +37,14 @@ extern "C" {
 /* generic blender movie support, could move to own module */
 
 struct RenderData;	
-void start_avi(struct RenderData *rd, int rectx, int recty);
+struct Scene;
+void start_avi(struct Scene *scene, struct RenderData *rd, int rectx, int recty);
 void end_avi(void);
 void append_avi(struct RenderData *rd, int frame, int *pixels, int rectx, int recty);
 void makeavistring (struct RenderData *rd, char *string);
 
 typedef struct bMovieHandle {
-	void (*start_movie)(struct RenderData *rd, int rectx, int recty);
+	void (*start_movie)(struct Scene *scene, struct RenderData *rd, int rectx, int recty);
 	void (*append_movie)(struct RenderData *rd, int frame, int *pixels, int rectx, int recty);
 	void (*end_movie)(void);
 	int (*get_next_frame)(struct RenderData *rd); /* optional */

@@ -31,6 +31,10 @@
 
 #include "KX_BlenderInputDevice.h"
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#include "MEM_guardedalloc.h"
+#endif
+
 class KX_BlenderMouseDevice : public BL_BlenderInputDevice
 {
 public:
@@ -41,6 +45,13 @@ public:
 //	virtual const SCA_InputEvent&	GetEventValue(SCA_IInputDevice::KX_EnumInputs inputcode);
 	virtual bool	ConvertBlenderEvent(unsigned short incode,short val);
 	virtual void	NextFrame();
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:KX_BlenderMouseDevice"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_BLENDERMOUSEDEVICE

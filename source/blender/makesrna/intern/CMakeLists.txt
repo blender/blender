@@ -42,6 +42,10 @@ SET(SRC
 INCLUDE_DIRECTORIES(../../../../intern/guardedalloc .. ../../makesdna ../../blenkernel ../../blenlib ../../windowmanager ../../editors/include ../../imbuf ../../render/extern/include ../../bmesh .)
 FILE(GLOB INC_FILES ../*.h ../../makesdna/*.h)
 
+IF(WITH_GAMEENGINE)
+  ADD_DEFINITIONS(-DGAMEBLENDER)
+ENDIF(WITH_GAMEENGINE)
+
 IF(WITH_OPENEXR)
   ADD_DEFINITIONS(-DWITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
@@ -66,6 +70,10 @@ ENDIF(WITH_FFMPEG)
 IF(NOT WITH_ELBEEM)
   ADD_DEFINITIONS(-DDISABLE_ELBEEM)
 ENDIF(NOT WITH_ELBEEM)
+
+IF(WITH_FFTW3)
+  ADD_DEFINITIONS(-DFFTW3=1)
+ENDIF(WITH_FFTW3)
 
 # Build makesrna executable
 ADD_EXECUTABLE(makesrna ${SRC} ${INC_FILES})

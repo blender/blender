@@ -94,7 +94,6 @@ struct PyMethodDef M_Mathutils_methods[] = {
 /*----------------------------MODULE INIT-------------------------*/
 /* from can be Blender.Mathutils or GameLogic.Mathutils for the BGE */
 
-#if (PY_VERSION_HEX >= 0x03000000)
 static struct PyModuleDef M_Mathutils_module_def = {
 	PyModuleDef_HEAD_INIT,
 	"Mathutils",  /* m_name */
@@ -106,21 +105,13 @@ static struct PyModuleDef M_Mathutils_module_def = {
 	0,  /* m_clear */
 	0,  /* m_free */
 };
-#endif
 
-PyObject *Mathutils_Init(const char *from)
+PyObject *Mathutils_Init(void)
 {
 	PyObject *submodule;
 
 	//seed the generator for the rand function
 	BLI_srand((unsigned int) (PIL_check_seconds_timer() * 0x7FFFFFFF));
-
-#if (PY_VERSION_HEX < 0x03000000)
-	vector_Type.tp_flags |= Py_TPFLAGS_CHECKTYPES;
-	matrix_Type.tp_flags |= Py_TPFLAGS_CHECKTYPES;
-	euler_Type.tp_flags |= Py_TPFLAGS_CHECKTYPES;
-	quaternion_Type.tp_flags |= Py_TPFLAGS_CHECKTYPES;
-#endif
 	
 	if( PyType_Ready( &vector_Type ) < 0 )
 		return NULL;
@@ -131,12 +122,8 @@ PyObject *Mathutils_Init(const char *from)
 	if( PyType_Ready( &quaternion_Type ) < 0 )
 		return NULL;
 	
-#if (PY_VERSION_HEX >= 0x03000000)
 	submodule = PyModule_Create(&M_Mathutils_module_def);
 	PyDict_SetItemString(PySys_GetObject("modules"), M_Mathutils_module_def.m_name, submodule);
-#else
-	submodule = Py_InitModule3(from, M_Mathutils_methods, M_Mathutils_doc);
-#endif
 	
 	/* each type has its own new() function */
 	PyModule_AddObject( submodule, "Vector",		(PyObject *)&vector_Type );

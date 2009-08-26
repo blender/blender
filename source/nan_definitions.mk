@@ -89,7 +89,7 @@ ifndef CONFIG_GUESS
     export NAN_IKSOLVER ?= $(LCGDIR)/iksolver
     export NAN_BSP ?= $(LCGDIR)/bsp
     export NAN_BOOLOP ?= $(LCGDIR)/boolop
-    export NAN_SOUNDSYSTEM ?= $(LCGDIR)/SoundSystem
+    export NAN_AUDASPACE ?= $(LCGDIR)/audaspace
     export NAN_STRING ?= $(LCGDIR)/string
     export NAN_MEMUTIL ?= $(LCGDIR)/memutil
     export NAN_CONTAINER ?= $(LCGDIR)/container
@@ -113,7 +113,29 @@ ifndef CONFIG_GUESS
     export WITH_OPENEXR ?= true
     export WITH_DDS ?= true
     export WITH_OPENJPEG ?= true
+    export WITH_LZO ?= true
+    export WITH_LZMA ?= true
+    export NAN_LZO ?= $(LCGDIR)/lzo
+    export NAN_LZMA ?= $(LCGDIR)/lzma
+    export WITH_OPENAL ?= false
+    export WITH_JACK ?= false
+    export WITH_SNDFILE ?= false
 
+  ifeq ($(WITH_OPENAL), true)
+    export NAN_OPENAL ?= /usr
+  endif
+
+  ifeq ($(WITH_JACK), true)
+    export NAN_JACK ?= /usr
+    export NAN_JACKCFLAGS ?= -I$(NAN_JACK)/include/jack
+    export NAN_JACKLIBS ?= $(NAN_JACK)/lib/libjack.a
+  endif
+
+  ifeq ($(WITH_SNDFILE),true)
+    export NAN_SNDFILE ?= /usr
+    export NAN_SNDFILECFLAGS ?= -I$(NAN_SNDFILE)/include
+    export NAN_SNDFILELIBS ?= $(NAN_SNDFILE)/lib/libsndfile.a $(NAN_SNDFILE)/lib/libFLAC.a $(NAN_SNDFILE)/lib/libogg.a
+  endif
 
   ifeq ($(NAN_USE_FFMPEG_CONFIG), true)
     export NAN_FFMPEG ?= $(shell ffmpeg-config --prefix)
@@ -131,7 +153,7 @@ ifndef CONFIG_GUESS
 
     ifeq ($(NAN_PYTHON_VERSION),3.1)
       export PY_FRAMEWORK ?= 0
-	  export NAN_PYTHON ?= $(LCGDIR)/python
+      export NAN_PYTHON ?= $(LCGDIR)/python
       export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/libpython$(NAN_PYTHON_VERSION).a
     else
       export PY_FRAMEWORK ?= 1
@@ -172,7 +194,7 @@ ifndef CONFIG_GUESS
     export NAN_NO_KETSJI=false
 
     ifeq ($(CPU), i386)
-      export NAN_NO_OPENAL=true
+      export WITH_OPENAL=false
     endif
 
     # Location of MOZILLA/Netscape header files...
@@ -190,6 +212,9 @@ ifndef CONFIG_GUESS
 
     # enable l10n
     export INTERNATIONAL ?= true
+
+    export NAN_SAMPLERATE ?= $(LCGDIR)/samplerate
+    export NAN_SAMPLERATE_LIBS ?= $(NAN_SAMPLERATE)/lib/libsamplerate.a 
 
   else
   ifeq ($(OS),freebsd)
@@ -294,7 +319,8 @@ ifndef CONFIG_GUESS
     export NAN_PYTHON ?= /usr
     export NAN_PYTHON_VERSION ?= 3.1
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-    export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+    # Next line if for static python, nan_link.mk uses -lpython$(NAN_PYTHON_VERSION)
+    #export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= /usr
     export NAN_JPEG ?= /usr
     export NAN_PNG ?= /usr
@@ -308,6 +334,7 @@ ifndef CONFIG_GUESS
     export NAN_SDL ?= $(shell sdl-config --prefix)
     export NAN_SDLLIBS ?= $(shell sdl-config --libs)
     export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
+    export NAN_SAMPLERATE ?= /usr
 
 ifneq ($(NAN_USE_FFMPEG_CONFIG), true)
     export NAN_FFMPEG ?= /usr
@@ -322,7 +349,7 @@ endif
     endif
 
     # Uncomment the following line to use Mozilla inplace of netscape
-	
+
     # Location of MOZILLA/Netscape header files...
     export NAN_MOZILLA_INC ?= /usr/include/mozilla
     export NAN_MOZILLA_LIB ?= $(LCGDIR)/mozilla/lib/
@@ -527,5 +554,4 @@ endif # CONFIG_GUESS
 # Don't want to build the gameengine?
 ifeq ($(NAN_NO_KETSJI), true)
    export NAN_JUST_BLENDERDYNAMIC=true
-   export NAN_NO_OPENAL=true
 endif

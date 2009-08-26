@@ -1,0 +1,9 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('minilzo/*.c')
+
+defs = ''
+incs = ' include ' 
+
+env.BlenderLib ('bf_minilzo', sources, Split(incs), Split(defs), libtype=['intern'], priority=[40] )

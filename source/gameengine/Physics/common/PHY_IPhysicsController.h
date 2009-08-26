@@ -41,7 +41,6 @@ class PHY_IPhysicsController : public PHY_IController
 {
 
 	public:
-		
 		virtual ~PHY_IPhysicsController();
 		/**
 			SynchronizeMotionStates ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
@@ -99,6 +98,11 @@ class PHY_IPhysicsController : public PHY_IController
 		
 		PHY__Vector3	GetWorldPosition(PHY__Vector3& localpos);
 
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:PHY_IPhysicsController"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //PHY_IPHYSICSCONTROLLER_H

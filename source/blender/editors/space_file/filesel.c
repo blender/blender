@@ -287,6 +287,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 	numfiles = filelist_numfiles(sfile->files);
 	textheight = file_font_pointsize();
 	layout = sfile->layout;
+	layout->textheight = textheight;
 
 	if (params->display == FILE_IMGDISPLAY) {
 		layout->prv_w = 96;

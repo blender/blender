@@ -138,6 +138,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Subdivide";
+	ot->description= "Subdivide selected edges.";
 	ot->idname= "MESH_OT_subdivide";
 
 	/* api callbacks */
@@ -554,6 +555,7 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Extrude Repeat Mesh";
+	ot->description= "Extrude selected vertices, edges or faces repeatedly.";
 	ot->idname= "MESH_OT_extrude_repeat";
 	
 	/* api callbacks */
@@ -993,6 +995,7 @@ void MESH_OT_extrude(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Extrude";
+	ot->description= "Extrude selected vertices, edges or faces.";
 	ot->idname= "MESH_OT_extrude";
 	
 	/* api callbacks */
@@ -1027,6 +1030,7 @@ void MESH_OT_select_all_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select/Deselect All";
 	ot->idname= "MESH_OT_select_all_toggle";
+	ot->description= "(de)select all vertices, edges or faces.";
 	
 	/* api callbacks */
 	ot->exec= toggle_select_all_exec;
@@ -1156,6 +1160,7 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= dupli_extrude_cursor;
+	ot->description= "Duplicate and extrude selected vertices, edges or faces towards the mouse cursor.";
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
@@ -1247,6 +1252,7 @@ void MESH_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete";
+	ot->description= "Delete selected vertices, edges or faces.";
 	ot->idname= "MESH_OT_delete";
 	
 	/* api callbacks */
@@ -1288,6 +1294,7 @@ void MESH_OT_edge_face_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Edge/Face";
+	ot->description= "Add an edge or face to selected.";
 	ot->idname= "MESH_OT_edge_face_add";
 	
 	/* api callbacks */
@@ -1337,6 +1344,7 @@ void MESH_OT_selection_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Selection Mode";
+	ot->description= "Set the selection mode type.";
 	ot->idname= "MESH_OT_selection_type";
 	
 	/* api callbacks */
@@ -1393,6 +1401,7 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Mark Seam";
 	ot->idname= "MESH_OT_mark_seam";
+	ot->description= "(un)mark selected edges as a seam.";
 	
 	/* api callbacks */
 	ot->exec= editbmesh_mark_seam;
@@ -1442,6 +1451,7 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Mark Sharp";
 	ot->idname= "MESH_OT_mark_sharp";
+	ot->description= "(un)mark selected edges as sharp.";
 	
 	/* api callbacks */
 	ot->exec= editbmesh_mark_sharp;
@@ -1564,6 +1574,7 @@ void MESH_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Duplicate";
+	ot->description= "Duplicate selected vertices, edges or faces.";
 	ot->idname= "MESH_OT_duplicate";
 	
 	/* api callbacks */
@@ -1595,6 +1606,7 @@ void MESH_OT_flip_normals(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Flip Normals";
+	ot->description= "Flip the direction of selected face's vertex and face normals";
 	ot->idname= "MESH_OT_flip_normals";
 	
 	/* api callbacks */
@@ -1678,6 +1690,7 @@ void MESH_OT_edge_rotate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Rotate Selected Edge";
+	ot->description= "Rotate selected edge or adjoining faces.";
 	ot->idname= "MESH_OT_edge_rotate";
 
 	/* api callbacks */
@@ -1745,7 +1758,8 @@ void MESH_OT_hide(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= hide_mesh_exec;
 	ot->poll= ED_operator_editmesh;
-	
+	 ot->description= "Hide (un)selected vertices, edges or faces.";
+
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -1794,6 +1808,7 @@ void MESH_OT_reveal(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Reveal Hidden";
 	ot->idname= "MESH_OT_reveal";
+	ot->description= "Reveal all hidden vertices, edges and faces.";
 	
 	/* api callbacks */
 	ot->exec= reveal_mesh_exec;
@@ -1825,6 +1840,7 @@ void MESH_OT_normals_make_consistent(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Normals Consistent";
+	ot->description= "Make face and vertex normals point either outside or inside the mesh";
 	ot->idname= "MESH_OT_normals_make_consistent";
 	
 	/* api callbacks */
@@ -1891,6 +1907,7 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Smooth Vertex";
+	ot->description= "Flatten angles of selected vertices.";
 	ot->idname= "MESH_OT_vertices_smooth";
 	
 	/* api callbacks */
@@ -2003,6 +2020,7 @@ void MESH_OT_faces_shade_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Shade Smooth";
+	 ot->description= "Display faces smooth (using vertex normals).";
 	ot->idname= "MESH_OT_faces_shade_smooth";
 
 	/* api callbacks */
@@ -2031,6 +2049,7 @@ void MESH_OT_faces_shade_flat(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Shade Flat";
+	ot->description= "Display faces flat.";
 	ot->idname= "MESH_OT_faces_shade_flat";
 
 	/* api callbacks */

@@ -114,6 +114,7 @@ void CONSOLE_OT_report_replay(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Replay Operators";
+    ot->description= "Replay selected reports.";
 	ot->idname= "CONSOLE_OT_report_replay";
 
 	/* api callbacks */
@@ -160,6 +161,7 @@ void CONSOLE_OT_select_pick(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select report";
+    ot->description= "Select reports by index.";
 	ot->idname= "CONSOLE_OT_select_pick";
 
 	/* api callbacks */
@@ -213,6 +215,7 @@ void CONSOLE_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "(De)Select All";
+    ot->description= "(de)select all reports.";
 	ot->idname= "CONSOLE_OT_select_all_toggle";
 
 	/* api callbacks */
@@ -304,6 +307,7 @@ void CONSOLE_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
+    ot->description= "Toggle border selection.";
 	ot->idname= "CONSOLE_OT_select_border";
 
 	/* api callbacks */
@@ -357,6 +361,7 @@ void CONSOLE_OT_report_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Reports";
+    ot->description= "Delete selected reports.";
 	ot->idname= "CONSOLE_OT_report_delete";
 
 	/* api callbacks */
@@ -401,6 +406,7 @@ void CONSOLE_OT_report_copy(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Copy Reports to Clipboard";
+    ot->description= "Copy selected reports to Clipboard.";
 	ot->idname= "CONSOLE_OT_report_copy";
 
 	/* api callbacks */

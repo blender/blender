@@ -2792,6 +2792,10 @@ void sequence_effect_speed_rebuild_map(Sequence * seq, int force)
 	if (!(force || seq->len != v->length || !v->frameMap)) {
 		return;
 	}
+	if (!seq->seq1) { /* make coverity happy and check for (CID 598)
+	                     input strip ... */
+		return;
+	}
 
 	if (!v->frameMap || v->length != seq->len) {
 		if (v->frameMap) MEM_freeN(v->frameMap);
@@ -2807,7 +2811,7 @@ void sequence_effect_speed_rebuild_map(Sequence * seq, int force)
 	/* if there is no IPO, try to make retiming easy by stretching the
 	   strip */
 	// XXX old animation system - seq
-	if (/*!seq->ipo &&*/ seq->seq1 && seq->seq1->enddisp != seq->seq1->start
+	if (/*!seq->ipo &&*/ seq->seq1->enddisp != seq->seq1->start
 	    && seq->seq1->len != 0) {
 		fallback_fac = (float) seq->seq1->len / 
 			(float) (seq->seq1->enddisp - seq->seq1->start);

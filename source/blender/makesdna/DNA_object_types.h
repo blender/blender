@@ -53,6 +53,7 @@ struct SoftBody;
 struct FluidsimSettings;
 struct ParticleSystem;
 struct DerivedMesh;
+struct SculptSession;
 
 typedef struct bDeformGroup {
 	struct bDeformGroup *next, *prev;
@@ -91,6 +92,8 @@ typedef struct BoundBox {
 typedef struct Object {
 	ID id;
 	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */ 
+
+	struct SculptSession *sculpt;
 	
 	short type, partype;
 	int par1, par2, par3;	/* can be vertexnrs */
@@ -112,6 +115,9 @@ typedef struct Object {
 	ListBase disp;
 	ListBase defbase;
 	ListBase modifiers; /* list of ModifierData structures */
+
+	int mode;           /* Local object mode */
+	int restore_mode;   /* Keep track of what mode to return to after toggling a mode */
 
 	/* materials */
 	struct Material **mat;	/* material slots */
@@ -227,9 +233,11 @@ typedef struct Object {
 	int lastDataMask;			/* the custom data layer mask that was last used to calculate derivedDeform and derivedFinal */
 	unsigned int state;			/* bit masks of game controllers that are active */
 	unsigned int init_state;	/* bit masks of initial state as recorded by the users */
+
 	int pad2;
 
 	ListBase gpulamp;		/* runtime, for lamps only */
+	ListBase pc_ids;
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */
@@ -395,7 +403,6 @@ extern Object workob;
 #define OB_DONE				1024
 #define OB_RADIO			2048
 #define OB_FROMGROUP		4096
-#define OB_POSEMODE			8192
 
 /* ob->recalc (flag bits!) */
 #define OB_RECALC_OB		1
@@ -504,7 +511,17 @@ extern Object workob;
 #define OB_LOCK_SCALEZ	256
 #define OB_LOCK_SCALE	448
 
-/* ob->softflag in DNA_object_force.h */
+/* ob->mode */
+typedef enum ObjectMode {
+	OB_MODE_OBJECT = 0,
+	OB_MODE_EDIT = 1,
+	OB_MODE_SCULPT = 2,
+	OB_MODE_VERTEX_PAINT = 4,
+	OB_MODE_WEIGHT_PAINT = 8,
+	OB_MODE_TEXTURE_PAINT = 16,
+	OB_MODE_PARTICLE_EDIT = 32,
+	OB_MODE_POSE = 64
+} ObjectMode;
 
 #ifdef __cplusplus
 }

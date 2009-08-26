@@ -80,137 +80,6 @@
 /* ************************************************** */
 /* KEYING SETS - EDITING API  */
 
-/* Operators ------------------------------------------- */
-
-/* These operators are only provided for scripting/macro usage, not for direct
- * calling from the UI since they wrap some of the data-access API code for these
- * (defined in blenkernel) which have quite a few properties.
- */
-
-/* ----- */
-
-static int keyingset_add_destination_exec (bContext *C, wmOperator *op)
-{
-	PointerRNA ptr;
-	KeyingSet *ks= NULL;
-	ID *id= NULL;
-	char rna_path[256], group_name[64]; // xxx
-	short groupmode=0, flag=0;
-	int array_index=0;
-	
-	/* get settings from operator properties */
-	ptr = RNA_pointer_get(op->ptr, "keyingset");
-	if (ptr.data) 
-		ks= (KeyingSet *)ptr.data;
-	
-	ptr = RNA_pointer_get(op->ptr, "id");
-	if (ptr.data)
-		id= (ID *)ptr.data;
-	
-	groupmode= RNA_enum_get(op->ptr, "grouping_method");
-	RNA_string_get(op->ptr, "group_name", group_name);		
-	
-	RNA_string_get(op->ptr, "rna_path", rna_path);
-	array_index= RNA_int_get(op->ptr, "array_index");
-	
-	if (RNA_boolean_get(op->ptr, "entire_array"))
-		flag |= KSP_FLAG_WHOLE_ARRAY;
-	
-	/* if enough args are provided, call API method */
-	if (ks) {
-		BKE_keyingset_add_destination(ks, id, group_name, rna_path, array_index, flag, groupmode);
-		return OPERATOR_FINISHED;
-	}
-	else {
-		BKE_report(op->reports, RPT_ERROR, "Keying Set could not be added.");
-		return OPERATOR_CANCELLED;
-	}	
-}
-
-void ANIM_OT_keyingset_add_destination (wmOperatorType *ot)
-{
-	// XXX: this is also defined in rna_animation.c
-	static EnumPropertyItem prop_mode_grouping_items[] = {
-		{KSP_GROUP_NAMED, "NAMED", 0, "Named Group", ""},
-		{KSP_GROUP_NONE, "NONE", 0, "None", ""},
-		{KSP_GROUP_KSNAME, "KEYINGSET", 0, "Keying Set Name", ""},
-		{0, NULL, 0, NULL, NULL}};
-	
-	/* identifiers */
-	ot->name= "Add Keying Set Destination";
-	ot->idname= "ANIM_OT_keyingset_add_destination";
-	
-	/* callbacks */
-	ot->exec= keyingset_add_destination_exec;
-	ot->poll= ED_operator_scene_editable;
-	
-	/* props */
-		/* pointers */ // xxx - do we want to directly expose these?
-	RNA_def_pointer_runtime(ot->srna, "keyingset", &RNA_KeyingSet, "Keying Set", "Keying Set to add destination to.");
-	RNA_def_pointer_runtime(ot->srna, "id", &RNA_ID, "ID", "ID-block for the destination.");
-		/* grouping */
-	RNA_def_enum(ot->srna, "grouping_method", prop_mode_grouping_items, KSP_GROUP_NAMED, "Grouping Method", "Method used to define which Group-name to use.");
-	RNA_def_string(ot->srna, "group_name", "", 64, "Group Name", "Name of Action Group to assign destination to (only if grouping mode is to use this name).");
-		/* rna-path */
-	RNA_def_string(ot->srna, "rna_path", "", 256, "RNA-Path", "RNA-Path to destination property."); // xxx hopefully this is long enough
-	RNA_def_int(ot->srna, "array_index", 0, 0, INT_MAX, "Array Index", "If applicable, the index ", 0, INT_MAX);
-		/* flags */
-	RNA_def_boolean(ot->srna, "entire_array", 1, "Entire Array", "hen an 'array/vector' type is chosen (Location, Rotation, Color, etc.), entire array is to be used.");
-	
-}
- 
-/* ----- */
-
-static int keyingset_add_new_exec (bContext *C, wmOperator *op)
-{
-	Scene *sce= CTX_data_scene(C);
-	KeyingSet *ks= NULL;
-	short flag=0, keyingflag=0;
-	char name[64];
-	
-	/* get settings from operator properties */
-	RNA_string_get(op->ptr, "name", name);
-	
-	if (RNA_boolean_get(op->ptr, "absolute"))
-		flag |= KEYINGSET_ABSOLUTE;
-	if (RNA_boolean_get(op->ptr, "insertkey_needed"))
-		keyingflag |= INSERTKEY_NEEDED;
-	if (RNA_boolean_get(op->ptr, "insertkey_visual"))
-		keyingflag |= INSERTKEY_MATRIX;
-		
-	/* call the API func, and set the active keyingset index */
-	ks= BKE_keyingset_add(&sce->keyingsets, name, flag, keyingflag);
-	
-	if (ks) {
-		sce->active_keyingset= BLI_countlist(&sce->keyingsets);
-		return OPERATOR_FINISHED;
-	}
-	else {
-		BKE_report(op->reports, RPT_ERROR, "Keying Set could not be added.");
-		return OPERATOR_CANCELLED;
-	}
-}
-
-void ANIM_OT_keyingset_add_new (wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Add Keying Set";
-	ot->idname= "ANIM_OT_keyingset_add_new";
-	
-	/* callbacks */
-	ot->exec= keyingset_add_new_exec;
-	ot->poll= ED_operator_scene_editable;
-	
-	/* props */
-		/* name */
-	RNA_def_string(ot->srna, "name", "KeyingSet", 64, "Name", "Name of Keying Set");
-		/* flags */
-	RNA_def_boolean(ot->srna, "absolute", 1, "Absolute", "Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)");
-		/* keying flags */
-	RNA_def_boolean(ot->srna, "insertkey_needed", 0, "Insert Keyframes - Only Needed", "Only insert keyframes where they're needed in the relevant F-Curves.");
-	RNA_def_boolean(ot->srna, "insertkey_visual", 0, "Insert Keyframes - Visual", "Insert keyframes based on 'visual transforms'.");
-}
-
 /* UI API --------------------------------------------- */
 
 /* Build menu-string of available keying-sets (allocates memory for string)
@@ -899,7 +768,7 @@ short keyingset_context_ok_poll (bContext *C, KeyingSet *ks)
 			Object *obact= CTX_data_active_object(C);
 			
 			/* if in posemode, check if 'pose-channels' requested for in KeyingSet */
-			if ((obact && obact->pose) && (obact->flag & OB_POSEMODE)) {
+			if ((obact && obact->pose) && (obact->mode & OB_MODE_POSE)) {
 				/* check for posechannels */
 				
 			}
@@ -930,7 +799,7 @@ static short modifykey_get_context_v3d_data (bContext *C, ListBase *dsources, Ke
 	
 	/* check if the active object is in PoseMode (i.e. only deal with bones) */
 	// TODO: check with the templates to see what we really need to store 
-	if ((obact && obact->pose) && (obact->flag & OB_POSEMODE)) {
+	if ((obact && obact->pose) && (obact->mode & OB_MODE_POSE)) {
 		/* Pose Mode: Selected bones */
 #if 0
 		//set_pose_keys(ob);  /* sets pchan->flag to POSE_KEY if bone selected, and clears if not */
@@ -1047,7 +916,7 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 			 * normal non-array entries get keyframed correctly
 			 */
 			i= ksp->array_index;
-			arraylen= i+1;
+			arraylen= i;
 			
 			/* get length of array if whole array option is enabled */
 			if (ksp->flag & KSP_FLAG_WHOLE_ARRAY) {
@@ -1056,8 +925,12 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 				
 				RNA_id_pointer_create(ksp->id, &id_ptr);
 				if (RNA_path_resolve(&id_ptr, ksp->rna_path, &ptr, &prop) && prop)
-					arraylen= RNA_property_array_length(prop);
+					arraylen= RNA_property_array_length(&ptr, prop);
 			}
+			
+			/* we should do at least one step */
+			if (arraylen == i)
+				arraylen++;
 			
 			/* for each possible index, perform operation 
 			 *	- assume that arraylen is greater than index
@@ -1175,7 +1048,7 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 					
 					RNA_id_pointer_create(cks->id, &id_ptr);
 					if (RNA_path_resolve(&id_ptr, path, &ptr, &prop) && prop)
-						arraylen= RNA_property_array_length(prop);
+						arraylen= RNA_property_array_length(&ptr, prop);
 				}
 				
 				/* for each possible index, perform operation 

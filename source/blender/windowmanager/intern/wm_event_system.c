@@ -52,6 +52,7 @@
 #include "BKE_pointcache.h"
 
 #include "ED_fileselect.h"
+#include "ED_info.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
 #include "ED_util.h"
@@ -129,7 +130,7 @@ static wmNotifier *wm_notifier_next(wmWindowManager *wm)
 void wm_event_do_notifiers(bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
-	wmNotifier *note;
+	wmNotifier *note, *next;
 	wmWindow *win;
 	
 	if(wm==NULL)
@@ -141,7 +142,9 @@ void wm_event_do_notifiers(bContext *C)
 		
 		CTX_wm_window_set(C, win);
 		
-		for(note= wm->queue.first; note; note= note->next) {
+		for(note= wm->queue.first; note; note= next) {
+			next= note->next;
+
 			if(note->category==NC_WM) {
 				if( ELEM(note->data, ND_FILEREAD, ND_FILESAVE)) {
 					wm->file_saved= 1;
@@ -156,15 +159,27 @@ void wm_event_do_notifiers(bContext *C)
 						ED_screen_set(C, note->reference);	// XXX hrms, think this over!
 						printf("screen set %p\n", note->reference);
 					}
+					else if(note->data==ND_SCREENDELETE) {
+						ED_screen_delete(C, note->reference);	// XXX hrms, think this over!
+						printf("screen delete %p\n", note->reference);
+					}
 				}
 				else if(note->category==NC_SCENE) {
 					if(note->data==ND_SCENEBROWSE) {
 						ED_screen_set_scene(C, note->reference);	// XXX hrms, think this over!
 						printf("scene set %p\n", note->reference);
 					}
+					if(note->data==ND_SCENEDELETE) {
+						ED_screen_delete_scene(C, note->reference);	// XXX hrms, think this over!
+						printf("scene delete %p\n", note->reference);
+					}
 					else if(note->data==ND_FRAME)
 						do_anim= 1;
 				}
+			}
+			if(note->category == NC_SCENE || note->category == NC_OBJECT) {
+				ED_info_stats_clear(CTX_data_scene(C));
+				WM_event_add_notifier(C, NC_INFO, NULL);
 			}
 		}
 		if(do_anim) {
@@ -362,7 +377,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 
 static void wm_operator_print(wmOperator *op)
 {
-	char *buf = WM_operator_pystring(op->type, op->ptr, 1);
+	char *buf = WM_operator_pystring(NULL, op->type, op->ptr, 1);
 	printf("%s\n", buf);
 	MEM_freeN(buf);
 }
@@ -664,7 +679,19 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 	int kmitype= wm_userdef_event_map(kmi->type);
 
 	if(kmi->inactive) return 0;
-	
+
+	/* exception for middlemouse emulation */
+	if((U.flag & USER_TWOBUTTONMOUSE) && (kmi->type == MIDDLEMOUSE)) {
+		if(winevent->type == LEFTMOUSE && winevent->alt) {
+			wmKeymapItem tmp= *kmi;
+
+			tmp.type= winevent->type;
+			tmp.alt= winevent->alt;
+			if(wm_eventmatch(winevent, &tmp))
+				return 1;
+		}
+	}
+
 	/* the matching rules */
 	if(kmitype==KM_TEXTINPUT)
 		if(ISKEYBOARD(winevent->type)) return 1;
@@ -683,8 +710,15 @@ static int wm_eventmatch(wmEvent *winevent, wmKeymapItem *kmi)
 		if(winevent->alt != kmi->alt && !(winevent->alt & kmi->alt)) return 0;
 	if(kmi->oskey!=KM_ANY)
 		if(winevent->oskey != kmi->oskey && !(winevent->oskey & kmi->oskey)) return 0;
+	
 	if(kmi->keymodifier)
 		if(winevent->keymodifier!=kmi->keymodifier) return 0;
+		
+	/* key modifiers always check when event has it */
+	/* otherwise regular keypresses with keymodifier still work */
+	if(winevent->keymodifier)
+		if(ISKEYBOARD(winevent->type)) 
+			if(winevent->keymodifier!=kmi->keymodifier) return 0;
 	
 	return 1;
 }
@@ -1501,11 +1535,6 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			else
 				event.type= MIDDLEMOUSE;
 			
-			if(event.val)
-				event.keymodifier= evt->keymodifier= event.type;
-			else
-				event.keymodifier= evt->keymodifier= 0;
-			
 			update_tablet_data(win, &event);
 			wm_event_add(win, &event);
 			
@@ -1543,6 +1572,12 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 				event.oskey= evt->oskey= (event.val==KM_PRESS);
 				if(event.val==KM_PRESS && (evt->ctrl || evt->alt || evt->shift))
 				   event.oskey= evt->oskey = 3;		// define?
+			}
+			else {
+				if(event.val==KM_PRESS && event.keymodifier==0)
+					evt->keymodifier= event.type; /* only set in eventstate, for next event */
+				else if(event.val==KM_RELEASE && event.keymodifier==event.type)
+					event.keymodifier= evt->keymodifier= 0;
 			}
 			
 			/* if test_break set, it catches this. XXX Keep global for now? */

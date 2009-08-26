@@ -38,7 +38,6 @@
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_sound_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -90,17 +89,7 @@
 #include "GPU_extensions.h"
 #include "GPU_draw.h"
 
-
-
-/* XXX */
-static void sound_init_listener(void)
-{
-	G.listener = MEM_callocN(sizeof(bSoundListener), "soundlistener");
-	G.listener->gain = 1.0;
-	G.listener->dopplerfactor = 1.0;
-	G.listener->dopplervelocity = 340.29f;
-}
-
+#include "BKE_sound.h"
 
 static void wm_init_reports(bContext *C)
 {
@@ -145,7 +134,6 @@ void WM_init(bContext *C)
 	
 	//	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	
-	sound_init_listener();
 //	init_node_butfuncs();
 	
 	ED_preview_init_dbase();
@@ -184,7 +172,9 @@ extern void free_posebuf();
 void WM_exit(bContext *C)
 {
 	wmWindow *win;
-	
+
+	sound_exit();
+
 	/* first wrap up running stuff, we assume only the active WM is running */
 	/* modal handlers are on window level freed, others too? */
 	/* note; same code copied in wm_files.c */
@@ -216,16 +206,6 @@ void WM_exit(bContext *C)
 	
 	BKE_freecubetable();
 	
-//	if (G.background == 0)
-//		sound_end_all_sounds();
-	
-	
-	/* before free_blender so py's gc happens while library still exists */
-	/* needed at least for a rare sigsegv that can happen in pydrivers */
-#ifndef DISABLE_PYTHON
-	BPY_end_python();
-#endif
-	
 	fastshade_free_render();	/* shaded view */
 	ED_preview_free_dbase();	/* frees a Main dbase, before free_blender! */
 	wm_free_reports(C);			/* before free_blender! - since the ListBases get freed there */
@@ -245,10 +225,18 @@ void WM_exit(bContext *C)
 	
 //	free_txt_data();
 	
-//	sound_exit_audio();
-	if(G.listener) MEM_freeN(G.listener);
-	
-	
+
+#ifndef DISABLE_PYTHON
+	/* XXX - old note */
+	/* before free_blender so py's gc happens while library still exists */
+	/* needed at least for a rare sigsegv that can happen in pydrivers */
+
+	/* Update for blender 2.5, move after free_blender because blender now holds references to PyObject's
+	 * so decref'ing them after python ends causes bad problems every time
+	 * the pyDriver bug can be fixed if it happens again we can deal with it then */
+	BPY_end_python();
+#endif
+
 	libtiff_exit();
 	
 #ifdef WITH_QUICKTIME
@@ -272,12 +260,14 @@ void WM_exit(bContext *C)
 	UI_exit();
 	BKE_userdef_free();
 
-	RNA_exit();
+	RNA_exit(); /* should be after BPY_end_python so struct python slots are cleared */
 	
 	wm_ghost_exit();
 
 	CTX_free(C);
 	
+	SYS_DeleteSystem(SYS_GetSystem());
+
 	if(MEM_get_memory_blocks_in_use()!=0) {
 		printf("Error Totblock: %d\n", MEM_get_memory_blocks_in_use());
 		MEM_printmemlist();
@@ -293,9 +283,6 @@ void WM_exit(bContext *C)
 		getchar();
 	}
 #endif 
-	
-	
-	SYS_DeleteSystem(SYS_GetSystem());
 	
 	exit(G.afbreek==1);
 }

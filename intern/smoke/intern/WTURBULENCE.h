@@ -33,12 +33,13 @@ class WTURBULENCE
 {
 	public:
 		// both config files can be NULL, altCfg might override values from noiseCfg
-		WTURBULENCE(int xResSm, int yResSm, int zResSm, int amplify);
+		WTURBULENCE(int xResSm, int yResSm, int zResSm, int amplify, int noisetype);
 
 		/// destructor
 		virtual ~WTURBULENCE();
 		
 		void setNoise(int type);
+		void initBlenderRNA(float *strength);
 
 		// step more readable version -- no rotation correction
 		void stepTurbulenceReadable(float dt, float* xvel, float* yvel, float* zvel, unsigned char *obstacles);
@@ -48,7 +49,7 @@ class WTURBULENCE
 		void stepTurbulenceFull(float dt, float* xvel, float* yvel, float* zvel, unsigned char *obstacles);
 	
 		// texcoord functions
-		void advectTextureCoordinates(float dtOrg, float* xvel, float* yvel, float* zvel);
+		void advectTextureCoordinates (float dtOrg, float* xvel, float* yvel, float* zvel, float *_tempBig1, float *_tempBig2);
 		void resetTextureCoordinates();
 
 		void computeEnergy(float* xvel, float* yvel, float* zvel, unsigned char *obstacles);
@@ -69,13 +70,15 @@ class WTURBULENCE
 		inline Vec3Int getResBig() { return _resBig; }
 		inline int getOctaves() { return _octaves; }
 
-	protected:
+		// is accessed on through rna gui
+		float *_strength;
+
+	// protected:
 		// enlargement factor from original velocity field / simulation
 		// _Big = _amplify * _Sm
 		int _amplify;
 		int _octaves;
-		float _strength;
-
+		
 		// noise settings
 		float _cullingThreshold;
 		float _noiseStrength;
@@ -108,26 +111,17 @@ class WTURBULENCE
 		float* _densityBig;
 		float* _densityBigOld;
 
-		// big velocity macCormack fields
-		float* _bigUx;
-		float* _bigUy;
-		float* _bigUz;
-		// temp arrays for BFECC and MacCormack - they have more convenient
-		// names in the actual implementations
-		float* _tempBig1;
-		float* _tempBig2;
-
 		// texture coordinates for noise
 		float* _tcU;
 		float* _tcV;
 		float* _tcW;
 		float* _tcTemp;
 
-		float* _eigMin;
-		float* _eigMax;
+		float* _eigMin; // no save -dg
+		float* _eigMax; // no save -dg
 
 		// wavelet decomposition of velocity energies
-		float* _energy;
+		float* _energy; // no save -dg
 
 		// noise data
 		float* _noiseTile;
@@ -137,7 +131,7 @@ class WTURBULENCE
 		int _totalStepsBig;
 
 		// highest frequency component of wavelet decomposition
-		float* _highFreqEnergy;
+		float* _highFreqEnergy; // no save -dg
 		
 		void computeEigenvalues();
 		void decomposeEnergy();

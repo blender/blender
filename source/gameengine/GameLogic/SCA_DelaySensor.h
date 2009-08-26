@@ -59,14 +59,6 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	/* setProperty */
-	KX_PYMETHOD_DOC_VARARGS(SCA_DelaySensor,SetDelay);
-	KX_PYMETHOD_DOC_VARARGS(SCA_DelaySensor,SetDuration);
-	KX_PYMETHOD_DOC_VARARGS(SCA_DelaySensor,SetRepeat);
-	/* getProperty */
-	KX_PYMETHOD_DOC_NOARGS(SCA_DelaySensor,GetDelay);
-	KX_PYMETHOD_DOC_NOARGS(SCA_DelaySensor,GetDuration);
-	KX_PYMETHOD_DOC_NOARGS(SCA_DelaySensor,GetRepeat);
 
 };
 

@@ -795,9 +795,7 @@ public:
 	{
 		return PyUnicode_FromString(GetName().ReadPtr());
 	}
-		
-	KX_PYMETHOD_NOARGS(KX_GameObject,GetPosition);
-	KX_PYMETHOD_O(KX_GameObject,SetPosition);
+
 	KX_PYMETHOD_O(KX_GameObject,SetWorldPosition);
 	KX_PYMETHOD_VARARGS(KX_GameObject, ApplyForce);
 	KX_PYMETHOD_VARARGS(KX_GameObject, ApplyTorque);
@@ -808,10 +806,10 @@ public:
 	KX_PYMETHOD_VARARGS(KX_GameObject,GetAngularVelocity);
 	KX_PYMETHOD_VARARGS(KX_GameObject,SetAngularVelocity);
 	KX_PYMETHOD_VARARGS(KX_GameObject,GetVelocity);
-	KX_PYMETHOD_NOARGS(KX_GameObject,GetMass);
+
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetReactionForce);
-	KX_PYMETHOD_NOARGS(KX_GameObject,GetOrientation);
-	KX_PYMETHOD_O(KX_GameObject,SetOrientation);
+
+
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetVisible);
 	KX_PYMETHOD_VARARGS(KX_GameObject,SetVisible);
 	KX_PYMETHOD_VARARGS(KX_GameObject,SetOcclusion);
@@ -828,7 +826,7 @@ public:
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetParent);
 	KX_PYMETHOD_VARARGS(KX_GameObject,SetParent);
 	KX_PYMETHOD_NOARGS(KX_GameObject,RemoveParent);
-	KX_PYMETHOD_NOARGS(KX_GameObject,GetChildren);	
+	KX_PYMETHOD_NOARGS(KX_GameObject,GetChildren);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetChildrenRecursive);
 	KX_PYMETHOD_VARARGS(KX_GameObject,GetMesh);
 	KX_PYMETHOD_NOARGS(KX_GameObject,GetPhysicsId);
@@ -844,7 +842,6 @@ public:
 	
 	/* Dict access */
 	KX_PYMETHOD_VARARGS(KX_GameObject,get);
-	KX_PYMETHOD_O(KX_GameObject,has_key);
 	
 	/* attributes */
 	static PyObject*	pyattr_get_name(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);

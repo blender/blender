@@ -77,6 +77,20 @@ void rna_remlink(ListBase *listbase, void *vlink)
 	if (listbase->first == link) listbase->first = link->next;
 }
 
+PropertyDefRNA *rna_findlink(ListBase *listbase, const char *identifier)
+{
+	Link *link;
+
+	for(link=listbase->first; link; link=link->next) {
+		PropertyRNA *prop= ((PropertyDefRNA *)link)->prop;
+		if(prop && (strcmp(prop->identifier, identifier)==0)) {
+			return (PropertyDefRNA *)link;
+		}
+	}
+
+	return NULL;
+}
+
 void rna_freelinkN(ListBase *listbase, void *vlink)
 {
 	rna_remlink(listbase, vlink);
@@ -444,12 +458,27 @@ void RNA_define_verify_sdna(int verify)
 	DefRNA.verify= verify;
 }
 
+void RNA_struct_free_extension(StructRNA *srna, ExtensionRNA *ext)
+{
+#ifdef RNA_RUNTIME
+	ext->free(ext->data);			/* decref's the PyObject that the srna owns */
+	RNA_struct_blender_type_set(srna, NULL); /* this gets accessed again - XXX fixme */
+	RNA_struct_py_type_set(srna, NULL);	/* NULL the srna's value so RNA_struct_free wont complain of a leak */
+#endif	
+}
+
 void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
 {
 #ifdef RNA_RUNTIME
 	FunctionRNA *func, *nextfunc;
 	PropertyRNA *prop, *nextprop;
 	PropertyRNA *parm, *nextparm;
+
+	if(srna->flag & STRUCT_RUNTIME) {
+		if(RNA_struct_py_type_get(srna)) {
+			fprintf(stderr, "StructRNA \"%s\" freed while holdng a python reference\n", srna->name);
+		}
+	}
 
 	for(prop=srna->cont.properties.first; prop; prop=nextprop) {
 		nextprop= prop->next;
@@ -482,6 +511,7 @@ void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
 
 	if(srna->flag & STRUCT_RUNTIME)
 		rna_freelinkN(&brna->structs, srna);
+
 #endif
 }
 
@@ -821,6 +851,13 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 		}
 		
 		dcont= rna_find_container_def(cont);
+
+		/* XXX - toto, detect supertype collisions */
+		if(rna_findlink(&dcont->properties, identifier)) {
+			fprintf(stderr, "RNA_def_property: duplicate identifier \"%s\"\n", identifier);
+			DefRNA.error= 1;
+		}
+
 		dprop= MEM_callocN(sizeof(PropertyDefRNA), "PropertyDefRNA");
 		rna_addtail(&dcont->properties, dprop);
 	}
@@ -991,6 +1028,26 @@ void RNA_def_property_array(PropertyRNA *prop, int arraylength)
 			DefRNA.error= 1;
 			break;
 	}
+
+	prop->arraydimension= 1;
+}
+
+void RNA_def_property_multidimensional_array(PropertyRNA *prop, int arraylength, unsigned short dimension, unsigned short dimsize[])
+{
+	StructRNA *srna= DefRNA.laststruct;
+	
+	if (dimension < 1 || dimension > RNA_MAX_ARRAY_DIMENSION) {
+		fprintf(stderr, "RNA_def_property_multidimensional_array: %s.%s, array dimension must be between 1 and %d.\n", srna->identifier, prop->identifier, RNA_MAX_ARRAY_DIMENSION);
+		DefRNA.error= 1;
+		return;
+	}
+
+	RNA_def_property_array(prop, arraylength);
+
+	prop->arraydimension= dimension;
+
+	if (dimension > 1)
+		memcpy(prop->dimsize, dimsize, sizeof(dimsize[0]) * (dimension - 1));
 }
 
 void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *description)
@@ -1066,7 +1123,7 @@ void RNA_def_property_struct_type(PropertyRNA *prop, const char *type)
 	StructRNA *srna= DefRNA.laststruct;
 
 	if(!DefRNA.preprocess) {
-		fprintf(stderr, "RNA_def_property_struct_type: only during preprocessing.\n");
+		fprintf(stderr, "RNA_def_property_struct_type %s.%s: only during preprocessing.\n", srna->identifier, prop->identifier);
 		return;
 	}
 
@@ -1136,8 +1193,14 @@ void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item
 					defaultfound= 1;
 			}
 
-			if(!defaultfound)
-				eprop->defaultvalue= item[0].value;
+			if(!defaultfound) {
+				for(i=0; item[i].identifier; i++) {
+					if(item[i].identifier[0]) {
+						eprop->defaultvalue= item[i].value;
+						break;
+					}
+				}
+			}
 
 			break;
 		}
@@ -1645,6 +1708,23 @@ void RNA_def_property_update(PropertyRNA *prop, int noteflag, const char *func)
 	prop->update= (UpdateFunc)func;
 }
 
+void RNA_def_property_dynamic_array_funcs(PropertyRNA *prop, const char *getlength, const char *setlength)
+{
+	if(!DefRNA.preprocess) {
+		fprintf(stderr, "RNA_def_property_*_funcs: only during preprocessing.\n");
+		return;
+	}
+
+	if (!(prop->flag & PROP_DYNAMIC)) {
+		fprintf(stderr, "RNA_def_property_dynamic_array_funcs: property is a not dynamic array.\n");
+		DefRNA.error= 1;
+		return;
+	}
+
+	if(getlength) prop->getlength= (PropArrayLengthGetFunc)getlength;
+	if(setlength) prop->setlength= (PropArrayLengthSetFunc)setlength;
+}
+
 void RNA_def_property_boolean_funcs(PropertyRNA *prop, const char *get, const char *set)
 {
 	StructRNA *srna= DefRNA.laststruct;
@@ -1877,7 +1957,7 @@ PropertyRNA *RNA_def_boolean_vector(StructOrFunctionRNA *cont_, const char *iden
 	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(cont, identifier, PROP_BOOLEAN, PROP_VECTOR);
+	prop= RNA_def_property(cont, identifier, PROP_BOOLEAN, PROP_XYZ); // XXX
 	if(len != 0) RNA_def_property_array(prop, len);
 	if(default_value) RNA_def_property_boolean_array_default(prop, default_value);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
@@ -1906,7 +1986,7 @@ PropertyRNA *RNA_def_int_vector(StructOrFunctionRNA *cont_, const char *identifi
 	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(cont, identifier, PROP_INT, PROP_VECTOR);
+	prop= RNA_def_property(cont, identifier, PROP_INT, PROP_XYZ); // XXX
 	if(len != 0) RNA_def_property_array(prop, len);
 	if(default_value) RNA_def_property_int_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
@@ -2015,7 +2095,7 @@ PropertyRNA *RNA_def_float_vector(StructOrFunctionRNA *cont_, const char *identi
 	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_XYZ);
 	if(len != 0) RNA_def_property_array(prop, len);
 	if(default_value) RNA_def_property_float_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
@@ -2042,14 +2122,15 @@ PropertyRNA *RNA_def_float_color(StructOrFunctionRNA *cont_, const char *identif
 }
 
 
-PropertyRNA *RNA_def_float_matrix(StructOrFunctionRNA *cont_, const char *identifier, int len, const float *default_value, 
+PropertyRNA *RNA_def_float_matrix(StructOrFunctionRNA *cont_, const char *identifier, int len, int rowsize, const float *default_value, 
 	float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax)
 {
 	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
+	unsigned short dimsize[1]= {rowsize};
 	
 	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_MATRIX);
-	if(len != 0) RNA_def_property_array(prop, len);
+	if(len != 0) RNA_def_property_multidimensional_array(prop, len, 2, dimsize);
 	if(default_value) RNA_def_property_float_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);
@@ -2064,7 +2145,7 @@ PropertyRNA *RNA_def_float_rotation(StructOrFunctionRNA *cont_, const char *iden
 	ContainerRNA *cont= cont_;
 	PropertyRNA *prop;
 	
-	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_ROTATION);
+	prop= RNA_def_property(cont, identifier, PROP_FLOAT, PROP_EULER); // XXX
 	if(len != 0) RNA_def_property_array(prop, len);
 	if(default_value) RNA_def_property_float_array_default(prop, default_value);
 	if(hardmin != hardmax) RNA_def_property_range(prop, hardmin, hardmax);
@@ -2249,6 +2330,10 @@ int rna_parameter_size(PropertyRNA *parm)
 	int len= parm->arraylength;
 
 	if(len > 0) {
+
+		if (parm->flag & PROP_DYNAMIC)
+			return sizeof(void *);
+
 		switch (ptype) {
 			case PROP_BOOLEAN:
 			case PROP_INT:
@@ -2382,6 +2467,7 @@ void RNA_def_property_duplicate_pointers(PropertyRNA *prop)
 	EnumPropertyItem *earray;
 	float *farray;
 	int *iarray;
+	int a;
 
 	if(prop->identifier) prop->identifier= BLI_strdup(prop->identifier);
 	if(prop->name) prop->name= BLI_strdup(prop->name);
@@ -2415,7 +2501,14 @@ void RNA_def_property_duplicate_pointers(PropertyRNA *prop)
 				earray= MEM_callocN(sizeof(EnumPropertyItem)*(eprop->totitem+1), "RNA_def_property_store"),
 				memcpy(earray, eprop->item, sizeof(EnumPropertyItem)*(eprop->totitem+1));
 				eprop->item= earray;
+
+				for(a=0; a<eprop->totitem; a++) {
+					if(eprop->item[a].identifier) eprop->item[a].identifier= BLI_strdup(eprop->item[a].identifier);
+					if(eprop->item[a].name) eprop->item[a].name= BLI_strdup(eprop->item[a].name);
+					if(eprop->item[a].description) eprop->item[a].description= BLI_strdup(eprop->item[a].description);
+				}
 			}
+			break;
 		}
 		case PROP_FLOAT: {
 			FloatPropertyRNA *fprop= (FloatPropertyRNA*)prop;
@@ -2442,6 +2535,8 @@ void RNA_def_property_duplicate_pointers(PropertyRNA *prop)
 void RNA_def_property_free_pointers(PropertyRNA *prop)
 {
 	if(prop->flag & PROP_FREE_POINTERS) {
+		int a;
+
 		if(prop->identifier) MEM_freeN((void*)prop->identifier);
 		if(prop->name) MEM_freeN((void*)prop->name);
 		if(prop->description) MEM_freeN((void*)prop->description);
@@ -2465,6 +2560,13 @@ void RNA_def_property_free_pointers(PropertyRNA *prop)
 			case PROP_ENUM: {
 				EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
 				if(eprop->item) MEM_freeN((void*)eprop->item);
+
+				for(a=0; a<eprop->totitem; a++) {
+					if(eprop->item[a].identifier) MEM_freeN((void*)eprop->item[a].identifier);
+					if(eprop->item[a].name) MEM_freeN((void*)eprop->item[a].name);
+					if(eprop->item[a].description) MEM_freeN((void*)eprop->item[a].description);
+				}
+				break;
 			}
 			case PROP_STRING: {
 				StringPropertyRNA *sprop= (StringPropertyRNA*)prop;

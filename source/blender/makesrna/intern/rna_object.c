@@ -41,6 +41,18 @@
 
 #include "WM_types.h"
 
+
+EnumPropertyItem object_mode_items[] = {
+	{OB_MODE_OBJECT, "OBJECT", ICON_OBJECT_DATAMODE, "Object", ""},
+	{OB_MODE_EDIT, "EDIT", ICON_EDITMODE_HLT, "Edit", ""},
+	{OB_MODE_SCULPT, "SCULPT", ICON_SCULPTMODE_HLT, "Sculpt", ""},
+	{OB_MODE_VERTEX_PAINT, "VERTEX_PAINT", ICON_VPAINT_HLT, "Vertex Paint", ""},
+	{OB_MODE_WEIGHT_PAINT, "WEIGHT_PAINT", ICON_WPAINT_HLT, "Weight Paint", ""},
+	{OB_MODE_TEXTURE_PAINT, "TEXTURE_PAINT", ICON_TPAINT_HLT, "Texture Paint", ""},
+	{OB_MODE_PARTICLE_EDIT, "PARTICLE_EDIT", ICON_PARTICLEMODE, "Particle Edit", ""},
+	{OB_MODE_POSE, "POSE", ICON_POSE_HLT, "Pose", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 static EnumPropertyItem parent_type_items[] = {
 	{PAROBJECT, "OBJECT", 0, "Object", ""},
 	{PARCURVE, "CURVE", 0, "Curve", ""},
@@ -824,10 +836,10 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.01, 10000.0);
 	RNA_def_property_ui_text(prop, "Mass", "Mass of the object.");
 
-	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "inertia");
 	RNA_def_property_range(prop, 0.01, 10.0);
-	RNA_def_property_ui_text(prop, "Radius", "Radius for Bounding sphere and Fh/Fh Rot.");
+	RNA_def_property_ui_text(prop, "Radius", "Radius of bounding sphere and material physics");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "no_sleeping", PROP_BOOLEAN, PROP_NONE);
@@ -887,13 +899,13 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Lock Z Rotation Axis", "Disable simulation of angular  motion along the Z axis.");	
 	
 
-	prop= RNA_def_property(srna, "do_fh", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "material_physics", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_DO_FH);
-	RNA_def_property_ui_text(prop, "Do Fh", "Use Fh settings in materials.");
+	RNA_def_property_ui_text(prop, "Use Material Physics", "Use physics settings in materials.");
 
-	prop= RNA_def_property(srna, "rotation_fh", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "rotate_from_normal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_ROT_FH);
-	RNA_def_property_ui_text(prop, "Rotation Fh", "Use face normal to rotate Object");
+	RNA_def_property_ui_text(prop, "Rotate From Normal", "Use face normal to rotate object, so that it points away from the surface");
 
 	prop= RNA_def_property(srna, "form_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "formfactor");
@@ -904,7 +916,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_ANISOTROPIC_FRICTION);
 	RNA_def_property_ui_text(prop, "Anisotropic Friction", "Enable anisotropic friction.");
 
-	prop= RNA_def_property(srna, "friction_coefficients", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "friction_coefficients", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "anisotropicFriction");
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Friction Coefficients", "Relative friction coefficient in the in the X, Y and Z directions, when anisotropic friction is enabled.");
@@ -922,7 +934,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_CHILD);
 	RNA_def_property_ui_text(prop, "Collison Compound", "Add children to form a compound collision object.");
 
-	prop= RNA_def_property(srna, "collision_margin", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "collision_margin", PROP_FLOAT, PROP_NONE|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "margin");
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_text(prop, "Collision Margin", "Extra margin around object for collision detection, small amount required for stability.");
@@ -1017,6 +1029,8 @@ static void rna_def_object(BlenderRNA *brna)
 		{OB_DUPLIGROUP, "GROUP", 0, "Group", "Enable group instancing."},
 		{0, NULL, 0, NULL, NULL}};
 
+	unsigned short matrix_dimsize[]= {4};
+
 	srna= RNA_def_struct(brna, "Object", "ID");
 	RNA_def_struct_ui_text(srna, "Object", "Object datablock defining an object in a scene..");
 	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
@@ -1035,6 +1049,12 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, object_type_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Type", "Type of Object.");
+
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mode");
+	RNA_def_property_enum_items(prop, object_mode_items);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Mode", "Object interaction mode.");
 
 	prop= RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
@@ -1124,47 +1144,47 @@ static void rna_def_object(BlenderRNA *brna)
 
 	/* transform */
 
-	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "loc");
 	RNA_def_property_ui_text(prop, "Location", "Location of the object.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 
-	prop= RNA_def_property(srna, "delta_location", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "delta_location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "dloc");
 	RNA_def_property_ui_text(prop, "Delta Location", "Extra added translation to object location.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	
-	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ROTATION);
+	prop= RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float_sdna(prop, NULL, "rot");
 	RNA_def_property_ui_text(prop, "Rotation", "Rotation of the object.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 
-	prop= RNA_def_property(srna, "delta_rotation", PROP_FLOAT, PROP_ROTATION);
+	prop= RNA_def_property(srna, "delta_rotation", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float_sdna(prop, NULL, "drot");
 	RNA_def_property_ui_text(prop, "Delta Rotation", "Extra added rotation to the rotation of the object.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	
-	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "size");
 	RNA_def_property_ui_text(prop, "Scale", "Scaling of the object.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 
-	prop= RNA_def_property(srna, "delta_scale", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "delta_scale", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "dsize");
 	RNA_def_property_ui_text(prop, "Delta Scale", "Extra added scaling to the scale of the object.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 
-	prop= RNA_def_property(srna, "lock_location", PROP_BOOLEAN, PROP_VECTOR);
+	prop= RNA_def_property(srna, "lock_location", PROP_BOOLEAN, PROP_XYZ);
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_LOCX);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Lock Location", "Lock editing of location in the interface.");
 
-	prop= RNA_def_property(srna, "lock_rotation", PROP_BOOLEAN, PROP_VECTOR);
+	prop= RNA_def_property(srna, "lock_rotation", PROP_BOOLEAN, PROP_XYZ);
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_ROTX);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Lock Rotation", "Lock editing of rotation in the interface.");
 
-	prop= RNA_def_property(srna, "lock_scale", PROP_BOOLEAN, PROP_VECTOR);
+	prop= RNA_def_property(srna, "lock_scale", PROP_BOOLEAN, PROP_XYZ);
 	RNA_def_property_boolean_sdna(prop, NULL, "protectflag", OB_LOCK_SCALEX);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Lock Scale", "Lock editing of scale in the interface.");
@@ -1172,7 +1192,7 @@ static void rna_def_object(BlenderRNA *brna)
 	/* matrix */
 	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "obmat");
-	RNA_def_property_array(prop, 16);
+	RNA_def_property_multidimensional_array(prop, 16, 2, matrix_dimsize);
 	RNA_def_property_ui_text(prop, "Matrix", "Transformation matrix.");
 
 	/* collections */
@@ -1218,7 +1238,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Empty Draw Type", "Viewport display style for empties.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "empty_draw_size", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "empty_draw_size", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "empty_drawsize");
 	RNA_def_property_range(prop, 0.01, 10.0);
 	RNA_def_property_ui_text(prop, "Empty Draw Size", "Size of of display for empties in the viewport.");
@@ -1344,25 +1364,25 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Dupli Group", "Instance an existing group.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_dependency_update");
 
-	prop= RNA_def_property(srna, "dupli_frames_start", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "dupli_frames_start", PROP_INT, PROP_NONE|PROP_UNIT_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "dupsta");
 	RNA_def_property_range(prop, 1, 32767);
 	RNA_def_property_ui_text(prop, "Dupli Frames Start", "Start frame for DupliFrames.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
-	prop= RNA_def_property(srna, "dupli_frames_end", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "dupli_frames_end", PROP_INT, PROP_NONE|PROP_UNIT_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "dupend");
 	RNA_def_property_range(prop, 1, 32767);
 	RNA_def_property_ui_text(prop, "Dupli Frames End", "End frame for DupliFrames.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
-	prop= RNA_def_property(srna, "dupli_frames_on", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "dupli_frames_on", PROP_INT, PROP_NONE|PROP_UNIT_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "dupon");
 	RNA_def_property_range(prop, 1, 1500);
 	RNA_def_property_ui_text(prop, "Dupli Frames On", "Number of frames to use between DupOff frames.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
-	prop= RNA_def_property(srna, "dupli_frames_off", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "dupli_frames_off", PROP_INT, PROP_NONE|PROP_UNIT_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "dupoff");
 	RNA_def_property_range(prop, 0, 1500);
 	RNA_def_property_ui_text(prop, "Dupli Frames Off", "Recurring frames to exclude from the Dupliframes.");
@@ -1370,7 +1390,7 @@ static void rna_def_object(BlenderRNA *brna)
 
 	/* time offset */
 
-	prop= RNA_def_property(srna, "time_offset", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "time_offset", PROP_FLOAT, PROP_NONE|PROP_UNIT_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "sf");
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Time Offset", "Animation offset in frames for IPO's and dupligroup instances.");
@@ -1454,11 +1474,6 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "pose");
 	RNA_def_property_struct_type(prop, "Pose");
 	RNA_def_property_ui_text(prop, "Pose", "Current pose for armatures.");
-
-	prop= RNA_def_property(srna, "pose_mode", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_POSEMODE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Pose Mode", "Object with armature data is in pose mode.");
 
 	/* shape keys */
 

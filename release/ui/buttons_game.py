@@ -2,8 +2,8 @@
 import bpy
  
 class PhysicsButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "physics"
 
 	def poll(self, context):
@@ -19,71 +19,132 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 		
 		ob = context.active_object
 		game = ob.game
+		soft = ob.game.soft_body
 
 		layout.itemR(game, "physics_type")
 		layout.itemS()
 		
-		split = layout.split()
-		
-		col = split.column()
-		col.itemR(game, "actor")
-		col.itemR(game, "ghost")
-		col.itemR(ob, "restrict_render", text="Invisible") # out of place but useful
-		
-		col = split.column()
-		col.itemR(game, "do_fh", text="Use Material Physics")
-		col.itemR(game, "rotation_fh", text="Rotate From Normal")
-		col.itemR(game, "no_sleeping")
-		
-		layout.itemS()
-		
-		split = layout.split()
-		
-		col = split.column()
-		col.itemL(text="Attributes:")
-		sub = col.column(align=True)
-		sub.itemR(game, "mass")
-		sub.itemR(game, "radius")
-		sub.itemR(game, "form_factor")
-		
-		col.itemS()
-		
-		col.itemL(text="Damping:")
-		sub = col.column(align=True)
-		sub.itemR(game, "damping", text="Translation", slider=True)
-		sub.itemR(game, "rotation_damping", text="Rotation", slider=True)
-		
-		col = split.column()
-		col.itemL(text="Velocity:")
-		sub = col.column(align=True)
-		sub.itemR(game, "minimum_velocity", text="Minimum")
-		sub.itemR(game, "maximum_velocity", text="Maximum")
-		
-		col.itemS()
-		
-		col.itemR(game, "anisotropic_friction")
-		sub = col.column()
-		sub.active = game.anisotropic_friction
-		sub.itemR(game, "friction_coefficients", text="", slider=True)
-		
-		layout.itemS()
-		
-		split = layout.split()
-		
-		col = split.column()
-		col.itemL(text="Lock Translation:")
-		col.itemR(game, "lock_x_axis", text="X")
-		col.itemR(game, "lock_y_axis", text="Y")
-		col.itemR(game, "lock_z_axis", text="Z")
-		
-		col = split.column()
-		col.itemL(text="Lock Rotation:")
-		col.itemR(game, "lock_x_rot_axis", text="X")
-		col.itemR(game, "lock_y_rot_axis", text="Y")
-		col.itemR(game, "lock_z_rot_axis", text="Z")
+		#if game.physics_type == 'DYNAMIC':
+		if game.physics_type in ('DYNAMIC', 'RIGID_BODY'):
 
+			split = layout.split()
+			
+			col = split.column()
+			col.itemR(game, "actor")
+			col.itemR(game, "ghost")
+			col.itemR(ob, "restrict_render", text="Invisible") # out of place but useful
+			
+			col = split.column()
+			col.itemR(game, "material_physics")
+			col.itemR(game, "rotate_from_normal")
+			col.itemR(game, "no_sleeping")
+			
+			layout.itemS()
+			
+			split = layout.split()
+			
+			col = split.column()
+			col.itemL(text="Attributes:")
+			sub = col.column()
+			sub.itemR(game, "mass")
+			sub.itemR(game, "radius")
+			sub.itemR(game, "form_factor")
+			
+			col = split.column()
+			sub = col.column()
+			sub.active = (game.physics_type == 'RIGID_BODY')
+			sub.itemR(game, "anisotropic_friction")
+			subsub = sub.column()
+			subsub.active = game.anisotropic_friction
+			subsub.itemR(game, "friction_coefficients", text="", slider=True)
+			
+			split = layout.split()
+			
+			col = split.column()
+			col.itemL(text="Velocity:")
+			sub = col.column(align=True)
+			sub.itemR(game, "minimum_velocity", text="Minimum")
+			sub.itemR(game, "maximum_velocity", text="Maximum")
+			
+			col = split.column()
+			col.itemL(text="Damping:")
+			sub = col.column(align=True)
+			sub.itemR(game, "damping", text="Translation", slider=True)
+			sub.itemR(game, "rotation_damping", text="Rotation", slider=True)
+			
+			layout.itemS()
+			
+			split = layout.split()
+			
+			col = split.column()
+			col.itemL(text="Lock Translation:")
+			col.itemR(game, "lock_x_axis", text="X")
+			col.itemR(game, "lock_y_axis", text="Y")
+			col.itemR(game, "lock_z_axis", text="Z")
+			
+			col = split.column()
+			col.itemL(text="Lock Rotation:")
+			col.itemR(game, "lock_x_rot_axis", text="X")
+			col.itemR(game, "lock_y_rot_axis", text="Y")
+			col.itemR(game, "lock_z_rot_axis", text="Z")
+		
+		elif game.physics_type == 'SOFT_BODY':
+
+			col = layout.column()
+			col.itemR(game, "actor")
+			col.itemR(game, "ghost")
+			col.itemR(ob, "restrict_render", text="Invisible")
+			
+			layout.itemS()
+			
+			split = layout.split()
+			
+			col = split.column()
+			col.itemL(text="Attributes:")
+			col.itemR(game, "mass")
+			col.itemR(soft, "welding")
+			col.itemR(soft, "position_iterations")
+			col.itemR(soft, "linstiff", slider=True)
+			col.itemR(soft, "dynamic_friction", slider=True)
+			col.itemR(soft, "margin", slider=True)
+			col.itemR(soft, "bending_const", text="Bending Constraints")
+			
+			
+			col = split.column()
+			col.itemR(soft, "shape_match")
+			sub = col.column()
+			sub.active = soft.shape_match
+			sub.itemR(soft, "threshold", slider=True)
+			
+			col.itemS()
+			
+			col.itemL(text="Cluster Collision:")
+			col.itemR(soft, "cluster_rigid_to_softbody")
+			col.itemR(soft, "cluster_soft_to_softbody")
+			sub  = col.column()
+			sub.active = (soft.cluster_rigid_to_softbody or soft.cluster_soft_to_softbody)
+			sub.itemR(soft, "cluster_iterations", text="Iterations")
+		
+		elif game.physics_type == 'STATIC':
+			
+			col = layout.column()
+			col.itemR(game, "actor")
+			col.itemR(game, "ghost")
+			col.itemR(ob, "restrict_render", text="Invisible")
+			
+		elif game.physics_type in ('SENSOR', 'INVISIBLE', 'NO_COLLISION', 'OCCLUDE'):
+			
+			col = layout.column()
+			col.itemR(ob, "restrict_render", text="Invisible")
+			
 class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel):
 	__label__ = "Collision Bounds"
+
+	def poll(self, context):
+		ob = context.active_object
+		game = ob.game
+		rd = context.scene.render_data
+		return (game.physics_type in ('DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC')) and (rd.engine == 'BLENDER_GAME')
 
 	def draw_header(self, context):
 		layout = self.layout
@@ -110,8 +171,8 @@ bpy.types.register(PHYSICS_PT_game_physics)
 bpy.types.register(PHYSICS_PT_game_collision_bounds)
 
 class SceneButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "scene"
 
 	def poll(self, context):
@@ -131,7 +192,7 @@ class SCENE_PT_game(SceneButtonsPanel):
 		row.itemL()
 
 class SCENE_PT_game_player(SceneButtonsPanel):
-	__label__ = "Player"
+	__label__ = "Standalone Player"
 
 	def draw(self, context):
 		layout = self.layout
@@ -158,8 +219,8 @@ class SCENE_PT_game_player(SceneButtonsPanel):
 		col = layout.column()
 		col.itemL(text="Framing:")
 		col.row().itemR(gs, "framing_type", expand=True)
-		sub = col.column()
-		sub.itemR(gs, "framing_color", text="")
+		if gs.framing_type == 'LETTERBOX':
+			col.itemR(gs, "framing_color", text="")
 
 class SCENE_PT_game_stereo(SceneButtonsPanel):
 	__label__ = "Stereo"
@@ -176,30 +237,93 @@ class SCENE_PT_game_stereo(SceneButtonsPanel):
 		# stereo:
 		if stereo_mode == 'STEREO':
 			layout.itemR(gs, "stereo_mode")
+			layout.itemL(text="To do: Focal Length")
+			layout.itemL(text="To do: Eye Separation")
 
 		# dome:
-		if stereo_mode == 'DOME':
+		elif stereo_mode == 'DOME':
 			layout.itemR(gs, "dome_mode", text="Dome Type")
 
+			dome_type = gs.dome_mode
+
 			split=layout.split()
-			
-			col=split.column()
-			col.itemR(gs, "dome_angle", slider=True)
-			col.itemR(gs, "dome_tesselation", text="Tesselation")
-			
-			col=split.column()
-			col.itemR(gs, "dome_tilt")
-			col.itemR(gs, "dome_buffer_resolution", text="Resolution", slider=True)
-			
+
+			if dome_type == 'FISHEYE' or \
+			   dome_type == 'TRUNCATED_REAR' or \
+			   dome_type == 'TRUNCATED_FRONT':
+				
+				col=split.column()
+				col.itemR(gs, "dome_angle", slider=True)
+				col.itemR(gs, "dome_tilt")
+
+				col=split.column()
+				col.itemR(gs, "dome_tesselation", text="Tesselation")
+				col.itemR(gs, "dome_buffer_resolution", text="Resolution", slider=True)
+
+			elif dome_type == 'PANORAM_SPH':
+				col=split.column()
+				col.itemR(gs, "dome_tesselation", text="Tesselation")
+				col.itemR(gs, "dome_buffer_resolution", text="Resolution", slider=True)
+
+			else: # cube map
+				col=split.column()
+				col.itemR(gs, "dome_buffer_resolution", text="Resolution", slider=True)
+		
 			layout.itemR(gs, "dome_text")
+
+class SCENE_PT_game_shading(SceneButtonsPanel):
+	__label__ = "Shading"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		gs = context.scene.game_data
+		layout.itemR(gs, "material_mode", expand=True)
+ 
+		if gs.material_mode == 'GLSL':
+			split = layout.split()
+
+			col = split.column()
+			col.itemR(gs, "glsl_lights", text="Lights")
+			col.itemR(gs, "glsl_shaders", text="Shaders")
+			col.itemR(gs, "glsl_shadows", text="Shadows")
+
+			col = split.column()
+			col.itemR(gs, "glsl_ramps", text="Ramps")
+			col.itemR(gs, "glsl_nodes", text="Nodes")
+			col.itemR(gs, "glsl_extra_textures", text="Extra Textures")
+
+class SCENE_PT_game_performance(SceneButtonsPanel):
+	__label__ = "Performance"
+
+	def draw(self, context):
+		layout = self.layout
+		
+		gs = context.scene.game_data
+
+		split = layout.split()
+
+		col = split.column()
+		col.itemL(text="Show:")
+		col.itemR(gs, "show_debug_properties", text="Debug Properties")
+		col.itemR(gs, "show_framerate_profile", text="Framerate and Profile")
+		col.itemR(gs, "show_physics_visualization", text="Physics Visualization")
+		col.itemR(gs, "deprecation_warnings")
+ 
+		col = split.column()
+		col.itemL(text="Render:")
+		col.itemR(gs, "all_frames")
+		col.itemR(gs, "display_lists")
 
 bpy.types.register(SCENE_PT_game)
 bpy.types.register(SCENE_PT_game_player)
 bpy.types.register(SCENE_PT_game_stereo)
+bpy.types.register(SCENE_PT_game_shading)
+bpy.types.register(SCENE_PT_game_performance)
 
 class WorldButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "world"
 
 	def poll(self, context):
@@ -246,30 +370,6 @@ class WORLD_PT_game_world(WorldButtonsPanel):
 		row.itemR(world.mist, "start")
 		row.itemR(world.mist, "depth")
 
-
-"""
-class WORLD_PT_game(WorldButtonsPanel):
-	__space_type__ = "LOGIC_EDITOR"
-	__region_type__ = "UI"
-	__label__ = "Game Settings"
-
-	def draw(self, context):
-		layout = self.layout
-		world = context.world
-		
-		flow = layout.column_flow()
-		flow.itemR(world, "physics_engine")
-		flow.itemR(world, "physics_gravity")
-		
-		flow.itemR(world, "game_fps")
-		flow.itemR(world, "game_logic_step_max")
-		flow.itemR(world, "game_physics_substep")
-		flow.itemR(world, "game_physics_step_max")
-		
-		flow.itemR(world, "game_use_occlusion_culling", text="Enable Occlusion Culling")
-		flow.itemR(world, "game_occlusion_culling_resolution")
-"""
-
 class WORLD_PT_game_physics(WorldButtonsPanel):
 	__label__ = "Physics"
  
@@ -279,7 +379,7 @@ class WORLD_PT_game_physics(WorldButtonsPanel):
 		gs = context.scene.game_data
 		
 		layout.itemR(gs, "physics_engine")
-		if gs.physics_engine != "NONE":
+		if gs.physics_engine != 'NONE':
 			layout.itemR(gs, "physics_gravity", text="Gravity")
  
 			split = layout.split()

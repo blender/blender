@@ -93,7 +93,7 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	RNA_def_property_range(prop, -MAXFRAMEF, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Offset", "Offsets the number of the frame to use in the animation.");
 
-	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "sfra");
 	RNA_def_property_range(prop, 1.0f, MAXFRAMEF);
 	RNA_def_property_ui_text(prop, "Start Frame", "Sets the global starting frame of the movie.");
@@ -219,7 +219,7 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mapping", "Mapping type to use for this image in the game engine.");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, NULL);
 
-	prop= RNA_def_property(srna, "display_aspect", PROP_FLOAT, PROP_VECTOR);
+	prop= RNA_def_property(srna, "display_aspect", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "aspx");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_range(prop, 0.1f, 5000.0f);

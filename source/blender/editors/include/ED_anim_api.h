@@ -46,6 +46,8 @@ struct bActionGroup;
 struct FCurve;
 struct FModifier;
 
+struct uiBlock;
+
 /* ************************************************ */
 /* ANIMATION CHANNEL FILTERING */
 /* anim_filter.c */
@@ -107,7 +109,10 @@ typedef struct bAnimListElem {
 } bAnimListElem;
 
 
-/* Some types for easier type-testing */
+/* Some types for easier type-testing 
+ * NOTE: need to keep the order of these synchronised with the channels define code
+ * 		which is used for drawing and handling channel lists for 
+ */
 // XXX was ACTTYPE_*
 typedef enum eAnim_ChannelType {
 	ANIMTYPE_NONE= 0,
@@ -140,6 +145,9 @@ typedef enum eAnim_ChannelType {
 	
 	ANIMTYPE_NLATRACK,
 	ANIMTYPE_NLAACTION,
+	
+		/* always as last item, the total number of channel types... */
+	ANIMTYPE_NUM_TYPES,
 } eAnim_ChannelType;
 
 /* types of keyframe data in bAnimListElem */
@@ -275,24 +283,88 @@ short ANIM_animdata_context_getdata(bAnimContext *ac);
 
 /* ************************************************ */
 /* ANIMATION CHANNELS LIST */
-/* anim_channels.c */
+/* anim_channels_*.c */
 
-/* ------------------------ API -------------------------- */
+/* ------------------------ Drawing TypeInfo -------------------------- */
+
+/* flag-setting behaviour */
+typedef enum eAnimChannels_SetFlag {
+	ACHANNEL_SETFLAG_CLEAR = 0,
+	ACHANNEL_SETFLAG_ADD,
+	ACHANNEL_SETFLAG_TOGGLE
+} eAnimChannels_SetFlag;
+
+/* types of settings for AnimChanels */
+typedef enum eAnimChannel_Settings {
+ 	ACHANNEL_SETTING_SELECT = 0,
+	ACHANNEL_SETTING_PROTECT,			// warning: for drawing UI's, need to check if this is off (maybe inverse this later)
+	ACHANNEL_SETTING_MUTE,
+	ACHANNEL_SETTING_EXPAND,
+	ACHANNEL_SETTING_VISIBLE,			/* only for Graph Editor */
+	ACHANNEL_SETTING_SOLO,				/* only for NLA Tracks */
+} eAnimChannel_Settings;
+
+
+/* Drawing, mouse handling, and flag setting behaviour... */
+typedef struct bAnimChannelType {
+	/* drawing */
+		/* draw backdrop strip for channel */
+	void (*draw_backdrop)(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc);
+		/* get depth of indention (relative to the depth channel is nested at) */
+	short (*get_indent_level)(bAnimContext *ac, bAnimListElem *ale);
+		/* get offset in pixels for the start of the channel (in addition to the indent depth) */
+	short (*get_offset)(bAnimContext *ac, bAnimListElem *ale);
+	
+	
+	/* get name (for channel lists) */
+	void (*name)(bAnimListElem *ale, char *name);
+	/* get icon (for channel lists) */
+	int (*icon)(bAnimListElem *ale);
+	
+	/* settings */
+		/* check if the given setting is valid in the current context */
+	short (*has_setting)(bAnimContext *ac, bAnimListElem *ale, int setting);
+		/* get the flag used for this setting */
+	int (*setting_flag)(int setting, short *neg);
+		/* get the pointer to int/short where data is stored, 
+		 * with type being  sizeof(ptr_data) which should be fine for runtime use...
+		 *	- assume that setting has been checked to be valid for current context
+		 */
+	void *(*setting_ptr)(bAnimListElem *ale, int setting, short *type);
+} bAnimChannelType;
+
+/* ------------------------ Drawing API -------------------------- */
+
+/* Get typeinfo for the given channel */
+bAnimChannelType *ANIM_channel_get_typeinfo(bAnimListElem *ale);
+
+/* Draw the given channel */
+void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc);
+/* Draw the widgets for the given channel */
+void ANIM_channel_draw_widgets(bAnimContext *ac, bAnimListElem *ale, struct uiBlock *block, float yminc, float ymaxc);
+
+
+/* ------------------------ Editing API -------------------------- */
+
+/* Check if some setting for a channel is enabled 
+ * Returns: 1 = On, 0 = Off, -1 = Invalid
+ *
+ * 	- setting: eAnimChannel_Settings
+ */
+short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, int setting);
+
+/* Change value of some setting for a channel 
+ *	- setting: eAnimChannel_Settings
+ *	- mode: eAnimChannels_SetFlag
+ */
+void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, int setting, short mode);
+
 
 /* Deselect all animation channels */
 void ANIM_deselect_anim_channels(void *data, short datatype, short test, short sel);
 
 /* Set the 'active' channel of type channel_type, in the given action */
 void ANIM_set_active_channel(bAnimContext *ac, void *data, short datatype, int filter, void *channel_data, short channel_type);
-
-/* --------------- Settings and/or Defines -------------- */
-
-/* flag-setting behaviour */
-enum {
-	ACHANNEL_SETFLAG_CLEAR = 0,
-	ACHANNEL_SETFLAG_ADD,
-	ACHANNEL_SETFLAG_TOGGLE
-} eAnimChannels_SetFlag;
 
 /* ************************************************ */
 /* DRAWING API */
@@ -334,13 +406,15 @@ void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, struct ID *id, List
 /* ------------ Animation F-Curves <-> Icons/Names Mapping ------------ */
 /* anim_ipo_utils.c */
 
+/* Get icon for type of setting F-Curve is for */
+// XXX include this in the getname() method via RNA?
 int geticon_anim_blocktype(short blocktype);
 
+/* Get name for channel-list displays for F-Curve */
 void getname_anim_fcurve(char *name, struct ID *id, struct FCurve *fcu);
 
-
+/* Automatically determine a color for the nth F-Curve */
 void ipo_rainbow(int cur, int tot, float *out);
-
 
 /* ------------- NLA-Mapping ----------------------- */
 /* anim_draw.c */

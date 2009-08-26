@@ -34,6 +34,6 @@
 #include <Python.h>
 #include "Mathutils.h"
 
-PyObject *Geometry_Init( const char *from );
+PyObject *Geometry_Init(void);
 
 #endif				/* EXPP_Geometry_H */

@@ -68,6 +68,7 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_pointcache.h"
 #include "BKE_softbody.h"
 #include "BKE_texture.h"
@@ -821,11 +822,11 @@ EditMesh *make_editMesh(Scene *scene, Object *ob)
 		
 		if(cacheedit) {
 			if(pid.type == PTCACHE_TYPE_CLOTH) {
-				cloth= ((ClothModifierData*)pid.data)->clothObject;
+				cloth= ((ClothModifierData*)pid.calldata)->clothObject;
 				VECCOPY(cacheco, cloth->verts[a].x)
 			}
 			else if(pid.type == PTCACHE_TYPE_SOFTBODY) {
-				sb= (SoftBody*)pid.data;
+				sb= (SoftBody*)pid.calldata;
 				VECCOPY(cacheco, sb->bpoint[a].pos)
 			}
 
@@ -839,7 +840,7 @@ EditMesh *make_editMesh(Scene *scene, Object *ob)
 		evlist[a]= eve;
 		
 		// face select sets selection in next loop
-		if( (FACESEL_PAINT_TEST)==0 )
+		if(!paint_facesel_test(ob))
 			eve->f |= (mvert->flag & 1);
 		
 		if (mvert->flag & ME_HIDE) eve->h= 1;		
@@ -914,7 +915,7 @@ EditMesh *make_editMesh(Scene *scene, Object *ob)
 					if(mface->flag & ME_FACE_SEL) {
 						efa->f |= SELECT;
 						
-						if(FACESEL_PAINT_TEST) {
+						if(paint_facesel_test(ob)) {
 							EM_select_face(efa, 1); /* flush down */
 						}
 					}
@@ -1041,7 +1042,7 @@ void load_editMesh(Scene *scene, Object *ob, EditMesh *em)
 	while(eve) {
 		if(cacheedit) {
 			if(pid.type == PTCACHE_TYPE_CLOTH) {
-				clmd= (ClothModifierData*)pid.data;
+				clmd= (ClothModifierData*)pid.calldata;
 				cloth= clmd->clothObject;
 
 				/* assign position */
@@ -1056,7 +1057,7 @@ void load_editMesh(Scene *scene, Object *ob, EditMesh *em)
 				VECADD(cloth->verts[a].v, cloth->verts[a].v, cacheco);
 			}
 			else if(pid.type == PTCACHE_TYPE_SOFTBODY) {
-				sb= (SoftBody*)pid.data;
+				sb= (SoftBody*)pid.calldata;
 
 				/* assign position */
 				VECCOPY(cacheco, sb->bpoint[a].pos)
@@ -1102,12 +1103,8 @@ void load_editMesh(Scene *scene, Object *ob, EditMesh *em)
 	}
 	
 	/* write changes to cache */
-	if(cacheedit) {
-		if(pid.type == PTCACHE_TYPE_CLOTH)
-			cloth_write_cache(ob, pid.data, pid.cache->editframe);
-		else if(pid.type == PTCACHE_TYPE_SOFTBODY)
-			softbody_write_cache(ob, pid.data, pid.cache->editframe);
-	}
+	if(cacheedit)
+		BKE_ptcache_write_cache(&pid, pid.cache->editframe);
 
 	/* the edges */
 	a= 0;
@@ -1572,6 +1569,7 @@ void MESH_OT_separate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Separate";
+	ot->description= "Separate selected geometry into a new mesh.";
 	ot->idname= "MESH_OT_separate";
 	
 	/* api callbacks */

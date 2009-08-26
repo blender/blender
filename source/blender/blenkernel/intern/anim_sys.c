@@ -207,12 +207,6 @@ AnimData *BKE_copy_animdata (AnimData *adt)
 /* *********************************** */ 
 /* KeyingSet API */
 
-/* NOTES:
- * It is very likely that there will be two copies of the api - one for internal use,
- * and one 'operator' based wrapper of the internal API, which should allow for access
- * from Python/scripts so that riggers can automate the creation of KeyingSets for their rigs.
- */
-
 /* Finding Tools --------------------------- */
 
 /* Find the first path that matches the given criteria */
@@ -276,7 +270,7 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 	if (name)
 		BLI_snprintf(ks->name, 64, name);
 	else
-		strcpy(ks->name, "Keying Set");
+		strcpy(ks->name, "KeyingSet");
 	
 	ks->flag= flag;
 	ks->keyingflag= keyingflag;
@@ -285,7 +279,7 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 	BLI_addtail(list, ks);
 	
 	/* make sure KeyingSet has a unique name (this helps with identification) */
-	BLI_uniquename(list, ks, "Keying Set", ' ', offsetof(KeyingSet, name), 64);
+	BLI_uniquename(list, ks, "KeyingSet", '.', offsetof(KeyingSet, name), 64);
 	
 	/* return new KeyingSet for further editing */
 	return ks;
@@ -299,18 +293,25 @@ void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name
 	KS_Path *ksp;
 	
 	/* sanity checks */
-	if ELEM(NULL, ks, rna_path)
+	if ELEM(NULL, ks, rna_path) {
+		printf("ERROR: no Keying Set and/or RNA Path to add destination with \n");
 		return;
+	}
 	
 	/* ID is optional for relative KeyingSets, but is necessary for absolute KeyingSets */
 	if (id == NULL) {
-		if (ks->flag & KEYINGSET_ABSOLUTE)
+		if (ks->flag & KEYINGSET_ABSOLUTE) {
+			printf("ERROR: No ID provided for absolute destination. \n");
 			return;
+		}
 	}
 	
 	/* don't add if there is already a matching KS_Path in the KeyingSet */
-	if (BKE_keyingset_find_destination(ks, id, group_name, rna_path, array_index, groupmode))
+	if (BKE_keyingset_find_destination(ks, id, group_name, rna_path, array_index, groupmode)) {
+		if (G.f & G_DEBUG)
+			printf("ERROR: destination already exists in Keying Set \n");
 		return;
+	}
 	
 	/* allocate a new KeyingSet Path */
 	ksp= MEM_callocN(sizeof(KS_Path), "KeyingSet Path");
@@ -342,6 +343,21 @@ void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name
 	BLI_addtail(&ks->paths, ksp);
 }	
 
+/* Copy all KeyingSets in the given list */
+void BKE_keyingsets_copy(ListBase *newlist, ListBase *list)
+{
+	KeyingSet *ksn;
+	KS_Path *kspn;
+
+	BLI_duplicatelist(newlist, list);
+
+	for(ksn=newlist->first; ksn; ksn=ksn->next) {
+		BLI_duplicatelist(&ksn->paths, &ksn->paths);
+
+		for(kspn=ksn->paths.first; kspn; kspn=kspn->next)
+			kspn->rna_path= MEM_dupallocN(kspn->rna_path);
+	}
+}
 
 /* Freeing Tools --------------------------- */
 
@@ -425,19 +441,19 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 			switch (RNA_property_type(prop)) 
 			{
 				case PROP_BOOLEAN:
-					if (RNA_property_array_length(prop))
+					if (RNA_property_array_length(&new_ptr, prop))
 						RNA_property_boolean_set_index(&new_ptr, prop, array_index, (int)value);
 					else
 						RNA_property_boolean_set(&new_ptr, prop, (int)value);
 					break;
 				case PROP_INT:
-					if (RNA_property_array_length(prop))
+					if (RNA_property_array_length(&new_ptr, prop))
 						RNA_property_int_set_index(&new_ptr, prop, array_index, (int)value);
 					else
 						RNA_property_int_set(&new_ptr, prop, (int)value);
 					break;
 				case PROP_FLOAT:
-					if (RNA_property_array_length(prop))
+					if (RNA_property_array_length(&new_ptr, prop))
 						RNA_property_float_set_index(&new_ptr, prop, array_index, value);
 					else
 						RNA_property_float_set(&new_ptr, prop, value);
@@ -1162,19 +1178,19 @@ void nladata_flush_channels (ListBase *channels)
 		switch (RNA_property_type(prop)) 
 		{
 			case PROP_BOOLEAN:
-				if (RNA_property_array_length(prop))
+				if (RNA_property_array_length(ptr, prop))
 					RNA_property_boolean_set_index(ptr, prop, array_index, (int)value);
 				else
 					RNA_property_boolean_set(ptr, prop, (int)value);
 				break;
 			case PROP_INT:
-				if (RNA_property_array_length(prop))
+				if (RNA_property_array_length(ptr, prop))
 					RNA_property_int_set_index(ptr, prop, array_index, (int)value);
 				else
 					RNA_property_int_set(ptr, prop, (int)value);
 				break;
 			case PROP_FLOAT:
-				if (RNA_property_array_length(prop))
+				if (RNA_property_array_length(ptr, prop))
 					RNA_property_float_set_index(ptr, prop, array_index, value);
 				else
 					RNA_property_float_set(ptr, prop, value);
@@ -1248,7 +1264,7 @@ static void animsys_evaluate_nla (PointerRNA *ptr, AnimData *adt, float ctime)
 			dummy_strip.act= adt->action;
 			dummy_strip.remap= adt->remap;
 			
-				// FIXME: what happens when we want to included F-Modifier access?
+			/* action range is calculated taking F-Modifiers into account (which making new strips doesn't do due to the troublesome nature of that) */
 			calc_action_range(dummy_strip.act, &dummy_strip.actstart, &dummy_strip.actend, 1);
 			dummy_strip.start = dummy_strip.actstart;
 			dummy_strip.end = (IS_EQ(dummy_strip.actstart, dummy_strip.actend)) ?  (dummy_strip.actstart + 1.0f): (dummy_strip.actend);

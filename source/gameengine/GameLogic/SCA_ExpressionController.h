@@ -53,6 +53,13 @@ public:
 	 *  so that self references are removed before the controller itself is released
 	 */
 	virtual void Delete();
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new( unsigned int num_bytes) { return MEM_mallocN(num_bytes, "GE:SCA_ExpressionController"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
 };
 
 #endif //__KX_EXPRESSIONCONTROLLER

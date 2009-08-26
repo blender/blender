@@ -54,3 +54,7 @@ CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 CPPFLAGS += -I../include 
 
+ifeq ($(WITH_OPENEXR), true)
+    CPPFLAGS += -DWITH_OPENEXR
+endif
+

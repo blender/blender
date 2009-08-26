@@ -56,7 +56,6 @@ private:
 	GEN_Map<STR_HashedString,int>	m_int_commandlineparms;
 	GEN_Map<STR_HashedString,float>	m_float_commandlineparms;
 	GEN_Map<STR_HashedString,STR_String>	m_string_commandlineparms;
-	void*	m_soundfilecache;
 };
 
 #endif //__SINGLETONSYSTEM_H

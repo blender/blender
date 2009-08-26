@@ -177,6 +177,8 @@ static void print_help(void)
 	printf ("        When the filename has no #, The suffix #### is added to the filename\n");
 	printf ("      The frame number will be added at the end of the filename.\n");
 	printf ("      eg: blender -b foobar.blend -o //render_ -F PNG -x 1 -a\n");
+	printf ("    -E <engine>\tSpecify the render engine.\n");
+	printf ("      use -E help to list available engines.\n");
 	printf ("\nFormat options:\n");
 	printf ("    -F <format>\tSet the render format, Valid options are...\n");
 	printf ("    \tTGA IRIS HAMX JPEG MOVIE IRIZ RAWTGA\n");
@@ -201,13 +203,11 @@ static void print_help(void)
 	printf ("\nGame Engine specific options:\n");
 	printf ("  -g fixedtime\t\tRun on 50 hertz without dropping frames\n");
 	printf ("  -g vertexarrays\tUse Vertex Arrays for rendering (usually faster)\n");
-	printf ("  -g noaudio\t\tNo audio in Game Engine\n");
 	printf ("  -g nomipmap\t\tNo Texture Mipmapping\n");
 	printf ("  -g linearmipmap\tLinear Texture Mipmapping instead of Nearest (default)\n");
 
 	printf ("\nMisc options:\n");
 	printf ("  -d\t\tTurn debugging on\n");
-	printf ("  -noaudio\tDisable audio on systems that support audio\n");
 	printf ("  -nojoystick\tDisable joystick support\n");
 	printf ("  -noglsl\tDisable GLSL shading\n");
 	printf ("  -h\t\tPrint this help text\n");
@@ -261,7 +261,6 @@ double PIL_check_seconds_timer(void);
 	}
 }*/
 
-#ifndef _DEBUG
 int segmentation_handler(int sig)
 {
 	char fname[256];
@@ -279,24 +278,13 @@ int segmentation_handler(int sig)
 	signal(SIGSEGV, SIG_DFL);
 	*(int*)NULL = 0;
 }
-#endif
 
 int main(int argc, char **argv)
 {
 	SYS_SystemHandle syshandle;
 	bContext *C= CTX_create();
 	int a, i, stax, stay, sizx, sizy /*XXX, scr_init = 0*/;
-#if defined(WIN32) || defined (__linux__)
-	int audio = 1;
-#else
-	int audio = 0;
-#endif
-
-#ifndef _DEBUG
-	signal(SIGSEGV, segmentation_handler);
-	signal(SIGFPE, segmentation_handler);
-#endif
-
+	int no_handler = 0;
 #ifdef WITH_BINRELOC
 	br_init( NULL );
 #endif
@@ -355,6 +343,9 @@ int main(int argc, char **argv)
 	G.f |= G_DOSCRIPTLINKS; /* script links enabled by default */
 
 	for(a=1; a<argc; a++) {
+		if (!strcmp(argv[a], "--no_crash_handler")) {
+			no_handler = 1;
+		}
 
 		/* Handle unix and windows style help requests */
 		if ((!strcmp(argv[a], "--help")) || (!strcmp(argv[a], "/?"))){
@@ -423,6 +414,11 @@ int main(int argc, char **argv)
 		}
 	}
 
+	if (!no_handler) {
+		signal(SIGSEGV, segmentation_handler);
+		signal(SIGFPE, segmentation_handler);
+	}
+
 #ifdef __sgi
 	setuid(getuid()); /* end superuser */
 #endif
@@ -485,16 +481,6 @@ int main(int argc, char **argv)
 					break;
 				case 'n':
 				case 'N':
-					if (BLI_strcasecmp(argv[a], "-noaudio") == 0|| BLI_strcasecmp(argv[a], "-nosound") == 0) {
-						/**
-						 	notify the gameengine that no audio is wanted, even if the user didn't give
-						   	the flag -g noaudio.
-						*/
-
-						SYS_WriteCommandLineInt(syshandle,"noaudio",1);
-						audio = 0;
-						if (G.f & G_DEBUG) printf("setting audio to: %d\n", audio);
-					}
 					if (BLI_strcasecmp(argv[a], "-nojoystick") == 0) {
 						/**
 						 	don't initialize joysticks if user doesn't want to use joysticks
@@ -513,11 +499,6 @@ int main(int argc, char **argv)
 #ifndef DISABLE_PYTHON		
 		BPY_start_python(argc, argv);
 #endif		
-		/**
-		 * NOTE: sound_init_audio() *must be* after start_python,
-		 * at least on FreeBSD.
-		 * added note (ton): i removed it altogether
-		 */
 
 		WM_init(C);
 		
@@ -538,12 +519,6 @@ int main(int argc, char **argv)
 		BPY_start_python(argc, argv);
 #endif		
 		BLI_where_is_temp( btempdir, 0 ); /* call after loading the .B.blend so we can read U.tempdir */
-		
-		// (ton) Commented out. I have no idea whats thisfor... will mail around!
-		// SYS_WriteCommandLineInt(syshandle,"noaudio",1);
-        // audio = 0;
-        // sound_init_audio();
-        // if (G.f & G_DEBUG) printf("setting audio to: %d\n", audio);
 	}
 #ifndef DISABLE_PYTHON
 	/**
@@ -556,10 +531,12 @@ int main(int argc, char **argv)
 	 */
 	BPY_post_start_python();
 
+	if(!G.background)
 	BPY_run_ui_scripts(C, 0); /* dont need to reload the first time */
 #endif
 	
 	CTX_py_init_set(C, 1);
+	if(!G.background)
 	WM_keymap_init(C); /* after BPY_run_ui_scripts() */
 
 #ifdef WITH_QUICKTIME
@@ -743,6 +720,47 @@ int main(int argc, char **argv)
 					printf("\nError: you must specify a path after '-o '.\n");
 				}
 				break;
+			case 'E':
+				a++;
+				if (a < argc)
+				{
+					if (!strcmp(argv[a],"help"))
+					{
+						RenderEngineType *type = NULL;
+
+						for( type = R_engines.first; type; type = type->next )
+						{
+							printf("\t%s\n", type->idname);
+						}
+						exit(0);
+					}
+					else 
+					{
+						if (CTX_data_scene(C)==NULL)
+						{
+							printf("\nError: no blend loaded. order the arguments so '-E ' is after the blend is loaded.\n");
+						}
+						else 
+						{
+							Scene *scene= CTX_data_scene(C);
+							RenderData *rd = &scene->r;
+							RenderEngineType *type = NULL;
+							
+							for( type = R_engines.first; type; type = type->next )
+							{
+								if (!strcmp(argv[a],type->idname))
+								{
+									BLI_strncpy(rd->engine, type->idname, sizeof(rd->engine));
+								}
+							}
+						}
+					}
+				}
+				else
+				{
+					printf("\nEngine not specified.\n");
+				}
+				break;
 			case 'F':
 				a++;
 				if (a < argc){
@@ -829,7 +847,6 @@ int main(int argc, char **argv)
 			
 			if (G.background) {
 				int retval = BKE_read_file(C, argv[a], NULL, NULL);
-// XXX			sound_initialize_sounds();
 				
 				/*we successfully loaded a blend file, get sure that
 				pointcache works */

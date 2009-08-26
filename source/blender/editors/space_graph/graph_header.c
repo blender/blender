@@ -80,15 +80,17 @@ static void graph_viewmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemS(layout);
 	
-	uiItemR(layout, NULL, 0, &spaceptr, "show_cframe_indicator", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "show_cframe_indicator", 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "show_sliders", 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "automerge_keyframes", 0);
 	
 	if (sipo->flag & SIPO_NOHANDLES)
 		uiItemO(layout, "Show Handles", ICON_CHECKBOX_DEHLT, "GRAPH_OT_handles_view_toggle");
 	else
 		uiItemO(layout, "Show Handles", ICON_CHECKBOX_HLT, "GRAPH_OT_handles_view_toggle");
 	
-	uiItemR(layout, NULL, 0, &spaceptr, "only_selected_curves_handles", 0, 0, 0);
-	uiItemR(layout, NULL, 0, &spaceptr, "automerge_keyframes", 0, 0, 0);
+	uiItemR(layout, NULL, 0, &spaceptr, "only_selected_curves_handles", 0);
+	
 	
 	if (sipo->flag & SIPO_DRAWTIME)
 		uiItemO(layout, "Show Frames", 0, "ANIM_OT_time_toggle");
@@ -201,9 +203,9 @@ static void graph_edit_expomenu(bContext *C, uiLayout *layout, void *arg_unused)
 
 static void graph_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 {
-	uiItemMenuF(layout, "Transform", 0, graph_edit_transformmenu);
-	uiItemMenuF(layout, "Snap", 0, graph_edit_snapmenu);
-	uiItemMenuF(layout, "Mirror", 0, graph_edit_mirrormenu);
+	uiItemMenuF(layout, "Transform", 0, graph_edit_transformmenu, NULL);
+	uiItemMenuF(layout, "Snap", 0, graph_edit_snapmenu, NULL);
+	uiItemMenuF(layout, "Mirror", 0, graph_edit_mirrormenu, NULL);
 	
 	uiItemS(layout);
 	
@@ -217,9 +219,9 @@ static void graph_editmenu(bContext *C, uiLayout *layout, void *arg_unused)
 	
 	uiItemS(layout);
 	
-	uiItemMenuF(layout, "Handle Type", 0, graph_edit_handlesmenu);
-	uiItemMenuF(layout, "Interpolation Mode", 0, graph_edit_ipomenu);
-	uiItemMenuF(layout, "Extrapolation Mode", 0, graph_edit_expomenu);
+	uiItemMenuF(layout, "Handle Type", 0, graph_edit_handlesmenu, NULL);
+	uiItemMenuF(layout, "Interpolation Mode", 0, graph_edit_ipomenu, NULL);
+	uiItemMenuF(layout, "Extrapolation Mode", 0, graph_edit_expomenu, NULL);
 	
 	uiItemS(layout);
 	

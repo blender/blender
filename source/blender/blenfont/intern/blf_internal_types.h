@@ -78,7 +78,22 @@ typedef struct GlyphCacheBLF {
 	float descender;
 } GlyphCacheBLF;
 
-typedef struct GlyphTextureBLF {
+typedef struct GlyphBLF {
+	struct GlyphBLF *next;
+	struct GlyphBLF *prev;
+
+	/* and the character, as UTF8 */
+	unsigned int c;
+
+	/* freetype2 index, to speed-up the search. */
+	FT_UInt idx;
+
+	/* glyph box. */
+	rctf box;
+
+	/* advance size. */
+	float advance;
+
 	/* texture id where this glyph is store. */
 	GLuint tex;
 
@@ -86,9 +101,15 @@ typedef struct GlyphTextureBLF {
 	int xoff;
 	int yoff;
 
+	/* Bitmap data, from freetype. Take care that this
+	 * can be NULL.
+	 */
+	unsigned char *bitmap;
+
 	/* glyph width and height. */
 	int width;
 	int height;
+	int pitch;
 
 	/* uv coords. */
 	float uv[2][2];
@@ -99,38 +120,9 @@ typedef struct GlyphTextureBLF {
 	 */
 	float pos_x;
 	float pos_y;
-} GlyphTextureBLF;
 
-typedef struct GlyphBitmapBLF {
-	/* image data. */
-	unsigned char *image;
-
-	int width;
-	int height;
-	int pitch;
-
-	float pos_x;
-	float pos_y;
-} GlyphBitmapBLF;
-
-typedef struct GlyphBLF {
-	struct GlyphBLF *next;
-	struct GlyphBLF *prev;
-
-	/* and the character, as UTF8 */
-	unsigned int c;
-
-	/* glyph box. */
-	rctf box;
-
-	/* advance size. */
-	float advance;
-
-	/* texture information. */
-	GlyphTextureBLF *tex_data;
-
-	/* bitmap information. */
-	GlyphBitmapBLF *bitmap_data;
+	/* with value of zero mean that we need build the texture. */
+	short build_tex;
 } GlyphBLF;
 
 typedef struct FontBLF {
@@ -139,9 +131,6 @@ typedef struct FontBLF {
 
 	/* filename or NULL. */
 	char *filename;
-
-	/* draw mode, texture or bitmap. */
-	int mode;
 
 	/* aspect ratio or scale. */
 	float aspect;
@@ -191,6 +180,22 @@ typedef struct FontBLF {
 
 	/* freetype2 face. */
 	FT_Face face;
+
+	/* for draw to buffer, always set this to NULL after finish! */
+	float *b_fbuf;
+
+	/* the same but unsigned char */
+	unsigned char *b_cbuf;
+
+	/* buffer size. */
+	unsigned int bw;
+	unsigned int bh;
+
+	/* number of channels. */
+	int bch;
+
+	/* and the color, the alphas is get from the glyph! */
+	float b_col[4];
 } FontBLF;
 
 typedef struct DirBLF {

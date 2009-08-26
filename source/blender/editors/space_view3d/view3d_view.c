@@ -63,6 +63,7 @@
 #include "RE_pipeline.h"	// make_stars
 
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -543,6 +544,18 @@ void view3d_get_object_project_mat(RegionView3D *rv3d, Object *ob, float pmat[4]
 	Mat4MulMat4(pmat, vmat, rv3d->winmat);
 }
 
+/* Uses window coordinates (x,y) and depth component z to find a point in
+   modelspace */
+void view3d_unproject(bglMats *mats, float out[3], const short x, const short y, const float z)
+{
+	double ux, uy, uz;
+
+        gluUnProject(x,y,z, mats->modelview, mats->projection,
+		     (GLint *)mats->viewport, &ux, &uy, &uz );
+	out[0] = ux;
+	out[1] = uy;
+	out[2] = uz;
+}
 
 /* use above call to get projecting mat */
 void view3d_project_float(ARegion *ar, float *vec, float *adr, float mat[4][4])
@@ -1389,12 +1402,13 @@ static ListBase queue_back;
 static void SaveState(bContext *C)
 {
 	wmWindow *win= CTX_wm_window(C);
+	Object *obact = CTX_data_active_object(C);
 	
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 	GPU_state_init();
 
-	if(G.f & G_TEXTUREPAINT)
+	if(obact && obact->mode & OB_MODE_TEXTURE_PAINT)
 		GPU_paint_set_mipmap(1);
 	
 	queue_back= win->queue;
@@ -1407,8 +1421,9 @@ static void SaveState(bContext *C)
 static void RestoreState(bContext *C)
 {
 	wmWindow *win= CTX_wm_window(C);
+	Object *obact = CTX_data_active_object(C);
 	
-	if(G.f & G_TEXTUREPAINT)
+	if(obact && obact->mode & OB_MODE_TEXTURE_PAINT)
 		GPU_paint_set_mipmap(0);
 
 	//XXX curarea->win_swap = 0;

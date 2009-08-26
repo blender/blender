@@ -229,6 +229,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 
 	/* point cache */
 	struct PointCache *pointcache;
+	struct ListBase ptcaches;
 
 	struct KDTree *tree;					/* used for interactions with self and other systems */
 }ParticleSystem;

@@ -1,5 +1,5 @@
 #
-# $Id: Makefile 21094 2009-06-23 00:09:26Z gsrb3d $
+# $Id$
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -43,7 +43,7 @@ CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 # PreProcessor stuff 
 
 CPPFLAGS += -I$(NAN_GHOST)/include
-CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include $(NAN_SDLCFLAGS)
+CPPFLAGS += $(NAN_SDLCFLAGS)
 
 # modules
 CPPFLAGS += -I../../editors/include

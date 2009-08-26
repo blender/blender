@@ -157,7 +157,7 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 		/* fill in current value for python */
 		if(type == DRIVER_TYPE_PYTHON) {
 			PropertyType proptype= RNA_property_type(prop);
-			int array= RNA_property_array_length(prop);
+			int array= RNA_property_array_length(&ptr, prop);
 			char *expression= fcu->driver->expression;
 			int val, maxlen= sizeof(fcu->driver->expression);
 			float fval;
@@ -241,7 +241,7 @@ static int add_driver_button_exec (bContext *C, wmOperator *op)
 		
 		if (path) {
 			if (all) {
-				length= RNA_property_array_length(prop);
+				length= RNA_property_array_length(&ptr, prop);
 				
 				if (length) index= 0;
 				else length= 1;
@@ -303,7 +303,7 @@ static int remove_driver_button_exec (bContext *C, wmOperator *op)
 		
 		if (path) {
 			if (all) {
-				length= RNA_property_array_length(prop);
+				length= RNA_property_array_length(&ptr, prop);
 				
 				if(length) index= 0;
 				else length= 1;

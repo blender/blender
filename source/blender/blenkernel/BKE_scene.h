@@ -40,6 +40,12 @@ struct AviCodecData;
 struct QuicktimeCodecData;
 struct RenderData;
 struct Text;
+struct Main;
+
+#define SCE_COPY_EMPTY		0
+#define SCE_COPY_LINK_OB	1
+#define SCE_COPY_LINK_DATA	2
+#define SCE_COPY_FULL		3
 
 /* note; doesn't work when scene is empty */
 #define SETLOOPER(s, b) sce= s, b= (Base*)sce->base.first; b; b= (Base*)(b->next?b->next:sce->set?(sce=sce->set)->base.first:NULL)
@@ -48,12 +54,15 @@ struct Text;
 void free_avicodecdata(struct AviCodecData *acd);
 void free_qtcodecdata(struct QuicktimeCodecData *acd);
 
-void free_scene(struct Scene *me);
+void free_scene(struct Scene *sce);
 struct Scene *add_scene(char *name);
 struct Base *object_in_scene(struct Object *ob, struct Scene *sce);
 
 void set_scene_bg(struct Scene *sce);
 void set_scene_name(char *name);
+
+struct Scene *copy_scene(struct Main *bmain, struct Scene *sce, int type);
+void unlink_scene(struct Main *bmain, struct Scene *sce, struct Scene *newsce);
 
 int next_object(struct Scene *scene, int val, struct Base **base, struct Object **ob);
 struct Object *scene_find_camera(struct Scene *sc);

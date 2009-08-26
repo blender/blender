@@ -52,6 +52,7 @@
 #include "shading.h"
 #include "strand.h"
 #include "texture.h"
+#include "volumetric.h"
 #include "zbuf.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -156,16 +157,21 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 	/* depth >= 1 when ray-shading */
 	if(shi->depth==0) {
 		if(R.r.mode & R_RAYTRACE) {
-			if(shi->ray_mirror!=0.0f || ((shi->mat->mode & MA_RAYTRANSP) && shr->alpha!=1.0f)) {
+			if(shi->ray_mirror!=0.0f || ((shi->mat->mode & MA_TRANSP) && (shi->mat->mode & MA_RAYTRANSP) && shr->alpha!=1.0f)) {
 				/* ray trace works on combined, but gives pass info */
 				ray_trace(shi, shr);
 			}
 		}
 		/* disable adding of sky for raytransp */
-		if(shi->mat->mode & MA_RAYTRANSP) 
+		if((shi->mat->mode & MA_TRANSP) && (shi->mat->mode & MA_RAYTRANSP))
 			if((shi->layflag & SCE_LAY_SKY) && (R.r.alphamode==R_ADDSKY))
 				shr->alpha= 1.0f;
 	}	
+	
+	if(R.r.mode & R_RAYTRACE) {
+		if (R.render_volumes_inside.first)
+			shade_volume_inside(shi, shr);
+	}
 }
 
 
@@ -183,14 +189,18 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 		/* copy all relevant material vars, note, keep this synced with render_types.h */
 		shade_input_init_material(shi);
 		
-		shade_material_loop(shi, shr);
+		if (shi->mat->material_type == MA_TYPE_VOLUME) {
+			if(R.r.mode & R_RAYTRACE)
+				shade_volume_outside(shi, shr);
+		} else { /* MA_TYPE_SURFACE, MA_TYPE_WIRE */
+			shade_material_loop(shi, shr);
+		}
 	}
 	
 	/* copy additional passes */
 	if(shi->passflag & (SCE_PASS_VECTOR|SCE_PASS_NORMAL|SCE_PASS_RADIO)) {
 		QUATCOPY(shr->winspeed, shi->winspeed);
 		VECCOPY(shr->nor, shi->vn);
-		VECCOPY(shr->rad, shi->rad);
 	}
 	
 	/* MIST */
@@ -211,11 +221,12 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	if(shr->alpha!=1.0f || alpha!=1.0f) {
 		float fac= alpha*(shr->alpha);
 		shr->combined[3]= fac;
-		shr->combined[0]*= fac;
-		shr->combined[1]*= fac;
-		shr->combined[2]*= fac;
+		
+		if (shi->mat->material_type!= MA_TYPE_VOLUME)
+			VecMulf(shr->combined, fac);
 	}
-	else shr->combined[3]= 1.0f;
+	else
+		shr->combined[3]= 1.0f;
 	
 	/* add z */
 	shr->z= -shi->co[2];
@@ -558,10 +569,6 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 			shi->orn[2]= -shi->vn[2];
 		}
 
-		if(mode & MA_RADIO) {
-			/* not supported */
-		}
-
 		if(texco & TEXCO_REFL) {
 			/* mirror reflection color textures (and envmap) */
 			calc_R_ref(shi);    /* wrong location for normal maps! XXXXXXXXXXXXXX */
@@ -579,8 +586,6 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 			}
 		}
 	}
-
-	shi->rad[0]= shi->rad[1]= shi->rad[2]= 0.0f;
 
 	/* this only avalailable for scanline renders */
 	if(shi->depth==0) {
@@ -704,6 +709,10 @@ void shade_input_calc_viewco(ShadeInput *shi, float x, float y, float z, float *
 			}
 		}
 	}
+	
+	/* set camera coords - for scanline, it's always 0.0,0.0,0.0 (render is in camera space)
+	 * however for raytrace it can be different - the position of the last intersection */
+	shi->camera_co[0] = shi->camera_co[1] = shi->camera_co[2] = 0.0f;
 	
 	/* cannot normalize earlier, code above needs it at viewplane level */
 	Normalize(view);
@@ -1154,24 +1163,6 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			shi->orn[2]= -shi->vn[2];
 		}
 		
-		if(mode & MA_RADIO) {
-			float *r1, *r2, *r3;
-			
-			r1= RE_vertren_get_rad(obr, v1, 0);
-			r2= RE_vertren_get_rad(obr, v2, 0);
-			r3= RE_vertren_get_rad(obr, v3, 0);
-			
-			if(r1 && r2 && r3) {
-				shi->rad[0]= (l*r3[0] - u*r1[0] - v*r2[0]);
-				shi->rad[1]= (l*r3[1] - u*r1[1] - v*r2[1]);
-				shi->rad[2]= (l*r3[2] - u*r1[2] - v*r2[2]);
-			}
-			else
-				shi->rad[0]= shi->rad[1]= shi->rad[2]= 0.0f;
-		}
-		else
-			shi->rad[0]= shi->rad[1]= shi->rad[2]= 0.0f;
-		
 		if(texco & TEXCO_REFL) {
 			/* mirror reflection color textures (and envmap) */
 			calc_R_ref(shi);	/* wrong location for normal maps! XXXXXXXXXXXXXX */
@@ -1199,8 +1190,6 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			}
 		}
 	}
-	else
-		shi->rad[0]= shi->rad[1]= shi->rad[2]= 0.0f;
 	
 	/* this only avalailable for scanline renders */
 	if(shi->depth==0) {

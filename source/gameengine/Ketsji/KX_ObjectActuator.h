@@ -163,29 +163,6 @@ public:
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
-	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetForce);
-	KX_PYMETHOD_VARARGS(KX_ObjectActuator,SetForce);
-	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetTorque);
-	KX_PYMETHOD_VARARGS(KX_ObjectActuator,SetTorque);
-	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetDLoc);
-	KX_PYMETHOD_VARARGS(KX_ObjectActuator,SetDLoc);
-	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetDRot);
-	KX_PYMETHOD_VARARGS(KX_ObjectActuator,SetDRot);
-	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetLinearVelocity);
-	KX_PYMETHOD_VARARGS(KX_ObjectActuator,SetLinearVelocity);
-	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetAngularVelocity);
-	KX_PYMETHOD_VARARGS(KX_ObjectActuator,SetAngularVelocity);
-	KX_PYMETHOD_VARARGS(KX_ObjectActuator,SetDamping);
-	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetDamping);
-	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetForceLimitX);
-	KX_PYMETHOD_VARARGS(KX_ObjectActuator,SetForceLimitX);
-	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetForceLimitY);
-	KX_PYMETHOD_VARARGS(KX_ObjectActuator,SetForceLimitY);
-	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetForceLimitZ);
-	KX_PYMETHOD_VARARGS(KX_ObjectActuator,SetForceLimitZ);
-	KX_PYMETHOD_NOARGS(KX_ObjectActuator,GetPID);
-	KX_PYMETHOD_VARARGS(KX_ObjectActuator,SetPID);
-
 	/* Attributes */
 	static PyObject*	pyattr_get_forceLimitX(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_forceLimitX(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);

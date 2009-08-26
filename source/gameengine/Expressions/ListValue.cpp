@@ -242,15 +242,10 @@ static  PySequenceMethods listvalue_as_sequence = {
 	listvalue_buffer_concat, /*sq_concat*/
  	NULL, /*sq_repeat*/
 	listvalue_buffer_item, /*sq_item*/
-#if (PY_VERSION_HEX >= 0x03000000) // TODO, slicing in py3?
-	NULL,
-	NULL,
-	NULL,
-#else
-	listvalue_buffer_slice, /*sq_slice*/
+// TODO, slicing in py3
+	NULL, // listvalue_buffer_slice, /*sq_slice*/
  	NULL, /*sq_ass_item*/
  	NULL, /*sq_ass_slice*/
-#endif
 	(objobjproc)listvalue_buffer_contains,	/* sq_contains */
 };
 
@@ -266,13 +261,7 @@ static  PyMappingMethods instance_as_mapping = {
 
 
 PyTypeObject CListValue::Type = {
-#if (PY_VERSION_HEX >= 0x02060000)
 	PyVarObject_HEAD_INIT(NULL, 0)
-#else
-	/* python 2.5 and below */
-	PyObject_HEAD_INIT( NULL )  /* required py macro */
-	0,				/*ob_size*/
-#endif
 	"CListValue",			/*tp_name*/
 	sizeof(PyObjectPlus_Proxy), /*tp_basicsize*/
 	0,				/*tp_itemsize*/
@@ -311,7 +300,6 @@ PyMethodDef CListValue::Methods[] = {
 	
 	/* Dict style access */
 	{"get", (PyCFunction)CListValue::sPyget,METH_VARARGS},
-	{"has_key", (PyCFunction)CListValue::sPyhas_key,METH_O},
 	
 	/* Own cvalue funcs */
 	{"from_id", (PyCFunction)CListValue::sPyfrom_id,METH_O},
@@ -605,14 +593,6 @@ PyObject* CListValue::Pyget(PyObject *args)
 	return def;
 }
 
-/* Matches python dict.has_key() */
-PyObject* CListValue::Pyhas_key(PyObject* value)
-{
-	if (PyUnicode_Check(value) && FindValue((const char *)_PyUnicode_AsString(value)))
-		Py_RETURN_TRUE;
-	
-	Py_RETURN_FALSE;
-}
 
 PyObject* CListValue::Pyfrom_id(PyObject* value)
 {

@@ -11,8 +11,8 @@ def particle_panel_poll(context):
 	return psys.settings.type in ('EMITTER', 'REACTOR', 'HAIR')
 
 class ParticleButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "particle"
 
 	def poll(self, context):
@@ -32,11 +32,11 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 		if ob:
 			row = layout.row()
 
-			row.template_list(ob, "particle_systems", ob, "active_particle_system_index")
+			row.template_list(ob, "particle_systems", ob, "active_particle_system_index", rows=2)
 
 			col = row.column(align=True)
-			col.itemO("object.particle_system_add", icon="ICON_ZOOMIN", text="")
-			col.itemO("object.particle_system_remove", icon="ICON_ZOOMOUT", text="")
+			col.itemO("object.particle_system_add", icon='ICON_ZOOMIN', text="")
+			col.itemO("object.particle_system_remove", icon='ICON_ZOOMOUT', text="")
 
 		if psys:
 			part = psys.settings
@@ -151,6 +151,13 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 		psys = context.particle_system
 		part = psys.settings
 		cache = psys.point_cache
+		layout.set_context_pointer("PointCache", cache)
+		
+		row = layout.row()
+		row.template_list(cache, "point_cache_list", cache, "active_point_cache_index", rows=2 )
+		col = row.column(align=True)
+		col.itemO("ptcache.add_new", icon='ICON_ZOOMIN', text="")
+		col.itemO("ptcache.remove", icon='ICON_ZOOMOUT', text="")
 		
 		row = layout.row()
 		row.itemL(text="File Name:")
@@ -166,37 +173,38 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 			
 			layout.itemL(text=cache.info)
 			
-			split = layout.split()
+			#split = layout.split()
 			
-			col = split.column(align=True)
-			col.itemR(part, "start")
-			col.itemR(part, "end")
+			#col = split.column(align=True)
+			#col.itemR(part, "start")
+			#col.itemR(part, "end")
 
-			col = split.column(align=True)
-			col.itemR(part, "lifetime")
-			col.itemR(part, "random_lifetime", slider=True)
+			#col = split.column(align=True)
+			#col.itemR(part, "lifetime")
+			#col.itemR(part, "random_lifetime", slider=True)
 		else:
 			layout.itemR(cache, "name", text="")
 			
 			row = layout.row()
 		
 			if cache.baked == True:
-				row.itemO("ptcache.free_bake_particle_system", text="Free Bake")
+				row.itemO("ptcache.free_bake", text="Free Bake")
 			else:
-				row.item_booleanO("ptcache.cache_particle_system", "bake", True, text="Bake")
+				row.item_booleanO("ptcache.bake", "bake", True, text="Bake")
 		
 			subrow = row.row()
 			subrow.enabled = (cache.frames_skipped or cache.outdated) and particle_panel_enabled(psys)
-			subrow.itemO("ptcache.cache_particle_system", text="Calculate to Current Frame")
+			subrow.itemO("ptcache.bake", "bake", False, text="Calculate to Current Frame")
 			
 			row = layout.row()
 			row.enabled = particle_panel_enabled(psys)
-			row.itemO("ptcache.bake_from_particles_cache", text="Current Cache to Bake")
+			row.itemO("ptcache.bake_from_cache", text="Current Cache to Bake")
 			row.itemR(cache, "step");
 		
 			row = layout.row()
-			row.enabled = particle_panel_enabled(psys)
-			row.itemR(cache, "quick_cache")
+			subrow = row.row()
+			subrow.enabled = particle_panel_enabled(psys)
+			subrow.itemR(cache, "quick_cache")
 			row.itemR(cache, "disk_cache")
 		
 			layout.itemL(text=cache.info)
@@ -206,7 +214,7 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 			row = layout.row()
 			row.item_booleanO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
 			row.itemO("ptcache.free_bake_all", text="Free All Bakes")
-			layout.itemO("ptcache.bake_all", text="Update All Dynamics to current frame")
+			layout.itemO("ptcache.bake_all", "bake", False, text="Update All Dynamics to current frame")
 		
 		# for particles these are figured out automatically
 		#row.itemR(cache, "start_frame")
@@ -392,12 +400,12 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
 			col = row.column()
 			subrow = col.row()
 			subcol = subrow.column(align=True)
-			subcol.itemO("particle.new_target", icon="ICON_ZOOMIN", text="")
-			subcol.itemO("particle.remove_target", icon="ICON_ZOOMOUT", text="")
+			subcol.itemO("particle.new_target", icon='ICON_ZOOMIN', text="")
+			subcol.itemO("particle.remove_target", icon='ICON_ZOOMOUT', text="")
 			subrow = col.row()
 			subcol = subrow.column(align=True)
-			subcol.itemO("particle.target_move_up", icon="VICON_MOVE_UP", text="")
-			subcol.itemO("particle.target_move_down", icon="VICON_MOVE_DOWN", text="")
+			subcol.itemO("particle.target_move_up", icon='VICON_MOVE_UP', text="")
+			subcol.itemO("particle.target_move_down", icon='VICON_MOVE_DOWN', text="")
 			
 			key = psys.active_particle_target
 			if key:
@@ -442,11 +450,11 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
 		#row.template_list(boids, "states", boids, "active_boid_state_index", compact="True")
 		#col = row.row()
 		#subrow = col.row(align=True)
-		#subrow.itemO("boid.boidstate_add", icon="ICON_ZOOMIN", text="")
-		#subrow.itemO("boid.boidstate_del", icon="ICON_ZOOMOUT", text="")
+		#subrow.itemO("boid.boidstate_add", icon='ICON_ZOOMIN', text="")
+		#subrow.itemO("boid.boidstate_del", icon='ICON_ZOOMOUT', text="")
 		#subrow = row.row(align=True)
-		#subrow.itemO("boid.boidstate_move_up", icon="VICON_MOVE_UP", text="")
-		#subrow.itemO("boid.boidstate_move_down", icon="VICON_MOVE_DOWN", text="")
+		#subrow.itemO("boid.boidstate_move_up", icon='VICON_MOVE_UP', text="")
+		#subrow.itemO("boid.boidstate_move_down", icon='VICON_MOVE_DOWN', text="")
 		
 		state = boids.active_boid_state
 		
@@ -465,12 +473,12 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
 		col = row.column()
 		subrow = col.row()
 		subcol = subrow.column(align=True)
-		subcol.item_menu_enumO("boid.boidrule_add", "type", icon="ICON_ZOOMIN", text="")
-		subcol.itemO("boid.boidrule_del", icon="ICON_ZOOMOUT", text="")
+		subcol.item_menu_enumO("boid.boidrule_add", "type", icon='ICON_ZOOMIN', text="")
+		subcol.itemO("boid.boidrule_del", icon='ICON_ZOOMOUT', text="")
 		subrow = col.row()
 		subcol = subrow.column(align=True)
-		subcol.itemO("boid.boidrule_move_up", icon="VICON_MOVE_UP", text="")
-		subcol.itemO("boid.boidrule_move_down", icon="VICON_MOVE_DOWN", text="")
+		subcol.itemO("boid.boidrule_move_up", icon='VICON_MOVE_UP', text="")
+		subcol.itemO("boid.boidrule_move_down", icon='VICON_MOVE_DOWN', text="")
 		
 		rule = state.active_boid_rule
 		
@@ -478,8 +486,8 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel):
 			row = layout.row()
 			row.itemR(rule, "name", text="")
 			#somebody make nice icons for boids here please! -jahka
-			row.itemR(rule, "in_air", icon="VICON_MOVE_UP", text="")
-			row.itemR(rule, "on_land", icon="VICON_MOVE_DOWN", text="")
+			row.itemR(rule, "in_air", icon='VICON_MOVE_UP', text="")
+			row.itemR(rule, "on_land", icon='VICON_MOVE_DOWN', text="")
 			
 			row = layout.row()
 
@@ -703,9 +711,8 @@ class PARTICLE_PT_draw(ParticleButtonsPanel):
 		col = row.column()
 		col.itemR(part, "material_color", text="Use material color")
 		
-		if (path):
-			box = col.box()				
-			box.itemR(part, "draw_step")
+		if (path):			
+			col.itemR(part, "draw_step")
 		else:
 			subcol = col.column()
 			subcol.active = part.material_color==False

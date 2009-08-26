@@ -66,7 +66,7 @@ void free_action(struct bAction *act);
 void make_local_action(struct bAction *act);
 
 /* Some kind of bounding box operation on the action */
-void calc_action_range(const struct bAction *act, float *start, float *end, int incl_hidden);
+void calc_action_range(const struct bAction *act, float *start, float *end, short incl_modifiers);
 
 /* Does action have any motion data at all? */
 short action_has_motion(const struct bAction *act);

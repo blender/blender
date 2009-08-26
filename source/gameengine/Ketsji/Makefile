@@ -43,9 +43,10 @@ CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 CPPFLAGS += -I../../blender/python
 CPPFLAGS += -I../../blender/python/generic
 CPPFLAGS += -I$(NAN_STRING)/include    
-CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include    
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I$(NAN_BULLET2)/include
+CPPFLAGS += -I$(NAN_AUDASPACE)/include
+
 CPPFLAGS += -I../Rasterizer/RAS_OpenGLRasterizer
 CPPFLAGS += -I../Rasterizer -I../GameLogic -I../SceneGraph
 CPPFLAGS += -I../BlenderRoutines -I../Expressions

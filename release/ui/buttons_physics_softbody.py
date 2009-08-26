@@ -2,8 +2,8 @@
 import bpy
 
 class PhysicButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "physics"
 
 	def poll(self, context):
@@ -33,7 +33,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
 			row.itemR(md, "realtime", text="")
 		else:
 			# add modifier
-			split.item_enumO("object.modifier_add", "type", "SOFTBODY", text="Add")
+			split.item_enumO("object.modifier_add", "type", 'SOFT_BODY', text="Add")
 			split.itemL("")
 			
 		if md:
@@ -63,6 +63,13 @@ class PHYSICS_PT_softbody_cache(PhysicButtonsPanel):
 		layout = self.layout
 
 		cache = context.soft_body.point_cache
+		layout.set_context_pointer("PointCache", cache)
+		
+		row = layout.row()
+		row.template_list(cache, "point_cache_list", cache, "active_point_cache_index", rows=2)
+		col = row.column(align=True)
+		col.itemO("ptcache.add_new", icon='ICON_ZOOMIN', text="")
+		col.itemO("ptcache.remove", icon='ICON_ZOOMOUT', text="")
 		
 		row = layout.row()
 		row.itemR(cache, "name")
@@ -74,16 +81,16 @@ class PHYSICS_PT_softbody_cache(PhysicButtonsPanel):
 		row = layout.row()
 		
 		if cache.baked == True:
-			row.itemO("ptcache.free_bake_softbody", text="Free Bake")
+			row.itemO("ptcache.free_bake", text="Free Bake")
 		else:
-			row.item_booleanO("ptcache.cache_softbody", "bake", True, text="Bake")
+			row.item_booleanO("ptcache.bake", "bake", True, text="Bake")
 		
 		sub = row.row()
 		sub.enabled = cache.frames_skipped or cache.outdated
-		sub.itemO("ptcache.cache_softbody", text="Calculate to Current Frame")
+		sub.itemO("ptcache.bake", "bake", False, text="Calculate to Current Frame")
 			
 		row = layout.row()
-		row.itemO("ptcache.bake_from_softbody_cache", text="Current Cache to Bake")
+		row.itemO("ptcache.bake_from_cache", text="Current Cache to Bake")
 		row.itemR(cache, "step");
 	
 		row = layout.row()
@@ -97,7 +104,7 @@ class PHYSICS_PT_softbody_cache(PhysicButtonsPanel):
 		row = layout.row()
 		row.itemO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
 		row.itemO("ptcache.free_bake_all", text="Free All Bakes")
-		layout.itemO("ptcache.bake_all", text="Update All Dynamics to current frame")
+		layout.itemO("ptcache.bake_all", "bake", False, text="Update All Dynamics to current frame")
 		
 class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
 	__label__ = "Soft Body Goal"

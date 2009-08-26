@@ -154,15 +154,6 @@ struct KeyingSet *ANIM_builtin_keyingset_get_named(struct KeyingSet *prevKS, cha
 /* Initialise builtin KeyingSets on startup */
 void init_builtin_keyingsets(void);
 
-/* -------- */
-
-/* KeyingSet Editing Operators:
- *	These can add a new KeyingSet and/or add 'destinations' to the KeyingSets,
- *	acting as a means by which they can be added outside the Outliner.
- */
-void ANIM_OT_keyingset_add_new(struct wmOperatorType *ot);
-void ANIM_OT_keyingset_add_destination(struct wmOperatorType *ot);
-
 /* ************ Drivers ********************** */
 
 /* Main Driver Management API calls:

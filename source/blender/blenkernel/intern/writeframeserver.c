@@ -101,7 +101,7 @@ static int closesocket(int fd)
 }
 #endif
 
-void start_frameserver(RenderData *rd, int rectx, int recty)
+void start_frameserver(struct Scene *scene, RenderData *rd, int rectx, int recty)
 {
         struct sockaddr_in      addr;
 	int arg = 1;

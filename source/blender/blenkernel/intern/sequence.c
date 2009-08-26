@@ -52,6 +52,10 @@
 #include "BLI_threads.h"
 #include <pthread.h>
 
+#include "BKE_context.h"
+#include "BKE_sound.h"
+#include "AUD_C-API.h"
+
 #ifdef WIN32
 #define snprintf _snprintf
 #endif
@@ -178,12 +182,16 @@ void seq_free_strip(Strip *strip)
 	MEM_freeN(strip);
 }
 
-void seq_free_sequence(Editing *ed, Sequence *seq)
+void seq_free_sequence(Scene *scene, Sequence *seq)
 {
+	Editing *ed = scene->ed;
+
 	if(seq->strip) seq_free_strip(seq->strip);
 
 	if(seq->anim) IMB_free_anim(seq->anim);
-	//XXX if(seq->hdaudio) sound_close_hdaudio(seq->hdaudio);
+
+	if(seq->sound_handle)
+		sound_delete_handle(scene, seq->sound_handle);
 
 	if (seq->type & SEQ_EFFECT) {
 		struct SeqEffectHandle sh = get_sequence_effect(seq);
@@ -208,8 +216,9 @@ Editing *seq_give_editing(Scene *scene, int alloc)
 	return scene->ed;
 }
 
-void seq_free_editing(Editing *ed)
+void seq_free_editing(Scene *scene)
 {
+	Editing *ed = scene->ed;
 	MetaStack *ms;
 	Sequence *seq;
 
@@ -217,7 +226,7 @@ void seq_free_editing(Editing *ed)
 		return;
 
 	SEQ_BEGIN(ed, seq) {
-		seq_free_sequence(ed, seq);
+		seq_free_sequence(scene, seq);
 	}
 	SEQ_END
 
@@ -444,6 +453,8 @@ void calc_sequence_disp(Sequence *seq)
 	else if(seq->enddisp-seq->startdisp > 250) {
 		seq->handsize= (float)((seq->enddisp-seq->startdisp)/25);
 	}
+
+	seq_update_sound(seq);
 }
 
 void calc_sequence(Sequence *seq)
@@ -515,8 +526,8 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq)
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
 	if (!(seq->type == SEQ_MOVIE || seq->type == SEQ_IMAGE ||
-	      seq->type == SEQ_HD_SOUND || seq->type == SEQ_RAM_SOUND ||
-	      seq->type == SEQ_SCENE || seq->type == SEQ_META)) {
+		  seq->type == SEQ_SOUND ||
+		  seq->type == SEQ_SCENE || seq->type == SEQ_META)) {
 		return;
 	}
 
@@ -558,23 +569,8 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq)
 			seq->len = 0;
 		}
 		seq->strip->len = seq->len;
-	} else if (seq->type == SEQ_HD_SOUND) {
-// XXX		if(seq->hdaudio) sound_close_hdaudio(seq->hdaudio);
-//		seq->hdaudio = sound_open_hdaudio(str);
-
-		if (!seq->hdaudio) {
-			return;
-		}
-
-// XXX		seq->len = sound_hdaudio_get_duration(seq->hdaudio, FPS) - seq->anim_startofs - seq->anim_endofs;
-		if (seq->len < 0) {
-			seq->len = 0;
-		}
-		seq->strip->len = seq->len;
-	} else if (seq->type == SEQ_RAM_SOUND) {
-		seq->len = (int) ( ((float)(seq->sound->streamlen-1)/
-				    ((float)scene->audio.mixrate*4.0 ))
-				   * FPS);
+	} else if (seq->type == SEQ_SOUND) {
+		seq->len = AUD_getInfo(seq->sound->snd_sound).length * FPS;
 		seq->len -= seq->anim_startofs;
 		seq->len -= seq->anim_endofs;
 		if (seq->len < 0) {
@@ -693,8 +689,7 @@ char *give_seqname_by_type(int type)
 	case SEQ_IMAGE:      return "Image";
 	case SEQ_SCENE:      return "Scene";
 	case SEQ_MOVIE:      return "Movie";
-	case SEQ_RAM_SOUND:  return "Audio (RAM)";
-	case SEQ_HD_SOUND:   return "Audio (HD)";
+	case SEQ_SOUND:      return "Audio";
 	case SEQ_CROSS:      return "Cross";
 	case SEQ_GAMCROSS:   return "Gamma Cross";
 	case SEQ_ADD:        return "Add";
@@ -1071,10 +1066,9 @@ int evaluate_seq_frame(Scene *scene, int cfra)
 
 static int video_seq_is_rendered(Sequence * seq)
 {
-	return (seq 
-		&& !(seq->flag & SEQ_MUTE) 
-		&& seq->type != SEQ_RAM_SOUND 
-		&& seq->type != SEQ_HD_SOUND);
+	return (seq
+		&& !(seq->flag & SEQ_MUTE)
+		&& seq->type != SEQ_SOUND);
 }
 
 static int get_shown_sequences(	ListBase * seqbasep, int cfra, int chanshown, Sequence ** seq_arr_out)
@@ -3309,7 +3303,7 @@ void seq_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
 	}
 
 	/* sounds cannot be extended past their endpoints */
-	if (seq->type == SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND) {
+	if (seq->type == SEQ_SOUND) {
 		seq->startstill= 0;
 		seq->endstill= 0;
 	}
@@ -3404,5 +3398,17 @@ int shuffle_seq(ListBase * seqbasep, Sequence *test)
 		return 0;
 	} else {
 		return 1;
+	}
+}
+
+void seq_update_sound(struct Sequence *seq)
+{
+	if(seq->type == SEQ_SOUND)
+	{
+		seq->sound_handle->startframe = seq->startdisp;
+		seq->sound_handle->endframe = seq->enddisp;
+		seq->sound_handle->frameskip = seq->startofs + seq->anim_startofs;
+		seq->sound_handle->mute = seq->flag & SEQ_MUTE ? 1 : 0;
+		seq->sound_handle->changed = -1;
 	}
 }

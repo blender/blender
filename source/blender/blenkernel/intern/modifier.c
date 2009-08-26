@@ -79,6 +79,7 @@
 
 #include "BKE_main.h"
 #include "BKE_anim.h"
+#include "BKE_action.h"
 #include "BKE_bmesh.h"
 // XXX #include "BKE_booleanops.h"
 #include "BKE_cloth.h"
@@ -5620,6 +5621,7 @@ static void hookModifier_copyData(ModifierData *md, ModifierData *target)
 	thmd->indexar = MEM_dupallocN(hmd->indexar);
 	memcpy(thmd->parentinv, hmd->parentinv, sizeof(hmd->parentinv));
 	strncpy(thmd->name, hmd->name, 32);
+	strncpy(thmd->subtarget, hmd->subtarget, 32);
 }
 
 CustomDataMask hookModifier_requiredDataMask(Object *ob, ModifierData *md)
@@ -5664,9 +5666,11 @@ static void hookModifier_updateDepgraph(ModifierData *md, DagForest *forest, Sce
 
 	if (hmd->object) {
 		DagNode *curNode = dag_get_node(forest, hmd->object);
-
-		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA,
-			"Hook Modifier");
+		
+		if (hmd->subtarget[0])
+			dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA|DAG_RL_DATA_DATA, "Hook Modifier");
+		else
+			dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA, "Hook Modifier");
 	}
 }
 
@@ -5675,12 +5679,22 @@ static void hookModifier_deformVerts(
 	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	HookModifierData *hmd = (HookModifierData*) md;
-	float vec[3], mat[4][4];
+	bPoseChannel *pchan= get_pose_channel(hmd->object->pose, hmd->subtarget);
+	float vec[3], mat[4][4], dmat[4][4];
 	int i;
 	DerivedMesh *dm = derivedData;
-
+	
+	/* get world-space matrix of target, corrected for the space the verts are in */
+	if (hmd->subtarget[0] && pchan) {
+		/* bone target if there's a matching pose-channel */
+		Mat4MulMat4(dmat, pchan->pose_mat, hmd->object->obmat);
+	}
+	else {
+		/* just object target */
+		Mat4CpyMat4(dmat, hmd->object->obmat);
+	}
 	Mat4Invert(ob->imat, ob->obmat);
-	Mat4MulSerie(mat, ob->imat, hmd->object->obmat, hmd->parentinv,
+	Mat4MulSerie(mat, ob->imat, dmat, hmd->parentinv,
 		     NULL, NULL, NULL, NULL, NULL);
 
 	/* vertex indices? */
@@ -5737,7 +5751,8 @@ static void hookModifier_deformVerts(
 				}
 			}
 		}
-	} else {	/* vertex group hook */
+	} 
+	else if(hmd->name[0]) {	/* vertex group hook */
 		bDeformGroup *curdef;
 		Mesh *me = ob->data;
 		int index = 0;
@@ -5823,26 +5838,6 @@ static void smokeModifier_initData(ModifierData *md)
 	smd->coll = NULL;
 	smd->type = 0;
 	smd->time = -1;
-	
-	/*
-	smd->fluid = NULL;
-	smd->maxres = 48;
-	smd->amplify = 4;
-	smd->omega = 0.5;
-	smd->time = 0;
-	smd->flags = 0;
-	smd->noise = MOD_SMOKE_NOISEWAVE;
-	smd->visibility = 1;
-	
-	// init 3dview buffer
-	smd->tvox = NULL;
-	smd->tray = NULL;
-	smd->tvoxbig = NULL;
-	smd->traybig = NULL;
-	smd->viewsettings = 0;
-	smd->bind = NULL;
-	smd->max_textures = 0;
-	*/
 }
 
 static void smokeModifier_freeData(ModifierData *md)
@@ -5880,8 +5875,7 @@ static void smokeModifier_updateDepgraph(
 					 ModifierData *md, DagForest *forest, Scene *scene, Object *ob,
       DagNode *obNode)
 {
-	SmokeModifierData *smd = (SmokeModifierData *) md;
-	/*
+	/*SmokeModifierData *smd = (SmokeModifierData *) md;
 	if(smd && (smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
 	{
 		if(smd->domain->fluid_group)
@@ -5915,7 +5909,7 @@ static void clothModifier_initData(ModifierData *md)
 	
 	clmd->sim_parms = MEM_callocN(sizeof(ClothSimSettings), "cloth sim parms");
 	clmd->coll_parms = MEM_callocN(sizeof(ClothCollSettings), "cloth coll parms");
-	clmd->point_cache = BKE_ptcache_add();
+	clmd->point_cache = BKE_ptcache_add(&clmd->ptcaches);
 	
 	/* check for alloc failing */
 	if(!clmd->sim_parms || !clmd->coll_parms || !clmd->point_cache)
@@ -5994,12 +5988,13 @@ static void clothModifier_copyData(ModifierData *md, ModifierData *target)
 		MEM_freeN(tclmd->sim_parms);
 	if(tclmd->coll_parms)
 		MEM_freeN(tclmd->coll_parms);
-	if(tclmd->point_cache)
-		BKE_ptcache_free(tclmd->point_cache);
+	
+	BKE_ptcache_free_list(&tclmd->ptcaches);
+	tclmd->point_cache = NULL;
 	
 	tclmd->sim_parms = MEM_dupallocN(clmd->sim_parms);
 	tclmd->coll_parms = MEM_dupallocN(clmd->coll_parms);
-	tclmd->point_cache = BKE_ptcache_copy(clmd->point_cache);
+	tclmd->point_cache = BKE_ptcache_copy_list(&tclmd->ptcaches, &clmd->ptcaches);
 	tclmd->clothObject = NULL;
 }
 
@@ -6023,8 +6018,9 @@ static void clothModifier_freeData(ModifierData *md)
 			MEM_freeN(clmd->sim_parms);
 		if(clmd->coll_parms)
 			MEM_freeN(clmd->coll_parms);	
-		if(clmd->point_cache)
-			BKE_ptcache_free(clmd->point_cache);
+		
+		BKE_ptcache_free_list(&clmd->ptcaches);
+		clmd->point_cache = NULL;
 	}
 }
 
@@ -8101,14 +8097,13 @@ static DerivedMesh *multiresModifier_applyModifier(ModifierData *md, Object *ob,
 						   int useRenderParams, int isFinalCalc)
 {
 	MultiresModifierData *mmd = (MultiresModifierData*)md;
-	Mesh *me = get_mesh(ob);
 	DerivedMesh *final;
 
 	/* TODO: for now just skip a level1 mesh */
 	if(mmd->lvl == 1)
 		return dm;
 
-	final = multires_dm_create_from_derived(mmd, dm, me, useRenderParams, isFinalCalc);
+	final = multires_dm_create_from_derived(mmd, 0, dm, ob, useRenderParams, isFinalCalc);
 	if(mmd->undo_signal && mmd->undo_verts && mmd->undo_verts_tot == final->getNumVerts(final)) {
 		int i;
 		MVert *dst = CDDM_get_verts(final);
@@ -8603,7 +8598,9 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->initData = smokeModifier_initData;
 		mti->freeData = smokeModifier_freeData; 
-		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_UsesPointCache
+				| eModifierTypeFlag_Single;
 		mti->deformVerts = smokeModifier_deformVerts;
 		mti->dependsOnTime = smokeModifier_dependsOnTime;
 		mti->updateDepgraph = smokeModifier_updateDepgraph;
@@ -8634,7 +8631,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(Surface);
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->initData = surfaceModifier_initData;
-		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->flags = eModifierTypeFlag_AcceptsMesh|eModifierTypeFlag_NoUserAdd;
 		mti->dependsOnTime = surfaceModifier_dependsOnTime;
 		mti->freeData = surfaceModifier_freeData; 
 		mti->deformVerts = surfaceModifier_deformVerts;

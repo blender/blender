@@ -1,15 +1,9 @@
 
 import bpy
 
-# If python version is less than 2.4, try to get set stuff from module
-try:
-	set
-except:
-	from sets import Set as set
-
 class RenderButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "scene"
 	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 	
@@ -47,8 +41,8 @@ class SCENE_PT_layers(RenderButtonsPanel):
 		row.template_list(rd, "layers", rd, "active_layer_index", rows=2)
 
 		col = row.column(align=True)
-		col.itemO("scene.render_layer_add", icon="ICON_ZOOMIN", text="")
-		col.itemO("scene.render_layer_remove", icon="ICON_ZOOMOUT", text="")
+		col.itemO("scene.render_layer_add", icon='ICON_ZOOMIN', text="")
+		col.itemO("scene.render_layer_remove", icon='ICON_ZOOMOUT', text="")
 
 		rl = rd.layers[rd.active_layer_index]
 
@@ -109,19 +103,19 @@ class SCENE_PT_layers(RenderButtonsPanel):
 		col.itemR(rl, "pass_diffuse")
 		row = col.row()
 		row.itemR(rl, "pass_specular")
-		row.itemR(rl, "pass_specular_exclude", text="", icon="ICON_X")
+		row.itemR(rl, "pass_specular_exclude", text="", icon='ICON_X')
 		row = col.row()
 		row.itemR(rl, "pass_shadow")
-		row.itemR(rl, "pass_shadow_exclude", text="", icon="ICON_X")
+		row.itemR(rl, "pass_shadow_exclude", text="", icon='ICON_X')
 		row = col.row()
 		row.itemR(rl, "pass_ao")
-		row.itemR(rl, "pass_ao_exclude", text="", icon="ICON_X")
+		row.itemR(rl, "pass_ao_exclude", text="", icon='ICON_X')
 		row = col.row()
 		row.itemR(rl, "pass_reflection")
-		row.itemR(rl, "pass_reflection_exclude", text="", icon="ICON_X")
+		row.itemR(rl, "pass_reflection_exclude", text="", icon='ICON_X')
 		row = col.row()
 		row.itemR(rl, "pass_refraction")
-		row.itemR(rl, "pass_refraction_exclude", text="", icon="ICON_X")
+		row.itemR(rl, "pass_refraction_exclude", text="", icon='ICON_X')
 
 class SCENE_PT_shading(RenderButtonsPanel):
 	__label__ = "Shading"
@@ -434,6 +428,25 @@ class SCENE_PT_stamp(RenderButtonsPanel):
 		sub.active = rd.stamp_note
 		sub.itemR(rd, "stamp_note_text", text="")
 
+class SCENE_PT_unit(RenderButtonsPanel):
+	__label__ = "Units"
+	__default_closed__ = True
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
+
+	def draw(self, context):
+		layout = self.layout
+		
+		unit = context.scene.unit_settings
+		
+		col = layout.column()
+		col.row().itemR(unit, "system", expand=True)
+		
+		row = layout.row()
+		row.active = (unit.system != 'NONE')
+		row.itemR(unit, "scale_length", text="Scale")
+		row.itemR(unit, "use_separate")
+
+
 bpy.types.register(SCENE_PT_render)
 bpy.types.register(SCENE_PT_layers)
 bpy.types.register(SCENE_PT_dimensions)
@@ -444,3 +457,4 @@ bpy.types.register(SCENE_PT_encoding)
 bpy.types.register(SCENE_PT_performance)
 bpy.types.register(SCENE_PT_post_processing)
 bpy.types.register(SCENE_PT_stamp)
+bpy.types.register(SCENE_PT_unit)

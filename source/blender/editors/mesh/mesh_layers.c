@@ -55,14 +55,16 @@
 #include "WM_types.h"
 
 #include "ED_mesh.h"
+#include "ED_object.h"
 #include "ED_view3d.h"
 
 #include "mesh_intern.h"
 #include "bmesh.h"
 
-static void delete_customdata_layer(Mesh *me, CustomDataLayer *layer, int loop)
+static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *layer, int loop)
 {
 	CustomData *data;
+	Mesh *me = ob->data;
 	void *actlayerdata, *rndlayerdata, *clonelayerdata, *masklayerdata, *layerdata=layer->data;
 	int type= layer->type;
 	int index;
@@ -96,9 +98,8 @@ static void delete_customdata_layer(Mesh *me, CustomDataLayer *layer, int loop)
 		mesh_update_customdata_pointers(me);
 	}
 
-	if(!CustomData_has_layer(data, type))
-		if(type == CD_MLOOPCOL && (G.f & G_VERTEXPAINT))
-			G.f &= ~G_VERTEXPAINT; /* get out of vertexpaint mode */
+	if(!CustomData_has_layer(data, type) && (type == CD_MLOOPCOL && (ob->mode & OB_MODE_VERTEX_PAINT)))
+		ED_object_toggle_modes(C, OB_MODE_VERTEX_PAINT);
 
 	/* reconstruct active layer */
 	if (actlayerdata != layerdata) {
@@ -211,6 +212,7 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add UV Texture";
+	ot->description= "Add UV texture layer.";
 	ot->idname= "MESH_OT_uv_texture_add";
 	
 	/* api callbacks */
@@ -241,8 +243,8 @@ static int uv_texture_remove_exec(bContext *C, wmOperator *op)
 	if(!cdl)
 		return OPERATOR_CANCELLED;
 
-	delete_customdata_layer(me, cdl, 0);
-	delete_customdata_layer(me, cdl2, 1);
+	delete_customdata_layer(C, ob, cdl, 0);
+	delete_customdata_layer(C, ob, cdl2, 1);
 
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
@@ -254,6 +256,7 @@ void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove UV Texture";
+	ot->description= "Remove UV texture layer.";
 	ot->idname= "MESH_OT_uv_texture_remove";
 	
 	/* api callbacks */
@@ -318,6 +321,7 @@ void MESH_OT_vertex_color_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Vertex Color";
+	ot->description= "Add vertex color layer.";
 	ot->idname= "MESH_OT_vertex_color_add";
 	
 	/* api callbacks */
@@ -345,7 +349,7 @@ static int vertex_color_remove_exec(bContext *C, wmOperator *op)
 	if(!cdl)
 		return OPERATOR_CANCELLED;
 
-	delete_customdata_layer(me, cdl, 1);
+	delete_customdata_layer(C, ob, cdl, 1);
 
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
@@ -357,6 +361,7 @@ void MESH_OT_vertex_color_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Vertex Color";
+	ot->description= "Remove vertex color layer.";
 	ot->idname= "MESH_OT_vertex_color_remove";
 	
 	/* api callbacks */
@@ -394,6 +399,7 @@ void MESH_OT_sticky_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Sticky";
+	ot->description= "Add sticky UV texture layer.";
 	ot->idname= "MESH_OT_sticky_add";
 	
 	/* api callbacks */
@@ -430,6 +436,7 @@ void MESH_OT_sticky_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Sticky";
+	ot->description= "Remove sticky UV texture layer.";
 	ot->idname= "MESH_OT_sticky_remove";
 	
 	/* api callbacks */

@@ -877,19 +877,15 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 /* ************************************************************************* */
 /* Channel List */
 
-// XXX quite a few of these need to be kept in sync with their counterparts in Action Editor
-// as they're the same. We have 2 separate copies of this for now to make it easier to develop
-// the diffences between the two editors, but one day these should be merged!
-
 /* left hand part */
-void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar) 
+void graph_draw_channel_names(bContext *C, bAnimContext *ac, SpaceIpo *sipo, ARegion *ar) 
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
 	
 	View2D *v2d= &ar->v2d;
-	float x= 0.0f, y= 0.0f, height;
+	float y= 0.0f, height;
 	int items, i=0;
 	
 	/* build list of channels to draw */
@@ -903,537 +899,57 @@ void graph_draw_channel_names(bAnimContext *ac, SpaceIpo *sipo, ARegion *ar)
 	 *	  start of list offset, and the second is as a correction for the scrollers.
 	 */
 	height= (float)((items*ACHANNEL_STEP) + (ACHANNEL_HEIGHT*2));
-	
-#if 0
-	if (height > (v2d->mask.ymax - v2d->mask.ymin)) {
-		/* don't use totrect set, as the width stays the same 
-		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
-		 */
-		v2d->tot.ymin= (float)(-height);
-	}
-	
-	/* XXX I would call the below line! (ton) */
-#endif
 	UI_view2d_totRect_set(v2d, ar->winx, height);
 	
 	/* loop through channels, and set up drawing depending on their type  */	
-	y= (float)ACHANNEL_FIRST;
-	
-	for (ale= anim_data.first, i=0; ale; ale= ale->next, i++) {
-		const float yminc= (float)(y - ACHANNEL_HEIGHT_HALF);
-		const float ymaxc= (float)(y + ACHANNEL_HEIGHT_HALF);
+	{	/* first pass: just the standard GL-drawing for backdrop + text */
+		y= (float)ACHANNEL_FIRST;
 		
-		/* check if visible */
-		if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
-			 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
-		{
-			bActionGroup *grp = NULL;
-			short indent= 0, offset= 0, sel= 0, group= 0;
-			int expand= -1, protect = -1, special= -1, mute = -1;
-			char name[128];
+		for (ale= anim_data.first, i=0; ale; ale= ale->next, i++) {
+			const float yminc= (float)(y - ACHANNEL_HEIGHT_HALF);
+			const float ymaxc= (float)(y + ACHANNEL_HEIGHT_HALF);
 			
-			/* determine what needs to be drawn */
-			switch (ale->type) {
-				case ANIMTYPE_SCENE: /* scene */
-				{
-					Scene *sce= (Scene *)ale->data;
-					
-					group= 4;
-					indent= 0;
-					
-					special= ICON_SCENE_DATA;
-					
-					/* only show expand if there are any channels */
-					if (EXPANDED_SCEC(sce))
-						expand= ICON_TRIA_DOWN;
-					else
-						expand= ICON_TRIA_RIGHT;
-					
-					sel = SEL_SCEC(sce);
-					strcpy(name, sce->id.name+2);
-				}
-					break;
-				case ANIMTYPE_OBJECT: /* object */
-				{
-					Base *base= (Base *)ale->data;
-					Object *ob= base->object;
-					
-					group= 4;
-					indent= 0;
-					
-					/* icon depends on object-type */
-					if (ob->type == OB_ARMATURE)
-						special= ICON_ARMATURE_DATA;
-					else	
-						special= ICON_OBJECT_DATA;
-						
-					/* only show expand if there are any channels */
-					if (EXPANDED_OBJC(ob))
-						expand= ICON_TRIA_DOWN;
-					else
-						expand= ICON_TRIA_RIGHT;
-					
-					sel = SEL_OBJC(base);
-					strcpy(name, ob->id.name+2);
-				}
-					break;
-				case ANIMTYPE_FILLACTD: /* action widget */
-				{
-					bAction *act= (bAction *)ale->data;
-					
-					group = 4;
-					indent= 1;
-					special= ICON_ACTION;
-					
-					if (EXPANDED_ACTC(act))
-						expand= ICON_TRIA_DOWN;
-					else
-						expand= ICON_TRIA_RIGHT;
-					
-					sel = SEL_ACTC(act);
-					strcpy(name, act->id.name+2);
-				}
-					break;
-				case ANIMTYPE_FILLDRIVERS: /* drivers widget */
-				{
-					AnimData *adt= (AnimData *)ale->data;
-					
-					group = 4;
-					indent= 1;
-					special= ICON_ANIM_DATA;
-					
-					if (EXPANDED_DRVD(adt))
-						expand= ICON_TRIA_DOWN;
-					else
-						expand= ICON_TRIA_RIGHT;
-					
-					strcpy(name, "Drivers");
-				}
-					break;
-				case ANIMTYPE_FILLMATD: /* object materials (dopesheet) expand widget */
-				{
-					Object *ob = (Object *)ale->data;
-					
-					group = 4;
-					indent = 1;
-					special = ICON_MATERIAL_DATA;
-					
-					if (FILTER_MAT_OBJC(ob))
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-						
-					strcpy(name, "Materials");
-				}
-					break;
-				case ANIMTYPE_FILLPARTD: /* object particles (dopesheet) expand widget */
-				{
-					Object *ob = (Object *)ale->data;
-					
-					group = 4;
-					indent = 1;
-					special = ICON_PARTICLE_DATA;
-					
-					if (FILTER_PART_OBJC(ob))
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-						
-					strcpy(name, "Particles");
-				}
-					break;
-				
-				
-				case ANIMTYPE_DSMAT: /* single material (dopesheet) expand widget */
-				{
-					Material *ma = (Material *)ale->data;
-					
-					group = 0;
-					indent = 0;
-					special = ICON_MATERIAL_DATA;
-					offset = 21;
-					
-					if (FILTER_MAT_OBJD(ma))
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-					
-					strcpy(name, ma->id.name+2);
-				}
-					break;
-				case ANIMTYPE_DSLAM: /* lamp (dopesheet) expand widget */
-				{
-					Lamp *la = (Lamp *)ale->data;
-					
-					group = 4;
-					indent = 1;
-					special = ICON_LAMP_DATA;
-					
-					if (FILTER_LAM_OBJD(la))
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-					
-					strcpy(name, la->id.name+2);
-				}
-					break;
-				case ANIMTYPE_DSCAM: /* camera (dopesheet) expand widget */
-				{
-					Camera *ca = (Camera *)ale->data;
-					
-					group = 4;
-					indent = 1;
-					special = ICON_CAMERA_DATA;
-					
-					if (FILTER_CAM_OBJD(ca))
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-					
-					strcpy(name, ca->id.name+2);
-				}
-					break;
-				case ANIMTYPE_DSCUR: /* curve (dopesheet) expand widget */
-				{
-					Curve *cu = (Curve *)ale->data;
-					
-					group = 4;
-					indent = 1;
-					special = ICON_CURVE_DATA;
-					
-					if (FILTER_CUR_OBJD(cu))
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-					
-					strcpy(name, cu->id.name+2);
-				}
-					break;
-				case ANIMTYPE_DSSKEY: /* shapekeys (dopesheet) expand widget */
-				{
-					Key *key= (Key *)ale->data;
-					
-					group = 4;
-					indent = 1;
-					special = ICON_SHAPEKEY_DATA;
-					
-					if (FILTER_SKE_OBJD(key))	
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-						
-					//sel = SEL_OBJC(base);
-					strcpy(name, "Shape Keys");
-				}
-					break;
-				case ANIMTYPE_DSWOR: /* world (dopesheet) expand widget */
-				{
-					World *wo= (World *)ale->data;
-					
-					group = 4;
-					indent = 1;
-					special = ICON_WORLD_DATA;
-					
-					if (FILTER_WOR_SCED(wo))	
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-					
-					strcpy(name, wo->id.name+2);
-				}
-					break;
-				case ANIMTYPE_DSPART: /* particle (dopesheet) expand widget */
-				{
-					ParticleSettings *part= (ParticleSettings*)ale->data;
-					
-					group = 0;
-					indent = 0;
-					special = ICON_PARTICLE_DATA;
-					offset = 21;
-					
-					if (FILTER_PART_OBJD(part))	
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-					
-					strcpy(name, part->id.name+2);
-				}
-					break;
-				case ANIMTYPE_DSMBALL: /* metaball (dopesheet) expand widget */
-				{
-					MetaBall *mb = (MetaBall *)ale->data;
-					
-					group = 4;
-					indent = 1;
-					special = ICON_META_DATA;
-					
-					if (FILTER_MBALL_OBJD(mb))
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-					
-					strcpy(name, mb->id.name+2);
-				}
-					break;
-				
-				
-				case ANIMTYPE_GROUP: /* action group */
-				{
-					bActionGroup *agrp= (bActionGroup *)ale->data;
-					
-					group= 2;
-					indent= 0;
-					special= -1;
-					
-					if (ale->id) {
-						/* special exception for materials */
-						if (GS(ale->id->name) == ID_MA) 
-							offset= 25;
-						else
-							offset= 14;
-					}
-					else
-						offset= 0;
-					
-					/* only show expand if there are any channels */
-					if (agrp->channels.first) {
-						if (EXPANDED_AGRP(agrp))
-							expand = ICON_TRIA_DOWN;
-						else
-							expand = ICON_TRIA_RIGHT;
-					}
-					
-					/* for now, 'special' (i.e. in front of name) is used to show visibility status */
-					if (agrp->flag & AGRP_NOTVISIBLE)
-						special= ICON_CHECKBOX_DEHLT;
-					else
-						special= ICON_CHECKBOX_HLT;
-					
-					if (agrp->flag & AGRP_MUTED)
-						mute = ICON_MUTE_IPO_ON;
-					else	
-						mute = ICON_MUTE_IPO_OFF;
-					
-					if (EDITABLE_AGRP(agrp))
-						protect = ICON_UNLOCKED;
-					else
-						protect = ICON_LOCKED;
-						
-					sel = SEL_AGRP(agrp);
-					strcpy(name, agrp->name);
-				}
-					break;
-				case ANIMTYPE_FCURVE: /* F-Curve channel */
-				{
-					FCurve *fcu = (FCurve *)ale->data;
-					
-					indent = 0;
-					
-					group= (fcu->grp) ? 1 : 0;
-					grp= fcu->grp;
-					
-					if (ale->id) {
-						/* special exception for materials and particles */
-						if (ELEM(GS(ale->id->name),ID_MA,ID_PA)) {
-							offset= 21;
-							indent= 1;
-						}
-						else
-							offset= 14;
-					}
-					else
-						offset= 0;
-					
-					/* for now, 'special' (i.e. in front of name) is used to show visibility status */
-					if (fcu->flag & FCURVE_VISIBLE)
-						special= ICON_CHECKBOX_HLT;
-					else
-						special= ICON_CHECKBOX_DEHLT;
-					
-					if (fcu->flag & FCURVE_MUTED)
-						mute = ICON_MUTE_IPO_ON;
-					else	
-						mute = ICON_MUTE_IPO_OFF;
-						
-					if (fcu->bezt) {
-						if (EDITABLE_FCU(fcu))
-							protect = ICON_UNLOCKED;
-						else
-							protect = ICON_LOCKED;
-					}
-					else
-						protect = ICON_ZOOMOUT; // XXX editability is irrelevant here, but this icon is temp...
-					
-					sel = SEL_FCU(fcu);
-					
-					getname_anim_fcurve(name, ale->id, fcu);
-				}
-					break;
-					
-				case ANIMTYPE_SHAPEKEY: /* shapekey channel */
-				{
-					KeyBlock *kb = (KeyBlock *)ale->data;
-					
-					indent = 0;
-					special = -1;
-					
-					offset= (ale->id) ? 21 : 0;
-					
-					if (kb->name[0] == '\0')
-						sprintf(name, "Key %d", ale->index);
-					else
-						strcpy(name, kb->name);
-				}
-					break;
-			}	
-			
-			/* now, start drawing based on this information */
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glEnable(GL_BLEND);
-			
-			/* draw backing strip behind channel name */
-			if (group == 4) {
-				/* only used in dopesheet... */
-				if (ELEM(ale->type, ANIMTYPE_SCENE, ANIMTYPE_OBJECT)) {
-					/* object channel - darker */
-					UI_ThemeColor(TH_DOPESHEET_CHANNELOB);
-					uiSetRoundBox((expand == ICON_TRIA_DOWN)? (1):(1|8));
-					gl_round_box(GL_POLYGON, x+offset,  yminc, (float)ACHANNEL_NAMEWIDTH, ymaxc, 8);
-				}
-				else {
-					/* sub-object folders - lighter */
-					UI_ThemeColor(TH_DOPESHEET_CHANNELSUBOB);
-					
-					offset += 7 * indent;
-					glBegin(GL_QUADS);
-						glVertex2f(x+offset, yminc);
-						glVertex2f(x+offset, ymaxc);
-						glVertex2f((float)ACHANNEL_NAMEWIDTH, ymaxc);
-						glVertex2f((float)ACHANNEL_NAMEWIDTH, yminc);
-					glEnd();
-					
-					/* clear group value, otherwise we cause errors... */
-					group = 0;
-				}
-			}
-			else if (group == 3) {
-				/* only for gp-data channels */
-				UI_ThemeColorShade(TH_GROUP, 20);
-				uiSetRoundBox((expand == ICON_TRIA_DOWN)? (1):(1|8));
-				gl_round_box(GL_POLYGON, x+offset,  yminc, (float)ACHANNEL_NAMEWIDTH, ymaxc, 8);
-			}
-			else if (group == 2) {
-				/* only for action group channels */
-				if (ale->flag & AGRP_ACTIVE)
-					UI_ThemeColorShade(TH_GROUP_ACTIVE, 10);
-				else
-					UI_ThemeColorShade(TH_GROUP, 20);
-				uiSetRoundBox((expand == ICON_TRIA_DOWN)? (1):(1|8));
-				gl_round_box(GL_POLYGON, x+offset,  yminc, (float)ACHANNEL_NAMEWIDTH, ymaxc, 8);
-			}
-			else {
-				short shadefac= ((indent==0)?20: (indent==1)?-20: -40);
-				
-				indent += group;
-				offset += 7 * indent;
-				
-				/* draw channel backdrop */
-				UI_ThemeColorShade(TH_HEADER, shadefac);
-				
-				glBegin(GL_QUADS);
-					glVertex2f(x+offset, yminc);
-					glVertex2f(x+offset, ymaxc);
-					glVertex2f((float)ACHANNEL_NAMEWIDTH, ymaxc);
-					glVertex2f((float)ACHANNEL_NAMEWIDTH, yminc);
-				glEnd();
-				
-				/* most of the time, only F-Curves are going to be drawn here */
-				if (ale->type == ANIMTYPE_FCURVE) {
-					/* F-Curve channels need to have a special 'color code' box drawn, which is colored with whatever 
-					 * color the curve has stored 
-					 */
-					FCurve *fcu= (FCurve *)ale->data;
-					glColor3fv(fcu->color);
-					
-					// NOTE: only enable the following line for the fading-out gradient
-					//glShadeModel(GL_SMOOTH);
-					
-					glBegin(GL_QUADS);
-						/* solid color for the area around the checkbox */
-						glVertex2f(x+offset, yminc);
-						glVertex2f(x+offset, ymaxc);
-						glVertex2f(x+offset+18, ymaxc);
-						glVertex2f(x+offset+18, yminc);
-						
-#if 0 // fading out gradient
-						/* fading out gradient for the rest of the box */
-						glVertex2f(x+offset+18, yminc);
-						glVertex2f(x+offset+18, ymaxc);
-						
-						UI_ThemeColorShade(TH_HEADER, shadefac); // XXX does this cause any problems on some cards?
-						
-						glVertex2f(x+offset+20, ymaxc);
-						glVertex2f(x+offset+20, yminc);
-#endif // fading out gradient
-					glEnd();
-					
-					// NOTE: only enable the following line for the fading-out gradient
-					//glShadeModel(GL_FLAT);
-				}
+			/* check if visible */
+			if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
+				 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
+			{
+				/* draw all channels using standard channel-drawing API */
+				ANIM_channel_draw(ac, ale, yminc, ymaxc);
 			}
 			
-			/* draw expand/collapse triangle */
-			if (expand > 0) {
-				UI_icon_draw(x+offset, yminc, expand);
-				offset += 17;
+			/* adjust y-position for next one */
+			y -= ACHANNEL_STEP;
+		}
+	}
+	{	/* second pass: widgets */
+		uiBlock *block= uiBeginBlock(C, ar, "graph channel buttons", UI_EMBOSS);
+		
+		y= (float)ACHANNEL_FIRST;
+		
+		/* set blending again, as may not be set in previous step */
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
+		
+		for (ale= anim_data.first, i=0; ale; ale= ale->next, i++) {
+			const float yminc= (float)(y - ACHANNEL_HEIGHT_HALF);
+			const float ymaxc= (float)(y + ACHANNEL_HEIGHT_HALF);
+			
+			/* check if visible */
+			if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
+				 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
+			{
+				/* draw all channels using standard channel-drawing API */
+				ANIM_channel_draw_widgets(ac, ale, block, yminc, ymaxc);
 			}
 			
-			/* draw special icon indicating certain data-types */
-			if (special > -1) {
-				if (ELEM(group, 3, 4)) {
-					/* for gpdatablock channels */
-					UI_icon_draw(x+offset, yminc, special);
-					offset += 17;
-				}
-				else {
-					/* for normal channels */
-					UI_icon_draw(x+offset, yminc, special);
-					offset += 17;
-				}
-			}
-			glDisable(GL_BLEND);
-			
-			/* draw name */
-			if (sel)
-				UI_ThemeColor(TH_TEXT_HI);
-			else
-				UI_ThemeColor(TH_TEXT);
-			offset += 3;
-			UI_DrawString(x+offset, y-4, name);
-			
-			/* reset offset - for RHS of panel */
-			offset = 0;
-			
-			/* set blending again, as text drawing may clear it */
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glEnable(GL_BLEND);
-			
-			/* draw protect 'lock' */
-			if (protect > -1) {
-				offset = 16;
-				UI_icon_draw((float)ACHANNEL_NAMEWIDTH-offset, yminc, protect);
-			}
-			
-			/* draw mute 'eye' */
-			if (mute > -1) {
-				offset += 16;
-				UI_icon_draw((float)(ACHANNEL_NAMEWIDTH-offset), yminc, mute);
-			}
-			glDisable(GL_BLEND);
+			/* adjust y-position for next one */
+			y -= ACHANNEL_STEP;
 		}
 		
-		/* adjust y-position for next one */
-		y -= ACHANNEL_STEP;
+		uiEndBlock(C, block);
+		uiDrawBlock(C, block);
+		
+		glDisable(GL_BLEND);
 	}
 	
 	/* free tempolary channels */

@@ -1735,6 +1735,7 @@ typedef struct MultiresDM {
 	CDDerivedMesh cddm;
 
 	MultiresModifierData *mmd;
+	int local_mmd;
 
 	int lvl, totlvl;
 	float (*orco)[3];
@@ -1744,7 +1745,7 @@ typedef struct MultiresDM {
 	IndexNode *vert_face_map_mem, *vert_edge_map_mem;
 	int *face_offsets;
 
-	Mesh *me;
+	Object *ob;
 	int modified;
 
 	void (*update)(DerivedMesh*);
@@ -1756,14 +1757,19 @@ static void MultiresDM_release(DerivedMesh *dm)
 	int mvert_layer;
 
 	/* Before freeing, need to update the displacement map */
-	if(dm->needsFree && mrdm->modified)
-		mrdm->update(dm);
+	if(dm->needsFree && mrdm->modified) {
+		/* Check that mmd still exists */
+		if(!mrdm->local_mmd && BLI_findindex(&mrdm->ob->modifiers, mrdm->mmd) < 0)
+			mrdm->mmd = NULL;
+		if(mrdm->mmd)
+			mrdm->update(dm);
+	}
 
 	/* If the MVert data is being used as the sculpt undo store, don't free it */
 	mvert_layer = CustomData_get_layer_index(&dm->vertData, CD_MVERT);
 	if(mvert_layer != -1) {
 		CustomDataLayer *cd = &dm->vertData.layers[mvert_layer];
-		if(cd->data == mrdm->mmd->undo_verts)
+		if(mrdm->mmd && cd->data == mrdm->mmd->undo_verts)
 			cd->flag |= CD_FLAG_NOFREE;
 	}
 
@@ -1797,7 +1803,8 @@ DerivedMesh *MultiresDM_new(MultiresSubsurf *ms, DerivedMesh *orig,
 	dm = &mrdm->cddm.dm;
 
 	mrdm->mmd = ms->mmd;
-	mrdm->me = ms->me;
+	mrdm->ob = ms->ob;
+	mrdm->local_mmd = ms->local_mmd;
 
 	if(dm) {
 		MDisps *disps;
@@ -1841,7 +1848,12 @@ DerivedMesh *MultiresDM_new(MultiresSubsurf *ms, DerivedMesh *orig,
 
 Mesh *MultiresDM_get_mesh(DerivedMesh *dm)
 {
-	return ((MultiresDM*)dm)->me;
+	return get_mesh(((MultiresDM*)dm)->ob);
+}
+
+Object *MultiresDM_get_object(DerivedMesh *dm)
+{
+	return ((MultiresDM*)dm)->ob;
 }
 
 void *MultiresDM_get_orco(DerivedMesh *dm)
@@ -1878,10 +1890,11 @@ void MultiresDM_set_update(DerivedMesh *dm, void (*update)(DerivedMesh*))
 ListBase *MultiresDM_get_vert_face_map(DerivedMesh *dm)
 {
 	MultiresDM *mrdm = (MultiresDM*)dm;
+	Mesh *me = mrdm->ob->data;
 
 	if(!mrdm->vert_face_map)
-		create_vert_face_map(&mrdm->vert_face_map, &mrdm->vert_face_map_mem, mrdm->me->mface,
-				     mrdm->me->totvert, mrdm->me->totface);
+		create_vert_face_map(&mrdm->vert_face_map, &mrdm->vert_face_map_mem, me->mface,
+				     me->totvert, me->totface);
 
 	return mrdm->vert_face_map;
 }
@@ -1889,10 +1902,11 @@ ListBase *MultiresDM_get_vert_face_map(DerivedMesh *dm)
 ListBase *MultiresDM_get_vert_edge_map(DerivedMesh *dm)
 {
 	MultiresDM *mrdm = (MultiresDM*)dm;
+	Mesh *me = mrdm->ob->data;
 
 	if(!mrdm->vert_edge_map)
-		create_vert_edge_map(&mrdm->vert_edge_map, &mrdm->vert_edge_map_mem, mrdm->me->medge,
-				     mrdm->me->totvert, mrdm->me->totedge);
+		create_vert_edge_map(&mrdm->vert_edge_map, &mrdm->vert_edge_map_mem, me->medge,
+				     me->totvert, me->totedge);
 
 	return mrdm->vert_edge_map;
 }
@@ -1900,6 +1914,7 @@ ListBase *MultiresDM_get_vert_edge_map(DerivedMesh *dm)
 int *MultiresDM_get_face_offsets(DerivedMesh *dm)
 {
 	MultiresDM *mrdm = (MultiresDM*)dm;
+	Mesh *me = mrdm->ob->data;
 	int i, accum = 0;
 
 	if(!mrdm->face_offsets) {
@@ -1907,11 +1922,11 @@ int *MultiresDM_get_face_offsets(DerivedMesh *dm)
 		int area = len * len;
 		int t = 1 + len * 3 + area * 3, q = t + len + area;
 
-		mrdm->face_offsets = MEM_callocN(sizeof(int) * mrdm->me->totface, "mrdm face offsets");
-		for(i = 0; i < mrdm->me->totface; ++i) {
+		mrdm->face_offsets = MEM_callocN(sizeof(int) * me->totface, "mrdm face offsets");
+		for(i = 0; i < me->totface; ++i) {
 			mrdm->face_offsets[i] = accum;
 
-			accum += (mrdm->me->mface[i].v4 ? q : t);
+			accum += (me->mface[i].v4 ? q : t);
 		}
 	}
 

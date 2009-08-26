@@ -173,8 +173,7 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, char *col)
 	case SEQ_PLUGIN:
 		UI_GetThemeColor3ubv(TH_SEQ_PLUGIN, col);
 		break;
-	case SEQ_HD_SOUND:
-	case SEQ_RAM_SOUND:
+	case SEQ_SOUND:
 		UI_GetThemeColor3ubv(TH_SEQ_AUDIO, col);
 		blendcol[0] = blendcol[1] = blendcol[2] = 128;
 		if(seq->flag & SEQ_MUTE) UI_GetColorPtrBlendShade3ubv(col, blendcol, col, 0.5, 20);
@@ -546,11 +545,8 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 			else 
 				sprintf(str, "%d | %s", seq->len, give_seqname(seq));
 		}
-		else if (seq->type == SEQ_RAM_SOUND) {
-			sprintf(str, "%d | %s", seq->len, seq->strip->stripdata->name);
-		}
-		else if (seq->type == SEQ_HD_SOUND) {
-			sprintf(str, "%d | %s", seq->len, seq->strip->stripdata->name);
+		else if (seq->type == SEQ_SOUND) {
+			sprintf(str, "%d | %s", seq->len, seq->sound->name);
 		}
 		else if (seq->type == SEQ_MOVIE) {
 			sprintf(str, "%d | %s%s", seq->len, seq->strip->dir, seq->strip->stripdata->name);
@@ -664,7 +660,8 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, SpaceSeq *sseq, Sequence *
 		draw_shadedstrip(seq, background_col, x1, y1, x2, y2);
 	
 	/* draw additional info and controls */
-	if (seq->type == SEQ_RAM_SOUND)
+	// XXX
+	if(0) // (seq->type == SEQ_SOUND)
 		drawseqwave(scene, v2d, seq, x1, y1, x2, y2, ar->winx);
 	
 	if (!is_single_image)

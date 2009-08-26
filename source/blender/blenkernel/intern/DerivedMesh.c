@@ -72,6 +72,7 @@
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_subsurf.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
@@ -2300,7 +2301,7 @@ static void clear_mesh_caches(Object *ob)
 static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	Object *obact = scene->basact?scene->basact->object:NULL;
-	int editing = (FACESEL_PAINT_TEST)|(G.f & G_PARTICLEEDIT);
+	int editing = paint_facesel_test(ob)|(ob && ob->mode & OB_MODE_PARTICLE_EDIT);
 	int needMapping = editing && (ob==obact);
 	float min[3], max[3];
 	

@@ -411,7 +411,7 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStr
 			
 			/* don't draw if line would end up on or after the end of the strip */
 			if (repeatPos < strip->end)
-				fdrawline(repeatPos, yminc, repeatPos, ymaxc);
+				fdrawline(repeatPos, yminc+4, repeatPos, ymaxc-4);
 		}
 	}
 	/* or if meta-strip, draw lines delimiting extents of sub-strips (in same color as outline, if more than 1 exists) */
@@ -592,36 +592,15 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 /* *********************************************** */
 /* Channel List */
 
-void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
+/* old code for drawing NLA channels using GL only */
+// TODO: depreceate this code...
+static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, View2D *v2d, float y)
 {
-	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
-	int filter;
-	
-	View2D *v2d= &ar->v2d;
-	float x= 0.0f, y= 0.0f;
-	int items, height;
-	
-	/* build list of channels to draw */
-	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
-	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
-	
-	/* Update max-extent of channels here (taking into account scrollers):
-	 * 	- this is done to allow the channel list to be scrollable, but must be done here
-	 * 	  to avoid regenerating the list again and/or also because channels list is drawn first
-	 *	- offset of NLACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for 
-	 *	  start of list offset, and the second is as a correction for the scrollers.
-	 */
-	height= ((items*NLACHANNEL_STEP) + (NLACHANNEL_HEIGHT*2));
-	/* don't use totrect set, as the width stays the same 
-	 * (NOTE: this is ok here, the configuration is pretty straightforward) 
-	 */
-	v2d->tot.ymin= (float)(-height);
+	float x = 0.0f;
 	
 	/* loop through channels, and set up drawing depending on their type  */	
-	y= (float)(-NLACHANNEL_HEIGHT);
-	
-	for (ale= anim_data.first; ale; ale= ale->next) {
+	for (ale= anim_data->first; ale; ale= ale->next) {
 		const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF);
 		const float ymaxc= (float)(y + NLACHANNEL_HEIGHT_HALF);
 		const float ydatac= (float)(y - 7);
@@ -633,308 +612,10 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 			short indent= 0, offset= 0, sel= 0, group= 0;
 			int expand= -1, protect = -1, special= -1, mute = -1;
 			char name[128];
+			short doDraw=0;
 			
 			/* determine what needs to be drawn */
 			switch (ale->type) {
-				case ANIMTYPE_SCENE: /* scene */
-				{
-					Scene *sce= (Scene *)ale->data;
-					AnimData *adt= ale->adt;
-					
-					group= 4;
-					indent= 0;
-					
-					special= ICON_SCENE_DATA;
-					
-					/* only show expand if there are any channels */
-					if (EXPANDED_SCEC(sce))
-						expand= ICON_TRIA_DOWN;
-					else
-						expand= ICON_TRIA_RIGHT;
-						
-					/* NLA evaluation on/off button */
-					if (adt) {
-						if (adt->flag & ADT_NLA_EVAL_OFF)
-							mute = ICON_MUTE_IPO_ON;
-						else	
-							mute = ICON_MUTE_IPO_OFF;
-					}
-					
-					sel = SEL_SCEC(sce);
-					strcpy(name, sce->id.name+2);
-				}
-					break;
-				case ANIMTYPE_OBJECT: /* object */
-				{
-					Base *base= (Base *)ale->data;
-					Object *ob= base->object;
-					AnimData *adt= ale->adt;
-					
-					group= 4;
-					indent= 0;
-					
-					/* icon depends on object-type */
-					if (ob->type == OB_ARMATURE)
-						special= ICON_ARMATURE_DATA;
-					else	
-						special= ICON_OBJECT_DATA;
-						
-					/* only show expand if there are any channels */
-					if (EXPANDED_OBJC(ob))
-						expand= ICON_TRIA_DOWN;
-					else
-						expand= ICON_TRIA_RIGHT;
-					
-					/* NLA evaluation on/off button */
-					if (adt) {
-						if (adt->flag & ADT_NLA_EVAL_OFF)
-							mute = ICON_MUTE_IPO_ON;
-						else	
-							mute = ICON_MUTE_IPO_OFF;
-					}
-					
-					sel = SEL_OBJC(base);
-					strcpy(name, ob->id.name+2);
-				}
-					break;
-				case ANIMTYPE_FILLMATD: /* object materials (dopesheet) expand widget */
-				{
-					Object *ob = (Object *)ale->data;
-					
-					group = 4;
-					indent = 1;
-					special = ICON_MATERIAL_DATA;
-					
-					if (FILTER_MAT_OBJC(ob))
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-						
-					strcpy(name, "Materials");
-				}
-					break;
-				case ANIMTYPE_FILLPARTD: /* object particles (dopesheet) expand widget */
-				{
-					Object *ob = (Object *)ale->data;
-					
-					group = 4;
-					indent = 1;
-					special = ICON_PARTICLE_DATA;
-					
-					if (FILTER_PART_OBJC(ob))
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-					
-					strcpy(name, "Particles");
-				}
-					break;
-				
-				
-				case ANIMTYPE_DSMAT: /* single material (dopesheet) expand widget */
-				{
-					Material *ma = (Material *)ale->data;
-					AnimData *adt= ale->adt;
-					
-					group = 0;
-					indent = 0;
-					special = ICON_MATERIAL_DATA;
-					offset = 21;
-					
-					if (FILTER_MAT_OBJD(ma))
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-						
-					/* NLA evaluation on/off button */
-					if (adt) {
-						if (adt->flag & ADT_NLA_EVAL_OFF)
-							mute = ICON_MUTE_IPO_ON;
-						else	
-							mute = ICON_MUTE_IPO_OFF;
-					}
-					
-					strcpy(name, ma->id.name+2);
-				}
-					break;
-				case ANIMTYPE_DSLAM: /* lamp (dopesheet) expand widget */
-				{
-					Lamp *la = (Lamp *)ale->data;
-					AnimData *adt= ale->adt;
-					
-					group = 4;
-					indent = 1;
-					special = ICON_LAMP_DATA;
-					
-					if (FILTER_LAM_OBJD(la))
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-						
-					/* NLA evaluation on/off button */
-					if (adt) {
-						if (adt->flag & ADT_NLA_EVAL_OFF)
-							mute = ICON_MUTE_IPO_ON;
-						else	
-							mute = ICON_MUTE_IPO_OFF;
-					}
-					
-					strcpy(name, la->id.name+2);
-				}
-					break;
-				case ANIMTYPE_DSCAM: /* camera (dopesheet) expand widget */
-				{
-					Camera *ca = (Camera *)ale->data;
-					AnimData *adt= ale->adt;
-					
-					group = 4;
-					indent = 1;
-					special = ICON_CAMERA_DATA;
-					
-					if (FILTER_CAM_OBJD(ca))
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-						
-					/* NLA evaluation on/off button */
-					if (adt) {
-						if (adt->flag & ADT_NLA_EVAL_OFF)
-							mute = ICON_MUTE_IPO_ON;
-						else	
-							mute = ICON_MUTE_IPO_OFF;
-					}
-					
-					strcpy(name, ca->id.name+2);
-				}
-					break;
-				case ANIMTYPE_DSCUR: /* curve (dopesheet) expand widget */
-				{
-					Curve *cu = (Curve *)ale->data;
-					AnimData *adt= ale->adt;
-					
-					group = 4;
-					indent = 1;
-					special = ICON_CURVE_DATA;
-					
-					if (FILTER_CUR_OBJD(cu))
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-						
-					/* NLA evaluation on/off button */
-					if (adt) {
-						if (adt->flag & ADT_NLA_EVAL_OFF)
-							mute = ICON_MUTE_IPO_ON;
-						else	
-							mute = ICON_MUTE_IPO_OFF;
-					}
-					
-					strcpy(name, cu->id.name+2);
-				}
-					break;
-				case ANIMTYPE_DSSKEY: /* shapekeys (dopesheet) expand widget */
-				{
-					Key *key= (Key *)ale->data;
-					AnimData *adt= ale->adt;
-					
-					group = 4;
-					indent = 1;
-					special = ICON_SHAPEKEY_DATA; 
-					
-					if (FILTER_SKE_OBJD(key))	
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-						
-					/* NLA evaluation on/off button */
-					if (adt) {
-						if (adt->flag & ADT_NLA_EVAL_OFF)
-							mute = ICON_MUTE_IPO_ON;
-						else	
-							mute = ICON_MUTE_IPO_OFF;
-					}
-						
-					//sel = SEL_OBJC(base);
-					strcpy(name, "Shape Keys");
-				}
-					break;
-				case ANIMTYPE_DSWOR: /* world (dopesheet) expand widget */
-				{
-					World *wo= (World *)ale->data;
-					AnimData *adt= ale->adt;
-					
-					group = 4;
-					indent = 1;
-					special = ICON_WORLD_DATA;
-					
-					if (FILTER_WOR_SCED(wo))	
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-						
-					/* NLA evaluation on/off button */
-					if (adt) {
-						if (adt->flag & ADT_NLA_EVAL_OFF)
-							mute = ICON_MUTE_IPO_ON;
-						else	
-							mute = ICON_MUTE_IPO_OFF;
-					}
-					
-					strcpy(name, wo->id.name+2);
-				}
-					break;
-				case ANIMTYPE_DSPART: /* particle (dopesheet) expand widget */
-				{
-					ParticleSettings *part= (ParticleSettings*)ale->data;
-					AnimData *adt= ale->adt;
-					
-					group = 0;
-					indent = 0;
-					special = ICON_PARTICLE_DATA;
-					offset = 21;
-					
-					if (FILTER_PART_OBJD(part))	
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-						
-					/* NLA evaluation on/off button */
-					if (adt) {
-						if (adt->flag & ADT_NLA_EVAL_OFF)
-							mute = ICON_MUTE_IPO_ON;
-						else	
-							mute = ICON_MUTE_IPO_OFF;
-					}
-					
-					strcpy(name, part->id.name+2);
-				}
-					break;
-				case ANIMTYPE_DSMBALL: /* metaball (dopesheet) expand widget */
-				{
-					MetaBall *mb = (MetaBall *)ale->data;
-					AnimData *adt= ale->adt;
-					
-					group = 4;
-					indent = 1;
-					special = ICON_META_DATA;
-					
-					if (FILTER_MBALL_OBJD(mb))
-						expand = ICON_TRIA_DOWN;
-					else
-						expand = ICON_TRIA_RIGHT;
-						
-					/* NLA evaluation on/off button */
-					if (adt) {
-						if (adt->flag & ADT_NLA_EVAL_OFF)
-							mute = ICON_MUTE_IPO_ON;
-						else	
-							mute = ICON_MUTE_IPO_OFF;
-					}
-					
-					strcpy(name, mb->id.name+2);
-				}
-					break;
-				
 				case ANIMTYPE_NLATRACK: /* NLA Track */
 				{
 					NlaTrack *nlt= (NlaTrack *)ale->data;
@@ -978,6 +659,9 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 						
 					sel = SEL_NLT(nlt);
 					strcpy(name, nlt->name);
+					
+					// draw manually still
+					doDraw= 1;
 				}
 					break;
 				case ANIMTYPE_NLAACTION: /* NLA Action-Line */
@@ -1004,166 +688,218 @@ void draw_nla_channel_list (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 						sprintf(name, "ActAction: <%s>", act->id.name+2);
 					else
 						sprintf(name, "<No Action>");
+						
+					// draw manually still
+					doDraw= 1;
 				}
+					break;
+					
+				default: /* handled by standard channel-drawing API */
+					// draw backdrops only...
+					ANIM_channel_draw(ac, ale, yminc, ymaxc);
 					break;
 			}	
 			
-			/* now, start drawing based on this information */
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glEnable(GL_BLEND);
-			
-			/* draw backing strip behind channel name */
-			if (group == 4) {
-				/* only used in dopesheet... */
-				if (ELEM(ale->type, ANIMTYPE_SCENE, ANIMTYPE_OBJECT)) {
-					/* object channel - darker */
-					UI_ThemeColor(TH_DOPESHEET_CHANNELOB);
-					uiSetRoundBox((expand == ICON_TRIA_DOWN)? (8):(1|8));
-					gl_round_box(GL_POLYGON, x+offset,  yminc, (float)NLACHANNEL_NAMEWIDTH, ymaxc, 10);
-				}
-				else {
-					/* sub-object folders - lighter */
-					UI_ThemeColor(TH_DOPESHEET_CHANNELSUBOB);
+			/* if special types, draw manually for now... */
+			if (doDraw) {
+				/* now, start drawing based on this information */
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glEnable(GL_BLEND);
+				
+				/* draw backing strip behind channel name */
+				if (group == 5) {
+					/* Action Line */
+					AnimData *adt= ale->adt;
+					
+					// TODO: if tweaking some action, use the same color as for the tweaked track (quick hack done for now)
+					if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {
+						// greenish color (same as tweaking strip) - hardcoded for now
+						glColor3f(0.3f, 0.95f, 0.1f);
+					}
+					else {
+						if (ale->data)
+							glColor3f(0.8f, 0.2f, 0.0f);	// reddish color - hardcoded for now 
+						else
+							glColor3f(0.6f, 0.5f, 0.5f); 	// greyish-red color - hardcoded for now
+					}
 					
 					offset += 7 * indent;
-					glBegin(GL_QUADS);
-						glVertex2f(x+offset, yminc);
-						glVertex2f(x+offset, ymaxc);
-						glVertex2f((float)ACHANNEL_NAMEWIDTH, ymaxc);
-						glVertex2f((float)ACHANNEL_NAMEWIDTH, yminc);
-					glEnd();
+					
+					/* only on top two corners, to show that this channel sits on top of the preceeding ones */
+					uiSetRoundBox((1|2)); 
+					
+					/* draw slightly shifted up vertically to look like it has more separtion from other channels,
+					 * but we then need to slightly shorten it so that it doesn't look like it overlaps
+					 */
+					gl_round_box(GL_POLYGON, x+offset,  yminc+NLACHANNEL_SKIP, (float)v2d->cur.xmax, ymaxc+NLACHANNEL_SKIP-1, 8);
 					
 					/* clear group value, otherwise we cause errors... */
 					group = 0;
 				}
-			}
-			else if (group == 5) {
-				/* Action Line */
-				AnimData *adt= ale->adt;
-				
-				// TODO: if tweaking some action, use the same color as for the tweaked track (quick hack done for now)
-				if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {
-					// greenish color (same as tweaking strip) - hardcoded for now
-					glColor3f(0.3f, 0.95f, 0.1f);
-				}
 				else {
-					if (ale->data)
-						glColor3f(0.8f, 0.2f, 0.0f);	// reddish color - hardcoded for now 
-					else
-						glColor3f(0.6f, 0.5f, 0.5f); 	// greyish-red color - hardcoded for now
+					/* for normal channels 
+					 *	- use 3 shades of color group/standard color for 3 indention level
+					 */
+					UI_ThemeColorShade(TH_HEADER, ((indent==0)?20: (indent==1)?-20: -40));
+					
+					indent += group;
+					offset += 7 * indent;
+					glBegin(GL_QUADS);
+						glVertex2f(x+offset, yminc);
+						glVertex2f(x+offset, ymaxc);
+						glVertex2f((float)v2d->cur.xmax, ymaxc);
+						glVertex2f((float)v2d->cur.xmax, yminc);
+					glEnd();
 				}
 				
-				offset += 7 * indent;
-				
-				/* only on top two corners, to show that this channel sits on top of the preceeding ones */
-				uiSetRoundBox((1|2)); 
-				
-				/* draw slightly shifted up vertically to look like it has more separtion from other channels,
-				 * but we then need to slightly shorten it so that it doesn't look like it overlaps
-				 */
-				gl_round_box(GL_POLYGON, x+offset,  yminc+NLACHANNEL_SKIP, (float)NLACHANNEL_NAMEWIDTH, ymaxc+NLACHANNEL_SKIP-1, 8);
-				
-				/* clear group value, otherwise we cause errors... */
-				group = 0;
-			}
-			else {
-				/* for normal channels 
-				 *	- use 3 shades of color group/standard color for 3 indention level
-				 */
-				UI_ThemeColorShade(TH_HEADER, ((indent==0)?20: (indent==1)?-20: -40));
-				
-				indent += group;
-				offset += 7 * indent;
-				glBegin(GL_QUADS);
-					glVertex2f(x+offset, yminc);
-					glVertex2f(x+offset, ymaxc);
-					glVertex2f((float)NLACHANNEL_NAMEWIDTH, ymaxc);
-					glVertex2f((float)NLACHANNEL_NAMEWIDTH, yminc);
-				glEnd();
-			}
-			
-			/* draw expand/collapse triangle */
-			if (expand > 0) {
-				UI_icon_draw(x+offset, ydatac, expand);
-				offset += 17;
-			}
-			
-			/* draw special icon indicating certain data-types */
-			if (special > -1) {
-				/* for normal channels */
-				UI_icon_draw(x+offset, ydatac, special);
-				offset += 17;
-			}
-			glDisable(GL_BLEND);
-			
-			/* draw name */
-			if (sel)
-				UI_ThemeColor(TH_TEXT_HI);
-			else
-				UI_ThemeColor(TH_TEXT);
-			offset += 3;
-			UI_DrawString(x+offset, y-4, name);
-			
-			/* reset offset - for RHS of panel */
-			offset = 0;
-			
-			/* set blending again, as text drawing may clear it */
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glEnable(GL_BLEND);
-			
-			/* draw protect 'lock' */
-			if (protect > -1) {
-				offset = 16;
-				UI_icon_draw((float)NLACHANNEL_NAMEWIDTH-offset, ydatac, protect);
-			}
-			
-			/* draw mute 'eye' */
-			if (mute > -1) {
-				offset += 16;
-				UI_icon_draw((float)(NLACHANNEL_NAMEWIDTH-offset), ydatac, mute);
-			}
-			
-			/* draw NLA-action line 'status-icons' - only when there's an action */
-			if ((ale->type == ANIMTYPE_NLAACTION) && (ale->data)) {
-				AnimData *adt= ale->adt;
-				
-				offset += 16;
-				
-				/* now draw some indicator icons  */
-				if ((adt) && (adt->flag & ADT_NLA_EDIT_ON)) {
-					/* toggle for tweaking with mapping/no-mapping (i.e. 'in place editing' toggle) */
-					// for now, use pin icon to symbolise this
-					if (adt->flag & ADT_NLA_EDIT_NOMAP)
-						UI_icon_draw((float)(NLACHANNEL_NAMEWIDTH-offset), ydatac, ICON_PINNED);
-					else
-						UI_icon_draw((float)(NLACHANNEL_NAMEWIDTH-offset), ydatac, ICON_UNPINNED);
-					
-					fdrawline((float)(NLACHANNEL_NAMEWIDTH-offset), yminc, 
-							  (float)(NLACHANNEL_NAMEWIDTH-offset), ymaxc);
-					offset += 16;;
-					
-					/* 'tweaking action' indicator - not a button */
-					UI_icon_draw((float)NLACHANNEL_NAMEWIDTH-offset, ydatac, ICON_EDIT); 
+				/* draw expand/collapse triangle */
+				if (expand > 0) {
+					UI_icon_draw(x+offset, ydatac, expand);
+					offset += 17;
 				}
-				else {
-					/* XXX firstly draw a little rect to help identify that it's different from the toggles */
-					glBegin(GL_LINE_LOOP);
-						glVertex2f((float)NLACHANNEL_NAMEWIDTH-offset-1, y-7);
-						glVertex2f((float)NLACHANNEL_NAMEWIDTH-offset-1, y+9);
-						glVertex2f((float)NLACHANNEL_NAMEWIDTH-1, y+9);
-						glVertex2f((float)NLACHANNEL_NAMEWIDTH-1, y-7);
-					glEnd(); // GL_LINES
-					
-					/* 'push down' icon for normal active-actions */
-					UI_icon_draw((float)NLACHANNEL_NAMEWIDTH-offset, ydatac, ICON_FREEZE);
+				
+				/* draw special icon indicating certain data-types */
+				if (special > -1) {
+					/* for normal channels */
+					UI_icon_draw(x+offset, ydatac, special);
+					offset += 17;
 				}
+				glDisable(GL_BLEND);
+				
+				/* draw name */
+				if (sel)
+					UI_ThemeColor(TH_TEXT_HI);
+				else
+					UI_ThemeColor(TH_TEXT);
+				offset += 3;
+				UI_DrawString(x+offset, y-4, name);
+				
+				/* reset offset - for RHS of panel */
+				offset = 0;
+				
+				/* set blending again, as text drawing may clear it */
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glEnable(GL_BLEND);
+				
+				/* draw protect 'lock' */
+				if (protect > -1) {
+					offset = 16;
+					UI_icon_draw((float)(v2d->cur.xmax-offset), ydatac, protect);
+				}
+				
+				/* draw mute 'eye' */
+				if (mute > -1) {
+					offset += 16;
+					UI_icon_draw((float)(v2d->cur.xmax-offset), ydatac, mute);
+				}
+				
+				/* draw NLA-action line 'status-icons' - only when there's an action */
+				if ((ale->type == ANIMTYPE_NLAACTION) && (ale->data)) {
+					AnimData *adt= ale->adt;
+					
+					offset += 16;
+					
+					/* now draw some indicator icons  */
+					if ((adt) && (adt->flag & ADT_NLA_EDIT_ON)) {
+						/* toggle for tweaking with mapping/no-mapping (i.e. 'in place editing' toggle) */
+						// for now, use pin icon to symbolise this
+						if (adt->flag & ADT_NLA_EDIT_NOMAP)
+							UI_icon_draw((float)(v2d->cur.xmax-offset), ydatac, ICON_PINNED);
+						else
+							UI_icon_draw((float)(v2d->cur.xmax-offset), ydatac, ICON_UNPINNED);
+						
+						fdrawline((float)(v2d->cur.xmax-offset), yminc, 
+								  (float)(v2d->cur.xmax-offset), ymaxc);
+						offset += 16;;
+						
+						/* 'tweaking action' indicator - not a button */
+						UI_icon_draw((float)(v2d->cur.xmax-offset), ydatac, ICON_EDIT); 
+					}
+					else {
+						/* XXX firstly draw a little rect to help identify that it's different from the toggles */
+						glBegin(GL_LINE_LOOP);
+							glVertex2f((float)v2d->cur.xmax-offset-1, y-7);
+							glVertex2f((float)v2d->cur.xmax-offset-1, y+9);
+							glVertex2f((float)v2d->cur.xmax-1, y+9);
+							glVertex2f((float)v2d->cur.xmax-1, y-7);
+						glEnd(); // GL_LINES
+						
+						/* 'push down' icon for normal active-actions */
+						UI_icon_draw((float)NLACHANNEL_NAMEWIDTH-offset, ydatac, ICON_FREEZE);
+					}
+				}
+				
+				glDisable(GL_BLEND);
 			}
-			
-			glDisable(GL_BLEND);
 		}
 		
 		/* adjust y-position for next one */
 		y -= NLACHANNEL_STEP;
+	}
+}
+
+void draw_nla_channel_list (bContext *C, bAnimContext *ac, SpaceNla *snla, ARegion *ar)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	View2D *v2d= &ar->v2d;
+	float y= 0.0f;
+	int items, height;
+	
+	/* build list of channels to draw */
+	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
+	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* Update max-extent of channels here (taking into account scrollers):
+	 * 	- this is done to allow the channel list to be scrollable, but must be done here
+	 * 	  to avoid regenerating the list again and/or also because channels list is drawn first
+	 *	- offset of NLACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for 
+	 *	  start of list offset, and the second is as a correction for the scrollers.
+	 */
+	height= ((items*NLACHANNEL_STEP) + (NLACHANNEL_HEIGHT*2));
+	/* don't use totrect set, as the width stays the same 
+	 * (NOTE: this is ok here, the configuration is pretty straightforward) 
+	 */
+	v2d->tot.ymin= (float)(-height);
+	
+	/* draw channels */
+	{	/* first pass: backdrops + oldstyle drawing */
+		y= (float)(-NLACHANNEL_HEIGHT);
+		
+		draw_nla_channel_list_gl(ac, &anim_data, v2d, y);
+	}
+	{	/* second pass: UI widgets */
+		uiBlock *block= uiBeginBlock(C, ar, "NLA channel buttons", UI_EMBOSS);
+		
+		y= (float)(-NLACHANNEL_HEIGHT);
+		
+		/* set blending again, as may not be set in previous step */
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
+		
+		/* loop through channels, and set up drawing depending on their type  */	
+		for (ale= anim_data.first; ale; ale= ale->next) {
+			const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF);
+			const float ymaxc= (float)(y + NLACHANNEL_HEIGHT_HALF);
+			
+			/* check if visible */
+			if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
+				 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
+			{
+				/* draw all channels using standard channel-drawing API */
+				ANIM_channel_draw_widgets(ac, ale, block, yminc, ymaxc);
+			}
+			
+			/* adjust y-position for next one */
+			y -= NLACHANNEL_STEP;
+		}
+		
+		uiEndBlock(C, block);
+		uiDrawBlock(C, block);
+		
+		glDisable(GL_BLEND);
 	}
 	
 	/* free tempolary channels */

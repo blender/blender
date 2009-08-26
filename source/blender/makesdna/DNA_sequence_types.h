@@ -160,7 +160,7 @@ typedef struct Sequence {
 	ListBase seqbase;	/* list of strips for metastrips */
 
 	struct bSound *sound;	/* the linked "bSound" object */
-        struct hdaudio *hdaudio; /* external hdaudio object */
+	struct SoundHandle *sound_handle;
 	float level, pan;	/* level in dB (0=full), pan -1..1 */
 	int scenenr;          /* for scene selection */
 	float strobe;
@@ -281,7 +281,7 @@ typedef struct SpeedControlVars {
 #define SEQ_MOVIE		3
 #define SEQ_RAM_SOUND		4
 #define SEQ_HD_SOUND            5
-#define SEQ_MOVIE_AND_HD_SOUND  6 /* helper for add_sequence */
+#define SEQ_SOUND		4
 
 #define SEQ_EFFECT		8
 #define SEQ_CROSS		8

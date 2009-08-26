@@ -2,8 +2,8 @@
 import bpy
 
 class ObjectButtonsPanel(bpy.types.Panel):
-	__space_type__ = "BUTTONS_WINDOW"
-	__region_type__ = "WINDOW"
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
 	__context__ = "object"
 
 class OBJECT_PT_context_object(ObjectButtonsPanel):
@@ -15,7 +15,7 @@ class OBJECT_PT_context_object(ObjectButtonsPanel):
 		ob = context.object
 		
 		row = layout.row()
-		row.itemL(text="", icon="ICON_OBJECT_DATA")
+		row.itemL(text="", icon='ICON_OBJECT_DATA')
 		row.itemR(ob, "name", text="")
 
 class OBJECT_PT_transform(ObjectButtonsPanel):
@@ -51,7 +51,9 @@ class OBJECT_PT_relations(ObjectButtonsPanel):
 		col.itemR(ob, "parent", text="")
 
 		sub = col.column()
-		sub.itemR(ob, "parent_type", text="Type")
+		split = sub.split(percentage=0.3)
+		split.itemL(text="Type:")
+		split.itemR(ob, "parent_type", text="")
 		parent = ob.parent
 		if parent and ob.parent_type == 'BONE' and parent.type == 'ARMATURE':
 			sub.item_pointerR(ob, "parent_bone", parent.data, "bones", text="")
@@ -77,7 +79,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 
 				row = col.box().row()
 				row.itemR(group, "name", text="")
-				row.itemO("object.group_remove", text="", icon="VICON_X")
+				row.itemO("object.group_remove", text="", icon='VICON_X')
 
 				split = col.box().split()
 				split.column().itemR(group, "layer", text="Dupli")

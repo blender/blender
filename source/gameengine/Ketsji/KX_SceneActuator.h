@@ -90,22 +90,6 @@ class KX_SceneActuator : public SCA_IActuator
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
-
-	/* 1. set                                                                */
-	/* Removed */
-	  
-	/* 2. setUseRestart:                                                     */
-	KX_PYMETHOD_DOC_VARARGS(KX_SceneActuator,SetUseRestart);
-	/* 3. getUseRestart:                                                     */
-	KX_PYMETHOD_DOC_NOARGS(KX_SceneActuator,GetUseRestart);
-	/* 4. setScene:                                                          */
-	KX_PYMETHOD_DOC_VARARGS(KX_SceneActuator,SetScene);
-	/* 5. getScene:                                                          */
-	KX_PYMETHOD_DOC_NOARGS(KX_SceneActuator,GetScene);
-	/* 6. setCamera:                                                          */
-	KX_PYMETHOD_DOC_O(KX_SceneActuator,SetCamera);
-	/* 7. getCamera:                                                          */
-	KX_PYMETHOD_DOC_NOARGS(KX_SceneActuator,GetCamera);
 	
 	static PyObject* pyattr_get_camera(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static int pyattr_set_camera(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);

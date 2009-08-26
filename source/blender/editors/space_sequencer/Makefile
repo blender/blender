@@ -50,6 +50,7 @@ CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../python
 CPPFLAGS += -I../../blenfont
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I$(NAN_AUDASPACE)/include
 
 # own include 
 
