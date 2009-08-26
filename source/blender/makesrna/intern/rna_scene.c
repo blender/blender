@@ -32,6 +32,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
+/* Include for Bake Options */
+#include "RE_pipeline.h"
+
 #ifdef WITH_FFMPEG
 #include "BKE_writeffmpeg.h"
 #include <libavcodec/avcodec.h> 
@@ -1110,6 +1113,30 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{R_OUTPUT_WINDOW, "WINDOW", 0, "New Window", "Images are rendered in new Window"},
 		{0, NULL, 0, NULL, NULL}};
 	
+	/* Bake */
+	static EnumPropertyItem bake_mode_items[] ={
+		{RE_BAKE_ALL, "FULL", 0, "Full Render", ""},
+		{RE_BAKE_AO, "AO", 0, "Ambient Occlusion", ""},
+		{RE_BAKE_SHADOW, "SHADOW", 0, "Shadow", ""},
+		{RE_BAKE_NORMALS, "NORMALS", 0, "Normals", ""},
+		{RE_BAKE_TEXTURE, "TEXTURE", 0, "Textures", ""},
+		{RE_BAKE_DISPLACEMENT, "DISPLACEMENT", 0, "Displacement", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem bake_normal_space_items[] ={
+		{R_BAKE_SPACE_CAMERA, "CAMERA", 0, "Camera", ""},
+		{R_BAKE_SPACE_WORLD, "WORLD", 0, "World", ""},
+		{R_BAKE_SPACE_OBJECT, "OBJECT", 0, "Object", ""},
+		{R_BAKE_SPACE_TANGENT, "TANGENT", 0, "Tangent", ""},
+		{0, NULL, 0, NULL, NULL}};
+		
+	static EnumPropertyItem bake_aa_items[] ={
+		{5, "AA_5", 0, "5", ""},
+		{8, "AA_8", 0, "8", ""},
+		{11, "AA_11", 0, "11", ""},
+		{16, "AA_16", 0, "16", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
 	static EnumPropertyItem octree_resolution_items[] = {
 		{64, "OCTREE_RES_64", 0, "64", ""},
 		{128, "OCTREE_RES_128", 0, "128", ""},
@@ -1141,8 +1168,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, "STAMP_FONT_LARGE", 0, "Large", ""},
 		{4, "STAMP_FONT_EXTRALARGE", 0, "Extra Large", ""},
 		{0, NULL, 0, NULL, NULL}};
-		
-	
+
 	static EnumPropertyItem image_type_items[] = {
 		{0, "", 0, "Image", NULL},
 		{R_PNG, "PNG", 0, "PNG", ""},
@@ -1707,6 +1733,57 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Output Path", "Directory/name to save animations, # characters defines the position and length of frame numbers.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
+	/* Bake */
+	
+	prop= RNA_def_property(srna, "bake_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "bake_mode");
+	RNA_def_property_enum_items(prop, bake_mode_items);
+	RNA_def_property_ui_text(prop, "Bake Mode", "");
+	
+	prop= RNA_def_property(srna, "bake_normal_space", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "bake_normal_space");
+	RNA_def_property_enum_items(prop, bake_normal_space_items);
+	RNA_def_property_ui_text(prop, "Normal Space", "Choose normal space for baking");
+	
+	prop= RNA_def_property(srna, "bake_aa_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "bake_osa");
+	RNA_def_property_enum_items(prop, bake_aa_items);
+	RNA_def_property_ui_text(prop, "Anti-Aliasing Level", "");
+	
+	prop= RNA_def_property(srna, "bake_active", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "bake_flag", R_BAKE_TO_ACTIVE);
+	RNA_def_property_ui_text(prop, "Selected to Active", "Bake shading on the surface of selected objects to the active object");
+	
+	prop= RNA_def_property(srna, "bake_normalized", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "bake_flag", R_BAKE_NORMALIZE);
+	RNA_def_property_ui_text(prop, "Normalized", "");
+	//"Bake ambient occlusion normalized, without taking into acount material settings"
+	//"Normalized displacement value to fit the 'Dist' range"
+	// XXX: Need 1 tooltip here...
+	
+	prop= RNA_def_property(srna, "bake_clear", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "bake_flag", R_BAKE_CLEAR);
+	RNA_def_property_ui_text(prop, "Clear", "Clear Images before baking");
+	
+	prop= RNA_def_property(srna, "bake_enable_aa", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "bake_flag", R_BAKE_OSA);
+	RNA_def_property_ui_text(prop, "Anti-Aliasing", "Enables Anti-aliasing");
+	
+	prop= RNA_def_property(srna, "bake_margin", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "bake_filter");
+	RNA_def_property_range(prop, 0, 32);
+	RNA_def_property_ui_text(prop, "Margin", "Amount of pixels to extend the baked result with, as post process filter");
+
+	prop= RNA_def_property(srna, "bake_distance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "bake_maxdist");
+	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_ui_text(prop, "Distance", "Maximum distance from active object to other object (in blender units");
+	
+	prop= RNA_def_property(srna, "bake_bias", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "bake_biasdist");
+	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_ui_text(prop, "Bias", "Bias towards faces further away from the object (in blender units)");
+	
 	/* stamp */
 	
 	prop= RNA_def_property(srna, "stamp_time", PROP_BOOLEAN, PROP_NONE);
