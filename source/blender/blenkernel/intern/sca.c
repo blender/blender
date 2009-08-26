@@ -418,12 +418,10 @@ void init_actuator(bActuator *act)
 	act->data= 0;
 	
 	switch(act->type) {
-#ifdef __NLA
 	case ACT_ACTION:
 	case ACT_SHAPEACTION:
 		act->data= MEM_callocN(sizeof(bActionActuator), "actionact");
 		break;
-#endif
 	case ACT_SOUND:
 		sa = act->data= MEM_callocN(sizeof(bSoundActuator), "soundact");
 		sa->volume = 1.0f;

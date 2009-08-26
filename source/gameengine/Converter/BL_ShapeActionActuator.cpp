@@ -40,6 +40,7 @@
 #include "STR_HashedString.h"
 #include "DNA_nla_types.h"
 #include "DNA_action_types.h"
+#include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 #include "BKE_action.h"
 #include "DNA_armature_types.h"
@@ -50,6 +51,10 @@
 #include "BKE_utildefines.h"
 #include "FloatValue.h"
 #include "PyObjectPlus.h"
+
+extern "C" {
+	#include "BKE_animsys.h"
+}
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -370,8 +375,11 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 					m_blendstart = curtime;
 				}
 				// only interested in shape channel
-				// XXX extract_ipochannels_from_action(&tchanbase, &key->id, m_action, "Shape", m_localtime);
-		
+
+				// in 2.4x was // extract_ipochannels_from_action(&tchanbase, &key->id, m_action, "Shape", m_localtime);
+				BKE_animsys_evaluate_animdata(&key->id, key->adt, m_localtime, ADT_RECALC_ANIM);
+
+				// XXX - in 2.5 theres no way to do this. possibly not that important to support - Campbell
 				if (0) { // XXX !execute_ipochannels(&tchanbase)) {
 					// no update, this is possible if action does not match the keys, stop the action
 					keepgoing = false;
