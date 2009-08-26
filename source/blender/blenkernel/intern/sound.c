@@ -34,7 +34,7 @@
 void sound_init()
 {
 	AUD_Specs specs;
-	int device, buffersize, success;
+	int device, buffersize;
 
 	device = U.audiodevice;
 	buffersize = U.mixbufsize;
@@ -54,15 +54,8 @@ void sound_init()
 	if(specs.channels <= AUD_CHANNELS_INVALID)
 		specs.channels = AUD_CHANNELS_STEREO;
 
-	if(!AUD_init(device, specs, buffersize)) {
-		if(device == AUD_SDL_DEVICE)
-			success= AUD_init(AUD_OPENAL_DEVICE, specs, AUD_DEFAULT_BUFFER_SIZE*4);
-		else
-			success= AUD_init(AUD_SDL_DEVICE, specs, AUD_DEFAULT_BUFFER_SIZE*4);
-
-		if(!success)
-			AUD_init(AUD_NULL_DEVICE, specs, buffersize);
-	}
+	if(!AUD_init(device, specs, buffersize))
+		AUD_init(AUD_NULL_DEVICE, specs, buffersize);
 }
 
 void sound_exit()

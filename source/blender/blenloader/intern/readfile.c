@@ -9675,13 +9675,13 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	bfd->user->uifonts.first= bfd->user->uifonts.last= NULL;
 	bfd->user->uistyles.first= bfd->user->uistyles.last= NULL;
 
-	// AUD_XXX
+	// AUD_XXX that's bad because if the user has saved No Audio, it changes to OpenAL always
 	if(bfd->user->audiochannels == 0)
 		bfd->user->audiochannels = 2;
 	if(bfd->user->audiodevice == 0)
-		bfd->user->audiodevice = 1;
+		bfd->user->audiodevice = 2;
 	if(bfd->user->audioformat == 0)
-		bfd->user->audioformat = 0x12;
+		bfd->user->audioformat = 0x24;
 	if(bfd->user->audiorate == 0)
 		bfd->user->audiorate = 44100;
 
