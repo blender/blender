@@ -1076,7 +1076,7 @@ void vgroup_operation_with_menu(Object *ob)
 				short nr;
 				
 				if (menustr) {
-// XXX					nr= pupmenu(menustr);
+					nr= 1; // pupmenu(menustr); // XXX
 					
 					if ((nr >= 1) && (nr <= defCount)) 
 						ob->actdef= nr;

@@ -31,6 +31,15 @@
 #ifndef EXPP_bpy_import_h
 #define EXPP_bpy_import_h
 
+/* python redefines :/ */
+#ifdef _POSIX_C_SOURCE
+#undef _POSIX_C_SOURCE
+#endif
+
+#ifdef _XOPEN_SOURCE
+#undef _XOPEN_SOURCE
+#endif
+
 #include <Python.h>
 #include "compile.h"		/* for the PyCodeObject */
 #include "eval.h"		/* for PyEval_EvalCode */

@@ -168,7 +168,7 @@ static PyObject *Vector_Resize2D(VectorObject * self)
 		return NULL;
 	}
 	if(self->cb_user) {
-		PyErr_SetString(PyExc_TypeError, "vector.resize4d(): cannot resize a vector that has an owner");
+		PyErr_SetString(PyExc_TypeError, "vector.resize2d(): cannot resize a vector that has an owner");
 		return NULL;
 	}
 	
@@ -191,7 +191,7 @@ static PyObject *Vector_Resize3D(VectorObject * self)
 		return NULL;
 	}
 	if(self->cb_user) {
-		PyErr_SetString(PyExc_TypeError, "vector.resize4d(): cannot resize a vector that has an owner");
+		PyErr_SetString(PyExc_TypeError, "vector.resize3d(): cannot resize a vector that has an owner");
 		return NULL;
 	}
 	
