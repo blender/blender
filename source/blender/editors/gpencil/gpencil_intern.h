@@ -29,8 +29,20 @@
 #define ED_GPENCIL_INTERN_H
 
 /* internal exports only */
+
+
+/* ***************************************************** */
+/* Operator Defines */
+
+struct wmOperatorType;
+
+/* drawing ---------- */
+
+void GPENCIL_OT_draw(struct wmOperatorType *ot);
+
+
 /******************************************************* */
-/* FILTERED ACTION DATA - TYPES */
+/* FILTERED ACTION DATA - TYPES  ---> XXX DEPRECEATED OLD ANIM SYSTEM CODE! */
 
 /* XXX - TODO: replace this with the modern bAnimListElem... */
 /* This struct defines a structure used for quick access */

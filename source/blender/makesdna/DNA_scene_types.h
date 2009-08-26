@@ -48,6 +48,7 @@ struct bNodeTree;
 struct AnimData;
 struct Editing;
 struct SceneStats;
+struct bGPdata;
 
 typedef struct Base {
 	struct Base *next, *prev;
@@ -718,6 +719,9 @@ typedef struct Scene {
 
 	/* Units */
 	struct UnitSettings unit;
+	
+	/* Grease Pencil */
+	struct bGPdata *gpd;
 } Scene;
 
 

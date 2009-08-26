@@ -25,6 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
+#if 0 // XXX COMPILE GUARDS FOR OLD CODE
+ 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -1697,3 +1699,4 @@ short gpencil_do_paint (bContext *C)
 }
 
 /* ************************************************** */
+#endif // XXX COMPILE GUARDS FOR OLD CODE

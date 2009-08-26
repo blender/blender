@@ -4042,6 +4042,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 			sce->world= newlibadr_us(fd, sce->id.lib, sce->world);
 			sce->set= newlibadr(fd, sce->id.lib, sce->set);
 			sce->ima= newlibadr_us(fd, sce->id.lib, sce->ima);
+			sce->gpd= newlibadr_us(fd, sce->id.lib, sce->gpd);
 			
 			link_paint(fd, sce, &sce->toolsettings->sculpt->paint);
 			link_paint(fd, sce, &sce->toolsettings->vpaint->paint);
@@ -10547,6 +10548,9 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 
 	if(sce->r.dometext)
 		expand_doit(fd, mainvar, sce->gm.dome.warptext);
+		
+	if(sce->gpd)
+		expand_doit(fd, mainvar, sce->gpd);
 }
 
 static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)

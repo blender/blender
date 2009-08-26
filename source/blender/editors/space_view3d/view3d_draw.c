@@ -78,6 +78,7 @@
 
 #include "ED_armature.h"
 #include "ED_keyframing.h"
+#include "ED_gpencil.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
@@ -2082,8 +2083,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	
 	/* draw grease-pencil stuff */
-//	if (v3d->flag2 & V3D_DISPGP)
-//		draw_gpencil_3dview(ar, 1);
+	//if (v3d->flag2 & V3D_DISPGP)
+		draw_gpencil_3dview(C, 1);
 	
 	BDR_drawSketch(C);
 	

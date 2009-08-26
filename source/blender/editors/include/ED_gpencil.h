@@ -41,7 +41,7 @@ struct bGPDframe;
 struct bGPdata;
 struct uiBlock;
 struct ImBuf;
-
+struct wmWindowManager;
 
 
 /* ------------- Grease-Pencil Helpers -------------- */
@@ -52,9 +52,19 @@ typedef struct tGPspoint {
 	float pressure;			/* pressure of tablet at this point */
 } tGPspoint;
 
+/* ----------- Grease Pencil New Tools ------------- */
+
+struct bGPdata *gpencil_data_getactive(struct bContext *C);
+
+/* ----------- Grease Pencil Operators ------------- */
+
+void gpencil_common_keymap(struct wmWindowManager *wm, ListBase *keymap);
+
+void ED_operatortypes_gpencil(void);
+
 /* ------------ Grease-Pencil Depreceated Stuff ------------------ */
 
-struct bGPdata *gpencil_data_getactive(struct ScrArea *sa);
+//struct bGPdata *gpencil_data_getactive(struct ScrArea *sa);
 short gpencil_data_setactive(struct ScrArea *sa, struct bGPdata *gpd);
 struct ScrArea *gpencil_data_findowner(struct bGPdata *gpd);
 

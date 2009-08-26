@@ -933,7 +933,7 @@ void draw_gpencil_2dimage (bContext *C, ImBuf *ibuf)
 	
 	/* check that we have grease-pencil stuff to draw */
 	if (ELEM(NULL, sa, ibuf)) return;
-	gpd= gpencil_data_getactive(sa);
+	gpd= gpencil_data_getactive(C);
 	if (gpd == NULL) return;
 	
 	/* calculate rect */
@@ -1007,7 +1007,7 @@ void draw_gpencil_2dview (bContext *C, short onlyv2d)
 	
 	/* check that we have grease-pencil stuff to draw */
 	if (sa == NULL) return;
-	gpd= gpencil_data_getactive(sa);
+	gpd= gpencil_data_getactive(C);
 	if (gpd == NULL) return;
 	
 	/* draw it! */
@@ -1020,14 +1020,13 @@ void draw_gpencil_2dview (bContext *C, short onlyv2d)
  */
 void draw_gpencil_3dview (bContext *C, short only3d)
 {
-	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
 	Scene *scene= CTX_data_scene(C);
 	bGPdata *gpd;
 	int dflag = 0;
 	
 	/* check that we have grease-pencil stuff to draw */
-	gpd= gpencil_data_getactive(sa);
+	gpd= gpencil_data_getactive(C);
 	if (gpd == NULL) return;
 	
 	/* draw it! */
@@ -1047,7 +1046,7 @@ void draw_gpencil_oglrender (bContext *C)
 	
 	/* assume gpencil data comes from v3d */
 	if (v3d == NULL) return;
-	gpd= v3d->gpd;
+	gpd= gpencil_data_getactive(C);
 	if (gpd == NULL) return;
 	
 	/* pass 1: draw 3d-strokes ------------ > */
