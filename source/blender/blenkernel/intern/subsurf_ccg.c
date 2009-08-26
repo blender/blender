@@ -1461,13 +1461,13 @@ void cgdm_faceIterStep(void *self)
 		return;
 	}
 
-	if (fiter->head.index >= CCS_getNumFaces(fiter->cgdm->ss)) {
+	fiter->head.index++;
+	
+	if (fiter->head.index >= CCS_getNumFinalFaces(fiter->cgdm->ss)) {
 		fiter->head.done = 1;
 		return;
 	};
 
-	fiter->head.index++;
-	
 	cgdm_getFinalFace((DerivedMesh*)fiter->cgdm, fiter->head.index, &fiter->mface);
 
 	fiter->head.flags = fiter->mface.flag;
@@ -2616,8 +2616,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 	MCol *mcol;
 	MEdge *medge = NULL;
 	MFace *mface = NULL;
-	/*a spare loop that's not used by anything*/
-	int temp_loop = CCS_getNumFinalFaces(ss)*4;
 	FaceVertWeight *qweight, *tweight;
 
 	DM_from_template(&cgdm->dm, dm, CCS_getNumFinalVerts(ss),
