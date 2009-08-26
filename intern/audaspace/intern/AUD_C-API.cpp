@@ -77,6 +77,9 @@ int AUD_init(AUD_DeviceType device, AUD_Specs specs, int buffersize)
 #endif
 	AUD_IDevice* dev = NULL;
 
+	if(AUD_device)
+		AUD_exit();
+
 	try
 	{
 		switch(device)
@@ -106,9 +109,6 @@ int AUD_init(AUD_DeviceType device, AUD_Specs specs, int buffersize)
 		default:
 			return false;
 		}
-
-		if(AUD_device)
-			AUD_exit();
 
 		AUD_device = dev;
 		if(AUD_device->checkCapability(AUD_CAPS_3D_DEVICE))
