@@ -163,6 +163,16 @@ void sound_cache(struct bSound* sound, int ignore)
 		AUD_unload(sound->cache);
 
 	sound->cache = AUD_bufferSound(sound->handle);
+	sound->changed = TRUE;
+}
+
+void sound_delete_cache(struct bSound* sound)
+{
+	if(sound->cache)
+	{
+		AUD_unload(sound->cache);
+		sound->cache = NULL;
+	}
 }
 
 void sound_load(struct Main *main, struct bSound* sound)
@@ -219,6 +229,7 @@ void sound_load(struct Main *main, struct bSound* sound)
 			break;
 		}
 #endif
+		sound->changed = TRUE;
 	}
 }
 

@@ -34,6 +34,29 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BKE_sound.h"
+#include "BKE_context.h"
+
+static void rna_Sound_filename_update(bContext *C, PointerRNA *ptr)
+{
+	sound_load(CTX_data_main(C), (bSound*)ptr->data);
+}
+
+static int rna_Sound_caching_get(PointerRNA *ptr)
+{
+	bSound *sound = (bSound*)(ptr->data);
+	return sound->cache != NULL;
+}
+
+static void rna_Sound_caching_set(PointerRNA *ptr, const int value)
+{
+	bSound *sound = (bSound*)(ptr->data);
+	if(value)
+		sound_cache(sound, 0);
+	else
+		sound_delete_cache(sound);
+}
+
 #else
 
 static void rna_def_sound(BlenderRNA *brna)
@@ -51,10 +74,16 @@ static void rna_def_sound(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Filename", "Sound sample file used by this Sound datablock.");
+	RNA_def_property_update(prop, 0, "rna_Sound_filename_update");
 
 	prop= RNA_def_property(srna, "packed_file", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "packedfile");
 	RNA_def_property_ui_text(prop, "Packed File", "");
+
+	prop= RNA_def_property(srna, "caching", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_Sound_caching_get", "rna_Sound_caching_set");
+	RNA_def_property_ui_text(prop, "Caching", "The sound file is decoded and loaded into RAM.");
+	RNA_def_property_update(prop, 0, "rna_Sound_filename_update");
 }
 
 void RNA_def_sound(BlenderRNA *brna)
