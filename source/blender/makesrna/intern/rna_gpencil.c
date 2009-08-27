@@ -1,5 +1,5 @@
 /**
- * $Id: rna_gpencil.c 22756 2009-08-25 04:05:37Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
