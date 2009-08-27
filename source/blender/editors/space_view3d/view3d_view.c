@@ -1444,6 +1444,11 @@ extern void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int always_
 
 #endif // GAMEBLENDER == 1
 
+int game_engine_poll(bContext *C)
+{
+	return CTX_data_mode_enum(C)==CTX_MODE_OBJECT ? 1:0;
+}
+
 static int game_engine_exec(bContext *C, wmOperator *unused)
 {
 #if GAMEBLENDER == 1
@@ -1503,7 +1508,7 @@ void VIEW3D_OT_game_start(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= game_engine_exec;
 	
-	//ot->poll= ED_operator_view3d_active;
+	ot->poll= game_engine_poll;
 }
 
 /* ************************************** */

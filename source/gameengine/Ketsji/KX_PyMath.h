@@ -109,6 +109,7 @@ bool PyVecTo(PyObject* pyval, T& vec)
 	
 	if(VectorObject_Check(pyval)) {
 		VectorObject *pyvec= (VectorObject *)pyval;
+		BaseMath_ReadCallback(pyvec);
 		if (pyvec->size != Size(vec)) {
 			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", pyvec->size, Size(vec));
 			return false;
@@ -118,6 +119,7 @@ bool PyVecTo(PyObject* pyval, T& vec)
 	}
 	else if(QuaternionObject_Check(pyval)) {
 		QuaternionObject *pyquat= (QuaternionObject *)pyval;
+		BaseMath_ReadCallback(pyquat);
 		if (4 != Size(vec)) {
 			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", 4, Size(vec));
 			return false;
@@ -128,6 +130,7 @@ bool PyVecTo(PyObject* pyval, T& vec)
 	}
 	else if(EulerObject_Check(pyval)) {
 		EulerObject *pyeul= (EulerObject *)pyval;
+		BaseMath_ReadCallback(pyeul);
 		if (3 != Size(vec)) {
 			PyErr_Format(PyExc_AttributeError, "error setting vector, %d args, should be %d", 3, Size(vec));
 			return false;
