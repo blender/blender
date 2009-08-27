@@ -1798,7 +1798,7 @@ int KX_GameObject::pyattr_set_visible(void *self_v, const KX_PYATTRIBUTE_DEF *at
 PyObject* KX_GameObject::pyattr_get_worldPosition(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 #ifdef USE_MATHUTILS
-	return newVectorObject_cb((PyObject *)self_v, 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_POS_GLOBAL);
+	return newVectorObject_cb(BGE_PROXY_FROM_REF(self_v), 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_POS_GLOBAL);
 #else
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	return PyObjectFrom(self->NodeGetWorldPosition());
@@ -1820,7 +1820,7 @@ int KX_GameObject::pyattr_set_worldPosition(void *self_v, const KX_PYATTRIBUTE_D
 PyObject* KX_GameObject::pyattr_get_localPosition(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 #ifdef USE_MATHUTILS	
-	return newVectorObject_cb((PyObject *)self_v, 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_POS_LOCAL);
+	return newVectorObject_cb(BGE_PROXY_FROM_REF(self_v), 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_POS_LOCAL);
 #else	
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	return PyObjectFrom(self->NodeGetLocalPosition());
@@ -1842,7 +1842,7 @@ int KX_GameObject::pyattr_set_localPosition(void *self_v, const KX_PYATTRIBUTE_D
 PyObject* KX_GameObject::pyattr_get_localInertia(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 #ifdef USE_MATHUTILS
-	return newVectorObject_cb((PyObject *)self_v, 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_INERTIA_LOCAL);
+	return newVectorObject_cb(BGE_PROXY_FROM_REF(self_v), 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_INERTIA_LOCAL);
 #else
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	if (self->GetPhysicsController())
@@ -1854,7 +1854,7 @@ PyObject* KX_GameObject::pyattr_get_localInertia(void *self_v, const KX_PYATTRIB
 PyObject* KX_GameObject::pyattr_get_worldOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 #ifdef USE_MATHUTILS
-	return newMatrixObject_cb((PyObject *)self_v, 3, 3, mathutils_kxgameob_matrix_cb_index, MATHUTILS_MAT_CB_ORI_GLOBAL);
+	return newMatrixObject_cb(BGE_PROXY_FROM_REF(self_v), 3, 3, mathutils_kxgameob_matrix_cb_index, MATHUTILS_MAT_CB_ORI_GLOBAL);
 #else
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	return PyObjectFrom(self->NodeGetWorldOrientation());
@@ -1879,7 +1879,7 @@ int KX_GameObject::pyattr_set_worldOrientation(void *self_v, const KX_PYATTRIBUT
 PyObject* KX_GameObject::pyattr_get_localOrientation(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 #ifdef USE_MATHUTILS
-	return newMatrixObject_cb((PyObject *)self_v, 3, 3, mathutils_kxgameob_matrix_cb_index, MATHUTILS_MAT_CB_ORI_LOCAL);
+	return newMatrixObject_cb(BGE_PROXY_FROM_REF(self_v), 3, 3, mathutils_kxgameob_matrix_cb_index, MATHUTILS_MAT_CB_ORI_LOCAL);
 #else
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	return PyObjectFrom(self->NodeGetLocalOrientation());
@@ -1903,7 +1903,7 @@ int KX_GameObject::pyattr_set_localOrientation(void *self_v, const KX_PYATTRIBUT
 PyObject* KX_GameObject::pyattr_get_worldScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 #ifdef USE_MATHUTILS
-	return newVectorObject_cb((PyObject *)self_v, 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_SCALE_GLOBAL);
+	return newVectorObject_cb(BGE_PROXY_FROM_REF(self_v), 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_SCALE_GLOBAL);
 #else
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	return PyObjectFrom(self->NodeGetWorldScaling());
@@ -1913,7 +1913,7 @@ PyObject* KX_GameObject::pyattr_get_worldScaling(void *self_v, const KX_PYATTRIB
 PyObject* KX_GameObject::pyattr_get_localScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 #ifdef USE_MATHUTILS
-	return newVectorObject_cb((PyObject *)self_v, 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_SCALE_LOCAL);
+	return newVectorObject_cb(BGE_PROXY_FROM_REF(self_v), 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_SCALE_LOCAL);
 #else
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	return PyObjectFrom(self->NodeGetLocalScaling());
