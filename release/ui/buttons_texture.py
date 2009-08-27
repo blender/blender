@@ -623,6 +623,7 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		tex = context.texture
 		vd = tex.voxeldata
 
@@ -631,12 +632,13 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel):
 			layout.itemR(vd, "source_path")
 		if vd.file_format == 'RAW_8BIT':
 			layout.itemR(vd, "resolution")
-		if vd.file_format == 'SMOKE':
+		elif vd.file_format == 'SMOKE':
 			layout.itemR(vd, "domain_object")
 		
 		layout.itemR(vd, "still")
-		if vd.still:
-			layout.itemR(vd, "still_frame_number")
+		row = layout.row()
+		row.active = vd.still
+		row.itemR(vd, "still_frame_number")
 		
 		layout.itemR(vd, "interpolation")
 		layout.itemR(vd, "intensity")
@@ -651,27 +653,51 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		tex = context.texture
 		pd = tex.pointdensity
+		ob = context.object
 
-		layout.itemR(pd, "point_source")
-		layout.itemR(pd, "object")
+		layout.itemR(pd, "point_source", expand=True)
 		if pd.point_source == 'PARTICLE_SYSTEM':
-			layout.item_pointerR(pd, "particle_system", pd.object, "particle_systems", text="")
+			layout.item_pointerR(pd, "particle_system", ob, "particle_systems", text="System")
+			layout.itemR(pd, "particle_cache", text="Cache")
+		else:
+			layout.itemR(pd, "object")
+			layout.itemR(pd, "vertices_cache", text="Cache")
+		
+		layout.itemS()
+		
 		layout.itemR(pd, "radius")
 		layout.itemR(pd, "falloff")
 		if pd.falloff == 'SOFT':
 			layout.itemR(pd, "falloff_softness")
-		layout.itemR(pd, "color_source")
+			
+		layout.itemS()
+
 		layout.itemR(pd, "turbulence")
-		layout.itemR(pd, "turbulence_size")
-		layout.itemR(pd, "turbulence_depth")
-		layout.itemR(pd, "turbulence_influence")
 		
+		col = layout.column()
+		col.active = pd.turbulence
+		sub = col.column_flow()
+		sub.itemR(pd, "turbulence_size")
+		sub.itemR(pd, "turbulence_depth")
+		sub.itemR(pd, "turbulence_strength")
+		col.itemR(pd, "turbulence_influence", text="Influence")
+		col.itemR(pd, "noise_basis")
+		
+		layout.itemS()
+		
+		layout.itemR(pd, "color_source")
+		if pd.color_source in ('PARTICLE_SPEED', 'PARTICLE_VELOCITY'):
+			layout.itemR(pd, "speed_scale")
+		if pd.color_source in ('PARTICLE_SPEED', 'PARTICLE_AGE'):
+			layout.template_color_ramp(pd.color_ramp, expand=True)
 
 bpy.types.register(TEXTURE_PT_context_texture)
 bpy.types.register(TEXTURE_PT_preview)
-bpy.types.register(TEXTURE_PT_clouds)
+
+bpy.types.register(TEXTURE_PT_clouds) # Texture Type Panels
 bpy.types.register(TEXTURE_PT_wood)
 bpy.types.register(TEXTURE_PT_marble)
 bpy.types.register(TEXTURE_PT_magic)
@@ -687,6 +713,7 @@ bpy.types.register(TEXTURE_PT_voronoi)
 bpy.types.register(TEXTURE_PT_distortednoise)
 bpy.types.register(TEXTURE_PT_voxeldata)
 bpy.types.register(TEXTURE_PT_pointdensity)
+
 bpy.types.register(TEXTURE_PT_colors)
 bpy.types.register(TEXTURE_PT_mapping)
 bpy.types.register(TEXTURE_PT_influence)
