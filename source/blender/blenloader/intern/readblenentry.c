@@ -331,11 +331,7 @@ BlendFileData *BLO_read_from_file(char *file, ReportList *reports)
 	fd = blo_openblenderfile(file, reports);
 	if (fd) {
 		fd->reports= reports;
-		bfd= blo_read_file_internal(fd);
-		if (bfd) {
-			bfd->type= BLENFILETYPE_BLEND;
-			strncpy(bfd->main->name, file, sizeof(bfd->main->name)-1);
-		}
+		bfd= blo_read_file_internal(fd, file);
 		blo_freefiledata(fd);			
 	}
 
@@ -350,11 +346,7 @@ BlendFileData *BLO_read_from_memory(void *mem, int memsize, ReportList *reports)
 	fd = blo_openblendermemory(mem, memsize,  reports);
 	if (fd) {
 		fd->reports= reports;
-		bfd= blo_read_file_internal(fd);
-		if (bfd) {
-			bfd->type= BLENFILETYPE_BLEND;
-			strcpy(bfd->main->name, "");
-		}
+		bfd= blo_read_file_internal(fd, "");
 		blo_freefiledata(fd);			
 	}
 
@@ -383,11 +375,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFil
 		/* makes lookup of existing images in old main */
 		blo_make_image_pointer_map(fd, oldmain);
 		
-		bfd= blo_read_file_internal(fd);
-		if (bfd) {
-			bfd->type= BLENFILETYPE_BLEND;
-			strcpy(bfd->main->name, "");
-		}
+		bfd= blo_read_file_internal(fd, "");
 		
 		/* ensures relinked images are not freed */
 		blo_end_image_pointer_map(fd, oldmain);

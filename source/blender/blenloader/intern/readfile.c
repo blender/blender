@@ -9700,7 +9700,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	return bhead;
 }
 
-BlendFileData *blo_read_file_internal(FileData *fd)
+BlendFileData *blo_read_file_internal(FileData *fd, char *file)
 {
 	BHead *bhead= blo_firstbhead(fd);
 	BlendFileData *bfd;
@@ -9711,6 +9711,9 @@ BlendFileData *blo_read_file_internal(FileData *fd)
 
 	bfd->main->versionfile= fd->fileversion;
 	
+	bfd->type= BLENFILETYPE_BLEND;
+	strncpy(bfd->main->name, file, sizeof(bfd->main->name)-1);
+
 	while(bhead) {
 		switch(bhead->code) {
 		case DATA:
@@ -11131,7 +11134,7 @@ BlendFileData *blo_read_blendafterruntime(int file, char *name, int actualsize, 
 		return NULL;
 
 	fd->reports= reports;
-	bfd= blo_read_file_internal(fd);
+	bfd= blo_read_file_internal(fd, "");
 	blo_freefiledata(fd);
 
 	return bfd;
