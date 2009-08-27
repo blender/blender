@@ -3513,14 +3513,20 @@ static void buttons_bullet(uiBlock *block, Object *ob)
 			}
 			if (ob->body_type!=OB_BODY_TYPE_SOFT)
 			{
-				if (ob->parent)
-					uiDefButBitI(block, TOG, OB_CHILD, B_REDR, "Add to parent", 240,105,110,19, 
-							&ob->gameflag, 0, 0, 0, 0, 
-							"Add this shape to the parent compound shape");
-				else
-					uiDefButBitI(block, TOG, OB_CHILD, B_REDR, "Compound", 240,105,110,19, 
-							&ob->gameflag, 0, 0, 0, 0, 
-							"Create a compound shape with the children's shape that are tagged for addition");
+				if (ob->parent) {
+					if(ob->parent->gameflag & (OB_DYNAMIC|OB_COLLISION)) {
+						uiDefButBitI(block, TOG, OB_CHILD, B_REDR, "Add to parent", 240,105,110,19, 
+								&ob->gameflag, 0, 0, 0, 0, 
+								"Add this shape to the parent compound shape");
+					}
+				}
+				else {
+					if(ob->gameflag & (OB_DYNAMIC|OB_COLLISION)) {
+						uiDefButBitI(block, TOG, OB_CHILD, B_REDR, "Compound", 240,105,110,19, 
+								&ob->gameflag, 0, 0, 0, 0, 
+								"Create a compound shape with the children's shape that are tagged for addition");
+					}
+				}
 			}
 		}
 		uiBlockEndAlign(block);
