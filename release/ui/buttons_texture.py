@@ -657,42 +657,75 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel):
 		tex = context.texture
 		pd = tex.pointdensity
 		ob = context.object
-
+		
 		layout.itemR(pd, "point_source", expand=True)
-		if pd.point_source == 'PARTICLE_SYSTEM':
-			layout.item_pointerR(pd, "particle_system", ob, "particle_systems", text="System")
-			layout.itemR(pd, "particle_cache", text="Cache")
-		else:
-			layout.itemR(pd, "object")
-			layout.itemR(pd, "vertices_cache", text="Cache")
-		
-		layout.itemS()
-		
-		layout.itemR(pd, "radius")
-		layout.itemR(pd, "falloff")
-		if pd.falloff == 'SOFT':
-			layout.itemR(pd, "falloff_softness")
-			
-		layout.itemS()
 
-		layout.itemR(pd, "turbulence")
+		split = layout.split()
 		
-		col = layout.column()
-		col.active = pd.turbulence
-		sub = col.column_flow()
-		sub.itemR(pd, "turbulence_size")
-		sub.itemR(pd, "turbulence_depth")
-		sub.itemR(pd, "turbulence_strength")
-		col.itemR(pd, "turbulence_influence", text="Influence")
-		col.itemR(pd, "noise_basis")
+		col = split.column()
+		if pd.point_source == 'PARTICLE_SYSTEM':
+			col.itemL(text="System:")
+			col.item_pointerR(pd, "particle_system", ob, "particle_systems", text="")
+			col.itemL(text="Cache:")
+			col.itemR(pd, "particle_cache", text="")
+		else:
+			col.itemL(text="Object:")
+			col.itemR(pd, "object", text="")
+			col.itemL(text="Cache:")
+			col.itemR(pd, "vertices_cache", text="")
 		
-		layout.itemS()
+		sub = split.column()
 		
-		layout.itemR(pd, "color_source")
+		sub.itemL()
+		sub.itemR(pd, "radius")
+		
+		sub.itemL(text="Falloff:")
+		sub.itemR(pd, "falloff", text="")
+		if pd.falloff == 'SOFT':
+			sub.itemR(pd, "falloff_softness")
+		
+		col.itemL(text="Color Source:")	
+		col.itemR(pd, "color_source", text="")
 		if pd.color_source in ('PARTICLE_SPEED', 'PARTICLE_VELOCITY'):
-			layout.itemR(pd, "speed_scale")
+			col.itemR(pd, "speed_scale")
 		if pd.color_source in ('PARTICLE_SPEED', 'PARTICLE_AGE'):
 			layout.template_color_ramp(pd.color_ramp, expand=True)
+
+class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel):
+	__label__ = "Turbulence"
+	
+	def poll(self, context):
+		tex = context.texture
+		return (tex and tex.type == 'POINT_DENSITY')
+		
+	def draw_header(self, context):
+		layout = self.layout
+		
+		tex = context.texture
+		pd = tex.pointdensity
+		
+		layout.itemR(pd, "turbulence", text="")
+		
+	def draw(self, context):
+		layout = self.layout
+		
+		tex = context.texture
+		pd = tex.pointdensity
+		layout.active = pd.turbulence
+
+		split = layout.split()
+		
+		col = split.column()
+		col.itemL(text="Influence:")
+		col.itemR(pd, "turbulence_influence", text="")
+		col.itemL(text="Noise Basis:")
+		col.itemR(pd, "noise_basis", text="")
+		
+		col = split.column()
+		col.itemL()		
+		col.itemR(pd, "turbulence_size")
+		col.itemR(pd, "turbulence_depth")
+		col.itemR(pd, "turbulence_strength")
 
 bpy.types.register(TEXTURE_PT_context_texture)
 bpy.types.register(TEXTURE_PT_preview)
@@ -713,6 +746,7 @@ bpy.types.register(TEXTURE_PT_voronoi)
 bpy.types.register(TEXTURE_PT_distortednoise)
 bpy.types.register(TEXTURE_PT_voxeldata)
 bpy.types.register(TEXTURE_PT_pointdensity)
+bpy.types.register(TEXTURE_PT_pointdensity_turbulence)
 
 bpy.types.register(TEXTURE_PT_colors)
 bpy.types.register(TEXTURE_PT_mapping)
