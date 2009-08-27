@@ -2084,7 +2084,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* draw grease-pencil stuff */
 	//if (v3d->flag2 & V3D_DISPGP)
-		draw_gpencil_3dview(C, 1);
+		draw_gpencil_3dview((bContext *)C, 1);
 	
 	BDR_drawSketch(C);
 	
@@ -2100,9 +2100,9 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	if(rv3d->persp>1) drawviewborder(scene, ar, v3d);
 	if(rv3d->rflag & RV3D_FLYMODE) drawviewborder_flymode(ar);
 	
-	/* draw grease-pencil stuff */
+	/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
 //	if (v3d->flag2 & V3D_DISPGP)
-//		draw_gpencil_3dview(ar, 0);
+		draw_gpencil_3dview((bContext *)C, 0);
 
 	drawcursor(scene, ar, v3d);
 	

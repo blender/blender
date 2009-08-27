@@ -859,7 +859,7 @@ static tGPsdata *gp_session_initpaint (bContext *C)
 		p->scene->gpd= p->gpd;
 	}
 	
-	/* set edit flags */
+	/* set edit flags - so that buffer will get drawn */
 	G.f |= G_GREASEPENCIL;
 	
 	/* set initial run flag */
@@ -1171,7 +1171,7 @@ static void gpencil_draw_apply_event (bContext *C, wmOperator *op, wmEvent *even
 	}
 	
 	/* force refresh */
-	ED_area_tag_redraw(p->sa); // XXX this is crude
+	WM_event_add_notifier(C, NC_SCREEN|ND_GPENCIL|NA_EDITED, NULL); // XXX please work!
 }
 
 /* ------------------------------- */
@@ -1216,6 +1216,18 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 	printf("\tGP - handle modal event...\n");
 	
 	switch (event->type) {
+		/* end of stroke -> ONLY when a mouse-button release occurs 
+		 * otherwise, carry on to mouse-move...
+		 */
+		case LEFTMOUSE:
+		case MIDDLEMOUSE:
+		case RIGHTMOUSE: 
+			if (event->val != KM_PRESS) {
+				printf("\t\tGP - end of stroke \n");
+				gpencil_draw_exit(C, op);
+				return OPERATOR_FINISHED;
+			}
+		
 		/* moving mouse - assumed that mouse button is down */
 		case MOUSEMOVE:
 			/* handle drawing event */
@@ -1230,14 +1242,6 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 			}
 			break;
 		
-		/* end of stroke - i.e. when a mouse-button release occurs */
-		case LEFTMOUSE:
-		case MIDDLEMOUSE:
-		case RIGHTMOUSE: 
-			printf("\t\tGP - end of stroke \n");
-			gpencil_draw_exit(C, op);
-			return OPERATOR_FINISHED;
-			
 		/* scrolling mouse-wheel increases radius of eraser 
 		 * 	- though this is quite a difficult action to perform
 		 */
@@ -1259,7 +1263,7 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 			break;
 			
 		default:
-			return OPERATOR_RUNNING_MODAL|OPERATOR_PASS_THROUGH;
+			printf("\t\tGP unknown event - %d \n", event->type);
 			break;
 	}
 	

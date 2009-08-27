@@ -47,14 +47,18 @@
 
 void gpencil_common_keymap(wmWindowManager *wm, ListBase *keymap)
 {
-	wmKeymapItem *km;
+	wmKeymapItem *kmi;
 	
 	/* if no keymap provided, use default */
 	if (keymap == NULL)
 		keymap= WM_keymap_listbase(wm, "Grease Pencil Generic", 0, 0);
 	
 	/* Draw */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_draw", SKEY, KM_PRESS, 0, DKEY);
+		/* draw */
+	WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, KM_CTRL|KM_SHIFT|KM_ALT, 0);
+		/* erase */
+	kmi=WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, KM_CTRL|KM_SHIFT|KM_ALT, 0);
+		RNA_enum_set(kmi->ptr, "mode", 1); // XXX need to make the defines for this public (this is GP_PAINTMODE_ERASER)
 }
 
 /* ****************************************** */

@@ -149,6 +149,7 @@ typedef struct wmNotifier {
 #define ND_SCREENDELETE		(2<<16)
 #define ND_SCREENCAST		(3<<16)
 #define ND_ANIMPLAY			(4<<16)
+#define ND_GPENCIL			(5<<16)
 
 	/* NC_SCENE Scene */
 #define ND_SCENEBROWSE		(1<<16)
