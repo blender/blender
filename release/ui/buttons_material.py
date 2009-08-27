@@ -130,8 +130,8 @@ class MATERIAL_PT_strand(MaterialButtonsPanel):
 		
 		col = split.column(align=True)
 		col.itemL(text="Size:")
-		col.itemR(tan, "start_size", text="Root")
-		col.itemR(tan, "end_size", text="Tip")
+		col.itemR(tan, "root_size", text="Root")
+		col.itemR(tan, "tip_size", text="Tip")
 		col.itemR(tan, "min_size", text="Minimum")
 		col.itemR(tan, "blender_units")
 		sub = col.column()
@@ -231,7 +231,7 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel):
 		
 		col = split.column()
 		col.itemR(mat, "shadows", text="Receive")
-		col.itemR(mat, "transparent_shadows", text="Receive Transparent")
+		col.itemR(mat, "receive_transparent_shadows", text="Receive Transparent")
 		col.itemR(mat, "only_shadow", text="Shadows Only")
 		col.itemR(mat, "cast_shadows_only", text="Cast Only")
 		col.itemR(mat, "shadow_casting_alpha", text="Casting Alpha")
@@ -266,7 +266,7 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
 		col.itemR(mat, "diffuse_color", text="")
 		sub = col.column()
 		sub.active = (not mat.shadeless)
-		sub.itemR(mat, "diffuse_reflection", text="Intensity")
+		sub.itemR(mat, "diffuse_intensity", text="Intensity")
 		
 		col = split.column()
 		col.active = (not mat.shadeless)
@@ -320,7 +320,7 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
 		
 		col = split.column()
 		col.itemR(mat, "specular_color", text="")
-		col.itemR(mat, "specular_reflection", text="Intensity")
+		col.itemR(mat, "specular_intensity", text="Intensity")
 
 		col = split.column()
 		col.itemR(mat, "specular_shader", text="")
@@ -426,7 +426,7 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		col.itemR(raym, "reflect", text="Reflectivity")
+		col.itemR(raym, "reflectivity")
 		col.itemR(mat, "mirror_color", text="")
 
 		col = split.column()
@@ -448,9 +448,9 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel):
 		
 		col = split.column()
 		col.itemL(text="Gloss:")
-		col.itemR(raym, "gloss", text="Amount")
+		col.itemR(raym, "gloss_amount", text="Amount")
 		sub = col.column()
-		sub.active = raym.gloss < 1
+		sub.active = raym.gloss_amount < 1
 		sub.itemR(raym, "gloss_threshold", text="Threshold")
 		sub.itemR(raym, "gloss_samples", text="Samples")
 		sub.itemR(raym, "gloss_anisotropic", text="Anisotropic")
@@ -511,9 +511,9 @@ class MATERIAL_PT_transp(MaterialButtonsPanel):
 			
 			col = split.column()
 			col.itemL(text="Gloss:")
-			col.itemR(rayt, "gloss", text="Amount")
+			col.itemR(rayt, "gloss_amount", text="Amount")
 			sub = col.column()
-			sub.active = rayt.gloss < 1
+			sub.active = rayt.gloss_amount < 1
 			sub.itemR(rayt, "gloss_threshold", text="Threshold")
 			sub.itemR(rayt, "gloss_samples", text="Samples")
 
@@ -663,8 +663,8 @@ class MATERIAL_PT_halo(MaterialButtonsPanel):
 		col.itemR(halo, "hardness")
 		col.itemR(halo, "add")
 		col.itemL(text="Options:")
-		col.itemR(halo, "use_texture", text="Texture")
-		col.itemR(halo, "use_vertex_normal", text="Vertex Normal")
+		col.itemR(halo, "texture")
+		col.itemR(halo, "vertex_normal")
 		col.itemR(halo, "xalpha")
 		col.itemR(halo, "shaded")
 		col.itemR(halo, "soft")
