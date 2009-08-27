@@ -1030,6 +1030,7 @@ static void gp_paint_cleanup (tGPsdata *p)
 static int gpencil_draw_init (bContext *C, wmOperator *op)
 {
 	tGPsdata *p;
+	wmWindow *win= CTX_wm_window(C);
 	int paintmode= RNA_enum_get(op->ptr, "mode");
 	
 	/* check context */
@@ -1048,8 +1049,13 @@ static int gpencil_draw_init (bContext *C, wmOperator *op)
 	}
 	
 	/* radius for eraser circle is defined in userprefs now */
-	// TODO: make this more easily tweaked... 
 	p->radius= U.gp_eraser;
+	
+	/* set cursor */
+	if (p->paintmode == GP_PAINTMODE_ERASER)
+		WM_cursor_modal(win, BC_CROSSCURSOR); // XXX need a better cursor
+	else
+		WM_cursor_modal(win, BC_PAINTBRUSHCURSOR);
 	
 	/* everything is now setup ok */
 	return 1;
@@ -1065,7 +1071,7 @@ static void gpencil_draw_exit (bContext *C, wmOperator *op)
 	G.f &= ~G_GREASEPENCIL;
 	
 	/* restore cursor to indicate end of drawing */
-	// XXX  (cursor callbacks in regiontype) setcursor_space(p.sa->spacetype, CURSOR_STD);
+	WM_cursor_restore(CTX_wm_window(C));
 	
 	/* check size of buffer before cleanup, to determine if anything happened here */
 	if (p->paintmode == GP_PAINTMODE_ERASER) {

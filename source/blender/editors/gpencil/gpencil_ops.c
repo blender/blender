@@ -55,9 +55,9 @@ void gpencil_common_keymap(wmWindowManager *wm, ListBase *keymap)
 	
 	/* Draw */
 		/* draw */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, KM_CTRL|KM_SHIFT|KM_ALT, 0);
+	WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, 0, DKEY);
 		/* erase */
-	kmi=WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, KM_CTRL|KM_SHIFT|KM_ALT, 0);
+	kmi=WM_keymap_add_item(keymap, "GPENCIL_OT_draw", RIGHTMOUSE, KM_PRESS, 0, DKEY);
 		RNA_enum_set(kmi->ptr, "mode", 1); // XXX need to make the defines for this public (this is GP_PAINTMODE_ERASER)
 }
 
@@ -67,6 +67,10 @@ void ED_operatortypes_gpencil (void)
 {
 	/* Drawing ----------------------- */
 	WM_operatortype_append(GPENCIL_OT_draw);
+	
+	/* Editing (Buttons) ------------ */
+	
+	/* Editing (Time) --------------- */
 }
 
 /* ****************************************** */
