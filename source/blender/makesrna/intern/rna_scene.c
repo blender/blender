@@ -2067,6 +2067,14 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop= RNA_def_string(func, "statistics", "", 0, "Statistics", "");
 	RNA_def_function_return(func, prop);
 	
+	/* Grease Pencil */
+	prop= RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "gpd");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_struct_type(prop, "GreasePencil");
+	RNA_def_property_ui_text(prop, "Grease Pencil Data", "Grease Pencil datablock");
+	
+	/* Nestled Data  */
 	rna_def_tool_settings(brna);
 	rna_def_unit_settings(brna);
 	rna_def_scene_render_data(brna);
