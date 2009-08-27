@@ -1240,7 +1240,9 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 			
 			if(shi->combinedflag & SCE_PASS_REFLECT) {
 				/* values in shr->spec can be greater then 1.0.
-				 * in the case when it is 1.0 diff */
+				 * In this case the mircol uses a zero blending factor, so ignoring it is ok.
+				 * Fixes bug #18837 - when the spec is higher then 1.0,
+				 * diff can become a negative color - Campbell  */
 				
 				f1= 1.0f-i;
 				
