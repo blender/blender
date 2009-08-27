@@ -777,7 +777,7 @@ void RAS_OpenGLRasterizer::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
 		current_ms = &ms;
 		current_mesh = ms.m_mesh;
 		current_wireframe = wireframe;
-		MCol *mcol = (MCol*)ms.m_pDerivedMesh->getFaceDataArray(ms.m_pDerivedMesh, CD_MCOL);
+		MCol *mcol = (MCol*)ms.m_pDerivedMesh->getTessFaceDataArray(ms.m_pDerivedMesh, CD_MCOL);
 		if (current_polymat->GetFlag() & RAS_BLENDERGLSL) {
 			// GetMaterialIndex return the original mface material index, 
 			// increment by 1 to match what derived mesh is doing
