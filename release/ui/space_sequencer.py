@@ -476,6 +476,13 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
 		
 		layout.template_ID(strip, "sound", new="sound.open")
 		
+		layout.itemS()
+		
+		if strip.sound.packed_file:
+			layout.itemO("sound.unpack")
+		else:
+			layout.itemO("sound.pack")
+		
 		layout.itemR(strip.sound, "filename")
 		layout.itemR(strip.sound, "caching")
 

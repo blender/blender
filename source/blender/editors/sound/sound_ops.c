@@ -118,7 +118,7 @@ static int sound_poll(bContext *C)
 {
 	Editing* ed = CTX_data_scene(C)->ed;
 
-	if(!ed || !ed->act_seq || ed->act_seq->type != SEQ_SOUND || !ed->act_seq->sound)
+	if(!ed || !ed->act_seq || ed->act_seq->type != SEQ_SOUND)
 		return 0;
 
 	return 1;
