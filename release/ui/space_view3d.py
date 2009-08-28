@@ -1244,8 +1244,8 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
 			col.itemL(text="Offset:")
 			
 			col = layout.column(align=True)
-			col.itemR(bg, "x_offset", text="X")
-			col.itemR(bg, "y_offset", text="Y")
+			col.itemR(bg, "offset_x", text="X")
+			col.itemR(bg, "offset_y", text="Y")
 
 bpy.types.register(VIEW3D_HT_header) # Header
 

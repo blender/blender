@@ -222,8 +222,8 @@ class SCENE_PT_output(RenderButtonsPanel):
 
 		col = split.column()
 		col.itemR(rd, "file_extensions")
-		col.itemR(rd, "placeholders")
-		col.itemR(rd, "no_overwrite")
+		col.itemR(rd, "use_overwrite")
+		col.itemR(rd, "use_placeholder")
 
 		if rd.file_format in ('AVIJPEG', 'JPEG'):
 			split = layout.split()
@@ -370,9 +370,9 @@ class SCENE_PT_dimensions(RenderButtonsPanel):
 		sub.itemR(rd, "pixel_aspect_y", text="Y")
 
 		row = col.row()
-		row.itemR(rd, "border", text="Border")
+		row.itemR(rd, "use_border", text="Border")
 		rowsub = row.row()
-		rowsub.active = rd.border
+		rowsub.active = rd.use_border
 		rowsub.itemR(rd, "crop_to_border", text="Crop")
 		
 		col = split.column(align=True)

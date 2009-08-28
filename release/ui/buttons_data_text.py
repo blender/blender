@@ -134,8 +134,8 @@ class DATA_PT_paragraph(DataButtonsPanel):
 
 		col = split.column(align=True)
 		col.itemL(text="Offset:")
-		col.itemR(text, "x_offset", text="X")
-		col.itemR(text, "y_offset", text="Y")
+		col.itemR(text, "offset_x", text="X")
+		col.itemR(text, "offset_y", text="Y")
 		#col.itemR(text, "wrap")
 
 """		

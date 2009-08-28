@@ -493,12 +493,12 @@ static void rna_def_background_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed.");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
-	prop= RNA_def_property(srna, "x_offset", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "offset_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xof");
 	RNA_def_property_ui_text(prop, "X Offset", "Offsets image horizontally from the view center");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 	
-	prop= RNA_def_property(srna, "y_offset", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "offset_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "yof");
 	RNA_def_property_ui_text(prop, "Y Offset", "Offsets image vertically from the view center");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
@@ -913,11 +913,11 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	
 	
 	/* not sure we need rna access to these but adding anyway */
-	prop= RNA_def_property(srna, "x_offset", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "offset_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xof");
 	RNA_def_property_ui_text(prop, "X Offset", "Offsets image horizontally from the view center");
 
-	prop= RNA_def_property(srna, "y_offset", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "offset_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "yof");
 	RNA_def_property_ui_text(prop, "Y Offset", "Offsets image horizontally from the view center");
 	
