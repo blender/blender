@@ -51,6 +51,7 @@
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "ED_space_api.h"
+#include "ED_sound.h"
 #include "ED_uvedit.h"
 #include "ED_mball.h"
 
@@ -99,6 +100,7 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_metaball();
 	ED_operatortypes_boids();
 	ED_operatortypes_gpencil();
+	ED_operatortypes_sound();
 	
 	ui_view2d_operatortypes();
 	

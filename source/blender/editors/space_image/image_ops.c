@@ -650,7 +650,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void IMAGE_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Open";
+	ot->name= "Open Image";
 	ot->idname= "IMAGE_OT_open";
 	
 	/* api callbacks */

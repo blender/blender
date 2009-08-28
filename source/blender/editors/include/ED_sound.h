@@ -26,12 +26,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef ED_SOUND_INTERN_H
-#define ED_SOUND_INTERN_H
+#ifndef ED_SOUND_H
+#define ED_SOUND_H
 
-struct wmOperatorType;
+void ED_operatortypes_sound(void);
 
-void SOUND_OT_open(wmOperatorType *ot);
-
-#endif /* ED_SOUND_INTERN_H */
+#endif /* ED_SOUND_H */
 

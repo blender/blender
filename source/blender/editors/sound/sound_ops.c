@@ -38,6 +38,8 @@
 #include "BKE_report.h"
 #include "BKE_sound.h"
 
+#include "ED_sound.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -84,7 +86,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void SOUND_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Open";
+	ot->name= "Open Sound";
 	ot->idname= "SOUND_OT_open";
 	ot->description= "Load a sound file into blender";
 
@@ -101,7 +103,7 @@ void SOUND_OT_open(wmOperatorType *ot)
 
 /* ******************************************************* */
 
-void sound_operatortype_init(void)
+void ED_operatortypes_sound(void)
 {
 	WM_operatortype_append(SOUND_OT_open);
 }

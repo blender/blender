@@ -455,6 +455,29 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 		col.itemR(strip, "animation_start_offset", text="Start")
 		col.itemR(strip, "animation_end_offset", text="End")
 
+class SEQUENCER_PT_sound(SequencerButtonsPanel):
+	__label__ = "Sound"
+	
+	def poll(self, context):
+		if context.space_data.display_mode != 'SEQUENCER':
+			return False
+		
+		strip = act_strip(context)
+		if not strip:
+			return False
+		
+		return strip.type in ('SOUND')
+	
+	def draw(self, context):
+		layout = self.layout
+		
+		strip = act_strip(context)
+		
+		layout.template_ID(strip, "sound", new="sound.open")
+		
+		layout.itemR(strip.sound, "filename")
+		layout.itemR(strip.sound, "caching")
+
 class SEQUENCER_PT_filter(SequencerButtonsPanel):
 	__label__ = "Filter"
 	
@@ -558,6 +581,7 @@ bpy.types.register(SEQUENCER_MT_strip)
 bpy.types.register(SEQUENCER_PT_edit) # sequencer panels
 bpy.types.register(SEQUENCER_PT_effect)
 bpy.types.register(SEQUENCER_PT_input)
+bpy.types.register(SEQUENCER_PT_sound)
 bpy.types.register(SEQUENCER_PT_filter)
 bpy.types.register(SEQUENCER_PT_proxy)
 
