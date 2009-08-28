@@ -699,18 +699,10 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 
 /* EDGE GROUP */
 
-#define SIMEDGE_LENGTH		101
-#define SIMEDGE_DIR			102
-#define SIMEDGE_FACE		103
-#define SIMEDGE_FACE_ANGLE	104
-#define SIMEDGE_CREASE		105
-#define SIMEDGE_SEAM		106
-#define SIMEDGE_SHARP		107
-
 static EnumPropertyItem prop_simedge_types[] = {
 	{SIMEDGE_LENGTH, "LENGTH", 0, "Length", ""},
 	{SIMEDGE_DIR, "DIR", 0, "Direction", ""},
-	{SIMEDGE_FACE, "FACE", 0, "Amount of Vertices in Face", ""},
+	{SIMEDGE_FACE, "FACE", 0, "Amount of Faces Around an Edge", ""},
 	{SIMEDGE_FACE_ANGLE, "FACE_ANGLE", 0, "Face Angles", ""},
 	{SIMEDGE_CREASE, "CREASE", 0, "Crease", ""},
 	{SIMEDGE_SEAM, "SEAM", 0, "Seam", ""},
@@ -920,6 +912,38 @@ static int similar_edge_select__internal(Scene *scene, EditMesh *em, int mode)
 /* wrap the above function but do selection flushing edge to face */
 static int similar_edge_select_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_edit_object(C);
+	BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
+	BMOperator bmop;
+
+	/* get the type from RNA */
+	int type = RNA_enum_get(op->ptr, "type");
+
+	float thresh = scene->toolsettings->select_thresh;
+
+	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
+	EDBM_InitOpf(em, &bmop, op, "similaredges edges=%he type=%d thresh=%f", BM_SELECT, type, thresh);
+
+	/* execute the operator */
+	BMO_Exec_Op(em->bm, &bmop);
+
+	/* clear the existing selection */
+	EDBM_clear_flag_all(em, BM_SELECT);
+
+	/* select the output */
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "edgeout", BM_SELECT, BM_ALL);
+
+	/* finish the operator */
+	if( !EDBM_FinishOp(em, &bmop, op, 1) )
+		return OPERATOR_CANCELLED;
+
+	/* dependencies graph and notification stuff */
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT | ND_GEOM_SELECT, ob);
+
+	/* we succeeded */
+	return OPERATOR_FINISHED;
 #if 0
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);

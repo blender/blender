@@ -47,5 +47,5 @@ void bmesh_collapsecon_exec(BMesh *bm, BMOperator *op);
 void bmesh_pointmerge_exec(BMesh *bm, BMOperator *op);
 void bmesh_collapse_exec(BMesh *bm, BMOperator *op);
 void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op);
-
+void bmesh_similaredges_exec(BMesh *bm, BMOperator *op);
 #endif

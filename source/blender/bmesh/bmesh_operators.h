@@ -22,6 +22,7 @@ enum {
 	SUBD_STRAIGHT_CUT,
 };
 
+/* similar face selection slot values */
 enum {
 	SIMFACE_MATERIAL = 201,
 	SIMFACE_IMAGE,
@@ -29,6 +30,17 @@ enum {
 	SIMFACE_PERIMETER,
 	SIMFACE_NORMAL,
 	SIMFACE_COPLANAR,
+};
+
+/* similar edge selection slot values */
+enum {
+	SIMEDGE_LENGTH = 101,
+	SIMEDGE_DIR,
+	SIMEDGE_FACE,
+	SIMEDGE_FACE_ANGLE,
+	SIMEDGE_CREASE,
+	SIMEDGE_SEAM,
+	SIMEDGE_SHARP,
 };
 
 extern BMOpDefine *opdefines[];

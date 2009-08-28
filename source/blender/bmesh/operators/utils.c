@@ -501,7 +501,7 @@ void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
 	BMIter fm_iter;
 	BMFace *fs, *fm;
 	BMOIter fs_iter;
-	int num_tex, num_sels = 0, num_total = 0, i = 0, idx = 0;
+	int num_sels = 0, num_total = 0, i = 0, idx = 0;
 	float angle = 0.0f;
 	tmp_face_ext *f_ext = NULL;
 	int *indices = NULL;
@@ -526,8 +526,8 @@ void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* allocate memory for the selected faces indices and for all temporary faces */
-	indices	= (int*)malloc(sizeof(int) * num_sels);
-	f_ext = (tmp_face_ext*)malloc(sizeof(tmp_face_ext) * num_total);
+	indices	= (int*)MEM_callocN(sizeof(int) * num_sels, "face indices util.c");
+	f_ext = (tmp_face_ext*)MEM_callocN(sizeof(tmp_face_ext) * num_total, "f_ext util.c");
 
 	/* loop through all the faces and fill the faces/indices structure */
 	BM_ITER(fm, &fm_iter, bm, BM_FACES_OF_MESH, NULL) {
@@ -543,7 +543,7 @@ void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
 	** Save us some computation burden: In case of perimeter/area/coplanar selection we compute
 	** only once.
 	*/
-	if( type == SIMFACE_PERIMETER || type == SIMFACE_AREA || type == SIMFACE_COPLANAR || type == SIMFACE_IMAGE )	{
+	if( type == SIMFACE_PERIMETER || type == SIMFACE_AREA || type == SIMFACE_COPLANAR || type == SIMFACE_IMAGE ) {
 		for( i = 0; i < num_total; i++ ) {
 			switch( type ) {
 			case SIMFACE_PERIMETER:
@@ -579,11 +579,9 @@ void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* now select the rest (if any) */
-	//BM_ITER(fm, &fm_iter, bm, BM_FACES_OF_MESH, NULL) {
 	for( i = 0; i < num_total; i++ ) {
 		fm = f_ext[i].f;
-		if (!BMO_TestFlag(bm, fm, FACE_MARK)) {
-			//BMO_ITER(fs, &fs_iter, bm, op, "faces", BM_FACE) {
+		if( !BMO_TestFlag(bm, fm, FACE_MARK)  && !BM_TestHFlag(fm, BM_HIDDEN) ) {
 			int cont = 1;
 			for( idx = 0; idx < num_sels && cont == 1; idx++ ) {
 				fs = f_ext[indices[idx]].f;
@@ -638,9 +636,206 @@ void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	free(f_ext);
-	free(indices);
+	MEM_freeN(f_ext);
+	MEM_freeN(indices);
 
 	/* transfer all marked faces to the output slot */
 	BMO_Flag_To_Slot(bm, op, "faceout", FACE_MARK, BM_FACE);
 }
+
+/******************************************************************************
+** Similar Edges
+******************************************************************************/
+#define EDGE_MARK	1
+
+/*
+** compute the angle of an edge (i.e. the angle between two faces)
+*/
+static float edge_angle(BMesh *bm, BMEdge *e)
+{
+	BMIter	fiter;
+	BMFace	*f;
+	int		num_faces = 0;
+	float	n1[3], n2[3];
+	float	angle = 0.0f;
+
+	BM_ITER(f, &fiter, bm, BM_FACES_OF_EDGE, e) {
+		if( num_faces == 0 ) {
+			n1[0] = f->no[0];
+			n1[1] = f->no[1];
+			n1[2] = f->no[2];
+			num_faces++;
+		} else {
+			n2[0] = f->no[0];
+			n2[1] = f->no[1];
+			n2[2] = f->no[2];
+			num_faces++;
+		}
+	}
+
+	angle = VecAngle2(n1, n2) / 180.0;
+
+	return angle;
+}
+/*
+** extra edge information
+*/
+typedef struct tmp_edge_ext {
+	BMEdge		*e;
+	union {
+		float		dir[3];
+		float		angle;			/* angle between the faces*/
+	};
+
+	union {
+		float		length;			/* edge length */
+		int			faces;			/* faces count */
+	};
+} tmp_edge_ext;
+
+/*
+** select similar edges: the choices are in the enum in source/blender/bmesh/bmesh_operators.h
+** choices are length, direction, face, ...
+*/
+void bmesh_similaredges_exec(BMesh *bm, BMOperator *op)
+{
+	BMOIter es_iter;	/* selected edges iterator */
+	BMIter	e_iter;		/* mesh edges iterator */
+	BMEdge	*es;		/* selected edge */
+	BMEdge	*e;		/* mesh edge */
+	int idx = 0, i = 0, f = 0;
+	int *indices = NULL;
+	tmp_edge_ext *e_ext = NULL;
+	float *angles = NULL;
+	float angle;
+
+	int num_sels = 0, num_total = 0;
+	int type = BMO_Get_Int(op, "type");
+	float thresh = BMO_Get_Float(op, "thresh");
+
+	num_total = BM_Count_Element(bm, BM_EDGE);
+
+	/* iterate through all selected edges and mark them */
+	BMO_ITER(es, &es_iter, bm, op, "edges", BM_EDGE) {
+			BMO_SetFlag(bm, es, EDGE_MARK);
+			num_sels++;
+	}
+
+	/* allocate memory for the selected edges indices and for all temporary edges */
+	indices	= (int*)MEM_callocN(sizeof(int) * num_sels, "indices util.c");
+	e_ext = (tmp_edge_ext*)MEM_callocN(sizeof(tmp_edge_ext) * num_total, "e_ext util.c");
+
+	/* loop through all the edges and fill the edges/indices structure */
+	BM_ITER(e, &e_iter, bm, BM_EDGES_OF_MESH, NULL) {
+		e_ext[i].e = e;
+		if (BMO_TestFlag(bm, e, EDGE_MARK)) {
+			indices[idx] = i;
+			idx++;
+		}
+		i++;
+	}
+
+	/* save us some computation time by doing heavy computation once */
+	if( type == SIMEDGE_LENGTH || type == SIMEDGE_FACE || type == SIMEDGE_DIR ||
+		type == SIMEDGE_FACE_ANGLE ) {
+		for( i = 0; i < num_total; i++ ) {
+			switch( type ) {
+			case SIMEDGE_LENGTH:	/* compute the length of the edge */
+				e_ext[i].length	= VecLenf(e_ext[i].e->v1->co, e_ext[i].e->v2->co);
+				break;
+
+			case SIMEDGE_DIR:		/* compute the direction */
+				VecSubf(e_ext[i].dir, e_ext[i].e->v1->co, e_ext[i].e->v2->co);
+				break;
+
+			case SIMEDGE_FACE:		/* count the faces around the edge */
+				e_ext[i].faces	= BM_Edge_FaceCount(e_ext[i].e);
+				break;
+
+			case SIMEDGE_FACE_ANGLE:
+				e_ext[i].faces	= BM_Edge_FaceCount(e_ext[i].e);
+				if( e_ext[i].faces == 2 )
+					e_ext[i].angle = edge_angle(bm, e_ext[i].e);
+				break;
+			}
+		}
+	}
+
+	/* select the edges if any */
+	for( i = 0; i < num_total; i++ ) {
+		e = e_ext[i].e;
+		if( !BMO_TestFlag(bm, e, EDGE_MARK) && !BM_TestHFlag(e, BM_HIDDEN) ) {
+			int cont = 1;
+			for( idx = 0; idx < num_sels && cont == 1; idx++ ) {
+				es = e_ext[indices[idx]].e;
+				switch( type ) {
+				case SIMEDGE_LENGTH:
+					if( fabs(e_ext[i].length - e_ext[indices[idx]].length) <= thresh ) {
+						BMO_SetFlag(bm, e, EDGE_MARK);
+						cont = 0;
+					}
+					break;
+
+				case SIMEDGE_DIR:
+					/* compute the angle between the two edges */
+					angle = VecAngle2(e_ext[i].dir, e_ext[indices[idx]].dir);
+
+					if( angle > 90.0 ) /* use the smallest angle between the edges */
+						angle = fabs(angle - 180.0f);
+
+					if( angle / 90.0 <= thresh ) {
+						BMO_SetFlag(bm, e, EDGE_MARK);
+						cont = 0;
+					}
+					break;
+
+				case SIMEDGE_FACE:
+					if( e_ext[i].faces == e_ext[indices[idx]].faces ) {
+						BMO_SetFlag(bm, e, EDGE_MARK);
+						cont = 0;
+					}
+					break;
+
+				case SIMEDGE_FACE_ANGLE:
+					if( e_ext[i].faces == 2 ) {
+						if( e_ext[indices[idx]].faces == 2 ) {
+							if( fabs(e_ext[i].angle - e_ext[indices[idx]].angle) <= thresh ) {
+								BMO_SetFlag(bm, e, EDGE_MARK);
+								cont = 0;
+							}
+						}
+					} else cont = 0;
+					break;
+
+				case SIMEDGE_CREASE:
+					if( fabs(e->crease - es->crease) <= thresh ) {
+						BMO_SetFlag(bm, e, EDGE_MARK);
+						cont = 0;
+					}
+					break;
+
+				case SIMEDGE_SEAM:
+					if( BM_TestHFlag(e, BM_SEAM) == BM_TestHFlag(es, BM_SEAM) ) {
+						BMO_SetFlag(bm, e, EDGE_MARK);
+						cont = 0;
+					}
+					break;
+
+				case SIMEDGE_SHARP:
+					if( BM_TestHFlag(e, BM_SHARP) == BM_TestHFlag(es, BM_SHARP) ) {
+						BMO_SetFlag(bm, e, EDGE_MARK);
+						cont = 0;
+					}
+					break;
+				}
+			}
+		}
+	}
+
+	MEM_freeN(e_ext);
+	MEM_freeN(indices);
+
+	/* transfer all marked edges to the output slot */
+	BMO_Flag_To_Slot(bm, op, "edgeout", EDGE_MARK, BM_EDGE);
+}
+

@@ -629,6 +629,22 @@ BMOpDefine def_similarfaces = {
 	0
 };
 
+/*
+  Similar edges select
+
+  Select similar edges (length, direction, edge, seam,....).
+*/
+BMOpDefine def_similaredges = {
+	"similaredges",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, /* input edges */
+	 {BMOP_OPSLOT_ELEMENT_BUF, "edgeout"}, /* output edges */
+	 {BMOP_OPSLOT_INT, "type"},			/* type of selection */
+	 {BMOP_OPSLOT_FLT, "thresh"},		/* threshold of selection */
+	 {0} /*null-terminating sentinel*/},
+	bmesh_similaredges_exec,
+	0
+};
+
 BMOpDefine *opdefines[] = {
 	&def_splitop,
 	&def_dupeop,
@@ -670,6 +686,7 @@ BMOpDefine *opdefines[] = {
 	&def_pointmerge,
 	&def_collapse,
 	&def_similarfaces,
+	&def_similaredges,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

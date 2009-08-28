@@ -55,6 +55,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
+
 #include "BLI_arithb.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"

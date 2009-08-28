@@ -107,7 +107,8 @@ struct BMEditMesh;
 #define SUB_ELEMS_FACE 50
 
 /*
-note: all mface interfaces now officially operate on tesselated data.
+Note: all mface interfaces now officially operate on tesselated data.
+      Also, the mface origindex layer indexes mpolys, not mfaces.
 */
 
 /*DM Iterators.  For now, first implement face iterators.

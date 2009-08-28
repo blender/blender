@@ -46,6 +46,8 @@
 #include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
 
+#include "BLI_editVert.h"
+#include "BLI_scanfill.h"
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
@@ -482,7 +484,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	}
 }
 
-static void cdDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, MCol *mcol, int matnr))
+static void cdDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, int has_vcol, int matnr))
 {
 	cdDM_drawFacesTex_common(dm, setDrawOptions, NULL, NULL);
 }
@@ -781,9 +783,6 @@ static void cdDM_foreachMappedFaceCenter(
 	MVert *mv = cddm->mvert;
 	MPoly *mf = cddm->mpoly;
 	MLoop *ml = cddm->mloop;
-	float (*cents)[3];
-	float (*nors)[3];
-	int *flens;
 	int i, j, orig, *index;
 	int maxf=0;
 
@@ -818,6 +817,132 @@ static void cdDM_foreachMappedFaceCenter(
 		func(userData, orig, cent, no);
 	}
 
+}
+
+void cddm_loops_to_corners(CustomData *fdata, CustomData *ldata, 
+			   CustomData *pdata, int lindex[3], int findex, 
+			   int polyindex, int numTex, int numCol) 
+{
+	MTFace *texface;
+	MTexPoly *texpoly;
+	MCol *mcol;
+	MLoopCol *mloopcol;
+	MLoopUV *mloopuv;
+	int i, j;
+
+	for(i=0; i < numTex; i++){
+		texface = CustomData_get_n(fdata, CD_MTFACE, findex, i);
+		texpoly = CustomData_get_n(pdata, CD_MTEXPOLY, polyindex, i);
+		
+		texface->tpage = texpoly->tpage;
+		texface->flag = texpoly->flag;
+		texface->transp = texpoly->transp;
+		texface->mode = texpoly->mode;
+		texface->tile = texpoly->tile;
+		texface->unwrap = texpoly->unwrap;
+
+		for (j=0; j<3; j++) {
+			mloopuv = CustomData_get_n(ldata, CD_MLOOPUV, lindex[j], i);
+			texface->uv[j][0] = mloopuv->uv[0];
+			texface->uv[j][1] = mloopuv->uv[1];
+		}
+	}
+
+	for(i=0; i < numCol; i++){
+		mcol = CustomData_get_n(fdata, CD_MCOL, findex, i);
+
+		for (j=0; j<3; j++) {
+			mloopcol = CustomData_get_n(ldata, CD_MLOOPCOL, lindex[j], i);
+			mcol[j].r = mloopcol->r;
+			mcol[j].g = mloopcol->g;
+			mcol[j].b = mloopcol->b;
+			mcol[j].a = mloopcol->a;
+		}
+	}
+}
+
+static void cdDM_recalcTesselation(DerivedMesh *dm)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*)dm;
+	MPoly *mp;
+	MLoop *ml;
+	MFace *mf = NULL;
+	V_DECLARE(mf);
+	EditVert *v, *lastv, *firstv;
+	EditFace *f;
+	V_DECLARE(origIndex);
+	int i, j, k, lindex[3], *origIndex = NULL, *polyorigIndex;
+	int numTex, numCol;
+
+	numTex = CustomData_number_of_layers(&dm->loopData, CD_MLOOPUV);
+	numCol = CustomData_number_of_layers(&dm->loopData, CD_MLOOPCOL);
+	
+	k = 0;
+	mp = cddm->mpoly;
+	polyorigIndex = CustomData_get_layer(&dm->polyData, CD_ORIGINDEX);
+	for (i=0; i<dm->numPolyData; i++, mp++) {
+		ml = cddm->mloop + mp->loopstart;
+		firstv = NULL;
+		lastv = NULL;
+		for (j=0; j<mp->totloop; j++, ml++) {
+			v = BLI_addfillvert(cddm->mvert[ml->v].co);
+			if (polyorigIndex)
+				v->f1 = polyorigIndex[i];
+			else
+				v->f1 = i;
+
+			v->f2 = mp->loopstart + j;
+
+			if (lastv)
+				BLI_addfilledge(lastv, v);
+
+			if (!firstv)
+				firstv = v;
+			lastv = v;
+		}
+		BLI_addfilledge(firstv, v);
+		
+		BLI_edgefill(0, 0);
+		for (f=fillfacebase.first; f; f=f->next) {
+			V_GROW(mf);
+			V_GROW(origIndex);
+
+			/*these are loop indices, they'll be transformed
+			  into vert indices later.*/
+			mf[k].v1 = f->v1->f2;
+			mf[k].v2 = f->v2->f2;
+			mf[k].v3 = f->v3->f2;
+			origIndex[k] = f->v1->f1;
+
+			k++;
+		}
+
+		BLI_end_edgefill();
+	}
+
+	memset(&dm->faceData, 0, sizeof(CustomData));
+	dm->numFaceData = k;
+	
+	CustomData_add_layer(&dm->faceData, CD_MFACE, CD_ASSIGN, mf, dm->numFaceData);
+	CustomData_add_layer(&dm->faceData, CD_ORIGINDEX, CD_ASSIGN, origIndex, dm->numFaceData);
+	CustomData_from_bmeshpoly(&dm->faceData, &dm->polyData, &dm->loopData, dm->numFaceData);
+
+	/*set convienence pointer*/
+	cddm->mface = mf;
+
+	for (i=0; i<dm->numFaceData; i++, mf++) {
+		lindex[0] = mf->v1;
+		lindex[1] = mf->v2;
+		lindex[2] = mf->v3;
+
+		/*transform loop indices to vert indices*/
+		mf->v1 = cddm->mloop[mf->v1].v;
+		mf->v2 = cddm->mloop[mf->v2].v;
+		mf->v3 = cddm->mloop[mf->v3].v;
+
+		cddm_loops_to_corners(&dm->faceData, &dm->loopData, &dm->polyData,
+			lindex, i, origIndex[i], numTex, numCol);
+	}
 }
 
 static void cdDM_release(DerivedMesh *dm)
@@ -858,6 +983,9 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 	dm->getVertDataArray = DM_get_vert_data_layer;
 	dm->getEdgeDataArray = DM_get_edge_data_layer;
 	dm->getTessFaceDataArray = DM_get_tessface_data_layer;
+	
+	//doesn't work yet for all cases
+	//dm->recalcTesselation = cdDM_recalcTesselation;
 
 	dm->getVertCos = cdDM_getVertCos;
 	dm->getVertCo = cdDM_getVertCo;
@@ -929,7 +1057,6 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 
 	CustomData_add_layer(&dm->vertData, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totvert);
 	CustomData_add_layer(&dm->edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totedge);
-	CustomData_add_layer(&dm->faceData, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totface);
 	CustomData_add_layer(&dm->polyData, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totpoly);
 
 	dm->deformedOnly = 1;
@@ -940,8 +1067,6 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	                 mesh->totvert);
 	CustomData_merge(&mesh->edata, &dm->edgeData, mask, alloctype,
 	                 mesh->totedge);
-	CustomData_merge(&mesh->fdata, &dm->faceData, mask, alloctype,
-	                 mesh->totface);
 	CustomData_merge(&mesh->ldata, &dm->loopData, mask, alloctype,
 	                 mesh->totloop);
 	CustomData_merge(&mesh->pdata, &dm->polyData, mask, alloctype,
@@ -949,7 +1074,6 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 
 	cddm->mvert = CustomData_get_layer(&dm->vertData, CD_MVERT);
 	cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
-	cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 	cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
 	cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
 
@@ -961,13 +1085,13 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	for(i = 0; i < mesh->totedge; ++i, ++index)
 		*index = i;
 
-	index = CustomData_get_layer(&dm->faceData, CD_ORIGINDEX);
-	for(i = 0; i < mesh->totface; ++i, ++index)
-		*index = i;
-
 	index = CustomData_get_layer(&dm->polyData, CD_ORIGINDEX);
 	for(i = 0; i < mesh->totpoly; ++i, ++index)
 		*index = i;
+
+	/*recalculates mfaces and sets the mface origindex layer
+	  to index mypolys.*/
+	cdDM_recalcTesselation((DerivedMesh*)cddm);
 
 	return dm;
 }
