@@ -645,6 +645,22 @@ BMOpDefine def_similaredges = {
 	0
 };
 
+/*
+  Similar vertices select
+
+  Select similar vertices (normal, face, vertex group,....).
+*/
+BMOpDefine def_similarverts = {
+	"similarverts",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, /* input vertices */
+	 {BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, /* output vertices */
+	 {BMOP_OPSLOT_INT, "type"},			/* type of selection */
+	 {BMOP_OPSLOT_FLT, "thresh"},		/* threshold of selection */
+	 {0} /*null-terminating sentinel*/},
+	bmesh_similarverts_exec,
+	0
+};
+
 BMOpDefine *opdefines[] = {
 	&def_splitop,
 	&def_dupeop,
@@ -687,6 +703,7 @@ BMOpDefine *opdefines[] = {
 	&def_collapse,
 	&def_similarfaces,
 	&def_similaredges,
+	&def_similarverts,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

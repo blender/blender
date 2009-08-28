@@ -975,13 +975,9 @@ VERT GROUP
  mode 3: same vertex groups
 */
 
-#define SIMVERT_NORMAL	0
-#define SIMVERT_FACE	1
-#define SIMVERT_VGROUP	2
-
 static EnumPropertyItem prop_simvertex_types[] = {
 	{SIMVERT_NORMAL, "NORMAL", 0, "Normal", ""},
-	{SIMVERT_FACE, "FACE", 0, "Amount of Vertices in Face", ""},
+	{SIMVERT_FACE, "FACE", 0, "Amount of Adjacent Faces", ""},
 	{SIMVERT_VGROUP, "VGROUP", 0, "Vertex Groups", ""},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -989,141 +985,38 @@ static EnumPropertyItem prop_simvertex_types[] = {
 
 static int similar_vert_select_exec(bContext *C, wmOperator *op)
 {
-#if 0
-	Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-	Mesh *me= obedit->data;
-	EditMesh *em= BKE_mesh_get_editmesh(me); 
-	EditVert *eve, *base_eve=NULL;
-	unsigned int selcount=0; /* count how many new edges we select*/
-	
-	/*count how many visible selected edges there are,
-	so we can return when there are none left */
-	unsigned int deselcount=0;
-	int mode= RNA_enum_get(op->ptr, "type");
-	
-	short ok=0;
-	float thresh= scene->toolsettings->select_thresh;
-	
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if (!eve->h) {
-			if (eve->f & SELECT) {
-				eve->f1=1;
-				ok=1;
-			} else {
-				eve->f1=0;
-				deselcount++;
-			}
-			/* set all eve->tmp.l to 0 we use them later.*/
-			eve->tmp.l=0;
-		}
-		
-	}
-	
-	if (!ok || !deselcount) { /* no data selected OR no more data to select*/
-		BKE_mesh_end_editmesh(me, em);
-		return 0;
-	}
-	
-	if(mode == SIMVERT_FACE) {
-		/* store face users */
-		EditFace *efa;
-		
-		/* count how many faces each edge uses use tmp->l */
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			efa->v1->tmp.l++;
-			efa->v2->tmp.l++;
-			efa->v3->tmp.l++;
-			if (efa->v4) efa->v4->tmp.l++;
-		}
-	}
-	
-	
-	for(base_eve= em->verts.first; base_eve; base_eve= base_eve->next) {
-		if (base_eve->f1) {
-				
-			if(mode == SIMVERT_NORMAL) {
-				float angle;
-				for(eve= em->verts.first; eve; eve= eve->next) {
-					if (!(eve->f & SELECT) && !eve->h) {
-						angle= VecAngle2(base_eve->no, eve->no);
-						if (angle/180.0<=thresh) {
-							eve->f |= SELECT;
-							selcount++;
-							deselcount--;
-							if (!deselcount) {/*have we selected all posible faces?, if so return*/
-								BKE_mesh_end_editmesh(me, em);
-								return selcount;
-							}
-						}
-					}
-				}
-			}
-			else if(mode == SIMVERT_FACE) {
-				for(eve= em->verts.first; eve; eve= eve->next) {
-					if (
-						!(eve->f & SELECT) &&
-						!eve->h &&
-						base_eve->tmp.l==eve->tmp.l
-					) {
-						eve->f |= SELECT;
-						selcount++;
-						deselcount--;
-						if (!deselcount) {/*have we selected all posible faces?, if so return*/
-							BKE_mesh_end_editmesh(me, em);
-							return selcount;
-						}
-					}
-				}
-			} 
-			else if(mode == SIMVERT_VGROUP) {
-				MDeformVert *dvert, *base_dvert;
-				short i, j; /* weight index */
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_edit_object(C);
+	BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
+	BMOperator bmop;
+	/* get the type from RNA */
+	int type = RNA_enum_get(op->ptr, "type");
+	float thresh = scene->toolsettings->select_thresh;
 
-				base_dvert= CustomData_em_get(&em->vdata, base_eve->data,
-					CD_MDEFORMVERT);
+	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
+	EDBM_InitOpf(em, &bmop, op, "similarverts verts=%hv type=%d thresh=%f", BM_SELECT, type, thresh);
 
-				if (!base_dvert || base_dvert->totweight == 0) {
-					BKE_mesh_end_editmesh(me, em);
-					return selcount;
-				}
-				
-				for(eve= em->verts.first; eve; eve= eve->next) {
-					dvert= CustomData_em_get(&em->vdata, eve->data,
-						CD_MDEFORMVERT);
+	/* execute the operator */
+	BMO_Exec_Op(em->bm, &bmop);
 
-					if (dvert && !(eve->f & SELECT) && !eve->h && dvert->totweight) {
-						/* do the extra check for selection in the following if, so were not
-						checking verts that may be alredy selected */
-						for (i=0; base_dvert->totweight >i && !(eve->f & SELECT); i++) { 
-							for (j=0; dvert->totweight >j; j++) {
-								if (base_dvert->dw[i].def_nr==dvert->dw[j].def_nr) {
-									eve->f |= SELECT;
-									selcount++;
-									deselcount--;
-									if (!deselcount) { /*have we selected all posible faces?, if so return*/
-										BKE_mesh_end_editmesh(me, em);
-										return selcount;
-									}
-									break;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	} /* end basevert loop */
+	/* clear the existing selection */
+	EDBM_clear_flag_all(em, BM_SELECT);
 
-	if(selcount) {
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-		BKE_mesh_end_editmesh(me, em);
-		return OPERATOR_FINISHED;
-	}
+	/* select the output */
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "vertout", BM_SELECT, BM_ALL);
 
-	BKE_mesh_end_editmesh(me, em);
-#endif
-	return OPERATOR_CANCELLED;
+	/* finish the operator */
+	if( !EDBM_FinishOp(em, &bmop, op, 1) )
+		return OPERATOR_CANCELLED;
+
+	EDBM_selectmode_flush(em);
+
+	/* dependencies graph and notification stuff */
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT | ND_GEOM_SELECT, ob);
+
+	/* we succeeded */
+	return OPERATOR_FINISHED;
 }
 
 static int select_similar_exec(bContext *C, wmOperator *op)

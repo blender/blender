@@ -43,6 +43,13 @@ enum {
 	SIMEDGE_SHARP,
 };
 
+/* similar vertex selection slot values */
+enum {
+	SIMVERT_NORMAL = 0,
+	SIMVERT_FACE,
+	SIMVERT_VGROUP,
+};
+
 extern BMOpDefine *opdefines[];
 extern int bmesh_total_ops;
 

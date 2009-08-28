@@ -839,3 +839,116 @@ void bmesh_similaredges_exec(BMesh *bm, BMOperator *op)
 	BMO_Flag_To_Slot(bm, op, "edgeout", EDGE_MARK, BM_EDGE);
 }
 
+/******************************************************************************
+** Similar Vertices
+******************************************************************************/
+#define VERT_MARK	1
+
+typedef struct tmp_vert_ext {
+	BMVert *v;
+	union {
+		int num_faces; /* adjacent faces */
+		MDeformVert *dvert; /* deform vertex */
+	};
+} tmp_vert_ext;
+
+/*
+** select similar vertices: the choices are in the enum in source/blender/bmesh/bmesh_operators.h
+** choices are normal, face, vertex group...
+*/
+void bmesh_similarverts_exec(BMesh *bm, BMOperator *op)
+{
+	BMOIter vs_iter;	/* selected verts iterator */
+	BMIter v_iter;		/* mesh verts iterator */
+	BMVert *vs;		/* selected vertex */
+	BMVert *v;			/* mesh vertex */
+	tmp_vert_ext *v_ext = NULL;
+	int *indices = NULL;
+	int num_total = 0, num_sels = 0, i = 0, idx = 0;
+	int type = BMO_Get_Int(op, "type");
+	float thresh = BMO_Get_Float(op, "thresh");
+
+	num_total = BM_Count_Element(bm, BM_VERT);
+
+	/* iterate through all selected edges and mark them */
+	BMO_ITER(vs, &vs_iter, bm, op, "verts", BM_VERT) {
+		BMO_SetFlag(bm, vs, VERT_MARK);
+		num_sels++;
+	}
+
+	/* allocate memory for the selected vertices indices and for all temporary vertices */
+	indices	= (int*)MEM_mallocN(sizeof(int) * num_sels, "vertex indices");
+	v_ext = (tmp_vert_ext*)MEM_mallocN(sizeof(tmp_vert_ext) * num_total, "vertex extra");
+
+	/* loop through all the vertices and fill the vertices/indices structure */
+	BM_ITER(v, &v_iter, bm, BM_VERTS_OF_MESH, NULL) {
+		v_ext[i].v = v;
+		if (BMO_TestFlag(bm, v, VERT_MARK)) {
+			indices[idx] = i;
+			idx++;
+		}
+
+		switch( type ) {
+		case SIMVERT_FACE:
+			/* calling BM_Vert_FaceCount every time is time consumming, so call it only once per vertex */
+			v_ext[i].num_faces	= BM_Vert_FaceCount(v);
+			break;
+
+		case SIMVERT_VGROUP:
+			if( CustomData_has_layer(&(bm->vdata),CD_MDEFORMVERT) ) {
+				v_ext[i].dvert = CustomData_bmesh_get(&bm->vdata, v_ext[i].v->head.data, CD_MDEFORMVERT);
+			} else v_ext[i].dvert = NULL;
+			break;
+		}
+
+		i++;
+	}
+
+	/* select the vertices if any */
+	for( i = 0; i < num_total; i++ ) {
+		v = v_ext[i].v;
+		if( !BMO_TestFlag(bm, v, VERT_MARK) && !BM_TestHFlag(v, BM_HIDDEN) ) {
+			int cont = 1;
+			for( idx = 0; idx < num_sels && cont == 1; idx++ ) {
+				vs = v_ext[indices[idx]].v;
+				switch( type ) {
+				case SIMVERT_NORMAL:
+					/* compare the angle between the normals */
+					if( VecAngle2(v->no, vs->no) / 180.0 <= thresh ) {
+						BMO_SetFlag(bm, v, VERT_MARK);
+						cont = 0;
+
+					}
+					break;
+				case SIMVERT_FACE:
+					/* number of adjacent faces */
+					if( v_ext[i].num_faces == v_ext[indices[idx]].num_faces ) {
+						BMO_SetFlag(bm, v, VERT_MARK);
+						cont = 0;
+					}
+					break;
+
+				case SIMVERT_VGROUP:
+					if( v_ext[i].dvert != NULL && v_ext[indices[idx]].dvert != NULL ) {
+						int v1, v2;
+						for( v1 = 0; v1 < v_ext[i].dvert->totweight && cont == 1; v1++ ) {
+							for( v2 = 0; v2 < v_ext[indices[idx]].dvert->totweight; v2++ ) {
+								if( v_ext[i].dvert->dw[v1].def_nr == v_ext[indices[idx]].dvert->dw[v2].def_nr ) {
+									BMO_SetFlag(bm, v, VERT_MARK);
+									cont = 0;
+									break;
+								}
+							}
+						}
+					}
+					break;
+				}
+			}
+		}
+	}
+
+	MEM_freeN(indices);
+	MEM_freeN(v_ext);
+
+	BMO_Flag_To_Slot(bm, op, "vertout", VERT_MARK, BM_VERT);
+}
