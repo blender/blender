@@ -294,6 +294,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_sound.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_space_api.h"
 				>
 			</File>
@@ -1343,11 +1347,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\gpencil\gpencil_buttons.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\gpencil\gpencil_edit.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\gpencil\gpencil_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\gpencil\gpencil_ops.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\gpencil\gpencil_paint.c"
 				>
 			</File>
 		</Filter>
@@ -1488,6 +1504,18 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\space_userpref\userpref_ops.c"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="sound"
+			>
+			<File
+				RelativePath="..\..\..\source\blender\editors\sound\sound_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\sound\sound_ops.c"
 				>
 			</File>
 		</Filter>
