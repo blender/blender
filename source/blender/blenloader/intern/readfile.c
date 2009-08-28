@@ -135,6 +135,7 @@
 #include "BKE_multires.h"
 #include "BKE_node.h" // for tree type defines
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_property.h" // for get_ob_property
@@ -143,7 +144,6 @@
 #include "BKE_scene.h"
 #include "BKE_softbody.h"	// sbNew()
 #include "BKE_bullet.h"		// bsbNew()
-#include "BKE_sculpt.h"
 #include "BKE_sequence.h"
 #include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
