@@ -20,9 +20,14 @@
 extern "C" 
 {
 #include "BKE_DerivedMesh.h"
+#include "BKE_fcurve.h"
 #include "BLI_util.h"
 #include "BLI_fileops.h"
+#include "ED_keyframing.h"
 }
+
+#include "MEM_guardedalloc.h"
+
 #include "BKE_scene.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -1659,6 +1664,8 @@ public:
 class AnimationExporter: COLLADASW::LibraryAnimations
 {
 	Scene *scene;
+	std::map<bActionGroup*, std::vector<FCurve*> > fcurves_actionGroup_map;
+	std::map<bActionGroup*, std::vector<FCurve*> > rotfcurves_actionGroup_map;
 public:
 	AnimationExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryAnimations(sw) {}
 
@@ -1749,8 +1756,11 @@ public:
 	{
 		std::string source_id = anim_id + get_semantic_suffix(semantic);
 
-		bool is_rotation = !strcmp(fcu->rna_path, "rotation");
-
+		//bool is_rotation = !strcmp(fcu->rna_path, "rotation");
+		bool is_rotation = false;
+		
+		if (strstr(fcu->rna_path, "rotation")) is_rotation = true;
+		
 		COLLADASW::FloatSourceF source(mSW);
 		source.setId(source_id);
 		source.setArrayId(source_id + ARRAY_ID_SUFFIX);
@@ -1780,7 +1790,7 @@ public:
 	{
 		std::string source_id = anim_id + get_semantic_suffix(Sampler::INTERPOLATION);
 
-		bool is_rotation = !strcmp(fcu->rna_path, "rotation");
+		//bool is_rotation = !strcmp(fcu->rna_path, "rotation");
 
 		COLLADASW::NameSource source(mSW);
 		source.setId(source_id);
@@ -1805,18 +1815,33 @@ public:
 
 	std::string get_transform_sid(char *rna_path, const char *axis_name)
 	{
-		if (!strcmp(rna_path, "rotation"))
-			return std::string(rna_path) + axis_name;
+		// if (!strcmp(rna_path, "rotation"))
+// 			return std::string(rna_path) + axis_name;
 
-		return std::string(rna_path) + "." + axis_name;
+// 		return std::string(rna_path) + "." + axis_name;
+		std::string new_rna_path;
+		
+		if (strstr(rna_path, "rotation")) {
+			new_rna_path = strstr(rna_path, "rotation");
+			return new_rna_path + axis_name;
+		}
+		else if (strstr(rna_path, "location")) {
+			new_rna_path = strstr(rna_path, "location");
+			return new_rna_path + "." + axis_name;
+		}
+		else if (strstr(rna_path, "scale")) {
+			new_rna_path = strstr(rna_path, "scale");
+			return new_rna_path + "." + axis_name;
+		}
+		return NULL;
 	}
 
-	void add_animation(FCurve *fcu, std::string ob_name/*const char *ob_name*/)
+	void add_animation(FCurve *fcu, std::string ob_name)
 	{
 		const char *axis_names[] = {"X", "Y", "Z"};
 		const char *axis_name = NULL;
 		char c_anim_id[100]; // careful!
-
+		
 		if (fcu->array_index < 3)
 			axis_name = axis_names[fcu->array_index];
 
@@ -1847,32 +1872,189 @@ public:
 
 		addSampler(sampler);
 
-		//std::string target = std::string(ob_name) + "/" + get_transform_sid(fcu->rna_path, axis_name);
 		std::string target = ob_name + "/" + get_transform_sid(fcu->rna_path, axis_name);
 		addChannel(COLLADABU::URI(empty, sampler_id), target);
 
 		closeAnimation();
+	}
+	
+	void add_bone_animation(FCurve *fcu, std::string ob_name, std::string bone_name)
+	{
+		const char *axis_names[] = {"X", "Y", "Z"};
+		const char *axis_name = NULL;
+		char c_anim_id[100]; // careful!
+
+		if (fcu->array_index < 3)
+			axis_name = axis_names[fcu->array_index];
+		
+		std::string transform_sid = get_transform_sid(fcu->rna_path, axis_name);
+		
+		BLI_snprintf(c_anim_id, sizeof(c_anim_id), "%s.%s.%s", (char*)ob_name.c_str(), (char*)bone_name.c_str(), (char*)transform_sid.c_str());
+		std::string anim_id(c_anim_id);
+
+		// check rna_path is one of: rotation, scale, location
+
+		openAnimation(anim_id);
+
+		// create input source
+		std::string input_id = create_source(Sampler::INPUT, fcu, anim_id, axis_name);
+
+		// create output source
+		std::string output_id = create_source(Sampler::OUTPUT, fcu, anim_id, axis_name);
+
+		// create interpolations source
+		std::string interpolation_id = create_interpolation_source(fcu, anim_id, axis_name);
+
+		std::string sampler_id = anim_id + SAMPLER_ID_SUFFIX;
+		COLLADASW::LibraryAnimations::Sampler sampler(sampler_id);
+		std::string empty;
+		sampler.addInput(Sampler::INPUT, COLLADABU::URI(empty, input_id));
+		sampler.addInput(Sampler::OUTPUT, COLLADABU::URI(empty, output_id));
+
+		// this input is required
+		sampler.addInput(Sampler::INTERPOLATION, COLLADABU::URI(empty, interpolation_id));
+
+		addSampler(sampler);
+
+		std::string target = ob_name + "_" + bone_name + "/" + transform_sid;
+		addChannel(COLLADABU::URI(empty, sampler_id), target);
+
+		closeAnimation();
+	}
+	
+	FCurve *create_fcurve(int array_index, char *rna_path)
+	{
+		FCurve *fcu = (FCurve*)MEM_callocN(sizeof(FCurve), "FCurve");
+		
+		fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
+		fcu->rna_path = BLI_strdupn(rna_path, strlen(rna_path));
+		fcu->array_index = array_index;
+		return fcu;
+	}
+	
+	void create_bezt(FCurve *fcu, float frame, float output)
+	{
+		BezTriple bez;
+		memset(&bez, 0, sizeof(BezTriple));
+		bez.vec[1][0] = frame;
+		bez.vec[1][1] = output;
+		bez.ipo = U.ipo_new; /* use default interpolation mode here... */
+		bez.f1 = bez.f2 = bez.f3 = SELECT;
+		bez.h1 = bez.h2 = HD_AUTO;
+		insert_bezt_fcurve(fcu, &bez);
+		calchandles_fcurve(fcu);
+	}
+	
+	void change_quat_to_eul(Object *ob, bActionGroup *grp, char *grpname)
+	{
+		std::vector<FCurve*> &rot_fcurves = rotfcurves_actionGroup_map[grp];
+		
+		FCurve *quatcu[4] = {NULL, NULL, NULL, NULL};
+		int i;
+		
+		for (i = 0; i < rot_fcurves.size(); i++)
+			quatcu[rot_fcurves[i]->array_index] = rot_fcurves[i];
+		
+		char *rna_path = rot_fcurves[0]->rna_path;
+		
+		FCurve *eulcu[3] = {
+			create_fcurve(0, rna_path),
+			create_fcurve(1, rna_path),
+			create_fcurve(2, rna_path)
+		};
+		
+		for (i = 0; i < 4; i++) {
+			
+			FCurve *cu = quatcu[i];
+			
+			if (!cu) continue;
+			
+			for (int j = 0; j < cu->totvert; j++) {
+				float frame = cu->bezt[j].vec[1][0];
+				
+				float quat[4] = {
+					quatcu[0] ? evaluate_fcurve(quatcu[0], frame) : 0.0f,
+					quatcu[1] ? evaluate_fcurve(quatcu[1], frame) : 0.0f,
+					quatcu[2] ? evaluate_fcurve(quatcu[2], frame) : 0.0f,
+					quatcu[3] ? evaluate_fcurve(quatcu[3], frame) : 0.0f
+				};
+				
+				float eul[3];
+				
+				QuatToEul(quat, eul);
+				
+				for (int k = 0; k < 3; k++)
+					create_bezt(eulcu[k], frame, eul[k]);
+			}
+		}
+		
+		for (i = 0; i < 3; i++) {
+			add_bone_animation(eulcu[i], id_name(ob), std::string(grpname));
+			free_fcurve(eulcu[i]);
+		}
 	}
 
 	// called for each exported object
 	void operator() (Object *ob) 
 	{
 		if (!ob->adt || !ob->adt->action) return;
-
-		// XXX this needs to be handled differently?
-		if (ob->type == OB_ARMATURE) return;
-
+		
 		FCurve *fcu = (FCurve*)ob->adt->action->curves.first;
-		while (fcu) {
-
-			if (!strcmp(fcu->rna_path, "location") ||
-				!strcmp(fcu->rna_path, "scale") ||
-				!strcmp(fcu->rna_path, "rotation")) {
-
-				add_animation(fcu, id_name(ob)/*ob->id.name*/);
+		
+		if (ob->type == OB_ARMATURE) {
+			
+			while (fcu) {
+				
+				if (strstr(fcu->rna_path, ".rotation")) 
+					rotfcurves_actionGroup_map[fcu->grp].push_back(fcu);
+				else fcurves_actionGroup_map[fcu->grp].push_back(fcu);
+				
+				fcu = fcu->next;
 			}
-
-			fcu = fcu->next;
+			
+			for (bPoseChannel *pchan = (bPoseChannel*)ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+				int i;
+				char *grpname = pchan->name;
+				bActionGroup *grp = action_groups_find_named(ob->adt->action, grpname);
+				
+				if (!grp) continue;
+				
+				// write animation for location & scaling
+				if (fcurves_actionGroup_map.find(grp) == fcurves_actionGroup_map.end()) continue;
+				
+				std::vector<FCurve*> &fcurves = fcurves_actionGroup_map[grp];
+				for (i = 0; i < fcurves.size(); i++)
+					add_bone_animation(fcurves[i], id_name(ob), std::string(grpname));
+				
+				// ... for rotation
+				if (rotfcurves_actionGroup_map.find(grp) == rotfcurves_actionGroup_map.end())
+					continue;
+				
+				// if rotation mode is euler - no need to convert it
+				if (pchan->rotmode == PCHAN_ROT_EUL) {
+					
+					std::vector<FCurve*> &rotfcurves = rotfcurves_actionGroup_map[grp];
+					
+					for (i = 0; i < rotfcurves.size(); i++) 
+						add_bone_animation(rotfcurves[i], id_name(ob), std::string(grpname));
+				}
+				
+				// convert rotation to euler & write animation
+				else change_quat_to_eul(ob, grp, grpname);
+			}
+		}
+		else {
+			while (fcu) {
+				
+				if (!strcmp(fcu->rna_path, "location") ||
+					!strcmp(fcu->rna_path, "scale") ||
+					!strcmp(fcu->rna_path, "rotation")) {
+					
+					add_animation(fcu, id_name(ob));
+				}
+				
+				fcu = fcu->next;
+			}
 		}
 	}
 };

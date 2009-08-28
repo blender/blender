@@ -96,7 +96,7 @@ typedef struct FModifierTypeInfo {
 } FModifierTypeInfo;
 
 /* Values which describe the behaviour of a FModifier Type */
-enum {
+typedef enum {
 		/* modifier only modifies values outside of data range */
 	FMI_TYPE_EXTRAPOLATION = 0,
 		/* modifier leaves data-points alone, but adjusts the interpolation between and around them */
@@ -108,7 +108,7 @@ enum {
 } eFMI_Action_Types;
 
 /* Flags for the requirements of a FModifier Type */
-enum {
+typedef enum {
 		/* modifier requires original data-points (kindof beats the purpose of a modifier stack?) */
 	FMI_REQUIRES_ORIGINAL_DATA		= (1<<0),
 		/* modifier doesn't require on any preceeding data (i.e. it will generate a curve). 

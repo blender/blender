@@ -2174,7 +2174,7 @@ public:
 				create_fcurve(0, rna_path),
 				create_fcurve(1, rna_path),
 				create_fcurve(2, rna_path),
-				create_fcurve(3, rna_path),
+				create_fcurve(3, rna_path)
 			};
 
 			for (i = 0; i < 3; i++) {
@@ -2189,7 +2189,7 @@ public:
 					float eul[3] = {
 						eulcu[0] ? evaluate_fcurve(eulcu[0], frame) : 0.0f,
 						eulcu[1] ? evaluate_fcurve(eulcu[1], frame) : 0.0f,
-						eulcu[2] ? evaluate_fcurve(eulcu[2], frame) : 0.0f,
+						eulcu[2] ? evaluate_fcurve(eulcu[2], frame) : 0.0f
 					};
 
 					float quat[4];
