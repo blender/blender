@@ -109,7 +109,7 @@ void EDBM_convertsel(struct BMEditMesh *em, short oldmode, short selectmode);
 void EDBM_editselection_center(struct BMEditMesh *em, float *center, struct BMEditSelection *ese);
 void EDBM_editselection_plane(struct BMEditMesh *em, float *plane, struct BMEditSelection *ese);
 void EDBM_editselection_normal(float *normal, struct BMEditSelection *ese);
-
+int EDBM_vertColorCheck(struct BMEditMesh *em);
 
 void EDBM_hide_mesh(struct BMEditMesh *em, int swap);
 void EDBM_reveal_mesh(struct BMEditMesh *em);

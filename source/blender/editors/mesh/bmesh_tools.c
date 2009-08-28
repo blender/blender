@@ -2059,3 +2059,367 @@ void MESH_OT_faces_shade_flat(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+
+
+/********************** UV/Color Operators *************************/
+#define AXIS_X		1
+#define AXIS_Y		2
+
+static const EnumPropertyItem axis_items[]= {
+	{AXIS_X, "X", 0, "X", ""},
+	{AXIS_Y, "Y", 0, "Y", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+static int mesh_rotate_uvs(bContext *C, wmOperator *op)
+{
+#if 0
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+
+	EditFace *efa;
+	short change = 0;
+	MTFace *tf;
+	float u1, v1;
+	int dir= RNA_enum_get(op->ptr, "direction");
+
+	if (!EM_texFaceCheck(em)) {
+		BKE_report(op->reports, RPT_ERROR, "Mesh has no uv/image layers.");
+		BKE_mesh_end_editmesh(obedit->data, em);
+		return OPERATOR_CANCELLED;
+	}
+
+	for(efa=em->faces.first; efa; efa=efa->next) {
+		if (efa->f & SELECT) {
+			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			u1= tf->uv[0][0];
+			v1= tf->uv[0][1];
+
+			if (dir == DIRECTION_CCW) {
+				if(efa->v4) {
+					tf->uv[0][0]= tf->uv[3][0];
+					tf->uv[0][1]= tf->uv[3][1];
+
+					tf->uv[3][0]= tf->uv[2][0];
+					tf->uv[3][1]= tf->uv[2][1];
+				} else {
+					tf->uv[0][0]= tf->uv[2][0];
+					tf->uv[0][1]= tf->uv[2][1];
+				}
+
+				tf->uv[2][0]= tf->uv[1][0];
+				tf->uv[2][1]= tf->uv[1][1];
+
+				tf->uv[1][0]= u1;
+				tf->uv[1][1]= v1;
+			} else {
+				tf->uv[0][0]= tf->uv[1][0];
+				tf->uv[0][1]= tf->uv[1][1];
+
+				tf->uv[1][0]= tf->uv[2][0];
+				tf->uv[1][1]= tf->uv[2][1];
+
+				if(efa->v4) {
+					tf->uv[2][0]= tf->uv[3][0];
+					tf->uv[2][1]= tf->uv[3][1];
+
+					tf->uv[3][0]= u1;
+					tf->uv[3][1]= v1;
+				}
+				else {
+					tf->uv[2][0]= u1;
+					tf->uv[2][1]= v1;
+				}
+			}
+			change = 1;
+		}
+	}
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+
+	if(!change)
+		return OPERATOR_CANCELLED;
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+#endif
+	return OPERATOR_FINISHED;
+}
+
+static int mesh_mirror_uvs(bContext *C, wmOperator *op)
+{
+#if 0
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+
+	EditFace *efa;
+	short change = 0;
+	MTFace *tf;
+	float u1, v1;
+	int axis= RNA_enum_get(op->ptr, "axis");
+
+	if (!EM_texFaceCheck(em)) {
+		BKE_report(op->reports, RPT_ERROR, "Mesh has no uv/image layers.");
+		BKE_mesh_end_editmesh(obedit->data, em);
+		return OPERATOR_CANCELLED;
+	}
+
+	for(efa=em->faces.first; efa; efa=efa->next) {
+		if (efa->f & SELECT) {
+			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (axis == AXIS_Y) {
+				u1= tf->uv[1][0];
+				v1= tf->uv[1][1];
+				if(efa->v4) {
+
+					tf->uv[1][0]= tf->uv[2][0];
+					tf->uv[1][1]= tf->uv[2][1];
+
+					tf->uv[2][0]= u1;
+					tf->uv[2][1]= v1;
+
+					u1= tf->uv[3][0];
+					v1= tf->uv[3][1];
+
+					tf->uv[3][0]= tf->uv[0][0];
+					tf->uv[3][1]= tf->uv[0][1];
+
+					tf->uv[0][0]= u1;
+					tf->uv[0][1]= v1;
+				}
+				else {
+					tf->uv[1][0]= tf->uv[2][0];
+					tf->uv[1][1]= tf->uv[2][1];
+					tf->uv[2][0]= u1;
+					tf->uv[2][1]= v1;
+				}
+
+			} else {
+				u1= tf->uv[0][0];
+				v1= tf->uv[0][1];
+				if(efa->v4) {
+
+					tf->uv[0][0]= tf->uv[1][0];
+					tf->uv[0][1]= tf->uv[1][1];
+
+					tf->uv[1][0]= u1;
+					tf->uv[1][1]= v1;
+
+					u1= tf->uv[3][0];
+					v1= tf->uv[3][1];
+
+					tf->uv[3][0]= tf->uv[2][0];
+					tf->uv[3][1]= tf->uv[2][1];
+
+					tf->uv[2][0]= u1;
+					tf->uv[2][1]= v1;
+				}
+				else {
+					tf->uv[0][0]= tf->uv[1][0];
+					tf->uv[0][1]= tf->uv[1][1];
+					tf->uv[1][0]= u1;
+					tf->uv[1][1]= v1;
+				}
+			}
+			change = 1;
+		}
+	}
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+
+	if(!change)
+		return OPERATOR_CANCELLED;
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+#endif
+	return OPERATOR_FINISHED;
+}
+
+static int mesh_rotate_colors(bContext *C, wmOperator *op)
+{
+#if 0
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+
+	EditFace *efa;
+	short change = 0;
+	MCol tmpcol, *mcol;
+	int dir= RNA_enum_get(op->ptr, "direction");
+
+	if (!EM_vertColorCheck(em)) {
+		BKE_report(op->reports, RPT_ERROR, "Mesh has no color layers.");
+		BKE_mesh_end_editmesh(obedit->data, em);
+		return OPERATOR_CANCELLED;
+	}
+
+	for(efa=em->faces.first; efa; efa=efa->next) {
+		if (efa->f & SELECT) {
+			mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
+			tmpcol= mcol[0];
+
+			if (dir == DIRECTION_CCW) {
+				if(efa->v4) {
+					mcol[0]= mcol[3];
+					mcol[3]= mcol[2];
+				} else {
+					mcol[0]= mcol[2];
+				}
+				mcol[2]= mcol[1];
+				mcol[1]= tmpcol;
+			} else {
+				mcol[0]= mcol[1];
+				mcol[1]= mcol[2];
+
+				if(efa->v4) {
+					mcol[2]= mcol[3];
+					mcol[3]= tmpcol;
+				}
+				else
+					mcol[2]= tmpcol;
+			}
+			change = 1;
+		}
+	}
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+
+	if(!change)
+		return OPERATOR_CANCELLED;
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+#endif
+}
+
+
+static int mesh_mirror_colors(bContext *C, wmOperator *op)
+{
+#if 0
+	Scene *scene= CTX_data_scene(C);
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+
+	EditFace *efa;
+	short change = 0;
+	MCol tmpcol, *mcol;
+	int axis= RNA_enum_get(op->ptr, "axis");
+
+	if (!EM_vertColorCheck(em)) {
+		BKE_report(op->reports, RPT_ERROR, "Mesh has no color layers");
+		BKE_mesh_end_editmesh(obedit->data, em);
+		return OPERATOR_CANCELLED;
+	}
+
+	for(efa=em->faces.first; efa; efa=efa->next) {
+		if (efa->f & SELECT) {
+			mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
+			if (axis == AXIS_Y) {
+				tmpcol= mcol[1];
+				mcol[1]= mcol[2];
+				mcol[2]= tmpcol;
+
+				if(efa->v4) {
+					tmpcol= mcol[0];
+					mcol[0]= mcol[3];
+					mcol[3]= tmpcol;
+				}
+			} else {
+				tmpcol= mcol[0];
+				mcol[0]= mcol[1];
+				mcol[1]= tmpcol;
+
+				if(efa->v4) {
+					tmpcol= mcol[2];
+					mcol[2]= mcol[3];
+					mcol[3]= tmpcol;
+				}
+			}
+			change = 1;
+		}
+	}
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+
+	if(!change)
+		return OPERATOR_CANCELLED;
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+#endif
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_uvs_rotate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Rotate UVs";
+	ot->idname= "MESH_OT_uvs_rotate";
+
+	/* api callbacks */
+	ot->exec= mesh_rotate_uvs;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate UVs around.");
+}
+
+void MESH_OT_uvs_mirror(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Mirror UVs";
+	ot->idname= "MESH_OT_uvs_mirror";
+
+	/* api callbacks */
+	ot->exec= mesh_mirror_uvs;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror UVs around.");
+}
+
+void MESH_OT_colors_rotate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Rotate Colors";
+	ot->idname= "MESH_OT_colors_rotate";
+
+	/* api callbacks */
+	ot->exec= mesh_rotate_colors;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate edge around.");
+}
+
+void MESH_OT_colors_mirror(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Mirror Colors";
+	ot->idname= "MESH_OT_colors_mirror";
+
+	/* api callbacks */
+	ot->exec= mesh_mirror_colors;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror colors around.");
+}

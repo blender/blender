@@ -738,3 +738,10 @@ int EDBM_texFaceCheck(BMEditMesh *em)
 	/* some of these checks could be a touch overkill */
 	return em && em->bm->totface && CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY);
 }
+
+int EDBM_vertColorCheck(BMEditMesh *em)
+{
+	/* some of these checks could be a touch overkill */
+	return em && em->bm->totface && CustomData_has_layer(&em->bm->ldata, CD_MLOOPCOL);
+}
+

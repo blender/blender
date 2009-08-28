@@ -933,6 +933,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
 	/* select the output */
 	BMO_HeaderFlag_Buffer(em->bm, &bmop, "edgeout", BM_SELECT, BM_ALL);
+	EDBM_selectmode_flush(em);
 
 	/* finish the operator */
 	if( !EDBM_FinishOp(em, &bmop, op, 1) )
