@@ -1373,12 +1373,10 @@ static void IDP_DirectLinkIDPArray(IDProperty *prop, int switch_endian, FileData
 	prop->totallen = prop->len;
 	prop->data.pointer = newdataadr(fd, prop->data.pointer);
 
-	if (switch_endian) {
-		array= (IDProperty*) prop->data.pointer;
+	array= (IDProperty*) prop->data.pointer;
 
-		for(i=0; i<prop->len; i++)
-			IDP_DirectLinkProperty(&array[i], switch_endian, fd);
-	}
+	for(i=0; i<prop->len; i++)
+		IDP_DirectLinkProperty(&array[i], switch_endian, fd);
 }
 
 static void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, FileData *fd)
@@ -1390,19 +1388,22 @@ static void IDP_DirectLinkArray(IDProperty *prop, int switch_endian, FileData *f
 	prop->totallen = prop->len;
 	prop->data.pointer = newdataadr(fd, prop->data.pointer);
 
-	if (switch_endian) {
-		if(prop->subtype == IDP_GROUP) {
-			test_pointer_array(fd, prop->data.pointer);
-			array= prop->data.pointer;
+	if(prop->subtype == IDP_GROUP) {
+		test_pointer_array(fd, prop->data.pointer);
+		array= prop->data.pointer;
 
-			for(i=0; i<prop->len; i++)
-				IDP_DirectLinkProperty(array[i], switch_endian, fd);
-		}
-		else if(prop->subtype == IDP_DOUBLE) {
+		for(i=0; i<prop->len; i++)
+			IDP_DirectLinkProperty(array[i], switch_endian, fd);
+	}
+	else if(prop->subtype == IDP_DOUBLE) {
+		if (switch_endian) {
 			for (i=0; i<prop->len; i++) {
 				SWITCH_LONGINT(((double*)prop->data.pointer)[i]);
 			}
-		} else {
+		}
+	}
+	else {
+		if (switch_endian) {
 			for (i=0; i<prop->len; i++) {
 				SWITCH_INT(((int*)prop->data.pointer)[i]);
 			}
