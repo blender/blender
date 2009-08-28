@@ -53,6 +53,8 @@ extern EnumPropertyItem event_type_items[];
 
 extern EnumPropertyItem brush_sculpt_tool_items[];
 
+extern EnumPropertyItem unpack_method_items[];
+
 #endif /* RNA_ENUM_TYPES */
 
 
