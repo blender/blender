@@ -1,5 +1,5 @@
 /**
- * $Id: drawgpencil.c 22802 2009-08-26 12:01:15Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
