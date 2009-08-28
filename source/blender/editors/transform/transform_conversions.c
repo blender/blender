@@ -4736,7 +4736,7 @@ void special_aftertrans_update(TransInfo *t)
 				 * 	- sync this with actdata_filter_gpencil() in editaction.c
 				 */
 				for (sa= sc->areabase.first; sa; sa= sa->next) {
-					bGPdata *gpd= gpencil_data_getactive(sa);
+					bGPdata *gpd= gpencil_data_get_active(sa);
 					
 					if (gpd)
 						posttrans_gpd_clean(gpd);

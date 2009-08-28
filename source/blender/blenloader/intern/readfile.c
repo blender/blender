@@ -3449,6 +3449,8 @@ static void lib_link_object(FileData *fd, Main *main)
 			}
 			for(a=0; a<ob->totcol; a++) ob->mat[a]= newlibadr_us(fd, ob->id.lib, ob->mat[a]);
 			
+			ob->gpd= newlibadr_us(fd, ob->id.lib, ob->gpd);
+			
 			ob->id.flag -= LIB_NEEDLINK;
 			/* if id.us==0 a new base will be created later on */
 			
@@ -10417,6 +10419,8 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	expand_pose(fd, mainvar, ob->pose);
 	expand_doit(fd, mainvar, ob->poselib);
 	expand_constraints(fd, mainvar, &ob->constraints);
+	
+	expand_doit(fd, mainvar, ob->gpd);
 	
 // XXX depreceated - old animation system (for version patching only) 
 	expand_doit(fd, mainvar, ob->ipo);

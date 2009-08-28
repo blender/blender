@@ -284,6 +284,7 @@ void free_object(Object *ob)
 	if(ob->adt) BKE_free_animdata((ID *)ob);
 	if(ob->poselib) ob->poselib->id.us--;
 	if(ob->dup_group) ob->dup_group->id.us--;
+	if(ob->gpd) ob->gpd->id.us--;
 	if(ob->defbase.first)
 		BLI_freelistN(&ob->defbase);
 	if(ob->pose)

@@ -1,5 +1,28 @@
-/* Grease Pencil  - version 2
- * By Joshua Leung
+/**
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) 2008, Blender Foundation, Joshua Leung
+ * This is a new part of Blender
+ *
+ * Contributor(s): Joshua Leung
+ *
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <stdio.h>
@@ -38,8 +61,8 @@
 #include "ED_view3d.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
+#include "RNA_define.h"
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -47,65 +70,6 @@
 
 /* ******************************************* */
 /* Context Wrangling... */
-
-/* Get the active Grease Pencil datablock */
-// TODO: move this to a gpencil_utils.c? 
-bGPdata *gpencil_data_getactive (bContext *C)
-{
-	Scene *scene= CTX_data_scene(C);
-	ScrArea *sa= CTX_wm_area(C);
-	
-	/* if there's an active area, check if the particular editor may
-	 * have defined any special Grease Pencil context for editing...
-	 */
-	if (sa) {
-		switch (sa->spacetype) {
-			case SPACE_VIEW3D: /* 3D-View */
-			{
-				Object *ob= CTX_data_active_object(C);
-				
-				/* just in case... */
-				if (ob) {
-					/* depending on the mode of the object, we may be able to get some GP data 
-					 * from different elements - i.e. bones...
-					 */
-					if (ob->mode & OB_MODE_POSE) {
-						//bPoseChannel *pchan= CTX_data_active_pchan(C);
-						
-						/* if posechannel has GP data, use that... */
-						//if (pchan && pchan->gpd)
-						//	return pchan->gpd;
-					}
-					
-					/* still here, so check if active Object has GP data */
-					//if (ob->gpd)
-					//	return ob->gpd;
-				}
-			}
-				break;
-			
-			case SPACE_NODE: /* Nodes Editor */
-			{
-				//SpaceNode *snode= (SpaceNode *)CTX_wm_space_data(C);
-				
-				/* return the GP data for the active node block/node */
-			}
-				break;
-				
-			case SPACE_SEQ: /* Sequencer */
-			{
-				//SpaceSeq *sseq= (SpaceSeq *)CTX_wm_space_data(C);
-				
-				/* return the GP data for the active strips/image/etc. */
-			}
-				break;
-		}
-	}
-	
-	/* just fall back on the scene's GP data */
-	return (scene) ? scene->gpd : NULL;
-}
-
 
 /* check if context is suitable for drawing */
 static int gpencil_draw_poll (bContext *C)
@@ -282,8 +246,8 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
 	
 	/* 2d - relative to screen (viewport area) */
 	else {
-		out[0] = (float)(mval[0]) / (float)(p->sa->winx) * 1000;
-		out[1] = (float)(mval[1]) / (float)(p->sa->winy) * 1000;
+		out[0] = (float)(mval[0]) / (float)(p->sa->winx) * 100;
+		out[1] = (float)(mval[1]) / (float)(p->sa->winy) * 100;
 	}
 }
 
@@ -616,8 +580,8 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, int mval[], int mvalo[], sho
 		}
 #endif
 		else {
-			x0= (int)(gps->points->x / 1000 * p->sa->winx);
-			y0= (int)(gps->points->y / 1000 * p->sa->winy);
+			x0= (int)(gps->points->x / 100 * p->sa->winx);
+			y0= (int)(gps->points->y / 100 * p->sa->winy);
 		}
 		
 		/* do boundbox check first */
@@ -673,10 +637,10 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, int mval[], int mvalo[], sho
 			}
 #endif
 			else {
-				x0= (int)(pt1->x / 1000 * p->sa->winx);
-				y0= (int)(pt1->y / 1000 * p->sa->winy);
-				x1= (int)(pt2->x / 1000 * p->sa->winx);
-				y1= (int)(pt2->y / 1000 * p->sa->winy);
+				x0= (int)(pt1->x / 100 * p->sa->winx);
+				y0= (int)(pt1->y / 100 * p->sa->winy);
+				x1= (int)(pt2->x / 100 * p->sa->winx);
+				y1= (int)(pt2->y / 100 * p->sa->winy);
 			}
 			
 			/* check that point segment of the boundbox of the eraser stroke */
@@ -740,6 +704,7 @@ static void gp_session_validatebuffer (tGPsdata *p)
 static tGPsdata *gp_session_initpaint (bContext *C)
 {
 	tGPsdata *p = NULL;
+	bGPdata **gpd_ptr = NULL;
 	ScrArea *curarea= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
 	
@@ -852,11 +817,18 @@ static tGPsdata *gp_session_initpaint (bContext *C)
 	}
 	
 	/* get gp-data */
-	p->gpd= gpencil_data_getactive(C);
-	if (p->gpd == NULL) {
-		/* add new GPencil block for the active scene for now... */
-		p->gpd= gpencil_data_addnew("GPencil");
-		p->scene->gpd= p->gpd;
+	gpd_ptr= gpencil_data_get_pointers(C, NULL);
+	if (gpd_ptr == NULL) {
+		p->status= GP_STATUS_ERROR;
+		if (G.f & G_DEBUG)
+			printf("Error: Current context doesn't allow for any Grease Pencil data \n");
+		return p;
+	}
+	else {
+		/* if no existing GPencil block exists, add one */
+		if (*gpd_ptr == NULL)
+			*gpd_ptr= gpencil_data_addnew("GPencil");
+		p->gpd= *gpd_ptr;
 	}
 	
 	/* set edit flags - so that buffer will get drawn */

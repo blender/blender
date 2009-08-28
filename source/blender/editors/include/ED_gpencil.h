@@ -38,48 +38,34 @@ struct SpaceSeq;
 struct bGPdata;
 struct bGPDlayer;
 struct bGPDframe;
-struct bGPdata;
+struct PointerRNA;
+struct uiLayout;
 struct uiBlock;
 struct ImBuf;
 struct wmWindowManager;
 
 
-/* ------------- Grease-Pencil Helpers -------------- */
+/* ------------- Grease-Pencil Helpers ---------------- */
 
-/* Temporary 'Stroke Point' data */
+/* Temporary 'Stroke Point' data 
+ *
+ * Used as part of the 'stroke cache' used during drawing of new strokes
+ */
 typedef struct tGPspoint {
 	short x, y;				/* x and y coordinates of cursor (in relative to area) */
 	float pressure;			/* pressure of tablet at this point */
 } tGPspoint;
 
-/* ----------- Grease Pencil New Tools ------------- */
+/* ----------- Grease Pencil Tools/Context ------------- */
 
-struct bGPdata *gpencil_data_getactive(struct bContext *C);
+struct bGPdata **gpencil_data_get_pointers(struct bContext *C, struct PointerRNA *ptr);
+struct bGPdata *gpencil_data_get_active(struct bContext *C);
 
-/* ----------- Grease Pencil Operators ------------- */
+/* ----------- Grease Pencil Operators ----------------- */
 
 void gpencil_common_keymap(struct wmWindowManager *wm, ListBase *keymap);
 
 void ED_operatortypes_gpencil(void);
-
-/* ------------ Grease-Pencil Depreceated Stuff ------------------ */
-
-//struct bGPdata *gpencil_data_getactive(struct ScrArea *sa);
-short gpencil_data_setactive(struct ScrArea *sa, struct bGPdata *gpd);
-struct ScrArea *gpencil_data_findowner(struct bGPdata *gpd);
-
-/* ------------ Grease-Pencil Editing API ------------------ */
-
-void gpencil_delete_actframe(struct bGPdata *gpd, int cfra);
-void gpencil_delete_laststroke(struct bGPdata *gpd, int cfra);
-
-void gpencil_delete_operation(int cfra, short mode);
-void gpencil_delete_menu(void);
-
-void gpencil_convert_operation(short mode);
-void gpencil_convert_menu(void);
-
-short gpencil_do_paint(struct bContext *C);
 
 /* ------------ Grease-Pencil Drawing API ------------------ */
 /* drawgpencil.c */

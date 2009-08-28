@@ -245,6 +245,11 @@ void free_scene(Scene *sce)
 		base= base->next;
 	}
 	/* do not free objects! */
+	
+	if(sce->gpd) {
+		sce->gpd->id.us--;
+		sce->gpd= NULL;
+	}
 
 	BLI_freelistN(&sce->base);
 	seq_free_editing(sce);
