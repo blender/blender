@@ -82,8 +82,8 @@ def write_pov(filename, scene=None, info_callback = None):
 		file.write('#declare %s = finish {\n' % name)
 		
 		if material:
-			file.write('\tdiffuse %.3g\n' % material.diffuse_reflection)
-			file.write('\tspecular %.3g\n' % material.specular_reflection)
+			file.write('\tdiffuse %.3g\n' % material.diffuse_intensity)
+			file.write('\tspecular %.3g\n' % material.specular_intensity)
 			
 			file.write('\tambient %.3g\n' % material.ambient)
 			#file.write('\tambient rgb <%.3g, %.3g, %.3g>\n' % tuple([c*material.ambient for c in world.ambient_color])) # povray blends the global value
@@ -101,10 +101,10 @@ def write_pov(filename, scene=None, info_callback = None):
 			
 			if material.raytrace_mirror.enabled:
 				raytrace_mirror= material.raytrace_mirror
-				if raytrace_mirror.reflect:
+				if raytrace_mirror.reflect_factor:
 					file.write('\treflection {\n')
 					file.write('\t\trgb <%.3g, %.3g, %.3g>' % tuple(material.mirror_color))
-					file.write('\t\tfresnel 1 falloff %.3g exponent %.3g metallic %.3g} ' % (raytrace_mirror.fresnel, raytrace_mirror.fresnel_fac, raytrace_mirror.reflect))
+					file.write('\t\tfresnel 1 falloff %.3g exponent %.3g metallic %.3g} ' % (raytrace_mirror.fresnel, raytrace_mirror.fresnel_factor, raytrace_mirror.reflect_factor))
 		
 		else:
 			file.write('\tdiffuse 0.8\n')
@@ -300,14 +300,7 @@ def write_pov(filename, scene=None, info_callback = None):
 			try:	vcol_layer = me.active_vertex_color.data
 			except:vcol_layer = None
 			
-			
-			def regular_face(f):
-				fv = f.verts
-				if fv[3]== 0:
-					return fv[0], fv[1], fv[2]
-				return fv[0], fv[1], fv[2], fv[3]
-			
-			faces_verts = [regular_face(f) for f in me.faces]
+			faces_verts = [f.verts for f in me.faces]
 			faces_normals = [tuple(f.normal) for f in me.faces]
 			verts_normals = [tuple(v.normal) for v in me.verts]
 			

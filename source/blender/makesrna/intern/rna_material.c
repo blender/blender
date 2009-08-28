@@ -746,7 +746,7 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Enabled", "Enable raytraced reflections.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 		
-	prop= RNA_def_property(srna, "reflectivity", PROP_FLOAT, PROP_PERCENTAGE);
+	prop= RNA_def_property(srna, "reflect_factor", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "ray_mirror");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Reflectivity", "Sets the amount mirror reflection for raytrace.");
@@ -764,7 +764,7 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Fresnel Factor", "Blending factor for Fresnel.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "gloss_amount", PROP_FLOAT, PROP_PERCENTAGE);
+	prop= RNA_def_property(srna, "gloss_factor", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "gloss_mir");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Gloss Amount", "The shininess of the reflection. Values < 1.0 give diffuse, blurry reflections.");
@@ -835,7 +835,7 @@ static void rna_def_material_raytra(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Fresnel Factor", "Blending factor for Fresnel.");
 	RNA_def_property_update(prop, NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "gloss_amount", PROP_FLOAT, PROP_PERCENTAGE);
+	prop= RNA_def_property(srna, "gloss_factor", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, NULL, "gloss_tra");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Gloss Amount", "The clarity of the refraction. Values < 1.0 give diffuse, blurry refractions.");

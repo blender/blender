@@ -466,7 +466,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
 		if not strip:
 			return False
 		
-		return strip.type in ('SOUND')
+		return strip.type in ('SOUND', )
 	
 	def draw(self, context):
 		layout = self.layout

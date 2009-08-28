@@ -426,7 +426,7 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel):
 		split = layout.split()
 		
 		col = split.column()
-		col.itemR(raym, "reflectivity")
+		col.itemR(raym, "reflect_factor")
 		col.itemR(mat, "mirror_color", text="")
 
 		col = split.column()
@@ -448,9 +448,9 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel):
 		
 		col = split.column()
 		col.itemL(text="Gloss:")
-		col.itemR(raym, "gloss_amount", text="Amount")
+		col.itemR(raym, "gloss_factor", text="Amount")
 		sub = col.column()
-		sub.active = raym.gloss_amount < 1
+		sub.active = raym.gloss_factor < 1.0
 		sub.itemR(raym, "gloss_threshold", text="Threshold")
 		sub.itemR(raym, "gloss_samples", text="Samples")
 		sub.itemR(raym, "gloss_anisotropic", text="Anisotropic")
@@ -511,9 +511,9 @@ class MATERIAL_PT_transp(MaterialButtonsPanel):
 			
 			col = split.column()
 			col.itemL(text="Gloss:")
-			col.itemR(rayt, "gloss_amount", text="Amount")
+			col.itemR(rayt, "gloss_factor", text="Amount")
 			sub = col.column()
-			sub.active = rayt.gloss_amount < 1
+			sub.active = rayt.gloss_factor < 1.0
 			sub.itemR(rayt, "gloss_threshold", text="Threshold")
 			sub.itemR(rayt, "gloss_samples", text="Samples")
 

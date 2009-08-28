@@ -64,7 +64,7 @@ def write(filename, scene, ob, \
 		raise Exception("Error, Select 1 active object")
 		return
 	
-	file = open(filename, 'wb')
+	file = open(filename, 'w')
 	
 	
 	#EXPORT_EDGES = Draw.Create(0)
@@ -88,9 +88,9 @@ def write(filename, scene, ob, \
 	
 	# mesh.transform(ob.matrixWorld) # XXX
 	
-	faceUV = len(mesh.uv_layers) > 0
+	faceUV = len(mesh.uv_textures) > 0
 	vertexUV = len(mesh.sticky) > 0
-	vertexColors = len(mesh.vcol_layers) > 0
+	vertexColors = len(mesh.vertex_colors) > 0
 	
 	if (not faceUV) and (not vertexUV):	EXPORT_UV = False
 	if not vertexColors:					EXPORT_COLORS = False
@@ -100,7 +100,7 @@ def write(filename, scene, ob, \
 		
 	if faceUV:
 		active_uv_layer = None
-		for lay in mesh.uv_layers:
+		for lay in mesh.uv_textures:
 			if lay.active:
 				active_uv_layer= lay.data
 				break
@@ -110,7 +110,7 @@ def write(filename, scene, ob, \
 	
 	if vertexColors:
 		active_col_layer = None
-		for lay in mesh.vcol_layers:
+		for lay in mesh.vertex_colors:
 			if lay.active:
 				active_col_layer= lay.data
 		if not active_col_layer:
@@ -123,8 +123,8 @@ def write(filename, scene, ob, \
 	mesh_verts = mesh.verts # save a lookup
 	ply_verts = [] # list of dictionaries
 	# vdict = {} # (index, normal, uv) -> new index
-	vdict = [{} for i in xrange(len(mesh_verts))]
-	ply_faces = [[] for f in xrange(len(mesh.faces))]
+	vdict = [{} for i in range(len(mesh_verts))]
+	ply_faces = [[] for f in range(len(mesh.faces))]
 	vert_count = 0
 	for i, f in enumerate(mesh.faces):
 		
@@ -141,8 +141,7 @@ def write(filename, scene, ob, \
 			col = active_col_layer[i]
 			col = col.color1, col.color2, col.color3, col.color4
 		
-		f_verts= list(f.verts)
-		if not f_verts[3]: f_verts.pop() # XXX face length should be 3/4, not always 4
+		f_verts= f.verts
 		
 		pf= ply_faces[i]
 		for j, vidx in enumerate(f_verts):
