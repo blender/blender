@@ -163,7 +163,7 @@ void sound_cache(struct bSound* sound, int ignore)
 		AUD_unload(sound->cache);
 
 	sound->cache = AUD_bufferSound(sound->handle);
-	sound->changed = TRUE;
+	sound->changed++;
 }
 
 void sound_delete_cache(struct bSound* sound)
@@ -204,7 +204,7 @@ void sound_load(struct Main *main, struct bSound* sound)
 			if(sound->id.lib)
 				path = sound->id.lib->filename;
 			else
-				path = main ? main->name : NULL;
+				path = main ? main->name : G.sce;
 
 			BLI_convertstringcode(fullpath, path);
 
@@ -229,7 +229,7 @@ void sound_load(struct Main *main, struct bSound* sound)
 			break;
 		}
 #endif
-		sound->changed = TRUE;
+		sound->changed++;
 	}
 }
 
