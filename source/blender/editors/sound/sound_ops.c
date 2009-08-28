@@ -161,7 +161,7 @@ void SOUND_OT_pack(wmOperatorType *ot)
 /********************* unpack operator *********************/
 
 // XXX this function is in image_ops.c too, exactly the same, should be moved to a generally accessible position
-void unpack_menu(bContext *C, char *opname, char *abs_name, char *folder, PackedFile *pf)
+static void unpack_menu(bContext *C, char *opname, char *abs_name, char *folder, PackedFile *pf)
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
