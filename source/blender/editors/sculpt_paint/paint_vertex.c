@@ -1610,13 +1610,13 @@ For future:
 
 */
 
-struct VPaintData {
+typedef struct VPaintData {
 	ViewContext vc;
 	unsigned int paintcol;
 	int *indexar;
 	float *vertexcosnos;
 	float vpimat[3][3];
-};
+} VPaintData;
 
 static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent *event)
 {
@@ -1653,6 +1653,38 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 	Mat3CpyMat4(vpd->vpimat, imat);
 
 	return 1;
+}
+
+static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, int index, float mval[2])
+{
+	ViewContext *vc = &vpd->vc;
+	Mesh *me = get_mesh(ob);
+	MFace *mface= ((MFace*)me->mface) + index;
+	unsigned int *mcol= ((unsigned int*)me->mcol) + 4*index;
+	unsigned int *mcolorig= ((unsigned int*)vp->vpaint_prev) + 4*index;
+	int alpha, i;
+	
+	if((vp->flag & VP_COLINDEX && mface->mat_nr!=ob->actcol-1) ||
+	   (G.f & G_FACESELECT && !(mface->flag & ME_FACE_SEL)))
+		return;
+
+	if(vp->mode==VP_BLUR) {
+		unsigned int fcol1= mcol_blend( mcol[0], mcol[1], 128);
+		if(mface->v4) {
+			unsigned int fcol2= mcol_blend( mcol[2], mcol[3], 128);
+			vpd->paintcol= mcol_blend( fcol1, fcol2, 128);
+		}
+		else {
+			vpd->paintcol= mcol_blend( mcol[2], fcol1, 170);
+		}
+		
+	}
+
+	for(i = 0; i < (mface->v4 ? 4 : 3); ++i) {
+		alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*(&mface->v1)[i], mval);
+		if(alpha)
+			vpaint_blend(vp, mcol+i, mcolorig+i, vpd->paintcol, alpha);
+	}
 }
 
 static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, PointerRNA *itemptr)
@@ -1694,62 +1726,9 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			
 	MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
 			
-	if(vp->flag & VP_COLINDEX) {
-		for(index=0; index<totindex; index++) {
-			if(indexar[index] && indexar[index]<=me->totface) {
-				MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
-						
-				if(mface->mat_nr!=ob->actcol-1) {
-					indexar[index]= 0;
-				}
-			}					
-		}
-	}
-	if((G.f & G_FACESELECT) && me->mface) {
-		for(index=0; index<totindex; index++) {
-			if(indexar[index] && indexar[index]<=me->totface) {
-				MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
-						
-				if((mface->flag & ME_FACE_SEL)==0)
-					indexar[index]= 0;
-			}					
-		}
-	}
-			
-	for(index=0; index<totindex; index++) {
-				
-		if(indexar[index] && indexar[index]<=me->totface) {
-			MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
-			unsigned int *mcol=	  ( (unsigned int *)me->mcol) + 4*(indexar[index]-1);
-			unsigned int *mcolorig= ( (unsigned int *)vp->vpaint_prev) + 4*(indexar[index]-1);
-			int alpha;
-					
-			if(vp->mode==VP_BLUR) {
-				unsigned int fcol1= mcol_blend( mcol[0], mcol[1], 128);
-				if(mface->v4) {
-					unsigned int fcol2= mcol_blend( mcol[2], mcol[3], 128);
-					vpd->paintcol= mcol_blend( fcol1, fcol2, 128);
-				}
-				else {
-					vpd->paintcol= mcol_blend( mcol[2], fcol1, 170);
-				}
-						
-			}
-					
-			alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v1, mval);
-			if(alpha) vpaint_blend(vp, mcol, mcolorig, vpd->paintcol, alpha);
-					
-			alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v2, mval);
-			if(alpha) vpaint_blend(vp, mcol+1, mcolorig+1, vpd->paintcol, alpha);
-					
-			alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v3, mval);
-			if(alpha) vpaint_blend(vp, mcol+2, mcolorig+2, vpd->paintcol, alpha);
-					
-			if(mface->v4) {
-				alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v4, mval);
-				if(alpha) vpaint_blend(vp, mcol+3, mcolorig+3, vpd->paintcol, alpha);
-			}
-		}
+	for(index=0; index<totindex; index++) {				
+		if(indexar[index] && indexar[index]<=me->totface)
+			vpaint_paint_face(vp, vpd, ob, indexar[index]-1, mval);
 	}
 						
 	MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
