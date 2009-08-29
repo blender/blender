@@ -41,6 +41,12 @@ class DATA_PT_skeleton(DataButtonsPanel):
 		split = layout.split()
 
 		col = split.column()
+		col.itemL(text="Layers:")
+		col.template_layers(arm, "layer")
+		col.itemL(text="Protected Layers:")
+		col.template_layers(arm, "layer_protection")
+		
+		col = split.column()
 		col.itemR(arm, "rest_position")
 		col.itemL(text="Deform:")
 		col.itemR(arm, "deform_vertexgroups", text="Vertex Groups")
@@ -49,13 +55,7 @@ class DATA_PT_skeleton(DataButtonsPanel):
 		col.itemR(arm, "deform_bbone_rest", text="B-Bones Rest")
 		#col.itemR(arm, "x_axis_mirror")
 		#col.itemR(arm, "auto_ik")
-			
-		col = split.column()
-		col.itemL(text="Layers:")
-		col.template_layers(arm, "layer")
-		col.itemL(text="Protected Layers:")
-		col.template_layers(arm, "layer_protection")
-
+		
 class DATA_PT_display(DataButtonsPanel):
 	__label__ = "Display"
 	
@@ -154,7 +154,7 @@ class DATA_PT_ghost(DataButtonsPanel):
 		split = layout.split()
 
 		col = split.column()
-		col.itemR(arm, "ghost_type", text="Scope")
+		col.itemR(arm, "ghost_type", text="")
 
 		sub = col.column(align=True)
 		if arm.ghost_type == 'RANGE':
