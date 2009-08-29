@@ -46,7 +46,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 			layout.itemR(fluid, "type")
 
 			if fluid.type == 'DOMAIN':
-				layout.itemO("fluid.bake", text="BAKE")
+				layout.itemO("fluid.bake", text="Bake Fluid Simulation", icon='ICON_MOD_FLUIDSIM')
 				split = layout.split()
 				
 				col = split.column()
