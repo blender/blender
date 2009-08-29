@@ -1029,8 +1029,11 @@ static void ss_sync_from_derivedmesh(CSubSurf *ss, DerivedMesh *dm,
 
 		((int*)CCS_getFaceUserData(ss, f))[1] = *index;
 	}
+	fiter->free(fiter);
 
 	CCS_processSync(ss);
+
+	V_FREE(fVerts);
 }
 
 /***/
@@ -2612,12 +2615,10 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 	int gridInternalEdges;
 	float *w = NULL, one = 1.0f;
 	WeightTable wtable = {0};
-	V_DECLARE(w);
 	/* MVert *mvert = NULL; - as yet unused */
 	MCol *mcol;
 	MEdge *medge = NULL;
 	MFace *mface = NULL;
-	FaceVertWeight *qweight, *tweight;
 
 	DM_from_template(&cgdm->dm, dm, CCS_getNumFinalVerts(ss),
 					 CCS_getNumFinalEdges(ss),
@@ -2723,8 +2724,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 	/*gridInternalVerts = gridSideVerts * gridSideVerts; - as yet, unused */
 	gridSideEdges = gridSize - 1;
 	gridInternalEdges = (gridSideEdges - 1) * gridSideEdges * 2; 
-
-	calc_ss_weights(gridFaces, &qweight, &tweight);
 
 	vertNum = 0;
 	edgeNum = 0;
@@ -2931,6 +2930,11 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 	cgdm->dm.numFaceData = faceNum;
 	cgdm->dm.numLoopData = loopindex2;
 	cgdm->dm.numPolyData = faceNum;
+
+	V_FREE(vertidx);
+	V_FREE(loopidx);
+	free_ss_weights(&wtable);
+
 #if 0
 	for(index = 0; index < totface; ++index) {
 		CCFace *f = cgdm->faceMap[index].face;

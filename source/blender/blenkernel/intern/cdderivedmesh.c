@@ -887,11 +887,11 @@ static void cdDM_recalcTesselation(DerivedMesh *dm)
 		for (j=0; j<mp->totloop; j++, ml++) {
 			v = BLI_addfillvert(cddm->mvert[ml->v].co);
 			if (polyorigIndex)
-				v->f1 = polyorigIndex[i];
+				v->tmp.l = polyorigIndex[i];
 			else
-				v->f1 = i;
+				v->tmp.l = i;
 
-			v->f2 = mp->loopstart + j;
+			v->keyindex = mp->loopstart + j;
 
 			if (lastv)
 				BLI_addfilledge(lastv, v);
@@ -900,7 +900,7 @@ static void cdDM_recalcTesselation(DerivedMesh *dm)
 				firstv = v;
 			lastv = v;
 		}
-		BLI_addfilledge(firstv, v);
+		BLI_addfilledge(lastv, firstv);
 		
 		BLI_edgefill(0, 0);
 		for (f=fillfacebase.first; f; f=f->next) {
@@ -909,10 +909,10 @@ static void cdDM_recalcTesselation(DerivedMesh *dm)
 
 			/*these are loop indices, they'll be transformed
 			  into vert indices later.*/
-			mf[k].v1 = f->v1->f2;
-			mf[k].v2 = f->v2->f2;
-			mf[k].v3 = f->v3->f2;
-			origIndex[k] = f->v1->f1;
+			mf[k].v1 = f->v1->keyindex;
+			mf[k].v2 = f->v2->keyindex;
+			mf[k].v3 = f->v3->keyindex;
+			origIndex[k] = f->v1->tmp.l;
 
 			k++;
 		}
@@ -934,6 +934,17 @@ static void cdDM_recalcTesselation(DerivedMesh *dm)
 		lindex[0] = mf->v1;
 		lindex[1] = mf->v2;
 		lindex[2] = mf->v3;
+
+		/*ensure winding is correct*/
+		if (mf->v1 > mf->v2) {
+			SWAP(int, mf->v1, mf->v2);
+		}
+		if (mf->v2 > mf->v3) {
+			SWAP(int, mf->v2, mf->v3);
+		}
+		if (mf->v1 > mf->v2) {
+			SWAP(int, mf->v1, mf->v2);
+		}
 
 		/*transform loop indices to vert indices*/
 		mf->v1 = cddm->mloop[mf->v1].v;
@@ -1067,6 +1078,8 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	                 mesh->totvert);
 	CustomData_merge(&mesh->edata, &dm->edgeData, mask, alloctype,
 	                 mesh->totedge);
+	//CustomData_merge(&mesh->fdata, &dm->faceData, mask, alloctype,
+	//                 mesh->totface);
 	CustomData_merge(&mesh->ldata, &dm->loopData, mask, alloctype,
 	                 mesh->totloop);
 	CustomData_merge(&mesh->pdata, &dm->polyData, mask, alloctype,
@@ -1076,6 +1089,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
 	cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
 	cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
+	//cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 
 	index = CustomData_get_layer(&dm->vertData, CD_ORIGINDEX);
 	for(i = 0; i < mesh->totvert; ++i, ++index)

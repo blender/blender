@@ -891,11 +891,11 @@ void bmesh_similarverts_exec(BMesh *bm, BMOperator *op)
 		switch( type ) {
 		case SIMVERT_FACE:
 			/* calling BM_Vert_FaceCount every time is time consumming, so call it only once per vertex */
-			v_ext[i].num_faces	= BM_Vert_FaceCount(v);
+			v_ext[i].num_faces = BM_Vert_FaceCount(v);
 			break;
 
 		case SIMVERT_VGROUP:
-			if( CustomData_has_layer(&(bm->vdata),CD_MDEFORMVERT) ) {
+			if( CustomData_has_layer(&(bm->vdata), CD_MDEFORMVERT) ) {
 				v_ext[i].dvert = CustomData_bmesh_get(&bm->vdata, v_ext[i].v->head.data, CD_MDEFORMVERT);
 			} else v_ext[i].dvert = NULL;
 			break;

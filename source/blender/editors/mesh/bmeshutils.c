@@ -541,11 +541,11 @@ static void *editbtMesh_to_undoMesh(void *emv)
 
 static void undoMesh_to_editbtMesh(void *umv, void *emv)
 {
-	BMEditMesh *bm1 = umv, *bm2 = emv;
+	BMEditMesh *em1 = umv, *em2 = emv;
 
-	BMEdit_Free(bm2);
+	BMEdit_Free(em2);
 
-	*bm2 = *BMEdit_Copy(bm1);
+	*em2 = *BMEdit_Copy(em1);
 }
 
 
@@ -554,6 +554,7 @@ static void free_undo(void *umv)
 	BMEditMesh *em = umv;
 
 	BMEdit_Free(em);
+	MEM_freeN(em);
 }
 
 /* and this is all the undo system needs to know */
