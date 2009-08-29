@@ -5070,9 +5070,6 @@ static void direct_link_sound(FileData *fd, bSound *sound)
 
 	sound->packedfile = direct_link_packedfile(fd, sound->packedfile);
 	sound->newpackedfile = direct_link_packedfile(fd, sound->newpackedfile);
-
-	if(sound->cache)
-		sound_cache(sound, 1);
 }
 
 static void lib_link_sound(FileData *fd, Main *main)
@@ -5086,6 +5083,9 @@ static void lib_link_sound(FileData *fd, Main *main)
 			sound->ipo= newlibadr_us(fd, sound->id.lib, sound->ipo); // XXX depreceated - old animation system
 			
 			sound_load(main, sound);
+
+			if(sound->cache)
+				sound_cache(sound, 1);
 		}
 		sound= sound->id.next;
 	}
