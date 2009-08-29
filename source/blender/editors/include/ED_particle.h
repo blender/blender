@@ -37,6 +37,7 @@ struct ParticleSystem;
 struct RadialControl;
 struct rcti;
 struct wmWindowManager;
+struct PTCacheEdit;
 
 /* particle edit mode */
 void PE_free_ptcache_edit(struct PTCacheEdit *edit);
