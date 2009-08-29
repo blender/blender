@@ -1658,11 +1658,13 @@ void rna_def_mtex_common(StructRNA *srna, const char *begin, const char *activeg
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_funcs(prop, activeget, activeset, NULL);
 	RNA_def_property_ui_text(prop, "Active Texture", "Active texture slot being displayed.");
+	RNA_def_property_update(prop, NC_TEXTURE|ND_SHADING_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "active_texture_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "texact");
 	RNA_def_property_range(prop, 0, MAX_MTEX-1);
 	RNA_def_property_ui_text(prop, "Active Texture Index", "Index of active texture slot.");
+	RNA_def_property_update(prop, NC_TEXTURE|ND_SHADING_DRAW, NULL);
 }
 
 #endif
