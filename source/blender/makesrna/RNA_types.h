@@ -176,11 +176,11 @@ typedef struct CollectionPointerLink {
 } CollectionPointerLink;
 
 typedef enum RawPropertyType {
-	PROP_RAW_CHAR,
+	PROP_RAW_INT, // XXX - abused for types that are not set, eg. MFace.verts, needs fixing.
 	PROP_RAW_SHORT,
-	PROP_RAW_INT,
-	PROP_RAW_FLOAT,
-	PROP_RAW_DOUBLE
+	PROP_RAW_CHAR,
+	PROP_RAW_DOUBLE,
+	PROP_RAW_FLOAT
 } RawPropertyType;
 
 typedef struct RawArray {

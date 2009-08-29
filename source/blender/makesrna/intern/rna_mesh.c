@@ -708,7 +708,10 @@ static void rna_TextureFace_image_set(PointerRNA *ptr, PointerRNA value)
 static int rna_MeshFace_verts_get_length(PointerRNA *ptr)
 {
 	MFace *face= (MFace*)ptr->data;
-	return face->v4 ? 4 : 3;
+	if(face)
+		return face->v4 ? 4 : 3;
+	else
+		return 4; // XXX rna_raw_access wants the length of a dummy face. this needs fixing. - Campbell
 }
 
 static int rna_MeshFace_verts_set_length(PointerRNA *ptr, int length)
