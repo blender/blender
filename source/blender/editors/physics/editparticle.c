@@ -199,7 +199,7 @@ PTCacheEdit *PE_get_current(Scene *scene, Object *ob)
 	BKE_ptcache_ids_from_object(&pidlist, ob);
 
 	/* in the case of only one editable thing, set pset->edittype accordingly */
-	if(pidlist.first == pidlist.last) {
+	if(pidlist.first && pidlist.first == pidlist.last) {
 		pid = pidlist.first;
 		switch(pid->type) {
 			case PTCACHE_TYPE_PARTICLES:
