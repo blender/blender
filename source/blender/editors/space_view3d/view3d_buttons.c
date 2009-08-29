@@ -36,6 +36,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
@@ -81,6 +82,7 @@
 #include "ED_armature.h"
 #include "ED_curve.h"
 #include "ED_image.h"
+#include "ED_gpencil.h"
 #include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -1199,33 +1201,6 @@ static void view3d_panel_preview(bContext *C, ARegion *ar, short cntrl)	// VIEW3
 }
 #endif
 
-#if 0
-static void view3d_panel_gpencil(const bContext *C, Panel *pa)
-{
-	View3D *v3d= CTX_wm_view3d(C);
-	uiBlock *block;
-
-	block= uiLayoutFreeBlock(pa->layout);
-
-	/* allocate memory for gpd if drawing enabled (this must be done first or else we crash) */
-	if (v3d->flag2 & V3D_DISPGP) {
-//		if (v3d->gpd == NULL)
-// XXX			gpencil_data_setactive(ar, gpencil_data_addnew());
-	}
-	
-	if (v3d->flag2 & V3D_DISPGP) {
-// XXX		bGPdata *gpd= v3d->gpd;
-		
-		/* draw button for showing gpencil settings and drawings */
-		uiDefButBitS(block, TOG, V3D_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &v3d->flag2, 0, 0, 0, 0, "Display freehand annotations overlay over this 3D View (draw using Shift-LMB)");
-	}
-	else {
-		uiDefButBitS(block, TOG, V3D_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &v3d->flag2, 0, 0, 0, 0, "Display freehand annotations overlay over this 3D View");
-		uiDefBut(block, LABEL, 1, " ",	160, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
-	}
-}
-#endif
-
 static void delete_sketch_armature(bContext *C, void *arg1, void *arg2)
 {
 	BIF_deleteSketch(C);
@@ -1415,6 +1390,12 @@ void view3d_buttons_register(ARegionType *art)
 	strcpy(pt->idname, "VIEW3D_PT_object");
 	strcpy(pt->label, "Transform");
 	pt->draw= view3d_panel_object;
+	BLI_addtail(&art->paneltypes, pt);
+	
+	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel gpencil");
+	strcpy(pt->idname, "VIEW3D_PT_gpencil");
+	strcpy(pt->label, "Grease Pencil");
+	pt->draw= gpencil_panel_standard;
 	BLI_addtail(&art->paneltypes, pt);
 /*
 	pt= MEM_callocN(sizeof(PanelType), "spacetype view3d panel properties");

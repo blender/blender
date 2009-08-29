@@ -40,6 +40,13 @@ struct wmOperatorType;
 
 void GPENCIL_OT_draw(struct wmOperatorType *ot);
 
+/* buttons editing --- */
+
+void GPENCIL_OT_data_add(struct wmOperatorType *ot);
+void GPENCIL_OT_data_unlink(struct wmOperatorType *ot);
+
+void GPENCIL_OT_layer_add(struct wmOperatorType *ot);
+
 
 /******************************************************* */
 /* FILTERED ACTION DATA - TYPES  ---> XXX DEPRECEATED OLD ANIM SYSTEM CODE! */

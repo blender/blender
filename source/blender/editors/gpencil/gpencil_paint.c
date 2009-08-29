@@ -919,7 +919,7 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 				View3D *v3d= (View3D *)p->sa->spacedata.first;
 				RegionView3D *rv3d= p->ar->regiondata;
 				
-				// TODO: this should only happen for scene... otherwise use object center!
+				// TODO: this should only happen for scene... otherwise apply correction for object center!
 				float *fp= give_cursor(p->scene, v3d);
 				initgrabz(rv3d, fp[0], fp[1], fp[2]);
 				
@@ -1230,6 +1230,9 @@ static int gpencil_draw_exec (bContext *C, wmOperator *op)
 	
 	/* cleanup */
 	gpencil_draw_exit(C, op);
+	
+	/* refreshes */
+	WM_event_add_notifier(C, NC_SCREEN|ND_GPENCIL|NA_EDITED, NULL); // XXX please work!
 	
 	/* done */
 	return OPERATOR_FINISHED;

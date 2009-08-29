@@ -66,9 +66,15 @@ void gpencil_common_keymap(wmWindowManager *wm, ListBase *keymap)
 void ED_operatortypes_gpencil (void)
 {
 	/* Drawing ----------------------- */
+	
 	WM_operatortype_append(GPENCIL_OT_draw);
 	
 	/* Editing (Buttons) ------------ */
+	
+	WM_operatortype_append(GPENCIL_OT_data_add);
+	WM_operatortype_append(GPENCIL_OT_data_unlink);
+	
+	WM_operatortype_append(GPENCIL_OT_layer_add);
 	
 	/* Editing (Time) --------------- */
 }
