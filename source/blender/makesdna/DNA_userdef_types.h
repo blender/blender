@@ -440,6 +440,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_DUP_TEX			(1 << 8)
 #define	USER_DUP_ARM			(1 << 9)
 #define	USER_DUP_ACT			(1 << 10)
+#define	USER_DUP_PSYS			(1 << 11)
 
 /* gameflags */
 #define USER_DEPRECATED_FLAG	1

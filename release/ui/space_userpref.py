@@ -230,6 +230,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
 		sub1.itemR(edit, "duplicate_texture", text="Texture")
 		sub1.itemR(edit, "duplicate_ipo", text="F-Curve")
 		sub1.itemR(edit, "duplicate_action", text="Action")
+		sub1.itemR(edit, "duplicate_particle", text="Particle")
 		
 class USERPREF_PT_system(bpy.types.Panel):
 	__space_type__ = 'USER_PREFERENCES'

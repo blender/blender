@@ -447,14 +447,6 @@ def setPhysicsTicRate(ticrate):
 	@type ticrate: float
 	"""
 
-def EvalExpression(text):
-	"""
-	Evaluate the string as an expression, similar to the expression controller logic brick.
-	@param text: The expression to evaluate.
-	@type text: string
-	@return: The result of the expression. The type depends on the expression.
-	"""
-
 #{ Utility functions
 def getAverageFrameRate():
 	"""

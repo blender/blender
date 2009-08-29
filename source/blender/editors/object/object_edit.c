@@ -6367,6 +6367,17 @@ static Base *object_add_duplicate_internal(Scene *scene, Base *base, int dupflag
 				}
 			}
 		}
+		if(dupflag & USER_DUP_PSYS) {
+			ParticleSystem *psys;
+			for(psys=obn->particlesystem.first; psys; psys=psys->next) {
+				id= (ID*) psys->part;
+				if(id) {
+					ID_NEW_US(psys->part)
+					else psys->part= psys_copy_settings(psys->part);
+					id->us--;
+				}
+			}
+		}
 		
 		id= obn->data;
 		didit= 0;

@@ -1864,47 +1864,51 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "duplicate_mesh", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_MESH);
-	RNA_def_property_ui_text(prop, "Duplicate Mesh", "Causes mesh data to be duplicated with Shift+D.");
+	RNA_def_property_ui_text(prop, "Duplicate Mesh", "Causes mesh data to be duplicated with the object.");
 
 	prop= RNA_def_property(srna, "duplicate_surface", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_SURF);
-	RNA_def_property_ui_text(prop, "Duplicate Surface", "Causes surface data to be duplicated with Shift+D.");
+	RNA_def_property_ui_text(prop, "Duplicate Surface", "Causes surface data to be duplicated with the object.");
 	
 	prop= RNA_def_property(srna, "duplicate_curve", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_CURVE);
-	RNA_def_property_ui_text(prop, "Duplicate Curve", "Causes curve data to be duplicated with Shift+D.");
+	RNA_def_property_ui_text(prop, "Duplicate Curve", "Causes curve data to be duplicated with the object.");
 
 	prop= RNA_def_property(srna, "duplicate_text", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_FONT);
-	RNA_def_property_ui_text(prop, "Duplicate Text", "Causes text data to be duplicated with Shift+D.");
+	RNA_def_property_ui_text(prop, "Duplicate Text", "Causes text data to be duplicated with the object.");
 
 	prop= RNA_def_property(srna, "duplicate_metaball", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_MBALL);
-	RNA_def_property_ui_text(prop, "Duplicate Metaball", "Causes metaball data to be duplicated with Shift+D.");
+	RNA_def_property_ui_text(prop, "Duplicate Metaball", "Causes metaball data to be duplicated with the object.");
 	
 	prop= RNA_def_property(srna, "duplicate_armature", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_ARM);
-	RNA_def_property_ui_text(prop, "Duplicate Armature", "Causes armature data to be duplicated with Shift+D.");
+	RNA_def_property_ui_text(prop, "Duplicate Armature", "Causes armature data to be duplicated with the object.");
 
 	prop= RNA_def_property(srna, "duplicate_lamp", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_LAMP);
-	RNA_def_property_ui_text(prop, "Duplicate Lamp", "Causes lamp data to be duplicated with Shift+D.");
+	RNA_def_property_ui_text(prop, "Duplicate Lamp", "Causes lamp data to be duplicated with the object.");
 
 	prop= RNA_def_property(srna, "duplicate_material", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_MAT);
-	RNA_def_property_ui_text(prop, "Duplicate Material", "Causes material data to be duplicated with Shift+D.");
+	RNA_def_property_ui_text(prop, "Duplicate Material", "Causes material data to be duplicated with the object.");
 
 	prop= RNA_def_property(srna, "duplicate_texture", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_TEX);
-	RNA_def_property_ui_text(prop, "Duplicate Texture", "Causes texture data to be duplicated with Shift+D.");
+	RNA_def_property_ui_text(prop, "Duplicate Texture", "Causes texture data to be duplicated with the object.");
 	
 	prop= RNA_def_property(srna, "duplicate_ipo", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_IPO);
-	RNA_def_property_ui_text(prop, "Duplicate Ipo", "Causes ipo data to be duplicated with Shift+D.");
+	RNA_def_property_ui_text(prop, "Duplicate Ipo", "Causes ipo data to be duplicated with the object.");
 
 	prop= RNA_def_property(srna, "duplicate_action", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_ACT);
-	RNA_def_property_ui_text(prop, "Duplicate Action", "Causes actions to be duplicated with Shift+D.");
+	RNA_def_property_ui_text(prop, "Duplicate Action", "Causes actions to be duplicated with the object.");
+	
+	prop= RNA_def_property(srna, "duplicate_particle", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_PSYS);
+	RNA_def_property_ui_text(prop, "Duplicate Particle", "Causes particle systems to be duplicated with the object.");
 }
 
 static void rna_def_userdef_language(BlenderRNA *brna)

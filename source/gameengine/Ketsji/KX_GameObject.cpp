@@ -2520,12 +2520,10 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 		}
 	}
 	MT_Point3 fromPoint = NodeGetWorldPosition();
+	
 	if (dist != 0.0f)
-	{
-		MT_Vector3 toDir = toPoint-fromPoint;
-		toDir.normalize();
-		toPoint = fromPoint + (dist) * toDir;
-	}
+		toPoint = fromPoint + dist * (toPoint-fromPoint).safe_normalized();
+	
 	PHY_IPhysicsEnvironment* pe = KX_GetActiveScene()->GetPhysicsEnvironment();
 	KX_IPhysicsController *spc = GetPhysicsController();
 	KX_GameObject *parent = GetParent();
