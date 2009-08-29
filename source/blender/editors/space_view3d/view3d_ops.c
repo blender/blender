@@ -134,7 +134,7 @@ void view3d_keymap(wmWindowManager *wm)
 	RNA_boolean_set(km->ptr, "snap", 1);
 	
 	/* grease pencil */
-	gpencil_common_keymap(wm, keymap); // XXX
+	gpencil_common_keymap(wm, keymap);
 	
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_manipulator", LEFTMOUSE, KM_PRESS, 0, 0); /* manipulator always on left mouse, not on action mouse*/
 	

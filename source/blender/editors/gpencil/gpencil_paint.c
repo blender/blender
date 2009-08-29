@@ -115,7 +115,8 @@ typedef struct tGPsdata {
 
 /* values for tGPsdata->status */
 enum {
-	GP_STATUS_NORMAL = 0,	/* running normally */
+	GP_STATUS_IDLING = 0,	/* stroke isn't in progress yet */
+	GP_STATUS_PAINTING,		/* a stroke is in progress */
 	GP_STATUS_ERROR,		/* something wasn't correctly set up */
 	GP_STATUS_DONE			/* painting done */
 };
@@ -196,7 +197,7 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
 	if (gpd->sbuffer_sflag & GP_STROKE_3DSPACE) {
 		View3D *v3d= p->sa->spacedata.first;
 		const short mx=mval[0], my=mval[1];
-		float *fp= give_cursor(p->scene, v3d); // XXX NULL could be v3d
+		float *fp= give_cursor(p->scene, v3d);
 		float dvec[3];
 		
 		/* Current method just converts each point in screen-coordinates to 
@@ -727,9 +728,18 @@ static tGPsdata *gp_session_initpaint (bContext *C)
 		{
 			//View3D *v3d= curarea->spacedata.first;
 			
-			/* set current area */
+			/* set current area 
+			 *	- must verify that region data is 3D-view (and not something else)
+			 */
 			p->sa= curarea;
 			p->ar= ar;
+			
+			if (ar->regiondata == NULL) {
+				p->status= GP_STATUS_ERROR;
+				if (G.f & G_DEBUG)
+					printf("Error: 3D-View active region doesn't have any region data, so cannot be drawable \n");
+				return p;
+			}
 			
 #if 0 // XXX will this sort of antiquated stuff be restored?
 			/* check that gpencil data is allowed to be drawn */
@@ -1002,8 +1012,8 @@ static void gp_paint_cleanup (tGPsdata *p)
 static int gpencil_draw_init (bContext *C, wmOperator *op)
 {
 	tGPsdata *p;
-	wmWindow *win= CTX_wm_window(C);
 	int paintmode= RNA_enum_get(op->ptr, "mode");
+	int straightLines= RNA_boolean_get(op->ptr, "straight_lines");
 	
 	/* check context */
 	p= op->customdata= gp_session_initpaint(C);
@@ -1023,11 +1033,9 @@ static int gpencil_draw_init (bContext *C, wmOperator *op)
 	/* radius for eraser circle is defined in userprefs now */
 	p->radius= U.gp_eraser;
 	
-	/* set cursor */
-	if (p->paintmode == GP_PAINTMODE_ERASER)
-		WM_cursor_modal(win, BC_CROSSCURSOR); // XXX need a better cursor
-	else
-		WM_cursor_modal(win, BC_PAINTBRUSHCURSOR);
+	/* set line-drawing settings (straight or freehand lines) */
+	if (straightLines)
+		p->flags |= GP_PAINTFLAG_STRAIGHTLINES;
 	
 	/* everything is now setup ok */
 	return 1;
@@ -1069,45 +1077,9 @@ static int gpencil_draw_cancel (bContext *C, wmOperator *op)
 
 /* ------------------------------- */
 
-static void gpencil_draw_apply_event (bContext *C, wmOperator *op, wmEvent *event)
+/* create a new stroke point at the point indicated by the painting context */
+static void gpencil_draw_apply (bContext *C, wmOperator *op, tGPsdata *p)
 {
-	tGPsdata *p= op->customdata;
-	ARegion *ar= p->ar;
-	int tablet=0;
-
-	/* convert from window-space to area-space mouse coordintes */
-	// NOTE: float to ints conversions, +1 factor is probably used to ensure a bit more accurate rounding...
-	p->mval[0]= event->x - ar->winrct.xmin + 1;
-	p->mval[1]= event->y - ar->winrct.ymin + 1;
-	
-	/* handle pressure sensitivity (which is supplied by tablets) */
-	if (event->custom == EVT_DATA_TABLET) {
-		wmTabletData *wmtab= event->customdata;
-		
-		tablet= (wmtab->Active != EVT_TABLET_NONE);
-		p->pressure= wmtab->Pressure;
-		//if (wmtab->Active == EVT_TABLET_ERASER)
-			// TODO... this should get caught by the keymaps which call drawing in the first place
-	}
-	else
-		p->pressure= 1.0f;
-	
-	/* special exception for start of strokes (i.e. maybe for just a dot) */
-	if (p->flags & GP_PAINTFLAG_FIRSTRUN) {
-		p->flags &= ~GP_PAINTFLAG_FIRSTRUN;
-		
-		p->mvalo[0]= p->mval[0];
-		p->mvalo[1]= p->mval[1];
-		p->opressure= p->pressure;
-		
-		/* special exception here for too high pressure values on first touch in
-		 *  windows for some tablets, then we just skip first touch ..  
-		 */
-		if (tablet && (p->pressure >= 0.99f))
-			return;
-	}
-	
-	
 	/* handle drawing/erasing -> test for erasing first */
 	if (p->paintmode == GP_PAINTMODE_ERASER) {
 		/* do 'live' erasing now */
@@ -1147,6 +1119,59 @@ static void gpencil_draw_apply_event (bContext *C, wmOperator *op, wmEvent *even
 		p->mvalo[1]= p->mval[1];
 		p->opressure= p->pressure;
 	}
+}
+
+/* handle draw event */
+static void gpencil_draw_apply_event (bContext *C, wmOperator *op, wmEvent *event)
+{
+	tGPsdata *p= op->customdata;
+	ARegion *ar= p->ar;
+	PointerRNA itemptr;
+	float mousef[2];
+	int tablet=0;
+
+	/* convert from window-space to area-space mouse coordintes */
+	// NOTE: float to ints conversions, +1 factor is probably used to ensure a bit more accurate rounding...
+	p->mval[0]= event->x - ar->winrct.xmin + 1;
+	p->mval[1]= event->y - ar->winrct.ymin + 1;
+	
+	/* handle pressure sensitivity (which is supplied by tablets) */
+	if (event->custom == EVT_DATA_TABLET) {
+		wmTabletData *wmtab= event->customdata;
+		
+		tablet= (wmtab->Active != EVT_TABLET_NONE);
+		p->pressure= wmtab->Pressure;
+		//if (wmtab->Active == EVT_TABLET_ERASER)
+			// TODO... this should get caught by the keymaps which call drawing in the first place
+	}
+	else
+		p->pressure= 1.0f;
+	
+	/* special exception for start of strokes (i.e. maybe for just a dot) */
+	if (p->flags & GP_PAINTFLAG_FIRSTRUN) {
+		p->flags &= ~GP_PAINTFLAG_FIRSTRUN;
+		
+		p->mvalo[0]= p->mval[0];
+		p->mvalo[1]= p->mval[1];
+		p->opressure= p->pressure;
+		
+		/* special exception here for too high pressure values on first touch in
+		 *  windows for some tablets, then we just skip first touch ..  
+		 */
+		if (tablet && (p->pressure >= 0.99f))
+			return;
+	}
+	
+	/* fill in stroke data (not actually used directly by gpencil_draw_apply) */
+	RNA_collection_add(op->ptr, "stroke", &itemptr);
+
+	mousef[0]= p->mval[0];
+	mousef[1]= p->mval[1];
+	RNA_float_set_array(&itemptr, "mouse", mousef);
+	RNA_float_set(&itemptr, "pressure", p->pressure);
+	
+	/* apply the current latest drawing point */
+	gpencil_draw_apply(C, op, p);
 	
 	/* force refresh */
 	WM_event_add_notifier(C, NC_SCREEN|ND_GPENCIL|NA_EDITED, NULL); // XXX please work!
@@ -1154,9 +1179,69 @@ static void gpencil_draw_apply_event (bContext *C, wmOperator *op, wmEvent *even
 
 /* ------------------------------- */
 
+/* operator 'redo' (i.e. after changing some properties) */
+static int gpencil_draw_exec (bContext *C, wmOperator *op)
+{
+	tGPsdata *p = NULL;
+	
+	printf("GPencil - Starting Re-Drawing \n");
+	
+	/* try to initialise context data needed while drawing */
+	if (!gpencil_draw_init(C, op)) {
+		if (op->customdata) MEM_freeN(op->customdata);
+		printf("\tGP - no valid data \n");
+		return OPERATOR_CANCELLED;
+	}
+	else
+		p= op->customdata;
+	
+	printf("\tGP - Start redrawing stroke \n");
+	
+	/* loop over the stroke RNA elements recorded (i.e. progress of mouse movement),
+	 * setting the relevant values in context at each step, then applying
+	 */
+	RNA_BEGIN(op->ptr, itemptr, "stroke") 
+	{
+		float mousef[2];
+		
+		printf("\t\tGP - stroke elem \n");
+		
+		/* get relevant data for this point from stroke */
+		RNA_float_get_array(&itemptr, "mouse", mousef);
+		p->mval[0] = (short)mousef[0];
+		p->mval[1] = (short)mousef[1];
+		p->pressure= RNA_float_get(&itemptr, "pressure");
+		
+		/* if first run, set previous data too */
+		if (p->flags & GP_PAINTFLAG_FIRSTRUN) {
+			p->flags &= ~GP_PAINTFLAG_FIRSTRUN;
+			
+			p->mvalo[0]= p->mval[0];
+			p->mvalo[1]= p->mval[1];
+			p->opressure= p->pressure;
+		}
+		
+		/* apply this data as necessary now (as per usual) */
+		gpencil_draw_apply(C, op, p);
+	}
+	RNA_END;
+	
+	printf("\tGP - done \n");
+	
+	/* cleanup */
+	gpencil_draw_exit(C, op);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+/* ------------------------------- */
+
+/* start of interactive drawing part of operator */
 static int gpencil_draw_invoke (bContext *C, wmOperator *op, wmEvent *event)
 {
 	tGPsdata *p = NULL;
+	wmWindow *win= CTX_wm_window(C);
 	
 	printf("GPencil - Starting Drawing \n");
 	
@@ -1177,16 +1262,35 @@ static int gpencil_draw_invoke (bContext *C, wmOperator *op, wmEvent *event)
 		// TODO: this involves mucking around with radial control, so we leave this for now..
 	}
 	
-	printf("\tGP - set first spot\n");
+	/* set cursor */
+	if (p->paintmode == GP_PAINTMODE_ERASER)
+		WM_cursor_modal(win, BC_CROSSCURSOR); // XXX need a better cursor
+	else
+		WM_cursor_modal(win, BC_PAINTBRUSHCURSOR);
 	
-	/* handle the initial drawing - i.e. for just doing a simple dot */
-	gpencil_draw_apply_event(C, op, event);
+	/* special hack: if there was an initial event, then we were invoked via a hotkey, and 
+	 * painting should start immediately. Otherwise, this was called from a toolbar, in which
+	 * case we should wait for the mouse to be clicked.
+	 */
+	if (event->type) {
+		/* hotkey invoked - start drawing */
+		printf("\tGP - set first spot\n");
+		p->status= GP_STATUS_PAINTING;
+		
+		/* handle the initial drawing - i.e. for just doing a simple dot */
+		gpencil_draw_apply_event(C, op, event);
+	}
+	else {
+		/* toolbar invoked - don't start drawing yet... */
+		printf("\tGP - hotkey invoked... waiting for click-drag\n");
+	}
 	
 	/* add a modal handler for this operator, so that we can then draw continuous strokes */
 	WM_event_add_modal_handler(C, &CTX_wm_window(C)->handlers, op);
 	return OPERATOR_RUNNING_MODAL;
 }
 
+/* events handling during interactive drawing part of operator */
 static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 {
 	tGPsdata *p= op->customdata;
@@ -1198,25 +1302,35 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 		 * otherwise, carry on to mouse-move...
 		 */
 		case LEFTMOUSE:
-		case MIDDLEMOUSE:
 		case RIGHTMOUSE: 
-			if (event->val != KM_PRESS) {
+			/* if painting, end stroke */
+			if (p->status == GP_STATUS_PAINTING) {
+				/* basically, this should be mouse-button up */
 				printf("\t\tGP - end of stroke \n");
 				gpencil_draw_exit(C, op);
 				return OPERATOR_FINISHED;
 			}
+			else {
+				/* not painting, so start stroke (this should be mouse-button down) */
+				printf("\t\tGP - start stroke \n");
+				p->status= GP_STATUS_PAINTING;
+				/* no break now, since we should immediately start painting */
+			}
 		
-		/* moving mouse - assumed that mouse button is down */
+		/* moving mouse - assumed that mouse button is down if in painting status */
 		case MOUSEMOVE:
-			/* handle drawing event */
-			printf("\t\tGP - add point\n");
-			gpencil_draw_apply_event(C, op, event);
-			
-			/* finish painting operation if anything went wrong just now */
-			if (p->status == GP_STATUS_ERROR) {
-				printf("\t\t\tGP - error done! \n");
-				gpencil_draw_exit(C, op);
-				return OPERATOR_CANCELLED;
+			/* check if we're currently painting */
+			if (p->status == GP_STATUS_PAINTING) {
+				/* handle drawing event */
+				printf("\t\tGP - add point\n");
+				gpencil_draw_apply_event(C, op, event);
+				
+				/* finish painting operation if anything went wrong just now */
+				if (p->status == GP_STATUS_ERROR) {
+					printf("\t\t\tGP - error done! \n");
+					gpencil_draw_exit(C, op);
+					return OPERATOR_CANCELLED;
+				}
 			}
 			break;
 		
@@ -1229,17 +1343,7 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 		case WHEELDOWNMOUSE:
 			p->radius -= 1.5f;
 			break;
-			
-		/* handle ctrl key - used to toggle straight-lines only (for drawing) */
-		// XXX hardcoded keymap stuff
-		case LEFTCTRLKEY:
-		case RIGHTCTRLKEY:
-			if (event->val == KM_PRESS)
-				p->flags |= GP_PAINTFLAG_STRAIGHTLINES;
-			else if (event->val == KM_RELEASE)
-				p->flags &= ~GP_PAINTFLAG_STRAIGHTLINES;
-			break;
-			
+		
 		default:
 			printf("\t\tGP unknown event - %d \n", event->type);
 			break;
@@ -1264,7 +1368,7 @@ void GPENCIL_OT_draw (wmOperatorType *ot)
 	ot->description= "Make annotations on the active data.";
 	
 	/* api callbacks */
-	//ot->exec= gpencil_draw_exec;
+	ot->exec= gpencil_draw_exec;
 	ot->invoke= gpencil_draw_invoke;
 	ot->modal= gpencil_draw_modal;
 	ot->cancel= gpencil_draw_cancel;
@@ -1275,4 +1379,7 @@ void GPENCIL_OT_draw (wmOperatorType *ot)
 	
 	/* settings for drawing */
 	RNA_def_enum(ot->srna, "mode", prop_gpencil_drawmodes, 0, "Mode", "Way to intepret mouse movements.");
+	RNA_def_boolean(ot->srna, "straight_lines", 0, "Straight Lines", "Only take the endpoints of the strokes, so that straight lines can be drawn.");
+	
+	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
