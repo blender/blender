@@ -3782,7 +3782,7 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
-	PTCacheEdit *edit= PE_get_current(scene, ob, PE_settings(scene)->edittype);
+	PTCacheEdit *edit= PE_get_current(scene, ob);
 
 	if(!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
 		ob->mode |= OB_MODE_PARTICLE_EDIT;
