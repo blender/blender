@@ -1733,8 +1733,6 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 						
 	MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
 			
-	do_shared_vertexcol(me);
-			
 	ED_region_tag_redraw(vc->ar);
 			
 	DAG_object_flush_update(vc->scene, ob, OB_RECALC_DATA);
