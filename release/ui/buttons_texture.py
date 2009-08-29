@@ -656,7 +656,6 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel):
 		
 		tex = context.texture
 		pd = tex.pointdensity
-		ob = context.object
 		
 		layout.itemR(pd, "point_source", expand=True)
 
@@ -664,8 +663,12 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel):
 		
 		col = split.column()
 		if pd.point_source == 'PARTICLE_SYSTEM':
+			col.itemL(text="Object:")
+			col.itemR(pd, "object", text="")
+			col = col.column()
+			col.enabled = pd.object
 			col.itemL(text="System:")
-			col.item_pointerR(pd, "particle_system", ob, "particle_systems", text="")
+			col.item_pointerR(pd, "particle_system", pd.object, "particle_systems", text="")
 			col.itemL(text="Cache:")
 			col.itemR(pd, "particle_cache", text="")
 		else:
