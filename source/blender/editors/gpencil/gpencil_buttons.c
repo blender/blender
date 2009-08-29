@@ -76,7 +76,6 @@
 /* ------- Callbacks ----------- */
 /* These are just 'dummy wrappers' around gpencil api calls */
 
-
 /* make layer active one after being clicked on */
 void gp_ui_activelayer_cb (bContext *C, void *gpd, void *gpl)
 {
@@ -106,6 +105,7 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 	uiBlock *block;
 	uiBut *but;
 	PointerRNA ptr;
+	int icon;
 	
 	/* make pointer to layer data */
 	RNA_pointer_create((ID *)gpd, &RNA_GPencilLayer, gpl, &ptr);
@@ -128,10 +128,12 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 	uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_LEFT);
 	
 	/* active */
-	uiItemR(subrow, "", ICON_RADIOBUT_OFF, &ptr, "active", UI_ITEM_R_TOGGLE); // XXX we need to set it to toggle to get icon
+	icon= (gpl->flag & GP_LAYER_ACTIVE) ? ICON_RADIOBUT_ON : ICON_RADIOBUT_OFF;
+	uiItemR(subrow, "", icon, &ptr, "active", 0);
 	
 	/* locked */
-	uiItemR(subrow, "", ICON_UNLOCKED, &ptr, "locked", UI_ITEM_R_TOGGLE); // XXX we need to set it to toggle to get icon
+	icon= (gpl->flag & GP_LAYER_LOCKED) ? ICON_LOCKED : ICON_UNLOCKED;
+	uiItemR(subrow, "", icon, &ptr, "locked", 0);
 	
 	/* when layer is locked or hidden, only draw header */
 	if (gpl->flag & (GP_LAYER_LOCKED|GP_LAYER_HIDE)) {
@@ -139,7 +141,8 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 		
 		/* visibility button (only if hidden but not locked!) */
 		if ((gpl->flag & GP_LAYER_HIDE) && !(gpl->flag & GP_LAYER_LOCKED))
-			uiItemR(subrow, "", ICON_RESTRICT_VIEW_OFF, &ptr, "hide", UI_ITEM_R_TOGGLE); // XXX we need to set it to toggle to get icon
+			uiItemR(subrow, "", ICON_RESTRICT_VIEW_ON, &ptr, "hide", 0); 
+			
 		
 		/* name */
 		if (gpl->flag & GP_LAYER_HIDE)
@@ -163,7 +166,7 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 	else {
 		/* draw rest of header -------------------------------- */
 		/* visibility button */
-		uiItemR(subrow, "", ICON_RESTRICT_VIEW_OFF, &ptr, "hide", UI_ITEM_R_TOGGLE); // XXX we need to set it to toggle to get icon
+		uiItemR(subrow, "", ICON_RESTRICT_VIEW_OFF, &ptr, "hide", 0); 
 		
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		
@@ -227,10 +230,9 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 	uiLayout *col;
 	
 	/* draw gpd settings first ------------------------------------- */
-	col= uiLayoutColumn(layout, 1);
+	col= uiLayoutColumn(layout, 0);
 		/* current Grease Pencil block */
 		// TODO: show some info about who owns this?
-			// XXX: this template doesn't show up!
 		uiTemplateID(col, C, ctx_ptr, "grease_pencil", "GPENCIL_OT_data_new", "GPENCIL_OT_data_unlink");
 		
 		/* add new layer button */
