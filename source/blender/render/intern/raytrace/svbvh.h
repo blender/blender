@@ -29,10 +29,10 @@
 #ifndef RE_RAYTRACE_SVBVH_H
 #define RE_RAYTRACE_SVBVH_H
 
-#define SVBVH_SIMD 1
-
 #include "bvh.h"
+#include "BLI_memarena.h"
 #include <stdio.h>
+#include <algorithm>
 
 struct SVBVHNode
 {
@@ -52,38 +52,27 @@ inline int bvh_node_hit_test<SVBVHNode>(SVBVHNode *node, Isect *isec)
 template<>
 inline void bvh_node_push_childs<SVBVHNode>(SVBVHNode *node, Isect *isec, SVBVHNode **stack, int &stack_pos)
 {
-	if(SVBVH_SIMD)
+	int i=0;
+	while(i+4 <= node->nchilds)
 	{
-		int i=0;
-		while(i+4 <= node->nchilds)
-		{
-			int res = test_bb_group4( (__m128*) (node->child_bb+6*i), isec );
-			RE_RC_COUNT(isec->raycounter->bb.test);
-			RE_RC_COUNT(isec->raycounter->bb.test);
-			RE_RC_COUNT(isec->raycounter->bb.test);
-			RE_RC_COUNT(isec->raycounter->bb.test);
-			
-			if(res & 1) { stack[stack_pos++] = node->child[i+0]; RE_RC_COUNT(isec->raycounter->bb.hit); }
-			if(res & 2) { stack[stack_pos++] = node->child[i+1]; RE_RC_COUNT(isec->raycounter->bb.hit); }
-			if(res & 4) { stack[stack_pos++] = node->child[i+2]; RE_RC_COUNT(isec->raycounter->bb.hit); }
-			if(res & 8) { stack[stack_pos++] = node->child[i+3]; RE_RC_COUNT(isec->raycounter->bb.hit); }
-			
-			i += 4;
-		}
-		while(i < node->nchilds)
-		{
-			if(RE_rayobject_bb_intersect_test(isec, (const float*)node->child_bb+6*i))
-				stack[stack_pos++] = node->child[i];
-			i++;
-		}
+		int res = test_bb_group4( (__m128*) (node->child_bb+6*i), isec );
+		RE_RC_COUNT(isec->raycounter->bb.test);
+		RE_RC_COUNT(isec->raycounter->bb.test);
+		RE_RC_COUNT(isec->raycounter->bb.test);
+		RE_RC_COUNT(isec->raycounter->bb.test);
+		
+		if(res & 1) { stack[stack_pos++] = node->child[i+0]; RE_RC_COUNT(isec->raycounter->bb.hit); }
+		if(res & 2) { stack[stack_pos++] = node->child[i+1]; RE_RC_COUNT(isec->raycounter->bb.hit); }
+		if(res & 4) { stack[stack_pos++] = node->child[i+2]; RE_RC_COUNT(isec->raycounter->bb.hit); }
+		if(res & 8) { stack[stack_pos++] = node->child[i+3]; RE_RC_COUNT(isec->raycounter->bb.hit); }
+		
+		i += 4;
 	}
-	else
+	while(i < node->nchilds)
 	{
-		for(int i=0; i<node->nchilds; i++)
-		{
-			if(RE_rayobject_bb_intersect_test(isec, (const float*)node->child_bb+6*i))
-				stack[stack_pos++] = node->child[i];
-		}
+		if(RE_rayobject_bb_intersect_test(isec, (const float*)node->child_bb+6*i))
+			stack[stack_pos++] = node->child[i];
+		i++;
 	}
 }
 
@@ -97,7 +86,7 @@ void bvh_node_merge_bb<SVBVHNode>(SVBVHNode *node, float *min, float *max)
 	else
 	{
 		int i=0;
-		while(SVBVH_SIMD && i+4 <= node->nchilds)
+		while(i+4 <= node->nchilds)
 		{
 			float *res = node->child_bb + 6*i;
 			for(int j=0; j<3; j++)
@@ -126,33 +115,24 @@ void bvh_node_merge_bb<SVBVHNode>(SVBVHNode *node, float *min, float *max)
 	}
 }
 
-struct SVBVHTree
-{
-	RayObject rayobj;
-
-	SVBVHNode *root;
-
-	MemArena *node_arena;
-
-	float cost;
-	RTBuilder *builder;
-};
 
 
-
-template<class Tree,class OldNode>
+/*
+ * Builds a SVBVH tree form a VBVHTree
+ */
+template<class OldNode>
 struct Reorganize_SVBVH
 {
-	Tree *tree;
+	MemArena *arena;
 
 	float childs_per_node;
 	int nodes_with_childs[16];
 	int useless_bb;
 	int nodes;
 
-	Reorganize_SVBVH(Tree *t)
+	Reorganize_SVBVH(MemArena *a)
 	{
-		tree = t;
+		arena = a;
 		nodes = 0;
 		childs_per_node = 0;
 		useless_bb = 0;
@@ -171,10 +151,10 @@ struct Reorganize_SVBVH
 	
 	SVBVHNode *create_node(int nchilds)
 	{
-		SVBVHNode *node = (SVBVHNode*)BLI_memarena_alloc(tree->node_arena, sizeof(SVBVHNode));
+		SVBVHNode *node = (SVBVHNode*)BLI_memarena_alloc(arena, sizeof(SVBVHNode));
 		node->nchilds = nchilds;
-		node->child_bb   = (float*)BLI_memarena_alloc(tree->node_arena, sizeof(float)*6*nchilds);
-		node->child= (SVBVHNode**)BLI_memarena_alloc(tree->node_arena, sizeof(SVBVHNode*)*nchilds);
+		node->child_bb   = (float*)BLI_memarena_alloc(arena, sizeof(float)*6*nchilds);
+		node->child= (SVBVHNode**)BLI_memarena_alloc(arena, sizeof(SVBVHNode*)*nchilds);
 
 		return node;
 	}
@@ -200,29 +180,7 @@ struct Reorganize_SVBVH
 				res[4*j+2] = vec_tmp[6*2+j];
 				res[4*j+3] = vec_tmp[6*3+j];
 			}
-/*
-			const float *bb0 = vec_tmp+6*(i+0);
-			const float *bb1 = vec_tmp+6*(i+1);
-			const float *bb2 = vec_tmp+6*(i+2);
-			const float *bb3 = vec_tmp+6*(i+3);
 
-			//memmoves could be memory alligned
-			const __m128 x0y0x1y1 = _mm_shuffle_ps( _mm_loadu_ps(bb0), _mm_loadu_ps(bb1), _MM_SHUFFLE(1,0,1,0) );
-			const __m128 x2y2x3y3 = _mm_shuffle_ps( _mm_loadu_ps(bb2), _mm_loadu_ps(bb3), _MM_SHUFFLE(1,0,1,0) );
-			_mm_store_ps( node->child_bb+6*i+4*0, _mm_shuffle_ps( x0y0x1y1, x2y2x3y3, _MM_SHUFFLE(2,0,2,0) ) );
-			_mm_store_ps( node->child_bb+6*i+4*1, _mm_shuffle_ps( x0y0x1y1, x2y2x3y3, _MM_SHUFFLE(3,1,3,1) ) );
-
-			const __m128 z0X0z1X1 = _mm_shuffle_ps( _mm_loadu_ps(bb0), _mm_loadu_ps(bb1), _MM_SHUFFLE(3,2,3,2) );
-			const __m128 z2X2z3X3 = _mm_shuffle_ps( _mm_loadu_ps(bb2), _mm_loadu_ps(bb3), _MM_SHUFFLE(3,2,3,2) );
-			_mm_store_ps( node->child_bb+6*i+4*2, _mm_shuffle_ps( z0X0z1X1, z2X2z3X3, _MM_SHUFFLE(2,0,2,0) ) );
-			_mm_store_ps( node->child_bb+6*i+4*3, _mm_shuffle_ps( z0X0z1X1, z2X2z3X3, _MM_SHUFFLE(3,1,3,1) ) );
-
-			const __m128 Y0Z0Y1Z1 = _mm_shuffle_ps( _mm_loadu_ps(bb0+4), _mm_loadu_ps(bb1+4), _MM_SHUFFLE(1,0,1,0) );
-			const __m128 Y2Z2Y3Z3 = _mm_shuffle_ps( _mm_loadu_ps(bb2+4), _mm_loadu_ps(bb3+4), _MM_SHUFFLE(1,0,1,0) );
-			_mm_store_ps( node->child_bb+6*i+4*4, _mm_shuffle_ps( Y0Z0Y1Z1, Y2Z2Y3Z3, _MM_SHUFFLE(2,0,2,0) ) );
-			_mm_store_ps( node->child_bb+6*i+4*5, _mm_shuffle_ps( Y0Z0Y1Z1, Y2Z2Y3Z3, _MM_SHUFFLE(3,1,3,1) ) );
- */
-			
 			i += 4;
 		}
 	}
@@ -280,10 +238,8 @@ struct Reorganize_SVBVH
 			}
 		}
 		assert( i == 0 );
-		
 
-		if(SVBVH_SIMD)
-			prepare_for_simd(node);
+		prepare_for_simd(node);
 		
 		return node;
 	}	

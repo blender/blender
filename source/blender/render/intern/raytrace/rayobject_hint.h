@@ -26,6 +26,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#ifndef RE_RAYTRACE_RAYOBJECT_HINT_H
+#define RE_RAYTRACE_RAYOBJECT_HINT_H
+
 #define HINT_RECURSE	 1
 #define HINT_ACCEPT		 0
 #define HINT_DISCARD	-1
@@ -63,3 +66,5 @@ inline int hint_test_bb(HintFrustum &obj, float *Nmin, float *Nmax)
 	return HINT_ACCEPT;
 }
 */
+
+#endif

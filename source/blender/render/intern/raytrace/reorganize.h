@@ -29,6 +29,9 @@
 #include <algorithm>
 #include <queue>
 
+extern int tot_pushup;
+extern int tot_pushdown;
+
 template<class Node>
 bool node_fits_inside(Node *a, Node *b)
 {

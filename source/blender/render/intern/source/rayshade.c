@@ -75,7 +75,7 @@ RayObject *  RE_rayobject_tree_create(int type, int size) __attribute__((noinlin
 RayObject *  RE_rayobject_tree_create(int type, int size)
 {
 //	if(type == R_RAYTRACE_TREE_BIH)
-	return RE_rayobject_vbvh_create(size);
+	return RE_rayobject_svbvh_create(size);
 
 	if(type == R_RAYTRACE_TREE_BVH)
 		return RE_rayobject_bvh_create(size);

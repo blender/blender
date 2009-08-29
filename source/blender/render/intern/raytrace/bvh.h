@@ -26,6 +26,12 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#include "rayobject.h"
+#include "MEM_guardedalloc.h"
+#include "rayobject_rtbuild.h"
+#include "rayobject_hint.h"
+
+#include <assert.h>
 #include <xmmintrin.h>
 
 #ifndef RE_RAYTRACE_BVH_H
@@ -285,7 +291,6 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 	return hit;
 }
 
-
 /*
  * recursively transverse a BVH looking for a rayhit using system stack
  */
@@ -335,5 +340,57 @@ static int bvh_node_raycast(Node *node, Isect *isec)
 	return hit;
 }
 */
+
+template<class Node,class HintObject>
+void bvh_dfs_make_hint(Node *node, LCTSHint *hint, int reserve_space, HintObject *hintObject)
+{
+	assert( hint->size + reserve_space + 1 <= RE_RAY_LCTS_MAX_SIZE );
+	
+	if(is_leaf(node))
+	{
+		hint->stack[hint->size++] = (RayObject*)node;
+	}
+	else
+	{
+		int childs = count_childs(node);
+		if(hint->size + reserve_space + childs <= RE_RAY_LCTS_MAX_SIZE)
+		{
+			int result = hint_test_bb(hintObject, node->bb, node->bb+3);
+			if(result == HINT_RECURSE)
+			{
+				/* We are 100% sure the ray will be pass inside this node */
+				bvh_dfs_make_hint_push_siblings(node->child, hint, reserve_space, hintObject);
+			}
+			else if(result == HINT_ACCEPT)
+			{
+				hint->stack[hint->size++] = (RayObject*)node;
+			}
+		}
+		else
+		{
+			hint->stack[hint->size++] = (RayObject*)node;
+		}
+	}
+}
+
+
+template<class Tree>
+static RayObjectAPI* bvh_get_api(int maxstacksize);
+
+
+template<class Tree, int DFS_STACK_SIZE>
+static inline RayObject *bvh_create_tree(int size)
+{
+	Tree *obj= (Tree*)MEM_callocN(sizeof(Tree), "BVHTree" );
+	assert( RE_rayobject_isAligned(obj) ); /* RayObject API assumes real data to be 4-byte aligned */	
+	
+	obj->rayobj.api = bvh_get_api<Tree>(DFS_STACK_SIZE);
+	obj->root = NULL;
+	
+	obj->node_arena = NULL;
+	obj->builder    = rtbuild_create( size );
+	
+	return RE_rayobject_unalignRayAPI((RayObject*) obj);
+}
 
 #endif

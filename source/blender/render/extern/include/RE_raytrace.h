@@ -102,6 +102,8 @@ RayObject* RE_rayobject_instance_create(RayObject *target, float transform[][4],
 RayObject* RE_rayobject_blibvh_create(int size);	/* BLI_kdopbvh.c   */
 RayObject* RE_rayobject_bvh_create(int size);		/* raytrace/rayobject_bvh.c */
 RayObject* RE_rayobject_vbvh_create(int size);		/* raytrace/rayobject_vbvh.c */
+RayObject* RE_rayobject_qbvh_create(int size);		/* raytrace/rayobject_vbvh.c */
+RayObject* RE_rayobject_svbvh_create(int size);		/* raytrace/rayobject_vbvh.c */
 RayObject* RE_rayobject_bih_create(int size);		/* rayobject_bih.c */
 
 typedef struct LCTSHint LCTSHint;
