@@ -347,7 +347,7 @@ void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr)
 	BKE_ptcache_id_from_cloth(&pid, ob, clmd);
 
 	// don't do anything as long as we're in editmode!
-	if(pid.cache->flag & PTCACHE_BAKE_EDIT_ACTIVE)
+	if(pid.cache->edit && ob->mode & OB_MODE_PARTICLE_EDIT)
 		return;
 	
 	BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_AFTER, framenr);

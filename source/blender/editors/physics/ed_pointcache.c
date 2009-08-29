@@ -46,6 +46,7 @@
 
 #include "ED_screen.h"
 #include "ED_physics.h"
+#include "ED_particle.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -184,8 +185,16 @@ static int ptcache_free_bake_exec(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "PointCache", &RNA_PointCache);
 	PointCache *cache= ptr.data;
-	
-	cache->flag &= ~PTCACHE_BAKED;
+
+	if(cache->edit) {
+		if(!cache->edit->edited || 1) {// XXX okee("Lose changes done in particle mode?")) {
+			PE_free_ptcache_edit(cache->edit);
+			cache->edit = NULL;
+			cache->flag &= ~PTCACHE_BAKED;
+		}
+	}
+	else
+		cache->flag &= ~PTCACHE_BAKED;
 
 	return OPERATOR_FINISHED;
 }

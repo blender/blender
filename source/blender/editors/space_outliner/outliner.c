@@ -2120,9 +2120,7 @@ static int tree_element_active_psys(bContext *C, Scene *scene, TreeElement *te, 
 {
 	if(set) {
 		Object *ob= (Object *)tselem->id;
-		ParticleSystem *psys= te->directdata;
 		
-		PE_change_act_psys(scene, ob, psys);
 		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
 		
 // XXX		extern_set_butspace(F7KEY, 0);

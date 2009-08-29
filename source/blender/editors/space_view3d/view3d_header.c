@@ -1571,7 +1571,7 @@ static char *view3d_modeselect_pup(Scene *scene)
 		str += sprintf(str, formatstr, "Pose Mode", OB_MODE_POSE, ICON_POSE_HLT);
 	}
 
-	if (ob->particlesystem.first) {
+	if (ob->particlesystem.first || modifiers_findByType(ob, eModifierType_Cloth) || modifiers_findByType(ob, eModifierType_Softbody)) {
 		str += sprintf(str, formatstr, "Particle Mode", OB_MODE_PARTICLE_EDIT, ICON_PARTICLEMODE);
 	}
 
@@ -1661,6 +1661,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	Object *obedit = CTX_data_edit_object(C);
+	Object *ob = CTX_data_active_object(C);
 	EditMesh *em= NULL;
 	int bit, ctrl= win->eventstate->ctrl, shift= win->eventstate->shift;
 	PointerRNA props_ptr;
@@ -1759,14 +1760,17 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 
 	case B_SEL_PATH:
 		ts->particle.selectmode= SCE_SELECT_PATH;
+		WM_event_add_notifier(C, NC_OBJECT, ob);
 		ED_undo_push(C, "Selectmode Set: Path");
 		break;
 	case B_SEL_POINT:
 		ts->particle.selectmode = SCE_SELECT_POINT;
+		WM_event_add_notifier(C, NC_OBJECT, ob);
 		ED_undo_push(C, "Selectmode Set: Point");
 		break;
 	case B_SEL_END:
 		ts->particle.selectmode = SCE_SELECT_END;
+		WM_event_add_notifier(C, NC_OBJECT, ob);
 		ED_undo_push(C, "Selectmode Set: End point");
 		break;	
 	

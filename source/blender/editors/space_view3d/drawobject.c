@@ -89,6 +89,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_property.h"
 #include "BKE_smoke.h"
 #include "BKE_unit.h"
@@ -3138,6 +3139,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 {
 	Object *ob=base->object;
 	ParticleSystemModifierData *psmd;
+	ParticleEditSettings *pset = PE_settings(scene);
 	ParticleSettings *part;
 	ParticleData *pars, *pa;
 	ParticleKey state, *states=0;
@@ -3166,9 +3168,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	if(pars==0) return;
 
-	// XXX what logic is this?
-	if(!scene->obedit && psys_in_edit_mode(scene, psys)
-		&& psys->flag & PSYS_HAIR_DONE && part->draw_as==PART_DRAW_PATH)
+	/* don't draw normal paths in edit mode */
+	if(psys_in_edit_mode(scene, psys) && (pset->flag & PE_DRAW_PART)==0)
 		return;
 		
 	if(part->draw_as==PART_DRAW_NOT) return;
@@ -3709,33 +3710,27 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		wmLoadMatrix(rv3d->viewmat);
 }
 
-static void draw_particle_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, ParticleSystem *psys, int dt)
+static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, PTCacheEdit *edit, int dt)
 {
-	ParticleEdit *edit = psys->edit;
-	ParticleData *pa;
-	ParticleCacheKey **path;
-	ParticleEditKey *key;
+	ParticleCacheKey **cache, *path, *pkey;
+	PTCacheEditPoint *point;
+	PTCacheEditKey *key;
 	ParticleEditSettings *pset = PE_settings(scene);
-	int i, k, totpart = psys->totpart, totchild=0, timed = pset->draw_timed;
+	int i, k, totpoint = edit->totpoint, timed = pset->flag & PE_FADE_TIME ? pset->fade_frames : 0;
+	int steps;
 	char nosel[4], sel[4];
 	float sel_col[3];
 	float nosel_col[3];
-	char val[32];
+	float *pathcol = NULL, *pcol;
 
 	/* create path and child path cache if it doesn't exist already */
-	if(psys->pathcache==0){
-		PE_hide_keys_time(scene, psys,CFRA);
-		psys_cache_paths(scene, ob, psys, CFRA,0);
-	}
-	if(psys->pathcache==0)
+	if(edit->pathcache==0)
+		psys_cache_edit_paths(scene, ob, edit, CFRA);
+
+	if(edit->pathcache==0)
 		return;
 
-	if(pset->flag & PE_SHOW_CHILD && psys->part->draw_as == PART_DRAW_PATH) {
-		if(psys->childcache==0)
-			psys_cache_child_paths(scene, ob, psys, CFRA, 0);
-	}
-	else if(!(pset->flag & PE_SHOW_CHILD) && psys->childcache)
-		free_child_path_cache(psys);
+	PE_hide_keys_time(scene, edit, CFRA);
 
 	/* opengl setup */
 	if((v3d->flag & V3D_ZBUF_SELECT)==0)
@@ -3751,65 +3746,50 @@ static void draw_particle_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Ob
 	nosel_col[1]=(float)nosel[1]/255.0f;
 	nosel_col[2]=(float)nosel[2]/255.0f;
 
-	if(psys->childcache)
-		totchild = psys->totchildcache;
 
 	/* draw paths */
-	if(timed)
+	if(timed) {
 		glEnable(GL_BLEND);
+		steps = (*edit->pathcache)->steps + 1;
+		pathcol = MEM_callocN(steps*4*sizeof(float), "particle path color data");
+	}
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-	if(dt > OB_WIRE) {
-		/* solid shaded with lighting */
-		glEnableClientState(GL_NORMAL_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
+	/* solid shaded with lighting */
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
 
-		glEnable(GL_COLOR_MATERIAL);
-		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
-	}
-	else {
-		/* flat wire color */
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glDisable(GL_LIGHTING);
-		UI_ThemeColor(TH_WIRE);
-	}
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 
 	/* only draw child paths with lighting */
 	if(dt > OB_WIRE)
 		glEnable(GL_LIGHTING);
 
-	if(psys->part->draw_as == PART_DRAW_PATH) {
-		for(i=0, path=psys->childcache; i<totchild; i++,path++){
-			glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->co);
-			if(dt > OB_WIRE) {
-				glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), (*path)->vel);
-				glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->col);
+	/* draw paths without lighting */
+	cache=edit->pathcache;
+	for(i=0; i<totpoint; i++){
+		path = cache[i];
+		glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
+		glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
+
+		if(timed) {
+			for(k=0, pcol=pathcol, pkey=path; k<steps; k++, pkey++, pcol+=4){
+				VECCOPY(pcol, pkey->col);
+				pcol[3] = 1.0f - fabs((float)CFRA - pkey->time)/(float)pset->fade_frames;
 			}
 
-			glDrawArrays(GL_LINE_STRIP, 0, (int)(*path)->steps + 1);
+			glColorPointer(4, GL_FLOAT, 4*sizeof(float), pathcol);
 		}
+		else
+			glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
+
+		glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
 	}
 
-	if(dt > OB_WIRE)
-		glDisable(GL_LIGHTING);
+	if(pathcol) { MEM_freeN(pathcol); pathcol = pcol = NULL; }
 
-	if(pset->brushtype == PE_BRUSH_WEIGHT) {
-		glLineWidth(2.0f);
-		glEnableClientState(GL_COLOR_ARRAY);
-		glDisable(GL_LIGHTING);
-	}
-
-	/* draw parents last without lighting */
-	for(i=0, pa=psys->particles, path = psys->pathcache; i<totpart; i++, pa++, path++){
-		glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->co);
-		if(dt > OB_WIRE)
-			glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), (*path)->vel);
-		if(dt > OB_WIRE || pset->brushtype == PE_BRUSH_WEIGHT)
-			glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->col);
-
-		glDrawArrays(GL_LINE_STRIP, 0, (int)(*path)->steps + 1);
-	}
 
 	/* draw edit vertices */
 	if(pset->selectmode!=SCE_SELECT_PATH){
@@ -3819,61 +3799,74 @@ static void draw_particle_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Ob
 		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
 		if(pset->selectmode==SCE_SELECT_POINT){
+			float *pd=0,*pdata=0;
 			float *cd=0,*cdata=0;
-			cd=cdata=MEM_callocN(edit->totkeys*(timed?4:3)*sizeof(float), "particle edit color data");
+			int totkeys = 0;
 
-			for(i=0, pa=psys->particles; i<totpart; i++, pa++){
-				for(k=0, key=edit->keys[i]; k<pa->totkey; k++, key++){
+			for (i=0, point=edit->points; i<totpoint; i++, point++)
+				if(!(point->flag & PEP_HIDE))
+					totkeys += point->totkey;
+
+			if(!edit->psys)
+				pd=pdata=MEM_callocN(totkeys*3*sizeof(float), "particle edit point data");
+			cd=cdata=MEM_callocN(totkeys*(timed?4:3)*sizeof(float), "particle edit color data");
+
+			for(i=0, point=edit->points; i<totpoint; i++, point++){
+				if(point->flag & PEP_HIDE)
+					continue;
+
+				for(k=0, key=point->keys; k<point->totkey; k++, key++){
+					if(pd) {
+						VECCOPY(pd, key->co);
+						pd += 3;
+					}
+
 					if(key->flag&PEK_SELECT){
 						VECCOPY(cd,sel_col);
 					}
 					else{
 						VECCOPY(cd,nosel_col);
 					}
+
 					if(timed)
-						*(cd+3) = (key->flag&PEK_HIDE)?0.0f:1.0f;
+						*(cd+3) = 1.0f - fabs((float)CFRA - *key->time)/(float)pset->fade_frames;
+
 					cd += (timed?4:3);
 				}
 			}
 			cd=cdata;
-			for(i=0, pa=psys->particles; i<totpart; i++, pa++){
-				if((pa->flag & PARS_HIDE)==0){
-					glVertexPointer(3, GL_FLOAT, sizeof(ParticleEditKey), edit->keys[i]->world_co);
-					glColorPointer((timed?4:3), GL_FLOAT, (timed?4:3)*sizeof(float), cd);
-					glDrawArrays(GL_POINTS, 0, pa->totkey);
-				}
-				cd += (timed?4:3) * pa->totkey;
+			pd=pdata;
+			for(i=0, point=edit->points; i<totpoint; i++, point++){
+				if(point->flag & PEP_HIDE)
+					continue;
 
-				if((pset->flag&PE_SHOW_TIME) && (pa->flag&PARS_HIDE)==0 && !(G.f & G_RENDER_SHADOW)){
-					for(k=0, key=edit->keys[i]+k; k<pa->totkey; k++, key++){
-						if(key->flag & PEK_HIDE) continue;
+				if(edit->psys)
+					glVertexPointer(3, GL_FLOAT, sizeof(PTCacheEditKey), point->keys->world_co);
+				else
+					glVertexPointer(3, GL_FLOAT, 3*sizeof(float), pd);
 
-						sprintf(val," %.1f",*key->time);
-						view3d_particle_text_draw_add(key->world_co[0], key->world_co[1], key->world_co[2], val, 0);
-					}
-				}
+				glColorPointer((timed?4:3), GL_FLOAT, (timed?4:3)*sizeof(float), cd);
+
+				glDrawArrays(GL_POINTS, 0, point->totkey);
+
+				pd += pd ? 3 * point->totkey : 0;
+				cd += (timed?4:3) * point->totkey;
 			}
-			if(cdata)
-				MEM_freeN(cdata);
-			cd=cdata=0;
+			if(pdata) { MEM_freeN(pdata); pd=pdata=0; }
+			if(cdata) { MEM_freeN(cdata); cd=cdata=0; }
 		}
 		else if(pset->selectmode == SCE_SELECT_END){
-			for(i=0, pa=psys->particles; i<totpart; i++, pa++){
-				if((pa->flag & PARS_HIDE)==0){
-					key = edit->keys[i] + pa->totkey - 1;
+			for(i=0, point=edit->points; i<totpoint; i++, point++){
+				if((point->flag & PEP_HIDE)==0){
+					key = point->keys + point->totkey - 1;
 					if(key->flag & PEK_SELECT)
 						glColor3fv(sel_col);
 					else
 						glColor3fv(nosel_col);
 					/* has to be like this.. otherwise selection won't work, have try glArrayElement later..*/
 					glBegin(GL_POINTS);
-					glVertex3fv(key->world_co);
+					glVertex3fv(key->flag & PEK_USE_WCO ? key->world_co : key->co);
 					glEnd();
-
-					if((pset->flag & PE_SHOW_TIME) && !(G.f & G_RENDER_SHADOW)){
-						sprintf(val," %.1f",*key->time);
-						view3d_particle_text_draw_add(key->world_co[0], key->world_co[1], key->world_co[2], val, 0);
-					}
 				}
 			}
 		}
@@ -5298,17 +5291,27 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		for(psys=ob->particlesystem.first; psys; psys=psys->next)
 			draw_new_particle_system(scene, v3d, rv3d, base, psys, dt);
 		
-		if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT) {
-			psys= PE_get_current(scene, ob);
-			if(psys && !scene->obedit && psys_in_edit_mode(scene, psys))
-				draw_particle_edit(scene, v3d, rv3d, ob, psys, dt);
-		}
 		view3d_particle_text_draw(v3d, ar);
 
 		wmMultMatrix(ob->obmat);
 		
 		//glDepthMask(GL_TRUE);
 		if(col) cpack(col);
+	}
+	
+	if(		(warning_recursive==0) &&
+			(flag & DRAW_PICKING)==0 &&
+			(!scene->obedit)	
+	  ) {
+
+		if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT) {
+			PTCacheEdit *edit = PE_get_current(scene, ob);
+			if(edit) {
+				wmLoadMatrix(rv3d->viewmat);
+				draw_ptcache_edit(scene, v3d, rv3d, ob, edit, dt);
+				wmMultMatrix(ob->obmat);
+			}
+		}
 	}
 
 	/* draw code for smoke */

@@ -2,13 +2,79 @@
 import bpy
 
 def particle_panel_enabled(psys):
-	return psys.point_cache.baked==False and psys.editable==False
+	return psys.point_cache.baked==False and psys.edited==False
 	
 def particle_panel_poll(context):
 	psys = context.particle_system
 	if psys==None:	return False
 	if psys.settings==None:  return False
 	return psys.settings.type in ('EMITTER', 'REACTOR', 'HAIR')
+	
+def point_cache_ui(self, cache, enabled, particles, smoke):
+	layout = self.layout
+	layout.set_context_pointer("PointCache", cache)
+	
+	row = layout.row()
+	row.template_list(cache, "point_cache_list", cache, "active_point_cache_index", rows=2 )
+	col = row.column(align=True)
+	col.itemO("ptcache.add_new", icon='ICON_ZOOMIN', text="")
+	col.itemO("ptcache.remove", icon='ICON_ZOOMOUT', text="")
+	
+	row = layout.row()
+	row.itemL(text="File Name:")
+	if particles:
+		row.itemR(cache, "external")
+	
+	if cache.external:
+		split = layout.split(percentage=0.80)
+		split.itemR(cache, "name", text="")
+		split.itemR(cache, "index", text="")
+		
+		layout.itemL(text="File Path:")
+		layout.itemR(cache, "filepath", text="")
+		
+		layout.itemL(text=cache.info)
+	else:
+		layout.itemR(cache, "name", text="")
+		
+		if not particles:
+			row = layout.row()
+			row.enabled = enabled
+			row.itemR(cache, "start_frame")
+			row.itemR(cache, "end_frame")
+		
+		row = layout.row()
+	
+		if cache.baked == True:
+			row.itemO("ptcache.free_bake", text="Free Bake")
+		else:
+			row.item_booleanO("ptcache.bake", "bake", True, text="Bake")
+	
+		sub = row.row()
+		sub.enabled = (cache.frames_skipped or cache.outdated) and enabled
+		sub.itemO("ptcache.bake", "bake", False, text="Calculate to Current Frame")
+		
+		row = layout.row()
+		row.enabled = enabled
+		row.itemO("ptcache.bake_from_cache", text="Current Cache to Bake")
+		row.itemR(cache, "step");
+	
+		if not smoke:
+			row = layout.row()
+			sub = row.row()
+			sub.enabled = enabled
+			sub.itemR(cache, "quick_cache")
+			row.itemR(cache, "disk_cache")
+	
+		layout.itemL(text=cache.info)
+		
+		layout.itemS()
+		
+		row = layout.row()
+		row.item_booleanO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
+		row.itemO("ptcache.free_bake_all", text="Free All Bakes")
+		layout.itemO("ptcache.bake_all", "bake", False, text="Update All Dynamics to current frame")
+	
 
 class ParticleButtonsPanel(bpy.types.Panel):
 	__space_type__ = 'PROPERTIES'
@@ -38,7 +104,16 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 			col.itemO("object.particle_system_add", icon='ICON_ZOOMIN', text="")
 			col.itemO("object.particle_system_remove", icon='ICON_ZOOMOUT', text="")
 
-		if psys:
+		if psys and not psys.settings:
+			split = layout.split(percentage=0.32)
+			col = split.column()
+			col.itemL(text="Name:")
+			col.itemL(text="Settings:")
+			
+			col = split.column()
+			col.itemR(psys, "name", text="")
+			col.template_ID(psys, "settings", new="particle.new")
+		elif psys:
 			part = psys.settings
 			
 			split = layout.split(percentage=0.32)
@@ -69,10 +144,10 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 				
 				split = layout.split(percentage=0.65)
 				if part.type=='HAIR':
-					if psys.editable==True:
-						split.itemO("particle.editable_set", text="Free Edit")
+					if psys.edited==True:
+						split.itemO("particle.edited_clear", text="Free Edit")
 					else:
-						split.itemO("particle.editable_set", text="Make Editable")
+						split.itemL(text="")
 					row = split.row()
 					row.enabled = particle_panel_enabled(psys)
 					row.itemR(part, "hair_step")
@@ -96,7 +171,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel):
 		psys = context.particle_system
 		part = psys.settings
 		
-		layout.enabled = particle_panel_enabled(psys)
+		layout.enabled = particle_panel_enabled(psys) and not psys.multiple_caches
 		
 		row = layout.row()
 		row.itemR(part, "amount")
@@ -149,76 +224,8 @@ class PARTICLE_PT_cache(ParticleButtonsPanel):
 		layout = self.layout
 
 		psys = context.particle_system
-		part = psys.settings
-		cache = psys.point_cache
-		layout.set_context_pointer("PointCache", cache)
 		
-		row = layout.row()
-		row.template_list(cache, "point_cache_list", cache, "active_point_cache_index", rows=2 )
-		col = row.column(align=True)
-		col.itemO("ptcache.add_new", icon='ICON_ZOOMIN', text="")
-		col.itemO("ptcache.remove", icon='ICON_ZOOMOUT', text="")
-		
-		row = layout.row()
-		row.itemL(text="File Name:")
-		row.itemR(cache, "external")
-		
-		if cache.external:
-			split = layout.split(percentage=0.80)
-			split.itemR(cache, "name", text="")
-			split.itemR(cache, "index", text="")
-			
-			layout.itemL(text="File Path:")
-			layout.itemR(cache, "filepath", text="")
-			
-			layout.itemL(text=cache.info)
-			
-			#split = layout.split()
-			
-			#col = split.column(align=True)
-			#col.itemR(part, "start")
-			#col.itemR(part, "end")
-
-			#col = split.column(align=True)
-			#col.itemR(part, "lifetime")
-			#col.itemR(part, "random_lifetime", slider=True)
-		else:
-			layout.itemR(cache, "name", text="")
-			
-			row = layout.row()
-		
-			if cache.baked == True:
-				row.itemO("ptcache.free_bake", text="Free Bake")
-			else:
-				row.item_booleanO("ptcache.bake", "bake", True, text="Bake")
-		
-			subrow = row.row()
-			subrow.enabled = (cache.frames_skipped or cache.outdated) and particle_panel_enabled(psys)
-			subrow.itemO("ptcache.bake", "bake", False, text="Calculate to Current Frame")
-			
-			row = layout.row()
-			row.enabled = particle_panel_enabled(psys)
-			row.itemO("ptcache.bake_from_cache", text="Current Cache to Bake")
-			row.itemR(cache, "step");
-		
-			row = layout.row()
-			subrow = row.row()
-			subrow.enabled = particle_panel_enabled(psys)
-			subrow.itemR(cache, "quick_cache")
-			row.itemR(cache, "disk_cache")
-		
-			layout.itemL(text=cache.info)
-			
-			layout.itemS()
-			
-			row = layout.row()
-			row.item_booleanO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
-			row.itemO("ptcache.free_bake_all", text="Free All Bakes")
-			layout.itemO("ptcache.bake_all", "bake", False, text="Update All Dynamics to current frame")
-		
-		# for particles these are figured out automatically
-		#row.itemR(cache, "start_frame")
-		#row.itemR(cache, "end_frame")
+		point_cache_ui(self, psys.point_cache, particle_panel_enabled(psys), 1, 0)
 
 class PARTICLE_PT_initial(ParticleButtonsPanel):
 	__label__ = "Velocity"

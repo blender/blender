@@ -1,6 +1,8 @@
 
 import bpy
 
+from buttons_particle import point_cache_ui
+
 def smoke_panel_enabled_low(smd):
 	if smd.smoke_type == 'TYPE_DOMAIN':
 		return smd.domain.point_cache.baked==False
@@ -139,48 +141,8 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel):
 			domain = md.domain_settings
 			cache = domain.point_cache
 			
-			layout.set_context_pointer("PointCache", cache)
-			
-			row = layout.row()
-			row.template_list(cache, "point_cache_list", cache, "active_point_cache_index")
-			col = row.column(align=True)
-			col.itemO("ptcache.add_new", icon='ICON_ZOOMIN', text="")
-			col.itemO("ptcache.remove", icon='ICON_ZOOMOUT', text="")
-			
-			row = layout.row()
-			row.itemR(cache, "name")
-			
-			row = layout.row()
-			row.itemR(cache, "start_frame")
-			row.itemR(cache, "end_frame")
-			
-			row = layout.row()
-			
-			if cache.baked == True:
-				row.itemO("ptcache.free_bake", text="Free Bake")
-			else:
-				row.item_booleanO("ptcache.bake", "bake", True, text="Bake")
-			
-			subrow = row.row()
-			subrow.enabled = cache.frames_skipped or cache.outdated
-			subrow.itemO("ptcache.bake", "bake", False, text="Calculate to Current Frame")
-				
-			row = layout.row()
-			#row.enabled = smoke_panel_enabled(psys)
-			row.itemO("ptcache.bake_from_cache", text="Current Cache to Bake")
-		
-			row = layout.row()
-			#row.enabled = smoke_panel_enabled(psys)
-			
-			layout.itemL(text=cache.info)
-			
-			layout.itemS()
-			
-			row = layout.row()
-			row.itemO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
-			row.itemO("ptcache.free_bake_all", text="Free All Bakes")
-			layout.itemO("ptcache.bake_all", "bake", False, text="Update All Dynamics to current frame")
-			
+			point_cache_ui(self, cache, cache.baked==False, 0, 1)
+					
 class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
 	__label__ = "Smoke High Resolution"
 	__default_closed__ = True

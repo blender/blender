@@ -1617,31 +1617,32 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 	TransDataExtension *tx;
 	Base *base = CTX_data_active_base(C);
 	Object *ob = CTX_data_active_object(C);
-	ParticleSystem *psys = PE_get_current(t->scene, ob);
-	ParticleSystemModifierData *psmd = NULL;
 	ParticleEditSettings *pset = PE_settings(t->scene);
-	ParticleData *pa = NULL;
-	ParticleEdit *edit;
-	ParticleEditKey *key;
+	PTCacheEdit *edit = PE_get_current(t->scene, ob);
+	ParticleSystem *psys = NULL;
+	ParticleSystemModifierData *psmd = NULL;
+	PTCacheEditPoint *point;
+	PTCacheEditKey *key;
 	float mat[4][4];
-	int i,k, totpart, transformparticle;
+	int i,k, transformparticle;
 	int count = 0, hasselected = 0;
 	int propmode = t->flag & T_PROP_EDIT;
 
-	if(psys==NULL || t->settings->particle.selectmode==SCE_SELECT_PATH) return;
+	if(edit==NULL || t->settings->particle.selectmode==SCE_SELECT_PATH) return;
 
-	psmd = psys_get_modifier(ob,psys);
+	psys = edit->psys;
 
-	edit = psys->edit;
-	totpart = psys->totpart;
+	if(psys)
+		psmd = psys_get_modifier(ob,psys);
+
 	base->flag |= BA_HAS_RECALC_DATA;
 
-	for(i=0, pa=psys->particles; i<totpart; i++, pa++) {
-		pa->flag &= ~PARS_TRANSFORM;
+	for(i=0, point=edit->points; i<edit->totpoint; i++, point++) {
+		point->flag &= ~PEP_TRANSFORM;
 		transformparticle= 0;
 
-		if((pa->flag & PARS_HIDE)==0) {
-			for(k=0, key=edit->keys[i]; k<pa->totkey; k++, key++) {
+		if((point->flag & PEP_HIDE)==0) {
+			for(k=0, key=point->keys; k<point->totkey; k++, key++) {
 				if((key->flag&PEK_HIDE)==0) {
 					if(key->flag&PEK_SELECT) {
 						hasselected= 1;
@@ -1654,8 +1655,8 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 		}
 
 		if(transformparticle) {
-			count += pa->totkey;
-			pa->flag |= PARS_TRANSFORM;
+			count += point->totkey;
+			point->flag |= PEP_TRANSFORM;
 		}
 	}
 
@@ -1674,18 +1675,23 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 
 	Mat4Invert(ob->imat,ob->obmat);
 
-	for(i=0, pa=psys->particles; i<totpart; i++, pa++) {
+	for(i=0, point=edit->points; i<edit->totpoint; i++, point++) {
 		TransData *head, *tail;
 		head = tail = td;
 
-		if(!(pa->flag & PARS_TRANSFORM)) continue;
+		if(!(point->flag & PEP_TRANSFORM)) continue;
 
-		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, mat);
+		if(psys)
+			psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, psys->particles + i, mat);
 
-		for(k=0, key=edit->keys[i]; k<pa->totkey; k++, key++) {
-			VECCOPY(key->world_co, key->co);
-			Mat4MulVecfl(mat, key->world_co);
-			td->loc = key->world_co;
+		for(k=0, key=point->keys; k<point->totkey; k++, key++) {
+			if(psys) {
+				VECCOPY(key->world_co, key->co);
+				Mat4MulVecfl(mat, key->world_co);
+				td->loc = key->world_co;
+			}
+			else
+				td->loc = key->co;
 
 			VECCOPY(td->iloc, td->loc);
 			VECCOPY(td->center, td->loc);
@@ -1713,7 +1719,7 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 				if(k==0) tx->size = 0;
 				else tx->size = (key - 1)->time;
 
-				if(k == pa->totkey - 1) tx->quat = 0;
+				if(k == point->totkey - 1) tx->quat = 0;
 				else tx->quat = (key + 1)->time;
 			}
 
@@ -1731,35 +1737,42 @@ void flushTransParticles(TransInfo *t)
 {
 	Scene *scene = t->scene;
 	Object *ob = OBACT;
-	ParticleSystem *psys = PE_get_current(scene, ob);
+	PTCacheEdit *edit = PE_get_current(scene, ob);
+	ParticleSystem *psys = edit->psys;
 	ParticleSystemModifierData *psmd;
-	ParticleData *pa;
-	ParticleEditKey *key;
+	PTCacheEditPoint *point;
+	PTCacheEditKey *key;
 	TransData *td;
 	float mat[4][4], imat[4][4], co[3];
 	int i, k, propmode = t->flag & T_PROP_EDIT;
 
-	psmd = psys_get_modifier(ob, psys);
+	if(psys)
+		psmd = psys_get_modifier(ob, psys);
 
 	/* we do transform in world space, so flush world space position
-	 * back to particle local space */
+	 * back to particle local space (only for hair particles) */
 	td= t->data;
-	for(i=0, pa=psys->particles; i<psys->totpart; i++, pa++, td++) {
-		if(!(pa->flag & PARS_TRANSFORM)) continue;
+	for(i=0, point=edit->points; i<edit->totpoint; i++, point++, td++) {
+		if(!(point->flag & PEP_TRANSFORM)) continue;
 
-		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, mat);
-		Mat4Invert(imat,mat);
+		if(psys) {
+			psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, psys->particles + i, mat);
+			Mat4Invert(imat,mat);
 
-		for(k=0, key=psys->edit->keys[i]; k<pa->totkey; k++, key++) {
-			VECCOPY(co, key->world_co);
-			Mat4MulVecfl(imat, co);
+			for(k=0, key=point->keys; k<point->totkey; k++, key++) {
+				VECCOPY(co, key->world_co);
+				Mat4MulVecfl(imat, co);
 
-			/* optimization for proportional edit */
-			if(!propmode || !FloatCompare(key->co, co, 0.0001f)) {
-				VECCOPY(key->co, co);
-				pa->flag |= PARS_EDIT_RECALC;
+
+				/* optimization for proportional edit */
+				if(!propmode || !FloatCompare(key->co, co, 0.0001f)) {
+					VECCOPY(key->co, co);
+					point->flag |= PEP_EDIT_RECALC;
+				}
 			}
 		}
+		else
+			point->flag |= PEP_EDIT_RECALC;
 	}
 
 	PE_update_object(scene, OBACT, 1);
@@ -5256,7 +5269,8 @@ void createTransData(bContext *C, TransInfo *t)
 		}
 		CTX_DATA_END;
 	}
-	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) && PE_can_edit(PE_get_current(scene, ob))) {
+	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) 
+		&& PE_start_edit(PE_get_current(scene, ob))) {
 		createTransParticleVerts(C, t);
 
 		if(t->data && t->flag & T_PROP_EDIT) {

@@ -194,8 +194,8 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 	ParticleData *particles;				/* (parent) particles */
 	ChildParticle *child;					/* child particles */
 
-	struct ParticleEdit *edit;						/* particle editmode (runtime) */
-	void (*free_edit)(struct ParticleSystem *sys);	/* free callback */
+	struct PTCacheEdit *edit;						/* particle editmode (runtime) */
+	void (*free_edit)(struct PTCacheEdit *edit);	/* free callback */
 
 	struct ParticleCacheKey **pathcache;	/* path cache (runtime) */
 	struct ParticleCacheKey **childcache;	/* child cache (runtime) */
@@ -419,7 +419,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PSYS_DELETE			256	/* remove particlesystem as soon as possible */
 #define PSYS_HAIR_DONE		512
 #define PSYS_KEYED			1024
-#define PSYS_EDITED			2048
+//#define PSYS_EDITED			2048
 //#define PSYS_PROTECT_CACHE	4096
 #define PSYS_DISABLED		8192
 
@@ -427,11 +427,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PARS_UNEXIST		1
 #define PARS_NO_DISP		2
 #define PARS_STICKY			4
-#define PARS_TRANSFORM		8
-#define PARS_HIDE			16
-#define PARS_TAG			32
-#define PARS_REKEY			64
-#define PARS_EDIT_RECALC	128
+#define PARS_REKEY			8
 
 /* pars->alive */
 #define PARS_KILLED			0

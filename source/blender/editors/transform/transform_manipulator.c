@@ -62,6 +62,7 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
@@ -362,18 +363,19 @@ int calc_manipulator_stats(const bContext *C)
 		;
 	}
 	else if(ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
-		ParticleSystem *psys= PE_get_current(scene, ob);
-		ParticleData *pa = psys->particles;
-		ParticleEditKey *ek;
+		PTCacheEdit *edit= PE_get_current(scene, ob);
+		PTCacheEditPoint *point;
+		PTCacheEditKey *ek;
 		int k;
 
-		if(psys->edit) {
-			for(a=0; a<psys->totpart; a++,pa++) {
-				if(pa->flag & PARS_HIDE) continue;
+		if(edit) {
+			point = edit->points;
+			for(a=0; a<edit->totpoint; a++,point++) {
+				if(point->flag & PEP_HIDE) continue;
 
-				for(k=0, ek=psys->edit->keys[a]; k<pa->totkey; k++, ek++) {
+				for(k=0, ek=point->keys; k<point->totkey; k++, ek++) {
 					if(ek->flag & PEK_SELECT) {
-						calc_tw_center(scene, ek->world_co);
+						calc_tw_center(scene, ek->flag & PEK_USE_WCO ? ek->world_co : ek->co);
 						totsel++;
 					}
 				}

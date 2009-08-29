@@ -98,6 +98,7 @@ EnumPropertyItem part_hair_ren_as_items[] = {
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 
 #include "BLI_arithb.h"
 
@@ -436,7 +437,30 @@ static void rna_ParticleTarget_name_get(PointerRNA *ptr, char *str)
 	else
 		strcpy(str, "Invalid target!");
 }
+static int rna_ParticleSystem_multiple_caches_get(PointerRNA *ptr)
+{
+	ParticleSystem *psys= (ParticleSystem*)ptr->data;
 
+	return (psys->ptcaches.first != psys->ptcaches.last);
+}
+static int rna_ParticleSystem_editable_get(PointerRNA *ptr)
+{
+	ParticleSystem *psys= (ParticleSystem*)ptr->data;
+
+	if(psys->part && psys->part->type==PART_HAIR)
+		return (psys->flag & PSYS_HAIR_DONE);
+	else
+		return (psys->pointcache->flag & PTCACHE_BAKED);
+}
+static int rna_ParticleSystem_edited_get(PointerRNA *ptr)
+{
+	ParticleSystem *psys= (ParticleSystem*)ptr->data;
+
+	if(psys->part && psys->part->type==PART_HAIR)
+		return (psys->edit && psys->edit->edited);
+	else
+		return (psys->pointcache->edit && psys->pointcache->edit->edited);
+}
 EnumPropertyItem from_items[] = {
 	{PART_FROM_VERT, "VERT", 0, "Vertexes", ""},
 	{PART_FROM_FACE, "FACE", 0, "Faces", ""},
@@ -725,26 +749,9 @@ static void rna_def_particle(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PARS_STICKY);
 	RNA_def_property_ui_text(prop, "sticky", "");
 
-	prop= RNA_def_property(srna, "transform", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PARS_TRANSFORM);
-	RNA_def_property_ui_text(prop, "transform", "");
-
-	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PARS_HIDE);
-	RNA_def_property_ui_text(prop, "hide", "");
-
-	prop= RNA_def_property(srna, "tag", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PARS_TAG);
-	RNA_def_property_ui_text(prop, "tag", "");
-
 	prop= RNA_def_property(srna, "rekey", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PARS_REKEY);
 	RNA_def_property_ui_text(prop, "rekey", "");
-
-	prop= RNA_def_property(srna, "edit_recalc", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PARS_EDIT_RECALC);
-	RNA_def_property_ui_text(prop, "edit_recalc", "");
-
 
 	prop= RNA_def_property(srna, "alive_state", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "alive");
@@ -1907,11 +1914,6 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "softflag", OB_SB_ENABLE);
 	RNA_def_property_ui_text(prop, "Use Soft Body", "Enable use of soft body for hair physics simulation.");
 
-	prop= RNA_def_property(srna, "editable", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PSYS_EDITED);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* various checks needed */
-	RNA_def_property_ui_text(prop, "Editable", "For hair particle systems, finalize the hair to enable editing.");
-
 	/* reactor */
 	prop= RNA_def_property(srna, "reactor_target_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "target_ob");
@@ -2089,12 +2091,28 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "PointCache");
 	RNA_def_property_ui_text(prop, "Point Cache", "");
 
+	prop= RNA_def_property(srna, "multiple_caches", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_ParticleSystem_multiple_caches_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Multiple Caches", "Particle system has multiple point caches");
+
 	/* offset ob */
 	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "parent");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Parent", "Use this object's coordinate system instead of global coordinate system.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_PARTICLE, "rna_Particle_redo");
+
+	/* hair or cache editing */
+	prop= RNA_def_property(srna, "editable", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_ParticleSystem_editable_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Editable", "Particle system can be edited in particle mode");
+
+	prop= RNA_def_property(srna, "edited", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_ParticleSystem_edited_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Edited", "Particle system has been edited in particle mode");
 }
 
 void RNA_def_particle(BlenderRNA *brna)

@@ -101,6 +101,8 @@ typedef struct PTCacheFile {
 	void *cur[BPHYS_TOT_DATA];
 } PTCacheFile;
 
+#define PTCACHE_VEL_PER_SEC		1
+
 typedef struct PTCacheID {
 	struct PTCacheID *next, *prev;
 
@@ -109,6 +111,7 @@ typedef struct PTCacheID {
 	void *calldata;
 	int type;
 	int stack_index;
+	int flag;
 
 	/* flags defined in DNA_object_force.h */
 	unsigned int data_types, info_types;
@@ -151,6 +154,75 @@ typedef struct PTCacheBaker {
 	void *progresscontext;
 } PTCacheBaker;
 
+/* PTCacheEditKey->flag */
+#define PEK_SELECT		1
+#define PEK_TAG			2
+#define PEK_HIDE		4
+#define PEK_USE_WCO		8
+
+typedef struct PTCacheEditKey{
+	float *co;
+	float *vel;
+	float *rot;
+	float *time;
+
+	float world_co[3];
+	float ftime;
+	float length;
+	short flag;
+} PTCacheEditKey;
+
+/* PTCacheEditPoint->flag */
+#define PEP_TAG				1
+#define PEP_EDIT_RECALC		2
+#define PEP_TRANSFORM		4
+#define PEP_HIDE			8
+
+typedef struct PTCacheEditPoint {
+	struct PTCacheEditKey *keys;
+	int totkey;
+	short flag;
+} PTCacheEditPoint;
+
+typedef struct PTCacheUndo {
+	struct PTCacheUndo *next, *prev;
+	struct PTCacheEditPoint *points;
+
+	/* particles stuff */
+	struct ParticleData *particles;
+	struct KDTree *emitter_field;
+	float *emitter_cosnos;
+
+	/* cache stuff */
+	struct ListBase mem_cache;
+
+	int totpoint;
+	char name[64];
+} PTCacheUndo;
+
+typedef struct PTCacheEdit {
+	ListBase undo;
+	struct PTCacheUndo *curundo;
+	PTCacheEditPoint *points;
+
+	struct PTCacheID pid;
+
+	/* particles stuff */
+	struct ParticleSystem *psys;
+	struct ParticleData *particles;
+	struct KDTree *emitter_field;
+	float *emitter_cosnos;
+	int *mirror_cache;
+
+	struct ParticleCacheKey **pathcache;	/* path cache (runtime) */
+	ListBase pathcachebufs;
+
+	int totpoint, totframes, totcached, edited;
+
+	char sel_col[3];
+	char nosel_col[3];
+} PTCacheEdit;
+
 /* Particle functions */
 void BKE_ptcache_make_particle_key(struct ParticleKey *key, int index, void **data, float time);
 
@@ -179,6 +251,10 @@ void BKE_ptcache_update_info(PTCacheID *pid);
 /* Size of cache data type. */
 int		BKE_ptcache_data_size(int data_type);
 
+/* Memory cache read/write helpers. */
+void BKE_ptcache_mem_init_pointers(struct PTCacheMem *pm);
+void BKE_ptcache_mem_incr_pointers(struct PTCacheMem *pm);
+
 /* Copy a specific data type from cache data to point data. */
 void	BKE_ptcache_data_get(void **data, int type, int index, void *to);
 
@@ -197,7 +273,7 @@ int BKE_ptcache_get_continue_physics(void);
 
 /******************* Allocate & free ***************/
 struct PointCache *BKE_ptcache_add(struct ListBase *ptcaches);
-void BKE_ptache_free_mem(struct PointCache *cache);
+void BKE_ptcache_free_mem(struct ListBase *mem_cache);
 void BKE_ptcache_free(struct PointCache *cache);
 void BKE_ptcache_free_list(struct ListBase *ptcaches);
 struct PointCache *BKE_ptcache_copy_list(struct ListBase *ptcaches_new, struct ListBase *ptcaches_old);

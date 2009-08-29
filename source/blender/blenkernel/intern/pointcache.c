@@ -434,6 +434,8 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, Object *ob, ParticleSystem *p
 	pid->cache_ptr= &psys->pointcache;
 	pid->ptcaches= &psys->ptcaches;
 
+	pid->flag |= PTCACHE_VEL_PER_SEC;
+
 	pid->write_elem= ptcache_write_particle;
 	pid->write_stream = NULL;
 	pid->read_stream = NULL;
@@ -800,14 +802,16 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob)
 	}
 
 	for(psys=ob->particlesystem.first; psys; psys=psys->next) {
-		pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
-		BKE_ptcache_id_from_particles(pid, ob, psys);
-		BLI_addtail(lb, pid);
-
-		if(psys->soft) {
+		if(psys->part) {
 			pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
-			BKE_ptcache_id_from_softbody(pid, ob, psys->soft);
+			BKE_ptcache_id_from_particles(pid, ob, psys);
 			BLI_addtail(lb, pid);
+
+			if(psys->soft) {
+				pid= MEM_callocN(sizeof(PTCacheID), "PTCacheID");
+				BKE_ptcache_id_from_softbody(pid, ob, psys->soft);
+				BLI_addtail(lb, pid);
+			}
 		}
 	}
 
@@ -1087,7 +1091,7 @@ static void ptcache_file_init_pointers(PTCacheFile *pf)
 	pf->cur[BPHYS_DATA_BOIDS] =		data_types & (1<<BPHYS_DATA_BOIDS) ?		&pf->data.boids	: NULL;
 }
 
-static void ptcache_mem_init_pointers(PTCacheMem *pm)
+void BKE_ptcache_mem_init_pointers(PTCacheMem *pm)
 {
 	int data_types = pm->data_types;
 	int i;
@@ -1096,7 +1100,7 @@ static void ptcache_mem_init_pointers(PTCacheMem *pm)
 		pm->cur[i] = data_types & (1<<i) ? pm->data[i] : NULL;
 }
 
-static void ptcache_mem_incr_pointers(PTCacheMem *pm)
+void BKE_ptcache_mem_incr_pointers(PTCacheMem *pm)
 {
 	int i;
 
@@ -1249,12 +1253,12 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 		return 0;
 
 	if(pm) {
-		ptcache_mem_init_pointers(pm);
+		BKE_ptcache_mem_init_pointers(pm);
 		totpoint = pm->totpoint;
 		index = pm->data_types & (1<<BPHYS_DATA_INDEX) ? pm->cur[BPHYS_DATA_INDEX] : &i;
 	}
 	if(pm2) {
-		ptcache_mem_init_pointers(pm2);
+		BKE_ptcache_mem_init_pointers(pm2);
 		totpoint2 = pm2->totpoint;
 		index2 = pm2->data_types & (1<<BPHYS_DATA_INDEX) ? pm2->cur[BPHYS_DATA_INDEX] : &i;
 	}
@@ -1336,7 +1340,7 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 			}
 
 			if(pm) {
-				ptcache_mem_incr_pointers(pm);
+				BKE_ptcache_mem_incr_pointers(pm);
 				index = pm->data_types & (1<<BPHYS_DATA_INDEX) ? pm->cur[BPHYS_DATA_INDEX] : &i;
 			}
 		}
@@ -1387,7 +1391,7 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 			}
 
 			if(pm2) {
-				ptcache_mem_incr_pointers(pm2);
+				BKE_ptcache_mem_incr_pointers(pm2);
 				index2 = pm2->data_types & (1<<BPHYS_DATA_INDEX) ? pm2->cur[BPHYS_DATA_INDEX] : &i;
 			}
 		}
@@ -1559,11 +1563,11 @@ int BKE_ptcache_write_cache(PTCacheID *pid, int cfra)
 			pm->data_types = cfra ? pid->data_types : pid->info_types;
 
 			ptcache_alloc_data(pm);
-			ptcache_mem_init_pointers(pm);
+			BKE_ptcache_mem_init_pointers(pm);
 
 			for(i=0; i<totpoint; i++) {
 				if(pid->write_elem && pid->write_elem(i, pid->calldata, pm->cur))
-					ptcache_mem_incr_pointers(pm);
+					BKE_ptcache_mem_incr_pointers(pm);
 			}
 			//ptcache_make_index_array(pm, pid->totpoint(pid->calldata));
 
@@ -1663,6 +1667,8 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, int cfra)
 		else {
 			PTCacheMem *pm= pid->cache->mem_cache.first;
 			PTCacheMem *link= NULL;
+
+			pm= pid->cache->mem_cache.first;
 
 			if(mode == PTCACHE_CLEAR_ALL) {
 				pid->cache->last_exact = 0;
@@ -1863,7 +1869,7 @@ int BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 		else if(psys->recalc & PSYS_RECALC_REDO || psys->recalc & PSYS_RECALC_CHILD)
 			skip = 1;
 
-		if(skip == 0) {
+		if(skip == 0 && psys->part) {
 			BKE_ptcache_id_from_particles(&pid, ob, psys);
 			reset |= BKE_ptcache_id_reset(scene, &pid, mode);
 		}
@@ -1968,9 +1974,9 @@ PointCache *BKE_ptcache_add(ListBase *ptcaches)
 	return cache;
 }
 
-void BKE_ptache_free_mem(PointCache *cache)
+void BKE_ptcache_free_mem(ListBase *mem_cache)
 {
-	PTCacheMem *pm = cache->mem_cache.first;
+	PTCacheMem *pm = mem_cache->first;
 
 	if(pm) {
 		for(; pm; pm=pm->next) {
@@ -1979,22 +1985,25 @@ void BKE_ptache_free_mem(PointCache *cache)
 				MEM_freeN(pm->index_array);
 		}
 
-		BLI_freelistN(&cache->mem_cache);
+		BLI_freelistN(mem_cache);
 	}
 }
 void BKE_ptcache_free(PointCache *cache)
 {
-	BKE_ptache_free_mem(cache);
+	BKE_ptcache_free_mem(&cache->mem_cache);
+	if(cache->edit && cache->free_edit)
+		cache->free_edit(cache->edit);
 	MEM_freeN(cache);
 }
 void BKE_ptcache_free_list(ListBase *ptcaches)
 {
 	PointCache *cache = ptcaches->first;
 
-	for(; cache; cache=cache->next)
-		BKE_ptache_free_mem(cache);
-
-	BLI_freelistN(ptcaches);
+	while(cache) {
+		BLI_remlink(ptcaches, cache);
+		BKE_ptcache_free(cache);
+		cache = ptcaches->first;
+	}
 }
 
 static PointCache *ptcache_copy(PointCache *cache)
@@ -2258,7 +2267,7 @@ void BKE_ptcache_disk_to_mem(PTCacheID *pid)
 			pm->frame = cfra;
 
 			ptcache_alloc_data(pm);
-			ptcache_mem_init_pointers(pm);
+			BKE_ptcache_mem_init_pointers(pm);
 			ptcache_file_init_pointers(pf);
 
 			for(i=0; i<pm->totpoint; i++) {
@@ -2274,7 +2283,7 @@ void BKE_ptcache_disk_to_mem(PTCacheID *pid)
 					return;
 				}
 				ptcache_copy_data(pf->cur, pm->cur);
-				ptcache_mem_incr_pointers(pm);
+				BKE_ptcache_mem_incr_pointers(pm);
 			}
 
 			//ptcache_make_index_array(pm, pid->totpoint(pid->calldata));
@@ -2305,7 +2314,7 @@ void BKE_ptcache_mem_to_disk(PTCacheID *pid)
 			pf->totpoint = pm->totpoint;
 			pf->type = pid->type;
 
-			ptcache_mem_init_pointers(pm);
+			BKE_ptcache_mem_init_pointers(pm);
 			ptcache_file_init_pointers(pf);
 
 			if(!ptcache_file_write_header_begin(pf) || !pid->write_header(pf)) {
@@ -2325,7 +2334,7 @@ void BKE_ptcache_mem_to_disk(PTCacheID *pid)
 					ptcache_file_close(pf);
 					return;
 				}
-				ptcache_mem_incr_pointers(pm);
+				BKE_ptcache_mem_incr_pointers(pm);
 			}
 
 			ptcache_file_close(pf);

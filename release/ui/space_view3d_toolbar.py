@@ -362,8 +362,10 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			col = layout.column(align=True)
 			col.item_enumR(settings, "tool", 'DRAW')
 			col.item_enumR(settings, "tool", 'SOFTEN')
-			col.item_enumR(settings, "tool", 'CLONE')
-			col.item_enumR(settings, "tool", 'SMEAR')
+			if settings.use_projection:
+				col.item_enumR(settings, "tool", 'CLONE')
+			else:
+				col.item_enumR(settings, "tool", 'SMEAR')
 				
 			col = layout.column()
 			col.itemR(brush, "color", text="")
@@ -426,9 +428,9 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel):
 		if not texture_paint:
 			layout.itemR(brush, "smooth_stroke")
 			col = layout.column()
-			col.active = brush.smooth_stroke
-			col.itemR(brush, "smooth_stroke_radius", text="Radius", slider=True)
-			col.itemR(brush, "smooth_stroke_factor", text="Factor", slider=True)
+			col.itemR(brush, "airbrush")
+			col.itemR(brush, "anchored")
+			col.itemR(brush, "rake")
 
 		layout.itemR(brush, "space")
 		row = layout.row(align=True)
@@ -538,22 +540,12 @@ class VIEW3D_PT_tools_vertexpaint(View3DPanel):
 #		col.itemR(vpaint, "mul", text="")
 
 
-# ********** options for projection paint ****************
+# ********** default tools for texturepaint ****************
 
-class VIEW3D_PT_tools_projectpaint(View3DPanel):
+class VIEW3D_PT_tools_texturepaint(View3DPanel):
 	__context__ = "texturepaint"
-	__label__ = "Project Paint"
-	
-	def poll(self, context):
-		return context.tool_settings.image_paint.tool != 'SMEAR'
-	
-	def draw_header(self, context):
-		layout = self.layout
-		
-		ipaint = context.tool_settings.image_paint
+	__label__ = "Options"
 
-		layout.itemR(ipaint, "use_projection", text="")
-	
 	def draw(self, context):
 		layout = self.layout
 		
@@ -562,6 +554,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
 		use_projection= ipaint.use_projection
 		
 		col = layout.column()
+		col.itemR(ipaint, "use_projection")
 		sub = col.column()
 		sub.active = use_projection
 		sub.itemR(ipaint, "use_occlude")
@@ -606,22 +599,58 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
 	def draw(self, context):
 		layout = self.layout
 		pe = context.tool_settings.particle_edit
+		ob = pe.object
 
-		col = layout.column(align=True)
-		col.itemR(pe, "emitter_deflect", text="Deflect")
-		sub = col.row()
-		sub.active = pe.emitter_deflect
-		sub.itemR(pe, "emitter_distance", text="Distance")
+		row = layout.row()
+		row.itemL(text="Edit:")
+		row.itemR(pe, "type", text="")
+		
+		if pe.type == 'PARTICLES':
+			if ob.particle_systems:
+				if len(ob.particle_systems) > 1:
+					layout.template_list(ob, "particle_systems", ob, "active_particle_system_index", type='ICONS')
+				
+				ptcache = ob.particle_systems[ob.active_particle_system_index].point_cache
+		else:
+			for md in ob.modifiers:
+				if md.type==pe.type:
+					ptcache = md.point_cache
+					
+		if ptcache and len(ptcache.point_cache_list) > 1:
+			layout.template_list(ptcache, "point_cache_list", ptcache, "active_point_cache_index", type='ICONS')
+			
+		
+		if not pe.editable:
+			layout.itemL(text="Point cache must be baked")
+			layout.itemL(text="to enable editing!")
 		
 		col = layout.column(align=True)
+		if pe.hair:
+			col.active = pe.editable
+			col.itemR(pe, "emitter_deflect", text="Deflect emitter")
+			sub = col.row()
+			sub.active = pe.emitter_deflect
+			sub.itemR(pe, "emitter_distance", text="Distance")
+		
+		col = layout.column(align=True)
+		col.active = pe.editable
 		col.itemL(text="Keep:")
 		col.itemR(pe, "keep_lengths", text="Lenghts")
 		col.itemR(pe, "keep_root", text="Root")
+		if not pe.hair:
+			col.itemL(text="Correct:")
+			col.itemR(pe, "auto_velocity", text="Velocity")
 		
 		col = layout.column(align=True)
-		col.itemL(text="Display:")
-		col.itemR(pe, "show_time", text="Time")
-		col.itemR(pe, "show_children", text="Children")
+		col.active = pe.editable
+		col.itemL(text="Draw:")
+		col.itemR(pe, "draw_step", text="Path Steps")
+		if pe.type == 'PARTICLES':
+			col.itemR(pe, "draw_particles", text="Particles")
+		col.itemR(pe, "fade_time")
+		sub = col.row()
+		sub.active = pe.fade_time
+		sub.itemR(pe, "fade_frames", slider=True)
 
 bpy.types.register(VIEW3D_PT_tools_objectmode)
 bpy.types.register(VIEW3D_PT_tools_meshedit)
@@ -638,5 +667,5 @@ bpy.types.register(VIEW3D_PT_tools_brush_curve)
 bpy.types.register(VIEW3D_PT_sculpt_options)
 bpy.types.register(VIEW3D_PT_tools_vertexpaint)
 bpy.types.register(VIEW3D_PT_tools_weightpaint)
-bpy.types.register(VIEW3D_PT_tools_projectpaint)
+bpy.types.register(VIEW3D_PT_tools_texturepaint)
 bpy.types.register(VIEW3D_PT_tools_particlemode)

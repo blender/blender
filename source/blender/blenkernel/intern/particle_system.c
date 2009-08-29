@@ -127,7 +127,7 @@ void psys_reset(ParticleSystem *psys, int mode)
 	int i;
 
 	if(ELEM(mode, PSYS_RESET_ALL, PSYS_RESET_DEPSGRAPH)) {
-		if(mode == PSYS_RESET_ALL || !(part->type == PART_HAIR && (psys->flag & PSYS_EDITED))) {
+		if(mode == PSYS_RESET_ALL || !(part->type == PART_HAIR && (psys->edit && psys->edit->edited))) {
 			if(psys->particles) {
 				if(psys->particles->keys)
 					MEM_freeN(psys->particles->keys);
@@ -145,6 +145,12 @@ void psys_reset(ParticleSystem *psys, int mode)
 
 			if(psys->reactevents.first)
 				BLI_freelistN(&psys->reactevents);
+
+			if(psys->edit && psys->free_edit) {
+				psys->free_edit(psys->edit);
+				psys->edit = NULL;
+				psys->free_edit = NULL;
+			}
 		}
 	}
 	else if(mode == PSYS_RESET_CACHE_MISS) {
@@ -165,7 +171,7 @@ void psys_reset(ParticleSystem *psys, int mode)
 	psys->totchild= 0;
 
 	/* reset path cache */
-	psys_free_path_cache(psys);
+	psys_free_path_cache(psys, NULL);
 
 	/* reset point cache */
 	psys->pointcache->flag &= ~PTCACHE_SIMULATION_VALID;
@@ -2274,7 +2280,7 @@ void psys_clear_temp_pointcache(ParticleSystem *psys)
 	if((psys->pointcache->flag & PTCACHE_DISK_CACHE)==0)
 		return;
 
-	BKE_ptache_free_mem(psys->pointcache);
+	BKE_ptcache_free_mem(&psys->pointcache->mem_cache);
 }
 void psys_get_pointcache_start_end(Scene *scene, ParticleSystem *psys, int *sfra, int *efra)
 {
@@ -3747,41 +3753,17 @@ static void psys_update_path_cache(Scene *scene, Object *ob, ParticleSystemModif
 	if((part->type==PART_HAIR || psys->flag&PSYS_KEYED || psys->pointcache->flag & PTCACHE_BAKED) && ( psys_in_edit_mode(scene, psys) || (part->type==PART_HAIR 
 		|| (part->ren_as == PART_DRAW_PATH && (part->draw_as == PART_DRAW_REND || psys->renderdata))))){
 
-		psys_cache_paths(scene, ob, psys, cfra, 0);
+		psys_cache_paths(scene, ob, psys, cfra);
 
 		/* for render, child particle paths are computed on the fly */
 		if(part->childtype) {
-			if(((psys->totchild!=0)) || (psys_in_edit_mode(scene, psys) && (pset->flag&PE_SHOW_CHILD)))
+			if(((psys->totchild!=0)) || (psys_in_edit_mode(scene, psys) && (pset->flag&PE_DRAW_PART)))
 				if(!(psys->part->type == PART_HAIR) || (psys->flag & PSYS_HAIR_DONE))
 					psys_cache_child_paths(scene, ob, psys, cfra, 0);
 		}
 	}
 	else if(psys->pathcache)
-		psys_free_path_cache(psys);
-}
-
-/* calculate and store key locations in world coordinates */
-void psys_update_world_cos(Object *ob, ParticleSystem *psys)
-{
-	ParticleSystemModifierData *psmd= psys_get_modifier(ob, psys);
-	ParticleData *pa;
-	ParticleEditKey *key;
-	int i, k, totpart;
-	float hairmat[4][4];
-
-	if(psys==0 || psys->edit==0)
-		return;
-
-	totpart= psys->totpart;
-
-	for(i=0, pa=psys->particles; i<totpart; i++, pa++) {
-		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, hairmat);
-
-		for(k=0, key=psys->edit->keys[i]; k<pa->totkey; k++, key++) {
-			VECCOPY(key->world_co,key->co);
-			Mat4MulVecfl(hairmat, key->world_co);
-		}
-	}
+		psys_free_path_cache(psys, NULL);
 }
 
 static void hair_step(Scene *scene, Object *ob, ParticleSystemModifierData *psmd, ParticleSystem *psys, float cfra)
@@ -3808,9 +3790,6 @@ static void hair_step(Scene *scene, Object *ob, ParticleSystemModifierData *psmd
 	psys_init_effectors(scene, ob, part->eff_group, psys);
 	if(psys->effectors.first)
 		precalc_effectors(scene, ob,psys,psmd,cfra);
-		
-	if(psys_in_edit_mode(scene, psys))
-		psys_update_world_cos(ob, psys);
 
 	psys_update_path_cache(scene, ob,psmd,psys,cfra);
 }
@@ -4339,7 +4318,7 @@ static void system_step(Scene *scene, Object *ob, ParticleSystem *psys, Particle
 		psys_update_path_cache(scene, ob, psmd, psys,(int)cfra);
 	}
 	else if(psys->pathcache)
-		psys_free_path_cache(psys);
+		psys_free_path_cache(psys, NULL);
 
 	/* cleanup */
 	if(vg_vel) MEM_freeN(vg_vel);
@@ -4385,7 +4364,7 @@ static void psys_to_softbody(Scene *scene, Object *ob, ParticleSystem *psys)
 
 static int hair_needs_recalc(ParticleSystem *psys)
 {
-	if((psys->flag & PSYS_EDITED)==0 &&
+	if((!psys->edit || !psys->edit->edited) &&
 		((psys->flag & PSYS_HAIR_DONE)==0 || psys->recalc & PSYS_RECALC_RESET)) {
 		return 1;
 	}

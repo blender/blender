@@ -1,6 +1,11 @@
 
 import bpy
 
+from buttons_particle import point_cache_ui
+
+def softbody_panel_enabled(md):
+	return md.point_cache.baked==False
+
 class PhysicButtonsPanel(bpy.types.Panel):
 	__space_type__ = 'PROPERTIES'
 	__region_type__ = 'WINDOW'
@@ -41,6 +46,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel):
 
 			# General
 			split = layout.split()
+			split.enabled = softbody_panel_enabled(md)
 			
 			col = split.column()
 			col.itemL(text="Object:")
@@ -60,52 +66,9 @@ class PHYSICS_PT_softbody_cache(PhysicButtonsPanel):
 		return (context.soft_body)
 
 	def draw(self, context):
-		layout = self.layout
-
-		cache = context.soft_body.point_cache
-		layout.set_context_pointer("PointCache", cache)
-		
-		row = layout.row()
-		row.template_list(cache, "point_cache_list", cache, "active_point_cache_index", rows=2)
-		col = row.column(align=True)
-		col.itemO("ptcache.add_new", icon='ICON_ZOOMIN', text="")
-		col.itemO("ptcache.remove", icon='ICON_ZOOMOUT', text="")
-		
-		row = layout.row()
-		row.itemR(cache, "name")
-		
-		row = layout.row()
-		row.itemR(cache, "start_frame")
-		row.itemR(cache, "end_frame")
-		
-		row = layout.row()
-		
-		if cache.baked == True:
-			row.itemO("ptcache.free_bake", text="Free Bake")
-		else:
-			row.item_booleanO("ptcache.bake", "bake", True, text="Bake")
-		
-		sub = row.row()
-		sub.enabled = cache.frames_skipped or cache.outdated
-		sub.itemO("ptcache.bake", "bake", False, text="Calculate to Current Frame")
+		md = context.soft_body
+		point_cache_ui(self, md.point_cache, softbody_panel_enabled(md), 0, 0)
 			
-		row = layout.row()
-		row.itemO("ptcache.bake_from_cache", text="Current Cache to Bake")
-		row.itemR(cache, "step");
-	
-		row = layout.row()
-		row.itemR(cache, "quick_cache")
-		row.itemR(cache, "disk_cache")
-		
-		layout.itemL(text=cache.info)
-		
-		layout.itemS()
-		
-		row = layout.row()
-		row.itemO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
-		row.itemO("ptcache.free_bake_all", text="Free All Bakes")
-		layout.itemO("ptcache.bake_all", "bake", False, text="Update All Dynamics to current frame")
-		
 class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
 	__label__ = "Soft Body Goal"
 	
@@ -117,6 +80,7 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
 		
 		softbody = context.soft_body.settings
 	
+		layout.active = softbody_panel_enabled(context.soft_body)
 		layout.itemR(softbody, "use_goal", text="")
 		
 	def draw(self, context):
@@ -129,7 +93,7 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
 			
 		if md:
 			softbody = md.settings
-			layout.active = softbody.use_goal
+			layout.active = softbody.use_goal and softbody_panel_enabled(md)
 
 			# Goal 
 			split = layout.split()
@@ -159,6 +123,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
 		
 		softbody = context.soft_body.settings
 	
+		layout.active = softbody_panel_enabled(context.soft_body)
 		layout.itemR(softbody, "use_edges", text="")
 		
 	def draw(self, context):
@@ -170,7 +135,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
 		if md:
 			softbody = md.settings
 			
-			layout.active = softbody.use_edges
+			layout.active = softbody.use_edges and softbody_panel_enabled(md)
 			
 			split = layout.split()
 			
@@ -209,6 +174,7 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
 		
 		softbody = context.soft_body.settings
 	
+		layout.active = softbody_panel_enabled(context.soft_body)
 		layout.itemR(softbody, "self_collision", text="")
 		
 	def draw(self, context):
@@ -220,7 +186,7 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
 		if md:
 			softbody = md.settings
 
-			layout.active = softbody.self_collision
+			layout.active = softbody.self_collision and softbody_panel_enabled(md)
 			
 			layout.itemL(text="Collision Type:")
 			layout.itemR(softbody, "collision_type", expand=True)
@@ -245,6 +211,8 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
 		
 		if md:
 			softbody = md.settings
+			
+			layout.active = softbody_panel_enabled(md)
 
 			# Solver
 			split = layout.split()

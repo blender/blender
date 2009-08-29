@@ -404,11 +404,13 @@ Scene *add_scene(char *name)
 	sce->unit.scale_length = 1.0f;
 
 	pset= &sce->toolsettings->particle;
-	pset->flag= PE_KEEP_LENGTHS|PE_LOCK_FIRST|PE_DEFLECT_EMITTER;
+	pset->flag= PE_KEEP_LENGTHS|PE_LOCK_FIRST|PE_DEFLECT_EMITTER|PE_AUTO_VELOCITY;
 	pset->emitterdist= 0.25f;
 	pset->totrekey= 5;
 	pset->totaddkey= 5;
 	pset->brushtype= PE_BRUSH_NONE;
+	pset->draw_step= 2;
+	pset->fade_frames= 2;
 	for(a=0; a<PE_TOT_BRUSH; a++) {
 		pset->brush[a].strength= 50;
 		pset->brush[a].size= 50;

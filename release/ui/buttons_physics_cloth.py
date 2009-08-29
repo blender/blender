@@ -1,6 +1,11 @@
 
 import bpy
 
+from buttons_particle import point_cache_ui
+
+def cloth_panel_enabled(md):
+	return md.point_cache.baked==False
+
 class PhysicButtonsPanel(bpy.types.Panel):
 	__space_type__ = 'PROPERTIES'
 	__region_type__ = 'WINDOW'
@@ -40,6 +45,8 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
 			cloth = md.settings
 
 			split = layout.split()
+			
+			split.active = cloth_panel_enabled(md)
 			
 			col = split.column()
 			col.itemL(text="Quality:")
@@ -85,53 +92,8 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
 		return (context.cloth != None)
 
 	def draw(self, context):
-		layout = self.layout
-
-		cache = context.cloth.point_cache
-		layout.set_context_pointer("PointCache", cache)
-		
-		row = layout.row()
-		row.template_list(cache, "point_cache_list", cache, "active_point_cache_index", rows=2)
-		col = row.column(align=True)
-		col.itemO("ptcache.add_new", icon='ICON_ZOOMIN', text="")
-		col.itemO("ptcache.remove", icon='ICON_ZOOMOUT', text="")
-		
-		row = layout.row()
-		row.itemR(cache, "name")
-		
-		row = layout.row()
-		row.itemR(cache, "start_frame")
-		row.itemR(cache, "end_frame")
-		
-		row = layout.row()
-		
-		if cache.baked == True:
-			row.itemO("ptcache.free_bake", text="Free Bake")
-		else:
-			row.item_booleanO("ptcache.bake", "bake", True, text="Bake")
-		
-		subrow = row.row()
-		subrow.enabled = cache.frames_skipped or cache.outdated
-		subrow.itemO("ptcache.bake", "bake", False, text="Calculate to Current Frame")
-			
-		row = layout.row()
-		#row.enabled = particle_panel_enabled(psys)
-		row.itemO("ptcache.bake_from_cache", text="Current Cache to Bake")
-		row.itemR(cache, "step");
-	
-		row = layout.row()
-		#row.enabled = particle_panel_enabled(psys)
-		row.itemR(cache, "quick_cache")
-		row.itemR(cache, "disk_cache")
-		
-		layout.itemL(text=cache.info)
-		
-		layout.itemS()
-		
-		row = layout.row()
-		row.itemO("ptcache.bake_all", "bake", True, text="Bake All Dynamics")
-		row.itemO("ptcache.free_bake_all", text="Free All Bakes")
-		layout.itemO("ptcache.bake_all", "bake", False, text="Update All Dynamics to current frame")
+		md = context.cloth
+		point_cache_ui(self, md.point_cache, cloth_panel_enabled(md), 0, 0)
 		
 class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
 	__label__ = "Cloth Collision"
@@ -143,7 +105,8 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
 	def draw_header(self, context):
 		layout = self.layout
 		cloth = context.cloth.collision_settings
-	
+		
+		layout.active = cloth_panel_enabled(context.cloth)
 		layout.itemR(cloth, "enable_collision", text="")
 
 	def draw(self, context):
@@ -151,7 +114,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
 		cloth = context.cloth.collision_settings
 		split = layout.split()
 		
-		layout.active = cloth.enable_collision
+		layout.active = cloth.enable_collision and cloth_panel_enabled(md)
 		
 		col = split.column()
 		col.itemR(cloth, "collision_quality", slider=True, text="Quality")
@@ -176,6 +139,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
 		layout = self.layout
 		cloth = context.cloth.settings
 	
+		layout.active = cloth_panel_enabled(context.cloth)
 		layout.itemR(cloth, "stiffness_scaling", text="")
 
 	def draw(self, context):
@@ -183,7 +147,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
 		ob = context.object
 		cloth = context.cloth.settings
 		
-		layout.active = cloth.stiffness_scaling	
+		layout.active = cloth.stiffness_scaling	and cloth_panel_enabled(md)
 		
 		split = layout.split()
 		

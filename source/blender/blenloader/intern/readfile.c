@@ -2963,8 +2963,10 @@ static void direct_link_pointcache(FileData *fd, PointCache *cache)
 	else
 		cache->mem_cache.first = cache->mem_cache.last = NULL;
 
-	cache->flag &= ~(PTCACHE_SIMULATION_VALID|PTCACHE_BAKE_EDIT_ACTIVE);
+	cache->flag &= ~PTCACHE_SIMULATION_VALID;
 	cache->simframe= 0;
+	cache->edit= NULL;
+	cache->free_edit= NULL;
 }
 
 static void direct_link_pointcache_list(FileData *fd, ListBase *ptcaches, PointCache **ocache)
@@ -3137,7 +3139,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 
 		link_list(fd, &psys->targets);
 
-		psys->edit = 0;
+		psys->edit = NULL;
 		psys->free_edit = NULL;
 		psys->pathcache = 0;
 		psys->childcache = 0;
