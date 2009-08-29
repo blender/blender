@@ -43,6 +43,7 @@
 #include "BKE_report.h"
 #include "BKE_packedFile.h"
 #include "BKE_sound.h"
+#include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
 
@@ -86,6 +87,10 @@ static int open_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	if (RNA_boolean_get(op->ptr, "cache")) {
+		sound_cache(sound, 0);
+	}
+
 	return OPERATOR_FINISHED;
 }
 
@@ -110,6 +115,7 @@ void SOUND_OT_open(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE|MOVIEFILE);
+	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory.");
 }
 
 /* ******************************************************* */
