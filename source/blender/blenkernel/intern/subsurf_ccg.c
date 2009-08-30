@@ -561,8 +561,11 @@ static DerivedMesh *ss_to_cdderivedmesh(CSubSurf *ss, int ssFromEditmesh,
 
 	cgdm = getCCGDerivedMesh(ss, drawInteriorEdges, useSubsurfUv, dm);
 	result = CDDM_copy(cgdm);
+	
 	cgdm->needsFree = 1;
 	cgdm->release(cgdm);
+
+	CDDM_calc_normals(result);
 
 	return result;
 #if 0
