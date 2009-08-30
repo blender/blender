@@ -259,7 +259,7 @@ IF(WIN32)
   IF(WITH_SNDFILE)
 	SET(SNDFILE ${LIBDIR}/sndfile)
 	SET(SNDFILE_INC ${SNDFILE}/include)
-	SET(SNDFILE_LIB sndfile-1)
+	SET(SNDFILE_LIB libsndfile-1)
 	SET(SNDFILE_LIBPATH ${SNDFILE}/lib)
   ENDIF(WITH_SNDFILE)
 
@@ -329,7 +329,7 @@ IF(WIN32)
   SET(QUICKTIME_LIBPATH ${QUICKTIME}/Libraries)
 
   SET(FFMPEG ${LIBDIR}/ffmpeg)
-  SET(FFMPEG_INC ${FFMPEG}/include)
+  SET(FFMPEG_INC ${FFMPEG}/include ${FFMPEG}/include/msvc)
   SET(FFMPEG_LIB avcodec-52 avformat-52 avdevice-52 avutil-50 swscale-0)
   SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
 
