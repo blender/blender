@@ -67,6 +67,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "ED_gpencil.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_space_api.h"
@@ -1437,6 +1438,12 @@ void image_buttons_register(ARegionType *art)
 	strcpy(pt->idname, "IMAGE_PT_curves");
 	strcpy(pt->label, "Curves");
 	pt->draw= image_panel_curves;
+	BLI_addtail(&art->paneltypes, pt);
+	
+	pt= MEM_callocN(sizeof(PanelType), "spacetype image panel gpencil");
+	strcpy(pt->idname, "IMAGE_PT_gpencil");
+	strcpy(pt->label, "Grease Pencil");
+	pt->draw= gpencil_panel_standard;
 	BLI_addtail(&art->paneltypes, pt);
 }
 

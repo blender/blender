@@ -86,6 +86,7 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_screen();
 	ED_operatortypes_anim();
 	ED_operatortypes_animchannels();
+	ED_operatortypes_gpencil();
 	ED_operatortypes_object();
 	ED_operatortypes_mesh();
 	ED_operatortypes_sculpt();
@@ -99,7 +100,6 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_fluid();
 	ED_operatortypes_metaball();
 	ED_operatortypes_boids();
-	ED_operatortypes_gpencil();
 	ED_operatortypes_sound();
 	
 	ui_view2d_operatortypes();
@@ -121,6 +121,7 @@ void ED_spacetypes_keymap(wmWindowManager *wm)
 	ED_keymap_screen(wm);
 	ED_keymap_anim(wm);
 	ED_keymap_animchannels(wm);
+	ED_keymap_gpencil(wm);
 	ED_keymap_object(wm);
 	ED_keymap_mesh(wm);
 	ED_keymap_uvedit(wm);

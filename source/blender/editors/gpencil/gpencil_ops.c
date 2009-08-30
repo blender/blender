@@ -45,13 +45,10 @@
 /* ****************************************** */
 /* Generic Editing Keymap */
 
-void gpencil_common_keymap(wmWindowManager *wm, ListBase *keymap)
+void ED_keymap_gpencil(wmWindowManager *wm)
 {
+	ListBase *keymap= WM_keymap_listbase(wm, "Grease Pencil", 0, 0);
 	wmKeymapItem *kmi;
-	
-	/* if no keymap provided, use default */
-	if (keymap == NULL)
-		keymap= WM_keymap_listbase(wm, "Grease Pencil Generic", 0, 0);
 	
 	/* Draw */
 		/* draw */

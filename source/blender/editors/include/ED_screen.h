@@ -150,7 +150,7 @@ int		ED_operator_posemode(struct bContext *C);
 #define ED_KEYMAP_MARKERS	4
 #define ED_KEYMAP_ANIMATION	8
 #define ED_KEYMAP_FRAMES	16
-
+#define ED_KEYMAP_GPENCIL	32
 
 #endif /* ED_SCREEN_H */
 

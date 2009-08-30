@@ -83,6 +83,7 @@ enum {
 	GP_DRAWDATA_ONLY3D		= (1<<1),	/* only draw 3d-strokes */
 	GP_DRAWDATA_ONLYV2D		= (1<<2),	/* only draw 'canvas' strokes */
 	GP_DRAWDATA_ONLYI2D		= (1<<3),	/* only draw 'image' strokes */
+	GP_DRAWDATA_IEDITHACK	= (1<<4),	/* special hack for drawing strokes in Image Editor (weird coordinates) */
 };
 
 /* thickness above which we should use special drawing */
@@ -254,14 +255,12 @@ static void gp_draw_stroke_3d (bGPDspoint *points, int totpoints, short thicknes
 /* draw a given stroke in 2d */
 static void gp_draw_stroke (bGPDspoint *points, int totpoints, short thickness, short dflag, short sflag, 
 							short debug, int offsx, int offsy, int winx, int winy)
-{	
-	int spacetype= 0; // XXX make local gpencil state var? 
-	
+{
 	/* if thickness is less than GP_DRAWTHICKNESS_SPECIAL, 'smooth' opengl lines look better
 	 * 	- 'smooth' opengl lines are also required if Image Editor 'image-based' stroke
 	 */
 	if ( (thickness < GP_DRAWTHICKNESS_SPECIAL) || 
-		 ((spacetype==SPACE_IMAGE) && (dflag & GP_DRAWDATA_ONLYV2D)) ) 
+		 ((dflag & GP_DRAWDATA_IEDITHACK) && (dflag & GP_DRAWDATA_ONLYV2D)) ) 
 	{
 		bGPDspoint *pt;
 		int i;
@@ -519,6 +518,9 @@ static void gp_draw_data (bGPdata *gpd, int offsx, int offsy, int winx, int winy
 {
 	bGPDlayer *gpl, *actlay=NULL;
 	
+	/* reset line drawing style (in case previous user didn't reset) */
+	setlinestyle(0);
+	
 	/* turn on smooth lines (i.e. anti-aliasing) */
 	glEnable(GL_LINE_SMOOTH);
 	
@@ -669,7 +671,7 @@ void draw_gpencil_2dimage (bContext *C, ImBuf *ibuf)
 			
 			wmOrtho2(ar->v2d.cur.xmin, ar->v2d.cur.xmax, ar->v2d.cur.ymin, ar->v2d.cur.ymax);
 			
-			dflag |= GP_DRAWDATA_ONLYV2D;
+			dflag |= GP_DRAWDATA_ONLYV2D|GP_DRAWDATA_IEDITHACK;
 		}
 			break;
 			
@@ -728,6 +730,11 @@ void draw_gpencil_2dview (bContext *C, short onlyv2d)
 	if (sa == NULL) return;
 	gpd= gpencil_data_get_active(C); // XXX
 	if (gpd == NULL) return;
+	
+	/* special hack for Image Editor */
+	// FIXME: the opengl poly-strokes don't draw at right thickness when done this way, so disabled
+	if (sa->spacetype == SPACE_IMAGE)
+		dflag |= GP_DRAWDATA_IEDITHACK;
 	
 	/* draw it! */
 	if (onlyv2d) dflag |= (GP_DRAWDATA_ONLYV2D|GP_DRAWDATA_NOSTATUS);

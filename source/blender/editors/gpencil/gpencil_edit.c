@@ -125,6 +125,17 @@ bGPdata **gpencil_data_get_pointers (bContext *C, PointerRNA *ptr)
 			}
 				break;
 				
+			case SPACE_IMAGE: /* Image/UV Editor */
+			{
+				SpaceImage *sima= (SpaceImage *)CTX_wm_space_data(C);
+				
+				/* for now, Grease Pencil data is associated with the space... */
+				// XXX our convention for everything else is to link to data though...
+				if (ptr) RNA_pointer_create((ID *)CTX_wm_screen(C), &RNA_SpaceImageEditor, sima, ptr);
+				return &sima->gpd;
+			}
+				break;
+				
 			default: /* unsupported space */
 				return NULL;
 		}

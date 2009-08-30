@@ -871,7 +871,7 @@ void ED_spacetype_view3d(void)
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->keymapflag= ED_KEYMAP_FRAMES;
+	art->keymapflag= ED_KEYMAP_FRAMES|ED_KEYMAP_GPENCIL;
 	art->draw= view3d_main_area_draw;
 	art->init= view3d_main_area_init;
 	art->free= view3d_main_area_free;

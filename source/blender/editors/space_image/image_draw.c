@@ -44,6 +44,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "BKE_context.h"
 #include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -53,6 +54,7 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "ED_gpencil.h"
 #include "ED_image.h"
 #include "ED_screen.h"
 
@@ -525,22 +527,26 @@ static void draw_image_buffer_repeated(SpaceImage *sima, ARegion *ar, Scene *sce
 /* draw uv edit */
 
 /* draw grease pencil */
-
-static void draw_image_grease_pencil(SpaceImage *sima, ImBuf *ibuf)
+void draw_image_grease_pencil(bContext *C, short onlyv2d)
 {
-	/* XXX bring back */
-	/* draw grease-pencil ('image' strokes) */
-	if (sima->flag & SI_DISPGP)
-		; // XXX draw_gpencil_2dimage(sa, ibuf);
-
-#if 0
-	mywinset(sa->win);	/* restore scissor after gla call... */
-	wmOrtho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
-#endif
-	
-	/* draw grease-pencil (screen strokes) */
-	if (sima->flag & SI_DISPGP)
-		; // XXX draw_gpencil_2dview(sa, NULL);
+	/* draw in View2D space? */
+	if (onlyv2d) {
+		/* assume that UI_view2d_ortho(C) has been called... */
+		SpaceImage *sima= (SpaceImage *)CTX_wm_space_data(C);
+		ImBuf *ibuf= ED_space_image_buffer(sima);
+		
+		/* draw grease-pencil ('image' strokes) */
+		//if (sima->flag & SI_DISPGP)
+			draw_gpencil_2dimage(C, ibuf);
+	}
+	else {
+		/* assume that UI_view2d_restore(C) has been called... */
+		SpaceImage *sima= (SpaceImage *)CTX_wm_space_data(C);
+		
+		/* draw grease-pencil ('screen' strokes) */
+		//if (sima->flag & SI_DISPGP)
+			draw_gpencil_2dview(C, 0);
+	}
 }
 
 /* XXX becomes WM paint cursor */
@@ -688,9 +694,6 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 		draw_image_buffer_tiled(sima, ar, scene, ima, ibuf, 0.0f, 0.0, zoomx, zoomy);
 	else
 		draw_image_buffer(sima, ar, scene, ima, ibuf, 0.0f, 0.0f, zoomx, zoomy);
-
-	/* grease pencil */
-	draw_image_grease_pencil(sima, ibuf);
 
 	/* paint helpers */
 	draw_image_paint_helpers(sima, ar, scene, zoomx, zoomy);

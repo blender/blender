@@ -62,8 +62,7 @@ struct bGPdata *gpencil_data_get_active(struct bContext *C);
 
 /* ----------- Grease Pencil Operators ----------------- */
 
-void gpencil_common_keymap(struct wmWindowManager *wm, ListBase *keymap);
-
+void ED_keymap_gpencil(struct wmWindowManager *wm);
 void ED_operatortypes_gpencil(void);
 
 /* ------------ Grease-Pencil Drawing API ------------------ */
