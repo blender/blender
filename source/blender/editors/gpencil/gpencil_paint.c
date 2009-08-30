@@ -161,8 +161,12 @@ static short gp_stroke_filtermval (tGPsdata *p, int mval[2], int pmval[2])
 	int dx= abs(mval[0] - pmval[0]);
 	int dy= abs(mval[1] - pmval[1]);
 	
+	/* if buffer is empty, just let this go through (i.e. so that dots will work) */
+	if (p->gpd->sbuffer_size == 0)
+		return 1;
+	
 	/* check if mouse moved at least certain distance on both axes (best case) */
-	if ((dx > MIN_MANHATTEN_PX) && (dy > MIN_MANHATTEN_PX))
+	else if ((dx > MIN_MANHATTEN_PX) && (dy > MIN_MANHATTEN_PX))
 		return 1;
 	
 	/* check if the distance since the last point is significant enough */
