@@ -1,5 +1,6 @@
-#!/usr/bin/python3
-#
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -23,10 +24,10 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-import sys
+import sys, os
 
 if len(sys.argv) < 2:
-	print("Usage: datatoc <data_file>")
+	sys.stdout.write("Usage: datatoc <data_file>\n")
 	sys.exit(1)
 
 filename = sys.argv[1]
@@ -34,37 +35,38 @@ filename = sys.argv[1]
 try:
 	fpin = open(filename, "rb");
 except:
-	print("Unable to open input <{0}>".format(sys.argv[1]))
+	sys.stdout.write("Unable to open input %s\n" % sys.argv[1])
 	sys.exit(1)
 
-size = fpin.seek(0, 2)
+fpin.seek(0, os.SEEK_END)
+size = fpin.tell()
 fpin.seek(0)
 
 if filename[0] == ".":
 	filename = filename[1:]
 
 cname = filename + ".c"
-print("Making C file <{0}>".format(cname))
+sys.stdout.write("Making C file <%s>\n" % cname)
 
 filename = filename.replace(".", "_")
-
+sys.stdout.write(str(size))
 try:
 	fpout = open(cname, "w")
 except:
-	print("Unable to open output <{0}>".format(cname))
+	sys.stdout.write("Unable to open output %s\n" % cname)
 	sys.exit(1)
 
-fpout.write("/* DataToC output of file <{0}> */\n\n".format(filename))
-fpout.write("int datatoc_{0}_size= {1};\n".format(filename, size))
+fpout.write("/* DataToC output of file <%s> */\n\n" % filename)
+fpout.write("int datatoc_%s_size= %d;\n" % (filename, size))
 
-fpout.write("char datatoc_{0}[]= {{\n".format(filename))
+fpout.write("char datatoc_%s[]= {\n" % filename)
 
 while size > 0:
 	size -= 1
 	if size % 32 == 31:
 		fpout.write("\n")
 	
-	fpout.write("{0:3d},".format(ord(fpin.read(1))))
+	fpout.write("%.2d," % ord(fpin.read(1)))
 
 fpout.write("\n  0};\n\n")
 
