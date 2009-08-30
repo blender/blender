@@ -678,7 +678,11 @@ static void ui_add_link(uiBut *from, uiBut *to)
 		return;
 	}
 
-	if (from->type==LINK && to->type==INLINK) {
+	if (from->type==INLINK && to->type==INLINK) {
+		printf("cannot link\n");
+		return;
+	}
+	else if (from->type==LINK && to->type==INLINK) {
 		if( from->link->tocode != (int)to->hardmin ) {
 			printf("cannot link\n");
 			return;
