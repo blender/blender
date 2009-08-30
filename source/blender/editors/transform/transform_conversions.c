@@ -5289,7 +5289,7 @@ void createTransData(bContext *C, TransInfo *t)
 		if (t->ar->regiontype == RGN_TYPE_WINDOW)
 		{
 			View3D *v3d = t->view;
-			RegionView3D *rv3d = t->ar->regiondata;
+			RegionView3D *rv3d = CTX_wm_region_view3d(C);
 			if((t->flag & T_OBJECT) && v3d->camera == OBACT && rv3d->persp==V3D_CAMOB)
 			{
 				t->flag |= T_CAMERA;

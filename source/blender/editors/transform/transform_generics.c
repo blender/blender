@@ -1323,7 +1323,7 @@ void calculateCenter(TransInfo *t)
 	/* voor panning from cameraview */
 	if(t->flag & T_OBJECT)
 	{
-		if(t->spacetype==SPACE_VIEW3D)
+		if(t->spacetype==SPACE_VIEW3D && t->ar->regiontype == RGN_TYPE_WINDOW)
 		{
 			View3D *v3d = t->view;
 			Scene *scene = t->scene;
