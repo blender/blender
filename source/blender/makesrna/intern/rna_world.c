@@ -324,12 +324,14 @@ static void rna_def_world_mist(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 10000, 10, 2);
 	RNA_def_property_ui_text(prop, "Start", "Starting distance of the mist, measured from the camera");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "depth", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "mistdist");
 	RNA_def_property_range(prop, 0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 10000, 10, 2);
 	RNA_def_property_ui_text(prop, "Depth", "The distance over which the mist effect fades in");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "height", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "misthi");
