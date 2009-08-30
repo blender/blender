@@ -35,6 +35,20 @@
 
 #include "WM_types.h"
 
+static EnumPropertyItem prop_texture_coordinates_items[] = {
+{TEXCO_GLOB, "GLOBAL", 0, "Global", "Uses global coordinates for the texture coordinates."},
+{TEXCO_OBJECT, "OBJECT", 0, "Object", "Uses linked object's coordinates for texture coordinates."},
+{TEXCO_UV, "UV", 0, "UV", "Uses UV coordinates for texture coordinates."},
+{TEXCO_ORCO, "ORCO", 0, "Generated", "Uses the original undeformed coordinates of the object."},
+{TEXCO_STRAND, "STRAND", 0, "Strand", "Uses normalized strand texture coordinate (1D)."},
+{TEXCO_STICKY, "STICKY", 0, "Sticky", "Uses mesh's sticky coordinates for the texture coordinates."},
+{TEXCO_WINDOW, "WINDOW", 0, "Window", "Uses screen coordinates as texture coordinates."},
+{TEXCO_NORM, "NORMAL", 0, "Normal", "Uses normal vector as texture coordinates."},
+{TEXCO_REFL, "REFLECTION", 0, "Reflection", "Uses reflection vector as texture coordinates."},
+{TEXCO_STRESS, "STRESS", 0, "Stress", "Uses the difference of edge lengths compared to original coordinates of the mesh."},
+{TEXCO_TANGENT, "TANGENT", 0, "Tangent", "Uses the optional tangent vector as texture coordinates."},
+{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "MEM_guardedalloc.h"
@@ -207,27 +221,48 @@ void rna_Material_use_nodes_set(PointerRNA *ptr, int value)
 		ED_node_shader_default(ma);
 }
 
+static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	Material *ma= (Material*)ptr->id.data;
+	EnumPropertyItem *item= NULL;
+	int totitem= 0;
+	
+	if(C==NULL) {
+		return prop_texture_coordinates_items;
+	}
+	
+	RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_GLOB);
+	RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_OBJECT);
+	RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_ORCO);
+	
+	if(ma->material_type == MA_TYPE_VOLUME) {
+		
+	}
+	else if (ELEM3(ma->material_type, MA_TYPE_SURFACE, MA_TYPE_HALO, MA_TYPE_WIRE)) {
+		RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_UV);
+		RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_STRAND);
+		RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_STICKY);
+		RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_WINDOW);
+		RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_NORM);
+		RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_REFL);
+		RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_STRESS);
+		RNA_enum_items_add_value(&item, &totitem, prop_texture_coordinates_items, TEXCO_TANGENT);
+	}
+	
+	RNA_enum_item_end(&item, &totitem);
+	
+	*free= 1;
+	
+	return item;
+}
+
+
 #else
 
 static void rna_def_material_mtex(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
-	static EnumPropertyItem prop_texture_coordinates_items[] = {
-		{TEXCO_GLOB, "GLOBAL", 0, "Global", "Uses global coordinates for the texture coordinates."},
-		{TEXCO_OBJECT, "OBJECT", 0, "Object", "Uses linked object's coordinates for texture coordinates."},
-		{TEXCO_UV, "UV", 0, "UV", "Uses UV coordinates for texture coordinates."},
-		{TEXCO_ORCO, "ORCO", 0, "Generated", "Uses the original undeformed coordinates of the object."},
-		{TEXCO_STRAND, "STRAND", 0, "Strand", "Uses normalized strand texture coordinate (1D)."},
-		{TEXCO_STICKY, "STICKY", 0, "Sticky", "Uses mesh's sticky coordinates for the texture coordinates."},
-		{TEXCO_WINDOW, "WINDOW", 0, "Window", "Uses screen coordinates as texture coordinates."},
-		{TEXCO_NORM, "NORMAL", 0, "Normal", "Uses normal vector as texture coordinates."},
-		{TEXCO_REFL, "REFLECTION", 0, "Reflection", "Uses reflection vector as texture coordinates."},
-		{TEXCO_STRESS, "STRESS", 0, "Stress", "Uses the difference of edge lengths compared to original coordinates of the mesh."},
-		{TEXCO_TANGENT, "TANGENT", 0, "Tangent", "Uses the optional tangent vector as texture coordinates."},
-
-		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_mapping_items[] = {
 		{MTEX_FLAT, "FLAT", 0, "Flat", "Maps X and Y coordinates directly."},
@@ -271,9 +306,10 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "texture_coordinates", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "texco");
 	RNA_def_property_enum_items(prop, prop_texture_coordinates_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Material_texture_coordinates_itemf");
 	RNA_def_property_ui_text(prop, "Texture Coordinates", "");
 	RNA_def_property_update(prop, NC_TEXTURE, NULL);
-
+	
 	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object");
 	RNA_def_property_struct_type(prop, "Object");
