@@ -266,8 +266,6 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	CustomData_add_layer(&me->ldata, CD_MLOOP, CD_ASSIGN, mloop, me->totloop);
 	CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, mpoly, me->totpoly);
 
-	mesh_update_customdata_pointers(me);
-	
 	i = 0;
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 		VECCOPY(mvert->co, v->co);

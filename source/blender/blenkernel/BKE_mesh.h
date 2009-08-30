@@ -57,11 +57,24 @@ struct EditMesh *BKE_mesh_get_editmesh(struct Mesh *me);
 void BKE_mesh_end_editmesh(struct Mesh *me, struct EditMesh *em);
 struct BMesh *BKE_mesh_to_bmesh(struct Mesh *me);
 
+/*
+  this function recreates a tesselation.
+  returns number of tesselation faces.
+ */
+int mesh_recalcTesselation(struct CustomData *fdata, struct CustomData *ldata, 
+	struct CustomData *pdata, struct MVert *mvert, int totface, 
+	int totloop, int totpoly);
+
 void unlink_mesh(struct Mesh *me);
 void free_mesh(struct Mesh *me);
 struct Mesh *add_mesh(char *name);
 struct Mesh *copy_mesh(struct Mesh *me);
 void mesh_update_customdata_pointers(struct Mesh *me);
+
+/*this ensures grouped customdata (e.g. mtexpoly and mloopuv and mtface, or
+  mloopcol and mcol) have the same relative active/render/clone/mask indices.*/
+void mesh_update_linked_customdata(struct Mesh *me);
+
 void make_local_tface(struct Mesh *me);
 void make_local_mesh(struct Mesh *me);
 void boundbox_mesh(struct Mesh *me, float *loc, float *size);

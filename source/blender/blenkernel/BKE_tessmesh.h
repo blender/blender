@@ -54,3 +54,4 @@ void BMEdit_RecalcTesselation(BMEditMesh *tm);
 BMEditMesh *BMEdit_Create(BMesh *bm);
 BMEditMesh *BMEdit_Copy(BMEditMesh *tm);
 void BMEdit_Free(BMEditMesh *em);
+void BMEdit_UpdateLinkedCustomData(BMEditMesh *em);

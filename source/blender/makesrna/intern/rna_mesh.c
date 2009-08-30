@@ -337,10 +337,10 @@ static void rna_Mesh_active_uv_texture_index_set(PointerRNA *ptr, int value)
 static void rna_Mesh_active_uv_texture_index_range(PointerRNA *ptr, int *min, int *max)
 {
 	Mesh *me= (Mesh*)ptr->data;
-	CustomData *fdata= rna_mesh_pdata(me);
+	CustomData *pdata= rna_mesh_pdata(me);
 
 	*min= 0;
-	*max= CustomData_number_of_layers(fdata, CD_MTEXPOLY)-1;
+	*max= CustomData_number_of_layers(pdata, CD_MTEXPOLY)-1;
 	*max= MAX2(0, *max);
 }
 
@@ -481,17 +481,22 @@ static PointerRNA rna_Mesh_active_vertex_color_get(PointerRNA *ptr)
 static void rna_Mesh_active_vertex_color_set(PointerRNA *ptr, PointerRNA value)
 {
 	Mesh *me= (Mesh*)ptr->data;
-	CustomData *ldata= rna_mesh_ldata(me);
+	CustomData *ldata= rna_mesh_ldata(me), *fdata;
 	CustomDataLayer *cdl;
-	int a;
+	int a, b, c;
 
+	b = 0;
 	for(cdl=ldata->layers, a=0; a<ldata->totlayer; cdl++, a++) {
+		if (cdl->type == CD_MLOOPCOL)
+			b++;
+
 		if(value.data == cdl) {
 			CustomData_set_layer_active_index(ldata, CD_MLOOPCOL, a);
-			mesh_update_customdata_pointers(me);
-			return;
+			break;
 		}
 	}
+
+	mesh_update_customdata_pointers(me);
 }
 
 static int rna_Mesh_active_vertex_color_index_get(PointerRNA *ptr)

@@ -35,6 +35,7 @@
 struct Bone;
 struct Image;
 
+/*tesselation face, see MLoop/MPoly for the real face data*/
 typedef struct MFace {
 	unsigned int v1, v2, v3, v4;
 	short mat_nr;
@@ -65,7 +66,8 @@ typedef struct MVert {
 	char flag, bweight, pad[2];
 } MVert;
 
-/* at the moment alpha is abused for vertex painting
+/* tesselation vertex color data.
+ * at the moment alpha is abused for vertex painting
  * and not used for transperency, note that red and blue are swapped */
 typedef struct MCol {
 	char a, r, g, b;	
@@ -103,10 +105,11 @@ typedef struct MLoopUV{
 #define MLOOPUV_VERTSEL	2
 #define MLOOPUV_PINNED	4
 
+/* at the moment alpha is abused for vertex painting
+ * and not used for transperency, note that red and blue are swapped */
 typedef struct MLoopCol{
 	char a, r, g, b;
-	int pad;  /*waste!*/
-}MLoopCol;
+} MLoopCol;
 
 typedef struct MSticky {
 	float co[2];
@@ -117,6 +120,7 @@ typedef struct MSelect {
 	int type;
 } MSelect;
 
+/*tesselation uv face data*/
 typedef struct MTFace {
 	float uv[4][2];
 	struct Image *tpage;

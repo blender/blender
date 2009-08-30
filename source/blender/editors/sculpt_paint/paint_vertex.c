@@ -43,6 +43,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_memarena.h"
 #include "MTC_matrixops.h"
 
 #include "DNA_action_types.h"
@@ -205,6 +206,58 @@ static unsigned int vpaint_get_current_col(VPaint *vp)
 
 void do_shared_vertexcol(Mesh *me)
 {
+	MLoop *ml = me->mloop;
+	MLoopCol *lcol = me->mloopcol;
+	MTexPoly *mtp = me->mtpoly;
+	MPoly *mp = me->mpoly;
+	float (*scol)[5];
+	int i;
+
+	/* if no mloopcol: do not do */
+	/* if mtexpoly: only the involved faces, otherwise all */
+
+	if(me->mloopcol==0 || me->totvert==0 || me->totface==0) return;
+
+	scol = MEM_callocN(sizeof(float)*me->totvert*5, "scol");
+
+	for (i=0; i<me->totloop; i++, ml++, lcol++) {
+		if (i >= mp->loopstart + mp->totloop) {
+			mp++;
+			if (mtp) mtp++;
+		}
+
+		if (mtp && !(mtp->mode & TF_SHAREDCOL))
+			continue;
+
+		scol[ml->v][0] += lcol->r;
+		scol[ml->v][1] += lcol->g;
+		scol[ml->v][2] += lcol->b;
+		scol[ml->v][3] += lcol->a;
+		scol[ml->v][4] += 1.0;
+	}
+	
+	for (i=0; i<me->totvert; i++) {
+		if (!scol[i][4]) continue;
+
+		scol[i][0] /= scol[i][4];
+		scol[i][1] /= scol[i][4];
+		scol[i][2] /= scol[i][4];
+		scol[i][3] /= scol[i][4];
+	}
+	
+	ml = me->mloop;
+	lcol = me->mloopcol;
+	for (i=0; i<me->totloop; i++, ml++, lcol++) {
+		if (!scol[4]) continue;
+
+		lcol->r = scol[ml->v][0];
+		lcol->g = scol[ml->v][1];
+		lcol->b = scol[ml->v][2];
+		lcol->a = scol[ml->v][3];
+	}
+
+	MEM_freeN(scol);
+#if 0
 	/* if no mcol: do not do */
 	/* if tface: only the involved faces, otherwise all */
 	MFace *mface;
@@ -267,6 +320,7 @@ void do_shared_vertexcol(Mesh *me)
 	}
 
 	MEM_freeN(scolmain);
+#endif
 }
 
 void make_vertexcol(Scene *scene, int shade)	/* single ob */
@@ -287,19 +341,22 @@ void make_vertexcol(Scene *scene, int shade)	/* single ob */
 	/* copies from shadedisplist to mcol */
 	if(!me->mcol) {
 		CustomData_add_layer(&me->fdata, CD_MCOL, CD_CALLOC, NULL, me->totface);
+		CustomData_add_layer(&me->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, me->totloop);
 		mesh_update_customdata_pointers(me);
 	}
 
+	/*
 	if(shade)
 		shadeMeshMCol(scene, ob, me);
 	else
 		memset(me->mcol, 255, 4*sizeof(MCol)*me->totface);
-	
+	*/
+
 	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
 	
 }
 
-static void copy_vpaint_prev(VPaint *vp, unsigned int *mcol, int tot)
+static void copy_vpaint_prev(VPaint *vp, unsigned int *lcol, int tot)
 {
 	if(vp->vpaint_prev) {
 		MEM_freeN(vp->vpaint_prev);
@@ -307,10 +364,10 @@ static void copy_vpaint_prev(VPaint *vp, unsigned int *mcol, int tot)
 	}
 	vp->tot= tot;	
 	
-	if(mcol==NULL || tot==0) return;
+	if(lcol==NULL || tot==0) return;
 	
-	vp->vpaint_prev= MEM_mallocN(4*sizeof(int)*tot, "vpaint_prev");
-	memcpy(vp->vpaint_prev, mcol, 4*sizeof(int)*tot);
+	vp->vpaint_prev= MEM_mallocN(sizeof(int)*tot, "vpaint_prev");
+	memcpy(vp->vpaint_prev, lcol, sizeof(int)*tot);
 	
 }
 
@@ -334,9 +391,11 @@ void clear_vpaint(Scene *scene, int selected)
 {
 	Mesh *me;
 	MFace *mf;
+	MPoly *mp;
+	MLoopCol *lcol;
 	Object *ob;
 	unsigned int paintcol, *mcol;
-	int i;
+	int i, j;
 
 	ob= OBACT;
 	me= get_mesh(ob);
@@ -355,6 +414,18 @@ void clear_vpaint(Scene *scene, int selected)
 			mcol[1] = paintcol;
 			mcol[2] = paintcol;
 			mcol[3] = paintcol;
+		}
+	}
+
+	mp = me->mpoly;
+	lcol = me->mloopcol;
+	for (i=0; i<me->totpoly; i++, mp++) {
+		if (!(!selected || mp->flag & ME_FACE_SEL))
+			continue;
+
+		lcol = me->mloopcol + mp->loopstart;
+		for (j=0; j<mp->totloop; j++, lcol++) {
+			*(int*)lcol = paintcol;
 		}
 	}
 	
@@ -851,13 +922,14 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 /* else */
 /*     sets wp->weight to the closest weight value to vertex */
 /*     note: we cant sample frontbuf, weight colors are interpolated too unpredictable */
+#if 0
 void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 {
 	ViewContext vc;
 	ToolSettings *ts= scene->toolsettings;
 	Object *ob= OBACT;
 	Mesh *me= get_mesh(ob);
-	int index;
+	int index, i;
 	short mval[2], sco[2];
 
 	if (!me) return;
@@ -865,13 +937,13 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 //	getmouseco_areawin(mval);
 	index= view3d_sample_backbuf(&vc, mval[0], mval[1]);
 	
-	if(index && index<=me->totface) {
-		MFace *mface;
+	if(index && index<=me->totpoly) {
+		MPoly *mpoly;
 		
-		mface= ((MFace *)me->mface) + index-1;
-		
+		mpoly= ((MPoly *)me->mpoly) + index-1;		
 		if(mode==1) {	/* sampe which groups are in here */
 			MDeformVert *dv;
+			MLoop *ml;
 			int a, totgroup;
 			
 			totgroup= BLI_countlist(&ob->defbase);
@@ -879,28 +951,14 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 				int totmenu=0;
 				int *groups=MEM_callocN(totgroup*sizeof(int), "groups");
 				
-				dv= me->dvert+mface->v1;
-				for(a=0; a<dv->totweight; a++) {
+				ml = me->mloop+mpoly->loopstart;
+				for (i=0; i<mpoly->totloop; i++, ml++) {
+					dv = me->dvert+ml->v;
 					if (dv->dw[a].def_nr<totgroup)
 						groups[dv->dw[a].def_nr]= 1;
+					
 				}
-				dv= me->dvert+mface->v2;
-				for(a=0; a<dv->totweight; a++) {
-					if (dv->dw[a].def_nr<totgroup)
-						groups[dv->dw[a].def_nr]= 1;
-				}
-				dv= me->dvert+mface->v3;
-				for(a=0; a<dv->totweight; a++) {
-					if (dv->dw[a].def_nr<totgroup)
-						groups[dv->dw[a].def_nr]= 1;
-				}
-				if(mface->v4) {
-					dv= me->dvert+mface->v4;
-					for(a=0; a<dv->totweight; a++) {
-						if (dv->dw[a].def_nr<totgroup)
-							groups[dv->dw[a].def_nr]= 1;
-					}
-				}
+
 				for(a=0; a<totgroup; a++)
 					if(groups[a]) totmenu++;
 				
@@ -934,52 +992,32 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 		else {
 			DerivedMesh *dm;
 			MDeformWeight *dw;
-			float w1, w2, w3, w4, co[3], fac;
+			MLoop *ml;
+			float w, co[3], fmin = 10000000.0f;
+			int loopi = mpoly->loopstart;
 			
 			dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 			if(dm->getVertCo==NULL) {
 				//notice("Not supported yet");
 			}
 			else {
-				/* calc 3 or 4 corner weights */
-				dm->getVertCo(dm, mface->v1, co);
-				project_short_noclip(ar, co, sco);
-				w1= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
-				
-				dm->getVertCo(dm, mface->v2, co);
-				project_short_noclip(ar, co, sco);
-				w2= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
-				
-				dm->getVertCo(dm, mface->v3, co);
-				project_short_noclip(ar, co, sco);
-				w3= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
-				
-				if(mface->v4) {
-					dm->getVertCo(dm, mface->v4, co);
+				/* find minimum distance */
+				ml = me->mloop + mpoly->loopstart;
+				for (i=0; i<mpoly->totloop; i++, ml++) {
+					dm->getVertCo(dm, ml->v, co);
 					project_short_noclip(ar, co, sco);
-					w4= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
-				}
-				else w4= 1.0e10;
-				
-				fac= MIN4(w1, w2, w3, w4);
-				if(w1==fac) {
-					dw= get_defweight(me->dvert+mface->v1, ob->actdef-1);
-					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
-				}
-				else if(w2==fac) {
-					dw= get_defweight(me->dvert+mface->v2, ob->actdef-1);
-					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
-				}
-				else if(w3==fac) {
-					dw= get_defweight(me->dvert+mface->v3, ob->actdef-1);
-					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
-				}
-				else if(w4==fac) {
-					if(mface->v4) {
-						dw= get_defweight(me->dvert+mface->v4, ob->actdef-1);
-						if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
+					
+					w= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
+					
+					if (w < fmin) {
+						fmin = w;
+						loopi = i + mpoly->loopstart;
 					}
 				}
+
+				ml = me->mloop + loopi;
+				dw= get_defweight(me->dvert+ml->v, ob->actdef-1);
+				if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 			}
 			dm->release(dm);
 		}		
@@ -987,6 +1025,7 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 	}
 	
 }
+#endif
 
 static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, int alpha, float paintweight, int vgroup_mirror)
 {
@@ -1541,7 +1580,7 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 		return OPERATOR_FINISHED;
 	}
 	
-	if(me && me->mcol==NULL) make_vertexcol(scene, 0);
+	if(me && me->mloopcol==NULL) make_vertexcol(scene, 0);
 	
 	/* toggle: end vpaint */
 	if(ob->mode & OB_MODE_VERTEX_PAINT) {
@@ -1610,13 +1649,58 @@ For future:
 
 */
 
+typedef struct polyfacemap_e {
+	struct polyfacemap_e *next, *prev;
+	int facenr;
+} polyfacemap_e;
+
 struct VPaintData {
 	ViewContext vc;
 	unsigned int paintcol;
 	int *indexar;
 	float *vertexcosnos;
 	float vpimat[3][3];
+	
+	/*mpoly -> mface mapping*/
+	MemArena *arena;
+	ListBase *polyfacemap;
+
 };
+
+static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me)
+{
+	MFace *mf;
+	polyfacemap_e *e;
+	int *origIndex;
+	int i;
+
+	vd->arena = BLI_memarena_new(1<<13);
+	BLI_memarena_use_calloc(vd->arena);
+
+	vd->polyfacemap = BLI_memarena_alloc(vd->arena, sizeof(ListBase)*me->totpoly);
+
+	/*we can't assume mfaces have a correct origindex layer that indices to mpolys.
+	  so instead we have to regenerate the tesselation faces altogether.*/
+	me->totface = mesh_recalcTesselation(&me->fdata, &me->ldata, &me->pdata, 
+		me->mvert, me->totface, me->totloop, me->totpoly);
+
+	mesh_update_customdata_pointers(me);
+	origIndex = CustomData_get_layer(&me->fdata, CD_ORIGINDEX);
+	mf = me->mface;
+
+	if (!origIndex)
+		return;
+
+	for (i=0; i<me->totface; i++, mf++, origIndex++) {
+		if (*origIndex == ORIGINDEX_NONE)
+			continue;
+
+		e = BLI_memarena_alloc(vd->arena, sizeof(polyfacemap_e));
+		e->facenr = i;
+		
+		BLI_addtail(&vd->polyfacemap[*origIndex], e);
+	}
+}
 
 static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent *event)
 {
@@ -1630,10 +1714,13 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 
 	/* context checks could be a poll() */
 	me= get_mesh(ob);
-	if(me==NULL || me->totface==0) return OPERATOR_PASS_THROUGH;
+	if(me==NULL || me->totface==0)
+		return OPERATOR_PASS_THROUGH;
 	
-	if(me->mcol==NULL) make_vertexcol(CTX_data_scene(C), 0);
-	if(me->mcol==NULL) return OPERATOR_CANCELLED;
+	if(me->mloopcol==NULL)
+		make_vertexcol(CTX_data_scene(C), 0);
+	if(me->mloopcol==NULL)
+		return OPERATOR_CANCELLED;
 	
 	/* make mode data storage */
 	vpd= MEM_callocN(sizeof(struct VPaintData), "VPaintData");
@@ -1643,9 +1730,10 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 	vpd->vertexcosnos= mesh_get_mapped_verts_nors(vpd->vc.scene, ob);
 	vpd->indexar= get_indexarray();
 	vpd->paintcol= vpaint_get_current_col(vp);
+	vpaint_build_poly_facemap(vpd, me);
 	
 	/* for filtering */
-	copy_vpaint_prev(vp, (unsigned int *)me->mcol, me->totface);
+	copy_vpaint_prev(vp, (unsigned int *)me->mloopcol, me->totloop);
 	
 	/* some old cruft to sort out later */
 	Mat4MulMat4(mat, ob->obmat, vpd->vc.rv3d->viewmat);
@@ -1663,6 +1751,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	Brush *brush = paint_brush(&vp->paint);
 	ViewContext *vc= &vpd->vc;
 	Object *ob= vc->obact;
+	polyfacemap_e *e;
 	Mesh *me= ob->data;
 	float mat[4][4];
 	int *indexar= vpd->indexar;
@@ -1697,9 +1786,9 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	if(vp->flag & VP_COLINDEX) {
 		for(index=0; index<totindex; index++) {
 			if(indexar[index] && indexar[index]<=me->totface) {
-				MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
+				MPoly *mpoly= ((MPoly *)me->mpoly) + (indexar[index]-1);
 						
-				if(mface->mat_nr!=ob->actcol-1) {
+				if(mpoly->mat_nr!=ob->actcol-1) {
 					indexar[index]= 0;
 				}
 			}					
@@ -1708,9 +1797,9 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	if((G.f & G_FACESELECT) && me->mface) {
 		for(index=0; index<totindex; index++) {
 			if(indexar[index] && indexar[index]<=me->totface) {
-				MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
+				MPoly *mpoly= ((MPoly *)me->mpoly) + (indexar[index]-1);
 						
-				if((mface->flag & ME_FACE_SEL)==0)
+				if((mpoly->flag & ME_FACE_SEL)==0)
 					indexar[index]= 0;
 			}					
 		}
@@ -1719,39 +1808,85 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	for(index=0; index<totindex; index++) {
 				
 		if(indexar[index] && indexar[index]<=me->totface) {
-			MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
-			unsigned int *mcol=	  ( (unsigned int *)me->mcol) + 4*(indexar[index]-1);
-			unsigned int *mcolorig= ( (unsigned int *)vp->vpaint_prev) + 4*(indexar[index]-1);
-			int alpha;
+			MPoly *mpoly= ((MPoly *)me->mpoly) + (indexar[index]-1);
+			MFace *mf;
+			MCol *mc;
+			MLoop *ml;
+			MLoopCol *mlc;
+			unsigned int *lcol = ((unsigned int*)me->mloopcol) + mpoly->loopstart;
+			unsigned int *lcolorig = ((unsigned int*)vp->vpaint_prev) + mpoly->loopstart;
+			int i, j, alpha;
 					
 			if(vp->mode==VP_BLUR) {
-				unsigned int fcol1= mcol_blend( mcol[0], mcol[1], 128);
-				if(mface->v4) {
-					unsigned int fcol2= mcol_blend( mcol[2], mcol[3], 128);
-					vpd->paintcol= mcol_blend( fcol1, fcol2, 128);
+				unsigned int blend[5] = {0};
+				char *col;
+
+				for (j=0; j<mpoly->totloop; j += 2) {
+					col = (char*)(lcol + j);
+					blend[0] += col[0];
+					blend[1] += col[1];
+					blend[2] += col[2];
+					blend[3] += col[3];
 				}
-				else {
-					vpd->paintcol= mcol_blend( mcol[2], fcol1, 170);
+
+				blend[0] /= mpoly->totloop;
+				blend[1] /= mpoly->totloop;
+				blend[2] /= mpoly->totloop;
+				blend[3] /= mpoly->totloop;
+				col = (char*)(blend + 4);
+				col[0] = blend[0];
+				col[1] = blend[1];
+				col[2] = blend[2];
+				col[3] = blend[3];
+
+				vpd->paintcol = *((unsigned int*)col);
+			}
+
+			ml = me->mloop + mpoly->loopstart;
+			for (i=0; i<mpoly->totloop; i++, ml++) {
+				alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*ml->v, mval);
+				if(alpha) vpaint_blend(vp, lcol+i, lcolorig+i, vpd->paintcol, alpha);
+			}
+	
+#ifdef CPYCOL
+#if 0
+			#undef CPYCOL
+			#endif
+			#define CPYCOL(c, l) (c)->a = (l)->a, (c)->r = (l)->r, (c)->g = (l)->g, (c)->b = (l)->b
+
+			/*update vertex colors for tesselations.  this code
+			  isn't strictly necassary, since CDDM regenerates
+			  the tesselations when it creates a CDDM from
+			  a Mesh.  this also makes it hard to test that this
+			  code is working correctly.
+			  
+			  if it turns out having cddm constantly recalculating
+			  the tesselation is a problem, we can always turn on 
+			  this code and add an exception where cddm doesn't
+			  redo the tesselation if it's in vpaint mode.*/
+			for (e=vpd->polyfacemap[(indexar[index]-1)].first; e; e=e->next) {
+				mf = me->mface + e->facenr;
+				mc = me->mcol + e->facenr*4;
+				
+				ml = me->mloop + mpoly->loopstart;
+				mlc = me->mloopcol + mpoly->loopstart;
+				for (j=0; j<mpoly->totloop; j++, ml++, mlc++) {
+					if (ml->v == mf->v1)
+						CPYCOL(mc, mlc);
+					else if (ml->v == mf->v2)
+						CPYCOL(mc+4, mlc);
+					else if (ml->v == mf->v3)
+						CPYCOL(mc+8, mlc);
+					else if (mf->v4 && ml->v == mf->v4)
+						CPYCOL(mc+12, mlc);
+
 				}
-						
 			}
-					
-			alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v1, mval);
-			if(alpha) vpaint_blend(vp, mcol, mcolorig, vpd->paintcol, alpha);
-					
-			alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v2, mval);
-			if(alpha) vpaint_blend(vp, mcol+1, mcolorig+1, vpd->paintcol, alpha);
-					
-			alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v3, mval);
-			if(alpha) vpaint_blend(vp, mcol+2, mcolorig+2, vpd->paintcol, alpha);
-					
-			if(mface->v4) {
-				alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*mface->v4, mval);
-				if(alpha) vpaint_blend(vp, mcol+3, mcolorig+3, vpd->paintcol, alpha);
-			}
+			#undef CPYCOL
+#endif
 		}
 	}
-						
+		
 	MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
 			
 	do_shared_vertexcol(me);
@@ -1772,7 +1907,8 @@ static void vpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
 	
 	/* frees prev buffer */
 	copy_vpaint_prev(ts->vpaint, NULL, 0);
-	
+	BLI_memarena_free(vpd->arena);
+
 	MEM_freeN(vpd);
 }
 

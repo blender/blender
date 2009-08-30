@@ -213,6 +213,26 @@ void BMEdit_RecalcTesselation(BMEditMesh *tm)
 	}
 }
 
+void BMEdit_UpdateLinkedCustomData(BMEditMesh *em)
+{
+	BMesh *bm = em->bm;
+	int act;
+
+	if (CustomData_has_layer(&bm->pdata, CD_MTEXPOLY)) {
+		act = CustomData_get_active_layer(&bm->pdata, CD_MTEXPOLY);
+		CustomData_set_layer_active(&bm->ldata, CD_MLOOPUV, act);
+
+		act = CustomData_get_render_layer(&bm->pdata, CD_MTEXPOLY);
+		CustomData_set_layer_render(&bm->ldata, CD_MLOOPUV, act);
+
+		act = CustomData_get_clone_layer(&bm->pdata, CD_MTEXPOLY);
+		CustomData_set_layer_clone(&bm->ldata, CD_MLOOPUV, act);
+
+		act = CustomData_get_mask_layer(&bm->pdata, CD_MTEXPOLY);
+		CustomData_set_layer_mask(&bm->ldata, CD_MLOOPUV, act);
+	}
+}
+
 /*does not free the BMEditMesh struct itself*/
 void BMEdit_Free(BMEditMesh *em)
 {

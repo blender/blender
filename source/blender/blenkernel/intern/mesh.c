@@ -86,9 +86,72 @@ void BKE_mesh_end_editmesh(Mesh *me, EditMesh *em)
 	BMEdit_RecalcTesselation(me->edit_btmesh);
 }
 
+static void mesh_ensure_tesselation_customdata(Mesh *me)
+{
+	int tottex, totcol;
+
+	tottex = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
+	totcol = CustomData_number_of_layers(&me->fdata, CD_MCOL);
+	
+	if (tottex != CustomData_number_of_layers(&me->pdata, CD_MTEXPOLY) ||
+	    totcol != CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL))
+	{
+		CustomData_free(&me->fdata, me->totface);
+		memset(&me->fdata, 0, sizeof(&me->fdata));
+
+		CustomData_from_bmeshpoly(&me->fdata, &me->pdata, &me->ldata, me->totface);
+		printf("Warning! Tesselation uvs or vcol data got out of sync, had to reset!\n");
+	}
+}
+
+/*this ensures grouped customdata (e.g. mtexpoly and mloopuv and mtface, or
+  mloopcol and mcol) have the same relative active/render/clone/mask indices.*/
+void mesh_update_linked_customdata(Mesh *me)
+{
+	int act;
+
+	if (me->edit_btmesh)
+		BMEdit_UpdateLinkedCustomData(me->edit_btmesh);
+
+	mesh_ensure_tesselation_customdata(me);
+
+	if (CustomData_has_layer(&me->pdata, CD_MTEXPOLY)) {
+		act = CustomData_get_active_layer(&me->pdata, CD_MTEXPOLY);
+		CustomData_set_layer_active(&me->ldata, CD_MLOOPUV, act);
+		CustomData_set_layer_active(&me->fdata, CD_MTFACE, act);
+
+		act = CustomData_get_render_layer(&me->pdata, CD_MTEXPOLY);
+		CustomData_set_layer_render(&me->ldata, CD_MLOOPUV, act);
+		CustomData_set_layer_render(&me->fdata, CD_MTFACE, act);
+
+		act = CustomData_get_clone_layer(&me->pdata, CD_MTEXPOLY);
+		CustomData_set_layer_clone(&me->ldata, CD_MLOOPUV, act);
+		CustomData_set_layer_clone(&me->fdata, CD_MTFACE, act);
+
+		act = CustomData_get_mask_layer(&me->pdata, CD_MTEXPOLY);
+		CustomData_set_layer_mask(&me->ldata, CD_MLOOPUV, act);
+		CustomData_set_layer_mask(&me->fdata, CD_MTFACE, act);
+	}
+
+	if (CustomData_has_layer(&me->ldata, CD_MLOOPCOL)) {
+		act = CustomData_get_active_layer(&me->ldata, CD_MLOOPCOL);
+		CustomData_set_layer_active(&me->fdata, CD_MCOL, act);
+
+		act = CustomData_get_render_layer(&me->ldata, CD_MLOOPCOL);
+		CustomData_set_layer_render(&me->fdata, CD_MCOL, act);
+
+		act = CustomData_get_clone_layer(&me->ldata, CD_MLOOPCOL);
+		CustomData_set_layer_clone(&me->fdata, CD_MCOL, act);
+
+		act = CustomData_get_mask_layer(&me->ldata, CD_MLOOPCOL);
+		CustomData_set_layer_mask(&me->fdata, CD_MCOL, act);
+	}
+}
 
 void mesh_update_customdata_pointers(Mesh *me)
 {
+	mesh_update_linked_customdata(me);
+
 	me->mvert = CustomData_get_layer(&me->vdata, CD_MVERT);
 	me->dvert = CustomData_get_layer(&me->vdata, CD_MDEFORMVERT);
 	me->msticky = CustomData_get_layer(&me->vdata, CD_MSTICKY);
@@ -1335,4 +1398,153 @@ void mesh_pmv_off(Object *ob, Mesh *me)
 		MEM_freeN(me->pv);
 		me->pv= NULL;
 	}
+}
+
+static void mesh_loops_to_corners(CustomData *fdata, CustomData *ldata, 
+			   CustomData *pdata, int lindex[3], int findex, 
+			   int polyindex, int numTex, int numCol) 
+{
+	MTFace *texface;
+	MTexPoly *texpoly;
+	MCol *mcol;
+	MLoopCol *mloopcol;
+	MLoopUV *mloopuv;
+	int i, j;
+
+	for(i=0; i < numTex; i++){
+		texface = CustomData_get_n(fdata, CD_MTFACE, findex, i);
+		texpoly = CustomData_get_n(pdata, CD_MTEXPOLY, polyindex, i);
+		
+		texface->tpage = texpoly->tpage;
+		texface->flag = texpoly->flag;
+		texface->transp = texpoly->transp;
+		texface->mode = texpoly->mode;
+		texface->tile = texpoly->tile;
+		texface->unwrap = texpoly->unwrap;
+
+		for (j=0; j<3; j++) {
+			mloopuv = CustomData_get_n(ldata, CD_MLOOPUV, lindex[j], i);
+			texface->uv[j][0] = mloopuv->uv[0];
+			texface->uv[j][1] = mloopuv->uv[1];
+		}
+	}
+
+	for(i=0; i < numCol; i++){
+		mcol = CustomData_get_n(fdata, CD_MCOL, findex, i);
+
+		for (j=0; j<3; j++) {
+			mloopcol = CustomData_get_n(ldata, CD_MLOOPCOL, lindex[j], i);
+			mcol[j].r = mloopcol->r;
+			mcol[j].g = mloopcol->g;
+			mcol[j].b = mloopcol->b;
+			mcol[j].a = mloopcol->a;
+		}
+	}
+}
+
+/*this function recreates a tesselation.
+
+  returns number of tesselation faces.*/
+int mesh_recalcTesselation(CustomData *fdata, 
+				   CustomData *ldata, CustomData *pdata,
+				   MVert *mvert, int totface, int totloop, 
+				   int totpoly)
+{
+	MPoly *mp, *mpoly;
+	MLoop *ml, *mloop;
+	MFace *mf = NULL, *mface;
+	V_DECLARE(mf);
+	EditVert *v, *lastv, *firstv;
+	EditFace *f;
+	V_DECLARE(origIndex);
+	int i, j, k, lindex[3], *origIndex = NULL, *polyorigIndex;
+	int numTex, numCol;
+
+	mpoly = CustomData_get_layer(pdata, CD_MPOLY);
+	mloop = CustomData_get_layer(ldata, CD_MLOOP);
+
+	numTex = CustomData_number_of_layers(ldata, CD_MLOOPUV);
+	numCol = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
+	
+	k = 0;
+	mp = mpoly;
+	polyorigIndex = CustomData_get_layer(pdata, CD_ORIGINDEX);
+	for (i=0; i<totpoly; i++, mp++) {
+		ml = mloop + mp->loopstart;
+		firstv = NULL;
+		lastv = NULL;
+		for (j=0; j<mp->totloop; j++, ml++) {
+			v = BLI_addfillvert(mvert[ml->v].co);
+			if (polyorigIndex)
+				v->tmp.l = polyorigIndex[i];
+			else
+				v->tmp.l = i;
+
+			v->keyindex = mp->loopstart + j;
+
+			if (lastv)
+				BLI_addfilledge(lastv, v);
+
+			if (!firstv)
+				firstv = v;
+			lastv = v;
+		}
+		BLI_addfilledge(lastv, firstv);
+		
+		BLI_edgefill(0, 0);
+		for (f=fillfacebase.first; f; f=f->next) {
+			V_GROW(mf);
+			V_GROW(origIndex);
+
+			/*these are loop indices, they'll be transformed
+			  into vert indices later.*/
+			mf[k].v1 = f->v1->keyindex;
+			mf[k].v2 = f->v2->keyindex;
+			mf[k].v3 = f->v3->keyindex;
+			origIndex[k] = f->v1->tmp.l;
+
+			k++;
+		}
+
+		BLI_end_edgefill();
+	}
+
+	CustomData_free(fdata, totface);
+	memset(fdata, 0, sizeof(CustomData));
+	totface = k;
+	
+	CustomData_add_layer(fdata, CD_MFACE, CD_ASSIGN, mf, totface);
+	CustomData_add_layer(fdata, CD_ORIGINDEX, CD_ASSIGN, origIndex, totface);
+	CustomData_from_bmeshpoly(fdata, pdata, ldata, totface);
+
+	mface = mf;
+	for (i=0; i<totface; i++, mf++) {
+		/*ensure winding is correct*/
+		if (mf->v1 > mf->v2) {
+			SWAP(int, mf->v1, mf->v2);
+		}
+		if (mf->v2 > mf->v3) {
+			SWAP(int, mf->v2, mf->v3);
+		}
+		if (mf->v1 > mf->v2) {
+			SWAP(int, mf->v1, mf->v2);
+		}
+
+		lindex[0] = mf->v1;
+		lindex[1] = mf->v2;
+		lindex[2] = mf->v3;
+
+		/*transform loop indices to vert indices*/
+		mf->v1 = mloop[mf->v1].v;
+		mf->v2 = mloop[mf->v2].v;
+		mf->v3 = mloop[mf->v3].v;
+
+		mf->flag = mpoly[origIndex[i]].flag;
+		mf->mat_nr = mpoly[origIndex[i]].mat_nr;
+
+		mesh_loops_to_corners(fdata, ldata, pdata,
+			lindex, i, origIndex[i], numTex, numCol);
+	}
+
+	return totface;
 }

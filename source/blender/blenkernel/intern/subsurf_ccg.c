@@ -1298,8 +1298,11 @@ static void cgdm_getFinalFace(DerivedMesh *dm, int faceNum, MFace *mf)
 	mf->v3 = getFaceIndex(ss, f, grid, x+1, y+1, edgeSize, gridSize);
 	mf->v4 = getFaceIndex(ss, f, grid, x+1, y+0, edgeSize, gridSize);
 
-	if(faceFlags) mf->flag = faceFlags[i*4];
-	else mf->flag = ME_SMOOTH;
+	if(faceFlags) {
+		mf->flag = faceFlags[i*4];
+		mf->mat_nr = faceFlags[i*4+1];
+	} else 
+		mf->flag = ME_SMOOTH;
 }
 
 static void cgdm_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
@@ -1593,6 +1596,8 @@ DMFaceIter *cgdm_newFaceIter(DerivedMesh *dm)
 	fiter->liter.lindex = -1;
 
 	fiter->head.step(fiter);
+
+	return fiter;
 }
 
 static void cgdm_copyFinalFaceArray(DerivedMesh *dm, MFace *mface)
@@ -2586,6 +2591,7 @@ void ccg_loops_to_corners(CustomData *fdata, CustomData *ldata,
 	}
 }
 
+/*this function requires dm to be a CDDM*/
 static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
                                          int drawInteriorEdges,
                                          int useSubsurfUv,
@@ -2619,6 +2625,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 	MCol *mcol;
 	MEdge *medge = NULL;
 	MFace *mface = NULL;
+	MPoly *mpoly = NULL;
 
 	DM_from_template(&cgdm->dm, dm, CCS_getNumFinalVerts(ss),
 					 CCS_getNumFinalEdges(ss),
@@ -2732,6 +2739,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 	/* mvert = dm->getVertArray(dm); - as yet unused */
 	medge = dm->getEdgeArray(dm);
 	mface = dm->getTessFaceArray(dm);
+
+	/*CDDM hack*/
+	mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
 
 	vertOrigIndex = DM_get_vert_data_layer(&cgdm->dm, CD_ORIGINDEX);
 	/*edgeOrigIndex = DM_get_edge_data_layer(&cgdm->dm, CD_ORIGINDEX);*/
@@ -2850,7 +2860,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 
 					/*copy over poly data, e.g. mtexpoly*/
 					CustomData_copy_data(&dm->polyData, &cgdm->dm.polyData, origIndex, faceNum, 1);
-					//CustomData_interp(&dm->polyData, &cgdm->dm.polyData, &origIndex, &one, NULL, 1, faceNum);
 
 					/*generate tesselated face data used for drawing*/
 					ccg_loops_to_corners(&cgdm->dm.faceData, &cgdm->dm.loopData, 
@@ -2861,6 +2870,13 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 			}
 		}
 
+		polyFlags[0] = mpoly[origIndex].flag;
+		polyFlags[1] = mpoly[origIndex].mat_nr;
+		faceFlags[0] = polyFlags[0];
+		faceFlags[1] = polyFlags[1];
+
+		faceFlags += 4;
+		polyFlags += 4;
 		edgeNum += numFinalEdges;
 	}
 
