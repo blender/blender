@@ -2868,6 +2868,12 @@ static CCGDerivedMesh *getCCGDerivedMesh(CSubSurf *ss,
 					ccg_loops_to_corners(&cgdm->dm.faceData, &cgdm->dm.loopData, 
 						&cgdm->dm.polyData, loopindex2-4, faceNum, faceNum, numTex, numCol);
 					
+					/*set original index data*/
+					*faceOrigIndex = origIndex;
+					*polyOrigIndex = origIndex;
+
+					faceOrigIndex++;
+					polyOrigIndex++;
 					faceNum++;
 				}
 			}
