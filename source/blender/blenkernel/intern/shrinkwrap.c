@@ -574,7 +574,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Scene *scene, Object
 				}
 			}
 
-			//Just to make sure we are not letting any memory behind
+			//Just to make sure we are not leaving any memory behind
 			assert(ssmd.emCache == NULL);
 			assert(ssmd.mCache == NULL);
 		}

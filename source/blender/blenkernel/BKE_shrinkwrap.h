@@ -115,9 +115,9 @@ typedef struct ShrinkwrapCalcData
 	int vgroup;						//Vertex group num
 
 	struct DerivedMesh *target;		//mesh we are shrinking to	
-	SpaceTransform local2target;	//transform to move bettwem local and target space
+	SpaceTransform local2target;	//transform to move between local and target space
 
-	float keepDist;					//Distance to kept from target (units are in local space)
+	float keepDist;					//Distance to keep above target surface (units are in local space)
 
 } ShrinkwrapCalcData;
 
