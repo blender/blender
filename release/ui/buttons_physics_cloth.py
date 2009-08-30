@@ -43,10 +43,10 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel):
 
 		if md:
 			cloth = md.settings
+			
+			layout.active = cloth_panel_enabled(md)
 
 			split = layout.split()
-			
-			split.active = cloth_panel_enabled(md)
 			
 			col = split.column()
 			col.itemL(text="Quality:")
@@ -89,7 +89,7 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel):
 	__default_closed__ = True
 
 	def poll(self, context):
-		return (context.cloth != None)
+		return (context.cloth)
 
 	def draw(self, context):
 		md = context.cloth
@@ -100,7 +100,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
 	__default_closed__ = True
 
 	def poll(self, context):
-		return (context.cloth != None)
+		return (context.cloth)
 	
 	def draw_header(self, context):
 		layout = self.layout
@@ -111,10 +111,13 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		cloth = context.cloth.collision_settings
-		split = layout.split()
+		md = context.cloth
 		
 		layout.active = cloth.enable_collision and cloth_panel_enabled(md)
+		
+		split = layout.split()
 		
 		col = split.column()
 		col.itemR(cloth, "collision_quality", slider=True, text="Quality")
@@ -123,10 +126,10 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel):
 		
 		col = split.column()
 		col.itemR(cloth, "enable_self_collision", text="Self Collision")
-		col = col.column()
-		col.active = cloth.enable_self_collision
-		col.itemR(cloth, "self_collision_quality", slider=True, text="Quality")
-		col.itemR(cloth, "self_min_distance", slider=True, text="Distance")
+		sub = col.column()
+		sub.active = cloth.enable_self_collision
+		sub.itemR(cloth, "self_collision_quality", slider=True, text="Quality")
+		sub.itemR(cloth, "self_min_distance", slider=True, text="Distance")
 
 class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
 	__label__ = "Cloth Stiffness Scaling"
@@ -144,6 +147,8 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
+		md = context.cloth
 		ob = context.object
 		cloth = context.cloth.settings
 		
