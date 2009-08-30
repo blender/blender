@@ -122,11 +122,21 @@ static void gp_draw_stroke_buffer (tGPspoint *points, int totpoints, short thick
 		
 		glBegin(GL_LINE_STRIP);
 		for (i=0, pt=points; i < totpoints && pt; i++, pt++) {
+			/* if there was a significant pressure change, stop the curve, change the thickness of the stroke,
+			 * and continue drawing again (since line-width cannot change in middle of GL_LINE_STRIP)
+			 */
 			if (fabs(pt->pressure - oldpressure) > 0.2f) {
 				glEnd();
 				glLineWidth(pt->pressure * thickness);
 				glBegin(GL_LINE_STRIP);
 				
+				/* need to roll-back one point to ensure that there are no gaps in the stroke */
+				if (i != 0) {
+					pt--;
+					glVertex2f(pt->x, pt->y);
+					pt++;
+				}
+				/* now the point we want... */
 				glVertex2f(pt->x, pt->y);
 				
 				oldpressure = pt->pressure;
@@ -206,11 +216,21 @@ static void gp_draw_stroke_3d (bGPDspoint *points, int totpoints, short thicknes
 	/* draw stroke curve */
 	glBegin(GL_LINE_STRIP);
 	for (i=0, pt=points; i < totpoints && pt; i++, pt++) {
+		/* if there was a significant pressure change, stop the curve, change the thickness of the stroke,
+		 * and continue drawing again (since line-width cannot change in middle of GL_LINE_STRIP)
+		 */
 		if (fabs(pt->pressure - oldpressure) > 0.2f) {
 			glEnd();
 			glLineWidth(pt->pressure * thickness);
 			glBegin(GL_LINE_STRIP);
 			
+			/* need to roll-back one point to ensure that there are no gaps in the stroke */
+			if (i != 0) {
+				pt--;
+				glVertex3f(pt->x, pt->y, pt->z);
+				pt++;
+			}
+			/* now the point we want... */
 			glVertex3f(pt->x, pt->y, pt->z);
 			
 			oldpressure = pt->pressure;
