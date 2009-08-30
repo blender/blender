@@ -2999,6 +2999,7 @@ static void init_camera_inside_volumes(Render *re)
 					
 					mi = MEM_mallocN(sizeof(MatInside), "camera inside material");
 					mi->ma = vo->ma;
+					mi->obi = obi;
 					
 					BLI_addtail(&(re->render_volumes_inside), mi);
 				}

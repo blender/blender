@@ -674,15 +674,25 @@ void shade_volume_inside(ShadeInput *shi, ShadeResult *shr)
 {
 	MatInside *m;
 	Material *mat_backup;
+	ObjectInstanceRen *obi_backup;
+	float prev_alpha = shr->alpha;
 	
 	//if (BLI_countlist(&R.render_volumes_inside) == 0) return;
 	
 	/* XXX: extend to multiple volumes perhaps later */
 	mat_backup = shi->mat;
+	obi_backup = shi->obi;
+	
 	m = R.render_volumes_inside.first;
 	shi->mat = m->ma;
+	shi->obi = m->obi;
+	shi->obr = m->obi->obr;
 	
 	volume_trace(shi, shr, VOL_SHADE_INSIDE);
-
+	shr->alpha += prev_alpha;
+	CLAMP(shr->alpha, 0.f, 1.f);
+	
 	shi->mat = mat_backup;
+	shi->obi = obi_backup;
+	shi->obr = obi_backup->obr;
 }
