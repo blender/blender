@@ -50,6 +50,7 @@ sys.stdout.write("Making C file <%s>\n" % cname)
 
 filename = filename.replace(".", "_")
 sys.stdout.write(str(size))
+sys.stdout.write("\n")
 try:
 	fpout = open(cname, "w")
 except:
@@ -66,7 +67,7 @@ while size > 0:
 	if size % 32 == 31:
 		fpout.write("\n")
 	
-	fpout.write("%.2d," % ord(fpin.read(1)))
+	fpout.write("%3d," % ord(fpin.read(1)))
 
 fpout.write("\n  0};\n\n")
 
