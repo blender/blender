@@ -35,7 +35,7 @@ BF_JACK_LIBPATH = '${BF_JACK}/lib'
 WITH_BF_SNDFILE = False
 BF_SNDFILE = LIBDIR + '/sndfile'
 BF_SNDFILE_INC = '${BF_SNDFILE}/include'
-BF_SNDFILE_LIB = 'libsndfile'
+BF_SNDFILE_LIB = 'libsndfile-1'
 BF_SNDFILE_LIBPATH = '${BF_SNDFILE}/lib'
 
 WITH_BF_SDL = True
