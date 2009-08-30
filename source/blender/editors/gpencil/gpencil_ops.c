@@ -56,9 +56,12 @@ void gpencil_common_keymap(wmWindowManager *wm, ListBase *keymap)
 	/* Draw */
 		/* draw */
 	WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, 0, DKEY);
+		/* draw - straight lines */
+	kmi=WM_keymap_add_item(keymap, "GPENCIL_OT_draw", LEFTMOUSE, KM_PRESS, KM_CTRL, DKEY);
+		RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_DRAW_STRAIGHT);
 		/* erase */
 	kmi=WM_keymap_add_item(keymap, "GPENCIL_OT_draw", RIGHTMOUSE, KM_PRESS, 0, DKEY);
-		RNA_enum_set(kmi->ptr, "mode", 1); // XXX need to make the defines for this public (this is GP_PAINTMODE_ERASER)
+		RNA_enum_set(kmi->ptr, "mode", GP_PAINTMODE_ERASER);
 }
 
 /* ****************************************** */

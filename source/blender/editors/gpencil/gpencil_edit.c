@@ -169,7 +169,7 @@ static int gp_data_add_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* notifiers */
-	WM_event_add_notifier(C, NC_SCREEN|ND_GPENCIL|NA_EDITED, NULL); // XXX please work!
+	WM_event_add_notifier(C, NC_SCREEN|ND_GPENCIL|NA_EDITED, NULL); // XXX need a nicer one that will work	
 	
 	return OPERATOR_FINISHED;
 }
@@ -216,7 +216,7 @@ static int gp_data_unlink_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* notifiers */
-	WM_event_add_notifier(C, NC_SCREEN|ND_GPENCIL|NA_EDITED, NULL); // XXX please work!
+	WM_event_add_notifier(C, NC_SCREEN|ND_GPENCIL|NA_EDITED, NULL); // XXX need a nicer one that will work	
 	
 	return OPERATOR_FINISHED;
 }

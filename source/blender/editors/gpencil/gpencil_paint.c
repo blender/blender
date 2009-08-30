@@ -69,16 +69,6 @@
 #include "gpencil_intern.h"
 
 /* ******************************************* */
-/* Context Wrangling... */
-
-/* check if context is suitable for drawing */
-static int gpencil_draw_poll (bContext *C)
-{
-	// TODO: must check context for Grease Pencil data...
-	return 1;
-}
-
-/* ******************************************* */
 /* 'Globals' and Defines */
 
 /* Temporary 'Stroke' Operation data */
@@ -121,12 +111,6 @@ enum {
 	GP_STATUS_DONE			/* painting done */
 };
 
-/* values for tGPsdata->paintmode */
-enum {
-	GP_PAINTMODE_DRAW = 0,
-	GP_PAINTMODE_ERASER
-};
-
 /* Return flags for adding points to stroke buffer */
 enum {
 	GP_STROKEADD_INVALID	= -2,		/* error occurred - insufficient info to do so */
@@ -138,7 +122,6 @@ enum {
 /* Runtime flags */
 enum {
 	GP_PAINTFLAG_FIRSTRUN		= (1<<0),	/* operator just started */
-	GP_PAINTFLAG_STRAIGHTLINES	= (1<<1),	/* only take the endpoints of a stroke */
 };
 
 /* ------ */
@@ -152,15 +135,20 @@ enum {
 	/* minimum length of new segment before new point can be added */
 #define MIN_EUCLIDEAN_PX	(U.gp_euclideandist)
 
-/* macro to test if only converting endpoints - only for use when converting!  */	
-// XXX for now, don't test for editpaint too...
-//#define GP_BUFFER2STROKE_ENDPOINTS ((gpd->flag & GP_DATA_EDITPAINT) && (p->flags & GP_PAINTFLAG_STRAIGHTLINES))
-#define GP_BUFFER2STROKE_ENDPOINTS ((p->flags & GP_PAINTFLAG_STRAIGHTLINES))
-
 /* ------ */
 /* Forward defines for some functions... */
 
 static void gp_session_validatebuffer(tGPsdata *p);
+
+/* ******************************************* */
+/* Context Wrangling... */
+
+/* check if context is suitable for drawing */
+static int gpencil_draw_poll (bContext *C)
+{
+	/* check if current context can support GPencil data */
+	return (gpencil_data_get_pointers(C, NULL) != NULL);
+}
 
 /* ******************************************* */
 /* Calculations/Conversions */
@@ -258,26 +246,68 @@ static short gp_stroke_addpoint (tGPsdata *p, int mval[2], float pressure)
 	bGPdata *gpd= p->gpd;
 	tGPspoint *pt;
 	
-	/* check if still room in buffer */
-	if (gpd->sbuffer_size >= GP_STROKE_BUFFER_MAX)
-		return GP_STROKEADD_OVERFLOW;
-	
-	/* get pointer to destination point */
-	pt= ((tGPspoint *)(gpd->sbuffer) + gpd->sbuffer_size);
-	
-	/* store settings */
-	pt->x= mval[0];
-	pt->y= mval[1];
-	pt->pressure= pressure;
-	
-	/* increment counters */
-	gpd->sbuffer_size++;
-	
-	/* check if another operation can still occur */
-	if (gpd->sbuffer_size == GP_STROKE_BUFFER_MAX)
-		return GP_STROKEADD_FULL;
-	else
+	/* check painting mode */
+	if (p->paintmode == GP_PAINTMODE_DRAW_STRAIGHT) {
+		/* straight lines only - i.e. only store start and end point in buffer */
+		if (gpd->sbuffer_size == 0) {
+			/* first point in buffer (start point) */
+			pt= (tGPspoint *)(gpd->sbuffer);
+			
+			/* store settings */
+			pt->x= mval[0];
+			pt->y= mval[1];
+			pt->pressure= pressure;
+			
+			/* increment buffer size */
+			gpd->sbuffer_size++;
+		}
+		else {
+			/* normally, we just reset the endpoint to the latest value 
+			 *	- assume that pointers for this are always valid...
+			 */
+			pt= ((tGPspoint *)(gpd->sbuffer) + 1);
+			
+			/* store settings */
+			pt->x= mval[0];
+			pt->y= mval[1];
+			pt->pressure= pressure;
+			
+			/* if this is just the second point we've added, increment the buffer size
+			 * so that it will be drawn properly...
+			 * otherwise, just leave it alone, otherwise we get problems
+			 */
+			if (gpd->sbuffer_size != 2)
+				gpd->sbuffer_size= 2;
+		}
+		
+		/* can keep carrying on this way :) */
 		return GP_STROKEADD_NORMAL;
+	}
+	else if (p->paintmode == GP_PAINTMODE_DRAW) { /* normal drawing */
+		/* check if still room in buffer */
+		if (gpd->sbuffer_size >= GP_STROKE_BUFFER_MAX)
+			return GP_STROKEADD_OVERFLOW;
+		
+		/* get pointer to destination point */
+		pt= ((tGPspoint *)(gpd->sbuffer) + gpd->sbuffer_size);
+		
+		/* store settings */
+		pt->x= mval[0];
+		pt->y= mval[1];
+		pt->pressure= pressure;
+		
+		/* increment counters */
+		gpd->sbuffer_size++;
+		
+		/* check if another operation can still occur */
+		if (gpd->sbuffer_size == GP_STROKE_BUFFER_MAX)
+			return GP_STROKEADD_FULL;
+		else
+			return GP_STROKEADD_NORMAL;
+	}
+	
+	/* just say it's normal for now, since we don't have another state... */
+	return GP_STROKEADD_NORMAL;
 }
 
 /* smooth a stroke (in buffer) before storing it */
@@ -287,7 +317,7 @@ static void gp_stroke_smooth (tGPsdata *p)
 	int i=0, cmx=gpd->sbuffer_size;
 	
 	/* only smooth if smoothing is enabled, and we're not doing a straight line */
-	if (!(U.gp_settings & GP_PAINT_DOSMOOTH) || GP_BUFFER2STROKE_ENDPOINTS)
+	if (!(U.gp_settings & GP_PAINT_DOSMOOTH) || (p->paintmode == GP_PAINTMODE_DRAW_STRAIGHT))
 		return;
 	
 	/* don't try if less than 2 points in buffer */
@@ -320,7 +350,7 @@ static void gp_stroke_simplify (tGPsdata *p)
 	short i, j;
 	
 	/* only simplify if simlification is enabled, and we're not doing a straight line */
-	if (!(U.gp_settings & GP_PAINT_DOSIMPLIFY) || GP_BUFFER2STROKE_ENDPOINTS)
+	if (!(U.gp_settings & GP_PAINT_DOSIMPLIFY) || (p->paintmode == GP_PAINTMODE_DRAW_STRAIGHT))
 		return;
 	
 	/* don't simplify if less than 4 points in buffer */
@@ -388,11 +418,10 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 	tGPspoint *ptc;
 	int i, totelem;
 	
-	/* get total number of points to allocate space for:
-	 *	- in 'Draw Mode', holding the Ctrl-Modifier will only take endpoints
-	 *	- otherwise, do whole stroke
+	/* get total number of points to allocate space for 
+	 *	- drawing straight-lines only requires the endpoints
 	 */
-	if (GP_BUFFER2STROKE_ENDPOINTS)
+	if (p->paintmode == GP_PAINTMODE_DRAW_STRAIGHT)
 		totelem = (gpd->sbuffer_size >= 2) ? 2: gpd->sbuffer_size;
 	else
 		totelem = gpd->sbuffer_size;
@@ -416,8 +445,8 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 	gps->flag= gpd->sbuffer_sflag;
 	
 	/* copy points from the buffer to the stroke */
-	if (GP_BUFFER2STROKE_ENDPOINTS) {
-		/* 'Draw Mode' + Ctrl-Modifier - only endpoints */
+	if (p->paintmode == GP_PAINTMODE_DRAW_STRAIGHT) {
+		/* straight lines only -> only endpoints */
 		{
 			/* first point */
 			ptc= gpd->sbuffer;
@@ -1013,7 +1042,6 @@ static int gpencil_draw_init (bContext *C, wmOperator *op)
 {
 	tGPsdata *p;
 	int paintmode= RNA_enum_get(op->ptr, "mode");
-	int straightLines= RNA_boolean_get(op->ptr, "straight_lines");
 	
 	/* check context */
 	p= op->customdata= gp_session_initpaint(C);
@@ -1032,10 +1060,6 @@ static int gpencil_draw_init (bContext *C, wmOperator *op)
 	
 	/* radius for eraser circle is defined in userprefs now */
 	p->radius= U.gp_eraser;
-	
-	/* set line-drawing settings (straight or freehand lines) */
-	if (straightLines)
-		p->flags |= GP_PAINTFLAG_STRAIGHTLINES;
 	
 	/* everything is now setup ok */
 	return 1;
@@ -1126,8 +1150,8 @@ static void gpencil_draw_apply_event (bContext *C, wmOperator *op, wmEvent *even
 {
 	tGPsdata *p= op->customdata;
 	ARegion *ar= p->ar;
-	PointerRNA itemptr;
-	float mousef[2];
+	//PointerRNA itemptr;
+	//float mousef[2];
 	int tablet=0;
 
 	/* convert from window-space to area-space mouse coordintes */
@@ -1162,6 +1186,7 @@ static void gpencil_draw_apply_event (bContext *C, wmOperator *op, wmEvent *even
 			return;
 	}
 	
+#if 0 // NOTE: disabled for now, since creating this data is currently useless anyways (and slows things down)
 	/* fill in stroke data (not actually used directly by gpencil_draw_apply) */
 	RNA_collection_add(op->ptr, "stroke", &itemptr);
 
@@ -1169,12 +1194,13 @@ static void gpencil_draw_apply_event (bContext *C, wmOperator *op, wmEvent *even
 	mousef[1]= p->mval[1];
 	RNA_float_set_array(&itemptr, "mouse", mousef);
 	RNA_float_set(&itemptr, "pressure", p->pressure);
+#endif 
 	
 	/* apply the current latest drawing point */
 	gpencil_draw_apply(C, op, p);
 	
 	/* force refresh */
-	WM_event_add_notifier(C, NC_SCREEN|ND_GPENCIL|NA_EDITED, NULL); // XXX please work!
+	ED_region_tag_redraw(p->ar); /* just active area for now, since doing whole screen is too slow */
 }
 
 /* ------------------------------- */
@@ -1232,7 +1258,7 @@ static int gpencil_draw_exec (bContext *C, wmOperator *op)
 	gpencil_draw_exit(C, op);
 	
 	/* refreshes */
-	WM_event_add_notifier(C, NC_SCREEN|ND_GPENCIL|NA_EDITED, NULL); // XXX please work!
+	WM_event_add_notifier(C, NC_SCREEN|ND_GPENCIL|NA_EDITED, NULL); // XXX need a nicer one that will work	
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1311,6 +1337,10 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 				/* basically, this should be mouse-button up */
 				printf("\t\tGP - end of stroke \n");
 				gpencil_draw_exit(C, op);
+				
+				/* one last flush before we're done */
+				WM_event_add_notifier(C, NC_SCREEN|ND_GPENCIL|NA_EDITED, NULL); // XXX need a nicer one that will work	
+				
 				return OPERATOR_FINISHED;
 			}
 			else {
@@ -1340,6 +1370,7 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 		/* scrolling mouse-wheel increases radius of eraser 
 		 * 	- though this is quite a difficult action to perform
 		 */
+		// XXX this stuff doesn't work
 		case WHEELUPMOUSE:
 			p->radius += 1.5f;
 			break;
@@ -1358,7 +1389,8 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 /* ------------------------------- */
 
 static EnumPropertyItem prop_gpencil_drawmodes[] = {
-	{GP_PAINTMODE_DRAW, "DRAW", 0, "Draw", ""},
+	{GP_PAINTMODE_DRAW, "DRAW", 0, "Draw Freehand", ""},
+	{GP_PAINTMODE_DRAW_STRAIGHT, "DRAW_STRAIGHT", 0, "Draw Straight Lines", ""},
 	{GP_PAINTMODE_ERASER, "ERASER", 0, "Eraser", ""},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -1382,7 +1414,6 @@ void GPENCIL_OT_draw (wmOperatorType *ot)
 	
 	/* settings for drawing */
 	RNA_def_enum(ot->srna, "mode", prop_gpencil_drawmodes, 0, "Mode", "Way to intepret mouse movements.");
-	RNA_def_boolean(ot->srna, "straight_lines", 0, "Straight Lines", "Only take the endpoints of the strokes, so that straight lines can be drawn.");
-	
+		// xxx the stuff below is used only for redo operator, but is not really working
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }

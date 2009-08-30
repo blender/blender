@@ -40,6 +40,13 @@ struct wmOperatorType;
 
 void GPENCIL_OT_draw(struct wmOperatorType *ot);
 
+/* Paint Modes for operator*/
+typedef enum eGPencil_PaintModes {
+	GP_PAINTMODE_DRAW = 0,
+	GP_PAINTMODE_ERASER,
+	GP_PAINTMODE_DRAW_STRAIGHT,
+} eGPencil_PaintModes;
+
 /* buttons editing --- */
 
 void GPENCIL_OT_data_add(struct wmOperatorType *ot);
