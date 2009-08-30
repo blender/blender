@@ -208,6 +208,7 @@ void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_SELECT);
 	RNA_def_property_ui_text(prop, "Selected", "Layer is selected for editing in the DopeSheet.");
 	
+		// XXX keep this option?
 	prop= RNA_def_property(srna, "show_points", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_DRAWDEBUG);
 	RNA_def_property_ui_text(prop, "Show Points", "Draw the points which make up the strokes (for debugging purposes).");
@@ -229,6 +230,11 @@ void rna_def_gpencil_data(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "layers", NULL);
 	RNA_def_property_struct_type(prop, "GPencilLayer");
 	RNA_def_property_ui_text(prop, "Layers", "Similar to layers in Photoshop.");
+	
+	/* Flags */
+	prop= RNA_def_property(srna, "view_space_draw", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_VIEWALIGN);
+	RNA_def_property_ui_text(prop, "Stick to View", "Newly drawn strokes get added in view space (i.e. sketches stick to data when view is manipulated).");
 }
 
 /* --- */

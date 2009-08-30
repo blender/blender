@@ -239,8 +239,8 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
 	
 	/* 2d - relative to screen (viewport area) */
 	else {
-		out[0] = (float)(mval[0]) / (float)(p->sa->winx) * 100;
-		out[1] = (float)(mval[1]) / (float)(p->sa->winy) * 100;
+		out[0] = (float)(mval[0]) / (float)(p->ar->winx) * 100;
+		out[1] = (float)(mval[1]) / (float)(p->ar->winy) * 100;
 	}
 }
 
@@ -310,8 +310,8 @@ static short gp_stroke_addpoint (tGPsdata *p, int mval[2], float pressure)
 			return GP_STROKEADD_NORMAL;
 	}
 	
-	/* just say it's normal for now, since we don't have another state... */
-	return GP_STROKEADD_NORMAL;
+	/* return invalid state for now... */
+	return GP_STROKEADD_INVALID;
 }
 
 /* smooth a stroke (in buffer) before storing it */
@@ -614,8 +614,8 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, int mval[], int mvalo[], sho
 		}
 #endif
 		else {
-			x0= (int)(gps->points->x / 100 * p->sa->winx);
-			y0= (int)(gps->points->y / 100 * p->sa->winy);
+			x0= (int)(gps->points->x / 100 * p->ar->winx);
+			y0= (int)(gps->points->y / 100 * p->ar->winy);
 		}
 		
 		/* do boundbox check first */
@@ -671,10 +671,10 @@ static void gp_stroke_eraser_dostroke (tGPsdata *p, int mval[], int mvalo[], sho
 			}
 #endif
 			else {
-				x0= (int)(pt1->x / 100 * p->sa->winx);
-				y0= (int)(pt1->y / 100 * p->sa->winy);
-				x1= (int)(pt2->x / 100 * p->sa->winx);
-				y1= (int)(pt2->y / 100 * p->sa->winy);
+				x0= (int)(pt1->x / 100 * p->ar->winx);
+				y0= (int)(pt1->y / 100 * p->ar->winy);
+				x1= (int)(pt2->x / 100 * p->ar->winx);
+				y1= (int)(pt2->y / 100 * p->ar->winy);
 			}
 			
 			/* check that point segment of the boundbox of the eraser stroke */
@@ -944,15 +944,15 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 		p->gpd->sbuffer_sflag |= GP_STROKE_ERASER;
 	
 	/* check if points will need to be made in view-aligned space */
-	// XXX this should be the default? this is something that needs review
-	/*if (p->gpd->flag & GP_DATA_VIEWALIGN)*/ {
+	if (p->gpd->flag & GP_DATA_VIEWALIGN) {
 		switch (p->sa->spacetype) {
 			case SPACE_VIEW3D:
 			{
 				View3D *v3d= (View3D *)p->sa->spacedata.first;
 				RegionView3D *rv3d= p->ar->regiondata;
 				
-				// TODO: this should only happen for scene... otherwise apply correction for object center!
+				// TODO 1: when using objects, make the data stick to the object centers?
+				// TODO 2: what happens when cursor is behind view-camera plane?
 				float *fp= give_cursor(p->scene, v3d);
 				initgrabz(rv3d, fp[0], fp[1], fp[2]);
 				
@@ -1139,7 +1139,7 @@ static void gpencil_draw_apply (bContext *C, wmOperator *op, tGPsdata *p)
 			
 			if (G.f & G_DEBUG) 
 				printf("Error: Grease-Pencil Paint - Add Point Invalid \n");
-			// XXX break!
+			return;
 		}
 		
 		/* store used values */

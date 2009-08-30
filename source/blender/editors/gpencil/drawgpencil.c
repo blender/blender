@@ -773,7 +773,7 @@ void draw_gpencil_oglrender (bContext *C)
 	
 	/* pass 2: draw 2d-strokes ------------ > */
 		/* adjust view matrices */
-	wmOrtho2(-0.375f, (float)(ar->winx)-0.375f, -0.375f, (float)(ar->winy)-0.375f);
+	wmOrtho2(-0.375f, (float)(ar->winx)-0.375f, -0.375f, (float)(ar->winy)-0.375f); // XXX may not be correct anymore
 	glLoadIdentity();
 	
 		/* draw it! */

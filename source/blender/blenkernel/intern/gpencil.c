@@ -214,6 +214,11 @@ bGPdata *gpencil_data_addnew (char name[])
 	/* initial settings */
 	gpd->flag = (GP_DATA_DISPINFO|GP_DATA_EXPAND);
 	
+	/* for now, stick to view is also enabled by default
+	 * since this is more useful...
+	 */
+	gpd->flag |= GP_DATA_VIEWALIGN;
+	
 	return gpd;
 }
 

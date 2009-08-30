@@ -226,8 +226,12 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 /* Draw the contents for a grease-pencil panel*/
 static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, PointerRNA *ctx_ptr)
 {
+	PointerRNA gpd_ptr;
 	bGPDlayer *gpl;
 	uiLayout *col;
+	
+	/* make new PointerRNA for Grease Pencil block */
+	RNA_id_pointer_create((ID *)gpd, &gpd_ptr);
 	
 	/* draw gpd settings first ------------------------------------- */
 	col= uiLayoutColumn(layout, 0);
@@ -238,19 +242,19 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 		/* add new layer button */
 		uiItemO(col, NULL, 0, "GPENCIL_OT_layer_add");
 	
-	/* 'view align' button (naming depends on context) */
-#if 0 // XXX for now, this is enabled by default anyways
-	if (sa->spacetype == SPACE_VIEW3D)
-		uiDefButBitI(block, TOG, GP_DATA_VIEWALIGN, B_REDR, "Sketch in 3D", 170, 205, 150, 20, &gpd->flag, 0, 0, 0, 0, "New strokes are added in 3D-space");
-	else
-		uiDefButBitI(block, TOG, GP_DATA_VIEWALIGN, B_REDR, "Stick to View", 170, 205, 150, 20, &gpd->flag, 0, 0, 0, 0, "New strokes are added on 2d-canvas");
-#endif
-	
 	/* draw each layer --------------------------------------------- */
 	for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
 		col= uiLayoutColumn(layout, 1);
 			gp_drawui_layer(col, gpd, gpl);
 	}
+	
+	/* draw gpd drawing settings first ------------------------------------- */
+	col= uiLayoutColumn(layout, 0);
+		/* label */
+		uiItemL(col, "Drawing Settings:", 0);
+		
+		/* 'stick to view' option */
+		uiItemR(col, NULL, 0, &gpd_ptr, "view_space_draw", 0);
 }	
 
 
