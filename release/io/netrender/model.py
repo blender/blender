@@ -65,7 +65,7 @@ class RenderJob:
 	def __len__(self):
 		return len(self.frames)
 	
-	def status(self):
+	def framesStatus(self):
 		results = {
 								QUEUED: 0,
 								DISPATCHED: 0,

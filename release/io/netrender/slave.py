@@ -11,7 +11,10 @@ INCREMENT_TIMEOUT = 1
 
 def slave_Info():
 	sysname, nodename, release, version, machine = os.uname()
-	return (nodename, sysname + " " + release + " " + machine)
+	slave = netrender.model.RenderSlave()
+	slave.name = nodename
+	slave.stats = sysname + " " + release + " " + machine
+	return slave
 
 def testCancel(conn, job_id):
 		conn.request("HEAD", "status", headers={"job-id":job_id})
@@ -35,7 +38,7 @@ def render_slave(engine, scene):
 	conn = clientConnection(scene)
 	
 	if conn:
-		conn.request("POST", "slave", repr(slave_Info()))
+		conn.request("POST", "slave", repr(slave_Info().serialize()))
 		response = conn.getresponse()
 		
 		slave_id = response.getheader("slave-id")

@@ -66,7 +66,7 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
 				netprops.jobs.add()
 				job = netprops.jobs[-1]
 				
-				job_results = j.status()
+				job_results = j.framesStatus()
 				
 				job.id = j.id
 				job.name = j.name
@@ -210,15 +210,15 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
 	__props__ = []
 	
 	def poll(self, context):
-		netrender = scene.network_render
-		return netrender.active_job_index >= 0 and len(netrender.jobs) > 0
+		netprops = context.scene.network_render
+		return netprops.active_job_index >= 0 and len(netprops.jobs) > 0
 		
 	def execute(self, context):
 		netprops = context.scene.network_render
 		conn = clientConnection(context.scene)
 		
 		if conn:
-			job = netprops.jobs[netrender.active_job_index]
+			job = netprops.jobs[netprops.active_job_index]
 			
 			conn.request("POST", "cancel", headers={"job-id":job.id})
 			

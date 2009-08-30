@@ -255,6 +255,18 @@ NetRenderSlave.StringProperty( attr="adress",
 				maxlen = 64,
 				default = "")
 
+NetRenderSlave.StringProperty( attr="last_seen",
+				name="Last time slave was seen by server",
+				description="",
+				maxlen = 64,
+				default = "")
+
+NetRenderSlave.StringProperty( attr="stats",
+				name="Hardware stats of the slave",
+				description="",
+				maxlen = 128,
+				default = "")
+
 NetRenderJob.StringProperty( attr="id",
 				name="ID of the job",
 				description="",

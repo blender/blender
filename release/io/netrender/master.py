@@ -5,7 +5,10 @@ import subprocess, shutil, time, hashlib
 from netrender.utils import *
 import netrender.model
 
-		
+JOB_WAITING = 0 # before all data has been entered
+JOB_PAUSED = 1 # paused by user
+JOB_QUEUED = 2 # ready to be dispatched
+
 class MRenderSlave(netrender.model.RenderSlave):
 	def __init__(self, name, adress, stats):
 		super().__init__()
@@ -25,7 +28,7 @@ class MRenderSlave(netrender.model.RenderSlave):
 
 # sorting key for jobs
 def groupKey(job):
-	return (job.framesLeft() > 0, job.priority, job.credits)
+	return (job.status, job.framesLeft() > 0, job.priority, job.credits)
 
 class MRenderJob(netrender.model.RenderJob):
 	def __init__(self, job_id, name, path, chunks = 1, priority = 1, credits = 100.0, blacklist = []):
@@ -33,12 +36,16 @@ class MRenderJob(netrender.model.RenderJob):
 		self.id = job_id
 		self.name = name
 		self.path = path
+		self.status = JOB_WAITING
 		self.frames = []
 		self.chunks = chunks
 		self.priority = priority
 		self.credits = credits
 		self.blacklist = blacklist
 		self.last_dispatched = time.time()
+	
+	def start(self):
+		self.status = JOB_QUEUED
 	
 	def update(self):
 		self.credits -= 5 # cost of one frame
@@ -233,8 +240,6 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 				message = []
 				
 				for job in self.server:
-					results = job.status()
-					
 					message.append(job.serialize())
 			
 			self.send_head()
@@ -322,25 +327,14 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 			job_chunks = int(self.headers.get('job-chunks', "1"))
 			blacklist = self.headers.get('slave-blacklist', '').split()
 			
-			print("blacklist", blacklist)
-			
 			job_path = str(self.rfile.read(length), encoding='utf8')
 			
 			if os.path.exists(job_path):
-				f = open(job_path, "rb")
-				buf = f.read()
-				f.close()
+				job_id = self.server.nextJobID()
 				
-				job_id = hashlib.md5(buf).hexdigest()
+				job = MRenderJob(job_id, job_name, job_path, chunks = job_chunks, blacklist = blacklist)
+				self.server.addJob(job)
 				
-				del buf
-				
-				job = self.server.getJobByID(job_id)
-				
-				if job == None:
-					job = MRenderJob(job_id, job_name, job_path, chunks = job_chunks, blacklist = blacklist)
-					self.server.addJob(job)
-					
 				if ":" in job_frame_string:
 					frame_start, frame_end = [int(x) for x in job_frame_string.split(":")]
 					
@@ -349,6 +343,8 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 				else:
 					job_frame = int(job_frame_string)
 					frame = job.addFrame(job_frame)
+					
+				job.start()
 		
 				self.send_head(headers={"job-id": job_id})
 			else:
@@ -385,9 +381,9 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 			length = int(self.headers['content-length'])
 			job_frame_string = self.headers['job-frame']
 			
-			name, stats = eval(str(self.rfile.read(length), encoding='utf8'))
+			slave_info = netrender.model.RenderSlave.materialize(eval(str(self.rfile.read(length), encoding='utf8')))
 			
-			slave_id = self.server.addSlave(name, self.client_address, stats)
+			slave_id = self.server.addSlave(slave_info.name, self.client_address, slave_info.stats)
 			
 			self.send_head(headers = {"slave-id": slave_id})
 	
@@ -410,23 +406,19 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 			job_chunks = int(self.headers.get('job-chunks', "1"))
 			blacklist = self.headers.get('slave-blacklist', '').split()
 			
-			buf = self.rfile.read(length)
+			job_id = self.server.nextJobID()
 			
-			job_id = hashlib.md5(buf).hexdigest()
+			buf = self.rfile.read(length)
 			
 			job_path = job_id + ".blend"
 			
 			f = open(PATH_PREFIX + job_path, "wb")
 			f.write(buf)
 			f.close()
-			
 			del buf
 			
-			job = self.server.getJobByID(job_id)
-			
-			if job == None:
-				job = MRenderJob(job_id, job_name, job_path, chunks = job_chunks, blacklist = blacklist)
-				self.server.addJob(job)
+			job = MRenderJob(job_id, job_name, job_path, chunks = job_chunks, blacklist = blacklist)
+			self.server.addJob(job)
 				
 			if ":" in job_frame_string:
 				frame_start, frame_end = [int(x) for x in job_frame_string.split(":")]
@@ -437,6 +429,8 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 				job_frame = int(job_frame_string)
 				frame = job.addFrame(job_frame)
 	
+			job.start()
+			
 			self.send_head(headers={"job-id": job_id})
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 		elif self.path == "render":
@@ -495,6 +489,11 @@ class RenderMasterServer(http.server.HTTPServer):
 		self.jobs_map = {}
 		self.slaves = []
 		self.slaves_map = {}
+		self.job_id = 0
+	
+	def nextJobID(self):
+		self.job_id += 1
+		return str(self.job_id)
 	
 	def addSlave(self, name, adress, stats):
 		slave = MRenderSlave(name, adress, stats)
@@ -540,7 +539,7 @@ class RenderMasterServer(http.server.HTTPServer):
 	def getNewJob(self, slave_id):
 		if self.jobs:
 			for job in reversed(self.jobs):
-				if job.framesLeft() > 0 and slave_id not in job.blacklist:
+				if job.status == JOB_QUEUED and job.framesLeft() > 0 and slave_id not in job.blacklist:
 					return job, job.getFrames()
 		
 		return None, None
