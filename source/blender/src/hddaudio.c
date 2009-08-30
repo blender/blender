@@ -68,14 +68,15 @@ struct hdaudio {
 	int frame_alloc_duration;
 	int decode_pos;
 	int frame_size;
-	short * decode_cache;
-	short * decode_cache_zero;
+	unsigned char * decode_cache;
+	unsigned char * decode_cache_zero;
 	short * resample_cache;
 	int decode_cache_size;
 	int target_channels;
 	int target_rate;
 	int resample_samples_written;
 	int resample_samples_in;
+	int decode_sample_format_size;
 	ReSampleContext *resampler;
 #else
 	
@@ -178,9 +179,13 @@ struct hdaudio * sound_open_hdaudio(char * filename)
 		(long long) rval->sample_rate * rval->channels
 		* rval->frame_alloc_duration / AV_TIME_BASE
 		* 2;
+	rval->decode_sample_format_size
+		= av_get_bits_per_sample_format(rval->pCodecCtx->sample_fmt)
+		/ 8;
 
-	rval->decode_cache = (short*) MEM_mallocN(
-		rval->decode_cache_size * sizeof(short)
+	rval->decode_cache = (unsigned char*) MEM_mallocN(
+		rval->decode_cache_size 
+		* rval->decode_sample_format_size
 		+ AVCODEC_MAX_AUDIO_FRAME_SIZE, 
 		"hdaudio decode cache");
 	rval->decode_cache_zero = rval->decode_cache;
@@ -191,6 +196,7 @@ struct hdaudio * sound_open_hdaudio(char * filename)
 	rval->resample_cache = 0;
 	rval->resample_samples_written = 0;
 	rval->resample_samples_in = 0;
+
 	return rval;
 #else
 	return 0;
@@ -260,7 +266,8 @@ static void sound_hdaudio_run_resampler_continue(
 		= audio_resample(
 			hdaudio->resampler,
 			hdaudio->resample_cache + reuse_tgt,
-			hdaudio->decode_cache_zero + reuse_src, 
+			hdaudio->decode_cache_zero 
+			+ reuse_src * hdaudio->decode_sample_format_size, 
 			next_samples_in)
 		+ reuse_tgt / target_channels;
 
@@ -285,7 +292,7 @@ static void sound_hdaudio_init_resampler(
 		hdaudio->resampler = av_audio_resample_init(
 			target_channels, hdaudio->channels,
 			target_rate, hdaudio->sample_rate,
-			SAMPLE_FMT_S16, SAMPLE_FMT_S16,
+			SAMPLE_FMT_S16, hdaudio->pCodecCtx->sample_fmt,
 			16, 10, 0, 0.8);
 		hdaudio->target_rate = target_rate;
 		hdaudio->target_channels = target_channels;
@@ -327,7 +334,8 @@ static void sound_hdaudio_extract_small_block(
 		* hdaudio->frame_duration / AV_TIME_BASE;
 	rate_conversion = 
 		(target_rate != hdaudio->sample_rate) 
-		|| (target_channels != hdaudio->channels);
+		|| (target_channels != hdaudio->channels)
+		|| (hdaudio->pCodecCtx->sample_fmt != SAMPLE_FMT_S16);
 	sample_ofs = target_channels * (sample_position % frame_size);
 
 	frame_position = sample_position / frame_size; 
@@ -346,15 +354,20 @@ static void sound_hdaudio_extract_small_block(
 		hdaudio->frame_position = frame_position;
 
 		memmove(hdaudio->decode_cache,
-			hdaudio->decode_cache + bl_size,
-			(decode_pos - bl_size) * sizeof(short));
+			hdaudio->decode_cache + bl_size
+			* hdaudio->decode_sample_format_size,
+			(decode_pos - bl_size) 
+			* hdaudio->decode_sample_format_size);
 		
 		decode_pos -= bl_size;
 
 		if (decode_pos < hdaudio->decode_cache_size) {
-			memset(hdaudio->decode_cache + decode_pos, 0,
+			memset(hdaudio->decode_cache 
+			       + decode_pos
+			       * hdaudio->decode_sample_format_size,
+			       0,
 			       (hdaudio->decode_cache_size - decode_pos) 
-			       * sizeof(short));
+			       * hdaudio->decode_sample_format_size);
 
 			while(av_read_frame(
 				      hdaudio->pFormatCtx, &packet) >= 0) {
@@ -377,7 +390,8 @@ static void sound_hdaudio_extract_small_block(
 					len = avcodec_decode_audio2(
 						hdaudio->pCodecCtx, 
 						hdaudio->decode_cache 
-						+ decode_pos, 
+						+ decode_pos 
+						* hdaudio->decode_sample_format_size, 
 						&data_size, 
 						audio_pkt_data, 
 						audio_pkt_size);
@@ -393,16 +407,17 @@ static void sound_hdaudio_extract_small_block(
 						continue;
 					}
 					
-					decode_pos += data_size / sizeof(short);
+					decode_pos += data_size 
+						/ hdaudio->decode_sample_format_size;
 					if (decode_pos + data_size
-					    / sizeof(short)
+					    / hdaudio->decode_sample_format_size
 					    > hdaudio->decode_cache_size) {
 						break;
 					}
 				}
 				av_free_packet(&packet);
 				
-				if (decode_pos + data_size / sizeof(short)
+				if (decode_pos + data_size / hdaudio->decode_sample_format_size
 				    > hdaudio->decode_cache_size) {
 					break;
 				}
@@ -455,7 +470,8 @@ static void sound_hdaudio_extract_small_block(
 		avcodec_flush_buffers(hdaudio->pCodecCtx);
 
 		memset(hdaudio->decode_cache, 0,
-		       hdaudio->decode_cache_size * sizeof(short));
+		       hdaudio->decode_cache_size 
+		       * hdaudio->decode_sample_format_size);
 
 		hdaudio->decode_cache_zero = hdaudio->decode_cache;
 
@@ -512,7 +528,9 @@ static void sound_hdaudio_extract_small_block(
 				}
 
 				hdaudio->decode_cache_zero
-					= hdaudio->decode_cache + diff;
+					= hdaudio->decode_cache 
+					+ diff 
+					* hdaudio->decode_sample_format_size;
 				decode_cache_zero_init = 1;
 			}
 
@@ -521,7 +539,8 @@ static void sound_hdaudio_extract_small_block(
 				len = avcodec_decode_audio2(
 					hdaudio->pCodecCtx, 
 					hdaudio->decode_cache 
-					+ decode_pos, 
+					+ decode_pos 
+					* hdaudio->decode_sample_format_size, 
 					&data_size, 
 					audio_pkt_data, 
 					audio_pkt_size);
@@ -537,9 +556,10 @@ static void sound_hdaudio_extract_small_block(
 					continue;
 				}
 				
-				decode_pos += data_size / sizeof(short);
+				decode_pos += data_size 
+					/ hdaudio->decode_sample_format_size;
 				if (decode_pos + data_size
-				    / sizeof(short)
+				    / hdaudio->decode_sample_format_size
 				    > hdaudio->decode_cache_size) {
 					break;
 				}
@@ -547,7 +567,8 @@ static void sound_hdaudio_extract_small_block(
 	
 			av_free_packet(&packet);
 
-			if (decode_pos + data_size / sizeof(short)
+			if (decode_pos + data_size 
+			    / hdaudio->decode_sample_format_size
 			    > hdaudio->decode_cache_size) {
 				break;
 			}
@@ -561,7 +582,8 @@ static void sound_hdaudio_extract_small_block(
 
 	memcpy(target_buffer, (rate_conversion 
 			       ? hdaudio->resample_cache 
-			       : hdaudio->decode_cache_zero) + sample_ofs, 
+			       : (short*) 
+			       hdaudio->decode_cache_zero) + sample_ofs, 
 	       nb_samples * target_channels * sizeof(short));
 
 }
