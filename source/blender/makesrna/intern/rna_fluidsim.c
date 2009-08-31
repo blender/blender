@@ -162,7 +162,7 @@ static void rna_def_fluidsim_slip(StructRNA *srna)
 	RNA_def_property_enum_items(prop, slip_items);
 	RNA_def_property_ui_text(prop, "Slip Type", "");
 
-	prop= RNA_def_property(srna, "partial_slip_amount", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "partial_slip_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "partSlipValue");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Partial Slip Amount", "Amount of mixing between no- and free-slip, 0 is no slip and 1 is free slip.");

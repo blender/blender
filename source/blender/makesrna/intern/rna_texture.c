@@ -1293,7 +1293,7 @@ static void rna_def_texture_distorted_noise(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Distorted Noise", "Procedural distorted noise texture.");
 	RNA_def_struct_sdna(srna, "Tex");
 
-	prop= RNA_def_property(srna, "distortion_amount", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "distortion", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dist_amount");
 	RNA_def_property_range(prop, 0, 10);
 	RNA_def_property_ui_text(prop, "Distortion Amount", "");

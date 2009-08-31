@@ -94,7 +94,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel):
 				col.itemL(text="Slip Type:")
 				col.itemR(fluid, "slip_type", text="")
 				if fluid.slip_type == 'PARTIALSLIP':
-					col.itemR(fluid, "partial_slip_amount", slider=True, text="Amount")
+					col.itemR(fluid, "partial_slip_factor", slider=True, text="Amount")
 					
 				col.itemL(text="Impact:")
 				col.itemR(fluid, "impact_factor", text="Factor")
@@ -228,7 +228,7 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel):
 		sub = col.column(align=True)
 		sub.itemR(fluid, "slip_type", text="")
 		if fluid.slip_type == 'PARTIALSLIP':
-			sub.itemR(fluid, "partial_slip_amount", slider=True, text="Amount")
+			sub.itemR(fluid, "partial_slip_factor", slider=True, text="Amount")
 
 		col = split.column()
 		col.itemL(text="Surface:")

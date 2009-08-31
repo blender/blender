@@ -609,7 +609,7 @@ class TEXTURE_PT_distortednoise(TextureTypePanel):
 		layout.itemR(tex, "noise_basis", text="Basis")
 		
 		flow = layout.column_flow()
-		flow.itemR(tex, "distortion_amount", text="Distortion")
+		flow.itemR(tex, "distortion", text="Distortion")
 		flow.itemR(tex, "noise_size", text="Size")
 		flow.itemR(tex, "nabla")	
 		
