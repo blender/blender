@@ -376,7 +376,7 @@ void sound_update_playing(struct bContext *C)
 						float diff = AUD_getPosition(handle->handle) * fps - cfra + handle->startframe;
 						if(diff < 0.0)
 							diff = -diff;
-						if(diff > 1.0f)
+						if(diff > FPS/2.0)
 						{
 							action = 2;
 						}
