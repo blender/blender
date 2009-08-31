@@ -86,6 +86,7 @@ typedef struct tGPsdata {
 	} im2d_settings;	/* needed for GP_STROKE_2DIMAGE */
 #endif
 	
+	PointerRNA ownerPtr;/* pointer to owner of gp-datablock */
 	bGPdata *gpd;		/* gp-datablock layer comes from */
 	bGPDlayer *gpl;		/* layer we're working on */
 	bGPDframe *gpf;		/* frame we're working on */
@@ -153,6 +154,29 @@ static int gpencil_draw_poll (bContext *C)
 /* ******************************************* */
 /* Calculations/Conversions */
 
+/* Utilities --------------------------------- */
+
+/* get the reference point for stroke-point conversions */
+static void gp_get_3d_reference (tGPsdata *p, float *vec)
+{
+	View3D *v3d= p->sa->spacedata.first;
+	float *fp= give_cursor(p->scene, v3d);
+	
+	/* the reference point used depends on the owner... */
+	if (p->ownerPtr.type == &RNA_Object) {
+		Object *ob= (Object *)p->ownerPtr.data;
+		
+		/* active Object 
+		 * 	- use relative distance of 3D-cursor from object center 
+		 */
+		VecSubf(vec, fp, ob->loc);
+	}
+	else {
+		/* use 3D-cursor */
+		VecCopyf(vec, fp);
+	}
+}
+
 /* Stroke Editing ---------------------------- */
 
 /* check if the current mouse position is suitable for adding a new point */
@@ -187,10 +211,8 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
 	
 	/* in 3d-space - pt->x/y/z are 3 side-by-side floats */
 	if (gpd->sbuffer_sflag & GP_STROKE_3DSPACE) {
-		View3D *v3d= p->sa->spacedata.first;
 		const short mx=mval[0], my=mval[1];
-		float *fp= give_cursor(p->scene, v3d);
-		float dvec[3];
+		float rvec[3], dvec[3];
 		
 		/* Current method just converts each point in screen-coordinates to 
 		 * 3D-coordinates using the 3D-cursor as reference. In general, this 
@@ -201,11 +223,12 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
 		 *	  reference point instead or as offset, for easier stroke matching
 		 *	- investigate projection onto geometry (ala retopo)
 		 */
+		gp_get_3d_reference(p, rvec);
 		
 		/* method taken from editview.c - mouse_cursor() */
-		project_short_noclip(p->ar, fp, mval);
+		project_short_noclip(p->ar, rvec, mval);
 		window_to_3d_delta(p->ar, dvec, mval[0]-mx, mval[1]-my);
-		VecSubf(out, fp, dvec);
+		VecSubf(out, rvec, dvec);
 	}
 	
 	/* 2d - on 'canvas' (assume that p->v2d is set) */
@@ -831,7 +854,7 @@ static tGPsdata *gp_session_initpaint (bContext *C)
 #endif
 		case SPACE_IMAGE:
 		{
-			SpaceImage *sima= curarea->spacedata.first;
+			//SpaceImage *sima= curarea->spacedata.first;
 			
 			/* set the current area */
 			p->sa= curarea;
@@ -863,7 +886,7 @@ static tGPsdata *gp_session_initpaint (bContext *C)
 	}
 	
 	/* get gp-data */
-	gpd_ptr= gpencil_data_get_pointers(C, NULL);
+	gpd_ptr= gpencil_data_get_pointers(C, &p->ownerPtr);
 	if (gpd_ptr == NULL) {
 		p->status= GP_STATUS_ERROR;
 		if (G.f & G_DEBUG)
@@ -951,13 +974,11 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 		switch (p->sa->spacetype) {
 			case SPACE_VIEW3D:
 			{
-				View3D *v3d= (View3D *)p->sa->spacedata.first;
 				RegionView3D *rv3d= p->ar->regiondata;
+				float rvec[3];
 				
-				// TODO 1: when using objects, make the data stick to the object centers?
-				// TODO 2: what happens when cursor is behind view-camera plane?
-				float *fp= give_cursor(p->scene, v3d);
-				initgrabz(rv3d, fp[0], fp[1], fp[2]);
+				gp_get_3d_reference(p, rvec);
+				initgrabz(rv3d, rvec[0], rvec[1], rvec[2]);
 				
 				p->gpd->sbuffer_sflag |= GP_STROKE_3DSPACE;
 			}
@@ -1215,18 +1236,18 @@ static int gpencil_draw_exec (bContext *C, wmOperator *op)
 {
 	tGPsdata *p = NULL;
 	
-	printf("GPencil - Starting Re-Drawing \n");
+	//printf("GPencil - Starting Re-Drawing \n");
 	
 	/* try to initialise context data needed while drawing */
 	if (!gpencil_draw_init(C, op)) {
 		if (op->customdata) MEM_freeN(op->customdata);
-		printf("\tGP - no valid data \n");
+		//printf("\tGP - no valid data \n");
 		return OPERATOR_CANCELLED;
 	}
 	else
 		p= op->customdata;
 	
-	printf("\tGP - Start redrawing stroke \n");
+	//printf("\tGP - Start redrawing stroke \n");
 	
 	/* loop over the stroke RNA elements recorded (i.e. progress of mouse movement),
 	 * setting the relevant values in context at each step, then applying
@@ -1235,7 +1256,7 @@ static int gpencil_draw_exec (bContext *C, wmOperator *op)
 	{
 		float mousef[2];
 		
-		printf("\t\tGP - stroke elem \n");
+		//printf("\t\tGP - stroke elem \n");
 		
 		/* get relevant data for this point from stroke */
 		RNA_float_get_array(&itemptr, "mouse", mousef);
@@ -1257,7 +1278,7 @@ static int gpencil_draw_exec (bContext *C, wmOperator *op)
 	}
 	RNA_END;
 	
-	printf("\tGP - done \n");
+	//printf("\tGP - done \n");
 	
 	/* cleanup */
 	gpencil_draw_exit(C, op);
@@ -1277,7 +1298,7 @@ static int gpencil_draw_invoke (bContext *C, wmOperator *op, wmEvent *event)
 	tGPsdata *p = NULL;
 	wmWindow *win= CTX_wm_window(C);
 	
-	printf("GPencil - Starting Drawing \n");
+	//printf("GPencil - Starting Drawing \n");
 	
 	/* try to initialise context data needed while drawing */
 	if (!gpencil_draw_init(C, op)) {
@@ -1308,7 +1329,7 @@ static int gpencil_draw_invoke (bContext *C, wmOperator *op, wmEvent *event)
 	 */
 	if (event->type) {
 		/* hotkey invoked - start drawing */
-		printf("\tGP - set first spot\n");
+		//printf("\tGP - set first spot\n");
 		p->status= GP_STATUS_PAINTING;
 		
 		/* handle the initial drawing - i.e. for just doing a simple dot */
@@ -1316,7 +1337,7 @@ static int gpencil_draw_invoke (bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else {
 		/* toolbar invoked - don't start drawing yet... */
-		printf("\tGP - hotkey invoked... waiting for click-drag\n");
+		//printf("\tGP - hotkey invoked... waiting for click-drag\n");
 	}
 	
 	/* add a modal handler for this operator, so that we can then draw continuous strokes */
@@ -1329,7 +1350,7 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 {
 	tGPsdata *p= op->customdata;
 	
-	printf("\tGP - handle modal event...\n");
+	//printf("\tGP - handle modal event...\n");
 	
 	switch (event->type) {
 		/* end of stroke -> ONLY when a mouse-button release occurs 
@@ -1340,7 +1361,7 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 			/* if painting, end stroke */
 			if (p->status == GP_STATUS_PAINTING) {
 				/* basically, this should be mouse-button up */
-				printf("\t\tGP - end of stroke \n");
+				//printf("\t\tGP - end of stroke \n");
 				gpencil_draw_exit(C, op);
 				
 				/* one last flush before we're done */
@@ -1350,7 +1371,7 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 			}
 			else {
 				/* not painting, so start stroke (this should be mouse-button down) */
-				printf("\t\tGP - start stroke \n");
+				//printf("\t\tGP - start stroke \n");
 				p->status= GP_STATUS_PAINTING;
 				/* no break now, since we should immediately start painting */
 			}
@@ -1360,31 +1381,20 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 			/* check if we're currently painting */
 			if (p->status == GP_STATUS_PAINTING) {
 				/* handle drawing event */
-				printf("\t\tGP - add point\n");
+				//printf("\t\tGP - add point\n");
 				gpencil_draw_apply_event(C, op, event);
 				
 				/* finish painting operation if anything went wrong just now */
 				if (p->status == GP_STATUS_ERROR) {
-					printf("\t\t\tGP - error done! \n");
+					//printf("\t\t\tGP - error done! \n");
 					gpencil_draw_exit(C, op);
 					return OPERATOR_CANCELLED;
 				}
 			}
 			break;
 		
-		/* scrolling mouse-wheel increases radius of eraser 
-		 * 	- though this is quite a difficult action to perform
-		 */
-		// XXX this stuff doesn't work
-		case WHEELUPMOUSE:
-			p->radius += 1.5f;
-			break;
-		case WHEELDOWNMOUSE:
-			p->radius -= 1.5f;
-			break;
-		
 		default:
-			printf("\t\tGP unknown event - %d \n", event->type);
+			//printf("\t\tGP unknown event - %d \n", event->type);
 			break;
 	}
 	

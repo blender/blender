@@ -482,7 +482,10 @@ void initgrabz(RegionView3D *rv3d, float x, float y, float z)
 	/* Negative zfac means x, y, z was behind the camera (in perspective).
 		* This gives flipped directions, so revert back to ok default case.
 	*/
-	if (rv3d->zfac < 0.0f) rv3d->zfac = 1.0f;
+	// NOTE: I've changed this to flip zfac to be positive again for now so that GPencil draws ok
+	// 	-- Aligorith, 2009Aug31
+	//if (rv3d->zfac < 0.0f) rv3d->zfac = 1.0f;
+	if (rv3d->zfac < 0.0f) rv3d->zfac= -rv3d->zfac;
 }
 
 /* always call initgrabz */
