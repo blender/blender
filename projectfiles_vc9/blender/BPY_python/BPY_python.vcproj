@@ -4,6 +4,7 @@
 	Version="9,00"
 	Name="BPY_python"
 	ProjectGUID="{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}"
+	RootNamespace="BPY_python"
 	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
@@ -42,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\img;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\img;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB;WITH_FFMPEG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -119,7 +120,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\img;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\img;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -196,7 +197,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\img;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\img;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB;WITH_FFMPEG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -273,7 +274,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python2.5;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\img;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\bsp\include;..\..\..\..\build\msvc_9\intern\bmfont\include;..\..\..\..\build\msvc_9\intern\iksolver\include;..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python2.6;..\..\..\..\lib\windows\ffmpeg\include;..\..\..\..\lib\windows\ffmpeg\include\msvc;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\img;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\SoundSystem;..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\source\blender\gpu"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="0"
