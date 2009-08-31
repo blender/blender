@@ -238,6 +238,35 @@ BMOpDefine def_collapse = {
 
 
 /*
+  Facedata point Merge
+
+  Merge uv/vcols at a specific vertex.
+*/
+BMOpDefine def_pointmerge_facedata = {
+	"pointmerge_facedata",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, /*input vertices*/
+	 {BMOP_OPSLOT_ELEMENT_BUF, "snapv"}, /*snap vertex*/
+	 {0, /*null-terminating sentinel*/}},
+	bmesh_pointmerge_facedata_exec,
+	0,
+};
+
+/*
+  Average Vertices Facevert Data
+
+  Merge uv/vcols associated with the input vertices at
+  the bounding box center. (I know, it's not averaging but
+  the vert_snap_to_bb_center is just too long).
+*/
+BMOpDefine def_vert_average_facedata = {
+	"vert_average_facedata",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"}, /*input vertices*/
+	 {0, /*null-terminating sentinel*/}},
+	bmesh_vert_average_facedata_exec,
+	0,
+};
+
+/*
   Point Merge
 
   Merge verts together at a point.
@@ -704,6 +733,8 @@ BMOpDefine *opdefines[] = {
 	&def_similarfaces,
 	&def_similaredges,
 	&def_similarverts,
+	&def_pointmerge_facedata,
+	&def_vert_average_facedata,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

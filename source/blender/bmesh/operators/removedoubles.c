@@ -213,17 +213,120 @@ static int vergaverco(const void *e1, const void *e2)
 
 #define EDGE_MARK	1
 
+void bmesh_pointmerge_facedata_exec(BMesh *bm, BMOperator *op)
+{
+	BMOIter siter;
+	BMIter iter;
+	BMVert *v, *snapv;
+	BMLoop *l, *firstl = NULL;
+	float fac;
+	int i, tot;
+
+	snapv = BMO_IterNew(&siter, bm, op, "snapv", BM_VERT);	
+	tot = BM_Vert_FaceCount(snapv);
+
+	if (!tot)
+		return;
+
+	fac = 1.0f / tot;
+	BM_ITER(l, &iter, bm, BM_LOOPS_OF_VERT, snapv) {
+		if (!firstl) {
+			firstl = l;
+		}
+		
+		for (i=0; i<bm->ldata.totlayer; i++) {
+			if (CustomData_layer_has_math(&bm->ldata, i)) {
+				int type = bm->ldata.layers[i].type;
+				void *e1, *e2;
+
+				e1 = CustomData_bmesh_get_layer_n(&bm->ldata, firstl->head.data, i); 
+				e2 = CustomData_bmesh_get_layer_n(&bm->ldata, l->head.data, i);
+				
+				CustomData_data_multiply(type, e2, fac);
+
+				if (l != firstl)
+					CustomData_data_add(type, e1, e2);
+			}
+		}
+	}
+
+	BMO_ITER(v, &siter, bm, op, "verts", BM_VERT) {
+		BM_ITER(l, &iter, bm, BM_LOOPS_OF_VERT, v) {
+			if (l == firstl) 
+				continue;
+
+			CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, firstl->head.data, &l->head.data);
+		}
+	}
+}
+
+void bmesh_vert_average_facedata_exec(BMesh *bm, BMOperator *op)
+{
+	BMOIter siter;
+	BMIter iter;
+	BMVert *v;
+	BMLoop *l, *firstl = NULL;
+	CDBlockBytes min, max;
+	void *block;
+	int i, type;
+
+	for (i=0; i<bm->ldata.totlayer; i++) {
+		if (!CustomData_layer_has_math(&bm->ldata, i))
+			continue;
+		
+		type = bm->ldata.layers[i].type;
+		CustomData_data_initminmax(type, &min, &max);
+
+		BMO_ITER(v, &siter, bm, op, "verts", BM_VERT) {
+			BM_ITER(l, &iter, bm, BM_LOOPS_OF_VERT, v) {
+				block = CustomData_bmesh_get_layer_n(&bm->ldata, l->head.data, i);
+				CustomData_data_dominmax(type, block, &min, &max);	
+			}
+		}
+
+		CustomData_data_multiply(type, &min, 0.5f);
+		CustomData_data_multiply(type, &max, 0.5f);
+		CustomData_data_add(type, &min, &max);
+
+		BMO_ITER(v, &siter, bm, op, "verts", BM_VERT) {
+			BM_ITER(l, &iter, bm, BM_LOOPS_OF_VERT, v) {
+				block = CustomData_bmesh_get_layer_n(&bm->ldata, l->head.data, i);
+				CustomData_data_copy_value(type, &min, block);
+			}
+		}
+	}
+}
+
 void bmesh_pointmerge_exec(BMesh *bm, BMOperator *op)
 {
+	BMOperator weldop;
+	BMOIter siter;
+	BMVert *v, *snapv = NULL;
+	float vec[3];
+	
+	BMO_Get_Vec(op, "mergeco", vec);
+
+	//BMO_CallOpf(bm, "collapse_uvs edges=%s", op, "edges");
+	BMO_Init_Op(&weldop, "weldverts");
+	
+	BMO_ITER(v, &siter, bm, op, "verts", BM_VERT) {
+		if (!snapv) {
+			snapv = v;
+			VECCOPY(snapv->co, vec);
+		} else {
+			BMO_Insert_MapPointer(bm, &weldop, "targetmap", v, snapv);
+		}		
+	}
+
+	BMO_Exec_Op(bm, &weldop);
+	BMO_Finish_Op(bm, &weldop);
 }
 
 void bmesh_collapse_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator weldop;
 	BMWalker walker;
-	BMOIter siter;
-	BMIter iter, liter, liter2;
-	BMVert *v;
+	BMIter iter;
 	BMEdge *e, **edges = NULL;
 	V_DECLARE(edges);
 	float min[3], max[3];
@@ -276,11 +379,9 @@ void bmesh_collapse_exec(BMesh *bm, BMOperator *op)
 /*uv collapse function*/
 void bmesh_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 {
-	BMIter iter, liter, liter2;
+	BMIter iter, liter;
 	BMFace *f;
 	BMLoop *l, *l2;
-	BMEdge *e;
-	BMVert *v;
 	BMWalker walker;
 	void **blocks = NULL;
 	V_DECLARE(blocks);

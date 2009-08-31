@@ -406,6 +406,8 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me)
 		totloop += iter->len;
 	}
 	iter->free(iter);
+	
+	tmp.totloop = totloop;
 
 	CustomData_copy(&dm->vertData, &tmp.vdata, CD_MASK_MESH, CD_DUPLICATE, totvert);
 	CustomData_copy(&dm->edgeData, &tmp.edata, CD_MASK_MESH, CD_DUPLICATE, totedge);

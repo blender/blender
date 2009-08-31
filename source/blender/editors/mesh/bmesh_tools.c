@@ -1632,7 +1632,6 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	BMOperator bmop;
-	BMOIter siter;
 	BMEdge *eed;
 	BMIter iter;
 	int ccw = RNA_int_get(op->ptr, "direction") == 1; // direction == 2 when clockwise and ==1 for counter CW.
@@ -2422,4 +2421,180 @@ void MESH_OT_colors_mirror(wmOperatorType *ot)
 
 	/* props */
 	RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror colors around.");
+}
+
+
+static int merge_firstlast(BMEditMesh *em, int first, int uvmerge, wmOperator *wmop)
+{
+	BMVert *mergevert;
+	BMEditSelection *ese;
+
+	/* do sanity check in mergemenu in edit.c ?*/
+	if(first == 0){
+		ese = em->bm->selected.last;
+		mergevert= (BMVert*)ese->data;
+	}
+	else{
+		ese = em->bm->selected.first;
+		mergevert = (BMVert*)ese->data;
+	}
+
+	if (!BM_TestHFlag(mergevert, BM_SELECT))
+		return OPERATOR_CANCELLED;
+	
+	if (uvmerge) {
+		if (!EDBM_CallOpf(em, wmop, "pointmerge_facedata verts=%hv snapv=%e", BM_SELECT, mergevert))
+			return OPERATOR_CANCELLED;
+	}
+
+	if (!EDBM_CallOpf(em, wmop, "pointmerge verts=%hv mergeco=%v", BM_SELECT, mergevert->co))
+		return OPERATOR_CANCELLED;
+
+	return OPERATOR_FINISHED;
+}
+
+static int merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, 
+                        int target, int uvmerge, wmOperator *wmop)
+{
+	BMIter iter;
+	BMVert *v;
+	float *co, cent[3] = {0.0f, 0.0f, 0.0f}, fac;
+	int i;
+
+	if (target) {
+		co = give_cursor(scene, v3d);
+	} else {
+		i = 0;
+		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			if (!BM_TestHFlag(v, BM_SELECT))
+				continue;
+			VECADD(cent, cent, v->co);
+			i++;
+		}
+		
+		if (!i)
+			return OPERATOR_CANCELLED;
+
+		fac = 1.0f / (float)i;
+		VECMUL(cent, fac);
+		co = cent;
+	}
+
+	if (!co)
+		return OPERATOR_CANCELLED;
+	
+	if (uvmerge) {
+		if (!EDBM_CallOpf(em, wmop, "vert_average_facedata verts=%hv", BM_SELECT))
+			return OPERATOR_CANCELLED;
+	}
+
+	if (!EDBM_CallOpf(em, wmop, "pointmerge verts=%hv mergeco=%v", BM_SELECT, co))
+		return OPERATOR_CANCELLED;
+
+	return OPERATOR_FINISHED;
+}
+
+static int merge_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	int status= 0, uvs= RNA_boolean_get(op->ptr, "uvs");
+
+	switch(RNA_enum_get(op->ptr, "type")) {
+		case 3:
+			status = merge_target(em, scene, v3d, 0, uvs, op);
+			break;
+		case 4:
+			status = merge_target(em, scene, v3d, 1, uvs, op);
+			break;
+		case 1:
+			status = merge_firstlast(em, 0, uvs, op);
+			break;
+		case 6:
+			status = merge_firstlast(em, 1, uvs, op);
+			break;
+		case 5:
+			status = 1;
+			if (!EDBM_CallOpf(em, op, "collapse edges=%he", BM_SELECT))
+				status = 0;
+			break;
+	}
+
+	if(!status)
+		return OPERATOR_CANCELLED;
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+static EnumPropertyItem merge_type_items[]= {
+	{6, "FIRST", 0, "At First", ""},
+	{1, "LAST", 0, "At Last", ""},
+	{3, "CENTER", 0, "At Center", ""},
+	{4, "CURSOR", 0, "At Cursor", ""},
+	{5, "COLLAPSE", 0, "Collapse", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *ptr, int *free)
+{	
+	Object *obedit;
+	EnumPropertyItem *item= NULL;
+	int totitem= 0;
+	
+	if(!C) /* needed for docs */
+		return merge_type_items;
+	
+	obedit= CTX_data_edit_object(C);
+	if(obedit && obedit->type == OB_MESH) {
+		BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
+
+		if(em->selectmode & SCE_SELECT_VERTEX) {
+			if(em->bm->selected.first && em->bm->selected.last &&
+				((BMEditSelection*)em->bm->selected.first)->type == BM_VERT && ((BMEditSelection*)em->bm->selected.last)->type == BM_VERT) {
+				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 6);
+				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 1);
+			}
+			else if(em->bm->selected.first && ((BMEditSelection*)em->bm->selected.first)->type == BM_VERT)
+				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 1);
+			else if(em->bm->selected.last && ((BMEditSelection*)em->bm->selected.last)->type == BM_VERT)
+				RNA_enum_items_add_value(&item, &totitem, merge_type_items, 6);
+		}
+
+		RNA_enum_items_add_value(&item, &totitem, merge_type_items, 3);
+		RNA_enum_items_add_value(&item, &totitem, merge_type_items, 4);
+		RNA_enum_items_add_value(&item, &totitem, merge_type_items, 5);
+		RNA_enum_item_end(&item, &totitem);
+
+		*free= 1;
+
+		return item;
+	}
+	
+	return NULL;
+}
+
+void MESH_OT_merge(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name= "Merge";
+	ot->idname= "MESH_OT_merge";
+
+	/* api callbacks */
+	ot->exec= merge_exec;
+	ot->invoke= WM_menu_invoke;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "type", merge_type_items, 3, "Type", "Merge method to use.");
+	RNA_def_enum_funcs(prop, merge_type_itemf);
+	RNA_def_boolean(ot->srna, "uvs", 0, "UVs", "Move UVs according to merge.");
 }
