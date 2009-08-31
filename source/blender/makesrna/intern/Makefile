@@ -77,6 +77,18 @@ ifeq ($(WITH_QUICKTIME), true)
 	CPPFLAGS += -DWITH_QUICKTIME
 endif
 
+ifeq ($(WITH_SDL),true)
+	CPPFLAGS += -DWITH_SDL
+endif
+
+ifeq ($(WITH_JACK),true)
+	CPPFLAGS += -DWITH_JACK
+endif
+
+ifeq ($(WITH_OPENAL),true)
+	CPPFLAGS += -DWITH_OPENAL
+endif
+
 ifeq ($(OS),windows)
     # Windows needs these extra libs because of winstuff... It is not 
     # _really_ needed, but it is the easiest fix for now. If you have 
