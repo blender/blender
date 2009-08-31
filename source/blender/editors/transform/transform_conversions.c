@@ -2120,7 +2120,8 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	BMVert *eve_act = NULL;
 	float *vectors = NULL, *mappedcos = NULL, *quats= NULL;
 	float mtx[3][3], smtx[3][3], (*defmats)[3][3] = NULL, (*defcos)[3] = NULL;
-	int count=0, countsel=0, a, totleft;
+	int count=0, countsel=0, a, totleft, *selstate = NULL;
+	V_DECLARE(selstate);
 	int propmode = t->flag & T_PROP_EDIT;
 	int mirror = 0;
 
@@ -2169,11 +2170,18 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		}
 	}
 
-	/* now we can count */
+	/* now we can count. we store selection state in selstate, since
+	   get_crazy_mapped_editverts messes up the index state of the
+	   verts*/
 	eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-	for( ; eve; eve=BMIter_Step(&iter)) {
-		if(!BM_TestHFlag(eve, BM_HIDDEN)) {
-			if(BMINDEX_GET(eve)) countsel++;
+	for(a=0; eve; eve=BMIter_Step(&iter), a++) {
+		V_GROW(selstate);
+
+		if(!BM_TestHFlag(eve, BM_HIDDEN)) {	
+			if(BMINDEX_GET(eve)) {
+				selstate[a] = 1;
+				countsel++;
+			}
 			if(propmode) count++;
 		}
 	}
@@ -2233,8 +2241,8 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	/* find out which half we do */
 	if(mirror) {
 		eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-		for( ; eve; eve=BMIter_Step(&iter)) {
-			if(!BM_TestHFlag(eve, BM_HIDDEN) && BMINDEX_GET(eve) && eve->co[0]!=0.0f) {
+		for(a=0; eve; eve=BMIter_Step(&iter), a++) {
+			if(!BM_TestHFlag(eve, BM_HIDDEN) && selstate[a] && eve->co[0]!=0.0f) {
 				if(eve->co[0]<0.0f)
 					mirror = -1;
 				break;
@@ -2245,11 +2253,11 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
 	for(a=0; eve; eve=BMIter_Step(&iter), a++) {
 		if(!BM_TestHFlag(eve, BM_HIDDEN)) {
-			if(propmode || BMINDEX_GET(eve)) {
+			if(propmode || selstate[a]) {
 				VertsToTransData(t, tob, bm, eve);
 
 				/* selected */
-				if(BMINDEX_GET(eve)) tob->flag |= TD_SELECTED;
+				if(selstate[a]) tob->flag |= TD_SELECTED;
 
 				/* active */
 				if(eve == eve_act) tob->flag |= TD_ACTIVE;
@@ -2313,11 +2321,14 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		MEM_freeN(vectors);
 		MEM_freeN(nears);
 	}
+
 	/* crazy space free */
 	if(quats)
 		MEM_freeN(quats);
 	if(defmats)
 		MEM_freeN(defmats);
+
+	V_FREE(selstate);
 }
 
 /* *** NODE EDITOR *** */
