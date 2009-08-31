@@ -140,19 +140,19 @@ PyObject* KX_PolyProxy::py_getattro(PyObject *attr)
 	}
 	if (!strcmp(attr_str, "v1"))
 	{
-		return PyInt_FromLong(m_polygon->GetVertexOffset(0));
+		return PyInt_FromLong(m_polygon->GetVertexOffsetAbs(m_mesh, 0));
 	}
 	if (!strcmp(attr_str, "v2"))
 	{
-		return PyInt_FromLong(m_polygon->GetVertexOffset(1));
+		return PyInt_FromLong(m_polygon->GetVertexOffsetAbs(m_mesh, 1));
 	}
 	if (!strcmp(attr_str, "v3"))
 	{
-		return PyInt_FromLong(m_polygon->GetVertexOffset(2));
+		return PyInt_FromLong(m_polygon->GetVertexOffsetAbs(m_mesh, 2));
 	}
 	if (!strcmp(attr_str, "v4"))
 	{
-		return PyInt_FromLong(((m_polygon->VertexCount()>3)?m_polygon->GetVertexOffset(3):0));
+		return PyInt_FromLong(((m_polygon->VertexCount()>3)?m_polygon->GetVertexOffsetAbs(m_mesh, 3):0));
 	}
 	if (!strcmp(attr_str, "visible"))
 	{
@@ -255,7 +255,7 @@ KX_PYMETHODDEF_DOC(KX_PolyProxy, getVertexIndex,
 	}
 	if (index < m_polygon->VertexCount())
 	{
-		return PyInt_FromLong(m_polygon->GetVertexOffset(index));
+		return PyInt_FromLong(m_polygon->GetVertexOffsetAbs(m_mesh, index));
 	}
 	return PyInt_FromLong(0);
 }
