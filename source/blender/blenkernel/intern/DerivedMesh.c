@@ -1784,23 +1784,45 @@ void vDM_ColorBand_store(ColorBand *coba)
 static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 {
 	Mesh *me = ob->data;
-	MFace *mf = me->mface;
+	MFace *mf = dm->getTessFaceArray(dm);
+	DMFaceIter *dfiter;
+	DMLoopIter *dliter;
 	ColorBand *coba= stored_cb;	/* warning, not a local var */
 	unsigned char *wtcol;
-	int i;
+	unsigned char(*wlcol)[4] = NULL;
+	V_DECLARE(wlcol);
+	int i, totface=dm->getNumTessFaces(dm), totpoly=dm->getNumFaces, totloop;
+	int *origIndex = dm->getVertDataArray(dm, CD_ORIGINDEX);
 	
-	wtcol = MEM_callocN (sizeof (unsigned char) * me->totface*4*4, "weightmap");
+	wtcol = MEM_callocN (sizeof (unsigned char) * totface*4*4, "weightmap");
 	
-	memset(wtcol, 0x55, sizeof (unsigned char) * me->totface*4*4);
-	for (i=0; i<me->totface; i++, mf++) {
-		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4]); 
-		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4]); 
-		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4]); 
-		if (mf->v4)
-			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4]); 
+	/*first add colors to the tesselation faces*/
+	memset(wtcol, 0x55, sizeof (unsigned char) * totface*4*4);
+	for (i=0; i<totface; i++, mf++) {
+		if (origIndex[mf->v1] != ORIGINDEX_NONE)
+			calc_weightpaint_vert_color(ob, coba, origIndex[mf->v1], &wtcol[(i*4 + 0)*4]); 
+		if (origIndex[mf->v2] != ORIGINDEX_NONE)
+			calc_weightpaint_vert_color(ob, coba, origIndex[mf->v2], &wtcol[(i*4 + 1)*4]); 
+		if (origIndex[mf->v3] != ORIGINDEX_NONE)
+			calc_weightpaint_vert_color(ob, coba, origIndex[mf->v3], &wtcol[(i*4 + 2)*4]); 
+		if (mf->v4 && origIndex[mf->v4] != ORIGINDEX_NONE)
+			calc_weightpaint_vert_color(ob, coba, origIndex[mf->v4], &wtcol[(i*4 + 3)*4]); 
 	}
 	
-	CustomData_add_layer(&dm->faceData, CD_WEIGHT_MCOL, CD_ASSIGN, wtcol, dm->numFaceData);
+	CustomData_add_layer(&dm->faceData, CD_WEIGHT_MCOL, CD_ASSIGN, wtcol, totface);
+
+	/*now add to loops, so the data can be passed through the modifier stack*/
+	totloop = 0;
+	dfiter = dm->newFaceIter(dm);
+	for (; !dfiter->done; dfiter->step(dfiter)) {
+		dliter = dfiter->getLoopsIter(dfiter);
+		for (; !dliter->done; dliter->step(dliter), totloop++) {
+			V_GROW(wlcol);
+			calc_weightpaint_vert_color(ob, coba, origIndex[dliter->vindex], &wlcol[totloop]);			 
+		}
+	}
+
+	CustomData_add_layer(&dm->loopData, CD_WEIGHT_MLOOPCOL, CD_ASSIGN, wlcol, totloop);
 }
 
 /* new value for useDeform -1  (hack for the gameengine):

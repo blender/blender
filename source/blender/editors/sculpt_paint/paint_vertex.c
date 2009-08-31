@@ -1380,22 +1380,22 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			
 	if(wp->flag & VP_COLINDEX) {
 		for(index=0; index<totindex; index++) {
-			if(indexar[index] && indexar[index]<=me->totface) {
-				MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
+			if(indexar[index] && indexar[index]<=me->totpoly) {
+				MPoly *mpoly= ((MPoly *)me->mpoly) + (indexar[index]-1);
 						
-				if(mface->mat_nr!=ob->actcol-1) {
+				if(mpoly->mat_nr!=ob->actcol-1) {
 					indexar[index]= 0;
 				}
 			}					
 		}
 	}
 			
-	if((G.f & G_FACESELECT) && me->mface) {
+	if((G.f & G_FACESELECT) && me->mpoly) {
 		for(index=0; index<totindex; index++) {
-			if(indexar[index] && indexar[index]<=me->totface) {
-				MFace *mface= ((MFace *)me->mface) + (indexar[index]-1);
+			if(indexar[index] && indexar[index]<=me->totpoly) {
+				MPoly *mpoly= ((MPoly *)me->mpoly) + (indexar[index]-1);
 						
-				if((mface->flag & ME_FACE_SEL)==0) {
+				if((mpoly->flag & ME_FACE_SEL)==0) {
 					indexar[index]= 0;
 				}
 			}					
@@ -1411,13 +1411,14 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		paintweight= ts->vgroup_weight;
 			
 	for(index=0; index<totindex; index++) {
-		if(indexar[index] && indexar[index]<=me->totface) {
-			MFace *mface= me->mface + (indexar[index]-1);
-					
-			(me->dvert+mface->v1)->flag= 1;
-			(me->dvert+mface->v2)->flag= 1;
-			(me->dvert+mface->v3)->flag= 1;
-			if(mface->v4) (me->dvert+mface->v4)->flag= 1;
+		if(indexar[index] && indexar[index]<=me->totpoly) {
+			MPoly *mpoly= me->mpoly + (indexar[index]-1);
+			MLoop *ml = me->mloop + mpoly->loopstart;
+			int i;
+
+			for (i=0; i<mpoly->totloop; i++, ml++) {
+				(me->dvert+ml->v)->flag = 1;
+			}
 					
 			if(wp->mode==VP_BLUR) {
 				MDeformWeight *dw, *(*dw_func)(MDeformVert *, int) = verify_defweight;
@@ -1425,15 +1426,13 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 				if(wp->flag & VP_ONLYVGROUP)
 					dw_func= get_defweight;
 						
-				dw= dw_func(me->dvert+mface->v1, ob->actdef-1);
-				if(dw) {paintweight+= dw->weight; totw++;}
-				dw= dw_func(me->dvert+mface->v2, ob->actdef-1);
-				if(dw) {paintweight+= dw->weight; totw++;}
-				dw= dw_func(me->dvert+mface->v3, ob->actdef-1);
-				if(dw) {paintweight+= dw->weight; totw++;}
-				if(mface->v4) {
-					dw= dw_func(me->dvert+mface->v4, ob->actdef-1);
-					if(dw) {paintweight+= dw->weight; totw++;}
+				ml = me->mloop + mpoly->loopstart;
+				for (i=0; i<mpoly->totloop; i++, ml++) {
+					dw = dw_func(me->dvert+ml->v, ob->actdef-1);
+					if (dw) {
+						paintweight += dw->weight;
+						totw++;
+					}					
 				}
 			}
 		}
@@ -1444,40 +1443,18 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			
 	for(index=0; index<totindex; index++) {
 				
-		if(indexar[index] && indexar[index]<=me->totface) {
-			MFace *mface= me->mface + (indexar[index]-1);
-					
-			if((me->dvert+mface->v1)->flag) {
-				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v1, mval);
-				if(alpha) {
-					do_weight_paint_vertex(wp, ob, mface->v1, alpha, paintweight, wpd->vgroup_mirror);
-				}
-				(me->dvert+mface->v1)->flag= 0;
-			}
-					
-			if((me->dvert+mface->v2)->flag) {
-				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v2, mval);
-				if(alpha) {
-					do_weight_paint_vertex(wp, ob, mface->v2, alpha, paintweight, wpd->vgroup_mirror);
-				}
-				(me->dvert+mface->v2)->flag= 0;
-			}
-					
-			if((me->dvert+mface->v3)->flag) {
-				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v3, mval);
-				if(alpha) {
-					do_weight_paint_vertex(wp, ob, mface->v3, alpha, paintweight, wpd->vgroup_mirror);
-				}
-				(me->dvert+mface->v3)->flag= 0;
-			}
-					
-			if((me->dvert+mface->v4)->flag) {
-				if(mface->v4) {
-					alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v4, mval);
+		if(indexar[index] && indexar[index]<=me->totpoly) {
+			MPoly *mpoly= me->mpoly + (indexar[index]-1);
+			MLoop *ml=me->mloop+mpoly->loopstart;
+			int i;
+
+			for (i=0; i<mpoly->totloop; i++, ml++) {
+				if ((me->dvert+ml->v)->flag) {
+					alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*ml->v, mval);
 					if(alpha) {
-						do_weight_paint_vertex(wp, ob, mface->v4, alpha, paintweight, wpd->vgroup_mirror);
+						do_weight_paint_vertex(wp, ob, ml->v, alpha, paintweight, wpd->vgroup_mirror);
 					}
-					(me->dvert+mface->v4)->flag= 0;
+					(me->dvert+ml->v)->flag= 0;
 				}
 			}
 		}

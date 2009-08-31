@@ -133,10 +133,10 @@ BMEditMesh *CDDM_To_BMesh(DerivedMesh *dm, BMEditMesh *existing)
 	bmold = *bm;
 
 	/*merge custom data layout*/
-	CustomData_bmesh_merge(&dm->vertData, &bm->vdata, CD_MASK_BMESH|CD_MASK_ORIGINDEX, CD_CALLOC, bm, BM_VERT);
-	CustomData_bmesh_merge(&dm->edgeData, &bm->edata, CD_MASK_BMESH|CD_MASK_ORIGINDEX, CD_CALLOC, bm, BM_EDGE);
-	CustomData_bmesh_merge(&dm->loopData, &bm->ldata, CD_MASK_BMESH|CD_MASK_ORIGINDEX, CD_CALLOC, bm, BM_LOOP);
-	CustomData_bmesh_merge(&dm->polyData, &bm->pdata, CD_MASK_BMESH|CD_MASK_ORIGINDEX, CD_CALLOC, bm, BM_FACE);
+	CustomData_bmesh_merge(&dm->vertData, &bm->vdata, CD_MASK_DERIVEDMESH, CD_CALLOC, bm, BM_VERT);
+	CustomData_bmesh_merge(&dm->edgeData, &bm->edata, CD_MASK_DERIVEDMESH, CD_CALLOC, bm, BM_EDGE);
+	CustomData_bmesh_merge(&dm->loopData, &bm->ldata, CD_MASK_DERIVEDMESH, CD_CALLOC, bm, BM_LOOP);
+	CustomData_bmesh_merge(&dm->polyData, &bm->pdata, CD_MASK_DERIVEDMESH, CD_CALLOC, bm, BM_FACE);
 
 	/*needed later*/
 	numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);

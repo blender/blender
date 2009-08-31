@@ -2561,7 +2561,7 @@ void ccg_loops_to_corners(CustomData *fdata, CustomData *ldata,
 	MCol *mcol;
 	MLoopCol *mloopcol;
 	MLoopUV *mloopuv;
-	int i, j;
+	int i, j, hasWCol = CustomData_has_layer(ldata, CD_WEIGHT_MLOOPCOL);
 
 	for(i=0; i < numTex; i++){
 		texface = CustomData_get_n(fdata, CD_MTFACE, findex, i);
@@ -2584,6 +2584,18 @@ void ccg_loops_to_corners(CustomData *fdata, CustomData *ldata,
 	for(i=0; i < numCol; i++){
 		mloopcol = CustomData_get_n(ldata, CD_MLOOPCOL, loopstart, i);
 		mcol = CustomData_get_n(fdata, CD_MCOL, findex, i);
+
+		for (j=0; j<4; j++, mloopcol++) {
+			mcol[j].r = mloopcol->r;
+			mcol[j].g = mloopcol->g;
+			mcol[j].b = mloopcol->b;
+			mcol[j].a = mloopcol->a;
+		}
+	}
+	
+	if (hasWCol) {
+		mloopcol = CustomData_get(ldata, loopstart, CD_WEIGHT_MLOOPCOL);
+		mcol = CustomData_get(fdata, findex, CD_WEIGHT_MCOL);
 
 		for (j=0; j<4; j++, mloopcol++) {
 			mcol[j].r = mloopcol->r;

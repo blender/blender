@@ -1089,7 +1089,6 @@ static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
 				      int cdindex, BMLoop *l3[3],
 				      int numCol, int numTex)
 {
-	int i, j;
 	BMLoop *l;
 	BMFace *f = l3[0]->f;
 	MTFace *texface;
@@ -1097,6 +1096,7 @@ static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
 	MCol *mcol;
 	MLoopCol *mloopcol;
 	MLoopUV *mloopuv;
+	int i, j, hasWCol = CustomData_has_layer(&bm->ldata, CD_WEIGHT_MLOOPCOL);
 
 	for(i=0; i < numTex; i++){
 		texface = CustomData_get_n(facedata, CD_MTFACE, cdindex, i);
@@ -1123,6 +1123,19 @@ static void loops_to_customdata_corners(BMesh *bm, CustomData *facedata,
 		for (j=0; j<3; j++) {
 			l = l3[j];
 			mloopcol = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPCOL, i);
+			mcol[j].r = mloopcol->r;
+			mcol[j].g = mloopcol->g;
+			mcol[j].b = mloopcol->b;
+			mcol[j].a = mloopcol->a;
+		}
+	}
+
+	if (hasWCol) {
+		mcol = CustomData_get(facedata, cdindex, CD_WEIGHT_MCOL);
+
+		for (j=0; j<3; j++) {
+			l = l3[j];
+			mloopcol = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_WEIGHT_MLOOPCOL);
 			mcol[j].r = mloopcol->r;
 			mcol[j].g = mloopcol->g;
 			mcol[j].b = mloopcol->b;
@@ -1166,14 +1179,8 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *me)
 	CustomData_merge(&em->bm->pdata, &dm->polyData, CD_MASK_DERIVEDMESH,
 	                 CD_CALLOC, dm->numPolyData);
 	
-	/*add tesselation mface and mcol layers as necassary*/
-	for (i=0; i<numTex; i++) {
-		CustomData_add_layer(&dm->faceData, CD_MTFACE, CD_CALLOC, NULL, em->tottri);
-	}
-
-	for (i=0; i<numCol; i++) {
-		CustomData_add_layer(&dm->faceData, CD_MCOL, CD_CALLOC, NULL, em->tottri);
-	}
+	/*add tesselation mface layers*/
+	CustomData_from_bmeshpoly(&dm->faceData, &dm->polyData, &dm->loopData, em->tottri);
 
 	/* set vert index */
 	eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
