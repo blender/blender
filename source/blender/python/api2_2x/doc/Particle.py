@@ -70,7 +70,7 @@ This module provides access to the B{Particle} in Blender.
 		- SPIN: Spin particle angular velocity
 		- RANDOM: Random particle angular velocity
 @type VERTEXGROUPS: readonly dictionary
-@var VERTEXGROUPS: Constant dict used for with L{Particle.VERTEXGROUP}
+@var VERTEXGROUPS: Constant dict used for with L{Particle.getVertGroup} and L{Particle.setVertGroup}
 		- DENSITY: VertexGroup affect to particles density
 		- VELOCITY: VertexGroup affect to particles velocity
 		- LENGHT: VertexGroup affect to particles lenght
@@ -106,7 +106,7 @@ def New(object):
 	"""
 	Create a new particle system applied to L{object}
 	@type object: string or L{Blender.Object.Object}
-	@param name: The name of an existing object.
+	@param object: The existing object to add the particle system to.
 	@rtype: L{Particle}
 	@return: a new Particle system.
 	"""
@@ -287,12 +287,12 @@ class Particle:
 	@type childKinkAmp: float
 	@ivar childBranch: Branch child paths from eachother
 	@type childBranch: int
-	@ivar childBranch: Animate branching
-	@type childBranch: int
-	@ivar childBranch: Start and end points are the same
-	@type childBranch: int
-	@ivar childBranch: Threshold of branching
-	@type childBranch: float
+	@ivar childBranchAnim: Animate branching
+	@type childBranchAnim: int
+	@ivar childBranchSymm: Start and end points are the same
+	@type childBranchSymm: int
+	@ivar childBranchThre: Threshold of branching
+	@type childBranchThre: float
 	"""
 	def getName():
 		"""

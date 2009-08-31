@@ -394,7 +394,7 @@ class Texture:
 	The colorband can have between 1 and 31 colors.
 	@type colorband:  list
 	@ivar useColorband: Use colorband for this texture.
-	@type colorband: int
+	@type useColorband: int
 	@ivar autoRefresh: Refresh image on frame changes enabled.
 	@type autoRefresh:  boolean
 	"""
