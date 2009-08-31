@@ -54,6 +54,10 @@ void GPENCIL_OT_data_unlink(struct wmOperatorType *ot);
 
 void GPENCIL_OT_layer_add(struct wmOperatorType *ot);
 
+void GPENCIL_OT_active_frame_delete(struct wmOperatorType *ot);
+
+void GPENCIL_OT_convert(struct wmOperatorType *ot);
+
 
 /******************************************************* */
 /* FILTERED ACTION DATA - TYPES  ---> XXX DEPRECEATED OLD ANIM SYSTEM CODE! */

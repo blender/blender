@@ -203,6 +203,12 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 		subcol= uiLayoutColumn(col, 1);
 			uiItemR(subcol, NULL, 0, &ptr, "line_thickness", UI_ITEM_R_SLIDER);
 		
+		/* debugging options */
+		if (G.f & G_DEBUG) {
+			subcol= uiLayoutColumn(col, 1);
+				uiItemR(subcol, NULL, 0, &ptr, "show_points", 0);
+		}
+		
 		/* right column ................... */
 		col= uiLayoutColumn(split, 0);
 		
@@ -211,15 +217,10 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 			uiItemR(subcol, "Onion Skinning", 0, &ptr, "use_onion_skinning", 0);
 			uiItemR(subcol, "GStep", 0, &ptr, "max_ghost_range", 0); // XXX shorter name here? (i.e. GStep)
 		
-		/* debugging options */
-		// XXX re-enable the debug-only checks later
-		//if (G.f & G_DEBUG) {
-			subcol= uiLayoutColumn(col, 1);
-				uiItemR(subcol, NULL, 0, &ptr, "show_points", 0);
-		//}
-		
 		/* additional options... */
-		// None at the moment...
+		subcol= uiLayoutColumn(col, 1);
+			uiItemO(subcol, "Delete Frame", 0, "GPENCIL_OT_active_frame_delete");
+			uiItemO(subcol, "Convert...", 0, "GPENCIL_OT_convert");
 	}
 } 
 
@@ -237,7 +238,8 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 	col= uiLayoutColumn(layout, 0);
 		/* current Grease Pencil block */
 		// TODO: show some info about who owns this?
-		uiTemplateID(col, C, ctx_ptr, "grease_pencil", "GPENCIL_OT_data_new", "GPENCIL_OT_data_unlink");
+		//uiTemplateID(col, C, ctx_ptr, "grease_pencil", "GPENCIL_OT_data_new", "GPENCIL_OT_data_unlink"); // XXX not working
+		uiItemR(col, NULL, 0, ctx_ptr, "grease_pencil", 0); // XXX this will have to do for now...
 		
 		/* add new layer button */
 		uiItemO(col, NULL, 0, "GPENCIL_OT_layer_add");

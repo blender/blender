@@ -313,7 +313,7 @@ bGPdata *gpencil_data_duplicate (bGPdata *src)
 void gpencil_frame_delete_laststroke (bGPDlayer *gpl, bGPDframe *gpf)
 {
 	bGPDstroke *gps= (gpf) ? gpf->strokes.last : NULL;
-	int cfra = 1; // XXX FIXME!!!
+	int cfra = (gpf) ? gpf->framenum : 0; /* assume that the current frame was not locked */
 	
 	/* error checking */
 	if (ELEM(NULL, gpf, gps))
