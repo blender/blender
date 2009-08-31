@@ -2793,7 +2793,7 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_GameObject, sendMessage,
 	char* to = (char *)"";
 	const STR_String& from = GetName();
 
-	if (!PyArg_ParseTuple(args, "s|sss:sendMessage", &subject, &body, &to))
+	if (!PyArg_ParseTuple(args, "s|ss:sendMessage", &subject, &body, &to))
 		return NULL;
 	
 	scene->GetNetworkScene()->SendMessage(to, from, subject, body);
