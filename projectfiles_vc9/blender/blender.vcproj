@@ -73,12 +73,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="SDL.lib freetype2ST.lib gnu_gettext.lib qtmlClient.lib OpenAL32.lib wrap_oal.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libpng_st.lib zlib.lib python25.lib pthreadVSE2.lib libtiff.lib Half.lib Iex.lib IlmImf.lib Imath.lib IlmThread.lib avcodec-52.lib avformat-52.lib avutil-50.lib swscale-0.lib avdevice-52.lib"
+				AdditionalDependencies="SDL.lib freetype2ST.lib gnu_gettext.lib qtmlClient.lib OpenAL32.lib wrap_oal.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libpng_st.lib zlib.lib python26.lib pthreadVC2.lib libtiff.lib Half.lib Iex.lib IlmImf.lib Imath.lib IlmThread.lib avcodec-52.lib avformat-52.lib avutil-50.lib swscale-0.lib avdevice-52.lib"
 				ShowProgress="0"
 				OutputFile="..\..\bin\blender.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\lib\windows\sdl\lib;..\..\..\lib\windows\ode\lib;..\..\..\lib\windows\zlib\lib;..\..\..\lib\windows\png\lib;..\..\..\lib\windows\jpeg\lib;..\..\..\lib\windows\gettext\lib;..\..\..\lib\windows\python\lib\lib25_vs2008;..\..\..\lib\windows\freetype\lib;..\..\..\lib\windows\tiff\lib;..\..\..\lib\windows\pthreads\lib;..\..\..\lib\windows\openal\lib;..\..\..\lib\windows\openexr\lib_vs2008;..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\build\msvc_9\libs\intern;..\..\..\build\msvc_9\libs\extern;..\..\..\lib\windows\ffmpeg\lib"
+				AdditionalLibraryDirectories="..\..\..\lib\windows\sdl\lib;..\..\..\lib\windows\ode\lib;..\..\..\lib\windows\zlib\lib;..\..\..\lib\windows\png\lib;..\..\..\lib\windows\jpeg\lib;..\..\..\lib\windows\gettext\lib;..\..\..\lib\windows\python\lib\lib26_vs2008;..\..\..\lib\windows\freetype\lib;..\..\..\lib\windows\tiff\lib;..\..\..\lib\windows\pthreads\lib;..\..\..\lib\windows\openal\lib;..\..\..\lib\windows\openexr\lib_vs2008;..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\build\msvc_9\libs\intern;..\..\..\build\msvc_9\libs\extern;..\..\..\lib\windows\ffmpeg\lib"
 				IgnoreAllDefaultLibraries="false"
 				IgnoreDefaultLibraryNames="msvcprt.lib;glut32.lib;libc.lib;libcd.lib;libcpd.lib;libcp.lib;libcmtd.lib;odbc32.lib;odbccp32.lib"
 				GenerateDebugInformation="true"
@@ -107,7 +107,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="ECHO Moving libraries and export definitions...&#x0D;&#x0A;MOVE /Y ..\..\bin\blender.lib ..\..\..\build\msvc_9\libs&#x0D;&#x0A;MOVE /Y ..\..\bin\blender.exp ..\..\..\build\msvc_9\libs&#x0D;&#x0A;ECHO Copying required 3rd party dlls...&#x0D;&#x0A;XCOPY /Y ..\..\..\lib\windows\openal\lib\*.dll ..\..\bin&#x0D;&#x0A;XCOPY /Y ..\..\..\lib\windows\python\lib\lib25_vs2008\python25.dll ..\..\bin&#x0D;&#x0A;XCOPY /Y ..\..\..\lib\windows\gettext\lib\*.dll ..\..\bin&#x0D;&#x0A;XCOPY /Y ..\..\..\lib\windows\sdl\lib\*.dll ..\..\bin&#x0D;&#x0A;XCOPY /Y ..\..\..\lib\windows\tiff\lib\*.dll ..\..\bin&#x0D;&#x0A;XCOPY /Y ..\..\..\lib\windows\pthreads\lib\pthreadVSE2.dll ..\..\bin&#x0D;&#x0A;XCOPY /Y ..\..\..\lib\windows\ffmpeg\lib\*.dll ..\..\bin&#x0D;&#x0A;ECHO Copying language folder&#x0D;&#x0A;ECHO Copying python scripts&#x0D;&#x0A;IF NOT EXIST ..\..\bin\.blender\scripts MKDIR ..\..\bin\.blender\scripts&#x0D;&#x0A;XCOPY /Y ..\..\release\scripts ..\..\bin\.blender\scripts /E&#x0D;&#x0A;ECHO Copying manuals/text&#x0D;&#x0A;XCOPY/Y ..\..\release\text ..\..\bin /E&#x0D;&#x0A;ECHO Done&#x0D;&#x0A;"
+				CommandLine="ECHO Moving libraries and export definitions...&#x0D;&#x0A;MOVE /Y ..\..\bin\blender.lib ..\..\..\build\msvc_9\libs&#x0D;&#x0A;MOVE /Y ..\..\bin\blender.exp ..\..\..\build\msvc_9\libs&#x0D;&#x0A;ECHO Copying required 3rd party dlls...&#x0D;&#x0A;XCOPY /Y ..\..\..\lib\windows\openal\lib\*.dll ..\..\bin&#x0D;&#x0A;XCOPY /Y ..\..\..\lib\windows\python\lib\lib26_vs2008\python26.dll ..\..\bin&#x0D;&#x0A;COPY /Y ..\..\..\lib\windows\release\python26.zip ..\..\bin&#x0D;&#x0A;XCOPY /Y ..\..\..\lib\windows\gettext\lib\*.dll ..\..\bin&#x0D;&#x0A;XCOPY /Y ..\..\..\lib\windows\sdl\lib\*.dll ..\..\bin&#x0D;&#x0A;XCOPY /Y ..\..\..\lib\windows\tiff\lib\*.dll ..\..\bin&#x0D;&#x0A;XCOPY /Y ..\..\..\lib\windows\pthreads\lib\pthreadVSE2.dll ..\..\bin&#x0D;&#x0A;XCOPY /Y ..\..\..\lib\windows\ffmpeg\lib\*.dll ..\..\bin&#x0D;&#x0A;ECHO Copying language folder&#x0D;&#x0A;ECHO Copying python scripts&#x0D;&#x0A;IF NOT EXIST ..\..\bin\.blender\scripts MKDIR ..\..\bin\.blender\scripts&#x0D;&#x0A;XCOPY /Y ..\..\release\scripts ..\..\bin\.blender\scripts /E&#x0D;&#x0A;ECHO Copying manuals/text&#x0D;&#x0A;XCOPY/Y ..\..\release\text ..\..\bin /E&#x0D;&#x0A;ECHO Done&#x0D;&#x0A;"
 			/>
 		</Configuration>
 		<Configuration
