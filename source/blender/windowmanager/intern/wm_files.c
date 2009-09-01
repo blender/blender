@@ -96,6 +96,7 @@
 #include "wm.h"
 #include "wm_window.h"
 
+static void writeBlog(void);
 
 /* To be able to read files without windows closing, opening, moving 
    we try to prepare for worst case:
@@ -256,7 +257,10 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 
 		if(retval==2) wm_init_userdef();	// in case a userdef is read from regular .blend
 		
-		if (retval!=0) G.relbase_valid = 1;
+		if (retval!=0) {
+			G.relbase_valid = 1;
+			writeBlog();
+		}
 
 // XXX		undo_editmode_clear();
 		BKE_reset_undo();
