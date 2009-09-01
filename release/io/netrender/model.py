@@ -10,7 +10,7 @@ class RenderSlave:
 	def __init__(self):
 		self.id = ""
 		self.name = ""
-		self.adress = (0,0)
+		self.address = (0,0)
 		self.stats = ""
 		self.total_done = 0
 		self.total_error = 0
@@ -20,7 +20,7 @@ class RenderSlave:
 		return 	{
 							"id": self.id,
 							"name": self.name,
-							"adress": self.adress,
+							"address": self.address,
 							"stats": self.stats,
 							"total_done": self.total_done,
 							"total_error": self.total_error,
@@ -40,7 +40,7 @@ class RenderSlave:
 			slave = RenderSlave()
 			slave.id = slave_id
 			slave.name = data["name"]
-			slave.adress = data["adress"]
+			slave.address = data["address"]
 			slave.stats = data["stats"]
 			slave.total_done = data["total_done"]
 			slave.total_error = data["total_error"]
@@ -54,13 +54,18 @@ class RenderJob:
 	def __init__(self):
 		self.id = ""
 		self.name = ""
-		self.path = ""
+		self.files = []
 		self.frames = []
 		self.chunks = 0
 		self.priority = 0
 		self.credits = 0
 		self.blacklist = []
 		self.last_dispatched = 0.0
+	
+	def addFrame(self, frame_number):
+		frame = RenderFrame(frame_number)
+		self.frames.append(frame)
+		return frame
 	
 	def __len__(self):
 		return len(self.frames)
@@ -96,8 +101,9 @@ class RenderJob:
 		return 	{
 							"id": self.id,
 							"name": self.name,
-							"path": self.path,
+							"files": self.files,
 							"frames": [f.serialize() for f in self.frames if not frames or f in frames],
+							"chunks": self.chunks,
 							"priority": self.priority,
 							"credits": self.credits,
 							"blacklist": self.blacklist,
@@ -112,8 +118,9 @@ class RenderJob:
 		job = RenderJob()
 		job.id = data["id"]
 		job.name = data["name"]
-		job.path = data["path"]
+		job.files = data["files"]
 		job.frames = [RenderFrame.materialize(f) for f in data["frames"]]
+		job.chunks = data["chunks"]
 		job.priority = data["priority"]
 		job.credits = data["credits"]
 		job.blacklist = data["blacklist"]
@@ -122,8 +129,8 @@ class RenderJob:
 		return job
 
 class RenderFrame:
-	def __init__(self):
-		self.number = 0
+	def __init__(self, number = 0):
+		self.number = number
 		self.time = 0
 		self.status = QUEUED
 		self.slave = None

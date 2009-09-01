@@ -22,7 +22,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 	
 	def render_master(self, scene):
 		server_address = (scene.network_render.server_address, scene.network_render.server_port)
-		httpd = master.RenderMasterServer(server_address, master.RenderHandler)
+		httpd = master.RenderMasterServer(server_address, master.RenderHandler, scene.network_render.path)
 		httpd.timeout = 1
 		httpd.stats = self.update_stats
 		while not self.test_break():
@@ -32,6 +32,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 		slave.render_slave(self, scene)
 	
 	def render_client(self, scene):
+		netsettings = scene.network_render
 		self.update_stats("", "Network render client initiation")
 		
 		conn = clientConnection(scene)
@@ -41,7 +42,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 			
 			self.update_stats("", "Network render exporting")
 			
-			job_id = scene.network_render.job_id
+			job_id = netsettings.job_id
 			
 			# reading back result
 			
@@ -51,10 +52,10 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 			response = conn.getresponse()
 			
 			if response.status == http.client.NO_CONTENT:
-				scene.network_render.job_id = clientSendJob(conn, scene)
+				netsettings.job_id = clientSendJob(conn, scene)
 				clientRequestResult(conn, scene, job_id)
 			
-			while response.status == http.client.PROCESSING and not self.test_break():
+			while response.status == http.client.ACCEPTED and not self.test_break():
 				print("waiting")
 				time.sleep(1)
 				clientRequestResult(conn, scene, job_id)
@@ -68,7 +69,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 			x= int(r.resolution_x*r.resolution_percentage*0.01)
 			y= int(r.resolution_y*r.resolution_percentage*0.01)
 			
-			f = open(PATH_PREFIX + "output.exr", "wb")
+			f = open(netsetting.path + "output.exr", "wb")
 			buf = response.read(1024)
 			
 			while buf:
@@ -78,7 +79,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 			f.close()
 			
 			result = self.begin_result(0, 0, x, y)
-			result.load_from_file(PATH_PREFIX + "output.exr", 0, 0)
+			result.load_from_file(netsettings.path + "output.exr", 0, 0)
 			self.end_result(result)
 			
 			conn.close()

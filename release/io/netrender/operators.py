@@ -48,7 +48,7 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
 		return True
 	
 	def execute(self, context):
-		netprops = context.scene.network_render
+		netsettings = context.scene.network_render
 		conn = clientConnection(context.scene)
 
 		if conn:
@@ -59,12 +59,12 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
 			
 			jobs = (netrender.model.RenderJob.materialize(j) for j in eval(str(response.read(), encoding='utf8')))
 			
-			while(len(netprops.jobs) > 0):
-				netprops.jobs.remove(0)
+			while(len(netsettings.jobs) > 0):
+				netsettings.jobs.remove(0)
 				
 			for j in jobs:
-				netprops.jobs.add()
-				job = netprops.jobs[-1]
+				netsettings.jobs.add()
+				job = netsettings.jobs[-1]
 				
 				job_results = j.framesStatus()
 				
@@ -93,22 +93,22 @@ class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
 		return True
 	
 	def execute(self, context):
-		netprops = context.scene.network_render
+		netsettings = context.scene.network_render
 		
-		if netprops.active_slave_index >= 0:
+		if netsettings.active_slave_index >= 0:
 			
-			slave = netrender.slaves[netprops.active_slave_index]
+			slave = netrender.slaves[netsettings.active_slave_index]
 			
-			netprops.slaves_blacklist.add()
+			netsettings.slaves_blacklist.add()
 			
-			netprops.slaves_blacklist[-1].id = slave.id
-			netprops.slaves_blacklist[-1].name = slave.name
-			netprops.slaves_blacklist[-1].adress = slave.adress
-			netprops.slaves_blacklist[-1].last_seen = slave.last_seen
-			netprops.slaves_blacklist[-1].stats = slave.stats
+			netsettings.slaves_blacklist[-1].id = slave.id
+			netsettings.slaves_blacklist[-1].name = slave.name
+			netsettings.slaves_blacklist[-1].address = slave.address
+			netsettings.slaves_blacklist[-1].last_seen = slave.last_seen
+			netsettings.slaves_blacklist[-1].stats = slave.stats
 			
-			netprops.slaves.remove(netprops.active_slave_index)
-			netprops.active_slave_index = -1
+			netsettings.slaves.remove(netsettings.active_slave_index)
+			netsettings.active_slave_index = -1
 		
 		return ('FINISHED',)
 	
@@ -129,22 +129,22 @@ class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
 		return True
 	
 	def execute(self, context):
-		netprops = context.scene.network_render
+		netsettings = context.scene.network_render
 		
-		if netprops.active_blacklisted_slave_index >= 0:
+		if netsettings.active_blacklisted_slave_index >= 0:
 			
-			slave = netprops.slaves_blacklist[netprops.active_blacklisted_slave_index]
+			slave = netsettings.slaves_blacklist[netsettings.active_blacklisted_slave_index]
 			
-			netprops.slaves.add()
+			netsettings.slaves.add()
 			
-			netprops.slaves[-1].id = slave.id
-			netprops.slaves[-1].name = slave.name
-			netprops.slaves[-1].adress = slave.adress
-			netprops.slaves[-1].last_seen = slave.last_seen
-			netprops.slaves[-1].stats = slave.stats
+			netsettings.slaves[-1].id = slave.id
+			netsettings.slaves[-1].name = slave.name
+			netsettings.slaves[-1].address = slave.address
+			netsettings.slaves[-1].last_seen = slave.last_seen
+			netsettings.slaves[-1].stats = slave.stats
 			
-			netprops.slaves_blacklist.remove(netprops.active_blacklisted_slave_index)
-			netprops.active_blacklisted_slave_index = -1
+			netsettings.slaves_blacklist.remove(netsettings.active_blacklisted_slave_index)
+			netsettings.active_blacklisted_slave_index = -1
 		
 		return ('FINISHED',)
 	
@@ -166,7 +166,7 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
 		return True
 	
 	def execute(self, context):
-		netprops = context.scene.network_render
+		netsettings = context.scene.network_render
 		conn = clientConnection(context.scene)
 		
 		if conn:
@@ -177,21 +177,21 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
 			
 			slaves = (netrender.model.RenderSlave.materialize(s) for s in eval(str(response.read(), encoding='utf8')))
 			
-			while(len(netprops.slaves) > 0):
-				netprops.slaves.remove(0)
+			while(len(netsettings.slaves) > 0):
+				netsettings.slaves.remove(0)
 			
 			for s in slaves:
-				for slave in netprops.slaves_blacklist:
+				for slave in netsettings.slaves_blacklist:
 					if slave.id == s.id:
 						break
 					
-				netprops.slaves.add()
-				slave = netprops.slaves[-1]
+				netsettings.slaves.add()
+				slave = netsettings.slaves[-1]
 				
 				slave.id = s.id
 				slave.name = s.name
 				slave.stats = s.stats
-				slave.adress = s.adress[0]
+				slave.address = s.address[0]
 				slave.last_seen = time.ctime(s.last_seen)
 		
 		return ('FINISHED',)
@@ -210,15 +210,15 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
 	__props__ = []
 	
 	def poll(self, context):
-		netprops = context.scene.network_render
-		return netprops.active_job_index >= 0 and len(netprops.jobs) > 0
+		netsettings = context.scene.network_render
+		return netsettings.active_job_index >= 0 and len(netsettings.jobs) > 0
 		
 	def execute(self, context):
-		netprops = context.scene.network_render
+		netsettings = context.scene.network_render
 		conn = clientConnection(context.scene)
 		
 		if conn:
-			job = netprops.jobs[netprops.active_job_index]
+			job = netsettings.jobs[netsettings.active_job_index]
 			
 			conn.request("POST", "cancel", headers={"job-id":job.id})
 			

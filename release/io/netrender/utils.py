@@ -3,9 +3,9 @@ import sys, os
 import http, http.client, http.server, urllib
 import subprocess, shutil, time, hashlib
 
-VERSION = b"0.3"
+import netrender.model
 
-PATH_PREFIX = "/tmp/"
+VERSION = b"0.3"
 
 QUEUED = 0
 DISPATCHED = 1
@@ -41,40 +41,46 @@ def clientVerifyVersion(conn):
 	return True
 
 def clientSendJob(conn, scene, anim = False, chunks = 5):
+	netsettings = scene.network_render
+	job = netrender.model.RenderJob()
 	
 	if anim:
-		job_frame = "%i:%i" % (scene.start_frame, scene.end_frame)
+		for f in range(scene.start_frame, scene.end_frame + 1):
+			job.addFrame(f)
 	else:
-		job_frame = "%i" % (scene.current_frame, )
-		
-	blacklist = []
+		job.addFrame(scene.current_frame)
 	
 	filename = bpy.data.filename
+	job.files.append(filename)
 	
-	name = scene.network_render.job_name
-	
+	name = netsettings.job_name
 	if name == "[default]":
 		path, name = os.path.split(filename)
 	
-	for slave in scene.network_render.slaves_blacklist:
-		blacklist.append(slave.id)
-		
-	blacklist = " ".join(blacklist)
+	job.name = name
 	
-	headers = {"job-frame":job_frame, "job-name":name, "job-chunks": str(chunks), "slave-blacklist": blacklist}
+	for slave in scene.network_render.slaves_blacklist:
+		job.blacklist.append(slave.id)
+	
+	job.chunks = netsettings.chunks
+	job.priority = netsettings.priority
 	
 	# try to send path first
-	conn.request("POST", "job", filename, headers=headers)
+	conn.request("POST", "job", repr(job.serialize()))
 	response = conn.getresponse()
+	
+	job_id = response.getheader("job-id")
 	
 	# if not found, send whole file
 	if response.status == http.client.NOT_FOUND:
 		f = open(bpy.data.filename, "rb")
-		conn.request("PUT", "file", f, headers=headers)
+		conn.request("PUT", "file", f, headers={"job-id": job_id})
 		f.close()
 		response = conn.getresponse()
 	
-	return response.getheader("job-id")
+	# server will reply with NOT_FOUD until all files are found
+	
+	return job_id
 
 def clientRequestResult(conn, scene, job_id):
 	conn.request("GET", "render", headers={"job-id": job_id, "job-frame":str(scene.current_frame)})

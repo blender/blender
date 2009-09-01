@@ -48,9 +48,11 @@ class SCENE_PT_network_settings(RenderButtonsPanel):
 		col.itemR(scene.network_render, "mode")
 		col.itemR(scene.network_render, "server_address")
 		col.itemR(scene.network_render, "server_port")
+		col.itemR(scene.network_render, "path")
 		
 		if scene.network_render.mode == "RENDER_CLIENT":
 			col.itemR(scene.network_render, "chunks")
+			col.itemR(scene.network_render, "priority")
 			col.itemR(scene.network_render, "job_name")
 			col.itemO("render.netclientsend", text="send job to server")
 bpy.types.register(SCENE_PT_network_settings)
@@ -84,7 +86,7 @@ class SCENE_PT_network_slaves(RenderButtonsPanel):
 			slave = netrender.slaves[netrender.active_slave_index]
 
 			layout.itemL(text="Name: " + slave.name)
-			layout.itemL(text="Adress: " + slave.adress)
+			layout.itemL(text="Address: " + slave.address)
 			layout.itemL(text="Seen: " + slave.last_seen)
 			layout.itemL(text="Stats: " + slave.stats)
 
@@ -119,7 +121,7 @@ class SCENE_PT_network_slaves_blacklist(RenderButtonsPanel):
 			slave = netrender.slaves_blacklist[netrender.active_blacklisted_slave_index]
 
 			layout.itemL(text="Name: " + slave.name)
-			layout.itemL(text="Adress: " + slave.adress)
+			layout.itemL(text="Address: " + slave.address)
 			layout.itemL(text="Seen: " + slave.last_seen)
 			layout.itemL(text="Stats: " + slave.stats)
 			
@@ -189,6 +191,12 @@ NetRenderSettings.IntProperty( attr="server_port",
 				min=1,
 				max=65535)
 
+NetRenderSettings.StringProperty( attr="path",
+				name="Path",
+				description="Path for temporary files",
+				maxlen = 128,
+				default = "/tmp/")
+
 NetRenderSettings.StringProperty( attr="job_name",
 				name="Job name",
 				description="Name of the job",
@@ -201,6 +209,13 @@ NetRenderSettings.IntProperty( attr="chunks",
 				default = 5,
 				min=1,
 				max=65535)
+
+NetRenderSettings.IntProperty( attr="priority",
+				name="Priority",
+				description="Priority of the job",
+				default = 1,
+				min=1,
+				max=10)
 
 NetRenderSettings.StringProperty( attr="job_id",
 				name="Network job id",
@@ -249,8 +264,8 @@ NetRenderSlave.StringProperty( attr="name",
 				maxlen = 64,
 				default = "")
 
-NetRenderSlave.StringProperty( attr="adress",
-				name="Adress of the slave",
+NetRenderSlave.StringProperty( attr="address",
+				name="Address of the slave",
 				description="",
 				maxlen = 64,
 				default = "")

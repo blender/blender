@@ -21,17 +21,50 @@ def testCancel(conn, job_id):
 		response = conn.getresponse()
 		
 		# cancelled if job isn't found anymore
-		if response.status == http.client.NOT_FOUND:
+		if response.status == http.client.NO_CONTENT:
 			return True
 		else:
 			return False
 
-def render_slave(engine, scene):
-	NODE_PREFIX = PATH_PREFIX + "node" + os.sep
-	timeout = 1
+def testFile(conn, JOB_PREFIX, file_path, main_path = None):
+	if os.path.isabs(file_path):
+		# if an absolute path, make sure path exists, if it doesn't, use relative local path
+		job_full_path = file_path
+		if not os.path.exists(job_full_path):
+			p, n = os.path.split(job_full_path)
+			
+			if main_path and p.startswith(main_path):
+				directory = JOB_PREFIX + p[len(main_path):]
+				job_full_path = directory + n
+				if not os.path.exists(directory):
+					os.mkdir(directory)
+			else:
+				job_full_path = JOB_PREFIX + n
+	else:
+		job_full_path = JOB_PREFIX + file_path
 	
-	if not os.path.exists(NODE_PREFIX):
-		os.mkdir(NODE_PREFIX)
+	if not os.path.exists(job_full_path):
+		conn.request("GET", "file", headers={"job-id": job.id, "slave-id":slave_id})
+		response = conn.getresponse()
+		
+		if response.status != http.client.OK:
+			return None # file for job not returned by server, need to return an error code to server
+		
+		f = open(job_full_path, "wb")
+		buf = response.read(1024)
+		
+		while buf:
+			f.write(buf)
+			buf = response.read(1024)
+		
+		f.close()
+		
+	return job_full_path
+
+
+def render_slave(engine, scene):
+	netsettings = scene.network_render
+	timeout = 1
 	
 	engine.update_stats("", "Network render node initiation")
 	
@@ -43,6 +76,10 @@ def render_slave(engine, scene):
 		
 		slave_id = response.getheader("slave-id")
 		
+		NODE_PREFIX = netsettings.path + "node_" + slave_id + os.sep
+		if not os.path.exists(NODE_PREFIX):
+			os.mkdir(NODE_PREFIX)
+	
 		while not engine.test_break():
 			
 			conn.request("GET", "job", headers={"slave-id":slave_id})
@@ -53,41 +90,30 @@ def render_slave(engine, scene):
 				
 				job = netrender.model.RenderJob.materialize(eval(str(response.read(), encoding='utf8')))
 				
-				print("File:", job.path)
-				engine.update_stats("", "Render File", job.path, "for job", job.id)
+				JOB_PREFIX = NODE_PREFIX + "job_" + job.id + os.sep
+				if not os.path.exists(JOB_PREFIX):
+					os.mkdir(JOB_PREFIX)
 				
-				if os.path.isabs(job.path):
-					# if an absolute path, make sure path exists, if it doesn't, use relative local path
-					job_full_path = job.path
-					if not os.path.exists(job_full_path):
-						job_full_path = NODE_PREFIX + job.id + ".blend"
-				else:
-					job_full_path = NODE_PREFIX + job.path
+				job_path = job.files[0]
+				main_path, main_file = os.path.split(job_path)
 				
-				if not os.path.exists(job_full_path):
-					conn.request("GET", "file", headers={"job-id": job.id, "slave-id":slave_id})
-					response = conn.getresponse()
-					
-					if response.status != http.client.OK:
-						break # file for job not returned by server, need to return an error code to server
-					
-					f = open(job_full_path, "wb")
-					buf = response.read(1024)
-					
-					while buf:
-						f.write(buf)
-						buf = response.read(1024)
-					
-					f.close()
+				job_full_path = testFile(conn, JOB_PREFIX, job_path)
+				print("Fullpath", job_full_path)
+				print("File:", main_file, "and %i other files" % (len(job.files) - 1,))
+				engine.update_stats("", "Render File", main_file, "for job", job.id)
+				
+				for file_path in job.files[1:]:
+					testFile(conn, JOB_PREFIX, file_path, main_path)
 				
 				frame_args = []
 				
 				for frame in job.frames:
+					print("frame", frame.number)
 					frame_args += ["-f", str(frame.number)]
 					
 				start_t = time.time()
 				
-				process = subprocess.Popen([sys.argv[0], "-b", job_full_path, "-o", NODE_PREFIX + job.id, "-E", "BLENDER_RENDER", "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)	
+				process = subprocess.Popen([sys.argv[0], "-b", job_full_path, "-o", JOB_PREFIX + "######", "-E", "BLENDER_RENDER", "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)	
 				
 				cancelled = False
 				stdout = bytes()
@@ -120,7 +146,7 @@ def render_slave(engine, scene):
 					for frame in job.frames:
 						headers["job-frame"] = str(frame.number)
 						# send result back to server
-						f = open(NODE_PREFIX + job.id + "%04d" % frame.number + ".exr", 'rb')
+						f = open(JOB_PREFIX + "%06d" % frame.number + ".exr", 'rb')
 						conn.request("PUT", "render", f, headers=headers)
 						f.close()
 						response = conn.getresponse()
