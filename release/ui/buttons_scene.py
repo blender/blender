@@ -189,20 +189,28 @@ class SCENE_PT_post_processing(RenderButtonsPanel):
 		col = split.column()
 		col.itemR(rd, "use_compositing")
 		col.itemR(rd, "use_sequencer")
-
+		
 		col = split.column()
-		row = col.row()
-		row.itemR(rd, "fields", text="Fields")
-		sub = row.row()
-		sub.active = rd.fields
-		sub.itemR(rd, "fields_still", text="Still")
-		sub = col.row()
-		sub.active = rd.fields
-		sub.itemR(rd, "field_order", expand=True)
-
+		col.itemR(rd, "dither_intensity", text="Dither", slider=True)
+		
+		layout.itemS()
+				
 		split = layout.split()
-		split.itemL()
-		split.itemR(rd, "dither_intensity", text="Dither", slider=True)
+		
+		col = split.column()
+		col.itemR(rd, "fields", text="Fields")
+		sub = col.column()
+		sub.active = rd.fields
+		sub.row().itemR(rd, "field_order", expand=True)
+		sub.itemR(rd, "fields_still", text="Still")
+		
+		col = split.column()
+		
+		col.itemR(rd, "edge")
+		sub = col.column()
+		sub.active = rd.edge
+		sub.itemR(rd, "edge_threshold", text="Threshold", slider=True)
+		sub.itemR(rd, "edge_color", text="")
 		
 class SCENE_PT_output(RenderButtonsPanel):
 	__label__ = "Output"

@@ -303,6 +303,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 		row.itemR(strip, "frame_locked", text="Frame Lock")
 		
 		col = layout.column()
+		col.enabled = not strip.lock	
 		col.itemR(strip, "channel")
 		col.itemR(strip, "start_frame")
 		col.itemR(strip, "length")
@@ -422,16 +423,21 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 		
 		strip = act_strip(context)
 		
-		layout.itemR(strip, "directory", text="")
+		split = layout.split(percentage=0.2)
+		col = split.column()
+		col.itemL(text="Path:")
+		col = split.column()
+		col.itemR(strip, "directory", text="")
 		
 		# Current element for the filename
-		split = layout.split(percentage=0.3)
-		col = split.column()
-		col.itemL(text="File Name:")
-		col = split.column()
+		
 		
 		elem = strip.getStripElem(context.scene.current_frame)
 		if elem:
+			split = layout.split(percentage=0.2)
+			col = split.column()
+			col.itemL(text="File:")
+			col = split.column()
 			col.itemR(elem, "filename", text="") # strip.elements[0] could be a fallback
 		
 		if strip.type != 'SOUND':
@@ -477,14 +483,15 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
 		layout.template_ID(strip, "sound", new="sound.open")
 		
 		layout.itemS()
+		layout.itemR(strip.sound, "filename", text="")
 		
+		row = layout.row()
 		if strip.sound.packed_file:
-			layout.itemO("sound.unpack")
+			row.itemO("sound.unpack", icon='ICON_PACKAGE', text="Unpack")
 		else:
-			layout.itemO("sound.pack")
+			row.itemO("sound.pack", icon='ICON_UGLYPACKAGE', text="Pack")
 		
-		layout.itemR(strip.sound, "filename")
-		layout.itemR(strip.sound, "caching")
+		row.itemR(strip.sound, "caching")
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel):
 	__label__ = "Filter"

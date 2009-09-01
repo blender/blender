@@ -1621,10 +1621,10 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Edge", "Create a toon outline around the edges of geometry");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
-	prop= RNA_def_property(srna, "edge_intensity", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "edge_threshold", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "edgeint");
 	RNA_def_property_range(prop, 0, 255);
-	RNA_def_property_ui_text(prop, "Edge Intensity", "Threshold for drawing outlines on geometry edges");
+	RNA_def_property_ui_text(prop, "Edge Threshold", "Threshold for drawing outlines on geometry edges");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "edge_color", PROP_FLOAT, PROP_COLOR);
