@@ -205,7 +205,6 @@ class SCENE_PT_post_processing(RenderButtonsPanel):
 		sub.itemR(rd, "fields_still", text="Still")
 		
 		col = split.column()
-		
 		col.itemR(rd, "edge")
 		sub = col.column()
 		sub.active = rd.edge

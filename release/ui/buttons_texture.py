@@ -665,27 +665,21 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel):
 		if pd.point_source == 'PARTICLE_SYSTEM':
 			col.itemL(text="Object:")
 			col.itemR(pd, "object", text="")
-			col = col.column()
-			col.enabled = pd.object
-			col.itemL(text="System:")
-			col.item_pointerR(pd, "particle_system", pd.object, "particle_systems", text="")
-			col.itemL(text="Cache:")
-			col.itemR(pd, "particle_cache", text="")
+			
+			sub = col.column()
+			sub.enabled = pd.object
+			if pd.object:
+				sub.itemL(text="System:")
+				sub.item_pointerR(pd, "particle_system", pd.object, "particle_systems", text="")
+			sub.itemL(text="Cache:")
+			sub.itemR(pd, "particle_cache", text="")
 		else:
 			col.itemL(text="Object:")
 			col.itemR(pd, "object", text="")
 			col.itemL(text="Cache:")
 			col.itemR(pd, "vertices_cache", text="")
 		
-		sub = split.column()
-		
-		sub.itemL()
-		sub.itemR(pd, "radius")
-		
-		sub.itemL(text="Falloff:")
-		sub.itemR(pd, "falloff", text="")
-		if pd.falloff == 'SOFT':
-			sub.itemR(pd, "falloff_softness")
+		col.itemS()
 		
 		col.itemL(text="Color Source:")	
 		col.itemR(pd, "color_source", text="")
@@ -693,6 +687,14 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel):
 			col.itemR(pd, "speed_scale")
 		if pd.color_source in ('PARTICLE_SPEED', 'PARTICLE_AGE'):
 			layout.template_color_ramp(pd.color_ramp, expand=True)
+
+		col = split.column()
+		col.itemL()
+		col.itemR(pd, "radius")
+		col.itemL(text="Falloff:")
+		col.itemR(pd, "falloff", text="")
+		if pd.falloff == 'SOFT':
+			col.itemR(pd, "falloff_softness")
 
 class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel):
 	__label__ = "Turbulence"
