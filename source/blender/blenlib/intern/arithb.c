@@ -1408,22 +1408,6 @@ void RotationBetweenVectorsToQuat(float *q, float v1[3], float v2[3])
 	AxisAngleToQuat(q, axis, angle);
 }
 
-void AxisAngleToQuat(float *q, float *axis, float angle)
-{
-	float nor[3];
-	float si;
-	
-	VecCopyf(nor, axis);
-	Normalize(nor);
-	
-	angle /= 2;
-	si = (float)sin(angle);
-	q[0] = (float)cos(angle);
-	q[1] = nor[0] * si;
-	q[2] = nor[1] * si;
-	q[3] = nor[2] * si;	
-}
-
 void vectoquat(float *vec, short axis, short upflag, float *q)
 {
 	float q2[4], nor[3], *fp, mat[3][3], angle, si, co, x2, y2, z2, len1;
@@ -2807,6 +2791,156 @@ void MeanValueWeights(float v[][3], int n, float *co, float *w)
 
 /* ************ EULER *************** */
 
+/* Euler Rotation Order Code:
+ * was adapted from  
+  		ANSI C code from the article
+		"Euler Angle Conversion"
+		by Ken Shoemake, shoemake@graphics.cis.upenn.edu
+		in "Graphics Gems IV", Academic Press, 1994
+ * for use in Blender
+ */
+
+/* Type for rotation order info - see wiki for derivation details */
+typedef struct RotOrderInfo {
+	short i;		/* first axis index */
+	short j;		/* second axis index */
+	short k;		/* third axis index */
+	short parity;	/* parity of axis permuation (even=0, odd=1) - 'n' in original code */
+} RotOrderInfo;
+
+/* Array of info for Rotation Order calculations 
+ * WARNING: must be kept in same order as eEulerRotationOrders
+ */
+static RotOrderInfo rotOrders[]= {
+	/* i, j, k, n */
+	{0, 1, 2, 0}, // XYZ
+	{0, 2, 1, 1}, // XZY
+	{1, 0, 2, 1}, // YXZ
+	{1, 2, 0, 0}, // YZX
+	{2, 0, 1, 0}, // ZXY
+	{2, 1, 0, 1}  // ZYZ
+};
+
+/* Get relevant pointer to rotation order set from the array 
+ * NOTE: since we start at 1 for the values, but arrays index from 0, 
+ *		 there is -1 factor involved in this process...
+ */
+#define GET_ROTATIONORDER_INFO(order) (&rotOrders[(order)-1])
+
+/* Construct quaternion from Euler angles (in radians). */
+void EulOToQuat(float e[3], short order, float q[4])
+{
+	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order); 
+	short i=R->i,  j=R->j, 	k=R->k;
+	double ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
+	double a[3];
+	
+	if (R->parity) e[1] = -e[1];
+	
+	ti = e[0]/2; tj = e[1]/2; th = e[2]/2;
+	
+	ci = cos(ti);  cj = cos(tj);  ch = cos(th);
+	si = sin(ti);  sj = sin(tj);  sh = sin(th);
+	
+	cc = ci*ch; cs = ci*sh; 
+	sc = si*ch; ss = si*sh;
+	
+	a[i] = cj*sc - sj*cs;
+	a[j] = cj*ss + sj*cc;
+	a[k] = cj*cs - sj*sc;
+	
+	q[0] = cj*cc + sj*ss;
+	q[1] = a[0];
+	q[2] = a[1];
+	q[3] = a[2];
+	
+	if (R->parity) q[j] = -q[j];
+}
+
+/* Construct 3x3 matrix from Euler angles (in radians). */
+void EulOToMat3(float e[3], short order, float M[3][3])
+{
+	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order); 
+	short i=R->i,  j=R->j, 	k=R->k;
+	double ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
+	
+	if (R->parity) {
+		e[0] = -e[0]; 
+		e[1] = -e[1]; 
+		e[2] = -e[2];
+	}
+	
+	ti = e[0];	  tj = e[1];	th = e[2];
+	
+	ci = cos(ti); cj = cos(tj); ch = cos(th);
+	si = sin(ti); sj = sin(tj); sh = sin(th);
+	
+	cc = ci*ch; cs = ci*sh; 
+	sc = si*ch; ss = si*sh;
+	
+	M[i][i] = cj*ch; M[j][i] = sj*sc-cs; M[k][i] = sj*cc+ss;
+	M[i][j] = cj*sh; M[j][j] = sj*ss+cc; M[k][j] = sj*cs-sc;
+	M[i][k] = -sj;	 M[j][k] = cj*si;	 M[k][k] = cj*ci;
+}
+
+/* Construct 4x4 matrix from Euler angles (in radians). */
+void EulOToMat4(float e[3], short order, float M[4][4])
+{
+	float m[3][3];
+	
+	/* for now, we'll just do this the slow way (i.e. copying matrices) */
+	Mat3Ortho(m);
+	EulOToMat3(e, order, m);
+	Mat4CpyMat3(M, m);
+}
+
+/* Convert 3x3 matrix to Euler angles (in radians). */
+void Mat3ToEulO(float M[3][3], float e[3], short order)
+{
+	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order); 
+	short i=R->i,  j=R->j, 	k=R->k;
+	double cy = sqrt(M[i][i]*M[i][i] + M[j][i]*M[j][i]);
+	
+	if (cy > 16*FLT_EPSILON) {
+		e[0] = atan2(M[j][k], M[k][k]);
+		e[1] = atan2(-M[i][k], cy);
+		e[2] = atan2(M[i][j], M[i][i]);
+	} 
+	else {
+		e[0] = atan2(-M[k][j], M[j][j]);
+		e[1] = atan2(-M[i][k], cy);
+		e[2] = 0;
+	}
+	
+	if (R->parity) {
+		e[0] = -e[0]; 
+		e[1] = -e[1]; 
+		e[2] = -e[2];
+	}
+}
+
+/* Convert 4x4 matrix to Euler angles (in radians). */
+void Mat4ToEulO(float M[4][4], float e[3], short order)
+{
+	float m[3][3];
+	
+	/* for now, we'll just do this the slow way (i.e. copying matrices) */
+	Mat3CpyMat4(m, M);
+	Mat3ToEulO(m, e, order);
+}
+
+/* Convert quaternion to Euler angles (in radians). */
+void QuatToEulO(float q[4], float e[3], short order)
+{
+	float M[3][3];
+	
+	QuatToMat3(q, M);
+	Mat3ToEulO(M, e, order);
+}
+
+/* ************ EULER (old XYZ) *************** */
+
+/* XYZ order */
 void EulToMat3( float *eul, float mat[][3])
 {
 	double ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
@@ -2834,6 +2968,7 @@ void EulToMat3( float *eul, float mat[][3])
 
 }
 
+/* XYZ order */
 void EulToMat4( float *eul,float mat[][4])
 {
 	double ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
@@ -2865,6 +3000,7 @@ void EulToMat4( float *eul,float mat[][4])
 }
 
 /* returns two euler calculation methods, so we can pick the best */
+/* XYZ order */
 static void mat3_to_eul2(float tmat[][3], float *eul1, float *eul2)
 {
 	float cy, quat[4], mat[3][3];
@@ -2895,6 +3031,7 @@ static void mat3_to_eul2(float tmat[][3], float *eul1, float *eul2)
 	}
 }
 
+/* XYZ order */
 void Mat3ToEul(float tmat[][3], float *eul)
 {
 	float eul1[3], eul2[3];
@@ -2910,6 +3047,7 @@ void Mat3ToEul(float tmat[][3], float *eul)
 	}
 }
 
+/* XYZ order */
 void Mat4ToEul(float tmat[][4], float *eul)
 {
 	float tempMat[3][3];
@@ -2919,6 +3057,7 @@ void Mat4ToEul(float tmat[][4], float *eul)
 	Mat3ToEul(tempMat, eul);
 }
 
+/* XYZ order */
 void QuatToEul(float *quat, float *eul)
 {
 	float mat[3][3];
@@ -2927,7 +3066,7 @@ void QuatToEul(float *quat, float *eul)
 	Mat3ToEul(mat, eul);
 }
 
-
+/* XYZ order */
 void EulToQuat(float *eul, float *quat)
 {
     float ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
@@ -2943,6 +3082,7 @@ void EulToQuat(float *eul, float *quat)
 	quat[3] = cj*cs - sj*sc;
 }
 
+/* XYZ order */
 void euler_rot(float *beul, float ang, char axis)
 {
 	float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];
@@ -2962,6 +3102,7 @@ void euler_rot(float *beul, float ang, char axis)
 }
 
 /* exported to transform.c */
+/* XYZ order */
 void compatible_eul(float *eul, float *oldrot)
 {
 	float dx, dy, dz;
@@ -3025,6 +3166,7 @@ void compatible_eul(float *eul, float *oldrot)
 }
 
 /* uses 2 methods to retrieve eulers, and picks the closest */
+/* XYZ order */
 void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot)
 {
 	float eul1[3], eul2[3];
@@ -3046,6 +3188,46 @@ void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot)
 		VecCopyf(eul, eul1);
 	}
 	
+}
+
+/* ************ AXIS ANGLE *************** */
+
+/* Axis angle to Quaternions */
+void AxisAngleToQuat(float *q, float *axis, float angle)
+{
+	float nor[3];
+	float si;
+	
+	VecCopyf(nor, axis);
+	Normalize(nor);
+	
+	angle /= 2;
+	si = (float)sin(angle);
+	q[0] = (float)cos(angle);
+	q[1] = nor[0] * si;
+	q[2] = nor[1] * si;
+	q[3] = nor[2] * si;	
+}
+
+/* Quaternions to Axis Angle */
+void QuatToAxisAngle(float q[4], float axis[3], float *angle)
+{
+	float ha, si;
+	
+	/* calculate angle/2, and sin(angle/2) */
+	ha= (float)acos(q[0]);
+	si= (float)sin(ha);
+	
+	/* from half-angle to angle */
+	*angle= ha * 2;
+	
+	/* prevent division by zero for axis conversion */
+	if (fabs(si) < 0.0005)
+		si= 1.0f;
+	
+	axis[0]= q[1] / si;
+	axis[1]= q[2] / si;
+	axis[2]= q[3] / si;
 }
 
 /* axis angle to 3x3 matrix */
@@ -4704,6 +4886,7 @@ float PdistVL3Dfl(float *v1, float *v2, float *v3)
 
 /* make a 4x4 matrix out of 3 transform components */
 /* matrices are made in the order: scale * rot * loc */
+// TODO: need to have a version that allows for rotation order...
 void LocEulSizeToMat4(float mat[][4], float loc[3], float eul[3], float size[3])
 {
 	float rmat[3][3], smat[3][3], tmat[3][3];

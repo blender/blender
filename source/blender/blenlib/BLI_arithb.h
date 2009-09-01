@@ -174,7 +174,36 @@ void CalcNormShort(short *v1, short *v2, short *v3, float *n);
 float power_of_2(float val);
 
 /**
- * @section Euler conversion routines
+ * @section Euler conversion routines (With Custom Order)
+ */
+
+/* Defines for rotation orders 
+ * WARNING: must match the ePchan_RotMode in DNA_action_types.h
+ *		   order matters - types are saved to file!
+ */
+typedef enum eEulerRotationOrders {
+	EULER_ORDER_DEFAULT = 1,	/* Blender 'default' (classic) is basically XYZ */
+	EULER_ORDER_XYZ = 1,		/* Blender 'default' (classic) - must be as 1 to sync with PoseChannel rotmode */
+	EULER_ORDER_XZY,
+	EULER_ORDER_YXZ,
+	EULER_ORDER_YZX,
+	EULER_ORDER_ZXY,
+	EULER_ORDER_ZYX,
+	/* NOTE: there are about 6 more entries when including duplicated entries too */
+} eEulerRotationOrders;
+
+void EulOToQuat(float eul[3], short order, float quat[4]);
+
+void EulOToMat3(float eul[3], short order, float Mat[3][3]);
+void EulOToMat4(float eul[3], short order, float Mat[4][4]);
+ 
+void Mat3ToEulO(float Mat[3][3], float eul[3], short order);
+void Mat4ToEulO(float Mat[4][4], float eul[3], short order);
+
+void QuatToEulO(float quat[4], float eul[3], short order);
+ 
+/**
+ * @section Euler conversion routines (Blender XYZ)
  */
 
 void EulToMat3(float *eul, float mat[][3]);
@@ -185,9 +214,12 @@ void Mat4ToEul(float tmat[][4],float *eul);
 
 void EulToQuat(float *eul, float *quat);
 
-void compatible_eul(float *eul, float *oldrot);
-
 void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot);
+
+
+
+void compatible_eul(float *eul, float *oldrot);
+void euler_rot(float *beul, float ang, char axis);
 
 
 /**
@@ -216,6 +248,8 @@ void printquat(char *str, float q[4]);
 void QuatInterpol(float *result, float *quat1, float *quat2, float t);
 void QuatAdd(float *result, float *quat1, float *quat2, float t);
 
+void QuatToMat3(float *q, float m[][3]);
+void QuatToMat4(float *q, float m[][4]);
 
 /**
  * @section matrix multiplication and copying routines
@@ -349,8 +383,6 @@ float NormalizedVecAngle2(float *v1, float *v2);
 
 float VecAngle3_2D(float *v1, float *v2, float *v3);
 float NormalizedVecAngle2_2D(float *v1, float *v2);
-
-void euler_rot(float *beul, float ang, char axis);
 	
 void NormalShortToFloat(float *out, short *in);
 void NormalFloatToShort(short *out, float *in);
@@ -422,9 +454,6 @@ void VecStar(float mat[][3],float *vec);
 
 short EenheidsMat(float mat[][3]);
 
-void QuatToMat3(float *q, float m[][3]);
-void QuatToMat4(float *q, float m[][4]);
-
 void Mat3ToQuat_is_ok(float wmat[][3], float *q);
 
 void i_ortho(float left, float right, float bottom, float top, float nearClip, float farClip, float matrix[][4]);
@@ -432,8 +461,6 @@ void i_polarview(float dist, float azimuth, float incidence, float twist, float 
 void i_translate(float Tx, float Ty, float Tz, float mat[][4]);
 void i_multmatrix(float icand[][4], float Vm[][4]);
 void i_rotate(float angle, char axis, float mat[][4]);
-
-
 
 
 

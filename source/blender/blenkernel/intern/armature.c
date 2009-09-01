@@ -1988,9 +1988,9 @@ void chan_calc_mat(bPoseChannel *chan)
 	SizeToMat3(chan->size, smat);
 	
 	/* rotations may either be quats or eulers (no rotation modes for now...) */
-	if (chan->rotmode) {
+	if (chan->rotmode > 0) {
 		/* euler rotations (will cause gimble lock... no rotation order to solve that yet) */
-		EulToMat3(chan->eul, rmat);
+		EulOToMat3(chan->eul, chan->rotmode, rmat);
 	}
 	else {
 		/* quats are normalised before use to eliminate scaling issues */

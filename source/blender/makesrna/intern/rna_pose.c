@@ -124,7 +124,7 @@ static void rna_PoseChannel_euler_rotation_set(PointerRNA *ptr, const float *val
 {
 	bPoseChannel *pchan= ptr->data;
 
-	if(pchan->rotmode == PCHAN_ROT_QUAT)
+	if(pchan->rotmode == PCHAN_ROT_QUAT) /* default XYZ eulers when using quats... */
 		EulToQuat((float*)value, pchan->quat);
 	else
 		VECCOPY(pchan->eul, value);
@@ -353,7 +353,12 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 {
 	static EnumPropertyItem prop_rotmode_items[] = {
 		{PCHAN_ROT_QUAT, "QUATERNION", 0, "Quaternion (WXYZ)", "No Gimbal Lock (default)"},
-		{PCHAN_ROT_EUL, "EULER", 0, "Euler (XYZ)", "Prone to Gimbal Lock"},
+		{PCHAN_ROT_XYZ, "XYZ", 0, "XYZ Euler", "XYZ Rotation Order. Prone to Gimbal Lock"},
+		{PCHAN_ROT_XZY, "XZY", 0, "XZY Euler", "XZY Rotation Order. Prone to Gimbal Lock"},
+		{PCHAN_ROT_YXZ, "YXZ", 0, "YXZ Euler", "YXZ Rotation Order. Prone to Gimbal Lock"},
+		{PCHAN_ROT_YZX, "YZX", 0, "YZX Euler", "YZX Rotation Order. Prone to Gimbal Lock"},
+		{PCHAN_ROT_ZXY, "ZXY", 0, "ZXY Euler", "ZXY Rotation Order. Prone to Gimbal Lock"},
+		{PCHAN_ROT_ZYX, "ZYX", 0, "ZYX Euler", "ZYX Rotation Order. Prone to Gimbal Lock"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	StructRNA *srna;

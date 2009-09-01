@@ -2670,7 +2670,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				/* this function works on end result */
 				protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
 			}
-			else {
+			else { // TODO: need some methods for the new euler types...
 				float eulmat[3][3];
 
 				Mat3MulMat3(totmat, mat, td->mtx);

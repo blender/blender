@@ -199,8 +199,13 @@ typedef enum ePchan_IkFlag {
 typedef enum ePchan_RotMode {
 		/* quaternion rotations (default, and for older Blender versions) */
 	PCHAN_ROT_QUAT	= 0,
-		/* euler rotations (xyz only) */
-	PCHAN_ROT_EUL,
+		/* euler rotations - keep in sync with enum in BLI_arithb.h */
+	PCHAN_ROT_XYZ = 1,		/* Blender 'default' (classic) - must be as 1 to sync with PoseChannel rotmode */
+	PCHAN_ROT_XZY,
+	PCHAN_ROT_YXZ,
+	PCHAN_ROT_YZX,
+	PCHAN_ROT_ZXY,
+	PCHAN_ROT_ZYX,
 } ePchan_RotMode;
 
 /* Pose ------------------------------------ */
