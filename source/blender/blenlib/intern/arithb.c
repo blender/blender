@@ -1610,7 +1610,7 @@ void VecUpMat3(float *vec, float mat[][3], short axis)
 }
 
 /* A & M Watt, Advanced animation and rendering techniques, 1992 ACM press */
-void QuatInterpolW(float *, float *, float *, float );
+void QuatInterpolW(float *, float *, float *, float ); // XXX why this?
 
 void QuatInterpolW(float *result, float *quat1, float *quat2, float t)
 {
@@ -2943,137 +2943,6 @@ void EulToQuat(float *eul, float *quat)
 	quat[3] = cj*cs - sj*sc;
 }
 
-void VecRotToMat3(float *vec, float phi, float mat[][3])
-{
-	/* rotation of phi radials around vec */
-	float vx, vx2, vy, vy2, vz, vz2, co, si;
-	
-	vx= vec[0];
-	vy= vec[1];
-	vz= vec[2];
-	vx2= vx*vx;
-	vy2= vy*vy;
-	vz2= vz*vz;
-	co= (float)cos(phi);
-	si= (float)sin(phi);
-	
-	mat[0][0]= vx2+co*(1.0f-vx2);
-	mat[0][1]= vx*vy*(1.0f-co)+vz*si;
-	mat[0][2]= vz*vx*(1.0f-co)-vy*si;
-	mat[1][0]= vx*vy*(1.0f-co)-vz*si;
-	mat[1][1]= vy2+co*(1.0f-vy2);
-	mat[1][2]= vy*vz*(1.0f-co)+vx*si;
-	mat[2][0]= vz*vx*(1.0f-co)+vy*si;
-	mat[2][1]= vy*vz*(1.0f-co)-vx*si;
-	mat[2][2]= vz2+co*(1.0f-vz2);
-	
-}
-
-void VecRotToMat4(float *vec, float phi, float mat[][4])
-{
-	float tmat[3][3];
-	
-	VecRotToMat3(vec, phi, tmat);
-	Mat4One(mat);
-	Mat4CpyMat3(mat, tmat);
-}
-
-void VecRotToQuat(float *vec, float phi, float *quat)
-{
-	/* rotation of phi radials around vec */
-	float si;
-
-	quat[1]= vec[0];
-	quat[2]= vec[1];
-	quat[3]= vec[2];
-	
-	if( Normalize(quat+1) == 0.0f) {
-		QuatOne(quat);
-	}
-	else {
-		quat[0]= (float)cos( phi/2.0 );
-		si= (float)sin( phi/2.0 );
-		quat[1] *= si;
-		quat[2] *= si;
-		quat[3] *= si;
-	}
-}
-
-/* Return the angle in degrees between vecs 1-2 and 2-3 in degrees
-   If v1 is a shoulder, v2 is the elbow and v3 is the hand,
-   this would return the angle at the elbow */
-float VecAngle3(float *v1, float *v2, float *v3)
-{
-	float vec1[3], vec2[3];
-
-	VecSubf(vec1, v2, v1);
-	VecSubf(vec2, v2, v3);
-	Normalize(vec1);
-	Normalize(vec2);
-
-	return NormalizedVecAngle2(vec1, vec2) * (float)(180.0/M_PI);
-}
-
-float VecAngle3_2D(float *v1, float *v2, float *v3)
-{
-	float vec1[2], vec2[2];
-
-	vec1[0] = v2[0]-v1[0];
-	vec1[1] = v2[1]-v1[1];
-	
-	vec2[0] = v2[0]-v3[0];
-	vec2[1] = v2[1]-v3[1];
-	
-	Normalize2(vec1);
-	Normalize2(vec2);
-
-	return NormalizedVecAngle2_2D(vec1, vec2) * (float)(180.0/M_PI);
-}
-
-/* Return the shortest angle in degrees between the 2 vectors */
-float VecAngle2(float *v1, float *v2)
-{
-	float vec1[3], vec2[3];
-
-	VecCopyf(vec1, v1);
-	VecCopyf(vec2, v2);
-	Normalize(vec1);
-	Normalize(vec2);
-
-	return NormalizedVecAngle2(vec1, vec2)* (float)(180.0/M_PI);
-}
-
-float NormalizedVecAngle2(float *v1, float *v2)
-{
-	/* this is the same as acos(Inpf(v1, v2)), but more accurate */
-	if (Inpf(v1, v2) < 0.0f) {
-		float vec[3];
-		
-		vec[0]= -v2[0];
-		vec[1]= -v2[1];
-		vec[2]= -v2[2];
-		
-		return (float)M_PI - 2.0f*(float)saasin(VecLenf(vec, v1)/2.0f);
-	}
-	else
-		return 2.0f*(float)saasin(VecLenf(v2, v1)/2.0f);
-}
-
-float NormalizedVecAngle2_2D(float *v1, float *v2)
-{
-	/* this is the same as acos(Inpf(v1, v2)), but more accurate */
-	if (Inp2f(v1, v2) < 0.0f) {
-		float vec[2];
-		
-		vec[0]= -v2[0];
-		vec[1]= -v2[1];
-		
-		return (float)M_PI - 2.0f*saasin(Vec2Lenf(vec, v1)/2.0f);
-	}
-	else
-		return 2.0f*(float)saasin(Vec2Lenf(v2, v1)/2.0f);
-}
-
 void euler_rot(float *beul, float ang, char axis)
 {
 	float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];
@@ -3177,6 +3046,140 @@ void Mat3ToCompatibleEul(float mat[][3], float *eul, float *oldrot)
 		VecCopyf(eul, eul1);
 	}
 	
+}
+
+/* axis angle to 3x3 matrix */
+void VecRotToMat3(float *vec, float phi, float mat[][3])
+{
+	/* rotation of phi radials around vec */
+	float vx, vx2, vy, vy2, vz, vz2, co, si;
+	
+	vx= vec[0];
+	vy= vec[1];
+	vz= vec[2];
+	vx2= vx*vx;
+	vy2= vy*vy;
+	vz2= vz*vz;
+	co= (float)cos(phi);
+	si= (float)sin(phi);
+	
+	mat[0][0]= vx2+co*(1.0f-vx2);
+	mat[0][1]= vx*vy*(1.0f-co)+vz*si;
+	mat[0][2]= vz*vx*(1.0f-co)-vy*si;
+	mat[1][0]= vx*vy*(1.0f-co)-vz*si;
+	mat[1][1]= vy2+co*(1.0f-vy2);
+	mat[1][2]= vy*vz*(1.0f-co)+vx*si;
+	mat[2][0]= vz*vx*(1.0f-co)+vy*si;
+	mat[2][1]= vy*vz*(1.0f-co)-vx*si;
+	mat[2][2]= vz2+co*(1.0f-vz2);
+	
+}
+
+/* axis angle to 4x4 matrix */
+void VecRotToMat4(float *vec, float phi, float mat[][4])
+{
+	float tmat[3][3];
+	
+	VecRotToMat3(vec, phi, tmat);
+	Mat4One(mat);
+	Mat4CpyMat3(mat, tmat);
+}
+
+/* axis angle to quaternion */
+void VecRotToQuat(float *vec, float phi, float *quat)
+{
+	/* rotation of phi radials around vec */
+	float si;
+
+	quat[1]= vec[0];
+	quat[2]= vec[1];
+	quat[3]= vec[2];
+	
+	if( Normalize(quat+1) == 0.0f) {
+		QuatOne(quat);
+	}
+	else {
+		quat[0]= (float)cos( phi/2.0 );
+		si= (float)sin( phi/2.0 );
+		quat[1] *= si;
+		quat[2] *= si;
+		quat[3] *= si;
+	}
+}
+
+/* Return the angle in degrees between vecs 1-2 and 2-3 in degrees
+   If v1 is a shoulder, v2 is the elbow and v3 is the hand,
+   this would return the angle at the elbow */
+float VecAngle3(float *v1, float *v2, float *v3)
+{
+	float vec1[3], vec2[3];
+
+	VecSubf(vec1, v2, v1);
+	VecSubf(vec2, v2, v3);
+	Normalize(vec1);
+	Normalize(vec2);
+
+	return NormalizedVecAngle2(vec1, vec2) * (float)(180.0/M_PI);
+}
+
+float VecAngle3_2D(float *v1, float *v2, float *v3)
+{
+	float vec1[2], vec2[2];
+
+	vec1[0] = v2[0]-v1[0];
+	vec1[1] = v2[1]-v1[1];
+	
+	vec2[0] = v2[0]-v3[0];
+	vec2[1] = v2[1]-v3[1];
+	
+	Normalize2(vec1);
+	Normalize2(vec2);
+
+	return NormalizedVecAngle2_2D(vec1, vec2) * (float)(180.0/M_PI);
+}
+
+/* Return the shortest angle in degrees between the 2 vectors */
+float VecAngle2(float *v1, float *v2)
+{
+	float vec1[3], vec2[3];
+
+	VecCopyf(vec1, v1);
+	VecCopyf(vec2, v2);
+	Normalize(vec1);
+	Normalize(vec2);
+
+	return NormalizedVecAngle2(vec1, vec2)* (float)(180.0/M_PI);
+}
+
+float NormalizedVecAngle2(float *v1, float *v2)
+{
+	/* this is the same as acos(Inpf(v1, v2)), but more accurate */
+	if (Inpf(v1, v2) < 0.0f) {
+		float vec[3];
+		
+		vec[0]= -v2[0];
+		vec[1]= -v2[1];
+		vec[2]= -v2[2];
+		
+		return (float)M_PI - 2.0f*(float)saasin(VecLenf(vec, v1)/2.0f);
+	}
+	else
+		return 2.0f*(float)saasin(VecLenf(v2, v1)/2.0f);
+}
+
+float NormalizedVecAngle2_2D(float *v1, float *v2)
+{
+	/* this is the same as acos(Inpf(v1, v2)), but more accurate */
+	if (Inp2f(v1, v2) < 0.0f) {
+		float vec[2];
+		
+		vec[0]= -v2[0];
+		vec[1]= -v2[1];
+		
+		return (float)M_PI - 2.0f*saasin(Vec2Lenf(vec, v1)/2.0f);
+	}
+	else
+		return 2.0f*(float)saasin(Vec2Lenf(v2, v1)/2.0f);
 }
 
 /* ******************************************** */
@@ -4744,6 +4747,8 @@ void LocQuatSizeToMat4(float mat[][4], float loc[3], float quat[4], float size[3
 	mat[3][1] = loc[1];
 	mat[3][2] = loc[2];
 }
+
+/********************************************************/
 
 /* Tangents */
 
