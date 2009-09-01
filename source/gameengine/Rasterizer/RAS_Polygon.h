@@ -72,6 +72,7 @@ public:
 
 	void				SetVertexOffset(int i, unsigned short offset);
 	int					GetVertexOffset(int i);
+	int					GetVertexOffsetAbs(RAS_MeshObject *mesh, int i); /* accounts for quad and tri arrays, slower, for python */
 	
 	// each bit is for a visible edge, starting with bit 1 for the first edge, bit 2 for second etc.
 	// - Not used yet!

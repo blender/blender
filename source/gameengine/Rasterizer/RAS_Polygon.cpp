@@ -31,6 +31,7 @@
 #endif
 
 #include "RAS_Polygon.h"
+#include "RAS_MeshObject.h" /* only for GetVertexOffsetAbs */
 
 RAS_Polygon::RAS_Polygon(RAS_MaterialBucket* bucket, RAS_DisplayArray *darray, int numvert)
 {
@@ -60,6 +61,20 @@ RAS_TexVert *RAS_Polygon::GetVertex(int i)
 
 int RAS_Polygon::GetVertexOffset(int i)
 {
+	return m_offset[i];
+}
+
+int RAS_Polygon::GetVertexOffsetAbs(RAS_MeshObject *mesh, int i)
+{
+	/* hack that only works because there can only ever be 2 different
+	 * GetDisplayArray's per mesh. if this uses a different display array to the first
+	 * then its incices are offset.
+	 * if support for edges is added back this would need to be changed. */
+	RAS_DisplayArray* darray= mesh->GetPolygon(0)->GetDisplayArray();
+	
+	if(m_darray != darray)
+		return m_offset[i] + darray->m_vertex.size();
+	
 	return m_offset[i];
 }
 
