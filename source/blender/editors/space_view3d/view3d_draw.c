@@ -1421,7 +1421,8 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	glMatrixMode(GL_MODELVIEW);
 	glPushMatrix();
 	
-	glaDefine2DArea(&ar->winrct);
+//	glaDefine2DArea(&ar->winrct);
+	ED_region_pixelspace(ar);
 	
 	glEnable(GL_BLEND);
 	
