@@ -157,6 +157,14 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 		/* set index */
 		CustomData_set_layer_mask(data, type, maskindex);
 	}
+
+	if (!me->edit_btmesh) {
+		/*recalc mesh tesselation*/
+		me->totface = mesh_recalcTesselation(&me->fdata, &me->ldata, 
+			&me->pdata, me->mvert, me->totface, me->totloop, me->totpoly);
+
+		mesh_update_customdata_pointers(me);
+	}
 }
 
 /*********************** UV texture operators ************************/
@@ -199,6 +207,10 @@ static int uv_texture_add_exec(bContext *C, wmOperator *op)
 		}
 		
 		CustomData_set_layer_active(&me->pdata, CD_MTEXPOLY, layernum);
+
+		/*recalc mesh tesselation*/
+		me->totface = mesh_recalcTesselation(&me->fdata, &me->ldata, 
+			&me->pdata, me->mvert, me->totface, me->totloop, me->totpoly);
 		mesh_update_customdata_pointers(me);
 	}
 
@@ -305,6 +317,11 @@ static int vertex_color_add_exec(bContext *C, wmOperator *op)
 			CustomData_add_layer(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop);
 
 		CustomData_set_layer_active(&me->ldata, CD_MLOOPCOL, layernum);
+
+		/*recalc mesh tesselation*/
+		me->totface = mesh_recalcTesselation(&me->fdata, &me->ldata, 
+			&me->pdata, me->mvert, me->totface, me->totloop, me->totpoly);
+		
 		mesh_update_customdata_pointers(me);
 
 		//if(!mcol)

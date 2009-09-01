@@ -236,6 +236,14 @@ int BM_Edge_FaceCount(BMEdge *e)
 
 int BM_Vert_FaceCount(BMVert *v){
 	int count = 0;
+	BMLoop *l;
+	BMIter iter;
+
+	BM_ITER(l, &iter, NULL, BM_LOOPS_OF_VERT, v)
+		count++;
+
+	return count;
+#if 0 //this code isn't working
 	BMEdge *curedge = NULL;
 
 	if(v->edge){
@@ -246,6 +254,7 @@ int BM_Vert_FaceCount(BMVert *v){
 		}while(curedge != v->edge);
 	}
 	return count;
+#endif
 }
 
 /**

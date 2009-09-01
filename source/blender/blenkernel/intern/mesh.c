@@ -1458,9 +1458,9 @@ static void mesh_loops_to_corners(CustomData *fdata, CustomData *ldata,
 
   returns number of tesselation faces.*/
 int mesh_recalcTesselation(CustomData *fdata, 
-				   CustomData *ldata, CustomData *pdata,
-				   MVert *mvert, int totface, int totloop, 
-				   int totpoly)
+                           CustomData *ldata, CustomData *pdata,
+                           MVert *mvert, int totface, int totloop, 
+                           int totpoly)
 {
 	MPoly *mp, *mpoly;
 	MLoop *ml, *mloop;

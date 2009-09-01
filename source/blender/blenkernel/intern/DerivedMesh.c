@@ -423,8 +423,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me)
 		CustomData_add_layer(&tmp.edata, CD_MEDGE, CD_ASSIGN, dm->dupEdgeArray(dm), totedge);
 	if(!CustomData_has_layer(&tmp.fdata, CD_MFACE))
 		CustomData_add_layer(&tmp.fdata, CD_MFACE, CD_ASSIGN, dm->dupTessFaceArray(dm), totface);
-	
-	if(!CustomData_has_layer(&tmp.fdata, CD_MPOLY))
+	if(!CustomData_has_layer(&tmp.pdata, CD_MPOLY))
 		dm_add_polys_from_iter(&tmp.ldata, &tmp.pdata, dm, totloop);
 
 	mesh_update_customdata_pointers(&tmp);
@@ -1801,14 +1800,11 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 	/*first add colors to the tesselation faces*/
 	memset(wtcol, 0x55, sizeof (unsigned char) * totface*4*4);
 	for (i=0; i<totface; i++, mf++) {
-		if (origIndex[mf->v1] != ORIGINDEX_NONE)
-			calc_weightpaint_vert_color(ob, coba, origIndex[mf->v1], &wtcol[(i*4 + 0)*4]); 
-		if (origIndex[mf->v2] != ORIGINDEX_NONE)
-			calc_weightpaint_vert_color(ob, coba, origIndex[mf->v2], &wtcol[(i*4 + 1)*4]); 
-		if (origIndex[mf->v3] != ORIGINDEX_NONE)
-			calc_weightpaint_vert_color(ob, coba, origIndex[mf->v3], &wtcol[(i*4 + 2)*4]); 
-		if (mf->v4 && origIndex[mf->v4] != ORIGINDEX_NONE)
-			calc_weightpaint_vert_color(ob, coba, origIndex[mf->v4], &wtcol[(i*4 + 3)*4]); 
+		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4]); 
+		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4]); 
+		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4]); 
+		if (mf->v4)
+			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4]); 
 	}
 	
 	CustomData_add_layer(&dm->faceData, CD_WEIGHT_MCOL, CD_ASSIGN, wtcol, totface);
@@ -1820,7 +1816,7 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 		dliter = dfiter->getLoopsIter(dfiter);
 		for (; !dliter->done; dliter->step(dliter), totloop++) {
 			V_GROW(wlcol);
-			calc_weightpaint_vert_color(ob, coba, origIndex[dliter->vindex], &wlcol[totloop]);			 
+			calc_weightpaint_vert_color(ob, coba, dliter->vindex, &wlcol[totloop]);			 
 		}
 	}
 
@@ -2049,9 +2045,6 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 		CDDM_apply_vert_coords(finaldm, deformedVerts);
 		CDDM_calc_normals(finaldm);
-
-		if(dataMask & CD_MASK_WEIGHT_MCOL)
-			add_weight_mcol_dm(ob, finaldm);
 	} else if(dm) {
 		finaldm = dm;
 	} else {

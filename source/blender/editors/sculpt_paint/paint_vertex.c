@@ -216,7 +216,7 @@ void do_shared_vertexcol(Mesh *me)
 	/* if no mloopcol: do not do */
 	/* if mtexpoly: only the involved faces, otherwise all */
 
-	if(me->mloopcol==0 || me->totvert==0 || me->totface==0) return;
+	if(me->mloopcol==0 || me->totvert==0 || me->totpoly==0) return;
 
 	scol = MEM_callocN(sizeof(float)*me->totvert*5, "scol");
 
@@ -248,7 +248,7 @@ void do_shared_vertexcol(Mesh *me)
 	ml = me->mloop;
 	lcol = me->mloopcol;
 	for (i=0; i<me->totloop; i++, ml++, lcol++) {
-		if (!scol[4]) continue;
+		if (!scol[ml->v][4]) continue;
 
 		lcol->r = scol[ml->v][0];
 		lcol->g = scol[ml->v][1];
@@ -339,11 +339,13 @@ void make_vertexcol(Scene *scene, int shade)	/* single ob */
 	if(me==0) return;
 
 	/* copies from shadedisplist to mcol */
-	if(!me->mcol) {
+	if(!me->mcol)
 		CustomData_add_layer(&me->fdata, CD_MCOL, CD_CALLOC, NULL, me->totface);
+	if (!me->mloopcol)
 		CustomData_add_layer(&me->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, me->totloop);
-		mesh_update_customdata_pointers(me);
-	}
+	
+	mesh_update_customdata_pointers(me);
+
 
 	/*
 	if(shade)
@@ -390,7 +392,7 @@ static void copy_wpaint_prev (VPaint *wp, MDeformVert *dverts, int dcount)
 void clear_vpaint(Scene *scene, int selected)
 {
 	Mesh *me;
-	MFace *mf;
+ 	MFace *mf;
 	MPoly *mp;
 	MLoopCol *lcol;
 	Object *ob;
@@ -1691,7 +1693,7 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 
 	/* context checks could be a poll() */
 	me= get_mesh(ob);
-	if(me==NULL || me->totface==0)
+	if(me==NULL || me->totpoly==0)
 		return OPERATOR_PASS_THROUGH;
 	
 	if(me->mloopcol==NULL)
@@ -1750,7 +1752,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			
 	/* which faces are involved */
 	if(vp->flag & VP_AREA) {
-		totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush->size);
+		totindex= sample_backbuf_area(vc, indexar, me->totpoly, mval[0], mval[1], brush->size);
 	}
 	else {
 		indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
@@ -1762,7 +1764,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			
 	if(vp->flag & VP_COLINDEX) {
 		for(index=0; index<totindex; index++) {
-			if(indexar[index] && indexar[index]<=me->totface) {
+			if(indexar[index] && indexar[index]<=me->totpoly) {
 				MPoly *mpoly= ((MPoly *)me->mpoly) + (indexar[index]-1);
 						
 				if(mpoly->mat_nr!=ob->actcol-1) {
@@ -1773,7 +1775,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	}
 	if((G.f & G_FACESELECT) && me->mface) {
 		for(index=0; index<totindex; index++) {
-			if(indexar[index] && indexar[index]<=me->totface) {
+			if(indexar[index] && indexar[index]<=me->totpoly) {
 				MPoly *mpoly= ((MPoly *)me->mpoly) + (indexar[index]-1);
 						
 				if((mpoly->flag & ME_FACE_SEL)==0)
@@ -1784,7 +1786,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			
 	for(index=0; index<totindex; index++) {
 				
-		if(indexar[index] && indexar[index]<=me->totface) {
+		if(indexar[index] && indexar[index]<=me->totpoly) {
 			MPoly *mpoly= ((MPoly *)me->mpoly) + (indexar[index]-1);
 			MFace *mf;
 			MCol *mc;
