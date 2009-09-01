@@ -774,8 +774,8 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 		{OB_BOUND_SPHERE, "SPHERE", 0, "Sphere", ""},
 		{OB_BOUND_CYLINDER, "CYLINDER", 0, "Cylinder", ""},
 		{OB_BOUND_CONE, "CONE", 0, "Cone", ""},
-		{OB_BOUND_POLYH, "CONVEX_HULL", 0, "Convex Hull", ""},
-		{OB_BOUND_POLYT, "TRIANGLE_MESH", 0, "Triangle Mesh", ""},
+		{OB_BOUND_POLYT, "CONVEX_HULL", 0, "Convex Hull", ""},
+		{OB_BOUND_POLYH, "TRIANGLE_MESH", 0, "Triangle Mesh", ""},
 		//{OB_DYN_MESH, "DYNAMIC_MESH", 0, "Dynamic Mesh", ""},
 		{0, NULL, 0, NULL, NULL}};
 

@@ -42,7 +42,7 @@ class VIEW3D_HT_header(bpy.types.Header):
 # ********** Utilities **********
 
 class VIEW3D_MT_showhide(bpy.types.Menu):
-	__space_type__ = "VIEW_3D"
+	__space_type__ = 'VIEW_3D'
 	__label__ = "Show/Hide"
 	_operator_name = ""
 
@@ -54,7 +54,7 @@ class VIEW3D_MT_showhide(bpy.types.Menu):
 		layout.item_booleanO("%s.hide" % self._operator_name, "unselected", True, text="Hide Unselected")
 
 class VIEW3D_MT_snap(bpy.types.Menu):
-	__space_type__ = "VIEW_3D"
+	__space_type__ = 'VIEW_3D'
 	__label__ = "Snap"
 
 	def draw(self, context):
@@ -136,7 +136,7 @@ class VIEW3D_MT_view_navigation(bpy.types.Menu):
 		layout.item_floatO("view3d.zoom", "delta", -1.0, text="Zoom Out")
 
 class VIEW3D_MT_view_align(bpy.types.Menu):
-	__space_type__ = "VIEW_3D"
+	__space_type__ = 'VIEW_3D'
 	__label__ = "Align View"
 
 	def draw(self, context):
@@ -145,7 +145,7 @@ class VIEW3D_MT_view_align(bpy.types.Menu):
 		layout.itemO("view3d.view_center")
 		
 class VIEW3D_MT_view_cameras(bpy.types.Menu):
-	__space_type__ = "VIEW_3D"
+	__space_type__ = 'VIEW_3D'
 	__label__ = "Cameras"
 
 	def draw(self, context):
@@ -580,7 +580,7 @@ class VIEW3D_MT_PARTICLE_showhide(VIEW3D_MT_showhide):
 # ********** Pose Menu **********
 
 class VIEW3D_MT_POSE(bpy.types.Menu):
-	__space_type__ = "VIEW_3D"
+	__space_type__ = 'VIEW_3D'
 	__label__ = "Pose"
 
 	def draw(self, context):
@@ -638,7 +638,7 @@ class VIEW3D_MT_POSE(bpy.types.Menu):
 		layout.item_menu_enumO("pose.flags_set", 'mode', text="Bone Settings")
 
 class VIEW3D_MT_POSE_transform(bpy.types.Menu):
-	__space_type__ = "VIEW_3D"
+	__space_type__ = 'VIEW_3D'
 	__label__ = "Clear Transform"
 
 	def draw(self, context):
@@ -653,7 +653,7 @@ class VIEW3D_MT_POSE_transform(bpy.types.Menu):
 		layout.itemL(text="Origin")
 		
 class VIEW3D_MT_POSE_pose(bpy.types.Menu):
-	__space_type__ = "VIEW_3D"
+	__space_type__ = 'VIEW_3D'
 	__label__ = "Pose Library"
 
 	def draw(self, context):
@@ -668,7 +668,7 @@ class VIEW3D_MT_POSE_pose(bpy.types.Menu):
 		layout.itemO("poselib.pose_remove", text="Remove Pose...")
 
 class VIEW3D_MT_POSE_motion(bpy.types.Menu):
-	__space_type__ = "VIEW_3D"
+	__space_type__ = 'VIEW_3D'
 	__label__ = "Motion Paths"
 
 	def draw(self, context):
@@ -678,7 +678,7 @@ class VIEW3D_MT_POSE_motion(bpy.types.Menu):
 		layout.itemO("pose.paths_clear", text="Clear")
 		
 class VIEW3D_MT_POSE_group(bpy.types.Menu):
-	__space_type__ = "VIEW_3D"
+	__space_type__ = 'VIEW_3D'
 	__label__ = "Bone Groups"
 
 	def draw(self, context):
@@ -693,7 +693,7 @@ class VIEW3D_MT_POSE_group(bpy.types.Menu):
 		
 		
 class VIEW3D_MT_POSE_ik(bpy.types.Menu):
-	__space_type__ = "VIEW_3D"
+	__space_type__ = 'VIEW_3D'
 	__label__ = "Inverse Kinematics"
 
 	def draw(self, context):
@@ -703,7 +703,7 @@ class VIEW3D_MT_POSE_ik(bpy.types.Menu):
 		layout.itemO("pose.ik_clear")
 		
 class VIEW3D_MT_POSE_constraints(bpy.types.Menu):
-	__space_type__ = "VIEW_3D"
+	__space_type__ = 'VIEW_3D'
 	__label__ = "Constraints"
 
 	def draw(self, context):
