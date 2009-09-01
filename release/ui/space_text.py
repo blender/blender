@@ -5,9 +5,10 @@ class TEXT_HT_header(bpy.types.Header):
 	__space_type__ = 'TEXT_EDITOR'
 
 	def draw(self, context):
+		layout = self.layout
+		
 		st = context.space_data
 		text = st.text
-		layout = self.layout
 
 		row = layout.row(align=True)
 		row.template_header()
@@ -50,8 +51,9 @@ class TEXT_PT_properties(bpy.types.Panel):
 	__label__ = "Properties"
 
 	def draw(self, context):
-		st = context.space_data
 		layout = self.layout
+		
+		st = context.space_data
 
 		flow = layout.column_flow()
 		flow.itemR(st, "line_numbers")
@@ -69,8 +71,9 @@ class TEXT_PT_find(bpy.types.Panel):
 	__label__ = "Find"
 
 	def draw(self, context):
-		st = context.space_data
 		layout = self.layout
+		
+		st = context.space_data
 
 		# find
 		col = layout.column(align=True)
@@ -100,6 +103,7 @@ class TEXT_MT_text(bpy.types.Menu):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		st = context.space_data
 		text = st.text
 
@@ -200,8 +204,7 @@ class TEXT_MT_edit(bpy.types.Menu):
 	__label__ = "Edit"
 
 	def poll(self, context):
-		st = context.space_data
-		return st.text != None
+		return (context.space_data.text)
 
 	def draw(self, context):
 		layout = self.layout
@@ -240,4 +243,3 @@ bpy.types.register(TEXT_MT_edit_view)
 bpy.types.register(TEXT_MT_edit_select)
 bpy.types.register(TEXT_MT_edit_markers)
 bpy.types.register(TEXT_MT_edit_to3d)
-

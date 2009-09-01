@@ -77,12 +77,10 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel):
 		return (context.soft_body)
 		
 	def draw_header(self, context):
-		layout = self.layout
-		
 		softbody = context.soft_body.settings
 	
-		layout.active = softbody_panel_enabled(context.soft_body)
-		layout.itemR(softbody, "use_goal", text="")
+		self.layout.active = softbody_panel_enabled(context.soft_body)
+		self.layout.itemR(softbody, "use_goal", text="")
 		
 	def draw(self, context):
 		layout = self.layout
@@ -120,12 +118,10 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel):
 		return (context.soft_body)
 		
 	def draw_header(self, context):
-		#layout = self.layout
-		
 		softbody = context.soft_body.settings
 	
-		layout.active = softbody_panel_enabled(context.soft_body)
-		layout.itemR(softbody, "use_edges", text="")
+		self.layout.active = softbody_panel_enabled(context.soft_body)
+		self.layout.itemR(softbody, "use_edges", text="")
 		
 	def draw(self, context):
 		layout = self.layout
@@ -170,12 +166,10 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel):
 		return (context.soft_body)
 		
 	def draw_header(self, context):
-		layout = self.layout
-		
 		softbody = context.soft_body.settings
 	
-		layout.active = softbody_panel_enabled(context.soft_body)
-		layout.itemR(softbody, "self_collision", text="")
+		self.layout.active = softbody_panel_enabled(context.soft_body)
+		self.layout.itemR(softbody, "self_collision", text="")
 		
 	def draw(self, context):
 		layout = self.layout

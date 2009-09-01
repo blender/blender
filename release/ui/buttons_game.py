@@ -45,10 +45,9 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 			
 			col = split.column()
 			col.itemL(text="Attributes:")
-			sub = col.column()
-			sub.itemR(game, "mass")
-			sub.itemR(game, "radius")
-			sub.itemR(game, "form_factor")
+			col.itemR(game, "mass")
+			col.itemR(game, "radius")
+			col.itemR(game, "form_factor")
 			
 			col = split.column()
 			sub = col.column()
@@ -108,8 +107,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 			col.itemR(soft, "dynamic_friction", slider=True)
 			col.itemR(soft, "margin", slider=True)
 			col.itemR(soft, "bending_const", text="Bending Constraints")
-			
-			
+
 			col = split.column()
 			col.itemR(soft, "shape_match")
 			sub = col.column()
@@ -134,32 +132,26 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel):
 			
 		elif game.physics_type in ('SENSOR', 'INVISIBLE', 'NO_COLLISION', 'OCCLUDE'):
 			
-			col = layout.column()
-			col.itemR(ob, "restrict_render", text="Invisible")
+			layout.itemR(ob, "restrict_render", text="Invisible")
 			
 class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel):
 	__label__ = "Collision Bounds"
 
 	def poll(self, context):
-		ob = context.active_object
-		game = ob.game
+		game = context.object.game
 		rd = context.scene.render_data
 		return (game.physics_type in ('DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC')) and (rd.engine == 'BLENDER_GAME')
 
 	def draw_header(self, context):
-		layout = self.layout
-		
-		ob = context.active_object
-		game = ob.game
+		game = context.active_object.game
 
-		layout.itemR(game, "use_collision_bounds", text="")
+		self.layout.itemR(game, "use_collision_bounds", text="")
 	
 	def draw(self, context):
 		layout = self.layout
 		
-		ob = context.scene.objects[0]
-		game = ob.game
-		
+		game = context.active_object.game
+
 		layout.active = game.use_collision_bounds
 		layout.itemR(game, "collision_bounds", text="Bounds")
 		
@@ -184,8 +176,6 @@ class SCENE_PT_game(SceneButtonsPanel):
 
 	def draw(self, context):
 		layout = self.layout
-		
-		rd = context.scene.render_data
 
 		row = layout.row()
 		row.itemO("view3d.game_start", text="Start")

@@ -27,6 +27,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
 	# the mt.type enum is (ab)used for a lookup on function names
 	# ...to avoid lengthy if statements
 	# so each type must have a function here.
+
 	def ARMATURE(self, layout, ob, md):
 		layout.itemR(md, "object")
 		

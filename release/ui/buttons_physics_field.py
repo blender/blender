@@ -8,7 +8,7 @@ class PhysicButtonsPanel(bpy.types.Panel):
 
 	def poll(self, context):
 		rd = context.scene.render_data
-		return (context.object != None) and (not rd.use_game_engine)
+		return (context.object) and (not rd.use_game_engine)
 		
 class PHYSICS_PT_field(PhysicButtonsPanel):
 	__label__ = "Force Fields"

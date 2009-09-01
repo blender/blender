@@ -8,18 +8,16 @@ class MaterialButtonsPanel(bpy.types.Panel):
 	# COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
 	def poll(self, context):
-		return (context.material) and (context.scene.render_data.engine in self.COMPAT_ENGINES)
+		mat = context.material
+		engine = context.scene.render_data.engine
+		return mat and (engine in self.COMPAT_ENGINES)
 
 class MATERIAL_PT_preview(MaterialButtonsPanel):
 	__label__ = "Preview"
 	COMPAT_ENGINES = set(['BLENDER_RENDER', 'BLENDER_GAME'])
 
 	def draw(self, context):
-		layout = self.layout
-		
-		mat = context.material
-		
-		layout.template_preview(mat)
+		self.layout.template_preview(context.material)
 		
 class MATERIAL_PT_context_material(MaterialButtonsPanel):
 	__show_header__ = False
@@ -83,32 +81,27 @@ class MATERIAL_PT_shading(MaterialButtonsPanel):
 		layout = self.layout
 		
 		mat = context.material
-		ob = context.object
-		slot = context.material_slot
-		space = context.space_data
 
-		if mat:
-
-			if mat.type in ('SURFACE', 'WIRE'):
-				split = layout.split()
+		if mat.type in ('SURFACE', 'WIRE'):
+			split = layout.split()
 	
-				col = split.column()
-				sub = col.column()
-				sub.active = not mat.shadeless
-				sub.itemR(mat, "emit")
-				sub.itemR(mat, "ambient")
-				sub = col.column()
-				sub.itemR(mat, "translucency")
+			col = split.column()
+			sub = col.column()
+			sub.active = not mat.shadeless
+			sub.itemR(mat, "emit")
+			sub.itemR(mat, "ambient")
+			sub = col.column()
+			sub.itemR(mat, "translucency")
 				
-				col = split.column()
-				col.itemR(mat, "shadeless")	
-				sub = col.column()
-				sub.active = not mat.shadeless
-				sub.itemR(mat, "tangent_shading")
-				sub.itemR(mat, "cubic")
+			col = split.column()
+			col.itemR(mat, "shadeless")	
+			sub = col.column()
+			sub.active = not mat.shadeless
+			sub.itemR(mat, "tangent_shading")
+			sub.itemR(mat, "cubic")
 				
-			elif mat.type == 'HALO':
-				layout.itemR(mat, "alpha")
+		elif mat.type == 'HALO':
+			layout.itemR(mat, "alpha")
 			
 class MATERIAL_PT_strand(MaterialButtonsPanel):
 	__label__ = "Strand"
@@ -158,8 +151,7 @@ class MATERIAL_PT_physics(MaterialButtonsPanel):
 	def draw(self, context):
 		layout = self.layout
 		
-		mat = context.material
-		phys = mat.physics
+		phys = context.material.physics
 		
 		split = layout.split()
 		
@@ -363,12 +355,11 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
 		return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in self.COMPAT_ENGINES)
 
 	def draw_header(self, context):
-		layout = self.layout
 		sss = context.material.subsurface_scattering
 		mat = context.material
 		
-		layout.active = (not mat.shadeless)
-		layout.itemR(sss, "enabled", text="")
+		self.layout.active = (not mat.shadeless)
+		self.layout.itemR(sss, "enabled", text="")
 	
 	def draw(self, context):
 		layout = self.layout
@@ -408,12 +399,10 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel):
 		engine = context.scene.render_data.engine
 		return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in self.COMPAT_ENGINES)
 	
-	def draw_header(self, context):
-		layout = self.layout
-		
+	def draw_header(self, context):	
 		raym = context.material.raytrace_mirror
 
-		layout.itemR(raym, "enabled", text="")
+		self.layout.itemR(raym, "enabled", text="")
 	
 	def draw(self, context):
 		layout = self.layout
@@ -465,11 +454,9 @@ class MATERIAL_PT_transp(MaterialButtonsPanel):
 		engine = context.scene.render_data.engine
 		return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in self.COMPAT_ENGINES)
 
-	def draw_header(self, context):
-		layout = self.layout
-		
+	def draw_header(self, context):	
 		mat = context.material
-		layout.itemR(mat, "transparency", text="")
+		self.layout.itemR(mat, "transparency", text="")
 
 	def draw(self, context):
 		layout = self.layout
@@ -477,15 +464,14 @@ class MATERIAL_PT_transp(MaterialButtonsPanel):
 		mat = context.material
 		rayt = context.material.raytrace_transparency
 		
-		row= layout.row()
-		row.itemR(mat, "transparency_method", expand=True)
+		row = layout.row()
 		row.active = mat.transparency and (not mat.shadeless)
+		row.itemR(mat, "transparency_method", expand=True)
 		
 		split = layout.split()
 		
 		col = split.column()
-		row = col.row()
-		row.itemR(mat, "alpha")
+		col.itemR(mat, "alpha")
 		row = col.row()
 		row.active = mat.transparency and (not mat.shadeless)
 		row.itemR(mat, "specular_alpha", text="Specular")
@@ -517,129 +503,6 @@ class MATERIAL_PT_transp(MaterialButtonsPanel):
 			sub.itemR(rayt, "gloss_threshold", text="Threshold")
 			sub.itemR(rayt, "gloss_samples", text="Samples")
 
-class MATERIAL_PT_volume_shading(MaterialButtonsPanel):
-	__label__ = "Shading"
-	__default_closed__ = False
-	COMPAT_ENGINES = set(['BLENDER_RENDER'])
-	
-	def poll(self, context):
-		mat = context.material
-		engine = context.scene.render_data.engine
-		return mat and (mat.type == 'VOLUME') and (engine in self.COMPAT_ENGINES)
-	
-	def draw(self, context):
-		layout = self.layout
-
-		mat = context.material
-		vol = context.material.volume
-		
-		split = layout.split()
-		
-		row = split.row()
-		row.itemR(vol, "density")
-		row.itemR(vol, "scattering")
-		
-		split = layout.split()
-		col = split.column()
-		col.itemR(vol, "absorption")
-		col.itemR(vol, "absorption_color", text="")
-
-		col = split.column()
-		col.itemR(vol, "emission")
-		col.itemR(vol, "emission_color", text="")
-
-class MATERIAL_PT_volume_scattering(MaterialButtonsPanel):
-	__label__ = "Scattering"
-	__default_closed__ = False
-	COMPAT_ENGINES = set(['BLENDER_RENDER'])
-	
-	def poll(self, context):
-		mat = context.material
-		engine = context.scene.render_data.engine
-		return mat and (mat.type == 'VOLUME') and (engine in self.COMPAT_ENGINES)
-	
-	def draw(self, context):
-		layout = self.layout
-		
-		mat = context.material
-		vol = context.material.volume
-		
-		split = layout.split()
-		
-		col = split.column()
-		col.itemR(vol, "scattering_mode", text="")
-		if vol.scattering_mode == 'SINGLE_SCATTERING':
-			col.itemR(vol, "light_cache")
-			sub = col.column()
-			sub.active = vol.light_cache
-			sub.itemR(vol, "cache_resolution")
-		elif vol.scattering_mode in ('MULTIPLE_SCATTERING', 'SINGLE_PLUS_MULTIPLE_SCATTERING'):
-			col.itemR(vol, "cache_resolution")
-			
-			col = col.column(align=True)
-			col.itemR(vol, "ms_diffusion")
-			col.itemR(vol, "ms_spread")
-			col.itemR(vol, "ms_intensity")
-		
-		col = split.column()
-		# col.itemL(text="Anisotropic Scattering:")
-		col.itemR(vol, "phase_function", text="")
-		if vol.phase_function in ('SCHLICK', 'HENYEY-GREENSTEIN'):
-			col.itemR(vol, "asymmetry")
-
-class MATERIAL_PT_volume_transp(MaterialButtonsPanel):
-	__label__= "Transparency"
-	COMPAT_ENGINES = set(['BLENDER_RENDER'])
-		
-	def poll(self, context):
-		mat = context.material
-		engine = context.scene.render_data.engine
-		return mat and (mat.type == 'VOLUME') and (engine in self.COMPAT_ENGINES)
-
-	def draw_header(self, context):
-		layout = self.layout
-
-	def draw(self, context):
-		layout = self.layout
-		
-		mat = context.material
-		rayt = context.material.raytrace_transparency
-		
-		row= layout.row()
-		row.itemR(mat, "transparency_method", expand=True)
-		row.active = mat.transparency and (not mat.shadeless)
-		
-class MATERIAL_PT_volume_integration(MaterialButtonsPanel):
-	__label__ = "Integration"
-	__default_closed__ = False
-	COMPAT_ENGINES = set(['BLENDER_RENDER'])
-	
-	def poll(self, context):
-		mat = context.material
-		engine = context.scene.render_data.engine
-		return mat and (mat.type == 'VOLUME') and (engine in self.COMPAT_ENGINES)
-	
-	def draw(self, context):
-		layout = self.layout
-		
-		mat = context.material
-		vol = context.material.volume
-		
-		split = layout.split()
-		
-		col = split.column()
-		col.itemL(text="Step Calculation:")
-		col.itemR(vol, "step_calculation", text="")
-		col = col.column(align=True)
-		col.itemR(vol, "step_size")
-		col.itemR(vol, "shading_step_size")
-		
-		col = split.column()
-		col.itemL()
-		col.itemR(vol, "depth_cutoff")
-		col.itemR(vol, "density_scale")
-		
-		
 class MATERIAL_PT_halo(MaterialButtonsPanel):
 	__label__= "Halo"
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
@@ -720,7 +583,7 @@ class MATERIAL_PT_flare(MaterialButtonsPanel):
 		col = split.column()
 		col.itemR(halo, "flares_sub", text="Subflares")
 		col.itemR(halo, "flare_subsize", text="Subsize")
-
+		
 bpy.types.register(MATERIAL_PT_context_material)
 bpy.types.register(MATERIAL_PT_preview)
 bpy.types.register(MATERIAL_PT_diffuse)
@@ -729,13 +592,122 @@ bpy.types.register(MATERIAL_PT_shading)
 bpy.types.register(MATERIAL_PT_transp)
 bpy.types.register(MATERIAL_PT_mirror)
 bpy.types.register(MATERIAL_PT_sss)
-bpy.types.register(MATERIAL_PT_volume_shading)
-bpy.types.register(MATERIAL_PT_volume_scattering)
-bpy.types.register(MATERIAL_PT_volume_transp)
-bpy.types.register(MATERIAL_PT_volume_integration)
 bpy.types.register(MATERIAL_PT_halo)
 bpy.types.register(MATERIAL_PT_flare)
 bpy.types.register(MATERIAL_PT_physics)
 bpy.types.register(MATERIAL_PT_strand)
 bpy.types.register(MATERIAL_PT_options)
 bpy.types.register(MATERIAL_PT_shadow)
+
+# Volumetrics
+class VolumeButtonsPanel(bpy.types.Panel):
+	__space_type__ = 'PROPERTIES'
+	__region_type__ = 'WINDOW'
+	__context__ = "material"
+
+	def poll(self, context):
+		mat = context.material
+		engine = context.scene.render_data.engine
+		return mat and (mat.type == 'VOLUME') and (engine in self.COMPAT_ENGINES)
+		
+class MATERIAL_PT_volume_shading(VolumeButtonsPanel):
+	__label__ = "Shading"
+	__default_closed__ = False
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
+
+	def draw(self, context):
+		layout = self.layout
+
+		mat = context.material
+		vol = context.material.volume
+		
+		row = layout.row()
+		row.itemR(vol, "density")
+		row.itemR(vol, "scattering")
+
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(vol, "absorption")
+		col.itemR(vol, "absorption_color", text="")
+
+		col = split.column()
+		col.itemR(vol, "emission")
+		col.itemR(vol, "emission_color", text="")
+
+class MATERIAL_PT_volume_scattering(VolumeButtonsPanel):
+	__label__ = "Scattering"
+	__default_closed__ = False
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
+
+	def draw(self, context):
+		layout = self.layout
+		
+		vol = context.material.volume
+		
+		split = layout.split()
+		
+		col = split.column()
+		col.itemR(vol, "scattering_mode", text="")
+		if vol.scattering_mode == 'SINGLE_SCATTERING':
+			col.itemR(vol, "light_cache")
+			sub = col.column()
+			sub.active = vol.light_cache
+			sub.itemR(vol, "cache_resolution")
+		elif vol.scattering_mode in ('MULTIPLE_SCATTERING', 'SINGLE_PLUS_MULTIPLE_SCATTERING'):
+			col.itemR(vol, "cache_resolution")
+			
+			col = col.column(align=True)
+			col.itemR(vol, "ms_diffusion")
+			col.itemR(vol, "ms_spread")
+			col.itemR(vol, "ms_intensity")
+		
+		col = split.column()
+		# col.itemL(text="Anisotropic Scattering:")
+		col.itemR(vol, "phase_function", text="")
+		if vol.phase_function in ('SCHLICK', 'HENYEY-GREENSTEIN'):
+			col.itemR(vol, "asymmetry")
+
+class MATERIAL_PT_volume_transp(VolumeButtonsPanel):
+	__label__= "Transparency"
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
+
+	def draw(self, context):
+		layout = self.layout
+		
+		mat = context.material
+		rayt = context.material.raytrace_transparency
+		
+		row= layout.row()
+		row.itemR(mat, "transparency_method", expand=True)
+		row.active = mat.transparency and (not mat.shadeless)
+		
+class MATERIAL_PT_volume_integration(VolumeButtonsPanel):
+	__label__ = "Integration"
+	__default_closed__ = False
+	COMPAT_ENGINES = set(['BLENDER_RENDER'])
+
+	def draw(self, context):
+		layout = self.layout
+		
+		mat = context.material
+		vol = context.material.volume
+		
+		split = layout.split()
+		
+		col = split.column()
+		col.itemL(text="Step Calculation:")
+		col.itemR(vol, "step_calculation", text="")
+		col = col.column(align=True)
+		col.itemR(vol, "step_size")
+		col.itemR(vol, "shading_step_size")
+		
+		col = split.column()
+		col.itemL()
+		col.itemR(vol, "depth_cutoff")
+		col.itemR(vol, "density_scale")
+
+bpy.types.register(MATERIAL_PT_volume_shading)
+bpy.types.register(MATERIAL_PT_volume_scattering)
+bpy.types.register(MATERIAL_PT_volume_transp)
+bpy.types.register(MATERIAL_PT_volume_integration)

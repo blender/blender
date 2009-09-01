@@ -323,11 +323,9 @@ class SCENE_PT_antialiasing(RenderButtonsPanel):
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw_header(self, context):
-		layout = self.layout
-		
 		rd = context.scene.render_data
 
-		layout.itemR(rd, "antialiasing", text="")
+		self.layout.itemR(rd, "antialiasing", text="")
 
 	def draw(self, context):
 		layout = self.layout
@@ -391,11 +389,9 @@ class SCENE_PT_stamp(RenderButtonsPanel):
 	COMPAT_ENGINES = set(['BLENDER_RENDER'])
 
 	def draw_header(self, context):
-		layout = self.layout
-		
 		rd = context.scene.render_data
 
-		layout.itemR(rd, "render_stamp", text="")
+		self.layout.itemR(rd, "render_stamp", text="")
 
 	def draw(self, context):
 		layout = self.layout

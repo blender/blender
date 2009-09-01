@@ -38,29 +38,29 @@ class DATA_PT_shape_text(DataButtonsPanel):
 		curve = context.curve
 		space = context.space_data
 
-		if curve:
-			layout.itemR(curve, "curve_2d")			
+
+		layout.itemR(curve, "curve_2d")			
 							
-			split = layout.split()
+		split = layout.split()
 		
-			col = split.column()
-			col.itemL(text="Caps:")
-			col.itemR(curve, "front")
-			col.itemR(curve, "back")
-			col.itemL(text="Textures:")
-			col.itemR(curve, "uv_orco")
-			col.itemR(curve, "auto_texspace")
+		col = split.column()
+		col.itemL(text="Caps:")
+		col.itemR(curve, "front")
+		col.itemR(curve, "back")
+		col.itemL(text="Textures:")
+		col.itemR(curve, "uv_orco")
+		col.itemR(curve, "auto_texspace")
 			
-			col = split.column()	
-			col.itemL(text="Resolution:")
-			sub = col.column(align=True)
-			sub.itemR(curve, "resolution_u", text="Preview U")
-			sub.itemR(curve, "render_resolution_u", text="Render U")
-			sub = col.column(align=True)
-			sub.itemR(curve, "resolution_v", text="Preview V")
-			sub.itemR(curve, "render_resolution_v", text="Render V")
-			col.itemL(text="Display:")
-			col.itemR(curve, "fast")
+		col = split.column()	
+		col.itemL(text="Resolution:")
+		sub = col.column(align=True)
+		sub.itemR(curve, "resolution_u", text="Preview U")
+		sub.itemR(curve, "render_resolution_u", text="Render U")
+		sub = col.column(align=True)
+		sub.itemR(curve, "resolution_v", text="Preview V")
+		sub.itemR(curve, "render_resolution_v", text="Render V")
+		col.itemL(text="Display:")
+		col.itemR(curve, "fast")
 
 class DATA_PT_geometry_text(DataButtonsPanel):
 	__label__ = "Geometry"

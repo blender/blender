@@ -6,6 +6,7 @@ class NODE_HT_header(bpy.types.Header):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		snode = context.space_data
 
 		row = layout.row(align=True)
@@ -113,9 +114,7 @@ class NODE_MT_node(bpy.types.Menu):
 		# layout.itemS()
 		# layout.itemO("node.show_cyclic_dependencies")
 
-
 bpy.types.register(NODE_HT_header)
 bpy.types.register(NODE_MT_view)
 bpy.types.register(NODE_MT_select)
 bpy.types.register(NODE_MT_node)
-

@@ -77,6 +77,7 @@ class BONE_PT_bone(BoneButtonsPanel):
 		ob = context.object
 		bone = context.bone
 		arm = context.armature
+		
 		if not bone:
 			bone = context.edit_bone
 		else:
@@ -192,18 +193,18 @@ class BONE_PT_deform(BoneButtonsPanel):
 	__default_closed__ = True
 
 	def draw_header(self, context):
-		layout = self.layout
-		
 		bone = context.bone
+		
 		if not bone:
 			bone = context.edit_bone
 			
-		layout.itemR(bone, "deform", text="")
+		self.layout.itemR(bone, "deform", text="")
 
 	def draw(self, context):
 		layout = self.layout
 		
 		bone = context.bone
+		
 		if not bone:
 			bone = context.edit_bone
 	

@@ -79,6 +79,8 @@ class INFO_MT_file_import(bpy.types.Menu):
 
 	def draw(self, context):
 		layout = self.layout
+		
+		layout.itemL(text="Nothing yet")
 
 class INFO_MT_file_export(bpy.types.Menu):
 	__space_type__ = 'INFO'

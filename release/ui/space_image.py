@@ -7,6 +7,7 @@ class IMAGE_MT_view(bpy.types.Menu):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		sima = context.space_data
 		uv = sima.uv_editor
 		settings = context.tool_settings
@@ -69,6 +70,7 @@ class IMAGE_MT_image(bpy.types.Menu):
 
 	def draw(self, context):
 		layout = self.layout
+
 		sima = context.space_data
 		ima = sima.image
 
@@ -148,13 +150,13 @@ class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
 		layout.itemO("uv.weld") # W, 1
 		layout.items_enumO("uv.align", "axis") # W, 2/3/4
 
-
 class IMAGE_MT_uvs(bpy.types.Menu):
 	__space_type__ = 'IMAGE_EDITOR'
 	__label__ = "UVs"
 
 	def draw(self, context):
 		layout = self.layout
+		
 		sima = context.space_data
 		uv = sima.uv_editor
 		settings = context.tool_settings
@@ -195,10 +197,11 @@ class IMAGE_HT_header(bpy.types.Header):
 	__space_type__ = 'IMAGE_EDITOR'
 
 	def draw(self, context):
+		layout = self.layout
+		
 		sima = context.space_data
 		ima = sima.image
 		iuser = sima.image_user
-		layout = self.layout
 		settings = context.tool_settings
 
 		show_render = sima.show_render
@@ -281,38 +284,34 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
 		return (sima and sima.image) and (rd.engine == 'BLENDER_GAME')
 
 	def draw(self, context):
-		sima = context.space_data
 		layout = self.layout
-
+		
+		sima = context.space_data
 		ima = sima.image
 
-		if ima:
-			split = layout.split()
+		split = layout.split()
 
-			col = split.column()
+		col = split.column()
+		col.itemR(ima, "clamp_x")
+		col.itemR(ima, "clamp_y")
+		col.itemR(ima, "mapping", expand=True)
+		col.itemR(ima, "tiles")
 
-			subcol = col.column(align=True)
-			subcol.itemR(ima, "clamp_x")
-			subcol.itemR(ima, "clamp_y")
+		col = split.column()
 
-			col.itemR(ima, "mapping", expand=True)
-			col.itemR(ima, "tiles")
+		sub = col.column(align=True)
+		sub.itemR(ima, "animated")
 
-			col = split.column()
+		subsub = sub.column()
+		subsub.active = ima.animated
+		subsub.itemR(ima, "animation_start", text="Start")
+		subsub.itemR(ima, "animation_end", text="End")
+		subsub.itemR(ima, "animation_speed", text="Speed")
 
-			subcol = col.column(align=True)
-			subcol.itemR(ima, "animated")
-
-			subcol = subcol.column()
-			subcol.itemR(ima, "animation_start", text="Start")
-			subcol.itemR(ima, "animation_end", text="End")
-			subcol.itemR(ima, "animation_speed", text="Speed")
-			subcol.active = ima.animated
-
-			subrow = col.row(align=True)
-			subrow.itemR(ima, "tiles_x", text="X")
-			subrow.itemR(ima, "tiles_y", text="Y")
-			subrow.active = ima.tiles or ima.animated
+		sub = col.row(align=True)
+		sub.active = ima.tiles or ima.animated
+		sub.itemR(ima, "tiles_x", text="X")
+		sub.itemR(ima, "tiles_y", text="Y")
 
 class IMAGE_PT_view_properties(bpy.types.Panel):
 	__space_type__ = 'IMAGE_EDITOR'
@@ -324,9 +323,9 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
 		return (sima and (sima.image or sima.show_uvedit))
 
 	def draw(self, context):
-		sima = context.space_data
 		layout = self.layout
-
+		
+		sima = context.space_data
 		ima = sima.image
 		show_uvedit = sima.show_uvedit
 		uvedit = sima.uv_editor
@@ -376,4 +375,3 @@ bpy.types.register(IMAGE_MT_uvs)
 bpy.types.register(IMAGE_HT_header)
 bpy.types.register(IMAGE_PT_game_properties)
 bpy.types.register(IMAGE_PT_view_properties)
-

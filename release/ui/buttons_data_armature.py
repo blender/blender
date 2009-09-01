@@ -83,7 +83,7 @@ class DATA_PT_bone_groups(DataButtonsPanel):
 		layout = self.layout
 		
 		ob = context.object
-		pose= ob.pose
+		pose = ob.pose
 		
 		row = layout.row()
 		row.template_list(pose, "bone_groups", pose, "active_bone_group_index")

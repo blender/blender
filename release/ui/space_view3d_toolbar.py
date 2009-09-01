@@ -420,10 +420,11 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel):
 							 context.texture_paint_object))
 
 	def draw(self, context):
+		layout = self.layout
+		
 		settings = self.paint_settings(context)
 		brush = settings.brush
 		texture_paint = context.texture_paint_object
-		layout = self.layout
 
 		if not texture_paint:
 			layout.itemR(brush, "smooth_stroke")
@@ -444,7 +445,6 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel):
 		col.active = brush.airbrush
 		col.itemR(brush, "rate", slider=True)
 
-
 class VIEW3D_PT_tools_brush_curve(PaintPanel):
 	__label__ = "Curve"
 	__default_closed__ = True
@@ -454,9 +454,10 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel):
 		return (settings and settings.brush and settings.brush.curve)
 
 	def draw(self, context):
+		layout = self.layout
+		
 		settings = self.paint_settings(context)
 		brush = settings.brush
-		layout = self.layout
 
 		layout.template_curve_mapping(brush.curve)
 		layout.item_menu_enumO("brush.curve_preset", property="shape")
@@ -469,6 +470,7 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		sculpt = context.tool_settings.sculpt
 
 		col = layout.column()
@@ -497,6 +499,7 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		wpaint = context.tool_settings.weight_paint
 
 		col = layout.column()
@@ -524,6 +527,7 @@ class VIEW3D_PT_tools_vertexpaint(View3DPanel):
 
 	def draw(self, context):
 		layout = self.layout
+		
 		vpaint = context.tool_settings.vertex_paint
 
 		col = layout.column()
@@ -598,6 +602,7 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
 
 	def draw(self, context):
 		layout = self.layout
+
 		pe = context.tool_settings.particle_edit
 		ob = pe.object
 
