@@ -98,7 +98,9 @@ static void mesh_ensure_tesselation_customdata(Mesh *me)
 	{
 		CustomData_free(&me->fdata, me->totface);
 		
-		me->mface = (void*)me->mtface = (void*)me->mcol = NULL;
+		me->mface = NULL;
+		mt->mtface = NULL;
+		me->mcol = NULL;
 		me->totface = 0;
 
 		memset(&me->fdata, 0, sizeof(&me->fdata));
