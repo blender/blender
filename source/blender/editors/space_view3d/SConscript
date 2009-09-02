@@ -9,6 +9,7 @@ incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../render/extern/include #/intern/guardedalloc'
 incs += ' ../../gpu ../../makesrna ../../blenfont'
 incs += ' #/intern/smoke/extern'
+incs += ' #source/kernel/gen_system'
 
 if env['WITH_BF_GAMEENGINE']:
 	defs.append('GAMEBLENDER=1')
