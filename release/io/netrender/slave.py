@@ -27,24 +27,10 @@ def testCancel(conn, job_id):
 			return False
 
 def testFile(conn, JOB_PREFIX, file_path, main_path = None):
-	if os.path.isabs(file_path):
-		# if an absolute path, make sure path exists, if it doesn't, use relative local path
-		job_full_path = file_path
-		if not os.path.exists(job_full_path):
-			p, n = os.path.split(job_full_path)
-			
-			if main_path and p.startswith(main_path):
-				directory = JOB_PREFIX + p[len(main_path):]
-				job_full_path = directory + n
-				if not os.path.exists(directory):
-					os.mkdir(directory)
-			else:
-				job_full_path = JOB_PREFIX + n
-	else:
-		job_full_path = JOB_PREFIX + file_path
+	job_full_path = prefixPath(JOB_PREFIX, file_path, main_path)
 	
 	if not os.path.exists(job_full_path):
-		conn.request("GET", "file", headers={"job-id": job.id, "slave-id":slave_id})
+		conn.request("GET", "file", headers={"job-id": job.id, "slave-id":slave_id, "job-file":file_path})
 		response = conn.getresponse()
 		
 		if response.status != http.client.OK:
@@ -76,7 +62,7 @@ def render_slave(engine, scene):
 		
 		slave_id = response.getheader("slave-id")
 		
-		NODE_PREFIX = netsettings.path + "node_" + slave_id + os.sep
+		NODE_PREFIX = netsettings.path + "slave_" + slave_id + os.sep
 		if not os.path.exists(NODE_PREFIX):
 			os.mkdir(NODE_PREFIX)
 	

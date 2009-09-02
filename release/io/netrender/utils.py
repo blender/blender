@@ -53,11 +53,22 @@ def clientSendJob(conn, scene, anim = False, chunks = 5):
 	filename = bpy.data.filename
 	job.files.append(filename)
 	
-	name = netsettings.job_name
-	if name == "[default]":
-		path, name = os.path.split(filename)
+	job_name = netsettings.job_name
+	path, name = os.path.split(filename)
+	if job_name == "[default]":
+		job_name = name
 	
-	job.name = name
+	for lib in bpy.data.libraries:
+		lib_path = lib.filename
+		
+		if lib_path.startswith("//"):
+			lib_path = path + os.sep + lib_path[2:]
+			
+		job.files.append(lib_path)
+	
+	print(job.files)
+	
+	job.name = job_name
 	
 	for slave in scene.network_render.slaves_blacklist:
 		job.blacklist.append(slave.id)
@@ -71,12 +82,13 @@ def clientSendJob(conn, scene, anim = False, chunks = 5):
 	
 	job_id = response.getheader("job-id")
 	
-	# if not found, send whole file
-	if response.status == http.client.NOT_FOUND:
-		f = open(bpy.data.filename, "rb")
-		conn.request("PUT", "file", f, headers={"job-id": job_id})
-		f.close()
-		response = conn.getresponse()
+	# if not ACCEPTED (but not processed), send files
+	if response.status == http.client.ACCEPTED:
+		for filepath in job.files:
+			f = open(filepath, "rb")
+			conn.request("PUT", "file", f, headers={"job-id": job_id, "job-file": filepath})
+			f.close()
+			response = conn.getresponse()
 	
 	# server will reply with NOT_FOUD until all files are found
 	
@@ -84,3 +96,23 @@ def clientSendJob(conn, scene, anim = False, chunks = 5):
 
 def clientRequestResult(conn, scene, job_id):
 	conn.request("GET", "render", headers={"job-id": job_id, "job-frame":str(scene.current_frame)})
+
+
+def prefixPath(prefix_directory, file_path, prefix_path):
+	if os.path.isabs(file_path):
+		# if an absolute path, make sure path exists, if it doesn't, use relative local path
+		full_path = file_path
+		if not os.path.exists(full_path):
+			p, n = os.path.split(full_path)
+			
+			if main_path and p.startswith(main_path):
+				directory = prefix_directory + p[len(main_path):]
+				full_path = directory + n
+				if not os.path.exists(directory):
+					os.mkdir(directory)
+			else:
+				full_path = prefix_directory + n
+	else:
+		full_path = prefix_directory + file_path
+	
+	return full_path

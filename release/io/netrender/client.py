@@ -69,7 +69,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 			x= int(r.resolution_x*r.resolution_percentage*0.01)
 			y= int(r.resolution_y*r.resolution_percentage*0.01)
 			
-			f = open(netsetting.path + "output.exr", "wb")
+			f = open(netsettings.path + "output.exr", "wb")
 			buf = response.read(1024)
 			
 			while buf:
