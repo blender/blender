@@ -345,6 +345,19 @@ static int KX_PythonSeq_compare( KX_PythonSeq * a, KX_PythonSeq * b ) /* TODO - 
 	return ( a->type == b->type && a->base == b->base) ? 0 : -1;	
 }
 
+extern PyObject *Py_CmpToRich(int op, int cmp);
+
+static PyObject *KX_PythonSeq_richcmp(PyObject *a, PyObject *b, int op)
+{
+	int cmp_result= -1; /* assume false */
+	
+	if(BPy_KX_PythonSeq_Check(a) && BPy_KX_PythonSeq_Check(b)) {
+		cmp_result= KX_PythonSeq_compare((KX_PythonSeq *)a, (KX_PythonSeq *)b);
+	}
+	
+	return Py_CmpToRich(op, cmp_result);
+}
+
 /*
  * repr function
  * convert to a list and get its string value
@@ -374,8 +387,7 @@ PyTypeObject KX_PythonSeq_Type = {
 	NULL,                       /* printfunc tp_print; */
 	NULL,                       /* getattrfunc tp_getattr; */
 	NULL,                       /* setattrfunc tp_setattr; */
-	/* TODO, richcmp */
-	NULL, /* ( cmpfunc ) KX_PythonSeq_compare, // cmpfunc tp_compare; */
+	NULL,						/* cmpfunc tp_compare; */
 	( reprfunc ) KX_PythonSeq_repr,   /* reprfunc tp_repr; */
 
 	/* Method suites for standard classes */
@@ -401,14 +413,14 @@ PyTypeObject KX_PythonSeq_Type = {
 	NULL,                       /*  char *tp_doc;  Documentation string */
   /*** Assigned meaning in release 2.0 ***/
 	/* call function for all accessible objects */
-	NULL,                       /* traverseproc tp_traverse; */
+	NULL,						/* traverseproc tp_traverse; */
 
 	/* delete references to contained objects */
 	NULL,                       /* inquiry tp_clear; */
 
   /***  Assigned meaning in release 2.1 ***/
   /*** rich comparisons ***/
-	NULL,                       /* richcmpfunc tp_richcompare; */
+	(richcmpfunc)KX_PythonSeq_richcmp,	/* richcmpfunc tp_richcompare; */
 
   /***  weak reference enabler ***/
 	0,                          /* long tp_weaklistoffset; */

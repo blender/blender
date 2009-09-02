@@ -83,9 +83,6 @@ static int pupmenu() {return 1;}
 #define B_REDR		1
 #define B_IDNAME	2
 
-#define B_ADD_PROP		2701
-#define B_CHANGE_PROP		2702
-
 #define B_ADD_SENS		2703
 #define B_CHANGE_SENS		2704
 #define B_DEL_SENS		2705
@@ -364,7 +361,6 @@ static void sca_move_actuator(bContext *C, void *datav, void *data2_unused)
 
 void do_logic_buts(bContext *C, void *arg, int event)
 {
-	bProperty *prop;
 	bSensor *sens;
 	bController *cont;
 	bActuator *act;
@@ -386,25 +382,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 	case B_SETMAINACTOR:
 		ob->gameflag &= ~(OB_SECTOR|OB_PROP);
 		break;
-
-
-	case B_ADD_PROP:
-		prop= new_property(PROP_FLOAT);
-		make_unique_prop_names(C, prop->name);
-		BLI_addtail(&ob->prop, prop);
-		ED_undo_push(C, "Add property");
-		break;
-#if 0 // XXX Now done in python
-	case B_CHANGE_PROP:
-		prop= ob->prop.first;
-		while(prop) {
-			if(prop->type!=prop->otype) {
-				init_property(prop);
-			}
-			prop= prop->next;
-		}
-		break;
-#endif
+	
 	case B_ADD_SENS:
 		for(ob=G.main->object.first; ob; ob=ob->id.next) {
 			if(ob->scaflag & OB_ADDSENS) {
@@ -1666,7 +1644,8 @@ char *get_state_name(Object *ob, short bit)
 
 static void check_state_mask(bContext *C, void *arg1_but, void *arg2_mask)
 {
-	int shift= 0; // XXX
+	wmWindow *win= CTX_wm_window(C);
+	int shift= win->eventstate->shift;
 	unsigned int *cont_mask = arg2_mask;
 	uiBut *but = arg1_but;
 
