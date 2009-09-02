@@ -45,6 +45,9 @@ class DATA_PT_skeleton(DataButtonsPanel):
 		col.template_layers(arm, "layer")
 		col.itemL(text="Protected Layers:")
 		col.template_layers(arm, "layer_protection")
+		col.itemL(text="Edit Options:")
+		col.itemR(arm, "x_axis_mirror")
+		col.itemR(arm, "auto_ik")
 		
 		col = split.column()
 		col.itemR(arm, "rest_position")
@@ -53,8 +56,6 @@ class DATA_PT_skeleton(DataButtonsPanel):
 		col.itemR(arm, "deform_envelope", text="Envelopes")
 		col.itemR(arm, "deform_quaternion", text="Quaternion")
 		col.itemR(arm, "deform_bbone_rest", text="B-Bones Rest")
-		#col.itemR(arm, "x_axis_mirror")
-		#col.itemR(arm, "auto_ik")
 		
 class DATA_PT_display(DataButtonsPanel):
 	__label__ = "Display"
