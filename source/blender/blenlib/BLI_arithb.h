@@ -193,6 +193,7 @@ typedef enum eEulerRotationOrders {
 } eEulerRotationOrders;
 
 void EulOToQuat(float eul[3], short order, float quat[4]);
+void QuatToEulO(float quat[4], float eul[3], short order);
 
 void EulOToMat3(float eul[3], short order, float Mat[3][3]);
 void EulOToMat4(float eul[3], short order, float Mat[4][4]);
@@ -200,7 +201,7 @@ void EulOToMat4(float eul[3], short order, float Mat[4][4]);
 void Mat3ToEulO(float Mat[3][3], float eul[3], short order);
 void Mat4ToEulO(float Mat[4][4], float eul[3], short order);
 
-void QuatToEulO(float quat[4], float eul[3], short order);
+void Mat3ToCompatibleEulO(float mat[3][3], float eul[3], float oldrot[3], short order);
  
 /**
  * @section Euler conversion routines (Blender XYZ)

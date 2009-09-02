@@ -512,7 +512,7 @@ static void v3d_posearmature_buts(uiBlock *block, View3D *v3d, Object *ob, float
 	uiButSetFunc(but, validate_bonebutton_cb, bone, NULL);
 	uiButSetCompleteFunc(but, autocomplete_bone, (void *)ob);
 
-	QuatToEul(pchan->quat, tfp->ob_eul);
+	QuatToEulO(pchan->quat, tfp->ob_eul, pchan->rotmode); // XXX?
 	tfp->ob_eul[0]*= 180.0/M_PI;
 	tfp->ob_eul[1]*= 180.0/M_PI;
 	tfp->ob_eul[2]*= 180.0/M_PI;
@@ -841,7 +841,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 			eul[0]= M_PI*tfp->ob_eul[0]/180.0;
 			eul[1]= M_PI*tfp->ob_eul[1]/180.0;
 			eul[2]= M_PI*tfp->ob_eul[2]/180.0;
-			EulToQuat(eul, pchan->quat);
+			EulOToQuat(eul, pchan->rotmode, pchan->quat); // xxx?
 		}
 		/* no break, pass on */
 	case B_ARMATUREPANEL2:

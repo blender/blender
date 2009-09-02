@@ -704,7 +704,7 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
 			float eul[3];
 			
 			/* euler-rotation test before standard rotation, as standard rotation does quats */
-			Mat4ToEul(tmat, eul);
+			Mat4ToEulO(tmat, eul, pchan->rotmode);
 			return eul[array_index];
 		}
 		else if (strstr(identifier, "rotation")) {

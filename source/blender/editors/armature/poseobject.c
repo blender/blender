@@ -760,6 +760,7 @@ void pose_copy_menu(Scene *scene)
 						break;
 					case 2: /* Local Rotation */
 						QUATCOPY(pchan->quat, pchanact->quat);
+						VECCOPY(pchan->eul, pchanact->eul);
 						break;
 					case 3: /* Local Size */
 						VECCOPY(pchan->size, pchanact->size);
@@ -808,11 +809,14 @@ void pose_copy_menu(Scene *scene)
 						break;
 					case 10: /* Visual Rotation */
 					{
-						float delta_mat[4][4], quat[4];
+						float delta_mat[4][4];
 						
 						armature_mat_pose_to_bone(pchan, pchanact->pose_mat, delta_mat);
-						Mat4ToQuat(delta_mat, quat);
-						QUATCOPY(pchan->quat, quat);
+						
+						if (pchan->rotmode > 0) 
+							Mat4ToEulO(delta_mat, pchan->eul, pchan->rotmode);
+						else
+							Mat4ToQuat(delta_mat, pchan->quat);
 					}
 						break;
 					case 11: /* Visual Size */
@@ -990,20 +994,20 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 				/* check if rotation modes are compatible (i.e. do they need any conversions) */
 				if (pchan->rotmode == chan->rotmode) {
 					/* copy the type of rotation in use */
-					if (pchan->rotmode) {
+					if (pchan->rotmode > 0) {
 						VECCOPY(pchan->eul, chan->eul);
 					}
 					else {
 						QUATCOPY(pchan->quat, chan->quat);
 					}
 				}
-				else if (pchan->rotmode) {
+				else if (pchan->rotmode > 0) {
 					/* quat to euler */
-					QuatToEul(chan->quat, pchan->eul);
+					QuatToEulO(chan->quat, pchan->eul, pchan->rotmode);
 				}
 				else {
 					/* euler to quat */
-					EulToQuat(chan->eul, pchan->quat);
+					EulOToQuat(chan->eul, chan->rotmode, pchan->quat);
 				}
 				
 				/* paste flipped pose? */
@@ -1011,7 +1015,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					pchan->loc[0]*= -1;
 					
 					/* has to be done as eulers... */
-					if (pchan->rotmode) {
+					if (pchan->rotmode > 0) {
 						pchan->eul[1] *= -1;
 						pchan->eul[2] *= -1;
 					}

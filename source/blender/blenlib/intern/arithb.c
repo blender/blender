@@ -2825,7 +2825,8 @@ static RotOrderInfo rotOrders[]= {
  * NOTE: since we start at 1 for the values, but arrays index from 0, 
  *		 there is -1 factor involved in this process...
  */
-#define GET_ROTATIONORDER_INFO(order) (&rotOrders[(order)-1])
+// FIXME: what happens when invalid order given
+#define GET_ROTATIONORDER_INFO(order) (((order)>=1) ? &rotOrders[(order)-1] : &rotOrders[0])
 
 /* Construct quaternion from Euler angles (in radians). */
 void EulOToQuat(float e[3], short order, float q[4])
@@ -2855,6 +2856,15 @@ void EulOToQuat(float e[3], short order, float q[4])
 	q[3] = a[2];
 	
 	if (R->parity) q[j] = -q[j];
+}
+
+/* Convert quaternion to Euler angles (in radians). */
+void QuatToEulO(float q[4], float e[3], short order)
+{
+	float M[3][3];
+	
+	QuatToMat3(q, M);
+	Mat3ToEulO(M, e, order);
 }
 
 /* Construct 3x3 matrix from Euler angles (in radians). */
@@ -2929,14 +2939,64 @@ void Mat4ToEulO(float M[4][4], float e[3], short order)
 	Mat3ToEulO(m, e, order);
 }
 
-/* Convert quaternion to Euler angles (in radians). */
-void QuatToEulO(float q[4], float e[3], short order)
+/* returns two euler calculation methods, so we can pick the best */
+static void mat3_to_eulo2(float M[3][3], float *e1, float *e2, short order)
 {
-	float M[3][3];
+	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order); 
+	short i=R->i,  j=R->j, 	k=R->k;
+	double cy = sqrt(M[i][i]*M[i][i] + M[j][i]*M[j][i]);
 	
-	QuatToMat3(q, M);
-	Mat3ToEulO(M, e, order);
+	if (cy > 16*FLT_EPSILON) {
+		e1[0] = atan2(M[j][k], M[k][k]);
+		e1[1] = atan2(-M[i][k], cy);
+		e1[2] = atan2(M[i][j], M[i][i]);
+		
+		e2[0] = atan2(-M[j][k], -M[k][k]);
+		e2[1] = atan2(-M[i][k], -cy);
+		e2[2] = atan2(-M[i][j], -M[i][i]);
+	} 
+	else {
+		e1[0] = atan2(-M[k][j], M[j][j]);
+		e1[1] = atan2(-M[i][k], cy);
+		e1[2] = 0;
+		
+		VecCopyf(e2, e1);
+	}
+	
+	if (R->parity) {
+		e1[0] = -e1[0]; 
+		e1[1] = -e1[1]; 
+		e1[2] = -e1[2];
+		
+		e2[0] = -e2[0]; 
+		e2[1] = -e2[1]; 
+		e2[2] = -e2[2];
+	}
 }
+
+/* uses 2 methods to retrieve eulers, and picks the closest */
+// FIXME: this does not work well with the other rotation modes...
+void Mat3ToCompatibleEulO(float mat[3][3], float eul[3], float oldrot[3], short order)
+{
+	float eul1[3], eul2[3];
+	float d1, d2;
+	
+	mat3_to_eulo2(mat, eul1, eul2, order);
+	
+	compatible_eul(eul1, oldrot);
+	compatible_eul(eul2, oldrot);
+	
+	d1= (float)fabs(eul1[0]-oldrot[0]) + (float)fabs(eul1[1]-oldrot[1]) + (float)fabs(eul1[2]-oldrot[2]);
+	d2= (float)fabs(eul2[0]-oldrot[0]) + (float)fabs(eul2[1]-oldrot[1]) + (float)fabs(eul2[2]-oldrot[2]);
+	
+	/* return best, which is just the one with lowest difference */
+	if (d1 > d2)
+		VecCopyf(eul, eul2);
+	else
+		VecCopyf(eul, eul1);
+}
+
+
 
 /* ************ EULER (old XYZ) *************** */
 
@@ -3102,7 +3162,7 @@ void euler_rot(float *beul, float ang, char axis)
 }
 
 /* exported to transform.c */
-/* XYZ order */
+/* order independent! */
 void compatible_eul(float *eul, float *oldrot)
 {
 	float dx, dy, dz;
