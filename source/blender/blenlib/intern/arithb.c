@@ -2825,7 +2825,6 @@ static RotOrderInfo rotOrders[]= {
  * NOTE: since we start at 1 for the values, but arrays index from 0, 
  *		 there is -1 factor involved in this process...
  */
-// FIXME: what happens when invalid order given
 #define GET_ROTATIONORDER_INFO(order) (((order)>=1) ? &rotOrders[(order)-1] : &rotOrders[0])
 
 /* Construct quaternion from Euler angles (in radians). */
@@ -2936,6 +2935,7 @@ void Mat4ToEulO(float M[4][4], float e[3], short order)
 	
 	/* for now, we'll just do this the slow way (i.e. copying matrices) */
 	Mat3CpyMat4(m, M);
+	Mat3Ortho(m);
 	Mat3ToEulO(m, e, order);
 }
 
@@ -2996,7 +2996,27 @@ void Mat3ToCompatibleEulO(float mat[3][3], float eul[3], float oldrot[3], short 
 		VecCopyf(eul, eul1);
 }
 
-
+/* rotate the given euler by the given angle on the specified axis */
+// NOTE: is this safe to do with different axis orders?
+void eulerO_rot(float beul[3], float ang, char axis, short order)
+{
+	float eul[3], mat1[3][3], mat2[3][3], totmat[3][3];
+	
+	eul[0]= eul[1]= eul[2]= 0.0f;
+	if (axis=='x') 
+		eul[0]= ang;
+	else if (axis=='y') 
+		eul[1]= ang;
+	else 
+		eul[2]= ang;
+	
+	EulOToMat3(eul, order, mat1);
+	EulOToMat3(beul, order, mat2);
+	
+	Mat3MulMat3(totmat, mat2, mat1);
+	
+	Mat3ToEulO(totmat, beul, order);
+}
 
 /* ************ EULER (old XYZ) *************** */
 
@@ -4947,7 +4967,7 @@ float PdistVL3Dfl(float *v1, float *v2, float *v3)
 /* make a 4x4 matrix out of 3 transform components */
 /* matrices are made in the order: scale * rot * loc */
 // TODO: need to have a version that allows for rotation order...
-void LocEulSizeToMat4(float mat[][4], float loc[3], float eul[3], float size[3])
+void LocEulSizeToMat4(float mat[4][4], float loc[3], float eul[3], float size[3])
 {
 	float rmat[3][3], smat[3][3], tmat[3][3];
 	
@@ -4970,7 +4990,31 @@ void LocEulSizeToMat4(float mat[][4], float loc[3], float eul[3], float size[3])
 
 /* make a 4x4 matrix out of 3 transform components */
 /* matrices are made in the order: scale * rot * loc */
-void LocQuatSizeToMat4(float mat[][4], float loc[3], float quat[4], float size[3])
+void LocEulOSizeToMat4(float mat[4][4], float loc[3], float eul[3], float size[3], short rotOrder)
+{
+	float rmat[3][3], smat[3][3], tmat[3][3];
+	
+	/* initialise new matrix */
+	Mat4One(mat);
+	
+	/* make rotation + scaling part */
+	EulOToMat3(eul, rotOrder, rmat);
+	SizeToMat3(size, smat);
+	Mat3MulMat3(tmat, rmat, smat);
+	
+	/* copy rot/scale part to output matrix*/
+	Mat4CpyMat3(mat, tmat);
+	
+	/* copy location to matrix */
+	mat[3][0] = loc[0];
+	mat[3][1] = loc[1];
+	mat[3][2] = loc[2];
+}
+
+
+/* make a 4x4 matrix out of 3 transform components */
+/* matrices are made in the order: scale * rot * loc */
+void LocQuatSizeToMat4(float mat[4][4], float loc[3], float quat[4], float size[3])
 {
 	float rmat[3][3], smat[3][3], tmat[3][3];
 	

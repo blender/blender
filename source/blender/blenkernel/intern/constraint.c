@@ -121,6 +121,7 @@ bConstraintOb *constraints_make_evalob (Scene *scene, Object *ob, void *subdata,
 			if (ob) {
 				cob->ob = ob;
 				cob->type = datatype;
+				cob->rotOrder = EULER_ORDER_DEFAULT; // TODO: when objects have rotation order too, use that
 				Mat4CpyMat4(cob->matrix, ob->obmat);
 			}
 			else
@@ -136,6 +137,15 @@ bConstraintOb *constraints_make_evalob (Scene *scene, Object *ob, void *subdata,
 				cob->ob = ob;
 				cob->pchan = (bPoseChannel *)subdata;
 				cob->type = datatype;
+				
+				if (cob->pchan->rotmode > 0) {
+					/* should be some type of Euler order */
+					cob->rotOrder= cob->pchan->rotmode; 
+				}
+				else {
+					/* Quats, so eulers should just use default order */
+					cob->rotOrder= EULER_ORDER_DEFAULT;
+				}
 				
 				/* matrix in world-space */
 				Mat4MulMat4(cob->matrix, cob->pchan->pose_mat, ob->obmat);
@@ -664,6 +674,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
  * (Hopefully all compilers will be happy with the lines with just a space on them. Those are
  *  really just to help this code easier to read)
  */
+// TODO: cope with getting rotation order...
 #define SINGLETARGET_GET_TARS(con, datatar, datasubtarget, ct, list) \
 	{ \
 		ct= MEM_callocN(sizeof(bConstraintTarget), "tempConstraintTarget"); \
@@ -687,6 +698,7 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
  * (Hopefully all compilers will be happy with the lines with just a space on them. Those are
  *  really just to help this code easier to read)
  */
+// TODO: cope with getting rotation order...
 #define SINGLETARGETNS_GET_TARS(con, datatar, ct, list) \
 	{ \
 		ct= MEM_callocN(sizeof(bConstraintTarget), "tempConstraintTarget"); \
@@ -795,11 +807,11 @@ static void childof_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 		
 		/* extract components of both matrices */
 		VECCOPY(loc, ct->matrix[3]);
-		Mat4ToEul(ct->matrix, eul);
+		Mat4ToEulO(ct->matrix, eul, ct->rotOrder);
 		Mat4ToSize(ct->matrix, size);
 		
 		VECCOPY(loco, invmat[3]);
-		Mat4ToEul(invmat, eulo);
+		Mat4ToEulO(invmat, eulo, cob->rotOrder);
 		Mat4ToSize(invmat, sizo);
 		
 		/* disable channels not enabled */
@@ -814,8 +826,8 @@ static void childof_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 		if (!(data->flag & CHILDOF_SIZEZ)) size[2]= sizo[2]= 1.0f;
 		
 		/* make new target mat and offset mat */
-		LocEulSizeToMat4(ct->matrix, loc, eul, size);
-		LocEulSizeToMat4(invmat, loco, eulo, sizo);
+		LocEulOSizeToMat4(ct->matrix, loc, eul, size, ct->rotOrder);
+		LocEulOSizeToMat4(invmat, loco, eulo, sizo, cob->rotOrder);
 		
 		/* multiply target (parent matrix) by offset (parent inverse) to get 
 		 * the effect of the parent that will be exherted on the owner
@@ -1304,7 +1316,7 @@ static void rotlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *t
 	VECCOPY(loc, cob->matrix[3]);
 	Mat4ToSize(cob->matrix, size);
 	
-	Mat4ToEul(cob->matrix, eul);
+	Mat4ToEulO(cob->matrix, eul, cob->rotOrder);
 	
 	/* eulers: radians to degrees! */
 	eul[0] = (float)(eul[0] / M_PI * 180);
@@ -1339,7 +1351,7 @@ static void rotlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *t
 	eul[1] = (float)(eul[1] / 180 * M_PI);
 	eul[2] = (float)(eul[2] / 180 * M_PI);
 	
-	LocEulSizeToMat4(cob->matrix, loc, eul, size);
+	LocEulOSizeToMat4(cob->matrix, loc, eul, size, cob->rotOrder);
 }
 
 static bConstraintTypeInfo CTI_ROTLIMIT = {
@@ -1546,14 +1558,15 @@ static void rotlike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 		VECCOPY(loc, cob->matrix[3]);
 		Mat4ToSize(cob->matrix, size);
 		
-		Mat4ToEul(ct->matrix, eul);
-		Mat4ToEul(cob->matrix, obeul);
+		//Mat4ToEulO(ct->matrix, eul, ct->rotOrder);
+		Mat4ToEul(ct->matrix, eul); // the version we should be using causes errors...
+		Mat4ToEulO(cob->matrix, obeul, cob->rotOrder);
 		
 		if ((data->flag & ROTLIKE_X)==0)
 			eul[0] = obeul[0];
 		else {
 			if (data->flag & ROTLIKE_OFFSET)
-				euler_rot(eul, obeul[0], 'x');
+				eulerO_rot(eul, obeul[0], 'x', cob->rotOrder);
 			
 			if (data->flag & ROTLIKE_X_INVERT)
 				eul[0] *= -1;
@@ -1563,7 +1576,7 @@ static void rotlike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 			eul[1] = obeul[1];
 		else {
 			if (data->flag & ROTLIKE_OFFSET)
-				euler_rot(eul, obeul[1], 'y');
+				eulerO_rot(eul, obeul[1], 'y', cob->rotOrder);
 			
 			if (data->flag & ROTLIKE_Y_INVERT)
 				eul[1] *= -1;
@@ -1573,14 +1586,14 @@ static void rotlike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 			eul[2] = obeul[2];
 		else {
 			if (data->flag & ROTLIKE_OFFSET)
-				euler_rot(eul, obeul[2], 'z');
+				eulerO_rot(eul, obeul[2], 'z', cob->rotOrder);
 			
 			if (data->flag & ROTLIKE_Z_INVERT)
 				eul[2] *= -1;
 		}
 		
 		compatible_eul(eul, obeul);
-		LocEulSizeToMat4(cob->matrix, loc, eul, size);
+		LocEulOSizeToMat4(cob->matrix, loc, eul, size, cob->rotOrder);
 	}
 }
 
@@ -3036,7 +3049,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 				Mat4ToSize(ct->matrix, dvec);
 				break;
 			case 1: /* rotation (convert to degrees first) */
-				Mat4ToEul(ct->matrix, dvec);
+				Mat4ToEulO(ct->matrix, dvec, cob->rotOrder);
 				for (i=0; i<3; i++)
 					dvec[i] = (float)(dvec[i] / M_PI * 180);
 				break;
@@ -3047,7 +3060,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		
 		/* extract components of owner's matrix */
 		VECCOPY(loc, cob->matrix[3]);
-		Mat4ToEul(cob->matrix, eul);
+		Mat4ToEulO(cob->matrix, eul, cob->rotOrder);
 		Mat4ToSize(cob->matrix, size);	
 		
 		/* determine where in range current transforms lie */
@@ -3102,7 +3115,7 @@ static void transform_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		}
 		
 		/* apply to matrix */
-		LocEulSizeToMat4(cob->matrix, loc, eul, size);
+		LocEulOSizeToMat4(cob->matrix, loc, eul, size, cob->rotOrder);
 	}
 }
 

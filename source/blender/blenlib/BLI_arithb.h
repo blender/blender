@@ -202,6 +202,8 @@ void Mat3ToEulO(float Mat[3][3], float eul[3], short order);
 void Mat4ToEulO(float Mat[4][4], float eul[3], short order);
 
 void Mat3ToCompatibleEulO(float mat[3][3], float eul[3], float oldrot[3], short order);
+
+void eulerO_rot(float beul[3], float ang, char axis, short order);
  
 /**
  * @section Euler conversion routines (Blender XYZ)
@@ -484,8 +486,9 @@ void Mat4ToSize(float mat[][4], float *size);
 
 void triatoquat(float *v1, float *v2, float *v3, float *quat);
 
-void LocEulSizeToMat4(float mat[][4], float loc[3], float eul[3], float size[3]);
-void LocQuatSizeToMat4(float mat[][4], float loc[3], float quat[4], float size[3]);
+void LocEulSizeToMat4(float mat[4][4], float loc[3], float eul[3], float size[3]);
+void LocEulOSizeToMat4(float mat[4][4], float loc[3], float eul[3], float size[3], short rotOrder);
+void LocQuatSizeToMat4(float mat[4][4], float loc[3], float quat[4], float size[3]);
 
 void tubemap(float x, float y, float z, float *u, float *v);
 void spheremap(float x, float y, float z, float *u, float *v);
