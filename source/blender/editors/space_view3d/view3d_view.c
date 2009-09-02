@@ -81,6 +81,10 @@
 
 #include "PIL_time.h" /* smoothview */
 
+#if GAMEBLENDER == 1
+#include "SYS_System.h"
+#endif
+
 #include "view3d_intern.h"	// own include
 
 /* use this call when executing an operator,
@@ -1442,6 +1446,56 @@ static void RestoreState(bContext *C)
 	glPopAttrib();
 }
 
+/* was space_set_commmandline_options in 2.4x */
+void game_set_commmandline_options(GameData *gm)
+{
+	SYS_SystemHandle syshandle;
+	int test;
+
+	if ( (syshandle = SYS_GetSystem()) ) {
+		/* User defined settings */
+		test= (U.gameflags & USER_DISABLE_SOUND);
+		/* if user already disabled audio at the command-line, don't re-enable it */
+		if (test)
+			SYS_WriteCommandLineInt(syshandle, "noaudio", test);
+
+		test= (U.gameflags & USER_DISABLE_MIPMAP);
+		GPU_set_mipmap(!test);
+		SYS_WriteCommandLineInt(syshandle, "nomipmap", test);
+
+		/* File specific settings: */
+		/* Only test the first one. These two are switched
+		 * simultaneously. */
+		test= (gm->flag & GAME_SHOW_FRAMERATE);
+		SYS_WriteCommandLineInt(syshandle, "show_framerate", test);
+		SYS_WriteCommandLineInt(syshandle, "show_profile", test);
+
+		test = (gm->flag & GAME_SHOW_FRAMERATE);
+		SYS_WriteCommandLineInt(syshandle, "show_properties", test);
+
+		test= (gm->flag & GAME_SHOW_PHYSICS);
+		SYS_WriteCommandLineInt(syshandle, "show_physics", test);
+
+		test= (gm->flag & GAME_ENABLE_ALL_FRAMES);
+		SYS_WriteCommandLineInt(syshandle, "fixedtime", test);
+
+//		a= (G.fileflags & G_FILE_GAME_TO_IPO);
+//		SYS_WriteCommandLineInt(syshandle, "game2ipo", a);
+
+		test= (gm->flag & GAME_IGNORE_DEPRECATION_WARNINGS);
+		SYS_WriteCommandLineInt(syshandle, "ignore_deprecation_warnings", test);
+
+		test= (gm->matmode == GAME_MAT_MULTITEX);
+		SYS_WriteCommandLineInt(syshandle, "blender_material", test);
+		test= (gm->matmode == GAME_MAT_GLSL);
+		SYS_WriteCommandLineInt(syshandle, "blender_glsl_material", test);
+		test= (gm->flag & GAME_DISPLAY_LISTS);
+		SYS_WriteCommandLineInt(syshandle, "displaylists", test);
+
+
+	}
+}
+
 /* maybe we need this defined somewhere else */
 extern void StartKetsjiShell(struct bContext *C, struct ARegion *ar, int always_use_expand_framing);
 
@@ -1483,6 +1537,8 @@ static int game_engine_exec(bContext *C, wmOperator *unused)
 
 	view3d_operator_needs_opengl(C);
 	
+	game_set_commmandline_options(&startscene->gm);
+
 	SaveState(C);
 	StartKetsjiShell(C, ar, 1);
 	RestoreState(C);
