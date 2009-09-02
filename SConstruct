@@ -575,6 +575,8 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc'):
 	if env['WITH_BF_OPENAL']:
 		dllsources.append('${LCGDIR}/openal/lib/OpenAL32.dll')
 		dllsources.append('${LCGDIR}/openal/lib/wrap_oal.dll')
+	if env['WITH_BF_SNDFILE']:
+		dllsources.append('${LCGDIR}/sndfile/lib/libsndfile-1.dll')
 	if env['WITH_BF_FFMPEG']:
 		dllsources += ['${LCGDIR}/ffmpeg/lib/avcodec-52.dll',
 						'${LCGDIR}/ffmpeg/lib/avformat-52.dll',
