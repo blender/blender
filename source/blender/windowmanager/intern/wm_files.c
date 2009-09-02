@@ -388,7 +388,7 @@ void WM_read_autosavefile(bContext *C)
 
 void read_Blog(void)
 {
-	char name[FILE_MAX], filename[FILE_MAX];
+	char name[FILE_MAX];
 	LinkNode *l, *lines;
 	struct RecentFile *recent;
 	char *line;
@@ -420,58 +420,6 @@ void read_Blog(void)
 	
 	BLI_free_file_lines(lines);
 
-#ifdef WIN32
-	/* Add the drive names to the listing */
-	{
-		__int64 tmp;
-		char folder[MAX_PATH];
-		char tmps[4];
-		int i;
-			
-		tmp= GetLogicalDrives();
-		
-		for (i=2; i < 26; i++) {
-			if ((tmp>>i) & 1) {
-				tmps[0]='a'+i;
-				tmps[1]=':';
-				tmps[2]='\\';
-				tmps[3]=0;
-				
-// XX				fsmenu_insert_entry(tmps, 0, 0);
-			}
-		}
-
-		/* Adding Desktop and My Documents */
-// XXX		fsmenu_append_separator();
-
-		SHGetSpecialFolderPath(0, folder, CSIDL_PERSONAL, 0);
-// XXX		fsmenu_insert_entry(folder, 0, 0);
-		SHGetSpecialFolderPath(0, folder, CSIDL_DESKTOPDIRECTORY, 0);
-// XXX		fsmenu_insert_entry(folder, 0, 0);
-
-// XXX		fsmenu_append_separator();
-	}
-#endif
-
-	BLI_make_file_string(G.sce, name, BLI_gethome(), ".Bfs");
-	lines= BLI_read_file_as_lines(name);
-
-	for (l= lines; l; l= l->next) {
-		char *line= l->link;
-			
-		if (!BLI_streq(line, "")) {
-// XXX			fsmenu_insert_entry(line, 0, 1);
-		}
-	}
-
-// XXX	fsmenu_append_separator();
-	
-	/* add last saved file */
-	BLI_split_dirfile(G.sce, name, filename); /* G.sce shouldn't be relative */
-	
-// XXX	fsmenu_insert_entry(name, 0, 0);
-	
-	BLI_free_file_lines(lines);
 }
 
 static void writeBlog(void)

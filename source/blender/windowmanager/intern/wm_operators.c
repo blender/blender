@@ -814,22 +814,12 @@ static EnumPropertyItem *open_recentfile_itemf(bContext *C, PointerRNA *ptr, int
 	struct RecentFile *recent;
 	int totitem= 0, i, ofs= 0;
 
-	if(G.sce[0]) {
-		tmp.value= 1;
-		tmp.identifier= G.sce;
-		tmp.name= G.sce;
-		RNA_enum_item_add(&item, &totitem, &tmp);
-		ofs = 1;
-	}
-
 	/* dynamically construct enum */
 	for(recent = G.recent_files.first, i=0; (i<U.recent_files) && (recent); recent = recent->next, i++) {
-		if(strcmp(recent->filename, G.sce)) {
-			tmp.value= i+ofs+1;
-			tmp.identifier= recent->filename;
-			tmp.name= recent->filename;
-			RNA_enum_item_add(&item, &totitem, &tmp);
-		}
+		tmp.value= i+ofs+1;
+		tmp.identifier= recent->filename;
+		tmp.name= recent->filename;
+		RNA_enum_item_add(&item, &totitem, &tmp);
 	}
 
 	RNA_enum_item_end(&item, &totitem);
