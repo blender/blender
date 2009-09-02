@@ -751,16 +751,17 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 				STR_String *var = reinterpret_cast<STR_String*>(ptr);
 				if (PyUnicode_Check(value)) 
 				{
-					char *val = _PyUnicode_AsString(value);
+					Py_ssize_t val_len;
+					char *val = _PyUnicode_AsStringAndSize(value, &val_len);
 					if (attrdef->m_clamp)
 					{
-						if (strlen(val) < attrdef->m_imin)
+						if (val_len < attrdef->m_imin)
 						{
 							// can't increase the length of the string
 							PyErr_Format(PyExc_ValueError, "string length too short for attribute \"%s\"", attrdef->m_name);
 							goto FREE_AND_ERROR;
 						}
-						else if (strlen(val) > attrdef->m_imax)
+						else if (val_len > attrdef->m_imax)
 						{
 							// trim the string
 							char c = val[attrdef->m_imax];
@@ -769,7 +770,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 							val[attrdef->m_imax] = c;
 							break;
 						}
-					} else if (strlen(val) < attrdef->m_imin || strlen(val) > attrdef->m_imax)
+					} else if (val_len < attrdef->m_imin || val_len > attrdef->m_imax)
 					{
 						PyErr_Format(PyExc_ValueError, "string length out of range for attribute \"%s\"", attrdef->m_name);
 						goto FREE_AND_ERROR;

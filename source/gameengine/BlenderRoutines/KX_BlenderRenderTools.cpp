@@ -284,12 +284,10 @@ void KX_BlenderRenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 										 int width,
 										 int height)
 {
-	STR_String tmpstr(text);
-
 	if(mode == RAS_IRenderTools::RAS_TEXT_PADDED)
-		BL_print_gamedebug_line_padded(tmpstr.Ptr(), xco, yco, width, height);
+		BL_print_gamedebug_line_padded(text, xco, yco, width, height);
 	else
-		BL_print_gamedebug_line(tmpstr.Ptr(), xco, yco, width, height);
+		BL_print_gamedebug_line(text, xco, yco, width, height);
 }
 
 /* Render Text renders text into a (series of) polygon, using a texture font,
