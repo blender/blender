@@ -891,11 +891,11 @@ void bmesh_similarverts_exec(BMesh *bm, BMOperator *op)
 		switch( type ) {
 		case SIMVERT_FACE:
 			/* calling BM_Vert_FaceCount every time is time consumming, so call it only once per vertex */
-			v_ext[i].num_faces = BM_Vert_FaceCount(v);
+			v_ext[i].num_faces	= BM_Vert_FaceCount(v);
 			break;
 
 		case SIMVERT_VGROUP:
-			if( CustomData_has_layer(&(bm->vdata), CD_MDEFORMVERT) ) {
+			if( CustomData_has_layer(&(bm->vdata),CD_MDEFORMVERT) ) {
 				v_ext[i].dvert = CustomData_bmesh_get(&bm->vdata, v_ext[i].v->head.data, CD_MDEFORMVERT);
 			} else v_ext[i].dvert = NULL;
 			break;
@@ -951,4 +951,76 @@ void bmesh_similarverts_exec(BMesh *bm, BMOperator *op)
 	MEM_freeN(v_ext);
 
 	BMO_Flag_To_Slot(bm, op, "vertout", VERT_MARK, BM_VERT);
+}
+
+/******************************************************************************
+** Cycle UVs for a face
+******************************************************************************/
+
+void bmesh_rotateuvs_exec(BMesh *bm, BMOperator *op)
+{
+	BMOIter fs_iter;	/* selected faces iterator */
+	BMFace *fs;	/* current face */
+	BMIter l_iter;	/* iteration loop */
+	int n;
+
+	int dir = BMO_Get_Int(op, "dir");
+
+	BMO_ITER(fs, &fs_iter, bm, op, "faces", BM_FACE) {
+		if( CustomData_has_layer(&(bm->ldata), CD_MLOOPUV) ) {
+			if( dir == DIRECTION_CW ) { /* same loops direction */
+				BMLoop *lf;	/* current face loops */
+				MLoopUV *f_luv; /* first face loop uv */
+				float p_uv[2];	/* previous uvs */
+				float t_uv[2];	/* tmp uvs */
+
+				int n = 0;
+				BM_ITER(lf, &l_iter, bm, BM_LOOPS_OF_FACE, fs) {
+					/* current loop uv is the previous loop uv */
+					MLoopUV *luv = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPUV);
+					if( n == 0 ) {
+						f_luv = luv;
+						p_uv[0] = luv->uv[0];
+						p_uv[1] = luv->uv[1];
+					} else {
+						t_uv[0] = luv->uv[0];
+						t_uv[1] = luv->uv[1];
+						luv->uv[0] = p_uv[0];
+						luv->uv[1] = p_uv[1];
+						p_uv[0] = t_uv[0];
+						p_uv[1] = t_uv[1];
+					}
+					n++;
+				}
+
+				f_luv->uv[0] = p_uv[0];
+				f_luv->uv[1] = p_uv[1];
+			} else if( dir == DIRECTION_CCW ) { /* counter loop direction */
+				BMLoop *lf;	/* current face loops */
+				MLoopUV *p_luv; /*previous loop uv */
+				MLoopUV *luv;
+				float t_uv[2];	/* current uvs */
+
+				int n = 0;
+				BM_ITER(lf, &l_iter, bm, BM_LOOPS_OF_FACE, fs) {
+					/* previous loop uv is the current loop uv */
+					luv = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPUV);
+					if( n == 0 ) {
+						p_luv = luv;
+						t_uv[0] = luv->uv[0];
+						t_uv[1] = luv->uv[1];
+					} else {
+						p_luv->uv[0] = luv->uv[0];
+						p_luv->uv[1] = luv->uv[1];
+						p_luv = luv;
+					}
+					n++;
+				}
+
+				luv->uv[0] = t_uv[0];
+				luv->uv[1] = t_uv[1];
+			}
+		}
+	}
+
 }

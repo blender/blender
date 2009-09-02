@@ -690,6 +690,19 @@ BMOpDefine def_similarverts = {
 	0
 };
 
+/*
+** uv rotation
+** cycle the uvs
+*/
+BMOpDefine def_meshrotateuvs = {
+	"meshrotateuvs",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, /* input faces */
+	 {BMOP_OPSLOT_INT, "dir"},			/* direction */
+	 {0} /*null-terminating sentinel*/},
+	bmesh_rotateuvs_exec,
+	0
+};
+
 BMOpDefine *opdefines[] = {
 	&def_splitop,
 	&def_dupeop,
@@ -735,6 +748,7 @@ BMOpDefine *opdefines[] = {
 	&def_similarverts,
 	&def_pointmerge_facedata,
 	&def_vert_average_facedata,
+	&def_meshrotateuvs,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

@@ -51,5 +51,6 @@ void bmesh_similaredges_exec(BMesh *bm, BMOperator *op);
 void bmesh_similarverts_exec(BMesh *bm, BMOperator *op);
 void bmesh_pointmerge_facedata_exec(BMesh *bm, BMOperator *op);
 void bmesh_vert_average_facedata_exec(BMesh *bm, BMOperator *op);
+void bmesh_rotateuvs_exec(BMesh *bm, BMOperator *op);
 
 #endif

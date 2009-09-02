@@ -97,6 +97,10 @@ static void mesh_ensure_tesselation_customdata(Mesh *me)
 	    totcol != CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL))
 	{
 		CustomData_free(&me->fdata, me->totface);
+		
+		me->mface = (void*)me->mtface = (void*)me->mcol = NULL;
+		me->totface = 0;
+
 		memset(&me->fdata, 0, sizeof(&me->fdata));
 
 		CustomData_from_bmeshpoly(&me->fdata, &me->pdata, &me->ldata, me->totface);

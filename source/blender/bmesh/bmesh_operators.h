@@ -50,6 +50,16 @@ enum {
 	SIMVERT_VGROUP,
 };
 
+enum {
+	OPUVC_AXIS_X = 1,
+	OPUVC_AXIS_Y
+};
+
+enum {
+	DIRECTION_CW = 1,
+	DIRECTION_CCW
+};
+
 extern BMOpDefine *opdefines[];
 extern int bmesh_total_ops;
 

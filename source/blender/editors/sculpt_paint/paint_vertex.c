@@ -340,9 +340,9 @@ void make_vertexcol(Scene *scene, int shade)	/* single ob */
 
 	/* copies from shadedisplist to mcol */
 	if(!me->mcol)
-		CustomData_add_layer(&me->fdata, CD_MCOL, CD_CALLOC, NULL, me->totface);
+		CustomData_add_layer(&me->fdata, CD_MCOL, CD_DEFAULT, NULL, me->totface);
 	if (!me->mloopcol)
-		CustomData_add_layer(&me->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, me->totloop);
+		CustomData_add_layer(&me->ldata, CD_MLOOPCOL, CD_DEFAULT, NULL, me->totloop);
 	
 	mesh_update_customdata_pointers(me);
 

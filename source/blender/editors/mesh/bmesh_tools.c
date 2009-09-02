@@ -1617,8 +1617,8 @@ void MESH_OT_flip_normals(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-#define DIRECTION_CW	1
-#define DIRECTION_CCW	2
+//#define DIRECTION_CW	1
+//#define DIRECTION_CCW	2
 
 static const EnumPropertyItem direction_items[]= {
 	{DIRECTION_CW, "CW", 0, "Clockwise", ""},
@@ -2061,16 +2061,40 @@ void MESH_OT_faces_shade_flat(wmOperatorType *ot)
 
 
 /********************** UV/Color Operators *************************/
-#define AXIS_X		1
-#define AXIS_Y		2
+
 
 static const EnumPropertyItem axis_items[]= {
-	{AXIS_X, "X", 0, "X", ""},
-	{AXIS_Y, "Y", 0, "Y", ""},
+	{OPUVC_AXIS_X, "X", 0, "X", ""},
+	{OPUVC_AXIS_Y, "Y", 0, "Y", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_edit_object(C);
+	BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
+	BMOperator bmop;
+
+	/* get the direction from RNA */
+	int dir = RNA_enum_get(op->ptr, "direction");
+
+	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
+	EDBM_InitOpf(em, &bmop, op, "meshrotateuvs faces=%hf dir=%d", BM_SELECT, dir);
+
+	/* execute the operator */
+	BMO_Exec_Op(em->bm, &bmop);
+
+	/* finish the operator */
+	if( !EDBM_FinishOp(em, &bmop, op, 1) )
+		return OPERATOR_CANCELLED;
+
+
+	/* dependencies graph and notification stuff */
+	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT | ND_GEOM_SELECT, ob);
+
+	/* we succeeded */
+	return OPERATOR_FINISHED;
 #if 0
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
