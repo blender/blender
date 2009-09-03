@@ -29,7 +29,7 @@
  */
 
 #include <stdlib.h>
-#include "dna_listbase.h"
+#include "DNA_listBase.h"
 #include "RNA_types.h"
 
 /*new render funcs */
@@ -70,7 +70,6 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg, int blendtype){}
 char stipple_quarttone[1]; //GLubyte stipple_quarttone[128]
 double elbeemEstimateMemreq(int res, float sx, float sy, float sz, int refine, char *retstr) {return 0.0f;}
-char bprogname[]="";
 
 /* rna */
 void WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference){}
@@ -177,3 +176,25 @@ void WM_operatortype_append_ptr(void (*opfunc)(struct wmOperatorType*, void*), v
 void WM_operator_bl_idname(char *to, const char *from){}
 short insert_keyframe (struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag){return 0;}
 
+/* smoke */
+void lzo1x_1_compress(void) {return;};
+void LzmaCompress(void) {return;};
+void smoke_export(void) {return;};
+void lzo1x_decompress(void) {return;};
+void LzmaUncompress(void) {return;};
+void smoke_init(void) {return;};
+void smoke_turbulence_init(void) {return;};
+void smoke_turbulence_initBlenderRNA(void) {return;};
+void smoke_initBlenderRNA(void) {return;};
+void smoke_free(void) {return;};
+void smoke_turbulence_free(void) {return;};
+void smoke_turbulence_step(void) {return;};
+void smoke_dissolve(void) {return;};
+void smoke_get_density(void) {return;};
+void smoke_get_heat(void) {return;};
+void smoke_get_velocity_x(void) {return;};
+void smoke_get_velocity_y(void) {return;};
+void smoke_get_velocity_z(void) {return;};
+void smoke_get_obstacle(void) {return;};
+void smoke_get_index(void) {return;};
+void smoke_step(void) {return;};

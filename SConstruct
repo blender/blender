@@ -402,9 +402,6 @@ dobj = B.buildinfo(env, "dynamic") + B.resources
 thestatlibs, thelibincs = B.setup_staticlibs(env)
 thesyslibs = B.setup_syslibs(env)
 
-if env['WITH_BF_PLAYER']:
-	print("Warning: Game player may not build on 2.5")
-
 if 'blender' in B.targets or not env['WITH_BF_NOBLENDER']:
 	#env.BlenderProg(B.root_build_dir, "blender", dobj , [], mainlist + thestatlibs + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
 	env.BlenderProg(B.root_build_dir, "blender", dobj + mainlist, [], thestatlibs + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')

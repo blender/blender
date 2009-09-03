@@ -80,11 +80,11 @@ IF(UNIX)
     bf_oglrasterizer 
     bf_expressions 
     bf_scenegraph 
-	bf_IK
+    bf_IK
     bf_moto 
     bf_kernel 
     bf_nodes
-	bf_gpu
+    bf_gpu
     bf_imbuf
     bf_avi 
     kx_network 
@@ -93,15 +93,21 @@ IF(UNIX)
     extern_bullet 
     bf_guardedalloc 
     bf_memutil 
+    bf_python
+    bf_gen_python
     bf_blenlib 
     bf_cineon 
     bf_openexr 
     extern_libopenjpeg 
     bf_dds
     bf_readblenfile 
+    bf_dna
+    bf_rna
+    bf_blenfont
+    bf_audaspace
     blenkernel_blc
     extern_binreloc
-	extern_glew
+    extern_glew
   )
   
   IF(WITH_QUICKTIME)
