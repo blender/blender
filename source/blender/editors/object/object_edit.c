@@ -2951,7 +2951,7 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	else if (ob->id.lib) {
 		uiPopupMenu *pup= uiPupMenuBegin(C, "OK?", ICON_QUESTION);
 		uiLayout *layout= uiPupMenuLayout(pup);
-		PointerRNA props_ptr;
+		PointerRNA props_ptr = {0};
 		
 		/* create operator menu item with relevant properties filled in */
 		props_ptr= uiItemFullO(layout, op->type->name, 0, op->idname, props_ptr.data, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
