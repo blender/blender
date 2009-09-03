@@ -5,6 +5,18 @@ from bpy.__ops__ import dir		as op_dir
 from bpy.__ops__ import call		as op_call
 from bpy.__ops__ import get_rna	as op_get_rna
 
+# Keep in sync with WM_types.h
+context_dict = {
+	'INVOKE_DEFAULT':0,
+	'INVOKE_REGION_WIN':1,
+	'INVOKE_AREA':2,
+	'INVOKE_SCREEN':3,
+	'EXEC_DEFAULT':4,
+	'EXEC_REGION_WIN':5,
+	'EXEC_AREA':6,
+	'EXEC_SCREEN':7,
+}
+
 class bpy_ops(object):
 	'''
 	Fake module like class.
@@ -94,10 +106,22 @@ class bpy_ops_submodule_op(object):
 		# submod.foo -> SUBMOD_OT_foo
 		return self.module.upper() + '_OT_' + self.func
 	
-	def __call__(self, **kw):
+	def __call__(self, *args, **kw):
 		
 		# Get the operator from blender
-		return op_call(self.idname(), kw)
+		if len(args) > 1:
+			raise ValueError("only one argument for the execution context is supported ")
+		
+		if args:
+			try:
+				context = context_dict[args[0]]
+			except:
+				raise ValueError("Expected a single context argument in: " + str(list(context_dict.keys())))
+			
+			return op_call(self.idname(), kw, context)
+		
+		else:
+			return op_call(self.idname(), kw)
 	
 	def get_rna(self):
 		'''

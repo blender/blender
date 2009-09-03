@@ -168,7 +168,7 @@ int RE_engine_test_break(struct RenderEngine *engine){return 0;}
 struct wmOperatorType *WM_operatortype_find(const char *idname, int quiet){return (struct wmOperatorType *) NULL;}
 struct wmOperatorType *WM_operatortype_first(){return (struct wmOperatorType *) NULL;}
 struct wmOperatorType *WM_operatortype_exists(const char *idname){return (struct wmOperatorType *) NULL;}
-int WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *properties, struct ReportList *reports){return 0;}
+int WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, int context, struct PointerRNA *properties, struct ReportList *reports){return 0;}
 int WM_operatortype_remove(const char *idname){return 0;}
 void WM_operator_properties_free(struct PointerRNA *ptr){}
 void WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring){}

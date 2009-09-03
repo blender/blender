@@ -285,6 +285,7 @@ typedef struct wmOperator {
 	
 	ListBase macro;				/* list of operators, can be a tree */
 	struct wmOperator *opm;		/* current running macro, not saved */
+	short flag, pad[3];
 	
 } wmOperator;
 
@@ -294,6 +295,9 @@ typedef struct wmOperator {
 #define OPERATOR_FINISHED		4
 /* add this flag if the event should pass through */
 #define OPERATOR_PASS_THROUGH	8
+
+/* wmOperator flag */
+#define OPERATOR_REPORT_FREE	1
 
 
 /* ************** wmEvent ************************ */

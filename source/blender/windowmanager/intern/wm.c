@@ -69,7 +69,7 @@ void WM_operator_free(wmOperator *op)
 		MEM_freeN(op->properties);
 	}
 
-	if(op->reports) {
+	if(op->reports && (op->flag & OPERATOR_REPORT_FREE)) {
 		BKE_reports_clear(op->reports);
 		MEM_freeN(op->reports);
 	}

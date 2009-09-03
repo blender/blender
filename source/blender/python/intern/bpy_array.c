@@ -203,17 +203,17 @@ static void pyrna_py_to_boolean(PyObject *py, char *data)
 
 static int py_float_check(PyObject *py)
 {
-	return PyFloat_Check(py);
+	return PyFloat_Check(py) || (PyIndex_Check(py));
 }
 
 static int py_int_check(PyObject *py)
 {
-	return PyLong_Check(py);
+	return PyLong_Check(py) || (PyIndex_Check(py));
 }
 
 static int py_bool_check(PyObject *py)
 {
-	return PyBool_Check(py);
+	return PyBool_Check(py) || (PyIndex_Check(py));
 }
 
 int pyrna_py_to_float_array(PyObject *py, PointerRNA *ptr, PropertyRNA *prop, char *param_data, char *error_str, int error_str_size)
