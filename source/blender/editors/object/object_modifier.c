@@ -676,6 +676,34 @@ void OBJECT_OT_modifier_copy(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/************* multires delete higher levels operator ****************/
+
+static int multires_higher_levels_delete_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier);
+	Object *ob= ptr.id.data;
+	MultiresModifierData *mmd= ptr.data;
+
+	if(mmd) {
+		multiresModifier_del_levels(mmd, ob, 1);
+		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_multires_higher_levels_delete(wmOperatorType *ot)
+{
+	ot->name= "Delete Higher Levels";
+	ot->idname= "OBJECT_OT_multires_higher_levels_delete";
+	ot->poll= ED_operator_object_active;
+
+	ot->exec= multires_higher_levels_delete_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /****************** multires subdivide operator *********************/
 
 static int multires_subdivide_exec(bContext *C, wmOperator *op)

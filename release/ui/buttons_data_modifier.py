@@ -269,7 +269,11 @@ class DATA_PT_modifiers(DataButtonsPanel):
 		
 	def MULTIRES(self, layout, ob, md):
 		layout.itemR(md, "subdivision_type")
-		layout.itemO("object.multires_subdivide", text="Subdivide")
+		
+		row = layout.row()
+		row.itemO("object.multires_subdivide", text="Subdivide")
+		row.itemO("object.multires_higher_levels_delete", text="Delete Higher")
+
 		layout.itemR(md, "level")
 	
 	def PARTICLE_INSTANCE(self, layout, ob, md):

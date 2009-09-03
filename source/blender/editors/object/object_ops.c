@@ -119,6 +119,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_modifier_convert);
 	WM_operatortype_append(OBJECT_OT_modifier_copy);
 	WM_operatortype_append(OBJECT_OT_multires_subdivide);
+	WM_operatortype_append(OBJECT_OT_multires_higher_levels_delete);
 	WM_operatortype_append(OBJECT_OT_meshdeform_bind);
 	WM_operatortype_append(OBJECT_OT_hook_reset);
 	WM_operatortype_append(OBJECT_OT_hook_recenter);
