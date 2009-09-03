@@ -343,8 +343,8 @@ void GPC_Engine::Exit()
 	{
 #if 0 //XXX - ADD SOUND
 		SND_DeviceManager::Unsubscribe();
-		m_audiodevice = 0;
 #endif
+		m_audiodevice = 0;
 	}
 
 	m_initialized = false;

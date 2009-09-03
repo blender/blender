@@ -59,6 +59,7 @@ extern "C"
 #include "BKE_icons.h"	
 #include "BKE_node.h"	
 #include "BKE_report.h"	
+#include "BKE_sound.h"	
 #include "BLI_blenlib.h"
 #include "DNA_scene_types.h"
 #include "BLO_readfile.h"
@@ -357,6 +358,8 @@ int main(int argc, char** argv)
 #ifdef WITH_QUICKTIME
 	quicktime_init();
 #endif
+
+	sound_init();
 
 	libtiff_init();
  
@@ -818,6 +821,8 @@ int main(int argc, char** argv)
 	}
 
 	free_nodesystem();
+	
+	sound_exit();
 
 	return error ? -1 : 0;
 }
