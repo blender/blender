@@ -4355,11 +4355,14 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 static void lib_link_windowmanager(FileData *fd, Main *main)
 {
 	wmWindowManager *wm;
+	wmWindow *win;
 	
 	for(wm= main->wm.first; wm; wm= wm->id.next) {
-		wmWindow *win;
-		for(win= wm->windows.first; win; win= win->next) {
-			win->screen= newlibadr(fd, NULL, win->screen);
+		if(wm->id.flag & LIB_NEEDLINK) {
+			for(win= wm->windows.first; win; win= win->next)
+				win->screen= newlibadr(fd, NULL, win->screen);
+
+			wm->id.flag -= LIB_NEEDLINK;
 		}
 	}
 }
