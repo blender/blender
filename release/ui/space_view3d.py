@@ -167,6 +167,7 @@ class VIEW3D_MT_select_OBJECT(bpy.types.Menu):
 		layout.itemO("object.select_all_toggle", text="Select/Deselect All")
 		layout.itemO("object.select_inverse", text="Inverse")
 		layout.itemO("object.select_random", text="Random")
+		layout.itemO("object.select_mirror", text="Mirror")
 		layout.itemO("object.select_by_layer", text="Select All by Layer")
 		layout.item_enumO("object.select_by_type", "type", "", text="Select All by Type...")
 		layout.itemO("object.select_grouped", text="Select Grouped...")
