@@ -238,11 +238,14 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 	col= uiLayoutColumn(layout, 0);
 		/* current Grease Pencil block */
 		// TODO: show some info about who owns this?
-		//uiTemplateID(col, C, ctx_ptr, "grease_pencil", "GPENCIL_OT_data_new", "GPENCIL_OT_data_unlink"); // XXX not working
-		uiItemR(col, NULL, 0, ctx_ptr, "grease_pencil", 0); // XXX this will have to do for now...
+		uiTemplateID(col, C, ctx_ptr, "grease_pencil", "GPENCIL_OT_data_add", "GPENCIL_OT_data_unlink"); 
 		
-		/* add new layer button */
+		/* add new layer button - can be used even when no data, since it can add a new block too */
 		uiItemO(col, NULL, 0, "GPENCIL_OT_layer_add");
+	
+	/* sanity checks... */
+	if (gpd == NULL)
+		return;
 	
 	/* draw each layer --------------------------------------------- */
 	for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
@@ -271,7 +274,7 @@ void gpencil_panel_standard(const bContext *C, Panel *pa)
 	/* get pointer to Grease Pencil Data */
 	gpd_ptr= gpencil_data_get_pointers((bContext *)C, &ptr);
 	
-	if (gpd_ptr && *gpd_ptr)
+	if (gpd_ptr)
 		draw_gpencil_panel((bContext *)C, pa->layout, *gpd_ptr, &ptr);
 }
 

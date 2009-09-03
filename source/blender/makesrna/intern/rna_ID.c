@@ -65,6 +65,7 @@ short RNA_type_to_ID_code(StructRNA *type)
 	if(RNA_struct_is_a(type, &RNA_Brush)) return ID_BR;
 	if(RNA_struct_is_a(type, &RNA_Camera)) return ID_CA;
 	if(RNA_struct_is_a(type, &RNA_Curve)) return ID_CU;
+	if(RNA_struct_is_a(type, &RNA_GreasePencil)) return ID_GD;
 	if(RNA_struct_is_a(type, &RNA_Group)) return ID_GR;
 	if(RNA_struct_is_a(type, &RNA_Image)) return ID_IM;
 	if(RNA_struct_is_a(type, &RNA_Key)) return ID_KE;
