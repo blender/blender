@@ -340,23 +340,41 @@ static PyObject *KX_PythonSeq_nextIter(KX_PythonSeq *self)
 }
 
 
-static int KX_PythonSeq_compare( KX_PythonSeq * a, KX_PythonSeq * b ) /* TODO - python3.x wants richcmp */
+static int KX_PythonSeq_compare( KX_PythonSeq * a, KX_PythonSeq * b )
 {
 	return ( a->type == b->type && a->base == b->base) ? 0 : -1;	
 }
 
-extern PyObject *Py_CmpToRich(int op, int cmp);
-
 static PyObject *KX_PythonSeq_richcmp(PyObject *a, PyObject *b, int op)
 {
-	int cmp_result= -1; /* assume false */
+	PyObject *res;
+	int ok= -1; /* zero is true */
+
+	if(BPy_KX_PythonSeq_Check(a) && BPy_KX_PythonSeq_Check(b))
+		ok= KX_PythonSeq_compare((KX_PythonSeq *)a, (KX_PythonSeq *)b);
 	
-	if(BPy_KX_PythonSeq_Check(a) && BPy_KX_PythonSeq_Check(b)) {
-		cmp_result= KX_PythonSeq_compare((KX_PythonSeq *)a, (KX_PythonSeq *)b);
+	switch (op) {
+	case Py_NE:
+		ok = !ok; /* pass through */
+	case Py_EQ:
+		res = ok ? Py_False : Py_True;
+		break;
+
+	case Py_LT:
+	case Py_LE:
+	case Py_GT:
+	case Py_GE:
+		res = Py_NotImplemented;
+		break;
+	default:
+		PyErr_BadArgument();
+		return NULL;
 	}
 	
-	return Py_CmpToRich(op, cmp_result);
+	Py_INCREF(res);
+	return res;
 }
+
 
 /*
  * repr function

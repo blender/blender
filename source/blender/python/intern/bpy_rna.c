@@ -144,25 +144,64 @@ static int pyrna_prop_compare( BPy_PropertyRNA * a, BPy_PropertyRNA * b )
 	return (a->prop==b->prop && a->ptr.data==b->ptr.data ) ? 0 : -1;
 }
 
-/* For some reason python3 needs these :/ */
-static PyObject *pyrna_struct_richcmp(BPy_StructRNA * a, BPy_StructRNA * b, int op)
+static PyObject *pyrna_struct_richcmp(PyObject *a, PyObject *b, int op)
 {
-	int cmp_result= -1; /* assume false */
-	if (BPy_StructRNA_Check(a) && BPy_StructRNA_Check(b)) {
-		cmp_result= pyrna_struct_compare(a, b);
+	PyObject *res;
+	int ok= -1; /* zero is true */
+
+	if (BPy_StructRNA_Check(a) && BPy_StructRNA_Check(b))
+		ok= pyrna_struct_compare((BPy_StructRNA *)a, (BPy_StructRNA *)b);
+
+	switch (op) {
+	case Py_NE:
+		ok = !ok; /* pass through */
+	case Py_EQ:
+		res = ok ? Py_False : Py_True;
+		break;
+
+	case Py_LT:
+	case Py_LE:
+	case Py_GT:
+	case Py_GE:
+		res = Py_NotImplemented;
+		break;
+	default:
+		PyErr_BadArgument();
+		return NULL;
 	}
 
-	return Py_CmpToRich(op, cmp_result);
+	Py_INCREF(res);
+	return res;
 }
 
-static PyObject *pyrna_prop_richcmp(BPy_PropertyRNA * a, BPy_PropertyRNA * b, int op)
+static PyObject *pyrna_prop_richcmp(PyObject *a, PyObject *b, int op)
 {
-	int cmp_result= -1; /* assume false */
-	if (BPy_PropertyRNA_Check(a) && BPy_PropertyRNA_Check(b)) {
-		cmp_result= pyrna_prop_compare(a, b);
+	PyObject *res;
+	int ok= -1; /* zero is true */
+
+	if (BPy_PropertyRNA_Check(a) && BPy_PropertyRNA_Check(b))
+		ok= pyrna_prop_compare((BPy_PropertyRNA *)a, (BPy_PropertyRNA *)b);
+
+	switch (op) {
+	case Py_NE:
+		ok = !ok; /* pass through */
+	case Py_EQ:
+		res = ok ? Py_False : Py_True;
+		break;
+
+	case Py_LT:
+	case Py_LE:
+	case Py_GT:
+	case Py_GE:
+		res = Py_NotImplemented;
+		break;
+	default:
+		PyErr_BadArgument();
+		return NULL;
 	}
 
-	return Py_CmpToRich(op, cmp_result);
+	Py_INCREF(res);
+	return res;
 }
 
 /*----------------------repr--------------------------------------------*/

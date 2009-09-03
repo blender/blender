@@ -122,44 +122,6 @@ int BPY_flag_from_seq(BPY_flag_def *flagdef, PyObject *seq, int *flag)
 	return 0; /* ok */
 }
 
-
-/* Copied from pythons 3's Object.c */
-PyObject *
-Py_CmpToRich(int op, int cmp)
-{
-	PyObject *res;
-	int ok;
-
-	if (PyErr_Occurred())
-		return NULL;
-	switch (op) {
-	case Py_LT:
-		ok = cmp <  0;
-		break;
-	case Py_LE:
-		ok = cmp <= 0;
-		break;
-	case Py_EQ:
-		ok = cmp == 0;
-		break;
-	case Py_NE:
-		ok = cmp != 0;
-		break;
-	case Py_GT:
-		ok = cmp >  0;
-		break;
-	case Py_GE:
-		ok = cmp >= 0;
-		break;
-	default:
-		PyErr_BadArgument();
-		return NULL;
-	}
-	res = ok ? Py_True : Py_False;
-	Py_INCREF(res);
-	return res;
-}
-
 /* for debugging */
 void PyObSpit(char *name, PyObject *var) {
 	fprintf(stderr, "<%s> : ", name);
