@@ -58,7 +58,9 @@
 #include "NG_LoopBackNetworkDeviceInterface.h"
 
 #include "RAS_IRenderTools.h"
-#include "SND_DeviceManager.h"
+#if 0 //XXX - ADD SOUND
+	#include "SND_DeviceManager.h"
+#endif
 
 #include "GPC_Engine.h"
 #include "GPC_KeyboardDevice.h"
@@ -339,8 +341,10 @@ void GPC_Engine::Exit()
 
 	if (m_audiodevice)
 	{
+#if 0 //XXX - ADD SOUND
 		SND_DeviceManager::Unsubscribe();
 		m_audiodevice = 0;
+#endif
 	}
 
 	m_initialized = false;
