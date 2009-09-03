@@ -1069,9 +1069,9 @@ class VIEW3D_MT_edit_ARMATURE(bpy.types.Menu):
 		
 		layout.itemS()
 
-		layout.item_enumO("armature.autoside_names", "axis", 'XAXIS', text="AutoName Left/Right")
-		layout.item_enumO("armature.autoside_names", "axis", 'YAXIS', text="AutoName Front/Back")
-		layout.item_enumO("armature.autoside_names", "axis", 'ZAXIS', text="AutoName Top/Bottom")
+		layout.item_enumO("armature.autoside_names", "type", 'XAXIS', text="AutoName Left/Right")
+		layout.item_enumO("armature.autoside_names", "type", 'YAXIS', text="AutoName Front/Back")
+		layout.item_enumO("armature.autoside_names", "type", 'ZAXIS', text="AutoName Top/Bottom")
 		layout.itemO("armature.flip_names")
 
 		layout.itemS()

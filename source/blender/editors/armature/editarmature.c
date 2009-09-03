@@ -5387,7 +5387,7 @@ static int armature_autoside_names_exec (bContext *C, wmOperator *op)
 	Object *ob= CTX_data_edit_object(C);
 	bArmature *arm;
 	char newname[32];
-	short axis= RNA_enum_get(op->ptr, "axis");
+	short axis= RNA_enum_get(op->ptr, "type");
 	
 	/* paranoia checks */
 	if (ELEM(NULL, ob, ob->pose)) 
@@ -5434,7 +5434,7 @@ void ARMATURE_OT_autoside_names (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* settings */
-	RNA_def_enum(ot->srna, "axis", axis_items, 0, "Axis", "Axis tag names with.");
+	RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis tag names with.");
 }
 
 

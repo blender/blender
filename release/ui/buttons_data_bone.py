@@ -80,6 +80,7 @@ class BONE_PT_bone(BoneButtonsPanel):
 		
 		if not bone:
 			bone = context.edit_bone
+			pchan = None
 		else:
 			pchan = ob.pose.pose_channels[context.bone.name]
 

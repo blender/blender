@@ -119,6 +119,7 @@ static int nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA 
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
+		// TODO: need some way to select active animdata too...
 		if (ale->type == ANIMTYPE_NLATRACK) {
 			NlaTrack *nlt= (NlaTrack *)ale->data;
 			AnimData *adt= ale->adt;
@@ -210,7 +211,7 @@ static void nla_panel_animdata (const bContext *C, Panel *pa)
 	/* Active Action Properties ------------------------------------- */
 	/* action */
 	row= uiLayoutRow(layout, 1);
-		uiItemR(row, NULL, 0, &adt_ptr, "action", 0);
+		uiTemplateID(row, C, &adt_ptr, "action", NULL, NULL/*"ACT_OT_new", "ACT_OT_unlink"*/); // XXX: need to make these operators
 	
 	/* extrapolation */
 	row= uiLayoutRow(layout, 1);
