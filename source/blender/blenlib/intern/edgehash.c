@@ -33,6 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 #include "BLI_edgehash.h"
+#include "BLI_mempool.h"
 
 /***/
 
@@ -56,6 +57,7 @@ struct Entry {
 
 struct EdgeHash {
 	Entry **buckets;
+	BLI_mempool *epool;
 	int nbuckets, nentries, cursize;
 };
 
@@ -68,13 +70,14 @@ EdgeHash *BLI_edgehash_new(void) {
 	eh->nbuckets= hashsizes[eh->cursize];
 	
 	eh->buckets= MEM_callocN(eh->nbuckets*sizeof(*eh->buckets), "eh buckets 2");
-	
+	eh->epool = BLI_mempool_create(sizeof(Entry), 512, 512);
+
 	return eh;
 }
 
 void BLI_edgehash_insert(EdgeHash *eh, int v0, int v1, void *val) {
 	unsigned int hash;
-	Entry *e= MEM_callocN(sizeof(*e), "edgehash e");
+	Entry *e= BLI_mempool_alloc(eh->epool);
 
 	if (v1<v0) {
 		v0 ^= v1;
@@ -154,7 +157,7 @@ void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp) {
 			Entry *n= e->next;
 			
 			if (valfreefp) valfreefp(e->val);
-			MEM_freeN(e);
+			BLI_mempool_free(eh->epool, e);
 			
 			e= n;
 		}
@@ -166,7 +169,9 @@ void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp) {
 
 void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp) {
 	BLI_edgehash_clear(eh, valfreefp);
-	
+
+	BLI_mempool_destroy(eh->epool);
+
 	MEM_freeN(eh->buckets);
 	MEM_freeN(eh);
 }

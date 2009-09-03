@@ -265,7 +265,7 @@ void bmesh_make_fgons_exec(BMesh *bmesh, BMOperator *op)
 			BMO_SetFlag(bmesh, face, FACE_NGON);
 			if (trifan) {
 				while (face->len > 4) {
-					BM_Split_Face(bmesh, face, 
+					face = BM_Split_Face(bmesh, face, 
 						face->loopbase->v, 
 						((BMLoop*)face->loopbase->head.next->next)->v,
 						&nl, NULL);
