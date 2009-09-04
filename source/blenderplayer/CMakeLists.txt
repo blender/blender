@@ -103,6 +103,7 @@ IF(UNIX)
     bf_readblenfile 
     bf_dna
     bf_rna
+    bf_videotex
     bf_blenfont
     bf_audaspace
     blenkernel_blc
