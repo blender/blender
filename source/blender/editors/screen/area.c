@@ -1248,6 +1248,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 
 	/* before setting the view */
 	if(vertical) {
+		/* only allow scrolling in vertical direction */
 		v2d->keepofs |= V2D_LOCKOFS_X|V2D_KEEPOFS_Y;
 		v2d->keepofs &= ~(V2D_LOCKOFS_Y|V2D_KEEPOFS_X);
 		
@@ -1258,8 +1259,12 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 			y= -y;
 	}
 	else {
-		v2d->keepofs |= V2D_LOCKOFS_Y|V2D_KEEPOFS_X;
-		v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_KEEPOFS_Y);
+		/* for now, allow scrolling in both directions (since layouts are optimised for vertical,
+		 * they often don't fit in horizontal layout)
+		 */
+		v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_LOCKOFS_Y|V2D_KEEPOFS_X|V2D_KEEPOFS_Y);
+		//v2d->keepofs |= V2D_LOCKOFS_Y|V2D_KEEPOFS_X;
+		//v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_KEEPOFS_Y);
 		
 		// don't jump back when panels close or hide
 		if(!newcontext)

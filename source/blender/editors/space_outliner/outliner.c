@@ -5288,6 +5288,9 @@ void draw_outliner(const bContext *C)
 			sizex += OL_TOGW*3;
 	}
 	
+	/* tweak to display last line (when list bigger than window) */
+	sizey += V2D_SCROLL_HEIGHT;
+	
 	/* update size of tot-rect (extents of data/viewable area) */
 	UI_view2d_totRect_set(v2d, sizex, sizey);
 

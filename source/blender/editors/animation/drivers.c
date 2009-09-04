@@ -151,33 +151,33 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 	/* create F-Curve with Driver */
 	fcu= verify_driver_fcurve(id, rna_path, array_index, 1);
 
-	if(fcu && fcu->driver) {
+	if (fcu && fcu->driver) {
 		fcu->driver->type= type;
-
+		
 		/* fill in current value for python */
-		if(type == DRIVER_TYPE_PYTHON) {
+		if (type == DRIVER_TYPE_PYTHON) {
 			PropertyType proptype= RNA_property_type(prop);
 			int array= RNA_property_array_length(&ptr, prop);
 			char *expression= fcu->driver->expression;
 			int val, maxlen= sizeof(fcu->driver->expression);
 			float fval;
-
-			if(proptype == PROP_BOOLEAN) {
+			
+			if (proptype == PROP_BOOLEAN) {
 				if(!array) val= RNA_property_boolean_get(&ptr, prop);
 				else val= RNA_property_boolean_get_index(&ptr, prop, array_index);
-
+				
 				BLI_strncpy(expression, (val)? "True": "False", maxlen);
 			}
-			else if(proptype == PROP_INT) {
-				if(!array) val= RNA_property_int_get(&ptr, prop);
+			else if (proptype == PROP_INT) {
+				if (!array) val= RNA_property_int_get(&ptr, prop);
 				else val= RNA_property_int_get_index(&ptr, prop, array_index);
-
+				
 				BLI_snprintf(expression, maxlen, "%d", val);
 			}
-			else if(proptype == PROP_FLOAT) {
-				if(!array) fval= RNA_property_float_get(&ptr, prop);
+			else if (proptype == PROP_FLOAT) {
+				if (!array) fval= RNA_property_float_get(&ptr, prop);
 				else fval= RNA_property_float_get_index(&ptr, prop, array_index);
-
+				
 				BLI_snprintf(expression, maxlen, "%.3f", fval);
 			}
 
@@ -232,7 +232,7 @@ static int add_driver_button_exec (bContext *C, wmOperator *op)
 	short success= 0;
 	int a, index, length, all= RNA_boolean_get(op->ptr, "all");
 	
-	/* try to insert keyframe using property retrieved from UI */
+	/* try to create driver using property retrieved from UI */
 	memset(&ptr, 0, sizeof(PointerRNA));
 	uiAnimContextProperty(C, &ptr, &prop, &index);
 	
@@ -294,7 +294,7 @@ static int remove_driver_button_exec (bContext *C, wmOperator *op)
 	short success= 0;
 	int a, index, length, all= RNA_boolean_get(op->ptr, "all");
 	
-	/* try to insert keyframe using property retrieved from UI */
+	/* try to find driver using property retrieved from UI */
 	memset(&ptr, 0, sizeof(PointerRNA));
 	uiAnimContextProperty(C, &ptr, &prop, &index);
 
