@@ -1245,6 +1245,18 @@ void init_userdef_do_versions(void)
 			SETCOLF(btheme->tuserpref.back, 0.45, 0.45, 0.45, 1.0);
 		}
 	}
+
+	if (G.main->versionfile < 250 || (G.main->versionfile == 250 && G.main->subversionfile < 3)) {
+		/* new audio system */
+		if(U.audiochannels == 0)
+			U.audiochannels = 2;
+		if(U.audiodevice == 0)
+			U.audiodevice = 2;
+		if(U.audioformat == 0)
+			U.audioformat = 0x24;
+		if(U.audiorate == 0)
+			U.audiorate = 44100;
+	}
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {
