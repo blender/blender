@@ -207,7 +207,6 @@ if env['WITH_BF_OPENMP'] == 1:
 				env.Append(CCFLAGS=['-fopenmp']) 
 				env.Append(CPPFLAGS=['-fopenmp'])
 				env.Append(CXXFLAGS=['-fopenmp'])
-				# env.Append(LINKFLAGS=['-fprofile-generate'])
 
 #check for additional debug libnames
 
@@ -301,7 +300,6 @@ if env['WITH_BF_SDL'] == False and env['OURPLATFORM'] in ('win32-vc', 'win32-min
 	env['PLATFORM_LINKFLAGS'].append('/ENTRY:main')
 
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
-#B.root_build_dir = B.arguments.get('BF_BUILDDIR', '..'+os.sep+'build'+os.sep+platform+os.sep)
 B.root_build_dir = env['BF_BUILDDIR']
 B.doc_build_dir = env['BF_DOCDIR']
 if not B.root_build_dir[-1]==os.sep:
@@ -403,7 +401,6 @@ thestatlibs, thelibincs = B.setup_staticlibs(env)
 thesyslibs = B.setup_syslibs(env)
 
 if 'blender' in B.targets or not env['WITH_BF_NOBLENDER']:
-	#env.BlenderProg(B.root_build_dir, "blender", dobj , [], mainlist + thestatlibs + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
 	env.BlenderProg(B.root_build_dir, "blender", dobj + mainlist, [], thestatlibs + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
 if env['WITH_BF_PLAYER']:
 	playerlist = B.create_blender_liblist(env, 'player')
@@ -579,11 +576,6 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc'):
 						'${LCGDIR}/ffmpeg/lib/avformat-52.dll',
 						'${LCGDIR}/ffmpeg/lib/avdevice-52.dll',
 						'${LCGDIR}/ffmpeg/lib/avutil-50.dll',
-#						'${LCGDIR}/ffmpeg/lib/libfaad-2.dll',
-#						'${LCGDIR}/ffmpeg/lib/libfaac-0.dll',
-#						'${LCGDIR}/ffmpeg/lib/libmp3lame-0.dll',
-#						'${LCGDIR}/ffmpeg/lib/libx264-67.dll',
-#						'${LCGDIR}/ffmpeg/lib/xvidcore.dll',
 						'${LCGDIR}/ffmpeg/lib/swscale-0.dll']
 	if env['WITH_BF_JACK']:
 		dllsources += ['${LCGDIR}/jack/lib/libjack.dll']
