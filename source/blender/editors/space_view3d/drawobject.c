@@ -1461,7 +1461,7 @@ static void draw_dm_face_normals__mapFunc(void *userData, int index, float *cent
 	Scene *scene= ((void **)userData)[0];
 	BMEditMesh *em = ((void **)userData)[1];
 	BMFace *efa = EDBM_get_face_for_index(em, index);
-	ToolSettings *ts= ((Scene *)userData)->toolsettings;
+	ToolSettings *ts= scene->toolsettings;
 
 	if (!BM_TestHFlag(efa, BM_HIDDEN)) {
 		glVertex3fv(cent);
@@ -1470,9 +1470,9 @@ static void draw_dm_face_normals__mapFunc(void *userData, int index, float *cent
 					cent[2] + no[2]*ts->normalsize);
 	}
 }
-static void draw_dm_face_normals(BMEditMesh *tm, Scene *scene, DerivedMesh *dm) 
+static void draw_dm_face_normals(BMEditMesh *em, Scene *scene, DerivedMesh *dm) 
 {
-	void *ptrs[2] = {scene, tm};
+	void *ptrs[2] = {scene, em};
 
 	glBegin(GL_LINES);
 	dm->foreachMappedFaceCenter(dm, draw_dm_face_normals__mapFunc, ptrs);
