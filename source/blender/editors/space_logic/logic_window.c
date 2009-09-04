@@ -74,11 +74,6 @@
 #include "logic_intern.h"
 
 
-
-/* XXX */
-static int pupmenu() {return 1;}
-/* XXX */
-
 #define MAX_RENDER_PASS   100
 #define B_REDR		1
 #define B_IDNAME	2
@@ -202,7 +197,7 @@ static void make_unique_prop_names_cb(bContext *C, void *strv, void *redraw_view
 }
 
 
-static void sca_move_sensor(bContext *C, void *datav, void *data2_unused)
+static void sca_move_sensor(bContext *C, void *datav, void *move_up)
 {
 	Scene *scene= CTX_data_scene(C);
 	bSensor *sens_to_delete= datav;
@@ -210,7 +205,8 @@ static void sca_move_sensor(bContext *C, void *datav, void *data2_unused)
 	Base *base;
 	bSensor *sens, *tmp;
 	
-	val= pupmenu("Move up%x1|Move down %x2");
+	// val= pupmenu("Move up%x1|Move down %x2");
+	val = move_up ? 1:2;
 	
 	if(val>0) {
 		/* now find out which object has this ... */
@@ -253,7 +249,7 @@ static void sca_move_sensor(bContext *C, void *datav, void *data2_unused)
 	}
 }
 
-static void sca_move_controller(bContext *C, void *datav, void *data2_unused)
+static void sca_move_controller(bContext *C, void *datav, void *move_up)
 {
 	Scene *scene= CTX_data_scene(C);
 	bController *controller_to_del= datav;
@@ -261,7 +257,8 @@ static void sca_move_controller(bContext *C, void *datav, void *data2_unused)
 	Base *base;
 	bController *cont, *tmp;
 	
-	val= pupmenu("Move up%x1|Move down %x2");
+	//val= pupmenu("Move up%x1|Move down %x2");
+	val = move_up ? 1:2;
 	
 	if(val>0) {
 		/* now find out which object has this ... */
@@ -307,7 +304,7 @@ static void sca_move_controller(bContext *C, void *datav, void *data2_unused)
 	}
 }
 
-static void sca_move_actuator(bContext *C, void *datav, void *data2_unused)
+static void sca_move_actuator(bContext *C, void *datav, void *move_up)
 {
 	Scene *scene= CTX_data_scene(C);
 	bActuator *actuator_to_move= datav;
@@ -315,7 +312,8 @@ static void sca_move_actuator(bContext *C, void *datav, void *data2_unused)
 	Base *base;
 	bActuator *act, *tmp;
 	
-	val= pupmenu("Move up%x1|Move down %x2");
+	//val= pupmenu("Move up%x1|Move down %x2");
+	val = move_up ? 1:2;
 	
 	if(val>0) {
 		/* now find out which object has this ... */
@@ -981,6 +979,7 @@ static void draw_default_sensor_header(bSensor *sens,
 	uiBut *but;
 	
 	/* Pulsing and frequency */
+	uiBlockBeginAlign(block);
 	uiDefIconButBitS(block, TOG, SENS_PULSE_REPEAT, 1, ICON_DOTSUP,
 			 (short)(x + 10 + 0. * (w-20)), (short)(y - 21), (short)(0.1 * (w-20)), 19,
 			 &sens->pulse, 0.0, 0.0, 0, 0,
@@ -994,8 +993,10 @@ static void draw_default_sensor_header(bSensor *sens,
 			 (short)(x + 10 + 0.2 * (w-20)), (short)(y - 21), (short)(0.275 * (w-20)), 19,
 			 &sens->freq, 0.0, 10000.0, 0, 0,
 			 "Delay between repeated pulses (in logic tics, 0 = no delay)");
+	uiBlockEndAlign(block);
 	
 	/* value or shift? */
+	uiBlockBeginAlign(block);
 	but= uiDefButS(block, TOG, 1, "Level",
 			 (short)(x + 10 + 0.5 * (w-20)), (short)(y - 21), (short)(0.20 * (w-20)), 19,
 			 &sens->level, 0.0, 0.0, 0, 0,
@@ -1006,6 +1007,7 @@ static void draw_default_sensor_header(bSensor *sens,
 			 &sens->tap, 0.0, 0.0, 0, 0,
 			 "Trigger controllers only for an instant, even while the sensor remains true");
 	uiButSetFunc(but, verify_logicbutton_func, sens, &(sens->tap));
+	uiBlockEndAlign(block);
 	
 	uiDefButS(block, TOG, 1, "Inv",
 			 (short)(x + 10 + 0.85 * (w-20)), (short)(y - 21), (short)(0.15 * (w-20)), 19,
@@ -3020,7 +3022,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 		
 	/* start with the controller because we need to know which one is visible */
 	/* ******************************* */
-	xco= 500; yco= 170; width= 300;
+	xco= 400; yco= 170; width= 300;
 
 	uiDefBlockBut(block, controller_menu, NULL, "Controllers", xco-10, yco+35, 100, UI_UNIT_Y, "");
 	
@@ -3129,9 +3131,17 @@ void logic_buttons(bContext *C, ARegion *ar)
 							cpack(0x999999);
 							glRecti(xco+22, yco, xco+width-22,yco+19);
 							but= uiDefBut(block, LABEL, 0, controller_name(cont->type), (short)(xco+22), yco, 70, UI_UNIT_Y, cont, 0, 0, 0, 0, "Controller type");
-							uiButSetFunc(but, sca_move_controller, cont, NULL);
+							//uiButSetFunc(but, sca_move_controller, cont, NULL);
 							but= uiDefBut(block, LABEL, 0, cont->name,(short)(xco+92), yco,(short)(width-158), UI_UNIT_Y, cont, 0, 0, 0, 0, "Controller name");
-							uiButSetFunc(but, sca_move_controller, cont, NULL);
+							//uiButSetFunc(but, sca_move_controller, cont, NULL);
+
+							uiBlockBeginAlign(block);
+							but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_UP, (short)(xco+width-(110+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
+							uiButSetFunc(but, sca_move_controller, cont, (void *)TRUE);
+							but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_DOWN, (short)(xco+width-(88+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
+							uiButSetFunc(but, sca_move_controller, cont, (void *)FALSE);
+							uiBlockEndAlign(block);
+
 							ycoo= yco;
 						}
 				
@@ -3152,7 +3162,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	}
 	
 	/* ******************************* */
-	xco= 10; yco= 170; width= 400;
+	xco= 10; yco= 170; width= 300;
 
 	uiDefBlockBut(block, sensor_menu, NULL, "Sensors", xco-10, yco+35, 70, UI_UNIT_Y, "");
 	
@@ -3213,9 +3223,16 @@ void logic_buttons(bContext *C, ARegion *ar)
 						set_col_sensor(sens->type, 1);
 						glRecti(xco+22, yco, xco+width-22,yco+19);
 						but= uiDefBut(block, LABEL, 0, sensor_name(sens->type),	(short)(xco+22), yco, 80, UI_UNIT_Y, sens, 0, 0, 0, 0, "");
-						uiButSetFunc(but, sca_move_sensor, sens, NULL);
+						//uiButSetFunc(but, sca_move_sensor, sens, NULL);
 						but= uiDefBut(block, LABEL, 0, sens->name, (short)(xco+102), yco, (short)(width-(pin?146:124)), UI_UNIT_Y, sens, 0, 31, 0, 0, "");
-						uiButSetFunc(but, sca_move_sensor, sens, NULL);
+						//uiButSetFunc(but, sca_move_sensor, sens, NULL);
+
+						uiBlockBeginAlign(block);
+						but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
+						uiButSetFunc(but, sca_move_sensor, sens, (void *)TRUE);
+						but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
+						uiButSetFunc(but, sca_move_sensor, sens, (void *)FALSE);
+						uiBlockEndAlign(block);
 					}
 
 					but= uiDefIconBut(block, LINK, 0, ICON_LINK,	(short)(xco+width), ycoo, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
@@ -3230,7 +3247,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	}
 
 	/* ******************************* */
-	xco= 900; yco= 170; width= 400;
+	xco= 800; yco= 170; width= 300;
 	
 	uiDefBlockBut(block, actuator_menu, NULL, "Actuators", xco-10, yco+35, 90, UI_UNIT_Y, "");
 
@@ -3286,9 +3303,17 @@ void logic_buttons(bContext *C, ARegion *ar)
 						set_col_actuator(act->type, 1);
 						glRecti((short)(xco+22), yco, (short)(xco+width-22),(short)(yco+19));
 						but= uiDefBut(block, LABEL, 0, actuator_name(act->type), (short)(xco+22), yco, 90, UI_UNIT_Y, act, 0, 0, 0, 0, "Actuator type");
-						uiButSetFunc(but, sca_move_actuator, act, NULL);
+						// uiButSetFunc(but, sca_move_actuator, act, NULL);
 						but= uiDefBut(block, LABEL, 0, act->name, (short)(xco+112), yco, (short)(width-(pin?156:134)), UI_UNIT_Y, act, 0, 0, 0, 0, "Actuator name");
-						uiButSetFunc(but, sca_move_actuator, act, NULL);
+						// uiButSetFunc(but, sca_move_actuator, act, NULL);
+
+						uiBlockBeginAlign(block);
+						but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_UP, (short)(xco+width-(66+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick up");
+						uiButSetFunc(but, sca_move_actuator, act, (void *)TRUE);
+						but= uiDefIconBut(block, BUT, B_REDR, VICON_MOVE_DOWN, (short)(xco+width-(44+5)), yco, 22, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Move this logic brick down");
+						uiButSetFunc(but, sca_move_actuator, act, (void *)FALSE);
+						uiBlockEndAlign(block);
+
 						ycoo= yco;
 					}
 
