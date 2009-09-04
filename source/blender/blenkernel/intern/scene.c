@@ -860,14 +860,3 @@ float get_render_aosss_error(RenderData *r, float error)
 		return error;
 }
 
-void free_dome_warp_text(struct Text *txt)
-{
-	Scene *scene;
-
-	scene = G.main->scene.first;
-	while(scene) {
-		if (scene->r.dometext == txt)
-			scene->r.dometext = NULL;
-		scene = scene->id.next;
-	}
-}

@@ -83,8 +83,6 @@ typedef struct FlattenString {
 int flatten_string(struct SpaceText *st, FlattenString *fs, char *in);
 void flatten_string_free(FlattenString *fs);
 
-void unlink_text(struct Text *text);
-
 int wrap_width(struct SpaceText *st, struct ARegion *ar);
 void wrap_offset(struct SpaceText *st, struct ARegion *ar, struct TextLine *linein, int cursin, int *offl, int *offc);
 

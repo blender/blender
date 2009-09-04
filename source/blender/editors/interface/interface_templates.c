@@ -157,7 +157,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 {
 	TemplateID *template= (TemplateID*)arg_litem;
 	PointerRNA idptr= RNA_property_pointer_get(&template->ptr, template->prop);
-	ID *id= idptr.data;
+	ID *id= idptr.data, *newid;
 	int event= GET_INT_FROM_POINTER(arg_event);
 	
 	switch(event) {
@@ -185,28 +185,48 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			}
 			else return;
 			break;
-#if 0
-		case UI_ID_ALONE:
-			if(!id || id->us < 1)
-				return;
-			break;
 		case UI_ID_LOCAL:
-			if(!id || id->us < 1)
-				return;
+			if(id) {
+				if(id_make_local(id, 0)) {
+					/* reassign to get get proper updates/notifiers */
+					idptr= RNA_property_pointer_get(&template->ptr, template->prop);
+					RNA_property_pointer_set(&template->ptr, template->prop, idptr);
+					RNA_property_update(C, &template->ptr, template->prop);
+				}
+			}
 			break;
+		case UI_ID_ALONE:
+			if(id) {
+				/* make copy */
+				if(id_copy(id, &newid, 0) && newid) {
+					/* us is 1 by convention, but RNA_property_pointer_set
+					   will also incremement it, so set it to zero */
+					newid->us= 0;
+
+					/* assign copy */
+					RNA_id_pointer_create(newid, &idptr);
+					RNA_property_pointer_set(&template->ptr, template->prop, idptr);
+					RNA_property_update(C, &template->ptr, template->prop);
+				}
+			}
+			break;
+#if 0
 		case UI_ID_AUTO_NAME:
 			break;
 #endif
 	}
 }
 
-static void template_ID(bContext *C, uiBlock *block, TemplateID *template, StructRNA *type, int flag, char *newop, char *unlinkop)
+static void template_ID(bContext *C, uiBlock *block, TemplateID *template, StructRNA *type, int flag, char *newop, char *openop, char *unlinkop)
 {
 	uiBut *but;
 	PointerRNA idptr;
 	ListBase *lb;
+	ID *id, *idfrom;
 
 	idptr= RNA_property_pointer_get(&template->ptr, template->prop);
+	id= idptr.data;
+	idfrom= template->ptr.id.data;
 	lb= template->idlb;
 
 	uiBlockBeginAlign(block);
@@ -221,33 +241,86 @@ static void template_ID(bContext *C, uiBlock *block, TemplateID *template, Struc
 			but->flag|= UI_HAS_ICON;
 			but->flag|= UI_ICON_LEFT;
 		}
+
+		if((idfrom && idfrom->lib))
+			uiButSetFlag(but, UI_BUT_DISABLED);
 	}
 
 	/* text button with name */
-	if(idptr.data) {
+	if(id) {
 		char name[64];
 
-		//text_idbutton(idptr.data, name);
+		//text_idbutton(id, name);
 		name[0]= '\0';
 		but= uiDefButR(block, TEX, 0, name, 0, 0, UI_UNIT_X*6, UI_UNIT_Y, &idptr, "name", -1, 0, 0, -1, -1, NULL);
 		uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_RENAME));
+
+		if(id->lib) {
+			if(id->flag & LIB_INDIRECT) {
+				but= uiDefIconBut(block, BUT, 0, ICON_LIBRARY_DATA_INDIRECT, 0,0,UI_UNIT_X,UI_UNIT_Y, 0, 0, 0, 0, 0,
+					"Indirect library datablock, cannot change.");
+				uiButSetFlag(but, UI_BUT_DISABLED);
+			}
+			else {
+				but= uiDefIconBut(block, BUT, 0, ICON_LIBRARY_DATA_DIRECT, 0,0,UI_UNIT_X,UI_UNIT_Y, 0, 0, 0, 0, 0,
+					"Direct linked library datablock, click to make local.");
+				if(!id_make_local(id, 1 /* test */) || (idfrom && idfrom->lib))
+					uiButSetFlag(but, UI_BUT_DISABLED);
+			}
+
+			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_LOCAL));
+		}
+
+		if(id->us > 1) {
+			char str[32];
+
+			sprintf(str, "%d", id->us);
+
+			if(id->us<10)
+				but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X,UI_UNIT_Y, 0, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
+			else
+				but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X+10,UI_UNIT_Y, 0, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
+
+			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ALONE));
+			if(!id_copy(id, NULL, 1 /* test only */) || (idfrom && idfrom->lib))
+				uiButSetFlag(but, UI_BUT_DISABLED);
+		}
 	}
 	
 	if(flag & UI_ID_ADD_NEW) {
-		int w= idptr.data?UI_UNIT_X:UI_UNIT_X*6;
+		int w= id?UI_UNIT_X: (flag & UI_ID_OPEN)? UI_UNIT_X*3: UI_UNIT_X*6;
 		
 		if(newop) {
-			but= uiDefIconTextButO(block, BUT, newop, WM_OP_INVOKE_REGION_WIN, ICON_ZOOMIN, (idptr.data)? "": "Add New", 0, 0, w, UI_UNIT_Y, NULL);
+			but= uiDefIconTextButO(block, BUT, newop, WM_OP_INVOKE_REGION_WIN, ICON_ZOOMIN, (id)? "": "New", 0, 0, w, UI_UNIT_Y, NULL);
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
 		}
 		else {
-			but= uiDefIconTextBut(block, BUT, 0, ICON_ZOOMIN, (idptr.data)? "": "Add New", 0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+			but= uiDefIconTextBut(block, BUT, 0, ICON_ZOOMIN, (id)? "": "New", 0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
 		}
+
+		if((idfrom && idfrom->lib))
+			uiButSetFlag(but, UI_BUT_DISABLED);
+	}
+
+	if(flag & UI_ID_OPEN) {
+		int w= id?UI_UNIT_X: (flag & UI_ID_ADD_NEW)? UI_UNIT_X*3: UI_UNIT_X*6;
+		
+		if(openop) {
+			but= uiDefIconTextButO(block, BUT, openop, WM_OP_INVOKE_REGION_WIN, ICON_FILESEL, (id)? "": "Open", 0, 0, w, UI_UNIT_Y, NULL);
+			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_OPEN));
+		}
+		else {
+			but= uiDefIconTextBut(block, BUT, 0, ICON_FILESEL, (id)? "": "Open", 0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_OPEN));
+		}
+
+		if((idfrom && idfrom->lib))
+			uiButSetFlag(but, UI_BUT_DISABLED);
 	}
 	
 	/* delete button */
-	if(idptr.data && (flag & UI_ID_DELETE)) {
+	if(id && (flag & UI_ID_DELETE)) {
 		if(unlinkop) {
 			but= uiDefIconButO(block, BUT, unlinkop, WM_OP_INVOKE_REGION_WIN, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
 		}
@@ -255,12 +328,15 @@ static void template_ID(bContext *C, uiBlock *block, TemplateID *template, Struc
 			but= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_DELETE));
 		}
+
+		if((idfrom && idfrom->lib))
+			uiButSetFlag(but, UI_BUT_DISABLED);
 	}
 	
 	uiBlockEndAlign(block);
 }
 
-void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *unlinkop)
+void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop)
 {
 	TemplateID *template;
 	uiBlock *block;
@@ -286,6 +362,8 @@ void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname
 
 	if(newop)
 		flag |= UI_ID_ADD_NEW;
+	if(openop)
+		flag |= UI_ID_OPEN;
 
 	type= RNA_property_pointer_type(ptr, prop);
 	template->idlb= wich_libbase(CTX_data_main(C), RNA_type_to_ID_code(type));
@@ -293,7 +371,7 @@ void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname
 	if(template->idlb) {
 		uiLayoutRow(layout, 1);
 		block= uiLayoutGetBlock(layout);
-		template_ID(C, block, template, type, flag, newop, unlinkop);
+		template_ID(C, block, template, type, flag, newop, openop, unlinkop);
 	}
 
 	MEM_freeN(template);

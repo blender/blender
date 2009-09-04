@@ -46,6 +46,9 @@ void *copy_libblock(void *rt);
 void id_lib_extern(struct ID *id);
 void id_us_plus(struct ID *id);
 void id_us_min(struct ID *id);
+int id_make_local(struct ID *id, int test);
+int id_copy(struct ID *id, struct ID **newid, int test);
+int id_unlink(struct ID *id, int test);
 
 int check_for_dupid(struct ListBase *lb, struct ID *id, char *name);
 int new_id(struct ListBase *lb, struct ID *id, const char *name);

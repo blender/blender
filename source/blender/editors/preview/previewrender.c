@@ -349,8 +349,14 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 			
 			for(base= sce->base.first; base; base= base->next) {
 				if(base->object->id.name[2]=='p') {
-					if(ELEM4(base->object->type, OB_MESH, OB_CURVE, OB_SURF, OB_MBALL))
-						assign_material(base->object, mat, base->object->actcol);
+					if(ELEM4(base->object->type, OB_MESH, OB_CURVE, OB_SURF, OB_MBALL)) {
+						/* don't use assign_material, it changed mat->id.us, which shows in the UI */
+						Material ***matar= give_matarar(base->object);
+						int actcol= MAX2(base->object->actcol > 0, 1) - 1;
+
+						if(matar && actcol < base->object->totcol)
+							(*matar)[actcol]= mat;
+					}
 				}
 			}
 		}

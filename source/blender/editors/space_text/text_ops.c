@@ -273,48 +273,9 @@ void TEXT_OT_reload(wmOperatorType *ot)
 
 /******************* delete operator *********************/
 
-static void text_unlink(Main *bmain, Text *text)
-{
-	bScreen *scr;
-	ScrArea *area;
-	SpaceLink *sl;
-
-	/* XXX this ifdef is in fact dangerous, if python is
-	 * disabled it will leave invalid pointers in files! */
-
-#ifndef DISABLE_PYTHON
-	// XXX BPY_free_pyconstraint_links(text);
-	// XXX free_text_controllers(text);
-	// XXX free_dome_warp_text(text);
-
-	/* equivalently for pynodes: */
-	if(0) // XXX nodeDynamicUnlinkText ((ID*)text))
-		; // XXX notifier: allqueue(REDRAWNODE, 0);
-#endif
-	
-	for(scr= bmain->screen.first; scr; scr= scr->id.next) {
-		for(area= scr->areabase.first; area; area= area->next) {
-			for(sl= area->spacedata.first; sl; sl= sl->next) {
-				if(sl->spacetype==SPACE_TEXT) {
-					SpaceText *st= (SpaceText*) sl;
-					
-					if(st->text==text) {
-						st->text= NULL;
-						st->top= 0;
-						
-						if(st==area->spacedata.first)
-							ED_area_tag_redraw(area);
-					}
-				}
-			}
-		}
-	}
-
-	free_libblock(&bmain->text, text);
-}
-
 static int unlink_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	SpaceText *st= CTX_wm_space_text(C);
 	Text *text= CTX_data_edit_text(C);
 
@@ -330,7 +291,8 @@ static int unlink_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	text_unlink(CTX_data_main(C), text);
+	unlink_text(bmain, text);
+	free_libblock(&bmain->text, text);
 	WM_event_add_notifier(C, NC_TEXT|NA_REMOVED, text);
 
 	return OPERATOR_FINISHED;
