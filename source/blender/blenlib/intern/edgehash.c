@@ -22,7 +22,7 @@
  *
  * The Original Code is: none of this file.
  *
- * Contributor(s): Daniel Dunbar
+ * Contributor(s): Daniel Dunbar, Joseph Eagar
  *
  * ***** END GPL LICENSE BLOCK *****
  * A general (pointer -> pointer) hash table ADT

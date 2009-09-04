@@ -502,6 +502,12 @@ void BM_remove_selection(BMesh *em, void *data)
 	}
 }
 
+void BM_clear_selection_history(BMesh *em)
+{
+	BLI_freelistN(&em->selected);
+	em->selected.first = em->selected.last = NULL;
+}
+
 void BM_store_selection(BMesh *em, void *data)
 {
 	BMEditSelection *ese;

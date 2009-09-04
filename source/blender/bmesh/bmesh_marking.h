@@ -39,5 +39,6 @@ void BM_editselection_plane(BMesh *bm, float *plane, BMEditSelection *ese);
 void BM_remove_selection(BMesh *bm, void *data);
 void BM_store_selection(BMesh *bm, void *data);
 void BM_validate_selections(BMesh *bm);
+void BM_clear_selection_history(BMesh *em);
 
 #endif

@@ -466,6 +466,9 @@ void EDBM_clear_flag_all(BMEditMesh *em, int flag)
 	BMHeader *ele;
 	int i, type;
 
+	if (flag & BM_SELECT)
+		BM_clear_selection_history(em->bm);
+
 	for (i=0; i<3; i++) {
 		switch (i) {
 			case 0:
