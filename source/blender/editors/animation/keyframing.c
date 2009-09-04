@@ -292,14 +292,8 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
 			}
 		}
 		else if ((flag & INSERTKEY_REPLACE) == 0) {
-			/* add new - if we're not restricted to replacing keyframes only */
-			BezTriple *newb;
-			
-			/* allocate a new array only if we have to */
-			if ((flag & INSERTKEY_FASTR) == 0)
-				newb= MEM_callocN((fcu->totvert+1)*sizeof(BezTriple), "beztriple");
-			else
-				newb= fcu->bezt;
+			/* insert new - if we're not restricted to replacing keyframes only */
+			BezTriple *newb= MEM_callocN((fcu->totvert+1)*sizeof(BezTriple), "beztriple");
 			
 			/* add the beztriples that should occur before the beztriple to be pasted (originally in ei->icu) */
 			if (i > 0)
@@ -313,11 +307,9 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
 				memcpy(newb+i+1, fcu->bezt+i, (fcu->totvert-i)*sizeof(BezTriple));
 			
 			/* replace (+ free) old with new, only if necessary to do so */
-			if ((flag & INSERTKEY_FASTR) == 0) {
-				MEM_freeN(fcu->bezt);
-				fcu->bezt= newb;
-			}
-			
+			MEM_freeN(fcu->bezt);
+			fcu->bezt= newb;
+				
 			fcu->totvert++;
 		}
 	}

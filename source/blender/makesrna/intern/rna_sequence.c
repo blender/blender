@@ -221,6 +221,16 @@ static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)
 	}
 }
 
+static char *rna_Sequence_path(PointerRNA *ptr)
+{
+	Sequence *seq= (Sequence*)ptr->data;
+	
+	/* sequencer data comes from scene... 
+	 * TODO: would be nice to make SequenceEditor data a datablock of its own (for shorter paths)
+	 */
+	return BLI_sprintfN("sequence_editor.sequences[\"%s\"]", seq->name+2);
+}
+
 static PointerRNA rna_SequenceEdtior_meta_stack_get(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal= iter->internal;
@@ -393,6 +403,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "Sequence", NULL);
 	RNA_def_struct_ui_text(srna, "Sequence", "Sequence strip in the sequence editor.");
 	RNA_def_struct_refine_func(srna, "rna_Sequence_refine");
+	RNA_def_struct_path_func(srna, "rna_Sequence_path");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_Sequence_name_get", "rna_Sequence_name_length", "rna_Sequence_name_set");
