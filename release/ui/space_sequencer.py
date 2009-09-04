@@ -416,7 +416,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 		if not strip:
 			return False
 		
-		return strip.type in ('MOVIE', 'IMAGE', 'SOUND')
+		return strip.type in ('MOVIE', 'IMAGE')
 	
 	def draw(self, context):
 		layout = self.layout
@@ -440,27 +440,26 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
 			col = split.column()
 			col.itemR(elem, "filename", text="") # strip.elements[0] could be a fallback
 		
-		if strip.type != 'SOUND':
-			layout.itemR(strip, "use_translation", text="Image Offset:")
-			if strip.transform:
-				col = layout.column(align=True)
-				col.active = strip.use_translation
-				col.itemR(strip.transform, "offset_x", text="X")
-				col.itemR(strip.transform, "offset_y", text="Y")
-		
-			layout.itemR(strip, "use_crop", text="Image Crop:")
-			if strip.crop:
-				col = layout.column(align=True)
-				col.active = strip.use_crop
-				col.itemR(strip.crop, "top")
-				col.itemR(strip.crop, "left")
-				col.itemR(strip.crop, "bottom")
-				col.itemR(strip.crop, "right")
-			
+		layout.itemR(strip, "use_translation", text="Image Offset:")
+		if strip.transform:
 			col = layout.column(align=True)
-			col.itemL(text="Trim Duration:")
-			col.itemR(strip, "animation_start_offset", text="Start")
-			col.itemR(strip, "animation_end_offset", text="End")
+			col.active = strip.use_translation
+			col.itemR(strip.transform, "offset_x", text="X")
+			col.itemR(strip.transform, "offset_y", text="Y")
+	
+		layout.itemR(strip, "use_crop", text="Image Crop:")
+		if strip.crop:
+			col = layout.column(align=True)
+			col.active = strip.use_crop
+			col.itemR(strip.crop, "top")
+			col.itemR(strip.crop, "left")
+			col.itemR(strip.crop, "bottom")
+			col.itemR(strip.crop, "right")
+		
+		col = layout.column(align=True)
+		col.itemL(text="Trim Duration:")
+		col.itemR(strip, "animation_start_offset", text="Start")
+		col.itemR(strip, "animation_end_offset", text="End")
 
 class SEQUENCER_PT_sound(SequencerButtonsPanel):
 	__label__ = "Sound"
