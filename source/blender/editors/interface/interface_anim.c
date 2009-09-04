@@ -283,11 +283,11 @@ void ui_but_anim_menu(bContext *C, uiBut *but)
 			if(length) {
 				uiItemBooleanO(layout, "Add All to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 1);
 				uiItemBooleanO(layout, "Add Single to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 0);
-				uiItemBooleanO(layout, "Remove from Keying Set", 0, "ANIM_OT_remove_keyingset_button", "all", 0);
+				uiItemO(layout, "Remove from Keying Set", 0, "ANIM_OT_remove_keyingset_button");
 			}
 			else {
 				uiItemBooleanO(layout, "Add to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 0);
-				uiItemBooleanO(layout, "Remove from Keying Set", 0, "ANIM_OT_remove_keyingset_button", "all", 0);
+				uiItemO(layout, "Remove from Keying Set", 0, "ANIM_OT_remove_keyingset_button");
 			}
 		}
 

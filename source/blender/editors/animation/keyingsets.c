@@ -133,6 +133,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 				
 			/* add path to this setting */
 			BKE_keyingset_add_destination(ks, ptr.id.data, NULL, path, index, pflag, KSP_GROUP_KSNAME);
+			success= 1;
 			
 			/* free the temp path created */
 			MEM_freeN(path);
@@ -144,7 +145,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 		ED_anim_dag_flush_update(C);	
 		
 		/* for now, only send ND_KEYS for KeyingSets */
-		WM_event_add_notifier(C, ND_KEYS, NULL);
+		WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
 	}
 	
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
@@ -222,7 +223,7 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 		ED_anim_dag_flush_update(C);	
 		
 		/* for now, only send ND_KEYS for KeyingSets */
-		WM_event_add_notifier(C, ND_KEYS, NULL);
+		WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
 	}
 	
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
