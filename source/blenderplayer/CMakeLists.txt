@@ -44,7 +44,7 @@ ADD_CUSTOM_COMMAND(
 )
 
 IF(WIN32)
-  ADD_EXECUTABLE(blenderplayer ${EXETYPE} ${CMAKE_CURRENT_BINARY_DIR}/dna.c ../source/icons/winblender.rc)
+  ADD_EXECUTABLE(blenderplayer ${EXETYPE} ${CMAKE_CURRENT_BINARY_DIR}/dna.c ../icons/winblender.rc)
 ELSE(WIN32)
   ADD_EXECUTABLE(blenderplayer ${CMAKE_CURRENT_BINARY_DIR}/dna.c)
 ENDIF(WIN32)
