@@ -1748,7 +1748,7 @@ void flushTransParticles(TransInfo *t)
 	Object *ob = OBACT;
 	PTCacheEdit *edit = PE_get_current(scene, ob);
 	ParticleSystem *psys = edit->psys;
-	ParticleSystemModifierData *psmd;
+	ParticleSystemModifierData *psmd = NULL;
 	PTCacheEditPoint *point;
 	PTCacheEditKey *key;
 	TransData *td;
@@ -4348,12 +4348,14 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 		AnimData *adt= ob->adt;
 		float cfra= (float)CFRA; // xxx this will do for now
 		short flag = 0;
-
+		
 		if (IS_AUTOKEY_FLAG(INSERTNEEDED))
 			flag |= INSERTKEY_NEEDED;
 		if (IS_AUTOKEY_FLAG(AUTOMATKEY))
 			flag |= INSERTKEY_MATRIX;
-
+		if (IS_AUTOKEY_MODE(scene, EDITKEYS))
+			flag |= INSERTKEY_REPLACE;
+			
 		if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
 			/* only key on available channels */
 			if (adt && adt->action) {
@@ -4365,7 +4367,7 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 		}
 		else if (IS_AUTOKEY_FLAG(INSERTNEEDED)) {
 			short doLoc=0, doRot=0, doScale=0;
-
+			
 			/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
 			if (tmode == TFM_TRANSLATION) {
 				doLoc = 1;
@@ -4377,7 +4379,7 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 				}
 				else if (v3d->around == V3D_CURSOR)
 					doLoc = 1;
-
+				
 				if ((v3d->flag & V3D_ALIGN)==0)
 					doRot = 1;
 			}
@@ -4388,11 +4390,11 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 				}
 				else if (v3d->around == V3D_CURSOR)
 					doLoc = 1;
-
+				
 				if ((v3d->flag & V3D_ALIGN)==0)
 					doScale = 1;
 			}
-
+			
 			// TODO: the group names here are temporary...
 			// TODO: should this be made to use the builtin KeyingSets instead?
 			if (doLoc) {
@@ -4417,16 +4419,16 @@ void autokeyframe_ob_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode)
 			insert_keyframe(id, NULL, "Object Transform", "location", 0, cfra, flag);
 			insert_keyframe(id, NULL, "Object Transform", "location", 1, cfra, flag);
 			insert_keyframe(id, NULL, "Object Transform", "location", 2, cfra, flag);
-
+			
 			insert_keyframe(id, NULL, "Object Transform", "rotation", 0, cfra, flag);
 			insert_keyframe(id, NULL, "Object Transform", "rotation", 1, cfra, flag);
 			insert_keyframe(id, NULL, "Object Transform", "rotation", 2, cfra, flag);
-
+			
 			insert_keyframe(id, NULL, "Object Transform", "scale", 0, cfra, flag);
 			insert_keyframe(id, NULL, "Object Transform", "scale", 1, cfra, flag);
 			insert_keyframe(id, NULL, "Object Transform", "scale", 2, cfra, flag);
 		}
-
+			
 		// XXX todo... find a way to send notifiers from here...
 	}
 }
@@ -4450,7 +4452,7 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 		float cfra= (float)CFRA;
 		short flag= 0;
 		char buf[512];
-
+		
 		/* flag is initialised from UserPref keyframing settings
 		 *	- special exception for targetless IK - INSERTKEY_MATRIX keyframes should get
 		 * 	  visual keyframes even if flag not set, as it's not that useful otherwise
@@ -4460,12 +4462,14 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 			flag |= INSERTKEY_MATRIX;
 		if (IS_AUTOKEY_FLAG(INSERTNEEDED))
 			flag |= INSERTKEY_NEEDED;
-
+		if (IS_AUTOKEY_MODE(scene, EDITKEYS))
+			flag |= INSERTKEY_REPLACE;
+		
 		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next) {
 			if (pchan->bone->flag & BONE_TRANSFORM) {
 				/* clear any 'unkeyed' flag it may have */
 				pchan->bone->flag &= ~BONE_UNKEYED;
-
+				
 				/* only insert into available channels? */
 				if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
 					if (act) {
@@ -4476,7 +4480,7 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 				/* only insert keyframe if needed? */
 				else if (IS_AUTOKEY_FLAG(INSERTNEEDED)) {
 					short doLoc=0, doRot=0, doScale=0;
-
+					
 					/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
 					if (tmode == TFM_TRANSLATION) {
 						if (targetless_ik)
@@ -4487,18 +4491,18 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 					else if (tmode == TFM_ROTATION) {
 						if (ELEM(v3d->around, V3D_CURSOR, V3D_ACTIVE))
 							doLoc = 1;
-
+							
 						if ((v3d->flag & V3D_ALIGN)==0)
 							doRot = 1;
 					}
 					else if (tmode == TFM_RESIZE) {
 						if (ELEM(v3d->around, V3D_CURSOR, V3D_ACTIVE))
 							doLoc = 1;
-
+							
 						if ((v3d->flag & V3D_ALIGN)==0)
 							doScale = 1;
 					}
-
+					
 					if (doLoc) {
 						sprintf(buf, "pose.pose_channels[\"%s\"].location", pchan->name);
 						insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
@@ -4533,7 +4537,7 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 					insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
 					insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
 					insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
-
+					
 					if (pchan->rotmode == PCHAN_ROT_QUAT) {
 						sprintf(buf, "pose.pose_channels[\"%s\"].rotation", pchan->name);
 						insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
@@ -4547,7 +4551,7 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 						insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
 						insert_keyframe(id, NULL, pchan->name, buf, 2, cfra, flag);
 					}
-
+					
 					sprintf(buf, "pose.pose_channels[\"%s\"].scale", pchan->name);
 					insert_keyframe(id, NULL, pchan->name, buf, 0, cfra, flag);
 					insert_keyframe(id, NULL, pchan->name, buf, 1, cfra, flag);
@@ -4555,14 +4559,14 @@ void autokeyframe_pose_cb_func(Scene *scene, View3D *v3d, Object *ob, int tmode,
 				}
 			}
 		}
-
+		
 		// XXX todo... figure out way to get appropriate notifiers sent
-
+		
 		/* do the bone paths */
-#if 0 // TRANSFORM_FIX_ME
+#if 0 // XXX TRANSFORM FIX ME
 		if (arm->pathflag & ARM_PATH_ACFRA) {
-			pose_clear_paths(ob);
-			pose_recalculate_paths(ob);
+			//pose_clear_paths(ob); // XXX for now, don't need to clear
+			ED_pose_recalculate_paths(C, scene, ob);
 		}
 #endif
 	}

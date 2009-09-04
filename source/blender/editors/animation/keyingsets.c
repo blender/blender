@@ -879,6 +879,7 @@ short modifykey_get_context_data (bContext *C, ListBase *dsources, KeyingSet *ks
  */
 int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
 {
+	Scene *scene= CTX_data_scene(C);
 	KS_Path *ksp;
 	int kflag=0, success= 0;
 	char *groupname= NULL;
@@ -891,7 +892,7 @@ int modify_keyframes (bContext *C, ListBase *dsources, bAction *act, KeyingSet *
 		/* suppliment with info from the context */
 		if (IS_AUTOKEY_FLAG(AUTOMATKEY)) kflag |= INSERTKEY_MATRIX;
 		if (IS_AUTOKEY_FLAG(INSERTNEEDED)) kflag |= INSERTKEY_NEEDED;
-		// if (IS_AUTOKEY_MODE(EDITKEYS)) flag |= INSERTKEY_REPLACE;
+		if (IS_AUTOKEY_MODE(scene, EDITKEYS)) kflag |= INSERTKEY_REPLACE;
 	}
 	else if (mode == MODIFYKEY_MODE_DELETE)
 		kflag= 0;

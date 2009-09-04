@@ -147,6 +147,7 @@ void duplicate_fcurve_keys(struct FCurve *fcu);
 
 void clean_fcurve(struct FCurve *fcu, float thresh);
 void smooth_fcurve(struct FCurve *fcu);
+void sample_fcurve(struct FCurve *fcu);
 
 /* ----------- */
 

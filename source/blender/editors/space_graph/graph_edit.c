@@ -430,7 +430,7 @@ static void insert_graph_keys(bAnimContext *ac, short mode)
 	/* init keyframing flag */
 	if (IS_AUTOKEY_FLAG(AUTOMATKEY)) flag |= INSERTKEY_MATRIX;
 	if (IS_AUTOKEY_FLAG(INSERTNEEDED)) flag |= INSERTKEY_NEEDED;
-	// if (IS_AUTOKEY_MODE(EDITKEYS)) flag |= INSERTKEY_REPLACE;
+	if (IS_AUTOKEY_MODE(scene, EDITKEYS)) flag |= INSERTKEY_REPLACE;
 	
 	/* insert keyframes */
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -989,13 +989,6 @@ void GRAPH_OT_bake (wmOperatorType *ot)
  * of selected keyframes. It is useful for creating keyframes for tweaking overlap.
  */
 
-// XXX some of the common parts (with DopeSheet) should be unified in animation module...
-
-/* little cache for values... */
-typedef struct tempFrameValCache {
-	float frame, val;
-} tempFrameValCache;
-
 /* Evaluates the curves between each selected keyframe on each frame, and keys the value  */
 static void sample_graph_keys (bAnimContext *ac)
 {	
@@ -1008,64 +1001,8 @@ static void sample_graph_keys (bAnimContext *ac)
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through filtered data and add keys between selected keyframes on every frame  */
-	for (ale= anim_data.first; ale; ale= ale->next) {
-		FCurve *fcu= (FCurve *)ale->key_data;
-		BezTriple *bezt, *start=NULL, *end=NULL;
-		tempFrameValCache *value_cache, *fp;
-		int sfra, range;
-		int i, n;
-		
-		/* find selected keyframes... once pair has been found, add keyframes  */
-		for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
-			/* check if selected, and which end this is */
-			if (BEZSELECTED(bezt)) {
-				if (start) {
-					/* set end */
-					end= bezt;
-					
-					/* cache values then add keyframes using these values, as adding
-					 * keyframes while sampling will affect the outcome...
-					 */
-					range= (int)( ceil(end->vec[1][0] - start->vec[1][0]) );
-					sfra= (int)( floor(start->vec[1][0]) );
-					
-					if (range) {
-						value_cache= MEM_callocN(sizeof(tempFrameValCache)*range, "IcuFrameValCache");
-						
-						/* 	sample values 	*/
-						for (n=0, fp=value_cache; n<range && fp; n++, fp++) {
-							fp->frame= (float)(sfra + n);
-							fp->val= evaluate_fcurve(fcu, fp->frame);
-						}
-						
-						/* 	add keyframes with these 	*/
-						for (n=0, fp=value_cache; n<range && fp; n++, fp++) {
-							insert_vert_fcurve(fcu, fp->frame, fp->val, 1);
-						}
-						
-						/* free temp cache */
-						MEM_freeN(value_cache);
-						
-						/* as we added keyframes, we need to compensate so that bezt is at the right place */
-						bezt = fcu->bezt + i + range - 1;
-						i += (range - 1);
-					}
-					
-					/* bezt was selected, so it now marks the start of a whole new chain to search */
-					start= bezt;
-					end= NULL;
-				}
-				else {
-					/* just set start keyframe */
-					start= bezt;
-					end= NULL;
-				}
-			}
-		}
-		
-		/* recalculate channel's handles? */
-		calchandles_fcurve(fcu);
-	}
+	for (ale= anim_data.first; ale; ale= ale->next)
+		sample_fcurve((FCurve *)ale->key_data);
 	
 	/* admin and redraws */
 	BLI_freelistN(&anim_data);

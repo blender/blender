@@ -65,13 +65,14 @@ struct FCurve *verify_fcurve(struct bAction *act, const char group[], const char
  *	Use this when validation of necessary animation data isn't necessary as it already
  * 	exists, and there is a beztriple that can be directly copied into the array.
  */
-int insert_bezt_fcurve(struct FCurve *fcu, struct BezTriple *bezt);
+int insert_bezt_fcurve(struct FCurve *fcu, struct BezTriple *bezt, short flag);
 
 /* Main Keyframing API call: 
  *	Use this when validation of necessary animation data isn't necessary as it
  *	already exists. It will insert a keyframe using the current value being keyframed.
+ * 	Returns the index at which a keyframe was added (or -1 if failed)
  */
-void insert_vert_fcurve(struct FCurve *fcu, float x, float y, short flag);
+int insert_vert_fcurve(struct FCurve *fcu, float x, float y, short flag);
 
 /* -------- */
 

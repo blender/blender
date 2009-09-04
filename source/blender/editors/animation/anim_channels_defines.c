@@ -2003,6 +2003,8 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
 		flag |= INSERTKEY_NEEDED;
 	if (IS_AUTOKEY_FLAG(AUTOMATKEY))
 		flag |= INSERTKEY_MATRIX;
+	if (IS_AUTOKEY_MODE(scene, EDITKEYS))
+		flag |= INSERTKEY_REPLACE;
 	
 	
 	/* get RNA pointer, and resolve the path */
@@ -2010,6 +2012,10 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
 	
 	/* try to resolve the path stored in the F-Curve */
 	if (RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop)) {
+		/* set the special 'replace' flag if on a keyframe */
+		if (fcurve_frame_has_keyframe(fcu, cfra, 0))
+			flag |= INSERTKEY_REPLACE;
+		
 		/* insert a keyframe for this F-Curve */
 		done= insert_keyframe_direct(ptr, prop, fcu, cfra, flag);
 		

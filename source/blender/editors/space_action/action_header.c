@@ -431,7 +431,7 @@ void action_header_buttons(const bContext *C, ARegion *ar)
 						"Auto-snapping mode for keyframes when transforming");
 			}
 			
-			xco += (70 + 8);
+			xco += (90 + 8);
 		}
 		
 		/* COPY PASTE */

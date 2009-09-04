@@ -262,9 +262,8 @@ static int binarysearch_bezt_index (BezTriple array[], float frame, int arraylen
  * NOTE: any recalculate of the F-Curve that needs to be done will need to 
  * 		be done by the caller.
  */
-int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt)
+int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
 {
-	BezTriple *newb;
 	int i= 0;
 	
 	if (fcu->bezt) {
@@ -273,13 +272,34 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt)
 		
 		if (replace) {			
 			/* sanity check: 'i' may in rare cases exceed arraylen */
-			// FIXME: do not overwrite handletype if just replacing...?
-			if ((i >= 0) && (i < fcu->totvert))
-				*(fcu->bezt + i) = *bezt;
+			if ((i >= 0) && (i < fcu->totvert)) {
+				/* take care with the handletypes and other info if the replacement flags are set */
+				if (flag & INSERTKEY_REPLACE) {
+					BezTriple *dst= (fcu->bezt + i);
+					float dy= bezt->vec[1][1] - dst->vec[1][1];
+					
+					/* just apply delta value change to the handle values */
+					dst->vec[0][1] += dy;
+					dst->vec[1][1] += dy;
+					dst->vec[2][1] += dy;
+					
+					// TODO: perform some other operations?
+				}
+				else {
+					/* just brutally replace the values */
+					*(fcu->bezt + i) = *bezt;
+				}
+			}
 		}
-		else {
-			/* add new */
-			newb= MEM_callocN((fcu->totvert+1)*sizeof(BezTriple), "beztriple");
+		else if ((flag & INSERTKEY_REPLACE) == 0) {
+			/* add new - if we're not restricted to replacing keyframes only */
+			BezTriple *newb;
+			
+			/* allocate a new array only if we have to */
+			if ((flag & INSERTKEY_FASTR) == 0)
+				newb= MEM_callocN((fcu->totvert+1)*sizeof(BezTriple), "beztriple");
+			else
+				newb= fcu->bezt;
 			
 			/* add the beztriples that should occur before the beztriple to be pasted (originally in ei->icu) */
 			if (i > 0)
@@ -292,9 +312,11 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt)
 			if (i < fcu->totvert) 
 				memcpy(newb+i+1, fcu->bezt+i, (fcu->totvert-i)*sizeof(BezTriple));
 			
-			/* replace (+ free) old with new */
-			MEM_freeN(fcu->bezt);
-			fcu->bezt= newb;
+			/* replace (+ free) old with new, only if necessary to do so */
+			if ((flag & INSERTKEY_FASTR) == 0) {
+				MEM_freeN(fcu->bezt);
+				fcu->bezt= newb;
+			}
 			
 			fcu->totvert++;
 		}
@@ -313,13 +335,11 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt)
 	return i;
 }
 
-/* This function is a wrapper for insert_bezt_icu, and should be used when
- * adding a new keyframe to a curve, when the keyframe doesn't exist anywhere
- * else yet. 
- * 
- * 'fast' - is only for the python API where importing BVH's would take an extreamly long time.
+/* This function is a wrapper for insert_bezt_fcurve_internal(), and should be used when
+ * adding a new keyframe to a curve, when the keyframe doesn't exist anywhere else yet. 
+ * It returns the index at which the keyframe was added.
  */
-void insert_vert_fcurve (FCurve *fcu, float x, float y, short fast)
+int insert_vert_fcurve (FCurve *fcu, float x, float y, short flag)
 {
 	BezTriple beztr;
 	int a;
@@ -337,21 +357,22 @@ void insert_vert_fcurve (FCurve *fcu, float x, float y, short fast)
 	beztr.h1= beztr.h2= HD_AUTO; // XXX what about when we replace an old one?
 	
 	/* add temp beztriple to keyframes */
-	a= insert_bezt_fcurve(fcu, &beztr);
+	a= insert_bezt_fcurve(fcu, &beztr, flag);
 	
 	/* what if 'a' is a negative index? 
 	 * for now, just exit to prevent any segfaults
 	 */
-	if (a < 0) return;
+	if (a < 0) return -1;
 	
 	/* don't recalculate handles if fast is set
 	 *	- this is a hack to make importers faster
-	 *	- we may calculate twice (see editipo_changed(), due to autohandle needing two calculations)
+	 *	- we may calculate twice (due to autohandle needing to be calculated twice)
 	 */
-	if (!fast) calchandles_fcurve(fcu);
+	if ((flag & INSERTKEY_FAST) == 0) 
+		calchandles_fcurve(fcu);
 	
 	/* set handletype and interpolation */
-	if (fcu->totvert > 2) {
+	if ((fcu->totvert > 2) && (flag & INSERTKEY_REPLACE)==0) {
 		BezTriple *bezt= (fcu->bezt + a);
 		char h1, h2;
 		
@@ -370,10 +391,14 @@ void insert_vert_fcurve (FCurve *fcu, float x, float y, short fast)
 			
 		/* don't recalculate handles if fast is set
 		 *	- this is a hack to make importers faster
-		 *	- we may calculate twice (see editipo_changed(), due to autohandle needing two calculations)
+		 *	- we may calculate twice (due to autohandle needing to be calculated twice)
 		 */
-		if (!fast) calchandles_fcurve(fcu);
+		if ((flag & INSERTKEY_FAST) == 0) 
+			calchandles_fcurve(fcu);
 	}
+	
+	/* return the index at which the keyframe was added */
+	return a;
 }
 
 /* -------------- 'Smarter' Keyframing Functions -------------------- */
@@ -812,7 +837,7 @@ short insert_keyframe_direct (PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, fl
 		
 		/* insert new keyframe at current frame */
 		if (insert_mode)
-			insert_vert_fcurve(fcu, cfra, curval, (flag & INSERTKEY_FAST));
+			insert_vert_fcurve(fcu, cfra, curval, flag);
 		
 		/* delete keyframe immediately before/after newly added */
 		switch (insert_mode) {
@@ -830,7 +855,7 @@ short insert_keyframe_direct (PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, fl
 	}
 	else {
 		/* just insert keyframe */
-		insert_vert_fcurve(fcu, cfra, curval, (flag & INSERTKEY_FAST));
+		insert_vert_fcurve(fcu, cfra, curval, flag);
 		
 		/* return success */
 		return 1;
@@ -1303,6 +1328,15 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
 	short success= 0;
 	int a, index, length, all= RNA_boolean_get(op->ptr, "all");
+	short flag = 0;
+	
+	/* flags for inserting keyframes */
+	if (IS_AUTOKEY_FLAG(AUTOMATKEY))
+		flag |= INSERTKEY_MATRIX;
+	if (IS_AUTOKEY_FLAG(INSERTNEEDED))
+		flag |= INSERTKEY_NEEDED;
+	if (IS_AUTOKEY_MODE(scene, EDITKEYS))
+		flag |= INSERTKEY_REPLACE;
 	
 	/* try to insert keyframe using property retrieved from UI */
 	memset(&ptr, 0, sizeof(PointerRNA));
@@ -1322,14 +1356,14 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 				length= 1;
 			
 			for (a=0; a<length; a++)
-				success+= insert_keyframe(ptr.id.data, NULL, NULL, path, index+a, cfra, 0);
+				success+= insert_keyframe(ptr.id.data, NULL, NULL, path, index+a, cfra, flag);
 			
 			MEM_freeN(path);
 		}
 		else if (ptr.type == &RNA_NlaStrip) {
 			/* handle special vars for NLA-strips */
 			NlaStrip *strip= (NlaStrip *)ptr.data;
-			FCurve *fcu= list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), 0);
+			FCurve *fcu= list_find_fcurve(&strip->fcurves, RNA_property_identifier(prop), flag);
 			
 			success+= insert_keyframe_direct(ptr, prop, fcu, cfra, 0);
 		}

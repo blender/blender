@@ -152,6 +152,8 @@ void ui_but_anim_autokey(uiBut *but, Scene *scene, float cfra)
 				flag |= INSERTKEY_NEEDED;
 			if (IS_AUTOKEY_FLAG(AUTOMATKEY))
 				flag |= INSERTKEY_MATRIX;
+			if (IS_AUTOKEY_MODE(scene, EDITKEYS))
+				flag |= INSERTKEY_REPLACE;
 			
 			fcu->flag &= ~FCURVE_SELECTED;
 			insert_keyframe(id, action, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);

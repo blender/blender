@@ -99,7 +99,7 @@ typedef enum eKeyframeShapeDrawOpts {
 } eKeyframeShapeDrawOpts;
 
 /* draw simple diamond-shape keyframe (with OpenGL) */
-void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel, short key_type, short mode);
+void draw_keyframe_shape(float x, float y, float xscale, float hsize, short sel, short key_type, short mode);
 
 /* ******************************* Methods ****************************** */
 
