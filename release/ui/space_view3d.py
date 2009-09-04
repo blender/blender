@@ -622,6 +622,7 @@ class VIEW3D_MT_POSE(bpy.types.Menu):
 		
 		layout.itemS()
 		
+		layout.operator_context = "EXEC_AREA"
 		layout.item_enumO("pose.autoside_names", "axis", 'XAXIS', text="AutoName Left/Right")
 		layout.item_enumO("pose.autoside_names", "axis", 'YAXIS', text="AutoName Front/Back")
 		layout.item_enumO("pose.autoside_names", "axis", 'ZAXIS', text="AutoName Top/Bottom")
@@ -630,6 +631,7 @@ class VIEW3D_MT_POSE(bpy.types.Menu):
 		
 		layout.itemS()
 		
+		layout.operator_context = "INVOKE_AREA"
 		layout.itemO("pose.armature_layers", text="Change Armature Layers...")
 		layout.itemO("pose.bone_layers", text="Change Bone Layers...")
 		
@@ -1068,14 +1070,16 @@ class VIEW3D_MT_edit_ARMATURE(bpy.types.Menu):
 		layout.itemO("armature.subdivide_multi", text="Subdivide")
 		
 		layout.itemS()
-
+		
+		layout.operator_context = "EXEC_AREA"
 		layout.item_enumO("armature.autoside_names", "type", 'XAXIS', text="AutoName Left/Right")
 		layout.item_enumO("armature.autoside_names", "type", 'YAXIS', text="AutoName Front/Back")
 		layout.item_enumO("armature.autoside_names", "type", 'ZAXIS', text="AutoName Top/Bottom")
 		layout.itemO("armature.flip_names")
 
 		layout.itemS()
-
+		
+		layout.operator_context = "INVOKE_DEFAULT"
 		layout.itemO("armature.armature_layers")
 		layout.itemO("armature.bone_layers")
 
@@ -1084,7 +1088,7 @@ class VIEW3D_MT_edit_ARMATURE(bpy.types.Menu):
 		layout.itemM("VIEW3D_MT_edit_ARMATURE_parent")
 
 		layout.itemS()
-
+		
 		layout.item_menu_enumO("armature.flags_set", "mode", text="Bone Settings")
 
 class VIEW3D_MT_edit_ARMATURE_parent(bpy.types.Menu):
