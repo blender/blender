@@ -260,14 +260,13 @@ static PointerRNA rna_ShapeKey_data_get(CollectionPropertyIterator *iter)
 static void rna_Key_update_data(bContext *C, PointerRNA *ptr)
 {
 	Main *bmain= CTX_data_main(C);
-	Scene *scene= CTX_data_scene(C);
 	Key *key= ptr->id.data;
 	Object *ob;
 
 	for(ob=bmain->object.first; ob; ob= ob->id.next) {
 		if(ob_get_key(ob) == key) {
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 		}
 	}
 }

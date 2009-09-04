@@ -45,13 +45,6 @@ static EnumPropertyItem particle_edit_hair_brush_items[] = {
 	{PE_BRUSH_CUT, "CUT", 0, "Cut", "Cut hairs."},
 	{0, NULL, 0, NULL, NULL}};
 
-static EnumPropertyItem particle_edit_cache_brush_items[] = {
-	{PE_BRUSH_NONE, "NONE", 0, "None", "Don't use any brush."},
-	{PE_BRUSH_COMB, "COMB", 0, "Comb", "Comb paths."},
-	{PE_BRUSH_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth paths."},
-	{PE_BRUSH_LENGTH, "LENGTH", 0, "Length", "Make paths longer or shorter."},
-	{0, NULL, 0, NULL, NULL}};
-
 #ifdef RNA_RUNTIME
 
 #include "BKE_context.h"
@@ -60,6 +53,13 @@ static EnumPropertyItem particle_edit_cache_brush_items[] = {
 #include "BKE_depsgraph.h"
 
 #include "ED_particle.h"
+
+static EnumPropertyItem particle_edit_cache_brush_items[] = {
+	{PE_BRUSH_NONE, "NONE", 0, "None", "Don't use any brush."},
+	{PE_BRUSH_COMB, "COMB", 0, "Comb", "Comb paths."},
+	{PE_BRUSH_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth paths."},
+	{PE_BRUSH_LENGTH, "LENGTH", 0, "Length", "Make paths longer or shorter."},
+	{0, NULL, 0, NULL, NULL}};
 
 static PointerRNA rna_ParticleEdit_brush_get(PointerRNA *ptr)
 {
@@ -71,7 +71,6 @@ static PointerRNA rna_ParticleEdit_brush_get(PointerRNA *ptr)
 
 	return rna_pointer_inherit_refine(ptr, &RNA_ParticleBrush, brush);
 }
-
 
 static PointerRNA rna_ParticleBrush_curve_get(PointerRNA *ptr)
 {
@@ -113,11 +112,9 @@ static void rna_ParticleEdit_redo(bContext *C, PointerRNA *ptr)
 
 static void rna_ParticleEdit_update(bContext *C, PointerRNA *ptr)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 
-	if(ob)
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	if(ob) DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 }
 
 static EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerRNA *ptr, int *free)

@@ -295,10 +295,14 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_IMAGE:	
 			ED_area_tag_redraw(sa);
 			break;
-		case NC_OBJECT:
+		case NC_SPACE:	
+			if(wmn->data == ND_SPACE_IMAGE)
+				ED_area_tag_redraw(sa);
+			break;
+		case NC_GEOM:
 			switch(wmn->data) {
-				case ND_GEOM_SELECT:
-				case ND_GEOM_DATA:
+				case ND_DATA:
+				case ND_SELECT:
 					ED_area_tag_redraw(sa);
 					break;
 			}
@@ -625,7 +629,7 @@ void ED_space_image_set(bContext *C, SpaceImage *sima, Scene *scene, Object *obe
 
 	if(C) {
 		if(obedit)
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+			WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 		ED_area_tag_redraw(CTX_wm_area(C));
 	}

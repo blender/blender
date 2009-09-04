@@ -212,14 +212,14 @@ static void file_listener(ScrArea *sa, wmNotifier *wmn)
 
 	/* context changes */
 	switch(wmn->category) {
-		case NC_FILE:
+		case NC_SPACE:
 			switch (wmn->data) {
-				case ND_FILELIST:
+				case ND_SPACE_FILE_LIST:
 					if (sfile->files) filelist_free(sfile->files);
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
-				case ND_PARAMS:
+				case ND_SPACE_FILE_PARAMS:
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
@@ -249,12 +249,12 @@ static void file_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
-		case NC_FILE:
+		case NC_SPACE:
 			switch (wmn->data) {
-				case ND_FILELIST:
+				case ND_SPACE_FILE_LIST:
 					ED_region_tag_redraw(ar);
 					break;
-				case ND_PARAMS:
+				case ND_SPACE_FILE_PARAMS:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -470,9 +470,9 @@ static void file_ui_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
-		case NC_FILE:
+		case NC_SPACE:
 			switch (wmn->data) {
-				case ND_FILELIST:
+				case ND_SPACE_FILE_LIST:
 					ED_region_tag_redraw(ar);
 					break;
 			}

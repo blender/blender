@@ -328,7 +328,6 @@ void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname
 
 static void modifiers_setOnCage(bContext *C, void *ob_v, void *md_v)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob = ob_v;
 	ModifierData *md;
 	
@@ -343,12 +342,11 @@ static void modifiers_setOnCage(bContext *C, void *ob_v, void *md_v)
 	}
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 }
 
 static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob = ob_v;
 	ModifierData *md = md_v;
 	ModifierData *nmd = modifier_new(md->type);
@@ -361,7 +359,7 @@ static void modifiers_convertToReal(bContext *C, void *ob_v, void *md_v)
 	ob->partype = PAROBJECT;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	ED_undo_push(C, "Modifier convert to real");
 }
@@ -597,8 +595,8 @@ void do_constraint_panels(bContext *C, void *arg, int event)
 	
 	if(ob->pose) update_pose_constraint_flags(ob->pose);
 	
-	if(ob->type==OB_ARMATURE) DAG_object_flush_update(scene, ob, OB_RECALC_DATA|OB_RECALC_OB);
-	else DAG_object_flush_update(scene, ob, OB_RECALC_OB);
+	if(ob->type==OB_ARMATURE) DAG_id_flush_update(&ob->id, OB_RECALC_DATA|OB_RECALC_OB);
+	else DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 	
 	// XXX allqueue(REDRAWVIEW3D, 0);
 	// XXX allqueue(REDRAWBUTSOBJECT, 0);

@@ -193,7 +193,7 @@ void ED_base_object_activate(bContext *C, Base *base)
 		for(tbase=FIRSTBASE; tbase; tbase= tbase->next) {
 			if(base!=tbase && (tbase->object->shapeflag & OB_SHAPE_TEMPLOCK)) {
 				tbase->object->shapeflag &= ~OB_SHAPE_TEMPLOCK;
-				DAG_object_flush_update(scene, tbase->object, OB_RECALC_DATA);
+				DAG_id_flush_update(&tbase->object->id, OB_RECALC_DATA);
 			}
 		}
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
@@ -343,7 +343,7 @@ static int object_add_mesh_exec(bContext *C, wmOperator *op)
 		ED_object_enter_editmode(C, EM_DO_UNDO);
 		newob = 1;
 	}
-	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 
 	switch(RNA_enum_get(op->ptr, "type")) {
 		case 0:
@@ -379,7 +379,7 @@ static int object_add_mesh_exec(bContext *C, wmOperator *op)
 		ED_object_exit_editmode(C, EM_FREEDATA);
 	}
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -425,7 +425,7 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
 	}
-	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	
 	obedit= CTX_data_edit_object(C);
 	nu= add_nurbs_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
@@ -437,7 +437,7 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 		ED_object_exit_editmode(C, EM_FREEDATA);
 	}
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -500,7 +500,7 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
 	}
-	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	
 	obedit= CTX_data_edit_object(C);
 	nu= add_nurbs_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
@@ -512,7 +512,7 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 		ED_object_exit_editmode(C, EM_FREEDATA);
 	}
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -557,7 +557,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
 	}
-	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	
 	obedit= CTX_data_edit_object(C);
 	elem= (MetaElem*)add_metaball_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
@@ -569,7 +569,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 		ED_object_exit_editmode(C, EM_FREEDATA);
 	}
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -621,7 +621,7 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 	if(U.flag & USER_ADD_EDITMODE)
 		ED_object_enter_editmode(C, 0);
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -653,7 +653,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
 	}
-	else DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	
 	if(v3d) 
 		rv3d= CTX_wm_region(C)->regiondata;
@@ -666,7 +666,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 		ED_object_exit_editmode(C, EM_FREEDATA);
 	}
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3034,7 +3034,7 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 		
 		/* depsgraph flushes are needed for the new data */
 		DAG_scene_sort(scene);
-		DAG_object_flush_update(scene, newob, OB_RECALC);
+		DAG_id_flush_update(&newob->id, OB_RECALC);
 		
 		WM_event_add_notifier(C, NC_OBJECT, NULL);
 	}
@@ -3543,7 +3543,7 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 			
 			recalc_editnormals(em);
 			tot_change++;
-			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+			DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 			BKE_mesh_end_editmesh(me, em);
 		}
 	}
@@ -3735,7 +3735,7 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 					tot_change++;
 					if(obedit) {
 						if (centermode==0) {
-							DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+							DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 						}
 						break;
 					}
@@ -3884,7 +3884,7 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		scene->obedit= NULL; // XXX for context
 		
 		/* also flush ob recalc, doesn't take much overhead, but used for particles */
-		DAG_object_flush_update(scene, obedit, OB_RECALC_OB|OB_RECALC_DATA);
+		DAG_id_flush_update(&obedit->id, OB_RECALC_OB|OB_RECALC_DATA);
 	
 		ED_undo_push(C, "Editmode");
 	
@@ -3963,7 +3963,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		scene->obedit= ob;
 		ED_armature_to_edit(ob);
 		/* to ensure all goes in restposition and without striding */
-		DAG_object_flush_update(scene, ob, OB_RECALC);
+		DAG_id_flush_update(&ob->id, OB_RECALC);
 
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_EDITMODE_ARMATURE, scene);
 	}
@@ -3997,7 +3997,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 	}
 	
 	if(ok) {
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	}
 	else {
 		scene->obedit= NULL; // XXX for context
@@ -4327,7 +4327,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 					}
 				}
 			}
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
 		else if(ob->mode & OB_MODE_VERTEX_PAINT) {
 			Mesh *me= get_mesh(ob);
@@ -4339,7 +4339,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 				
 // XXX				do_shared_vertexcol(me);
 				
-				DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 			}
 		}
 		else if(ob->mode & OB_MODE_WEIGHT_PAINT) {
@@ -4386,7 +4386,7 @@ void special_editmenu(Scene *scene, View3D *v3d)
 				break;
 			}
 			
-			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+			DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 			
 			if(nr>0) waitcursor(0);
 #endif
@@ -4809,7 +4809,7 @@ static void object_flip_subdivison_particles(Scene *scene, Object *ob, int *set,
 			}
 		}
 
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	}
 
 	if(ob->dup_group && depth<=4) {
@@ -6790,7 +6790,6 @@ void OBJECT_OT_join(wmOperatorType *ot)
 
 static int shade_smooth_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob;
 	Curve *cu;
 	Nurb *nu;
@@ -6803,7 +6802,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 		if(ob->type==OB_MESH) {
 			mesh_set_smooth_flag(ob, !clear);
 
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 
 			done= 1;
@@ -6817,7 +6816,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 				nu= nu->next;
 			}
 
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 
 			done= 1;
@@ -6904,7 +6903,7 @@ void image_aspect(Scene *scene, View3D *v3d)
 								else ob->size[1]= ob->size[0]*y/x;
 								
 								done= 1;
-								DAG_object_flush_update(scene, ob, OB_RECALC_OB);								
+								DAG_id_flush_update(&ob->id, OB_RECALC_OB);								
 							}
 						}
 						if(done) break;
@@ -7184,7 +7183,7 @@ void hookmenu(Scene *scene, View3D *v3d)
 							Mat4MulSerie(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
 							
 							changed= 1;
-							DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+							DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 						}
 					} else {
 						float *curs = give_cursor(scene, v3d);
@@ -7202,7 +7201,7 @@ void hookmenu(Scene *scene, View3D *v3d)
 						Mat3MulVecfl(imat, hmd->cent);
 						
 						changed= 1;
-						DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+						DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 					} 
 				}
 			}

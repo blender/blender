@@ -2559,13 +2559,14 @@ void RNA_def_property_free_pointers(PropertyRNA *prop)
 			}
 			case PROP_ENUM: {
 				EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
-				if(eprop->item) MEM_freeN((void*)eprop->item);
 
 				for(a=0; a<eprop->totitem; a++) {
 					if(eprop->item[a].identifier) MEM_freeN((void*)eprop->item[a].identifier);
 					if(eprop->item[a].name) MEM_freeN((void*)eprop->item[a].name);
 					if(eprop->item[a].description) MEM_freeN((void*)eprop->item[a].description);
 				}
+
+				if(eprop->item) MEM_freeN((void*)eprop->item);
 				break;
 			}
 			case PROP_STRING: {

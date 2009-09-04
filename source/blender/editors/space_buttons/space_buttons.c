@@ -335,7 +335,6 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_TRANSFORM:
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
-				case ND_GEOM_SELECT:
 				case ND_CONSTRAINT:
 					ED_area_tag_redraw(sa);
 					break;
@@ -343,6 +342,13 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_SHADING_DRAW:
 					/* currently works by redraws... if preview is set, it (re)starts job */
 					sbuts->preview= 1;
+					break;
+			}
+			break;
+		case NC_GEOM:
+			switch(wmn->data) {
+				case ND_SELECT:
+					ED_area_tag_redraw(sa);
 					break;
 			}
 			break;
@@ -358,14 +364,15 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			}					
 			break;
 		case NC_WORLD:
-			ED_area_tag_redraw(sa);
-			sbuts->preview= 1;
 		case NC_LAMP:
-			ED_area_tag_redraw(sa);
-			sbuts->preview= 1;
 		case NC_TEXTURE:
 			ED_area_tag_redraw(sa);
 			sbuts->preview= 1;
+			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_PROPERTIES)
+				ED_area_tag_redraw(sa);
+			break;
 	}
 
 	if(wmn->data == ND_KEYS)

@@ -4722,9 +4722,9 @@ void special_aftertrans_update(TransInfo *t)
 				ob->ctime= -1234567.0f;
 				
 				if (ob->pose || ob_get_key(ob))
-					DAG_object_flush_update(scene, ob, OB_RECALC);
+					DAG_id_flush_update(&ob->id, OB_RECALC);
 				else
-					DAG_object_flush_update(scene, ob, OB_RECALC_OB);
+					DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 			}
 			
 			/* Do curve cleanups? */
@@ -4748,7 +4748,7 @@ void special_aftertrans_update(TransInfo *t)
 			}
 #endif // XXX old animation system
 			
-			DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
+			DAG_id_flush_update(&OBACT->id, OB_RECALC_DATA);
 		}
 #if 0 // XXX future of this is still not clear
 		else if (ac.datatype == ANIMCONT_GPENCIL) {
@@ -4912,15 +4912,15 @@ void special_aftertrans_update(TransInfo *t)
 		/* automatic inserting of keys and unkeyed tagging - only if transform wasn't cancelled (or TFM_DUMMY) */
 		if (!cancelled && (t->mode != TFM_DUMMY)) {
 			autokeyframe_pose_cb_func(t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
-			DAG_object_flush_update(t->scene, ob, OB_RECALC_DATA);
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
 		else if (arm->flag & ARM_DELAYDEFORM) {
 			/* old optimize trick... this enforces to bypass the depgraph */
-			DAG_object_flush_update(t->scene, ob, OB_RECALC_DATA);
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 			ob->recalc= 0;	// is set on OK position already by recalcData()
 		}
 		else
-			DAG_object_flush_update(t->scene, ob, OB_RECALC_DATA);
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 		//if (t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
 		//	allqueue(REDRAWBUTSEDIT, 0);
@@ -4948,7 +4948,7 @@ void special_aftertrans_update(TransInfo *t)
 				/* Creates troubles for moving animated objects without */
 				/* autokey though, probably needed is an anim sys override? */
 				/* Please remove if some other solution is found. -jahka */
-				DAG_object_flush_update(scene, ob, OB_RECALC_OB);
+				DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 
 				/* Set autokey if necessary */
 				if (!cancelled)

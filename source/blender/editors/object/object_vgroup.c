@@ -1102,17 +1102,21 @@ void vgroup_operation_with_menu(Object *ob)
 
 /********************** vertex group operators *********************/
 
+static int vertex_group_poll(bContext *C)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	ID *data= (ob)? ob->data: NULL;
+	return (ob && !ob->id.lib && data && !data->lib);
+}
+
 static int vertex_group_add_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	Scene *scene= CTX_data_scene(C);
-
-	if(!ob)
-		return OPERATOR_CANCELLED;
 
 	add_defgroup(ob);
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1124,6 +1128,7 @@ void OBJECT_OT_vertex_group_add(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_vertex_group_add";
 	
 	/* api callbacks */
+	ot->poll= vertex_group_poll;
 	ot->exec= vertex_group_add_exec;
 
 	/* flags */
@@ -1135,18 +1140,16 @@ static int vertex_group_remove_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Scene *scene= CTX_data_scene(C);
 
-	if(!ob)
-		return OPERATOR_CANCELLED;
-
 	if(scene->obedit == ob) {
 		del_defgroup(ob);
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
 	}
 	else {
 		del_defgroup_in_object_mode(ob);
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	}
+
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1158,6 +1161,7 @@ void OBJECT_OT_vertex_group_remove(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_vertex_group_remove";
 	
 	/* api callbacks */
+	ot->poll= vertex_group_poll;
 	ot->exec= vertex_group_remove_exec;
 
 	/* flags */
@@ -1166,16 +1170,12 @@ void OBJECT_OT_vertex_group_remove(wmOperatorType *ot)
 
 static int vertex_group_assign_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	Object *ob= CTX_data_edit_object(C);
 
-	if(!ob)
-		return OPERATOR_CANCELLED;
-
 	assign_verts_defgroup(ob, ts->vgroup_weight);
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1187,6 +1187,7 @@ void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_vertex_group_assign";
 	
 	/* api callbacks */
+	ot->poll= vertex_group_poll;
 	ot->exec= vertex_group_assign_exec;
 
 	/* flags */
@@ -1195,15 +1196,11 @@ void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
 
 static int vertex_group_remove_from_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_edit_object(C);
 
-	if(!ob)
-		return OPERATOR_CANCELLED;
-
 	remove_verts_defgroup(ob, 0);
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1215,6 +1212,7 @@ void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_vertex_group_remove_from";
 	
 	/* api callbacks */
+	ot->poll= vertex_group_poll;
 	ot->exec= vertex_group_remove_from_exec;
 
 	/* flags */
@@ -1225,11 +1223,11 @@ static int vertex_group_select_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_edit_object(C);
 
-	if(!ob)
+	if(!ob || ob->id.lib)
 		return OPERATOR_CANCELLED;
 
-	sel_verts_defgroup(ob, 1); /* runs countall() */
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, ob);
+	sel_verts_defgroup(ob, 1);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1241,6 +1239,7 @@ void OBJECT_OT_vertex_group_select(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_vertex_group_select";
 	
 	/* api callbacks */
+	ot->poll= vertex_group_poll;
 	ot->exec= vertex_group_select_exec;
 
 	/* flags */
@@ -1251,11 +1250,8 @@ static int vertex_group_deselect_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_edit_object(C);
 
-	if(!ob)
-		return OPERATOR_CANCELLED;
-
-	sel_verts_defgroup(ob, 0); /* runs countall() */
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, ob);
+	sel_verts_defgroup(ob, 0);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1267,6 +1263,7 @@ void OBJECT_OT_vertex_group_deselect(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_vertex_group_deselect";
 	
 	/* api callbacks */
+	ot->poll= vertex_group_poll;
 	ot->exec= vertex_group_deselect_exec;
 
 	/* flags */
@@ -1275,15 +1272,12 @@ void OBJECT_OT_vertex_group_deselect(wmOperatorType *ot)
 
 static int vertex_group_copy_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
-	if(!ob)
-		return OPERATOR_CANCELLED;
-
 	duplicate_defgroup(ob);
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1295,6 +1289,7 @@ void OBJECT_OT_vertex_group_copy(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_vertex_group_copy";
 	
 	/* api callbacks */
+	ot->poll= vertex_group_poll;
 	ot->exec= vertex_group_copy_exec;
 
 	/* flags */
@@ -1308,9 +1303,6 @@ static int vertex_group_copy_to_linked_exec(bContext *C, wmOperator *op)
     Base *base;
 	int retval= OPERATOR_CANCELLED;
 
-	if(!ob)
-		return retval;
-
     for(base=scene->base.first; base; base= base->next) {
         if(base->object->type==ob->type) {
             if(base->object!=ob && base->object->data==ob->data) {
@@ -1318,8 +1310,9 @@ static int vertex_group_copy_to_linked_exec(bContext *C, wmOperator *op)
                 BLI_duplicatelist(&base->object->defbase, &ob->defbase);
                 base->object->actdef= ob->actdef;
 
-                DAG_object_flush_update(scene, base->object, OB_RECALC_DATA);
-				WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, base->object);
+                DAG_id_flush_update(&base->object->id, OB_RECALC_DATA);
+				WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, base->object);
+				WM_event_add_notifier(C, NC_GEOM|ND_DATA, base->object->data);
 
 				retval = OPERATOR_FINISHED;
             }
@@ -1336,6 +1329,7 @@ void OBJECT_OT_vertex_group_copy_to_linked(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_vertex_group_copy_to_linked";
 	
 	/* api callbacks */
+	ot->poll= vertex_group_poll;
 	ot->exec= vertex_group_copy_to_linked_exec;
 
 	/* flags */

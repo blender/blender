@@ -1725,7 +1725,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 				em->selectmode= SCE_SELECT_VERTEX;
 			ts->selectmode= em->selectmode;
 			EM_selectmode_set(em);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			ED_undo_push(C, "Selectmode Set: Vertex");
 		}
 		break;
@@ -1739,7 +1739,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 			}
 			ts->selectmode= em->selectmode;
 			EM_selectmode_set(em);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			ED_undo_push(C, "Selectmode Set: Edge");
 		}
 		break;
@@ -1753,7 +1753,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 			}
 			ts->selectmode= em->selectmode;
 			EM_selectmode_set(em);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			ED_undo_push(C, "Selectmode Set: Face");
 		}
 		break;	

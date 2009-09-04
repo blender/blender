@@ -1359,7 +1359,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			vc.em= me->edit_mesh;
 			do_mesh_box_select(&vc, &rect, (val==LEFTMOUSE));
 //			if (EM_texFaceCheck())
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			
 		}
 		else if(ELEM(obedit->type, OB_CURVE, OB_SURF)) {
@@ -1802,7 +1802,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 
 		if(CTX_data_edit_object(C)) {
 			obedit_circle_select(&vc, selecting, mval, (float)radius);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obact);
+			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obact->data);
 		}
 		else
 			return PE_circle_select(C, selecting, mval, (float)radius);

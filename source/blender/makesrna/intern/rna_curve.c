@@ -156,21 +156,10 @@ static void rna_BPoint_array_begin(CollectionPropertyIterator *iter, PointerRNA 
 
 static void rna_Curve_update_data(bContext *C, PointerRNA *ptr)
 {
-	Main *bmain= CTX_data_main(C);
-	Scene *scene= CTX_data_scene(C);
-	Curve *cu= ptr->id.data;
-	Object *ob;
+	ID *id= ptr->id.data;
 	
-	if (cu == NULL)
-		return;
-	
-	for(ob=bmain->object.first; ob; ob= ob->id.next) {
-		if(ob->data == cu) {
-			/* XXX this will loop over all objects again (slow) */
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
-		}
-	}
+	DAG_id_flush_update(id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, id);
 }
 
 #else

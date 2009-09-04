@@ -137,6 +137,10 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			/* all actions now, todo: check outliner view mode? */
 			ED_region_tag_redraw(ar);
 			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_OUTLINER)
+				ED_region_tag_redraw(ar);
+			break;
 	}
 	
 }
@@ -188,6 +192,10 @@ static void outliner_header_area_listener(ARegion *ar, wmNotifier *wmn)
 	switch(wmn->category) {
 		case NC_SCENE:
 			if(wmn->data == ND_KEYINGSET)
+				ED_region_tag_redraw(ar);
+			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_OUTLINER)
 				ED_region_tag_redraw(ar);
 			break;
 	}

@@ -32,6 +32,8 @@
 #define DEPS_DEBUG
 */
 
+struct ID;
+struct Main;
 struct Scene;
 struct DagNodeQueue;
 struct DagForest;
@@ -103,8 +105,9 @@ void	DAG_object_update_flags(struct Scene *sce, struct Object *ob, unsigned int 
 
 		/* flushes all recalc flags in objects down the dependency tree */
 void	DAG_scene_flush_update(struct Scene *sce, unsigned int lay, int time);
-		/* flushes all recalc flags for this object down the dependency tree */
-void	DAG_object_flush_update(struct Scene *sce, struct Object *ob, short flag);
+		/* flushes all recalc flags for this object down the dependency tree,
+		   but not the DAG only supports objects and object data currently */
+void	DAG_id_flush_update(struct ID *id, short flag);
 
 void	DAG_pose_sort(struct Object *ob);
 		

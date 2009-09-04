@@ -488,6 +488,10 @@ static void nla_listener(ScrArea *sa, wmNotifier *wmn)
 			}*/
 			ED_area_tag_refresh(sa);
 			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_NLA)
+				ED_area_tag_redraw(sa);
+			break;
 	}
 }
 

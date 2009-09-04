@@ -143,6 +143,10 @@ static void text_listener(ScrArea *sa, wmNotifier *wmn)
 				ED_area_tag_redraw(sa);
 
 			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_TEXT)
+				ED_area_tag_redraw(sa);
+			break;
 	}
 }
 

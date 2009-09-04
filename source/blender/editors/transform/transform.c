@@ -333,7 +333,7 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 		else force_draw(0);
 #endif
 
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, t->obedit);
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, t->obedit->data);
 	}
 }
 

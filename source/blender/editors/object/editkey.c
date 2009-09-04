@@ -473,7 +473,7 @@ int ED_object_shape_key_remove(bContext *C, Scene *scene, Object *ob)
 		free_libblock_us(&(bmain->key), key);
 	}
 	
-	DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 
 	return 1;
@@ -481,13 +481,17 @@ int ED_object_shape_key_remove(bContext *C, Scene *scene, Object *ob)
 
 /********************** shape key operators *********************/
 
+static int shape_key_poll(bContext *C)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	ID *data= (ob)? ob->data: NULL;
+	return (ob && !ob->id.lib && data && !data->lib);
+}
+
 static int shape_key_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-
-	if(!ob)
-		return OPERATOR_CANCELLED;
 
 	ED_object_shape_key_add(C, scene, ob);
 	
@@ -501,6 +505,7 @@ void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_shape_key_add";
 	
 	/* api callbacks */
+	ot->poll= shape_key_poll;
 	ot->exec= shape_key_add_exec;
 
 	/* flags */
@@ -509,12 +514,9 @@ void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 
 static int shape_key_remove_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
-	if(!ob)
-		return OPERATOR_CANCELLED;
-	
 	if(!ED_object_shape_key_remove(C, scene, ob))
 		return OPERATOR_CANCELLED;
 	
@@ -528,97 +530,10 @@ void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_shape_key_remove";
 	
 	/* api callbacks */
+	ot->poll= shape_key_poll;
 	ot->exec= shape_key_remove_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-void move_keys(Object *ob)
-{
-#if 0
-	/* XXX probably goes away entirely */
-	Key *key;
-	KeyBlock *kb;
-	float div, dy, oldpos, vec[3], dvec[3];
-	int afbreek=0, firsttime= 1;
-	unsigned short event = 0;
-	short mval[2], val, xo, yo;
-	char str[32];
-	
-	if(G.sipo->blocktype!=ID_KE) return;
-	
-	if(G.sipo->ipo && G.sipo->ipo->id.lib) return;
-	if(G.sipo->editipo==NULL) return;
-
-	key= ob_get_key(ob);
-	if(key==NULL) return;
-	
-	/* which kb is involved */
-	kb= BLI_findlink(&key->block, ob->shapenr-1);
-	if(kb==NULL) return;	
-	
-	oldpos= kb->pos;
-	
-	getmouseco_areawin(mval);
-	xo= mval[0];
-	yo= mval[1];
-	dvec[0]=dvec[1]=dvec[2]= 0.0; 
-
-	while(afbreek==0) {
-		getmouseco_areawin(mval);
-		if(mval[0]!=xo || mval[1]!=yo || firsttime) {
-			firsttime= 0;
-			
-			dy= (float)(mval[1]- yo);
-
-			div= (float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
-			dvec[1]+= (G.v2d->cur.ymax-G.v2d->cur.ymin)*(dy)/div;
-			
-			VECCOPY(vec, dvec);
-
-			apply_keyb_grid(vec, 0.0, 1.0, 0.1, U.flag & USER_AUTOGRABGRID);
-			apply_keyb_grid(vec+1, 0.0, 1.0, 0.1, U.flag & USER_AUTOGRABGRID);
-
-			kb->pos= oldpos+vec[1];
-			
-			sprintf(str, "Y: %.3f  ", vec[1]);
-			headerprint(str);
-			
-			xo= mval[0];
-			yo= mval[1];
-				
-			force_draw(0);
-		}
-		else BIF_wait_for_statechange();
-		
-		while(qtest()) {
-			event= extern_qread(&val);
-			if(val) {
-				switch(event) {
-				case ESCKEY:
-				case LEFTMOUSE:
-				case SPACEKEY:
-					afbreek= 1;
-					break;
-				default:
-					arrows_move_cursor(event);
-				}
-			}
-		}
-	}
-	
-	if(event==ESCKEY) {
-		kb->pos= oldpos;
-	}
-	
-	sort_keys(key);
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	
-	/* for boundbox */
-	editipo_changed(G.sipo, 0);
-
-	BIF_undo_push("Move Shapekey(s)");
-#endif
 }
 

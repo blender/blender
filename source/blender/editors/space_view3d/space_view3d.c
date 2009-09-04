@@ -452,16 +452,24 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_TRANSFORM:
-				case ND_GEOM_SELECT:
-				case ND_GEOM_DATA:
 				case ND_DRAW:
 				case ND_MODIFIER:
 				case ND_CONSTRAINT:
 				case ND_KEYS:
-				case ND_PARTICLE:
+				case ND_PARTICLE_SELECT:
+				case ND_PARTICLE_DATA:
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			break;
+		case NC_GEOM:
+			switch(wmn->data) {
+				case ND_DATA:
+				case ND_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
 		case NC_GROUP:
 			/* all group ops for now */
 			ED_region_tag_redraw(ar);
@@ -482,6 +490,10 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			/* this could be more fine grained checks if we had
 			 * more context than just the region */
 			ED_region_tag_redraw(ar);
+			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_VIEW3D)
+				ED_region_tag_redraw(ar);
 			break;
 	}
 }
@@ -527,6 +539,10 @@ static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_VIEW3D)
+				ED_region_tag_redraw(ar);
 			break;
 	}
 }
@@ -576,13 +592,24 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_TRANSFORM:
-				case ND_GEOM_SELECT:
-				case ND_GEOM_DATA:
 				case ND_DRAW:
 				case ND_KEYS:
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			break;
+		case NC_GEOM:
+			switch(wmn->data) {
+				case ND_DATA:
+				case ND_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_VIEW3D)
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 

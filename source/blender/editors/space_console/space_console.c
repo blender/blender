@@ -321,11 +321,11 @@ static void console_main_area_listener(ScrArea *sa, wmNotifier *wmn)
 
 	/* context changes */
 	switch(wmn->category) {
-		case NC_CONSOLE:
-			if(wmn->data == ND_CONSOLE) { /* generic redraw request */
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_CONSOLE) { /* generic redraw request */
 				ED_area_tag_redraw(sa);
 			}
-			else if(wmn->data == ND_CONSOLE_REPORT && sc->type==CONSOLE_TYPE_REPORT) {
+			else if(wmn->data == ND_SPACE_CONSOLE_REPORT && sc->type==CONSOLE_TYPE_REPORT) {
 				/* redraw also but only for report view, could do less redraws by checking the type */
 				ED_area_tag_redraw(sa);
 			}

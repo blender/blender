@@ -2631,7 +2631,7 @@ void psys_cache_paths(Scene *scene, Object *ob, ParticleSystem *psys, float cfra
 	ParticleInterpolationData pind;
 	
 	float birthtime = 0.0, dietime = 0.0;
-	float t, time = 0.0, keytime = 0.0, dfra = 1.0, frs_sec = scene->r.frs_sec;
+	float t, time = 0.0, dfra = 1.0, frs_sec = scene->r.frs_sec;
 	float col[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 	float prev_tangent[3], hairmat[4][4];
 	float rotmat[3][3];
@@ -2853,14 +2853,13 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 
 	ParticleSystem *psys = edit->psys;
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
-	ParticleSettings *part = psys ? psys->part : NULL;
 	ParticleData *pa = psys ? psys->particles : NULL;
 
 	ParticleInterpolationData pind;
 	ParticleKey result;
 	
 	float birthtime = 0.0, dietime = 0.0;
-	float t, time = 0.0, keytime = 0.0, dfra = 1.0, frs_sec;
+	float t, time = 0.0, keytime = 0.0, frs_sec;
 	float hairmat[4][4];
 	int k,i;
 	int steps = (int)pow(2.0, (double)pset->draw_step);
@@ -3161,7 +3160,7 @@ void object_add_particle_system(Scene *scene, Object *ob)
 	psys->cfra=bsystem_time(scene,ob,scene->r.cfra+1,0.0);
 
 	DAG_scene_sort(scene);
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 }
 void object_remove_particle_system(Scene *scene, Object *ob)
 {
@@ -3184,7 +3183,7 @@ void object_remove_particle_system(Scene *scene, Object *ob)
 		((ParticleSystem *) ob->particlesystem.first)->flag |= PSYS_CURRENT;
 
 	DAG_scene_sort(scene);
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 }
 static void default_particle_settings(ParticleSettings *part)
 {
@@ -3364,7 +3363,7 @@ void psys_flush_particle_settings(Scene *scene, ParticleSettings *part, int reca
 			}
 		}
 		if(flush)
-			DAG_object_flush_update(scene, base->object, OB_RECALC_DATA);
+			DAG_id_flush_update(&base->object->id, OB_RECALC_DATA);
 	}
 }
 
@@ -3396,7 +3395,7 @@ LinkNode *psys_using_settings(struct Scene *scene, ParticleSettings *part, int f
 		}
 
 		if(flush_update && found)
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	}
 
 	return node;

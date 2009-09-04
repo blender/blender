@@ -55,7 +55,7 @@ static void rna_Pose_update(bContext *C, PointerRNA *ptr)
 {
 	// XXX when to use this? ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
 
-	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_DATA);
+	DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
 }
 
 static char *rna_PoseChannel_path(PointerRNA *ptr)

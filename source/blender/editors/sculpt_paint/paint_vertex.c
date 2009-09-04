@@ -295,7 +295,7 @@ void make_vertexcol(Scene *scene, int shade)	/* single ob */
 	else
 		memset(me->mcol, 255, 4*sizeof(MCol)*me->totface);
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 	
 }
 
@@ -358,7 +358,7 @@ void clear_vpaint(Scene *scene, int selected)
 		}
 	}
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 }
 
 
@@ -468,7 +468,7 @@ void clear_wpaint_selectedfaces(Scene *scene)
 	MEM_freeN(indexar);
 	copy_wpaint_prev(wp, NULL, 0);
 
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 }
 
 
@@ -923,7 +923,7 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 					val= 0; // XXX pupmenu(str);
 					if(val>=0) {
 						ob->actdef= val+1;
-						DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+						DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 					}
 					MEM_freeN(str);
 				}
@@ -1049,7 +1049,7 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 		* exit (exit needs doing regardless because we
 				* should redeform).
 		*/
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 	
 	if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 		Object *par;
@@ -1446,7 +1446,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			
 	MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
 			
-	DAG_object_flush_update(vc->scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
 	ED_region_tag_redraw(vc->ar);
 }
 
@@ -1478,7 +1478,7 @@ static void wpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
 		}
 	}
 	
-	DAG_object_flush_update(CTX_data_scene(C), ob, OB_RECALC_DATA);
+	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
 	
 	MEM_freeN(wpd);
 }
@@ -1564,7 +1564,7 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 	
 	if (me)
 		/* update modifier stack for mapping requirements */
-		DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+		DAG_id_flush_update(&me->id, OB_RECALC_DATA);
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_MODE, scene);
 	
@@ -1735,7 +1735,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			
 	ED_region_tag_redraw(vc->ar);
 			
-	DAG_object_flush_update(vc->scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
 }
 
 static void vpaint_stroke_done(bContext *C, struct PaintStroke *stroke)

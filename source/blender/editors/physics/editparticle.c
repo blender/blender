@@ -1018,7 +1018,6 @@ static void recalc_emitter_field(Object *ob, ParticleSystem *psys)
 
 static void PE_update_selection(Scene *scene, Object *ob, int useflag)
 {
-	ParticleEditSettings *pset= PE_settings(scene);
 	PTCacheEdit *edit= PE_get_current(scene, ob);
 	HairKey *hkey;
 	POINT_P; KEY_K;
@@ -1156,7 +1155,7 @@ void PE_update_object(Scene *scene, Object *ob, int useflag)
 		point->flag &= ~PEP_EDIT_RECALC;
 	}
 
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 }
 
 /************************************************/
@@ -1235,7 +1234,7 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 	}
 
 	PE_update_selection(scene, ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1283,7 +1282,7 @@ int PE_mouse_particles(bContext *C, short *mval, int extend)
 	for_mouse_hit_keys(&data, toggle_key_select, 1);  /* nearest only */
 
 	PE_update_selection(scene, ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, data.ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, data.ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1301,7 +1300,7 @@ static int select_first_exec(bContext *C, wmOperator *op)
 
 	PE_set_data(C, &data);
 	foreach_point(&data, select_root);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, data.ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, data.ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1334,7 +1333,7 @@ static int select_last_exec(bContext *C, wmOperator *op)
 
 	PE_set_data(C, &data);
 	foreach_point(&data, select_tip);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, data.ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, data.ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1374,7 +1373,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 
 	for_mouse_hit_keys(&data, select_keys, 1);  /* nearest only */
 	PE_update_selection(data.scene, data.ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, data.ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, data.ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1429,7 +1428,7 @@ int PE_border_select(bContext *C, rcti *rect, int select)
 	for_mouse_hit_keys(&data, select_key, 0);
 
 	PE_update_selection(scene, ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1454,7 +1453,7 @@ int PE_circle_select(bContext *C, int selecting, short *mval, float rad)
 	for_mouse_hit_keys(&data, select_key, 0);
 
 	PE_update_selection(scene, ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1520,7 +1519,7 @@ int PE_lasso_select(bContext *C, short mcords[][2], short moves, short select)
 	}
 
 	PE_update_selection(scene, ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1554,7 +1553,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 	}
 
 	PE_update_selection(scene, ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1596,7 +1595,7 @@ static int reveal_exec(bContext *C, wmOperator *op)
 	}
 
 	PE_update_selection(scene, ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1650,7 +1649,7 @@ static int select_less_exec(bContext *C, wmOperator *op)
 
 	PE_set_data(C, &data);
 	foreach_point(&data, select_less_keys);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, data.ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, data.ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1708,7 +1707,7 @@ static int select_more_exec(bContext *C, wmOperator *op)
 
 	PE_set_data(C, &data);
 	foreach_point(&data, select_more_keys);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, data.ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, data.ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1796,7 +1795,7 @@ static int rekey_exec(bContext *C, wmOperator *op)
 	
 	recalc_lengths(data.edit);
 	PE_update_object(data.scene, data.ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, data.ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, data.ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -2091,7 +2090,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 	
 	recalc_lengths(data.edit);
 	PE_update_object(data.scene, data.ob, 1);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, data.ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, data.ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -2180,8 +2179,8 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 	BKE_reportf(op->reports, RPT_INFO, "Remove %d double particles.", totremoved);
 
 	PE_update_object(scene, ob, 0);
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -2358,8 +2357,8 @@ static int delete_exec(bContext *C, wmOperator *op)
 
 	PE_update_object(data.scene, data.ob, 0);
 
-	DAG_object_flush_update(data.scene, data.ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, data.ob);
+	DAG_id_flush_update(&data.ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, data.ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -2512,8 +2511,8 @@ static int mirror_exec(bContext *C, wmOperator *op)
 	PE_mirror_x(scene, ob, 0);
 
 	update_world_cos(ob, edit);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	return OPERATOR_FINISHED;
 }
@@ -2593,11 +2592,11 @@ static int set_edit_mode_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_edit_type_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Set Brush";
+	ot->name= "Set Edit Type";
 	ot->idname= "PARTICLE_OT_edit_type_set";
 	
 	/* api callbacks */
-	ot->exec= set_brush_exec;
+	ot->exec= set_edit_mode_exec;
 	ot->invoke= WM_menu_invoke;
 	ot->poll= PE_poll;
 
@@ -2627,11 +2626,9 @@ static void brush_comb(PEData *data, float mat[][4], float imat[][4], int point_
 static void brush_cut(PEData *data, int pa_index)
 {
 	PTCacheEdit *edit = data->edit;
-	ParticleSystem *psys= edit->psys;
 	ARegion *ar= data->vc.ar;
 	Object *ob= data->ob;
 	ParticleEditSettings *pset= PE_settings(data->scene);
-	ParticleData *pa= &psys->particles[pa_index];
 	ParticleCacheKey *key= edit->pathcache[pa_index];
 	float rad2, cut_time= 1.0;
 	float x0, x1, v0, v1, o0, o1, xo0, xo1, d, dv;
@@ -3237,12 +3234,12 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 
 			update_world_cos(ob,edit);
 			psys_free_path_cache(NULL, edit);
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
 		else
 			PE_update_object(scene, ob, 1);
 
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, ob);
+		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_SELECT, ob);
 		
 		bedit->lastmouse[0]= mouse[0];
 		bedit->lastmouse[1]= mouse[1];
@@ -3553,7 +3550,7 @@ void PE_undo_step(Scene *scene, int step)
 	}
 
 	PE_update_object(scene, OBACT, 0);
-	DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
+	DAG_id_flush_update(&OBACT->id, OB_RECALC_DATA);
 }
 
 static void PTCacheUndo_number(Scene *scene, PTCacheEdit *edit, int nr)
@@ -3780,9 +3777,7 @@ static int particle_edit_toggle_poll(bContext *C)
 
 static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
-	PTCacheEdit *edit= PE_get_current(scene, ob);
 
 	if(!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
 		ob->mode |= OB_MODE_PARTICLE_EDIT;
@@ -3795,7 +3790,7 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, NULL);
 	}
 
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	return OPERATOR_FINISHED;
 }
@@ -3819,7 +3814,6 @@ void PARTICLE_OT_particle_edit_toggle(wmOperatorType *ot)
 
 static int clear_edited_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	ParticleSystem *psys = psys_get_current(ob);
 	
@@ -3833,7 +3827,7 @@ static int clear_edited_exec(bContext *C, wmOperator *op)
 			psys->recalc |= PSYS_RECALC_RESET;
 
 			psys_reset(psys, PSYS_RESET_DEPSGRAPH);
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
 	}
 

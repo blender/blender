@@ -52,7 +52,7 @@
 
 static void rna_Smoke_update(bContext *C, PointerRNA *ptr)
 {
-	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_DATA);
+	DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
 }
 
 static void rna_Smoke_dependency_update(bContext *C, PointerRNA *ptr)

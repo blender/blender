@@ -203,7 +203,7 @@ int de_select_all_exec(bContext *C, wmOperator *op)
 	else
 		setflagsLatt(obedit, 1);
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -234,7 +234,6 @@ int make_regular_poll(bContext *C)
 
 int make_regular_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_edit_object(C);
 	Lattice *lt;
 	
@@ -248,8 +247,8 @@ int make_regular_exec(bContext *C, wmOperator *op)
 		resizelattice(lt, lt->pntsu, lt->pntsv, lt->pntsw, NULL);
 	}
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -318,7 +317,7 @@ void mouse_lattice(bContext *C, short mval[2], int extend)
 		else
 			bp->f1 ^= SELECT; /* swap */
 
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit);
+		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit->data);
 	}
 }
 

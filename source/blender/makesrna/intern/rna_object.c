@@ -39,8 +39,8 @@
 #include "DNA_property_types.h"
 #include "DNA_scene_types.h"
 
+#include "WM_api.h"
 #include "WM_types.h"
-
 
 EnumPropertyItem object_mode_items[] = {
 	{OB_MODE_OBJECT, "OBJECT", ICON_OBJECT_DATAMODE, "Object", ""},
@@ -84,17 +84,18 @@ static EnumPropertyItem parent_type_items[] = {
 
 void rna_Object_update(bContext *C, PointerRNA *ptr)
 {
-	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_OB);
+	DAG_id_flush_update(ptr->id.data, OB_RECALC_OB);
 }
 
 void rna_Object_update_data(bContext *C, PointerRNA *ptr)
 {
-	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_DATA);
+	DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ptr->id.data);
 }
 
 static void rna_Object_dependency_update(bContext *C, PointerRNA *ptr)
 {
-	DAG_object_flush_update(CTX_data_scene(C), ptr->id.data, OB_RECALC_OB);
+	DAG_id_flush_update(ptr->id.data, OB_RECALC_OB);
 	DAG_scene_sort(CTX_data_scene(C));
 }
 
@@ -1042,7 +1043,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_editable_func(prop, "rna_Object_data_editable");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Data", "Object data.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update_data");
+	RNA_def_property_update(prop, 0, "rna_Object_update_data");
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
@@ -1223,13 +1224,13 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "VertexGroup");
 	RNA_def_property_pointer_funcs(prop, "rna_Object_active_vertex_group_get", "rna_Object_active_vertex_group_set", NULL);
 	RNA_def_property_ui_text(prop, "Active Vertex Group", "Vertex groups of the object.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
+	RNA_def_property_update(prop, 0, "rna_Object_update_data");
 
 	prop= RNA_def_property(srna, "active_vertex_group_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "actdef");
 	RNA_def_property_int_funcs(prop, "rna_Object_active_vertex_group_index_get", "rna_Object_active_vertex_group_index_set", "rna_Object_active_vertex_group_index_range");
 	RNA_def_property_ui_text(prop, "Active Vertex Group Index", "Active index in vertex group array.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
+	RNA_def_property_update(prop, 0, "rna_Object_update_data");
 
 	/* empty */
 
@@ -1490,7 +1491,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Object_shape_key_lock_set");
 	RNA_def_property_ui_text(prop, "Shape Key Lock", "Always show the current Shape for this Object.");
 	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
-	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
+	RNA_def_property_update(prop, 0, "rna_Object_update_data");
 
 	prop= RNA_def_property(srna, "active_shape_key", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ShapeKey");
@@ -1501,7 +1502,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "shapenr");
 	RNA_def_property_int_funcs(prop, "rna_Object_active_shape_key_index_get", "rna_Object_active_shape_key_index_set", "rna_Object_active_shape_key_index_range");
 	RNA_def_property_ui_text(prop, "Active Shape Key Index", "Current shape key index.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_GEOM_DATA, "rna_Object_update_data");
+	RNA_def_property_update(prop, 0, "rna_Object_update_data");
 
 	RNA_api_object(srna);
 }

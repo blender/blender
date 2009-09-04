@@ -893,7 +893,7 @@ void pose_copy_menu(Scene *scene)
 			ob->pose->flag |= POSE_RECALC;
 	}
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);	// and all its relations
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);	// and all its relations
 	
 	BIF_undo_push("Copy Pose Attributes");
 	
@@ -1067,7 +1067,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	}
 
 	/* Update event for pose and deformation children */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	
 	if (IS_AUTOKEY_ON(scene)) {
 // XXX		remake_action_ipos(ob->action);
@@ -1124,7 +1124,7 @@ void pose_adds_vgroups(Scene *scene, Object *meshobj, int heatweights)
 
 	
 	// and all its relations
-	DAG_object_flush_update(scene, meshobj, OB_RECALC_DATA);
+	DAG_id_flush_update(&meshobj->id, OB_RECALC_DATA);
 }
 
 /* ********************************************** */
@@ -1540,7 +1540,6 @@ void pose_select_grouped_menu (Scene *scene)
 
 static int pose_flip_names_exec (bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm;
 	char newname[32];
@@ -1560,7 +1559,7 @@ static int pose_flip_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* since we renamed stuff... */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1587,7 +1586,6 @@ void POSE_OT_flip_names (wmOperatorType *ot)
 
 static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm;
 	char newname[32];
@@ -1608,7 +1606,7 @@ static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* since we renamed stuff... */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -1677,7 +1675,7 @@ void pose_activate_flipped_bone(Scene *scene)
 				/* in weightpaint we select the associated vertex group too */
 				if(ob->mode & OB_MODE_WEIGHT_PAINT) {
 					vertexgroup_select_by_name(OBACT, name);
-					DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
+					DAG_id_flush_update(&OBACT->id, OB_RECALC_DATA);
 				}
 				
 				// XXX notifiers need to be sent to other editors to update
@@ -2116,7 +2114,7 @@ void pose_relax(Scene *scene)
 		pchan->bone->flag &= ~ BONE_TRANSFORM;
 	
 	/* do depsgraph flush */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	BIF_undo_push("Relax Pose");
 }
 
@@ -2211,7 +2209,7 @@ void pose_clear_user_transforms(Scene *scene, Object *ob)
 		rest_pose(ob->pose);
 	}
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	BIF_undo_push("Clear User Transform");
 }
 

@@ -660,7 +660,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 		return; /* no notifier! */
 		
 	case B_OBJECTPANEL:
-		DAG_object_flush_update(scene, ob, OB_RECALC_OB);
+		DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 		break;
 		
 	case B_OBJECTPANELROT:
@@ -668,7 +668,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 			ob->rot[0]= M_PI*tfp->ob_eul[0]/180.0;
 			ob->rot[1]= M_PI*tfp->ob_eul[1]/180.0;
 			ob->rot[2]= M_PI*tfp->ob_eul[2]/180.0;
-			DAG_object_flush_update(scene, ob, OB_RECALC_OB);
+			DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 		}
 		break;
 
@@ -706,7 +706,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 				VECCOPY(ob->size, tfp->ob_scale);
 				
 			}
-			DAG_object_flush_update(scene, ob, OB_RECALC_OB);
+			DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 		}
 		break;
 
@@ -752,14 +752,14 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 			/* prevent multiple B_OBJECTPANELDIMS events to keep scaling, cycling with TAB on buttons can cause that */
 			VECCOPY(tfp->ob_dims, old_dims);
 			
-			DAG_object_flush_update(scene, ob, OB_RECALC_OB);
+			DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 		}
 		break;
 	
 	case B_OBJECTPANELMEDIAN:
 		if(ob) {
 			v3d_editvertex_buts(C, NULL, v3d, ob, 1.0);
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
 		break;
 		
@@ -770,7 +770,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 				ob->parent= NULL;
 			else {
 				DAG_scene_sort(scene);
-				DAG_object_flush_update(scene, ob, OB_RECALC_OB);
+				DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 			}
 		}
 		break;
@@ -847,7 +847,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 	case B_ARMATUREPANEL2:
 		{
 			ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
 		break;
 	case B_TRANSFORMSPACEADD:
@@ -900,7 +900,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 				int a;
 				for(a=0; a<me->totvert; a++)
 					remove_vert_defgroup (ob, defGroup, a);
-				DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 			}
 		}
 		break;

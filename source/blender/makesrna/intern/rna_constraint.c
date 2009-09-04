@@ -160,15 +160,14 @@ static char *rna_Constraint_path(PointerRNA *ptr)
 
 static void rna_Constraint_update(bContext *C, PointerRNA *ptr)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= ptr->id.data;
 
 	if(ob->pose) update_pose_constraint_flags(ob->pose);
 
 	object_test_constraints(ob);
 
-	if(ob->type==OB_ARMATURE) DAG_object_flush_update(scene, ob, OB_RECALC_DATA|OB_RECALC_OB);
-	else DAG_object_flush_update(scene, ob, OB_RECALC_OB);
+	if(ob->type==OB_ARMATURE) DAG_id_flush_update(&ob->id, OB_RECALC_DATA|OB_RECALC_OB);
+	else DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 }
 
 static void rna_Constraint_dependency_update(bContext *C, PointerRNA *ptr)

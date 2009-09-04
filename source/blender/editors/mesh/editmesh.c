@@ -1280,7 +1280,7 @@ void load_editMesh(Scene *scene, Object *ob)
 void remake_editMesh(Scene *scene, Object *ob)
 {
 	make_editMesh(scene, ob);
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	BIF_undo_push("Undo all changes");
 }
 
@@ -1390,8 +1390,8 @@ static int mesh_separate_selected(Scene *scene, Base *editbase)
 	/* hashedges are invalid now, make new! */
 	editMesh_set_hash(em);
 
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
-	DAG_object_flush_update(scene, basenew->object, OB_RECALC_DATA);	
+	DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);	
+	DAG_id_flush_update(&basenew->object->id, OB_RECALC_DATA);	
 
 	BKE_mesh_end_editmesh(me, em);
 
@@ -1469,7 +1469,7 @@ static int mesh_separate_exec(bContext *C, wmOperator *op)
 		retval= mesh_separate_loose(scene, base);
 	   
 	if(retval) {
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, base->object);
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, base->object->data);
 		return OPERATOR_FINISHED;
 	}
 	return OPERATOR_CANCELLED;

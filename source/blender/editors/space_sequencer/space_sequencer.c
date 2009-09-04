@@ -219,6 +219,10 @@ static void sequencer_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_SEQUENCER)
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 
@@ -241,6 +245,10 @@ static void sequencer_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_SEQUENCER)
+				ED_region_tag_redraw(ar);
+			break;
 		
 	}
 }
@@ -293,6 +301,7 @@ void ED_spacetype_sequencer(void)
 	
 	art->init= sequencer_header_area_init;
 	art->draw= sequencer_header_area_draw;
+	art->listener= sequencer_main_area_listener;
 	
 	BLI_addhead(&st->regiontypes, art);
 	

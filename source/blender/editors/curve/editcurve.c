@@ -409,10 +409,10 @@ static int separate_exec(bContext *C, wmOperator *op)
 	load_editNurb(newob);
 	free_editNurb(newob);
 
-	DAG_object_flush_update(scene, oldob, OB_RECALC_DATA);	/* this is the original one */
-	DAG_object_flush_update(scene, newob, OB_RECALC_DATA);	/* this is the separated one */
+	DAG_id_flush_update(&oldob->id, OB_RECALC_DATA);	/* this is the original one */
+	DAG_id_flush_update(&newob->id, OB_RECALC_DATA);	/* this is the separated one */
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, oldob);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, oldob->data);
 
 	WM_cursor_wait(0);
 
@@ -1005,8 +1005,8 @@ static int switch_direction_exec(bContext *C, wmOperator *op)
 		if(isNurbsel(nu))
 			switchdirectionNurb(nu);
 	
-	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1052,8 +1052,8 @@ static int set_weight_exec(bContext *C, wmOperator *op)
 		}
 	}	
 
-	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1103,8 +1103,8 @@ static int set_radius_exec(bContext *C, wmOperator *op)
 		}
 	}	
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 
 	return OPERATOR_FINISHED;
 }
@@ -1178,8 +1178,8 @@ static int smooth_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 
 	return OPERATOR_FINISHED;
 }
@@ -1343,8 +1343,8 @@ static int smooth_radius_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 
 	return OPERATOR_FINISHED;
 }
@@ -1493,7 +1493,7 @@ static int de_select_first_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 
 	selectend_nurb(obedit, FIRST, 1, DESELECT);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1517,7 +1517,7 @@ static int de_select_last_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 
 	selectend_nurb(obedit, LAST, 1, DESELECT);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1585,7 +1585,7 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 		select_adjacent_cp(editnurb, 1, 1, SELECT); /* cascade selection */
  	}
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1654,8 +1654,8 @@ static int hide_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;	
 }
@@ -1714,8 +1714,8 @@ static int reveal_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;	
 }
@@ -1770,7 +1770,7 @@ static int select_inverse_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;	
 }
@@ -2166,8 +2166,8 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 		} /* End of 'if((nu->type & 7)==CU_NURBS)'  */
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 
 	return OPERATOR_FINISHED;	
 }
@@ -2500,14 +2500,13 @@ void CURVE_OT_spline_type_set(wmOperatorType *ot)
 
 static int set_handle_type_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
 
 	sethandlesNurb(editnurb, RNA_enum_get(op->ptr, "type"));
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 
 	return OPERATOR_FINISHED;
 }
@@ -2861,8 +2860,8 @@ static int merge_nurb(bContext *C, wmOperator *op)
 	
 	set_actNurb(obedit, NULL);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2870,7 +2869,6 @@ static int merge_nurb(bContext *C, wmOperator *op)
 static int make_segment_exec(bContext *C, wmOperator *op)
 {
 	/* joins 2 curves */
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
 	Nurb *nu, *nu1=0, *nu2=0;
@@ -3015,8 +3013,8 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 		
 		set_actNurb(obedit, NULL);	/* for selected */
 
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);	
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);	
 
 		return OPERATOR_FINISHED;
 	}
@@ -3100,7 +3098,7 @@ void mouse_nurb(bContext *C, short mval[2], int extend)
 
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 	
 	if(nu!=get_actNurb(obedit))
 		set_actNurb(obedit, nu);
@@ -3231,8 +3229,8 @@ static int spin_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 
 	return OPERATOR_FINISHED;
 }
@@ -3255,7 +3253,6 @@ void CURVE_OT_spin(wmOperatorType *ot)
 
 static int addvert_Nurb(bContext *C, short mode, float location[3])
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
 	Nurb *nu;
@@ -3367,8 +3364,8 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 
 	test2DNurb(nu);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 
 	return OPERATOR_FINISHED;
 }
@@ -3423,7 +3420,6 @@ void CURVE_OT_vertex_add(wmOperatorType *ot)
 
 static int extrude_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
 	Nurb *nu;
@@ -3438,8 +3434,8 @@ static int extrude_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		if(extrudeflagNurb(editnurb, 1)) { /* '1'= flag */
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-			DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+			DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 		}
 	}
 
@@ -3549,8 +3545,8 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 
 	return OPERATOR_FINISHED;
 }
@@ -3641,7 +3637,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3733,7 +3729,7 @@ static int select_row_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -3760,7 +3756,7 @@ static int select_next_exec(bContext *C, wmOperator *op)
 	ListBase *editnurb= curve_get_editcurve(obedit);
 	
 	select_adjacent_cp(editnurb, 1, 0, SELECT);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -3787,7 +3783,7 @@ static int select_previous_exec(bContext *C, wmOperator *op)
 	ListBase *editnurb= curve_get_editcurve(obedit);
 	
 	select_adjacent_cp(editnurb, -1, 0, SELECT);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -3874,7 +3870,7 @@ static int select_more_exec(bContext *C, wmOperator *op)
 		select_adjacent_cp(editnurb, -1, 0, SELECT);
 	}
 		
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -4035,7 +4031,7 @@ static int select_less_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -4131,7 +4127,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
 		
 	MEM_freeN(itemstobeselected);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -4165,7 +4161,7 @@ static int select_every_nth_exec(bContext *C, wmOperator *op)
 	select_adjacent_cp(editnurb, n, 1, SELECT);
 	select_adjacent_cp(editnurb, -n, 1, SELECT);
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -4231,7 +4227,6 @@ void CURVE_OT_duplicate(wmOperatorType *ot)
 
 static int delete_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
 	Nurb *nu, *next, *nu1;
@@ -4243,8 +4238,8 @@ static int delete_exec(bContext *C, wmOperator *op)
 		if(type==0) deleteflagNurb(C, op, 1);
 		else freeNurblist(editnurb);
 
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	
 		return OPERATOR_FINISHED;
 	}
@@ -4373,8 +4368,8 @@ static int delete_exec(bContext *C, wmOperator *op)
 								bezt2= bezt+(nu->pntsu-1);
 								if( (bezt2->f1 & SELECT) || (bezt2->f2 & SELECT) || (bezt2->f3 & SELECT) ) {
 									nu->flagu &= ~CU_CYCLIC;
-									WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-									DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+									WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+									DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 								}
 							}
 
@@ -4399,8 +4394,8 @@ static int delete_exec(bContext *C, wmOperator *op)
 								bp2= bp+(nu->pntsu-1);
 								if( bp2->f1 & SELECT ) {
 									nu->flagu &= ~CU_CYCLIC;
-									WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-									DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+									WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+									DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 								}
 							}
 
@@ -4497,8 +4492,8 @@ static int delete_exec(bContext *C, wmOperator *op)
 	else if(type==2)
 		freeNurblist(editnurb);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	
 	return OPERATOR_FINISHED;
 }
@@ -4569,8 +4564,8 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 
 	return OPERATOR_FINISHED;
 }
@@ -5119,8 +5114,8 @@ static int clear_tilt_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, obedit);
-	DAG_object_flush_update(CTX_data_scene(C), obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 
 	return OPERATOR_FINISHED;
 }

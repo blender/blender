@@ -419,6 +419,7 @@ static void rna_def_windowmanager(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "WindowManager", "ID");
 	RNA_def_struct_ui_text(srna, "Window Manager", "Window manager datablock defining open windows and other user interface data.");
+	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
 	RNA_def_struct_sdna(srna, "wmWindowManager");
 
 	prop= RNA_def_property(srna, "operators", PROP_COLLECTION, PROP_NONE);

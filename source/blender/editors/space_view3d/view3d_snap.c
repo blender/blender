@@ -106,7 +106,7 @@ static void special_transvert_update(Scene *scene, Object *obedit)
 	
 	if(obedit) {
 		
-		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 		
 		if(obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;
@@ -514,7 +514,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 				
 				/* auto-keyframing */
 // XXX				autokeyframe_pose_cb_func(ob, TFM_TRANSLATION, 0);
-				DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 			}
 			else {
 				ob->recalc |= OB_RECALC_OB;
@@ -640,7 +640,7 @@ static int snap_sel_to_curs(bContext *C, wmOperator *op)
 				
 				/* auto-keyframing */
 // XXX				autokeyframe_pose_cb_func(ob, TFM_TRANSLATION, 0);
-				DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 			}
 			else {
 				ob->recalc |= OB_RECALC_OB;
@@ -1028,7 +1028,7 @@ static int snap_selected_to_center(bContext *C, wmOperator *op)
 				/* auto-keyframing */
 				ob->pose->flag |= POSE_DO_UNLOCK;
 // XXX				autokeyframe_pose_cb_func(ob, TFM_TRANSLATION, 0);
-				DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 			}
 			else {
 				ob->recalc |= OB_RECALC_OB;

@@ -177,9 +177,9 @@ void wm_event_do_notifiers(bContext *C)
 						do_anim= 1;
 				}
 			}
-			if(note->category == NC_SCENE || note->category == NC_OBJECT) {
+			if(ELEM3(note->category, NC_SCENE, NC_OBJECT, NC_GEOM)) {
 				ED_info_stats_clear(CTX_data_scene(C));
-				WM_event_add_notifier(C, NC_INFO, NULL);
+				WM_event_add_notifier(C, NC_SPACE|ND_SPACE_INFO, NULL);
 			}
 		}
 		if(do_anim) {

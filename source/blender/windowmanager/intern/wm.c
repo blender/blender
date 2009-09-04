@@ -108,7 +108,7 @@ void wm_operator_register(bContext *C, wmOperator *op)
 	MEM_freeN(buf);
 	
 	/* so the console is redrawn */
-	WM_event_add_notifier(C, NC_CONSOLE|ND_CONSOLE_REPORT, NULL);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_CONSOLE_REPORT, NULL);
 }
 
 

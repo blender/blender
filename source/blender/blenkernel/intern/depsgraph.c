@@ -61,6 +61,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view2d_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_ghash.h"
 
@@ -2141,39 +2142,77 @@ void DAG_scene_update_flags(Scene *scene, unsigned int lay)
 	
 }
 
-
-/* flag this object and all its relations to recalc */
-/* if you need to do more objects, tag object yourself and
-   use DAG_scene_flush_update() in end */
-void DAG_object_flush_update(Scene *sce, Object *ob, short flag)
+void DAG_id_flush_update(ID *id, short flag)
 {
-	
-	if(ob==NULL || sce->theDag==NULL) return;
+	Main *bmain= G.main;
+	wmWindowManager *wm;
+	wmWindow *win;
+	Scene *sce;
+	Object *obt, *ob= NULL;
+	short idtype;
 
-	ob->recalc |= flag;
-	BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH);
-	
-	/* all users of this ob->data should be checked */
-	/* BUT! displists for curves are still only on cu */
-	if(flag & OB_RECALC_DATA) {
-		if(ob->type!=OB_CURVE && ob->type!=OB_SURF) {
-			ID *id= ob->data;
-			if(id && id->us>1) {
-				/* except when there's a key and shapes are locked */
-				if(ob_get_key(ob) && (ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)));
-				else {
-					Object *obt;
-					for (obt=G.main->object.first; obt; obt= obt->id.next) {
-						if (obt != ob && obt->data==ob->data) {
-							obt->recalc |= OB_RECALC_DATA;
-							BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
-						}
-					}
+	/* only one scene supported currently, making more scenes work
+	   correctly requires changes beyond just the dependency graph */
+
+	if((wm= bmain->wm.first)) {
+		/* if we have a windowmanager, use sce from first window */
+		for(win=wm->windows.first; win; win=win->next) {
+			sce= (win->screen)? win->screen->scene: NULL;
+
+			if(sce)
+				break;
+		}
+	}
+	else
+		/* if not, use the first sce */
+		sce= bmain->scene.first;
+
+	if(!id || !sce || !sce->theDag)
+		return;
+
+	/* set flags & pointcache for object */
+	if(GS(id->name) == ID_OB) {
+		ob= (Object*)id;
+		ob->recalc |= flag;
+		BKE_ptcache_object_reset(sce, ob, PTCACHE_RESET_DEPSGRAPH);
+
+		if(flag & OB_RECALC_DATA) {
+			/* all users of this ob->data should be checked */
+			id= ob->data;
+
+			/* no point in trying in this cases */
+			if(!id || id->us <= 1)
+				id= NULL;
+			/* curves and surfaces only need to mark one object, since
+			   otherwise cu->displist would be computed multiple times */
+			else if(ob->type==OB_CURVE || ob->type==OB_SURF)
+				id= NULL;
+			/* also for locked shape keys we make an exception */
+			else if(ob_get_key(ob) && (ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)))
+				id= NULL;
+		}
+	}
+
+	/* set flags & pointcache for object data */
+	if(id) {
+		idtype= GS(id->name);
+
+		if(ELEM7(idtype, ID_ME, ID_CU, ID_MB, ID_LA, ID_LT, ID_CA, ID_AR)) {
+			for(obt=bmain->object.first; obt; obt= obt->id.next) {
+				if(!(ob && obt == ob) && obt->data == id) {
+					obt->recalc |= OB_RECALC_DATA;
+					BKE_ptcache_object_reset(sce, obt, PTCACHE_RESET_DEPSGRAPH);
+
+					/* for these we only flag one object, otherwise cu->displist
+					   would be computed multiple times */
+					if(obt->type==OB_CURVE || obt->type==OB_SURF)
+						break;
 				}
 			}
 		}
 	}
-	
+
+	/* flush to other objects that depend on this one */
 // XXX	if(G.curscreen)
 //		DAG_scene_flush_update(sce, dag_screen_view3d_layers(), 0);
 //	else

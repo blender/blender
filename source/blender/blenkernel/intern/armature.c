@@ -130,7 +130,6 @@ void free_bones (bArmature *arm)
 void free_armature(bArmature *arm)
 {
 	if (arm) {
-		/*		unlink_armature(arm);*/
 		free_bones(arm);
 		
 		/* free editmode data */

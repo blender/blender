@@ -48,29 +48,17 @@
 
 static void rna_Armature_update_data(bContext *C, PointerRNA *ptr)
 {
-	Main *bmain= CTX_data_main(C);
-	Scene *scene= CTX_data_scene(C);
 	ID *id= ptr->id.data;
-	Object *ob;
 
-	for(ob=bmain->object.first; ob; ob= ob->id.next) {
-		if(ob->data == id) {
-			/* XXX this will loop over all objects again (slow) */
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
-		}
-	}
+	DAG_id_flush_update(id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, id);
 }
 
 static void rna_Armature_redraw_data(bContext *C, PointerRNA *ptr)
 {
-	Main *bmain= CTX_data_main(C);
 	ID *id= ptr->id.data;
-	Object *ob;
 
-	for(ob=bmain->object.first; ob; ob= ob->id.next)
-		if(ob->data == id)
-			WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_DATA, ob);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, id);
 }
 
 static void rna_bone_layer_set(short *layer, const int *values)

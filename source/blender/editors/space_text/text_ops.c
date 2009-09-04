@@ -549,7 +549,6 @@ static int refresh_pyconstraints_exec(bContext *C, wmOperator *op)
 {
 #ifndef DISABLE_PYTHON
 	Text *text= CTX_data_edit_text(C);
-	Scene *scene= CTX_data_scene(C);
 	Object *ob;
 	bConstraint *con;
 	short update;
@@ -579,7 +578,7 @@ static int refresh_pyconstraints_exec(bContext *C, wmOperator *op)
 		}
 		
 		if(update) {
-			DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
 	}
 #endif

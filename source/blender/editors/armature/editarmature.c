@@ -340,7 +340,7 @@ void ED_armature_from_edit(Scene *scene, Object *obedit)
 			armature_rebuild_pose(obt, arm);
 	}
 	
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 }
 
 
@@ -1054,8 +1054,8 @@ static int separate_armature_exec (bContext *C, wmOperator *op)
 	/* 4) fix links before depsgraph flushes */ // err... or after?
 	separated_armature_fix_links(oldob, newob);
 	
-	DAG_object_flush_update(scene, oldob, OB_RECALC_DATA);	/* this is the original one */
-	DAG_object_flush_update(scene, newob, OB_RECALC_DATA);	/* this is the separated one */
+	DAG_id_flush_update(&oldob->id, OB_RECALC_DATA);	/* this is the original one */
+	DAG_id_flush_update(&newob->id, OB_RECALC_DATA);	/* this is the separated one */
 	
 	
 	/* 5) restore original conditions */
@@ -1890,7 +1890,7 @@ void mouse_armature(bContext *C, short mval[2], int extend)
 			if(nearBone->flag & BONE_SELECTED) nearBone->flag |= BONE_ACTIVE;
 		}
 		
-		WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, vc.obedit);
+		WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, vc.obedit);
 	}
 }
 
@@ -4335,7 +4335,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 		if (ob->mode & OB_MODE_WEIGHT_PAINT) {
 			if (nearBone->flag & BONE_ACTIVE) {
 				vertexgroup_select_by_name(OBACT, nearBone->name);
-				DAG_object_flush_update(scene, OBACT, OB_RECALC_DATA);
+				DAG_id_flush_update(&OBACT->id, OB_RECALC_DATA);
 			}
 		}
 		
@@ -4765,7 +4765,6 @@ void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par, int mod
 
 static int pose_clear_scale_exec(bContext *C, wmOperator *op) 
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	
 	/* only clear those channels that are not locked */
@@ -4782,7 +4781,7 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
@@ -4807,7 +4806,6 @@ void POSE_OT_scale_clear(wmOperatorType *ot)
 
 static int pose_clear_loc_exec(bContext *C, wmOperator *op) 
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	
 	/* only clear those channels that are not locked */
@@ -4824,7 +4822,7 @@ static int pose_clear_loc_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
@@ -4849,7 +4847,6 @@ void POSE_OT_loc_clear(wmOperatorType *ot)
 
 static int pose_clear_rot_exec(bContext *C, wmOperator *op) 
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	
 	/* only clear those channels that are not locked */
@@ -4899,7 +4896,7 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
@@ -5337,7 +5334,6 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 
 static int armature_flip_names_exec (bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_edit_object(C);
 	bArmature *arm;
 	char newname[32];
@@ -5357,7 +5353,7 @@ static int armature_flip_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* since we renamed stuff... */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -5383,7 +5379,6 @@ void ARMATURE_OT_flip_names (wmOperatorType *ot)
 
 static int armature_autoside_names_exec (bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_edit_object(C);
 	bArmature *arm;
 	char newname[32];
@@ -5404,7 +5399,7 @@ static int armature_autoside_names_exec (bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* since we renamed stuff... */
-	DAG_object_flush_update(scene, ob, OB_RECALC_DATA);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);

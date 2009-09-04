@@ -83,7 +83,7 @@ int multiresModifier_switch_level(Object *ob, const int distance)
 		mmd->lvl += distance;
 		if(mmd->lvl < 1) mmd->lvl = 1;
 		else if(mmd->lvl > mmd->totlvl) mmd->lvl = mmd->totlvl;
-		/* XXX: DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
+		/* XXX: DAG_id_flush_update(&ob->id, OB_RECALC_DATA); 
 		   object_handle_update(ob);*/
 		return 1;
 	}
