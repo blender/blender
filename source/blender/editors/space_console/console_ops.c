@@ -234,6 +234,11 @@ static int console_edit_poll(bContext *C)
 	return 1;
 }
 
+static int console_poll(bContext *C)
+{
+	return (CTX_wm_space_console(C) != NULL);
+}
+
 
 /* static funcs for text editing */
 
@@ -695,6 +700,7 @@ void CONSOLE_OT_zoom(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= zoom_exec;
+	ot->poll= console_poll;
 
 	/* flags */
 	/* ot->flag= OPTYPE_REGISTER; */ /* super annoying */

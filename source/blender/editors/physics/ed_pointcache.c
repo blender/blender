@@ -72,6 +72,12 @@ static int ptcache_bake_all_poll(bContext *C)
 	return 1;
 }
 
+static int ptcache_poll(bContext *C)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "PointCache", &RNA_PointCache);
+	return (ptr.data && ptr.id.data);
+}
+
 static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -215,7 +221,7 @@ void PTCACHE_OT_bake(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= ptcache_bake_exec;
-	ot->poll= ptcache_bake_all_poll;
+	ot->poll= ptcache_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -230,7 +236,7 @@ void PTCACHE_OT_free_bake(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= ptcache_free_bake_exec;
-	ot->poll= ptcache_bake_all_poll;
+	ot->poll= ptcache_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -243,7 +249,7 @@ void PTCACHE_OT_bake_from_cache(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= ptcache_bake_from_cache_exec;
-	ot->poll= ptcache_bake_all_poll;
+	ot->poll= ptcache_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -308,7 +314,7 @@ void PTCACHE_OT_add_new(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= ptcache_add_new_exec;
-	ot->poll= ptcache_bake_all_poll;
+	ot->poll= ptcache_poll; // ptcache_bake_all_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -321,7 +327,7 @@ void PTCACHE_OT_remove(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= ptcache_remove_exec;
-	ot->poll= ptcache_bake_all_poll;
+	ot->poll= ptcache_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

@@ -1478,7 +1478,7 @@ static int move_cursor(bContext *C, int type, int select)
 	ARegion *ar= CTX_wm_region(C);
 
 	/* ensure we have the right region, it's optional */
-	if(ar->regiontype != RGN_TYPE_WINDOW)
+	if(ar && ar->regiontype != RGN_TYPE_WINDOW)
 		ar= NULL;
 
 	switch(type) {
