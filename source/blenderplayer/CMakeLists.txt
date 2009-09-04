@@ -66,6 +66,7 @@ IF(UNIX)
     gp_common 
     bf_string 
     bf_ghost 
+    bf_rna
     bf_blenkernel
     bf_blenloader 
     bf_blenpluginapi 
@@ -102,7 +103,6 @@ IF(UNIX)
     bf_dds
     bf_readblenfile 
     bf_dna
-    bf_rna
     bf_videotex
     bf_blenfont
     bf_audaspace
