@@ -70,9 +70,6 @@
 
 
 #include <fcntl.h>
-#if !defined(WIN32)
-#include <sys/mtio.h>			/* tape comando's */
-#endif
 #include <string.h>			/* strcpy etc.. */
 
 #ifndef WIN32
