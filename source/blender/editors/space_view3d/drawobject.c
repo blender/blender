@@ -3373,8 +3373,9 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				pa_birthtime=pa->time;
 				pa_dietime = pa->dietime;
 				pa_size=pa->size;
-				if(part->phystype==PART_PHYS_BOIDS)
-					pa_health = pa->boid->health;
+				if(part->phystype==PART_PHYS_BOIDS) {
+					pa_health = pa->boid->data.health;
+				}
 				else
 					pa_health = -1.0;
 
@@ -3409,8 +3410,10 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				}
 #endif // XXX old animation system
 
-				r_tilt = 1.0f + pa->r_ave[0];
-				r_length = 0.5f * (1.0f + pa->r_ave[1]);
+				BLI_srandom(psys->seed+a);
+
+				r_tilt = 2.0f*(BLI_frand() - 0.5f);
+				r_length = BLI_frand();
 			}
 			else{
 				ChildParticle *cpa= &psys->child[a-totpart];

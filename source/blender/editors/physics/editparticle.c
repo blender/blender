@@ -102,8 +102,6 @@ static void PTCacheUndo_clear(PTCacheEdit *edit);
 #define LOOP_SELECTED_KEYS		for(k=0, key=point->keys; k<point->totkey; k++, key++) if((key->flag & PEK_SELECT) && !(key->flag & PEK_HIDE))
 #define LOOP_TAGGED_KEYS		for(k=0, key=point->keys; k<point->totkey; k++, key++) if(key->flag & PEK_TAG)
 
-#define LOOP_PARTICLES(i, pa)	for(i=0, pa=psys->particles; i<psys->totpart; i++, pa++)
-
 #define KEY_WCO					(key->flag & PEK_USE_WCO ? key->world_co : key->co)
 
 /**************************** utilities *******************************/
@@ -642,12 +640,13 @@ static int count_selected_keys(Scene *scene, PTCacheEdit *edit)
 static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 {
 	PTCacheEdit *edit;
-	ParticleData *pa;
 	ParticleSystemModifierData *psmd;
 	KDTree *tree;
 	KDTreeNearest nearest;
+	HairKey *key;
+	PARTICLE_P;
 	float mat[4][4], co[3];
-	int i, index, totpart;
+	int index, totpart;
 
 	edit= psys->edit;
 	psmd= psys_get_modifier(ob, psys);
@@ -656,11 +655,12 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 	tree= BLI_kdtree_new(totpart);
 
 	/* insert particles into kd tree */
-	LOOP_PARTICLES(i, pa) {
+	LOOP_PARTICLES {
+		key = pa->hair;
 		psys_mat_hair_to_orco(ob, psmd->dm, psys->part->from, pa, mat);
-		VECCOPY(co, pa->hair[0].co);
+		VECCOPY(co, key->co);
 		Mat4MulVecfl(mat, co);
-		BLI_kdtree_insert(tree, i, co, NULL);
+		BLI_kdtree_insert(tree, p, co, NULL);
 	}
 
 	BLI_kdtree_balance(tree);
@@ -669,27 +669,28 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 	if(!edit->mirror_cache)
 		edit->mirror_cache= MEM_callocN(sizeof(int)*totpart, "PE mirror cache");
 	
-	LOOP_PARTICLES(i, pa) {
+	LOOP_PARTICLES {
+		key = pa->hair;
 		psys_mat_hair_to_orco(ob, psmd->dm, psys->part->from, pa, mat);
-		VECCOPY(co, pa->hair[0].co);
+		VECCOPY(co, key->co);
 		Mat4MulVecfl(mat, co);
 		co[0]= -co[0];
 
 		index= BLI_kdtree_find_nearest(tree, co, NULL, &nearest);
 
 		/* this needs a custom threshold still, duplicated for editmode mirror */
-		if(index != -1 && index != i && (nearest.dist <= 0.0002f))
-			edit->mirror_cache[i]= index;
+		if(index != -1 && index != p && (nearest.dist <= 0.0002f))
+			edit->mirror_cache[p]= index;
 		else
-			edit->mirror_cache[i]= -1;
+			edit->mirror_cache[p]= -1;
 	}
 
 	/* make sure mirrors are in two directions */
-	LOOP_PARTICLES(i, pa) {
-		if(edit->mirror_cache[i]) {
-			index= edit->mirror_cache[i];
-			if(edit->mirror_cache[index] != i)
-				edit->mirror_cache[i]= -1;
+	LOOP_PARTICLES {
+		if(edit->mirror_cache[p]) {
+			index= edit->mirror_cache[p];
+			if(edit->mirror_cache[index] != p)
+				edit->mirror_cache[p]= -1;
 		}
 	}
 
@@ -1735,7 +1736,7 @@ static void rekey_particle(PEData *data, int pa_index)
 	ParticleData *pa= psys->particles + pa_index;
 	PTCacheEditPoint *point = edit->points + pa_index;
 	ParticleKey state;
-	HairKey *key, *new_keys;
+	HairKey *key, *new_keys, *okey;
 	PTCacheEditKey *ekey;
 	float dval, sta, end;
 	int k;
@@ -1744,12 +1745,13 @@ static void rekey_particle(PEData *data, int pa_index)
 
 	key= new_keys= MEM_callocN(data->totrekey * sizeof(HairKey),"Hair re-key keys");
 
+	okey = pa->hair;
 	/* root and tip stay the same */
-	VECCOPY(key->co, pa->hair->co);
-	VECCOPY((key + data->totrekey - 1)->co, (pa->hair + pa->totkey - 1)->co);
+	VECCOPY(key->co, okey->co);
+	VECCOPY((key + data->totrekey - 1)->co, (okey + pa->totkey - 1)->co);
 
-	sta= key->time= pa->hair->time;
-	end= (key + data->totrekey - 1)->time= (pa->hair + pa->totkey - 1)->time;
+	sta= key->time= okey->time;
+	end= (key + data->totrekey - 1)->time= (okey + pa->totkey - 1)->time;
 	dval= (end - sta) / (float)(data->totrekey - 1);
 
 	/* interpolate new keys from old ones */
@@ -2034,9 +2036,11 @@ static void subdivide_particle(PEData *data, int pa_index)
 
 	nkey= new_keys= MEM_callocN((pa->totkey+totnewkey)*(sizeof(HairKey)),"Hair subdivide keys");
 	nekey= new_ekeys= MEM_callocN((pa->totkey+totnewkey)*(sizeof(PTCacheEditKey)),"Hair subdivide edit keys");
-	endtime= pa->hair[pa->totkey-1].time;
+	
+	key = pa->hair;
+	endtime= key[pa->totkey-1].time;
 
-	for(k=0, key=pa->hair, ekey=point->keys; k<pa->totkey-1; k++, key++, ekey++) {
+	for(k=0, ekey=point->keys; k<pa->totkey-1; k++, key++, ekey++) {
 
 		memcpy(nkey,key,sizeof(HairKey));
 		memcpy(nekey,ekey,sizeof(PTCacheEditKey));
@@ -2461,7 +2465,6 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 			*newpa= *pa;
 			*newpoint= *point;
 			if(pa->hair) newpa->hair= MEM_dupallocN(pa->hair);
-			if(pa->keys) newpa->keys= MEM_dupallocN(pa->keys);
 			if(point->keys) newpoint->keys= MEM_dupallocN(point->keys);
 
 			/* rotate weights according to vertex index rotation */
@@ -2966,7 +2969,7 @@ static void brush_add(PEData *data, short number)
 					weight[w] /= totw;
 
 				for(k=0; k<pset->totaddkey; k++) {
-					hkey= pa->hair + k;
+					hkey= (HairKey*)pa->hair + k;
 					hkey->time= pa->time + k * framestep;
 
 					key[0].time= hkey->time/ 100.0f;
@@ -2990,15 +2993,15 @@ static void brush_add(PEData *data, short number)
 					if(k==0)
 						VECSUB(co1, pa->state.co, key[0].co);
 
-					VECADD(pa->hair[k].co, key[0].co, co1);
+					VECADD(hkey->co, key[0].co, co1);
 
-					pa->hair[k].time= key[0].time;
+					hkey->time= key[0].time;
 				}
 			}
 			else {
 				for(k=0, hkey=pa->hair; k<pset->totaddkey; k++, hkey++) {
 					VECADDFAC(hkey->co, pa->state.co, pa->state.vel, k * framestep * timestep);
-					pa->hair[k].time += k * framestep;
+					hkey->time += k * framestep;
 				}
 			}
 			for(k=0, hkey=pa->hair; k<pset->totaddkey; k++, hkey++) {

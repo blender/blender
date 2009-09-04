@@ -59,6 +59,9 @@ struct SurfaceModifierData;
 struct BVHTreeRay;
 struct BVHTreeRayHit; 
 
+#define PARTICLE_P				ParticleData *pa; int p
+#define LOOP_PARTICLES	for(p=0, pa=psys->particles; p<psys->totpart; p++, pa++)
+
 typedef struct ParticleEffectorCache {
 	struct ParticleEffectorCache *next, *prev;
 	struct Object *ob;
@@ -207,6 +210,7 @@ void free_child_path_cache(struct ParticleSystem *psys);
 void psys_free_path_cache(struct ParticleSystem *psys, struct PTCacheEdit *edit);
 void free_hair(struct ParticleSystem *psys, int softbody);
 void free_keyed_keys(struct ParticleSystem *psys);
+void psys_free_particles(struct ParticleSystem *psys);
 void psys_free(struct Object * ob, struct ParticleSystem * psys);
 void psys_free_children(struct ParticleSystem *psys);
 

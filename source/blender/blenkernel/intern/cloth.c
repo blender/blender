@@ -496,23 +496,30 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	if(!do_init_cloth(ob, clmd, result, framenr))
 		return result;
 
+	if(framenr == startframe && cache->flag & PTCACHE_REDO_NEEDED) {
+		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+		cache->simframe= framenr;
+		cache->flag &= ~PTCACHE_REDO_NEEDED;
+		return result;
+	}
+
 	/* try to read from cache */
 	cache_result = BKE_ptcache_read_cache(&pid, (float)framenr, scene->r.frs_sec);
 
 	if(cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED) {
-		cache->flag |= PTCACHE_SIMULATION_VALID;
-		cache->simframe= framenr;
-
 		implicit_set_positions(clmd);
 		cloth_to_object (ob, clmd, result);
+
+		cache->simframe= framenr;
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+
+		if(cache_result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED)
+			BKE_ptcache_write_cache(&pid, framenr);
 
 		return result;
 	}
 	else if(cache_result==PTCACHE_READ_OLD) {
-		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_FREE);
-
 		implicit_set_positions(clmd);
-
 		cache->flag |= PTCACHE_SIMULATION_VALID;
 	}
 	else if(ob->id.lib || (cache->flag & PTCACHE_BAKED)) {
@@ -524,12 +531,10 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	}
 
 	if(framenr == startframe) {
-		if(cache->flag & PTCACHE_REDO_NEEDED) {
-			BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
-			do_init_cloth(ob, clmd, result, framenr);
-		}
-		cache->flag |= PTCACHE_SIMULATION_VALID;
+		implicit_set_positions(clmd);
+
 		cache->simframe= framenr;
+		cache->flag |= PTCACHE_SIMULATION_VALID;
 
 		/* don't write cache on first frame, but on second frame write
 		 * cache for frame 1 and 2 */

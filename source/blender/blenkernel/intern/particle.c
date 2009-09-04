@@ -92,10 +92,10 @@ static void do_child_modifiers(Scene *scene, Object *ob, ParticleSystem *psys, P
 /* few helpers for countall etc. */
 int count_particles(ParticleSystem *psys){
 	ParticleSettings *part=psys->part;
-	ParticleData *pa;
-	int tot=0,p;
+	PARTICLE_P;
+	int tot=0;
 
-	for(p=0,pa=psys->particles; p<psys->totpart; p++,pa++){
+	LOOP_PARTICLES {
 		if(pa->alive == PARS_KILLED);
 		else if(pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN)==0);
 		else if(pa->alive == PARS_DEAD && (part->flag & PART_DIED)==0);
@@ -106,10 +106,10 @@ int count_particles(ParticleSystem *psys){
 }
 int count_particles_mod(ParticleSystem *psys, int totgr, int cur){
 	ParticleSettings *part=psys->part;
-	ParticleData *pa;
-	int tot=0,p;
+	PARTICLE_P;
+	int tot=0;
 
-	for(p=0,pa=psys->particles; p<psys->totpart; p++,pa++){
+	LOOP_PARTICLES {
 		if(pa->alive == PARS_KILLED);
 		else if(pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN)==0);
 		else if(pa->alive == PARS_DEAD && (part->flag & PART_DIED)==0);
@@ -120,10 +120,10 @@ int count_particles_mod(ParticleSystem *psys, int totgr, int cur){
 }
 int psys_count_keys(ParticleSystem *psys)
 {
-	ParticleData *pa;
-	int i, totpart=psys->totpart, totkey=0;
+	PARTICLE_P;
+	int totkey=0;
 
-	for(i=0, pa=psys->particles; i<totpart; i++, pa++)
+	LOOP_PARTICLES
 		totkey += pa->totkey;
 
 	return totkey;
@@ -368,13 +368,16 @@ void psys_free_settings(ParticleSettings *part)
 
 void free_hair(ParticleSystem *psys, int softbody)
 {
-	ParticleData *pa;
-	int i, totpart=psys->totpart;
+	PARTICLE_P;
 
-	for(i=0, pa=psys->particles; i<totpart; i++, pa++) {
+	if(psys->part->type != PART_HAIR)
+		return;
+
+	LOOP_PARTICLES {
 		if(pa->hair)
 			MEM_freeN(pa->hair);
 		pa->hair = NULL;
+		pa->totkey = 0;
 	}
 
 	psys->flag &= ~PSYS_HAIR_DONE;
@@ -386,13 +389,15 @@ void free_hair(ParticleSystem *psys, int softbody)
 }
 void free_keyed_keys(ParticleSystem *psys)
 {
-	ParticleData *pa;
-	int i;
+	PARTICLE_P;
+
+	if(psys->part->type == PART_HAIR)
+		return;
 
 	if(psys->particles && psys->particles->keys) {
 		MEM_freeN(psys->particles->keys);
 
-		for(i=0, pa=psys->particles; i<psys->totpart; i++, pa++) {
+		LOOP_PARTICLES {
 			if(pa->keys) {
 				pa->keys= NULL;
 				pa->totkey= 0;
@@ -431,6 +436,29 @@ void psys_free_children(ParticleSystem *psys)
 
 	free_child_path_cache(psys);
 }
+void psys_free_particles(ParticleSystem *psys)
+{
+	PARTICLE_P;
+
+	if(psys->particles) {
+		if(psys->part->type==PART_HAIR) {
+			LOOP_PARTICLES {
+				if(pa->hair)
+					MEM_freeN(pa->hair);
+			}
+		}
+		
+		if(psys->particles->keys)
+			MEM_freeN(psys->particles->keys);
+		
+		if(psys->particles->boid)
+			MEM_freeN(psys->particles->boid);
+
+		MEM_freeN(psys->particles);
+		psys->particles= NULL;
+		psys->totpart= 0;
+	}
+}
 /* free everything */
 void psys_free(Object *ob, ParticleSystem * psys)
 {	
@@ -440,21 +468,10 @@ void psys_free(Object *ob, ParticleSystem * psys)
 		
 		psys_free_path_cache(psys, NULL);
 
-		free_hair(psys, 1);
-
-		free_keyed_keys(psys);
+		psys_free_particles(psys);
 
 		if(psys->edit && psys->free_edit)
 			psys->free_edit(psys->edit);
-
-		if(psys->particles){
-			if(psys->particles->boid)
-				MEM_freeN(psys->particles->boid);
-
-			MEM_freeN(psys->particles);
-			psys->particles = 0;
-			psys->totpart = 0;
-		}
 
 		if(psys->child){
 			MEM_freeN(psys->child);
@@ -485,14 +502,11 @@ void psys_free(Object *ob, ParticleSystem * psys)
 			psys->part=0;
 		}
 
-		if(psys->reactevents.first)
-			BLI_freelistN(&psys->reactevents);
-
 		BKE_ptcache_free_list(&psys->ptcaches);
 		psys->pointcache = NULL;
 		
-		if(psys->targets.first)
-			BLI_freelistN(&psys->targets);
+		BLI_freelistN(&psys->targets);
+		BLI_freelistN(&psys->reactevents);
 
 		BLI_kdtree_free(psys->tree);
 
@@ -1015,11 +1029,12 @@ static void init_particle_interpolation(Object *ob, ParticleSystem *psys, Partic
 		pind->dietime = *((point->keys + point->totkey - 1)->time);
 	}
 	else if(pind->keyed) {
-		pind->kkey[0] = pa->keys;
-		pind->kkey[1] = pa->totkey > 1 ? pa->keys + 1 : NULL;
+		ParticleKey *key = pa->keys;
+		pind->kkey[0] = key;
+		pind->kkey[1] = pa->totkey > 1 ? key + 1 : NULL;
 
-		pind->birthtime = pa->keys->time;
-		pind->dietime = (pa->keys + pa->totkey - 1)->time;
+		pind->birthtime = key->time;
+		pind->dietime = (key + pa->totkey - 1)->time;
 	}
 	else if(pind->cache) {
 		get_pointcache_keys_for_time(ob, pind->cache, -1, 0.0f, NULL, NULL);
@@ -1028,17 +1043,18 @@ static void init_particle_interpolation(Object *ob, ParticleSystem *psys, Partic
 		pind->dietime = pa ? pa->dietime : pind->cache->endframe;
 	}
 	else {
-		pind->hkey[0] = pa->hair;
-		pind->hkey[1] = pa->hair + 1;
+		HairKey *key = pa->hair;
+		pind->hkey[0] = key;
+		pind->hkey[1] = key + 1;
 
-		pind->birthtime = pa->hair->time;
-		pind->dietime = (pa->hair + pa->totkey - 1)->time;
+		pind->birthtime = key->time;
+		pind->dietime = (key + pa->totkey - 1)->time;
 	}
 
-	if(pind->soft) {
-		pind->bp[0] = pind->soft->bpoint + pa->bpi;
-		pind->bp[1] = pind->soft->bpoint + pa->bpi + 1;
-	}
+	//if(pind->soft) {
+	//	pind->bp[0] = pind->soft->bpoint + pa->bpi;
+	//	pind->bp[1] = pind->soft->bpoint + pa->bpi + 1;
+	//}
 }
 static void edit_to_particle(ParticleKey *key, PTCacheEditKey *ekey)
 {
@@ -2558,6 +2574,9 @@ void psys_cache_child_paths(Scene *scene, Object *ob, ParticleSystem *psys, floa
 	ListBase threads;
 	int i, totchild, totparent, totthread;
 
+	if(psys->flag & PSYS_GLOBAL_HAIR)
+		return;
+
 	pthreads= psys_threads_create(scene, ob, psys);
 
 	if(!psys_threads_init_path(pthreads, scene, cfra, editupdate)) {
@@ -2688,7 +2707,8 @@ void psys_cache_paths(Scene *scene, Object *ob, ParticleSystem *psys, float cfra
 		}
 
 		if(!psys->totchild) {
-			pa_length = 1.0f - part->randlength * 0.5 * (1.0f + pa->r_ave[0]);
+			BLI_srandom(psys->seed + i);
+			pa_length = 1.0f - part->randlength * BLI_frand();
 			if(vg_length)
 				pa_length *= psys_particle_value_from_verts(psmd->dm,part->from,pa,vg_length);
 		}
@@ -2740,7 +2760,7 @@ void psys_cache_paths(Scene *scene, Object *ob, ParticleSystem *psys, float cfra
 			do_particle_interpolation(psys, i, pa, t, frs_sec, &pind, &result);
 
 			 /* keyed, baked and softbody are allready in global space */
-			if(!keyed && !baked && !soft) {
+			if(!keyed && !baked && !soft && !(psys->flag & PSYS_GLOBAL_HAIR)) {
 				Mat4MulVecfl(hairmat, result.co);
 			}
 
@@ -3574,6 +3594,8 @@ float psys_get_size(Object *ob, Material *ma, ParticleSystemModifierData *psmd, 
 {
 	ParticleTexture ptex;
 	float size=1.0f;
+
+	BLI_srandom(psys->seed + (pa - psys->particles) + 100);
 	
 	if(ma && part->from!=PART_FROM_PARTICLE){
 		ptex.size=size;
@@ -3592,7 +3614,7 @@ float psys_get_size(Object *ob, Material *ma, ParticleSystemModifierData *psmd, 
 		size*=psys_particle_value_from_verts(psmd->dm,part->from,pa,vg_size);
 
 	if(part->randsize!=0.0)
-		size*= 1.0f - part->randsize*pa->sizemul;
+		size*= 1.0f - part->randsize * BLI_frand();
 
 	return size*part->size;
 }
@@ -3759,13 +3781,6 @@ void psys_get_particle_on_path(Scene *scene, Object *ob, ParticleSystem *psys, i
 
 	if(p<totpart){
 		pa = psys->particles + p;
-
-		if(pa->alive==PARS_DEAD && part->flag & PART_STICKY && pa->flag & PARS_STICKY && pa->stick_ob){
-			copy_particle_key(state,&pa->state,0);
-			key_from_object(pa->stick_ob,state);
-			return;
-		}
-
 		pind.keyed = keyed;
 		pind.cache = cached ? psys->pointcache : NULL;
 		pind.soft = NULL;
@@ -3981,20 +3996,11 @@ int psys_get_particle_state(struct Scene *scene, Object *ob, ParticleSystem *psy
 			return 0; /* currently not supported */
 		else if(psys->totchild && p>=psys->totpart){
 			ChildParticle *cpa=psys->child+p-psys->totpart;
-			ParticleKey *key1, skey;
+			ParticleKey *key1;
 			float t = (cfra - pa->time + pa->loop * pa->lifetime) / pa->lifetime;
 
 			pa = psys->particles + cpa->parent;
-
-			if(pa->alive==PARS_DEAD && part->flag&PART_STICKY && pa->flag&PARS_STICKY && pa->stick_ob) {
-				key1 = &skey;
-				copy_particle_key(key1,&pa->state,0);
-				key_from_object(pa->stick_ob,key1);
-			}
-			else {
-				key1=&pa->state;
-			}
-			
+			key1=&pa->state;
 			offset_child(cpa, key1, state, part->childflat, part->childrad);
 			
 			CLAMP(t,0.0,1.0);
@@ -4049,10 +4055,6 @@ int psys_get_particle_state(struct Scene *scene, Object *ob, ParticleSystem *psy
 					/* extrapolating over big ranges is not accurate so let's just give something close to reasonable back */
 					copy_particle_key(state, &pa->state, 0);
 				}
-			}
-
-			if(pa->alive==PARS_DEAD && part->flag&PART_STICKY && pa->flag&PARS_STICKY && pa->stick_ob){
-				key_from_object(pa->stick_ob,state);
 			}
 
 			if(psys->lattice)

@@ -1743,8 +1743,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			pa_size = pa->size;
 
-			r_tilt = 1.0f + pa->r_ave[0];
-			r_length = 0.5f * (1.0f + pa->r_ave[1]);
+			BLI_srandom(psys->seed+a);
+
+			r_tilt = 2.0f*(BLI_frand() - 0.5f);
+			r_length = BLI_frand();
 
 			if(path_nbr) {
 				cache = psys->pathcache[a];

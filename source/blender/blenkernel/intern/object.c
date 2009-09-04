@@ -481,15 +481,15 @@ void unlink_object(Scene *scene, Object *ob)
 				if(tpsys->part->dup_ob==ob)
 					tpsys->part->dup_ob= NULL;
 
-				if(tpsys->part->flag&PART_STICKY) {
+				if(tpsys->part->phystype==PART_PHYS_BOIDS) {
 					ParticleData *pa;
+					BoidParticle *bpa;
 					int p;
 
 					for(p=0,pa=tpsys->particles; p<tpsys->totpart; p++,pa++) {
-						if(pa->stick_ob==ob) {
-							pa->stick_ob= 0;
-							pa->flag &= ~PARS_STICKY;
-						}
+						bpa = pa->boid;
+						if(bpa->ground == ob)
+							bpa->ground = NULL;
 					}
 				}
 				if(tpsys->part->boids) {
@@ -1082,19 +1082,35 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 {
 	ParticleSystem *psysn;
 	ParticleData *pa;
-	int a;
+	int p;
 
 	psysn= MEM_dupallocN(psys);
 	psysn->particles= MEM_dupallocN(psys->particles);
 	psysn->child= MEM_dupallocN(psys->child);
-	if(psysn->particles->keys)
-		psysn->particles->keys = MEM_dupallocN(psys->particles->keys);
 
-	for(a=0, pa=psysn->particles; a<psysn->totpart; a++, pa++) {
-		if(pa->hair)
-			pa->hair= MEM_dupallocN(pa->hair);
-		if(a)
-			pa->keys= (pa-1)->keys + (pa-1)->totkey;
+	if(psys->part->type == PART_HAIR) {
+		for(p=0, pa=psysn->particles; p<psysn->totpart; p++, pa++)
+			pa->hair = MEM_dupallocN(pa->hair);
+	}
+
+	if(psysn->particles->keys || psysn->particles->boid) {
+		ParticleKey *key = psysn->particles->keys;
+		BoidParticle *boid = psysn->particles->boid;
+
+		if(key)
+			key = MEM_dupallocN(key);
+		
+		if(boid)
+			boid = MEM_dupallocN(boid);
+		
+		for(p=0, pa=psysn->particles; p<psysn->totpart; p++, pa++) {
+			if(boid)
+				pa->boid = boid++;
+			if(key) {
+				pa->keys = key;
+				key += pa->totkey;
+			}
+		}
 	}
 
 	if(psys->soft) {
@@ -1102,14 +1118,7 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 		psysn->soft->particles = psysn;
 	}
 
-	if(psys->particles->boid) {
-		psysn->particles->boid = MEM_dupallocN(psys->particles->boid);
-		for(a=1, pa=psysn->particles+1; a<psysn->totpart; a++, pa++)
-			pa->boid = (pa-1)->boid + 1;
-	}
-
-	if(psys->targets.first)
-		BLI_duplicatelist(&psysn->targets, &psys->targets);
+	BLI_duplicatelist(&psysn->targets, &psys->targets);
 	
 	psysn->pathcache= NULL;
 	psysn->childcache= NULL;

@@ -3623,9 +3623,9 @@ static void particles_to_softbody(Scene *scene, Object *ob)
 
 	/* find first BodyPoint index for each particle */
 	if(psys->totpart > 0) {
-		psys->particles->bpi = 0;
-		for(a=1, pa=psys->particles+1; a<psys->totpart; a++, pa++)
-			pa->bpi = (pa-1)->bpi + (pa-1)->totkey;
+//		psys->particles->bpi = 0;
+//		for(a=1, pa=psys->particles+1; a<psys->totpart; a++, pa++)
+//			pa->bpi = (pa-1)->bpi + (pa-1)->totkey;
 	}
 
 	/* we always make body points */
@@ -4079,7 +4079,7 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 	if(framenr < startframe) {
 		cache->flag &= ~PTCACHE_SIMULATION_VALID;
 		cache->simframe= 0;
-		cache->last_exact= 0;
+		//cache->last_exact= 0;
 
 		return;
 	}
@@ -4141,20 +4141,29 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 		pa= sb->particles->particles;
 	}
 
+	if(framenr == startframe && cache->flag & PTCACHE_REDO_NEEDED) {
+		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+		cache->simframe= framenr;
+		cache->flag &= ~PTCACHE_REDO_NEEDED;
+		return;
+	}
+
 	/* try to read from cache */
 	cache_result = BKE_ptcache_read_cache(&pid, framenr, scene->r.frs_sec);
 
 	if(cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED) {
-		cache->flag |= PTCACHE_SIMULATION_VALID;
-		cache->simframe= framenr;
-
 		if(sb->particles==0)
 			softbody_to_object(ob, vertexCos, numVerts, sb->local);
+
+		cache->simframe= framenr;
+		cache->flag |= PTCACHE_SIMULATION_VALID;
+
+		if(cache_result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED)
+			BKE_ptcache_write_cache(&pid, framenr);
 
 		return;
 	}
 	else if(cache_result==PTCACHE_READ_OLD) {
-		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_FREE);
 		cache->flag |= PTCACHE_SIMULATION_VALID;
 	}
 	else if(ob->id.lib || (cache->flag & PTCACHE_BAKED)) {
@@ -4166,16 +4175,11 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 	}
 
 	if(framenr == startframe) {
-		if(cache->flag & PTCACHE_REDO_NEEDED) {
-			softbody_update_positions(ob, sb, vertexCos, numVerts);
-			softbody_reset(ob, sb, vertexCos, numVerts);
-			cache->flag &= ~PTCACHE_REDO_NEEDED;
-		}
 		/* first frame, no simulation to do, just set the positions */
 		softbody_update_positions(ob, sb, vertexCos, numVerts);
 
-		cache->flag |= PTCACHE_SIMULATION_VALID;
 		cache->simframe= framenr;
+		cache->flag |= PTCACHE_SIMULATION_VALID;
 
 		/* don't write cache on first frame, but on second frame write
 		 * cache for frame 1 and 2 */
@@ -4187,10 +4191,6 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 
 		softbody_update_positions(ob, sb, vertexCos, numVerts);
 
-		/* do simulation */
-		cache->flag |= PTCACHE_SIMULATION_VALID;
-		cache->simframe= framenr;
-
 		/* checking time: */
 		dtime = framedelta*timescale;
 
@@ -4198,6 +4198,10 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 
 		if(sb->particles==0)
 			softbody_to_object(ob, vertexCos, numVerts, 0);
+
+		/* do simulation */
+		cache->simframe= framenr;
+		cache->flag |= PTCACHE_SIMULATION_VALID;
 
 		BKE_ptcache_write_cache(&pid, framenr);
 	}

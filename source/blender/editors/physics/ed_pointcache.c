@@ -226,7 +226,7 @@ void PTCACHE_OT_bake(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "bake", 1, "Bake", "");
+	RNA_def_boolean(ot->srna, "bake", 0, "Bake", "");
 }
 void PTCACHE_OT_free_bake(wmOperatorType *ot)
 {

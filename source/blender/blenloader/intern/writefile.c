@@ -653,7 +653,7 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 			}
 
 			if(psys->particles->boid && psys->part->phystype == PART_PHYS_BOIDS)
-				writestruct(wd, DATA, "BoidData", psys->totpart, psys->particles->boid);
+				writestruct(wd, DATA, "BoidParticle", psys->totpart, psys->particles->boid);
 		}
 		pt = psys->targets.first;
 		for(; pt; pt=pt->next)

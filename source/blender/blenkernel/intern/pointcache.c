@@ -181,6 +181,7 @@ static int ptcache_write_particle(int index, void *psys_v, void **data)
 {
 	ParticleSystem *psys= psys_v;
 	ParticleData *pa = psys->particles + index;
+	BoidParticle *boid = (psys->part->phystype == PART_PHYS_BOIDS) ? pa->boid : NULL;
 	float times[3] = {pa->time, pa->dietime, pa->lifetime};
 
 	if(data[BPHYS_DATA_INDEX]) {
@@ -198,8 +199,8 @@ static int ptcache_write_particle(int index, void *psys_v, void **data)
 	ptcache_data_from(data, BPHYS_DATA_SIZE, &pa->size);
 	ptcache_data_from(data, BPHYS_DATA_TIMES, times);
 
-	if(pa->boid)
-		ptcache_data_from(data, BPHYS_DATA_TIMES, &pa->boid);
+	if(boid)
+		ptcache_data_from(data, BPHYS_DATA_BOIDS, &boid->data);
 
 	return 1;
 }
@@ -215,6 +216,7 @@ static void ptcache_read_particle(int index, void *psys_v, void **data, float fr
 {
 	ParticleSystem *psys= psys_v;
 	ParticleData *pa = psys->particles + index;
+	BoidParticle *boid = (psys->part->phystype == PART_PHYS_BOIDS) ? pa->boid : NULL;
 
 	if(cfra > pa->state.time)
 		memcpy(&pa->prev_state, &pa->state, sizeof(ParticleKey));
@@ -238,8 +240,8 @@ static void ptcache_read_particle(int index, void *psys_v, void **data, float fr
 		pa->lifetime = times[2];
 	}
 
-	if(pa->boid)
-		ptcache_data_to(data, BPHYS_DATA_BOIDS, 0, &pa->boid);
+	if(boid)
+		ptcache_data_to(data, BPHYS_DATA_BOIDS, 0, &boid->data);
 
 	/* determine velocity from previous location */
 	if(data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_VELOCITY]) {

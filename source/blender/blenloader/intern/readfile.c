@@ -3055,11 +3055,8 @@ static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase *particles)
 {
 	ParticleSystem *psys, *psysnext;
-	int a;
 
 	for(psys=particles->first; psys; psys=psysnext){
-		ParticleData *pa;
-		
 		psysnext= psys->next;
 		
 		psys->part = newlibadr_us(fd, id->lib, psys->part);
@@ -3070,12 +3067,6 @@ static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase 
 				pt->ob=newlibadr(fd, id->lib, pt->ob);
 
 			psys->target_ob = newlibadr(fd, id->lib, psys->target_ob);
-
-			for(a=0,pa=psys->particles; a<psys->totpart; a++,pa++){
-				pa->stick_ob=newlibadr(fd, id->lib, pa->stick_ob);
-			}
-
-
 		}
 		else {
 			/* particle modifier must be removed before particle system */

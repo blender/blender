@@ -6696,10 +6696,8 @@ static DerivedMesh * particleInstanceModifier_applyModifier(
 		if((psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) && pimd->flag & eParticleInstanceFlag_Path){
 			float ran = 0.0f;
 			if(pimd->random_position != 0.0f) {
-				/* just use some static collection of random numbers */
-				/* TODO: use something else that's unique to each instanced object */
-				pa = psys->particles + (i/totvert)%totpart;
-				ran = pimd->random_position * 0.5 * (1.0f + pa->r_ave[0]);
+				BLI_srandom(psys->seed + (i/totvert)%totpart);
+				ran = pimd->random_position * BLI_frand();
 			}
 
 			if(pimd->flag & eParticleInstanceFlag_KeepShape) {

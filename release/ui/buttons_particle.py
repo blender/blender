@@ -396,7 +396,6 @@ class PARTICLE_PT_physics(ParticleButtonsPanel):
 		if part.physics_type=='NEWTON':
 			sub.itemR(part, "size_deflect")
 			sub.itemR(part, "die_on_collision")
-			sub.itemR(part, "sticky")
 		elif part.physics_type=='KEYED' or part.physics_type=='BOIDS':
 			if part.physics_type=='BOIDS':
 				layout.itemL(text="Relations:")

@@ -643,12 +643,6 @@ static void rna_def_particle(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "ParticleData");
 	RNA_def_struct_ui_text(srna, "Particle", "Particle in a particle system.");
 
-	prop= RNA_def_property(srna, "stick_object", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "stick_ob");
-	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Stick Object", "Object that particle sticks to when dead");
-
 	/* Particle State & Previous State */
 	prop= RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "state.co");
@@ -693,24 +687,6 @@ static void rna_def_particle(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "keys", "totkey");
 	RNA_def_property_struct_type(prop, "ParticleKey");
 	RNA_def_property_ui_text(prop, "Keyed States", "");
-
-	/* Random variables */
-
-	prop= RNA_def_property(srna, "random_rotation", PROP_FLOAT, PROP_QUATERNION);
-	RNA_def_property_float_sdna(prop, NULL, "r_rot");
-//	RNA_def_property_range(prop, lowerLimitf, upperLimitf);
-	RNA_def_property_ui_text(prop, "Random Rotation", "");
-
-	prop= RNA_def_property(srna, "random_a_velocity", PROP_FLOAT, PROP_VELOCITY);
-	RNA_def_property_float_sdna(prop, NULL, "r_ave");
-//	RNA_def_property_range(prop, lowerLimitf, upperLimitf);
-	RNA_def_property_ui_text(prop, "Random Angular Velocity", "");
-
-	prop= RNA_def_property(srna, "random_velocity", PROP_FLOAT, PROP_VELOCITY);
-	RNA_def_property_float_sdna(prop, NULL, "r_ve");
-//	RNA_def_property_range(prop, lowerLimitf, upperLimitf);
-	RNA_def_property_ui_text(prop, "Random Velocity", "");
-
 //
 //	float fuv[4], foffset;	/* coordinates on face/edge number "num" and depth along*/
 //							/* face normal for volume emission						*/
@@ -733,18 +709,12 @@ static void rna_def_particle(BlenderRNA *brna)
 //	RNA_def_property_range(prop, lowerLimitf, upperLimitf);
 	RNA_def_property_ui_text(prop, "Size", "");
 
-	prop= RNA_def_property(srna, "size_multiplier", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "sizemul");
-//	RNA_def_property_range(prop, lowerLimitf, upperLimitf);
-	RNA_def_property_ui_text(prop, "Size Multiplier", "");
-
 //
 //	int num;				/* index to vert/edge/face */
 //	int num_dmcache;		/* index to derived mesh data (face) to avoid slow lookups */
 //	int pad;
 //
 //	int totkey;
-//	int bpi;				/* softbody body point start index */
 
 	/* flag */
 	prop= RNA_def_property(srna, "unexist", PROP_BOOLEAN, PROP_NONE);
@@ -754,10 +724,6 @@ static void rna_def_particle(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "no_disp", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PARS_NO_DISP);
 	RNA_def_property_ui_text(prop, "no_disp", "");
-
-	prop= RNA_def_property(srna, "sticky", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PARS_STICKY);
-	RNA_def_property_ui_text(prop, "sticky", "");
 
 	prop= RNA_def_property(srna, "rekey", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PARS_REKEY);
@@ -942,13 +908,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
 	RNA_def_property_ui_text(prop, "Even Distribution", "Use even distribution from faces based on face areas or edge lengths.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
-
-	prop= RNA_def_property(srna, "sticky", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_STICKY);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
-	RNA_def_property_ui_text(prop, "Sticky", "Particles stick to collided objects if they die in the collision.");
-	RNA_def_property_update(prop, 0, "rna_Particle_reset");
-
+ 
 	prop= RNA_def_property(srna, "die_on_collision", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_DIE_ON_COL);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);

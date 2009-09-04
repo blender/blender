@@ -102,6 +102,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_property.h"
 #include "BKE_report.h"
 #include "BKE_sca.h"
@@ -3883,6 +3884,8 @@ void ED_object_exit_editmode(bContext *C, int flag)
 		/* for example; displist make is different in editmode */
 		scene->obedit= NULL; // XXX for context
 		
+		BKE_ptcache_object_reset(scene, obedit, PTCACHE_RESET_DEPSGRAPH);
+
 		/* also flush ob recalc, doesn't take much overhead, but used for particles */
 		DAG_id_flush_update(&obedit->id, OB_RECALC_OB|OB_RECALC_DATA);
 	
