@@ -239,7 +239,7 @@ KS_Path *BKE_keyingset_find_destination (KeyingSet *ks, ID *id, const char group
 		if ((ksp->rna_path==0) || strcmp(rna_path, ksp->rna_path))
 			eq_path= 0;
 			
-		/* index */
+		/* index - need to compare whole-array setting too... */
 		if (ksp->array_index != array_index)
 			eq_index= 0;
 			

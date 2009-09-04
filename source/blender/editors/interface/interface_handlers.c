@@ -3265,23 +3265,34 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			ui_but_copy_paste(C, but, data, (event->type == CKEY)? 'c': 'v');
 			return WM_UI_HANDLER_BREAK;
 		}
-		/* handle keyframeing */
+		/* handle keyframing */
 		else if(event->type == IKEY && event->val == KM_PRESS) {
 			if(event->alt)
 				ui_but_anim_delete_keyframe(C);
 			else
 				ui_but_anim_insert_keyframe(C);
-
+			
 			ED_region_tag_redraw(CTX_wm_region(C));
-
+			
 			return WM_UI_HANDLER_BREAK;
 		}
-		/* handle driver adding */
+		/* handle drivers */
 		else if(event->type == DKEY && event->val == KM_PRESS) {
 			if(event->alt)
 				ui_but_anim_remove_driver(C);
 			else
 				ui_but_anim_add_driver(C);
+				
+			ED_region_tag_redraw(CTX_wm_region(C));
+			
+			return WM_UI_HANDLER_BREAK;
+		}
+		/* handle keyingsets */
+		else if(event->type == KKEY && event->val == KM_PRESS) {
+			if(event->alt)
+				ui_but_anim_remove_keyingset(C);
+			else
+				ui_but_anim_remove_keyingset(C);
 				
 			ED_region_tag_redraw(CTX_wm_region(C));
 			

@@ -281,7 +281,7 @@ void ANIM_OT_add_driver_button (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Insert a keyframe for all element of the array.");
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Create drivers for all elements of the array.");
 }
 
 /* Remove Driver Button Operator ------------------------ */
@@ -344,7 +344,7 @@ void ANIM_OT_remove_driver_button (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete keyfames from all elements of the array.");
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete drivers for all elements of the array.");
 }
 
 /* ************************************************** */

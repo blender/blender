@@ -381,13 +381,14 @@ void ANIM_OT_time_toggle(wmOperatorType *ot)
 
 void ED_operatortypes_anim(void)
 {
+	/* Animation Editors only -------------------------- */
 	WM_operatortype_append(ANIM_OT_change_frame);
 	WM_operatortype_append(ANIM_OT_time_toggle);
 	
 	WM_operatortype_append(ANIM_OT_previewrange_set);
 	WM_operatortype_append(ANIM_OT_previewrange_clear);
 	
-		// XXX this is used all over... maybe for screen instead?
+	/* Entire UI --------------------------------------- */
 	WM_operatortype_append(ANIM_OT_insert_keyframe);
 	WM_operatortype_append(ANIM_OT_delete_keyframe);
 	WM_operatortype_append(ANIM_OT_insert_keyframe_menu);
@@ -398,6 +399,9 @@ void ED_operatortypes_anim(void)
 	
 	WM_operatortype_append(ANIM_OT_add_driver_button);
 	WM_operatortype_append(ANIM_OT_remove_driver_button);
+	
+	WM_operatortype_append(ANIM_OT_add_keyingset_button);
+	WM_operatortype_append(ANIM_OT_remove_keyingset_button);
 }
 
 void ED_keymap_anim(wmWindowManager *wm)

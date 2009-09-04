@@ -155,6 +155,12 @@ struct KeyingSet *ANIM_builtin_keyingset_get_named(struct KeyingSet *prevKS, cha
 /* Initialise builtin KeyingSets on startup */
 void init_builtin_keyingsets(void);
 
+/* -------- */
+
+/* KeyingSet managment operators for UI buttons. */
+void ANIM_OT_add_keyingset_button(struct wmOperatorType *ot);
+void ANIM_OT_remove_keyingset_button(struct wmOperatorType *ot);
+
 /* ************ Drivers ********************** */
 
 /* Main Driver Management API calls:

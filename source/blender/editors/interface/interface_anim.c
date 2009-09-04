@@ -209,6 +209,18 @@ void ui_but_anim_remove_driver(bContext *C)
 	WM_operator_name_call(C, "ANIM_OT_remove_driver_button", WM_OP_INVOKE_DEFAULT, NULL);
 }
 
+void ui_but_anim_add_keyingset(bContext *C)
+{
+	/* this operator calls uiAnimContextProperty above */
+	WM_operator_name_call(C, "ANIM_OT_add_keyingset_button", WM_OP_INVOKE_DEFAULT, NULL);
+}
+
+void ui_but_anim_remove_keyingset(bContext *C)
+{
+	/* this operator calls uiAnimContextProperty above */
+	WM_operator_name_call(C, "ANIM_OT_remove_keyingset_button", WM_OP_INVOKE_DEFAULT, NULL);
+}
+
 void ui_but_anim_menu(bContext *C, uiBut *but)
 {
 	uiPopupMenu *pup;
@@ -263,6 +275,20 @@ void ui_but_anim_menu(bContext *C, uiBut *but)
 			}
 			else
 				uiItemBooleanO(layout, "Add Driver", 0, "ANIM_OT_add_driver_button", "all", 0);
+		}
+		
+		if(RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
+			uiItemS(layout);
+			
+			if(length) {
+				uiItemBooleanO(layout, "Add All to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 1);
+				uiItemBooleanO(layout, "Add Single to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 0);
+				uiItemBooleanO(layout, "Remove from Keying Set", 0, "ANIM_OT_remove_keyingset_button", "all", 0);
+			}
+			else {
+				uiItemBooleanO(layout, "Add to Keying Set", 0, "ANIM_OT_add_keyingset_button", "all", 0);
+				uiItemBooleanO(layout, "Remove from Keying Set", 0, "ANIM_OT_remove_keyingset_button", "all", 0);
+			}
 		}
 
 		uiPupMenuEnd(C, pup);
