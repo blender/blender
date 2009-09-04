@@ -228,7 +228,7 @@ static int PYTHON_OT_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return PYTHON_OT_generic(PYOP_INVOKE, C, op, event);	
 }
 
-static int PYTHON_OT_exec(bContext *C, wmOperator *op)
+static int PYTHON_OT_execute(bContext *C, wmOperator *op)
 {
 	return PYTHON_OT_generic(PYOP_EXEC, C, op, NULL);
 }
@@ -268,7 +268,7 @@ void PYTHON_OT_wrapper(wmOperatorType *ot, void *userdata)
 	if (PyObject_HasAttrString(py_class, "invoke"))
 		ot->invoke= PYTHON_OT_invoke;
 	if (PyObject_HasAttrString(py_class, "execute"))
-		ot->exec= PYTHON_OT_exec;
+		ot->exec= PYTHON_OT_execute;
 	if (PyObject_HasAttrString(py_class, "poll"))
 		ot->poll= PYTHON_OT_poll;
 	

@@ -330,7 +330,7 @@ void file_operatortypes(void)
 	WM_operatortype_append(FILE_OT_select_bookmark);
 	WM_operatortype_append(FILE_OT_loadimages);
 	WM_operatortype_append(FILE_OT_highlight);
-	WM_operatortype_append(FILE_OT_exec);
+	WM_operatortype_append(FILE_OT_execute);
 	WM_operatortype_append(FILE_OT_cancel);
 	WM_operatortype_append(FILE_OT_parent);
 	WM_operatortype_append(FILE_OT_previous);

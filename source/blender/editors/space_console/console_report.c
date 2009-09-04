@@ -97,7 +97,7 @@ static int report_replay_exec(bContext *C, wmOperator *op)
 	for(report=reports->list.last; report; report=report->prev) {
 		if((report->type & report_mask) && (report->type & RPT_OPERATOR_ALL) && (report->flag & SELECT)) {
 			console_history_add_str(C, report->message, 0);
-			WM_operator_name_call(C, "CONSOLE_OT_exec", WM_OP_EXEC_DEFAULT, NULL);
+			WM_operator_name_call(C, "CONSOLE_OT_execute", WM_OP_EXEC_DEFAULT, NULL);
 
 			ED_area_tag_redraw(CTX_wm_area(C));
 		}

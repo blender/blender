@@ -110,7 +110,7 @@ class CONSOLE_OT_exec(bpy.types.Operator):
 	'''
 	Operator documentatuon text, will be used for the operator tooltip and python docs.
 	'''
-	__idname__ = "console.exec"
+	__idname__ = "console.execute"
 	__label__ = "Console Execute"
 	__register__ = False
 	

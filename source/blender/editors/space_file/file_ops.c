@@ -566,11 +566,11 @@ int file_exec(bContext *C, wmOperator *unused)
 	return OPERATOR_FINISHED;
 }
 
-void FILE_OT_exec(struct wmOperatorType *ot)
+void FILE_OT_execute(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Execute File Window";
-	ot->idname= "FILE_OT_exec";
+	ot->idname= "FILE_OT_execute";
 	
 	/* api callbacks */
 	ot->exec= file_exec;

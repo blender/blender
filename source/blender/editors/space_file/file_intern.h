@@ -59,7 +59,7 @@ void FILE_OT_add_bookmark(struct wmOperatorType *ot);
 void FILE_OT_delete_bookmark(struct wmOperatorType *ot);
 void FILE_OT_hidedot(struct wmOperatorType *ot);
 void FILE_OT_loadimages(struct wmOperatorType *ot);
-void FILE_OT_exec(struct wmOperatorType *ot);
+void FILE_OT_execute(struct wmOperatorType *ot);
 void FILE_OT_cancel(struct wmOperatorType *ot);
 void FILE_OT_parent(struct wmOperatorType *ot);
 void FILE_OT_directory_new(struct wmOperatorType *ot);

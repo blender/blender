@@ -434,10 +434,8 @@ static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *ptr, int *f
 	Object *ob;
 	int totitem= 0, a;
 	
-	if(!C) /* needed for docs */
+	if(!C || !(ob= CTX_data_active_object(C))) /* needed for docs */
 		return modifier_type_items;
-	
-	ob= CTX_data_active_object(C);
 
 	for(a=0; modifier_type_items[a].identifier; a++) {
 		md_item= &modifier_type_items[a];
