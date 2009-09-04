@@ -29,8 +29,8 @@ FILE(GLOB SRC stubs.c)
 SET(INC 
   .
   .. 
-  ../../source/blender/makesdna
-  ../../source/blender/makesrna  
+  ../../../source/blender/makesdna
+  ../../../source/blender/makesrna  
 )
 
 IF(WITH_INTERNATIONAL)
