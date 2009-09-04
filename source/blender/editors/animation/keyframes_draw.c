@@ -98,9 +98,7 @@ static ActKeyColumn *bezt_to_new_actkeycolumn(BezTriple *bezt)
 	/* store settings based on state of BezTriple */
 	ak->cfra= bezt->vec[1][0];
 	ak->sel= BEZSELECTED(bezt) ? SELECT : 0;
-	
-	// TODO: handle type = bezt->h1 or bezt->h2
-	ak->handle_type= 0; 
+	ak->key_type= BEZKEYTYPE(bezt); 
 	
 	/* set 'modified', since this is used to identify long keyframes */
 	ak->modified = 1;
@@ -133,6 +131,10 @@ static void add_bezt_to_keycolumns_list(DLRBT_Tree *keys, BezTriple *bezt)
 				/* set selection status and 'touched' status */
 				if (BEZSELECTED(bezt)) ak->sel = SELECT;
 				ak->modified += 1;
+				
+				/* for keyframe type, 'proper' keyframes have priority over breakdowns (and other types for now) */
+				if (BEZKEYTYPE(bezt) == BEZT_KEYTYPE_KEYFRAME)
+					ak->key_type= BEZT_KEYTYPE_KEYFRAME;
 				
 				/* done... no need to insert */
 				return;
@@ -340,7 +342,7 @@ static const float _unit_diamond_shape[4][2] = {
 }; 
 
 /* draw a simple diamond shape with OpenGL */
-void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel, short mode)
+void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel, short key_type, short mode)
 {
 	static GLuint displist1=0;
 	static GLuint displist2=0;
@@ -371,6 +373,11 @@ void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel
 		glEndList();
 	}
 	
+	/* tweak size of keyframe shape according to type of keyframe 
+	 * 	- 'proper' keyframes have key_type=0, so get drawn at full size
+	 */
+	hsize -= 0.5f*key_type;
+	
 	/* adjust view transform before starting */
 	glTranslatef(x, y, 0.0f);
 	glScalef(1.0f/xscale*hsize, hsize, 1.0f);
@@ -381,8 +388,22 @@ void draw_keyframe_shape (float x, float y, float xscale, float hsize, short sel
 	/* draw! */
 	if ELEM(mode, KEYFRAME_SHAPE_INSIDE, KEYFRAME_SHAPE_BOTH) {
 		/* interior - hardcoded colors (for selected and unselected only) */
-		if (sel) UI_ThemeColorShade(TH_STRIP_SELECT, 50);
-		else glColor3ub(0xE9, 0xE9, 0xE9);
+		switch (key_type) {
+			case BEZT_KEYTYPE_BREAKDOWN: /* bluish frames for now */
+			{
+				if (sel) glColor3f(0.33f, 0.75f, 0.93f);
+				else glColor3f(0.70f, 0.86f, 0.91f);
+			}
+				break;
+				
+			case BEZT_KEYTYPE_KEYFRAME: /* traditional yellowish frames for now */
+			default:
+			{
+				if (sel) UI_ThemeColorShade(TH_STRIP_SELECT, 50);
+				else glColor3f(0.91f, 0.91f, 0.91f);
+			}
+				break;
+		}
 		
 		glCallList(displist2);
 	}
@@ -454,7 +475,7 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 			/* draw using OpenGL - uglier but faster */
 			// NOTE1: a previous version of this didn't work nice for some intel cards
 			// NOTE2: if we wanted to go back to icons, these are  icon = (ak->sel & SELECT) ? ICON_SPACE2 : ICON_SPACE3;
-			draw_keyframe_shape(ak->cfra, ypos, xscale, 5.0f, (ak->sel & SELECT), KEYFRAME_SHAPE_BOTH);
+			draw_keyframe_shape(ak->cfra, ypos, xscale, 5.0f, (ak->sel & SELECT), ak->key_type, KEYFRAME_SHAPE_BOTH);
 		}	
 	}
 	
@@ -695,7 +716,7 @@ void gpl_to_keylist(bDopeSheet *ads, bGPDlayer *gpl, DLRBT_Tree *keys, DLRBT_Tre
 			
 			ak->cfra= (float)gpf->framenum;
 			ak->modified = 1;
-			ak->handle_type= 0; 
+			ak->key_type= 0; 
 			
 			if (gpf->flag & GP_FRAME_SELECT)
 				ak->sel = SELECT;

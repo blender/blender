@@ -1038,6 +1038,77 @@ void ACT_OT_handle_type (wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", beztriple_handle_type_items, 0, "Type", "");
 }
 
+/* ******************** Set Keyframe-Type Operator *********************** */
+
+/* this function is responsible for setting interpolation mode for keyframes */
+static void setkeytype_action_keys(bAnimContext *ac, short mode) 
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	BeztEditFunc set_cb= ANIM_editkeyframes_keytype(mode);
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* loop through setting BezTriple interpolation
+	 * Note: we do not supply BeztEditData to the looper yet. Currently that's not necessary here...
+	 */
+	for (ale= anim_data.first; ale; ale= ale->next)
+		ANIM_fcurve_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, NULL);
+	
+	/* cleanup */
+	BLI_freelistN(&anim_data);
+}
+
+/* ------------------- */
+
+static int actkeys_keytype_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	short mode;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	if (ac.datatype == ANIMCONT_GPENCIL) 
+		return OPERATOR_PASS_THROUGH;
+		
+	/* get handle setting mode */
+	mode= RNA_enum_get(op->ptr, "type");
+	
+	/* set handle type */
+	setkeytype_action_keys(&ac, mode);
+	
+	/* validate keyframes after editing */
+	ANIM_editkeyframes_refresh(&ac);
+	
+	/* set notifier that keyframe properties have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+ 
+void ACT_OT_keyframe_type (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Keyframe Type";
+	ot->idname= "ACT_OT_keyframe_type";
+	ot->description= "Set type of keyframe for the seleced keyframes.";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= actkeys_keytype_exec;
+	ot->poll= ED_operator_action_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* id-props */
+	RNA_def_enum(ot->srna, "type", beztriple_keyframe_type_items, 0, "Type", "");
+}
+
 /* ************************************************************************** */
 /* TRANSFORM STUFF */
 

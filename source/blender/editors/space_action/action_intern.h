@@ -89,6 +89,7 @@ void ACT_OT_delete(struct wmOperatorType *ot);
 void ACT_OT_clean(struct wmOperatorType *ot);
 void ACT_OT_sample(struct wmOperatorType *ot);
 
+void ACT_OT_keyframe_type(struct wmOperatorType *ot);
 void ACT_OT_handle_type(struct wmOperatorType *ot);
 void ACT_OT_interpolation_type(struct wmOperatorType *ot);
 void ACT_OT_extrapolation_type(struct wmOperatorType *ot);

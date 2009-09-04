@@ -655,7 +655,7 @@ static short set_bezt_bezier(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
-/* Set the interpolation type of the selected BezTriples in each IPO curve to the specified one */
+/* Set the interpolation type of the selected BezTriples in each F-Curve to the specified one */
 // ANIM_editkeyframes_ipocurve_ipotype() !
 BeztEditFunc ANIM_editkeyframes_ipo(short code)
 {
@@ -666,6 +666,35 @@ BeztEditFunc ANIM_editkeyframes_ipo(short code)
 			return set_bezt_linear;
 		default: /* bezier */
 			return set_bezt_bezier;
+	}
+}
+
+/* ------- */
+
+static short set_keytype_keyframe(BeztEditData *bed, BezTriple *bezt) 
+{
+	if (bezt->f2 & SELECT) 
+		BEZKEYTYPE(bezt)= BEZT_KEYTYPE_KEYFRAME;
+	return 0;
+}
+
+static short set_keytype_breakdown(BeztEditData *bed, BezTriple *bezt) 
+{
+	if (bezt->f2 & SELECT) 
+		BEZKEYTYPE(bezt)= BEZT_KEYTYPE_BREAKDOWN;
+	return 0;
+}
+
+/* Set the interpolation type of the selected BezTriples in each F-Curve to the specified one */
+BeztEditFunc ANIM_editkeyframes_keytype(short code)
+{
+	switch (code) {
+		case BEZT_KEYTYPE_BREAKDOWN: /* breakdown */
+			return set_keytype_breakdown;
+			
+		case BEZT_KEYTYPE_KEYFRAME: /* proper keyframe */	
+		default:
+			return set_keytype_keyframe;
 	}
 }
 
