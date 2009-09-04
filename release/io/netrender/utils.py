@@ -1,5 +1,6 @@
 import bpy
 import sys, os
+import re
 import http, http.client, http.server, urllib
 import subprocess, shutil, time, hashlib
 
@@ -66,7 +67,22 @@ def clientSendJob(conn, scene, anim = False, chunks = 5):
 			
 		job.files.append(lib_path)
 	
-	print(job.files)
+	root, ext = os.path.splitext(name)
+	cache_path = path + os.sep + "blendcache_" + root + os.sep # need an API call for that
+	
+	print("cache:", cache_path)
+	
+	if os.path.exists(cache_path):
+		pattern = re.compile("[a-zA-Z0-9]+_([0-9]+)_[0-9]+\.bphys")
+		for cache_name in sorted(os.listdir(cache_path)):
+			match = pattern.match(cache_name)
+			
+			if match:
+				print("Frame:", int(match.groups()[0]), cache_name)
+			
+			job.files.append(cache_path + cache_name)
+		
+	#print(job.files)
 	
 	job.name = job_name
 	
