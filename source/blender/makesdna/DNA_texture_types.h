@@ -515,7 +515,10 @@ typedef struct TexMapping {
 /* interpolation */
 #define TEX_VD_NEARESTNEIGHBOR		0
 #define TEX_VD_LINEAR				1
-#define TEX_VD_TRICUBIC				2
+#define TEX_VD_QUADRATIC        2
+#define TEX_VD_TRICUBIC_CATROM  3
+#define TEX_VD_TRICUBIC_BSPLINE 4
+#define TEX_VD_TRICUBIC_SLOW    5
 
 /* file format */
 #define TEX_VD_BLENDERVOXEL		0

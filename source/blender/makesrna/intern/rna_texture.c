@@ -1496,10 +1496,12 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	
 	static EnumPropertyItem interpolation_type_items[] = {
 		{TEX_VD_NEARESTNEIGHBOR, "NEREASTNEIGHBOR", 0, "Nearest Neighbor", "No interpolation, fast but blocky and low quality."},
-		{TEX_VD_LINEAR, "TRILINEAR", 0, "Trilinear", "Good smoothness and speed"},
-		{TEX_VD_TRICUBIC, "TRICUBIC", 0, "Tricubic", "High quality interpolation, but slow"},
+		{TEX_VD_LINEAR, "TRILINEAR", 0, "Linear", "Good smoothness and speed"},
+		{TEX_VD_QUADRATIC, "QUADRATIC", 0, "Quadratic", "Mid-range quality and speed"},
+		{TEX_VD_TRICUBIC_CATROM, "TRICUBIC_CATROM", 0, "Cubic Catmull-Rom", "High quality interpolation, but slower"},
+		{TEX_VD_TRICUBIC_BSPLINE, "TRICUBIC_BSPLINE", 0, "Cubic B-Spline", "Smoothed high quality interpolation, but slower"},
 		{0, NULL, 0, NULL, NULL}};
-	
+
 	static EnumPropertyItem file_format_items[] = {
 		{TEX_VD_BLENDERVOXEL, "BLENDER_VOXEL", 0, "Blender Voxel", "Default binary voxel file format"},
 		{TEX_VD_RAW_8BIT, "RAW_8BIT", 0, "8 bit RAW", "8 bit greyscale binary data"},

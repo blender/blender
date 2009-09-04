@@ -57,243 +57,142 @@ float voxel_sample_nearest(float *data, int *res, float *co)
 	return D(data, res, xi, yi, zi);
 }
 
-
-/* *** trilinear *** */
-/* input coordinates must be in bounding box 0.0 - 1.0 */
-
-static inline float lerp(float t, float v1, float v2) {
-	return (1.f - t) * v1 + t * v2;
+// returns highest integer <= x as integer (slightly faster than floor())
+inline int FLOORI(float x)
+{
+	const int r = (int)x;
+	return ((x >= 0.f) || (float)r == x) ? r : (r - 1);
 }
 
-/* trilinear interpolation - taken partly from pbrt's implementation: http://www.pbrt.org */
+// clamp function, cannot use the CLAMPIS macro, it sometimes returns unwanted results apparently related to gcc optimization flag -fstrict-overflow which is enabled at -O2
+// this causes the test (x + 2) < 0 with int x == 2147483647 to return false (x being an integer, x + 2 should wrap around to -2147483647 so the test < 0 should return true, which it doesn't)
+inline int _clamp(int a, int b, int c)
+{
+	return (a < b) ? b : ((a > c) ? c : a);
+}
+
 float voxel_sample_trilinear(float *data, int *res, float *co)
 {
-	float voxx, voxy, voxz;
-	int vx, vy, vz;
-	float dx, dy, dz;
-	float d00, d10, d01, d11, d0, d1, d_final;
+	if (data) {
 	
-	if (!data) return 0.f;
+		const float xf = co[0] * res[0] - 0.5f;
+		const float yf = co[1] * res[1] - 0.5f;
+		const float zf = co[2] * res[2] - 0.5f;
+		
+		const int x = FLOORI(xf), y = FLOORI(yf), z = FLOORI(zf);
 	
-	voxx = co[0] * res[0] - 0.5f;
-	voxy = co[1] * res[1] - 0.5f;
-	voxz = co[2] * res[2] - 0.5f;
+		const int xc[2] = {_clamp(x, 0, res[0] - 1), _clamp(x + 1, 0, res[0] - 1)};
+		const int yc[2] = {res[0] * _clamp(y, 0, res[1] - 1), res[0] * _clamp(y + 1, 0, res[1] - 1)};
+		const int zc[2] = {res[0] * res[1] * _clamp(z, 0, res[2] - 1), res[0] * res[1] * _clamp(z + 1, 0, res[2] - 1)};
 	
-	vx = (int)voxx; vy = (int)voxy; vz = (int)voxz;
+		const float dx = xf - (float)x;
+		const float dy = yf - (float)y;
+		const float dz = zf - (float)z;
+		
+		const float u[2] = {1.f - dx, dx};
+		const float v[2] = {1.f - dy, dy};
+		const float w[2] = {1.f - dz, dz};
 	
-	dx = voxx - vx; dy = voxy - vy; dz = voxz - vz;
+		return w[0] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[0]] + u[1] * data[xc[1] + yc[0] + zc[0]] )
+		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[0]] + u[1] * data[xc[1] + yc[1] + zc[0]] ) )
+		     + w[1] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[1]] + u[1] * data[xc[1] + yc[0] + zc[1]] )
+		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[1]] + u[1] * data[xc[1] + yc[1] + zc[1]] ) );
 	
-	d00 = lerp(dx, D(data, res, vx, vy, vz), 		D(data, res, vx+1, vy, vz));
-	d10 = lerp(dx, D(data, res, vx, vy+1, vz), 		D(data, res, vx+1, vy+1, vz));
-	d01 = lerp(dx, D(data, res, vx, vy, vz+1), 		D(data, res, vx+1, vy, vz+1));
-	d11 = lerp(dx, D(data, res, vx, vy+1, vz+1), 	D(data, res, vx+1, vy+1, vz+1));
-	d0 = lerp(dy, d00, d10);
-	d1 = lerp(dy, d01, d11);
-	d_final = lerp(dz, d0, d1);
-	
-	return d_final;
-}
-
-/* *** tricubic *** */
-
-int C[64][64] = {
-{ 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{-3, 3, 0, 0, 0, 0, 0, 0,-2,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 2,-2, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{-3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0,-3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 9,-9,-9, 9, 0, 0, 0, 0, 6, 3,-6,-3, 0, 0, 0, 0, 6,-6, 3,-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{-6, 6, 6,-6, 0, 0, 0, 0,-3,-3, 3, 3, 0, 0, 0, 0,-4, 4,-2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2,-2,-1,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 2, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{-6, 6, 6,-6, 0, 0, 0, 0,-4,-2, 4, 2, 0, 0, 0, 0,-3, 3,-3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2,-1,-2,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 4,-4,-4, 4, 0, 0, 0, 0, 2, 2,-2,-2, 0, 0, 0, 0, 2,-2, 2,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 3, 0, 0, 0, 0, 0, 0,-2,-1, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,-2, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0,-1, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9,-9,-9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 3,-6,-3, 0, 0, 0, 0, 6,-6, 3,-3, 0, 0, 0, 0, 4, 2, 2, 1, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-6, 6, 6,-6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3,-3, 3, 3, 0, 0, 0, 0,-4, 4,-2, 2, 0, 0, 0, 0,-2,-2,-1,-1, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-6, 6, 6,-6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-4,-2, 4, 2, 0, 0, 0, 0,-3, 3,-3, 3, 0, 0, 0, 0,-2,-1,-2,-1, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4,-4,-4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2,-2,-2, 0, 0, 0, 0, 2,-2, 2,-2, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0},
-{-3, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0,-3, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 9,-9, 0, 0,-9, 9, 0, 0, 6, 3, 0, 0,-6,-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6,-6, 0, 0, 3,-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 2, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{-6, 6, 0, 0, 6,-6, 0, 0,-3,-3, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-4, 4, 0, 0,-2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2,-2, 0, 0,-1,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0, 0, 0,-1, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9,-9, 0, 0,-9, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 3, 0, 0,-6,-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6,-6, 0, 0, 3,-3, 0, 0, 4, 2, 0, 0, 2, 1, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-6, 6, 0, 0, 6,-6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3,-3, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-4, 4, 0, 0,-2, 2, 0, 0,-2,-2, 0, 0,-1,-1, 0, 0},
-{ 9, 0,-9, 0,-9, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 3, 0,-6, 0,-3, 0, 6, 0,-6, 0, 3, 0,-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 2, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 9, 0,-9, 0,-9, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 0, 3, 0,-6, 0,-3, 0, 6, 0,-6, 0, 3, 0,-3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 2, 0, 2, 0, 1, 0},
-{-27,27,27,-27,27,-27,-27,27,-18,-9,18, 9,18, 9,-18,-9,-18,18,-9, 9,18,-18, 9,-9,-18,18,18,-18,-9, 9, 9,-9,-12,-6,-6,-3,12, 6, 6, 3,-12,-6,12, 6,-6,-3, 6, 3,-12,12,-6, 6,-6, 6,-3, 3,-8,-4,-4,-2,-4,-2,-2,-1},
-{18,-18,-18,18,-18,18,18,-18, 9, 9,-9,-9,-9,-9, 9, 9,12,-12, 6,-6,-12,12,-6, 6,12,-12,-12,12, 6,-6,-6, 6, 6, 6, 3, 3,-6,-6,-3,-3, 6, 6,-6,-6, 3, 3,-3,-3, 8,-8, 4,-4, 4,-4, 2,-2, 4, 4, 2, 2, 2, 2, 1, 1},
-{-6, 0, 6, 0, 6, 0,-6, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 0,-3, 0, 3, 0, 3, 0,-4, 0, 4, 0,-2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0,-2, 0,-1, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0,-6, 0, 6, 0, 6, 0,-6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 0,-3, 0, 3, 0, 3, 0,-4, 0, 4, 0,-2, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0,-2, 0,-1, 0,-1, 0},
-{18,-18,-18,18,-18,18,18,-18,12, 6,-12,-6,-12,-6,12, 6, 9,-9, 9,-9,-9, 9,-9, 9,12,-12,-12,12, 6,-6,-6, 6, 6, 3, 6, 3,-6,-3,-6,-3, 8, 4,-8,-4, 4, 2,-4,-2, 6,-6, 6,-6, 3,-3, 3,-3, 4, 2, 4, 2, 2, 1, 2, 1},
-{-12,12,12,-12,12,-12,-12,12,-6,-6, 6, 6, 6, 6,-6,-6,-6, 6,-6, 6, 6,-6, 6,-6,-8, 8, 8,-8,-4, 4, 4,-4,-3,-3,-3,-3, 3, 3, 3, 3,-4,-4, 4, 4,-2,-2, 2, 2,-4, 4,-4, 4,-2, 2,-2, 2,-2,-2,-2,-2,-1,-1,-1,-1},
-{ 2, 0, 0, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{-6, 6, 0, 0, 6,-6, 0, 0,-4,-2, 0, 0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 3, 0, 0,-3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2,-1, 0, 0,-2,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 4,-4, 0, 0,-4, 4, 0, 0, 2, 2, 0, 0,-2,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,-2, 0, 0, 2,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-6, 6, 0, 0, 6,-6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-4,-2, 0, 0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-3, 3, 0, 0,-3, 3, 0, 0,-2,-1, 0, 0,-2,-1, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4,-4, 0, 0,-4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0,-2,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,-2, 0, 0, 2,-2, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0},
-{-6, 0, 6, 0, 6, 0,-6, 0, 0, 0, 0, 0, 0, 0, 0, 0,-4, 0,-2, 0, 4, 0, 2, 0,-3, 0, 3, 0,-3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0,-1, 0,-2, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0,-6, 0, 6, 0, 6, 0,-6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,-4, 0,-2, 0, 4, 0, 2, 0,-3, 0, 3, 0,-3, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0,-2, 0,-1, 0,-2, 0,-1, 0},
-{18,-18,-18,18,-18,18,18,-18,12, 6,-12,-6,-12,-6,12, 6,12,-12, 6,-6,-12,12,-6, 6, 9,-9,-9, 9, 9,-9,-9, 9, 8, 4, 4, 2,-8,-4,-4,-2, 6, 3,-6,-3, 6, 3,-6,-3, 6,-6, 3,-3, 6,-6, 3,-3, 4, 2, 2, 1, 4, 2, 2, 1},
-{-12,12,12,-12,12,-12,-12,12,-6,-6, 6, 6, 6, 6,-6,-6,-8, 8,-4, 4, 8,-8, 4,-4,-6, 6, 6,-6,-6, 6, 6,-6,-4,-4,-2,-2, 4, 4, 2, 2,-3,-3, 3, 3,-3,-3, 3, 3,-4, 4,-2, 2,-4, 4,-2, 2,-2,-2,-1,-1,-2,-2,-1,-1},
-{ 4, 0,-4, 0,-4, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0,-2, 0,-2, 0, 2, 0,-2, 0, 2, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-{ 0, 0, 0, 0, 0, 0, 0, 0, 4, 0,-4, 0,-4, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0,-2, 0,-2, 0, 2, 0,-2, 0, 2, 0,-2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0},
-{-12,12,12,-12,12,-12,-12,12,-8,-4, 8, 4, 8, 4,-8,-4,-6, 6,-6, 6, 6,-6, 6,-6,-6, 6, 6,-6,-6, 6, 6,-6,-4,-2,-4,-2, 4, 2, 4, 2,-4,-2, 4, 2,-4,-2, 4, 2,-3, 3,-3, 3,-3, 3,-3, 3,-2,-1,-2,-1,-2,-1,-2,-1},
-{ 8,-8,-8, 8,-8, 8, 8,-8, 4, 4,-4,-4,-4,-4, 4, 4, 4,-4, 4,-4,-4, 4,-4, 4, 4,-4,-4, 4, 4,-4,-4, 4, 2, 2, 2, 2,-2,-2,-2,-2, 2, 2,-2,-2, 2, 2,-2,-2, 2,-2, 2,-2, 2,-2, 2,-2, 1, 1, 1, 1, 1, 1, 1, 1}};
-
-static int ijk2n(int i, int j, int k) {
-	return(i+4*j+16*k);
-}
-
-static void tricubic_get_coeff_stacked(float a[64], float x[64]) {
-	int i,j;
-	for (i=0;i<64;i++) {
-		a[i]=(float)(0.0);
-		for (j=0;j<64;j++) {
-			a[i]+=C[i][j]*x[j];
-		}
 	}
+	return 0.f;
 }
-
-
-
-
-static void tricubic_get_coeff(float a[64], float f[8], float dfdx[8], float dfdy[8], float dfdz[8], float d2fdxdy[8], float d2fdxdz[8], float d2fdydz[8], float d3fdxdydz[8]) {
-	int i;
-	float x[64];
-	for (i=0;i<8;i++) {
-		x[0+i]=f[i];
-		x[8+i]=dfdx[i];
-		x[16+i]=dfdy[i];
-		x[24+i]=dfdz[i];
-		x[32+i]=d2fdxdy[i];
-		x[40+i]=d2fdxdz[i];
-		x[48+i]=d2fdydz[i];
-		x[56+i]=d3fdxdydz[i];
-	}
-	tricubic_get_coeff_stacked(a,x);
-}
-
-static float tricubic_eval(float a[64], float x, float y, float z) {
-	int i,j,k;
-	float ret=(float)(0.0);
 	
-	for (i=0;i<4;i++) {
-		for (j=0;j<4;j++) {
-			for (k=0;k<4;k++) {
-				ret+=a[ijk2n(i,j,k)]*pow(x,i)*pow(y,j)*pow(z,k);
-			}
-		}
-	}
-	return(ret);
-}
 
-/* tricubic interpolation
- * from 'libtricubic': http://www.lekien.com/~francois/software/tricubic/ 
- * input coordinates must be in bounding box 0.0 - 1.0 */
-float voxel_sample_tricubic(float *data, int *res, float *co)
+float voxel_sample_triquadratic(float *data, int *res, float *co)
 {
-	float xx, yy, zz;
-	int xi,yi,zi;
-	int *n = res;
-	float dx,dy,dz;
-	float a[64];
-	
-	xx = co[0] * res[0] - 0.5f;
-	yy = co[1] * res[1] - 0.5f;
-	zz = co[2] * res[2] - 0.5f;
-	
-	xi = (int)xx; yi = (int)yy; zi = (int)zz;
-	
-	{
-		float fval[8]={data[V_I(xi,yi,zi,n)],data[V_I(xi+1,yi,zi,n)],data[V_I(xi,yi+1,zi,n)],data[V_I(xi+1,yi+1,zi,n)],data[V_I(xi,yi,zi+1,n)],data[V_I(xi+1,yi,zi+1,n)],data[V_I(xi,yi+1,zi+1,n)],data[V_I(xi+1,yi+1,zi+1,n)]}; 
-		
-		float dfdxval[8]={0.5f*(data[V_I(xi+1,yi,zi,n)]-data[V_I(xi-1,yi,zi,n)]),0.5f*(data[V_I(xi+2,yi,zi,n)]-data[V_I(xi,yi,zi,n)]),
-			0.5f*(data[V_I(xi+1,yi+1,zi,n)]-data[V_I(xi-1,yi+1,zi,n)]),0.5f*(data[V_I(xi+2,yi+1,zi,n)]-data[V_I(xi,yi+1,zi,n)]),
-			0.5f*(data[V_I(xi+1,yi,zi+1,n)]-data[V_I(xi-1,yi,zi+1,n)]),0.5f*(data[V_I(xi+2,yi,zi+1,n)]-data[V_I(xi,yi,zi+1,n)]),
-			0.5f*(data[V_I(xi+1,yi+1,zi+1,n)]-data[V_I(xi-1,yi+1,zi+1,n)]),
-			0.5f*(data[V_I(xi+2,yi+1,zi+1,n)]-data[V_I(xi,yi+1,zi+1,n)])};						
-		
-		float dfdyval[8]={0.5f*(data[V_I(xi,yi+1,zi,n)]-data[V_I(xi,yi-1,zi,n)]),0.5f*(data[V_I(xi+1,yi+1,zi,n)]-data[V_I(xi+1,yi-1,zi,n)]),
-			0.5f*(data[V_I(xi,yi+2,zi,n)]-data[V_I(xi,yi,zi,n)]),0.5f*(data[V_I(xi+1,yi+2,zi,n)]-data[V_I(xi+1,yi,zi,n)]),
-			0.5f*(data[V_I(xi,yi+1,zi+1,n)]-data[V_I(xi,yi-1,zi+1,n)]),0.5f*(data[V_I(xi+1,yi+1,zi+1,n)]-data[V_I(xi+1,yi-1,zi+1,n)]),
-			0.5f*(data[V_I(xi,yi+2,zi+1,n)]-data[V_I(xi,yi,zi+1,n)]),
-			0.5f*(data[V_I(xi+1,yi+2,zi+1,n)]-data[V_I(xi+1,yi,zi+1,n)])};						 
-		
-		float dfdzval[8]={0.5f*(data[V_I(xi,yi,zi+1,n)]-data[V_I(xi,yi,zi-1,n)]),0.5f*(data[V_I(xi+1,yi,zi+1,n)]-data[V_I(xi+1,yi,zi-1,n)]),
-			0.5f*(data[V_I(xi,yi+1,zi+1,n)]-data[V_I(xi,yi+1,zi-1,n)]),0.5f*(data[V_I(xi+1,yi+1,zi+1,n)]-data[V_I(xi+1,yi+1,zi-1,n)]),
-			0.5f*(data[V_I(xi,yi,zi+2,n)]-data[V_I(xi,yi,zi,n)]),0.5f*(data[V_I(xi+1,yi,zi+2,n)]-data[V_I(xi+1,yi,zi,n)]),
-			0.5f*(data[V_I(xi,yi+1,zi+2,n)]-data[V_I(xi,yi+1,zi,n)]),
-			0.5f*(data[V_I(xi+1,yi+1,zi+2,n)]-data[V_I(xi+1,yi+1,zi,n)])};						 
-		
-		float d2fdxdyval[8]={0.25*(data[V_I(xi+1,yi+1,zi,n)]-data[V_I(xi-1,yi+1,zi,n)]-data[V_I(xi+1,yi-1,zi,n)]+data[V_I(xi-1,yi-1,zi,n)]),
-			0.25*(data[V_I(xi+2,yi+1,zi,n)]-data[V_I(xi,yi+1,zi,n)]-data[V_I(xi+2,yi-1,zi,n)]+data[V_I(xi,yi-1,zi,n)]),
-			0.25*(data[V_I(xi+1,yi+2,zi,n)]-data[V_I(xi-1,yi+2,zi,n)]-data[V_I(xi+1,yi,zi,n)]+data[V_I(xi-1,yi,zi,n)]),
-			0.25*(data[V_I(xi+2,yi+2,zi,n)]-data[V_I(xi,yi+2,zi,n)]-data[V_I(xi+2,yi,zi,n)]+data[V_I(xi,yi,zi,n)]),
-			0.25*(data[V_I(xi+1,yi+1,zi+1,n)]-data[V_I(xi-1,yi+1,zi+1,n)]-data[V_I(xi+1,yi-1,zi+1,n)]+data[V_I(xi-1,yi-1,zi+1,n)]),
-			0.25*(data[V_I(xi+2,yi+1,zi+1,n)]-data[V_I(xi,yi+1,zi+1,n)]-data[V_I(xi+2,yi-1,zi+1,n)]+data[V_I(xi,yi-1,zi+1,n)]),
-			0.25*(data[V_I(xi+1,yi+2,zi+1,n)]-data[V_I(xi-1,yi+2,zi+1,n)]-data[V_I(xi+1,yi,zi+1,n)]+data[V_I(xi-1,yi,zi+1,n)]),
-			0.25*(data[V_I(xi+2,yi+2,zi+1,n)]-data[V_I(xi,yi+2,zi+1,n)]-data[V_I(xi+2,yi,zi+1,n)]+data[V_I(xi,yi,zi+1,n)])};						 
-		
-		float d2fdxdzval[8]={0.25f*(data[V_I(xi+1,yi,zi+1,n)]-data[V_I(xi-1,yi,zi+1,n)]-data[V_I(xi+1,yi,zi-1,n)]+data[V_I(xi-1,yi,zi-1,n)]),
-			0.25f*(data[V_I(xi+2,yi,zi+1,n)]-data[V_I(xi,yi,zi+1,n)]-data[V_I(xi+2,yi,zi-1,n)]+data[V_I(xi,yi,zi-1,n)]),
-			0.25f*(data[V_I(xi+1,yi+1,zi+1,n)]-data[V_I(xi-1,yi+1,zi+1,n)]-data[V_I(xi+1,yi+1,zi-1,n)]+data[V_I(xi-1,yi+1,zi-1,n)]),
-			0.25f*(data[V_I(xi+2,yi+1,zi+1,n)]-data[V_I(xi,yi+1,zi+1,n)]-data[V_I(xi+2,yi+1,zi-1,n)]+data[V_I(xi,yi+1,zi-1,n)]),
-			0.25f*(data[V_I(xi+1,yi,zi+2,n)]-data[V_I(xi-1,yi,zi+2,n)]-data[V_I(xi+1,yi,zi,n)]+data[V_I(xi-1,yi,zi,n)]),
-			0.25f*(data[V_I(xi+2,yi,zi+2,n)]-data[V_I(xi,yi,zi+2,n)]-data[V_I(xi+2,yi,zi,n)]+data[V_I(xi,yi,zi,n)]),
-			0.25f*(data[V_I(xi+1,yi+1,zi+2,n)]-data[V_I(xi-1,yi+1,zi+2,n)]-data[V_I(xi+1,yi+1,zi,n)]+data[V_I(xi-1,yi+1,zi,n)]),
-			0.25f*(data[V_I(xi+2,yi+1,zi+2,n)]-data[V_I(xi,yi+1,zi+2,n)]-data[V_I(xi+2,yi+1,zi,n)]+data[V_I(xi,yi+1,zi,n)])};
-		
-		
-		float d2fdydzval[8]={0.25f*(data[V_I(xi,yi+1,zi+1,n)]-data[V_I(xi,yi-1,zi+1,n)]-data[V_I(xi,yi+1,zi-1,n)]+data[V_I(xi,yi-1,zi-1,n)]),
-			0.25f*(data[V_I(xi+1,yi+1,zi+1,n)]-data[V_I(xi+1,yi-1,zi+1,n)]-data[V_I(xi+1,yi+1,zi-1,n)]+data[V_I(xi+1,yi-1,zi-1,n)]),
-			0.25f*(data[V_I(xi,yi+2,zi+1,n)]-data[V_I(xi,yi,zi+1,n)]-data[V_I(xi,yi+2,zi-1,n)]+data[V_I(xi,yi,zi-1,n)]),
-			0.25f*(data[V_I(xi+1,yi+2,zi+1,n)]-data[V_I(xi+1,yi,zi+1,n)]-data[V_I(xi+1,yi+2,zi-1,n)]+data[V_I(xi+1,yi,zi-1,n)]),
-			0.25f*(data[V_I(xi,yi+1,zi+2,n)]-data[V_I(xi,yi-1,zi+2,n)]-data[V_I(xi,yi+1,zi,n)]+data[V_I(xi,yi-1,zi,n)]),
-			0.25f*(data[V_I(xi+1,yi+1,zi+2,n)]-data[V_I(xi+1,yi-1,zi+2,n)]-data[V_I(xi+1,yi+1,zi,n)]+data[V_I(xi+1,yi-1,zi,n)]),
-			0.25f*(data[V_I(xi,yi+2,zi+2,n)]-data[V_I(xi,yi,zi+2,n)]-data[V_I(xi,yi+2,zi,n)]+data[V_I(xi,yi,zi,n)]),
-			0.25f*(data[V_I(xi+1,yi+2,zi+2,n)]-data[V_I(xi+1,yi,zi+2,n)]-data[V_I(xi+1,yi+2,zi,n)]+data[V_I(xi+1,yi,zi,n)])};
-		
-		
-		float d3fdxdydzval[8]={0.125f*(data[V_I(xi+1,yi+1,zi+1,n)]-data[V_I(xi-1,yi+1,zi+1,n)]-data[V_I(xi+1,yi-1,zi+1,n)]+data[V_I(xi-1,yi-1,zi+1,n)]-data[V_I(xi+1,yi+1,zi-1,n)]+data[V_I(xi-1,yi+1,zi-1,n)]+data[V_I(xi+1,yi-1,zi-1,n)]-data[V_I(xi-1,yi-1,zi-1,n)]),
-			0.125f*(data[V_I(xi+2,yi+1,zi+1,n)]-data[V_I(xi,yi+1,zi+1,n)]-data[V_I(xi+2,yi-1,zi+1,n)]+data[V_I(xi,yi-1,zi+1,n)]-data[V_I(xi+2,yi+1,zi-1,n)]+data[V_I(xi,yi+1,zi-1,n)]+data[V_I(xi+2,yi-1,zi-1,n)]-data[V_I(xi,yi-1,zi-1,n)]),
-			0.125f*(data[V_I(xi+1,yi+2,zi+1,n)]-data[V_I(xi-1,yi+2,zi+1,n)]-data[V_I(xi+1,yi,zi+1,n)]+data[V_I(xi-1,yi,zi+1,n)]-data[V_I(xi+1,yi+2,zi-1,n)]+data[V_I(xi-1,yi+2,zi-1,n)]+data[V_I(xi+1,yi,zi-1,n)]-data[V_I(xi-1,yi,zi-1,n)]),
-			0.125f*(data[V_I(xi+2,yi+2,zi+1,n)]-data[V_I(xi,yi+2,zi+1,n)]-data[V_I(xi+2,yi,zi+1,n)]+data[V_I(xi,yi,zi+1,n)]-data[V_I(xi+2,yi+2,zi-1,n)]+data[V_I(xi,yi+2,zi-1,n)]+data[V_I(xi+2,yi,zi-1,n)]-data[V_I(xi,yi,zi-1,n)]),
-			0.125f*(data[V_I(xi+1,yi+1,zi+2,n)]-data[V_I(xi-1,yi+1,zi+2,n)]-data[V_I(xi+1,yi-1,zi+2,n)]+data[V_I(xi-1,yi-1,zi+2,n)]-data[V_I(xi+1,yi+1,zi,n)]+data[V_I(xi-1,yi+1,zi,n)]+data[V_I(xi+1,yi-1,zi,n)]-data[V_I(xi-1,yi-1,zi,n)]),
-			0.125f*(data[V_I(xi+2,yi+1,zi+2,n)]-data[V_I(xi,yi+1,zi+2,n)]-data[V_I(xi+2,yi-1,zi+2,n)]+data[V_I(xi,yi-1,zi+2,n)]-data[V_I(xi+2,yi+1,zi,n)]+data[V_I(xi,yi+1,zi,n)]+data[V_I(xi+2,yi-1,zi,n)]-data[V_I(xi,yi-1,zi,n)]),
-			0.125f*(data[V_I(xi+1,yi+2,zi+2,n)]-data[V_I(xi-1,yi+2,zi+2,n)]-data[V_I(xi+1,yi,zi+2,n)]+data[V_I(xi-1,yi,zi+2,n)]-data[V_I(xi+1,yi+2,zi,n)]+data[V_I(xi-1,yi+2,zi,n)]+data[V_I(xi+1,yi,zi,n)]-data[V_I(xi-1,yi,zi,n)]),
-			0.125f*(data[V_I(xi+2,yi+2,zi+2,n)]-data[V_I(xi,yi+2,zi+2,n)]-data[V_I(xi+2,yi,zi+2,n)]+data[V_I(xi,yi,zi+2,n)]-data[V_I(xi+2,yi+2,zi,n)]+data[V_I(xi,yi+2,zi,n)]+data[V_I(xi+2,yi,zi,n)]-data[V_I(xi,yi,zi,n)])};
-		
-		
-		tricubic_get_coeff(a,fval,dfdxval,dfdyval,dfdzval,d2fdxdyval,d2fdxdzval,d2fdydzval,d3fdxdydzval);
-	}
-	
-	dx = xx-xi;
-	dy = yy-yi;
-	dz = zz-zi;
-	
-	return tricubic_eval(a,dx,dy,dz);
-	
+	if (data) {
+
+		const float xf = co[0] * res[0], yf = co[1] * res[1], zf = co[2] * res[2];
+		const int x = FLOORI(xf), y = FLOORI(yf), z = FLOORI(zf);
+
+		const int xc[3] = {_clamp(x - 1, 0, res[0] - 1), _clamp(x, 0, res[0] - 1), _clamp(x + 1, 0, res[0] - 1)};
+		const int yc[3] = {res[0] * _clamp(y - 1, 0, res[1] - 1), res[0] * _clamp(y, 0, res[1] - 1), res[0] * _clamp(y + 1, 0, res[1] - 1)};
+		const int zc[3] = {res[0] * res[1] * _clamp(z - 1, 0, res[2] - 1), res[0] * res[1] * _clamp(z, 0, res[2] - 1), res[0] * res[1] * _clamp(z + 1, 0, res[2] - 1)};
+
+		const float dx = xf - (float)x, dy = yf - (float)y, dz = zf - (float)z;
+		const float u[3] = {dx*(0.5f*dx - 1.f) + 0.5f, dx*(1.f - dx) + 0.5f, 0.5f*dx*dx};
+		const float v[3] = {dy*(0.5f*dy - 1.f) + 0.5f, dy*(1.f - dy) + 0.5f, 0.5f*dy*dy};
+		const float w[3] = {dz*(0.5f*dz - 1.f) + 0.5f, dz*(1.f - dz) + 0.5f, 0.5f*dz*dz};
+
+		return w[0] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[0]] + u[1] * data[xc[1] + yc[0] + zc[0]] + u[2] * data[xc[2] + yc[0] + zc[0]] )
+		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[0]] + u[1] * data[xc[1] + yc[1] + zc[0]] + u[2] * data[xc[2] + yc[1] + zc[0]] )
+		                + v[2] * ( u[0] * data[xc[0] + yc[2] + zc[0]] + u[1] * data[xc[1] + yc[2] + zc[0]] + u[2] * data[xc[2] + yc[2] + zc[0]] ) )
+		     + w[1] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[1]] + u[1] * data[xc[1] + yc[0] + zc[1]] + u[2] * data[xc[2] + yc[0] + zc[1]] )
+		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[1]] + u[1] * data[xc[1] + yc[1] + zc[1]] + u[2] * data[xc[2] + yc[1] + zc[1]] )
+		                + v[2] * ( u[0] * data[xc[0] + yc[2] + zc[1]] + u[1] * data[xc[1] + yc[2] + zc[1]] + u[2] * data[xc[2] + yc[2] + zc[1]] ) )
+		     + w[2] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[2]] + u[1] * data[xc[1] + yc[0] + zc[2]] + u[2] * data[xc[2] + yc[0] + zc[2]] )
+		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[2]] + u[1] * data[xc[1] + yc[1] + zc[2]] + u[2] * data[xc[2] + yc[1] + zc[2]] )
+		                + v[2] * ( u[0] * data[xc[0] + yc[2] + zc[2]] + u[1] * data[xc[1] + yc[2] + zc[2]] + u[2] * data[xc[2] + yc[2] + zc[2]] ) );
+
+}
+	return 0.f;
 }
 
+float voxel_sample_tricubic(float *data, int *res, float *co, int bspline)
+{
+	if (data) {
+
+		const float xf = co[0] * res[0] - 0.5f, yf = co[1] * res[1] - 0.5f, zf = co[2] * res[2] - 0.5f;
+		const int x = FLOORI(xf), y = FLOORI(yf), z = FLOORI(zf);
+
+		const int xc[4] = {_clamp(x - 1, 0, res[0] - 1), _clamp(x, 0, res[0] - 1), _clamp(x + 1, 0, res[0] - 1), _clamp(x + 2, 0, res[0] - 1)};
+		const int yc[4] = {res[0] * _clamp(y - 1, 0, res[1] - 1), res[0] * _clamp(y, 0, res[1] - 1), res[0] * _clamp(y + 1, 0, res[1] - 1), res[0] * _clamp(y + 2, 0, res[1] - 1)};
+		const int zc[4] = {res[0] * res[1] * _clamp(z - 1, 0, res[2] - 1), res[0] * res[1] * _clamp(z, 0, res[2] - 1), res[0] * res[1] * _clamp(z + 1, 0, res[2] - 1), res[0] * res[1] * _clamp(z + 2, 0, res[2] - 1)};
+
+		const float dx = xf - (float)x, dy = yf - (float)y, dz = zf - (float)z;
+
+		float u[4], v[4], w[4];
+		if (bspline) {	// B-Spline
+			u[0] = (((-1.f/6.f)*dx + 0.5f)*dx - 0.5f)*dx + (1.f/6.f);
+			u[1] =  ((     0.5f*dx - 1.f )*dx       )*dx + (2.f/3.f);
+			u[2] =  ((    -0.5f*dx + 0.5f)*dx + 0.5f)*dx + (1.f/6.f);
+			u[3] =   ( 1.f/6.f)*dx*dx*dx;
+			v[0] = (((-1.f/6.f)*dy + 0.5f)*dy - 0.5f)*dy + (1.f/6.f);
+			v[1] =  ((     0.5f*dy - 1.f )*dy       )*dy + (2.f/3.f);
+			v[2] =  ((    -0.5f*dy + 0.5f)*dy + 0.5f)*dy + (1.f/6.f);
+			v[3] =  ( 1.f/6.f)*dy*dy*dy;
+			w[0] = (((-1.f/6.f)*dz + 0.5f)*dz - 0.5f)*dz + (1.f/6.f);
+			w[1] =  ((     0.5f*dz - 1.f )*dz       )*dz + (2.f/3.f);
+			w[2] =  ((    -0.5f*dz + 0.5f)*dz + 0.5f)*dz + (1.f/6.f);
+			w[3] =   ( 1.f/6.f)*dz*dz*dz;
+		}
+		else {	// Catmull-Rom
+			u[0] = ((-0.5f*dx + 1.0f)*dx - 0.5f)*dx;
+			u[1] = (( 1.5f*dx - 2.5f)*dx       )*dx + 1.0f;
+			u[2] = ((-1.5f*dx + 2.0f)*dx + 0.5f)*dx;
+			u[3] = (( 0.5f*dx - 0.5f)*dx       )*dx;
+			v[0] = ((-0.5f*dy + 1.0f)*dy - 0.5f)*dy;
+			v[1] = (( 1.5f*dy - 2.5f)*dy       )*dy + 1.0f;
+			v[2] = ((-1.5f*dy + 2.0f)*dy + 0.5f)*dy;
+			v[3] = (( 0.5f*dy - 0.5f)*dy       )*dy;
+			w[0] = ((-0.5f*dz + 1.0f)*dz - 0.5f)*dz;
+			w[1] = (( 1.5f*dz - 2.5f)*dz       )*dz + 1.0f;
+			w[2] = ((-1.5f*dz + 2.0f)*dz + 0.5f)*dz;
+			w[3] = (( 0.5f*dz - 0.5f)*dz       )*dz;
+		}
+
+		return w[0] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[0]] + u[1] * data[xc[1] + yc[0] + zc[0]] + u[2] * data[xc[2] + yc[0] + zc[0]] + u[3] * data[xc[3] + yc[0] + zc[0]] )
+		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[0]] + u[1] * data[xc[1] + yc[1] + zc[0]] + u[2] * data[xc[2] + yc[1] + zc[0]] + u[3] * data[xc[3] + yc[1] + zc[0]] )
+		                + v[2] * ( u[0] * data[xc[0] + yc[2] + zc[0]] + u[1] * data[xc[1] + yc[2] + zc[0]] + u[2] * data[xc[2] + yc[2] + zc[0]] + u[3] * data[xc[3] + yc[2] + zc[0]] )
+		                + v[3] * ( u[0] * data[xc[0] + yc[3] + zc[0]] + u[1] * data[xc[1] + yc[3] + zc[0]] + u[2] * data[xc[2] + yc[3] + zc[0]] + u[3] * data[xc[3] + yc[3] + zc[0]] ) )
+		     + w[1] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[1]] + u[1] * data[xc[1] + yc[0] + zc[1]] + u[2] * data[xc[2] + yc[0] + zc[1]] + u[3] * data[xc[3] + yc[0] + zc[1]] )
+		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[1]] + u[1] * data[xc[1] + yc[1] + zc[1]] + u[2] * data[xc[2] + yc[1] + zc[1]] + u[3] * data[xc[3] + yc[1] + zc[1]] )
+		                + v[2] * ( u[0] * data[xc[0] + yc[2] + zc[1]] + u[1] * data[xc[1] + yc[2] + zc[1]] + u[2] * data[xc[2] + yc[2] + zc[1]] + u[3] * data[xc[3] + yc[2] + zc[1]] )
+		                + v[3] * ( u[0] * data[xc[0] + yc[3] + zc[1]] + u[1] * data[xc[1] + yc[3] + zc[1]] + u[2] * data[xc[2] + yc[3] + zc[1]] + u[3] * data[xc[3] + yc[3] + zc[1]] ) )
+		     + w[2] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[2]] + u[1] * data[xc[1] + yc[0] + zc[2]] + u[2] * data[xc[2] + yc[0] + zc[2]] + u[3] * data[xc[3] + yc[0] + zc[2]] )
+		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[2]] + u[1] * data[xc[1] + yc[1] + zc[2]] + u[2] * data[xc[2] + yc[1] + zc[2]] + u[3] * data[xc[3] + yc[1] + zc[2]] )
+		                + v[2] * ( u[0] * data[xc[0] + yc[2] + zc[2]] + u[1] * data[xc[1] + yc[2] + zc[2]] + u[2] * data[xc[2] + yc[2] + zc[2]] + u[3] * data[xc[3] + yc[2] + zc[2]] )
+		                + v[3] * ( u[0] * data[xc[0] + yc[3] + zc[2]] + u[1] * data[xc[1] + yc[3] + zc[2]] + u[2] * data[xc[2] + yc[3] + zc[2]] + u[3] * data[xc[3] + yc[3] + zc[2]] ) )
+		     + w[3] * (   v[0] * ( u[0] * data[xc[0] + yc[0] + zc[3]] + u[1] * data[xc[1] + yc[0] + zc[3]] + u[2] * data[xc[2] + yc[0] + zc[3]] + u[3] * data[xc[3] + yc[0] + zc[3]] )
+		                + v[1] * ( u[0] * data[xc[0] + yc[1] + zc[3]] + u[1] * data[xc[1] + yc[1] + zc[3]] + u[2] * data[xc[2] + yc[1] + zc[3]] + u[3] * data[xc[3] + yc[1] + zc[3]] )
+		                + v[2] * ( u[0] * data[xc[0] + yc[2] + zc[3]] + u[1] * data[xc[1] + yc[2] + zc[3]] + u[2] * data[xc[2] + yc[2] + zc[3]] + u[3] * data[xc[3] + yc[2] + zc[3]] )
+		                + v[3] * ( u[0] * data[xc[0] + yc[3] + zc[3]] + u[1] * data[xc[1] + yc[3] + zc[3]] + u[2] * data[xc[2] + yc[3] + zc[3]] + u[3] * data[xc[3] + yc[3] + zc[3]] ) );
+
+	}
+	return 0.f;
+}
