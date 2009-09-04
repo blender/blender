@@ -1219,7 +1219,7 @@ static void rna_def_console_line(BlenderRNA *brna)
 	
 	srna = RNA_def_struct(brna, "ConsoleLine", NULL);
 	RNA_def_struct_ui_text(srna, "Console Input", "Input line for the interactive console.");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CONSOLE, NULL);
+	// XXX using non-inited "prop", uh? RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CONSOLE, NULL);
 	
 	prop= RNA_def_property(srna, "line", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_ConsoleLine_line_get", "rna_ConsoleLine_line_length", "rna_ConsoleLine_line_set");
