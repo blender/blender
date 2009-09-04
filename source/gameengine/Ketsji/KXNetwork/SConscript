@@ -9,4 +9,4 @@ incs += ' #source/gameengine/Network #source/gameengine/SceneGraph'
 
 incs += ' ' + env['BF_PYTHON_INC']
 
-env.BlenderLib ( 'bf_network', Split(sources), Split(incs), defines=[],libtype=['core', 'player'], priority=[400, 100], cxx_compileflags=env['BGE_CXXFLAGS'])
+env.BlenderLib ( 'bf_network', Split(sources), Split(incs), defines=[],libtype=['core'], priority=[400], cxx_compileflags=env['BGE_CXXFLAGS'])

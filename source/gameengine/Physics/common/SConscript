@@ -5,4 +5,4 @@ sources = 'PHY_IMotionState.cpp PHY_IController.cpp PHY_IPhysicsController.cpp P
 
 incs = '. ../Dummy #intern/moto/include'
 
-env.BlenderLib ( 'bf_physics_common', Split(sources), Split(incs), [], libtype=['core','player'], priority=[360, 90], cxx_compileflags=env['BGE_CXXFLAGS'])
+env.BlenderLib ( 'bf_physics_common', Split(sources), Split(incs), [], libtype=['core'], priority=[360], cxx_compileflags=env['BGE_CXXFLAGS'])
