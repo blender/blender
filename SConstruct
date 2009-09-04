@@ -390,7 +390,7 @@ SConscript(B.root_build_dir+'/source/SConscript')
 # libraries to give as objects to linking phase
 mainlist = []
 for tp in B.possible_types:
-	if not tp == 'player' and not tp == 'player2':
+	if not tp == 'player':
 		mainlist += B.create_blender_liblist(env, tp)
 
 if B.arguments.get('BF_PRIORITYLIST', '0')=='1':
@@ -404,6 +404,7 @@ if 'blender' in B.targets or not env['WITH_BF_NOBLENDER']:
 	env.BlenderProg(B.root_build_dir, "blender", dobj + mainlist, [], thestatlibs + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
 if env['WITH_BF_PLAYER']:
 	playerlist = B.create_blender_liblist(env, 'player')
+	playerlist = playerlist[0:2] + [playerlist[3]] + mainlist[2:] + [playerlist[29]]
 	env.BlenderProg(B.root_build_dir, "blenderplayer", dobj + playerlist, [], thestatlibs + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blenderplayer')
 
 ##### Now define some targets

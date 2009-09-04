@@ -11,4 +11,4 @@ if env['WITH_BF_QUICKTIME']:
 	defs.append('WITH_QUICKTIME')
 	incs += ' ' + env['BF_QUICKTIME_INC']
 
-env.BlenderLib ( libname = 'bf_blenpluginapi', sources = sources, includes = Split(incs), defines = defs, libtype=['core', 'player'], priority = [170, 35] )
+env.BlenderLib ( libname = 'bf_blenpluginapi', sources = sources, includes = Split(incs), defines = defs, libtype=['core'], priority = [170] )

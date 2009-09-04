@@ -574,6 +574,6 @@ ADD_SUBDIRECTORY(source/creator)
 #-----------------------------------------------------------------------------
 # Blender Player
 IF(WITH_PLAYER)
-  ADD_SUBDIRECTORY(blenderplayer)
+  ADD_SUBDIRECTORY(source/blenderplayer)
 ENDIF(WITH_PLAYER)
 
