@@ -3671,7 +3671,8 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefButBitS(block, TOG, CU_BACK, B_MAKEDISP, "Back",	760,115,50,19, &cu->flag, 0, 0, 0, 0, "Draw filled back for extruded/beveled curves");
 		uiDefButBitS(block, TOG, CU_FRONT, B_MAKEDISP, "Front",810,115,50,19, &cu->flag, 0, 0, 0, 0, "Draw filled front for extruded/beveled curves");
-		uiDefButBitS(block, TOG, CU_3D, B_CU3D, "3D",		860,115,50,19, &cu->flag, 0, 0, 0, 0, "Allow Curve to be 3d, it doesn't fill then");
+		uiDefButBitS(block, TOG, CU_3D, B_CU3D, "3D",		860,115,30,19, &cu->flag, 0, 0, 0, 0, "Allow Curve to be 3d, it doesn't fill then");
+		uiDefIconButBitS(block, TOG, CU_NO_TWIST, B_MAKEDISP, ICON_AUTO,	890,115,20,19, &cu->flag, 0.0, 0.0, 0, 0, "Avoid twisting artifacts for 3D beveled/extruded curves");
 	}
 }
 

@@ -2969,6 +2969,19 @@ void VecRotToQuat( float *vec, float phi, float *quat)
 	}
 }
 
+/* get a direction from 3 vectors that wont depend
+ * on the distance between the points */
+void Vec3ToTangent(float *v, float *v1, float *v2, float *v3)
+{
+	float d_12[3], d_23[3];
+	VecSubf(d_12, v2, v1);
+	VecSubf(d_23, v3, v2);
+	Normalize(d_12);
+	Normalize(d_23);
+	VecAddf(v, d_12, d_23);
+	Normalize(v);
+}
+
 /* Return the angle in degrees between vecs 1-2 and 2-3 in degrees
    If v1 is a shoulder, v2 is the elbow and v3 is the hand,
    this would return the angle at the elbow */
