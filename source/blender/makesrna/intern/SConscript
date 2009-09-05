@@ -6,7 +6,7 @@ def normpath(path):
 	return os.path.abspath(os.path.normpath(path))
 
 Import ('env')
-cflags = '-Wall'
+cflags = ['-Wall']
 defines = []
 root_build_dir=normpath(env['BF_BUILDDIR'])
 
@@ -95,6 +95,10 @@ if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
 	libdir = '#' + libdir
 
 makesrna_tool.Append (LIBPATH = libdir)
+
+makesrna_tool.Append( CFLAGS = env['CFLAGS'])
+makesrna_tool.Append( CCFLAGS = env['CCFLAGS'])
+makesrna_tool.Append( LINKFLAGS = env['PLATFORM_LINKFLAGS'])
 
 if env['BF_PROFILE']:
 	makesrna_tool.Append (LINKFLAGS = env['BF_PROFILE_FLAGS'])
