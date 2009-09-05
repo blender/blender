@@ -951,8 +951,8 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	                 mesh->totvert);
 	CustomData_merge(&mesh->edata, &dm->edgeData, mask, alloctype,
 	                 mesh->totedge);
-	//CustomData_merge(&mesh->fdata, &dm->faceData, mask, alloctype,
-	//                 mesh->totface);
+	CustomData_merge(&mesh->fdata, &dm->faceData, mask|CD_MASK_ORIGINDEX, alloctype,
+	                 mesh->totface);
 	CustomData_merge(&mesh->ldata, &dm->loopData, mask, alloctype,
 	                 mesh->totloop);
 	CustomData_merge(&mesh->pdata, &dm->polyData, mask, alloctype,
@@ -962,7 +962,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
 	cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
 	cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
-	//cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
+	cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
 
 	index = CustomData_get_layer(&dm->vertData, CD_ORIGINDEX);
 	for(i = 0; i < mesh->totvert; ++i, ++index)
@@ -976,9 +976,8 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	for(i = 0; i < mesh->totpoly; ++i, ++index)
 		*index = i;
 
-	/*recalculates mfaces and sets the mface origindex layer
-	  to index mypolys.*/
-	cdDM_recalcTesselation((DerivedMesh*)cddm);
+	if (!CustomData_has_layer(&cddm->dm.faceData, CD_ORIGINDEX))
+		CustomData_add_layer(&dm->faceData, CD_ORIGINDEX, CD_CALLOC, NULL, mesh->totface);
 
 	return dm;
 }

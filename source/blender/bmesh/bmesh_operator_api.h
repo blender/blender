@@ -131,9 +131,14 @@ void BMO_Finish_Op(struct BMesh *bm, struct BMOperator *op);
   if you need to store a value per element, use a 
   ghash or a mapping slot to do it.*/
 /*flags 15 and 16 (1<<14 and 1<<15) are reserved for bmesh api use*/
+#define BMO_TestFlag(bm, element, flag) (((BMHeader*)element)->flags[bm->stackdepth-1].mask & (flag))
+#define BMO_SetFlag(bm, element, flag) (((BMHeader*)element)->flags[bm->stackdepth-1].mask |= (flag))
+#define BMO_ClearFlag(bm, element, flag) (((BMHeader*)element)->flags[bm->stackdepth-1].mask &= ~(flag))
+
+/*profiling showed a significant amount of time spent in BMO_TestFlag
 void BMO_SetFlag(struct BMesh *bm, void *element, int flag);
 void BMO_ClearFlag(struct BMesh *bm, void *element, int flag);
-int BMO_TestFlag(struct BMesh *bm, void *element, int flag);
+int BMO_TestFlag(struct BMesh *bm, void *element, int flag);*/
 
 /*count the number of elements with a specific flag.  type
   can be a bitmask of BM_FACE, BM_EDGE, or BM_FACE.*/

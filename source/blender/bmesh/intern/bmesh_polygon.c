@@ -90,6 +90,7 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 
 	double u[3],  v[3], w[3];/*, *w, v1[3], v2[3];*/
 	double n[3] = {0.0, 0.0, 0.0}, l, v1[3], v2[3];
+	double l2;
 	int i, s=0;
 
 	/*this fixes some weird numerical error*/
@@ -129,7 +130,15 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 		n[2] += (u[0] - v[0]) * (u[1] + v[1]);
 	}
 	
-	l = sqrt(n[0]*n[0]+n[1]*n[1]+n[2]*n[2]);
+	l = n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
+	l = sqrt(l);
+	/*fast square root, newton/babylonian method:
+	l2 = l*0.1;
+
+	l2 = (l/l2 + l2)*0.5;
+	l2 = (l/l2 + l2)*0.5;
+	l2 = (l/l2 + l2)*0.5;
+	*/
 
 	if (l == 0.0) {
 		normal[0] = 0.0f;
@@ -137,11 +146,11 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 		normal[2] = 1.0f;
 
 		return;
-	}
+	} else l = 1.0f / l;
 
-	n[0] /= l;
-	n[1] /= l;
-	n[2] /= l;
+	n[0] *= l;
+	n[1] *= l;
+	n[2] *= l;
 	
 	normal[0] = (float) n[0];
 	normal[1] = (float) n[1];
@@ -437,7 +446,7 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 	BMLoop *l;
 	int i;
 
-	if(1) { //f->len > 4){
+	if(f->len > 4) {
 		i = 0;
 		l = f->loopbase;
 		do{
@@ -446,7 +455,6 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 			i += 1;
 		}while(l!=f->loopbase);
 
-		//compute_poly_plane(projectverts, f->len);
 		compute_poly_normal(f->no, projectverts, f->len);	
 	}
 	else if(f->len == 3){

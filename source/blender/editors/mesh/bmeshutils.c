@@ -257,14 +257,6 @@ void EDBM_LoadEditBMesh(Scene *scene, Object *ob)
 	BMesh *bm = me->edit_btmesh->bm;
 
 	BMO_CallOpf(bm, "object_load_bmesh scene=%p object=%p", scene, ob);
-
-#if 0
-	EditMesh *em = bmesh_to_editmesh(me->edit_btmesh->bm);
-	
-	load_editMesh(scene, ob, em);
-	free_editMesh(em);
-	MEM_freeN(em);
-#endif
 }
 
 void EDBM_FreeEditBMesh(BMEditMesh *tm)

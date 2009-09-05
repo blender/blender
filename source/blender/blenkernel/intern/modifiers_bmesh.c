@@ -177,6 +177,7 @@ BMEditMesh *CDDM_To_BMesh(DerivedMesh *dm, BMEditMesh *existing)
 	}
 	MEM_freeN(medge);
 	
+	/*do faces*/
 	k = 0;
 	dfiter = dm->newFaceIter(dm);
 	for (; !dfiter->done; dfiter->step(dfiter)) {
@@ -215,7 +216,6 @@ BMEditMesh *CDDM_To_BMesh(DerivedMesh *dm, BMEditMesh *existing)
 		CustomData_to_bmesh_block(&dm->polyData, &bm->pdata, 
 			dfiter->index, &f->head.data);
 	}
-	
 	dfiter->free(dfiter);
 
 	MEM_freeN(vtable);
@@ -275,7 +275,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  Scene *scene, Object *ob, DerivedMesh *dm,
                                           int initFlags)
 {
-	DerivedMesh *cddm = CDDM_copy(dm);
+	DerivedMesh *cddm = dm; //CDDM_copy(dm); copying shouldn't be necassary here, as all modifiers return CDDM's
 	BMEditMesh *em = CDDM_To_BMesh(cddm, NULL);
 	BMOperator op, oldop, weldop;
 	int i, j, indexLen;
@@ -388,8 +388,8 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		MTC_Mat4CpyMat4(final_offset, tmp_mat);
 	}
 
-	cddm->needsFree = 1;
-	cddm->release(cddm);
+	//cddm->needsFree = 1;
+	//cddm->release(cddm);
 	
 	BMO_Init_Op(&weldop, "weldverts");
 	BMO_InitOpf(em->bm, &op, "dupe geom=%avef");
@@ -475,7 +475,9 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 	if (j > 0) BMO_Finish_Op(em->bm, &op);
 
-	BMO_Exec_Op(em->bm, &weldop);
+	if (amd->flags & MOD_ARR_MERGE)
+		BMO_Exec_Op(em->bm, &weldop);
+
 	BMO_Finish_Op(em->bm, &weldop);
 
 	//BMO_CallOpf(em->bm, "removedoubles verts=%av dist=%f", amd->merge_dist);
@@ -533,11 +535,11 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	float mtx[4][4], imtx[4][4];
 	int i, j;
 
-	cddm = CDDM_copy(dm);
+	cddm = dm; //CDDM_copy(dm); copying shouldn't be necassary here, as all modifiers return CDDM's
 	em = CDDM_To_BMesh(dm, NULL);
 
-	cddm->needsFree = 1;
-	cddm->release(cddm);
+	//cddm->needsFree = 1;
+	//cddm->release(cddm);
 	
 	/*convienence variable*/
 	bm = em->bm;

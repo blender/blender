@@ -357,47 +357,6 @@ void BMO_Get_Vec(BMOperator *op, char *slotname, float *vec_out)
 }
 
 /*
- * BMO_SETFLAG
- *
- * Sets a flag for a certain element
- *
-*/
-void BMO_SetFlag(BMesh *bm, void *element, int flag)
-{
-	BMHeader *head = element;
-	head->flags[bm->stackdepth-1].mask |= flag;
-}
-
-/*
- * BMO_CLEARFLAG
- *
- * Clears a specific flag from a given element
- *
-*/
-
-void BMO_ClearFlag(BMesh *bm, void *element, int flag)
-{
-	BMHeader *head = element;
-	head->flags[bm->stackdepth-1].mask &= ~flag;
-}
-
-/*
- * BMO_TESTFLAG
- *
- * Tests whether or not a flag is set for a specific element
- *
- *
-*/
-
-int BMO_TestFlag(BMesh *bm, void *element, int flag)
-{
-	BMHeader *head = element;
-	if(head->flags[bm->stackdepth-1].mask & flag)
-		return 1;
-	return 0;
-}
-
-/*
  * BMO_COUNTFLAG
  *
  * Counts the number of elements of a certain type that
@@ -1347,3 +1306,53 @@ int BMO_CallOpf(BMesh *bm, char *fmt, ...) {
 	return 1;
 }
 
+
+/*
+ * BMO_SETFLAG
+ *
+ * Sets a flag for a certain element
+ *
+*/
+#ifdef BMO_SetFlag
+#undef BMO_SetFlag
+#endif
+void BMO_SetFlag(BMesh *bm, void *element, int flag)
+{
+	BMHeader *head = element;
+	head->flags[bm->stackdepth-1].mask |= flag;
+}
+
+/*
+ * BMO_CLEARFLAG
+ *
+ * Clears a specific flag from a given element
+ *
+*/
+
+#ifdef BMO_ClearFlag
+#undef BMO_ClearFlag
+#endif
+void BMO_ClearFlag(BMesh *bm, void *element, int flag)
+{
+	BMHeader *head = element;
+	head->flags[bm->stackdepth-1].mask &= ~flag;
+}
+
+/*
+ * BMO_TESTFLAG
+ *
+ * Tests whether or not a flag is set for a specific element
+ *
+ *
+*/
+
+#ifdef BMO_TestFlag
+#undef BMO_TestFlag
+#endif
+int BMO_TestFlag(BMesh *bm, void *element, int flag)
+{
+	BMHeader *head = element;
+	if(head->flags[bm->stackdepth-1].mask & flag)
+		return 1;
+	return 0;
+}

@@ -204,60 +204,8 @@ static unsigned int vpaint_get_current_col(VPaint *vp)
 	return rgba_to_mcol(brush->rgb[0], brush->rgb[1], brush->rgb[2], 1.0f);
 }
 
-void do_shared_vertexcol(Mesh *me)
+static void do_shared_vertex_tesscol(Mesh *me)
 {
-	MLoop *ml = me->mloop;
-	MLoopCol *lcol = me->mloopcol;
-	MTexPoly *mtp = me->mtpoly;
-	MPoly *mp = me->mpoly;
-	float (*scol)[5];
-	int i;
-
-	/* if no mloopcol: do not do */
-	/* if mtexpoly: only the involved faces, otherwise all */
-
-	if(me->mloopcol==0 || me->totvert==0 || me->totpoly==0) return;
-
-	scol = MEM_callocN(sizeof(float)*me->totvert*5, "scol");
-
-	for (i=0; i<me->totloop; i++, ml++, lcol++) {
-		if (i >= mp->loopstart + mp->totloop) {
-			mp++;
-			if (mtp) mtp++;
-		}
-
-		if (mtp && !(mtp->mode & TF_SHAREDCOL))
-			continue;
-
-		scol[ml->v][0] += lcol->r;
-		scol[ml->v][1] += lcol->g;
-		scol[ml->v][2] += lcol->b;
-		scol[ml->v][3] += lcol->a;
-		scol[ml->v][4] += 1.0;
-	}
-	
-	for (i=0; i<me->totvert; i++) {
-		if (!scol[i][4]) continue;
-
-		scol[i][0] /= scol[i][4];
-		scol[i][1] /= scol[i][4];
-		scol[i][2] /= scol[i][4];
-		scol[i][3] /= scol[i][4];
-	}
-	
-	ml = me->mloop;
-	lcol = me->mloopcol;
-	for (i=0; i<me->totloop; i++, ml++, lcol++) {
-		if (!scol[ml->v][4]) continue;
-
-		lcol->r = scol[ml->v][0];
-		lcol->g = scol[ml->v][1];
-		lcol->b = scol[ml->v][2];
-		lcol->a = scol[ml->v][3];
-	}
-
-	MEM_freeN(scol);
-#if 0
 	/* if no mcol: do not do */
 	/* if tface: only the involved faces, otherwise all */
 	MFace *mface;
@@ -320,7 +268,63 @@ void do_shared_vertexcol(Mesh *me)
 	}
 
 	MEM_freeN(scolmain);
-#endif
+}
+
+void do_shared_vertexcol(Mesh *me)
+{
+	MLoop *ml = me->mloop;
+	MLoopCol *lcol = me->mloopcol;
+	MTexPoly *mtp = me->mtpoly;
+	MPoly *mp = me->mpoly;
+	float (*scol)[5];
+	int i;
+
+	/* if no mloopcol: do not do */
+	/* if mtexpoly: only the involved faces, otherwise all */
+
+	if(me->mloopcol==0 || me->totvert==0 || me->totpoly==0) return;
+
+	scol = MEM_callocN(sizeof(float)*me->totvert*5, "scol");
+
+	for (i=0; i<me->totloop; i++, ml++, lcol++) {
+		if (i >= mp->loopstart + mp->totloop) {
+			mp++;
+			if (mtp) mtp++;
+		}
+
+		if (mtp && !(mtp->mode & TF_SHAREDCOL))
+			continue;
+
+		scol[ml->v][0] += lcol->r;
+		scol[ml->v][1] += lcol->g;
+		scol[ml->v][2] += lcol->b;
+		scol[ml->v][3] += lcol->a;
+		scol[ml->v][4] += 1.0;
+	}
+	
+	for (i=0; i<me->totvert; i++) {
+		if (!scol[i][4]) continue;
+
+		scol[i][0] /= scol[i][4];
+		scol[i][1] /= scol[i][4];
+		scol[i][2] /= scol[i][4];
+		scol[i][3] /= scol[i][4];
+	}
+	
+	ml = me->mloop;
+	lcol = me->mloopcol;
+	for (i=0; i<me->totloop; i++, ml++, lcol++) {
+		if (!scol[ml->v][4]) continue;
+
+		lcol->r = scol[ml->v][0];
+		lcol->g = scol[ml->v][1];
+		lcol->b = scol[ml->v][2];
+		lcol->a = scol[ml->v][3];
+	}
+
+	MEM_freeN(scol);
+
+	do_shared_vertex_tesscol(me);
 }
 
 void make_vertexcol(Scene *scene, int shade)	/* single ob */
@@ -1261,6 +1265,13 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 	me= get_mesh(ob);
 	if(me==NULL || me->totface==0) return OPERATOR_PASS_THROUGH;
 	
+	/*we can't assume mfaces have a correct origindex layer that indices to mpolys.
+	  so instead we have to regenerate the tesselation faces altogether.*/
+	me->totface = mesh_recalcTesselation(&me->fdata, &me->ldata, &me->pdata, 
+		me->mvert, me->totface, me->totloop, me->totpoly);
+	mesh_update_customdata_pointers(me);
+	makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH);
+
 	/* if nothing was added yet, we make dverts and a vertex deform group */
 	if (!me->dvert)
 		create_dverts(&me->id);
@@ -1646,7 +1657,8 @@ struct VPaintData {
 
 };
 
-static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me)
+static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me,
+				      Object *ob, Scene *scene)
 {
 	MFace *mf;
 	polyfacemap_e *e;
@@ -1662,8 +1674,9 @@ static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me)
 	  so instead we have to regenerate the tesselation faces altogether.*/
 	me->totface = mesh_recalcTesselation(&me->fdata, &me->ldata, &me->pdata, 
 		me->mvert, me->totface, me->totloop, me->totpoly);
-
 	mesh_update_customdata_pointers(me);
+	makeDerivedMesh(scene, ob, NULL, CD_MASK_BAREMESH);
+
 	origIndex = CustomData_get_layer(&me->fdata, CD_ORIGINDEX);
 	mf = me->mface;
 
@@ -1688,6 +1701,7 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 	VPaint *vp= ts->vpaint;
 	struct VPaintData *vpd;
 	Object *ob= CTX_data_active_object(C);
+	Scene *scene = CTX_data_scene(C);
 	Mesh *me;
 	float mat[4][4], imat[4][4];
 
@@ -1709,7 +1723,7 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 	vpd->vertexcosnos= mesh_get_mapped_verts_nors(vpd->vc.scene, ob);
 	vpd->indexar= get_indexarray();
 	vpd->paintcol= vpaint_get_current_col(vp);
-	vpaint_build_poly_facemap(vpd, me);
+	vpaint_build_poly_facemap(vpd, me, ob, scene);
 	
 	/* for filtering */
 	copy_vpaint_prev(vp, (unsigned int *)me->mloopcol, me->totloop);
@@ -1827,22 +1841,13 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 				if(alpha) vpaint_blend(vp, lcol+i, lcolorig+i, vpd->paintcol, alpha);
 			}
 	
-#ifdef CPYCOL
-#if 0
+			#ifdef CPYCOL
 			#undef CPYCOL
 			#endif
 			#define CPYCOL(c, l) (c)->a = (l)->a, (c)->r = (l)->r, (c)->g = (l)->g, (c)->b = (l)->b
 
-			/*update vertex colors for tesselations.  this code
-			  isn't strictly necassary, since CDDM regenerates
-			  the tesselations when it creates a CDDM from
-			  a Mesh.  this also makes it hard to test that this
-			  code is working correctly.
-			  
-			  if it turns out having cddm constantly recalculating
-			  the tesselation is a problem, we can always turn on 
-			  this code and add an exception where cddm doesn't
-			  redo the tesselation if it's in vpaint mode.*/
+			/*update vertex colors for tesselations incrementally,
+			  rather then regenerating the tesselation altogether.*/
 			for (e=vpd->polyfacemap[(indexar[index]-1)].first; e; e=e->next) {
 				mf = me->mface + e->facenr;
 				mc = me->mcol + e->facenr*4;
@@ -1853,25 +1858,23 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 					if (ml->v == mf->v1)
 						CPYCOL(mc, mlc);
 					else if (ml->v == mf->v2)
-						CPYCOL(mc+4, mlc);
+						CPYCOL(mc+1, mlc);
 					else if (ml->v == mf->v3)
-						CPYCOL(mc+8, mlc);
+						CPYCOL(mc+2, mlc);
 					else if (mf->v4 && ml->v == mf->v4)
-						CPYCOL(mc+12, mlc);
+						CPYCOL(mc+3, mlc);
 
 				}
 			}
 			#undef CPYCOL
-#endif
 		}
 	}
 		
 	MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
 			
 	do_shared_vertexcol(me);
-			
-	ED_region_tag_redraw(vc->ar);
-			
+
+	ED_region_tag_redraw(vc->ar);		
 	DAG_object_flush_update(vc->scene, ob, OB_RECALC_DATA);
 }
 
