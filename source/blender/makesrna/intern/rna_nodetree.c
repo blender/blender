@@ -57,6 +57,15 @@ StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 	}
 }
 
+static char *rna_Node_path(PointerRNA *ptr)
+{
+	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
+	bNode *node= (bNode*)ptr->data;
+	int index = BLI_findindex(&ntree->nodes, node);
+	
+	return BLI_sprintfN("nodes[%d]", index);
+}
+
 #else
 
 #define MaxNodes 1000
@@ -1353,6 +1362,7 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Node", "Node in a node tree.");
 	RNA_def_struct_sdna(srna, "bNode");
 	RNA_def_struct_refine_func(srna, "rna_Node_refine");
+	RNA_def_struct_path_func(srna, "rna_Node_path");
 	
 	prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "locx");

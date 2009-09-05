@@ -1459,26 +1459,28 @@ static int node_composit_buts_lensdist(uiBlock *block, bNodeTree *ntree, bNode *
 static int node_composit_buts_vecblur(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
-		NodeBlurData *nbd= node->storage;
+		PointerRNA ptr;
 		short dy= butr->ymin;
 		short dx= (butr->xmax-butr->xmin);
 		
-		uiBlockBeginAlign(block);
-		uiDefButS(block, NUM, B_NODE_EXEC, "Samples:",
-				 butr->xmin, dy+76, dx, 19, 
-				 &nbd->samples, 1, 256, 0, 0, "Amount of samples");
-		uiDefButS(block, NUM, B_NODE_EXEC, "MinSpeed:",
-				  butr->xmin, dy+57, dx, 19, 
-				  &nbd->minspeed, 0, 1024, 0, 0, "Minimum speed for a pixel to be blurred, used to separate background from foreground");
-		uiDefButS(block, NUM, B_NODE_EXEC, "MaxSpeed:",
-				  butr->xmin, dy+38, dx, 19, 
-				  &nbd->maxspeed, 0, 1024, 0, 0, "If not zero, maximum speed in pixels");
-		uiDefButF(block, NUM, B_NODE_EXEC, "Blur:",
-				  butr->xmin, dy+19, dx, 19, 
-				  &nbd->fac, 0.0f, 2.0f, 10, 2, "Scaling factor for motion vectors, actually 'shutter speed' in frames");
-		uiDefButS(block, TOG, B_NODE_EXEC, "Curved",
-				  butr->xmin, dy, dx, 19, 
-				  &nbd->curved, 0.0f, 2.0f, 10, 2, "Interpolate between frames in a bezier curve, rather than linearly");
+		RNA_pointer_create((ID *)ntree, &RNA_Node, node, &ptr);
+		
+		uiBlockBeginAlign(block);	
+		uiDefButR(block, NUM, B_NODE_EXEC, NULL, 
+			butr->xmin, dy+76, dx, 19, 
+			&ptr, "samples", 0, 1, 256, 0, 0, NULL);
+		uiDefButR(block, NUM, B_NODE_EXEC, NULL, 
+			butr->xmin, dy+57, dx, 19, 
+			&ptr, "min_speed", 0, 0, 1024, 0, 0, NULL);
+		uiDefButR(block, NUM, B_NODE_EXEC, NULL, 
+			butr->xmin, dy+38, dx, 19, 
+			&ptr, "max_speed", 0, 0, 1024, 0, 0, NULL);
+		uiDefButR(block, NUM, B_NODE_EXEC, "Blur", 
+			butr->xmin, dy+19, dx, 19, 
+			&ptr, "factor", 0, 0, 2, 10, 2, NULL);
+		uiDefButR(block, TOG, B_NODE_EXEC, NULL, 
+			butr->xmin, dy, dx, 19, 
+			&ptr, "curved", 0, 0, 2, 10, 2, NULL);
 		uiBlockEndAlign(block);
 	}
 	return 95;
@@ -2625,66 +2627,4 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 	node_draw_link_bezier(v2d, snode, link, th_col1, th_col2, do_shaded);
 }
 
-#if 0
 
-static void nodes_panel_gpencil(short cntrl)	// NODES_HANDLER_GREASEPENCIL
-{
-	uiBlock *block;
-	SpaceNode *snode;
-	
-	snode= curarea->spacedata.first;
-
-	block= uiNewBlock(&curarea->uiblocks, "nodes_panel_gpencil", UI_EMBOSS, UI_HELV, curarea->win);
-	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE  | cntrl);
-	uiSetPanelHandler(NODES_HANDLER_GREASEPENCIL);  // for close and esc
-	if (uiNewPanel(curarea, block, "Grease Pencil", "SpaceNode", 100, 30, 318, 204)==0) return;
-	
-	/* we can only really draw stuff if there are nodes (otherwise no events are handled */
-	if (snode->nodetree == NULL)
-		return;
-	
-	/* allocate memory for gpd if drawing enabled (this must be done first or else we crash) */
-	if (snode->flag & SNODE_DISPGP) {
-		if (snode->gpd == NULL)
-			gpencil_data_setactive(curarea, gpencil_data_addnew());
-	}
-	
-	if (snode->flag & SNODE_DISPGP) {
-		bGPdata *gpd= snode->gpd;
-		short newheight;
-		
-		/* this is a variable height panel, newpanel doesnt force new size on existing panels */
-		/* so first we make it default height */
-		uiNewPanelHeight(block, 204);
-		
-		/* draw button for showing gpencil settings and drawings */
-		uiDefButBitS(block, TOG, SNODE_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &snode->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Node Editor (draw using Shift-LMB)");
-		
-		/* extend the panel if the contents won't fit */
-		newheight= draw_gpencil_panel(block, gpd, curarea); 
-		uiNewPanelHeight(block, newheight);
-	}
-	else {
-		uiDefButBitS(block, TOG, SNODE_DISPGP, B_REDR, "Use Grease Pencil", 10, 225, 150, 20, &snode->flag, 0, 0, 0, 0, "Display freehand annotations overlay over this Node Editor");
-		uiDefBut(block, LABEL, 1, " ",	160, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
-	}
-}
-
-static void nodes_blockhandlers(ScrArea *sa)
-{
-	SpaceNode *snode= sa->spacedata.first;
-	short a;
-	
-	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
-		switch(snode->blockhandler[a]) {
-			case NODES_HANDLER_GREASEPENCIL:
-				nodes_panel_gpencil(snode->blockhandler[a+1]);
-				break;
-		}
-		
-		/* clear action value for event */
-		snode->blockhandler[a+1]= 0;
-	}
-	uiDrawBlocksPanels(sa, 0);
-}
-#endif
