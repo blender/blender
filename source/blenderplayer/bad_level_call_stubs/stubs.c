@@ -177,24 +177,24 @@ void WM_operator_bl_idname(char *to, const char *from){}
 short insert_keyframe (struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag){return 0;}
 
 /* smoke */
-void lzo1x_1_compress(void) {return;};
-void LzmaCompress(void) {return;};
-void smoke_export(void) {return;};
-void lzo1x_decompress(void) {return;};
-void LzmaUncompress(void) {return;};
-void smoke_init(void) {return;};
-void smoke_turbulence_init(void) {return;};
-void smoke_turbulence_initBlenderRNA(void) {return;};
-void smoke_initBlenderRNA(void) {return;};
-void smoke_free(void) {return;};
-void smoke_turbulence_free(void) {return;};
-void smoke_turbulence_step(void) {return;};
-void smoke_dissolve(void) {return;};
-void smoke_get_density(void) {return;};
-void smoke_get_heat(void) {return;};
-void smoke_get_velocity_x(void) {return;};
-void smoke_get_velocity_y(void) {return;};
-void smoke_get_velocity_z(void) {return;};
-void smoke_get_obstacle(void) {return;};
-void smoke_get_index(void) {return;};
-void smoke_step(void) {return;};
+void lzo1x_1_compress(void) {return;}
+void LzmaCompress(void) { return; }
+void smoke_export(void) {return;}
+void lzo1x_decompress(void) {return;}
+void LzmaUncompress(void) {return;}
+void smoke_init(void) {return;}
+void smoke_turbulence_init(void) {return;}
+void smoke_turbulence_initBlenderRNA(void) {return;}
+void smoke_initBlenderRNA(void) {return;}
+void smoke_free(void) {return;}
+void smoke_turbulence_free(void) {return;}
+void smoke_turbulence_step(void) {return;}
+void smoke_dissolve(void) {return;}
+void smoke_get_density(void) {return;}
+void smoke_get_heat(void) {return;}
+void smoke_get_velocity_x(void) {return;}
+void smoke_get_velocity_y(void) {return;}
+void smoke_get_velocity_z(void) {return;}
+void smoke_get_obstacle(void) {return;}
+void smoke_get_index(void) {return;}
+void smoke_step(void) {return;}
