@@ -555,7 +555,7 @@ static void foreach_mouse_hit_key(PEData *data, ForKeyMatFunc func, int selected
 	Mat4One(mat);
 
 	LOOP_VISIBLE_POINTS {
-		if(edit->psys) {
+		if(edit->psys && !(edit->psys->flag & PSYS_GLOBAL_HAIR)) {
 			psys_mat_hair_to_global(data->ob, psmd->dm, psys->part->from, psys->particles + p, mat);
 			Mat4Invert(imat,mat);
 		}
@@ -812,7 +812,7 @@ static void pe_deflect_emitter(Scene *scene, Object *ob, PTCacheEdit *edit)
 	float *vec, *nor, dvec[3], dot, dist_1st;
 	float hairimat[4][4], hairmat[4][4];
 
-	if(edit==NULL || edit->psys==NULL || (pset->flag & PE_DEFLECT_EMITTER)==0)
+	if(edit==NULL || edit->psys==NULL || (pset->flag & PE_DEFLECT_EMITTER)==0 || (edit->psys->flag & PSYS_GLOBAL_HAIR))
 		return;
 
 	psys = edit->psys;
@@ -876,6 +876,9 @@ void PE_apply_lengths(Scene *scene, PTCacheEdit *edit)
 	if(edit==0 || (pset->flag & PE_KEEP_LENGTHS)==0)
 		return;
 
+	if(edit->psys && edit->psys->flag & PSYS_GLOBAL_HAIR)
+		return;
+
 	LOOP_EDITED_POINTS {
 		LOOP_KEYS {
 			if(k) {
@@ -899,10 +902,10 @@ static void pe_iterate_lengths(Scene *scene, PTCacheEdit *edit)
 	float dv1[3]= {0.0f, 0.0f, 0.0f};
 	float dv2[3]= {0.0f, 0.0f, 0.0f};
 
-	if(edit==0)
+	if(edit==0 || (pset->flag & PE_KEEP_LENGTHS)==0)
 		return;
 
-	if((pset->flag & PE_KEEP_LENGTHS)==0)
+	if(edit->psys && edit->psys->flag & PSYS_GLOBAL_HAIR)
 		return;
 
 	LOOP_EDITED_POINTS {
@@ -1057,11 +1060,13 @@ static void update_world_cos(Object *ob, PTCacheEdit *edit)
 		return;
 
 	LOOP_POINTS {
-		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, psys->particles+p, hairmat);
+		if(!(psys->flag & PSYS_GLOBAL_HAIR))
+			psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, psys->particles+p, hairmat);
 
 		LOOP_KEYS {
 			VECCOPY(key->world_co,key->co);
-			Mat4MulVecfl(hairmat, key->world_co);
+			if(!(psys->flag & PSYS_GLOBAL_HAIR))
+				Mat4MulVecfl(hairmat, key->world_co);
 		}
 	}
 }
@@ -1480,7 +1485,7 @@ int PE_lasso_select(bContext *C, short mcords[][2], short moves, short select)
 	Mat4One(mat);
 
 	LOOP_VISIBLE_POINTS {
-		if(edit->psys)
+		if(edit->psys && !(psys->flag & PSYS_GLOBAL_HAIR))
 			psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, psys->particles + p, mat);
 
 		if(pset->selectmode==SCE_SELECT_POINT) {
@@ -1777,7 +1782,8 @@ static void rekey_particle(PEData *data, int pa_index)
 	for(k=0, key=pa->hair; k<pa->totkey; k++, key++, ekey++) {
 		ekey->co= key->co;
 		ekey->time= &key->time;
-		ekey->flag |= PEK_USE_WCO;
+		if(!(psys->flag & PSYS_GLOBAL_HAIR))
+			ekey->flag |= PEK_USE_WCO;
 	}
 
 	pa->flag &= ~PARS_REKEY;
@@ -2059,7 +2065,9 @@ static void subdivide_particle(PEData *data, int pa_index)
 
 			nekey->co= nkey->co;
 			nekey->time= &nkey->time;
-			nekey->flag |= (PEK_SELECT|PEK_USE_WCO);
+			nekey->flag |= PEK_SELECT;
+			if(!(psys->flag & PSYS_GLOBAL_HAIR))
+				nekey->flag |= PEK_USE_WCO;
 
 			nekey++;
 			nkey++;
@@ -2128,6 +2136,9 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 	POINT_P;
 	float mat[4][4], co[3], threshold= RNA_float_get(op->ptr, "threshold");
 	int n, totn, removed, flag, totremoved;
+
+	if(psys->flag & PSYS_GLOBAL_HAIR)
+		return OPERATOR_CANCELLED;
 
 	edit= psys->edit;
 	psmd= psys_get_modifier(ob, psys);
@@ -2399,6 +2410,9 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 	HairKey *hkey;
 	int *mirrorfaces;
 	int rotation, totpart, newtotpart;
+
+	if(psys->flag & PSYS_GLOBAL_HAIR)
+		return;
 
 	psmd= psys_get_modifier(ob, psys);
 
@@ -2750,7 +2764,7 @@ static void brush_puff(PEData *data, int point_index)
 	float mat[4][4], imat[4][4];
 	float lastco[3], rootco[3], co[3], nor[3], kco[3], dco[3], fac, length;
 
-	if(psys) {
+	if(psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
 		psys_mat_hair_to_global(data->ob, data->dm, psys->part->from, psys->particles + point_index, mat);
 		Mat4Invert(imat,mat);
 	}
@@ -2848,6 +2862,9 @@ static void brush_add(PEData *data, short number)
 	short size2= size*size;
 	DerivedMesh *dm=0;
 	Mat4Invert(imat,ob->obmat);
+
+	if(psys->flag & PSYS_GLOBAL_HAIR)
+		return;
 
 	BLI_srandom(psys->seed+data->mval[0]+data->mval[1]);
 	
@@ -3070,6 +3087,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 	float vec[3], mousef[2];
 	short mval[2], mvalo[2];
 	int flip, mouse[2], dx, dy, removed= 0, selected= 0;
+	int lock_root = pset->flag & PE_LOCK_FIRST;
 
 	if(!PE_start_edit(edit))
 		return;
@@ -3092,6 +3110,10 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 
 	mvalo[0]= bedit->lastmouse[0];
 	mvalo[1]= bedit->lastmouse[1];
+
+	/* disable locking temporatily for disconnected hair */
+	if(edit->psys && edit->psys->flag & PSYS_GLOBAL_HAIR)
+		pset->flag &= ~PE_LOCK_FIRST;
 
 	if(((pset->brushtype == PE_BRUSH_ADD) ?
 		(sqrt(dx * dx + dy * dy) > pset->brush[PE_BRUSH_ADD].step) : (dx != 0 || dy != 0))
@@ -3248,6 +3270,8 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 		bedit->lastmouse[1]= mouse[1];
 		bedit->first= 0;
 	}
+
+	pset->flag |= lock_root;
 }
 
 static void brush_edit_exit(bContext *C, wmOperator *op)
@@ -3382,6 +3406,8 @@ static void make_PTCacheUndo(PTCacheEdit *edit, PTCacheUndo *undo)
 
 		for(i=0; i<edit->totpoint; i++, pa++)
 			pa->hair= MEM_dupallocN(pa->hair);
+
+		undo->psys_flag = edit->psys->flag;
 	}
 	else {
 		PTCacheMem *pm;
@@ -3449,6 +3475,8 @@ static void get_PTCacheUndo(PTCacheEdit *edit, PTCacheUndo *undo)
 				hkey++;
 			}
 		}
+
+		psys->flag = undo->psys_flag;
 	}
 	else {
 		PTCacheMem *pm;
@@ -3704,7 +3732,8 @@ static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache,
 					key->co= hkey->co;
 					key->time= &hkey->time;
 					key->flag= hkey->editflag;
-					key->flag |= PEK_USE_WCO;
+					if(!(psys->flag & PSYS_GLOBAL_HAIR))
+						key->flag |= PEK_USE_WCO;
 					hkey++;
 				}
 				pa++;
@@ -3828,6 +3857,7 @@ static int clear_edited_exec(bContext *C, wmOperator *op)
 			psys->free_edit = NULL;
 
 			psys->recalc |= PSYS_RECALC_RESET;
+			psys->flag &= ~PSYS_GLOBAL_HAIR;
 
 			psys_reset(psys, PSYS_RESET_DEPSGRAPH);
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);

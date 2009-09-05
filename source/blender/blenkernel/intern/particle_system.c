@@ -158,7 +158,7 @@ void psys_reset(ParticleSystem *psys, int mode)
 	psys->totchild= 0;
 
 	/* reset path cache */
-	psys_free_path_cache(psys, NULL);
+	psys_free_path_cache(psys, psys->edit);
 
 	/* reset point cache */
 	psys->pointcache->flag &= ~PTCACHE_SIMULATION_VALID;

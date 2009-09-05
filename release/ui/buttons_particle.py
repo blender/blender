@@ -151,6 +151,11 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
 					row = split.row()
 					row.enabled = particle_panel_enabled(psys)
 					row.itemR(part, "hair_step")
+					if psys.edited==True:
+						if psys.global_hair:
+							layout.itemO("particle.connect_hair")
+						else:
+							layout.itemO("particle.disconnect_hair")
 				elif part.type=='REACTOR':
 					split.enabled = particle_panel_enabled(psys)
 					split.itemR(psys, "reactor_target_object")

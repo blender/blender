@@ -418,7 +418,7 @@ void psys_free_path_cache(ParticleSystem *psys, PTCacheEdit *edit)
 		edit->pathcache= NULL;
 		edit->totcached= 0;
 	}
-	else {
+	if(psys) {
 		psys_free_path_cache_buffers(psys->pathcache, &psys->pathcachebufs);
 		psys->pathcache= NULL;
 		psys->totcached= 0;
@@ -2676,7 +2676,7 @@ void psys_cache_paths(Scene *scene, Object *ob, ParticleSystem *psys, float cfra
 	baked = psys->pointcache->flag & PTCACHE_BAKED;
 
 	/* clear out old and create new empty path cache */
-	psys_free_path_cache(psys, NULL);
+	psys_free_path_cache(psys, psys->edit);
 	cache= psys->pathcache= psys_alloc_path_cache_buffers(&psys->pathcachebufs, totpart, steps+1);
 
 	if(psys->soft && psys->softflag & OB_SB_ENABLE) {
@@ -2891,7 +2891,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 
 	if(!cache || edit->totpoint != edit->totcached) {
 		/* clear out old and create new empty path cache */
-		psys_free_path_cache(NULL, edit);
+		psys_free_path_cache(edit->psys, edit);
 		cache= edit->pathcache= psys_alloc_path_cache_buffers(&edit->pathcachebufs, totpart, steps+1);
 	}
 
@@ -2946,7 +2946,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 			do_particle_interpolation(psys, i, pa, t, frs_sec, &pind, &result);
 
 			 /* non-hair points are allready in global space */
-			if(psys)
+			if(psys && !(psys->flag & PSYS_GLOBAL_HAIR))
 				Mat4MulVecfl(hairmat, result.co);
 
 			VECCOPY(ca->co, result.co);

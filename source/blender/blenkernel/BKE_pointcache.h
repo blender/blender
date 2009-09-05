@@ -192,6 +192,7 @@ typedef struct PTCacheUndo {
 	struct ParticleData *particles;
 	struct KDTree *emitter_field;
 	float *emitter_cosnos;
+	int psys_flag;
 
 	/* cache stuff */
 	struct ListBase mem_cache;

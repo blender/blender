@@ -35,6 +35,8 @@
 #include "DNA_group_types.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
@@ -42,8 +44,11 @@
 #include "DNA_space_types.h"
 #include "DNA_world_types.h"
 
+#include "BKE_bvhutils.h"
+#include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_group.h"
 #include "BKE_font.h"
 #include "BKE_library.h"
@@ -51,11 +56,13 @@
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_world.h"
 
+#include "BLI_arithb.h"
 #include "BLI_editVert.h"
 #include "BLI_listbase.h"
 
@@ -836,6 +843,217 @@ void PARTICLE_OT_target_move_down(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/************************ connect/disconnect hair operators *********************/
+
+static void disconnect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
+{
+	ParticleSystemModifierData *psmd = psys_get_modifier(ob,psys);
+	ParticleData *pa = psys->particles;
+	PTCacheEdit *edit = psys->edit;
+	PTCacheEditPoint *point = edit ? edit->points : NULL;
+	PTCacheEditKey *ekey = NULL;
+	HairKey *key;
+	int i, k;
+	float hairmat[4][4];
+
+	if(!ob || !psys || psys->flag & PSYS_GLOBAL_HAIR)
+		return;
+
+	if(!psys->part || psys->part->type != PART_HAIR)
+		return;
+
+	for(i=0; i<psys->totpart; i++,pa++) {
+		if(point) {
+			ekey = point->keys;
+			point++;
+		}
+
+		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, hairmat);
+
+		for(k=0,key=pa->hair; k<pa->totkey; k++,key++) {
+			Mat4MulVecfl(hairmat,key->co);
+			
+			if(ekey) {
+				ekey->flag &= ~PEK_USE_WCO;
+				ekey++;
+			}
+		}
+	}
+
+	psys_free_path_cache(psys, psys->edit);
+
+	psys->flag |= PSYS_GLOBAL_HAIR;
+
+	PE_update_object(scene, ob, 0);
+}
+
+static int disconnect_hair_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+	ParticleSystem *psys= NULL;
+	int all = RNA_boolean_get(op->ptr, "all");
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	if(all) {
+		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+			disconnect_hair(scene, ob, psys);
+		}
+	}
+	else {
+		psys = ptr.data;
+		disconnect_hair(scene, ob, psys);
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_disconnect_hair(wmOperatorType *ot)
+{
+	ot->name= "Disconnect Hair";
+	ot->description= "Disconnect hair from the emitter mesh.";
+	ot->idname= "PARTICLE_OT_disconnect_hair";
+
+	ot->exec= disconnect_hair_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "all", 0, "All hair", "Disconnect all hair systems from the emitter mesh");
+}
+
+static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
+{
+	ParticleSystemModifierData *psmd = psys_get_modifier(ob,psys);
+	ParticleData *pa = psys->particles;
+	PTCacheEdit *edit = psys->edit;
+	PTCacheEditPoint *point = edit ? edit->points : NULL;
+	PTCacheEditKey *ekey;
+	HairKey *key;
+	BVHTreeFromMesh bvhtree;
+	BVHTreeNearest nearest;
+	MFace *mface;
+	DerivedMesh *dm = CDDM_copy(psmd->dm);
+	int numverts = dm->getNumVerts (dm);
+	int i, k;
+	float hairmat[4][4], imat[4][4];
+	float v[4][3], vec[3];
+
+	if(!psys || !psys->part || psys->part->type != PART_HAIR)
+		return;
+
+	memset( &bvhtree, 0, sizeof(bvhtree) );
+
+	/* convert to global coordinates */
+	for (i=0; i<numverts; i++)
+		Mat4MulVecfl (ob->obmat, CDDM_get_vert(dm, i)->co);
+
+	bvhtree_from_mesh_faces(&bvhtree, dm, 0.0, 2, 6);
+
+	for(i=0; i<psys->totpart; i++,pa++) {
+		key = pa->hair;
+
+		nearest.index = -1;
+		nearest.dist = FLT_MAX;
+
+		BLI_bvhtree_find_nearest(bvhtree.tree, key->co, &nearest, bvhtree.nearest_callback, &bvhtree);
+
+		if(nearest.index == -1) {
+			printf("No nearest point found for hair root!");
+			continue;
+		}
+
+		mface = CDDM_get_face(dm,nearest.index);
+
+		VecCopyf(v[0], CDDM_get_vert(dm,mface->v1)->co);
+		VecCopyf(v[1], CDDM_get_vert(dm,mface->v2)->co);
+		VecCopyf(v[2], CDDM_get_vert(dm,mface->v3)->co);
+		if(mface->v4) {
+			VecCopyf(v[3], CDDM_get_vert(dm,mface->v4)->co);
+			MeanValueWeights(v, 4, nearest.co, pa->fuv);
+		}
+		else
+			MeanValueWeights(v, 3, nearest.co, pa->fuv);
+
+		pa->num = nearest.index;
+		pa->num_dmcache = psys_particle_dm_face_lookup(ob,psmd->dm,pa->num,pa->fuv,NULL);
+		
+		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, hairmat);
+		Mat4Invert(imat,hairmat);
+
+		VECSUB(vec, nearest.co, key->co);
+
+		if(point) {
+			ekey = point->keys;
+			point++;
+		}
+
+		for(k=0,key=pa->hair; k<pa->totkey; k++,key++) {
+			VECADD(key->co, key->co, vec);
+			Mat4MulVecfl(imat,key->co);
+
+			if(ekey) {
+				ekey->flag |= PEK_USE_WCO;
+				ekey++;
+			}
+		}
+	}
+
+	free_bvhtree_from_mesh(&bvhtree);
+	dm->release(dm);
+
+	psys_free_path_cache(psys, psys->edit);
+
+	psys->flag &= ~PSYS_GLOBAL_HAIR;
+
+	PE_update_object(scene, ob, 0);
+}
+
+static int connect_hair_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
+	ParticleSystem *psys= NULL;
+	int all = RNA_boolean_get(op->ptr, "all");
+
+	if(!ob)
+		return OPERATOR_CANCELLED;
+
+	if(all) {
+		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+			connect_hair(scene, ob, psys);
+		}
+	}
+	else {
+		psys = ptr.data;
+		connect_hair(scene, ob, psys);
+	}
+
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_connect_hair(wmOperatorType *ot)
+{
+	ot->name= "Connect Hair";
+	ot->description= "Connect hair to the emitter mesh.";
+	ot->idname= "PARTICLE_OT_connect_hair";
+
+	ot->exec= connect_hair_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "all", 0, "All hair", "Connect all hair systems to the emitter mesh");
 }
 
 /********************** render layer operators *********************/

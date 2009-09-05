@@ -1760,17 +1760,17 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 
 	case B_SEL_PATH:
 		ts->particle.selectmode= SCE_SELECT_PATH;
-		WM_event_add_notifier(C, NC_OBJECT, ob);
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 		ED_undo_push(C, "Selectmode Set: Path");
 		break;
 	case B_SEL_POINT:
 		ts->particle.selectmode = SCE_SELECT_POINT;
-		WM_event_add_notifier(C, NC_OBJECT, ob);
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 		ED_undo_push(C, "Selectmode Set: Point");
 		break;
 	case B_SEL_END:
 		ts->particle.selectmode = SCE_SELECT_END;
-		WM_event_add_notifier(C, NC_OBJECT, ob);
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 		ED_undo_push(C, "Selectmode Set: End point");
 		break;	
 	

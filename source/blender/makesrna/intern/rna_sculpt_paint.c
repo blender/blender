@@ -107,7 +107,7 @@ static void rna_ParticleEdit_redo(bContext *C, PointerRNA *ptr)
 	if(!edit)
 		return;
 
-	psys_free_path_cache(NULL, edit);
+	psys_free_path_cache(edit->psys, edit);
 }
 
 static void rna_ParticleEdit_update(bContext *C, PointerRNA *ptr)
@@ -410,7 +410,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "fade_time", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_FADE_TIME);
 	RNA_def_property_ui_text(prop, "Fade Time", "Fade paths and keys further away from current frame.");
-	RNA_def_property_update(prop, NC_OBJECT, "rna_ParticleEdit_update");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_ParticleEdit_update");
 
 	prop= RNA_def_property(srna, "auto_velocity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_AUTO_VELOCITY);
@@ -443,18 +443,18 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "draw_step", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 2, 10);
 	RNA_def_property_ui_text(prop, "Steps", "How many steps to draw the path with.");
-	RNA_def_property_update(prop, NC_OBJECT, "rna_ParticleEdit_redo");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_ParticleEdit_redo");
 
 	prop= RNA_def_property(srna, "fade_frames", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 2, 100);
 	RNA_def_property_ui_text(prop, "Frames", "How many frames to fade.");
-	RNA_def_property_update(prop, NC_OBJECT, "rna_ParticleEdit_update");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_ParticleEdit_update");
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "edittype");
 	RNA_def_property_enum_items(prop, edit_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
-	RNA_def_property_update(prop, NC_OBJECT, "rna_ParticleEdit_redo");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_ParticleEdit_redo");
 
 	prop= RNA_def_property(srna, "editable", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_ParticleEdit_editable_get", NULL);

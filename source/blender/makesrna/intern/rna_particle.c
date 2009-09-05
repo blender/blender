@@ -1884,6 +1884,11 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "softflag", OB_SB_ENABLE);
 	RNA_def_property_ui_text(prop, "Use Soft Body", "Enable use of soft body for hair physics simulation.");
 
+	prop= RNA_def_property(srna, "global_hair", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PSYS_GLOBAL_HAIR);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Global Hair", "Hair keys are in global coordinate space");
+
 	/* reactor */
 	prop= RNA_def_property(srna, "reactor_target_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "target_ob");

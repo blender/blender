@@ -1690,11 +1690,11 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 
 		if(!(point->flag & PEP_TRANSFORM)) continue;
 
-		if(psys)
+		if(psys && !(psys->flag & PSYS_GLOBAL_HAIR))
 			psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, psys->particles + i, mat);
 
 		for(k=0, key=point->keys; k<point->totkey; k++, key++) {
-			if(psys) {
+			if(key->flag & PEK_USE_WCO) {
 				VECCOPY(key->world_co, key->co);
 				Mat4MulVecfl(mat, key->world_co);
 				td->loc = key->world_co;
@@ -1714,7 +1714,7 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 			Mat3One(td->smtx);
 
 			/* don't allow moving roots */
-			if(k==0 && pset->flag & PE_LOCK_FIRST)
+			if(k==0 && pset->flag & PE_LOCK_FIRST && (!psys || !(psys->flag & PSYS_GLOBAL_HAIR)))
 				td->protectflag |= OB_LOCK_LOC;
 
 			td->ob = ob;
@@ -1764,7 +1764,7 @@ void flushTransParticles(TransInfo *t)
 	for(i=0, point=edit->points; i<edit->totpoint; i++, point++, td++) {
 		if(!(point->flag & PEP_TRANSFORM)) continue;
 
-		if(psys) {
+		if(psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
 			psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, psys->particles + i, mat);
 			Mat4Invert(imat,mat);
 

@@ -85,6 +85,8 @@ void PARTICLE_OT_new_target(struct wmOperatorType *ot);
 void PARTICLE_OT_remove_target(struct wmOperatorType *ot);
 void PARTICLE_OT_target_move_up(struct wmOperatorType *ot);
 void PARTICLE_OT_target_move_down(struct wmOperatorType *ot);
+void PARTICLE_OT_connect_hair(struct wmOperatorType *ot);
+void PARTICLE_OT_disconnect_hair(struct wmOperatorType *ot);
 
 void SCENE_OT_render_layer_add(struct wmOperatorType *ot);
 void SCENE_OT_render_layer_remove(struct wmOperatorType *ot);

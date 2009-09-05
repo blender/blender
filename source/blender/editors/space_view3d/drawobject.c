@@ -3749,7 +3749,6 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 	nosel_col[1]=(float)nosel[1]/255.0f;
 	nosel_col[2]=(float)nosel[2]/255.0f;
 
-
 	/* draw paths */
 	if(timed) {
 		glEnable(GL_BLEND);
@@ -3758,24 +3757,16 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 	}
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-
-	/* solid shaded with lighting */
-	glEnableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
 
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 
-	/* only draw child paths with lighting */
-	if(dt > OB_WIRE)
-		glEnable(GL_LIGHTING);
-
-	/* draw paths without lighting */
 	cache=edit->pathcache;
 	for(i=0; i<totpoint; i++){
 		path = cache[i];
 		glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
-		glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
 
 		if(timed) {
 			for(k=0, pcol=pathcol, pkey=path; k<steps; k++, pkey++, pcol+=4){
@@ -3796,9 +3787,6 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 
 	/* draw edit vertices */
 	if(pset->selectmode!=SCE_SELECT_PATH){
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
-		glDisable(GL_LIGHTING);
 		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
 		if(pset->selectmode==SCE_SELECT_POINT){
@@ -3810,7 +3798,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 				if(!(point->flag & PEP_HIDE))
 					totkeys += point->totkey;
 
-			if(!edit->psys)
+			if(!(edit->points->keys->flag & PEK_USE_WCO))
 				pd=pdata=MEM_callocN(totkeys*3*sizeof(float), "particle edit point data");
 			cd=cdata=MEM_callocN(totkeys*(timed?4:3)*sizeof(float), "particle edit color data");
 
@@ -3843,7 +3831,7 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 				if(point->flag & PEP_HIDE)
 					continue;
 
-				if(edit->psys)
+				if(point->keys->flag & PEK_USE_WCO)
 					glVertexPointer(3, GL_FLOAT, sizeof(PTCacheEditKey), point->keys->world_co);
 				else
 					glVertexPointer(3, GL_FLOAT, 3*sizeof(float), pd);
