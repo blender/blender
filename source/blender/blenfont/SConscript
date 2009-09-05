@@ -14,4 +14,4 @@ defs = ''
 if sys.platform == 'win32':
 	defs += ' _WIN32 USE_GETTEXT_DLL'
 
-env.BlenderLib ( 'bf_blenfont', sources, Split(incs), Split(defs), libtype=['core'], priority=[210] )
+env.BlenderLib ( 'bf_blenfont', sources, Split(incs), Split(defs), libtype=['core','player'], priority=[210,210] )

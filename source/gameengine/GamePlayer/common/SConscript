@@ -62,4 +62,4 @@ incs += Split(env['BF_PYTHON_INC'])
 incs += Split(env['BF_PNG_INC'])
 incs += Split(env['BF_ZLIB_INC'])
 
-env.BlenderLib (libname='gp_common', sources=source_files, includes=incs, defines = [], libtype=['player'], priority=[15], cxx_compileflags=env['BGE_CXXFLAGS'])
+env.BlenderLib (libname='gp_common', sources=source_files, includes=incs, defines = [], libtype=['player'], priority=[5], cxx_compileflags=env['BGE_CXXFLAGS'])

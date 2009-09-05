@@ -46,4 +46,4 @@ defs = []
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')
 
-env.BlenderLib (libname='gp_ghost', sources=source_files, includes = incs, defines = defs, libtype=['player'],priority=[5], cxx_compileflags=env['BGE_CXXFLAGS'])
+env.BlenderLib (libname='gp_ghost', sources=source_files, includes = incs, defines = defs, libtype=['player'],priority=[0], cxx_compileflags=env['BGE_CXXFLAGS'])

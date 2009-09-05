@@ -29,4 +29,4 @@ else:
 incs = '. ../string ' + env['BF_OPENGL_INC']
 if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc'):
     incs = env['BF_WINTAB_INC'] + ' ' + incs
-env.BlenderLib ('bf_ghost', sources, Split(incs), defines=['_USE_MATH_DEFINES'], libtype=['intern'], priority = [40] ) 
+env.BlenderLib ('bf_ghost', sources, Split(incs), defines=['_USE_MATH_DEFINES'], libtype=['intern','player'], priority = [40,15] ) 

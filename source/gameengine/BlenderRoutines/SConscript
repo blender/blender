@@ -28,4 +28,4 @@ incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_BULLET_INC']
 incs += ' ' + env['BF_OPENGL_INC']
 
-env.BlenderLib ( 'bf_bloutines', sources, Split(incs), defs, libtype=['core'], priority=[300] , cxx_compileflags=env['BGE_CXXFLAGS'])
+env.BlenderLib ( 'bf_bloutines', sources, Split(incs), defs, libtype=['core','player'], priority=[300,35] , cxx_compileflags=env['BGE_CXXFLAGS'])
