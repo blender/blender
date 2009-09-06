@@ -342,17 +342,12 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			
 				col = layout.column()
 
-				if brush.sculpt_tool != 'LAYER':
-					col.itemR(brush, "anchored")
-
 				if brush.sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
 					col.itemR(brush, "flip_direction")
 
 				if brush.sculpt_tool == 'LAYER':
 					col.itemR(brush, "persistent")
 					col.itemO("sculpt.set_persistent_base")
-
-				col.itemR(brush, "rake")
 
 			col.itemR(brush, "sculpt_tool")
 				
@@ -426,24 +421,29 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel):
 		brush = settings.brush
 		texture_paint = context.texture_paint_object
 
+		if context.sculpt_object:
+			if brush.sculpt_tool != 'LAYER':
+				layout.itemR(brush, "anchored")
+			layout.itemR(brush, "rake")
+
+		layout.itemR(brush, "airbrush")
+		col = layout.column()
+		col.active = brush.airbrush
+		col.itemR(brush, "rate", slider=True)
+
 		if not texture_paint:
 			layout.itemR(brush, "smooth_stroke")
 			col = layout.column()
-			col.itemR(brush, "airbrush")
-			col.itemR(brush, "anchored")
-			col.itemR(brush, "rake")
+			col.active = brush.smooth_stroke
+			col.itemR(brush, "smooth_stroke_radius", text="Radius", slider=True)
+			col.itemR(brush, "smooth_stroke_factor", text="Factor", slider=True)
 
 		layout.itemR(brush, "space")
 		row = layout.row(align=True)
 		row.active = brush.space
 		row.itemR(brush, "spacing", text="Distance", slider=True)
 		if texture_paint:
-			row.itemR(brush, "spacing_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
-
-		layout.itemR(brush, "airbrush")
-		col = layout.column()
-		col.active = brush.airbrush
-		col.itemR(brush, "rate", slider=True)
+			row.itemR(brush, "spacing_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")	
 
 class VIEW3D_PT_tools_brush_curve(PaintPanel):
 	__label__ = "Curve"
