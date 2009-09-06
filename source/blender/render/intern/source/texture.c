@@ -30,7 +30,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "MTC_matrixops.h"
+
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -829,7 +829,7 @@ static int cubemap_glob(float *n, float x, float y, float z, float *adr1, float 
 	else {
 		VECCOPY(nor, n);
 	}
-	MTC_Mat4Mul3Vecfl(R.viewinv, nor);
+	Mat4Mul3Vecfl(R.viewinv, nor);
 
 	x1= fabs(nor[0]);
 	y1= fabs(nor[1]);
@@ -922,7 +922,7 @@ static int cubemap_ob(Object *ob, float *n, float x, float y, float z, float *ad
 	if(n==NULL) return 0;
 	
 	VECCOPY(nor, n);
-	if(ob) MTC_Mat4Mul3Vecfl(ob->imat, nor);
+	if(ob) Mat4Mul3Vecfl(ob->imat, nor);
 	
 	x1= fabs(nor[0]);
 	y1= fabs(nor[1]);
@@ -1540,13 +1540,13 @@ void do_material_tex(ShadeInput *shi)
 					VECCOPY(tempvec, shi->co);
 					if(mtex->texflag & MTEX_OB_DUPLI_ORIG)
 						if(shi->obi && shi->obi->duplitexmat)
-							MTC_Mat4MulVecfl(shi->obi->duplitexmat, tempvec);
-					MTC_Mat4MulVecfl(ob->imat, tempvec);
+							Mat4MulVecfl(shi->obi->duplitexmat, tempvec);
+					Mat4MulVecfl(ob->imat, tempvec);
 					if(shi->osatex) {
 						VECCOPY(dxt, shi->dxco);
 						VECCOPY(dyt, shi->dyco);
-						MTC_Mat4Mul3Vecfl(ob->imat, dxt);
-						MTC_Mat4Mul3Vecfl(ob->imat, dyt);
+						Mat4Mul3Vecfl(ob->imat, dxt);
+						Mat4Mul3Vecfl(ob->imat, dyt);
 					}
 				}
 				else {
@@ -2237,7 +2237,7 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 			case TEXCO_OBJECT:
 				if(mtex->object) {
 					VECCOPY(tempvec, lo);
-					MTC_Mat4MulVecfl(mtex->object->imat, tempvec);
+					Mat4MulVecfl(mtex->object->imat, tempvec);
 					co= tempvec;
 				}
 				break;
@@ -2245,16 +2245,16 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 			case TEXCO_GLOB:
 				if(rco) {
 					VECCOPY(tempvec, rco);
-					MTC_Mat4MulVecfl(R.viewinv, tempvec);
+					Mat4MulVecfl(R.viewinv, tempvec);
 					co= tempvec;
 				}
 				else
 					co= lo;
 				
 //				VECCOPY(shi->dxgl, shi->dxco);
-//				MTC_Mat3MulVecfl(R.imat, shi->dxco);
+//				Mat3MulVecfl(R.imat, shi->dxco);
 //				VECCOPY(shi->dygl, shi->dyco);
-//				MTC_Mat3MulVecfl(R.imat, shi->dyco);
+//				Mat3MulVecfl(R.imat, shi->dyco);
 				break;
 			}
 			
@@ -2376,12 +2376,12 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 					dx= dxt;
 					dy= dyt;
 					VECCOPY(tempvec, shi->co);
-					MTC_Mat4MulVecfl(ob->imat, tempvec);
+					Mat4MulVecfl(ob->imat, tempvec);
 					if(shi->osatex) {
 						VECCOPY(dxt, shi->dxco);
 						VECCOPY(dyt, shi->dyco);
-						MTC_Mat4Mul3Vecfl(ob->imat, dxt);
-						MTC_Mat4Mul3Vecfl(ob->imat, dyt);
+						Mat4Mul3Vecfl(ob->imat, dxt);
+						Mat4Mul3Vecfl(ob->imat, dyt);
 					}
 				}
 				else {
@@ -2392,12 +2392,12 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 			else if(mtex->texco==TEXCO_GLOB) {
 				co= shi->gl; dx= shi->dxco; dy= shi->dyco;
 				VECCOPY(shi->gl, shi->co);
-				MTC_Mat4MulVecfl(R.viewinv, shi->gl);
+				Mat4MulVecfl(R.viewinv, shi->gl);
 			}
 			else if(mtex->texco==TEXCO_VIEW) {
 				
 				VECCOPY(tempvec, lavec);
-				MTC_Mat3MulVecfl(la->imat, tempvec);
+				Mat3MulVecfl(la->imat, tempvec);
 				
 				if(la->type==LA_SPOT) {
 					tempvec[0]*= la->spottexfac;
@@ -2410,8 +2410,8 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 					VECCOPY(dxt, shi->dxlv);
 					VECCOPY(dyt, shi->dylv);
 					/* need some matrix conversion here? la->imat is a [3][3]  matrix!!! **/
-					MTC_Mat3MulVecfl(la->imat, dxt);
-					MTC_Mat3MulVecfl(la->imat, dyt);
+					Mat3MulVecfl(la->imat, dxt);
+					Mat3MulVecfl(la->imat, dyt);
 					
 					VecMulf(dxt, la->spottexfac);
 					VecMulf(dyt, la->spottexfac);

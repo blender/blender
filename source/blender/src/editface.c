@@ -39,7 +39,7 @@
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
 
-#include "MTC_matrixops.h"
+
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"

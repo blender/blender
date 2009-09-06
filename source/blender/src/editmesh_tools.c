@@ -106,7 +106,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 
 #include "editmesh.h"
 
-#include "MTC_vectorops.h"
+
 
 #include "PIL_time.h"
 

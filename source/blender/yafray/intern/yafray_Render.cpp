@@ -85,7 +85,7 @@ bool yafrayRender_t::getAllMatTexObs()
 		if(obi->flag & R_DUPLI_TRANSFORMED) {
 			// compute object matrix with dupli transform, need to transform
 			// obi->mat out of view space for it
-			MTC_Mat4MulSerie(mat, re->viewinv, obi->mat, re->viewmat, obi->obr->ob->obmat, 0, 0, 0, 0);
+			Mat4MulSerie(mat, re->viewinv, obi->mat, re->viewmat, obi->obr->ob->obmat, 0, 0, 0, 0);
 			addDupliMtx(obi->obr->ob, mat);
 		}
 	}

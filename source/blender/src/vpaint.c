@@ -43,7 +43,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
-#include "MTC_matrixops.h"
+
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
@@ -1204,7 +1204,7 @@ void weight_paint(void)
 				else totindex= 0;
 			}
 			
-			MTC_Mat4SwapMat4(G.vd->persmat, mat);
+			Mat4SwapMat4(G.vd->persmat, mat);
 			
 			if(Gwp.flag & VP_COLINDEX) {
 				for(index=0; index<totindex; index++) {
@@ -1313,7 +1313,7 @@ void weight_paint(void)
 				}
 			}
 			
-			MTC_Mat4SwapMat4(G.vd->persmat, mat);
+			Mat4SwapMat4(G.vd->persmat, mat);
 			
 		}
 		else BIF_wait_for_statechange();
@@ -1436,7 +1436,7 @@ void vertex_paint()
 				else totindex= 0;
 			}
 			
-			MTC_Mat4SwapMat4(G.vd->persmat, mat);
+			Mat4SwapMat4(G.vd->persmat, mat);
 			
 			if(Gvp.flag & VP_COLINDEX) {
 				for(index=0; index<totindex; index++) {
@@ -1497,7 +1497,7 @@ void vertex_paint()
 				}
 			}
 				
-			MTC_Mat4SwapMat4(G.vd->persmat, mat);
+			Mat4SwapMat4(G.vd->persmat, mat);
 			
 			do_shared_vertexcol(me);
 	

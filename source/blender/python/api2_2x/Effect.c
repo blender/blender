@@ -41,7 +41,7 @@
 #include "gen_utils.h"
 #include "blendef.h"
 #include "vector.h"
-#include "MTC_matrixops.h"
+
  
 #define EXPP_EFFECT_STA_MIN           -250.0f
 #define EXPP_EFFECT_END_MIN              1.0f

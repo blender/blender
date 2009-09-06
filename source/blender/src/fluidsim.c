@@ -57,7 +57,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 #include "BLI_arithb.h"
-#include "MTC_matrixops.h"
+
 
 #include "BKE_customdata.h"
 #include "BKE_displist.h"
@@ -801,7 +801,7 @@ void fluidsimBake(struct Object *ob)
 	}
 
 	// init trafo matrix
-	MTC_Mat4CpyMat4(domainMat, fsDomain->obmat);
+	Mat4CpyMat4(domainMat, fsDomain->obmat);
 	if(!Mat4Invert(invDomMat, domainMat)) {
 		snprintf(debugStrBuffer,256,"fluidsimBake::error - Invalid obj matrix?\n"); 
 		elbeemDebugOut(debugStrBuffer);

@@ -41,7 +41,7 @@
 #include "IMB_imbuf.h"
 
 
-#include "MTC_matrixops.h"
+
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -1040,7 +1040,7 @@ static void drawcamera(Object *ob, int flag)
 			Mat4Ortho(vec);
 			mymultmatrix(vec);
 
-			MTC_Mat4SwapMat4(G.vd->persmat, tmat);
+			Mat4SwapMat4(G.vd->persmat, tmat);
 			mygetsingmatrix(G.vd->persmat);
 
 			if(cam->flag & CAM_SHOWLIMITS) {
@@ -1053,7 +1053,7 @@ static void drawcamera(Object *ob, int flag)
 			if(cam->flag & CAM_SHOWMIST) 
 				if(wrld) draw_limit_line(wrld->miststa, wrld->miststa+wrld->mistdist, 0xFFFFFF);
 				
-			MTC_Mat4SwapMat4(G.vd->persmat, tmat);
+			Mat4SwapMat4(G.vd->persmat, tmat);
 		}
 	}
 }

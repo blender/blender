@@ -6,6 +6,8 @@
 
 using namespace std;
 
+#define MTC_cp3Float(_a, _b)  VecCopyf(_b, _a)
+
 static string command_path = "";
 
 #ifdef WIN32 
@@ -19,7 +21,6 @@ static string command_path = "";
 #ifndef FILE_MAXFILE
 #define FILE_MAXFILE 80
 #endif
-
 
 static string find_path()
 {
@@ -1036,10 +1037,10 @@ void yafrayFileRender_t::writeMaterialsAndModulators()
 					// In this case this means the inverse of that matrix
 					float texmat[4][4], itexmat[4][4];
 					if ((mtex->texco & TEXCO_OBJECT) && (mtex->object))
-						MTC_Mat4CpyMat4(texmat, mtex->object->obmat);
+						Mat4CpyMat4(texmat, mtex->object->obmat);
 					else	// also for refl. map
-						MTC_Mat4CpyMat4(texmat, maincam_obj->obmat);
-					MTC_Mat4Invert(itexmat, texmat);
+						Mat4CpyMat4(texmat, maincam_obj->obmat);
+					Mat4Invert(itexmat, texmat);
 					ostr << "\n\t\tm00=\"" << itexmat[0][0] << "\" m01=\"" << itexmat[1][0]
 							 << "\" m02=\"" << itexmat[2][0] << "\" m03=\"" << itexmat[3][0] << "\"\n";
 					ostr << "\t\tm10=\"" << itexmat[0][1] << "\" m11=\"" << itexmat[1][1]
@@ -1304,8 +1305,8 @@ void yafrayFileRender_t::writeObject(Object* obj, ObjectRen *obr, const vector<V
 	// for deformed objects, object->imat is no longer valid,
 	// so have to create inverse render matrix ourselves here
 	float mat[4][4], imat[4][4];
-	MTC_Mat4MulMat4(mat, obj->obmat, re->viewmat);
-	MTC_Mat4Invert(imat, mat);
+	Mat4MulMat4(mat, obj->obmat, re->viewmat);
+	Mat4Invert(imat, mat);
 
 	for (vector<VlakRen*>::const_iterator fci=VLR_list.begin();
 				fci!=VLR_list.end();++fci)
@@ -1319,7 +1320,7 @@ void yafrayFileRender_t::writeObject(Object* obj, ObjectRen *obr, const vector<V
 			vert_idx[vlr->v1] = vidx++;
 			ver = vlr->v1;
 			MTC_cp3Float(ver->co, tvec);
-			MTC_Mat4MulVecfl(imat, tvec);
+			Mat4MulVecfl(imat, tvec);
 			ostr << "\t\t\t<p x=\"" << tvec[0]
 			           << "\" y=\"" << tvec[1]
 			           << "\" z=\"" << tvec[2] << "\" />\n";
@@ -1340,7 +1341,7 @@ void yafrayFileRender_t::writeObject(Object* obj, ObjectRen *obr, const vector<V
 			vert_idx[vlr->v2] = vidx++;
 			ver = vlr->v2;
 			MTC_cp3Float(ver->co, tvec);
-			MTC_Mat4MulVecfl(imat, tvec);
+			Mat4MulVecfl(imat, tvec);
 			ostr << "\t\t\t<p x=\"" << tvec[0]
 			           << "\" y=\"" << tvec[1]
 			           << "\" z=\"" << tvec[2] << "\" />\n";
@@ -1361,7 +1362,7 @@ void yafrayFileRender_t::writeObject(Object* obj, ObjectRen *obr, const vector<V
 			vert_idx[vlr->v3] = vidx++;
 			ver = vlr->v3;
 			MTC_cp3Float(ver->co, tvec);
-			MTC_Mat4MulVecfl(imat, tvec);
+			Mat4MulVecfl(imat, tvec);
 			ostr << "\t\t\t<p x=\"" << tvec[0]
 			           << "\" y=\"" << tvec[1]
 			           << "\" z=\"" << tvec[2] << "\" />\n";
@@ -1382,7 +1383,7 @@ void yafrayFileRender_t::writeObject(Object* obj, ObjectRen *obr, const vector<V
 			vert_idx[vlr->v4] = vidx++;
 			ver = vlr->v4;
 			MTC_cp3Float(ver->co, tvec);
-			MTC_Mat4MulVecfl(imat, tvec);
+			Mat4MulVecfl(imat, tvec);
 			ostr << "\t\t\t<p x=\"" << tvec[0]
 			           << "\" y=\"" << tvec[1]
 			           << "\" z=\"" << tvec[2] << "\" />\n";
@@ -1532,7 +1533,7 @@ void yafrayFileRender_t::writeAllObjects()
 			for (int j=0;j<4;j++)
 				obmat[i][j] = dupMtx->second[(i<<2)+j];
 
-		MTC_Mat4Invert(imat, obmat);
+		Mat4Invert(imat, obmat);
 
 		// first object written as normal (but with transform of first duplivert)
 		Object* obj = dup_srcob[dupMtx->first];
@@ -1546,7 +1547,7 @@ void yafrayFileRender_t::writeAllObjects()
 				for (int j=0;j<4;j++)
 					nmat[i][j] = dupMtx->second[curmtx+(i<<2)+j];
 
-			MTC_Mat4MulMat4(cmat, imat, nmat);	// transform with respect to original = inverse_original * new
+			Mat4MulMat4(cmat, imat, nmat);	// transform with respect to original = inverse_original * new
 
 			ostr.str("");
 			// yafray matrix = transpose of Blender
@@ -1592,13 +1593,13 @@ void yafrayFileRender_t::writeAreaLamp(LampRen* lamp, int num, float iview[4][4]
 	// transform area lamp coords back to world
 	float lpco[4][3];
 	MTC_cp3Float(a, lpco[0]);
-	MTC_Mat4MulVecfl(iview, lpco[0]);
+	Mat4MulVecfl(iview, lpco[0]);
 	MTC_cp3Float(b, lpco[1]);
-	MTC_Mat4MulVecfl(iview, lpco[1]);
+	Mat4MulVecfl(iview, lpco[1]);
 	MTC_cp3Float(c, lpco[2]);
-	MTC_Mat4MulVecfl(iview, lpco[2]);
+	Mat4MulVecfl(iview, lpco[2]);
 	MTC_cp3Float(d, lpco[3]);
-	MTC_Mat4MulVecfl(iview, lpco[3]);
+	Mat4MulVecfl(iview, lpco[3]);
 	ostr << "\t<a x=\""<< lpco[0][0] <<"\" y=\""<< lpco[0][1] <<"\" z=\"" << lpco[0][2] <<"\" />\n";
 	ostr << "\t<b x=\""<< lpco[1][0] <<"\" y=\""<< lpco[1][1] <<"\" z=\"" << lpco[1][2] <<"\" />\n";
 	ostr << "\t<c x=\""<< lpco[2][0] <<"\" y=\""<< lpco[2][1] <<"\" z=\"" << lpco[2][2] <<"\" />\n";
@@ -1618,7 +1619,7 @@ void yafrayFileRender_t::writeLamps()
 	float iview[4][4];
 	// re->viewinv != inv.re->viewmat because of possible ortho mode (see convertBlenderScene.c)
 	// have to invert it here
-	MTC_Mat4Invert(iview, re->viewmat);
+	Mat4Invert(iview, re->viewmat);
 	
 	// all lamps
 	for(go=(GroupObject *)re->lights.first; go; go= go->next, i++) {
@@ -1751,9 +1752,9 @@ void yafrayFileRender_t::writeLamps()
 		// transform lamp co & vec back to world
 		float lpco[3], lpvec[3];
 		MTC_cp3Float(lamp->co, lpco);
-		MTC_Mat4MulVecfl(iview, lpco);
+		Mat4MulVecfl(iview, lpco);
 		MTC_cp3Float(lamp->vec, lpvec);
-		MTC_Mat4Mul3Vecfl(iview, lpvec);
+		Mat4Mul3Vecfl(iview, lpvec);
 
 		// position, (==-blendir for sun/hemi)
 		if ((lamp->type==LA_SUN) || (lamp->type==LA_HEMI))

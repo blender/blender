@@ -42,7 +42,7 @@
 #include "BLI_jitter.h"
 #include "BLI_threads.h"
 
-#include "MTC_matrixops.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_lamp_types.h"
@@ -2314,7 +2314,7 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem, Re
 	hashlist_projectvert(NULL, winmat, NULL);
 	
 	/* needed for projectvert */
-	MTC_Mat4MulMat4(winmat, vw->viewmat, vw->winmat);
+	Mat4MulMat4(winmat, vw->viewmat, vw->winmat);
 
 	/* 1.0f for clipping in clippyra()... bad stuff actually */
 	zbuf_alloc_span(&zspan, vw->rectx, vw->recty, 1.0f);

@@ -29,8 +29,7 @@ extern "C" {
 #include "renderpipeline.h"
 
 /* useful matrix & vector operations */
-#include "MTC_matrixops.h"
-#include "MTC_vectorops.h"
+#include "BLI_arithb.h"
 
 #include "BLI_blenlib.h"
 

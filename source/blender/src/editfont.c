@@ -42,7 +42,7 @@
 #include <io.h>
 #endif
 
-#include "MTC_matrixops.h"
+
 
 #include "MEM_guardedalloc.h"
 

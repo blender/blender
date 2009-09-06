@@ -38,7 +38,7 @@
 
 #include "PIL_dynlib.h"
 
-#include "MTC_matrixops.h"
+
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"

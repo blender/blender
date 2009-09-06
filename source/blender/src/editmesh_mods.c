@@ -39,7 +39,7 @@ editmesh_mods.c, UI level access, no geometry changes
 
 #include "MEM_guardedalloc.h"
 
-#include "MTC_matrixops.h"
+
 
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"

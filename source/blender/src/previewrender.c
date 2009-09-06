@@ -47,7 +47,7 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
-#include "MTC_matrixops.h"
+
 
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"

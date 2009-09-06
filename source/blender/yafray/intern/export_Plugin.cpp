@@ -6,6 +6,7 @@
 
 using namespace std;
 
+#define MTC_cp3Float(_a, _b)  VecCopyf(_b, _a)
 
 #ifdef WIN32 
 #define WIN32_SKIP_HKEY_PROTECTION
@@ -18,7 +19,6 @@ using namespace std;
 #ifndef FILE_MAXFILE
 #define FILE_MAXFILE 80
 #endif
-
 
 static string find_path()
 {
@@ -939,10 +939,10 @@ void yafrayPluginRender_t::writeMaterialsAndModulators()
 					// In this case this means the inverse of that matrix
 					float texmat[4][4], itexmat[4][4];
 					if ((mtex->texco & TEXCO_OBJECT) && (mtex->object))
-						MTC_Mat4CpyMat4(texmat, mtex->object->obmat);
+						Mat4CpyMat4(texmat, mtex->object->obmat);
 					else	// also for refl. map
-						MTC_Mat4CpyMat4(texmat, maincam_obj->obmat);
-					MTC_Mat4Invert(itexmat, texmat);
+						Mat4CpyMat4(texmat, maincam_obj->obmat);
+					Mat4Invert(itexmat, texmat);
 #define flp yafray::parameter_t
 					params["m00"]=flp(itexmat[0][0]);  params["m01"]=flp(itexmat[1][0]);
 					params["m02"]=flp(itexmat[2][0]);  params["m03"]=flp(itexmat[3][0]);
@@ -1231,15 +1231,15 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vi
 	// for deformed objects, object->imat is no longer valid,
 	// so have to create inverse render matrix ourselves here
 	float mat[4][4], imat[4][4];
-	MTC_Mat4MulMat4(mat, obj->obmat, re->viewmat);
-	MTC_Mat4Invert(imat, mat);
+	Mat4MulMat4(mat, obj->obmat, re->viewmat);
+	Mat4Invert(imat, mat);
 
 	if (vert_idx.find(vlr->v1)==vert_idx.end()) 
 	{
 		vert_idx[vlr->v1] = vidx++;
 		ver = vlr->v1;
 		MTC_cp3Float(ver->co, tvec);
-		MTC_Mat4MulVecfl(imat, tvec);
+		Mat4MulVecfl(imat, tvec);
 		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
 		// has_orco now an int, if 1 -> strand mapping, if 2 -> normal orco mapping
 		if (has_orco==1)
@@ -1252,7 +1252,7 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vi
 		vert_idx[vlr->v2] = vidx++;
 		ver = vlr->v2;
 		MTC_cp3Float(ver->co, tvec);
-		MTC_Mat4MulVecfl(imat, tvec);
+		Mat4MulVecfl(imat, tvec);
 		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
 		// has_orco now an int, if 1 -> strand mapping, if 2 -> normal orco mapping
 		if (has_orco==1)
@@ -1265,7 +1265,7 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vi
 		vert_idx[vlr->v3] = vidx++;
 		ver = vlr->v3;
 		MTC_cp3Float(ver->co, tvec);
-		MTC_Mat4MulVecfl(imat, tvec);
+		Mat4MulVecfl(imat, tvec);
 		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
 		// has_orco now an int, if 1 -> strand mapping, if 2 -> normal orco mapping
 		if (has_orco==1)
@@ -1278,7 +1278,7 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vi
 		vert_idx[vlr->v4] = vidx++;
 		ver = vlr->v4;
 		MTC_cp3Float(ver->co, tvec);
-		MTC_Mat4MulVecfl(imat, tvec);
+		Mat4MulVecfl(imat, tvec);
 		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
 		// has_orco now an int, if 1 -> strand mapping, if 2 -> normal orco mapping
 		if (has_orco==1)
@@ -1414,7 +1414,7 @@ void yafrayPluginRender_t::writeAllObjects()
 		for (int i=0;i<4;i++)
 			for (int j=0;j<4;j++)
 				obmat[i][j] = dupMtx->second[(i<<2)+j];
-		MTC_Mat4Invert(imat, obmat);
+		Mat4Invert(imat, obmat);
 
 		// first object written as normal (but with transform of first duplivert)
 		Object* obj = dup_srcob[dupMtx->first];
@@ -1428,7 +1428,7 @@ void yafrayPluginRender_t::writeAllObjects()
 				for (int j=0;j<4;j++)
 					nmat[i][j] = dupMtx->second[curmtx+(i<<2)+j];
 
-			MTC_Mat4MulMat4(cmat, imat, nmat);	// transform with respect to original = inverse_original * new
+			Mat4MulMat4(cmat, imat, nmat);	// transform with respect to original = inverse_original * new
 
 			float mtr[4*4];
 			mtr[0*4+0]=cmat[0][0];  mtr[0*4+1]=cmat[1][0];  mtr[0*4+2]=cmat[2][0];  mtr[0*4+3]=cmat[3][0];
@@ -1475,13 +1475,13 @@ void yafrayPluginRender_t::writeAreaLamp(LampRen* lamp, int num, float iview[4][
 	// transform area lamp coords back to world
 	float lpco[4][3];
 	MTC_cp3Float(a, lpco[0]);
-	MTC_Mat4MulVecfl(iview, lpco[0]);
+	Mat4MulVecfl(iview, lpco[0]);
 	MTC_cp3Float(b, lpco[1]);
-	MTC_Mat4MulVecfl(iview, lpco[1]);
+	Mat4MulVecfl(iview, lpco[1]);
 	MTC_cp3Float(c, lpco[2]);
-	MTC_Mat4MulVecfl(iview, lpco[2]);
+	Mat4MulVecfl(iview, lpco[2]);
 	MTC_cp3Float(d, lpco[3]);
-	MTC_Mat4MulVecfl(iview, lpco[3]);	
+	Mat4MulVecfl(iview, lpco[3]);	
 	params["a"] = yafray::parameter_t(yafray::point3d_t(lpco[0][0], lpco[0][1], lpco[0][2]));
 	params["b"] = yafray::parameter_t(yafray::point3d_t(lpco[1][0], lpco[1][1], lpco[1][2]));
 	params["c"] = yafray::parameter_t(yafray::point3d_t(lpco[2][0], lpco[2][1], lpco[2][2]));
@@ -1500,7 +1500,7 @@ void yafrayPluginRender_t::writeLamps()
 	float iview[4][4];
 	// re->viewinv != inv.re->viewmat because of possible ortho mode (see convertBlenderScene.c)
 	// have to invert it here
-	MTC_Mat4Invert(iview, re->viewmat);
+	Mat4Invert(iview, re->viewmat);
 
 	// all lamps
 	for(go=(GroupObject *)re->lights.first; go; go= go->next, i++)
@@ -1641,9 +1641,9 @@ void yafrayPluginRender_t::writeLamps()
 		// transform lamp co & vec back to world
 		float lpco[3], lpvec[3];
 		MTC_cp3Float(lamp->co, lpco);
-		MTC_Mat4MulVecfl(iview, lpco);
+		Mat4MulVecfl(iview, lpco);
 		MTC_cp3Float(lamp->vec, lpvec);
-		MTC_Mat4Mul3Vecfl(iview, lpvec);
+		Mat4Mul3Vecfl(iview, lpvec);
 
 		// position, (==-blendir for sun/hemi)
 		if ((lamp->type==LA_SUN) || (lamp->type==LA_HEMI))

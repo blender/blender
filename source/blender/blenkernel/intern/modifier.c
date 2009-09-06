@@ -72,8 +72,8 @@
 
 #include "BLI_editVert.h"
 
-#include "MTC_matrixops.h"
-#include "MTC_vectorops.h"
+
+
 
 #include "BKE_main.h"
 #include "BKE_anim.h"
@@ -1182,7 +1182,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	if(amd->end_cap && amd->end_cap != ob)
 		end_cap = mesh_get_derived_final(amd->end_cap, CD_MASK_MESH);
 
-	MTC_Mat4One(offset);
+	Mat4One(offset);
 
 	indexMap = MEM_callocN(sizeof(*indexMap) * dm->getNumVerts(dm),
 			       "indexmap");
@@ -1204,14 +1204,14 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		float result_mat[4][4];
 
 		if(ob)
-			MTC_Mat4Invert(obinv, ob->obmat);
+			Mat4Invert(obinv, ob->obmat);
 		else
-			MTC_Mat4One(obinv);
+			Mat4One(obinv);
 
-		MTC_Mat4MulSerie(result_mat, offset,
+		Mat4MulSerie(result_mat, offset,
 				 obinv, amd->offset_ob->obmat,
      NULL, NULL, NULL, NULL, NULL);
-		MTC_Mat4CpyMat4(offset, result_mat);
+		Mat4CpyMat4(offset, result_mat);
 	}
 
 	if(amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
@@ -1236,7 +1236,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	prescribed length */
 	if(amd->fit_type == MOD_ARR_FITLENGTH
 		  || amd->fit_type == MOD_ARR_FITCURVE) {
-		float dist = sqrt(MTC_dot3Float(offset[3], offset[3]));
+		float dist = sqrt(Inpf(offset[3], offset[3]));
 
 		if(dist > 1e-6f)
 			/* this gives length = first copy start to last copy end
@@ -1269,11 +1269,11 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		  result = CDDM_from_template(dm, finalVerts, finalEdges, finalFaces);
 
 		  /* calculate the offset matrix of the final copy (for merging) */ 
-		  MTC_Mat4One(final_offset);
+		  Mat4One(final_offset);
 
 		  for(j=0; j < count - 1; j++) {
-			  MTC_Mat4MulMat4(tmp_mat, final_offset, offset);
-			  MTC_Mat4CpyMat4(final_offset, tmp_mat);
+			  Mat4MulMat4(tmp_mat, final_offset, offset);
+			  Mat4CpyMat4(final_offset, tmp_mat);
 		  }
 
 		  numVerts = numEdges = numFaces = 0;
@@ -1309,7 +1309,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 			  if((count > 1) && (amd->flags & MOD_ARR_MERGE)) {
 				  float tmp_co[3];
 				  VECCOPY(tmp_co, mv->co);
-				  MTC_Mat4MulVecfl(offset, tmp_co);
+				  Mat4MulVecfl(offset, tmp_co);
 
 				  for(j = 0; j < maxVerts; j++) {
 					  /* if vertex already merged, don't use it */
@@ -1324,7 +1324,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 						  if(amd->flags & MOD_ARR_MERGEFINAL) {
 							  VECCOPY(tmp_co, inMV->co);
 							  inMV = &src_mvert[i];
-							  MTC_Mat4MulVecfl(final_offset, tmp_co);
+							  Mat4MulVecfl(final_offset, tmp_co);
 							  if(VecLenCompare(tmp_co, inMV->co, amd->merge_dist))
 								  indexMap[i].merge_final = 1;
 						  }
@@ -1342,7 +1342,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  *mv2 = *mv;
 					  numVerts++;
 
-					  MTC_Mat4MulVecfl(offset, co);
+					  Mat4MulVecfl(offset, co);
 					  VECCOPY(mv2->co, co);
 				  }
 			  } else if(indexMap[i].merge != i && indexMap[i].merge_final) {
@@ -3174,7 +3174,7 @@ static void tag_and_count_extra_edges(SmoothMesh *mesh, float split_angle,
 							 /* we know the edge has 2 faces, so check the angle */
 							 SmoothFace *face1 = edge->faces->link;
 							 SmoothFace *face2 = edge->faces->next->link;
-							 float edge_angle_cos = MTC_dot3Float(face1->normal,
+							 float edge_angle_cos = Inpf(face1->normal,
 									 face2->normal);
 
 							 if(edge_angle_cos < threshold) {
@@ -4042,11 +4042,11 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 				/* find the projector which the face points at most directly
 				* (projector normal with largest dot product is best)
 				*/
-				best_dot = MTC_dot3Float(projectors[0].normal, face_no);
+				best_dot = Inpf(projectors[0].normal, face_no);
 				best_projector = &projectors[0];
 
 				for(j = 1; j < num_projectors; ++j) {
-					float tmp_dot = MTC_dot3Float(projectors[j].normal,
+					float tmp_dot = Inpf(projectors[j].normal,
 							face_no);
 					if(tmp_dot > best_dot) {
 						best_dot = tmp_dot;
