@@ -1903,7 +1903,7 @@ void makeBevelList(Object *ob)
 		}	/* this has to be >2 points */
 		else if(cu->flag & CU_NO_TWIST && cu->flag & CU_3D && bl->poly != -1) {
 
-			/* Special case, cyclic curve with no twisy. tricky... */
+			/* Special case, cyclic curve with no twist. tricky... */
 
 			float quat[4], q[4], cross[3];
 
@@ -1924,7 +1924,7 @@ void makeBevelList(Object *ob)
 				while(nr--) {
 	
 					/* Normalizes */
-					Vec3ToTangent(vec, &bevp0->x, &bevp1->x, &bevp2->x);
+					VecBisect3(vec, &bevp0->x, &bevp1->x, &bevp2->x);
 
 					if(bl->nr==nr+1) { /* first time */
 						vectoquat(vec, 5, 1, quat);
@@ -1976,7 +1976,7 @@ void makeBevelList(Object *ob)
 			nr= bl->nr;
 			while(nr--) {
 
-				Vec3ToTangent(vec, &bevp0->x, &bevp1->x, &bevp2->x);
+				VecBisect3(vec, &bevp0->x, &bevp1->x, &bevp2->x);
 
 				quat_tmp1= (float *)bevp1->mat;
 				quat_tmp2= quat_tmp1+4;
@@ -2014,7 +2014,7 @@ void makeBevelList(Object *ob)
 				if(cu->flag & CU_3D) {	/* 3D */
 
 					/* Normalizes */
-					Vec3ToTangent(vec, &bevp0->x, &bevp1->x, &bevp2->x);
+					VecBisect3(vec, &bevp0->x, &bevp1->x, &bevp2->x);
 
 					if(bl->nr==nr+1 || !(cu->flag & CU_NO_TWIST)) { /* first time */
 						vectoquat(vec, 5, 1, quat);
