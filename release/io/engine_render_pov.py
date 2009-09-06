@@ -616,7 +616,7 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
 	
 	file.write('Display=0\n')
 	file.write('Pause_When_Done=0\n')
-	file.write('Output_File_Type=C\n') # TGA, best progressive loading
+	file.write('Output_File_Type=T\n') # TGA, best progressive loading
 	file.write('Output_Alpha=1\n')
 	
 	if render.antialiasing: 
