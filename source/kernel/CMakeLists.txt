@@ -27,11 +27,11 @@
 SET(INC gen_messaging gen_system ../../intern/string ../../intern/moto/include ../../source/blender/blenloader )
 
 FILE(GLOB SRC   
-  gen_messaging/intern/messaging.c
-  gen_system/GEN_HashedPtr.cpp
-  gen_system/GEN_Matrix4x4.cpp
-  gen_system/SYS_SingletonSystem.cpp
-  gen_system/SYS_System.cpp
+	gen_messaging/intern/messaging.c
+	gen_system/GEN_HashedPtr.cpp
+	gen_system/GEN_Matrix4x4.cpp
+	gen_system/SYS_SingletonSystem.cpp
+	gen_system/SYS_System.cpp
 )
 
 BLENDERLIB(bf_kernel "${SRC}" "${INC}")

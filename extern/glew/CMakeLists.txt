@@ -27,11 +27,11 @@
 SET(INC include src)
 
 IF(UNIX)
-  SET(INC ${INC} ${X11_X11_INCLUDE_PATH})
+	SET(INC ${INC} ${X11_X11_INCLUDE_PATH})
 ENDIF(UNIX)
 
 SET(SRC
-  src/glew.c
+	src/glew.c
 )
 
 BLENDERLIB(extern_glew "${SRC}" "${INC}")

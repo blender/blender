@@ -27,20 +27,20 @@
 FILE(GLOB SRC *.cpp Joystick/*.cpp)
 
 SET(INC
-  . 
-  ../../../source/kernel/gen_system 
-  ../../../intern/string
-  ../../../source/gameengine/Expressions 
-  ../../../source/gameengine/SceneGraph
-  ../../../intern/moto/include
-  ../../../source/gameengine/Rasterizer
-  ${PYTHON_INC}
+	. 
+	../../../source/kernel/gen_system 
+	../../../intern/string
+	../../../source/gameengine/Expressions 
+	../../../source/gameengine/SceneGraph
+	../../../intern/moto/include
+	../../../source/gameengine/Rasterizer
+	${PYTHON_INC}
 )
 
 IF(WITH_SDL)
-  SET(INC ${INC} ${SDL_INCLUDE_DIR})
+	SET(INC ${INC} ${SDL_INCLUDE_DIR})
 ELSE(WITH_SDL)
-  ADD_DEFINITIONS(-DDISABLE_SDL)
+	ADD_DEFINITIONS(-DDISABLE_SDL)
 ENDIF(WITH_SDL)
 
 BLENDERLIB(bf_logic "${SRC}" "${INC}")

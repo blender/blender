@@ -27,18 +27,18 @@
 FILE (GLOB SRC *.cpp)
 
 SET(INC 
-  .
-  ../../../blenkernel
-  ../../../makesdna
-  ../../
-  ..
-  ../../../blenlib
-  intern/include
-  ../../../../../intern/guardedalloc
+	.
+	../../../blenkernel
+	../../../makesdna
+	../../
+	..
+	../../../blenlib
+	intern/include
+	../../../../../intern/guardedalloc
 )
 
 if(WITH_DDS)
-  ADD_DEFINITIONS(-DWITH_DDS)
+	ADD_DEFINITIONS(-DWITH_DDS)
 ENDIF(WITH_DDS)
 
 BLENDERLIB(bf_dds "${SRC}" "${INC}")                 

@@ -27,19 +27,19 @@
 SET(SRC openexr_api.cpp)
 
 SET(INC 
-  .
-  ../../../blenkernel
-  ../../
-  ..
-  ../../../blenlib
-  intern/include
-  ../../../../../intern/guardedalloc
-  ../../../makesdna
-  ${OPENEXR_INC}
+	.
+	../../../blenkernel
+	../../
+	..
+	../../../blenlib
+	intern/include
+	../../../../../intern/guardedalloc
+	../../../makesdna
+	${OPENEXR_INC}
 )
 
 IF(WITH_OPENEXR)
-  ADD_DEFINITIONS(-DWITH_OPENEXR)
+	ADD_DEFINITIONS(-DWITH_OPENEXR)
 ENDIF(WITH_OPENEXR)
 
 BLENDERLIB(bf_openexr "${SRC}" "${INC}")                 

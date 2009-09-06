@@ -27,34 +27,34 @@
 FILE(GLOB SRC *.cpp)
 
 SET(INC
-  .
-  ../../../source/gameengine/Ketsji
-  ../../../source/gameengine/Expressions
-  ../../../source/gameengine/GameLogic
-  ../../../source/gameengine/SceneGraph
-  ../../../source/gameengine/Rasterizer
-  ../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
-  ../../../source/gameengine/BlenderRoutines
-  ../../../source/blender/include
-  ../../../source/blender/blenlib
-  ../../../source/blender/blenkernel
-  ../../../source/blender/makesdna
-  ../../../source/blender/editors/include
-  ../../../source/blender/imbuf
-  ../../../source/blender/python
-  ../../../source/blender/gpu
-  ../../../source/kernel/gen_system
-  ../../../intern/string
-  ../../../intern/moto/include
-  ../../../intern/guardedalloc
-  ../../../extern/glew/include
-  ${PYTHON_INC}
+	.
+	../../../source/gameengine/Ketsji
+	../../../source/gameengine/Expressions
+	../../../source/gameengine/GameLogic
+	../../../source/gameengine/SceneGraph
+	../../../source/gameengine/Rasterizer
+	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
+	../../../source/gameengine/BlenderRoutines
+	../../../source/blender/include
+	../../../source/blender/blenlib
+	../../../source/blender/blenkernel
+	../../../source/blender/makesdna
+	../../../source/blender/editors/include
+	../../../source/blender/imbuf
+	../../../source/blender/python
+	../../../source/blender/gpu
+	../../../source/kernel/gen_system
+	../../../intern/string
+	../../../intern/moto/include
+	../../../intern/guardedalloc
+	../../../extern/glew/include
+	${PYTHON_INC}
 )
 
 IF(WITH_FFMPEG)
-  SET(INC ${INC} ${FFMPEG_INC} ${PTHREADS_INC})
-  ADD_DEFINITIONS(-DWITH_FFMPEG)
-  ADD_DEFINITIONS(-D__STDC_CONSTANT_MACROS)
+	SET(INC ${INC} ${FFMPEG_INC} ${PTHREADS_INC})
+	ADD_DEFINITIONS(-DWITH_FFMPEG)
+	ADD_DEFINITIONS(-D__STDC_CONSTANT_MACROS)
 ENDIF(WITH_FFMPEG)
 
 BLENDERLIB(bf_videotex "${SRC}" "${INC}")

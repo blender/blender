@@ -27,14 +27,14 @@
 FILE(GLOB SRC *.c)
 
 SET(INC 
-    .
-    ../../../blenkernel
-    ../../
-    ..
-    ../../../blenlib
-    intern/include
-    ../../../../../intern/guardedalloc
-    ../../../makesdna
+		.
+		../../../blenkernel
+		../../
+		..
+		../../../blenlib
+		intern/include
+		../../../../../intern/guardedalloc
+		../../../makesdna
 )
 
 BLENDERLIB(bf_cineon "${SRC}" "${INC}")

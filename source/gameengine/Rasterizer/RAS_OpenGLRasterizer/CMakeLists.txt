@@ -27,18 +27,18 @@
 FILE(GLOB SRC *.cpp)
 
 SET(INC
-  ../../../../source/kernel/gen_system
-  ../../../../intern/string
-  ../../../../intern/moto/include
-  ../../../../source/gameengine/Rasterizer
-  ../../../../source/gameengine/Ketsji
-  ../../../../source/gameengine/SceneGraph
-  ../../../../extern/glew/include
-  ../../../../source/blender/gpu
-  ../../../../source/blender/makesdna
-  ../../../../source/blender/blenkernel
-  ../../../../source/blender/blenlib
-  ../../../../source/blender/blenloader
+	../../../../source/kernel/gen_system
+	../../../../intern/string
+	../../../../intern/moto/include
+	../../../../source/gameengine/Rasterizer
+	../../../../source/gameengine/Ketsji
+	../../../../source/gameengine/SceneGraph
+	../../../../extern/glew/include
+	../../../../source/blender/gpu
+	../../../../source/blender/makesdna
+	../../../../source/blender/blenkernel
+	../../../../source/blender/blenlib
+	../../../../source/blender/blenloader
 )
 
 BLENDERLIB(bf_oglrasterizer "${SRC}" "${INC}")

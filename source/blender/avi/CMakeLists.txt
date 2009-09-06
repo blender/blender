@@ -27,8 +27,8 @@
 FILE(GLOB SRC intern/*.c)
 
 SET(INC 
-  . ../../../intern/guardedalloc
-  ${JPEG_INC}
+	. ../../../intern/guardedalloc
+	${JPEG_INC}
 )
 
 BLENDERLIB(bf_avi "${SRC}" "${INC}")

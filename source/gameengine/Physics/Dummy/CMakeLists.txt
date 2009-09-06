@@ -27,8 +27,8 @@
 SET(SRC DummyPhysicsEnvironment.cpp)
 
 SET(INC
-  .
-  ../common
+	.
+	../common
 )
 
 BLENDERLIB(bf_dummy "${SRC}" "${INC}")
