@@ -586,6 +586,7 @@ PropertyUnit RNA_property_unit(PropertyRNA *prop);
 int RNA_property_flag(PropertyRNA *prop);
 
 int RNA_property_array_length(PointerRNA *ptr, PropertyRNA *prop);
+int RNA_property_multidimensional_array_length(PointerRNA *ptr, PropertyRNA *prop, int dimension);
 int RNA_property_dynamic_array_set_length(PointerRNA *ptr, PropertyRNA *prop, int length);
 char RNA_property_array_item_char(PropertyRNA *prop, int index);
 unsigned short RNA_property_array_dimension(PropertyRNA *prop, unsigned short dim_size[]);

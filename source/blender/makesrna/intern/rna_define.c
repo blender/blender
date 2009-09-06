@@ -1046,6 +1046,8 @@ void RNA_def_property_multidimensional_array(PropertyRNA *prop, int arraylength,
 
 	prop->arraydimension= dimension;
 
+	/* TODO make sure dimsize values are sane  */
+
 	if (dimension > 1)
 		memcpy(prop->dimsize, dimsize, sizeof(dimsize[0]) * (dimension - 1));
 }

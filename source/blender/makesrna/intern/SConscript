@@ -71,6 +71,9 @@ if env['WITH_BF_OPENAL']:
 if env['WITH_BF_JACK']:
     defs.append('WITH_JACK')
 
+if env['BF_UNIT_TEST']:
+	defs.append('UNIT_TEST')
+
 makesrna_tool.Append(CPPDEFINES=defs)
 
 makesrna_tool.Append (CPPPATH = Split(incs))

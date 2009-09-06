@@ -157,6 +157,7 @@ void RNA_def_sensor(struct BlenderRNA *brna);
 void RNA_def_sequence(struct BlenderRNA *brna);
 void RNA_def_smoke(struct BlenderRNA *brna);
 void RNA_def_space(struct BlenderRNA *brna);
+void RNA_def_test(struct BlenderRNA *brna);
 void RNA_def_text(struct BlenderRNA *brna);
 void RNA_def_texture(struct BlenderRNA *brna);
 void RNA_def_timeline_marker(struct BlenderRNA *brna);

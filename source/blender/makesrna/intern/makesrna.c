@@ -1991,6 +1991,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_sequence.c", NULL, RNA_def_sequence},
 	{"rna_smoke.c", NULL, RNA_def_smoke},
 	{"rna_space.c", NULL, RNA_def_space},
+	{"rna_test.c", NULL, RNA_def_test},
 	{"rna_text.c", NULL, RNA_def_text},
 	{"rna_timeline.c", NULL, RNA_def_timeline_marker},
 	{"rna_sound.c", NULL, RNA_def_sound},

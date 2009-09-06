@@ -557,20 +557,49 @@ int RNA_property_array_length(PointerRNA *ptr, PropertyRNA *prop)
 
 int RNA_property_dynamic_array_set_length(PointerRNA *ptr, PropertyRNA *prop, int length)
 {
-	if (prop->setlength)
-		return prop->setlength(ptr, length);
+	/* length 0 is not allowed */
+	if (!length)
+		return 0;
+
+	if (prop->getlength) {
+		if (prop->setlength)
+			return prop->setlength(ptr, length);
+		else
+			/* length cannot be changed */
+			return 0;
+	}
 	else
 		prop->arraylength= length; /* function parameters only? */
 
 	return 1;
 }
 
+/* used by BPY to make an array from the python object */
 unsigned short RNA_property_array_dimension(PropertyRNA *prop, unsigned short dimsize[])
 {
 	if (dimsize && prop->arraydimension > 1) {
 		memcpy(dimsize, prop->dimsize, sizeof(prop->dimsize[0]) * (prop->arraydimension - 1));
 	}
 	return prop->arraydimension;
+}
+
+/* Return the size of Nth dimension. */
+int RNA_property_multidimensional_array_length(PointerRNA *ptr, PropertyRNA *prop, int dim)
+{
+	unsigned short i;
+	int len;
+
+	if (dim == 0) {
+		len= RNA_property_array_length(ptr, prop);
+
+		for (i= 0; i < prop->arraydimension - 1; i++)
+			len /= prop->dimsize[i];
+	}
+	else {
+		len= prop->dimsize[dim - 1];
+	}
+
+	return len;
 }
 
 char RNA_property_array_item_char(PropertyRNA *prop, int index)

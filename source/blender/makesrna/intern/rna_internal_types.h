@@ -39,7 +39,12 @@ struct bContext;
 struct IDProperty;
 struct GHash;
 
+#ifdef UNIT_TEST
+#define RNA_MAX_ARRAY 64
+#else
 #define RNA_MAX_ARRAY 32
+#endif
+
 #define RNA_MAX_ARRAY_DIMENSION 3
 
 /* Function Callbacks */
@@ -134,11 +139,10 @@ struct PropertyRNA {
 	PropertySubType subtype;
 	/* if an array this is > 0, specifying the length */
 	unsigned int arraylength;
-	/* these, if non-NULL, override arraylength */
+	/* if non-NULL, overrides arraylength. Must not return 0? */
 	PropArrayLengthGetFunc getlength;
 	/* if NULL, length cannot be changed by a user */
 	PropArrayLengthSetFunc setlength;
-	/* used only for dynamic arrays for now, default 1 */
 	unsigned short arraydimension;
 	/* dimension sizes for dimensions greater than 1, first dimension size is not specified */
 	unsigned short dimsize[RNA_MAX_ARRAY_DIMENSION - 1];

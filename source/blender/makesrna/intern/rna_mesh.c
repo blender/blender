@@ -1182,7 +1182,7 @@ static void rna_def_mtface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "UV 4", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
-	prop= RNA_def_property(srna, "uv", PROP_FLOAT, PROP_XYZ);
+	prop= RNA_def_property(srna, "uv", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_multidimensional_array(prop, 4 * 2, 2, uv_dim);
 	RNA_def_property_flag(prop, PROP_DYNAMIC);
 	RNA_def_property_dynamic_array_funcs(prop, "rna_MeshTextureFace_uv_get_length", "rna_MeshTextureFace_uv_set_length");

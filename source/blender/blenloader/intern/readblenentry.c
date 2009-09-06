@@ -32,13 +32,12 @@
 #include <config.h>
 #endif
 
+#include "BLI_storage.h" /* _LARGEFILE_SOURCE */
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
-
-
-#include "BLI_storage.h" /* _LARGEFILE_SOURCE */
 
 #include "MEM_guardedalloc.h"
 

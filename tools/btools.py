@@ -91,7 +91,7 @@ def validate_arguments(args, bc):
 			'BF_BSC', 'BF_CONFIG',
 			'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', 'BF_QUICKDEBUG',
 			'BF_LISTDEBUG', 'LCGDIR', 'BF_X264_CONFIG', 'BF_XVIDCORE_CONFIG',
-			'BF_DOCDIR']
+			'BF_DOCDIR', 'BF_UNIT_TEST']
 
 	okdict = {}
 
@@ -386,7 +386,9 @@ def read_opts(cfg, args):
 		
 		('BF_CONFIG', 'SCons python config file used to set default options', 'user_config.py'),
 		('BF_NUMJOBS', 'Number of build processes to spawn', '1'),
-		('BF_MSVS', 'Generate MSVS project files and solution', False)
+		('BF_MSVS', 'Generate MSVS project files and solution', False),
+
+		(BoolVariable('BF_UNIT_TEST', 'Build with unit test support.', False))
 
 	) # end of opts.AddOptions()
 

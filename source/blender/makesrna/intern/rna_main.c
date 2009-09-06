@@ -219,6 +219,18 @@ static void rna_Main_wm_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 	rna_iterator_listbase_begin(iter, &bmain->wm, NULL);
 }
 
+#ifdef UNIT_TEST
+
+static PointerRNA rna_Test_test_get(PointerRNA *ptr)
+{
+	PointerRNA ret= *ptr;
+	ret.type= &RNA_Test;
+
+	return ret;
+}
+
+#endif
+
 #else
 
 void RNA_def_main(BlenderRNA *brna)
@@ -276,6 +288,18 @@ void RNA_def_main(BlenderRNA *brna)
 	}
 
 	RNA_api_main(srna);
+
+#ifdef UNIT_TEST
+
+	RNA_define_verify_sdna(0);
+
+	prop= RNA_def_property(srna, "test", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Test");
+	RNA_def_property_pointer_funcs(prop, "rna_Test_test_get", NULL, NULL);
+
+	RNA_define_verify_sdna(1);
+
+#endif
 }
 
 #endif

@@ -130,6 +130,70 @@ Mathutils_Callback mathutils_rna_matrix_cb = {
 	(BaseMathSetIndexFunc)	NULL
 };
 
+PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
+{
+	PyObject *ret= NULL;
+
+#ifdef USE_MATHUTILS
+	int type, subtype, totdim;
+	int len;
+
+	len= RNA_property_array_length(ptr, prop);
+	type= RNA_property_type(prop);
+	subtype= RNA_property_subtype(prop);
+	totdim= RNA_property_array_dimension(prop, NULL);
+
+	if (type != PROP_FLOAT) return NULL;
+
+	if (totdim == 1 || (totdim == 2 && subtype == PROP_MATRIX)) {
+		ret = pyrna_prop_CreatePyObject(ptr, prop);
+
+		switch(RNA_property_subtype(prop)) {
+		case PROP_TRANSLATION:
+		case PROP_DIRECTION:
+		case PROP_VELOCITY:
+		case PROP_ACCELERATION:
+		case PROP_XYZ:
+			if(len>=2 && len <= 4) {
+				PyObject *vec_cb= newVectorObject_cb(ret, len, mathutils_rna_array_cb_index, FALSE);
+				Py_DECREF(ret); /* the vector owns now */
+				ret= vec_cb; /* return the vector instead */
+			}
+			break;
+		case PROP_MATRIX:
+			if(len==16) {
+				PyObject *mat_cb= newMatrixObject_cb(ret, 4,4, mathutils_rna_matrix_cb_index, FALSE);
+				Py_DECREF(ret); /* the matrix owns now */
+				ret= mat_cb; /* return the matrix instead */
+			}
+			else if (len==9) {
+				PyObject *mat_cb= newMatrixObject_cb(ret, 3,3, mathutils_rna_matrix_cb_index, FALSE);
+				Py_DECREF(ret); /* the matrix owns now */
+				ret= mat_cb; /* return the matrix instead */
+			}
+			break;
+		case PROP_EULER:
+		case PROP_QUATERNION:
+			if(len==3) { /* euler */
+				PyObject *eul_cb= newEulerObject_cb(ret, mathutils_rna_array_cb_index, FALSE);
+				Py_DECREF(ret); /* the matrix owns now */
+				ret= eul_cb; /* return the matrix instead */
+			}
+			else if (len==4) {
+				PyObject *quat_cb= newQuaternionObject_cb(ret, mathutils_rna_array_cb_index, FALSE);
+				Py_DECREF(ret); /* the matrix owns now */
+				ret= quat_cb; /* return the matrix instead */
+			}
+			break;
+		default:
+			break;
+		}
+	}
+#endif
+
+	return ret;
+}
+
 #endif
 
 static StructRNA *pyrna_struct_as_srna(PyObject *self);
@@ -288,58 +352,7 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 	int len = RNA_property_array_length(ptr, prop);
 
 	if (len > 0) {
-		/* resolve the array from a new pytype */
-		PyObject *ret = pyrna_prop_CreatePyObject(ptr, prop);
-		
-#ifdef USE_MATHUTILS
-
-		/* return a mathutils vector where possible */
-		if(RNA_property_type(prop)==PROP_FLOAT) {
-			switch(RNA_property_subtype(prop)) {
-			case PROP_TRANSLATION:
-			case PROP_DIRECTION:
-			case PROP_VELOCITY:
-			case PROP_ACCELERATION:
-			case PROP_XYZ:
-				if(len>=2 && len <= 4) {
-					PyObject *vec_cb= newVectorObject_cb(ret, len, mathutils_rna_array_cb_index, FALSE);
-					Py_DECREF(ret); /* the vector owns now */
-					ret= vec_cb; /* return the vector instead */
-				}
-				break;
-			case PROP_MATRIX:
-				if(len==16) {
-					PyObject *mat_cb= newMatrixObject_cb(ret, 4,4, mathutils_rna_matrix_cb_index, FALSE);
-					Py_DECREF(ret); /* the matrix owns now */
-					ret= mat_cb; /* return the matrix instead */
-				}
-				else if (len==9) {
-					PyObject *mat_cb= newMatrixObject_cb(ret, 3,3, mathutils_rna_matrix_cb_index, FALSE);
-					Py_DECREF(ret); /* the matrix owns now */
-					ret= mat_cb; /* return the matrix instead */
-				}
-				break;
-			case PROP_EULER:
-			case PROP_QUATERNION:
-				if(len==3) { /* euler */
-					PyObject *eul_cb= newEulerObject_cb(ret, mathutils_rna_array_cb_index, FALSE);
-					Py_DECREF(ret); /* the matrix owns now */
-					ret= eul_cb; /* return the matrix instead */
-				}
-				else if (len==4) {
-					PyObject *quat_cb= newQuaternionObject_cb(ret, mathutils_rna_array_cb_index, FALSE);
-					Py_DECREF(ret); /* the matrix owns now */
-					ret= quat_cb; /* return the matrix instead */
-				}
-				break;
-			default:
-				break;
-			}
-		}
-
-#endif
-		
-		return ret;
+		return pyrna_py_from_array(ptr, prop);
 	}
 	
 	/* see if we can coorce into a python type - PropertyType */
@@ -511,7 +524,7 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 	int len = RNA_property_array_length(ptr, prop);
 	
 	if (len > 0) {
-		char error_str[512];
+		/* char error_str[512]; */
 		int ok= 1;
 
 #ifdef USE_MATHUTILS
@@ -526,21 +539,10 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 			return -1;
 		}
 		/* done getting the length */
-		
-		/* for arrays we have a limited number of types */
-		switch (type) {
-		case PROP_BOOLEAN:
-			ok= pyrna_py_to_boolean_array(value, ptr, prop, data, error_str, sizeof(error_str));
-			break;
-		case PROP_INT:
-			ok= pyrna_py_to_int_array(value, ptr, prop, data, error_str, sizeof(error_str));
-			break;
-		case PROP_FLOAT:
-			ok= pyrna_py_to_float_array(value, ptr, prop, data, error_str, sizeof(error_str));
-			break;
-		}
+		ok= pyrna_py_to_array(ptr, prop, data, value, error_prefix);
+
 		if (!ok) {
-			PyErr_Format(PyExc_AttributeError, "%.200s %s", error_prefix, error_str);
+			/* PyErr_Format(PyExc_AttributeError, "%.200s %s", error_prefix, error_str); */
 			return -1;
 		}
 	}
@@ -733,82 +735,84 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 	return 0;
 }
 
-static PyObject * pyrna_prop_to_py_index(PointerRNA *ptr, PropertyRNA *prop, int index)
+static PyObject * pyrna_prop_to_py_index(BPy_PropertyRNA *self, int index)
 {
-	PyObject *ret;
-	int type = RNA_property_type(prop);
-	
-	/* see if we can coorce into a python type - PropertyType */
-	switch (type) {
-	case PROP_BOOLEAN:
-		ret = PyBool_FromLong( RNA_property_boolean_get_index(ptr, prop, index) );
-		break;
-	case PROP_INT:
-		ret = PyLong_FromSsize_t( (Py_ssize_t)RNA_property_int_get_index(ptr, prop, index) );
-		break;
-	case PROP_FLOAT:
-		ret = PyFloat_FromDouble( RNA_property_float_get_index(ptr, prop, index) );
-		break;
-	default:
-		PyErr_SetString(PyExc_AttributeError, "not an array type");
-		ret = NULL;
-		break;
-	}
-	
-	return ret;
+	return pyrna_py_from_array_index(self, index);
 }
 
-static int pyrna_py_to_prop_index(PointerRNA *ptr, PropertyRNA *prop, int index, PyObject *value)
+static int pyrna_py_to_prop_index(BPy_PropertyRNA *self, int index, PyObject *value)
 {
 	int ret = 0;
+	int totdim;
+	PointerRNA *ptr= &self->ptr;
+	PropertyRNA *prop= self->prop;
 	int type = RNA_property_type(prop);
-	
-	/* see if we can coorce into a python type - PropertyType */
-	switch (type) {
-	case PROP_BOOLEAN:
-	{
-		int param = PyObject_IsTrue( value );
+
+	totdim= RNA_property_array_dimension(prop, NULL);
+
+	if (totdim > 1) {
+		/* char error_str[512]; */
+		if (!pyrna_py_to_array_index(&self->ptr, self->prop, self->arraydim, self->arrayoffset, index, value, "")) {
+			/* PyErr_SetString(PyExc_AttributeError, error_str); */
+			ret= -1;
+		}
+	}
+	else {
+		/* see if we can coorce into a python type - PropertyType */
+		switch (type) {
+		case PROP_BOOLEAN:
+			{
+				int param = PyObject_IsTrue( value );
 		
-		if( param < 0 ) {
-			PyErr_SetString(PyExc_TypeError, "expected True/False or 0/1");
+				if( param < 0 ) {
+					PyErr_SetString(PyExc_TypeError, "expected True/False or 0/1");
+					ret = -1;
+				} else {
+					RNA_property_boolean_set_index(ptr, prop, index, param);
+				}
+				break;
+			}
+		case PROP_INT:
+			{
+				int param = PyLong_AsSsize_t(value);
+				if (PyErr_Occurred()) {
+					PyErr_SetString(PyExc_TypeError, "expected an int type");
+					ret = -1;
+				} else {
+					RNA_property_int_set_index(ptr, prop, index, param);
+				}
+				break;
+			}
+		case PROP_FLOAT:
+			{
+				float param = PyFloat_AsDouble(value);
+				if (PyErr_Occurred()) {
+					PyErr_SetString(PyExc_TypeError, "expected a float type");
+					ret = -1;
+				} else {
+					RNA_property_float_set_index(ptr, prop, index, param);
+				}
+				break;
+			}
+		default:
+			PyErr_SetString(PyExc_AttributeError, "not an array type");
 			ret = -1;
-		} else {
-			RNA_property_boolean_set_index(ptr, prop, index, param);
+			break;
 		}
-		break;
-	}
-	case PROP_INT:
-	{
-		int param = PyLong_AsSsize_t(value);
-		if (PyErr_Occurred()) {
-			PyErr_SetString(PyExc_TypeError, "expected an int type");
-			ret = -1;
-		} else {
-			RNA_property_int_set_index(ptr, prop, index, param);
-		}
-		break;
-	}
-	case PROP_FLOAT:
-	{
-		float param = PyFloat_AsDouble(value);
-		if (PyErr_Occurred()) {
-			PyErr_SetString(PyExc_TypeError, "expected a float type");
-			ret = -1;
-		} else {
-			RNA_property_float_set_index(ptr, prop, index, param);
-		}
-		break;
-	}
-	default:
-		PyErr_SetString(PyExc_AttributeError, "not an array type");
-		ret = -1;
-		break;
 	}
 	
 	return ret;
 }
 
 //---------------sequence-------------------------------------------
+static int pyrna_prop_array_length(BPy_PropertyRNA *self)
+{
+	if (RNA_property_array_dimension(self->prop, NULL) > 1)
+		return RNA_property_multidimensional_array_length(&self->ptr, self->prop, self->arraydim);
+	else
+		return RNA_property_array_length(&self->ptr, self->prop);
+}
+
 static Py_ssize_t pyrna_prop_len( BPy_PropertyRNA * self )
 {
 	Py_ssize_t len;
@@ -816,10 +820,10 @@ static Py_ssize_t pyrna_prop_len( BPy_PropertyRNA * self )
 	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
 		len = RNA_property_collection_length(&self->ptr, self->prop);
 	} else {
-		len = RNA_property_array_length(&self->ptr, self->prop);
+		len = pyrna_prop_array_length(self);
 		
 		if (len==0) { /* not an array*/
-			PyErr_SetString(PyExc_AttributeError, "len() only available for collection RNA types");
+			PyErr_SetString(PyExc_AttributeError, "len() only available for collection and array RNA types");
 			return -1;
 		}
 	}
@@ -840,14 +844,15 @@ static PyObject *prop_subscript_collection_int(BPy_PropertyRNA * self, int keynu
 	PyErr_Format(PyExc_IndexError, "index %d out of range", keynum);
 	return NULL;
 }
+
 static PyObject *prop_subscript_array_int(BPy_PropertyRNA * self, int keynum)
 {
-	int len= RNA_property_array_length(&self->ptr, self->prop);
+	int len= pyrna_prop_array_length(self);
 
 	if(keynum < 0) keynum += len;
 
 	if(keynum >= 0 && keynum < len)
-		return pyrna_prop_to_py_index(&self->ptr, self->prop, keynum);
+		return pyrna_prop_to_py_index(self, keynum);
 
 	PyErr_Format(PyExc_IndexError, "index %d out of range", keynum);
 	return NULL;
@@ -894,7 +899,7 @@ static PyObject *prop_subscript_array_slice(BPy_PropertyRNA * self, int start, i
 	start = MIN2(start,stop); /* values are clamped from PySlice_GetIndicesEx */
 
 	for(count = start; count < stop; count++)
-		PyList_SetItem(list, count - start, pyrna_prop_to_py_index(&self->ptr, self->prop, count));
+		PyList_SetItem(list, count - start, pyrna_prop_to_py_index(self, count));
 
 	return list;
 }
@@ -947,8 +952,8 @@ static PyObject *prop_subscript_array(BPy_PropertyRNA * self, PyObject *key)
 		return prop_subscript_array_int(self, PyLong_AsSsize_t(key));
 	}
 	else if (PySlice_Check(key)) {
-		int len= RNA_property_array_length(&self->ptr, self->prop);
 		Py_ssize_t start, stop, step, slicelength;
+		int len = pyrna_prop_array_length(self);
 
 		if (PySlice_GetIndicesEx((PySliceObject*)key, len, &start, &stop, &step, &slicelength) < 0)
 			return NULL;
@@ -974,13 +979,12 @@ static PyObject *pyrna_prop_subscript( BPy_PropertyRNA * self, PyObject *key )
 {
 	if (RNA_property_type(self->prop) == PROP_COLLECTION) {
 		return prop_subscript_collection(self, key);
-	} else if (RNA_property_array_length(&self->ptr, self->prop)) { /* arrays are currently fixed length, zero length means its not an array */
+	} else if (RNA_property_array_length(&self->ptr, self->prop)) { /* zero length means its not an array */
 		return prop_subscript_array(self, key);
-	} else {
-		PyErr_SetString(PyExc_TypeError, "rna type is not an array or a collection");
-		return NULL;
-	}
+	} 
 
+	PyErr_SetString(PyExc_TypeError, "rna type is not an array or a collection");
+	return NULL;
 }
 
 static int prop_subscript_ass_array_slice(BPy_PropertyRNA * self, int begin, int end, PyObject *value)
@@ -991,7 +995,7 @@ static int prop_subscript_ass_array_slice(BPy_PropertyRNA * self, int begin, int
 	begin = MIN2(begin,end);
 
 	for(count = begin; count < end; count++) {
-		if(pyrna_py_to_prop_index(&self->ptr, self->prop, count - begin, value) == -1) {
+		if(pyrna_py_to_prop_index(self, count - begin, value) == -1) {
 			/* TODO - this is wrong since some values have been assigned... will need to fix that */
 			return -1; /* pyrna_struct_CreatePyObject should set the error */
 		}
@@ -1002,13 +1006,12 @@ static int prop_subscript_ass_array_slice(BPy_PropertyRNA * self, int begin, int
 
 static int prop_subscript_ass_array_int(BPy_PropertyRNA * self, int keynum, PyObject *value)
 {
-
-	int len= RNA_property_array_length(&self->ptr, self->prop);
+	int len= pyrna_prop_array_length(self);
 
 	if(keynum < 0) keynum += len;
 
 	if(keynum >= 0 && keynum < len)
-		return pyrna_py_to_prop_index(&self->ptr, self->prop, keynum, value);
+		return pyrna_py_to_prop_index(self, keynum, value);
 
 	PyErr_SetString(PyExc_IndexError, "out of range");
 	return -1;
@@ -1682,7 +1685,7 @@ PyObject *pyrna_prop_iter(BPy_PropertyRNA *self)
 	
 	if (ret==NULL) {
 		/* collection did not work, try array */
-		int len = RNA_property_array_length(&self->ptr, self->prop);
+		int len = pyrna_prop_array_length(self);
 		
 		if (len) {
 			int i;
@@ -1690,7 +1693,7 @@ PyObject *pyrna_prop_iter(BPy_PropertyRNA *self)
 			ret = PyList_New(len);
 			
 			for (i=0; i < len; i++) {
-				PyList_SET_ITEM(ret, i, pyrna_prop_to_py_index(&self->ptr, self->prop, i));
+				PyList_SET_ITEM(ret, i, pyrna_prop_to_py_index(self, i));
 			}
 		}
 	}
@@ -1780,6 +1783,8 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 	if(len > 0) {
 		/* resolve the array from a new pytype */
 		ret = PyTuple_New(len);
+
+		/* kazanbas: TODO make multidim sequences here */
 
 		switch (type) {
 		case PROP_BOOLEAN:
@@ -2445,6 +2450,9 @@ PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop )
 	
 	pyrna->ptr = *ptr;
 	pyrna->prop = prop;
+
+	pyrna->arraydim= 0;
+	pyrna->arrayoffset= 0;
 		
 	return ( PyObject * ) pyrna;
 }
