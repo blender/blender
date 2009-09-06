@@ -56,15 +56,12 @@ inline void bvh_node_push_childs<SVBVHNode>(SVBVHNode *node, Isect *isec, SVBVHN
 	while(i+4 <= node->nchilds)
 	{
 		int res = test_bb_group4( (__m128*) (node->child_bb+6*i), isec );
-		RE_RC_COUNT(isec->raycounter->bb.test);
-		RE_RC_COUNT(isec->raycounter->bb.test);
-		RE_RC_COUNT(isec->raycounter->bb.test);
-		RE_RC_COUNT(isec->raycounter->bb.test);
+		RE_RC_COUNT(isec->raycounter->simd_bb.test);
 		
-		if(res & 1) { stack[stack_pos++] = node->child[i+0]; RE_RC_COUNT(isec->raycounter->bb.hit); }
-		if(res & 2) { stack[stack_pos++] = node->child[i+1]; RE_RC_COUNT(isec->raycounter->bb.hit); }
-		if(res & 4) { stack[stack_pos++] = node->child[i+2]; RE_RC_COUNT(isec->raycounter->bb.hit); }
-		if(res & 8) { stack[stack_pos++] = node->child[i+3]; RE_RC_COUNT(isec->raycounter->bb.hit); }
+		if(res & 1) { stack[stack_pos++] = node->child[i+0]; RE_RC_COUNT(isec->raycounter->simd_bb.hit); }
+		if(res & 2) { stack[stack_pos++] = node->child[i+1]; RE_RC_COUNT(isec->raycounter->simd_bb.hit); }
+		if(res & 4) { stack[stack_pos++] = node->child[i+2]; RE_RC_COUNT(isec->raycounter->simd_bb.hit); }
+		if(res & 8) { stack[stack_pos++] = node->child[i+3]; RE_RC_COUNT(isec->raycounter->simd_bb.hit); }
 		
 		i += 4;
 	}

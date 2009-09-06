@@ -53,7 +53,7 @@ struct RayCounter
 	{
 		unsigned long long test, hit;
 		
-	} faces, bb, raycast, raytrace_hint, rayshadow_last_hit;
+	} faces, bb, simd_bb, raycast, raytrace_hint, rayshadow_last_hit;
 };
 
 /* #define RE_RC_INIT(isec, shi) (isec).count = re_rc_counter+(shi).thread */

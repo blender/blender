@@ -70,7 +70,7 @@ void bvh_done<VBVHTree>(VBVHTree *obj)
 
 	
 	//Build and optimize the tree
-	VBVHNode *root = BuildBinaryVBVH(arena1).transform(obj->builder);
+	VBVHNode *root = BuildBinaryVBVH<VBVHNode>(arena1).transform(obj->builder);
 
 	reorganize(root);
 	remove_useless(root, &root);

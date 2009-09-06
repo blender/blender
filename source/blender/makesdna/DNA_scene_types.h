@@ -769,15 +769,13 @@ typedef struct Scene {
 #define R_YAFRAY	1
 
 /* raytrace structure */
-#define R_RAYSTRUCTURE_HIER_BVH_BVH		0
-#define R_RAYSTRUCTURE_HIER_BVH_OCTREE	1
-#define R_RAYSTRUCTURE_SINGLE_OCTREE	2
-#define R_RAYSTRUCTURE_SINGLE_BVH		3
-
-/* raytrace tree type */
-#define R_RAYTRACE_TREE_BVH		0
-#define R_RAYTRACE_TREE_BLIBVH	1
-#define R_RAYTRACE_TREE_BIH		2
+#define R_RAYSTRUCTURE_AUTO				0
+#define R_RAYSTRUCTURE_OCTREE			1
+#define R_RAYSTRUCTURE_BLIBVH			2
+#define R_RAYSTRUCTURE_VBVH				3
+#define R_RAYSTRUCTURE_SIMD_SVBVH		4	/* needs SIMD */
+#define R_RAYSTRUCTURE_SIMD_QBVH		5	/* needs SIMD */
+#define R_RAYSTRUCTURE_BIH				6
 
 /* scemode (int now) */
 #define R_DOSEQ				0x0001

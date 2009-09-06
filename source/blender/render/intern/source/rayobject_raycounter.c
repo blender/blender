@@ -39,6 +39,9 @@ void RE_RC_INFO(RayCounter *info)
 	printf("BB tests: %llu\n", info->bb.test );
 	printf("BB hits: %llu\n", info->bb.hit );
 	printf("\n");	
+	printf("SIMD BB tests: %llu\n", info->simd_bb.test );
+	printf("SIMD BB hits: %llu\n", info->simd_bb.hit );
+	printf("\n");	
 	printf("Primitives tests: %llu\n", info->faces.test );
 	printf("Primitives hits: %llu\n", info->faces.hit );
 	printf("------------------------------------\n");
@@ -50,6 +53,9 @@ void RE_RC_INFO(RayCounter *info)
 	printf("\n");
 	printf("BB tests per ray: %f\n", info->bb.test / ((float)info->raycast.test) );
 	printf("BB hits per ray: %f\n", info->bb.hit / ((float)info->raycast.test) );
+	printf("\n");
+	printf("SIMD tests per ray: %f\n", info->simd_bb.test / ((float)info->raycast.test) );
+	printf("SIMD hits per ray: %f\n", info->simd_bb.hit / ((float)info->raycast.test) );
 	printf("\n");
 	printf("Primitives tests per ray: %f\n", info->faces.test / ((float)info->raycast.test) );
 	printf("Primitives hits per ray: %f\n", info->faces.hit / ((float)info->raycast.test) );
@@ -63,6 +69,9 @@ void RE_RC_MERGE(RayCounter *dest, RayCounter *tmp)
 
 	dest->bb.test += tmp->bb.test;
 	dest->bb.hit  += tmp->bb.hit;
+
+	dest->simd_bb.test += tmp->simd_bb.test;
+	dest->simd_bb.hit  += tmp->simd_bb.hit;
 
 	dest->raycast.test += tmp->raycast.test;
 	dest->raycast.hit  += tmp->raycast.hit;

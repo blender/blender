@@ -1,6 +1,33 @@
+/**
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version. 
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) 2009 Blender Foundation.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): André Pinto.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 #include "vbvh.h"
 #include "svbvh.h"
-#include "qbvh.h"
 #include "reorganize.h"
 
 #define DFS_STACK_SIZE	256
@@ -17,6 +44,17 @@ struct QBVHTree
 };
 
 
+/*
+ * Cost to test N childs
+ */
+struct PackCost
+{
+	float operator()(int n)
+	{
+		return (n / 4) + ((n % 4) > 2 ? 1 : n%4);
+	}
+};
+
 template<>
 void bvh_done<QBVHTree>(QBVHTree *obj)
 {
@@ -31,9 +69,20 @@ void bvh_done<QBVHTree>(QBVHTree *obj)
 					   BLI_memarena_use_align(arena2, 16);
 
 	//Build and optimize the tree
-	VBVHNode *root = BuildBinaryVBVH(arena1).transform(obj->builder);	
-	pushup_simd<VBVHNode,4>(root);					   
-	obj->root = Reorganize_SVBVH<VBVHNode>(arena2).transform(root);
+	
+	if(0)
+	{
+		VBVHNode *root = BuildBinaryVBVH<VBVHNode>(arena1).transform(obj->builder);	
+		pushup_simd<VBVHNode,4>(root);					   
+		obj->root = Reorganize_SVBVH<VBVHNode>(arena2).transform(root);
+	}
+	else
+	{
+		//Finds the optimal packing of this tree using a given cost model
+		OVBVHNode *root = BuildBinaryVBVH<OVBVHNode>(arena1).transform(obj->builder);			
+		VBVH_optimalPackSIMD<OVBVHNode,PackCost>(PackCost()).transform(root);
+		obj->root = Reorganize_SVBVH<OVBVHNode>(arena2).transform(root);
+	}
 	
 	//Cleanup
 	BLI_memarena_free(arena1);	

@@ -241,17 +241,13 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 				t_node[i] = t->child;
 			}
 */
-			RE_RC_COUNT(isec->raycounter->bb.test);
-			RE_RC_COUNT(isec->raycounter->bb.test);
-			RE_RC_COUNT(isec->raycounter->bb.test);
-			RE_RC_COUNT(isec->raycounter->bb.test);
-			
+			RE_RC_COUNT(isec->raycounter->simd_bb.test);
 			int res = test_bb_group4( t_bb, isec );
 
 			for(int i=0; i<4; i++)
 			if(res & (1<<i))
 			{
-				RE_RC_COUNT(isec->raycounter->bb.hit);
+				RE_RC_COUNT(isec->raycounter->simd_bb.hit);
 				if(!is_leaf(t_node[i]))
 				{
 					for(Node *t=t_node[i]; t; t=t->sibling)

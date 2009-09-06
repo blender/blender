@@ -69,21 +69,47 @@
 /* only to be used here in this file, it's for speed */
 extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
-RayObject *  RE_rayobject_tree_create(int type, int size) __attribute__((noinline));
-
-RayObject *  RE_rayobject_tree_create(int type, int size)
+RayObject *  RE_rayobject_create(int type, int size)
 {
-//	if(type == R_RAYTRACE_TREE_BIH)
-	return RE_rayobject_svbvh_create(size);
+	if(type == R_RAYSTRUCTURE_AUTO)
+	{
+		//TODO
+//		if(detect_simd())
+//			type = R_RAYSTRUCTURE_SIMD_SVBVH;
+//		else
+//			type = R_RAYSTRUCTURE_VBVH;
 
-	if(type == R_RAYTRACE_TREE_BVH)
-		return RE_rayobject_bvh_create(size);
-	if(type == R_RAYTRACE_TREE_BIH)
-		return RE_rayobject_bih_create(size);
-	if(type == R_RAYTRACE_TREE_BLIBVH)
+			type = R_RAYSTRUCTURE_SIMD_QBVH;
+	}
+	
+	
+	if(type == R_RAYSTRUCTURE_OCTREE)
+	{
+		//TODO dynamic ocres
+		return RE_rayobject_octree_create(R.r.ocres, size);
+	}
+	if(type == R_RAYSTRUCTURE_BLIBVH)
+	{
 		return RE_rayobject_blibvh_create(size);
-
+	}
+	if(type == R_RAYSTRUCTURE_VBVH)
+	{
+		return RE_rayobject_vbvh_create(size);
+	}
+	if(type == R_RAYSTRUCTURE_SIMD_SVBVH)
+	{
+		return RE_rayobject_svbvh_create(size);
+	}
+	if(type == R_RAYSTRUCTURE_SIMD_QBVH)
+	{
+		return RE_rayobject_qbvh_create(size);
+	}
+	if(type == R_RAYSTRUCTURE_BIH)
+	{
+//		return RE_rayobject_bih_create(size);
+	}
+	
+	return NULL;
 }
 
 #ifdef RE_RAYCOUNTER
@@ -205,14 +231,8 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 		}
 		assert( faces > 0 );
 
-		//Create Ray cast accelaration structure
-		
-		//TODO dynamic ocres
-		if(re->r.raystructure == R_RAYSTRUCTURE_HIER_BVH_OCTREE)
-			raytree = obr->raytree = RE_rayobject_octree_create( re->r.ocres, faces );
-		else //if(re->r.raystructure == R_RAYSTRUCTURE_HIER_BVH_BVH)
-			raytree = obr->raytree = RE_rayobject_tree_create( re->r.raytrace_tree_type, faces );
-			
+		//Create Ray cast accelaration structure		
+		raytree = obr->raytree = RE_rayobject_create( re->r.raytrace_tree_type, faces );
 		face = obr->rayfaces = (RayFace*)MEM_callocN(faces*sizeof(RayFace), "ObjectRen faces");
 		obr->rayobi = obi;
 		
@@ -237,51 +257,6 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 	
 	if(obi->raytree) return obi->raytree;
 	return obi->obr->raytree;
-}
-
-/*
- * create an hierarchic raytrace structure with all objects
- *
- * R_TRANSFORMED objects instances reuse the same tree by using the rayobject_instance
- */
-static void makeraytree_hier(Render *re)
-{
-	//TODO
-	// out-of-memory safeproof
-	// break render
-	// update render stats
-
-	ObjectInstanceRen *obi;
-	int num_objects = 0;
-
-	re->i.infostr="Creating raytrace structure";
-	re->stats_draw(re->sdh, &re->i);
-
-	//Count number of objects
-	for(obi=re->instancetable.first; obi; obi=obi->next)
-	if(is_raytraceable(re, obi))
-		num_objects++;
-
-	//Create raytree
-	re->raytree = RE_rayobject_tree_create( re->r.raytrace_tree_type, num_objects );
-	
-	for(obi=re->instancetable.first; obi; obi=obi->next)
-	if(is_raytraceable(re, obi))
-	{
-		RayObject *obj = makeraytree_object(re, obi);
-		RE_rayobject_add( re->raytree, obj );
-
-		if(re->test_break(re->tbh))
-			break;
-	}
-
-	if(!re->test_break(re->tbh))
-	{
-		RE_rayobject_done( re->raytree );
-	}
-
-	re->i.infostr= NULL;
-	re->stats_draw(re->sdh, &re->i);
 }
 
 static int has_special_rayobject(Render *re, ObjectInstanceRen *obi)
@@ -337,10 +312,7 @@ static void makeraytree_single(Render *re)
 	}
 	
 	//Create raytree
-	if(re->r.raystructure == R_RAYSTRUCTURE_SINGLE_OCTREE)
-		raytree = re->raytree = RE_rayobject_octree_create( re->r.ocres, faces );
-	else //if(re->r.raystructure == R_RAYSTRUCTURE_SINGLE_BVH)
-		raytree = re->raytree = RE_rayobject_tree_create( re->r.raytrace_tree_type, faces );
+	raytree = re->raytree = RE_rayobject_create( re->r.raytrace_tree_type, faces );
 
 	face	= re->rayfaces	= (RayFace*)MEM_callocN(faces*sizeof(RayFace), "Render ray faces");
 	
@@ -385,32 +357,8 @@ void makeraytree(Render *re)
 {
 	float min[3], max[3], sub[3];
 	int i;
-	const char *tree_type = "Tree(unknown)";
 
-	re->r.raystructure = R_RAYSTRUCTURE_SINGLE_BVH;
-#ifdef RE_RAYCOUNTER
-	if(re->r.raytrace_tree_type == R_RAYTRACE_TREE_BVH)
-		tree_type = "BVH";
-	if(re->r.raytrace_tree_type == R_RAYTRACE_TREE_BIH)
-		tree_type = "BIH";
-	if(re->r.raytrace_tree_type == R_RAYTRACE_TREE_BLIBVH)
-		tree_type = "BLIBVH";
-
-	if(re->r.raystructure == R_RAYSTRUCTURE_SINGLE_OCTREE)
-		printf("Building single octree\n");
-	else if(re->r.raystructure == R_RAYSTRUCTURE_SINGLE_BVH)
-		printf("Building single tree(%s)\n", tree_type);
-	else if(re->r.raystructure == R_RAYSTRUCTURE_HIER_BVH_OCTREE)
-		printf("Building tree(%s) of octrees\n", tree_type);
-	else
-		printf("Building tree(%s) of trees(%s)\n", tree_type, tree_type);
-#endif
-
-	if(ELEM(re->r.raystructure, R_RAYSTRUCTURE_SINGLE_BVH, R_RAYSTRUCTURE_SINGLE_OCTREE))
-		BENCH(makeraytree_single(re), tree_build);
-	else
-		BENCH(makeraytree_hier(re), tree_build);
-		
+	BENCH(makeraytree_single(re), tree_build);
 		
 	//Calculate raytree max_size
 	//This is ONLY needed to kept a bogus behaviour of SUN and HEMI lights

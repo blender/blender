@@ -65,7 +65,6 @@ struct BVHTree
 	RTBuilder *builder;
 };
 
-
 /*
  * Push nodes (used on dfs)
  */
