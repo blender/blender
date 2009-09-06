@@ -43,7 +43,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
-#include "MTC_matrixops.h"
+
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
@@ -1327,7 +1327,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	mval[0]-= vc->ar->winrct.xmin;
 	mval[1]-= vc->ar->winrct.ymin;
 			
-	MTC_Mat4SwapMat4(wpd->vc.rv3d->persmat, mat);
+	Mat4SwapMat4(wpd->vc.rv3d->persmat, mat);
 			
 	/* which faces are involved */
 	if(wp->flag & VP_AREA) {
@@ -1444,7 +1444,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		}
 	}
 			
-	MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
+	Mat4SwapMat4(vc->rv3d->persmat, mat);
 			
 	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
 	ED_region_tag_redraw(vc->ar);
@@ -1724,14 +1724,14 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		else totindex= 0;
 	}
 			
-	MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
+	Mat4SwapMat4(vc->rv3d->persmat, mat);
 			
 	for(index=0; index<totindex; index++) {				
 		if(indexar[index] && indexar[index]<=me->totface)
 			vpaint_paint_face(vp, vpd, ob, indexar[index]-1, mval);
 	}
 						
-	MTC_Mat4SwapMat4(vc->rv3d->persmat, mat);
+	Mat4SwapMat4(vc->rv3d->persmat, mat);
 			
 	ED_region_tag_redraw(vc->ar);
 			

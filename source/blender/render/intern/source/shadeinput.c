@@ -29,7 +29,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "MTC_matrixops.h"
+
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
@@ -458,13 +458,13 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 
 		if(texco & TEXCO_GLOB) {
 			VECCOPY(shi->gl, shi->co);
-			MTC_Mat4MulVecfl(R.viewinv, shi->gl);
+			Mat4MulVecfl(R.viewinv, shi->gl);
 			
 			if(shi->osatex) {
 				VECCOPY(shi->dxgl, shi->dxco);
-				MTC_Mat3MulVecfl(R.imat, shi->dxco);
+				Mat3MulVecfl(R.imat, shi->dxco);
 				VECCOPY(shi->dygl, shi->dyco);
-				MTC_Mat3MulVecfl(R.imat, shi->dyco);
+				Mat3MulVecfl(R.imat, shi->dyco);
 			}
 		}
 
@@ -1021,15 +1021,15 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 		
 		if(texco & TEXCO_GLOB) {
 			VECCOPY(shi->gl, shi->co);
-			MTC_Mat4MulVecfl(R.viewinv, shi->gl);
+			Mat4MulVecfl(R.viewinv, shi->gl);
 			if(shi->osatex) {
 				VECCOPY(shi->dxgl, shi->dxco);
 				// TXF: bug was here, but probably should be in convertblender.c, R.imat only valid if there is a world
-				//MTC_Mat3MulVecfl(R.imat, shi->dxco);
-				MTC_Mat4Mul3Vecfl(R.viewinv, shi->dxco);
+				//Mat3MulVecfl(R.imat, shi->dxco);
+				Mat4Mul3Vecfl(R.viewinv, shi->dxco);
 				VECCOPY(shi->dygl, shi->dyco);
-				//MTC_Mat3MulVecfl(R.imat, shi->dyco);
-				MTC_Mat4Mul3Vecfl(R.viewinv, shi->dyco);
+				//Mat3MulVecfl(R.imat, shi->dyco);
+				Mat4Mul3Vecfl(R.viewinv, shi->dyco);
 			}
 		}
 		

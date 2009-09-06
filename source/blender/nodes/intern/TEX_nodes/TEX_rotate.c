@@ -27,7 +27,7 @@
  */
 
 #include <math.h>
-#include "MTC_vectorops.h"
+
 #include "../TEX_util.h"
 
 static bNodeSocketType inputs[]= { 
@@ -65,19 +65,19 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	
 	if(magsq == 0) magsq = 1;
 	
-	ndx = MTC_dot3Float(coord, ax);
+	ndx = Inpf(coord, ax);
 	
 	para[0] = ax[0] * ndx * (1 - cos_a);
 	para[1] = ax[1] * ndx * (1 - cos_a);
 	para[2] = ax[2] * ndx * (1 - cos_a);
 	
-	MTC_diff3Float(perp, coord, para);
+	VecSubf(perp, coord, para);
 	
 	perp[0] = coord[0] * cos_a;
 	perp[1] = coord[1] * cos_a;
 	perp[2] = coord[2] * cos_a;
 	
-	MTC_cross3Float(cp, ax, coord);
+	Crossf(cp, ax, coord);
 	
 	cp[0] = cp[0] * sin_a;
 	cp[1] = cp[1] * sin_a;

@@ -37,7 +37,7 @@
 #include "IMB_imbuf.h"
 
 
-#include "MTC_matrixops.h"
+
 
 #include "DNA_armature_types.h"
 #include "DNA_boid_types.h"
@@ -1124,7 +1124,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 			Mat4Ortho(vec);
 			wmMultMatrix(vec);
 
-			MTC_Mat4SwapMat4(rv3d->persmat, tmat);
+			Mat4SwapMat4(rv3d->persmat, tmat);
 			wmGetSingleMatrix(rv3d->persmat);
 
 			if(cam->flag & CAM_SHOWLIMITS) {
@@ -1137,7 +1137,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 			if(cam->flag & CAM_SHOWMIST) 
 				if(wrld) draw_limit_line(wrld->miststa, wrld->miststa+wrld->mistdist, 0xFFFFFF);
 				
-			MTC_Mat4SwapMat4(rv3d->persmat, tmat);
+			Mat4SwapMat4(rv3d->persmat, tmat);
 		}
 	}
 }

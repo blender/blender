@@ -38,7 +38,7 @@
 #include "IMB_imbuf.h"
 
 
-#include "MTC_matrixops.h"
+
 
 #include "DNA_armature_types.h"
 #include "DNA_boid_types.h"

@@ -32,8 +32,8 @@
 /* External modules: */
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-#include "MTC_matrixops.h"
-#include "MTC_vectorops.h"
+
+
 
 #include "DNA_camera_types.h"
 #include "DNA_group_types.h"
@@ -155,7 +155,7 @@ static void render_lighting_halo(HaloRen *har, float *colf)
 					
 					/* rotate view to lampspace */
 					VECCOPY(lvrot, lv);
-					MTC_Mat3MulVecfl(lar->imat, lvrot);
+					Mat3MulVecfl(lar->imat, lvrot);
 					
 					x= MAX2(fabs(lvrot[0]/lvrot[2]) , fabs(lvrot[1]/lvrot[2]));
 					/* 1.0/(sqrt(1+x*x)) is equivalent to cos(atan(x)) */
@@ -553,7 +553,7 @@ void shadeSkyView(float *colf, float *rco, float *view, float *dxyview, short th
 		VECCOPY(lo, view);
 		if(R.wrld.skytype & WO_SKYREAL) {
 			
-			MTC_Mat3MulVecfl(R.imat, lo);
+			Mat3MulVecfl(R.imat, lo);
 			
 			SWAP(float, lo[1],  lo[2]);
 			
@@ -595,7 +595,7 @@ void shadeSunView(float *colf, float *view)
 				
 				VECCOPY(sview, view);
 				Normalize(sview);
-				MTC_Mat3MulVecfl(R.imat, sview);
+				Mat3MulVecfl(R.imat, sview);
 				if (sview[2] < 0.0)
 					sview[2] = 0.0;
 				Normalize(sview);
@@ -678,7 +678,7 @@ void shadeAtmPixel(struct SunSky *sunsky, float *collector, float fx, float fy, 
 		
 	calc_view_vector(view, fx, fy);
 	Normalize(view);
-	/*MTC_Mat3MulVecfl(R.imat, view);*/
+	/*Mat3MulVecfl(R.imat, view);*/
 	AtmospherePixleShader(sunsky, view, distance, collector);
 }
 
