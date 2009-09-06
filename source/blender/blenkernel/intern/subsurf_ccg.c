@@ -3270,7 +3270,21 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
                         int useRenderParams, float (*vertCos)[3],
                         int isFinalCalc, int editMode)
 {
-	return subsurf_make_derived_from_derived_with_multires(dm, smd, NULL, useRenderParams, vertCos, isFinalCalc, editMode);
+	DerivedMesh *cddm = NULL, *result;
+
+	if (!CDDM_Check(dm)) {
+		cddm = CDDM_copy(dm);
+		dm = cddm;
+	}
+
+	result = subsurf_make_derived_from_derived_with_multires(dm, smd, NULL, useRenderParams, vertCos, isFinalCalc, editMode);
+
+	if (cddm) {
+		cddm->needsFree = 1;
+		cddm->release(cddm);
+	}
+
+	return result;
 }
 
 void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]) 

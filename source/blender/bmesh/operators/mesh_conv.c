@@ -45,7 +45,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	MLoop *ml;
 	MPoly *mpoly;
 	BMVert *v, **vt=NULL;
-	BMEdge *e, **fedges=NULL, **et;
+	BMEdge *e, **fedges=NULL, **et = NULL;
 	V_DECLARE(fedges);
 	BMFace *f;
 	int i, j, li, allocsize[4] = {512, 512, 2048, 512};
@@ -85,7 +85,10 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		CustomData_to_bmesh_block(&me->vdata, &bm->vdata, i, &v->head.data);
 	}
 
-	if (!me->totedge) return;
+	if (!me->totedge) {
+		MEM_freeN(vt);
+		return;
+	}
 
 	et = MEM_mallocN(sizeof(void**)*me->totedge, "mesh to bmesh etable");
 
@@ -107,7 +110,11 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		if (e->head.flag & BM_SELECT) BM_Select(bm, e, 1);
 	}
 	
-	if (!me->totpoly) return;
+	if (!me->totpoly) {
+		MEM_freeN(vt);
+		MEM_freeN(et);
+		return;
+	}
 
 	mpoly = me->mpoly;
 	li = 0;
@@ -158,6 +165,9 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	}
 
 	V_FREE(fedges);
+
+	MEM_freeN(vt);
+	MEM_freeN(et);
 }
 
 

@@ -47,6 +47,9 @@ struct Object;
 struct DerivedMesh *CDDM_new(int numVerts, int numEdges, int numFaces,
                              int numLoops, int numPolys);
 
+/*tests if a given DerivedMesh is a CDDM*/
+int CDDM_Check(struct DerivedMesh *dm);
+
 /* creates a CDDerivedMesh from the given Mesh, this will reference the
    original data in Mesh, but it is safe to apply vertex coordinates or
    calculate normals as those functions will automtically create new

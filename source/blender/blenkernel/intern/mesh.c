@@ -84,6 +84,8 @@ void BKE_mesh_end_editmesh(Mesh *me, EditMesh *em)
 	BM_Free_Mesh(me->edit_btmesh->bm);
 	me->edit_btmesh->bm = editmesh_to_bmesh(em);
 	BMEdit_RecalcTesselation(me->edit_btmesh);
+	free_editMesh(em);
+	MEM_freeN(em);
 }
 
 static void mesh_ensure_tesselation_customdata(Mesh *me)

@@ -170,16 +170,18 @@ int BLI_ghash_size(GHash *gh) {
 void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp) {
 	int i;
 	
-	for (i=0; i<gh->nbuckets; i++) {
-		Entry *e;
-		
-		for (e= gh->buckets[i]; e; ) {
-			Entry *n= e->next;
+	if (keyfreefp || valfreefp) {
+		for (i=0; i<gh->nbuckets; i++) {
+			Entry *e;
 			
-			if (keyfreefp) keyfreefp(e->key);
-			if (valfreefp) valfreefp(e->val);
+			for (e= gh->buckets[i]; e; ) {
+				Entry *n= e->next;
+				
+				if (keyfreefp) keyfreefp(e->key);
+				if (valfreefp) valfreefp(e->val);
 
-			e= n;
+				e= n;
+			}
 		}
 	}
 	
