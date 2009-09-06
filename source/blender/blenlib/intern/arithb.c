@@ -2835,9 +2835,9 @@ void EulOToQuat(float e[3], short order, float q[4])
 	double ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
 	double a[3];
 	
-	if (R->parity) e[1] = -e[1]; // xxx watch it!
-	
 	ti = e[i]/2; tj = e[j]/2; th = e[k]/2;
+	
+	if (R->parity) e[j] = -e[j];
 	
 	ci = cos(ti);  cj = cos(tj);  ch = cos(th);
 	si = sin(ti);  sj = sin(tj);  sh = sin(th);

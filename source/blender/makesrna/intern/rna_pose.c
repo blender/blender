@@ -130,6 +130,67 @@ static void rna_PoseChannel_euler_rotation_set(PointerRNA *ptr, const float *val
 		VECCOPY(pchan->eul, value);
 }
 
+static void rna_PoseChannel_rotation_mode_set(PointerRNA *ptr, int value)
+{
+	bPoseChannel *pchan= ptr->data;
+	
+	/* check if any change - if so, need to convert data */
+	// TODO: this needs to be generalised at some point to work for objects too...
+	if (value > 0) { /* to euler */
+		if (pchan->rotmode < 0) { // FIXME: need a define for this
+			/* axis-angle to euler */
+			float m[3][3];
+			
+			/* convert to 3x3 matrix, then to euler 
+			 *	- axis angle is stored in quats
+			 */
+			VecRotToMat3(&pchan->quat[1], pchan->quat[0], m);
+			Mat3ToEulO(m, pchan->eul, value);
+		}
+		else if (pchan->rotmode == PCHAN_ROT_QUAT) {
+			/* quat to euler */
+			QuatToEulO(pchan->quat, pchan->eul, value);
+		}
+		/* else { no conversion needed } */
+	}
+	else if (value == PCHAN_ROT_QUAT) { /* to quat */
+		if (pchan->rotmode < 0) { // FIXME: need a define for this
+			/* axis angle to quat */
+			float q[4];
+			
+			/* copy to temp var first, since quats and axis-angle are stored in same place */
+			QuatCopy(q, pchan->quat);
+			AxisAngleToQuat(q, &pchan->quat[1], pchan->quat[0]);
+		}
+		else if (pchan->rotmode > 0) {
+			/* euler to quat */
+			EulOToQuat(pchan->eul, pchan->rotmode, pchan->quat);
+		}
+		/* else { no conversion needed } */
+	}
+	else { /* to axis-angle */
+		if (pchan->rotmode > 0) { // FIXME: need a define for this
+			/* euler to axis angle */
+			float q[4];
+			
+			/* convert to temp quat, then to axis angle (since stored in same var) */
+			EulOToQuat(pchan->eul, pchan->rotmode, q);
+			QuatToAxisAngle(q, &pchan->quat[1], pchan->quat[0]);
+		}
+		else if (pchan->rotmode == PCHAN_ROT_QUAT) {
+			/* quat to axis angle */
+			float q[4];
+			
+			/* copy to temp var first, since quats and axis-angle are stored in same place */
+			QuatCopy(q, pchan->quat);
+			QuatToAxisAngle(q, &pchan->quat[1], pchan->quat[0]);
+		}
+	}
+	
+	/* finally, set the new rotation type */
+	pchan->rotmode= value;
+}
+
 static void rna_PoseChannel_name_set(PointerRNA *ptr, const char *value)
 {
 	Object *ob= (Object*)ptr->id.data;
@@ -439,6 +500,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "rotation_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rotmode");
 	RNA_def_property_enum_items(prop, prop_rotmode_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_PoseChannel_rotation_mode_set", NULL);
 	RNA_def_property_ui_text(prop, "Rotation Mode", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_update");
 
