@@ -1,5 +1,5 @@
 /**
- * $Id: rna_test.c  $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
