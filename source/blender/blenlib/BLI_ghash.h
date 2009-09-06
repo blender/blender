@@ -32,8 +32,27 @@
 #ifndef BLI_GHASH_H
 #define BLI_GHASH_H
 
-struct GHash;
-typedef struct GHash GHash;
+#include "BKE_utildefines.h"
+
+typedef unsigned int	(*GHashHashFP)		(void *key);
+typedef int				(*GHashCmpFP)		(void *a, void *b);
+typedef	void			(*GHashKeyFreeFP)	(void *key);
+typedef void			(*GHashValFreeFP)	(void *val);
+
+typedef struct Entry {
+	struct Entry *next;
+	
+	void *key, *val;
+} Entry;
+
+typedef struct GHash {
+	GHashHashFP	hashfp;
+	GHashCmpFP	cmpfp;
+	
+	Entry **buckets;
+	struct BLI_mempool *entrypool;
+	int nbuckets, nentries, cursize;
+} GHash;
 
 typedef struct GHashIterator {
 	GHash *gh;
@@ -41,18 +60,13 @@ typedef struct GHashIterator {
 	struct Entry *curEntry;
 } GHashIterator;
 
-typedef unsigned int	(*GHashHashFP)		(void *key);
-typedef int				(*GHashCmpFP)		(void *a, void *b);
-typedef	void			(*GHashKeyFreeFP)	(void *key);
-typedef void			(*GHashValFreeFP)	(void *val);
-
 GHash*	BLI_ghash_new		(GHashHashFP hashfp, GHashCmpFP cmpfp);
 void	BLI_ghash_free		(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
 
-void	BLI_ghash_insert	(GHash *gh, void *key, void *val);
-int		BLI_ghash_remove	(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
-void*	BLI_ghash_lookup	(GHash *gh, void *key);
-int		BLI_ghash_haskey	(GHash *gh, void *key);
+BM_INLINE void	BLI_ghash_insert	(GHash *gh, void *key, void *val);
+BM_INLINE int		BLI_ghash_remove	(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
+BM_INLINE void*	BLI_ghash_lookup	(GHash *gh, void *key);
+BM_INLINE int		BLI_ghash_haskey	(GHash *gh, void *key);
 
 int		BLI_ghash_size		(GHash *gh);
 
@@ -127,3 +141,29 @@ int				BLI_ghashutil_intcmp(void *a, void *b);
 
 #endif
 
+/*begin of macro-inlined functions*/
+extern unsigned int hashsizes[];
+
+#define BLI_ghash_insert(gh, _k, _v){\
+	unsigned int _hash= (gh)->hashfp(_k)%gh->nbuckets;\
+	Entry *_e= BLI_mempool_alloc((gh)->entrypool);\
+	_e->key= _k;\
+	_e->val= _v;\
+	_e->next= (gh)->buckets[_hash];\
+	(gh)->buckets[_hash]= _e;\
+	if (++(gh)->nentries>(gh)->nbuckets*3) {\
+		Entry *_e, **_old= (gh)->buckets;\
+		int _i, _nold= (gh)->nbuckets;\
+		(gh)->nbuckets= hashsizes[++(gh)->cursize];\
+		(gh)->buckets= malloc((gh)->nbuckets*sizeof(*(gh)->buckets));\
+		memset((gh)->buckets, 0, (gh)->nbuckets*sizeof(*(gh)->buckets));\
+		for (_i=0; _i<_nold; _i++) {\
+			for (_e= _old[_i]; _e;) {\
+				Entry *_n= _e->next;\
+				_hash= (gh)->hashfp(_e->key)%(gh)->nbuckets;\
+				_e->next= (gh)->buckets[_hash];\
+				(gh)->buckets[_hash]= _e;\
+				_e= _n;\
+			}\
+		}\
+		free(_old); } }

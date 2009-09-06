@@ -4,6 +4,8 @@
 #include "BLI_memarena.h"
 #include "BLI_ghash.h"
 
+#include "BKE_utildefines.h"
+
 #include <stdarg.h>
 
 /*
@@ -255,21 +257,21 @@ int BMO_CountSlotBuf(struct BMesh *bm, struct BMOperator *op, char *slotname);
 
 /*inserts a key/value mapping into a mapping slot.  note that it copies the
   value, it doesn't store a reference to it.*/
-void BMO_Insert_Mapping(BMesh *bm, BMOperator *op, char *slotname, 
+BM_INLINE void BMO_Insert_Mapping(BMesh *bm, BMOperator *op, char *slotname, 
 			void *element, void *data, int len);
 
 /*inserts a key/float mapping pair into a mapping slot.*/
-void BMO_Insert_MapFloat(BMesh *bm, BMOperator *op, char *slotname, 
+BM_INLINE void BMO_Insert_MapFloat(BMesh *bm, BMOperator *op, char *slotname, 
 			void *element, float val);
 
 //returns 1 if the specified pointer is in the map.
-int BMO_InMap(BMesh *bm, BMOperator *op, char *slotname, void *element);
+BM_INLINE int BMO_InMap(BMesh *bm, BMOperator *op, char *slotname, void *element);
 
 /*returns a point to the value of a specific key.*/
-void *BMO_Get_MapData(BMesh *bm, BMOperator *op, char *slotname, void *element);
+BM_INLINE void *BMO_Get_MapData(BMesh *bm, BMOperator *op, char *slotname, void *element);
 
 /*returns the float part of a key/float pair.*/
-float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, char *slotname, void *element);
+BM_INLINE float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, char *slotname, void *element);
 
 /*flags all elements in a mapping.  note that the mapping must only have
   bmesh elements in it.*/
@@ -280,9 +282,9 @@ void BMO_Mapping_To_Flag(struct BMesh *bm, struct BMOperator *op,
 
   do NOT use these for non-operator-api-allocated memory! instead
   use BMO_Get_MapData and BMO_Insert_Mapping, which copies the data.*/
-void BMO_Insert_MapPointer(BMesh *bm, BMOperator *op, char *slotname, 
+BM_INLINE void BMO_Insert_MapPointer(BMesh *bm, BMOperator *op, char *slotname, 
 			void *key, void *val);
-void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, char *slotname,
+BM_INLINE void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, char *slotname,
 		       void *key);
 
 /*this part of the API is used to iterate over element buffer or

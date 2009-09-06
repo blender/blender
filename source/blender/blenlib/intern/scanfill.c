@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -154,7 +155,7 @@ static void *new_mem_element(int size)
 {
 	int blocksize= 16384;
 	static int offs= 0;		/* the current free adress */
-	static struct mem_elements *cur= 0;
+	static struct mem_elements *cur= 0, *first;
 	static ListBase lb= {0, 0};
 	void *adr;
 	
@@ -162,6 +163,10 @@ static void *new_mem_element(int size)
 		printf("incorrect use of new_mem_element\n");
 	}
 	else if(size== -1) {
+		/*keep the first block*/
+		first = lb.first;
+		BLI_remlink(&lb, first);
+
 		cur= lb.first;
 		while(cur) {
 			MEM_freeN(cur->data);
@@ -169,6 +174,12 @@ static void *new_mem_element(int size)
 		}
 		BLI_freelistN(&lb);
 		
+		/*reset the block we're keeping*/
+		BLI_addtail(&lb, first);
+		memset(first->data, 0, blocksize);
+		cur = first;
+		offs = 0;
+
 		return NULL;	
 	}
 	
@@ -770,6 +781,7 @@ int BLI_edgefill(int mode, int mat_nr)
 	  - struct elements xs en ys are not used here: don't hide stuff in it
 	  - edge flag ->f becomes 2 when it's a new edge
 	  - mode: & 1 is check for crossings, then create edges (TO DO )
+	  - mode: & 2 is enable shortest diagonal test for quads
 	*/
 	ListBase tempve, temped;
 	EditVert *eve;
@@ -798,17 +810,22 @@ int BLI_edgefill(int mode, int mat_nr)
 		float vec1[3], vec2[3];
 
 		eve = fillvertbase.first;
-
-		/*use shortest diagonal for quad*/
-		VecSubf(vec1, eve->co, eve->next->next->co);
-		VecSubf(vec2, eve->next->co, eve->next->next->next->co);
-
-		if (INPR(vec1, vec1) < INPR(vec2, vec2)) {
-			addfillface(eve, eve->next, eve->next->next, 0);
-			addfillface(eve->next->next, eve->next->next->next, eve, 0);
+		
+		if (mode & 2) {
+			/*use shortest diagonal for quad*/
+			VecSubf(vec1, eve->co, eve->next->next->co);
+			VecSubf(vec2, eve->next->co, eve->next->next->next->co);
+			
+			if (INPR(vec1, vec1) < INPR(vec2, vec2)) {
+				addfillface(eve, eve->next, eve->next->next, 0);
+				addfillface(eve->next->next, eve->next->next->next, eve, 0);
+			} else{
+				addfillface(eve->next, eve->next->next, eve->next->next->next, 0);
+				addfillface(eve->next->next->next, eve, eve->next, 0);
+			}
 		} else {
-			addfillface(eve->next, eve->next->next, eve->next->next->next, 0);
-			addfillface(eve->next->next->next, eve, eve->next, 0);
+				addfillface(eve, eve->next, eve->next->next, 0);
+				addfillface(eve->next->next, eve->next->next->next, eve, 0);
 		}
 		return 1;
 	}

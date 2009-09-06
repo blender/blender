@@ -247,7 +247,11 @@ void BM_Compute_Normals(BMesh *bm)
 */
 
 void bmesh_begin_edit(BMesh *bm){
-
+	if(bm->vtar) MEM_freeN(bm->vtar);
+	if(bm->edar) MEM_freeN(bm->edar);
+	if(bm->lpar) MEM_freeN(bm->lpar);
+	if(bm->plar) MEM_freeN(bm->plar);
+	
 	/*Initialize some scratch pointer arrays used by eulers*/
 	bm->vtar = MEM_callocN(sizeof(BMVert *) * 1024, "BM scratch vert array");
 	bm->edar = MEM_callocN(sizeof(BMEdge *) * 1024, "BM scratch edge array");

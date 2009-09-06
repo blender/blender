@@ -1907,9 +1907,33 @@ static void editmesh_set_connectivity_distance(EditMesh *em, int total, float *v
 	VECCOPY(centout, cent);
 }
 
+#define VertsToTransData(t, td, em, eve) \
+	td->flag = 0;\
+	td->loc = eve->co;\
+	VECCOPY(td->center, td->loc);\
+	if(t->around==V3D_LOCAL && (em->selectmode & SCE_SELECT_FACE))\
+		get_face_center(td->center, em, eve);\
+	VECCOPY(td->iloc, td->loc);\
+	VECCOPY(td->axismtx[2], eve->no);\
+	td->axismtx[0][0]		=\
+		td->axismtx[0][1]	=\
+		td->axismtx[0][2]	=\
+		td->axismtx[1][0]	=\
+		td->axismtx[1][1]	=\
+		td->axismtx[1][2]	= 0.0f;\
+	td->ext = NULL;\
+	td->tdi = NULL;\
+	td->val = NULL;\
+	td->extra = NULL;\
+	if (t->mode == TFM_BWEIGHT) {\
+		td->val = &(eve->bweight);\
+		td->ival = eve->bweight;\
+	}
+
+#if 0
 //way to overwrite what data is edited with transform
 //static void VertsToTransData(TransData *td, EditVert *eve, BakeKey *key)
-static void VertsToTransData(TransInfo *t, TransData *td, BMesh *em, BMVert *eve)
+inline void VertsToTransData(TransInfo *t, TransData *td, BMesh *em, BMVert *eve)
 {
 	td->flag = 0;
 	//if(key)
@@ -1940,6 +1964,7 @@ static void VertsToTransData(TransInfo *t, TransData *td, BMesh *em, BMVert *eve
 		td->ival = eve->bweight;
 	}
 }
+#endif
 
 /* *********************** CrazySpace correction. Now without doing subsurf optimal ****************** */
 

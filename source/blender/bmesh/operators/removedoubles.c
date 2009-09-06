@@ -501,7 +501,7 @@ void bmesh_finddoubles_exec(BMesh *bm, BMOperator *op)
 	BMVert **verts=NULL;
 	V_DECLARE(verts);
 	float dist, distsqr;
-	int i, j, len;
+	int i, j, len, keepvert;
 
 	dist = BMO_Get_Float(op, "dist");
 	distsqr = dist*dist;
@@ -512,8 +512,10 @@ void bmesh_finddoubles_exec(BMesh *bm, BMOperator *op)
 		verts[i++] = v;
 	}
 
+	keepvert = BMO_IterNew(&oiter, bm, op, "keepverts", BM_VERT) != NULL;
+
 	/*sort by vertex coordinates added together*/
-	//qsort(verts, V_COUNT(verts), sizeof(void*), vergaverco);
+	qsort(verts, V_COUNT(verts), sizeof(void*), vergaverco);
 	
 	BMO_Flag_Buffer(bm, op, "keepverts", VERT_KEEP, BM_VERT);
 
@@ -522,21 +524,16 @@ void bmesh_finddoubles_exec(BMesh *bm, BMOperator *op)
 		v = verts[i];
 		if (BMO_TestFlag(bm, v, VERT_DOUBLE)) continue;
 		
-		//BMO_SetFlag(bm, v, VERT_TESTED);
-		for (j=0; j<len; j++) {
-			if (j == i) continue;
-
-			//float vec[3];
-			if (BMO_TestFlag(bm, v, VERT_KEEP)) continue;
-
+		for (j=i+1; j<len; j++) {
 			v2 = verts[j];
-			//if ((v2->co[0]+v2->co[1]+v2->co[2]) - (v->co[0]+v->co[1]+v->co[2])
-			//     > distsqr) break;
-
-			//vec[0] = v->co[0] - v2->co[0];
-			//vec[1] = v->co[1] - v2->co[1];
-			//vec[2] = v->co[2] - v2->co[2];
+			if ((v2->co[0]+v2->co[1]+v2->co[2]) - (v->co[0]+v->co[1]+v->co[2])
+			     > distsqr) break;
 			
+			if (keepvert) {
+				if (BMO_TestFlag(bm, v2, VERT_KEEP) == BMO_TestFlag(bm, v, VERT_KEEP))
+					continue;
+			}
+
 			if (VecLenCompare(v->co, v2->co, dist)) {
 				BMO_SetFlag(bm, v2, VERT_DOUBLE);
 				BMO_SetFlag(bm, v, VERT_TARGET);

@@ -225,7 +225,7 @@ void BMO_CopySlot(BMOperator *source_op, BMOperator *dest_op, char *src, char *d
 				dstmap->len = srcmap->len;
 				memcpy(dstmap+1, srcmap+1, srcmap->len);
 				
-				BLI_ghash_insert(dest_slot->data.ghash, 
+				BLI_ghash_insert(dest_slot->data.ghash,
 				                dstmap->element, dstmap);				
 			}
 		}
@@ -455,7 +455,7 @@ void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd) {
 }
 #endif
 
-void BMO_Insert_Mapping(BMesh *bm, BMOperator *op, char *slotname, 
+BM_INLINE void BMO_Insert_Mapping(BMesh *bm, BMOperator *op, char *slotname, 
 			void *element, void *data, int len) {
 	element_mapping *mapping;
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
@@ -494,19 +494,19 @@ void BMO_Mapping_To_Flag(struct BMesh *bm, struct BMOperator *op,
 	}
 }
 
-void BMO_Insert_MapFloat(BMesh *bm, BMOperator *op, char *slotname, 
+BM_INLINE void BMO_Insert_MapFloat(BMesh *bm, BMOperator *op, char *slotname, 
 			void *element, float val)
 {
 	BMO_Insert_Mapping(bm, op, slotname, element, &val, sizeof(float));
 }
 
-void BMO_Insert_MapPointer(BMesh *bm, BMOperator *op, char *slotname, 
+BM_INLINE void BMO_Insert_MapPointer(BMesh *bm, BMOperator *op, char *slotname, 
 			void *element, void *val)
 {
 	BMO_Insert_Mapping(bm, op, slotname, element, &val, sizeof(void*));
 }
 
-int BMO_InMap(BMesh *bm, BMOperator *op, char *slotname, void *element)
+BM_INLINE int BMO_InMap(BMesh *bm, BMOperator *op, char *slotname, void *element)
 {
 	BMOpSlot *slot = BMO_GetSlot(op, slotname);
 
@@ -517,7 +517,7 @@ int BMO_InMap(BMesh *bm, BMOperator *op, char *slotname, void *element)
 	return BLI_ghash_haskey(slot->data.ghash, element);
 }
 
-void *BMO_Get_MapData(BMesh *bm, BMOperator *op, char *slotname,
+BM_INLINE void *BMO_Get_MapData(BMesh *bm, BMOperator *op, char *slotname,
 		      void *element)
 {
 	element_mapping *mapping;
@@ -534,7 +534,7 @@ void *BMO_Get_MapData(BMesh *bm, BMOperator *op, char *slotname,
 	return mapping + 1;
 }
 
-float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, char *slotname,
+BM_INLINE float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, char *slotname,
 		       void *element)
 {
 	float *val = BMO_Get_MapData(bm, op, slotname, element);
@@ -543,7 +543,7 @@ float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, char *slotname,
 	return 0.0f;
 }
 
-void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, char *slotname,
+BM_INLINE void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, char *slotname,
 		       void *element)
 {
 	void **val = BMO_Get_MapData(bm, op, slotname, element);

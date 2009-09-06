@@ -16,7 +16,7 @@
 /*Defines for passing to BMIter_New.
  
  "OF" can be substituted for "around"
-  so BM_VERTS_OF_MESH_OF_FACE means "vertices
+  so BM_VERTS_OF_FACE means "vertices
   around a face."
  */
 
@@ -32,14 +32,13 @@
 #define BM_LOOPS_OF_VERT			6
 #define BM_FACES_OF_EDGE 			7
 #define BM_VERTS_OF_FACE 			8
-#define BM_FACEVERTS_OF_FACE 			9
-#define BM_EDGES_OF_FACE 			10
-#define BM_LOOPS_OF_FACE 			11
+#define BM_EDGES_OF_FACE 			9
+#define BM_LOOPS_OF_FACE 			10
 
 /*iterate through loops around this loop, which are fetched
   from the other faces in the radial cycle surrounding the
   input loop's edge.*/
-#define BM_LOOPS_OF_LOOP		12
+#define BM_LOOPS_OF_LOOP		11
 
 #define BM_ITER(ele, iter, bm, type, data) \
 	ele = BMIter_New(iter, bm, type, data); \

@@ -31,9 +31,14 @@
 */
 
 #include "MEM_guardedalloc.h"
+
+#include "BKE_utildefines.h"
+
 #include "BLI_blenlib.h"
-#include "DNA_listBase.h"
 #include "BLI_linklist.h"
+
+#include "DNA_listBase.h"
+
 #include <string.h> 
 
 typedef struct BLI_freenode{
@@ -122,7 +127,7 @@ void *BLI_mempool_alloc(BLI_mempool *pool){
 void *BLI_mempool_calloc(BLI_mempool *pool){
 	void *retval=NULL;
 	retval = BLI_mempool_alloc(pool);
-	memset(retval, 0, pool->esize);
+	BMEMSET(retval, 0, pool->esize);
 	return retval;
 }
 

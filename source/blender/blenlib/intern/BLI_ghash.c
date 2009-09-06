@@ -37,13 +37,15 @@
 
 #include "BLO_sys_types.h" // for intptr_t support
 
+#include "BKE_utildefines.h"
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 /***/
 
-static unsigned int hashsizes[]= {
+unsigned int hashsizes[]= {
 	1, 3, 5, 11, 17, 37, 67, 131, 257, 521, 1031, 2053, 4099, 8209, 
 	16411, 32771, 65537, 131101, 262147, 524309, 1048583, 2097169, 
 	4194319, 8388617, 16777259, 33554467, 67108879, 134217757, 
@@ -52,29 +54,13 @@ static unsigned int hashsizes[]= {
 
 /***/
 
-typedef struct Entry Entry;
-struct Entry {
-	Entry *next;
-	
-	void *key, *val;
-};
-
-struct GHash {
-	GHashHashFP	hashfp;
-	GHashCmpFP	cmpfp;
-	
-	Entry **buckets;
-	struct BLI_mempool *entrypool;
-	int nbuckets, nentries, cursize;
-};
-
 /***/
 
 GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp) {
 	GHash *gh= MEM_mallocN(sizeof(*gh), "GHash");
 	gh->hashfp= hashfp;
 	gh->cmpfp= cmpfp;
-	gh->entrypool = BLI_mempool_create(sizeof(Entry), 1, 32);
+	gh->entrypool = BLI_mempool_create(sizeof(Entry), 1024, 1024);
 
 	gh->cursize= 0;
 	gh->nentries= 0;
@@ -86,7 +72,11 @@ GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp) {
 	return gh;
 }
 
-void BLI_ghash_insert(GHash *gh, void *key, void *val) {
+#ifdef BLI_ghash_insert
+#undef BLI_ghash_insert
+#endif
+
+BM_INLINE void BLI_ghash_insert(GHash *gh, void *key, void *val) {
 	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
 	Entry *e= BLI_mempool_alloc(gh->entrypool);
 
@@ -119,7 +109,7 @@ void BLI_ghash_insert(GHash *gh, void *key, void *val) {
 	}
 }
 
-void* BLI_ghash_lookup(GHash *gh, void *key) 
+BM_INLINE void* BLI_ghash_lookup(GHash *gh, void *key) 
 {
 	if(gh) {
 		unsigned int hash= gh->hashfp(key)%gh->nbuckets;
@@ -132,7 +122,7 @@ void* BLI_ghash_lookup(GHash *gh, void *key)
 	return NULL;
 }
 
-int BLI_ghash_remove (GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
+BM_INLINE int BLI_ghash_remove (GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
 	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
 	Entry *e;
@@ -162,7 +152,7 @@ int BLI_ghash_remove (GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFr
 	return 0;
 }
 
-int BLI_ghash_haskey(GHash *gh, void *key) {
+BM_INLINE int BLI_ghash_haskey(GHash *gh, void *key) {
 	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
 	Entry *e;
 	

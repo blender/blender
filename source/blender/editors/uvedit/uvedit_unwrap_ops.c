@@ -188,7 +188,8 @@ ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 
 		BLI_addfilledge(firstv, v);
 		
-		BLI_edgefill(0, 0);
+		/*mode 2 enables shortest-diagonal for quads*/
+		BLI_edgefill(2, 0);
 		for (sefa = fillfacebase.first; sefa; sefa=sefa->next) {
 			ls[0] = sefa->v1->tmp.p;
 			ls[1] = sefa->v2->tmp.p;
