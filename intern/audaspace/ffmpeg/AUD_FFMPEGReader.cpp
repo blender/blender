@@ -119,7 +119,7 @@ AUD_FFMPEGReader::AUD_FFMPEGReader(const char* filename)
 		// find audio stream and codec
 		m_stream = -1;
 
-		for(int i = 0; i < m_formatCtx->nb_streams; i++)
+		for(unsigned int i = 0; i < m_formatCtx->nb_streams; i++)
 			if((m_formatCtx->streams[i]->codec->codec_type == CODEC_TYPE_AUDIO)
 				&& (m_stream < 0))
 			{
@@ -146,7 +146,7 @@ AUD_FFMPEGReader::AUD_FFMPEGReader(const char* filename)
 		m_specs.format = FFMPEG_TO_AUD(m_codecCtx->sample_fmt);
 		m_specs.rate = (AUD_SampleRate) m_codecCtx->sample_rate;
 	}
-	catch(AUD_Exception e)
+	catch(AUD_Exception)
 	{
 		av_close_input_file(m_formatCtx);
 		throw;
@@ -188,7 +188,7 @@ AUD_FFMPEGReader::AUD_FFMPEGReader(AUD_Reference<AUD_Buffer> buffer)
 		// find audio stream and codec
 		m_stream = -1;
 
-		for(int i = 0; i < m_formatCtx->nb_streams; i++)
+		for(unsigned int i = 0; i < m_formatCtx->nb_streams; i++)
 			if((m_formatCtx->streams[i]->codec->codec_type == CODEC_TYPE_AUDIO)
 				&& (m_stream < 0))
 			{
@@ -215,7 +215,7 @@ AUD_FFMPEGReader::AUD_FFMPEGReader(AUD_Reference<AUD_Buffer> buffer)
 		m_specs.format = FFMPEG_TO_AUD(m_codecCtx->sample_fmt);
 		m_specs.rate = (AUD_SampleRate) m_codecCtx->sample_rate;
 	}
-	catch(AUD_Exception e)
+	catch(AUD_Exception)
 	{
 		av_close_input_stream(m_formatCtx);
 		av_free(m_byteiocontext); AUD_DELETE("byteiocontext")
