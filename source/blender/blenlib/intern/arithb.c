@@ -2981,6 +2981,29 @@ void VecBisect3(float *out, float *v1, float *v2, float *v3)
 	Normalize(out);
 }
 
+/* Returns a reflection vector from a vector and a normal vector
+reflect = vec - ((2 * DotVecs(vec, mirror)) * mirror)
+*/
+void VecReflect(float *out, float *v1, float *v2)
+{
+	float vec[3], normal[3];
+	float reflect[3] = {0.0f, 0.0f, 0.0f};
+	float dot2;
+
+	VecCopyf(vec, v1);
+	VecCopyf(normal, v2);
+
+	Normalize(normal);
+
+	dot2 = 2 * Inpf(vec, normal);
+
+	reflect[0] = vec[0] - (dot2 * normal[0]);
+	reflect[1] = vec[1] - (dot2 * normal[1]);
+	reflect[2] = vec[2] - (dot2 * normal[2]);
+
+	VecCopyf(out, reflect);
+}
+
 /* Return the angle in degrees between vecs 1-2 and 2-3 in degrees
    If v1 is a shoulder, v2 is the elbow and v3 is the hand,
    this would return the angle at the elbow */

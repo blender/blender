@@ -277,19 +277,14 @@ PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 
 /*----------------------------Vector.reflect(mirror) ----------------------
   return a reflected vector on the mirror normal
-  ((2 * DotVecs(vec, mirror)) * mirror) - vec
-  using arithb.c would be nice here */
+   vec - ((2 * DotVecs(vec, mirror)) * mirror)
+*/
 PyObject *Vector_Reflect( VectorObject * self, PyObject * value )
 {
 	VectorObject *mirrvec;
 	float mirror[3];
 	float vec[3];
-	float reflect[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-	float dot2;
-	
-	/* for normalizing */
-	int i;
-	float norm = 0.0f;
+	float reflect[3] = {0.0f, 0.0f, 0.0f};
 	
 	if (!VectorObject_Check(value)) {
 		PyErr_SetString( PyExc_TypeError, "vec.reflect(value): expected a vector argument" );
@@ -302,27 +297,13 @@ PyObject *Vector_Reflect( VectorObject * self, PyObject * value )
 	if (mirrvec->size > 2)	mirror[2] = mirrvec->vec[2];
 	else					mirror[2] = 0.0;
 	
-	/* normalize, whos idea was it not to use arithb.c? :-/ */
-	for(i = 0; i < 3; i++) {
-		norm += mirror[i] * mirror[i];
-	}
-	norm = (float) sqrt(norm);
-	for(i = 0; i < 3; i++) {
-		mirror[i] /= norm;
-	}
-	/* done */
-	
 	vec[0] = self->vec[0];
 	vec[1] = self->vec[1];
 	if (self->size > 2)		vec[2] = self->vec[2];
 	else					vec[2] = 0.0;
-	
-	dot2 = 2 * vec[0]*mirror[0]+vec[1]*mirror[1]+vec[2]*mirror[2];
-	
-	reflect[0] = (dot2 * mirror[0]) - vec[0];
-	reflect[1] = (dot2 * mirror[1]) - vec[1];
-	reflect[2] = (dot2 * mirror[2]) - vec[2];
-	
+
+	VecReflect(reflect, vec, mirror);
+
 	return newVectorObject(reflect, self->size, Py_NEW);
 }
 
