@@ -1738,12 +1738,12 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 			eul[1]= tdi->roty[0];
 			eul[2]= tdi->rotz[0];
 
-			EulToMat4(eul, cob.matrix);
+			EulOToMat4(eul, td->rotOrder, cob.matrix);
 		}
 		else {
 			/* eulers */
 			if (td->ext)
-				EulToMat4(td->ext->rot, cob.matrix);
+				EulOToMat4(td->ext->rot, td->rotOrder, cob.matrix);
 			else
 				return;
 		}
@@ -1796,7 +1796,7 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 			TransDataIpokey *tdi= td->tdi;
 			float eul[3];
 
-			Mat4ToEul(cob.matrix, eul);
+			Mat4ToEulO(cob.matrix, eul, td->rotOrder);
 
 			tdi->rotx[0]= eul[0];
 			tdi->roty[0]= eul[1];
@@ -1804,7 +1804,7 @@ static void constraintRotLim(TransInfo *t, TransData *td)
 		}
 		else {
 			/* eulers */
-			Mat4ToEul(cob.matrix, td->ext->rot);
+			Mat4ToEulO(cob.matrix, td->ext->rot, td->rotOrder);
 		}
 	}
 }

@@ -2835,9 +2835,9 @@ void EulOToQuat(float e[3], short order, float q[4])
 	double ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
 	double a[3];
 	
-	if (R->parity) e[1] = -e[1];
+	if (R->parity) e[1] = -e[1]; // xxx watch it!
 	
-	ti = e[0]/2; tj = e[1]/2; th = e[2]/2;
+	ti = e[i]/2; tj = e[j]/2; th = e[k]/2;
 	
 	ci = cos(ti);  cj = cos(tj);  ch = cos(th);
 	si = sin(ti);  sj = sin(tj);  sh = sin(th);
@@ -2874,12 +2874,11 @@ void EulOToMat3(float e[3], short order, float M[3][3])
 	double ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
 	
 	if (R->parity) {
-		e[0] = -e[0]; 
-		e[1] = -e[1]; 
-		e[2] = -e[2];
+		ti = -e[i];	  tj = -e[j];	th = -e[k];
 	}
-	
-	ti = e[0];	  tj = e[1];	th = e[2];
+	else {
+		ti = e[i];	  tj = e[j];	th = e[k];
+	}
 	
 	ci = cos(ti); cj = cos(tj); ch = cos(th);
 	si = sin(ti); sj = sin(tj); sh = sin(th);
@@ -2908,17 +2907,17 @@ void Mat3ToEulO(float M[3][3], float e[3], short order)
 {
 	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order); 
 	short i=R->i,  j=R->j, 	k=R->k;
-	double cy = sqrt(M[i][i]*M[i][i] + M[j][i]*M[j][i]);
+	double cy = sqrt(M[i][i]*M[i][i] + M[i][j]*M[i][j]);
 	
 	if (cy > 16*FLT_EPSILON) {
-		e[0] = atan2(M[j][k], M[k][k]);
-		e[1] = atan2(-M[i][k], cy);
-		e[2] = atan2(M[i][j], M[i][i]);
+		e[i] = atan2(M[j][k], M[k][k]);
+		e[j] = atan2(-M[i][k], cy);
+		e[k] = atan2(M[i][j], M[i][i]);
 	} 
 	else {
-		e[0] = atan2(-M[k][j], M[j][j]);
-		e[1] = atan2(-M[i][k], cy);
-		e[2] = 0;
+		e[i] = atan2(-M[k][j], M[j][j]);
+		e[j] = atan2(-M[i][k], cy);
+		e[k] = 0;
 	}
 	
 	if (R->parity) {
@@ -2944,21 +2943,28 @@ static void mat3_to_eulo2(float M[3][3], float *e1, float *e2, short order)
 {
 	RotOrderInfo *R= GET_ROTATIONORDER_INFO(order); 
 	short i=R->i,  j=R->j, 	k=R->k;
-	double cy = sqrt(M[i][i]*M[i][i] + M[j][i]*M[j][i]);
+	float m[3][3];
+	double cy;
+	
+	/* process the matrix first */
+	Mat3CpyMat3(m, M);
+	Mat3Ortho(m);
+	
+	cy= sqrt(m[i][i]*m[i][i] + m[i][j]*m[i][j]);
 	
 	if (cy > 16*FLT_EPSILON) {
-		e1[0] = atan2(M[j][k], M[k][k]);
-		e1[1] = atan2(-M[i][k], cy);
-		e1[2] = atan2(M[i][j], M[i][i]);
+		e1[i] = atan2(m[j][k], m[k][k]);
+		e1[j] = atan2(-m[i][k], cy);
+		e1[k] = atan2(m[i][j], m[i][i]);
 		
-		e2[0] = atan2(-M[j][k], -M[k][k]);
-		e2[1] = atan2(-M[i][k], -cy);
-		e2[2] = atan2(-M[i][j], -M[i][i]);
+		e2[i] = atan2(-m[j][k], -m[k][k]);
+		e2[j] = atan2(-m[i][k], -cy);
+		e2[k] = atan2(-m[i][j], -m[i][i]);
 	} 
 	else {
-		e1[0] = atan2(-M[k][j], M[j][j]);
-		e1[1] = atan2(-M[i][k], cy);
-		e1[2] = 0;
+		e1[i] = atan2(-m[k][j], m[j][j]);
+		e1[j] = atan2(-m[i][k], cy);
+		e1[k] = 0;
 		
 		VecCopyf(e2, e1);
 	}
@@ -2975,7 +2981,6 @@ static void mat3_to_eulo2(float M[3][3], float *e1, float *e2, short order)
 }
 
 /* uses 2 methods to retrieve eulers, and picks the closest */
-// FIXME: this does not work well with the other rotation modes...
 void Mat3ToCompatibleEulO(float mat[3][3], float eul[3], float oldrot[3], short order)
 {
 	float eul1[3], eul2[3];
