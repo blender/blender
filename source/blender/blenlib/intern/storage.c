@@ -33,13 +33,6 @@
 #include <stdio.h>
 #include <stdlib.h>	
 
-#ifdef WIN32
-#include "BLI_winstuff.h"
-#include <sys/types.h>
-#include <io.h>
-#include <direct.h>
-#endif
-
 #ifndef WIN32
 #include <dirent.h>
 #endif
@@ -81,6 +74,14 @@
 #if !defined(__FreeBSD__) && !defined(__APPLE__)
 #include <malloc.h>
 #endif
+
+#ifdef WIN32
+#include <sys/types.h>
+#include <io.h>
+#include <direct.h>
+#include "BLI_winstuff.h"
+#endif
+
 
 /* lib includes */
 #include "MEM_guardedalloc.h"

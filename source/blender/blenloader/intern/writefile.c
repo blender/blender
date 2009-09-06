@@ -72,22 +72,22 @@ Any case: direct data is ALWAYS after the lib block
 #include <config.h>
 #endif
 
+#include <math.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
 #include "zlib.h"
 
 #ifndef WIN32
 #include <unistd.h>
 #else
 #include "winsock2.h"
-#include "BLI_winstuff.h"
 #include <io.h>
 #include <process.h> // for getpid
+#include "BLI_winstuff.h"
 #endif
-
-#include <math.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"

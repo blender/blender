@@ -25,6 +25,5 @@ incs += ' ' + env['BF_PYTHON_INC']
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')
     incs += ' ' + env['BF_FFMPEG_INC'] + ' ' + env['BF_PTHREADS_INC']
-    defs.append('__STDC_CONSTANT_MACROS')
 
 env.BlenderLib ( 'bf_videotex', sources, Split(incs), defs, libtype=['core','player'], priority=[300,205], cxx_compileflags=env['BGE_CXXFLAGS'])

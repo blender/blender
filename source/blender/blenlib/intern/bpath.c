@@ -26,6 +26,24 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <sys/stat.h>
+#include <sys/types.h>
+
+#include <fcntl.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <string.h>
+
+/* path/file handeling stuff */
+#ifndef WIN32
+  #include <dirent.h>
+  #include <unistd.h>
+#else
+  #include <io.h>
+  #include "BLI_winstuff.h"
+#endif
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_ID.h" /* Library */
@@ -53,23 +71,7 @@
 //XXX define below from BSE_sequence.h - otherwise potentially odd behaviour
 #define SEQ_HAS_PATH(seq) (seq->type==SEQ_MOVIE || seq->type==SEQ_IMAGE)
 
-/* path/file handeling stuff */
-#ifndef WIN32
-  #include <dirent.h>
-  #include <unistd.h>
-#else
-  #include "BLI_winstuff.h"
-  #include <io.h>
-#endif
 
-#include <sys/stat.h>
-#include <sys/types.h>
-
-#include <fcntl.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <string.h>
 
 #define FILE_MAX			240
 

@@ -250,12 +250,12 @@ void sound_free(struct bSound* sound)
 
 void sound_unlink(struct bContext *C, struct bSound* sound)
 {
-	bSound *snd;
 	Scene *scene;
 	SoundHandle *handle;
 
 // XXX unused currently
 #if 0
+	bSound *snd;
 	for(snd = CTX_data_main(C)->sound.first; snd; snd = snd->id.next)
 	{
 		if(snd->child_sound == sound)

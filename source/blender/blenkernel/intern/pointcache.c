@@ -67,23 +67,13 @@
 
 
 /* needed for directory lookup */
+/* untitled blend's need getpid for a unique name */
 #ifndef WIN32
   #include <dirent.h>
-#else
-  #include "BLI_winstuff.h"
-#endif
-
-/* untitled blend's need getpid for a unique name */
-#ifdef WIN32
-#include <process.h>
-#else
 #include <unistd.h>
-#endif
-
-#ifdef _WIN32
-#ifndef snprintf
-#define snprintf _snprintf
-#endif
+#else
+#include <process.h>
+  #include "BLI_winstuff.h"
 #endif
 
 static void ptcache_data_to(void **data, int type, int index, void *to);

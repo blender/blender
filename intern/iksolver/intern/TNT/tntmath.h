@@ -35,7 +35,9 @@
 
 // conventional functions required by several matrix algorithms
 
-
+#ifdef _WIN32
+#define hypot _hypot
+#endif
 
 namespace TNT 
 {

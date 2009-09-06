@@ -37,8 +37,8 @@
 #define _WIN32_IE 0x0400 /* minimal requirements for SHGetSpecialFolderPath on MINGW MSVC has this defined already */
 #endif
 #include <shlobj.h> /* for SHGetSpecialFolderPath, has to be done before BLI_winstuff because 'near' is disabled through BLI_windstuff */
-#include "BLI_winstuff.h"
 #include <process.h> /* getpid */
+#include "BLI_winstuff.h"
 #else
 #include <unistd.h> /* getpid */
 #endif

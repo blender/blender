@@ -32,11 +32,6 @@
 
 // directory header for py function getBlendFileList
 #include <stdlib.h>
-#ifndef WIN32
-  #include <dirent.h>
-#else
-  #include "BLI_winstuff.h"
-#endif
 
 #ifdef WIN32
 #pragma warning (disable : 4786)
@@ -80,8 +75,6 @@ extern "C" {
 #include "InputParser.h"
 #include "KX_Scene.h"
 
-#include "NG_NetworkScene.h" //Needed for sendMessage()
-
 #include "BL_Shader.h"
 
 #include "KX_PyMath.h"
@@ -110,6 +103,13 @@ extern "C" {
 #include "BKE_global.h"
 #include "BLI_blenlib.h"
 #include "GPU_material.h"
+
+#ifndef WIN32
+  #include <dirent.h>
+#else
+  #include "BLI_winstuff.h"
+#endif
+#include "NG_NetworkScene.h" //Needed for sendMessage()
 
 static void setSandbox(TPythonSecurityLevel level);
 

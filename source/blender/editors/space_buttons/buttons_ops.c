@@ -74,6 +74,7 @@
 
 #include "ED_curve.h"
 #include "ED_mesh.h"
+#include "ED_particle.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

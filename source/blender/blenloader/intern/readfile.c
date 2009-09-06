@@ -29,11 +29,6 @@
 
 #include "zlib.h"
 
-#ifdef WIN32
-#include "winsock2.h"
-#include "BLI_winstuff.h"
-#endif
-
 #include <limits.h>
 #include <stdio.h> // for printf fopen fwrite fclose sprintf FILE
 #include <stdlib.h> // for getenv atoi
@@ -46,6 +41,8 @@
     #include <sys/param.h> // for MAXPATHLEN
 #else
     #include <io.h> // for open close read
+#include "winsock2.h"
+#include "BLI_winstuff.h"
 #endif
 
 #include "DNA_anim_types.h"

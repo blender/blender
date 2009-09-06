@@ -28,11 +28,6 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#ifndef WIN32
-#include <dirent.h>
-#else
-#include "BLI_winstuff.h"
-#endif
 
 /* grr, python redefines */
 #ifdef _POSIX_C_SOURCE
@@ -47,6 +42,12 @@
 #include "bpy_operator.h"
 #include "bpy_ui.h"
 #include "bpy_util.h"
+
+#ifndef WIN32
+#include <dirent.h>
+#else
+#include "BLI_winstuff.h"
+#endif
 
 #include "DNA_anim_types.h"
 #include "DNA_space_types.h"

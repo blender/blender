@@ -32,12 +32,13 @@
 #include <config.h>
 #endif
 
-#include "BLI_storage.h" /* _LARGEFILE_SOURCE */
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
+
+
+#include "BLI_storage.h" /* _LARGEFILE_SOURCE */
 
 #include "MEM_guardedalloc.h"
 
@@ -66,6 +67,10 @@
 #include "BLO_readblenfile.h"
 
 #include "BLO_sys_types.h" // needed for intptr_t
+
+#ifdef _WIN32
+#include "BLI_winstuff.h"
+#endif
 
 	/**
 	 * IDType stuff, I plan to move this
