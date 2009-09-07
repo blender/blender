@@ -1816,7 +1816,7 @@ static void draw_pose_channels(Scene *scene, View3D *v3d, RegionView3D *rv3d, Ba
 						if ( (arm->flag & ARM_DRAWAXES) && (arm->flag & ARM_POSEMODE) ) {
 							glPushMatrix();
 							glMultMatrixf(pchan->pose_mat);
-							//glTranslatef(0.0f, pchan->bone->length, 0.0f);
+							glTranslatef(0.0f, pchan->bone->length, 0.0f);
 							drawaxes(0.25f*pchan->bone->length, 0, OB_ARROWS);
 							glPopMatrix();
 						}
@@ -2000,7 +2000,7 @@ static void draw_ebones(View3D *v3d, RegionView3D *rv3d, Object *ob, int dt)
 						if (arm->flag & ARM_DRAWAXES) {
 							glPushMatrix();
 							set_matrix_editbone(eBone);
-							//glTranslatef(0.0f, eBone->length, 0.0f);
+							glTranslatef(0.0f, eBone->length, 0.0f);
 							drawaxes(eBone->length*0.25f, 0, OB_ARROWS);
 							glPopMatrix();
 						}

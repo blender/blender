@@ -206,6 +206,11 @@ typedef enum ePchan_RotMode {
 	PCHAN_ROT_YZX,
 	PCHAN_ROT_ZXY,
 	PCHAN_ROT_ZYX,
+	/* NOTE: space is reserved here for 18 other possible 
+	 * euler rotation orders not implemented 
+	 */
+		/* axis angle rotations */
+	PCHAN_ROT_AXISANGLE = -1
 } ePchan_RotMode;
 
 /* Pose ------------------------------------ */
