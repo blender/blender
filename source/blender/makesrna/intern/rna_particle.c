@@ -1749,7 +1749,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "effector_weight[6]");
 	RNA_def_property_range(prop, -200.0f, 200.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Magnetic", "Texture effector weight.");
+	RNA_def_property_ui_text(prop, "Texture", "Texture effector weight.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "eweight_harmonic", PROP_FLOAT, PROP_NONE);
