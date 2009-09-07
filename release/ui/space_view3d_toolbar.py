@@ -333,12 +333,12 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 				
 			row = col.row(align=True)
 			row.itemR(brush, "size", slider=True)
-			row.itemR(brush, "size_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			row.itemR(brush, "size_pressure", toggle=True, text="")
 			
 			if brush.sculpt_tool != 'GRAB':
 				row = col.row(align=True)
 				row.itemR(brush, "strength", slider=True)
-				row.itemR(brush, "strength_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+				row.itemR(brush, "strength_pressure", text="")
 			
 				col = layout.column()
 
@@ -367,11 +367,11 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 
 			row = col.row(align=True)
 			row.itemR(brush, "size", slider=True)
-			row.itemR(brush, "size_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			row.itemR(brush, "size_pressure", toggle=True, text="")
 			
 			row = col.row(align=True)
 			row.itemR(brush, "strength", slider=True)
-			row.itemR(brush, "strength_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			row.itemR(brush, "strength_pressure", toggle=True, text="")
 			
 			col.itemR(brush, "blend")
 		
@@ -383,11 +383,11 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			col = layout.column()
 			row = col.row(align=True)
 			row.itemR(brush, "size", slider=True)
-			row.itemR(brush, "size_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			row.itemR(brush, "size_pressure", toggle=True, text="")
 			
 			row = col.row(align=True)
 			row.itemR(brush, "strength", slider=True)
-			row.itemR(brush, "strength_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			row.itemR(brush, "strength_pressure", toggle=True, text="")
 		
 		# Vertex Paint Mode #
 		
@@ -397,11 +397,11 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			
 			row = col.row(align=True)
 			row.itemR(brush, "size", slider=True)
-			row.itemR(brush, "size_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			row.itemR(brush, "size_pressure", toggle=True, text="")
 			
 			row = col.row(align=True)
 			row.itemR(brush, "strength", slider=True)
-			row.itemR(brush, "strength_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")
+			row.itemR(brush, "strength_pressure", toggle=True, text="")
 
 class VIEW3D_PT_tools_brush_stroke(PaintPanel):
 	__label__ = "Stroke"
@@ -443,7 +443,7 @@ class VIEW3D_PT_tools_brush_stroke(PaintPanel):
 		row.active = brush.space
 		row.itemR(brush, "spacing", text="Distance", slider=True)
 		if texture_paint:
-			row.itemR(brush, "spacing_pressure", toggle=True, icon='ICON_BRUSH_DATA', text="")	
+			row.itemR(brush, "spacing_pressure", toggle=True, text="")	
 
 class VIEW3D_PT_tools_brush_curve(PaintPanel):
 	__label__ = "Curve"
@@ -573,8 +573,7 @@ class VIEW3D_PT_tools_texturepaint(View3DPanel):
 		col = split.column()
 		col.active = (ipaint.use_normal_falloff and use_projection)
 		col.itemR(ipaint, "normal_angle", text="")
-		
-		
+
 		split = layout.split(percentage=0.7)
 		
 		col = split.column(align=False)
@@ -584,8 +583,7 @@ class VIEW3D_PT_tools_texturepaint(View3DPanel):
 		col = split.column(align=False)
 		col.active = (use_projection and ipaint.use_stencil_layer)
 		col.itemR(ipaint, "invert_stencil", text="Inv")
-		
-		
+
 		col = layout.column()
 		sub = col.column()
 		sub.active = (settings.tool == 'CLONE')
