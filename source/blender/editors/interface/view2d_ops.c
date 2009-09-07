@@ -257,6 +257,7 @@ void VIEW2D_OT_pan(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Pan View";
+	ot->description= "Pan the view.";
 	ot->idname= "VIEW2D_OT_pan";
 	
 	/* api callbacks */
@@ -305,6 +306,7 @@ void VIEW2D_OT_scroll_right(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll Right";
+	ot->description= "Scroll the view right.";
 	ot->idname= "VIEW2D_OT_scroll_right";
 	
 	/* api callbacks */
@@ -351,6 +353,7 @@ void VIEW2D_OT_scroll_left(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll Left";
+	ot->description= "Scroll the view left.";
 	ot->idname= "VIEW2D_OT_scroll_left";
 	
 	/* api callbacks */
@@ -396,6 +399,7 @@ void VIEW2D_OT_scroll_down(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll Down";
+	ot->description= "Scroll the view down.";
 	ot->idname= "VIEW2D_OT_scroll_down";
 	
 	/* api callbacks */
@@ -442,6 +446,7 @@ void VIEW2D_OT_scroll_up(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll Up";
+	ot->description= "Scroll the view up.";
 	ot->idname= "VIEW2D_OT_scroll_up";
 	
 	/* api callbacks */
@@ -575,6 +580,7 @@ void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom In";
+	ot->description= "Zoom in the view.";
 	ot->idname= "VIEW2D_OT_zoom_in";
 	
 	/* api callbacks */
@@ -611,6 +617,7 @@ void VIEW2D_OT_zoom_out(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom Out";
+	ot->description= "Zoom out the view.";
 	ot->idname= "VIEW2D_OT_zoom_out";
 	
 	/* api callbacks */
@@ -857,6 +864,7 @@ void VIEW2D_OT_zoom(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom View";
+	ot->description= "Zoom in/out the view.";
 	ot->idname= "VIEW2D_OT_zoom";
 	
 	/* api callbacks */
@@ -958,6 +966,7 @@ void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom to Border";
+	ot->description= "Zoom in the view to the nearest item contained in the border.";
 	ot->idname= "VIEW2D_OT_zoom_border";
 	
 	/* api callbacks */
@@ -1297,6 +1306,7 @@ void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroller Activate";
+	ot->description= "Scroll view by mouse click and drag.";
 	ot->idname= "VIEW2D_OT_scroller_activate";
 
 	/* flags */
@@ -1363,6 +1373,7 @@ void VIEW2D_OT_reset(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Reset View";
+	ot->description= "Reset the view.";
 	ot->idname= "VIEW2D_OT_reset";
 	
 	/* api callbacks */

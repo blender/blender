@@ -555,6 +555,7 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Snap Selection to Grid";
+	ot->description= "Snap selected item(s) to nearest grid node.";
 	ot->idname= "VIEW3D_OT_snap_selected_to_grid";
 	
 	/* api callbacks */
@@ -680,6 +681,7 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Snap Selection to Cursor";
+	ot->description= "Snap selected item(s) to cursor.";
 	ot->idname= "VIEW3D_OT_snap_selected_to_cursor";
 	
 	/* api callbacks */
@@ -715,6 +717,7 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Snap Cursor to Grid";
+	ot->description= "Snap cursor to nearest grid node.";
 	ot->idname= "VIEW3D_OT_snap_cursor_to_grid";
 	
 	/* api callbacks */
@@ -821,6 +824,7 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Snap Cursor to Selected";
+	ot->description= "Snap cursor to center of selected item(s)."; 
 	ot->idname= "VIEW3D_OT_snap_cursor_to_selected";
 	
 	/* api callbacks */
@@ -870,6 +874,7 @@ void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Snap Cursor to Active";
+	ot->description= "Snap cursor to active item.";
 	ot->idname= "VIEW3D_OT_snap_cursor_to_active";
 	
 	/* api callbacks */
@@ -1069,6 +1074,7 @@ void VIEW3D_OT_snap_selected_to_center(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Snap Selection to Center";
+	ot->description= "Snap selected items to selections geometric center.";
 	ot->idname= "VIEW3D_OT_snap_selected_to_center";
 	
 	/* api callbacks */
@@ -1135,6 +1141,7 @@ void VIEW3D_OT_snap_menu(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Snap Menu";
+	ot->description= "Display snap menu.";
 	ot->idname= "VIEW3D_OT_snap_menu";
 	
 	/* api callbacks */

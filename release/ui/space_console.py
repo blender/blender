@@ -108,7 +108,7 @@ def get_console(console_id):
 
 class CONSOLE_OT_exec(bpy.types.Operator):
 	'''
-	Operator documentatuon text, will be used for the operator tooltip and python docs.
+	Execute the current console line as a python expression.
 	'''
 	__idname__ = "console.execute"
 	__label__ = "Console Execute"
@@ -385,7 +385,7 @@ def autocomp(bcon):
 
 class CONSOLE_OT_autocomplete(bpy.types.Operator):
 	'''
-	Operator documentatuon text, will be used for the operator tooltip and python docs.
+	Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one.
 	'''
 	__idname__ = "console.autocomplete"
 	__label__ = "Console Autocomplete"

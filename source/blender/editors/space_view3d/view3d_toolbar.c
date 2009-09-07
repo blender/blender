@@ -322,6 +322,7 @@ static int view3d_toolbar(bContext *C, wmOperator *op)
 void VIEW3D_OT_toolbar(wmOperatorType *ot)
 {
 	ot->name= "Toolbar";
+	ot->description= "Toggles toolbar display.";
 	ot->idname= "VIEW3D_OT_toolbar";
 	
 	ot->exec= view3d_toolbar;

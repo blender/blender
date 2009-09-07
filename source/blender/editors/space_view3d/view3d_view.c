@@ -415,6 +415,7 @@ void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Align Camera To View";
+	ot->description= "Set camera view to active view.";
 	ot->idname= "VIEW3D_OT_camera_to_view";
 	
 	/* api callbacks */
@@ -1395,6 +1396,7 @@ void VIEW3D_OT_localview(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Local View";
+	ot->description= "Toggle display of selected object(s) seperately and centered in view.";
 	ot->idname= "VIEW3D_OT_localview";
 	
 	/* api callbacks */
@@ -1562,6 +1564,7 @@ void VIEW3D_OT_game_start(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Start Game Engine";
+	ot->description= "Start game engine.";
 	ot->idname= "VIEW3D_OT_game_start";
 	
 	/* api callbacks */

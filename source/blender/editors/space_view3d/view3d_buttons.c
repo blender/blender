@@ -1451,6 +1451,7 @@ static int view3d_properties(bContext *C, wmOperator *op)
 void VIEW3D_OT_properties(wmOperatorType *ot)
 {
 	ot->name= "Properties";
+	ot->description= "Display the properties panel.";
 	ot->idname= "VIEW3D_OT_properties";
 	
 	ot->exec= view3d_properties;
