@@ -225,6 +225,8 @@ typedef struct Curve {
 #define CU_RETOPO               1024
 #define CU_DS_EXPAND	2048
 
+#define CU_NO_TWIST		4096
+
 /* spacemode */
 #define CU_LEFT			0
 #define CU_MIDDLE		1
