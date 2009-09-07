@@ -803,6 +803,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_test.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_text.c"
 				>
 			</File>
