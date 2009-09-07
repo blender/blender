@@ -204,12 +204,12 @@ static void anim5decode(struct ImBuf * ibuf, uchar * dlta) {
 	int *ofspoint;
 	uchar **planes;
 
-	/*	samenstelling delta:
-		lijst met ofsets voor delta's per bitplane (ofspoint)
-		per kolom in delta (point)
-			aantal handelingen (noops)
+	/*	composition delta:
+		list with ofsets for delta' s by bitplane (ofspoint)
+		by column in delta (point)
+			number of operations (noops)
 				code
-					bijbehorende data
+					associated data
 				...
 			...
 	*/

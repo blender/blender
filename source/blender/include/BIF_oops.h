@@ -61,7 +61,7 @@ struct Oops *add_test_oops(void *id);	/* incl links */
 void add_texture_oops(struct Material *ma);
 void build_oops(void);
 struct Oops *find_oops(ID *id);
-void free_oops(struct Oops *oops);	/* ook oops zelf */
+void free_oops(struct Oops *oops);	/* also oops themselves */
 void free_oopspace(struct SpaceOops *so);
 void new_oops_location(struct Oops *);
 int oops_test_overlap(struct Oops *test);

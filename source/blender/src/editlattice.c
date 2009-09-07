@@ -25,7 +25,7 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * i.t.t. wat de naam doet vermoeden: ook algemene lattice (calc) functies
+ * what the name suggests: also general lattice (calc) functions
  */
 
 #include <stdlib.h>
