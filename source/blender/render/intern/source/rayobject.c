@@ -141,6 +141,20 @@ static int intersection2(VlakRen *face, float r0, float r1, float r2, float rx1,
 	return 0;
 }
 
+#include "DNA_material_types.h"
+static int vlr_check_intersect(Isect *is, ObjectInstanceRen *obi, VlakRen *vlr)
+{
+	/* for baking selected to active non-traceable materials might still
+	 * be in the raytree */
+	if(!(vlr->mat->mode & MA_TRACEBLE))
+		return 0;
+
+	/* I know... cpu cycle waste, might do smarter once */
+	if(is->mode==RE_RAY_MIRROR)
+		return !(vlr->mat->mode & MA_ONLYCAST);
+	else
+		return (is->lay & obi->lay);
+}
 
 /* ray - triangle or quad intersection */
 /* this function shall only modify Isect if it detects an hit */
@@ -154,6 +168,12 @@ static int intersect_rayface(RayFace *face, Isect *is)
 	
 	if(is->orig.ob == face->ob && is->orig.face == face->face)
 		return 0;
+		
+	if(is->skip & RE_SKIP_VLR_RENDER_CHECK)
+	{
+		if(vlr_check_intersect(is, (ObjectInstanceRen*)face->ob, (VlakRen*)face->face ) == 0)
+			return 0;
+	}
 
 	RE_RC_COUNT(is->raycounter->faces.test);
 

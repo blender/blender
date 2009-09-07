@@ -116,25 +116,6 @@ RayObject *  RE_rayobject_create(int type, int size)
 RayCounter re_rc_counter[BLENDER_MAX_THREADS] = {};
 #endif
 
-#if 0
-static int vlr_check_intersect(Isect *is, int ob, RayFace *face)
-{
-	ObjectInstanceRen *obi= RAY_OBJECT_GET((Render*)is->userdata, ob);
-	VlakRen *vlr = (VlakRen*)face;
-
-	/* for baking selected to active non-traceable materials might still
-	 * be in the raytree */
-	if(!(vlr->mat->mode & MA_TRACEBLE))
-		return 0;
-
-	/* I know... cpu cycle waste, might do smarter once */
-	if(is->mode==RE_RAY_MIRROR)
-		return !(vlr->mat->mode & MA_ONLYCAST);
-	else
-		return (is->lay & obi->lay);
-}
-#endif
-
 void freeraytree(Render *re)
 {
 	ObjectInstanceRen *obi;
@@ -602,7 +583,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 	VECCOPY(isec.vec, vec );
 	isec.labda = dist_mir > 0 ? dist_mir : RE_RAYTRACE_MAXDIST;
 	isec.mode= RE_RAY_MIRROR;
-	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
+	isec.skip = RE_SKIP_VLR_NEIGHBOUR | RE_SKIP_VLR_RENDER_CHECK;
 	isec.hint = 0;
 
 	isec.orig.ob   = obi;
@@ -1725,7 +1706,7 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 	RE_RC_INIT(isec, *shi);
 	isec.orig.ob   = shi->obi;
 	isec.orig.face = shi->vlr;
-	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
+	isec.skip = RE_SKIP_VLR_NEIGHBOUR | RE_SKIP_VLR_RENDER_CHECK;
 	isec.hint = 0;
 
 	isec.hit.ob   = 0;
@@ -1866,7 +1847,7 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 	RE_RC_INIT(isec, *shi);
 	isec.orig.ob   = shi->obi;
 	isec.orig.face = shi->vlr;
-	isec.skip = RE_SKIP_VLR_NEIGHBOUR;
+	isec.skip = RE_SKIP_VLR_NEIGHBOUR | RE_SKIP_VLR_RENDER_CHECK;
 	isec.hint = 0;
 
 	isec.hit.ob   = 0;
@@ -2087,7 +2068,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 	RE_rayobject_hint_bb( R.raytree, &bb_hint, min, max);
 	
 	isec->hint = &bb_hint;
-	isec->skip = RE_SKIP_VLR_NEIGHBOUR;
+	isec->skip = RE_SKIP_VLR_NEIGHBOUR | RE_SKIP_VLR_RENDER_CHECK;
 	VECCOPY(vec, lampco);
 	
 	while (samples < max_samples) {
@@ -2256,7 +2237,7 @@ static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, float *lampco, floa
 		isec->vec[1] = vec[1]+lampco[1]-isec->start[1];
 		isec->vec[2] = vec[2]+lampco[2]-isec->start[2];
 		isec->labda = 1.0f;
-		isec->skip = RE_SKIP_VLR_NEIGHBOUR;
+		isec->skip = RE_SKIP_VLR_NEIGHBOUR | RE_SKIP_VLR_RENDER_CHECK;
 		
 		if(isec->mode==RE_RAY_SHADOW_TRA) {
 			/* isec.col is like shadfac, so defines amount of light (0.0 is full shadow) */

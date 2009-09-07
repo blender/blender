@@ -178,7 +178,8 @@ struct Isect
 #define RE_SKIP_CULLFACE		(1 << 0)
 
 /* if using this flag then *face should be a pointer to a VlakRen */
-#define RE_SKIP_VLR_NEIGHBOUR	(1 << 1)
+#define RE_SKIP_VLR_NEIGHBOUR		(1 << 1)
+#define RE_SKIP_VLR_RENDER_CHECK	(1 << 2)
 
 /* TODO use: FLT_MAX? */
 #define RE_RAYTRACE_MAXDIST	1e33
