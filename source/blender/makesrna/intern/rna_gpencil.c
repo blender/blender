@@ -223,7 +223,7 @@ void rna_def_gpencil_data(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "GreasePencil", "ID");
 	RNA_def_struct_sdna(srna, "bGPdata");
 	RNA_def_struct_ui_text(srna, "Grease Pencil", "Freehand annotation sketchbook.");
-	RNA_def_struct_ui_icon(srna, ICON_BRUSH_DATA); // XXX: ICON_GPENCIL!!!
+	RNA_def_struct_ui_icon(srna, ICON_GREASEPENCIL);
 	
 	/* Layers */
 	prop= RNA_def_property(srna, "layers", PROP_COLLECTION, PROP_NONE);

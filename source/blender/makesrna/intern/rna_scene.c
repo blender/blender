@@ -394,10 +394,10 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem uv_select_mode_items[] = {
-		{UV_SELECT_VERTEX, "VERTEX", ICON_VERTEXSEL, "Vertex", "Vertex selection mode."},
-		{UV_SELECT_EDGE, "EDGE", ICON_EDGESEL, "Edge", "Edge selection mode."},
-		{UV_SELECT_FACE, "FACE", ICON_FACESEL, "Face", "Face selection mode."},
-		{UV_SELECT_ISLAND, "ISLAND", ICON_LINKEDSEL, "Island", "Island selection mode."},
+		{UV_SELECT_VERTEX, "VERTEX", ICON_UV_VERTEXSEL, "Vertex", "Vertex selection mode."},
+		{UV_SELECT_EDGE, "EDGE", ICON_UV_EDGESEL, "Edge", "Edge selection mode."},
+		{UV_SELECT_FACE, "FACE", ICON_UV_FACESEL, "Face", "Face selection mode."},
+		{UV_SELECT_ISLAND, "ISLAND", ICON_UV_ISLANDSEL, "Island", "Island selection mode."},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem mesh_select_mode_items[] = {
