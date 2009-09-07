@@ -3374,17 +3374,39 @@ void VecRotToQuat(float *vec, float phi, float *quat)
 	}
 }
 
-/* get a direction from 3 vectors that wont depend
- * on the distance between the points */
-void Vec3ToTangent(float *v, float *v1, float *v2, float *v3)
+/* Returns a vector bisecting the angle at v2 formed by v1, v2 and v3 */
+void VecBisect3(float *out, float *v1, float *v2, float *v3)
 {
 	float d_12[3], d_23[3];
 	VecSubf(d_12, v2, v1);
 	VecSubf(d_23, v3, v2);
 	Normalize(d_12);
 	Normalize(d_23);
-	VecAddf(v, d_12, d_23);
-	Normalize(v);
+	VecAddf(out, d_12, d_23);
+	Normalize(out);
+}
+
+/* Returns a reflection vector from a vector and a normal vector
+reflect = vec - ((2 * DotVecs(vec, mirror)) * mirror)
+*/
+void VecReflect(float *out, float *v1, float *v2)
+{
+	float vec[3], normal[3];
+	float reflect[3] = {0.0f, 0.0f, 0.0f};
+	float dot2;
+
+	VecCopyf(vec, v1);
+	VecCopyf(normal, v2);
+
+	Normalize(normal);
+
+	dot2 = 2 * Inpf(vec, normal);
+
+	reflect[0] = vec[0] - (dot2 * normal[0]);
+	reflect[1] = vec[1] - (dot2 * normal[1]);
+	reflect[2] = vec[2] - (dot2 * normal[2]);
+
+	VecCopyf(out, reflect);
 }
 
 /* Return the angle in degrees between vecs 1-2 and 2-3 in degrees

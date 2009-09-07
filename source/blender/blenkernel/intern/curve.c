@@ -1820,14 +1820,14 @@ void makeBevelList(Object *ob)
 		bl= blnext;
 	}
 
-	/* STEP 3: COUNT POLYS TELLEN AND AUTOHOLE */
+	/* STEP 3: POLYS COUNT AND AUTOHOLE */
 	bl= cu->bev.first;
 	poly= 0;
 	while(bl) {
 		if(bl->nr && bl->poly>=0) {
 			poly++;
 			bl->poly= poly;
-			bl->gat= 0;	/* 'gat' is dutch for hole */
+			bl->hole= 0;
 		}
 		bl= bl->next;
 	}
@@ -1879,7 +1879,7 @@ void makeBevelList(Object *ob)
 			sd1= sortdata+ (a-1);
 			for(b=a-1; b>=0; b--, sd1--) {	/* all polys to the left */
 				if(bevelinside(sd1->bl, bl)) {
-					bl->gat= 1- sd1->bl->gat;
+					bl->hole= 1- sd1->bl->hole;
 					break;
 				}
 			}
@@ -1889,7 +1889,7 @@ void makeBevelList(Object *ob)
 		if((cu->flag & CU_3D)==0) {
 			sd= sortdata;
 			for(a=0; a<poly; a++, sd++) {
-				if(sd->bl->gat==sd->dir) {
+				if(sd->bl->hole==sd->dir) {
 					bl= sd->bl;
 					bevp1= (BevPoint *)(bl+1);
 					bevp2= bevp1+ (bl->nr-1);
@@ -1940,7 +1940,7 @@ void makeBevelList(Object *ob)
 		}	/* this has to be >2 points */
 		else if(cu->flag & CU_NO_TWIST && cu->flag & CU_3D && bl->poly != -1) {
 
-			/* Special case, cyclic curve with no twisy. tricky... */
+			/* Special case, cyclic curve with no twist. tricky... */
 
 			float quat[4], q[4], cross[3];
 
@@ -1961,7 +1961,7 @@ void makeBevelList(Object *ob)
 				while(nr--) {
 	
 					/* Normalizes */
-					Vec3ToTangent(vec, &bevp0->x, &bevp1->x, &bevp2->x);
+					VecBisect3(vec, &bevp0->x, &bevp1->x, &bevp2->x);
 
 					if(bl->nr==nr+1) { /* first time */
 						vectoquat(vec, 5, 1, quat);
@@ -2013,7 +2013,7 @@ void makeBevelList(Object *ob)
 			nr= bl->nr;
 			while(nr--) {
 
-				Vec3ToTangent(vec, &bevp0->x, &bevp1->x, &bevp2->x);
+				VecBisect3(vec, &bevp0->x, &bevp1->x, &bevp2->x);
 
 				quat_tmp1= (float *)bevp1->mat;
 				quat_tmp2= quat_tmp1+4;
@@ -2051,7 +2051,7 @@ void makeBevelList(Object *ob)
 				if(cu->flag & CU_3D) {	/* 3D */
 
 					/* Normalizes */
-					Vec3ToTangent(vec, &bevp0->x, &bevp1->x, &bevp2->x);
+					VecBisect3(vec, &bevp0->x, &bevp1->x, &bevp2->x);
 
 					if(bl->nr==nr+1 || !(cu->flag & CU_NO_TWIST)) { /* first time */
 						vectoquat(vec, 5, 1, quat);
@@ -2070,7 +2070,7 @@ void makeBevelList(Object *ob)
 					}
 					QUATCOPY(quat_prev, quat); /* quat_prev can't have the tilt applied */
 					VECCOPY(vec_prev, vec);
-
+					
 					AxisAngleToQuat(q, vec, bevp1->alfa);
 					QuatMul(quat, q, quat);
 					QuatToMat3(quat, bevp1->mat);

@@ -64,7 +64,7 @@ typedef struct Path {
 typedef struct BevList {
 	struct BevList *next, *prev;
 	int nr, flag;
-	short poly, gat;
+	short poly, hole;
 } BevList;
 
 /* These two Lines with # tell makesdna this struct can be excluded. */
