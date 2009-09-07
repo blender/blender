@@ -1955,9 +1955,9 @@ PyObject *newVectorObject_cb(PyObject *cb_user, int size, int cb_type, int cb_su
 
 //-----------------row_vector_multiplication (internal)-----------
 //ROW VECTOR Multiplication - Vector X Matrix
-//[x][y][z] *  [1][2][3]
-//             [4][5][6]
-//             [7][8][9]
+//[x][y][z] *  [1][4][7]
+//             [2][5][8]
+//             [3][6][9]
 //vector/matrix multiplication IS NOT COMMUTATIVE!!!!
 static PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat)
 {
@@ -1966,7 +1966,7 @@ static PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat
 	int x, y, z = 0, vec_size = vec->size;
 
 	if(mat->colSize != vec_size){
-		if(mat->rowSize == 4 && vec_size != 3){
+		if(mat->colSize == 4 && vec_size != 3){
 			PyErr_SetString(PyExc_AttributeError, "vector * matrix: matrix column size and the vector size must be the same");
 			return NULL;
 		}else{
@@ -1980,11 +1980,11 @@ static PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat
 	for(x = 0; x < vec_size; x++){
 		vecCopy[x] = vec->vec[x];
 	}
-
+	vecNew[3] = 1.0f;
 	//muliplication
-	for(x = 0; x < mat->colSize; x++) {
-		for(y = 0; y < mat->rowSize; y++) {
-			dot += mat->matrix[y][x] * vecCopy[y];
+	for(x = 0; x < mat->rowSize; x++) {
+		for(y = 0; y < mat->colSize; y++) {
+			dot += mat->matrix[x][y] * vecCopy[y];
 		}
 		vecNew[z++] = (float)dot;
 		dot = 0.0f;

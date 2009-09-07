@@ -933,21 +933,21 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 	}
 
 	if(mat1 && mat2) { /*MATRIX * MATRIX*/
-		if(mat1->colSize != mat2->rowSize){
+		if(mat1->rowSize != mat2->colSize){
 			PyErr_SetString(PyExc_AttributeError,"Matrix multiplication: matrix A rowsize must equal matrix B colsize");
 			return NULL;
 		}
-		for(x = 0; x < mat1->rowSize; x++) {
-			for(y = 0; y < mat2->colSize; y++) {
-				for(z = 0; z < mat1->colSize; z++) {
-					dot += (mat1->matrix[x][z] * mat2->matrix[z][y]);
+		for(x = 0; x < mat2->rowSize; x++) {
+			for(y = 0; y < mat1->colSize; y++) {
+				for(z = 0; z < mat1->rowSize; z++) {
+					dot += (mat1->matrix[z][y] * mat2->matrix[x][z]);
 				}
-				mat[((x * mat1->rowSize) + y)] = (float)dot;
+				mat[((x * mat1->colSize) + y)] = (float)dot;
 				dot = 0.0f;
 			}
 		}
 		
-		return newMatrixObject(mat, mat1->rowSize, mat2->colSize, Py_NEW, NULL);
+		return newMatrixObject(mat, mat2->rowSize, mat1->colSize, Py_NEW, NULL);
 	}
 	
 	if(mat1==NULL){
@@ -1288,9 +1288,9 @@ PyObject *newMatrixObject_cb(PyObject *cb_user, int rowSize, int colSize, int cb
 
 //----------------column_vector_multiplication (internal)---------
 //COLUMN VECTOR Multiplication (Matrix X Vector)
-// [1][2][3]   [a]
-// [4][5][6] * [b]
-// [7][8][9]   [c]
+// [1][4][7]   [a]
+// [2][5][8] * [b]
+// [3][6][9]   [c]
 //vector/matrix multiplication IS NOT COMMUTATIVE!!!!
 static PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec)
 {
@@ -1312,11 +1312,12 @@ static PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* 
 
 	for(x = 0; x < vec->size; x++){
 		vecCopy[x] = vec->vec[x];
-		}
+	}
+	vecNew[3] = 1.0f;
 
-	for(x = 0; x < mat->rowSize; x++) {
-		for(y = 0; y < mat->colSize; y++) {
-			dot += mat->matrix[x][y] * vecCopy[y];
+	for(x = 0; x < mat->colSize; z++) {
+		for(y = 0; y < mat->rowSize; y++) {
+			dot += mat->matrix[y][x] * vecCopy[y];
 		}
 		vecNew[z++] = (float)dot;
 		dot = 0.0f;
