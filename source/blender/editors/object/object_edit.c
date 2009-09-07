@@ -6816,7 +6816,6 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 			for(nu=cu->nurb.first; nu; nu=nu->next) {
 				if(!clear) nu->flag |= ME_SMOOTH;
 				else nu->flag &= ~ME_SMOOTH;
-				nu= nu->next;
 			}
 
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
