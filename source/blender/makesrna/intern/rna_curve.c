@@ -500,13 +500,13 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	prop= RNA_def_property(srna, "ul_position", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ulpos");
 	RNA_def_property_range(prop, -0.2f, 0.8f);
-	RNA_def_property_ui_text(prop, "Underline position", "Vertical position of underline");
+	RNA_def_property_ui_text(prop, "Underline Position", "Vertical position of underline");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	prop= RNA_def_property(srna, "ul_height", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ulheight");
 	RNA_def_property_range(prop, -0.2f, 0.8f);
-	RNA_def_property_ui_text(prop, "Underline thickness", "");
+	RNA_def_property_ui_text(prop, "Underline Thickness", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	prop= RNA_def_property(srna, "active_textbox", PROP_INT, PROP_NONE);
@@ -518,7 +518,7 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	/* strings */
 	prop= RNA_def_property(srna, "family", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_maxlength(prop, 21);
-	RNA_def_property_ui_text(prop, "Family", "Blender uses font from selfmade objects.");
+	RNA_def_property_ui_text(prop, "Object Font", "Use Blender Objects as font characters. Give font objects a common name followed by the character it represents, eg. familya, familyb etc, and turn on Verts Duplication");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	prop= RNA_def_property(srna, "str", PROP_STRING, PROP_NONE);
