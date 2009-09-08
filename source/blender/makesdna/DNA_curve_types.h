@@ -236,6 +236,7 @@ typedef struct Curve {
 
 /* flag (nurb) */
 #define CU_SMOOTH		1
+#define CU_2D			8 /* moved from type since 2.4x */
 
 /* type (nurb) */
 #define CU_POLY			0
@@ -243,9 +244,7 @@ typedef struct Curve {
 #define CU_BSPLINE		2
 #define CU_CARDINAL		3
 #define CU_NURBS		4
-#define CU_TYPE			7
-
-#define CU_2D			8
+#define CU_TYPE			(CU_POLY|CU_BEZIER|CU_BSPLINE|CU_CARDINAL|CU_NURBS)
 
 		/* only for adding */
 #define CU_PRIMITIVE	0xF00

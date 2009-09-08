@@ -744,7 +744,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			for (nu = cu->editnurb->first; nu; nu = nu->next)
 			{
 				/* only bezier has a normal */
-				if((nu->type & 7) == CU_BEZIER)
+				if(nu->type == CU_BEZIER)
 				{
 					bezt= nu->bezt;
 					a= nu->pntsu;

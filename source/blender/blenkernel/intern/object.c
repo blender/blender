@@ -1807,7 +1807,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 		
 		count= 0;
 		while(nu && !found) {
-			if((nu->type & 7)==CU_BEZIER) {
+			if(nu->type == CU_BEZIER) {
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {

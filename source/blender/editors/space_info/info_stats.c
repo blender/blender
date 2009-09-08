@@ -193,7 +193,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 		int a;
 
 		for(nu=cu->editnurb->first; nu; nu=nu->next) {
-			if((nu->type & 7)==CU_BEZIER) {
+			if(nu->type == CU_BEZIER) {
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {

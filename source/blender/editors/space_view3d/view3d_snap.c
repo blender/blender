@@ -302,7 +302,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		int totmalloc= 0;
 		
 		for(nu= cu->editnurb->first; nu; nu= nu->next) {
-			if((nu->type & 7)==CU_BEZIER)
+			if(nu->type == CU_BEZIER)
 				totmalloc += 3*nu->pntsu;
 			else
 				totmalloc += nu->pntsu*nu->pntsv;
@@ -311,7 +311,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 
 		nu= cu->editnurb->first;
 		while(nu) {
-			if((nu->type & 7)==CU_BEZIER) {
+			if(nu->type == CU_BEZIER) {
 				a= nu->pntsu;
 				bezt= nu->bezt;
 				while(a--) {

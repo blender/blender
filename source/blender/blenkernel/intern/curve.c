@@ -470,8 +470,11 @@ void test2DNurb(Nurb *nu)
 	BezTriple *bezt;
 	BPoint *bp;
 	int a;
+	
+	if((nu->flag & CU_2D)==0)
+		return;
 
-	if( nu->type== CU_BEZIER+CU_2D ) {
+	if(nu->type == CU_BEZIER) {
 		a= nu->pntsu;
 		bezt= nu->bezt;
 		while(a--) {
@@ -481,7 +484,7 @@ void test2DNurb(Nurb *nu)
 			bezt++;
 		}
 	}
-	else if(nu->type & CU_2D) {
+	else {
 		a= nu->pntsu*nu->pntsv;
 		bp= nu->bp;
 		while(a--) {
@@ -497,7 +500,7 @@ void minmaxNurb(Nurb *nu, float *min, float *max)
 	BPoint *bp;
 	int a;
 
-	if( (nu->type & 7)==CU_BEZIER ) {
+	if(nu->type == CU_BEZIER) {
 		a= nu->pntsu;
 		bezt= nu->bezt;
 		while(a--) {
@@ -594,7 +597,7 @@ static void makecyclicknots(float *knots, short pnts, short order)
 
 void makeknots(Nurb *nu, short uv)
 {
-	if( (nu->type & 7)==CU_NURBS ) {
+	if(nu->type == CU_NURBS) {
 		if(uv == 1) {
 			if(nu->knotsu) MEM_freeN(nu->knotsu);
 			if(check_valid_nurb_u(nu)) {
@@ -1587,7 +1590,7 @@ void makeBevelList(Object *ob)
 			else
 				resolu= nu->resolu;
 			
-			if((nu->type & 7)==CU_POLY) {
+			if(nu->type == CU_POLY) {
 				len= nu->pntsu;
 				bl= MEM_callocN(sizeof(BevList)+len*sizeof(BevPoint), "makeBevelList2");
 				BLI_addtail(&(cu->bev), bl);
@@ -1610,7 +1613,7 @@ void makeBevelList(Object *ob)
 					bp++;
 				}
 			}
-			else if((nu->type & 7)==CU_BEZIER) {
+			else if(nu->type == CU_BEZIER) {
 	
 				len= resolu*(nu->pntsu+ (nu->flagu & CU_CYCLIC) -1)+1;	/* in case last point is not cyclic */
 				bl= MEM_callocN(sizeof(BevList)+len*sizeof(BevPoint), "makeBevelBPoints");
@@ -1718,7 +1721,7 @@ void makeBevelList(Object *ob)
 					bl->nr++;
 				}
 			}
-			else if((nu->type & 7)==CU_NURBS) {
+			else if(nu->type == CU_NURBS) {
 				if(nu->pntsv==1) {
 					len= (resolu*SEGMENTSU(nu));
 					
@@ -2311,7 +2314,7 @@ void calchandlesNurb(Nurb *nu) /* first, if needed, set handle flags */
 	BezTriple *bezt, *prev, *next;
 	short a;
 
-	if((nu->type & 7)!=CU_BEZIER) return;
+	if(nu->type != CU_BEZIER) return;
 	if(nu->pntsu<2) return;
 	
 	a= nu->pntsu;
@@ -2346,7 +2349,7 @@ void testhandlesNurb(Nurb *nu)
 	BezTriple *bezt;
 	short flag, a;
 
-	if((nu->type & 7)!=CU_BEZIER) return;
+	if(nu->type != CU_BEZIER) return;
 
 	bezt= nu->bezt;
 	a= nu->pntsu;
@@ -2474,7 +2477,7 @@ void sethandlesNurb(ListBase *editnurb, short code)
 	if(code==1 || code==2) {
 		nu= editnurb->first;
 		while(nu) {
-			if( (nu->type & 7)==CU_BEZIER) {
+			if(nu->type == CU_BEZIER) {
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {
@@ -2504,7 +2507,7 @@ void sethandlesNurb(ListBase *editnurb, short code)
 		} else {
 			/* Toggle */
 			while(nu) {
-				if( (nu->type & 7)==CU_BEZIER) {
+				if(nu->type == CU_BEZIER) {
 					bezt= nu->bezt;
 					a= nu->pntsu;
 					while(a--) {
@@ -2521,7 +2524,7 @@ void sethandlesNurb(ListBase *editnurb, short code)
 		}
 		nu= editnurb->first;
 		while(nu) {
-			if( (nu->type & 7)==CU_BEZIER) {
+			if(nu->type == CU_BEZIER) {
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {
@@ -2569,7 +2572,7 @@ void switchdirectionNurb(Nurb *nu)
 
 	if(nu->pntsu==1 && nu->pntsv==1) return;
 
-	if((nu->type & 7)==CU_BEZIER) {
+	if(nu->type == CU_BEZIER) {
 		a= nu->pntsu;
 		bezt1= nu->bezt;
 		bezt2= bezt1+(a-1);
@@ -2608,7 +2611,7 @@ void switchdirectionNurb(Nurb *nu)
 			bp1++; 
 			bp2--;
 		}
-		if((nu->type & 7)==CU_NURBS) {
+		if(nu->type == CU_NURBS) {
 			/* inverse knots */
 			a= KNOTSU(nu);
 			fp1= nu->knotsu;
@@ -2671,7 +2674,7 @@ float (*curve_getVertexCos(Curve *cu, ListBase *lb, int *numVerts_r))[3]
 
 	co = cos[0];
 	for (nu=lb->first; nu; nu=nu->next) {
-		if ((nu->type & 7)==CU_BEZIER) {
+		if (nu->type == CU_BEZIER) {
 			BezTriple *bezt = nu->bezt;
 
 			for (i=0; i<nu->pntsu; i++,bezt++) {
@@ -2698,7 +2701,7 @@ void curve_applyVertexCos(Curve *cu, ListBase *lb, float (*vertexCos)[3])
 	int i;
 
 	for (nu=lb->first; nu; nu=nu->next) {
-		if ((nu->type & 7)==CU_BEZIER) {
+		if (nu->type == CU_BEZIER) {
 			BezTriple *bezt = nu->bezt;
 
 			for (i=0; i<nu->pntsu; i++,bezt++) {
@@ -2720,7 +2723,7 @@ int check_valid_nurb_u( struct Nurb *nu )
 {
 	if (nu==NULL)						return 0;
 	if (nu->pntsu <= 1)					return 0;
-	if ((nu->type & 7)!=CU_NURBS)		return 1; /* not a nurb, lets assume its valid */
+	if (nu->type != CU_NURBS)			return 1; /* not a nurb, lets assume its valid */
 	
 	if (nu->pntsu < nu->orderu)			return 0;
 	if (((nu->flag & CU_CYCLIC)==0) && ((nu->flagu>>1) & 2)) { /* Bezier U Endpoints */
@@ -2734,7 +2737,7 @@ int check_valid_nurb_v( struct Nurb *nu)
 {
 	if (nu==NULL)						return 0;
 	if (nu->pntsv <= 1)					return 0;
-	if ((nu->type & 7)!=CU_NURBS)		return 1; /* not a nurb, lets assume its valid */
+	if (nu->type != CU_NURBS)			return 1; /* not a nurb, lets assume its valid */
 	
 	if (nu->pntsv < nu->orderv)			return 0;
 	if (((nu->flag & CU_CYCLIC)==0) && ((nu->flagv>>1) & 2)) { /* Bezier V Endpoints */

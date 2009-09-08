@@ -406,11 +406,11 @@ void OBJECT_OT_mesh_add(wmOperatorType *ot)
 }
 
 static EnumPropertyItem prop_curve_types[] = {
-	{CU_BEZIER|CU_2D|CU_PRIM_CURVE, "BEZIER_CURVE", ICON_CURVE_BEZCURVE, "Bezier Curve", ""},
-	{CU_BEZIER|CU_2D|CU_PRIM_CIRCLE, "BEZIER_CIRCLE", ICON_CURVE_BEZCIRCLE, "Bezier Circle", ""},
-	{CU_NURBS|CU_2D|CU_PRIM_CURVE, "NURBS_CURVE", ICON_CURVE_NCURVE, "NURBS Curve", ""},
-	{CU_NURBS|CU_2D|CU_PRIM_CIRCLE, "NURBS_CIRCLE", ICON_CURVE_NCIRCLE, "NURBS Circle", ""},
-	{CU_NURBS|CU_2D|CU_PRIM_PATH, "PATH", ICON_CURVE_PATH, "Path", ""},
+	{CU_BEZIER|CU_PRIM_CURVE, "BEZIER_CURVE", ICON_CURVE_BEZCURVE, "Bezier Curve", ""},
+	{CU_BEZIER|CU_PRIM_CIRCLE, "BEZIER_CIRCLE", ICON_CURVE_BEZCIRCLE, "Bezier Circle", ""},
+	{CU_NURBS|CU_PRIM_CURVE, "NURBS_CURVE", ICON_CURVE_NCURVE, "NURBS Curve", ""},
+	{CU_NURBS|CU_PRIM_CIRCLE, "NURBS_CIRCLE", ICON_CURVE_NCIRCLE, "NURBS Circle", ""},
+	{CU_NURBS|CU_PRIM_PATH, "PATH", ICON_CURVE_PATH, "Path", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1064,7 +1064,7 @@ static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, flo
 	int *index, a, nr, totvert=0;
 	
 	for(nu= editnurb->first; nu; nu= nu->next) {
-		if((nu->type & 7)==CU_BEZIER) {
+		if(nu->type == CU_BEZIER) {
 			bezt= nu->bezt;
 			a= nu->pntsu;
 			while(a--) {
@@ -1091,7 +1091,7 @@ static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, flo
 	cent[0]= cent[1]= cent[2]= 0.0;
 	
 	for(nu= editnurb->first; nu; nu= nu->next) {
-		if((nu->type & 7)==CU_BEZIER) {
+		if(nu->type == CU_BEZIER) {
 			bezt= nu->bezt;
 			a= nu->pntsu;
 			while(a--) {
@@ -1200,7 +1200,7 @@ static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
 	int index=0, a, nr=0;
 	
 	for(nu= editnurb->first; nu; nu= nu->next) {
-		if((nu->type & 7)==CU_BEZIER) {
+		if(nu->type == CU_BEZIER) {
 			bezt= nu->bezt;
 			a= nu->pntsu;
 			while(a--) {
@@ -2795,7 +2795,7 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 
 		nu= editnurb->first;
 		while(nu) {
-			if((nu->type & 7)==CU_BEZIER) {
+			if(nu->type == CU_BEZIER) {
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {
@@ -3705,7 +3705,7 @@ static int object_center_set_exec(bContext *C, wmOperator *op)
 					
 					nu= nu1;
 					while(nu) {
-						if( (nu->type & 7)==CU_BEZIER) {
+						if(nu->type == CU_BEZIER) {
 							a= nu->pntsu;
 							while (a--) {
 								VecSubf(nu->bezt[a].vec[0], nu->bezt[a].vec[0], cent);
@@ -5742,7 +5742,7 @@ static void apply_objects_internal(Scene *scene, View3D *v3d, int apply_scale, i
 				
 				nu= cu->nurb.first;
 				while(nu) {
-					if( (nu->type & 7)==CU_BEZIER) {
+					if(nu->type == CU_BEZIER) {
 						a= nu->pntsu;
 						bezt= nu->bezt;
 						while(a--) {

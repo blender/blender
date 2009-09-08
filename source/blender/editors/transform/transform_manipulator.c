@@ -252,7 +252,7 @@ int calc_manipulator_stats(const bContext *C)
 
 			nu= cu->editnurb->first;
 			while(nu) {
-				if((nu->type & 7)==CU_BEZIER) {
+				if(nu->type == CU_BEZIER) {
 					bezt= nu->bezt;
 					a= nu->pntsu;
 					while(a--) {

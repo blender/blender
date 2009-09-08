@@ -226,7 +226,7 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 		
 		nu= cu->editnurb->first;
 		while(nu) {
-			if((nu->type & 7)==CU_BEZIER) {
+			if(nu->type == CU_BEZIER) {
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {
@@ -409,7 +409,7 @@ static void v3d_editvertex_buts(const bContext *C, uiBlock *block, View3D *v3d, 
 			
 			nu= cu->editnurb->first;
 			while(nu) {
-				if((nu->type & 7)==CU_BEZIER) {
+				if(nu->type == CU_BEZIER) {
 					bezt= nu->bezt;
 					a= nu->pntsu;
 					while(a--) {

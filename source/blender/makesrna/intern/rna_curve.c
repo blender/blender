@@ -142,24 +142,39 @@ static void rna_Curve_material_index_range(PointerRNA *ptr, int *min, int *max)
 	*max= cu->totcol-1;
 }
 
+static void rna_Curve_2d_set(PointerRNA *ptr, int value)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	Nurb *nu;
+
+	if(value) {
+		cu->flag &= ~CU_3D;
+		for(nu= cu->nurb.first; nu; nu= nu->next) {
+			nu->flag |= CU_2D;
+			test2DNurb(nu);
+		}
+	}
+	else {
+		cu->flag |=  CU_3D;
+		for(nu= cu->nurb.first; nu; nu= nu->next) {
+			nu->flag &= ~CU_2D;
+		}
+	}
+}
+
+
+
 static int rna_Nurb_length(PointerRNA *ptr)
 {
 	Nurb *nu= (Nurb*)ptr->data;
 	return nu->pntsv>0 ? nu->pntsu*nu->pntsv : nu->pntsu;
 }
 
-/* grr! mixing CU_2D with type is dodgy */
-static int rna_Nurb_type_get(PointerRNA *ptr)
-{
-	Nurb *nu= (Nurb*)ptr->data;
-	return nu->type & 7;
-}
-
 static void rna_Nurb_type_set(PointerRNA *ptr, int value)
 {
 	Nurb *nu= (Nurb*)ptr->data;
-	nu->type &= CU_2D;
-	nu->type |= value;
+	nu->type = value;
+	// XXX - TODO change datatypes
 }
 
 static void rna_BPoint_array_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -677,6 +692,7 @@ static void rna_def_curve(BlenderRNA *brna)
 	/* Flags */
 	prop= RNA_def_property(srna, "curve_2d", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", CU_3D);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Curve_2d_set");
 	RNA_def_property_ui_text(prop, "2D Curve", "Define curve in two dimensions only. Note that fill only works when this is enabled.");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
@@ -751,7 +767,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 	// XXX - switching type probably needs comprehensive recalc of data like in 2.4x
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, curve_type_items);
-	RNA_def_property_enum_funcs(prop, "rna_Nurb_type_get", "rna_Nurb_type_set", NULL);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_Nurb_type_set", NULL);
 	RNA_def_property_ui_text(prop, "Type", "The interpolation type for this curve element.");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 

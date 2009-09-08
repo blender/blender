@@ -1373,7 +1373,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 
 	/* count total of vertices, check identical as in 2nd loop for making transdata! */
 	for(nu= cu->editnurb->first; nu; nu= nu->next) {
-		if((nu->type & 7)==CU_BEZIER) {
+		if(nu->type == CU_BEZIER) {
 			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {
 				if(bezt->hide==0) {
 					if (G.f & G_HIDDENHANDLES) {
@@ -1409,7 +1409,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 
     td = t->data;
 	for(nu= cu->editnurb->first; nu; nu= nu->next) {
-		if((nu->type & 7)==CU_BEZIER) {
+		if(nu->type == CU_BEZIER) {
 			TransData *head, *tail;
 			head = tail = td;
 			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {

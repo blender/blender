@@ -1392,7 +1392,7 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 	int i;
 
 	for (nu= cu->editnurb->first; nu; nu=nu->next) {
-		if((nu->type & 7)==CU_BEZIER) {
+		if(nu->type == CU_BEZIER) {
 			for (i=0; i<nu->pntsu; i++) {
 				BezTriple *bezt = &nu->bezt[i];
 
@@ -3888,7 +3888,7 @@ static void tekenhandlesN(Nurb *nu, short sel)
 	
 	glBegin(GL_LINES); 
 	
-	if( (nu->type & 7)==CU_BEZIER) {
+	if(nu->type == CU_BEZIER) {
 		if(sel) col= nurbcol+4;
 		else col= nurbcol;
 
@@ -3945,7 +3945,7 @@ static void tekenvertsN(Nurb *nu, short sel)
 	
 	bglBegin(GL_POINTS);
 	
-	if((nu->type & 7)==CU_BEZIER) {
+	if(nu->type == CU_BEZIER) {
 
 		bezt= nu->bezt;
 		a= nu->pntsu;
@@ -3986,7 +3986,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 	nu= nurb;
 	while(nu) {
 		if(nu->hide==0) {
-			switch(nu->type & 7) {
+			switch(nu->type) {
 			case CU_POLY:
 				cpack(nurbcol[3]);
 				bp= nu->bp;
@@ -4094,7 +4094,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	
 	/* first non-selected handles */
 	for(nu=nurb; nu; nu=nu->next) {
-		if((nu->type & 7)==CU_BEZIER) {
+		if(nu->type == CU_BEZIER) {
 			tekenhandlesN(nu, 0);
 		}
 	}
@@ -4102,7 +4102,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	draw_editnurb(ob, nurb, 1);
 	/* selected handles */
 	for(nu=nurb; nu; nu=nu->next) {
-		if((nu->type & 7)==1) tekenhandlesN(nu, 1);
+		if(nu->type == CU_BEZIER) tekenhandlesN(nu, 1);
 		tekenvertsN(nu, 0);
 	}
 	

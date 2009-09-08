@@ -1358,7 +1358,7 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 				}
 				nu= cu->nurb.first;
 				while(nu) {
-					if( (nu->type & 7)==CU_BEZIER)
+					if(nu->type == CU_BEZIER)
 						writestruct(wd, DATA, "BezTriple", nu->pntsu, nu->bezt);
 					else {
 						writestruct(wd, DATA, "BPoint", nu->pntsu*nu->pntsv, nu->bp);

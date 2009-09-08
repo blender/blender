@@ -834,7 +834,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				resolu= nu->resolu;
 			
 			if(!check_valid_nurb_u(nu));
-			else if((nu->type & 7)==CU_BEZIER) {
+			else if(nu->type == CU_BEZIER) {
 				
 				/* count */
 				len= 0;
@@ -902,7 +902,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 					bezt++;
 				}
 			}
-			else if((nu->type & 7)==CU_NURBS) {
+			else if(nu->type == CU_NURBS) {
 				len= (resolu*SEGMENTSU(nu));
 				
 				dl= MEM_callocN(sizeof(DispList), "makeDispListsurf");
@@ -919,7 +919,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				else dl->type= DL_SEGM;
 				makeNurbcurve(nu, data, NULL, NULL, resolu);
 			}
-			else if((nu->type & 7)==CU_POLY) {
+			else if(nu->type == CU_POLY) {
 				len= nu->pntsu;
 				dl= MEM_callocN(sizeof(DispList), "makeDispListpoly");
 				dl->verts= MEM_callocN(len*3*sizeof(float), "dlverts");

@@ -9219,6 +9219,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Material *ma;
 		Camera *cam;
 		Mesh *me;
+		Curve *cu;
 		Scene *sce;
 		Tex *tx;
 		ParticleSettings *part;
@@ -9364,6 +9365,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			//	pid->cache->flag |= PTCACHE_DISK_CACHE;
 
 			//BLI_freelistN(&pidlist);
+		}
+
+		/* type was a mixed flag & enum. move the 2d flag elsewhere */
+		for(cu = main->curve.first; cu; cu= cu->id.next) {
+			Nurb *nu;
+
+			for(nu= cu->nurb.first; nu; nu= nu->next) {
+				nu->flag |= (nu->type & CU_2D);
+				nu->type &= CU_TYPE;
+			}
 		}
 	}
 
