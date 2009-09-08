@@ -740,10 +740,13 @@ class PovrayRender(bpy.types.RenderEngine):
 		pov_binary = "povray"
 		
 		if sys.platform=='win32':
+			import winreg
+			regKey = winreg.OpenKey(winreg.HKEY_CURRENT_USER, 'Software\\POV-Ray\\v3.6\\Windows')
+			
 			if bitness == 64:
-				pov_binary = "pvengine64"
+				pov_binary = winreg.QueryValueEx(regKey, 'Home')[0] + '\\bin\\pvengine64'
 			else:
-				pov_binary = "pvengine"
+				pov_binary = winreg.QueryValueEx(regKey, 'Home')[0] + '\\bin\\pvengine'
 			
 		if 1:
 			self.process = subprocess.Popen([pov_binary, self.temp_file_ini]) # stdout=subprocess.PIPE, stderr=subprocess.PIPE
