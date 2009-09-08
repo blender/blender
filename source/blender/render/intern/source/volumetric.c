@@ -44,6 +44,7 @@
 #include "DNA_material_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_meta_types.h"
 
 #include "BKE_global.h"
 
@@ -64,6 +65,11 @@
 extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
+/* luminance rec. 709 */
+inline float luminance(float* col)
+{
+	return (0.212671f*col[0] + 0.71516f*col[1] + 0.072169f*col[2]);
+}
 
 /* tracing */
 
@@ -211,13 +217,66 @@ static void vol_get_precached_scattering(ShadeInput *shi, float *scatter_col, fl
 	scatter_col[2] = voxel_sample_trilinear(vp->data_b, vp->res, sample_co);
 }
 
+/* Meta object density, brute force for now 
+ * (might be good enough anyway, don't need huge number of metaobs to model volumetric objects */
+static float metadensity(Object* ob, float* co)
+{
+	float mat[4][4], imat[4][4], dens = 0.f;
+	MetaBall* mb = (MetaBall*)ob->data;
+	MetaElem* ml;
+	
+	/* transform co to meta-element */
+	float tco[3] = {co[0], co[1], co[2]};
+	Mat4MulMat4(mat, ob->obmat, R.viewmat);
+	Mat4Invert(imat, mat);
+	Mat4MulVecfl(imat, tco);
+	
+	for (ml = mb->elems.first; ml; ml=ml->next) {
+		float bmat[3][3], dist2;
+		
+		/* element rotation transform */
+		float tp[3] = {ml->x - tco[0], ml->y - tco[1], ml->z - tco[2]};
+		QuatToMat3(ml->quat, bmat);
+		Mat3Transp(bmat);	// rot.only, so inverse == transpose
+		Mat3MulVecfl(bmat, tp);
+		
+		/* MB_BALL default */
+		switch (ml->type) {
+			case MB_ELIPSOID:
+				tp[0] /= ml->expx, tp[1] /= ml->expy, tp[2] /= ml->expz;
+				break;
+			case MB_CUBE:
+				tp[2] = (tp[2] > ml->expz) ? (tp[2] - ml->expz) : ((tp[2] < -ml->expz) ? (tp[2] + ml->expz) : 0.f);
+				// no break, xy as plane
+			case MB_PLANE:
+				tp[1] = (tp[1] > ml->expy) ? (tp[1] - ml->expy) : ((tp[1] < -ml->expy) ? (tp[1] + ml->expy) : 0.f);
+				// no break, x as tube
+			case MB_TUBE:
+				tp[0] = (tp[0] > ml->expx) ? (tp[0] - ml->expx) : ((tp[0] < -ml->expx) ? (tp[0] + ml->expx) : 0.f);
+		}
+		
+		/* ml->rad2 is not set */
+		dist2 = 1.f - ((tp[0]*tp[0] + tp[1]*tp[1] + tp[2]*tp[2]) / (ml->rad*ml->rad));
+		if (dist2 > 0.f)
+			dens += (ml->flag & MB_NEGATIVE) ? -ml->s*dist2*dist2*dist2 : ml->s*dist2*dist2*dist2;
+	}
+	
+	dens -= mb->thresh;
+	return (dens < 0.f) ? 0.f : dens;
+}
+
 float vol_get_density(struct ShadeInput *shi, float *co)
 {
 	float density = shi->mat->vol.density;
 	float density_scale = shi->mat->vol.density_scale;
-	float col[3] = {0.0, 0.0, 0.0};
+		
+	do_volume_tex(shi, co, MAP_DENSITY, NULL, &density);
 	
-	do_volume_tex(shi, co, MAP_DENSITY, col, &density);
+	// if meta-object, modulate by metadensity without increasing it
+	if (shi->obi->obr->ob->type == OB_MBALL) {
+		const float md = metadensity(shi->obi->obr->ob, co);
+		if (md < 1.f) density *= md;
+ 	}
 	
 	return density * density_scale;
 }
@@ -260,7 +319,6 @@ void vol_get_absorption(ShadeInput *shi, float *absorb_col, float *co)
 	absorb_col[2] = (1.0f - absorb_col[2]) * absorption;
 }
 
-
 /* phase function - determines in which directions the light 
  * is scattered in the volume relative to incoming direction 
  * and view direction */
@@ -298,70 +356,66 @@ float vol_get_phasefunc(ShadeInput *shi, short phasefunc_type, float g, float *w
 	}
 }
 
-/* Compute attenuation, otherwise known as 'optical thickness', extinction, or tau.
- * Used in the relationship Transmittance = e^(-attenuation)
- */
-void vol_get_attenuation_seg(ShadeInput *shi, float *transmission, float stepsize, float *co, float density)
+/* Compute transmittance = e^(-attenuation) */
+void vol_get_transmittance_seg(ShadeInput *shi, float *tr, float stepsize, float *co, float density)
 {
 	/* input density = density at co */
 	float tau[3] = {0.f, 0.f, 0.f};
-	float absorb_col[3];
+	float absorb[3];
+	const float scatter_dens = vol_get_scattering_fac(shi, co) * density * stepsize;
 
-	vol_get_absorption(shi, absorb_col, co);
+	vol_get_absorption(shi, absorb, co);
 	
 	/* homogenous volume within the sampled distance */
-	tau[0] = stepsize * density * absorb_col[0];
-	tau[1] = stepsize * density * absorb_col[1];
-	tau[2] = stepsize * density * absorb_col[2];
+	tau[0] += scatter_dens * absorb[0];
+	tau[1] += scatter_dens * absorb[1];
+	tau[2] += scatter_dens * absorb[2];
 	
-	transmission[0] *= exp(-tau[0]);
-	transmission[1] *= exp(-tau[1]);
-	transmission[2] *= exp(-tau[2]);
+	tr[0] *= exp(-tau[0]);
+	tr[1] *= exp(-tau[1]);
+	tr[2] *= exp(-tau[2]);
 }
 
-/* Compute attenuation, otherwise known as 'optical thickness', extinction, or tau.
- * Used in the relationship Transmittance = e^(-attenuation)
- */
-void vol_get_attenuation(ShadeInput *shi, float *transmission, float *co, float *endco, float density, float stepsize)
+/* Compute transmittance = e^(-attenuation) */
+static void vol_get_transmittance(ShadeInput *shi, float *tr, float *co, float *endco)
 {
-	/* input density = density at co */
+	float p[3] = {co[0], co[1], co[2]};
+	float step_vec[3] = {endco[0] - co[0], endco[1] - co[1], endco[2] - co[2]};
+	//const float ambtau = -logf(shi->mat->vol.depth_cutoff);	// never zero
 	float tau[3] = {0.f, 0.f, 0.f};
-	float absorb_col[3];
-	int s, nsteps;
-	float step_vec[3], step_sta[3], step_end[3];
-	const float dist = VecLenf(co, endco);
 
-	vol_get_absorption(shi, absorb_col, co);
+	float t0 = 0.f;
+	float t1 = Normalize(step_vec);
+	float pt0 = t0;
+	
+	t0 += shi->mat->vol.shade_stepsize * ((shi->mat->vol.stepsize_type == MA_VOL_STEP_CONSTANT) ? 0.5f : BLI_thread_frand(shi->thread));
+	p[0] += t0 * step_vec[0];
+	p[1] += t0 * step_vec[1];
+	p[2] += t0 * step_vec[2];
+	VecMulf(step_vec, shi->mat->vol.shade_stepsize);
 
-	nsteps = (int)((dist / stepsize) + 0.5);
-	
-	VecSubf(step_vec, endco, co);
-	VecMulf(step_vec, 1.0f / nsteps);
-	
-	VecCopyf(step_sta, co);
-	VecAddf(step_end, step_sta, step_vec);
-	
-	for (s = 0;  s < nsteps; s++) {
-		if (s > 0)
-			density = vol_get_density(shi, step_sta);
+	for (; t0 < t1; pt0 = t0, t0 += shi->mat->vol.shade_stepsize) {
+		float absorb[3];
+		const float d = vol_get_density(shi, p);
+		const float stepd = (t0 - pt0) * d;
+		const float scatter_dens = vol_get_scattering_fac(shi, p) * stepd;
+		vol_get_absorption(shi, absorb, p);
 		
-		tau[0] += stepsize * density;
-		tau[1] += stepsize * density;
-		tau[2] += stepsize * density;
+		tau[0] += scatter_dens * absorb[0];
+		tau[1] += scatter_dens * absorb[1];
+		tau[2] += scatter_dens * absorb[2];
 		
-		if (s < nsteps-1) {
-			VecCopyf(step_sta, step_end);
-			VecAddf(step_end, step_end, step_vec);
-		}
+		//if (luminance(tau) >= ambtau) break;
+		VecAddf(p, p, step_vec);
 	}
-	VecMulVecf(tau, tau, absorb_col);
 	
-	transmission[0] *= exp(-tau[0]);
-	transmission[1] *= exp(-tau[1]);
-	transmission[2] *= exp(-tau[2]);
+	/* return transmittance */
+	tr[0] = expf(-tau[0]);
+	tr[1] = expf(-tau[1]);
+	tr[2] = expf(-tau[2]);
 }
 
-void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *lacol, float stepsize, float density)
+void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *lacol)
 {
 	float visifac, lv[3], lampdist;
 	float tr[3]={1.0,1.0,1.0};
@@ -383,7 +437,7 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 		do_lamp_tex(lar, lv, shi, lacol, LA_TEXTURE);
 	}
 
-	VecMulf(lacol, visifac*lar->energy);
+	VecMulf(lacol, visifac);
 
 	if (ELEM(lar->type, LA_SUN, LA_HEMI))
 		VECCOPY(lv, lar->vec);
@@ -411,7 +465,7 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 			} else
 				atten_co = hitco;
 			
-			vol_get_attenuation(shi, tr, co, atten_co, density, shade_stepsize);
+			vol_get_transmittance(shi, tr, co, atten_co);
 			
 			VecMulVecf(lacol, lacol, tr);
 		}
@@ -445,7 +499,7 @@ void vol_get_scattering(ShadeInput *shi, float *scatter_col, float *co, float st
 		lar= go->lampren;
 		
 		if (lar) {
-			vol_shade_one_lamp(shi, co, lar, lacol, stepsize, density);
+			vol_shade_one_lamp(shi, co, lar, lacol);
 			VecAddf(scatter_col, scatter_col, lacol);
 		}
 	}
@@ -490,7 +544,7 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 		if (density > 0.01f) {
 		
 			/* transmittance component (alpha) */
-			vol_get_attenuation_seg(shi, tr, stepsize, co, density);
+			vol_get_transmittance_seg(shi, tr, stepsize, co, density);
 
 			step_mid[0] = step_sta[0] + (stepvec[0] * 0.5);
 			step_mid[1] = step_sta[1] + (stepvec[1] * 0.5);
@@ -654,7 +708,7 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 	}
 	
 	density = vol_get_density(shi, startco);
-	vol_get_attenuation(shi, tr, startco, endco, density, shade_stepsize);
+	vol_get_transmittance(shi, tr, startco, endco);
 	
 	VecCopyf(shr->combined, tr);
 	shr->combined[3] = 1.0f -(0.2126*tr[0] + 0.7152*tr[1] + 0.0722*tr[2]);

@@ -3078,9 +3078,6 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				}
 				need_nmap_tangent= 1;
 			}
-			
-			if (ma->material_type == MA_TYPE_VOLUME)
-				add_volume(re, obr, ma);
 		}
 	}
 
@@ -4273,7 +4270,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 	ObjectRen *obr;
 	ObjectInstanceRen *obi;
 	ParticleSystem *psys;
-	int show_emitter, allow_render= 1, index, psysindex;
+	int show_emitter, allow_render= 1, index, psysindex, i;
 
 	index= (dob)? dob->index: 0;
 
@@ -4309,6 +4306,12 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 		}
 		else
 			find_dupli_instances(re, obr);
+			
+		for (i=1; i<=ob->totcol; i++) {
+			Material* ma = give_render_material(re, ob, i);
+			if (ma && ma->material_type == MA_TYPE_VOLUME)
+				add_volume(re, obr, ma);
+		}
 	}
 
 	/* and one render object per particle system */

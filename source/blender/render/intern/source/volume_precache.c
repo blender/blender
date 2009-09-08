@@ -430,13 +430,13 @@ static void *vol_precache_part(void *data)
 	const float stepsize = vol_get_stepsize(shi, STEPSIZE_VIEW);
 
 	for (z= pa->minz; z < pa->maxz; z++) {
-		co[2] = pa->bbmin[2] + (pa->voxel[2] * z);
+		co[2] = pa->bbmin[2] + (pa->voxel[2] * (z + 0.5f));
 		
 		for (y= pa->miny; y < pa->maxy; y++) {
-			co[1] = pa->bbmin[1] + (pa->voxel[1] * y);
+			co[1] = pa->bbmin[1] + (pa->voxel[1] * (y + 0.5f));
 			
 			for (x=pa->minx; x < pa->maxx; x++) {
-				co[0] = pa->bbmin[0] + (pa->voxel[0] * x);
+				co[0] = pa->bbmin[0] + (pa->voxel[0] * (x + 0.5f));
 				
 				// don't bother if the point is not inside the volume mesh
 				if (!point_inside_obi(tree, obi, co)) {
