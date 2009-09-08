@@ -9596,6 +9596,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 2)) {
 		Scene *sce;
+		Object *ob;
 
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
 			if(fd->fileflags & G_FILE_ENABLE_ALL_FRAMES)
@@ -9627,6 +9628,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->gm.matmode= GAME_MAT_TEXFACE;
 
 			sce->gm.flag |= GAME_DISPLAY_LISTS;
+		}
+		
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+			if(ob->flag & 8192) // OB_POSEMODE = 8192
+				ob->mode |= OB_MODE_POSE;
 		}
 	}
 

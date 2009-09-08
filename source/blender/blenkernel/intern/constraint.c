@@ -1178,17 +1178,26 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 			makeDispListCurveTypes(cob->scene, ct->tar, 0);
 		
 		if (cu->path && cu->path->data) {
-			curvetime= bsystem_time(cob->scene, ct->tar, (float)ctime, 0.0) - data->offset;
-			
-#if 0 // XXX old animation system
-			if (calc_ipo_spec(cu->ipo, CU_SPEED, &curvetime)==0) {
-				curvetime /= cu->pathlen;
+			if ((data->followflag & FOLLOWPATH_STATIC) == 0) { 
+				/* animated position along curve depending on time */
+				curvetime= bsystem_time(cob->scene, ct->tar, ctime, 0.0) - data->offset;
+				
+				/* ctime is now a proper var setting of Curve which gets set by Animato like any other var that's animated,
+				 * but this will only work if it actually is animated... 
+				 *
+				 * we firstly calculate the modulus of cu->ctime/cu->pathlen to clamp ctime within the 0.0 to 1.0 times pathlen
+				 * range, then divide this (the modulus) by pathlen to get a value between 0.0 and 1.0
+				 */
+				curvetime= fmod(cu->ctime, cu->pathlen) / cu->pathlen;
 				CLAMP(curvetime, 0.0, 1.0);
 			}
-#endif // XXX old animation system
+			else {
+				/* fixed position along curve */
+				curvetime= data->offset; // XXX might need a more sensible value
+			}
 			
 			if ( where_on_path(ct->tar, curvetime, vec, dir) ) {
-				if (data->followflag) {
+				if (data->followflag & FOLLOWPATH_FOLLOW) {
 					vectoquat(dir, (short) data->trackflag, (short) data->upflag, quat);
 					
 					Normalize(dir);
