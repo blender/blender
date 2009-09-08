@@ -107,6 +107,7 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
 		col.itemO("curve.delete")
 		col.itemO("curve.cyclic_toggle")
 		col.itemO("curve.switch_direction")
+		col.itemO("curve.spline_type_set")
 		
 		layout.itemL(text="Modeling:")
 

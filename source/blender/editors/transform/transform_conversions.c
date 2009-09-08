@@ -1367,7 +1367,8 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 	int a;
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
-
+	short hide_handles = (cu->drawflag & CU_HIDE_HANDLES);
+	
 	/* to be sure */
 	if(cu->editnurb==NULL) return;
 
@@ -1376,7 +1377,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 		if(nu->type == CU_BEZIER) {
 			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {
 				if(bezt->hide==0) {
-					if (G.f & G_HIDDENHANDLES) {
+					if (hide_handles) {
 						if(bezt->f2 & SELECT) countsel+=3;
 						if(propmode) count+= 3;
 					} else {
@@ -1417,13 +1418,13 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 					TransDataCurveHandleFlags *hdata = NULL;
 
 					if(		propmode ||
-							((bezt->f2 & SELECT) && (G.f & G_HIDDENHANDLES)) ||
-							((bezt->f1 & SELECT) && (G.f & G_HIDDENHANDLES)==0)
+							((bezt->f2 & SELECT) && hide_handles) ||
+							((bezt->f1 & SELECT) && hide_handles == 0)
 					  ) {
 						VECCOPY(td->iloc, bezt->vec[0]);
 						td->loc= bezt->vec[0];
 						VECCOPY(td->center, bezt->vec[1]);
-						if (G.f & G_HIDDENHANDLES) {
+						if (hide_handles) {
 							if(bezt->f2 & SELECT) td->flag= TD_SELECTED;
 							else td->flag= 0;
 						} else {
@@ -1478,13 +1479,13 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 						tail++;
 					}
 					if(		propmode ||
-							((bezt->f2 & SELECT) && (G.f & G_HIDDENHANDLES)) ||
-							((bezt->f3 & SELECT) && (G.f & G_HIDDENHANDLES)==0)
+							((bezt->f2 & SELECT) && hide_handles) ||
+							((bezt->f3 & SELECT) && hide_handles == 0)
 					  ) {
 						VECCOPY(td->iloc, bezt->vec[2]);
 						td->loc= bezt->vec[2];
 						VECCOPY(td->center, bezt->vec[1]);
-						if (G.f & G_HIDDENHANDLES) {
+						if (hide_handles) {
 							if(bezt->f2 & SELECT) td->flag= TD_SELECTED;
 							else td->flag= 0;
 						} else {

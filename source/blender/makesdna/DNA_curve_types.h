@@ -145,7 +145,7 @@ typedef struct Curve {
 	
 	struct BoundBox *bb;
 	
-	ListBase nurb;		/* actual data */
+	ListBase nurb;		/* actual data, called splines in rna */
 	ListBase disp;
 	
 	ListBase *editnurb;	/* edited data, not in file, use pointer so we can check for it */
@@ -163,7 +163,9 @@ typedef struct Curve {
 	float size[3];
 	float rot[3];
 
-	int texflag;
+	int texflag; /* keep an int because of give_obdata_texspace() */
+
+	short drawflag, pad[3];
 
 	short pathlen, totcol;
 	short flag, bevresol;
@@ -210,6 +212,10 @@ typedef struct Curve {
 
 /* texflag */
 #define CU_AUTOSPACE	1
+
+/* drawflag */
+#define CU_HIDE_HANDLES	(1 << 0)
+#define CU_HIDE_NORMALS	(1 << 1)
 
 /* flag */
 #define CU_3D			1
@@ -288,6 +294,10 @@ typedef enum eBezTriple_KeyframeType {
 	BEZT_KEYTYPE_KEYFRAME = 0,	/* default - 'proper' Keyframe */
 	BEZT_KEYTYPE_BREAKDOWN,		/* 'breakdown' keyframe */
 } eBezTriple_KeyframeType;
+
+/* checks if the given BezTriple is selected */
+#define BEZSELECTED(bezt) (((bezt)->f2 & SELECT) || ((bezt)->f1 & SELECT) || ((bezt)->f3 & SELECT))
+#define BEZSELECTED_HIDDENHANDLES(cu, bezt)   (((cu)->drawflag & CU_HIDE_HANDLES) ? (bezt)->f2 & SELECT : BEZSELECTED(bezt))
 
 /* *************** CHARINFO **************** */
 

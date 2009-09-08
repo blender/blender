@@ -549,13 +549,15 @@ static void do_lasso_select_mesh_uv(short mcords[][2], short moves, short select
 
 static void do_lasso_select_curve__doSelect(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
 {
-	struct { short (*mcords)[2]; short moves; short select; } *data = userData;
-
+	struct { ViewContext vc; short (*mcords)[2]; short moves; short select; } *data = userData;
+	
 	if (lasso_inside(data->mcords, data->moves, x, y)) {
 		if (bp) {
 			bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 		} else {
-			if (G.f & G_HIDDENHANDLES) {
+			Curve *cu= data->vc.obedit->data;
+			
+			if (cu->drawflag & CU_HIDE_HANDLES) {
 				/* can only be beztindex==0 here since handles are hidden */
 				bezt->f1 = bezt->f2 = bezt->f3 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
 			} else {
@@ -573,9 +575,10 @@ static void do_lasso_select_curve__doSelect(void *userData, Nurb *nu, BPoint *bp
 
 static void do_lasso_select_curve(ViewContext *vc, short mcords[][2], short moves, short select)
 {
-	struct { short (*mcords)[2]; short moves; short select; } data;
+	struct { ViewContext vc; short (*mcords)[2]; short moves; short select; } data;
 
 	/* set vc->editnurb */
+	data.vc = *vc;
 	data.mcords = mcords;
 	data.moves = moves;
 	data.select = select;
@@ -1196,7 +1199,9 @@ static void do_nurbs_box_select__doSelect(void *userData, Nurb *nu, BPoint *bp, 
 		if (bp) {
 			bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 		} else {
-			if (G.f & G_HIDDENHANDLES) {
+			Curve *cu= data->vc.obedit->data;
+			
+			if (cu->drawflag & CU_HIDE_HANDLES) {
 				/* can only be beztindex==0 here since handles are hidden */
 				bezt->f1 = bezt->f2 = bezt->f3 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
 			} else {
@@ -1215,7 +1220,7 @@ static void do_nurbs_box_select(ViewContext *vc, rcti *rect, int select)
 {
 	struct { ViewContext vc; rcti *rect; int select; } data;
 	
-	data.vc= *vc;
+	data.vc = *vc;
 	data.rect = rect;
 	data.select = select;
 

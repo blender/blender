@@ -260,7 +260,7 @@ int calc_manipulator_stats(const bContext *C)
 						 * if handles are hidden then only check the center points.
 						 * If 2 or more are selected then only use the center point too.
 						 */
-						if (G.f & G_HIDDENHANDLES) {
+						if (cu->drawflag & CU_HIDE_HANDLES) {
 							if (bezt->f2 & SELECT) {
 								calc_tw_center(scene, bezt->vec[1]);
 								totsel++;

@@ -2756,13 +2756,12 @@ void OBJECT_OT_slowparent_clear(wmOperatorType *ot)
 }
 /* ******************** **************** */
 
-// XXX
-#define BEZSELECTED_HIDDENHANDLES(bezt)   ((G.f & G_HIDDENHANDLES) ? (bezt)->f2 & SELECT : BEZSELECTED(bezt))
 /* only in edit mode */
 void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 {
 	EditVert *eve;
 	Base *base;
+	Curve *cu= obedit->data;
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
@@ -2799,7 +2798,7 @@ void make_vertex_parent(Scene *scene, Object *obedit, View3D *v3d)
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {
-					if(BEZSELECTED_HIDDENHANDLES(bezt)) {
+					if(BEZSELECTED_HIDDENHANDLES(cu, bezt)) {
 						if(v1==0) v1= nr;
 						else if(v2==0) v2= nr;
 						else if(v3==0) v3= nr;
@@ -7264,6 +7263,43 @@ static const char *object_mode_op_string(int mode)
 	return NULL;
 }
 
+/* checks the mode to be set is compatible with the object
+ * should be made into a generic function */
+static int object_mode_set_compat(bContext *C, wmOperator *op, Object *ob)
+{
+	ObjectMode mode = RNA_enum_get(op->ptr, "mode");
+
+	if(ob) {
+		switch(ob->type) {
+		case OB_EMPTY:
+		case OB_LAMP:
+		case OB_CAMERA:
+			if(mode & OB_MODE_OBJECT)
+				return 1;
+			return 0;
+		case OB_MESH:
+			if(mode & (	OB_MODE_OBJECT|OB_MODE_EDIT|OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT|OB_MODE_PARTICLE_EDIT))
+				return 1;
+			return 0;
+		case OB_CURVE:
+		case OB_SURF:
+		case OB_FONT:
+		case OB_MBALL:
+			if(mode & (OB_MODE_OBJECT|OB_MODE_EDIT))
+				return 1;
+			return 0;
+		case OB_LATTICE:
+			if(mode & (OB_MODE_OBJECT|OB_MODE_EDIT|OB_MODE_WEIGHT_PAINT))
+				return 1;
+		case OB_ARMATURE:
+			if(mode & (OB_MODE_OBJECT|OB_MODE_EDIT|OB_MODE_POSE))
+				return 1;
+		}
+	}
+
+	return 0;
+}
+
 static int object_mode_set_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
@@ -7271,7 +7307,7 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 	ObjectMode restore_mode = ob->mode;
 	int toggle = RNA_boolean_get(op->ptr, "toggle");
 
-	if(!ob)
+	if(!ob || !object_mode_set_compat(C, op, ob))
 		return OPERATOR_CANCELLED;
 
 	/* Exit current mode if it's not the mode we're setting */

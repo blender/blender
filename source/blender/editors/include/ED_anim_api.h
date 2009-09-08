@@ -433,9 +433,6 @@ void ED_nla_postop_refresh(bAnimContext *ac);
 
 /* ------------- Utility macros ----------------------- */
 
-/* checks if the given BezTriple is selected */
-#define BEZSELECTED(bezt) (((bezt)->f2 & SELECT) || ((bezt)->f1 & SELECT) || ((bezt)->f3 & SELECT))
-
 /* provide access to Keyframe Type info in BezTriple
  * NOTE: this is so that we can change it from being stored in 'hide'
  */

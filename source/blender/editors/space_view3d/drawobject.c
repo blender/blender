@@ -1397,7 +1397,8 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 				BezTriple *bezt = &nu->bezt[i];
 
 				if(bezt->hide==0) {
-					if (G.f & G_HIDDENHANDLES) {
+					
+					if(cu->drawflag & CU_HIDE_HANDLES) {
 						view3d_project_short_clip(vc->ar, bezt->vec[1], s);
 						if (s[0] != IS_CLIPPED)
 							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
@@ -2797,7 +2798,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 		if(solid) {
 			dl= lb->first;
 			if(dl==NULL) return 1;
-			
+
 			if(dl->nors==0) addnormalsDispList(ob, lb);
 			index3_nors_incr= 0;
 			
@@ -2838,7 +2839,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 		}
 		break;
 	case OB_SURF:
-	
+
 		lb= &((Curve *)ob->data)->disp;
 		
 		if(solid) {
@@ -3877,14 +3878,14 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 unsigned int nurbcol[8]= {
 	0, 0x9090, 0x409030, 0x603080, 0, 0x40fff0, 0x40c033, 0xA090F0 };
 
-static void tekenhandlesN(Nurb *nu, short sel)
+static void tekenhandlesN(Nurb *nu, short sel, short hide_handles)
 {
 	BezTriple *bezt;
 	float *fp;
 	unsigned int *col;
 	int a;
 	
-	if(nu->hide || (G.f & G_HIDDENHANDLES)) return;
+	if(nu->hide || hide_handles) return;
 	
 	glBegin(GL_LINES); 
 	
@@ -3928,7 +3929,7 @@ static void tekenhandlesN(Nurb *nu, short sel)
 	glEnd();
 }
 
-static void tekenvertsN(Nurb *nu, short sel)
+static void tekenvertsN(Nurb *nu, short sel, short hide_handles)
 {
 	BezTriple *bezt;
 	BPoint *bp;
@@ -3951,7 +3952,7 @@ static void tekenvertsN(Nurb *nu, short sel)
 		a= nu->pntsu;
 		while(a--) {
 			if(bezt->hide==0) {
-				if (G.f & G_HIDDENHANDLES) {
+				if (hide_handles) {
 					if((bezt->f2 & SELECT)==sel) bglVertex3fv(bezt->vec[1]);
 				} else {
 					if((bezt->f1 & SELECT)==sel) bglVertex3fv(bezt->vec[0]);
@@ -4083,6 +4084,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	Curve *cu = ob->data;
 	Nurb *nu;
 	BevList *bl;
+	short hide_handles = (cu->drawflag & CU_HIDE_HANDLES);
 
 // XXX	retopo_matrix_update(v3d);
 
@@ -4095,22 +4097,24 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	/* first non-selected handles */
 	for(nu=nurb; nu; nu=nu->next) {
 		if(nu->type == CU_BEZIER) {
-			tekenhandlesN(nu, 0);
+			tekenhandlesN(nu, 0, hide_handles);
 		}
 	}
 	draw_editnurb(ob, nurb, 0);
 	draw_editnurb(ob, nurb, 1);
 	/* selected handles */
 	for(nu=nurb; nu; nu=nu->next) {
-		if(nu->type == CU_BEZIER) tekenhandlesN(nu, 1);
-		tekenvertsN(nu, 0);
+		if(nu->type == CU_BEZIER && (cu->drawflag & CU_HIDE_HANDLES)==0)
+			tekenhandlesN(nu, 1, hide_handles);
+		tekenvertsN(nu, 0, hide_handles);
 	}
 	
 	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
 
 	/*	direction vectors for 3d curve paths
 		when at its lowest, dont render normals */
-	if(cu->flag & CU_3D && ts->normalsize > 0.0015) {
+	if(cu->flag & CU_3D && ts->normalsize > 0.0015 && (cu->drawflag & CU_HIDE_NORMALS)==0) {
+
 		UI_ThemeColor(TH_WIRE);
 		for (bl=cu->bev.first,nu=nurb; nu && bl; bl=bl->next,nu=nu->next) {
 			BevPoint *bevp= (BevPoint *)(bl+1);		
@@ -4145,7 +4149,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
 	
 	for(nu=nurb; nu; nu=nu->next) {
-		tekenvertsN(nu, 1);
+		tekenvertsN(nu, 1, hide_handles);
 	}
 	
 	if(v3d->zbuf) glEnable(GL_DEPTH_TEST); 
