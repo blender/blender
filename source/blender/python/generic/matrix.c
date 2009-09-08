@@ -598,18 +598,18 @@ static PyObject *Matrix_repr(MatrixObject * self)
 		return NULL;
 	
 	BLI_strncpy(str,"",1024);
-	for(x = 0; x < self->rowSize; x++){
+	for(x = 0; x < self->colSize; x++){
 		sprintf(buffer, "[");
 		strcat(str,buffer);
-		for(y = 0; y < (self->colSize - 1); y++) {
-			sprintf(buffer, "%.6f, ", self->matrix[x][y]);
+		for(y = 0; y < (self->rowSize - 1); y++) {
+			sprintf(buffer, "%.6f, ", self->matrix[y][x]);
 			strcat(str,buffer);
 		}
-		if(x < (self->rowSize-1)){
-			sprintf(buffer, "%.6f](matrix [row %d])\n", self->matrix[x][y], x);
+		if(x < (self->colSize-1)){
+			sprintf(buffer, "%.6f](matrix [row %d])\n", self->matrix[y][x], x);
 			strcat(str,buffer);
 		}else{
-			sprintf(buffer, "%.6f](matrix [row %d])", self->matrix[x][y], x);
+			sprintf(buffer, "%.6f](matrix [row %d])", self->matrix[y][x], x);
 			strcat(str,buffer);
 		}
 	}
@@ -703,7 +703,7 @@ static int Matrix_ass_item(MatrixObject * self, int i, PyObject * ob)
 		return -1;
 	
 	if(i >= self->rowSize || i < 0){
-		PyErr_SetString(PyExc_TypeError, "matrix[attribute] = x: bad row\n");
+		PyErr_SetString(PyExc_TypeError, "matrix[attribute] = x: bad column\n");
 		return -1;
 	}
 
