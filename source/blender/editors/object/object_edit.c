@@ -7247,7 +7247,7 @@ static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *ptr, in
 
 static const char *object_mode_op_string(int mode)
 {
-	if(mode == OB_MODE_EDIT)
+	if(mode & OB_MODE_EDIT)
 		return "OBJECT_OT_editmode_toggle";
 	if(mode == OB_MODE_SCULPT)
 		return "SCULPT_OT_sculptmode_toggle";
@@ -7333,6 +7333,8 @@ void ED_object_toggle_modes(bContext *C, int mode)
 		WM_operator_name_call(C, "PAINT_OT_texture_paint_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 	if(mode & OB_MODE_PARTICLE_EDIT)
 		WM_operator_name_call(C, "PARTICLE_OT_particle_edit_toggle", WM_OP_EXEC_REGION_WIN, NULL);
+	if(mode & OB_MODE_POSE)
+		WM_operator_name_call(C, "OBJECT_OT_posemode_toggle", WM_OP_EXEC_REGION_WIN, NULL);
 }
 
 /* game property ops */

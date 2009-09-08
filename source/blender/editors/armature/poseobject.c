@@ -125,9 +125,8 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 	
 	switch (ob->type){
 		case OB_ARMATURE:
-			
+			ob->restore_mode = ob->mode;
 			ob->mode |= OB_MODE_POSE;
-			base->flag= ob->flag;
 			
 			WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_POSE, NULL);
 			
@@ -136,7 +135,7 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 			return;
 	}
 
-	ED_object_toggle_modes(C, ob->mode);
+	//ED_object_toggle_modes(C, ob->mode);
 }
 
 void ED_armature_exit_posemode(bContext *C, Base *base)
@@ -144,8 +143,8 @@ void ED_armature_exit_posemode(bContext *C, Base *base)
 	if(base) {
 		Object *ob= base->object;
 		
+		ob->restore_mode = ob->mode;
 		ob->mode &= ~OB_MODE_POSE;
-		base->flag= ob->flag;
 		
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, NULL);
 	}	

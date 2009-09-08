@@ -186,6 +186,7 @@ class VIEW3D_MT_select_POSE(bpy.types.Menu):
 		layout.itemO("pose.select_all_toggle", text="Select/Deselect All")
 		layout.itemO("pose.select_inverse", text="Inverse")
 		layout.itemO("pose.select_constraint_target", text="Constraint Target")
+		layout.itemO("pose.select_linked", text="Linked")
 		
 		layout.itemS()
 		

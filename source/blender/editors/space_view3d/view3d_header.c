@@ -1551,11 +1551,17 @@ static char *view3d_modeselect_pup(Scene *scene)
 	if(ob==NULL) return string;
 	
 	/* if active object is editable */
-	if ( ((ob->type == OB_MESH) || (ob->type == OB_ARMATURE)
+	if ( ((ob->type == OB_MESH)
 		|| (ob->type == OB_CURVE) || (ob->type == OB_SURF) || (ob->type == OB_FONT)
 		|| (ob->type == OB_MBALL) || (ob->type == OB_LATTICE))) {
 		
 		str += sprintf(str, formatstr, "Edit Mode", OB_MODE_EDIT, ICON_EDITMODE_HLT);
+	}
+	else if (ob->type == OB_ARMATURE) {
+		if (ob->mode & OB_MODE_POSE)
+			str += sprintf(str, formatstr, "Edit Mode", OB_MODE_EDIT|OB_MODE_POSE, ICON_EDITMODE_HLT);
+		else
+			str += sprintf(str, formatstr, "Edit Mode", OB_MODE_EDIT, ICON_EDITMODE_HLT);
 	}
 
 	if (ob->type == OB_MESH) {
@@ -1715,6 +1721,7 @@ static void do_view3d_header_buttons(bContext *C, void *arg, int event)
 		WM_operator_properties_create(&props_ptr, "OBJECT_OT_mode_set");
 		RNA_enum_set(&props_ptr, "mode", v3d->modeselect);
 		WM_operator_name_call(C, "OBJECT_OT_mode_set", WM_OP_EXEC_REGION_WIN, &props_ptr);
+		WM_operator_properties_free(&props_ptr);
 		break;		
 	case B_AROUND:
 // XXX		handle_view3d_around(); /* copies to other 3d windows */
@@ -2179,7 +2186,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE, xco,yco,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (Ctrl Click for anim)");
 		
 		if (ob && (ob->mode & OB_MODE_POSE)) {
-			xco+= XIC;
+			xco+= XIC*2;
 			uiBlockBeginAlign(block);
 			
 			uiDefIconButO(block, BUT, "POSE_OT_copy", WM_OP_INVOKE_REGION_WIN, ICON_COPYDOWN, xco,yco,XIC,YIC, NULL);

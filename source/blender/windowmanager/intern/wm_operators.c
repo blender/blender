@@ -91,10 +91,12 @@ wmOperatorType *WM_operatortype_find(const char *idname, int quiet)
 	
 	char idname_bl[OP_MAX_TYPENAME]; // XXX, needed to support python style names without the _OT_ syntax
 	WM_operator_bl_idname(idname_bl, idname);
-
-	for(ot= global_ops.first; ot; ot= ot->next) {
-		if(strncmp(ot->idname, idname_bl, OP_MAX_TYPENAME)==0)
-		   return ot;
+	
+	if (idname_bl[0]) {
+		for(ot= global_ops.first; ot; ot= ot->next) {
+			if(strncmp(ot->idname, idname_bl, OP_MAX_TYPENAME)==0)
+			   return ot;
+		}
 	}
 	
 	if(!quiet)
@@ -109,10 +111,12 @@ wmOperatorType *WM_operatortype_exists(const char *idname)
 	
 	char idname_bl[OP_MAX_TYPENAME]; // XXX, needed to support python style names without the _OT_ syntax
 	WM_operator_bl_idname(idname_bl, idname);
-
-	for(ot= global_ops.first; ot; ot= ot->next) {
-		if(strncmp(ot->idname, idname_bl, OP_MAX_TYPENAME)==0)
-		   return ot;
+	
+	if(idname_bl[0]) {
+		for(ot= global_ops.first; ot; ot= ot->next) {
+			if(strncmp(ot->idname, idname_bl, OP_MAX_TYPENAME)==0)
+			   return ot;
+		}
 	}
 	return NULL;
 }
@@ -322,21 +326,25 @@ void WM_operator_py_idname(char *to, const char *from)
 /* some.op -> SOME_OT_op */
 void WM_operator_bl_idname(char *to, const char *from)
 {
-	char *sep= strchr(from, '.');
+	if (from) {
+		char *sep= strchr(from, '.');
 
-	if(sep) {
-		int i, ofs= (sep-from);
+		if(sep) {
+			int i, ofs= (sep-from);
 
-		for(i=0; i<ofs; i++)
-			to[i]= toupper(from[i]);
+			for(i=0; i<ofs; i++)
+				to[i]= toupper(from[i]);
 
-		BLI_strncpy(to+ofs, "_OT_", OP_MAX_TYPENAME);
-		BLI_strncpy(to+(ofs+4), sep+1, OP_MAX_TYPENAME);
+			BLI_strncpy(to+ofs, "_OT_", OP_MAX_TYPENAME);
+			BLI_strncpy(to+(ofs+4), sep+1, OP_MAX_TYPENAME);
+		}
+		else {
+			/* should not happen but support just incase */
+			BLI_strncpy(to, from, OP_MAX_TYPENAME);
+		}
 	}
-	else {
-		/* should not happen but support just incase */
-		BLI_strncpy(to, from, OP_MAX_TYPENAME);
-	}
+	else
+		to[0]= 0;
 }
 
 /* print a string representation of the operator, with the args that it runs 
