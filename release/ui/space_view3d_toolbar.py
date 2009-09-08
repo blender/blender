@@ -357,10 +357,8 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 			col = layout.column(align=True)
 			col.item_enumR(settings, "tool", 'DRAW')
 			col.item_enumR(settings, "tool", 'SOFTEN')
-			if settings.use_projection:
-				col.item_enumR(settings, "tool", 'CLONE')
-			else:
-				col.item_enumR(settings, "tool", 'SMEAR')
+			col.item_enumR(settings, "tool", 'CLONE')
+			col.item_enumR(settings, "tool", 'SMEAR')
 				
 			col = layout.column()
 			col.itemR(brush, "color", text="")
@@ -546,9 +544,17 @@ class VIEW3D_PT_tools_vertexpaint(View3DPanel):
 
 # ********** default tools for texturepaint ****************
 
-class VIEW3D_PT_tools_texturepaint(View3DPanel):
-	__context__ = "texturepaint"
-	__label__ = "Options"
+class VIEW3D_PT_tools_projectpaint(View3DPanel):
+	__context__ = "projectpaint"
+	__label__ = "Project Paint"
+
+	def poll(self, context): 	 
+		return context.tool_settings.image_paint.tool != 'SMEAR' 	 
+
+	def draw_header(self, context): 	 
+		layout = self.layout 	 
+		ipaint = context.tool_settings.image_paint 	 
+		layout.itemR(ipaint, "use_projection", text="")
 
 	def draw(self, context):
 		layout = self.layout
@@ -558,7 +564,6 @@ class VIEW3D_PT_tools_texturepaint(View3DPanel):
 		use_projection= ipaint.use_projection
 		
 		col = layout.column()
-		col.itemR(ipaint, "use_projection")
 		sub = col.column()
 		sub.active = use_projection
 		sub.itemR(ipaint, "use_occlude")
@@ -670,5 +675,5 @@ bpy.types.register(VIEW3D_PT_tools_brush_curve)
 bpy.types.register(VIEW3D_PT_sculpt_options)
 bpy.types.register(VIEW3D_PT_tools_vertexpaint)
 bpy.types.register(VIEW3D_PT_tools_weightpaint)
-bpy.types.register(VIEW3D_PT_tools_texturepaint)
+bpy.types.register(VIEW3D_PT_tools_projectpaint)
 bpy.types.register(VIEW3D_PT_tools_particlemode)
