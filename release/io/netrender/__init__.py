@@ -7,3 +7,11 @@ import slave
 import master
 import utils
 import ui
+
+# store temp data in bpy module
+
+import bpy
+
+bpy.data.netrender_jobs = []
+bpy.data.netrender_slaves = []
+bpy.data.netrender_blacklist = []

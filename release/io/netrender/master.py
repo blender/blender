@@ -155,11 +155,11 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 						
 						if not frame:
 							# no such frame
-							self.send_heat(http.client.NOT_FOUND)
+							self.send_heat(http.client.NO_CONTENT)
 							return
 				else:
 					# no such job id
-					self.send_head(http.client.NOT_FOUND)
+					self.send_head(http.client.NO_CONTENT)
 					return
 			
 			self.send_head()
@@ -452,6 +452,8 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 						file_path = job.save_path + main_name
 					
 					buf = self.rfile.read(length)
+					
+					# add same temp file + renames as slave
 					
 					f = open(file_path, "wb")
 					f.write(buf)

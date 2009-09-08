@@ -30,13 +30,14 @@ def testFile(conn, JOB_PREFIX, file_path, main_path = None):
 	job_full_path = prefixPath(JOB_PREFIX, file_path, main_path)
 	
 	if not os.path.exists(job_full_path):
+		temp_path = JOB_PREFIX + "slave.temp.blend"
 		conn.request("GET", "file", headers={"job-id": job.id, "slave-id":slave_id, "job-file":file_path})
 		response = conn.getresponse()
 		
 		if response.status != http.client.OK:
 			return None # file for job not returned by server, need to return an error code to server
 		
-		f = open(job_full_path, "wb")
+		f = open(temp_path, "wb")
 		buf = response.read(1024)
 		
 		while buf:
@@ -44,6 +45,8 @@ def testFile(conn, JOB_PREFIX, file_path, main_path = None):
 			buf = response.read(1024)
 		
 		f.close()
+		
+		os.renames(temp_path, job_full_path)
 		
 	return job_full_path
 

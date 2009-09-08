@@ -6,6 +6,8 @@ import subprocess, shutil, time, hashlib
 import netrender.slave as slave
 import netrender.master as master
 
+from netrender.utils import *
+
 VERSION = b"0.3"
 
 PATH_PREFIX = "/tmp/"
@@ -69,10 +71,10 @@ class SCENE_PT_network_slaves(RenderButtonsPanel):
 		layout = self.layout
 		
 		scene = context.scene
-		netrender = scene.network_render
+		netsettings = scene.network_render
 
 		row = layout.row()
-		row.template_list(netrender, "slaves", netrender, "active_slave_index", rows=2)
+		row.template_list(netsettings, "slaves", netsettings, "active_slave_index", rows=2)
 
 		col = row.column()
 
@@ -80,14 +82,18 @@ class SCENE_PT_network_slaves(RenderButtonsPanel):
 		subcol.itemO("render.netclientslaves", icon="ICON_FILE_REFRESH", text="")
 		subcol.itemO("render.netclientblacklistslave", icon="ICON_ZOOMOUT", text="")
 		
-		if netrender.active_slave_index >= 0 and len(netrender.slaves) > 0:
+		if len(bpy.data.netrender_slaves) == 0 and len(netsettings.slaves) > 0:
+			while(len(netsettings.slaves) > 0):
+				netsettings.slaves.remove(0)
+		
+		if netsettings.active_slave_index >= 0 and len(netsettings.slaves) > 0:
 			layout.itemS()
 			
-			slave = netrender.slaves[netrender.active_slave_index]
+			slave = bpy.data.netrender_slaves[netsettings.active_slave_index]
 
 			layout.itemL(text="Name: " + slave.name)
-			layout.itemL(text="Address: " + slave.address)
-			layout.itemL(text="Seen: " + slave.last_seen)
+			layout.itemL(text="Address: " + slave.address[0])
+			layout.itemL(text="Seen: " + time.ctime(slave.last_seen))
 			layout.itemL(text="Stats: " + slave.stats)
 
 bpy.types.register(SCENE_PT_network_slaves)
@@ -104,26 +110,29 @@ class SCENE_PT_network_slaves_blacklist(RenderButtonsPanel):
 		layout = self.layout
 		
 		scene = context.scene
-		netrender = scene.network_render
+		netsettings = scene.network_render
 
 		row = layout.row()
-		row.template_list(netrender, "slaves_blacklist", netrender, "active_blacklisted_slave_index", rows=2)
+		row.template_list(netsettings, "slaves_blacklist", netsettings, "active_blacklisted_slave_index", rows=2)
 
 		col = row.column()
 
 		subcol = col.column(align=True)
 		subcol.itemO("render.netclientwhitelistslave", icon="ICON_ZOOMOUT", text="")
 
+		if len(bpy.data.netrender_blacklist) == 0 and len(netsettings.slaves_blacklist) > 0:
+			while(len(netsettings.slaves_blacklist) > 0):
+				netsettings.slaves_blacklist.remove(0)
 		
-		if netrender.active_blacklisted_slave_index >= 0 and len(netrender.slaves_blacklist) > 0:
+		if netsettings.active_blacklisted_slave_index >= 0 and len(netsettings.slaves_blacklist) > 0:
 			layout.itemS()
 			
-			slave = netrender.slaves_blacklist[netrender.active_blacklisted_slave_index]
+			slave = bpy.data.netrender_blacklist[netsettings.active_blacklisted_slave_index]
 
 			layout.itemL(text="Name: " + slave.name)
-			layout.itemL(text="Address: " + slave.address)
+			layout.itemL(text="Address: " + slave.address[0])
 			layout.itemL(text="Seen: " + slave.last_seen)
-			layout.itemL(text="Stats: " + slave.stats)
+			layout.itemL(text="Stats: " + time.ctime(slave.stats))
 			
 bpy.types.register(SCENE_PT_network_slaves_blacklist)
 
@@ -139,10 +148,10 @@ class SCENE_PT_network_jobs(RenderButtonsPanel):
 		layout = self.layout
 		
 		scene = context.scene
-		netrender = scene.network_render
+		netsettings = scene.network_render
 
 		row = layout.row()
-		row.template_list(netrender, "jobs", netrender, "active_job_index", rows=2)
+		row.template_list(netsettings, "jobs", netsettings, "active_job_index", rows=2)
 
 		col = row.column()
 
@@ -150,16 +159,19 @@ class SCENE_PT_network_jobs(RenderButtonsPanel):
 		subcol.itemO("render.netclientstatus", icon="ICON_FILE_REFRESH", text="")
 		subcol.itemO("render.netclientcancel", icon="ICON_ZOOMOUT", text="")
 
+		if len(bpy.data.netrender_jobs) == 0 and len(netsettings.jobs) > 0:
+			while(len(netsettings.jobs) > 0):
+				netsettings.jobs.remove(0)
 		
-		if netrender.active_job_index >= 0 and len(netrender.jobs) > 0:
+		if netsettings.active_job_index >= 0 and len(netsettings.jobs) > 0:
 			layout.itemS()
 			
-			job = netrender.jobs[netrender.active_job_index]
+			job = bpy.data.netrender_jobs[netsettings.active_job_index]
 
 			layout.itemL(text="Name: %s" % job.name)
-			layout.itemL(text="Length: %04i" % job.length)
-			layout.itemL(text="Done: %04i" % job.done)
-			layout.itemL(text="Error: %04i" % job.error)
+			layout.itemL(text="Length: %04i" % len(job))
+			layout.itemL(text="Done: %04i" % job.results[DONE])
+			layout.itemL(text="Error: %04i" % job.results[ERROR])
 			
 bpy.types.register(SCENE_PT_network_jobs)
 
@@ -264,54 +276,8 @@ NetRenderSlave.StringProperty( attr="name",
 				maxlen = 64,
 				default = "")
 
-NetRenderSlave.StringProperty( attr="address",
-				name="Address of the slave",
-				description="",
-				maxlen = 64,
-				default = "")
-
-NetRenderSlave.StringProperty( attr="last_seen",
-				name="Last time slave was seen by server",
-				description="",
-				maxlen = 64,
-				default = "")
-
-NetRenderSlave.StringProperty( attr="stats",
-				name="Hardware stats of the slave",
-				description="",
-				maxlen = 128,
-				default = "")
-
-NetRenderJob.StringProperty( attr="id",
-				name="ID of the job",
-				description="",
-				maxlen = 64,
-				default = "")
-
-
 NetRenderJob.StringProperty( attr="name",
 				name="Name of the job",
 				description="",
 				maxlen = 128,
 				default = "")
-
-NetRenderJob.IntProperty( attr="length",
-				name="Number of frames",
-				description="",
-				default = 0,
-				min= 0,
-				max=65535)
-
-NetRenderJob.IntProperty( attr="done",
-				name="Number of frames rendered",
-				description="",
-				default = 0,
-				min= 0,
-				max=65535)
-
-NetRenderJob.IntProperty( attr="error",
-				name="Number of frames in error",
-				description="",
-				default = 0,
-				min= 0,
-				max=65535)
