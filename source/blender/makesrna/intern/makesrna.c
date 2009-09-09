@@ -1679,7 +1679,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 				BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
 				unsigned int i;
 
-				if(prop->arraydimension) {
+				if(prop->arraydimension && prop->totarraylength) {
 					fprintf(f, "static int rna_%s%s_%s_default[%d] = {", srna->identifier, strnest, prop->identifier, prop->totarraylength);
 
 					for(i=0; i<prop->totarraylength; i++) {
@@ -1699,7 +1699,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 				IntPropertyRNA *iprop= (IntPropertyRNA*)prop;
 				unsigned int i;
 
-				if(prop->arraydimension) {
+				if(prop->arraydimension && prop->totarraylength) {
 					fprintf(f, "static int rna_%s%s_%s_default[%d] = {", srna->identifier, strnest, prop->identifier, prop->totarraylength);
 
 					for(i=0; i<prop->totarraylength; i++) {
@@ -1719,7 +1719,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 				FloatPropertyRNA *fprop= (FloatPropertyRNA*)prop;
 				unsigned int i;
 
-				if(prop->arraydimension) {
+				if(prop->arraydimension && prop->totarraylength) {
 					fprintf(f, "static float rna_%s%s_%s_default[%d] = {", srna->identifier, strnest, prop->identifier, prop->totarraylength);
 
 					for(i=0; i<prop->totarraylength; i++) {
@@ -1762,7 +1762,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 			case PROP_BOOLEAN: {
 				BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
 				fprintf(f, "\t%s, %s, %s, %s, %d, ", rna_function_string(bprop->get), rna_function_string(bprop->set), rna_function_string(bprop->getarray), rna_function_string(bprop->setarray), bprop->defaultvalue);
-				if(prop->arraydimension) fprintf(f, "rna_%s%s_%s_default\n", srna->identifier, strnest, prop->identifier);
+				if(prop->arraydimension && prop->totarraylength) fprintf(f, "rna_%s%s_%s_default\n", srna->identifier, strnest, prop->identifier);
 				else fprintf(f, "NULL\n");
 				break;
 			}
@@ -1775,7 +1775,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 				rna_int_print(f, iprop->hardmax); fprintf(f, ", ");
 				rna_int_print(f, iprop->step); fprintf(f, ", ");
 				rna_int_print(f, iprop->defaultvalue); fprintf(f, ", ");
-				if(prop->arraydimension) fprintf(f, "rna_%s%s_%s_default\n", srna->identifier, strnest, prop->identifier);
+				if(prop->arraydimension && prop->totarraylength) fprintf(f, "rna_%s%s_%s_default\n", srna->identifier, strnest, prop->identifier);
 				else fprintf(f, "NULL\n");
 				break;
 			 }
@@ -1789,7 +1789,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 				rna_float_print(f, fprop->step); fprintf(f, ", ");
 				rna_int_print(f, (int)fprop->precision); fprintf(f, ", ");
 				rna_float_print(f, fprop->defaultvalue); fprintf(f, ", ");
-				if(prop->arraydimension) fprintf(f, "rna_%s%s_%s_default\n", srna->identifier, strnest, prop->identifier);
+				if(prop->arraydimension && prop->totarraylength) fprintf(f, "rna_%s%s_%s_default\n", srna->identifier, strnest, prop->identifier);
 				else fprintf(f, "NULL\n");
 				break;
 			 }
