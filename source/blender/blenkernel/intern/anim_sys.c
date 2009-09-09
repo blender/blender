@@ -204,6 +204,32 @@ AnimData *BKE_copy_animdata (AnimData *adt)
 	return dadt;
 }
 
+/* Make Local -------------------------------------------- */
+
+static void make_local_strips(ListBase *strips)
+{
+	NlaStrip *strip;
+
+	for(strip=strips->first; strip; strip=strip->next) {
+		if(strip->act) make_local_action(strip->act);
+		if(strip->remap && strip->remap->target) make_local_action(strip->remap->target);
+
+		make_local_strips(&strip->strips);
+	}
+}
+
+void BKE_animdata_make_local(AnimData *adt)
+{
+	NlaTrack *nlt;
+
+	if(adt->action) make_local_action(adt->action);
+	if(adt->tmpact) make_local_action(adt->tmpact);
+	if(adt->remap && adt->remap->target) make_local_action(adt->remap->target);
+
+	for(nlt=adt->nla_tracks.first; nlt; nlt=nlt->next) 
+		make_local_strips(&nlt->strips);
+}
+
 /* *********************************** */ 
 /* KeyingSet API */
 

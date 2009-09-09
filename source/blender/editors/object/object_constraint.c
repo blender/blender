@@ -76,9 +76,6 @@
 
 #include "object_intern.h"
 
-/* XXX */
-static int pupmenu() {return 0;}
-
 /* -------------- Get Active Constraint Data ---------------------- */
 
 /* if object in posemode, active bone constraints, else object constraints */
@@ -1107,7 +1104,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 #ifndef DISABLE_PYTHON
 			/* popup a list of usable scripts */
 			menustr = buildmenu_pyconstraints(NULL, &scriptint);
-			scriptint = pupmenu(menustr);
+			// XXX scriptint = pupmenu(menustr);
 			MEM_freeN(menustr);
 			
 			/* only add constraint if a script was chosen */
@@ -1416,3 +1413,4 @@ void POSE_OT_ik_clear(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+

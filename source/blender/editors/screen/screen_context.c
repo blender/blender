@@ -108,6 +108,12 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 
 		return 1;
 	}
+	else if(CTX_data_equals(member, "object")) {
+		if(scene->basact)
+			CTX_data_id_pointer_set(result, &scene->basact->object->id);
+
+		return 1;
+	}
 	else if(CTX_data_equals(member, "edit_object")) {
 		/* convenience for now, 1 object per scene in editmode */
 		if(scene->obedit)

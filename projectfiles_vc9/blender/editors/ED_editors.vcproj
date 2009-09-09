@@ -1075,19 +1075,19 @@
 			Name="object"
 			>
 			<File
-				RelativePath="..\..\..\source\blender\editors\object\editconstraint.c"
+				RelativePath="..\..\..\source\blender\editors\object\object_constraint.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\object\editgroup.c"
+				RelativePath="..\..\..\source\blender\editors\object\object_group.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\object\editkey.c"
+				RelativePath="..\..\..\source\blender\editors\object\object_shapekey.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\object\editlattice.c"
+				RelativePath="..\..\..\source\blender\editors\object\object_lattice.c"
 				>
 			</File>
 			<File
@@ -1108,6 +1108,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\object\object_vgroup.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_hook.c"
 				>
 			</File>
 		</Filter>
@@ -1479,7 +1483,7 @@
 			Name="metaball"
 			>
 			<File
-				RelativePath="..\..\..\source\blender\editors\metaball\editmball.c"
+				RelativePath="..\..\..\source\blender\editors\metaball\mball_edit.c"
 				>
 			</File>
 			<File

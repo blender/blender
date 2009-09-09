@@ -194,7 +194,10 @@ int id_make_local(ID *id, int test)
 		case ID_WV:
 			return 0; /* deprecated */
 		case ID_LT:
-			if(!test) make_local_lattice((Lattice*)id);
+			if(!test) {
+				make_local_lattice((Lattice*)id);
+				make_local_key(((Lattice*)id)->key);
+			}
 			return 1;
 		case ID_LA:
 			if(!test) make_local_lamp((Lamp*)id);

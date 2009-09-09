@@ -56,6 +56,8 @@ extern EnumPropertyItem brush_sculpt_tool_items[];
 
 extern EnumPropertyItem unpack_method_items[];
 
+extern EnumPropertyItem object_type_items[];
+
 #endif /* RNA_ENUM_TYPES */
 
 

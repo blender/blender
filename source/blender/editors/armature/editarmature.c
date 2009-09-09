@@ -239,7 +239,7 @@ static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist)
 }
 
 /* put EditMode back in Object */
-void ED_armature_from_edit(Scene *scene, Object *obedit)
+void ED_armature_from_edit(Object *obedit)
 {
 	bArmature *arm= obedit->data;
 	EditBone *eBone, *neBone;
@@ -343,21 +343,19 @@ void ED_armature_from_edit(Scene *scene, Object *obedit)
 	DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 }
 
-
-
-void apply_rot_armature (Scene *scene, Object *ob, float mat[3][3])
+void ED_armature_apply_transform(Object *ob, float mat[4][4])
 {
 	EditBone *ebone;
 	bArmature *arm= ob->data;
-	float scale = Mat3ToScalef(mat);	/* store the scale of the matrix here to use on envelopes */
+	float scale = Mat4ToScalef(mat);	/* store the scale of the matrix here to use on envelopes */
 	
 	/* Put the armature into editmode */
 	ED_armature_to_edit(ob);
 
 	/* Do the rotations */
 	for (ebone = arm->edbo->first; ebone; ebone=ebone->next){
-		Mat3MulVecfl(mat, ebone->head);
-		Mat3MulVecfl(mat, ebone->tail);
+		Mat4MulVecfl(mat, ebone->head);
+		Mat4MulVecfl(mat, ebone->tail);
 		
 		ebone->rad_head	*= scale;
 		ebone->rad_tail	*= scale;
@@ -365,7 +363,7 @@ void apply_rot_armature (Scene *scene, Object *ob, float mat[3][3])
 	}
 	
 	/* Turn the list into an armature */
-	ED_armature_from_edit(scene, ob);
+	ED_armature_from_edit(ob);
 	ED_armature_edit_free(ob);
 }
 
@@ -411,7 +409,7 @@ void docenter_armature (Scene *scene, View3D *v3d, Object *ob, int centermode)
 	}
 	
 	/* Turn the list into an armature */
-	ED_armature_from_edit(scene, ob);
+	ED_armature_from_edit(ob);
 	
 	/* Adjust object location for new centerpoint */
 	if(centermode && obedit==NULL) {
@@ -557,7 +555,7 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* convert editbones back to bones */
-	ED_armature_from_edit(scene, ob);
+	ED_armature_from_edit(ob);
 	
 	/* flush positions of posebones */
 	where_is_pose(scene, ob);
@@ -791,7 +789,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 	
 	DAG_scene_sort(scene);	// because we removed object(s)
 
-	ED_armature_from_edit(scene, ob);
+	ED_armature_from_edit(ob);
 	ED_armature_edit_free(ob);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
@@ -994,7 +992,7 @@ static void separate_armature_bones (Scene *scene, Object *ob, short sel)
 	}
 	
 	/* exit editmode (recalculates pchans too) */
-	ED_armature_from_edit(scene, ob);
+	ED_armature_from_edit(ob);
 	ED_armature_edit_free(ob);
 }
 
@@ -1037,7 +1035,7 @@ static int separate_armature_exec (bContext *C, wmOperator *op)
 	oldob->mode &= ~OB_MODE_POSE;
 	//oldbase->flag &= ~OB_POSEMODE;
 	
-	ED_armature_from_edit(scene, obedit);
+	ED_armature_from_edit(obedit);
 	ED_armature_edit_free(obedit);
 	
 	/* 2) duplicate base */
@@ -4334,7 +4332,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 		/* in weightpaint we select the associated vertex group too */
 		if (ob->mode & OB_MODE_WEIGHT_PAINT) {
 			if (nearBone->flag & BONE_ACTIVE) {
-				vertexgroup_select_by_name(OBACT, nearBone->name);
+				ED_vgroup_select_by_name(OBACT, nearBone->name);
 				DAG_id_flush_update(&OBACT->id, OB_RECALC_DATA);
 			}
 		}
@@ -4445,7 +4443,7 @@ static int bone_skinnable(Object *ob, Bone *bone, void *datap)
     return 0;
 }
 
-static int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data) 
+static int ED_vgroup_add_unique_bone(Object *ob, Bone *bone, void *data) 
 {
     /* This group creates a vertex group to ob that has the
       * same name as bone (provided the bone is skinnable). 
@@ -4453,7 +4451,7 @@ static int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data)
       */
 	if (!(bone->flag & BONE_NO_DEFORM)) {
 		if (!get_named_vertexgroup(ob,bone->name)) {
-			add_defgroup_name(ob, bone->name);
+			ED_vgroup_add_name(ob, bone->name);
 			return 1;
 		}
     }
@@ -4497,7 +4495,7 @@ static int dgroup_skinnable(Object *ob, Bone *bone, void *datap)
 				segments = 1;
 			
 			if (!(defgroup = get_named_vertexgroup(ob, bone->name)))
-				defgroup = add_defgroup_name(ob, bone->name);
+				defgroup = ED_vgroup_add_name(ob, bone->name);
 			
 			if (data->list != NULL) {
 				hgroup = (bDeformGroup ***) &data->list;
@@ -4548,17 +4546,17 @@ static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], i
 			
 			/* add the vert to the deform group if weight!=0.0 */
 			if (distance!=0.0)
-				add_vert_to_defgroup (ob, dgroup, i, distance, WEIGHT_REPLACE);
+				ED_vgroup_vert_add (ob, dgroup, i, distance, WEIGHT_REPLACE);
 			else
-				remove_vert_defgroup (ob, dgroup, i);
+				ED_vgroup_vert_remove (ob, dgroup, i);
 			
 			/* do same for mirror */
 			if (dgroupflip && dgroupflip[j] && iflip >= 0) {
 				if (distance!=0.0)
-					add_vert_to_defgroup (ob, dgroupflip[j], iflip, distance,
+					ED_vgroup_vert_add (ob, dgroupflip[j], iflip, distance,
 						WEIGHT_REPLACE);
 				else
-					remove_vert_defgroup (ob, dgroupflip[j], iflip);
+					ED_vgroup_vert_remove (ob, dgroupflip[j], iflip);
 			}
 		}
 	}
@@ -4748,10 +4746,10 @@ void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par, int mod
 		/* Traverse the bone list, trying to create empty vertex 
 		 * groups cooresponding to the bone.
 		 */
-		bone_looper(ob, arm->bonebase.first, NULL, add_defgroup_unique_bone);
+		bone_looper(ob, arm->bonebase.first, NULL, ED_vgroup_add_unique_bone);
 
 		if (ob->type == OB_MESH)
-			create_dverts(ob->data);
+			ED_vgroup_data_create(ob->data);
 	}
 	else if(mode == ARM_GROUPS_ENVELOPE || mode == ARM_GROUPS_AUTO) {
 		/* Traverse the bone list, trying to create vertex groups 
@@ -5659,7 +5657,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 	
 	if (obedit != NULL)
 	{
-		ED_armature_from_edit(scene, obedit);
+		ED_armature_from_edit(obedit);
 		ED_armature_edit_free(obedit);
 	}
 	

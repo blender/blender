@@ -408,8 +408,8 @@ void clear_wpaint_selectedfaces(Scene *scene)
 				if (!strcmp(curdef->name, name))
 					break;
 			if(curdef==NULL) {
-				int olddef= ob->actdef;	/* tsk, add_defgroup sets the active defgroup */
-				curdef= add_defgroup_name (ob, name);
+				int olddef= ob->actdef;	/* tsk, ED_vgroup_add sets the active defgroup */
+				curdef= ED_vgroup_add_name (ob, name);
 				ob->actdef= olddef;
 			}
 			
@@ -431,9 +431,9 @@ void clear_wpaint_selectedfaces(Scene *scene)
 			faceverts[3]= mface->v4;
 			for (i=0; i<3 || faceverts[i]; i++) {
 				if(!((me->dvert+faceverts[i])->flag)) {
-					dw= verify_defweight(me->dvert+faceverts[i], vgroup);
+					dw= ED_vgroup_weight_verify(me->dvert+faceverts[i], vgroup);
 					if(dw) {
-						uw= verify_defweight(wp->wpaint_prev+faceverts[i], vgroup);
+						uw= ED_vgroup_weight_verify(wp->wpaint_prev+faceverts[i], vgroup);
 						uw->weight= dw->weight; /* set the undo weight */
 						dw->weight= paintweight;
 						
@@ -442,11 +442,11 @@ void clear_wpaint_selectedfaces(Scene *scene)
 							if(j>=0) {
 								/* copy, not paint again */
 								if(vgroup_mirror != -1) {
-									dw= verify_defweight(me->dvert+j, vgroup_mirror);
-									uw= verify_defweight(wp->wpaint_prev+j, vgroup_mirror);
+									dw= ED_vgroup_weight_verify(me->dvert+j, vgroup_mirror);
+									uw= ED_vgroup_weight_verify(wp->wpaint_prev+j, vgroup_mirror);
 								} else {
-									dw= verify_defweight(me->dvert+j, vgroup);
-									uw= verify_defweight(wp->wpaint_prev+j, vgroup);
+									dw= ED_vgroup_weight_verify(me->dvert+j, vgroup);
+									uw= ED_vgroup_weight_verify(wp->wpaint_prev+j, vgroup);
 								}
 								uw->weight= dw->weight; /* set the undo weight */
 								dw->weight= paintweight;
@@ -963,20 +963,20 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 				
 				fac= MIN4(w1, w2, w3, w4);
 				if(w1==fac) {
-					dw= get_defweight(me->dvert+mface->v1, ob->actdef-1);
+					dw= ED_vgroup_weight_get(me->dvert+mface->v1, ob->actdef-1);
 					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 				}
 				else if(w2==fac) {
-					dw= get_defweight(me->dvert+mface->v2, ob->actdef-1);
+					dw= ED_vgroup_weight_get(me->dvert+mface->v2, ob->actdef-1);
 					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 				}
 				else if(w3==fac) {
-					dw= get_defweight(me->dvert+mface->v3, ob->actdef-1);
+					dw= ED_vgroup_weight_get(me->dvert+mface->v3, ob->actdef-1);
 					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 				}
 				else if(w4==fac) {
 					if(mface->v4) {
-						dw= get_defweight(me->dvert+mface->v4, ob->actdef-1);
+						dw= ED_vgroup_weight_get(me->dvert+mface->v4, ob->actdef-1);
 						if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 					}
 				}
@@ -995,12 +995,12 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, int alpha,
 	int vgroup= ob->actdef-1;
 	
 	if(wp->flag & VP_ONLYVGROUP) {
-		dw= get_defweight(me->dvert+index, vgroup);
-		uw= get_defweight(wp->wpaint_prev+index, vgroup);
+		dw= ED_vgroup_weight_get(me->dvert+index, vgroup);
+		uw= ED_vgroup_weight_get(wp->wpaint_prev+index, vgroup);
 	}
 	else {
-		dw= verify_defweight(me->dvert+index, vgroup);
-		uw= verify_defweight(wp->wpaint_prev+index, vgroup);
+		dw= ED_vgroup_weight_verify(me->dvert+index, vgroup);
+		uw= ED_vgroup_weight_verify(wp->wpaint_prev+index, vgroup);
 	}
 	if(dw==NULL || uw==NULL)
 		return;
@@ -1012,9 +1012,9 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, int alpha,
 		if(j>=0) {
 			/* copy, not paint again */
 			if(vgroup_mirror != -1)
-				uw= verify_defweight(me->dvert+j, vgroup_mirror);
+				uw= ED_vgroup_weight_verify(me->dvert+j, vgroup_mirror);
 			else
-				uw= verify_defweight(me->dvert+j, vgroup);
+				uw= ED_vgroup_weight_verify(me->dvert+j, vgroup);
 				
 			uw->weight= dw->weight;
 		}
@@ -1070,7 +1070,7 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 				if(pchan->bone->flag & BONE_ACTIVE)
 					break;
 				if(pchan)
-					vertexgroup_select_by_name(ob, pchan->name);
+					ED_vgroup_select_by_name(ob, pchan->name);
 		}
 	}
 	else {
@@ -1222,7 +1222,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 	
 	/* if nothing was added yet, we make dverts and a vertex deform group */
 	if (!me->dvert)
-		create_dverts(&me->id);
+		ED_vgroup_data_create(&me->id);
 	
 	/* make mode data storage */
 	wpd= MEM_callocN(sizeof(struct WPaintData), "WPaintData");
@@ -1256,14 +1256,14 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 			if(pchan) {
 				bDeformGroup *dg= get_named_vertexgroup(ob, pchan->name);
 				if(dg==NULL)
-					dg= add_defgroup_name(ob, pchan->name);	/* sets actdef */
+					dg= ED_vgroup_add_name(ob, pchan->name);	/* sets actdef */
 				else
 					ob->actdef= get_defgroup_num(ob, dg);
 			}
 		}
 	}
 	if(ob->defbase.first==NULL) {
-		add_defgroup(ob);
+		ED_vgroup_add(ob);
 	}	
 	
 	//	if(ob->lay & v3d->lay); else error("Active object is not in this layer");
@@ -1288,8 +1288,8 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 				if (!strcmp(curdef->name, name))
 					break;
 			if(curdef==NULL) {
-				int olddef= ob->actdef;	/* tsk, add_defgroup sets the active defgroup */
-				curdef= add_defgroup_name (ob, name);
+				int olddef= ob->actdef;	/* tsk, ED_vgroup_add sets the active defgroup */
+				curdef= ED_vgroup_add_name (ob, name);
 				ob->actdef= olddef;
 			}
 			
@@ -1381,10 +1381,10 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			if(mface->v4) (me->dvert+mface->v4)->flag= 1;
 					
 			if(wp->mode==VP_BLUR) {
-				MDeformWeight *dw, *(*dw_func)(MDeformVert *, int) = verify_defweight;
+				MDeformWeight *dw, *(*dw_func)(MDeformVert *, int) = ED_vgroup_weight_verify;
 						
 				if(wp->flag & VP_ONLYVGROUP)
-					dw_func= get_defweight;
+					dw_func= ED_vgroup_weight_get;
 						
 				dw= dw_func(me->dvert+mface->v1, ob->actdef-1);
 				if(dw) {paintweight+= dw->weight; totw++;}

@@ -64,6 +64,22 @@ static EnumPropertyItem parent_type_items[] = {
 	{PARBONE, "BONE", 0, "Bone", ""},
 	{0, NULL, 0, NULL, NULL}};
 
+EnumPropertyItem object_type_items[] = {
+	{OB_MESH, "MESH", 0, "Mesh", ""},
+	{OB_CURVE, "CURVE", 0, "Curve", ""},
+	{OB_SURF, "SURFACE", 0, "Surface", ""},
+	{OB_MBALL, "META", 0, "Meta", ""},
+	{OB_FONT, "TEXT", 0, "Text", ""},
+	{0, "", 0, NULL, NULL},
+	{OB_ARMATURE, "ARMATURE", 0, "Armature", ""},
+	{OB_LATTICE, "LATTICE", 0, "Lattice", ""},
+	{OB_EMPTY, "EMPTY", 0, "Empty", ""},
+	{0, "", 0, NULL, NULL},
+	{OB_CAMERA, "CAMERA", 0, "Camera", ""},
+	{OB_LAMP, "LAMP", 0, "Lamp", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_key_types.h"

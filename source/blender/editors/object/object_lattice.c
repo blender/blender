@@ -31,21 +31,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
 
-#include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"

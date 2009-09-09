@@ -1673,7 +1673,7 @@ void pose_activate_flipped_bone(Scene *scene)
 			
 				/* in weightpaint we select the associated vertex group too */
 				if(ob->mode & OB_MODE_WEIGHT_PAINT) {
-					vertexgroup_select_by_name(OBACT, name);
+					ED_vgroup_select_by_name(OBACT, name);
 					DAG_id_flush_update(&OBACT->id, OB_RECALC_DATA);
 				}
 				

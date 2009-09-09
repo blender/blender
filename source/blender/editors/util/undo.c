@@ -58,6 +58,7 @@
 #include "ED_armature.h"
 #include "ED_particle.h"
 #include "ED_curve.h"
+#include "ED_mball.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"

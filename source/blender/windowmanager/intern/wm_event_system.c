@@ -177,7 +177,7 @@ void wm_event_do_notifiers(bContext *C)
 						do_anim= 1;
 				}
 			}
-			if(ELEM3(note->category, NC_SCENE, NC_OBJECT, NC_GEOM)) {
+			if(ELEM4(note->category, NC_SCENE, NC_OBJECT, NC_GEOM, NC_SCENE)) {
 				ED_info_stats_clear(CTX_data_scene(C));
 				WM_event_add_notifier(C, NC_SPACE|ND_SPACE_INFO, NULL);
 			}

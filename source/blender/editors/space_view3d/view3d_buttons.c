@@ -899,7 +899,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 				Mesh *me= ob->data;
 				int a;
 				for(a=0; a<me->totvert; a++)
-					remove_vert_defgroup (ob, defGroup, a);
+					ED_vgroup_vert_remove (ob, defGroup, a);
 				DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 			}
 		}

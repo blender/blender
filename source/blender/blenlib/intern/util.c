@@ -77,11 +77,6 @@
 
 #include "BLI_winstuff.h"
 
-/* for duplicate_defgroup */
-#if !(defined vsnprintf)
-#define vsnprintf _vsnprintf
-#endif
-
 #endif
 
 

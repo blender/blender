@@ -809,58 +809,6 @@ void OBJECT_OT_meshdeform_bind(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-#if 0
-typedef struct MenuEntry {
-	char *name;
-	int ID;
-} MenuEntry;
-
-static int menuEntry_compare_names(const void *entry1, const void *entry2)
-{
-	return strcmp(((MenuEntry *)entry1)->name, ((MenuEntry *)entry2)->name);
-}
-
-static uiBlock *modifiers_add_menu(void *ob_v)
-{
-	Object *ob = ob_v;
-	uiBlock *block;
-	int i, yco=0;
-	int numEntries = 0;
-	MenuEntry entries[NUM_MODIFIER_TYPES];
-	
-	block= uiNewBlock(&curarea->uiblocks, "modifier_add_menu",
-	                  UI_EMBOSSP, UI_HELV, curarea->win);
-	uiBlockSetButmFunc(block, modifiers_add, ob);
-
-	for (i=eModifierType_None+1; i<NUM_MODIFIER_TYPES; i++) {
-		ModifierTypeInfo *mti = modifierType_getInfo(i);
-
-		/* Only allow adding through appropriate other interfaces */
-		if(ELEM(i, eModifierType_ParticleSystem, eModifierType_Surface)) continue;
-
-		if((mti->flags&eModifierTypeFlag_AcceptsCVs) ||
-		   (ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
-			entries[numEntries].name = mti->name;
-			entries[numEntries].ID = i;
-
-			++numEntries;
-		}
-	}
-
-	qsort(entries, numEntries, sizeof(*entries), menuEntry_compare_names);
-
-
-	for(i = 0; i < numEntries; ++i)
-		uiDefBut(block, BUTM, B_MODIFIER_RECALC, entries[i].name,
-		         0, yco -= 20, 160, 19, NULL, 0, 0, 1, entries[i].ID, "");
-
-	uiTextBoundsBlock(block, 50);
-	uiBlockSetDirection(block, UI_DOWN);
-
-	return block;
-}
-#endif
-
 /******************** hook operators ************************/
 
 static int hook_poll(bContext *C)

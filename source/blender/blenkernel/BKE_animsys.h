@@ -55,6 +55,9 @@ void BKE_free_animdata(struct ID *id);
 /* Copy AnimData */
 struct AnimData *BKE_copy_animdata(struct AnimData *adt);
 
+/* Make Local */
+void BKE_animdata_make_local(struct AnimData *adt);
+
 /* ************************************* */
 /* KeyingSets API */
 
