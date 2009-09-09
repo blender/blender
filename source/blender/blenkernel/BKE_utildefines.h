@@ -243,7 +243,7 @@ behaviour, though it may not be the best in practice.
 #if defined(_MSC_VER)
 #define BM_INLINE static __forceinline
 #else
-#define BM_INLINE static inline
+#define BM_INLINE static forceinline
 #endif
 
 #define BMEMSET(mem, val, size) {int _i; char *_c = mem; for (_i=0; _i<size; _i++) *_c++ = val;}

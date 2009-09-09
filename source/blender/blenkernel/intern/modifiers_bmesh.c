@@ -473,8 +473,6 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 	BMO_Finish_Op(em->bm, &weldop);
 
-	//BMO_CallOpf(em->bm, "removedoubles verts=%av dist=%f", amd->merge_dist);
-
 	BMEdit_RecalcTesselation(em);
 	cddm = CDDM_from_BMEditMesh(em, NULL);
 
