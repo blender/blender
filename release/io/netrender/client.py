@@ -7,6 +7,110 @@ import netrender.slave as slave
 import netrender.master as master
 from netrender.utils import *
 
+
+def clientSendJob(conn, scene, anim = False, chunks = 5):
+	netsettings = scene.network_render
+	job = netrender.model.RenderJob()
+	
+	if anim:
+		for f in range(scene.start_frame, scene.end_frame + 1):
+			job.addFrame(f)
+	else:
+		job.addFrame(scene.current_frame)
+	
+	filename = bpy.data.filename
+	job.addFile(filename)
+	
+	job_name = netsettings.job_name
+	path, name = os.path.split(filename)
+	if job_name == "[default]":
+		job_name = name
+	
+	for lib in bpy.data.libraries:
+		lib_path = lib.filename
+		
+		if lib_path.startswith("//"):
+			lib_path = path + os.sep + lib_path[2:]
+			
+		job.addFile(lib_path)
+	
+	root, ext = os.path.splitext(name)
+	cache_path = path + os.sep + "blendcache_" + root + os.sep # need an API call for that
+	
+	print("cache:", cache_path)
+	
+	if os.path.exists(cache_path):
+		caches = {}
+		pattern = re.compile("([a-zA-Z0-9]+)_([0-9]+)_[0-9]+\.bphys")
+		for cache_file in sorted(os.listdir(cache_path)):
+			match = pattern.match(cache_file)
+			
+			if match:
+				cache_id = match.groups()[0]
+				cache_frame = int(match.groups()[1])
+					
+				cache_files = caches.get(cache_id, [])
+				cache_files.append((cache_frame, cache_file))
+				caches[cache_id] = cache_files
+				
+		for cache in caches.values():
+			cache.sort()
+			
+			if len(cache) == 1:
+				cache_frame, cache_file = cache[0]
+				job.addFile(cache_path + cache_file, cache_frame, cache_frame)
+			else:
+				for i in range(len(cache)):
+					current_item = cache[i]
+					next_item = cache[i+1] if i + 1 < len(cache) else None
+					previous_item = cache[i - 1] if i > 0 else None
+					
+					current_frame, current_file = current_item
+					
+					if  not next_item and not previous_item:
+						job.addFile(cache_path + current_file, current_frame, current_frame)
+					elif next_item and not previous_item:
+						next_frame = next_item[0]
+						job.addFile(cache_path + current_file, current_frame, next_frame - 1)
+					elif not next_item and previous_item:
+						previous_frame = previous_item[0]
+						job.addFile(cache_path + current_file, previous_frame + 1, current_frame)
+					else:
+						next_frame = next_item[0]
+						previous_frame = previous_item[0]
+						job.addFile(cache_path + current_file, previous_frame + 1, next_frame - 1)
+		
+	print(job.files)
+	
+	job.name = job_name
+	
+	for slave in scene.network_render.slaves_blacklist:
+		job.blacklist.append(slave.id)
+	
+	job.chunks = netsettings.chunks
+	job.priority = netsettings.priority
+	
+	# try to send path first
+	conn.request("POST", "job", repr(job.serialize()))
+	response = conn.getresponse()
+	
+	job_id = response.getheader("job-id")
+	
+	# if not ACCEPTED (but not processed), send files
+	if response.status == http.client.ACCEPTED:
+		for filepath in job.files:
+			f = open(filepath, "rb")
+			conn.request("PUT", "file", f, headers={"job-id": job_id, "job-file": filepath})
+			f.close()
+			response = conn.getresponse()
+	
+	# server will reply with NOT_FOUD until all files are found
+	
+	return job_id
+
+def clientRequestResult(conn, scene, job_id):
+	conn.request("GET", "render", headers={"job-id": job_id, "job-frame":str(scene.current_frame)})
+
 class NetworkRenderEngine(bpy.types.RenderEngine):
 	__idname__ = 'NET_RENDER'
 	__label__ = "Network Render"

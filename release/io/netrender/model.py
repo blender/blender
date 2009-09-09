@@ -62,6 +62,9 @@ class RenderJob:
 		self.blacklist = []
 		self.last_dispatched = 0.0
 	
+	def addFile(self, file_path, start=-1, end=-1):
+		self.files.append((file_path, start, end))
+	
 	def addFrame(self, frame_number):
 		frame = RenderFrame(frame_number)
 		self.frames.append(frame)
@@ -98,10 +101,12 @@ class RenderJob:
 			return None
 		
 	def serialize(self, frames = None):
+		min_frame = min((f.number for f in frames)) if frames else -1
+		max_frame = max((f.number for f in frames)) if frames else -1
 		return 	{
 							"id": self.id,
 							"name": self.name,
-							"files": self.files,
+							"files": [f for f in self.files if f[1] == -1 or not frames or (f[1] <= min_frame <= f[2] or f[1] <= max_frame <= f[2])],
 							"frames": [f.serialize() for f in self.frames if not frames or f in frames],
 							"chunks": self.chunks,
 							"priority": self.priority,

@@ -83,7 +83,7 @@ def render_slave(engine, scene):
 				if not os.path.exists(JOB_PREFIX):
 					os.mkdir(JOB_PREFIX)
 				
-				job_path = job.files[0]
+				job_path = job.files[0][0] # data in files have format (path, start, end)
 				main_path, main_file = os.path.split(job_path)
 				
 				job_full_path = testFile(conn, JOB_PREFIX, job_path)
@@ -91,7 +91,8 @@ def render_slave(engine, scene):
 				print("File:", main_file, "and %i other files" % (len(job.files) - 1,))
 				engine.update_stats("", "Render File", main_file, "for job", job.id)
 				
-				for file_path in job.files[1:]:
+				for file_path, start, end in job.files[1:]:
+					print("\t", file_path)
 					testFile(conn, JOB_PREFIX, file_path, main_path)
 				
 				frame_args = []

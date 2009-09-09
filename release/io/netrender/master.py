@@ -10,8 +10,10 @@ JOB_PAUSED = 1 # paused by user
 JOB_QUEUED = 2 # ready to be dispatched
 
 class MRenderFile:
-	def __init__(self, filepath):
+	def __init__(self, filepath, start, end):
 		self.filepath = filepath
+		self.start = start
+		self.end = end
 		self.found = False
 	
 	def test(self):
@@ -55,7 +57,7 @@ class MRenderJob(netrender.model.RenderJob):
 	
 		# special server properties
 		self.save_path = ""
-		self.files_map = {path: MRenderFile(path) for path in files}
+		self.files_map = {path: MRenderFile(path, start, end) for path, start, end in files}
 		self.status = JOB_WAITING
 	
 	def save(self):

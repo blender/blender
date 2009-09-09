@@ -3,6 +3,7 @@ import sys, os
 import http, http.client, http.server, urllib
 
 from netrender.utils import *
+import netrender.client as client
 import netrender.model
 
 class RENDER_OT_netclientsend(bpy.types.Operator):
@@ -27,7 +28,7 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
 		
 		if conn:
 			# Sending file
-			scene.network_render.job_id = clientSendJob(conn, scene, True)
+			scene.network_render.job_id = client.clientSendJob(conn, scene, True)
 		
 		return ('FINISHED',)
 	
