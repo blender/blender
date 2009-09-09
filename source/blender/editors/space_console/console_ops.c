@@ -190,7 +190,7 @@ ConsoleLine *console_history_verify(const bContext *C)
 static void console_line_verify_length(ConsoleLine *ci, int len)
 {
 	/* resize the buffer if needed */
-	if(len > ci->len_alloc) {
+	if(len >= ci->len_alloc) {
 		int new_len= len * 2; /* new length */
 		char *new_line= MEM_callocN(new_len, "console line");
 		memcpy(new_line, ci->line, ci->len);

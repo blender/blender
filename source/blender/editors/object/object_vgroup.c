@@ -1230,13 +1230,13 @@ static int set_active_group_exec(bContext *C, wmOperator *op)
 
 static EnumPropertyItem *vgroup_itemf(bContext *C, PointerRNA *ptr, int *free)
 {	
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Object *ob;
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
 	EnumPropertyItem *item= NULL;
 	bDeformGroup *def;
 	int a, totitem= 0;
 	
-	if(!C) /* needed for docs */
+	if(!C || !(ob = CTX_data_pointer_get_type(C, "object", &RNA_Object).data)) /* needed for docs */
 		return vgroup_items;
 	
 	for(a=0, def=ob->defbase.first; def; def=def->next, a++) {
