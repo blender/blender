@@ -430,7 +430,7 @@ static int rna_Property_array_length_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	rna_idproperty_check(&prop, ptr);
-	return prop->arraylength;
+	return prop->totarraylength;
 }
 
 static int rna_Property_registered_get(PointerRNA *ptr)

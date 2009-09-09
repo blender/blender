@@ -40,9 +40,9 @@ struct IDProperty;
 struct GHash;
 
 #ifdef UNIT_TEST
-#define RNA_MAX_ARRAY 64
+#define RNA_MAX_ARRAY_LENGTH 64
 #else
-#define RNA_MAX_ARRAY 32
+#define RNA_MAX_ARRAY_LENGTH 32
 #endif
 
 #define RNA_MAX_ARRAY_DIMENSION 3
@@ -55,8 +55,7 @@ typedef struct IDProperty* (*IDPropertiesFunc)(struct PointerRNA *ptr, int creat
 typedef struct StructRNA *(*StructRefineFunc)(struct PointerRNA *ptr);
 typedef char *(*StructPathFunc)(struct PointerRNA *ptr);
 
-typedef int (*PropArrayLengthGetFunc)(struct PointerRNA *ptr);
-typedef int (*PropArrayLengthSetFunc)(struct PointerRNA *ptr, int length);
+typedef int (*PropArrayLengthGetFunc)(struct PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION]);
 typedef int (*PropBooleanGetFunc)(struct PointerRNA *ptr);
 typedef void (*PropBooleanSetFunc)(struct PointerRNA *ptr, int value);
 typedef void (*PropBooleanArrayGetFunc)(struct PointerRNA *ptr, int *values);
@@ -137,15 +136,13 @@ struct PropertyRNA {
 	PropertyType type;
 	/* subtype, 'interpretation' of the property */
 	PropertySubType subtype;
-	/* if an array this is > 0, specifying the length */
-	unsigned int arraylength;
 	/* if non-NULL, overrides arraylength. Must not return 0? */
 	PropArrayLengthGetFunc getlength;
-	/* if NULL, length cannot be changed by a user */
-	PropArrayLengthSetFunc setlength;
-	unsigned short arraydimension;
-	/* dimension sizes for dimensions greater than 1, first dimension size is not specified */
-	unsigned short dimsize[RNA_MAX_ARRAY_DIMENSION - 1];
+	/* dimension of array */
+	unsigned int arraydimension;
+	/* array lengths lengths for all dimensions (when arraydimension > 0) */
+	unsigned int arraylength[RNA_MAX_ARRAY_DIMENSION];
+	unsigned int totarraylength;
 	
 	/* callback for updates on change */
 	UpdateFunc update;

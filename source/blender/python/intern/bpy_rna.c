@@ -141,7 +141,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 	len= RNA_property_array_length(ptr, prop);
 	type= RNA_property_type(prop);
 	subtype= RNA_property_subtype(prop);
-	totdim= RNA_property_array_dimension(prop, NULL);
+	totdim= RNA_property_array_dimension(ptr, prop, NULL);
 
 	if (type != PROP_FLOAT) return NULL;
 
@@ -748,7 +748,7 @@ static int pyrna_py_to_prop_index(BPy_PropertyRNA *self, int index, PyObject *va
 	PropertyRNA *prop= self->prop;
 	int type = RNA_property_type(prop);
 
-	totdim= RNA_property_array_dimension(prop, NULL);
+	totdim= RNA_property_array_dimension(ptr, prop, NULL);
 
 	if (totdim > 1) {
 		/* char error_str[512]; */
@@ -807,8 +807,8 @@ static int pyrna_py_to_prop_index(BPy_PropertyRNA *self, int index, PyObject *va
 //---------------sequence-------------------------------------------
 static int pyrna_prop_array_length(BPy_PropertyRNA *self)
 {
-	if (RNA_property_array_dimension(self->prop, NULL) > 1)
-		return RNA_property_multidimensional_array_length(&self->ptr, self->prop, self->arraydim);
+	if (RNA_property_array_dimension(&self->ptr, self->prop, NULL) > 1)
+		return RNA_property_multi_array_length(&self->ptr, self->prop, self->arraydim);
 	else
 		return RNA_property_array_length(&self->ptr, self->prop);
 }
