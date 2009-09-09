@@ -368,9 +368,9 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 					CLAMP(fac, 0.0f, 1.0f);
 					
 					if(coba->ipotype==3)
-						set_four_ipo(fac, t, KEY_CARDINAL);
+						key_curve_position_weights(fac, t, KEY_CARDINAL);
 					else
-						set_four_ipo(fac, t, KEY_BSPLINE);
+						key_curve_position_weights(fac, t, KEY_BSPLINE);
 
 					out[0]= t[3]*cbd3->r +t[2]*cbd2->r +t[1]*cbd1->r +t[0]*cbd0->r;
 					out[1]= t[3]*cbd3->g +t[2]*cbd2->g +t[1]*cbd1->g +t[0]*cbd0->g;

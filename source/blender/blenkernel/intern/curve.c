@@ -1476,7 +1476,7 @@ static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *
 			if (nu->tilt_interp==3) { /* May as well support for tilt also 2.47 ease interp */
 				tilt_array[a] = prevbezt->alfa + (bezt->alfa - prevbezt->alfa)*(3.0f*fac*fac - 2.0f*fac*fac*fac);
 			} else {
-				set_four_ipo(fac, t, nu->tilt_interp);
+				key_curve_position_weights(fac, t, nu->tilt_interp);
 				tilt_array[a]= t[0]*pprev->alfa + t[1]*prevbezt->alfa + t[2]*bezt->alfa + t[3]*next->alfa;
 			}
 		}
@@ -1491,7 +1491,7 @@ static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *
 				
 				/* reuse interpolation from tilt if we can */
 				if (tilt_array==NULL || nu->tilt_interp != nu->radius_interp) {
-					set_four_ipo(fac, t, nu->radius_interp);
+					key_curve_position_weights(fac, t, nu->radius_interp);
 				}
 				radius_array[a]= t[0]*pprev->radius + t[1]*prevbezt->radius + t[2]*bezt->radius + t[3]*next->radius;
 			}

@@ -127,7 +127,6 @@
 #include "BKE_global.h" // for G
 #include "BKE_group.h"
 #include "BKE_image.h"
-#include "BKE_key.h" //void set_four_ipo
 #include "BKE_lattice.h"
 #include "BKE_library.h" // for wich_libbase
 #include "BKE_main.h" // for Main

@@ -253,7 +253,7 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 	/* note, commented out for follow constraint */
 	//if(cu->flag & CU_FOLLOW) {
 		
-		set_afgeleide_four_ipo(1.0f-fac, data, KEY_BSPLINE);
+		key_curve_tangent_weights(1.0f-fac, data, KEY_BSPLINE);
 		
 		dir[0]= data[0]*p0[0] + data[1]*p1[0] + data[2]*p2[0] + data[3]*p3[0] ;
 		dir[1]= data[0]*p0[1] + data[1]*p1[1] + data[2]*p2[1] + data[3]*p3[1] ;
@@ -268,10 +268,10 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 	nu= cu->nurb.first;
 
 	/* make sure that first and last frame are included in the vectors here  */
-	if((nu->type & 7)==CU_POLY) set_four_ipo(1.0f-fac, data, KEY_LINEAR);
-	else if((nu->type & 7)==CU_BEZIER) set_four_ipo(1.0f-fac, data, KEY_LINEAR);
-	else if(s0==s1 || p2==p3) set_four_ipo(1.0f-fac, data, KEY_CARDINAL);
-	else set_four_ipo(1.0f-fac, data, KEY_BSPLINE);
+	if((nu->type & 7)==CU_POLY) key_curve_position_weights(1.0f-fac, data, KEY_LINEAR);
+	else if((nu->type & 7)==CU_BEZIER) key_curve_position_weights(1.0f-fac, data, KEY_LINEAR);
+	else if(s0==s1 || p2==p3) key_curve_position_weights(1.0f-fac, data, KEY_CARDINAL);
+	else key_curve_position_weights(1.0f-fac, data, KEY_BSPLINE);
 
 	vec[0]= data[0]*p0[0] + data[1]*p1[0] + data[2]*p2[0] + data[3]*p3[0] ;
 	vec[1]= data[0]*p0[1] + data[1]*p1[1] + data[2]*p2[1] + data[3]*p3[1] ;

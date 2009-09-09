@@ -367,7 +367,7 @@ void calc_latt_deform(float *co, float weight)
 		u= (vec[0]-lt->fu)/lt->du;
 		ui= (int)floor(u);
 		u -= ui;
-		set_four_ipo(u, tu, lt->typeu);
+		key_curve_position_weights(u, tu, lt->typeu);
 	}
 	else {
 		tu[0]= tu[2]= tu[3]= 0.0; tu[1]= 1.0;
@@ -378,7 +378,7 @@ void calc_latt_deform(float *co, float weight)
 		v= (vec[1]-lt->fv)/lt->dv;
 		vi= (int)floor(v);
 		v -= vi;
-		set_four_ipo(v, tv, lt->typev);
+		key_curve_position_weights(v, tv, lt->typev);
 	}
 	else {
 		tv[0]= tv[2]= tv[3]= 0.0; tv[1]= 1.0;
@@ -389,7 +389,7 @@ void calc_latt_deform(float *co, float weight)
 		w= (vec[2]-lt->fw)/lt->dw;
 		wi= (int)floor(w);
 		w -= wi;
-		set_four_ipo(w, tw, lt->typew);
+		key_curve_position_weights(w, tw, lt->typew);
 	}
 	else {
 		tw[0]= tw[2]= tw[3]= 0.0; tw[1]= 1.0;

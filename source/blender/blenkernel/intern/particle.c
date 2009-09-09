@@ -873,7 +873,7 @@ static void interpolate_particle(short type, ParticleKey keys[4], float dt, Part
 		VecfCubicInterpol(keys[1].co, keys[1].vel, keys[2].co, keys[2].vel, dt, result->co, result->vel);
 	}
 	else {
-		set_four_ipo(dt, t, type);
+		key_curve_position_weights(dt, t, type);
 
 		weighted_particle_vector(keys[0].co, keys[1].co, keys[2].co, keys[3].co, t, result->co);
 
@@ -881,12 +881,12 @@ static void interpolate_particle(short type, ParticleKey keys[4], float dt, Part
 			float temp[3];
 
 			if(dt>0.999f){
-				set_four_ipo(dt-0.001f, t, type);
+				key_curve_position_weights(dt-0.001f, t, type);
 				weighted_particle_vector(keys[0].co, keys[1].co, keys[2].co, keys[3].co, t, temp);
 				VECSUB(result->vel, result->co, temp);
 			}
 			else{
-				set_four_ipo(dt+0.001f, t, type);
+				key_curve_position_weights(dt+0.001f, t, type);
 				weighted_particle_vector(keys[0].co, keys[1].co, keys[2].co, keys[3].co, t, temp);
 				VECSUB(result->vel, temp, result->co);
 			}
