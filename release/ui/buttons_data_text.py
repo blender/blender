@@ -44,8 +44,10 @@ class DATA_PT_shape_text(DataButtonsPanel):
 		
 		col = split.column()
 		col.itemL(text="Caps:")
-		col.itemR(curve, "front")
-		col.itemR(curve, "back")
+		row = col.row()
+		row .itemR(curve, "front")
+		row .itemR(curve, "back")
+		# col = split.column()
 		col.itemL(text="Textures:")
 		col.itemR(curve, "uv_orco")
 		col.itemR(curve, "auto_texspace")
@@ -55,11 +57,12 @@ class DATA_PT_shape_text(DataButtonsPanel):
 		sub = col.column(align=True)
 		sub.itemR(curve, "resolution_u", text="Preview U")
 		sub.itemR(curve, "render_resolution_u", text="Render U")
+		
+		# resolution_v is not used for text
+		
 		sub = col.column(align=True)
-		sub.itemR(curve, "resolution_v", text="Preview V")
-		sub.itemR(curve, "render_resolution_v", text="Render V")
 		col.itemL(text="Display:")
-		col.itemR(curve, "fast")
+		col.itemR(curve, "fast", text="Fast Editing")
 
 class DATA_PT_geometry_text(DataButtonsPanel):
 	__label__ = "Geometry"
@@ -93,19 +96,19 @@ class DATA_PT_font(DataButtonsPanel):
 		
 		text = context.curve
 		char = context.curve.edit_format
-		
+
 		layout.itemR(text, "font")
 		
 		row = layout.row()
 		row.itemR(text, "text_size", text="Size")	
 		row.itemR(text, "shear")
-			
+		
 		split = layout.split()
 		
-		col = split.column()
+		col = split.column()	
 		col.itemL(text="Object Font:")
 		col.itemR(text, "family", text="")
-		
+
 		col = split.column()
 		col.itemL(text="Text on Curve:")
 		col.itemR(text, "text_on_curve", text="")
@@ -158,19 +161,19 @@ class DATA_PT_textboxes(DataButtonsPanel):
 		layout = self.layout
 			
 		text = context.curve
-		box = context.curve.textbox
 		
-		split = layout.box().split()
+		for box in text.textboxes:
+			split = layout.box().split()
+			
+			col = split.column(align=True)
+			col.itemL(text="Dimensions:")
+			col.itemR(box, "width", text="Width")
+			col.itemR(box, "height", text="Height")
 		
-		col = split.column(align=True)
-		col.itemL(text="Dimensions:")
-		col.itemR(box, "width", text="Width")
-		col.itemR(box, "height", text="Height")
-		
-		col = split.column(align=True)	
-		col.itemL(text="Offset:")
-		col.itemR(box, "x", text="X")
-		col.itemR(box, "y", text="Y")
+			col = split.column(align=True)	
+			col.itemL(text="Offset:")
+			col.itemR(box, "x", text="X")
+			col.itemR(box, "y", text="Y")
 
 bpy.types.register(DATA_PT_context_text)	
 bpy.types.register(DATA_PT_shape_text)	

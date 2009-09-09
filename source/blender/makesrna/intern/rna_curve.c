@@ -159,6 +159,14 @@ static void rna_Curve_material_index_range(PointerRNA *ptr, int *min, int *max)
 	*max= cu->totcol-1;
 }
 
+static void rna_Curve_active_textbox_index_range(PointerRNA *ptr, int *min, int *max)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+	*min= 0;
+	*max= cu->totbox-1;
+}
+
+
 static void rna_Curve_2d_set(PointerRNA *ptr, int value)
 {
 	Curve *cu= (Curve*)ptr->id.data;
@@ -509,11 +517,15 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Underline Thickness", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
+	prop= RNA_def_property(srna, "textboxes", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "tb", "totbox");
+	RNA_def_property_struct_type(prop, "TextBox");
+	RNA_def_property_ui_text(prop, "Textboxes", "");
+
 	prop= RNA_def_property(srna, "active_textbox", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "actbox");
-	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "The active text box", "");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_Curve_active_textbox_index_range");
 	
 	/* strings */
 	prop= RNA_def_property(srna, "family", PROP_STRING, PROP_NONE);
@@ -539,12 +551,7 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_pointer_sdna(prop, NULL, "vfont");
 	RNA_def_property_ui_text(prop, "Font", "");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
-	
-	prop= RNA_def_property(srna, "textbox", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "tb");
-	RNA_def_property_ui_text(prop, "Textbox", "");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
-	
+
 	prop= RNA_def_property(srna, "edit_format", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "curinfo");
 	RNA_def_property_ui_text(prop, "Edit Format", "Editing settings character formatting.");

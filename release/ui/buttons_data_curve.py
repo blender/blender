@@ -15,7 +15,7 @@ class DataButtonsPanelCurve(DataButtonsPanel):
 	'''
 	def poll(self, context):
 		return (context.object and context.object.type == 'CURVE' and context.curve)
-		
+
 class DataButtonsPanelActive(DataButtonsPanel):
 	'''
 	Same as above but for curves only
@@ -80,7 +80,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 		sub = col.column(align=True)
 		sub.itemR(curve, "resolution_u", text="Preview U")
 		sub.itemR(curve, "render_resolution_u", text="Render U")
-		
+
 		if is_surf:
 			sub = col.column(align=True)
 			sub.itemR(curve, "resolution_v", text="Preview V")
@@ -150,59 +150,70 @@ class DATA_PT_active_spline(DataButtonsPanelActive):
 		curve = context.curve
 		act_spline = curve.active_spline
 		is_surf = (ob.type == 'SURFACE')
+		is_poly = (act_spline.type == 'POLY')
 		
 		split = layout.split()
 		
-		col = split.column()
-		col.itemL(text="Cyclic:")
-		if act_spline.type == 'NURBS':
-			col.itemL(text="Bezier:")
-			col.itemL(text="Endpoint:")
-			col.itemL(text="Order:")
-		col.itemL(text="Resolution:")
-		
-		col = split.column()
-		col.itemR(act_spline, "cyclic_u", text="U")
-		
-		if act_spline.type == 'NURBS':
-			sub = col.column()
-			sub.active = (not act_spline.cyclic_u)
-			sub.itemR(act_spline, "bezier_u", text="U")
-			sub.itemR(act_spline, "endpoint_u", text="U")
-			
-			sub = col.column()
-			sub.itemR(act_spline, "order_u", text="U")
-		col.itemR(act_spline, "resolution_u", text="U")
-		
-		if is_surf:
+		if is_poly:
+			# These settings are below but its easier to have 
+			# poly's set aside since they use so few settings
 			col = split.column()
-			col.itemR(act_spline, "cyclic_v", text="V")
-			
-			# its a surface, assume its a nurb.
-			sub = col.column()
-			sub.active = (not act_spline.cyclic_v)
-			sub.itemR(act_spline, "bezier_v", text="V")
-			sub.itemR(act_spline, "endpoint_v", text="V")
-			sub = col.column()
-			sub.itemR(act_spline, "order_v", text="V")
-			sub.itemR(act_spline, "resolution_v", text="V")
-
+			col.itemL(text="Cyclic:")
+			col.itemR(act_spline, "smooth")
+			col = split.column()
+			col.itemR(act_spline, "cyclic_u", text="U")
 		
-		if not is_surf:
+		else:
+			col = split.column()
+			col.itemL(text="Cyclic:")
+			if act_spline.type == 'NURBS':
+				col.itemL(text="Bezier:")
+				col.itemL(text="Endpoint:")
+				col.itemL(text="Order:")
+			
+			col.itemL(text="Resolution:")
+					
+			col = split.column()
+			col.itemR(act_spline, "cyclic_u", text="U")
+			
+			if act_spline.type == 'NURBS':
+				sub = col.column()
+				# sub.active = (not act_spline.cyclic_u)
+				sub.itemR(act_spline, "bezier_u", text="U")
+				sub.itemR(act_spline, "endpoint_u", text="U")
+				
+				sub = col.column()
+				sub.itemR(act_spline, "order_u", text="U")
+			col.itemR(act_spline, "resolution_u", text="U")
+			
+			if is_surf:
+				col = split.column()
+				col.itemR(act_spline, "cyclic_v", text="V")
+				
+				# its a surface, assume its a nurb.
+				sub = col.column()
+				sub.active = (not act_spline.cyclic_v)
+				sub.itemR(act_spline, "bezier_v", text="V")
+				sub.itemR(act_spline, "endpoint_v", text="V")
+				sub = col.column()
+				sub.itemR(act_spline, "order_v", text="V")
+				sub.itemR(act_spline, "resolution_v", text="V")
+
+			
+			if not is_surf:
+				split = layout.split()
+				col = split.column()
+				col.active = (not curve.curve_2d)
+				
+				col.itemL(text="Interpolation:")
+				col.itemR(act_spline, "tilt_interpolation", text="Tilt")
+				col.itemR(act_spline, "radius_interpolation", text="Radius")
+			
 			split = layout.split()
 			col = split.column()
-			col.active = (not curve.curve_2d)
-			
-			col.itemL(text="Interpolation:")
-			col.itemR(act_spline, "tilt_interpolation", text="Tilt")
-			col.itemR(act_spline, "radius_interpolation", text="Radius")
-		
-		
-		split = layout.split()
-		col = split.column()
-		col.itemR(act_spline, "smooth")
-		
-		
+			col.itemR(act_spline, "smooth")
+
+
 bpy.types.register(DATA_PT_context_curve)
 bpy.types.register(DATA_PT_shape_curve)
 bpy.types.register(DATA_PT_geometry_curve)
