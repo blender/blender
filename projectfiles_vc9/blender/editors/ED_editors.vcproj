@@ -1075,19 +1075,11 @@
 			Name="object"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_add.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\object\object_constraint.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\object\object_group.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\object\object_shapekey.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\object\object_lattice.c"
 				>
 			</File>
 			<File
@@ -1095,7 +1087,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_group.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_hook.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\object\object_intern.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_lattice.c"
 				>
 			</File>
 			<File
@@ -1107,11 +1111,23 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\object\object_vgroup.c"
+				RelativePath="..\..\..\source\blender\editors\object\object_relations.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\object\object_hook.c"
+				RelativePath="..\..\..\source\blender\editors\object\object_select.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_shapekey.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_transform.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_vgroup.c"
 				>
 			</File>
 		</Filter>
