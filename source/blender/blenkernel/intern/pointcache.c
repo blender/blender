@@ -1847,7 +1847,7 @@ int BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 		else if(pid->type == PTCACHE_TYPE_SMOKE_DOMAIN)
 			smokeModifier_reset(pid->calldata);
 		else if(pid->type == PTCACHE_TYPE_SMOKE_HIGHRES)
-			smokeModifier_reset(pid->calldata);
+			smokeModifier_reset_turbulence(pid->calldata);
 	}
 	if(clear)
 		BKE_ptcache_id_clear(pid, PTCACHE_CLEAR_ALL, 0);

@@ -1157,14 +1157,13 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		{
 			BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
 		}
-		if(!(cache_wt->flag & PTCACHE_SIMULATION_VALID))
+		if(sds->wt && !(cache_wt->flag & PTCACHE_SIMULATION_VALID))
 		{
 			BKE_ptcache_id_reset(scene, &pid_wt, PTCACHE_RESET_OUTDATED);
 		}
 
 		if(smd->time == -1 && framenr!= startframe)
 			return;
-		
 
 		if(!smokeModifier_init(smd, ob, scene, dm))
 			return;
@@ -1287,6 +1286,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			if(get_lamp(scene, light))
 				smoke_calc_transparency(sds->shadow, smoke_get_density(sds->fluid), sds->p0, sds->p1, sds->res, sds->dx, light, calc_voxel_transp, -7.0*sds->dx);
 
+			// printf("smd->time: %f\n", smd->time);
 			return;
 		}
 

@@ -90,7 +90,10 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel):
 	
 	def poll(self, context):
 		md = context.smoke
-		return md and (md.smoke_type == 'TYPE_DOMAIN')
+		if md:
+				return (md.smoke_type == 'TYPE_DOMAIN')
+		
+		return False
 
 	def draw(self, context):
 		layout = self.layout
@@ -145,7 +148,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
 		md = context.smoke.domain_settings
 
 		split = layout.split()
-
+			
 		col = split.column()
 		col.itemL(text="Resolution:")
 		col.itemR(md, "amplify", text="Divisions")
@@ -154,7 +157,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel):
 		col.itemL(text="Noise Method:")
 		col.row().itemR(md, "noise_type", text="")
 		col.itemR(md, "strength")
-		sub.itemR(md, "viewhighres")
+		col.itemR(md, "viewhighres")
 		
 class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):
 	__label__ = "Smoke High Resolution Cache"
