@@ -386,6 +386,7 @@ static void rna_def_bone_group(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "BoneGroup", NULL);
 	RNA_def_struct_sdna(srna, "bActionGroup");
 	RNA_def_struct_ui_text(srna, "Bone Group", "Groups of Pose Channels (Bones).");
+	RNA_def_struct_ui_icon(srna, ICON_GROUP_BONE);
 	
 	/* name */
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
