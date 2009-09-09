@@ -111,6 +111,10 @@ typedef enum PropertySubType {
 
 	/* pointers */
 	PROP_NEVER_NULL = 30,
+
+	/* booleans */
+	PROP_LAYER = 40,
+	PROP_LAYER_MEMBER = 41
 } PropertySubType;
 
 typedef enum PropertyFlag {

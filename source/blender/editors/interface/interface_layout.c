@@ -310,6 +310,30 @@ static uiLayout *ui_item_local_sublayout(uiLayout *test, uiLayout *layout, int a
 	return sub;
 }
 
+static void ui_layer_but_cb(bContext *C, void *arg_but, void *arg_index)
+{
+	wmWindow *win= CTX_wm_window(C);
+	uiBut *but= arg_but, *cbut;
+	PointerRNA *ptr= &but->rnapoin;
+	PropertyRNA *prop= but->rnaprop;
+	int i, index= GET_INT_FROM_POINTER(arg_index);
+	int shift= win->eventstate->shift;
+	int len= RNA_property_array_length(ptr, prop);
+
+	if(!shift) {
+		RNA_property_boolean_set_index(ptr, prop, index, 1);
+
+		for(i=0; i<len; i++)
+			if(i != index)
+				RNA_property_boolean_set_index(ptr, prop, i, 0);
+
+		RNA_property_update(C, ptr, prop);
+
+		for(cbut=but->block->buttons.first; cbut; cbut=cbut->next)
+			ui_check_but(cbut);
+	}
+}
+
 /* create buttons for an item with an RNA array */
 static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int len, int x, int y, int w, int h, int expand, int slider)
 {
@@ -318,7 +342,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 	PropertyType type;
 	PropertySubType subtype;
 	uiLayout *sub;
-	int a;
+	int a, b;
 
 	/* retrieve type and subtype */
 	type= RNA_property_type(prop);
@@ -332,9 +356,11 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 		uiDefBut(block, LABEL, 0, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
 	/* create buttons */
-	if(type == PROP_BOOLEAN && len == 20) {
+	if(type == PROP_BOOLEAN && ELEM(subtype, PROP_LAYER, PROP_LAYER_MEMBER)) {
 		/* special check for layer layout */
 		int butw, buth, unit;
+		int cols= (len >= 20)? 2: 1;
+		int colbuts= len/(2*cols);
 
 		uiBlockSetCurLayout(block, uiLayoutFree(layout, 0));
 
@@ -342,21 +368,23 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 		butw= unit;
 		buth= unit;
 
-		uiBlockBeginAlign(block);
-		for(a=0; a<5; a++)
-			uiDefAutoButR(block, ptr, prop, a, "", ICON_BLANK1, x + butw*a, y+buth, butw, buth);
-		for(a=0; a<5; a++)
-			uiDefAutoButR(block, ptr, prop, a+10, "", ICON_BLANK1, x + butw*a, y, butw, buth);
-		uiBlockEndAlign(block);
+		for(b=0; b<cols; b++) {
+			uiBlockBeginAlign(block);
 
-		x += 5*butw + style->buttonspacex;
+			for(a=0; a<colbuts; a++) {
+				but= uiDefAutoButR(block, ptr, prop, a+b*colbuts, "", ICON_BLANK1, x + butw*a, y+buth, butw, buth);
+				if(subtype == PROP_LAYER_MEMBER)
+					uiButSetFunc(but, ui_layer_but_cb, but, SET_INT_IN_POINTER(a+b*colbuts));
+			}
+			for(a=0; a<colbuts; a++) {
+				but= uiDefAutoButR(block, ptr, prop, a+len/2+b*colbuts, "", ICON_BLANK1, x + butw*a, y, butw, buth);
+				if(subtype == PROP_LAYER_MEMBER)
+					uiButSetFunc(but, ui_layer_but_cb, but, SET_INT_IN_POINTER(a+len/2+b*colbuts));
+			}
+			uiBlockEndAlign(block);
 
-		uiBlockBeginAlign(block);
-		for(a=0; a<5; a++)
-			uiDefAutoButR(block, ptr, prop, a+5, "", ICON_BLANK1, x + butw*a, y+buth, butw, buth);
-		for(a=0; a<5; a++)
-			uiDefAutoButR(block, ptr, prop, a+15, "", ICON_BLANK1, x + butw*a, y, butw, buth);
-		uiBlockEndAlign(block);
+			x += colbuts*butw + style->buttonspacex;
+		}
 	}
 	else if(subtype == PROP_MATRIX) {
 		/* matrix layout */
@@ -784,7 +812,7 @@ static void ui_item_rna_size(uiLayout *layout, char *name, int icon, PointerRNA 
 		if(!name[0] && icon == 0)
 			h= 0;
 
-		if(type == PROP_BOOLEAN && len == 20)
+		if(ELEM(subtype, PROP_LAYER, PROP_LAYER_MEMBER))
 			h += 2*UI_UNIT_Y;
 		else if(subtype == PROP_MATRIX)
 			h += ceil(sqrt(len))*UI_UNIT_Y;

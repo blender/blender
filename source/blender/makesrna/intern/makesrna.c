@@ -1394,6 +1394,8 @@ static const char *rna_property_subtypename(PropertyType type)
 		case PROP_XYZ: return "PROP_XYZ";
 		case PROP_RGB: return "PROP_RGB";
 		case PROP_NEVER_NULL: return "PROP_NEVER_NULL";
+		case PROP_LAYER: return "PROP_LAYER";
+		case PROP_LAYER_MEMBER: return "PROP_LAYER_MEMBER";
 		default: {
 			/* incase we dont have a type preset that includes the subtype */
 			if(RNA_SUBTYPE_UNIT(type)) {

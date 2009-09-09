@@ -1953,6 +1953,34 @@ PropertyRNA *RNA_def_boolean_array(StructOrFunctionRNA *cont_, const char *ident
 	return prop;
 }
 
+PropertyRNA *RNA_def_boolean_layer(StructOrFunctionRNA *cont_, const char *identifier, int len, int *default_value, 
+	const char *ui_name, const char *ui_description)
+{
+	ContainerRNA *cont= cont_;
+	PropertyRNA *prop;
+	
+	prop= RNA_def_property(cont, identifier, PROP_BOOLEAN, PROP_LAYER);
+	if(len != 0) RNA_def_property_array(prop, len);
+	if(default_value) RNA_def_property_boolean_array_default(prop, default_value);
+	RNA_def_property_ui_text(prop, ui_name, ui_description);
+
+	return prop;
+}
+
+PropertyRNA *RNA_def_boolean_layer_member(StructOrFunctionRNA *cont_, const char *identifier, int len, int *default_value, 
+	const char *ui_name, const char *ui_description)
+{
+	ContainerRNA *cont= cont_;
+	PropertyRNA *prop;
+	
+	prop= RNA_def_property(cont, identifier, PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	if(len != 0) RNA_def_property_array(prop, len);
+	if(default_value) RNA_def_property_boolean_array_default(prop, default_value);
+	RNA_def_property_ui_text(prop, ui_name, ui_description);
+
+	return prop;
+}
+
 PropertyRNA *RNA_def_boolean_vector(StructOrFunctionRNA *cont_, const char *identifier, int len, int *default_value, 
 	const char *ui_name, const char *ui_description)
 {

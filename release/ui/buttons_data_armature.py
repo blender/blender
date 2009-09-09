@@ -42,9 +42,9 @@ class DATA_PT_skeleton(DataButtonsPanel):
 
 		col = split.column()
 		col.itemL(text="Layers:")
-		col.template_layers(arm, "layer")
+		col.itemR(arm, "layer", text="")
 		col.itemL(text="Protected Layers:")
-		col.template_layers(arm, "layer_protection")
+		col.itemR(arm, "layer_protection", text="")
 		col.itemL(text="Edit Options:")
 		col.itemR(arm, "x_axis_mirror")
 		col.itemR(arm, "auto_ik")

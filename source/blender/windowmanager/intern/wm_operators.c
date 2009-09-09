@@ -531,7 +531,7 @@ int WM_operator_winactive(bContext *C)
 }
 
 /* op->invoke */
-static void redo_cb(bContext *C, void *arg_op, void *arg2)
+static void redo_cb(bContext *C, void *arg_op, int event)
 {
 	wmOperator *lastop= arg_op;
 	
@@ -553,7 +553,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	block= uiBeginBlock(C, ar, "redo_popup", UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
-	uiBlockSetFunc(block, redo_cb, arg_op, NULL);
+	uiBlockSetHandleFunc(block, redo_cb, arg_op);
 
 	if(!op->properties) {
 		IDPropertyTemplate val = {0};

@@ -325,7 +325,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
 	/* flags */
-	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "layer", 1);
 	RNA_def_property_array(prop, 16);
 	if(editbone) RNA_def_property_boolean_funcs(prop, "rna_EditBone_layer_get", "rna_EditBone_layer_set");
@@ -569,7 +569,7 @@ void rna_def_armature(BlenderRNA *brna)
 	
 	/* Boolean values */
 		/* layer */
-	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "layer", 1);
 	RNA_def_property_array(prop, 16);
 	RNA_def_property_ui_text(prop, "Visible Layers", "Armature layer visibility.");
@@ -578,7 +578,7 @@ void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
 		/* layer protection */
-	prop= RNA_def_property(srna, "layer_protection", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "layer_protection", PROP_BOOLEAN, PROP_LAYER);
 	RNA_def_property_boolean_sdna(prop, NULL, "layer_protected", 1);
 	RNA_def_property_array(prop, 16);
 	RNA_def_property_ui_text(prop, "Layer Proxy Protection", "Protected layers in Proxy Instances are restored to Proxy settings on file reload and undo.");	

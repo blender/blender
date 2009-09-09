@@ -1037,8 +1037,7 @@ void OBJECT_OT_move_to_layer(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_array(ot->srna, "layer", 20, NULL, "Layer", "");
-	/* XXX boolean layer subtype, behavior */
+	RNA_def_boolean_layer_member(ot->srna, "layer", 20, NULL, "Layer", "");
 }
 
 /************************** Link to Scene Operator *****************************/

@@ -98,7 +98,7 @@ class BONE_PT_bone(BoneButtonsPanel):
 		row.itemR(bone, "connected")
 		
 		col.itemL(text="Layers:")
-		col.template_layers(bone, "layer")
+		col.itemR(bone, "layer", text="")
 		
 		col = split.column()
 		col.itemL(text="Inherit:")

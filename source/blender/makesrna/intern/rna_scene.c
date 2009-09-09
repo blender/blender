@@ -363,12 +363,6 @@ static void rna_SceneRenderLayer_layer_set(PointerRNA *ptr, const int *values)
 	rl->lay= layer_set(rl->lay, values);
 }
 
-static void rna_SceneRenderLayer_zmask_layer_set(PointerRNA *ptr, const int *values)
-{
-	SceneRenderLayer *rl= (SceneRenderLayer*)ptr->data;
-	rl->lay_zmask= layer_set(rl->lay_zmask, values);
-}
-
 static void rna_SceneRenderLayer_pass_update(bContext *C, PointerRNA *ptr)
 {
 	Scene *scene= (Scene*)ptr->id.data;
@@ -597,7 +591,7 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	/* layers */
-	prop= RNA_def_property(srna, "visible_layers", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "visible_layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_ui_text(prop, "Visible Layers", "Scene layers included in this render layer.");
@@ -606,12 +600,10 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-	prop= RNA_def_property(srna, "zmask_layers", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "zmask_layers", PROP_BOOLEAN, PROP_LAYER);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay_zmask", 1);
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_ui_text(prop, "Zmask Layers", "Zmask scene layers.");
-	if(scene) RNA_def_property_boolean_funcs(prop, NULL, "rna_SceneRenderLayer_zmask_layer_set");
-	else RNA_def_property_boolean_funcs(prop, NULL, "rna_RenderLayer_zmask_layer_set");
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
@@ -1940,7 +1932,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Scene_objects_get", 0, 0, 0, 0, 0);
 
 	/* Layers */
-	prop= RNA_def_property(srna, "visible_layers", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "visible_layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_ui_text(prop, "Visible Layers", "Layers visible when rendering the scene.");
