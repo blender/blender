@@ -90,10 +90,7 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel):
 	
 	def poll(self, context):
 		md = context.smoke
-		if md:
-				return (md.smoke_type == 'TYPE_DOMAIN')
-		
-		return False
+		return md and (md.smoke_type == 'TYPE_DOMAIN')
 
 	def draw(self, context):
 		layout = self.layout
