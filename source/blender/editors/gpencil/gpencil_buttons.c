@@ -215,7 +215,7 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 		/* onion-skinning */
 		subcol= uiLayoutColumn(col, 1);
 			uiItemR(subcol, "Onion Skinning", 0, &ptr, "use_onion_skinning", 0);
-			uiItemR(subcol, "GStep", 0, &ptr, "max_ghost_range", 0); // XXX shorter name here? (i.e. GStep)
+			uiItemR(subcol, "Frames", 0, &ptr, "max_ghost_range", 0); // XXX shorter name here? (i.e. GStep)
 		
 		/* additional options... */
 		subcol= uiLayoutColumn(col, 1);
