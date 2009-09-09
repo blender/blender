@@ -119,6 +119,9 @@ def render_slave(engine, scene):
 							run_t = current_t
 				
 				if cancelled:
+					# kill process if needed
+					if process.poll() == None:
+						process.terminate()
 					continue # to next frame
 				
 				total_t = time.time() - start_t

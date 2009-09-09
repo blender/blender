@@ -26,6 +26,9 @@ def clientSendJob(conn, scene, anim = False, chunks = 5):
 	if job_name == "[default]":
 		job_name = name
 	
+	###########################
+	# LIBRARIES
+	###########################
 	for lib in bpy.data.libraries:
 		lib_path = lib.filename
 		
@@ -34,10 +37,12 @@ def clientSendJob(conn, scene, anim = False, chunks = 5):
 			
 		job.addFile(lib_path)
 	
+	###########################
+	# POINT CACHES
+	###########################
+	
 	root, ext = os.path.splitext(name)
 	cache_path = path + os.sep + "blendcache_" + root + os.sep # need an API call for that
-	
-	print("cache:", cache_path)
 	
 	if os.path.exists(cache_path):
 		caches = {}
@@ -80,7 +85,14 @@ def clientSendJob(conn, scene, anim = False, chunks = 5):
 						previous_frame = previous_item[0]
 						job.addFile(cache_path + current_file, previous_frame + 1, next_frame - 1)
 		
-	print(job.files)
+	###########################
+	# IMAGES
+	###########################
+	for image in bpy.data.images:
+		if image.source == "FILE" and not image.packed_file:
+			job.addFile(image.filename)
+	
+	# print(job.files)
 	
 	job.name = job_name
 	

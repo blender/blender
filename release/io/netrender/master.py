@@ -477,33 +477,43 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 			print("writing result file")
 			self.server.stats("", "Receiving render result")
 			
-			job_id = self.headers['job-id']
+			slave_id = self.headers['slave-id']
 			
-			job = self.server.getJobByID(job_id)
+			slave = self.server.updateSlave(slave_id)
 			
-			if job:
-				job_frame = int(self.headers['job-frame'])
-				job_result = int(self.headers['job-result'])
-				job_time = float(self.headers['job-time'])
+			if slave: # only if slave id is valid
+				job_id = self.headers['job-id']
 				
-				if job_result == DONE:
-					length = int(self.headers['content-length'])
-					buf = self.rfile.read(length)
-					f = open(job.save_path + "%04d" % job_frame + ".exr", 'wb')
-					f.write(buf)
-					f.close()
-					
-					del buf
-					
 				job = self.server.getJobByID(job_id)
-				frame = job[job_frame]
-				frame.status = job_result
-				frame.time = job_time
-		
-				self.server.updateSlave(self.headers['slave-id'])
 				
-				self.send_head()
-			else: # job not found
+				if job:
+					job_frame = int(self.headers['job-frame'])
+					job_result = int(self.headers['job-result'])
+					job_time = float(self.headers['job-time'])
+					
+					frame = job[job_frame]
+					
+					if job_result == DONE:
+						length = int(self.headers['content-length'])
+						buf = self.rfile.read(length)
+						f = open(job.save_path + "%04d" % job_frame + ".exr", 'wb')
+						f.write(buf)
+						f.close()
+						
+						del buf
+					elif job_result == ERROR:
+						# blacklist slave on this job on error
+						job.blacklist.append(slave.id)
+						
+					frame.status = job_result
+					frame.time = job_time
+			
+					self.server.updateSlave(self.headers['slave-id'])
+					
+					self.send_head()
+				else: # job not found
+					self.send_head(http.client.NO_CONTENT)
+			else: # invalid slave id
 				self.send_head(http.client.NO_CONTENT)
 		# =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 		elif self.path == "log":
