@@ -448,12 +448,23 @@ void WM_operator_properties_free(PointerRNA *ptr)
 /* ************ default op callbacks, exported *********** */
 
 /* invoke callback, uses enum property named "type" */
-/* only weak thing is the fixed property name... */
 int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	PropertyRNA *prop= RNA_struct_find_property(op->ptr, "type");
+	PropertyRNA *prop;
 	uiPopupMenu *pup;
 	uiLayout *layout;
+
+	prop= RNA_struct_find_property(op->ptr, "type");
+
+	if(!prop) {
+		RNA_STRUCT_BEGIN(op->ptr, findprop) {
+			if(RNA_property_type(findprop) == PROP_ENUM) {
+				prop= findprop;
+				break;
+			}
+		}
+		RNA_STRUCT_END;
+	}
 
 	if(prop==NULL) {
 		printf("WM_menu_invoke: %s has no \"type\" enum property\n", op->type->idname);
@@ -464,7 +475,7 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else {
 		pup= uiPupMenuBegin(C, op->type->name, 0);
 		layout= uiPupMenuLayout(pup);
-		uiItemsEnumO(layout, op->type->idname, "type");
+		uiItemsEnumO(layout, op->type->idname, (char*)RNA_property_identifier(prop));
 		uiPupMenuEnd(C, pup);
 	}
 
