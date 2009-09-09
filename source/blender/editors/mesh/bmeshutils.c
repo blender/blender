@@ -156,8 +156,10 @@ int EDBM_InitOpf(BMEditMesh *em, BMOperator *bmop, wmOperator *op, char *fmt, ..
 		va_end(list);
 		return 0;
 	}
-
-	em->emcopy = BMEdit_Copy(em);
+	
+	if (!em->emcopy)
+		em->emcopy = BMEdit_Copy(em);
+	em->emcopyusers++;
 
 	va_end(list);
 }
@@ -178,11 +180,20 @@ int EDBM_FinishOp(BMEditMesh *em, BMOperator *bmop, wmOperator *op, int report) 
 		*em = *emcopy;
 
 		MEM_freeN(emcopy);
+		em->emcopyusers = 0;
+		em->emcopy = NULL;
 		return 0;
 	} else {
-		BMEdit_Free(em->emcopy);
-		MEM_freeN(em->emcopy);
-		em->emcopy = NULL;
+		em->emcopyusers--;
+		if (em->emcopyusers < 0) {
+			printf("warning: em->emcopyusers was less then zero.\n");
+		}
+
+		if (em->emcopyusers <= 0) {
+			BMEdit_Free(em->emcopy);
+			MEM_freeN(em->emcopy);
+			em->emcopy = NULL;
+		}
 	}
 
 	return 1;
@@ -203,7 +214,9 @@ int EDBM_CallOpf(BMEditMesh *em, wmOperator *op, char *fmt, ...)
 		return 0;
 	}
 
-	em->emcopy = BMEdit_Copy(em);
+	if (!em->emcopy)
+		em->emcopy = BMEdit_Copy(em);
+	em->emcopyusers++;
 
 	BMO_Exec_Op(bm, &bmop);
 
@@ -224,7 +237,9 @@ int EDBM_CallOpfSilent(BMEditMesh *em, char *fmt, ...)
 		return 0;
 	}
 
-	em->emcopy = BMEdit_Copy(em);
+	if (!em->emcopy)
+		em->emcopy = BMEdit_Copy(em);
+	em->emcopyusers++;
 
 	BMO_Exec_Op(bm, &bmop);
 

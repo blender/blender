@@ -484,42 +484,6 @@ int removedoublesflag(EditMesh *em, short flag, short automerge, float limit)		/
 	return a;	/* amount */
 }
 
-static int removedoublesflag_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
-	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
-	char msg[100];
-
-	int cnt = removedoublesflag(em,1,0,scene->toolsettings->doublimit);
-
-	if(cnt)
-	{
-		sprintf(msg, "Removed %d vertices", cnt);
-		BKE_report(op->reports, RPT_INFO, msg);
-	}
-
-	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
-
-	BKE_mesh_end_editmesh(obedit->data, em);
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_remove_doubles(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Remove Doubles";
-	ot->idname= "MESH_OT_remove_doubles";
-
-	/* api callbacks */
-	ot->exec= removedoublesflag_exec;
-	ot->poll= ED_operator_editmesh;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
 // XXX is this needed?
 /* called from buttons */
 static void xsortvert_flag__doSetX(void *userData, EditVert *eve, int x, int y, int index)

@@ -275,7 +275,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 					  Scene *scene, Object *ob, DerivedMesh *dm,
                                           int initFlags)
 {
-	DerivedMesh *cddm = dm; //CDDM_copy(dm); copying shouldn't be necassary here, as all modifiers return CDDM's
+	DerivedMesh *cddm = dm; //copying shouldn't be necassary here, as all modifiers return CDDM's
 	BMEditMesh *em = CDDM_To_BMesh(cddm, NULL);
 	BMOperator op, oldop, weldop;
 	int i, j, indexLen;
@@ -388,9 +388,6 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		MTC_Mat4CpyMat4(final_offset, tmp_mat);
 	}
 
-	//cddm->needsFree = 1;
-	//cddm->release(cddm);
-	
 	BMO_Init_Op(&weldop, "weldverts");
 	BMO_InitOpf(em->bm, &op, "dupe geom=%avef");
 	oldop = op;
@@ -535,12 +532,9 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	float mtx[4][4], imtx[4][4];
 	int i, j;
 
-	cddm = dm; //CDDM_copy(dm); copying shouldn't be necassary here, as all modifiers return CDDM's
+	cddm = dm; //copying shouldn't be necassary here, as all modifiers return CDDM's
 	em = CDDM_To_BMesh(dm, NULL);
 
-	//cddm->needsFree = 1;
-	//cddm->release(cddm);
-	
 	/*convienence variable*/
 	bm = em->bm;
 

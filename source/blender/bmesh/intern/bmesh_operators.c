@@ -20,16 +20,6 @@ static void clear_flag_layer(BMesh *bm);
 static int bmesh_name_to_slotcode(BMOpDefine *def, char *name);
 static int bmesh_opname_to_opcode(char *opname);
 
-typedef void (*opexec)(struct BMesh *bm, struct BMOperator *op);
-
-/*mappings map elements to data, which
-  follows the mapping struct in memory.*/
-typedef struct element_mapping {
-	BMHeader *element;
-	int len;
-} element_mapping;
-
-
 /*operator slot type information - size of one element of the type given.*/
 const int BMOP_OPSLOT_TYPEINFO[] = {
 	0,
@@ -422,6 +412,17 @@ int BMO_CountSlotBuf(struct BMesh *bm, struct BMOperator *op, char *slotname)
 	return slot->len;
 }
 
+int BMO_CountSlotMap(BMesh *bm, BMOperator *op, char *slotname)
+{
+	BMOpSlot *slot = BMO_GetSlot(op, slotname);
+	
+	/*check if its actually a buffer*/
+	if( !(slot->slottype == BMOP_OPSLOT_MAPPING) )
+		return 0;
+
+	return slot->data.ghash ? BLI_ghash_size(slot->data.ghash) : 0;
+}
+
 #if 0
 void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd) {
 	BMOpSlot *slot = &op->slots[slotcode];
@@ -455,28 +456,6 @@ void *BMO_Grow_Array(BMesh *bm, BMOperator *op, int slotcode, int totadd) {
 }
 #endif
 
-BM_INLINE void BMO_Insert_Mapping(BMesh *bm, BMOperator *op, char *slotname, 
-			void *element, void *data, int len) {
-	element_mapping *mapping;
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
-
-	/*sanity check*/
-	if (slot->slottype != BMOP_OPSLOT_MAPPING) return;
-	
-	mapping = BLI_memarena_alloc(op->arena, sizeof(*mapping) + len);
-
-	mapping->element = element;
-	mapping->len = len;
-	memcpy(mapping+1, data, len);
-
-	if (!slot->data.ghash) {
-		slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash, 
-			                             BLI_ghashutil_ptrcmp);
-	}
-	
-	BLI_ghash_insert(slot->data.ghash, element, mapping);
-}
-
 void BMO_Mapping_To_Flag(struct BMesh *bm, struct BMOperator *op, 
 			 char *slotname, int flag)
 {
@@ -492,64 +471,6 @@ void BMO_Mapping_To_Flag(struct BMesh *bm, struct BMOperator *op,
 	for (;ele=BLI_ghashIterator_getKey(&it);BLI_ghashIterator_step(&it)) {
 		BMO_SetFlag(bm, ele, flag);
 	}
-}
-
-BM_INLINE void BMO_Insert_MapFloat(BMesh *bm, BMOperator *op, char *slotname, 
-			void *element, float val)
-{
-	BMO_Insert_Mapping(bm, op, slotname, element, &val, sizeof(float));
-}
-
-BM_INLINE void BMO_Insert_MapPointer(BMesh *bm, BMOperator *op, char *slotname, 
-			void *element, void *val)
-{
-	BMO_Insert_Mapping(bm, op, slotname, element, &val, sizeof(void*));
-}
-
-BM_INLINE int BMO_InMap(BMesh *bm, BMOperator *op, char *slotname, void *element)
-{
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
-
-	/*sanity check*/
-	if (slot->slottype != BMOP_OPSLOT_MAPPING) return 0;
-	if (!slot->data.ghash) return 0;
-
-	return BLI_ghash_haskey(slot->data.ghash, element);
-}
-
-BM_INLINE void *BMO_Get_MapData(BMesh *bm, BMOperator *op, char *slotname,
-		      void *element)
-{
-	element_mapping *mapping;
-	BMOpSlot *slot = BMO_GetSlot(op, slotname);
-
-	/*sanity check*/
-	if (slot->slottype != BMOP_OPSLOT_MAPPING) return NULL;
-	if (!slot->data.ghash) return NULL;
-
-	mapping = BLI_ghash_lookup(slot->data.ghash, element);
-	
-	if (!mapping) return NULL;
-
-	return mapping + 1;
-}
-
-BM_INLINE float BMO_Get_MapFloat(BMesh *bm, BMOperator *op, char *slotname,
-		       void *element)
-{
-	float *val = BMO_Get_MapData(bm, op, slotname, element);
-	if (val) return *val;
-
-	return 0.0f;
-}
-
-BM_INLINE void *BMO_Get_MapPointer(BMesh *bm, BMOperator *op, char *slotname,
-		       void *element)
-{
-	void **val = BMO_Get_MapData(bm, op, slotname, element);
-	if (val) return *val;
-
-	return NULL;
 }
 
 static void *alloc_slot_buffer(BMOperator *op, char *slotname, int len){

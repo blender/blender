@@ -2171,6 +2171,43 @@ static DerivedMesh *mirrorModifier_applyModifierEM(
 /* EdgeSplit modifier: Splits edges in the mesh according to sharpness flag
  * or edge angle (can be used to achieve autosmoothing)
 */
+
+/*new cddm-based edge split code*/
+#if 0
+typedef struct VertUser {
+	int ov, v, done;
+	ListBase users;
+} VertUser;
+
+typedef struct EdgeNode {
+	struct EdgeNode *next, *prev;
+	struct EdgeData *edge;
+} EdgeNode;
+
+typedef struct EdgeData {
+	EdgeNode v1list, v2list;
+	VertUser *v1user, *v2user;
+	int tag;
+	int v1, v2;
+} EdgeData;
+
+DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd)
+{
+	DerivedMesh *cddm = CDDM_copy(dm);
+	EdgeData *etags;
+	VertUser *vusers;
+
+	if (!cddm->numVertData || !cddm->numEdgeData)
+		return cddm;
+
+	etags = MEM_callocN(sizeof(EdgeData)*cddm->numEdgeData, "edgedata tag thingies");
+
+	MEM_freeN(etags);
+	return cddm;
+}
+
+#endif
+
 #if 0
 #define EDGESPLIT_DEBUG_3
 #define EDGESPLIT_DEBUG_2

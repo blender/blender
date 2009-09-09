@@ -24,6 +24,7 @@ typedef struct BMEditMesh {
 
 	/*this is for undoing failed operations*/
 	struct BMEditMesh *emcopy;
+	int emcopyusers;
 	
 	/*we store tesselations as triplets of three loops,
 	  which each define a triangle.*/

@@ -73,12 +73,11 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		vt[i] = v;
 		BMINDEX_SET(v, i);
 
-		/*transfer flags*/
-		v->head.flag = MEFlags_To_BMFlags(mvert->flag, BM_VERT);
-
 		/*this is necassary for selection counts to work properly*/
 		if(v->head.flag & BM_SELECT) BM_Select_Vert(bm, v, 1);
 
+		/*transfer flags*/
+		v->head.flag = MEFlags_To_BMFlags(mvert->flag, BM_VERT);
 		v->bweight = (float)mvert->bweight / 255.0f;
 
 		/*Copy Custom Data*/
@@ -103,11 +102,11 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		e->crease = (float)medge->crease / 255.0f;
 		e->bweight = (float)medge->bweight / 255.0f;
 
-		/*transfer flags*/
-		e->head.flag = MEFlags_To_BMFlags(medge->flag, BM_EDGE);
-
 		/*this is necassary for selection counts to work properly*/
 		if (e->head.flag & BM_SELECT) BM_Select(bm, e, 1);
+
+		/*transfer flags*/
+		e->head.flag = MEFlags_To_BMFlags(medge->flag, BM_EDGE);
 	}
 	
 	if (!me->totpoly) {
@@ -145,11 +144,11 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 
 		f = BM_Make_Ngon(bm, v1, v2, fedges, mpoly->totloop, 0);
 
-		/*transfer flags*/
-		f->head.flag = MEFlags_To_BMFlags(mpoly->flag, BM_FACE);
-
 		/*this is necassary for selection counts to work properly*/
 		if (f->head.flag & BM_SELECT) BM_Select(bm, f, 1);
+
+		/*transfer flags*/
+		f->head.flag = MEFlags_To_BMFlags(mpoly->flag, BM_FACE);
 
 		f->mat_nr = mpoly->mat_nr;
 		if (i == me->act_face) bm->act_face = f;

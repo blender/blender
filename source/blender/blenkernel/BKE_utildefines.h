@@ -241,7 +241,7 @@ behaviour, though it may not be the best in practice.
 
 /*little macro so inline keyword works*/
 #if defined(_MSC_VER)
-#define BM_INLINE //__forceinline
+#define BM_INLINE __forceinline
 #else
 #define BM_INLINE inline
 #endif

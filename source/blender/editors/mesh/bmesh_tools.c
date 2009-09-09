@@ -2622,3 +2622,60 @@ void MESH_OT_merge(wmOperatorType *ot)
 	RNA_def_enum_funcs(prop, merge_type_itemf);
 	RNA_def_boolean(ot->srna, "uvs", 1, "UVs", "Move UVs according to merge.");
 }
+
+
+static int removedoublesflag_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	Scene *scene = CTX_data_scene(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	BMOperator bmop;
+	char msg[100];
+	int count;
+
+	EDBM_InitOpf(em, &bmop, op, "finddoubles verts=%hv dist=%f", 
+		BM_SELECT, RNA_float_get(op->ptr, "mergedist"));
+	BMO_Exec_Op(em->bm, &bmop);
+
+	count = BMO_CountSlotMap(em->bm, &bmop, "targetmapout");
+
+	if (!EDBM_CallOpf(em, op, "weldverts targetmap=%s", &bmop, "targetmapout")) {
+		BMO_Finish_Op(em->bm, &bmop);
+		return OPERATOR_CANCELLED;
+	}
+
+	if (!EDBM_FinishOp(em, &bmop, op, 1))
+		return OPERATOR_CANCELLED;
+
+	/*we need a better way of reporting this, since this doesn't work
+	  with the last operator panel correctly.
+	if(count)
+	{
+		sprintf(msg, "Removed %d vertices", count);
+		BKE_report(op->reports, RPT_INFO, msg);
+	}
+	*/
+
+	DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_GEOM_SELECT, obedit);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_remove_doubles(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Doubles";
+	ot->idname= "MESH_OT_remove_doubles";
+
+	/* api callbacks */
+	ot->exec= removedoublesflag_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_float(ot->srna, "mergedist", 0.0001, 0.0001, 100.0, 
+		"Merge Distance", 
+		"Minimum distance between elements to merge.", 0.00001, 10.0);
+}

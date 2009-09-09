@@ -32,7 +32,14 @@
 #ifndef BLI_GHASH_H
 #define BLI_GHASH_H
 
+#include "stdio.h"
+#include "stdlib.h"
+#include "string.h"
+
 #include "BKE_utildefines.h"
+
+#include "BLI_mempool.h"
+#include "BLI_blenlib.h"
 
 typedef unsigned int	(*GHashHashFP)		(void *key);
 typedef int				(*GHashCmpFP)		(void *a, void *b);
@@ -63,10 +70,10 @@ typedef struct GHashIterator {
 GHash*	BLI_ghash_new		(GHashHashFP hashfp, GHashCmpFP cmpfp);
 void	BLI_ghash_free		(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
 
-BM_INLINE void	BLI_ghash_insert	(GHash *gh, void *key, void *val);
-BM_INLINE int		BLI_ghash_remove	(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
-BM_INLINE void*	BLI_ghash_lookup	(GHash *gh, void *key);
-BM_INLINE int		BLI_ghash_haskey	(GHash *gh, void *key);
+//BM_INLINE void	BLI_ghash_insert	(GHash *gh, void *key, void *val);
+//BM_INLINE int		BLI_ghash_remove	(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
+//BM_INLINE void*	BLI_ghash_lookup	(GHash *gh, void *key);
+//BM_INLINE int		BLI_ghash_haskey	(GHash *gh, void *key);
 
 int		BLI_ghash_size		(GHash *gh);
 
@@ -139,11 +146,10 @@ int				BLI_ghashutil_strcmp	(void *a, void *b);
 unsigned int	BLI_ghashutil_inthash	(void *ptr);
 int				BLI_ghashutil_intcmp(void *a, void *b);
 
-#endif
-
 /*begin of macro-inlined functions*/
 extern unsigned int hashsizes[];
 
+#if 0
 #define BLI_ghash_insert(gh, _k, _v){\
 	unsigned int _hash= (gh)->hashfp(_k)%gh->nbuckets;\
 	Entry *_e= BLI_mempool_alloc((gh)->entrypool);\
@@ -167,3 +173,94 @@ extern unsigned int hashsizes[];
 			}\
 		}\
 		free(_old); } }
+#endif
+
+/*---------inlined functions---------*/
+BM_INLINE void BLI_ghash_insert(GHash *gh, void *key, void *val) {
+	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
+	Entry *e= BLI_mempool_alloc(gh->entrypool);
+
+	e->key= key;
+	e->val= val;
+	e->next= gh->buckets[hash];
+	gh->buckets[hash]= e;
+	
+	if (++gh->nentries>gh->nbuckets*3) {
+		Entry *e, **old= gh->buckets;
+		int i, nold= gh->nbuckets;
+		
+		gh->nbuckets= hashsizes[++gh->cursize];
+		gh->buckets= malloc(gh->nbuckets*sizeof(*gh->buckets));
+		memset(gh->buckets, 0, gh->nbuckets*sizeof(*gh->buckets));
+		
+		for (i=0; i<nold; i++) {
+			for (e= old[i]; e;) {
+				Entry *n= e->next;
+				
+				hash= gh->hashfp(e->key)%gh->nbuckets;
+				e->next= gh->buckets[hash];
+				gh->buckets[hash]= e;
+				
+				e= n;
+			}
+		}
+		
+		free(old);
+	}
+}
+
+BM_INLINE void* BLI_ghash_lookup(GHash *gh, void *key) 
+{
+	if(gh) {
+		unsigned int hash= gh->hashfp(key)%gh->nbuckets;
+		Entry *e;
+		
+		for (e= gh->buckets[hash]; e; e= e->next)
+			if (gh->cmpfp(key, e->key)==0)
+				return e->val;
+	}	
+	return NULL;
+}
+
+BM_INLINE int BLI_ghash_remove (GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
+{
+	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
+	Entry *e;
+	Entry *p = 0;
+
+	for (e= gh->buckets[hash]; e; e= e->next) {
+		if (gh->cmpfp(key, e->key)==0) {
+			Entry *n= e->next;
+
+			if (keyfreefp) keyfreefp(e->key);
+			if (valfreefp) valfreefp(e->val);
+			BLI_mempool_free(gh->entrypool, e);
+
+
+			e= n;
+			if (p)
+				p->next = n;
+			else
+				gh->buckets[hash] = n;
+
+			--gh->nentries;
+			return 1;
+		}
+		p = e;
+	}
+ 
+	return 0;
+}
+
+BM_INLINE int BLI_ghash_haskey(GHash *gh, void *key) {
+	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
+	Entry *e;
+	
+	for (e= gh->buckets[hash]; e; e= e->next)
+		if (gh->cmpfp(key, e->key)==0)
+			return 1;
+	
+	return 0;
+}
+
+#endif

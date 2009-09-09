@@ -166,6 +166,9 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 		
+		if (V_COUNT(loops) < 3)
+			continue;
+
 		v = loops[0]->v;
 		v2 = loops[1]->v;
 
