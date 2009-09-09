@@ -232,6 +232,7 @@ void BKE_ptcache_id_from_softbody(PTCacheID *pid, struct Object *ob, struct Soft
 void BKE_ptcache_id_from_particles(PTCacheID *pid, struct Object *ob, struct ParticleSystem *psys);
 void BKE_ptcache_id_from_cloth(PTCacheID *pid, struct Object *ob, struct ClothModifierData *clmd);
 void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeModifierData *smd);
+void BKE_ptcache_id_from_smoke_turbulence(PTCacheID *pid, struct Object *ob, struct SmokeModifierData *smd);
 
 void BKE_ptcache_ids_from_object(struct ListBase *lb, struct Object *ob);
 

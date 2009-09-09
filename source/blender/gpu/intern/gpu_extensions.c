@@ -346,17 +346,17 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
 	tex->number = 0;
 	glBindTexture(tex->target, tex->bindcode);
 
-	type = GL_UNSIGNED_BYTE;
-	format = GL_RGBA;
-	internalformat = GL_RGBA8;
+	type = GL_FLOAT; // GL_UNSIGNED_BYTE
+	format = GL_RED;
+	internalformat = GL_RED;
 
-	if (fpixels)
-		pixels = GPU_texture_convert_pixels(w*h*depth, fpixels);
+	//if (fpixels)
+	//	pixels = GPU_texture_convert_pixels(w*h*depth, fpixels);
 
 	glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, 0);
 
 	if (fpixels) {
-		glTexSubImage3D(tex->target, 0, 0, 0, 0, w, h, depth, format, type, pixels);
+		glTexSubImage3D(tex->target, 0, 0, 0, 0, w, h, depth, format, type, fpixels);
 	}
 
 	glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, vfBorderColor);

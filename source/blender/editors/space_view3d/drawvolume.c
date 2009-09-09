@@ -191,7 +191,7 @@ static int larger_pow2(int n)
 	return n*2;
 }
 
-void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture *tex, int res[3])
+void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture *tex, int res[3], float dx, GPUTexture *tex_shadow)
 {
 	Object *ob = base->object;
 	RegionView3D *rv3d= ar->regiondata;
@@ -203,6 +203,27 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 	int numpoints = 0;
 	float cor[3] = {1.,1.,1.};
 	int gl_depth = 0, gl_blend = 0;
+
+	/* Fragment program to calculate the 3dview of smoke */
+	/* using 2 textures, density and shadow */
+	const char *text = "!!ARBfp1.0\n"
+					"PARAM dx = program.local[0];\n"
+					"PARAM darkness = program.local[1];\n"
+					"PARAM f = {1.442695041, 1.442695041, 1.442695041, 0.01};\n"
+					"TEMP temp, shadow, value;\n"
+					"TEX temp, fragment.texcoord[0], texture[0], 3D;\n"
+					"TEX shadow, fragment.texcoord[0], texture[1], 3D;\n"
+					"MUL value, temp, darkness;\n"
+					"MUL value, value, dx;\n"
+					"MUL value, value, f;\n"
+					"EX2 temp, -value.r;\n"
+					"SUB temp.a, 1.0, temp.r;\n"
+					"MUL temp.r, temp.r, shadow.r;\n"
+					"MUL temp.g, temp.g, shadow.r;\n"
+					"MUL temp.b, temp.b, shadow.r;\n"
+					"MOV result.color, temp;\n"
+					"END\n";
+	unsigned int prog;
 
 	glGetBooleanv(GL_BLEND, (GLboolean *)&gl_blend);
 	glGetBooleanv(GL_DEPTH_TEST, (GLboolean *)&gl_depth);
@@ -234,7 +255,23 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 		}
 	}
 
+	if(GLEW_ARB_fragment_program)
+	{
+		glGenProgramsARB(1, &prog);
+		glEnable(GL_FRAGMENT_PROGRAM_ARB);
+
+		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, prog);
+		glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(text), text);
+
+		// cell spacing
+		glProgramLocalParameter4fARB (GL_FRAGMENT_PROGRAM_ARB, 0, dx, dx, dx, 1.0);
+		// custom parameter for smoke style (higher = thicker)
+		glProgramLocalParameter4fARB (GL_FRAGMENT_PROGRAM_ARB, 1, 7.0, 7.0, 7.0, 1.0);
+	}
+
 	GPU_texture_bind(tex, 0);
+	if(tex_shadow)
+		GPU_texture_bind(tex_shadow, 1);
 
 	if (!GLEW_ARB_texture_non_power_of_two) {
 		cor[0] = (float)res[0]/(float)larger_pow2(res[0]);
@@ -289,7 +326,16 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 		n++;
 	}
 
+	if(tex_shadow)
+		GPU_texture_unbind(tex_shadow);
 	GPU_texture_unbind(tex);
+
+	if(GLEW_ARB_fragment_program)
+	{
+		glDisable(GL_FRAGMENT_PROGRAM_ARB);
+		glDeleteProgramsARB(1, &prog);
+	}
+
 
 	MEM_freeN(points);
 

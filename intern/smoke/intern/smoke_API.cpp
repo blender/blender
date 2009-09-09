@@ -137,7 +137,7 @@ extern "C" void smoke_dissolve(FLUID_3D *fluid, int speed, int log)
 	}
 }
 
-extern "C" void smoke_turbulence_dissolve(WTURBULENCE *wt, int speed, int log)
+extern "C" void smoke_dissolve_wavelet(WTURBULENCE *wt, int speed, int log)
 {
 	float *density = wt->getDensityBig();
 	Vec3Int r = wt->getResBig();
@@ -172,7 +172,7 @@ extern "C" void smoke_turbulence_dissolve(WTURBULENCE *wt, int speed, int log)
 	}
 }
 
-extern "C" void smoke_turbulence_initBlenderRNA(WTURBULENCE *wt, float *strength)
+extern "C" void smoke_initWaveletBlenderRNA(WTURBULENCE *wt, float *strength)
 {
 	wt->initBlenderRNA(strength);
 }
@@ -241,13 +241,14 @@ extern "C" float *smoke_turbulence_get_density(WTURBULENCE *wt)
 	return wt ? wt->getDensityBig() : NULL;
 }
 
-extern "C" void smoke_turbulence_get_res(WTURBULENCE *wt, unsigned int *res)
+extern "C" void smoke_turbulence_get_res(WTURBULENCE *wt, int *res)
 {
 	if(wt)
 	{
-		res[0] = wt->_resBig[0];
-		res[1] = wt->_resBig[1];
-		res[2] = wt->_resBig[2];
+		Vec3Int r = wt->getResBig();
+		res[0] = r[0];
+		res[1] = r[1];
+		res[2] = r[2];
 	}
 }
 

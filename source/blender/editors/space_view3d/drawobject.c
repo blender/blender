@@ -5310,13 +5310,60 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	}
 
 	/* draw code for smoke */
+	if((md = modifiers_findByType(ob, eModifierType_Smoke)))
 	{
-		md = modifiers_findByType(ob, eModifierType_Smoke);
-		if (md) {
-			SmokeModifierData *smd = (SmokeModifierData *)md;
-			if(smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain && smd->domain->fluid) {
-				GPU_create_smoke(smd);
-				draw_volume(scene, ar, v3d, base, smd->domain->tex, smd->domain->res);
+		SmokeModifierData *smd = (SmokeModifierData *)md;
+
+		// draw collision objects
+		if((smd->type & MOD_SMOKE_TYPE_COLL) && smd->coll)
+		{
+			/*SmokeCollSettings *scs = smd->coll;
+			if(scs->points)
+			{
+				size_t i;
+
+				wmLoadMatrix(rv3d->viewmat);
+
+				if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	
+				glDepthMask(GL_FALSE);
+				glEnable(GL_BLEND);
+				
+
+				// glPointSize(3.0);
+				bglBegin(GL_POINTS);
+
+				for(i = 0; i < scs->numpoints; i++)
+				{
+					bglVertex3fv(&scs->points[3*i]);
+				}
+
+				bglEnd();
+				glPointSize(1.0);
+
+				wmMultMatrix(ob->obmat);
+				glDisable(GL_BLEND);
+				glDepthMask(GL_TRUE);
+				if(col) cpack(col);
+				
+			}
+			*/
+		}
+
+		// only draw domains
+		if(smd->domain && smd->domain->fluid)
+		{
+			if(!smd->domain->wt || !(smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG))
+			{
+				smd->domain->tex = NULL;
+				GPU_create_smoke(smd, 0);
+				draw_volume(scene, ar, v3d, base, smd->domain->tex, smd->domain->res, smd->domain->dx, smd->domain->tex_shadow);
+				GPU_free_smoke(smd);
+			}
+			else if(smd->domain->wt || (smd->domain->viewsettings & MOD_SMOKE_VIEW_SHOWBIG))
+			{
+				smd->domain->tex = NULL;
+				GPU_create_smoke(smd, 1);
+				draw_volume(scene, ar, v3d, base, smd->domain->tex, smd->domain->res_wt, smd->domain->dx_wt, smd->domain->tex_shadow);
 				GPU_free_smoke(smd);
 			}
 		}

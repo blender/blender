@@ -32,13 +32,15 @@
 #ifndef BKE_SMOKE_H_
 #define BKE_SMOKE_H_
 
-typedef int (*bresenham_callback) (float *input, int res[3], int *pixel, float *tRay);
+typedef float (*bresenham_callback) (float *result, float *input, int res[3], int *pixel, float *tRay, float correct);
 
 void smokeModifier_do(struct SmokeModifierData *smd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm, int useRenderParams, int isFinalCalc);
 
 void smokeModifier_free (struct SmokeModifierData *smd);
 void smokeModifier_reset(struct SmokeModifierData *smd);
+void smokeModifier_reset_turbulence(struct SmokeModifierData *smd);
 void smokeModifier_createType(struct SmokeModifierData *smd);
 
+long long smoke_get_mem_req(int xres, int yres, int zres, int amplify);
 
 #endif /* BKE_SMOKE_H_ */

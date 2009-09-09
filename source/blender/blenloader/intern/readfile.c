@@ -3685,8 +3685,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->domain->smd = smd;
 
 				smd->domain->fluid = NULL;
-				smd->domain->view3d = NULL;
-				smd->domain->tex = NULL;
+				// smd->domain->view3d = NULL;
+				// smd->domain->tex = NULL;
 
 				direct_link_pointcache_list(fd, &(smd->domain->ptcaches[0]), &(smd->domain->point_cache[0]));
 				direct_link_pointcache_list(fd, &(smd->domain->ptcaches[1]), &(smd->domain->point_cache[1]));
