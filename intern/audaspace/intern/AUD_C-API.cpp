@@ -67,7 +67,7 @@ typedef AUD_ReadDevice AUD_Device;
 #endif
 
 static AUD_IDevice* AUD_device = NULL;
-static int AUD_available_devices[3];
+static int AUD_available_devices[4];
 static AUD_I3DDevice* AUD_3ddevice = NULL;
 
 int AUD_init(AUD_DeviceType device, AUD_Specs specs, int buffersize)
