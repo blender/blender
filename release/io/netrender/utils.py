@@ -13,6 +13,14 @@ DISPATCHED = 1
 DONE = 2
 ERROR = 3
 
+def rnaType(rna_type):
+	bpy.types.register(rna_type)
+	return rna_type
+
+def rnaOperator(rna_op):
+	bpy.ops.add(rna_op)
+	return rna_op
+
 def clientConnection(scene):
 		netrender = scene.network_render
 		

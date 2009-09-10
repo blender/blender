@@ -28,6 +28,7 @@ class RenderButtonsPanel(bpy.types.Panel):
 		return (rd.use_game_engine==False) and (rd.engine in self.COMPAT_ENGINES)
 
 # Setting panel, use in the scene for now.
+@rnaType
 class SCENE_PT_network_settings(RenderButtonsPanel):
 	__label__ = "Network Settings"
 	COMPAT_ENGINES = set(['NET_RENDER'])
@@ -57,8 +58,8 @@ class SCENE_PT_network_settings(RenderButtonsPanel):
 			col.itemR(scene.network_render, "priority")
 			col.itemR(scene.network_render, "job_name")
 			col.itemO("render.netclientsend", text="send job to server")
-bpy.types.register(SCENE_PT_network_settings)
 
+@rnaType
 class SCENE_PT_network_slaves(RenderButtonsPanel):
 	__label__ = "Slaves Status"
 	COMPAT_ENGINES = set(['NET_RENDER'])
@@ -96,8 +97,7 @@ class SCENE_PT_network_slaves(RenderButtonsPanel):
 			layout.itemL(text="Seen: " + time.ctime(slave.last_seen))
 			layout.itemL(text="Stats: " + slave.stats)
 
-bpy.types.register(SCENE_PT_network_slaves)
-
+@rnaType
 class SCENE_PT_network_slaves_blacklist(RenderButtonsPanel):
 	__label__ = "Slaves Blacklist"
 	COMPAT_ENGINES = set(['NET_RENDER'])
@@ -133,9 +133,8 @@ class SCENE_PT_network_slaves_blacklist(RenderButtonsPanel):
 			layout.itemL(text="Address: " + slave.address[0])
 			layout.itemL(text="Seen: " + slave.last_seen)
 			layout.itemL(text="Stats: " + time.ctime(slave.stats))
-			
-bpy.types.register(SCENE_PT_network_slaves_blacklist)
 
+@rnaType
 class SCENE_PT_network_jobs(RenderButtonsPanel):
 	__label__ = "Jobs"
 	COMPAT_ENGINES = set(['NET_RENDER'])
@@ -158,6 +157,7 @@ class SCENE_PT_network_jobs(RenderButtonsPanel):
 		subcol = col.column(align=True)
 		subcol.itemO("render.netclientstatus", icon="ICON_FILE_REFRESH", text="")
 		subcol.itemO("render.netclientcancel", icon="ICON_ZOOMOUT", text="")
+		subcol.itemO("render.netclientdownload", icon='ICON_RENDER_ANIMATION', text="")
 
 		if len(bpy.data.netrender_jobs) == 0 and len(netsettings.jobs) > 0:
 			while(len(netsettings.jobs) > 0):
@@ -172,21 +172,18 @@ class SCENE_PT_network_jobs(RenderButtonsPanel):
 			layout.itemL(text="Length: %04i" % len(job))
 			layout.itemL(text="Done: %04i" % job.results[DONE])
 			layout.itemL(text="Error: %04i" % job.results[ERROR])
-			
-bpy.types.register(SCENE_PT_network_jobs)
 
+@rnaType
 class NetRenderSettings(bpy.types.IDPropertyGroup):
 	pass
 
+@rnaType
 class NetRenderSlave(bpy.types.IDPropertyGroup):
 	pass
 
+@rnaType
 class NetRenderJob(bpy.types.IDPropertyGroup):
 	pass
-
-bpy.types.register(NetRenderSettings)
-bpy.types.register(NetRenderSlave)
-bpy.types.register(NetRenderJob)
 
 bpy.types.Scene.PointerProperty(attr="network_render", type=NetRenderSettings, name="Network Render", description="Network Render Settings")
 

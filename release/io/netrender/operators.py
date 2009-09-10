@@ -6,6 +6,7 @@ from netrender.utils import *
 import netrender.client as client
 import netrender.model
 
+@rnaOperator
 class RENDER_OT_netclientsend(bpy.types.Operator):
 	'''
 	Operator documentation text, will be used for the operator tooltip and python docs.
@@ -35,6 +36,7 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
 	def invoke(self, context, event):
 		return self.execute(context)
 
+@rnaOperator
 class RENDER_OT_netclientstatus(bpy.types.Operator):
 	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
 	__idname__ = "render.netclientstatus"
@@ -79,6 +81,7 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
 	def invoke(self, context, event):
 		return self.execute(context)
 
+@rnaOperator
 class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
 	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
 	__idname__ = "render.netclientblacklistslave"
@@ -113,6 +116,7 @@ class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
 	def invoke(self, context, event):
 		return self.execute(context)
 
+@rnaOperator
 class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
 	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
 	__idname__ = "render.netclientwhitelistslave"
@@ -148,6 +152,7 @@ class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
 		return self.execute(context)
 
 
+@rnaOperator
 class RENDER_OT_netclientslaves(bpy.types.Operator):
 	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
 	__idname__ = "render.netclientslaves"
@@ -197,6 +202,7 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
 	def invoke(self, context, event):
 		return self.execute(context)
 
+@rnaOperator
 class RENDER_OT_netclientcancel(bpy.types.Operator):
 	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
 	__idname__ = "render.netclientcancel"
@@ -228,9 +234,52 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
 	def invoke(self, context, event):
 		return self.execute(context)
 	
-bpy.ops.add(RENDER_OT_netclientsend)
-bpy.ops.add(RENDER_OT_netclientstatus)
-bpy.ops.add(RENDER_OT_netclientslaves)
-bpy.ops.add(RENDER_OT_netclientblacklistslave)
-bpy.ops.add(RENDER_OT_netclientwhitelistslave)
-bpy.ops.add(RENDER_OT_netclientcancel)
+@rnaOperator
+class netclientdownload(bpy.types.Operator):
+	'''Operator documentation text, will be used for the operator tooltip and python docs.'''
+	__idname__ = "render.netclientdownload"
+	__label__ = "Net Render Client Download"
+	
+	# List of operator properties, the attributes will be assigned
+	# to the class instance from the operator settings before calling.
+	
+	__props__ = []
+	
+	def poll(self, context):
+		netsettings = context.scene.network_render
+		return netsettings.active_job_index >= 0 and len(netsettings.jobs) > 0
+		
+	def execute(self, context):
+		netsettings = context.scene.network_render
+		rd = context.scene.render_data
+		
+		conn = clientConnection(context.scene)
+		
+		if conn:
+			job = bpy.data.netrender_jobs[netsettings.active_job_index]
+			
+			for frame in job.frames:
+				client.requestResult(conn, job.id, frame.number)
+				response = conn.getresponse()
+		
+				if response.status != http.client.OK:
+					print("missing", frame.number)
+					continue
+				
+				print("got back", frame.number)
+				
+				f = open(netsettings.path + "%06d" % frame.number + ".exr", "wb")
+				buf = response.read(1024)
+				
+				while buf:
+					f.write(buf)
+					buf = response.read(1024)
+				
+				f.close()
+			
+			conn.close()
+		
+		return ('FINISHED',)
+	
+	def invoke(self, context, event):
+		return self.execute(context)

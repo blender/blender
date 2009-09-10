@@ -120,9 +120,10 @@ def clientSendJob(conn, scene, anim = False, chunks = 5):
 	
 	return job_id
 
-def clientRequestResult(conn, scene, job_id):
-	conn.request("GET", "render", headers={"job-id": job_id, "job-frame":str(scene.current_frame)})
+def requestResult(conn, job_id, frame):
+	conn.request("GET", "render", headers={"job-id": job_id, "job-frame":str(frame)})
 
+@rnaType
 class NetworkRenderEngine(bpy.types.RenderEngine):
 	__idname__ = 'NET_RENDER'
 	__label__ = "Network Render"
@@ -164,17 +165,17 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 			
 			self.update_stats("", "Network render waiting for results")
 			
-			clientRequestResult(conn, scene, job_id)
+			requestResult(conn, job_id, scene.current_frame)
 			response = conn.getresponse()
 			
 			if response.status == http.client.NO_CONTENT:
 				netsettings.job_id = clientSendJob(conn, scene)
-				clientRequestResult(conn, scene, job_id)
+				requestResult(conn, job_id, scene.current_frame)
 			
 			while response.status == http.client.ACCEPTED and not self.test_break():
 				print("waiting")
 				time.sleep(1)
-				clientRequestResult(conn, scene, job_id)
+				requestResult(conn, job_id, scene.current_frame)
 				response = conn.getresponse()
 	
 			if response.status != http.client.OK:
@@ -199,6 +200,4 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 			self.end_result(result)
 			
 			conn.close()
-
-bpy.types.register(NetworkRenderEngine)
 
